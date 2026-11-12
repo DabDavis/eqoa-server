@@ -47,3 +47,14 @@ func rowNPCRefusalOf(npc *NPC) string {
 	}
 	return ""
 }
+
+// PlaceNameRefused is why /place makes no NPC of the name, or "": a
+// spawn-only name's would stand out of the world.
+func (w *World) PlaceNameRefused(name string) string {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	if w.spawnOnlyLocked(name) {
+		return "stands out of the world (npcspawnonly): one placed would too"
+	}
+	return ""
+}

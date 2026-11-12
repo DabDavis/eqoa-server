@@ -186,3 +186,72 @@ func TestGMDeleteAndClone(t *testing.T) {
 		t.Fatalf("%d rows at the end", n)
 	}
 }
+
+// /place <name> makes a new NPC of the name where the GM stands, facing as it
+// faces: a copy of a row of the name, of the most common body and level in the
+// GM's world, with its respawn time, in the database and the world at once,
+// audited. A sub GM may /place, /clone and /delete as it may /fly (the owner:
+// "players with the /fly /speed can use also"), "/t place <name>" too; still
+// no other GM command (/goto). The controls: a player's /place is an unknown
+// command and "/t place wolf" a tell; a name no NPC has is refused with close
+// names; nothing made.
+func TestPlaceAndSubGMs(t *testing.T) {
+	c, db, _, gs, gp, ps := campWorld(t)
+	if _, err := db.Exec(`INSERT INTO npcs (id, npc_name, world, x_coord, y_coord, z_coord, facing, modelid, size, npc_level, npc_type, race, zone)
+		VALUES (110, 'wolf', 0, 41000, 50, 41000, 0, ?, 1.0, 40, 0, '0', 7)`, campCreature); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(`INSERT INTO npcrespawn (npc_row, seconds) VALUES (?, 300)`, campWolfFar); err != nil {
+		t.Fatal(err)
+	}
+	c.say(ps, `/place "wolf"`)
+	c.say(ps, "/t place wolf")
+	if l := gmReplies(t, ps); !hasLine(l, `Unrecognized command "/place"`) {
+		t.Fatalf("a player's /place: %q", l)
+	}
+	if n := count(t, db, `SELECT COUNT(*) FROM npcs`); n != 6 {
+		t.Fatalf("%d rows after a player's", n)
+	}
+
+	stand(c, gp, 25600, 52, 15600, math.Pi)
+	c.say(gs, `/place "Wolf"`)
+	var nid int64
+	db.QueryRow(`SELECT MAX(id) FROM npcs`).Scan(&nid)
+	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Placed wolf as row %d (a copy of row %d), with its npcrespawn.", nid, campWolfFar)) {
+		t.Fatalf("/place: %q", l)
+	}
+	row := npcRowMap(t, db, nid)
+	if row["x_coord"].(float64) != 25600 || row["z_coord"].(float64) != 15600 || row["facing"].(int64) != 128 || row["npc_level"].(int64) != 40 {
+		t.Fatalf("the placed row: %v", row)
+	}
+	if st, ok := c.gw.NPCStateOf(entity.EntityID(nid)); !ok || st.X != 25600 || st.RespawnSec != 300 {
+		t.Fatalf("the placed NPC in the world: %+v %v", st, ok)
+	}
+	c.say(gs, "/place grey wolfish beast")
+	if l := gmReplies(t, gs); !hasLine(l, `/place: no NPC is called "grey wolfish beast": nothing made.`) {
+		t.Fatalf("an unknown name: %q", l)
+	}
+	c.say(gs, "/place patroller of wolves")
+	if l := gmReplies(t, gs); !hasLine(l, "Close: wolf") && !hasLine(l, "a patroller") {
+		t.Fatalf("close names: %q", l)
+	}
+
+	// the player made a sub GM
+	c.h.SetAccessLevels(subs{levels{1: 1, 2: 0}, map[int]bool{2: true}})
+	pp := c.gw.SessionPlayer(ps)
+	stand(c, pp, 25700, 53, 15700, 0)
+	c.say(ps, "/t place pariah of Xrag")
+	db.QueryRow(`SELECT MAX(id) FROM npcs`).Scan(&nid)
+	if l := gmReplies(t, ps); !hasLine(l, fmt.Sprintf("Placed pariah of Xrag as row %d (a copy of row %d).", nid, campPariah)) {
+		t.Fatalf("a sub GM's /t place: %q", l)
+	}
+	targetAs(pp, entity.EntityID(nid), 100700, ps)
+	c.say(ps, "#clone")
+	c.say(ps, "/delete")
+	c.say(ps, "/goto 1 2 3")
+	l := gmReplies(t, ps)
+	if !hasLine(l, "Cloned pariah of Xrag as row") || !hasLine(l, fmt.Sprintf("Deleted pariah of Xrag (row %d).", nid)) ||
+		!hasLine(l, `Unrecognized command "/goto"`) {
+		t.Fatalf("a sub GM's: %q", l)
+	}
+}

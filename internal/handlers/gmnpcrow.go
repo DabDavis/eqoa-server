@@ -14,9 +14,10 @@ import (
 
 // gmnpcrow.go — a GM's /delete and /clone (the owner, 2026-11-12: "add
 // /delete for the mob you target (GM only), /clone target at the spot the GM
-// is standing and facing"). A GM's alone (acctlevel 1 or more, as /size and
-// #kill; no sub GM's), as /delete, #delete or a PS2's "/t delete" (and the
-// same for clone):
+// is standing and facing"; then "/place <mob name>", and "players with the
+// /fly /speed can use also"). A GM's (acctlevel 1 or more) and a sub GM's
+// (devcmds.go's subGMCommands, as /fly and /speed), as /delete, #delete or a
+// PS2's "/t delete" (and the same for clone and place):
 //
 //   - /delete: the GM's target, an NPC of a row, deleted for good: its npcs
 //     row and the rows keyed by it (database/gmnpcrow.go: npcrespawn,
@@ -28,6 +29,10 @@ import (
 //     merchant sells the same) where the GM stands, facing as the GM faces,
 //     in the GM's world, with its respawn time, wander, title and sign text;
 //     in the world at once. /delete on the copy takes it away.
+//   - /place <name> (quotes may go round it): as /clone, of a row of that
+//     name (database's PlaceSourceRow: one in the GM's world if any, of the
+//     most common body and level); no NPC of the name: refused, close names
+//     suggested.
 //
 // Refused (entity/gmnpcrow.go): a player, a spawn of no row (a GM's, a
 // quest's, a trigger's, an event's), a dungeon instance's copy, a pet, a
@@ -35,15 +40,18 @@ import (
 // an instance. Every row's change has its gm_audit line (via "game").
 
 // npcRowWords are /delete's and /clone's words, lower case.
-var npcRowWords = map[string]bool{"delete": true, "clone": true}
+var npcRowWords = map[string]bool{"delete": true, "clone": true, "place": true}
 
 // npcRowTell reads a PS2's "/t delete" or "/t clone" (its keyboards type no
 // #, and it keeps an unknown /command to itself): the word and what follows
 // ("undo"), or false for a tell.
 func npcRowTell(name, body string) (string, string, bool) {
 	w := strings.ToLower(name)
-	b := strings.ToLower(strings.TrimSpace(body))
-	if !npcRowWords[w] || b != "" && !(w == "delete" && b == "undo") {
+	b := strings.TrimSpace(body)
+	if w != "place" {
+		b = strings.ToLower(b)
+	}
+	if !npcRowWords[w] || w != "place" && b != "" && !(w == "delete" && b == "undo") || w == "place" && b == "" {
 		return "", "", false
 	}
 	return w, b, true
@@ -244,5 +252,90 @@ func (h *ChatHandler) cloneCommand(sess *session.Session, player *entity.Player,
 	}
 	h.gmReply(sess, line+" /delete on it takes it away.")
 	log.Printf("GM: %s cloned NPC %d (%s) as %d at (%.1f, %.1f, %.1f) world %d facing %d", player.Name, id, rec.NPCName, nid,
+		at.X, at.Y, at.Z, at.World, at.Facing)
+}
+
+// closeNames is up to 10 of names sharing a word of 3 letters or more with q
+// (any case), for a name no NPC has.
+func closeNames(names []string, q string) []string {
+	var words []string
+	for _, w := range strings.Fields(strings.ToLower(q)) {
+		if len(w) >= 3 {
+			words = append(words, w)
+		}
+	}
+	var out []string
+	for _, n := range names {
+		ln := strings.ToLower(n)
+		for _, w := range words {
+			if strings.Contains(ln, w) {
+				out = append(out, n)
+				break
+			}
+		}
+		if len(out) == 10 {
+			break
+		}
+	}
+	return out
+}
+
+// placeCommand is /place <name> (the file's doc).
+func (h *ChatHandler) placeCommand(sess *session.Session, player *entity.Player, args []string) {
+	if h.camps.db == nil {
+		h.gmReply(sess, "/place: no database here")
+		return
+	}
+	q := strings.Trim(strings.TrimSpace(strings.Join(args, " ")), `"'`)
+	q = strings.TrimSpace(q)
+	if q == "" {
+		h.gmReply(sess, `Usage: /place "<creature name>" - a new one where you stand, facing as you face, a copy of a row of that name`)
+		return
+	}
+	name, ok := h.pickNPCName(sess, q)
+	if !ok {
+		if len(searchNames(h.gameWorld.NPCNames(), q)) == 0 {
+			line := fmt.Sprintf("/place: no NPC is called %q: nothing made.", q)
+			if near := closeNames(h.gameWorld.NPCNames(), q); len(near) > 0 {
+				line += " Close: " + strings.Join(near, ", ")
+			}
+			h.gmReply(sess, line)
+		}
+		return
+	}
+	if why := h.gameWorld.PlaceNameRefused(name); why != "" {
+		h.gmReply(sess, fmt.Sprintf("/place: %s %s: nothing made.", name, why))
+		return
+	}
+	src, err := h.camps.db.PlaceSourceRow(name, int(player.World))
+	if errors.Is(err, sql.ErrNoRows) {
+		h.gmReply(sess, fmt.Sprintf("/place: no NPC row is called %q (a GM's or an event's spawn has none): nothing made.", name))
+		return
+	}
+	if err != nil {
+		h.gmReply(sess, "/place: "+err.Error())
+		return
+	}
+	at := database.NPCClone{World: int(player.World), X: float64(player.X), Y: float64(player.Y), Z: float64(player.Z),
+		Facing: facingByte(float64(player.Facing))}
+	nid, copied, err := h.camps.db.PlaceNPCRowAudited(src, at, gmEditOf(sess), fmt.Sprintf("%s (row %d)", name, src))
+	if err != nil {
+		h.gmReply(sess, "/place: nothing made: "+err.Error())
+		return
+	}
+	h.reloadNPCExtras(copied)
+	line := fmt.Sprintf("Placed %s as row %d (a copy of row %d)", name, nid, src)
+	if len(copied) > 0 {
+		line += ", with its " + strings.Join(copied, ", ")
+	}
+	line += "."
+	if _, err := h.upsertRowNPC(nid); err != nil {
+		line += fmt.Sprintf(" It is not in the world yet (at the next start): %v.", err)
+	}
+	if player.Flying {
+		line += " (you fly: it stands in the air)"
+	}
+	h.gmReply(sess, line+" /delete on it takes it away.")
+	log.Printf("GM: %s placed %s as %d (a copy of %d) at (%.1f, %.1f, %.1f) world %d facing %d", player.Name, name, nid, src,
 		at.X, at.Y, at.Z, at.World, at.Facing)
 }

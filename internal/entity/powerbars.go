@@ -17,10 +17,13 @@ import (
 // then on, every 5 ticks after the group's channel, is sent the power of the
 // players its bars show: each other member of its group (by the id its
 // roster names them, a stand-in for one out of sight), its target and its
-// target's target (by the id its entity channels carry). Only players have
-// power on this server: an NPC keeps none and casts nothing, so a creature
-// has no bar. A set goes out only when it differs from the last one sent,
-// and each is the whole set: an id it leaves out has no bar.
+// target's target (by the id its entity channels carry). Players have power,
+// and so do mercs and pets (2026-11-12, the owner's "power bars to group/raid
+// display": a merc in the group's window and the player's own pet, by the id
+// 0x007E told it, have their bars too); a creature has no bar. A set goes out
+// only when it differs from the last one sent, and each is the whole set: an
+// id it leaves out has no bar. (A raid's every member's power is in its
+// roster's records, raidroster.go, once a second when it changed.)
 
 // powerBar is one bar: the id the client knows the player by, and its power
 // of 255.
@@ -53,15 +56,34 @@ func powerOf255(p *Player) (byte, bool) {
 	return byte(max(0, min(255, p.Power*255/top))), true
 }
 
+// barPowerLocked is e's power of 255 when it has a bar: a player with power,
+// or a living merc or pet (its NPC) with power; false for anything else (a
+// creature, a player with no power at all). Must be called with the lock held.
+func (w *World) barPowerLocked(e Entity) (byte, bool) {
+	switch v := e.(type) {
+	case *Player:
+		if v != nil {
+			return powerOf255(v)
+		}
+	case *NPC:
+		if v == nil || v.Dead || v.MaxPower <= 0 || !(v.isMerc() || w.petStateOfNPCLocked(v) != nil) {
+			return 0, false
+		}
+		return byte(max(0, min(255, v.Power*255/v.MaxPower))), true
+	}
+	return 0, false
+}
+
 // powerBarsLocked is the set me's client's bars show: each other group
-// member its roster holds (as it names it, groupSyncSystem), the target and the
+// member its roster holds, a player or a merc (as it names it,
+// groupSyncSystem), its own pet (as 0x007E named it), the target and the
 // target's target (as the entity channels name it, putChannelTargetLocked),
-// the players among them, each once. Must be called with the lock held.
+// those of them with a bar (barPowerLocked), each once. Must be called with
+// the lock held.
 func (w *World) powerBarsLocked(sess *session.Session, me *Player) []powerBar {
 	var out []powerBar
 	add := func(id uint32, e Entity) {
-		p, ok := e.(*Player)
-		if !ok || id == 0 || id == NoAssist {
+		if id == 0 || id == NoAssist {
 			return
 		}
 		for _, b := range out {
@@ -69,16 +91,24 @@ func (w *World) powerBarsLocked(sess *session.Session, me *Player) []powerBar {
 				return
 			}
 		}
-		if v, ok := powerOf255(p); ok {
+		if v, ok := w.barPowerLocked(e); ok {
 			out = append(out, powerBar{id, v})
 		}
 	}
 	if g := w.groups[me.GroupID]; me.GroupID != 0 && g != nil {
-		for _, m := range w.shownMembersLocked(g, me) {
-			if m != me {
-				add(w.idSeenByLocked(sess, m), m)
+		for _, v := range w.shownViewsLocked(g, me) { // its players and mercs (mercgroup.go)
+			if v.id == me.ServerID {
+				continue
+			}
+			if p := w.Players[v.id]; p != nil {
+				add(w.groupIDSeenByLocked(sess, v.id), p)
+			} else if n := w.NPCs[v.id]; n != nil {
+				add(w.groupIDSeenByLocked(sess, v.id), n)
 			}
 		}
+	}
+	if ps := w.petStateLocked(me); ps != nil && ps.told != 0 {
+		add(ps.told, ps.npc)
 	}
 	if t := w.entitySeenByLocked(sess, me.TargetObjectID); t != nil {
 		add(me.TargetObjectID, t)

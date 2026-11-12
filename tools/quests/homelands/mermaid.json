@@ -2,19 +2,19 @@
   "race": "mermaid",
   "home": "Erud's Crossing",
   "city": "Highbourne",
-  "note": "The merfolk's hut village on the northern isle of Erud's Crossing. Its people are tools/worlds/homelands.json's (Erud's Crossing): Elder Coralyn, at the village's edge, gives the first two and the level 20 road; Tidewarden Merrow, a few steps north-west of her, the hunts; Shellwright Pearla, a few steps south, is the outfitter; Coachman Dorran keeps the stable at the village's west edge (his coach runs to Freeport and to the other homes); Gatekeeper Thalassa stands on the north shore. The shore crabs and strand turtles (the shore and hills east of the village) and Old Shrieker, an old harpy of the rookery at the isle's far east end, are placed for these quests. Merfolk speak of the tide and the sea, warmly, with a song never far off.",
+  "note": "The merfolk's village on the sea floor of Erud's Crossing, west of the hut island, all of it under the water. Its people are tools/worlds/homelands.json's (Erud's Crossing): Elder Coralyn, in the middle of the village, gives the first two and the level 20 road; Tidewarden Merrow, a few strokes north-west of her, the hunts; Shellwright Pearla, a few strokes south, is the outfitter; Gatekeeper Thalassa waits north-west of the village. Coachman Dorran keeps the stable up on the island's north shore, east of the village, on dry ground, so riders of every race land where they can breathe. The shore crabs (west of the village), the strand turtles (south of it) and Old Snapjaw, an old shark in the deep water far to the west, are placed for these quests. Merfolk speak of the tide and the sea, warmly, with a song never far off.",
   "L1": {
     "name": "A Shell for the Shore",
     "giver": "Elder Coralyn",
     "offer": [
-      "Welcome up out of the waves, little fin. The land is loud and dry, but you will learn it, as we all did.",
+      "Welcome to the village, little fin. Up above is the land, loud and dry, but you will learn it, as we all did.",
       "Every young one of the village wears a tide shell, so the sea knows its own. Shellwright Pearla carves them, a few steps south of here.",
       "Will you fetch your shell and show it to me?"
     ],
     "accept": "I will fetch it.",
     "decline": "Not now.",
     "declined": "The tide will bring you back to me.",
-    "started": "Pearla is a few steps to the south, by the huts.",
+    "started": "Pearla is a few strokes to the south.",
     "merchant": "Shellwright Pearla",
     "piece": {
       "name": "tide shell earring",
@@ -25,7 +25,7 @@
       }
     },
     "fetch": {
-      "journal": "Ask Shellwright Pearla, a few steps south of Elder Coralyn, for a tide shell.",
+      "journal": "Ask Shellwright Pearla, a few strokes south of Elder Coralyn, for a tide shell.",
       "says": "A new fin on the strand! Hold still. There: listen to it and you will hear the sea, wherever you are."
     },
     "show": {
@@ -38,13 +38,13 @@
     "giver": "Elder Coralyn",
     "offer": [
       "The land unmakes careless swimmers. Have Spiritmaster Nerissa anchor your spirit to the strand, so the tide brings you home.",
-      "Then give your name to Coachman Dorran for his ledger. His coach runs to Freeport and to the other homes of the Homelands.",
+      "Then give your name to Coachman Dorran for his ledger. He keeps his coach up on the island's shore, east of the village, and it runs to Freeport and to the other homes.",
       "Will you see them both and return to me?"
     ],
     "accept": "I will see them both.",
     "decline": "Not now.",
     "declined": "Then swim no farther than you can swim back.",
-    "started": "Nerissa waits to the south-west, and Dorran at the village's west edge.",
+    "started": "Nerissa waits to the south-west. Dorran is up on the island's shore to the east.",
     "spiritmaster": "Spiritmaster Nerissa",
     "coachman": "Coachman Dorran",
     "bind": {
@@ -52,13 +52,13 @@
       "says": "It is done. Whatever drowns you on the land, the tide will bring you back here. Now give Coachman Dorran your name."
     },
     "ledger": {
-      "journal": "Give your name to Coachman Dorran, at the village's west edge, for his ledger.",
-      "says": "A fin on my coach? Stranger things have ridden it. It runs to Freeport and to every other home of the Homelands, for those whose names their ledgers hold. Yours is in mine now."
+      "journal": "Give your name to Coachman Dorran, up on the island's shore east of the village, for his ledger.",
+      "says": "A fin up on the dry shore? Stranger things have ridden my coach. It runs to Freeport and to every other home of the Homelands, for those whose names their ledgers hold. Yours is in mine now."
     },
     "back": {
       "journal": "Return to Elder Coralyn.",
       "says": [
-        "Good. Now you have a shore to come home to.",
+        "Good. Now you have a place in the village to come home to.",
         "Tidewarden Merrow, a few steps north-west, has work for you. Listen to him: he is grumpy, but he is right."
       ]
     }
@@ -67,23 +67,23 @@
     "name": "Crabs on the Strand",
     "giver": "Tidewarden Merrow",
     "offer": [
-      "The new fin. Good. The shore crabs have grown bold on the strand east of the village, and they pinch the little ones at the water's edge.",
+      "The new fin. Good. The shore crabs have grown bold on the sea floor west of the village, and they pinch the little ones at play.",
       "Thin them, and bring me three of their claws. Then I will teach you a thing the tidewardens know.",
       "Will you hunt them?"
     ],
     "accept": "I will hunt them.",
     "decline": "Not now.",
     "declined": "Then the little ones keep their toes out of the water.",
-    "started": "Three claws. East, along the shore.",
+    "started": "Three claws. West, along the sea floor.",
     "target": "shore crab",
     "count": 3,
     "drop": {
       "name": "shore crab claw",
-      "description": "The claw of a shore crab from the strand east of the merfolk's village.",
+      "description": "The claw of a shore crab from the sea floor west of the merfolk's village.",
       "like": "crab claw"
     },
     "hunt": {
-      "journal": "Take three shore crab claws from the shore crabs on the strand east of the village."
+      "journal": "Take three shore crab claws from the shore crabs on the sea floor west of the village."
     },
     "give": {
       "journal": "Bring three shore crab claws to Tidewarden Merrow.",
@@ -95,7 +95,7 @@
     "giver": "Tidewarden Merrow",
     "offer": [
       "You will need better than your bare hands among the dry folk. I will make you proper gear, but you will bring what it needs.",
-      "Shellwright Pearla has cord and a shaft set aside. Then take a shell plate from the strand turtles on the hills east of the village.",
+      "Shellwright Pearla has cord and a shaft set aside. Then take a shell plate from the strand turtles on the sea floor south of the village.",
       "Will you bring me all three?"
     ],
     "accept": "I will bring them.",
@@ -117,45 +117,45 @@
     "count": 1,
     "drop": {
       "name": "strand turtle shell plate",
-      "description": "A plate of a strand turtle's shell from the hills east of the merfolk's village.",
+      "description": "A plate of a strand turtle's shell from the sea floor south of the merfolk's village.",
       "like": "starcrab shell"
     },
     "hunt": {
-      "journal": "Take a shell plate from the strand turtles on the hills east of the village."
+      "journal": "Take a shell plate from the strand turtles on the sea floor south of the village."
     },
     "give": {
       "journal": "Bring the silk cord, the wooden shaft and the shell plate to Tidewarden Merrow.",
-      "says": "All three. A moment... there. It is yours. Keep it out of the salt when you can."
+      "says": "All three. A moment... there. It is yours. Keep it bright: the salt is hard on steel."
     }
   },
   "L5": {
-    "name": "Old Shrieker",
+    "name": "Old Snapjaw",
     "giver": "Tidewarden Merrow",
     "offer": [
-      "One task more. An old harpy nests at the far east end of the isle. Old Shrieker, the little ones call her, and she has taken fish from our nets for years.",
-      "She is mean and she is old, and she will come at you on sight. Bring her down, and bring me her crest feather so the village knows.",
-      "Will you hunt Old Shrieker?"
+      "One task more. An old shark hunts the deep water far west of the village. Old Snapjaw, the little ones call him, and he has taken fish from our nets for years.",
+      "He is mean and he is old, and he will come at you on sight. Bring him down, and bring me a tooth of his so the village knows.",
+      "Will you hunt Old Snapjaw?"
     ],
-    "accept": "I will hunt her.",
+    "accept": "I will hunt him.",
     "decline": "Not yet.",
-    "declined": "She will be there. She always is.",
-    "started": "East, past the turtles, to the rookery at the isle's end. She will see you first.",
-    "target": "Old Shrieker",
+    "declined": "He will be there. He always is.",
+    "started": "West, out past the crabs, into the deep water. He will see you first.",
+    "target": "Old Snapjaw",
     "kind": "loot",
     "count": 1,
     "drop": {
-      "name": "Old Shrieker's crest feather",
-      "description": "A long grey crest feather of Old Shrieker, the harpy of the rookery at the east end of the merfolk's isle.",
-      "like": "broken vulture feather"
+      "name": "Old Snapjaw's tooth",
+      "description": "A long, notched tooth of Old Snapjaw, the old shark of the deep water west of the merfolk's village.",
+      "like": "bloodfin brood mother tooth"
     },
     "hunt": {
-      "journal": "Take Old Shrieker's crest feather from Old Shrieker at the rookery far east of the village."
+      "journal": "Take a tooth from Old Snapjaw in the deep water far west of the village."
     },
     "give": {
-      "journal": "Bring Old Shrieker's crest feather to Tidewarden Merrow.",
+      "journal": "Bring Old Snapjaw's tooth to Tidewarden Merrow.",
       "says": [
-        "The old screamer is gone? The nets will be full tonight. You are a little fin no longer.",
-        "Learn this, and go to Gatekeeper Thalassa on the north shore when you are ready for Highbourne."
+        "The old snapper is gone? The nets will be full tonight. You are a little fin no longer.",
+        "Learn this, and go to Gatekeeper Thalassa, north-west of the village, when you are ready for Highbourne."
       ]
     }
   },

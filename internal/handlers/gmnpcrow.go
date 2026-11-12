@@ -51,7 +51,7 @@ import (
 // an instance. Every row's change has its gm_audit line (via "game").
 
 // npcRowWords are /delete's and /clone's words, lower case.
-var npcRowWords = map[string]bool{"delete": true, "clone": true, "place": true, "move": true}
+var npcRowWords = map[string]bool{"delete": true, "clone": true, "place": true, "move": true, "roamer": true}
 
 // npcRowTell reads a PS2's "/t delete" or "/t clone" (its keyboards type no
 // #, and it keeps an unknown /command to itself): the word and what follows
@@ -70,6 +70,11 @@ func npcRowTell(name, body string) (string, string, bool) {
 	switch {
 	case b == "":
 	case (w == "delete" || w == "move") && b == "undo":
+	case w == "roamer":
+		// "/t roamer", "/t roamer 500", "/t roamer stay"
+		if _, err := strconv.ParseFloat(b, 64); b != "stay" && err != nil {
+			return "", "", false
+		}
 	case w != "delete":
 		if _, rest, bad := wanderOption(fields); bad != "" || len(rest) > 0 {
 			return "", "", false
@@ -572,4 +577,35 @@ func (h *ChatHandler) moveUndo(sess *session.Session, player *entity.Player) {
 	}
 	h.gmReply(sess, line)
 	log.Printf("GM: %s put NPC %d (%s) back from a /move", player.Name, r.ID, r.Name)
+}
+
+// roamerCommand is /roamer [<radius> | stay] (the owner, 2026-11-12: "/roamer
+// GM command to make existing mobs roam"): the targeted creature's own row
+// wanders as a roamer, database.RoamerRadius from its spawn (or <radius>), in
+// place, its spawn point kept; "stay" takes its own wander away. The same
+// ranks, refusals and audit as /move's wander option.
+func (h *ChatHandler) roamerCommand(sess *session.Session, player *entity.Player, args []string) {
+	opt := []string{"roamer"}
+	switch {
+	case len(args) == 1 && strings.EqualFold(args[0], "stay"):
+		opt = []string{"stay"}
+	case len(args) == 1:
+		opt = []string{"roamer", args[0]}
+	case len(args) > 1:
+		opt = args
+	}
+	w, rest, bad := wanderOption(opt)
+	if bad != "" || w == nil || len(rest) > 0 {
+		if bad == "" {
+			bad = "use /roamer, /roamer <radius> or /roamer stay"
+		}
+		h.gmReply(sess, "roamer: "+bad)
+		return
+	}
+	id, rec, ok := h.npcRowTarget(sess, player, "roamer")
+	if !ok {
+		return
+	}
+	said := h.applyWander(sess, int64(id), w, fmt.Sprintf("/roamer on %s (row %d)", rec.NPCName, id))
+	h.gmReply(sess, fmt.Sprintf("%s (row %d):%s", rec.NPCName, id, said))
 }

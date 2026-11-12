@@ -188,3 +188,50 @@ func TestNPCRowTellMove(t *testing.T) {
 		}
 	}
 }
+
+func TestRoamerTellWords(t *testing.T) {
+	for _, c := range []struct {
+		body string
+		ok   bool
+	}{{"", true}, {"500", true}, {"stay", true}, {"fast", false}} {
+		if _, _, ok := npcRowTell("roamer", c.body); ok != c.ok {
+			t.Errorf("/t roamer %q: ok %v, want %v", c.body, ok, c.ok)
+		}
+	}
+}
+
+// /roamer (the owner, 2026-11-12): the target roams where it stands, its spawn
+// point kept; /roamer <r>; /roamer stay; a player's is nothing.
+func TestGMRoamer(t *testing.T) {
+	c, db, _, gs, gp, ps := campWorld(t)
+	before := npcRowMap(t, db, campWolfNear)
+	pp := c.gw.SessionPlayer(ps)
+	targetAs(gp, campWolfNear, 100101, gs, ps)
+	pp.TargetObjectID = 100101
+	c.say(ps, "/roamer")
+	if _, ok := wanderRadius(t, db, campWolfNear); ok {
+		t.Fatal("a player's /roamer set a wander")
+	}
+	c.say(gs, "/roamer")
+	if l := gmReplies(t, gs); !hasLine(l, "A roamer, 300 from its spawn") {
+		t.Fatalf("/roamer: %q", l)
+	}
+	if r, ok := wanderRadius(t, db, campWolfNear); !ok || r != 300 {
+		t.Fatalf("/roamer's wander: %v %v", r, ok)
+	}
+	if fmt.Sprint(npcRowMap(t, db, campWolfNear)) != fmt.Sprint(before) {
+		t.Fatal("/roamer moved the row")
+	}
+	c.say(gs, "/roamer 120")
+	if r, ok := wanderRadius(t, db, campWolfNear); !ok || r != 120 {
+		t.Fatalf("/roamer 120: %v %v", r, ok)
+	}
+	c.say(gs, "/roamer stay")
+	if _, ok := wanderRadius(t, db, campWolfNear); ok {
+		t.Fatal("/roamer stay left a wander")
+	}
+	c.say(gs, "/roamer fast")
+	if l := gmReplies(t, gs); !hasLine(l, "roamer:") {
+		t.Fatalf("/roamer fast: %q", l)
+	}
+}

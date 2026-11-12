@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/eqoa/server/internal/database"
 )
 
 // faykindRig is a rig whose player holds the Staff of Faykind, and a round begun.
@@ -30,19 +32,30 @@ func (r *procRig) giveForm(t *testing.T) *ActiveEffect {
 	return nil
 }
 
-// The user's figures, as the name gives them, and how #stats says them.
+// The user's figures and QuestMasters' (a fairy form of 15 DEX, a 380+70%Dex CR
+// proc), as the name gives them, and how #stats says them.
 func TestFaykindIsTheUsersFigures(t *testing.T) {
 	wp, ok := WeaponProcOf(715031, "Staff of Faykind", "Its words say nothing of a proc.")
 	if !ok {
 		t.Fatal("no proc")
 	}
-	if wp.Kind != ProcForm || wp.Chance != 30 || wp.Duration != 30*time.Second || wp.DamageTo != 800 || wp.RoundMost != 800 || wp.FX != fxBuff {
+	if wp.Kind != ProcForm || wp.Chance != 30 || wp.Duration != 30*time.Second || wp.Damage != 380 || wp.DamageTo != 0 ||
+		wp.Scale != StatDex || wp.ScalePct != 70 || wp.Resist != StatCR || wp.FormStat != StatDex || wp.FormStatBy != 15 ||
+		wp.RoundMost != 800 || wp.FX != fxBuff {
 		t.Errorf("%+v", wp)
 	}
-	if s := wp.String(); !strings.Contains(s, "Pixie Form for 30 s") || !strings.Contains(s, "400-800 at 30% a hit, at most 800 a round") {
+	if s := wp.String(); !strings.Contains(s, "Pixie Form (+15 DEX) for 30 s") ||
+		!strings.Contains(s, "380 + 70% of DEX CR at 30% a hit, at most 800 a round") {
 		t.Errorf("#stats says %q", s)
 	}
+	if s := wp.Explain(); !strings.Contains(s, "+15 DEX while it lasts") || !strings.Contains(s, "380 + 70% of DEX cold") {
+		t.Errorf("the panel says %q", s)
+	}
 }
+
+// formProc is what the form's proc does in full on a hit of its bearer as it is now:
+// 380 and 70% of its DEX (the form's 15 in it).
+func (r *procRig) formProc() int { return 380 + r.friend.StatNow(StatDex)*70/100 }
 
 // 30% a hit, whatever the wielder's INT (the rule by INT stops at 25): 29 of
 // 100 lands it, 30 does not. It shows the pixies' body for 30 seconds, its
@@ -50,6 +63,7 @@ func TestFaykindIsTheUsersFigures(t *testing.T) {
 func TestFaykindGivesTheFormAtThirtyPercent(t *testing.T) {
 	r := faykindRig(t)
 	body, _ := r.friend.Body()
+	dex := r.friend.StatNow(StatDex)
 	procIntn = dice(30)
 	r.hit()
 	if now, _ := r.friend.Body(); now != body || len(r.friend.Effects) != 0 {
@@ -72,8 +86,12 @@ func TestFaykindGivesTheFormAtThirtyPercent(t *testing.T) {
 	if left := e.Until.Sub(before); left < 30*time.Second-time.Second || left > 30*time.Second+time.Second {
 		t.Errorf("it lasts %v", left)
 	}
-	if e.Name != "Pixie Form" || e.Proc != 400 || e.ProcMax != 800 || e.Rules.ProcChance != 30 || e.Rules.ProcRound != 800 {
+	if e.Name != "Pixie Form" || e.Proc != 380 || e.ProcMax != 380 || e.ProcScale != StatDex || e.ProcScalePct != 70 ||
+		e.Rules.Resist != StatCR || e.Rules.ProcChance != 30 || e.Rules.ProcRound != 800 {
 		t.Errorf("%+v", e)
+	}
+	if now := r.friend.StatNow(StatDex); now != dex+15 {
+		t.Errorf("DEX %d in the form, %d before: want 15 more", now, dex)
 	}
 	if len(r.friend.Buffs) != 1 || r.friend.Buffs[0].Name != "Pixie Form" {
 		t.Errorf("effects list %+v", r.friend.Buffs)
@@ -105,13 +123,18 @@ func TestFaykindRenewsOnlyWhenItProcsAgain(t *testing.T) {
 	}
 }
 
-// In the form a hit procs at 30%, not by INT, from 400 to 800, and no more
-// than 800 in all in a round: the second proc is cut to what is left, the third
-// does not happen, and a new round begins again. The controls: a roll of 30 does
-// not proc, and a resisted one does its least, 400, which counts against the round.
+// In the form a hit procs at 30%, not by INT, 380 and 70% of the bearer's DEX, and
+// no more than 800 in all in a round: the second proc is cut to what is left, the
+// third does not happen, and a new round begins again. The controls: a roll of 30
+// does not proc, and a resisted one does its least, 380 (no DEX), which counts
+// against the round.
 func TestFaykindFormProcsUpToEightHundredARound(t *testing.T) {
 	r := faykindRig(t)
 	r.giveForm(t)
+	full := r.formProc()
+	if full <= 420 {
+		t.Fatalf("the rig's DEX gives %d: too little to reach the round's limit", full)
+	}
 	hit := func(rolls ...int) []int {
 		t.Helper()
 		procIntn = dice(rolls...)
@@ -127,23 +150,48 @@ func TestFaykindFormProcsUpToEightHundredARound(t *testing.T) {
 		}
 		return f[1:] // the melee's first
 	}
-	// chance, resist, the roll above 400; then the staff's own roll is not made: the form is on
-	if f := hit(30, 99, 0); len(f) != 0 {
+	// chance, resist; then the staff's own roll is not made: the form is on
+	if f := hit(30, 99); len(f) != 0 {
 		t.Errorf("a roll of 30 procs %v", f)
 	}
-	// resisted: the least it does, 400, which counts against the round
-	if f := hit(29, 0); len(f) != 1 || f[0] != -400 {
-		t.Errorf("a resisted one procs %v, want its least, 400", f)
+	// resisted: the least it does, 380, which counts against the round
+	if f := hit(29, 0); len(f) != 1 || f[0] != -380 {
+		t.Errorf("a resisted one procs %v, want its least, 380", f)
 	}
-	if f := hit(29, 99, 200); len(f) != 1 || f[0] != -400 {
-		t.Errorf("second proc %v, want the 400 left of 800", f)
+	if f := hit(29, 99); len(f) != 1 || f[0] != -420 {
+		t.Errorf("second proc %v, want the 420 left of 800", f)
 	}
-	if f := hit(0, 99, 400); len(f) != 0 {
+	if f := hit(0, 99); len(f) != 0 {
 		t.Errorf("third proc %v, want none", f)
 	}
 	r.friend.RoundStart = r.friend.RoundStart.Add(6 * time.Second)
-	if f := hit(0, 99, 400); len(f) != 1 || f[0] != -800 {
-		t.Errorf("a new round's proc %v, want 800", f)
+	if f := hit(0, 99); len(f) != 1 || f[0] != -min(full, 800) {
+		t.Errorf("a new round's proc %v, want %d", f, min(full, 800))
+	}
+}
+
+// Its proc is cold: a creature strong in CR takes less of it (its template's
+// resist_pct), and one strong in AR alone all of it.
+func TestFaykindFormProcIsCold(t *testing.T) {
+	for _, c := range []struct {
+		kind string
+		cut  bool
+	}{{"CR", true}, {"AR", false}} {
+		r := faykindRig(t)
+		r.giveForm(t)
+		r.npc.tmpl = &ClassTemplate{ClassTemplate: database.ClassTemplate{Name: "cold", Class: -1, HPPct: 100, TakenPct: 100,
+			MeleePct: 100, ResistKind: c.kind, ResistPct: 50}}
+		full := min(r.formProc(), 800)
+		procIntn = dice(0, 99)
+		r.hit()
+		f := figures(r.fsess)
+		want := -full
+		if c.cut {
+			want = -full / 2
+		}
+		if len(f) != 2 || f[1] < want-1 || f[1] > want+1 {
+			t.Errorf("%s 50: figures %v, want the melee and %d", c.kind, f, want)
+		}
 	}
 }
 
@@ -153,10 +201,11 @@ func TestFaykindProcGoesWithTheForm(t *testing.T) {
 	r := faykindRig(t)
 	r.giveForm(t)
 	r.friend.Gear.MainProc = nil
-	procIntn = dice(0, 99, 0)
+	want := min(r.formProc(), 800)
+	procIntn = dice(0, 99)
 	r.hit()
-	if f := figures(r.fsess); len(f) != 2 || f[1] != -400 {
-		t.Errorf("without the staff: figures %v, want the melee and 400", f)
+	if f := figures(r.fsess); len(f) != 2 || f[1] != -want {
+		t.Errorf("without the staff: figures %v, want the melee and %d", f, want)
 	}
 	r.w.mu.Lock()
 	r.w.endIllusionsLocked(r.friend, 0)
@@ -165,7 +214,7 @@ func TestFaykindProcGoesWithTheForm(t *testing.T) {
 		t.Error("the body stayed")
 	}
 	r.friend.RoundStart = r.friend.RoundStart.Add(6 * time.Second)
-	procIntn = dice(0, 99, 0)
+	procIntn = dice(0, 99)
 	r.hit()
 	if f := figures(r.fsess); len(f) != 1 {
 		t.Errorf("no form: figures %v, want the melee alone", f)
@@ -186,7 +235,8 @@ func TestFaykindFormIsKeptOverALogout(t *testing.T) {
 		t.Fatalf("restored %d", n)
 	}
 	e := r.friend.Effects[0]
-	if e.Form != 0x94BA77CD || e.Proc != 400 || e.ProcMax != 800 || e.Rules.ProcChance != 30 || e.Rules.ProcRound != 800 {
+	if e.Form != 0x94BA77CD || e.Proc != 380 || e.ProcScale != StatDex || e.ProcScalePct != 70 || e.Rules.Resist != StatCR ||
+		e.Mods.Dex != 15 || e.Rules.ProcChance != 30 || e.Rules.ProcRound != 800 {
 		t.Errorf("%+v", e)
 	}
 	if body, _ := r.friend.Body(); body != 0x94BA77CD {

@@ -18,28 +18,42 @@ import (
 // raceOptionsVersion is both messages' first byte.
 const raceOptionsVersion = 1
 
-// optionRaces is every race with options, by id: each racedefs row whose own
-// body has rows, and the froglok while creation offers it (a server that does
-// not has no froglok of its own to dress); with games, the game's races' too
-// (their skin shades, on a server that offers them: skinshades.go).
-func optionRaces(games bool) []int {
+// optionRaces is every race with options a client that answered the offer
+// answer is told, by id: each racedefs row whose own body has rows, and the
+// froglok while creation offers it (a server that does not has no froglok of its
+// own to dress); answered 2 or more, the game's races' too (their skin shades on
+// a server that offers them: skinshades.go; answered 3, the barbarians' tattoo:
+// tattoos.go).
+func optionRaces(answer uint32) []int {
 	var out []int
-	if games {
+	if answer >= 2 {
 		for race := range 10 {
-			if len(RaceOptions(race)) > 0 {
+			if len(RaceOptionsFor(race, answer)) > 0 {
 				out = append(out, race)
 			}
 		}
 	}
-	if Creation().Races && len(RaceOptions(raceFroglok)) > 0 {
+	if Creation().Races && len(RaceOptionsFor(raceFroglok, answer)) > 0 {
 		out = append(out, raceFroglok)
 	}
 	for _, d := range RaceDefs() {
-		if len(RaceOptions(d.ID)) > 0 {
+		if len(RaceOptionsFor(d.ID, answer)) > 0 {
 			out = append(out, d.ID)
 		}
 	}
 	sort.Ints(out)
+	return out
+}
+
+// RaceOptionsFor is race's rows a client that answered the offer answer is
+// told: every row but those that need a later answer (OptionRow.Answer).
+func RaceOptionsFor(race int, answer uint32) []OptionRow {
+	var out []OptionRow
+	for _, r := range RaceOptions(race) {
+		if r.Answer <= answer {
+			out = append(out, r)
+		}
+	}
 	return out
 }
 
@@ -79,7 +93,7 @@ func wireSteps(b []byte, steps []OptionStep) []byte {
 // HasRaceOptions reports whether any race here has options: a server with none
 // offers nothing, so its lists go as they always did.
 func HasRaceOptions() bool {
-	return len(optionRaces(true)) > 0
+	return len(optionRaces(raceAnswerNewest)) > 0
 }
 
 // EncodeRaceOptions is OpcodeRaceOptionsData's body: every race's options
@@ -92,13 +106,23 @@ func EncodeRaceOptions() []byte {
 // with games the game's races' too (a client that answered the offer 2 shows
 // them under the four; one that answered 1 would show them instead).
 func EncodeRaceOptionsFor(games bool) []byte {
-	races := optionRaces(games)
+	return EncodeRaceOptionsAt(map[bool]uint32{false: 1, true: 2}[games])
+}
+
+// raceAnswerNewest is the latest answer to the offer this server knows: 3, a
+// client that draws the barbarians' tattoo (vanilla since 2026-11-12).
+const raceAnswerNewest = 3
+
+// EncodeRaceOptionsAt is OpcodeRaceOptionsData's body for a client that
+// answered the offer answer: every race's rows it is told (RaceOptionsFor).
+func EncodeRaceOptionsAt(answer uint32) []byte {
+	races := optionRaces(answer)
 	if len(races) > 255 {
 		races = races[:255]
 	}
 	b := []byte{raceOptionsVersion, byte(len(races))}
 	for _, race := range races {
-		rows := RaceOptions(race)
+		rows := RaceOptionsFor(race, answer)
 		if len(rows) > 255 {
 			rows = rows[:255]
 		}
@@ -224,7 +248,7 @@ func SendRaceOptions(sess *session.Session) bool {
 	if !sess.TakeRaceCatalogue() {
 		return false
 	}
-	body := EncodeRaceOptionsFor(sess.RaceSkins())
+	body := EncodeRaceOptionsAt(sess.RaceLooksLevel())
 	sess.Queue().AddWithSequence(RaceOptionsMessage(body))
 	log.Printf("RaceOptions: %s told %d races' options, %d bytes", sess.RemoteAddr(), int(body[1]), len(body))
 	return true

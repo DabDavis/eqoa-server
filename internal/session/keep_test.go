@@ -440,3 +440,31 @@ func TestAKeptNumberTagsAnswerWithoutItsLayoutIsLayoutOne(t *testing.T) {
 		t.Fatalf("layout %d, want 1", r.NumberTagsLayout())
 	}
 }
+
+// The answer to the race options' offer comes through a restart as given (3:
+// a client that draws the barbarians' tattoo); a file from before the answer was
+// kept reads its flags back as the answer they stand for (race_skins: 2).
+func TestTheRaceOptionsAnswerIsKept(t *testing.T) {
+	addr := &net.UDPAddr{IP: net.IPv4(198, 51, 100, 8), Port: 40124}
+	m := session.NewManager()
+	s := m.CreateSession(addr, 0x2EC7D062, 0x2EC7D062, 0x1235, 0xB992, false)
+	s.SetRaceLooksLevel(3)
+	r, _ := keptRoundTrip(t, s)
+	if r.RaceLooksLevel() != 3 || !r.RaceSkins() || !r.RaceLooks() {
+		t.Fatalf("answered 3: back as %d", r.RaceLooksLevel())
+	}
+	for _, c := range []struct {
+		looks, skins bool
+		want         uint32
+	}{{true, true, 2}, {true, false, 1}, {false, false, 0}} {
+		k := s.Keep()
+		k.RaceAnswer, k.RaceLooks, k.RaceSkins = 0, c.looks, c.skins
+		old, err := session.NewManager().Resume(k)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if old.RaceLooksLevel() != c.want {
+			t.Errorf("an older file (looks %v, skins %v): %d, want %d", c.looks, c.skins, old.RaceLooksLevel(), c.want)
+		}
+	}
+}

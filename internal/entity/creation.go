@@ -33,6 +33,9 @@ type CreationRules struct {
 	// raceoptions.go's gameRaceRows), offered in the races' options to a
 	// client that shows them; nothing to do with creation's own offer.
 	Skins bool
+	// Tattoos: the barbarians' tattoo row (world.tattoos, tattoos.go),
+	// offered as the skin shades are, to a client that draws it.
+	Tattoos bool
 }
 
 // On reports anything past the game's own: a client that can is to be told.

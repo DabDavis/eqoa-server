@@ -379,7 +379,10 @@ const (
 	// OpcodePowerBarsData is the power, server to a client that asked: a
 	// u8 count, then for each a u32 id (as that client knows the entity)
 	// and a u8 power of 255. Each one is the whole set: an id it leaves out
-	// has no bar.
+	// has no bar. The ids: the group window's other members, players and
+	// mercs (since 2026-11-12), the player's own pet (the id 0x007E gave it),
+	// the target and the target's target; sent only on a change, every 5
+	// ticks at most.
 	OpcodePowerBarsData GameOpcode = 0x7E02
 
 	// OpcodeQuestMarkers is the quest marks a client draws on its map

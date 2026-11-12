@@ -186,3 +186,61 @@ func TestEncodePowerBars(t *testing.T) {
 		t.Fatal("no power at all: a bar")
 	}
 }
+
+// A merc in the group's window has its bar, by the id the roster names it
+// (the group channel's, groupIDSeenByLocked), and so has the player's own pet,
+// by the id 0x007E told it; a creature it targets has none (the control), and
+// a merc's power moving sends the set again.
+func TestPowerBarsMercAndPet(t *testing.T) {
+	r := newMercRig(t)
+	ms := r.hire(r.kit(9, 0, 0), MercAssist)
+	r.w.GroupAccept(r.sess, r.sess.PlayerObjectID()) // the box of a group with its merc
+	g := r.w.groups[r.p.GroupID]
+	if g == nil || !groupHas(g, ms.npc.ServerID) {
+		t.Fatal("the merc in its owner's group")
+	}
+	ms.npc.Power, ms.npc.MaxPower = 30, 120
+	foe := r.creature("a gnoll", 20, 5)
+	foe.Power, foe.MaxPower = 10, 10
+	pet := r.creature("a skeleton", 20, 3)
+	pet.Power, pet.MaxPower, pet.Owner = 50, 100, r.p.ServerID
+	r.w.mu.Lock()
+	if r.w.pets == nil {
+		r.w.pets = map[EntityID]*petState{}
+	}
+	r.w.pets[r.p.ServerID] = &petState{owner: r.p, npc: pet, told: 0x00B00042}
+	r.w.mu.Unlock()
+	r.p.TargetObjectID = NoAssist
+	r.w.SetPowerBars(r.sess, true)
+	pass := func() [][]byte {
+		r.sess.Queue().Clear()
+		r.w.mu.Lock()
+		r.w.TickCount += 5
+		r.w.powerSyncSystem()
+		r.w.mu.Unlock()
+		return powerSets(r.sess)
+	}
+	r.w.mu.Lock()
+	mid := r.w.groupIDSeenByLocked(r.sess, ms.npc.ServerID)
+	r.w.mu.Unlock()
+	if got, want := pass(), bars(mid, 63, 0x00B00042, 127); len(got) != 1 || !bytes.Equal(got[0], want) {
+		t.Fatalf("the merc and the pet: %x, want %x", got, want)
+	}
+	r.w.mu.Lock()
+	_, foeBar := r.w.barPowerLocked(foe)
+	_, mercBar := r.w.barPowerLocked(ms.npc)
+	r.w.mu.Unlock()
+	if foeBar || !mercBar {
+		t.Fatalf("a creature with power has a bar %v (want none), the merc %v (want one)", foeBar, mercBar)
+	}
+	ms.npc.Power = 120
+	if got, want := pass(), bars(mid, 255, 0x00B00042, 127); len(got) != 1 || !bytes.Equal(got[0], want) {
+		t.Fatalf("the merc's power moved: %x, want %x", got, want)
+	}
+	r.w.mu.Lock()
+	delete(r.w.pets, r.p.ServerID)
+	r.w.mu.Unlock()
+	if got, want := pass(), bars(mid, 255); len(got) != 1 || !bytes.Equal(got[0], want) {
+		t.Fatalf("no pet: %x, want %x", got, want)
+	}
+}

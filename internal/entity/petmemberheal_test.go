@@ -9,8 +9,9 @@ import (
 
 // The user, 2026-11-11: "lets allow mage water pets to heal other group/raid
 // members also on heirloom server". With world.pet_heal_group on, the Ghilan
-// Noble's Mending (an either heal, below 60%) goes to the worst off of its
-// side; off, to its owner or itself as before.
+// Noble's Mending (an either heal, below 60%) goes to its owner when it is below
+// 60% (petitions 1819/1820), else to the worst off of its side; off, to its
+// owner or itself as before.
 
 // memberRig is the mage pets' rig with the Ghilan Noble out, its owner at
 // 2000/4000, and a raid group of seven: its owner, four at full, Raider (the
@@ -84,11 +85,12 @@ func (m *memberRig) mend(t *testing.T) {
 	m.w.petCastSystemLocked(now.Add(10 * time.Second))
 }
 
-// On: the Mending lands on Raider, a raid group's member past its owner's window
-// at 25%, over its owner at 50%; not on the duelist (10%, in a fight of its
-// own), the member 40 off (5%) nor the stranger (7.5%).
+// On, its owner above the threshold (75%): the Mending lands on Raider, a raid
+// group's member past its owner's window at 25%; not on the duelist (10%, in a
+// fight of its own), the member 40 off (5%) nor the stranger (7.5%).
 func TestWaterPetHealsTheWorstOffOfItsRaid(t *testing.T) {
 	m := newMemberRig(t, true)
+	m.p.HP = 3000
 	m.w.mu.Lock()
 	defer m.w.mu.Unlock()
 	if got := m.w.petHealTargetLocked(m.ps, m.mending); got != database.AbilityOnMember {
@@ -99,7 +101,7 @@ func TestWaterPetHealsTheWorstOffOfItsRaid(t *testing.T) {
 		name      string
 		got, want int
 	}{
-		{"Raider", m.raider.HP, 1800}, {"its owner", m.p.HP, 2000}, {"the duelist", m.duelist.HP, 400},
+		{"Raider", m.raider.HP, 1800}, {"its owner", m.p.HP, 3000}, {"the duelist", m.duelist.HP, 400},
 		{"the far member", m.far.HP, 200}, {"the stranger", m.stranger.HP, 300}, {"itself", m.pet.HP, m.pet.MaxHP},
 	} {
 		if c.got != c.want {
@@ -108,18 +110,45 @@ func TestWaterPetHealsTheWorstOffOfItsRaid(t *testing.T) {
 	}
 }
 
-// On: a group mate hurt worse than its owner is healed in a group of two too,
-// and with no one but those it may not heal hurt below 60% it is not wanted.
+// On: its owner comes first (petitions 1819/1820, the GM Jibrish: "They should
+// always prioritize the mage for heals but otherwise use them on other damaged
+// group or raid members"): below 60% it is healed though Raider (25%) and the
+// rest are worse off; above it the rest are healed.
+func TestWaterPetHealsItsOwnerFirst(t *testing.T) {
+	m := newMemberRig(t, true)
+	m.w.mu.Lock()
+	defer m.w.mu.Unlock()
+	if got := m.w.petMemberPickLocked(m.ps, m.mending); got != m.p.ServerID {
+		t.Fatalf("its owner at 50%%, Raider at 25%%: picked %d, want its owner %d", got, m.p.ServerID)
+	}
+	m.mend(t)
+	if m.p.HP != 2800 || m.raider.HP != 1000 {
+		t.Fatalf("its owner %d, Raider %d after the Mending; want 2800 and 1000", m.p.HP, m.raider.HP)
+	}
+	m.p.HP = 3000 // 75%: the worst off of the rest
+	if got := m.w.petMemberPickLocked(m.ps, m.mending); got != m.raider.ServerID {
+		t.Fatalf("its owner at 75%%, Raider at 25%%: picked %d, want Raider %d", got, m.raider.ServerID)
+	}
+	m.p.HP = 2399 // just under 60%
+	if got := m.w.petMemberPickLocked(m.ps, m.mending); got != m.p.ServerID {
+		t.Fatalf("its owner just under 60%%: picked %d, want its owner", got)
+	}
+}
+
+// On: a group mate is healed in a group of two too when its owner is above the
+// threshold, and with no one but those it may not heal hurt below 60% it is not
+// wanted.
 func TestWaterPetHealsAGroupMateOverItsOwner(t *testing.T) {
 	m := newMemberRig(t, true)
 	g := m.w.groups[9]
 	g.Members = []EntityID{m.p.ServerID, m.fullA.ServerID}
 	m.fullA.HP = 1200
+	m.p.HP = 2600
 	m.w.mu.Lock()
 	defer m.w.mu.Unlock()
 	m.mend(t)
-	if m.fullA.HP != 2000 || m.p.HP != 2000 {
-		t.Fatalf("the mate %d, its owner %d after the Mending; want 2000 and 2000", m.fullA.HP, m.p.HP)
+	if m.fullA.HP != 2000 || m.p.HP != 2600 {
+		t.Fatalf("the mate %d, its owner %d after the Mending; want 2000 and 2600", m.fullA.HP, m.p.HP)
 	}
 	// its owner and the mate above 60%: the duelist, the far one and the stranger are not its to heal
 	m.p.HP, m.fullA.HP = 3000, 3000
@@ -164,5 +193,31 @@ func TestPetHealGroupIsTheWaterPetsAlone(t *testing.T) {
 		ClassTemplate: database.ClassTemplate{Name: "pet water"}}}}
 	if !waterPet(tmplOnly) || !waterPet(m.ps) {
 		t.Fatal("a pet of template pet water or of a water petstats row is not a water pet")
+	}
+}
+
+// A merc's water pet puts its merc (the mage) first, in reach and below the
+// threshold, over its hirer and the raid's worse off; above it the worst off.
+func TestMercWaterPetHealsItsMercFirst(t *testing.T) {
+	m := newMemberRig(t, true)
+	merc := &NPC{ServerID: 3990, Name: "Mage", World: m.pet.World, X: m.pet.X + 2, Y: m.pet.Y, Z: m.pet.Z, HP: 2500, MaxHP: 5000}
+	ms := &mercState{owner: m.p, slot: 1, npc: merc}
+	if m.w.mercs == nil {
+		m.w.mercs = map[EntityID][]*mercState{}
+	}
+	m.w.mercs[m.p.ServerID] = append(m.w.mercs[m.p.ServerID], ms)
+	m.ps.merc = ms
+	m.w.mu.Lock()
+	defer m.w.mu.Unlock()
+	if got := m.w.petMemberPickLocked(m.ps, m.mending); got != merc.ServerID {
+		t.Fatalf("its merc at 50%%, Raider at 25%%: picked %d, want its merc %d", got, merc.ServerID)
+	}
+	merc.HP = 4000
+	if got := m.w.petMemberPickLocked(m.ps, m.mending); got != m.raider.ServerID {
+		t.Fatalf("its merc at 80%%: picked %d, want Raider %d", got, m.raider.ServerID)
+	}
+	merc.HP, merc.X = 2500, m.pet.X+500 // out of reach: the worst off of the rest
+	if got := m.w.petMemberPickLocked(m.ps, m.mending); got != m.raider.ServerID {
+		t.Fatalf("its merc out of reach: picked %d, want Raider %d", got, m.raider.ServerID)
 	}
 }

@@ -415,8 +415,10 @@ type WorldConfig struct {
 	// PetHealGroup lets a magician's water pet heal its owner's group and raid
 	// group (entity/petmemberheal.go; the user, 2026-11-11: "lets allow mage
 	// water pets to heal other group/raid members also on heirloom server"):
-	// its heals on its owner or itself (targets owner and either) land on the
-	// worst off of its side in the heal's reach instead (target member). Unset
+	// its heals on its owner or itself (targets owner and either) land on its
+	// mage (its owner, a merc's pet its merc) when below the heal's threshold,
+	// else on the worst off of its side in the heal's reach (target member;
+	// petitions 1819/1820). Unset
 	// or false: its owner or itself, as before. The Heirloom Test Server sets it.
 	PetHealGroup bool `yaml:"pet_heal_group"`
 

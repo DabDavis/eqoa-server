@@ -19,7 +19,9 @@ import (
 // fight of its own) in its spell's reach of the pet (petGroupReach) with the
 // lowest share of its hit points, cast when that one is below the ability's
 // threshold. Its owner counts wherever it stands, as an owner or either heal
-// healed it; ties go to its owner, then itself, then the group's order.
+// healed it, and comes first: below the threshold it is healed whoever else is
+// worse off (petitions 1819/1820); ties among the rest go to itself, then the
+// group's order.
 //
 // world.pet_heal_group (SetPetHealGroup; the Heirloom Test Server sets it)
 // makes a magician's water pet's heals on its owner or on either of the two
@@ -101,11 +103,27 @@ func (w *World) petMembersLocked(ps *petState, reach float32) petSide {
 	return out
 }
 
-// petMemberPickLocked is the one a member heal a of the pet goes to now: the
-// lowest share of its hit points among petMembersLocked, when that is below
-// the heal's threshold; 0 for none. Must be called with the lock held.
+// petMemberPickLocked is the one a member heal a of the pet goes to now: its
+// owner (a merc's pet: its merc, in reach) whenever that one is below the
+// heal's threshold (petitions 1819/1820,
+// the GM Jibrish: "They should always prioritize the mage for heals but
+// otherwise use them on other damaged group or raid members"), else the lowest
+// share of its hit points among the rest of petMembersLocked below it; 0 for
+// none. Must be called with the lock held.
 func (w *World) petMemberPickLocked(ps *petState, a *templateAbility) EntityID {
 	side := w.petMembersLocked(ps, petGroupReach(ps, a))
+	if ms := ps.merc; ms != nil {
+		// a merc's pet: the merc is its mage, first when in reach
+		for _, n := range side.pets {
+			if n == ms.npc && n.MaxHP > 0 && n.HP*100 < n.MaxHP*a.BelowOr() {
+				return n.ServerID
+			}
+		}
+	} else if o := ps.owner; o != nil && len(side.players) > 0 && side.players[0] == o {
+		if top := o.MaxHPNow(); top > 0 && o.HP*100 < top*a.BelowOr() {
+			return o.ServerID // its owner first, however the rest stand
+		}
+	}
 	var best EntityID
 	low := 2.0
 	try := func(id EntityID, hp, top int) {

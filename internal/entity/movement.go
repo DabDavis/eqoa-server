@@ -202,6 +202,7 @@ const (
 	whyCampSpawn
 	whyCompanion
 	whyRowOwnWanders
+	whySiege
 )
 
 // MoveWhyText says why, in a GM's words (the panel's NPC page); word is the
@@ -244,6 +245,8 @@ func MoveWhyText(why moveWhy, word string) string {
 		return "it wanders: its own row says so (npcwander), whatever its name's"
 	case whyCompanion:
 		return "a creature's own pet (companion.go): it keeps beside its owner, walking where its owner wanders"
+	case whySiege:
+		return "a siege's King or gate (siege.go): it stands where the siege put it"
 	}
 	return ""
 }
@@ -261,6 +264,8 @@ func (w *World) movementLocked(npc *NPC) (wanders bool, why moveWhy, word string
 		return false, whyPet, ""
 	case npc.Dummy != NotDummy:
 		return false, whyDummy, ""
+	case npc.siege != nil:
+		return false, whySiege, ""
 	case w.pathedLocked(npc.ServerID):
 		return false, whyPath, ""
 	case w.campSpawnLocked(npc.ServerID):

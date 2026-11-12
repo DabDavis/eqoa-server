@@ -254,7 +254,20 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 	// /ctf (or #ctf; a PS2's is "/t ctf", below): capture the flag's arena, its sign-up and
 	// its leave, everyone's (ctf.go)
 	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/ctf") || strings.EqualFold(word, "#ctf") {
+		if h.isGM(sess) && arenaGMCommand(h.gameWorld, entity.GameCTF, "#ctf", sess, rest) {
+			return // a GM's start, stop, time or teams (siege.go)
+		}
 		ctfCommand(h.gameWorld, sess, rest)
+		return
+	}
+
+	// /siege (or #siege; a PS2's is "/t siege", below): the siege of Zentar's Keep, its sign-up
+	// and its leave, everyone's; a GM's start, stop, time and teams (siege.go)
+	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/siege") || strings.EqualFold(word, "#siege") {
+		if h.isGM(sess) && arenaGMCommand(h.gameWorld, entity.GameSiege, "#siege", sess, rest) {
+			return
+		}
+		siegeCommand(h.gameWorld, sess, rest)
 		return
 	}
 
@@ -376,6 +389,11 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		// and /ctf (ctf.go): "/t ctf", "/t ctf join", "/t ctf leave", "/t ctf rules"
 		if b := strings.ToLower(strings.TrimSpace(body)); strings.EqualFold(name, "ctf") && (b == "" || b == "join" || b == "leave" || b == "rules") {
 			ctfCommand(h.gameWorld, sess, b)
+			return
+		}
+		// and /siege (siege.go): "/t siege", "/t siege join", "/t siege leave", "/t siege rules"
+		if b := strings.ToLower(strings.TrimSpace(body)); strings.EqualFold(name, "siege") && (b == "" || b == "join" || b == "leave" || b == "rules") {
+			siegeCommand(h.gameWorld, sess, b)
 			return
 		}
 		// and /home (homes.go): "/t home", "/t home invite Name", ...

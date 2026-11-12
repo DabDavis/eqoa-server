@@ -529,6 +529,9 @@ func (w *World) factionKillLocked(sess *session.Session, p *Player, npc *NPC) {
 	if p == nil || npc == nil {
 		return
 	}
+	if npc.siege != nil {
+		return // a siege's King or gate: no faction hits, no quest's kill (siege.go)
+	}
 	if guardsKillLocked(npc) {
 		// the guards': no faction hits, no quest's kill (guards.go)
 		log.Printf("Guards: %s's kill of %s is the guards': no faction hits, no quest credit", p.Name, npc.Name)

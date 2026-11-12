@@ -302,6 +302,9 @@ func (w *World) metalSparesLocked(npc *NPC, id EntityID) bool {
 // challengeBars reports whether npc is a Metal Moogie that player id may not hurt: another's to fight, or
 // anyone's during the countdown (petition 1623); id a player, or the owner of the pet that would.
 func challengeBars(npc *NPC, id EntityID) bool {
+	if siegeBars(npc, id) {
+		return true // a siege's King or gate: its attackers' alone, once live (siege.go)
+	}
 	return npc != nil && npc.challenge != nil && (npc.challenge.held || npc.challenge.player != id)
 }
 
@@ -311,6 +314,9 @@ func (n *NPC) duelHeld() bool { return n != nil && n.challenge != nil && n.chall
 // challengeRefusal is the line for one barred from a Metal Moogie (challengeBars), "" for none: the
 // challenger during the countdown is told to wait.
 func challengeRefusal(npc *NPC, id EntityID) string {
+	if line := siegeRefusal(npc, id); line != "" {
+		return line // a siege's King or gate (siege.go)
+	}
 	if !challengeBars(npc, id) {
 		return ""
 	}
@@ -340,6 +346,10 @@ func (w *World) tellChallengeLocked(sess *session.Session, p *Player, line strin
 // wire's byte 146 0x80, byte 143 0, as an NPC no one may attack is sent): CLIENT swings at no such
 // creature, and a click talks to it. Must be called with the lock held.
 func (w *World) challengeViewLocked(sess *session.Session, npc *NPC, buf []byte) {
+	if npc.siege != nil {
+		w.siegeViewLocked(w.sessionPlayerLocked(sess), npc, buf) // a siege's, its attackers' alone (siege.go)
+		return
+	}
 	if npc.challenge == nil || npc.Dead || len(buf) <= 146 {
 		return
 	}
@@ -377,7 +387,7 @@ func (w *World) ChallengeLooter(sess *session.Session, npc *NPC) (duel, mine boo
 
 // DuelSpawn reports a Metal Moogie (or his corpse): a duel's, whose corpse gives his own items alone (no
 // coins, no loot tables of every creature's, no category rolls).
-func (n *NPC) DuelSpawn() bool { return n != nil && n.challenge != nil }
+func (n *NPC) DuelSpawn() bool { return n != nil && (n.challenge != nil || n.siege != nil) } // a siege's gives nothing (siege.go)
 
 // challengeDefeatLocked is p brought to nothing (playerDownLocked) while it duels a Metal Moogie, or
 // held at 1 HP after one: a duel's loser, left at 1 HP, the duel lost (petition 1380: he leaves the

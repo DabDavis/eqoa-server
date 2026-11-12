@@ -101,14 +101,30 @@ const (
 	ctfDoLeave
 	ctfDoRules
 	ctfDoStatus
+	// the siege's sign-up and leave beside capture the flag's (siege.go), when the herald offers both
+	siegeDoJoin
+	siegeDoLeave
 )
 
-// ctfAsk is a question the herald asked: its box, its answers and the herald's id.
+// ctfAsk is a question the herald asked: its box, its answers, the games its rules and state answer for, and the
+// herald's id.
 type ctfAsk struct {
 	box     uint32
 	answers []ctfDo
+	games   []entity.ArenaGame
 	npc     entity.EntityID
 }
+
+// The herald's words for the siege (ours).
+const (
+	siegeHeraldAsk    = "PvP Events: '%s is under siege: its King must fall, or hold until the time runs out. Will you take up arms?'"
+	siegeHeraldAskTwo = "PvP Events: 'Two companies fight over each other's banners in %s, and %s is under siege. Will you take up arms?'"
+	siegeAnswerJoin   = "Sign me up for the siege"
+	siegeAnswerLeave  = "Take my name off the siege's list"
+	ctfAnswerJoinTwo  = "Sign me up for capture the banner"
+	ctfAnswerLeaveTwo = "Take my name off the banner list"
+	ctfAnswerRulesTwo = "How are they fought?"
+)
 
 // CTFHerald keeps the questions the herald asked, by character.
 type CTFHerald struct {
@@ -132,25 +148,54 @@ func (h *InteractHandler) ctfTalk(sess *session.Session, p *entity.Player, npc *
 	}
 	forgetDialogs(p)
 	on, world := gw.CTFOn()
+	sOn, sWorld := gw.ArenaOn(entity.GameSiege)
 	switch {
-	case !on:
+	case !on && !sOn:
 		teleSay(sess, ctfHeraldClosed)
 		return true
 	case gw.CTFInMatch(sess):
 		teleSay(sess, ctfHeraldInMatch)
 		return true
-	case !ctfReaches(sess, world):
+	}
+	ctfHere, siegeHere := on && ctfReaches(sess, world), sOn && ctfReaches(sess, sWorld)
+	switch {
+	case !ctfHere && !siegeHere:
 		teleSay(sess, ctfHeraldNoArena)
-		log.Printf("CTF: %s at the herald: its game cannot load world %d", p.Name, world)
+		log.Printf("CTF: %s at the herald: its game cannot load world %d nor %d", p.Name, world, sWorld)
+		return true
+	case !siegeHere:
+		// capture the flag alone, as it always was
+		ask := fmt.Sprintf(ctfHeraldAsk, ctfArenaName(gw))
+		answers := []ctfDo{ctfDoJoin, ctfDoRules, ctfDoStatus}
+		if gw.CTFQueued(sess) {
+			ask = fmt.Sprintf(ctfHeraldAskIn, strings.Join(gw.CTFStatus(sess, time.Now()), " "))
+			answers = []ctfDo{ctfDoLeave, ctfDoRules, ctfDoStatus}
+		}
+		h.ctf.ask(sess, p, clipRunes(ask, questAskChars), answers, []entity.ArenaGame{entity.GameCTF}, npc.ServerID)
+		return true
+	case !ctfHere:
+		// the siege alone
+		ask := fmt.Sprintf(siegeHeraldAsk, gw.ArenaName(entity.GameSiege))
+		answers := []ctfDo{siegeDoJoin, ctfDoRules, ctfDoStatus}
+		if gw.ArenaQueued(entity.GameSiege, sess) {
+			ask = fmt.Sprintf(ctfHeraldAskIn, strings.Join(gw.ArenaStatus(entity.GameSiege, sess, time.Now()), " "))
+			answers = []ctfDo{siegeDoLeave, ctfDoRules, ctfDoStatus}
+		}
+		h.ctf.ask(sess, p, clipRunes(ask, questAskChars), answers, []entity.ArenaGame{entity.GameSiege}, npc.ServerID)
 		return true
 	}
-	ask := fmt.Sprintf(ctfHeraldAsk, ctfArenaName(gw))
-	answers := []ctfDo{ctfDoJoin, ctfDoRules, ctfDoStatus}
-	if gw.CTFQueued(sess) {
+	// both: a sign-up (or a leave) for each, the rules and the state of both
+	ask := fmt.Sprintf(siegeHeraldAskTwo, ctfArenaName(gw), gw.ArenaName(entity.GameSiege))
+	answers := []ctfDo{ctfDoJoin, siegeDoJoin, ctfDoRules, ctfDoStatus}
+	switch {
+	case gw.CTFQueued(sess):
 		ask = fmt.Sprintf(ctfHeraldAskIn, strings.Join(gw.CTFStatus(sess, time.Now()), " "))
-		answers = []ctfDo{ctfDoLeave, ctfDoRules, ctfDoStatus}
+		answers[0] = ctfDoLeave
+	case gw.ArenaQueued(entity.GameSiege, sess):
+		ask = fmt.Sprintf(ctfHeraldAskIn, strings.Join(gw.ArenaStatus(entity.GameSiege, sess, time.Now()), " "))
+		answers[1] = siegeDoLeave
 	}
-	h.ctf.ask(sess, p, clipRunes(ask, questAskChars), answers, npc.ServerID)
+	h.ctf.ask(sess, p, clipRunes(ask, questAskChars), answers, []entity.ArenaGame{entity.GameCTF, entity.GameSiege}, npc.ServerID)
 	return true
 }
 
@@ -163,25 +208,36 @@ func ctfArenaName(gw *entity.World) string {
 }
 
 // ask opens a box of the answers for p.
-func (c *CTFHerald) ask(sess *session.Session, p *entity.Player, question string, answers []ctfDo, npc entity.EntityID) {
+func (c *CTFHerald) ask(sess *session.Session, p *entity.Player, question string, answers []ctfDo, games []entity.ArenaGame, npc entity.EntityID) {
 	c.mu.Lock()
 	c.seq++
 	id := ctfBoxMark | (c.seq & 0xFFFFFF)
 	if c.asked == nil {
 		c.asked = map[uint32]ctfAsk{}
 	}
-	c.asked[p.CharServerID] = ctfAsk{box: id, answers: answers, npc: npc}
+	c.asked[p.CharServerID] = ctfAsk{box: id, answers: answers, games: games, npc: npc}
 	c.mu.Unlock()
+	two := len(games) > 1
 	words := make([]string, 0, len(answers))
 	for _, a := range answers {
-		switch a {
-		case ctfDoJoin:
-			words = append(words, ctfAnswerJoin)
-		case ctfDoLeave:
-			words = append(words, ctfAnswerLeave)
-		case ctfDoRules:
+		switch {
+		case a == ctfDoJoin && two:
+			words = append(words, ctfAnswerJoinTwo)
+		case a == ctfDoLeave && two:
+			words = append(words, ctfAnswerLeaveTwo)
+		case a == ctfDoRules && two:
+			words = append(words, ctfAnswerRulesTwo)
+		case a == ctfDoJoin, a == siegeDoJoin && !two:
+			words = append(words, map[bool]string{true: siegeAnswerJoin, false: ctfAnswerJoin}[a == siegeDoJoin])
+		case a == ctfDoLeave, a == siegeDoLeave && !two:
+			words = append(words, map[bool]string{true: siegeAnswerLeave, false: ctfAnswerLeave}[a == siegeDoLeave])
+		case a == siegeDoJoin:
+			words = append(words, siegeAnswerJoin)
+		case a == siegeDoLeave:
+			words = append(words, siegeAnswerLeave)
+		case a == ctfDoRules:
 			words = append(words, ctfAnswerRules)
-		case ctfDoStatus:
+		case a == ctfDoStatus:
 			words = append(words, ctfAnswerStatus)
 		}
 	}
@@ -213,15 +269,31 @@ func (h *InteractHandler) answerCTF(sess *session.Session, p *entity.Player, box
 		return true
 	}
 	now := time.Now()
+	games := asked.games
+	if len(games) == 0 {
+		games = []entity.ArenaGame{entity.GameCTF}
+	}
 	switch asked.answers[option] {
 	case ctfDoJoin:
 		ctfTell(sess, gw.CTFJoin(sess, now)...)
 	case ctfDoLeave:
 		ctfTell(sess, gw.CTFLeave(sess, now))
+	case siegeDoJoin:
+		ctfTell(sess, gw.ArenaJoin(entity.GameSiege, sess, now)...)
+	case siegeDoLeave:
+		ctfTell(sess, gw.ArenaLeave(entity.GameSiege, sess, now))
 	case ctfDoRules:
-		ctfTell(sess, ctfRulesLines...)
+		for _, g := range games {
+			if g == entity.GameSiege {
+				ctfTell(sess, siegeRulesLines...)
+			} else {
+				ctfTell(sess, ctfRulesLines...)
+			}
+		}
 	case ctfDoStatus:
-		ctfTell(sess, gw.CTFStatus(sess, now)...)
+		for _, g := range games {
+			ctfTell(sess, gw.ArenaStatus(g, sess, now)...)
+		}
 	}
 	return true
 }
@@ -430,7 +502,11 @@ func ReadArena(b worlds.Built, raw ...[]byte) (entity.CTFLayout, error) {
 
 // CTFSettings are world.ctf's numbers, each unset one its default.
 func CTFSettings(c config.CTFConfig) entity.CTFSettings {
-	s := entity.DefaultCTFSettings()
+	return arenaSettings(entity.DefaultCTFSettings(), c)
+}
+
+// arenaSettings are base with each number c sets (a game's defaults and its config: CTFSettings, SiegeSettings).
+func arenaSettings(s entity.CTFSettings, c config.CTFConfig) entity.CTFSettings {
 	if c.World > 0 {
 		s.World = uint8(c.World)
 	}

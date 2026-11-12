@@ -325,9 +325,9 @@ export async function render(box, parts = []) {
 
   function drawBreakdown(c) {
     if (!c) { mount(breakdown); return; }
-    const pickRow = (title, rows, key, fmt = (r) => r.value) => (rows.length ? h('div', { class: 'audit-facet' }, h('span', { class: 'faint small' }, title),
+    const pickRow = (title, all, key, fmt = (r) => r.value) => { const rows = all.filter((r) => r.value !== ''); return rows.length ? h('div', { class: 'audit-facet' }, h('span', { class: 'faint small' }, title),
       ...rows.map((r) => h('button', { type: 'button', class: 'chip-btn small' + (String(f[key]) === String(r.value) ? ' on' : ''),
-        onclick: () => setFilters({ [key]: String(f[key]) === String(r.value) ? '' : String(r.value) }) }, fmt(r), h('span', { class: 'n' }, r.n.toLocaleString())))) : null);
+        onclick: () => setFilters({ [key]: String(f[key]) === String(r.value) ? '' : String(r.value) }) }, fmt(r), h('span', { class: 'n' }, r.n.toLocaleString())))) : null; };
     const kindRows = ['added', 'changed', 'deleted', 'other'].filter((k) => c.kind?.[k]).map((k) => ({ value: k, n: c.kind[k] }));
     const groupRows = Object.entries(c.group || {}).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([value, n]) => ({ value, n }));
     const srcRows = Object.entries(c.source || {}).sort((a, b) => b[1] - a[1]).map(([value, n]) => ({ value, n }));

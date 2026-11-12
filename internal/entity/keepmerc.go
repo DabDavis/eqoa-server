@@ -44,6 +44,11 @@ type KeptMerc struct {
 	// Standby: it was on standby (mercbench.go): on standby again, out of
 	// the world, until a place frees
 	Standby bool `json:"standby,omitempty"`
+	// Pet is its own summoned pet (mercpet.go) with its share of hit points
+	// and the spells on it, nil for none: made again by the same summoning at
+	// once. Before 2026-11-12 the merc summoned a new one after its first turns,
+	// whole and bare, and the pet was seen gone until then.
+	Pet *KeptPet `json:"pet,omitempty"`
 }
 
 // KeptMercsOf is what a kept player carries of its mercs: Mercs, or a
@@ -66,10 +71,10 @@ type KeptFamiliar struct {
 
 // keptMercsLocked is p's living mercs and its standby as a restart carries
 // them, by slot. Must be called with the lock held.
-func (w *World) keptMercsLocked(p *Player) []KeptMerc {
+func (w *World) keptMercsLocked(p *Player, now time.Time) []KeptMerc {
 	var out []KeptMerc
 	for _, ms := range w.mercsOfLocked(p) {
-		out = append(out, *w.keptMercLocked(p, ms))
+		out = append(out, *w.keptMercLocked(p, ms, now))
 	}
 	for _, b := range w.benchedOfLocked(p) {
 		out = append(out, KeptMerc{Slot: b.slot, Name: b.name, HPPct: 1, PowerPct: 1, Standby: true})
@@ -80,12 +85,17 @@ func (w *World) keptMercsLocked(p *Player) []KeptMerc {
 
 // keptMercLocked is p's living merc ms as a restart carries it. Must be
 // called with the lock held.
-func (w *World) keptMercLocked(p *Player, ms *mercState) *KeptMerc {
+func (w *World) keptMercLocked(p *Player, ms *mercState, now time.Time) *KeptMerc {
 	n := ms.npc
 	k := &KeptMerc{Slot: ms.slot, Name: n.Name, HPPct: share(n.HP, n.MaxHP), PowerPct: share(n.Power, n.MaxPower), Stance: byte(ms.stance),
 		Stay: ms.stay, StayAt: ms.stayAt, Place: [4]float32{n.X, n.Y, n.Z, n.Facing}, World: n.World}
 	if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil && groupHas(g, n.ServerID) {
 		k.Grouped = true
+	}
+	if ps := w.mercPetOutLocked(ms); ps != nil && ps.npc.Charm == nil && ps.spell != 0 {
+		pet := ps.npc
+		k.Pet = &KeptPet{Name: pet.Name, Spell: ps.spell, HPPct: share(pet.HP, pet.MaxHP), Stance: byte(ps.stance),
+			Place: [4]float32{pet.X, pet.Y, pet.Z, pet.Facing}, World: pet.World, Effects: effectRows(pet.Effects, now, nil)}
 	}
 	return k
 }
@@ -132,6 +142,7 @@ func (w *World) RestoreMerc(sess *session.Session, kit MercKit, k KeptMerc, now 
 	n.HP = keptShare(k.HPPct, n.MaxHP)
 	n.Power = min(n.MaxPower, int(k.PowerPct*float64(n.MaxPower)+0.5))
 	syncMercBody(ms)
+	w.restoreMercPetLocked(ms, k.Pet, now)
 	// grouped, not asked again: its client holds the group (regroup); out of
 	// a group (its box was up at the restart, which the new process does not
 	// hold) or waiting outside the arena, asked, as at its return from there:
@@ -143,4 +154,34 @@ func (w *World) RestoreMerc(sess *session.Session, kit MercKit, k KeptMerc, now 
 	log.Printf("Keep: %s's mercenary %q back (%d/%d HP, %s, grouped %v)", p.Name, n.Name, n.HP, n.MaxHP,
 		MercStanceNames[ms.stance], k.Grouped)
 	return true
+}
+
+// restoreMercPetLocked makes the merc's kept pet again by the summoning its
+// book has now (none when it is no longer the one that made it), its share of
+// hit points and the spells on it. Must be called with the lock held.
+func (w *World) restoreMercPetLocked(ms *mercState, k *KeptPet, now time.Time) {
+	if k == nil {
+		return
+	}
+	s := ms.mercPetSpell()
+	if s == nil || s.SpellID != k.Spell {
+		log.Printf("Keep: %s's %q's pet %q: its summoning %d is not its book's now", ms.owner.Name, ms.npc.Name, k.Name, k.Spell)
+		return
+	}
+	w.mercSummonLandLocked(ms, s, now)
+	ps := w.mercPetOutLocked(ms)
+	if ps == nil {
+		return
+	}
+	for _, r := range k.Effects {
+		if r.LeftMS > 0 {
+			ps.npc.Effects = append(ps.npc.Effects, effectFromRow(r, now))
+		}
+	}
+	ps.npc.syncEffectMaxHP()
+	ps.npc.HP = keptShare(k.HPPct, ps.npc.MaxHP)
+	if k.Stance != 0 {
+		ps.stance = petStance(k.Stance)
+	}
+	log.Printf("Keep: %s's %q's pet %q back (%d/%d HP)", ms.owner.Name, ms.npc.Name, ps.npc.Name, ps.npc.HP, ps.npc.MaxHP)
 }

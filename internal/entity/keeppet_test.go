@@ -96,3 +96,58 @@ func TestAPetComesThroughARestart(t *testing.T) {
 		t.Errorf("a dead pet carried: %+v", kp.Pet)
 	}
 }
+
+// The owner, 2026-11-12 ("pets are disappearing"): what is on a pet comes
+// through with it. A summoned pet's buff on itself and its buff on its owner
+// that lasts while it is out (a logout's save leaves that out: buffsave.go) are
+// written beside it and put back with its time left, the owner's still the
+// pet's (it goes with the pet). The control: a pet given back from a file of
+// before (no effects) is bare and its owner without the buff.
+func TestAPetsBuffsComeThroughARestart(t *testing.T) {
+	s := newPetRig(t)
+	pet, _ := s.summon(t, fireElemental(), 0)
+	now := s.at(10 * time.Second)
+	s.w.mu.Lock()
+	pet.Effects = append(pet.Effects, &ActiveEffect{SpellID: 4001, Name: "Pet Haste", Until: now.Add(5 * time.Minute)})
+	s.p.Effects = append(s.p.Effects, &ActiveEffect{SpellID: 4002, Name: "Familiar Blessing", Until: now.Add(time.Hour), petBound: true},
+		&ActiveEffect{SpellID: 4003, Name: "Its own", Until: now.Add(time.Hour)})
+	s.w.mu.Unlock()
+	kp, ok := s.w.KeepPlayer(s.sess, now)
+	b, err := json.Marshal(kp)
+	var back KeptPlayer
+	if !ok || err != nil || json.Unmarshal(b, &back) != nil || back.Pet == nil {
+		t.Fatalf("kept %v (%v): %s", ok, err, b)
+	}
+	k := *back.Pet
+	if len(k.Effects) != 1 || k.Effects[0].SpellID != 4001 || len(k.OwnerBuffs) != 1 || k.OwnerBuffs[0].SpellID != 4002 {
+		t.Fatalf("kept effects %+v, owner's %+v", k.Effects, k.OwnerBuffs)
+	}
+	spell := fireElemental()
+
+	// the control: a file of before
+	c := newPetRig(t)
+	bare := k
+	bare.Effects, bare.OwnerBuffs = nil, nil
+	if !c.w.RestorePet(c.sess, bare, &spell, c.at(0)) || len(c.w.petStateLocked(c.p).npc.Effects) != 0 || c.p.hasEffect(4002) {
+		t.Fatal("control: a pet from a file of before came back with buffs")
+	}
+
+	s2 := newPetRig(t)
+	then := s2.at(0)
+	if !s2.w.RestorePet(s2.sess, k, &spell, then) {
+		t.Fatal("the pet did not come back")
+	}
+	ps := s2.w.petStateLocked(s2.p)
+	if len(ps.npc.Effects) != 1 || ps.npc.Effects[0].SpellID != 4001 || ps.npc.Effects[0].Until.Sub(then) != 5*time.Minute {
+		t.Fatalf("on the pet: %+v", ps.npc.Effects)
+	}
+	var blessing *ActiveEffect
+	for _, e := range s2.p.Effects {
+		if e.SpellID == 4002 {
+			blessing = e
+		}
+	}
+	if blessing == nil || !blessing.petBound || blessing.Until.Sub(then) != time.Hour || s2.p.hasEffect(4003) {
+		t.Fatalf("on its owner: %+v", s2.p.Effects)
+	}
+}

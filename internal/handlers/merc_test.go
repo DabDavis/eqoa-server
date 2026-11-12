@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -344,6 +345,7 @@ func TestMercComesBackAtLogin(t *testing.T) {
 	r, m, db := newMercFixture(t)
 	now := time.Unix(1_800_000_000, 0)
 	m.now = func() time.Time { return now }
+	m.after = func(time.Duration, func()) {} // the return by itself: TestMercComesBackAfterItsRest
 	if err := db.SetMerc(database.MercRow{ServerID: r.pa.CharServerID, Name: "Ralthas", Class: 0, Race: 0, Stance: 2}); err != nil {
 		t.Fatal(err)
 	}
@@ -366,6 +368,69 @@ func TestMercComesBackAtLogin(t *testing.T) {
 	r.say(r.anna, "/merc")
 	if _, ok := r.gw.MercInfoOf(r.anna); !ok {
 		t.Error("/merc after the rest did not bring it back")
+	}
+}
+
+// The owner, 2026-11-12: "lets make mercs come back after they die when the cooldown expires". Its death asks its
+// return at its rest's end; then it is out again with no /merc. The controls: its owner logged out by then (no return:
+// its login brings it), and a login while it rests asks the same return.
+func TestMercComesBackAfterItsRest(t *testing.T) {
+	r, m, db := newMercFixture(t)
+	now := time.Unix(1_800_000_000, 0)
+	m.now = func() time.Time { return now }
+	var due []func()
+	var waits []time.Duration
+	m.after = func(d time.Duration, f func()) { waits, due = append(waits, d), append(due, f) }
+	if err := db.SetMerc(database.MercRow{ServerID: r.pa.CharServerID, Name: "Ralthas", Class: 0, Race: 0, Stance: 2}); err != nil {
+		t.Fatal(err)
+	}
+	m.comeBack(r.anna, r.pa)
+	died := func() {
+		m.note(entity.MercNote{Kind: entity.MercNoteDied, Owner: r.pa, Slot: 1, Sess: r.anna, Name: "Ralthas", Until: now.Add(entity.MercRest)})
+		r.gw.DismissMerc(r.anna, 1, now)
+		r.drain()
+	}
+	died()
+	if len(due) != 1 || waits[0] != entity.MercRest+mercRestSlack {
+		t.Fatalf("its return asked %d times, after %v", len(due), waits)
+	}
+	if _, ok := r.gw.MercInfoOf(r.anna); ok {
+		t.Fatal("out while it rests")
+	}
+	now = now.Add(entity.MercRest + mercRestSlack)
+	due[0]()
+	if info, ok := r.gw.MercInfoOf(r.anna); !ok || info.Name != "Ralthas" {
+		t.Fatalf("not back after its rest: %+v %v", info, ok)
+	}
+	if got := r.msgs(r.anna); !hasMsg(got, "chat:"+fmt.Sprintf(mercBackLine, "Ralthas")) {
+		t.Errorf("its return's line: %q", got)
+	}
+
+	// a login while it rests asks the return too
+	died()
+	due = nil
+	m.comeBack(r.anna, r.pa)
+	if len(due) != 1 {
+		t.Fatalf("a login while it rests asked its return %d times", len(due))
+	}
+	now = now.Add(entity.MercRest + mercRestSlack)
+	due[0]()
+	if _, ok := r.gw.MercInfoOf(r.anna); !ok {
+		t.Fatal("not back after the rest a login asked")
+	}
+
+	// the control: its owner out of the world by then
+	died()
+	due = nil
+	now = now.Add(time.Second)
+	m.note(entity.MercNote{Kind: entity.MercNoteDied, Owner: r.pa, Slot: 1, Sess: r.anna, Name: "Ralthas", Until: now.Add(entity.MercRest)})
+	r.anna.SetECSEntity(nil)
+	now = now.Add(entity.MercRest + mercRestSlack)
+	for _, f := range due {
+		f()
+	}
+	if _, ok := r.gw.MercInfoOf(r.anna); ok {
+		t.Error("came back to an owner out of the world")
 	}
 }
 

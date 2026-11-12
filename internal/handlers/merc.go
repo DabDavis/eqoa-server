@@ -102,6 +102,7 @@ const (
 	mercAskClass  = "Mercenary Recruitment: 'Which kind of %s?'"
 	mercAskRace   = "Mercenary Recruitment: 'Of which race?'"
 	mercAskSex    = "Mercenary Recruitment: 'A man or a woman?'"
+	mercAskPath   = "Mercenary Recruitment: 'Which path does your %s walk? It keeps to it for good.'"
 	mercHiredLine = "%s the %s %s is yours (mercenary %d of 3). Type /merc to see what it heeds."
 	mercFullLine  = "You have three mercenaries already. /merc dismiss <name or 1-3> lets one go first."
 	mercWhichLine = "Name which mercenary: /merc <name or 1-3> %s. Yours: %s."
@@ -138,6 +139,7 @@ const (
 	mercStageRaceGroup
 	mercStageRace
 	mercStageSex
+	mercStagePath
 )
 
 // mercAsk is a liaison's open question: its box, its stage, what was chosen
@@ -146,6 +148,7 @@ type mercAsk struct {
 	box                uint32
 	stage, role, class int
 	race, page         int
+	path               int // the path picked (mercStagePath), -1 its class's default
 	others             bool
 	npc                entity.EntityID
 }
@@ -305,11 +308,21 @@ func (m *Mercs) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 				}
 			}
 		}
+		a.path = -1
+		if names := mercPathChoices(a.class); len(names) > 0 {
+			// its path now, for good (the owner, 2026-11-12: "at the bulletin
+			// board recruit have path option so no toggle once hired")
+			a.stage = mercStagePath
+			m.mu.Lock()
+			m.askLocked(sess, p, a, fmt.Sprintf(mercAskPath, entity.ClassName(a.class)), names)
+			m.mu.Unlock()
+			return true
+		}
 		m.askRaceGroup(sess, p, a)
 	case mercStageRaceGroup:
 		switch {
 		case n == 0: // its owner's own race and sex
-			m.hire(sess, p, a.class, p.Race, p.Sex)
+			m.hireWith(sess, p, a.class, p.Race, p.Sex, a.path)
 		case n-1 < len(mercRaceGroups):
 			a.stage, a.others, a.page = mercStageRace, false, n-1
 			m.askRaces(sess, p, a)
@@ -324,7 +337,7 @@ func (m *Mercs) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 		case n < len(races):
 			r := races[n]
 			if !r.sexes {
-				m.hire(sess, p, a.class, r.id, 0)
+				m.hireWith(sess, p, a.class, r.id, 0, a.path)
 				return true
 			}
 			a.stage, a.race = mercStageSex, r.id
@@ -335,9 +348,15 @@ func (m *Mercs) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 			a.page++
 			m.askRaces(sess, p, a)
 		}
+	case mercStagePath:
+		if n >= len(archivistPathLines[a.class]) {
+			return true
+		}
+		a.path = n
+		m.askRaceGroup(sess, p, a)
 	case mercStageSex:
 		if n <= 1 {
-			m.hire(sess, p, a.class, a.race, n)
+			m.hireWith(sess, p, a.class, a.race, n, a.path)
 		}
 	}
 	return true
@@ -452,6 +471,12 @@ const mercClassTakenLine = "You already have a %s mercenary, %s. One of each cla
 // it in the World (or on standby: entity/mercbench.go), a line. With three
 // hired, the liaison says so; a refusal (the dead) is said.
 func (m *Mercs) hire(sess *session.Session, p *entity.Player, class, race, sex int) {
+	m.hireWith(sess, p, class, race, sex, -1)
+}
+
+// hireWith is hire with the path picked at the board (-1 its class's
+// default), the hire's for good.
+func (m *Mercs) hireWith(sess *session.Session, p *entity.Player, class, race, sex, path int) {
 	if _, ok := mercRaceOf(race, p.Race); !ok || class < 0 || class > 14 {
 		return
 	}
@@ -479,7 +504,7 @@ func (m *Mercs) hire(sess *session.Session, p *entity.Player, class, race, sex i
 		taken = mercNamesTaken(p, rows)
 	}
 	row := database.MercRow{ServerID: p.CharServerID, Slot: slot, Name: mercName(p.CharServerID, class, race, now, taken...), Class: class, Race: race,
-		Sex: min(max(sex, 0), 1), Stance: int(entity.MercAssist), Hired: now, Path: -1}
+		Sex: min(max(sex, 0), 1), Stance: int(entity.MercAssist), Hired: now, Path: path}
 	row.Face, row.HairColor, row.HairLength, row.HairStyle = m.look(race, row.Sex, row.Name)
 	kit, err := m.kit(row, p.Level)
 	if err != nil {

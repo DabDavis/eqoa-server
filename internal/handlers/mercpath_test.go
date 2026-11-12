@@ -62,10 +62,10 @@ func TestMercPathBooks(t *testing.T) {
 	}
 }
 
-// /merc path: a necromancer merc hired takes the Blood path (its class's
-// first), said at the hire; /merc path names the paths; /merc path power
-// keeps the Power path in its row and its kit is the Power line's. The
-// control: a word of no path changes nothing.
+// /merc path: a necromancer merc hired with no path picked takes the Blood
+// path (its class's first), said at the hire; /merc path names the paths and
+// changes nothing (the path is the hire's, 2026-11-12); a hire of the Power
+// path keeps it in its row and its kit is the Power line's.
 func TestMercPathCommand(t *testing.T) {
 	r, m, db := newMercFixture(t)
 	for _, s := range []struct {
@@ -85,7 +85,7 @@ func TestMercPathCommand(t *testing.T) {
 	}
 	m.hire(r.anna, r.pa, 11, 0, 0)
 	got := r.msgs(r.anna)
-	if !saidLine(got, " takes the path of Blood: /merc path names the others.") {
+	if !saidLine(got, " takes the path of Blood, for good.") {
 		t.Errorf("the hire's lines: %q", got)
 	}
 	row, ok, _ := db.Merc(r.pa.CharServerID, 1)
@@ -98,18 +98,20 @@ func TestMercPathCommand(t *testing.T) {
 	}
 	r.drain()
 	r.say(r.anna, "/merc path")
-	if got := r.msgs(r.anna); !saidLine(got, "'s path: Blood. Paths of a Necromancer: Blood, Power.") {
+	if got := r.msgs(r.anna); !saidLine(got, "'s path: Blood, taken at its hire. Paths of a Necromancer: Blood, Power.") {
 		t.Errorf("/merc path: %q", got)
 	}
-	r.say(r.anna, "/merc path frog")
-	if row, _, _ := db.Merc(r.pa.CharServerID, 1); row.Path != -1 {
-		t.Errorf("a word of no path set path %d", row.Path)
-	}
-	r.drain()
+	// once hired, the path is the hire's for good (2026-11-12)
 	r.say(r.anna, "/merc path power")
-	if got := r.msgs(r.anna); !saidLine(got, " takes the path of Power.") {
+	if got := r.msgs(r.anna); !saidLine(got, " keeps to the path of Blood, taken at its hire.") {
 		t.Errorf("/merc path power: %q", got)
 	}
+	if row, _, _ := db.Merc(r.pa.CharServerID, 1); row.Path != -1 {
+		t.Errorf("the path changed: %d", row.Path)
+	}
+	// a hire of the Power path at the board
+	r.say(r.anna, "/merc dismiss")
+	m.hireWith(r.anna, r.pa, 11, 0, 0, 1)
 	row, _, _ = db.Merc(r.pa.CharServerID, 1)
 	if row.Path != 1 {
 		t.Fatalf("the path kept: %d", row.Path)

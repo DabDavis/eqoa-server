@@ -143,6 +143,10 @@ func TestMercLiaisonHires(t *testing.T) {
 		t.Fatalf("the tanks' box: %q", got)
 	}
 	got = r.answer(got, "Warrior")
+	if !strings.HasSuffix(got[0], "|Roar (its usual)|Pillar") {
+		t.Fatalf("the path box: %q", got)
+	}
+	got = r.answer(got, "Pillar")
 	if !strings.HasSuffix(got[0], "|Like me: Human|Human to Dwarf|Troll to Ogre") {
 		t.Fatalf("the race box: %q", got)
 	}
@@ -155,13 +159,14 @@ func TestMercLiaisonHires(t *testing.T) {
 		t.Errorf("the hire's line: %q", got)
 	}
 	row, kept, err := db.Merc(r.pa.CharServerID, 1)
-	if err != nil || !kept || row.Name != info.Name || row.Class != 0 || row.Race != 0 {
+	if err != nil || !kept || row.Name != info.Name || row.Class != 0 || row.Race != 0 || row.Path != 1 {
 		t.Errorf("its row: %+v %v %v", row, kept, err)
 	}
 	// a dark elf woman wizard, by her race's box and the sex's
 	r.talk(r.anna, lia)
 	got = r.answer(r.msgs(r.anna), "A caster")
 	got = r.answer(got, "Wizard")
+	got = r.answer(got, "Clash (its usual)")
 	got = r.answer(got, "Human to Dwarf")
 	if !strings.HasSuffix(got[0], "|Human|Elf|Dark Elf|Gnome|Dwarf") {
 		t.Fatalf("the first five races: %q", got)
@@ -191,7 +196,8 @@ func TestMercLiaisonOtherRaces(t *testing.T) {
 		r.drain()
 		r.talk(r.anna, lia)
 		got := r.answer(r.msgs(r.anna), "A melee fighter")
-		return r.answer(got, "Rogue")
+		got = r.answer(got, "Rogue")
+		return r.answer(got, "Evasion (its usual)") // its path (2026-11-12)
 	}
 	if got := ask(); strings.Contains(got[0], "Other races") {
 		t.Fatalf("other races offered with world.open_races off: %q", got)

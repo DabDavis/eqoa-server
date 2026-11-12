@@ -46,14 +46,16 @@ func SendMemberInvitesOffer(sess *session.Session) {
 }
 
 // SendRaidRosterOffer offers the session's client the whole of a raid group
-// (protocol.OpcodeRaidRoster, entity/raidroster.go): a u32, entity.RaidRosterWithGroups
-// (2: the records may carry their group numbers, entity/raidsubgroups.go; 1 before
-// 2026-11-12). A client that can show it answers 0x7E19 (vanilla of before then answers
-// 1 whatever the offer, and is sent the records it reads); a PS2 ignores it and keeps its
+// (protocol.OpcodeRaidRoster, entity/raidroster.go): a u32, entity.RaidRosterWithKinds
+// (3: the records may carry their group numbers, entity/raidsubgroups.go, and then each
+// one's kind, a merc's or a player's; 2 before the raid's mercs were in it, 1 before
+// the groups, both 2026-11-12). A client that can show it answers 0x7E19 (vanilla of
+// before the groups answers 1 whatever the offer, of before the kinds 2 to any offer
+// of 2 or more, and is sent the records it reads); a PS2 ignores it and keeps its
 // window of four.
 func SendRaidRosterOffer(sess *session.Session) {
 	queueReliable(sess, protocol.OpcodeRaidRosterOffer, build(protocol.OpcodeRaidRosterOffer, 6, func(w *buffer.Writer) {
-		w.WriteUint32(entity.RaidRosterWithGroups)
+		w.WriteUint32(entity.RaidRosterWithKinds)
 	}))
 }
 
@@ -69,7 +71,8 @@ func groupID(msg *protocol.Message) (uint32, *buffer.Reader, bool) {
 }
 
 // handleRaidRosterAnswer makes a client's answer to the offer its player's: a u32,
-// nonzero to be sent the roster (entity.RaidRosterWithGroups: with the group numbers),
+// nonzero to be sent the roster (entity.RaidRosterWithGroups: with the group numbers;
+// entity.RaidRosterWithKinds: and each record's kind),
 // 0 to stop. Nothing is answered.
 func (h *GroupHandler) handleRaidRosterAnswer(sess *session.Session, msg *protocol.Message) error {
 	id, _, ok := groupID(msg)

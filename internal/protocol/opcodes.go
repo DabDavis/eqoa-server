@@ -512,20 +512,24 @@ const (
 	OpcodeMemberInvites GameOpcode = 0x7E17
 	// OpcodeRaidRosterOffer is not retail: the whole of a raid group for a client
 	// that can show it, where CLIENT holds four (entity/raid.go). A u32 after the
-	// opcode, from the server once the player is in the world (handlers/group.go): 2
-	// since 2026-11-12, the records may carry the raid's groups (1 before). A PS2
-	// ignores it and keeps its window of four.
+	// opcode, from the server once the player is in the world (handlers/group.go): 3
+	// since 2026-11-12, the records may carry the raid's groups and each one's kind
+	// (2 the groups alone, earlier that day; 1 before). A PS2 ignores it and keeps its
+	// window of four.
 	OpcodeRaidRosterOffer GameOpcode = 0x7E18
 	// OpcodeRaidRosterAnswer is a client's answer to the offer: a u32, 1 to be sent
-	// the roster, 2 to be sent it with each record's group (an offer of 2 only), 0
-	// to stop.
+	// the roster, 2 to be sent it with each record's group (an offer of 2 or more), 3
+	// with its group and its kind (an offer of 3), 0 to stop.
 	OpcodeRaidRosterAnswer GameOpcode = 0x7E19
 	// OpcodeRaidRoster is the roster, to a client that asked, on a change and at most
 	// once a second: u16 members in all, u16 this message's first, u8 how many it
 	// holds, then each: u32 the id the client knows it by, u8 and the bytes of its
 	// name, u8 class, u8 level, u8 HP of 255, u8 power of 255, and to a client that
-	// answered 2 a u8 its group in the raid, from 1 (entity/raidsubgroups.go). In the order they
-	// joined, the leader first, the client's own character among them. 0 members:
+	// answered 2 or 3 a u8 its group in the raid, from 1 (entity/raidsubgroups.go; a
+	// merc's is its owner's), and to one that answered 3 a u8 its kind (bit 0: a
+	// mercenary). In the order they joined, the leader first, the client's own
+	// character among them, the raid's living mercs too (each after its owner, as they
+	// join a group; since 2026-11-12, so a client can target them). 0 members:
 	// its group is no raid group (now). entity/raidroster.go.
 	OpcodeRaidRoster GameOpcode = 0x7E1A
 

@@ -3,6 +3,7 @@ package entity
 import (
 	"log"
 	"math"
+	"slices"
 	"sort"
 	"time"
 )
@@ -226,8 +227,8 @@ func (ms *mercState) mercBook() []mercSpell {
 	for i := range ms.kit.Spells {
 		s := &ms.kit.Spells[i]
 		u := mercUseOf(s)
-		if u == useNone {
-			continue
+		if u == useNone || slices.Contains(ms.kit.SpellsOff, s.SpellID) {
+			continue // one its hirer turned off (mercmenu.go)
 		}
 		short := false
 		if u == useBuff {

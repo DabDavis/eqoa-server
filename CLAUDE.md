@@ -1875,6 +1875,10 @@ does the same for the player's own character (`seabody`). Its home is Erud's Cro
 speed by default"; `entity/seaspeed.go`): a race whose own body is a sea creature's, while its client's walk flags say it is in a
 liquid or at its surface, has MoveRate's 100 (SpeedNow 1.3 x its run speed), told by 0x00F8 when it changes; it does not stack with
 SoW (the rate stops at 100), and the move judge reads the same SpeedNow.
+Her village lies on Erud's Crossing's sea floor (24.2, under 27 of water) west of the hut island, its coachman on the island's
+shore so riders land dry; **its decorations are `tools/worlds/homelands-deco.json`** (a recipe extraFile beside the edges': the
+island village's pavilion and banner, South Barren Coast's market canopy and stones, the Abysmal Sea's kelp and great shells,
+the beach's ribs four times their size; 29 pieces), every spot of the village's people with all eight ways out open.
 **A Wisp in its own form shows nothing worn but its cape** (`entity/wispform.go`, the owner's of 2026-11-11): the channel's
 held items, armour, tints and robe zeroed (attack types kept, a ctf banner kept) and the character list's gear bare, so
 vanilla draws the wisp and its cape alone and a PS2 a bare human with empty hands; in any other body (a glamour, a GM's

@@ -139,3 +139,82 @@ func TestLoadNPCTitles(t *testing.T) {
 		t.Errorf("loaded %d (%v), the vendor's %q", got, err, n.Title)
 	}
 }
+
+// Petitions 1790 and 1791 (the GM Jibrish): Dabrish's and the Testing Heroes
+// Vendor's titles green. A title's colour is CLIENT's ApplyLook pick off the
+// plate's own channel alone (byte 142 >= 2, byte 157 bit 0: NameColors[2]),
+// so every viewer, of any level, sees the same; blue is 142 >= 2 without the
+// bit; none leaves the plate as before (byte 142 0: the NPC gold). The NPC's
+// own channel never changes, and the colour follows the NPC made again from
+// its row and comes off with its title.
+func TestTitleColor(t *testing.T) {
+	for in, want := range map[string]uint8{"": 0, "gold": 0, "Green": 2, " green ": 2, "blue": 1, "purple": 0} {
+		if got := TitleColor(in); got != want {
+			t.Errorf("TitleColor(%q) = %d, want %d", in, got, want)
+		}
+	}
+	w, _ := slotsFixture(t, 0)
+	dab := &NPC{ServerID: 162568, Name: "Dabrish", ModelID: 0x61CA3EDF, Size: 1, NPCType: 0x80, Level: 60}
+	vendor := &NPC{ServerID: 163008, Name: "Testing Heroes Vendor", ModelID: int64(bodyHumanMale), Size: 1, NPCType: 0x80, Level: 60}
+	plain := &NPC{ServerID: 162587, Name: "Feastmaster Holloway", ModelID: int64(bodyHumanMale), Size: 1, NPCType: 0x80, Level: 1}
+	for _, n := range []*NPC{dab, vendor, plain} {
+		w.NPCs[n.ServerID] = n
+	}
+	w.SetNPCTitleColors(map[EntityID]uint8{dab.ServerID: 2, vendor.ServerID: 1})
+	w.SetNPCTitles(map[EntityID]string{dab.ServerID: "XP/CM's", vendor.ServerID: "XP Grinding Rewards", plain.ServerID: "Feasts"})
+	for _, c := range []struct {
+		n          *NPC
+		b142, b157 byte
+	}{{dab, 3, 1}, {vendor, 3, 0}, {plain, 0, 0}} {
+		buf := serializePlate(1, c.n)
+		if buf[142] != c.b142 || buf[157] != c.b157 || buf[26] != 0 {
+			t.Errorf("%s's plate: bytes 142 %d, 157 %d, selectable %d; want %d, %d, 0", c.n.Name, buf[142], buf[157], buf[26], c.b142, c.b157)
+		}
+		own := SerializeNPCUpdate(2, c.n)
+		if own[142] != 0 || own[157] != 0 {
+			t.Errorf("%s itself: bytes 142 %d, 157 %d", c.n.Name, own[142], own[157])
+		}
+	}
+	again := &NPC{ServerID: dab.ServerID, Name: "Dabrish"}
+	w.mu.Lock()
+	w.applyNPCSettingsLocked(again)
+	w.mu.Unlock()
+	if again.TitleColor != 2 {
+		t.Errorf("made again from its row: colour %d", again.TitleColor)
+	}
+	w.SetNPCTitleColors(nil)
+	w.SetNPCTitles(nil)
+	if dab.TitleColor != 0 {
+		t.Errorf("title gone, colour %d", dab.TitleColor)
+	}
+}
+
+// The color column: added to a table made before it, read by name.
+func TestLoadNPCTitleColors(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "t.db")
+	db, err := database.NewSQLite(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// the table as it was before the column
+	if _, err := db.Exec(`DROP TABLE npctitle; CREATE TABLE npctitle (npcid INTEGER PRIMARY KEY, title TEXT NOT NULL DEFAULT '',
+		note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm');
+		INSERT INTO npctitle (npcid, title) VALUES (163008, 'XP Grinding Rewards'), (162568, 'XP/CM''s')`); err != nil {
+		t.Fatal(err)
+	}
+	db.Close()
+	if db, err = database.NewSQLite(path); err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if _, err := db.Exec(`UPDATE npctitle SET color = 'Green' WHERE npcid = 162568`); err != nil {
+		t.Fatal(err)
+	}
+	w := NewWorld()
+	dab := &NPC{ServerID: 162568, Name: "Dabrish"}
+	vendor := &NPC{ServerID: 163008, Name: "Testing Heroes Vendor"}
+	w.NPCs[dab.ServerID], w.NPCs[vendor.ServerID] = dab, vendor
+	if got, err := w.LoadNPCTitles(db); err != nil || got != 2 || dab.TitleColor != 2 || vendor.TitleColor != 0 {
+		t.Errorf("loaded %d (%v): Dabrish's colour %d, the vendor's %d", got, err, dab.TitleColor, vendor.TitleColor)
+	}
+}

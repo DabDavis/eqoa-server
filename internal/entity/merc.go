@@ -408,13 +408,6 @@ func (w *World) dressMercLocked(n *NPC, k *MercKit, owner *Player) {
 	n.Class = k.Class
 }
 
-// mercSpot is a place behind its owner's left, petFollow off it: its follow
-// slot's (followslot.go; the pet takes the right, a familiar behind the
-// right), so they come apart.
-func mercSpot(p *Player) (x, y, z float32) {
-	return followSpot(p, slotMerc)
-}
-
 // spawnMercLocked makes the merc of the kit beside its owner: its NPC dressed
 // and at a player's hit points and power, in the world, its owner's. Must be
 // called with the lock held.
@@ -426,7 +419,7 @@ func (w *World) spawnMercLocked(owner *Player, kit MercKit, stance MercStance, n
 	n := &NPC{ServerID: id, Name: kit.Name, World: owner.World, Level: kit.Level, Faction: FactionFriendly, Temporary: true,
 		RespawnTime: petCorpseTime, CorpseDecay: petCorpseTime, Owner: owner.ServerID}
 	w.dressMercLocked(n, &kit, owner)
-	n.X, n.Y, n.Z = mercSpot(owner)
+	n.X, n.Y, n.Z = w.followPlaceLocked(n, owner, slotMerc)
 	n.Facing = headingTo(owner.X-n.X, owner.Z-n.Z)
 	n.SpawnX, n.SpawnY, n.SpawnZ, n.SpawnFacing = n.X, n.Y, n.Z, n.Facing
 	body := newMercBody(id, &kit)
@@ -792,7 +785,7 @@ func (w *World) mercSystem(now time.Time) {
 			// a teleport, another world, a coach: it comes along, as a pet does
 			oldX, oldZ := n.X, n.Z
 			n.World = owner.World
-			n.X, n.Y, n.Z = mercSpot(owner)
+			n.X, n.Y, n.Z = w.followPlaceLocked(n, owner, slotMerc)
 			n.stopMoving()
 			ms.target, ms.ordered = 0, 0
 			ms.stay = false

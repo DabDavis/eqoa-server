@@ -52,7 +52,7 @@ const (
 )
 
 // followSlotAngle is each slot's direction off the formation's heading,
-// toward its owner's right (besideOwner's side) for a positive one.
+// toward its owner's right for a positive one.
 var followSlotAngle = [...]float32{
 	slotPet:      math.Pi / 2,
 	slotMerc:     -3 * math.Pi / 4,
@@ -178,11 +178,18 @@ func followSpotAt(x, z, heading, angle, r float32) (float32, float32) {
 	return x + r*float32(math.Sin(h)), z + r*float32(math.Cos(h))
 }
 
-// followSpot is where a follower of the slot is put beside p (a summoning, a
-// teleport): its slot off p's facing.
-func followSpot(p *Player, s followSlot) (x, y, z float32) {
-	x, z = followSpotAt(p.X, p.Z, p.Facing, followSlotAngle[s], followRadius)
-	return x, p.Y, z
+// followPlaceLocked is where a follower of the slot is put beside p (a
+// summoning, a teleport): its slot off p's facing, else the first of
+// followTries it can walk to from p (a slot in a wall is not taken), else p's
+// own place. n's world must be p's. Must be called with the lock held.
+func (w *World) followPlaceLocked(n *NPC, p *Player, s followSlot) (x, y, z float32) {
+	for _, t := range followTries {
+		x, z := followSpotAt(p.X, p.Z, p.Facing, followSlotAngle[s]+t.turn, followRadius*t.share)
+		if w.followSpotWalkableLocked(n, p, x, z) {
+			return x, p.Y, z
+		}
+	}
+	return p.X, p.Y, p.Z
 }
 
 // followSiblingsLocked is the other followers round a: its class pet, its

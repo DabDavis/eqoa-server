@@ -517,7 +517,7 @@ func main() {
 	// group (world.pet_heal_group; entity/petmemberheal.go)
 	gameWorld.SetPetHealGroup(cfg.World.PetHealGroup)
 	if cfg.World.PetHealGroup {
-		log.Printf("Pet heals: a magician's water pet heals the worst off of its owner's group and raid group (world.pet_heal_group)")
+		log.Printf("Pet heals: a magician's water pet heals its mage first, else the worst off of its group and raid group (world.pet_heal_group)")
 	}
 	gameWorld.SetTestingHeroes(cfg.World.TestingHeroes)
 	handlers.SetTestingHeroes(cfg.World.TestingHeroes)

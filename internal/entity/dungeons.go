@@ -380,6 +380,7 @@ func (w *World) dungeonOpenLocked(def int, p *Player, now time.Time) *dungeonIns
 		in.npcs = append(in.npcs, c.ServerID)
 	}
 	in.creatures = len(in.npcs)
+	w.companionOf = nil // its shamans and their pets pair within it (companion.go), read again
 	w.dungeons.insts[in.id] = in
 	if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
 		w.sendColoredLocked(sess, fmt.Sprintf(dungeonLineOpened, p.Name, d.Name, in.creatures), dungeonColour)
@@ -398,6 +399,7 @@ func (w *World) dungeonCloseLocked(in *dungeonInst, why string) {
 		}
 	}
 	delete(w.dungeons.insts, in.id)
+	w.companionOf = nil
 	log.Printf("Dungeons: instance %d of %s (%s's) closed (%s): %d creatures gone", in.id,
 		w.dungeons.defs[in.def].Name, in.ownerName, why, gone)
 }

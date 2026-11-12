@@ -139,9 +139,13 @@ func companionNamesOwner(named, owner string) bool {
 
 // companionFighter is whether an NPC takes part in a pair at all: a creature
 // of its own (no player's pet, no charm), that fights (no NPC bit, no dummy),
-// and is of a row (no GM's copy, no spawn-only original).
+// and is of a row (no GM's copy, no spawn-only original) or a dungeon
+// instance's copy of one (dungeons.go: Waldorf's petition 1832, 2026-11-12,
+// "shamans aren't tied to their pets" in Guk's instance; a copy pairs with the
+// copies of its own instance alone, linkCompanionsLocked's cell).
 func companionFighter(n *NPC) bool {
-	return n != nil && n.Owner == 0 && n.Charm == nil && n.NPCType&0x80 == 0 && n.Dummy == NotDummy && !n.Temporary && !n.SpawnOnly
+	return n != nil && n.Owner == 0 && n.Charm == nil && n.NPCType&0x80 == 0 && n.Dummy == NotDummy &&
+		(!n.Temporary || n.Instance != 0) && !n.SpawnOnly
 }
 
 // linkCompanionsLocked reads the pairs off the NPCs' spawns (the file's doc),
@@ -156,11 +160,12 @@ func (w *World) linkCompanionsLocked() {
 	w.companions = map[EntityID][]EntityID{}
 	type cell struct {
 		world uint8
+		inst  uint32
 		x, z  int
 	}
 	grid := map[cell][]*NPC{}
 	at := func(n *NPC) cell {
-		return cell{n.World, int(math.Floor(float64(n.SpawnX / companionNamedReach))), int(math.Floor(float64(n.SpawnZ / companionNamedReach)))}
+		return cell{n.World, n.Instance, int(math.Floor(float64(n.SpawnX / companionNamedReach))), int(math.Floor(float64(n.SpawnZ / companionNamedReach)))}
 	}
 	var pets []*NPC
 	for _, n := range w.NPCs {
@@ -183,7 +188,7 @@ func (w *World) linkCompanionsLocked() {
 		c := at(pet)
 		for dx := -1; dx <= 1; dx++ {
 			for dz := -1; dz <= 1; dz++ {
-				for _, o := range grid[cell{c.world, c.x + dx, c.z + dz}] {
+				for _, o := range grid[cell{c.world, c.inst, c.x + dx, c.z + dz}] {
 					d := distXZ(pet.SpawnX, pet.SpawnZ, o.SpawnX, o.SpawnZ)
 					score := d
 					switch {

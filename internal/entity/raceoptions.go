@@ -86,6 +86,10 @@ type OptionRow struct {
 	// given to be told the row (0 or 1: any that asked; 3: the barbarians'
 	// tattoo, which a client that answered 2 cannot draw: tattoos.go).
 	Answer uint32
+	// AtSelect is a custom race's colour or texture row character select's
+	// Customize re-chooses (SelectRows; a game race's are its skin's): the
+	// Wisp's colour.
+	AtSelect bool
 }
 
 // Steps is the row's steps for sex (1 female).
@@ -253,6 +257,12 @@ var (
 	tones = []OptionStep{{"Natural", 0, 0}, {"Pale", Tone(0, 70, 118), 0}, {"Dark", Tone(0, 80, 70), 0},
 		{"Ashen", Tone(0, 25, 100), 0}, {"Ruddy", Tone(-12, 140, 95), 0}, {"Bronze", Tone(15, 125, 90), 0},
 		{"Frost", Dye(205, 30, 110), 0}}
+	// wispColours are a wisp's: the will o' wisp's own glow, then colours laid
+	// over its shading, kept bright (a glow darkened reads as a hole)
+	wispColours = []OptionStep{{"Natural", 0, 0}, {"White", Dye(210, 10, 135), 0}, {"Gold", Dye(48, 85, 120), 0},
+		{"Amber", Dye(30, 90, 115), 0}, {"Crimson", Dye(355, 85, 105), 0}, {"Rose", Dye(330, 70, 120), 0},
+		{"Violet", Dye(275, 75, 115), 0}, {"Azure", Dye(212, 85, 115), 0}, {"Aqua", Dye(180, 80, 115), 0},
+		{"Emerald", Dye(135, 80, 110), 0}, {"Lime", Dye(90, 80, 120), 0}, {"Shadow", Dye(260, 30, 60), 0}}
 	barks = []OptionStep{{"Natural", 0, 0}, {"Umber", Dye(28, 45, 95), 0}, {"Ash", Dye(30, 6, 110), 0},
 		{"Moss", Dye(90, 30, 95), 0}, {"Plum", Dye(310, 25, 90), 0}, {"Ochre", Dye(42, 55, 110), 0},
 		{"Char", Dye(20, 15, 55), 0}}
@@ -491,8 +501,14 @@ var raceOptionRows = map[uint32][]OptionRow{
 		{Key: "body", Label: "Body", Kind: KindBody, Male: []OptionStep{{"Human", bodyHumanMale, 1}},
 			Female: []OptionStep{{"Human", bodyHumanFemale, 1}}},
 		{Key: "wisp", Label: "Wisp", Kind: KindTexture, Always: true,
-			Parts: []OptionPart{whole(bodyHumanMale, 2), whole(bodyHumanFemale, 7)},
+			Parts: wispParts,
 			Male:  []OptionStep{{"Will o' wisp", bodyWillOWisp, 0}}},
+		// the wisp's colour (the owner, 2026-11-12: "also add color customize to
+		// wisp char sel"), on the wisp's own part: a client that draws wisps
+		// lays the colour on the wisp it hangs there (vanilla's wisp.rs), and the
+		// body under it is never drawn (its head is no worn slot's); chosen at
+		// creation and again at select's Customize (SelectRows)
+		{Key: wispColourKey, Label: "Color", Kind: KindColour, Parts: wispParts, Male: wispColours, AtSelect: true},
 	},
 	// the Mermaid: the merman or the sea king for a man (at the mermaid's height;
 	// the sea king's skin his scales and crown's every entry but the trident's), the

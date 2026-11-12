@@ -116,6 +116,21 @@ func isGameRace(race int) bool {
 	return ok
 }
 
+// SelectRows is the keys of race's option rows character select's Customize
+// re-chooses: a game race's colour and texture rows (its skin, on a server
+// that offers skin shades), a custom race's marked AtSelect (the Wisp's
+// colour); none for any other. A client told them (OpcodeSelectInfoData)
+// shows them under the four.
+func SelectRows(race int) []string {
+	var out []string
+	for _, r := range RaceOptions(race) {
+		if (r.Kind == KindColour || r.Kind == KindTexture) && len(r.Steps(0)) > 1 && (isGameRace(race) || r.AtSelect) {
+			out = append(out, r.Key)
+		}
+	}
+	return out
+}
+
 // ReselectOptions is the look of a character of game race race and sex whose
 // look is have, after choices re-chosen at character select's Customize (sent
 // after 0x002A's ints by a client that showed the race's rows: vanilla since
@@ -125,10 +140,13 @@ func isGameRace(race int) bool {
 // another kind (a body is chosen at creation only), a row the race has not or
 // of another kind, a step past its row's, a row twice.
 func ReselectOptions(race, sex int, have []database.CharLook, choices []OptionChoice) (looks []database.CharLook, changed []string, err error) {
-	if !isGameRace(race) {
+	if !isGameRace(race) && len(SelectRows(race)) == 0 {
 		return nil, nil, fmt.Errorf("race %d: no options re-chosen at select", race)
 	}
 	rows := RaceOptions(race)
+	if !isGameRace(race) { // a custom race's own: only its rows re-chosen at select
+		rows = slices.DeleteFunc(slices.Clone(rows), func(r OptionRow) bool { return !r.AtSelect })
+	}
 	chosen := map[string]database.CharLook{}
 	for _, c := range choices {
 		var row *OptionRow

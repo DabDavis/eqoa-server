@@ -56,7 +56,9 @@ func listGearOf(t *testing.T, d []byte, gear int) ([][]byte, bool) {
 func lookOpsQueued(s *session.Session) []protocol.GameOpcode {
 	var out []protocol.GameOpcode
 	for _, m := range s.Queue().PeekPending() {
-		if d := m.Data(); len(d) >= 2 {
+		// the select info's offer and list after every list are left out:
+		// selectinfo_test.go holds them
+		if d := m.Data(); len(d) >= 2 && opcode(d) != protocol.OpcodeSelectInfo && opcode(d) != protocol.OpcodeSelectInfoData {
 			out = append(out, opcode(d))
 		}
 	}

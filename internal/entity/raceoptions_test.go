@@ -398,6 +398,11 @@ func TestRaceOptionPartsNeverOverlap(t *testing.T) {
 	for own, rows := range raceOptionRows {
 		for i, r := range rows {
 			for _, s := range rows[i+1:] {
+				// the Wisp's colour is laid on its wisp, which lays nothing on the
+				// body: the two share the wisp's part (wispform.go)
+				if r.Key == wispRowKey && s.Key == wispColourKey {
+					continue
+				}
 				for _, p := range r.Parts {
 					for _, q := range s.Parts {
 						if p.Body == q.Body && clash(p, q) {

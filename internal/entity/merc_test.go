@@ -281,6 +281,28 @@ func TestMercWearsItsRacesArmourBody(t *testing.T) {
 	}
 }
 
+// A hill giantess merc (racedefs' female body her own, the GM Jibrish's petition
+// 1647) wears her own body in any armour: the race's armour bodies are the male's
+// (a male giant's each). The control: a hill giant man in the same robe takes the
+// sand giant's.
+func TestMercGiantessKeepsHerBodyInArmour(t *testing.T) {
+	const own, giantess, sand = 0xFFB1EA2C, 0xF34501CB, 0xE6170C3B
+	SetRaceDefs([]database.RaceDefRow{{ID: 11, Name: "Hill Giant", WireRace: 9, BodyMale: signed(own), BodyFemale: signed(giantess)}})
+	t.Cleanup(func() { SetRaceDefs(nil) })
+	r := newMercRig(t)
+	r.w.SetRaceArmorBodies([]database.RaceArmorBody{{Race: 11, Armor: "cloth", Body: sand}})
+	for _, c := range []struct {
+		sex  int
+		want uint32
+	}{{1, giantess}, {0, sand}} {
+		k := r.kit(11, 11, c.sex)
+		k.Gear.Armor = ArmorCloth
+		if m := r.hire(k, MercAssist).npc; uint32(m.ModelID) != c.want {
+			t.Errorf("a hill giant merc of sex %d in cloth: body %#x, want %#x", c.sex, uint32(m.ModelID), c.want)
+		}
+	}
+}
+
 // A creature's hit on a merc is its roll on a player of the merc's class with
 // the merc's AC and AGI (defence.go), not a pet's tank of its level.
 func TestMercIsHitAsAPlayer(t *testing.T) {

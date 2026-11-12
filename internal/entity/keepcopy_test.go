@@ -60,6 +60,11 @@ func TestACopysCorpseComesThroughARestart(t *testing.T) {
 	inInstance.Instance = 3
 	old.mu.Unlock()
 	killCopy(old, inInstance, died)
+	add := spawn(2240) // a creature's summoned add carries nothing (masterdeath.go)
+	old.mu.Lock()
+	add.withMaster = true
+	old.mu.Unlock()
+	killCopy(old, add, died)
 	pet := &NPC{ServerID: dead.ServerID + 100, Name: "a skeleton", Temporary: true, Owner: 1, CopyOf: keepBoss, Level: 20, MaxHP: 50}
 	old.mu.Lock()
 	old.putNPCLocked(pet)

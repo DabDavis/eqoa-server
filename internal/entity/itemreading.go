@@ -143,8 +143,20 @@ func (wp WeaponProc) Explain() string {
 	case ProcRestore:
 		what = fmt.Sprintf("gives %s health and %d power to the wielder and its group within %d", figure, wp.Power, procRestoreReach)
 	case ProcForm:
+		if wp.Scale != StatNone && wp.ScalePct != 0 {
+			figure += fmt.Sprintf(" + %d%% of %s", wp.ScalePct, procStatWord(wp.Scale))
+		}
+		if wp.Resist != StatNone {
+			figure += " " + strings.ToLower(StatName(wp.Resist))
+		}
+		form := wp.Form
+		if wp.FormStat != StatNone && wp.FormStatBy != 0 {
+			form += fmt.Sprintf(" (%+d %s while it lasts)", wp.FormStatBy, procStatWord(wp.FormStat))
+		}
 		what = fmt.Sprintf("turns the wielder into %s for %.0f s (renewed by another proc), which procs %s at %d%% a hit, at most %d a round",
-			wp.Form, wp.Duration.Seconds(), figure, wp.Chance, wp.RoundMost)
+			form, wp.Duration.Seconds(), figure, wp.Chance, wp.RoundMost)
+	case ProcRoot:
+		what = fmt.Sprintf("roots the creature for %.0f s (a root breaks as any root does)", procRootFor.Seconds())
 	}
 	if wp.Kind != ProcForm {
 		if wp.Chance > 0 {
@@ -157,7 +169,7 @@ func (wp WeaponProc) Explain() string {
 		what += ", on " + wp.Only + "s alone"
 	}
 	switch wp.Kind {
-	case ProcHit, ProcTap, ProcDoT, ProcCalm:
+	case ProcHit, ProcTap, ProcDoT, ProcCalm, ProcRoot:
 		what += fmt.Sprintf("; a creature resists it all or nothing, %d%% at the wielder's level and more above (a resisted hit does its least)", resistAtPar)
 	}
 	return what

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
 )
 
@@ -515,9 +516,10 @@ type ClassTemplate struct {
 	// spells, at any figure of it: this percent altogether, twice this in part
 	// (entity/resist.go). 0: the game's own, only at the cap.
 	ResistFail float64
-	// ResistKind is the resist it is strong in (FR, CR, LR, AR, PR or DR; empty:
-	// none) and ResistPct the percent of spell damage of that kind it does not take
-	// (entity/enchanter.go). 0: all of it.
+	// ResistKind is the resist it is strong in (FR, CR, LR, AR, PR or DR, several
+	// with commas; empty: none) and ResistPct the percent of spell damage of that
+	// kind it does not take (entity/enchanter.go). 0: all of it. A kind may carry
+	// its own percent, "LR:75", which then holds for it (ResistKindPct).
 	ResistKind string
 	ResistPct  int
 	// KickDamage is a second timed melee beside the special: a Kick of this figure (fixed, not by
@@ -1012,14 +1014,36 @@ func shieldResistKnown(s string) bool {
 	return false
 }
 
-// resistKindsKnown is whether a resist_kind is known: one, or several with commas.
+// resistKindsKnown is whether a resist_kind is known: one, or several with commas, each
+// with its own percent or not (ResistKindPct).
 func resistKindsKnown(s string) bool {
 	for _, k := range strings.Split(s, ",") {
-		if !shieldResistKnown(k) {
+		if _, _, ok := ResistKindPct(k); !ok {
 			return false
 		}
 	}
 	return true
+}
+
+// ResistKindPct reads one of a resist_kind's resists: its name (FR, CR, LR, AR, PR or
+// DR, upper case; "" for none) and its own percent, "LR:75", 1 to 100 (0 when it gives
+// none, and resist_pct is its figure). A raid boss can so be very strong in one resist
+// and strong in the rest (QuestMasters' raid list, 2006: "Avatar of Fear- *LR* AR PR DR",
+// the star its strongest: tools/questmasters_1112.py). False for anything else.
+func ResistKindPct(tok string) (kind string, pct int, ok bool) {
+	kind, fig, has := strings.Cut(strings.TrimSpace(tok), ":")
+	kind = strings.ToUpper(strings.TrimSpace(kind))
+	if !shieldResistKnown(kind) {
+		return "", 0, false
+	}
+	if !has {
+		return kind, 0, true
+	}
+	n, err := strconv.Atoi(strings.TrimSpace(fig))
+	if err != nil || n < 1 || n > 100 || kind == "" {
+		return "", 0, false
+	}
+	return kind, n, true
 }
 
 // CheckClassTemplate is what a template must be for an NPC to fight by it: a
@@ -1052,7 +1076,7 @@ func CheckClassTemplate(t ClassTemplate) error {
 	case math.IsNaN(t.ResistFail) || t.ResistFail < 0 || t.ResistFail > MaxTemplateResistFail:
 		return fmt.Errorf("resist_fail %v: 0 to %d percent", t.ResistFail, MaxTemplateResistFail)
 	case !resistKindsKnown(t.ResistKind):
-		return fmt.Errorf("resist_kind %q: FR, CR, LR, AR, PR, DR, several with commas, or none", t.ResistKind)
+		return fmt.Errorf("resist_kind %q: FR, CR, LR, AR, PR, DR, several with commas (each may have its own percent: LR:75), or none", t.ResistKind)
 	case t.ResistPct < 0 || t.ResistPct > 100:
 		return fmt.Errorf("resist_pct %d: 0 to 100 percent of spell damage of its kind", t.ResistPct)
 	case t.ResistPct > 0 && strings.TrimSpace(t.ResistKind) == "":

@@ -91,7 +91,12 @@ const (
 	ProcCalm                    // the creature's hate for the wielder halved
 	ProcRestore                 // hit points and power back to the wielder and its group near
 	ProcForm                    // the wielder shown in a body for a while, the body's own proc beside it
+	ProcRoot                    // the creature held in place for a while (procRootFor)
 )
+
+// procRootFor is how long a weapon's root holds (ours: no source gives one), unless
+// it breaks first as any root does (root.go).
+const procRootFor = 12 * time.Second
 
 // procRestoreReach is how far from the wielder a group member a restoring
 // proc reaches stands at most (ours: the group spells' radius).
@@ -121,6 +126,14 @@ type WeaponProc struct {
 	Body      uint32
 	Icon      uint32
 	RoundMost int
+	// FormStat and FormStatBy are a stat the form raises while it lasts, by that much
+	// (the Staff of Faykind's fairy form: 15 DEX); Scale and ScalePct a share of its
+	// bearer's stat the form's own proc adds at each proc ("380+70%Dex"), and the
+	// form's proc is resisted by Resist (its "CR proc"; none said: AR).
+	FormStat   Stat
+	FormStatBy int
+	Scale      Stat
+	ScalePct   int
 }
 
 // chancePct is the chance, in percent, that a hit of a bearer of that DEX procs
@@ -179,10 +192,23 @@ var weaponProcsByName = map[string]WeaponProc{
 	"flamberge of wounding": {Kind: ProcDoT, Damage: 50},
 	"neuronite dirk":        {Kind: ProcHit, Damage: 75},
 	// the file's doc. The body is the pixies' of the disc (CHAR.ESF 0x94BA77CD,
-	// the NPCs "pixie" and "pixie nettle"), the icon Faerie Form's. "Up to 800"
-	// gives the top alone; half of it as the low end is ours
+	// the NPCs "pixie" and "pixie nettle"), the icon Faerie Form's. Its form's
+	// proc and stat are QuestMasters' list of procing items (2006, the owner's
+	// source 2026-11-12: "staff of faykind (All/All): procs a fairy form that
+	// gives you 15 Dex and gives you a 380+70%Dex CR proc"; "Faystaff ...
+	// PROCs are scalable 350-999?, I think is CR based"); until then 400-800,
+	// AR. The owner's "up to 800" a round (2026-11-07) still holds.
 	"staff of faykind": {Kind: ProcForm, Chance: 30, Form: "Pixie Form", Body: 0x94BA77CD, Icon: 0xDE1BC5EC,
-		Duration: 30 * time.Second, Damage: 400, DamageTo: 800, RoundMost: 800},
+		Duration: 30 * time.Second, Damage: 380, Scale: StatDex, ScalePct: 70, Resist: StatCR, RoundMost: 800,
+		FormStat: StatDex, FormStatBy: 15},
+	// QuestMasters' list (2006): "noroxus spine spear (War, Ran, Pal, and SK):
+	// procs root" (no figure: procRootFor)
+	"noroxus spine spear": {Kind: ProcRoot},
+	// the same list: "Song of Melospiza, lvl 40 caster weapon, ... anti-aggro
+	// proc?" (this server's record is "Song of the Melospiza", 2294), as
+	// Sunsilver's
+	"song of the melospiza": {Kind: ProcCalm},
+	"song of melospiza":     {Kind: ProcCalm},
 }
 
 // procSpellsByName are the spells a description names its proc by ("Procs:
@@ -289,7 +315,7 @@ func WeaponProcOf(patternID int, itemName, desc string) (WeaponProc, bool) {
 		switch wp.Kind {
 		case ProcTap:
 			wp.FX = fxProcLifeTap
-		case ProcCalm, ProcRestore, ProcForm:
+		case ProcCalm, ProcRestore, ProcForm, ProcRoot:
 			wp.FX = fxBuff
 		default:
 			wp.FX = fxDamage
@@ -326,7 +352,19 @@ func (wp WeaponProc) String() string {
 		if wp.Duration < time.Minute {
 			long = fmt.Sprintf("%.0f s", wp.Duration.Seconds())
 		}
-		s = fmt.Sprintf("%s for %s, which procs %s at %d%% a hit, at most %d a round", wp.Form, long, figure, wp.Chance, wp.RoundMost)
+		if wp.Scale != StatNone && wp.ScalePct != 0 {
+			figure += fmt.Sprintf(" + %d%% of %s", wp.ScalePct, procStatWord(wp.Scale))
+		}
+		if wp.Resist != StatNone && wp.Resist != StatAR {
+			figure += " " + statName(wp.Resist)
+		}
+		form := wp.Form
+		if wp.FormStat != StatNone && wp.FormStatBy != 0 {
+			form += fmt.Sprintf(" (%+d %s)", wp.FormStatBy, procStatWord(wp.FormStat))
+		}
+		s = fmt.Sprintf("%s for %s, which procs %s at %d%% a hit, at most %d a round", form, long, figure, wp.Chance, wp.RoundMost)
+	case ProcRoot:
+		s = fmt.Sprintf("a root for %.0f s", procRootFor.Seconds())
 	default:
 		s = figure
 	}
@@ -376,7 +414,7 @@ func (w *World) weaponProcLocked(sess *session.Session, p *Player, npc *NPC, now
 	// resisted, a proc that hurts does the least it can (workbook.go's leastHarm); one that
 	// only calms does nothing
 	resisted := wp.Kind != ProcRestore && npc.Dummy == NotDummy && procIntn(100) < npcSpellResistPct(p.Level, npc, wp.Resist, now)
-	if resisted && wp.Kind == ProcCalm {
+	if resisted && (wp.Kind == ProcCalm || wp.Kind == ProcRoot) {
 		log.Printf("Proc: %s's %q resisted by %s", p.Name, wp.Item, npc.Name)
 		return false
 	}
@@ -398,6 +436,11 @@ func (w *World) weaponProcLocked(sess *session.Session, p *Player, npc *NPC, now
 		}
 		log.Printf("Proc: %s's %q calms %s (its hate %d)", p.Name, wp.Item, npc.Name, npc.Threats[p.ServerID])
 		return false
+	case ProcRoot:
+		w.broadcastCastLocked(p, npc.ServerID, 0, wp.FX)
+		log.Printf("Proc: %s's %q roots %s", p.Name, wp.Item, npc.Name)
+		w.landOnNPCLocked(weaponRootCast(p, wp, npc.ServerID), p, sess, npc, now)
+		return npc.Dead
 	case ProcDoT:
 		w.broadcastCastLocked(p, npc.ServerID, 0, wp.FX)
 		log.Printf("Proc: %s's %q lays %d a tick on %s", p.Name, wp.Item, n, npc.Name)
@@ -436,11 +479,41 @@ func (w *World) formProcLocked(sess *session.Session, p *Player, wp *WeaponProc,
 	}
 	cs := &castState{spell: CastSpell{SpellID: id, Name: wp.Form, Icon: wp.Icon, Level: p.Level, Def: SpellDef{Target: TargetSelf,
 		Duration: wp.Duration, FormKind: FormSelf, FormModel: wp.Body, ProcChance: wp.Chance, ProcRound: wp.RoundMost,
-		Effects: []SpellEffect{{Kind: EffectIllusion}, {Kind: EffectProc, Amount: wp.Damage, AmountMax: wp.DamageTo}}}},
+		Effects: formEffects(wp)}},
 		caster: p.ServerID, targets: []EntityID{p.ServerID}}
 	w.broadcastCastLocked(p, p.ServerID, 0, wp.FX)
 	log.Printf("Proc: %s's %q gives it %s", p.Name, wp.Item, wp.Form)
 	w.landOnPlayerLocked(cs, p, sess, p, now)
+}
+
+// procStatWord is a stat's short name as #stats says a proc's scale and a form's stat.
+func procStatWord(s Stat) string {
+	if w, ok := map[Stat]string{StatStr: "STR", StatSta: "STA", StatAgi: "AGI", StatDex: "DEX", StatWis: "WIS",
+		StatInt: "INT", StatCha: "CHA"}[s]; ok {
+		return w
+	}
+	return statName(s)
+}
+
+// formEffects are what a weapon's form does while it lasts: the body, its own proc (its
+// bearer's stat's share at each proc, resisted by its element) and the stat it raises.
+func formEffects(wp *WeaponProc) []SpellEffect {
+	proc := SpellEffect{Kind: EffectProc, Amount: wp.Damage, AmountMax: wp.DamageTo, Resist: wp.Resist}
+	if wp.Scale != StatNone && wp.ScalePct != 0 {
+		proc.Scale, proc.ScalePct, proc.ScaleBearer = wp.Scale, wp.ScalePct, true
+	}
+	effects := []SpellEffect{{Kind: EffectIllusion}, proc}
+	if wp.FormStat != StatNone && wp.FormStatBy != 0 {
+		effects = append(effects, SpellEffect{Kind: EffectStat, Stat: wp.FormStat, Amount: wp.FormStatBy, AmountMax: wp.FormStatBy})
+	}
+	return effects
+}
+
+// weaponRootCast is a weapon proc's root as a spell of p's at target, for procRootFor.
+func weaponRootCast(p *Player, wp *WeaponProc, target EntityID) *castState {
+	return &castState{spell: CastSpell{SpellID: weaponProcSpellID(wp.pattern), Name: wp.Item, Level: p.Level, Scope: 1,
+		Def: SpellDef{Effects: []SpellEffect{{Kind: EffectRoot}}, Duration: procRootFor, Harmful: true}},
+		caster: p.ServerID, targets: []EntityID{target}}
 }
 
 // weaponDoTCast is a weapon proc's damage over time as a spell of p's at target, n a tick.

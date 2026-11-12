@@ -229,6 +229,9 @@ func (w *World) mercTurnLocked(ms *mercState, dt float32, now time.Time) {
 		}
 	}
 	w.mercHandsLocked(ms, t)
+	if t != nil || now.Before(ms.busy) {
+		ms.mercIdleNoteBusy(now) // no ease in a fight or a cast (mercidle.go)
+	}
 	if now.Before(ms.busy) {
 		// a cast on its way: it stands and faces where it casts
 		m.stopMoving()

@@ -205,7 +205,8 @@ func TestAMercFollowsRoundALedgeAndAFamiliarAsBefore(t *testing.T) {
 		merc = append(merc, [3]float32{ms.npc.X, ms.npc.Y, ms.npc.Z})
 		fam = append(fam, [3]float32{fs.npc.X, fs.npc.Y, fs.npc.Z})
 	}
-	if d := distXZ(ms.npc.X, ms.npc.Z, r.p.X, r.p.Z); d > petFollowStart || absf(ms.npc.Y-r.p.Y) > 1 {
+	if d := distXZ(ms.npc.X, ms.npc.Z, r.p.X, r.p.Z); d > mercStrollFar+followArrive || // at ease it strolls round its owner (mercidle.go)
+		absf(ms.npc.Y-r.p.Y) > 1 {
 		t.Fatalf("the merc never came to its owner: %.1f off at height %.1f", d, ms.npc.Y)
 	}
 	if i, bad := fallsOrClimbs(merc); bad || !onRamp(merc) {

@@ -187,6 +187,8 @@ type mercState struct {
 	bookOf *Player
 	// pet is its own pet, nil for none out (mercpet.go)
 	pet *petState
+	// idle is its ease while its owner stands (mercidle.go)
+	idle mercIdle
 	// petBook is its pet's heals and buffs (mercpetbuff.go), made for
 	// petBookOf, its body, as book is
 	petBook   *mercPetSpells
@@ -406,13 +408,6 @@ func (w *World) dressMercLocked(n *NPC, k *MercKit, owner *Player) {
 	n.Class = k.Class
 }
 
-// mercSpot is a place at its owner's left side, petFollow off it (the pet
-// takes the right: besideOwner), so the two come apart.
-func mercSpot(p *Player) (x, y, z float32) {
-	h := float64(p.Facing)
-	return p.X - petFollow*float32(math.Cos(h)), p.Y, p.Z + petFollow*float32(math.Sin(h))
-}
-
 // spawnMercLocked makes the merc of the kit beside its owner: its NPC dressed
 // and at a player's hit points and power, in the world, its owner's. Must be
 // called with the lock held.
@@ -424,7 +419,7 @@ func (w *World) spawnMercLocked(owner *Player, kit MercKit, stance MercStance, n
 	n := &NPC{ServerID: id, Name: kit.Name, World: owner.World, Level: kit.Level, Faction: FactionFriendly, Temporary: true,
 		RespawnTime: petCorpseTime, CorpseDecay: petCorpseTime, Owner: owner.ServerID}
 	w.dressMercLocked(n, &kit, owner)
-	n.X, n.Y, n.Z = mercSpot(owner)
+	n.X, n.Y, n.Z = w.followPlaceLocked(n, owner, slotMerc)
 	n.Facing = headingTo(owner.X-n.X, owner.Z-n.Z)
 	n.SpawnX, n.SpawnY, n.SpawnZ, n.SpawnFacing = n.X, n.Y, n.Z, n.Facing
 	body := newMercBody(id, &kit)
@@ -436,7 +431,7 @@ func (w *World) spawnMercLocked(owner *Player, kit MercKit, stance MercStance, n
 	}
 	w.mercLife++
 	ms := &mercState{owner: owner, npc: n, body: body, kit: kit, role: mercRoleOf(kit.Class), life: w.mercLife, stance: stance,
-		last: now, ready: map[int]time.Time{}, levelAsked: kit.Level}
+		last: now, ready: map[int]time.Time{}, levelAsked: kit.Level, idle: mercIdle{quiet: now}}
 	n.merc = ms
 	syncMercBody(ms)
 	w.putNPCLocked(n)
@@ -790,7 +785,7 @@ func (w *World) mercSystem(now time.Time) {
 			// a teleport, another world, a coach: it comes along, as a pet does
 			oldX, oldZ := n.X, n.Z
 			n.World = owner.World
-			n.X, n.Y, n.Z = mercSpot(owner)
+			n.X, n.Y, n.Z = w.followPlaceLocked(n, owner, slotMerc)
 			n.stopMoving()
 			ms.target, ms.ordered = 0, 0
 			ms.stay = false
@@ -847,36 +842,15 @@ func (n *NPC) mercRegen() {
 	}
 }
 
-// followLocked keeps npc petFollow off its owner as a pet follows
-// (petFollowLocked): from petFollowStart away, at its owner's speed, half as
-// fast again past petCatchUp. Must be called with the lock held.
-func (w *World) followLocked(npc *NPC, owner *Player, dt float32, now time.Time) {
-	d := distXZ(npc.X, npc.Z, owner.X, owner.Z)
-	// beside its owner it stands; but not on the floor over or under it while
-	// the ground has a way to its owner's (petwalk.go)
-	stacked := d <= petFollowStart && w.petStackedLocked(npc, owner.X, owner.Y, owner.Z, now)
-	if !stacked && (d <= petFollow || (npc.Loco == LocoStand && d <= petFollowStart)) {
-		npc.stopMoving()
-		return
-	}
-	speed := max(owner.SpeedNow(), 3)
-	if d > petCatchUp {
-		speed *= 1.5
-	}
-	x, z := npc.X, npc.Z
-	if d > petFollow {
-		x = owner.X + (npc.X-owner.X)/d*petFollow
-		z = owner.Z + (npc.Z-owner.Z)/d*petFollow
-	}
-	w.petWalkLocked(npc, owner.ServerID, x, z, owner.X, owner.Y, owner.Z, speed, dt, now) // round what stands between
-}
-
 // mercHomeLocked is where the merc stands out of a fight: beside its owner,
 // or the place it holds (/merc stay). Must be called with the lock held.
 func (w *World) mercHomeLocked(ms *mercState, dt float32, now time.Time) {
 	n := ms.npc
 	if !ms.stay {
-		w.followLocked(n, ms.owner, dt, now)
+		if w.mercIdleLocked(ms, dt, now) { // at ease, its owner standing (mercidle.go)
+			return
+		}
+		w.followLocked(n, ms.owner, slotMerc, dt, now)
 		return
 	}
 	if distXZ(n.X, n.Z, ms.stayAt[0], ms.stayAt[2]) <= 1 {

@@ -67,7 +67,7 @@ const (
 // companionFollowAt is the most a pet keeps off its owner as it walks with it
 // (companionsFollowLocked): its place beside it at the spawns, nearer when
 // that was further; companionCatchUp is how far behind it hurries, half as
-// fast again, as a player's pet does (merc.go's followLocked).
+// fast again, as a player's pet does (followslot.go's followLocked).
 const (
 	companionFollowAt float32 = 3
 	companionCatchUp  float32 = 8

@@ -92,3 +92,40 @@ func TestATradeEndsWithATakeover(t *testing.T) {
 		t.Fatalf("the control: a trade with no takeover did not complete (%d and %d tunar, %d open)", giver.Tunar, taker.Tunar, len(h.trades))
 	}
 }
+
+// A keep restart does not carry a trade (its offers are the old process's): the
+// session that was in one is written as trading, and at its resume its client is
+// told the trade is off (0x0056 1, which CLIENT takes whatever its id) and why, so
+// its window does not stand open on nothing. The control: a session in no trade
+// is told nothing.
+func TestAKeepRestartCallsATradeOff(t *testing.T) {
+	h := NewTradeHandler(session.NewManager(), &NPCWindowHandler{})
+	prev := keepTrades.Swap(h)
+	t.Cleanup(func() { keepTrades.Store(prev) })
+	a, b, c := testSession(), testSession(), testSession()
+	tr := &trade{a: &tradeSide{sess: a, asker: true}, b: &tradeSide{sess: b}, open: true}
+	h.trades[a], h.trades[b] = tr, tr
+	if !KeepExtras(a, nil).Trading || !KeepExtras(b, nil).Trading || KeepExtras(c, nil).Trading {
+		t.Fatal("trading written wrong")
+	}
+	resumed := testSession()
+	resumeWindows(resumed, KeptExtras{Trading: true})
+	off, line := false, false
+	for _, m := range resumed.Queue().PeekPending() {
+		d := m.Data()
+		if len(d) >= 3 && opcode(d) == protocol.OpcodeTradeUI && d[2] == 1 {
+			off = true
+		}
+		if opcode(d) == protocol.OpcodeClientMessage {
+			line = true
+		}
+	}
+	if !off || !line {
+		t.Fatalf("the resumed trader told: off %v, line %v", off, line)
+	}
+	control := testSession()
+	resumeWindows(control, KeptExtras{})
+	if n := len(control.Queue().PeekPending()); n != 0 {
+		t.Fatalf("a session in no trade was told %d things", n)
+	}
+}

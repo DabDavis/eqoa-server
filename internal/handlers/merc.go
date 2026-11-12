@@ -707,6 +707,8 @@ func (m *Mercs) comeBack(sess *session.Session, p *entity.Player) {
 		log.Printf("Merc: %s's hires: %v", p.Name, err)
 		return
 	}
+	m.gw.HoldMercAsk(sess, true) // one group box for all of them
+	defer m.gw.HoldMercAsk(sess, false)
 	for _, row := range rows {
 		m.comeBackRow(sess, p, row)
 	}

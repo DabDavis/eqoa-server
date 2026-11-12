@@ -86,6 +86,10 @@ type Snapshot struct {
 	// rolled back to read each other's) leaves every NPC as its row makes it.
 	NPCs    []entity.KeptNPC      `json:"npcs,omitempty"`
 	Corpses []handlers.KeptCorpse `json:"corpses,omitempty"`
+	// Copies are the corpses of copies (a quest's, a trigger's, a GM's spawn: no
+	// row makes them again) that lie (entity/keepcopy.go); a file without them
+	// (a binary's before 2026-11-12) leaves them gone, as every restart did.
+	Copies []entity.KeptCopy `json:"copies,omitempty"`
 	// ItemLinks are the links in players' chat lines (handlers/itemlinks.go),
 	// so each still opens after the restart. A file without them leaves the
 	// links empty.
@@ -194,6 +198,7 @@ func (l *Listener) Snapshot(now time.Time) *Snapshot {
 	if l.gameWorld != nil {
 		snap.Groups = l.gameWorld.KeepGroups()
 		snap.NPCs = l.gameWorld.KeepNPCs()
+		snap.Copies = l.gameWorld.KeepCopies()
 		snap.Corpses = handlers.KeepCorpses()
 	}
 	snap.ItemLinks = handlers.KeepItemLinks()
@@ -303,8 +308,8 @@ func (l *Listener) KeepRestart(o KeepOptions) error {
 	if fi, err := os.Stat(o.File); err == nil {
 		size = fi.Size()
 	}
-	log.Printf("Keep: %d sessions (%d in the world, %d groups), %d NPCs off their rows' state, %d corpses opened and %d item links written to %s (%d KB), %v after the signal",
-		len(snap.Sessions), in, len(snap.Groups), len(snap.NPCs), len(snap.Corpses), len(snap.ItemLinks), o.File, size/1024, time.Since(start).Round(time.Millisecond))
+	log.Printf("Keep: %d sessions (%d in the world, %d groups), %d NPCs off their rows' state, %d copies' corpses, %d corpses' contents or kill groups and %d item links written to %s (%d KB), %v after the signal",
+		len(snap.Sessions), in, len(snap.Groups), len(snap.NPCs), len(snap.Copies), len(snap.Corpses), len(snap.ItemLinks), o.File, size/1024, time.Since(start).Round(time.Millisecond))
 	if o.Hold != "" {
 		if _, err := os.Stat(o.Hold); err == nil {
 			if o.Saved != "" {
@@ -429,12 +434,14 @@ func (l *Listener) ResumeKept(snap *Snapshot, now time.Time) (resumed, told int)
 	}
 	var in []back
 	// the creatures first: each client's slots go on describing them (RestoreView)
-	if l.gameWorld != nil && (len(snap.NPCs) > 0 || len(snap.Corpses) > 0) {
+	if l.gameWorld != nil && (len(snap.NPCs) > 0 || len(snap.Corpses) > 0 || len(snap.Copies) > 0) {
 		start := time.Now()
 		r := l.gameWorld.RestoreNPCs(snap.NPCs)
-		corpses := handlers.RestoreCorpses(snap.Corpses)
-		log.Printf("Keep: of %d NPCs written, %s; %d of %d opened corpses as they were; in %v",
-			len(snap.NPCs), r, corpses, len(snap.Corpses), time.Since(start).Round(time.Millisecond))
+		// the copies' corpses before anything else takes an id (a pet, a merc)
+		ids, lost := l.gameWorld.RestoreCopies(snap.Copies)
+		corpses := handlers.RestoreCorpsesAs(snap.Corpses, ids)
+		log.Printf("Keep: of %d NPCs written, %s; %d of %d copies' corpses made again (%d not); %d of %d corpses' contents and kill groups as they were; in %v",
+			len(snap.NPCs), r, len(ids), len(snap.Copies), lost, corpses, len(snap.Corpses), time.Since(start).Round(time.Millisecond))
 	}
 	// the links in players' chat lines, which still open
 	if len(snap.ItemLinks) > 0 {

@@ -44,6 +44,16 @@ func TestNoroxusSpineSpearRoots(t *testing.T) {
 	}
 }
 
+// The deadened weapons tap 34, arcane, whatever their words' fire.
+func TestDeadenedTapsArcane(t *testing.T) {
+	for _, n := range []string{"deadened waraxe", "deadened hammer"} {
+		wp, ok := WeaponProcOf(5443, n, "A superbly crafted war axe. It wards its wielder against fire.\nProcs a 34 point lifetap.")
+		if !ok || wp.Kind != ProcTap || wp.Damage != 34 || wp.Resist != StatAR {
+			t.Errorf("%s: %+v %v", n, wp, ok)
+		}
+	}
+}
+
 // The Song of the Melospiza calms as Sunsilver does, by its name.
 func TestMelospizaCalms(t *testing.T) {
 	r := weaponRig(t, "Song of the Melospiza", "A small bird if carved into the side of this wand.")

@@ -209,6 +209,11 @@ var weaponProcsByName = map[string]WeaponProc{
 	// Sunsilver's
 	"song of the melospiza": {Kind: ProcCalm},
 	"song of melospiza":     {Kind: ProcCalm},
+	// the same list: "Deadened axe/dagger/hammer (34ish life tap proc)", by name
+	// so that the records' "wards its wielder against fire" does not make the
+	// tap a fire one (WeaponProcFromText's element is any word of the record's)
+	"deadened waraxe": {Kind: ProcTap, Damage: 34},
+	"deadened hammer": {Kind: ProcTap, Damage: 34},
 }
 
 // procSpellsByName are the spells a description names its proc by ("Procs:

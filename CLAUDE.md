@@ -2498,7 +2498,7 @@ the effects list as "Tester Pro" with Spirit of the Wolf's icon. **Four clauses 
   `sowFactor`, so 0x00F8 and the movement check's speed: 22.97 for 2x); the fastest counts; a SoW over it changes nothing
   and a "lesser speed" removal leaves it (`cureMatches`); its line key `speed200`, not the buff's line.
 - **"Set Maximum HP to N"** ("Set Max HP to N", "Caps HP at N"; `EffectHPCap`, `EffectRules.HPCap`): the maximum hit points
-  at most N (never below 1) while it lasts, the hit points held under it (`MaxHPNow`, `effectsChangedLocked`), as the Eye
+  at most N (N 1 or more: Spiritform's "to 0" stays unread) while it lasts, the hit points held under it (`MaxHPNow`, `effectsChangedLocked`), as the Eye
   line's power ceiling; lasting no time, the hit points taken down to N. At its end the maximum is its own, the hit points
   where they were, to regenerate.
 - **"Set All Stats to N"** (`EffectStatPin`, `EffectRules.StatPin`): STR to CHA each N while it lasts (`StatNow`), whatever

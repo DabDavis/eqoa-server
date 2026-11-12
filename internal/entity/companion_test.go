@@ -240,7 +240,32 @@ func TestAMummifiedGuardianIsANecromancersPet(t *testing.T) {
 	if w.companionOf[g2.ServerID] != typo.ServerID {
 		t.Errorf("the second guardian is %d's, want the necromaner's %d", w.companionOf[g2.ServerID], typo.ServerID)
 	}
+	if !companionName("Feral Spirit ") || companionName("tree spirit") {
+		t.Error("companionName of the spirits")
+	}
 	if !companionName("mummified guardian") || companionName("serpent guardian") {
 		t.Error("companionName of the guardians")
+	}
+}
+
+// Petition 1846 (Waldorf, 2026-11-12): a Feral Spirit 1.5 off a gnoll shaman is its pet; one alone is no one's.
+func TestAFeralSpiritIsItsShamansPet(t *testing.T) {
+	w, _, _, _, _ := companionWorld(t)
+	add := func(n *NPC) *NPC {
+		n.SpawnX, n.SpawnY, n.SpawnZ = n.X, n.Y, n.Z
+		w.NPCs[n.ServerID] = n
+		return n
+	}
+	sh := add(&NPC{ServerID: 4301, Name: "gnoll shaman", X: 800, Z: 800})
+	sp := add(&NPC{ServerID: 4302, Name: "Feral Spirit", X: 801.5, Z: 800})
+	lone := add(&NPC{ServerID: 4303, Name: "Feral Spirit", X: 900, Z: 900})
+	w.mu.Lock()
+	w.linkCompanionsLocked()
+	w.mu.Unlock()
+	if w.companionOf[sp.ServerID] != sh.ServerID {
+		t.Errorf("the spirit is %d's, want the shaman's %d", w.companionOf[sp.ServerID], sh.ServerID)
+	}
+	if o, ok := w.companionOf[lone.ServerID]; ok {
+		t.Errorf("a lone spirit paired with %d", o)
 	}
 }

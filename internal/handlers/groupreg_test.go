@@ -57,8 +57,8 @@ func TestTheAnswersAreKept(t *testing.T) {
 	if s.MercsTold() || s.GroupReg() {
 		t.Error("0s left them on")
 	}
-	// the mercs' 2 (each with its hirer's name), and more than 2 read as 2
-	for _, a := range []struct{ answer, layout uint8 }{{1, 1}, {2, 2}, {9, 2}} {
+	// the mercs' 2 (each with its hirer's name), 3 (its class and mode too), and more than 3 read as 3
+	for _, a := range []struct{ answer, layout uint8 }{{1, 1}, {2, 2}, {3, 3}, {9, 3}} {
 		mh.HandleAnswer(s, incoming(protocol.OpcodeMercsOffer, []byte{a.answer}))
 		if !s.MercsTold() || s.MercsLayout() != a.layout {
 			t.Errorf("answer %d: told %v layout %d, want %d", a.answer, s.MercsTold(), s.MercsLayout(), a.layout)

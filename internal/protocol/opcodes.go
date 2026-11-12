@@ -966,7 +966,7 @@ const (
 	// OpcodeMercsOffer both ways: the server's offer once the player is in the
 	// world, where world.mercs is on (a u8, the layout of OpcodeMercsData, 1),
 	// and the client's answer (a u8, the layout of OpcodeMercsData it reads,
-	// 1 or 2, 0 to stop).
+	// 1 to 3, 0 to stop).
 	OpcodeMercsOffer GameOpcode = 0x7E5A
 	// OpcodeMercsData is the mercenaries the player may see, to a client that
 	// answered 1, at once and whenever it changes: a u8 layout (1), a u8 of
@@ -977,7 +977,11 @@ const (
 	// bit 0 is set (petition 1475). Each is the whole set. To a client that
 	// answered 2: layout 2, each merc's name followed by its hirer's (a u8
 	// byte count and the bytes), which vanilla shows under the merc's name
-	// plate as "<Hirer's Mercenary>" (the owner, 2026-11-11).
+	// plate as "<Hirer's Mercenary>" (the owner, 2026-11-11). To a client that
+	// answered 3: layout 3, each merc's hirer's name followed by a u8 its class
+	// (0-14) and a u8 its mode (0 none, 1 a defensive healer, 2 an offensive
+	// one), which vanilla shows in its □ details box under its name (the
+	// owner, 2026-11-12: "for mercs show class also in the square pop up").
 	OpcodeMercsData GameOpcode = 0x7E5B
 	// OpcodeMercDismiss is the client's Dismiss Mercenary: a u8, 1. The
 	// player's merc goes as at /merc dismiss.

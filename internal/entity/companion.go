@@ -105,6 +105,15 @@ var companionKinds = map[string]string{
 	"mummified guardian": "necromancer",
 }
 
+// companionPetKinds are the kinds whose every creature is a pet though no word of its name says so, with no owner's
+// word: each the pet of the creature beside it (companionReach), as an unnamed pet's. Feral Spirits are the creature
+// shamans' (petition 1846, Waldorf, 2026-11-12, "All feral spirits in Runneye instance our neutral and not
+// aggressive": npcaggro had them as players' pets; of 157 rows, 100 stand within 5 of a gnoll, goblin or Tae Ew
+// shaman, an oracle, a seer, a mystic or a spiritmaster, the rest alone).
+var companionPetKinds = map[string]bool{
+	"feral spirit": true,
+}
+
 // companionName is whether an NPC's name is a pet's.
 func companionName(name string) bool {
 	name = strings.TrimSpace(name)
@@ -112,7 +121,7 @@ func companionName(name string) bool {
 	if companionNotPets[key] {
 		return false
 	}
-	if companionKinds[key] != "" {
+	if companionKinds[key] != "" || companionPetKinds[key] {
 		return true
 	}
 	return companionWords.MatchString(name) || companionOwnerName.MatchString(name)

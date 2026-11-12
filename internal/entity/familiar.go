@@ -3,7 +3,6 @@ package entity
 import (
 	"fmt"
 	"log"
-	"math"
 	"time"
 
 	"github.com/eqoa/server/internal/session"
@@ -110,11 +109,11 @@ func FamiliarCast(d FamiliarDef) CastSpell {
 	return CastSpell{SpellID: familiarCastID, Name: d.Name, CastTime: d.Cast, FX: fx, Familiar: &def}
 }
 
-// familiarSpot is a place behind its owner, petFollow off it (the pet takes
-// its right, the merc its left).
+// familiarSpot is a place behind its owner's right, petFollow off it: its
+// follow slot's (followslot.go; the pet takes the right, the merc behind the
+// left).
 func familiarSpot(p *Player) (x, y, z float32) {
-	h := float64(p.Facing)
-	return p.X - petFollow*float32(math.Sin(h)), p.Y, p.Z - petFollow*float32(math.Cos(h))
+	return followSpot(p, slotFamiliar)
 }
 
 // isFamiliarIDLocked reports a familiar's entity id (addThreatLocked's
@@ -286,7 +285,7 @@ func (w *World) familiarSystem(now time.Time) {
 			n.stopMoving()
 			w.SpatialIndex.Update(n.ServerID, oldX, oldZ, n.X, n.Z)
 		} else {
-			w.followLocked(n, owner, dt, now)
+			w.followLocked(n, owner, slotFamiliar, dt, now)
 		}
 		n.Level = owner.Level
 		w.familiarActLocked(fs, sess, now)

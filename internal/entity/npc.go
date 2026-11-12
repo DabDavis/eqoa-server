@@ -122,6 +122,9 @@ type NPC struct {
 	// whom it goes to (petwalk.go).
 	way petWay
 
+	// fslot is a follower's place round whom it follows (followslot.go).
+	fslot followSlotCache
+
 	// path is where it is on the path a GM gave it (path.go).
 	path pathState
 

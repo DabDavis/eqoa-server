@@ -578,6 +578,10 @@ type resumeDump struct {
 	at      time.Time // the latest it goes
 	pending bool
 	dead    bool // its character was dead when the restart came: it respawns
+	// moved: the resume put the character elsewhere than where its client stands (another world, or far: a
+	// dungeon's instance gone with the restart, a server world rebuilt), so the client's reports until the dump
+	// are of the place it left and are not taken (SetResumeMoved)
+	moved bool
 }
 
 // SetResumeDump marks the session's resume dump due at the latest at at;
@@ -585,7 +589,24 @@ type resumeDump struct {
 func (s *Session) SetResumeDump(at time.Time, dead bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.resume = resumeDump{at: at, pending: true, dead: dead}
+	s.resume = resumeDump{at: at, pending: true, dead: dead, moved: s.resume.moved}
+}
+
+// SetResumeMoved marks a resumed session whose character the resume put elsewhere than where its client stands:
+// its reports until its dump are not taken as the character's place (the listener), and the dump brings the client
+// to the server's place (petition: a player in an instance of Castle Felstar at a keep restart was put back in world
+// 0 at the instance's place, the client's reports moving the character there in the world the server chose).
+func (s *Session) SetResumeMoved(moved bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.resume.moved = moved
+}
+
+// ResumeMoved is whether the session waits for a resume dump that moves its client (SetResumeMoved).
+func (s *Session) ResumeMoved() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.resume.pending && s.resume.moved
 }
 
 // NoteResumeReport moves a pending resume dump to soon after now: the client
@@ -607,7 +628,7 @@ func (s *Session) TakeResumeDue(now time.Time) (due, dead bool) {
 	if !s.resume.pending || now.Before(s.resume.at) {
 		return false, false
 	}
-	s.resume.pending = false
+	s.resume.pending, s.resume.moved = false, false
 	return true, s.resume.dead
 }
 

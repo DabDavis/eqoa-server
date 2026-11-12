@@ -123,6 +123,30 @@ world:
   #   min_level: 1
   #   touch_reach: 5
 
+  # The siege of Zentar's Keep (entity/siege.go, handlers/siege.go): the second
+  # arena game, capture the flag's engine in a world of its own (slot 15,
+  # tools/worlds/siege.json: Tunaria zone 22's castle where it stands; built by
+  # cmd/worldbuild and listed in server_worlds). The same PvP Events herald
+  # signs players up (or /siege join); the defenders keep King Zentar alive in
+  # the courtyard, the attackers break the Outer and Inner Gate (the gatehouse's
+  # doors) and slay him. The King and the gates are copies of spawn-only NPCs
+  # (tools/siege_20261112.py). A GM's #siege start|stop|time <m>|teams <n> runs
+  # it by hand. Off unless enabled; every number left out is its default, as
+  # capture the flag's (score_limit, flags, wounds and power-ups unread)
+  # (claude-notes/siege-world-20261112.md).
+  # siege:
+  #   enabled: true
+  #   world: 15
+  #   team_size: 10
+  #   min_per_team: 2
+  #   time_limit: 20m     # then the defenders win
+  #   wave_every: 30s
+  #   countdown: 30s
+  #   prep: 30s
+  #   end_hold: 15s
+  #   king_hp: 100000     # King Zentar's hit points
+  #   gate_hp: 30000      # each gate's
+
   # The players' homes (entity/homes.go, handlers/homes.go): a world of the
   # server's own (built by cmd/worldbuild from tools/worlds/homesteads.json,
   # slot 13, the Homesteads: a fenced cottage on a crater's rim, invisible

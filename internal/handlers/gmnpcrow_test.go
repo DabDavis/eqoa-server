@@ -255,3 +255,48 @@ func TestPlaceAndSubGMs(t *testing.T) {
 		t.Fatalf("a sub GM's: %q", l)
 	}
 }
+
+// The owner, 2026-11-12: "/delete undo it will undo last delete and keep going if press again". Two clones deleted,
+// then /delete undo three times: the last deleted comes back first (told one more is left), then the one before, then
+// nothing is left to undo.
+func TestGMDeleteUndoKeepsGoing(t *testing.T) {
+	c, db, _, gs, gp, ps := campWorld(t)
+	stand(c, gp, 25500, 51, 15500, math.Pi/2)
+	var ids []int64
+	for i := 0; i < 2; i++ {
+		targetAs(gp, campWolfNear, 100101, gs, ps)
+		c.say(gs, "/clone")
+		gmReplies(t, gs)
+		var nid int64
+		if err := db.QueryRow(`SELECT MAX(id) FROM npcs`).Scan(&nid); err != nil {
+			t.Fatal(err)
+		}
+		ids = append(ids, nid)
+	}
+	for i, nid := range ids {
+		targetAs(gp, entity.EntityID(nid), uint32(100300+i), gs)
+		c.say(gs, "/delete")
+		gmReplies(t, gs)
+		if npcRowMap(t, db, nid) != nil {
+			t.Fatalf("row %d not deleted", nid)
+		}
+	}
+	c.say(gs, "/delete undo")
+	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Put back wolf (row %d) with npcs. /delete undo again puts back the one before (1 more).", ids[1])) {
+		t.Fatalf("the first undo: %q", l)
+	}
+	if npcRowMap(t, db, ids[1]) == nil || npcRowMap(t, db, ids[0]) != nil {
+		t.Fatal("the first undo did not put back the last deleted alone")
+	}
+	c.say(gs, "/delete undo")
+	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Put back wolf (row %d) with npcs.", ids[0])) {
+		t.Fatalf("the second undo: %q", l)
+	}
+	if npcRowMap(t, db, ids[0]) == nil {
+		t.Fatal("the second undo did not put back the one before")
+	}
+	c.say(gs, "/delete undo")
+	if l := gmReplies(t, gs); !hasLine(l, "You have deleted nothing that is not back already.") {
+		t.Fatalf("a third undo: %q", l)
+	}
+}

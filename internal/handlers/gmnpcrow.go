@@ -324,7 +324,12 @@ func (h *ChatHandler) deleteUndo(sess *session.Session, player *entity.Player) {
 			}
 		}
 	}
-	h.gmReply(sess, fmt.Sprintf("Put back %s (row %d) with %s.%s", r.Name, r.ID, strings.Join(r.Tables, ", "), live))
+	more := ""
+	if n, err := h.camps.db.NPCDeletesToUndo(sess.AccountID()); err == nil && n > 0 {
+		// each press the one before (the owner, 2026-11-12: "keep going if press again")
+		more = fmt.Sprintf(" /delete undo again puts back the one before (%d more).", n)
+	}
+	h.gmReply(sess, fmt.Sprintf("Put back %s (row %d) with %s.%s%s", r.Name, r.ID, strings.Join(r.Tables, ", "), live, more))
 	log.Printf("GM: %s put back NPC %d (%s): %v", player.Name, r.ID, r.Name, r.Tables)
 }
 

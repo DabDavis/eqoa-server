@@ -31,10 +31,14 @@ import (
 // over a restart (a cast on its way is not). The words are ours.
 
 // BufferName is his name: an NPC of it is Buffer.
-const BufferName = "Buffer"
+const BufferName = "Bruce Buffer"
 
 // IsBuffer is whether an NPC of the name is Buffer.
-func IsBuffer(name string) bool { return strings.EqualFold(strings.TrimSpace(name), BufferName) }
+func IsBuffer(name string) bool {
+	n := strings.TrimSpace(name)
+	// "Buffer" was his name until 2026-11-12 (the owner: "Bruce Buffer"); a row not yet renamed still is he
+	return strings.EqualFold(n, BufferName) || strings.EqualFold(n, "Buffer")
+}
 
 const (
 	// BufferCastTime is how long his cast takes: Jibrish's "It casts it after 1 second".
@@ -48,13 +52,13 @@ const (
 
 // His words (ours).
 const (
-	BufferLineBegins = "Buffer begins to cast his blessings on you."
-	BufferLineDone   = "Buffer says, 'There you are, %s: %s, for five hours of play.'"
-	BufferLineHad    = "Buffer says, 'You already carry stronger blessings than mine, %s.'"
+	BufferLineBegins = "Bruce Buffer begins to cast his blessings on you."
+	BufferLineDone   = "Bruce Buffer says, 'There you are, %s: %s, for five hours of play.'"
+	BufferLineHad    = "Bruce Buffer says, 'You already carry stronger blessings than mine, %s.'"
 	BufferLineDead   = "Buffer cannot help you now."
 	BufferLinePvP    = "Buffer will not buff you while you are flagged for PvP."
 	BufferLineDuel   = "Buffer will not buff you while you are in a duel."
-	BufferLineNone   = "Buffer says, 'I have no blessings to give today.'"
+	BufferLineNone   = "Bruce Buffer says, 'I have no blessings to give today.'"
 )
 
 // bufferCast is one of his casts on its way: whom it is at (the player as it was: a new login under the same id

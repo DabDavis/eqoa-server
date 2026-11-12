@@ -489,8 +489,11 @@ func TestTheMermaid(t *testing.T) {
 	if !ChosenBody(32, bodySiren) || ChosenBody(32, bodyMermaid) || ChosenBody(32, bodyMerman) {
 		t.Error("a siren chosen, the merman and the mermaid the race's own")
 	}
-	if body, _, err := ResolveOptions(32, 0, []OptionChoice{{"body", 1}}); err == nil {
-		t.Errorf("a merman chose a second body: %#x", uint32(body))
+	if body, _, err := ResolveOptions(32, 0, []OptionChoice{{"body", 1}, {"skin", 8}}); err != nil || body != signed(bodySeaKing) || OptionBodySize(32, bodySeaKing) != 0.334 {
+		t.Errorf("a sea king: %#x %v", uint32(body), err)
+	}
+	if body, _, err := ResolveOptions(32, 0, []OptionChoice{{"body", 2}}); err == nil {
+		t.Errorf("a merman chose a third body: %#x", uint32(body))
 	}
 	for _, r := range RaceOptions(32) {
 		for _, b := range []uint32{bodyMerman, bodyMermaid, bodySiren, bodyEnchantingSiren} {

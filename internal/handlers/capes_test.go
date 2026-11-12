@@ -205,15 +205,15 @@ func TestCapesOfferedAfterTheListAndAnswered(t *testing.T) {
 
 	ps2 := f.session(t, 31)
 	f.h.SendCharacterSelectEQOA(ps2)
-	if got := queuedOps(ps2); len(got) != 3 || got[0] != protocol.OpcodeCharacterSelect || got[1] != protocol.OpcodeLiveLook || got[2] != protocol.OpcodeCapes {
-		t.Fatalf("a first list: %v, want the list, the live look's offer, the capes'", got)
+	if got := queuedOps(ps2); len(got) != 4 || got[0] != protocol.OpcodeCharacterSelect || got[1] != protocol.OpcodeLiveLook || got[2] != protocol.OpcodeCapes || got[3] != protocol.OpcodeSelectInfo {
+		t.Fatalf("a first list: %v, want the list, the live look's offer, the capes', the select info's", got)
 	}
 	if d := sentOp(ps2, protocol.OpcodeCapes); binary.LittleEndian.Uint32(d[2:]) != 1 {
 		t.Fatalf("the offer: %x", d)
 	}
 	ps2List := sentOp(ps2, protocol.OpcodeCharacterSelect)
 	f.h.SendCharacterSelectEQOA(ps2)
-	if got := queuedOps(ps2); len(got) != 4 || got[3] != protocol.OpcodeCharacterSelect {
+	if got := queuedOps(ps2); len(got) != 5 || got[4] != protocol.OpcodeCharacterSelect {
 		t.Fatalf("a second list: %v, want no second offer and no capes", got)
 	}
 

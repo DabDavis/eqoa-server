@@ -310,3 +310,73 @@ func TestTheWispsRaimentShowsItsGear(t *testing.T) {
 		t.Error("the control: a human under it shows as ever")
 	}
 }
+
+// The Wisp's colour (the owner, 2026-11-12: "also add color customize to wisp
+// char sel"): a colour row on the wisp's own part of both bodies, its first step
+// the wisp's own; select's Customize re-chooses it (SelectRows, ReselectOptions)
+// with the wisp kept, and nothing else of the Wisp's; a mortal-form Wisp's looks
+// leave it out with the wisp. The controls: the Jal'Raeth (no row re-chosen at
+// select), a game race's skin only with the shades on.
+func TestTheWispsColour(t *testing.T) {
+	withWispRace(t)
+	withSkins(t, false)
+	var row *OptionRow
+	rows := RaceOptions(31)
+	for i := range rows {
+		if rows[i].Key == wispColourKey {
+			row = &rows[i]
+		}
+	}
+	if row == nil || row.Kind != KindColour || !row.AtSelect || row.Steps(0)[0].Value != 0 || len(row.Steps(1)) < 8 {
+		t.Fatalf("the colour row: %+v", row)
+	}
+	for _, b := range []uint32{bodyHumanMale, bodyHumanFemale} {
+		if len(row.PartsOf(b)) != 1 {
+			t.Errorf("body %08X: parts %+v", b, row.PartsOf(b))
+		}
+	}
+	if got := SelectRows(31); len(got) != 1 || got[0] != wispColourKey {
+		t.Errorf("the Wisp's rows at select: %v", got)
+	}
+	if got := SelectRows(30); len(got) != 0 {
+		t.Errorf("the control, the Jal'Raeth: %v", got)
+	}
+	if got := SelectRows(8); len(got) != 0 {
+		t.Errorf("the control, an erudite without the shades: %v", got)
+	}
+	withSkins(t, true)
+	if got := SelectRows(8); len(got) != 1 || got[0] != "skin" {
+		t.Errorf("an erudite with the shades: %v", got)
+	}
+
+	wisp := database.CharLook{Part: "wisp", Kind: database.LookTexture, Value: bodyWillOWisp}
+	looks, changed, err := ReselectOptions(31, 1, []database.CharLook{wisp}, []OptionChoice{{Key: wispColourKey, Step: 3}})
+	if err != nil || len(changed) != 1 || len(looks) != 2 || looks[0] != wisp || looks[1].Part != wispColourKey || looks[1].Value != wispColours[3].Value {
+		t.Fatalf("Amber: %+v %v %v", looks, changed, err)
+	}
+	if back, _, err := ReselectOptions(31, 1, looks, []OptionChoice{{Key: wispColourKey, Step: 0}}); err != nil || len(back) != 1 || back[0] != wisp {
+		t.Errorf("Natural again: %+v %v", back, err)
+	}
+	for name, c := range map[string][]OptionChoice{
+		"the wisp": {{Key: "wisp", Step: 0}},
+		"the body": {{Key: "body", Step: 0}},
+		"too far":  {{Key: wispColourKey, Step: len(wispColours)}},
+	} {
+		if _, _, err := ReselectOptions(31, 0, []database.CharLook{wisp}, c); err == nil {
+			t.Errorf("%s: kept", name)
+		}
+	}
+	if _, _, err := ReselectOptions(30, 0, nil, []OptionChoice{{Key: "body", Step: 1}}); err == nil {
+		t.Error("the control: the Jal'Raeth's body re-chosen at select")
+	}
+
+	// the looks: the colour on the wisp's part, left out with the wisp in a mortal form
+	chars := []database.LookCharacter{{Name: "Glim", Race: 31, Sex: 1, ModelID: signed(bodyHumanFemale), Looks: looks}}
+	k, v, p := lookParts(31, bodyHumanFemale, looks)
+	if len(p) != 2 || k[1] != KindColour || v[1] != wispColours[3].Value || p[1].Entries[0] != 7 || p[0].Entries[0] != 7 {
+		t.Errorf("her look's parts: %v %x %+v", k, v, p)
+	}
+	if one := encodeRaceLooks(chars, map[string]bool{"Glim": true}); binary.LittleEndian.Uint16(one[1:3]) != 0 {
+		t.Errorf("a mortal-form Wisp keeps its colour: % x", one)
+	}
+}

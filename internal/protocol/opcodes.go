@@ -1094,6 +1094,20 @@ const (
 	// (0: not kept, and not to be sent again). The client lets the report go
 	// at any answer.
 	OpcodeCrashReportFiled GameOpcode = 0x7E66
+	// OpcodeSelectInfo is not retail: a client that shows more of each character
+	// at select (vanilla: its level, its mastery points, its race by name, its
+	// class; and a Wisp's colour at Customize) is offered it after a session's
+	// first character list: a u32, 1, both ways (handlers/selectinfo.go). A PS2
+	// ignores the offer and is never sent OpcodeSelectInfoData.
+	OpcodeSelectInfo GameOpcode = 0x7E67
+	// OpcodeSelectInfoData is each character of the list a client that took
+	// OpcodeSelectInfo was last sent, after every list and at its answer: a u8
+	// version (1), a u16 count, then each character's u32 ServerID, u8 race (its
+	// own, racedefs' id where the list sends its wire race), u8-counted race name
+	// (racedefs' name; empty for a game race, which the client names itself),
+	// u16 mastery points (spent and unspent), and a u8 count of the race option
+	// rows its Customize re-chooses, each row's u8-counted key.
+	OpcodeSelectInfoData GameOpcode = 0x7E68
 )
 
 // =============================================================================
@@ -1336,6 +1350,10 @@ func (op GameOpcode) String() string {
 		return "CrashReport"
 	case OpcodeCrashReportFiled:
 		return "CrashReportFiled"
+	case OpcodeSelectInfo:
+		return "SelectInfo"
+	case OpcodeSelectInfoData:
+		return "SelectInfoData"
 	case OpcodeMemberInvites:
 		return "MemberInvites"
 	case OpcodeRaidRosterOffer:

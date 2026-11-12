@@ -174,7 +174,7 @@ func encodeRaceLooks(chars []database.LookCharacter, mortal map[string]bool) []b
 		body := uint32(c.ModelID)
 		looks := c.Looks
 		if mortal[c.Name] {
-			looks = withoutRow(looks, wispRowKey)
+			looks = withoutRow(withoutRow(looks, wispRowKey), wispColourKey)
 		}
 		k, v, p := lookParts(c.Race, body, looks)
 		if len(p) == 0 {

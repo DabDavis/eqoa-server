@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -1681,21 +1682,26 @@ func (n *NPC) dropEffectMaxHP() {
 
 // putOnPetLocked keeps a beneficial spell's lasting effect on a pet, only the
 // best of its line counting as on a player (buffline.go), now that a pet's
-// stats count: under an effect of its line of a higher rank it does not take
-// (that effect given back); else it takes off every effect of its line of
-// its rank or below, and an earlier cast of the same spell, and goes on.
+// stats count: under an effect of its line of a higher rank, or of a nested
+// line that covers it, it does not take (that effect given back); else it
+// takes off what it would take off a player (lineDrops: its line's lower
+// ranks, a nested line it covers) and an earlier cast of the same spell, and
+// goes on (the same rule as a player's since 2026-11-12: a merc's Blessing
+// and Minor Blessing, its Ice and Lightning Ward, had all stayed on it).
 func putOnPetLocked(pet *NPC, spell *CastSpell, ae *ActiveEffect) (over *ActiveEffect) {
-	ae.Line, ae.Rank = BuffLine(spell), lineRank(spell)
-	for _, e := range pet.Effects {
-		if sameLine(e.Line, ae.Line) && e.SpellID != ae.SpellID && e.Rank > ae.Rank {
-			return e
-		}
+	ae.Line, ae.Rank = EffectLine(spell), lineRank(spell)
+	if e := lineVerdict(pet.Effects, ae); e != nil {
+		return e // as on a player (buffline.go): a higher rank, a nested line that covers it
 	}
+	drop := lineDrops(pet.Effects, ae)
 	left := pet.Effects[:0]
 	for _, e := range pet.Effects {
-		if e.SpellID != ae.SpellID && !sameLine(e.Line, ae.Line) {
+		if e.SpellID != ae.SpellID && !slices.Contains(drop, e.SpellID) {
 			left = append(left, e)
 		}
+	}
+	for i := len(left); i < len(pet.Effects); i++ {
+		pet.Effects[i] = nil
 	}
 	pet.Effects = append(left, ae)
 	return nil

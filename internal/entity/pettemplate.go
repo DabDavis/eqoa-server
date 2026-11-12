@@ -393,16 +393,30 @@ func (w *World) petUndeadMayLocked(s *CastSpell, t *NPC) bool {
 	return s == nil || t == nil || !s.Def.undeadOnly() || w.undeadLocked(t)
 }
 
-// buffOn is whether effects hold the buff's effect, or one of its line of a
-// higher rank (which would keep it off: buffline.go, putOnPetLocked).
+// buffOn is whether effects hold the buff's effect, one of its line of its
+// rank or higher, or one that keeps it off (a nested line that covers it:
+// buffline.go's lineVerdict, putOnPetLocked), so casting it would do nothing.
 func buffOn(effects []*ActiveEffect, s *CastSpell) bool {
-	line := BuffLine(s)
+	ae := &ActiveEffect{SpellID: s.SpellID, Line: EffectLine(s), Rank: lineRank(s), Mods: staticMods(s)}
 	for _, e := range effects {
-		if e.SpellID == s.SpellID || sameLine(e.Line, line) && e.Rank >= lineRank(s) {
+		if e.SpellID == s.SpellID || sameLine(e.Line, ae.Line) && e.Rank >= ae.Rank {
 			return true
 		}
 	}
-	return false
+	return lineVerdict(effects, ae) != nil
+}
+
+// staticMods is what a spell's stat changes give its target by their figures
+// alone (no caster's level or stat scale): enough to weigh a nested line
+// against another (covers).
+func staticMods(s *CastSpell) StatMods {
+	var m StatMods
+	for _, e := range s.Def.Effects {
+		if e.Kind == EffectStat && !e.Self {
+			m.add(e.Stat, e.Amount)
+		}
+	}
+	return m
 }
 
 // petCast is a templated pet's cast on its way to landing (petCastSystem).

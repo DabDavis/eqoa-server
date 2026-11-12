@@ -231,6 +231,11 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		return
 	}
 
+	// "/tan ?" (or "#tan ?"): the commands that begin with it (cmdsearch.go)
+	if h.commandSearch(sess, message) {
+		return
+	}
+
 	// /duel (duel.go): everyone's, from a client that forwards it (a PS2
 	// keeps an unknown /command to itself and challenges by "/tell <name>
 	// duel" instead, below)
@@ -1523,63 +1528,9 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.markPortalCommand(sess, player, parts[1:])
 
 	case "#help":
-		h.gmReply(sess, "GM Commands (each also as /name):")
-		h.gmReply(sess, "  #goto <x> <y> <z> [world] | <town or NPC> - teleport (#teleport too)")
-		h.gmReply(sess, "  #gotoplayer <name> - go to an online player")
-		h.gmReply(sess, "  #giveitem <item id> <player> [count] - give an online player an item")
-		h.gmReply(sess, "  #summon <name> - bring an online player to you")
-		h.gmReply(sess, "  #spawn <name> - a copy of that NPC beside you; #despawn takes the target away")
-		h.gmReply(sess, "  #monstersearch <start of a name> - up to ten NPC names")
-		h.gmReply(sess, "  #nearby - NPCs within 200")
-		h.gmReply(sess, "  #tele <name> - teleport to a named place (no name lists them)")
-		h.gmReply(sess, "  #world [n] - show/set world without teleporting")
-		h.gmReply(sess, "  #guildhall - enter guild hall")
-		h.gmReply(sess, "  #hddsetup [check|create|format] - hard disk setup")
-		h.gmReply(sess, "  #speed <1-10> - your run speed at that many times your own; 1 gives it back")
-		h.gmReply(sess, "  #setlevel [name] <lvl> - set a level, nothing else (no name: your target player, else you)")
-		h.gmReply(sess, "  #size <factor> - your target (player or NPC), else you, at factor of its own size; 1 gives it back")
-		h.gmReply(sess, "  #delete [undo] - your target creature's row deleted for good (/t delete on a PS2); undo puts your last back")
-		h.gmReply(sess, "  #clone - a copy of your target creature's row where you stand, facing as you face (/t clone on a PS2)")
-		h.gmReply(sess, "  #place <name> - a new creature of that name where you stand, facing as you face (/t place <name> on a PS2)")
-		h.gmReply(sess, "  #testmode - toggle: you take every hit in full and cannot die (1 HP left)")
-		h.gmReply(sess, "  #tankprofile1 / 2 / 3 - toggle: AGI 400 and AC 1000 / 2000 / 3000")
-		h.gmReply(sess, "  #hp <cur> [max] - set HP")
-		h.gmReply(sess, "  #tunar <amt> - set gold")
-		h.gmReply(sess, "  #template [player] - level 60, every spell of your class, 1,000,000 tunar, the best gear you may wear")
-		h.gmReply(sess, "  #effect [<icon hex> [name] | clear] - list, add or clear the effects channel's slots (the spells behind them go on)")
-		h.gmReply(sess, "  #clearbuffs - every buff on you ended now, as its time running out ends it (#nukebuffs too)")
-		h.gmReply(sess, "  #reward [player] - GM's Reward on your target (a player) for an hour: DS 25, heal 25 when hit, +100 AC, +50 stats")
-		h.gmReply(sess, "  #faction <faction> [standing] - your standing with a faction, or set it")
-		h.gmReply(sess, "  #grantcm <amount> - mastery points, never past 1500 spent and unspent")
-		h.gmReply(sess, "  #debt [amount] - your experience debt, or set it (0 clears)")
-		h.gmReply(sess, "  #cm - the masteries your target (a player) or you bought; #cmreset takes them all back, points returned")
-		h.gmReply(sess, "  #rst_mastr [name] - a character's masteries all taken back, points returned (no name: your target, else you)")
-		h.gmReply(sess, "  #rst_both [name] - that and every training point given back")
-		h.gmReply(sess, "  #rem_abil <name> <ability> - an ability (its name or spell id) out of a character's book")
-		h.gmReply(sess, "  #banktunar [name] <amount> - added to a bank (negative takes away; no name: your target, else you)")
-		h.gmReply(sess, "  #servdown - restart the server, everyone saved (an admin's; say it twice)")
-		h.gmReply(sess, "  #aggro [on|off] - whether creatures attack you on sight (off until #aggro on)")
-		h.gmReply(sess, "  #fly [on|off] - fly where you look at your run speed, no gravity (alone: on, or off again; until you log out)")
-		h.gmReply(sess, "  #movecheck [off|log|enforce] - the check of players' own moves, and who it moved back")
-		h.gmReply(sess, "  #ticks - how long the server's ticks took over the last minute, system by system")
-		h.gmReply(sess, "  #net [name] - what each client has not acknowledged and how long, resends and round trips (a name: that one's, and its client's own counters)")
-		h.gmReply(sess, "  #packetlog [on|off] - every packet's own lines in the server's log (off by default)")
-		h.gmReply(sess, "  #fx <visual> [seconds] | <spell> - play a spell visual (0x1DAEB5B6) on your target, nothing saved")
-		h.gmReply(sess, "  #spellfx <spell> [<visual> | 0] - a spell's visual, or give it one (0: its stand-in)")
-		h.gmReply(sess, "  #trigger [n | name | stop [n]] - the triggers (the GM panel's), fire one, or stop their runs")
-		h.gmReply(sess, "  #craftskill [<skill 0-5> <level 1-10> [rank 0-9]] - your tradeskills, or set one")
-		h.gmReply(sess, "  #craftlearn <recipe id | all [skill 0-5]> - recipes into your Recipe Book")
-		h.gmReply(sess, "  #dye [<slot|armor|all> <RRGGBB|tN|name|none>] - your target's (a player) or your dyes, seen by clients of the live game's look")
-		h.gmReply(sess, "  #vampire [on|off] - whether your target (a player) or you is a vampire, burned by day; what the sun does to it now")
-		h.gmReply(sess, "  #kill - kill target")
-		h.gmReply(sess, "  #npcinfo - the target's ids, model, size, level, spawn and gear")
-		h.gmReply(sess, "  #stats - HoT, PoT, stats and caps, the melee rolls, hate: the target's or your own")
-		h.gmReply(sess, "  #pos - show position")
-		h.gmReply(sess, "  #mark [note] - keep where you stand as your next mark (#marks lists them; #marks undo, #marks clear)")
-		h.gmReply(sess, "  #camp <creature>[, <creature>...] - a static spawn at each mark, popping one of them at random each time; #camp undo")
-		h.gmReply(sess, "  #path [loop|pingpong|once] [walk|run] - your target walks your marks; #path clear takes its path away")
-		h.gmReply(sess, "  #markportal - your target (an NPC) is a portal's entry; #markportal exit [place] - its landing: your target, else where you stand; filed as a ticket, off until #markportal on [id] (off, list, cancel)")
-		h.gmReply(sess, "  #who - list players")
+		for _, l := range gmHelpLines {
+			h.gmReply(sess, l)
+		}
 
 	default:
 		h.gmReply(sess, fmt.Sprintf("Unknown GM command: %s (try #help)", cmd))
@@ -1686,4 +1637,65 @@ func stuckCommand(w *entity.World, sess *session.Session) {
 	if why := w.Stuck(sess, time.Now()); why != "" {
 		SendErrorMessage(sess, why)
 	}
+}
+
+// gmHelpLines is #help's list, a line a command (cmdsearch.go reads it too).
+var gmHelpLines = []string{
+	"GM Commands (each also as /name):",
+	"  #goto <x> <y> <z> [world] | <town or NPC> - teleport (#teleport too)",
+	"  #gotoplayer <name> - go to an online player",
+	"  #giveitem <item id> <player> [count] - give an online player an item",
+	"  #summon <name> - bring an online player to you",
+	"  #spawn <name> - a copy of that NPC beside you; #despawn takes the target away",
+	"  #monstersearch <start of a name> - up to ten NPC names",
+	"  #nearby - NPCs within 200",
+	"  #tele <name> - teleport to a named place (no name lists them)",
+	"  #world [n] - show/set world without teleporting",
+	"  #guildhall - enter guild hall",
+	"  #hddsetup [check|create|format] - hard disk setup",
+	"  #speed <1-10> - your run speed at that many times your own; 1 gives it back",
+	"  #setlevel [name] <lvl> - set a level, nothing else (no name: your target player, else you)",
+	"  #size <factor> - your target (player or NPC), else you, at factor of its own size; 1 gives it back",
+	"  #delete [undo] - your target creature's row deleted for good (/t delete on a PS2); undo puts your last back",
+	"  #clone - a copy of your target creature's row where you stand, facing as you face (/t clone on a PS2)",
+	"  #place <name> - a new creature of that name where you stand, facing as you face (/t place <name> on a PS2)",
+	"  #testmode - toggle: you take every hit in full and cannot die (1 HP left)",
+	"  #tankprofile1 / 2 / 3 - toggle: AGI 400 and AC 1000 / 2000 / 3000",
+	"  #hp <cur> [max] - set HP",
+	"  #tunar <amt> - set gold",
+	"  #template [player] - level 60, every spell of your class, 1,000,000 tunar, the best gear you may wear",
+	"  #effect [<icon hex> [name] | clear] - list, add or clear the effects channel's slots (the spells behind them go on)",
+	"  #clearbuffs - every buff on you ended now, as its time running out ends it (#nukebuffs too)",
+	"  #reward [player] - GM's Reward on your target (a player) for an hour: DS 25, heal 25 when hit, +100 AC, +50 stats",
+	"  #faction <faction> [standing] - your standing with a faction, or set it",
+	"  #grantcm <amount> - mastery points, never past 1500 spent and unspent",
+	"  #debt [amount] - your experience debt, or set it (0 clears)",
+	"  #cm - the masteries your target (a player) or you bought; #cmreset takes them all back, points returned",
+	"  #rst_mastr [name] - a character's masteries all taken back, points returned (no name: your target, else you)",
+	"  #rst_both [name] - that and every training point given back",
+	"  #rem_abil <name> <ability> - an ability (its name or spell id) out of a character's book",
+	"  #banktunar [name] <amount> - added to a bank (negative takes away; no name: your target, else you)",
+	"  #servdown - restart the server, everyone saved (an admin's; say it twice)",
+	"  #aggro [on|off] - whether creatures attack you on sight (off until #aggro on)",
+	"  #fly [on|off] - fly where you look at your run speed, no gravity (alone: on, or off again; until you log out)",
+	"  #movecheck [off|log|enforce] - the check of players' own moves, and who it moved back",
+	"  #ticks - how long the server's ticks took over the last minute, system by system",
+	"  #net [name] - what each client has not acknowledged and how long, resends and round trips (a name: that one's, and its client's own counters)",
+	"  #packetlog [on|off] - every packet's own lines in the server's log (off by default)",
+	"  #fx <visual> [seconds] | <spell> - play a spell visual (0x1DAEB5B6) on your target, nothing saved",
+	"  #spellfx <spell> [<visual> | 0] - a spell's visual, or give it one (0: its stand-in)",
+	"  #trigger [n | name | stop [n]] - the triggers (the GM panel's), fire one, or stop their runs",
+	"  #craftskill [<skill 0-5> <level 1-10> [rank 0-9]] - your tradeskills, or set one",
+	"  #craftlearn <recipe id | all [skill 0-5]> - recipes into your Recipe Book",
+	"  #dye [<slot|armor|all> <RRGGBB|tN|name|none>] - your target's (a player) or your dyes, seen by clients of the live game's look",
+	"  #vampire [on|off] - whether your target (a player) or you is a vampire, burned by day; what the sun does to it now",
+	"  #kill - kill target",
+	"  #npcinfo - the target's ids, model, size, level, spawn and gear",
+	"  #stats - HoT, PoT, stats and caps, the melee rolls, hate: the target's or your own",
+	"  #pos - show position",
+	"  #mark [note] - keep where you stand as your next mark (#marks lists them; #marks undo, #marks clear)",
+	"  #camp <creature>[, <creature>...] - a static spawn at each mark, popping one of them at random each time; #camp undo",
+	"  #path [loop|pingpong|once] [walk|run] - your target walks your marks; #path clear takes its path away",
+	"  #markportal - your target (an NPC) is a portal's entry; #markportal exit [place] - its landing: your target, else where you stand; filed as a ticket, off until #markportal on [id] (off, list, cancel)",
+	"  #who - list players",
 }

@@ -1055,10 +1055,12 @@ var catalog = map[string]tableNote{
 			"float over them: \"XP Grinding Rewards\" over the Testing Heroes Vendor. 24 letters at most (the rest is cut); " +
 			"empty: none. Every client draws it (it is a second, invisible body of the NPC's own under the title).",
 		Live:   "At once for the NPC's next coming into view.",
-		Search: []string{"title", "note", "source"},
+		Search: []string{"title", "color", "note", "source"},
 		Cols: map[string]colNote{
-			"npcid":  {Label: "NPC row", Ref: "npcs", Help: "the NPCs row's id"},
-			"title":  {Label: "Title", Help: "the line over the name, 24 letters at most"},
+			"npcid": {Label: "NPC row", Ref: "npcs", Help: "the NPCs row's id"},
+			"title": {Label: "Title", Help: "the line over the name, 24 letters at most"},
+			"color": {Label: "Colour", Help: "the title's colour, the same for every player: empty (or gold) as an NPC's name, blue (a player's), " +
+				"green (90,255,80); the client has only these three name colours"},
 			"note":   {Label: "Note", Help: "why"},
 			"source": {Label: "Source", Help: "gm, or the tool that wrote it (its --undo takes out exactly what it wrote)"},
 		},

@@ -114,11 +114,19 @@ var wornShields = map[string]WornShield{
 	"positronian energy shield": {Damage: 200, Undead: true},
 	"marauder breastplate":      {Damage: 10, Heal: 5},
 	"tower of woe":              {Damage: 90, Heal: 45},
-	"mithron chestplate":        {Heal: 10, Power: 10},
+	"mithron chestplate":        {Heal: 15, Power: 15}, // QuestMasters' 15 (the sheet's 10)
 	"coralium chestguard":       {Power: 15},
 	"coral tunic":               {Power: 25},
 	"fathomsteel guard":         {Power: 15},
 	"festertwig":                {Power: 15},
+	// QuestMasters' list of procing items (2006, the owner's source 2026-11-12):
+	// "Bracers of toxicity 64 dmg shield", "Golden spiked Gloves; 20 ds", and
+	// "Boots of Burning Sand are all/all. Proc a 35 fire based DS", this server's
+	// record of which is the all/all "Sandals of the Burning Sands" (the list's
+	// other line of them: "Fire based damage shield", no figure)
+	"bracers of toxicity":          {Damage: 64},
+	"golden spiked gloves":         {Damage: 20},
+	"sandals of the burning sands": {Damage: 35},
 	// (the heirlooms' chest piece healed as the Anointed from 2026-11-06 04:00
 	// to the next deploy: the user, "give it a healing effect per hit like the
 	// breastplate of the anointed", then "lets turn off the healing effect on

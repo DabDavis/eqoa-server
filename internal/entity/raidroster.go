@@ -35,8 +35,9 @@ func (w *World) SetRaidRoster(sess *session.Session, on bool) bool {
 }
 
 // SetRaidRosterAnswer is a client's 0x7E19 answer v: 0 stop, RaidRosterWithGroups the
-// roster with each record's group number (raidsubgroups.go), any other the roster as
-// before. False when sess has no player.
+// roster with each record's group number (raidsubgroups.go), RaidRosterWithKinds that
+// and each record's kind byte after it, any other the roster as before. False when
+// sess has no player.
 func (w *World) SetRaidRosterAnswer(sess *session.Session, v uint32) bool {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -44,34 +45,86 @@ func (w *World) SetRaidRosterAnswer(sess *session.Session, v uint32) bool {
 	if p == nil {
 		return false
 	}
-	p.RaidRoster, p.RaidRosterGroups, p.raidRosterSent = v != 0, v == RaidRosterWithGroups, ""
+	p.RaidRoster, p.raidRosterSent = v != 0, ""
+	p.RaidRosterGroups, p.RaidRosterKinds = v == RaidRosterWithGroups || v == RaidRosterWithKinds, v == RaidRosterWithKinds
 	return true
+}
+
+// RaidRosterWithKinds is the 0x7E18 offer's value and the 0x7E19 answer's for the
+// roster with each record's group number and then its kind (raidRosterKindMerc for a
+// mercenary, 0 a player) after it. Since 2026-11-12 (the owner: "im not able to target
+// mercs in a raid group"): a raid's mercs are in its roster, so a client that draws the
+// roster in place of the group's bars can target them; the kind keeps them out of its
+// counts of each group's players (a merc takes no place in a raid's group,
+// raidsubgroups.go). An older vanilla answers 2 to this offer and is sent the mercs'
+// records with no kind.
+const RaidRosterWithKinds = 3
+
+// raidRosterKindMerc is a merc's kind byte (bit 0).
+const raidRosterKindMerc = 1
+
+// raidRosterRow is one record's fields: the id the receiving client knows it by.
+type raidRosterRow struct {
+	id               uint32
+	name             string
+	class, level, hp int
+	power            byte
+	sub              uint8
+	merc, kinds      bool
+}
+
+// bytes is the row's record: sub, its group in the raid, after it when sub is not 0
+// (a client that answered RaidRosterWithGroups), then its kind to a client that
+// answered RaidRosterWithKinds.
+func (r raidRosterRow) bytes() []byte {
+	name := []byte(r.name)
+	if len(name) > 23 {
+		name = name[:23]
+	}
+	b := binary.LittleEndian.AppendUint32(make([]byte, 0, 11+len(name)), r.id)
+	b = append(b, byte(len(name)))
+	b = append(b, name...)
+	b = append(b, byte(r.class), byte(max(0, min(255, r.level))), byte(max(0, min(255, r.hp))), r.power)
+	if r.sub != 0 {
+		b = append(b, r.sub)
+	}
+	if r.kinds {
+		kind := byte(0)
+		if r.merc {
+			kind = raidRosterKindMerc
+		}
+		b = append(b, kind)
+	}
+	return b
 }
 
 // raidRosterRecord is one member's record for sess's client; sub, its group in the
 // raid, after it when sub is not 0 (a client that answered RaidRosterWithGroups).
 func (w *World) raidRosterRecord(sess *session.Session, o *Player, sub uint8) []byte {
-	name := []byte(o.Name)
-	if len(name) > 23 {
-		name = name[:23]
-	}
 	hp := 0
 	if top := o.MaxHPNow(); top > 0 {
-		hp = max(0, min(255, int(healthBar(o.HP, top))))
+		hp = int(healthBar(o.HP, top))
 	}
 	power, _ := powerOf255(o)
-	b := binary.LittleEndian.AppendUint32(make([]byte, 0, 9+len(name)), w.idSeenByLocked(sess, o))
-	b = append(b, byte(len(name)))
-	b = append(b, name...)
-	b = append(b, byte(o.Class), byte(max(0, min(255, o.Level))), byte(hp), power)
-	if sub != 0 {
-		b = append(b, sub)
-	}
-	return b
+	return raidRosterRow{id: w.idSeenByLocked(sess, o), name: o.Name, class: o.Class, level: o.Level, hp: hp, power: power, sub: sub}.bytes()
 }
 
-// raidRosterLocked is every member's record for sess's client, in the order they
-// joined; none when me's group is no raid's: one whose leader raised a raid flag,
+// raidRosterMercRecord is a living merc's record for sess's client, by the id that
+// client knows it by (its channel's, else groupFarID's stand-in, as the group roster
+// names it: mercgroup.go); sub, its owner's group in the raid. Must be called with the
+// lock held.
+func (w *World) raidRosterMercRecord(sess *session.Session, n *NPC, sub uint8, kinds bool) []byte {
+	hp := 0
+	if n.MaxHP > 0 {
+		hp = int(healthBar(n.HP, n.MaxHP))
+	}
+	power, _ := w.barPowerLocked(n)
+	return raidRosterRow{id: w.groupIDSeenByLocked(sess, n.ServerID), name: n.Name, class: n.Class, level: n.Level, hp: hp, power: power,
+		sub: sub, merc: true, kinds: kinds}.bytes()
+}
+
+// raidRosterLocked is every member's record for sess's client, its mercs' too (each
+// in its owner's group), in the order they joined; none when me's group is no raid's: one whose leader raised a raid flag,
 // whatever its size, or past four (the user, 2026-11-08: "the raid ui doesnt show up
 // for all players in raid, like maybe the early group still sees the group UI": a
 // flagged group's first four saw their window of four until a fifth came). Must be
@@ -88,7 +141,19 @@ func (w *World) raidRosterLocked(sess *session.Session, me *Player) [][]byte {
 	out := make([][]byte, 0, len(g.Members))
 	for _, id := range g.Members {
 		if o := w.Players[id]; o != nil {
-			out = append(out, w.raidRosterRecord(sess, o, subs[id]))
+			rec := w.raidRosterRecord(sess, o, subs[id])
+			if me.RaidRosterKinds {
+				rec = append(rec, 0)
+			}
+			out = append(out, rec)
+			continue
+		}
+		// a merc in the raid (its owner's group, mercgroup.go): in the roster too, in its
+		// owner's group, so a client that draws the roster in place of the group's bars
+		// can target it as it targets any member (the owner, 2026-11-12: "im not able to
+		// target mercs in a raid group": before, a raid's mercs were in no window)
+		if n := w.NPCs[id]; n.isMerc() && !n.Dead {
+			out = append(out, w.raidRosterMercRecord(sess, n, subs[n.merc.owner.ServerID], me.RaidRosterKinds))
 		}
 	}
 	return out

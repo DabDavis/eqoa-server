@@ -37,14 +37,16 @@ type KeptPlayer struct {
 	BuffWindow   bool          `json:"buff_window,omitempty"`
 	RaidRoster   bool          `json:"raid_roster,omitempty"`
 	// RaidRosterGroups: its roster carries group numbers (raidsubgroups.go)
-	RaidRosterGroups bool       `json:"raid_roster_groups,omitempty"`
-	RaidWindows      bool       `json:"raid_windows,omitempty"`
-	DuelWindow       bool       `json:"duel_window,omitempty"`
-	GM               bool       `json:"gm,omitempty"`
-	Flying           bool       `json:"flying,omitempty"`
-	Place            [3]float32 `json:"place"`
-	World            uint8      `json:"world"`
-	RaceLabels       bool       `json:"race_labels,omitempty"`
+	RaidRosterGroups bool `json:"raid_roster_groups,omitempty"`
+	// RaidRosterKinds: its roster carries each record's kind (raidroster.go)
+	RaidRosterKinds bool       `json:"raid_roster_kinds,omitempty"`
+	RaidWindows     bool       `json:"raid_windows,omitempty"`
+	DuelWindow      bool       `json:"duel_window,omitempty"`
+	GM              bool       `json:"gm,omitempty"`
+	Flying          bool       `json:"flying,omitempty"`
+	Place           [3]float32 `json:"place"`
+	World           uint8      `json:"world"`
+	RaceLabels      bool       `json:"race_labels,omitempty"`
 	// RecordWindow: its client has the combat record window (combatrecord.go)
 	RecordWindow bool `json:"record_window,omitempty"`
 	// PvP: its flag (pvp.go), and how long it must yet stay on
@@ -123,7 +125,7 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 		return KeptPlayer{}, false
 	}
 	k := KeptPlayer{CharServerID: p.CharServerID, Name: p.Name, Dead: p.IsDead() || p.respawnPending(),
-		Target: p.TargetObjectID, PowerBars: p.PowerBars, RaidRoster: p.RaidRoster, RaidRosterGroups: p.RaidRosterGroups, RaidWindows: p.RaidWindows, DuelWindow: p.DuelWindow, GM: p.GM, Flying: p.Flying,
+		Target: p.TargetObjectID, PowerBars: p.PowerBars, RaidRoster: p.RaidRoster, RaidRosterGroups: p.RaidRosterGroups, RaidRosterKinds: p.RaidRosterKinds, RaidWindows: p.RaidWindows, DuelWindow: p.DuelWindow, GM: p.GM, Flying: p.Flying,
 		Place: [3]float32{p.X, p.Y, p.Z}, World: p.World, PetEffects: p.PetEffects}
 	k.BuffWindow = p.BuffWindow
 	k.RaceLabels = p.RaceLabels
@@ -170,7 +172,7 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 	p.LFG, p.GroupChatHidden = k.LFG, k.GroupChatHidden
 	p.PetEffects, p.petEffectsSent, p.petEffectsDue = k.PetEffects, "", k.PetEffects // its pet's set again once the pet is back
 	p.BuffWindow, p.buffWindowSent, p.buffWindowDue = k.BuffWindow, "", k.BuffWindow // its buff window's set again (buffwindow.go)
-	p.RaidRoster, p.raidRosterSent, p.RaidRosterGroups = k.RaidRoster, "", k.RaidRosterGroups
+	p.RaidRoster, p.raidRosterSent, p.RaidRosterGroups, p.RaidRosterKinds = k.RaidRoster, "", k.RaidRosterGroups, k.RaidRosterKinds
 	p.RaidWindows, p.raidStateSent = k.RaidWindows, "" // the state again at the next pass (raidrules.go)
 	if k.DPSMeter {
 		p.dps = &dpsMeter{} // the next figure starts its fight (dpsmeter.go)

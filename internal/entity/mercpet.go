@@ -231,7 +231,7 @@ func (w *World) mercPetTurnLocked(ms *mercState, sess *session.Session, fight bo
 		// its merc taken along (a teleport, another world): it comes too
 		oldX, oldZ := pet.X, pet.Z
 		pet.World = m.World
-		pet.X, pet.Y, pet.Z = besideOwner(ms.body)
+		pet.X, pet.Y, pet.Z = w.followPlaceLocked(pet, ms.body, slotMercPet)
 		pet.stopMoving()
 		ps.target = 0
 		pet.endRound()
@@ -250,7 +250,7 @@ func (w *World) mercPetTurnLocked(ms *mercState, sess *session.Session, fight bo
 	}
 	ps.target = 0
 	if !w.petTemplateTurnLocked(ps, nil, now) { // its heals and buffs while it follows (pettemplate.go)
-		w.followLocked(pet, ms.body, dt, now)
+		w.followLocked(pet, ms.body, slotMercPet, dt, now)
 	} else {
 		pet.stopMoving()
 	}

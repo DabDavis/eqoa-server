@@ -349,7 +349,8 @@ func newPet(t *NPC, id EntityID, owner *Player, name string, level int) *NPC {
 		pet.PrimaryType, pet.SecondaryType = 1, 5 // Sandstorm's pet's hands
 	}
 	pet.World = owner.World
-	pet.X, pet.Y, pet.Z = besideOwner(owner)
+	pet.X, pet.Z = followSpotAt(owner.X, owner.Z, owner.Facing, followSlotAngle[slotPet], followRadius)
+	pet.Y = owner.Y
 	pet.Facing = headingTo(owner.X-pet.X, owner.Z-pet.Z)
 	pet.SpawnX, pet.SpawnY, pet.SpawnZ, pet.SpawnFacing = pet.X, pet.Y, pet.Z, pet.Facing
 	pet.Dead, pet.DeathTime = false, time.Time{}
@@ -371,13 +372,8 @@ func newPet(t *NPC, id EntityID, owner *Player, name string, level int) *NPC {
 	pet.tmpl, pet.tbase, pet.tfight = nil, templateBase{}, nil
 	pet.sheet = nil // a workbook pet's row is put on after (petstats.go)
 	pet.way = petWay{}
+	pet.fslot = followSlotCache{}
 	return &pet
-}
-
-// besideOwner is a spot at the owner's side, petFollow off it.
-func besideOwner(p *Player) (x, y, z float32) {
-	h := float64(p.Facing)
-	return p.X + petFollow*float32(math.Cos(h)), p.Y, p.Z - petFollow*float32(math.Sin(h))
 }
 
 // summonPetLocked is a summoning landing: the caster's new pet, the old one
@@ -434,6 +430,15 @@ func (w *World) makePetLocked(spell *CastSpell, caster, owner *Player, ms *mercS
 	pet := newPet(t, w.allocFreeIDLocked(), caster, name, level)
 	pet.Owner = owner.ServerID
 	pet.mercPet = ms
+	if slot := slotPet; w.ground != nil {
+		// its slot, or the nearest of them it can walk to (followslot.go)
+		if ms != nil {
+			slot = slotMercPet
+		}
+		pet.X, pet.Y, pet.Z = w.followPlaceLocked(pet, caster, slot)
+		pet.Facing = headingTo(caster.X-pet.X, caster.Z-pet.Z)
+		pet.SpawnX, pet.SpawnY, pet.SpawnZ, pet.SpawnFacing = pet.X, pet.Y, pet.Z, pet.Facing
+	}
 	if sheet != nil {
 		applyPetSheet(pet, sheet) // its body, weapons and numbers (petstats.go)
 	}
@@ -834,7 +839,7 @@ func (w *World) petSystem(now time.Time) {
 			// along (a coach never takes a charmed one: CoachLeavesCharm)
 			oldX, oldZ := pet.X, pet.Z
 			pet.World = owner.World
-			pet.X, pet.Y, pet.Z = besideOwner(owner)
+			pet.X, pet.Y, pet.Z = w.followPlaceLocked(pet, owner, slotPet)
 			pet.stopMoving()
 			ps.target = 0
 			pet.endRound()
@@ -867,7 +872,7 @@ func (w *World) petSystem(now time.Time) {
 // owner is petFollowStart away, at the owner's speed (half as fast again
 // once petCatchUp behind), and stands when there.
 func (w *World) petFollowLocked(ps *petState, dt float32, now time.Time) {
-	w.followLocked(ps.npc, ps.owner, dt, now) // merc.go: a pet's, a mercenary's and a familiar's alike
+	w.followLocked(ps.npc, ps.owner, slotPet, dt, now) // followslot.go: its slot, at its owner's right
 }
 
 // petStepLocked steps the pet toward (x, z), its floor looked for from

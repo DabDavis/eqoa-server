@@ -84,6 +84,13 @@ const (
 	// Trickster Flame's Wisp's Raiment, the owner, 2026-11-11); ended as an illusion is (Remove
 	// Illusion, a glamour)
 	EffectRaiment
+	// EffectHPCap holds the bearer's maximum hit points at Amount at most while it lasts, its hit
+	// points with them; lasting no time, its hit points taken down to it ("Set Maximum HP to 1":
+	// hpcap.go, the Tester Pro, petition 1725)
+	EffectHPCap
+	// EffectStatPin holds each of the bearer's seven stats (STR to CHA) at Amount while it lasts,
+	// whatever else adds to them ("Set All Stats to 1": hpcap.go)
+	EffectStatPin
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales
@@ -195,6 +202,9 @@ type SpellEffect struct {
 	// Resist is the resist a harmful effect is resisted by (the workbook's
 	// "Resist Basis", workbook.go); StatNone for none
 	Resist Stat
+	// SowPct is an EffectSpeed's run speed in percent of the movement buff's
+	// (hpcap.go: "Run Speed 2x Spirit of the Wolf" is 200); 0 the buff's own
+	SowPct int
 	// ID is the workbook's EffectID, "" for a line's effect: effects of one
 	// ID are resisted together
 	ID string
@@ -221,8 +231,12 @@ type SpellDef struct {
 	ShareRadius float32
 	Target      SpellTarget
 	Effects     []SpellEffect
-	Duration    time.Duration // 0: it all happens when it lands
-	Harmful     bool
+	// Unlimited: an item's use whose line says "Unlimited Uses" ("Infinite
+	// Charges", "Never Spent") takes nothing of the item (handlers' usePotion:
+	// the Tester Pro, petition 1725); a spell's cast reads nothing of it
+	Unlimited bool
+	Duration  time.Duration // 0: it all happens when it lands
+	Harmful   bool
 	// Pet is the creature a summoning line names ("Summons an Iron Golem to
 	// your defense": "iron golem"), "" when it names none ("Summons a pet").
 	Pet string
@@ -718,6 +732,22 @@ func (d *SpellDef) parsePart(part, verb string) string {
 	}
 	if e, ok := shieldPart(part); ok { // dshield.go
 		d.Effects = append(d.Effects, e)
+		return verb
+	}
+	if reUnlimited.MatchString(part) { // an item used without end (potion.go)
+		d.Unlimited = true
+		return verb
+	}
+	if n, ok := hpCapPart(part); ok { // hpcap.go
+		d.Effects = append(d.Effects, SpellEffect{Kind: EffectHPCap, Amount: n, AmountMax: n})
+		return verb
+	}
+	if n, ok := statPinPart(part); ok { // hpcap.go
+		d.Effects = append(d.Effects, SpellEffect{Kind: EffectStatPin, Amount: n, AmountMax: n})
+		return verb
+	}
+	if pct, ok := sowSpeedPart(part); ok { // hpcap.go: a run speed of its own, a multiple of the movement buff's
+		d.Effects = append(d.Effects, SpellEffect{Kind: EffectSpeed, SowPct: pct})
 		return verb
 	}
 	if n, ok := powerCapPart(part); ok { // powercap.go

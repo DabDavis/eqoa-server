@@ -67,7 +67,7 @@ The importer makes it when no item has the name, as a copy of its `like` record 
 and description (NO TRADE with `notrade`). An optional `"set": {"<column>": n, ...}` gives it
 figures of its own over its like's (whole numbers; the importer's `ITEM_SET`: `AC`, `HPMAX`,
 `POWMAX`, the seven stats, `PoT`, `HoT`, the six resists, `itemcost`, `levelreq`, `maxhp` its
-durability, `classuse`, `raceuse`, `lore`): a piece of equipment a quest hands out to wear, as a
+durability, `classuse`, `raceuse`, `lore`, `trade`: 0 a tradeable item made like a NO TRADE one): a piece of equipment a quest hands out to wear, as a
 homeland's first gift (every class's, level 1, 4 armour: `tools/quests/gen_homelands.py`). An item
 made by an earlier import is not made again: a `set` changed later changes no record.
 

@@ -45,7 +45,7 @@ EVENT_ON = {'accept', 'finish', 'start', 'done'}
 EVENT_DO = {'popup', 'say', 'give', 'spawn', 'attack', 'visual', 'teleport', 'vampire', 'trigger', 'dostep', 'classquest'}
 # tools/import_quests.py's ITEM_SET: the columns a made item's `set` may give
 ITEM_SET = {'AC', 'HPMAX', 'POWMAX', 'str', 'sta', 'agi', 'dex', 'wis', 'intelligence', 'cha', 'PoT', 'HoT',
-            'PR', 'DR', 'FR', 'CR', 'LR', 'AR', 'itemcost', 'levelreq', 'maxhp', 'classuse', 'raceuse', 'lore'}
+            'PR', 'DR', 'FR', 'CR', 'LR', 'AR', 'itemcost', 'levelreq', 'maxhp', 'classuse', 'raceuse', 'lore', 'trade'}
 BOX, ANSWER, LINE = 218, 63, 127
 TEXT = ('offer', 'accept', 'decline', 'declined', 'started')
 FACTION_MIN, FACTION_MAX = -2000, 2000   # entity/faction.go

@@ -72,8 +72,9 @@ QUEST_WHENS, STEP_WHENS = ("accept", "finish"), ("start", "done")
 DOS = ("popup", "say", "give", "spawn", "attack", "visual", "teleport", "vampire", "trigger", "dostep", "classquest")
 # The columns of itempattern a made item's "set" may give (FORMAT.md, Item): what a record a quest hands out to
 # wear needs of its own over its like's (a homeland's first gift: every class's, its own armour).
+# trade: 0 a tradeable item made like a NO TRADE one (notrade only ever sets 1; petition 1651's bulging toad eye).
 ITEM_SET = ("AC", "HPMAX", "POWMAX", "str", "sta", "agi", "dex", "wis", "intelligence", "cha", "PoT", "HoT",
-            "PR", "DR", "FR", "CR", "LR", "AR", "itemcost", "levelreq", "maxhp", "classuse", "raceuse", "lore")
+            "PR", "DR", "FR", "CR", "LR", "AR", "itemcost", "levelreq", "maxhp", "classuse", "raceuse", "lore", "trade")
 
 # The quest tables as internal/database/quests.go makes them, and the columns
 # it adds to an older one.

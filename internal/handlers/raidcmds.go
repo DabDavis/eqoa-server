@@ -93,6 +93,11 @@ const (
 	raidOpHelper   = 9
 	raidOpMainAsst = 10
 	raidOpKick     = 11
+	// petition 1687 (entity/raidsubgroups.go): 12 a member to a group (u32 the
+	// member as the client knows it, u8 the group), 13 two members' groups traded
+	// (u32, u32)
+	raidOpGroup = 12
+	raidOpSwap  = 13
 )
 
 // handleCommand is 0x7E48: u8 op and its arguments, as the typed commands do.
@@ -157,6 +162,18 @@ func (h *RaidHandler) handleCommand(sess *session.Session, msg *protocol.Message
 				gw.RaidKick(sess, "", id)
 			}
 		}
+	case raidOpGroup:
+		id, ok := u32()
+		n, err := r.ReadByte()
+		if ok && err == nil {
+			gw.RaidGroupMove(sess, "", id, int(n))
+		}
+	case raidOpSwap:
+		a, ok1 := u32()
+		b, ok2 := u32()
+		if ok1 && ok2 {
+			gw.RaidGroupSwap(sess, "", "", a, b)
+		}
 	default:
 		log.Printf("Raid: unknown command %d from %s", op, sess.RemoteAddr())
 	}
@@ -186,7 +203,7 @@ func (h *ChatHandler) raidTell(sess *session.Session, player *entity.Player, nam
 		if rest != "" {
 			return false // a tell to someone called Raid
 		}
-	case "raidaoe", "raidinvite", "raidleave", "raidkick", "raidleader", "raidhelper", "raidassist", "raidloot", "rsay":
+	case "raidaoe", "raidinvite", "raidleave", "raidkick", "raidleader", "raidhelper", "raidassist", "raidloot", "rsay", "raidgroup", "raidswap":
 	case "invite", "target", "tar", "help":
 		if findPlayerByName(h.gameWorld, cmd) != nil {
 			return false // a tell to them
@@ -225,9 +242,22 @@ func (h *ChatHandler) raidCommand(sess *session.Session, player *entity.Player, 
 	if gw == nil {
 		return false
 	}
+	if cmd == "raid" { // "/raid group <name> <n>", "/raid swap <a> <b>", "/raid groups"
+		if sub, more, _ := strings.Cut(rest, " "); strings.EqualFold(sub, "group") || strings.EqualFold(sub, "groups") || strings.EqualFold(sub, "swap") {
+			cmd, rest = "raid"+strings.TrimSuffix(strings.ToLower(sub), "s"), strings.TrimSpace(more)
+		}
+	}
 	switch cmd {
 	case "raid", "raidaoe":
 		gw.RaidCall(sess)
+	case "raidgroup":
+		raidGroupLine(gw, sess, rest)
+	case "raidswap":
+		if f := strings.Fields(rest); len(f) == 2 {
+			gw.RaidGroupSwap(sess, f[0], f[1], 0, 0)
+		} else {
+			SendErrorMessage(sess, "Usage: /raidswap <name> <name> - trades two members' groups.")
+		}
 	case "raidinvite":
 		gw.RaidInvite(sess, rest, target)
 	case "raidleave":
@@ -284,6 +314,22 @@ func (h *ChatHandler) raidCommand(sess *session.Session, player *entity.Player, 
 	return true
 }
 
+// raidGroupLine is /raidgroup: alone, the raid's groups; "<name> <n>" a move (petition
+// 1687, entity/raidsubgroups.go).
+func raidGroupLine(gw *entity.World, sess *session.Session, rest string) {
+	f := strings.Fields(rest)
+	if len(f) == 0 {
+		gw.RaidGroups(sess)
+		return
+	}
+	n, err := strconv.Atoi(strings.TrimPrefix(f[len(f)-1], "#"))
+	if len(f) != 2 || err != nil {
+		SendErrorMessage(sess, "Usage: /raidgroup <name> <group number>; alone, the raid's groups.")
+		return
+	}
+	gw.RaidGroupMove(sess, f[0], 0, n)
+}
+
 // raidSay is /rsay <text>: the raid's chat, the group's when it is no raid (petition 1448:
 // "/rsay should also work to talk in raid chat, as an alternate to /group").
 func (h *ChatHandler) raidSay(sess *session.Session, player *entity.Player, text string) {
@@ -328,6 +374,8 @@ var playerHelpLines = []string{
 	"  /raidhelper <name|none> - the leader's one helper, who may invite and kick",
 	"  /raidassist <name|none> - the leader names the main assist; alone, assists them",
 	"  /raidloot ffa|needgreed|master - the leader's loot rule (not in combat)",
+	"  /raidgroup - the raid's groups; /raidgroup <name> <n> moves one (leader, helper)",
+	"  /raidswap <name> <name> - trades two members' groups (the leader or the helper)",
 	"  /need [n], /greed [n], /pass [n] - a loot roll (no number: your oldest)",
 	"  /assign <n> <name>, /abandon - the master looter gives item n, or lets all go",
 	"  /invite <name> - invites a player to your group",

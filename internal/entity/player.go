@@ -266,6 +266,9 @@ type Player struct {
 	// sent, so only a change goes out.
 	RaidRoster     bool
 	raidRosterSent string
+	// RaidRosterGroups: it answered the offer RaidRosterWithGroups, each record
+	// with its group number after it (raidsubgroups.go)
+	RaidRosterGroups bool
 
 	// RaidWindows: the player's client shows the raid's windows and answered the
 	// raid offer (raidrules.go, opcodes 0x7E42-0x7E48): its raid's state, its rolls

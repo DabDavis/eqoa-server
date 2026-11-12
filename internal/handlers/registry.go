@@ -392,6 +392,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 
 	// Trading between players (trade.go): 0x0057 and 0x0056.
 	tradeHandler := NewTradeHandler(sessionMgr, npcWindowHandler)
+	keepTrades.Store(tradeHandler) // a restart calls its trades off (keep.go)
 	if gameWorld != nil {
 		tradeHandler.SetGameWorld(gameWorld)
 	}

@@ -36,6 +36,7 @@ import (
 var (
 	keepChars   atomic.Pointer[CharacterHandler]
 	keepWindows atomic.Pointer[NPCWindowHandler]
+	keepTrades  atomic.Pointer[TradeHandler]
 )
 
 // KeptExtras is what a restart carries of the handlers' own state for a
@@ -51,7 +52,16 @@ type KeptExtras struct {
 	QuestHeadMarks bool `json:"quest_head_marks,omitempty"`
 	// LootOpen: its client has a corpse's window open (ResumeCharacter closes it)
 	LootOpen bool `json:"loot_open,omitempty"`
+	// Trading: it was in a trade, asked or open. A trade does not come
+	// through (its offers are the old process's), and its client's window
+	// would stand open on nothing: ResumeCharacter calls it off as the other
+	// side's cancel does (0x0056 1, which CLIENT takes whatever its id), and
+	// says why.
+	Trading bool `json:"trading,omitempty"`
 }
+
+// ResumeTradeLine is what a player whose trade the restart ended is told.
+const ResumeTradeLine = "Your trade was called off by the server update. Nothing changed hands."
 
 // KeptList is an item list's copy (itemlist.go's invList); Cap the records
 // the client's list holds (0, or a file from before it: CLIENT's 40).
@@ -123,6 +133,11 @@ func KeepExtras(sess *session.Session, p *entity.Player) KeptExtras {
 		ls.mu.Lock()
 		_, k.LootOpen = ls.open[sess]
 		ls.mu.Unlock()
+	}
+	if h := keepTrades.Load(); h != nil {
+		h.mu.Lock()
+		k.Trading = h.trades[sess] != nil
+		h.mu.Unlock()
 	}
 	return k
 }
@@ -346,10 +361,21 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 			q.resumeHeadMarks(player)
 		}
 	}
+	resumeWindows(sess, ex)
+	return player, nil
+}
+
+// resumeWindows closes what a resumed client has open over state that did not
+// come through: a corpse's window (its corpse is still there to open again) and
+// a trade's.
+func resumeWindows(sess *session.Session, ex KeptExtras) {
 	if ex.LootOpen {
 		queueReliable(sess, protocol.OpcodeClientCloseLoot, closeLootPayload())
 	}
-	return player, nil
+	if ex.Trading {
+		queueReliable(sess, protocol.OpcodeTradeUI, tradeSub(1, 0, nil))
+		SendClientMessage(sess, ResumeTradeLine)
+	}
 }
 
 // ResumeLine is what a player carried through a restart is told once back.

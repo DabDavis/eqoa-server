@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -182,5 +183,63 @@ func TestOneLooterAtATime(t *testing.T) {
 	r.groupMate = gone
 	if !opened(r.sess) {
 		t.Fatal("a holder gone from the world was not let go of")
+	}
+}
+
+// The owner, 2026-11-12 ("the rolling reset is deleting loot on mobs"): a corpse's
+// kill group comes through a keep restart, an unopened corpse's too, and a copy's
+// corpse made again under another id (entity.RestoreCopies) keeps it there. Written
+// and read through JSON, as the file; "the new process" is the same handler with
+// its corpses and kill groups forgotten. The control: restored with nothing, the
+// corpse is anyone's (what a restart did before).
+func TestAKillGroupComesThroughARestart(t *testing.T) {
+	r := newRightsRig(t, 2)
+	r.groups[r.player] = 7
+	r.h.heardKillRight(entity.KillCredit{NPCID: r.npc.ServerID, Died: r.npc.DeathTime, Group: 7,
+		Players: []entity.KillPlayer{{ServerID: r.player.CharServerID, Name: r.player.Name}}})
+	prev := keepWindows.Swap(r.h)
+	t.Cleanup(func() { keepWindows.Store(prev) })
+	b, err := json.Marshal(KeepCorpses())
+	if err != nil {
+		t.Fatal(err)
+	}
+	var kept []KeptCorpse
+	if err := json.Unmarshal(b, &kept); err != nil || len(kept) != 1 || kept[0].Right == nil || kept[0].Opened ||
+		kept[0].Right.Group != 7 || len(kept[0].Right.Chars) != 1 || kept[0].Right.Chars[0] != r.player.CharServerID {
+		t.Fatalf("written %s (%v)", b, err)
+	}
+	forget := func() {
+		r.h.killRights.Delete(r.npc.ServerID)
+		r.h.killRights.Delete(r.npc.ServerID + 7)
+		ls := r.h.loots()
+		ls.mu.Lock()
+		clear(ls.corpses)
+		clear(ls.open)
+		ls.mu.Unlock()
+	}
+	forget()
+
+	// the control: nothing restored, anyone's
+	r.h.OpenCorpse(r.other, r.npc)
+	if !opened(r.other) {
+		t.Fatal("control: a corpse with no kill group did not open for an outsider")
+	}
+	r.other.Queue().GetPending()
+	forget()
+
+	// restored under another id: the outsider refused, the group's member let in
+	old := r.npc.ServerID
+	r.npc.ServerID = old + 7
+	if n := RestoreCorpsesAs(kept, map[entity.EntityID]entity.EntityID{old: old + 7}); n != 1 {
+		t.Fatalf("%d corpses restored", n)
+	}
+	r.h.OpenCorpse(r.other, r.npc)
+	if got := why(r.other); got != lootAnotherOwner {
+		t.Fatalf("an outsider's opening after the restart: 0x0085 %d, want %d", got, lootAnotherOwner)
+	}
+	r.groups[r.groupMate] = 7 // RestoreGroups forms the group again under its id
+	r.h.OpenCorpse(r.mate, r.npc)
+	if !opened(r.mate) {
+		t.Fatal("the kill group's member could not open it after the restart")
 	}
 }

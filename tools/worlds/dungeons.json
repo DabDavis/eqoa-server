@@ -49,6 +49,12 @@
       "note": "Tunaria cell (11, 4): the walled cemetery compound of the twin necromancers"
     },
     {
+      "name": "Saerk Towers",
+      "from": "TUNARIA.ESF",
+      "zone": 69,
+      "note": "Tunaria cell (10, 6): north of the Tomb of Kings, in the world so the tomb's north edge (its crypt's rooms 40 from it) is no edge to close; its own creatures are not in world 14"
+    },
+    {
       "name": "Tomb of Kings",
       "from": "TUNARIA.ESF",
       "zone": 82,
@@ -261,10 +267,10 @@
       "name": "Box Canyon",
       "boxes": [
         [
-          20000,
-          20000,
-          22000,
-          22000
+          20150,
+          20150,
+          21850,
+          21850
         ]
       ],
       "entrance": {
@@ -276,7 +282,7 @@
           21070
         ]
       },
-      "note": "on a canyon floor in the west (the arena's Ember camp), 82 from the nearest creature; Skahyir's cave in the south-east"
+      "note": "on a canyon floor in the west (the arena's Ember camp), 82 from the nearest creature; Skahyir's cave in the south-east; the box keeps 150 off the cell's edges (the canyon's rim, where the edge's rocks stand)"
     },
     {
       "key": "warrens",

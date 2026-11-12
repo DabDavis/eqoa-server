@@ -1167,19 +1167,24 @@ near dabrish that says Real Estate Listings". `claude-notes/player-homes-2026111
   PS2 or an older vanilla is told why and not moved. No new opcodes. Room for later: furniture would be a table of its own
   keyed by the home's owner (`charhomeitems`), not made.
 
-### Instanced raid dungeons: Guk, Blackburrow, Runnyeye (`entity/dungeons.go`, `handlers/dungeons.go`, `world.dungeons`, `tools/dungeons_20261112.py`)
+### Instanced raid dungeons: ten of them in world 14 (`entity/dungeons.go`, `handlers/dungeons.go`, `world.dungeons`, `tools/dungeons_20261112.py`, `tools/dungeons_more_20261112.py`)
 
 The owner, 2026-11-12: "lets add a dungeon world. instanced versions of popular dungeons like Guk, Blackburrow, Runnyeye.
 they have the same mobs, but will be tuned for level 60 raids and raid gear". `claude-notes/dungeon-world-20261112.md`
-has the design, the numbers and what the rig showed.
+has the design, the numbers and what the rig showed. Then (the owner, later that day): "more instanced raids, same
+treatment": the Tomb of Kings, Castle Felstar, Collonridge Cemetery, Vox's Lair, Toxxulia's Lair, Box Canyon, Warren's Den.
 
-- **The world**: slot **14, the Dungeons** (`tools/worlds/dungeons.json`): Tunaria zones 65 (Blackburrow), 54 (Misty
-  Thicket, the valley before Runnyeye's gate, where its raids land), 67 (Runnyeye) and 157 (Guk), each where it stands,
+- **The world**: slot **14, the Dungeons** (`tools/worlds/dungeons.json`), 12 zones each where it stands: Tunaria 65
+  (Blackburrow), 54 (Misty Thicket, the valley before Runnyeye's gate, where its raids land), 67 (Runnyeye), 157 (Guk),
+  9 (Permafrost: Vox's Lair), 43 (Castle Felstar), 44 (Collonridge Cemetery), 69 (Saerk Towers: in the world only so the
+  Tomb's north edge, 40 from its crypt, is no edge), 82 (Tomb of Kings), 121 (Box Canyons), and Odus 20 (Toxxulia's
+  Lair) and 27 (the Warrens),
   every open edge closed by `cmd/worldedges`' rocks (`dungeons-edges.json`, 342; `-check` closed), made with
-  `-keep` of every world-14 creature and each entrance (since 2026-11-12, petition 1812: without it a north-edge rock
+  `-keep` of every world-14 creature, each entrance, the way to each new dungeon and a 40 grid over its box (Box
+  Canyon's box keeps 150 off its cell's edges, the canyon's rim, where its rocks stand), (since 2026-11-12, petition 1812: without it a north-edge rock
   of Blackburrow, scale 28 and 250 deep, buried the north-east mouth and its tunnel's end, an invisible wall inside). The recipe's
   `"dungeons"` block (`ReadDungeons`, carried into `worldN.json`, never the file): each dungeon's key, name, the boxes
-  its creatures stand in, its entrance (`toward` its gate). 31,042,514 bytes, CRC e42ecf47 (1b39b6c4 before the rocks moved). `world.dungeons.enabled`
+  its creatures stand in, its entrance (`toward` its gate). 86,972,184 bytes, CRC a47decaa (e42ecf47 with three dungeons, 1b39b6c4 before petition 1812). `world.dungeons.enabled`
   (off by default) with 14 in `server_worlds`; `close_after` (30m), `max_instances` (30).
 - **Templates and instances** (homes' engine: `Player.Instance`, `NPC.Instance`, `SamePlace`, `npcSharesLocked`):
   every npcs row of world 14 but the Dungeon Warden's is a **template**, held out of the world as a spawn-only NPC
@@ -1205,8 +1210,10 @@ has the design, the numbers and what the rig showed.
 - **The Dungeon Warden** (any NPC of the name; the data tool stands one beside Dabrish and a twin at each entrance,
   the way out, in every instance) asks a box under **mark 0x6B000000**: "Open Guk" (a leader) or "Enter Guk" (its party
   has one), and inside "Leave the dungeon". **`/dungeon`** (`#dungeon`, a PS2's `/t dungeon ...`): the party's open
-  instances and what stands in them, `/dungeon enter <name>`, `/dungeon leave`, `/dungeon reset <name>`. Only a client
-  holding world 14 goes in (vanilla; `dungeonsReaches`).
+  instances and what stands in them, `/dungeon enter <name>` (a key or a name), `/dungeon leave`, `/dungeon reset
+  <name>`; its help names every key. The box holds `maxDialogOptions` (6) answers: past that five and "More dungeons"
+  (`dungeonsPage`; CLIENT shows three a page with its own More/Back). Only a client holding world 14 goes in (vanilla;
+  `dungeonsReaches`).
 - **Data** (`tools/dungeons_20261112.py [--apply|--undo]`, log `dungeons_1112_log`, gm_audit): world 14's rows, copies
   of each dungeon's world 0 creatures (its kinds by `FAMILY`, or named; never friendly, a quest's seeded row or
   spawn-only, nor `SKIP`), levels raised: trash 60-62, named 63-64, bosses 65 (`BOSSES`: the froglok king; Abyssaxis;
@@ -1214,8 +1221,11 @@ has the design, the numbers and what the rig showed.
   100/130, 250/200, 500/150 with Pestilent Breath at a quarter; resists 10/20/30 of every kind: a resist_pct with no
   resist_kind leaves a template unused) bound by npctemplate `"#n"` (a GM tunes a tier in one row); 36 raid-gear records 995001-995036 (a tuned raid boss's drop
   copied under a dungeon's own name), loottables `dungeon <key> boss|named`, npcloot `"#n"` per creature; the wardens.
-  NPCs and templates are read at the start: a keep restart's `before.sh`. Tests: `TestDungeon*` (`entity/`,
-  `handlers/`), `TestReadDungeonsRecipe`.
+  **`tools/dungeons_more_20261112.py`** (log `dungeons_more_1112_log`; its base's functions) adds the seven as the
+  first three were (its own `SOURCE` world, Tunaria or Odus, `FAMILY`, `KINDS`, `SKIP`, `BOSSES`: King Polaethius;
+  Verghest Felstar; Necromancer Warpheus; Lady Vox; Toxxulia; Skahyir; King Bardag), 84 records 995037-995120, a twin
+  at each entrance. NPCs and templates are read at the start: a keep restart's `before.sh`. Tests: `TestDungeon*`
+  (`entity/`, `handlers/`), `TestReadDungeonsRecipe`, `TestDungeonsPagesTheirBox`.
 
 ### Mail, resets, one Master Class, petitions: SOE's live client's, for every client
 

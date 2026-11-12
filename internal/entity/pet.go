@@ -371,13 +371,13 @@ func newPet(t *NPC, id EntityID, owner *Player, name string, level int) *NPC {
 	pet.tmpl, pet.tbase, pet.tfight = nil, templateBase{}, nil
 	pet.sheet = nil // a workbook pet's row is put on after (petstats.go)
 	pet.way = petWay{}
+	pet.fslot = followSlotCache{}
 	return &pet
 }
 
 // besideOwner is a spot at the owner's side, petFollow off it.
 func besideOwner(p *Player) (x, y, z float32) {
-	h := float64(p.Facing)
-	return p.X + petFollow*float32(math.Cos(h)), p.Y, p.Z - petFollow*float32(math.Sin(h))
+	return followSpot(p, slotPet)
 }
 
 // summonPetLocked is a summoning landing: the caster's new pet, the old one
@@ -867,7 +867,7 @@ func (w *World) petSystem(now time.Time) {
 // owner is petFollowStart away, at the owner's speed (half as fast again
 // once petCatchUp behind), and stands when there.
 func (w *World) petFollowLocked(ps *petState, dt float32, now time.Time) {
-	w.followLocked(ps.npc, ps.owner, dt, now) // merc.go: a pet's, a mercenary's and a familiar's alike
+	w.followLocked(ps.npc, ps.owner, slotPet, dt, now) // followslot.go: its slot, at its owner's right
 }
 
 // petStepLocked steps the pet toward (x, z), its floor looked for from

@@ -677,7 +677,7 @@ func TestMercKeepRestart(t *testing.T) {
 	r.w.GroupAccept(r.sess, r.sess.PlayerObjectID())
 	ms.stance = MercAggressive
 	ms.npc.HP = ms.npc.MaxHP / 2
-	ms.npc.X += 2
+	ms.npc.X += 1 // within its slot's slack (followslot.go)
 	kp, ok := r.w.KeepPlayer(r.sess, r.at(0))
 	if !ok || kp.Merc == nil || !kp.Merc.Grouped || kp.Merc.Stance != byte(MercAggressive) {
 		t.Fatalf("kept: %+v", kp.Merc)

@@ -165,8 +165,8 @@ func TestThePetIsSandstormsFireElemental(t *testing.T) {
 		pet.World != 2 || pet.NPCID != 0 || pet.NPCType != 0 || !pet.Temporary || pet.HP != NPCMaxHP(44) {
 		t.Fatalf("the pet: %+v", *pet)
 	}
-	if d := distXZ(pet.X, pet.Z, r.p.X, r.p.Z); d < petFollow-0.01 || d > petFollow+0.01 {
-		t.Errorf("the pet is %.2f off its owner, want %v", d, petFollow)
+	if d := distXZ(pet.X, pet.Z, r.p.X, r.p.Z); d < followRadius-0.01 || d > followRadius+0.01 {
+		t.Errorf("the pet is %.2f off its owner, want %v (its slot: followslot.go)", d, followRadius)
 	}
 	wantOps(t, msgs, protocol.OpcodeSetPet, protocol.OpcodeNoCollideAdd)
 	id := r.w.objectIDForEntityLocked(r.sess, pet.ServerID)
@@ -229,8 +229,8 @@ func TestThePetsBodyIsTheServersOwn(t *testing.T) {
 }
 
 // The pet follows: its owner runs off, it runs after at its owner's speed
-// (the velocity and locomotion on its channel), and stands 3 off when it
-// gets there.
+// (the velocity and locomotion on its channel), and stands in its slot when it
+// gets there (its slot, followRadius: followslot.go).
 func TestThePetFollowsItsOwner(t *testing.T) {
 	r := newPetRig(t)
 	pet, _ := r.summon(t, fireElemental(), 0)
@@ -247,14 +247,14 @@ func TestThePetFollowsItsOwner(t *testing.T) {
 	for ms := 9700; ms < 15000; ms += 100 {
 		r.tick(time.Duration(ms) * time.Millisecond)
 	}
-	if d := distXZ(pet.X, pet.Z, r.p.X, r.p.Z); d < petFollow-0.01 || d > petFollow+0.5 || pet.Loco != LocoStand || pet.VelX != 0 {
+	if d := distXZ(pet.X, pet.Z, r.p.X, r.p.Z); d < followRadius-followSlack || d > followRadius+followSlack || pet.Loco != LocoStand || pet.VelX != 0 {
 		t.Errorf("the pet ends %.2f off its owner, loco %d, velocity %.2f", d, pet.Loco, pet.VelX)
 	}
 	// a teleport: put beside the owner at once, in its world
 	r.p.World = 0
 	r.w.UpdatePosition(r.p.ServerID, 25000, 54, 15000, 0)
 	r.tick(15100 * time.Millisecond)
-	if pet.World != 0 || distXZ(pet.X, pet.Z, r.p.X, r.p.Z) > petFollow+0.01 {
+	if pet.World != 0 || distXZ(pet.X, pet.Z, r.p.X, r.p.Z) > followRadius+0.01 {
 		t.Errorf("the pet stays behind: world %d, %.1f off", pet.World, distXZ(pet.X, pet.Z, r.p.X, r.p.Z))
 	}
 }

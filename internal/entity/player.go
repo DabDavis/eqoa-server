@@ -89,6 +89,9 @@ type Player struct {
 	HP, MaxHP      int
 	LastCombatTime time.Time
 
+	// follow is the formation its followers keep round it (followslot.go)
+	follow followFrame
+
 	// DiedAt is when the player last died (0x005E went out), zero while
 	// alive. It stays set until respawn.go brings the player back, so a
 	// death is told once and nothing heals or hits the corpse meanwhile.

@@ -217,6 +217,11 @@ func (n *NPC) lulledAt(now time.Time) bool {
 
 // holdsBreath reports an enduring breath on the player.
 func (p *Player) holdsBreath() bool {
+	if seaRace(p.Race) {
+		// the sea folk breathe water (the owner, 2026-11-12: "mermaids should
+		// breathe underwater"): no breath lost, never drowned (seaspeed.go)
+		return true
+	}
 	for _, e := range p.Effects {
 		if e.Rules.Breath {
 			return true

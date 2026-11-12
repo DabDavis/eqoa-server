@@ -105,7 +105,7 @@ func (w *World) duelProcsLocked(d *Duel, p *Player, m duelMark, now time.Time) b
 			w.broadcastCastLocked(p, m.id(), 0, fx) // its own look (proc.go's procHitFX)
 		}
 		over := w.duelHurtMarkLocked(d, p, m, h.n, now, numberProc)
-		w.procTapLocked(p, sess, h.ae, nil)
+		w.procTapLocked(p, sess, h.ae, nil, 0)
 		if over {
 			return true
 		}

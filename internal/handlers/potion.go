@@ -128,9 +128,10 @@ func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, i
 		}
 	}
 	switch {
-	case neverSpent(&row.Pattern):
-		// a kept heirloom (the Heirloom Jar of Breath, jarofbreath.go): its
-		// use takes nothing
+	case neverSpent(&row.Pattern) || pe.Def.Unlimited:
+		// a kept heirloom (the Heirloom Jar of Breath, jarofbreath.go), or an
+		// item whose line says "Unlimited Uses" (the Tester Pro): its use
+		// takes nothing
 	case row.Charges > 0:
 		if err := h.spendCharge(sess, player, idx, row); err != nil {
 			log.Printf("Potion: %s, %q: a charge: %v", player.Name, row.Pattern.ItemName, err)

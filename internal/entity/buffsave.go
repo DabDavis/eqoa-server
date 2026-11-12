@@ -186,6 +186,9 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 	if top, ok := p.powerCap(); ok && p.Power > top { // powercap.go
 		p.Power = max(top, 0)
 	}
+	if top, ok := p.hpCap(); ok && p.HP > top { // hpcap.go
+		p.HP = top
+	}
 	p.StatsDirty = true
 	return n
 }

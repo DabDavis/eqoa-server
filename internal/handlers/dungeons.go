@@ -43,6 +43,7 @@ const (
 	dungeonsAnsOpen  = "Enter %s"
 	dungeonsAnsNew   = "Open %s"
 	dungeonsAnsOut   = "Leave the dungeon"
+	dungeonsAnsRules = "How instances work"
 	dungeonsClosed   = "The dungeons are sealed on this server."
 	dungeonsNoWorld  = "Your game cannot see the dungeons, so you cannot go there. It needs a client that builds the server's worlds (eqoa-rust-client-vanilla)."
 	dungeonsNotOpen  = "No instance of %s is open for your party, and only your group's leader may open one."
@@ -58,7 +59,22 @@ const (
 	dungeonsDoEnter dungeonsDo = iota
 	dungeonsDoOut
 	dungeonsDoMore
+	dungeonsDoRules
 )
+
+// dungeonsRules are the instances' ground rules, the board's "How instances work" (petition 1840, Waldorf,
+// 2026-11-12: "Might be worth it to put an "instance ground rules" selection on the board for specific differences
+// like that"): each a chat line in the dungeons' colour.
+var dungeonsRules = []string{
+	"How instances work:",
+	"- Each party (a group or raid) gets its own copy of a dungeon. The group's leader, or a player alone, opens it; the others then enter it.",
+	"- When the leader enters, the members of the group standing near them are taken in too.",
+	"- Creatures killed in an instance stay dead: nothing respawns. A cleared instance stays cleared.",
+	"- For a fresh one, the one who opened it types /dungeon reset <name> with no one inside; the next entry opens a new, full instance.",
+	"- An instance no one stands in closes by itself after a while.",
+	"- A server restart closes every instance: everyone inside comes back out by the board.",
+	"- Only a client that builds the server's worlds (eqoa-rust-client-vanilla) can enter; a PS2 cannot.",
+}
 
 // dungeonsAnsMore is the answer that shows the next box of dungeons (a box holds maxDialogOptions answers).
 const dungeonsAnsMore = "More dungeons"
@@ -243,8 +259,10 @@ func (ds *Dungeons) askRoot(sess *session.Session, p *entity.Player, npc *entity
 	}
 	if len(answers) == 0 {
 		dungeonsSay(sess, as, "No dungeon is open for your party, and only your group's leader may open one.")
+		dungeonsTell(sess, dungeonsRules...)
 		return
 	}
+	answers = append([]dungeonsAnswer{{do: dungeonsDoRules, label: dungeonsAnsRules}}, answers...)
 	ds.ask(sess, p, as+question, dungeonsPage(answers, page), npc.ServerID)
 }
 
@@ -294,6 +312,8 @@ func (h *InteractHandler) answerDungeons(sess *session.Session, p *entity.Player
 		if npc := gw.NPCByID(asked.npc); npc != nil {
 			ds.askRoot(sess, p, npc, a.page)
 		}
+	case dungeonsDoRules:
+		dungeonsTell(sess, dungeonsRules...)
 	}
 	return true
 }

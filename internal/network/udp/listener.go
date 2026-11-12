@@ -589,8 +589,12 @@ func (l *Listener) tickAllSessions() {
 
 		// a session carried through a restart: its dump, once its client
 		// has reported where it stands (keep.go)
-		if due, dead := sess.TakeResumeDue(time.Now()); due {
-			l.resumeDump(sess, dead)
+		// (not while a world load is under way: a teleport taken as the
+		// session came back, petition 1748)
+		if now := time.Now(); !sess.WorldLoadUnderway(now, resumeLoadMax) {
+			if due, dead := sess.TakeResumeDue(now); due {
+				l.resumeDump(sess, dead)
+			}
 		}
 
 		if sess.CharacterInWorld() {
@@ -1005,7 +1009,20 @@ func (l *Listener) processClientUpdate(sess *session.Session, msg *protocol.Mess
 	// rides in the same packet. Doing this as well as on 0x0049 is what makes
 	// the re-sync independent of which 0x0049 was the real one; see
 	// Session.ConsumeWorldLoadPending.
-	if sess.ConsumeWorldLoadPending() {
+	// A report of the world it left, sent before the client had the teleport
+	// (it sends none while it loads), is not its arrival (petition 1748: the
+	// GM Jibrish's #goto from Odus to Freeport, taken as a restart's session
+	// came back, took the stale report from Odus as the load done, lifted the
+	// hold and sent Freeport's scene into the load, and stood him at Odus's
+	// spot in Tunaria): while the hold lasts it neither ends the load nor
+	// moves the player.
+	stale := false
+	if l.gameWorld != nil && sess.StateChannelsHeld() {
+		if p := l.gameWorld.SessionPlayer(sess); p != nil && p.World != decoded[0] {
+			stale = true
+		}
+	}
+	if !stale && sess.ConsumeWorldLoadPending() {
 		if _, _, resend := session.WorldLoadLayers(); !resend {
 			log.Printf("World load done (first 0x40 at %.0f,%.0f,%.0f): resend layer disabled, not re-arming for %s",
 				posX, posY, posZ, sess.RemoteAddr())
@@ -1026,6 +1043,10 @@ func (l *Listener) processClientUpdate(sess *session.Session, msg *protocol.Mess
 	// entity/clientupdate.go for why the velocity is read, not worked out.
 	if l.gameWorld != nil {
 		player := l.gameWorld.SessionPlayer(sess)
+		if player != nil && stale {
+			reportWorldMismatch(sess, player, decoded[0])
+			return true
+		}
 		if player != nil {
 			reportWorldMismatch(sess, player, decoded[0])
 			u := entity.ClientUpdate{X: posX, Y: posY, Z: posZ, Facing: facing, HasFacing: hasFacing, Animation: animation,

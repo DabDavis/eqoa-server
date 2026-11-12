@@ -110,6 +110,9 @@ type Session struct {
 	// worldLoadPending is true from the teleport until the client is seen to be
 	// alive at the destination. See ConsumeWorldLoadPending.
 	worldLoadPending bool
+	// worldLoadSince is when the last hold began (HoldStateChannels): how
+	// long a world load has been under way (WorldLoadUnderway)
+	worldLoadSince time.Time
 
 	// lastWorldMismatch is the client-reported world index already logged as
 	// disagreeing with the server's. See NoteWorldMismatch.
@@ -901,8 +904,21 @@ func (s *Session) DiscVersion() byte {
 func (s *Session) HoldStateChannels(d time.Duration) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.stateChannelsHeldUntil = time.Now().Add(d)
+	now := time.Now()
+	s.stateChannelsHeldUntil = now.Add(d)
 	s.worldLoadPending = true
+	s.worldLoadSince = now
+}
+
+// WorldLoadUnderway reports a teleport's world load begun less than most ago
+// whose client has not yet been seen at the destination (no 0x40 of its new
+// world since: ConsumeWorldLoadPending). A restart's resume dump waits for it
+// (udp/keep.go): a dump in the middle of a world load sets the client on a
+// second one (petition 1748).
+func (s *Session) WorldLoadUnderway(now time.Time, most time.Duration) bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.worldLoadPending && now.Sub(s.worldLoadSince) < most
 }
 
 // ConsumeWorldLoadPending reports — once — that a teleport is still waiting for

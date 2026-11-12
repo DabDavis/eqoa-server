@@ -41,6 +41,10 @@ import (
 // A merc idles too (the same brief: "let merc after idle for 5 secs walk
 // around the player ever so often"): mercIdleLocked.
 
+// followSlots is the slots on (tests turn them off for the old follow, the
+// control).
+var followSlots = true
+
 // followSlot is a follower's place round whom it follows.
 type followSlot uint8
 
@@ -69,8 +73,11 @@ const (
 	// followArrive is how near its slot a moving one stops (its owner
 	// standing)
 	followArrive float32 = 0.3
-	// followApart is the least distance between two followers' slots
+	// followApart is the least distance between two followers' slots;
+	// followCrowd how near another (or its owner) a follower may stand off
+	// its slot
 	followApart float32 = 2.2
+	followCrowd float32 = 1.8
 	// followMoveSlack is how far its owner goes before the formation is
 	// moved (its place, its heading and its pace)
 	followMoveSlack float32 = 0.3
@@ -250,7 +257,15 @@ func (w *World) followSpotWalkableLocked(n *NPC, a *Player, x, z float32) bool {
 	if w.ground == nil {
 		return true
 	}
-	return w.legFromLocked(n, a.X, a.Y, a.Z, x, z, nil, legRoute)
+	return w.legFromLocked(followWalker(n), a.X, a.Y, a.Z, x, z, nil, legRoute)
+}
+
+// followWalker is who a follower's legs are checked for: a body owned and
+// walking the terrain, as a pet's (petwalk.go), in n's world and of its
+// size; a familiar (never owned) too, which would otherwise be checked as a
+// creature of its summoning place's spawn.
+func followWalker(n *NPC) *NPC {
+	return &NPC{World: n.World, Owner: max(n.Owner, 1), Size: n.Size, X: n.X, Y: n.Y, Z: n.Z}
 }
 
 // followLocked takes npc to its slot s round owner (the file's doc). Must be
@@ -258,7 +273,7 @@ func (w *World) followSpotWalkableLocked(n *NPC, a *Player, x, z float32) bool {
 func (w *World) followLocked(npc *NPC, owner *Player, s followSlot, dt float32, now time.Time) {
 	f := w.followFrameLocked(owner, now)
 	sx, sz, ok := w.followSlotLocked(npc, owner, s)
-	if !ok {
+	if !ok || !followSlots {
 		w.followTrailLocked(npc, owner, dt, now)
 		return
 	}
@@ -268,7 +283,7 @@ func (w *World) followLocked(npc *NPC, owner *Player, s followSlot, dt float32, 
 	// over or under its owner on another floor while the ground has a way
 	// to it (petwalk.go): it goes round, wherever it stands
 	stacked := d <= petFollowStart && w.petStackedLocked(npc, owner.X, owner.Y, owner.Z, now)
-	if !stacked && (ds <= followArrive && !moving || !npc.moving() && ds <= followSlack) {
+	if !stacked && (ds <= followArrive && !moving || !npc.moving() && ds <= followSlack && !w.followCrowdedLocked(npc, owner)) {
 		if npc.moving() {
 			npc.fslot.align = true // arrived
 		}
@@ -301,10 +316,46 @@ func (w *World) followLocked(npc *NPC, owner *Player, s followSlot, dt float32, 
 	if d > petCatchUp {
 		speed = max(speed, top*1.5)
 	}
+	if !w.followLegLocked(npc, gx, gz) {
+		// a wall or a ledge between it and where it aims: its slot itself,
+		// else toward its owner (whose way to the slot is clear), else the
+		// line to its owner, its search round going that way too
+		if gx, gz = sx, sz; !w.followLegLocked(npc, gx, gz) {
+			if gx, gz = owner.X, owner.Z; !w.followLegLocked(npc, gx, gz) {
+				w.followTrailLocked(npc, owner, dt, now)
+				return
+			}
+		}
+	}
 	w.petWalkLocked(npc, owner.ServerID, gx, gz, owner.X, owner.Y, owner.Z, speed, dt, now) // round what stands between
 	if !moving && distXZ(npc.X, npc.Z, sx, sz) <= followArrive {
 		npc.fslot.align = true
 	}
+}
+
+// followCrowdedLocked reports n standing within followCrowd of whom it
+// follows or of another of its followers: it goes on to its slot. Must be
+// called with the lock held.
+func (w *World) followCrowdedLocked(n *NPC, a *Player) bool {
+	if distXZ(n.X, n.Z, a.X, a.Z) < followCrowd {
+		return true
+	}
+	for _, o := range w.followSiblingsLocked(a, n) {
+		if o.World == n.World && distXZ(n.X, n.Z, o.X, o.Z) < followCrowd {
+			return true
+		}
+	}
+	return false
+}
+
+// followLegLocked reports a straight way from where n stands to (x, z) it
+// walks (followSpotWalkableLocked's leg); every way without a ground. Must
+// be called with the lock held.
+func (w *World) followLegLocked(n *NPC, x, z float32) bool {
+	if w.ground == nil {
+		return true
+	}
+	return w.legFromLocked(followWalker(n), n.X, n.Y, n.Z, x, z, nil, legRoute)
 }
 
 // followTrailLocked keeps npc petFollow off its owner on the line from its

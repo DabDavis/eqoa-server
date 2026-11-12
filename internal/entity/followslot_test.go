@@ -102,7 +102,7 @@ func TestFollowersSpreadOut(t *testing.T) {
 		before[i] = [2]float32{n.X, n.Z}
 	}
 	r.w.UpdatePosition(r.p.ServerID, r.p.X, r.p.Y, r.p.Z, r.p.Facing+math.Pi)
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 8; i++ { // within mercIdleAfter of its owner's stop: the merc not yet at ease
 		at += 100 * time.Millisecond
 		followTick(r.w, r.t0, at)
 	}
@@ -263,6 +263,8 @@ func TestFollowSlotRoundAWall(t *testing.T) {
 	r.w.SetGround(slotWallGround{wall: wall})
 	r.p.Facing = 0 // facing +z: its left is -x
 	ms := r.hire(r.kit(0, 0, 0), MercAssist)
+	r.w.roamRnd = nil
+	r.w.roamRand().Seed(11)
 	n := ms.npc
 	n.X = r.p.X + 1
 	r.run(0, 2*time.Second)

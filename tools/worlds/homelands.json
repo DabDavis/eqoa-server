@@ -2,7 +2,7 @@
   "world": 10,
   "name": "the Homelands",
   "note": "A zone of the disc for each race of racedefs past the game's, where it stands on the disc (no two in one cell of the grid). Built by cmd/worldbuild from the operator's disc; the content (start, people, quests) is tools/seed_race_homes.py's.",
-  "extraFiles": ["homelands-edges.json"],
+  "extraFiles": ["homelands-edges.json", "homelands-deco.json"],
   "zones": [
     {
       "name": "West Plateau",

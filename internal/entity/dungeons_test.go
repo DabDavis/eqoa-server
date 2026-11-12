@@ -345,3 +345,20 @@ func TestDungeonShamansKeepTheirPets(t *testing.T) {
 		t.Fatal("d's spirit joined a's fight")
 	}
 }
+
+// Petition 1841 (Waldorf, 2026-11-12): "a tracker to see how many of the total we killed ... Like xx of yy killed".
+// /dungeon's line counts the party's kills against the instance's creatures.
+func TestDungeonStatusCountsKills(t *testing.T) {
+	r := newDungeons(t, 1)
+	if why, ok := r.w.DungeonEnter(r.ss[0], "guk", r.now); !ok {
+		t.Fatal(why)
+	}
+	r.land()
+	c := r.copies(r.ps[0].InstanceKey())
+	r.w.mu.Lock()
+	c["Lord Hoptor"].Dead = true
+	r.w.mu.Unlock()
+	if got := r.w.DungeonStatus(r.ss[0]); !strings.Contains(got, "Test Guk (Raider0's): 1 of 3 creatures killed, 1 inside") {
+		t.Fatalf("status %q", got)
+	}
+}

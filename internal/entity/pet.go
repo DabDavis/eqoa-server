@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
@@ -611,6 +612,7 @@ func (w *World) dismissPetLocked(ps *petState, sess *session.Session, text strin
 	if w.pets[ps.owner.ServerID] == ps {
 		delete(w.pets, ps.owner.ServerID)
 	}
+	w.petBuffsGoLocked(ps)
 	w.dropAggroLocked(pet.ServerID)
 	if !pet.Dead {
 		w.petDiesLocked(pet, now) // seen dying, then gone (petition 1398)
@@ -625,6 +627,24 @@ func (w *World) dismissPetLocked(ps *petState, sess *session.Session, text strin
 		}
 	}
 	log.Printf("Pet: %s's %q goes", ps.owner.Name, pet.Name)
+}
+
+// petBuffsGoLocked takes off its owner the pet's buffs that last only while it is out
+// (TemplateAbility.WhileOut: the Undead Servant's, petition 1805). Must be called with the
+// lock held.
+func (w *World) petBuffsGoLocked(ps *petState) {
+	o := ps.owner
+	abilities := ps.petAbilities()
+	for i := range abilities {
+		a := &abilities[i]
+		if !a.WhileOut || a.Kind != database.AbilityBuff || a.TargetOr() != database.AbilityOnOwner {
+			continue
+		}
+		s := a.spellFor(petSpellClass(a, ps.npc), ps.npc.Level)
+		if s != nil && w.removeEffectLocked(o, s.SpellID) {
+			log.Printf("Pet: %s's %q goes, and its %q with it", o.Name, ps.npc.Name, s.Name)
+		}
+	}
 }
 
 // petDismissedLies is how long the body of a pet that went alive lies dead

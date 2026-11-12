@@ -161,6 +161,9 @@ type effectJSON struct {
 	// DebuffScale is a hit that grows with what its target's resist of a
 	// kind is lowered by (SpellEffect.DebuffStat)
 	DebuffScale *debuffScaleJSON `json:"debuff_scale"`
+	// DebuffedPct is a proc's percent more on a creature its bearer has a
+	// lasting harmful spell on (SpellEffect.DebuffedPct)
+	DebuffedPct float64 `json:"debuffed_pct"`
 	// HatePct is the share of a hit's damage, in percent, that is its hate
 	// on the creature it lands on (SpellEffect.HateOff); absent, all of it
 	HatePct *float64 `json:"hate_pct"`
@@ -932,6 +935,7 @@ func (d *SpellDef) readProcsJSON(name, kind string, e effectJSON) {
 			se.Amount, se.AmountMax = -n, -n
 			se.ScaleBearer = se.Scale != StatNone // the proc effect's own modifier: its bearer's (the legend)
 			se.Undead = undead
+			se.DebuffedPct = max(round(p.DebuffedPct), 0)
 			se.ProcFX = uint32(p.ProcFX)
 			if se.ProcFX == 0 {
 				se.ProcFX = uint32(e.ProcFX) // its Offensive Proc's, for each of its procs
@@ -947,6 +951,7 @@ func (d *SpellDef) readProcsJSON(name, kind string, e effectJSON) {
 			se := effectOf(EffectProcHeal, p)
 			se.Defense = def
 			se.Undead = undead
+			se.DebuffedPct = max(round(p.DebuffedPct), 0)
 			if def {
 				se.Chance = 100
 			}

@@ -328,6 +328,10 @@ type ActiveEffect struct {
 	// logout (buffsave.go)
 	npcFoe    EntityID
 	npcResist Stat
+	// petBound is a pet's buff on its owner that lasts only while the pet is out
+	// (TemplateAbility.WhileOut, pet.go petBuffsGoLocked): never kept over a logout
+	// (buffsave.go), the pet giving it again
+	petBound bool
 	// pet is the pet whose damage over time it is on a creature (a pet
 	// template's AbilityDoT, pettemplate.go; Caster its owner), 0 for every
 	// other effect: each tick is one of the pet's hits (petTickLocked)
@@ -1489,6 +1493,7 @@ func lastingParts(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 			ae.ProcCap = e.Cap
 			ae.ProcUndead = e.Undead
 			ae.Rules.ProcFX = e.ProcFX // its own look at each proc (proc.go)
+			ae.Rules.ProcDebuffedPct = max(ae.Rules.ProcDebuffedPct, e.DebuffedPct)
 			if e.Cap > 0 && !e.ScaleBearer {
 				ae.Proc, ae.ProcMax = min(ae.Proc, e.Cap), min(ae.ProcMax, e.Cap)
 			}

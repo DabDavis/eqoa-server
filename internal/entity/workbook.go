@@ -99,6 +99,10 @@ type EffectRules struct {
 	// ProcHealUndead: the proc heals only at a hit on, or by, an undead
 	// creature (the workbook's "Enemy - Undead" proc; none heals so yet)
 	ProcHealUndead bool `json:",omitempty"`
+	// ProcDebuffedPct is its proc's percent more, the damage and the heal, at a
+	// hit on a creature that carries a lasting harmful spell of the bearer's
+	// (SpellEffect.DebuffedPct, proc.go)
+	ProcDebuffedPct int `json:",omitempty"`
 	// Disguise: the factions do not attack the bearer on sight
 	// (workbookmore.go)
 	Disguise bool `json:",omitempty"`
@@ -177,6 +181,7 @@ func (ae *ActiveEffect) workbookLasting(e SpellEffect, d *SpellDef) bool {
 		ae.Rules.ProcHeal, ae.Rules.ProcHealDef = e.Amount, e.Defense
 		ae.Rules.ProcHealScale, ae.Rules.ProcHealScalePct, ae.Rules.ProcHealChance = e.Scale, e.ScalePct, e.Chance
 		ae.Rules.ProcHealUndead = e.Undead
+		ae.Rules.ProcDebuffedPct = max(ae.Rules.ProcDebuffedPct, e.DebuffedPct)
 	default:
 		return false
 	}

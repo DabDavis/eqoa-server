@@ -1349,6 +1349,7 @@ func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, bal
 	if balanced {
 		n = w.petDealtLocked(pet, t, n) // balance.go
 	}
+	w.tallyDamageLocked(t, owner, min(n, t.HP)) // killcredit.go: the owner's
 	t.HP = max(t.HP-n, 0)
 	tell()
 	w.markHealPetLocked(pet, t, now) // markheal.go: a mark on it heals the pet
@@ -1361,9 +1362,10 @@ func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, bal
 	}
 	t.Effects = nil
 	w.killNPC(t)
-	w.awardKillXPLocked(sess, owner, t) // the owner's kill (killexp.go)
+	cs, cp := w.killCreditLocked(t, sess, owner) // killcredit.go: the most damage's group
+	w.awardKillXPLocked(cs, cp, t)               // the owner's kill (killexp.go)
 	// the owner's faction hits, as its own kill's (faction.go)
-	w.factionKillLocked(sess, owner, t)
+	w.factionKillLocked(cs, cp, t)
 	if owner.AttackTarget == t.ServerID {
 		owner.disengage()
 	}

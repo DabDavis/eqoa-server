@@ -377,6 +377,7 @@ func (w *World) mercDamageLocked(ms *mercState, t *NPC, n int, kind numberKind, 
 		w.dummyEngagedLocked(t, m.ServerID, n, now)
 		return false
 	}
+	w.tallyDamageLocked(t, owner, min(n, t.HP)) // killcredit.go: the hirer's
 	t.HP = max(t.HP-n, 0)
 	tell()
 	w.updateAggro(t, m.ServerID, n)
@@ -387,8 +388,9 @@ func (w *World) mercDamageLocked(ms *mercState, t *NPC, n int, kind numberKind, 
 	}
 	t.Effects = nil
 	w.killNPC(t)
-	w.awardKillXPLocked(sess, owner, t) // killexp.go: the players' split, the merc in no share
-	w.factionKillLocked(sess, owner, t) // faction.go, and the quests
+	cs, cp := w.killCreditLocked(t, sess, owner) // killcredit.go: the most damage's group
+	w.awardKillXPLocked(cs, cp, t)               // killexp.go: the players' split, the merc in no share
+	w.factionKillLocked(cs, cp, t)               // faction.go, and the quests
 	if owner.AttackTarget == t.ServerID {
 		owner.disengage()
 	}

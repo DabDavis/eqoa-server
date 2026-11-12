@@ -755,6 +755,7 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 		w.markHitLocked(sess, attacker, npc, now) // markhit.go: told, as a dummy's hits are
 		return false
 	}
+	w.tallyDamageLocked(npc, attacker, min(damage, max(npc.HP, 0))) // killcredit.go
 	npc.HP -= damage
 	if npc.HP < 0 {
 		npc.HP = 0
@@ -771,8 +772,9 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 	w.rootBreakLocked(npc, attacker.Level) // root.go
 	if killed {
 		w.killNPC(npc)
-		w.awardKillXPLocked(sess, attacker, npc) // killexp.go
-		w.factionKillLocked(sess, attacker, npc)
+		cs, cp := w.killCreditLocked(npc, sess, attacker) // killcredit.go: the most damage's group
+		w.awardKillXPLocked(cs, cp, npc)                  // killexp.go
+		w.factionKillLocked(cs, cp, npc)
 		return true
 	}
 	w.hitHealLocked(npc, damage, sess) // its heal at every hit that lands (hitheal.go)

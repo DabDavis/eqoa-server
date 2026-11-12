@@ -20,6 +20,8 @@ import (
 //     below 1), its hit points held under it (effectsChangedLocked); at its end
 //     the maximum is its own again, the hit points where they were left, to
 //     regenerate. Lasting no time, it takes the hit points down to N at once.
+//     N is 1 or more: Spiritform's "Set Maximum HP to 0" (the shaman's
+//     invulnerable form, 700672) stays unread, as before, never a 1-HP form.
 //   - "Set All Stats to N" (EffectStatPin): each of STR, STA, AGI, DEX, WIS,
 //     INT and CHA is N while it lasts, whatever the bearer's own, its gear,
 //     its masteries or another effect would make it (StatNow), so the hit
@@ -56,7 +58,7 @@ func hpCapPart(part string) (int, bool) {
 		return 0, false
 	}
 	n, err := strconv.Atoi(m[1])
-	return n, err == nil
+	return n, err == nil && n >= 1
 }
 
 // statPinPart reads a clause that holds every stat at a figure.

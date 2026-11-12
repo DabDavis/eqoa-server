@@ -9412,16 +9412,16 @@
       "from": "ODUS.ESF",
       "zone": 10,
       "race": 32,
-      "note": "Mermaid: Odus's Erud's Crossing, two islands in the warm sea between Odus and Tunaria, a hut village on the northern one and Saftemoot's volcano on the southern; singing sirens, sea turtles and deep mares swim it (Erud's Crossing, cell 5,1). The game's own merfolk live under the Vastly Deep (the ratmen's home here) and in the Abysmal Sea (cell 2,4, Envar's here). Added 2026-11-11 (petition 1620, Jibrish), the 23rd zone.",
+      "note": "Mermaid: Odus's Erud's Crossing, two islands in the warm sea between Odus and Tunaria, a hut village on the northern one and Saftemoot's volcano on the southern; singing sirens, sea turtles and deep mares swim it (Erud's Crossing, cell 5,1). The game's own merfolk live under the Vastly Deep (the ratmen's home here) and in the Abysmal Sea (cell 2,4, Envar's here). Added 2026-11-11 (petition 1620, Jibrish), the 23rd zone. Its village is under the water on the sea floor (24.2, the surface at 51) west of the hut island (the owner, 2026-11-12: \"their starting zone should be underwater for everything\"); only its coachman stands on the island's shore, so riders of every race land dry.",
       "home": {
         "flavor": "Merfolk are the sea's own people, who swim the warm waters of Erud's Crossing in the Homelands; Highbourne's scholars take them in.",
         "start": {
-          "x": 11185.0,
-          "y": 54.19,
-          "z": 2480.0,
+          "x": 10957.0,
+          "y": 24.2,
+          "z": 2450.0,
           "toward": [
-            11179.4,
-            2476.4
+            10950.0,
+            2450.0
           ]
         },
         "mainland": {
@@ -9439,16 +9439,16 @@
             "level": 30,
             "role": "talker",
             "at": [
-              11179.4,
-              54.27,
-              2476.4
+              10950.0,
+              24.2,
+              2450.0
             ],
             "toward": [
-              11185.0,
-              2480.0
+              10957.0,
+              2450.0
             ],
             "size": 0.75,
-            "note": "gives the first two starter quests (the shell charm; the spiritmaster and the coachman) and the level 20 road; a mermaid of the village (her race's body), at the edge of the hut village on the island's north shore"
+            "note": "gives the first two starter quests and the level 20 road; a mermaid, on the sea floor west of the hut island (her home's village is under the water)"
           },
           {
             "name": "Tidewarden Merrow",
@@ -9456,16 +9456,16 @@
             "level": 30,
             "role": "talker",
             "at": [
-              11174.4,
-              54.27,
-              2471.6
+              10944.0,
+              24.2,
+              2444.0
             ],
             "toward": [
-              11185.0,
-              2480.0
+              10957.0,
+              2450.0
             ],
             "size": 0.62,
-            "note": "gives the hunts of levels 3-5 and 7-15, a few steps north-west of the elder: a merman (the race's male body)"
+            "note": "gives the hunts of levels 3-5 and 7-15, a few strokes north-west of the elder: a merman"
           },
           {
             "name": "Shellwright Pearla",
@@ -9473,17 +9473,17 @@
             "level": 25,
             "role": "talker",
             "at": [
-              11188.4,
-              54.12,
-              2497.4
+              10958.0,
+              24.2,
+              2468.0
             ],
             "toward": [
-              11185.0,
-              2480.0
+              10957.0,
+              2450.0
             ],
             "size": 0.58,
             "stock": "Lucas Anstol",
-            "note": "the village's outfitter, a siren, a few steps south of the start: hands over the level 1 shell charm and the level 4 materials; a Freeport merchant's goods (Lucas Anstol)"
+            "note": "the village's outfitter, a siren, a few strokes south of the start: hands over the level 1 shell charm and the level 4 materials; a Freeport merchant's goods (Lucas Anstol)"
           },
           {
             "name": "Grocer Kelpa",
@@ -9491,13 +9491,13 @@
             "level": 25,
             "role": "talker",
             "at": [
-              11211.6,
-              54.12,
-              2498.6
+              10972.0,
+              24.2,
+              2466.0
             ],
             "toward": [
-              11185.0,
-              2480.0
+              10957.0,
+              2450.0
             ],
             "size": 0.58,
             "stock": "Grocer Deorda",
@@ -9509,13 +9509,13 @@
             "level": 30,
             "role": "talker",
             "at": [
-              11170.6,
-              53.93,
-              2508.1
+              10940.0,
+              24.2,
+              2470.0
             ],
             "toward": [
-              11185.0,
-              2480.0
+              10957.0,
+              2450.0
             ],
             "size": 0.5,
             "note": "binds, as every spiritmaster: an enchanting siren, south-west of the start"
@@ -9526,16 +9526,16 @@
             "level": 25,
             "role": "talker",
             "at": [
-              11161.7,
-              53.27,
-              2499.4
+              11114.3,
+              55.31,
+              2383.8
             ],
             "toward": [
-              11185.0,
-              2480.0
+              11050.0,
+              2420.0
             ],
             "size": 0.62,
-            "note": "the village's stable at its west edge (open shore): the level 2 quest's ledger; his coach runs to Freeport and to the other homes, and a rider from them lands on his spot"
+            "note": "the village's stable, UP ON THE ISLAND'S NORTH SHORE above the village (dry ground: a rider of any race lands on his spot, so land folk visiting do not arrive under water and drown): the level 2 quest's ledger; his coach runs to Freeport and to the other homes"
           },
           {
             "name": "Spell Archivist",
@@ -9543,18 +9543,18 @@
             "level": 30,
             "role": "talker",
             "at": [
-              11208.1,
-              54.12,
-              2490.0
+              10975.0,
+              24.2,
+              2452.0
             ],
             "toward": [
-              11185.0,
-              2480.0
+              10957.0,
+              2450.0
             ],
             "size": 0.5,
             "stock": "Spell Archivist",
             "optional": true,
-            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name), so a novice that casts has its spells; an enchanting siren, east of the start; left out where the database has none to take wares from"
+            "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by this name); an enchanting siren, east of the start; left out where the database has none to take wares from"
           },
           {
             "name": "Gatekeeper Thalassa",
@@ -9562,16 +9562,16 @@
             "level": 35,
             "role": "talker",
             "at": [
-              11114.3,
-              55.31,
-              2383.8
+              10920.0,
+              24.2,
+              2400.0
             ],
             "toward": [
-              11185.0,
-              2480.0
+              10957.0,
+              2450.0
             ],
             "size": 0.58,
-            "note": "on the north shore, north-west of the village: sends one who has done the five starter quests to Highbourne (the quest The Tide to Highbourne)"
+            "note": "north-west of the village on the sea floor: sends one who has done the five starter quests to Highbourne (the quest The Tide to Highbourne)"
           },
           {
             "name": "Strand sentinel",
@@ -9579,25 +9579,25 @@
             "level": 25,
             "role": "talker",
             "at": [
-              11214.8,
-              63.81,
-              2472.6
-            ],
-            "facing": 64,
-            "size": 0.62,
-            "note": "the village's guards, on the hut platforms"
-          },
-          {
-            "name": "Strand sentinel",
-            "body": "0xA316EB78",
-            "level": 25,
-            "role": "talker",
-            "at": [
-              11159.5,
-              63.84,
-              2447.1
+              10928.0,
+              24.2,
+              2440.0
             ],
             "facing": 192,
+            "size": 0.62,
+            "note": "the village's guards, on the sea floor round it"
+          },
+          {
+            "name": "Strand sentinel",
+            "body": "0xA316EB78",
+            "level": 25,
+            "role": "talker",
+            "at": [
+              10988.0,
+              24.2,
+              2440.0
+            ],
+            "facing": 64,
             "size": 0.62
           },
           {
@@ -9606,11 +9606,11 @@
             "level": 25,
             "role": "talker",
             "at": [
-              11235.6,
-              63.88,
-              2430.3
+              10960.0,
+              24.2,
+              2492.0
             ],
-            "facing": 128,
+            "facing": 0,
             "size": 0.62
           },
           {
@@ -9619,12 +9619,12 @@
             "level": 2,
             "role": "foe",
             "at": [
-              11307.0,
-              54.55,
-              2305.8
+              10880.0,
+              24.2,
+              2420.0
             ],
             "size": 0.6,
-            "note": "the level 3 quest's crabs (a rock crab's body, small), on the shore east of the village (the island's own sea wisps' and dervishes' spots)"
+            "note": "the level 3 quest's crabs (a rock crab's body, small), on the sea floor west of the village"
           },
           {
             "name": "shore crab",
@@ -9632,9 +9632,9 @@
             "level": 3,
             "role": "foe",
             "at": [
-              11335.1,
-              55.47,
-              2312.4
+              10870.0,
+              24.2,
+              2470.0
             ],
             "size": 0.6
           },
@@ -9644,9 +9644,9 @@
             "level": 2,
             "role": "foe",
             "at": [
-              11264.3,
-              58.67,
-              2286.8
+              10890.0,
+              24.2,
+              2500.0
             ],
             "size": 0.6
           },
@@ -9656,9 +9656,9 @@
             "level": 3,
             "role": "foe",
             "at": [
-              11351.8,
-              54.82,
-              2486.3
+              10860.0,
+              24.2,
+              2440.0
             ],
             "size": 0.6
           },
@@ -9668,9 +9668,9 @@
             "level": 2,
             "role": "foe",
             "at": [
-              11319.3,
-              60.31,
-              2476.7
+              10900.0,
+              24.2,
+              2380.0
             ],
             "size": 0.6
           },
@@ -9680,9 +9680,9 @@
             "level": 3,
             "role": "foe",
             "at": [
-              11457.5,
-              58.3,
-              2458.6
+              10850.0,
+              24.2,
+              2500.0
             ],
             "size": 0.6
           },
@@ -9692,9 +9692,9 @@
             "level": 2,
             "role": "foe",
             "at": [
-              11448.0,
-              54.36,
-              2375.0
+              10875.0,
+              24.2,
+              2365.0
             ],
             "size": 0.6
           },
@@ -9704,12 +9704,12 @@
             "level": 3,
             "role": "foe",
             "at": [
-              11281.6,
-              78.32,
-              2361.5
+              10930.0,
+              24.2,
+              2530.0
             ],
             "size": 0.5,
-            "note": "the level 4 quest's turtles (the stoneshell seaturtle's body, half its size), on the hills east of the village (the island's own turtles' spots)"
+            "note": "the level 4 quest's turtles (the stoneshell seaturtle's body, half its size), on the sea floor south of the village"
           },
           {
             "name": "strand turtle",
@@ -9717,9 +9717,9 @@
             "level": 4,
             "role": "foe",
             "at": [
-              11407.5,
-              66.49,
-              2350.9
+              10955.0,
+              24.2,
+              2542.0
             ],
             "size": 0.5
           },
@@ -9729,9 +9729,9 @@
             "level": 3,
             "role": "foe",
             "at": [
-              11413.3,
-              82.64,
-              2410.9
+              10980.0,
+              24.2,
+              2530.0
             ],
             "size": 0.5
           },
@@ -9741,9 +9741,9 @@
             "level": 4,
             "role": "foe",
             "at": [
-              11421.9,
-              74.48,
-              2509.0
+              11000.0,
+              24.2,
+              2560.0
             ],
             "size": 0.5
           },
@@ -9753,9 +9753,9 @@
             "level": 3,
             "role": "foe",
             "at": [
-              11435.3,
-              66.91,
-              2407.6
+              11010.0,
+              24.2,
+              2535.0
             ],
             "size": 0.5
           },
@@ -9765,28 +9765,28 @@
             "level": 4,
             "role": "foe",
             "at": [
-              11362.7,
-              61.52,
-              2551.7
+              10940.0,
+              24.2,
+              2560.0
             ],
             "size": 0.5
           },
           {
-            "name": "Old Shrieker",
-            "body": "0xF274BBED",
+            "name": "Old Snapjaw",
+            "body": "0xBEFB4465",
             "level": 5,
             "role": "foe",
             "at": [
-              11785.1,
-              54.95,
-              2250.4
+              10600.0,
+              24.2,
+              2300.0
             ],
             "toward": [
-              11185.0,
-              2480.0
+              10957.0,
+              2450.0
             ],
-            "size": 0.8,
-            "note": "the level 5 quest's foe: an old harpy of the rookery at the island's far east end (the Shiran harpies' spot), alone"
+            "size": 0.6,
+            "note": "the level 5 quest's foe: an old shark (the mako's body, small) in the deep water far west of the village, alone"
           }
         ],
         "peaceful": [
@@ -9794,25 +9794,25 @@
           "strand turtle"
         ],
         "hostile": [
-          "Old Shrieker"
+          "Old Snapjaw"
         ],
         "lines": {
           "Gatekeeper Thalassa": [
             "Not yet, little fin. The tide carries only those who have done their village's asking.",
-            "Do what Elder Coralyn and Tidewarden Merrow ask of you. Then come back to the shore."
+            "Do what Elder Coralyn and Tidewarden Merrow ask of you. Then come back to me."
           ],
           "Strand sentinel": [
             "The tide is turning, %r.",
-            "Mind the harpies to the east. They have long memories and short tempers.",
-            "A new face? Elder Coralyn waits at the edge of the village."
+            "Mind the old shark to the west. He has a long memory and a short temper.",
+            "A new face? Elder Coralyn waits in the middle of the village."
           ],
           "Elder Coralyn": [
             "The sea gave you to us, %p. Now the land will want you too.",
             "Sing when you are afraid. It frightens the fear."
           ],
           "Tidewarden Merrow": [
-            "Keep your fins wet and your eyes open.",
-            "The strand is ours, %p. Everything that crawls on it knows it."
+            "Keep your fins moving and your eyes open.",
+            "The deep is ours, %p. Everything that crawls on its floor knows it."
           ]
         }
       }

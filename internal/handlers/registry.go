@@ -506,6 +506,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 
 		// a login in safe mode, /testinvis (safemode.go)
 		gameWorld.OnPlayerEntered(tellSafeMode(gameWorld))
+		// and one with other players' mercenaries hidden, /hide mercs (hidemercs.go)
+		gameWorld.OnPlayerEntered(tellMercsHidden(gameWorld))
 
 		// the welcome guide (welcome.go): the box a character's first world entry
 		// of a UTC day asks, its answers, and /tutorial
@@ -636,6 +638,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 
 		// /testinvis's safe mode (safemode.go)
 		chatHandler.SetSafeModeStore(charStore.DB())
+		// /hide mercs, kept (hidemercs.go)
+		chatHandler.SetMercsHiddenStore(charStore.DB())
 
 		// the mercenaries (merc.go): the liaisons, /merc, the hires kept; and
 		// the familiars (familiar.go): their items' Use, /familiar

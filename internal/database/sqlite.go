@@ -780,6 +780,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCharSafeMode(); err != nil { // safemode.go: who /testinvis keeps out of the creatures' sight
 		return err
 	}
+	if err := db.ensureCharHideMercs(); err != nil { // charhidemercs.go: who hid other players' mercenaries, /hide mercs
+		return err
+	}
 	if err := db.ensureMercs(); err != nil { // mercs.go: the mercenaries hired and the familiars
 		return err
 	}

@@ -145,6 +145,12 @@ func (w *World) visibilitySystem() {
 				if npc.hiddenAt(time.Now()) {
 					continue
 				}
+				// another player's mercenary, to a player that hid them (/hide
+				// mercs, hidemercs.go): out of its view alone, in the game as
+				// ever
+				if w.mercHiddenFromLocked(npc, player) {
+					continue
+				}
 				// a quest's wall the player is past: out of its view, so its
 				// client walks through (questwalls.go)
 				if w.wallPassedLocked(npc, player) {

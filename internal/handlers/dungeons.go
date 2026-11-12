@@ -49,7 +49,7 @@ const (
 	dungeonsAskBoard = "Raids for level 60 heroes in Tunaria's old dungeons. Each party gets its own copy. Where to?"
 	dungeonsTooFar   = "Come back to the Instanced Raids board or a Dungeon Warden to answer."
 	dungeonsReach    = 30
-	dungeonsHelp     = "/dungeon names your party's open dungeons; /dungeon enter <Guk|Blackburrow|Runnyeye> goes in (a group's leader, or a player alone, opens its party's instance); /dungeon leave goes back out; /dungeon reset <name> closes the instance you opened while no one is inside. Or read the Instanced Raids board by Freeport's well."
+	dungeonsHelp     = "/dungeon names your party's open dungeons; /dungeon enter <%s> goes in (a group's leader, or a player alone, opens its party's instance); /dungeon leave goes back out; /dungeon reset <name> closes the instance you opened while no one is inside. Or read the Instanced Raids board by Freeport's well."
 )
 
 type dungeonsDo int
@@ -355,7 +355,7 @@ func dungeonCommand(gw *entity.World, sess *session.Session, rest string) {
 		dungeonsTell(sess, gw.DungeonStatus(sess))
 	case "enter", "go":
 		if arg == "" {
-			dungeonsTell(sess, dungeonsHelp)
+			dungeonsTell(sess, dungeonsHelpLine(gw))
 			return
 		}
 		ds.enter(sess, p, arg)
@@ -363,13 +363,28 @@ func dungeonCommand(gw *entity.World, sess *session.Session, rest string) {
 		ds.leave(sess)
 	case "reset", "close":
 		if arg == "" {
-			dungeonsTell(sess, dungeonsHelp)
+			dungeonsTell(sess, dungeonsHelpLine(gw))
 			return
 		}
 		dungeonsTell(sess, gw.DungeonReset(sess, arg))
 	default:
-		dungeonsTell(sess, dungeonsHelp)
+		dungeonsTell(sess, dungeonsHelpLine(gw))
 	}
+}
+
+// dungeonsHelpLine is /dungeon's help, naming the world's dungeons by their keys (what /dungeon enter takes, as their
+// names do).
+func dungeonsHelpLine(gw *entity.World) string {
+	var keys []string
+	if gw != nil {
+		for _, d := range gw.DungeonDefs() {
+			keys = append(keys, d.Key)
+		}
+	}
+	if len(keys) == 0 {
+		keys = []string{"name"}
+	}
+	return fmt.Sprintf(dungeonsHelp, strings.Join(keys, "|"))
 }
 
 // dungeonLogin starts a character saved in the dungeons' world: in its party's open instance while there is one

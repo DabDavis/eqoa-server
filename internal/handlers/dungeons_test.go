@@ -2,13 +2,16 @@ package handlers
 
 import (
 	"encoding/json"
+	"net"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/eqoa/server/internal/config"
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
+	"github.com/eqoa/server/internal/session"
 	"github.com/eqoa/server/internal/worlds"
 )
 
@@ -123,5 +126,53 @@ func TestDungeonsPagesTheirBox(t *testing.T) {
 	}
 	if got := dungeonsPage(all[:6], 0); len(got) != 6 || got[5].do == dungeonsDoMore {
 		t.Fatalf("six answers fit one box: %+v", got)
+	}
+}
+
+// TestDungeonKeepRestartSendsOut: a character inside an instance at a keep restart (no instance outlives the old
+// process) comes back in front of the Dungeon Warden outside, in its world, and its session is marked moved, so the
+// client's reports of the instance's place until its dump do not carry the character there in that world (the owner,
+// 2026-11-12: "I was in instanced Castle Felstar and the server restarted and I reloaded into the normal level 20
+// version").
+func TestDungeonKeepRestartSendsOut(t *testing.T) {
+	db := keepDB(t)
+	if _, err := db.Exec(`UPDATE characters SET world = 14, x = 1050, y = 57, z = 960 WHERE serverid = 7`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(`INSERT INTO npcs (id, npc_name, world, x_coord, y_coord, z_coord, facing, modelid, size, npc_level, npc_type, race, zone)
+		VALUES (990201, ?, 0, 5000, 50, 5000, 0, 1843770060, 1, 60, 128, '0', 0)`, entity.DungeonWardenName); err != nil {
+		t.Fatal(err)
+	}
+	block := `[{"key":"bb","name":"Test Burrow","boxes":[[900,900,1100,1100]],"entrance":{"x":1000,"y":50,"z":1150,"toward":[1000,1000]}}]`
+	SetServerWorlds([]worlds.Built{{Recipe: worlds.Recipe{World: 14, Name: "the Test Dungeons", Dungeons: json.RawMessage(block)}}})
+	_, gw, sm := keepProcess(t, db)
+	t.Cleanup(func() {
+		SetServerWorlds(nil)
+		gw.SetDungeons(false, 14, nil, entity.DungeonSettings{})
+	})
+	gw.LoadNPCs(database.NewNPCStore(db))
+	if !SetupDungeons(gw, config.DungeonsConfig{Enabled: true}, nil) {
+		t.Fatal("the dungeons are not on")
+	}
+	sess := sm.CreateSession(&net.UDPAddr{IP: net.IPv4(203, 0, 113, 9), Port: 5009}, 9, 9, 9, 1, true)
+	sess.SetAccountID(3)
+	sess.SetPlayerObjectID(500000009)
+	sess.SetState(session.StateInGame)
+	sess.SetCharacterInWorld(true)
+	sess.SetServerWorlds([]uint8{14})
+	sess.SetCharacterServerID(7)
+	p, err := ResumeCharacter(sess, KeptExtras{}, entity.KeptPlayer{Name: "Hero"}, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.World != 0 || abs32(p.X-5000) > 10 || abs32(p.Z-5000) > 10 {
+		t.Fatalf("resumed at (%.1f, %.1f) world %d, want before the warden in world 0", p.X, p.Z, p.World)
+	}
+	sess.SetResumeDump(time.Now().Add(time.Second), false)
+	if !sess.ResumeMoved() {
+		t.Fatal("the session is not marked moved: the client's reports would carry it to the instance's place")
+	}
+	if due, _ := sess.TakeResumeDue(time.Now().Add(2 * time.Second)); !due || sess.ResumeMoved() {
+		t.Fatalf("the dump due %v, still moved %v", due, sess.ResumeMoved())
 	}
 }

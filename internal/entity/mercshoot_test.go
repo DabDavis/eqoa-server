@@ -159,13 +159,21 @@ func TestMercCasterShortOfPowerKeepsCasting(t *testing.T) {
 
 	r2 := newMercRig(t)
 	smite := bookSpell(950, "Smite", 1, 2*time.Second, 3*time.Second, 44, "Target, Decrease Hitpoints by 100")
-	cl := r2.hire(r2.kit(9, 0, 0, smite), MercAssist)
+	k := r2.kit(9, 0, 0, smite)
+	k.Offensive = true // offensive: a defensive healer casts no hit (the control below)
+	cl := r2.hire(k, MercAssist)
 	c2 := r2.creature("Crab", 28, 10)
 	r2.w.mu.Lock()
 	cl.npc.Power = cl.npc.MaxPower / 2
 	ok := r2.w.mercAttackTurnLocked(cl, c2, r2.at(time.Minute))
+	cl.kit.Offensive = false
+	cl.ready, cl.busy = map[int]time.Time{}, time.Time{}
+	defensive := r2.w.mercAttackTurnLocked(cl, c2, r2.at(2*time.Minute))
 	r2.w.mu.Unlock()
 	if !ok {
-		t.Error("a cleric at half its power, no one hurt, did not smite")
+		t.Error("an offensive cleric at half its power, no one hurt, did not smite")
+	}
+	if defensive {
+		t.Error("a defensive cleric smote")
 	}
 }

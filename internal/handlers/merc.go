@@ -110,7 +110,7 @@ const (
 	mercRestLine  = "Your mercenary %s rests for %d more seconds."
 	mercBackLine  = "Your mercenary %s is back at your side."
 	mercKitFailed = "The liaison's ledger is out of order. Try again."
-	mercHelpLine  = "/merc [name or 1-3] stance passive|assist|aggressive, follow, stay, attack (your target), path, pet, charm [off], group, revive, dismiss: with no name, every merc out. /familiar dismiss sends a familiar away."
+	mercHelpLine  = "/merc [name or 1-3] stance passive|assist|aggressive, defensive|offensive (a healer), follow, stay, attack (your target), path, pet, charm [off], group, revive, dismiss: with no name, every merc out. /familiar dismiss sends a familiar away."
 )
 
 // mercRoles are the liaison's first answers, each role's classes in their
@@ -502,7 +502,13 @@ func (m *Mercs) hire(sess *session.Session, p *entity.Player, class, race, sex i
 	if k := mercPathOf(class, row.Path); k >= 0 {
 		SendClientMessage(sess, fmt.Sprintf(mercPathIsLine, name, mercPathName(class, k)))
 	}
+	if entity.MercIsHealer(class) {
+		SendClientMessage(sess, fmt.Sprintf(mercDefensiveLine, name, strings.ToLower(name)))
+	}
 }
+
+// mercDefensiveLine tells a healer's hirer its mode.
+const mercDefensiveLine = "%s is defensive: it heals and buffs alone. /merc %s offensive has it cast its attacks as well."
 
 // mercFreeSlot is the first slot no row of rows holds, 0 for none.
 func mercFreeSlot(rows []database.MercRow) int {
@@ -568,7 +574,7 @@ const mercDualFrom = 20
 
 // kit is the merc of the row at level as it fights (the file's doc).
 func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
-	k := entity.MercKit{Class: row.Class, Race: row.Race, Sex: row.Sex, Level: max(level, 1), Name: row.Name}
+	k := entity.MercKit{Class: row.Class, Race: row.Race, Sex: row.Sex, Level: max(level, 1), Name: row.Name, Offensive: row.Offensive}
 	k.Look = entity.MercLook{Face: row.Face, HairColor: row.HairColor, HairLength: row.HairLength, HairStyle: row.HairStyle, Robe: -1}
 	k.Base = entity.MercBaseStats(row.Class, row.Race, k.Level) // its role's (entity/mercroles.go)
 	if m.db == nil {
@@ -985,6 +991,25 @@ func (m *Mercs) Command(sess *session.Session, p *entity.Player, args string) {
 			}
 		}
 		SendClientMessage(sess, mercStanceWords[s])
+	case "defensive", "offensive":
+		on := verb == "offensive"
+		slots, others := m.gw.SetMercOffensive(sess, slot, on)
+		if len(slots) == 0 {
+			if others > 0 {
+				SendErrorMessage(sess, mercModeHealersLine)
+			} else {
+				out(0)
+			}
+			return
+		}
+		if m.db != nil {
+			for _, sl := range slots {
+				if err := m.db.SetMercOffensive(p.CharServerID, sl, on); err != nil {
+					log.Printf("Merc: %s's healer mode not kept: %v", p.Name, err)
+				}
+			}
+		}
+		SendClientMessage(sess, mercModeWords[on])
 	case "follow", "stay":
 		if !out(m.gw.SetMercStay(sess, slot, verb == "stay")) {
 			return
@@ -1109,7 +1134,8 @@ func (m *Mercs) dismiss(sess *session.Session, p *entity.Player, slot int) {
 // mercVerbs are /merc's words, which "/t merc <word>" takes as the command
 // (chat.go: anything else to a "merc" is a tell).
 var mercVerbs = map[string]bool{"status": true, "dismiss": true, "stance": true, "follow": true, "stay": true, "attack": true,
-	"group": true, "revive": true, "help": true, "path": true, "pet": true, "charm": true, "list": true}
+	"group": true, "revive": true, "help": true, "path": true, "pet": true, "charm": true, "list": true, "defensive": true,
+	"offensive": true}
 
 // mercWords reports a tell's body that is /merc's: none, or one of its words
 // first.
@@ -1117,6 +1143,16 @@ func mercWords(body string) bool {
 	f := strings.Fields(strings.ToLower(body))
 	return len(f) == 0 || mercVerbs[f[0]] || len(f) > 1 && mercVerbs[f[1]] && len(f[0]) == 1 && f[0][0] >= '1' && f[0][0] <= '3'
 }
+
+// A healer's modes' lines (the owner, 2026-11-12: "add defensive/offensive
+// for healers: defensive = heals/buffs only; offensive = they can cast
+// offensive spells"). Defensive is a new hire's.
+var mercModeWords = map[bool]string{
+	false: "Your healer is defensive: it heals and buffs, and casts nothing at your foes.",
+	true:  "Your healer is offensive: it casts its attacks in a fight as well, healing first whenever one of you is hurt.",
+}
+
+const mercModeHealersLine = "Only a healer (a cleric, druid or shaman) is defensive or offensive."
 
 // mercStanceWords are the stances' lines.
 var mercStanceWords = map[entity.MercStance]string{
@@ -1160,6 +1196,9 @@ func (m *Mercs) status(sess *session.Session, p *entity.Player, rows []database.
 			line := fmt.Sprintf("%sYour mercenary %s, a level %d %s %s (%s): %d/%d hit points, %d/%d power, %s", head,
 				info.Name, info.Level, entity.RaceName(info.Race), entity.ClassName(info.Class), entity.MercRoleName(info.Class),
 				info.HP, info.MaxHP, info.Power, info.MaxPower, entity.MercStanceNames[info.Stance])
+			if mode := entity.MercModeName(info.Class, info.Offensive); mode != "" {
+				line += ", " + mode
+			}
 			if info.Stay {
 				line += ", holding its place"
 			}

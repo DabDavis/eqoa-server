@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -81,5 +82,45 @@ func TestMercNamesDistinct(t *testing.T) {
 	}
 	if len(names) != len(r.gw.MercInfosOf(r.anna)) {
 		t.Errorf("out: %v", r.gw.MercInfosOf(r.anna))
+	}
+}
+
+// A healer's mode (the owner, 2026-11-12): defensive when hired, kept in its
+// row by /merc offensive and defensive, said by /merc; a warrior has none.
+func TestMercHealerMode(t *testing.T) {
+	r, m, db := newMercFixture(t)
+	m.hire(r.anna, r.pa, 9, 0, 0)
+	m.hire(r.anna, r.pa, 0, 0, 0)
+	r.gw.AskMercGroup(r.anna)
+	rows, _ := db.Mercs(r.pa.CharServerID)
+	if len(rows) != 2 || rows[0].Offensive {
+		t.Fatalf("rows %+v", rows)
+	}
+	r.drain()
+	r.say(r.anna, "/merc 1 offensive")
+	if row, _, _ := db.Merc(r.pa.CharServerID, 1); !row.Offensive {
+		t.Error("offensive not kept")
+	}
+	if got := r.msgs(r.anna); !hasMsg(got, "chat:"+mercModeWords[true]) {
+		t.Errorf("/merc 1 offensive: %q", got)
+	}
+	r.say(r.anna, "/merc 2 offensive")
+	if got := r.msgs(r.anna); !hasMsg(got, "red:"+mercModeHealersLine) {
+		t.Errorf("a warrior offensive: %q", got)
+	}
+	r.say(r.anna, "/merc")
+	if got := r.msgs(r.anna); !slices.ContainsFunc(got, func(m string) bool {
+		return strings.HasPrefix(m, "chat:1. Your mercenary "+rows[0].Name) && strings.HasSuffix(m, ", assist, offensive.")
+	}) {
+		t.Errorf("/merc: %q", got)
+	}
+	r.say(r.anna, "/merc defensive")
+	if row, _, _ := db.Merc(r.pa.CharServerID, 1); row.Offensive {
+		t.Error("defensive not kept")
+	}
+	for _, info := range r.gw.MercInfosOf(r.anna) {
+		if info.Offensive {
+			t.Errorf("slot %d offensive", info.Slot)
+		}
 	}
 }

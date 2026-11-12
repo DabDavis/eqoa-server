@@ -132,6 +132,10 @@ type MercKit struct {
 	// PetPick is the words of the pet kind its hirer picked (/merc pet:
 	// mercpet.go's mercPetSpell), none for its best
 	PetPick []string
+	// Offensive: a healer's /merc offensive, its hits and damage over time
+	// cast as well as its heals; false, defensive (the default), heals and
+	// buffs alone (merccast.go's mercAttackTurnLocked)
+	Offensive bool
 }
 
 // MercLook is what a merc's channel shows of its body and its heirlooms.
@@ -417,6 +421,8 @@ type MercInfo struct {
 	Stance                     MercStance
 	Stay                       bool
 	Target                     string
+	// Offensive: a healer's mode (MercKit.Offensive)
+	Offensive bool
 	// Grouped: in its owner's group
 	Grouped bool
 }
@@ -429,7 +435,7 @@ func (w *World) MercInfosOf(sess *session.Session) []MercInfo {
 	for _, ms := range w.mercsOfLocked(w.sessionPlayerLocked(sess)) {
 		n := ms.npc
 		info := MercInfo{Slot: ms.slot, Name: n.Name, Class: ms.kit.Class, Race: ms.kit.Race, Sex: ms.kit.Sex, Level: n.Level, HP: n.HP,
-			MaxHP: n.MaxHP, Power: n.Power, MaxPower: n.MaxPower, Stance: ms.stance, Stay: ms.stay, Grouped: w.mercInOwnGroupLocked(ms)}
+			MaxHP: n.MaxHP, Power: n.Power, MaxPower: n.MaxPower, Stance: ms.stance, Stay: ms.stay, Grouped: w.mercInOwnGroupLocked(ms), Offensive: ms.kit.Offensive}
 		if t := w.NPCs[ms.target]; t != nil {
 			info.Target = t.Name
 		}
@@ -682,6 +688,39 @@ func (w *World) SetMercStance(sess *session.Session, slot int, s MercStance) int
 		log.Printf("Merc: %s's %q is %s", ms.owner.Name, ms.npc.Name, MercStanceNames[s])
 	}
 	return len(list)
+}
+
+// SetMercOffensive puts the session's player's healer mercs of the slot (0:
+// every one out) offensive or defensive (MercKit.Offensive). It reports the
+// slots that took it and how many picked are no healers (left as they were).
+func (w *World) SetMercOffensive(sess *session.Session, slot int, on bool) (slots []int, others int) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	for _, ms := range w.mercPickLocked(w.sessionPlayerLocked(sess), slot) {
+		if !MercIsHealer(ms.kit.Class) {
+			others++
+			continue
+		}
+		ms.kit.Offensive = on
+		slots = append(slots, ms.slot)
+		log.Printf("Merc: %s's %q is %s", ms.owner.Name, ms.npc.Name, MercModeName(ms.kit.Class, on))
+	}
+	return slots, others
+}
+
+// MercIsHealer is whether a class's merc is a healer (a cleric, druid or
+// shaman: mercRoleOf), which /merc defensive and offensive are for.
+func MercIsHealer(class int) bool { return mercRoleOf(class) == roleHealer }
+
+// MercModeName is a healer's mode in a word ("" for any other class).
+func MercModeName(class int, offensive bool) string {
+	switch {
+	case !MercIsHealer(class):
+		return ""
+	case offensive:
+		return "offensive"
+	}
+	return "defensive"
 }
 
 // SetMercStay holds the session's player's merc of the slot (0: every one

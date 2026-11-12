@@ -165,6 +165,8 @@ type Mercs struct {
 	db   *database.SQLiteDB
 	heir *Heirlooms
 	now  func() time.Time
+	// after runs f once d has passed (time.AfterFunc; a test's own): a dead merc's return at its rest's end
+	after func(d time.Duration, f func())
 
 	mu    sync.Mutex
 	seq   uint32
@@ -174,7 +176,8 @@ type Mercs struct {
 // NewMercs is the mercenaries' handler over the World and the database; heir
 // gives the heirlooms' figures (nil: none, the merc in plain records).
 func NewMercs(gw *entity.World, db *database.SQLiteDB, heir *Heirlooms) *Mercs {
-	return &Mercs{gw: gw, db: db, heir: heir, now: time.Now, asked: map[uint32]mercAsk{}}
+	return &Mercs{gw: gw, db: db, heir: heir, now: time.Now, after: func(d time.Duration, f func()) { time.AfterFunc(d, f) },
+		asked: map[uint32]mercAsk{}}
 }
 
 // mercsH is the handler RegisterDefaultHandlers made (a keep restart's).
@@ -887,9 +890,30 @@ func (m *Mercs) comeBackRow(sess *session.Session, p *entity.Player, row databas
 	now := m.now()
 	if now.Before(row.DeadUntil) {
 		SendClientMessage(sess, fmt.Sprintf(mercRestLine, row.Name, int(row.DeadUntil.Sub(now).Seconds()+0.5)))
+		m.backWhenRested(sess, p, row.Slot, row.DeadUntil)
 		return
 	}
 	m.bring(sess, p, row, now)
+}
+
+// mercRestSlack is how long after its rest's end a dead merc's return is tried: past the row's DeadUntil for sure.
+const mercRestSlack = 250 * time.Millisecond
+
+// backWhenRested brings a dead merc back by itself when its rest ends (the owner, 2026-11-12: "lets make mercs come
+// back after they die when the cooldown expires"), as /merc would then: while its owner is still in the world on that
+// session, its hire still there and it not out already (comeBackSlot's tests). A login while it rests asks it too.
+func (m *Mercs) backWhenRested(sess *session.Session, owner *entity.Player, slot int, until time.Time) {
+	if sess == nil || owner == nil || m.after == nil {
+		return
+	}
+	char := owner.CharServerID
+	m.after(max(until.Sub(m.now()), 0)+mercRestSlack, func() {
+		p := m.gw.SessionPlayer(sess)
+		if p == nil || p.CharServerID != char {
+			return // its owner logged out (its next login brings it)
+		}
+		m.comeBackSlot(sess, p, slot)
+	})
 }
 
 // bring puts the row's merc beside the player (or on standby: said by the
@@ -932,6 +956,7 @@ func (m *Mercs) note(n entity.MercNote) {
 		if err := m.db.SetMercRest(n.Owner.CharServerID, n.Slot, n.Until); err != nil {
 			log.Printf("Merc: %s's %q's rest not kept: %v", n.Owner.Name, n.Name, err)
 		}
+		m.backWhenRested(n.Sess, n.Owner, n.Slot, n.Until)
 	case entity.MercNoteDismissed:
 		if err := m.db.DeleteMerc(n.Owner.CharServerID, n.Slot); err != nil {
 			log.Printf("Merc: %s's %q's hire not ended: %v", n.Owner.Name, n.Name, err)

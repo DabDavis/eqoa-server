@@ -241,7 +241,7 @@ const MercRest = 60 * time.Second
 
 // The lines a merc's owner is told (ours).
 const (
-	mercDiedLine  = "Your mercenary %s has died. Rest %d seconds, then /merc brings it back."
+	mercDiedLine  = "Your mercenary %s has died. It rests %d seconds, then comes back by itself."
 	mercLevelLine = "Your mercenary %s is level %d."
 )
 

@@ -579,7 +579,11 @@ func (e *TriggerEngine) Tick() {
 	}
 	keep := e.runs[:0]
 	for _, r := range e.runs {
-		if r.next >= len(r.steps) && len(r.spawns) == 0 {
+		// done: its steps, its spawns and a last wait's time (a trigger's last
+		// wait is its rest, its lock held through it: the throne of
+		// Bertoxxulous's 3 days 16 hours, the Bloody Portal's shut time; until
+		// 2026-11-12 the run ended as that wait began, which made it nothing)
+		if r.next >= len(r.steps) && len(r.spawns) == 0 && (r.await != nil || !now.Before(r.at)) {
 			log.Printf("Triggers: %s's run %d ended", r.trig.Title(), r.id)
 			continue
 		}

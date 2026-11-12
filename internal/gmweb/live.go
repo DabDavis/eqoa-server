@@ -55,6 +55,9 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 	case "npcdialog":
 		database.InvalidateNPCDialog()
 		return "at once: the next talk to a town's person or a guard"
+	case "npcoverseer":
+		database.InvalidateNPCOverseer()
+		return "at once: the next talk to the overseer"
 	case "signtext":
 		database.InvalidateSignText()
 		return "at once: the next talk to the sign (the news row: to any board)"

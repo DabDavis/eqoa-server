@@ -138,10 +138,13 @@ func main() {
 	log.Printf("Entity world: custom races: %s", entity.RaceDefSummary())
 	// what character creation takes past the game's own (entity/creation.go):
 	// the froglok and the custom races, every class for every race
-	creation := entity.CreationRules{Races: cfg.World.OpenRaces, AllClasses: cfg.World.AllClasses, Skins: cfg.World.SkinShades}
+	creation := entity.CreationRules{Races: cfg.World.OpenRaces, AllClasses: cfg.World.AllClasses, Skins: cfg.World.SkinShades, Tattoos: cfg.World.Tattoos}
 	entity.SetCreationRules(creation)
 	if creation.Skins {
 		log.Printf("Character creation: the game's races' skin shades offered (world.skin_shades)")
+	}
+	if creation.Tattoos {
+		log.Printf("Character creation: the barbarians' tattoo offered (world.tattoos)")
 	}
 	if creation.On() {
 		names := []string{}

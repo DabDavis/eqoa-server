@@ -299,6 +299,15 @@ type WorldConfig struct {
 	// race has a row. A PS2 draws every character in its race's own skin.
 	SkinShades bool `yaml:"skin_shades"`
 
+	// Tattoos offers the barbarians a tattoo row (the owner, 2026-11-12: "for
+	// barbarians customize character lets add tattoo toggle"): the woad the
+	// disc paints on the barbarian man's faces 1 and 3, off or either pattern on
+	// any barbarian face, man or woman (entity/tattoos.go), to a client that
+	// draws it (answered the race options' offer 3: vanilla since 2026-11-12),
+	// kept in charlook (part "tattoo") and told to every client that asked for
+	// the looks. Unset, off. A PS2 draws the face the character chose.
+	Tattoos bool `yaml:"tattoos"`
+
 	// PackSlots and BankSlots are how many records the pack (worn items among
 	// them, as CLIENT counts its 40) and the bank hold for a client that holds
 	// more than CLIENT's 40 (vanilla), which is offered them after the first

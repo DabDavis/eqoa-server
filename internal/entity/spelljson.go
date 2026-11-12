@@ -685,7 +685,9 @@ func (d *SpellDef) readEffectJSON(name, desc string, e effectJSON, aoe bool, are
 			se := effectOf(EffectStat, e)
 			se.Stat, se.Set = st, true
 			add(se)
-		case e.Amount != 0:
+		case e.Amount != 0 || e.LevelPct != 0 || e.ScalePct != 0:
+			// one all of scaling (amount 0) counts too: the Wisp's Ponder,
+			// 80% of the caster's level and 3% of its INT (wisp_kit_20261112)
 			se := effectOf(EffectStat, e)
 			se.Stat = st
 			add(se)

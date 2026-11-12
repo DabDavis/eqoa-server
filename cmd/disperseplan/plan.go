@@ -388,6 +388,24 @@ func plan(w *entity.World, db *database.SQLiteDB, rows []entity.DisperseRow) pla
 	for _, wd := range out.Wander {
 		got[wd.ID] = true
 	}
+	for i := range rows {
+		r := &rows[i]
+		rr, ok := farRoamers[strings.ToLower(r.Name)]
+		if !ok || got[int64(r.ID)] || r.Pathed || r.Camp || r.SpawnOnly || r.NPCType&0x80 != 0 || r.Model == 0 || r.PetOf != 0 {
+			continue
+		}
+		if !r.OnGround || r.InWater {
+			out.Left["far roamer off the ground"]++
+			continue
+		}
+		if protected[int64(r.ID)] != "" {
+			out.Left["far roamer: "+protected[int64(r.ID)]]++
+			continue
+		}
+		out.Wander = append(out.Wander, wander{ID: int64(r.ID), World: r.World, Name: r.Name, Radius: rr,
+			Note: "a far roamer roams its ground (the owner: \"they only move a small distance\")", X: r.X, Z: r.Z})
+		got[int64(r.ID)] = true
+	}
 	for _, c := range link(cre, loneReach) { // a camp of a standing kind, spread or not
 		var still []*entity.DisperseRow
 		for _, r := range c {
@@ -432,24 +450,6 @@ func plan(w *entity.World, db *database.SQLiteDB, rows []entity.DisperseRow) pla
 				Note: "one in four of a standing camp wanders round it", X: r.X, Z: r.Z})
 			got[int64(r.ID)] = true
 		}
-	}
-	for i := range rows {
-		r := &rows[i]
-		rr, ok := farRoamers[strings.ToLower(r.Name)]
-		if !ok || got[int64(r.ID)] || r.Pathed || r.Camp || r.SpawnOnly || r.NPCType&0x80 != 0 || r.Model == 0 || r.PetOf != 0 {
-			continue
-		}
-		if !r.OnGround || r.InWater {
-			out.Left["far roamer off the ground"]++
-			continue
-		}
-		if protected[int64(r.ID)] != "" {
-			out.Left["far roamer: "+protected[int64(r.ID)]]++
-			continue
-		}
-		out.Wander = append(out.Wander, wander{ID: int64(r.ID), World: r.World, Name: r.Name, Radius: rr,
-			Note: "a far roamer roams its ground (the owner: \"they only move a small distance\")", X: r.X, Z: r.Z})
-		got[int64(r.ID)] = true
 	}
 	sort.Slice(out.Moves, func(i, j int) bool { return out.Moves[i].ID < out.Moves[j].ID })
 	sort.Slice(out.Wander, func(i, j int) bool { return out.Wander[i].ID < out.Wander[j].ID })

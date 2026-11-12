@@ -27,7 +27,7 @@ func keys(rows []OptionRow) []string {
 
 // The barbarian alone has the tattoo row, on a server that offers it, before
 // its skin (a client lays the tattoo, then shades the face); on each body's face
-// entry (the man's 9, the woman's 6); the man's first step the face's own
+// entry (the man's 9 and his chest 5, the woman's 6); the man's first step the face's own
 // (value 0), then Off, Bands, Crest as ModeTattoo; the woman's Off (0), Bands,
 // Crest. The control: off, no race has it.
 func TestTheBarbarianHasATattooRow(t *testing.T) {
@@ -51,7 +51,7 @@ func TestTheBarbarianHasATattooRow(t *testing.T) {
 	if row.Kind != KindColour || row.Answer != 3 || row.Label != "Tattoo" {
 		t.Fatalf("row %+v", row)
 	}
-	if p := row.PartsOf(0x61CA3EDF); len(p) != 1 || !slices.Equal(p[0].Entries, []uint8{9}) || len(p[0].Rects) != 0 {
+	if p := row.PartsOf(0x61CA3EDF); len(p) != 1 || !slices.Equal(p[0].Entries, []uint8{9, 5}) || len(p[0].Rects) != 0 {
 		t.Errorf("his face: %+v", p)
 	}
 	if p := row.PartsOf(0xC44AD516); len(p) != 1 || !slices.Equal(p[0].Entries, []uint8{6}) {
@@ -138,7 +138,7 @@ func TestATattooIsALook(t *testing.T) {
 	}
 	// kept skin first: the tattoo still goes first
 	k, v, p := lookParts(raceBarbarian, 0x61CA3EDF, []database.CharLook{looks[1], looks[0]})
-	if len(p) != 2 || v[0] != Tattoo(tattooCrest) || k[0] != KindColour || !slices.Equal(p[0].Entries, []uint8{9}) || v[1]>>24 != ModeShade {
+	if len(p) != 2 || v[0] != Tattoo(tattooCrest) || k[0] != KindColour || !slices.Equal(p[0].Entries, []uint8{9, 5}) || v[1]>>24 != ModeShade {
 		t.Fatalf("on his body: %v %#x %+v", k, v, p)
 	}
 	if _, _, p := lookParts(raceBarbarian, 0xC44AD516, []database.CharLook{tat}); len(p) != 1 || !slices.Equal(p[0].Entries, []uint8{6}) {

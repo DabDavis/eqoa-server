@@ -245,3 +245,54 @@ func TestTheRaidMessagesReachTheRaid(t *testing.T) {
 		t.Fatal("op 2 left nothing")
 	}
 }
+
+// Petition 1687: 0x7E48 op 12 moves a member (u32 id, u8 group), op 13 swaps two (u32,
+// u32: one member twice is refused as of one group); /raidgroup <name> <n>, /raid group <name> <n>, a PS2's /t raidgroup, and
+// /raidswap reach the same; /raidgroup alone lists the groups.
+func TestTheRaidsGroupsMovesReachTheRaid(t *testing.T) {
+	c := newChatWorld(t)
+	alice, pa := c.join(1, "Alice", 25000, 16000, 0)
+	bob, pb := c.join(2, "Bob", 25010, 16000, 0)
+	h := NewRaidHandler(c.gw, NewNPCWindowHandler(nil, nil))
+	r := NewRegistry()
+	h.RegisterHandlers(r)
+	feed := func(s *session.Session, op protocol.GameOpcode, data ...byte) {
+		t.Helper()
+		f, _ := r.Get(op)
+		if err := f(s, incoming(op, data)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	c.group(t, alice, pa, bob, pb)
+	feed(alice, protocol.OpcodeRaidCommand, 6) // a raid
+	flushQueue(alice)
+	flushQueue(bob)
+	id := c.gw.IDSeenBy(alice, pb)
+	feed(alice, protocol.OpcodeRaidCommand, 12, byte(id), byte(id>>8), byte(id>>16), byte(id>>24), 2)
+	if got := texts(heard(t, bob)); !raidSaid(got, "Alice puts you in group 2 of the raid.") {
+		t.Fatalf("op 12: Bob heard %q", got)
+	}
+	for _, l := range []string{"/raidgroup bob 1", "/raid group Bob 2", "/t raidgroup bob 1"} {
+		flushQueue(bob)
+		c.say(alice, l)
+		if got := texts(heard(t, bob)); len(got) == 0 || !strings.HasPrefix(got[len(got)-1], "Alice puts you in group") {
+			t.Fatalf("%s: Bob heard %q", l, got)
+		}
+	}
+	// op 13 with the two in one group: refused, said
+	flushQueue(alice)
+	feed(alice, protocol.OpcodeRaidCommand, 13, byte(id), byte(id>>8), byte(id>>16), byte(id>>24), byte(id), byte(id>>8), byte(id>>16), byte(id>>24))
+	if got := texts(heard(t, alice)); !raidSaid(got, "Bob and Bob are both in group 1.") {
+		t.Fatalf("op 13: Alice heard %q", got)
+	}
+	flushQueue(bob)
+	c.say(bob, "/raidgroup")
+	if got := texts(heard(t, bob)); !raidSaid(got, "Group 1: Alice, Bob") {
+		t.Fatalf("/raidgroup alone: %q", got)
+	}
+	flushQueue(bob)
+	c.say(bob, "/raidswap alice") // one name: the usage
+	if got := texts(heard(t, bob)); len(got) != 1 || !strings.HasPrefix(got[0], "Usage: /raidswap") {
+		t.Fatalf("/raidswap with one name: %q", got)
+	}
+}

@@ -2581,6 +2581,18 @@ rules as they are.
 master looter's list as messages; a PS2 the same as chat lines in the raid's orange ("Roll 7: ... /t need 7, /t greed 7 or /t pass 7",
 the master looter's items by number at its opening and after each assign).
 
+### A raid's groups inside it (`entity/raidsubgroups.go`)
+
+The GM Jibrish's petition 1687 (2026-11-12): every player member of a raid has a group number from 1, four a group
+(`RaidSubgroupSize`): a newcomer the lowest group with room in joining order, kept until it leaves or is moved (one leaving moves no one;
+settled each second, `raidRosterSystem`; a merc takes no place). **For organising alone**: XP, chat, loot, scope 2 spells and a group's
+area (still the whole raid), quest credit and a PS2's window of four are unchanged. The leader or its helper moves one to a group with
+room (`/raidgroup <name> <n>`, `/raid group <name> <n>`, a PS2's `/t raidgroup ...`, 0x7E48 op 12; up to one past what the size needs,
+`raidSubgroupMost`), a full group refusing with the swap named; `/raidswap <a> <b>` (op 13) trades two. The mover is told, each one
+moved too ("Ann puts you in group 2 of the raid."), and the rosters go at once; `/raidgroup` alone lists the groups (anyone's: a PS2's
+way to see them). The roster's offer 0x7E18 is **2** since: a client that answers 2 gets a u8 group after each 0x7E1A record; vanilla of
+before answers 1 and reads the records as ever. Kept over a keep restart (`KeptGroup.Subs`, raids only; a snapshot without them fills again).
+
 ### Data Flow (World Entry)
 
 1. `HandleSelectedChar` → `loginSpawn(record)` → `gw.CreatePlayer(sess, record)` — creates Player struct

@@ -509,16 +509,19 @@ const (
 	OpcodeMemberInvites GameOpcode = 0x7E17
 	// OpcodeRaidRosterOffer is not retail: the whole of a raid group for a client
 	// that can show it, where CLIENT holds four (entity/raid.go). A u32 after the
-	// opcode, 1, from the server once the player is in the world (handlers/group.go).
-	// A PS2 ignores it and keeps its window of four.
+	// opcode, from the server once the player is in the world (handlers/group.go): 2
+	// since 2026-11-12, the records may carry the raid's groups (1 before). A PS2
+	// ignores it and keeps its window of four.
 	OpcodeRaidRosterOffer GameOpcode = 0x7E18
 	// OpcodeRaidRosterAnswer is a client's answer to the offer: a u32, 1 to be sent
-	// the roster, 0 to stop.
+	// the roster, 2 to be sent it with each record's group (an offer of 2 only), 0
+	// to stop.
 	OpcodeRaidRosterAnswer GameOpcode = 0x7E19
 	// OpcodeRaidRoster is the roster, to a client that asked, on a change and at most
 	// once a second: u16 members in all, u16 this message's first, u8 how many it
 	// holds, then each: u32 the id the client knows it by, u8 and the bytes of its
-	// name, u8 class, u8 level, u8 HP of 255, u8 power of 255. In the order they
+	// name, u8 class, u8 level, u8 HP of 255, u8 power of 255, and to a client that
+	// answered 2 a u8 its group in the raid, from 1 (entity/raidsubgroups.go). In the order they
 	// joined, the leader first, the client's own character among them. 0 members:
 	// its group is no raid group (now). entity/raidroster.go.
 	OpcodeRaidRoster GameOpcode = 0x7E1A
@@ -843,7 +846,9 @@ const (
 	// raid, 3 assign (u32 the open corpse's record key, u32 the player's id), 4
 	// abandon the open corpse, 5 raid-invite (u32 target), 6 the raid flag, 7
 	// assist the main assist, 8 leader (u32 target), 9 helper (u32 target, 0
-	// none), 10 main assist (u32 target, 0 none), 11 kick (u32 target).
+	// none), 10 main assist (u32 target, 0 none), 11 kick (u32 target), 12 move a
+	// member to a group of the raid (u32 target, u8 group from 1), 13 swap two
+	// members' groups (u32 target, u32 target) (entity/raidsubgroups.go).
 	OpcodeRaidCommand GameOpcode = 0x7E48
 	// OpcodeDPSMeterOffer is not retail: a damage meter, who in the player's
 	// group did how much damage in the fight and how fast (entity/dpsmeter.go,

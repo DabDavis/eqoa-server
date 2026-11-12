@@ -202,6 +202,9 @@ type NPC struct {
 	// Title is a line over its name (npctitle.go, table npctitle by its
 	// row): "" none.
 	Title string
+	// TitleColor is its title plate's colour, CLIENT's NameColors index: 0
+	// an NPC's gold, 1 blue, 2 green (npctitle.go).
+	TitleColor uint8
 	// CopyOf is the npcs row a copy (Temporary: a spawn's, SpawnNPCCopy) was
 	// made from, 0 for any other NPC (npcrow.go): a table's row key ("#n")
 	// holds for the copies of that row too.

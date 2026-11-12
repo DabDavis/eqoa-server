@@ -3043,6 +3043,24 @@ reach the rows. An enrolment begun before a restart starts again (its secret is 
   agent reads first.
 - **Every change is audited** (`gm_audit`: who, through what, the row before and after, in the
   change's own transaction) and a row change can be reverted (`audit.go`).
+  **The Activity log** (`views/audit.js`, `audit_log`; the owner, 2026-11-12: "filters for names, items, etc. if we want to
+  see what mobs have been deleted, what items added, changed"): `gm_audit_facets` (`audit_facets.go`) is what each line
+  is about, worked out once beside it: the thing's name (the row's title, else what its key refers to: a respawn row is
+  its NPC's, an inventory row "Rusty Sword · Hero"; a deleted row's name from its own last line), added / changed /
+  deleted, the source (panel, agent, game, tool) with the agent's or the tool's name (a script `tools/x.py` in its
+  words, a game `/command`), the table's group, every id it names, the world, and the petitions, camp reports and
+  board entries its words name. Every `audit_log` read first indexes the lines past the last indexed (the data tools
+  write `gm_audit` straight, so this is how theirs get in); `Start` indexes a whole log in the background (63,632
+  lines: 23 s, 500 a transaction, the one connection let go between), and a read meanwhile answers from the lines
+  indexed so far (`indexing` in the answer). A new derivation bumps `facetVersion` and the next start indexes again.
+  Filters (all AND): username, who, source, tool, table(s), group, action (added, changed, deleted, reverted, revert, or
+  raw), name (a word's start: "bat" finds Bat Meat, not combat), row_id (or an id it refers to), key, world, since/until,
+  petition / camp_report / board_entry (-1 any), search (free text, the one filter that reads the lines themselves),
+  preset (npcs_deleted, items_added, ...); `counts` gives each dimension's choices with the others held and each
+  preset's total (cached 20 s). An entry carries `thing`, `kind`, `source`, `agent`, `tool`, `worldName`,
+  `petitions`/`campReports`/`boardEntries` and `changes` (an update's changed fields alone). Below a GM: their tables
+  only, never by who, through what or the words. Measured on the live copy: 20-100 ms a filter, 0.1-0.6 s with counts;
+  the snapshot clears the table with `gm_audit`.
 - **The work board** (`ops_work.go`, `database/workboard.go`, `views/work.js`, `lib/md.js`; the user,
   2026-10-29: "a living document to the server for jibs agents to check so we can see what each other is
   working on and also he needs to be able to populate"): an overview (markdown) and entries (title, area,

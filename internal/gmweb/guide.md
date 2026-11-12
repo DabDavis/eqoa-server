@@ -453,7 +453,13 @@ beside it):
   `quest_list` says) and the NPCs their steps send players to; `missing` names the givers no NPC is (place
   one and the quests waiting on it can go in). Send someone to a camp with `teleport_character` `place` the
   camp's key (they land beside it, facing it), to a coach or a giver with `npc` its id.
-- **Look at the past**: `audit_log` (filter by GM, table or row), `server_log` (the server's own log).
+- **Look at the past**: `audit_log`, newest first, every filter combinable: who (`username`, `who`, `source`: panel,
+  agent, game, tool; `tool`: a script or a game command), what (`table`, `group`: npcs, items, spells, loot, ...;
+  `action`: added, changed, deleted, reverted, revert; `name`: a word of the thing's name; `row_id`; `world`), when
+  (`since`, `until`), why (`petition`, `camp_report`), `search` for free text, and `preset` (npcs_deleted, items_added,
+  items_changed, spells_changed, camp_reports, today, ...). Each entry says its `thing` and, for a change, only the
+  `changes` (field, before, after). `counts: true` says how many each choice would give. `server_log` is the
+  server's own log.
 - **Count and compare**: `count_rows` with `group_by` ("NPCs per world": table npcs, group_by [world]).
 - **The Plane of Disease** (world 5, the Secrets world's "Last Home", x 4031-5985, z 2000-4000): Necrologist
   Zizclank in the Rathe's Dead Hills (NW) (world 1, by the tomb yard at about 4280, 6412) sends a level 50 to the

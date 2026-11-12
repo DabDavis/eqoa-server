@@ -29,11 +29,17 @@ import (
 // ctfAway is what a player left outside the arena.
 type ctfAway struct {
 	who *Player
-	// merc is its merc's name, "" none: the handlers make it again from its hire's row
-	merc string
+	// mercs is its mercs waiting, by slot and name: the handlers make each again from its hire's row
+	mercs []ctfAwayMerc
 	// familiar is its familiar as it was, nil none, and famHP its share of hit points
 	familiar *FamiliarDef
 	famHP    float64
+}
+
+// ctfAwayMerc is a merc waiting outside the arena: its hire's slot and its name.
+type ctfAwayMerc struct {
+	slot int
+	name string
 }
 
 // The lines a merc's or a familiar's owner is told (ours).
@@ -90,11 +96,18 @@ func (w *World) ctfAwayMadeLocked(p *Player) *ctfAway {
 	return a
 }
 
-// ctfMercWaitsLocked keeps p's merc name waiting outside the arena and tells p so (sess p's, or nil). Must be
-// called with the lock held.
-func (w *World) ctfMercWaitsLocked(p *Player, sess *session.Session, name string) {
+// ctfMercWaitsLocked keeps p's merc of the slot (name) waiting outside the arena and tells p so (sess p's, or
+// nil). Must be called with the lock held.
+func (w *World) ctfMercWaitsLocked(p *Player, sess *session.Session, slot int, name string) {
 	defer w.ctfForLocked(p)()
-	w.ctfAwayMadeLocked(p).merc = name
+	a := w.ctfAwayMadeLocked(p)
+	for i, m := range a.mercs {
+		if m.slot == slot {
+			a.mercs = append(a.mercs[:i:i], a.mercs[i+1:]...)
+			break
+		}
+	}
+	a.mercs = append(a.mercs, ctfAwayMerc{slot: slot, name: name})
 	if sess != nil {
 		w.sendChatToSession(sess, fmt.Sprintf(ctfLineMercAway, name))
 	}
@@ -118,10 +131,10 @@ func (w *World) ctfFamiliarWaitsLocked(p *Player, sess *session.Session, d Famil
 func (w *World) ctfSendAwayLocked(p *Player, now time.Time) {
 	defer w.ctfForLocked(p)()
 	sess := w.findSessionByEntityIDLocked(p.ServerID)
-	if ms := w.mercOfLocked(p); ms != nil {
-		name := ms.npc.Name
+	for _, ms := range w.mercsOfLocked(p) {
+		name, slot := ms.npc.Name, ms.slot
 		w.mercGoesLocked(ms, sess, now)
-		w.ctfMercWaitsLocked(p, sess, name)
+		w.ctfMercWaitsLocked(p, sess, slot, name)
 	}
 	if fs := w.familiars[p.ServerID]; fs != nil && fs.owner == p && !fs.npc.Dead {
 		d, hp := fs.def, share(fs.npc.HP, fs.npc.MaxHP)
@@ -155,10 +168,10 @@ func (w *World) ctfAwayBackLocked(now time.Time) {
 				w.sendChatToSession(sess, fmt.Sprintf(ctfLineFamiliarBack, a.familiar.Name))
 			}
 		}
-		if a.merc != "" {
-			w.noteMercLocked(MercNote{Kind: MercNoteBack, Owner: p, Sess: sess, Name: a.merc, Level: p.Level})
+		for _, m := range a.mercs {
+			w.noteMercLocked(MercNote{Kind: MercNoteBack, Owner: p, Slot: m.slot, Sess: sess, Name: m.name, Level: p.Level})
 		}
-		log.Printf("%s: %s is out of the arena: its mercenary %q and familiar %v come back", w.ctfTag(), p.Name, a.merc, a.familiar != nil)
+		log.Printf("%s: %s is out of the arena: its mercenaries %v and familiar %v come back", w.ctfTag(), p.Name, a.mercs, a.familiar != nil)
 	}
 }
 
@@ -172,9 +185,9 @@ func (w *World) ctfTravelQueuedLocked(p *Player) bool {
 	return false
 }
 
-// ctfDismissAwayLocked ends p's waiting merc (merc true) or familiar, reporting its name, false for none. Must be
-// called with the lock held.
-func (w *World) ctfDismissAwayLocked(p *Player, merc bool) (string, bool) {
+// ctfDismissAwayLocked ends p's waiting merc of the slot (merc true) or familiar, reporting its name, false for
+// none. Must be called with the lock held.
+func (w *World) ctfDismissAwayLocked(p *Player, slot int, merc bool) (string, bool) {
 	g, ok := w.ctfAwayGameLocked(p)
 	if !ok {
 		return "", false
@@ -182,15 +195,22 @@ func (w *World) ctfDismissAwayLocked(p *Player, merc bool) (string, bool) {
 	defer w.ctfUseLocked(g)()
 	a := w.ctf.away[p.ServerID]
 	var name string
+	k := -1
+	for i, m := range a.mercs {
+		if m.slot == slot {
+			k = i
+		}
+	}
 	switch {
-	case merc && a.merc != "":
-		name, a.merc = a.merc, ""
+	case merc && k >= 0:
+		name = a.mercs[k].name
+		a.mercs = append(a.mercs[:k:k], a.mercs[k+1:]...)
 	case !merc && a.familiar != nil:
 		name, a.familiar = a.familiar.Name, nil
 	default:
 		return "", false
 	}
-	if a.merc == "" && a.familiar == nil {
+	if len(a.mercs) == 0 && a.familiar == nil {
 		delete(w.ctf.away, p.ServerID)
 	}
 	return name, true
@@ -206,9 +226,9 @@ func (w *World) ctfKeptAwayLocked(p *Player, k *KeptPlayer) {
 	}
 	defer w.ctfUseLocked(g)()
 	a := w.ctf.away[p.ServerID]
-	if a.merc != "" && k.Merc == nil {
+	for _, m := range a.mercs {
 		// no place of its own: RestoreMerc stands it beside its owner (its world is not its owner's)
-		k.Merc = &KeptMerc{Name: a.merc, HPPct: 1, PowerPct: 1, World: w.ctf.set.World, Away: true}
+		k.Mercs = append(k.Mercs, KeptMerc{Slot: m.slot, Name: m.name, HPPct: 1, PowerPct: 1, World: w.ctf.set.World, Away: true})
 	}
 	if a.familiar != nil && k.Familiar == nil {
 		k.Familiar = &KeptFamiliar{Item: a.familiar.Item, HPPct: a.famHP}

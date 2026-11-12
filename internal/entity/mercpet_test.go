@@ -102,7 +102,7 @@ func TestMercSummonsItsPet(t *testing.T) {
 	again := ms.pet.npc
 
 	// it goes with its merc
-	if _, ok := r.w.DismissMerc(r.sess, r.at(at+13*time.Second)); !ok {
+	if _, ok := r.w.DismissMerc(r.sess, 1, r.at(at+13*time.Second)); !ok {
 		t.Fatal("no merc to dismiss")
 	}
 	if !again.Dead || ms.pet != nil {
@@ -309,7 +309,7 @@ func TestMercPetPick(t *testing.T) {
 	}
 	first := ms.pet.npc
 	k.PetPick = []string{"earth"}
-	r.w.SetMercKit(r.p.CharServerID, k)
+	r.w.SetMercKit(r.p.CharServerID, 1, k)
 	r.run(10*time.Second+100*time.Millisecond, 20*time.Second)
 	if ms.pet == nil || ms.pet.spell != earth.SpellID || !first.Dead {
 		t.Errorf("after the pick: pet %+v, the air one dead %v", ms.pet, first.Dead)

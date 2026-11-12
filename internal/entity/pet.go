@@ -574,8 +574,8 @@ func (w *World) distSqToLocked(p *Player, id EntityID) float32 {
 // until the next 0x007E.
 func (w *World) pinPetLocked(p *Player, cands []entityDist) []entityDist {
 	cands = pinLocked(cands, w.petOfLocked(p), p)
-	if ms := w.mercOfLocked(p); ms != nil {
-		cands = pinLocked(cands, ms.npc, p) // its merc (merc.go)
+	for _, ms := range w.mercsOfLocked(p) {
+		cands = pinLocked(cands, ms.npc, p) // its mercs (merc.go)
 	}
 	if fs := w.familiars[p.ServerID]; fs != nil && fs.owner == p {
 		cands = pinLocked(cands, fs.npc, p) // its familiar (familiar.go)

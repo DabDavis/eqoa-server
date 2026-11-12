@@ -252,8 +252,8 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 	if kp.Pet != nil {
 		h.restorePet(sess, *kp.Pet, now) // its pet, summoned or charmed (entity/keeppet.go)
 	}
-	if kp.Merc != nil {
-		mercsH.Load().Restore(sess, player, *kp.Merc, now) // its mercenary (merc.go, entity/keepmerc.go)
+	for _, km := range entity.KeptMercsOf(&kp) {
+		mercsH.Load().Restore(sess, player, km, now) // its mercenaries, out and on standby (merc.go, entity/keepmerc.go)
 	}
 	if kp.Familiar != nil {
 		familiarsH.Load().Restore(sess, *kp.Familiar, now) // its familiar (familiar.go)

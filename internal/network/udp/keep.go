@@ -67,6 +67,10 @@ const (
 	// resumeDumpMax is the longest a resumed client waits for its dump when
 	// no report comes (one standing still sends few).
 	resumeDumpMax = 2 * time.Second
+	// resumeLoadMax is the longest a resumed client's dump waits for a world
+	// load under way (a teleport taken as it came back) to end: a client
+	// that never arrives gets it then.
+	resumeLoadMax = 90 * time.Second
 )
 
 // Snapshot is what a restart that keeps the sessions writes down.

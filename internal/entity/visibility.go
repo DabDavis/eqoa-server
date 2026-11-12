@@ -172,6 +172,9 @@ func (w *World) visibilitySystem() {
 			}
 		}
 
+		// each papered board's name plate beside it (boardplate.go)
+		candidates = w.boardPlatesLocked(candidates)
+
 		// The player's pet first, wherever it is (pet.go)
 		candidates = w.pinPetLocked(player, candidates)
 
@@ -330,6 +333,11 @@ func (w *World) serializeEntityForChannel(sess *session.Session, id EntityID, ob
 // serializeEntityDiscLocked is serializeEntityForChannel's buffer in the
 // disc's look, and the player it is (nil for an NPC).
 func (w *World) serializeEntityDiscLocked(sess *session.Session, id EntityID, objectID uint32) ([]byte, *Player) {
+	// a board's name plate, from its board as it stands (boardplate.go)
+	if board := w.plateBoardLocked(id); board != nil {
+		return serializePlate(objectID, board), nil
+	}
+
 	// Check NPC first
 	if npc, ok := w.NPCs[id]; ok {
 		buf := SerializeNPCUpdate(objectID, npc)

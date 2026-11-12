@@ -152,6 +152,7 @@ type NPCRowRestored struct {
 	ID     int64
 	Name   string
 	Tables []string // npcs first, then its extras
+	By     string   // who deleted it (gm_audit's username)
 }
 
 func quoteCol(c string) string { return `"` + strings.ReplaceAll(c, `"`, `""`) + `"` }
@@ -210,20 +211,21 @@ func auditRowOf(s string) (map[string]any, error) {
 	return row, nil
 }
 
-// NPCDeletesToUndo is how many of the account's /deletes are not undone yet: how many more /delete undo puts back,
-// each the one before the last (the owner, 2026-11-12: "/delete undo it will undo last delete and keep going if press
-// again").
+// NPCDeletesToUndo is how many /deletes, any GM's, are not undone yet: how many more /delete undo puts back, each the
+// one before the last (the owner, 2026-11-12: "/delete undo it will undo last delete and keep going if press again";
+// "let any gm undo anyones delete"). accountID is unused: every GM's count.
 func (db *SQLiteDB) NPCDeletesToUndo(accountID int) (int, error) {
 	if _, err := db.Exec(GMAuditSchema); err != nil {
 		return 0, err
 	}
 	var n int
-	err := db.QueryRow(`SELECT COUNT(*) FROM gm_audit WHERE accountid = ? AND action = 'delete' AND tbl = 'npcs'
-		AND detail LIKE ? AND reverted_by IS NULL`, accountID, npcDeletePrefix+"%").Scan(&n)
+	err := db.QueryRow(`SELECT COUNT(*) FROM gm_audit WHERE action = 'delete' AND tbl = 'npcs'
+		AND detail LIKE ? AND reverted_by IS NULL`, npcDeletePrefix+"%").Scan(&n)
 	return n, err
 }
 
-// UndoLastNPCDelete puts back the account's last /delete not undone yet: the
+// UndoLastNPCDelete puts back the last /delete not undone yet, any GM's (the owner, 2026-11-12: "let any gm undo
+// anyones delete"; accountID is unused): the
 // npcs row and its extras, from the delete's audit lines, each with its own
 // insert line, the delete's lines marked reverted by them. False when there
 // is none. A row whose id is taken again (a later insert) is refused.
@@ -239,8 +241,11 @@ func (db *SQLiteDB) UndoLastNPCDelete(accountID int, who GMEdit) (NPCRowRestored
 	defer tx.Rollback()
 	fillWho(tx, &who)
 	var detail string
-	err = tx.QueryRow(`SELECT detail FROM gm_audit WHERE accountid = ? AND action = 'delete' AND tbl = 'npcs'
-		AND detail LIKE ? AND reverted_by IS NULL ORDER BY id DESC LIMIT 1`, accountID, npcDeletePrefix+"%").Scan(&detail)
+	var delAccount int
+	var by sql.NullString
+	err = tx.QueryRow(`SELECT detail, accountid, username FROM gm_audit WHERE action = 'delete' AND tbl = 'npcs'
+		AND detail LIKE ? AND reverted_by IS NULL ORDER BY id DESC LIMIT 1`, npcDeletePrefix+"%").Scan(&detail, &delAccount, &by)
+	r.By = by.String
 	if errors.Is(err, sql.ErrNoRows) {
 		return r, false, nil
 	}
@@ -253,7 +258,7 @@ func (db *SQLiteDB) UndoLastNPCDelete(accountID int, who GMEdit) (NPCRowRestored
 		before string
 	}
 	rows, err := tx.Query(`SELECT id, tbl, before FROM gm_audit WHERE accountid = ? AND action = 'delete' AND detail = ?
-		AND reverted_by IS NULL ORDER BY id DESC`, accountID, detail)
+		AND reverted_by IS NULL ORDER BY id DESC`, delAccount, detail)
 	if err != nil {
 		return r, false, err
 	}

@@ -131,7 +131,7 @@ func TestGMDeleteAndClone(t *testing.T) {
 		t.Fatalf("%d npcs deletes audited", n)
 	}
 	c.say(gs, "/delete undo")
-	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Put back wolf (row %d) with npcs, npctitle, npcrespawn.", nid)) {
+	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Put back wolf (row %d) (deleted by account 1) with npcs, npctitle, npcrespawn.", nid)) {
 		t.Fatalf("/delete undo: %q", l)
 	}
 	if after := npcRowMap(t, db, nid); !reflect.DeepEqual(before, after) {
@@ -141,7 +141,7 @@ func TestGMDeleteAndClone(t *testing.T) {
 		t.Fatalf("put back in the world: %+v %v", st, ok)
 	}
 	c.say(gs, "/delete undo")
-	if l := gmReplies(t, gs); !hasLine(l, "You have deleted nothing that is not back already.") {
+	if l := gmReplies(t, gs); !hasLine(l, "No delete is left to put back.") {
 		t.Fatalf("a second undo: %q", l)
 	}
 
@@ -256,9 +256,9 @@ func TestPlaceAndSubGMs(t *testing.T) {
 	}
 }
 
-// The owner, 2026-11-12: "/delete undo it will undo last delete and keep going if press again". Two clones deleted,
-// then /delete undo three times: the last deleted comes back first (told one more is left), then the one before, then
-// nothing is left to undo.
+// The owner, 2026-11-12: "/delete undo it will undo last delete and keep going if press again", and "let any gm undo
+// anyones delete". Two clones deleted, then /delete undo three times: the last deleted comes back first (told one more
+// is left), then the one before (made another GM's: put back all the same, its deleter named), then nothing is left.
 func TestGMDeleteUndoKeepsGoing(t *testing.T) {
 	c, db, _, gs, gp, ps := campWorld(t)
 	stand(c, gp, 25500, 51, 15500, math.Pi/2)
@@ -282,21 +282,25 @@ func TestGMDeleteUndoKeepsGoing(t *testing.T) {
 		}
 	}
 	c.say(gs, "/delete undo")
-	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Put back wolf (row %d) with npcs. /delete undo again puts back the one before (1 more).", ids[1])) {
+	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Put back wolf (row %d) (deleted by account 1) with npcs. /delete undo again puts back the one before (1 more).", ids[1])) {
 		t.Fatalf("the first undo: %q", l)
 	}
 	if npcRowMap(t, db, ids[1]) == nil || npcRowMap(t, db, ids[0]) != nil {
 		t.Fatal("the first undo did not put back the last deleted alone")
 	}
+	// the one before was another GM's (the owner: "let any gm undo anyones delete")
+	if _, err := db.Exec(`UPDATE gm_audit SET accountid = 99, username = 'forestwood' WHERE action = 'delete' AND reverted_by IS NULL`); err != nil {
+		t.Fatal(err)
+	}
 	c.say(gs, "/delete undo")
-	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Put back wolf (row %d) with npcs.", ids[0])) {
+	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Put back wolf (row %d) (deleted by forestwood) with npcs.", ids[0])) {
 		t.Fatalf("the second undo: %q", l)
 	}
 	if npcRowMap(t, db, ids[0]) == nil {
 		t.Fatal("the second undo did not put back the one before")
 	}
 	c.say(gs, "/delete undo")
-	if l := gmReplies(t, gs); !hasLine(l, "You have deleted nothing that is not back already.") {
+	if l := gmReplies(t, gs); !hasLine(l, "No delete is left to put back.") {
 		t.Fatalf("a third undo: %q", l)
 	}
 }

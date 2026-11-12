@@ -1647,7 +1647,9 @@ var catalog = map[string]tableNote{
 			"itemdesc": {Label: "Description", Format: "multiline", Section: "Identity", Help: "shown under the item's info. " +
 				"A weapon's proc is read from it: \"Procs a 100 point DD Spell.\", \"Proc a 25 point lifetap.\", \"Procs a 70 point " +
 				"Disease DoT.\", \"Procs 150 Ice Damage.\", \"Procs 400-600 fire\" (a range), \"..., a 10% chance each hit.\" (its " +
-				"own chance), \"works only on goblins\" (entity/weaponproc.go); the panel shows what it reads as you type"},
+				"own chance), \"works only on goblins\", \"Procs a root.\", \"Procs a 6 second root.\", \"Procs a 40% snare for 10 " +
+				"seconds.\", \"Procs a 100 point DD and roots the target.\" (a hold, alone or beside its damage; a root 12 s and a " +
+				"snare 50% for 18 s when its words give none) (entity/weaponproc.go); the panel shows what it reads as you type"},
 			"itemcost": {Label: "Value", Unit: "tunar", Section: "Identity", Help: "what a merchant's price goes by; an auction's least starting bid"},
 			"itemicon": {Label: "Icon", Format: hex32, Look: lookItemIcon, Store: storeInt32, Section: "Look", Help: "the ITEMICON.ESF picture the inventory shows"},
 			"unk2": {Label: "Second icon", Format: hex32, Look: lookItemIcon, Store: storeInt32, Section: "Look", Help: "CLIENT's m_icon2: when not 0 the " +

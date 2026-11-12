@@ -26,7 +26,7 @@ func (s *Server) registerItemOps() {
 		Description: "One item record (itempattern) read as the server and CLIENT read it: its attack type's name, reach and melee " +
 			"kind; its item type; the tags its info shows (NO TRADE, NO RENT, LORE); its weapon proc in plain words (no column " +
 			"holds a proc: the server reads it from the Description, e.g. \"Procs a 100 point DD Spell.\", \"Procs 2000 slashing " +
-			"damage, a 10% chance each hit.\", or an epic's by its name), with the chance and what resists it; a worn item's " +
+			"damage, a 10% chance each hit.\", \"Procs a root.\", \"Procs a 40% snare for 10 seconds.\", or an epic's by its name), with the chance and what resists it; a worn item's " +
 			"effect on each melee hit its wearer takes (by its name); and what using it does (its itemeffect row). values " +
 			"stand in for the record's own (" + strings.Join(readingCols, ", ") + "), to see what an edit would read as before " +
 			"saving it; with no item, values alone are read.",

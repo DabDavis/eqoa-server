@@ -378,6 +378,12 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 			h.whoList(sess)
 			return
 		}
+		// a GM's "/t delete", "/t delete undo" and "/t clone" (gmnpcrow.go); anyone
+		// else's is a tell
+		if w, b, ok := npcRowTell(name, body); ok && h.isGM(sess) {
+			h.handleGMCommand(sess, player, strings.TrimSpace("#"+w+" "+b))
+			return
+		}
 		// a PS2's raid flag and the raid's other commands: it sends /t on as typed and
 		// neither keeps /raid nor can type a # (entity/raidflag.go), and a tell with no
 		// text is no tell; /t invite, /t target, /t need ... when they are commands
@@ -1444,6 +1450,12 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 	case "#marks":
 		// #marks [undo|clear]: the GM's marks (gmcamps.go)
 		h.marksCommand(sess, parts[1:])
+	case "#delete":
+		h.deleteCommand(sess, player, parts[1:]) // gmnpcrow.go
+
+	case "#clone":
+		h.cloneCommand(sess, player, parts[1:]) // gmnpcrow.go
+
 	case "#camp":
 		// #camp <creature>[, <creature>...] | undo: a static spawn at each
 		// mark, popping one of the names each time (gmcamps.go)
@@ -1474,6 +1486,8 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #speed <1-10> - your run speed at that many times your own; 1 gives it back")
 		h.gmReply(sess, "  #setlevel [name] <lvl> - set a level, nothing else (no name: your target player, else you)")
 		h.gmReply(sess, "  #size <factor> - your target (player or NPC), else you, at factor of its own size; 1 gives it back")
+		h.gmReply(sess, "  #delete [undo] - your target creature's row deleted for good (/t delete on a PS2); undo puts your last back")
+		h.gmReply(sess, "  #clone - a copy of your target creature's row where you stand, facing as you face (/t clone on a PS2)")
 		h.gmReply(sess, "  #testmode - toggle: you take every hit in full and cannot die (1 HP left)")
 		h.gmReply(sess, "  #tankprofile1 / 2 / 3 - toggle: AGI 400 and AC 1000 / 2000 / 3000")
 		h.gmReply(sess, "  #hp <cur> [max] - set HP")

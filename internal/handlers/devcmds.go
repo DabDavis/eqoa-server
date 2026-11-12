@@ -107,7 +107,7 @@ var gmCommands = map[string]bool{
 	"#clearbuffs": true, "#nukebuffs": true, "#reward": true, "#dye": true, "#vampire": true,
 	"#rst_mastr": true, "#rst_both": true, "#rem_abil": true, "#banktunar": true, "#servdown": true,
 	"#giveitem": true, "#size": true, "#mark": true, "#marks": true, "#camp": true, "#path": true,
-	"#markportal": true,
+	"#markportal": true, "#delete": true, "#clone": true,
 }
 
 // slashGM is the # spelling of a /command line that names a GM command

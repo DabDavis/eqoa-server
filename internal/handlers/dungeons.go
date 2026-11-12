@@ -46,10 +46,10 @@ const (
 	dungeonsClosed   = "The dungeons are sealed on this server."
 	dungeonsNoWorld  = "Your game cannot see the dungeons, so you cannot go there. It needs a client that builds the server's worlds (eqoa-rust-client-vanilla)."
 	dungeonsNotOpen  = "No instance of %s is open for your party, and only your group's leader may open one."
-	dungeonsTooFar   = "Come back to the Dungeon Warden to answer."
+	dungeonsAskBoard = "Notices of the old dungeons of Tunaria, their creatures grown strong enough to test a raid of heroes of the sixtieth season. Each party fights them in a copy of its own. Where would you go?"
+	dungeonsTooFar   = "Come back to the Instanced Raids board or a Dungeon Warden to answer."
 	dungeonsReach    = 30
-	dungeonsHelp     = "/dungeon names your party's open dungeons; /dungeon enter <Guk|Blackburrow|Runnyeye> goes in (a group's leader, or a player alone, opens its party's instance); /dungeon leave goes back out; /dungeon reset <name> closes the instance you opened while no one is inside. Or speak to a Dungeon Warden beside Dabrish."
-	dungeonsWardenAs = "Dungeon Warden: "
+	dungeonsHelp     = "/dungeon names your party's open dungeons; /dungeon enter <Guk|Blackburrow|Runnyeye> goes in (a group's leader, or a player alone, opens its party's instance); /dungeon leave goes back out; /dungeon reset <name> closes the instance you opened while no one is inside. Or read the Instanced Raids board by Freeport's well."
 )
 
 type dungeonsDo int
@@ -165,9 +165,17 @@ func SetupDungeons(gw *entity.World, c config.DungeonsConfig, _ *database.SQLite
 	return true
 }
 
-// dungeonsSay is the warden's words in a box.
-func dungeonsSay(sess *session.Session, line string) {
-	for _, part := range splitSay(dungeonsWardenAs+line, questBoxChars) {
+// dungeonsAs is a line's speaker: the warden's or the board's name (entity.DungeonRaidBoardName), as "Name: ".
+func dungeonsAs(npc *entity.NPC) string {
+	if npc != nil && entity.IsDungeonWarden(npc.Name) {
+		return strings.TrimSpace(npc.Name) + ": "
+	}
+	return entity.DungeonWardenName + ": "
+}
+
+// dungeonsSay is the warden's (or the board's) words in a box.
+func dungeonsSay(sess *session.Session, as, line string) {
+	for _, part := range splitSay(as+line, questBoxChars) {
 		SendDialogueBox(sess, 0, part)
 	}
 }
@@ -195,20 +203,24 @@ func (h *InteractHandler) dungeonsTalk(sess *session.Session, p *entity.Player, 
 	}
 	switch {
 	case ds == nil || !on:
-		dungeonsSay(sess, dungeonsClosed)
+		dungeonsSay(sess, dungeonsAs(npc), dungeonsClosed)
 	case !dungeonsReaches(sess, world):
-		dungeonsSay(sess, dungeonsNoWorld)
+		dungeonsSay(sess, dungeonsAs(npc), dungeonsNoWorld)
 		log.Printf("Dungeons: %s at the warden: its game cannot load world %d", p.Name, world)
 	default:
-		ds.askRoot(sess, p, npc.ServerID)
+		ds.askRoot(sess, p, npc)
 	}
 	return true
 }
 
 // askRoot is the warden's box.
-func (ds *Dungeons) askRoot(sess *session.Session, p *entity.Player, npc entity.EntityID) {
+func (ds *Dungeons) askRoot(sess *session.Session, p *entity.Player, npc *entity.NPC) {
 	_, world := ds.gw.DungeonsOn()
+	as := dungeonsAs(npc)
 	question := dungeonsAskOut
+	if entity.IsDungeonRaidBoard(npc.Name) {
+		question = dungeonsAskBoard
+	}
 	var answers []dungeonsAnswer
 	if p.World == world {
 		question = fmt.Sprintf(dungeonsAskIn, "the dungeons")
@@ -225,10 +237,10 @@ func (ds *Dungeons) askRoot(sess *session.Session, p *entity.Player, npc entity.
 		answers = append(answers, dungeonsAnswer{do: dungeonsDoEnter, key: c.Key, label: label})
 	}
 	if len(answers) == 0 {
-		dungeonsSay(sess, "No dungeon is open for your party, and only your group's leader may open one.")
+		dungeonsSay(sess, as, "No dungeon is open for your party, and only your group's leader may open one.")
 		return
 	}
-	ds.ask(sess, p, question, answers, npc)
+	ds.ask(sess, p, as+question, answers, npc.ServerID)
 }
 
 func (ds *Dungeons) ask(sess *session.Session, p *entity.Player, question string, answers []dungeonsAnswer, npc entity.EntityID) {
@@ -241,7 +253,7 @@ func (ds *Dungeons) ask(sess *session.Session, p *entity.Player, question string
 	for _, a := range answers {
 		words = append(words, clipRunes(a.label, questAnswerChars))
 	}
-	SendQuestPopupMulti(sess, id, clipRunes(dungeonsWardenAs+question, questAskChars), words)
+	SendQuestPopupMulti(sess, id, clipRunes(question, questAskChars), words)
 }
 
 // answerDungeons is HandleDialogueOption's question for the warden's box. It reports whether the box was its.

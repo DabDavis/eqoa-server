@@ -41,9 +41,20 @@ import (
 // twin, the way out, at each dungeon's entrance).
 const DungeonWardenName = "Dungeon Warden"
 
-// IsDungeonWarden is whether an NPC of the name is the warden.
+// DungeonRaidBoardName is Freeport's papered board against the well that offers the same dungeons (the owner,
+// 2026-11-12: "for the instanced raids add them to a bulletin board similar to PvP Events, against the well";
+// tools/raidboard_20261112.py made the Freeport warden that board; the entrance twins stay wardens).
+const DungeonRaidBoardName = "Instanced Raids"
+
+// IsDungeonWarden is whether an NPC of the name opens the dungeons: a Dungeon Warden or the Instanced Raids board.
 func IsDungeonWarden(name string) bool {
-	return strings.EqualFold(strings.TrimSpace(name), DungeonWardenName)
+	n := strings.TrimSpace(name)
+	return strings.EqualFold(n, DungeonWardenName) || strings.EqualFold(n, DungeonRaidBoardName)
+}
+
+// IsDungeonRaidBoard is whether an NPC of the name is the Instanced Raids board.
+func IsDungeonRaidBoard(name string) bool {
+	return strings.EqualFold(strings.TrimSpace(name), DungeonRaidBoardName)
 }
 
 // dungeonsCheckEvery is how often the dungeons' world is looked over.
@@ -487,7 +498,7 @@ func (w *World) dungeonWardenSpotLocked() (GateSpot, float32, bool) {
 		return GateSpot{}, 0, false
 	}
 	f := float64(best.Facing)
-	return GateSpot{World: best.World, Y: best.Y, Place: "in front of the " + DungeonWardenName,
+	return GateSpot{World: best.World, Y: best.Y, Place: "in front of the " + strings.TrimSpace(best.Name),
 		X: best.X + homesOut*float32(math.Sin(f)), Z: best.Z + homesOut*float32(math.Cos(f))}, best.Facing, true
 }
 

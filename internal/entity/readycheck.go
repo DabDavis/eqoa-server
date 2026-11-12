@@ -131,7 +131,9 @@ func (w *World) readyCheckLocked(sess *session.Session, now time.Time) {
 		if m.ReadyWindows {
 			sendReadyWindow(ms, c.id, ReadyCheckSeconds, p.Name)
 		} else {
-			w.raidLineLocked(ms, fmt.Sprintf("%s asks: Are you ready? Answer within %d seconds with /ready or /notready (on a PS2: /t ready or /t notready).", p.Name, ReadyCheckSeconds))
+			// two lines, each about a PS2's chat line's width
+			w.raidLineLocked(ms, fmt.Sprintf("%s asks: Are you ready? (%d seconds)", p.Name, ReadyCheckSeconds))
+			w.raidLineLocked(ms, "Answer /ready or /notready (a PS2: /t ready, /t notready)")
 		}
 	}
 	what := "group"

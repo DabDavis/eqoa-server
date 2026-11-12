@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
+	"strconv"
 	"strings"
 
 	"github.com/eqoa/server/internal/database"
@@ -32,7 +34,16 @@ import (
 //   - /place <name> (quotes may go round it): as /clone, of a row of that
 //     name (database's PlaceSourceRow: one in the GM's world if any, of the
 //     most common body and level); no NPC of the name: refused, close names
-//     suggested.
+//     suggested. Any world's name: one only in another world is copied into
+//     the GM's; a row's name not standing in the world now too.
+//   - /move (the owner, 2026-11-12: "they target a mob and it moves the mob
+//     there and sets spawn point there also"): the target's row's spawn point,
+//     facing and world set to the GM's, in the world at once; /move undo puts
+//     the GM's last move back (refused when the row changed since).
+//   - a wander after /move, /clone or /place's name ("/clone roamer to make a
+//     roamer mob"): roamer (npcwander radius 300, a far roamer's long legs),
+//     roamer <radius>, wander <radius>, or stay (the row's own wander taken
+//     away: it moves as its name's or kind's rule says), read in at once.
 //
 // Refused (entity/gmnpcrow.go): a player, a spawn of no row (a GM's, a
 // quest's, a trigger's, an event's), a dungeon instance's copy, a pet, a
@@ -40,7 +51,7 @@ import (
 // an instance. Every row's change has its gm_audit line (via "game").
 
 // npcRowWords are /delete's and /clone's words, lower case.
-var npcRowWords = map[string]bool{"delete": true, "clone": true, "place": true}
+var npcRowWords = map[string]bool{"delete": true, "clone": true, "place": true, "move": true}
 
 // npcRowTell reads a PS2's "/t delete" or "/t clone" (its keyboards type no
 // #, and it keeps an unknown /command to itself): the word and what follows
@@ -48,13 +59,108 @@ var npcRowWords = map[string]bool{"delete": true, "clone": true, "place": true}
 func npcRowTell(name, body string) (string, string, bool) {
 	w := strings.ToLower(name)
 	b := strings.TrimSpace(body)
-	if w != "place" {
-		b = strings.ToLower(b)
+	if !npcRowWords[w] {
+		return "", "", false
 	}
-	if !npcRowWords[w] || w != "place" && b != "" && !(w == "delete" && b == "undo") || w == "place" && b == "" {
+	if w == "place" {
+		return w, b, b != ""
+	}
+	b = strings.ToLower(b)
+	fields := strings.Fields(b)
+	switch {
+	case b == "":
+	case (w == "delete" || w == "move") && b == "undo":
+	case w != "delete":
+		if _, rest, bad := wanderOption(fields); bad != "" || len(rest) > 0 {
+			return "", "", false
+		}
+	default:
 		return "", "", false
 	}
 	return w, b, true
+}
+
+// wanderOption reads a wander option off the end of args: "roamer" (radius
+// database.RoamerRadius), "roamer <radius>", "wander <radius>" or "stay"
+// (its own wander taken away). It returns the option (nil for none), the
+// args before it, and what is wrong with a radius ("" when nothing is).
+func wanderOption(args []string) (*database.NPCWanderSet, []string, string) {
+	n := len(args)
+	if n == 0 {
+		return nil, args, ""
+	}
+	last := strings.ToLower(args[n-1])
+	switch last {
+	case "roamer":
+		return &database.NPCWanderSet{Radius: database.RoamerRadius, Note: "a GM's roamer"}, args[:n-1], ""
+	case "stay":
+		return &database.NPCWanderSet{Clear: true}, args[:n-1], ""
+	}
+	if n < 2 {
+		return nil, args, ""
+	}
+	word := strings.ToLower(args[n-2])
+	if word != "roamer" && word != "wander" {
+		return nil, args, ""
+	}
+	r, err := strconv.ParseFloat(last, 64)
+	if err != nil || r < 1 || r > database.MaxWanderRadius || math.IsNaN(r) {
+		return nil, args, fmt.Sprintf("%s's radius is 1 to %d", word, database.MaxWanderRadius)
+	}
+	note := "a GM's wander"
+	if word == "roamer" {
+		note = "a GM's roamer"
+	}
+	return &database.NPCWanderSet{Radius: r, Note: note}, args[:n-2], ""
+}
+
+// wanderWords says a wander option to the GM.
+func wanderWords(w *database.NPCWanderSet) string {
+	switch {
+	case w == nil:
+		return ""
+	case w.Clear:
+		return "its own wander taken away (it moves as its name's or its kind's rule says)"
+	case w.Radius > 70:
+		return fmt.Sprintf("a roamer, %g from its spawn, on long legs", w.Radius)
+	}
+	return fmt.Sprintf("wandering %g from its spawn", w.Radius)
+}
+
+// wanderUsage is the wander options, for a usage line.
+const wanderUsage = "add roamer (wanders 300), roamer <radius>, wander <radius>, or stay (its own wander taken away)"
+
+// applyWander gives a new row id the wander w (clone and place), audited,
+// read into the world; a line to add to the reply.
+func (h *ChatHandler) applyWander(sess *session.Session, id int64, w *database.NPCWanderSet, detail string) string {
+	if w == nil {
+		return ""
+	}
+	changed, err := h.camps.db.SetNPCWanderAudited(id, *w, gmEditOf(sess), detail)
+	if err != nil {
+		return " Its wander is not set: " + err.Error() + "."
+	}
+	if changed {
+		h.reloadNPCExtras([]string{"npcwander"})
+	}
+	return " " + upperFirst(wanderWords(w)) + "." + h.wanderNote(id)
+}
+
+// wanderNote is " (it stands: why)" when the world's rules keep row id from
+// wandering whatever its own wander says, else "".
+func (h *ChatHandler) wanderNote(id int64) string {
+	st, ok := h.gameWorld.NPCStateOf(entity.EntityID(id))
+	if !ok || strings.HasPrefix(st.Movement, "it wanders") {
+		return ""
+	}
+	return " (but it does not wander: " + st.Movement + ")"
+}
+
+func upperFirst(s string) string {
+	if s == "" {
+		return s
+	}
+	return strings.ToUpper(s[:1]) + s[1:]
 }
 
 // npcRowTarget is the GM's target as an NPC of a row a GM may delete or
@@ -223,8 +329,9 @@ func (h *ChatHandler) cloneCommand(sess *session.Session, player *entity.Player,
 		h.gmReply(sess, "/clone: no database here")
 		return
 	}
-	if len(args) > 0 {
-		h.gmReply(sess, "Usage: /clone - a copy of your target creature where you stand, facing as you face")
+	wander, rest, bad := wanderOption(args)
+	if bad != "" || len(rest) > 0 {
+		h.gmReply(sess, "Usage: /clone - a copy of your target creature where you stand, facing as you face; "+wanderUsage)
 		return
 	}
 	id, rec, ok := h.npcRowTarget(sess, player, "/clone")
@@ -233,7 +340,8 @@ func (h *ChatHandler) cloneCommand(sess *session.Session, player *entity.Player,
 	}
 	at := database.NPCClone{World: int(player.World), X: float64(player.X), Y: float64(player.Y), Z: float64(player.Z),
 		Facing: facingByte(float64(player.Facing))}
-	nid, copied, err := h.camps.db.CloneNPCRowAudited(int64(id), at, gmEditOf(sess), fmt.Sprintf("%s (row %d)", rec.NPCName, id))
+	what := fmt.Sprintf("%s (row %d)", rec.NPCName, id)
+	nid, copied, err := h.camps.db.CloneNPCRowAudited(int64(id), at, gmEditOf(sess), what)
 	if err != nil {
 		h.gmReply(sess, "/clone: nothing made: "+err.Error())
 		return
@@ -247,6 +355,7 @@ func (h *ChatHandler) cloneCommand(sess *session.Session, player *entity.Player,
 	if _, err := h.upsertRowNPC(nid); err != nil {
 		line += fmt.Sprintf(" It is not in the world yet (at the next start): %v.", err)
 	}
+	line += h.applyWander(sess, nid, wander, fmt.Sprintf("/clone in the game: %s, a copy of NPC %d", what, id))
 	if player.Flying {
 		line += " (you fly: it stands in the air)"
 	}
@@ -286,13 +395,18 @@ func (h *ChatHandler) placeCommand(sess *session.Session, player *entity.Player,
 		h.gmReply(sess, "/place: no database here")
 		return
 	}
-	q := strings.Trim(strings.TrimSpace(strings.Join(args, " ")), `"'`)
-	q = strings.TrimSpace(q)
-	if q == "" {
-		h.gmReply(sess, `Usage: /place "<creature name>" - a new one where you stand, facing as you face, a copy of a row of that name`)
+	q, wander, bad := h.placeArgs(args)
+	if q == "" || bad != "" {
+		h.gmReply(sess, `Usage: /place "<creature name>" - a new one where you stand, facing as you face, a copy of a row of that name `+
+			`(of any world; the quotes may be left off); `+wanderUsage)
 		return
 	}
 	name, ok := h.pickNPCName(sess, q)
+	if !ok {
+		if n, found := h.camps.db.NPCRowName(q); found {
+			name, ok = n, true // a row's name not standing in the world now
+		}
+	}
 	if !ok {
 		if len(searchNames(h.gameWorld.NPCNames(), q)) == 0 {
 			line := fmt.Sprintf("/place: no NPC is called %q: nothing made.", q)
@@ -332,10 +446,130 @@ func (h *ChatHandler) placeCommand(sess *session.Session, player *entity.Player,
 	if _, err := h.upsertRowNPC(nid); err != nil {
 		line += fmt.Sprintf(" It is not in the world yet (at the next start): %v.", err)
 	}
+	line += h.applyWander(sess, nid, wander, fmt.Sprintf("/place in the game: %s (row %d), a copy of NPC %d", name, src, src))
 	if player.Flying {
 		line += " (you fly: it stands in the air)"
 	}
 	h.gmReply(sess, line+" /delete on it takes it away.")
 	log.Printf("GM: %s placed %s as %d (a copy of %d) at (%.1f, %.1f, %.1f) world %d facing %d", player.Name, name, nid, src,
 		at.X, at.Y, at.Z, at.World, at.Facing)
+}
+
+// placeArgs reads /place's words: the name, in quotes or not, and a wander
+// option after it (wanderOption); bad says what is wrong with a radius. A
+// name an NPC has whole ("... stay") is a name, no option.
+func (h *ChatHandler) placeArgs(args []string) (string, *database.NPCWanderSet, string) {
+	line := strings.TrimSpace(strings.Join(args, " "))
+	if line == "" {
+		return "", nil, ""
+	}
+	if q := line[0]; q == '"' || q == '\'' {
+		end := strings.IndexByte(line[1:], q)
+		if end < 0 {
+			return strings.TrimSpace(line[1:]), nil, ""
+		}
+		name := strings.TrimSpace(line[1 : 1+end])
+		w, rest, bad := wanderOption(strings.Fields(line[2+end:]))
+		if bad == "" && len(rest) > 0 {
+			bad = "unknown words after the name: " + strings.Join(rest, " ")
+		}
+		return name, w, bad
+	}
+	if h.npcNamed(line) {
+		return line, nil, ""
+	}
+	w, rest, bad := wanderOption(strings.Fields(line))
+	if bad != "" {
+		return "", nil, bad
+	}
+	return strings.Trim(strings.Join(rest, " "), `"'`), w, ""
+}
+
+// moveCommand is /move [roamer [<radius>] | wander <radius> | stay] or /move
+// undo (the owner, 2026-11-12: "/move for GMs: they target a mob and it moves
+// the mob there and sets spawn point there also"): the target's npcs row's
+// spawn point, facing and world set to the GM's, and its wander if asked, in
+// the world at once, audited; the same targets and ranks as /clone.
+func (h *ChatHandler) moveCommand(sess *session.Session, player *entity.Player, args []string) {
+	if h.camps.db == nil {
+		h.gmReply(sess, "/move: no database here")
+		return
+	}
+	if len(args) == 1 && strings.EqualFold(args[0], "undo") {
+		h.moveUndo(sess, player)
+		return
+	}
+	wander, rest, bad := wanderOption(args)
+	if bad != "" || len(rest) > 0 {
+		h.gmReply(sess, "Usage: /move - your target creature's spawn point moved where you stand, facing as you face; "+
+			wanderUsage+"; /move undo puts your last back")
+		return
+	}
+	id, rec, ok := h.npcRowTarget(sess, player, "/move")
+	if !ok {
+		return
+	}
+	at := database.NPCClone{World: int(player.World), X: float64(player.X), Y: float64(player.Y), Z: float64(player.Z),
+		Facing: facingByte(float64(player.Facing))}
+	what := fmt.Sprintf("%s (row %d)", rec.NPCName, id)
+	m, err := h.camps.db.MoveNPCRowAudited(int64(id), at, wander, gmEditOf(sess), what)
+	if errors.Is(err, sql.ErrNoRows) {
+		h.gmReply(sess, fmt.Sprintf("/move: %s has no row any more.", what))
+		return
+	}
+	if err != nil {
+		h.gmReply(sess, "/move: nothing moved: "+err.Error())
+		return
+	}
+	if m.Wander {
+		h.reloadNPCExtras([]string{"npcwander"})
+	}
+	line := fmt.Sprintf("Moved %s here (from %.0f, %.0f, %.0f", what, m.From.X, m.From.Y, m.From.Z)
+	if m.From.World != at.World {
+		line += fmt.Sprintf(" in world %d", m.From.World)
+	}
+	line += ")."
+	if wander != nil {
+		line += " " + upperFirst(wanderWords(wander)) + "."
+	}
+	if _, err := h.upsertRowNPC(int64(id)); err != nil {
+		line += fmt.Sprintf(" It is not moved in the world yet (at the next start): %v.", err)
+	} else {
+		line += h.wanderNote(int64(id))
+	}
+	if h.gameWorld.HasNPCPath(id) {
+		line += " It walks a path (npcpaths), which is where it was: change the path in the GM panel."
+	}
+	if player.Flying {
+		line += " (you fly: it stands in the air)"
+	}
+	h.gmReply(sess, line+" /move undo puts it back.")
+	log.Printf("GM: %s moved NPC %s from (%.1f, %.1f, %.1f) world %d to (%.1f, %.1f, %.1f) world %d facing %d, wander %+v",
+		player.Name, what, m.From.X, m.From.Y, m.From.Z, m.From.World, at.X, at.Y, at.Z, at.World, at.Facing, wander)
+}
+
+// moveUndo is /move undo: the GM's last move put back, in the world at once.
+func (h *ChatHandler) moveUndo(sess *session.Session, player *entity.Player) {
+	r, ok, err := h.camps.db.UndoLastNPCMove(sess.AccountID(), gmEditOf(sess))
+	switch {
+	case err != nil:
+		h.gmReply(sess, "/move undo: "+err.Error())
+		return
+	case !ok:
+		h.gmReply(sess, "You have moved nothing that is not back already.")
+		return
+	}
+	if r.Wander {
+		h.reloadNPCExtras([]string{"npcwander"})
+	}
+	line := fmt.Sprintf("Put %s (row %d) back where it stood", r.Name, r.ID)
+	if r.Wander {
+		line += ", with its wander as it was"
+	}
+	line += "."
+	if _, err := h.upsertRowNPC(r.ID); err != nil {
+		line += fmt.Sprintf(" It is not moved in the world yet (at the next start): %v.", err)
+	}
+	h.gmReply(sess, line)
+	log.Printf("GM: %s put NPC %d (%s) back from a /move", player.Name, r.ID, r.Name)
 }

@@ -378,8 +378,9 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 			h.whoList(sess)
 			return
 		}
-		// a GM's or sub GM's "/t delete", "/t delete undo", "/t clone" and "/t place
-		// <name>" (gmnpcrow.go); anyone else's is a tell
+		// a GM's or sub GM's "/t delete", "/t delete undo", "/t clone", "/t place
+		// <name>" and "/t move" (with their options, gmnpcrow.go); anyone else's
+		// is a tell
 		if w, b, ok := npcRowTell(name, body); ok && (h.isGM(sess) || h.granted(sess, "#"+w)) {
 			h.handleGMCommand(sess, player, strings.TrimSpace("#"+w+" "+b))
 			return
@@ -1458,6 +1459,9 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 
 	case "#place":
 		h.placeCommand(sess, player, parts[1:]) // gmnpcrow.go
+
+	case "#move":
+		h.moveCommand(sess, player, parts[1:]) // gmnpcrow.go
 
 	case "#camp":
 		// #camp <creature>[, <creature>...] | undo: a static spawn at each

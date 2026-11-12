@@ -99,6 +99,26 @@ func (w *World) KillNPCNow(id EntityID) bool {
 	return true
 }
 
+// KillNPCNowBy is KillNPCNow by the GM sess plays, the TEST menu's KILL
+// (0x0701 sub-op 16): credited to the GM as #kill's is (KillNPCByObjectID:
+// the kill's faction hits, and the quests' kill and loot steps of the GM and
+// its group's members near, so a loot step's item drops for each), still no
+// experience. Until then the menu's KILL was credited to no one: the owner's
+// group of 2026-11-12 had Quil'Eyne killed so twice, its two players on
+// "The Vampires of Greyvax" step 3 within reach, and no blood dropped.
+func (w *World) KillNPCNowBy(sess *session.Session, id EntityID) bool {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	npc, ok := w.NPCs[id]
+	if !ok || npc.Dead || npc.Dummy != NotDummy {
+		return false
+	}
+	npc.HP = 0
+	w.killNPC(npc)
+	w.factionKillLocked(sess, w.sessionPlayerLocked(sess), npc)
+	return true
+}
+
 // NPCState is an NPC as the world holds it now: where it stands (which is
 // not its row's place while it fights or after a GM moved its row), whether it
 // is alive and whom it fights.

@@ -802,7 +802,8 @@ func (h *ChatHandler) gmSpawner(sess *session.Session, gm *entity.Player, sub by
 }
 
 // gmKill is KILL on the GM's target or on the GM itself: an NPC as #kill
-// does, a player as a death (its experience debt, its respawn).
+// does (credited to the GM and its group: KillNPCNowBy), a player as a death
+// (its experience debt, its respawn).
 func (h *ChatHandler) gmKill(sess *session.Session, gm *entity.Player, id uint32) {
 	if id == 0xFFFFFFFF || id == 0 {
 		h.gmReply(sess, "No target selected")
@@ -815,7 +816,7 @@ func (h *ChatHandler) gmKill(sess *session.Session, gm *entity.Player, id uint32
 	}
 	switch t := target.(type) {
 	case *entity.NPC:
-		if h.gameWorld.KillNPCNow(t.ServerID) {
+		if h.gameWorld.KillNPCNowBy(sess, t.ServerID) {
 			h.gmReply(sess, fmt.Sprintf("Killed %s", t.Name))
 		} else {
 			h.gmReply(sess, fmt.Sprintf("%s is dead already, or cannot die", t.Name))

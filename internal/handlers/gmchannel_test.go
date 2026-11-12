@@ -189,11 +189,13 @@ func (c *chatWorld) npcSeen(s *session.Session, npc *entity.NPC) uint32 {
 }
 
 // A command is a GM's: the player's KILL and HEAL do nothing, the GM's kill
-// and heal; a second KILL says it is dead already; a trigger answers the GM
+// (credited to the GM: KillNPCNowBy) and heal; a second KILL says it is dead already; a trigger answers the GM
 // alone (line 3 is slot 4: with no engine running, it says so), and a
 // 0x0702 that is no trigger nobody.
 func TestGMCommandsAreAGMsAloneOnTheChannel(t *testing.T) {
 	c, gs, _, ps, _ := gmWorld(t)
+	var heard []entity.KillCredit
+	c.gw.OnKill(func(k entity.KillCredit) { heard = append(heard, k) })
 	npc := &entity.NPC{ServerID: 900, Name: "Orc Pawn", HP: 10, MaxHP: 100, Level: 3}
 	id := c.npcSeen(gs, npc)
 	entity.GetOrCreateVisibility(ps).ChannelEntity[0] = npc.ServerID
@@ -214,6 +216,10 @@ func TestGMCommandsAreAGMsAloneOnTheChannel(t *testing.T) {
 	c.gm(gs, "10"+gmU32(id))
 	if !npc.Dead {
 		t.Fatal("the GM's KILL left it alive")
+	}
+	// credited to the GM as #kill is (its quests' kill and loot steps)
+	if len(heard) != 1 || len(heard[0].Players) == 0 || heard[0].Players[0].Name != "Gm" || heard[0].NPCName != "Orc Pawn" {
+		t.Fatalf("the GM's KILL was credited %+v, want to Gm", heard)
 	}
 	got := gmReplies(t, gs)
 	if !hasLine(got, "Healed Orc Pawn") || !hasLine(got, "Killed Orc Pawn") {

@@ -21,6 +21,20 @@ import (
 // title. CLIENT's name plate is at the body's name node, wherever that is, so
 // the same body is the one whose node is known to stand over the NPC's.
 //
+// A title's colour (the GM Jibrish's petitions 1790 and 1791, 2026-11-12:
+// "Color the XP/CM title on Dabrish green, semi bright green so it shows but
+// not too green as to be unreadable", and the Testing Heroes Vendor's) is one
+// of CLIENT's three name colours, the same for every viewer: a name plate's
+// is VICSprite::NameColors[c] (gold 212,192,111; blue 100,175,220; green
+// 90,255,80), c picked by VICreatureEntity::ApplyLook alone from the actor's
+// own channel: 0 when its m_p256 (byte 142) is under 2, else 2 when its
+// m_p299 (byte 157) has bit 0, else 1. No viewer's level, con or faction
+// enters it (con colours are the target ring's), and vanilla picks it the
+// same way (play.rs's NAME_COLORS). So a plate coloured blue or green carries
+// byte 142 = 3, a pet's (pet.go), which CLIENT's target cycle and
+// TargetCentre skip besides its byte 26 (and IsSelectable takes only 2), and
+// green byte 157 = 1 too. The NPC's own name keeps its colour.
+//
 // The titles are table npctitle's, by the npcs row (database/npctitle.go),
 // read at the start and by the GM panel's edit of the table; an NPC made
 // again from its row takes its row's (applyNPCSettingsLocked). A copy of it
@@ -41,13 +55,35 @@ func (w *World) LoadNPCTitles(db *database.SQLiteDB) (int, error) {
 		return 0, fmt.Errorf("npctitle: %w", err)
 	}
 	m := make(map[EntityID]string, len(rows))
-	for id, t := range rows {
-		if t = cleanTitle(t); t != "" {
+	c := make(map[EntityID]uint8)
+	for id, r := range rows {
+		if t := cleanTitle(r.Title); t != "" {
 			m[EntityID(id)] = t
+			if k := TitleColor(r.Color); k != 0 {
+				c[EntityID(id)] = k
+			}
 		}
 	}
+	w.SetNPCTitleColors(c)
 	w.SetNPCTitles(m)
 	return len(m), nil
+}
+
+// titleColors is npctitle's color by name: CLIENT's NameColors index.
+var titleColors = map[string]uint8{"": 0, "gold": 0, "yellow": 0, "blue": 1, "green": 2}
+
+// TitleColor is the NameColors index of npctitle's color, any case; 0 (an
+// NPC's own gold) for one it does not know.
+func TitleColor(name string) uint8 {
+	return titleColors[strings.ToLower(strings.TrimSpace(name))]
+}
+
+// SetNPCTitleColors sets the titles' colours by NPC row (NameColors indexes;
+// an NPC missing is 0, as its own name). SetNPCTitles after it gives them.
+func (w *World) SetNPCTitleColors(m map[EntityID]uint8) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.npcTitleColors = m
 }
 
 // SetNPCTitles sets the titles by NPC row and gives every NPC its own.
@@ -60,6 +96,7 @@ func (w *World) SetNPCTitles(m map[EntityID]string) {
 			continue // a copy, a pet, a merc: no row of its own
 		}
 		n.Title = m[id]
+		n.TitleColor = w.npcTitleColors[id]
 	}
 }
 
@@ -75,7 +112,7 @@ func cleanTitle(t string) string {
 // serializeTitlePlate is the channel of n's title plate under objectID
 // (serializePlate's for a titled NPC): n's place, facing, world, NPC bits and
 // level, its body at titleScale of its size, under its title, nothing worn or
-// held, its skins hidden and not selectable.
+// held, its skins hidden and not selectable, in its title's colour.
 func serializeTitlePlate(objectID uint32, n *NPC) []byte {
 	model, size := n.Body()
 	if size <= 0 {
@@ -93,5 +130,13 @@ func serializeTitlePlate(objectID uint32, n *NPC) []byte {
 		Level:   n.Level,
 		Race:    "0",
 	}
-	return plateBytes(objectID, p)
+	buf := plateBytes(objectID, p)
+	if n.TitleColor != 0 {
+		buf[142] = 3 // m_p256 >= 2: a pet's name colour, not selectable
+		buf[157] = 0
+		if n.TitleColor == 2 {
+			buf[157] = 1 // m_p299 bit 0: NameColors[2], green
+		}
+	}
+	return buf
 }

@@ -161,6 +161,8 @@ type World struct {
 	// Duels, asked and on (duel.go), and their wagers' writes (duelpurse.go)
 	duels     duelTable
 	duelPurse duelPurse
+	// ready: the groups' ready checks (readycheck.go)
+	ready readyChecks
 
 	// pvpAllowed is world.pvp: whether players may flag themselves (pvp.go)
 	pvpAllowed bool

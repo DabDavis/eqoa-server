@@ -109,6 +109,31 @@ func roamLeg(u float64) float32 {
 	return roamLegs[i] + (roamLegs[i+1]-roamLegs[i])*(f-float32(i))
 }
 
+// A far roamer's legs (the owner, 2026-11-12: "skeletal giant and others are
+// not roaming correctly, they only move a small distance"): a creature given a
+// radius past the server's (npcmove's radius, npcwander's: the kinds that roam
+// a canyon or a zone, not a camp's ground) walks legs as much longer as its
+// radius is wider, up to roamLegScaleMax times Sandstorm's, so it crosses its
+// ground rather than shuffling round its spawn: its spots (the file's comment)
+// are the ends of those legs, as spread as they are. Sandstorm's lengths were
+// measured on creatures keeping within 66 of their middle; at the server's
+// radius and under it a leg is as ever.
+const roamLegScaleMax float32 = 4
+
+// roamLegScaleLocked is how much longer than Sandstorm's a leg is drawn for a
+// creature wandering within r (the comment above): 1 up to the server's
+// radius. Must be called with the lock held.
+func (w *World) roamLegScaleLocked(r float32) float32 {
+	base := w.roamRadius
+	if base <= 0 {
+		base = DefaultRoamRadius
+	}
+	if r <= base {
+		return 1
+	}
+	return min(r/base, roamLegScaleMax)
+}
+
 // roamActiveRange is how near a player a creature must be to wander: the
 // farthest any client can be shown it (handlers/entityslots.go's 1000).
 const roamActiveRange float32 = 1000
@@ -388,7 +413,7 @@ func (w *World) roamPointLocked(npc *NPC) (x, z float32) {
 		}
 	}
 	for i := 0; i < 16; i++ {
-		d := min(max(roamLeg(w.roamRand().Float64()), roamMinStep), r)
+		d := min(max(roamLeg(w.roamRand().Float64())*w.roamLegScaleLocked(r), roamMinStep), r)
 		a := w.roamRand().Float64() * 2 * math.Pi
 		x = npc.X + d*float32(math.Sin(a))
 		z = npc.Z + d*float32(math.Cos(a))
@@ -429,7 +454,7 @@ func (w *World) spotLegLocked(npc *NPC, s *wanderSpots, from int, r float32, tow
 		skip = s.tried[from] &^ s.good[from] // its way there failed
 	}
 	for i := 0; i < 16; i++ {
-		d := min(max(roamLeg(w.roamRand().Float64()), roamMinStep), r)
+		d := min(max(roamLeg(w.roamRand().Float64())*w.roamLegScaleLocked(r), roamMinStep), r)
 		j, gap := -1, float32(0)
 		jk, gapk := -1, float32(0)
 		for k := 0; k < s.n; k++ {

@@ -124,6 +124,15 @@ type EffectRules struct {
 	// Raiment: a Wisp in its own form shown in all it wears (EffectRaiment,
 	// wispform.go); ended as an illusion is
 	Raiment bool `json:",omitempty"`
+	// SowPct is its run speed in percent of the movement buff's (hpcap.go: the
+	// Tester Pro's 200), 0 the buff's own; HPCap the most its bearer's maximum
+	// hit points may be (HPCapped says there is one); StatPin what each of its
+	// bearer's seven stats is (StatPinned says it holds them)
+	SowPct     int  `json:",omitempty"`
+	HPCap      int  `json:",omitempty"`
+	HPCapped   bool `json:",omitempty"`
+	StatPin    int  `json:",omitempty"`
+	StatPinned bool `json:",omitempty"`
 }
 
 // rulesOf is a cast's rules for what lasts of it.
@@ -641,7 +650,7 @@ func cureMatches(ae *ActiveEffect, words string) bool {
 	case has("slow", "snare"):
 		return ae.Snare || ae.Rules.SpeedPct < 0
 	case has("speed"):
-		return ae.Speed
+		return ae.Speed && ae.Rules.SowPct <= 100 // a lesser one: a speed past the buff's stays (hpcap.go)
 	case has("mask", "illusion"):
 		return ae.Form != 0
 	case w == "mitigation":

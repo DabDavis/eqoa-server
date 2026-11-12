@@ -276,6 +276,10 @@ type Player struct {
 	RaidWindows   bool
 	raidStateSent string
 
+	// ReadyWindows: the player's client shows a ready check's window and answered its
+	// offer (readycheck.go, opcodes 0x7E49-0x7E4B, 0x7E56); else it is told in a line.
+	ReadyWindows bool
+
 	// PetEffects: the player's client draws its pet's effects under the pet's
 	// bar and asked for them (peteffects.go, opcodes 0x7E32 and 0x7E33);
 	// petEffectsSent is what made the set it was last sent (each effect's

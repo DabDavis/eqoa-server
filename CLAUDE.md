@@ -2525,6 +2525,35 @@ row's `remaincharge` what is left. Each use takes one and tells the client 0x003
 slot) named `Rolling Dice`, whose Use with any target rolls 0 to 100 as the menu's roll and a plain `/roll` do (petition 1107,
 the GM Jibrish), to everyone in say range, in orange, never spent, at most one every 2 s a player.
 
+### The Tester Pro: speed for everything else (`entity/hpcap.go`, petition 1725)
+
+The GM Jibrish's petition 1725: "Create an item that has infinite charges and is no trade lore. Call it "Tester Pro". When
+the player uses it, it gives them a run speed buff that is x2 SoW speed. However, also make it reduce their max HP to 1, and
+set all of their stats to 1 while the buff is up". **The item** (itempattern 965007, `tools/tester_pro_20261112.py`, its
+record and itemeffect row with gm_audit lines; nobody is given one: `#giveitem 965007 <player>`): CLIENT's gem type
+(procanim 7, the item menu's Use and the gem quick slot), NO TRADE, LORE, worth 0, every class and race, the Ring of Speed's
+icon; its line "Self, Run Speed 2x Spirit of the Wolf, Set Maximum HP to 1, Set All Stats to 1, Unlimited Uses, 30min", on
+the effects list as "Tester Pro" with Spirit of the Wolf's icon. **Four clauses any line may hold** (item or spell):
+- **"Unlimited Uses"** ("Infinite Charges", "Never Spent"; `SpellDef.Unlimited`): an item's use takes nothing of it
+  (`usePotion`), as the kept heirlooms' (`neverSpent`) — no charge column, no name rule.
+- **"Run Speed Nx Spirit of the Wolf"** ("Movement Speed 1.5x SoW"; `SpellEffect.SowPct`, `EffectRules.SowPct`): the
+  movement buff's speed (`speedBuff` 1.3 of the run) times N, at most 5, past the move rate's cap of 100 (`SpeedNow`'s
+  `sowFactor`, so 0x00F8 and the movement check's speed: 22.97 for 2x); the fastest counts; a SoW over it changes nothing
+  and a "lesser speed" removal leaves it (`cureMatches`); its line key `speed200`, not the buff's line.
+- **"Set Maximum HP to N"** ("Set Max HP to N", "Caps HP at N"; `EffectHPCap`, `EffectRules.HPCap`): the maximum hit points
+  at most N (N 1 or more: Spiritform's "to 0" stays unread) while it lasts, the hit points held under it (`MaxHPNow`, `effectsChangedLocked`), as the Eye
+  line's power ceiling; lasting no time, the hit points taken down to N. At its end the maximum is its own, the hit points
+  where they were, to regenerate.
+- **"Set All Stats to N"** (`EffectStatPin`, `EffectRules.StatPin`): STR to CHA each N while it lasts (`StatNow`), whatever
+  base, gear, masteries or another effect would make them, so the maximum hit points and power follow; unlike "Set STR to
+  500" (the difference as it lands) it holds whatever changes under it.
+All four are kept over a logout (the rules' column of `charbuffs`); a second use renews the 30 minutes (one effect); a death
+or `#clearbuffs` ends it. **No clicking it off**: neither CLIENT nor vanilla asks the server to end an effect. The rig
+(`~/.cache/testerpro/rig`, vanilla, movecheck enforce): given by `#giveitem`, used from the Magic tab, HP 1/1 and power
+2445 to 1689, `#stats` every stat 1 and run speed 22.97; 4 s of steady running 88.7 under it against 31.7-34.7 without
+(2.6 times), no MOVECHECK line; kept over a logout (28m51s); at 40 s (a rig-only line) it wore off, max HP 1876, stats back,
+the hit points regenerating from 1; the item still there, stack 1, after every use.
+
 ### Groups: any member invites (`entity/group.go`, `handlers/group.go`)
 
 The user, 2026-11-06: "lets allow any group member to invite to group". `GroupInvite` takes a 0x0625 from any
@@ -2645,6 +2674,13 @@ before answers 1 and reads the records as ever. Kept over a keep restart (`KeptG
 5. `stateSyncSystem()` — updates channel 0 every tick
 6. `statChannelSyncSystem()` — updates stat channel every 20 ticks
 7. `visibilitySystem()` — assigns nearby entities to channels 1-23 (or the client's own number of slots) every 5 ticks
+   **A board brings its name plate** (`entity/boardplate.go`; the owner, 2026-11-12: "for the bulletin board lets add a
+   nameplate above"): CLIENT plates only a CSprite with a name node, and no board body has one (the papered board is a
+   SimpleSprite; the sign post and 0x6DE5B2CC have no name node), so each board in view (the papered board by its body, an
+   announcement board / Guild Board / Duel Tournament Board by its name on those bodies) is followed by a second entity: a
+   human body under the board's name, skins hidden (byte 154), not selectable (byte 26 = 0), sized so its name stands 0.5 over
+   the board's top. Not in `World.NPCs` nor the spatial index (id `0x6F000000` + the board's); a keep restart keeps it
+   (kind `plate`). It takes one of a PS2's 23 slots beside its board.
 
 ### Handler Pattern
 

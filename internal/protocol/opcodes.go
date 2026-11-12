@@ -1439,6 +1439,14 @@ func (op GameOpcode) String() string {
 		return "RaidMasterLoot"
 	case OpcodeRaidCommand:
 		return "RaidCommand"
+	case OpcodeReadyCheckOffer:
+		return "ReadyCheckOffer"
+	case OpcodeReadyCheckAnswer:
+		return "ReadyCheckAnswer"
+	case OpcodeReadyCheck:
+		return "ReadyCheck"
+	case OpcodeReadyCheckReply:
+		return "ReadyCheckReply"
 	case OpcodeDPSMeterOffer:
 		return "DPSMeterOffer"
 	case OpcodeDPSMeterAnswer:

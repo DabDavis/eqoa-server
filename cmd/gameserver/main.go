@@ -309,6 +309,13 @@ func main() {
 	if _, err := gameWorld.LoadMoveRules(db); err != nil {
 		log.Printf("WARNING: %v; every creature wanders and keeps to where it spawned", err)
 	}
+	// A creature's own wander by its npcs row (entity/movement.go, table
+	// npcwander): a camp's wanderers, a GM's "make them roam"
+	if n, err := gameWorld.LoadRowWander(db); err != nil {
+		log.Printf("WARNING: %v; no creature wanders by its own row", err)
+	} else if n > 0 {
+		log.Printf("Creatures: %d wander by their own rows (npcwander)", n)
+	}
 	log.Printf("Creatures: %s", gameWorld.MoveSummary())
 	// The NPCs that stand out of the world, there only as the originals the
 	// quests' and triggers' spawns copy (entity/spawnonly.go, table

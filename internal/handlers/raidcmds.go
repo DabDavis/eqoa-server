@@ -41,6 +41,8 @@ func (h *RaidHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeRaidAnswer, h.handleAnswer)
 	r.Register(protocol.OpcodeRaidRollChoice, h.handleRollChoice)
 	r.Register(protocol.OpcodeRaidCommand, h.handleCommand)
+	r.Register(protocol.OpcodeReadyCheckAnswer, h.handleReadyAnswer) // readycheck.go
+	r.Register(protocol.OpcodeReadyCheckReply, h.handleReadyReply)
 }
 
 // buildRaidOffer is protocol.OpcodeRaidOffer: a u8, 1.
@@ -203,7 +205,11 @@ func (h *ChatHandler) raidTell(sess *session.Session, player *entity.Player, nam
 		if rest != "" {
 			return false // a tell to someone called Raid
 		}
-	case "raidaoe", "raidinvite", "raidleave", "raidkick", "raidleader", "raidhelper", "raidassist", "raidloot", "rsay", "raidgroup", "raidswap":
+	case "raidaoe", "raidinvite", "raidleave", "raidkick", "raidleader", "raidhelper", "raidassist", "raidloot", "rsay", "raidgroup", "raidswap", "readycheck":
+	case "ready", "notready": // only while the sender has a ready check to answer
+		if rest != "" || !h.gameWorld.HasReadyCheck(sess) {
+			return false
+		}
 	case "invite", "target", "tar", "help":
 		if findPlayerByName(h.gameWorld, cmd) != nil {
 			return false // a tell to them
@@ -278,6 +284,10 @@ func (h *ChatHandler) raidCommand(sess *session.Session, player *entity.Player, 
 		gw.RaidLootRule(sess, rest)
 	case "rsay":
 		h.raidSay(sess, player, rest)
+	case "readycheck": // petition 1711 (entity/readycheck.go)
+		gw.ReadyCheck(sess)
+	case "ready", "notready":
+		gw.ReadyAnswer(sess, 0, cmd == "ready", true)
 	case "invite":
 		gw.InviteByName(sess, rest)
 	case "target", "tar":
@@ -376,6 +386,8 @@ var playerHelpLines = []string{
 	"  /raidloot ffa|needgreed|master - the leader's loot rule (not in combat)",
 	"  /raidgroup - the raid's groups; /raidgroup <name> <n> moves one (leader, helper)",
 	"  /raidswap <name> <name> - trades two members' groups (the leader or the helper)",
+	"  /readycheck - asks your group or raid (its leader or helper) if all are ready",
+	"  /ready, /notready - answers a ready check",
 	"  /need [n], /greed [n], /pass [n] - a loot roll (no number: your oldest)",
 	"  /assign <n> <name>, /abandon - the master looter gives item n, or lets all go",
 	"  /invite <name> - invites a player to your group",

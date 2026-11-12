@@ -134,7 +134,7 @@ func TestBufferLandsFiveForFiveHoursASecondOn(t *testing.T) {
 		t.Errorf("the effects channel's slots: %+v", c.p.Buffs)
 	}
 	said := pvpChat(c.sent())
-	if want := "Buffer says, 'There you are, Druid: Test Avatar, Test Order, Test Heart, Test Ward and GM Armor, for five hours of play.'"; len(said) != 1 || said[0] != want {
+	if want := "Bruce Buffer says, 'There you are, Druid: Test Avatar, Test Order, Test Heart, Test Ward and GM Armor, for five hours of play.'"; len(said) != 1 || said[0] != want {
 		t.Errorf("his line: %q, want %q", said, want)
 	}
 	c.bufferTick(time.Second + BufferLasts - time.Millisecond)
@@ -300,7 +300,7 @@ func TestBufferLineNamesWhatTook(t *testing.T) {
 	c.w.StartBuffer(c.sess, c.npc.ServerID, bufferFive(), c.at(0))
 	c.bufferTick(time.Second)
 	msgs := c.sent()
-	if want := "Buffer says, 'There you are, Druid: Test Avatar, Test Heart, Test Ward and GM Armor, for five hours of play.'"; strings.Join(pvpChat(msgs), "|") != want {
+	if want := "Bruce Buffer says, 'There you are, Druid: Test Avatar, Test Heart, Test Ward and GM Armor, for five hours of play.'"; strings.Join(pvpChat(msgs), "|") != want {
 		t.Errorf("his line: %q, want %q", pvpChat(msgs), want)
 	}
 	if c.effectOf(9302) != nil || c.effectOf(9321) == nil {
@@ -313,7 +313,7 @@ func TestBufferLineNamesWhatTook(t *testing.T) {
 	c.w.StartBuffer(c.sess, c.npc.ServerID, only, c.at(0))
 	c.sent()
 	c.bufferTick(time.Second)
-	if said := pvpChat(c.sent()); len(said) != 1 || said[0] != "Buffer says, 'You already carry stronger blessings than mine, Druid.'" {
+	if said := pvpChat(c.sent()); len(said) != 1 || said[0] != "Bruce Buffer says, 'You already carry stronger blessings than mine, Druid.'" {
 		t.Errorf("none took: %q", said)
 	}
 }

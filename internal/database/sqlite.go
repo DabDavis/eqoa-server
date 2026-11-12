@@ -660,6 +660,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureNPCMove(); err != nil {
 		return err
 	}
+	if err := db.ensureNPCWander(); err != nil { // npcwander.go
+		return err
+	}
 	if err := db.ensureBalance(); err != nil {
 		return err
 	}

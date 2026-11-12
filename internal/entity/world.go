@@ -161,6 +161,8 @@ type World struct {
 	// Duels, asked and on (duel.go), and their wagers' writes (duelpurse.go)
 	duels     duelTable
 	duelPurse duelPurse
+	// ready: the groups' ready checks (readycheck.go)
+	ready readyChecks
 
 	// pvpAllowed is world.pvp: whether players may flag themselves (pvp.go)
 	pvpAllowed bool
@@ -238,6 +240,7 @@ type World struct {
 	// table npcmove (movement.go)
 	env         Env
 	moveRules   map[string]database.NPCMoveRule
+	rowWander   map[EntityID]float32   // npcwander: a row's own wander, its radius (movement.go)
 	apartToldAt map[EntityID]time.Time // when a player was last told its melee crossed the water's edge
 	// Whether each NPC name is wildlife's (wildlife.go), worked out once a
 	// name; its own lock, as the GM panel reads under the World's read lock

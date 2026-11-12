@@ -152,6 +152,36 @@ type KeptCorpse struct {
 	Drops  map[uint32][]database.CharInventoryEntry `json:"drops,omitempty"`
 	// Raid is its raid's hold (raidloot.go: keepRaid), nil for none
 	Raid *KeptRaidCorpse `json:"raid,omitempty"`
+	// Right is its kill group (lootrights.go), nil for none: the corpse anyone's.
+	// Without it every corpse lay open to all after a restart, a stranger's
+	// first opening taking the coins and the items (the owner, 2026-11-12).
+	Right *KeptRight `json:"right,omitempty"`
+}
+
+// KeptRight is a corpse's kill group: the characters the kill counted for and
+// the killer's group (kept by its id: RestoreGroups forms each again under it).
+type KeptRight struct {
+	Chars []uint32 `json:"chars"`
+	Group uint32   `json:"group,omitempty"`
+}
+
+// keptRight is the kill group h holds for the corpse of the death died, nil
+// for none.
+func (h *NPCWindowHandler) keptRight(id entity.EntityID, died time.Time) *KeptRight {
+	v, ok := h.killRights.Load(id)
+	if !ok {
+		return nil
+	}
+	r := v.(lootRight)
+	if !r.died.Equal(died) {
+		return nil
+	}
+	k := &KeptRight{Group: r.group}
+	for c := range r.chars {
+		k.Chars = append(k.Chars, c)
+	}
+	sort.Slice(k.Chars, func(i, j int) bool { return k.Chars[i] < k.Chars[j] })
+	return k
 }
 
 // KeepCorpses is what the corpses that lie now hold (KeptCorpse).
@@ -170,6 +200,10 @@ func KeepCorpses() []KeptCorpse {
 	for id := range ls.drops {
 		ids[id] = true
 	}
+	h.killRights.Range(func(key, _ any) bool {
+		ids[key.(entity.EntityID)] = true // a corpse no one opened is still its kill group's
+		return true
+	})
 	var out []KeptCorpse
 	for id := range ids {
 		died, lies := h.corpseLies(id)
@@ -184,7 +218,8 @@ func KeepCorpses() []KeptCorpse {
 		if d := ls.drops[id]; d != nil && d.died.Equal(died) {
 			k.Drops = d.items
 		}
-		if k.Opened || len(k.Drops) > 0 {
+		k.Right = h.keptRight(id, died)
+		if k.Opened || len(k.Drops) > 0 || k.Right != nil {
 			out = append(out, k)
 		}
 	}
@@ -195,6 +230,13 @@ func KeepCorpses() []KeptCorpse {
 // again, and reports how many it did: one whose creature does not lie dead of the
 // same death (its row gone, or a data step made it another) is passed over.
 func RestoreCorpses(kept []KeptCorpse) int {
+	return RestoreCorpsesAs(kept, nil)
+}
+
+// RestoreCorpsesAs is RestoreCorpses with the copies' corpses the World made
+// again under new ids (entity.RestoreCopies: old id to new; an id not in it
+// is its own).
+func RestoreCorpsesAs(kept []KeptCorpse, ids map[entity.EntityID]entity.EntityID) int {
 	h := keepWindows.Load()
 	if h == nil || h.corpseLies == nil {
 		return 0
@@ -205,6 +247,9 @@ func RestoreCorpses(kept []KeptCorpse) int {
 	n := 0
 	for _, k := range kept {
 		id := entity.EntityID(k.ID)
+		if to, ok := ids[id]; ok {
+			id = to
+		}
 		died, lies := h.corpseLies(id)
 		if !lies || !died.Equal(k.Died) {
 			continue
@@ -218,6 +263,13 @@ func RestoreCorpses(kept []KeptCorpse) int {
 		}
 		if len(k.Drops) > 0 {
 			ls.drops[id] = &questDrops{died: died, items: k.Drops}
+		}
+		if k.Right != nil {
+			r := lootRight{died: died, chars: make(map[uint32]bool, len(k.Right.Chars)), group: k.Right.Group}
+			for _, c := range k.Right.Chars {
+				r.chars[c] = true
+			}
+			h.killRights.Store(id, r)
 		}
 		n++
 	}

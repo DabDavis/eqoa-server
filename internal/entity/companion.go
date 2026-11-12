@@ -95,11 +95,25 @@ var companionWords = regexp.MustCompile(`(?i)(^|[\s'])(pet|minion|familiar|thral
 // "Minion of Krrgar" Krrgar, "" for none.
 var companionOwnerName = regexp.MustCompile(`(?i)^(?:(.+)'s (?:pet|minion|familiar|servant|thrall)|(?:pet|minion|familiar|servant|thrall) of (.+))$`)
 
+// companionKinds are the kinds whose every creature is a caster's pet though
+// no word of its name says so, by the word its owners' names end in
+// (database.NPCClassKey's keys): Guk's Mummified Guardians, the necromancers'
+// (Waldorf's petition 1832, 2026-11-12, "same with the Necs and their pets":
+// 47 rows, most within 2 of a froglok or ghoul necromancer, a few 6 to 7.4
+// off one, so they find their owner as a named pet does, companionNamedReach).
+var companionKinds = map[string]string{
+	"mummified guardian": "necromancer",
+}
+
 // companionName is whether an NPC's name is a pet's.
 func companionName(name string) bool {
 	name = strings.TrimSpace(name)
-	if companionNotPets[database.NPCClassKey(name)] {
+	key := database.NPCClassKey(name)
+	if companionNotPets[key] {
 		return false
+	}
+	if companionKinds[key] != "" {
+		return true
 	}
 	return companionWords.MatchString(name) || companionOwnerName.MatchString(name)
 }
@@ -182,6 +196,8 @@ func (w *World) linkCompanionsLocked() {
 		named := ""
 		if m := companionOwnerName.FindStringSubmatch(strings.TrimSpace(pet.Name)); m != nil {
 			named = strings.TrimSpace(m[1] + m[2])
+		} else if k := companionKinds[database.NPCClassKey(pet.Name)]; k != "" {
+			named = k
 		}
 		var owner *NPC
 		best := float32(math.MaxFloat32)

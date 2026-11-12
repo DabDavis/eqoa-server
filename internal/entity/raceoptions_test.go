@@ -505,3 +505,46 @@ func TestTheMermaid(t *testing.T) {
 		}
 	}
 }
+
+// A body both lists of a body row offer stands at one size (OptionBodySize reads the first list
+// that has it), and the goblins', aviaks' and gnolls' women's lists (the GM Jibrish's petition 1647)
+// open with a woman of their own and offer every body the men's list does, so a woman may still
+// choose any of them. (The goblins' and gnolls' women's lists are new: before, a woman had the
+// men's, so TestRaceOptionStepsKeepTheirNumbers holds no numbers of theirs.)
+func TestWomensBodyListsMatchTheMens(t *testing.T) {
+	for own, rows := range raceOptionRows {
+		for _, r := range rows {
+			if r.Kind != KindBody || r.Female == nil {
+				continue
+			}
+			size := map[uint32]float32{}
+			for _, s := range r.Male {
+				size[s.Value] = s.Size
+			}
+			for _, s := range r.Female {
+				if z, ok := size[s.Value]; ok && z != s.Size {
+					t.Errorf("%#x: %s %#x at %v for a woman, %v for a man", own, s.Name, s.Value, s.Size, z)
+				}
+			}
+		}
+	}
+	for _, c := range []struct {
+		own, woman uint32
+	}{{bodyGoblin, 0xEDB4E0AD}, {bodyAviakM, bodyAviakF}, {bodyGnoll, 0xF5F3A450}} {
+		r := raceOptionRows[c.own][0]
+		if r.Kind != KindBody || len(r.Female) == 0 || r.Female[0].Value != c.woman {
+			t.Errorf("%#x: the women's list opens with %v, want %#x", c.own, r.Female, c.woman)
+			continue
+		}
+		have := map[uint32]bool{}
+		for _, s := range r.Female {
+			have[s.Value] = true
+		}
+		for _, s := range r.Male {
+			// the aviak's own man (the hawk) is the hawk woman's place, as the kerran's
+			if !have[s.Value] && s.Value != bodyAviakM {
+				t.Errorf("%#x: %s %#x not offered a woman", c.own, s.Name, s.Value)
+			}
+		}
+	}
+}

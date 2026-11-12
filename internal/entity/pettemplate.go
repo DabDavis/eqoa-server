@@ -978,6 +978,13 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 		cs := &castState{spell: *c.spell, caster: o.ServerID, targets: []EntityID{o.ServerID}}
 		cs.spell.figures = figuresPet // what it heals now and at its ticks the pet's (numbertags.go)
 		w.landOnPlayerLocked(cs, o, w.findSessionByEntityIDLocked(o.ServerID), o, now)
+		if a.WhileOut {
+			for _, e := range o.Effects {
+				if e.SpellID == c.spell.SpellID {
+					e.petBound = true // it goes with the pet (pet.go petBuffsGoLocked), never kept over a logout
+				}
+			}
+		}
 		log.Printf("Pet: %s's %q buffs its owner with %q", o.Name, pet.Name, c.spell.Name)
 	}
 }

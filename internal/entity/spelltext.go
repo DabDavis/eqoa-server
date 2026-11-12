@@ -183,6 +183,11 @@ type SpellEffect struct {
 	// rakish"; the spelleffect row's debuff_scale)
 	DebuffStat Stat
 	DebuffPct  float64
+	// DebuffedPct is a proc's percent more, its damage and its heal, at a hit on a
+	// creature that carries a lasting harmful spell of its bearer's (proc.go: the
+	// Undead Servant's lifetap, 80 and 160 on what its shadow knight has
+	// debuffed, petition 1805; the effects JSON's debuffed_pct); 0, as it is
+	DebuffedPct int
 	// HateOff is the percent of a hit's damage that makes no hate on the
 	// creature it lands on (the workbook JSON's hate_pct, 100 less it): 0, all
 	// of it is hate, as every hit's is; 100, none (Vylinnuza's Merciless

@@ -161,7 +161,9 @@ func (p *Player) procsOfRound(hits []procRoll) []procRoll {
 // proc, its damage and its heal together (Veil of Death, Shroud of Death and their + forms give both as
 // offensive procs). Until 2026-11-07 they rolled apart, so a proc's damage and its heal came on different
 // hits, and at full health the heal showed nothing: petition 1156, "does not proc".
-func (w *World) procTapLocked(p *Player, sess *session.Session, ae *ActiveEffect, npc *NPC) {
+//
+// more is the percent more it heals (procDebuffedMore: its hit's own), 0 for none.
+func (w *World) procTapLocked(p *Player, sess *session.Session, ae *ActiveEffect, npc *NPC, more int) {
 	r := ae.Rules
 	if r.ProcHeal <= 0 || r.ProcHealDef || (r.ProcHealUndead && (npc == nil || !w.undeadLocked(npc))) {
 		return
@@ -170,8 +172,28 @@ func (w *World) procTapLocked(p *Player, sess *session.Session, ae *ActiveEffect
 	if r.ProcHealScale != StatNone && r.ProcHealScalePct != 0 {
 		n += p.StatNow(r.ProcHealScale) * r.ProcHealScalePct / 100
 	}
+	if more > 0 {
+		n = n * (100 + more) / 100
+	}
 	log.Printf("Proc: %s's %q heals it for %d", p.Name, ae.Name, n)
 	w.procHealLocked(p, sess, p, n)
+}
+
+// procDebuffedMore is the percent more ae's proc does, its hit and its heal, at a hit on
+// npc: its ProcDebuffedPct when npc carries a lasting harmful spell of the bearer's (bearer:
+// its id), a debuff, a snare or a damage over time it put there; else none. Petition 1805
+// (Skywalker): the Undead Servant's lifetap, "a 80 lifetap proc that after the mob is
+// debuffed, will often proc 160 instead".
+func procDebuffedMore(ae *ActiveEffect, npc *NPC, bearer EntityID, now time.Time) int {
+	if ae == nil || ae.Rules.ProcDebuffedPct <= 0 || npc == nil {
+		return 0
+	}
+	for _, e := range npc.Effects {
+		if e.Caster == bearer && e.Rules.Harm && now.Before(e.Until) {
+			return ae.Rules.ProcDebuffedPct
+		}
+	}
+	return 0
 }
 
 // procHealLocked is a proc's heal of t (a life steal's, a heal proc's, a weapon's, a
@@ -207,13 +229,14 @@ func (w *World) playerProcsLocked(sess *session.Session, p *Player, npc *NPC, no
 		log.Printf("Proc: %s's proc resisted by %s", p.Name, npc.Name)
 	}
 	for _, h := range p.procsOfRound(hits) {
-		n := -creatureResists(h.ae.Rules.Resist, npc, -h.n, now)
+		more := procDebuffedMore(h.ae, npc, p.ServerID, now)
+		n := -creatureResists(h.ae.Rules.Resist, npc, -h.n*(100+more)/100, now)
 		log.Printf("Proc: %s's %q hits %s for %d", p.Name, h.ae.Name, npc.Name, n)
 		// seen as a damage shield's answer is (petition 1156: "does not proc",
 		// when all it showed was one more figure among the swings')
 		w.broadcastCastLocked(p, npc.ServerID, 0, procHitFX(h.ae))
 		killed := w.spellHitLocked(p, sess, npc, n, numberProc)
-		w.procTapLocked(p, sess, h.ae, npc)
+		w.procTapLocked(p, sess, h.ae, npc, more)
 		if killed {
 			return true
 		}

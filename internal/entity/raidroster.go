@@ -27,18 +27,30 @@ const raidRosterPageBytes = 1200
 // on, it goes out at the next pass, whatever was sent before. False when sess has no
 // player.
 func (w *World) SetRaidRoster(sess *session.Session, on bool) bool {
+	v := uint32(0)
+	if on {
+		v = 1
+	}
+	return w.SetRaidRosterAnswer(sess, v)
+}
+
+// SetRaidRosterAnswer is a client's 0x7E19 answer v: 0 stop, RaidRosterWithGroups the
+// roster with each record's group number (raidsubgroups.go), any other the roster as
+// before. False when sess has no player.
+func (w *World) SetRaidRosterAnswer(sess *session.Session, v uint32) bool {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
 	if p == nil {
 		return false
 	}
-	p.RaidRoster, p.raidRosterSent = on, ""
+	p.RaidRoster, p.RaidRosterGroups, p.raidRosterSent = v != 0, v == RaidRosterWithGroups, ""
 	return true
 }
 
-// raidRosterRecord is one member's record for sess's client.
-func (w *World) raidRosterRecord(sess *session.Session, o *Player) []byte {
+// raidRosterRecord is one member's record for sess's client; sub, its group in the
+// raid, after it when sub is not 0 (a client that answered RaidRosterWithGroups).
+func (w *World) raidRosterRecord(sess *session.Session, o *Player, sub uint8) []byte {
 	name := []byte(o.Name)
 	if len(name) > 23 {
 		name = name[:23]
@@ -51,7 +63,11 @@ func (w *World) raidRosterRecord(sess *session.Session, o *Player) []byte {
 	b := binary.LittleEndian.AppendUint32(make([]byte, 0, 9+len(name)), w.idSeenByLocked(sess, o))
 	b = append(b, byte(len(name)))
 	b = append(b, name...)
-	return append(b, byte(o.Class), byte(max(0, min(255, o.Level))), byte(hp), power)
+	b = append(b, byte(o.Class), byte(max(0, min(255, o.Level))), byte(hp), power)
+	if sub != 0 {
+		b = append(b, sub)
+	}
+	return b
 }
 
 // raidRosterLocked is every member's record for sess's client, in the order they
@@ -65,10 +81,14 @@ func (w *World) raidRosterLocked(sess *session.Session, me *Player) [][]byte {
 	if me.GroupID == 0 || g == nil || !(g.flagged || g.isRaid()) {
 		return nil
 	}
+	var subs map[EntityID]uint8
+	if me.RaidRosterGroups {
+		subs = w.settleSubgroupsLocked(g)
+	}
 	out := make([][]byte, 0, len(g.Members))
 	for _, id := range g.Members {
 		if o := w.Players[id]; o != nil {
-			out = append(out, w.raidRosterRecord(sess, o))
+			out = append(out, w.raidRosterRecord(sess, o, subs[id]))
 		}
 	}
 	return out
@@ -110,23 +130,49 @@ func (w *World) raidRosterSystem() {
 	if w.TickCount%raidRosterTicks != 0 || w.SessionManager == nil {
 		return
 	}
+	// every raid's numbers settled, whoever shows them, so a member keeps its group
+	// as others leave (raidsubgroups.go)
+	for _, g := range w.groups {
+		if raidingLocked(g) {
+			w.settleSubgroupsLocked(g)
+		}
+	}
 	w.SessionManager.ForEach(func(s *session.Session) bool {
-		p := w.sessionPlayerLocked(s)
-		if p == nil || !p.RaidRoster {
-			return true
-		}
-		recs := w.raidRosterLocked(s, p)
-		var all []byte
-		for _, r := range recs {
-			all = append(all, r...)
-		}
-		if string(all) == p.raidRosterSent {
-			return true
-		}
-		p.raidRosterSent = string(all)
-		for _, page := range raidRosterPages(recs) {
-			sendGroupMsg(s, protocol.OpcodeRaidRoster, func(b *buffer.Writer) { b.WriteBytes(page) })
+		if p := w.sessionPlayerLocked(s); p != nil {
+			w.sendRaidRosterLocked(s, p)
 		}
 		return true
 	})
+}
+
+// sendRaidRosterLocked sends p's client its roster when it asked and it changed. Must
+// be called with the lock held.
+func (w *World) sendRaidRosterLocked(s *session.Session, p *Player) {
+	if !p.RaidRoster {
+		return
+	}
+	recs := w.raidRosterLocked(s, p)
+	var all []byte
+	for _, r := range recs {
+		all = append(all, r...)
+	}
+	if string(all) == p.raidRosterSent {
+		return
+	}
+	p.raidRosterSent = string(all)
+	for _, page := range raidRosterPages(recs) {
+		sendGroupMsg(s, protocol.OpcodeRaidRoster, func(b *buffer.Writer) { b.WriteBytes(page) })
+	}
+}
+
+// raidRosterNowLocked sends g's members their rosters now (a move: raidsubgroups.go),
+// not at the next pass. Must be called with the lock held.
+func (w *World) raidRosterNowLocked(g *Group) {
+	for _, id := range g.Members {
+		if m := w.Players[id]; m != nil {
+			if s := w.sessionOfLocked(m); s != nil {
+				w.sendRaidRosterLocked(s, m)
+			}
+		}
+	}
 }

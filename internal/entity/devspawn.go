@@ -105,9 +105,26 @@ func (w *World) SpawnNPCCopy(name string, x, y, z, facing float32, world uint8) 
 // spawnCopyLocked is SpawnNPCCopy's copy of t, put in the world. Must be called
 // with the lock held.
 func (w *World) spawnCopyLocked(t *NPC, x, y, z, facing float32, world uint8) *NPC {
+	c := w.spawnCopyAsLocked(t, x, y, z, facing, world, 0)
+	// a copy of a row that walks a path walks it too, from its nearest leg (the
+	// Trial of Contention's Watchman, spawned by Kithgrin's talk on the row's
+	// round of the halls: npcrow.go); dropNPCLocked takes it with the copy
+	if p := w.paths.byNPC[t.ServerID]; p != nil && p.World == world && !t.Temporary {
+		w.setPathLocked(c.ServerID, p)
+	}
+	return c
+}
+
+// spawnCopyAsLocked is spawnCopyLocked's copy under the id given (0: a free
+// one; keepcopy.go's corpses ask for their own), walking no path. Must be
+// called with the lock held.
+func (w *World) spawnCopyAsLocked(t *NPC, x, y, z, facing float32, world uint8, id EntityID) *NPC {
 	c := *t
 	c.CopyOf = t.row() // a copy of a copy is of the same row (npcrow.go)
-	c.ServerID = w.allocFreeIDLocked()
+	if id == 0 {
+		id = w.allocFreeIDLocked()
+	}
+	c.ServerID = id
 	c.X, c.Y, c.Z, c.Facing = x, y, z, facing
 	c.SpawnX, c.SpawnY, c.SpawnZ, c.SpawnFacing = x, y, z, facing
 	c.World = world
@@ -137,12 +154,6 @@ func (w *World) spawnCopyLocked(t *NPC, x, y, z, facing float32, world uint8) *N
 	c.path = pathState{}
 	w.putNPCLocked(&c)
 	w.SpatialIndex.Insert(c.ServerID, x, z)
-	// a copy of a row that walks a path walks it too, from its nearest leg (the
-	// Trial of Contention's Watchman, spawned by Kithgrin's talk on the row's
-	// round of the halls: npcrow.go); dropNPCLocked takes it with the copy
-	if p := w.paths.byNPC[t.ServerID]; p != nil && p.World == world && !t.Temporary {
-		w.setPathLocked(c.ServerID, p)
-	}
 	return &c
 }
 

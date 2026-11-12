@@ -967,7 +967,8 @@ var catalog = map[string]tableNote{
 			"and bandits with players' bodies do not. aggressive 1 makes every NPC of the name attack on sight, 0 never; " +
 			"radius how near (0: 30); -1 leaves aggro to the rules, as with no row (a row for its leash alone). " +
 			"leash: how far from where a fight began they follow before going home (0: 300; a town guard after a " +
-			"creature keeps its 100). An NPC with the NPC bit (0x80) never does: no one may attack it.",
+			"creature keeps its 100). see_invis 1: they see invisible players and attack them on sight as any other " +
+			"(being seen leaves the invisibility on; a hit ends it, as always; petition 1814's moth larvae). An NPC with the NPC bit (0x80) never does: no one may attack it.",
 		Live:   "At once: the next look round (half a second), the next target box and the next step of a chase use it.",
 		Search: []string{"npc_name", "note"},
 		Cols: map[string]colNote{
@@ -975,6 +976,7 @@ var catalog = map[string]tableNote{
 			"aggressive": {Label: "Attacks on sight", Help: "1 yes, 0 never, -1 as the rules (no row): for a leash alone"},
 			"radius":     {Label: "Radius", Help: "how near a player must come; 0 the default, 30"},
 			"leash":      {Label: "Leash", Help: "how far from where a fight began they follow; 0 the default, 300"},
+			"see_invis":  {Label: "Sees invisible", Help: "1: they notice and attack invisible players (a GM's Toggle Invis excepted); 0 blind to them, as every creature"},
 			"note":       {Label: "Note"},
 			"source":     {Label: "Source", Help: "gm, or seed for tools/seed_npc_aggro.py's rows (its --undo deletes those)"},
 		},

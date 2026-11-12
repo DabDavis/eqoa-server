@@ -263,7 +263,7 @@ class SeedRaceHomes(unittest.TestCase):
     def test_the_recipe_file_is_laid_out_as_format_writes_it(self):
         text = open(srh.DEFAULT_HOMES).read()
         self.assertEqual(srh.format_recipe(json.loads(text)), text, "tools/seed_race_homes.py --format lays it out again")
-        self.assertIn('  "extraFiles": ["homelands-edges.json"],\n', text)
+        self.assertIn('  "extraFiles": ["homelands-edges.json", "homelands-deco.json"],\n', text)
 
     def rows_of(self, dumped, d):
         db = sqlite3.connect(os.path.join(d, "before.db"))

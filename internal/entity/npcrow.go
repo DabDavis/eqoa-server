@@ -40,3 +40,6 @@ func (n *NPC) row() EntityID {
 	}
 	return n.ServerID
 }
+
+// Row is the npcs row the NPC came from (row): its own id, or a copy's row; 0 for a copy of no row.
+func (n *NPC) Row() EntityID { return n.row() }

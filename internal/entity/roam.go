@@ -292,7 +292,7 @@ func (w *World) findRoamersLocked(now time.Time) {
 	for _, p := range w.Players {
 		for _, id := range w.SpatialIndex.QueryRadius(p.X, p.Z, roamActiveRange) {
 			npc, ok := w.NPCs[id]
-			if !ok || found[id] || npc.World != p.World || !w.wanders(npc) {
+			if !ok || found[id] || !w.npcSharesLocked(npc, p) || !w.wanders(npc) {
 				continue
 			}
 			found[id] = true

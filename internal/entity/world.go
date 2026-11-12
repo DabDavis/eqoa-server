@@ -168,6 +168,8 @@ type World struct {
 	ctf ctfState
 	// homes are the players' homes in their instanced world (homes.go)
 	homes homesState
+	// dungeons are the instanced raid dungeons in their world (dungeons.go)
+	dungeons dungeonsState
 	// jumpsAllowed is world.jump: whether players may jump (jump.go)
 	jumpsAllowed bool
 
@@ -402,6 +404,9 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 	w.rejoinGuildLocked(p)
 	w.rejoinGroupLocked(p)
 	p.Instance = w.homeInstanceOnLoadLocked(p.CharServerID, p.World) // a home's (homes.go)
+	if w.inDungeonsLocked(p) {
+		p.Instance = w.dungeonInstanceOnLoadLocked(p) // a dungeon's (dungeons.go)
+	}
 	w.Players[id] = p
 	w.SpatialIndex.Insert(id, p.X, p.Z)
 

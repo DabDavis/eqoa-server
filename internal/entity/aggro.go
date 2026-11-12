@@ -422,7 +422,7 @@ func (w *World) drawNearLocked(p *Player, now time.Time, onSight bool) {
 	reach := max(w.aggro.reach, DefaultAggroRadius)
 	for _, id := range w.SpatialIndex.QueryRadius(p.X, p.Z, reach) {
 		npc, ok := w.NPCs[id]
-		if !ok || npc.World != p.World || npc.CurrentEnemy != 0 || npc.chase.returning || npc.hiddenAt(now) || npc.lulledAt(now) {
+		if !ok || !w.npcSharesLocked(npc, p) || npc.CurrentEnemy != 0 || npc.chase.returning || npc.hiddenAt(now) || npc.lulledAt(now) {
 			continue
 		}
 		if !w.threatensLocked(npc, p) || onSight && !npc.EventAggro && greenTo(npc, p) {
@@ -566,7 +566,7 @@ func (w *World) healHateLocked(healer, t *Player, restored int) {
 	var foes []*NPC
 	for _, id := range w.SpatialIndex.QueryRadius(t.X, t.Z, healHateReach) {
 		npc, ok := w.NPCs[id]
-		if !ok || npc.Dead || npc.World != t.World || npc.Owner != 0 || npc.Dummy != NotDummy ||
+		if !ok || npc.Dead || !w.npcSharesLocked(npc, t) || npc.Owner != 0 || npc.Dummy != NotDummy ||
 			npc.CurrentEnemy == 0 || npc.chase.returning {
 			continue
 		}

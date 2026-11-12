@@ -50,7 +50,7 @@ func (w *World) spawnOnlyLocked(name string) bool {
 // row, or its own npcs row's ("#n", npcrow.go). Must be called with the lock
 // held.
 func (w *World) npcSpawnOnlyLocked(npc *NPC) bool {
-	return w.spawnOnlyLocked(npc.Name) || w.spawnOnly[RowKey(npc.ServerID)]
+	return w.spawnOnlyLocked(npc.Name) || w.spawnOnly[RowKey(npc.ServerID)] || w.dungeonTemplateLocked(npc)
 }
 
 // SpawnOnlyNamed is whether the NPCs of that name stand out of the world
@@ -75,7 +75,7 @@ func (w *World) SetSpawnOnly(names map[string]bool) (held, changed int) {
 		if npc.Temporary || npc.Owner != 0 {
 			continue
 		}
-		want := names[database.NPCClassKey(npc.Name)] || names[RowKey(npc.ServerID)]
+		want := names[database.NPCClassKey(npc.Name)] || names[RowKey(npc.ServerID)] || w.dungeonTemplateLocked(npc)
 		if want {
 			held++
 		}

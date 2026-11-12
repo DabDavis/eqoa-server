@@ -114,7 +114,7 @@ func (w *World) templateDoTLocked(c *npcCast, now time.Time) {
 func (w *World) npcDoTTickLocked(t *NPC, ae *ActiveEffect, now time.Time) {
 	ae.NextTick = ae.NextTick.Add(effectTick)
 	src := w.NPCs[ae.npcCaster]
-	if src == nil || src.Dead || t.Dead || src.World != t.World || ae.HPTick >= 0 {
+	if src == nil || src.Dead || t.Dead || !w.npcsShareLocked(src, t) || ae.HPTick >= 0 {
 		return
 	}
 	n := -creatureResists(ae.Rules.Resist, t, ae.HPTick, now)

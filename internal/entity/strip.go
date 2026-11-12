@@ -141,7 +141,7 @@ func (w *World) stripPetLocked(pet *NPC, now time.Time) (names []string) {
 func (w *World) templateStripLocked(c *npcCast, now time.Time) {
 	npc, name := c.npc, c.spell.Name
 	if p := w.Players[c.target]; p != nil {
-		if p.IsDead() || p.respawnPending() || p.World != npc.World {
+		if p.IsDead() || p.respawnPending() || !w.npcSharesLocked(npc, p) {
 			return
 		}
 		names, god := w.stripPlayerLocked(p, now)
@@ -166,7 +166,7 @@ func (w *World) templateStripLocked(c *npcCast, now time.Time) {
 		return
 	}
 	pet := w.NPCs[c.target]
-	if pet == nil || pet.Owner == 0 || pet.Dead || pet.World != npc.World {
+	if pet == nil || pet.Owner == 0 || pet.Dead || !w.npcsShareLocked(pet, npc) {
 		return
 	}
 	names := w.stripPetLocked(pet, now)

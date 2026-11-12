@@ -295,6 +295,11 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 
+	// The Dungeon Warden (dungeons.go): the instanced raid dungeons.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.dungeonsTalk(sess, player, npc) {
+		return nil
+	}
+
 	// The Real Estate Listings (homes.go): the players' homes.
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.homesTalk(sess, player, npc) {
 		return nil
@@ -678,6 +683,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// the PvP Events herald's (ctf.go); an old one does nothing
 	if h.answerCTF(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// the Dungeon Warden's (dungeons.go); an old one does nothing
+	if h.answerDungeons(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// the Real Estate Listings' (homes.go); an old one does nothing

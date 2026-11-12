@@ -60,10 +60,10 @@ func (w *World) preferredFoeLocked(npc *NPC) EntityID {
 // with the lock held.
 func (w *World) preferableLocked(npc *NPC, id EntityID, name string) bool {
 	if p := w.Players[id]; p != nil {
-		return !p.IsDead() && p.World == npc.World && strings.EqualFold(strings.TrimSpace(p.Name), name)
+		return !p.IsDead() && w.npcSharesLocked(npc, p) && strings.EqualFold(strings.TrimSpace(p.Name), name)
 	}
 	n := w.NPCs[id]
-	return n != nil && n != npc && !n.Dead && n.World == npc.World && (n.Owner != 0 || n.Dummy == NotDummy) &&
+	return n != nil && n != npc && !n.Dead && w.npcsShareLocked(n, npc) && (n.Owner != 0 || n.Dummy == NotDummy) &&
 		strings.EqualFold(strings.TrimSpace(n.Name), name)
 }
 

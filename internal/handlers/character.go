@@ -1104,6 +1104,10 @@ func loginSpawn(gw *entity.World, record *database.CharacterRecord, held func(wo
 	if homeLogin(gw, record, held) {
 		return
 	}
+	// a dungeon (dungeons.go): back in its party's instance while one is open, else where it came from
+	if dungeonLogin(gw, record, held) {
+		return
+	}
 	why, resume := resumable(record, held)
 	if resume {
 		log.Printf("loginSpawn: '%s' resumes where it logged out (%.1f, %.1f, %.1f) world=%d",

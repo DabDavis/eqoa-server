@@ -138,7 +138,7 @@ func (w *World) helperLocked(helper, victim *NPC, now time.Time) bool {
 		return false
 	}
 	if helper.Dead || helper.Owner != 0 || helper.Dummy != NotDummy || helper.NPCType&0x80 != 0 || helper.challenge != nil ||
-		helper.World != victim.World || helper.CurrentEnemy != 0 || helper.chase.returning ||
+		!w.npcsShareLocked(helper, victim) || helper.CurrentEnemy != 0 || helper.chase.returning ||
 		helper.hiddenAt(now) || helper.lulledAt(now) {
 		return false
 	}
@@ -161,7 +161,7 @@ func (w *World) helperSeesLocked(helper, victim *NPC, enemy EntityID) bool {
 		return true
 	}
 	p := w.Players[enemy]
-	return p != nil && p.World == helper.World && w.inSightLocked(helper.World, helper.X, helper.Y, helper.Z, p.X, p.Y, p.Z)
+	return p != nil && w.npcSharesLocked(helper, p) && w.inSightLocked(helper.World, helper.X, helper.Y, helper.Z, p.X, p.Y, p.Z)
 }
 
 // socialAssistLocked is a hit on victim by attackerID seen by the social NPCs

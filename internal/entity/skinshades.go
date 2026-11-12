@@ -92,14 +92,21 @@ var gameSkins = map[int][2]skinBody{
 }
 
 // gameRaceRows is race's rows as a game race (0-9): the skin shades on its
-// own bodies, on a server that offers them (world.skin_shades); none else.
+// own bodies, on a server that offers them (world.skin_shades), after the
+// barbarians' tattoo (world.tattoos: tattoos.go); none else.
 func gameRaceRows(race int) []OptionRow {
 	b, ok := gameSkins[race]
-	if !ok || !Creation().Skins {
+	if !ok {
 		return nil
 	}
-	return []OptionRow{{Key: skinRowKey, Label: "Skin", Kind: KindColour,
-		Parts: []OptionPart{whole(b[0].body, b[0].entries...), whole(b[1].body, b[1].entries...)}, Male: skinShades}}
+	// the tattoo first: a client lays it on the face before the skin's shade,
+	// which then shades the tattooed face as it does the disc's own
+	rows := tattooRows(race)
+	if Creation().Skins {
+		rows = append(rows, OptionRow{Key: skinRowKey, Label: "Skin", Kind: KindColour,
+			Parts: []OptionPart{whole(b[0].body, b[0].entries...), whole(b[1].body, b[1].entries...)}, Male: skinShades})
+	}
+	return rows
 }
 
 // isGameRace is whether race is one of the game's ten (its rows are shown under

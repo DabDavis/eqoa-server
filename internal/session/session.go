@@ -184,7 +184,10 @@ type Session struct {
 	// entity/raceoptions.go), and it is sent them; one that answered 1 (vanilla
 	// before 2026-11-11) shows a race's rows instead of the four and is sent
 	// none of a game race's.
-	raceSkins         bool
+	raceSkins bool
+	// raceAnswer is the answer itself: 3, a client that draws the barbarians'
+	// tattoo (entity/tattoos.go), is told that row too
+	raceAnswer        uint32
 	raceCatalogueSent bool
 	raceLooksSent     string
 	// creationAsked: the client answered creation's offer 1
@@ -623,6 +626,7 @@ func (s *Session) SetRaceLooksLevel(level uint32) {
 	defer s.mu.Unlock()
 	s.raceLooks = level != 0
 	s.raceSkins = level >= 2
+	s.raceAnswer = level
 	if !s.raceLooks {
 		s.raceLooksSent = ""
 	}
@@ -634,6 +638,15 @@ func (s *Session) RaceSkins() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.raceSkins
+}
+
+// RaceLooksLevel is the client's answer to the race options' offer: 0 none
+// (a PS2), 1 the options and looks, 2 a game race's rows too, 3 the barbarians'
+// tattoo too.
+func (s *Session) RaceLooksLevel() uint32 {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.raceAnswer
 }
 
 // RaceLooks is whether the client asked for the races' options and looks. A

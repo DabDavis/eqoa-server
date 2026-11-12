@@ -203,6 +203,41 @@ func meleeDebuffed(p *Player, hit int, npc *NPC, n int, now time.Time) int {
 	return n
 }
 
+// meleeArtDebuffed is a player's ability hit of n (negative) on a creature
+// with that creature's melee resist debuff counted as a melee hit counts it
+// (meleeDebuffed): one percent more for each point off the resist of the
+// hit's kind, the strongest debuff on. The kind is the hit's resist when it
+// is a melee one (pierce, slash, blunt; ranged is pierce); a backstab of no
+// resist (Rush, Mug) goes by the weapon it swings, as its swing would.
+// Petition 1738, Hoofbite: Rakish Assault's 100 off pierce doubled the
+// rogue's swings but not Assassinate, a backstab resisted by pierce; now
+// every pierce, slash or blunt ability hit (the backstabs, Assassinate, the
+// Rakish strikes, the knights' and warriors' slashing and crushing arts)
+// grows with it. A hit with its own debuff_scale (Agony) keeps that.
+func meleeArtDebuffed(d *SpellDef, e SpellEffect, p *Player, npc *NPC, n int, now time.Time) int {
+	if n >= 0 || npc == nil || e.DebuffPct != 0 {
+		return n
+	}
+	kind := StatNone
+	switch e.Resist {
+	case StatPierce, StatRanged:
+		kind = StatPierce
+	case StatSlash, StatBlunt:
+		kind = e.Resist
+	case StatNone:
+		if d != nil && d.Backstab && p != nil {
+			kind = meleeKindOf(p.heldType())
+		}
+	}
+	if kind == StatNone {
+		return n
+	}
+	if pct := npcMeleeDebuffPct(npc, kind, now); pct > 0 {
+		return n * (100 + pct) / 100
+	}
+	return n
+}
+
 // handType is the attack type of the weapon that made the player's hit, hit
 // its number in the round (RoundHits, from 1), by the hands handProcLocked
 // reads (weaponproc.go): with a weapon in each hand the even hits are the off

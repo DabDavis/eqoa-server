@@ -68,7 +68,7 @@ type subGMs interface {
 // GM is a tester in the panel and in the game a player but for these.
 // The owner, 2026-11-12: "players with the /fly /speed can use also" /delete,
 // /clone and /place (gmnpcrow.go).
-var subGMCommands = map[string]bool{"#fly": true, "#speed": true, "#delete": true, "#clone": true, "#place": true, "#move": true}
+var subGMCommands = map[string]bool{"#fly": true, "#speed": true, "#delete": true, "#clone": true, "#place": true, "#move": true, "#roamer": true}
 
 // isSubGM reports whether sess's account is a sub GM.
 func (h *ChatHandler) isSubGM(sess *session.Session) bool {
@@ -109,7 +109,7 @@ var gmCommands = map[string]bool{
 	"#clearbuffs": true, "#nukebuffs": true, "#reward": true, "#dye": true, "#vampire": true,
 	"#rst_mastr": true, "#rst_both": true, "#rem_abil": true, "#banktunar": true, "#servdown": true,
 	"#giveitem": true, "#size": true, "#mark": true, "#marks": true, "#camp": true, "#path": true,
-	"#markportal": true, "#delete": true, "#clone": true, "#place": true, "#move": true,
+	"#markportal": true, "#delete": true, "#clone": true, "#place": true, "#move": true, "#roamer": true,
 }
 
 // slashGM is the # spelling of a /command line that names a GM command

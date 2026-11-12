@@ -1463,6 +1463,9 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 	case "#move":
 		h.moveCommand(sess, player, parts[1:]) // gmnpcrow.go
 
+	case "#roamer":
+		h.roamerCommand(sess, player, parts[1:]) // gmnpcrow.go
+
 	case "#camp":
 		// #camp <creature>[, <creature>...] | undo: a static spawn at each
 		// mark, popping one of the names each time (gmcamps.go)

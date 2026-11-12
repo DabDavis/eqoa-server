@@ -1125,6 +1125,49 @@ near dabrish that says Real Estate Listings". `claude-notes/player-homes-2026111
   PS2 or an older vanilla is told why and not moved. No new opcodes. Room for later: furniture would be a table of its own
   keyed by the home's owner (`charhomeitems`), not made.
 
+### Instanced raid dungeons: Guk, Blackburrow, Runnyeye (`entity/dungeons.go`, `handlers/dungeons.go`, `world.dungeons`, `tools/dungeons_20261112.py`)
+
+The owner, 2026-11-12: "lets add a dungeon world. instanced versions of popular dungeons like Guk, Blackburrow, Runnyeye.
+they have the same mobs, but will be tuned for level 60 raids and raid gear". `claude-notes/dungeon-world-20261112.md`
+has the design, the numbers and what the rig showed.
+
+- **The world**: slot **14, the Dungeons** (`tools/worlds/dungeons.json`): Tunaria zones 65 (Blackburrow), 54 (Misty
+  Thicket, the valley before Runnyeye's gate, where its raids land), 67 (Runnyeye) and 157 (Guk), each where it stands,
+  every open edge closed by `cmd/worldedges`' rocks (`dungeons-edges.json`, 341; `-check` closed). The recipe's
+  `"dungeons"` block (`ReadDungeons`, carried into `worldN.json`, never the file): each dungeon's key, name, the boxes
+  its creatures stand in, its entrance (`toward` its gate). 31,042,306 bytes, CRC 1b39b6c4. `world.dungeons.enabled`
+  (off by default) with 14 in `server_worlds`; `close_after` (30m), `max_instances` (30).
+- **Templates and instances** (homes' engine: `Player.Instance`, `NPC.Instance`, `SamePlace`, `npcSharesLocked`):
+  every npcs row of world 14 but the Dungeon Warden's is a **template**, held out of the world as a spawn-only NPC
+  (`dungeonTemplateLocked` in `npcSpawnOnlyLocked` and `SetSpawnOnly`). An instance opened for a dungeon is a
+  Temporary copy (`spawnCopyLocked`) of each template whose spawn lies in its boxes, `Instance` its id; a copy is of
+  its row, so npctemplate's `"#n"` and its level are its, and a killed copy is gone with its corpse: nothing respawns
+  in an instance. **A dungeon creature rolls its row's loot** (`lootNames`: `"#n"` and `"*"`, never its open-world
+  namesakes' tables). The checks that let a creature reach a player now ask the instance too: aggro on sight and by
+  heals (`aggro.go`), helpers (`socialaggro.go`), a template's abilities, specials and targets (`classtemplate.go`,
+  `enrage.go`, `bossmoments.go`, `laststand.go`, `strip.go`, `prefer.go`, `creaturedot.go`), the fight's give-up
+  (`systems.go`), wandering's wake-up (`roam.go`) and a kill's shares (`killexp.go`).
+- **Who**: an instance belongs to its opener and the opener's group of the moment (it follows the owner into a group
+  formed later). Only a group's leader (its first member) or a player alone opens one; members enter theirs.
+  `dungeonsSystem` (once a second) sends anyone else in world 14 out after 5 s (where it came from, else in front of the
+  Dungeon Warden outside): a member who left the group, a player with no instance (a GM's move, a keep restart: **an
+  instance is not kept over a restart**, its players go out). A GM may stand in any open instance. An instance no one
+  stood in for `close_after` closes (its creatures gone); its owner may close an empty one (`/dungeon reset <name>`).
+  A logout inside resumes in the party's instance while it is open (`dungeonLogin`), else out.
+- **The Dungeon Warden** (any NPC of the name; the data tool stands one beside Dabrish and a twin at each entrance,
+  the way out, in every instance) asks a box under **mark 0x6B000000**: "Open Guk" (a leader) or "Enter Guk" (its party
+  has one), and inside "Leave the dungeon". **`/dungeon`** (`#dungeon`, a PS2's `/t dungeon ...`): the party's open
+  instances and what stands in them, `/dungeon enter <name>`, `/dungeon leave`, `/dungeon reset <name>`. Only a client
+  holding world 14 goes in (vanilla; `dungeonsReaches`).
+- **Data** (`tools/dungeons_20261112.py [--apply|--undo]`, log `dungeons_1112_log`, gm_audit): world 14's rows, copies
+  of each dungeon's world 0 creatures (its kinds by `FAMILY`, or named; never friendly, a quest's seeded row or
+  spawn-only, nor `SKIP`), levels raised: trash 60-62, named 63-64, bosses 65 (`BOSSES`: the froglok king; Abyssaxis;
+  King Merdid and Xorbb); classtemplates **dungeon trash / dungeon named / dungeon boss** (class -1) bound by
+  npctemplate `"#n"` (a GM tunes a tier in one row); 36 raid-gear records 995001-995036 (a tuned raid boss's drop
+  copied under a dungeon's own name), loottables `dungeon <key> boss|named`, npcloot `"#n"` per creature; the wardens.
+  NPCs and templates are read at the start: a keep restart's `before.sh`. Tests: `TestDungeon*` (`entity/`,
+  `handlers/`), `TestReadDungeonsRecipe`.
+
 ### Mail, resets, one Master Class, petitions: SOE's live client's, for every client
 
 The user, 2026-10-29: SOE's later features, read out of the live CLIENT in the Corsten state, built on

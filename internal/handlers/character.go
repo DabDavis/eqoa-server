@@ -964,6 +964,9 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// and the pet's effects (peteffects.go): a client that draws them under
 	// its pet's bar asks for them, a PS2 ignores it
 	SendPetEffectsOffer(sess)
+	// and the buff window (buffwindow.go, petition 1761): a client that draws its own
+	// asks for the set, a PS2 ignores it and keeps channel 0x43's window
+	SendBuffWindowOffer(sess)
 	// and what made each figure (numbertags.go): a client that colours its
 	// numbers by it asks, a PS2 ignores it
 	SendNumberTagsOffer(sess)

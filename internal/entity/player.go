@@ -292,6 +292,13 @@ type Player struct {
 	petEffectsSent string
 	petEffectsDue  bool
 
+	// BuffWindow: the player's client draws its own buff window and asked for its set
+	// (buffwindow.go, opcodes 0x7E57-0x7E59); buffWindowSent is what made the set it was
+	// last sent, buffWindowDue sends the next whatever it is (just asked).
+	BuffWindow     bool
+	buffWindowSent string
+	buffWindowDue  bool
+
 	// dps: the player's client draws a damage meter and asked for it
 	// (dpsmeter.go, opcodes 0x7E3A-0x7E3D): its fight as that client is
 	// shown it; nil when it never asked or stopped

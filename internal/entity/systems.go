@@ -123,6 +123,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.raidRosterSystem()
 	w.raidStateSystem()     // the raid's state to the clients that show it, the claims swept (raidrules.go)
 	w.petEffectsSystem(now) // the pet's effects, to the clients that draw them (peteffects.go)
+	w.buffWindowSystem(now) // the buff window's set, to the clients that draw it (buffwindow.go)
 	w.dpsMeterSystem(now)   // the damage meters' fights, to the clients that draw them (dpsmeter.go)
 	t.mark(tsPowerSync)
 	w.tickSeenLocked()

@@ -2169,7 +2169,7 @@ func (h *CharacterHandler) queueMemoryDumpAt(sess *session.Session, player *enti
 	// Two int32s after hotkeys: VIClient m_p2BB60, then m_p2BB0C, the quest
 	// journal's token, which 0x007C/0x007D set and the player's delete sends
 	// back (quests.go)
-	journalToken, journal := questJournal(player)
+	journalToken, journal := questJournal(sess, player)
 	writer.WriteInt32(0)
 	writer.WriteUint32(journalToken)
 

@@ -109,6 +109,9 @@ var snapshotRules = map[string]snapshotRule{
 	"gm_audit": {clear: true, scan: []string{"ip"},
 		why: "who did what from which address: sign-ins, tokens made, admin SQL (which can carry anything, " +
 			"a password hash included) and rows before and after, accounts' among them"},
+	"gm_audit_facets": {clear: true,
+		why: "what each audit line is about (the GM panel's filters, gmweb/audit_facets.go): who, through what tool, " +
+			"the petitions its words name; worked out from gm_audit, so cleared with it (a server makes it again)"},
 	"spellfx_meta": {clear: true, scan: []string{"value"},
 		why: "the salt the community visuals' senders' addresses are hashed with (with it an IPv4 " +
 			"sender's hash walks back to the address); a server makes a new one when it needs one"},

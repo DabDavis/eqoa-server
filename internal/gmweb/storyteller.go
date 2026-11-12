@@ -262,24 +262,7 @@ func storytellerLineNumbers(vals map[string]any) error {
 // storytellerAudit keeps a storyteller's reading of the log to their tables,
 // as a tester's (testerAudit): by name only their own, and no text search.
 func storytellerAudit(c *opCtx) error {
-	var req struct {
-		Table    string `json:"table"`
-		Username string `json:"username"`
-		Search   string `json:"search"`
-	}
-	if err := c.decode(&req); err != nil {
-		return err
-	}
-	if req.Table != "" && !isStorytellerTable(req.Table) {
-		return notStorytellers("the audit log of " + strconv.Quote(req.Table))
-	}
-	if req.Username != "" && !strings.EqualFold(req.Username, c.a.Username) {
-		return notStorytellers("another's audit log")
-	}
-	if strings.TrimSpace(req.Search) != "" {
-		return notStorytellers("searching the audit log's text")
-	}
-	return nil
+	return limitedAuditArgs(c, isStorytellerTable, notStorytellers)
 }
 
 // storytellerRevert: a change to a table they change, and one they could have

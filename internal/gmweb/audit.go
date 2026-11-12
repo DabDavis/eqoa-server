@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strings"
 )
 
 // The audit log: every change through the panel or an agent, who made it and
@@ -30,6 +29,34 @@ type auditEntry struct {
 	RevertedBy int64          `json:"revertedBy,omitempty"`
 	// NoRevert: this reader's revert would be refused (tester.go).
 	NoRevert bool `json:"noRevert,omitempty"`
+
+	// What the line is about, as its facets have it (audit_facets.go): the
+	// thing's name ("a bat", "Rusty Sword · Hero"), the change as a GM says
+	// it (added, changed, deleted, other), who wrote it (panel, agent, game,
+	// tool) with the agent's or tool's name, the table's group, the world, the
+	// petitions, camp reports and board entries its words name, and for a
+	// changed row its changed fields alone.
+	Thing     string        `json:"thing,omitempty"`
+	Kind      string        `json:"kind,omitempty"`
+	Source    string        `json:"source,omitempty"`
+	Agent     string        `json:"agent,omitempty"`
+	Tool      string        `json:"tool,omitempty"`
+	Group     string        `json:"group,omitempty"`
+	World     *int64        `json:"world,omitempty"`
+	WorldName string        `json:"worldName,omitempty"`
+	IsRevert  bool          `json:"isRevert,omitempty"`
+	Petitions []int64       `json:"petitions,omitempty"`
+	Camps     []int64       `json:"campReports,omitempty"`
+	Boards    []int64       `json:"boardEntries,omitempty"`
+	Changes   []fieldChange `json:"changes,omitempty"`
+}
+
+// fieldChange is one changed column of a changed row.
+type fieldChange struct {
+	Field  string `json:"field"`
+	Label  string `json:"label,omitempty"`
+	Before any    `json:"before"`
+	After  any    `json:"after"`
 }
 
 func jsonOrNil(v map[string]any) any {
@@ -72,24 +99,6 @@ func (s *Server) audit(a *actor, action, table string, key, before, after map[st
 	return id
 }
 
-// auditFilter narrows the log.
-type auditFilter struct {
-	Username string `json:"username,omitempty"`
-	Table    string `json:"table,omitempty"`
-	Action   string `json:"action,omitempty"`
-	Key      string `json:"key,omitempty"`
-	Search   string `json:"search,omitempty"`
-	Limit    int    `json:"limit,omitempty"`
-	Offset   int    `json:"offset,omitempty"`
-
-	// hideSQL keeps an admin's SQL from someone who is not one: the entries
-	// show, their statements do not, and a search never matches them (SQL
-	// can carry a password hash).
-	hideSQL bool
-	// tables keeps the log to these tables (a tester's); empty: every line.
-	tables []string
-}
-
 func scanAudit(rs *sql.Rows) ([]auditEntry, error) {
 	defer rs.Close()
 	var out []auditEntry
@@ -118,74 +127,6 @@ func scanAudit(rs *sql.Rows) ([]auditEntry, error) {
 }
 
 const auditColumns = `id, at, accountid, username, via, ip, action, tbl, rowkey, before, after, detail, reverted_by`
-
-// auditList is a page of the log, newest first.
-func (s *Server) auditList(f auditFilter) ([]auditEntry, int64, error) {
-	var parts []string
-	var args []any
-	if f.Username != "" {
-		parts = append(parts, "LOWER(username) = LOWER(?)")
-		args = append(args, f.Username)
-	}
-	if f.Table != "" {
-		parts = append(parts, "tbl = ?")
-		args = append(args, f.Table)
-	}
-	if f.Action != "" {
-		parts = append(parts, "action = ?")
-		args = append(args, f.Action)
-	}
-	if f.Key != "" {
-		parts = append(parts, "rowkey = ?")
-		args = append(args, f.Key)
-	}
-	if len(f.tables) > 0 {
-		parts = append(parts, "tbl IN (?"+strings.Repeat(", ?", len(f.tables)-1)+")")
-		for _, t := range f.tables {
-			args = append(args, t)
-		}
-	}
-	if f.Search != "" {
-		clause := "(detail LIKE ? ESCAPE '\\' OR before LIKE ? ESCAPE '\\' OR after LIKE ? ESCAPE '\\')"
-		if f.hideSQL {
-			clause = "(action != 'sql' AND " + clause + ")"
-		}
-		parts = append(parts, clause)
-		p := "%" + likeEscape(f.Search) + "%"
-		args = append(args, p, p, p)
-	}
-	w := ""
-	if len(parts) > 0 {
-		w = " WHERE " + strings.Join(parts, " AND ")
-	}
-	var total int64
-	if err := s.d.DB.QueryRow(`SELECT COUNT(*) FROM gm_audit`+w, args...).Scan(&total); err != nil {
-		return nil, 0, err
-	}
-	if f.Limit <= 0 {
-		f.Limit = 50
-	}
-	if f.Limit > 500 {
-		f.Limit = 500
-	}
-	rs, err := s.d.DB.Query(`SELECT `+auditColumns+` FROM gm_audit`+w+` ORDER BY id DESC LIMIT ? OFFSET ?`,
-		append(args, f.Limit, max(0, f.Offset))...)
-	if err != nil {
-		return nil, 0, err
-	}
-	list, err := scanAudit(rs)
-	if list == nil {
-		list = []auditEntry{}
-	}
-	if f.hideSQL {
-		for i := range list {
-			if list[i].Action == "sql" {
-				list[i].Detail = "an admin's SQL (shown to admins only)"
-			}
-		}
-	}
-	return list, total, err
-}
 
 // auditGet is one line.
 func (s *Server) auditGet(id int64) (*auditEntry, error) {
@@ -292,6 +233,7 @@ func (s *Server) revert(a *actor, id int64, force, dry bool) (*change, error) {
 	if !dry && ch.Audit != 0 {
 		s.d.DB.Exec(`UPDATE gm_audit SET reverted_by = ? WHERE id = ?`, ch.Audit, id)
 		s.d.DB.Exec(`UPDATE gm_audit SET detail = ? WHERE id = ?`, fmt.Sprintf("reverts entry %d", id), ch.Audit)
+		s.reindexAudit(ch.Audit) // its words say what it undoes now
 	}
 	return ch, nil
 }

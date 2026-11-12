@@ -123,9 +123,10 @@ func (r testerRoutes) refused(t *testing.T, name, raw string) {
 }
 
 // digest is every row of every table but the tokens' (whose last use moves).
+// (gm_audit_facets is the log's index, written by a read: audit_facets.go)
 func (f *fixture) digest() string {
 	f.t.Helper()
-	names, err := f.s.rowsOf(`SELECT name FROM sqlite_master WHERE type = 'table' AND name != 'gm_tokens' ORDER BY name`)
+	names, err := f.s.rowsOf(`SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT IN ('gm_tokens', 'gm_audit_facets') ORDER BY name`)
 	if err != nil {
 		f.t.Fatal(err)
 	}

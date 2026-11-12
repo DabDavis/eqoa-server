@@ -1026,6 +1026,8 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// and the raid's windows (raidcmds.go): the leader's mark and the loot rules' rolls
 	// and lists; a PS2 ignores it and is told in chat lines
 	SendRaidOffer(sess)
+	// and the ready check's window (readycheck.go): a PS2 ignores it and is told in a line
+	SendReadyCheckOffer(sess)
 
 	// Offer the race labels (racelabels.go): vanilla shows a race the game does
 	// not have by its own words, a PS2 ignores the offer

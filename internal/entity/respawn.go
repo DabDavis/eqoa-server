@@ -111,6 +111,7 @@ func (w *World) playerDownLocked(sess *session.Session, p *Player, now time.Time
 // current enemy it was turns to the next highest threat, or to nothing. Must
 // be called with the lock held.
 func (w *World) dropAggroLocked(id EntityID) {
+	w.petHateToMasterLocked(id) // a pet's hate falls to its master first (pethate.go)
 	for _, npc := range w.NPCs {
 		if _, ok := npc.Threats[id]; ok {
 			delete(npc.Threats, id)

@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/eqoa/server/internal/entity"
@@ -25,8 +24,11 @@ import (
 // shaman's pet, else the first line). /merc path names the paths and the
 // merc's; /merc path <word> picks one by its name or any of its spells' (a
 // part of it: "blood", "power", "boon"), and the merc out takes it at once.
-// The hire itself is unchanged: its line says the path taken and how to
-// change it.
+// Since 2026-11-12 the path is picked at the board, for good (the owner: "at
+// the bulletin board recruit have path option so no toggle once hired"): the
+// board asks it after the class (mercPathChoices, its class's default marked),
+// and /merc path names the merc's path and the class's, changing nothing.
+// A hire from before keeps the path it has.
 
 // mercPathNames are each class's paths' short names, in archivistPathLines'
 // order.
@@ -131,10 +133,9 @@ func mercPathBook(class, path int, book []entity.CastSpell) []entity.CastSpell {
 // The paths' lines (ours).
 const (
 	mercPathNone   = "A %s has no paths."
-	mercPathList   = "%s's path: %s. Paths of a %s: %s. /merc path <name> picks one."
-	mercPathIsLine = "%s takes the path of %s: /merc path names the others."
-	mercPathSet    = "%s takes the path of %s."
-	mercPathWhich  = "Which path? A %s's are %s."
+	mercPathList   = "%s's path: %s, taken at its hire. Paths of a %s: %s."
+	mercPathIsLine = "%s takes the path of %s, for good."
+	mercPathFixed  = "%s keeps to the path of %s, taken at its hire. The Mercenary Recruitment board hires another of another path."
 )
 
 // mercPathAll is a class's paths' names, joined.
@@ -167,16 +168,20 @@ func (m *Mercs) path(sess *session.Session, p *entity.Player, slot int, word str
 			mercPathAll(row.Class)))
 		return
 	}
-	k, ok := mercPathNamed(row.Class, word)
-	if !ok {
-		SendErrorMessage(sess, fmt.Sprintf(mercPathWhich, class, mercPathAll(row.Class)))
-		return
+	SendErrorMessage(sess, fmt.Sprintf(mercPathFixed, row.Name, mercPathName(row.Class, mercPathOf(row.Class, row.Path))))
+}
+
+// mercPathChoices is the board's answers for a class's paths, its default
+// marked; none for a class with no paths.
+func mercPathChoices(class int) []string {
+	var out []string
+	def := mercPathOf(class, -1)
+	for i := range archivistPathLines[class] {
+		n := mercPathName(class, i)
+		if i == def {
+			n += " (its usual)"
+		}
+		out = append(out, n)
 	}
-	if err := m.db.SetMercPath(p.CharServerID, slot, k); err != nil {
-		log.Printf("Merc: %s's path not kept: %v", p.Name, err)
-		return
-	}
-	m.rekit(p.CharServerID, p.Level) // the merc out takes it now
-	log.Printf("Merc: %s's %q takes the path of %s", p.Name, row.Name, mercPathName(row.Class, k))
-	SendClientMessage(sess, fmt.Sprintf(mercPathSet, row.Name, mercPathName(row.Class, k)))
+	return out
 }

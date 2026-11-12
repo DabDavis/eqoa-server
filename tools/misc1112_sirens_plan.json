@@ -1,0 +1,272 @@
+[
+ {
+  "id": 118491,
+  "name": "waterlogged chest",
+  "group": "Vastly Deep north",
+  "x": 10614.752,
+  "y": -196.30803,
+  "z": 7335.9507,
+  "facing": 252
+ },
+ {
+  "id": 118490,
+  "name": "enchanting siren",
+  "group": "Vastly Deep north",
+  "x": 10618.287,
+  "y": -193.74414,
+  "z": 7339.4863,
+  "facing": 32
+ },
+ {
+  "id": 118492,
+  "name": "enchanting siren",
+  "group": "Vastly Deep north",
+  "x": 10618.287,
+  "y": -196.53125,
+  "z": 7332.415,
+  "facing": 96
+ },
+ {
+  "id": 118498,
+  "name": "enchanting siren",
+  "group": "Vastly Deep north",
+  "x": 10611.217,
+  "y": -195.2532,
+  "z": 7332.415,
+  "facing": 160
+ },
+ {
+  "id": 118499,
+  "name": "enchanting siren",
+  "group": "Vastly Deep north",
+  "x": 10611.217,
+  "y": -195.2532,
+  "z": 7339.4863,
+  "facing": 224
+ },
+ {
+  "id": 118512,
+  "name": "waterlogged chest",
+  "group": "Vastly Deep south",
+  "x": 10612.848,
+  "y": -196.53123,
+  "z": 7280.8096,
+  "facing": 21
+ },
+ {
+  "id": 118533,
+  "name": "enchanting siren",
+  "group": "Vastly Deep south",
+  "x": 10616.383,
+  "y": -196.53125,
+  "z": 7284.345,
+  "facing": 32
+ },
+ {
+  "id": 118534,
+  "name": "enchanting siren",
+  "group": "Vastly Deep south",
+  "x": 10616.383,
+  "y": -196.53125,
+  "z": 7277.274,
+  "facing": 96
+ },
+ {
+  "id": 118535,
+  "name": "enchanting siren",
+  "group": "Vastly Deep south",
+  "x": 10609.3125,
+  "y": -196.53125,
+  "z": 7277.274,
+  "facing": 160
+ },
+ {
+  "id": 118536,
+  "name": "enchanting siren",
+  "group": "Vastly Deep south",
+  "x": 10609.3125,
+  "y": -196.53125,
+  "z": 7284.345,
+  "facing": 224
+ },
+ {
+  "id": 118283,
+  "name": "waterlogged chest",
+  "group": "West Toxx east",
+  "x": 4491.935,
+  "y": 24.125,
+  "z": 5868.3813,
+  "facing": 62
+ },
+ {
+  "id": 118259,
+  "name": "enchanting siren",
+  "group": "West Toxx east",
+  "x": 4495.4707,
+  "y": 24.125,
+  "z": 5871.917,
+  "facing": 32
+ },
+ {
+  "id": 118260,
+  "name": "enchanting siren",
+  "group": "West Toxx east",
+  "x": 4495.4707,
+  "y": 24.125,
+  "z": 5864.8457,
+  "facing": 96
+ },
+ {
+  "id": 118261,
+  "name": "enchanting siren",
+  "group": "West Toxx east",
+  "x": 4488.3994,
+  "y": 24.125,
+  "z": 5864.8457,
+  "facing": 160
+ },
+ {
+  "id": 118282,
+  "name": "enchanting siren",
+  "group": "West Toxx east",
+  "x": 4488.3994,
+  "y": 24.125,
+  "z": 5871.917,
+  "facing": 224
+ },
+ {
+  "id": 118264,
+  "name": "waterlogged chest",
+  "group": "West Toxx west",
+  "x": 4425.295,
+  "y": 24.125,
+  "z": 5865.4985,
+  "facing": 253
+ },
+ {
+  "id": 118262,
+  "name": "enchanting siren",
+  "group": "West Toxx west",
+  "x": 4428.8306,
+  "y": 24.125,
+  "z": 5869.034,
+  "facing": 32
+ },
+ {
+  "id": 118263,
+  "name": "enchanting siren",
+  "group": "West Toxx west",
+  "x": 4428.8306,
+  "y": 24.124998,
+  "z": 5861.963,
+  "facing": 96
+ },
+ {
+  "id": 118265,
+  "name": "enchanting siren",
+  "group": "West Toxx west",
+  "x": 4421.7593,
+  "y": 24.125002,
+  "z": 5861.963,
+  "facing": 160
+ },
+ {
+  "id": 118266,
+  "name": "enchanting siren",
+  "group": "West Toxx west",
+  "x": 4421.7593,
+  "y": 24.125,
+  "z": 5869.034,
+  "facing": 224
+ },
+ {
+  "id": 118268,
+  "name": "waterlogged chest",
+  "group": "Kerra Isle east",
+  "x": 4454.471,
+  "y": 24.093748,
+  "z": 7920.345,
+  "facing": 64
+ },
+ {
+  "id": 118267,
+  "name": "enchanting siren",
+  "group": "Kerra Isle east",
+  "x": 4458.007,
+  "y": 24.09375,
+  "z": 7923.881,
+  "facing": 32
+ },
+ {
+  "id": 118269,
+  "name": "enchanting siren",
+  "group": "Kerra Isle east",
+  "x": 4458.007,
+  "y": 24.09375,
+  "z": 7916.8096,
+  "facing": 96
+ },
+ {
+  "id": 118270,
+  "name": "enchanting siren",
+  "group": "Kerra Isle east",
+  "x": 4450.9355,
+  "y": 24.09375,
+  "z": 7916.8096,
+  "facing": 160
+ },
+ {
+  "id": 118271,
+  "name": "enchanting siren",
+  "group": "Kerra Isle east",
+  "x": 4450.9355,
+  "y": 24.09375,
+  "z": 7923.881,
+  "facing": 224
+ },
+ {
+  "id": 118273,
+  "name": "waterlogged chest",
+  "group": "Kerra Isle west",
+  "x": 4366.069,
+  "y": 24.093748,
+  "z": 7916.054,
+  "facing": 62
+ },
+ {
+  "id": 118272,
+  "name": "enchanting siren",
+  "group": "Kerra Isle west",
+  "x": 4369.6045,
+  "y": 24.09375,
+  "z": 7919.59,
+  "facing": 32
+ },
+ {
+  "id": 118274,
+  "name": "enchanting siren",
+  "group": "Kerra Isle west",
+  "x": 4369.6045,
+  "y": 24.09375,
+  "z": 7912.5186,
+  "facing": 96
+ },
+ {
+  "id": 118275,
+  "name": "enchanting siren",
+  "group": "Kerra Isle west",
+  "x": 4362.533,
+  "y": 24.09375,
+  "z": 7912.5186,
+  "facing": 160
+ },
+ {
+  "id": 118276,
+  "name": "enchanting siren",
+  "group": "Kerra Isle west",
+  "x": 4362.533,
+  "y": 24.09375,
+  "z": 7919.59,
+  "facing": 224
+ }
+]

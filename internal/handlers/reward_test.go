@@ -107,7 +107,7 @@ func TestRewardIsAGMsBuffOnAPlayer(t *testing.T) {
 	if ok, ds := rewarded(pp); !ok || ds != 25 {
 		t.Fatalf("not on the player (%v, shield %d): %q", ok, ds, texts(heard(t, gs)))
 	}
-	if got := texts(heard(t, gs)); !slices.Contains(got, "[GM] GM's Reward is on Player for an hour: a damage shield of 25 and a heal of 25 at every hit taken, +100 AC, +50 STR, STA, DEX, WIS, INT and CHA.") {
+	if got := texts(heard(t, gs)); !slices.Contains(got, "[GM] GM's Reward is on Player for an hour: a damage shield of 200 and a heal of 200 at every hit taken, +100 AC, +50 STR, STA, DEX, WIS, INT and CHA.") {
 		t.Errorf("the GM's line: %q", got)
 	}
 	if got := texts(heard(t, ps)); !slices.Contains(got, rewardYouLine) {

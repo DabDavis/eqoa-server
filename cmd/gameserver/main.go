@@ -486,6 +486,11 @@ func main() {
 	} else {
 		log.Printf("Quest marks: quests down to %d levels below the player's (world.quest_marks_below)", n)
 	}
+	// the "!" and "?" over quest NPCs' heads (questheadmarks.go, petition 1813)
+	if err := handlers.SetQuestHeadMarks(cfg.Quests.Markers); err != nil {
+		log.Fatalf("quests.markers: %v", err)
+	}
+	log.Printf("Quest marks over heads: %s (quests.markers)", handlers.QuestHeadMarksMode())
 	handlers.SetHeirloomsGiven(cfg.World.Heirlooms == nil || *cfg.World.Heirlooms)
 	if cfg.World.Heirlooms != nil && !*cfg.World.Heirlooms {
 		log.Printf("Heirlooms: none given at a login (world.heirlooms: false)")

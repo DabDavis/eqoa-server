@@ -995,6 +995,9 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	SendQuestMarkersOffer(sess)
 	// and the quest tracker for the HUD (questprogress.go)
 	SendQuestProgressOffer(sess)
+	// and the marks over quest NPCs' heads (questheadmarks.go, petition
+	// 1813): a client that draws them asks, a PS2 ignores it
+	SendQuestHeadMarksOffer(sess)
 	// SOE's live client's feature word, every feature this server has
 	// (0x07F5, livefeatures.go), and the live auction forms' offer: a PS2
 	// ignores both

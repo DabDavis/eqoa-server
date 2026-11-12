@@ -225,6 +225,9 @@ type World struct {
 	// qwalls is the quests' walls and what each character passes and holds
 	// (questwalls.go)
 	qwalls questWallState
+	// qhead is the quest marks over the NPCs' heads each character's client
+	// is shown, as the quest engine last worked them out (questheadmarks.go)
+	qhead map[uint32]*QuestHeadMarks
 	// The NPCs' body tints by name, table npctint, as the clients that draw
 	// them are told (npctint.go)
 	npcTints npcTintState

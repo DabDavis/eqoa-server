@@ -98,3 +98,30 @@ func TestDungeonLoginAtTheEntrance(t *testing.T) {
 		t.Fatalf("a login inside the instance: world %d (%.1f, %.1f, %.1f), want its entrance", rec.World, rec.X, rec.Y, rec.Z)
 	}
 }
+
+// TestDungeonsPagesTheirBox: ten dungeons and the way out are more than a box holds (maxDialogOptions): five a box and
+// "More dungeons", the last page back to the first.
+func TestDungeonsPagesTheirBox(t *testing.T) {
+	var all []dungeonsAnswer
+	for i := 0; i < 11; i++ {
+		all = append(all, dungeonsAnswer{do: dungeonsDoEnter, key: string(rune('a' + i))})
+	}
+	seen := map[string]bool{}
+	page := 0
+	for k := 0; k < 3; k++ {
+		box := dungeonsPage(all, page)
+		if len(box) > maxDialogOptions || box[len(box)-1].do != dungeonsDoMore {
+			t.Fatalf("page %d: %d answers, last %+v", page, len(box), box[len(box)-1])
+		}
+		for _, a := range box[:len(box)-1] {
+			seen[a.key] = true
+		}
+		page = box[len(box)-1].page
+	}
+	if len(seen) != 11 || page != 0 {
+		t.Fatalf("three pages showed %d of 11, then page %d", len(seen), page)
+	}
+	if got := dungeonsPage(all[:6], 0); len(got) != 6 || got[5].do == dungeonsDoMore {
+		t.Fatalf("six answers fit one box: %+v", got)
+	}
+}

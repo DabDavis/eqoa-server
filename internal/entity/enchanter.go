@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/session"
 )
 
@@ -204,14 +205,19 @@ const arcaneDebuffPer = 15
 // creatureResists is a hit n (negative) or a tick of a spell of that resist on a
 // creature strong in that resist, its template's resist_kind (petition 1178,
 // Jibrish, of the lava centipede: "very resistant to FR. Not immune, but very strong
-// to it"): it does not take resist_pct percent of it, less what a debuff of that kind
-// on it takes off (npcResistKindPct), and at least 1 lands. Any other as it is. Its
-// chance to resist a spell whole is another matter: that goes by the levels.
+// to it"): it does not take resist_pct percent of it (or the kind's own, "LR:75":
+// templateResistPct), less what a debuff of that kind on it takes off
+// (npcResistKindPct), and at least 1 lands. Any other as it is. Its chance to resist
+// a spell whole is another matter: that goes by the levels.
 func creatureResists(resist Stat, npc *NPC, n int, now time.Time) int {
-	if npc == nil || npc.tmpl == nil || n >= 0 || resist == StatNone || npc.tmpl.ResistPct <= 0 || !resistKindHas(npc.tmpl.ResistKind, resist) {
+	if npc == nil || npc.tmpl == nil || n >= 0 || resist == StatNone {
 		return n
 	}
-	pct := npc.tmpl.ResistPct - npcResistKindPct(npc, resist, now)
+	pct := templateResistPct(npc.tmpl.ResistKind, npc.tmpl.ResistPct, resist)
+	if pct <= 0 {
+		return n
+	}
+	pct -= npcResistKindPct(npc, resist, now)
 	if pct <= 0 {
 		return n
 	}
@@ -219,14 +225,32 @@ func creatureResists(resist Stat, npc *NPC, n int, now time.Time) int {
 }
 
 // resistKindHas is whether a template's resist_kind names that resist: one, or several
-// with commas (the guide's Rallos Zek: every nuke but arcane does "close to nothing").
+// with commas (the guide's Rallos Zek: every nuke but arcane does "close to nothing"),
+// each with its own percent or not ("LR:75").
 func resistKindHas(kinds string, resist Stat) bool {
 	for _, k := range strings.Split(kinds, ",") {
-		if shieldResistStat(k) == resist {
+		if kind, _, ok := database.ResistKindPct(k); ok && shieldResistStat(kind) == resist {
 			return true
 		}
 	}
 	return false
+}
+
+// templateResistPct is the percent of a resist's damage a template of that resist_kind and
+// resist_pct does not take: the kind's own percent when it gives one ("LR:75"), else
+// resist_pct for a kind it names, else none.
+func templateResistPct(kinds string, pct int, resist Stat) int {
+	for _, k := range strings.Split(kinds, ",") {
+		kind, own, ok := database.ResistKindPct(k)
+		if !ok || shieldResistStat(kind) != resist {
+			continue
+		}
+		if own > 0 {
+			return own
+		}
+		return max(pct, 0)
+	}
+	return 0
 }
 
 // arcaneDebuffed is a hit n (negative) or a tick of a spell of that resist on a

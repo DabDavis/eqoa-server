@@ -37,8 +37,10 @@ func TestWornShieldOf(t *testing.T) {
 		"Golden Spiked Boots": {Damage: 30}, "Guard of the Deep": {Damage: 20}, "Rune Crested Gloves": {Damage: 30},
 		"Stinging Kite Shield": {Damage: 20}, "Thornlink": {Damage: 40}, "positronian energy shield": {Damage: 200, Undead: true},
 		"Marauder Breastplate": {Damage: 10, Heal: 5}, "Tower of Woe": {Damage: 90, Heal: 45},
-		"Mithron Chestplate": {Heal: 10, Power: 10}, "coralium chestguard": {Power: 15}, "Coral Tunic": {Power: 25},
+		"Mithron Chestplate": {Heal: 15, Power: 15}, "coralium chestguard": {Power: 15}, "Coral Tunic": {Power: 25},
 		"fathomsteel guard": {Power: 15}, "FesterTwig": {Power: 15},
+		// QuestMasters' (2006)
+		"bracers of toxicity": {Damage: 64}, "Golden Spiked Gloves": {Damage: 20}, "Sandals of the Burning Sands": {Damage: 35},
 	} {
 		want.Item = name
 		if s, ok := of(name); !ok || s != want {

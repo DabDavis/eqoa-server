@@ -94,3 +94,26 @@ func TestMercMenu(t *testing.T) {
 		t.Error("not dismissed")
 	}
 }
+
+// A magician merc's menu has Pet: its usual earth, its kinds and Best; a
+// choice is /merc pet's (kept in its row).
+func TestMercMenuPet(t *testing.T) {
+	r, m, db := newMercFixture(t)
+	m.hire(r.anna, r.pa, 10, 0, 0)
+	r.gw.AskMercGroup(r.anna)
+	merc := r.gw.NPCByID(r.gw.MercOf(r.anna))
+	r.drain()
+	r.talk(r.anna, merc)
+	got := r.msgs(r.anna)
+	if len(got) != 1 || !strings.HasSuffix(got[0], "|Advice|Spells|Stance: assist|Pet: Earth (its usual)|Dismiss") {
+		t.Fatalf("the menu: %q", got)
+	}
+	got = r.answer(got, "Pet: Earth (its usual)")
+	if len(got) != 1 || !strings.HasSuffix(got[0], "|Earth|Water|Fire|Air|Best") {
+		t.Fatalf("the pets' box: %q", got)
+	}
+	r.answer(got, "Air")
+	if row, _, _ := db.Merc(r.pa.CharServerID, 1); row.Pet != "air" {
+		t.Errorf("the pick kept: %q", row.Pet)
+	}
+}

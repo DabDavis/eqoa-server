@@ -7,9 +7,10 @@ import (
 )
 
 // /merc pet (mercpetkind.go; petition 1564: "pick which mag pet he will
-// use"): a magician merc hired summons its best (no pick); /merc pet names
-// the kinds; /merc pet air keeps "air" in its row and its kit picks the air
-// elementals; best goes back. The controls: a word of no kind changes
+// use"): a magician merc hired summons its usual earth line (no pick:
+// 2026-11-12); /merc pet names the kinds; /merc pet air keeps "air" in its
+// row and its kit picks the air elementals (the Djinn too); best keeps
+// "best", the best of all. The controls: a word of no kind changes
 // nothing, and a class with one kind or none has no choice.
 func TestMercPetCommand(t *testing.T) {
 	r, m, db := newMercFixture(t)
@@ -34,12 +35,12 @@ func TestMercPetCommand(t *testing.T) {
 	if !ok || row.Pet != "" {
 		t.Fatalf("the hire's row: %v pet %q", ok, row.Pet)
 	}
-	if k, _ := m.kit(row, 30); len(k.PetPick) != 0 {
-		t.Errorf("no pick: %q", k.PetPick)
+	if k, _ := m.kit(row, 30); !entity.MercPetKindOf("Earth Elementaling", k.PetPick) || entity.MercPetKindOf("Air Elementaling", k.PetPick) {
+		t.Errorf("no pick, its usual earth: %q", k.PetPick)
 	}
 	r.drain()
 	r.say(r.anna, "/merc pet")
-	if got := r.msgs(r.anna); !saidLine(got, " summons: the best it has. Pets of a Magician: Earth, Water, Fire, Air, Efreet, Ghilan, or best.") {
+	if got := r.msgs(r.anna); !saidLine(got, " summons: Earth (its usual). Pets of a Magician: Earth, Water, Fire, Air, Efreet, Ghilan, or best.") {
 		t.Errorf("/merc pet: %q", got)
 	}
 	r.say(r.anna, "/merc pet frog")
@@ -56,13 +57,17 @@ func TestMercPetCommand(t *testing.T) {
 		t.Fatalf("the pick kept: %q", row.Pet)
 	}
 	k, _ := m.kit(row, 30)
-	if len(k.PetPick) != 1 || k.PetPick[0] != "air" || !entity.MercPetKindOf("Air Elementaling", k.PetPick) ||
+	if !entity.MercPetKindOf("Air Elementaling", k.PetPick) || !entity.MercPetKindOf("Summon Djinn", k.PetPick) ||
 		entity.MercPetKindOf("Earth Elementaling", k.PetPick) {
 		t.Errorf("the kit's pick: %q", k.PetPick)
 	}
 	r.say(r.anna, "/merc pet best")
-	if row, _, _ := db.Merc(r.pa.CharServerID, 1); row.Pet != "" {
+	row, _, _ = db.Merc(r.pa.CharServerID, 1)
+	if row.Pet != "best" {
 		t.Errorf("best kept %q", row.Pet)
+	}
+	if k, _ := m.kit(row, 30); len(k.PetPick) != 0 {
+		t.Errorf("best: a pick %q", k.PetPick)
 	}
 	// one kind: no choice
 	if _, ok := mercPetKindNamed(13, "familiar"); ok {

@@ -324,6 +324,7 @@ def main():
         dname = next(d["name"] for d in dungeons if d["key"] == key)
         v = dict(b)
         v["patternid"], v["itemname"] = pid, name
+        v["rent"] = 1  # kept over logout: some bases are No Rent (petition 1837, the Guk Swampwater Belt)
         v["itemdesc"] = f"Raid gear of {dname}'s instance, as strong as {b['itemname']}."
         insert(db, now, "itempattern", {c: v[c] for c in icols})
         insert(db, now, "loottables", {"tablename": f"dungeon {key} {tier}", "patternid": pid, "weight": 1, "minlevel": 1,

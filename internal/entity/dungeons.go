@@ -514,6 +514,18 @@ func (w *World) DungeonLogin(char uint32, world int, x, z float32) (dungeon, res
 	return true, false, 0, out
 }
 
+// DungeonEntrance is where a player sent into the open instance inst lands (its dungeon's entrance); false when no
+// such instance is open.
+func (w *World) DungeonEntrance(inst uint32) (HomeSpot, bool) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	in := w.dungeons.insts[inst]
+	if in == nil {
+		return HomeSpot{}, false
+	}
+	return w.dungeons.defs[in.def].Entrance, true
+}
+
 // dungeonLoginInstLocked is the open instance a character (of group groupID) logging in at (x, z) stands in.
 func (w *World) dungeonLoginInstLocked(char, groupID uint32, x, z float32) *dungeonInst {
 	var best *dungeonInst

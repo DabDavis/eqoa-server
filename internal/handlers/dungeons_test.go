@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/eqoa/server/internal/config"
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/worlds"
 )
@@ -66,5 +68,33 @@ func TestDungeonCreatureRollsItsRowsLoot(t *testing.T) {
 		if got := lootNames(c.n); len(got) != len(c.want) || got[0] != c.want[0] || got[1] != c.want[1] {
 			t.Fatalf("%+v rolls %v, want %v", c.n, got, c.want)
 		}
+	}
+}
+
+// TestDungeonLoginAtTheEntrance: a login saved inside its party's open instance resumes at the dungeon's entrance,
+// never where it logged out (petition 1808: a player stuck under a rock at Blackburrow's old landing would have been
+// put back under it), and in the instance.
+func TestDungeonLoginAtTheEntrance(t *testing.T) {
+	r := newPortalRig(t)
+	block := `[{"key":"bb","name":"Test Burrow","boxes":[[900,900,1100,1100]],"entrance":{"x":1000,"y":50,"z":1150,"toward":[1000,1000]}}]`
+	SetServerWorlds([]worlds.Built{{Recipe: worlds.Recipe{World: 14, Name: "the Test Dungeons", Dungeons: json.RawMessage(block)}}})
+	t.Cleanup(func() {
+		SetServerWorlds(nil)
+		r.gw.SetDungeons(false, 14, nil, entity.DungeonSettings{})
+	})
+	if !SetupDungeons(r.gw, config.DungeonsConfig{Enabled: true}, nil) {
+		t.Fatal("the dungeons are not on")
+	}
+	r.anna.SetServerWorlds([]uint8{14})
+	dungeonCommand(r.gw, r.anna, "enter bb")
+	r.travel()
+	if r.pa.World != 14 || r.pa.InstanceKey() == 0 {
+		t.Fatalf("Anna not in the dungeon: world %d instance %d", r.pa.World, r.pa.InstanceKey())
+	}
+	held := func(w uint8) bool { return w == 14 }
+	rec := &database.CharacterRecord{ServerID: r.pa.CharServerID, CharName: "Anna", World: 14, X: 1050, Y: 57, Z: 960}
+	loginSpawn(r.gw, rec, held, nil)
+	if rec.World != 14 || rec.X != 1000 || rec.Y != 50 || rec.Z != 1150 {
+		t.Fatalf("a login inside the instance: world %d (%.1f, %.1f, %.1f), want its entrance", rec.World, rec.X, rec.Y, rec.Z)
 	}
 }

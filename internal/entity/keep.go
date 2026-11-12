@@ -34,6 +34,7 @@ type KeptPlayer struct {
 	Lockouts     []KeptLockout `json:"lockouts,omitempty"`
 	PowerBars    bool          `json:"power_bars,omitempty"`
 	PetEffects   bool          `json:"pet_effects,omitempty"`
+	BuffWindow   bool          `json:"buff_window,omitempty"`
 	RaidRoster   bool          `json:"raid_roster,omitempty"`
 	// RaidRosterGroups: its roster carries group numbers (raidsubgroups.go)
 	RaidRosterGroups bool       `json:"raid_roster_groups,omitempty"`
@@ -122,6 +123,7 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 	k := KeptPlayer{CharServerID: p.CharServerID, Name: p.Name, Dead: p.IsDead() || p.respawnPending(),
 		Target: p.TargetObjectID, PowerBars: p.PowerBars, RaidRoster: p.RaidRoster, RaidRosterGroups: p.RaidRosterGroups, RaidWindows: p.RaidWindows, DuelWindow: p.DuelWindow, GM: p.GM, Flying: p.Flying,
 		Place: [3]float32{p.X, p.Y, p.Z}, World: p.World, PetEffects: p.PetEffects}
+	k.BuffWindow = p.BuffWindow
 	k.RaceLabels = p.RaceLabels
 	k.RecordWindow = p.RecordWindow
 	k.Jumps = p.Jumps
@@ -165,6 +167,7 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 	p.ProfanityFilterOff, p.ProfanityFilterMedium = k.ProfanityOff, k.ProfanityMedium
 	p.LFG, p.GroupChatHidden = k.LFG, k.GroupChatHidden
 	p.PetEffects, p.petEffectsSent, p.petEffectsDue = k.PetEffects, "", k.PetEffects // its pet's set again once the pet is back
+	p.BuffWindow, p.buffWindowSent, p.buffWindowDue = k.BuffWindow, "", k.BuffWindow // its buff window's set again (buffwindow.go)
 	p.RaidRoster, p.raidRosterSent, p.RaidRosterGroups = k.RaidRoster, "", k.RaidRosterGroups
 	p.RaidWindows, p.raidStateSent = k.RaidWindows, "" // the state again at the next pass (raidrules.go)
 	if k.DPSMeter {

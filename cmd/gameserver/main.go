@@ -465,6 +465,8 @@ func main() {
 		log.Printf("Jump: a client that can jumps (world.jump)")
 	}
 	handlers.SetQuestMarksBelow(cfg.World.QuestMarksBelow) // handlers/questmarks.go
+	// the journal's pointers to a finished quest's next giver (questpointers.go)
+	handlers.SetNextGiverPointer(cfg.Quests.NextGiverPointer == nil || *cfg.Quests.NextGiverPointer)
 	if n := handlers.QuestMarksBelow(); n < 0 {
 		log.Printf("Quest marks: every quest a player may take (world.quest_marks_below)")
 	} else {

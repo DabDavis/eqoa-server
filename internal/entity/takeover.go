@@ -174,7 +174,7 @@ func (w *World) handedOverLocked(p *Player) {
 	p.PowerBars, p.powerBarsSent, p.powerBarsDue = false, "", false
 	p.PetEffects, p.petEffectsSent, p.petEffectsDue = false, "", false
 	p.BuffWindow, p.buffWindowSent, p.buffWindowDue = false, "", false
-	p.RaidRoster, p.raidRosterSent, p.RaidRosterGroups = false, "", false
+	p.RaidRoster, p.raidRosterSent, p.RaidRosterGroups, p.RaidRosterKinds = false, "", false, false
 	p.dps = nil                             // its meter too (dpsmeter.go)
 	delete(w.invites, p.ServerID)           // the new client has no box up
 	w.setFlyingLocked(p, false, time.Now()) // a new login: its client is not flying (fly.go)

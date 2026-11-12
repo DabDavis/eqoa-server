@@ -194,14 +194,15 @@ func TestTheRaidFlagsSpellings(t *testing.T) {
 	}
 }
 
-// The offer is 0x7E18 with a u32 2 (the records may carry their groups); 0x7E19 is the
-// client's answer: 1 the roster as before, 2 with the groups, 0 off.
+// The offer is 0x7E18 with a u32 3 (the records may carry their groups and kinds); 0x7E19
+// is the client's answer: 1 the roster as before, 2 with the groups, 3 with the groups
+// and the kinds, 0 off.
 func TestTheRaidRosterOfferAndAnswer(t *testing.T) {
 	r := newRaidGroup(t, "Alda", "Bren")
 	r.sess[0].Queue().GetPending()
 	SendRaidRosterOffer(r.sess[0])
 	msgs := r.sess[0].Queue().GetPending()
-	if len(msgs) != 1 || !bytes.Equal(msgs[0].Data(), []byte{0x18, 0x7E, 2, 0, 0, 0}) {
+	if len(msgs) != 1 || !bytes.Equal(msgs[0].Data(), []byte{0x18, 0x7E, 3, 0, 0, 0}) {
 		t.Fatalf("the offer: %v", msgs)
 	}
 	if err := r.h.handleRaidRosterAnswer(r.sess[0], u32Msg(protocol.OpcodeRaidRosterAnswer, 1)); err != nil {
@@ -213,8 +214,14 @@ func TestTheRaidRosterOfferAndAnswer(t *testing.T) {
 	if err := r.h.handleRaidRosterAnswer(r.sess[0], u32Msg(protocol.OpcodeRaidRosterAnswer, 2)); err != nil {
 		t.Fatal(err)
 	}
-	if !r.p[0].RaidRoster || !r.p[0].RaidRosterGroups {
-		t.Error("answered 2: not on with groups")
+	if !r.p[0].RaidRoster || !r.p[0].RaidRosterGroups || r.p[0].RaidRosterKinds {
+		t.Error("answered 2: not on with groups alone")
+	}
+	if err := r.h.handleRaidRosterAnswer(r.sess[0], u32Msg(protocol.OpcodeRaidRosterAnswer, 3)); err != nil {
+		t.Fatal(err)
+	}
+	if !r.p[0].RaidRoster || !r.p[0].RaidRosterGroups || !r.p[0].RaidRosterKinds {
+		t.Error("answered 3: not on with groups and kinds")
 	}
 	if err := r.h.handleRaidRosterAnswer(r.sess[0], u32Msg(protocol.OpcodeRaidRosterAnswer, 0)); err != nil {
 		t.Fatal(err)

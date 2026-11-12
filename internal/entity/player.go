@@ -272,6 +272,9 @@ type Player struct {
 	// RaidRosterGroups: it answered the offer RaidRosterWithGroups, each record
 	// with its group number after it (raidsubgroups.go)
 	RaidRosterGroups bool
+	// RaidRosterKinds: it answered RaidRosterWithKinds, each record's kind (a
+	// merc's or a player's) after its group number (raidroster.go)
+	RaidRosterKinds bool
 
 	// RaidWindows: the player's client shows the raid's windows and answered the
 	// raid offer (raidrules.go, opcodes 0x7E42-0x7E48): its raid's state, its rolls

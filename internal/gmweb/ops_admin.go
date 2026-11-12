@@ -24,17 +24,42 @@ import (
 func (s *Server) registerAdminOps() {
 	s.addOp(&Op{
 		Name: "audit_log", Title: "The audit log", Scope: scopeRead, Core: true,
-		Description: "Every change made through the panel, by an agent or by a GM command in the game, newest first: who, " +
-			"through what (web, a token, OAuth, game), when, and for a row the row before and after. Filter by GM, table, " +
-			"action (insert, update, delete, live, account, settings, sql, login, token, security, backup, snapshot, server) or text.",
+		Description: "Every change made through the panel, by an agent, by a GM command in the game or by a data tool, newest " +
+			"first: who, through what, when, why (the petition or camp report its words name), what thing (its name, table and " +
+			"row id), and for a changed row only the fields that changed, before and after (changes). Every filter given must " +
+			"hold. Who: username (exactly), who (any part of the name, the agent's, the tool's, or a source), source, tool. " +
+			"What: table (or several by commas), group, action (added, changed, deleted, reverted: undone since, revert: undoes " +
+			"another; or a raw action: insert, update, delete, live, account, settings, sql, login, token, security, backup, " +
+			"snapshot, server), name (the start of a word of the thing's name: an NPC's, an item's, a spell's, a character's, its old " +
+			"name too: bat finds a bat and Bat Meat, not combat), row_id (the row's id or an id it refers to: an NPC's respawn row by the NPC's id), key, world. When: since " +
+			"and until (a date, 2026-11-12, or an RFC 3339 time; a date until is its whole day). Why: petition, camp_report, " +
+			"board_entry (a number; -1 any). search is free text in the line's words and rows. preset is a named filter put " +
+			"on top: npcs_deleted, npcs_added, npcs_changed, items_added, items_changed, items_given, spells_changed, " +
+			"loot_changed, camp_reports, petitions, reverts, reverted, today (UTC). counts: also how many lines each choice " +
+			"of kind, source, group, table, who and tool would give with the other filters held, and each preset's total.",
 		Input: obj(map[string]any{
-			"username": str("only this GM's"),
-			"table":    str("only changes to this table"),
-			"action":   str("only this action"),
-			"key":      freeObject("only changes to this row (its key)"),
-			"search":   str("text in the entry"),
-			"limit":    integer("default 50, at most 500"),
-			"offset":   integer("entries to skip"),
+			"username":    str("only this account's lines (its name exactly, any case)"),
+			"who":         str("any part of the GM's name, the agent's (Claude, Codex), the tool's (a script, a game command), or a source"),
+			"source":      strEnum("what wrote the line: panel (a person on the page), agent (an AI agent as a GM), game (a GM command in the game), tool (a data tool, a shell)", sourcePanel, sourceAgent, sourceGame, sourceTool),
+			"tool":        str("any part of the tool's name (ct_trials_20261111.py, workboard), a game command (/clone, #reward) or an agent's name"),
+			"table":       str("only changes to this table (several: by commas)"),
+			"group":       strEnum("only changes to this group of tables", groupNames()...),
+			"action":      str("added, changed, deleted, reverted (undone since), revert (undoes another), or a raw action"),
+			"name":        str("the start of a word of the thing's name (an NPC's, an item's, a spell's, a quest's, a character's): bat finds a bat, not combat"),
+			"row_id":      integer("the row's id, or an id it refers to (an NPC's id finds its respawn, wander and path rows too)"),
+			"key":         freeObject("only changes to this row (its whole key)"),
+			"world":       integer("only rows in this world (0 Tunaria, 1 Rathe, 2 Odus, 3 Lavastorm, 4 Plane of Sky, 5 Secrets, ...): NPCs, characters, marks"),
+			"since":       str("from this date (2026-11-12) or time (RFC 3339) on"),
+			"until":       str("up to this date (its whole day) or time"),
+			"petition":    integer("only lines whose words name this petition; -1 any petition"),
+			"camp_report": integer("only lines of this camp report; -1 any"),
+			"board_entry": integer("only lines naming this work board entry; -1 any"),
+			"search":      str("text in the line's words or its rows"),
+			"today":       str("the reader's own midnight as an RFC 3339 time, for the today preset (else midnight UTC)"),
+			"preset":      strEnum("a named filter, put on top of the rest", presetNames()...),
+			"counts":      boolean("also count what each filter's choices would give, and each preset"),
+			"limit":       integer("default 50, at most 500"),
+			"offset":      integer("entries to skip"),
 		}),
 		Handler: func(c *opCtx) (any, error) {
 			var req struct {
@@ -52,11 +77,12 @@ func (s *Server) registerAdminOps() {
 			if c.a.limited() {
 				// below a GM: its roles' tables alone, others' lines without who
 				f.tables = c.a.readTables()
+				f.limited = true
 				if len(f.tables) == 0 {
 					return nil, notOurs(nil, "the audit log")
 				}
 			}
-			list, total, err := c.s.auditList(f)
+			list, total, counts, busy, err := c.s.auditQueryIndexed(f)
 			if err != nil {
 				return nil, err
 			}
@@ -65,7 +91,19 @@ func (s *Server) registerAdminOps() {
 					limitedAuditEntry(c.a, &list[i])
 				}
 			}
-			return map[string]any{"entries": list, "total": total}, nil
+			out := map[string]any{"entries": list, "total": total}
+			if counts != nil {
+				out["counts"] = counts
+			}
+			if busy {
+				// the first read after a start on a big log: the filters see
+				// the lines indexed so far
+				var done, all int64
+				c.s.d.DB.QueryRow(`SELECT COUNT(*) FROM gm_audit_facets`).Scan(&done)
+				c.s.d.DB.QueryRow(`SELECT COUNT(*) FROM gm_audit`).Scan(&all)
+				out["indexing"] = map[string]any{"indexed": done, "lines": all}
+			}
+			return out, nil
 		},
 	})
 	s.addOp(&Op{

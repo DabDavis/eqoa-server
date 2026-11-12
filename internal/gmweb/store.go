@@ -64,6 +64,9 @@ func (s *Server) initSchema() error {
 	if _, err := s.d.DB.Exec(panelSchema); err != nil {
 		return err
 	}
+	if _, err := s.d.DB.Exec(facetSchema); err != nil { // audit_facets.go
+		return err
+	}
 	return ensureSubGMColumn(s.d.DB) // tester.go
 }
 

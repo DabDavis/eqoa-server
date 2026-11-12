@@ -134,6 +134,13 @@ type Server struct {
 	// campfixMu orders the camp reports' decisions (ops_campfix.go): one at
 	// a time, so no report's marks are applied twice
 	campfixMu sync.Mutex
+
+	// facetMu orders the audit log's indexing (audit_facets.go)
+	facetMu         sync.Mutex
+	facetVerChecked bool // the facets' rule version checked (under facetMu)
+	// presetCache is the log's presets' counts by the newest line indexed
+	presetMu    sync.Mutex
+	presetCache map[string]*presetCount
 }
 
 // New builds the panel. It creates its own tables (gm_audit, gm_totp,
@@ -275,6 +282,7 @@ func (s *Server) Start() error {
 	if s.cfg.RequireTOTP {
 		totp = "an authenticator required of every GM"
 	}
+	s.indexAuditInBackground()
 	log.Printf("GM panel on %s for acctlevel %d+ (admin %d+), %s", where, s.cfg.MinLevel, s.cfg.AdminLevel, totp)
 	return nil
 }

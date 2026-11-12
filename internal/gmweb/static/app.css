@@ -404,6 +404,48 @@ pre.json { margin: 0; font: 12px/1.5 var(--mono); white-space: pre-wrap; word-br
 .audit-entry:last-child { border-bottom: 0; }
 .audit-entry .line { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .audit-entry .detail { margin-top: 8px; }
+/* the activity log's filters and lines (views/audit.js) */
+.audit-entry .thing { font-weight: 600; color: var(--text); }
+.audit-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 4px; font-size: 12.5px; color: var(--muted); }
+.audit-why { margin-top: 6px; font-size: 12.5px; overflow-wrap: anywhere; }
+.audit-diff { display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content minmax(0, 1fr); gap: 2px 8px;
+  margin-top: 6px; padding: 6px 10px; background: var(--bg-2); border-radius: var(--radius-sm); font: 12px/1.5 var(--mono); }
+.audit-diff .k { color: var(--muted); }
+.audit-diff .b { color: var(--danger); text-decoration: line-through; text-decoration-color: rgba(236, 90, 95, 0.5); overflow-wrap: anywhere; }
+.audit-diff .a { color: var(--ok); overflow-wrap: anywhere; }
+.audit-diff .arrow { color: var(--faint); }
+.audit-diff .more { grid-column: 1 / -1; }
+button.linkish { padding: 0; border: 0; background: none; color: var(--link); font: inherit; cursor: pointer; text-align: left; }
+button.linkish.thing { color: var(--text); font-weight: 600; }
+button.linkish:hover { text-decoration: underline; }
+.audit-presets, .audit-chips, .audit-breakdown { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px; }
+.audit-presets { border-bottom: 1px solid var(--border); }
+.audit-chips:empty, .audit-breakdown:empty { display: none; }
+.audit-breakdown { flex-direction: column; gap: 4px; padding-top: 0; }
+.audit-counts { border-top: 1px solid var(--border); }
+.audit-counts summary { cursor: pointer; color: var(--muted); font-size: 12.5px; padding: 6px 12px; }
+.audit-facet { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.audit-facet > .faint { min-width: 56px; }
+.chip-btn { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12.5px;
+  background: var(--raise); color: var(--text); border: 1px solid var(--border); }
+.chip-btn.small { padding: 1px 8px; font-size: 12px; }
+.chip-btn .n { color: var(--muted); font-variant-numeric: tabular-nums; }
+.chip-btn.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-2); }
+.chip-btn.on .n { color: var(--accent-2); }
+.audit-filters .grid-tools input.grow-input { flex: 2; min-width: 200px; max-width: none; }
+.audit-more { padding: 0 12px 8px; }
+.audit-more summary { cursor: pointer; color: var(--muted); font-size: 12.5px; padding: 6px 0; }
+.audit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+.audit-field { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--muted); }
+.audit-field input, .audit-field select { width: 100%; }
+@media (max-width: 600px) {
+  .audit-filters .grid-tools > * { flex: 1 1 100%; max-width: none; }
+  .audit-diff { grid-template-columns: max-content minmax(0, 1fr); }
+  .audit-diff .arrow { display: none; }
+  .audit-diff .b { grid-column: 2; }
+  .audit-diff .a { grid-column: 2; }
+  .audit-grid { grid-template-columns: 1fr 1fr; }
+}
 
 .secret-box { display: flex; gap: 8px; align-items: center; padding: 10px 12px; background: var(--bg-2); border: 1px dashed var(--accent); border-radius: 8px; }
 .secret-box code { flex: 1; background: none; font-size: 13px; }

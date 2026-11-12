@@ -36,7 +36,7 @@ const NAV = [
   ]],
   ['Server', [
     ['tables', 'All tables', 'db'],
-    ['audit', 'Audit log', 'history'],
+    ['audit', 'Activity log', 'history'],
     ['log', 'Server log', 'log'],
     ['sql', 'SQL', 'terminal', 'admin'],
     ['settings', 'Settings', 'cog'],

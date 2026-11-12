@@ -219,6 +219,13 @@ func lootNames(npc *entity.NPC) []string {
 	if npc.Owner != 0 || npc.Charm != nil || npc.Dummy != entity.NotDummy || npc.DuelSpawn() {
 		return []string{npc.Name}
 	}
+	// a dungeon's creature (entity/dungeons.go) rolls its own row's tables ("#n": its raid tier's and its named
+	// drops, tools/dungeons_20261112.py), never those of its namesakes in the open world
+	if entity.IsDungeonWorld(npc.World) {
+		if r := npc.Row(); r != 0 {
+			return []string{entity.RowKey(r), lootEveryCreature}
+		}
+	}
 	return []string{npc.Name, lootEveryCreature}
 }
 

@@ -1035,10 +1035,10 @@ func (w *World) templateCastLocked(npc *NPC, i int, target EntityID, now time.Ti
 // it).
 func (w *World) templateMayHitLocked(npc *NPC, target EntityID) bool {
 	if p := w.Players[target]; p != nil {
-		return !p.IsDead() && !p.respawnPending() && p.World == npc.World && !w.apartLocked(p, npc)
+		return !p.IsDead() && !p.respawnPending() && w.npcSharesLocked(npc, p) && !w.apartLocked(p, npc)
 	}
 	n := w.NPCs[target]
-	return n != nil && (n.Owner != 0 || scriptedFoes(npc, n)) && !n.Dead && n.World == npc.World &&
+	return n != nil && (n.Owner != 0 || scriptedFoes(npc, n)) && !n.Dead && w.npcsShareLocked(n, npc) &&
 		(w.env == nil || w.npcInWaterLocked(n) == w.npcInWaterLocked(npc))
 }
 
@@ -1050,7 +1050,7 @@ func (w *World) castFoeLocked(npc *NPC, target EntityID) *NPC {
 		return nil
 	}
 	foe := w.NPCs[target]
-	if foe == nil || foe.Owner != 0 || foe.Dead || foe.World != npc.World || !scriptedFoes(npc, foe) {
+	if foe == nil || foe.Owner != 0 || foe.Dead || !w.npcsShareLocked(foe, npc) || !scriptedFoes(npc, foe) {
 		return nil
 	}
 	return foe
@@ -1179,7 +1179,7 @@ func (w *World) templateAreaLocked(npc *NPC, spell *CastSpell, target EntityID) 
 		}
 		if p := w.Players[id]; p != nil {
 			// a player in safe mode (/testinvis, safemode.go) only once it is part of this fight
-			if p.World == npc.World && w.noticeableLocked(p) && (!w.safeLocked(p) || inFightLocked(npc, p)) && !w.apartLocked(p, npc) {
+			if w.npcSharesLocked(npc, p) && w.noticeableLocked(p) && (!w.safeLocked(p) || inFightLocked(npc, p)) && !w.apartLocked(p, npc) {
 				if in, d := inArea(cone, cx, cy, cz, r, p.X, p.Y, p.Z, 0); in {
 					reached := w.reachesLocked(place, p.X, p.Y, p.Z)
 					seen.note(reached, p.Name, p.X, p.Y, p.Z)
@@ -1190,7 +1190,7 @@ func (w *World) templateAreaLocked(npc *NPC, spell *CastSpell, target EntityID) 
 			}
 			continue
 		}
-		if pet := w.NPCs[id]; pet != nil && pet.Owner != 0 && !pet.Dead && pet.World == npc.World {
+		if pet := w.NPCs[id]; pet != nil && pet.Owner != 0 && !pet.Dead && w.npcsShareLocked(pet, npc) {
 			if in, d := inArea(cone, cx, cy, cz, r, pet.X, pet.Y, pet.Z, npcReachExtra(pet)); in {
 				reached := w.reachesLocked(place, pet.X, pet.Y, pet.Z)
 				seen.note(reached, pet.Name, pet.X, pet.Y, pet.Z)
@@ -1338,7 +1338,7 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 	}
 	var sess *session.Session
 	if p := w.Players[id]; p != nil {
-		if p.IsDead() || p.respawnPending() || p.World != npc.World {
+		if p.IsDead() || p.respawnPending() || !w.npcSharesLocked(npc, p) {
 			return
 		}
 		resist := c.spell.resist
@@ -1476,7 +1476,7 @@ func templateTickFigure(e SpellEffect, pct int) int {
 func (w *World) templateDebuffLocked(c *npcCast, now time.Time) {
 	npc := c.npc
 	p := w.Players[c.target]
-	if p == nil || p.IsDead() || p.respawnPending() || p.World != npc.World {
+	if p == nil || p.IsDead() || p.respawnPending() || !w.npcSharesLocked(npc, p) {
 		return
 	}
 	d := &c.spell.Def
@@ -1540,7 +1540,7 @@ func (w *World) npcTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 		return
 	}
 	npc := w.NPCs[ae.npcFoe]
-	if npc == nil || npc.Dead || npc.World != t.World {
+	if npc == nil || npc.Dead || !w.npcSharesLocked(npc, t) {
 		return
 	}
 	share, how := 0.0, ResistFailed

@@ -74,6 +74,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.metalMoogieSystem(now) // Mr. Moogie's challenge (metalmoogie.go)
 	w.bufferSystem(now)      // Buffer's casts landing (buffer.go)
 	w.ctfSystem(now)         // capture the flag's queue and match (ctf.go)
+	w.dungeonsSystem(now)    // the dungeons: who may stand in each instance, the empty ones closed (dungeons.go)
 	w.homesSystem(now)       // the homes: who may stand in each, the yards' edges (homes.go)
 	t.mark(tsDuels)
 	gates := w.castSystem(now)
@@ -216,7 +217,7 @@ func (w *World) aiSystem(now time.Time) {
 		// at once and the NPC never moved (F3 20261025-165533).
 		npc.chase.forRoute(enemy.ServerID)
 		in, giveUp := w.chaseLocked(npc, enemy.X, enemy.Y, enemy.Z, enemy.VelX, enemy.VelZ, now)
-		if giveUp || enemy.World != npc.World {
+		if giveUp || !w.npcSharesLocked(npc, enemy) {
 			w.giveUpLocked(npc)
 			continue
 		}

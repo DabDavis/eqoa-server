@@ -120,7 +120,7 @@ func groupExp(mob, level int, levels []int) int {
 func (w *World) killSharersLocked(killer *Player, npc *NPC) []*Player {
 	out := []*Player{killer}
 	for _, m := range w.groupMembersLocked(killer) {
-		if m == killer || m.World != npc.World || m.IsDead() {
+		if m == killer || !w.npcSharesLocked(npc, m) || m.IsDead() {
 			continue
 		}
 		dx, dz := m.X-npc.X, m.Z-npc.Z

@@ -106,7 +106,7 @@ func (w *World) enragePullLocked(npc *NPC, now time.Time) {
 	ring := 0
 	for _, id := range ids {
 		p := w.Players[id]
-		if p == nil || p.IsDead() || p.respawnPending() || p.World != npc.World || inMeleeReach(npc, p.X, p.Y, p.Z) || w.travelDueLocked(p) {
+		if p == nil || p.IsDead() || p.respawnPending() || !w.npcSharesLocked(npc, p) || inMeleeReach(npc, p.X, p.Y, p.Z) || w.travelDueLocked(p) {
 			continue
 		}
 		sess := w.findSessionByEntityIDLocked(p.ServerID)
@@ -162,14 +162,14 @@ func (w *World) secondFoeLocked(npc *NPC, main EntityID) (id EntityID, x, y, z f
 			continue
 		}
 		if p := w.Players[other]; p != nil {
-			if p.IsDead() || p.respawnPending() || p.World != npc.World || w.apartLocked(p, npc) {
+			if p.IsDead() || p.respawnPending() || !w.npcSharesLocked(npc, p) || w.apartLocked(p, npc) {
 				continue
 			}
 			id, top, x, y, z = other, th, p.X, p.Y, p.Z
 			continue
 		}
 		n := w.NPCs[other]
-		if n == nil || n.Dead || n.World != npc.World || (n.Owner == 0 && w.castFoeLocked(npc, other) == nil) {
+		if n == nil || n.Dead || !w.npcsShareLocked(n, npc) || (n.Owner == 0 && w.castFoeLocked(npc, other) == nil) {
 			continue
 		}
 		id, top, x, y, z = other, th, n.X, n.Y, n.Z

@@ -70,7 +70,7 @@ func (w *World) npcHittingLocked(npc *NPC) EntityID {
 			continue
 		}
 		o := w.NPCs[id]
-		if o == nil || o.Dead || o.World != npc.World || o.Dummy != NotDummy || w.isFamiliarIDLocked(id) {
+		if o == nil || o.Dead || !w.npcsShareLocked(o, npc) || o.Dummy != NotDummy || w.isFamiliarIDLocked(id) {
 			continue
 		}
 		ids = append(ids, id)

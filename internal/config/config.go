@@ -425,6 +425,12 @@ type WorldConfig struct {
 	// world built and listed in ServerWorlds.
 	Homes HomesConfig `yaml:"homes"`
 
+	// Dungeons are the instanced raid dungeons (entity/dungeons.go, handlers/dungeons.go): a world of the server's
+	// own (World, unset 14: the Dungeons, tools/worlds/dungeons.json) whose dungeons each raid or group enters in a
+	// copy of its own, from a Dungeon Warden or /dungeon. Off unless enabled, and only with its world built and
+	// listed in ServerWorlds.
+	Dungeons DungeonsConfig `yaml:"dungeons"`
+
 	// QuestMarksBelow is how many levels below the player's a quest's lowest
 	// level may be for its giver's "!" on a client's map
 	// (handlers/questmarks.go; a quest's name is marked once, at its nearest
@@ -433,6 +439,15 @@ type WorldConfig struct {
 	// below 50); a number, that many; -1, every quest the player may take,
 	// however low.
 	QuestMarksBelow int `yaml:"quest_marks_below"`
+}
+
+// DungeonsConfig is world.dungeons: the switch, the world's slot, how long an instance no one stands in stays
+// open (unset: 30m) and how many may be open at once (unset: 30).
+type DungeonsConfig struct {
+	Enabled      bool          `yaml:"enabled"`
+	World        int           `yaml:"world"`
+	CloseAfter   time.Duration `yaml:"close_after"`
+	MaxInstances int           `yaml:"max_instances"`
 }
 
 // HomesConfig is world.homes: the players' homes' switch and their world's slot.

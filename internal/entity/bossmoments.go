@@ -71,7 +71,7 @@ func (w *World) bossMomentLocked(npc *NPC, m *database.TemplateAbility) {
 		var ps []*Player
 		for id, th := range npc.Threats {
 			p := w.Players[id]
-			if p == nil || th <= 0 || p.IsDead() || p.World != npc.World || DistanceBetween(p, npc) > bossHealReach {
+			if p == nil || th <= 0 || p.IsDead() || !w.npcSharesLocked(npc, p) || DistanceBetween(p, npc) > bossHealReach {
 				continue
 			}
 			ps = append(ps, p)

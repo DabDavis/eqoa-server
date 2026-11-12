@@ -258,6 +258,12 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		return
 	}
 
+	// /dungeon (or #dungeon; a PS2's is "/t dungeon", below): the instanced dungeons, everyone's (dungeons.go)
+	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/dungeon") || strings.EqualFold(word, "#dungeon") {
+		dungeonCommand(h.gameWorld, sess, rest)
+		return
+	}
+
 	// /home (or #home; a PS2's is "/t home", below): the players' homes, everyone's (homes.go)
 	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/home") || strings.EqualFold(word, "#home") {
 		homeCommand(h.gameWorld, sess, rest)
@@ -376,6 +382,11 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		// and /ctf (ctf.go): "/t ctf", "/t ctf join", "/t ctf leave", "/t ctf rules"
 		if b := strings.ToLower(strings.TrimSpace(body)); strings.EqualFold(name, "ctf") && (b == "" || b == "join" || b == "leave" || b == "rules") {
 			ctfCommand(h.gameWorld, sess, b)
+			return
+		}
+		// and /dungeon (dungeons.go): "/t dungeon", "/t dungeon enter Guk", ...
+		if strings.EqualFold(name, "dungeon") {
+			dungeonCommand(h.gameWorld, sess, body)
 			return
 		}
 		// and /home (homes.go): "/t home", "/t home invite Name", ...

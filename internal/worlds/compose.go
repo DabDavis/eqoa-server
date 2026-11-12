@@ -92,6 +92,10 @@ type Recipe struct {
 	// the yard's board, the yard's edge; handlers/homes.go reads it): carried into the built recipe as it is,
 	// never into the file.
 	Home json.RawMessage `json:"home,omitempty"`
+	// Dungeons are the instanced dungeons of a world that is the dungeons' (tools/worlds/dungeons.json: each
+	// dungeon's key, name, the boxes its creatures stand in, its entrance; handlers/dungeons.go reads it): carried
+	// into the built recipe as it is, never into the file.
+	Dungeons json.RawMessage `json:"dungeons,omitempty"`
 }
 
 // RecipeZone is one zone of a recipe: zone Zone of the disc's file From.

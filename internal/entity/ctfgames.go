@@ -148,8 +148,8 @@ const (
 	arenaGMStopped   = "Match %d is stopped: no victor."
 	arenaGMNoMatch   = "No match is on."
 	arenaGMCountdown = "The countdown is stopped; %d stay signed up."
-	arenaGMTime      = "The time limit is %d minutes now%s."
-	arenaGMTimeLeft  = " (this match ends in %d minutes)"
+	arenaGMTime      = "The time limit is %s now%s."
+	arenaGMTimeLeft  = " (this match ends in %s)"
 	arenaGMTeams     = "Teams hold up to %d now (a match begins at %d a side)."
 )
 
@@ -211,10 +211,10 @@ func (w *World) ArenaSetTime(g ArenaGame, d time.Duration, now time.Time) string
 	if m := w.ctf.m; m != nil && m.phase == ctfPlay {
 		m.ends = m.opens.Add(d)
 		m.minsTold = int(math.Ceil(m.ends.Sub(now).Minutes())) + 1
-		left = fmt.Sprintf(arenaGMTimeLeft, max(int(math.Ceil(m.ends.Sub(now).Minutes())), 0))
+		left = fmt.Sprintf(arenaGMTimeLeft, minutesWords(max(int(math.Ceil(m.ends.Sub(now).Minutes())), 0)))
 	}
 	log.Printf("%s: a GM sets the time limit to %v", w.ctfTag(), d)
-	return fmt.Sprintf(arenaGMTime, int(d/time.Minute), left)
+	return fmt.Sprintf(arenaGMTime, minutesWords(int(d/time.Minute)), left)
 }
 
 // ArenaSetTeamSize sets the most a team of game g holds (a GM's #siege teams or #ctf teams), the fewest it starts
@@ -227,4 +227,12 @@ func (w *World) ArenaSetTeamSize(g ArenaGame, n int) string {
 	w.ctf.set.MinPerTeam = min(w.ctf.set.MinPerTeam, n)
 	log.Printf("%s: a GM sets the teams to %d", w.ctfTag(), n)
 	return fmt.Sprintf(arenaGMTeams, n, w.ctf.set.MinPerTeam)
+}
+
+// minutesWords is n minutes in words: "1 minute", "5 minutes".
+func minutesWords(n int) string {
+	if n == 1 {
+		return "1 minute"
+	}
+	return fmt.Sprintf("%d minutes", n)
 }

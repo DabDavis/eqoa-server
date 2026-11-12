@@ -455,7 +455,7 @@ func TestSiegeGMControls(t *testing.T) {
 	set := r.w.ctfGameLocked(GameSiege).set
 	open := 2*time.Second + set.Prep + time.Second
 	r.tick(open)
-	if got := r.w.ArenaSetTime(GameSiege, time.Minute, r.at(open+time.Second)); got != "The time limit is 1 minutes now (this match ends in 1 minutes)." {
+	if got := r.w.ArenaSetTime(GameSiege, time.Minute, r.at(open+time.Second)); got != "The time limit is 1 minute now (this match ends in 1 minute)." {
 		t.Fatalf("time: %q", got)
 	}
 	r.tick(open + time.Minute + time.Second)

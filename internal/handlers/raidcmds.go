@@ -394,6 +394,7 @@ var playerHelpLines = []string{
 	"  /target <name> (or /tar) - targets the nearest within 100 whose name starts so",
 	"  /tutorial - the welcome guide again",
 	"  /who, /stuck, /roll, /pvp, /lfg on|off, /record [name], /bug <words>, /filter",
+	"  /hide mercs, /show mercs - other players' mercenaries out of your view, or back",
 }
 
 // playerHelp is /help: playerHelpLines, and to a GM where its own commands are.

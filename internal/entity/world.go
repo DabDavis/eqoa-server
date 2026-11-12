@@ -220,6 +220,10 @@ type World struct {
 	// Creatures attacking a player on sight (aggro.go)
 	aggro aggroState
 
+	// mercsHidden is the characters that hid other players' mercenaries
+	// from their own view, /hide mercs (hidemercs.go), by CharServerID
+	mercsHidden map[uint32]bool
+
 	// The GMs' undead tags by NPC name, table npcundead (undead.go)
 	undead map[string]bool
 	// armorBodies is each race's body for the armour on its chest (armorbody.go)

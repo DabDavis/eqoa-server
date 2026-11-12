@@ -2190,6 +2190,19 @@ table **`charsafemode`** (serverid, since), so it outlives a change of world, a 
 `enterFromRecord`, `restoreSafeMode`), and a login in it is told so once in the world (`tellSafeMode`, `OnPlayerEntered`); with
 the switch off a login leaves it, its row deleted. Not invisibility: players and NPCs still see the character.
 
+### Other players' mercenaries out of view: `/hide mercs`, `/show mercs` (`handlers/hidemercs.go`, `entity/hidemercs.go`)
+
+Petition 1858, the GM Jibrish (2026-11-12): "add the command /hide mercs and /show mercs — this hide the character model and
+nameplate for mercenaries, or restore them". Everyone's: `/hide mercs`, `/show mercs`, `#hide mercs`, `#show mercs` and a PS2's
+`/t hide mercs`, `/t show mercs` (any case; `/t hide` with anything else is a tell; no other command is `/hide` or `/show`, Hide
+Look being the item menu's own opcode), told in yellow to the player alone. **The view alone**: the visibility system leaves
+another player's merc and a merc's pet out of the player's candidates (`mercHiddenFromLocked`, beside `npcSharesLocked` in
+`visibilitySystem`, never in it), so one in view leaves its slot as any entity leaving view (MarkRemoved) and comes back made anew
+at the next pass after `/show mercs`; **its own mercs stay in view** (it commands them from the merc menu, □ on its own merc).
+Nothing of the game looks at it: a hidden merc fights, heals, is buffed and keeps its group place. Kept by character in table
+**`charhidemercs`** (serverid, since), restored in `enterFromRecord` (`restoreMercsHidden`), a login with it on told so once
+(`tellMercsHidden`). In /help's list.
+
 ### The welcome guide: a box once a day, and `/tutorial` (`handlers/welcome.go`, `database/welcome.go`, `world.welcome_guide`)
 
 Petition 1457, the GM Jibrish (2026-11-10): "Add a game popup when people first log in, a dialogue pop up, for the day ... 1:

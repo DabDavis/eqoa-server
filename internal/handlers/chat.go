@@ -80,6 +80,8 @@ type ChatHandler struct {
 
 	// safe is where /testinvis keeps a player's safe mode (safemode.go)
 	safe safeModeStore
+	// hideMercs is where /hide mercs is kept (hidemercs.go)
+	hideMercs mercsHiddenStore
 	// welcome is /tutorial's box (welcome.go); nil: no guide
 	welcome *WelcomeGuide
 
@@ -341,6 +343,16 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		return
 	}
 
+	// /hide mercs and /show mercs (or #hide mercs, #show mercs; a PS2's is "/t hide
+	// mercs", below): other players' mercenaries out of the player's own view or
+	// back, everyone's (hidemercs.go)
+	if word, rest, _ := strings.Cut(message, " "); word != "" {
+		if hide, ok := hideMercsLine(word, rest); ok {
+			h.hideMercsCommand(sess, player, hide)
+			return
+		}
+	}
+
 	// /merc (or #merc; a PS2's is "/t merc ...", below): its mercenary, everyone's
 	// (merc.go); /familiar (or #familiar, "/t familiar ...") its familiar (familiar.go)
 	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/merc") || strings.EqualFold(word, "#merc") {
@@ -427,6 +439,12 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		// and /testinvis, safe mode (safemode.go)
 		if strings.TrimSpace(body) == "" && strings.EqualFold(name, testInvisWord) {
 			h.testInvisCommand(sess, player)
+			return
+		}
+		// and /hide mercs, /show mercs (hidemercs.go): "/t hide mercs", "/t show
+		// mercs"; anything else to a "hide" or a "show" is a tell
+		if hide, ok := hideMercsLine("/"+name, body); ok {
+			h.hideMercsCommand(sess, player, hide)
 			return
 		}
 		// and the mercenary's and the familiar's words (merc.go, familiar.go): "/t

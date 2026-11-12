@@ -805,6 +805,8 @@ func (h *CharacterHandler) enterFromRecord(sess *session.Session, record *databa
 		h.restoreLockouts(sess, record)
 		// and its safe mode, /testinvis (safemode.go)
 		h.restoreSafeMode(sess, record)
+		// and its /hide mercs (hidemercs.go)
+		h.restoreMercsHidden(sess, record)
 		// and its standings with the factions (entity/faction.go)
 		if m, err := h.store.LoadFactions(record.ServerID); err != nil {
 			log.Printf("SelectedChar: '%s' standings: %v", record.CharName, err)

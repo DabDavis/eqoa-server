@@ -4,22 +4,22 @@
 their max HP to 1, and set all of their stats to 1 while the buff is up"; internal/entity/hpcap.go).
 
 What it writes (a report by default; --apply writes, in one transaction with a gm_audit line a row; --undo takes it back):
-- **the record** (itempattern 965006, the next of the GM items' ids after Heroic Ceremonial Vestments 965005): "Tester
+- **the record** (itempattern 965007, the next free GM item id (965006 is the Dead Hills Port scroll, petition 1689)): "Tester
   Pro", worn nowhere, CLIENT's gem type (procanim 7, as the Ring of Speed and the Heirloom Jar of Breath: the item menu's
   Use and the HUD's gem quick slot), NO TRADE (trade 1), LORE (one each), worth 0, a stack of 1, level 1, every class and
   race, 80 DUR, on the Ring of Speed's icon (960149: -1505803670);
-- **its use** (itemeffect 965006): "Self, Run Speed 2x Spirit of the Wolf, Set Maximum HP to 1, Set All Stats to 1,
+- **its use** (itemeffect 965007): "Self, Run Speed 2x Spirit of the Wolf, Set Maximum HP to 1, Set All Stats to 1,
   Unlimited Uses, 30min", on the effects list as "Tester Pro" with Spirit of the Wolf's icon (spellpattern 452:
   638503769): for 30 minutes its user runs at twice Spirit of the Wolf's speed, its maximum hit points are 1 (its hit
   points with them) and STR, STA, AGI, DEX, WIS, INT and CHA are each 1, whatever else would raise them; at the end all of
   it is as it was (the hit points where it left them, to regenerate). A second use renews the 30 minutes; kept over a
   logout as every effect; ended by death. "Unlimited Uses" is the never-spent rule: no charge is ever taken.
-No one is given one here: a GM gives it (#giveitem 965006 <player>, the panel's give_item). The line's four clauses are
+No one is given one here: a GM gives it (#giveitem 965007 <player>, the panel's give_item). The line's four clauses are
 code (hpcap.go, spelltext.go, handlers/potion.go): apply this with the server that reads them (before it the line reads
 none of them and the item is a potion used up at its first use). Data only; no restart (the record reaches a client at its
 login; the row is read at each use). Either shard's database.
 
-Refused, nothing written, unless 965006 is free and no record has the name (or both are exactly this tool's: applied
+Refused, nothing written, unless 965007 is free and no record has the name (or both are exactly this tool's: applied
 already), and the icons' sources are as named. Log tester_pro_1112_log; --undo deletes the two rows (each only as
 written), every Tester Pro characters hold, the quick slots holding one and the kept effects of its use (charbuffs).
 
@@ -34,7 +34,7 @@ import sys
 LOG = "tester_pro_1112_log"
 DETAIL = "The Tester Pro (petition 1725, the GM Jibrish): tools/tester_pro_20261112.py"
 WHO, VIA = "dab", "tool"
-ITEM_ID = 965006
+ITEM_ID = 965007
 NAME = "Tester Pro"
 DESC = ("A tester's charm that never wears out. Use it and for 30 minutes you run twice as fast as Spirit of the Wolf, "
         "but your maximum hit points are 1 and every stat is 1. Use it again to renew it.")

@@ -2486,8 +2486,8 @@ the GM Jibrish), to everyone in say range, in orange, never spent, at most one e
 
 The GM Jibrish's petition 1725: "Create an item that has infinite charges and is no trade lore. Call it "Tester Pro". When
 the player uses it, it gives them a run speed buff that is x2 SoW speed. However, also make it reduce their max HP to 1, and
-set all of their stats to 1 while the buff is up". **The item** (itempattern 965006, `tools/tester_pro_20261112.py`, its
-record and itemeffect row with gm_audit lines; nobody is given one: `#giveitem 965006 <player>`): CLIENT's gem type
+set all of their stats to 1 while the buff is up". **The item** (itempattern 965007, `tools/tester_pro_20261112.py`, its
+record and itemeffect row with gm_audit lines; nobody is given one: `#giveitem 965007 <player>`): CLIENT's gem type
 (procanim 7, the item menu's Use and the gem quick slot), NO TRADE, LORE, worth 0, every class and race, the Ring of Speed's
 icon; its line "Self, Run Speed 2x Spirit of the Wolf, Set Maximum HP to 1, Set All Stats to 1, Unlimited Uses, 30min", on
 the effects list as "Tester Pro" with Spirit of the Wolf's icon. **Four clauses any line may hold** (item or spell):

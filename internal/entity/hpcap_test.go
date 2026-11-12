@@ -14,7 +14,7 @@ import (
 const testerProLine = "Self, Run Speed 2x Spirit of the Wolf, Set Maximum HP to 1, Set All Stats to 1, Unlimited Uses, 30min"
 
 func testerPro() PotionEffect {
-	return NewPotionEffect(965006, "Tester Pro", testerProLine, "Tester Pro", 638503769, "", 0, 0)
+	return NewPotionEffect(965007, "Tester Pro", testerProLine, "Tester Pro", 638503769, "", 0, 0)
 }
 
 // The line reads whole: a self buff of 30 minutes, a speed of twice the

@@ -424,7 +424,7 @@ func (w *World) LoadBalance(db *database.SQLiteDB) (levels, cons int, err error)
 
 // balanced is whether the balance acts on the NPC: not a training dummy
 // (dummy.go), whose fights are Sandstorm's as measured.
-func balanced(npc *NPC) bool { return npc != nil && npc.Dummy == NotDummy }
+func balanced(npc *NPC) bool { return npc != nil && npc.Dummy == NotDummy && npc.siege == nil } // a siege's hit points are its settings' (siege.go)
 
 // summoned is whether the NPC is a summoned pet (a charmed creature is not).
 func summoned(npc *NPC) bool { return npc.Owner != 0 && npc.Charm == nil }

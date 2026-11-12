@@ -166,8 +166,14 @@ type World struct {
 
 	// pvpAllowed is world.pvp: whether players may flag themselves (pvp.go)
 	pvpAllowed bool
-	// ctf is capture the flag in the arena's world: its queue and its match (ctf.go)
-	ctf ctfState
+	// ctf is the arena game the ctf functions act on, game ctfCur (GameCTF or GameSiege), and ctfOther the
+	// other one: capture the flag in its arena's world and the siege in its own, each its queue and its match
+	// (ctf.go; ctfgames.go swaps them, under the write lock alone)
+	ctf      ctfState
+	ctfOther ctfState
+	ctfCur   ArenaGame
+	// ctfMatchSeq numbers both games' matches: a player's match id names its game's
+	ctfMatchSeq uint32
 	// homes are the players' homes in their instanced world (homes.go)
 	homes homesState
 	// dungeons are the instanced raid dungeons in their world (dungeons.go)
@@ -971,6 +977,7 @@ func (w *World) findSessionByEntityIDLocked(id EntityID) *session.Session {
 // killNPC marks an NPC as dead: a fresh corpse (corpse.go), standing where
 // it fell (a walk's velocity would carry the corpse on on every client).
 func (w *World) killNPC(npc *NPC) {
+	w.siegeNPCDownLocked(npc) // a siege's gate broken or its King slain, while its hate still says by whom (siege.go)
 	npc.Dead = true
 	npc.DeathTime = time.Now()
 	npc.CorpseGone = time.Time{}
@@ -995,8 +1002,8 @@ func (w *World) updateAggro(npc *NPC, attackerID EntityID, damage int) {
 	}
 	contactNPCLocked(npc) // a lull ends at a hit or a hostile act (workbook.go)
 	w.addThreatLocked(npc, attackerID, damage)
-	if npc.challenge != nil {
-		return // a duel: no one comes to a Metal Moogie's help (metalmoogie.go)
+	if npc.challenge != nil || npc.siege != nil {
+		return // a duel: no one comes to a Metal Moogie's help (metalmoogie.go), nor to a siege's (siege.go)
 	}
 	w.socialAssistLocked(npc, attackerID)
 	w.companionJoinLocked(npc, attackerID) // its pet, or its owner, with it (companion.go)
@@ -1008,6 +1015,15 @@ func (w *World) updateAggro(npc *NPC, attackerID EntityID, damage int) {
 func (w *World) addThreatLocked(npc *NPC, attackerID EntityID, damage int) {
 	if npc.Dummy != NotDummy || challengeBars(npc, attackerID) {
 		return // a dummy's one player (dummy.go), a Metal Moogie's challenger (metalmoogie.go)
+	}
+	if s := npc.siege; s != nil {
+		if s.hits == nil {
+			s.hits = map[EntityID]int64{}
+		}
+		s.hits[attackerID] += int64(damage) // who struck it, for the last blow's count (siege.go)
+		if !s.king {
+			return // a siege's gate holds no hate: it never fights
+		}
 	}
 	if w.isFamiliarIDLocked(attackerID) {
 		return // a familiar draws no one's hate (familiar.go)

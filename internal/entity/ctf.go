@@ -68,6 +68,10 @@ type CTFSettings struct {
 	SpeedFor     time.Duration // the speed boost lasts
 	MinLevel     int           // the lowest level that may sign up
 	TouchReach   float32       // how near a banner, a stand or a power-up a touch is
+	// a siege's (siege.go; capture the flag reads neither): the King's and each gate's hit points, 0 its
+	// original's own
+	KingHP int
+	GateHP int
 }
 
 // DefaultCTFSettings are the numbers a server sets nothing of (the note's table).
@@ -187,6 +191,10 @@ const (
 // CTFLayout is the arena as its recipe has it (tools/worlds/arena.json's "arena"): its name, the teams' places, the
 // power-ups', the field's edge, and the bodies it shows.
 type CTFLayout struct {
+	// Game is what is fought there: ArenaCTF ("" too) or ArenaSiege (siege.go: the King and the gates in the
+	// Siege block)
+	Game     string
+	Siege    SiegeLayout
 	Name     string
 	Teams    [2]CTFTeamLayout
 	PowerUps []CTFPowerUpLayout
@@ -265,6 +273,7 @@ type ctfMatch struct {
 	how      string // how it ended, for the log
 	minsTold int    // the last "minutes left" said
 	sentHome bool
+	siege    *siegeMatch // a siege's King and gates (siege.go), nil in capture the flag
 }
 
 // ctfSignup is a player in the queue.
@@ -274,8 +283,9 @@ type ctfSignup struct {
 	at  time.Time
 }
 
-// ctfState is the world's capture the flag.
+// ctfState is an arena game: capture the flag, or the siege (its layout's Game).
 type ctfState struct {
+	game  ArenaGame // which it is (ctfgames.go)
 	on    bool
 	set   CTFSettings
 	lay   CTFLayout
@@ -313,8 +323,9 @@ type ctfPlayer struct {
 	stuck   time.Time // /stuck again from here
 	sentAt  time.Time // sent to its camp (ctfToCampLocked): on its way there for ctfArriveGrace
 	quiet   time.Time // touches nothing before this (ctfMayTouch): the server just put it somewhere
-	// what it did, for the end's lines
-	caps, returns, kills, deaths int
+	siege   bool      // its match is a siege's (siege.go): its lines are the siege's
+	// what it did, for the end's lines (gates and king a siege's: its killing blows)
+	caps, returns, kills, deaths, gates, king int
 }
 
 // inMatch reports p playing in match m.
@@ -322,22 +333,29 @@ func (p *Player) inMatch(m *ctfMatch) bool {
 	return m != nil && p != nil && p.ctf.match != 0 && p.ctf.match == m.id
 }
 
-// CTFTeamOf is p's team in the arena's match, -1 for none.
+// CTFTeamOf is p's team in its arena match (either game's), -1 for none.
 func (w *World) CTFTeamOf(id EntityID) int {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	p := w.Players[id]
-	if p == nil || !p.inMatch(w.ctf.m) {
+	if p == nil || w.ctfMatchOfLocked(p) == nil {
 		return -1
 	}
 	return p.ctf.team
 }
 
-// SetCTF turns capture the flag on with these numbers and this arena, or off (on false). Players in a match when
-// it goes off are sent back.
+// SetCTF turns capture the flag on with these numbers and this arena, or off (on false): SetArena's GameCTF.
 func (w *World) SetCTF(on bool, set CTFSettings, lay CTFLayout) {
+	w.SetArena(GameCTF, on, set, lay)
+}
+
+// SetArena turns game g on with these numbers and this arena (its layout's Game says what is fought: capture the
+// flag, or the siege), or off (on false). Players in a match when it goes off are sent back.
+func (w *World) SetArena(g ArenaGame, on bool, set CTFSettings, lay CTFLayout) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	defer w.ctfUseLocked(g)()
+	w.ctf.game = g
 	w.ctf.on, w.ctf.set, w.ctf.lay = on, set, lay
 	if w.ctf.strays == nil {
 		w.ctf.strays = map[EntityID]time.Time{}
@@ -353,14 +371,20 @@ func (w *World) SetCTF(on bool, set CTFSettings, lay CTFLayout) {
 
 // CTFOn reports capture the flag on, and its arena's world.
 func (w *World) CTFOn() (bool, uint8) {
-	w.mu.RLock()
-	defer w.mu.RUnlock()
-	return w.ctf.on, w.ctf.set.World
+	return w.ArenaOn(GameCTF)
 }
 
-// ctfArenaLocked reports world the arena's.
+// ArenaOn reports game g on, and its arena's world.
+func (w *World) ArenaOn(g ArenaGame) (bool, uint8) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	st := w.ctfGameLocked(g)
+	return st.on, st.set.World
+}
+
+// ctfArenaLocked reports world an arena's: capture the flag's or the siege's.
 func (w *World) ctfArenaLocked(world uint8) bool {
-	return w.ctf.on && world == w.ctf.set.World
+	return w.ctfArenaAnyLocked(world)
 }
 
 // ctfReachesLocked is whether sess's client can be sent into the arena: its game loads the slot (loadsLocked) and it
@@ -424,7 +448,43 @@ const (
 	ctfStatusOn      = "A match is on in %s: %s, %d minutes left. %s"
 	ctfStatusPrep    = "A match is about to begin in %s."
 	ctfStatusOver    = "The match in %s is over, %s: everyone goes back in a moment."
+	ctfLineInOther   = "You are already fighting in another of the PvP events."
+	ctfLineSwitched  = "You are no longer signed up for %s."
 )
+
+// ctfWordSet is the lines a game words its own way (capture the flag's here, the siege's in siege.go).
+type ctfWordSet struct {
+	event   string // the game in a sentence: "capture the banner"
+	closed  string
+	inMatch string
+	joined  string // %s: the queue's line
+	prep    string // %d: seconds
+	signAll string // %d: seconds, %s: the arena's name
+	notLive string
+}
+
+// ctfWordsCTF are capture the flag's lines.
+var ctfWordsCTF = ctfWordSet{event: "capture the banner", closed: ctfLineClosed, inMatch: ctfLineInMatch, joined: ctfLineJoined,
+	prep: ctfLinePrep, signAll: ctfLineSignAll, notLive: ctfLineNotLive}
+
+// ctfWords is the lines of the game swapped in.
+func (w *World) ctfWords() *ctfWordSet {
+	if w.ctf.siege() {
+		return &siegeWords
+	}
+	return &ctfWordsCTF
+}
+
+// ctfTag is the game swapped in, for the log.
+func (w *World) ctfTag() string {
+	if w.ctf.siege() {
+		return "Siege"
+	}
+	return "CTF"
+}
+
+// siege reports the game a siege (siege.go).
+func (st *ctfState) siege() bool { return st.lay.Game == ArenaSiege }
 
 // ctfBlue and ctfGold are the colours of a match's own lines: the game's own for an announcement.
 var (
@@ -432,20 +492,30 @@ var (
 	ctfGold = [3]byte{255, 215, 90}
 )
 
-// CTFJoin signs the session's player up, or says why not. It returns the lines to tell it.
+// CTFJoin signs the session's player up for capture the flag: ArenaJoin's GameCTF.
 func (w *World) CTFJoin(sess *session.Session, now time.Time) []string {
+	return w.ArenaJoin(GameCTF, sess, now)
+}
+
+// ArenaJoin signs the session's player up for game g, or says why not (a player signed up for the other game is
+// taken off its list, and told). It returns the lines to tell it.
+func (w *World) ArenaJoin(g ArenaGame, sess *session.Session, now time.Time) []string {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
 	if p == nil {
 		return nil
 	}
+	if w.ctfMatchOfLocked(p) != nil && !p.inMatch(w.ctfGameLocked(g).m) {
+		return []string{ctfLineInOther}
+	}
+	defer w.ctfUseLocked(g)()
 	if !w.ctf.on {
-		return []string{ctfLineClosed}
+		return []string{w.ctfWords().closed}
 	}
 	switch {
 	case p.inMatch(w.ctf.m):
-		return []string{ctfLineInMatch}
+		return []string{w.ctfWords().inMatch}
 	case w.ctfQueuedLocked(p.ServerID) >= 0:
 		return []string{fmt.Sprintf(ctfLineAlready, w.ctfQueueLineLocked())}
 	case !w.ctfReachesLocked(sess):
@@ -457,23 +527,40 @@ func (w *World) CTFJoin(sess *session.Session, now time.Time) []string {
 	case w.duelOnLocked(p.ServerID) != nil:
 		return []string{ctfLineDuel}
 	}
+	var out []string
+	if other := w.ctfGameLocked(1 - g); other.on {
+		restore := w.ctfUseLocked(1 - g)
+		if w.ctfQueuedLocked(p.ServerID) >= 0 {
+			w.ctfUnqueueLocked(p.ServerID)
+			w.ctfCountdownLocked(now)
+			out = append(out, fmt.Sprintf(ctfLineSwitched, w.ctfWords().event))
+			log.Printf("%s: %s leaves the queue for the other game's (%d in it)", w.ctfTag(), p.Name, len(w.ctf.queue))
+		}
+		restore()
+	}
 	w.ctf.queue = append(w.ctf.queue, ctfSignup{id: p.ServerID, who: p, at: now})
-	log.Printf("CTF: %s signs up (%d in the queue)", p.Name, len(w.ctf.queue))
-	return []string{fmt.Sprintf(ctfLineJoined, w.ctfQueueLineLocked())}
+	log.Printf("%s: %s signs up (%d in the queue)", w.ctfTag(), p.Name, len(w.ctf.queue))
+	return append(out, fmt.Sprintf(w.ctfWords().joined, w.ctfQueueLineLocked()))
 }
 
-// CTFLeave takes the session's player off the queue, or out of its match (sent back beside the herald). It returns
-// the line to tell it.
+// CTFLeave takes the session's player off capture the flag's queue, or out of its match: ArenaLeave's GameCTF.
 func (w *World) CTFLeave(sess *session.Session, now time.Time) string {
+	return w.ArenaLeave(GameCTF, sess, now)
+}
+
+// ArenaLeave takes the session's player off game g's queue, or out of its match (sent back beside the herald). It
+// returns the line to tell it.
+func (w *World) ArenaLeave(g ArenaGame, sess *session.Session, now time.Time) string {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
 	if p == nil {
 		return ""
 	}
+	defer w.ctfUseLocked(g)()
 	if i := w.ctfQueuedLocked(p.ServerID); i >= 0 {
 		w.ctf.queue = append(w.ctf.queue[:i], w.ctf.queue[i+1:]...)
-		log.Printf("CTF: %s leaves the queue (%d in it)", p.Name, len(w.ctf.queue))
+		log.Printf("%s: %s leaves the queue (%d in it)", w.ctfTag(), p.Name, len(w.ctf.queue))
 		w.ctfCountdownLocked(now)
 		return ctfLineLeft
 	}
@@ -485,12 +572,18 @@ func (w *World) CTFLeave(sess *session.Session, now time.Time) string {
 	return ctfLineNotSigned
 }
 
-// CTFStatus is how things stand, for the herald and /ctf.
+// CTFStatus is how capture the flag stands: ArenaStatus's GameCTF.
 func (w *World) CTFStatus(sess *session.Session, now time.Time) []string {
-	w.mu.RLock()
-	defer w.mu.RUnlock()
+	return w.ArenaStatus(GameCTF, sess, now)
+}
+
+// ArenaStatus is how game g stands, for the herald, /ctf and /siege.
+func (w *World) ArenaStatus(g ArenaGame, sess *session.Session, now time.Time) []string {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	defer w.ctfUseLocked(g)()
 	if !w.ctf.on {
-		return []string{ctfLineClosed}
+		return []string{w.ctfWords().closed}
 	}
 	p := w.sessionPlayerLocked(sess)
 	var out []string
@@ -513,6 +606,8 @@ func (w *World) CTFStatus(sess *session.Session, now time.Time) []string {
 		switch {
 		case p.inMatch(w.ctf.m):
 			out = append(out, fmt.Sprintf("You fight for %s.", w.ctf.lay.Teams[p.ctf.team].Name))
+		case w.ctfQueuedLocked(p.ServerID) >= 0 && w.ctf.siege():
+			out = append(out, "You are signed up for the siege.")
 		case w.ctfQueuedLocked(p.ServerID) >= 0:
 			out = append(out, "You are signed up.")
 		}
@@ -520,20 +615,33 @@ func (w *World) CTFStatus(sess *session.Session, now time.Time) []string {
 	return out
 }
 
-// CTFQueued reports the session's player signed up.
+// CTFQueued reports the session's player signed up for capture the flag.
 func (w *World) CTFQueued(sess *session.Session) bool {
+	return w.ArenaQueued(GameCTF, sess)
+}
+
+// ArenaQueued reports the session's player signed up for game g.
+func (w *World) ArenaQueued(g ArenaGame, sess *session.Session) bool {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	p := w.sessionPlayerLocked(sess)
-	return p != nil && w.ctfQueuedLocked(p.ServerID) >= 0
+	if p == nil {
+		return false
+	}
+	for _, s := range w.ctfGameLocked(g).queue {
+		if s.id == p.ServerID {
+			return true
+		}
+	}
+	return false
 }
 
-// CTFInMatch reports the session's player fighting in the arena's match.
+// CTFInMatch reports the session's player fighting in an arena match, either game's.
 func (w *World) CTFInMatch(sess *session.Session) bool {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	p := w.sessionPlayerLocked(sess)
-	return p != nil && p.inMatch(w.ctf.m)
+	return p != nil && w.ctfMatchOfLocked(p) != nil
 }
 
 // ctfQueuedLocked is the player's place in the queue, -1 for none.
@@ -559,8 +667,11 @@ func (w *World) ctfQueueLineLocked() string {
 	return fmt.Sprintf(ctfLineQueue, len(w.ctf.queue), w.ctf.set.MinPerTeam)
 }
 
-// ctfScoreLocked is the score as a line: "Ember 1, Frost 2".
+// ctfScoreLocked is the score as a line: "Ember 1, Frost 2" (a siege's: siegeScoreLocked).
 func (w *World) ctfScoreLocked(m *ctfMatch) string {
+	if w.ctf.siege() {
+		return w.siegeScoreLocked(m)
+	}
 	t := w.ctf.lay.Teams
 	return fmt.Sprintf("%s %d, %s %d", t[0].Short, m.teams[0].score, t[1].Short, m.teams[1].score)
 }
@@ -569,6 +680,11 @@ func (w *World) ctfScoreLocked(m *ctfMatch) string {
 // alone, its waves, power-ups and wounds, its end and the way back, and the arena's strays. Every tick; must be
 // called with the lock held.
 func (w *World) ctfSystem(now time.Time) {
+	w.ctfEachLocked(func() { w.ctfGameSystemLocked(now) })
+}
+
+// ctfGameSystemLocked is ctfSystem's tick of the game swapped in.
+func (w *World) ctfGameSystemLocked(now time.Time) {
 	if !w.ctf.on {
 		return
 	}
@@ -594,11 +710,18 @@ func (w *World) ctfSystem(now time.Time) {
 		}
 	case ctfPlay:
 		w.ctfBackfillLocked(m, now)
-		w.ctfTouchAllLocked(m, now)
-		w.ctfFollowLocked(m)
-		w.ctfFlagsAloneLocked(m, now)
-		w.ctfWoundsLocked(m, now)
-		w.ctfPowerUpsLocked(m, now)
+		if w.ctf.siege() {
+			w.siegeTickLocked(m, now) // the gates fallen, the King slain (siege.go)
+		} else {
+			w.ctfTouchAllLocked(m, now)
+			w.ctfFollowLocked(m)
+			w.ctfFlagsAloneLocked(m, now)
+			w.ctfWoundsLocked(m, now)
+			w.ctfPowerUpsLocked(m, now)
+		}
+		if w.ctf.m != m {
+			return
+		}
 		w.ctfMinutesLocked(m, now)
 		w.ctfForfeitLocked(m, now)
 		if w.ctf.m == m && !now.Before(m.ends) {
@@ -654,12 +777,12 @@ func (w *World) ctfCountdownLocked(now time.Time) {
 	case enough && w.ctf.startAt.IsZero():
 		w.ctf.startAt, w.ctf.saidAt = now.Add(w.ctf.set.Countdown), now
 		secs := int(math.Round(w.ctf.set.Countdown.Seconds()))
-		log.Printf("CTF: %d ready, the match begins in %d s", len(w.ctf.queue), secs)
+		log.Printf("%s: %d ready, the match begins in %d s", w.ctfTag(), len(w.ctf.queue), secs)
 		w.ctfTellQueueLocked(fmt.Sprintf(ctfLineCountdown, secs), ctfGold)
-		w.ctfAnnounceLocked(fmt.Sprintf(ctfLineSignAll, secs, w.ctf.lay.Name), ctfGold, true)
+		w.ctfAnnounceLocked(fmt.Sprintf(w.ctfWords().signAll, secs, w.ctf.lay.Name), ctfGold, true)
 	case !enough && !w.ctf.startAt.IsZero():
 		w.ctf.startAt = time.Time{}
-		log.Printf("CTF: the countdown stops: %d ready", len(w.ctfReadyLocked()))
+		log.Printf("%s: the countdown stops: %d ready", w.ctfTag(), len(w.ctfReadyLocked()))
 		w.ctfTellQueueLocked(fmt.Sprintf(ctfLineCancel, w.ctf.set.MinPerTeam), ctfGold)
 	}
 }
@@ -760,7 +883,8 @@ func (w *World) ctfStartLocked(now time.Time) {
 		ready = ready[:2*set.TeamSize]
 	}
 	w.ctf.seq++
-	m := &ctfMatch{id: w.ctf.seq, phase: ctfPrep, began: now, opens: now.Add(set.Prep), winner: -1}
+	w.ctfMatchSeq++
+	m := &ctfMatch{id: w.ctfMatchSeq, phase: ctfPrep, began: now, opens: now.Add(set.Prep), winner: -1}
 	w.ctf.m = m
 	teams := ctfSplit(ready)
 	for t := range teams {
@@ -768,6 +892,12 @@ func (w *World) ctfStartLocked(now time.Time) {
 			w.ctfUnqueueLocked(p.ServerID)
 			w.ctfEnterLocked(m, p, t, now)
 		}
+	}
+	if w.ctf.siege() {
+		w.siegeStartLocked(m, now) // the King and the gates (siege.go)
+		log.Printf("Siege: match %d begins in %s: %s %v against %s %v; live in %v", m.id, w.ctf.lay.Name,
+			w.ctf.lay.Teams[0].Short, w.ctfNamesLocked(m.teams[0].members), w.ctf.lay.Teams[1].Short, w.ctfNamesLocked(m.teams[1].members), set.Prep)
+		return
 	}
 	for t := range m.flags {
 		m.flags[t] = &ctfFlag{team: t}
@@ -778,7 +908,7 @@ func (w *World) ctfStartLocked(now time.Time) {
 		w.ctfPowerUpOutLocked(u)
 		m.powerUps = append(m.powerUps, u)
 	}
-	log.Printf("CTF: match %d begins in %s: %s %v against %s %v; live in %v", m.id, w.ctf.lay.Name,
+	log.Printf("%s: match %d begins in %s: %s %v against %s %v; live in %v", w.ctfTag(), m.id, w.ctf.lay.Name,
 		w.ctf.lay.Teams[0].Short, w.ctfNamesLocked(m.teams[0].members), w.ctf.lay.Teams[1].Short, w.ctfNamesLocked(m.teams[1].members), set.Prep)
 }
 
@@ -804,20 +934,24 @@ func (w *World) ctfUnqueueLocked(id EntityID) {
 func (w *World) ctfEnterLocked(m *ctfMatch, p *Player, t int, now time.Time) {
 	m.teams[t].members = append(m.teams[t].members, p.ServerID)
 	m.teams[t].emptySince = time.Time{}
-	p.ctf = ctfPlayer{match: m.id, team: t, live: m.phase == ctfPlay}
+	p.ctf = ctfPlayer{match: m.id, team: t, live: m.phase == ctfPlay, siege: w.ctf.siege()}
 	w.breakInvisLocked(p, "the arena")
 	w.ctfSendAwayLocked(p, now) // its merc and familiar wait outside (ctfaway.go)
 	lay := w.ctf.lay.Teams[t]
 	other := w.ctf.lay.Teams[1-t]
-	w.ctfTellLocked(p, fmt.Sprintf(ctfLineTeam, lay.Name, "the "+other.Flag), ctfBlue)
+	if w.ctf.siege() {
+		w.ctfTellLocked(p, w.siegeTeamLineLocked(t), ctfBlue)
+	} else {
+		w.ctfTellLocked(p, fmt.Sprintf(ctfLineTeam, lay.Name, "the "+other.Flag), ctfBlue)
+	}
 	switch m.phase {
 	case ctfPrep:
-		w.ctfTellLocked(p, fmt.Sprintf(ctfLinePrep, int(math.Ceil(m.opens.Sub(now).Seconds()))), ctfBlue)
+		w.ctfTellLocked(p, fmt.Sprintf(w.ctfWords().prep, int(math.Ceil(m.opens.Sub(now).Seconds()))), ctfBlue)
 	case ctfPlay:
 		w.ctfTellLocked(p, w.ctfScoreLocked(m)+".", ctfBlue)
 	}
 	w.ctfToCampLocked(p, len(m.teams[t].members))
-	log.Printf("CTF: %s joins %s in match %d", p.Name, lay.Short, m.id)
+	log.Printf("%s: %s joins %s in match %d", w.ctfTag(), p.Name, lay.Short, m.id)
 }
 
 // ctfToCampLocked sends p to its team's camp, ring places round it (GateRingSpot).
@@ -857,19 +991,25 @@ func (w *World) ctfSendBackLocked(p *Player, ring int) {
 	sess := w.findSessionByEntityIDLocked(p.ServerID)
 	to, ok := w.ctfReturnSpotLocked()
 	if sess == nil || !ok {
-		log.Printf("CTF: %s cannot be sent back (no session or no herald)", p.Name)
+		log.Printf("%s: %s cannot be sent back (no session or no herald)", w.ctfTag(), p.Name)
 		return
 	}
 	w.gates.due = append(w.gates.due, GateTravel{Sess: sess, P: p, To: to, Ring: ring % 9, Spell: w.ctf.lay.Name})
 	w.ctfTellLocked(p, ctfLineBack, ctfBlue)
 }
 
-// CTFRespawnSpot is where a dead player of the arena rises: its camp while it plays, beside the herald when its
-// match ended while it lay dead (ok false: neither, the usual home).
+// CTFRespawnSpot is where a dead player of an arena (either game's) rises: its camp while it plays, beside the
+// herald when its match ended while it lay dead (ok false: neither, the usual home).
 func (w *World) CTFRespawnSpot(id EntityID) (spot GateSpot, facing float32, ok bool) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.Players[id]
+	if p != nil && p.ctf.home {
+		p.ctf.home = false
+		to, found := w.ctfReturnSpotLocked()
+		return to, 0, found
+	}
+	defer w.ctfForLocked(p)()
 	if p == nil || !w.ctf.on {
 		return GateSpot{}, 0, false
 	}
@@ -887,9 +1027,13 @@ func (w *World) CTFRespawnSpot(id EntityID) (spot GateSpot, facing float32, ok b
 	return GateSpot{}, 0, false
 }
 
-// ctfRespawnDueLocked decides a dead player's rise when the arena has it: in a match, at the wave (the first
+// ctfRespawnDueLocked decides a dead player's rise when an arena has it: in a match, at the wave (the first
 // WaveMinDead after its death); its match over, at once. handled false: the usual PlayerRespawnDelay.
 func (w *World) ctfRespawnDueLocked(p *Player, now time.Time) (due, handled bool) {
+	if p.ctf.home {
+		return true, true
+	}
+	defer w.ctfForLocked(p)()
 	if !w.ctf.on {
 		return false, false
 	}
@@ -933,7 +1077,11 @@ func (w *World) ctfOpenLocked(m *ctfMatch, now time.Time) {
 			}
 		}
 	}
-	log.Printf("CTF: match %d is live (%d against %d)", m.id, len(m.teams[0].members), len(m.teams[1].members))
+	log.Printf("%s: match %d is live (%d against %d)", w.ctfTag(), m.id, len(m.teams[0].members), len(m.teams[1].members))
+	if w.ctf.siege() {
+		w.siegeOpenLocked(m) // the King and the gates may be struck (siege.go)
+		return
+	}
 	w.ctfTellMatchLocked(m, fmt.Sprintf(ctfLineGo, w.ctf.set.ScoreLimit, int(math.Round(w.ctf.set.TimeLimit.Minutes()))), ctfGold)
 }
 
@@ -951,7 +1099,7 @@ func (w *World) ctfPruneTeamsLocked(m *ctfMatch, now time.Time) {
 			if p.World != w.ctf.set.World && !w.ctfOnTheWayLocked(p) {
 				// gone from the arena by some other way (a gate, a GM's move): out of the match
 				w.ctfFlagOfCarrierGoneLocked(m, id, now)
-				log.Printf("CTF: %s left the arena (world %d): out of match %d", p.Name, p.World, m.id)
+				log.Printf("%s: %s left the arena (world %d): out of match %d", w.ctfTag(), p.Name, p.World, m.id)
 				p.ctf = ctfPlayer{}
 				continue
 			}
@@ -996,12 +1144,17 @@ func (w *World) ctfDropOutLocked(p *Player, why string, now time.Time) {
 	if len(members) == 0 {
 		m.teams[t].emptySince = now
 	}
-	log.Printf("CTF: %s %s match %d", p.Name, why, m.id)
+	log.Printf("%s: %s %s match %d", w.ctfTag(), p.Name, why, m.id)
 	p.ctf = ctfPlayer{}
 }
 
-// ctfLeavingLocked is p leaving the world (a logout): off the queue, out of its match, its banner dropped.
+// ctfLeavingLocked is p leaving the world (a logout): off each game's queue, out of its match, its banner dropped.
 func (w *World) ctfLeavingLocked(p *Player) {
+	w.ctfEachLocked(func() { w.ctfLeavingGameLocked(p) })
+}
+
+// ctfLeavingGameLocked is ctfLeavingLocked in the game swapped in.
+func (w *World) ctfLeavingGameLocked(p *Player) {
 	w.ctfUnqueueLocked(p.ServerID)
 	if p.inMatch(w.ctf.m) {
 		w.ctfDropOutLocked(p, "logs out of", w.ctfNowLocked())
@@ -1065,8 +1218,12 @@ func (w *World) ctfMinutesLocked(m *ctfMatch, now time.Time) {
 	}
 }
 
-// ctfTimeUpLocked is the time limit: the higher score wins, a tie is a draw.
+// ctfTimeUpLocked is the time limit: the higher score wins, a tie is a draw; a siege's defenders win it.
 func (w *World) ctfTimeUpLocked(m *ctfMatch, now time.Time) {
+	if w.ctf.siege() {
+		w.ctfEndLocked(SiegeDefenders, "time", now)
+		return
+	}
 	a, b := m.teams[0].score, m.teams[1].score
 	switch {
 	case a > b:
@@ -1103,6 +1260,10 @@ func (w *World) ctfEndLocked(winner int, how string, now time.Time) {
 	for _, u := range m.powerUps {
 		w.ctfPowerUpGoneLocked(u)
 	}
+	if w.ctf.siege() {
+		w.siegeEndLocked(m, winner, how) // its words, the gates taken in (siege.go)
+		return
+	}
 	lay := w.ctf.lay
 	score := w.ctfScoreLocked(m)
 	var line string
@@ -1114,7 +1275,7 @@ func (w *World) ctfEndLocked(winner int, how string, now time.Time) {
 	default:
 		line = fmt.Sprintf(ctfLineDraw, lay.Name, score)
 	}
-	log.Printf("CTF: match %d ends (%s): %s", m.id, how, line)
+	log.Printf("%s: match %d ends (%s): %s", w.ctfTag(), m.id, how, line)
 	w.ctfAnnounceLocked(line, ctfGold, true)
 	for t := range m.teams {
 		for _, id := range m.teams[t].members {
@@ -1141,7 +1302,8 @@ func (w *World) ctfSendAllBackLocked(m *ctfMatch) {
 			p.ctf = ctfPlayer{home: home}
 		}
 	}
-	log.Printf("CTF: match %d: everyone sent back", m.id)
+	log.Printf("%s: match %d: everyone sent back", w.ctfTag(), m.id)
+	w.siegeClearLocked(m) // what is left of the siege's King and gates (siege.go)
 	w.ctf.m = nil
 	w.ctfCountdownLocked(w.ctfNowLocked())
 }
@@ -1171,19 +1333,23 @@ func (w *World) ctfStraysLocked(now time.Time) {
 			continue
 		}
 		delete(w.ctf.strays, id)
-		log.Printf("CTF: %s stands in the arena with no match: sent back", p.Name)
+		log.Printf("%s: %s stands in the arena with no match: sent back", w.ctfTag(), p.Name)
 		w.ctfTellLocked(p, ctfLineStray, ctfBlue)
 		w.ctfSendBackLocked(p, 0)
 	}
 }
 
-// CTFStuck is /stuck for a player of a match: back to its camp (none while it carries a banner, at most every
-// ctfStuckEvery). handled false: not a match's player (the usual /stuck).
+// CTFStuck is /stuck for a player of a match (either game's): back to its camp (none while it carries a banner, at
+// most every ctfStuckEvery). handled false: not a match's player (the usual /stuck).
 func (w *World) CTFStuck(sess *session.Session, now time.Time) (line string, handled bool) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
-	if p == nil || !p.inMatch(w.ctf.m) {
+	if p == nil {
+		return "", false
+	}
+	defer w.ctfForLocked(p)()
+	if !p.inMatch(w.ctf.m) {
 		return "", false
 	}
 	switch {
@@ -1196,7 +1362,7 @@ func (w *World) CTFStuck(sess *session.Session, now time.Time) (line string, han
 	}
 	p.ctf.stuck = now.Add(ctfStuckEvery)
 	w.ctfToCampLocked(p, 1)
-	log.Printf("CTF: %s uses /stuck: back to its camp", p.Name)
+	log.Printf("%s: %s uses /stuck: back to its camp", w.ctfTag(), p.Name)
 	return ctfLineStuck, true
 }
 
@@ -1217,6 +1383,8 @@ func ctfRefusal(p, t *Player) string {
 		return ""
 	case p.ctf.team == t.ctf.team:
 		return fmt.Sprintf(ctfLineSameTeam, t.Name)
+	case !p.ctf.live && p.ctf.siege:
+		return siegeWords.notLive
 	case !p.ctf.live:
 		return ctfLineNotLive
 	}
@@ -1229,7 +1397,7 @@ func ctfRefusal(p, t *Player) string {
 // swingable as a foe's 4, so it is set only where pvpFoe made it a foe). Anyone else sees players as ever. Must
 // be called with the lock held.
 func (w *World) ctfViewLocked(sess *session.Session, p *Player, buf []byte) {
-	m := w.ctf.m
+	m := w.ctfMatchOfLocked(p) // its game's, either (read only: no swap)
 	if !p.inMatch(m) || len(buf) <= 157 {
 		return
 	}
@@ -1247,24 +1415,42 @@ func (w *World) ctfViewLocked(sess *session.Session, p *Player, buf []byte) {
 	}
 }
 
-// CTFArenaName is the arena's name ("" while it is closed).
+// CTFArenaName is capture the flag's arena's name ("" while it is closed).
 func (w *World) CTFArenaName() string {
-	w.mu.RLock()
-	defer w.mu.RUnlock()
-	if !w.ctf.on {
-		return ""
-	}
-	return w.ctf.lay.Name
+	return w.ArenaName(GameCTF)
 }
 
-// CTFReturnSpot is where the way back from the arena lands (in front of the herald, else Dabrish), and the
-// arena's world: a login saved in the arena starts there (handlers' loginSpawn), as matches are not kept.
+// ArenaName is game g's arena's name ("" while it is closed).
+func (w *World) ArenaName(g ArenaGame) string {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	st := w.ctfGameLocked(g)
+	if !st.on {
+		return ""
+	}
+	return st.lay.Name
+}
+
+// CTFReturnSpot is where the way back from capture the flag's arena lands (in front of the herald, else Dabrish),
+// and the arena's world.
 func (w *World) CTFReturnSpot() (spot GateSpot, arena uint8, ok bool) {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
-	if !w.ctf.on {
+	if !w.ctf.on && w.ctfCur == GameCTF || w.ctfCur != GameCTF && !w.ctfOther.on {
 		return GateSpot{}, 0, false
 	}
 	spot, ok = w.ctfReturnSpotLocked()
-	return spot, w.ctf.set.World, ok
+	return spot, w.ctfGameLocked(GameCTF).set.World, ok
+}
+
+// ArenaReturnSpot is where a login saved in world lands when world is an arena's (either game's): in front of the
+// herald, else Dabrish (handlers' loginSpawn), as matches are not kept. ok false: world is no arena's, or there is
+// no such spot.
+func (w *World) ArenaReturnSpot(world uint8) (spot GateSpot, ok bool) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	if !w.ctfArenaAnyLocked(world) {
+		return GateSpot{}, false
+	}
+	return w.ctfReturnSpotLocked()
 }

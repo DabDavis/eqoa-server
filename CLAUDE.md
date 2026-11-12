@@ -1077,6 +1077,48 @@ default (`config.yaml.example`, `entity.DefaultCTFSettings`).
   `entity/ctfaway_test.go`, `handlers/ctf_test.go`, `handlers/ctfaway_test.go`), `TestBoxMarksAreEachFeaturesOwn`,
   `TestHeraldAndLiaisonAnswersAreTheirOwn` (`handlers/boxmarks_test.go`).
 
+### The siege of Zentar's Keep: the second arena game (`entity/siege.go`, `entity/ctfgames.go`, `handlers/siege.go`, `world.siege`)
+
+The owner, 2026-11-12: "lets add a pvp zone for pvp events. zentaurs keep castle, it is siege mode, team inside has king
+with high hp. entrances have a door/wood prop as a mob that doesnt attack with high hp, when dead way is opened for
+attacking team to kill king, when king dies the attackers win". `claude-notes/siege-world-20261112.md` has the design,
+the castle's survey, every number and what the rig showed.
+
+- **One engine, two games** (`entity/ctfgames.go`): capture the flag's queue, countdown, split, camps, prep, waves,
+  backfill, forfeit, time limit, end and way back, strays, `/stuck`, mercs and familiars waiting outside, the herald and
+  the arena login all run the siege too. The engine's functions act on `w.ctf`; the World keeps the other game in
+  `w.ctfOther` (`w.ctfCur` says which), and an entry point swaps its game in (`ctfUseLocked`, **under the write lock
+  alone**: the tick runs each game, a player's hook the game of its match/arena world/sign-up, `ctfGameOfLocked`); a read
+  under the read lock goes by `ctfGameLocked`'s pointer and never swaps. Match ids are the World's (`ctfMatchSeq`). The
+  layout's `Game` ("ctf"/"siege") picks the objective: banners and power-ups (`ctfflag.go`) or the King and the gates.
+  Exported calls take the game: `ArenaJoin/Leave/Status/Queued/On/Name(g, ...)`, `SetArena`; `CTF*` are GameCTF's.
+- **The world**: slot **15, Zentar's Keep** (`tools/worlds/siege.json`): Tunaria zone 22 where it stands, no extras
+  (7,210,043 bytes, CRC 3fe173da; ground 1,046 placements of 67 buffers). Its one way in is the east gatehouse: an outer
+  door (x 5520) off the causeway into the guardroom and an inner door (x 5495.6) onto the ramp down to the courtyard,
+  each 4.1 wide (z 6475.2-6479.3) and 4 high over 59.5. In world 0 two guards stand in the outer door (it looked shut);
+  world 15 has no people of its own.
+- **The King and the gates** are copies (`spawnCopyLocked`) of spawn-only NPCs `tools/siege_20261112.py` writes in world
+  15 (**King Zentar**: Zentar Reese's row, level 60, the NPC bit off; **Outer Gate** and **Inner Gate**: the castle's own
+  portcullis `0xAA243482`, 4 x 4 x 0.3, let down into each door), else the recipe's body; hit points `king_hp`
+  (100000) and `gate_hp` (30000). `npc.siege` marks them: `challengeBars` keeps them the **live attackers'** alone (every
+  rule that keeps a Metal Moogie his challenger's: melee, spells, areas, pets, the NPC bit to every other client),
+  `challengeRefusal` tells the rest why; no XP, loot, coins, faction, quest credit, regeneration, wandering, balance;
+  a gate holds no hate (never fights), the King hates his attackers alone and notices no one on sight (a level-60
+  fighter's melee: about 100-240 a hit on the rig), and a **defender's beneficial spell reaches him** as a master's its
+  pet's (`castTargetsLocked`). `addThreatLocked` counts each one's hits (`npcSiege.hits`): the last blow's credit.
+- **A gate's body is the door's collision**: a SimpleSprite with its collision buffer is as solid as the walls in
+  vanilla (`place_actors`), so a standing gate holds everyone; a broken one (`killNPC` → `siegeNPCDownLocked`) leaves
+  the world at the next tick (a dead SimpleSprite would still collide) and the way stays open until the end. The end:
+  the King slain (attackers), the time limit (defenders), a forfeit, a GM's stop (no victor); everyone told, each
+  player its count (gates broken, kills, deaths, the King's last blow); the gates and a living King taken in, a slain
+  King's corpse at the way back.
+- **Joining**: the PvP Events herald offers both games to a client holding both worlds (a sign-up each, the rules and
+  state of both; one game alone as before), `/siege [join|leave|rules]` (`#siege`, a PS2's `/t siege`); signing up for
+  one takes a player off the other's list. **A GM's** `#siege start|stop|time <m>|teams <n>` (and `#ctf` the same:
+  `arenaGMCommand`, `ArenaStartNow` with one a side at least, `ArenaStop`, `ArenaSetTime`, `ArenaSetTeamSize`).
+  Only vanilla reaches world 15 (`ctfReaches`), as the arenas. Tests: `TestSiege*` (`entity/siege_test.go`,
+  `handlers/siege_test.go`).
+
 ### Player homes: an instanced world of the server's own (`entity/homes.go`, `handlers/homes.go`, `world.homes`)
 
 The owner, 2026-11-11: "lets add player homes, will be in a new world and instanced per player. players can invite players

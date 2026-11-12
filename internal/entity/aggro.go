@@ -298,6 +298,9 @@ func (w *World) threatensLocked(npc *NPC, p *Player) bool {
 	if npc.challenge != nil {
 		return !npc.challenge.held && npc.challenge.player == p.ServerID // its challenger alone, after the countdown (metalmoogie.go)
 	}
+	if npc.siege != nil {
+		return false // a siege's King notices no one on sight: he fights those who strike him (siege.go)
+	}
 	if npc.EventAggro {
 		return true
 	}

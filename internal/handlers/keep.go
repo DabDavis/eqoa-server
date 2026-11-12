@@ -46,6 +46,9 @@ type KeptExtras struct {
 	AuctionForm   bool      `json:"auction_form,omitempty"`
 	QuestMarks    bool      `json:"quest_marks,omitempty"`
 	QuestProgress bool      `json:"quest_progress,omitempty"`
+	// QuestHeadMarks is whether the client asked for the marks over the
+	// NPCs' heads (questheadmarks.go)
+	QuestHeadMarks bool `json:"quest_head_marks,omitempty"`
 	// LootOpen: its client has a corpse's window open (ResumeCharacter closes it)
 	LootOpen bool `json:"loot_open,omitempty"`
 }
@@ -113,6 +116,7 @@ func KeepExtras(sess *session.Session, p *entity.Player) KeptExtras {
 	}
 	if q := Quests(); q != nil && p != nil {
 		k.QuestMarks, k.QuestProgress = q.keptFlags(p)
+		k.QuestHeadMarks = q.headMarksOn(p)
 	}
 	if h := keepWindows.Load(); h != nil {
 		ls := h.loots()
@@ -285,6 +289,9 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 		}
 		if ex.QuestProgress {
 			q.SetProgress(sess, player, true)
+		}
+		if ex.QuestHeadMarks {
+			q.resumeHeadMarks(player)
 		}
 	}
 	if ex.LootOpen {

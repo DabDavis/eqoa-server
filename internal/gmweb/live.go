@@ -63,6 +63,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 	case "signtext":
 		database.InvalidateSignText()
 		return "at once: the next talk to the sign (the news row: to any board)"
+	case "questmarks":
+		return s.liveQuests() // the marks over the NPCs' heads (handlers/questheadmarks.go)
 	case "questnotyet":
 		database.InvalidateQuestNotYet()
 		return "at once: the next talk to a quest giver the player is too low for"

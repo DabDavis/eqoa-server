@@ -497,7 +497,7 @@ func (w *World) leaveGroupLocked(p *Player) {
 	delete(g.lastRoster, p.ServerID)
 	// its mercs go with it, asked into a group with it again when others are
 	// left in this one (mercgroup.go)
-	w.mercsOutOfGroupLocked(g, p, len(g.Members) > 0)
+	w.mercsOutOfGroupLocked(g, p, false, true)
 	log.Printf("Group: %s left group %d (%d left)", p.Name, g.ID, len(g.Members))
 	w.raidMemberGoneLocked(g, p.ServerID) // raidrules.go
 	w.raidLeftLocked(g, p.Name)
@@ -565,7 +565,7 @@ func (w *World) bootLocked(g *Group, m *Player) {
 	}
 	m.GroupID = 0
 	delete(g.lastRoster, m.ServerID)
-	w.mercsOutOfGroupLocked(g, m, true) // its mercs with it, asked into a group with it again (mercgroup.go)
+	w.mercsOutOfGroupLocked(g, m, true, false) // its mercs with it, asked into a group with it again (mercgroup.go)
 	w.sendGroupRemoved(m, 1)
 	w.raidMemberGoneLocked(g, m.ServerID)
 	w.raidLeftLocked(g, m.Name)

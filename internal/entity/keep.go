@@ -141,7 +141,7 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 		}
 	}
 	k.Pet = w.keptPetLocked(p, now) // keeppet.go
-	k.Mercs = w.keptMercsLocked(p) // keepmerc.go
+	k.Mercs = w.keptMercsLocked(p)  // keepmerc.go
 	k.Familiar = w.keptFamiliarLocked(p)
 	w.ctfKeptAwayLocked(p, &k) // what waits outside the arena, carried as if out (ctfaway.go)
 	return k, true

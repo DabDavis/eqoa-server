@@ -121,6 +121,29 @@ func (w *World) LoadMoveRules(db *database.SQLiteDB) (int, error) {
 	return len(rules), nil
 }
 
+// SetRowWander sets table npcwander's rows: a creature's own wander by its
+// npcs row, with its radius (0: its name's or the server's).
+func (w *World) SetRowWander(rows map[EntityID]float32) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.rowWander = rows
+}
+
+// LoadRowWander reads table npcwander into the world (at the start). It
+// reports how many rows it read.
+func (w *World) LoadRowWander(db *database.SQLiteDB) (int, error) {
+	rows, err := db.NPCWanderRows()
+	if err != nil {
+		return 0, fmt.Errorf("npcwander: %w", err)
+	}
+	m := make(map[EntityID]float32, len(rows))
+	for id, r := range rows {
+		m[EntityID(id)] = r
+	}
+	w.SetRowWander(m)
+	return len(m), nil
+}
+
 // MoveSummary says how creatures move, for the log at the start.
 func (w *World) MoveSummary() string {
 	w.mu.RLock()
@@ -178,6 +201,7 @@ const (
 	whySpawnOnly
 	whyCampSpawn
 	whyCompanion
+	whyRowOwnWanders
 )
 
 // MoveWhyText says why, in a GM's words (the panel's NPC page); word is the
@@ -216,6 +240,8 @@ func MoveWhyText(why moveWhy, word string) string {
 		return "spawned only (NPC spawn only): it stands on its spawn out of every view, there for the quests and triggers that copy it"
 	case whyCampSpawn:
 		return "a camp's static spawn (Camp spawns, a GM's /camp): it stands on its spawn until pulled, whatever its kind, and pops one of its kinds each time it comes back"
+	case whyRowOwnWanders:
+		return "it wanders: its own row says so (npcwander), whatever its name's"
 	case whyCompanion:
 		return "a creature's own pet (companion.go): it keeps beside its owner, walking where its owner wanders"
 	}
@@ -252,7 +278,9 @@ func (w *World) movementLocked(npc *NPC) (wanders bool, why moveWhy, word string
 	case npc.RoamRadius <= 0:
 		return false, whyNoRadius, ""
 	}
-	if r, ok := w.moveRuleLocked(npc); ok && !r.ByKind {
+	if _, own := w.rowWander[npc.ServerID]; own {
+		why = whyRowOwnWanders // its row's rule, ahead of its name's and its kind (npcwander)
+	} else if r, ok := w.moveRuleLocked(npc); ok && !r.ByKind {
 		if !r.Roam {
 			return false, whyRowStands, ""
 		}
@@ -277,9 +305,12 @@ func (w *World) movementLocked(npc *NPC) (wanders bool, why moveWhy, word string
 	return true, why, word
 }
 
-// roamRadiusLocked is how far from its spawn a creature wanders: its row's
-// radius, else its own. Must be called with the lock held.
+// roamRadiusLocked is how far from its spawn a creature wanders: its npcs
+// row's radius (npcwander), else its name's row's, else its own. Must be called with the lock held.
 func (w *World) roamRadiusLocked(npc *NPC) float32 {
+	if r, ok := w.rowWander[npc.ServerID]; ok && r > 0 {
+		return r // its row's own (npcwander)
+	}
 	if r, ok := w.moveRuleLocked(npc); ok && r.Radius > 0 {
 		return r.Radius
 	}

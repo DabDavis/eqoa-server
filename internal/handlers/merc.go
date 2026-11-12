@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"hash/fnv"
 	"log"
+	"slices"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -274,9 +275,17 @@ func (m *Mercs) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 			return true
 		}
 		a.role = n
+		var rows []database.MercRow
+		if m.db != nil {
+			rows, _ = m.db.Mercs(p.CharServerID)
+		}
 		var answers []string
 		for _, c := range mercRoles[n].classes {
-			answers = append(answers, entity.ClassName(c))
+			label := entity.ClassName(c)
+			if held, ok := mercClassHeld(rows, c); ok {
+				label += " (yours: " + held.Name + ")" // one of each class: chosen, it is refused
+			}
+			answers = append(answers, label)
 		}
 		a.stage = mercStageClass
 		m.mu.Lock()
@@ -288,6 +297,14 @@ func (m *Mercs) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 			return true
 		}
 		a.class = classes[n]
+		if m.db != nil {
+			if rows, err := m.db.Mercs(p.CharServerID); err == nil {
+				if held, ok := mercClassHeld(rows, a.class); ok {
+					mercSay(sess, fmt.Sprintf(mercClassTakenLine, entity.ClassName(a.class), held.Name, held.Name))
+					return true
+				}
+			}
+		}
 		m.askRaceGroup(sess, p, a)
 	case mercStageRaceGroup:
 		switch {
@@ -383,13 +400,52 @@ func (m *Mercs) askRaces(sess *session.Session, p *entity.Player, a mercAsk) {
 }
 
 // mercName is a merc's name: one of the server's random names (character.go's
-// parts), the same for the same owner, class, race and hour.
-func mercName(serverID uint32, class, race int, at time.Time) string {
-	h := fnv.New32a()
-	fmt.Fprintf(h, "%d/%d/%d/%d", serverID, class, race, at.Unix()/3600)
-	v := h.Sum32()
-	return namePrefixes[v%uint32(len(namePrefixes))] + nameSuffixes[(v/uint32(len(namePrefixes)))%uint32(len(nameSuffixes))]
+// parts), the same for the same owner, class, race and hour, but none of
+// taken (any case: its owner's other hires' names and its own; the owner,
+// 2026-11-12: the GM Jibrish's three clerics hired within the hour were all
+// "Jorador", so /merc Jorador named one of three).
+func mercName(serverID uint32, class, race int, at time.Time, taken ...string) string {
+	name := ""
+	for salt := 0; salt < 64; salt++ {
+		h := fnv.New32a()
+		if salt == 0 {
+			fmt.Fprintf(h, "%d/%d/%d/%d", serverID, class, race, at.Unix()/3600)
+		} else {
+			fmt.Fprintf(h, "%d/%d/%d/%d/%d", serverID, class, race, at.Unix()/3600, salt)
+		}
+		v := h.Sum32()
+		name = namePrefixes[v%uint32(len(namePrefixes))] + nameSuffixes[(v/uint32(len(namePrefixes)))%uint32(len(nameSuffixes))]
+		if !slices.ContainsFunc(taken, func(t string) bool { return strings.EqualFold(t, name) }) {
+			return name
+		}
+	}
+	return name
 }
+
+// mercNamesTaken is the names a new hire of the player's may not take: its
+// rows' and the player's own.
+func mercNamesTaken(p *entity.Player, rows []database.MercRow) []string {
+	out := []string{p.Name}
+	for _, r := range rows {
+		out = append(out, r.Name)
+	}
+	return out
+}
+
+// mercClassHeld is the player's hire of the class, false for none (the owner,
+// 2026-11-12: "for mercs players can only choose 1 of each class"): out, on
+// standby, resting or waiting, a row is a hire.
+func mercClassHeld(rows []database.MercRow, class int) (database.MercRow, bool) {
+	for _, r := range rows {
+		if r.Class == class {
+			return r, true
+		}
+	}
+	return database.MercRow{}, false
+}
+
+// mercClassTakenLine is the liaison's refusal of a second of a class.
+const mercClassTakenLine = "You already have a %s mercenary, %s. One of each class: /merc dismiss %s lets that one go first."
 
 // hire makes the merc of class, race and sex the player's, in its first free
 // slot: its row (its look chosen now), its kit at the player's level, beside
@@ -411,9 +467,18 @@ func (m *Mercs) hire(sess *session.Session, p *entity.Player, class, race, sex i
 			mercSay(sess, mercFullLine)
 			return
 		}
+		if held, ok := mercClassHeld(rows, class); ok {
+			mercSay(sess, fmt.Sprintf(mercClassTakenLine, entity.ClassName(class), held.Name, held.Name))
+			return
+		}
 	}
 	now := m.now()
-	row := database.MercRow{ServerID: p.CharServerID, Slot: slot, Name: mercName(p.CharServerID, class, race, now), Class: class, Race: race,
+	taken := []string{p.Name}
+	if m.db != nil {
+		rows, _ := m.db.Mercs(p.CharServerID)
+		taken = mercNamesTaken(p, rows)
+	}
+	row := database.MercRow{ServerID: p.CharServerID, Slot: slot, Name: mercName(p.CharServerID, class, race, now, taken...), Class: class, Race: race,
 		Sex: min(max(sex, 0), 1), Stance: int(entity.MercAssist), Hired: now, Path: -1}
 	row.Face, row.HairColor, row.HairLength, row.HairStyle = m.look(race, row.Sex, row.Name)
 	kit, err := m.kit(row, p.Level)
@@ -707,11 +772,38 @@ func (m *Mercs) comeBack(sess *session.Session, p *entity.Player) {
 		log.Printf("Merc: %s's hires: %v", p.Name, err)
 		return
 	}
+	rows = m.distinctNames(p, rows)
 	m.gw.HoldMercAsk(sess, true) // one group box for all of them
 	defer m.gw.HoldMercAsk(sess, false)
 	for _, row := range rows {
 		m.comeBackRow(sess, p, row)
 	}
+}
+
+// distinctNames gives each of the player's hires a name of its own at its
+// owner's login: a hire whose name an earlier slot's has (any case: hired
+// before 2026-11-12, when three of one class, race and hour came out one
+// name) is named again (mercName, its row kept; its "back at your side"
+// line says the new name). Its face and hair stay as they were.
+func (m *Mercs) distinctNames(p *entity.Player, rows []database.MercRow) []database.MercRow {
+	for i := range rows {
+		dup := false
+		for _, r := range rows[:i] {
+			dup = dup || strings.EqualFold(r.Name, rows[i].Name)
+		}
+		if !dup {
+			continue
+		}
+		old := rows[i].Name
+		rows[i].Name = mercName(p.CharServerID, rows[i].Class, rows[i].Race, rows[i].Hired, mercNamesTaken(p, rows)...)
+		if err := m.db.SetMerc(rows[i]); err != nil {
+			log.Printf("Merc: %s's %q (slot %d) not renamed: %v", p.Name, old, rows[i].Slot, err)
+			rows[i].Name = old
+			continue
+		}
+		log.Printf("Merc: %s's %q (slot %d) is named %q: its name was another hire's", p.Name, old, rows[i].Slot, rows[i].Name)
+	}
+	return rows
 }
 
 // comeBackSlot brings the player's merc of the slot back (entity.MercNoteBack:

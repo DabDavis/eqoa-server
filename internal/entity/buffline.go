@@ -5,6 +5,7 @@ import (
 	"log"
 	"slices"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/eqoa/server/internal/session"
@@ -153,9 +154,130 @@ func BuffLine(s *CastSpell) string {
 // stackLinePrefix begins a workbook stack type's line.
 const stackLinePrefix = "stack"
 
-// sameLine reports whether two effects' lines are one (the file's doc): the
-// same line, or two workbook stack lines of one stack type and bearer that
-// share a stat.
+// Lines across the two kinds (the owner, 2026-11-12, of three mercs' buffs on
+// the GM Jibrish: "buffs are stacking on Jibrish from mercs that normally
+// shouldn't"). A spell made from EQOA-Data's words (no workbook stack type)
+// has a plain line, and a plain line was only ever one with the same plain
+// line: so the cleric's Blessing (+CHA, self) stacked with Minor Blessing, the
+// workbook's +CHA self buff; its wards, each rank an element more (Disease
+// Ward +DR, Poison Ward +DR +PR, Flame, Ice, Lightning Ward +CR +DR +FR +LR
+// +PR), every one on at once; and Lightning Ward's +PR +DR counted in full on
+// top of Consume Affliction's, where the user's rule of 2026-11-08 (nested
+// lines, above) counts a shared resist the stronger once. Since then:
+//
+//   - a beneficial effect's line (EffectLine) carries, for a plain line, the
+//     workbook stack type its scope would have ("^s2" self, "^s1" a single
+//     target, "^s3" a group: the workbook's StackType is its scope's class,
+//     the doc above). Two plain lines still ignore it (a plain line's single,
+//     self and group forms are one line, as before); a plain line and a
+//     workbook line are of one family when the plain line's stack type is
+//     the workbook line's and their bearer one (lineFamily);
+//   - a plain line and a workbook line of one family with the same stats are
+//     one line (Blessing and Minor Blessing); two lines of one family, the
+//     one's stats all within the other's, are nested whatever their kinds
+//     (Ice Ward within Lightning Ward; Lightning Ward and Consume Affliction),
+//     with the nested lines' rule: the one that adds nothing is refused, the
+//     one that gives all the other did takes it off, else both stay and each
+//     shared stat counts its stronger once (sumEffectMods);
+//   - a pet (a merc) keeps its effects by the same rule as a player
+//     (lineVerdict, lineDrops: putOnPetLocked).
+//
+// An effect kept from before (its plain line untagged) is of no workbook
+// family until it ends; BuffLine itself (the balance simulator's key) is
+// unchanged.
+
+// EffectLine is the line a beneficial effect of the spell is kept under:
+// BuffLine, a plain line tagged with its scope's workbook stack type (the doc
+// above).
+func EffectLine(s *CastSpell) string {
+	l := BuffLine(s)
+	if l == "" || strings.HasPrefix(l, stackLinePrefix) {
+		return l
+	}
+	if st := scopeStack(s.Scope); st > 0 {
+		return fmt.Sprintf("%s %s%d", l, plainStackTag, st)
+	}
+	return l
+}
+
+// plainStackTag marks a plain line's workbook stack type (EffectLine).
+const plainStackTag = "^s"
+
+// scopeStack is the workbook stack type of a scope (the doc above): 2 self,
+// 1 a single target, 3 a group; 0 for any other (a pet's).
+func scopeStack(scope int) int {
+	switch scope {
+	case 0:
+		return 2
+	case 1:
+		return 1
+	case 2:
+		return 3
+	}
+	return 0
+}
+
+// lineParts is a line read: its workbook stack type (0 for a plain line), its
+// bearer, its stats' keys (sorted, as BuffLine writes them) and, for a plain
+// line, the stack type its scope would have (0 unknown).
+type lineParts struct {
+	stack  int
+	bearer string
+	keys   []string
+	as     int
+}
+
+// parseLine reads a line; ok is false for "" or a line too short.
+func parseLine(line string) (lp lineParts, ok bool) {
+	f := strings.Fields(line)
+	if len(f) < 2 {
+		return lp, false
+	}
+	if strings.HasPrefix(f[0], stackLinePrefix) {
+		if len(f) < 3 {
+			return lp, false
+		}
+		n, err := strconv.Atoi(strings.TrimPrefix(f[0], stackLinePrefix))
+		if err != nil || n <= 0 {
+			return lp, false
+		}
+		lp.stack, lp.bearer, lp.keys = n, f[1], f[2:]
+		return lp, true
+	}
+	lp.bearer = f[0]
+	for _, k := range f[1:] {
+		if strings.HasPrefix(k, plainStackTag) {
+			lp.as, _ = strconv.Atoi(strings.TrimPrefix(k, plainStackTag))
+			continue
+		}
+		lp.keys = append(lp.keys, k)
+	}
+	return lp, len(lp.keys) > 0
+}
+
+// lineFamily reports two read lines of one family (the doc above): one
+// bearer, and the same workbook stack type, or both plain, or a plain line
+// whose scope's stack type is the workbook line's.
+func lineFamily(a, b lineParts) bool {
+	if a.bearer != b.bearer {
+		return false
+	}
+	switch {
+	case a.stack > 0 && b.stack > 0:
+		return a.stack == b.stack
+	case a.stack == 0 && b.stack == 0:
+		return true
+	case a.stack == 0:
+		return a.as == b.stack
+	default:
+		return b.as == a.stack
+	}
+}
+
+// sameLine reports whether two effects' lines are one (the file's doc): two
+// workbook stack lines of one stack type and bearer that share a stat; two
+// plain lines, or a plain and a workbook line of one family, of the same
+// stats.
 func sameLine(a, b string) bool {
 	if a == "" || b == "" {
 		return false
@@ -163,46 +285,31 @@ func sameLine(a, b string) bool {
 	if a == b {
 		return true
 	}
-	if !strings.HasPrefix(a, stackLinePrefix) || !strings.HasPrefix(b, stackLinePrefix) {
+	pa, oka := parseLine(a)
+	pb, okb := parseLine(b)
+	if !oka || !okb || !lineFamily(pa, pb) {
 		return false
 	}
-	af, bf := strings.Fields(a), strings.Fields(b)
-	if len(af) < 3 || len(bf) < 3 || af[0] != bf[0] || af[1] != bf[1] {
-		return false
-	}
-	for _, k := range af[2:] {
-		for _, j := range bf[2:] {
-			if k == j {
+	if pa.stack > 0 && pb.stack > 0 {
+		for _, k := range pa.keys {
+			if slices.Contains(pb.keys, k) {
 				return true
 			}
 		}
-	}
-	return false
-}
-
-// stackLineParts is a workbook stack line's stack type and bearer ("stack1
-// player") and its stats' keys; ok is false for any other line.
-func stackLineParts(line string) (family string, keys []string, ok bool) {
-	if !strings.HasPrefix(line, stackLinePrefix) {
-		return "", nil, false
-	}
-	f := strings.Fields(line)
-	if len(f) < 3 {
-		return "", nil, false
-	}
-	return f[0] + " " + f[1], f[2:], true
-}
-
-// nestedLines reports two lines nested (the doc above): workbook stack lines
-// of one stack type and bearer, not the same, the one's keys all among the
-// other's.
-func nestedLines(a, b string) bool {
-	fa, ka, oka := stackLineParts(a)
-	fb, kb, okb := stackLineParts(b)
-	if !oka || !okb || fa != fb || a == b {
 		return false
 	}
-	return keysWithin(ka, kb) || keysWithin(kb, ka)
+	return slices.Equal(pa.keys, pb.keys)
+}
+
+// nestedLines reports two lines nested (the docs above): lines of one family,
+// not of the same stats, the one's all among the other's.
+func nestedLines(a, b string) bool {
+	pa, oka := parseLine(a)
+	pb, okb := parseLine(b)
+	if !oka || !okb || !lineFamily(pa, pb) || slices.Equal(pa.keys, pb.keys) {
+		return false
+	}
+	return keysWithin(pa.keys, pb.keys) || keysWithin(pb.keys, pa.keys)
 }
 
 // keysWithin reports every key of a among b's.
@@ -221,9 +328,9 @@ func procRivals(a, b *ActiveEffect) bool {
 	if !nestedLines(a.Line, b.Line) {
 		return false
 	}
-	_, ka, _ := stackLineParts(a.Line)
-	_, kb, _ := stackLineParts(b.Line)
-	return hasProcKey(ka) && hasProcKey(kb)
+	pa, _ := parseLine(a.Line)
+	pb, _ := parseLine(b.Line)
+	return hasProcKey(pa.keys) && hasProcKey(pb.keys)
 }
 
 // hasProcKey reports a line's keys holding an offensive proc.
@@ -252,39 +359,69 @@ func covers(a, b StatMods) bool {
 }
 
 // sumEffectMods is what a bearer's effects add to its stats: each one's, but a
-// stat nested lines share (nestedLines) counts its largest once.
+// stat nested lines share (nestedLines, linked one to another) counts its
+// largest once.
 func sumEffectMods(effects []*ActiveEffect) StatMods {
 	var m StatMods
 	for _, e := range effects {
 		m.sum(e.Mods)
 	}
-	type shared struct {
-		family string
-		st     Stat
+	keys := make([][]string, len(effects))
+	any := false
+	for i, e := range effects {
+		if lp, ok := parseLine(e.Line); ok {
+			keys[i] = lp.keys
+			any = true
+		}
 	}
-	raised := map[shared][]int{}
-	for _, e := range effects {
-		fam, keys, ok := stackLineParts(e.Line)
-		if !ok {
+	if !any {
+		return m
+	}
+	for st := Stat(1); int(st) < len(statLineNames)-1; st++ {
+		if st == StatRanged {
 			continue
 		}
-		for st := Stat(1); int(st) < len(statLineNames)-1; st++ {
-			if v := e.Mods.get(st); st != StatRanged && v > 0 && slices.Contains(keys, "+"+statLineNames[st]) {
-				k := shared{fam, st}
-				raised[k] = append(raised[k], v)
+		var on []int // the effects raising st, by their line
+		for i, e := range effects {
+			if e.Mods.get(st) > 0 && slices.Contains(keys[i], "+"+statLineNames[st]) {
+				on = append(on, i)
 			}
 		}
-	}
-	for k, vs := range raised {
-		if len(vs) < 2 {
-			continue // one effect raises it: as it is
+		if len(on) < 2 {
+			continue
 		}
-		total, top := 0, 0
-		for _, v := range vs {
-			total += v
-			top = max(top, v)
+		// the nested ones linked: each group's st its largest once
+		group := make([]int, len(on))
+		for i := range group {
+			group[i] = i
 		}
-		m.add(k.st, top-total)
+		var root func(int) int
+		root = func(i int) int {
+			for group[i] != i {
+				i = group[i]
+			}
+			return i
+		}
+		for i := range on {
+			for j := i + 1; j < len(on); j++ {
+				if nestedLines(effects[on[i]].Line, effects[on[j]].Line) {
+					group[root(j)] = root(i)
+				}
+			}
+		}
+		total, top := map[int]int{}, map[int]int{}
+		count := map[int]int{}
+		for i, at := range on {
+			r, v := root(i), effects[at].Mods.get(st)
+			total[r] += v
+			top[r] = max(top[r], v)
+			count[r]++
+		}
+		for r, n := range count {
+			if n > 1 {
+				m.add(st, top[r]-total[r])
+			}
+		}
 	}
 	return m
 }
@@ -316,11 +453,31 @@ const (
 // when an effect of its line of a higher rank is on, of which the caster is
 // told. Must be called with the lock held.
 func (w *World) lineTakesLocked(caster *Player, casterSess *session.Session, t *Player, spell *CastSpell, ae *ActiveEffect) bool {
-	ae.Line, ae.Rank = BuffLine(spell), lineRank(spell)
-	if ae.Line == "" {
+	ae.Line, ae.Rank = EffectLine(spell), lineRank(spell)
+	e := lineVerdict(t.Effects, ae)
+	if e == nil {
 		return true
 	}
-	for _, e := range t.Effects {
+	log.Printf("Cast: %s's %q (rank %d) does not take on %s: %q (rank %d) is on, line %s",
+		caster.Name, spell.Name, ae.Rank, t.Name, e.Name, e.Rank, ae.Line)
+	if casterSess != nil {
+		text := fmt.Sprintf(lineStronger, t.Name, e.Name)
+		if t == caster {
+			text = fmt.Sprintf(lineStrongerSelf, e.Name)
+		}
+		w.sendColoredLocked(casterSess, text, castRefusalRGB)
+	}
+	return false
+}
+
+// lineVerdict is the effect of effects that keeps ae off (the file's doc), nil
+// when ae takes: a proc rival above it, a nested line that covers it, or its
+// line's higher rank. ae's Line and Rank are set.
+func lineVerdict(effects []*ActiveEffect, ae *ActiveEffect) *ActiveEffect {
+	if ae.Line == "" {
+		return nil
+	}
+	for _, e := range effects {
 		if e.SpellID == ae.SpellID {
 			continue
 		}
@@ -335,18 +492,37 @@ func (w *World) lineTakesLocked(caster *Player, casterSess *session.Session, t *
 		} else if !sameLine(e.Line, ae.Line) || e.Rank <= ae.Rank {
 			continue
 		}
-		log.Printf("Cast: %s's %q (rank %d) does not take on %s: %q (rank %d) is on, line %s",
-			caster.Name, spell.Name, ae.Rank, t.Name, e.Name, e.Rank, ae.Line)
-		if casterSess != nil {
-			text := fmt.Sprintf(lineStronger, t.Name, e.Name)
-			if t == caster {
-				text = fmt.Sprintf(lineStrongerSelf, e.Name)
-			}
-			w.sendColoredLocked(casterSess, text, castRefusalRGB)
-		}
-		return false
+		return e
 	}
-	return true
+	return nil
+}
+
+// lineDrops is the spell ids of effects ae takes off as it goes on
+// (lineVerdict let it on): its line's, a proc rival, a nested line it covers.
+func lineDrops(effects []*ActiveEffect, ae *ActiveEffect) []int {
+	if ae.Line == "" {
+		return nil
+	}
+	var drop []int
+	for _, e := range effects {
+		if e.SpellID == ae.SpellID {
+			continue
+		}
+		if procRivals(e, ae) {
+			drop = append(drop, e.SpellID) // one proc slot: lineTakesLocked let ae on (petition 1359)
+			continue
+		}
+		if nestedLines(e.Line, ae.Line) {
+			if covers(ae.Mods, e.Mods) {
+				drop = append(drop, e.SpellID) // it gives all the other did, as strongly or more
+			}
+			continue
+		}
+		if sameLine(e.Line, ae.Line) {
+			drop = append(drop, e.SpellID)
+		}
+	}
+	return drop
 }
 
 // shareTakesLocked is lineTakesLocked for a spell's share on its own
@@ -382,29 +558,7 @@ func (w *World) shareTakesLocked(caster *Player, ae *ActiveEffect) bool {
 // below: lineTakesLocked let it on) before ae goes on. Must be called with
 // the lock held.
 func (w *World) dropLineLocked(t *Player, ae *ActiveEffect) {
-	if ae.Line == "" {
-		return
-	}
-	var drop []int
-	for _, e := range t.Effects {
-		if e.SpellID == ae.SpellID {
-			continue
-		}
-		if procRivals(e, ae) {
-			drop = append(drop, e.SpellID) // one proc slot: lineTakesLocked let ae on (petition 1359)
-			continue
-		}
-		if nestedLines(e.Line, ae.Line) {
-			if covers(ae.Mods, e.Mods) {
-				drop = append(drop, e.SpellID) // it gives all the other did, as strongly or more
-			}
-			continue
-		}
-		if sameLine(e.Line, ae.Line) {
-			drop = append(drop, e.SpellID)
-		}
-	}
-	for _, id := range drop {
+	for _, id := range lineDrops(t.Effects, ae) {
 		w.removeEffectLocked(t, id)
 	}
 }

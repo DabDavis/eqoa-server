@@ -126,7 +126,7 @@ func TestABuffLineIsKeptOverALogout(t *testing.T) {
 	if n := c.w.RestoreEffects(c.sess, rows, c.at(6*time.Second)); n != 1 {
 		t.Fatalf("restored %d", n)
 	}
-	if e := c.p.Effects[0]; e.Line != BuffLine(&callToCombat) || e.Rank != 24 {
+	if e := c.p.Effects[0]; e.Line != EffectLine(&callToCombat) || e.Rank != 24 {
 		t.Fatalf("restored line %q rank %d", e.Line, e.Rank)
 	}
 	c.castOn(t, callToArms, 10*time.Second)

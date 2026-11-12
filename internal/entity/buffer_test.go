@@ -149,8 +149,8 @@ func TestBufferLandsFiveForFiveHoursASecondOn(t *testing.T) {
 
 // The GM Armor stacks with every AC buff: Test Skin (stack 1, +AC +max HP, rank 50) is taken off by his Test Order
 // (its line, rank 60: the control, the line rule at work on his other spells) and the GM Armor neither takes it off
-// nor is taken off; a buff of a line read from its text (+AC alone) and one of another stack type (the self AC line,
-// stack 2) stay beside it, every AC summed. After his: Test Skin again is refused under Test Order, and a stronger
+// nor is taken off; a buff of a line read from its text (a group's +AC alone: of the group stack type, 3, since
+// 2026-11-12, buffline.go) and one of another stack type (the self AC line, stack 2) stay beside it, every AC summed. After his: Test Skin again is refused under Test Order, and a stronger
 // one of their line takes Test Order's place; the GM Armor stays through both.
 func TestBufferGMArmorStacksWithEveryACBuff(t *testing.T) {
 	c := newBufferRig(t)
@@ -158,7 +158,7 @@ func TestBufferGMArmorStacksWithEveryACBuff(t *testing.T) {
 		{"kind":"stat","stat":"ac","amount":100},{"kind":"stat","stat":"maxhp","amount":10}]}`, 0)
 	self := bufferSpell(9312, 45, 0, "Test Steel", `{"v":1,"scope":"self","harmful":false,"duration_s":600,"stack":2,"level":45,"effects":[
 		{"kind":"stat","stat":"ac","amount":248}]}`, 0)
-	text := CastSpell{SpellID: 9313, Name: "Test Rock", Scope: 0, Level: 30, Def: ParseSpellNamed("Test Rock", "Self, Increase AC by 30, 30min", "")}
+	text := CastSpell{SpellID: 9313, Name: "Test Rock", Scope: 2, Level: 30, Def: ParseSpellNamed("Test Rock", "Group, Increase AC by 30, 30min", "")}
 	mightier := bufferSpell(9314, 61, 1, "Test Mightier Order", `{"v":1,"scope":"target","harmful":false,"duration_s":1800,"stack":1,"level":61,"effects":[
 		{"kind":"stat","stat":"ac","amount":700},{"kind":"stat","stat":"maxhp","amount":700}]}`, 0)
 	for _, s := range []CastSpell{skin, self, text} {

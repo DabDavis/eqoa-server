@@ -33,7 +33,10 @@ import (
 //     its book holds of what lasts mercBuffLasts or more, on itself (a self
 //     buff, or one of a target's its owner already has), its owner (one of a
 //     target's) or its group (one of the group's that it or its owner lacks),
-//     while half its power or more is left;
+//     while half its power or more is left; each line's best alone, the kinds
+//     of line across (mercBestBuffs), none far beneath its level
+//     (mercBuffFloor), and none another merc's cast (or its own) already
+//     brings (mercBuffComingLocked: three mercs of one owner buff him once);
 //   - a tank's taunt (mercTauntTurnLocked): its target's hate on itself by
 //     its book's taunts (a hate line: Taunt, Provoke, the Pillars), the best
 //     that is ready, while its target fights another than itself (one of its
@@ -107,6 +110,20 @@ const (
 func MercUseName(s *CastSpell) string {
 	return [...]string{useNone: "", useNuke: "hit", useDoT: "damage over time", useTaunt: "taunt", useHeal: "heal",
 		useHoT: "heal over time", useGroupHeal: "group heal", useBuff: "buff"}[mercUseOf(s)]
+}
+
+// MercBuffsKept is the buffs a merc of the kit keeps up, as its book holds
+// them (mercBook: each line's best, none far beneath its level): the
+// handlers' real-data test's.
+func MercBuffsKept(kit MercKit) []*CastSpell {
+	ms := &mercState{kit: kit, body: newMercBody(1, &kit)}
+	var out []*CastSpell
+	for _, sp := range ms.mercBook() {
+		if sp.use == useBuff {
+			out = append(out, sp.s)
+		}
+	}
+	return out
 }
 
 // atFoe is whether the use is cast at a creature.
@@ -204,7 +221,6 @@ func (ms *mercState) mercBook() []mercSpell {
 		return ms.book
 	}
 	var out []mercSpell
-	best := map[string]int{} // a buff line's best rank, by its index in out
 	for i := range ms.kit.Spells {
 		s := &ms.kit.Spells[i]
 		u := mercUseOf(s)
@@ -218,24 +234,70 @@ func (ms *mercState) mercBook() []mercSpell {
 					continue // a fight's buff
 				}
 				short = true
-			}
-			// the best rank of its line alone: a lower one would only be
-			// refused or take off the better
-			if line := BuffLine(s); line != "" {
-				if j, ok := best[line]; ok {
-					if lineRank(s) > lineRank(out[j].s) {
-						out[j] = mercSpell{s: s, use: u, worth: mercWorth(s, u, ms.body), short: short}
-					}
-					continue
-				}
-				best[line] = len(out)
+			} else if s.Level*mercBuffFloor < ms.kit.Level && mercPlainBuff(s) {
+				continue // far beneath it: a level 1 +1 INT at 60 (mercBuffFloor)
 			}
 		}
 		out = append(out, mercSpell{s: s, use: u, worth: mercWorth(s, u, ms.body), short: short})
 	}
+	out = mercBestBuffs(out)
 	// the biggest first: each turn takes the first of its kind it may cast
 	sort.SliceStable(out, func(i, j int) bool { return out[i].worth > out[j].worth })
 	ms.book, ms.bookOf = out, ms.body
+	return out
+}
+
+// mercBuffFloor: a merc keeps up no buff (not a song or a burst: short) of a
+// level under a mercBuffFloor-th of its own (ours, 2026-11-12: a level 60
+// cleric merc cast Divine Wisdom, +1 INT, and Minor Blessing, +1 CHA, both of
+// level 1 to 3, the owner: "buffs are stacking on Jibrish from mercs that
+// normally shouldn't").
+const mercBuffFloor = 3
+
+// mercPlainBuff is whether a buff only changes stats or shields its bearer
+// (a damage shield): what mercBuffFloor holds to. A proc, power or a heal
+// over time is kept at any level.
+func mercPlainBuff(s *CastSpell) bool {
+	for _, e := range s.Def.Effects {
+		switch e.Kind {
+		case EffectStat, EffectShield, EffectDefProc:
+		default:
+			return false
+		}
+	}
+	return len(s.Def.Effects) > 0
+}
+
+// mercBestBuffs is the book with each buff line's best alone (the owner,
+// 2026-11-12): a buff goes when another of the book is of its line
+// (sameLine, the kinds across: buffline.go) and of a higher rank (of one
+// rank, the first kept), or of a nested line that covers it (covers, by the
+// figures: staticMods), so a lower one, which would only be refused or take
+// off the better, is never cast (the cleric's Disease, Poison, Flame and Ice
+// Ward under Lightning Ward; Minor Blessing beside Blessing).
+func mercBestBuffs(book []mercSpell) []mercSpell {
+	out := book[:0:0]
+	for i, a := range book {
+		if a.use != useBuff {
+			out = append(out, a)
+			continue
+		}
+		la, ra, ma := EffectLine(a.s), lineRank(a.s), staticMods(a.s)
+		beaten := false
+		for j, b := range book {
+			if j == i || b.use != useBuff || b.short != a.short || la == "" {
+				continue
+			}
+			lb, rb := EffectLine(b.s), lineRank(b.s)
+			if sameLine(la, lb) && (rb > ra || rb == ra && j < i) || nestedLines(la, lb) && covers(staticMods(b.s), ma) {
+				beaten = true
+				break
+			}
+		}
+		if !beaten {
+			out = append(out, a)
+		}
+	}
 	return out
 }
 
@@ -504,9 +566,9 @@ func (w *World) mercBuffTurnLocked(ms *mercState, now time.Time) bool {
 			continue
 		}
 		s := sp.s
-		mine := !buffOn(m.Effects, s)
+		mine := !buffOn(m.Effects, s) && !w.mercBuffComingLocked(ms, s, m.ServerID)
 		theirs := ownerNear && !buffOn(o.Effects, s) && (s.Def.MinLevel <= 0 || o.Level >= s.Def.MinLevel) &&
-			mercReaches(m, s, o.X, o.Y, o.Z, 0)
+			mercReaches(m, s, o.X, o.Y, o.Z, 0) && !w.mercBuffComingLocked(ms, s, o.ServerID)
 		switch s.Scope {
 		case 0:
 			if mine {
@@ -527,6 +589,35 @@ func (w *World) mercBuffTurnLocked(ms *mercState, now time.Time) bool {
 				w.mercCastLocked(ms, s, m.ServerID, true, now)
 				return true
 			}
+		}
+	}
+	return false
+}
+
+// mercBuffComingLocked is whether a merc's buff of s's line (or one that would
+// keep s off) is on its way to id: cast at it, or a group's cast by a merc of
+// the same owner (its team); its own cast too (a 5 s cast's landing comes
+// after its busy time ends). Three mercs of one owner each began
+// the same buff on him within a second, none landed yet to be seen
+// (2026-11-12, the GM Jibrish's three clerics: Group Resist Affliction landed
+// on him three times over); since then the first cast stands for all.
+// Must be called with the lock held.
+func (w *World) mercBuffComingLocked(ms *mercState, s *CastSpell, id EntityID) bool {
+	if len(w.mercCasts) == 0 {
+		return false
+	}
+	line := EffectLine(s)
+	for _, c := range w.mercCasts {
+		if mercUseOf(&c.spell) != useBuff {
+			continue
+		}
+		if c.target != id && !(c.group && c.ms.owner == ms.owner) {
+			continue
+		}
+		cl := EffectLine(&c.spell)
+		if c.spell.SpellID == s.SpellID || sameLine(cl, line) && lineRank(&c.spell) >= lineRank(s) ||
+			nestedLines(cl, line) && covers(staticMods(&c.spell), staticMods(s)) {
+			return true
 		}
 	}
 	return false

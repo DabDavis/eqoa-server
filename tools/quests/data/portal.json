@@ -564,7 +564,7 @@
    "giver": "Honcho Ulgurglch",
    "classes": [],
    "races": [],
-   "minlevel": 50,
+   "minlevel": 51,
    "maxlevel": 60,
    "requires": [],
    "unlocks": [
@@ -573,7 +573,7 @@
      "to": "Noroxus's lair"
     }
    ],
-   "offer": "Noroxus! Ulgurglch masters want him dead. Kill the toxic slimes in the three pools round the cauldron and bring three slime hearts. Take a viturille skin too: no skin, no going through.",
+   "offer": "Noroxus! Ulgurglch masters want him dead. Kill the slimes in the three pools round the cauldron and bring three slime hearts. Take jellyfish goo from the cyanea virullatas too: no goo, no going through.",
    "accept": "I will bring the hearts.",
    "decline": "Not now.",
    "declined": "Noroxus waits. Ulgurglch waits.",
@@ -581,16 +581,16 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "cillieane viturille",
+     "target": "cyanea virullata",
      "items": [
       {
-       "item": "viturille skin",
+       "item": "jellyfish goo",
        "count": 1
       }
      ],
      "count": 1,
      "chance": 0.5,
-     "journal": "Take a viturille skin from the cillieane viturilles by the nox pools."
+     "journal": "Take jellyfish goo from the cyanea virullatas by the nox pools."
     },
     {
      "kind": "loot",
@@ -624,9 +624,9 @@
     },
     {
      "kind": "kill",
-     "target": "plague toxicologist",
+     "target": "last house toxicologist",
      "count": 3,
-     "journal": "Kill the plague toxicologists round the great cauldron among the three pools."
+     "journal": "Kill the Last House toxicologists round the great cauldron among the three pools."
     },
     {
      "kind": "give",
@@ -649,7 +649,13 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Noroxus Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Steps 1-5; finishing it flags the player for the fuming portal's trip to Noroxus (unlocks). The guide's giver line names Honcho Oogurlgze, its steps Honcho Ulgurglch, the game's name. The slimes stand in the pools (the guide's connable slime that spawns them is not modelled); the skin is the guide's pass, its portal check is the flag; the goo that debuffs Noroxus, the portal's 10-15 minutes and 'Noroxus must be up' are left out."
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Noroxus Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Steps 1-5; finishing it flags the player for the fuming portal's trip to Noroxus (unlocks). The guide's giver line names Honcho Oogurlgze, its steps Honcho Ulgurglch, the game's name. The slimes stand in the pools (the guide's connable slime that spawns them is not modelled); the skin is the guide's pass, its portal check is the flag; the goo that debuffs Noroxus, the portal's 10-15 minutes and 'Noroxus must be up' are left out. The wiki's Plane of Disease: Noroxus Quest (https://wiki.eqoa.live/index.php?title=Plane_of_Disease:_Noroxus_Quest, the owner's source, 2026-11-12; tools/pod_quests_20261112.py): level 51, The Pusling 1000, the jellyfish goo of the cyanea virullatas and the Last House toxicologists (EQOA-Data's viturille skin, cillieane viturilles and plague toxicologists). The wiki's Last House Slayers at the cauldron are not placed; 'Noroxus must be up' is still left out.",
+   "factions_required": [
+    [
+     "The Pusling",
+     1000
+    ]
+   ]
   },
   {
    "key": "Portal/plane-of-disease/noroxus-2",
@@ -657,7 +663,7 @@
    "giver": "Honcho Ulgurglch",
    "classes": [],
    "races": [],
-   "minlevel": 50,
+   "minlevel": 51,
    "maxlevel": 60,
    "requires": [
     "Portal/plane-of-disease/noroxus-1"
@@ -701,7 +707,13 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Noroxus Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Step 7 and its reward: the blood of Noroxus opens the Bloody Portal to the twins (unlocks; the item is kept, as the guide's 'unlimited use')."
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Noroxus Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Step 7 and its reward: the blood of Noroxus opens the Bloody Portal to the twins (unlocks; the item is kept, as the guide's 'unlimited use'). The wiki's Noroxus Quest (https://wiki.eqoa.live/index.php?title=Plane_of_Disease:_Noroxus_Quest): level 51, The Pusling 1000 (tools/pod_quests_20261112.py).",
+   "factions_required": [
+    [
+     "The Pusling",
+     1000
+    ]
+   ]
   },
   {
    "key": "Portal/plane-of-disease/spell",
@@ -709,122 +721,15 @@
    "giver": "Yarfsnoogle",
    "classes": [],
    "races": [],
-   "minlevel": 50,
+   "minlevel": 1,
    "maxlevel": 60,
-   "requires": [
-    "Portal/plane-of-disease/noroxus-2",
-    "Portal/plane-of-disease/queen-1"
-   ],
-   "offer": "Yarfsnoogle studies the rot! Bring eight pieces: femur, organ, skin, tibia, skull, gland, eyeball and soul dust. The great ones of this plane each carry one.",
+   "requires": [],
+   "offer": "Yarfsnoogle studies the rot! Bring eight pieces: femur, tibia, skull, organ, eyeball, skin, gland and soul dust. The great ones of this plane each carry one. Too many to carry? Yarfsnoogle's pet keeps seven for you.",
    "accept": "I will bring them.",
    "decline": "Not now.",
    "declined": "Rot waits for no one. Yarfsnoogle waits.",
    "started": "Eight pieces! Go, go.",
    "steps": [
-    {
-     "kind": "loot",
-     "target": "Rallius Rattican",
-     "items": [
-      {
-       "item": "fetid rotting femur",
-       "count": 1
-      }
-     ],
-     "count": 1,
-     "chance": 1.0,
-     "journal": "Kill Rallius Rattican, the robed rat of the entrance valleys, and take a fetid rotting femur."
-    },
-    {
-     "kind": "loot",
-     "target": "Lich Overlord",
-     "items": [
-      {
-       "item": "fetid rotting organ",
-       "count": 1
-      }
-     ],
-     "count": 1,
-     "chance": 1.0,
-     "journal": "Kill the Lich Overlord behind the tree by the banker in the first tunnel and take a fetid rotting organ."
-    },
-    {
-     "kind": "loot",
-     "target": "Fleshripper",
-     "items": [
-      {
-       "item": "fetid rotting skin",
-       "count": 1
-      }
-     ],
-     "count": 1,
-     "chance": 1.0,
-     "journal": "Kill Fleshripper, the vulture of the second valley, and take a fetid rotting skin."
-    },
-    {
-     "kind": "loot",
-     "target": "Gluboxious the Fetid",
-     "items": [
-      {
-       "item": "fetid rotting tibia",
-       "count": 1
-      }
-     ],
-     "count": 1,
-     "chance": 1.0,
-     "journal": "Kill Gluboxious the Fetid in the lake past the second tunnel and take a fetid rotting tibia."
-    },
-    {
-     "kind": "loot",
-     "target": "Rawgl the Carnage Hound",
-     "items": [
-      {
-       "item": "fetid rotting skull",
-       "count": 1
-      }
-     ],
-     "count": 1,
-     "chance": 1.0,
-     "journal": "Kill Rawgl the Carnage Hound by the nox pools and take a fetid rotting skull."
-    },
-    {
-     "kind": "loot",
-     "target": "Noroxus",
-     "items": [
-      {
-       "item": "fetid rotting gland",
-       "count": 1
-      }
-     ],
-     "count": 1,
-     "chance": 1.0,
-     "journal": "Kill Noroxus in his lair and take a fetid rotting gland."
-    },
-    {
-     "kind": "loot",
-     "target": "Bertoxxulous the Plaguebringer",
-     "items": [
-      {
-       "item": "soul dust",
-       "count": 1
-      }
-     ],
-     "count": 1,
-     "chance": 1.0,
-     "journal": "Kill Bertoxxulous the Plaguebringer and take his soul dust."
-    },
-    {
-     "kind": "loot",
-     "target": "Queen Qy'tha",
-     "items": [
-      {
-       "item": "fetid rotting eyeball",
-       "count": 1
-      }
-     ],
-     "count": 1,
-     "chance": 1.0,
-     "journal": "Kill Queen Qy'tha in the wasp hive and take a fetid rotting eyeball."
-    },
     {
      "kind": "give",
      "target": "Yarfsnoogle",
@@ -854,16 +759,17 @@
        "count": 1
       },
       {
-       "item": "soul dust",
+       "item": "fetid rotting eyeball",
        "count": 1
       },
       {
-       "item": "fetid rotting eyeball",
+       "item": "soul dust",
        "count": 1
       }
      ],
-     "journal": "Bring the eight pieces to Yarfsnoogle in the nox pools' camp.",
+     "journal": "Bring Yarfsnoogle the eight pieces: femur, organ, skin, tibia, skull, gland, eyeball and soul dust.",
      "says": "All eight! Yarfsnoogle teaches you. But Grum is not pleased...",
+     "notyet": "Eight pieces! Rallius Rattican's femur, the Lich Overlord's organ, Fleshripper's skin, Gluboxious's tibia, Rawlg's or Rotwood's skull, Noroxus's gland, Queen Qy'tha's eyeball, Bertoxxulous's soul dust.",
      "rewards": {
       "byclass": {
        "0": {
@@ -898,7 +804,7 @@
        },
        "6": {
         "spells": [
-         "Virulent Blade Assassin"
+         "Virulent Blade"
         ]
        },
        "7": {
@@ -910,6 +816,11 @@
         "spells": [
          "Barbiedolls of Karana",
          "Acidic Storm"
+        ]
+       },
+       "9": {
+        "spells": [
+         "Purifying Winds of Nife"
         ]
        },
        "10": {
@@ -941,6 +852,10 @@
      },
      "events": [
       {
+       "on": "start",
+       "do": "dostep"
+      },
+      {
        "on": "done",
        "do": "spawn",
        "npc": "Grum",
@@ -960,6 +875,11 @@
          "Fetid Flesh Shield"
         ]
        },
+       "1": {
+        "items": [
+         "Fetid Scaled Flesh Tunic"
+        ]
+       },
        "2": {
         "items": [
          "Fetid Flesh Shield"
@@ -968,6 +888,36 @@
        "3": {
         "items": [
          "Fetid Flesh Shield"
+        ]
+       },
+       "4": {
+        "items": [
+         "Fetid Flesh Boots"
+        ]
+       },
+       "5": {
+        "items": [
+         "Fetid Scaled Flesh Tunic"
+        ]
+       },
+       "6": {
+        "items": [
+         "Fetid Scaled Flesh Tunic"
+        ]
+       },
+       "7": {
+        "items": [
+         "Fetid Flesh Boots"
+        ]
+       },
+       "8": {
+        "items": [
+         "Fetid Scaled Flesh Helm"
+        ]
+       },
+       "9": {
+        "items": [
+         "fetid flesh robe"
         ]
        },
        "10": {
@@ -992,27 +942,7 @@
        },
        "14": {
         "items": [
-         "fetid flesh robe"
-        ]
-       },
-       "7": {
-        "items": [
-         "fetid flesh robe"
-        ]
-       },
-       "8": {
-        "items": [
-         "fetid flesh robe"
-        ]
-       },
-       "9": {
-        "items": [
-         "fetid flesh robe"
-        ]
-       },
-       "4": {
-        "items": [
-         "fetid flesh robe"
+         "Fetid Flesh Boots"
         ]
        }
       }
@@ -1020,7 +950,13 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Spell Quest (github.com/Jadiction/EQOA-Data, MIT). Each piece is its giver's primary drop in the guide (Rotwood the Hollow's skull and the secondary drops aside), a sure drop on its step, in the guide's order but for the eyeball last; the rare spawns stand always up here. Each class's PoD ability is the spell the guide lists for it, as this server spells it (the rogue's 'Virulet Blade' is Virulent Blade Assassin, the same figures; the shaman's two spells both); the cleric's Purifying Winds of Nife has no spellpattern row, so a cleric gets Grum's robe alone. Grum's drop is the guide's item for the class as a reward on his kill: the shield (war, pal, sk) and the robe (casters, healers, monk); the helms, tunics and boots it lists for rangers, rogues and bards have no itempattern rows. Yarfsnoogle's pet's bag is left out."
+   "notes": "The wiki's Plane of Disease: Ability Quest (https://wiki.eqoa.live/index.php?title=Plane_of_Disease:_Ability_Quest, the owner's source, 2026-11-12; tools/pod_quests_20261112.py): Yarfsnoogle, any level, The Pusling 2000, no quest before it; the eight pieces are their givers' primary drops only (the wiki's Sandstorm Changes: rare and raid NPCs drop only the primary), each a sure drop on the corpse, taken in any order and before the quest is logged (a hand-in): Rallius Rattican the femur, the Lich Overlord the organ, Fleshripper the skin, Gluboxious the Fetid the tibia, Rawlg the Carnage Hound and Rotwood the Hollow the skull, Noroxus the gland, Queen Qy'tha the eyeball, Bertoxxulous the soul dust. Each class's ability as the wiki lists it (the rogue's Virulent Blade; the shaman's 'Barbiedolls of Karana or Acidic Storm' both, the wiki naming no way to choose). Grum (spawned on the hand-in) gives the questor's class its piece: the wiki lists his drops without classes, so each class gets the one of them made for the fewest classes it may wear (the shield the tanks, the scaled tunic rangers, bards and rogues, the scaled helm shamans, the boots monks, druids and alchemists, the robe clerics and casters); the Fetid Flesh Helm, Sash and Plated Flesh Boots have no wiki page, so no record. Yarfsnoogle's Pet keeps the seven non-dust pieces (spell-bag, spell-unbag); the wiki's 'requires the quest logged' for the pet is not modelled.",
+   "factions_required": [
+    [
+     "The Pusling",
+     2000
+    ]
+   ]
   },
   {
    "key": "Portal/plane-of-disease/weapon",
@@ -1028,67 +964,15 @@
    "giver": "Witchdoctor Yurplag",
    "classes": [],
    "races": [],
-   "minlevel": 50,
+   "minlevel": 60,
    "maxlevel": 60,
    "requires": [],
-   "offer": "The four great insects of this valley grow fat on plague. Bring me wax dust from the Moth Monarch, bile from the Locust Monarch, and the legs and mandibles of the two Matriarchs.",
+   "offer": "The four great insects of this valley grow fat on plague. Kill the larvae in their pools until the diseased ones come, and the diseased ones until their monarch or matriarch rises. Bring me wax dust from the Moth Monarch, bile from the Locust Monarch, the Mantis Matriarch's front legs and the Millipede Matriarch's mandible.",
    "accept": "I will hunt them.",
    "decline": "Not now.",
    "declined": "The insects grow fatter.",
-   "started": "Larvae first, then the great ones.",
+   "started": "Larvae first, then the diseased ones, then the great ones. Any order.",
    "steps": [
-    {
-     "kind": "loot",
-     "target": "moth monarch",
-     "items": [
-      {
-       "item": "wax dust",
-       "count": 1
-      }
-     ],
-     "count": 1,
-     "chance": 1.0,
-     "journal": "Kill the Moth Monarch in the pocket of seven pools and take its wax dust."
-    },
-    {
-     "kind": "loot",
-     "target": "locust monarch",
-     "items": [
-      {
-       "item": "acidic blood bile",
-       "count": 1
-      }
-     ],
-     "count": 1,
-     "chance": 1.0,
-     "journal": "Kill the Locust Monarch and take its acidic blood bile."
-    },
-    {
-     "kind": "loot",
-     "target": "mantis matriarch",
-     "items": [
-      {
-       "item": "front legs of the Mantis Matriarch",
-       "count": 1
-      }
-     ],
-     "count": 1,
-     "chance": 1.0,
-     "journal": "Kill the Mantis Matriarch and take her front legs."
-    },
-    {
-     "kind": "loot",
-     "target": "millipede matriarch",
-     "items": [
-      {
-       "item": "mandibles of the Millipede Matriarch",
-       "count": 1
-      }
-     ],
-     "count": 1,
-     "chance": 1.0,
-     "journal": "Kill the Millipede Matriarch and take her mandibles."
-    },
     {
      "kind": "give",
      "target": "Witchdoctor Yurplag",
@@ -1102,21 +986,27 @@
        "count": 1
       },
       {
-       "item": "front legs of the Mantis Matriarch",
+       "item": "matriarch's front legs",
        "count": 1
       },
       {
-       "item": "mandibles of the Millipede Matriarch",
+       "item": "matriarch's mandible",
        "count": 1
       }
      ],
-     "journal": "Bring the four pieces to Witchdoctor Yurplag.",
+     "journal": "Bring Witchdoctor Yurplag wax dust, acidic blood bile, the matriarch's front legs and mandible.",
      "says": "All four! Yurplag makes you a weapon worthy of this plane.",
+     "notyet": "Four pieces: wax dust, the bile, the front legs, the mandible. The great insects carry them.",
      "rewards": {
       "byclass": {
        "0": {
         "items": [
          "gory cleaver of Mavis"
+        ]
+       },
+       "1": {
+        "items": [
+         "The Bloodsabre"
         ]
        },
        "2": {
@@ -1127,6 +1017,36 @@
        "3": {
         "items": [
          "gory cleaver of Mavis"
+        ]
+       },
+       "4": {
+        "items": [
+         "Thorn of Deatharn"
+        ]
+       },
+       "5": {
+        "items": [
+         "The Bloodsabre"
+        ]
+       },
+       "6": {
+        "items": [
+         "The Bloodsabre"
+        ]
+       },
+       "7": {
+        "items": [
+         "Totem of Toluwon"
+        ]
+       },
+       "8": {
+        "items": [
+         "Totem of Toluwon"
+        ]
+       },
+       "9": {
+        "items": [
+         "Totem of Toluwon"
         ]
        },
        "10": {
@@ -1153,28 +1073,139 @@
         "items": [
          "Totem of Avhi"
         ]
-       },
-       "7": {
-        "items": [
-         "Totem of Toluwon"
-        ]
-       },
-       "8": {
-        "items": [
-         "Totem of Toluwon"
-        ]
-       },
-       "9": {
-        "items": [
-         "Totem of Toluwon"
-        ]
        }
       }
-     }
+     },
+     "events": [
+      {
+       "on": "start",
+       "do": "dostep"
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Weapon Quest (github.com/Jadiction/EQOA-Data, MIT). The larvae, mid-level spawns and despawning bosses of the guide's cycle are left out: the four bosses stand always up here, each a sure drop. The rewards are the guide's by archetype (Tank the Gory Cleaver of Mavis, Caster the Totem of Avhi, Healer the Totem of Tolawon, the game's Toluwon); The Bloodsabre (rangers, rogues, bards) and the Thorn of Deatharn (monks) have no itempattern rows, so those classes get nothing yet. The guide's 'some small xp' has no figure."
+   "notes": "The wiki's Plane of Disease: Weapon Quest (https://wiki.eqoa.live/index.php?title=Plane_of_Disease:_Weapon_Quest, the owner's source, 2026-11-12; tools/pod_quests_20261112.py): Witchdoctor Yurplag, level 60, The Pusling 1000; the four pieces dropped by the monarchs and matriarchs (their corpses, two rolls at 75% a kill: the wiki's 150%, in any order and before the quest is taken: a hand-in); each area's cycle of larvae, diseased insects and its boss (triggers on their deaths: 25% a larva raises a diseased insect, three at most, 15% a diseased one its boss for 30 minutes, ours); the rewards by archetype (Tank the Gory Cleaver of Mavis, Melee The Bloodsabre, Monk the Thorn of Deatharn, Healer the Totem of Toluwon (the wiki's Tolawon), Caster the Totem of Avhi, the alchemist a caster). The wiki's 'area resets to larvae' and the boss area's pause after a kill are not modelled.",
+   "factions_required": [
+    [
+     "The Pusling",
+     1000
+    ]
+   ]
+  },
+  {
+   "key": "Portal/plane-of-disease/spell-bag",
+   "name": "Yarfsnoogle's Pet Keeps",
+   "giver": "Yarfsnoogle's Pet",
+   "classes": [],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The pet sniffs your pack. Give it the seven rotting pieces, and it hands you a bag that holds them, so your pack is free while you hunt the soul dust. Give the bag back for the pieces whenever you like.",
+   "accept": "Keep them for me.",
+   "decline": "Not now.",
+   "declined": "The pet grunts.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Yarfsnoogle's Pet",
+     "items": [
+      {
+       "item": "fetid rotting femur",
+       "count": 1
+      },
+      {
+       "item": "fetid rotting organ",
+       "count": 1
+      },
+      {
+       "item": "fetid rotting skin",
+       "count": 1
+      },
+      {
+       "item": "fetid rotting tibia",
+       "count": 1
+      },
+      {
+       "item": "fetid rotting skull",
+       "count": 1
+      },
+      {
+       "item": "fetid rotting gland",
+       "count": 1
+      },
+      {
+       "item": "fetid rotting eyeball",
+       "count": 1
+      }
+     ],
+     "journal": "Give Yarfsnoogle's Pet the seven rotting pieces for a bag that holds them.",
+     "says": "The pet stuffs the pieces into a bag and hands it to you.",
+     "rewards": {
+      "items": [
+       "Yarfsnoogle's bag"
+      ]
+     },
+     "events": [
+      {
+       "on": "start",
+       "do": "dostep"
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "The wiki's Yarfsnoogle's Pet and Ability Quest steps 4-5 (https://wiki.eqoa.live/index.php?title=Plane_of_Disease:_Ability_Quest; tools/pod_quests_20261112.py): it holds the quest's pieces while the player farms the soul dust, withdrawn at any time (spell-unbag). A bag of the seven (EQOA-Data's April 2007 bag); the wiki's 'requires the quest logged' is not modelled."
+  },
+  {
+   "key": "Portal/plane-of-disease/spell-unbag",
+   "name": "Yarfsnoogle's Pet Returns",
+   "giver": "Yarfsnoogle's Pet",
+   "classes": [],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The pet eyes the bag. Give it back for your seven rotting pieces?",
+   "accept": "Give me the pieces.",
+   "decline": "Not now.",
+   "declined": "The pet grunts.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Yarfsnoogle's Pet",
+     "items": [
+      {
+       "item": "Yarfsnoogle's bag",
+       "count": 1
+      }
+     ],
+     "journal": "Give Yarfsnoogle's Pet the bag for the seven rotting pieces.",
+     "says": "The pet empties the bag into your hands.",
+     "rewards": {
+      "items": [
+       "fetid rotting femur",
+       "fetid rotting organ",
+       "fetid rotting skin",
+       "fetid rotting tibia",
+       "fetid rotting skull",
+       "fetid rotting gland",
+       "fetid rotting eyeball"
+      ]
+     },
+     "events": [
+      {
+       "on": "start",
+       "do": "dostep"
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "The wiki's Yarfsnoogle's Pet: the pieces withdrawn at any time (https://wiki.eqoa.live/index.php?title=Plane_of_Disease:_Ability_Quest; tools/pod_quests_20261112.py)."
   },
   {
    "key": "Portal/plane-of-disease/tusks",
@@ -4992,8 +5023,8 @@
    "like": "Lord Pickclaw's Scepter"
   },
   {
-   "name": "viturille skin",
-   "description": "The skin of a cillieane viturille from the nox pools.",
+   "name": "jellyfish goo",
+   "description": "Goo of a cyanea virullata from the nox pools. It lets you through the fuming portal.",
    "notrade": true,
    "like": "tasty froglok skins"
   },
@@ -5076,14 +5107,14 @@
    "like": "poison vial"
   },
   {
-   "name": "front legs of the Mantis Matriarch",
+   "name": "matriarch's front legs",
    "description": "The front legs of the Mantis Matriarch.",
    "notrade": true,
    "like": "cracked beetle mandible"
   },
   {
-   "name": "mandibles of the Millipede Matriarch",
-   "description": "The mandibles of the Millipede Matriarch.",
+   "name": "matriarch's mandible",
+   "description": "The mandible of the Millipede Matriarch.",
    "notrade": true,
    "like": "cracked beetle mandible"
   },
@@ -5473,6 +5504,102 @@
    "description": "A rune the Zek scouts carry. Their portal knows it.",
    "notrade": true,
    "like": "portal rune"
+  },
+  {
+   "name": "The Bloodsabre",
+   "description": "A sabre slick with plague blood, from Witchdoctor Yurplag.",
+   "notrade": true,
+   "like": "Sabre of the Sands",
+   "set": {
+    "HPMAX": 120,
+    "POWMAX": 80,
+    "levelreq": 60,
+    "classuse": 98,
+    "lore": 1,
+    "maxhp": 14100
+   }
+  },
+  {
+   "name": "Thorn of Deatharn",
+   "description": "This weapon was once wielded by the wicked mass murderer Carprin Deatharn.",
+   "notrade": true,
+   "like": "Thantonian Katar",
+   "set": {
+    "HPMAX": 120,
+    "AC": 80,
+    "levelreq": 60,
+    "classuse": 16,
+    "lore": 1,
+    "maxhp": 14100
+   }
+  },
+  {
+   "name": "Fetid Scaled Flesh Tunic",
+   "description": "A tunic of scaled flesh. Grum wore it.",
+   "notrade": true,
+   "like": "Jadescale Tunic",
+   "set": {
+    "AC": 310,
+    "str": 10,
+    "sta": 10,
+    "dex": 10,
+    "cha": 10,
+    "intelligence": 10,
+    "HPMAX": 150,
+    "DR": 30,
+    "FR": -10,
+    "CR": -10,
+    "levelreq": 60,
+    "classuse": 98,
+    "lore": 1,
+    "maxhp": 14100
+   }
+  },
+  {
+   "name": "Fetid Scaled Flesh Helm",
+   "description": "A helm of scaled flesh. Grum wore it.",
+   "notrade": true,
+   "like": "firescale helm",
+   "set": {
+    "AC": 82,
+    "str": 10,
+    "agi": 10,
+    "dex": 10,
+    "HPMAX": 150,
+    "DR": 45,
+    "FR": -10,
+    "CR": -10,
+    "levelreq": 60,
+    "classuse": 354,
+    "lore": 1,
+    "maxhp": 14100
+   }
+  },
+  {
+   "name": "Fetid Flesh Boots",
+   "description": "Boots stitched from dried flesh. Grum wore them.",
+   "notrade": true,
+   "like": "ancient rhino hide boots",
+   "set": {
+    "AC": 70,
+    "agi": 10,
+    "wis": 10,
+    "dex": 10,
+    "HPMAX": 150,
+    "DR": 30,
+    "FR": -10,
+    "CR": -10,
+    "levelreq": 60,
+    "classuse": 16528,
+    "lore": 1,
+    "maxhp": 14100
+   }
+  },
+  {
+   "name": "Yarfsnoogle's bag",
+   "description": "Seven rotting pieces of the Plane of Disease, kept in a bag by Yarfsnoogle's pet.",
+   "notrade": true,
+   "like": "fused slime heart"
   }
  ]
 }

@@ -664,3 +664,30 @@ func TestTriggerResummonProblems(t *testing.T) {
 		}
 	}
 }
+
+// A trigger's last wait is its rest: its run, and its lock, live to that wait's end
+// (the throne of Bertoxxulous, the Bloody Portal's shut time). Until 2026-11-12 the
+// run ended as the wait began. The control: a second before its end the lock is held,
+// at its end it is free and the trigger fires again.
+func TestTriggerLastWaitHoldsItsLock(t *testing.T) {
+	w := newTrigWorld(t)
+	w.set(20, "Throne", "near", 50, `[{"do":"lock","lock":"throne"},{"do":"broadcast","text":"Up."},{"do":"wait","seconds":600}]`)
+	if _, err := w.fire(20); err != nil {
+		t.Fatal(err)
+	}
+	w.at(time.Second)
+	w.at(599 * time.Second)
+	if !w.e.BusyNamed("throne") {
+		t.Fatal("the last wait's run ended before its time: the lock is free")
+	}
+	if _, err := w.fire(20); !errors.Is(err, ErrTriggerBusy) {
+		t.Fatalf("fired during its rest: %v", err)
+	}
+	w.at(600 * time.Second)
+	if w.e.BusyNamed("throne") {
+		t.Fatal("its rest is over: the lock must be free")
+	}
+	if _, err := w.fire(20); err != nil {
+		t.Fatal(err)
+	}
+}

@@ -150,6 +150,9 @@ func (w *World) awardKillXPLocked(killerSess *session.Session, killer *Player, n
 		log.Printf("Metal Moogie: %s's win is a duel's: no experience", killer.Name)
 		return
 	}
+	if npc.siege != nil {
+		return // a siege's King or gate: no experience (siege.go)
+	}
 	sharers := w.killSharersLocked(killer, npc)
 	levels := make([]int, len(sharers))
 	for i, m := range sharers {

@@ -906,6 +906,8 @@ func main() {
 	// out of a match (none is kept) starts beside the herald (arenaLogin), and a
 	// merc waiting outside the arena stays out while its owner stands there
 	handlers.SetupCTF(gameWorld, cfg.World.CTF, cfg.Patch.WorldsDir)
+	// and the siege of Zentar's Keep, the second arena game (world.siege; handlers/siege.go)
+	handlers.SetupSiege(gameWorld, cfg.World.Siege, cfg.Patch.WorldsDir)
 	// the players' homes in a world of the server's own (world.homes; handlers/homes.go), before the kept
 	// sessions too: a player a restart carried out of its home goes back into it (homeLogin)
 	handlers.SetupHomes(gameWorld, cfg.World.Homes, db)

@@ -46,21 +46,40 @@ const (
 // ctfKeepsOutLocked reports p where no merc or familiar goes: in a match (sent in or on its way) or in the arena's
 // world. With capture the flag off, nowhere. Must be called with the lock held.
 func (w *World) ctfKeepsOutLocked(p *Player) bool {
-	return w.ctf.on && p != nil && (p.World == w.ctf.set.World || p.inMatch(w.ctf.m))
+	if p == nil {
+		return false
+	}
+	for _, g := range arenaGames { // either game's (read only: no swap)
+		if st := w.ctfGameLocked(g); st.on && (p.World == st.set.World || p.inMatch(st.m)) {
+			return true
+		}
+	}
+	return false
+}
+
+// ctfAwayGameLocked is the game whose list of what waits outside has p, ok false none. Must be called with the lock
+// held (read will do).
+func (w *World) ctfAwayGameLocked(p *Player) (ArenaGame, bool) {
+	for _, g := range arenaGames {
+		if a := w.ctfGameLocked(g).away[p.ServerID]; a != nil && a.who == p {
+			return g, true
+		}
+	}
+	return GameCTF, false
 }
 
 // ctfAwayOfLocked is p's record of what waits outside, nil for none (a record of another login under its id is
 // none: ctfAwayBackLocked lets it go). Must be called with the lock held (read will do).
 func (w *World) ctfAwayOfLocked(p *Player) *ctfAway {
-	if a := w.ctf.away[p.ServerID]; a != nil && a.who == p {
-		return a
+	if g, ok := w.ctfAwayGameLocked(p); ok {
+		return w.ctfGameLocked(g).away[p.ServerID]
 	}
 	return nil
 }
 
 // ctfAwayMadeLocked is p's record of what waits outside, made if it has none. Must be called with the lock held.
 func (w *World) ctfAwayMadeLocked(p *Player) *ctfAway {
-	if a := w.ctfAwayOfLocked(p); a != nil {
+	if a := w.ctf.away[p.ServerID]; a != nil && a.who == p {
 		return a
 	}
 	if w.ctf.away == nil {
@@ -74,27 +93,30 @@ func (w *World) ctfAwayMadeLocked(p *Player) *ctfAway {
 // ctfMercWaitsLocked keeps p's merc name waiting outside the arena and tells p so (sess p's, or nil). Must be
 // called with the lock held.
 func (w *World) ctfMercWaitsLocked(p *Player, sess *session.Session, name string) {
+	defer w.ctfForLocked(p)()
 	w.ctfAwayMadeLocked(p).merc = name
 	if sess != nil {
 		w.sendChatToSession(sess, fmt.Sprintf(ctfLineMercAway, name))
 	}
-	log.Printf("CTF: %s's mercenary %q waits outside the arena", p.Name, name)
+	log.Printf("%s: %s's mercenary %q waits outside the arena", w.ctfTag(), p.Name, name)
 }
 
 // ctfFamiliarWaitsLocked keeps p's familiar d (its share of hit points hp) waiting outside the arena and tells p so
 // (sess p's, or nil). Must be called with the lock held.
 func (w *World) ctfFamiliarWaitsLocked(p *Player, sess *session.Session, d FamiliarDef, hp float64) {
+	defer w.ctfForLocked(p)()
 	a := w.ctfAwayMadeLocked(p)
 	a.familiar, a.famHP = &d, hp
 	if sess != nil {
 		w.sendChatToSession(sess, fmt.Sprintf(ctfLineFamiliarAway, d.Name))
 	}
-	log.Printf("CTF: %s's familiar %q waits outside the arena", p.Name, d.Name)
+	log.Printf("%s: %s's familiar %q waits outside the arena", w.ctfTag(), p.Name, d.Name)
 }
 
 // ctfSendAwayLocked takes p's merc and familiar out of the world, as at a logout, to wait outside the arena (the
 // file's doc). Must be called with the lock held.
 func (w *World) ctfSendAwayLocked(p *Player, now time.Time) {
+	defer w.ctfForLocked(p)()
 	sess := w.findSessionByEntityIDLocked(p.ServerID)
 	if ms := w.mercOfLocked(p); ms != nil {
 		name := ms.npc.Name
@@ -136,7 +158,7 @@ func (w *World) ctfAwayBackLocked(now time.Time) {
 		if a.merc != "" {
 			w.noteMercLocked(MercNote{Kind: MercNoteBack, Owner: p, Sess: sess, Name: a.merc, Level: p.Level})
 		}
-		log.Printf("CTF: %s is out of the arena: its mercenary %q and familiar %v come back", p.Name, a.merc, a.familiar != nil)
+		log.Printf("%s: %s is out of the arena: its mercenary %q and familiar %v come back", w.ctfTag(), p.Name, a.merc, a.familiar != nil)
 	}
 }
 
@@ -153,10 +175,12 @@ func (w *World) ctfTravelQueuedLocked(p *Player) bool {
 // ctfDismissAwayLocked ends p's waiting merc (merc true) or familiar, reporting its name, false for none. Must be
 // called with the lock held.
 func (w *World) ctfDismissAwayLocked(p *Player, merc bool) (string, bool) {
-	a := w.ctfAwayOfLocked(p)
-	if a == nil {
+	g, ok := w.ctfAwayGameLocked(p)
+	if !ok {
 		return "", false
 	}
+	defer w.ctfUseLocked(g)()
+	a := w.ctf.away[p.ServerID]
 	var name string
 	switch {
 	case merc && a.merc != "":
@@ -176,10 +200,12 @@ func (w *World) ctfDismissAwayLocked(p *Player, merc bool) (string, bool) {
 // (keepmerc.go): the new process puts the merc and the familiar beside their owner, or back to waiting while their
 // owner stands in the arena's world. Must be called with the lock held.
 func (w *World) ctfKeptAwayLocked(p *Player, k *KeptPlayer) {
-	a := w.ctfAwayOfLocked(p)
-	if a == nil {
+	g, ok := w.ctfAwayGameLocked(p)
+	if !ok {
 		return
 	}
+	defer w.ctfUseLocked(g)()
+	a := w.ctf.away[p.ServerID]
 	if a.merc != "" && k.Merc == nil {
 		// no place of its own: RestoreMerc stands it beside its owner (its world is not its owner's)
 		k.Merc = &KeptMerc{Name: a.merc, HPPct: 1, PowerPct: 1, World: w.ctf.set.World, Away: true}

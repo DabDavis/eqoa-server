@@ -419,6 +419,13 @@ type WorldConfig struct {
 	// only with its world built and listed in ServerWorlds (its places are the built recipe's "arena").
 	CTF CTFConfig `yaml:"ctf"`
 
+	// Siege is the siege of Zentar's Keep (entity/siege.go, handlers/siege.go): capture the flag's engine and
+	// numbers (each unset one capture the flag's default) in a world of its own (World, unset 15: Zentar's Keep,
+	// tools/worlds/siege.json), the attackers to break the castle's gates and slay its King, the defenders to hold
+	// until the time runs out; the same PvP Events herald signs players up. Off unless enabled, and only with its
+	// world built and listed in ServerWorlds.
+	Siege SiegeConfig `yaml:"siege"`
+
 	// Homes are the players' homes (entity/homes.go, handlers/homes.go): a world of the server's own (World,
 	// unset 13: the Homesteads, tools/worlds/homesteads.json) of which every character has its own copy, its home,
 	// reached from the Real Estate Listings board beside Dabrish and /home. Off unless enabled, and only with its
@@ -486,6 +493,14 @@ type CTFConfig struct {
 	// power-up a player must come to touch it (5).
 	MinLevel   int     `yaml:"min_level"`
 	TouchReach float32 `yaml:"touch_reach"`
+}
+
+// SiegeConfig is world.siege: capture the flag's numbers that the siege reads (its score limit, banners, wounds
+// and power-ups aside), and the King's and each gate's hit points (100000 and 30000; unset, those).
+type SiegeConfig struct {
+	CTFConfig `yaml:",inline"`
+	KingHP    int `yaml:"king_hp"`
+	GateHP    int `yaml:"gate_hp"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.

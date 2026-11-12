@@ -188,9 +188,11 @@ func ctfNear(px, py, pz, x, y, z, reach float32) bool {
 	return distXZ(px, pz, x, z) <= reach
 }
 
-// ctfStepLocked is capture the flag's look at one report of a player's place (ApplyClientUpdate's, after the move
-// check): the field's edge, a power-up, a banner or a stand touched. Must be called with the lock held.
+// ctfStepLocked is an arena game's look at one report of a player's place (ApplyClientUpdate's, after the move
+// check): the field's edge, and in capture the flag a power-up, a banner or a stand touched. Must be called with
+// the write lock held (it swaps in p's game).
 func (w *World) ctfStepLocked(p *Player, now time.Time) {
+	defer w.ctfForLocked(p)()
 	m := w.ctf.m
 	if !w.ctf.on || m == nil || !p.inMatch(m) || p.World != w.ctf.set.World || p.IsDead() || p.respawnPending() {
 		return
@@ -204,12 +206,12 @@ func (w *World) ctfStepLocked(p *Player, now time.Time) {
 				}
 			}
 		}
-		log.Printf("CTF: %s strays past the field at (%.1f, %.1f): back to camp", p.Name, p.X, p.Z)
+		log.Printf("%s: %s strays past the field at (%.1f, %.1f): back to camp", w.ctfTag(), p.Name, p.X, p.Z)
 		w.ctfTellLocked(p, ctfLineField, ctfBlue)
 		w.ctfToCampLocked(p, 1)
 		return
 	}
-	if m.phase != ctfPlay || !ctfMayTouch(p, now) {
+	if w.ctf.siege() || m.phase != ctfPlay || !ctfMayTouch(p, now) {
 		return
 	}
 	w.ctfTouchLocked(m, p, p.X, p.Y, p.Z, now)
@@ -362,6 +364,7 @@ func (w *World) ctfWoundsLocked(m *ctfMatch, now time.Time) {
 
 // ctfHurtLocked is a PvP hit of dmg on t (duelHurtLocked's, after the share): more on a wounded carrier.
 func (w *World) ctfHurtLocked(t *Player, dmg int) int {
+	defer w.ctfForLocked(t)()
 	m := w.ctf.m
 	if !t.inMatch(m) || !t.ctf.carries {
 		return dmg
@@ -376,6 +379,7 @@ func (w *World) ctfHurtLocked(t *Player, dmg int) int {
 
 // ctfDownLocked is a match's player dying (playerDownLocked): its banner drops where it fell, its death counted.
 func (w *World) ctfDownLocked(p *Player, now time.Time) {
+	defer w.ctfForLocked(p)()
 	m := w.ctf.m
 	if !p.inMatch(m) {
 		return
@@ -397,6 +401,7 @@ func (w *World) ctfDownLocked(p *Player, now time.Time) {
 
 // ctfKillLocked counts a match's kill (pvpDeathLocked's).
 func (w *World) ctfKillLocked(killer, t *Player) {
+	defer w.ctfForLocked(t)()
 	if m := w.ctf.m; killer.inMatch(m) && t.inMatch(m) {
 		killer.ctf.kills++
 	}
@@ -457,6 +462,7 @@ const CTFSpeedEffectID = -1010
 func (w *World) CTFTouch(playerID, npcID EntityID, now time.Time) bool {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	defer w.ctfForLocked(w.Players[playerID])()
 	m := w.ctf.m
 	if m == nil {
 		return false

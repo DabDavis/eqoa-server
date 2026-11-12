@@ -271,6 +271,10 @@ type NPC struct {
 	// corpse's loot is; nil for every other NPC. Its corpse keeps it.
 	challenge *npcChallenge
 
+	// siege marks a siege's King or gate (siege.go): its match, the one side
+	// that may hurt it; nil for every other NPC. Its corpse keeps it.
+	siege *npcSiege
+
 	// add is its tie to the creature whose summon called it (summon.go): whose
 	// fight it joined, and its share of that creature's figures; nil for every
 	// other NPC. Its corpse keeps it (a corpse of nothing: handlers' loot).

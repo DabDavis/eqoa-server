@@ -1172,8 +1172,11 @@ func arenaLogin(gw *entity.World, record *database.CharacterRecord) bool {
 // rule, changing nothing: loginServerWorld asks it too, since such a login is placed the same whatever the
 // client holds.
 func arenaStart(gw *entity.World, record *database.CharacterRecord) (entity.GateSpot, uint8, bool) {
-	at, arena, ok := gw.CTFReturnSpot()
-	if !ok || record.World != int(arena) {
+	if record.World < 0 || record.World > 255 {
+		return entity.GateSpot{}, 0, false
+	}
+	at, ok := gw.ArenaReturnSpot(uint8(record.World)) // capture the flag's arena, or the siege's (entity/ctfgames.go)
+	if !ok {
 		return entity.GateSpot{}, 0, false
 	}
 	w, err := ValidateTeleport(at.X, at.Y, at.Z, at.World)

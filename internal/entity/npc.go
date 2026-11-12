@@ -199,6 +199,9 @@ type NPC struct {
 	// npcspawnonly): the original a quest's spawn event copies, in no view,
 	// fighting no one, standing on its spawn. Its copies are not.
 	SpawnOnly bool
+	// Title is a line over its name (npctitle.go, table npctitle by its
+	// row): "" none.
+	Title string
 	// CopyOf is the npcs row a copy (Temporary: a spawn's, SpawnNPCCopy) was
 	// made from, 0 for any other NPC (npcrow.go): a table's row key ("#n")
 	// holds for the copies of that row too.

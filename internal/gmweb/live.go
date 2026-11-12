@@ -52,6 +52,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveSpawnOnly()
 	case "npctint":
 		return s.liveTints()
+	case "npctitle":
+		return s.liveTitles()
 	case "npcdialog":
 		database.InvalidateNPCDialog()
 		return "at once: the next talk to a town's person or a guard"
@@ -254,6 +256,19 @@ func (s *Server) liveSpawnOnly() string {
 	}
 	return fmt.Sprintf("at once: %d NPC(s) changed, %d out of the world in all; the quests' and triggers' spawns copy them as before",
 		changed, held)
+}
+
+// liveTitles reads the NPCs' titles again (entity/npctitle.go; the change is
+// committed: the database is free).
+func (s *Server) liveTitles() string {
+	if s.d.World == nil || s.d.DB == nil {
+		return "no world is running: at the next start"
+	}
+	n, err := s.d.World.LoadNPCTitles(s.d.DB)
+	if err != nil {
+		return "not applied to the world: " + err.Error()
+	}
+	return fmt.Sprintf("at once: %d NPC(s) show a title; a player who has the NPC in view sees a new one as it comes into view again", n)
 }
 
 // liveTints reads the NPCs' body tints again (entity/npctint.go; the change is

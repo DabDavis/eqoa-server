@@ -11,17 +11,21 @@ import (
 
 // Petition 1501 (the GM Jibrish): GM's Reward, the record tools/gm_reward_20261111.py writes and #reward gives
 // (handlers/reward.go): "a 25 heal damage shield aka they heal for 25 whenever hit, and it deals 25 to who hits
-// them. They also gain 100ac, 50 str, 50 dex, 50 wis, 50 int, 50 cha, 50 sta. Lasts 1 hour." Its effects are read
-// from the tool itself, so the record and this test are one.
+// them. They also gain 100ac, 50 str, 50 dex, 50 wis, 50 int, 50 cha, 50 sta. Lasts 1 hour." Petition 1740 (the
+// same GM): "the /reward ability needs to HEAL the player and damage the attacking monster when hit": 200 each
+// (tools/misc1112_20261112.py). Its effects are read from that tool itself, so the record and this test are one.
 
-// gmRewardEffects is the tool's EFFECTS.
+// rewardN is the reward's shield and heal at every hit (petition 1740).
+const rewardN = 200
+
+// gmRewardEffects is the tool's REWARD_EFFECTS.
 func gmRewardEffects(t *testing.T) string {
 	t.Helper()
-	b, err := os.ReadFile("../../tools/gm_reward_20261111.py")
+	b, err := os.ReadFile("../../tools/misc1112_20261112.py")
 	if err != nil {
 		t.Fatal(err)
 	}
-	m := regexp.MustCompile(`(?m)^EFFECTS = '(.*)'$`).FindSubmatch(b)
+	m := regexp.MustCompile(`(?m)^REWARD_EFFECTS = '(.*)'$`).FindSubmatch(b)
 	if m == nil {
 		t.Fatal("no EFFECTS line in the tool")
 	}
@@ -31,11 +35,11 @@ func gmRewardEffects(t *testing.T) string {
 // gmReward is the record as SpellOfRow makes it from the tool's rows.
 func gmReward(t *testing.T) CastSpell {
 	sp := &database.SpellPatternRecord{SpellID: 905121, AbilityLvl: 60, Scope: 1, SpellName: "GM's Reward", Icon: -213673665}
-	return SpellOfRow(sp, 0, "Target, Damage Shield 25, Heal 25 when hit, 1hr", gmRewardEffects(t), 497989046)
+	return SpellOfRow(sp, 0, "Target, Damage Shield 200, Heal 200 when hit, 1hr", gmRewardEffects(t), 497989046)
 }
 
 // Landed as a gift (LandOnSelf, as #reward lands it): one effect of an hour, +100 AC and +50 of the six stats, a
-// shield of 25; a creature's hit on its bearer takes 25 off the creature and gives the bearer 25 back. Kept over a
+// shield of 200; a creature's hit on its bearer takes 200 off the creature and gives the bearer 200 back. Kept over a
 // logout: saved and restored, the shield and the heal with it. The control: the bearer's stats without it.
 func TestGMRewardIsTheGMsAsk(t *testing.T) {
 	c, crab := casterAndCrab(t)
@@ -51,7 +55,7 @@ func TestGMRewardIsTheGMsAsk(t *testing.T) {
 		t.Fatalf("%d effects, want 1", len(c.p.Effects))
 	}
 	ae := c.p.Effects[0]
-	if ae.Shield == nil || ae.Shield.Min != 25 || ae.Shield.Max != 25 || ae.Rules.ProcHeal != 25 || !ae.Rules.ProcHealDef ||
+	if ae.Shield == nil || ae.Shield.Min != rewardN || ae.Shield.Max != rewardN || ae.Rules.ProcHeal != rewardN || !ae.Rules.ProcHealDef ||
 		ae.Rules.ProcHealChance != 100 || !ae.Until.Equal(c.at(time.Hour)) {
 		t.Fatalf("the effect: shield %+v, heal %d def %v at %d%%, until %v", ae.Shield, ae.Rules.ProcHeal, ae.Rules.ProcHealDef,
 			ae.Rules.ProcHealChance, ae.Until.Sub(c.at(0)))
@@ -79,28 +83,28 @@ func TestGMRewardIsTheGMsAsk(t *testing.T) {
 	if with[StatAC]-without[StatAC] != 100 {
 		t.Errorf("AC: %d with it, %d without", with[StatAC], without[StatAC])
 	}
-	// a creature's hit: 25 back on it, 25 to the bearer
-	c.p.HP = c.p.MaxHPNow() - 200
+	// a creature's hit: 200 back on it, 200 to the bearer
+	c.p.HP = c.p.MaxHPNow() - 300
 	c.sent()
 	hp, crabHP := c.p.HP, crab.HP
 	c.w.mu.Lock()
 	c.w.npcAttackPlayer(crab, c.p.ServerID, c.at(time.Second))
 	c.w.mu.Unlock()
-	if crab.HP != crabHP-25 {
-		t.Errorf("the crab after its hit: %d, want %d", crab.HP, crabHP-25)
+	if crab.HP != crabHP-rewardN {
+		t.Errorf("the crab after its hit: %d, want %d", crab.HP, crabHP-rewardN)
 	}
-	hit := hp - c.p.HP + 25 // the crab's hit, the heal taken back out
-	if hit < 0 || c.p.HP != hp-hit+25 {
+	hit := hp - c.p.HP + rewardN // the crab's hit, the heal taken back out
+	if hit < 0 || c.p.HP != hp-hit+rewardN {
 		t.Errorf("the bearer: %d -> %d", hp, c.p.HP)
 	}
 	healed := false
 	for _, m := range c.sent() {
-		if sameMsgs([][]byte{m}, [][]byte{damageMsg(t, c.me, 25, c.me)}) {
+		if sameMsgs([][]byte{m}, [][]byte{damageMsg(t, c.me, rewardN, c.me)}) {
 			healed = true
 		}
 	}
 	if !healed {
-		t.Error("the bearer's heal of 25 was not told")
+		t.Error("the bearer's heal of 200 was not told")
 	}
 	// kept over a logout
 	rows, ok := c.w.SavedEffects(c.p.ServerID, c.at(10*time.Minute))
@@ -112,7 +116,7 @@ func TestGMRewardIsTheGMsAsk(t *testing.T) {
 		t.Fatalf("restored %d", n)
 	}
 	ae = c.p.Effects[0]
-	if ae.Shield == nil || ae.Shield.Min != 25 || ae.Rules.ProcHeal != 25 || ae.Mods.AC != 100 || !ae.Until.Equal(c.at(time.Hour+50*time.Minute)) {
+	if ae.Shield == nil || ae.Shield.Min != rewardN || ae.Rules.ProcHeal != rewardN || ae.Mods.AC != 100 || !ae.Until.Equal(c.at(time.Hour+50*time.Minute)) {
 		t.Errorf("restored: shield %+v, heal %d, AC %d, %v left", ae.Shield, ae.Rules.ProcHeal, ae.Mods.AC, ae.Until.Sub(c.at(time.Hour)))
 	}
 }

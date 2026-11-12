@@ -71,6 +71,14 @@ func (n *NPC) hasPlate() bool {
 	if n == nil || n.Name == "" || n.Dead {
 		return false
 	}
+	if n.isBoard() {
+		return true
+	}
+	return n.Title != "" // a title over its name (npctitle.go)
+}
+
+// isBoard reports n a board (hasPlate's): its plate shows its own name.
+func (n *NPC) isBoard() bool {
 	model, _ := n.Body()
 	if _, ok := boardTops[model]; !ok {
 		return false
@@ -121,6 +129,9 @@ func (w *World) boardPlatesLocked(cands []entityDist) []entityDist {
 // body at plateSize, with nothing worn or held, its
 // skins hidden and not selectable.
 func serializePlate(objectID uint32, board *NPC) []byte {
+	if !board.isBoard() {
+		return serializeTitlePlate(objectID, board) // npctitle.go
+	}
 	p := &NPC{
 		ServerID: plateID(board),
 		Name:     board.Name,
@@ -133,6 +144,12 @@ func serializePlate(objectID uint32, board *NPC) []byte {
 		Level:   board.Level,
 		Race:    "0",
 	}
+	return plateBytes(objectID, p)
+}
+
+// plateBytes is p's channel as a plate: not selectable, never a fight's, its
+// skins hidden, nothing held.
+func plateBytes(objectID uint32, p *NPC) []byte {
 	buf := SerializeNPCUpdate(objectID, p)
 	buf[26] = 0  // not selectable (CLIENT's VIEntity +0x18 bit 0)
 	buf[143] = 0 // never a fight's

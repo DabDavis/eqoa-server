@@ -27,6 +27,10 @@ import (
 // logout as every buff is (buffsave.go), a second reward renewing it at its whole hour. The record is read at each
 // use, checked by its name (a record renamed or missing is said and nothing given). Each reward is a "live" line in
 // gm_audit (database.AuditGMLive), as the panel's kicks and messages are; the GM and the player are both told.
+//
+// Petition 1740 (Jibrish, 2026-11-12: "the /reward ability needs to HEAL the player and damage the attacking monster
+// when hit"): 25 was under a level 60 creature's 48 a hit, so it showed nothing; tools/misc1112_20261112.py makes
+// both 200.
 
 // RewardSpellID is GM's Reward's record (tools/gm_reward_20261111.py writes it, beside Buffer's GM Armor 905120).
 const RewardSpellID = 905121
@@ -41,8 +45,8 @@ const (
 	rewardNoTarget = "#reward: no target. Target a player, or #reward <player>."
 	rewardNoRecord = "#reward: GM's Reward's record (spell %d) is not on this server: %s"
 	rewardRefused  = "#reward: %s cannot take it now (dead, or not in the world)."
-	rewardGMLine   = "GM's Reward is on %s for an hour: a damage shield of 25 and a heal of 25 at every hit taken, +100 AC, +50 STR, STA, DEX, WIS, INT and CHA."
-	rewardYouLine  = "A GM has rewarded you: GM's Reward is on you for an hour of play. You heal 25 and deal 25 back at every hit you take, and gain 100 AC and 50 STR, STA, DEX, WIS, INT and CHA."
+	rewardGMLine   = "GM's Reward is on %s for an hour: a damage shield of 200 and a heal of 200 at every hit taken, +100 AC, +50 STR, STA, DEX, WIS, INT and CHA."
+	rewardYouLine  = "A GM has rewarded you: GM's Reward is on you for an hour of play. You heal 200 and deal 200 back at every hit you take, and gain 100 AC and 50 STR, STA, DEX, WIS, INT and CHA."
 )
 
 // rewardStore is where #reward reads its record and writes its audit line.

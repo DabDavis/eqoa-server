@@ -1049,6 +1049,20 @@ var catalog = map[string]tableNote{
 			"source": {Label: "Source", Help: "gm, or seed for tools/seed_npc_tint.py's rows (its --undo takes out exactly what it wrote)"},
 		},
 	},
+	"npctitle": {
+		Label: "NPC titles", Group: "World", Title: "title", Sort: "npcid",
+		Help: "A line over an NPC's name, by its NPCs row (entity/npctitle.go), as the Mercenary Recruitment boards' words " +
+			"float over them: \"XP Grinding Rewards\" over the Testing Heroes Vendor. 24 letters at most (the rest is cut); " +
+			"empty: none. Every client draws it (it is a second, invisible body of the NPC's own under the title).",
+		Live:   "At once for the NPC's next coming into view.",
+		Search: []string{"title", "note", "source"},
+		Cols: map[string]colNote{
+			"npcid":  {Label: "NPC row", Ref: "npcs", Help: "the NPCs row's id"},
+			"title":  {Label: "Title", Help: "the line over the name, 24 letters at most"},
+			"note":   {Label: "Note", Help: "why"},
+			"source": {Label: "Source", Help: "gm, or the tool that wrote it (its --undo takes out exactly what it wrote)"},
+		},
+	},
 	"npcdeath": {
 		Label: "NPC deaths fire triggers", Group: "World", Title: "name", Sort: "name",
 		Help: "A creature's death fires a GM trigger where it fell (handlers/gmtriggers.go), by the creature's NAME (any case) and the " +

@@ -148,10 +148,13 @@ type QuestEngine struct {
 	// and where the quests' NPCs stand, read from the World now and then;
 	// names is the steps' items' names by patternid, for the trackers
 	// (questprogress.go), made at Reload too
-	texts   map[int]*questText
-	names   map[int]string
-	spots   map[string][]entity.NPCSpot
-	spotsAt time.Time
+	texts map[int]*questText
+	names map[int]string
+	// saysPlaces is the places quests' last words give their next givers
+	// (questpointers.go), as worked out, forgotten at Reload
+	saysPlaces map[string]string
+	spots      map[string][]entity.NPCSpot
+	spotsAt    time.Time
 }
 
 // questCatalog is the quests as last read.
@@ -414,6 +417,7 @@ func (q *QuestEngine) Reload() error {
 	q.mu.Lock()
 	q.cat = cat
 	q.texts, q.names = texts, names
+	q.saysPlaces = nil
 	q.spots = nil // the marks read the NPCs' places again
 	q.mu.Unlock()
 	q.nudge() // a GM's edit: the marks and trackers again

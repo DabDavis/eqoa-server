@@ -181,7 +181,7 @@ func (q *QuestEngine) pointerLineLocked(p *entity.Player, c *questChar, s *datab
 	sort.Slice(reqs, func(i, j int) bool { return reqs[i].Updated > reqs[j].Updated })
 	for _, cq := range reqs {
 		if st := lastStep(q.cat.byID[cq.QuestID]); st != nil {
-			if where = placeInSays(st.Says, giver); where != "" {
+			if where = q.placeInSaysLocked(st.Says, giver); where != "" {
 				break
 			}
 		}
@@ -293,6 +293,21 @@ func placeInSays(says, giver string) string {
 		return clipRunes(strings.Join(parts, " "), 80)
 	}
 	return ""
+}
+
+// placeInSaysLocked is placeInSays, each words and giver worked out once
+// (the pointers are worked out every second; a Reload forgets them).
+func (q *QuestEngine) placeInSaysLocked(says, giver string) string {
+	k := says + "\x00" + giver
+	if v, ok := q.saysPlaces[k]; ok {
+		return v
+	}
+	if q.saysPlaces == nil {
+		q.saysPlaces = map[string]string{}
+	}
+	v := placeInSays(says, giver)
+	q.saysPlaces[k] = v
+	return v
 }
 
 // pointerLines is the pointers' journal lines in room lines at most (and

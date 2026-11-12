@@ -221,3 +221,35 @@ func TestDungeonEntryTakesTheGroupNear(t *testing.T) {
 		t.Fatalf("Cora not told: %q", r.msgs(r.cora))
 	}
 }
+
+// Petition 1840 (Waldorf, 2026-11-12): an "instance ground rules" choice on the board. The warden's box opens with
+// "How instances work", and picking it tells the rules (no respawn among them); the dungeons follow it.
+func TestDungeonBoardTellsTheRules(t *testing.T) {
+	r := newPortalRig(t)
+	block := `[{"key":"bb","name":"Test Burrow","boxes":[[900,900,1100,1100]],"entrance":{"x":1000,"y":50,"z":1150,"toward":[1000,1000]}}]`
+	SetServerWorlds([]worlds.Built{{Recipe: worlds.Recipe{World: 14, Name: "the Test Dungeons", Dungeons: json.RawMessage(block)}}})
+	t.Cleanup(func() {
+		SetServerWorlds(nil)
+		r.gw.SetDungeons(false, 14, nil, entity.DungeonSettings{})
+	})
+	if !SetupDungeons(r.gw, config.DungeonsConfig{Enabled: true}, nil) {
+		t.Fatal("the dungeons are not on")
+	}
+	r.anna.SetServerWorlds([]uint8{14})
+	warden := &entity.NPC{ServerID: 7791, Name: entity.DungeonWardenName, X: 5001, Y: 50, Z: 5000, Level: 60, HP: 1, MaxHP: 1, NPCType: 0x80}
+	r.gw.NPCs[warden.ServerID] = warden
+	ds := dungeonsH.Load()
+	ds.askRoot(r.anna, r.pa, warden, 0)
+	ds.mu.Lock()
+	asked := ds.asked[r.pa.CharServerID]
+	ds.mu.Unlock()
+	if len(asked.answers) < 2 || asked.answers[0].label != dungeonsAnsRules || asked.answers[1].key != "bb" {
+		t.Fatalf("the box: %+v", asked.answers)
+	}
+	r.drain()
+	r.ih.answerDungeons(r.anna, r.pa, asked.box, 0)
+	got := strings.Join(r.msgs(r.anna), "\n")
+	if !strings.Contains(got, "How instances work:") || !strings.Contains(got, "nothing respawns") {
+		t.Fatalf("the rules not told: %q", got)
+	}
+}

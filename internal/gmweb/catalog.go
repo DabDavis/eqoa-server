@@ -2252,6 +2252,22 @@ var catalog = map[string]tableNote{
 			"choices":     {Label: "Choice", Format: "multiline", Help: `talk/show/give: {"ask", "options": [{"answer", "says", "stay", "xp", "tunar", "items", "spells"}]}, asked when the step is done; the pick's rewards given besides the step's, one with stay does not do it`},
 		},
 	},
+	"questmarks": {
+		Label: "Quest marks", Group: "Guilds & quests", Sort: "questid",
+		Help: "The quests whose NPCs show a yellow ! and ? over their heads (the GM Jibrish's petition 1813; " +
+			"handlers/questheadmarks.go), a row a quest, while the server's quests.markers is flagged (the default): its " +
+			"giver shows ! to a player who may take it now, and the NPC of the player's step ? while the player can do " +
+			"it there now (a talk, or a show or give with the items held). quests.markers all marks every quest and off " +
+			"none, whatever is here. Drawn by vanilla (Extended > UI > HUD > Quest Markers, on by default); a PS2 shows " +
+			"none.",
+		Live:   "At once: each player's marks are worked out again.",
+		Show:   []string{"questid", "note"},
+		Search: []string{"note"},
+		Cols: map[string]colNote{
+			"questid": {Label: "Quest", Ref: "quests"},
+			"note":    {Label: "Note", Help: "why it is marked"},
+		},
+	},
 	"questnotyet": {
 		Label: "Quest givers' \"not yet\"", Group: "Guilds & quests", Title: "line", Sort: "city",
 		Help: "What a quest giver says to a player who meets everything its next quest asks but the level (the quests " +

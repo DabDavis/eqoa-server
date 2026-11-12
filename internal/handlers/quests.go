@@ -155,6 +155,12 @@ type QuestEngine struct {
 	saysPlaces map[string]string
 	spots      map[string][]entity.NPCSpot
 	spotsAt    time.Time
+
+	// marked is table questmarks, the quests flagged for the marks over
+	// their NPCs' heads (questheadmarks.go), read at Reload; gen counts the
+	// quests' changes (nudge), which those marks are worked out again on
+	marked map[int]bool
+	gen    atomic.Uint64
 }
 
 // questCatalog is the quests as last read.
@@ -220,6 +226,12 @@ type questChar struct {
 	// since its login
 	pointerIDs []int
 	dismissed  map[int]bool
+	// headKey is what the marks over the NPCs' heads were last worked out
+	// from, headAt when, headSent the set given the World
+	// (questheadmarks.go)
+	headKey  string
+	headAt   time.Time
+	headSent string
 }
 
 // say is a text with %p the player's name (left as it is while the name is
@@ -370,7 +382,8 @@ func (q *QuestEngine) run() {
 		case <-q.wake:
 			q.syncMarks(time.Now())
 			q.syncProgress()
-			q.syncPointers() // questpointers.go
+			q.syncPointers()            // questpointers.go
+			q.syncHeadMarks(time.Now()) // questheadmarks.go
 		case <-tick.C:
 			q.checkReach()
 			q.checkSurvive() // questsurvive.go: the Trial of Endurance's kind of step
@@ -381,6 +394,7 @@ func (q *QuestEngine) run() {
 			q.syncProgress()
 			q.syncPointers()
 			q.syncQuestState() // questwalls.go: the walls passed, the items held
+			q.syncHeadMarks(time.Now())
 		}
 	}
 }
@@ -414,8 +428,13 @@ func (q *QuestEngine) Reload() error {
 	}
 	cat.successors = successorsOf(cat.all)
 	texts, names := q.questTexts(cat.all)
+	marked, err := q.store.MarkedQuests()
+	if err != nil {
+		return err
+	}
 	q.mu.Lock()
 	q.cat = cat
+	q.marked = marked
 	q.texts, q.names = texts, names
 	q.saysPlaces = nil
 	q.spots = nil // the marks read the NPCs' places again
@@ -662,6 +681,7 @@ func (q *QuestEngine) saveLocked(cq *database.CharQuest) {
 // nudge has the worker look at the marks and the trackers at once (a quest
 // taken, counted, advanced, finished or given up), not at its next second.
 func (q *QuestEngine) nudge() {
+	q.gen.Add(1)
 	select {
 	case q.wake <- struct{}{}:
 	default:

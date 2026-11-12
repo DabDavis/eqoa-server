@@ -42,7 +42,7 @@ import (
 // swings play to, which the server is told of twice: a 0x000F comes only
 // with a press whose timer has run out, and starts the timer again from the
 // press (pressed); a 0x00D8 is a due swing at a target out of the client's
-// reach, no swing played and the timer 2 s on (SwingOutOfReach). Between the
+// reach, no swing's effect played and the timer 2 s on (SwingOutOfReach). Between the
 // two the timer goes a swing's delay a swing. The server's own reach test
 // decides only whether each hit lands, never when a round begins: begun
 // again from the tick its view of the reach came back, the rounds kept a
@@ -459,10 +459,14 @@ const outOfReachRetry = 2 * time.Second
 const buttonLate = 300 * time.Millisecond
 
 // SwingOutOfReach is a 0x00D8: CLIENT's AutoAttackTick found its due swing's
-// target out of its reach (TargetInRange), played no swing and put its timer
-// 2 s on. A round begun for that swing, none of its hits come yet, is called
-// off, and the next round is the client's next look, 2 s on (and a 0x00D8
-// that comes as the round is due puts it there before it begins).
+// target out of its reach (TargetInRange), played no swing's effect and put its
+// timer 2 s on. It still plays the swing's animation on its own sprite (SetAction,
+// but for a ranged weapon or a swing with no effect: viclient.cpp), so the player
+// sees itself swing every 2 s while no one else is told of it (no round, no
+// 0x00B1): a swing only the swinger sees is one out of its reach. A round begun
+// for that swing, none of its hits come yet, is called off, and the next round is
+// the client's next look, 2 s on (and a 0x00D8 that comes as the round is due puts
+// it there before it begins).
 func (w *World) SwingOutOfReach(sess *session.Session, now time.Time) {
 	w.mu.Lock()
 	defer w.mu.Unlock()

@@ -1863,6 +1863,18 @@ it, leaving the held items, the helm and the name), and vanilla could not tell a
 start spots, items and standings are `~/.cache/jalraeth1109/deploy/new_races_20261109.py` (exact `--undo`; run it with a
 binary of `LastCustomRace` 52: an older one refuses race 31's row). **`LastCustomRace` is 52** (was 30): a race's bit in
 `cmcatalog.races` stays an integer a JSON number holds, and the GM panel tests flag bits with BigInt (`lib/fmt.js`).
+**Race 32, the Mermaid** (2026-11-11, the GM Jibrish's petition 1620: "Add mermaid as a playable race ... all classes,
+using the new races starting area ... Name the race Mermaid though, not siren"; `tools/mermaid_race_20261111.py`, exact
+`--undo`): an Erudite (Highbourne, the Erudite's camera), size 0.75 (`racesize`); male the merman `A316EB78`, female the
+mermaid `74BA7C3D`, her options the sirens `BF21FEF5` (x0.77) and `1740427C` (x0.667), the merman x0.83 so both stand as
+tall; colour rows skin, hair, tail and shells (the women's), rects of their one texture. The four are sea creatures'
+bodies (`swimmerbody.go`: no walk and no swing of their own), so **a player in one is sent treading water and swimming**
+(the channel's byte 58 through `bodyLoco`, as an NPC's), and every viewer's swing on it plays its attack (44); vanilla
+does the same for the player's own character (`seabody`). Its home is Erud's Crossing (world 10's 23rd zone, Odus 10).
+**In water a Mermaid moves at Spirit of the Wolf's speed** (petition 1650, Jibrish: "detect if its in water and swim at SoW
+speed by default"; `entity/seaspeed.go`): a race whose own body is a sea creature's, while its client's walk flags say it is in a
+liquid or at its surface, has MoveRate's 100 (SpeedNow 1.3 x its run speed), told by 0x00F8 when it changes; it does not stack with
+SoW (the rate stops at 100), and the move judge reads the same SpeedNow.
 **A Wisp in its own form shows nothing worn but its cape** (`entity/wispform.go`, the owner's of 2026-11-11): the channel's
 held items, armour, tints and robe zeroed (attack types kept, a ctf banner kept) and the character list's gear bare, so
 vanilla draws the wisp and its cape alone and a PS2 a bare human with empty hands; in any other body (a glamour, a GM's

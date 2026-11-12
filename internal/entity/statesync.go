@@ -164,8 +164,13 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 	buf[56] = 0x21
 	buf[57] = 0xC0
 
-	// Offset 58: Animation from client update (0=idle, 1=walk, etc.)
-	buf[58] = p.Animation
+	// Offset 58: Animation from client update (0=idle, 1=walk, etc.), which
+	// a viewer's sprite plays (byte 141, m_p255, is 0: UpdateCreatures'
+	// SetLocomotion of it). A player drawn in a sea creature's body (the
+	// Mermaid race's, petition 1620; an illusion into one) treads water and
+	// swims as an NPC of that body does (swimmerbody.go), so its swing plays
+	// the body's attack.
+	buf[58] = bodyLoco(modelID, p.Animation)
 
 	// Offset 59-62: Target ObjectID (LE)
 	binary.LittleEndian.PutUint32(buf[59:63], p.TargetObjectID)

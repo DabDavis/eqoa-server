@@ -670,6 +670,9 @@ const (
 // never more than 100, so speed buffs and masteries never stack past it.
 func (p *Player) MoveRate() int {
 	r := moveRateBase + p.MoveRateBonus
+	if p.seaSpeed { // a sea folk race in water (seaspeed.go)
+		r = moveRateMax
+	}
 	for _, e := range p.Effects {
 		if e.Speed {
 			r = moveRateMax

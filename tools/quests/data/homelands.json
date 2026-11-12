@@ -55593,6 +55593,2682 @@
       ],
       "unresolved": [],
       "notes": "Ours (the Homelands' chain past the flight): the wisp's level 20 for the alchemist, at West Feerrott, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/wisp.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L1",
+      "name": "A Shell for the Shore",
+      "giver": "Elder Coralyn",
+      "classes": [],
+      "races": [
+        32
+      ],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "Welcome up out of the waves, little fin. The land is loud and dry, but you will learn it, as we all did.\nEvery young one of the village wears a tide shell, so the sea knows its own. Shellwright Pearla carves them, a few steps south of here.\nWill you fetch your shell and show it to me?",
+      "accept": "I will fetch it.",
+      "decline": "Not now.",
+      "declined": "The tide will bring you back to me.",
+      "started": "Pearla is a few steps to the south, by the huts.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Shellwright Pearla",
+          "journal": "Ask Shellwright Pearla, a few steps south of Elder Coralyn, for a tide shell.",
+          "says": "A new fin on the strand! Hold still. There: listen to it and you will hear the sea, wherever you are.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "tide shell earring",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "show",
+          "target": "Elder Coralyn",
+          "items": [
+            {
+              "item": "tide shell earring",
+              "count": 1
+            }
+          ],
+          "journal": "Show the tide shell earring to Elder Coralyn.",
+          "says": "It suits you. Now the sea will know you, even on the land.",
+          "rewards": {
+            "xp": 430
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 1
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the mermaid's level 1, at Erud's Crossing, on the cities' level 1 quest: a piece of equipment fetched from a merchant and shown to the giver. Finishing it finishes the character's own city class quest of level 1 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L2",
+      "name": "Anchored at the Strand",
+      "giver": "Elder Coralyn",
+      "classes": [],
+      "races": [
+        32
+      ],
+      "minlevel": 2,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L1"
+      ],
+      "offer": "The land unmakes careless swimmers. Have Spiritmaster Nerissa anchor your spirit to the strand, so the tide brings you home.\nThen give your name to Coachman Dorran for his ledger. His coach runs to Freeport and to the other homes of the Homelands.\nWill you see them both and return to me?",
+      "accept": "I will see them both.",
+      "decline": "Not now.",
+      "declined": "Then swim no farther than you can swim back.",
+      "started": "Nerissa waits to the south-west, and Dorran at the village's west edge.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Spiritmaster Nerissa",
+          "journal": "Have Spiritmaster Nerissa, south-west of the elder, bind your spirit to the strand.",
+          "says": "It is done. Whatever drowns you on the land, the tide will bring you back here. Now give Coachman Dorran your name."
+        },
+        {
+          "kind": "talk",
+          "target": "Coachman Dorran",
+          "journal": "Give your name to Coachman Dorran, at the village's west edge, for his ledger.",
+          "says": "A fin on my coach? Stranger things have ridden it. It runs to Freeport and to every other home of the Homelands, for those whose names their ledgers hold. Yours is in mine now."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Coralyn",
+          "journal": "Return to Elder Coralyn.",
+          "says": "Good. Now you have a shore to come home to.\nTidewarden Merrow, a few steps north-west, has work for you. Listen to him: he is grumpy, but he is right.",
+          "rewards": {
+            "xp": 2200
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 2
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the mermaid's level 2, at Erud's Crossing, on the cities' level 2 quest: the spiritmaster's bind and the coachman's ledger. Finishing it finishes the character's own city class quest of level 2 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L3",
+      "name": "Crabs on the Strand",
+      "giver": "Tidewarden Merrow",
+      "classes": [],
+      "races": [
+        32
+      ],
+      "minlevel": 3,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L2"
+      ],
+      "offer": "The new fin. Good. The shore crabs have grown bold on the strand east of the village, and they pinch the little ones at the water's edge.\nThin them, and bring me three of their claws. Then I will teach you a thing the tidewardens know.\nWill you hunt them?",
+      "accept": "I will hunt them.",
+      "decline": "Not now.",
+      "declined": "Then the little ones keep their toes out of the water.",
+      "started": "Three claws. East, along the shore.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "shore crab",
+          "items": [
+            {
+              "item": "shore crab claw",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three shore crab claws from the shore crabs on the strand east of the village."
+        },
+        {
+          "kind": "give",
+          "target": "Tidewarden Merrow",
+          "items": [
+            {
+              "item": "shore crab claw",
+              "count": 3
+            }
+          ],
+          "journal": "Bring three shore crab claws to Tidewarden Merrow.",
+          "says": "Three claws, and all your fingers still on. Now watch, and learn this.",
+          "rewards": {
+            "xp": 6900,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Swift Blade"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Hero Guard"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Malice"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Kick"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Chant of Battle"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Sneak"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Fiery Burst"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Tribal Toughness"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Minor Blessing"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Smoldering Aura"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Life Tap"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Crawling Skin"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Arcane Bindings"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Hardening Agent"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 3
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the mermaid's level 3, at Erud's Crossing, on the cities' level 3 quest: a hunt for drops; each class is taught what its own city's level 3 quest teaches it. Finishing it finishes the character's own city class quest of level 3 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L4",
+      "name": "Arms from the Sea",
+      "giver": "Tidewarden Merrow",
+      "classes": [],
+      "races": [
+        32
+      ],
+      "minlevel": 4,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L3"
+      ],
+      "offer": "You will need better than your bare hands among the dry folk. I will make you proper gear, but you will bring what it needs.\nShellwright Pearla has cord and a shaft set aside. Then take a shell plate from the strand turtles on the hills east of the village.\nWill you bring me all three?",
+      "accept": "I will bring them.",
+      "decline": "Not now.",
+      "declined": "Then keep your fins sharp.",
+      "started": "Cord and a shaft from Pearla, a shell plate from the turtles. Go.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Shellwright Pearla",
+          "journal": "Ask Shellwright Pearla for the silk cord and the wooden shaft.",
+          "says": "For Merrow? He never says please. Here: cord, and a shaft cut straight from driftwood.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "silk cord",
+                  "count": 1
+                },
+                {
+                  "item": "wooden shaft",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "loot",
+          "target": "strand turtle",
+          "items": [
+            {
+              "item": "strand turtle shell plate",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 0.5,
+          "journal": "Take a shell plate from the strand turtles on the hills east of the village."
+        },
+        {
+          "kind": "give",
+          "target": "Tidewarden Merrow",
+          "items": [
+            {
+              "item": "silk cord",
+              "count": 1
+            },
+            {
+              "item": "wooden shaft",
+              "count": 1
+            },
+            {
+              "item": "strand turtle shell plate",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the silk cord, the wooden shaft and the shell plate to Tidewarden Merrow.",
+          "says": "All three. A moment... there. It is yours. Keep it out of the salt when you can.",
+          "rewards": {
+            "xp": 17000,
+            "byclass": {
+              "0": {
+                "items": [
+                  "militia short sword"
+                ]
+              },
+              "1": {
+                "items": [
+                  "Glade Crafted Longbow"
+                ]
+              },
+              "2": {
+                "items": [
+                  "Sword of Faith"
+                ]
+              },
+              "3": {
+                "items": [
+                  "Iron Hatchet"
+                ]
+              },
+              "4": {
+                "items": [
+                  "Disciple's Jitte"
+                ]
+              },
+              "5": {
+                "items": [
+                  "Traveler's Rapier"
+                ]
+              },
+              "6": {
+                "items": [
+                  "tiger dirk"
+                ]
+              },
+              "7": {
+                "items": [
+                  "crafted glade staff"
+                ]
+              },
+              "8": {
+                "items": [
+                  "Corse Spiked Club"
+                ]
+              },
+              "9": {
+                "items": [
+                  "Acolyte's Hammer"
+                ]
+              },
+              "10": {
+                "items": [
+                  "blue robe"
+                ]
+              },
+              "11": {
+                "items": [
+                  "Black Robe of the Order"
+                ]
+              },
+              "12": {
+                "items": [
+                  "yellow robe"
+                ]
+              },
+              "13": {
+                "items": [
+                  "red robe"
+                ]
+              },
+              "14": {
+                "items": [
+                  "burnt gloves"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 4
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the mermaid's level 4, at Erud's Crossing, on the cities' level 4 quest: new gear of a merchant's materials and a drop; each class is given what its own city's level 4 quest gives it (class-rewards.json has the two classes the cities give nothing). Finishing it finishes the character's own city class quest of level 4 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L5",
+      "name": "Old Shrieker",
+      "giver": "Tidewarden Merrow",
+      "classes": [],
+      "races": [
+        32
+      ],
+      "minlevel": 5,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L4"
+      ],
+      "offer": "One task more. An old harpy nests at the far east end of the isle. Old Shrieker, the little ones call her, and she has taken fish from our nets for years.\nShe is mean and she is old, and she will come at you on sight. Bring her down, and bring me her crest feather so the village knows.\nWill you hunt Old Shrieker?",
+      "accept": "I will hunt her.",
+      "decline": "Not yet.",
+      "declined": "She will be there. She always is.",
+      "started": "East, past the turtles, to the rookery at the isle's end. She will see you first.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "Old Shrieker",
+          "items": [
+            {
+              "item": "Old Shrieker's crest feather",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 1.0,
+          "journal": "Take Old Shrieker's crest feather from Old Shrieker at the rookery far east of the village."
+        },
+        {
+          "kind": "give",
+          "target": "Tidewarden Merrow",
+          "items": [
+            {
+              "item": "Old Shrieker's crest feather",
+              "count": 1
+            }
+          ],
+          "journal": "Bring Old Shrieker's crest feather to Tidewarden Merrow.",
+          "says": "The old screamer is gone? The nets will be full tonight. You are a little fin no longer.\nLearn this, and go to Gatekeeper Thalassa on the north shore when you are ready for Highbourne.",
+          "rewards": {
+            "xp": 36500,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Taunt"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Forage Berries"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Lay Hands"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Harm Touch"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Minor Purity"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Funeral March"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Shadowstrike"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Snare"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Blighting Mist"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Holy Shock"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Motivate"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Rabid Infection"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Heavy Arms"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Shock of Frost"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Crude Refinement"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 5
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' starter quests): the mermaid's level 5, at Erud's Crossing, on the cities' level 5 quest: a foe to bring down; each class is taught what its own city's level 5 quest teaches it. Finishing it finishes the character's own city class quest of level 5 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/flight",
+      "name": "The Tide to Highbourne",
+      "giver": "Gatekeeper Thalassa",
+      "classes": [],
+      "races": [
+        32
+      ],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L1",
+        "homelands/mermaid/L2",
+        "homelands/mermaid/L3",
+        "homelands/mermaid/L4",
+        "homelands/mermaid/L5"
+      ],
+      "repeatable": true,
+      "offer": "The scholars of Highbourne, on Tunaria's western shore, have long traded with the merfolk. They will teach you as one of their own.\nYou have earned the tide, little fin. I will set you down among your own guild in Highbourne, and your spirit will rest there.\nShall I send you to Highbourne?",
+      "accept": "Send me to Highbourne.",
+      "decline": "Not yet.",
+      "declined": "The tide will wait for you.",
+      "started": "Swim well, and sing for us!",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Gatekeeper Thalassa",
+          "journal": "Tell Gatekeeper Thalassa when you are ready to go to Highbourne.",
+          "events": [
+            {
+              "on": "start",
+              "do": "dostep"
+            },
+            {
+              "on": "done",
+              "do": "teleport",
+              "bind": true,
+              "to": "mainland"
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours: the gatekeeper's port to Highbourne, the mermaid's wire race's city, each class to its own guild's spot there (teleport to mainland: the wire race's start row for the class), bound there: the passage the five starter quests earn (a coach runs between the home and Freeport for anyone). Repeatable, so one back in the homeland is sent again; no reward, so none is had twice. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json."
+    },
+    {
+      "key": "homelands/mermaid/L7",
+      "name": "Two Tasks on the Ice",
+      "giver": "Tidewarden Merrow",
+      "classes": [],
+      "races": [
+        32
+      ],
+      "minlevel": 7,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L5"
+      ],
+      "offer": "The Homelands keep a hunters' outpost on the frozen river under the Goldfeather Eyrie. Every home sends its young hunters there, and so will the strand.\nRide Dorran's coach to the Eyrie. Bring me drift rat fur and a badger's pelt from the snow east of the outpost.\nWill you hunt the Eyrie's snow for me?",
+      "accept": "I will hunt there.",
+      "decline": "Not now.",
+      "declined": "The snow will keep. Come back when you are ready.",
+      "started": "Dorran's coach will take you. Keep your scales warm: that water is frozen.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "drift rat",
+          "items": [
+            {
+              "item": "drift rat fur",
+              "count": 2
+            }
+          ],
+          "count": 2,
+          "chance": 0.5,
+          "journal": "Take two clumps of drift rat fur from the drift rats east of the Eyrie outpost."
+        },
+        {
+          "kind": "loot",
+          "target": "snowfield badger",
+          "items": [
+            {
+              "item": "snowfield badger pelt",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 0.5,
+          "journal": "Take a snowfield badger pelt from the badgers on the snow east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Tidewarden Merrow",
+          "items": [
+            {
+              "item": "drift rat fur",
+              "count": 2
+            },
+            {
+              "item": "snowfield badger pelt",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the drift rat fur and the badger pelt to Tidewarden Merrow.",
+          "says": "Good fur, and a good pelt. The cold did not stop you. Now watch closely, and learn this.",
+          "rewards": {
+            "xp": 157474,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Furious Defense"
+                ]
+              },
+              "1": {
+                "items": [
+                  "bracers of the glade"
+                ],
+                "spells": [
+                  "Tangling Weeds"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Protectorate"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Shadow Tunic"
+                ]
+              },
+              "4": {
+                "items": [
+                  "Chapels Leggings"
+                ],
+                "spells": [
+                  "Sprint"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Artful Strike"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Acrobatics"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Nature's Blessing"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Minor Malady"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Endure Ailment"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Infusion"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Strengthen Bone +"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Endure Arcane"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Burning Flare"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Crude Sublimation"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 7
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the mermaid's level 7, at Erud's Crossing, on the cities' level 7 quest: two tasks of the hunt, their spoils handed in; each class is taught what its own city's level 7 quest teaches it. Finishing it finishes the character's own city class quest of level 7 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L10",
+      "name": "Arms of the Eyrie",
+      "giver": "Tidewarden Merrow",
+      "classes": [],
+      "races": [
+        32
+      ],
+      "minlevel": 10,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L7"
+      ],
+      "offer": "You have grown past the arms of a little fin. I will make you better, but the outpost has what I need.\nQuartermaster Dunmore keeps good ore at the Eyrie outpost. Then bring me silk from the rime spiders north-east of it.\nWill you bring me the ore and the silk?",
+      "accept": "I will bring them.",
+      "decline": "Not now.",
+      "declined": "Then your old arms will have to do.",
+      "started": "Ore from Dunmore, silk from the spiders. Go.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Quartermaster Dunmore",
+          "journal": "Ask Quartermaster Dunmore at the Eyrie outpost for the ore Merrow needs.",
+          "says": "One of the merfolk, this far from the sea? Merrow's word came by the coach. Here, the best ore in my stores.",
+          "events": [
+            {
+              "on": "done",
+              "do": "give",
+              "items": [
+                {
+                  "item": "iron ore",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "loot",
+          "target": "rime spider",
+          "items": [
+            {
+              "item": "rime spider silk",
+              "count": 2
+            }
+          ],
+          "count": 2,
+          "chance": 0.5,
+          "journal": "Take two skeins of silk from the rime spiders north-east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Tidewarden Merrow",
+          "items": [
+            {
+              "item": "iron ore",
+              "count": 1
+            },
+            {
+              "item": "rime spider silk",
+              "count": 2
+            }
+          ],
+          "journal": "Bring the iron ore and the rime spider silk to Tidewarden Merrow.",
+          "says": "Ore for the blade, silk to bind the grip. A moment... there. It is yours: carry it well.",
+          "rewards": {
+            "xp": 556753,
+            "byclass": {
+              "0": {
+                "items": [
+                  "Sturdy Two-Handed Sword"
+                ]
+              },
+              "1": {
+                "items": [
+                  "shortsword of the glade"
+                ]
+              },
+              "2": {
+                "items": [
+                  "Mordschien"
+                ]
+              },
+              "3": {
+                "items": [
+                  "Blade of the Nanchael"
+                ]
+              },
+              "4": {
+                "items": [
+                  "Brass Nuckles"
+                ]
+              },
+              "5": {
+                "items": [
+                  "Sturdy Short Sword"
+                ]
+              },
+              "6": {
+                "items": [
+                  "sturdy dagger"
+                ]
+              },
+              "7": {
+                "items": [
+                  "Light Branch Club"
+                ]
+              },
+              "8": {
+                "items": [
+                  "Raveneye Hammer"
+                ]
+              },
+              "9": {
+                "items": [
+                  "Sturdy Mace"
+                ]
+              },
+              "10": {
+                "items": [
+                  "sturdy staff"
+                ]
+              },
+              "11": {
+                "items": [
+                  "dagger of essence"
+                ]
+              },
+              "12": {
+                "items": [
+                  "rod of eyes"
+                ]
+              },
+              "13": {
+                "items": [
+                  "Staff of Malconius"
+                ]
+              },
+              "14": {
+                "items": [
+                  "small dirk"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 10
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the mermaid's level 10, at Erud's Crossing, on the cities' level 10 quest: a new weapon, of what a camp hands over and a creature's drop; each class is given what its own city's level 10 quest gives it (class-rewards.json has the four classes the cities give nothing). Finishing it finishes the character's own city class quest of level 10 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L13",
+      "name": "Old Frostjaw",
+      "giver": "Tidewarden Merrow",
+      "classes": [],
+      "races": [
+        32
+      ],
+      "minlevel": 13,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L10"
+      ],
+      "offer": "The outpost's hunters have lost three of their own to an old snow leopard they call Frostjaw. He hunts the slopes north-east of the outpost.\nBring him down, and I will teach you what the tidewardens teach at your age. Take friends from the other homes if you are wise.\nWill you hunt Old Frostjaw?",
+      "accept": "I will hunt him.",
+      "decline": "Not yet.",
+      "declined": "He will not grow old enough to die on his own.",
+      "started": "Go with friends. He strikes first and he strikes hard.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "Old Frostjaw",
+          "count": 1,
+          "journal": "Kill Old Frostjaw on the slopes north-east of the Eyrie outpost."
+        },
+        {
+          "kind": "talk",
+          "target": "Tidewarden Merrow",
+          "journal": "Return to Tidewarden Merrow.",
+          "says": "Frostjaw is gone? Then the outpost sleeps easier, and the strand is proud of you. Learn this.",
+          "rewards": {
+            "xp": 550698,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Rapid Strike"
+                ]
+              },
+              "1": {
+                "spells": [
+                  "Flametongue"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Towering Wall"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Scream of Pain"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Mind & Body"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Anthem of Light"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Night Breath"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Regenerative Aura"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Tribal Brawn"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Ward Death"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Lava Wind"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Ward Death"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Lumbering Arms"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Element Guard"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Crude Quickening"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 13
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the mermaid's level 13, at Erud's Crossing, on the cities' level 13 quest: a named foe brought down; each class is taught what its own city's level 13 quest teaches it. Finishing it finishes the character's own city class quest of level 13 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L15",
+      "name": "The Heart of the Rime",
+      "giver": "Tidewarden Merrow",
+      "classes": [],
+      "races": [
+        32
+      ],
+      "minlevel": 15,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L13"
+      ],
+      "offer": "Something old walks in the ice caves north-east of the Eyrie outpost. The hunters call it the Rimeheart, and the cold that follows it kills the snow's game.\nBreak it, and carry a shard of it to Warden Halvek, so the outpost knows it is done. Then come back to me.\nWill you face the Rimeheart?",
+      "accept": "I will face it.",
+      "decline": "Not yet.",
+      "declined": "Then the caves grow colder.",
+      "started": "Do not go into those caves alone.",
+      "steps": [
+        {
+          "kind": "loot",
+          "target": "Rimeheart",
+          "items": [
+            {
+              "item": "shard of the Rimeheart",
+              "count": 1
+            }
+          ],
+          "count": 1,
+          "chance": 1.0,
+          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Warden Halvek",
+          "items": [
+            {
+              "item": "shard of the Rimeheart",
+              "count": 1
+            }
+          ],
+          "journal": "Bring the shard of the Rimeheart to Warden Halvek at the Eyrie outpost.",
+          "says": "So the Rimeheart is broken, and by one of the merfolk. I will send word to every home. Tell Merrow the Eyrie owes the strand a debt."
+        },
+        {
+          "kind": "talk",
+          "target": "Tidewarden Merrow",
+          "journal": "Return to Tidewarden Merrow.",
+          "says": "Halvek's word came by the coach before you did. You have done the strand proud. Learn this.",
+          "rewards": {
+            "xp": 883791,
+            "byclass": {
+              "0": {
+                "spells": [
+                  "Stomp"
+                ]
+              },
+              "1": {
+                "items": [
+                  "tunic of the glade"
+                ],
+                "spells": [
+                  "Tangling Roots"
+                ]
+              },
+              "2": {
+                "spells": [
+                  "Knight's Bash"
+                ]
+              },
+              "3": {
+                "spells": [
+                  "Punish Death"
+                ]
+              },
+              "4": {
+                "spells": [
+                  "Bandage"
+                ]
+              },
+              "5": {
+                "spells": [
+                  "Crashing Verses"
+                ]
+              },
+              "6": {
+                "spells": [
+                  "Vaulter's Balance"
+                ]
+              },
+              "7": {
+                "spells": [
+                  "Endure Elements"
+                ]
+              },
+              "8": {
+                "spells": [
+                  "Endure Poison"
+                ]
+              },
+              "9": {
+                "spells": [
+                  "Endure Affliction"
+                ]
+              },
+              "10": {
+                "spells": [
+                  "Endure Fire"
+                ]
+              },
+              "11": {
+                "spells": [
+                  "Endure Disease"
+                ]
+              },
+              "12": {
+                "spells": [
+                  "Alarming Visage"
+                ]
+              },
+              "13": {
+                "spells": [
+                  "Shocking Gaze"
+                ]
+              },
+              "14": {
+                "spells": [
+                  "Faulty Refinement"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 15
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the mermaid's level 15, at Erud's Crossing, on the cities' level 15 quest: a named foe's spoil carried where it is wanted; each class is taught what its own city's level 15 quest teaches it. Finishing it finishes the character's own city class quest of level 15 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L20/warrior",
+      "name": "The Long Tide",
+      "giver": "Elder Coralyn",
+      "classes": [
+        0
+      ],
+      "races": [
+        32
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L15"
+      ],
+      "offer": "Merrow says you are no little fin now. One of the merfolk who goes out into the world stands a watch at the Eyrie once, so the other homes know us.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The tide waits for those who are ready.",
+      "started": "Swim well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Coralyn sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, swimmer: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Coralyn",
+          "journal": "Return to Elder Coralyn in the merfolk's village.",
+          "says": "You swam out a little fin and came home a hunter of the Homelands. The strand has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Bellow",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Bellow"
+                ]
+              }
+            },
+            {
+              "answer": "Pillar of Might",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Pillar of Might"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the mermaid's level 20 for the warrior, at Erud's Crossing, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L20/ranger",
+      "name": "The Long Tide",
+      "giver": "Elder Coralyn",
+      "classes": [
+        1
+      ],
+      "races": [
+        32
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L15"
+      ],
+      "offer": "Merrow says you are no little fin now. One of the merfolk who goes out into the world stands a watch at the Eyrie once, so the other homes know us.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The tide waits for those who are ready.",
+      "started": "Swim well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Coralyn sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, swimmer: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Coralyn",
+          "journal": "Return to Elder Coralyn in the merfolk's village.",
+          "says": "You swam out a little fin and came home a hunter of the Homelands. The strand has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Sparrow Eye",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Sparrow Eye"
+                ]
+              }
+            },
+            {
+              "answer": "Strikeblade",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Strikeblade"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the mermaid's level 20 for the ranger, at Erud's Crossing, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L20/paladin",
+      "name": "The Long Tide",
+      "giver": "Elder Coralyn",
+      "classes": [
+        2
+      ],
+      "races": [
+        32
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L15"
+      ],
+      "offer": "Merrow says you are no little fin now. One of the merfolk who goes out into the world stands a watch at the Eyrie once, so the other homes know us.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The tide waits for those who are ready.",
+      "started": "Swim well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Coralyn sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, swimmer: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Coralyn",
+          "journal": "Return to Elder Coralyn in the merfolk's village.",
+          "says": "You swam out a little fin and came home a hunter of the Homelands. The strand has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Fortify",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Fortify"
+                ]
+              }
+            },
+            {
+              "answer": "Shining Bastion",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Shining Bastion"
+                ]
+              }
+            },
+            {
+              "answer": "Clay Barrier",
+              "says": "Then it is yours.",
+              "rewards": {
+                "spells": [
+                  "Clay Barrier"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the mermaid's level 20 for the paladin, at Erud's Crossing, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L20/shadowknight",
+      "name": "The Long Tide",
+      "giver": "Elder Coralyn",
+      "classes": [
+        3
+      ],
+      "races": [
+        32
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L15"
+      ],
+      "offer": "Merrow says you are no little fin now. One of the merfolk who goes out into the world stands a watch at the Eyrie once, so the other homes know us.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The tide waits for those who are ready.",
+      "started": "Swim well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Coralyn sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, swimmer: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Coralyn",
+          "journal": "Return to Elder Coralyn in the merfolk's village.",
+          "says": "You swam out a little fin and came home a hunter of the Homelands. The strand has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Bloodwasp",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Bloodwasp"
+                ]
+              }
+            },
+            {
+              "answer": "Shadow Tower",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Shadow Tower"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the mermaid's level 20 for the shadowknight, at Erud's Crossing, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L20/monk",
+      "name": "The Long Tide",
+      "giver": "Elder Coralyn",
+      "classes": [
+        4
+      ],
+      "races": [
+        32
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L15"
+      ],
+      "offer": "Merrow says you are no little fin now. One of the merfolk who goes out into the world stands a watch at the Eyrie once, so the other homes know us.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The tide waits for those who are ready.",
+      "started": "Swim well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Coralyn sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, swimmer: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Coralyn",
+          "journal": "Return to Elder Coralyn in the merfolk's village.",
+          "says": "You swam out a little fin and came home a hunter of the Homelands. The strand has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Stone Stance",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Stone Stance"
+                ]
+              }
+            },
+            {
+              "answer": "Stasis Strike",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Stasis Strike"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the mermaid's level 20 for the monk, at Erud's Crossing, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L20/bard",
+      "name": "The Long Tide",
+      "giver": "Elder Coralyn",
+      "classes": [
+        5
+      ],
+      "races": [
+        32
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L15"
+      ],
+      "offer": "Merrow says you are no little fin now. One of the merfolk who goes out into the world stands a watch at the Eyrie once, so the other homes know us.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The tide waits for those who are ready.",
+      "started": "Swim well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Coralyn sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, swimmer: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Coralyn",
+          "journal": "Return to Elder Coralyn in the merfolk's village.",
+          "says": "You swam out a little fin and came home a hunter of the Homelands. The strand has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Power Dance",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Power Dance"
+                ]
+              }
+            },
+            {
+              "answer": "Sweeping Combat",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Sweeping Combat"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the mermaid's level 20 for the bard, at Erud's Crossing, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L20/rogue",
+      "name": "The Long Tide",
+      "giver": "Elder Coralyn",
+      "classes": [
+        6
+      ],
+      "races": [
+        32
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L15"
+      ],
+      "offer": "Merrow says you are no little fin now. One of the merfolk who goes out into the world stands a watch at the Eyrie once, so the other homes know us.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The tide waits for those who are ready.",
+      "started": "Swim well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Coralyn sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, swimmer: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Coralyn",
+          "journal": "Return to Elder Coralyn in the merfolk's village.",
+          "says": "You swam out a little fin and came home a hunter of the Homelands. The strand has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Avoidance",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Avoidance"
+                ]
+              }
+            },
+            {
+              "answer": "Minor Wound",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Minor Wound"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the mermaid's level 20 for the rogue, at Erud's Crossing, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L20/druid",
+      "name": "The Long Tide",
+      "giver": "Elder Coralyn",
+      "classes": [
+        7
+      ],
+      "races": [
+        32
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L15"
+      ],
+      "offer": "Merrow says you are no little fin now. One of the merfolk who goes out into the world stands a watch at the Eyrie once, so the other homes know us.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The tide waits for those who are ready.",
+      "started": "Swim well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Coralyn sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, swimmer: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Coralyn",
+          "journal": "Return to Elder Coralyn in the merfolk's village.",
+          "says": "You swam out a little fin and came home a hunter of the Homelands. The strand has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Enkindle",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Enkindle"
+                ]
+              }
+            },
+            {
+              "answer": "Creeping Health",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Creeping Health"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the mermaid's level 20 for the druid, at Erud's Crossing, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L20/shaman",
+      "name": "The Long Tide",
+      "giver": "Elder Coralyn",
+      "classes": [
+        8
+      ],
+      "races": [
+        32
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L15"
+      ],
+      "offer": "Merrow says you are no little fin now. One of the merfolk who goes out into the world stands a watch at the Eyrie once, so the other homes know us.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The tide waits for those who are ready.",
+      "started": "Swim well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Coralyn sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, swimmer: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Coralyn",
+          "journal": "Return to Elder Coralyn in the merfolk's village.",
+          "says": "You swam out a little fin and came home a hunter of the Homelands. The strand has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Decaying Wind",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Decaying Wind"
+                ]
+              }
+            },
+            {
+              "answer": "Spiritual Guide",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Spiritual Guide"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the mermaid's level 20 for the shaman, at Erud's Crossing, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L20/cleric",
+      "name": "The Long Tide",
+      "giver": "Elder Coralyn",
+      "classes": [
+        9
+      ],
+      "races": [
+        32
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L15"
+      ],
+      "offer": "Merrow says you are no little fin now. One of the merfolk who goes out into the world stands a watch at the Eyrie once, so the other homes know us.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The tide waits for those who are ready.",
+      "started": "Swim well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Coralyn sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, swimmer: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Coralyn",
+          "journal": "Return to Elder Coralyn in the merfolk's village.",
+          "says": "You swam out a little fin and came home a hunter of the Homelands. The strand has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Disease Ward",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Disease Ward"
+                ]
+              }
+            },
+            {
+              "answer": "Field Dress",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Field Dress"
+                ]
+              }
+            },
+            {
+              "answer": "Elemental Ward",
+              "says": "Then it is yours.",
+              "rewards": {
+                "spells": [
+                  "Elemental Ward"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the mermaid's level 20 for the cleric, at Erud's Crossing, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L20/magician",
+      "name": "The Long Tide",
+      "giver": "Elder Coralyn",
+      "classes": [
+        10
+      ],
+      "races": [
+        32
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L15"
+      ],
+      "offer": "Merrow says you are no little fin now. One of the merfolk who goes out into the world stands a watch at the Eyrie once, so the other homes know us.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The tide waits for those who are ready.",
+      "started": "Swim well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Coralyn sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, swimmer: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Coralyn",
+          "journal": "Return to Elder Coralyn in the merfolk's village.",
+          "says": "You swam out a little fin and came home a hunter of the Homelands. The strand has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Frozen Mark",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Frozen Mark"
+                ]
+              }
+            },
+            {
+              "answer": "Lava Stone",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Lava Stone"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the mermaid's level 20 for the magician, at Erud's Crossing, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L20/necromancer",
+      "name": "The Long Tide",
+      "giver": "Elder Coralyn",
+      "classes": [
+        11
+      ],
+      "races": [
+        32
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L15"
+      ],
+      "offer": "Merrow says you are no little fin now. One of the merfolk who goes out into the world stands a watch at the Eyrie once, so the other homes know us.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The tide waits for those who are ready.",
+      "started": "Swim well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Coralyn sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, swimmer: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Coralyn",
+          "journal": "Return to Elder Coralyn in the merfolk's village.",
+          "says": "You swam out a little fin and came home a hunter of the Homelands. The strand has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Blood Gale",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Blood Gale"
+                ]
+              }
+            },
+            {
+              "answer": "Power Gale",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Power Gale"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the mermaid's level 20 for the necromancer, at Erud's Crossing, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L20/enchanter",
+      "name": "The Long Tide",
+      "giver": "Elder Coralyn",
+      "classes": [
+        12
+      ],
+      "races": [
+        32
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L15"
+      ],
+      "offer": "Merrow says you are no little fin now. One of the merfolk who goes out into the world stands a watch at the Eyrie once, so the other homes know us.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The tide waits for those who are ready.",
+      "started": "Swim well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Coralyn sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, swimmer: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Coralyn",
+          "journal": "Return to Elder Coralyn in the merfolk's village.",
+          "says": "You swam out a little fin and came home a hunter of the Homelands. The strand has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Spacious Mind",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Spacious Mind"
+                ]
+              }
+            },
+            {
+              "answer": "Power Boon",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Power Boon"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the mermaid's level 20 for the enchanter, at Erud's Crossing, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L20/wizard",
+      "name": "The Long Tide",
+      "giver": "Elder Coralyn",
+      "classes": [
+        13
+      ],
+      "races": [
+        32
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L15"
+      ],
+      "offer": "Merrow says you are no little fin now. One of the merfolk who goes out into the world stands a watch at the Eyrie once, so the other homes know us.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The tide waits for those who are ready.",
+      "started": "Swim well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Coralyn sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, swimmer: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Coralyn",
+          "journal": "Return to Elder Coralyn in the merfolk's village.",
+          "says": "You swam out a little fin and came home a hunter of the Homelands. The strand has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Blazing Clash",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Blazing Clash"
+                ]
+              }
+            },
+            {
+              "answer": "Mental Focus",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Mental Focus"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the mermaid's level 20 for the wizard, at Erud's Crossing, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
+    },
+    {
+      "key": "homelands/mermaid/L20/alchemist",
+      "name": "The Long Tide",
+      "giver": "Elder Coralyn",
+      "classes": [
+        14
+      ],
+      "races": [
+        32
+      ],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [
+        "homelands/mermaid/L15"
+      ],
+      "offer": "Merrow says you are no little fin now. One of the merfolk who goes out into the world stands a watch at the Eyrie once, so the other homes know us.\nGo to Warden Halvek at the Eyrie outpost and do as he asks. When it is done, come back to me, and choose your path.\nWill you stand the watch?",
+      "accept": "I will stand it.",
+      "decline": "Not yet.",
+      "declined": "The tide waits for those who are ready.",
+      "started": "Swim well, and come home.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Warden Halvek",
+          "journal": "Find Warden Halvek at the Eyrie outpost.",
+          "says": "Coralyn sends you? Then you are ready for the eyrie. Scout Feyla watches it from the river's far reach: go to her."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Feyla",
+          "journal": "Find Scout Feyla on the frozen river, north-east of the Eyrie outpost.",
+          "says": "The Goldfeather raiders carry their eyrie's war-talons. Bring me three, and they will think twice before they raid the river again."
+        },
+        {
+          "kind": "loot",
+          "target": "Goldfeather raider",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "count": 3,
+          "chance": 0.5,
+          "journal": "Take three war-talons from the Goldfeather raiders round the eyrie east of the Eyrie outpost."
+        },
+        {
+          "kind": "give",
+          "target": "Scout Feyla",
+          "items": [
+            {
+              "item": "Goldfeather war-talon",
+              "count": 3
+            }
+          ],
+          "journal": "Bring the three war-talons to Scout Feyla.",
+          "says": "Three talons. The eyrie will be quiet tonight. Go home, swimmer: your elder waits for you."
+        },
+        {
+          "kind": "talk",
+          "target": "Elder Coralyn",
+          "journal": "Return to Elder Coralyn in the merfolk's village.",
+          "says": "You swam out a little fin and came home a hunter of the Homelands. The strand has one more thing to give you.",
+          "rewards": {
+            "xp": 2814929
+          },
+          "choose": "Which do you take?",
+          "choices": [
+            {
+              "answer": "Student's Knack",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Student's Knack"
+                ]
+              }
+            },
+            {
+              "answer": "Klik'Anon Cocktail",
+              "says": "Then it is yours.",
+              "rewards": {
+                "items": [
+                  "Klik'Anon Cocktail"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "on": "finish",
+          "do": "classquest",
+          "level": 20
+        }
+      ],
+      "unresolved": [],
+      "notes": "Ours (the Homelands' chain past the flight): the mermaid's level 20 for the alchemist, at Erud's Crossing, on the cities' level 20 quest: a road of errands ending at the giver, who asks which path the character takes, the options its class's city asks (\"Which do you take?\"). Finishing it finishes the character's own city class quest of level 20 too (the classquest event), so its guildmaster on the mainland goes on from where the homeland left off. Written by tools/quests/gen_homelands.py from tools/quests/homelands/mermaid.json: change that file, never this quest's rows by hand."
     }
   ],
   "items": [
@@ -56423,6 +59099,38 @@
       "description": "The wide, pale eye of an owl of the Goldfeather Eyrie, that sees by night.",
       "notrade": true,
       "like": "raven eye"
+    },
+    {
+      "name": "tide shell earring",
+      "description": "A small spiral shell from the warm shallows of Erud's Crossing, carved for a young one of the merfolk.",
+      "notrade": true,
+      "like": "Shell Earring",
+      "set": {
+        "POWMAX": 5,
+        "classuse": 32767,
+        "raceuse": 1023,
+        "levelreq": 1,
+        "itemcost": 0,
+        "maxhp": 500
+      }
+    },
+    {
+      "name": "shore crab claw",
+      "description": "The claw of a shore crab from the strand east of the merfolk's village.",
+      "notrade": true,
+      "like": "crab claw"
+    },
+    {
+      "name": "strand turtle shell plate",
+      "description": "A plate of a strand turtle's shell from the hills east of the merfolk's village.",
+      "notrade": true,
+      "like": "starcrab shell"
+    },
+    {
+      "name": "Old Shrieker's crest feather",
+      "description": "A long grey crest feather of Old Shrieker, the harpy of the rookery at the east end of the merfolk's isle.",
+      "notrade": true,
+      "like": "broken vulture feather"
     }
   ]
 }

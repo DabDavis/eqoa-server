@@ -207,6 +207,32 @@ var (
 		{"Cyclops", 0xE30827CC, 1}}
 )
 
+// The women of the goblins and the gnolls (the GM Jibrish's petition 1647, 2026-11-12, the owner:
+// "a lot of the new races have female variants that we have not implemented yet"), found by sight
+// on every CHAR.ESF body (front close-ups; their CSprite header's sex byte is 1, the men's 0): each
+// goblin tribe has a woman (a halter or a top over a bust, the men bare-chested), and four gnoll
+// bodies wear a bodice over a bust. Each list is the women first, the first her race's own female
+// body (racedefs, tools/race_female_bodies2_20261112.py), then every man's body as the male list
+// has it (a woman may still choose any), sizes as the male list's.
+var (
+	goblinsFemale = []OptionStep{{"Grey goblin", 0xEDB4E0AD, 1}, {"Grey goblin (robed)", 0x687E7645, 1},
+		{"Green goblin", 0xEC0885EB, 1.4}, {"Green goblin (robed)", 0x1F8E11D3, 1.4}, {"Ice goblin", 0xA5F92F43, 0.875},
+		{"Ice goblin (robed)", 0x1245E56B, 0.875}, {"Fire goblin", 0xEE1DDFBA, 1.17}, {"Fire goblin (robed)", 0xCEF5874A, 1.17},
+		{"Grey goblin (brute)", bodyGoblin, 1}, {"Grey goblin (brute, robed)", 0x581B6A80, 1}, {"Green goblin (brute)", 0x96371804, 1.4},
+		{"Green goblin (brute, robed)", 0xBCDF0C04, 1.4}, {"Ice goblin (brute)", 0xE96179D4, 0.875}, {"Fire goblin (brute)", 0x6C7C07ED, 1.17},
+		{"Fire goblin (brute, robed)", 0xBE927B85, 1.17}, {"Grey goblin (overseer)", 0x2ECBB95A, 0.93}, {"Grey goblin (skull mask)", 0xB656DFEA, 0.93},
+		{"Green goblin (warlord)", 0x3AB96672, 1.27}, {"Green goblin (warmaster)", 0xF54C2142, 1.27}, {"Ice goblin (wizard)", 0x27A4E554, 0.875},
+		{"Ice goblin (mystic)", 0x5937EA22, 0.82}, {"Ice goblin (chieftain)", 0x507C4A52, 0.82}, {"Brown goblin (inquisitor)", 0x1CCDF0EF, 1.08},
+		{"Brown goblin (king)", 0x2F34B867, 1.08}}
+	gnollsFemale = []OptionStep{{"Black", 0xF5F3A450, 1}, {"Black and tan", 0x17DA0FEB, 1}, {"Grey", 0x71F163CA, 1},
+		{"Grey (gown)", 0xB15628DA, 1}, {"Black (breastplate)", bodyGnoll, 1}, {"Black (captain)", 0x223FD6BC, 0.91},
+		{"Black (robed)", 0x097BFC70, 1}, {"Black (elder)", 0xB7B21DFC, 0.91}, {"Black and tan (vest)", 0x4A9BAB9E, 1},
+		{"Black and tan (robed)", 0x7492678E, 1}, {"Black (teal robe)", 0x585E5ED9, 1}, {"Black and tan (green robe)", 0x16BA0BD3, 1},
+		{"Black and tan (packlord)", 0x3C6D3677, 0.91}, {"Black and tan (armour)", 0xC2D7DD2F, 0.91}, {"Grey (armour)", 0xC3B94FA5, 1},
+		{"Grey (red scarf)", 0x147AC3EE, 0.91}, {"Grey (robed)", 0x09E0AE7D, 1}, {"Grey (red robe)", 0xCE06735E, 0.91},
+		{"Reanimated", 0x2EDA50DC, 1}, {"Reanimated (robed)", 0x16E320F7, 1}}
+)
+
 // Palettes. dyes are colours over a part's own shading, for a part of one
 // colour (a cap, a bag, wings, a dress); tones shift a part's own colours, for
 // one of many (a giant's whole body, a creature's hide).
@@ -332,7 +358,8 @@ var raceOptionRows = map[uint32][]OptionRow{
 		{"Grey goblin (skull mask)", 0xB656DFEA, 0.93}, {"Green goblin (bandit)", 0xEC0885EB, 1.4}, {"Green goblin (high priest)", 0x1F8E11D3, 1.4},
 		{"Green goblin (warlord)", 0x3AB96672, 1.27}, {"Green goblin (warmaster)", 0xF54C2142, 1.27}, {"Ice goblin (soothsayer)", 0x1245E56B, 0.875},
 		{"Ice goblin (wizard)", 0x27A4E554, 0.875}, {"Ice goblin (mystic)", 0x5937EA22, 0.82}, {"Ice goblin (chieftain)", 0x507C4A52, 0.82},
-		{"Fire goblin (poacher)", 0xEE1DDFBA, 1.17}, {"Brown goblin (inquisitor)", 0x1CCDF0EF, 1.08}, {"Brown goblin (king)", 0x2F34B867, 1.08}}},
+		{"Fire goblin (poacher)", 0xEE1DDFBA, 1.17}, {"Brown goblin (inquisitor)", 0x1CCDF0EF, 1.08}, {"Brown goblin (king)", 0x2F34B867, 1.08}},
+		Female: goblinsFemale},
 		{Key: "hair", Label: "Hair", Kind: KindTexture, Parts: []OptionPart{
 			whole(bodyGoblin, 7), whole(0x581B6A80, 7, 9), whole(0x96371804, 0), whole(0xBCDF0C04, 7), whole(0xE96179D4, 6),
 			whole(0xA5F92F43, 0), whole(0xEDB4E0AD, 1), whole(0x687E7645, 0, 4), whole(0xB656DFEA, 1), whole(0xEC0885EB, 0),
@@ -342,6 +369,9 @@ var raceOptionRows = map[uint32][]OptionRow{
 			{"Raven (robed)", 0x41EFF500, 1}, {"Vulture", 0x3C3DE6CA, 0.91}, {"Vulture (robed)", 0xC04CEC07, 0.91},
 			{"Owl", 0xB1EEB204, 0.91}, {"Owl (robed)", 0x8B332785, 0.91}, {"Raven (gown)", 0x246B5FED, 1},
 			{"Raven (black)", 0x5585143C, 1}, {"Hawk (green robe)", 0xF83BD167, 1}},
+		// the women's numbers kept (TestRaceOptionStepsKeepTheirNumbers): the hawk is hers, and the
+		// three bodies last are women too (the GM Jibrish's petition 1647, by sight: the ravens'
+		// breastplates, a bust under the green robe), the rest the men's
 		Female: []OptionStep{{"Hawk", bodyAviakF, 1}, {"Hawk (robed)", 0x262C572A, 1}, {"Raven", 0xDC641055, 1},
 			{"Raven (robed)", 0x41EFF500, 1}, {"Vulture", 0x3C3DE6CA, 0.91}, {"Vulture (robed)", 0xC04CEC07, 0.91},
 			{"Owl", 0xB1EEB204, 0.91}, {"Owl (robed)", 0x8B332785, 0.91}, {"Raven (gown)", 0x246B5FED, 1},
@@ -372,7 +402,8 @@ var raceOptionRows = map[uint32][]OptionRow{
 		{"Black (teal robe)", 0x585E5ED9, 1}, {"Black and tan (green robe)", 0x16BA0BD3, 1}, {"Black and tan (packlord)", 0x3C6D3677, 0.91},
 		{"Black and tan (armour)", 0xC2D7DD2F, 0.91}, {"Grey", 0x71F163CA, 1}, {"Grey (armour)", 0xC3B94FA5, 1},
 		{"Grey (red scarf)", 0x147AC3EE, 0.91}, {"Grey (robed)", 0x09E0AE7D, 1}, {"Grey (gown)", 0xB15628DA, 1},
-		{"Grey (red robe)", 0xCE06735E, 0.91}, {"Reanimated", 0x2EDA50DC, 1}, {"Reanimated (robed)", 0x16E320F7, 1}}}},
+		{"Grey (red robe)", 0xCE06735E, 0.91}, {"Reanimated", 0x2EDA50DC, 1}, {"Reanimated (robed)", 0x16E320F7, 1}},
+		Female: gnollsFemale}},
 	bodyOrc: {{Key: "body", Label: "Clan", Kind: KindBody,
 		Male: []OptionStep{{"Orc", bodyOrc, 1}, {"Orc (long hair)", 0x84F47767, 0.92}, {"Orc (grey mail)", 0x656DD4C5, 1},
 			{"Deathfist", 0x37FD13F9, 1.02}, {"Deathfist (kilt)", 0x3198F5B1, 1.06}, {"Hatebone elder", 0xB2FBD7EF, 0.92},

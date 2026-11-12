@@ -204,6 +204,7 @@ func (w *World) ApplyClientUpdate(id EntityID, u ClientUpdate) {
 	if u.HasWalkFlags {
 		p.WalkFlags, p.HasWalkFlags = u.WalkFlags, true
 	}
+	w.seaSpeedLocked(p) // a sea folk race swims at SoW's speed (seaspeed.go)
 	// a report standing (or one with no flags, which says nothing of it) is
 	// where it stood; where the judge enforces and knows the ground, its own
 	// word, not the walker's

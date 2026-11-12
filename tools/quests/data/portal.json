@@ -503,10 +503,10 @@
    "factions_required": [
     [
      "The Pusling",
-     1
+     1000
     ]
    ],
-   "offer": "You are a friend of the puslings now. Give me the Queen's stinger and I will make a scepter of it. Show the scepter to the Throne of Bertoxxulous, past the Bloody Portal, and he will come.",
+   "offer": "You are a friend of the puslings now. Give me the Queen's stinger and I will make a bonescepter of it. Use it at the Throne of Bertoxxulous, past the Bloody Portal, and he will come.",
    "accept": "Make me the scepter.",
    "decline": "Not now.",
    "declined": "The throne can wait.",
@@ -522,10 +522,10 @@
       }
      ],
      "journal": "Give Queen Qy'tha's stinger to Witchdoctor Muglchlur.",
-     "says": "There. The scepter of plague. The throne will answer it.",
+     "says": "There. The bonescepter. The throne will answer it.",
      "rewards": {
       "items": [
-       "scepter of plague"
+       "Bonescepter"
       ]
      }
     },
@@ -534,29 +534,31 @@
      "target": "Throne of Bertoxxulous",
      "items": [
       {
-       "item": "scepter of plague",
+       "item": "Bonescepter",
        "count": 1
       }
      ],
-     "journal": "Take the Bloody Portal to the Twins' valley and show the scepter of plague to the Throne of Bertoxxulous.",
+     "journal": "Take the Bloody Portal to the Twins' valley and use the bonescepter at the Throne of Bertoxxulous.",
      "says": "The throne shudders, and the Plaguebringer turns to face you.",
      "events": [
       {
        "on": "done",
-       "do": "popup",
-       "text": "Bertoxxulous the Plaguebringer rises from his throne. He has noticed you."
+       "do": "trigger",
+       "trigger": "Bertoxxulous Rises",
+       "text": "The throne is cold and still. Bertoxxulous will not answer it again yet."
       }
-     ]
+     ],
+     "reminder": "The throne answers only the bonescepter."
     },
     {
      "kind": "kill",
-     "target": "Bertoxxulous the Plaguebringer",
+     "target": "Bertoxxulous",
      "count": 1,
-     "journal": "Kill Bertoxxulous the Plaguebringer."
+     "journal": "Kill Bertoxxulous the Plaguebringer before he leaves, an hour after he rises."
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Bertoxxulous the Plaguebringer (github.com/Jadiction/EQOA-Data, MIT). The scepter is the guide's, for the stinger, with a positive standing with the puslings (factions_required). Bertoxxulous stands always up here (the guide's every-three-days throne is not modelled), so the scepter only wakes him. The guide gives no quest reward: his loot is his."
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Bertoxxulous the Plaguebringer (github.com/Jadiction/EQOA-Data, MIT). The scepter is the guide's, for the stinger, with a positive standing with the puslings (factions_required). The guide gives no quest reward: his loot is his. The wiki's Plane of Disease: Bertoxxulous Quest (https://wiki.eqoa.live/index.php?title=Plane_of_Disease:_Bertoxxulous_Quest, the owner's source, 2026-11-12; tools/pod_quests_20261112.py): The Pusling 1000, the Bonescepter; Bertoxxulous spawns only at the throne (trigger Bertoxxulous Rises: an hour, then the throne answers no one for 3 days 16 hours, the wiki's respawn). Overseer Yurgulch (who says what is up) and the lair's emptying when the Closed Portal comes back are not modelled."
   },
   {
    "key": "Portal/plane-of-disease/noroxus-1",
@@ -5017,7 +5019,7 @@
    "like": "Zapper Stinger"
   },
   {
-   "name": "scepter of plague",
+   "name": "Bonescepter",
    "description": "Made by Witchdoctor Muglchlur from the Queen's stinger. The Throne of Bertoxxulous answers it.",
    "notrade": true,
    "like": "Lord Pickclaw's Scepter"

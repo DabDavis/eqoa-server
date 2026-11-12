@@ -74,6 +74,12 @@ class PodQuests(unittest.TestCase):
         self.assertEqual(self.q("SELECT 1 FROM npcspawnonly WHERE name = 'moth monarch'"), [(1,)])
         self.assertEqual(self.q("SELECT classuse FROM itempattern WHERE itemname = 'Totem of Avhi' ORDER BY patternid LIMIT 1"), [(31744,)])
         self.assertEqual(self.q("SELECT equipslot, weapondamage, classuse FROM itempattern WHERE itemname = 'Thorn of Deatharn'"), [(14, 720, 16)])
+        self.assertEqual(self.q("SELECT factionreq FROM quests WHERE name = 'Bertoxxulous and the Throne of Plague'"), [("The Pusling:1000",)])
+        self.assertEqual(self.q("SELECT delta FROM factionhits WHERE npc_name = 'Queen Qy''tha' AND faction = 'The Pusling'"), [(75,)])
+        self.assertEqual(self.q("SELECT chance FROM npcloot WHERE npc_name = 'bertoxxulous' AND tablename = 'pod spells'"), [(99,)])
+        self.assertEqual(self.q("SELECT 1 FROM npcspawnonly WHERE name = 'bertoxxulous'"), [(1,)])
+        self.assertEqual(len(self.q("SELECT 1 FROM gmtriggers WHERE name = 'Bertoxxulous Rises'")), 1)
+        self.assertEqual(self.q("SELECT count(*) FROM itempattern WHERE itemname = 'Bonescepter'"), [(1,)])
         applied = dump(self.db)
 
         r = run(self.db, "--apply")

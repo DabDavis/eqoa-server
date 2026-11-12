@@ -49,8 +49,10 @@ import (
 //     power out: a level 60 warrior's 5,650 in a minute, its strikes waiting);
 //   - its attacks at its target (mercAttackTurnLocked): its damage over time
 //     kept up (cast again only once the one it put on is about to run out),
-//     then its biggest hit that is ready. A healer casts them only with no
-//     team mate hurt and mercHealerSpare of its power left; a caster keeps its
+//     then its biggest hit that is ready. A healer casts them only when
+//     offensive (/merc offensive; defensive, the default, it heals and buffs
+//     alone: the owner, 2026-11-12), with no team mate hurt (its heal turn
+//     comes first) and mercHealerSpare of its power left; a caster keeps its
 //     power for its best: a lesser spell only while what is left after it
 //     pays for the best one (the owner: "casters keep their power for their
 //     best spells (don't spam to empty)"). A caster or a healer below
@@ -682,8 +684,8 @@ func (w *World) mercAttackTurnLocked(ms *mercState, t *NPC, now time.Time) bool 
 		return false
 	}
 	m := ms.npc
-	if ms.role == roleHealer && m.Power*100 < m.MaxPower*mercHealerSpare {
-		return false
+	if ms.role == roleHealer && (!ms.kit.Offensive || m.Power*100 < m.MaxPower*mercHealerSpare) {
+		return false // defensive, its default: heals and buffs alone (MercKit.Offensive)
 	}
 	if ms.kit.Class == classBard && m.Power*100 < m.MaxPower*mercBardSpare {
 		return false // its power for its songs (mercsongs.go)

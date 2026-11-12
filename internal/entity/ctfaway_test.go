@@ -334,7 +334,7 @@ func TestCTFAwayThroughAKeepRestart(t *testing.T) {
 
 	// the new process, its owner beside the herald (the arena login rule)
 	r2 := newCTFAway(t, 1)
-	if !r2.w.RestoreMerc(r2.ss[0], ctfMercKit(r2.ps[0], "Gorvak"), *kp.Merc, r2.at(0)) {
+	if !r2.w.RestoreMerc(r2.ss[0], ctfMercKit(r2.ps[0], "Gorvak"), kp.Mercs[0], r2.at(0)) {
 		t.Fatal("the merc did not come back")
 	}
 	if !r2.w.RestoreFamiliar(r2.ss[0], healbot(), kp.Familiar.HPPct, r2.at(0)) {
@@ -364,7 +364,7 @@ func TestCTFAwayThroughAKeepRestart(t *testing.T) {
 	r3 := newCTFAway(t, 1)
 	p3 := r3.ps[0]
 	p3.World, p3.X, p3.Z = r3.w.ctf.set.World, 500, 500
-	if r3.w.RestoreMerc(r3.ss[0], ctfMercKit(p3, "Gorvak"), *kp.Merc, r3.at(0)) ||
+	if r3.w.RestoreMerc(r3.ss[0], ctfMercKit(p3, "Gorvak"), kp.Mercs[0], r3.at(0)) ||
 		r3.w.RestoreFamiliar(r3.ss[0], healbot(), kp.Familiar.HPPct, r3.at(0)) {
 		t.Fatal("restored into the arena's world")
 	}

@@ -326,8 +326,10 @@ func (w *World) mercFollowIntoLocked(p *Player) {
 
 // mercsOutOfGroupLocked takes p's mercs out of g's members (its leaving it,
 // its boot), each asked into a group with its owner again when others are
-// left in g (again: true). Must be called with the lock held.
-func (w *World) mercsOutOfGroupLocked(g *Group, p *Player, again bool) {
+// left in g (again: true; whenOthers: when g has members left without
+// them). Must be called with the lock held.
+func (w *World) mercsOutOfGroupLocked(g *Group, p *Player, again, whenOthers bool) {
+	var mine []*mercState
 	for _, ms := range w.mercs[p.ServerID] {
 		if ms.owner != p {
 			continue
@@ -339,7 +341,10 @@ func (w *World) mercsOutOfGroupLocked(g *Group, p *Player, again bool) {
 			}
 		}
 		delete(g.lastRoster, ms.npc.ServerID)
-		if again {
+		mine = append(mine, ms)
+	}
+	if again || whenOthers && len(g.Members) > 0 {
+		for _, ms := range mine {
 			ms.asked = false
 		}
 	}

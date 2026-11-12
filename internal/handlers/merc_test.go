@@ -151,7 +151,7 @@ func TestMercLiaisonHires(t *testing.T) {
 	if !ok || info.Class != 0 || info.Race != 0 || info.Level != 30 || info.Stance != entity.MercAssist {
 		t.Fatalf("hired: %+v %v (sent %q)", info, ok, got)
 	}
-	if !hasMsg(got, "box:Mercenary Recruitment: "+info.Name+" the Human Warrior is yours.*") {
+	if !hasMsg(got, "box:Mercenary Recruitment: "+info.Name+" the Human Warrior is yours (mercenary 1 of 3)*") {
 		t.Errorf("the hire's line: %q", got)
 	}
 	row, kept, err := db.Merc(r.pa.CharServerID, 1)
@@ -168,8 +168,13 @@ func TestMercLiaisonHires(t *testing.T) {
 	}
 	got = r.answer(got, "Dark Elf")
 	got = r.answer(got, "A woman")
-	if info, ok = r.gw.MercInfoOf(r.anna); !ok || info.Class != 13 || info.Race != 2 || info.Sex != 1 {
-		t.Fatalf("the wizard: %+v %v (sent %q)", info, ok, got)
+	// a second hire, in the second slot: the warrior stays (up to three)
+	all := r.gw.MercInfosOf(r.anna)
+	if len(all) != 2 || all[0].Class != 0 || all[1].Slot != 2 {
+		t.Fatalf("after the second hire: %+v", all)
+	}
+	if info = all[1]; info.Class != 13 || info.Race != 2 || info.Sex != 1 {
+		t.Fatalf("the wizard: %+v (sent %q)", info, got)
 	}
 }
 

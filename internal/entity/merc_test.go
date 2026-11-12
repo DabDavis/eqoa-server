@@ -563,8 +563,11 @@ func TestMercTakesAGroupPlace(t *testing.T) {
 		t.Fatalf("the dismissal left %d members", len(g.Members))
 	}
 	r.group(fourth)
-	if _, why := r.w.HireMerc(r.sess, r.kit(0, 0, 0), MercAssist, r.at(0)); why != mercGroupFull {
-		t.Errorf("a group of four took a merc: %q", why)
+	// a group of four players: the merc goes on standby (mercbench.go), its
+	// hire kept, out of the group and the world
+	if _, why := r.w.HireMerc(r.sess, r.kit(0, 0, 0), MercAssist, r.at(0)); why != "" || len(g.Members) != 4 ||
+		r.w.benchedAtLocked(r.p, 1) == nil || r.w.merc1(r.p.ServerID) != nil {
+		t.Errorf("a group of four players took a merc (%q, %d members) or it is not on standby", why, len(g.Members))
 	}
 	g.flagged = true
 	if _, why := r.w.HireMerc(r.sess, r.kit(0, 0, 0), MercAssist, r.at(0)); why != "" || len(g.Members) != 5 {

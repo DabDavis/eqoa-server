@@ -291,6 +291,16 @@ func RestoreCorpsesAs(kept []KeptCorpse, ids map[entity.EntityID]entity.EntityID
 	return n
 }
 
+// resumeMoved is whether loginSpawn put a resumed character elsewhere than where it was saved (where its client
+// stands): another world, or more than a step's worth away.
+func resumeMoved(saved, now *database.CharacterRecord) bool {
+	if saved.World != now.World {
+		return true
+	}
+	dx, dz := float64(saved.X-now.X), float64(saved.Z-now.Z)
+	return dx*dx+dz*dz > 25*25
+}
+
 // ResumeCharacter builds the character of a session carried through a restart
 // from its row, as a login does, and gives it what was kept: the handlers' and
 // the World's (entity.KeptPlayer). Its client is in the world already; its
@@ -311,9 +321,17 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 	if record.CharName != kp.Name && kp.Name != "" {
 		return nil, fmt.Errorf("character %d is '%s' now, it was '%s'", record.ServerID, record.CharName, kp.Name)
 	}
+	saved := *record // where it was saved, where its client stands
 	player := h.enterFromRecord(sess, record)
 	if player == nil {
 		return nil, fmt.Errorf("character %d: no player made", record.ServerID)
+	}
+	if resumeMoved(&saved, record) {
+		// loginSpawn put it elsewhere (a dungeon's instance gone with the restart, a home it may not stand in, a
+		// server world rebuilt): its client's reports are of the old place until its dump moves it
+		sess.SetResumeMoved(true)
+		log.Printf("Keep: '%s' was at (%.1f, %.1f, %.1f) world=%d, resumes at (%.1f, %.1f, %.1f) world=%d: its dump moves it there",
+			record.CharName, saved.X, saved.Y, saved.Z, saved.World, record.X, record.Y, record.Z, record.World)
 	}
 	h.gameWorld.RestoreKeptPlayer(sess, kp, now)
 	if kp.Pet != nil {

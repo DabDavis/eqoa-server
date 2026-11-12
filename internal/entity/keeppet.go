@@ -5,6 +5,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/session"
 )
 
@@ -46,6 +47,51 @@ type KeptPet struct {
 	Charm  string `json:"charm,omitempty"`
 	LeftMS int64  `json:"left_ms,omitempty"`
 	Home   uint8  `json:"home,omitempty"`
+	// Effects are the spells on it (its buffs, its own and its owner's), as a
+	// logout keeps a player's (buffsave.go); OwnerBuffs its buffs on its owner
+	// that last while it is out (pettemplate.go's WhileOut: an Undead
+	// Servant's, a familiar pet's blessing), which a logout's save leaves out.
+	// Before 2026-11-12 a restart gave the pet back bare and its owner without
+	// them until the pet cast them again.
+	Effects    []database.BuffRow `json:"effects,omitempty"`
+	OwnerBuffs []database.BuffRow `json:"owner_buffs,omitempty"`
+}
+
+// keepPetEffects writes down the spells on pet and its buffs on its owner p
+// that last while it is out. Must be called with the lock held.
+func (k *KeptPet) keepPetEffects(p *Player, pet *NPC, now time.Time) {
+	k.Effects = effectRows(pet.Effects, now, nil)
+	k.OwnerBuffs = effectRows(p.Effects, now, func(e *ActiveEffect) bool { return e.petBound })
+}
+
+// restorePetEffectsLocked puts back what keepPetEffects wrote: the spells on
+// pet (its maximum with them, before its share of hit points is given) and its
+// buffs on p, still its own (they go with it). Must be called with the lock
+// held.
+func restorePetEffectsLocked(p *Player, pet *NPC, k KeptPet, now time.Time) {
+	for _, r := range k.Effects {
+		if r.LeftMS > 0 {
+			pet.Effects = append(pet.Effects, effectFromRow(r, now))
+		}
+	}
+	pet.syncEffectMaxHP()
+	n := 0
+	for _, r := range k.OwnerBuffs {
+		if r.LeftMS <= 0 || p.hasEffect(r.SpellID) {
+			continue
+		}
+		ae := effectFromRow(r, now)
+		ae.petBound = true
+		p.Effects = append(p.Effects, ae)
+		if ae.Name != "" && len(p.Buffs) < MaxEffects {
+			p.Buffs = append(p.Buffs, BuffSlot{Icon: ae.Icon, Name: ae.Name})
+		}
+		n++
+	}
+	if n > 0 {
+		p.Mods = sumEffectMods(p.Effects)
+		p.StatsDirty = true
+	}
 }
 
 // keptPetLocked is p's living pet as a restart carries it, nil for none or one
@@ -59,6 +105,7 @@ func (w *World) keptPetLocked(p *Player, now time.Time) *KeptPet {
 	pet := ps.npc
 	k := &KeptPet{Name: pet.Name, Stance: byte(ps.stance), Place: [4]float32{pet.X, pet.Y, pet.Z, pet.Facing}, World: pet.World,
 		HPPct: float64(pet.HP) / float64(max(pet.MaxHP, 1))}
+	k.keepPetEffects(p, pet, now)
 	switch h := pet.Charm; {
 	case h != nil:
 		k.NPC, k.Charm, k.Home = uint32(pet.ServerID), h.spell, h.world
@@ -94,6 +141,7 @@ func (w *World) RestorePet(sess *session.Session, k KeptPet, spell *CastSpell, n
 			npc.X, npc.Y, npc.Z, npc.Facing = k.Place[0], k.Place[1], k.Place[2], k.Place[3]
 			w.SpatialIndex.Update(npc.ServerID, oldX, oldZ, npc.X, npc.Z)
 		}
+		restorePetEffectsLocked(p, npc, k, now)
 		npc.HP = keptShare(k.HPPct, npc.MaxHP)
 		hold := &charmHold{npcType: npc.NPCType, faction: npc.Faction, world: k.Home, spell: k.Charm}
 		if k.LeftMS > 0 {
@@ -114,6 +162,7 @@ func (w *World) RestorePet(sess *session.Session, k KeptPet, spell *CastSpell, n
 	if ps == nil {
 		return false
 	}
+	restorePetEffectsLocked(p, ps.npc, k, now)
 	ps.npc.HP = keptShare(k.HPPct, ps.npc.MaxHP)
 	if k.Stance != 0 {
 		ps.stance = petStance(k.Stance)

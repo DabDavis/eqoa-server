@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"encoding/json"
 	"os"
 	"slices"
 	"testing"
@@ -240,5 +241,70 @@ func TestRealMercPetBuffs(t *testing.T) {
 				t.Errorf("necromancer 60: %q, want %q", names, want)
 			}
 		}
+	}
+}
+
+// The owner, 2026-11-12 ("pets are disappearing"): a keep restart carries a
+// merc's pet with it, made again at once by the same summoning, its share of
+// hit points and the buffs on it, where before the merc stood without one until
+// it summoned a new one, whole and bare. The control: a merc from a file of
+// before (no pet) comes back without one.
+func TestAMercsPetComesThroughARestart(t *testing.T) {
+	book := func() []CastSpell {
+		summon := bookSpell(717, "Fire Elemental", 0, 8*time.Second, 45*time.Second, 30, "Summons a Fire Elemental to aid you")
+		summon.Level = 28
+		return append([]CastSpell{summon}, necroPetBook()...)
+	}
+	body := func(r *mercRig) {
+		r.w.mu.Lock()
+		r.w.putNPCLocked(&NPC{ServerID: 4900, Name: "Fire Elemental", Level: 39, HP: 2340, MaxHP: 2340, ModelID: 0x8A416241, Size: 1,
+			NPCType: 0x80, X: 20000, Z: 20000, World: 0})
+		r.w.mu.Unlock()
+	}
+	r := newMercRig(t)
+	body(r)
+	kit := r.kit(11, 0, 0, book()...)
+	ms := r.hire(kit, MercAssist)
+	at := time.Duration(0)
+	for ; at <= 40*time.Second; at += 100 * time.Millisecond {
+		r.w.mu.Lock()
+		ms.npc.Power = ms.npc.MaxPower
+		r.w.mu.Unlock()
+		r.tick(at)
+	}
+	if ms.pet == nil || len(ms.pet.npc.Effects) == 0 {
+		t.Fatal("no buffed pet to carry")
+	}
+	r.w.mu.Lock()
+	ms.pet.npc.HP = ms.pet.npc.MaxHP / 2
+	buffs := petBuffsOn(ms.pet.npc)
+	r.w.mu.Unlock()
+	kp, ok := r.w.KeepPlayer(r.sess, r.at(at))
+	if !ok || len(kp.Mercs) != 1 || kp.Mercs[0].Pet == nil || kp.Mercs[0].Pet.Spell != 717 {
+		t.Fatalf("kept %+v", kp.Mercs)
+	}
+	b, _ := json.Marshal(kp.Mercs[0])
+	var km KeptMerc
+	if err := json.Unmarshal(b, &km); err != nil {
+		t.Fatal(err)
+	}
+
+	// the control: a file of before
+	c := newMercRig(t)
+	body(c)
+	bare := km
+	bare.Pet = nil
+	if !c.w.RestoreMerc(c.sess, kit, bare, c.at(0)) || c.w.merc1(c.p.ServerID).pet != nil {
+		t.Fatal("control: a merc from a file of before came back with a pet")
+	}
+
+	r2 := newMercRig(t)
+	body(r2)
+	if !r2.w.RestoreMerc(r2.sess, kit, km, r2.at(0)) {
+		t.Fatal("the merc did not come back")
+	}
+	m := r2.w.merc1(r2.p.ServerID)
+	if m.pet == nil || m.pet.npc.HP != m.pet.npc.MaxHP/2 || !slices.Equal(petBuffsOn(m.pet.npc), buffs) || r2.w.NPCs[m.pet.npc.ServerID] != m.pet.npc {
+		t.Fatalf("its pet after the restart: %+v", m.pet)
 	}
 }

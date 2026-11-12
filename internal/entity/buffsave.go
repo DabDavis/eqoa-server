@@ -91,10 +91,18 @@ type savedMods struct {
 }
 
 func savedEffects(p *Player, now time.Time) []database.BuffRow {
+	// a pet's own buff ends with the logout (a keep restart carries it with
+	// the pet: keeppet.go)
+	return effectRows(p.Effects, now, func(e *ActiveEffect) bool { return !e.petBound })
+}
+
+// effectRows is the effects as they are kept, those keep takes (nil: all)
+// that have time left and are no duel's harm or creature's poison.
+func effectRows(effects []*ActiveEffect, now time.Time, keep func(*ActiveEffect) bool) []database.BuffRow {
 	var rows []database.BuffRow
-	for _, e := range p.Effects {
+	for _, e := range effects {
 		left := e.Until.Sub(now)
-		if left <= 0 || e.duelFoe != 0 || e.npcFoe != 0 || e.petBound { // a duel's harm ends with it (duel.go), a creature's poison and a pet's own buff with the logout
+		if left <= 0 || e.duelFoe != 0 || e.npcFoe != 0 || keep != nil && !keep(e) { // a duel's harm ends with it (duel.go), a creature's poison with the logout
 			continue
 		}
 		tick := int64(-1)
@@ -145,37 +153,7 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 		if r.LeftMS <= 0 || p.hasEffect(r.SpellID) {
 			continue
 		}
-		ae := &ActiveEffect{SpellID: r.SpellID, Name: r.Name, Icon: r.Icon, Caster: EntityID(r.Caster),
-			Until: now.Add(time.Duration(r.LeftMS) * time.Millisecond), HPTick: r.HPTick, PowerTick: r.PowerTick,
-			Root: r.Flags&buffRoot != 0, Snare: r.Flags&buffSnare != 0, Speed: r.Flags&buffSpeed != 0, Invis: r.Flags&buffInvis != 0}
-		if r.TickMS >= 0 {
-			ae.NextTick = now.Add(time.Duration(r.TickMS) * time.Millisecond)
-		}
-		if r.Mods != "" {
-			var sm savedMods
-			_ = json.Unmarshal([]byte(r.Mods), &sm)
-			ae.Mods, ae.Proc, ae.ProcMax = sm.StatMods, sm.Proc, sm.ProcMax
-			ae.ProcScale, ae.ProcScalePct, ae.ProcCap = sm.ProcScale, sm.ProcScalePct, sm.ProcCap
-			ae.ProcUndead = sm.ProcUndead
-			ae.Form, ae.FormSize = sm.Form, sm.FormSize
-			ae.Ticks = sm.Ticks
-			ae.Shield = sm.Shield
-			ae.Line, ae.Rank = sm.Line, sm.Rank
-			if sm.Rules != nil {
-				ae.Rules = *sm.Rules
-			}
-			if sm.Food != nil {
-				r := *sm.Food
-				r.Since = now // its fights count from the login
-				ae.Food = &r
-			}
-			ae.ProcSpells = sm.ProcSpells
-			ae.parts = sm.Parts
-			ae.figures = sm.Figures
-			if sm.PowerCap != nil {
-				ae.PowerCap, ae.PowerCapped = *sm.PowerCap, true
-			}
-		}
+		ae := effectFromRow(r, now)
 		p.Effects = append(p.Effects, ae)
 		if ae.Name != "" && len(p.Buffs) < MaxEffects {
 			p.Buffs = append(p.Buffs, BuffSlot{Icon: ae.Icon, Name: ae.Name})
@@ -191,6 +169,42 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 	}
 	p.StatsDirty = true
 	return n
+}
+
+// effectFromRow is a kept effect made again, its time running from now.
+func effectFromRow(r database.BuffRow, now time.Time) *ActiveEffect {
+	ae := &ActiveEffect{SpellID: r.SpellID, Name: r.Name, Icon: r.Icon, Caster: EntityID(r.Caster),
+		Until: now.Add(time.Duration(r.LeftMS) * time.Millisecond), HPTick: r.HPTick, PowerTick: r.PowerTick,
+		Root: r.Flags&buffRoot != 0, Snare: r.Flags&buffSnare != 0, Speed: r.Flags&buffSpeed != 0, Invis: r.Flags&buffInvis != 0}
+	if r.TickMS >= 0 {
+		ae.NextTick = now.Add(time.Duration(r.TickMS) * time.Millisecond)
+	}
+	if r.Mods != "" {
+		var sm savedMods
+		_ = json.Unmarshal([]byte(r.Mods), &sm)
+		ae.Mods, ae.Proc, ae.ProcMax = sm.StatMods, sm.Proc, sm.ProcMax
+		ae.ProcScale, ae.ProcScalePct, ae.ProcCap = sm.ProcScale, sm.ProcScalePct, sm.ProcCap
+		ae.ProcUndead = sm.ProcUndead
+		ae.Form, ae.FormSize = sm.Form, sm.FormSize
+		ae.Ticks = sm.Ticks
+		ae.Shield = sm.Shield
+		ae.Line, ae.Rank = sm.Line, sm.Rank
+		if sm.Rules != nil {
+			ae.Rules = *sm.Rules
+		}
+		if sm.Food != nil {
+			r := *sm.Food
+			r.Since = now // its fights count from the login
+			ae.Food = &r
+		}
+		ae.ProcSpells = sm.ProcSpells
+		ae.parts = sm.Parts
+		ae.figures = sm.Figures
+		if sm.PowerCap != nil {
+			ae.PowerCap, ae.PowerCapped = *sm.PowerCap, true
+		}
+	}
+	return ae
 }
 
 func (p *Player) hasEffect(spellID int) bool {

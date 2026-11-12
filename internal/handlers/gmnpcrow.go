@@ -25,7 +25,7 @@ import (
 //     row and the rows keyed by it (database/gmnpcrow.go: npcrespawn,
 //     npcwander, npctitle, signtext, npcpaths, campspawns), out of the world
 //     at once. A row a quest step, a quest's wall or a GM portal names is
-//     refused. /delete undo puts the GM's last delete back, in the world at
+//     refused. /delete undo puts the last delete back, any GM's (the owner, 2026-11-12), in the world at
 //     once; the GM panel's audit log reverts each line too.
 //   - /clone: a copy of the target's row (every column, its npc_id, so a
 //     merchant sells the same) where the GM stands, facing as the GM faces,
@@ -257,7 +257,7 @@ func (h *ChatHandler) deleteCommand(sess *session.Session, player *entity.Player
 		return
 	}
 	if len(args) > 0 {
-		h.gmReply(sess, "Usage: /delete - your target creature's row deleted for good; /delete undo puts your last back")
+		h.gmReply(sess, "Usage: /delete - your target creature's row deleted for good; /delete undo puts the last delete back, any GM's, the one before at each press")
 		return
 	}
 	id, rec, ok := h.npcRowTarget(sess, player, "/delete")
@@ -303,7 +303,7 @@ func (h *ChatHandler) deleteUndo(sess *session.Session, player *entity.Player) {
 		h.gmReply(sess, "/delete undo: "+err.Error())
 		return
 	case !ok:
-		h.gmReply(sess, "You have deleted nothing that is not back already.")
+		h.gmReply(sess, "No delete is left to put back.")
 		return
 	}
 	h.reloadNPCExtras(r.Tables)
@@ -329,7 +329,11 @@ func (h *ChatHandler) deleteUndo(sess *session.Session, player *entity.Player) {
 		// each press the one before (the owner, 2026-11-12: "keep going if press again")
 		more = fmt.Sprintf(" /delete undo again puts back the one before (%d more).", n)
 	}
-	h.gmReply(sess, fmt.Sprintf("Put back %s (row %d) with %s.%s%s", r.Name, r.ID, strings.Join(r.Tables, ", "), live, more))
+	whose := ""
+	if r.By != "" {
+		whose = " (deleted by " + r.By + ")"
+	}
+	h.gmReply(sess, fmt.Sprintf("Put back %s (row %d)%s with %s.%s%s", r.Name, r.ID, whose, strings.Join(r.Tables, ", "), live, more))
 	log.Printf("GM: %s put back NPC %d (%s): %v", player.Name, r.ID, r.Name, r.Tables)
 }
 

@@ -147,11 +147,29 @@ func serializePlate(objectID uint32, board *NPC) []byte {
 	return plateBytes(objectID, p)
 }
 
+// plateLoco is a plate's locomotion (byte 58), which holds its body still
+// (the owner, 2026-11-12: "the bulletin board name plates move with the
+// invisible idle of the placeholder"). CLIENT's name plate hangs on the
+// body's name node (VICSprite::SetName's Attach), so it rides the body's
+// animation: the idle (0) breathes, and every 20-40 s SetAnimation swaps in
+// the fidget (15), so the plate swayed and bobbed. Slot 63 is no slot of the
+// human's or of any NPC body sampled: VICSprite::SetDefaultEntries fills it
+// with the idle at sync 1, played once, and UpdateCreatures' SetLocomotion of
+// the same state every frame never restarts it (SetAnimation: the same id
+// with a play is done), so the body holds the idle's last frame from then on.
+// Measured through vanilla's port (bit for bit the decomp's), the human's
+// name node stands at 2.096 (humanPlate, as at rest) and moves by nothing
+// once its one play ends (1.85 s); on the idle the human's swings 0.30 x
+// 0.22 across and 0.044 up and down. 55 bodies (the 40 most used NPC bodies
+// and the 20 player bodies) all stand still on 63 within 3 s.
+const plateLoco byte = 63
+
 // plateBytes is p's channel as a plate: not selectable, never a fight's, its
-// skins hidden, nothing held.
+// skins hidden, nothing held, holding still (plateLoco).
 func plateBytes(objectID uint32, p *NPC) []byte {
 	buf := SerializeNPCUpdate(objectID, p)
-	buf[26] = 0  // not selectable (CLIENT's VIEntity +0x18 bit 0)
+	buf[26] = 0 // not selectable (CLIENT's VIEntity +0x18 bit 0)
+	buf[58] = plateLoco
 	buf[143] = 0 // never a fight's
 	buf[154] = 1 // skins hidden: the name alone shows
 	binary.LittleEndian.PutUint32(buf[59:63], 0)

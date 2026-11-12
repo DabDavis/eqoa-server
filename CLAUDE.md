@@ -2602,6 +2602,13 @@ before answers 1 and reads the records as ever. Kept over a keep restart (`KeptG
 5. `stateSyncSystem()` — updates channel 0 every tick
 6. `statChannelSyncSystem()` — updates stat channel every 20 ticks
 7. `visibilitySystem()` — assigns nearby entities to channels 1-23 (or the client's own number of slots) every 5 ticks
+   **A board brings its name plate** (`entity/boardplate.go`; the owner, 2026-11-12: "for the bulletin board lets add a
+   nameplate above"): CLIENT plates only a CSprite with a name node, and no board body has one (the papered board is a
+   SimpleSprite; the sign post and 0x6DE5B2CC have no name node), so each board in view (the papered board by its body, an
+   announcement board / Guild Board / Duel Tournament Board by its name on those bodies) is followed by a second entity: a
+   human body under the board's name, skins hidden (byte 154), not selectable (byte 26 = 0), sized so its name stands 0.5 over
+   the board's top. Not in `World.NPCs` nor the spatial index (id `0x6F000000` + the board's); a keep restart keeps it
+   (kind `plate`). It takes one of a PS2's 23 slots beside its board.
 
 ### Handler Pattern
 

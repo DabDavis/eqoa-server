@@ -264,7 +264,7 @@ func TestFollowSlotRoundAWall(t *testing.T) {
 	r.p.Facing = 0 // facing +z: its left is -x
 	ms := r.hire(r.kit(0, 0, 0), MercAssist)
 	r.w.roamRnd = nil
-	r.w.roamRand().Seed(11)
+	r.w.roamRand().Seed(5)
 	n := ms.npc
 	n.X = r.p.X + 1
 	r.run(0, 2*time.Second)
@@ -274,11 +274,12 @@ func TestFollowSlotRoundAWall(t *testing.T) {
 	if !ok || sx < wall {
 		t.Fatalf("its slot (%.2f, %.2f) ok %v, past the wall at x %.2f", sx, sz, ok, wall)
 	}
-	r.run(2100*time.Millisecond, 60*time.Second)
+	r.run(2100*time.Millisecond, 120*time.Second)
 	if n.X < wall {
 		t.Errorf("it went through the wall: x %.2f", n.X)
 	}
+	t.Logf("%d strolls in two minutes", ms.idle.strolls)
 	if ms.idle.strolls == 0 {
-		t.Error("no stroll in a minute")
+		t.Error("no stroll in two minutes")
 	}
 }

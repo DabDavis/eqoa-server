@@ -7,19 +7,23 @@ import (
 	"time"
 )
 
-// charmerc: each character's hired mercenary (handlers/merc.go,
-// entity/merc.go), a row a character, kept until it is dismissed so the merc
-// comes back at the next login and through any restart: its name, class,
-// race and sex, its face and hair as the liaison chose them, its stance, and
-// when the rest after its death ends (UTC, RFC 3339; ” none). hired is when
-// (UTC, RFC 3339). path is the class path its book takes (handlers/mercpath.go:
-// the index of its class's path, -1 its class's default; the owner,
-// 2026-11-11: "lets add path choice to each merc"). pet is the kind of pet its
-// hirer picked (handlers/mercpetkind.go: "air", "bones"; ” its best:
-// petition 1564).
+// charmerc: each character's hired mercenaries (handlers/merc.go,
+// entity/merc.go), a row a merc, up to MercSlots a character (the owner,
+// 2026-11-12: "if a player wants to have 3 mercenaries in their group it is
+// fine"), each under its slot (1 to MercSlots: /merc 2, its follow place),
+// kept until it is dismissed so the merc comes back at the next login and
+// through any restart: its name, class, race and sex, its face and hair as
+// the liaison chose them, its stance, and when the rest after its death ends
+// (UTC, RFC 3339; ” none). hired is when (UTC, RFC 3339). path is the class
+// path its book takes (handlers/mercpath.go: the index of its class's path,
+// -1 its class's default; the owner, 2026-11-11: "lets add path choice to each
+// merc"). pet is the kind of pet its hirer picked (handlers/mercpetkind.go:
+// "air", "bones"; ” its best: petition 1564). A merc on standby (out of a
+// full group for a player: entity/mercbench.go) keeps its row as it is.
 const charMercSchema = `
 	CREATE TABLE IF NOT EXISTS charmerc (
-		serverid    INTEGER PRIMARY KEY,
+		serverid    INTEGER NOT NULL,
+		slot        INTEGER NOT NULL DEFAULT 1,
 		name        TEXT NOT NULL,
 		class       INTEGER NOT NULL,
 		race        INTEGER NOT NULL,
@@ -32,8 +36,12 @@ const charMercSchema = `
 		dead_until  TEXT NOT NULL DEFAULT '',
 		hired       TEXT NOT NULL DEFAULT '',
 		path        INTEGER NOT NULL DEFAULT -1,
-		pet         TEXT NOT NULL DEFAULT ''
+		pet         TEXT NOT NULL DEFAULT '',
+		PRIMARY KEY (serverid, slot)
 	);`
+
+// MercSlots is how many mercs a character may have hired at once.
+const MercSlots = 3
 
 // familiars: what a familiar is and does, by the item whose Use calls it
 // (handlers/familiar.go, entity/familiar.go; the GM Jibrish's petition 1445,
@@ -62,27 +70,28 @@ const familiarsSchema = `
 
 // ensureMercs makes tables charmerc and familiars (initSchema).
 func (db *SQLiteDB) ensureMercs() error {
+	var n int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'charmerc'`).Scan(&n); err != nil {
+		return fmt.Errorf("charmerc: %w", err)
+	}
+	if n > 0 {
+		// path, then pet, to a table made before them
+		for _, col := range []struct{ name, def string }{{"path", "INTEGER NOT NULL DEFAULT -1"}, {"pet", "TEXT NOT NULL DEFAULT ''"}} {
+			if err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('charmerc') WHERE name = ?`, col.name).Scan(&n); err != nil {
+				return fmt.Errorf("charmerc: %w", err)
+			}
+			if n == 0 {
+				if _, err := db.Exec(`ALTER TABLE charmerc ADD COLUMN ` + col.name + ` ` + col.def); err != nil {
+					return fmt.Errorf("charmerc: its %s column: %w", col.name, err)
+				}
+			}
+		}
+		if err := db.mercSlotsTable(); err != nil {
+			return err
+		}
+	}
 	if _, err := db.Exec(charMercSchema); err != nil {
 		return fmt.Errorf("charmerc: %w", err)
-	}
-	// path, to a table made before it
-	var n int
-	if err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('charmerc') WHERE name = 'path'`).Scan(&n); err != nil {
-		return fmt.Errorf("charmerc: %w", err)
-	}
-	if n == 0 {
-		if _, err := db.Exec(`ALTER TABLE charmerc ADD COLUMN path INTEGER NOT NULL DEFAULT -1`); err != nil {
-			return fmt.Errorf("charmerc: its path column: %w", err)
-		}
-	}
-	// pet, to a table made before it
-	if err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('charmerc') WHERE name = 'pet'`).Scan(&n); err != nil {
-		return fmt.Errorf("charmerc: %w", err)
-	}
-	if n == 0 {
-		if _, err := db.Exec(`ALTER TABLE charmerc ADD COLUMN pet TEXT NOT NULL DEFAULT ''`); err != nil {
-			return fmt.Errorf("charmerc: its pet column: %w", err)
-		}
 	}
 	if _, err := db.Exec(familiarsSchema); err != nil {
 		return fmt.Errorf("familiars: %w", err)
@@ -90,9 +99,40 @@ func (db *SQLiteDB) ensureMercs() error {
 	return nil
 }
 
-// MercRow is a character's hire.
+// mercSlotsTable makes a table of one merc a character (its key the
+// character's id alone, before 2026-11-12) the table of slots: each row its
+// slot 1, in one transaction.
+func (db *SQLiteDB) mercSlotsTable() error {
+	var n int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('charmerc') WHERE name = 'slot'`).Scan(&n); err != nil {
+		return fmt.Errorf("charmerc: %w", err)
+	}
+	if n > 0 {
+		return nil
+	}
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("charmerc: %w", err)
+	}
+	defer tx.Rollback()
+	const cols = `serverid, name, class, race, sex, face, hair_color, hair_length, hair_style, stance, dead_until, hired, path, pet`
+	for _, q := range []string{
+		`ALTER TABLE charmerc RENAME TO charmerc_one`,
+		charMercSchema,
+		`INSERT INTO charmerc (slot, ` + cols + `) SELECT 1, ` + cols + ` FROM charmerc_one`,
+		`DROP TABLE charmerc_one`,
+	} {
+		if _, err := tx.Exec(q); err != nil {
+			return fmt.Errorf("charmerc: its slots: %w", err)
+		}
+	}
+	return tx.Commit()
+}
+
+// MercRow is one of a character's hires.
 type MercRow struct {
 	ServerID                               uint32
+	Slot                                   int // 1 to MercSlots (0 writes as 1)
 	Name                                   string
 	Class, Race, Sex                       int
 	Face, HairColor, HairLength, HairStyle int
@@ -103,25 +143,53 @@ type MercRow struct {
 	Hired                                  time.Time
 }
 
-// Merc is the character's hire, false for none.
-func (db *SQLiteDB) Merc(serverID uint32) (MercRow, bool, error) {
+const mercCols = `serverid, slot, name, class, race, sex, face, hair_color, hair_length, hair_style, stance, dead_until, hired, path, pet`
+
+// scanMerc reads a row of mercCols.
+func scanMerc(sc interface{ Scan(...any) error }) (MercRow, error) {
 	var r MercRow
 	var dead, hired string
-	err := db.QueryRow(`SELECT serverid, name, class, race, sex, face, hair_color, hair_length, hair_style, stance, dead_until, hired,
-		path, pet FROM charmerc WHERE serverid = ?`, serverID).Scan(&r.ServerID, &r.Name, &r.Class, &r.Race, &r.Sex, &r.Face, &r.HairColor,
-		&r.HairLength, &r.HairStyle, &r.Stance, &dead, &hired, &r.Path, &r.Pet)
+	if err := sc.Scan(&r.ServerID, &r.Slot, &r.Name, &r.Class, &r.Race, &r.Sex, &r.Face, &r.HairColor, &r.HairLength, &r.HairStyle,
+		&r.Stance, &dead, &hired, &r.Path, &r.Pet); err != nil {
+		return MercRow{}, err
+	}
+	r.DeadUntil, _ = time.Parse(time.RFC3339, dead)
+	r.Hired, _ = time.Parse(time.RFC3339, hired)
+	return r, nil
+}
+
+// Merc is the character's hire of the slot, false for none.
+func (db *SQLiteDB) Merc(serverID uint32, slot int) (MercRow, bool, error) {
+	r, err := scanMerc(db.QueryRow(`SELECT `+mercCols+` FROM charmerc WHERE serverid = ? AND slot = ?`, serverID, max(slot, 1)))
 	if errors.Is(err, sql.ErrNoRows) {
 		return MercRow{}, false, nil
 	}
 	if err != nil {
 		return MercRow{}, false, err
 	}
-	r.DeadUntil, _ = time.Parse(time.RFC3339, dead)
-	r.Hired, _ = time.Parse(time.RFC3339, hired)
 	return r, true, nil
 }
 
-// SetMerc writes the character's hire in place of any it had.
+// Mercs is the character's hires, by slot.
+func (db *SQLiteDB) Mercs(serverID uint32) ([]MercRow, error) {
+	rows, err := db.Query(`SELECT `+mercCols+` FROM charmerc WHERE serverid = ? ORDER BY slot`, serverID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []MercRow
+	for rows.Next() {
+		r, err := scanMerc(rows)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, r)
+	}
+	return out, rows.Err()
+}
+
+// SetMerc writes the character's hire of the row's slot in place of any it
+// had there.
 func (db *SQLiteDB) SetMerc(r MercRow) error {
 	dead, hired := "", ""
 	if !r.DeadUntil.IsZero() {
@@ -130,44 +198,49 @@ func (db *SQLiteDB) SetMerc(r MercRow) error {
 	if !r.Hired.IsZero() {
 		hired = r.Hired.UTC().Format(time.RFC3339)
 	}
-	_, err := db.Exec(`INSERT OR REPLACE INTO charmerc (serverid, name, class, race, sex, face, hair_color, hair_length, hair_style,
-		stance, dead_until, hired, path, pet) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, r.ServerID, r.Name, r.Class, r.Race, r.Sex,
-		r.Face, r.HairColor, r.HairLength, r.HairStyle, r.Stance, dead, hired, r.Path, r.Pet)
+	_, err := db.Exec(`INSERT OR REPLACE INTO charmerc (`+mercCols+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, r.ServerID,
+		max(r.Slot, 1), r.Name, r.Class, r.Race, r.Sex, r.Face, r.HairColor, r.HairLength, r.HairStyle, r.Stance, dead, hired, r.Path, r.Pet)
 	return err
 }
 
 // SetMercPath keeps the character's merc's class path (-1 its class's
 // default).
-func (db *SQLiteDB) SetMercPath(serverID uint32, path int) error {
-	_, err := db.Exec(`UPDATE charmerc SET path = ? WHERE serverid = ?`, path, serverID)
+func (db *SQLiteDB) SetMercPath(serverID uint32, slot, path int) error {
+	_, err := db.Exec(`UPDATE charmerc SET path = ? WHERE serverid = ? AND slot = ?`, path, serverID, max(slot, 1))
 	return err
 }
 
 // SetMercPet keeps the pet kind the character's merc summons ("" its best).
-func (db *SQLiteDB) SetMercPet(serverID uint32, pet string) error {
-	_, err := db.Exec(`UPDATE charmerc SET pet = ? WHERE serverid = ?`, pet, serverID)
+func (db *SQLiteDB) SetMercPet(serverID uint32, slot int, pet string) error {
+	_, err := db.Exec(`UPDATE charmerc SET pet = ? WHERE serverid = ? AND slot = ?`, pet, serverID, max(slot, 1))
 	return err
 }
 
 // SetMercStance keeps the character's merc's stance.
-func (db *SQLiteDB) SetMercStance(serverID uint32, stance int) error {
-	_, err := db.Exec(`UPDATE charmerc SET stance = ? WHERE serverid = ?`, stance, serverID)
+func (db *SQLiteDB) SetMercStance(serverID uint32, slot, stance int) error {
+	_, err := db.Exec(`UPDATE charmerc SET stance = ? WHERE serverid = ? AND slot = ?`, stance, serverID, max(slot, 1))
 	return err
 }
 
 // SetMercRest keeps when the character's merc's rest after its death ends
 // (zero: alive again).
-func (db *SQLiteDB) SetMercRest(serverID uint32, until time.Time) error {
+func (db *SQLiteDB) SetMercRest(serverID uint32, slot int, until time.Time) error {
 	v := ""
 	if !until.IsZero() {
 		v = until.UTC().Format(time.RFC3339)
 	}
-	_, err := db.Exec(`UPDATE charmerc SET dead_until = ? WHERE serverid = ?`, v, serverID)
+	_, err := db.Exec(`UPDATE charmerc SET dead_until = ? WHERE serverid = ? AND slot = ?`, v, serverID, max(slot, 1))
 	return err
 }
 
-// DeleteMerc ends the character's hire.
-func (db *SQLiteDB) DeleteMerc(serverID uint32) error {
+// DeleteMerc ends the character's hire of the slot.
+func (db *SQLiteDB) DeleteMerc(serverID uint32, slot int) error {
+	_, err := db.Exec(`DELETE FROM charmerc WHERE serverid = ? AND slot = ?`, serverID, max(slot, 1))
+	return err
+}
+
+// DeleteMercs ends every hire of the character's (its deletion).
+func (db *SQLiteDB) DeleteMercs(serverID uint32) error {
 	_, err := db.Exec(`DELETE FROM charmerc WHERE serverid = ?`, serverID)
 	return err
 }

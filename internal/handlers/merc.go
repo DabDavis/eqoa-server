@@ -34,9 +34,13 @@ import (
 // enchanter, wizard and alchemist), a race (its owner's own, any of the game's
 // ten, and with world.open_races the froglok and every racedefs race creation
 // offers: entity.CreationRaces), and a sex where the race has two bodies. Any
-// race takes any class. A new hire takes the place of one out; one a
-// character, kept in table charmerc (its name, class, race, sex, face and hair,
-// stance, the end of its rest after a death) until dismissed.
+// race takes any class. A character hires up to three (the owner,
+// 2026-11-12: "if a player wants to have 3 mercenaries in their group it is
+// fine"), each in a slot of its own (1 to 3, the first free taken; with three
+// the liaison hires no more until one is dismissed), kept in table charmerc
+// (its name, class, race, sex, face and hair, stance, the end of its rest
+// after a death) until dismissed. One with no place in its owner's group goes
+// on standby and comes back when a place frees (entity/mercbench.go).
 //
 // Its kit (mercKit) is what a player of its class, race and level would have
 // of the Heirloom Outfitters: the class's heirloom of each slot (the seed's
@@ -52,11 +56,14 @@ import (
 // give, no mastery's). The kit is made again when its owner's level changes
 // (entity.MercNoteLevel) and at every coming.
 //
-// It comes back at its owner's login (OnPlayerEntered), unless it rests after
-// a death (entity.MercRest, then /merc); through a keep restart it is carried
-// as it was (keep.go's restoreMerc). /merc (chat.go: "/merc", "#merc", a PS2's
-// "/t merc ...") is its commands: its state, stance, follow, stay, attack,
-// group, revive and dismiss.
+// Each comes back at its owner's login (OnPlayerEntered), unless it rests
+// after a death (entity.MercRest, then /merc); through a keep restart it is
+// carried as it was, on standby or out (keep.go's restoreMerc). /merc
+// (chat.go: "/merc", "#merc", a PS2's "/t merc ...") is its commands: its
+// state, stance, follow, stay, attack, group, revive and dismiss, each for
+// one merc named by its slot or its name (first or last: "/merc 2 stay",
+// "/merc dismiss Ithiel"), else for every one out (stance, follow, stay,
+// attack, charm, group, revive), else for the one hired (dismiss, path, pet).
 
 // MercLiaisonName is the liaison's name: an NPC of it is one. Since
 // 2026-11-11 it is a bulletin board (the owner: "change mercenary liason NPC
@@ -90,17 +97,19 @@ func MercsOn() bool { return mercsOn.Load() }
 // The liaison's words and the merc's lines (ours). A question is 127
 // characters at most (questAskChars).
 const (
-	mercAskRole   = "Mercenary Recruitment: 'Which calling do you need? A mercenary fights at your level for nothing, one at a time.'"
+	mercAskRole   = "Mercenary Recruitment: 'Which calling do you need? A mercenary fights at your level for nothing, up to three at a time.'"
 	mercAskClass  = "Mercenary Recruitment: 'Which kind of %s?'"
 	mercAskRace   = "Mercenary Recruitment: 'Of which race?'"
 	mercAskSex    = "Mercenary Recruitment: 'A man or a woman?'"
-	mercHiredLine = "%s the %s %s is yours. Type /merc to see what it heeds."
+	mercHiredLine = "%s the %s %s is yours (mercenary %d of 3). Type /merc to see what it heeds."
+	mercFullLine  = "You have three mercenaries already. /merc dismiss <name or 1-3> lets one go first."
+	mercWhichLine = "Name which mercenary: /merc <name or 1-3> %s. Yours: %s."
 	mercOffLine   = "Mercenaries are off on this server."
 	mercNoneLine  = "You have no mercenary. The Mercenary Recruitment board, beside each city's announcements board, hires one for nothing."
 	mercRestLine  = "Your mercenary %s rests for %d more seconds."
 	mercBackLine  = "Your mercenary %s is back at your side."
 	mercKitFailed = "The liaison's ledger is out of order. Try again."
-	mercHelpLine  = "/merc stance passive|assist|aggressive, /merc follow, /merc stay, /merc attack (your target), /merc path, /merc pet, /merc charm [off], /merc group, /merc revive, /merc dismiss. /familiar dismiss sends a familiar away."
+	mercHelpLine  = "/merc [name or 1-3] stance passive|assist|aggressive, follow, stay, attack (your target), path, pet, charm [off], group, revive, dismiss: with no name, every merc out. /familiar dismiss sends a familiar away."
 )
 
 // mercRoles are the liaison's first answers, each role's classes in their
@@ -382,15 +391,29 @@ func mercName(serverID uint32, class, race int, at time.Time) string {
 	return namePrefixes[v%uint32(len(namePrefixes))] + nameSuffixes[(v/uint32(len(namePrefixes)))%uint32(len(nameSuffixes))]
 }
 
-// hire makes the merc of class, race and sex the player's: its row (its look
-// chosen now), its kit at the player's level, beside it in the World, a line.
-// A refusal (a full group, the dead) is said and keeps the old hire.
+// hire makes the merc of class, race and sex the player's, in its first free
+// slot: its row (its look chosen now), its kit at the player's level, beside
+// it in the World (or on standby: entity/mercbench.go), a line. With three
+// hired, the liaison says so; a refusal (the dead) is said.
 func (m *Mercs) hire(sess *session.Session, p *entity.Player, class, race, sex int) {
 	if _, ok := mercRaceOf(race, p.Race); !ok || class < 0 || class > 14 {
 		return
 	}
+	slot := 1
+	if m.db != nil {
+		rows, err := m.db.Mercs(p.CharServerID)
+		if err != nil {
+			log.Printf("Merc: %s's hires: %v", p.Name, err)
+			mercSay(sess, mercKitFailed)
+			return
+		}
+		if slot = mercFreeSlot(rows); slot == 0 {
+			mercSay(sess, mercFullLine)
+			return
+		}
+	}
 	now := m.now()
-	row := database.MercRow{ServerID: p.CharServerID, Name: mercName(p.CharServerID, class, race, now), Class: class, Race: race,
+	row := database.MercRow{ServerID: p.CharServerID, Slot: slot, Name: mercName(p.CharServerID, class, race, now), Class: class, Race: race,
 		Sex: min(max(sex, 0), 1), Stance: int(entity.MercAssist), Hired: now, Path: -1}
 	row.Face, row.HairColor, row.HairLength, row.HairStyle = m.look(race, row.Sex, row.Name)
 	kit, err := m.kit(row, p.Level)
@@ -399,7 +422,7 @@ func (m *Mercs) hire(sess *session.Session, p *entity.Player, class, race, sex i
 		mercSay(sess, mercKitFailed)
 		return
 	}
-	name, why := m.gw.HireMerc(sess, kit, entity.MercStance(row.Stance), now)
+	name, why, _ := m.gw.HireMercAt(sess, slot, kit, entity.MercStance(row.Stance), now)
 	if why != "" {
 		mercSay(sess, why)
 		return
@@ -409,11 +432,25 @@ func (m *Mercs) hire(sess *session.Session, p *entity.Player, class, race, sex i
 			log.Printf("Merc: %s's hire of %q not kept: %v", p.Name, name, err)
 		}
 	}
-	log.Printf("Merc: %s hires %q (%s %s, sex %d)", p.Name, name, entity.RaceName(race), entity.ClassName(class), row.Sex)
-	mercSay(sess, fmt.Sprintf(mercHiredLine, name, entity.RaceName(race), entity.ClassName(class)))
+	log.Printf("Merc: %s hires %q (slot %d: %s %s, sex %d)", p.Name, name, slot, entity.RaceName(race), entity.ClassName(class), row.Sex)
+	mercSay(sess, fmt.Sprintf(mercHiredLine, name, entity.RaceName(race), entity.ClassName(class), slot))
 	if k := mercPathOf(class, row.Path); k >= 0 {
 		SendClientMessage(sess, fmt.Sprintf(mercPathIsLine, name, mercPathName(class, k)))
 	}
+}
+
+// mercFreeSlot is the first slot no row of rows holds, 0 for none.
+func mercFreeSlot(rows []database.MercRow) int {
+	taken := map[int]bool{}
+	for _, r := range rows {
+		taken[r.Slot] = true
+	}
+	for s := 1; s <= database.MercSlots; s++ {
+		if !taken[s] {
+			return s
+		}
+	}
+	return 0
 }
 
 // look is a merc's face and hair: one of the looks this server's NPCs of its
@@ -656,19 +693,50 @@ func (m *Mercs) heirlooms(class, race, level int) ([]database.CharInventoryEntry
 	return out, nil
 }
 
-// comeBack brings a player's merc back at its login (OnPlayerEntered): its
-// row's, at the player's level, unless it rests after its death (said) or
-// mercenaries are off.
+// comeBack brings a player's mercs back at its login (OnPlayerEntered), or
+// out of the arena (slot 0: entity.MercNoteBack): each row's, at the
+// player's level, by slot, unless it rests after its death (said), is out
+// already, or mercenaries are off; one with no place in its owner's group
+// goes on standby (entity/mercbench.go).
 func (m *Mercs) comeBack(sess *session.Session, p *entity.Player) {
 	if !MercsOn() || m.db == nil {
 		return
 	}
-	row, ok, err := m.db.Merc(p.CharServerID)
-	if err != nil || !ok {
-		if err != nil {
-			log.Printf("Merc: %s's hire: %v", p.Name, err)
-		}
+	rows, err := m.db.Mercs(p.CharServerID)
+	if err != nil {
+		log.Printf("Merc: %s's hires: %v", p.Name, err)
 		return
+	}
+	for _, row := range rows {
+		m.comeBackRow(sess, p, row)
+	}
+}
+
+// comeBackSlot brings the player's merc of the slot back (entity.MercNoteBack:
+// a place freed for it on standby, or its owner out of the arena), as at a
+// login; its row gone, its standby is let go.
+func (m *Mercs) comeBackSlot(sess *session.Session, p *entity.Player, slot int) {
+	if !MercsOn() || m.db == nil {
+		return
+	}
+	row, ok, err := m.db.Merc(p.CharServerID, slot)
+	if err != nil {
+		log.Printf("Merc: %s's hire of slot %d: %v", p.Name, slot, err)
+		return
+	}
+	if !ok {
+		m.gw.DropStandby(sess, slot)
+		return
+	}
+	m.comeBackRow(sess, p, row)
+}
+
+// comeBackRow brings the row's merc back unless it is out already or rests.
+func (m *Mercs) comeBackRow(sess *session.Session, p *entity.Player, row database.MercRow) {
+	for _, info := range m.gw.MercInfosOf(sess) {
+		if info.Slot == row.Slot {
+			return
+		}
 	}
 	now := m.now()
 	if now.Before(row.DeadUntil) {
@@ -678,8 +746,9 @@ func (m *Mercs) comeBack(sess *session.Session, p *entity.Player) {
 	m.bring(sess, p, row, now)
 }
 
-// bring puts the row's merc beside the player, made at its level, its rest
-// ended in the row. It reports whether it came.
+// bring puts the row's merc beside the player (or on standby: said by the
+// World), made at its level, its rest ended in the row. It reports whether it
+// came.
 func (m *Mercs) bring(sess *session.Session, p *entity.Player, row database.MercRow, now time.Time) bool {
 	kit, err := m.kit(row, p.Level)
 	if err != nil {
@@ -687,15 +756,18 @@ func (m *Mercs) bring(sess *session.Session, p *entity.Player, row database.Merc
 		SendErrorMessage(sess, mercKitFailed)
 		return false
 	}
-	name, why := m.gw.HireMerc(sess, kit, entity.MercStance(row.Stance), now)
+	name, why, standby := m.gw.HireMercAt(sess, row.Slot, kit, entity.MercStance(row.Stance), now)
 	if why != "" {
 		SendErrorMessage(sess, why)
 		return false
 	}
 	if !row.DeadUntil.IsZero() {
-		if err := m.db.SetMercRest(row.ServerID, time.Time{}); err != nil {
+		if err := m.db.SetMercRest(row.ServerID, row.Slot, time.Time{}); err != nil {
 			log.Printf("Merc: %s's %q's rest not ended: %v", p.Name, name, err)
 		}
+	}
+	if standby {
+		return false
 	}
 	SendClientMessage(sess, fmt.Sprintf(mercBackLine, name))
 	return true
@@ -703,47 +775,57 @@ func (m *Mercs) bring(sess *session.Session, p *entity.Player, row database.Merc
 
 // note keeps a merc's event (entity.OnMercNote, off the World's lock): a
 // death's rest, a dismissal by another's hand, its owner's new level's kit,
-// its owner out of the arena it waited outside of.
+// its owner out of the arena it waited outside of, a place freed for it on
+// standby.
 func (m *Mercs) note(n entity.MercNote) {
 	if m.db == nil || n.Owner == nil {
 		return
 	}
 	switch n.Kind {
 	case entity.MercNoteDied:
-		if err := m.db.SetMercRest(n.Owner.CharServerID, n.Until); err != nil {
+		if err := m.db.SetMercRest(n.Owner.CharServerID, n.Slot, n.Until); err != nil {
 			log.Printf("Merc: %s's %q's rest not kept: %v", n.Owner.Name, n.Name, err)
 		}
 	case entity.MercNoteDismissed:
-		if err := m.db.DeleteMerc(n.Owner.CharServerID); err != nil {
+		if err := m.db.DeleteMerc(n.Owner.CharServerID, n.Slot); err != nil {
 			log.Printf("Merc: %s's %q's hire not ended: %v", n.Owner.Name, n.Name, err)
 		}
 	case entity.MercNoteLevel:
 		go m.rekit(n.Owner.CharServerID, n.Level)
 	case entity.MercNoteBack:
 		// its owner out of capture the flag's arena, where it waited
-		// (entity/ctfaway.go): back from its row as at a login
-		if n.Sess != nil {
+		// (entity/ctfaway.go), or a place freed for it on standby
+		// (entity/mercbench.go): back from its row as at a login
+		if n.Sess == nil {
+			break
+		}
+		if n.Slot == 0 {
 			go m.comeBack(n.Sess, n.Owner)
+		} else {
+			go m.comeBackSlot(n.Sess, n.Owner, n.Slot)
 		}
 	}
 }
 
-// rekit makes the character's merc's kit at its owner's new level and gives
-// it to the World.
+// rekit makes the character's mercs' kits at its owner's new level (or its
+// rows' new path or pet) and gives them to the World, each one out taking it.
 func (m *Mercs) rekit(serverID uint32, level int) {
-	row, ok, err := m.db.Merc(serverID)
-	if err != nil || !ok {
-		return
-	}
-	kit, err := m.kit(row, level)
+	rows, err := m.db.Mercs(serverID)
 	if err != nil {
-		log.Printf("Merc: %q's kit at level %d: %v", row.Name, level, err)
 		return
 	}
-	m.gw.SetMercKit(serverID, kit)
+	for _, row := range rows {
+		kit, err := m.kit(row, level)
+		if err != nil {
+			log.Printf("Merc: %q's kit at level %d: %v", row.Name, level, err)
+			continue
+		}
+		m.gw.SetMercKit(serverID, row.Slot, kit)
+	}
 }
 
-// Command is /merc and its words (chat.go's routing).
+// Command is /merc and its words (chat.go's routing): a merc named by its slot
+// or its name, first or last (the file's doc), then the verb.
 func (m *Mercs) Command(sess *session.Session, p *entity.Player, args string) {
 	if m == nil || m.gw == nil || p == nil {
 		return
@@ -752,16 +834,40 @@ func (m *Mercs) Command(sess *session.Session, p *entity.Player, args string) {
 		SendErrorMessage(sess, mercOffLine)
 		return
 	}
+	var rows []database.MercRow
+	if m.db != nil {
+		rows, _ = m.db.Mercs(p.CharServerID)
+	}
 	words := strings.Fields(strings.ToLower(args))
+	slot := 0
+	if len(words) > 0 && !mercVerbs[words[0]] {
+		if s, ok := mercPicked(rows, words[0]); ok {
+			slot, words = s, words[1:]
+		}
+	}
+	if slot == 0 && len(words) > 1 {
+		if s, ok := mercPicked(rows, words[len(words)-1]); ok {
+			slot, words = s, words[:len(words)-1]
+		}
+	}
 	verb := ""
 	if len(words) > 0 {
 		verb = words[0]
 	}
+	out := func(n int) bool {
+		if n == 0 {
+			SendErrorMessage(sess, mercNoneOut(slot, rows))
+			return false
+		}
+		return true
+	}
 	switch verb {
-	case "", "status", "revive":
-		m.status(sess, p, verb == "revive")
+	case "", "status", "revive", "list":
+		m.status(sess, p, rows, slot, verb == "revive")
 	case "dismiss":
-		m.dismiss(sess, p)
+		if slot = m.oneSlot(sess, rows, slot, "dismiss"); slot > 0 {
+			m.dismiss(sess, p, slot)
+		}
 	case "stance":
 		if len(words) < 2 {
 			SendErrorMessage(sess, "/merc stance passive, assist or aggressive.")
@@ -772,19 +878,21 @@ func (m *Mercs) Command(sess *session.Session, p *entity.Player, args string) {
 			SendErrorMessage(sess, "/merc stance passive, assist or aggressive.")
 			return
 		}
-		if !m.gw.SetMercStance(sess, s) {
-			SendErrorMessage(sess, "You have no mercenary out.")
+		if !out(m.gw.SetMercStance(sess, slot, s)) {
 			return
 		}
 		if m.db != nil {
-			if err := m.db.SetMercStance(p.CharServerID, int(s)); err != nil {
-				log.Printf("Merc: %s's stance not kept: %v", p.Name, err)
+			for _, r := range rows {
+				if slot == 0 || r.Slot == slot {
+					if err := m.db.SetMercStance(p.CharServerID, r.Slot, int(s)); err != nil {
+						log.Printf("Merc: %s's stance not kept: %v", p.Name, err)
+					}
+				}
 			}
 		}
 		SendClientMessage(sess, mercStanceWords[s])
 	case "follow", "stay":
-		if !m.gw.SetMercStay(sess, verb == "stay") {
-			SendErrorMessage(sess, "You have no mercenary out.")
+		if !out(m.gw.SetMercStay(sess, slot, verb == "stay")) {
 			return
 		}
 		if verb == "stay" {
@@ -793,22 +901,26 @@ func (m *Mercs) Command(sess *session.Session, p *entity.Player, args string) {
 			SendClientMessage(sess, "Your mercenary follows you.")
 		}
 	case "attack":
-		name, why := m.gw.MercAttack(sess)
+		name, why := m.gw.MercAttack(sess, slot)
 		if why != "" {
 			SendErrorMessage(sess, why)
 			return
 		}
 		SendClientMessage(sess, "Your mercenary attacks "+name+".")
 	case "path":
-		m.path(sess, p, strings.Join(words[1:], " "))
+		if slot = m.oneSlot(sess, rows, slot, "path"); slot > 0 {
+			m.path(sess, p, slot, strings.Join(words[1:], " "))
+		}
 	case "pet":
-		m.pet(sess, p, strings.Join(words[1:], " ")) // mercpetkind.go
+		if slot = m.oneSlot(sess, rows, slot, "pet"); slot > 0 {
+			m.pet(sess, p, slot, strings.Join(words[1:], " ")) // mercpetkind.go
+		}
 	case "charm": // entity/mercharm.go
 		var line, why string
 		if len(words) > 1 && (words[1] == "off" || words[1] == "release") {
-			line, why = m.gw.MercCharmOff(sess)
+			line, why = m.gw.MercCharmOff(sess, slot)
 		} else {
-			line, why = m.gw.MercCharm(sess, m.now())
+			line, why = m.gw.MercCharm(sess, slot, m.now())
 		}
 		if why != "" {
 			SendErrorMessage(sess, why)
@@ -824,17 +936,76 @@ func (m *Mercs) Command(sess *session.Session, p *entity.Player, args string) {
 	}
 }
 
+// mercPicked is the slot a word names among the rows: its number (1 to 3),
+// or a hire's name (any case).
+func mercPicked(rows []database.MercRow, word string) (int, bool) {
+	if len(word) == 1 && word[0] >= '1' && word[0] <= '0'+database.MercSlots {
+		return int(word[0] - '0'), true
+	}
+	for _, r := range rows {
+		if strings.EqualFold(r.Name, word) {
+			return r.Slot, true
+		}
+	}
+	return 0, false
+}
+
+// oneSlot is the slot an order for one merc takes: the one named, else the
+// one hired (none hired: slot 1, whose refusal says so); several hired and
+// none named, 0, the player told to name one.
+func (m *Mercs) oneSlot(sess *session.Session, rows []database.MercRow, slot int, verb string) int {
+	switch {
+	case slot > 0:
+		return slot
+	case len(rows) <= 1:
+		if len(rows) == 1 {
+			return rows[0].Slot
+		}
+		return 1
+	}
+	SendErrorMessage(sess, fmt.Sprintf(mercWhichLine, verb, mercRowNames(rows)))
+	return 0
+}
+
+// mercRowNames is the hires by slot and name, for a line.
+func mercRowNames(rows []database.MercRow) string {
+	var out []string
+	for _, r := range rows {
+		out = append(out, fmt.Sprintf("%d %s", r.Slot, r.Name))
+	}
+	return strings.Join(out, ", ")
+}
+
+// mercNoneOut is the line for an order no merc out took.
+func mercNoneOut(slot int, rows []database.MercRow) string {
+	if slot > 0 {
+		for _, r := range rows {
+			if r.Slot == slot {
+				return fmt.Sprintf("Your mercenary %s is not out.", r.Name)
+			}
+		}
+		return fmt.Sprintf("You have no mercenary %d.", slot)
+	}
+	return "You have no mercenary out."
+}
+
 // dismiss is /merc dismiss, and vanilla's Group > Dismiss Mercenary
-// (mercui.go): the merc out (or waiting outside the arena) sent away and its
-// hire ended.
-func (m *Mercs) dismiss(sess *session.Session, p *entity.Player) {
-	name, ok := m.gw.DismissMerc(sess, m.now())
+// (mercui.go): the merc of the slot (out, on standby, or waiting outside the
+// arena) sent away and its hire ended.
+func (m *Mercs) dismiss(sess *session.Session, p *entity.Player, slot int) {
+	name, ok := m.gw.DismissMerc(sess, slot, m.now())
+	if !ok && m.db != nil {
+		// one resting after its death: its row alone
+		if row, kept, err := m.db.Merc(p.CharServerID, slot); err == nil && kept {
+			name, ok = row.Name, true
+		}
+	}
 	if !ok {
 		SendErrorMessage(sess, "You have no mercenary out.")
 		return
 	}
 	if m.db != nil {
-		if err := m.db.DeleteMerc(p.CharServerID); err != nil {
+		if err := m.db.DeleteMerc(p.CharServerID, slot); err != nil {
 			log.Printf("Merc: %s's dismissal of %q not kept: %v", p.Name, name, err)
 		}
 	}
@@ -844,13 +1015,13 @@ func (m *Mercs) dismiss(sess *session.Session, p *entity.Player) {
 // mercVerbs are /merc's words, which "/t merc <word>" takes as the command
 // (chat.go: anything else to a "merc" is a tell).
 var mercVerbs = map[string]bool{"status": true, "dismiss": true, "stance": true, "follow": true, "stay": true, "attack": true,
-	"group": true, "revive": true, "help": true, "path": true, "pet": true, "charm": true}
+	"group": true, "revive": true, "help": true, "path": true, "pet": true, "charm": true, "list": true}
 
 // mercWords reports a tell's body that is /merc's: none, or one of its words
 // first.
 func mercWords(body string) bool {
 	f := strings.Fields(strings.ToLower(body))
-	return len(f) == 0 || mercVerbs[f[0]]
+	return len(f) == 0 || mercVerbs[f[0]] || len(f) > 1 && mercVerbs[f[1]] && len(f[0]) == 1 && f[0][0] >= '1' && f[0][0] <= '3'
 }
 
 // mercStanceWords are the stances' lines.
@@ -860,53 +1031,83 @@ var mercStanceWords = map[entity.MercStance]string{
 	entity.MercAggressive: "Your mercenary is aggressive: it fights what you fight, and what fights your group or is fought by it.",
 }
 
-// status is /merc alone: the merc out, said; a merc resting, its time left; a
-// merc rested (or /merc revive), brought back; none, how to hire one.
-func (m *Mercs) status(sess *session.Session, p *entity.Player, revive bool) {
-	if info, ok := m.gw.MercInfoOf(sess); ok {
-		line := fmt.Sprintf("Your mercenary %s, a level %d %s %s (%s): %d/%d hit points, %d/%d power, %s",
-			info.Name, info.Level, entity.RaceName(info.Race), entity.ClassName(info.Class), entity.MercRoleName(info.Class),
-			info.HP, info.MaxHP, info.Power, info.MaxPower, entity.MercStanceNames[info.Stance])
-		if info.Stay {
-			line += ", holding its place"
-		}
-		if info.Target != "" {
-			line += ", fighting " + info.Target
-		}
-		SendClientMessage(sess, line+".")
-		if !revive {
-			SendClientMessage(sess, mercHelpLine)
-		}
-		return
+// status is /merc alone: each hire by slot, out (said), on standby, resting
+// (its time left); one rested and not out (or /merc revive) brought back; none,
+// how to hire one. slot names one, 0 every one.
+func (m *Mercs) status(sess *session.Session, p *entity.Player, rows []database.MercRow, slot int, revive bool) {
+	out := map[int]entity.MercInfo{}
+	for _, info := range m.gw.MercInfosOf(sess) {
+		out[info.Slot] = info
 	}
-	if m.db == nil {
-		SendClientMessage(sess, mercNoneLine)
-		return
+	standby := m.gw.MercStandby(sess)
+	if m.db == nil && len(out) > 0 {
+		for _, info := range out {
+			rows = append(rows, database.MercRow{Slot: info.Slot, Name: info.Name, Class: info.Class, Race: info.Race})
+		}
 	}
-	row, ok, err := m.db.Merc(p.CharServerID)
-	if err != nil || !ok {
+	if len(rows) == 0 {
 		SendClientMessage(sess, mercNoneLine)
 		return
 	}
 	now := m.now()
-	if now.Before(row.DeadUntil) {
-		SendClientMessage(sess, fmt.Sprintf(mercRestLine, row.Name, int(row.DeadUntil.Sub(now).Seconds()+0.5)))
-		return
+	if len(rows) > 1 && slot == 0 {
+		SendClientMessage(sess, fmt.Sprintf("Your mercenaries, %d of %d:", len(rows), database.MercSlots))
 	}
-	if p.IsDead() {
+	var bring []database.MercRow
+	for _, row := range rows {
+		if slot != 0 && row.Slot != slot {
+			continue
+		}
+		head := ""
+		if len(rows) > 1 {
+			head = fmt.Sprintf("%d. ", row.Slot)
+		}
+		if info, ok := out[row.Slot]; ok {
+			line := fmt.Sprintf("%sYour mercenary %s, a level %d %s %s (%s): %d/%d hit points, %d/%d power, %s", head,
+				info.Name, info.Level, entity.RaceName(info.Race), entity.ClassName(info.Class), entity.MercRoleName(info.Class),
+				info.HP, info.MaxHP, info.Power, info.MaxPower, entity.MercStanceNames[info.Stance])
+			if info.Stay {
+				line += ", holding its place"
+			}
+			if info.Target != "" {
+				line += ", fighting " + info.Target
+			}
+			SendClientMessage(sess, line+".")
+			continue
+		}
+		if name, ok := standby[row.Slot]; ok {
+			SendClientMessage(sess, fmt.Sprintf("%sYour mercenary %s, a %s %s, is on standby: it comes back when your group has a place for it.",
+				head, name, entity.RaceName(row.Race), entity.ClassName(row.Class)))
+			continue
+		}
+		if now.Before(row.DeadUntil) {
+			SendClientMessage(sess, head+fmt.Sprintf(mercRestLine, row.Name, int(row.DeadUntil.Sub(now).Seconds()+0.5)))
+			continue
+		}
+		bring = append(bring, row)
+	}
+	if len(bring) > 0 && p.IsDead() {
 		SendErrorMessage(sess, "The dead call no one.")
 		return
 	}
-	m.bring(sess, p, row, now)
+	for _, row := range bring {
+		if m.db != nil && row.ServerID != 0 {
+			m.bring(sess, p, row, now)
+		}
+	}
+	if len(out) > 0 && !revive {
+		SendClientMessage(sess, mercHelpLine)
+	}
 }
 
 // Restore gives a player carried through a keep restart its merc back where
-// it stood (entity/keepmerc.go), made from its row at its level.
+// it stood, or on standby (entity/keepmerc.go), made from its row at its
+// level.
 func (m *Mercs) Restore(sess *session.Session, p *entity.Player, k entity.KeptMerc, now time.Time) {
 	if m == nil || m.db == nil || !MercsOn() {
 		return
 	}
-	row, ok, err := m.db.Merc(p.CharServerID)
+	row, ok, err := m.db.Merc(p.CharServerID, max(k.Slot, 1))
 	if err != nil || !ok {
 		return
 	}

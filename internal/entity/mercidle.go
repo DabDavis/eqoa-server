@@ -166,7 +166,7 @@ func (w *World) mercIdleChooseLocked(ms *mercState, now time.Time) {
 			return
 		}
 	} else if r < mercStrollShare+mercHomeShare && id.off {
-		if x, z, ok := w.followSlotLocked(n, o, slotMerc); ok {
+		if x, z, ok := w.followSlotLocked(n, o, mercFollowSlot(ms.slot)); ok {
 			id.walking, id.x, id.y, id.z, id.walkFrom, id.off, id.then = true, x, o.Y, z, now, false, idleThenStand
 			n.way = petWay{}
 			id.strolls++

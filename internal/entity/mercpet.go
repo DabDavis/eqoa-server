@@ -72,7 +72,7 @@ func (w *World) petStateOfNPCLocked(pet *NPC) *petState {
 // while the merc is out. Must be called with the lock held.
 func (w *World) petLiveLocked(ps *petState) bool {
 	if ms := ps.merc; ms != nil {
-		return ms.pet == ps && w.mercs[ms.owner.ServerID] == ms
+		return ms.pet == ps && w.mercLiveLocked(ms)
 	}
 	return w.pets[ps.owner.ServerID] == ps
 }

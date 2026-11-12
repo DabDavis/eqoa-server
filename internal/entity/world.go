@@ -145,11 +145,15 @@ type World struct {
 	// Hired mercenaries by their owners' ids (merc.go), their casts on their
 	// way to landing (merccast.go), what became of them this tick for the
 	// handlers (runMercNotes), and a count telling one hire from the next
-	mercs      map[EntityID]*mercState
+	mercs      map[EntityID][]*mercState // by owner, by slot (merc.go)
 	mercCasts  []*mercCast
 	mercNotes  []MercNote
 	onMercNote MercNoteFunc
 	mercLife   uint64
+	// mercBench is each owner's mercs on standby (mercbench.go), mercBenchSeq
+	// the order they stepped out in
+	mercBench    map[EntityID][]*mercBenched
+	mercBenchSeq uint64
 	// what the clients that asked are told of the mercs and of their group
 	// search standing, last done at uiTold (uitold.go); the characters whose
 	// "Allow anyone in my group to invite" is off (groupinvites.go)

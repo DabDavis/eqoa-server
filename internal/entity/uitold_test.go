@@ -90,7 +90,7 @@ func TestMercsToldToTheClientsThatAsked(t *testing.T) {
 	if got := r.uiTold(2*time.Second, r.sess, protocol.OpcodeMercsData); len(got) != 0 {
 		t.Errorf("nothing changed: %d messages", len(got))
 	}
-	if _, ok := r.w.DismissMerc(r.sess, r.at(3*time.Second)); !ok {
+	if _, ok := r.w.DismissMerc(r.sess, 1, r.at(3*time.Second)); !ok {
 		t.Fatal("no dismissal")
 	}
 	got = r.uiTold(3*time.Second, r.sess, protocol.OpcodeMercsData)

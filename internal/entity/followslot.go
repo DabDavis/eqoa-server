@@ -16,7 +16,9 @@ import (
 //
 // Now each takes a slot of its own round whom it follows, by its kind
 // (followSlot): the class pet at its owner's right, the merc behind its left,
-// the familiar behind its right, a merc's pet behind its merc. A slot is
+// the familiar behind its right, a merc's pet behind its merc; a second merc
+// (2026-11-12: up to three, merc.go's MercSlots) at its owner's left, a third
+// straight behind it. A slot is
 // followRadius off (more for a big body: followRadiusOf), so two neighbours'
 // are 2.7 apart at the least, and the owner's own place 3.5 off each. The
 // slots turn with the formation's heading (followFrame): its owner's facing
@@ -53,7 +55,21 @@ const (
 	slotMerc                       // a merc: behind its left
 	slotFamiliar                   // a familiar: behind its right
 	slotMercPet                    // a merc's own pet: behind its merc
+	slotMerc2                      // a second merc: its left
+	slotMerc3                      // a third merc: behind it
 )
+
+// mercFollowSlot is the follow slot of the merc of a hire's slot (1 to
+// MercSlots).
+func mercFollowSlot(slot int) followSlot {
+	switch slot {
+	case 2:
+		return slotMerc2
+	case 3:
+		return slotMerc3
+	}
+	return slotMerc
+}
 
 // followSlotAngle is each slot's direction off the formation's heading,
 // toward its owner's right for a positive one.
@@ -62,6 +78,8 @@ var followSlotAngle = [...]float32{
 	slotMerc:     -3 * math.Pi / 4,
 	slotFamiliar: 3 * math.Pi / 4,
 	slotMercPet:  math.Pi,
+	slotMerc2:    -math.Pi / 2,
+	slotMerc3:    math.Pi,
 }
 
 const (
@@ -200,14 +218,16 @@ func (w *World) followPlaceLocked(n *NPC, p *Player, s followSlot) (x, y, z floa
 }
 
 // followSiblingsLocked is the other followers round a: its class pet, its
-// merc and its familiar but n. Must be called with the lock held.
+// mercs and its familiar but n. Must be called with the lock held.
 func (w *World) followSiblingsLocked(a *Player, n *NPC) []*NPC {
 	var out []*NPC
 	if ps := w.pets[a.ServerID]; ps != nil && ps.npc != nil && ps.npc != n {
 		out = append(out, ps.npc)
 	}
-	if ms := w.mercs[a.ServerID]; ms != nil && ms.npc != nil && ms.npc != n {
-		out = append(out, ms.npc)
+	for _, ms := range w.mercs[a.ServerID] {
+		if ms.npc != nil && ms.npc != n {
+			out = append(out, ms.npc)
+		}
 	}
 	if fs := w.familiars[a.ServerID]; fs != nil && fs.npc != nil && fs.npc != n {
 		out = append(out, fs.npc)

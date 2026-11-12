@@ -30,7 +30,7 @@ func TestMercPetCommand(t *testing.T) {
 		}
 	}
 	m.hire(r.anna, r.pa, 10, 0, 0)
-	row, ok, _ := db.Merc(r.pa.CharServerID)
+	row, ok, _ := db.Merc(r.pa.CharServerID, 1)
 	if !ok || row.Pet != "" {
 		t.Fatalf("the hire's row: %v pet %q", ok, row.Pet)
 	}
@@ -43,7 +43,7 @@ func TestMercPetCommand(t *testing.T) {
 		t.Errorf("/merc pet: %q", got)
 	}
 	r.say(r.anna, "/merc pet frog")
-	if row, _, _ := db.Merc(r.pa.CharServerID); row.Pet != "" {
+	if row, _, _ := db.Merc(r.pa.CharServerID, 1); row.Pet != "" {
 		t.Errorf("a word of no kind set %q", row.Pet)
 	}
 	r.drain()
@@ -51,7 +51,7 @@ func TestMercPetCommand(t *testing.T) {
 	if got := r.msgs(r.anna); !saidLine(got, " will summon Air.") {
 		t.Errorf("/merc pet air: %q", got)
 	}
-	row, _, _ = db.Merc(r.pa.CharServerID)
+	row, _, _ = db.Merc(r.pa.CharServerID, 1)
 	if row.Pet != "air" {
 		t.Fatalf("the pick kept: %q", row.Pet)
 	}
@@ -61,7 +61,7 @@ func TestMercPetCommand(t *testing.T) {
 		t.Errorf("the kit's pick: %q", k.PetPick)
 	}
 	r.say(r.anna, "/merc pet best")
-	if row, _, _ := db.Merc(r.pa.CharServerID); row.Pet != "" {
+	if row, _, _ := db.Merc(r.pa.CharServerID, 1); row.Pet != "" {
 		t.Errorf("best kept %q", row.Pet)
 	}
 	// one kind: no choice

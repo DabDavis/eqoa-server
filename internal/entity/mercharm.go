@@ -48,16 +48,23 @@ const (
 	mercCharmWore    = "%s's charm on %s has worn off."
 )
 
-// MercCharm is /merc charm: the session's player's merc begins its charm at
-// the player's target (the file's doc). It reports the begun line, or the
-// refusal.
-func (w *World) MercCharm(sess *session.Session, now time.Time) (line, refusal string) {
+// MercCharm is /merc charm: the session's player's merc of the slot (0: its
+// first out with a charm in its book) begins its charm at the player's target
+// (the file's doc). It reports the begun line, or the refusal.
+func (w *World) MercCharm(sess *session.Session, slot int, now time.Time) (line, refusal string) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
-	ms := w.mercOfLocked(p)
-	if ms == nil {
+	list := w.mercPickLocked(p, slot)
+	if len(list) == 0 {
 		return "", "You have no mercenary out."
+	}
+	ms := list[0]
+	for _, m := range list {
+		if m.charms() {
+			ms = m
+			break
+		}
 	}
 	m := ms.npc
 	var charms []*CastSpell
@@ -120,15 +127,22 @@ func (w *World) MercCharm(sess *session.Session, now time.Time) (line, refusal s
 	return fmt.Sprintf(mercCharmBegins, m.Name, t.Name), ""
 }
 
-// MercCharmOff is /merc charm off: the merc's charmed pet let go, turned on
-// the merc (charm.go: a dismissed charm turns on its master). It reports the
-// line, or the refusal.
-func (w *World) MercCharmOff(sess *session.Session) (line, refusal string) {
+// MercCharmOff is /merc charm off: the charmed pet of the merc of the slot
+// (0: its first out with one) let go, turned on the merc (charm.go: a
+// dismissed charm turns on its master). It reports the line, or the refusal.
+func (w *World) MercCharmOff(sess *session.Session, slot int) (line, refusal string) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	ms := w.mercOfLocked(w.sessionPlayerLocked(sess))
-	if ms == nil {
+	list := w.mercPickLocked(w.sessionPlayerLocked(sess), slot)
+	if len(list) == 0 {
 		return "", "You have no mercenary out."
+	}
+	ms := list[0]
+	for _, m := range list {
+		if m.pet != nil && m.pet.npc.Charm != nil && !m.pet.npc.Dead {
+			ms = m
+			break
+		}
 	}
 	ps := ms.pet
 	if ps == nil || ps.npc.Charm == nil || ps.npc.Dead {
@@ -227,6 +241,16 @@ func (w *World) mercCharmTurnLocked(ms *mercState, sess *session.Session, now ti
 		}
 		w.mercCharmReleaseLocked(ms, false)
 		return true
+	}
+	return false
+}
+
+// charms reports a charm in the merc's book.
+func (ms *mercState) charms() bool {
+	for i := range ms.kit.Spells {
+		if ms.kit.Spells[i].Def.Charms() {
+			return true
+		}
 	}
 	return false
 }

@@ -120,11 +120,11 @@ func TestARaidKickOfAMercDismissesIt(t *testing.T) {
 	r.w.mu.Unlock()
 	g.rules.helper = ps[0].ServerID
 	r.w.RaidKick(ss[0], ms.npc.Name, 0) // the helper, the leader's merc
-	if r.w.mercs[r.p.ServerID] == nil || !groupHas(g, ms.npc.ServerID) {
+	if r.w.merc1(r.p.ServerID) == nil || !groupHas(g, ms.npc.ServerID) {
 		t.Fatal("the helper dismissed the leader's merc")
 	}
 	r.w.RaidKick(r.sess, ms.npc.Name, 0) // the leader
-	if r.w.mercs[r.p.ServerID] != nil || groupHas(g, ms.npc.ServerID) {
+	if r.w.merc1(r.p.ServerID) != nil || groupHas(g, ms.npc.ServerID) {
 		t.Fatal("the leader's /raidkick of a merc did not dismiss it")
 	}
 	r.w.mu.Lock()

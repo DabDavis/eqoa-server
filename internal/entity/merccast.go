@@ -757,7 +757,7 @@ func (w *World) mercCastSystemLocked(now time.Time) {
 	w.mercCasts = keep
 	for _, c := range due {
 		ms := c.ms
-		if ms.npc.Dead || w.mercs[ms.owner.ServerID] != ms || ms.life != c.life {
+		if ms.npc.Dead || !w.mercLiveLocked(ms) || ms.life != c.life {
 			continue
 		}
 		w.mercLandLocked(c, now)

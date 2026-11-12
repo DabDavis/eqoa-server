@@ -45,7 +45,7 @@ func spreadRig(t *testing.T) (*petRig, []*NPC) {
 	for at := 10 * time.Second; at <= 14*time.Second; at += 100 * time.Millisecond {
 		followTick(r.w, r.t0, at)
 	}
-	ms, fs := r.w.mercs[r.p.ServerID], r.w.familiars[r.p.ServerID]
+	ms, fs := r.w.merc1(r.p.ServerID), r.w.familiars[r.p.ServerID]
 	if ms == nil || fs == nil || !r.w.mercInOwnGroupLocked(ms) {
 		t.Fatalf("merc %v (grouped %v), familiar %v", ms != nil, ms != nil && r.w.mercInOwnGroupLocked(ms), fs != nil)
 	}
@@ -148,7 +148,7 @@ func TestFollowersKeepUpSmoothly(t *testing.T) {
 func TestMercStrollsRoundItsStandingOwner(t *testing.T) {
 	r, fs := spreadRig(t)
 	pet, merc, fam := fs[0], fs[1], fs[2]
-	ms := r.w.mercs[r.p.ServerID]
+	ms := r.w.merc1(r.p.ServerID)
 	r.w.roamRnd = nil
 	r.w.roamRand().Seed(7)
 	at := 14 * time.Second

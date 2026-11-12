@@ -83,7 +83,7 @@ type mercNamed struct{ name, owner string }
 // name, then hirer. Must be called with the lock held.
 func (w *World) mercNamesLocked() map[uint8][]mercNamed {
 	out := map[uint8][]mercNamed{}
-	for _, ms := range w.mercs {
+	for _, ms := range w.allMercsLocked() {
 		if ms == nil || ms.npc == nil || ms.npc.Name == "" {
 			continue
 		}
@@ -108,11 +108,11 @@ func (w *World) mercNamesLocked() map[uint8][]mercNamed {
 // capture the flag's arena (ctfaway.go): what /merc dismiss sends away. Must
 // be called with the lock held.
 func (w *World) ownMercOutLocked(p *Player) bool {
-	if ms := w.mercs[p.ServerID]; ms != nil && ms.owner == p {
+	if len(w.mercsOfLocked(p)) > 0 {
 		return true
 	}
 	a := w.ctfAwayOfLocked(p)
-	return a != nil && a.merc != ""
+	return a != nil && len(a.mercs) > 0
 }
 
 // mercsBody is OpcodeMercsData's body (past the opcode) in the layout the

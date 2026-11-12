@@ -143,7 +143,9 @@ type NPC struct {
 	RoamRadius  float32
 
 	// AggroState
-	Threats      map[EntityID]int64
+	Threats map[EntityID]int64
+	// damageBy is the damage each player made on it this life, its pets' and mercs' counted to it (killcredit.go)
+	damageBy     map[EntityID]int64
 	CurrentEnemy EntityID
 	LastCombat   time.Time
 

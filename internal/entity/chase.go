@@ -366,6 +366,7 @@ func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (i
 // lock held.
 func (w *World) giveUpLocked(npc *NPC) {
 	npc.Threats = nil
+	npc.damageBy = nil // its fight over: a new one's damage counts anew (killcredit.go)
 	npc.CurrentEnemy = 0
 	npc.endRound()
 	w.goHomeLocked(npc)

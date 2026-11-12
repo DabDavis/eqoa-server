@@ -1857,7 +1857,8 @@ func (w *World) spellHitHateLocked(caster *Player, casterSess *session.Session, 
 	if npc.duelHeld() {
 		return false // a Metal Moogie's countdown: nothing lands (metalmoogie.go, petition 1623)
 	}
-	n = w.dealtLocked(npc, caster, n) // balance.go
+	n = w.dealtLocked(npc, caster, n)                // balance.go
+	w.tallyDamageLocked(npc, caster, min(n, npc.HP)) // killcredit.go
 	npc.HP = max(npc.HP-n, 0)
 	w.tellAmountLocked(caster, casterSess, npc.ServerID, -n, kind)
 	w.updateAggro(npc, caster.ServerID, n-n*hateOff/100)
@@ -1869,8 +1870,9 @@ func (w *World) spellHitHateLocked(caster *Player, casterSess *session.Session, 
 	}
 	npc.Effects = nil
 	w.killNPC(npc)
-	w.awardKillXPLocked(casterSess, caster, npc) // killexp.go
-	w.factionKillLocked(casterSess, caster, npc)
+	cs, cp := w.killCreditLocked(npc, casterSess, caster) // killcredit.go: the most damage's group
+	w.awardKillXPLocked(cs, cp, npc)                      // killexp.go
+	w.factionKillLocked(cs, cp, npc)
 	if caster.AttackTarget == npc.ServerID {
 		caster.disengage()
 	}

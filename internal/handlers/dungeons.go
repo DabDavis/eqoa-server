@@ -69,7 +69,7 @@ var dungeonsRules = []string{
 	"How instances work:",
 	"- Each party (a group or raid) gets its own copy of a dungeon. The group's leader, or a player alone, opens it; the others then enter it.",
 	"- When the leader enters, the members of the group standing near them are taken in too.",
-	"- Creatures killed in an instance stay dead: nothing respawns. A cleared instance stays cleared.",
+	"- Creatures killed in an instance stay dead: nothing respawns. A cleared instance stays cleared. /dungeon shows how many of its creatures your party has killed.",
 	"- For a fresh one, the one who opened it types /dungeon reset <name> with no one inside; the next entry opens a new, full instance.",
 	"- An instance no one stands in closes by itself after a while.",
 	"- A server restart closes every instance: everyone inside comes back out by the board.",

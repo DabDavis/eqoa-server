@@ -639,8 +639,9 @@ func (w *World) DungeonStatus(sess *session.Session) string {
 	var parts []string
 	for i, d := range w.dungeons.defs {
 		if in := w.dungeonInstForLocked(i, p); in != nil {
-			parts = append(parts, fmt.Sprintf("%s (%s's, %d of %d creatures standing, %d inside)", d.Name, in.ownerName,
-				w.dungeonAliveLocked(in), in.creatures, w.dungeonPeopleLocked(in)))
+			// "xx of yy killed" (petition 1841, Waldorf: "a tracker to see how many of the total we killed")
+			parts = append(parts, fmt.Sprintf("%s (%s's): %d of %d creatures killed, %d inside", d.Name, in.ownerName,
+				in.creatures-w.dungeonAliveLocked(in), in.creatures, w.dungeonPeopleLocked(in)))
 		}
 	}
 	log.Printf("Dungeons: %s asks its party's dungeons: %s", p.Name, strings.Join(parts, "; "))

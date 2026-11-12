@@ -53,6 +53,10 @@ type InteractHandler struct {
 	// portals is the GMs' portals (gmportal.go); nil: none
 	portals *GMPortals
 
+	// overseers is npcoverseer (database.NPCOverseers): who says which bosses
+	// are up (overseer.go). Nil: no one does.
+	overseers func() (map[string][]database.NPCOverseerRow, error)
+
 	// dialogLines is npcdialog (database.NPCDialog): what a town's people and
 	// the guards say (entity/dialog.go). Nil: they say nothing.
 	dialogLines func() ([]database.NPCDialogLine, error)
@@ -385,6 +389,11 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 	// A quest's step at this NPC, or a quest it offers (quests.go), before
 	// the NPC's own business.
 	if npc, ok := targetEntity.(*entity.NPC); ok && Quests().Talk(sess, player, npc) {
+		return nil
+	}
+
+	// An overseer (overseer.go, table npcoverseer): which of his bosses are up.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.overseerTalk(sess, player, npc) {
 		return nil
 	}
 

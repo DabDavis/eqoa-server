@@ -384,6 +384,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		interactHandler.SetDialogLines(charStore.DB().NPCDialog)
 		// what the signs and boards say (signs.go)
 		interactHandler.SetSignTexts(charStore.DB().SignTexts)
+		// who says which bosses are up (overseer.go)
+		interactHandler.overseers = charStore.DB().NPCOverseers
 		boardSpells := database.NewSpellbookStore(charStore.DB())
 		interactHandler.SetBoardInvis(func() (entity.CastSpell, bool) { return BoardInvisSpell(boardSpells) })
 	}

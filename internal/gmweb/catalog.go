@@ -1064,6 +1064,36 @@ var catalog = map[string]tableNote{
 			"source":  {Label: "Source", ReadOnly: true},
 		},
 	},
+	"npcoverseer": {
+		Label: "NPC overseers", Group: "World", Title: "boss", Sort: "overseer",
+		Help: "NPCs who, talked to, say which bosses are up (handlers/overseer.go; petition 1699: Overseer Yurgulch of the Plane " +
+			"of Disease): a row is one boss one overseer tells of, by NAME (any case), in ord's order, in one dialogue box. " +
+			"up: one of the name alive in its world (its row or a spawn's copy); down: its row dead, back by its respawn " +
+			"(NPC respawn times) at %t, said roughly (soon, in about 5 hours, in about 3 days and 16 hours); a boss a GM trigger " +
+			"brings (trigger: that trigger's name, e.g. Bertoxxulous Rises), not up: ready while the trigger's lock is free, " +
+			"resting while a run of it lives, free at %t (its waits added up); unknown: none up and no time known (a GM's Kill " +
+			"Spawner, no row of it, its trigger off). Each line blank says the plain default; %b the boss, %t when, %p the player. " +
+			"greeting: said first, from the overseer's first row that has one. He answers after the quests (a quest step at him " +
+			"comes first) and before the town's lines.",
+		Live:   "At once: the next talk to the overseer.",
+		Show:   []string{"overseer", "boss", "world", "trigger", "ord", "up", "down"},
+		Search: []string{"overseer", "boss", "trigger", "note", "source"},
+		Cols: map[string]colNote{
+			"overseer": {Label: "Overseer", Help: "the NPC's name, any case"},
+			"boss":     {Label: "Boss", Help: "the boss's NPC name, any case"},
+			"world":    {Label: "World", Help: "the boss's world; -1 the overseer's own"},
+			"trigger":  {Label: "Trigger", Help: "the gmtriggers name that brings the boss ('' for a boss of its own NPC row)"},
+			"ord":      {Label: "Order", Help: "the overseer's lines in this order"},
+			"greeting": {Label: "Greeting", Help: "said first (the first row by order that has one)"},
+			"up":       {Label: "Up line", Help: "%b the boss, %p the player; blank: \"%b is up.\""},
+			"down":     {Label: "Down line", Help: "%t when it is back; blank: \"%b is dead. Back %t.\""},
+			"ready":    {Label: "Ready line", Help: "a trigger's boss, its trigger free; blank: \"%b is not up. It can be called now.\""},
+			"resting":  {Label: "Resting line", Help: "a trigger's boss, its lock held, %t when free"},
+			"unknown":  {Label: "Unknown line", Help: "none up, no time known"},
+			"note":     {Label: "Note"},
+			"source":   {Label: "Source", Help: "gm, or the tool that wrote the row"},
+		},
+	},
 	"npcspawnonly": {
 		Label: "NPC spawn only", Group: "World", Title: "name", Sort: "name",
 		Help: "NPCs that stand in no one's world, by NPC NAME (any case; entity/spawnonly.go): every NPC of the name is " +

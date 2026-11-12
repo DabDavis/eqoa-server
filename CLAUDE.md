@@ -1162,8 +1162,9 @@ has the design, the numbers and what the rig showed.
 - **Data** (`tools/dungeons_20261112.py [--apply|--undo]`, log `dungeons_1112_log`, gm_audit): world 14's rows, copies
   of each dungeon's world 0 creatures (its kinds by `FAMILY`, or named; never friendly, a quest's seeded row or
   spawn-only, nor `SKIP`), levels raised: trash 60-62, named 63-64, bosses 65 (`BOSSES`: the froglok king; Abyssaxis;
-  King Merdid and Xorbb); classtemplates **dungeon trash / dungeon named / dungeon boss** (class -1) bound by
-  npctemplate `"#n"` (a GM tunes a tier in one row); 36 raid-gear records 995001-995036 (a tuned raid boss's drop
+  King Merdid and Xorbb); classtemplates **dungeon trash / dungeon named / dungeon boss** (class -1; hp_pct/melee_pct
+  100/130, 250/200, 500/150 with Pestilent Breath at a quarter; resists 10/20/30 of every kind: a resist_pct with no
+  resist_kind leaves a template unused) bound by npctemplate `"#n"` (a GM tunes a tier in one row); 36 raid-gear records 995001-995036 (a tuned raid boss's drop
   copied under a dungeon's own name), loottables `dungeon <key> boss|named`, npcloot `"#n"` per creature; the wardens.
   NPCs and templates are read at the start: a keep restart's `before.sh`. Tests: `TestDungeon*` (`entity/`,
   `handlers/`), `TestReadDungeonsRecipe`.

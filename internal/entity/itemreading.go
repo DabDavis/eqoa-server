@@ -156,7 +156,16 @@ func (wp WeaponProc) Explain() string {
 		what = fmt.Sprintf("turns the wielder into %s for %.0f s (renewed by another proc), which procs %s at %d%% a hit, at most %d a round",
 			form, wp.Duration.Seconds(), figure, wp.Chance, wp.RoundMost)
 	case ProcRoot:
-		what = fmt.Sprintf("roots the creature for %.0f s (a root breaks as any root does)", procRootFor.Seconds())
+		what = fmt.Sprintf("roots the creature for %.0f s (a root breaks as any root does)", wp.rootFor().Seconds())
+	case ProcSnare:
+		what = fmt.Sprintf("snares the creature, %d%% slower for %.0f s", wp.snarePct(), wp.snareFor().Seconds())
+	}
+	switch {
+	case wp.Kind == ProcRoot || wp.Kind == ProcSnare:
+	case wp.Root:
+		what += fmt.Sprintf(" and roots it for %.0f s (a root breaks as any root does)", wp.rootFor().Seconds())
+	case wp.Snare:
+		what += fmt.Sprintf(" and snares it, %d%% slower for %.0f s", wp.snarePct(), wp.snareFor().Seconds())
 	}
 	if wp.Kind != ProcForm {
 		if wp.Chance > 0 {
@@ -169,7 +178,7 @@ func (wp WeaponProc) Explain() string {
 		what += ", on " + wp.Only + "s alone"
 	}
 	switch wp.Kind {
-	case ProcHit, ProcTap, ProcDoT, ProcCalm, ProcRoot:
+	case ProcHit, ProcTap, ProcDoT, ProcCalm, ProcRoot, ProcSnare:
 		what += fmt.Sprintf("; a creature resists it all or nothing, %d%% at the wielder's level and more above (a resisted hit does its least)", resistAtPar)
 	}
 	return what

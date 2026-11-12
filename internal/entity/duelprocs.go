@@ -166,7 +166,7 @@ func (w *World) duelWeaponProcLocked(d *Duel, p *Player, sess *session.Session, 
 	case ProcRestore:
 		w.restoreProcLocked(sess, p, wp, n)
 		return false
-	case ProcCalm, ProcRoot: // a duel holds no root (ours): its look alone
+	case ProcCalm, ProcRoot, ProcSnare: // a duel holds no root nor snare (ours): its look alone
 		w.broadcastCastLocked(p, p.ServerID, 0, wp.FX)
 		return false
 	case ProcDoT:

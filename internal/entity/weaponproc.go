@@ -63,6 +63,16 @@ import (
 //     first at once, a proc on a creature already bearing it begun again;
 //   - Sunsilver's anti-aggro: the creature's hate for the wielder halved
 //     (ours: no figure is known), and a buff's visual on the wielder;
+//   - a root or a snare (petition 1821, the GM Jibrish: "Enable code for
+//     weapons to have working root or snare procs"): any record whose words
+//     name one in the sentence of a proc ("Procs a root.", "Procs: Snare",
+//     "Procs a 6 second root.", "Procs a 40% snare for 10 seconds.", "root
+//     proc"; procHoldRe), alone or beside its damage ("Procs a 100 point DD
+//     and roots the target."): lands as a spell's root or slow of the wielder's
+//     (weaponHoldLocked), after the proc's own resist roll, with the
+//     creature's root resist by its con (root.go: a snare's as a root's), a
+//     root broken by later hits as any root; 12 s, a snare 50% for 18 s, when
+//     the words give no time or slow (ours). A duel holds none (duelprocs.go);
 //   - a proc for a kind of creature alone (Gorereaver's goblins) fires on a
 //     creature whose name names it, and not otherwise.
 //   - a form (the Staff of Faykind's; the user, 2026-11-07: "lets add staff
@@ -92,11 +102,20 @@ const (
 	ProcRestore                 // hit points and power back to the wielder and its group near
 	ProcForm                    // the wielder shown in a body for a while, the body's own proc beside it
 	ProcRoot                    // the creature held in place for a while (procRootFor)
+	ProcSnare                   // the creature slowed for a while (procSnareFor, procSnarePct)
 )
 
 // procRootFor is how long a weapon's root holds (ours: no source gives one), unless
-// it breaks first as any root does (root.go).
+// it breaks first as any root does (root.go); a record's words may give their own
+// ("Procs a 6 second root": WeaponProc.HoldFor).
 const procRootFor = 12 * time.Second
+
+// procSnareFor and procSnarePct are a weapon's snare's time and slow when its words
+// give none (ours: a line's snare's half pace, workbook.go's snareFactor, for 18 s).
+const (
+	procSnareFor = 18 * time.Second
+	procSnarePct = 50
+)
 
 // procRestoreReach is how far from the wielder a group member a restoring
 // proc reaches stands at most (ours: the group spells' radius).
@@ -134,6 +153,48 @@ type WeaponProc struct {
 	FormStatBy int
 	Scale      Stat
 	ScalePct   int
+	// Root and Snare are a hold its proc lays as well as (or, for the kinds ProcRoot
+	// and ProcSnare, instead of) its damage: a root, a snare of SnarePct (0:
+	// procSnarePct); HoldFor its time (0: procRootFor, procSnareFor). Petition 1821
+	// (the GM Jibrish: "Enable code for weapons to have working root or snare
+	// procs"): any record whose words name one (WeaponProcFromText's procHoldRe).
+	Root, Snare bool
+	SnarePct    int
+	HoldFor     time.Duration
+}
+
+// rootFor is how long its root holds.
+func (wp *WeaponProc) rootFor() time.Duration {
+	if wp.HoldFor > 0 {
+		return wp.HoldFor
+	}
+	return procRootFor
+}
+
+// snareFor and snarePct are its snare's time and slow.
+func (wp *WeaponProc) snareFor() time.Duration {
+	if wp.HoldFor > 0 {
+		return wp.HoldFor
+	}
+	return procSnareFor
+}
+
+func (wp *WeaponProc) snarePct() int {
+	if wp.SnarePct > 0 {
+		return min(wp.SnarePct, 100)
+	}
+	return procSnarePct
+}
+
+// holdWords is what its hold says, "" for none: "a root for 12 s", "a 50% snare for 18 s".
+func (wp *WeaponProc) holdWords() string {
+	switch {
+	case wp.Root || wp.Kind == ProcRoot:
+		return fmt.Sprintf("a root for %.0f s", wp.rootFor().Seconds())
+	case wp.Snare || wp.Kind == ProcSnare:
+		return fmt.Sprintf("a %d%% snare for %.0f s", wp.snarePct(), wp.snareFor().Seconds())
+	}
+	return ""
 }
 
 // chancePct is the chance, in percent, that a hit of a bearer of that DEX procs
@@ -232,7 +293,58 @@ var (
 	// chance each hit", "10% a hit", "10% per swing" (never a scale's "30%
 	// based on DEX")
 	procChanceRe = regexp.MustCompile(`(?i)\b(\d{1,3})\s*%\s*(?:chance\b|(?:a|an|per|each)\s+(?:hit|swing)s?\b)`)
+	// procHoldRe is a proc that holds or slows, in one sentence: "Procs a root.",
+	// "Procs: Snare", "procs a 6 second root", "root proc", "a snaring proc", "Proc:
+	// Ensnare 40%"; never a "Rootweave" nor a root of a tree with no proc beside it
+	procHoldRe = regexp.MustCompile(`(?i)\bprocs?\b[^.\n]*?\b(roots?|rooting|snares?|snaring|ensnares?)\b|\b(root|rooting|snare|snaring|ensnare)\s+procs?\b`)
+	// notAFigureRe is what after a proc's number makes it a time or a share, not
+	// its damage ("Procs a 6 second root", "Procs a 40% snare")
+	notAFigureRe = regexp.MustCompile(`(?i)^\s*(?:-\s*)?(?:%|s\b|secs?\b|seconds?\b)`)
+	// holdForRe is a hold's own time: "6 second", "6 sec", "6s", "for 6 seconds"
+	holdForRe = regexp.MustCompile(`(?i)\b(\d{1,3})\s*(?:-\s*)?(?:s|secs?|seconds?)\b`)
+	// snarePctRe is a snare's own slow: "a 40% snare", "snare 40%", "slows by 40%"
+	snarePctRe = regexp.MustCompile(`(?i)\b(\d{1,3})\s*%\s*(?:snare|slow|ensnare)|\b(?:snares?|ensnares?|slows?)\s*(?:of|by|for)?\s*(\d{1,3})\s*%`)
 )
+
+// procHoldOf is the hold a description's proc lays, its sentence's: root or snare,
+// its own time and slow when its words give them; false for none.
+func procHoldOf(desc string) (root, snare bool, pct int, hold time.Duration, ok bool) {
+	loc := procHoldRe.FindStringSubmatchIndex(desc)
+	if loc == nil {
+		return false, false, 0, 0, false
+	}
+	word := ""
+	for i := 2; i+1 < len(loc); i += 2 {
+		if loc[i] >= 0 {
+			word = strings.ToLower(desc[loc[i]:loc[i+1]])
+		}
+	}
+	root = strings.HasPrefix(word, "root")
+	snare = !root
+	// the sentence it is in: its time and slow are its own
+	start, end := strings.LastIndexAny(desc[:loc[0]], ".\n")+1, len(desc)
+	if i := strings.IndexAny(desc[loc[1]:], ".\n"); i >= 0 {
+		end = loc[1] + i
+	}
+	sentence := desc[start:end]
+	if m := holdForRe.FindStringSubmatch(sentence); m != nil {
+		if n, _ := strconv.Atoi(m[1]); n > 0 {
+			hold = time.Duration(n) * time.Second
+		}
+	}
+	if snare {
+		if m := snarePctRe.FindStringSubmatch(sentence); m != nil {
+			v := m[1]
+			if v == "" {
+				v = m[2]
+			}
+			if n, _ := strconv.Atoi(v); n >= 1 && n <= 100 {
+				pct = n
+			}
+		}
+	}
+	return root, snare, pct, hold, true
+}
 
 // WeaponProcFromText is the proc a weapon's description gives, false when it
 // gives none, or none with a figure (weaponProcsByName has those).
@@ -244,16 +356,25 @@ func WeaponProcFromText(desc string) (WeaponProc, bool) {
 		}
 	}
 	var lo, hi int
-	if m := procFigureRe.FindStringSubmatch(desc); m != nil {
-		lo, _ = strconv.Atoi(m[1])
-		hi, _ = strconv.Atoi(m[2])
+	if m := procFigureRe.FindStringSubmatchIndex(desc); m != nil && !notAFigureRe.MatchString(desc[m[1]:]) {
+		lo, _ = strconv.Atoi(desc[m[2]:m[3]])
+		if m[4] >= 0 {
+			hi, _ = strconv.Atoi(desc[m[4]:m[5]])
+		}
 	} else if m := ddFigureRe.FindStringSubmatch(desc); m != nil {
 		lo, _ = strconv.Atoi(m[1])
 	}
-	if lo <= 0 {
+	root, snare, pct, hold, holds := procHoldOf(desc)
+	if lo <= 0 && !holds {
 		return WeaponProc{}, false
 	}
-	wp := WeaponProc{Kind: ProcHit, Damage: lo}
+	wp := WeaponProc{Kind: ProcHit, Damage: lo, Root: root, Snare: snare, SnarePct: pct, HoldFor: hold}
+	if lo <= 0 { // a hold alone: no damage beside it
+		wp.Kind, wp.Root, wp.Snare = ProcRoot, false, false
+		if snare {
+			wp.Kind = ProcSnare
+		}
+	}
 	if hi > lo {
 		wp.DamageTo = hi
 	}
@@ -320,7 +441,7 @@ func WeaponProcOf(patternID int, itemName, desc string) (WeaponProc, bool) {
 		switch wp.Kind {
 		case ProcTap:
 			wp.FX = fxProcLifeTap
-		case ProcCalm, ProcRestore, ProcForm, ProcRoot:
+		case ProcCalm, ProcRestore, ProcForm, ProcRoot, ProcSnare:
 			wp.FX = fxBuff
 		default:
 			wp.FX = fxDamage
@@ -368,10 +489,13 @@ func (wp WeaponProc) String() string {
 			form += fmt.Sprintf(" (%+d %s)", wp.FormStatBy, procStatWord(wp.FormStat))
 		}
 		s = fmt.Sprintf("%s for %s, which procs %s at %d%% a hit, at most %d a round", form, long, figure, wp.Chance, wp.RoundMost)
-	case ProcRoot:
-		s = fmt.Sprintf("a root for %.0f s", procRootFor.Seconds())
+	case ProcRoot, ProcSnare:
+		s = wp.holdWords()
 	default:
 		s = figure
+	}
+	if h := wp.holdWords(); h != "" && wp.Kind != ProcRoot && wp.Kind != ProcSnare {
+		s += " and " + h
 	}
 	if wp.Chance > 0 && wp.Kind != ProcForm { // its own chance (a form's is in its words)
 		s += fmt.Sprintf(" at %d%% a hit", wp.Chance)
@@ -419,7 +543,7 @@ func (w *World) weaponProcLocked(sess *session.Session, p *Player, npc *NPC, now
 	// resisted, a proc that hurts does the least it can (workbook.go's leastHarm); one that
 	// only calms does nothing
 	resisted := wp.Kind != ProcRestore && npc.Dummy == NotDummy && procIntn(100) < npcSpellResistPct(p.Level, npc, wp.Resist, now)
-	if resisted && (wp.Kind == ProcCalm || wp.Kind == ProcRoot) {
+	if resisted && (wp.Kind == ProcCalm || wp.Kind == ProcRoot || wp.Kind == ProcSnare) {
 		log.Printf("Proc: %s's %q resisted by %s", p.Name, wp.Item, npc.Name)
 		return false
 	}
@@ -441,15 +565,17 @@ func (w *World) weaponProcLocked(sess *session.Session, p *Player, npc *NPC, now
 		}
 		log.Printf("Proc: %s's %q calms %s (its hate %d)", p.Name, wp.Item, npc.Name, npc.Threats[p.ServerID])
 		return false
-	case ProcRoot:
+	case ProcRoot, ProcSnare:
 		w.broadcastCastLocked(p, npc.ServerID, 0, wp.FX)
-		log.Printf("Proc: %s's %q roots %s", p.Name, wp.Item, npc.Name)
-		w.landOnNPCLocked(weaponRootCast(p, wp, npc.ServerID), p, sess, npc, now)
+		w.weaponHoldLocked(sess, p, wp, npc, now)
 		return npc.Dead
 	case ProcDoT:
 		w.broadcastCastLocked(p, npc.ServerID, 0, wp.FX)
 		log.Printf("Proc: %s's %q lays %d a tick on %s", p.Name, wp.Item, n, npc.Name)
 		w.landOnNPCLocked(weaponDoTCast(p, wp, npc.ServerID, n), p, sess, npc, now)
+		if !resisted && !npc.Dead {
+			w.weaponHoldLocked(sess, p, wp, npc, now) // its hold beside it, if any
+		}
 		return npc.Dead
 	}
 	w.broadcastCastLocked(p, npc.ServerID, 0, wp.FX)
@@ -463,7 +589,27 @@ func (w *World) weaponProcLocked(sess *session.Session, p *Player, npc *NPC, now
 		}
 		w.procHealLocked(p, sess, p, back)
 	}
+	if !killed && !resisted && !npc.Dead {
+		w.weaponHoldLocked(sess, p, wp, npc, now) // its hold beside the hit, if any
+	}
 	return killed
+}
+
+// weaponHoldLocked lays a weapon proc's root or snare on the creature (none when it
+// has neither) as a spell of the wielder's lands: the creature's root resist by its
+// con (root.go's rootResistLocked: the balance's root_resist_pct, an arcane debuff
+// lowering it; a snare resisted as a root is), a root broken by a later hit as any
+// root, and its hate. The proc's own resist roll came first (weaponProcLocked). Must
+// be called with the lock held.
+func (w *World) weaponHoldLocked(sess *session.Session, p *Player, wp *WeaponProc, npc *NPC, now time.Time) {
+	switch {
+	case wp.Root || wp.Kind == ProcRoot:
+		log.Printf("Proc: %s's %q roots %s for %v", p.Name, wp.Item, npc.Name, wp.rootFor())
+		w.landOnNPCLocked(weaponRootCast(p, wp, npc.ServerID), p, sess, npc, now)
+	case wp.Snare || wp.Kind == ProcSnare:
+		log.Printf("Proc: %s's %q snares %s (%d%%) for %v", p.Name, wp.Item, npc.Name, wp.snarePct(), wp.snareFor())
+		w.landOnNPCLocked(weaponSnareCast(p, wp, npc.ServerID), p, sess, npc, now)
+	}
 }
 
 // formProcLocked gives the wielder the weapon's form, if it procs and the form
@@ -514,11 +660,29 @@ func formEffects(wp *WeaponProc) []SpellEffect {
 	return effects
 }
 
-// weaponRootCast is a weapon proc's root as a spell of p's at target, for procRootFor.
+// weaponRootCast is a weapon proc's root as a spell of p's at target, for its time.
 func weaponRootCast(p *Player, wp *WeaponProc, target EntityID) *castState {
-	return &castState{spell: CastSpell{SpellID: weaponProcSpellID(wp.pattern), Name: wp.Item, Level: p.Level, Scope: 1,
-		Def: SpellDef{Effects: []SpellEffect{{Kind: EffectRoot}}, Duration: procRootFor, Harmful: true}},
+	return &castState{spell: CastSpell{SpellID: weaponHoldSpellID(wp), Name: wp.Item, Level: p.Level, Scope: 1,
+		Def: SpellDef{Effects: []SpellEffect{{Kind: EffectRoot}}, Duration: wp.rootFor(), Harmful: true}},
 		caster: p.ServerID, targets: []EntityID{target}}
+}
+
+// weaponSnareCast is a weapon proc's snare as a spell of p's at target: a workbook
+// slow of its percent (workbook.go's SpeedPct, which snareFactor reads), for its time.
+func weaponSnareCast(p *Player, wp *WeaponProc, target EntityID) *castState {
+	return &castState{spell: CastSpell{SpellID: weaponHoldSpellID(wp), Name: wp.Item, Level: p.Level, Scope: 1,
+		Def: SpellDef{Effects: []SpellEffect{{Kind: EffectSnare, Amount: -wp.snarePct()}}, Duration: wp.snareFor(),
+			Harmful: true, Workbook: true}},
+		caster: p.ServerID, targets: []EntityID{target}}
+}
+
+// weaponHoldSpellID is the id a weapon's hold goes by on the creature: the proc's own
+// (weaponProcSpellID) for a hold alone, apart from it beside a damage over time.
+func weaponHoldSpellID(wp *WeaponProc) int {
+	if wp.Kind == ProcRoot || wp.Kind == ProcSnare {
+		return weaponProcSpellID(wp.pattern)
+	}
+	return -4_000_000 - wp.pattern
 }
 
 // weaponDoTCast is a weapon proc's damage over time as a spell of p's at target, n a tick.

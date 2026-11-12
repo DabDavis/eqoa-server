@@ -5,7 +5,8 @@ Bulging Toad Eye x4 ... Each completed turn-in rewards: Scuzz Toad Stew x1, 10 f
 changed from an XP reward to a faction reward ... Bulging Toad Eye is tradeable.").
 
 The quest is the import's "Scuzz Toad Eyes" (tools/quests/data/portal.json, Portal/plane-of-disease/stew; found by its
-giver Pluxklez and its name, as ids differ between shards): a loot step (four eyes off the scuzz toads, chance 0.5 a
+giver Pluxklez and its name, as ids differ between shards; no npcs row is read or written, so a GM's move of
+Pluxklez (live Heirloom: row 122029 deleted, now 164589 near (4776, 3695)) changes nothing here): a loot step (four eyes off the scuzz toads, chance 0.5 a
 kill, as the plagueswine tusks') and a give step at Pluxklez, repeatable. Its rows changed:
 
   - itempattern (the eye, found by its name "scuzz toad eye"): itemname -> "bulging toad eye" (a creature part's name
@@ -15,7 +16,8 @@ kill, as the plagueswine tusks') and a give step at Pluxklez, repeatable. Its ro
     made rather than making a second one;
   - quests: factionreq "" -> "The Pusling:150" (offered only at 150 or more; once taken its hand-in at Pluxklez waits
     on it too: handlers/quests.go giverWontDeal); offer, started and notes say the eyes and the puslings;
-  - queststeps 1 and 2: journals say bulging toad eyes and the lakes; step 2's xp 251000 -> 0 and factions "" ->
+  - queststeps 1 and 2: journals say bulging toad eyes and the lakes (step 2's no longer "where the Lich Overlord spawns": a GM moved
+    him away from there); step 2's xp 251000 -> 0 and factions "" ->
     "The Pusling:+10" (each turn-in: the quest stays repeatable).
 
 The stew (scuzz toad stew, one a turn-in) and the drop chance are as they were. Every changed column is logged in
@@ -53,7 +55,7 @@ STARTED_OLD, STARTED_NEW = "Four eyes!", "Four bulging eyes!"
 J1_OLD = "Take four scuzz toad eyes from the scuzz toads in Gluboxious's lake."
 J1_NEW = "Take four bulging toad eyes from the scuzz toads around the lakes of the Plane of Disease."
 J2_OLD = "Bring four scuzz toad eyes to Pluxklez, where the Lich Overlord spawns."
-J2_NEW = "Bring four bulging toad eyes to Pluxklez, where the Lich Overlord spawns."
+J2_NEW = "Bring four bulging toad eyes to Pluxklez in the Plane of Disease."
 DESC_OLD, DESC_NEW = "The eye of a scuzz toad.", "The bulging eye of a scuzz toad."
 NOTE_ADD = (" Petition 1651 (Skywalker, 2026-11-12): the eyes are bulging toad eyes and tradeable; the quest asks 150 "
             "with The Pusling and gives the stew and 10 with The Pusling a turn-in, no experience "

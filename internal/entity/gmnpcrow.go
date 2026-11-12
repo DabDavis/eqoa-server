@@ -58,3 +58,11 @@ func (w *World) PlaceNameRefused(name string) string {
 	}
 	return ""
 }
+
+// HasNPCPath reports whether the NPC of that id walks a path (npcpaths):
+// /move tells the GM its path stays where it was.
+func (w *World) HasNPCPath(id EntityID) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return w.pathedLocked(id)
+}

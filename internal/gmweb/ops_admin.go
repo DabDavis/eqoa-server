@@ -30,8 +30,8 @@ func (s *Server) registerAdminOps() {
 			"hold. Who: username (exactly), who (any part of the name, the agent's, the tool's, or a source), source, tool. " +
 			"What: table (or several by commas), group, action (added, changed, deleted, reverted: undone since, revert: undoes " +
 			"another; or a raw action: insert, update, delete, live, account, settings, sql, login, token, security, backup, " +
-			"snapshot, server), name (part of the thing's name: an NPC's, an item's, a spell's, a character's, its old name " +
-			"too), row_id (the row's id or an id it refers to: an NPC's respawn row by the NPC's id), key, world. When: since " +
+			"snapshot, server), name (the start of a word of the thing's name: an NPC's, an item's, a spell's, a character's, its old " +
+			"name too: bat finds a bat and Bat Meat, not combat), row_id (the row's id or an id it refers to: an NPC's respawn row by the NPC's id), key, world. When: since " +
 			"and until (a date, 2026-11-12, or an RFC 3339 time; a date until is its whole day). Why: petition, camp_report, " +
 			"board_entry (a number; -1 any). search is free text in the line's words and rows. preset is a named filter put " +
 			"on top: npcs_deleted, npcs_added, npcs_changed, items_added, items_changed, items_given, spells_changed, " +
@@ -45,7 +45,7 @@ func (s *Server) registerAdminOps() {
 			"table":       str("only changes to this table (several: by commas)"),
 			"group":       strEnum("only changes to this group of tables", groupNames()...),
 			"action":      str("added, changed, deleted, reverted (undone since), revert (undoes another), or a raw action"),
-			"name":        str("part of the thing's name: an NPC's, an item's, a spell's, a quest's, a character's"),
+			"name":        str("the start of a word of the thing's name (an NPC's, an item's, a spell's, a quest's, a character's): bat finds a bat, not combat"),
 			"row_id":      integer("the row's id, or an id it refers to (an NPC's id finds its respawn, wander and path rows too)"),
 			"key":         freeObject("only changes to this row (its whole key)"),
 			"world":       integer("only rows in this world (0 Tunaria, 1 Rathe, 2 Odus, 3 Lavastorm, 4 Plane of Sky, 5 Secrets, ...): NPCs, characters, marks"),
@@ -82,7 +82,7 @@ func (s *Server) registerAdminOps() {
 					return nil, notOurs(nil, "the audit log")
 				}
 			}
-			list, total, counts, err := c.s.auditQuery(f)
+			list, total, counts, busy, err := c.s.auditQueryIndexed(f)
 			if err != nil {
 				return nil, err
 			}
@@ -94,6 +94,14 @@ func (s *Server) registerAdminOps() {
 			out := map[string]any{"entries": list, "total": total}
 			if counts != nil {
 				out["counts"] = counts
+			}
+			if busy {
+				// the first read after a start on a big log: the filters see
+				// the lines indexed so far
+				var done, all int64
+				c.s.d.DB.QueryRow(`SELECT COUNT(*) FROM gm_audit_facets`).Scan(&done)
+				c.s.d.DB.QueryRow(`SELECT COUNT(*) FROM gm_audit`).Scan(&all)
+				out["indexing"] = map[string]any{"indexed": done, "lines": all}
 			}
 			return out, nil
 		},

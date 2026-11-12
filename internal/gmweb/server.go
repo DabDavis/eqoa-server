@@ -136,7 +136,8 @@ type Server struct {
 	campfixMu sync.Mutex
 
 	// facetMu orders the audit log's indexing (audit_facets.go)
-	facetMu sync.Mutex
+	facetMu         sync.Mutex
+	facetVerChecked bool // the facets' rule version checked (under facetMu)
 	// presetCache is the log's presets' counts by the newest line indexed
 	presetMu    sync.Mutex
 	presetCache map[string]*presetCount

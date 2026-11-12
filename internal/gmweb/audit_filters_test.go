@@ -65,6 +65,9 @@ func TestTheAuditLogFindsWhatAGMAsksFor(t *testing.T) {
 	if n, list := auditTotal(t, c, map[string]any{"name": "skeleton"}); n != 2 {
 		t.Errorf("by name: %v %v", n, list)
 	}
+	if n, _ := auditTotal(t, c, map[string]any{"name": "eton"}); n != 0 {
+		t.Errorf("inside a word: %v", n)
+	}
 	if n, list := auditTotal(t, c, map[string]any{"row_id": 502}); n != 2 {
 		t.Errorf("by row id: %v %v", n, list)
 	}

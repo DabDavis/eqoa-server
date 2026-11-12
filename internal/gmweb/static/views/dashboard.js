@@ -33,7 +33,7 @@ export async function render(box) {
       h('div', { class: 'stack' },
         card('Broadcast', h('div', { class: 'row' }, h('div', { class: 'grow' }, text), colour, send)),
         card('Players online', online, button('All', { class: 'small ghost', onclick: () => go('online') })),
-        card('Recent GM activity', recent, button('Audit log', { class: 'small ghost', onclick: () => go('audit') }))),
+        card('Recent GM activity', recent, button('Activity log', { class: 'small ghost', onclick: () => go('audit') }))),
       card('Server', info)));
 
   let timer;

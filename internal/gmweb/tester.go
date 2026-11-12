@@ -257,24 +257,7 @@ func testerFetch(c *opCtx) error {
 // their own: another's login name is half a credential, so it is not a filter
 // to try names with. No text search: it would read what their answer leaves out.
 func testerAudit(c *opCtx) error {
-	var req struct {
-		Table    string `json:"table"`
-		Username string `json:"username"`
-		Search   string `json:"search"`
-	}
-	if err := c.decode(&req); err != nil {
-		return err
-	}
-	if req.Table != "" && !isTesterTable(req.Table) {
-		return notTesters("the audit log of " + strconv.Quote(req.Table))
-	}
-	if req.Username != "" && !strings.EqualFold(req.Username, c.a.Username) {
-		return notTesters("another's audit log")
-	}
-	if strings.TrimSpace(req.Search) != "" {
-		return notTesters("searching the audit log's text")
-	}
-	return nil
+	return limitedAuditArgs(c, isTesterTable, notTesters)
 }
 
 // testerRevert: a change to one of their tables, and never one that takes away a
@@ -317,6 +300,8 @@ func limitedAuditEntry(a *actor, e *auditEntry) {
 		return
 	}
 	e.AccountID, e.Username, e.Via, e.IP, e.Detail = 0, "staff", "", "", ""
+	// what the facets read off who and their words (audit_facets.go)
+	e.Source, e.Agent, e.Tool, e.Petitions, e.Camps, e.Boards = "", "", "", nil, nil, nil
 }
 
 // testerFlag is whether the account has a row in gm_testers; on any error no.
@@ -471,4 +456,45 @@ func (s *Server) testerGuide(r *http.Request) string {
 	}
 	text := strings.ReplaceAll(testerGuideText, "{{PANEL}}", base)
 	return strings.ReplaceAll(text, "{{RECIPES}}", strings.Join(recipes, "\n"))
+}
+
+// limitedAuditArgs is what a reader below a GM may ask the log: their own
+// tables, by what changed, its name, row, world and when. Not by who (another's
+// login name is half a credential, so it is not a filter to try names with;
+// their own is), what through, nor by the words (a petition, a camp report,
+// the free text): those read what their answer leaves out.
+func limitedAuditArgs(c *opCtx, theirs func(string) bool, refuse func(string) error) error {
+	var req struct {
+		Table      string `json:"table"`
+		Username   string `json:"username"`
+		Who        string `json:"who"`
+		Source     string `json:"source"`
+		Tool       string `json:"tool"`
+		Search     string `json:"search"`
+		Petition   int64  `json:"petition"`
+		CampReport int64  `json:"camp_report"`
+		BoardEntry int64  `json:"board_entry"`
+		Preset     string `json:"preset"`
+	}
+	if err := c.decode(&req); err != nil {
+		return err
+	}
+	for _, t := range strings.Split(req.Table, ",") {
+		if t = strings.TrimSpace(t); t != "" && !theirs(t) {
+			return refuse("the audit log of " + strconv.Quote(t))
+		}
+	}
+	if req.Username != "" && !strings.EqualFold(req.Username, c.a.Username) {
+		return refuse("another's audit log")
+	}
+	if strings.TrimSpace(req.Who) != "" || req.Source != "" || strings.TrimSpace(req.Tool) != "" {
+		return refuse("filtering the audit log by who or through what")
+	}
+	if strings.TrimSpace(req.Search) != "" {
+		return refuse("searching the audit log's text")
+	}
+	if req.Petition != 0 || req.CampReport != 0 || req.BoardEntry != 0 || req.Preset == "petitions" || req.Preset == "camp_reports" {
+		return refuse("filtering the audit log by what its words name")
+	}
+	return nil
 }

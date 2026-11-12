@@ -918,7 +918,9 @@ func (w *World) petStepLocked(pet *NPC, x, z, toward, speed, dt float32) {
 	// (groundNPCLocked would keep it at its summoning height 10 off it, then
 	// put it on the terrain under it); one summoned in the water keeps the
 	// water's rule
-	if w.ground == nil || (!w.spawnOnGroundLocked(pet) && w.spawnInWaterLocked(pet)) {
+	// (a charmed creature of the water keeps its own; a player's pet, summoned in the water or not, swims as below:
+	// petition 1842, Waldorf, 2026-11-12, "Pets don't swim, they either walk on the surface or walk on the bottom")
+	if w.ground == nil || (pet.Charm != nil && !w.spawnOnGroundLocked(pet) && w.spawnInWaterLocked(pet)) {
 		return
 	}
 	y, ok := w.ground.Floor(pet.World, pet.X, toward, pet.Z)
@@ -945,7 +947,23 @@ func (w *World) petStepLocked(pet *NPC, x, z, toward, speed, dt float32) {
 	// bridge's deck swam on the deck (the user, 2026-11-01: "the hulking
 	// bones pet is on the bridge ,but swimming in mid air. seems to trigger
 	// at where the bridge meets the land")
-	pet.Loco = locoIn(pet.Loco, w.swimLocked(pet), speed)
+	pet.Loco = locoIn(pet.Loco, w.petSwimLocked(pet, toward), speed)
+}
+
+// petSwimLocked is swimLocked for a pet just set on its floor: in water deeper than it can wade it swims, not at the
+// surface alone but at the height it heads for (its owner's or its target's, toward), as deep as that and no deeper
+// than its floor, its feet at most swimDepth under the surface (petition 1842, Waldorf, 2026-11-12: "Pets don't swim,
+// they either walk on the surface or walk on the bottom"). A charmed creature swims as swimLocked has it. Must be
+// called with the lock held.
+func (w *World) petSwimLocked(pet *NPC, toward float32) bool {
+	floor := pet.Y
+	if !w.swimLocked(pet) {
+		return false
+	}
+	if pet.Owner != 0 && pet.Charm == nil {
+		pet.Y = min(pet.Y, max(toward, floor))
+	}
+	return true
 }
 
 // locoIn is a move's animation for a body in the water or out of it: a walk

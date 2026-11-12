@@ -299,3 +299,40 @@ func (archSupportOnly) Floor(world uint8, x, y, z float32) (float32, bool) {
 func (archSupportOnly) Support(world uint8, x, y, z, up, down float32) (float32, bool) {
 	return archGround{}.Support(world, x, y, z, up, down)
 }
+
+// Petition 1842 (Waldorf, 2026-11-12): "Pets don't swim, they either walk on the surface or walk on the bottom". Its
+// owner swimming down in the river under the bridge (its bed 50, the surface 57) at 52, the pet swims there too (it
+// kept to the surface, 55.5), summoned on the bank or in the water itself (it walked the bed); the owner at the
+// surface, the pet there as before.
+func TestAPetSwimsAtItsOwnersDepth(t *testing.T) {
+	swim := func(t *testing.T, fromX, fromY, y float32) *NPC {
+		r := newPetRig(t)
+		r.w.SetGround(bridgeGround{})
+		r.w.SetEnv(riverWater{})
+		r.p.X, r.p.Y, r.p.Z = fromX, fromY, 5421.5
+		pet, _ := r.summon(t, fireElemental(), 0)
+		for ms := 100; ms <= 12_000; ms += 100 {
+			r.p.X = min(fromX+float32(ms)/1000*8.8, 8680)
+			if onDeck(r.p.X) {
+				r.p.Y = y
+			}
+			r.w.mu.Lock()
+			r.w.petSystem(r.at(time.Duration(ms) * time.Millisecond))
+			r.w.mu.Unlock()
+		}
+		return pet
+	}
+	for _, c := range []struct {
+		name           string
+		x, y0, y, want float32
+	}{
+		{"summoned on the bank, its owner at 52", 8610, 60, 52, 52},
+		{"summoned in the water, its owner at 52", 8640, 52, 52, 52},
+		{"its owner at the surface", 8610, 60, 57 - swimDepth, 57 - swimDepth},
+	} {
+		pet := swim(t, c.x, c.y0, c.y)
+		if !pet.swimming || math.Abs(float64(pet.Y-c.want)) > 0.06 || (pet.Loco != LocoTread && pet.Loco != LocoSwim) {
+			t.Errorf("%s: the pet at y %.2f swimming %v animation %d, want %.2f swimming", c.name, pet.Y, pet.swimming, pet.Loco, c.want)
+		}
+	}
+}

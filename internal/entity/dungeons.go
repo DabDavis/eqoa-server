@@ -618,6 +618,7 @@ func (w *World) DungeonStatus(sess *session.Session) string {
 				w.dungeonAliveLocked(in), in.creatures, w.dungeonPeopleLocked(in)))
 		}
 	}
+	log.Printf("Dungeons: %s asks its party's dungeons: %s", p.Name, strings.Join(parts, "; "))
 	if len(parts) == 0 {
 		return "Your party has no dungeon open. A group's leader (or a player alone) opens one at a Dungeon Warden."
 	}

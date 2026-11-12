@@ -137,6 +137,24 @@ world:
   #   enabled: true
   #   world: 13
 
+  # The instanced raid dungeons (entity/dungeons.go, handlers/dungeons.go): a
+  # world of the server's own (built by cmd/worldbuild from
+  # tools/worlds/dungeons.json, slot 14, the Dungeons: the disc's Blackburrow,
+  # Runnyeye with Misty Thicket before its gate, and Guk, where they stand on
+  # Tunaria; listed in server_worlds) whose creatures (its npcs rows, written by
+  # tools/dungeons_20261112.py) each raid, group or lone player fights in a copy
+  # of its own. A group's leader (or a player alone) opens its party's instance
+  # at a Dungeon Warden (beside Dabrish, and the way out at each entrance) or
+  # with /dungeon enter <name>; its members follow into it. An instance no one
+  # stands in for close_after closes (its creatures gone); max_instances may be
+  # open at once. Only a client that holds the world goes in (vanilla). Off
+  # unless enabled; world unset is 14 (claude-notes/dungeon-world-20261112.md).
+  # dungeons:
+  #   enabled: true
+  #   world: 14
+  #   close_after: 30m
+  #   max_instances: 30
+
   # How many records the pack (worn items among them, as CLIENT's 40 counts
   # them) and the bank hold for a client that holds more (vanilla, offered them
   # with opcode 0x7E29). Unset or 40: CLIENT's 40, nothing offered; at most 255.

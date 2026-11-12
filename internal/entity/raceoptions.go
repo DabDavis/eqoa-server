@@ -196,6 +196,11 @@ const (
 	bodyMermaid         = 0x74BA7C3D
 	bodySiren           = 0xBF21FEF5
 	bodyEnchantingSiren = 0x1740427C
+	// the sea king (Quintashi's body, 2026-11-12, the owner: "also give mermaid
+	// a male variant"): the merfolk's skeleton and play list, green-scaled, a
+	// crown; a client that draws it for a player leaves out the trident its
+	// mesh holds (vanilla), so it holds the player's own weapons
+	bodySeaKing = 0xD275EE8F
 )
 
 // The giants' kinds, every one on the hill giant's skeleton and as tall (4.81).
@@ -485,13 +490,14 @@ var raceOptionRows = map[uint32][]OptionRow{
 			Parts: []OptionPart{whole(bodyHumanMale, 2), whole(bodyHumanFemale, 7)},
 			Male:  []OptionStep{{"Will o' wisp", bodyWillOWisp, 0}}},
 	},
-	// the Mermaid: the merman alone for a man (at the mermaid's height), the
+	// the Mermaid: the merman or the sea king for a man (at the mermaid's height;
+	// the sea king's skin his scales and crown's every entry but the trident's), the
 	// mermaid and the two sirens for a woman, each as tall; the colours on every
 	// one of them (the shells on the women's alone: the merman has none)
 	bodyMerman: {
-		{Key: "body", Label: "Kind", Kind: KindBody, Male: []OptionStep{{"Merman", bodyMerman, 0.83}},
+		{Key: "body", Label: "Kind", Kind: KindBody, Male: []OptionStep{{"Merman", bodyMerman, 0.83}, {"Sea king", bodySeaKing, 0.334}},
 			Female: []OptionStep{{"Mermaid", bodyMermaid, 1}, {"Siren", bodySiren, 0.77}, {"Enchanting siren", bodyEnchantingSiren, 0.667}}},
-		{Key: "skin", Label: "Skin", Kind: KindColour, Parts: merfolkParts(merfolkSkin), Male: merfolkSkins},
+		{Key: "skin", Label: "Skin", Kind: KindColour, Parts: append(merfolkParts(merfolkSkin), whole(bodySeaKing, 0, 1, 2, 3)), Male: merfolkSkins},
 		{Key: "hair", Label: "Hair", Kind: KindColour, Parts: merfolkParts(merfolkHair), Male: dyes},
 		{Key: "tail", Label: "Tail", Kind: KindColour, Parts: merfolkParts(merfolkTail), Male: dyes},
 		{Key: "shells", Label: "Shells", Kind: KindColour, Parts: merfolkParts(merfolkShells)[1:], Male: dyes},

@@ -356,6 +356,11 @@ type TemplateAbility struct {
 	// charm.go: a charmed creature's spells cost it their power, the wiki's
 	// Nasehir wizards "chain cast, never run OOM"); a summoned pet's never cost.
 	Free bool `json:"free,omitempty"`
+	// WhileOut is a buff on its owner that lasts only while the pet is out: it
+	// comes off its owner when the pet goes (dismissed, dead, replaced; entity/
+	// pet.go dismissPetLocked). The Undead Servant's (petition 1805, Skywalker:
+	// "The pet Buffs 300 Hp and 300 Power along with a 80 lifetap proc").
+	WhileOut bool `json:"while_out,omitempty"`
 	// Hits is a taunt's damage by the pet's level: points [level, least,
 	// most], a level between two the straight line between them, one below
 	// the first the first's and one past the last the last's (one point: the
@@ -937,6 +942,8 @@ func checkPetAbility(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: a debuff names its spell (spell or spell_id)", n)
 	case a.NoCure && a.Kind != AbilityDebuff:
 		return fmt.Errorf("ability %d: no_cure is a debuff's", n)
+	case a.WhileOut && (a.Kind != AbilityBuff || a.Target != AbilityOnOwner):
+		return fmt.Errorf("ability %d: while_out is a buff's on its owner", n)
 	case a.SpellsOf != nil && (*a.SpellsOf < 0 || *a.SpellsOf > 14):
 		return fmt.Errorf("ability %d: spells_of %d: 0 (Warrior) to 14 (Alchemist)", n, *a.SpellsOf)
 	case a.Stat != "" && !oneOf(a.Stat, AbilityStats):

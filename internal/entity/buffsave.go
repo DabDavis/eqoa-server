@@ -94,7 +94,7 @@ func savedEffects(p *Player, now time.Time) []database.BuffRow {
 	var rows []database.BuffRow
 	for _, e := range p.Effects {
 		left := e.Until.Sub(now)
-		if left <= 0 || e.duelFoe != 0 || e.npcFoe != 0 { // a duel's harm ends with it (duel.go), a creature's poison with the logout
+		if left <= 0 || e.duelFoe != 0 || e.npcFoe != 0 || e.petBound { // a duel's harm ends with it (duel.go), a creature's poison and a pet's own buff with the logout
 			continue
 		}
 		tick := int64(-1)

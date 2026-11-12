@@ -375,8 +375,9 @@ func (w *World) regenSystem(now time.Time) {
 			continue
 		}
 
-		// Skip regen while underwater (drowning should kill, not be out-healed)
-		if p.Underwater {
+		// Skip regen while underwater (drowning should kill, not be out-healed),
+		// but for those who breathe there (the sea folk, an enduring breath)
+		if p.Underwater && !p.holdsBreath() {
 			continue
 		}
 

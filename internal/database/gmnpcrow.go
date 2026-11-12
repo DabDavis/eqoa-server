@@ -318,6 +318,69 @@ type NPCClone struct {
 // "/clone in the game: " + what). It returns the new row's id and the extras'
 // tables copied; sql.ErrNoRows when there is no such row.
 func (db *SQLiteDB) CloneNPCRowAudited(from int64, at NPCClone, who GMEdit, what string) (int64, []string, error) {
+	return db.copyNPCRowAudited(from, at, who, fmt.Sprintf("/clone in the game: %s, a copy of NPC %d", what, from))
+}
+
+// PlaceNPCRowAudited is /place's copy: as CloneNPCRowAudited, its audit
+// detail "/place in the game: ".
+func (db *SQLiteDB) PlaceNPCRowAudited(from int64, at NPCClone, who GMEdit, what string) (int64, []string, error) {
+	return db.copyNPCRowAudited(from, at, who, fmt.Sprintf("/place in the game: %s, a copy of NPC %d", what, from))
+}
+
+// PlaceSourceRow is the npcs row /place copies for a name (any case): of
+// those in world if any, else of all, the most common body and level (most
+// rows; a tie the body and level of the lowest row), its lowest row. 0 and
+// sql.ErrNoRows when no row has the name.
+func (db *SQLiteDB) PlaceSourceRow(name string, world int) (int64, error) {
+	rows, err := db.Query(`SELECT id, world, COALESCE(modelid, 0), COALESCE(npc_level, 0) FROM npcs
+		WHERE npc_name = ? COLLATE NOCASE ORDER BY id`, name)
+	if err != nil {
+		return 0, err
+	}
+	type cand struct{ id, world, model, level int64 }
+	var all, here []cand
+	for rows.Next() {
+		var c cand
+		if err := rows.Scan(&c.id, &c.world, &c.model, &c.level); err != nil {
+			rows.Close()
+			return 0, err
+		}
+		all = append(all, c)
+		if c.world == int64(world) {
+			here = append(here, c)
+		}
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return 0, err
+	}
+	if len(here) > 0 {
+		all = here
+	}
+	if len(all) == 0 {
+		return 0, sql.ErrNoRows
+	}
+	type kind struct{ model, level int64 }
+	n := map[kind]int{}
+	first := map[kind]int64{}
+	for _, c := range all {
+		k := kind{c.model, c.level}
+		if n[k] == 0 {
+			first[k] = c.id
+		}
+		n[k]++
+	}
+	best := all[0]
+	bk := kind{best.model, best.level}
+	for k, c := range n {
+		if c > n[bk] || c == n[bk] && first[k] < first[bk] {
+			bk = k
+		}
+	}
+	return first[bk], nil
+}
+
+func (db *SQLiteDB) copyNPCRowAudited(from int64, at NPCClone, who GMEdit, detail string) (int64, []string, error) {
 	if _, err := db.Exec(GMAuditSchema); err != nil {
 		return 0, nil, err
 	}
@@ -350,7 +413,6 @@ func (db *SQLiteDB) CloneNPCRowAudited(from int64, at NPCClone, who GMEdit, what
 	if _, err := tx.Exec(`UPDATE npcs SET `+set+` WHERE id = ?`, at.X, at.Y, at.Z, at.Facing, at.World, id); err != nil {
 		return 0, nil, err
 	}
-	detail := fmt.Sprintf("/clone in the game: %s, a copy of NPC %d", what, from)
 	after, err := fullRow(tx, `SELECT * FROM npcs WHERE id = ?`, id)
 	if err != nil {
 		return 0, nil, err

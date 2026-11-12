@@ -38,7 +38,7 @@ func TestADeclinedMercIsDismissed(t *testing.T) {
 	}
 	r.sent()
 	r.w.GroupDecline(r.sess, r.sess.PlayerObjectID(), 1)
-	if r.w.mercs[r.p.ServerID] != nil || r.w.NPCs[ms.npc.ServerID] != nil {
+	if r.w.merc1(r.p.ServerID) != nil || r.w.NPCs[ms.npc.ServerID] != nil {
 		t.Fatal("the declined merc stayed")
 	}
 	if len(r.w.mercNotes) != 1 || r.w.mercNotes[0].Kind != MercNoteDismissed {
@@ -55,8 +55,8 @@ func TestADeclinedMercIsDismissed(t *testing.T) {
 	r.w.mercNotes = nil
 	ms = r.hire(r.kit(0, 0, 0), MercAssist)
 	r.run(4*time.Second, 7*time.Second)
-	if r.w.mercs[r.p.ServerID] != ms || ms.target != crab.ServerID {
-		t.Fatalf("after the yes the merc is %v and fights %d, not the crab", r.w.mercs[r.p.ServerID] == ms, ms.target)
+	if r.w.merc1(r.p.ServerID) != ms || ms.target != crab.ServerID {
+		t.Fatalf("after the yes the merc is %v and fights %d, not the crab", r.w.merc1(r.p.ServerID) == ms, ms.target)
 	}
 }
 
@@ -73,7 +73,7 @@ func TestALoginsMercDeclinedGoes(t *testing.T) {
 	}
 	r.w.GroupLeave(r.sess)
 	r.run(0, time.Second)
-	if r.w.mercs[r.p.ServerID] != nil {
+	if r.w.merc1(r.p.ServerID) != nil {
 		t.Fatal("out of the group of the two of them, the merc stayed")
 	}
 }
@@ -89,17 +89,17 @@ func TestAMercWaitingBehindABoxHolds(t *testing.T) {
 	crab := r.creature("Desert Crab", 28, 4)
 	r.p.AttackTarget, r.p.AutoAttack = crab.ServerID, true
 	r.run(0, 2*time.Second)
-	if r.w.mercs[r.p.ServerID] != ms || ms.target != 0 {
-		t.Fatalf("behind another's box the merc went (%v) or fought %d", r.w.mercs[r.p.ServerID] != ms, ms.target)
+	if r.w.merc1(r.p.ServerID) != ms || ms.target != 0 {
+		t.Fatalf("behind another's box the merc went (%v) or fought %d", r.w.merc1(r.p.ServerID) != ms, ms.target)
 	}
 	r.w.GroupDecline(r.sess, r.w.IDSeenBy(r.sess, inviter), 1)
 	r.sent()
 	r.run(2*time.Second, 3*time.Second)
-	if got := r.sent(); got[protocol.OpcodeGroupInviteReceived] != 1 || r.w.mercs[r.p.ServerID] != ms {
-		t.Fatalf("after the other box's no: asked %v, merc kept %v", got, r.w.mercs[r.p.ServerID] == ms)
+	if got := r.sent(); got[protocol.OpcodeGroupInviteReceived] != 1 || r.w.merc1(r.p.ServerID) != ms {
+		t.Fatalf("after the other box's no: asked %v, merc kept %v", got, r.w.merc1(r.p.ServerID) == ms)
 	}
 	r.w.GroupDecline(r.sess, r.sess.PlayerObjectID(), 1)
-	if r.w.mercs[r.p.ServerID] != nil {
+	if r.w.merc1(r.p.ServerID) != nil {
 		t.Error("its own no left the merc")
 	}
 }

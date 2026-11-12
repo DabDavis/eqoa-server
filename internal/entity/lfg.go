@@ -154,9 +154,10 @@ func (w *World) LFGSearch(sess *session.Session, q LFGQuery) []LFGRow {
 			continue
 		}
 		// nor a full group's leader: one more and a group of four is a raid
-		// group (raid.go); one in a group of its own and its merc's alone
-		// gives way to an invite (mercgroup.go)
-		if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil && len(g.Members) >= GroupWindowSize && !w.mercOnlyGroupLocked(p) {
+		// group (raid.go); a plain group's mercs make way for a player
+		// (mercbench.go), and one of its own and its mercs alone gives way to
+		// an invite (mercgroup.go)
+		if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil && w.groupFullForPlayerLocked(g) && !w.mercOnlyGroupLocked(p) {
 			continue
 		}
 		if !lfgBit(q.Classes, p.Class) || !lfgBit(q.Races, WireRace(p.Race)) || (!anyLevel && (p.Level < q.MinLevel || p.Level > q.MaxLevel)) {

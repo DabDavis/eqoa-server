@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -145,10 +146,13 @@ type MercLook struct {
 	PrimaryType, SecondaryType byte
 }
 
-// mercState is one merc, kept by its owner's id.
+// mercState is one merc, kept by its owner's id and its slot.
 type mercState struct {
 	owner *Player
-	npc   *NPC
+	// slot is its hire's (1 to MercSlots: charmerc.slot, /merc 2): its follow
+	// place (followslot.go) and its non-collide entry
+	slot int
+	npc  *NPC
 	// body is the merc as a player of its class and level, never in the
 	// world: its stats and figures (the file's doc); its id is the NPC's
 	body *Player
@@ -202,8 +206,23 @@ type mercState struct {
 
 // mercNoCollideID is a merc's entry on its owner's non-collide list (0x1003:
 // CLIENT's ignore list, pet.go): past the pet's petNoCollideID, as an
-// ignored player's count up from it.
+// ignored player's count up from it; the first slot's, the familiar's next
+// (familiarNoCollideID), the second and third slots' after it.
 const mercNoCollideID uint32 = petNoCollideID + 1
+
+// MercSlots is how many mercs a player may have at once (the owner,
+// 2026-11-12: "if a player wants to have 3 mercenaries in their group it is
+// fine"), as database.MercSlots.
+const MercSlots = 3
+
+// mercNoCollideIDOf is the merc of the slot's entry on its owner's
+// non-collide list.
+func mercNoCollideIDOf(slot int) uint32 {
+	if slot <= 1 {
+		return mercNoCollideID
+	}
+	return familiarNoCollideID + uint32(slot-1)
+}
 
 // MercRest is how long a dead merc rests before /merc brings it back (ours:
 // the owner's "after a rest (60 s, your call)").
@@ -231,7 +250,9 @@ const (
 	// dismiss (a group leader's boot: mercgroup.go)
 	MercNoteDismissed
 	// MercNoteBack: its owner left the arena, where it waited outside
-	// (ctfaway.go): the handlers make it again from its row, as at a login
+	// (ctfaway.go), or a place in its owner's group freed for it on standby
+	// (mercbench.go): the handlers make it again from its row (Slot's; 0
+	// every row's), as at a login
 	MercNoteBack
 )
 
@@ -239,6 +260,8 @@ const (
 type MercNote struct {
 	Kind  MercNoteKind
 	Owner *Player
+	// Slot is the merc's (charmerc.slot), 0 for every one of its owner's
+	Slot  int
 	Sess  *session.Session
 	Name  string
 	Level int
@@ -283,54 +306,144 @@ func (w *World) mercHiredByLocked(id, owner EntityID) bool {
 	return n.isMerc() && n.merc.owner != nil && n.merc.owner.ServerID == owner
 }
 
-// mercOfLocked is the player's merc, alive, or nil. Must be called with the
-// lock held.
-func (w *World) mercOfLocked(p *Player) *mercState {
+// mercsOfLocked is the player's mercs out, alive, by slot. Must be called
+// with the lock held.
+func (w *World) mercsOfLocked(p *Player) []*mercState {
 	if p == nil {
 		return nil
 	}
-	ms := w.mercs[p.ServerID]
-	if ms == nil || ms.owner != p || ms.npc.Dead {
-		return nil
+	var out []*mercState
+	for _, ms := range w.mercs[p.ServerID] {
+		if ms.owner == p && !ms.npc.Dead {
+			out = append(out, ms)
+		}
 	}
-	return ms
+	return out
 }
 
-// MercOf is the session's player's merc's entity id, 0 for none.
+// mercAtLocked is the player's merc of the slot out, alive, or nil. Must be
+// called with the lock held.
+func (w *World) mercAtLocked(p *Player, slot int) *mercState {
+	for _, ms := range w.mercsOfLocked(p) {
+		if ms.slot == slot {
+			return ms
+		}
+	}
+	return nil
+}
+
+// mercLiveLocked reports the merc still out (dead or not: its death is seen
+// at the merc system's turn). Must be called with the lock held.
+func (w *World) mercLiveLocked(ms *mercState) bool {
+	if ms == nil || ms.owner == nil {
+		return false
+	}
+	for _, o := range w.mercs[ms.owner.ServerID] {
+		if o == ms {
+			return true
+		}
+	}
+	return false
+}
+
+// putMercLocked keeps the merc among its owner's, by slot. Must be called
+// with the lock held.
+func (w *World) putMercLocked(ms *mercState) {
+	if w.mercs == nil {
+		w.mercs = make(map[EntityID][]*mercState)
+	}
+	id := ms.owner.ServerID
+	list := append(w.mercs[id], ms)
+	sort.SliceStable(list, func(i, j int) bool { return list[i].slot < list[j].slot })
+	w.mercs[id] = list
+}
+
+// dropMercLocked lets the merc go from its owner's. Must be called with the
+// lock held.
+func (w *World) dropMercLocked(ms *mercState) {
+	id := ms.owner.ServerID
+	list := w.mercs[id]
+	for i, o := range list {
+		if o == ms {
+			list = append(list[:i:i], list[i+1:]...)
+			break
+		}
+	}
+	if len(list) == 0 {
+		delete(w.mercs, id)
+		return
+	}
+	w.mercs[id] = list
+}
+
+// allMercsLocked is every merc out, its owners' in turn. Must be called with
+// the lock held.
+func (w *World) allMercsLocked() []*mercState {
+	var out []*mercState
+	for _, list := range w.mercs {
+		out = append(out, list...)
+	}
+	return out
+}
+
+// mercPickLocked is the player's mercs out an order names: the slot's (1 to
+// MercSlots), or every one for 0. Must be called with the lock held.
+func (w *World) mercPickLocked(p *Player, slot int) []*mercState {
+	if slot == 0 {
+		return w.mercsOfLocked(p)
+	}
+	if ms := w.mercAtLocked(p, slot); ms != nil {
+		return []*mercState{ms}
+	}
+	return nil
+}
+
+// MercOf is the session's player's first merc's entity id, 0 for none.
 func (w *World) MercOf(sess *session.Session) EntityID {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
-	if ms := w.mercOfLocked(w.sessionPlayerLocked(sess)); ms != nil {
-		return ms.npc.ServerID
+	if list := w.mercsOfLocked(w.sessionPlayerLocked(sess)); len(list) > 0 {
+		return list[0].npc.ServerID
 	}
 	return 0
 }
 
 // MercInfo is what /merc says of a merc.
 type MercInfo struct {
+	Slot                       int
 	Name                       string
 	Class, Race, Sex, Level    int
 	HP, MaxHP, Power, MaxPower int
 	Stance                     MercStance
 	Stay                       bool
 	Target                     string
+	// Grouped: in its owner's group
+	Grouped bool
 }
 
-// MercInfoOf is the session's player's merc, false for none out.
-func (w *World) MercInfoOf(sess *session.Session) (MercInfo, bool) {
+// MercInfosOf is the session's player's mercs out, by slot.
+func (w *World) MercInfosOf(sess *session.Session) []MercInfo {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
-	ms := w.mercOfLocked(w.sessionPlayerLocked(sess))
-	if ms == nil {
-		return MercInfo{}, false
+	var out []MercInfo
+	for _, ms := range w.mercsOfLocked(w.sessionPlayerLocked(sess)) {
+		n := ms.npc
+		info := MercInfo{Slot: ms.slot, Name: n.Name, Class: ms.kit.Class, Race: ms.kit.Race, Sex: ms.kit.Sex, Level: n.Level, HP: n.HP,
+			MaxHP: n.MaxHP, Power: n.Power, MaxPower: n.MaxPower, Stance: ms.stance, Stay: ms.stay, Grouped: w.mercInOwnGroupLocked(ms)}
+		if t := w.NPCs[ms.target]; t != nil {
+			info.Target = t.Name
+		}
+		out = append(out, info)
 	}
-	n := ms.npc
-	info := MercInfo{Name: n.Name, Class: ms.kit.Class, Race: ms.kit.Race, Sex: ms.kit.Sex, Level: n.Level, HP: n.HP, MaxHP: n.MaxHP,
-		Power: n.Power, MaxPower: n.MaxPower, Stance: ms.stance, Stay: ms.stay}
-	if t := w.NPCs[ms.target]; t != nil {
-		info.Target = t.Name
+	return out
+}
+
+// MercInfoOf is the session's player's first merc out, false for none.
+func (w *World) MercInfoOf(sess *session.Session) (MercInfo, bool) {
+	if list := w.MercInfosOf(sess); len(list) > 0 {
+		return list[0], true
 	}
-	return info, true
+	return MercInfo{}, false
 }
 
 // mercModelLocked is the body a merc of race and sex wears: a race of
@@ -411,7 +524,7 @@ func (w *World) dressMercLocked(n *NPC, k *MercKit, owner *Player) {
 // spawnMercLocked makes the merc of the kit beside its owner: its NPC dressed
 // and at a player's hit points and power, in the world, its owner's. Must be
 // called with the lock held.
-func (w *World) spawnMercLocked(owner *Player, kit MercKit, stance MercStance, now time.Time) *mercState {
+func (w *World) spawnMercLocked(owner *Player, slot int, kit MercKit, stance MercStance, now time.Time) *mercState {
 	if kit.Level <= 0 || kit.Level != owner.Level {
 		kit.Level = owner.Level
 	}
@@ -419,7 +532,7 @@ func (w *World) spawnMercLocked(owner *Player, kit MercKit, stance MercStance, n
 	n := &NPC{ServerID: id, Name: kit.Name, World: owner.World, Level: kit.Level, Faction: FactionFriendly, Temporary: true,
 		RespawnTime: petCorpseTime, CorpseDecay: petCorpseTime, Owner: owner.ServerID}
 	w.dressMercLocked(n, &kit, owner)
-	n.X, n.Y, n.Z = w.followPlaceLocked(n, owner, slotMerc)
+	n.X, n.Y, n.Z = w.followPlaceLocked(n, owner, mercFollowSlot(slot))
 	n.Facing = headingTo(owner.X-n.X, owner.Z-n.Z)
 	n.SpawnX, n.SpawnY, n.SpawnZ, n.SpawnFacing = n.X, n.Y, n.Z, n.Facing
 	body := newMercBody(id, &kit)
@@ -430,18 +543,15 @@ func (w *World) spawnMercLocked(owner *Player, kit MercKit, stance MercStance, n
 		stance = MercAssist
 	}
 	w.mercLife++
-	ms := &mercState{owner: owner, npc: n, body: body, kit: kit, role: mercRoleOf(kit.Class), life: w.mercLife, stance: stance,
+	ms := &mercState{owner: owner, slot: max(slot, 1), npc: n, body: body, kit: kit, role: mercRoleOf(kit.Class), life: w.mercLife, stance: stance,
 		last: now, ready: map[int]time.Time{}, levelAsked: kit.Level, idle: mercIdle{quiet: now}}
 	n.merc = ms
 	syncMercBody(ms)
 	w.putNPCLocked(n)
 	w.SpatialIndex.Insert(n.ServerID, n.X, n.Z)
-	if w.mercs == nil {
-		w.mercs = make(map[EntityID]*mercState)
-	}
-	w.mercs[owner.ServerID] = ms
-	log.Printf("Merc: %s's %q comes, a level %d %s (%s), race %d sex %d, body %#x: %d HP, %d power, AC %d, STR %d DEX %d AGI %d STA %d WIS %d INT %d, weapon %d, swing %d, %d spells",
-		owner.Name, n.Name, n.Level, className(kit.Class), MercRoleName(kit.Class), kit.Race, kit.Sex, uint32(n.ModelID), n.MaxHP, n.MaxPower,
+	w.putMercLocked(ms)
+	log.Printf("Merc: %s's %q (slot %d) comes, a level %d %s (%s), race %d sex %d, body %#x: %d HP, %d power, AC %d, STR %d DEX %d AGI %d STA %d WIS %d INT %d, weapon %d, swing %d, %d spells",
+		owner.Name, n.Name, ms.slot, n.Level, className(kit.Class), MercRoleName(kit.Class), kit.Race, kit.Sex, uint32(n.ModelID), n.MaxHP, n.MaxPower,
 		body.StatNow(StatAC), body.StatNow(StatStr), body.StatNow(StatDex), body.StatNow(StatAgi), body.StatNow(StatSta),
 		body.StatNow(StatWis), body.StatNow(StatInt), body.Gear.WeaponDamage, body.Swing.Kind, len(kit.Spells))
 	return ms
@@ -455,37 +565,56 @@ func className(class int) string {
 	return fmt.Sprintf("class %d", class)
 }
 
-// HireMerc puts the kit's merc beside the session's player, in place of any
-// it has (gone at once, its group place given to the new one). The refusal
-// is a line: the dead, one in no world, a group with no room for it
-// (mercgroup.go: four, unless its leader raised a raid flag).
+// HireMerc is HireMercAt's first slot.
 func (w *World) HireMerc(sess *session.Session, kit MercKit, stance MercStance, now time.Time) (name, refusal string) {
+	name, refusal, _ = w.HireMercAt(sess, 1, kit, stance, now)
+	return name, refusal
+}
+
+// HireMercAt puts the kit's merc beside the session's player in the slot (1
+// to MercSlots), in place of any it has there (gone at once, its group place
+// given to the new one). A group of four with no place for it (its leader
+// raised no raid flag: mercgroup.go) takes it on standby instead
+// (mercbench.go): standby true, its owner told, it comes when a place frees.
+// The refusal is a line: the dead, one in no world.
+func (w *World) HireMercAt(sess *session.Session, slot int, kit MercKit, stance MercStance, now time.Time) (name, refusal string, standby bool) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	slot = min(max(slot, 1), MercSlots)
 	p := w.sessionPlayerLocked(sess)
 	if p == nil || !sess.CharacterInWorld() {
-		return "", "You must be in the world to hire a mercenary."
+		return "", "You must be in the world to hire a mercenary.", false
 	}
 	if p.IsDead() || p.respawnPending() {
-		return "", "The dead hire no one."
+		return "", "The dead hire no one.", false
 	}
 	if w.ctfKeepsOutLocked(p) {
 		// a match is its players' alone: it waits outside the arena and comes
 		// when its owner leaves it (ctfaway.go)
-		w.ctfMercWaitsLocked(p, nil, kit.Name)
-		return "", fmt.Sprintf(ctfLineMercAway, kit.Name)
+		w.ctfMercWaitsLocked(p, nil, slot, kit.Name)
+		return "", fmt.Sprintf(ctfLineMercAway, kit.Name), false
 	}
-	old := w.mercs[p.ServerID]
-	if why := w.mercGroupRoomLocked(p, old); why != "" {
-		return "", why
+	var old *mercState
+	for _, ms := range w.mercs[p.ServerID] {
+		if ms.owner == p && ms.slot == slot {
+			old = ms
+		}
+	}
+	if !w.mercRoomLocked(p, old) {
+		if old != nil {
+			w.mercGoesLocked(old, sess, now)
+		}
+		w.benchSlotLocked(p, sess, slot, kit.Name, mercStandbyFullLine, now)
+		return kit.Name, "", true
 	}
 	if old != nil {
 		w.mercGoesLocked(old, sess, now)
 	}
-	ms := w.spawnMercLocked(p, kit, stance, now)
+	w.unbenchLocked(p, slot)
+	ms := w.spawnMercLocked(p, slot, kit, stance, now)
 	w.mercGroupJoinLocked(ms, sess)
 	w.mercTellLocked(ms, sess)
-	return ms.npc.Name, ""
+	return ms.npc.Name, "", false
 }
 
 // mercGoesLocked takes the merc out of the world at once, out of its group,
@@ -493,14 +622,12 @@ func (w *World) HireMerc(sess *session.Session, kit MercKit, stance MercStance, 
 // every fight. Must be called with the lock held.
 func (w *World) mercGoesLocked(ms *mercState, sess *session.Session, now time.Time) {
 	n := ms.npc
-	if w.mercs[ms.owner.ServerID] == ms {
-		delete(w.mercs, ms.owner.ServerID)
-	}
+	w.dropMercLocked(ms)
 	w.mercLeaveGroupLocked(ms)
 	w.mercPetGoesLocked(ms, now) // its pet with it (mercpet.go)
 	w.dropAggroLocked(n.ServerID)
 	if sess != nil && ms.noCollide {
-		sendNoCollideRemove(sess, mercNoCollideID)
+		sendNoCollideRemove(sess, mercNoCollideIDOf(ms.slot))
 	}
 	if w.NPCs[n.ServerID] == n {
 		w.removeNPCLocked(n)
@@ -509,22 +636,27 @@ func (w *World) mercGoesLocked(ms *mercState, sess *session.Session, now time.Ti
 	log.Printf("Merc: %s's %q goes", ms.owner.Name, n.Name)
 }
 
-// DismissMerc sends the session's player's merc away, its hire ended (the
-// handlers drop its row). It reports the merc's name, false for none out.
-func (w *World) DismissMerc(sess *session.Session, now time.Time) (string, bool) {
+// DismissMerc sends the session's player's merc of the slot away, out or on
+// standby (mercbench.go) or waiting outside the arena (ctfaway.go), its hire
+// ended (the handlers drop its row). It reports the merc's name, false for
+// none there.
+func (w *World) DismissMerc(sess *session.Session, slot int, now time.Time) (string, bool) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
-	ms := w.mercs[p.idOrZero()]
 	if p == nil {
 		return "", false
 	}
-	if ms == nil || ms.owner != p {
-		return w.ctfDismissAwayLocked(p, true) // one waiting outside the arena (ctfaway.go)
+	if ms := w.mercAtLocked(p, slot); ms != nil {
+		name := ms.npc.Name
+		w.mercGoesLocked(ms, sess, now)
+		return name, true
 	}
-	name := ms.npc.Name
-	w.mercGoesLocked(ms, sess, now)
-	return name, true
+	if b := w.benchedAtLocked(p, slot); b != nil {
+		w.unbenchLocked(p, slot)
+		return b.name, true
+	}
+	return w.ctfDismissAwayLocked(p, slot, true) // one waiting outside the arena (ctfaway.go)
 }
 
 // idOrZero is the player's id, 0 for none.
@@ -535,72 +667,86 @@ func (p *Player) idOrZero() EntityID {
 	return p.ServerID
 }
 
-// SetMercStance sets the session's player's merc's stance. It reports false
-// with no merc out.
-func (w *World) SetMercStance(sess *session.Session, s MercStance) bool {
+// SetMercStance sets the stance of the session's player's merc of the slot
+// (0: every one out). It reports how many took it.
+func (w *World) SetMercStance(sess *session.Session, slot int, s MercStance) int {
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	ms := w.mercOfLocked(w.sessionPlayerLocked(sess))
-	if ms == nil {
-		return false
+	list := w.mercPickLocked(w.sessionPlayerLocked(sess), slot)
+	for _, ms := range list {
+		ms.stance = s
+		if s == MercPassive && ms.ordered == 0 {
+			ms.target = 0
+			ms.npc.endRound()
+		}
+		log.Printf("Merc: %s's %q is %s", ms.owner.Name, ms.npc.Name, MercStanceNames[s])
 	}
-	ms.stance = s
-	if s == MercPassive && ms.ordered == 0 {
-		ms.target = 0
-		ms.npc.endRound()
-	}
-	log.Printf("Merc: %s's %q is %s", ms.owner.Name, ms.npc.Name, MercStanceNames[s])
-	return true
+	return len(list)
 }
 
-// SetMercStay holds the session's player's merc where it stands (stay) or
-// has it follow again. It reports false with no merc out.
-func (w *World) SetMercStay(sess *session.Session, stay bool) bool {
+// SetMercStay holds the session's player's merc of the slot (0: every one
+// out) where it stands (stay) or has it follow again. It reports how many
+// took it.
+func (w *World) SetMercStay(sess *session.Session, slot int, stay bool) int {
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	ms := w.mercOfLocked(w.sessionPlayerLocked(sess))
-	if ms == nil {
-		return false
+	list := w.mercPickLocked(w.sessionPlayerLocked(sess), slot)
+	for _, ms := range list {
+		ms.stay = stay
+		if stay {
+			n := ms.npc
+			ms.stayAt = [3]float32{n.X, n.Y, n.Z}
+			n.stopMoving()
+		}
 	}
-	ms.stay = stay
-	if stay {
-		n := ms.npc
-		ms.stayAt = [3]float32{n.X, n.Y, n.Z}
-		n.stopMoving()
-	}
-	return true
+	return len(list)
 }
 
-// MercAttack sets the session's player's merc on its target (the creature
-// its client has targeted), whatever its stance, until it dies or goes. It
-// reports the creature's name, or the line refusing it.
-func (w *World) MercAttack(sess *session.Session) (name, refusal string) {
+// MercAttack sets the session's player's merc of the slot (0: every one out)
+// on its target (the creature its client has targeted), whatever its stance,
+// until it dies or goes. It reports the creature's name, or the line refusing
+// it.
+func (w *World) MercAttack(sess *session.Session, slot int) (name, refusal string) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
-	ms := w.mercOfLocked(p)
-	if ms == nil {
+	list := w.mercPickLocked(p, slot)
+	if len(list) == 0 {
 		return "", "You have no mercenary out."
 	}
 	ent, ok := w.findEntityByObjectIDLocked(sess, p.TargetObjectID)
 	t, isNPC := ent.(*NPC)
-	if !ok || !isNPC || !mercMayFight(ms.npc, t) {
+	if !ok || !isNPC {
+		return "", "Your mercenary cannot attack that."
+	}
+	n := 0
+	for _, ms := range list {
+		if mercMayFight(ms.npc, t) {
+			n++
+		}
+	}
+	if n == 0 {
 		return "", "Your mercenary cannot attack that."
 	}
 	if distXZ(p.X, p.Z, t.X, t.Z) > petLeash {
 		return "", petTargetTooFar
 	}
-	ms.ordered, ms.target = t.ServerID, t.ServerID
+	for _, ms := range list {
+		if mercMayFight(ms.npc, t) {
+			ms.ordered, ms.target = t.ServerID, t.ServerID
+		}
+	}
 	return t.Name, ""
 }
 
-// SetMercKit gives the character's merc a new kit (its level's: the handlers'
-// answer to MercNoteLevel), its hit points and power keeping their shares.
-func (w *World) SetMercKit(charID uint32, kit MercKit) bool {
+// SetMercKit gives the character's merc of the slot a new kit (its level's:
+// the handlers' answer to MercNoteLevel), its hit points and power keeping
+// their shares.
+func (w *World) SetMercKit(charID uint32, slot int, kit MercKit) bool {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.playerByCharacterLocked(charID)
-	ms := w.mercOfLocked(p)
+	ms := w.mercAtLocked(p, slot)
 	if ms == nil || kit.Class != ms.kit.Class {
 		return false
 	}
@@ -677,7 +823,7 @@ func (w *World) mercLevelLocked(ms *mercState, sess *session.Session) {
 	}
 	if ms.levelAsked != o.Level {
 		ms.levelAsked = o.Level
-		w.noteMercLocked(MercNote{Kind: MercNoteLevel, Owner: o, Sess: sess, Name: ms.npc.Name, Level: o.Level})
+		w.noteMercLocked(MercNote{Kind: MercNoteLevel, Owner: o, Slot: ms.slot, Sess: sess, Name: ms.npc.Name, Level: o.Level})
 	}
 }
 
@@ -686,31 +832,34 @@ func (w *World) mercLevelLocked(ms *mercState, sess *session.Session) {
 // (its corpse lies a pet's time: corpse.go). Must be called with the lock held.
 func (w *World) mercDiedLocked(ms *mercState, sess *session.Session, now time.Time) {
 	n := ms.npc
-	delete(w.mercs, ms.owner.ServerID)
+	w.dropMercLocked(ms)
 	w.mercLeaveGroupLocked(ms)
 	w.mercPetGoesLocked(ms, now) // its pet with it (mercpet.go)
 	w.dropAggroLocked(n.ServerID)
 	if sess != nil {
 		if ms.noCollide {
-			sendNoCollideRemove(sess, mercNoCollideID)
+			sendNoCollideRemove(sess, mercNoCollideIDOf(ms.slot))
 		}
 		w.sendChatToSession(sess, fmt.Sprintf(mercDiedLine, n.Name, int(MercRest/time.Second)))
 	}
 	until := now.Add(MercRest)
-	w.noteMercLocked(MercNote{Kind: MercNoteDied, Owner: ms.owner, Sess: sess, Name: n.Name, Level: n.Level, Until: until})
+	w.noteMercLocked(MercNote{Kind: MercNoteDied, Owner: ms.owner, Slot: ms.slot, Sess: sess, Name: n.Name, Level: n.Level, Until: until})
 	log.Printf("Merc: %s's %q died; it rests until %s", ms.owner.Name, n.Name, until.Format(time.TimeOnly))
 }
 
-// mercLeavingLocked is the owner leaving the world (leavingLocked): its merc
-// goes with it, its hire kept for the next login. Must be called with the
+// mercLeavingLocked is the owner leaving the world (leavingLocked): its mercs
+// go with it, their hires kept for the next login, and its standby with them
+// (mercbench.go: every hire comes at the login). Must be called with the
 // lock held.
 func (w *World) mercLeavingLocked(p *Player) {
-	ms := w.mercs[p.ServerID]
-	if ms == nil || ms.owner != p {
-		return
+	for _, ms := range append([]*mercState(nil), w.mercs[p.ServerID]...) {
+		if ms.owner != p {
+			continue
+		}
+		w.mercGoesLocked(ms, nil, time.Now())
+		w.noteMercLocked(MercNote{Kind: MercNoteGone, Owner: p, Slot: ms.slot, Name: ms.npc.Name, Level: ms.npc.Level})
 	}
-	w.mercGoesLocked(ms, nil, time.Now())
-	w.noteMercLocked(MercNote{Kind: MercNoteGone, Owner: p, Name: ms.npc.Name, Level: ms.npc.Level})
+	w.benchLeavingLocked(p)
 }
 
 // mercTellLocked puts the merc on its owner's non-collide list once (pet.go's
@@ -719,7 +868,7 @@ func (w *World) mercTellLocked(ms *mercState, sess *session.Session) {
 	if sess == nil || ms.noCollide {
 		return
 	}
-	sendNoCollideAdd(sess, ms.npc.Name, mercNoCollideID)
+	sendNoCollideAdd(sess, ms.npc.Name, mercNoCollideIDOf(ms.slot))
 	ms.noCollide = true
 }
 
@@ -727,12 +876,17 @@ func (w *World) mercTellLocked(ms *mercState, sess *session.Session) {
 // mercfight.go), follows each owner's level, and takes away a merc whose
 // owner is gone or which died. Every tick; must be called with the lock held.
 func (w *World) mercSystem(now time.Time) {
+	w.mercBenchSystemLocked(now) // standby mercs back to free places (mercbench.go)
 	if len(w.mercs) == 0 && len(w.mercCasts) == 0 {
 		return
 	}
 	w.mercCastSystemLocked(now)
-	for id, ms := range w.mercs {
+	for _, ms := range w.allMercsLocked() {
+		if !w.mercLiveLocked(ms) {
+			continue // gone in an earlier one's turn (its group's standby)
+		}
 		owner, n := ms.owner, ms.npc
+		id := owner.ServerID
 		if w.Players[id] != owner || w.NPCs[n.ServerID] != n {
 			// its owner logged out or in again (a new player), or it was
 			// taken out of the world (a GM's #despawn): gone, its hire kept
@@ -760,8 +914,8 @@ func (w *World) mercSystem(now time.Time) {
 			w.mercTellLocked(ms, sess)
 		}
 		w.mercGroupUpkeepLocked(ms, sess)
-		if w.mercs[id] != ms {
-			continue // dismissed out of its owner's group (mercgroup.go)
+		if !w.mercLiveLocked(ms) {
+			continue // dismissed out of its owner's group, or on standby (mercgroup.go)
 		}
 		if !w.mercInOwnGroupLocked(ms) {
 			// out of its owner's group, its box (or another's) up: it stands
@@ -785,7 +939,7 @@ func (w *World) mercSystem(now time.Time) {
 			// a teleport, another world, a coach: it comes along, as a pet does
 			oldX, oldZ := n.X, n.Z
 			n.World = owner.World
-			n.X, n.Y, n.Z = w.followPlaceLocked(n, owner, slotMerc)
+			n.X, n.Y, n.Z = w.followPlaceLocked(n, owner, mercFollowSlot(ms.slot))
 			n.stopMoving()
 			ms.target, ms.ordered = 0, 0
 			ms.stay = false
@@ -850,7 +1004,7 @@ func (w *World) mercHomeLocked(ms *mercState, dt float32, now time.Time) {
 		if w.mercIdleLocked(ms, dt, now) { // at ease, its owner standing (mercidle.go)
 			return
 		}
-		w.followLocked(n, ms.owner, slotMerc, dt, now)
+		w.followLocked(n, ms.owner, mercFollowSlot(ms.slot), dt, now)
 		return
 	}
 	if distXZ(n.X, n.Z, ms.stayAt[0], ms.stayAt[2]) <= 1 {

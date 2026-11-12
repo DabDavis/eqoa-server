@@ -88,6 +88,6 @@ func (h *MercUIHandler) HandleDismiss(sess *session.Session, msg *protocol.Messa
 		SendErrorMessage(sess, mercOffLine)
 		return nil
 	}
-	h.mercs.dismiss(sess, p)
+	h.mercs.Command(sess, p, "dismiss") // several hired: the line asks which
 	return nil
 }

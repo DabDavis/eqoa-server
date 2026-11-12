@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"strings"
+	"time"
 
 	"github.com/eqoa/server/internal/session"
 )
@@ -13,9 +15,11 @@ import (
 //
 // A merc is a member of its owner's group (Group.Members holds its NPC's id
 // after its owner's): it counts toward the group's GroupWindowSize, so a group
-// of four takes no merc (a hire, a revival or a login's coming back is refused
-// with a line) and a player with its merc out joins a group only with room for
-// both; a group whose leader raised a raid flag takes one whatever its size
+// of four takes no more mercs (a hire, a revival or a login's coming back goes
+// on standby), and a player takes a place before a merc: a player's yes into a
+// group of four with a merc in it puts the merc that joined last on standby
+// until a place frees (mercbench.go, 2026-11-12: up to three mercs a player);
+// a group whose leader raised a raid flag takes one whatever its size
 // (raidflag.go: a raid group is the flag's). It shows in the group window as
 // any member: the roster (0x0772) names it under the id each client knows it
 // by (its channel's, else groupFarID's stand-in) and the group channel (0x40)
@@ -57,8 +61,12 @@ import (
 // before the box), a no asks its owner into a group with it again. A merc's own
 // box waits while any other box is up on its owner's client.
 
-// mercBoxWords is what a merc's own box says it is from (CLIENT's word 636).
-const mercBoxWords = "Mercenary %s"
+// mercBoxWords is what a merc's own box says it is from (CLIENT's word 636);
+// mercsBoxWords several mercs' one box.
+const (
+	mercBoxWords  = "Mercenary %s"
+	mercsBoxWords = "Mercenaries %s"
+)
 
 // The lines of a merc in a group (ours).
 const (
@@ -144,15 +152,6 @@ func groupRecord(r []byte, id uint32, v groupView) {
 	}
 }
 
-// followersLocked is how many places p's merc takes in a group p joins: 1 with
-// one out, else 0. Must be called with the lock held.
-func (w *World) followersLocked(p *Player) int {
-	if w.mercOfLocked(p) != nil {
-		return 1
-	}
-	return 0
-}
-
 // groupHasLocked reports id among g's members.
 func groupHas(g *Group, id EntityID) bool {
 	for _, m := range g.Members {
@@ -161,24 +160,6 @@ func groupHas(g *Group, id EntityID) bool {
 		}
 	}
 	return false
-}
-
-// mercGroupRoomLocked is why p's group has no room for a merc of its (a hire
-// or a revival in place of old, which gives back its place), "" when it has
-// one or p is in no group. Must be called with the lock held.
-func (w *World) mercGroupRoomLocked(p *Player, old *mercState) string {
-	g := w.groups[p.GroupID]
-	if p.GroupID == 0 || g == nil || g.flagged {
-		return ""
-	}
-	n := len(g.Members)
-	if old != nil && groupHas(g, old.npc.ServerID) {
-		n--
-	}
-	if n >= GroupWindowSize {
-		return mercGroupFull
-	}
-	return ""
 }
 
 // mercGroupJoinLocked puts a merc just come into its owner's group, its roster
@@ -193,9 +174,9 @@ func (w *World) mercGroupJoinLocked(ms *mercState, sess *session.Session) {
 	w.mercAskLocked(ms, sess)
 }
 
-// mercAskLocked asks the merc's owner, in no group, into one with its merc, in
-// the group invitation's own box (the file's doc), once a coming. Must be
-// called with the lock held.
+// mercAskLocked asks the merc's owner, in no group, into one with its mercs,
+// in the group invitation's own box (the file's doc): one box for every merc
+// of its out of a group and not asked yet. Must be called with the lock held.
 func (w *World) mercAskLocked(ms *mercState, sess *session.Session) {
 	o := ms.owner
 	if sess == nil || o.GroupID != 0 || ms.asked {
@@ -206,33 +187,63 @@ func (w *World) mercAskLocked(ms *mercState, sess *session.Session) {
 		// forms the group, the merc in it): asked once it is answered no
 		return
 	}
-	ms.asked = true
-	w.askLocked(o, o, sess, groupAsk{merc: true}, fmt.Sprintf(mercBoxWords, ms.npc.Name))
-	w.sendChatToSession(sess, fmt.Sprintf(mercAskLine, ms.npc.Name))
-	log.Printf("Merc: %s asked into a group with %q", o.Name, ms.npc.Name)
+	var names []string
+	for _, m := range w.mercsOfLocked(o) {
+		if !m.asked && !w.mercInOwnGroupLocked(m) {
+			m.asked = true
+			names = append(names, m.npc.Name)
+		}
+	}
+	if len(names) == 0 {
+		return
+	}
+	who := strings.Join(names, " and ")
+	words := fmt.Sprintf(mercBoxWords, who)
+	if len(names) > 1 {
+		words = fmt.Sprintf(mercsBoxWords, strings.Join(names[:len(names)-1], ", ")+" and "+names[len(names)-1])
+		who = words
+	}
+	w.askLocked(o, o, sess, groupAsk{merc: true}, words)
+	w.sendChatToSession(sess, fmt.Sprintf(mercAskLine, who))
+	log.Printf("Merc: %s asked into a group with %q", o.Name, names)
 }
 
-// AskMercGroup asks the session's player into a group with its merc again
+// AskMercGroup asks the session's player into a group with its mercs again
 // (/merc group). It reports a line for the player, "" when the box was sent.
 func (w *World) AskMercGroup(sess *session.Session) string {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
-	ms := w.mercOfLocked(p)
+	list := w.mercsOfLocked(p)
 	switch {
-	case ms == nil:
+	case len(list) == 0:
 		return "You have no mercenary out."
 	case p.GroupID != 0:
-		if g := w.groups[p.GroupID]; g != nil && groupHas(g, ms.npc.ServerID) {
-			w.sendRosterLocked(g, true)
-			return fmt.Sprintf("%s is in your group.", ms.npc.Name)
+		g := w.groups[p.GroupID]
+		if g == nil {
+			return mercGroupFull
 		}
-		return mercGroupFull
+		for _, ms := range list {
+			w.mercIntoGroupLocked(ms, g)
+		}
+		w.sendRosterLocked(g, true)
+		var in []string
+		for _, ms := range w.mercsOfLocked(p) {
+			if groupHas(g, ms.npc.ServerID) {
+				in = append(in, ms.npc.Name)
+			}
+		}
+		if len(in) == 0 {
+			return mercGroupFull
+		}
+		return strings.Join(in, ", ") + " in your group."
 	case w.boxWaitingLocked(p):
 		return mercBoxUpLine
 	}
-	ms.asked = false
-	w.mercAskLocked(ms, sess)
+	for _, ms := range list {
+		ms.asked = false
+	}
+	w.mercAskLocked(list[0], sess)
 	return ""
 }
 
@@ -247,46 +258,50 @@ func (w *World) boxWaitingLocked(p *Player) bool {
 	return false
 }
 
-// mercOnlyGroupLocked reports p's group is p and its merc alone, with no raid
-// flag raised: one that gives way to another player's box (the file's doc).
-// Must be called with the lock held.
+// mercOnlyGroupLocked reports p's group is p and its mercs alone, with no
+// raid flag raised: one that gives way to another player's box (the file's
+// doc). Must be called with the lock held.
 func (w *World) mercOnlyGroupLocked(p *Player) bool {
-	g, ms := w.groups[p.GroupID], w.mercOfLocked(p)
-	return p.GroupID != 0 && g != nil && ms != nil && !g.flagged && len(g.Members) == 2 &&
-		g.Members[0] == p.ServerID && g.Members[1] == ms.npc.ServerID
+	g := w.groups[p.GroupID]
+	if p.GroupID == 0 || g == nil || g.flagged || len(g.Members) < 2 || g.Members[0] != p.ServerID {
+		return false
+	}
+	for _, id := range g.Members[1:] {
+		if !w.mercHiredByLocked(id, p.ServerID) {
+			return false
+		}
+	}
+	return true
 }
 
-// mercGivesWayLocked ends p's group of it and its merc alone, for another
+// mercGivesWayLocked ends p's group of it and its mercs alone, for another
 // player's box to come (the file's doc): the group gone, p's client told with
-// 0x069A's 8, and p asked into a group with its merc again should it say no.
+// 0x069A's 8, and p asked into a group with its mercs again should it say no.
 // Must be called with the lock held.
 func (w *World) mercGivesWayLocked(p *Player) {
-	g, ms := w.groups[p.GroupID], w.mercOfLocked(p)
 	if !w.mercOnlyGroupLocked(p) {
 		return
 	}
+	g := w.groups[p.GroupID]
 	delete(w.groups, g.ID)
 	p.GroupID = 0
-	ms.asked = false
+	for _, ms := range w.mercsOfLocked(p) {
+		ms.asked = false
+	}
 	w.sendGroupRemoved(p, 8)
-	log.Printf("Group: %s's group %d with its mercenary %q gives way to a box", p.Name, g.ID, ms.npc.Name)
+	log.Printf("Group: %s's group %d with its mercenaries gives way to a box", p.Name, g.ID)
 }
 
-// mercIntoGroupLocked adds the merc to g after its owner, the roster to all,
-// unless g has no room for it (told its owner once). Must be called with the
-// lock held.
+// mercIntoGroupLocked adds the merc to g after its owner, the roster to all;
+// g with no place for it (a plain group of four), it goes on standby
+// (mercbench.go). Must be called with the lock held.
 func (w *World) mercIntoGroupLocked(ms *mercState, g *Group) {
 	id := ms.npc.ServerID
 	if groupHas(g, id) {
 		return
 	}
 	if !g.flagged && len(g.Members) >= GroupWindowSize {
-		if !ms.full {
-			ms.full = true
-			if sess := w.sessionOfLocked(ms.owner); sess != nil {
-				w.sendColoredLocked(sess, mercGroupFull, castRefusalRGB)
-			}
-		}
+		w.benchMercLocked(ms, mercStandbyFullLine, "", time.Now())
 		return
 	}
 	ms.full = false
@@ -296,15 +311,38 @@ func (w *World) mercIntoGroupLocked(ms *mercState, g *Group) {
 	w.raidChangedLocked(g)
 }
 
-// mercFollowIntoLocked puts p's merc in the group p is in now (its join, its
-// forming one). Must be called with the lock held.
+// mercFollowIntoLocked puts p's mercs in the group p is in now (its join, its
+// forming one), by slot, those with no place on standby. Must be called with
+// the lock held.
 func (w *World) mercFollowIntoLocked(p *Player) {
-	ms := w.mercOfLocked(p)
-	g := w.groups[p.GroupID]
-	if ms == nil || p.GroupID == 0 || g == nil {
-		return
+	for _, ms := range w.mercsOfLocked(p) {
+		g := w.groups[p.GroupID]
+		if p.GroupID == 0 || g == nil {
+			return
+		}
+		w.mercIntoGroupLocked(ms, g)
 	}
-	w.mercIntoGroupLocked(ms, g)
+}
+
+// mercsOutOfGroupLocked takes p's mercs out of g's members (its leaving it,
+// its boot), each asked into a group with its owner again when others are
+// left in g (again: true). Must be called with the lock held.
+func (w *World) mercsOutOfGroupLocked(g *Group, p *Player, again bool) {
+	for _, ms := range w.mercs[p.ServerID] {
+		if ms.owner != p {
+			continue
+		}
+		for i, id := range g.Members {
+			if id == ms.npc.ServerID {
+				g.Members = append(g.Members[:i], g.Members[i+1:]...)
+				break
+			}
+		}
+		delete(g.lastRoster, ms.npc.ServerID)
+		if again {
+			ms.asked = false
+		}
+	}
 }
 
 // mercLeaveGroupLocked takes the merc out of any group it is in, the group
@@ -372,10 +410,7 @@ func (w *World) mercGroupUpkeepLocked(ms *mercState, sess *session.Session) {
 	switch {
 	case own != nil:
 		ms.regroup = false
-		w.mercIntoGroupLocked(ms, own)
-		if !groupHas(own, id) {
-			w.mercOutLocked(ms, sess, mercOutFullLine)
-		}
+		w.mercIntoGroupLocked(ms, own) // no place: on standby (mercbench.go)
 	case ms.regroup:
 		// a keep restart's: its owner's client holds the group of the two of
 		// them, which no box need ask again (keepmerc.go)
@@ -402,8 +437,8 @@ func (w *World) mercOwnYesLocked(sess *session.Session, p *Player) {
 		w.sendRosterLocked(g, true)
 		return
 	}
-	if w.mercOfLocked(p) == nil {
-		w.sendGroupRemoved(p, 3) // its merc gone since: no group
+	if len(w.mercsOfLocked(p)) == 0 {
+		w.sendGroupRemoved(p, 3) // its mercs gone since: no group
 		return
 	}
 	g := w.formGroupLocked(p)
@@ -419,9 +454,11 @@ func (w *World) mercOwnNoLocked(sess *session.Session, p *Player, why byte) {
 		w.mercOwnYesLocked(sess, p)
 		return
 	}
-	log.Printf("Merc: %s declined a group with its mercenary", p.Name)
-	if ms := w.mercOfLocked(p); ms != nil && !w.mercInOwnGroupLocked(ms) {
-		w.mercOutLocked(ms, sess, mercOutLine) // petition 1504: a declined merc goes
+	log.Printf("Merc: %s declined a group with its mercenaries", p.Name)
+	for _, ms := range w.mercsOfLocked(p) {
+		if ms.asked && !w.mercInOwnGroupLocked(ms) {
+			w.mercOutLocked(ms, sess, mercOutLine) // petition 1504: a declined merc goes
+		}
 	}
 }
 

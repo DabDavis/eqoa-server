@@ -2,6 +2,7 @@ package entity
 
 import (
 	"log"
+	"sort"
 	"time"
 
 	"github.com/eqoa/server/internal/session"
@@ -24,6 +25,9 @@ import (
 
 // KeptMerc is a player's merc as a restart carries it.
 type KeptMerc struct {
+	// Slot is its hire's (charmerc.slot), 0 the first (a process's before
+	// 2026-11-12)
+	Slot     int        `json:"slot,omitempty"`
 	Name     string     `json:"name"`
 	HPPct    float64    `json:"hp_pct"`
 	PowerPct float64    `json:"power_pct"`
@@ -37,6 +41,20 @@ type KeptMerc struct {
 	// group of its owner's: it comes back as its return from there does, its
 	// owner asked into a group with it again
 	Away bool `json:"away,omitempty"`
+	// Standby: it was on standby (mercbench.go): on standby again, out of
+	// the world, until a place frees
+	Standby bool `json:"standby,omitempty"`
+}
+
+// KeptMercsOf is what a kept player carries of its mercs: Mercs, or a
+// process's before 2026-11-12 Merc (its slot 1).
+func KeptMercsOf(k *KeptPlayer) []KeptMerc {
+	if len(k.Mercs) > 0 || k.Merc == nil {
+		return k.Mercs
+	}
+	m := *k.Merc
+	m.Slot = max(m.Slot, 1)
+	return []KeptMerc{m}
 }
 
 // KeptFamiliar is a player's familiar as a restart carries it: the item that
@@ -46,15 +64,25 @@ type KeptFamiliar struct {
 	HPPct float64 `json:"hp_pct"`
 }
 
-// keptMercLocked is p's living merc as a restart carries it, nil for none.
-// Must be called with the lock held.
-func (w *World) keptMercLocked(p *Player) *KeptMerc {
-	ms := w.mercOfLocked(p)
-	if ms == nil {
-		return nil
+// keptMercsLocked is p's living mercs and its standby as a restart carries
+// them, by slot. Must be called with the lock held.
+func (w *World) keptMercsLocked(p *Player) []KeptMerc {
+	var out []KeptMerc
+	for _, ms := range w.mercsOfLocked(p) {
+		out = append(out, *w.keptMercLocked(p, ms))
 	}
+	for _, b := range w.benchedOfLocked(p) {
+		out = append(out, KeptMerc{Slot: b.slot, Name: b.name, HPPct: 1, PowerPct: 1, Standby: true})
+	}
+	sort.SliceStable(out, func(i, j int) bool { return out[i].Slot < out[j].Slot })
+	return out
+}
+
+// keptMercLocked is p's living merc ms as a restart carries it. Must be
+// called with the lock held.
+func (w *World) keptMercLocked(p *Player, ms *mercState) *KeptMerc {
 	n := ms.npc
-	k := &KeptMerc{Name: n.Name, HPPct: share(n.HP, n.MaxHP), PowerPct: share(n.Power, n.MaxPower), Stance: byte(ms.stance),
+	k := &KeptMerc{Slot: ms.slot, Name: n.Name, HPPct: share(n.HP, n.MaxHP), PowerPct: share(n.Power, n.MaxPower), Stance: byte(ms.stance),
 		Stay: ms.stay, StayAt: ms.stayAt, Place: [4]float32{n.X, n.Y, n.Z, n.Facing}, World: n.World}
 	if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil && groupHas(g, n.ServerID) {
 		k.Grouped = true
@@ -80,14 +108,20 @@ func (w *World) RestoreMerc(sess *session.Session, kit MercKit, k KeptMerc, now 
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
-	if p == nil || p.IsDead() || p.respawnPending() || w.mercOfLocked(p) != nil {
+	slot := min(max(k.Slot, 1), MercSlots)
+	if p == nil || p.IsDead() || p.respawnPending() || w.mercAtLocked(p, slot) != nil {
 		return false
 	}
 	if w.ctfKeepsOutLocked(p) {
-		w.ctfMercWaitsLocked(p, sess, kit.Name) // its owner in the arena's world: it waits outside (ctfaway.go)
+		w.ctfMercWaitsLocked(p, sess, slot, kit.Name) // its owner in the arena's world: it waits outside (ctfaway.go)
 		return false
 	}
-	ms := w.spawnMercLocked(p, kit, MercStance(k.Stance), now)
+	if k.Standby {
+		w.benchSlotLocked(p, nil, slot, kit.Name, "", now) // on standby again (mercbench.go)
+		return false
+	}
+	w.unbenchLocked(p, slot)
+	ms := w.spawnMercLocked(p, slot, kit, MercStance(k.Stance), now)
 	n := ms.npc
 	if k.World == p.World && distXZ(k.Place[0], k.Place[2], p.X, p.Z) <= petLost {
 		oldX, oldZ := n.X, n.Z

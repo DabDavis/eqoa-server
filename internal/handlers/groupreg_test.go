@@ -80,7 +80,7 @@ func TestDismissMercenaryFromTheMenu(t *testing.T) {
 	if _, ok := r.gw.MercInfoOf(r.anna); ok {
 		t.Error("Dismiss Mercenary left the merc")
 	}
-	if _, kept, _ := db.Merc(r.pa.CharServerID); kept {
+	if _, kept, _ := db.Merc(r.pa.CharServerID, 1); kept {
 		t.Error("the dismissal kept the hire")
 	}
 	if got := r.msgs(r.anna); !hasMsg(got, "chat:You dismiss *") {

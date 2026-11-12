@@ -23,7 +23,7 @@ func TestMercsDefendTheirGroup(t *testing.T) {
 			t.Fatalf("Bea's hire: %s", why)
 		}
 		r.w.GroupAccept(bs, bs.PlayerObjectID())
-		other := r.w.mercs[b.ServerID]
+		other := r.w.merc1(b.ServerID)
 		if other == nil || !groupHas(g, other.npc.ServerID) || !groupHas(g, ms.npc.ServerID) {
 			t.Fatalf("the group %v: both mercs in it", g.Members)
 		}

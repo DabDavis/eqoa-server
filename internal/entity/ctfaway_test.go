@@ -56,7 +56,7 @@ func (r *ctfAwayRig) hire(t *testing.T, i int, name string) *mercState {
 		t.Fatalf("%s's hire was refused: %s", r.ps[i].Name, why)
 	}
 	r.yesToMerc(i)
-	return r.w.mercs[r.ps[i].ServerID]
+	return r.w.merc1(r.ps[i].ServerID)
 }
 
 // yesToMerc answers yes to player i's merc's box, if one is up (a merc fights
@@ -82,7 +82,7 @@ func (r *ctfAwayRig) callHealbot(i int, x time.Duration) *familiarState {
 
 // followersOf is p's merc and familiar in the world, nil each for none.
 func (r *ctfAwayRig) followersOf(p *Player) (merc, familiar *NPC) {
-	if ms := r.w.mercs[p.ServerID]; ms != nil && ms.owner == p && r.w.NPCs[ms.npc.ServerID] == ms.npc {
+	if ms := r.w.merc1(p.ServerID); ms != nil && ms.owner == p && r.w.NPCs[ms.npc.ServerID] == ms.npc {
 		merc = ms.npc
 	}
 	if fs := r.w.familiars[p.ServerID]; fs != nil && fs.owner == p && r.w.NPCs[fs.npc.ServerID] == fs.npc {
@@ -283,13 +283,13 @@ func TestCTFWaitingDismissedOrLoggedOut(t *testing.T) {
 	r.hire(t, 1, "Brisa")
 	r.hire(t, 2, "Torrin")
 	r.startMatch(t)
-	if name, ok := r.w.DismissMerc(r.ss[0], r.at(r.live())); !ok || name != "Gorvak" {
+	if name, ok := r.w.DismissMerc(r.ss[0], 1, r.at(r.live())); !ok || name != "Gorvak" {
 		t.Fatalf("dismissing the waiting merc: %q %v", name, ok)
 	}
 	if name, ok := r.w.DismissFamiliar(r.ss[0]); !ok || name != "Healbot" {
 		t.Fatalf("dismissing the waiting familiar: %q %v", name, ok)
 	}
-	if _, ok := r.w.DismissMerc(r.ss[0], r.at(r.live())); ok {
+	if _, ok := r.w.DismissMerc(r.ss[0], 1, r.at(r.live())); ok {
 		t.Error("a second dismissal found a merc")
 	}
 	if _, ok := r.w.DismissFamiliar(r.ss[0]); ok {
@@ -325,10 +325,10 @@ func TestCTFAwayThroughAKeepRestart(t *testing.T) {
 	fs.npc.HP = fs.npc.MaxHP / 4
 	r.startMatch(t)
 	kp, ok := r.w.KeepPlayer(r.ss[0], r.at(r.live()))
-	if !ok || kp.Merc == nil || kp.Merc.Name != "Gorvak" || !kp.Merc.Away || kp.Familiar == nil || kp.Familiar.Item != healbot().Item || kp.Familiar.HPPct != 0.25 {
+	if !ok || len(kp.Mercs) != 1 || kp.Mercs[0].Name != "Gorvak" || !kp.Mercs[0].Away || kp.Familiar == nil || kp.Familiar.Item != healbot().Item || kp.Familiar.HPPct != 0.25 {
 		t.Fatalf("kept: merc %+v familiar %+v", kp.Merc, kp.Familiar)
 	}
-	if kb, _ := r.w.KeepPlayer(r.ss[1], r.at(r.live())); kb.Merc != nil || kb.Familiar != nil {
+	if kb, _ := r.w.KeepPlayer(r.ss[1], r.at(r.live())); len(kb.Mercs) != 0 || kb.Familiar != nil {
 		t.Fatalf("the control kept: %+v %+v", kb.Merc, kb.Familiar)
 	}
 
@@ -368,7 +368,7 @@ func TestCTFAwayThroughAKeepRestart(t *testing.T) {
 		r3.w.RestoreFamiliar(r3.ss[0], healbot(), kp.Familiar.HPPct, r3.at(0)) {
 		t.Fatal("restored into the arena's world")
 	}
-	if aw := r3.w.ctf.away[p3.ServerID]; aw == nil || aw.merc != "Gorvak" || aw.familiar == nil || aw.famHP != 0.25 {
+	if aw := r3.w.ctf.away[p3.ServerID]; aw == nil || len(aw.mercs) != 1 || aw.mercs[0].name != "Gorvak" || aw.familiar == nil || aw.famHP != 0.25 {
 		t.Fatalf("not waiting: %+v", aw)
 	}
 	if got := r3.theirsIn(p3, r3.w.ctf.set.World); len(got) != 0 {
@@ -386,7 +386,7 @@ func TestCTFMercNeverTakesABanner(t *testing.T) {
 	m, lay := r.w.ctf.m, r.w.ctf.lay
 	other := lay.Teams[1-a.ctf.team].Stand
 	r.w.mu.Lock()
-	ms := r.w.spawnMercLocked(a, ctfMercKit(a, "Gorvak"), MercAssist, r.at(r.live()))
+	ms := r.w.spawnMercLocked(a, 1, ctfMercKit(a, "Gorvak"), MercAssist, r.at(r.live()))
 	ms.npc.X, ms.npc.Z = other.X, other.Z
 	r.w.ctfTouchAllLocked(m, r.at(r.live()+time.Second))
 	r.w.mu.Unlock()
@@ -404,7 +404,7 @@ func TestCTFMercNeverTakesABanner(t *testing.T) {
 	if got := r.theirsIn(a, r.w.ctf.set.World); len(got) != 0 {
 		t.Fatalf("its next step left it in the arena: %v", got)
 	}
-	if aw := r.w.ctf.away[a.ServerID]; aw == nil || aw.merc != "Gorvak" {
+	if aw := r.w.ctf.away[a.ServerID]; aw == nil || len(aw.mercs) != 1 || aw.mercs[0].name != "Gorvak" {
 		t.Fatalf("not waiting: %+v", aw)
 	}
 	r.step(a, other.X, other.Z, r.live()+3*time.Second)
@@ -463,7 +463,7 @@ func TestCTFGroupsAcrossTheTeamsStayTheirGroup(t *testing.T) {
 	if _, why := r.w.HireMerc(r.ss[0], ctfMercKit(a, "Gorvak"), MercAssist, r.at(back+200*time.Millisecond)); why != "" {
 		t.Fatalf("back: %s", why)
 	}
-	if ms2 := r.w.mercs[a.ServerID]; ms2 == nil || !groupHas(g, ms2.npc.ServerID) {
+	if ms2 := r.w.merc1(a.ServerID); ms2 == nil || !groupHas(g, ms2.npc.ServerID) {
 		t.Fatalf("back, not in the raid: %v", g.Members)
 	}
 }

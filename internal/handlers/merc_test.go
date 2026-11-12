@@ -154,7 +154,7 @@ func TestMercLiaisonHires(t *testing.T) {
 	if !hasMsg(got, "box:Mercenary Recruitment: "+info.Name+" the Human Warrior is yours.*") {
 		t.Errorf("the hire's line: %q", got)
 	}
-	row, kept, err := db.Merc(r.pa.CharServerID)
+	row, kept, err := db.Merc(r.pa.CharServerID, 1)
 	if err != nil || !kept || row.Name != info.Name || row.Class != 0 || row.Race != 0 {
 		t.Errorf("its row: %+v %v %v", row, kept, err)
 	}
@@ -290,7 +290,7 @@ func TestMercCommands(t *testing.T) {
 	if info, _ := r.gw.MercInfoOf(r.anna); info.Stance != entity.MercPassive {
 		t.Fatalf("/merc stance passive: %v", info.Stance)
 	}
-	if row, _, _ := db.Merc(r.pa.CharServerID); row.Stance != int(entity.MercPassive) {
+	if row, _, _ := db.Merc(r.pa.CharServerID, 1); row.Stance != int(entity.MercPassive) {
 		t.Errorf("the stance not kept: %d", row.Stance)
 	}
 	r.say(r.anna, "#merc stance aggressive")
@@ -313,7 +313,7 @@ func TestMercCommands(t *testing.T) {
 	if _, ok := r.gw.MercInfoOf(r.anna); ok {
 		t.Error("/t merc dismiss left the merc")
 	}
-	if _, kept, _ := db.Merc(r.pa.CharServerID); kept {
+	if _, kept, _ := db.Merc(r.pa.CharServerID, 1); kept {
 		t.Error("the dismissal kept the hire")
 	}
 	SetMercs(false)
@@ -342,7 +342,7 @@ func TestMercComesBackAtLogin(t *testing.T) {
 	}
 	// its death: a rest kept; the next login says it rests
 	m.note(entity.MercNote{Kind: entity.MercNoteDied, Owner: r.pa, Name: "Ralthas", Until: now.Add(entity.MercRest)})
-	r.gw.DismissMerc(r.anna, now)
+	r.gw.DismissMerc(r.anna, 1, now)
 	r.drain()
 	m.comeBack(r.anna, r.pa)
 	if _, ok := r.gw.MercInfoOf(r.anna); ok {
@@ -409,7 +409,7 @@ func TestADeclinedMercsHireEnds(t *testing.T) {
 		t.Fatal("no merc at the login")
 	}
 	r.gw.Tick(time.Now())
-	if _, kept, _ := db.Merc(r.pa.CharServerID); !kept {
+	if _, kept, _ := db.Merc(r.pa.CharServerID, 1); !kept {
 		t.Fatal("the hire was ended before the answer")
 	}
 	r.drain()
@@ -418,7 +418,7 @@ func TestADeclinedMercsHireEnds(t *testing.T) {
 	if _, ok := r.gw.MercInfoOf(r.anna); ok {
 		t.Fatal("the declined merc stayed")
 	}
-	if _, kept, _ := db.Merc(r.pa.CharServerID); kept {
+	if _, kept, _ := db.Merc(r.pa.CharServerID, 1); kept {
 		t.Error("the declined merc's hire was kept")
 	}
 	if got := r.msgs(r.anna); !hasMsg(got, "chat:Your mercenary Ullin is dismissed*") {

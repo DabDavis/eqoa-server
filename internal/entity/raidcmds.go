@@ -642,7 +642,7 @@ const mercInviteLine = "%s is a mercenary: it comes into a group or a raid with 
 // called with the lock held.
 func (w *World) mercInvitedLocked(sess *session.Session, name string, targetID uint32) *NPC {
 	if name = strings.TrimSpace(name); name != "" {
-		for _, ms := range w.mercs {
+		for _, ms := range w.allMercsLocked() {
 			if ms != nil && ms.npc != nil && strings.EqualFold(strings.TrimSpace(ms.npc.Name), name) {
 				return ms.npc
 			}

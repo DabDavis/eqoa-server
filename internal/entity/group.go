@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -273,14 +272,10 @@ func (w *World) groupInviteLocked(sess *session.Session, inviter, target *Player
 		return
 	}
 	g := w.groups[inviter.GroupID]
-	if g != nil && len(g.Members) >= GroupWindowSize {
+	// four players, or a raid flag's four members; a plain group's mercs make
+	// way for a player (mercbench.go)
+	if w.groupFullForPlayerLocked(g) {
 		w.sendColoredLocked(sess, raidFullLine, castRefusalRGB)
-		return
-	}
-	// a merc out takes a place of its own (mercgroup.go)
-	if have := 1 + w.followersLocked(inviter); (g == nil || !g.flagged) && w.followersLocked(target) > 0 &&
-		max(len(g.membersOrNone()), have)+1+w.followersLocked(target) > GroupWindowSize {
-		w.sendColoredLocked(sess, fmt.Sprintf(mercNoRoomLine, target.Name), castRefusalRGB)
 		return
 	}
 	if g == nil {
@@ -394,8 +389,9 @@ func (w *World) GroupAccept(sess *session.Session, inviterID uint32) {
 		w.sendGroupRemoved(p, 3)
 		return
 	}
-	// a raid flag's yes counts at any size; it goes with its leader (leaveGroupLocked)
-	if len(g.Members) >= GroupWindowSize && !ask.raid {
+	// a raid flag's yes counts at any size; it goes with its leader (leaveGroupLocked).
+	// A plain group's mercs make way for a player (mercbench.go)
+	if w.groupFullForPlayerLocked(g) && !ask.raid {
 		w.sendGroupRemoved(p, 4)
 		w.sendColoredLocked(sess, raidFullLine, castRefusalRGB)
 		if is := w.sessionOfLocked(inviter); is != nil {
@@ -403,16 +399,11 @@ func (w *World) GroupAccept(sess *session.Session, inviterID uint32) {
 		}
 		return
 	}
-	// and its merc's place (mercgroup.go)
-	if !ask.raid && !g.flagged && len(g.Members)+1+w.followersLocked(p) > GroupWindowSize {
-		w.sendGroupRemoved(p, 4)
-		w.sendColoredLocked(sess, mercNoRoomYours, castRefusalRGB)
-		return
-	}
 	g.Members = append(g.Members, p.ServerID)
 	p.GroupID = g.ID
 	log.Printf("Group: %s joined %s's group %d (%d members)", p.Name, inviter.Name, g.ID, len(g.Members))
-	w.mercFollowIntoLocked(p) // its merc with it (mercgroup.go)
+	w.mercsMakeRoomLocked(g, p, time.Now()) // the merc that joined last on standby (mercbench.go)
+	w.mercFollowIntoLocked(p)               // its mercs with it, to places still free (mercgroup.go)
 	w.sendRosterLocked(g, true)
 	w.raidJoinedLocked(g, p, sess)
 }
@@ -504,20 +495,9 @@ func (w *World) leaveGroupLocked(p *Player) {
 		}
 	}
 	delete(g.lastRoster, p.ServerID)
-	// its merc goes with it, the two of them asked into a group again when
-	// others are left in this one (mercgroup.go)
-	if ms := w.mercs[p.ServerID]; ms != nil && ms.owner == p {
-		for i, id := range g.Members {
-			if id == ms.npc.ServerID {
-				g.Members = append(g.Members[:i], g.Members[i+1:]...)
-				break
-			}
-		}
-		delete(g.lastRoster, ms.npc.ServerID)
-		if len(g.Members) > 0 {
-			ms.asked = false
-		}
-	}
+	// its mercs go with it, asked into a group with it again when others are
+	// left in this one (mercgroup.go)
+	w.mercsOutOfGroupLocked(g, p, len(g.Members) > 0)
 	log.Printf("Group: %s left group %d (%d left)", p.Name, g.ID, len(g.Members))
 	w.raidMemberGoneLocked(g, p.ServerID) // raidrules.go
 	w.raidLeftLocked(g, p.Name)
@@ -585,15 +565,7 @@ func (w *World) bootLocked(g *Group, m *Player) {
 	}
 	m.GroupID = 0
 	delete(g.lastRoster, m.ServerID)
-	if ms := w.mercs[m.ServerID]; ms != nil && ms.owner == m {
-		for i, id := range g.Members {
-			if id == ms.npc.ServerID {
-				g.Members = append(g.Members[:i], g.Members[i+1:]...) // its merc with it (mercgroup.go)
-				break
-			}
-		}
-		ms.asked = false // the two of them asked into a group again
-	}
+	w.mercsOutOfGroupLocked(g, m, true) // its mercs with it, asked into a group with it again (mercgroup.go)
 	w.sendGroupRemoved(m, 1)
 	w.raidMemberGoneLocked(g, m.ServerID)
 	w.raidLeftLocked(g, m.Name)
@@ -634,8 +606,10 @@ func (w *World) GroupDisband(sess *session.Session) {
 			}
 			// a merc's owner out of a group of others is asked into one with
 			// it again (mercgroup.go)
-			if ms := w.mercs[m.ServerID]; ms != nil && ms.owner == m && players > 1 {
-				ms.asked = false
+			if players > 1 {
+				for _, ms := range w.mercsOfLocked(m) {
+					ms.asked = false
+				}
 			}
 			w.raidStateNowForLocked(m)
 		}

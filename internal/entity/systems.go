@@ -75,6 +75,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.bufferSystem(now)      // Buffer's casts landing (buffer.go)
 	w.ctfSystem(now)         // capture the flag's queue and match (ctf.go)
 	w.homesSystem(now)       // the homes: who may stand in each, the yards' edges (homes.go)
+	w.readySystem(now)       // the groups' ready checks' ends (readycheck.go)
 	t.mark(tsDuels)
 	gates := w.castSystem(now)
 	t.mark(tsCasts)

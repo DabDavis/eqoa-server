@@ -210,6 +210,19 @@ func auditRowOf(s string) (map[string]any, error) {
 	return row, nil
 }
 
+// NPCDeletesToUndo is how many of the account's /deletes are not undone yet: how many more /delete undo puts back,
+// each the one before the last (the owner, 2026-11-12: "/delete undo it will undo last delete and keep going if press
+// again").
+func (db *SQLiteDB) NPCDeletesToUndo(accountID int) (int, error) {
+	if _, err := db.Exec(GMAuditSchema); err != nil {
+		return 0, err
+	}
+	var n int
+	err := db.QueryRow(`SELECT COUNT(*) FROM gm_audit WHERE accountid = ? AND action = 'delete' AND tbl = 'npcs'
+		AND detail LIKE ? AND reverted_by IS NULL`, accountID, npcDeletePrefix+"%").Scan(&n)
+	return n, err
+}
+
 // UndoLastNPCDelete puts back the account's last /delete not undone yet: the
 // npcs row and its extras, from the delete's audit lines, each with its own
 // insert line, the delete's lines marked reverted by them. False when there

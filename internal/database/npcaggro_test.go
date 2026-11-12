@@ -42,3 +42,37 @@ func TestNPCAggroGainsLeash(t *testing.T) {
 		t.Errorf("%d rows, want 2", len(rows))
 	}
 }
+
+// Petition 1814: see_invis is added at the start (0 for the rows there) and
+// reads back. Made-up names.
+func TestNPCAggroGainsSeeInvis(t *testing.T) {
+	path := t.TempDir() + "/old.db"
+	raw, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := raw.Exec(`CREATE TABLE npcaggro (npc_name TEXT PRIMARY KEY, aggressive INTEGER NOT NULL DEFAULT 1,
+		radius REAL NOT NULL DEFAULT 0, note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm',
+		leash REAL NOT NULL DEFAULT 0, holding INTEGER NOT NULL DEFAULT 0);
+		INSERT INTO npcaggro (npc_name, aggressive) VALUES ('test wolf', 1)`); err != nil {
+		t.Fatal(err)
+	}
+	raw.Close()
+	db, err := NewSQLite(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if _, err := db.Exec(`INSERT INTO npcaggro (npc_name, aggressive, see_invis) VALUES ('test larva', -1, 1)`); err != nil {
+		t.Fatal(err)
+	}
+	rows, err := db.NPCAggroRules()
+	if err != nil || len(rows) != 2 {
+		t.Fatalf("rows %+v (%v)", rows, err)
+	}
+	for _, r := range rows {
+		if want := r.Name == "test larva"; r.SeeInvis != want {
+			t.Errorf("%s: SeeInvis %v, want %v", r.Name, r.SeeInvis, want)
+		}
+	}
+}

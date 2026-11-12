@@ -122,6 +122,9 @@ type AggroRule struct {
 	// Holding is an item: the rule is for the players holding it alone, every
 	// other left alone (questwalls.go; the Estate's Guardian and Cazic's Scent)
 	Holding int
+	// SeeInvis: they notice an invisible player (npcaggro's see_invis, petition
+	// 1814): on sight, at its self-heal and in their area spells, as a seen one
+	SeeInvis bool
 }
 
 // aggroState is the world's aggro: off (SetAggro), factions left out of it
@@ -140,6 +143,7 @@ type aggroState struct {
 	factionOff bool
 	rules      map[string]AggroRule // by NPCClassKey
 	leash      map[string]float32   // by NPCClassKey: the rows' leashes, NoWord's too
+	seeInvis   map[string]bool      // by NPCClassKey: the rows' see_invis, NoWord's too
 	gen        uint32
 	reach      float32
 	ignored    map[uint32]bool
@@ -150,9 +154,10 @@ type aggroState struct {
 
 // aggroLookup is a spelling's rule, or none, and its leash (0: none).
 type aggroLookup struct {
-	rule  AggroRule
-	ok    bool
-	leash float32
+	rule     AggroRule
+	ok       bool
+	leash    float32
+	seeInvis bool
 }
 
 // ruleFor is the GMs' rule for an NPC of this name, if any.
@@ -182,6 +187,7 @@ func (a *aggroState) lookup(name string) aggroLookup {
 		k := database.NPCClassKey(name)
 		l.rule, l.ok = a.rules[k]
 		l.leash = a.leash[k]
+		l.seeInvis = a.seeInvis[k]
 		if a.byName == nil {
 			a.byName = make(map[string]aggroLookup)
 		}
@@ -380,7 +386,35 @@ func (w *World) aggroRadiusLocked(npc *NPC) float32 {
 // (invis.go) and not a GM who turned aggro off. Must be called with the lock
 // held.
 func (w *World) noticeableLocked(p *Player) bool {
-	if p.IsDead() || p.respawnPending() || p.Invisible() || w.aggro.ignored[p.CharServerID] {
+	return !p.Invisible() && w.noticeableSeenLocked(p)
+}
+
+// noticeableByLocked is noticeableLocked for one creature: one that sees
+// invisibility (seesInvisLocked) notices an invisible player too. Must be
+// called with the lock held.
+func (w *World) noticeableByLocked(npc *NPC, p *Player) bool {
+	if p.Invisible() && !w.seesInvisLocked(npc, p) {
+		return false
+	}
+	return w.noticeableSeenLocked(p)
+}
+
+// seesInvisLocked reports npc seeing p through its invisibility: its name's
+// npcaggro row says see_invis (petition 1814, Skywalker: "make all moth larva
+// npc in the game see through invisibility"). A GM hidden by Toggle Invis is
+// never seen. Being seen leaves the invisibility on; a hit ends it (invis.go).
+// Must be called with the lock held.
+func (w *World) seesInvisLocked(npc *NPC, p *Player) bool {
+	if npc == nil || p.GMHidden {
+		return false
+	}
+	return len(w.aggro.seeInvis) > 0 && w.aggro.lookup(npc.Name).seeInvis
+}
+
+// noticeableSeenLocked is noticeableLocked but for invisibility. Must be
+// called with the lock held.
+func (w *World) noticeableSeenLocked(p *Player) bool {
+	if p.IsDead() || p.respawnPending() || w.aggro.ignored[p.CharServerID] {
 		return false
 	}
 	if w.SessionManager == nil {
@@ -400,7 +434,8 @@ func (w *World) aggroSystem(now time.Time) {
 	}
 	for _, p := range w.Players {
 		// a player in safe mode (/testinvis, safemode.go) draws none on sight
-		if w.noticeableLocked(p) && !w.safeLocked(p) {
+		// an invisible one is looked at too, by the creatures that see it (drawNearLocked)
+		if w.noticeableSeenLocked(p) && !w.safeLocked(p) {
 			w.drawNearLocked(p, now, true)
 		}
 	}
@@ -410,7 +445,7 @@ func (w *World) aggroSystem(now time.Time) {
 // it that shows it the red face sets on it, the green ones too, which leave it
 // alone on sight (the file's doc). Must be called with the lock held.
 func (w *World) healAggroLocked(p *Player) {
-	if w.aggro.off || w.SpatialIndex == nil || !w.noticeableLocked(p) || w.safeLocked(p) {
+	if w.aggro.off || w.SpatialIndex == nil || !w.noticeableSeenLocked(p) || w.safeLocked(p) {
 		return
 	}
 	w.drawNearLocked(p, time.Now(), false)
@@ -426,6 +461,9 @@ func (w *World) drawNearLocked(p *Player, now time.Time, onSight bool) {
 	for _, id := range w.SpatialIndex.QueryRadius(p.X, p.Z, reach) {
 		npc, ok := w.NPCs[id]
 		if !ok || !w.npcSharesLocked(npc, p) || npc.CurrentEnemy != 0 || npc.chase.returning || npc.hiddenAt(now) || npc.lulledAt(now) {
+			continue
+		}
+		if p.Invisible() && !w.seesInvisLocked(npc, p) { // invisible, to all but those that see it
 			continue
 		}
 		if !w.threatensLocked(npc, p) || onSight && !npc.EventAggro && greenTo(npc, p) {
@@ -475,8 +513,15 @@ func (w *World) SetAggroRules(rules map[string]AggroRule) {
 	// a NoWord row is its leash alone; two spellings' leashes: the longer
 	keyed := make(map[string]AggroRule, len(rules))
 	var leash map[string]float32
+	var seeInvis map[string]bool // any spelling's see_invis
 	for name, r := range rules {
 		k := database.NPCClassKey(name)
+		if r.SeeInvis {
+			if seeInvis == nil {
+				seeInvis = make(map[string]bool)
+			}
+			seeInvis[k] = true
+		}
 		if r.Leash > 0 && r.Leash > leash[k] {
 			if leash == nil {
 				leash = make(map[string]float32)
@@ -493,6 +538,7 @@ func (w *World) SetAggroRules(rules map[string]AggroRule) {
 	}
 	w.aggro.rules = keyed
 	w.aggro.leash = leash
+	w.aggro.seeInvis = seeInvis
 	w.aggro.cacheMu.Lock()
 	w.aggro.byName = nil
 	w.aggro.cacheMu.Unlock()
@@ -515,7 +561,7 @@ func (w *World) LoadAggroRules(db *database.SQLiteDB) (int, error) {
 	}
 	rules := make(map[string]AggroRule, len(rows))
 	for _, r := range rows {
-		rules[r.Name] = AggroRule{Aggressive: r.Aggressive, Radius: float32(r.Radius), Leash: float32(r.Leash), NoWord: r.NoWord, Holding: r.Holding}
+		rules[r.Name] = AggroRule{Aggressive: r.Aggressive, Radius: float32(r.Radius), Leash: float32(r.Leash), NoWord: r.NoWord, Holding: r.Holding, SeeInvis: r.SeeInvis}
 	}
 	w.SetAggroRules(rules)
 	return len(rules), nil

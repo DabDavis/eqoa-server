@@ -651,8 +651,11 @@ func (h *ChatHandler) groupChat(sess *session.Session, player *entity.Player, me
 	}
 	raid := h.gameWorld.GroupIsRaid(player)
 	line := message.wrap(player.Name+" tells the group: ", "")
+	rgb := raidChatRGB
 	if raid {
-		line = message.wrap(player.Name+" tells the raid: ", "")
+		var mark string
+		mark, rgb = raidChatMark(h.gameWorld.RaidRole(player))
+		line = message.wrap(mark+player.Name+" tells the raid: ", "")
 	}
 	line = line.made()
 	sessions := playerSessions(h.gameWorld)
@@ -660,7 +663,7 @@ func (h *ChatHandler) groupChat(sess *session.Session, player *entity.Player, me
 		if s := sessions[m.ServerID]; s != nil {
 			shown := lineFor(m, line.text)
 			if raid {
-				relayTo(s, protocol.OpcodeColoredChat, coloredChatPayload(shown, raidChatRGB[0], raidChatRGB[1], raidChatRGB[2]), line, shown, wideLineMost)
+				relayTo(s, protocol.OpcodeColoredChat, coloredChatPayload(shown, rgb[0], rgb[1], rgb[2]), line, shown, wideLineMost)
 			} else {
 				relayTo(s, protocol.OpcodeGroupChat, buildGroupChat(uint32(player.ServerID), shown), line, shown, wideLineMost)
 			}
@@ -671,6 +674,27 @@ func (h *ChatHandler) groupChat(sess *session.Session, player *entity.Player, me
 
 // raidChatRGB is a raid's chat: orange.
 var raidChatRGB = [3]byte{255, 140, 0}
+
+// raidLeadRGB and raidHelperRGB are the raid's leader's and helper's lines: a shade off
+// the raid's orange, the leader's toward gold, the helper's toward peach (petition 1816:
+// "distinguish the leader ... and the co-leader with a slight colour change and short
+// marking showing they are leader").
+var (
+	raidLeadRGB   = [3]byte{255, 200, 40}
+	raidHelperRGB = [3]byte{255, 170, 110}
+)
+
+// raidChatMark is the mark before a raid line's speaker and the line's colour: "[L] "
+// for the leader, "[H] " for the helper, none for the rest.
+func raidChatMark(lead, helper bool) (string, [3]byte) {
+	switch {
+	case lead:
+		return "[L] ", raidLeadRGB
+	case helper:
+		return "[H] ", raidHelperRGB
+	}
+	return "", raidChatRGB
+}
 
 // guildChatLinePayload is 0x0468 sub 5, Recv0468 (0x00BF0D38 [A]): a u32 the
 // client does not use, then a wide line of at most 255 characters, drawn in

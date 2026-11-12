@@ -47,6 +47,9 @@ func newMercRig(t *testing.T) *mercRig {
 	w.SessionManager = mgr
 	w.SetRaceModels(map[[2]int]uint32{{0, 0}: humanMale, {0, 1}: humanFemale, {2, 0}: darkElfMale, {2, 1}: darkElfFemale})
 	r := &mercRig{t: t, w: w, mgr: mgr, t0: time.Unix(1_800_000_000, 0)}
+	offbeat := mercOffbeat
+	mercOffbeat = false // the rig's casts tick for tick (mercoffbeat.go; its own test turns it on)
+	t.Cleanup(func() { mercOffbeat = offbeat })
 	r.sess, r.p = r.player("Owner", 0, 0)
 	return r
 }

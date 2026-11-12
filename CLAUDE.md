@@ -1175,9 +1175,11 @@ has the design, the numbers and what the rig showed.
 
 - **The world**: slot **14, the Dungeons** (`tools/worlds/dungeons.json`): Tunaria zones 65 (Blackburrow), 54 (Misty
   Thicket, the valley before Runnyeye's gate, where its raids land), 67 (Runnyeye) and 157 (Guk), each where it stands,
-  every open edge closed by `cmd/worldedges`' rocks (`dungeons-edges.json`, 341; `-check` closed). The recipe's
+  every open edge closed by `cmd/worldedges`' rocks (`dungeons-edges.json`, 342; `-check` closed), made with
+  `-keep` of every world-14 creature and each entrance (since 2026-11-12, petition 1812: without it a north-edge rock
+  of Blackburrow, scale 28 and 250 deep, buried the north-east mouth and its tunnel's end, an invisible wall inside). The recipe's
   `"dungeons"` block (`ReadDungeons`, carried into `worldN.json`, never the file): each dungeon's key, name, the boxes
-  its creatures stand in, its entrance (`toward` its gate). 31,042,306 bytes, CRC 1b39b6c4. `world.dungeons.enabled`
+  its creatures stand in, its entrance (`toward` its gate). 31,042,514 bytes, CRC e42ecf47 (1b39b6c4 before the rocks moved). `world.dungeons.enabled`
   (off by default) with 14 in `server_worlds`; `close_after` (30m), `max_instances` (30).
 - **Templates and instances** (homes' engine: `Player.Instance`, `NPC.Instance`, `SamePlace`, `npcSharesLocked`):
   every npcs row of world 14 but the Dungeon Warden's is a **template**, held out of the world as a spawn-only NPC

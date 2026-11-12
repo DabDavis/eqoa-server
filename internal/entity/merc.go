@@ -193,6 +193,10 @@ type mercState struct {
 	// body when it was made
 	book   []mercSpell
 	bookOf *Player
+	// reactTo is the foe it last turned its attacks on, reactAt when it may
+	// begin them (mercoffbeat.go)
+	reactTo EntityID
+	reactAt time.Time
 	// pet is its own pet, nil for none out (mercpet.go)
 	pet *petState
 	// idle is its ease while its owner stands (mercidle.go)

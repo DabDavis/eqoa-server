@@ -683,6 +683,9 @@ func (w *World) mercAttackTurnLocked(ms *mercState, t *NPC, now time.Time) bool 
 	if t == nil || t.Dead {
 		return false
 	}
+	if !ms.mercReactedLocked(t, now) {
+		return false // a moment before it turns on a new foe (mercoffbeat.go)
+	}
 	m := ms.npc
 	if ms.role == roleHealer && (!ms.kit.Offensive || m.Power*100 < m.MaxPower*mercHealerSpare) {
 		return false // defensive, its default: heals and buffs alone (MercKit.Offensive)
@@ -813,7 +816,7 @@ type mercCast struct {
 func (w *World) mercCastLocked(ms *mercState, s *CastSpell, target EntityID, group bool, now time.Time) {
 	m := ms.npc
 	m.Power = max(m.Power-s.PowerCost, 0)
-	ms.ready[s.SpellID] = now.Add(s.CastTime + s.Recast + castLockoutExtra)
+	ms.ready[s.SpellID] = now.Add(s.CastTime + s.Recast + castLockoutExtra + mercRecastLag(s))
 	if isArt(s) {
 		ms.artReady = now.Add(w.balance.ArtCooldown(m.Level))
 	}

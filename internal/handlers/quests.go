@@ -168,6 +168,9 @@ type questCatalog struct {
 	// inGame is the enabled quests' names, by id (what a mastery rank may
 	// need finished: InGame); never written once made
 	inGame map[int]string
+	// successors is the enabled quests with a giver that require each quest,
+	// by its id (questpointers.go)
+	successors map[int][]*database.Quest
 }
 
 // questChar is one character's quests.
@@ -209,6 +212,11 @@ type questChar struct {
 	// declined is the quests it said no to since its login, not offered
 	// again until its giver has none other to offer (offerAtLocked)
 	declined map[int]bool
+	// pointerIDs is the quests of the pointer lines at the end of shown, in
+	// order (questpointers.go); dismissed the pointers the player deleted
+	// since its login
+	pointerIDs []int
+	dismissed  map[int]bool
 }
 
 // say is a text with %p the player's name (left as it is while the name is
@@ -359,6 +367,7 @@ func (q *QuestEngine) run() {
 		case <-q.wake:
 			q.syncMarks(time.Now())
 			q.syncProgress()
+			q.syncPointers() // questpointers.go
 		case <-tick.C:
 			q.checkReach()
 			q.checkSurvive() // questsurvive.go: the Trial of Endurance's kind of step
@@ -367,6 +376,7 @@ func (q *QuestEngine) run() {
 			q.respawnLost() // questevents.go: a spawn-only creature's lost spawns
 			q.syncMarks(time.Now())
 			q.syncProgress()
+			q.syncPointers()
 			q.syncQuestState() // questwalls.go: the walls passed, the items held
 		}
 	}
@@ -399,6 +409,7 @@ func (q *QuestEngine) Reload() error {
 			}
 		}
 	}
+	cat.successors = successorsOf(cat.all)
 	texts, names := q.questTexts(cat.all)
 	q.mu.Lock()
 	q.cat = cat
@@ -545,13 +556,10 @@ func (q *QuestEngine) linesLocked(c *questChar) []string {
 }
 
 // questJournal is the MemoryDump's quest section for a player, empty with no
-// engine running.
-func questJournal(p *entity.Player) (uint32, []string) {
+// engine running: its quests' lines, then its pointers' (questpointers.go).
+func questJournal(sess *session.Session, p *entity.Player) (uint32, []string) {
 	if q := Quests(); q != nil && p != nil {
-		q.mu.Lock()
-		q.namedLocked(p.CharServerID, p.Name)
-		q.mu.Unlock()
-		return q.Journal(p.CharServerID)
+		return q.JournalFor(sess, p)
 	}
 	return 0, nil
 }
@@ -563,6 +571,10 @@ func (q *QuestEngine) dropLineLocked(sess *session.Session, c *questChar, idx in
 	}
 	c.token++
 	if idx < len(c.shown) {
+		// a pointer's line (questpointers.go) goes with its quest's id
+		if first := len(c.shown) - len(c.pointerIDs); len(c.pointerIDs) > 0 && idx >= first {
+			c.pointerIDs = append(c.pointerIDs[:idx-first:idx-first], c.pointerIDs[idx-first+1:]...)
+		}
 		c.shown = append(c.shown[:idx:idx], c.shown[idx+1:]...)
 	}
 	if sess != nil && idx < questJournalLines {
@@ -570,8 +582,19 @@ func (q *QuestEngine) dropLineLocked(sess *session.Session, c *questChar, idx in
 	}
 }
 
-// addLineLocked adds a line at the journal's end (0x007C).
+// addLineLocked adds a quest's line after the journal's other quests' (0x007C):
+// the pointers' lines (questpointers.go) taken first, syncPointers adding
+// them back after it.
 func (q *QuestEngine) addLineLocked(sess *session.Session, c *questChar, text string) {
+	if len(c.pointerIDs) > 0 {
+		q.stripPointersLocked(sess, c)
+		q.nudge()
+	}
+	q.appendLineLocked(sess, c, text)
+}
+
+// appendLineLocked adds a line at the journal's end (0x007C).
+func (q *QuestEngine) appendLineLocked(sess *session.Session, c *questChar, text string) {
 	text = c.say(text)
 	c.token++
 	if len(c.shown) < questJournalLines {
@@ -584,8 +607,21 @@ func (q *QuestEngine) addLineLocked(sess *session.Session, c *questChar, text st
 
 // redrawLocked makes the client's journal the character's: every line taken
 // and the lines added again in order, when they differ from what it shows.
+//
+// The pointers' lines shown (questpointers.go) are kept after the quests', as
+// many as there is room for; syncPointers works them out again.
 func (q *QuestEngine) redrawLocked(sess *session.Session, c *questChar) bool {
 	want := q.linesLocked(c)
+	if len(c.pointerIDs) > len(c.shown) {
+		c.pointerIDs = nil
+	}
+	ptrs := append([]string(nil), c.shown[len(c.shown)-len(c.pointerIDs):]...)
+	ids := c.pointerIDs
+	if n := min(len(ptrs), questJournalLines-len(want)); n < len(ptrs) {
+		ptrs, ids = ptrs[:max(n, 0)], ids[:max(n, 0)]
+	}
+	want = append(want, ptrs...)
+	ids = append([]int(nil), ids...)
 	if sameLines(want, c.shown) {
 		return false
 	}
@@ -593,8 +629,9 @@ func (q *QuestEngine) redrawLocked(sess *session.Session, c *questChar) bool {
 		q.dropLineLocked(sess, c, 0)
 	}
 	for _, l := range want {
-		q.addLineLocked(sess, c, l)
+		q.appendLineLocked(sess, c, l)
 	}
+	c.pointerIDs = ids
 	return true
 }
 
@@ -1317,6 +1354,10 @@ func (q *QuestEngine) HandleDrop(sess *session.Session, msg *protocol.Message) e
 		return nil
 	}
 	if idx < 0 || int(idx) >= len(act) {
+		// a pointer's line (questpointers.go): not shown again this session
+		if idx >= 0 && q.dropPointerLocked(sess, c, int(idx)) {
+			log.Printf("Quests: %s deleted a pointer's line", p.Name)
+		}
 		return nil
 	}
 	cq := act[idx]

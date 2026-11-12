@@ -15,6 +15,7 @@ type Config struct {
 	Patch  PatchConfig  `yaml:"patch"`
 	Auth   AuthConfig   `yaml:"auth"`
 	GM     GMConfig     `yaml:"gm"`
+	Quests QuestsConfig `yaml:"quests"`
 
 	// Shards is the server list every client is sent (0x07B3): each entry a
 	// game server of its own, and CLIENT lets its player pick (the user,
@@ -22,6 +23,15 @@ type Config struct {
 	// "Marr's Fist", on server.game_port. Every process of a set of shards
 	// carries the same list, so whichever a client asks shows the same.
 	Shards []ShardConfig `yaml:"shards"`
+}
+
+// QuestsConfig is the quest engine's settings (internal/handlers/quests.go).
+type QuestsConfig struct {
+	// NextGiverPointer false turns off the journal's pointers to a finished
+	// quest's next quest at another giver (handlers/questpointers.go: "The
+	// Breastplate and the Leggings: find Tilvyis S`Lynx in the south of
+	// Neriak"). Unset: on.
+	NextGiverPointer *bool `yaml:"next_giver_pointer"`
 }
 
 // ShardConfig is a line of the server list.

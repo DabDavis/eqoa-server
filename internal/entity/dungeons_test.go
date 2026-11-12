@@ -288,3 +288,60 @@ func TestDungeonResetAndKilledStayDead(t *testing.T) {
 		}
 	}
 }
+
+// Petition 1832 (Waldorf, 2026-11-12): "Running the Guk 60 Instance and shamans aren't tied to their pets". An
+// instance's copies of a shaman and the Companion Spirit 1.5 off it fight as one, within their own instance alone;
+// the templates and a GM's copy (Temporary, no instance) stay out of every pair.
+func TestDungeonShamansKeepTheirPets(t *testing.T) {
+	r := newDungeons(t, 2)
+	r.w.mu.Lock()
+	for _, b := range []*NPC{
+		{ServerID: 920011, Name: "froglok tal shaman", X: 1020, Y: 50, Z: 1020, World: 14, Level: 60, HP: 5000, MaxHP: 5000},
+		{ServerID: 920012, Name: "Companion Spirit", X: 1021.5, Y: 50, Z: 1020, World: 14, Level: 58, HP: 3000, MaxHP: 3000},
+	} {
+		b.SpawnX, b.SpawnY, b.SpawnZ = b.X, b.Y, b.Z
+		r.w.putNPCLocked(b)
+		r.w.SpatialIndex.Insert(b.ServerID, b.X, b.Z)
+	}
+	r.w.mu.Unlock()
+	r.w.SetDungeons(true, 14, dungeonsTestDefs(), DungeonSettings{CloseAfter: 10 * time.Minute})
+	a, d := r.ps[0], r.ps[1]
+	for i := range r.ps {
+		if why, ok := r.w.DungeonEnter(r.ss[i], "guk", r.now); !ok {
+			t.Fatalf("player %d: %s", i, why)
+		}
+	}
+	r.land()
+	ca, cd := r.copies(a.InstanceKey()), r.copies(d.InstanceKey())
+	sa, pa, sd, pd := ca["froglok tal shaman"], ca["Companion Spirit"], cd["froglok tal shaman"], cd["Companion Spirit"]
+	if sa == nil || pa == nil || sd == nil || pd == nil || a.InstanceKey() == d.InstanceKey() {
+		t.Fatalf("copies: %v %v", ca, cd)
+	}
+	r.w.mu.Lock()
+	defer r.w.mu.Unlock()
+	ids := func(ns []*NPC) []EntityID {
+		var out []EntityID
+		for _, n := range ns {
+			out = append(out, n.ServerID)
+		}
+		return out
+	}
+	if got := ids(r.w.companionPartnersLocked(sa)); len(got) != 1 || got[0] != pa.ServerID {
+		t.Fatalf("a's shaman's partners %v, want its own instance's spirit %d", got, pa.ServerID)
+	}
+	if got := ids(r.w.companionPartnersLocked(pd)); len(got) != 1 || got[0] != sd.ServerID {
+		t.Fatalf("d's spirit's partners %v, want its own instance's shaman %d", got, sd.ServerID)
+	}
+	// control: the templates pair with no one
+	if got := r.w.companionPartnersLocked(r.w.NPCs[920011]); len(got) != 0 {
+		t.Fatalf("a template paired: %v", ids(got))
+	}
+	// a hit on a's shaman brings a's spirit, not d's
+	r.w.companionJoinLocked(sa, a.ServerID)
+	if pa.Threats[a.ServerID] <= 0 {
+		t.Fatalf("a's spirit did not join its shaman: %v", pa.Threats)
+	}
+	if pd.Threats[a.ServerID] > 0 {
+		t.Fatal("d's spirit joined a's fight")
+	}
+}

@@ -40,7 +40,8 @@ const classTemplateAbilitiesHelp = `a JSON list, each {"kind": nuke | aoe | life
 	`a pet's (Pet class templates): "target": self | owner (where its heal or buff lands: itself, the default, or its owner), "spells_of": the class ` +
 	`0-14 whose spells it picks, "stat": the stat a buff raises (ac str sta agi dex wis int cha hp power), "element": a ` +
 	`harmful spell's (fire cold lightning poison disease arcane), "heal_pct": a heal of that % of its most hit points (cast ` +
-	`by size: the biggest due it is missing), "hits": a taunt's damage by level, [[level, least, most], ...] landing as it is}; ` +
+	`by size: the biggest due it is missing), "hits": a taunt's damage by level, [[level, least, most], ...] landing as it is, ` +
+	`"while_out": true, a buff on its owner that comes off when the pet goes and is never kept over a logout}; ` +
 	`e.g. [{"kind": "aoe", "every": 15, "first": 2}, {"kind": "nuke", "chain": true}]`
 
 // liveTemplates reads the templates and the names given them again (the

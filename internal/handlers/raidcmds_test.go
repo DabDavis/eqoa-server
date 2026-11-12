@@ -112,8 +112,55 @@ func TestRsayIsTheRaidsChat(t *testing.T) {
 	flushQueue(bob)
 	c.say(alice, "/t rsay now")
 	got := heard(t, bob)
-	if len(got) != 1 || got[0].text != "Alice tells the raid: now" || got[0].rgb != raidChatRGB {
+	if len(got) != 1 || got[0].text != "[L] Alice tells the raid: now" || got[0].rgb != raidLeadRGB {
 		t.Fatalf("a raid's /t rsay: %+v", got)
+	}
+}
+
+// Raid chat marks its leader and its helper (petition 1816): "[L] " in a gold shade and
+// "[H] " in a peach one, everyone else plain in the raid's orange; out of a raid no mark.
+func TestRaidChatMarksLeaderAndHelper(t *testing.T) {
+	c := newChatWorld(t)
+	alice, pa := c.join(1, "Alice", 25000, 16000, 0)
+	bob, pb := c.join(2, "Bob", 25010, 16000, 0)
+	carl, pc := c.join(3, "Carl", 25020, 16000, 0)
+	c.group(t, alice, pa, bob, pb)
+	c.gw.GroupInvite(alice, c.gw.IDSeenBy(alice, pc))
+	c.gw.GroupAccept(carl, c.gw.IDSeenBy(carl, pa))
+	if len(c.gw.GroupMembers(pa)) != 3 {
+		t.Fatalf("no group of three: %v", c.gw.GroupMembers(pa))
+	}
+	flushQueue(carl)
+	c.say(alice, "/rsay plain") // a plain group: no mark, the leader too
+	if got := heard(t, carl); len(got) != 1 || got[0].text != "Alice tells the group: plain" {
+		t.Fatalf("a plain group's leader: %+v", got)
+	}
+	c.say(alice, "/raidaoe")
+	c.say(alice, "/raidhelper Bob")
+	for _, s := range []*session.Session{alice, bob, carl} {
+		flushQueue(s)
+	}
+	cases := []struct {
+		from *session.Session
+		want string
+		rgb  [3]byte
+	}{
+		{alice, "[L] Alice tells the raid: one", raidLeadRGB},
+		{bob, "[H] Bob tells the raid: one", raidHelperRGB},
+		{carl, "Carl tells the raid: one", raidChatRGB},
+	}
+	for _, tc := range cases {
+		c.say(tc.from, "/rsay one")
+		for _, s := range []*session.Session{alice, bob, carl} {
+			got := heard(t, s)
+			if len(got) != 1 || got[0].text != tc.want || got[0].rgb != tc.rgb {
+				t.Errorf("%q: heard %+v", tc.want, got)
+			}
+			flushQueue(s)
+		}
+	}
+	if raidLeadRGB == raidChatRGB || raidHelperRGB == raidChatRGB || raidLeadRGB == raidHelperRGB {
+		t.Error("the three raid colours must differ")
 	}
 }
 

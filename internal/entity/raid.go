@@ -169,3 +169,21 @@ func (w *World) raidRemindLocked(g *Group, m *Player, sess *session.Session) {
 		w.sendChatToSession(sess, raidStillLine)
 	}
 }
+
+// RaidRole is p's place in its raid, for raid chat's mark (petition 1816): lead when p
+// leads it, helper when p is its helper (/raidhelper); neither out of a raid.
+func (w *World) RaidRole(p *Player) (lead, helper bool) {
+	if p == nil {
+		return false, false
+	}
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	g := w.raidOfLocked(p)
+	if g == nil {
+		return false, false
+	}
+	if l := w.leaderOfLocked(g); l != nil && l.ServerID == p.ServerID {
+		return true, false
+	}
+	return false, g.rules.helper != 0 && g.rules.helper == p.ServerID
+}

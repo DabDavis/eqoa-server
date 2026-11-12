@@ -14,8 +14,8 @@
       "entrance": {"x": 24825, "y": 58.4, "z": 29570, "toward": [24825, 29450]},
       "note": "the gate from the south, 100 from the gate's frogloks; the sunken halls (y -12) behind the upper ones"},
     {"key": "blackburrow", "name": "Blackburrow", "boxes": [[12600, 12050, 13700, 12700]],
-      "entrance": {"x": 13115, "y": 56.8, "z": 12095, "toward": [13115, 12180]},
-      "note": "before the burrow's north-east mouth, 85 from its gnoll guards; the pit (y -63) at its heart"},
+      "entrance": {"x": 12590, "y": 62.1, "z": 12760, "toward": [12590, 12700]},
+      "note": "before the burrow's south-west mouth (its tunnel up to the gnolls at (12663, 12596), then the pit, y -63, at its heart); until 2026-11-12 before the north-east mouth at (13115, 12095), which the north edge's rocks bury: a player landed under a rock and stuck (petition 1808)"},
     {"key": "runnyeye", "name": "Runnyeye", "boxes": [[16150, 11950, 16600, 12400], [17550, 13450, 17880, 13700]],
       "entrance": {"x": 16330, "y": 83.0, "z": 11880, "toward": [16330, 12050]},
       "note": "in Misty Thicket's valley, 165 north of the warren's gate; Xorbb's pit to the south-east"}

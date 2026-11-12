@@ -1195,7 +1195,11 @@ has the design, the numbers and what the rig showed.
   Dungeon Warden outside): a member who left the group, a player with no instance (a GM's move, a keep restart: **an
   instance is not kept over a restart**, its players go out). A GM may stand in any open instance. An instance no one
   stood in for `close_after` closes (its creatures gone); its owner may close an empty one (`/dungeon reset <name>`).
-  A logout inside resumes in the party's instance while it is open (`dungeonLogin`), else out.
+  A logout inside resumes in the party's instance while it is open (`dungeonLogin`), **at its dungeon's entrance**
+  (never where it logged out: petition 1808's player was stuck there), else out. **A landing must stand clear of the
+  edges' rocks**: Blackburrow's first one (13115, 12095) lay under a rock of the north edge's ridge (0x7FFD2E87 at
+  scale 28, reaching 250 into the cell) and stuck a party; it is the south-west mouth's now (12590, 62.1, 12760;
+  `tools/dungeons_landing_20261112.py` moves the warden's twin there).
 - **The Dungeon Warden** (any NPC of the name; the data tool stands one beside Dabrish and a twin at each entrance,
   the way out, in every instance) asks a box under **mark 0x6B000000**: "Open Guk" (a leader) or "Enter Guk" (its party
   has one), and inside "Leave the dungeon". **`/dungeon`** (`#dungeon`, a PS2's `/t dungeon ...`): the party's open

@@ -154,6 +154,9 @@ type World struct {
 	// the order they stepped out in
 	mercBench    map[EntityID][]*mercBenched
 	mercBenchSeq uint64
+	// mercAskHeld: the handlers bring an owner's mercs back at once, its
+	// group box asked for all of them after (mercgroup.go's HoldMercAsk)
+	mercAskHeld map[EntityID]bool
 	// what the clients that asked are told of the mercs and of their group
 	// search standing, last done at uiTold (uitold.go); the characters whose
 	// "Allow anyone in my group to invite" is off (groupinvites.go)

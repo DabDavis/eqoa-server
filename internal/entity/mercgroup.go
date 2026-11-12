@@ -65,7 +65,7 @@ import (
 // mercsBoxWords several mercs' one box.
 const (
 	mercBoxWords  = "Mercenary %s"
-	mercsBoxWords = "Mercenaries %s"
+	mercsBoxWords = "Mercenaries (%d)"
 )
 
 // The lines of a merc in a group (ours).
@@ -179,7 +179,7 @@ func (w *World) mercGroupJoinLocked(ms *mercState, sess *session.Session) {
 // of its out of a group and not asked yet. Must be called with the lock held.
 func (w *World) mercAskLocked(ms *mercState, sess *session.Session) {
 	o := ms.owner
-	if sess == nil || o.GroupID != 0 || ms.asked {
+	if sess == nil || o.GroupID != 0 || ms.asked || w.mercAskHeld[o.ServerID] {
 		return
 	}
 	if w.boxWaitingLocked(o) {
@@ -197,15 +197,46 @@ func (w *World) mercAskLocked(ms *mercState, sess *session.Session) {
 	if len(names) == 0 {
 		return
 	}
+	// the box's name is short in CLIENT's box (a rig's "Mercenaries
+	// Ironwall, M"): several are counted there, named in the line
 	who := strings.Join(names, " and ")
 	words := fmt.Sprintf(mercBoxWords, who)
 	if len(names) > 1 {
-		words = fmt.Sprintf(mercsBoxWords, strings.Join(names[:len(names)-1], ", ")+" and "+names[len(names)-1])
-		who = words
+		who = strings.Join(names[:len(names)-1], ", ") + " and " + names[len(names)-1]
+		words = fmt.Sprintf(mercsBoxWords, len(names))
 	}
 	w.askLocked(o, o, sess, groupAsk{merc: true}, words)
 	w.sendChatToSession(sess, fmt.Sprintf(mercAskLine, who))
 	log.Printf("Merc: %s asked into a group with %q", o.Name, names)
+}
+
+// HoldMercAsk holds the box asking the session's player into a group with
+// its mercs (on) while the handlers bring several back at once (a login's
+// every hire), so one box asks for all of them; off lets it go and asks it.
+func (w *World) HoldMercAsk(sess *session.Session, on bool) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil {
+		return
+	}
+	if on {
+		if w.mercAskHeld == nil {
+			w.mercAskHeld = map[EntityID]bool{}
+		}
+		w.mercAskHeld[p.ServerID] = true
+		return
+	}
+	delete(w.mercAskHeld, p.ServerID)
+	for _, ms := range w.mercsOfLocked(p) {
+		if !w.mercInOwnGroupLocked(ms) {
+			if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil {
+				w.mercIntoGroupLocked(ms, g)
+				continue
+			}
+			w.mercAskLocked(ms, sess)
+		}
+	}
 }
 
 // AskMercGroup asks the session's player into a group with its mercs again

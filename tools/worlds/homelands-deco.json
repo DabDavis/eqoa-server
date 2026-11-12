@@ -1,0 +1,470 @@
+{
+ "note": "The Mermaid's village on Erud's Crossing's sea floor (the owner, 2026-11-12: \"yes add decorations to the mermaid village\"): disc art placed round the people, clear of their spots and the ways between them (cmd/groundbake bakes their collision; tools' walk check in the lane's notes).",
+ "zones": [
+  {
+   "from": "ODUS.ESF",
+   "zone": 10,
+   "name": "Erud's Crossing",
+   "extras": [
+    {
+     "sprite": "0x22D535C6",
+     "at": [
+      10950.0,
+      24.2,
+      2425.0
+     ],
+     "note": "the thatched pavilion of the island's village, north of the elder: the village's meeting place"
+    },
+    {
+     "sprite": "0x1C06F1BD",
+     "from": "ODUS.ESF",
+     "zone": 28,
+     "at": [
+      10965.0,
+      24.2,
+      2480.0
+     ],
+     "scale": 1.0,
+     "note": "a market canopy over benches (South Barren Coast's camp) behind Pearla and Kelpa, the village's stalls"
+    },
+    {
+     "sprite": "0x3669D3D9",
+     "at": [
+      10932.0,
+      24.2,
+      2456.0
+     ],
+     "hpr": [
+      1.571,
+      0,
+      0
+     ],
+     "note": "a woven merfolk banner on its frame (the island village's), west of the elder"
+    },
+    {
+     "sprite": "0x82CC1983",
+     "from": "ODUS.ESF",
+     "zone": 25,
+     "at": [
+      10986.0,
+      24.2,
+      2482.0
+     ],
+     "hpr": [
+      2.4,
+      0,
+      0
+     ],
+     "color": [
+      30,
+      60,
+      80,
+      255
+     ],
+     "note": "the Abysmal Sea's great spiral shells, by the stalls and at the west edge, a soft glow on them"
+    },
+    {
+     "sprite": "0x82CC1983",
+     "from": "ODUS.ESF",
+     "zone": 25,
+     "at": [
+      10917.0,
+      24.2,
+      2474.0
+     ],
+     "hpr": [
+      5.5,
+      0,
+      0
+     ],
+     "scale": 0.8,
+     "color": [
+      30,
+      60,
+      80,
+      255
+     ]
+    },
+    {
+     "sprite": "0x82CC1983",
+     "from": "ODUS.ESF",
+     "zone": 25,
+     "at": [
+      11000.0,
+      24.2,
+      2425.0
+     ],
+     "hpr": [
+      1.0,
+      0,
+      0
+     ],
+     "scale": 0.6,
+     "color": [
+      30,
+      60,
+      80,
+      255
+     ]
+    },
+    {
+     "sprite": "0x0086238D",
+     "at": [
+      10905.0,
+      24.2,
+      2430.0
+     ],
+     "hpr": [
+      0.6,
+      0,
+      0
+     ],
+     "scale": 4.0,
+     "note": "a sea beast's ribs on the sea floor at the village's west edge (the island beach's bones, four times their size)"
+    },
+    {
+     "sprite": "0x0086238D",
+     "at": [
+      10990.0,
+      24.2,
+      2510.0
+     ],
+     "hpr": [
+      2.8,
+      0,
+      0
+     ],
+     "scale": 3.0
+    },
+    {
+     "sprite": "0xA2694406",
+     "from": "ODUS.ESF",
+     "zone": 25,
+     "at": [
+      10985.0,
+      24.2,
+      2420.0
+     ],
+     "scale": 1.0,
+     "note": "kelp beds round the village (the Abysmal Sea's)"
+    },
+    {
+     "sprite": "0xA2694407",
+     "from": "ODUS.ESF",
+     "zone": 25,
+     "at": [
+      11008.0,
+      24.2,
+      2452.0
+     ],
+     "hpr": [
+      1.37,
+      0,
+      0
+     ],
+     "scale": 1.1
+    },
+    {
+     "sprite": "0xA2694406",
+     "from": "ODUS.ESF",
+     "zone": 25,
+     "at": [
+      10997.0,
+      24.2,
+      2497.0
+     ],
+     "hpr": [
+      2.74,
+      0,
+      0
+     ],
+     "scale": 0.8
+    },
+    {
+     "sprite": "0xA2694407",
+     "from": "ODUS.ESF",
+     "zone": 25,
+     "at": [
+      10972.0,
+      24.2,
+      2512.0
+     ],
+     "hpr": [
+      4.11,
+      0,
+      0
+     ],
+     "scale": 1.2
+    },
+    {
+     "sprite": "0xA2694406",
+     "from": "ODUS.ESF",
+     "zone": 25,
+     "at": [
+      10935.0,
+      24.2,
+      2505.0
+     ],
+     "hpr": [
+      5.48,
+      0,
+      0
+     ],
+     "scale": 0.9
+    },
+    {
+     "sprite": "0xA2694407",
+     "from": "ODUS.ESF",
+     "zone": 25,
+     "at": [
+      10910.0,
+      24.2,
+      2490.0
+     ],
+     "hpr": [
+      0.57,
+      0,
+      0
+     ],
+     "scale": 1.0
+    },
+    {
+     "sprite": "0xA2694406",
+     "from": "ODUS.ESF",
+     "zone": 25,
+     "at": [
+      10898.0,
+      24.2,
+      2458.0
+     ],
+     "hpr": [
+      1.94,
+      0,
+      0
+     ],
+     "scale": 1.1
+    },
+    {
+     "sprite": "0xA2694407",
+     "from": "ODUS.ESF",
+     "zone": 25,
+     "at": [
+      10915.0,
+      24.2,
+      2412.0
+     ],
+     "hpr": [
+      3.31,
+      0,
+      0
+     ],
+     "scale": 0.9
+    },
+    {
+     "sprite": "0xA2694406",
+     "from": "ODUS.ESF",
+     "zone": 25,
+     "at": [
+      10945.0,
+      24.2,
+      2398.0
+     ],
+     "hpr": [
+      4.68,
+      0,
+      0
+     ],
+     "scale": 0.7
+    },
+    {
+     "sprite": "0xA2694407",
+     "from": "ODUS.ESF",
+     "zone": 25,
+     "at": [
+      10975.0,
+      24.2,
+      2402.0
+     ],
+     "hpr": [
+      6.05,
+      0,
+      0
+     ],
+     "scale": 1.3
+    },
+    {
+     "sprite": "0xA2694406",
+     "from": "ODUS.ESF",
+     "zone": 25,
+     "at": [
+      11015.0,
+      24.2,
+      2480.0
+     ],
+     "hpr": [
+      1.14,
+      0,
+      0
+     ],
+     "scale": 0.9
+    },
+    {
+     "sprite": "0xA2694407",
+     "from": "ODUS.ESF",
+     "zone": 25,
+     "at": [
+      10925.0,
+      24.2,
+      2525.0
+     ],
+     "hpr": [
+      2.51,
+      0,
+      0
+     ],
+     "scale": 1.0
+    },
+    {
+     "sprite": "0xA2694406",
+     "from": "ODUS.ESF",
+     "zone": 25,
+     "at": [
+      10890.0,
+      24.2,
+      2415.0
+     ],
+     "hpr": [
+      3.88,
+      0,
+      0
+     ],
+     "scale": 1.2
+    },
+    {
+     "sprite": "0xA2694407",
+     "from": "ODUS.ESF",
+     "zone": 25,
+     "at": [
+      11020.0,
+      24.2,
+      2420.0
+     ],
+     "hpr": [
+      5.25,
+      0,
+      0
+     ],
+     "scale": 1.0
+    },
+    {
+     "sprite": "0x3BED6F02",
+     "from": "ODUS.ESF",
+     "zone": 28,
+     "at": [
+      10962.0,
+      24.2,
+      2432.0
+     ],
+     "scale": 2.0,
+     "note": "stones of the sea floor (South Barren Coast's)"
+    },
+    {
+     "sprite": "0x3BED6F02",
+     "from": "ODUS.ESF",
+     "zone": 28,
+     "at": [
+      10930.0,
+      24.2,
+      2482.0
+     ],
+     "hpr": [
+      0.9,
+      0,
+      0
+     ],
+     "scale": 2.3
+    },
+    {
+     "sprite": "0x3BED6F02",
+     "from": "ODUS.ESF",
+     "zone": 28,
+     "at": [
+      10978.0,
+      24.2,
+      2440.0
+     ],
+     "hpr": [
+      1.8,
+      0,
+      0
+     ],
+     "scale": 2.6
+    },
+    {
+     "sprite": "0x3BED6F02",
+     "from": "ODUS.ESF",
+     "zone": 28,
+     "at": [
+      10948.0,
+      24.2,
+      2492.0
+     ],
+     "hpr": [
+      2.7,
+      0,
+      0
+     ],
+     "scale": 2.0
+    },
+    {
+     "sprite": "0x3BED6F02",
+     "from": "ODUS.ESF",
+     "zone": 28,
+     "at": [
+      11002.0,
+      24.2,
+      2470.0
+     ],
+     "hpr": [
+      3.6,
+      0,
+      0
+     ],
+     "scale": 2.3
+    },
+    {
+     "sprite": "0x3BED6F02",
+     "from": "ODUS.ESF",
+     "zone": 28,
+     "at": [
+      10922.0,
+      24.2,
+      2437.0
+     ],
+     "hpr": [
+      4.5,
+      0,
+      0
+     ],
+     "scale": 2.6
+    },
+    {
+     "sprite": "0x3BED6F02",
+     "from": "ODUS.ESF",
+     "zone": 28,
+     "at": [
+      10968.0,
+      24.2,
+      2496.0
+     ],
+     "hpr": [
+      5.4,
+      0,
+      0
+     ],
+     "scale": 2.0
+    }
+   ]
+  }
+ ]
+}

@@ -110,3 +110,53 @@ func TestSwimmerBodiesAreCharESFs(t *testing.T) {
 		}
 	}
 }
+
+// Every body a player may wear (a race's own, or one its body rows offer)
+// swings with an attack of its own on every client: its play list has 23 or
+// 22, from which CLIENT's SetDefaultEntries fills every weapon's attack slot
+// the body lacks (24-33, 35, 36, 40-44, 50-53: vicsprite.cpp), or it is a
+// sea body, whose swing becomes its 44 while byte 58 says it swims or treads
+// water (bodyLoco). A body with neither would swing its idle, once, to every
+// viewer (the owner, 2026-11-11, of the Jal'Raeth, whose three bodies have
+// only 22 and 23: they swing). Read off the disc's CHAR.ESF where it is at
+// hand, as TestSwimmerBodiesAreCharESFs.
+func TestPlayerBodiesHaveAnAttack(t *testing.T) {
+	path := os.Getenv("EQOA_CHAR_ESF")
+	if path == "" {
+		home, _ := os.UserHomeDir()
+		path = filepath.Join(home, "claude-eqoa/extracted-assets/CHAR.ESF")
+	}
+	if _, err := os.Stat(path); err != nil {
+		t.Skipf("no CHAR.ESF at %s", path)
+	}
+	f, err := esf.Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	if err := f.BuildDictionary(); err != nil {
+		t.Fatal(err)
+	}
+	// the races' bodies with no body row (the pixie's, the fairy's, the
+	// Wisp's humans) beside every row's
+	bodies := append(OptionBodies(), bodyPixie, bodyFairy, bodyHumanMale, bodyHumanFemale)
+	if len(bodies) < 100 {
+		t.Fatalf("%d option bodies", len(bodies))
+	}
+	for _, b := range bodies {
+		o, err := f.FindObject(int32(b))
+		cs, ok := o.(*esf.CSprite)
+		if err != nil || !ok {
+			t.Errorf("0x%08X is not a CSprite of CHAR.ESF", b)
+			continue
+		}
+		own := false
+		for _, p := range cs.PlayList {
+			own = own || p.Index == 22 || p.Index == 23
+		}
+		if !own && !swimmerBodies[b] {
+			t.Errorf("0x%08X has no attack of its own (22, 23) and is no sea body: every swing shows its idle", b)
+		}
+		f.ReleaseCache()
+	}
+}

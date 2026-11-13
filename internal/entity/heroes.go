@@ -2,6 +2,7 @@ package entity
 
 import (
 	"fmt"
+	"sort"
 	"log"
 
 	"github.com/eqoa/server/internal/database"
@@ -243,4 +244,45 @@ func (w *World) HeroesRefund(sess *session.Session, cost int) (after int, ok boo
 		w.sendChatToSession(sess, factionLine(HeroesFaction, cost, after))
 	}
 	return after, true
+}
+
+// RaidBossesUp is a line for each raid boss (raidBossLocked) alive in the
+// world now, by name: its world and place, its hit points, and whether it is
+// in a fight (the GM Jibwiz's petition 1947: "/raidboss ... will show us
+// text which mobs tagged raid boss ... are currently spawned"). Pets,
+// charmed creatures and a dungeon's copies are left out of nothing: a copy
+// is named as one.
+func (w *World) RaidBossesUp() []string {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	var ns []*NPC
+	for _, n := range w.NPCs {
+		if n.Dead || n.Owner != 0 || n.Charm != nil || !w.raidBossLocked(n) {
+			continue
+		}
+		ns = append(ns, n)
+	}
+	sort.Slice(ns, func(i, j int) bool {
+		if ns[i].Name != ns[j].Name {
+			return ns[i].Name < ns[j].Name
+		}
+		return ns[i].ServerID < ns[j].ServerID
+	})
+	out := make([]string, 0, len(ns)+1)
+	if len(ns) > 0 {
+		out = append(out, fmt.Sprintf("%d raid bosses up:", len(ns)))
+	}
+	for _, n := range ns {
+		state := "idle"
+		if len(n.Threats) > 0 {
+			state = fmt.Sprintf("in a fight (%d on its list)", len(n.Threats))
+		}
+		pct := 0
+		if n.MaxHP > 0 {
+			pct = n.HP * 100 / n.MaxHP
+		}
+		out = append(out, fmt.Sprintf("%s (id %d): world %d at (%.0f, %.0f, %.0f), HP %d/%d (%d%%), %s",
+			n.Name, n.ServerID, n.World, n.X, n.Y, n.Z, n.HP, n.MaxHP, pct, state))
+	}
+	return out
 }

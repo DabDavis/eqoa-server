@@ -127,9 +127,11 @@ func (w *World) Consume(sess *session.Session, c Consumable, now time.Time) erro
 	if p == nil || p.IsDead() {
 		return ErrConsumeNoPlayer
 	}
-	// a meal or a drink is taken in a fight, and runs on through it (the
-	// owner, 2026-11-13: "players arent allowed to eat/drink during a fight
-	// but should be allowed"; petition 1919 had refused a meal in a fight)
+	// a meal or a drink is taken in a fight (the owner, 2026-11-13; petition
+	// 1919 had refused a meal in one), its first tick at once, and the fight
+	// ends a meal's heal over time at its next hit or aggressive act
+	// (consumableSystem: the GM Jibwiz's petition 1942, "you can eat food and
+	// get the first tick instantly but the Heal over time would remove")
 	d := c.Duration
 	if d <= 0 {
 		d = ConsumableDuration
@@ -149,6 +151,11 @@ func (w *World) Consume(sess *session.Session, c Consumable, now time.Time) erro
 		ae.Food = &r
 	}
 	w.addEffectLocked(p, ae, now)
+	if ae.Mods.HoT > 0 || ae.Mods.PoT > 0 { // its first tick at once (petition 1942)
+		p.HP = min(p.HP+max(ae.Mods.HoT, 0), max(p.HP, p.MaxHPNow()))
+		p.Power = min(p.Power+max(ae.Mods.PoT, 0), max(p.Power, p.MaxPowerNow()))
+		p.StatsDirty = true
+	}
 	log.Printf("Consume: %s has %q (HoT %d, PoT %d for %v)", p.Name, c.Name, ae.Mods.HoT, ae.Mods.PoT, d)
 	return nil
 }
@@ -165,10 +172,11 @@ func (w *World) endFoodOnCastLocked(p *Player) {
 	}
 }
 
-// foodRunsThroughFights keeps meals and drinks through a fight (the owner,
-// 2026-11-13: eating and drinking allowed in a fight); false brings back the
-// meal ending at a fight's first contact.
-var foodRunsThroughFights = true
+// foodRunsThroughFights keeps meals through a fight. False (the GM Jibwiz's
+// petition 1942, 2026-11-13, which the owner took: "lets tackle jibs request
+// first"): a meal eaten in a fight or out of one ends at its eater's next hit
+// taken or aggressive act, a drink runs on, as Sandstorm's did.
+var foodRunsThroughFights = false
 
 // consumableSystem ends a player's meal once it takes an aggressive action
 // or is hit after eating: auto-attack engaged, or a fight marked since

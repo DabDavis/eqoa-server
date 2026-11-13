@@ -44,7 +44,11 @@ import (
 // wait on what the raid does: awaittalk for a player at an NPC (Talk, before the
 // quests), awaitdead for its spawns, a clock for the whole of it, a place moved
 // when the raid is moved, a lock so one raid at a time has the place. The firing
-// player is not told the GMs' lines. A restart ends a run, as it ends a pet.
+// player is not told the GMs' lines. A restart that keeps the sessions keeps the
+// runs (gmtriggerkeep.go: each at its step, its lock held, its clock's time left,
+// its spawns alive where they stood at their hit points, its waits watching them);
+// a cold start ends them, as it ends a pet, and a quest waiting on an encounter's
+// kill is put back for its characters (questencounter.go).
 //
 // Vanilla shows each line's name (not retail: protocol.OpcodeGMTriggers): a
 // GM's client is offered the names with the GM channel, and one that answers
@@ -356,6 +360,51 @@ func (e *TriggerEngine) BusyNamed(name string) bool {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	return e.lockHeldLocked(database.TriggerLockName(steps))
+}
+
+// RunningNamed reports a run of the trigger called name (any case) lives, one
+// stopped not counted: a quest waiting on its encounter's kill asks
+// (questencounter.go).
+func (e *TriggerEngine) RunningNamed(name string) bool {
+	if e == nil {
+		return false
+	}
+	name = strings.TrimSpace(name)
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	for _, r := range e.runs {
+		if !r.stopped && strings.EqualFold(strings.TrimSpace(r.trig.Name), name) {
+			return true
+		}
+	}
+	return false
+}
+
+// SpawnsNPC reports the trigger called name (as last read) spawns npc (any case):
+// a spawn or resummon step of it. What a quest's kill step waits on
+// (questencounter.go).
+func (e *TriggerEngine) SpawnsNPC(name, npc string) bool {
+	if e == nil {
+		return false
+	}
+	name, npc = strings.TrimSpace(name), strings.TrimSpace(npc)
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	for _, t := range e.cat {
+		if !strings.EqualFold(strings.TrimSpace(t.Name), name) {
+			continue
+		}
+		steps, err := database.ParseTriggerSteps(t.Steps)
+		if err != nil {
+			continue
+		}
+		for _, s := range steps {
+			if (s.Do == database.TriggerSpawn || s.Do == database.TriggerResummon) && strings.EqualFold(strings.TrimSpace(s.NPC), npc) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // lockHeldLocked is whether a run of that lock lives ("": no lock, never). Must

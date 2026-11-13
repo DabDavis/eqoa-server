@@ -377,6 +377,16 @@ sight, in a town and at any level: the GM too), despawn, stop (another trigger's
 rest later: the engine looks once a second). Bounds and problems are `database.TriggerProblems`'s; a
 trigger with a problem or off does not fire. A trigger fired while it runs runs again beside it; a
 run ends when its steps are done and none of its spawns lives, or when stopped (its spawns taken away).
+**A keep restart keeps the runs** (`handlers/gmtriggerkeep.go` + `entity/keeptrigger.go`, the snapshot's `triggers`;
+the owner, 2026-11-13, after Lonewulf lost two Rallos Zek fights to updates): each at its step with its lock, await,
+deaths so far, resummons and protect; its clock, waits and spawns' stays moved on by the restart's length (the time
+left kept); its living spawns made again under their ids where they stood at their hit points and flags, one sic'd on
+an NPC on it again (a fight with players ends: it runs back, a hostile one re-aggroes), dead ones by their carried
+corpses (keepcopy.go). A cold start ends every run. **A quest is never left stuck on an encounter's kill**
+(`handlers/questencounter.go`): a step whose done (or the quest's accept) fires a trigger, and a later kill/loot step
+of a creature that trigger spawns; a character in the world on that kill with no run of the trigger and no copy of the
+creature standing (a loot step: none lying) for 10 s is put back to the firing step (an accept's: forgotten), the give
+steps' items and give/show steps' tunar from there handed back (The Mark of Rallos: the Mark back, step 1 again).
 The firing GM is told each step's line. **Vanilla shows the names** (not retail, both GM-only):
 0x7E07 is offered with the GM channel and a client that answers 1 gets 0x7E08 (the menu's slots:
 index, flags on/running, name of at most 32 bytes) at once and whenever a trigger is saved or a run

@@ -215,6 +215,9 @@ type questChar struct {
 	// windowNotYet is the quests a shop NPC's window has said "not yet" for
 	// this session (quests_notyet.go), as windowOffered
 	windowNotYet map[int]bool
+	// laterSaid is when a kill of a later step's creature of each quest was
+	// last said to count later (laterStepKillLocked): once a laterSayGap
+	laterSaid map[int]time.Time
 	// notYetLast is the questnotyet line said to it last (its id), not said
 	// twice running when its city has another
 	notYetLast int
@@ -1431,6 +1434,7 @@ func (q *QuestEngine) killed(k entity.KillCredit) {
 				continue
 			}
 			if st == nil || st.Kind != database.StepKill || !stepNPC(st, k.NPCName, k.NPCSpawn) {
+				q.laterStepKillLocked(c, kp, qu, st, k)
 				continue
 			}
 			cq.Count++
@@ -1454,6 +1458,46 @@ func (q *QuestEngine) killed(k entity.KillCredit) {
 		}
 	}
 }
+
+// laterStepKillLocked tells a player whose kill is a later step's of a quest
+// (a kill or loot step after the one to do) that it counts for nothing yet, and
+// what to do first (petition 1874, Wanuven, 2026-11-13: "Quil'Eyne's Journal"
+// asks Randarith's blood, then Raldarith's, then Quil'Eyne's journal; Wanuven
+// took the first blood, went on to Quil'Eyne with Raldarith's still to get, and
+// Quil'Eyne dropped nothing and the journal said nothing). A kill only ever
+// counted on the step to do; it now says so. Nothing is said for a kill no
+// later step names, nor on a step that is not a kill or a loot step's (a talk,
+// a give: the player knows whom to see).
+func (q *QuestEngine) laterStepKillLocked(c *questChar, kp entity.KillPlayer, qu *database.Quest, st *database.QuestStep, k entity.KillCredit) {
+	if kp.Session == nil || st == nil {
+		return
+	}
+	now := time.Now()
+	if t, ok := c.laterSaid[qu.ID]; ok && now.Sub(t) < laterSayGap {
+		return // said a moment ago: a camp of them says it once
+	}
+	for i := range qu.Steps {
+		later := &qu.Steps[i]
+		if later.Step <= st.Step || !database.Hunts(later.Kind) || !stepNPC(later, k.NPCName, k.NPCSpawn) {
+			continue
+		}
+		first := strings.TrimSpace(st.Journal)
+		if first == "" {
+			first = fmt.Sprintf("step %d", st.Step)
+		}
+		if c.laterSaid == nil {
+			c.laterSaid = map[int]time.Time{}
+		}
+		c.laterSaid[qu.ID] = now
+		SendClientMessage(kp.Session, fmt.Sprintf("%s: %s counts later in the quest. First: %s", qu.Name, k.NPCName, first))
+		log.Printf("Quests: %s killed %q for step %d of %q, at step %d: told what comes first", kp.Name, k.NPCName, later.Step, qu.Name, st.Step)
+		return
+	}
+}
+
+// laterSayGap is how long after saying a quest's later kill counts later it is
+// not said again for that quest.
+const laterSayGap = time.Minute
 
 // checkReach does the reach steps of the players standing in their places.
 func (q *QuestEngine) checkReach() {

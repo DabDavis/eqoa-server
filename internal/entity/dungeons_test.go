@@ -406,3 +406,42 @@ func TestASpawnedCopyIsOfItsOwnWorldsOriginal(t *testing.T) {
 		t.Error("a name only the dungeon has was not copied")
 	}
 }
+
+// A dungeon's creature of a players' race's body attacks on sight in its instance (ticket 2005, Waldorf: "In Guk
+// Instance, Maerik N'Toxis is neutral faced and should be aggressive"), as Guk's frogloks do; its open world self, a
+// dark elf in the world, stays as it was (no one's foe on sight), and the warden twin (the NPC bit) attacks no one.
+func TestDungeonCreaturesOfPlayersBodiesAttack(t *testing.T) {
+	r := newDungeons(t, 1)
+	const darkElf = 0x7ED89DAA
+	r.w.mu.Lock()
+	r.w.playerModels = map[uint32]bool{darkElf: true}
+	for _, b := range []*NPC{
+		{ServerID: 920010, Name: "Maerik N'Toxis", X: 1020, Y: 50, Z: 1020, World: 14, Level: 64, HP: 50000, MaxHP: 50000, ModelID: darkElf},
+		{ServerID: 920011, Name: "Maerik N'Toxis", X: 7000, Y: 50, Z: 7000, World: 0, Level: 45, HP: 5000, MaxHP: 5000, ModelID: darkElf},
+	} {
+		b.SpawnX, b.SpawnY, b.SpawnZ = b.X, b.Y, b.Z
+		r.w.putNPCLocked(b)
+		r.w.SpatialIndex.Insert(b.ServerID, b.X, b.Z)
+	}
+	r.w.mu.Unlock()
+	if _, ok := r.w.DungeonEnter(r.ss[0], "guk", r.now); !ok {
+		t.Fatal("could not open Guk")
+	}
+	r.land()
+	p := r.ps[0]
+	maerik := r.copies(p.InstanceKey())["Maerik N'Toxis"]
+	if maerik == nil {
+		t.Fatal("no Maerik in the instance")
+	}
+	r.w.mu.Lock()
+	defer r.w.mu.Unlock()
+	if !r.w.threatensLocked(maerik, p) {
+		t.Error("the instance's Maerik N'Toxis does not attack on sight")
+	}
+	if r.w.threatensLocked(r.w.NPCs[920011], p) {
+		t.Error("the open world's Maerik N'Toxis attacks on sight")
+	}
+	if r.w.threatensLocked(r.w.NPCs[910002], p) {
+		t.Error("the warden's twin attacks on sight")
+	}
+}

@@ -23,6 +23,10 @@ itemimported):
     source's lower DUR 50 is left);
   - look_of: the look (model, icon) of the named record ("appearance of 49 monk epic");
   - keep: a column left as it is, with the owner's reason (the ranger's axes stay one-handed at 801).
+An entry of source "owner" is the owner's own figures over the sources' (the ranger's level 60 axes, 2026-11-13: "lets
+half the stat increase/decrease for the ranger 60 epics (the website meant for both equipped)": 15 STR 15 DEX -25 CHA
+113 HP each, a pair given; their Ascended copies 17/17/-25/124 by the rule): they are kept, never put back to
+questmasters' 30/30/-50/225.
 Its look otherwise, icon, slot, name and description are never touched. Two entries for one record (a record several
 classes' lists share) are merged; one that disagrees with another is a problem: nothing is written.
 

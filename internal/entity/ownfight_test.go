@@ -25,6 +25,11 @@ func ownFights(r *mercRig) []struct {
 		{"a duel", func() {
 			r.w.duels.add(&Duel{ID: 1, A: r.p.ServerID, B: foe.ServerID, who: [2]*Player{r.p, foe}, Phase: duelOn})
 		}, func() { r.w.duels.remove(r.w.duels.of[r.p.ServerID]) }},
+		// petition 1901: a duel is its two's own from its accept, its countdown too
+		{"a duel's countdown", func() {
+			r.w.duels.add(&Duel{ID: 2, A: r.p.ServerID, B: foe.ServerID, who: [2]*Player{r.p, foe}, Phase: duelCountdown,
+				Starts: r.at(time.Hour)})
+		}, func() { r.w.duels.remove(r.w.duels.of[r.p.ServerID]) }},
 		{"the PvP flag", func() { r.p.pvp.on = true }, func() { r.p.pvp.on = false }},
 		{"Mr. Moogie's challenge", func() {
 			r.w.metal = &metalDuel{npc: 999999, name: MetalMoogieName, c: &npcChallenge{player: r.p.ServerID, who: r.p, name: r.p.Name},
@@ -150,5 +155,46 @@ func TestAGroupMatesMercLeavesTheDuelistOut(t *testing.T) {
 	r.run(0, 15*time.Second)
 	if mate.HP != top/2 || len(ms.ready) != 0 {
 		t.Errorf("the owner's merc healed its dueling group mate %d", mate.HP-top/2)
+	}
+}
+
+// The GM Jibrish's petition 1901: "Mercenaries should not assist you in duels, or attack your target while in a
+// duel." From the duel's accept (its countdown) and through its fight, the owner's mercs stand down: a creature
+// fighting the owner is not taken on, the owner's own target (a creature it swings at) is not, what the merc fought
+// it lets go of, and /merc attack is refused with its line. An invitation is no duel yet: the merc takes on the
+// creature then (the control), and again once the duel is over.
+func TestAMercStandsDownForItsOwnersDuel(t *testing.T) {
+	r := newMercRig(t)
+	ms := r.hire(r.kit(0, 0, 0), MercAssist)
+	_, foe := r.player("Foe", 0, 0)
+	crab := r.creature("Desert Crab", 28, 3)
+	d := &Duel{ID: 7, A: r.p.ServerID, B: foe.ServerID, who: [2]*Player{r.p, foe}, Phase: duelAsked, Expires: r.at(time.Hour)}
+	r.w.duels.add(d)
+	r.w.mu.Lock()
+	r.w.addThreatLocked(crab, r.p.ServerID, 50)
+	r.w.mu.Unlock()
+	r.run(0, time.Second)
+	if ms.target != crab.ServerID {
+		t.Fatalf("an invitation alone: the merc left the crab fighting its owner (target %d)", ms.target)
+	}
+	for _, phase := range []duelPhase{duelCountdown, duelOn} {
+		d.Phase = phase
+		r.p.AttackTarget, r.p.AutoAttack = crab.ServerID, true
+		r.run(2*time.Second, 3*time.Second)
+		if ms.target != 0 || !ms.npc.RoundStart.IsZero() {
+			t.Fatalf("phase %d: the merc fights %d in its owner's duel", phase, ms.target)
+		}
+		r.p.TargetObjectID = r.w.objectIDForEntityLocked(r.sess, crab.ServerID)
+		if _, refusal := r.w.MercAttack(r.sess, 0); refusal != MercLineDueling {
+			t.Errorf("phase %d: /merc attack: %q, want %q", phase, refusal, MercLineDueling)
+		}
+		if ms.target != 0 || ms.ordered != 0 {
+			t.Errorf("phase %d: /merc attack set it on %d", phase, ms.target)
+		}
+	}
+	r.w.duels.remove(d)
+	r.run(4*time.Second, 5*time.Second)
+	if ms.target != crab.ServerID {
+		t.Errorf("the duel over: the merc did not take the crab on again (target %d)", ms.target)
 	}
 }

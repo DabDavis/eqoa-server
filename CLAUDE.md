@@ -3104,6 +3104,18 @@ the 16:38 re-fit's. The seeds hold the seven tunings' result. **Then `tools/refi
 the items, so a data change that reaches what classes wear can move a class off its targets again:
 `balancesim_real_test.go` with `EQOA_REAL_DB` on a copy is the check. A kit wears nothing NO RENT (`simPick`: rent 0, what a spell conjures, which every worn item of rent 0 is; 262 of 2,700 kits had worn a magician's stone in a ranger's ranged slot, the Phase Shield or the Phase Staff, 2026-11-01).
 
+### Damage formulas from a file the operator keeps (`entity/dmgformula.go`, `internal/formula`, `combat.formula_file`)
+
+The owner, 2026-11-13: a damage formula kept secret, "without it being on the github", read off the box from a file.
+The repository carries only the support: [docs/damage-formulas.md](docs/damage-formulas.md) is the file format
+(YAML: tables of records, formulas of named steps), every formula name (`<source>_<kind>`: player, pvp, npc, pet,
+merc x melee, spell, dot, shield, proc; `npc_special`; a source alone for all its kinds), every input, the draws
+(`uniform`, `normal`, `beta`, `pick`; `formula.Forced` replays a vector for tests) and the reload (within a second of
+a change, and the panel's `reload_formulas`). Unset: the built-in figures. **Never commit a real formula, table or
+number, nor hint at one** (tests use toy files in `testdata/`); never log, send or audit a formula's text: errors
+give the line, column, formula name and part. A new damage path calls `w.formulaDamage(base, dmgIn{...})` and is
+added to the doc's tables.
+
 ## The GM panel (`internal/gmweb`)
 
 A web page for GMs, and the same work for an AI agent, over the database and the running

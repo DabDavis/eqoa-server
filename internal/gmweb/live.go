@@ -298,6 +298,12 @@ func checkTintRow(row map[string]any) error {
 			return badRequest("color is 0xRRGGBBAA (0x2A7333FF black and green, Yhafiran's): each channel of the body times RR/FF, GG/FF, BB/FF, AA how much of it")
 		}
 	}
+	if v, ok := row["glow"]; ok {
+		f, fok := asFloat(v)
+		if !fok || f != math.Trunc(f) || !database.ValidNPCTint(int64(f)) {
+			return badRequest("glow is 0xRRGGBBAA (0xFF606099 a soft red), 0 none: a light of the body's own in that colour, AA how much of it")
+		}
+	}
 	return nil
 }
 

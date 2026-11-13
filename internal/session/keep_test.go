@@ -55,7 +55,7 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 	s.SetBugReports(true)
 	s.SetFlyClient(true)
 	s.SetNumberTagsLayout(2) // a client that reads the merc's bit
-	s.SetNPCTints(true)
+	s.SetNPCTintsLayout(2)   // a client that reads the glows (petition 1893)
 	s.SetMobInfo(true)
 	s.SetItemLinks(true)
 	s.SetDiscVersion(0x12)
@@ -101,6 +101,9 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 	// control, the session before the restart, held none and takes no empty set
 	if !r.NPCTints() || !r.TakeNPCTints("\x00\x00", true) || r.TakeNPCTints("\x00\x00", true) || s.TakeNPCTints("\x00\x00", true) {
 		t.Fatal("the NPC tints' answer not kept, or the set it holds not unknown")
+	}
+	if r.NPCTintsLayout() != 2 {
+		t.Fatalf("the NPC tints' layout: %d, want 2 kept", r.NPCTintsLayout())
 	}
 	// a monster's name and level (handlers/mobinfo.go): still shown in the
 	// client's details box, not a dialogue box

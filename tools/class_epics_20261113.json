@@ -859,35 +859,37 @@
    "cls": "ranger",
    "level": 60,
    "name": "Axe of Nature's Innocence",
-   "source": "questmasters id419",
-   "quote": "Blades of nature's innocence or purity-30str 30dex 225hp -50cha 928dmg Blade Pic",
+   "source": "owner",
+   "quote": "the owner, 2026-11-13: \"lets half the stat increase/decrease for the ranger 60 epics (the website meant for both equipped)\": questmasters' 30 STR 30 DEX -50 CHA 225 HP halved, the axes given as a pair (101118 step 2 *2)",
    "stats": {
-    "str": 30,
-    "dex": 30,
-    "cha": -50,
-    "hp": 225
+    "str": 15,
+    "dex": 15,
+    "cha": -25,
+    "hp": 113
    },
    "dmg": 928,
    "keep": {
     "dmg": "kept 801: the owner made both axes one-handed (petfix234, 2026-11-11); questmasters' 928 is the two-handers' figure"
-   }
+   },
+   "qm_quote": "Blades of nature's innocence or purity-30str 30dex 225hp -50cha 928dmg Blade Pic"
   },
   {
    "cls": "ranger",
    "level": 60,
    "name": "Axe of Nature's Purity",
-   "source": "questmasters id419",
-   "quote": "Blades of nature's innocence or purity-30str 30dex 225hp -50cha 928dmg Blade Pic",
+   "source": "owner",
+   "quote": "the owner, 2026-11-13: \"lets half the stat increase/decrease for the ranger 60 epics (the website meant for both equipped)\": questmasters' 30 STR 30 DEX -50 CHA 225 HP halved, the axes given as a pair (101118 step 2 *2)",
    "stats": {
-    "str": 30,
-    "dex": 30,
-    "cha": -50,
-    "hp": 225
+    "str": 15,
+    "dex": 15,
+    "cha": -25,
+    "hp": 113
    },
    "dmg": 928,
    "keep": {
     "dmg": "kept 801: the owner made both axes one-handed (petfix234, 2026-11-11); questmasters' 928 is the two-handers' figure"
-   }
+   },
+   "qm_quote": "Blades of nature's innocence or purity-30str 30dex 225hp -50cha 928dmg Blade Pic"
   },
   {
    "cls": "ranger",

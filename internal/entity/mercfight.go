@@ -10,19 +10,18 @@ import (
 //
 // It assists its owner (the owner's word): it never starts a fight of its own,
 // never fights a player (no PvP, no duel's opponent or pet: duel.go leaves a
-// merc out) and never what its owner may not attack (mercMayFight). By its
-// stance (/merc stance): passive, only what /merc attack names; assist (its
-// default), its owner's auto-attack's target, else the nearest creature within
-// petAssist of its owner fighting its owner or itself, hurt by its owner, or
-// fought by its owner's pet, and one fighting anyone of its owner's group (a
-// player, its pet, its merc, that merc's pet) or its own pet
-// (mercDefendsLocked; the owner, 2026-11-11: "when 2 players in a group have a
-// merc, if one merc gets aggro, sometimes the other does not act to defend");
-// aggressive, also one fought by any of its owner's group. /merc attack sets it on
-// its owner's target whatever its stance, until that dies or goes. A target
-// petLeash from its owner is let go, as a pet's; one not ordered and not its
-// owner's auto-attack's, already past petAssist from its owner (its owner
-// walked off from it), too (mercLeftBehindLocked).
+// merc out) and never what its owner may not attack (mercMayFight). It takes
+// on only what its owner called it to (GM ticket 1959, merccall.go): his
+// auto-attack's target, a creature he did a hostile act on, or one fighting
+// someone he healed or helped; never one only because it fights his group or
+// raid or has him on its hate list. In self-defence it fights back a creature
+// fighting the merc itself. By its stance (/merc stance): passive, only what
+// /merc attack names; assist (its default) and aggressive (the same since
+// 1959), what its owner called it to, its owner's auto-attack's target first.
+// /merc attack sets it on its owner's target whatever its stance, until that
+// dies or goes. A target petLeash from its owner is let go, as a pet's; one not
+// ordered and not its owner's auto-attack's, already past petAssist from its
+// owner (its owner walked off from it), too (mercLeftBehindLocked).
 //
 // A tank or a melee fighter goes to its target and swings a player's rounds of
 // its class and level (GetSwing on its heirlooms, rounds.go's timing), each hit
@@ -40,84 +39,6 @@ import (
 // another's Metal Moogie), and never a Metal Moogie at all (a duel's).
 func mercMayFight(m, npc *NPC) bool {
 	return petMayFight(m, npc) && npc.challenge == nil
-}
-
-// mercTeamFightsLocked reports the creature fighting, or fought by, one of the
-// merc's owner's group: a player of it, its pet, its merc. Must be called with
-// the lock held.
-func (w *World) mercTeamFightsLocked(ms *mercState, npc *NPC) bool {
-	owner := ms.owner
-	if owner.GroupID == 0 {
-		return false
-	}
-	g := w.groups[owner.GroupID]
-	if g == nil {
-		return false
-	}
-	for _, id := range g.Members {
-		if npc.CurrentEnemy == id {
-			return true
-		}
-		if _, hurt := npc.Threats[id]; hurt {
-			return true
-		}
-		if m := w.Players[id]; m != nil {
-			if m.Attacking() && m.AttackTarget == npc.ServerID {
-				return true
-			}
-			if ps := w.petStateLocked(m); ps != nil && (npc.CurrentEnemy == ps.npc.ServerID || ps.target == npc.ServerID) {
-				return true
-			}
-		}
-		if o := w.NPCs[id]; o.isMerc() && o.merc.target == npc.ServerID {
-			return true
-		}
-	}
-	return false
-}
-
-// mercDefendsLocked reports the creature fighting one the merc defends: its
-// owner, itself or its own pet, and anyone of its owner's group: a player, its
-// pet, its merc and that merc's pet (the file's doc). Must be called with the
-// lock held.
-func (w *World) mercDefendsLocked(ms *mercState, npc *NPC) bool {
-	e := npc.CurrentEnemy
-	if e == 0 {
-		return false
-	}
-	ours := func(o *Player) bool {
-		if o == nil {
-			return false
-		}
-		if e == o.ServerID {
-			return true
-		}
-		if pet := w.petOfLocked(o); pet != nil && e == pet.ServerID {
-			return true
-		}
-		for _, om := range w.mercs[o.ServerID] {
-			if om.owner == o && (e == om.npc.ServerID || om.pet != nil && e == om.pet.npc.ServerID) {
-				return true
-			}
-		}
-		return false
-	}
-	if ours(ms.owner) || e == ms.npc.ServerID {
-		return true
-	}
-	g := w.groups[ms.owner.GroupID]
-	if ms.owner.GroupID == 0 || g == nil {
-		return false
-	}
-	for _, id := range g.Members {
-		if id == e {
-			return true // a member: a player or a merc
-		}
-		if p := w.Players[id]; p != nil && p != ms.owner && ours(p) {
-			return true
-		}
-	}
-	return false
 }
 
 // mercChooseTargetLocked keeps or lets go of the merc's target and gives one
@@ -162,6 +83,7 @@ func (w *World) mercChooseTargetLocked(ms *mercState) {
 	// its owner's own fight first: an assist follows its owner's switch
 	if owner.Attacking() {
 		if t := valid(owner.AttackTarget); t != nil {
+			w.mercCallLocked(owner, t) // his auto-attack calls it (merccall.go)
 			ms.target = t.ServerID
 			return
 		}
@@ -169,7 +91,6 @@ func (w *World) mercChooseTargetLocked(ms *mercState) {
 	if ms.target != 0 {
 		return
 	}
-	pet := w.petOfLocked(owner)
 	var best *NPC
 	var bestD float32
 	for _, id := range w.SpatialIndex.QueryRadius(owner.X, owner.Z, petAssist) {
@@ -177,21 +98,8 @@ func (w *World) mercChooseTargetLocked(ms *mercState) {
 		if npc == nil || !mercMayFight(m, npc) {
 			continue
 		}
-		mine := npc.CurrentEnemy == owner.ServerID || npc.CurrentEnemy == m.ServerID
-		if !mine {
-			_, mine = npc.Threats[owner.ServerID] // its owner hurt it
-		}
-		if !mine && pet != nil {
-			ps := w.pets[owner.ServerID]
-			mine = npc.CurrentEnemy == pet.ServerID || ps.target == npc.ServerID
-		}
-		if !mine {
-			mine = w.mercDefendsLocked(ms, npc)
-		}
-		if !mine && ms.stance == MercAggressive {
-			mine = w.mercTeamFightsLocked(ms, npc)
-		}
-		if !mine {
+		// its owner's call (merccall.go), or what fights the merc itself
+		if npc.CurrentEnemy != m.ServerID && !w.mercCalledLocked(owner, npc) {
 			continue
 		}
 		if d := distXZ(m.X, m.Z, npc.X, npc.Z); best == nil || d < bestD {

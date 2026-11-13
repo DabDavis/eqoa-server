@@ -177,7 +177,7 @@ func TestMercPetAssistsItsHirer(t *testing.T) {
 		n.Threats, n.CurrentEnemy = nil, 0
 	}
 	ps.target = 0
-	c.Threats = map[EntityID]int64{r.p.ServerID: 50}
+	r.w.updateAggro(c, r.p.ServerID, 50) // the hirer's harmful spell (merccall.go)
 	r.w.mu.Unlock()
 	r.tick(12100 * time.Millisecond)
 	if ps.target != c.ServerID {

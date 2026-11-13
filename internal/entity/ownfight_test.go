@@ -171,7 +171,7 @@ func TestAMercStandsDownForItsOwnersDuel(t *testing.T) {
 	d := &Duel{ID: 7, A: r.p.ServerID, B: foe.ServerID, who: [2]*Player{r.p, foe}, Phase: duelAsked, Expires: r.at(time.Hour)}
 	r.w.duels.add(d)
 	r.w.mu.Lock()
-	r.w.addThreatLocked(crab, r.p.ServerID, 50)
+	r.w.updateAggro(crab, r.p.ServerID, 50) // the owner's hit calls it (merccall.go)
 	r.w.mu.Unlock()
 	r.run(0, time.Second)
 	if ms.target != crab.ServerID {

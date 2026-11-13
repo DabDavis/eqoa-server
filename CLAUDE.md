@@ -2401,8 +2401,14 @@ split, the merc in none; factions; quests).
 
 **How it fights** (`mercfight.go`, `merccast.go`): it follows as a pet (floors, swimming, a teleport or another world
 brings it along; never capture the flag's arena, where it waits outside until its owner leaves: `entity/ctfaway.go`) and assists: by stance (`/merc stance`) passive fights only what `/merc attack` names, **assist** (the
-default) its owner's auto-attack's target, else the nearest creature within 30 of its owner fighting its owner or itself,
-hurt by its owner or fought by its owner's pet, aggressive also what fights or is fought by its owner's group; never a
+default; aggressive is the same since GM ticket 1959) only what its owner CALLED it to (`entity/merccall.go`, Jibwiz's 1959,
+approved 2026-11-13, replacing "attack when the raid engages"): his auto-attack's target, a creature he did a hostile act on
+(any `updateAggro` with him the attacker: a hit, shot, harmful spell or art, resisted or not), or one fighting someone he
+healed or buffed (`landOnPlayerLocked`/`landOnPetLocked`); a call holds until the creature dies or its fight ends. Never a
+creature only for fighting his group or raid or for having him on its hate list (an aggro). Self-defence: it fights back what
+fights IT (its pet what fights the pet or its merc); its heals wait too while a creature fights its own team, until his
+fight is called or the merc itself is fought (`mercHealHeldLocked`; out of a fight it tops up as before); a merc's pet
+follows the same rule, a player's own pet is unchanged; never a
 player, a duel's opponent or pet (`duelFoeLocked` leaves a merc out), an unattackable NPC, another's pet or merc, a Metal
 Moogie. A tank or a melee fighter swings a player's rounds of its class and level at its target; a healer or a caster
 stands off in its spells' reach (at most 18) and does not swing. Its casts are a player's: cast time, landing 1.4 s after,

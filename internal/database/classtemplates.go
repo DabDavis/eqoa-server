@@ -201,17 +201,27 @@ const (
 	AbilityRaidHeal = "raidheal"
 	// AbilityPowerZero: the power of the player it fights set to 0
 	AbilityPowerZero = "powerzero"
+	// AbilitySetHP: the hit points of the one it fights (Radius 0), or of
+	// everyone round it within Radius (players and creatures alike, its own
+	// side too, itself never), taken down to SetHP: never raised, never to
+	// death (entity/bossmoments.go; the owner, 2026-11-13: "dreadnaughts are
+	// supposed to have an AoE which reduces hp to 700 for players and mobs.
+	// Cazic Thule sets to 10hp for his debuff")
+	AbilitySetHP = "sethp"
 )
 
 // BossMomentKind is whether an ability is one of a boss's moments.
 func BossMomentKind(k string) bool {
-	return k == AbilitySelfDoT || k == AbilityRaidHeal || k == AbilityPowerZero
+	return k == AbilitySelfDoT || k == AbilityRaidHeal || k == AbilityPowerZero || k == AbilitySetHP
 }
+
+// MostSetHPRadius is the widest a sethp's area reaches.
+const MostSetHPRadius = 200
 
 // AbilityKinds are the kinds, in the order the help lists them.
 var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff, AbilityRoot, AbilityDebuff,
 	AbilityStrip, AbilityHealShield, AbilityMeleeKind, AbilityDoT, AbilityHitHeal, AbilityPrefer, AbilitySummon, AbilityEnrage,
-	AbilityProc, AbilityVeil, AbilityKillSay, AbilityLastStand, AbilitySelfDoT, AbilityRaidHeal, AbilityPowerZero}
+	AbilityProc, AbilityVeil, AbilityKillSay, AbilityLastStand, AbilitySelfDoT, AbilityRaidHeal, AbilityPowerZero, AbilitySetHP}
 
 // passiveKind is whether an ability of the kind casts nothing on a clock of its
 // own: what it does is a rule its creature keeps (a heal shield, a melee kind,
@@ -442,6 +452,11 @@ type TemplateAbility struct {
 	// TapPct is a veil's: the percent of its creature's own most hit points each
 	// of its melee hits that lands takes from what it hit, into itself.
 	TapPct float64 `json:"tap_pct,omitempty"`
+	// SetHP and Radius are a sethp's (AbilitySetHP): the hit points it takes
+	// down to (1 or more), and how far round its creature it reaches (0: the
+	// one it fights alone).
+	SetHP  int     `json:"set_hp,omitempty"`
+	Radius float64 `json:"radius,omitempty"`
 }
 
 // RangeOr is an out-of-reach ability's reach: its own, else
@@ -637,6 +652,9 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 			}
 			continue
 		}
+		if a.SetHP != 0 || a.Radius != 0 {
+			return fmt.Errorf("ability %d: set_hp and radius are a sethp's", n)
+		}
 		if err := checkKindFields(n, a); err != nil {
 			return err
 		}
@@ -763,18 +781,21 @@ func checkKindFields(n int, a TemplateAbility) error {
 }
 
 // checkBossMoment holds a boss's moment (BossMomentKind) to its fields: its
-// clock, its figure (damage) for a self dot and a raid heal, a raid heal's
-// count, a name for its lines; nothing of a cast's.
+// clock and the chance it goes off when due, its figure (damage) for a self dot
+// and a raid heal, a raid heal's count, a sethp's hit points and radius, a name
+// for its lines; nothing of a cast's.
 func checkBossMoment(n int, a TemplateAbility) error {
 	finite := func(v float64) bool { return !math.IsNaN(v) && !math.IsInf(v, 0) }
 	figure := a.Kind == AbilitySelfDoT || a.Kind == AbilityRaidHeal
 	switch {
-	case !finite(a.Every) || !finite(a.First):
+	case !finite(a.Every) || !finite(a.First) || !finite(a.Radius):
 		return fmt.Errorf("ability %d: a number that is not one", n)
 	case a.Every < 2 || a.Every > 3600:
 		return fmt.Errorf("ability %d: every %.1f: 2 to 3600 seconds from one to the next", n, a.Every)
 	case a.First < 0 || a.First > 3600:
 		return fmt.Errorf("ability %d: first %.1f: 0 to 3600 seconds into a fight", n, a.First)
+	case a.Chance < 0 || a.Chance > 100:
+		return fmt.Errorf("ability %d: chance %d: 1 to 100 percent of its due times (0: every one)", n, a.Chance)
 	case figure && (a.Damage < 1 || a.Damage > 1000000):
 		return fmt.Errorf("ability %d: a %s's damage %d: 1 to 1000000 hit points", n, a.Kind, a.Damage)
 	case !figure && a.Damage != 0:
@@ -783,11 +804,17 @@ func checkBossMoment(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: a raidheal's count %d: 1 to 40 players", n, a.Count)
 	case a.Kind != AbilityRaidHeal && a.Count != 0:
 		return fmt.Errorf("ability %d: a count is a raidheal's", n)
+	case a.Kind == AbilitySetHP && (a.SetHP < 1 || a.SetHP > 1000000):
+		return fmt.Errorf("ability %d: a sethp's set_hp %d: 1 to 1000000 hit points (it never kills)", n, a.SetHP)
+	case a.Kind == AbilitySetHP && (a.Radius < 0 || a.Radius > MostSetHPRadius):
+		return fmt.Errorf("ability %d: a sethp's radius %.1f: 0 (the one it fights) to %d", n, a.Radius, MostSetHPRadius)
+	case a.Kind != AbilitySetHP && (a.SetHP != 0 || a.Radius != 0):
+		return fmt.Errorf("ability %d: set_hp and radius are a sethp's", n)
 	case len(a.Name) > StripNameMost:
 		return fmt.Errorf("ability %d: a name of more than %d characters", n, StripNameMost)
 	case a.Chain || a.Spell != "" || a.SpellID != 0 || a.Line != "" || a.DamagePct != 0 || a.Below != 0 || a.HealPct != 0 ||
-		a.NPC != "" || a.Chance != 0 || a.Cooldown != 0 || a.Cast != 0:
-		return fmt.Errorf("ability %d: a %s takes none of a cast's fields (chain, spell, line, damage_pct, below, chance, cast, cooldown)", n, a.Kind)
+		a.NPC != "" || a.Cooldown != 0 || a.Cast != 0:
+		return fmt.Errorf("ability %d: a %s takes none of a cast's fields (chain, spell, line, damage_pct, below, cast, cooldown)", n, a.Kind)
 	}
 	return nil
 }

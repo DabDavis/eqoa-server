@@ -93,6 +93,10 @@ const (
 	heroesFailed   = "I could not hand it over: you keep your faction. Try again."
 	heroesBought   = "The %s is yours. You have %d left to spend."
 	heroesCantWear = " You could not wear it as you are."
+	// a pick shows the ware first (petition 1876): its name as a link to its
+	// figures to a client that takes links, else its figures in words
+	heroesShowLinked = "Testing Heroes Vendor: %s, %d faction. Click its name to see its stats."
+	heroesShowPlain  = "Testing Heroes Vendor: %s, %d faction: %s"
 )
 
 // heroesWare is something the vendor sells: its stock row and its record.
@@ -138,6 +142,9 @@ type Heroes struct {
 	inv   *database.InventoryStore
 	items *database.ItemPatternStore
 	chars heroesKeeper
+	// links are the item links a ware is shown by (itemlinks.go, petition
+	// 1876); nil: its figures in words alone
+	links *ItemLinks
 	now   func() time.Time
 	// give hands a bought item over (GiveItemNow); a test's stands in
 	give func(sess *session.Session, pat database.ItemPatternRecord) (int, error)
@@ -317,6 +324,7 @@ func (h *Heroes) near(p *entity.Player, id entity.EntityID) bool {
 // offer says what a ware is and asks whether to buy it, or says why it cannot
 // be bought now.
 func (h *Heroes) offer(sess *session.Session, p *entity.Player, w heroesWare, npc entity.EntityID, balance int) {
+	h.show(sess, p, w)
 	if why := h.refusal(sess, w, balance); why != "" {
 		h.say(sess, why)
 		return
@@ -334,6 +342,57 @@ func (h *Heroes) offer(sess *session.Session, p *entity.Player, w heroesWare, np
 	name := strings.TrimSpace(w.pat.ItemName)
 	h.ask(sess, p, heroesAsk{stage: heroesStageBuy, ware: w, npc: npc}, fmt.Sprintf(heroesAskBuy, name, w.row.Cost, balance),
 		[]string{heroesYes, heroesNo})
+}
+
+// show is a ware picked from his list, before anything is asked or refused, so
+// its stats are seen before a purchase (the GM Jibrish's petition 1876: "they
+// need a means to be able to see the stats on the item via item linking. So if
+// they click an item, it should show them the stats before purchase"): a line
+// naming it as an item link (itemlinks.go: a click opens its figures, as a
+// player's link and a loot line's do) to a client that takes links; to every
+// other (a PS2) its figures in words (heroesStats). Shown whether or not the
+// player can buy it yet, so what to earn toward is seen too.
+func (h *Heroes) show(sess *session.Session, p *entity.Player, w heroesWare) {
+	name := strings.TrimSpace(w.pat.ItemName)
+	if h.links != nil && sess.ItemLinks() && name != "" {
+		rec := wireRecord(database.CharInventoryEntry{StackLeft: 1, RemainHP: w.pat.MaxHP, Pattern: w.pat})
+		linkedLine(h.links, HeroesVendorName, heroesShowLinked, lootItem(rec, 1), w.row.Cost).client(sess)
+		return
+	}
+	SendClientMessage(sess, fmt.Sprintf(heroesShowPlain, name, w.row.Cost, heroesStats(&w.pat)))
+}
+
+// heroesStats is an item's figures in words, as the item window lists them:
+// its level, AC, weapon damage, the seven stats, hit points and power, their
+// regeneration and the six resists, each one it has; "no stats" for none.
+func heroesStats(p *database.ItemPatternRecord) string {
+	var out []string
+	add := func(label string, v *int) {
+		if v != nil && *v != 0 {
+			out = append(out, fmt.Sprintf("%s %+d", label, *v))
+		}
+	}
+	if p.LevelReq > 1 {
+		out = append(out, fmt.Sprintf("level %d", p.LevelReq))
+	}
+	if p.AC != nil && *p.AC != 0 {
+		out = append(out, fmt.Sprintf("AC %d", *p.AC))
+	}
+	if p.WeaponDamage > 0 && p.AttackType != 0 {
+		out = append(out, fmt.Sprintf("DMG %d", p.WeaponDamage))
+	}
+	for _, s := range []struct {
+		label string
+		v     *int
+	}{{"STR", p.Str}, {"STA", p.Sta}, {"AGI", p.Agi}, {"DEX", p.Dex}, {"WIS", p.Wis}, {"INT", p.Intelligence}, {"CHA", p.Cha},
+		{"HP", p.HPMAX}, {"Power", p.POWMAX}, {"HoT", p.HoT}, {"PoT", p.PoT},
+		{"PR", p.PR}, {"DR", p.DR}, {"FR", p.FR}, {"CR", p.CR}, {"LR", p.LR}, {"AR", p.AR}} {
+		add(s.label, s.v)
+	}
+	if len(out) == 0 {
+		return "no stats"
+	}
+	return strings.Join(out, ", ")
 }
 
 // refusal is why the ware cannot be bought with balance to spend, in his

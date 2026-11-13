@@ -66,6 +66,11 @@ const placeholderBase = 0xE000
 // it as its item's name, a link to that record where the line goes to a client that takes
 // links; who is the looter or the corpse a link is logged by.
 func (h *NPCWindowHandler) linkedf(who, format string, args ...any) *serverLine {
+	return linkedLine(h.links, who, format, args...)
+}
+
+// linkedLine is linkedf over a store of links (nil: the names plain).
+func linkedLine(store *ItemLinks, who, format string, args ...any) *serverLine {
 	var items []database.CharInventoryEntry
 	mark := func(it linkedItem) string {
 		items = append(items, it.rec)
@@ -98,8 +103,8 @@ func (h *NPCWindowHandler) linkedf(who, format string, args ...any) *serverLine 
 				rec := items[k]
 				name := rec.Pattern.ItemName
 				size := utf8.RuneCountInString(name)
-				if size > 0 && h.links != nil {
-					links = append(links, textLink{at: n, n: size, src: &linkSource{links: h.links, owner: 0, who: who,
+				if size > 0 && store != nil {
+					links = append(links, textLink{at: n, n: size, src: &linkSource{links: store, owner: 0, who: who,
 						itemID: -int(rec.Pattern.PatternID), rec: cloneEntry(wireRecord(rec)), name: name}})
 				}
 				b.WriteString(name)

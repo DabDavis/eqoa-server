@@ -104,7 +104,8 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.hazardSystem(now)   // hazards.go
 	w.kickZoneSystem(now) // kickzone.go
 	t.mark(tsBreath)
-	w.silentAirSystem(now) // movecheck.go
+	w.silentAirSystem(now)                         // movecheck.go
+	gates = append(gates, w.skyFallSystem(now)...) // a fall off the Plane of Sky's islands, home (skyfall.go)
 	t.mark(tsSilentAir)
 	w.stateSyncSystem()
 	t.mark(tsStateSync)

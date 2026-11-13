@@ -281,10 +281,13 @@ func (w *World) wornGiveLocked(p *Player, sess *session.Session, s WornShield, n
 		// "heals should generate hate of the caster of heals or if proc like bpoa the wearer
 		// generates"; aggro.go); the Anointed's is its own, whole (wornShieldsLocked)
 		if !s.Hate {
-			w.healHateLocked(p, p, p.HP-before)
+			w.healHateLocked(p, p, n, p.HP-before)
 		}
 	} else if n > 0 {
 		w.tellAmountLocked(p, sess, p.ServerID, n, numberProc) // full: the figure alone
+		if !s.Hate {
+			w.healHateLocked(p, p, n, 0) // a fifth of it hate (1967, aggro.go)
+		}
 	}
 	if top := p.MaxPowerNow(); power > 0 && p.Power < top {
 		p.Power = min(p.Power+power, top)

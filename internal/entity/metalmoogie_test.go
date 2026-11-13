@@ -328,7 +328,7 @@ func TestOnlyTheChallengerHurtsMetalMoogie(t *testing.T) {
 		t.Errorf("hate after Bert's: %v, enemy %d", c.Threats, c.CurrentEnemy)
 	}
 	a.HP = 100
-	r.w.healHateLocked(b, a, 1000)
+	r.w.healHateLocked(b, a, 1000, 900)
 	if _, ok := c.Threats[b.ServerID]; ok {
 		t.Errorf("Bert's heal on Anna made him hate Bert: %v", c.Threats)
 	}

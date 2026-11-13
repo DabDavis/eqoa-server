@@ -2020,10 +2020,11 @@ var catalog = map[string]tableNote{
 			"vines): a capsule from x1/y1/z1 to x2/y2/z2 (the same twice for a round area), radius across it. A player whose " +
 			"feet come within radius of the segment and from below under its height to above over it takes damage at once " +
 			"(fixed, through any armour), then again every every_ms while it stays in one, told words in red; it can die of " +
-			"it. Not the dead, a GM flying (#fly), or one loading a world. Rows of source vines are tools/seed_hazards.py's, " +
-			"read off the disc's zone actors (cmd/hazardscan).",
+			"it; with on_move set (petition 1960, the thorns) again only once it has moved since its last hit. Not the dead, " +
+			"a GM flying (#fly), or one loading a world. Rows of source vines are tools/seed_hazards.py's, read off the " +
+			"disc's zone actors (cmd/hazardscan); a GM places a round one where it stands in the game with /hazard add.",
 		Live:   "At once: within half a second, whoever stands in it.",
-		Show:   []string{"id", "name", "world", "x1", "z1", "x2", "z2", "radius", "damage", "every_ms", "source"},
+		Show:   []string{"id", "name", "world", "x1", "z1", "x2", "z2", "radius", "damage", "every_ms", "on_move", "source"},
 		Search: []string{"name", "note", "source"},
 		Cols: map[string]colNote{
 			"name":     {Label: "Name", Help: "the area as a GM reads it (the log names it, and the default words)"},
@@ -2039,6 +2040,7 @@ var catalog = map[string]tableNote{
 			"above":    {Label: "Above", Section: "Where it lies", Help: "how far over it; 0 the default, 4"},
 			"damage":   {Label: "Damage", Section: "What it does", Help: "hit points a hit takes (1-1000000), fixed"},
 			"every_ms": {Label: "Every ms", Section: "What it does", Help: "from one hit to the next while the player stays in (0 the default, 2000; 500 to 3600000)"},
+			"on_move":  {Label: "Only once moved", Section: "What it does", Help: "1: after a hit, a player standing still in it is not hit again until it moves (the thorns, petition 1960); 0: every every_ms while it stays in"},
 			"words":    {Label: "Words", Section: "What it does", Help: "told at each hit, %d its damage; empty \"<name> hurts you for <n>.\""},
 			"note":     {Label: "Note", Format: "multiline", Help: "where it came from"},
 			"source":   {Label: "Source", Help: "gm, or vines for tools/seed_hazards.py's rows (its --undo deletes those no GM changed)"},

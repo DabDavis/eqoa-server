@@ -78,3 +78,47 @@ func TestHazardRows(t *testing.T) {
 		t.Error("worlds")
 	}
 }
+
+// An on_move area (petition 1960, the thorns): each player in it is hit at once, on its own clock
+// (two at once both take it); one standing still is not hit again however long it stays; once its
+// time is up a step hits it again, a step inside its time does not.
+func TestAnOnMoveHazardSparesWhoStandsStill(t *testing.T) {
+	f := newDeathFixture(t)
+	f.p.HP, f.p.MaxHP = 5000, 5000
+	thorns := database.Hazard{ID: 8, Name: "Spiky vines", World: 0, X1: 100, Y1: 10, Z1: 100, X2: 100, Y2: 10, Z2: 100,
+		Radius: 3, Damage: 500, EveryMS: 6000, OnMove: true}
+	f.w.SetHazards([]database.Hazard{thorns})
+	other := &Player{ServerID: 4321, Name: "Other", World: 0, HP: 5000, MaxHP: 5000, X: 101, Y: 10, Z: 100}
+	f.w.Players[other.ServerID] = other
+	tick := func(at time.Duration) {
+		f.w.mu.Lock()
+		f.w.TickCount = 10
+		f.w.hazardSystem(f.t0.Add(at))
+		f.w.mu.Unlock()
+	}
+	f.p.X, f.p.Y, f.p.Z = 99, 10, 100
+	tick(0)
+	if f.p.HP != 4500 || other.HP != 4500 {
+		t.Fatalf("two walking in: HP %d and %d, want 4500 each", f.p.HP, other.HP)
+	}
+	for s := 1; s <= 20; s++ { // still for 20 s
+		tick(time.Duration(s) * time.Second)
+	}
+	if f.p.HP != 4500 || other.HP != 4500 {
+		t.Fatalf("standing still 20 s: HP %d and %d", f.p.HP, other.HP)
+	}
+	f.p.X = 98 // a step, its time up long since
+	tick(21 * time.Second)
+	if f.p.HP != 4000 || other.HP != 4500 {
+		t.Fatalf("one steps: HP %d and %d, want 4000 and 4500", f.p.HP, other.HP)
+	}
+	f.p.X = 99 // a step within its 6 s
+	tick(23 * time.Second)
+	if f.p.HP != 4000 {
+		t.Fatalf("a step within the time: HP %d", f.p.HP)
+	}
+	tick(27 * time.Second) // the time up, and it stepped since the hit
+	if f.p.HP != 3500 {
+		t.Fatalf("its time up, moved since: HP %d, want 3500", f.p.HP)
+	}
+}

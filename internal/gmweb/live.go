@@ -48,7 +48,7 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveCharm()
 	case "npcsocial":
 		return s.liveSocial()
-	case "npcspawnonly":
+	case "npcspawnonly", "npcstands":
 		return s.liveSpawnOnly()
 	case "npctint":
 		return s.liveTints()

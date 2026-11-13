@@ -44,6 +44,9 @@ const (
 	dungeonsAnsNew   = "Open %s"
 	dungeonsAnsOut   = "Leave the dungeon"
 	dungeonsAnsRules = "How instances work"
+	// dungeonsAnsReset is the board's answer that closes an instance its player opened (the owner,
+	// 2026-11-13: "lets add a reset instance option at the instanced raids bulletin board")
+	dungeonsAnsReset = "Reset %s"
 	dungeonsClosed   = "The dungeons are sealed on this server."
 	dungeonsNoWorld  = "Your game cannot see the dungeons, so you cannot go there. It needs a client that builds the server's worlds (eqoa-rust-client-vanilla)."
 	dungeonsNotOpen  = "No instance of %s is open for your party, and only your group's leader may open one."
@@ -60,6 +63,7 @@ const (
 	dungeonsDoOut
 	dungeonsDoMore
 	dungeonsDoRules
+	dungeonsDoReset
 )
 
 // dungeonsRules are the instances' ground rules, the board's "How instances work" (petition 1840, Waldorf,
@@ -263,6 +267,14 @@ func (ds *Dungeons) askRoot(sess *session.Session, p *entity.Player, npc *entity
 		}
 		answers = append(answers, dungeonsAnswer{do: dungeonsDoEnter, key: c.Key, label: label})
 	}
+	if entity.IsDungeonRaidBoard(npc.Name) {
+		// the board resets the instances the player opened (DungeonReset: only with no one inside)
+		for _, c := range ds.gw.DungeonChoices(sess) {
+			if c.Open && strings.EqualFold(c.Owner, p.Name) {
+				answers = append(answers, dungeonsAnswer{do: dungeonsDoReset, key: c.Key, label: fmt.Sprintf(dungeonsAnsReset, c.Name)})
+			}
+		}
+	}
 	if len(answers) == 0 {
 		dungeonsSay(sess, as, "No dungeon is open for your party, and only your group's leader may open one.")
 		dungeonsTell(sess, dungeonsRules...)
@@ -320,6 +332,8 @@ func (h *InteractHandler) answerDungeons(sess *session.Session, p *entity.Player
 		}
 	case dungeonsDoRules:
 		dungeonsTell(sess, dungeonsRules...)
+	case dungeonsDoReset:
+		dungeonsTell(sess, gw.DungeonReset(sess, a.key))
 	}
 	return true
 }

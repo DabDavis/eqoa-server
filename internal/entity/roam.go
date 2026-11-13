@@ -532,12 +532,12 @@ func (w *World) spotsLocked(npc *NPC, r float32) (*wanderSpots, int) {
 	s := npc.spots
 	if s == nil || s.key != key {
 		s = &wanderSpots{key: key}
-		if f, ok := w.ground.Floor(npc.World, npc.SpawnX, npc.SpawnY, npc.SpawnZ); ok {
+		if f, ok := w.floorLocked(npc.World, npc.SpawnX, npc.SpawnY, npc.SpawnZ); ok {
 			s.add(npc.SpawnX, f, npc.SpawnZ)
 		}
 		npc.spots = s
 	}
-	here, ok := w.ground.Floor(npc.World, npc.X, npc.Y, npc.Z)
+	here, ok := w.floorLocked(npc.World, npc.X, npc.Y, npc.Z)
 	if !ok {
 		return s, -1
 	}

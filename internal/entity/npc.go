@@ -132,9 +132,18 @@ type NPC struct {
 	// take its floor (groundnpc.go); groundKnown once that was looked at;
 	// spawnLift how far above that terrain it spawned (a house's floor over
 	// the street: Neriak's tavern's 0.77), which its wander is tested for
-	// walls above too (movement.go).
-	groundKnown, onGround bool
-	spawnLift             float32
+	// walls above too (movement.go). spawnPlaced: the floor it spawned on is
+	// something placed's (a mausoleum's slab, a tower's floor: a ground that
+	// is Stands, groundnpc.go), so its wander may keep to such floors;
+	// spawnDeck: that floor is further over the terrain than spawnedAbove,
+	// where it stood off the ground before the ground knew placed floors, and
+	// does not wander, as then (movement.go's movementLocked).
+	groundKnown, onGround  bool
+	spawnPlaced, spawnDeck bool
+	spawnLift              float32
+	// under: where it stands another floor is over its own within its body
+	// (groundnpc.go's movedUnderLocked), wasUnder before its last grounding
+	under, wasUnder bool
 
 	// AggroBehavior. RoamRadius is how far from its spawn a creature wanders
 	// (roam.go); 0 for none.

@@ -61,29 +61,61 @@ func TestTheEngineOpensAnItemWallToItsHolder(t *testing.T) {
 	if n := errorLines(f.tw.s); n != 0 {
 		t.Fatalf("the suit's holder was told %d lines", n)
 	}
-	if !f.qe.Holds(f.tw.p, suit) || f.qe.Holds(f.tw.p, suit+1) {
-		t.Fatal("Holds does not read the pack")
+}
+
+// The ward is also The Last House's (the owner, 2026-11-13: "let flagged
+// players through"): a character who finished its quest passes it without
+// the item; one under way at its last step, or with no quest, is stopped.
+func TestAFlaggedPlayerPassesTheWardWithoutTheSuit(t *testing.T) {
+	f := newQuestFixture(t)
+	suit := f.pattern("zombie flesh suit", 1)
+	px, pz := f.tw.p.X, f.tw.p.Z
+	f.tw.add(5, &entity.NPC{ServerID: 3001, Name: "invisible wall", NPCType: 0x80, ModelID: int64(entity.BlockerBody), SpawnX: px - 6, SpawnY: f.tw.p.Y, SpawnZ: pz})
+	// quest 10010's last step is 2: past it is finished
+	f.tw.w.SetQuestWalls([]database.QuestWall{{NPCID: 3001, QuestID: 10010, Step: 2, Item: suit, Text: "turned back"}})
+	f.qe.syncQuestState()
+	if got := f.qe.chars[f.sid].qstate.sent; got != "+" {
+		t.Fatalf("an unflagged player without the suit: the World was told %q, want no wall passed", got)
+	}
+	if len(f.tw.w.ItemWallsStopping(f.tw.p, 8)) != 1 {
+		t.Fatal("the ward does not stop an unflagged player without the suit")
+	}
+	if _, err := f.qe.SetCharacterQuest(f.sid, 10010, QuestGive, 2); err != nil {
+		t.Fatal(err)
+	}
+	f.qe.syncQuestState()
+	if got := f.qe.chars[f.sid].qstate.sent; got != "+" {
+		t.Fatalf("at the quest's last step: the World was told %q, want no wall passed", got)
+	}
+	if _, err := f.qe.SetCharacterQuest(f.sid, 10010, QuestComplete, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.qe.syncQuestState()
+	if got := f.qe.chars[f.sid].qstate.sent; got != "+w3001" {
+		t.Fatalf("a flagged player without the suit: the World was told %q, want the ward passed", got)
+	}
+	if len(f.tw.w.ItemWallsStopping(f.tw.p, 8)) != 0 {
+		t.Fatal("the ward stops a flagged player without the suit")
 	}
 }
 
-// The Oozing Portal (the wiki's Last House portal, 2026-11-13) takes a player
-// of level 51 on to the Plane of Disease only with the zombie flesh suit: one
-// without it is told so and offered nothing.
-func TestTheOozingPortalAsksForTheSuit(t *testing.T) {
+// The Oozing Portal's trip on (for one who finished The Last House: its
+// unlock) asks no suit (the owner, 2026-11-13: "let flagged players
+// through"); at level 51.
+func TestTheOozingPortalSendsWithoutTheSuit(t *testing.T) {
 	f := newQuestFixture(t)
-	f.exec(`UPDATE itempattern SET patternid = ? WHERE patternid = ?`, zombieFleshSuit, f.pattern("zombie flesh suit", 1))
-	f.tw.p.Level = podLevel
 	portal := f.tw.add(6, &entity.NPC{ServerID: 3002, Name: "Oozing Portal", NPCType: 0x80, SpawnX: f.tw.p.X + 3, SpawnY: f.tw.p.Y, SpawnZ: f.tw.p.Z})
+	f.tw.p.Level = podLevel - 1
 	f.tw.s.Queue().GetPending()
 	f.tw.talk(portal)
-	if box := boxSaid(f.tw.s); box != wayRoutes["Oozing Portal"][0].Lacks {
-		t.Fatalf("without the suit the portal said %q", box)
+	if box := boxSaid(f.tw.s); box != tooWeak("the Plane of Disease") {
+		t.Fatalf("a level %d was told %q", podLevel-1, box)
 	}
 	f.tw.s.Queue().GetPending()
-	f.own(zombieFleshSuit, 1)
+	f.tw.p.Level = podLevel
 	f.tw.talk(portal)
 	if got := optionBox(t, f.tw.s); len(got) != 2 || got[0] != "Yes" {
-		t.Fatalf("with the suit the portal offered %q, want Yes and No", got)
+		t.Fatalf("without the suit the portal offered %q, want Yes and No", got)
 	}
 	f.tw.pick(portal, 0)
 	if x, z, world, moved := teleported(f.tw.s); !moved || world != 5 || x != 5063 || z != 3866 {

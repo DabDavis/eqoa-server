@@ -309,6 +309,10 @@ type NPC struct {
 	// withMaster: it died with its master (masterdeath.go), its body lying
 	// petDismissedLies, a corpse of nothing; its next life clears it
 	withMaster bool
+	// masterPet: a creature's own pet (companion.go's pairs, a GM trigger's resummoned spawn:
+	// MarkMasterPet), set at its death (killNPC), a corpse of nothing whichever of it and its master died
+	// first (ticket 2008); its next life clears it
+	masterPet bool
 	// merc is a hired mercenary's (merc.go: Owner its hirer's), familiar a
 	// familiar's (familiar.go: never owned); nil for every other NPC
 	merc     *mercState

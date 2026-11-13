@@ -167,6 +167,7 @@ type triggerSpawn struct {
 	id    entity.EntityID
 	name  string
 	until time.Time
+	pet   bool // marked its resummon's caller's pet (resummonLocked)
 }
 
 // TriggerFirer is who fires a trigger: a GM in the world (its session and
@@ -1267,10 +1268,14 @@ func (e *TriggerEngine) resummonLocked(r *triggerRun, now time.Time) {
 		name, by := strings.TrimSpace(rs.step.NPC), strings.TrimSpace(rs.step.By)
 		var caller entity.EntityID
 		standing := false
-		for _, sp := range r.spawns {
+		for i, sp := range r.spawns {
 			switch {
 			case strings.EqualFold(sp.name, name):
 				standing = true
+				if !sp.pet { // its caller's pet: no loot, whichever dies first (ticket 2008; entity's MarkMasterPet)
+					e.gw.MarkMasterPet(sp.id)
+					r.spawns[i].pet = true
+				}
 			case caller == 0 && strings.EqualFold(sp.name, by) && e.gw.NPCAlive(sp.id):
 				caller = sp.id
 			}

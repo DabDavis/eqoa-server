@@ -314,11 +314,32 @@ func (w *World) DungeonChoices(sess *session.Session) []DungeonChoice {
 	return out
 }
 
-// dungeonAliveLocked counts an instance's creatures still alive.
+// dungeonAliveLocked counts an instance's creatures still alive, those a player can kill alone
+// (dungeonKillable).
 func (w *World) dungeonAliveLocked(in *dungeonInst) int {
 	n := 0
 	for _, id := range in.npcs {
-		if c := w.NPCs[id]; c != nil && c.Instance == in.id && !c.Dead {
+		if c := w.NPCs[id]; c != nil && c.Instance == in.id && !c.Dead && dungeonKillable(c) {
+			n++
+		}
+	}
+	return n
+}
+
+// dungeonKillable is whether an instance's creature counts in its "%d of %d creatures killed" (/dungeon, the
+// opening line, the warden's choices): one a player can kill. Not one with the NPC bit (0x80: no one may attack
+// it, the attack refuses it), a training dummy's or a spawn-only original's (Waldorf's ticket 2010, 2026-11-13,
+// "I've killed 306 of 307. Is the last npc the teleport? If so that shouldn't be counted").
+func dungeonKillable(c *NPC) bool {
+	return c != nil && c.NPCType&0x80 == 0 && c.Dummy == NotDummy && !c.SpawnOnly
+}
+
+// dungeonKillableCountLocked is how many of an instance's creatures a player can kill (dungeonKillable), alive
+// or dead.
+func (w *World) dungeonKillableCountLocked(in *dungeonInst) int {
+	n := 0
+	for _, id := range in.npcs {
+		if c := w.NPCs[id]; c != nil && c.Instance == in.id && dungeonKillable(c) {
 			n++
 		}
 	}
@@ -409,8 +430,8 @@ func (w *World) dungeonOpenLocked(def int, p *Player, now time.Time) *dungeonIns
 		c.RespawnTime = t.RespawnTime
 		in.npcs = append(in.npcs, c.ServerID)
 	}
-	in.creatures = len(in.npcs)
-	w.companionOf = nil // its shamans and their pets pair within it (companion.go), read again
+	in.creatures = w.dungeonKillableCountLocked(in) // none a player cannot kill (dungeonKillable)
+	w.companionOf = nil                             // its shamans and their pets pair within it (companion.go), read again
 	w.dungeons.insts[in.id] = in
 	if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
 		w.sendColoredLocked(sess, fmt.Sprintf(dungeonLineOpened, p.Name, d.Name, in.creatures), dungeonColour)

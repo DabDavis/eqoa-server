@@ -110,8 +110,24 @@ var companionKinds = map[string]string{
 // shamans' (petition 1846, Waldorf, 2026-11-12, "All feral spirits in Runneye instance our neutral and not
 // aggressive": npcaggro had them as players' pets; of 157 rows, 100 stand within 5 of a gnoll, goblin or Tae Ew
 // shaman, an oracle, a seer, a mystic or a spiritmaster, the rest alone).
+//
+// Howling Death is a necromancer's (ticket 2009, Waldorf, 2026-11-13, "Guk instance - Howling Death isn't tethered to
+// Rubik and is neutral faced"): all six rows stand 0.7 to 2.05 off their owner (Rubbip in Guk and his instance copy,
+// Lothaxe, Amandon, two ambassadors).
+//
+// And the other pets' names the seed's npcaggro rows named in the instances (the coordinator, 2026-11-13, after ticket
+// 2009), each the pet of the creature beside it as it stands in the open world: Kindred Spirits (151 rows, most 1-3 off
+// an orc augur or prophet, a spiritfeather aviak, a snowfist, Freezeblood, baga or gnoll mystic, a goblin seer or shaman,
+// a Tae Ew shaman), Fire Elementals (3, each 1.1-1.6 off a mage or Lord Usael), Decaying and Wilting Flesh (by lesser
+// ghouls) and Swarming Bones (by its froglok bonecaster).
 var companionPetKinds = map[string]bool{
-	"feral spirit": true,
+	"feral spirit":   true,
+	"howling death":  true,
+	"kindred spirit": true,
+	"fire elemental": true,
+	"decaying flesh": true,
+	"wilting flesh":  true,
+	"swarming bones": true,
 }
 
 // companionName is whether an NPC's name is a pet's.
@@ -235,6 +251,23 @@ func (w *World) linkCompanionsLocked() {
 		}
 	}
 	log.Printf("Companions: %d creatures' pets beside them, of %d NPCs named as pets", len(w.companionOf), len(pets))
+}
+
+// companionMasterLocked is the creature npc is the pet of (the pairs, linkCompanionsLocked), nil for none.
+// Must be called with the lock held.
+func (w *World) companionMasterLocked(npc *NPC) *NPC {
+	if !companionFighter(npc) {
+		return nil
+	}
+	w.linkCompanionsLocked()
+	o, ok := w.companionOf[npc.ServerID]
+	if !ok {
+		return nil
+	}
+	if m := w.NPCs[o]; m != nil && companionFighter(m) {
+		return m
+	}
+	return nil
 }
 
 // companionPartnersLocked is every NPC fighting as one with npc: its pets, or

@@ -1015,6 +1015,22 @@ func (w *World) mercHelpLocked(ms *mercState, s *CastSpell, id EntityID, now tim
 	}
 }
 
+// mercSpellPct is the share, in percent, of its spells' damage a merc of
+// the class deals: a wizard's 65 (the GM Jibwiz's petition 1907: "Nerf the
+// damage per cast on the mercenary wizard by 35%"), every other class's
+// whole. A player wizard's spells are untouched.
+var mercSpellPct = map[int]int{13: 65}
+
+// mercSpellShare is n, a merc's spell damage (a hit or a tick), after its
+// class's share: at least 1 of a hit that did any.
+func mercSpellShare(ms *mercState, n int) int {
+	pct, ok := mercSpellPct[ms.kit.Class]
+	if !ok || n <= 0 {
+		return n
+	}
+	return max(n*pct/100, 1)
+}
+
 // mercHarmLocked lands a merc's harmful spell on t: its share on itself (a
 // taunt's AC: mercSelfShareLocked), each hit a player's figure of its body
 // less what the creature resists, through the balance as a player's spell
@@ -1042,7 +1058,7 @@ func (w *World) mercHarmLocked(ms *mercState, s *CastSpell, t *NPC, now time.Tim
 			if n >= 0 {
 				continue
 			}
-			dealt := w.dealtLocked(t, b, -n)
+			dealt := mercSpellShare(ms, w.dealtLocked(t, b, -n))
 			killed := w.mercDamageLocked(ms, t, dealt, numberSpell, now)
 			angered = true
 			if e.Drain != DrainNone && m.HP < m.MaxHP {

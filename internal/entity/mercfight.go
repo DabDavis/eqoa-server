@@ -435,7 +435,7 @@ func (w *World) mercTickLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
 	ae.ticking = true // its own tick is no contact for itself (contactNPCLocked)
 	defer func() { ae.ticking = false }()
 	log.Printf("Merc: %s's %q's %q ticks on %s for %d before the balance", ms.owner.Name, m.Name, ae.Name, npc.Name, hit)
-	w.mercDamageLocked(ms, npc, w.dealtLocked(npc, ms.body, hit), numberDoT, now)
+	w.mercDamageLocked(ms, npc, mercSpellShare(ms, w.dealtLocked(npc, ms.body, hit)), numberDoT, now)
 }
 
 // mercHitOn is a creature's melee hit on a merc: its roll on a player of the

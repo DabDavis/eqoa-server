@@ -185,6 +185,34 @@ const (
 	// reaches 2% hp he completely heals to full and doubles his damage if a non
 	// player character is hitting him").
 	AbilityLastStand = "laststand"
+	// AbilityWard casts nothing: once a fight, when its creature's hit points
+	// first fall below Below percent, it is warded for the rest of that fight:
+	// every hit that lands on it heals it Heal more (beside a hitheal's) and
+	// answers whoever landed it (a player, a pet, a mercenary, an NPC) with
+	// Damage, pure: no resist, armour or mitigation cuts it, told by Name
+	// (DefaultWardName for none); its line in /say (Say) as it comes up
+	// (entity/ward.go; the GM Jibrish's petition 1892: Mr. Moogie at 15%, "a
+	// 500 a hit heal DS ... and ... a 5000 damage a hit additional damage
+	// shield that damages everyone with pure damage when hes hit").
+	AbilityWard = "ward"
+	// AbilityDeathHold casts nothing: once a fight, a hit that would take its
+	// creature to 0 hit points leaves it at 1, and for Hold seconds (0:
+	// DefaultHoldSeconds) it stands frozen, no hit landing on it and nothing
+	// of its own done (no chase, round, cast or regeneration); then its fight
+	// goes on at 1 and the next killing hit kills it. Its line in /say (Say)
+	// as it holds (entity/deathhold.go; the GM Jibrish's petition 1894: "If mr
+	// moogie hits 1 hp, he freezes and is immune to damage, unable to take
+	// damage or die for 30 seconds").
+	AbilityDeathHold = "deathhold"
+)
+
+// DefaultWardName is what a ward's lines call it when it has no name (ours);
+// DefaultHoldSeconds a death hold's time with none of its own, MostHoldSeconds
+// the longest.
+const (
+	DefaultWardName    = "Ward"
+	DefaultHoldSeconds = 30
+	MostHoldSeconds    = 600
 )
 
 // A boss's moments on a clock of its own (entity/bossmoments.go; the
@@ -221,7 +249,8 @@ const MostSetHPRadius = 200
 // AbilityKinds are the kinds, in the order the help lists them.
 var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff, AbilityRoot, AbilityDebuff,
 	AbilityStrip, AbilityHealShield, AbilityMeleeKind, AbilityDoT, AbilityHitHeal, AbilityPrefer, AbilitySummon, AbilityEnrage,
-	AbilityProc, AbilityVeil, AbilityKillSay, AbilityLastStand, AbilitySelfDoT, AbilityRaidHeal, AbilityPowerZero, AbilitySetHP}
+	AbilityProc, AbilityVeil, AbilityKillSay, AbilityLastStand, AbilityWard, AbilityDeathHold, AbilitySelfDoT, AbilityRaidHeal,
+	AbilityPowerZero, AbilitySetHP}
 
 // passiveKind is whether an ability of the kind casts nothing on a clock of its
 // own: what it does is a rule its creature keeps (a heal shield, a melee kind,
@@ -230,7 +259,7 @@ var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal
 func passiveKind(k string) bool {
 	switch k {
 	case AbilityHealShield, AbilityMeleeKind, AbilityHitHeal, AbilityPrefer, AbilitySummon, AbilityEnrage, AbilityProc, AbilityVeil,
-		AbilityKillSay, AbilityLastStand:
+		AbilityKillSay, AbilityLastStand, AbilityWard, AbilityDeathHold:
 		return true
 	}
 	return false
@@ -467,6 +496,17 @@ type TemplateAbility struct {
 	Tick      int     `json:"tick,omitempty"`
 	TickAtCap int     `json:"tick_at_cap,omitempty"`
 	TickFor   float64 `json:"tick_for,omitempty"`
+	// Hold is a death hold's seconds frozen at 1 hit point (AbilityDeathHold;
+	// 0: DefaultHoldSeconds).
+	Hold float64 `json:"hold,omitempty"`
+}
+
+// HoldOr is a death hold's time: its own, else DefaultHoldSeconds.
+func (a TemplateAbility) HoldOr() float64 {
+	if a.Hold <= 0 {
+		return DefaultHoldSeconds
+	}
+	return a.Hold
 }
 
 // RangeOr is an out-of-reach ability's reach: its own, else
@@ -760,8 +800,10 @@ func checkKindFields(n int, a TemplateAbility) error {
 	k := a.Kind
 	pinned := a.Spell != "" || a.SpellID != 0
 	switch {
-	case a.Heal != 0 && k != AbilityHitHeal:
-		return fmt.Errorf("ability %d: heal is a hitheal's", n)
+	case a.Heal != 0 && k != AbilityHitHeal && k != AbilityWard:
+		return fmt.Errorf("ability %d: heal is a hitheal's or a ward's", n)
+	case a.Hold != 0 && k != AbilityDeathHold:
+		return fmt.Errorf("ability %d: hold is a deathhold's", n)
 	case (a.Count != 0 || a.NPC != "" || a.Share != 0) && k != AbilitySummon:
 		return fmt.Errorf("ability %d: count, npc and share are a summon's", n)
 	case (a.Grow != 0 || a.Rampage != 0) && k != AbilityEnrage:
@@ -770,8 +812,8 @@ func checkKindFields(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: foes are a prefer's or a killsay's", n)
 	case a.TapPct != 0 && k != AbilityVeil:
 		return fmt.Errorf("ability %d: tap_pct is a veil's", n)
-	case a.Damage != 0 && k != AbilityNuke && k != AbilityLifetap:
-		return fmt.Errorf("ability %d: a fixed damage is a nuke's or a lifetap's", n)
+	case a.Damage != 0 && k != AbilityNuke && k != AbilityLifetap && k != AbilityWard:
+		return fmt.Errorf("ability %d: a fixed damage is a nuke's, a lifetap's or a ward's", n)
 	case a.OutOfReach && k != AbilityNuke && k != AbilityLifetap && k != AbilityAoE && k != AbilityDebuff && k != AbilityStrip && k != AbilityDoT:
 		return fmt.Errorf("ability %d: out_of_reach is a harmful cast's at what it fights (nuke, lifetap, aoe, debuff, strip, dot)", n)
 	case a.Range != 0 && !a.OutOfReach:
@@ -780,11 +822,13 @@ func checkKindFields(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: range %.1f: 0 (%d) to 1000 units", n, a.Range, DefaultOutOfReachRange)
 	case !shieldResistKnown(a.Resist):
 		return fmt.Errorf("ability %d: resist %q: FR, CR, LR, AR, PR, DR or none", n, a.Resist)
+	case a.Resist != "" && k == AbilityWard:
+		return fmt.Errorf("ability %d: a ward's damage is pure: no resist", n)
 	case a.Resist != "" && a.Damage == 0 && k != AbilityVeil && !(k == AbilityProc && !pinned):
 		return fmt.Errorf("ability %d: a resist is a fixed damage's, a veil's or a proc's of its own figures (a spell's is its own)", n)
 	case a.FX != 0 && pinned && k != AbilityProc && k != AbilityVeil:
 		return fmt.Errorf("ability %d: a visual (fx) is an ability's that pins no spell (its spell's is its look), or a proc's or a veil's hit's", n)
-	case a.FX != 0 && k != AbilityStrip && !(k == AbilityHeal && a.HealPct > 0) && a.Damage == 0 && k != AbilityProc && k != AbilityVeil:
+	case a.FX != 0 && k != AbilityStrip && !(k == AbilityHeal && a.HealPct > 0) && (a.Damage == 0 || k == AbilityWard) && k != AbilityProc && k != AbilityVeil:
 		return fmt.Errorf("ability %d: a visual (fx) is a named strip's, heal of its share's, fixed hit's, proc's or veil's", n)
 	}
 	return nil
@@ -829,7 +873,7 @@ func checkBossMoment(n int, a TemplateAbility) error {
 	case len(a.Name) > StripNameMost:
 		return fmt.Errorf("ability %d: a name of more than %d characters", n, StripNameMost)
 	case a.Chain || a.Spell != "" || a.SpellID != 0 || a.Line != "" || a.DamagePct != 0 || a.Below != 0 || a.HealPct != 0 ||
-		a.NPC != "" || a.Cooldown != 0 || a.Cast != 0:
+		a.NPC != "" || a.Cooldown != 0 || a.Cast != 0 || a.Hold != 0:
 		return fmt.Errorf("ability %d: a %s takes none of a cast's fields (chain, spell, line, damage_pct, below, cast, cooldown)", n, a.Kind)
 	}
 	return nil
@@ -842,7 +886,7 @@ func checkBossMoment(n int, a TemplateAbility) error {
 func checkPassiveAbility(n int, a TemplateAbility) error {
 	finite := func(v float64) bool { return !math.IsNaN(v) && !math.IsInf(v, 0) }
 	pinned := a.Spell != "" || a.SpellID != 0
-	moment := a.Kind == AbilitySummon || a.Kind == AbilityEnrage || a.Kind == AbilityLastStand
+	moment := a.Kind == AbilitySummon || a.Kind == AbilityEnrage || a.Kind == AbilityLastStand || a.Kind == AbilityWard
 	damagePct := a.DamagePct
 	if a.Kind == AbilityLastStand {
 		damagePct = 0 // a last stand's damage after it (checked below)
@@ -860,14 +904,14 @@ func checkPassiveAbility(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: a %s's below %d: 1 to 100 percent of its hit points", n, a.Kind, a.Below)
 	case !moment && a.Below != 0:
 		return fmt.Errorf("ability %d: below is a summon's, an enrage's or a last stand's", n)
-	case a.Say != "" && !moment && a.Kind != AbilityKillSay:
-		return fmt.Errorf("ability %d: a say is a summon's, an enrage's, a last stand's or a killsay's (or a cast's)", n)
+	case a.Say != "" && !moment && a.Kind != AbilityKillSay && a.Kind != AbilityDeathHold:
+		return fmt.Errorf("ability %d: a say is a summon's, an enrage's, a last stand's, a ward's, a death hold's or a killsay's (or a cast's)", n)
 	case len(a.Say) > SayMost:
 		return fmt.Errorf("ability %d: a say of more than %d characters", n, SayMost)
 	case strings.ContainsAny(a.Say, "|\n\r"):
 		return fmt.Errorf("ability %d: a say with a | or a line break", n)
-	case a.Name != "" && a.Kind != AbilityVeil:
-		return fmt.Errorf("ability %d: a name is a veil's (a proc's is proc_name, or its spell's)", n)
+	case a.Name != "" && a.Kind != AbilityVeil && a.Kind != AbilityWard:
+		return fmt.Errorf("ability %d: a name is a veil's or a ward's (a proc's is proc_name, or its spell's)", n)
 	case a.Name != "" && pinned:
 		return fmt.Errorf("ability %d: named by its name or by the spell it pins, not both", n)
 	case len(a.Name) > StripNameMost:
@@ -931,6 +975,19 @@ func checkPassiveAbility(n int, a TemplateAbility) error {
 	case AbilityLastStand:
 		if a.DamagePct < 0 || a.DamagePct > 1000 {
 			return fmt.Errorf("ability %d: a last stand's damage_pct %d: 0 (100, as it was) to 1000 percent of its damage after it", n, a.DamagePct)
+		}
+	case AbilityWard:
+		switch {
+		case a.Heal < 0 || a.Heal > 100000:
+			return fmt.Errorf("ability %d: a ward's heal %d: 0 to 100000 hit points a hit", n, a.Heal)
+		case a.Damage < 0 || a.Damage > 1000000:
+			return fmt.Errorf("ability %d: a ward's damage %d: 0 to 1000000 hit points a hit", n, a.Damage)
+		case a.Heal == 0 && a.Damage == 0:
+			return fmt.Errorf("ability %d: a ward that does nothing (heal, damage)", n)
+		}
+	case AbilityDeathHold:
+		if math.IsNaN(a.Hold) || math.IsInf(a.Hold, 0) || a.Hold < 0 || a.Hold > MostHoldSeconds {
+			return fmt.Errorf("ability %d: a deathhold's hold %v: 0 (%d) to %d seconds", n, a.Hold, DefaultHoldSeconds, MostHoldSeconds)
 		}
 	case AbilityKillSay:
 		switch {

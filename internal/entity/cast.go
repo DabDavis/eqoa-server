@@ -1865,6 +1865,7 @@ func (w *World) spellHitHateLocked(caster *Player, casterSess *session.Session, 
 		return false // a Metal Moogie's countdown: nothing lands (metalmoogie.go, petition 1623)
 	}
 	n = w.dealtLocked(npc, caster, n)                // balance.go
+	n = w.npcTakesLocked(npc, n, time.Now())         // nothing while held at 1 (deathhold.go)
 	w.tallyDamageLocked(npc, caster, min(n, npc.HP)) // killcredit.go
 	npc.HP = max(npc.HP-n, 0)
 	w.tellAmountLocked(caster, casterSess, npc.ServerID, -n, kind)
@@ -1872,7 +1873,7 @@ func (w *World) spellHitHateLocked(caster *Player, casterSess *session.Session, 
 	w.rootBreakLocked(npc, caster.Level) // root.go
 	log.Printf("Cast: %s's spell hit %s for %d (HP %d/%d)", caster.Name, npc.Name, n, npc.HP, npc.MaxHP)
 	if npc.HP > 0 {
-		w.hitHealLocked(npc, n, casterSess) // its heal at every hit that lands (hitheal.go)
+		w.hitLandedLocked(npc, n, casterSess, caster.ServerID) // its heal at every hit that lands, its ward's answer (hitheal.go, ward.go)
 		return false
 	}
 	npc.Effects = nil

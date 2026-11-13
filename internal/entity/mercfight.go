@@ -377,6 +377,7 @@ func (w *World) mercDamageLocked(ms *mercState, t *NPC, n int, kind numberKind, 
 		w.dummyEngagedLocked(t, m.ServerID, n, now)
 		return false
 	}
+	n = w.npcTakesLocked(t, n, now)             // nothing while held at 1 (deathhold.go)
 	w.tallyDamageLocked(t, owner, min(n, t.HP)) // killcredit.go: the hirer's
 	t.HP = max(t.HP-n, 0)
 	tell()
@@ -384,6 +385,7 @@ func (w *World) mercDamageLocked(ms *mercState, t *NPC, n int, kind numberKind, 
 	w.rootBreakLocked(t, m.Level) // root.go
 	log.Printf("Merc: %s's %q hit %s for %d (HP %d/%d)", owner.Name, m.Name, t.Name, n, t.HP, t.MaxHP)
 	if t.HP > 0 {
+		w.hitLandedLocked(t, n, sess, m.ServerID) // its heal at every hit that lands, its ward's answer (hitheal.go, ward.go)
 		return false
 	}
 	t.Effects = nil

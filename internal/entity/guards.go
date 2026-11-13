@@ -331,6 +331,7 @@ func (w *World) npcFightNPCLocked(npc, foe *NPC, now time.Time) {
 func (w *World) npcHitNPCLocked(npc, foe *NPC, now time.Time) bool {
 	src := npc.figures()
 	n := foe.meleeTaken(npc.shared(w.npcHitLocked(src, foe.Level, src.meleeOut(npcHitOnPet(src, foe, meleeIntn)))))
+	n = w.npcTakesLocked(foe, n, now) // nothing while held at 1 (deathhold.go)
 	foe.HP = max(foe.HP-n, 0)
 	npc.LastCombat = now
 	if w.townGuardLocked(npc) {
@@ -340,7 +341,7 @@ func (w *World) npcHitNPCLocked(npc, foe *NPC, now time.Time) bool {
 	log.Printf("Combat: %s hit %s for %d (HP %d/%d)", npc.Name, foe.Name, n, foe.HP, foe.MaxHP)
 	w.rampageLocked(npc, foe.ServerID, n, now)
 	if foe.HP > 0 {
-		w.hitHealLocked(foe, n, nil)
+		w.hitLandedLocked(foe, n, nil, npc.ServerID) // its heal at every hit, its ward's answer (hitheal.go, ward.go)
 		return npc.tmpl != nil && scriptedFoes(npc, foe) && w.creatureProcOnNPCLocked(npc, foe, n, now)
 	}
 	foe.Effects = nil

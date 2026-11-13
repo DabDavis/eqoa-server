@@ -689,3 +689,47 @@ func TestAbilitiesOfSelfBuffsAndKillSays(t *testing.T) {
 		}
 	}
 }
+
+// The GM Jibrish's petitions 1892 and 1894 (2026-11-13): Mr. Moogie's ward below 15% (a heal and a pure damage at every
+// hit) and his hold at 1 hit point (30 s): both read and written back the same, beside his nine abilities; each
+// refused without its parts, with a resist (a ward's damage is pure), out of bounds, or with the other's fields.
+func TestWardAndDeathHoldAbilities(t *testing.T) {
+	for _, good := range []string{
+		`[{"kind":"ward","below":15,"heal":500,"damage":5000,"say":"Feel it!","name":"Royal Ward"},` +
+			`{"kind":"deathhold","hold":30,"say":"You thought you had me, didn't you? I got 30 seconds left in me, can you survive?"}]`,
+		`[{"kind":"ward","below":50,"damage":10}]`,
+		`[{"kind":"deathhold"}]`,
+	} {
+		list, err := ParseTemplateAbilities(good)
+		if err != nil {
+			t.Errorf("%s refused: %v", good, err)
+			continue
+		}
+		again, err := ParseTemplateAbilities(TemplateAbilitiesJSON(list))
+		if err != nil || !reflect.DeepEqual(again, list) {
+			t.Errorf("%s written back: %v %v", good, again, err)
+		}
+	}
+	if list, _ := ParseTemplateAbilities(`[{"kind":"deathhold"}]`); len(list) != 1 || list[0].HoldOr() != DefaultHoldSeconds {
+		t.Errorf("a hold's default time: %+v", list)
+	}
+	for _, bad := range []string{
+		`[{"kind":"ward","heal":500,"damage":5000}]`,                   // no share of hit points
+		`[{"kind":"ward","below":15}]`,                                 // a ward of nothing
+		`[{"kind":"ward","below":15,"damage":5000,"resist":"FR"}]`,     // a resist on pure damage
+		`[{"kind":"ward","below":15,"damage":5000,"every":10}]`,        // a clock on what casts nothing
+		`[{"kind":"ward","below":15,"damage":5000,"hold":30}]`,         // a hold's time on a ward
+		`[{"kind":"ward","below":15,"damage":2000000}]`,                // past the most
+		`[{"kind":"deathhold","hold":601}]`,                            // too long
+		`[{"kind":"deathhold","below":10}]`,                            // a share of hit points on a hold
+		`[{"kind":"deathhold","damage":5}]`,                            // a figure on a hold
+		`[{"kind":"nuke","every":10,"hold":30}]`,                       // a hold's time on a nuke
+		`[{"kind":"selfdot","every":10,"damage":5,"hold":30}]`,         // and on a boss's moment
+		`[{"kind":"deathhold","say":"a|b"}]`,                           // a | in its line
+		`[{"kind":"ward","below":15,"damage":5000,"spell_id":700046}]`, // a spell on a ward
+	} {
+		if _, err := ParseTemplateAbilities(bad); err == nil {
+			t.Errorf("%s read, want refused", bad)
+		}
+	}
+}

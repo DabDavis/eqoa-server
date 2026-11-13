@@ -30,6 +30,13 @@ func boxSaid(s *session.Session) string {
 // too weak (F3 pass 17, "unable to travel to PoD"). The controls: No sends
 // nobody, and his assistant, who has no route, has nothing to say.
 func TestZizclankSendsTheStrongToPoD(t *testing.T) {
+	// the suit his trip asks (2026-11-13) is TestTheDeadHillsWayToPoDAsksForTheSuit's;
+	// this talk world carries no pack, so the trip here asks none
+	saved := wayRoutes["Necrologist Zizclank"]
+	t.Cleanup(func() { wayRoutes["Necrologist Zizclank"] = saved })
+	open := slices.Clone(saved)
+	open[0].Holds, open[0].Lacks = 0, ""
+	wayRoutes["Necrologist Zizclank"] = open
 	tw := newTalkWorld(t, 4283, 6412)
 	tw.p.World, tw.p.Y = 1, 97.8
 	ziz := tw.add(1, &entity.NPC{ServerID: 1, Name: "Necrologist Zizclank", World: 1, SpawnX: 4280, SpawnY: 97.8, SpawnZ: 6412, SpawnFacing: math.Pi / 2})

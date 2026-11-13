@@ -90,3 +90,51 @@ func TestTheOozingPortalAsksForTheSuit(t *testing.T) {
 		t.Fatalf("Yes sent the player to (%.1f, %.1f) world %d (%v)", x, z, world, moved)
 	}
 }
+
+// The Dead Hills' way into the Plane of Disease (the owner, 2026-11-13: "players
+// cannot enter without the flesh suit and completing the quest"): Zizclank and
+// the Mausoleum Portal send a player of level 51 on only with the zombie flesh
+// suit; one without it is told so and offered nothing.
+func TestTheDeadHillsWayToPoDAsksForTheSuit(t *testing.T) {
+	for i, name := range []string{"Mausoleum Portal", "Necrologist Zizclank"} {
+		f := newQuestFixture(t)
+		f.exec(`UPDATE itempattern SET patternid = ? WHERE patternid = ?`, zombieFleshSuit, f.pattern("zombie flesh suit", 1))
+		f.tw.p.Level = podLevel
+		way := f.tw.add(6, &entity.NPC{ServerID: entity.EntityID(3010 + i), Name: name, NPCType: 0x80, SpawnX: f.tw.p.X + 3, SpawnY: f.tw.p.Y, SpawnZ: f.tw.p.Z})
+		f.tw.s.Queue().GetPending()
+		f.tw.talk(way)
+		if box := boxSaid(f.tw.s); box != wayRoutes[name][0].Lacks {
+			t.Fatalf("%s without the suit said %q", name, box)
+		}
+		f.tw.s.Queue().GetPending()
+		f.own(zombieFleshSuit, 1)
+		f.tw.talk(way)
+		if got := optionBox(t, f.tw.s); len(got) != 2 || got[0] != "Yes" {
+			t.Fatalf("%s with the suit offered %q, want Yes and No", name, got)
+		}
+	}
+}
+
+// The Last House Warden (a stone golem) at the Last House's ward (the owner, 2026-11-13) sets
+// a player with the zombie flesh suit past the ward; one without it is told so
+// and offered nothing.
+func TestTheLastHouseWardenLetsTheSuitPass(t *testing.T) {
+	f := newQuestFixture(t)
+	f.exec(`UPDATE itempattern SET patternid = ? WHERE patternid = ?`, zombieFleshSuit, f.pattern("zombie flesh suit", 1))
+	golem := f.tw.add(6, &entity.NPC{ServerID: 3020, Name: "Last House Warden", NPCType: 0x180, SpawnX: f.tw.p.X + 3, SpawnY: f.tw.p.Y, SpawnZ: f.tw.p.Z})
+	f.tw.s.Queue().GetPending()
+	f.tw.talk(golem)
+	if box := boxSaid(f.tw.s); box != wayRoutes["Last House Warden"][0].Lacks {
+		t.Fatalf("without the suit the golem said %q", box)
+	}
+	f.tw.s.Queue().GetPending()
+	f.own(zombieFleshSuit, 1)
+	f.tw.talk(golem)
+	if got := optionBox(t, f.tw.s); len(got) != 2 || got[0] != "Yes" {
+		t.Fatalf("with the suit the golem offered %q, want Yes and No", got)
+	}
+	f.tw.pick(golem, 0)
+	if x, z, world, moved := teleported(f.tw.s); !moved || world != 5 || x != 4614 || z != 3604 {
+		t.Fatalf("Yes set the player at (%.1f, %.1f) world %d (%v)", x, z, world, moved)
+	}
+}

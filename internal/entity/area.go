@@ -689,8 +689,13 @@ func (w *World) areaFriendsLocked(p *Player, cs *castState, cx, cy, cz, r float3
 }
 
 // groupNearLocked is a group's area beside its caster: each member alive in
-// its world within r of it, and each member's pet (its own too). Must be
-// called with the lock held.
+// its world within r of it, each member's pet (its own too), and each merc
+// of the group (mercgroup.go: a member, an NPC in Group.Members). Until
+// 2026-11-13 the mercs were left out here: a group spell with a radius (the
+// workbook's group radius: Guided Meditation, the owner's "doesn't seem to be
+// working") takes its targets from this area alone (areaStartLocked), so
+// castTargetsLocked's mercs (groupMercsLocked) were dropped and no merc took
+// a radius group buff. Must be called with the lock held.
 func (w *World) groupNearLocked(p *Player, r float32) []areaNear {
 	members := w.groupMembersLocked(p)
 	if len(members) == 0 {
@@ -708,6 +713,13 @@ func (w *World) groupNearLocked(p *Player, r float32) []areaNear {
 		}
 		if pet := w.petOfLocked(m); pet != nil {
 			add(pet.ServerID, pet.World, pet.X, pet.Y, pet.Z)
+		}
+	}
+	if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil {
+		for _, id := range g.Members {
+			if n := w.NPCs[id]; n.isMerc() && !n.Dead {
+				add(n.ServerID, n.World, n.X, n.Y, n.Z)
+			}
 		}
 	}
 	return out

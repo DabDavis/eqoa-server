@@ -1,0 +1,22 @@
+# A made-up toy model to exercise every feature of the file format.
+# Nothing here is a real formula or a real number of any game.
+tables:
+  profiles:
+    juggler:   {scale: 2, slots: [{weight: 1, mult: 1}, {weight: 3, mult: 10}]}
+    default:   {scale: 1, slots: [{weight: 1, mult: 1}]}
+  creatures:
+    pudding golem: {family: wobbly, bonus: 5}
+    wobbly:        {anchor: 10, bonus: 1}
+    default:       {anchor: 1}
+formulas:
+  toy_one: base * 2
+  toy_two:
+    steps:
+      - prof: lookup("profiles", class_name, "default")
+      - slot: pick(prof.slots)
+      - mob: lookup("creatures", target, family, "default")
+      - roll: uniform()
+    result: base * prof.scale * slot.mult + field(mob, "bonus", 0) + roll
+    min: 1
+    max: |
+      10000

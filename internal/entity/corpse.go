@@ -270,6 +270,7 @@ func (w *World) respawnNPCLocked(npc *NPC) {
 	npc.CurrentEnemy = 0
 	npc.guardHit = false   // a new life (guards.go)
 	npc.withMaster = false // and its own (masterdeath.go)
+	npc.masterPet = false  // read again at its next death (masterdeath.go)
 	npc.swimming = false   // on its spawn (water.go)
 	npc.stopMoving()
 	npc.roam = roamState{}

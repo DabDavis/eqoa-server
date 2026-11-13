@@ -1012,6 +1012,7 @@ func (w *World) findSessionByEntityIDLocked(id EntityID) *session.Session {
 func (w *World) killNPC(npc *NPC) {
 	w.mercForgetCallsLocked(npc.ServerID) // its owners' calls onto it (merccall.go)
 	w.siegeNPCDownLocked(npc)             // a siege's gate broken or its King slain, while its hate still says by whom (siege.go)
+	w.markCompanionPetLocked(npc)         // a creature's own pet carries nothing, whoever died first (masterdeath.go)
 	npc.Dead = true
 	npc.DeathTime = time.Now()
 	npc.CorpseGone = time.Time{}

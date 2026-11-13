@@ -64,6 +64,9 @@ type KeptDungeonInst struct {
 	Opened    time.Time `json:"opened"`
 	LastIn    time.Time `json:"last_in"`
 	Creatures int       `json:"creatures"` // how many it opened with
+	// Killable: Creatures counts those a player can kill alone (dungeonKillable, ticket 2010); an instance kept
+	// before counted every creature, and is counted again as it is made again
+	Killable bool `json:"killable,omitempty"`
 	// NPCs are its creatures still in the world, alive or a corpse that lies
 	NPCs []KeptInstNPC `json:"npcs,omitempty"`
 	// In are the characters standing in it
@@ -121,7 +124,7 @@ func (w *World) KeepDungeons(now time.Time) *KeptDungeons {
 		in := w.dungeons.insts[id]
 		w.dungeonFollowOwnerLocked(in)
 		ki := KeptDungeonInst{ID: in.id, Key: w.dungeons.defs[in.def].Key, Owner: in.owner, OwnerName: in.ownerName,
-			Group: in.group, Opened: in.opened, LastIn: in.lastIn, Creatures: in.creatures}
+			Group: in.group, Opened: in.opened, LastIn: in.lastIn, Creatures: in.creatures, Killable: true}
 		for _, cid := range in.npcs {
 			c := w.NPCs[cid]
 			if c == nil || !c.Temporary || c.Instance != in.id || c.CopyOf == 0 {
@@ -241,8 +244,17 @@ func (w *World) RestoreDungeons(k *KeptDungeons) (ids map[EntityID]EntityID, r D
 				r.Alive++
 			}
 		}
-		if in.creatures < len(in.npcs) {
-			in.creatures = len(in.npcs)
+		if !ki.Killable {
+			// kept before ticket 2010: its count took every creature, those no player can kill among them, who
+			// never die and so are all made again
+			for _, id := range in.npcs {
+				if !dungeonKillable(w.NPCs[id]) {
+					in.creatures--
+				}
+			}
+		}
+		if n := w.dungeonKillableCountLocked(in); in.creatures < n {
+			in.creatures = n
 		}
 		w.dungeons.insts[in.id] = in
 		w.dungeons.next = max(w.dungeons.next, in.id)

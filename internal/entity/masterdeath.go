@@ -65,7 +65,39 @@ func (w *World) addsDieLocked(npc *NPC, now time.Time) {
 }
 
 // CorpseOfNothing reports a corpse no one loots and nothing is on (handlers' loot): an add a summon called
-// (summon.go: "a dead servant gives no loot"), or one that died with its master (the file's doc).
+// (summon.go: "a dead servant gives no loot"), one that died with its master (the file's doc), or a
+// creature's own pet killed before its master (markCompanionPetLocked, MarkMasterPet).
 func (n *NPC) CorpseOfNothing() bool {
-	return n != nil && (n.add != nil || n.withMaster)
+	return n != nil && (n.add != nil || n.withMaster || n.masterPet)
+}
+
+// markCompanionPetLocked marks npc, dying, a creature's own pet when it is one (companion.go's pairs): its
+// corpse one of nothing, as one that died with its master is (Waldorf's ticket 2008, 2026-11-13: "If you
+// kill the pet first you can loot it. If you kill the caster first, you get a message stating 'you can't
+// loot that entity'. Should be consistent regardless of order"; the operator's ruling: a creature's pet
+// carries no loot, no tunar and no items, whichever dies first). A player's pet (Owner) and a charmed
+// creature are no creature's pets (companionFighter) and keep their own rules. Must be called with the
+// lock held.
+func (w *World) markCompanionPetLocked(npc *NPC) {
+	if npc == nil || npc.masterPet || !companionFighter(npc) {
+		return
+	}
+	w.linkCompanionsLocked()
+	if _, ok := w.companionOf[npc.ServerID]; ok {
+		npc.masterPet = true
+	}
+}
+
+// MarkMasterPet marks the NPC id a creature's own pet (handlers' gmtriggers.go: a trigger's resummoned
+// spawn, whose caller is its master): its corpse one of nothing, whichever of it and its caller dies first
+// (markCompanionPetLocked's doc). It reports false for one gone.
+func (w *World) MarkMasterPet(id EntityID) bool {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	npc := w.NPCs[id]
+	if npc == nil {
+		return false
+	}
+	npc.masterPet = true
+	return true
 }

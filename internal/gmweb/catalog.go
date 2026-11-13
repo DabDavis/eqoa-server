@@ -1428,6 +1428,7 @@ var catalog = map[string]tableNote{
 			"proc_resist":    {Label: "Proc resist", Help: "the resist that cuts it: FR, CR, LR, AR, PR or DR; empty none", Section: "Melee proc"},
 			"resist_kind":    {Label: "Strong resist", Help: "the resists it is strong in: FR, CR, LR, AR, PR or DR, several with commas, each with its own percent or not (LR:75); empty none", Section: "Stat profile"},
 			"resist_pct":     {Label: "Strong resist %", Help: "of spell damage of that kind it does not take, players' and pets', less what a debuff of the kind takes off (0-100; at least 1 always lands)", Section: "Stat profile"},
+			"taken_resist":   {Label: "Resist damage taken %", Help: "the percent of a spell's or proc's damage of a resist it takes, after its strong resist: FR, CR, LR, AR, PR or DR each with its percent (1-1000), several with commas (LR:115: 15% more lightning); empty all at 100", Section: "Stat profile"},
 			"resist_fail":    {Label: "Resist failure %", Help: "how often a resist fails against its proc, shield and spells, at any figure of it: this percent altogether, twice this in part (0-30; 0 the game's own, 2.5 and 5 at the cap alone)", Section: "Melee proc"},
 			"taken_pct":      {Label: "Melee taken %", Help: "of a player's or a pet's melee hit on it that lands (1-1000): its armour", Section: "Stat profile"},
 			"melee_pct":      {Label: "Its melee %", Help: "of its own melee hits (10-1000)", Section: "Stat profile"},
@@ -1967,6 +1968,36 @@ var catalog = map[string]tableNote{
 			"to_facing": {Label: "Facing", Section: "Where it sends", Help: "radians: 0 faces +z, 1.57 +x, 3.14 -z, -1.57 -x"},
 			"note":      {Label: "Note", Format: "multiline", Help: "where it came from"},
 			"source":    {Label: "Source", Help: "gm, or seed for tools/seed_orbs.py's rows (its --undo deletes those no GM changed)"},
+		},
+	},
+	"hazards": {
+		Label: "Hazards", Group: "World", Title: "name", Sort: "id",
+		Help: "Places that hurt a player standing in them (entity/hazards.go; petition 1937, the Toxxulia cave's spiky " +
+			"vines): a capsule from x1/y1/z1 to x2/y2/z2 (the same twice for a round area), radius across it. A player whose " +
+			"feet come within radius of the segment and from below under its height to above over it takes damage at once " +
+			"(fixed, through any armour), then again every every_ms while it stays in one, told words in red; it can die of " +
+			"it. Not the dead, a GM flying (#fly), or one loading a world. Rows of source vines are tools/seed_hazards.py's, " +
+			"read off the disc's zone actors (cmd/hazardscan).",
+		Live:   "At once: within half a second, whoever stands in it.",
+		Show:   []string{"id", "name", "world", "x1", "z1", "x2", "z2", "radius", "damage", "every_ms", "source"},
+		Search: []string{"name", "note", "source"},
+		Cols: map[string]colNote{
+			"name":     {Label: "Name", Help: "the area as a GM reads it (the log names it, and the default words)"},
+			"world":    {Label: "World", Enum: "world", Section: "Where it lies"},
+			"x1":       {Label: "X (one end)", Section: "Where it lies"},
+			"y1":       {Label: "Y (one end)", Section: "Where it lies", Help: "the floor there"},
+			"z1":       {Label: "Z (one end)", Section: "Where it lies"},
+			"x2":       {Label: "X (other end)", Section: "Where it lies"},
+			"y2":       {Label: "Y (other end)", Section: "Where it lies"},
+			"z2":       {Label: "Z (other end)", Section: "Where it lies"},
+			"radius":   {Label: "Radius", Section: "Where it lies", Help: "how near the segment across a player's feet must come; 0 the default, 1.5"},
+			"below":    {Label: "Below", Section: "Where it lies", Help: "how far under the segment's height feet still count; 0 the default, 2"},
+			"above":    {Label: "Above", Section: "Where it lies", Help: "how far over it; 0 the default, 4"},
+			"damage":   {Label: "Damage", Section: "What it does", Help: "hit points a hit takes (1-1000000), fixed"},
+			"every_ms": {Label: "Every ms", Section: "What it does", Help: "from one hit to the next while the player stays in (0 the default, 2000; 500 to 3600000)"},
+			"words":    {Label: "Words", Section: "What it does", Help: "told at each hit, %d its damage; empty \"<name> hurts you for <n>.\""},
+			"note":     {Label: "Note", Format: "multiline", Help: "where it came from"},
+			"source":   {Label: "Source", Help: "gm, or vines for tools/seed_hazards.py's rows (its --undo deletes those no GM changed)"},
 		},
 	},
 	"spellfx_suggestions": {

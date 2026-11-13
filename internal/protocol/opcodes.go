@@ -583,6 +583,16 @@ const (
 	// but what the server may send it: only #fly turns flight on.
 	OpcodeFly GameOpcode = 0x7E1B
 
+	// OpcodeNoclip is not retail: a GM's /noclip (handlers/noclip.go,
+	// entity/noclip.go; the GM Jibrish's petition 1904), server to a client that
+	// flies (OpcodeFly's): a u32, 1 on and 0 off. On, the client's walk passes
+	// through every wall, floor and ceiling while it flies (it is sent with
+	// OpcodeFly 1, and its end with OpcodeFly 0). A client that does not know it
+	// flies as #fly does, its walls still its own; a PS2 is never sent it.
+	// 0x7E7A, not the next free, is this lane's (a sibling lane may take
+	// 0x7E6F onwards).
+	OpcodeNoclip GameOpcode = 0x7E7A
+
 	// OpcodeCombatRecord is not retail: a character's combat record, its PvP and its
 	// duels (entity/combatrecord.go, handlers/combatrecord.go), for a client with a
 	// window of it: a u32 after the opcode, both ways, as OpcodeRaceLabels. The server
@@ -1394,6 +1404,8 @@ func (op GameOpcode) String() string {
 		return "CombatRecordData"
 	case OpcodeFly:
 		return "Fly"
+	case OpcodeNoclip:
+		return "Noclip"
 	case OpcodeJump:
 		return "Jump"
 	case OpcodeCreationOffer:

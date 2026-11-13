@@ -520,6 +520,8 @@ func main() {
 	handlers.SetRockOfFreeport(cfg.World.RockOfFreeport)
 	// /testinvis, every player's safe mode (handlers/safemode.go)
 	handlers.SetTestInvis(cfg.World.TestInvis)
+	// /noclip's GMs (handlers/noclip.go)
+	handlers.SetNoclipAccounts(cfg.World.NoclipAccounts)
 	handlers.SetTeleporter(cfg.World.Teleporter) // handlers/teleporter.go
 	handlers.SetMercs(cfg.World.Mercs)           // the mercenaries (handlers/merc.go)
 	handlers.SetFamiliars(cfg.World.Familiars)   // the familiars (handlers/familiar.go)

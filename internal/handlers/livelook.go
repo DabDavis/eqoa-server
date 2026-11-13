@@ -31,17 +31,28 @@ func buildLiveLookOffer() []byte {
 	})
 }
 
+// liveLookArmor is bit 2 of a client's answer to the offer, and of the third
+// u32 of the look in force: the client draws this server's armour, set 9 and
+// the trim colours (entity/livelook.go, ArmorChannel).
+const liveLookArmor = 4
+
 // buildLiveLookInForce is OpcodeLiveLookInForce: 1 the live game's look, 0
 // the disc's; then the characters the client is listed and may make
-// (charslots.go), which a client that reads only the first u32 never sees.
-func buildLiveLookInForce(on bool, chars int) []byte {
-	return build(protocol.OpcodeLiveLookInForce, 10, func(w *buffer.Writer) {
+// (charslots.go), and liveLookArmor when this server's armour is in force
+// (else 0), which a client that reads only the first u32 never sees.
+func buildLiveLookInForce(on bool, chars int, armor bool) []byte {
+	return build(protocol.OpcodeLiveLookInForce, 14, func(w *buffer.Writer) {
 		v := uint32(0)
 		if on {
 			v = 1
 		}
 		w.WriteUint32(v)
 		w.WriteUint32(uint32(chars))
+		a := uint32(0)
+		if armor && on {
+			a = liveLookArmor
+		}
+		w.WriteUint32(a)
 	})
 }
 
@@ -70,7 +81,8 @@ func (h *LiveLookHandler) RegisterHandlers(r *Registry) {
 }
 
 // HandleLiveLook makes the client's answer its session's look: a u32, bit 0
-// the live game's, bit 1 its select page lists every character (charslots.go).
+// the live game's, bit 1 its select page lists every character (charslots.go),
+// bit 2 it draws this server's armour (set 9 and the trims; with bit 0 alone).
 // It says what is now in force (the look, and the characters it is listed),
 // and sends the list again in it to a client still choosing a character.
 func (h *LiveLookHandler) HandleLiveLook(sess *session.Session, msg *protocol.Message) error {
@@ -80,13 +92,14 @@ func (h *LiveLookHandler) HandleLiveLook(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 	v := binary.LittleEndian.Uint32(data[:4])
-	on, many := v&1 != 0, v&2 != 0
-	was, wasMany := sess.LiveLook(), sess.ManyChars()
+	on, many, armor := v&1 != 0, v&2 != 0, v&liveLookArmor != 0 && v&1 != 0
+	was, wasMany, wasArmor := sess.LiveLook(), sess.ManyChars(), sess.ArmorLook()
 	sess.SetLiveLook(on)
 	sess.SetManyChars(many)
-	queueReliable(sess, protocol.OpcodeLiveLookInForce, buildLiveLookInForce(on, charCap(sess)))
-	log.Printf("LiveLook: %s reads %s look and lists %d characters", sess.RemoteAddr(), map[bool]string{true: "the live game's", false: "the disc's"}[on], charCap(sess))
-	if (on != was || many != wasMany) && h.chars != nil && sess.State() == session.StateCharacterSelect && !sess.CharacterInWorld() {
+	sess.SetArmorLook(armor)
+	queueReliable(sess, protocol.OpcodeLiveLookInForce, buildLiveLookInForce(on, charCap(sess), armor))
+	log.Printf("LiveLook: %s reads %s look, lists %d characters, this server's armour %v", sess.RemoteAddr(), map[bool]string{true: "the live game's", false: "the disc's"}[on], charCap(sess), armor)
+	if (on != was || many != wasMany || armor != wasArmor) && h.chars != nil && sess.State() == session.StateCharacterSelect && !sess.CharacterInWorld() {
 		h.chars.SendCharacterSelectEQOA(sess)
 	}
 	return nil
@@ -97,10 +110,20 @@ func (h *LiveLookHandler) HandleLiveLook(sess *session.Session, msg *protocol.Me
 // none, the worn items' own colours (worn: its wornLook; Player.LookDyes, as
 // its channel carries them in the world). Until 2026-11-13 the list carried
 // the dyes alone, so a held item's colour (the Heirloom Sword of Twisted
-// Virtue's crimson) or a worn piece's did not show at character select.
+// Virtue's crimson) or a worn piece's did not show at character select. A
+// client that draws this server's armour gets the trims after the 71
+// (entity.ArmorGear); every other set 9 as set 4 (entity.PlainArmor).
 func (h *CharacterHandler) listGear(sess *session.Session, serverID uint32, disc []byte, worn *entity.Player) []byte {
+	if !sess.ArmorLook() && len(disc) >= gearArmor+6 {
+		disc = append([]byte(nil), disc...)
+		entity.PlainArmor(disc[gearArmor : gearArmor+6])
+	}
 	if !sess.LiveLook() {
 		return disc
+	}
+	gear := entity.LiveGear
+	if sess.ArmorLook() {
+		gear = entity.ArmorGear
 	}
 	var d entity.Dyes
 	if h.store != nil && h.store.DB() != nil {
@@ -111,11 +134,14 @@ func (h *CharacterHandler) listGear(sess *session.Session, serverID uint32, disc
 		}
 	}
 	if worn == nil {
-		return entity.LiveGear(disc, &d)
+		return gear(disc, &d)
 	}
 	worn.Dyes = d
-	return entity.LiveGear(disc, worn.LookDyes())
+	return gear(disc, worn.LookDyes())
 }
+
+// gearArmor is the armour sets' place in the disc's 32 gear bytes.
+const gearArmor = 20
 
 // loadDyes puts a character's dyes (table chardyes) on its player at a
 // login.

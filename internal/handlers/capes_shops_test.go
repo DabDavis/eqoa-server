@@ -222,7 +222,7 @@ func TestTheArmorDyerDyesTheCape(t *testing.T) {
 
 	got := talk()
 	if !hasMsg(got, "box:Armor Dyer: I dye armor and capes*") ||
-		!strings.HasSuffix(got[len(got)-1], ":What shall I dye?|All my armor|One piece of armor|My cape|Take every dye off|Robe, cape, shield or weapons") {
+		!strings.HasSuffix(got[len(got)-1], ":What shall I dye?|All my armor|One piece of armor|My cape|Take every dye off|Robe, cape, shield or weapons|Armor trim") {
 		t.Fatalf("the dyer's question with capes: %q", got)
 	}
 	got = pick(got, 4)

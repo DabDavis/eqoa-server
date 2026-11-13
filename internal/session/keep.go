@@ -52,6 +52,7 @@ type Kept struct {
 	LiveLook           bool   `json:"live_look,omitempty"`
 	LiveLookOffered    bool   `json:"live_look_offered,omitempty"`
 	ManyChars          bool   `json:"many_chars,omitempty"`
+	ArmorLook          bool   `json:"armor_look,omitempty"`
 	CreationOffered    bool   `json:"creation_offered,omitempty"`
 	Capes              bool   `json:"capes,omitempty"`
 	CapesOffered       bool   `json:"capes_offered,omitempty"`
@@ -203,6 +204,7 @@ func (s *Session) Keep() Kept {
 		LiveLook:           s.liveLook,
 		LiveLookOffered:    s.liveLookOffered,
 		ManyChars:          s.manyChars,
+		ArmorLook:          s.armorLook,
 		CreationOffered:    s.creationOffered,
 		Capes:              s.capes,
 		CapesOffered:       s.capesOffered,
@@ -363,6 +365,7 @@ func (s *Session) restore(k Kept, now time.Time) {
 	s.liveLook = k.LiveLook
 	s.liveLookOffered = k.LiveLookOffered
 	s.manyChars = k.ManyChars
+	s.armorLook = k.ArmorLook
 	s.creationOffered = k.CreationOffered
 	s.serverWorldsOffered = k.ServerWorldsOffered
 	s.serverWorldsTaken = k.ServerWorldsTaken

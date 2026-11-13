@@ -3727,6 +3727,16 @@ untouched (`TestTheWorldSendsEachClientItsLook`). **Dyes**: table `chardyes` (se
 helm, 6 primary, 7 secondary, 8 shield, 9 robe; color 0xRRGGBBAA, red in the high byte, alpha not 0; no row
 is undyed), read at a login onto `Player.Dyes`, set by `#dye` (below) and the GM panel's "Character dyes"
 (live: on an online character at once). Whether players may dye (a dye item, a merchant) is the user's call.
+**This server's armour: set 9 and the trims** (the owner, 2026-11-13; `entity/livelook.go`, `claude-notes/armor-set9-trim-20261113.md`).
+A client that answers 0x7E0C with bit 2 too (vanilla) is granted it in 0x7E0D's third u32 (`Session.ArmorLook`, kept over a
+keep restart) and draws armour set 9, the ornate gold plate CHAR.ESF holds under the plain plate's DictIDs (an item record's
+model 9, `handlers.wornLook`; Sandstorm's level 48 Ornate set, 34278-34282, is one; `tools/seed_ornate_plate.py` adds a level
+60 set at 711000), and reads six trim colours (chest .. helm, 0xRRGGBBAA, 0 none) after the live channel (225 bytes,
+`ArmorChannel`) and record (95, `ArmorGear`): chardyes' slots 11-16 (`DyeChestTrim`..), the gold trim of plate sets 4 and 9
+drawn in that colour while the piece keeps its own dye. **Every other client is sent set 9 as set 4** (`PlainArmor`, in
+`ForViewer` and `listGear`): CLIENT's `SetArmorSlot` clamps 9 to none, the bare body (before 2026-11-13 a PS2 drew Sandstorm's
+Ornate set so). The Armor Dyers' last answer is "Armor trim" (all of it, or chest, bracers, legs or boots); `#dye trim`,
+`#dye chesttrim ...`; the panel's dye slots 11-16.
 
 **Voice chat was removed on 2026-11-08** (the user: "we removed voice chat from the client so we dont need for
 server"): the forwarding server (`internal/voice`, Pion), its opcodes 0x7E10-0x7E16 (left unused: an older client may

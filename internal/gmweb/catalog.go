@@ -1835,6 +1835,20 @@ var catalog = map[string]tableNote{
 			"note":       {Label: "Note", Help: "why"},
 		},
 	},
+	"spellrecastgroup": {
+		Label: "Spell recast groups", Group: "Items & spells", Title: "spellid", Sort: "grp",
+		Help: "Spells that share one recast (entity/recastgroup.go, ticket 2011): casting any spell of a group locks out " +
+			"every spell of it for the cast spell's own cast time + recast, each button greyed on the client, and the " +
+			"group's lasting effects are one buff line (the newer takes the older off). A row a spell; a spell in no " +
+			"group has none. Made for alternatives kept side by side in a book (the ranger's Wolf's Instinct and " +
+			"Hunter's Instinct).",
+		Live:   "At once: read at every cast.",
+		Search: []string{"grp"},
+		Cols: map[string]colNote{
+			"spellid": {Label: "Spell", Ref: "spellpattern"},
+			"grp":     {Label: "Group", Help: "the group's name; the spells with the same name share their recast"},
+		},
+	},
 	"fishcatch": {
 		Label: "Fishing catches", Group: "Items & spells", Title: "itemid", Sort: "id",
 		Help: "What a cast brings up (handlers/fishing.go): a row an item, picked by weight among the rows that apply " +

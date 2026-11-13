@@ -235,3 +235,23 @@ func TestGMRoamer(t *testing.T) {
 		t.Fatalf("/roamer fast: %q", l)
 	}
 }
+
+// A GM's /size on a creature is kept in its row, audited, so a restart keeps
+// it (the owner, 2026-11-13: "size may not being preserved across restarts").
+func TestGMSizeKeptInTheRow(t *testing.T) {
+	c, db, _, gs, gp, ps := campWorld(t)
+	targetAs(gp, campWolfNear, 100101, gs, ps)
+	before := npcRowMap(t, db, campWolfNear)["size"]
+	c.say(gs, "/size 2.5")
+	l := gmReplies(t, gs)
+	if !hasLine(l, "keeps size") {
+		t.Fatalf("/size: %q", l)
+	}
+	got := npcRowMap(t, db, campWolfNear)["size"].(float64)
+	if math.Abs(got-2.5*before.(float64)) > 0.01 {
+		t.Fatalf("the row's size %v, want 2.5x %v", got, before)
+	}
+	if n := auditLines(t, db, "npcs", "update"); n != 1 {
+		t.Fatalf("%d npcs updates audited", n)
+	}
+}

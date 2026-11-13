@@ -5,8 +5,9 @@ import "fmt"
 // gmscale.go — a GM's /size (the owner, 2026-11-11: "lets add /scale command for GMs change
 // size/scale of any PC/NPC like /scale 2.5 /scale 1(for default)", then "instead of /scale lets make it /size"). The factor is of the body's own
 // size (its row's for an NPC, its race's for a player): /scale 2.5 makes it two and a half times
-// that, /scale 1 gives it back. It is the running world's alone: an NPC's respawn or a restart, a
-// player's next login, ends it (a row's size is the GM panel's to change for good).
+// that, /scale 1 gives it back. A player's is the running world's alone (its next login ends it); a
+// creature with an npcs row keeps its new size there (the owner, 2026-11-13: handlers'
+// keepNPCSize), over respawns and restarts.
 
 // GMScaleMin and GMScaleMax bound a /size factor.
 const (
@@ -72,4 +73,14 @@ func (p *Player) SetGMSpeed(factor float32) float32 {
 		p.gmSpeedBase = 0
 	}
 	return p.Speed
+}
+
+// NPCSize is the size of NPC id in the running world (0 for none).
+func (w *World) NPCSize(id EntityID) float32 {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if n := w.NPCs[id]; n != nil {
+		return n.Size
+	}
+	return 0
 }

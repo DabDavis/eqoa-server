@@ -1290,6 +1290,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, line)
 		if ok {
 			log.Printf("GM: %s size %g: %s", player.Name, f, line)
+			h.keepNPCSize(sess, player) // a creature's kept (gmnpcrow.go)
 		}
 
 	case "#setlevel":

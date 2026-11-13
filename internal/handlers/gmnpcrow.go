@@ -618,3 +618,33 @@ func (h *ChatHandler) roamerCommand(sess *session.Session, player *entity.Player
 	said := h.applyWander(sess, int64(id), w, fmt.Sprintf("/roamer on %s (row %d)", rec.NPCName, id))
 	h.gmReply(sess, fmt.Sprintf("%s (row %d):%s", rec.NPCName, id, said))
 }
+
+// keepNPCSize saves the size a GM's /size gave its target creature to the
+// creature's npcs row, so it keeps it over respawns and restarts (the owner,
+// 2026-11-13). A player's size, a creature with no row (a pet, a summoned
+// add), or no database: the running world's alone, as before.
+func (h *ChatHandler) keepNPCSize(sess *session.Session, player *entity.Player) {
+	if h.camps.db == nil || player.TargetObjectID == 0 || player.TargetObjectID == 0xFFFFFFFF {
+		return
+	}
+	ent, ok := h.gameWorld.FindEntityByObjectID(sess, player.TargetObjectID)
+	if !ok {
+		return
+	}
+	npc, isNPC := ent.(*entity.NPC)
+	if !isNPC {
+		return
+	}
+	if _, why := h.gameWorld.RowNPCRefusal(npc.ServerID); why != "" {
+		return
+	}
+	size := float64(h.gameWorld.NPCSize(npc.ServerID))
+	what := fmt.Sprintf("%s (row %d)", npc.Name, npc.ServerID)
+	if err := h.camps.db.SetNPCRowSizeAudited(int64(npc.ServerID), size, gmEditOf(sess), what); err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			h.gmReply(sess, "/size: not kept over a restart: "+err.Error())
+		}
+		return
+	}
+	h.gmReply(sess, fmt.Sprintf("%s keeps size %.2f over respawns and restarts.", npc.Name, size))
+}

@@ -3,6 +3,7 @@ package entity
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -38,7 +39,15 @@ func TestRealDungeonCastersCast(t *testing.T) {
 	}
 	defer db.Close()
 	w := NewWorld()
-	w.LoadNPCs(database.NewNPCStore(db))
+	store := database.NewNPCStore(db)
+	w.LoadNPCs(store)
+	models, err := store.PlayerModels()
+	if err != nil {
+		t.Fatal(err)
+	}
+	w.SetPlayerModels(models)
+	dungeonWorlds[14].Store(true) // the server's SetDungeons (handlers/serverworlds.go) marks it
+	t.Cleanup(func() { dungeonWorlds[14].Store(false) })
 	if _, err := w.LoadClassTemplates(db); err != nil {
 		t.Fatal(err)
 	}
@@ -101,5 +110,62 @@ func TestRealDungeonCastersCast(t *testing.T) {
 	}
 	if b := byClass[0]; b != nil && b.casting > 0 {
 		t.Errorf("%d warriors cast", b.casting)
+	}
+
+	// Blackburrow's and Runnyeye's casters too (ticket 2004, Brother: "Just did the BB Dungeon and the NPC are
+	// not doing thier class spells ... like sha not using spells"), and with
+	// tools/dungeon_casters_2004_20261113.py applied a shaman keeps up its damage over time and heals itself
+	// (its book's heals are over time: a heal of its share), and a cleric heals from its book
+	kinds := map[string]map[string]bool{}
+	for _, npc := range w.NPCs {
+		if npc.World != 14 || npc.tmpl == nil || !strings.HasPrefix(npc.tmpl.Name, "dungeon ") {
+			continue
+		}
+		n := strings.ToLower(npc.Name)
+		if kinds[n] != nil {
+			continue
+		}
+		kinds[n] = map[string]bool{}
+		for i := range npc.tmpl.abilities {
+			a := &npc.tmpl.abilities[i]
+			if len(a.Classes) > 0 && !slices.Contains(a.Classes, npc.Class) {
+				continue
+			}
+			if a.spellFor(npc.Class, npc.Level) != nil || a.share != nil {
+				kinds[n][a.Kind] = true
+			}
+		}
+	}
+	for name, want := range map[string][]string{
+		"gnoll shaman":            {"nuke", "dot", "heal"}, // Blackburrow
+		"gnoll spiritist":         {"nuke", "dot", "heal"},
+		"bishop narn":             {"nuke", "heal"},
+		"goblin witchdoctor":      {"nuke", "dot", "heal"}, // Runnyeye
+		"high priest goblin":      {"nuke", "heal"},
+		"froglok tal shaman":      {"nuke", "dot", "heal"}, // Guk
+		"froglok tal necromancer": {"nuke", "lifetap", "dot"},
+	} {
+		if kinds[name] == nil {
+			t.Errorf("%s: no creature of world 14 fights by a dungeon tier", name)
+			continue
+		}
+		for _, k := range want {
+			if !kinds[name][k] {
+				t.Errorf("%s casts no %s (it casts %v)", name, k, kinds[name])
+			}
+		}
+	}
+	// and each attacks on sight (ticket 2005, Waldorf: Guk's Maerik N'Toxis, a dark elf's body, showed the
+	// white face): every creature of the dungeons' world but the wardens
+	if len(w.playerModels) > 0 {
+		calm := map[string]bool{}
+		for _, npc := range w.NPCs {
+			if npc.World == 14 && npc.NPCType&0x80 == 0 && !w.hostileLocked(npc) {
+				calm[npc.Name] = true
+			}
+		}
+		if len(calm) > 0 {
+			t.Errorf("%d names of the dungeons attack no one on sight: %v", len(calm), calm)
+		}
 	}
 }

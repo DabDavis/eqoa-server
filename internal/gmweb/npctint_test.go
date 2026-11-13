@@ -164,4 +164,14 @@ func TestAuraEditsAreLive(t *testing.T) {
 	if err := f.db.QueryRow(`SELECT COUNT(*) FROM gm_audit WHERE tbl = 'itemaura'`).Scan(&n); err != nil || n != 2 {
 		t.Fatalf("%d itemaura audit lines, %v", n, err)
 	}
+	// a character's own (charaura): a body aura kept, a slot past 7 and a
+	// kind past 6 refused
+	if code, out := c.op("insert_row", map[string]any{"table": "charaura", "values": map[string]any{"charid": 9001, "merc": 0, "slot": 7, "color": float64(0xA040FFFF), "kind": 2}}); code != 200 {
+		t.Fatalf("charaura insert: %d %v", code, out)
+	}
+	for _, bad := range []map[string]any{{"charid": 9001, "slot": 8}, {"charid": 9001, "slot": 1, "kind": 7}, {"charid": 0, "slot": 1}} {
+		if code, out := c.op("insert_row", map[string]any{"table": "charaura", "values": bad}); code != 400 {
+			t.Errorf("charaura %v: %d %v, want refused", bad, code, out)
+		}
+	}
 }

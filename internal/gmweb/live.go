@@ -52,7 +52,7 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveSpawnOnly()
 	case "npctint":
 		return s.liveTints()
-	case "itemaura":
+	case "itemaura", "charaura":
 		return s.liveItemAuras()
 	case "npctitle":
 		return s.liveTitles()
@@ -326,6 +326,31 @@ func checkAuraCols(row map[string]any, kind, source, nodes string) error {
 		return badRequest("%s is 0 the default (8) to %d", nodes, database.AuraNodesMost)
 	}
 	return nil
+}
+
+// checkCharAuraRow holds a charaura row to a character, a slot (0-6 the
+// pieces, 7 the body), a 32-bit colour and an aura the client reads.
+func checkCharAuraRow(row map[string]any) error {
+	if f, ok := asFloat(row["charid"]); !ok || f != math.Trunc(f) || f <= 0 {
+		return badRequest("charid is the character's server_id (Characters)")
+	}
+	if v, ok := row["slot"]; ok {
+		if f, fok := asFloat(v); !fok || f != math.Trunc(f) || f < 0 || f >= database.CharAuraSlots {
+			return badRequest("slot is 0 chest, 1 bracers, 2 gloves, 3 legs, 4 boots, 5 helm, 6 robe, 7 the body and underclothes (under the armour)")
+		}
+	}
+	if v, ok := row["merc"]; ok {
+		if f, fok := asFloat(v); !fok || f != math.Trunc(f) || f < 0 {
+			return badRequest("merc is 0 the character itself, else its mercenary's hire slot")
+		}
+	}
+	if v, ok := row["color"]; ok {
+		f, fok := asFloat(v)
+		if !fok || f != math.Trunc(f) || !database.ValidNPCTint(int64(f)) {
+			return badRequest("color is 0xRRGGBBAA, 0 none; black 000000FF a dark aura")
+		}
+	}
+	return checkAuraCols(row, "kind", "source", "nodes")
 }
 
 // checkItemAuraRow holds an itemaura row to an item, a 32-bit colour and an

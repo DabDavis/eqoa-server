@@ -1097,6 +1097,25 @@ var catalog = map[string]tableNote{
 			"note":   {Label: "Note", Help: "why"},
 		},
 	},
+	"charaura": {
+		Label: "Character auras", Group: "Items & spells", Title: "charid", Sort: "charid",
+		Help: "An aura on ONE character's piece or body (entity/pieceaura.go; the owner, 2026-11-13: the GM command affects the targeted " +
+			"player's pieces alone): slot 0-6 the pieces (chest, bracers, gloves, legs, boots, helm, robe), shown on whatever item it wears " +
+			"there; 7 the body and underclothes, which its armour covers. Over the item's own aura (Item auras). merc 0 the character, " +
+			"else its mercenary of that hire slot. /aura <colour> <kind> <slot|wholebody> on a targeted player (or yourself) sets a row.",
+		Live:   "At once: the character's channel carries it at the next tick.",
+		Search: []string{"note"},
+		Cols: map[string]colNote{
+			"charid": {Label: "Character", Ref: "characters"},
+			"merc":   {Label: "Merc", Help: "0 the character itself, else its mercenary of that hire slot"},
+			"slot":   {Label: "Slot", Help: "0 chest, 1 bracers, 2 gloves, 3 legs, 4 boots, 5 helm, 6 robe, 7 the body and underclothes (under the armour)"},
+			"color":  {Label: "Colour", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA; black 000000FF with a shell or trim a dark aura"},
+			"kind":   {Label: "Aura", Help: "0 default, 1 none, 2 shell, 3 particles, 4 both, 5 trim, 6 trim and shell"},
+			"source": {Label: "Particles", Format: hex32, Look: lookItem, Store: storeUint32, Help: "the particles' DictID; 0 the Sword of Virtue's"},
+			"nodes":  {Label: "Nodes", Help: "0 the default, 32 at most"},
+			"note":   {Label: "Note", Help: "why"},
+		},
+	},
 	"npctitle": {
 		Label: "NPC titles", Group: "World", Title: "title", Sort: "npcid",
 		Help: "A line over an NPC's name, by its NPCs row (entity/npctitle.go), as the Mercenary Recruitment boards' words " +

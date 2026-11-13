@@ -130,6 +130,11 @@ type ClassTemplate struct {
 	// lastStand is its fight's last stand (AbilityLastStand, laststand.go: one
 	// at most)
 	lastStand *database.TemplateAbility
+	// ward and deathHold are its fight's ward below a share of its hit points
+	// and its hold at 1 (AbilityWard, ward.go; AbilityDeathHold, deathhold.go:
+	// one each at most)
+	ward      *database.TemplateAbility
+	deathHold *database.TemplateAbility
 	// procs and veils are melee procs it always has beside its template's
 	// (AbilityProc, AbilityVeil: creatureproc.go); selfBuffs the buffs those of
 	// a pinned spell are, cast on itself as its fight begins and at each one's
@@ -222,6 +227,10 @@ type templateFight struct {
 	enraged  *enrageOn
 	// lastStand is its last stand once it has stood this fight (laststand.go)
 	lastStand *lastStandOn
+	// warded is its ward once it is up this fight (ward.go), held its hold at 1
+	// once it has held (deathhold.go)
+	warded *wardOn
+	held   *holdOn
 	// buffNext is when each of its template's buffs on itself is cast next
 	// (selfbuff.go: index as selfBuffs'; nil before its first)
 	buffNext []time.Time
@@ -614,6 +623,22 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 					t.lastStand = &l // laststand.go
 				} else {
 					t.problems = append(t.problems, fmt.Sprintf("ability %d: a second last stand (the first is its own)", i+1))
+				}
+				continue
+			case database.AbilityWard:
+				if t.ward == nil {
+					wd := ra
+					t.ward = &wd // ward.go
+				} else {
+					t.problems = append(t.problems, fmt.Sprintf("ability %d: a second ward (the first is its own)", i+1))
+				}
+				continue
+			case database.AbilityDeathHold:
+				if t.deathHold == nil {
+					h := ra
+					t.deathHold = &h // deathhold.go
+				} else {
+					t.problems = append(t.problems, fmt.Sprintf("ability %d: a second death hold (the first is its own)", i+1))
 				}
 				continue
 			case database.AbilityVeil:
@@ -1078,12 +1103,13 @@ func scriptedPair(a, b *NPC) bool {
 // and its death, as an NPC's melee hit on it does (npcHitNPCLocked). Must be
 // called with the lock held.
 func (w *World) castFoeHitLocked(npc, foe *NPC, n int, what string, now time.Time) {
+	n = w.npcTakesLocked(foe, n, now) // nothing while held at 1 (deathhold.go)
 	foe.HP = max(foe.HP-n, 0)
 	npc.LastCombat = now
 	w.addThreatLocked(foe, npc.ServerID, n)
 	log.Printf("Template: %s's %s hits %s for %d (HP %d/%d)", npc.Name, what, foe.Name, n, foe.HP, foe.MaxHP)
 	if foe.HP > 0 {
-		w.hitHealLocked(foe, n, nil) // its heal at every hit that lands (hitheal.go)
+		w.hitLandedLocked(foe, n, nil, npc.ServerID) // its heal at every hit that lands, its ward's answer (hitheal.go, ward.go)
 		return
 	}
 	foe.Effects = nil
@@ -1867,6 +1893,12 @@ func (w *World) templateLineLocked(npc *NPC, now time.Time) string {
 		}
 		if w := lastStandWords(npc); w != "" {
 			parts = append(parts, w) // laststand.go
+		}
+		if w := wardWords(npc); w != "" {
+			parts = append(parts, w) // ward.go
+		}
+		if w := deathHoldWords(npc); w != "" {
+			parts = append(parts, w) // deathhold.go
 		}
 	}
 	parts = append(parts, procsWords(npc)...) // creatureproc.go

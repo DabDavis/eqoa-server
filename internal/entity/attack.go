@@ -755,6 +755,7 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 		w.markHitLocked(sess, attacker, npc, now) // markhit.go: told, as a dummy's hits are
 		return false
 	}
+	damage = w.npcTakesLocked(npc, damage, time.Now())              // nothing while held at 1 (deathhold.go)
 	w.tallyDamageLocked(npc, attacker, min(damage, max(npc.HP, 0))) // killcredit.go
 	npc.HP -= damage
 	if npc.HP < 0 {
@@ -777,7 +778,7 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 		w.factionKillLocked(cs, cp, npc)
 		return true
 	}
-	w.hitHealLocked(npc, damage, sess) // its heal at every hit that lands (hitheal.go)
+	w.hitLandedLocked(npc, damage, sess, attacker.ServerID) // its heal at every hit that lands, its ward's answer (hitheal.go, ward.go)
 	// a proc's damage after the hit (proc.go), then the creature's damage
 	// shield's answer, which may end the fight the other way (creatureshield.go)
 	if w.playerProcsLocked(sess, attacker, npc, attacker.LastCombatTime) {

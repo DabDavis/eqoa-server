@@ -141,8 +141,12 @@ var teleRaids = []teleRaid{
 	// the north rim of his basin, 125 from him, a walk down; the other row of
 	// the name, 3,400 away, is talked to (the NPC bit)
 	{group: 0, name: "Siliskor", bosses: []string{"Siliskor"}, at: &wayPlace{World: 0, X: 14520, Y: 54.19, Z: 26900}},
-	// the canyon by his cave ("Skahyir (Inside Cave)"), 144 from him
-	{group: 0, name: "Skahyir's cave", bosses: []string{"Skahyir"}, at: &wayPlace{World: 0, X: 21640, Y: 6.47, Z: 21380}},
+	// before his cave's mouth, on the box canyon's floor, 48 north of it (the
+	// tunnel's roof ends at z 21158) and 44 from the inferno drake guarding
+	// it: the way in, which walks down to him (petition 1992: the landing
+	// until then, (21640, 6.47, 21380), was the canyon floor over his cave,
+	// with no way down short of the run round the canyon to this mouth)
+	{group: 0, name: "Skahyir's cave", bosses: []string{"Skahyir"}, at: &wayPlace{World: 0, X: 21644, Y: 6.47, Z: 21110}},
 	// before his Estate's main door, 56 from The Guardians: "have your raid
 	// party assemble in IoD, at CT's Estate" (Portal/isle-of-dread)
 	{group: 0, name: "Cazic-Thule's Estate, Isle of Dread", bosses: []string{"CazicThule"}, at: &wayPlace{World: 0, X: 25660, Y: 54.12, Z: 3235}},

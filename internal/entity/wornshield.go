@@ -66,6 +66,8 @@ import (
 // its wearer. Item is the record's name, for the log.
 type WornShield struct {
 	Item string
+	// Buff is an Ascended raid item's timed on-hit effect.
+	Buff *CastSpell
 	// Damage to the creature: Damage, or a roll from Damage to DamageTo; on
 	// undead alone when Undead
 	Damage, DamageTo int
@@ -194,6 +196,10 @@ func WornShieldOf(patternID int, itemName string) (WornShield, bool) {
 			s, ok = wornShields[strings.TrimSpace(base)]
 			weak = ok
 		}
+	}
+	if !ok && ascended {
+		s.Buff = skyRaidWornBuff(record, imported)
+		ok = s.Buff != nil
 	}
 	if ok {
 		s.Item = itemName

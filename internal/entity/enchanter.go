@@ -207,12 +207,23 @@ const arcaneDebuffPer = 15
 // Jibrish, of the lava centipede: "very resistant to FR. Not immune, but very strong
 // to it"): it does not take resist_pct percent of it (or the kind's own, "LR:75":
 // templateResistPct), less what a debuff of that kind on it takes off
-// (npcResistKindPct), and at least 1 lands. Any other as it is. Its chance to resist
-// a spell whole is another matter: that goes by the levels.
+// (npcResistKindPct), and at least 1 lands. Then its template's taken_resist percent
+// of the resist (petition 1944: the Plane of Disease's raid bosses' "LR:115"), at
+// least 1 again. Any other as it is. Its chance to resist a spell whole is another
+// matter: that goes by the levels.
 func creatureResists(resist Stat, npc *NPC, n int, now time.Time) int {
 	if npc == nil || npc.tmpl == nil || n >= 0 || resist == StatNone {
 		return n
 	}
+	n = creatureStrongIn(resist, npc, n, now)
+	if pct := templateTakenPct(npc.tmpl.TakenResist, resist); pct != 100 {
+		n = min(int(math.Round(float64(n)*float64(pct)/100)), -1)
+	}
+	return n
+}
+
+// creatureStrongIn is creatureResists' cut of a resist the creature is strong in.
+func creatureStrongIn(resist Stat, npc *NPC, n int, now time.Time) int {
 	pct := templateResistPct(npc.tmpl.ResistKind, npc.tmpl.ResistPct, resist)
 	if pct <= 0 {
 		return n
@@ -222,6 +233,20 @@ func creatureResists(resist Stat, npc *NPC, n int, now time.Time) int {
 		return n
 	}
 	return min(int(math.Round(float64(n)*float64(100-pct)/100)), -1)
+}
+
+// templateTakenPct is the percent of a resist's damage a template of that taken_resist takes
+// (database.TakenResistPct: "LR:115"); 100 for a resist it does not name.
+func templateTakenPct(kinds string, resist Stat) int {
+	if kinds == "" {
+		return 100
+	}
+	for _, k := range strings.Split(kinds, ",") {
+		if kind, pct, ok := database.TakenResistPct(k); ok && shieldResistStat(kind) == resist {
+			return pct
+		}
+	}
+	return 100
 }
 
 // resistKindHas is whether a template's resist_kind names that resist: one, or several

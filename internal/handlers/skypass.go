@@ -16,8 +16,8 @@ import (
 // teleport people to the next island"; petition 1612, at Granavik: "after
 // granavik dies he needs to drop 20 keys, and open a portal to the next island
 // called Rain Key 3"). Each isle's essence takes one key of its isle and sends
-// the player on to the next isle, the group standing by it along (as the
-// Teleporter's trips: teleGroup): one key, one trip for the giver and the
+// the player on to the next isle, the group standing by it along (moveGroup,
+// as the Teleporter's trips were until petition 1938): one key, one trip for the giver and the
 // group. The keys of the main isle's three essences are the ones Liztin
 // Misseliania sells (rain key, sun key, key of the ancients); every other
 // isle's is its boss's, twenty on its corpse (tools/sky_keys_20261111.py, the

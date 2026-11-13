@@ -47,8 +47,8 @@ func TestAnEnchantersPetSwingsOnceARound(t *testing.T) {
 }
 
 // An enchanter's pet taunts its target every third round it fights it: the
-// creature, fighting the enchanter, turns on the pet and takes one more hit
-// in that round (Grand Animation's 500). The control: a magician's Fire
+// creature takes one more hit in that round (Grand Animation's 500), and the
+// pet's threat rises to 70% of the way past the enchanter's (petition 1928). The control: a magician's Fire
 // Elemental never taunts, and the creature stays on its owner.
 func TestAnEnchantersPetTauntsEveryThirdRound(t *testing.T) {
 	golem := CastSpell{SpellID: 586, DisplayIndex: 3, Level: 44, Scope: 0, Name: "Iron Golem",
@@ -84,8 +84,12 @@ func TestAnEnchantersPetTauntsEveryThirdRound(t *testing.T) {
 	pet, _ := r.summon(t, golem, 0)
 	r.sent()
 	enemyAt, hits := fight(r, pet, 3)
-	if enemyAt[0] != r.p.ServerID || enemyAt[1] != r.p.ServerID || enemyAt[2] != pet.ServerID {
-		t.Errorf("the creature's enemy round by round %v, want the owner %d twice then the pet %d", enemyAt, r.p.ServerID, pet.ServerID)
+	// an enchanter's pet's taunt gives 70% of the threat (petition 1928, pettaunthate.go): from the
+	// owner's million, the pet comes to 700,000 and more, short of the owner, who keeps the creature
+	if th := r.enemy.Threats[pet.ServerID]; enemyAt[0] != r.p.ServerID || enemyAt[1] != r.p.ServerID || enemyAt[2] != r.p.ServerID ||
+		th < 700_000 || th >= 1_000_000 {
+		t.Errorf("the creature's enemy round by round %v, the pet's threat %d: want the owner %d throughout, the pet's 70%% of the top",
+			enemyAt, th, r.p.ServerID)
 	}
 	if hits != 3+1 {
 		t.Errorf("%d hits in three rounds of one, want three and the taunt's", hits)

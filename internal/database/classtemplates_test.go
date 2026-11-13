@@ -122,6 +122,9 @@ func TestABadClassTemplateIsLeftOut(t *testing.T) {
 		`INSERT INTO classtemplates (name, class, hp_pct) VALUES ('frail', 0, 0)`,
 		`INSERT INTO classtemplates (name, class) VALUES ('noclass', 15)`,
 		`INSERT INTO classtemplates (name, class, special, special_chance) VALUES ('nokick', 0, 'Kick', 20)`,
+		`INSERT INTO classtemplates (name, class, taken_resist) VALUES ('nopct', 0, 'LR')`,
+		`INSERT INTO classtemplates (name, class, taken_resist) VALUES ('toomuch', 0, 'LR:1001')`,
+		`INSERT INTO classtemplates (name, class, taken_resist) VALUES ('weak', 0, 'lr:115, FR:90')`,
 		`INSERT INTO classtemplates (name, class, abilities) VALUES ('fine', 13, '[{"kind": "Nuke", "every": 10, "line": " bolt "}]')`,
 	} {
 		if _, err := db.Exec(q); err != nil {
@@ -132,13 +135,16 @@ func TestABadClassTemplateIsLeftOut(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, name := range []string{"typo", "chainfirst", "frail", "noclass", "nokick"} {
+	for _, name := range []string{"typo", "chainfirst", "frail", "noclass", "nokick", "nopct", "toomuch"} {
 		if _, ok := got[name]; ok {
 			t.Errorf("%q read, want left out", name)
 		}
 	}
-	if len(bad) != 5 {
-		t.Errorf("bad: %v, want the five named", bad)
+	if len(bad) != 7 {
+		t.Errorf("bad: %v, want the seven named", bad)
+	}
+	if w, ok := got["weak"]; !ok || w.TakenResist != "lr:115, FR:90" {
+		t.Errorf("taken_resist read: %+v %v", w.TakenResist, ok)
 	}
 	if f, ok := got["fine"]; !ok || f.Abilities[0].Kind != AbilityNuke || f.Abilities[0].Line != "bolt" {
 		t.Errorf("the control: %+v %v", f, ok)

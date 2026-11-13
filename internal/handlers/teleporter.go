@@ -666,30 +666,15 @@ func (h *InteractHandler) answerTeleporter(sess *session.Session, p *entity.Play
 		return true
 	}
 	log.Printf("Teleporter: %s to %s", p.Name, kid.label)
+	// the picker alone: the GM Jibwiz's petition 1938, 2026-11-13 ("The teleporter NPC in freeport
+	// when used will take everyone in your entire group or raid with you. This should not be the
+	// case, it is individual"), undoing petition 1408's group trip (Waldorf, 2026-11-09). The Sky
+	// essences' and the dungeons' trips still take the group (moveGroup).
 	h.travel(sess, p, dest)
-	h.teleGroup(p, asked.npc, dest, kid.label)
 	return true
 }
 
-// teleGroupWords is what a member the trip takes along is told (the
-// picker's name, the trip's answer).
-const teleGroupWords = "Teleporter: %s takes the group to %s."
-
-// teleGroup takes p's group along on p's trip (petition 1408, Waldorf: "should
-// take the group at same time to same spot. I went to Xrags and took each of
-// my 4 group members to different parts of the place"): every member standing
-// by the Teleporter, as near as a box is answered from, alive, whose client
-// loads the trip's world, goes at once to p's landing, facing as p does. A
-// camp's landing is worked out from where its creatures stand at the moment,
-// so a trip a member took on their own landed apart. A member away from the
-// Teleporter stays where they are. Each is moved as a GM trigger's teleport
-// moves players (BeginWarp under the World's lock), not by travel, which is
-// for the session's own player.
-func (h *InteractHandler) teleGroup(p *entity.Player, npc entity.EntityID, dest entity.CoachDest, label string) {
-	h.moveGroup(p, npc, dest, fmt.Sprintf(teleGroupWords, p.Name, label), "Teleporter", nil)
-}
-
-// moveGroup is teleGroup's move for any NPC's trip: each member by the NPC
+// moveGroup is an NPC's trip for a group (a Sky essence's: skypass.go): each member by the NPC
 // (teleReach), alive, whose client loads the world, told words and moved to
 // dest; each then given to also (nil: nothing more). who names the mover in
 // the log.

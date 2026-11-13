@@ -62,8 +62,16 @@ import (
 // (raidcmds.go routes them). Every line is in the raid's orange.
 
 const (
-	// raidRollFor is a roll's time (petition 1448: "People have 120 seconds to choose").
-	raidRollFor = 120 * time.Second
+	// raidRollFor is a roll's base time (petition 1448: "People have 120 seconds to choose";
+	// the GM Jibwiz's petition 1939, 2026-11-13: "The base time for the rolls is too short. Add
+	// 5 seconds to it").
+	raidRollFor = 125 * time.Second
+	// raidRollEach is the time every open roll of a raid gains for each other one rolled at the
+	// same time (petition 1939: "Add an additional amount of time to ALL items for each one that
+	// is being rolled at the same time. Eg if its 60 seconds for one, its 70 for both of them for
+	// 2 80 for 3 etc."): a kill's three items roll for 125 + 2 x 10 seconds each; a second kill's
+	// items while those are open add their count's 10 s to each of those too (rollTimesLocked).
+	raidRollEach = 10 * time.Second
 	// raidHoldFor is a winner's time to take its item off the corpse, and a master
 	// looter's hold (petition 1448: "a period of 5 minutes"; ours for the master looter).
 	raidHoldFor = 5 * time.Minute
@@ -436,12 +444,62 @@ func (h *NPCWindowHandler) startRaidLootLocked(ls *lootState, npc *entity.NPC, k
 		rolls = append(rolls, roll)
 	}
 	c.items = keep
-	h.holdCorpseFor(npc.ServerID, k.Died, now.Add(raidRollFor+raidHoldFor))
+	length := h.rollTimesLocked(ls, rc.group, rolls, now)
+	h.holdCorpseFor(npc.ServerID, k.Died, now.Add(length+raidHoldFor))
 	h.raidSayLocked(rc, nil, h.linkedf(npc.Name, "Need before greed on %s's loot: %s. Need, Greed or Pass within %d seconds.",
-		npc.Name, coveredList, int(raidRollFor/time.Second)))
+		npc.Name, coveredList, int(length/time.Second)))
 	for _, roll := range rolls {
 		h.offerRollLocked(roll, now)
 	}
+}
+
+// rollTimesLocked sets the time of a raid's new rolls (raidRollEach's doc): each ends raidRollFor
+// after now and raidRollEach more for every other roll of the group's open with it, the new ones
+// among them; each roll of the group's already open gains raidRollEach for each new one, its
+// corpse held as long, and its seats still to choose are offered it again with its new time (a
+// window takes the new seconds in place of the old: vanilla's rollwnd). It returns the new rolls'
+// time. Must be called with ls.mu held.
+func (h *NPCWindowHandler) rollTimesLocked(ls *lootState, group uint32, rolls []*lootRoll, now time.Time) time.Duration {
+	isNew := make(map[*lootRoll]bool, len(rolls))
+	for _, r := range rolls {
+		isNew[r] = true
+	}
+	var older []*lootRoll
+	for _, r := range ls.rolls {
+		if r.group == group && !isNew[r] && now.Before(r.ends) {
+			older = append(older, r)
+		}
+	}
+	sort.Slice(older, func(i, j int) bool { return older[i].id < older[j].id })
+	length := raidRollFor + raidRollEach*time.Duration(len(older)+len(rolls)-1)
+	for _, r := range rolls {
+		r.ends = now.Add(length)
+	}
+	if len(rolls) == 0 {
+		return length
+	}
+	more := raidRollEach * time.Duration(len(rolls))
+	for _, r := range older {
+		r.ends = r.ends.Add(more)
+		h.holdCorpseFor(r.corpse, r.died, r.ends.Add(raidHoldFor))
+		for _, s := range r.seats {
+			if s.choice != rollNone || s.closed {
+				continue
+			}
+			sess, _ := h.raidSeatOf(s.ServerID)
+			switch {
+			case sess == nil:
+			case h.raidWindowsOf(sess):
+				queueReliable(sess, protocol.OpcodeRaidRoll, rollPayload(r, s, now, readsCapes(sess)))
+			default:
+				SendColoredChat(sess, fmt.Sprintf("Roll %d: %d seconds now to choose.", r.id, rollSecondsLeft(r, now)), raidR, raidG, raidB)
+			}
+		}
+	}
+	if len(older) > 0 {
+		log.Printf("Raid loot: group %d's %d open rolls gain %s for %d new ones", group, len(older), more, len(rolls))
+	}
+	return length
 }
 
 // spanWords is a time in the lines' words: "5 minutes", "90 seconds".
@@ -459,7 +517,7 @@ func (h *NPCWindowHandler) newRollLocked(ls *lootState, npc *entity.NPC, died ti
 	for tries := 0; tries < raidRollIDs; tries++ {
 		ls.nextRoll = ls.nextRoll%raidRollIDs + 1
 		if ls.rolls[ls.nextRoll] == nil {
-			r := &lootRoll{id: ls.nextRoll, corpse: npc.ServerID, died: died, group: rc.group, item: hi, ends: now.Add(raidRollFor)}
+			r := &lootRoll{id: ls.nextRoll, corpse: npc.ServerID, died: died, group: rc.group, item: hi, ends: now.Add(raidRollFor)} // rollTimesLocked sets its end
 			for _, s := range seats {
 				r.seats = append(r.seats, &rollSeat{RaidSeat: s, mayNeed: mayNeed(s, &hi.rec.Pattern)})
 			}
@@ -507,13 +565,18 @@ func (h *NPCWindowHandler) offerRollLocked(r *lootRoll, now time.Time) {
 			queueReliable(sess, protocol.OpcodeRaidRoll, rollPayload(r, s, now, readsCapes(sess)))
 			continue
 		}
-		h.rollOfferLinked(r, s).colored(sess, raidR, raidG, raidB)
+		h.rollOfferLinked(r, s, now).colored(sess, raidR, raidG, raidB)
 	}
 }
 
+// rollSecondsLeft is a roll's whole seconds left at now (at least 1).
+func rollSecondsLeft(r *lootRoll, now time.Time) int {
+	return max(1, int(math.Ceil(r.ends.Sub(now).Seconds())))
+}
+
 // rollOfferLine is a roll offered to a seat whose client shows no windows.
-func rollOfferLine(r *lootRoll, s *rollSeat) string {
-	item, secs := r.item.rec.Pattern.ItemName, int(raidRollFor/time.Second)
+func rollOfferLine(r *lootRoll, s *rollSeat, now time.Time) string {
+	item, secs := r.item.rec.Pattern.ItemName, rollSecondsLeft(r, now)
 	if s.mayNeed {
 		return fmt.Sprintf("Roll %d: %s. /t need %d, /t greed %d or /t pass %d within %d seconds.", r.id, item, r.id, r.id, r.id, secs)
 	}
@@ -521,8 +584,8 @@ func rollOfferLine(r *lootRoll, s *rollSeat) string {
 }
 
 // rollOfferLinked is rollOfferLine with the item linked (lootlinks.go).
-func (h *NPCWindowHandler) rollOfferLinked(r *lootRoll, s *rollSeat) *serverLine {
-	item, secs := lootItem(r.item.rec, 0), int(raidRollFor/time.Second)
+func (h *NPCWindowHandler) rollOfferLinked(r *lootRoll, s *rollSeat, now time.Time) *serverLine {
+	item, secs := lootItem(r.item.rec, 0), rollSecondsLeft(r, now)
 	if s.mayNeed {
 		return h.linkedf(s.Name, "Roll %d: %s. /t need %d, /t greed %d or /t pass %d within %d seconds.", r.id, item, r.id, r.id, r.id, secs)
 	}

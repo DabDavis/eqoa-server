@@ -442,6 +442,11 @@ func main() {
 		log.Printf("WARNING: %v; no teleport orb sends anyone", err)
 	}
 	log.Printf("World: %s", gameWorld.OrbsSummary())
+	// The hazards (entity/hazards.go, table hazards): places that hurt a player standing in them
+	if _, err := gameWorld.LoadHazards(db); err != nil {
+		log.Printf("WARNING: %v; no hazard hurts anyone", err)
+	}
+	log.Printf("World: %s", gameWorld.HazardsSummary())
 
 	log.Printf("Entity world: %d players, %d NPCs", gameWorld.PlayerCount(), gameWorld.NPCCount())
 

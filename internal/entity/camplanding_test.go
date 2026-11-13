@@ -135,3 +135,33 @@ func TestCampAnchorTakesTheNameInAnyCase(t *testing.T) {
 		t.Error("SpawnOfNPCNear found a namesake out of reach")
 	}
 }
+
+// lavaLake is lava from y 0 to 10 east of x 1060 (a lake under the camp's
+// terrain there: the stairs and bridges over Erud's Crossing's).
+type lavaLake struct{}
+
+func (lavaLake) Flags(world uint8, x, y, z float32) (uint32, bool) {
+	if x > 1060 && y >= 0 && y <= 10 {
+		return envLava, true
+	}
+	return 0, true
+}
+
+// A camp's landing is never in the lava nor over it (petition 1895, Itachi:
+// "Moots port should put you at base of stairs, not over lava"): with a lava
+// lake 40 under the terrain east of the camp, the side away from its middle,
+// it lands west of the lake. The control: with no lake it lands east.
+func TestCampLandingNeverOverLava(t *testing.T) {
+	w := campWorld(flatGround{y: 50})
+	if x, _, _, ok := w.CampLanding("orc", 0, 1020, 1000, 300); !ok || x <= 1060 {
+		t.Fatalf("the control landed at x %.0f, want east of 1060", x)
+	}
+	w.env = lavaLake{}
+	x, y, z, ok := w.CampLanding("orc", 0, 1020, 1000, 300)
+	if !ok || x > 1060 || (x == 1020 && z == 1000) {
+		t.Fatalf("landed (%.0f, %.1f, %.0f) %v: over the lava or on the anchor", x, y, z, ok)
+	}
+	if !w.lavaUnderLocked(0, 1100, 50, 1000) || w.lavaUnderLocked(0, 1100, 200, 1000) || w.lavaUnderLocked(0, 1000, 50, 1000) {
+		t.Error("lavaUnderLocked: 40 over the lake, 190 over it, beside it")
+	}
+}

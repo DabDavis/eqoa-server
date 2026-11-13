@@ -31,7 +31,8 @@ var campSteps = [...]float32{45, 60, 75, 90, 110, 130, 150}
 // the anchor (under it, for a camp on a keep's floor or a tree's platforms,
 // campHigh at most) with no floor campOpen above it (the open air, never a tunnel or a
 // castle's hall the ground's floors cannot tell from the outside), out of the
-// water, nearest first, the side away from the middle of the camp's creatures
+// water, out of the lava and not over it (lavaUnderLocked: petition 1895, the
+// moots' landed on the stairs over Erud's Crossing's lava lake), nearest first, the side away from the middle of the camp's creatures
 // first; in a camp with no such spot, the open spot with the most room
 // (campCrowded at least). A world with no ground, an anchor with no terrain
 // under it, or a camp with no open spot (a cave's) lands on the anchor's
@@ -117,8 +118,8 @@ func (w *World) CampLanding(name string, world uint8, x, z, reach float32) (lx, 
 			if top, ok := w.ground.Floor(world, px, fy+1000, pz); ok && top > fy+campOpen {
 				continue // under a roof, an overhang, another floor
 			}
-			if w.waterAtLocked(world, px, fy+bodyAbove, pz) {
-				continue
+			if w.waterAtLocked(world, px, fy+bodyAbove, pz) || w.lavaUnderLocked(world, px, fy, pz) {
+				continue // the water, the slime; in the lava or over it (petition 1895)
 			}
 			r := room(px, pz)
 			if r >= campClear {
@@ -133,4 +134,31 @@ func (w *World) CampLanding(name string, world uint8, x, z, reach float32) (lx, 
 		return bx, by, bz, true
 	}
 	return
+}
+
+// envLava is a zone leaf's lava flag (GetEnvFlags; ground.EnvLava).
+const envLava uint32 = 4
+
+// lavaUnder is how far under a floor lavaUnderLocked looks for lava, and
+// lavaStep its step.
+const (
+	lavaUnder float32 = 120
+	lavaStep  float32 = 2
+)
+
+// lavaUnderLocked reports lava at a body on the floor fy at (x, z), or under
+// it within lavaUnder: a stair or a bridge over a lava lake (petition 1895,
+// Itachi: "Moots port should put you at base of stairs, not over lava"; the
+// moots' camp landed on the stairs 57 over Erud's Crossing's lava lake). Must
+// be called with the lock held.
+func (w *World) lavaUnderLocked(world uint8, x, fy, z float32) bool {
+	if w.env == nil {
+		return false
+	}
+	for y := fy + bodyAbove; y >= fy-lavaUnder; y -= lavaStep {
+		if f, ok := w.env.Flags(world, x, y, z); ok && f&envLava != 0 {
+			return true
+		}
+	}
+	return false
 }

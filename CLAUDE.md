@@ -2338,11 +2338,8 @@ statics on Xrag's rock are the xrag camp); sorted by the levels their creatures 
 (`levelFold`/`levelParts`: as even as they come, cut where the levels change where they can), landing where `#tele` lands
 (`World.CampLanding`: beside the camp out of its creatures' notice), facing it. Only worlds the client loads are offered
 (`CanLoadWorld`); a box is answered only within 30 of the Teleporter ("Come back to me to go"); what it offers is read again every
-minute, so a GM's new camp shows within one. **A grouped player's trip takes the group** (`teleGroup`, petition 1408, Waldorf: "should
-take the group at same time to same spot"; a camp's landing is worked out from its creatures at the moment, so members who went one
-by one landed apart): every member within 30 of the Teleporter, alive, whose client loads the world, goes at once to the picker's
-very landing and facing, told "Teleporter: <picker> takes the group to <trip>." and moved as a GM trigger's teleport moves players
-(`BeginWarp`); a member away from it stays. **`tools/place_teleporter.py [--apply|--undo]`** stands it on Dabrish's line, 8 to the
+minute, so a GM's new camp shows within one. **A trip is the picker's alone** (petition 1938, the GM Jibwiz, 2026-11-13: "it is individual"; from 2026-11-09 to then, petition
+1408's `teleGroup` took the group by it along; the Sky essences' `moveGroup` still does). **`tools/place_teleporter.py [--apply|--undo]`** stands it on Dabrish's line, 8 to the
 side his Armor Dyer stands on (4: the Teleporter beyond it), facing as he does, in Waysender Ilganis's look (the Erudite body in a
 robe, a staff), level 60, talked to only, with `npcmove` stands and `npcaggro` never, refusing a spot within 3.5 of another NPC,
 6 of the Summoning Portal's landing or 10 of Mr. Moogie; gm_audit rows, `--undo` exact. NPCs are read at the start: a keep
@@ -2546,6 +2543,18 @@ greeting says all of a standing above -2000 is spent (petition 1515: it always w
 **A pick shows the ware first** (petition 1876, `Heroes.show`): before the Yes/No or a refusal, a line naming the item as
 an item link ("..., 350 faction. Click its name to see its stats.") to a client that takes links (made as a loot line's
 link), its stats in words to any other.
+
+### Hazards: places that hurt a player standing in them (`entity/hazards.go`, table `hazards`, `tools/seed_hazards.py`)
+
+Petition 1937 (the GM Hoofbite, 2026-11-13): "spikey vines in toxxulia cave should damage player for 1000 dmg when walking
+through them". A row is a capsule (segment `x1/y1/z1`-`x2/y2/z2`, `radius` across, feet from `below` under to `above` over
+it; 0s the defaults 1.5/2/4) with a `damage` and `every_ms` (default 2000); `hazardSystem` (every 5 ticks) hits a living
+player standing in one at once and again every `every_ms` while it stays in one (`Player.hazardNext`), the figure and its
+`words` in red, a death as a drowning's; not the dead, a GM flying or a session loading a world. Read at the start and at a
+panel edit ("Hazards", World). **`cmd/hazardscan`** turns a world's zone actors of given sprites into rows (the placed mesh's
+principal axis across, the radius holding 80% of it, 1-3); `tools/hazards/toxxulia_vines.json` is its reading of the disc's
+thorny vines (SimpleSprites B9F5C1A9/AA/AB: 144 actors, every one in Odus zone 20, the Toxxulia cave), written by
+`tools/seed_hazards.py [--apply|--undo]` (source `vines`, log `hazard_seed`).
 
 ### Teleport orbs: a step onto a pad sends the player to its pair (`entity/orbs.go`, table `orbs`, `tools/seed_orbs.py`)
 
@@ -2787,7 +2796,7 @@ second). A voluntary leave keeps none. **The loot rules** (`handlers/raidloot.go
 another. A raid's kill (`KillCredit.Raid`, credited to a member) under **need before greed** is rolled at its death for the highest seat's
 level, and each item the rules cover (`raidCovers`: never a stackable or vendor trash; a no trade item, an item with stats, or anything else
 a raid boss drops) comes off the corpse and is offered to its seats (members within `KillShareRange` 200, alive or dead, and the claims):
-Need by the equip rules (`cannotWear`, `scrollRefusal`), Greed, or Pass, 120 s; a choice rolls 0-100 at once, said in raid chat; when all
+Need by the equip rules (`cannotWear`, `scrollRefusal`), Greed, or Pass, 125 s and 10 s more for each other roll of the raid open with it, older ones gaining 10 s for each new one (`rollTimesLocked`, petition 1939); a choice rolls 0-100 at once, said in raid chat; when all
 chose or time is up (no choice a pass) the highest Need wins, else the highest Greed, a tie rolling again between the tied; no roll leaves it
 on the corpse for anyone. The winner's item goes to its pack at once when there is room, else it waits for the winner alone for 5 minutes
 and its opening the corpse then puts it in the pack (or says the pack is full) and opens no window; then it is anyone's. **A raid boss**

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"reflect"
 	"slices"
 	"strconv"
 	"strings"
@@ -262,6 +263,23 @@ const (
 	// to the mobs in the chamber so they get attacked by them", "make the port
 	// once every 3 mins").
 	AbilityPortNear = "portnear"
+	// AbilityKickZone: a zone round its creature it guards in or out of a fight
+	// (entity/kickzone.go; the GM Jibwiz's petition 1956, the Anvil of Sarek:
+	// "If a player hits the distance my character is currently at from him he
+	// should do a kick animation and hit them for 10,000 unresistable damage
+	// every second"): every Every seconds (0: 1) each living player within
+	// Radius of it across (and as far up or down) is kicked for Damage, fixed,
+	// no resist, no mitigation, with the special's visual (FX for another),
+	// told as Name's (DefaultKickZoneName for none).
+	AbilityKickZone = "kickzone"
+)
+
+// The kick zone's bounds: its radius, damage and every; DefaultKickZoneName is
+// its hit's name with none.
+const (
+	MostKickZoneRadius  = 200
+	MostKickZoneDamage  = 1000000
+	DefaultKickZoneName = "Kick"
 )
 
 // MostPortRadius is the widest a portnear looks for creatures to send a player beside.
@@ -283,7 +301,7 @@ const MostSetHPRadius = 200
 var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff, AbilityRoot, AbilityDebuff,
 	AbilityStrip, AbilityHealShield, AbilityMeleeKind, AbilityDoT, AbilityHitHeal, AbilityPrefer, AbilitySummon, AbilityEnrage,
 	AbilityProc, AbilityVeil, AbilityKillSay, AbilityLastStand, AbilityWard, AbilityDeathHold, AbilitySelfDoT, AbilityRaidHeal,
-	AbilityPowerZero, AbilitySetHP, AbilityUnreached, AbilityDeathTouch, AbilityPortNear}
+	AbilityPowerZero, AbilitySetHP, AbilityUnreached, AbilityDeathTouch, AbilityPortNear, AbilityKickZone}
 
 // passiveKind is whether an ability of the kind casts nothing on a clock of its
 // own: what it does is a rule its creature keeps (a heal shield, a melee kind,
@@ -292,7 +310,7 @@ var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal
 func passiveKind(k string) bool {
 	switch k {
 	case AbilityHealShield, AbilityMeleeKind, AbilityHitHeal, AbilityPrefer, AbilitySummon, AbilityEnrage, AbilityProc, AbilityVeil,
-		AbilityKillSay, AbilityLastStand, AbilityWard, AbilityDeathHold:
+		AbilityKillSay, AbilityLastStand, AbilityWard, AbilityDeathHold, AbilityKickZone:
 		return true
 	}
 	return false
@@ -756,6 +774,12 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 			}
 			continue
 		}
+		if a.Kind == AbilityKickZone {
+			if err := checkKickZone(n, a); err != nil {
+				return err
+			}
+			continue
+		}
 		if BossMomentKind(a.Kind) {
 			if err := checkBossMoment(n, a); err != nil {
 				return err
@@ -825,6 +849,29 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 		if err := checkPetAbility(n, a); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+// checkKickZone holds a kick zone (AbilityKickZone) to its fields: a radius of 1
+// to MostKickZoneRadius, a damage of 1 to MostKickZoneDamage, every 0 (1 s) or
+// 0.5 to 3600 seconds, a name, a visual and a say as any; nothing else.
+func checkKickZone(n int, a TemplateAbility) error {
+	k := a
+	k.Kind, k.Radius, k.Damage, k.Every, k.Name, k.FX, k.Say = "", 0, 0, 0, "", 0, ""
+	switch {
+	case math.IsNaN(a.Radius) || a.Radius < 1 || a.Radius > MostKickZoneRadius:
+		return fmt.Errorf("ability %d: a kickzone's radius %.1f: 1 to %d", n, a.Radius, MostKickZoneRadius)
+	case a.Damage < 1 || a.Damage > MostKickZoneDamage:
+		return fmt.Errorf("ability %d: a kickzone's damage %d: 1 to %d", n, a.Damage, MostKickZoneDamage)
+	case math.IsNaN(a.Every) || a.Every != 0 && (a.Every < 0.5 || a.Every > 3600):
+		return fmt.Errorf("ability %d: a kickzone's every %.1f: 0 (1 s) or 0.5 to 3600 seconds", n, a.Every)
+	case len(a.Name) > StripNameMost:
+		return fmt.Errorf("ability %d: a name of more than %d characters", n, StripNameMost)
+	case len(a.Say) > SayMost || strings.ContainsAny(a.Say, "|\n\r"):
+		return fmt.Errorf("ability %d: a say of more than %d characters, or with a | or a line break", n, SayMost)
+	case !reflect.DeepEqual(k, TemplateAbility{}):
+		return fmt.Errorf("ability %d: a kickzone takes radius, damage, every, name, fx and say alone", n)
 	}
 	return nil
 }

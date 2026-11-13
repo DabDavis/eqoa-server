@@ -2,6 +2,7 @@ package entity
 
 import (
 	"log"
+	"math"
 	"math/rand"
 	"time"
 
@@ -136,7 +137,11 @@ func (w *World) duelTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 	if d == nil {
 		return
 	}
-	w.duelHurtLocked(d, caster, caster.ServerID, t, -ae.HPTick, now, ae.tickKind(false))
+	src, kind := caster.ServerID, ae.tickKind(false)
+	if ae.pet != 0 {
+		src, kind = ae.pet, kind.byPet() // its pet's damage over time (duelpet.go)
+	}
+	w.duelHurtLocked(d, caster, src, t, -ae.HPTick, now, kind)
 }
 
 // duelPetLocked is petSystem's duel half: a duelist's pet fights the
@@ -211,6 +216,10 @@ func (w *World) duelPetRoundLocked(ps *petState, d *Duel, target EntityID, dt fl
 	}
 	pet.stopMoving()
 	pet.Facing = headingTo(tx-pet.X, tz-pet.Z)
+	m, _ := w.duelMarkOfLocked(target)
+	if w.duelPetTurnLocked(ps, m, now) { // its template's abilities: casting, no melee (duelpet.go)
+		return true
+	}
 	length, delay, fx, hits := npcRound(pet)
 	if pet.RoundTarget != target {
 		pet.endRound()
@@ -229,14 +238,24 @@ func (w *World) duelPetRoundLocked(ps *petState, d *Duel, target EntityID, dt fl
 		pet.RoundHits++
 		pet.LastCombatTime = now
 		n := petMeleeHit(pet, duelStandIn(level), rand.Intn)
+		if ps.hitScale > 0 && ps.hitScale != 1 {
+			n = int(math.Round(float64(n) * ps.hitScale)) // a recorded kind's (petrotation.go)
+		}
+		n = ps.meleeOut(n) // its template's melee_pct (pettemplate.go)
 		if t := w.Players[target]; t != nil {
 			if w.duelHurtLocked(d, owner, pet.ServerID, t, n, now, numberMelee.byPet()) || w.duelAnswerLocked(d, t, duelMark{pet: pet}, now) { // duelprocs.go
+				return true
+			}
+			if w.duelPetProcsLocked(d, ps, duelMark{t: t}, now) { // its procs (duelpet.go)
 				return true
 			}
 			continue
 		}
 		if tp := w.NPCs[target]; tp != nil {
 			w.duelHurtPetLocked(d, owner, tp, n, now, numberMelee.byPet())
+			if !d.petOut[tp.Owner] {
+				w.duelPetProcsLocked(d, ps, duelMark{pet: tp}, now)
+			}
 			if d.petOut[tp.Owner] {
 				d.petTarget[owner.ServerID] = d.other(owner.ServerID)
 				pet.endRound()

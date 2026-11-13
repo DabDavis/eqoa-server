@@ -954,7 +954,7 @@ func (w *World) duelHurtLocked(d *Duel, attacker *Player, src EntityID, t *Playe
 	t.StatsDirty = true
 	if dmg < t.HP {
 		t.HP -= dmg
-		log.Printf("%s: %s hits %s for %d (%d before the halving; HP %d/%d)", d.tag(), attacker.Name, t.Name, dmg, n, t.HP, t.MaxHPNow())
+		log.Printf("%s: %s hits %s for %d (%d before the halving; HP %d/%d)", d.tag(), w.duelHitterLocked(attacker, src), t.Name, dmg, n, t.HP, t.MaxHPNow())
 		return false
 	}
 	if d.pvp {
@@ -962,9 +962,21 @@ func (w *World) duelHurtLocked(d *Duel, attacker *Player, src EntityID, t *Playe
 		return true
 	}
 	t.HP = min(t.HP, DuelLoserHP)
-	log.Printf("Duel %d: %s's %d leaves %s at %d", d.ID, attacker.Name, dmg, t.Name, t.HP)
+	log.Printf("Duel %d: %s's %d leaves %s at %d", d.ID, w.duelHitterLocked(attacker, src), dmg, t.Name, t.HP)
 	w.endDuelLocked(d, t.ServerID, duelDefeated, now)
 	return true
+}
+
+// duelHitterLocked is who struck, for the log: the attacker, or its pet ("Ruggid's pet "Haunting
+// Death""), as a pet's hits went to the log as its owner's (2026-11-13: Ruggid's "pet didnt
+// swing?" could not be read from them).
+func (w *World) duelHitterLocked(attacker *Player, src EntityID) string {
+	if src != attacker.ServerID {
+		if pet := w.NPCs[src]; pet != nil {
+			return fmt.Sprintf("%s's pet %q", attacker.Name, pet.Name)
+		}
+	}
+	return attacker.Name
 }
 
 // duelHurtPetLocked lands n of attacker's duel damage (before the halving)

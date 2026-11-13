@@ -7,19 +7,21 @@ import "strings"
 //
 //	eqoa-data cm             a class mastery, bought with mastery points
 //	eqoa-data epic           a level-60 epic, quested
+//	eqoa-data quest <id>     a quest-earned ability, excluded from normal class grants
 //	eqoa-data mca            a master class's (the lists name no class)
 //	eqoa-data master <name>  a master class's own ability ("master Lich")
 //
 // Such a row says whose the spell is, so the community spell-visual page
 // lists it with its class (internal/spellfx), but no class grant gives it:
-// #template and world.start_all_spells (GrantClassSpells), grant_spell's
+// world.start_all_spells (GrantClassSpells), grant_spell's
 // "all" (the GM panel) and a necromancer pet's taps (ClassSpellLines) skip
-// it, as they skip the were forms (IsWereAbility). None of those can be
-// bought or earned here yet. tools/import_eqoadata_mastery_spells.py writes
+// it, as they skip the were forms (IsWereAbility). #template deliberately
+// uses GrantEveryClassSpell and includes these abilities under the owner's
+// explicit GM template policy. tools/import_eqoadata_mastery_spells.py writes
 // them; a GM may write one by hand (the "eqoa-data " is optional).
 
 // GotBy is how a spell of a classspells row of that source is got when no
-// level gives it: "mastery", "epic" or "master class"; "" for a spell a
+// level gives it: "mastery", "epic", "quest" or "master class"; "" for a spell a
 // character of the class gets by level (dump, vendor, eqoa-data, anything
 // else).
 func GotBy(source string) string {
@@ -32,6 +34,8 @@ func GotBy(source string) string {
 		return "mastery"
 	case "epic":
 		return "epic"
+	case "quest":
+		return "quest"
 	case "mca", "master":
 		return "master class"
 	}
@@ -49,7 +53,7 @@ func MasterOf(source string) string {
 }
 
 // Granted reports whether a class grant gives a classspells row of that
-// source: every source but a mastery's, an epic's and a master class's.
+// source: every source but a mastery's, an epic's, a quest's and a master class's.
 func Granted(source string) bool { return GotBy(source) == "" }
 
 // sourceKind is a source with "eqoa-data " taken off its front.

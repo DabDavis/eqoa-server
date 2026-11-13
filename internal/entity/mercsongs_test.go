@@ -11,8 +11,9 @@ import (
 // merc; /merc charm off lets it go; a creature over the charm's cap is
 // refused (the control). A bard keeps its short group songs up, cast again
 // as they run out, and its arts wait under half its power. An enchanter puts
-// its proc on its group's players (not on a merc) and its power over time on
-// them, and in a fight its power burst on the one low in power.
+// its proc on its owner (not on a merc) and its power over time on it, and in
+// a fight its power burst on its own low in power; never on another of the
+// group (merccast.go, the owner 2026-11-13: its owner's own alone).
 
 // charmTarget makes the creature the owner's target, on its first channel.
 func (r *mercRig) charmTarget(n *NPC) {
@@ -123,23 +124,29 @@ func TestMercEnchanterGivesItsTeam(t *testing.T) {
 		t.Fatalf("proc %v power %v burst %v", mercGivesProc(&rune), mercGivesPower(&clarity), mercKeepsShort(classEnchanter, &flow))
 	}
 	r.run(0, 30*time.Second)
-	for _, p := range []*Player{r.p, bea} {
-		if !buffOn(p.Effects, &rune) || !buffOn(p.Effects, &clarity) {
-			t.Errorf("%s: rune %v clarity %v", p.Name, buffOn(p.Effects, &rune), buffOn(p.Effects, &clarity))
-		}
+	if !buffOn(r.p.Effects, &rune) || !buffOn(r.p.Effects, &clarity) {
+		t.Errorf("its owner: rune %v clarity %v", buffOn(r.p.Effects, &rune), buffOn(r.p.Effects, &clarity))
+	}
+	// a group mate is not its owner's: nothing on her (merccast.go, the owner 2026-11-13)
+	if buffOn(bea.Effects, &rune) || buffOn(bea.Effects, &clarity) {
+		t.Errorf("Bea, a group mate: rune %v clarity %v", buffOn(bea.Effects, &rune), buffOn(bea.Effects, &clarity))
 	}
 	for _, e := range ms.npc.Effects {
 		if e.SpellID == rune.SpellID {
 			t.Error("a proc on the merc")
 		}
 	}
-	// a fight, Bea low on power: its burst on her
+	// a fight, Bea and its owner low on power: its burst on its owner alone
 	crab := r.creature("Crab", 28, 8)
 	crab.HP, crab.MaxHP = 900000, 900000
 	r.p.AttackTarget, r.p.AutoAttack = crab.ServerID, true
-	bea.Power = bea.MaxPowerNow() / 5
+	bea.Power = bea.MaxPowerNow() / 10
+	r.p.Power = r.p.MaxPowerNow() / 5
 	r.run(30*time.Second+100*time.Millisecond, 40*time.Second)
-	if !buffOn(bea.Effects, &flow) {
-		t.Error("Bea, low on power in a fight, got no Power Flow")
+	if !buffOn(r.p.Effects, &flow) {
+		t.Error("its owner, low on power in a fight, got no Power Flow")
+	}
+	if buffOn(bea.Effects, &flow) {
+		t.Error("Bea, a group mate, got its Power Flow")
 	}
 }

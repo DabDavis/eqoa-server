@@ -20,11 +20,19 @@ import (
 // Each turn the merc not already casting looks, in order, for:
 //   - a heal (mercHealTurnLocked): its team is itself, its owner and its
 //     owner's group, the players and their mercs, alive in its world (a raid
-//     group's whole roll); a healer heals one below mercHurtPct of its hit
-//     points (a heal over time it has not put on it, else a heal; a group heal
-//     when two or more are), one below mercEmergencyPct first with its biggest
-//     heal; any other class with a heal in its book (a paladin's, a ranger's)
-//     only one below mercEmergencyPct. Never a player in a duel, in Mr.
+//     group's whole roll, whatever its groups of four: the owner, 2026-11-12,
+//     "let mercs heal raid members"); a healer heals one below mercHurtPct of
+//     its hit points (a heal over time it has not put on it, else a heal; a
+//     group heal when two or more are in its reach), one below
+//     mercEmergencyPct first with its biggest heal; any other class with a
+//     heal in its book (a paladin's, a ranger's) only one below
+//     mercEmergencyPct. The one it heals is the worst off of those its heals
+//     reach and it sees (sight.go, as a player's heal: petition 1243), so one
+//     worse off across the zone or behind a wall no longer holds its heals
+//     from the rest: it chose the worst off of the whole raid in its world
+//     and, that one out of reach, healed no one. A heal lands only on one it
+//     still sees, a group heal on those of its team in reach it sees (its
+//     buffs are not held to its sight). Never a player in a duel, in Mr.
 //     Moogie's challenge or flagged for PvP (ownfight.go: no help in a fight
 //     that is a player's own);
 //   - with no pet of its own out, its summoning (mercpet.go);
@@ -516,44 +524,93 @@ func (w *World) mercHealTurnLocked(ms *mercState, now time.Time) bool {
 	}
 	sort.SliceStable(hurts, func(i, j int) bool { return hurts[i].share < hurts[j].share })
 	m := ms.npc
-	// two or more hurt: a group heal reaching them
+	// two or more hurt in a group heal's reach, in its sight: the group heal
 	if len(hurts) >= 2 && ms.role == roleHealer {
 		for _, sp := range book {
 			if sp.use != useGroupHeal || !ms.mercReady(sp.s, now) {
 				continue
 			}
-			x, y, z := hurts[0].mm.place()
-			if !mercReaches(m, sp.s, x, y, z, 0) {
+			n := 0
+			for _, h := range hurts {
+				if w.mercGroupReachesLocked(ms, sp.s, h.mm) {
+					n++
+				}
+			}
+			if n < 2 {
 				continue
 			}
 			w.mercCastLocked(ms, sp.s, m.ServerID, true, now)
 			return true
 		}
 	}
-	low := hurts[0]
-	x, y, z := low.mm.place()
-	emergency := low.share*100 < mercEmergencyPct
-	pick := func(use mercUse) bool {
+	// the worst off its heals reach and it sees, the next when one is out of
+	// reach or sight (the file's doc)
+	pick := func(low hurt, use mercUse) bool {
+		x, y, z := low.mm.place()
 		for _, sp := range book {
-			if sp.use != use || !ms.mercReady(sp.s, now) || !mercReaches(m, sp.s, x, y, z, 0) {
+			if sp.use != use || !ms.mercReady(sp.s, now) {
+				continue
+			}
+			if use == useGroupHeal {
+				if !w.mercGroupReachesLocked(ms, sp.s, low.mm) {
+					continue
+				}
+				w.mercCastLocked(ms, sp.s, m.ServerID, true, now)
+				return true
+			}
+			if !mercReaches(m, sp.s, x, y, z, 0) {
 				continue
 			}
 			if use == useHoT && buffOn(low.mm.effects(), sp.s) {
 				continue // its heal over time on it already
-			}
-			if use == useGroupHeal {
-				w.mercCastLocked(ms, sp.s, m.ServerID, true, now)
-				return true
 			}
 			w.mercCastLocked(ms, sp.s, low.mm.id(), false, now)
 			return true
 		}
 		return false
 	}
-	if emergency {
-		return pick(useHeal) || pick(useGroupHeal) || pick(useHoT)
+	for _, low := range hurts {
+		if !w.mercSeesLocked(ms, low.mm) {
+			continue
+		}
+		if low.share*100 < mercEmergencyPct {
+			if pick(low, useHeal) || pick(low, useGroupHeal) || pick(low, useHoT) {
+				return true
+			}
+			continue
+		}
+		if pick(low, useHoT) || pick(low, useHeal) || pick(low, useGroupHeal) {
+			return true
+		}
 	}
-	return pick(useHoT) || pick(useHeal) || pick(useGroupHeal)
+	return false
+}
+
+// mercSeesLocked reports a line of sight from the merc to one of its team
+// (sight.go): itself always. Must be called with the lock held.
+func (w *World) mercSeesLocked(ms *mercState, mm mercMate) bool {
+	m := ms.npc
+	if mm.id() == m.ServerID {
+		return true
+	}
+	x, y, z := mm.place()
+	return w.inSightLocked(m.World, m.X, m.Y, m.Z, x, y, z)
+}
+
+// mercGroupReachesLocked reports one of the merc's team in its group spell's
+// reach (its share radius, else its range) and in its sight, as the spell
+// lands (mercLandLocked). Must be called with the lock held.
+func (w *World) mercGroupReachesLocked(ms *mercState, s *CastSpell, mm mercMate) bool {
+	m := ms.npc
+	reach := s.Range
+	if s.Def.ShareRadius > 0 {
+		reach = s.Def.ShareRadius
+	}
+	x, y, z := mm.place()
+	if reach > 0 && dist3(m.X, m.Y, m.Z, x, y, z) > reach {
+		return false
+	}
+	return w.mercSeesLocked(ms, mm)
 }
 
 // mercBuffTurnLocked is a buff the merc puts up out of a fight, if any (the
@@ -883,7 +940,12 @@ func (w *World) mercLandLocked(c *mercCast, now time.Time) {
 		w.mercHarmLocked(ms, s, t, now)
 		return
 	}
+	heal := mercHeals(s)
 	if !c.group {
+		if heal && !w.mercSeesIDLocked(ms, c.target) {
+			log.Printf("LoS: %s's %q spares %s with %q, out of its sight", ms.owner.Name, m.Name, w.entityNameLocked(c.target), s.Name)
+			return
+		}
 		w.mercHelpLocked(ms, s, c.target, now)
 		return
 	}
@@ -892,11 +954,39 @@ func (w *World) mercLandLocked(c *mercCast, now time.Time) {
 		reach = s.Def.ShareRadius
 	}
 	for _, mm := range w.mercTeamLocked(ms) {
+		if heal && !w.mercGroupReachesLocked(ms, s, mm) {
+			continue // a group heal: its reach and its sight
+		}
 		x, y, z := mm.place()
 		if reach <= 0 || dist3(m.X, m.Y, m.Z, x, y, z) <= reach {
 			w.mercHelpLocked(ms, s, mm.id(), now)
 		}
 	}
+}
+
+// mercHeals is whether s is one of the merc's heals (a heal, a heal over time,
+// a group's), which its sight holds as it lands (the file's doc); its buffs are
+// not held to it, as before.
+func mercHeals(s *CastSpell) bool {
+	u := mercUseOf(s)
+	return u == useHeal || u == useHoT || u == useGroupHeal
+}
+
+// mercSeesIDLocked reports a line of sight from the merc to the body of id
+// (sight.go): itself, and one it cannot find, always (mercHelpLocked finds
+// none). Must be called with the lock held.
+func (w *World) mercSeesIDLocked(ms *mercState, id EntityID) bool {
+	m := ms.npc
+	if id == m.ServerID {
+		return true
+	}
+	if p := w.Players[id]; p != nil {
+		return w.mercSeesLocked(ms, mercMate{p: p})
+	}
+	if n := w.NPCs[id]; n != nil {
+		return w.mercSeesLocked(ms, mercMate{n: n})
+	}
+	return true
 }
 
 // mercHelpLocked lands a merc's beneficial spell on one: a player as a

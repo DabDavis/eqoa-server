@@ -1055,15 +1055,32 @@ func (w *World) mercHelpLocked(ms *mercState, s *CastSpell, id EntityID, now tim
 }
 
 // mercSpellPct is the share, in percent, of its spells' damage a merc of
-// the class deals: a wizard's 65 (the GM Jibwiz's petition 1907: "Nerf the
-// damage per cast on the mercenary wizard by 35%"), every other class's
-// whole. A player wizard's spells are untouched.
-var mercSpellPct = map[int]int{13: 65}
+// the class deals: a wizard's 50 (the GM Jibwiz's petition 1907: "Nerf the
+// damage per cast on the mercenary wizard by 35%", 65; then his petition 1954:
+// "The wizard mercenary is still too powerful. Reduce its damage by an
+// additional 15% across the board", 15 more off), every other class's whole.
+// mercMeleePct is the same for its melee and its shots: a wizard's 85 (1954's
+// "across the board": the 15 alone, 1907 was its casts'). A player wizard is
+// untouched.
+var (
+	mercSpellPct = map[int]int{13: 50}
+	mercMeleePct = map[int]int{13: 85}
+)
 
 // mercSpellShare is n, a merc's spell damage (a hit or a tick), after its
 // class's share: at least 1 of a hit that did any.
 func mercSpellShare(ms *mercState, n int) int {
-	pct, ok := mercSpellPct[ms.kit.Class]
+	return mercShare(mercSpellPct, ms, n)
+}
+
+// mercMeleeShare is n, a merc's melee hit or shot, after its class's share: at
+// least 1 of a hit that did any.
+func mercMeleeShare(ms *mercState, n int) int {
+	return mercShare(mercMeleePct, ms, n)
+}
+
+func mercShare(pcts map[int]int, ms *mercState, n int) int {
+	pct, ok := pcts[ms.kit.Class]
 	if !ok || n <= 0 {
 		return n
 	}

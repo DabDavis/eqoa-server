@@ -359,7 +359,7 @@ func (w *World) mercReachOf(ms *mercState) float32 {
 // It reports a kill.
 func (w *World) mercMeleeHitLocked(ms *mercState, t *NPC, now time.Time) bool {
 	b := ms.body
-	n := w.meleeDealtLocked(t, b, playerShotHit(b, t, meleeIntn), meleeIntn) // balance.go
+	n := mercMeleeShare(ms, w.meleeDealtLocked(t, b, playerShotHit(b, t, meleeIntn), meleeIntn)) // balance.go; its class's share (merccast.go)
 	return w.mercDamageLocked(ms, t, n, numberMelee, now)
 }
 

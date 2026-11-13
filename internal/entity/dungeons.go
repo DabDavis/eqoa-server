@@ -93,6 +93,10 @@ type DungeonDef struct {
 	Name     string
 	Boxes    []DungeonBox
 	Entrance HomeSpot
+	// Cap is how many players its instance holds, the party and those added to it
+	// (instancemembers.go; the recipe's "cap", 0: DungeonSettings.Cap); a raid's
+	// instance holds DungeonSettings.RaidCap
+	Cap int
 }
 
 func (d *DungeonDef) has(x, z float32) bool {
@@ -108,6 +112,10 @@ func (d *DungeonDef) has(x, z float32) bool {
 type DungeonSettings struct {
 	CloseAfter   time.Duration
 	MaxInstances int
+	// Cap is a dungeon's instance's players with no cap of its own (0:
+	// DefaultDungeonCap), RaidCap a raid's instance's (0: DefaultDungeonRaidCap):
+	// instancemembers.go
+	Cap, RaidCap int
 }
 
 // dungeonInst is one open instance.
@@ -121,6 +129,10 @@ type dungeonInst struct {
 	lastIn    time.Time // when a player last stood in it
 	npcs      []EntityID
 	creatures int
+	// invited are the characters added to it beyond its party (their names), removed
+	// those taken out of it and when (instancemembers.go)
+	invited map[uint32]string
+	removed map[uint32]time.Time
 }
 
 // dungeonStay is where a character in the dungeons came from.
@@ -159,6 +171,12 @@ func (w *World) SetDungeons(on bool, world uint8, defs []DungeonDef, set Dungeon
 	}
 	if set.MaxInstances <= 0 {
 		set.MaxInstances = DefaultDungeonMaxInstances
+	}
+	if set.Cap <= 0 {
+		set.Cap = DefaultDungeonCap
+	}
+	if set.RaidCap <= 0 {
+		set.RaidCap = DefaultDungeonRaidCap
 	}
 	w.dungeons = dungeonsState{on: on, world: world, defs: defs, set: set, insts: map[uint32]*dungeonInst{},
 		stays: map[uint32]dungeonStay{}, movedAt: map[EntityID]time.Time{}, badAt: map[EntityID]time.Time{}}
@@ -232,7 +250,11 @@ func (w *World) dungeonAllowsLocked(in *dungeonInst, p *Player) bool {
 		return false
 	}
 	w.dungeonFollowOwnerLocked(in)
-	return p.CharServerID == in.owner || (in.group != 0 && p.GroupID == in.group)
+	if _, out := in.removed[p.CharServerID]; out {
+		return false // taken out of it (instancemembers.go)
+	}
+	_, added := in.invited[p.CharServerID]
+	return p.CharServerID == in.owner || (in.group != 0 && p.GroupID == in.group) || added
 }
 
 // dungeonFollowOwnerLocked moves an instance to its owner's group of the moment, while the owner is online.
@@ -555,7 +577,11 @@ func (w *World) dungeonLoginInstLocked(char, groupID uint32, x, z float32) *dung
 		if !w.dungeons.defs[in.def].has(x, z) && !w.dungeonNearEntranceLocked(in.def, x, z) {
 			continue
 		}
-		if (in.owner == char || (in.group != 0 && in.group == groupID)) && (best == nil || in.id > best.id) {
+		_, added := in.invited[char]
+		if _, out := in.removed[char]; out {
+			continue // taken out of it (instancemembers.go)
+		}
+		if (in.owner == char || (in.group != 0 && in.group == groupID) || added) && (best == nil || in.id > best.id) {
 			best = in
 		}
 	}
@@ -615,6 +641,9 @@ func (w *World) dungeonsSystem(now time.Time) {
 			in.lastIn = now
 			delete(w.dungeons.badAt, p.ServerID)
 			continue
+		}
+		if in != nil && w.dungeonRemovedTurnLocked(in, p, now) {
+			continue // its warning's minute, then Freeport (instancemembers.go)
 		}
 		if p.GM && in != nil {
 			in.lastIn = now

@@ -82,6 +82,7 @@
   "dungeons": [
     {
       "key": "guk",
+      "cap": 4,
       "name": "Guk",
       "boxes": [
         [
@@ -104,6 +105,7 @@
     },
     {
       "key": "blackburrow",
+      "cap": 4,
       "name": "Blackburrow",
       "boxes": [
         [
@@ -126,6 +128,7 @@
     },
     {
       "key": "runnyeye",
+      "cap": 4,
       "name": "Runnyeye",
       "boxes": [
         [
@@ -154,6 +157,7 @@
     },
     {
       "key": "tomb",
+      "cap": 4,
       "name": "Tomb of Kings",
       "boxes": [
         [
@@ -176,6 +180,7 @@
     },
     {
       "key": "felstar",
+      "cap": 4,
       "name": "Castle Felstar",
       "boxes": [
         [
@@ -198,6 +203,7 @@
     },
     {
       "key": "collonridge",
+      "cap": 4,
       "name": "Collonridge Cemetery",
       "boxes": [
         [
@@ -220,6 +226,7 @@
     },
     {
       "key": "vox",
+      "cap": 4,
       "name": "Vox's Lair",
       "boxes": [
         [
@@ -242,6 +249,7 @@
     },
     {
       "key": "toxxulia",
+      "cap": 4,
       "name": "Toxxulia's Lair",
       "boxes": [
         [
@@ -264,6 +272,7 @@
     },
     {
       "key": "boxcanyon",
+      "cap": 4,
       "name": "Box Canyon",
       "boxes": [
         [
@@ -286,6 +295,7 @@
     },
     {
       "key": "warrens",
+      "cap": 4,
       "name": "Warren's Den",
       "boxes": [
         [

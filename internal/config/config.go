@@ -486,6 +486,11 @@ type DungeonsConfig struct {
 	World        int           `yaml:"world"`
 	CloseAfter   time.Duration `yaml:"close_after"`
 	MaxInstances int           `yaml:"max_instances"`
+	// Cap is how many players a dungeon's instance holds, its party and those added
+	// (/addinstance; entity/instancemembers.go), for a dungeon with no "cap" of its
+	// own (unset: 4, the heroic dungeons'); RaidCap a raid's instance's (unset: 50)
+	Cap     int `yaml:"cap"`
+	RaidCap int `yaml:"raid_cap"`
 }
 
 // HomesConfig is world.homes: the players' homes' switch and their world's slot.

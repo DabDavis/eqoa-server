@@ -874,7 +874,9 @@ const (
 	// assist the main assist, 8 leader (u32 target), 9 helper (u32 target, 0
 	// none), 10 main assist (u32 target, 0 none), 11 kick (u32 target), 12 move a
 	// member to a group of the raid (u32 target, u8 group from 1), 13 swap two
-	// members' groups (u32 target, u32 target) (entity/raidsubgroups.go).
+	// members' groups (u32 target, u32 target) (entity/raidsubgroups.go), 14 add a
+	// player to the party's instance (u32 target), 15 take one out of it (u32
+	// target) (entity/instancemembers.go; a group's as well as a raid's).
 	OpcodeRaidCommand GameOpcode = 0x7E48
 	// OpcodeDPSMeterOffer is not retail: a damage meter, who in the player's
 	// group did how much damage in the fight and how fast (entity/dpsmeter.go,

@@ -712,6 +712,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureHazards(); err != nil { // hazards.go
 		return err
 	}
+	if err := db.ensureNoRoam(); err != nil { // noroam.go
+		return err
+	}
 	if err := db.ensureFishCatch(); err != nil { // fishing.go
 		return err
 	}

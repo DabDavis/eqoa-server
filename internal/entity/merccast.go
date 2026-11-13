@@ -299,14 +299,14 @@ func mercBestBuffs(book []mercSpell) []mercSpell {
 			out = append(out, a)
 			continue
 		}
-		la, ra, ma := EffectLine(a.s), lineRank(a.s), staticMods(a.s)
+		la, ra := EffectLine(a.s), lineRank(a.s)
 		beaten := false
 		for j, b := range book {
 			if j == i || b.use != useBuff || b.short != a.short || la == "" {
 				continue
 			}
 			lb, rb := EffectLine(b.s), lineRank(b.s)
-			if sameLine(la, lb) && (rb > ra || rb == ra && j < i) || nestedLines(la, lb) && covers(staticMods(b.s), ma) {
+			if sameLine(la, lb) && (rb > ra || rb == ra && j < i) || nestedLines(la, lb) && spellCovers(b.s, a.s) {
 				beaten = true
 				break
 			}
@@ -710,7 +710,7 @@ func (w *World) mercBuffComingLocked(ms *mercState, s *CastSpell, id EntityID) b
 		}
 		cl := EffectLine(&c.spell)
 		if c.spell.SpellID == s.SpellID || sameLine(cl, line) && lineRank(&c.spell) >= lineRank(s) ||
-			nestedLines(cl, line) && covers(staticMods(&c.spell), staticMods(s)) {
+			nestedLines(cl, line) && spellCovers(&c.spell, s) {
 			return true
 		}
 	}

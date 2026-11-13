@@ -358,6 +358,49 @@ func covers(a, b StatMods) bool {
 	return true
 }
 
+// A buff's gifts that are not stats (ticket 1984, Deathcore: "bards 54
+// sow+invis is not overwriting 35 sow"): its invisibility and its run speed.
+// Selo's Song of Travel (54: invis, speed) nests Selo's Accelerando's line
+// (35: speed) and neither raises a stat, so covers alone found the 35 on the
+// target covering the 54 and refused it; Lila's Refrain (46) the same. A buff
+// covers another only when it also gives the other's invisibility and as
+// much speed (speedPct).
+
+// speedPct is the run speed a buff gives, in percent of the movement buff's:
+// 0 for none, at least 100 (its SowPct, a speed of its own: hpcap.go).
+func speedPct(speed bool, sowPct int) int {
+	if !speed {
+		return 0
+	}
+	return max(100, sowPct)
+}
+
+// effectCovers is covers for two effects on a bearer: a's stats, its
+// invisibility and its speed give all b's would (the doc above).
+func effectCovers(a, b *ActiveEffect) bool {
+	return covers(a.Mods, b.Mods) && (a.Invis || !b.Invis) &&
+		speedPct(a.Speed, a.Rules.SowPct) >= speedPct(b.Speed, b.Rules.SowPct)
+}
+
+// spellCovers is effectCovers for two spells by their figures (staticMods):
+// a merc's choice of buffs (merccast.go).
+func spellCovers(a, b *CastSpell) bool {
+	gifts := func(s *CastSpell) (invis bool, speed int) {
+		for _, e := range s.Def.Effects {
+			switch e.Kind {
+			case EffectInvis:
+				invis = true
+			case EffectSpeed:
+				speed = max(speed, speedPct(true, e.SowPct))
+			}
+		}
+		return
+	}
+	ia, sa := gifts(a)
+	ib, sb := gifts(b)
+	return covers(staticMods(a), staticMods(b)) && (ia || !ib) && sa >= sb
+}
+
 // sumEffectMods is what a bearer's effects add to its stats: each one's, but a
 // stat nested lines share (nestedLines, linked one to another) counts its
 // largest once.
@@ -486,7 +529,7 @@ func lineVerdict(effects []*ActiveEffect, ae *ActiveEffect) *ActiveEffect {
 				continue // the higher rank, or the bigger proc (petition 1359)
 			}
 		} else if nestedLines(e.Line, ae.Line) {
-			if !covers(e.Mods, ae.Mods) {
+			if !effectCovers(e, ae) {
 				continue // both on, each shared stat its stronger once (the doc above)
 			}
 		} else if !sameLine(e.Line, ae.Line) || e.Rank <= ae.Rank {
@@ -513,7 +556,7 @@ func lineDrops(effects []*ActiveEffect, ae *ActiveEffect) []int {
 			continue
 		}
 		if nestedLines(e.Line, ae.Line) {
-			if covers(ae.Mods, e.Mods) {
+			if effectCovers(ae, e) {
 				drop = append(drop, e.SpellID) // it gives all the other did, as strongly or more
 			}
 			continue
@@ -542,7 +585,7 @@ func (w *World) shareTakesLocked(caster *Player, ae *ActiveEffect) bool {
 		case procRivals(e, ae):
 			refused = procOutranks(e, ae) // petition 1359
 		case nestedLines(e.Line, ae.Line):
-			refused = covers(e.Mods, ae.Mods)
+			refused = effectCovers(e, ae)
 		default:
 			refused = sameLine(e.Line, ae.Line) && e.Rank > ae.Rank
 		}

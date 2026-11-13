@@ -427,6 +427,7 @@ type petCast struct {
 	spell  *CastSpell
 	target EntityID // the creature hit, or the one healed or buffed
 	lands  time.Time
+	duel   bool // cast at its owner's duel or PvP foe, or the foe's pet (duelpet.go)
 }
 
 // petCastLocked begins the pet's ability i (at t, a foe, when it is cast at
@@ -567,6 +568,10 @@ func (w *World) petCastSystemLocked(now time.Time) {
 	for _, c := range due {
 		ps := c.ps
 		if ps.npc.Dead || !w.petLiveLocked(ps) || ps.tmpl != c.tmpl {
+			continue
+		}
+		if c.duel {
+			w.duelPetLandLocked(c, now) // duelpet.go
 			continue
 		}
 		w.petLandLocked(c, now)

@@ -68,6 +68,29 @@ const (
 	legHead float32 = 3
 )
 
+// A big creature's knee is as high over the floor as its body is wider than a
+// man's (petition 1883, Brother, 2026-11-13: "Tenacious Frost Giants pathing is
+// all messed up when xping"): a frost giant, its body's edge 3.19 against a
+// man's 1.395 (reach.go's models.txt), steps over the knee-high stones of its
+// camp (1.4 tall, 27 of them round it) where it went round each one in its
+// chase, to a point past its enemy and back. At most bodyKneeMost times a man's.
+const bodyKneeMost float32 = 3
+
+// bodyKnee is the creature's knee (legKnee) by its body: its model's edge
+// times its size over a man's edge, never below a man's knee nor past
+// bodyKneeMost of it; a man's for a body the server does not know.
+func bodyKnee(npc *NPC) float32 {
+	r, ok := ModelRadius(uint32(npc.ModelID))
+	if !ok || r <= 0 {
+		return legKnee
+	}
+	size := npc.Size
+	if size <= 0 {
+		size = 1
+	}
+	return legKnee * min(max(r*size/humanRadius, 1), bodyKneeMost)
+}
+
 // CLIENT's ground probe and the room a creature is kept clear in
 // (clearLocked): the ball's start over the height sent (1.5, and the ball's
 // 0.1); how far over its own floor something counts as standing above it;
@@ -405,7 +428,7 @@ func (w *World) legFromLocked(npc *NPC, fx, fy, fz, x, z float32, heights *[]flo
 		placed = nil // set down where it was sent: nothing of the ground's to keep it off
 	}
 	lift := max(spawnLift, 0) // its own floor over the terrain (a house's over the street)
-	knee, px, py, pz := legKnee, fx, y, fz
+	knee, px, py, pz := bodyKnee(npc), fx, y, fz
 	if onGround {
 		knee += spawnLift
 		if f, ok := w.ground.Floor(npc.World, fx, y, fz); ok {

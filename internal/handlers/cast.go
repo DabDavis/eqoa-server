@@ -55,6 +55,7 @@ func (h *SpellbookHandler) handleUseSkill(sess *session.Session, msg *protocol.M
 		log.Printf("Cast: %q's effect: %v", e.Pattern.SpellName, err)
 	}
 	spell := h.areaOf(castSpellRow(e, row)) // spellarea.go
+	h.recastGroupOf(&spell, book)           // its recast group's spells (entity/recastgroup.go)
 	if spell.Def.Reagent == "" || spell.Def.ReagentCount <= 0 {
 		h.handsFor(sess, p, &spell, target)
 		h.gameWorld.StartCast(sess, spell, target, time.Now())
@@ -71,6 +72,31 @@ func (h *SpellbookHandler) handleUseSkill(sess *session.Session, msg *protocol.M
 		h.takeReagent(sess, p, held, spell.Def.ReagentCount)
 	}
 	return nil
+}
+
+// recastGroupOf gives the cast its recast group (table spellrecastgroup) and the
+// spells of it with their places in book (-1 for one the book lacks): casting
+// one locks out every one (entity/recastgroup.go, ticket 2011).
+func (h *SpellbookHandler) recastGroupOf(spell *entity.CastSpell, book []database.CharSpellEntry) {
+	grp, ids, err := h.store.RecastGroup(spell.SpellID)
+	if err != nil {
+		log.Printf("Cast: %q's recast group: %v", spell.Name, err)
+		return
+	}
+	if grp == "" {
+		return
+	}
+	spell.RecastGroup = grp
+	for _, id := range ids {
+		at := -1
+		for i := range book {
+			if book[i].Pattern.SpellID == id {
+				at = book[i].AddedOrder
+				break
+			}
+		}
+		spell.GroupMates = append(spell.GroupMates, entity.GroupMate{SpellID: id, DisplayIndex: at})
+	}
 }
 
 // handsFor puts what the cast's required equipment names in the caster's

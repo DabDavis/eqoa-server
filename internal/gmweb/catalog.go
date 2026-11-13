@@ -1070,7 +1070,8 @@ var catalog = map[string]tableNote{
 			"glow":  {Label: "Glow", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA, 0 none: a light of the body's own in that colour (the held items' glow on the whole body), AA how much of it; drawn by a vanilla that reads the tints' layout 2 (petition 1893)"},
 			"aura_kind": {Label: "Aura", Help: "0 the default (the shell while the glow lights; Mr. Moogie's), 1 none, 2 the shell (a form-fitting glow round the body, " +
 				"in the glow's colour), 3 the particles (the source's emitter on the body's nodes, in the glow's hue; with no glow in the source's own colours), " +
-				"4 both. Drawn by a vanilla that reads the tints' layout 3; /aura in the game sets it on the target's name"},
+				"4 both, 5 the trim (the plate's gold trim lit in the glow's colour, a soft halo off it), 6 the trim and the shell. A black or near-black glow " +
+				"(every channel at most 30, 000000FF too) with 2, 4, 5 or 6 is a DARK aura, a smoky shadow. Drawn by a vanilla that reads the tints' layout 3; /aura in the game sets it on the target's name"},
 			"aura_source": {Label: "Aura particles", Format: hex32, Look: lookItem, Store: storeUint32, Help: "the DictID of the item (an ITEM.ESF hand model) or model whose particle sprite the particles are; 0 the Sword of Virtue's (0x88EC092D)"},
 			"aura_nodes":  {Label: "Aura nodes", Help: "on how many of the body's nodes the particles go; 0 the default (8), 32 at most"},
 			"note":        {Label: "Note", Help: "why"},
@@ -1088,10 +1089,31 @@ var catalog = map[string]tableNote{
 		Cols: map[string]colNote{
 			"patternid": {Label: "Item", Ref: "itempattern"},
 			"color":     {Label: "Colour", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA, the aura's colour (RGB at AA's share); 0 none: particles in the source's own colours"},
-			"kind":      {Label: "Aura", Help: "0 the default (the shell while the colour lights), 1 none, 2 the shell (a glow fitted round the piece), 3 the particles, 4 both"},
-			"source":    {Label: "Particles", Format: hex32, Look: lookItem, Store: storeUint32, Help: "the DictID of the item (an ITEM.ESF hand model) or model whose particle sprite the particles are; 0 the Sword of Virtue's (0x88EC092D)"},
-			"nodes":     {Label: "Nodes", Help: "on how many of the piece's nodes the particles go; 0 the default, 32 at most"},
-			"note":      {Label: "Note", Help: "why"},
+			"kind": {Label: "Aura", Help: "0 the default (the shell while the colour lights), 1 none, 2 the shell (a glow fitted round the piece), 3 the particles, 4 both, " +
+				"5 the trim (sets 4 and 9's gold trim lit in the colour, a soft halo off it; nothing on a piece with no trim), 6 the trim and the shell. " +
+				"A black or near-black colour (every channel at most 30, 000000FF too) with 2, 4, 5 or 6 is a DARK aura: a smoky shadow, the trim darkened"},
+			"source": {Label: "Particles", Format: hex32, Look: lookItem, Store: storeUint32, Help: "the DictID of the item (an ITEM.ESF hand model) or model whose particle sprite the particles are; 0 the Sword of Virtue's (0x88EC092D)"},
+			"nodes":  {Label: "Nodes", Help: "on how many of the piece's nodes the particles go; 0 the default, 32 at most"},
+			"note":   {Label: "Note", Help: "why"},
+		},
+	},
+	"charaura": {
+		Label: "Character auras", Group: "Items & spells", Title: "charid", Sort: "charid",
+		Help: "An aura on ONE character's piece or body (entity/pieceaura.go; the owner, 2026-11-13: the GM command affects the targeted " +
+			"player's pieces alone): slot 0-6 the pieces (chest, bracers, gloves, legs, boots, helm, robe), shown on whatever item it wears " +
+			"there; 7 the body and underclothes, which its armour covers. Over the item's own aura (Item auras). merc 0 the character, " +
+			"else its mercenary of that hire slot. /aura <colour> <kind> <slot|wholebody> on a targeted player (or yourself) sets a row.",
+		Live:   "At once: the character's channel carries it at the next tick.",
+		Search: []string{"note"},
+		Cols: map[string]colNote{
+			"charid": {Label: "Character", Ref: "characters"},
+			"merc":   {Label: "Merc", Help: "0 the character itself, else its mercenary of that hire slot"},
+			"slot":   {Label: "Slot", Help: "0 chest, 1 bracers, 2 gloves, 3 legs, 4 boots, 5 helm, 6 robe, 7 the body and underclothes (under the armour)"},
+			"color":  {Label: "Colour", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA; black 000000FF with a shell or trim a dark aura"},
+			"kind":   {Label: "Aura", Help: "0 default, 1 none, 2 shell, 3 particles, 4 both, 5 trim, 6 trim and shell"},
+			"source": {Label: "Particles", Format: hex32, Look: lookItem, Store: storeUint32, Help: "the particles' DictID; 0 the Sword of Virtue's"},
+			"nodes":  {Label: "Nodes", Help: "0 the default, 32 at most"},
+			"note":   {Label: "Note", Help: "why"},
 		},
 	},
 	"npctitle": {

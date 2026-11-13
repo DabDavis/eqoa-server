@@ -209,3 +209,65 @@ func TestTheWorldSendsThePiecesAuras(t *testing.T) {
 		t.Fatalf("after the format change: %d bytes", len(got))
 	}
 }
+
+// The body's aura (charaura slot 7; the owner, 2026-11-13: "a wholebody just
+// applies it to body and underclothes, armor will cover it up"): to a session
+// that asked for it too (bit 4) the channel is 305 bytes, the 295 then the
+// body's ten; a session that asked for the pieces alone gets the 295 bytes
+// exactly as before (vanilla a95b250's), the body left out. A character's own
+// piece aura wins over its item's, and only that character's: another wearer
+// of the item shows the item's. A bare character shows its body aura, with
+// nothing worn; without charaura rows, as before.
+func TestTheBodysAuraAndACharactersOwn(t *testing.T) {
+	if BodyAuraStateSize != 305 {
+		t.Fatalf("BodyAuraStateSize %d", BodyAuraStateSize)
+	}
+	w := NewWorld()
+	item := database.ItemAura{PatternID: 500, Color: 0xFFC040FF, Kind: database.AuraTrim}
+	w.SetItemAuras(map[int]database.ItemAura{500: item})
+	mine := database.ItemAura{Color: 0x3060FFFF, Kind: database.AuraParticles}
+	body := database.ItemAura{Color: 0x000000FF, Kind: database.AuraShell}
+	var own [database.CharAuraSlots]database.ItemAura
+	own[AuraChest], own[AuraBody] = mine, body
+	w.SetCharAuras(map[database.CharAuraKey][database.CharAuraSlots]database.ItemAura{{CharID: 7}: own})
+	a, b := ornatePlayer(), ornatePlayer()
+	a.CharServerID, b.CharServerID = 7, 8
+	a.SetWornPiece(AuraChest, 500)
+	b.SetWornPiece(AuraChest, 500)
+	pa, pb := w.PieceAurasOf(a), w.PieceAurasOf(b)
+	if pa == nil || pa[AuraChest] != mine || pa[AuraBody] != body {
+		t.Fatalf("the character's own: %+v", pa)
+	}
+	if pb == nil || pb[AuraChest] != item || pb[AuraBody] != (database.ItemAura{}) {
+		t.Fatalf("another wearer of the item: %+v", pb)
+	}
+	bare := dyedPlayer()
+	bare.CharServerID = 7
+	if p := w.PieceAurasOf(bare); p == nil || p[AuraBody] != body || p[AuraChest] != (database.ItemAura{}) {
+		t.Fatalf("bare: the body alone: %+v", p)
+	}
+	disc := SerializePlayerUpdate(100001, a)
+	s := lookSession(t, 40)
+	s.SetLiveLook(true)
+	s.SetArmorLook(true)
+	s.SetPieceAuras(true)
+	old := ForViewerAuras(s, disc, &a.Dyes, pa)
+	if len(old) != AuraStateSize || !bytes.Equal(old, AuraChannel(disc, &a.Dyes, pa)) {
+		t.Fatalf("the pieces' clients: %d bytes", len(old))
+	}
+	// the 295 bytes as they were made before the body: seven auras, no more
+	seven := append(ArmorChannel(disc, &a.Dyes), auraBytes(mine)...)
+	seven = append(seven, make([]byte, 6*PieceAuraSize)...)
+	if !bytes.Equal(old, seven) {
+		t.Fatal("the 295 bytes changed")
+	}
+	s.SetBodyAura(true)
+	got := ForViewerAuras(s, disc, &a.Dyes, pa)
+	if len(got) != BodyAuraStateSize || !bytes.Equal(got[:AuraStateSize], old) || !bytes.Equal(got[AuraStateSize:], auraBytes(body)) {
+		t.Fatalf("the body's clients: %d bytes, tail % x", len(got), got[AuraStateSize:])
+	}
+	s.SetPieceAuras(false)
+	if s.BodyAura() || len(ForViewerAuras(s, disc, &a.Dyes, pa)) != ArmorStateSize {
+		t.Fatal("the body bit without the pieces' counts")
+	}
+}

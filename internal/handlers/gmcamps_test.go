@@ -37,7 +37,14 @@ const campCreature, campPariahBody = 0x1234, 0x5678
 // above, loaded into the world, with aggro off and the camp tools on it.
 func campWorld(t *testing.T) (*chatWorld, *database.SQLiteDB, string, *session.Session, *entity.Player, *session.Session) {
 	t.Helper()
-	c, gs, gp, ps, _ := gmWorld(t)
+	c, db, path, gs, gp, ps, _ := campWorldWithPlayer(t)
+	return c, db, path, gs, gp, ps
+}
+
+// campWorldWithPlayer is campWorld with the player's entity too.
+func campWorldWithPlayer(t *testing.T) (*chatWorld, *database.SQLiteDB, string, *session.Session, *entity.Player, *session.Session, *entity.Player) {
+	t.Helper()
+	c, gs, gp, ps, pp := gmWorld(t)
 	path := filepath.Join(t.TempDir(), "camps.db")
 	db, err := database.NewSQLite(path)
 	if err != nil {
@@ -65,7 +72,7 @@ func campWorld(t *testing.T) (*chatWorld, *database.SQLiteDB, string, *session.S
 	c.gw.LoadNPCs(database.NewNPCStore(db))
 	c.gw.SetAggro(false)
 	c.h.SetCampStore(db)
-	return c, db, path, gs, gp, ps
+	return c, db, path, gs, gp, ps, pp
 }
 
 // stand moves p to (x, y, z) facing f, as its client's reports do.

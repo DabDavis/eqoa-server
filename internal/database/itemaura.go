@@ -17,7 +17,9 @@ import (
 //
 // color: 0xRRGGBBAA, the aura's colour (the rgb at the alpha's share; alpha 0
 // none: particles in the source's own colours). kind: AuraDefault (the shell
-// while the colour lights), AuraNone, AuraShell, AuraParticles, AuraBoth.
+// while the colour lights), AuraNone, AuraShell, AuraParticles, AuraBoth,
+// AuraTrim, AuraTrimShell; a black or near-black colour (AuraDark) with a
+// shell or trim named is a dark aura.
 // source: the DictID of the item or model whose particle sprite the particles
 // are, 0 the Sword of Virtue's (0x88EC092D). nodes: on how many of the piece's
 // nodes, 0 the default. A row that draws nothing (AuraShows) is left out.

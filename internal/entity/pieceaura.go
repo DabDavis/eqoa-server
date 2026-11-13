@@ -43,6 +43,15 @@ const (
 	AuraPieces
 )
 
+// AuraBody is the eighth aura (database.CharAuraBody): a character's own body
+// and underclothes, which every worn piece covers (charaura alone; the
+// owner, 2026-11-13: "a wholebody just applies it to body and underclothes,
+// armor will cover it up"). AuraSlots counts it.
+const (
+	AuraBody  = AuraPieces
+	AuraSlots = AuraPieces + 1
+)
+
 // PieceAuraSize is one piece's aura on the channel: r, g, b, a, a u8 kind, a
 // u32 source DictID little-endian, a u8 node count; all zero none.
 const PieceAuraSize = 10
@@ -51,12 +60,20 @@ const PieceAuraSize = 10
 // live channel, the trims, then the seven pieces' auras.
 const AuraStateSize = ArmorStateSize + AuraPieces*PieceAuraSize
 
-// PieceAuras is a wearer's auras by piece; the zero value is none.
-type PieceAuras [AuraPieces]database.ItemAura
+// BodyAuraStateSize is the channel to a client that draws the body's aura
+// too (session.BodyAura, the live look's answer bit 4): the seven pieces'
+// auras, then the body's. A client that asked for the pieces alone is sent
+// AuraStateSize, as before.
+const BodyAuraStateSize = AuraStateSize + PieceAuraSize
 
-// putPieceAuras appends the seven pieces' auras (a nil: none).
-func putPieceAuras(out []byte, a *PieceAuras) []byte {
-	for i := 0; i < AuraPieces; i++ {
+// PieceAuras is a wearer's auras by piece, then its body's (AuraBody); the
+// zero value is none.
+type PieceAuras [AuraSlots]database.ItemAura
+
+// putPieceAuras appends n of the auras (the seven pieces', and the body's
+// with n AuraSlots; a nil: none).
+func putPieceAuras(out []byte, a *PieceAuras, n int) []byte {
+	for i := 0; i < n; i++ {
 		var p database.ItemAura
 		if a != nil {
 			p = a[i]
@@ -72,13 +89,22 @@ func putPieceAuras(out []byte, a *PieceAuras) []byte {
 // AuraChannel is ArmorChannel with the pieces' auras after it: a client that
 // draws them's.
 func AuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
-	return putPieceAuras(ArmorChannel(disc, d), a)
+	return putPieceAuras(ArmorChannel(disc, d), a, AuraPieces)
+}
+
+// BodyAuraChannel is AuraChannel with the body's aura after the pieces': a
+// client that draws it's.
+func BodyAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
+	return putPieceAuras(ArmorChannel(disc, d), a, AuraSlots)
 }
 
 // ForViewerAuras is ForViewer with the wearer's pieces' auras (nil: none),
 // which go after the trims to a client that asked for them.
 func ForViewerAuras(sess *session.Session, disc []byte, d *Dyes, a *PieceAuras) []byte {
 	if sess != nil && sess.PieceAuras() && len(disc) == EntityStateSize {
+		if sess.BodyAura() {
+			return BodyAuraChannel(disc, d, a)
+		}
 		return AuraChannel(disc, d, a)
 	}
 	return ForViewer(sess, disc, d)
@@ -87,6 +113,30 @@ func ForViewerAuras(sess *session.Session, disc []byte, d *Dyes, a *PieceAuras) 
 // itemAuraState is the world's itemaura rows, by patternid; swapped whole.
 type itemAuraState struct {
 	by atomic.Pointer[map[int]database.ItemAura]
+	// chars is charaura's rows, by whose (database.CharAuraKey)
+	chars atomic.Pointer[map[database.CharAuraKey][database.CharAuraSlots]database.ItemAura]
+}
+
+// SetCharAuras sets the characters' own auras (table charaura, as
+// database.CharAuras reads it): each shows at the next tick.
+func (w *World) SetCharAuras(by map[database.CharAuraKey][database.CharAuraSlots]database.ItemAura) {
+	m := make(map[database.CharAuraKey][database.CharAuraSlots]database.ItemAura, len(by))
+	for k, v := range by {
+		m[k] = v
+	}
+	w.itemAuras.chars.Store(&m)
+}
+
+// charAuras is whose own auras, nil none.
+func (w *World) charAuras(k database.CharAuraKey) *[database.CharAuraSlots]database.ItemAura {
+	m := w.itemAuras.chars.Load()
+	if m == nil || k.CharID == 0 {
+		return nil
+	}
+	if a, ok := (*m)[k]; ok {
+		return &a
+	}
+	return nil
 }
 
 // SetItemAuras sets the items' auras (table itemaura, as database.ItemAuras
@@ -108,6 +158,12 @@ func (w *World) LoadItemAuras(db *database.SQLiteDB) (int, error) {
 		return 0, fmt.Errorf("itemaura: %w", err)
 	}
 	w.SetItemAuras(by)
+	// and the characters' own (charaura.go), which the same edits reload
+	chars, err := db.CharAuras()
+	if err != nil {
+		return len(by), fmt.Errorf("charaura: %w", err)
+	}
+	w.SetCharAuras(chars)
 	return len(by), nil
 }
 
@@ -125,7 +181,7 @@ func (w *World) PieceAurasOf(p *Player) *PieceAuras {
 	if p == nil {
 		return nil
 	}
-	return w.pieceAuras(&p.WornPieces, p.WornMask, p.HiddenParts)
+	return w.pieceAuras(&p.WornPieces, p.WornMask, p.HiddenParts, w.charAuras(database.CharAuraKey{CharID: p.CharServerID}))
 }
 
 // NPCPieceAurasOf is the auras an NPC dressed in item records shows (a
@@ -134,26 +190,49 @@ func (w *World) NPCPieceAurasOf(n *NPC) *PieceAuras {
 	if n == nil {
 		return nil
 	}
-	return w.pieceAuras(&n.WornPieces, n.WornMask, 0)
+	var own *[database.CharAuraSlots]database.ItemAura
+	if k, ok := n.MercAuraKey(); ok {
+		own = w.charAuras(k)
+	}
+	return w.pieceAuras(&n.WornPieces, n.WornMask, 0, own)
 }
 
-func (w *World) pieceAuras(pieces *[AuraPieces]int, mask uint8, hidden uint16) *PieceAuras {
-	if w == nil || mask == 0 {
+// MercAuraKey is a mercenary's key in charaura: its owner's character and its
+// hire slot; false for every other NPC.
+func (n *NPC) MercAuraKey() (database.CharAuraKey, bool) {
+	if !n.isMerc() || n.merc.owner == nil || n.merc.owner.CharServerID == 0 {
+		return database.CharAuraKey{}, false
+	}
+	return database.CharAuraKey{CharID: n.merc.owner.CharServerID, Merc: n.merc.slot}, true
+}
+
+// pieceAuras is a wearer's auras: each worn piece (not hidden) its own aura
+// (own, charaura's) or else its item's (itemaura), and its body's own aura
+// whatever it wears (the client hides it under the pieces).
+func (w *World) pieceAuras(pieces *[AuraPieces]int, mask uint8, hidden uint16, own *[database.CharAuraSlots]database.ItemAura) *PieceAuras {
+	if w == nil {
 		return nil
 	}
 	m := w.itemAuras.by.Load()
-	if m == nil || len(*m) == 0 {
-		return nil
-	}
 	var out PieceAuras
 	any := false
 	for i := 0; i < AuraPieces; i++ {
 		if mask&(1<<i) == 0 || hidden&(1<<i) != 0 {
 			continue
 		}
+		if own != nil && own[i].Shows() {
+			out[i], any = own[i], true
+			continue
+		}
+		if m == nil {
+			continue
+		}
 		if a, ok := (*m)[pieces[i]]; ok {
 			out[i], any = a, true
 		}
+	}
+	if own != nil && own[AuraBody].Shows() {
+		out[AuraBody], any = own[AuraBody], true
 	}
 	if !any {
 		return nil

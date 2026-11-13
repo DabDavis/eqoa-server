@@ -129,6 +129,9 @@ func checkRow(table string, row map[string]any) error {
 	if table == "itemaura" && row != nil {
 		return checkItemAuraRow(row) // live.go
 	}
+	if table == "charaura" && row != nil {
+		return checkCharAuraRow(row) // live.go
+	}
 	if table == "signtext" && row != nil {
 		return checkSignTextRow(row) // live_signs.go
 	}

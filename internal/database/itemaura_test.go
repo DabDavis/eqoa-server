@@ -61,7 +61,13 @@ func TestNPCTintAuras(t *testing.T) {
 		kind uint8
 		want bool
 	}{{0, AuraDefault, false}, {0xFF0000FF, AuraDefault, true}, {0xFF0000FF, AuraNone, false}, {0, AuraShell, false},
-		{0xFF000000, AuraShell, false}, {0, AuraParticles, true}, {0, AuraBoth, true}, {0xFF0000FF, 9, true}, {0, 9, false}} {
+		{0xFF000000, AuraShell, false}, {0, AuraParticles, true}, {0, AuraBoth, true}, {0xFF0000FF, 9, true}, {0, 9, false},
+		// the trim kinds, and a dark (black) aura: named outright it shows,
+		// the default and none draw nothing of black, and alpha 0 is none
+		{0xFFC040FF, AuraTrim, true}, {0xFFC040FF, AuraTrimShell, true}, {0x000000FF, AuraTrim, true},
+		{0x000000FF, AuraTrimShell, true}, {0x000000FF, AuraShell, true}, {0x000000FF, AuraBoth, true},
+		{0x000000FF, AuraDefault, false}, {0x000000FF, AuraNone, false}, {0x00000000, AuraTrim, false},
+		{0x10001880, AuraTrim, true}, {0xFFC04000, AuraTrim, false}, {0x000000FF, 7, false}} {
 		if AuraShows(c.glow, c.kind) != c.want {
 			t.Errorf("AuraShows(%08X, %d) = %v", c.glow, c.kind, !c.want)
 		}
@@ -142,5 +148,29 @@ func TestItemAuras(t *testing.T) {
 	db.QueryRow(`SELECT COUNT(*) FROM npctint`).Scan(&rows)
 	if rows != 1 {
 		t.Fatalf("%d npctint rows: a second made", rows)
+	}
+}
+
+// AuraDark: a colour with an alpha and every channel at most AuraDarkMost
+// (black, a near-black purple) is dark; a dim colour by its alpha is not (its
+// RGB is bright), nor one channel past 0x30, nor alpha 0.
+func TestAuraDark(t *testing.T) {
+	for _, c := range []struct {
+		glow uint32
+		want bool
+	}{{0x000000FF, true}, {0x30303001, true}, {0x100018FF, true}, {0xFF000020, false}, {0x313030FF, false},
+		{0x00003100, false}, {0x00000000, false}, {0xFFFFFFFF, false}} {
+		if AuraDark(c.glow) != c.want {
+			t.Errorf("AuraDark(%08X) = %v", c.glow, !c.want)
+		}
+	}
+	for k := 0; k <= 7; k++ {
+		if ValidAuraKind(int64(k)) != (k <= 6) {
+			t.Errorf("ValidAuraKind(%d)", k)
+		}
+	}
+	if !(NPCTint{Name: "dust", Color: 0xFFFFFFFF, Glow: 0x000000FF, AuraKind: AuraTrim}).Shows() ||
+		(NPCTint{Name: "dust", Color: 0xFFFFFFFF, Glow: 0x000000FF, AuraKind: AuraTrim}).ShowsGlow() {
+		t.Fatal("a black trim aura: shown at layout 3 alone")
 	}
 }

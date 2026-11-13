@@ -63,6 +63,10 @@ world:
   # set (the Heirloom Test Server sets it).
   # mob_info: true
 
+  # The accounts (accountinfo.username) whose GMs may /noclip: a flight through
+  # every wall, floor and ceiling (handlers/noclip.go). Empty: nobody.
+  # noclip_accounts: [someaccount]
+
   # What an NPC says when talked to, by name, in place of the debug box
   # (ServerID, HP, position...) every other NPC opens.
   npc_text:

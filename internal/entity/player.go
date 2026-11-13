@@ -447,6 +447,9 @@ type Player struct {
 	// flyGrace: its last few reports on the way down from it (fly.go).
 	Flying   bool
 	flyGrace time.Time
+	// Noclip: a GM's /noclip is on (noclip.go): flying, through every wall, floor
+	// and ceiling, until /noclip again, #fly off or the next login
+	Noclip bool
 
 	// Jumps: the player's client jumps and answered the jump offer (jump.go,
 	// opcode 0x7E28, world.jump): the movement check takes a jump's arc from it.

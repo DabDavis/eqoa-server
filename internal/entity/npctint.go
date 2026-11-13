@@ -35,12 +35,16 @@ const NPCTintsMost = 200
 // (statesync.go: 116-139), so a client matches no more of one.
 const npcTintNameMost = 24
 
-// npcTintState is the world's tints and the message that tells them.
+// npcTintState is the world's tints and the messages that tell them.
 type npcTintState struct {
 	mu    sync.Mutex
 	tints []database.NPCTint
-	body  []byte // OpcodeNPCTints's body for tints; nil until made
+	body  map[uint8][]byte // OpcodeNPCTints's body for tints, by layout; nil until made
 }
+
+// NPCTintsLayoutMost is the newest layout of OpcodeNPCTints: 2, each name's
+// colour followed by its glow (petition 1893).
+const NPCTintsLayoutMost = 2
 
 // TintWireName is a tint's name as OpcodeNPCTints carries it: the key cut to
 // the bytes the entity channel carries a name in, keyed again (a trailing space
@@ -56,23 +60,39 @@ func TintWireName(key string) string {
 // (TintWireName: a u8 byte count and UTF-8) and its u32 colour, at most
 // NPCTintsMost of them. Two names that cut to one are sent once, the first's.
 func EncodeNPCTints(tints []database.NPCTint) []byte {
+	return EncodeNPCTintsLayout(tints, 1)
+}
+
+// EncodeNPCTintsLayout is OpcodeNPCTints's body in a layout: 1 as
+// EncodeNPCTints (the names whose colour tints, a glow alone left out); 2 the
+// names whose colour tints or whose glow lights, each its u32 colour then its
+// u32 glow (0xRRGGBBAA, 0 none; the GM Jibrish's petition 1893: Mr. Moogie's
+// body in a soft red glow).
+func EncodeNPCTintsLayout(tints []database.NPCTint, layout uint8) []byte {
 	seen := make(map[string]bool, len(tints))
 	var list []database.NPCTint
 	for _, t := range tints {
 		n := TintWireName(t.Name)
-		if n == "" || seen[n] || !database.NPCTintChanges(t.Color) {
+		shows := database.NPCTintChanges(t.Color)
+		if layout >= 2 {
+			shows = t.Shows()
+		}
+		if n == "" || seen[n] || !shows {
 			continue
 		}
 		seen[n] = true
-		list = append(list, database.NPCTint{Name: n, Color: t.Color})
+		list = append(list, database.NPCTint{Name: n, Color: t.Color, Glow: t.Glow})
 		if len(list) == NPCTintsMost {
 			break
 		}
 	}
-	b := binary.LittleEndian.AppendUint16(make([]byte, 0, 2+len(list)*(1+npcTintNameMost+4)), uint16(len(list)))
+	b := binary.LittleEndian.AppendUint16(make([]byte, 0, 2+len(list)*(1+npcTintNameMost+8)), uint16(len(list)))
 	for _, t := range list {
 		b = wireStr(b, t.Name)
 		b = binary.LittleEndian.AppendUint32(b, t.Color)
+		if layout >= 2 {
+			b = binary.LittleEndian.AppendUint32(b, t.Glow)
+		}
 	}
 	return b
 }
@@ -84,13 +104,19 @@ func NPCTintsMessage(body []byte) *protocol.Message {
 	return msg
 }
 
-// messageLocked is the body that tells the tints, and whether it tells none.
-// Must be called with s.mu held.
-func (s *npcTintState) messageLocked() ([]byte, bool) {
+// messageLocked is the body that tells the tints in a layout, and whether it
+// tells none. Must be called with s.mu held.
+func (s *npcTintState) messageLocked(layout uint8) ([]byte, bool) {
+	layout = min(max(layout, 1), NPCTintsLayoutMost)
 	if s.body == nil {
-		s.body = EncodeNPCTints(s.tints)
+		s.body = make(map[uint8][]byte, NPCTintsLayoutMost)
 	}
-	return s.body, binary.LittleEndian.Uint16(s.body) == 0
+	b, ok := s.body[layout]
+	if !ok {
+		b = EncodeNPCTintsLayout(s.tints, layout)
+		s.body[layout] = b
+	}
+	return b, binary.LittleEndian.Uint16(b) == 0
 }
 
 // SetNPCTints sets the NPCs' body tints (table npctint, as database.NPCTints
@@ -134,12 +160,16 @@ func (w *World) RefreshNPCTints(only ...*session.Session) int {
 	// (a client's answer while a GM's edit goes out)
 	w.npcTints.mu.Lock()
 	defer w.npcTints.mu.Unlock()
-	body, empty := w.npcTints.messageLocked()
-	sent := 0
+	sent, names := 0, 0
 	send := func(s *session.Session) bool {
-		if s != nil && s.TakeNPCTints(string(body), empty) {
+		if s == nil || s.NPCTintsLayout() == 0 {
+			return true
+		}
+		body, empty := w.npcTints.messageLocked(s.NPCTintsLayout())
+		if s.TakeNPCTints(string(body), empty) {
 			s.Queue().AddWithSequence(NPCTintsMessage(body))
 			sent++
+			names = max(names, int(binary.LittleEndian.Uint16(body)))
 		}
 		return true
 	}
@@ -151,7 +181,7 @@ func (w *World) RefreshNPCTints(only ...*session.Session) int {
 		w.SessionManager.ForEach(send)
 	}
 	if sent > 0 {
-		log.Printf("NPCTints: %d names, %d bytes, to %d clients", binary.LittleEndian.Uint16(body), len(body), sent)
+		log.Printf("NPCTints: %d names to %d clients", names, sent)
 	}
 	return sent
 }
@@ -168,7 +198,11 @@ func (w *World) NPCTintSummary() string {
 			names = append(names, "...")
 			break
 		}
-		names = append(names, fmt.Sprintf("%s %08X", t.Name, t.Color))
+		if t.Glow != 0 {
+			names = append(names, fmt.Sprintf("%s %08X glow %08X", t.Name, t.Color, t.Glow))
+		} else {
+			names = append(names, fmt.Sprintf("%s %08X", t.Name, t.Color))
+		}
 	}
 	line := fmt.Sprintf("body tints: %d names in npctint (%s), drawn by the clients that ask", len(tints), strings.Join(names, ", "))
 	if len(tints) > NPCTintsMost {

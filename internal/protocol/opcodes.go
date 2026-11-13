@@ -583,6 +583,16 @@ const (
 	// but what the server may send it: only #fly turns flight on.
 	OpcodeFly GameOpcode = 0x7E1B
 
+	// OpcodeNoclip is not retail: a GM's /noclip (handlers/noclip.go,
+	// entity/noclip.go; the GM Jibrish's petition 1904), server to a client that
+	// flies (OpcodeFly's): a u32, 1 on and 0 off. On, the client's walk passes
+	// through every wall, floor and ceiling while it flies (it is sent with
+	// OpcodeFly 1, and its end with OpcodeFly 0). A client that does not know it
+	// flies as #fly does, its walls still its own; a PS2 is never sent it.
+	// 0x7E7A, not the next free, is this lane's (a sibling lane may take
+	// 0x7E6F onwards).
+	OpcodeNoclip GameOpcode = 0x7E7A
+
 	// OpcodeCombatRecord is not retail: a character's combat record, its PvP and its
 	// duels (entity/combatrecord.go, handlers/combatrecord.go), for a client with a
 	// window of it: a u32 after the opcode, both ways, as OpcodeRaceLabels. The server
@@ -864,7 +874,9 @@ const (
 	// assist the main assist, 8 leader (u32 target), 9 helper (u32 target, 0
 	// none), 10 main assist (u32 target, 0 none), 11 kick (u32 target), 12 move a
 	// member to a group of the raid (u32 target, u8 group from 1), 13 swap two
-	// members' groups (u32 target, u32 target) (entity/raidsubgroups.go).
+	// members' groups (u32 target, u32 target) (entity/raidsubgroups.go), 14 add a
+	// player to the party's instance (u32 target), 15 take one out of it (u32
+	// target) (entity/instancemembers.go; a group's as well as a raid's).
 	OpcodeRaidCommand GameOpcode = 0x7E48
 	// OpcodeDPSMeterOffer is not retail: a damage meter, who in the player's
 	// group did how much damage in the fight and how fast (entity/dpsmeter.go,
@@ -911,15 +923,17 @@ const (
 // black and green").
 const (
 	// OpcodeNPCTintsOffer is not retail: the server's offer of its NPCs'
-	// body tints, server to client once the player is in the world: a u8, 1,
-	// the layout of OpcodeNPCTints below. A PS2 ignores it (CLIENT's
+	// body tints, server to client once the player is in the world: a u8, the
+	// newest layout of OpcodeNPCTints below the server sends (2 since
+	// 2026-11-13; 1 before). A PS2 ignores it (CLIENT's
 	// dispatcher has no case above 0x1402 and no default) and never answers,
 	// so it draws every NPC in its body's own colours.
 	OpcodeNPCTintsOffer GameOpcode = 0x7E3E
 
 	// OpcodeNPCTintsAnswer is a client's answer to OpcodeNPCTintsOffer, client
-	// to server: a u8, 1 to be sent the tints, 0 to stop (a wider answer is
-	// read by its first byte). A client answers at once: one that answers 1
+	// to server: a u8, the layout it reads (1, or 2 with the glows; one past
+	// the offer's is the offer's), 0 to stop (a wider answer is read by its
+	// first byte). A client answers at once: one that answers 1
 	// drops what it held and is sent the tints there are (OpcodeNPCTints),
 	// none when there are none.
 	OpcodeNPCTintsAnswer GameOpcode = 0x7E3F
@@ -933,7 +947,11 @@ const (
 	// name keys the same (a player's never) with each of its colours' red,
 	// green and blue times the tint's (255ths), as much of it as the alpha
 	// says (0xFF the whole, 0 none). Each one is the whole set; 0 names: none.
-	// At most entity.NPCTintsMost.
+	// At most entity.NPCTintsMost. Layout 2 (the GM Jibrish's petition 1893:
+	// Mr. Moogie's whole body in a soft red glow) follows each colour with a
+	// u32 glow 0xRRGGBBAA (0 none): a light of the body's own, the held items'
+	// glow (vanilla's aura.rs) on every layer of it, the colour at the alpha's
+	// share; it lists the names of a glow alone too.
 	OpcodeNPCTints GameOpcode = 0x7E40
 )
 
@@ -1388,6 +1406,8 @@ func (op GameOpcode) String() string {
 		return "CombatRecordData"
 	case OpcodeFly:
 		return "Fly"
+	case OpcodeNoclip:
+		return "Noclip"
 	case OpcodeJump:
 		return "Jump"
 	case OpcodeCreationOffer:

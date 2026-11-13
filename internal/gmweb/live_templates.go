@@ -24,6 +24,8 @@ const classTemplateAbilitiesHelp = `a JSON list, each {"kind": nuke | aoe | life
 	`veil (a creature's: at every melee hit that lands, "tap_pct" % of its own most hit points taken from what it hit into itself, cut by "resist"; "fx" its look at what each tap hits (none: no look), "name", or "spell"/"spell_id" a buff of that name cast on itself as its fight begins and again at its time) | ` +
 	`killsay (a creature's: "say" its line in /say when a hit of its own kills one of "foes", names) | ` +
 	`laststand (a creature's, once a fight at "below" % or under while a non-player (a pet, a mercenary, an NPC) alive on its hate list is hitting it: healed to full, its damage "damage_pct" % (200 doubled) for the rest of that fight; "say" its line) | ` +
+	`ward (a creature's, once a fight below "below" %: for the rest of that fight every hit that lands on it heals it "heal" more and is answered with "damage" on whoever landed it, pure (no resist); "name" its lines' (Ward), "say" its line) | ` +
+	`deathhold (a creature's, once a fight: the hit that would kill it leaves it at 1 hit point, and for "hold" seconds (30) it is frozen, nothing landing on it, nothing of its own done; then its fight goes on and the next hit kills it; "say" its line) | ` +
 	`"every": seconds from one cast's start to the next (2-3600), "first": seconds into a fight before the first, ` +
 	`"chain": true to cast it as soon as the ability before it is cast (its clock then unused), ` +
 	`"chance": % of its due casts (100), "damage_pct": % of its spell's figures (100), ` +

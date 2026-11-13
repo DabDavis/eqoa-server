@@ -4,6 +4,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/entity"
@@ -100,6 +101,11 @@ const (
 	// (u32, u32)
 	raidOpGroup = 12
 	raidOpSwap  = 13
+	// petition 1879 (entity/instancemembers.go): 14 a player added to the party's
+	// instance, 15 one taken out (u32 the player as the client knows it); the
+	// group's menu's as much as the raid's
+	raidOpInstAdd    = 14
+	raidOpInstRemove = 15
 )
 
 // handleCommand is 0x7E48: u8 op and its arguments, as the typed commands do.
@@ -176,6 +182,16 @@ func (h *RaidHandler) handleCommand(sess *session.Session, msg *protocol.Message
 		if ok1 && ok2 {
 			gw.RaidGroupSwap(sess, "", "", a, b)
 		}
+	case raidOpInstAdd, raidOpInstRemove:
+		id, ok := u32()
+		if !ok {
+			return nil
+		}
+		if op == raidOpInstAdd {
+			dungeonsTell(sess, gw.DungeonAddMember(sess, "", id))
+		} else {
+			dungeonsTell(sess, gw.DungeonRemoveMember(sess, "", id, time.Now()))
+		}
 	default:
 		log.Printf("Raid: unknown command %d from %s", op, sess.RemoteAddr())
 	}
@@ -205,7 +221,8 @@ func (h *ChatHandler) raidTell(sess *session.Session, player *entity.Player, nam
 		if rest != "" {
 			return false // a tell to someone called Raid
 		}
-	case "raidaoe", "raidinvite", "raidleave", "raidkick", "raidleader", "raidhelper", "raidassist", "raidloot", "rsay", "raidgroup", "raidswap", "readycheck":
+	case "raidaoe", "raidinvite", "raidleave", "raidkick", "raidleader", "raidhelper", "raidassist", "raidloot", "rsay", "raidgroup", "raidswap", "readycheck",
+		"grouploot", "groupnbg":
 	case "ready", "notready": // only while the sender has a ready check to answer
 		if rest != "" || !h.gameWorld.HasReadyCheck(sess) {
 			return false
@@ -282,6 +299,8 @@ func (h *ChatHandler) raidCommand(sess *session.Session, player *entity.Player, 
 		}
 	case "raidloot":
 		gw.RaidLootRule(sess, rest)
+	case "grouploot", "groupnbg": // petition 1878 (entity/grouploot.go)
+		gw.GroupLootRule(sess, rest)
 	case "rsay":
 		h.raidSay(sess, player, rest)
 	case "readycheck": // petition 1711 (entity/readycheck.go)
@@ -384,6 +403,7 @@ var playerHelpLines = []string{
 	"  /raidhelper <name|none> - the leader's one helper, who may invite and kick",
 	"  /raidassist <name|none> - the leader names the main assist; alone, assists them",
 	"  /raidloot ffa|needgreed|master - the leader's loot rule (not in combat)",
+	"  /grouploot needgreed|ffa - a group leader's loot rule, as a raid's",
 	"  /raidgroup - the raid's groups; /raidgroup <name> <n> moves one (leader, helper)",
 	"  /raidswap <name> <name> - trades two members' groups (the leader or the helper)",
 	"  /readycheck - asks your group or raid (its leader or helper) if all are ready",

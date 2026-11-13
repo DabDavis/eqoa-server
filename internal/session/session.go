@@ -250,6 +250,9 @@ type Session struct {
 	// (a PS2, an older build) is sent none.
 	npcTints     bool
 	npcTintsSent string
+	// npcTintsLayout is the layout the client answered (1 the tints alone, 2
+	// with each name's glow: entity.EncodeNPCTintsLayout); 0 with npcTints off
+	npcTintsLayout uint8
 
 	// mobInfo: the client answered the mob info's offer 1
 	// (protocol.OpcodeMobInfoAnswer, handlers/mobinfo.go), so a monster's name
@@ -383,10 +386,31 @@ const npcTintsUnknown = "\xff"
 // sent the tints there are; either way it holds none now (a client that
 // answers drops what it held), so nothing has been sent since.
 func (s *Session) SetNPCTints(on bool) {
+	var layout uint8
+	if on {
+		layout = 1
+	}
+	s.SetNPCTintsLayout(layout)
+}
+
+// SetNPCTintsLayout is SetNPCTints with the layout the client answered: 0 off,
+// 1 the tints alone, 2 with each name's glow (petition 1893).
+func (s *Session) SetNPCTintsLayout(layout uint8) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.npcTints = on
+	s.npcTints = layout > 0
+	s.npcTintsLayout = layout
 	s.npcTintsSent = ""
+}
+
+// NPCTintsLayout is the layout of the tints the client is sent (0: none).
+func (s *Session) NPCTintsLayout() uint8 {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if !s.npcTints {
+		return 0
+	}
+	return max(s.npcTintsLayout, 1)
 }
 
 // NPCTints is whether the client asked for the NPCs' body tints

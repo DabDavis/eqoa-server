@@ -377,6 +377,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		// standing, kept at each purchase; and the training points an item's
 		// use gives, kept at once (potion.go)
 		interactHandler.heroes = NewHeroes(gameWorld, charStore.DB(), invStore, charStore)
+		if interactHandler.heroes != nil {
+			interactHandler.heroes.links = chatHandler.links // a ware shown as an item link (heroes.go, petition 1876)
+		}
 		equipHandler.training = charStore
 		interactHandler.binds = charStore
 		// the stables' ledgers (coachledger.go)

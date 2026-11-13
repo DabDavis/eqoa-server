@@ -417,7 +417,9 @@ func (w *World) playerShieldsLocked(sess *session.Session, p *Player, npc *NPC, 
 	}
 	// its worn items' answers (wornshield.go): their heals at a hit that
 	// killed the creature too, their damage only on one still standing
-	return w.wornShieldsLocked(sess, p, npc) || died
+	died = w.wornShieldsLocked(sess, p, npc) || died
+	w.wornBuffsLocked(sess, p, now)
+	return died
 }
 
 // petShieldsLocked answers a creature's melee hit on a pet with the pet's

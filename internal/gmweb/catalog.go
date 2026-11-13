@@ -2046,6 +2046,25 @@ var catalog = map[string]tableNote{
 			"source":   {Label: "Source", Help: "gm, or vines for tools/seed_hazards.py's rows (its --undo deletes those no GM changed)"},
 		},
 	},
+	"noroam": {
+		Label: "No-roam areas", Group: "World", Title: "name", Sort: "id",
+		Help: "Ground no wandering creature walks into or through (entity/noroam.go; petitions 1963-1965, three kobold " +
+			"camps in Odus: wildlife \"can get close, but never through the tented camp\"): a circle round x/z, radius " +
+			"across. A creature whose spawn is in it is its own (the camp's) and wanders it as ever; one standing in it walks " +
+			"out; a fight's chase and the walk home after one may cross it, a GM's patrol path is its own.",
+		Live:   "At once: the next leg each wanderer chooses.",
+		Show:   []string{"id", "name", "world", "x", "z", "radius", "source"},
+		Search: []string{"name", "note", "source"},
+		Cols: map[string]colNote{
+			"name":   {Label: "Name", Help: "the area as a GM reads it"},
+			"world":  {Label: "World", Enum: "world", Section: "Where it lies"},
+			"x":      {Label: "X", Section: "Where it lies", Help: "its middle"},
+			"z":      {Label: "Z", Section: "Where it lies", Help: "its middle"},
+			"radius": {Label: "Radius", Section: "Where it lies", Help: "how far from its middle across (1-1000)"},
+			"note":   {Label: "Note", Format: "multiline", Help: "where it came from"},
+			"source": {Label: "Source", Help: "gm, or a tool's rows (its --undo deletes those no GM changed)"},
+		},
+	},
 	"spellfx_suggestions": {
 		Label: "Community visual suggestions", Group: "Items & spells", Title: "spellid", Sort: "id", Write: writeAdmin,
 		Help: "What players suggest a spell's visual is, sent from the public spell-visual page with no sign-in " +

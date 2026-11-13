@@ -58,3 +58,42 @@ func checkHazardRow(row map[string]any) error {
 	}
 	return nil
 }
+
+// liveNoRoam reads the no-roam areas again (entity/noroam.go, table noroam).
+func (s *Server) liveNoRoam() string {
+	if s.d.World == nil || s.d.DB == nil {
+		return "no world is running: at the next start"
+	}
+	if _, err := s.d.World.LoadNoRoam(s.d.DB); err != nil {
+		return "not applied to the world: " + err.Error()
+	}
+	return "at once: the next leg each wanderer chooses"
+}
+
+// checkNoRoamRow holds a noroam row to what the world can use (database.CheckNoRoam).
+func checkNoRoamRow(row map[string]any) error {
+	var a database.NoRoam
+	world := 0
+	if v, ok := row["world"]; ok && v != nil {
+		f, fok := asFloat(v)
+		if !fok || f != math.Trunc(f) {
+			return badRequest("world is a whole number")
+		}
+		world = int(f)
+	}
+	for col, dst := range map[string]*float32{"x": &a.X, "z": &a.Z, "radius": &a.Radius} {
+		v, ok := row[col]
+		if !ok || v == nil {
+			continue
+		}
+		f, fok := asFloat(v)
+		if !fok || math.IsNaN(f) || math.IsInf(f, 0) || math.Abs(f) > 200000 {
+			return badRequest("%s is a number within 200000 of the middle", col)
+		}
+		*dst = float32(f)
+	}
+	if err := database.CheckNoRoam(a, world); err != nil {
+		return badRequest("%v", err)
+	}
+	return nil
+}

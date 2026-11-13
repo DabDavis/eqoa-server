@@ -453,6 +453,11 @@ func main() {
 		log.Printf("WARNING: %v; no hazard hurts anyone", err)
 	}
 	log.Printf("World: %s", gameWorld.HazardsSummary())
+	// The no-roam areas (entity/noroam.go, table noroam): ground no wandering creature walks into
+	if _, err := gameWorld.LoadNoRoam(db); err != nil {
+		log.Printf("WARNING: %v; wanderers walk anywhere", err)
+	}
+	log.Printf("World: %s", gameWorld.NoRoamSummary())
 
 	log.Printf("Entity world: %d players, %d NPCs", gameWorld.PlayerCount(), gameWorld.NPCCount())
 

@@ -38,6 +38,10 @@ type wayRoute struct {
 	// Vampire is a trip only a vampire is offered (a coffin's: entity/
 	// vampire.go); to anyone else the coffin is a coffin and says nothing.
 	Vampire bool
+	// Holds is an item the player must carry or wear for the trip (0: none),
+	// Lacks what the waysender says to one without it.
+	Holds int
+	Lacks string
 }
 
 // wayPlace is where a trip lands: a world and a point in it.
@@ -54,6 +58,14 @@ type wayPlace struct {
 // to"): Dust's spot then, facing as he did; until then in front of the Portal
 // to the Dead Hills.
 var podArrival = &wayPlace{World: 5, X: 4644.3, Y: -11.8, Z: 3818.7, Facing: 3.117049}
+
+// podLevel is the Plane of Disease's trips' level, the flag quest's (the
+// wiki's 51); zombieFleshSuit the suit's record (itempattern 1012 on both
+// shards).
+const (
+	podLevel        = 51
+	zombieFleshSuit = 1012
+)
 
 // wayRoutes are each waysender's trips, by name; the guides' words beside.
 var wayRoutes = map[string][]wayRoute{
@@ -236,17 +248,30 @@ var wayRoutes = map[string][]wayRoute{
 	// Necrologist Zizclank and his assistant Necroloigst Xeptip. Then you want
 	// to enter the mausoleum in the middle" (portal/plane-of-disease, "Dead
 	// Hills (NW)", the Rathe's: world 1). The live game's flag quest is not
-	// in, so Zizclank sends anyone of the quest's level, 50, to the portal
+	// in, so Zizclank sends anyone of the quest's level to the portal
 	// players arrive at, which sends them back. tools/seed_pod.py places
 	// these NPCs.
+	// The wiki's level, 51 (wiki.eqoa.live's "Plane of Disease: Portal
+	// Quest"; the owner, 2026-11-13: "yes match it to the wiki"). The trips
+	// land in the Last House's entrance hall, and its ward (a questwalls row
+	// of the suit: tools/pod_wiki_20261113.py) keeps a player without the
+	// zombie flesh suit from the halls up to the Oozing Portal: the wiki's
+	// "re-enter later if you bring a Zombie Flesh Suit".
 	"Necrologist Zizclank": {
-		{To: "the Plane of Disease", At: podArrival, MinLevel: 50},
+		{To: "the Plane of Disease", At: podArrival, MinLevel: podLevel},
 	},
 	"Mausoleum Portal": {
 		// The portal itself (ticket 1197): the guide's flag lets a player "port
 		// there anytime", and this talked only on The Last House's own first step.
 		// The same trip as Zizclank's, opened by the same quest (questunlocks).
-		{To: "the Plane of Disease", At: podArrival, MinLevel: 50},
+		{To: "the Plane of Disease", At: podArrival, MinLevel: podLevel},
+	},
+	// The Last House's far portal (the wiki's Oozing Portal): the quest's last
+	// step, then for one who finished it the way on, with the suit ("Have the
+	// suit in your inventory to pass through"); its landing the step's.
+	"Oozing Portal": {
+		{To: "the Plane of Disease", At: &wayPlace{World: 5, X: 5063, Y: -25.3, Z: 3866}, MinLevel: podLevel,
+			Holds: zombieFleshSuit, Lacks: "The portal will not open to you: you need a zombie flesh suit to pass through."},
 	},
 	"Portal to the Dead Hills": {
 		{To: "the Dead Hills", Arrive: "Necrologist Zizclank"},
@@ -448,6 +473,13 @@ type lockedTrip struct{ place, quest string }
 // allows and no quest keeps it from (TripBarred); the first place a level
 // kept it from (or "" if none did) and the first a quest did.
 func wayDests(gw *entity.World, sess *session.Session, waysender string, player *entity.Player) (dests []entity.CoachDest, barred string, locked lockedTrip) {
+	dests, barred, locked, _ = wayDestsHeld(gw, sess, waysender, player)
+	return dests, barred, locked
+}
+
+// wayDestsHeld is wayDests, and the line of the first trip the player lacks
+// an item for ("" none).
+func wayDestsHeld(gw *entity.World, sess *session.Session, waysender string, player *entity.Player) (dests []entity.CoachDest, barred string, locked lockedTrip, lacks string) {
 	for _, r := range wayRoutes[waysender] {
 		var x, y, z, facing float32
 		var world uint8
@@ -478,6 +510,12 @@ func wayDests(gw *entity.World, sess *session.Session, waysender string, player 
 			}
 			continue
 		}
+		if r.Holds > 0 && !Quests().Holds(player, r.Holds) {
+			if lacks == "" {
+				lacks = r.Lacks
+			}
+			continue
+		}
 		// in front of them, not inside them: a body is solid (a place: on it);
 		// on dry ground by them where in front is the sea (petition 1349: the
 		// dockmasters face the harbour from their piers' ends)
@@ -491,7 +529,7 @@ func wayDests(gw *entity.World, sess *session.Session, waysender string, player 
 		dests = append(dests, entity.CoachDest{Name: r.To, X: fx, Y: y, Z: fz, Facing: face,
 			World: world, Fee: r.Fee, MinLevel: r.MinLevel, Via: waysender})
 	}
-	return dests, barred, locked
+	return dests, barred, locked, lacks
 }
 
 // destLabel is a trip as a menu of several lists it: the place, and its fee.
@@ -507,12 +545,17 @@ func destLabel(d entity.CoachDest) string {
 // anything to say. A trip a quest keeps the player from is left off the list
 // of the others, as one its level does.
 func (h *InteractHandler) offerWay(sess *session.Session, player *entity.Player, npc *entity.NPC) bool {
-	dests, barred, locked := wayDests(h.gameWorld, sess, npc.Name, player)
+	dests, barred, locked, lacks := wayDestsHeld(h.gameWorld, sess, npc.Name, player)
 	if len(dests) == 0 {
-		if barred == "" && locked.place == "" {
+		if barred == "" && locked.place == "" && lacks == "" {
 			return false
 		}
 		forgetDialogs(player)
+		if lacks != "" && barred == "" && locked.place == "" {
+			h.sendDialogueBox(sess, lacks)
+			log.Printf("Waysender: %s lacks the item for %s's trip", player.Name, npc.Name)
+			return true
+		}
 		if barred != "" {
 			h.sendDialogueBox(sess, tooWeak(barred))
 			log.Printf("Waysender: %s is too weak (%d) for %s's trip to %s", player.Name, player.Level, npc.Name, barred)

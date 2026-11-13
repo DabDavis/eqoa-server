@@ -2,6 +2,7 @@ package entity
 
 import (
 	"fmt"
+	"math"
 	"sort"
 
 	"github.com/eqoa/server/internal/database"
@@ -71,7 +72,8 @@ func (w *World) QuestWalls() []database.QuestWall {
 	return out
 }
 
-// WatchedItems is every item a creature's aggro looks for (npcaggro's holding).
+// WatchedItems is every item a creature's aggro looks for (npcaggro's
+// holding) and every item a wall opens for (questwalls' item).
 func (w *World) WatchedItems() []int {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
@@ -81,6 +83,12 @@ func (w *World) WatchedItems() []int {
 		if r.Holding > 0 && !seen[r.Holding] {
 			seen[r.Holding] = true
 			out = append(out, r.Holding)
+		}
+	}
+	for _, q := range w.qwalls.walls {
+		if q.Item > 0 && !seen[q.Item] {
+			seen[q.Item] = true
+			out = append(out, q.Item)
 		}
 	}
 	sort.Ints(out)
@@ -119,8 +127,69 @@ func (w *World) isQuestWallLocked(npc *NPC) bool {
 }
 
 // wallPassedLocked is whether p walks through the wall npc: out of its view.
+// The quest engine says who passes by a quest or an item held
+// (SetQuestState); a wall of an item lets a GM through, and anyone standing on
+// its far side (its inner boxes), so the way back is always open.
 func (w *World) wallPassedLocked(npc *NPC, p *Player) bool {
-	return w.isQuestWallLocked(npc) && w.qwalls.passes[p.CharServerID][npc.ServerID]
+	if !w.isQuestWallLocked(npc) {
+		return false
+	}
+	if w.qwalls.passes[p.CharServerID][npc.ServerID] {
+		return true
+	}
+	wl := w.qwalls.walls[npc.ServerID]
+	return wl.Item > 0 && (p.GM || insideWall(wl, npc, p))
+}
+
+// insideWall is whether p stands on the wall's far side: in one of its inner
+// boxes, in its world.
+func insideWall(wl database.QuestWall, npc *NPC, p *Player) bool {
+	if p.World != npc.World {
+		return false
+	}
+	for _, b := range wl.Inner {
+		if b.Holds(p.X, p.Y, p.Z) {
+			return true
+		}
+	}
+	return false
+}
+
+// WallStop is a wall of an item near a player that stops it: the wall's npcs
+// row, how far off its middle the player stands, and the wall's line.
+type WallStop struct {
+	NPCID int
+	Dist  float32
+	Text  string
+}
+
+// ItemWallsStopping are the walls of an item within reach of p that it does
+// not pass (wallPassedLocked): the quest engine tells it a wall's line once as
+// it comes up against it (handlers/questwalls.go).
+func (w *World) ItemWallsStopping(p *Player, reach float32) []WallStop {
+	if p == nil {
+		return nil
+	}
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	var out []WallStop
+	for id, wl := range w.qwalls.walls {
+		if wl.Item <= 0 {
+			continue
+		}
+		n := w.NPCs[id]
+		if n == nil || n.World != p.World {
+			continue
+		}
+		dx, dz := n.X-p.X, n.Z-p.Z
+		d := float32(math.Sqrt(float64(dx*dx + dz*dz)))
+		if d > reach || w.wallPassedLocked(n, p) {
+			continue
+		}
+		out = append(out, WallStop{NPCID: int(id), Dist: d, Text: wl.Text})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].NPCID < out[j].NPCID })
+	return out
 }
 
 // holdsLocked is whether p holds the item (one watched: SetQuestState).
@@ -133,13 +202,28 @@ func (w *World) holdsLocked(p *Player, pattern int) bool {
 const questHoldReach float32 = 150
 
 // NearHoldingRule is whether p stands within questHoldReach of a creature
-// whose aggro looks for an item (npcaggro's holding).
+// whose aggro looks for an item (npcaggro's holding) or of a wall an item
+// opens (questwalls' item).
 func (w *World) NearHoldingRule(p *Player) bool {
-	if p == nil || w.SpatialIndex == nil {
+	if p == nil {
 		return false
 	}
 	w.mu.RLock()
 	defer w.mu.RUnlock()
+	for id, wl := range w.qwalls.walls {
+		if wl.Item <= 0 {
+			continue
+		}
+		if n := w.NPCs[id]; n != nil && n.World == p.World {
+			dx, dz := n.X-p.X, n.Z-p.Z
+			if dx*dx+dz*dz <= questHoldReach*questHoldReach {
+				return true
+			}
+		}
+	}
+	if w.SpatialIndex == nil {
+		return false
+	}
 	for _, id := range w.SpatialIndex.QueryRadius(p.X, p.Z, questHoldReach) {
 		n := w.NPCs[id]
 		if n == nil || n.World != p.World || n.Dead {

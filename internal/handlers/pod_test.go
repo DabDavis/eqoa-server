@@ -24,8 +24,9 @@ func boxSaid(s *session.Session) string {
 }
 
 // Necrologist Zizclank, in the Rathe's Dead Hills (world 1), sends a player
-// of level 50 or more to the Plane of Disease (world 5), landing just in
-// front of the portal players arrive at, and tells anyone below that they are
+// of level 51 or more (the wiki's Portal Quest's level, 2026-11-13; it was
+// 50) to the Plane of Disease (world 5), landing in the Last House's entrance
+// hall, and tells anyone below that they are
 // too weak (F3 pass 17, "unable to travel to PoD"). The controls: No sends
 // nobody, and his assistant, who has no route, has nothing to say.
 func TestZizclankSendsTheStrongToPoD(t *testing.T) {
@@ -35,21 +36,21 @@ func TestZizclankSendsTheStrongToPoD(t *testing.T) {
 	xep := tw.add(2, &entity.NPC{ServerID: 2, Name: "Necrologist Xeptip", World: 1, SpawnX: 4280, SpawnY: 97.2, SpawnZ: 6396, SpawnFacing: math.Pi / 2})
 	tw.w.NPCs[3] = &entity.NPC{ServerID: 3, Name: "Portal to the Dead Hills", World: 5, SpawnX: 5063, SpawnY: -25.3, SpawnZ: 3881, SpawnFacing: math.Pi}
 
-	tw.p.Level = 49
+	tw.p.Level = 50
 	tw.talk(ziz)
 	if box := boxSaid(tw.s); !strings.Contains(box, "too weak") || !strings.Contains(box, "the Plane of Disease") {
-		t.Fatalf("a level 49 was told %q, want too weak for the Plane of Disease", box)
+		t.Fatalf("a level 50 was told %q, want too weak for the Plane of Disease", box)
 	}
 	tw.s.Queue().GetPending()
 	tw.pick(ziz, 0)
 	if _, _, _, moved := teleported(tw.s); moved {
-		t.Fatal("a level 49 was sent to the Plane of Disease")
+		t.Fatal("a level 50 was sent to the Plane of Disease")
 	}
 
-	tw.p.Level = 50
+	tw.p.Level = 51
 	tw.talk(ziz)
 	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Yes", "No"}) {
-		t.Fatalf("a level 50 was offered %q, want Yes and No", got)
+		t.Fatalf("a level 51 was offered %q, want Yes and No", got)
 	}
 	tw.pick(ziz, 1)
 	if _, _, _, moved := teleported(tw.s); moved {

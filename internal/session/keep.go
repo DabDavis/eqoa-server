@@ -72,8 +72,11 @@ type Kept struct {
 	// past 1 (a kept file before it has NumberTags alone: layout 1)
 	NumberTagsLayout uint8 `json:"number_tags_layout,omitempty"`
 	NPCTints         bool  `json:"npc_tints,omitempty"`
-	MobInfo          bool  `json:"mob_info,omitempty"`
-	MercsTold        bool  `json:"mercs_told,omitempty"`
+	// NPCTintsLayout is the tints' layout the client answered, when past 1
+	// (a kept file before it has NPCTints alone: layout 1)
+	NPCTintsLayout uint8 `json:"npc_tints_layout,omitempty"`
+	MobInfo        bool  `json:"mob_info,omitempty"`
+	MercsTold      bool  `json:"mercs_told,omitempty"`
 	// MercsLayout is the layout of OpcodeMercsData the client asked for (2
 	// names each merc's hirer, the client's "<X's Mercenary>" tag): without
 	// it a kept session fell back to 1 and every tag went (2026-11-11).
@@ -222,6 +225,7 @@ func (s *Session) Keep() Kept {
 		NumberTags:         s.numberTags != 0,
 		NumberTagsLayout:   s.numberTags,
 		NPCTints:           s.npcTints,
+		NPCTintsLayout:     s.npcTintsLayout,
 		MobInfo:            s.mobInfo,
 		MercsTold:          s.mercsTold,
 		MercsLayout:        s.mercsLayout,
@@ -392,7 +396,7 @@ func (s *Session) restore(k Kept, now time.Time) {
 	}
 	// the client keeps its tints; a data step in the hold may have changed
 	// them, so the next refresh sends them whatever they are (handlers/keep.go)
-	s.npcTints, s.npcTintsSent = k.NPCTints, ""
+	s.npcTints, s.npcTintsSent, s.npcTintsLayout = k.NPCTints, "", k.NPCTintsLayout
 	if k.NPCTints {
 		s.npcTintsSent = npcTintsUnknown
 	}

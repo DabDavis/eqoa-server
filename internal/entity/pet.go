@@ -1350,6 +1350,7 @@ func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, bal
 	if balanced {
 		n = w.petDealtLocked(pet, t, n) // balance.go
 	}
+	n = w.npcTakesLocked(t, n, now)             // nothing while held at 1 (deathhold.go)
 	w.tallyDamageLocked(t, owner, min(n, t.HP)) // killcredit.go: the owner's
 	t.HP = max(t.HP-n, 0)
 	tell()
@@ -1358,7 +1359,7 @@ func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, bal
 	w.rootBreakLocked(t, w.balanceLevelOf(pet)) // root.go
 	log.Printf("Pet: %s's %q hit %s for %d (HP %d/%d)", owner.Name, pet.Name, t.Name, n, t.HP, t.MaxHP)
 	if t.HP > 0 {
-		w.hitHealLocked(t, n, sess) // its heal at every hit that lands (hitheal.go)
+		w.hitLandedLocked(t, n, sess, pet.ServerID) // its heal at every hit that lands, its ward's answer (hitheal.go, ward.go)
 		return false
 	}
 	t.Effects = nil

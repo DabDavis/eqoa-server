@@ -136,7 +136,7 @@ func (w *World) templatePhasesLocked(npc *NPC, now time.Time) {
 	if len(t.moments) > 0 && npc.add == nil {
 		w.bossMomentsLocked(npc, npc.fight(), now) // bossmoments.go
 	}
-	if npc.add != nil || (len(t.summons) == 0 && t.enrage == nil && t.lastStand == nil) {
+	if npc.add != nil || (len(t.summons) == 0 && t.enrage == nil && t.lastStand == nil && t.ward == nil) {
 		return
 	}
 	f := npc.fight()
@@ -150,6 +150,7 @@ func (w *World) templatePhasesLocked(npc *NPC, now time.Time) {
 	}
 	w.enragePhaseLocked(npc, f, now)    // enrage.go
 	w.lastStandPhaseLocked(npc, f, now) // laststand.go
+	w.wardPhaseLocked(npc, f, now)      // ward.go
 }
 
 // summonLocked calls a summon's adds beside npc into its fight f (the file's doc). Must be called with the

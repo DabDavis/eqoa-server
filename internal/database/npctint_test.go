@@ -30,7 +30,7 @@ func TestNPCTints(t *testing.T) {
 		t.Fatal(err)
 	}
 	got, err = db.NPCTints()
-	want := []NPCTint{{"lady vox", 0xFF0000FF}, {"yhafiran", 0x558C50FF}}
+	want := []NPCTint{{"lady vox", 0xFF0000FF, 0}, {"yhafiran", 0x558C50FF, 0}}
 	if err != nil || len(got) != len(want) {
 		t.Fatalf("tints %v, %v; want %v", got, err, want)
 	}
@@ -48,5 +48,40 @@ func TestNPCTints(t *testing.T) {
 		if ValidNPCTint(c) != ok {
 			t.Errorf("ValidNPCTint(%d) = %v", c, !ok)
 		}
+	}
+}
+
+// The glow (petition 1893): read beside the colour, a row of a glow alone kept (it draws something), a glow of alpha
+// 0 or black none; a table made before the glow takes its column, its rows unlit.
+func TestNPCTintGlows(t *testing.T) {
+	path := t.TempDir() + "/glow.db"
+	old, err := NewSQLite(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := old.Exec(`DROP TABLE npctint`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := old.Exec(`CREATE TABLE npctint (name TEXT PRIMARY KEY, color INTEGER NOT NULL DEFAULT 4294967295,
+		note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm')`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := old.Exec(`INSERT INTO npctint (name, color) VALUES ('Yhafiran', 1435259135)`); err != nil {
+		t.Fatal(err)
+	}
+	old.Close()
+	db, err := NewSQLite(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	if _, err := db.Exec(`INSERT INTO npctint (name, color, glow) VALUES ('Mr. Moogie', 4294967295, 4284506265),
+		('dim', 4294967295, 4284506112), ('dark', 4294967295, 255)`); err != nil {
+		t.Fatal(err)
+	}
+	got, err := db.NPCTints()
+	want := []NPCTint{{Name: "mr. moogie", Color: 0xFFFFFFFF, Glow: 0xFF606099}, {Name: "yhafiran", Color: 0x558C50FF}}
+	if err != nil || len(got) != len(want) || got[0] != want[0] || got[1] != want[1] {
+		t.Fatalf("tints %+v, %v; want %+v", got, err, want)
 	}
 }

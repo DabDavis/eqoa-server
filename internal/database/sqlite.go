@@ -1332,6 +1332,17 @@ func (s *SQLiteAccountStore) AccessLevel(accountID int) (int, error) {
 	return level, nil
 }
 
+// Username is the account's accountinfo.username (handlers/noclip.go: who may
+// /noclip). ErrAccountNotFound for none.
+func (s *SQLiteAccountStore) Username(accountID int) (string, error) {
+	var name string
+	err := s.db.QueryRow(`SELECT username FROM accountinfo WHERE accountid = ?`, accountID).Scan(&name)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", ErrAccountNotFound
+	}
+	return name, err
+}
+
 // Create creates a new account. Password should already be hashed if needed.
 func (s *SQLiteAccountStore) Create(username, passwordHash string) (*AccountRecord, error) {
 	result, err := s.db.Exec(`

@@ -441,6 +441,9 @@ func ResumeDump(sess *session.Session, dead bool) bool {
 	// and said nothing of flight (fly.go)
 	if on, _ := gw.Flying(sess); on {
 		SendFlying(sess, true)
+		if nc, _ := gw.Noclip(sess); nc {
+			SendNoclip(sess, true) // and through walls (noclip.go)
+		}
 	}
 	SendClientMessage(sess, ResumeLine)
 	return true

@@ -26,11 +26,32 @@ package entity
 // rules: duelfight.go, pvp.go; Metal Moogie's challenger's own pet may hurt
 // him) and other players' heals are as they were.
 
+//
+// The GM Jibrish's petition 1901 (2026-11-13): "Mercenaries should not assist
+// you in duels, or attack your target while in a duel." A duel is its two's own
+// from its accept: its countdown (DuelCountdown, when each side readies itself)
+// as well as its fight, so no merc's or familiar's heal or buff lands on a
+// duelist then either (ownFightLocked: duelEngagedLocked); and a duelist's mercs
+// stand down for it, taking on nothing, its owner's target or any other, and
+// letting go of what they fought (mercChooseTargetLocked), /merc attack refused
+// (MercLineDueling), until the duel is over.
+
+// MercLineDueling is /merc attack's refusal while its owner is in a duel (ours).
+const MercLineDueling = "Your mercenary will not fight while you are in a duel."
+
 // ownFightLocked reports a player in a fight no mercenary or familiar helps in:
-// flagged for PvP, in a duel that is on, or dueling a Metal Moogie (Mr. Moogie's
-// challenge). Must be called with the lock held.
+// flagged for PvP, in a duel accepted (its countdown or its fight), or dueling a
+// Metal Moogie (Mr. Moogie's challenge). Must be called with the lock held.
 func (w *World) ownFightLocked(p *Player) bool {
-	return p != nil && (p.pvp.on || w.duelOnLocked(p.ServerID) != nil || w.metalDuelOfLocked(p.ServerID))
+	return p != nil && (p.pvp.on || w.duelEngagedLocked(p.ServerID) || w.metalDuelOfLocked(p.ServerID))
+}
+
+// duelEngagedLocked reports a player in a duel accepted: counting down to its
+// fight, or fighting it (petition 1901). An invitation and the wager window are
+// not yet a duel. Must be called with the lock held.
+func (w *World) duelEngagedLocked(id EntityID) bool {
+	d := w.duels.of[id]
+	return d != nil && (d.Phase == duelOn || d.Phase == duelCountdown)
 }
 
 // helperTickHeldLocked reports a heal over time's tick that does nothing now:

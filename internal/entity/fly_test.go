@@ -308,3 +308,43 @@ func containsEntity(ids []EntityID, id EntityID) bool {
 	}
 	return false
 }
+
+// The GM Jibrish's petition 1904: /noclip is a flight through walls. On, it flies (the movement check judges none
+// of its moves, as a flyer's); a flight's end (#fly off, a takeover's new login) ends it; a keep restart keeps it
+// with the flight, and a kept noclip without a flight (none can be) is none. The control: a flight alone is no noclip.
+func TestNoclipRidesOnTheFlight(t *testing.T) {
+	f := newTakeoverFixture(t)
+	f.w.setFlyingLocked(f.p, true, f.now)
+	if f.p.Noclip {
+		t.Fatal("a flight alone is noclip")
+	}
+	f.w.setFlyingLocked(f.p, false, f.now)
+	f.w.mu.Lock()
+	f.p.Noclip = true
+	f.w.setFlyingLocked(f.p, true, f.now)
+	f.w.mu.Unlock()
+	if !f.p.Flying || !f.p.flyingNow(f.now) {
+		t.Fatal("noclip: not flying, so judged")
+	}
+	f.w.setFlyingLocked(f.p, false, f.now)
+	if f.p.Noclip {
+		t.Error("#fly off left noclip on")
+	}
+	f.p.Flying, f.p.Noclip = true, true
+	got, _ := f.w.TakeOverPlayer(f.new, 61)
+	if got != f.p || f.p.Noclip || f.p.Flying {
+		t.Errorf("a takeover: flying %v, noclip %v; want neither", f.p.Flying, f.p.Noclip)
+	}
+	for _, k := range []struct {
+		kept     KeptPlayer
+		fly, ncl bool
+	}{{KeptPlayer{Flying: true, Noclip: true}, true, true}, {KeptPlayer{Noclip: true}, false, false}, {KeptPlayer{Flying: true}, true, false}} {
+		f.w.mu.Lock()
+		k.kept.World = f.p.World + 1 // its place not taken: another world's
+		f.w.restoreFlyingLocked(f.p, k.kept)
+		f.w.mu.Unlock()
+		if f.p.Flying != k.fly || f.p.Noclip != k.ncl {
+			t.Errorf("kept %+v: flying %v noclip %v, want %v %v", k.kept, f.p.Flying, f.p.Noclip, k.fly, k.ncl)
+		}
+	}
+}

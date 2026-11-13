@@ -384,6 +384,13 @@ type WorldConfig struct {
 	// The Heirloom Test Server sets it.
 	TestInvis bool `yaml:"testinvis"`
 
+	// NoclipAccounts are the accounts (accountinfo.username, any case) whose GMs
+	// may use /noclip (handlers/noclip.go; the GM Jibrish's petition 1904: "a
+	// high level GM only command (Just for jibrish and dabs account)"): flight
+	// through every wall. A GM of acctlevel 1 or more alone, and one of these.
+	// Unset or empty: nobody.
+	NoclipAccounts []string `yaml:"noclip_accounts"`
+
 	// Teleporter turns on the Teleporter (handlers/teleporter.go): an NPC of
 	// that name (tools/place_teleporter.py stands one beside Dabrish) sends a
 	// player to every raid's way in and beside every XP camp, a box at a time,
@@ -479,6 +486,11 @@ type DungeonsConfig struct {
 	World        int           `yaml:"world"`
 	CloseAfter   time.Duration `yaml:"close_after"`
 	MaxInstances int           `yaml:"max_instances"`
+	// Cap is how many players a dungeon's instance holds, its party and those added
+	// (/addinstance; entity/instancemembers.go), for a dungeon with no "cap" of its
+	// own (unset: 4, the heroic dungeons'); RaidCap a raid's instance's (unset: 50)
+	Cap     int `yaml:"cap"`
+	RaidCap int `yaml:"raid_cap"`
 }
 
 // HomesConfig is world.homes: the players' homes' switch and their world's slot.

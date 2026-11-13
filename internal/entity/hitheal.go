@@ -21,10 +21,13 @@ import "github.com/eqoa/server/internal/session"
 // told to sess (the hitter's, or its owner's: nil for none). Must be called with the lock held.
 func (w *World) hitHealLocked(npc *NPC, n int, sess *session.Session) {
 	t := npc.tmpl
-	if t == nil || t.hitHeal <= 0 || n <= 0 || npc.Dead || npc.HP <= 0 || npc.HP >= npc.MaxHP {
+	if t == nil || n <= 0 || npc.Dead || npc.HP <= 0 || npc.HP >= npc.MaxHP || npc.holding() {
 		return
 	}
-	heal := min(npc.shared(t.hitHeal), npc.MaxHP-npc.HP)
+	heal := min(npc.shared(t.hitHeal)+npc.wardHeal(), npc.MaxHP-npc.HP) // a ward's beside it (ward.go)
+	if heal <= 0 {
+		return
+	}
 	npc.HP += heal
 	w.tellNPCHealLocked(sess, npc, heal)
 }

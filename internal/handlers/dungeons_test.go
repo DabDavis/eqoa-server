@@ -44,12 +44,20 @@ func TestReadDungeonsRecipe(t *testing.T) {
 			t.Fatalf("%s: %+v", k, d)
 		}
 	}
+	// every one a heroic dungeon of 4 players (petition 1879: "For all heroic dungeons, such as heroic guk, set this
+	// cap to 4")
+	for _, d := range defs {
+		if d.Cap != 4 {
+			t.Errorf("%s's cap %d, want 4", d.Key, d.Cap)
+		}
+	}
 	// Guk's entrance faces north (toward smaller z: its gate), a facing of pi
 	if f := keys["guk"].Entrance.Facing; f < 3.1 || f > 3.2 {
 		t.Fatalf("Guk's entrance faces %.2f", f)
 	}
 	for _, bad := range []string{`[{"key":"a","name":"A","boxes":[]}]`, `[{"key":"a","name":"A","boxes":[[0,0,1,1]]}]`,
-		`[{"key":"a","name":"A","boxes":[[0,0,1,1]],"entrance":{"x":5,"z":5}},{"key":"A","name":"B","boxes":[[0,0,1,1]],"entrance":{"x":5,"z":5}}]`} {
+		`[{"key":"a","name":"A","boxes":[[0,0,1,1]],"entrance":{"x":5,"z":5}},{"key":"A","name":"B","boxes":[[0,0,1,1]],"entrance":{"x":5,"z":5}}]`,
+		`[{"key":"a","name":"A","boxes":[[0,0,1,1]],"entrance":{"x":5,"z":5},"cap":-1}]`} {
 		if _, err := ReadDungeons(worlds.Built{Recipe: worlds.Recipe{World: 14, Dungeons: json.RawMessage(bad)}}); err == nil {
 			t.Fatalf("read %s", bad)
 		}
@@ -251,5 +259,15 @@ func TestDungeonBoardTellsTheRules(t *testing.T) {
 	got := strings.Join(r.msgs(r.anna), "\n")
 	if !strings.Contains(got, "How instances work:") || !strings.Contains(got, "nothing respawns") {
 		t.Fatalf("the rules not told: %q", got)
+	}
+}
+
+// /addinstance and /removeinstance (petition 1879) are /dungeon add and remove, either spelling; another word is none.
+func TestDungeonMemberWords(t *testing.T) {
+	for w, want := range map[string]string{"/addinstance": "add", "#ADDINSTANCE": "add", "/removeinstance": "remove",
+		"#removeinstance": "remove", "/dungeon": "", "/add": ""} {
+		if got := dungeonMemberWord(w); got != want {
+			t.Errorf("%s: %q, want %q", w, got, want)
+		}
 	}
 }

@@ -181,7 +181,14 @@ func (w *World) aiSystem(now time.Time) {
 			}
 			continue
 		}
-		if npc.tmpl != nil && (len(npc.tmpl.summons) > 0 || npc.tmpl.enrage != nil || npc.tmpl.lastStand != nil || len(npc.tmpl.selfBuffs) > 0 || len(npc.tmpl.moments) > 0) {
+		if npc.heldNow(now) {
+			// held at 1 hit point: frozen where it stands, nothing of its own done (deathhold.go)
+			npc.stopMoving()
+			npc.loseDueHits(now)
+			continue
+		}
+		if npc.tmpl != nil && (len(npc.tmpl.summons) > 0 || npc.tmpl.enrage != nil || npc.tmpl.lastStand != nil || npc.tmpl.ward != nil ||
+			len(npc.tmpl.selfBuffs) > 0 || len(npc.tmpl.moments) > 0) {
 			phased = append(phased, npc)
 		}
 

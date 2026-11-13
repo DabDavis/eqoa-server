@@ -442,6 +442,7 @@ func TestMercNeverFightsAPlayer(t *testing.T) {
 		t.Fatalf("the merc took on %q, whom players cannot attack", banker.Name)
 	}
 	r.p.AttackTarget, r.p.AutoAttack = 0, false
+	r.w.duels.remove(r.w.duels.of[r.p.ServerID]) // the duel over: a merc stands down for one (ownfight.go)
 	crab := r.creature("Desert Crab", 28, 3)
 	r.w.mu.Lock()
 	r.w.addThreatLocked(crab, r.p.ServerID, 50)

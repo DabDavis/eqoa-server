@@ -275,6 +275,11 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		dungeonCommand(h.gameWorld, sess, rest)
 		return
 	}
+	// /addinstance and /removeinstance [name] [dungeon] (petition 1879; a PS2's "/t addinstance Bob", below)
+	if word, rest, _ := strings.Cut(message, " "); dungeonMemberWord(word) != "" {
+		dungeonCommand(h.gameWorld, sess, dungeonMemberWord(word)+" "+rest)
+		return
+	}
 
 	// /siege (or #siege; a PS2's is "/t siege", below): the siege of Zentar's Keep, its sign-up
 	// and its leave, everyone's; a GM's start, stop, time and teams (siege.go)
@@ -440,6 +445,10 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		// and /dungeon (dungeons.go): "/t dungeon", "/t dungeon enter Guk", ...
 		if strings.EqualFold(name, "dungeon") {
 			dungeonCommand(h.gameWorld, sess, body)
+			return
+		}
+		if w := dungeonMemberWord("/" + name); w != "" && findPlayerByName(h.gameWorld, name) == nil {
+			dungeonCommand(h.gameWorld, sess, w+" "+body)
 			return
 		}
 		// and /siege (siege.go): "/t siege", "/t siege join", "/t siege leave", "/t siege rules"
@@ -1454,6 +1463,10 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 	case "#fly":
 		// #fly [on|off]: a GM's flight, alone it turns over (fly.go)
 		h.flyCommand(sess, parts[1:])
+	case "#noclip":
+		// #noclip [on|off]: the server's own GMs' flight through walls, alone it
+		// turns over (noclip.go, petition 1904)
+		h.noclipCommand(sess, parts[1:])
 	case "#movecheck":
 		// #movecheck [off|log|enforce]: the server's view of players' own
 		// moves (movecheckcmd.go, entity/movecheck.go)

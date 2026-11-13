@@ -1050,6 +1050,7 @@ var catalog = map[string]tableNote{
 		Cols: map[string]colNote{
 			"name":   {Label: "NPC name (key)", Help: "as in NPCs, any case (lower case, trimmed, no trailing $ is how it is matched)"},
 			"color":  {Label: "Tint", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA: each channel of the body times RR/FF, GG/FF, BB/FF; AA how much of it (FF all, 00 none)"},
+			"glow":   {Label: "Glow", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA, 0 none: a light of the body's own in that colour (the held items' glow on the whole body), AA how much of it; drawn by a vanilla that reads the tints' layout 2 (petition 1893)"},
 			"note":   {Label: "Note", Help: "why"},
 			"source": {Label: "Source", Help: "gm, or seed for tools/seed_npc_tint.py's rows (its --undo takes out exactly what it wrote)"},
 		},

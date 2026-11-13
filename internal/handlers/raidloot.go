@@ -277,9 +277,12 @@ func itemHasStats(p *database.ItemPatternRecord) bool {
 }
 
 // vendorTrash is an item worth its price alone: no stats, nothing to wear, no scroll,
-// not Lore, not No Trade.
+// not Lore, not No Trade, and a price to sell it for. An item with no price is a quest
+// piece or a key (the owner, 2026-11-13: the Ascended Ring of Veeshan, off the
+// Quintessence of Veeshan, went to whoever looted first: "special items like that
+// should" use need before greed).
 func vendorTrash(p *database.ItemPatternRecord) bool {
-	return !itemHasStats(p) && p.EquipSlot < 1 && !isScroll(p) && p.Lore == 0 && p.Trade == 0
+	return !itemHasStats(p) && p.EquipSlot < 1 && !isScroll(p) && p.Lore == 0 && p.Trade == 0 && p.ItemCost > 0
 }
 
 // raidCovers is whether a raid's rules hold an item (petition 1448: "raid bosses, no trade

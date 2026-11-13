@@ -16,6 +16,7 @@ type Config struct {
 	Auth   AuthConfig   `yaml:"auth"`
 	GM     GMConfig     `yaml:"gm"`
 	Quests QuestsConfig `yaml:"quests"`
+	Combat CombatConfig `yaml:"combat"`
 
 	// Shards is the server list every client is sent (0x07B3): each entry a
 	// game server of its own, and CLIENT lets its player pick (the user,
@@ -23,6 +24,16 @@ type Config struct {
 	// "Marr's Fist", on server.game_port. Every process of a set of shards
 	// carries the same list, so whichever a client asks shows the same.
 	Shards []ShardConfig `yaml:"shards"`
+}
+
+// CombatConfig is combat's settings.
+type CombatConfig struct {
+	// FormulaFile is the operator's damage formula file, kept on the server's
+	// machine and never in the repository (docs/damage-formulas.md,
+	// entity/dmgformula.go): its formulas replace the built-in damage of the
+	// paths they name, reloaded when it changes and by the GM panel's
+	// reload_formulas. Unset or "": the built-in damage everywhere.
+	FormulaFile string `yaml:"formula_file"`
 }
 
 // QuestsConfig is the quest engine's settings (internal/handlers/quests.go).

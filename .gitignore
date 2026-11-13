@@ -48,3 +48,8 @@ __pycache__/
 /keep-sessions.json.tmp
 /keep.hold
 /keep.saved
+
+# the operator's private damage formulas (docs/damage-formulas.md): kept on the
+# server's machine, never in the repository
+/private/
+*.formula

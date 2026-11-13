@@ -926,6 +926,14 @@ func (w *World) duelHurtLocked(d *Duel, attacker *Player, src EntityID, t *Playe
 	if d.pvp {
 		dmg = w.ctfHurtLocked(t, dmg) // ctfflag.go: a carrier held too long takes more
 	}
+	// the operator's formula for the hit's kind (dmgformula.go: pvp_melee,
+	// pvp_spell, ...), base what lands after the duel's share
+	fi := &dmgIn{src: srcPvP, kind: dmgKindOf(kind), ap: attacker, dp: t, raw: n, duel: !d.pvp,
+		ranged: kind == numberMelee && src == attacker.ServerID && rangedSwing(attacker)}
+	if src != attacker.ServerID {
+		fi.byPet, fi.ap, fi.an, fi.owner = true, nil, w.NPCs[src], attacker
+	}
+	dmg = w.formulaDamage(dmg, *fi)
 	attacker.LastCombatTime, t.LastCombatTime = now, now
 	if d.pvp {
 		pvpAttackedLocked(attacker, t, now) // pvp.go: both flags held from now

@@ -1425,6 +1425,7 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 		}
 		if hit > 0 {
 			taken := max(int(math.Round(float64(hit)*(1-share))), 1)
+			taken = w.formulaDamage(taken, dmgIn{src: srcNPC, kind: dkSpell, an: npc, dp: p, raw: hit, spell: c.spell, resist: resist}) // dmgformula.go
 			drained = int(math.Round(float64(drained) * (1 - share)))
 			p.HP = max(p.HP-taken, 0)
 			if sess != nil {
@@ -1603,6 +1604,8 @@ func (w *World) npcTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 		}
 	}
 	taken := max(int(math.Round(float64(-ae.HPTick)*(1-share))), 1)
+	taken = w.formulaDamage(taken, dmgIn{src: srcNPC, kind: dkDoT, an: npc, dp: t, raw: -ae.HPTick, spellID: ae.SpellID,
+		spellLevel: ae.spellLevel, resist: ae.npcResist}) // dmgformula.go
 	t.HP = max(t.HP-taken, 0)
 	t.StatsDirty = true
 	t.LastCombatTime = now
@@ -1778,6 +1781,7 @@ func (w *World) templateStrikeLocked(npc *NPC, target EntityID, now time.Time, d
 			return
 		}
 		w.broadcastNPCSwingLocked(npc, target, 0, fx)
+		damage = w.formulaDamage(damage, dmgIn{src: srcNPC, kind: dkSpecial, an: npc, dp: p, raw: damage}) // dmgformula.go
 		p.HP = max(p.HP-damage, 0)
 		p.StatsDirty = true
 		p.LastCombatTime = now

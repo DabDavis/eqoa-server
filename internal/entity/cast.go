@@ -289,6 +289,9 @@ type ActiveEffect struct {
 	// Proc is a proc's damage (proc.go): what the bearer's melee hits may do
 	// more, 0 for none; ProcMax the top of its range.
 	Proc, ProcMax int
+	// spellLevel is its spell's level (the ability's), for a damage
+	// formula's spell_level at its ticks (dmgformula.go)
+	spellLevel int
 	// ProcScale and ProcScalePct: a proc whose scale is its bearer's
 	// (SpellEffect.ScaleBearer) adds that share of the bearer's stat at each
 	// proc; ProcCap is the most a proc does, 0 for no cap.
@@ -1463,7 +1466,8 @@ func lastingParts(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 		Until: now.Add(dur), NextTick: now, Ticks: d.Ticks}
 	ae.Rules = rulesOf(d) // workbook.go
 	ae.ProcSpells = d.ProcSpells
-	ae.figures = cs.spell.figures // its ticks told as its cast's figures (numbertags.go)
+	ae.figures = cs.spell.figures  // its ticks told as its cast's figures (numbertags.go)
+	ae.spellLevel = cs.spell.Level // its ticks' spell_level in a damage formula (dmgformula.go)
 	any := false
 	for _, e := range d.Effects {
 		if ae.workbookLasting(e, d) { // workbook.go: its own kinds
@@ -1796,7 +1800,8 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 		switch e.Kind {
 		case EffectHP:
 			if n := creatureResists(e.Resist, npc, arcaneDebuffed(e.Resist, npc, meleeArtDebuffed(&cs.spell.Def, e, caster, npc, debuffScaled(e, npc, spellAmount(e, caster), now), now), now), now); n < 0 {
-				killed := w.spellHitHateLocked(caster, casterSess, npc, -n, e.HateOff, cs.spell.hitKind())
+				killed := w.spellHitHateLocked(caster, casterSess, npc, -n, e.HateOff, cs.spell.hitKind(),
+					&dmgIn{spell: &cs.spell, resist: e.Resist})
 				// a life tap's heal (lifetap.go): what landed, after the
 				// con's cut (balance.go)
 				w.drainLocked(cs, caster, casterSess, e, w.dealtLocked(npc, caster, -n), now)
@@ -1860,14 +1865,24 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 // caster (told as kind: numbertags.go), the hate, and on a kill the XP and
 // the faction hits. It reports the kill.
 func (w *World) spellHitLocked(caster *Player, casterSess *session.Session, npc *NPC, n int, kind numberKind) bool {
-	return w.spellHitHateLocked(caster, casterSess, npc, n, 0, kind)
+	return w.spellHitHateLocked(caster, casterSess, npc, n, 0, kind, nil)
 }
 
 // spellHitHateLocked is spellHitLocked with hateOff percent of the damage
 // dealt making no hate (SpellEffect.HateOff): the rest is the hate, and the
 // hit angers the creature all the same (updateAggro's contact, its kind
-// called, its companion), so a hit of no hate still makes a fight.
-func (w *World) spellHitHateLocked(caster *Player, casterSess *session.Session, npc *NPC, n, hateOff int, kind numberKind) bool {
+// called, its companion), so a hit of no hate still makes a fight. The
+// figure is the balance's (dealtLocked), then the operator's formula's for
+// the hit's kind (dmgformula.go: player_spell, player_dot, player_proc,
+// player_shield), what it knows of the spell in fi (nil: nothing).
+func (w *World) spellHitHateLocked(caster *Player, casterSess *session.Session, npc *NPC, n, hateOff int, kind numberKind, fi *dmgIn) bool {
+	raw := n
+	n = w.dealtLocked(npc, caster, n) // balance.go (a dummy's figure as it is: unbalanced)
+	if fi == nil {
+		fi = &dmgIn{}
+	}
+	fi.src, fi.kind, fi.ap, fi.dn, fi.raw = srcPlayer, dmgKindOf(kind), caster, npc, raw
+	n = w.formulaDamage(n, *fi)
 	if npc.Dummy != NotDummy {
 		// told, taken off nothing (dummy.go)
 		w.tellAmountLocked(caster, casterSess, npc.ServerID, -n, kind)
@@ -1877,7 +1892,6 @@ func (w *World) spellHitHateLocked(caster *Player, casterSess *session.Session, 
 	if npc.duelHeld() {
 		return false // a Metal Moogie's countdown: nothing lands (metalmoogie.go, petition 1623)
 	}
-	n = w.dealtLocked(npc, caster, n)                // balance.go
 	n = w.npcTakesLocked(npc, n, time.Now())         // nothing while held at 1 (deathhold.go)
 	w.tallyDamageLocked(npc, caster, min(n, npc.HP)) // killcredit.go
 	npc.HP = max(npc.HP-n, 0)
@@ -1937,7 +1951,8 @@ func (w *World) tickNPCEffectLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
 		if caster := w.Players[ae.Caster]; caster != nil && !npc.Dead {
 			sess := w.findSessionByEntityIDLocked(caster.ServerID)
 			hit := -creatureResists(ae.Rules.Resist, npc, arcaneDebuffed(ae.Rules.Resist, npc, ae.HPTick, now), now)
-			died := w.spellHitLocked(caster, sess, npc, hit, ae.tickKind(false))
+			died := w.spellHitHateLocked(caster, sess, npc, hit, 0, ae.tickKind(false),
+				&dmgIn{spellID: ae.SpellID, spellLevel: ae.spellLevel, resist: ae.Rules.Resist})
 			// a drain over time: each tick's figure to the caster (or its
 			// group), whole, as a tap's is though it killed (lifetap.go)
 			if ae.TickDrain != DrainNone && !caster.IsDead() {

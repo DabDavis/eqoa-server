@@ -201,6 +201,85 @@ func LiveChannel(disc []byte, d *Dyes) []byte {
 	return out
 }
 
+// This server's armour (the owner, 2026-11-13: "lets also add armor plate type 9 the
+// sandstorm patch, but we dont need the patch the armor is on the ISO", and "for the
+// plate armor, there is gold trim, but currently is muted due to the colors, lets add
+// trim color dyeing also"; claude-notes/armor-set9-trim-20261113.md):
+//
+//   - set 9, the ornate gold-and-steel plate CHAR.ESF holds under the plain plate's
+//     five DictIDs (claude-notes/charesf-shadowed-armor.md), which Sandstorm's S2
+//     registers under five of its own and draws as set 9 (wearing set 4's helm). An
+//     item record's model 9 on an armour slot is set 9 (handlers' wornLook), and so is
+//     the channel's byte. CLIENT clamps a set past 8 to none (SetArmorSlot: the bare
+//     body), so every client that does not draw this server's armour is sent set 4,
+//     the plain plate, in its place (PlainArmor): a PS2, and a client of the live look
+//     that did not ask for it;
+//   - the trim, the gold of the plate sets 4 and 9: a client of the live look that
+//     draws this server's armour is sent, after the live game's 201-byte channel and
+//     71-byte record, a colour per armour slot (chest, bracer, gloves, legs, boots,
+//     helm; 0xRRGGBBAA, red first) its trim is drawn in, 0 none: its trim as the art
+//     has it, under the slot's colour as before (chardyes' trim slots).
+//
+// The client asks with bit 2 of its answer to the live look's offer
+// (handlers/livelook.go); the look in force says it is granted.
+
+// ChannelArmor is the channel's armour sets, chest .. helm (bytes 93-98).
+const ChannelArmor = 93
+
+// OrnateSet is set 9; PlainPlateSet is set 4, which it is sent as.
+const (
+	OrnateSet     = 9
+	PlainPlateSet = 4
+)
+
+// ArmorTrimSize is the trims after the live channel and record: six colours.
+const ArmorTrimSize = 6 * 4
+
+// ArmorStateSize and ArmorGearSize are the channel and the record's raw part
+// to a client that draws this server's armour.
+const (
+	ArmorStateSize = LiveEntityStateSize + ArmorTrimSize
+	ArmorGearSize  = LiveGearSize + ArmorTrimSize
+)
+
+// PlainArmor makes set 9 set 4 in the armour sets a, as a client that does
+// not draw set 9 is sent them.
+func PlainArmor(a []byte) {
+	for i, v := range a {
+		if v == OrnateSet {
+			a[i] = PlainPlateSet
+		}
+	}
+}
+
+func hasOrnate(a []byte) bool {
+	for _, v := range a {
+		if v == OrnateSet {
+			return true
+		}
+	}
+	return false
+}
+
+// putTrims appends the six trim colours (0 none).
+func putTrims(out []byte, d *Dyes) []byte {
+	for i := 0; i < database.DyeTrims; i++ {
+		out = binary.BigEndian.AppendUint32(out, dyeOr(d, database.DyeChestTrim+i, 0))
+	}
+	return out
+}
+
+// ArmorChannel is LiveChannel with the trim colours after it: a client that
+// draws this server's armour's.
+func ArmorChannel(disc []byte, d *Dyes) []byte {
+	return putTrims(LiveChannel(disc, d), d)
+}
+
+// ArmorGear is LiveGear with the trim colours after it.
+func ArmorGear(disc []byte, d *Dyes) []byte {
+	return putTrims(LiveGear(disc, d), d)
+}
+
 // LiveGear is the raw part of a 0x002C record (characterGear's 32 bytes:
 // robe, its tint, the held items, their attack types, the armour sets and
 // tints) as the live game's record carries it, coloured as LiveChannel.
@@ -225,10 +304,22 @@ func LiveGear(disc []byte, d *Dyes) []byte {
 
 // ForViewer is an entity's state (the disc's 162 bytes) as sess's client
 // reads it: the live game's 201 with its dyes when that client asked for the
-// live look, else the buffer itself.
+// live look, with the trim colours after them (ArmorChannel) when it also
+// draws this server's armour, else the buffer itself. A client that does not
+// draw this server's armour is sent set 9 as set 4 (PlainArmor).
 func ForViewer(sess *session.Session, disc []byte, d *Dyes) []byte {
 	if sess != nil && sess.LiveLook() && len(disc) == EntityStateSize {
-		return LiveChannel(disc, d)
+		if sess.ArmorLook() {
+			return ArmorChannel(disc, d)
+		}
+		out := LiveChannel(disc, d)
+		PlainArmor(out[ChannelArmor : ChannelArmor+6])
+		return out
+	}
+	if len(disc) == EntityStateSize && disc[5] == 0x82 && hasOrnate(disc[ChannelArmor:ChannelArmor+6]) {
+		out := append([]byte(nil), disc...)
+		PlainArmor(out[ChannelArmor : ChannelArmor+6])
+		return out
 	}
 	return disc
 }

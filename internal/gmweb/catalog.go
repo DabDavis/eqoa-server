@@ -115,7 +115,8 @@ func enums() map[string][]EnumValue {
 		// craftrecipes.rarity: the book's Rarity column (C, UC, R, UR)
 		"craftrarity": numbered("Common", "Uncommon", "Rare", "Ultra Rare"),
 		// chardyes.slot (database/chardyes.go, entity/livelook.go)
-		"dyeslot": numbered("Chest", "Bracer", "Gloves", "Legs", "Boots", "Helm", "Primary", "Secondary", "Shield", "Robe", "Cape"),
+		"dyeslot": numbered("Chest", "Bracer", "Gloves", "Legs", "Boots", "Helm", "Primary", "Secondary", "Shield", "Robe", "Cape",
+			"Chest trim", "Bracer trim", "Gloves trim", "Legs trim", "Boots trim", "Helm trim"),
 		// classtemplates.class (entity/classtemplate.go): -1 the NPC's own
 		"templateclass": append([]EnumValue{{Value: -1, Label: "The NPC's own (NPC classes)"}}, numbered("Warrior", "Ranger", "Paladin", "Shadow Knight", "Monk", "Bard", "Rogue", "Druid", "Shaman", "Cleric", "Magician", "Necromancer", "Enchanter", "Wizard", "Alchemist")...),
 	}
@@ -295,7 +296,9 @@ var catalog = map[string]tableNote{
 			"disc's carry a tint). A PS2 never sees one. Color is 0xRRGGBBAA, red in the high byte (0xD10000FF red, " +
 			"0xFFFFFFFF white); alpha 0 is refused. A slot with no row is undyed and looks as it always has. #dye in the " +
 			"game sets them too. Slot 10 is the cape's (a server with world.capes): its colour is the cape's, drawn by a " +
-			"client that draws capes, over the cape record's own.",
+			"client that draws capes, over the cape record's own. Slots 11-16 are the trims of chest, bracer, gloves, legs, " +
+			"boots and helm: the gold trim of plate sets 4 and 9 drawn in that colour by a vanilla client that draws this " +
+			"server's armour (#dye trim, the Armor Dyers' Armor trim); no row, the trim as the art has it.",
 		Live:   "At once where the character stands (every client of the live look, from the next tick), else at its next login.",
 		Search: []string{"note", "source"},
 		Cols: map[string]colNote{

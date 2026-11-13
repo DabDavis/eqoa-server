@@ -181,7 +181,7 @@ func TestMyCapeGoesStraightToTheColours(t *testing.T) {
 	}
 
 	got := talk()
-	if !strings.HasSuffix(last(got), ":What shall I dye?|All my armor|One piece of armor|My cape|Take every dye off|Robe, cape, shield or weapons") {
+	if !strings.HasSuffix(last(got), ":What shall I dye?|All my armor|One piece of armor|My cape|Take every dye off|Robe, cape, shield or weapons|Armor trim") {
 		t.Fatalf("the first question with capes: %q", got)
 	}
 	got = pick(got, 2)
@@ -211,8 +211,8 @@ func TestMyCapeGoesStraightToTheColours(t *testing.T) {
 
 	entity.SetCapes(false)
 	got = talk()
-	if !strings.HasSuffix(last(got), ":What shall I dye?|All my armor|One piece of armor|Robe, shield or weapons|Take every dye off") {
-		t.Fatalf("the control, no capes: %q, want the four answers as they were", got)
+	if !strings.HasSuffix(last(got), ":What shall I dye?|All my armor|One piece of armor|Robe, shield or weapons|Take every dye off|Armor trim") {
+		t.Fatalf("the control, no capes: %q, want the answers as they were, the trim last", got)
 	}
 	if got = pick(got, 2); !strings.HasSuffix(last(got), ":Which one?|Robe|Shield|Primary weapon|Secondary weapon") {
 		t.Fatalf("the control: the third answer without capes asked %q, want the robe's question", got)

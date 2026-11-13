@@ -15,8 +15,11 @@ import (
 //	#dye                         the dyes, slot by slot
 //	#dye <slot> <colour>         one slot: chest bracer gloves legs boots helm
 //	                             primary secondary shield robe
-//	#dye armor|all <colour>      the six armour slots and the robe / every slot
-//	#dye <slot|armor|all> none   the dye taken off
+//	                             chesttrim bracertrim glovestrim legstrim
+//	                             bootstrim helmtrim (the gold trim of plate)
+//	#dye armor|trim|all <colour> the six armour slots and the robe / the six
+//	                             trims / every slot
+//	#dye <slot|armor|trim|all> none   the dye taken off
 //
 // A colour is RRGGBB or RRGGBBAA in hex (ff0000), tN (the disc's tint N) or
 // a name (red, green, blue, ...). Each change is written with its gm_audit
@@ -27,6 +30,10 @@ import (
 // dyeArmorSlots are #dye armor's: the six armour slots and the robe.
 var dyeArmorSlots = []int{database.DyeChest, database.DyeBracer, database.DyeGloves, database.DyeLegs,
 	database.DyeBoots, database.DyeHelm, database.DyeRobe}
+
+// dyeTrimSlots are #dye trim's: the six armour slots' trims.
+var dyeTrimSlots = []int{database.DyeChestTrim, database.DyeBracerTrim, database.DyeGlovesTrim, database.DyeLegsTrim,
+	database.DyeBootsTrim, database.DyeHelmTrim}
 
 // SetDyeStore gives #dye the table it writes (database.SQLiteDB).
 func (h *ChatHandler) SetDyeStore(s dyeStore) { h.dyes = s }
@@ -44,18 +51,20 @@ func (h *ChatHandler) dyeCommand(sess *session.Session, args []string) {
 	if len(args) == 0 {
 		h.gmReply(sess, fmt.Sprintf("%s's dyes (drawn by clients of the live game's look):", name))
 		for _, i := range dyeSlotsHere() { // the cape's on a server with capes alone (dyer.go)
-			h.gmReply(sess, fmt.Sprintf("  %-9s %s", database.DyeSlotNames[i], database.FormatDye(cur[i])))
+			h.gmReply(sess, fmt.Sprintf("  %-10s %s", database.DyeSlotNames[i], database.FormatDye(cur[i])))
 		}
 		return
 	}
 	if len(args) != 2 {
-		h.gmReply(sess, "#dye [<slot|armor|all> <RRGGBB[AA] | tN | name | none>]: slots "+dyeSlotNamesHere())
+		h.gmReply(sess, "#dye [<slot|armor|trim|all> <RRGGBB[AA] | tN | name | none>]: slots "+dyeSlotNamesHere())
 		return
 	}
 	var slots []int
 	switch w := strings.ToLower(args[0]); w {
 	case "armor", "armour":
 		slots = dyeArmorSlots
+	case "trim", "trims":
+		slots = dyeTrimSlots
 	case "all":
 		slots = dyeSlotsHere()
 	default:
@@ -64,7 +73,7 @@ func (h *ChatHandler) dyeCommand(sess *session.Session, args []string) {
 			found = false // no cape is worn on a server without capes
 		}
 		if !found {
-			h.gmReply(sess, fmt.Sprintf("#dye: no slot %q; slots %s, armor or all", args[0], dyeSlotNamesHere()))
+			h.gmReply(sess, fmt.Sprintf("#dye: no slot %q; slots %s, armor, trim or all", args[0], dyeSlotNamesHere()))
 			return
 		}
 		slots = []int{slot}

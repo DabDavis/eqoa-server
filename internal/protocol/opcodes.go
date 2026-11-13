@@ -470,7 +470,12 @@ const (
 	// after a session's first character list; a client that reads the live
 	// look answers 1 to have it and 0 to go back. A PS2 ignores the offer and
 	// is sent the disc's look, as is every client of a server that never
-	// offers it (Sandstorm).
+	// offers it (Sandstorm). Bit 1 of the answer: its select page lists every
+	// character (handlers/charslots.go); bit 2: it draws this server's armour,
+	// set 9 (the ornate plate) and the trim colours (entity/livelook.go
+	// ArmorChannel): its channels are then 225 bytes and its records' gear 95,
+	// six trim colours after the live game's; every client without it is
+	// sent set 9 as set 4.
 	OpcodeLiveLook GameOpcode = 0x7E0C
 
 	// OpcodeLiveLookInForce is the server's answer to OpcodeLiveLook, a u32:
@@ -478,7 +483,9 @@ const (
 	// 0 the disc's), so a client never reads a list in the wrong one (lists
 	// are reliable, and come after it). A client still choosing a character
 	// is then sent its list again in that look. The entity channels say
-	// theirs by their length (162 the disc's, 201 the live game's).
+	// theirs by their length (162 the disc's, 201 the live game's, 225 with
+	// this server's armour). Then a u32, the characters listed, and a u32,
+	// bit 2 set when this server's armour (set 9 and the trims) is in force.
 	OpcodeLiveLookInForce GameOpcode = 0x7E0D
 
 	// OpcodeBugReportOffer is not retail: whether a client opens Support's

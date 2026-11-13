@@ -746,7 +746,7 @@ function indexField(col, value, ctx, { options, picture, title, text = false, no
 function setField(col, value, ctx, slot, opts = {}) {
   const options = [{ value: 0, label: 'None' }];
   for (let s = 1; s <= 8; s++) options.push({ value: s, label: 'Set ' + s });
-  options.push({ value: 9, label: 'Set 9 (Sandstorm\'s)', note: 'Sandstorm\'s S2 adds it: no art on the retail disc' });
+  options.push({ value: 9, label: 'Set 9 (ornate plate)', note: 'The ornate gold plate CHAR.ESF holds (as Sandstorm\'s S2 draws it): vanilla draws it on this server; a PS2 is sent set 4, plain plate' });
   const picture = (set, big) => {
     const sz = big ? [96, 96] : [48, 48];
     if (slot === 'helm') return HELM[set] ? thumb('helm', HELM[set], sz) : h('canvas', { class: 'look-pic none' });

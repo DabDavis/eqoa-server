@@ -407,6 +407,14 @@ type WorldConfig struct {
 	// Heirloom Test Server sets it.
 	Mercs bool `yaml:"mercs"`
 
+	// QuestXPPct is the percent of its experience a quest's step gives, for
+	// a quest that is neither repeatable nor a hunt and gather (EQOA-Data's
+	// HuntAndGather, all repeatable): 400 four times (the GM Jibwiz's petition
+	// 1915, for Heirloom: "increase NON hunt and gather or repeatable quest XP
+	// by 4x its current amount"). Unset, 0 or 100: as the rows say
+	// (handlers/questxp.go).
+	QuestXPPct int `yaml:"quest_xp_pct"`
+
 	// Familiars turns on the familiars (handlers/familiar.go,
 	// entity/familiar.go): an item of table familiars calls its familiar with a
 	// cast (tools/seed_familiars.py: Healbot, sold by the Genie), and

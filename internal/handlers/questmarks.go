@@ -571,8 +571,8 @@ func (q *QuestEngine) questTexts(all []*database.Quest) (map[int]*questText, map
 			for _, id := range rw.Spells {
 				got = append(got, spellOf(id))
 			}
-			if rw.XP > 0 {
-				got = append(got, fmt.Sprintf("%d XP", rw.XP))
+			if xp := questXPShare(qu, rw.XP); xp > 0 {
+				got = append(got, fmt.Sprintf("%d XP", xp))
 			}
 			if rw.Tunar > 0 {
 				got = append(got, fmt.Sprintf("%d tunar", rw.Tunar))
@@ -584,7 +584,7 @@ func (q *QuestEngine) questTexts(all []*database.Quest) (map[int]*questText, map
 			var got []string
 			for i := range qu.Steps {
 				rw := qu.Steps[i].RewardFor(class)
-				xp += rw.XP
+				xp += questXPShare(qu, rw.XP)
 				tunar += rw.Tunar
 				got = append(got, items(rw.Items)...)
 				for _, id := range rw.Spells {

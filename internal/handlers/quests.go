@@ -1597,6 +1597,7 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 		rw = q.ascendRewardLocked(rw, who)
 		log.Printf("Quests: %s did step %d of %q with Ascended items", who, st.Step, qu.Name)
 	}
+	rw.XP = questXPShare(qu, rw.XP) // world.quest_xp_pct (questxp.go)
 	lines = append(lines, q.rewardLocked(sess, p, rw)...)
 	if next == nil && sess != nil {
 		// a mastery rank the quest opens (cmcatalog.require_quests: each

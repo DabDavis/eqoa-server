@@ -3893,6 +3893,7 @@ world:
   imported_share: 0.85      # what a transfer's gear keeps of its record's stats and procs; unset: 0.85
   rock_of_freeport: true    # the Rock of Freeport: its record made at the start, given at a login, a 2 s cast to Dabrish (handlers/rockfreeport.go); unset: none
   mercs: true               # the Mercenary Liaisons hire mercenaries, /merc (handlers/merc.go); unset: a liaison says nothing
+  quest_xp_pct: 400          # a one-time quest's (not repeatable, not EQOA-Data's HuntAndGather) experience x4, given and shown (handlers/questxp.go; petition 1915, Heirloom); unset/100: the rows'
   familiars: true           # an item of table familiars calls its familiar, /familiar (handlers/familiar.go); unset: the item is quiet
 auth:
   shared_db: "/srv/one/eqoa.db"   # another shard's accounts, a copy here; every sign-in by the token's password

@@ -534,6 +534,7 @@ func main() {
 	handlers.SetNoclipAccounts(cfg.World.NoclipAccounts)
 	handlers.SetTeleporter(cfg.World.Teleporter) // handlers/teleporter.go
 	handlers.SetMercs(cfg.World.Mercs)           // the mercenaries (handlers/merc.go)
+	handlers.SetQuestXPPct(cfg.World.QuestXPPct) // a one-time quest's experience (handlers/questxp.go)
 	handlers.SetFamiliars(cfg.World.Familiars)   // the familiars (handlers/familiar.go)
 	if cfg.World.Mercs || cfg.World.Familiars {
 		log.Printf("Mercenaries %v, familiars %v (world.mercs, world.familiars)", cfg.World.Mercs, cfg.World.Familiars)

@@ -328,6 +328,13 @@ type ActiveEffect struct {
 	// logout (buffsave.go)
 	npcFoe    EntityID
 	npcResist Stat
+	// npcAtCap is the share of each tick of a creature's damage over time a
+	// resist at the cap takes in place of ResistCapShare (0: that), the same
+	// proportion below it (a boss's sethp tick, bossmoments.go: the
+	// dreadnaught's 650 at no CR, about 80 at the cap); bossDoT is such a tick
+	// on a creature, which lands with no hate (bossmoments.go)
+	npcAtCap float64
+	bossDoT  bool
 	// petBound is a pet's buff on its owner that lasts only while the pet is out
 	// (TemplateAbility.WhileOut, pet.go petBuffsGoLocked): never kept over a logout
 	// (buffsave.go), the pet giving it again

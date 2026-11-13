@@ -118,6 +118,10 @@ func (w *World) npcDoTTickLocked(t *NPC, ae *ActiveEffect, now time.Time) {
 		return
 	}
 	n := -creatureResists(ae.Rules.Resist, t, ae.HPTick, now)
+	if ae.bossDoT {
+		w.bossDoTOnCreatureLocked(src, t, n, ae.Name) // bossmoments.go: no hate
+		return
+	}
 	ae.ticking = true // its own tick is no contact for itself (contactNPCLocked)
 	defer func() { ae.ticking = false }()
 	w.castFoeHitLocked(src, t, n, fmt.Sprintf("%q tick", ae.Name), now)

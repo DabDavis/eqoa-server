@@ -53,7 +53,7 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
     h('div', { class: 'map-hud' }, worldSel, find,
       h('label', { class: 'check badge' }, showNPC, 'NPCs'), h('label', { class: 'check badge' }, showPlayers, 'players'),
       h('label', { class: 'check badge' }, showTerrain, 'terrain'),
-      h('label', { class: 'check badge', title: "EQOA-Data's XP camps, as #tele has them" }, showCamps, 'XP camps'),
+      h('label', { class: 'check badge', title: "EQOA-Data's XP camps: #tele's, and its map's other camps (paler, not #tele's)" }, showCamps, 'XP camps'),
       h('label', { class: 'check badge', title: 'Every coachman: its town and routes' }, showCoaches, 'coaches'),
       h('label', { class: 'check badge', title: 'Every NPC that gives a quest: gold with one in the game, grey with drafts only' }, showQuests, 'quest givers'),
       h('label', { class: 'check badge', title: "The towns' names, by EQOA-Data's map" }, showTowns, 'towns'),
@@ -241,11 +241,12 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
       }
     }
     if (showCamps.checked) {
-      for (const c of camps) {
+      // the map's other camps first, the #tele camps over them
+      for (const c of [...camps.filter((c) => !c.tele), ...camps.filter((c) => c.tele)]) {
         const [sx, sy] = toScreen(c.x, c.z);
         if (sx < -30 || sy < -20 || sx > W + 30 || sy > H + 20) continue;
-        drawXP(ctx, sx, sy, dpr, hover?.kind === 'camp' && hover.c === c);
-        if (view.scale > 0.08) label(c.key + (c.levels ? ' ' + c.levels : ''), sx, sy + 17 * dpr, '#ffe08a');
+        drawXP(ctx, sx, sy, dpr, hover?.kind === 'camp' && hover.c === c, !c.tele);
+        if (view.scale > 0.08) label((c.tele ? c.key : c.name) + (c.levels ? ' ' + c.levels : ''), sx, sy + 17 * dpr, c.tele ? '#ffe08a' : '#e8dcb8');
       }
     }
     // the community's marks, and the places suggested for them
@@ -567,6 +568,10 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
 
   // XP camps: what a hover says, and the info box (map_camp: its loot)
   function campTip(c) {
+    if (!c.tele) {
+      return [h('strong', null, 'Camp: ' + c.label), h('div', null, `levels ${c.levels || '?'} here` + (c.guide ? ` · the map's ${c.guide}` : '') + " · EQOA-Data's map (not #tele)"),
+        c.rare.length ? h('div', null, 'Rare: ' + c.rare.map((r) => r.name + (r.level ? ` (${r.level})` : '')).join(', ')) : null];
+    }
     return [h('strong', null, 'XP camp: ' + c.label), h('div', null, `levels ${c.levels || '?'} here` + (c.guide ? ` · the guide's ${c.guide}` : '') + ` · #tele ${c.key}`),
       c.note ? h('div', { class: 'muted' }, c.note) : null,
       c.rare.length ? h('div', null, 'Rare: ' + c.rare.map((r) => r.name + (r.level ? ` (${r.level})` : '')).join(', ')) : null];
@@ -590,14 +595,16 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
   }
   async function campInfo(c) {
     const loot = h('div', { class: 'muted small' }, 'Loot: …');
-    mount(info, h('strong', null, 'XP camp: ' + c.label),
-      h('div', null, `#tele ${[c.key, ...c.aliases].join(', ')} · levels ${c.levels || '?'} here` + (c.guide ? ` (the guide's ${c.guide})` : '')),
+    mount(info, h('strong', null, (c.tele ? 'XP camp: ' : 'Camp: ') + c.label),
+      h('div', null, (c.tele ? `#tele ${[c.key, ...c.aliases].join(', ')}` : "EQOA-Data's map: not a #tele or Teleporter camp") +
+        ` · levels ${c.levels || '?'} here` + (c.guide ? ` (the ${c.tele ? 'guide' : 'map'}'s ${c.guide})` : '')),
       c.note ? h('div', { class: 'muted' }, c.note) : null,
       c.creatures.length ? h('div', { class: 'small' }, 'Creatures: ' + c.creatures.join(', ')) : null,
       ...c.rare.map((r) => h('div', { class: 'small' }, `Rare: ${r.name}` + (r.level ? ` (level ${r.level})` : ' (none here)') + (r.drops.length ? ' · drops ' + r.drops.join(', ') : ''))),
       loot,
       h('div', { class: 'mono small' }, `${c.x}, ${c.z}` + (c.fallback ? ' (its creature is not loaded: the place as written)' : '')),
-      h('div', { class: 'row' }, teleportButton(you ? `Teleport ${you.name} here` : 'Teleport a character here…', { place: c.key })));
+      h('div', { class: 'row' }, teleportButton(you ? `Teleport ${you.name} here` : 'Teleport a character here…',
+        c.tele ? { place: c.key } : { x: c.x, y: c.y, z: c.z, world: c.world })));
     try {
       const out = await op('map_camp', { camp: c.key });
       mount(loot, out.loot.length ? h('div', null, ...out.loot.map((t) => h('div', null,
@@ -713,7 +720,9 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
 
 // An XP camp's badge: a gold plate with XP on it, centred on (x, y) in the
 // canvas's pixels (d its device pixel ratio), lit when the pointer is on it.
-function drawXP(ctx, x, y, d, hot) {
+// a #tele camp's badge, or (map) one of the map's other camps': smaller, paler
+function drawXP(ctx, x, y, d, hot, map = false) {
+  if (map) d *= 0.8;
   const w = 24 * d, ht = 15 * d, r = 4 * d;
   ctx.save();
   ctx.beginPath();
@@ -723,7 +732,7 @@ function drawXP(ctx, x, y, d, hot) {
   ctx.arcTo(x - w / 2, y + ht / 2, x - w / 2, y - ht / 2, r);
   ctx.arcTo(x - w / 2, y - ht / 2, x + w / 2, y - ht / 2, r);
   ctx.closePath();
-  ctx.fillStyle = hot ? '#fff1b8' : '#f0c36a';
+  ctx.fillStyle = hot ? '#fff1b8' : map ? '#d9c79c' : '#f0c36a';
   ctx.strokeStyle = '#1a1206';
   ctx.lineWidth = 2 * d;
   ctx.fill();

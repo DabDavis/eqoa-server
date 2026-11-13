@@ -36,10 +36,13 @@ func TestTheMapLayersAreCampsAndCoaches(t *testing.T) {
 	if out["you"] != nil {
 		t.Errorf("you %v: the GM has no character in the game", out["you"])
 	}
-	var dfc map[string]any
+	var dfc, mapped map[string]any
 	for _, v := range out["camps"].([]any) {
 		if m := v.(map[string]any); m["key"] == "dfc" {
 			dfc = m
+		}
+		if m := v.(map[string]any); m["tele"] == false && mapped == nil {
+			mapped = m
 		}
 		if m := v.(map[string]any); m["world"] != float64(0) {
 			t.Errorf("world 0's camps hold %v of world %v", m["key"], m["world"])
@@ -47,6 +50,12 @@ func TestTheMapLayersAreCampsAndCoaches(t *testing.T) {
 	}
 	if dfc == nil || dfc["fallback"] != false || dfc["x"] != 21080.5 || dfc["note"] == "" || dfc["guide"] != "29-34" {
 		t.Fatalf("dfc %v, want at its anchor with EQOA-Data's note", dfc)
+	}
+	if dfc["tele"] != true || mapped == nil || mapped["name"] == "" {
+		t.Fatalf("dfc %v and a map camp %v: want dfc a #tele camp, and the map's other camps (tele false) beside it", dfc["tele"], mapped)
+	}
+	if code, one := c.op("map_camp", map[string]any{"camp": mapped["key"]}); code != 200 || one["tele"] != false || one["name"] != mapped["name"] {
+		t.Errorf("map_camp %v: %d %v", mapped["key"], code, one)
 	}
 	coaches := out["coaches"].([]any)
 	if len(coaches) != 3 {

@@ -25,7 +25,8 @@ import (
 // down (ChatHandler.giveMastery, as #grantcm's). Any NPC named Dabrish is him;
 // he stands on the Heirloom Test Server alone. His questions go under box mark
 // 0x5C000000 (beside the quests' 0x51 and the others to Mr. Moogie's 0x5B). The
-// words are ours.
+// first box's sixth answer exchanges a path epic for the other path's
+// (dabrishepic.go; the owner, 2026-11-13). The words are ours.
 
 // DabrishName is his name: an NPC of it is Dabrish.
 const DabrishName = "Dabrish"
@@ -69,6 +70,9 @@ type dabrishAsk struct {
 	box uint32
 	rng int
 	npc entity.EntityID
+	// swaps are the epic exchanges a box of the exchange's offers
+	// (dabrishepic.go: rng dabrishEpicWhich or dabrishEpicConfirm)
+	swaps []epicSwap
 }
 
 // dabrishAskLocked asks p a question under his mark. Called with boardMu held.
@@ -101,9 +105,12 @@ func (h *InteractHandler) dabrishTalk(sess *session.Session, p *entity.Player, n
 	h.boardMu.Lock()
 	id := h.dabrishAskLocked(p, -1, npc.ServerID)
 	h.boardMu.Unlock()
-	answers := make([]string, len(dabrishRanges))
+	answers := make([]string, len(dabrishRanges), len(dabrishRanges)+1)
 	for i, r := range dabrishRanges {
 		answers[i] = r.label
+	}
+	if h.dabrishEpic != nil {
+		answers = append(answers, dabrishEpicLabel) // dabrishepic.go
 	}
 	SendQuestPopupMulti(sess, id, dabrishQuestion, answers)
 	return true
@@ -129,7 +136,17 @@ func (h *InteractHandler) answerDabrish(sess *session.Session, p *entity.Player,
 		return true
 	}
 	n := int(option)
+	if asked.rng >= dabrishEpicWhich {
+		if h.dabrishEpic != nil {
+			h.answerDabrishEpic(sess, p, asked, n)
+		}
+		return true
+	}
 	if asked.rng < 0 {
+		if n == len(dabrishRanges) && h.dabrishEpic != nil {
+			h.dabrishEpicStart(sess, p, asked.npc)
+			return true
+		}
 		if n >= len(dabrishRanges) {
 			return true
 		}

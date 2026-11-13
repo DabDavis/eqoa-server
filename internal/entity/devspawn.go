@@ -85,7 +85,50 @@ func (w *World) npcByNameLocked(name string) *NPC {
 	return best
 }
 
-// SpawnNPCCopy places a copy of the NPC named name (as NPCByName picks it)
+// npcByNameForLocked is the original a copy of the NPC named name put in world
+// is of: one standing in that world before one of another, then
+// npcByNameLocked's order (a live one, the lowest id); never a dungeon's
+// template (dungeons.go, world 14's held-out rows: their level 60-65 and their
+// "dungeon trash/named/boss" template by row) for a copy outside the
+// dungeons' world while any other has the name. Until 2026-11-13 the copy was
+// of npcByNameLocked's pick whatever its world: a quest's spawn of
+// Necromancer Warpheus, Ancient Death, Skahyir or Lady Vox's Voxite mage, whose
+// open world original was dead, was of the dungeon's copy, a level 65 boss at
+// five times the hit points, in the middle of a level 40 quest (petition 1886's
+// walk of the stat quests: Sage's Wit's third cases). "#n" is that row, as
+// npcByNameLocked's. Must be called with the lock held.
+func (w *World) npcByNameForLocked(name string, world uint8) *NPC {
+	if _, ok := ParseRowKey(name); ok {
+		return w.npcByNameLocked(name)
+	}
+	rank := func(npc *NPC) int {
+		r := 0
+		if w.dungeonTemplateLocked(npc) && world != npc.World {
+			r += 4 // a dungeon's template for a copy outside its world: the last
+		}
+		if npc.World != world {
+			r += 2
+		}
+		if npc.Dead {
+			r++
+		}
+		return r
+	}
+	var best *NPC
+	bestRank := 0
+	for _, npc := range w.NPCs {
+		if npc.Temporary || !strings.EqualFold(npc.Name, name) {
+			continue
+		}
+		r := rank(npc)
+		if best == nil || r < bestRank || r == bestRank && npc.ServerID < best.ServerID {
+			best, bestRank = npc, r
+		}
+	}
+	return best
+}
+
+// SpawnNPCCopy places a copy of the NPC named name (as npcByNameForLocked picks it)
 // at (x, y, z) in world, facing facing: its model, size, gear, level and
 // faction, full health, no fight, in view (an original that stands out of
 // the world, spawnonly.go, is copied as any other: the copy is in it). The
@@ -94,7 +137,7 @@ func (w *World) npcByNameLocked(name string) *NPC {
 func (w *World) SpawnNPCCopy(name string, x, y, z, facing float32, world uint8) (EntityID, string, bool) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	t := w.npcByNameLocked(name)
+	t := w.npcByNameForLocked(name, world)
 	if t == nil {
 		return 0, "", false
 	}

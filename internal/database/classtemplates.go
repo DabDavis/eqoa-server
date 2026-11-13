@@ -246,14 +246,33 @@ const (
 	// hate list for more than 60 seconds, he nukes them unresistable for
 	// 20,000 every 6 seconds")
 	AbilityUnreached = "unreached"
+	// AbilityDeathTouch: the one it fights killed outright, no resist, no
+	// mitigation (entity/bossmoments.go; the owner, 2026-11-13: "quintashi
+	// should have a death touch at the beginning of the fight for the first
+	// target"); first 0 is as the fight begins, every as long as a fight
+	// (3600) for once.
+	AbilityDeathTouch = "deathtouch"
+	// AbilityPortNear: Count players (0: one) of its hate list, at random,
+	// alive and not the one it fights while another is there, sent beside a
+	// creature round it within Radius (Foes: only creatures of those names),
+	// alive, not on its hate list, and set on them: that creature and every
+	// creature round where they land (portNearReach) fight them
+	// (entity/portnear.go; the owner, 2026-11-13: "he will port players close
+	// to the mobs in the chamber so they get attacked by them", "make the port
+	// once every 3 mins").
+	AbilityPortNear = "portnear"
 )
+
+// MostPortRadius is the widest a portnear looks for creatures to send a player beside.
+const MostPortRadius = 1000
 
 // DefaultUnhitSeconds is an unreached moment's wait with none of its own.
 const DefaultUnhitSeconds = 60
 
 // BossMomentKind is whether an ability is one of a boss's moments.
 func BossMomentKind(k string) bool {
-	return k == AbilitySelfDoT || k == AbilityRaidHeal || k == AbilityPowerZero || k == AbilitySetHP || k == AbilityUnreached
+	return k == AbilitySelfDoT || k == AbilityRaidHeal || k == AbilityPowerZero || k == AbilitySetHP || k == AbilityUnreached ||
+		k == AbilityDeathTouch || k == AbilityPortNear
 }
 
 // MostSetHPRadius is the widest a sethp's area reaches.
@@ -263,7 +282,7 @@ const MostSetHPRadius = 200
 var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff, AbilityRoot, AbilityDebuff,
 	AbilityStrip, AbilityHealShield, AbilityMeleeKind, AbilityDoT, AbilityHitHeal, AbilityPrefer, AbilitySummon, AbilityEnrage,
 	AbilityProc, AbilityVeil, AbilityKillSay, AbilityLastStand, AbilityWard, AbilityDeathHold, AbilitySelfDoT, AbilityRaidHeal,
-	AbilityPowerZero, AbilitySetHP, AbilityUnreached}
+	AbilityPowerZero, AbilitySetHP, AbilityUnreached, AbilityDeathTouch, AbilityPortNear}
 
 // passiveKind is whether an ability of the kind casts nothing on a clock of its
 // own: what it does is a rule its creature keeps (a heal shield, a melee kind,
@@ -897,13 +916,21 @@ func checkBossMoment(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: unhit %.1f: 0 (%d) to 3600 seconds", n, a.Unhit, DefaultUnhitSeconds)
 	case a.Kind == AbilityRaidHeal && (a.Count < 1 || a.Count > 40):
 		return fmt.Errorf("ability %d: a raidheal's count %d: 1 to 40 players", n, a.Count)
-	case a.Kind != AbilityRaidHeal && a.Count != 0:
-		return fmt.Errorf("ability %d: a count is a raidheal's", n)
+	case a.Kind == AbilityPortNear && (a.Count < 0 || a.Count > 40):
+		return fmt.Errorf("ability %d: a portnear's count %d: 0 (one) to 40 players", n, a.Count)
+	case a.Kind != AbilityRaidHeal && a.Kind != AbilityPortNear && a.Count != 0:
+		return fmt.Errorf("ability %d: a count is a raidheal's or a portnear's", n)
+	case a.Kind == AbilityPortNear && (a.Radius < 1 || a.Radius > MostPortRadius):
+		return fmt.Errorf("ability %d: a portnear's radius %.1f: 1 to %d", n, a.Radius, MostPortRadius)
+	case a.Kind != AbilityPortNear && len(a.Foes) > 0:
+		return fmt.Errorf("ability %d: foes are a portnear's (of the moments)", n)
+	case len(a.Foes) > MostFoes:
+		return fmt.Errorf("ability %d: a portnear's foes: up to %d names", n, MostFoes)
 	case a.Kind == AbilitySetHP && (a.SetHP < 1 || a.SetHP > 1000000):
 		return fmt.Errorf("ability %d: a sethp's set_hp %d: 1 to 1000000 hit points (it never kills)", n, a.SetHP)
 	case a.Kind == AbilitySetHP && (a.Radius < 0 || a.Radius > MostSetHPRadius):
 		return fmt.Errorf("ability %d: a sethp's radius %.1f: 0 (the one it fights) to %d", n, a.Radius, MostSetHPRadius)
-	case a.Kind != AbilitySetHP && (a.SetHP != 0 || a.Radius != 0 || a.Tick != 0 || a.TickAtCap != 0 || a.TickFor != 0):
+	case a.Kind != AbilitySetHP && (a.SetHP != 0 || a.Kind != AbilityPortNear && a.Radius != 0 || a.Tick != 0 || a.TickAtCap != 0 || a.TickFor != 0):
 		return fmt.Errorf("ability %d: set_hp, radius and a tick are a sethp's", n)
 	case !finite(a.TickFor) || a.Tick < 0 || a.Tick > 1000000 || a.TickAtCap < 0 || a.TickAtCap > a.Tick || a.TickFor < 0 || a.TickFor > 600:
 		return fmt.Errorf("ability %d: a tick of %d (1 to 1000000), at the cap %d (0 to its tick), for %.1f s (0 to 600)", n, a.Tick, a.TickAtCap, a.TickFor)

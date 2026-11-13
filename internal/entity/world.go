@@ -249,6 +249,8 @@ type World struct {
 	// The NPCs' body tints by name, table npctint, as the clients that draw
 	// them are told (npctint.go)
 	npcTints npcTintState
+	// The worn pieces' auras by item, table itemaura (pieceaura.go)
+	itemAuras itemAuraState
 	// The masteries a character may buy, table cmcatalog (cmbuy.go)
 	cms *cmCatalog
 	// NPCs coming to the help of their own (socialaggro.go)

@@ -52,6 +52,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveSpawnOnly()
 	case "npctint":
 		return s.liveTints()
+	case "itemaura":
+		return s.liveItemAuras()
 	case "npctitle":
 		return s.liveTitles()
 	case "npcdialog":
@@ -288,6 +290,57 @@ func (s *Server) liveTints() string {
 	return fmt.Sprintf("at once: %d name(s) tinted; the new set sent to %d client(s) in the game that draw tints (a PS2 draws none)", names, told)
 }
 
+// liveItemAuras reads the worn pieces' auras again (entity/pieceaura.go): each
+// wearer's channel shows them at the next tick.
+func (s *Server) liveItemAuras() string {
+	if s.d.World == nil || s.d.DB == nil {
+		return "no world is running: at the next start"
+	}
+	n, err := s.d.World.LoadItemAuras(s.d.DB)
+	if err != nil {
+		return "not applied to the world: " + err.Error()
+	}
+	return fmt.Sprintf("at once: %d item(s) show an aura on the worn piece, to every client that draws the pieces' auras (a PS2 draws none)", n)
+}
+
+// checkAuraCols holds a row's aura columns (npctint's aura_kind, aura_source,
+// aura_nodes; itemaura's kind, source, nodes) to what the client reads.
+func checkAuraCols(row map[string]any, kind, source, nodes string) error {
+	whole := func(col string, ok func(int64) bool) bool {
+		v, has := row[col]
+		if !has {
+			return true
+		}
+		f, fok := asFloat(v)
+		return fok && f == math.Trunc(f) && ok(int64(f))
+	}
+	if !whole(kind, database.ValidAuraKind) {
+		return badRequest("%s is 0 the default (the shell while the glow lights), 1 none, 2 the shell, 3 the particles, 4 both", kind)
+	}
+	if !whole(source, database.ValidNPCTint) {
+		return badRequest("%s is a 32-bit DictID (an ITEM.ESF hand model, or any model with a particle sprite), 0 the Sword of Virtue's 0x88EC092D", source)
+	}
+	if !whole(nodes, database.ValidAuraNodes) {
+		return badRequest("%s is 0 the default (8) to %d", nodes, database.AuraNodesMost)
+	}
+	return nil
+}
+
+// checkItemAuraRow holds an itemaura row to an item, a 32-bit colour and an
+// aura the client reads.
+func checkItemAuraRow(row map[string]any) error {
+	if f, ok := asFloat(row["patternid"]); !ok || f != math.Trunc(f) || f < 0 {
+		return badRequest("patternid is the item's record (Items)")
+	}
+	if v, ok := row["color"]; ok {
+		f, fok := asFloat(v)
+		if !fok || f != math.Trunc(f) || !database.ValidNPCTint(int64(f)) {
+			return badRequest("color is 0xRRGGBBAA (0x3060FFFF a blue), 0 none: the aura's colour, AA how much of it")
+		}
+	}
+	return checkAuraCols(row, "kind", "source", "nodes")
+}
+
 // checkTintRow holds an npctint row to a name and a 32-bit colour: a blank name
 // would tint no NPC and say nothing.
 func checkTintRow(row map[string]any) error {
@@ -306,7 +359,7 @@ func checkTintRow(row map[string]any) error {
 			return badRequest("glow is 0xRRGGBBAA (0xFF606099 a soft red), 0 none: a light of the body's own in that colour, AA how much of it")
 		}
 	}
-	return nil
+	return checkAuraCols(row, "aura_kind", "aura_source", "aura_nodes")
 }
 
 // checkSpawnOnlyRow holds an npcspawnonly row to a name: a blank one would

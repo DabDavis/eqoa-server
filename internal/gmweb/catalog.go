@@ -1065,11 +1065,33 @@ var catalog = map[string]tableNote{
 		Live:   "At once: every client that draws tints draws the NPCs of the name in it.",
 		Search: []string{"name", "note", "source"},
 		Cols: map[string]colNote{
-			"name":   {Label: "NPC name (key)", Help: "as in NPCs, any case (lower case, trimmed, no trailing $ is how it is matched)"},
-			"color":  {Label: "Tint", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA: each channel of the body times RR/FF, GG/FF, BB/FF; AA how much of it (FF all, 00 none)"},
-			"glow":   {Label: "Glow", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA, 0 none: a light of the body's own in that colour (the held items' glow on the whole body), AA how much of it; drawn by a vanilla that reads the tints' layout 2 (petition 1893)"},
-			"note":   {Label: "Note", Help: "why"},
-			"source": {Label: "Source", Help: "gm, or seed for tools/seed_npc_tint.py's rows (its --undo takes out exactly what it wrote)"},
+			"name":  {Label: "NPC name (key)", Help: "as in NPCs, any case (lower case, trimmed, no trailing $ is how it is matched)"},
+			"color": {Label: "Tint", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA: each channel of the body times RR/FF, GG/FF, BB/FF; AA how much of it (FF all, 00 none)"},
+			"glow":  {Label: "Glow", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA, 0 none: a light of the body's own in that colour (the held items' glow on the whole body), AA how much of it; drawn by a vanilla that reads the tints' layout 2 (petition 1893)"},
+			"aura_kind": {Label: "Aura", Help: "0 the default (the shell while the glow lights; Mr. Moogie's), 1 none, 2 the shell (a form-fitting glow round the body, " +
+				"in the glow's colour), 3 the particles (the source's emitter on the body's nodes, in the glow's hue; with no glow in the source's own colours), " +
+				"4 both. Drawn by a vanilla that reads the tints' layout 3; /aura in the game sets it on the target's name"},
+			"aura_source": {Label: "Aura particles", Format: hex32, Look: lookItem, Store: storeUint32, Help: "the DictID of the item (an ITEM.ESF hand model) or model whose particle sprite the particles are; 0 the Sword of Virtue's (0x88EC092D)"},
+			"aura_nodes":  {Label: "Aura nodes", Help: "on how many of the body's nodes the particles go; 0 the default (8), 32 at most"},
+			"note":        {Label: "Note", Help: "why"},
+			"source":      {Label: "Source", Help: "gm, or seed for tools/seed_npc_tint.py's rows (its --undo takes out exactly what it wrote)"},
+		},
+	},
+	"itemaura": {
+		Label: "Item auras", Group: "Items & spells", Title: "patternid", Sort: "patternid",
+		Help: "An aura on a worn piece of armour or a robe (entity/pieceaura.go): every character (and mercenary) wearing the item shows it " +
+			"on that piece alone (chest, bracer, gloves, legs, boots, helm or robe), each piece its own colour. Drawn only by " +
+			"eqoa-rust-client-vanilla, which asks for the pieces' auras; a PS2 draws the piece as it is. A held item's glow is its " +
+			"record's colour (Items), not this. A hidden piece shows none. /aura item <id> ... in the game sets a row.",
+		Live:   "At once: every wearer's channel carries it at the next tick.",
+		Search: []string{"note"},
+		Cols: map[string]colNote{
+			"patternid": {Label: "Item", Ref: "itempattern"},
+			"color":     {Label: "Colour", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA, the aura's colour (RGB at AA's share); 0 none: particles in the source's own colours"},
+			"kind":      {Label: "Aura", Help: "0 the default (the shell while the colour lights), 1 none, 2 the shell (a glow fitted round the piece), 3 the particles, 4 both"},
+			"source":    {Label: "Particles", Format: hex32, Look: lookItem, Store: storeUint32, Help: "the DictID of the item (an ITEM.ESF hand model) or model whose particle sprite the particles are; 0 the Sword of Virtue's (0x88EC092D)"},
+			"nodes":     {Label: "Nodes", Help: "on how many of the piece's nodes the particles go; 0 the default, 32 at most"},
+			"note":      {Label: "Note", Help: "why"},
 		},
 	},
 	"npctitle": {

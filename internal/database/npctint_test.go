@@ -30,7 +30,7 @@ func TestNPCTints(t *testing.T) {
 		t.Fatal(err)
 	}
 	got, err = db.NPCTints()
-	want := []NPCTint{{"lady vox", 0xFF0000FF, 0}, {"yhafiran", 0x558C50FF, 0}}
+	want := []NPCTint{{Name: "lady vox", Color: 0xFF0000FF}, {Name: "yhafiran", Color: 0x558C50FF}}
 	if err != nil || len(got) != len(want) {
 		t.Fatalf("tints %v, %v; want %v", got, err, want)
 	}

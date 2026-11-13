@@ -111,3 +111,37 @@ func TestShorterValueIsResent(t *testing.T) {
 		t.Fatalf("the shortened value was not resent under its sequence (%d bytes, seq %d, first sent as %d)", len(again), at, sent)
 	}
 }
+
+// An entity channel whose client starts or stops asking for the worn pieces'
+// auras (entity/pieceaura.go) changes format between this server's armour's
+// 225 bytes and the auras' 295, which the client tells apart by length: every
+// value still reaches it whole, acknowledged or not, each XORed only against
+// a value it holds, over the shorter of the two.
+func TestEntityChannelChangesToTheAurasFormat(t *testing.T) {
+	val := func(n int, seed byte) []byte {
+		v := make([]byte, n)
+		for i := range v {
+			v[i] = seed + byte(i*13)
+		}
+		return v
+	}
+	for _, ack := range []bool{true, false} {
+		st := session.NewConnectionData(nil, 0, 0).GetServerObject(1)
+		st.SetActive(true)
+		c := receiver{}
+		for k, n := range []int{225, 295, 295, 225, 295, 225, 225} {
+			want := val(n, byte(k*31+1))
+			st.SetSizedData(want)
+			data, seq, ref := st.GenerateXORDelta()
+			if data == nil {
+				t.Fatalf("ack %v step %d (%d bytes): nothing sent", ack, k, n)
+			}
+			if got := c.receive(t, data, seq, ref); !bytes.Equal(got, want) {
+				t.Fatalf("ack %v step %d: the client holds %d bytes that differ from the %d set", ack, k, len(got), n)
+			}
+			if ack {
+				st.UpdateBaseXor(seq)
+			}
+		}
+	}
+}

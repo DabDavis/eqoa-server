@@ -140,3 +140,46 @@ func TestNPCTintsRacingEditsEndOnTheLastSet(t *testing.T) {
 		}
 	}
 }
+
+// Layout 3 (the auras): each glow followed by a u8 kind, a u32 source
+// little-endian and a u8 node count; a row of particles alone (no tint, no
+// glow) told at 3 alone. Layouts 1 and 2 are byte for byte what the same rows
+// with no aura make (the control: a client that answers below 3 sees no
+// change), and a row of the default kind is six zeros after its glow.
+func TestEncodeNPCTintsLayoutThree(t *testing.T) {
+	rows := []database.NPCTint{
+		{Name: "a skeleton", Color: 0xFFFFFFFF, Glow: 0x40FF40FF, AuraKind: database.AuraBoth, AuraSource: 0x88EC092D, AuraNodes: 4},
+		{Name: "a wisp", Color: 0xFFFFFFFF, AuraKind: database.AuraParticles, AuraSource: 0x12345678},
+		{Name: "mr. moogie", Color: 0xFFFFFFFF, Glow: 0xFF606099},
+		{Name: "yhafiran", Color: 0x558C50FF, AuraKind: database.AuraNone},
+	}
+	bare := make([]database.NPCTint, len(rows))
+	for i, r := range rows {
+		bare[i] = database.NPCTint{Name: r.Name, Color: r.Color, Glow: r.Glow}
+	}
+	for _, layout := range []uint8{1, 2} {
+		got, want := EncodeNPCTintsLayout(rows, layout), EncodeNPCTintsLayout(bare, layout)
+		if !bytes.Equal(got, want) {
+			t.Fatalf("layout %d changed by the auras: % x, want % x", layout, got, want)
+		}
+	}
+	if n := binary.LittleEndian.Uint16(EncodeNPCTintsLayout(rows, 2)); n != 3 {
+		t.Fatalf("layout 2: %d names, want 3 (the particles' alone left out)", n)
+	}
+	name := func(n string) []byte { return append([]byte{byte(len(n))}, n...) }
+	le := func(v uint32) []byte { return binary.LittleEndian.AppendUint32(nil, v) }
+	var want []byte
+	want = append(want, 4, 0)
+	want = append(append(append(append(want, name("a skeleton")...), le(0xFFFFFFFF)...), le(0x40FF40FF)...), database.AuraBoth)
+	want = append(append(want, le(0x88EC092D)...), 4)
+	want = append(append(append(append(want, name("a wisp")...), le(0xFFFFFFFF)...), le(0)...), database.AuraParticles)
+	want = append(append(want, le(0x12345678)...), 0)
+	want = append(append(append(append(want, name("mr. moogie")...), le(0xFFFFFFFF)...), le(0xFF606099)...), 0, 0, 0, 0, 0, 0)
+	want = append(append(append(append(want, name("yhafiran")...), le(0x558C50FF)...), le(0)...), database.AuraNone, 0, 0, 0, 0, 0)
+	if got := EncodeNPCTintsLayout(rows, 3); !bytes.Equal(got, want) {
+		t.Fatalf("layout 3:\n% x\nwant\n% x", got, want)
+	}
+	if !bytes.Equal(EncodeNPCTintsLayout(rows, 7), want) {
+		t.Fatal("a later layout is not 3")
+	}
+}

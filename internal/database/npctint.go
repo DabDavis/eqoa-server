@@ -29,11 +29,24 @@ import (
 // a glow alone tints nothing for a layout 1 client. source: gm,
 // or seed for tools/seed_npc_tint.py's rows (its --undo takes out exactly what
 // it wrote).
+//
+// aura_kind, aura_source, aura_nodes (2026-11-13, the owner: Mr. Moogie's aura
+// "can be a template to make any model have particle effects"; claude-notes/
+// auras-20261113.md): which aura the name's bodies wear, in the glow's colour
+// (AuraDefault the shell while the glow lights, AuraNone, AuraShell,
+// AuraParticles, AuraBoth); the DictID of the item or model whose particle
+// sprite the particles are (0 the Sword of Virtue's, 0x88EC092D); on how many
+// of the body's nodes (0 the default 8; the client takes 32 at most). Told
+// only to a client that answers the offer with layout 3; particles need no
+// glow (drawn in the source's own colours).
 const npcTintSchema = `
 	CREATE TABLE IF NOT EXISTS npctint (
 		name   TEXT PRIMARY KEY,
 		color  INTEGER NOT NULL DEFAULT 4294967295,
 		glow   INTEGER NOT NULL DEFAULT 0,
+		aura_kind   INTEGER NOT NULL DEFAULT 0,
+		aura_source INTEGER NOT NULL DEFAULT 0,
+		aura_nodes  INTEGER NOT NULL DEFAULT 0,
 		note   TEXT NOT NULL DEFAULT '',
 		source TEXT NOT NULL DEFAULT 'gm'
 	);`
@@ -53,14 +66,63 @@ func (db *SQLiteDB) ensureNPCTint() error {
 			return fmt.Errorf("npctint: glow: %w", err)
 		}
 	}
+	// and one made before the auras (2026-11-13) theirs
+	for _, col := range []string{"aura_kind", "aura_source", "aura_nodes"} {
+		has, err := hasColumn(db.DB, "npctint", col)
+		if err != nil {
+			return fmt.Errorf("npctint: %w", err)
+		}
+		if !has {
+			if _, err := db.Exec(`ALTER TABLE npctint ADD COLUMN ` + col + ` INTEGER NOT NULL DEFAULT 0`); err != nil {
+				return fmt.Errorf("npctint: %s: %w", col, err)
+			}
+		}
+	}
 	return nil
 }
 
-// NPCTint is a row of npctint, read: the name's key, its colour and its glow.
+// The aura kinds (npctint.aura_kind, itemaura.kind): vanilla's
+// net::npctint::Aura.
+const (
+	AuraDefault   = 0 // the shell while the glow (the piece's colour) lights; nothing without
+	AuraNone      = 1 // no aura, whatever the glow
+	AuraShell     = 2 // a form-fitting glow round the body (or piece), in the glow's colour
+	AuraParticles = 3 // a held item's emitter on the body's nodes; no glow: the source's colours
+	AuraBoth      = 4 // the shell and the particles
+	AuraKindMost  = AuraBoth
+)
+
+// AuraNodesMost is the most nodes the client puts particles on.
+const AuraNodesMost = 32
+
+// AuraParticlesShow reports whether an aura kind draws particles, which need
+// no glow.
+func AuraParticlesShow(kind uint8) bool { return kind == AuraParticles || kind == AuraBoth }
+
+// AuraShows reports whether an aura of a glow (0xRRGGBBAA) and kind draws
+// anything: particles, or the shell while the glow lights.
+func AuraShows(glow uint32, kind uint8) bool {
+	if kind > AuraKindMost {
+		kind = AuraDefault // the client reads any other as the default
+	}
+	return AuraParticlesShow(kind) || (kind != AuraNone && NPCGlowShows(glow))
+}
+
+// ValidAuraKind and ValidAuraNodes hold a GM's aura to what the client reads.
+func ValidAuraKind(k int64) bool  { return k >= 0 && k <= AuraKindMost }
+func ValidAuraNodes(n int64) bool { return n >= 0 && n <= AuraNodesMost }
+
+// NPCTint is a row of npctint, read: the name's key, its colour, its glow and
+// its aura.
 type NPCTint struct {
 	Name  string // NPCClassKey of the row's name
 	Color uint32 // 0xRRGGBBAA
 	Glow  uint32 // 0xRRGGBBAA, 0 none
+	// the aura (AuraDefault ...; source a DictID, 0 the Sword of Virtue's;
+	// nodes 0 the default 8): told at layout 3 alone
+	AuraKind   uint8
+	AuraSource uint32
+	AuraNodes  uint8
 }
 
 // NPCGlowShows reports whether a glow lights anything: an alpha of 0 or a
@@ -69,8 +131,13 @@ func NPCGlowShows(glow uint32) bool {
 	return glow&0xFF != 0 && glow>>8 != 0
 }
 
-// Shows reports whether the row draws anything: its tint or its glow.
-func (t NPCTint) Shows() bool { return NPCTintChanges(t.Color) || NPCGlowShows(t.Glow) }
+// Shows reports whether the row draws anything: its tint, its glow, or its
+// aura's particles (which need no glow: drawn at layout 3 alone).
+func (t NPCTint) Shows() bool { return t.ShowsGlow() || AuraParticlesShow(t.AuraKind) }
+
+// ShowsGlow reports whether the row draws anything by its tint or its glow:
+// what a layout 2 client is told.
+func (t NPCTint) ShowsGlow() bool { return NPCTintChanges(t.Color) || NPCGlowShows(t.Glow) }
 
 // NPCTintChanges reports whether a tint changes anything drawn: an alpha of 0
 // or a white tint leaves the body as it is.
@@ -99,7 +166,7 @@ func ValidNPCTint(c int64) bool {
 // nothing, left out), in the keys' order. Two rows of one key: the later name
 // in the table's order wins.
 func (db *SQLiteDB) NPCTints() ([]NPCTint, error) {
-	rows, err := db.Query(`SELECT name, color, glow FROM npctint ORDER BY name`)
+	rows, err := db.Query(`SELECT name, color, glow, aura_kind, aura_source, aura_nodes FROM npctint ORDER BY name`)
 	if err != nil {
 		return nil, err
 	}
@@ -107,8 +174,8 @@ func (db *SQLiteDB) NPCTints() ([]NPCTint, error) {
 	by := make(map[string]NPCTint)
 	for rows.Next() {
 		var name string
-		var color, glow int64
-		if err := rows.Scan(&name, &color, &glow); err != nil {
+		var color, glow, kind, source, nodes int64
+		if err := rows.Scan(&name, &color, &glow, &kind, &source, &nodes); err != nil {
 			return nil, err
 		}
 		k := NPCClassKey(name)
@@ -120,7 +187,13 @@ func (db *SQLiteDB) NPCTints() ([]NPCTint, error) {
 		if !gok {
 			g = 0
 		}
-		if t := (NPCTint{Name: k, Color: c, Glow: g}); t.Shows() {
+		t := NPCTint{Name: k, Color: c, Glow: g}
+		if ValidAuraKind(kind) && ValidAuraNodes(nodes) {
+			if src, ok := tint32(source); ok {
+				t.AuraKind, t.AuraSource, t.AuraNodes = uint8(kind), src, uint8(nodes)
+			}
+		}
+		if t.Shows() {
 			by[k] = t
 		} else {
 			delete(by, k)

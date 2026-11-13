@@ -252,6 +252,12 @@ func main() {
 		log.Printf("WARNING: the camps: %v; their spawns are as their rows make them", err)
 	}
 	log.Printf("Creatures: %s", gameWorld.CampSummary())
+	// The rare spawns on placeholders (entity/npcrare.go, table npcrare): read
+	// before a restart's file is, which may keep a placeholder as its rare
+	if _, err := gameWorld.LoadRareSpawns(db); err != nil {
+		log.Printf("WARNING: the rare spawns: %v; every placeholder comes back as itself", err)
+	}
+	log.Printf("Creatures: %s", gameWorld.RareSummary())
 	decay, respawn := gameWorld.CorpseTimes()
 	log.Printf("Creatures: a corpse lies %v unless emptied, the creature back %v after it goes; wandering within %.0f of its spawn",
 		decay, respawn, gameWorld.RoamRadius())

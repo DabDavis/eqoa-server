@@ -153,8 +153,8 @@ func (wp WeaponProc) Explain() string {
 		if wp.FormStat != StatNone && wp.FormStatBy != 0 {
 			form += fmt.Sprintf(" (%+d %s while it lasts)", wp.FormStatBy, procStatWord(wp.FormStat))
 		}
-		what = fmt.Sprintf("turns the wielder into %s for %.0f s (renewed by another proc), which procs %s at %d%% a hit, at most %d a round",
-			form, wp.Duration.Seconds(), figure, wp.Chance, wp.RoundMost)
+		what = fmt.Sprintf("turns the wielder into %s for %s (renewed by another proc), which procs %s at %s a hit, at most %d a round",
+			form, wp.formLong(), figure, wp.formChance(), wp.RoundMost)
 	case ProcRoot:
 		what = fmt.Sprintf("roots the creature for %.0f s (a root breaks as any root does)", wp.rootFor().Seconds())
 	case ProcSnare:

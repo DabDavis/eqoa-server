@@ -110,6 +110,9 @@ func procRollsOf(effects []*ActiveEffect, stat func(Stat) int, bearerLevel, targ
 			continue
 		}
 		chance := ae.Rules.ProcChance // its own (a form's: weaponproc.go), else by INT
+		if ae.Rules.ProcChanceFrom > 0 {
+			chance = dexChancePct(ae.Rules.ProcChanceFrom, ae.Rules.ProcChanceMost, stat(StatDex)) // by DEX (weaponproc.go)
+		}
 		if chance <= 0 {
 			chance = procChancePct(intel)
 		}

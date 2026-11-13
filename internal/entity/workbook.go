@@ -111,6 +111,9 @@ type EffectRules struct {
 	// rounds, 0 no limit (procsOfRound). A form's (weaponproc.go).
 	ProcChance int `json:",omitempty"`
 	ProcRound  int `json:",omitempty"`
+	// ProcChanceFrom and ProcChanceMost: its proc's chance by its bearer's DEX in place of ProcChance (dexChancePct)
+	ProcChanceFrom int `json:",omitempty"`
+	ProcChanceMost int `json:",omitempty"`
 	// ProcFX is its proc's own look on what each proc hits (SpellEffect.ProcFX); 0 the
 	// stand-in of its kind (proc.go)
 	ProcFX uint32 `json:",omitempty"`
@@ -142,7 +145,7 @@ type EffectRules struct {
 // rulesOf is a cast's rules for what lasts of it.
 func rulesOf(d *SpellDef) EffectRules {
 	r := EffectRules{DispelOnCast: d.DispelOnCast, DispelOnContact: d.DispelOnContact, Harm: d.Harmful, Twice: d.Workbook, Stance: d.Stance,
-		ProcChance: d.ProcChance, ProcRound: d.ProcRound}
+		ProcChance: d.ProcChance, ProcRound: d.ProcRound, ProcChanceFrom: d.ProcChanceFrom, ProcChanceMost: d.ProcChanceMost}
 	for _, e := range d.Effects {
 		if e.Resist != StatNone {
 			r.Resist = e.Resist

@@ -2338,11 +2338,8 @@ statics on Xrag's rock are the xrag camp); sorted by the levels their creatures 
 (`levelFold`/`levelParts`: as even as they come, cut where the levels change where they can), landing where `#tele` lands
 (`World.CampLanding`: beside the camp out of its creatures' notice), facing it. Only worlds the client loads are offered
 (`CanLoadWorld`); a box is answered only within 30 of the Teleporter ("Come back to me to go"); what it offers is read again every
-minute, so a GM's new camp shows within one. **A grouped player's trip takes the group** (`teleGroup`, petition 1408, Waldorf: "should
-take the group at same time to same spot"; a camp's landing is worked out from its creatures at the moment, so members who went one
-by one landed apart): every member within 30 of the Teleporter, alive, whose client loads the world, goes at once to the picker's
-very landing and facing, told "Teleporter: <picker> takes the group to <trip>." and moved as a GM trigger's teleport moves players
-(`BeginWarp`); a member away from it stays. **`tools/place_teleporter.py [--apply|--undo]`** stands it on Dabrish's line, 8 to the
+minute, so a GM's new camp shows within one. **A trip is the picker's alone** (petition 1938, the GM Jibwiz, 2026-11-13: "it is individual"; from 2026-11-09 to then, petition
+1408's `teleGroup` took the group by it along; the Sky essences' `moveGroup` still does). **`tools/place_teleporter.py [--apply|--undo]`** stands it on Dabrish's line, 8 to the
 side his Armor Dyer stands on (4: the Teleporter beyond it), facing as he does, in Waysender Ilganis's look (the Erudite body in a
 robe, a staff), level 60, talked to only, with `npcmove` stands and `npcaggro` never, refusing a spot within 3.5 of another NPC,
 6 of the Summoning Portal's landing or 10 of Mr. Moogie; gm_audit rows, `--undo` exact. NPCs are read at the start: a keep

@@ -1970,6 +1970,36 @@ var catalog = map[string]tableNote{
 			"source":    {Label: "Source", Help: "gm, or seed for tools/seed_orbs.py's rows (its --undo deletes those no GM changed)"},
 		},
 	},
+	"hazards": {
+		Label: "Hazards", Group: "World", Title: "name", Sort: "id",
+		Help: "Places that hurt a player standing in them (entity/hazards.go; petition 1937, the Toxxulia cave's spiky " +
+			"vines): a capsule from x1/y1/z1 to x2/y2/z2 (the same twice for a round area), radius across it. A player whose " +
+			"feet come within radius of the segment and from below under its height to above over it takes damage at once " +
+			"(fixed, through any armour), then again every every_ms while it stays in one, told words in red; it can die of " +
+			"it. Not the dead, a GM flying (#fly), or one loading a world. Rows of source vines are tools/seed_hazards.py's, " +
+			"read off the disc's zone actors (cmd/hazardscan).",
+		Live:   "At once: within half a second, whoever stands in it.",
+		Show:   []string{"id", "name", "world", "x1", "z1", "x2", "z2", "radius", "damage", "every_ms", "source"},
+		Search: []string{"name", "note", "source"},
+		Cols: map[string]colNote{
+			"name":     {Label: "Name", Help: "the area as a GM reads it (the log names it, and the default words)"},
+			"world":    {Label: "World", Enum: "world", Section: "Where it lies"},
+			"x1":       {Label: "X (one end)", Section: "Where it lies"},
+			"y1":       {Label: "Y (one end)", Section: "Where it lies", Help: "the floor there"},
+			"z1":       {Label: "Z (one end)", Section: "Where it lies"},
+			"x2":       {Label: "X (other end)", Section: "Where it lies"},
+			"y2":       {Label: "Y (other end)", Section: "Where it lies"},
+			"z2":       {Label: "Z (other end)", Section: "Where it lies"},
+			"radius":   {Label: "Radius", Section: "Where it lies", Help: "how near the segment across a player's feet must come; 0 the default, 1.5"},
+			"below":    {Label: "Below", Section: "Where it lies", Help: "how far under the segment's height feet still count; 0 the default, 2"},
+			"above":    {Label: "Above", Section: "Where it lies", Help: "how far over it; 0 the default, 4"},
+			"damage":   {Label: "Damage", Section: "What it does", Help: "hit points a hit takes (1-1000000), fixed"},
+			"every_ms": {Label: "Every ms", Section: "What it does", Help: "from one hit to the next while the player stays in (0 the default, 2000; 500 to 3600000)"},
+			"words":    {Label: "Words", Section: "What it does", Help: "told at each hit, %d its damage; empty \"<name> hurts you for <n>.\""},
+			"note":     {Label: "Note", Format: "multiline", Help: "where it came from"},
+			"source":   {Label: "Source", Help: "gm, or vines for tools/seed_hazards.py's rows (its --undo deletes those no GM changed)"},
+		},
+	},
 	"spellfx_suggestions": {
 		Label: "Community visual suggestions", Group: "Items & spells", Title: "spellid", Sort: "id", Write: writeAdmin,
 		Help: "What players suggest a spell's visual is, sent from the public spell-visual page with no sign-in " +

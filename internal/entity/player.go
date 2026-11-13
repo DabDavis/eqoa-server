@@ -364,6 +364,8 @@ type Player struct {
 	// orb is its standing with the teleport orbs (orbs.go): the orb it is
 	// in, its place at the last report, its orbs' rest
 	orb orbWatch
+	// hazardNext is when a hazard may hit it again (hazards.go)
+	hazardNext time.Time
 
 	// Stood is the last place the player was known to stand, on a floor or
 	// in a liquid (clientupdate.go's Standing): where it arrived (a login, a

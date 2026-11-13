@@ -100,6 +100,8 @@ type World struct {
 	calls heroCallState
 	// The teleport orbs, table orbs (orbs.go)
 	orbs orbState
+	// hazards are the places that hurt a player standing in them (hazards.go)
+	hazards hazardState
 	// regenAt is when the last regen tick fell (regenSystem): the regular
 	// tick a heal over time's ticks after its first keep to (hot.go)
 	regenAt time.Time

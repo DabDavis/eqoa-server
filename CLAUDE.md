@@ -2544,6 +2544,18 @@ greeting says all of a standing above -2000 is spent (petition 1515: it always w
 an item link ("..., 350 faction. Click its name to see its stats.") to a client that takes links (made as a loot line's
 link), its stats in words to any other.
 
+### Hazards: places that hurt a player standing in them (`entity/hazards.go`, table `hazards`, `tools/seed_hazards.py`)
+
+Petition 1937 (the GM Hoofbite, 2026-11-13): "spikey vines in toxxulia cave should damage player for 1000 dmg when walking
+through them". A row is a capsule (segment `x1/y1/z1`-`x2/y2/z2`, `radius` across, feet from `below` under to `above` over
+it; 0s the defaults 1.5/2/4) with a `damage` and `every_ms` (default 2000); `hazardSystem` (every 5 ticks) hits a living
+player standing in one at once and again every `every_ms` while it stays in one (`Player.hazardNext`), the figure and its
+`words` in red, a death as a drowning's; not the dead, a GM flying or a session loading a world. Read at the start and at a
+panel edit ("Hazards", World). **`cmd/hazardscan`** turns a world's zone actors of given sprites into rows (the placed mesh's
+principal axis across, the radius holding 80% of it, 1-3); `tools/hazards/toxxulia_vines.json` is its reading of the disc's
+thorny vines (SimpleSprites B9F5C1A9/AA/AB: 144 actors, every one in Odus zone 20, the Toxxulia cave), written by
+`tools/seed_hazards.py [--apply|--undo]` (source `vines`, log `hazard_seed`).
+
 ### Teleport orbs: a step onto a pad sends the player to its pair (`entity/orbs.go`, table `orbs`, `tools/seed_orbs.py`)
 
 The user, 2026-11-09: "the erudite starts that are in towers the orb wont teleport them yet to the main highbourne".

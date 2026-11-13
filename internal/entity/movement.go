@@ -438,6 +438,10 @@ func (w *World) legFromLocked(npc *NPC, fx, fy, fz, x, z float32, heights *[]flo
 			*heights = append(*heights, py)
 		}
 	}
+	// a creature of the land standing in the water (a fight left it there) may
+	// walk out of it: its leg may be in the water until its first point out
+	// of it, and not after (landwater.go)
+	leaving := keeps == keepsToLand && w.waterAtLocked(npc.World, fx, py+bodyAbove, fz)
 	for i := 1; i <= n; i++ {
 		t := float32(i) / float32(n)
 		sx, sz := fx+(x-fx)*t, fz+(z-fz)*t
@@ -483,9 +487,14 @@ func (w *World) legFromLocked(npc *NPC, fx, fy, fz, x, z float32, heights *[]flo
 			}
 		}
 		px, py, pz = sx, y, sz
+		if checks == legRoute && w.routeDry && w.waterAtLocked(npc.World, sx, y+bodyAbove, sz) {
+			w.routeWet += d / float32(n) // its length in the water (landwater.go)
+		}
 		switch keeps {
 		case keepsToLand:
-			if w.waterAtLocked(npc.World, sx, y+bodyAbove, sz) {
+			if !w.waterAtLocked(npc.World, sx, y+bodyAbove, sz) {
+				leaving = false
+			} else if !leaving {
 				return false
 			}
 		case keepsToWater:

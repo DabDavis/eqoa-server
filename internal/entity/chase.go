@@ -122,6 +122,9 @@ type chaseState struct {
 	heldSince time.Time
 	// homeHeldSince is the same on its way home (homeSystem)
 	homeHeldSince time.Time
+	// wetHome is a way home whose dry search found nothing: the rest of it as
+	// before, through the water where that is the way (landwater.go)
+	wetHome bool
 }
 
 // chaseHeld is how long a chase's steps may be refused, the ground in their way
@@ -226,7 +229,13 @@ func turnToward(from, want, most float32) float32 {
 // the lock held.
 func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (inReach, giveUp bool) {
 	if !npc.chase.on {
-		npc.chase = chaseState{on: true, fromX: npc.X, fromY: npc.Y, fromZ: npc.Z}
+		fx, fy, fz := npc.X, npc.Y, npc.Z
+		if npc.chase.returning {
+			// on its way home from a fight: that home kept, not a place in the
+			// water it was crossing (landwater.go)
+			fx, fy, fz = npc.chase.fromX, npc.chase.fromY, npc.chase.fromZ
+		}
+		npc.chase = chaseState{on: true, fromX: fx, fromY: fy, fromZ: fz}
 	}
 	npc.chase.returning = false
 	if w.liftOutLocked(npc) {
@@ -382,6 +391,7 @@ func (w *World) goHomeLocked(npc *NPC) {
 	}
 	npc.chase.on = false
 	npc.chase.route = chaseRoute{} // the fight's way round: home is found anew
+	npc.chase.wetHome = false      // its dry way searched for anew (landwater.go)
 	npc.chase.heldSince, npc.chase.homeHeldSince = time.Time{}, time.Time{}
 	if distXZ(npc.X, npc.Z, npc.chase.fromX, npc.chase.fromZ) < 0.5 {
 		w.atHomeLocked(npc)
@@ -446,8 +456,14 @@ func (w *World) homeSystem(now time.Time) {
 		// round what stands between, where the straight way home is not one it
 		// can run (chaseroute.go: off a ledge it was led down, up the ramp)
 		home := distXZ(npc.X, npc.Z, npc.chase.fromX, npc.chase.fromZ)
+		w.routeDry = !npc.chase.wetHome && w.homeDryLocked(npc) // on the land where it can (landwater.go)
+		fails := npc.chase.route.fails
 		routing, hold := w.routeWayLocked(npc, &npc.chase.route, npc.chase.fromX, npc.chase.fromY, npc.chase.fromZ, home, speed*dt,
 			home <= routeLook && absf(npc.chase.fromY-npc.Y) > routeLevel, now)
+		if w.routeDry && npc.chase.route.fails > fails {
+			npc.chase.wetHome = true // no dry way found: not searched for again this way home
+		}
+		w.routeDry = false
 		if routing || hold {
 			if routing {
 				w.followRouteLocked(npc, &npc.chase.route, speed, dt)

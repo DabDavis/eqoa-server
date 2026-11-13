@@ -760,6 +760,9 @@ func (w *World) MercAttack(sess *session.Session, slot int) (name, refusal strin
 	if len(list) == 0 {
 		return "", "You have no mercenary out."
 	}
+	if w.duelEngagedLocked(p.ServerID) {
+		return "", MercLineDueling // its owner's duel is its own (ownfight.go, petition 1901)
+	}
 	ent, ok := w.findEntityByObjectIDLocked(sess, p.TargetObjectID)
 	t, isNPC := ent.(*NPC)
 	if !ok || !isNPC {

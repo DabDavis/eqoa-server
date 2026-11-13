@@ -125,6 +125,15 @@ func (w *World) mercDefendsLocked(ms *mercState, npc *NPC) bool {
 // with the lock held.
 func (w *World) mercChooseTargetLocked(ms *mercState) {
 	owner, m := ms.owner, ms.npc
+	if w.duelEngagedLocked(owner.ServerID) {
+		// its owner's duel is its owner's own: it stands down, whatever it
+		// fought, until the duel is over (ownfight.go, petition 1901)
+		if ms.target != 0 || ms.ordered != 0 {
+			ms.target, ms.ordered = 0, 0
+			m.endRound()
+		}
+		return
+	}
 	valid := func(id EntityID) *NPC {
 		t := w.NPCs[id]
 		if t == nil || !mercMayFight(m, t) || distXZ(owner.X, owner.Z, t.X, t.Z) > petLeash {

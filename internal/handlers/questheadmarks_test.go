@@ -186,3 +186,57 @@ func TestQuestHeadMarksModes(t *testing.T) {
 		t.Fatal("quests.markers took a word it does not know")
 	}
 }
+
+// The GM Jibrish's petition 1875: "After turning in a quest, if the quest NPC has a follow up it is not showing a new
+// yellow ! for the newbie quests". The fixture's The pincers flagged (as each race's and class's first quest is), its
+// follow-up (Malsis's, requiring it) and that one's own (Kellina's) flagged by no one: before the turn-in the
+// follow-up shows nothing (it may not be taken yet); at the turn-in that finishes The pincers, "!" over Malsis at
+// once; taken and finished, "!" over Kellina for the next. The control: an unflagged quest's follow-up shows nothing.
+func TestQuestHeadMarksShowAFollowUp(t *testing.T) {
+	setHeadMode(t, "")
+	f := newQuestFixture(t)
+	f.tw.p.HP = 100
+	malsis := f.tw.add(1, &entity.NPC{ServerID: 701, Name: "Malsis", SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5})
+	kellina := f.tw.add(2, &entity.NPC{ServerID: 702, Name: "Kellina", SpawnX: 25404, SpawnY: 54.1, SpawnZ: 15726})
+	f.tw.add(3, &entity.NPC{ServerID: 703, Name: "Warden", SpawnX: 25405, SpawnY: 54.1, SpawnZ: 15726})
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, minlevel, maxlevel, requires) VALUES
+		(10012, 'The next pincers', 1, 'Malsis', 1, 10, '10010'),
+		(10013, 'The last pincers', 1, 'Kellina', 1, 10, '10012'),
+		(10020, 'Unflagged', 1, 'Warden', 1, 10, ''),
+		(10021, 'After unflagged', 1, 'Warden', 1, 10, '10020')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (10012, 1, 'talk', 'Malsis', 'n'),
+		(10013, 1, 'talk', 'Warden', 'l'), (10020, 1, 'talk', 'Malsis', 'u'), (10021, 1, 'talk', 'Malsis', 'a')`)
+	f.exec(`INSERT INTO questmarks (questid, note) VALUES (10010, 'a first quest')`)
+	if err := f.qe.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	f.msgs()
+	headAnswer(t, f.tw.w, f.tw.s, 1)
+	got, ok := f.headLook(t)
+	f.headSame(t, "before: The pincers alone (no follow-up, nothing unflagged)", got, ok, map[uint32]string{malsis: "!"})
+
+	f.tw.talk(malsis)
+	f.tw.pick(boxID(f.msgs()), 0)
+	f.tw.talk(kellina)
+	f.msgs()
+	f.own(f.pincer, 2)
+	f.headLook(t)
+	f.tw.talk(kellina)
+	if b := boxID(f.msgs()); b != 0 {
+		f.tw.pick(b, 0)
+	}
+	if f.held(f.pincer) != 0 {
+		t.Fatalf("the pincers were not handed in (%d held)", f.held(f.pincer))
+	}
+	got, ok = f.headLook(t)
+	f.headSame(t, "turned in: the follow-up's ! at once", got, ok, map[uint32]string{malsis: "!"})
+
+	f.tw.talk(malsis)
+	f.tw.pick(boxID(f.msgs()), 0)
+	f.tw.talk(malsis)
+	if b := boxID(f.msgs()); b != 0 {
+		f.tw.pick(b, 0)
+	}
+	got, ok = f.headLook(t)
+	f.headSame(t, "the follow-up done: the next one's !", got, ok, map[uint32]string{kellina: "!"})
+}

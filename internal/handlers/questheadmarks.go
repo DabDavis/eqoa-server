@@ -235,6 +235,36 @@ func (q *QuestEngine) headKeyLocked(sess *session.Session, p *entity.Player) str
 	return fmt.Sprintf("%d %d %d %d %d %d %x", q.gen.Load(), questHeadMode.Load(), p.Level, p.Class, p.Race, p.Tunar, h.Sum64())
 }
 
+// markedWithFollowUps is table questmarks' quests and every quest that follows
+// one, however far down its chain (successors: the enabled quests with a giver
+// that require each). The GM Jibrish's petition 1875 (2026-11-13): "After
+// turning in a quest, if the quest NPC has a follow up it is not showing a new
+// yellow ! for the newbie quests, make sure this works for all the new player
+// 1-10 quests": the table flags each race's and class's first quest
+// (tools/questmarks_20261112.py), and their follow-ups, flagged by nobody, were
+// shown nothing. A follow-up shows its "!" as soon as the player may take it:
+// at the turn-in that finishes the quest before it (saveLocked's nudge works
+// the marks out again at once), or at the level it asks.
+func markedWithFollowUps(marked map[int]bool, successors map[int][]*database.Quest) map[int]bool {
+	out := make(map[int]bool, len(marked))
+	var walk func(id int)
+	walk = func(id int) {
+		for _, s := range successors[id] {
+			if !out[s.ID] {
+				out[s.ID] = true
+				walk(s.ID)
+			}
+		}
+	}
+	for id, on := range marked {
+		if on {
+			out[id] = true
+			walk(id)
+		}
+	}
+	return out
+}
+
 // headShows is whether a quest is marked under quests.markers.
 func (q *QuestEngine) headShows(qu *database.Quest) bool {
 	if qu == nil || !qu.Enabled {

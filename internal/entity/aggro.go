@@ -217,6 +217,15 @@ func (w *World) hostileNatureLocked(npc *NPC) bool {
 	if npc.NPCType&0x80 != 0 {
 		return false // the NPC bit: no one may attack it, so it attacks no one
 	}
+	if IsDungeonWorld(npc.World) {
+		// an instanced dungeon's creature's own pet (companion.go) is of its master's nature, before
+		// any rule for its name: the seed's npcaggro rows for pets' names (Howling Death, Companion
+		// Spirit, ...: "a player's pet recorded beside its owner") left Rubbip's Howling Death neutral
+		// beside him in Guk's instance (ticket 2009, Waldorf)
+		if m := w.companionMasterLocked(npc); m != nil && m != npc {
+			return w.hostileNatureLocked(m)
+		}
+	}
 	if r, ok := w.aggro.ruleFor(npc.Name); ok {
 		return r.Aggressive
 	}

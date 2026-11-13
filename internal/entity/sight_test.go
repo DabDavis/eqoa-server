@@ -186,15 +186,34 @@ func TestAWallStopsAPlayersArea(t *testing.T) {
 		t.Errorf("its target behind a wall from its caster lost %d", got[0])
 	}
 
-	// a low rock, under the head's line and over the waist's, shelters from an
-	// area, though a creature would see over it (TestACreatureNoticesOnlyWhatItCanSee)
+	// a low rock, under the head's line and over the waist's, shelters no one
+	// from an area, as it hides no one from a creature
+	// (TestACreatureNoticesOnlyWhatItCanSee): petition 1882, a Blade Dance on
+	// the frost giants' camp, each giant behind a stone 1.4 tall spared
 	r = newAreaRig(t)
 	target = r.creature(2001, "Deathfist Pawn", 1020, 1000)
 	low := r.creature(2002, "Deathfist Pawn", 1027, 1000)
 	r.w.SetGround(sightGround{{1024, 0, 900, 1024.5, 11, 1100}})
 	r.cast(t, fireStorm(), target.ServerID)
-	if got := hits(low); got[0] != 0 {
-		t.Errorf("behind a low rock it lost %d", got[0])
+	if got := hits(low); got[0] != 36 {
+		t.Errorf("behind a low rock it lost %d, want 36", got[0])
+	}
+	// its own target behind the low rock from its caster is hit too
+	r = newAreaRig(t)
+	target = r.creature(2001, "Deathfist Pawn", 1020, 1000)
+	r.w.SetGround(sightGround{{1005, 0, 900, 1005.5, 11, 1100}})
+	r.cast(t, fireStorm(), target.ServerID)
+	if got := hits(target); got[0] != 82 {
+		t.Errorf("its target behind a low rock from its caster lost %d, want 82", got[0])
+	}
+	// and a rock as high as a head still spares
+	r = newAreaRig(t)
+	target = r.creature(2001, "Deathfist Pawn", 1020, 1000)
+	tall := r.creature(2002, "Deathfist Pawn", 1027, 1000)
+	r.w.SetGround(sightGround{{1024, 0, 900, 1024.5, 12, 1100}})
+	r.cast(t, fireStorm(), target.ServerID)
+	if got := hits(tall); got[0] != 0 {
+		t.Errorf("behind a rock as high as a head it lost %d", got[0])
 	}
 }
 

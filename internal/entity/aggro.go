@@ -600,19 +600,28 @@ func (w *World) SetAggroIgnored(sess *session.Session, ignored bool) bool {
 	return true
 }
 
-// healHateLocked is a heal's hate (petition 1225, the GM Jibrish: "Verify that heals
-// generate appropriate agro in general, do not overdo it"; until then no heal was hate
-// at all, so a cleric could heal a fight through untouched): the creatures fighting the
-// one healed, those in a fight with it on their hate list, hate its healer by half the
-// hit points the heal restored, what went past the most none of it, shared evenly among
-// them and at least 1 each. A heal over time's ticks are heals. Ours, chosen to stay
-// under the fight's own damage: a creature's enemy is the most hate, and a hit is its
-// whole figure. Must be called with the lock held.
-func (w *World) healHateLocked(healer, t *Player, restored int) {
-	if restored <= 0 || healer == nil || w.SpatialIndex == nil {
+// healHateLocked is a heal's hate. Petition 1225 made a heal hate at all (half of what it
+// restored, shared); petitions 1962 (Yggab: "Healing aggro is basically non-exsistant")
+// and 1967 (the GM Jibwiz, 2026-11-13) set it as it is now: "If at least 1 point was
+// healed from the action, that full heal amount should generate agro in the same amount
+// as if it were doing that damage to the monster ... if the 1000 health heal hits a target
+// with full health, that generates agro as if 200 damage were applied. Healing agro
+// applies to everything that is agrod on the target ... all 5 mobs get threat equal to
+// 1000 points of damage". So amount is the heal's whole figure, restored what it put back:
+// restored at least 1 is amount's hate, none (a full target) a fifth of it, each on every
+// creature in a fight with t on its hate list, whole, not shared. A heal is never damage.
+// A heal over time's ticks are heals. Must be called with the lock held.
+func (w *World) healHateLocked(healer, t *Player, amount, restored int) {
+	if amount <= 0 || healer == nil || w.SpatialIndex == nil {
 		return
 	}
-	var foes []*NPC
+	hate := amount
+	if restored <= 0 {
+		hate = amount * healFullHatePct / 100
+	}
+	if hate <= 0 {
+		return
+	}
 	for _, id := range w.SpatialIndex.QueryRadius(t.X, t.Z, healHateReach) {
 		npc, ok := w.NPCs[id]
 		if !ok || npc.Dead || !w.npcSharesLocked(npc, t) || npc.Owner != 0 || npc.Dummy != NotDummy ||
@@ -622,20 +631,14 @@ func (w *World) healHateLocked(healer, t *Player, restored int) {
 		if _, fighting := npc.Threats[t.ServerID]; !fighting {
 			continue
 		}
-		foes = append(foes, npc)
-	}
-	if len(foes) == 0 {
-		return
-	}
-	each := max(restored/healHateShare/len(foes), 1)
-	for _, npc := range foes {
-		w.addThreatLocked(npc, healer.ServerID, each)
+		w.addThreatLocked(npc, healer.ServerID, hate)
 	}
 }
 
-// healHateShare is the part of a heal that is hate (half), healHateReach how far from
-// the one healed a creature fighting it is looked for (a leash's length).
+// healFullHatePct is the part of a heal on a full target that is hate (1967: 1000 -> 200),
+// healHateReach how far from the one healed a creature fighting it is looked for (a
+// leash's length).
 const (
-	healHateShare = 2
-	healHateReach = 100
+	healFullHatePct = 20
+	healHateReach   = 100
 )

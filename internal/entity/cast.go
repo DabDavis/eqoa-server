@@ -1629,13 +1629,14 @@ func (w *World) healLocked(caster *Player, casterSess *session.Session, t *Playe
 	}
 	top := t.MaxHPNow()
 	if t.HP >= top {
+		w.healHateLocked(caster, t, n, 0) // a full target: a fifth of it is hate still (1967, aggro.go)
 		return
 	}
 	before := t.HP
 	t.HP = min(t.HP+n, top)
 	t.StatsDirty = true
 	w.tellAmountLocked(caster, casterSess, t.ServerID, n, kind)
-	w.healHateLocked(caster, t, t.HP-before) // aggro.go
+	w.healHateLocked(caster, t, n, t.HP-before) // aggro.go
 	if t.ServerID == caster.ServerID {
 		w.healAggroLocked(caster) // a creature it is green to comes now (aggro.go)
 	}

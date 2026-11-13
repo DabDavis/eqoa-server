@@ -40,13 +40,14 @@ func (w *World) markHealPlayerLocked(sess *session.Session, p *Player, npc *NPC,
 	top := p.MaxHPNow()
 	if p.HP >= top {
 		w.tellAmountLocked(p, sess, p.ServerID, n, numberProc) // full: the figure alone, as a proc's heal (procHealLocked)
+		w.healHateLocked(p, p, n, 0)                            // and a fifth of it hate (1967, aggro.go)
 		return
 	}
 	before := p.HP
 	p.HP = min(p.HP+n, top)
 	p.StatsDirty = true
 	w.tellAmountLocked(p, sess, p.ServerID, n, numberProc) // a hit's heal: a proc's (numbertags.go)
-	w.healHateLocked(p, p, p.HP-before)
+	w.healHateLocked(p, p, n, p.HP-before)
 	log.Printf("Mark: %s's hit on %s heals it for %d (%d/%d)", p.Name, npc.Name, n, p.HP, top)
 }
 

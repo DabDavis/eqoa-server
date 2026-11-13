@@ -290,6 +290,8 @@ type World struct {
 	sets npcSets
 	// How long the tick's systems take (ticktime.go)
 	ticks tickTimer
+	// The operator's damage formulas, combat.formula_file (dmgformula.go)
+	dmgf dmgFormulaState
 }
 
 // NewWorld creates and initializes a new game world.

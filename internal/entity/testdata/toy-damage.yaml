@@ -1,0 +1,19 @@
+# A made-up toy damage model: it exercises the file format and is no real
+# formula of any game. Two made-up profiles, two made-up creatures.
+tables:
+  profiles:
+    Warrior: {scale: 3, slots: [{weight: 1, add: 0}, {weight: 1, add: 100}]}
+    default: {scale: 1, slots: [{weight: 1, add: 0}]}
+  creatures:
+    Toy Golem: {extra: 50}
+    default:   {extra: 0}
+formulas:
+  player_melee:
+    steps:
+      - prof: lookup("profiles", a_class_name, "default")
+      - slot: pick(prof.slots)
+      - mob: lookup("creatures", d_name, d_family, "default")
+    result: base * prof.scale + slot.add + field(mob, "extra", 0)
+    min: 1
+  npc: base + 7
+  npc_shield: base * 0 + 3

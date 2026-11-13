@@ -144,3 +144,44 @@ func TestADuelistsPetCastsAndProcs(t *testing.T) {
 		}
 	}
 }
+
+// A duel's melee hit, the foe's or its pet's, goes through the struck duelist's mitigation as a
+// creature's does (the owner, 2026-11-13: Ruggid's Stoneskin stopped nothing of Hoofbite's), at
+// its percent of what the duel's share leaves, its most spent as it goes, the buff breaking when
+// it is spent. A spell's hit is no melee: it takes nothing off.
+func TestADuelsMeleeIsMitigated(t *testing.T) {
+	d := newDuelists(t)
+	duel := d.start(t)
+	skin := &ActiveEffect{SpellID: 900783, Name: "Stoneskin", Until: d.at(time.Hour),
+		Rules: EffectRules{MitigatePct: 75, MitigateLeft: 1000, MitigateCapped: true}}
+	d.w.mu.Lock()
+	defer d.w.mu.Unlock()
+	d.w.addEffectLocked(d.a, skin, d.at(0))
+	hp := d.a.HP
+	d.w.duelHurtLocked(duel, d.b, d.b.ServerID, d.a, 400, d.at(time.Second), numberMelee) // 200, 150 off
+	if got := hp - d.a.HP; got != 50 {
+		t.Fatalf("a melee hit of 400 (200 halved) took %d, want 50", got)
+	}
+	hp = d.a.HP
+	d.w.duelHurtLocked(duel, d.b, d.b.ServerID, d.a, 400, d.at(time.Second), numberSpell)
+	if got := hp - d.a.HP; got != 200 {
+		t.Fatalf("a spell's hit of 400 took %d, want 200", got)
+	}
+	pet := &NPC{ServerID: 4005, Name: "Construct", Level: 50, HP: 4000, MaxHP: 4000, Owner: d.b.ServerID}
+	d.w.NPCs[pet.ServerID] = pet
+	hp = d.a.HP
+	d.w.duelHurtLocked(duel, d.b, pet.ServerID, d.a, 1200, d.at(2*time.Second), numberMelee.byPet()) // 600, 450 off
+	if got := hp - d.a.HP; got != 150 || skin.Rules.MitigateLeft != 400 {
+		t.Fatalf("the pet's hit of 1200 took %d (%d left to stop), want 150 and 400", got, skin.Rules.MitigateLeft)
+	}
+	hp = d.a.HP
+	d.w.duelHurtLocked(duel, d.b, d.b.ServerID, d.a, 2000, d.at(3*time.Second), numberMelee) // 1000, 750 off but 400 left
+	if got := hp - d.a.HP; got != 600 {
+		t.Fatalf("the last of the skin: %d taken, want 1000 - 400", got)
+	}
+	for _, e := range d.a.Effects {
+		if e == skin {
+			t.Fatal("the spent skin did not break")
+		}
+	}
+}

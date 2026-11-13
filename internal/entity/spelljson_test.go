@@ -340,19 +340,23 @@ func TestWorkbookMitigation(t *testing.T) {
 	c.castOn(t, wall, 0)
 	now := c.at(5 * time.Second)
 	for i, want := range []int{60, 60, 80, 100} {
-		if got := mitigateLocked(c.p, 100, now); got != want {
+		if got := c.w.mitigateLocked(c.p, 100, now); got != want {
 			t.Errorf("hit %d: %d taken, want %d", i+1, got, want)
 		}
+	}
+	// its most spent, it breaks (the owner, 2026-11-13: Stoneskin "breaks after 7500 stopped")
+	if got := c.effectNames(); len(got) != 0 {
+		t.Errorf("a spent mitigation is still on: %v", got)
 	}
 	cloak := wbSpell(942, 5, 0, "Test Cloak", `{"v":1,"scope":"self","duration_s":30,"effects":[{"kind":"mitigation","mitigation":{"pct":10,"max":100000}}]}`)
 	c = newCaster(t)
 	c.castOn(t, cloak, 0)
 	for i := 0; i < 50; i++ {
-		if got := mitigateLocked(c.p, 1000, c.at(5*time.Second)); got != 900 {
+		if got := c.w.mitigateLocked(c.p, 1000, c.at(5*time.Second)); got != 900 {
 			t.Fatalf("hit %d: %d taken, want 900", i+1, got)
 		}
 	}
-	if got := mitigateLocked(c.p, 1000, c.at(time.Minute)); got != 1000 {
+	if got := c.w.mitigateLocked(c.p, 1000, c.at(time.Minute)); got != 1000 {
 		t.Errorf("over: %d taken, want 1000", got)
 	}
 }

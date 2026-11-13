@@ -2428,7 +2428,9 @@ four. The roster (0x0772) and the group channel (0x40) carry it as any member (i
 health, its place), which CLIENT's window and vanilla's draw. CLIENT holds itself in a group only after its own Invite or
 Accept, so an owner in no group is asked, in the group invitation's own box from itself named "Mercenary <name>" (the
 raid flag's way); its yes makes the two a group, the owner leading; its no leaves the merc out of any group until `/merc
-group`, a group the owner joins or forms. A player's group heal or buff reaches it (`groupMercsLocked`). It leaves the
+group`, a group the owner joins or forms. A player's group heal or buff reaches it (`groupMercsLocked`; a group spell with a radius, through the
+area's `groupNearLocked`, and a self spell's share for its group, `shareOnMercLocked`, since petition 1909: the
+bard's power songs, Power Ballad and Celedonicus' Grand Finale had reached no merc). It leaves the
 group when dismissed, killed, or when its owner leaves the group or the world; a leader's boot of it dismisses it (its
 owner told, the hire ended). An owner out of a group of others (it left, was booted, its leader disbanded) is asked
 again; out of the group of it and its merc alone (its own leave or disband) it is not. **The group of a player and its

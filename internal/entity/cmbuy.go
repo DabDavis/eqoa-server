@@ -921,13 +921,29 @@ func (w *World) RemoveCM(sess *session.Session, id int) CMResult {
 // ranks without it already (CMResult.GiveBack and TakeOut). Must be called
 // with the lock held.
 func (w *World) cmRemovalBookLocked(p *Player, r *CMRank) (giveBack, takeOut []CMAbility) {
-	gives, takes := r.BookChange()
-	keptGives, keptTakes := map[int]bool{}, map[int]bool{}
+	var kept []*CMRank
 	for oid := range p.CMs {
-		o := w.cmRank(oid)
-		if o == nil {
-			continue
+		if o := w.cmRank(oid); o != nil {
+			kept = append(kept, o)
 		}
+	}
+	takeOut, giveBack = CMRemovalBook([]*CMRank{r}, kept)
+	return giveBack, takeOut
+}
+
+// CMRemovalBook is the book's change at the removal of several ranks at once
+// (a reset, a template's), the ranks kept still held: out, every spell a
+// removed rank gives but one a kept rank gives (it stays); back in, every
+// spell a removed rank replaced but one another removed rank gives (a
+// replacement of a line, itself replaced: out) and one a kept rank replaced
+// (it stays out). Whatever order the ranks are in. Until 2026-11-13 a reset
+// undid each rank in turn by id, so in a line whose ranks replace the one
+// before (Hydromancy 2 the first rank's pet; the necromancer's pet looks,
+// petition 1994) the first rank's spell went back in after the second's
+// was taken out: a book with the line's spells side by side.
+func CMRemovalBook(removed, kept []*CMRank) (takeOut, giveBack []CMAbility) {
+	keptGives, keptTakes, removedGives := map[int]bool{}, map[int]bool{}, map[int]bool{}
+	for _, o := range kept {
 		g, t := o.BookChange()
 		for _, a := range g {
 			keptGives[a.SpellID] = true
@@ -936,17 +952,64 @@ func (w *World) cmRemovalBookLocked(p *Player, r *CMRank) (giveBack, takeOut []C
 			keptTakes[a.SpellID] = true
 		}
 	}
-	for _, a := range takes {
-		if a.SpellID <= 0 || !keptTakes[a.SpellID] {
+	for _, r := range removed {
+		g, _ := r.BookChange()
+		for _, a := range g {
+			removedGives[a.SpellID] = true
+		}
+	}
+	outSeen, backSeen := map[int]bool{}, map[int]bool{}
+	for _, r := range removed {
+		g, t := r.BookChange()
+		for _, a := range g {
+			if a.SpellID > 0 && (keptGives[a.SpellID] || outSeen[a.SpellID]) {
+				continue
+			}
+			outSeen[a.SpellID] = a.SpellID > 0
+			takeOut = append(takeOut, a)
+		}
+		for _, a := range t {
+			if a.SpellID > 0 && (keptTakes[a.SpellID] || removedGives[a.SpellID] || backSeen[a.SpellID]) {
+				continue
+			}
+			backSeen[a.SpellID] = a.SpellID > 0
 			giveBack = append(giveBack, a)
 		}
 	}
-	for _, a := range gives {
-		if a.SpellID <= 0 || !keptGives[a.SpellID] {
-			takeOut = append(takeOut, a)
+	return takeOut, giveBack
+}
+
+// CMAddBook is the book's change at the purchase of several ranks at once (a
+// template's): in, every spell an added rank gives but one another added
+// rank replaces (a line's step bought past); out, every spell an added rank
+// replaces. Whatever order the ranks are in (CMRemovalBook's doc).
+func CMAddBook(added []*CMRank) (give, take []CMAbility) {
+	takes := map[int]bool{}
+	for _, r := range added {
+		_, t := r.BookChange()
+		for _, a := range t {
+			takes[a.SpellID] = true
 		}
 	}
-	return giveBack, takeOut
+	giveSeen, takeSeen := map[int]bool{}, map[int]bool{}
+	for _, r := range added {
+		g, t := r.BookChange()
+		for _, a := range g {
+			if a.SpellID > 0 && (takes[a.SpellID] || giveSeen[a.SpellID]) {
+				continue
+			}
+			giveSeen[a.SpellID] = a.SpellID > 0
+			give = append(give, a)
+		}
+		for _, a := range t {
+			if a.SpellID > 0 && takeSeen[a.SpellID] {
+				continue
+			}
+			takeSeen[a.SpellID] = a.SpellID > 0
+			take = append(take, a)
+		}
+	}
+	return give, take
 }
 
 // CMRankByID is a rank of the catalog (nil when none). The catalog is never

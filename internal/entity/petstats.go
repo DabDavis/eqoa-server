@@ -178,6 +178,15 @@ func (w *World) petBodyLocked(s *petSheet, spellName, lineName string, class int
 		}
 	}
 	t := w.petTemplateLocked(spellName, lineName, class)
+	if t == nil && s.Model != 0 {
+		// no creature of its name or its line's, and no stand-in of its
+		// caster's class: the row's body alone, a person's size (as a
+		// familiar is made, familiar.go). A racial pet any class summons
+		// (the Mermaid's Water Elementaling, tools/mermaid_pets_20261113.py:
+		// no NPC wears its body or has its name) was no pet but to a
+		// magician, whose stand-in an elementaling is
+		return &NPC{ModelID: int64(s.Model), Size: 1}
+	}
 	if t == nil || s.Model == 0 {
 		return t
 	}

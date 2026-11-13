@@ -17,7 +17,10 @@ import (
 // armour order), 6 primary, 7 secondary, 8 shield (its three held items), 9
 // robe, 10 cape (the cape slot of a server with world.capes: no live game's
 // slot, so its dye goes to the clients that draw capes as the cape's colour,
-// handlers/capes.go). color: 0xRRGGBBAA, red in the high byte, as itempattern.color holds
+// handlers/capes.go), 11-16 the trim of chest, bracer, gloves, legs, boots and
+// helm (DyeChestTrim..: the gold trim of the plate sets 4 and 9, which the
+// slot's own dye no longer darkens; entity/livelook.go's ArmorLook, the owner
+// 2026-11-13: "lets add trim color dyeing also"). color: 0xRRGGBBAA, red in the high byte, as itempattern.color holds
 // Return Home's item colours and the live client reads the bytes (red
 // first); alpha is never 0 (a slot drawn in it would vanish). Set by #dye in
 // the game and the GM panel's "Character dyes"; source gm.
@@ -44,18 +47,37 @@ const (
 	DyeShield
 	DyeRobe
 	DyeCape
+	DyeChestTrim
+	DyeBracerTrim
+	DyeGlovesTrim
+	DyeLegsTrim
+	DyeBootsTrim
+	DyeHelmTrim
 	DyeSlots
 )
 
+// DyeTrims is how many trim slots there are, one per armour slot (chest,
+// bracer, gloves, legs, boots, helm: the channel's armour order), from
+// DyeChestTrim.
+const DyeTrims = DyeSlots - DyeChestTrim
+
+// DyeTrimOf is the trim slot of an armour slot (DyeChest .. DyeHelm).
+func DyeTrimOf(armour int) int { return DyeChestTrim + armour }
+
+// IsTrimSlot reports whether a dye slot is a trim's.
+func IsTrimSlot(slot int) bool { return slot >= DyeChestTrim && slot < DyeSlots }
+
 // DyeSlotNames are the slots' words (#dye, the panel's help).
-var DyeSlotNames = [DyeSlots]string{"chest", "bracer", "gloves", "legs", "boots", "helm", "primary", "secondary", "shield", "robe", "cape"}
+var DyeSlotNames = [DyeSlots]string{"chest", "bracer", "gloves", "legs", "boots", "helm", "primary", "secondary", "shield", "robe", "cape",
+	"chesttrim", "bracertrim", "glovestrim", "legstrim", "bootstrim", "helmtrim"}
 
 // dyeSlotWords are other words for a slot.
 var dyeSlotWords = map[string]int{
 	"bracers": DyeBracer, "forearm": DyeBracer, "arms": DyeBracer, "glove": DyeGloves, "hands": DyeGloves,
 	"leg": DyeLegs, "feet": DyeBoots, "boot": DyeBoots, "head": DyeHelm, "helmet": DyeHelm,
 	"main": DyePrimary, "mainhand": DyePrimary, "weapon": DyePrimary, "off": DyeSecondary, "offhand": DyeSecondary,
-	"cloak": DyeCape,
+	"cloak": DyeCape, "bracerstrim": DyeBracerTrim, "glovetrim": DyeGlovesTrim, "legtrim": DyeLegsTrim, "boottrim": DyeBootsTrim,
+	"headtrim": DyeHelmTrim, "helmettrim": DyeHelmTrim,
 }
 
 // DyeSlotByName is a slot by its word (or its number), and whether there is one.

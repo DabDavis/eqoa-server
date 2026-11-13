@@ -47,10 +47,10 @@ func checkDyeRow(row map[string]any) error {
 	if v, ok := row["slot"]; ok {
 		f, fok := asFloat(v)
 		if !fok || f != math.Trunc(f) || f < 0 || f >= database.DyeSlots {
-			return badRequest("slot is 0 chest, 1 bracer, 2 gloves, 3 legs, 4 boots, 5 helm, 6 primary, 7 secondary, 8 shield, 9 robe, 10 cape")
+			return badRequest("slot is 0 chest, 1 bracer, 2 gloves, 3 legs, 4 boots, 5 helm, 6 primary, 7 secondary, 8 shield, 9 robe, 10 cape, 11-16 the trims of chest, bracer, gloves, legs, boots, helm")
 		}
 	} else {
-		return badRequest("slot is the dye's slot: 0 chest ... 5 helm, 6 primary, 7 secondary, 8 shield, 9 robe, 10 cape")
+		return badRequest("slot is the dye's slot: 0 chest ... 5 helm, 6 primary, 7 secondary, 8 shield, 9 robe, 10 cape, 11-16 the trims of chest, bracer, gloves, legs, boots, helm")
 	}
 	if v, ok := row["color"]; ok {
 		f, fok := asFloat(v)

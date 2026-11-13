@@ -1225,7 +1225,7 @@ treatment": the Tomb of Kings, Castle Felstar, Collonridge Cemetery, Vox's Lair,
   spawn-only, nor `SKIP`), levels raised: trash 60-62, named 63-64, bosses 65 (`BOSSES`: the froglok king; Abyssaxis;
   King Merdid and Xorbb); classtemplates **dungeon trash / dungeon named / dungeon boss** (class -1; hp_pct/melee_pct
   100/130, 250/200, 500/150 with Pestilent Breath at a quarter; resists 10/20/30 of every kind: a resist_pct with no
-  resist_kind leaves a template unused) bound by npctemplate `"#n"` (a GM tunes a tier in one row); 36 raid-gear records 995001-995036 (a tuned raid boss's drop
+  resist_kind leaves a template unused) bound by npctemplate `"#n"` (a GM tunes a tier in one row); **their casters cast** (petition 1900, `tools/petfix_dungeon_casters_20261113.py`, log `dungeon_casters_1113_log`): each tier's nuke (35%, every 12 s), life tap (50%, 15 s) and heal below half (20 s), each of the creature's own class's book at its level and cast only by the classes its ability's `classes` names (casters; shadow knights and necromancers; paladins and priests), so a warrior stays melee; the knights (class 0 in npcclass) fight by `dungeon trash shadowknight` (class 3) and the misspelt necromaner and the bonecaster by `dungeon trash necromancer` (11), copies of the trash tier's figures (tune them with it); `TestRealDungeonCastersCast`; 36 raid-gear records 995001-995036 (a tuned raid boss's drop
   copied under a dungeon's own name), loottables `dungeon <key> boss|named`, npcloot `"#n"` per creature; the wardens.
   **`tools/dungeons_more_20261112.py`** (log `dungeons_more_1112_log`; its base's functions) adds the seven as the
   first three were (its own `SOURCE` world, Tunaria or Odus, `FAMILY`, `KINDS`, `SKIP`, `BOSSES`: King Polaethius;

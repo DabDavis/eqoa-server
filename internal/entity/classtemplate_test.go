@@ -1410,3 +1410,45 @@ func TestATemplatesDebuffCanPoison(t *testing.T) {
 		t.Errorf("a dead creature's poison took %d", before-p.HP)
 	}
 }
+
+// An ability's classes (petition 1900, the dungeons' tiers of the creature's
+// own class): only a creature of one of them casts it, by its book or by the
+// spell it pins; every class without them, as before. A bad class is refused.
+func TestATemplatesAbilityCastByItsClassesAlone(t *testing.T) {
+	r := newTemplateRig(t)
+	r.npc("Gnoll Mage").Class = 13
+	r.npc("Gnoll Necro").Class = 11
+	if _, err := r.db.Exec(`INSERT INTO classtemplates (name, class, abilities) VALUES
+		('tier', -1, '[{"kind":"nuke","every":10,"classes":[13]},{"kind":"nuke","spell":"fire bolt","every":10,"classes":[13]}]'),
+		('open', -1, '[{"kind":"nuke","every":10}]')`); err != nil {
+		t.Fatal(err)
+	}
+	r.assign("gnoll mage", "tier")
+	r.assign("gnoll necro", "tier")
+	mage, necro := r.npc("Gnoll Mage"), r.npc("Gnoll Necro")
+	p, _ := r.player("Hero", 1001.5, 100)
+	q, _ := r.player("Other", 101.5, 100)
+	r.w.mu.Lock()
+	defer r.w.mu.Unlock()
+	if s := mage.tmpl.abilities[0].spellFor(13, 20); s == nil {
+		t.Error("the wizard's book gives its own class nothing")
+	}
+	if s := necro.tmpl.abilities[0].spellFor(11, 20); s != nil {
+		t.Errorf("a necromancer's book gives an ability of the wizard's alone %q", s.Name)
+	}
+	if !r.w.templateCastLocked(mage, 1, p.ServerID, r.at(0)) {
+		t.Error("the wizard does not cast its pinned spell")
+	}
+	if r.w.templateCastLocked(necro, 1, q.ServerID, r.at(0)) {
+		t.Error("a necromancer cast the wizard's pinned spell")
+	}
+	r.w.mu.Unlock()
+	r.assign("gnoll necro", "open")
+	r.w.mu.Lock()
+	if s := necro.tmpl.abilities[0].spellFor(11, 20); s == nil {
+		t.Error("with no classes a necromancer's nuke finds nothing")
+	}
+	if _, err := database.ParseTemplateAbilities(`[{"kind":"nuke","every":10,"classes":[15]}]`); err == nil {
+		t.Error("class 15 was taken")
+	}
+}

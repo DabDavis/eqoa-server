@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -682,6 +683,9 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 			} else {
 				found := false
 				for _, c := range from {
+					if len(ra.Classes) > 0 && !slices.Contains(ra.Classes, c) {
+						continue // not a class that casts it (petition 1900)
+					}
 					spells, err := spellsOf(c)
 					if err != nil {
 						return 0, err
@@ -984,6 +988,9 @@ func (w *World) templateCastLocked(npc *NPC, i int, target EntityID, now time.Ti
 	t := npc.tmpl
 	a := &t.abilities[i]
 	src := npc.figures() // an add's are its creature's level and class (summon.go)
+	if len(a.Classes) > 0 && !slices.Contains(a.Classes, src.Class) {
+		return false // a class that does not cast it (petition 1900)
+	}
 	spell := a.spellFor(src.Class, src.Level)
 	if spell == nil {
 		spell = a.share // a heal of its share that pins no spell (abilitytimes.go)

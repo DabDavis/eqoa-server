@@ -25,6 +25,9 @@ type heroesRig struct {
 	chars  *database.SQLiteCharacterStore
 	vendor *entity.NPC
 	ids    []int // the five wares, cheapest first
+	// shown are the lines a pick showed its ware by (petition 1876: heroes.go's
+	// show), taken out of what choose returns
+	shown []string
 }
 
 var heroesWares = []struct {
@@ -124,7 +127,15 @@ func (r *heroesRig) visit() ([]string, uint32) {
 func (r *heroesRig) choose(box uint32, option byte) ([]string, uint32) {
 	r.t.Helper()
 	r.pick(r.anna, box, option)
-	got := r.msgs(r.anna)
+	var got []string
+	r.shown = nil
+	for _, m := range r.msgs(r.anna) {
+		if strings.HasPrefix(m, "chat:Testing Heroes Vendor: ") && strings.Contains(m, " faction") {
+			r.shown = append(r.shown, m)
+			continue
+		}
+		got = append(got, m)
+	}
 	return got, heroesBoxOf(got)
 }
 
@@ -572,5 +583,44 @@ func TestTheHeroesVendorLeavesOutARowOfNoItem(t *testing.T) {
 	got, box := r.visit()
 	if !hasMsg(got, fmt.Sprintf("ask#%d:Testing Heroes Vendor: 'You have 0 to spend. What will you have?'|%s", box, heroesList)) {
 		t.Errorf("the list with a row of no item: %q", got)
+	}
+}
+
+// The GM Jibrish's petition 1876: "if they click an item, it should show them the stats before purchase". A pick from
+// his list shows the ware first, whether or not it can be bought yet: to a client that takes links, a line naming it as
+// an item link (0x7E51) whose record is the ware's, with its stats, worn nowhere; to a client that takes none (a PS2)
+// its stats in words. The control: with nothing to spend the refusal still follows, and the ware's stats show all the
+// same.
+func TestTheHeroesVendorShowsAWareBeforeItsSale(t *testing.T) {
+	r := newHeroesRig(t)
+	if _, err := r.db.Exec(`UPDATE itempattern SET levelreq = 40, ac = 120, str = 10, sta = 15, hpmax = 300, fr = 20 WHERE patternid = ?`, r.ids[2]); err != nil {
+		t.Fatal(err)
+	}
+	const name = "Weakened Breastplate of the Anointed"
+	// a PS2: the stats in words, then the refusal (nothing to spend)
+	r.stand(0)
+	_, box := r.visit()
+	got, _ := r.choose(box, 2)
+	if len(r.shown) != 1 || r.shown[0] != "chat:Testing Heroes Vendor: "+name+", 250 faction: level 40, AC 120, STR +10, STA +15, HP +300, FR +20" {
+		t.Fatalf("a PS2 was shown %q", r.shown)
+	}
+	r.want("Anna", got, fmt.Sprintf("box:Testing Heroes Vendor: The %s costs 250 faction and you have 0 to spend: 250 more to earn.", name))
+
+	// a client that takes links: the ware as a link, its record the ware's
+	r.ih.heroes.links = NewItemLinks()
+	r.anna.SetItemLinks(true)
+	r.stand(250)
+	_, box = r.visit()
+	r.pick(r.anna, box, 2)
+	spans, inner := linkedOnly(t, pendingOf(r.anna), name+", 250 faction. Click its name to see its stats.")
+	if len(spans) != 1 || on(t, spans[0], inner) != name {
+		t.Fatalf("the linked line: %+v", spans)
+	}
+	l, ok := r.ih.heroes.links.get(spans[0].id)
+	if !ok || l.rec.Pattern.PatternID != r.ids[2] || l.rec.Pattern.AC == nil || *l.rec.Pattern.AC != 120 || l.rec.EquipLoc != -1 || l.rec.Location != -1 {
+		t.Fatalf("the link: %+v %v", l, ok)
+	}
+	if r.held(r.ids[2]) != 0 || r.standing() != entity.FactionMin+250 {
+		t.Error("a look bought something")
 	}
 }

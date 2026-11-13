@@ -19,9 +19,11 @@ import (
 // changes them. A PS2 ignores the offer, as it ignores OpcodeNumberTagsOffer's,
 // is sent none and draws every NPC in its body's own colours.
 
-// npcTintsLayout is the layout of OpcodeNPCTints the offer names:
-// entity.EncodeNPCTints's.
-const npcTintsLayout = 1
+// npcTintsLayout is the newest layout of OpcodeNPCTints the offer names:
+// entity.EncodeNPCTintsLayout's 2, each name's glow after its colour (petition
+// 1893). A client answers the layout it reads: 1 (vanilla before the glow
+// answers 1 to any offer) the tints alone, 2 with the glows.
+const npcTintsLayout = entity.NPCTintsLayoutMost
 
 // buildNPCTintsOffer is OpcodeNPCTintsOffer from the server: a u8, the layout.
 func buildNPCTintsOffer() []byte {
@@ -57,9 +59,10 @@ func (h *NPCTintsHandler) HandleNPCTints(sess *session.Session, msg *protocol.Me
 		log.Printf("NPCTints: short (%d bytes) from %s", len(data), sess.RemoteAddr())
 		return nil
 	}
-	on := data[0] != 0
-	sess.SetNPCTints(on)
-	log.Printf("NPCTints: %s %s", sess.RemoteAddr(), map[bool]string{true: "draws them", false: "stopped"}[on])
+	layout := min(data[0], npcTintsLayout)
+	on := layout != 0
+	sess.SetNPCTintsLayout(layout)
+	log.Printf("NPCTints: %s %s (layout %d)", sess.RemoteAddr(), map[bool]string{true: "draws them", false: "stopped"}[on], layout)
 	if on && h.world != nil {
 		h.world.RefreshNPCTints(sess)
 	}

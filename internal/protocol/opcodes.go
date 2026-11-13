@@ -911,15 +911,17 @@ const (
 // black and green").
 const (
 	// OpcodeNPCTintsOffer is not retail: the server's offer of its NPCs'
-	// body tints, server to client once the player is in the world: a u8, 1,
-	// the layout of OpcodeNPCTints below. A PS2 ignores it (CLIENT's
+	// body tints, server to client once the player is in the world: a u8, the
+	// newest layout of OpcodeNPCTints below the server sends (2 since
+	// 2026-11-13; 1 before). A PS2 ignores it (CLIENT's
 	// dispatcher has no case above 0x1402 and no default) and never answers,
 	// so it draws every NPC in its body's own colours.
 	OpcodeNPCTintsOffer GameOpcode = 0x7E3E
 
 	// OpcodeNPCTintsAnswer is a client's answer to OpcodeNPCTintsOffer, client
-	// to server: a u8, 1 to be sent the tints, 0 to stop (a wider answer is
-	// read by its first byte). A client answers at once: one that answers 1
+	// to server: a u8, the layout it reads (1, or 2 with the glows; one past
+	// the offer's is the offer's), 0 to stop (a wider answer is read by its
+	// first byte). A client answers at once: one that answers 1
 	// drops what it held and is sent the tints there are (OpcodeNPCTints),
 	// none when there are none.
 	OpcodeNPCTintsAnswer GameOpcode = 0x7E3F
@@ -933,7 +935,11 @@ const (
 	// name keys the same (a player's never) with each of its colours' red,
 	// green and blue times the tint's (255ths), as much of it as the alpha
 	// says (0xFF the whole, 0 none). Each one is the whole set; 0 names: none.
-	// At most entity.NPCTintsMost.
+	// At most entity.NPCTintsMost. Layout 2 (the GM Jibrish's petition 1893:
+	// Mr. Moogie's whole body in a soft red glow) follows each colour with a
+	// u32 glow 0xRRGGBBAA (0 none): a light of the body's own, the held items'
+	// glow (vanilla's aura.rs) on every layer of it, the colour at the alpha's
+	// share; it lists the names of a glow alone too.
 	OpcodeNPCTints GameOpcode = 0x7E40
 )
 

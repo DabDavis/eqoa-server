@@ -317,6 +317,16 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		}
 		return
 	}
+	// /feature (or #feature): a feature request on the spot, apart from the
+	// bugs (petition 1841; bugreport.go)
+	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/feature") || strings.EqualFold(word, "#feature") {
+		if h.support != nil {
+			h.support.ChatFeature(sess, player, rest)
+		} else {
+			SendErrorMessage(sess, "This server keeps no reports.")
+		}
+		return
+	}
 
 	// /who (or #who; a PS2's is "/t who", below): who is in the world, everyone's (the user,
 	// 2026-11-07: "lets allow anyone to use /who"). A GM's #who still says where each stands

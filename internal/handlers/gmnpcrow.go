@@ -35,7 +35,13 @@ import (
 //     name (database's PlaceSourceRow: one in the GM's world if any, of the
 //     most common body and level); no NPC of the name: refused, close names
 //     suggested. Any world's name: one only in another world is copied into
-//     the GM's; a row's name not standing in the world now too.
+//     the GM's; a row's name not standing in the world now too. A spawn-only
+//     name's (npcspawnonly: a quest's or trigger's spawn copies its original,
+//     as filth squid's): the new row stands all the same, by its row of table
+//     npcstands (database/npcstands.go; the owner, 2026-11-13, of GMs refused
+//     /place filth squid in the Plane of Disease), which /delete takes with
+//     it, /delete undo puts back and /clone copies; every other row and spawn
+//     of the name is as before.
 //   - /move (the owner, 2026-11-12: "they target a mob and it moves the mob
 //     there and sets spawn point there also"): the target's row's spawn point,
 //     facing and world set to the GM's, in the world at once; /move undo puts
@@ -227,11 +233,25 @@ func (h *ChatHandler) reloadNPCExtras(tables []string) {
 			database.InvalidateSignText()
 		case "campspawns":
 			_, err = h.gameWorld.LoadCampSpawns(db)
+		case "npcstands":
+			_, _, err = h.gameWorld.LoadSpawnOnly(db)
 		}
 		if err != nil {
 			log.Printf("GM: %s not read again: %v", t, err)
 		}
 	}
+}
+
+// standsWords tells the GM a new row (/place, /clone) of a spawn-only name
+// stands (its npcstands row among the tables copied or made), or "".
+func standsWords(tables []string) string {
+	for _, t := range tables {
+		if t == "npcstands" {
+			return " It is a standing copy of a quest's or trigger's spawn (npcspawnonly): this row stands in the world " +
+				"and respawns as its own; the quests' and triggers' spawns of the name come as before."
+		}
+	}
+	return ""
 }
 
 // upsertRowNPC puts npcs row id into the world as its row makes it now.
@@ -370,6 +390,7 @@ func (h *ChatHandler) cloneCommand(sess *session.Session, player *entity.Player,
 		line += fmt.Sprintf(" It is not in the world yet (at the next start): %v.", err)
 	}
 	line += h.applyWander(sess, nid, wander, fmt.Sprintf("/clone in the game: %s, a copy of NPC %d", what, id))
+	line += standsWords(copied)
 	if player.Flying {
 		line += " (you fly: it stands in the air)"
 	}
@@ -431,9 +452,12 @@ func (h *ChatHandler) placeCommand(sess *session.Session, player *entity.Player,
 		}
 		return
 	}
-	if why := h.gameWorld.PlaceNameRefused(name); why != "" {
-		h.gmReply(sess, fmt.Sprintf("/place: %s %s: nothing made.", name, why))
-		return
+	// a spawn-only name (npcspawnonly: a quest's or a trigger's spawn copies
+	// its original): the placed row stands all the same (table npcstands),
+	// every other row and spawn of the name as before (the owner, 2026-11-13)
+	stands := ""
+	if h.gameWorld.SpawnOnlyNamed(name) {
+		stands = fmt.Sprintf("a GM's /place of %s, a quest's or trigger's spawn (npcspawnonly): this row stands", name)
 	}
 	src, err := h.camps.db.PlaceSourceRow(name, int(player.World))
 	if errors.Is(err, sql.ErrNoRows) {
@@ -446,7 +470,7 @@ func (h *ChatHandler) placeCommand(sess *session.Session, player *entity.Player,
 	}
 	at := database.NPCClone{World: int(player.World), X: float64(player.X), Y: float64(player.Y), Z: float64(player.Z),
 		Facing: facingByte(float64(player.Facing))}
-	nid, copied, err := h.camps.db.PlaceNPCRowAudited(src, at, gmEditOf(sess), fmt.Sprintf("%s (row %d)", name, src))
+	nid, copied, err := h.camps.db.PlaceNPCRowAudited(src, at, gmEditOf(sess), fmt.Sprintf("%s (row %d)", name, src), stands)
 	if err != nil {
 		h.gmReply(sess, "/place: nothing made: "+err.Error())
 		return
@@ -461,6 +485,7 @@ func (h *ChatHandler) placeCommand(sess *session.Session, player *entity.Player,
 		line += fmt.Sprintf(" It is not in the world yet (at the next start): %v.", err)
 	}
 	line += h.applyWander(sess, nid, wander, fmt.Sprintf("/place in the game: %s (row %d), a copy of NPC %d", name, src, src))
+	line += standsWords(copied)
 	if player.Flying {
 		line += " (you fly: it stands in the air)"
 	}

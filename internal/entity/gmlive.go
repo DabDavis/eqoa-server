@@ -151,6 +151,9 @@ type NPCState struct {
 	// SpawnOnly: it stands out of the world, there for its spawns alone
 	// (spawnonly.go, table npcspawnonly)
 	SpawnOnly bool `json:"spawnOnly,omitempty"`
+	// Stands: its row stands in the world though its name is spawn-only
+	// (table npcstands: a GM's /place of a quest's or trigger's spawn)
+	Stands bool `json:"standsDespiteSpawnOnly,omitempty"`
 }
 
 func (w *World) npcStateLocked(npc *NPC) NPCState {
@@ -166,6 +169,7 @@ func (w *World) npcStateLocked(npc *NPC) NPCState {
 	_, why, word := w.movementLocked(npc)
 	s.Movement = MoveWhyText(why, word)
 	s.Template = npc.TemplateName()
+	s.Stands = w.spawnStands[npc.ServerID] && w.spawnOnlyLocked(npc.Name)
 	if p, ok := w.Players[npc.CurrentEnemy]; ok && npc.CurrentEnemy != 0 {
 		s.Fighting = p.Name
 	} else if p, ok := w.Players[npc.DummyTarget]; ok && npc.DummyTarget != 0 {

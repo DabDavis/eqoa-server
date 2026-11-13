@@ -49,6 +49,12 @@ type wayPlace struct {
 	Facing float32
 }
 
+// podArrival is where a trip to the Plane of Disease lands (the owner,
+// 2026-11-13: "where dust is now is where the dead hills PoD portal ports
+// to"): Dust's spot then, facing as he did; until then in front of the Portal
+// to the Dead Hills.
+var podArrival = &wayPlace{World: 5, X: 4644.3, Y: -11.8, Z: 3818.7, Facing: 3.117049}
+
 // wayRoutes are each waysender's trips, by name; the guides' words beside.
 var wayRoutes = map[string][]wayRoute{
 	// "Talk to Waysender T'Thox, who is outside of the Blind Fish Tavern (you
@@ -234,13 +240,13 @@ var wayRoutes = map[string][]wayRoute{
 	// players arrive at, which sends them back. tools/seed_pod.py places
 	// these NPCs.
 	"Necrologist Zizclank": {
-		{To: "the Plane of Disease", Arrive: "Portal to the Dead Hills", MinLevel: 50},
+		{To: "the Plane of Disease", At: podArrival, MinLevel: 50},
 	},
 	"Mausoleum Portal": {
 		// The portal itself (ticket 1197): the guide's flag lets a player "port
 		// there anytime", and this talked only on The Last House's own first step.
 		// The same trip as Zizclank's, opened by the same quest (questunlocks).
-		{To: "the Plane of Disease", Arrive: "Portal to the Dead Hills", MinLevel: 50},
+		{To: "the Plane of Disease", At: podArrival, MinLevel: 50},
 	},
 	"Portal to the Dead Hills": {
 		{To: "the Dead Hills", Arrive: "Necrologist Zizclank"},

@@ -59,10 +59,10 @@ func TestZizclankSendsTheStrongToPoD(t *testing.T) {
 	tw.s.Queue().GetPending()
 	tw.pick(ziz, 0)
 	x, z, world, moved := teleported(tw.s)
-	// the portal faces north (pi): its front is 3 to the north, lower z
-	if !moved || world != 5 || math.Abs(float64(x-5063)) > 0.01 || math.Abs(float64(z-(3881-bindReach))) > 0.01 {
-		t.Errorf("Yes sent the player to (%.1f, %.1f) world %d (%v), want (5063, %.0f) in world 5, in front of the portal",
-			x, z, world, moved, 3881-bindReach)
+	// the owner's spot (podArrival, 2026-11-13: where Dust stood)
+	if !moved || world != 5 || math.Abs(float64(x-podArrival.X)) > 0.01 || math.Abs(float64(z-podArrival.Z)) > 0.01 {
+		t.Errorf("Yes sent the player to (%.1f, %.1f) world %d (%v), want (%.1f, %.1f) in world 5",
+			x, z, world, moved, podArrival.X, podArrival.Z)
 	}
 	if tw.p.World != 5 {
 		t.Errorf("the server filed the player in world %d, want 5", tw.p.World)
@@ -250,7 +250,11 @@ func TestPoDTripsGoBothWays(t *testing.T) {
 		if len(routes) != 1 {
 			t.Fatalf("%s has %d trips, want 1", from, len(routes))
 		}
-		back := wayRoutes[routes[0].Arrive]
+		arrive := routes[0].Arrive
+		if routes[0].At == podArrival {
+			arrive = "Portal to the Dead Hills" // the owner's spot in PoD, the way back that portal
+		}
+		back := wayRoutes[arrive]
 		if o, ok := opens[routes[0].Arrive]; ok && len(back) == 0 {
 			back = wayRoutes[o]
 		}
@@ -258,8 +262,10 @@ func TestPoDTripsGoBothWays(t *testing.T) {
 		if a, ok := at[from]; ok {
 			home = a
 		}
-		if len(back) != 1 || back[0].Arrive != home && back[0].Arrive != from {
-			t.Errorf("%s lands on %s, whose trips %v do not lead back", from, routes[0].Arrive, back)
+		backHome := len(back) == 1 && (back[0].Arrive == home || back[0].Arrive == from ||
+			back[0].At == podArrival && from == "Portal to the Dead Hills") // the owner's spot is the portal's side
+		if !backHome {
+			t.Errorf("%s lands on %s, whose trips %v do not lead back", from, arrive, back)
 		}
 	}
 	if IsWaysender("Necrologist Xeptip") || IsWaysender("Necrologist Ipstok") {

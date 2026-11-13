@@ -88,11 +88,11 @@ func TestTheMausoleumPortalTalks(t *testing.T) {
 		t.Fatal("the portal is not a travel NPC")
 	}
 	r := wayRoutes["Mausoleum Portal"]
-	if len(r) != 1 || r[0].To != "the Plane of Disease" || r[0].Arrive != "Portal to the Dead Hills" || r[0].MinLevel != 50 {
+	if len(r) != 1 || r[0].To != "the Plane of Disease" || r[0].At != podArrival || r[0].MinLevel != 50 {
 		t.Errorf("its route is %+v", r)
 	}
 	z := wayRoutes["Necrologist Zizclank"]
-	if len(z) != 1 || z[0].To != r[0].To || z[0].Arrive != r[0].Arrive || z[0].MinLevel != r[0].MinLevel {
+	if len(z) != 1 || z[0].To != r[0].To || z[0].At != r[0].At || z[0].MinLevel != r[0].MinLevel {
 		t.Errorf("Zizclank's route %+v and the portal's %+v differ", z, r)
 	}
 }

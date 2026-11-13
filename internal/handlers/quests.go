@@ -183,6 +183,9 @@ type questCatalog struct {
 	// successors is the enabled quests with a giver that require each quest,
 	// by its id (questpointers.go)
 	successors map[int][]*database.Quest
+	// encounters are the quests whose kills wait on a trigger's spawns
+	// (questencounter.go)
+	encounters []encounterLink
 }
 
 // questChar is one character's quests.
@@ -238,6 +241,9 @@ type questChar struct {
 	headKey  string
 	headAt   time.Time
 	headSent string
+	// stranded is when it was first seen on an encounter's kill with no run of
+	// the encounter, by link (questencounter.go)
+	stranded map[encounterKey]time.Time
 }
 
 // say is a text with %p the player's name (left as it is while the name is
@@ -395,7 +401,8 @@ func (q *QuestEngine) run() {
 			q.checkSurvive() // questsurvive.go: the Trial of Endurance's kind of step
 			q.checkWaiting() // questroom.go: steps that waited for room
 			q.expireSpawns()
-			q.respawnLost() // questevents.go: a spawn-only creature's lost spawns
+			q.respawnLost()             // questevents.go: a spawn-only creature's lost spawns
+			q.checkStranded(time.Now()) // questencounter.go: a kill whose encounter ended
 			q.syncMarks(time.Now())
 			q.syncProgress()
 			q.syncPointers()
@@ -433,6 +440,7 @@ func (q *QuestEngine) Reload() error {
 		}
 	}
 	cat.successors = successorsOf(cat.all)
+	cat.encounters = encounterLinks(cat.all)
 	texts, names := q.questTexts(cat.all)
 	marked, err := q.store.MarkedQuests()
 	if err != nil {

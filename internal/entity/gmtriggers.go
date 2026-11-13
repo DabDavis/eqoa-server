@@ -255,3 +255,24 @@ func (w *World) HideNPCs(name string, world uint8, x, z, reach float32, until ti
 	}
 	return len(npcs)
 }
+
+// CopyStands reports a copy (a trigger's, a quest's or a GM's spawn: Temporary, not
+// a spawn-only original) named any of names (any case) alive, or with corpses dead
+// and its corpse still lying: what a quest's kill step (a loot step: its corpse too)
+// could still be done on (handlers/questencounter.go).
+func (w *World) CopyStands(names []string, corpses bool) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	now := time.Now()
+	for _, n := range w.NPCs {
+		if !n.Temporary || n.SpawnOnly || n.Dead && (!corpses || !n.corpseLies(now, w.corpseDecay)) {
+			continue
+		}
+		for _, name := range names {
+			if strings.TrimSpace(name) != "" && strings.EqualFold(strings.TrimSpace(n.Name), strings.TrimSpace(name)) {
+				return true
+			}
+		}
+	}
+	return false
+}

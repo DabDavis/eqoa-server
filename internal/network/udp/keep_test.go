@@ -17,6 +17,7 @@ import (
 	"github.com/eqoa/server/internal/config"
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
+	"github.com/eqoa/server/internal/handlers"
 	"github.com/eqoa/server/internal/session"
 )
 
@@ -303,8 +304,8 @@ func TestAnOldFileWithoutTheCreaturesStillWorks(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if snap.NPCs != nil || snap.Corpses != nil || snap.Dungeons != nil {
-		t.Fatalf("a section out of nothing: %+v %+v %+v", snap.NPCs, snap.Corpses, snap.Dungeons)
+	if snap.NPCs != nil || snap.Corpses != nil || snap.Dungeons != nil || snap.Triggers != nil {
+		t.Fatalf("a section out of nothing: %+v %+v %+v %+v", snap.NPCs, snap.Corpses, snap.Dungeons, snap.Triggers)
 	}
 	w := keepNPCWorld(t)
 	sm := session.NewManager()
@@ -438,5 +439,57 @@ func TestADungeonInstanceGoesAcrossTheExec(t *testing.T) {
 	}
 	if inst, open := w.DungeonInstanceInfo(5555); inst != 7 || !open {
 		t.Fatalf("instance %d open %v", inst, open)
+	}
+}
+
+// A GM trigger's run goes through the file and ResumeKept (handlers/gmtriggerkeep.go; the round trip from a live run,
+// its clock, sic and awaitdead, is handlers' TestATriggerRunGoesThroughAKeepRestart): Rallos Zek's run is under way
+// again at its step with its lock, and its boss stands under his id where he stood at his hit points, before any
+// session is put back.
+func TestATriggerRunGoesAcrossTheExec(t *testing.T) {
+	db, err := database.NewSQLite(t.TempDir() + "/triggers.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	w := entity.NewWorld()
+	tmpl := &entity.NPC{ServerID: 930001, Name: "Rallos Zek", Level: 60, HP: 5000, MaxHP: 5000, World: 5, NPCType: 0x80,
+		X: 4280, Y: 183, Z: 6700, SpawnX: 4280, SpawnY: 183, SpawnZ: 6700}
+	w.NPCs[tmpl.ServerID] = tmpl
+	w.SpatialIndex.Insert(tmpl.ServerID, tmpl.X, tmpl.Z)
+	steps := `[{"do":"lock","lock":"rallos zek"},{"do":"clock","seconds":7200,"empty":600},{"do":"spawn","npc":"Rallos Zek","hostile":true,"spread":0.5,"minutes":120},{"do":"awaitdead","npc":"Rallos Zek"},{"do":"broadcast","text":"He rises again."}]`
+	if _, err := db.Exec(`INSERT INTO gmtriggers (slot, name, world, x, y, z, radius, steps) VALUES (115, 'Rallos Zek', 5, 4280, 183, 6700, 220, ?)`, steps); err != nil {
+		t.Fatal(err)
+	}
+	e := handlers.NewTriggerEngine(db, w, session.NewManager(), nil)
+	e.Start()
+	t.Cleanup(e.Stop)
+	now := time.Now()
+	trig := e.List()[0]
+	place := [4]float32{4290, 183, 6705, 1}
+	file := filepath.Join(t.TempDir(), "keep-sessions.json")
+	snap := &Snapshot{Version: KeepVersion, PID: os.Getpid(), Written: now, Triggers: &handlers.KeptTriggers{Written: now, Seq: 3,
+		Runs: []handlers.KeptTriggerRun{{ID: 3, Trig: trig, By: "Lonewulf", Quiet: true, World: 5, X: 4280, Y: 183, Z: 6700, Next: 3,
+			Start: now.Add(-20 * time.Minute), Lock: "rallos zek", Deadline: now.Add(100 * time.Minute), EmptyAfter: 600 * time.Second, LastNear: now,
+			Await: &database.TriggerStep{Do: database.TriggerAwaitDead, NPC: "Rallos Zek"},
+			Spawns: []handlers.KeptTriggerSpawn{{ID: 5555, Name: "Rallos Zek", Until: now.Add(100 * time.Minute)}}}},
+		NPCs: []entity.KeptEventNPC{{Row: 930001, Level: 60, FullHP: 5000, Event: true, KeptNPC: entity.KeptNPC{ID: 5555, Name: "Rallos Zek", World: 5,
+			Spawn: [4]float32{4280, 183, 6700, 0}, Place: &place, HP: 1200, MaxHP: 5000}}}}}
+	if err := snap.Write(file); err != nil {
+		t.Fatal(err)
+	}
+	back, err := ReadSnapshot(file, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	l := NewListener(config.DefaultConfig(), session.NewManager(), nil, w)
+	l.ResumeKept(back, time.Now())
+	c := w.NPCs[5555]
+	if c == nil || c.Dead || !c.Temporary || c.HP != 1200 || c.X != 4290 || c.CopyOf != 930001 || !c.EventAggro {
+		t.Fatalf("Rallos Zek after the exec: %+v", c)
+	}
+	runs := e.Runs()
+	if len(runs) != 1 || runs[0].Run != 3 || runs[0].Step != 4 || runs[0].Spawns != 1 || !e.BusyNamed("Rallos Zek") {
+		t.Fatalf("the run after the exec: %+v (busy %v)", runs, e.BusyNamed("Rallos Zek"))
 	}
 }

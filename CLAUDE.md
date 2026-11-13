@@ -2262,7 +2262,7 @@ rule is for the holders of that item alone (the Guardian, KoS to a holder of Caz
 again as each one's corpse goes (a corpse lying holds its place); done once the time is up, none of them alive and the
 player alive within its radius. Spawn events take `count`, `minutes` and `keep`. **A boss's moments**
 (`entity/bossmoments.go`, ability kinds `selfdot`, `raidheal`, `powerzero`, each on `every`/`first`, `damage`, a raid
-heal's `count`): the Watchman's DoT on himself, 10,000 on three raiders, his target's power to 0. The data (101311's last
+heal's `count`): the Watchman's DoT on himself, 10,000 on three raiders, his target's power to 0. **`sethp`** (2026-11-13, the owner: dreadnaughts' AoE "reduces hp to 700 for players and mobs", Cazic Thule "sets to 10hp"): `set_hp` N, `radius` (0: its foe alone; else everyone in sight within it, players it notices and every creature, its own side too, never itself), any moment's `chance`; only lowers, never kills, a player told by a 0x00DB of the difference and a line; with `tick`/`tick_at_cap`/`resist`/`tick_for` a damage over time on all it reaches (650 a tick at no CR, 80 at 315; 6 s ticks, 24 s by default; no hate on creatures). Data: `tools/sethp_bosses_20261113.py` (dreadnaught, iod cazicthule, siliskor; `--fork-shared` for a name on a shared template). The data (101311's last
 step pinned, 101312 rebuilt in twelve steps, 101950 the talisman's refill, triggers 150-155, three walls, the third
 Kithgrin, the Trial of Celerity, the statue, the talisman's self port of 500 charges) is the tool's, `--undo` exact; read
 at the start. Not built: the phantasms' root of players and mana tap, death touch, frontal cones, AoE DoTs, the walls

@@ -437,7 +437,7 @@ func (q *QuestEngine) Reload() error {
 	}
 	q.mu.Lock()
 	q.cat = cat
-	q.marked = marked
+	q.marked = markedWithFollowUps(marked, cat.successors) // questheadmarks.go
 	q.texts, q.names = texts, names
 	q.saysPlaces = nil
 	q.spots = nil // the marks read the NPCs' places again

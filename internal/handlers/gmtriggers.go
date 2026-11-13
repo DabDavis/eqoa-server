@@ -44,7 +44,11 @@ import (
 // wait on what the raid does: awaittalk for a player at an NPC (Talk, before the
 // quests), awaitdead for its spawns, a clock for the whole of it, a place moved
 // when the raid is moved, a lock so one raid at a time has the place. The firing
-// player is not told the GMs' lines. A restart ends a run, as it ends a pet.
+// player is not told the GMs' lines. A restart that keeps the sessions keeps the
+// runs (gmtriggerkeep.go: each at its step, its lock held, its clock's time left,
+// its spawns alive where they stood at their hit points, its waits watching them);
+// a cold start ends them, as it ends a pet, and a quest waiting on an encounter's
+// kill is put back for its characters (questencounter.go).
 //
 // Vanilla shows each line's name (not retail: protocol.OpcodeGMTriggers): a
 // GM's client is offered the names with the GM channel, and one that answers

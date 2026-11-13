@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"slices"
 	"strings"
 	"testing"
@@ -10,43 +9,49 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// One of each class a player (the owner, 2026-11-12: "for mercs players can
-// only choose 1 of each class"): a second cleric is refused, named after the
-// first, and the liaison's class box marks the class held; another class is
-// hired.
-func TestMercOneOfEachClass(t *testing.T) {
+// The same class up to three times (petition 1920, Hoggieson: "2 or 3 of the
+// same class in our grp for merc requits, like 2 monks"): three clerics are
+// hired, each a name of its own, a fourth refused as any fourth hire; the
+// board's healers' box offers the class as ever, and choosing it again goes
+// on to the race.
+func TestMercSameClassUpToThree(t *testing.T) {
 	r, m, db := newMercFixture(t)
-	m.hire(r.anna, r.pa, 9, 3, 0)
+	for i := 0; i < 3; i++ {
+		m.hire(r.anna, r.pa, 9, 3, 0)
+	}
 	rows, _ := db.Mercs(r.pa.CharServerID)
-	if len(rows) != 1 {
-		t.Fatalf("rows %+v", rows)
+	if len(rows) != 3 {
+		t.Fatalf("three clerics: rows %+v", rows)
+	}
+	names := map[string]bool{}
+	for _, row := range rows {
+		if row.Class != 9 {
+			t.Errorf("row %+v", row)
+		}
+		names[strings.ToLower(row.Name)] = true
+	}
+	if len(names) != 3 {
+		t.Errorf("names %+v", rows)
 	}
 	r.drain()
 	m.hire(r.anna, r.pa, 9, 3, 0)
-	want := "box:Mercenary Recruitment: " + fmt.Sprintf(mercClassTakenLine, "Cleric", rows[0].Name, rows[0].Name)
-	if got := r.msgs(r.anna); !hasMsg(got, want) {
-		t.Errorf("a second cleric: %q, want %q", got, want)
+	if got := r.msgs(r.anna); !hasMsg(got, "box:Mercenary Recruitment: "+mercFullLine) {
+		t.Errorf("a fourth: %q", got)
 	}
-	if rows, _ := db.Mercs(r.pa.CharServerID); len(rows) != 1 {
-		t.Fatalf("a second cleric made a row: %+v", rows)
-	}
-	// through the board: the healers' box marks the cleric, and choosing it
-	// is refused before the race is asked
-	lia := r.liaison()
-	r.drain()
-	r.talk(r.anna, lia)
-	got := r.answer(r.msgs(r.anna), "A healer")
-	held := "Cleric (yours: " + rows[0].Name + ")"
-	if len(got) != 1 || !strings.HasSuffix(got[0], "|"+held+"|Druid|Shaman") {
+	// through the board, with one cleric hired: the box is plain, and the
+	// cleric chosen again goes on (its path asked)
+	r2, m2, _ := newMercFixture(t)
+	m2.hire(r2.anna, r2.pa, 9, 3, 0)
+	lia := r2.liaison()
+	r2.drain()
+	r2.talk(r2.anna, lia)
+	got := r2.answer(r2.msgs(r2.anna), "A healer")
+	if len(got) != 1 || !strings.HasSuffix(got[0], "|Cleric|Druid|Shaman") {
 		t.Fatalf("the healers' box: %q", got)
 	}
-	got = r.answer(got, held)
-	if !hasMsg(got, want) {
-		t.Errorf("the cleric chosen: %q", got)
-	}
-	m.hire(r.anna, r.pa, 7, 3, 0)
-	if rows, _ := db.Mercs(r.pa.CharServerID); len(rows) != 2 || rows[1].Class != 7 {
-		t.Fatalf("a druid: %+v", rows)
+	got = r2.answer(got, "Cleric")
+	if len(got) != 1 || !strings.Contains(got[0], "Which path does your Cleric walk") {
+		t.Errorf("the cleric chosen again: %q", got)
 	}
 }
 

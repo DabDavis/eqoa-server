@@ -134,8 +134,8 @@ func TestCharacterListOfTwelve(t *testing.T) {
 	}
 	answer(van, 3)
 	f := sentOp(van, protocol.OpcodeLiveLookInForce)
-	if len(f) != 10 || binary.LittleEndian.Uint32(f[2:]) != 1 || binary.LittleEndian.Uint32(f[6:]) != 20 {
-		t.Fatalf("in force: %x, want look 1, 20 characters", f)
+	if len(f) != 14 || binary.LittleEndian.Uint32(f[2:]) != 1 || binary.LittleEndian.Uint32(f[6:]) != 20 || binary.LittleEndian.Uint32(f[10:]) != 0 {
+		t.Fatalf("in force: %x, want look 1, 20 characters, not this server's armour (bit 2 not asked)", f)
 	}
 	if names := listNamesOf(t, sentOp(van, protocol.OpcodeCharacterSelect), entity.LiveGearSize); len(names) != 12 || names[0] != "ManyAa" || names[11] != "ManyAl" {
 		t.Fatalf("vanilla's list again: %v", names)

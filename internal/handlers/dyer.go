@@ -32,7 +32,15 @@ import (
 // armor" takes it in, it is the second of "Robe, cape, shield or weapons", and
 // "My cape", the first question's third answer, dyes it alone; its dye
 // (chardyes' DyeCape) is the colour the clients that draw capes are sent it in.
-// Without capes the questions are what they always were.
+// Without capes the questions are what they always were. The trim (the owner,
+// 2026-11-13: "for the plate armor, there is gold trim, but currently is muted
+// due to the colors, lets add trim color dyeing also") is the last answer of the
+// first question, "Armor trim", after "Take every dye off" (so More leaves the
+// cursor on the trim, never on taking every dye off), and asks which: all the
+// armour's trim or a piece's, of the pieces whose art has trim (the plate sets 4
+// and 9: chest, bracers, legs and boots; their gloves and helms have none). A
+// trim's dye (chardyes' trim slots) is drawn by a client that draws this
+// server's armour (entity/livelook.go); "Take every dye off" takes it off too.
 
 // dyerBoxMark marks a dyer's question's id.
 const dyerBoxMark = 0x56000000
@@ -56,6 +64,13 @@ type dyerChoice struct {
 
 func one(label string, slot int) dyerChoice { return dyerChoice{label: label, slots: []int{slot}} }
 
+// dyerTrim is "Armor trim": every armour slot's trim, or one piece's.
+var dyerTrim = dyerChoice{label: "Armor trim", sub: []dyerChoice{
+	{label: "All my armor's trim", slots: []int{database.DyeChestTrim, database.DyeBracerTrim, database.DyeGlovesTrim,
+		database.DyeLegsTrim, database.DyeBootsTrim, database.DyeHelmTrim}},
+	one("Chest trim", database.DyeChestTrim), one("Bracers trim", database.DyeBracerTrim),
+	one("Legs trim", database.DyeLegsTrim), one("Boots trim", database.DyeBootsTrim)}}
+
 var dyerChoices = []dyerChoice{
 	{label: "All my armor", slots: []int{database.DyeChest, database.DyeBracer, database.DyeGloves, database.DyeLegs,
 		database.DyeBoots, database.DyeHelm, database.DyeRobe}},
@@ -65,6 +80,7 @@ var dyerChoices = []dyerChoice{
 	{label: "Robe, shield or weapons", sub: []dyerChoice{one("Robe", database.DyeRobe), one("Shield", database.DyeShield),
 		one("Primary weapon", database.DyePrimary), one("Secondary weapon", database.DyeSecondary)}},
 	{label: "Take every dye off"},
+	dyerTrim,
 }
 
 // dyerChoicesCapes are dyerChoices on a server with capes: the cape in "All my
@@ -83,6 +99,7 @@ var dyerChoicesCapes = []dyerChoice{
 	dyerChoices[3],
 	{label: "Robe, cape, shield or weapons", sub: []dyerChoice{one("Robe", database.DyeRobe), one("Cape", database.DyeCape),
 		one("Shield", database.DyeShield), one("Primary weapon", database.DyePrimary), one("Secondary weapon", database.DyeSecondary)}},
+	dyerTrim,
 }
 
 // dyerMenu is what a dyer asks on this server: dyerChoicesCapes where capes

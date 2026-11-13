@@ -145,6 +145,11 @@ type Session struct {
 	// listed and may make the server's world.max_characters, not CLIENT's 8
 	// (handlers/charslots.go).
 	manyChars bool
+	// armorLook: the client's answer to the live look's offer said it draws
+	// this server's armour (bit 2, vanilla): set 9, the CHAR.ESF ornate plate
+	// no disc table names, and the armour's trim colours after the live
+	// channel and record (entity/livelook.go ArmorLook). Only with the live look.
+	armorLook bool
 	// creationOffered: the creation offer went out (protocol.OpcodeCreationOffer,
 	// handlers/creation.go), once a session as the live look's.
 	creationOffered bool
@@ -595,6 +600,22 @@ func (s *Session) ManyChars() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.manyChars
+}
+
+// SetArmorLook records whether the session's client draws this server's
+// armour: set 9 and the trim colours (entity/livelook.go ArmorLook).
+func (s *Session) SetArmorLook(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.armorLook = on
+}
+
+// ArmorLook is whether the session's client draws set 9 and the trim colours;
+// false for a PS2 and for every client not of the live look.
+func (s *Session) ArmorLook() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.armorLook && s.liveLook
 }
 
 // OfferLiveLookOnce reports whether the live look's offer is still to be

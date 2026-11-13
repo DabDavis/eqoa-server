@@ -43,9 +43,12 @@ func NewSQLite(dbPath string) (*SQLiteDB, error) {
 	// driver (modernc.org/sqlite) runs only `_pragma` parameters, on every
 	// connection it opens; until 2026-10-29 this asked for
 	// `_journal_mode=WAL&_busy_timeout=5000`, mattn's spelling, which it
-	// ignores, so there was no timeout, and the database has always kept its
-	// rollback journal (WAL was never on: a choice of its own, as a plain
-	// copy of the file would then miss what is in its -wal).
+	// ignores, so there was no timeout. The database kept its rollback
+	// journal until 2026-11-13, when a tool's long read (.dump) held writers
+	// off it and froze the game 6.3 s mid-duel: it is WAL since (the owner:
+	// "yes move the database to WAL"; walMode below), where a reader never
+	// blocks a writer. A copy of the file must be made with .backup (the swap
+	// scripts' way), never cp, which would miss what is in its -wal.
 	db, err := sql.Open("sqlite", dbPath+"?"+BusyTimeoutDSN)
 	if err != nil {
 		return nil, err
@@ -62,6 +65,10 @@ func NewSQLite(dbPath string) (*SQLiteDB, error) {
 	}
 
 	sqlite := &SQLiteDB{DB: db, path: dbPath}
+	if err := sqlite.walMode(); err != nil {
+		db.Close()
+		return nil, err
+	}
 
 	// Initialize schema
 	if err := sqlite.initSchema(); err != nil {
@@ -1410,4 +1417,18 @@ func (s *CharacterModelStore) GetModelID(race, sex int) (int64, error) {
 		return 0, err
 	}
 	return modelID, nil
+}
+
+// walMode puts the database in WAL (write-ahead log) mode, kept in the file
+// itself (NewSQLite's doc): readers and the writer no longer block each other.
+// An in-memory database stays as it is (it has no WAL).
+func (db *SQLiteDB) walMode() error {
+	var mode string
+	if err := db.QueryRow(`PRAGMA journal_mode = WAL`).Scan(&mode); err != nil {
+		return fmt.Errorf("journal mode: %w", err)
+	}
+	if mode != "wal" && mode != "memory" {
+		return fmt.Errorf("journal mode: the database stays %q, not wal", mode)
+	}
+	return nil
 }

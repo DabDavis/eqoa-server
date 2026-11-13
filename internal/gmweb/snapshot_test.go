@@ -103,6 +103,8 @@ func snapshotFiles(t *testing.T, f *fixture) []string {
 func TestAnAdminDownloadsASanitisedSnapshotOnce(t *testing.T) {
 	f := newFixture(t)
 	values, boss, _ := plantSnapshotSecrets(t, f)
+	// WAL (database/sqlite.go): the planted rows into the file itself before it is read raw
+	mustExec(t, f.db, `PRAGMA wal_checkpoint(TRUNCATE)`)
 	src, err := os.ReadFile(f.s.d.Config.Server.DBPath)
 	if err != nil {
 		t.Fatal(err)

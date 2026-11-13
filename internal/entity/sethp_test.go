@@ -81,7 +81,7 @@ func TestASetHPAreaTakesPlayersAndCreaturesDownToItsFigure(t *testing.T) {
 	}
 	r.at(2 * time.Second)
 	for _, c := range []struct {
-		name     string
+		name      string
 		got, want int
 	}{
 		{"its foe", r.p.HP, 700}, {"another player", other.HP, 700}, {"a player at 700", at700.HP, 700},

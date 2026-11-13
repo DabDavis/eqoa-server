@@ -191,6 +191,10 @@ func readFile(t *testing.T, path string) []byte {
 func TestASnapshotTakesOutEverySecretAndKeepsTheGame(t *testing.T) {
 	db, path := seededDB(t)
 	values := plantedValues(t, db)
+	// WAL (sqlite.go): the planted rows into the file itself before it is read raw
+	if _, err := db.Exec(`PRAGMA wal_checkpoint(TRUNCATE)`); err != nil {
+		t.Fatal(err)
+	}
 	src := readFile(t, path)
 	for k, v := range values {
 		if !bytes.Contains(src, []byte(v)) {

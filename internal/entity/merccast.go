@@ -291,7 +291,9 @@ func mercPlainBuff(s *CastSpell) bool {
 // rank, the first kept), or of a nested line that covers it (covers, by the
 // figures: staticMods), so a lower one, which would only be refused or take
 // off the better, is never cast (the cleric's Disease, Poison, Flame and Ice
-// Ward under Lightning Ward; Minor Blessing beside Blessing).
+// Ward under Lightning Ward; Minor Blessing beside Blessing). Of two short
+// buffs of one line (songs) the bigger figure goes first, the rank only
+// between two as big (mercSongFigure: petition 1993).
 func mercBestBuffs(book []mercSpell) []mercSpell {
 	out := book[:0:0]
 	for i, a := range book {
@@ -306,6 +308,17 @@ func mercBestBuffs(book []mercSpell) []mercSpell {
 				continue
 			}
 			lb, rb := EffectLine(b.s), lineRank(b.s)
+			if a.short && sameLine(la, lb) {
+				// two songs of one line: the bigger figure wins, its rank
+				// only between two as big (mercSongFigure)
+				if fa, fb := mercSongFigure(a.s), mercSongFigure(b.s); fa != fb {
+					if fb > fa {
+						beaten = true
+						break
+					}
+					continue
+				}
+			}
 			if sameLine(la, lb) && (rb > ra || rb == ra && j < i) || nestedLines(la, lb) && spellCovers(b.s, a.s) {
 				beaten = true
 				break
@@ -316,6 +329,26 @@ func mercBestBuffs(book []mercSpell) []mercSpell {
 		}
 	}
 	return out
+}
+
+// mercSongFigure is what a short buff (a bard's song, an enchanter's burst)
+// gives a tick, its stats' figures summed: of two songs of one line the merc
+// keeps the bigger (mercBestBuffs). By rank alone a level 60 bard's power
+// path songs never sang (Kytank's petition 1993: "Bard merc doesn't seem to
+// be using power path spells (at 60)"): Power Vibe (the path's level 49
+// song, PoT 134 a tick for 24 s) and Harmony (level 55, PoT 30 a tick for
+// 150 s) are one workbook line (stack 3, +PoT), so Harmony's rank took Power
+// Vibe out of the book, and Harmony on the team would have refused it
+// anyway (lineVerdict). The path's songs give the most, so they are the ones
+// kept; Harmony, which would refuse them, goes.
+func mercSongFigure(s *CastSpell) int {
+	n := 0
+	for _, e := range s.Def.Effects {
+		if !e.Self && e.Amount > 0 && (e.Kind == EffectStat || e.Kind == EffectPowerTick || e.Kind == EffectHPTick) {
+			n += e.Amount
+		}
+	}
+	return n
 }
 
 // mercWorth is what a spell is worth to the merc: a hit's or a heal's

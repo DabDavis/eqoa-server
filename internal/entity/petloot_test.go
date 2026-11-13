@@ -104,3 +104,51 @@ func TestRubbipsHowlingDeathIsHisPet(t *testing.T) {
 		t.Errorf("the open world: master %v, hostile %v; want Rubbip's, by its row (not hostile)", master, hostile)
 	}
 }
+
+// The instances' other pets' names (after ticket 2009): each is the pet of the creature beside it, as the rows stand in
+// world 14 (a Kindred Spirit 1.6 off a goblin novice, the Fire Elemental 1.1 off Lord Usael, Decaying Flesh 0.36 off a
+// lesser ghoul, Swarming Bones 2.72 off its froglok bonecaster), hostile as its master in the instance and carrying
+// nothing; never paired: a Kindred Spirit with no creature within reach, and Wilting Flesh whose only neighbour near is
+// a decaying minion, itself a pet.
+func TestTheInstancesOtherPetsArePaired(t *testing.T) {
+	dungeonWorlds[14].Store(true)
+	t.Cleanup(func() { dungeonWorlds[14].Store(false) })
+	w := NewWorld()
+	w.SetAggroRules(map[string]AggroRule{"kindred spirit": {}, "fire elemental": {}, "decaying flesh": {}, "wilting flesh": {}, "swarming bones": {}})
+	id := EntityID(7000)
+	add := func(name string, x, z float32) *NPC {
+		id++
+		n := &NPC{ServerID: id, Name: name, Level: 61, HP: 1000, MaxHP: 1000, World: 14, ModelID: 1, X: x, Z: z}
+		n.SpawnX, n.SpawnZ = x, z
+		w.NPCs[n.ServerID] = n
+		w.SpatialIndex.Insert(n.ServerID, x, z)
+		return n
+	}
+	pairs := [][2]*NPC{
+		{add("Kindred Spirit", 1001.6, 1000), add("goblin novice", 1000, 1000)},
+		{add("Fire Elemental", 2001.1, 2000), add("Lord Usael", 2000, 2000)},
+		{add("Decaying Flesh", 3000.36, 3000), add("lesser ghoul", 3000, 3000)},
+		{add("Swarming Bones", 4002.72, 4000), add("froglok bonecaster", 4000, 4000)},
+	}
+	lone := add("Kindred Spirit", 5000, 5000)
+	add("Kindred Spirit", 5005.02, 5000)
+	wilting := add("Wilting Flesh", 6001.22, 6000)
+	add("decaying minion", 6000, 6000)
+	w.mu.Lock()
+	for _, p := range pairs {
+		if m := w.companionMasterLocked(p[0]); m != p[1] || !w.hostileNatureLocked(p[0]) {
+			t.Errorf("%s: master %v, hostile %v; want %s's, hostile", p[0].Name, m, w.hostileNatureLocked(p[0]), p[1].Name)
+		}
+	}
+	if m := w.companionMasterLocked(lone); m != nil || w.hostileNatureLocked(lone) {
+		t.Errorf("the lone spirit: master %v, hostile %v", m, w.hostileNatureLocked(lone))
+	}
+	if m := w.companionMasterLocked(wilting); m != nil {
+		t.Errorf("Wilting Flesh paired with %s, a pet", m.Name)
+	}
+	w.mu.Unlock()
+	w.KillNPCNow(pairs[0][0].ServerID)
+	if !pairs[0][0].CorpseOfNothing() {
+		t.Error("the Kindred Spirit killed first carries loot")
+	}
+}

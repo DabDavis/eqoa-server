@@ -217,7 +217,7 @@ func (w *World) KeepView(sess *session.Session) KeptView {
 
 // RestoreView puts sess's entity slots back as its client has them, once
 // every kept character is in the world again: each slot whose entity is in
-// this world (an NPC of the row and name, not one made for the moment; a
+// this world (an NPC of the row and name, not one made for the moment but a dungeon instance's; a
 // player of the character and name) goes on describing it under the same id,
 // and each other is taken away on the client (its channel holds the last
 // value it sent: StateUpdateData.MarkRemoved). The next new entity gets an id
@@ -241,7 +241,8 @@ func (w *World) RestoreView(sess *session.Session, k KeptView) (kept, gone int) 
 		var id EntityID
 		switch s.Kind {
 		case "npc":
-			if npc, ok := w.NPCs[EntityID(s.ID)]; ok && !npc.Temporary && npc.Name == s.Name {
+			// a dungeon instance's creature is made again under its id (keepdungeon.go)
+			if npc, ok := w.NPCs[EntityID(s.ID)]; ok && (!npc.Temporary || npc.Instance != 0 && IsDungeonWorld(npc.World)) && npc.Name == s.Name {
 				id = npc.ServerID
 			}
 		case "plate":

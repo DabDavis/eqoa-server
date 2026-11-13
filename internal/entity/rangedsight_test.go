@@ -88,3 +88,25 @@ func TestAHarmfulSpellNeedsSightToBegin(t *testing.T) {
 		t.Fatal("the control: a nuke in sight did not begin")
 	}
 }
+
+// A spell begun in sight of its target lands on it though its caster runs
+// behind cover while casting (the owner, 2026-11-13).
+func TestASpellBegunInSightLandsAfterCover(t *testing.T) {
+	r := newAreaRig(t)
+	target := r.creature(2001, "Deathfist Pawn", 1020, 1000)
+	r.w.SetGround(sightGround{})
+	r.p.Casting, r.p.Lockouts = nil, nil
+	if !r.w.StartCast(r.sess, fireStorm(), r.objectID(target.ServerID), r.t0) {
+		t.Fatal("did not begin in plain sight")
+	}
+	r.w.SetGround(sightGround{wallAt(1005)}) // the caster now behind a wall
+	hp := target.HP
+	for _, d := range []time.Duration{1, 2, 3, 4, 5, 6, 8, 10} {
+		r.w.mu.Lock()
+		r.w.castSystem(r.t0.Add(d * time.Second))
+		r.w.mu.Unlock()
+	}
+	if target.HP == hp {
+		t.Error("its target was spared once its caster was behind cover")
+	}
+}

@@ -627,7 +627,11 @@ func (cs *castState) areaOfGroup() bool {
 // called with the lock held.
 func (w *World) areaOwnSparedLocked(caster *Player, cs *castState, npc *NPC) bool {
 	a := &cs.spell.Area
-	return a.Centre != AreaNone && cs.spell.Def.Harmful && npc.World == caster.World &&
+	// only an area round its caster: one round its target needed sight of it to
+	// begin (cast.go), and lands on it though its caster has since run behind
+	// cover (the owner, 2026-11-13: "they are allowed to hit their target though
+	// they may no longer have line of sight")
+	return a.Centre == AreaOnCaster && cs.spell.Def.Harmful && npc.World == caster.World &&
 		!w.clearLineLocked(caster.World, caster.X, caster.Y, caster.Z, npc.X, npc.Y, npc.Z)
 }
 

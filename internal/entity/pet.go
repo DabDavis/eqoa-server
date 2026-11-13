@@ -444,8 +444,9 @@ func (w *World) makePetLocked(spell *CastSpell, caster, owner *Player, ms *mercS
 	if sheet != nil {
 		applyPetSheet(pet, sheet) // its body, weapons and numbers (petstats.go)
 	}
-	w.applyBalanceLocked(pet) // a pet's hit points of its level (balance.go)
-	petPowerLocked(pet)       // and its power (npcregen.go)
+	pet.racialPet = w.racialSpellLocked(spell.SpellID) // racialpet.go
+	w.applyBalanceLocked(pet)                          // a pet's hit points of its level (balance.go)
+	petPowerLocked(pet)                                // and its power (npcregen.go)
 	pet.SwingFixed, pet.SwingKind = petSwing(caster.Class, name)
 	kind := petKindOf(caster.Class, spell.Name)
 	hitScale := 1.0

@@ -128,8 +128,10 @@ func (w *World) isQuestWallLocked(npc *NPC) bool {
 
 // wallPassedLocked is whether p walks through the wall npc: out of its view.
 // The quest engine says who passes by a quest or an item held
-// (SetQuestState); a wall of an item lets a GM through, and anyone standing on
-// its far side (its inner boxes), so the way back is always open.
+// (SetQuestState); a wall of an item lets through a GM with /noclip on (the
+// owner, 2026-11-13: "make bbox require /noclip from gms"; a GM walks into it
+// as a player does otherwise), and anyone standing on its far side (its inner
+// boxes), so the way back is always open.
 func (w *World) wallPassedLocked(npc *NPC, p *Player) bool {
 	if !w.isQuestWallLocked(npc) {
 		return false
@@ -138,7 +140,7 @@ func (w *World) wallPassedLocked(npc *NPC, p *Player) bool {
 		return true
 	}
 	wl := w.qwalls.walls[npc.ServerID]
-	return wl.Item > 0 && (p.GM || insideWall(wl, npc, p))
+	return wl.Item > 0 && (p.GM && p.Noclip || insideWall(wl, npc, p))
 }
 
 // insideWall is whether p stands on the wall's far side: in one of its inner

@@ -126,10 +126,14 @@ func TestAnItemWallOpensForTheHolderAGMAndTheFarSide(t *testing.T) {
 	}
 	f.w.ForgetQuestState(f.p.CharServerID)
 	f.p.GM = true
-	if f.inView(wall) {
-		t.Fatal("the wall stops a GM")
+	if !f.inView(wall) {
+		t.Fatal("the wall lets a GM without /noclip through (the owner, 2026-11-13: GMs need /noclip)")
 	}
-	f.p.GM = false
+	f.p.Noclip = true
+	if f.inView(wall) {
+		t.Fatal("the wall stops a GM with /noclip on")
+	}
+	f.p.GM, f.p.Noclip = false, false
 	// the far side: in the box, without the item
 	f.p.X = 1003
 	if f.inView(wall) {

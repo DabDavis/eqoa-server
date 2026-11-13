@@ -158,6 +158,7 @@ var dmgVars = []struct {
 	{"a_kind", func(in *dmgIn) formula.Value { return formula.String(in.attackerKind()) }},
 	{"a_name", func(in *dmgIn) formula.Value { return formula.String(sideName(in.ap, in.an, in.src == srcMerc)) }},
 	{"a_family", func(in *dmgIn) formula.Value { return formula.String(sideFamily(in.ap, in.an)) }},
+	{"a_race", func(in *dmgIn) formula.Value { return formula.String(sideRace(in.ap, in.an, in.src == srcMerc)) }},
 	{"a_class", func(in *dmgIn) formula.Value { return num(sideClass(in.ap, in.an)) }},
 	{"a_class_name", func(in *dmgIn) formula.Value { return formula.String(ClassName(sideClass(in.ap, in.an))) }},
 	{"a_level", func(in *dmgIn) formula.Value { return num(sideLevel(in.ap, in.an)) }},
@@ -205,6 +206,7 @@ var dmgVars = []struct {
 	{"d_kind", func(in *dmgIn) formula.Value { return formula.String(in.defenderKind()) }},
 	{"d_name", func(in *dmgIn) formula.Value { return formula.String(sideName(in.dp, in.dn, false)) }},
 	{"d_family", func(in *dmgIn) formula.Value { return formula.String(sideFamily(in.dp, in.dn)) }},
+	{"d_race", func(in *dmgIn) formula.Value { return formula.String(sideRace(in.dp, in.dn, false)) }},
 	{"d_class", func(in *dmgIn) formula.Value { return num(sideClass(in.dp, in.dn)) }},
 	{"d_class_name", func(in *dmgIn) formula.Value { return formula.String(ClassName(sideClass(in.dp, in.dn))) }},
 	{"d_level", func(in *dmgIn) formula.Value { return num(sideLevel(in.dp, in.dn)) }},
@@ -309,6 +311,18 @@ func sideName(p *Player, n *NPC, preferNPC bool) string {
 func sideFamily(p *Player, n *NPC) string {
 	if p == nil && n != nil {
 		return n.TemplateName()
+	}
+	return ""
+}
+
+// sideRace is a player's race's name (RaceName), a creature's race as its
+// row has it (npcs.race).
+func sideRace(p *Player, n *NPC, preferNPC bool) string {
+	if n != nil && (p == nil || preferNPC) {
+		return n.Race
+	}
+	if p != nil {
+		return RaceName(p.Race)
 	}
 	return ""
 }

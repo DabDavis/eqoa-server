@@ -196,6 +196,7 @@ own: its `_str` ... `_ar` are what its effects add.
 | `a_kind` | the attacker: `"player"`, `"creature"`, `"pet"` or `"merc"` |
 | `a_name` | its name (a merc's its NPC's) |
 | `a_family` | a creature's family key: the class template it fights by (`""` for none and for a player) |
+| `a_race` | a player's race's name (`"Human"` ...), a creature's race as its row has it |
 | `a_class` | its class id (WAR=0 ... ALC=14) |
 | `a_class_name` | its class's name (`"Warrior"` ...) |
 | `a_level` | its level |
@@ -208,7 +209,7 @@ own: its `_str` ... `_ar` are what its effects add.
 | `weapon_delay` | its swing's delay in seconds |
 | `two_handed` | 1 for a two-handed weapon |
 | `d_kind` | the defender: `"player"`, `"creature"` or `"pet"` |
-| `d_name`, `d_family`, `d_class`, `d_class_name`, `d_level` | as the attacker's |
+| `d_name`, `d_family`, `d_race`, `d_class`, `d_class_name`, `d_level` | as the attacker's |
 | `d_offmod`, `d_defmod` | its OFF and DEF mods |
 | `d_eff_level` | its combat level: `d_level + d_defmod` |
 | `d_hp`, `d_maxhp`, `d_power`, `d_maxpower` | as the attacker's |

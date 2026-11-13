@@ -165,25 +165,17 @@ func TestAWallStopsAPlayersArea(t *testing.T) {
 		t.Errorf("the 0x00B1 names %d others, want the one", b1[10])
 	}
 
-	// something between the caster and one in its target's plain sight: the
-	// user's, a boss's area round its target, one behind a rock from the boss
-	r = newAreaRig(t)
-	target = r.creature(2001, "Deathfist Pawn", 1020, 1000)
-	inPlain := r.creature(2002, "Deathfist Pawn", 1020, 1006)
-	hidden := r.creature(2003, "Deathfist Pawn", 1014, 1000)
-	r.w.SetGround(sightGround{{1010, -90000, 998, 1011, 90000, 1002}})
-	r.cast(t, fireStorm(), target.ServerID)
-	if got, want := hits(inPlain, hidden), []int{36, 0}; !equalInts(got, want) {
-		t.Errorf("lost %v, want %v (one in sight of both, one hidden from the caster and in sight of its target)", got, want)
-	}
-
-	// its own target behind a wall from its caster: nothing reaches it
-	r = newAreaRig(t)
-	target = r.creature(2001, "Deathfist Pawn", 1020, 1000)
-	r.w.SetGround(sightGround{wallAt(1005)})
-	r.cast(t, fireStorm(), target.ServerID)
-	if got := hits(target); got[0] != 0 {
-		t.Errorf("its target behind a wall from its caster lost %d", got[0])
+	// its own target out of its caster's sight (a rock between them, or a
+	// wall): the cast is refused before it begins (the owner, 2026-11-13: "no
+	// line of sight, no cast"), nothing spent and no one reached
+	for _, g := range []sightGround{{{1010, -90000, 998, 1011, 90000, 1002}}, {wallAt(1005)}} {
+		r = newAreaRig(t)
+		target = r.creature(2001, "Deathfist Pawn", 1020, 1000)
+		r.w.SetGround(g)
+		r.p.Casting, r.p.Lockouts = nil, nil
+		if r.w.StartCast(r.sess, fireStorm(), r.objectID(target.ServerID), r.t0) {
+			t.Errorf("an area round a target out of its caster's sight began (%v)", g)
+		}
 	}
 
 	// a low rock, under the head's line and over the waist's, shelters no one
@@ -475,11 +467,12 @@ func TestAHealNeedsItsCasterToSeeItsTarget(t *testing.T) {
 		t.Errorf("the control, nothing in the way: %v", all)
 	}
 
-	// harm on a creature behind the wall begins as it did
+	// harm on a creature behind the wall is refused before it begins (the
+	// owner, 2026-11-13: no line of sight, no cast)
 	c.npc.X = 110
 	nuke := CastSpell{SpellID: 9103, Name: "Nuke", Scope: 1, Range: 30, CastTime: time.Second,
 		Def: ParseSpellNamed("Nuke", "Target, Decrease Hitpoints by 10", "")}
-	if !c.w.StartCast(c.sess, nuke, c.npcO, c.at(3*time.Minute)) {
-		t.Errorf("harm on a creature behind a wall did not begin: %q", redLines(c.sess))
+	if c.w.StartCast(c.sess, nuke, c.npcO, c.at(3*time.Minute)) {
+		t.Errorf("harm on a creature behind a wall began")
 	}
 }

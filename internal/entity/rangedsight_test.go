@@ -62,3 +62,29 @@ func TestARangedShotNeedsSight(t *testing.T) {
 		t.Error("a melee swing was held to sight")
 	}
 }
+
+// A harmful spell at a creature its caster cannot see is refused before it
+// begins (the owner, 2026-11-13: "casters that cast from behind a barrier ...
+// still drains mana and visually casts but no damage"): no cast, no power
+// spent, "You cannot see your target." in red. The control: with nothing
+// between, the same spell begins.
+func TestAHarmfulSpellNeedsSightToBegin(t *testing.T) {
+	nuke := CastSpell{SpellID: 9901, Name: "Test Nuke", Level: 1, Scope: 1, Range: 30, PowerCost: 50, CastTime: 2 * time.Second,
+		Def: SpellDef{Harmful: true}}
+	c := newCaster(t)
+	c.w.SetGround(sightGround{wallAt(101)})
+	if c.w.StartCast(c.sess, nuke, c.npcO, c.at(0)) {
+		t.Fatal("a nuke through a wall began")
+	}
+	if c.p.Power != 900 {
+		t.Errorf("power spent: %d", c.p.Power)
+	}
+	if red := redLines(c.sess); len(red) == 0 || red[len(red)-1] != castNotSeen {
+		t.Errorf("not told: %q", red)
+	}
+	c = newCaster(t)
+	c.w.SetGround(sightGround{})
+	if !c.w.StartCast(c.sess, nuke, c.npcO, c.at(0)) {
+		t.Fatal("the control: a nuke in sight did not begin")
+	}
+}

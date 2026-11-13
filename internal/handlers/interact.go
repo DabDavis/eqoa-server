@@ -80,6 +80,8 @@ type InteractHandler struct {
 	dabrishMastery func(*session.Session, int) (int, entity.Mastery, bool, error)
 	// dabrishEpic is his epic exchange (dabrishepic.go); nil: not offered
 	dabrishEpic *dabrishEpics
+	// recharge is Master Lizzlen's (lizzlen.go); nil: not offered
+	recharge rechargeStore
 
 	// signTexts is signtext (database.SignTexts): what the signs and boards
 	// say (signs.go). Nil: a sign says world.npc_text's words for its name.
@@ -283,6 +285,11 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 
 	// A Metal Moogie (metalmoogie.go): another's duel, said in a line.
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.metalTalk(sess, npc) {
+		return nil
+	}
+
+	// Master Lizzlen (lizzlen.go): the charges of the player's clicky items restored.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.lizzlenTalk(sess, player, npc) {
 		return nil
 	}
 

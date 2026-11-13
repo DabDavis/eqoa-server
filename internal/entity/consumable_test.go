@@ -71,13 +71,9 @@ func TestConsumeAddsToTheRegen(t *testing.T) {
 		t.Errorf("the new meal goes last on the channel: %+v", p.Buffs)
 	}
 
-	// no meal in a fight (it would end at once), nothing for the dead;
-	// nothing changes
-	p.AttackTarget = 2002
-	if err := w.Consume(sess, Consumable{Name: "boiled egg", Amount: 14}, now); err != ErrConsumeFighting {
-		t.Errorf("in a fight: %v, want ErrConsumeFighting", err)
-	}
-	p.AttackTarget, p.HP = 0, 0
+	// nothing for the dead; nothing changes (a meal in a fight is taken: the
+	// owner, 2026-11-13, TestConsumeMealTakenWhileFought)
+	p.HP = 0
 	if err := w.Consume(sess, Consumable{Name: "boiled egg", Amount: 14}, now); err != ErrConsumeNoPlayer {
 		t.Errorf("dead: %v, want ErrConsumeNoPlayer", err)
 	}
@@ -139,6 +135,9 @@ func TestConsumableLastsAMinute(t *testing.T) {
 // through it (Sandstorm's Elven Wine gave its power through its owner's
 // fight). The control: a fight that ended before the meal leaves it on.
 func TestConsumableEndsInAFight(t *testing.T) {
+	// the fight-ending rule, switched off since 2026-11-13 (foodRunsThroughFights)
+	defer func(v bool) { foodRunsThroughFights = v }(foodRunsThroughFights)
+	foodRunsThroughFights = false
 	for _, c := range []struct {
 		name   string
 		fight  func(p *Player, at time.Time)
@@ -172,6 +171,9 @@ func TestConsumableEndsInAFight(t *testing.T) {
 
 // A fight ends a meal but no spell's effect.
 func TestConsumableBreakLeavesSpells(t *testing.T) {
+	// the fight-ending rule, switched off since 2026-11-13 (foodRunsThroughFights)
+	defer func(v bool) { foodRunsThroughFights = v }(foodRunsThroughFights)
+	foodRunsThroughFights = false
 	w, sess, p, now := newEater(t)
 	w.Consume(sess, Consumable{Name: "hearty bread", Icon: breadIcon, Amount: 10}, now)
 	w.mu.Lock()
@@ -187,6 +189,9 @@ func TestConsumableBreakLeavesSpells(t *testing.T) {
 // A meal is kept over a logout with what is left of it, as spells' effects
 // are (buffsave.go), and its HoT comes back with it.
 func TestConsumableKeptOverALogout(t *testing.T) {
+	// the fight-ending rule, switched off since 2026-11-13 (foodRunsThroughFights)
+	defer func(v bool) { foodRunsThroughFights = v }(foodRunsThroughFights)
+	foodRunsThroughFights = false
 	w, sess, p, now := newEater(t)
 	w.Consume(sess, Consumable{Name: "hearty bread", Icon: breadIcon, Amount: 10}, now)
 	rows, ok := w.SavedEffects(p.ServerID, now.Add(20*time.Second))
@@ -216,6 +221,9 @@ func TestConsumableKeptOverALogout(t *testing.T) {
 // refused in a fight; kept over a logout with its rule. The control: a drink
 // whose row says no contact runs through a fight, as one with no row does.
 func TestConsumableRuleFromItsRow(t *testing.T) {
+	// the fight-ending rule, switched off since 2026-11-13 (foodRunsThroughFights)
+	defer func(v bool) { foodRunsThroughFights = v }(foodRunsThroughFights)
+	foodRunsThroughFights = false
 	w, sess, p, now := newEater(t)
 	ale := Consumable{Drink: true, Name: "pale ale", Icon: waterIcon, Amount: 12, Duration: 2 * time.Minute,
 		Rule: &FoodRule{EndsOnCast: true, EndsOnContact: true}}
@@ -247,8 +255,8 @@ func TestConsumableRuleFromItsRow(t *testing.T) {
 		t.Fatalf("a contact drink through a fight: %d effects", len(p.Effects))
 	}
 	p.AttackTarget = 2002
-	if err := w.Consume(sess, ale, now.Add(3*time.Second)); err != ErrConsumeFighting {
-		t.Fatalf("a contact drink in a fight: %v, want ErrConsumeFighting", err)
+	if err := w.Consume(sess, ale, now.Add(3*time.Second)); err != nil { // taken in a fight since 2026-11-13
+		t.Fatalf("a contact drink in a fight: %v, want it drunk", err)
 	}
 	if err := w.Consume(sess, cider, now.Add(3*time.Second)); err != nil {
 		t.Fatalf("a drink no fight ends, in a fight: %v", err)
@@ -338,18 +346,17 @@ func TestARationIsItsEatersTenth(t *testing.T) {
 	}
 }
 
-// A meal is refused, and so kept, while a creature fights its eater with
-// auto-attack off (Zerkziee's petition 1919: a ranger at range ate, the
-// next arrow ended the meal, the ration spent); a drink is taken; out of the
-// fight the meal is taken (the control).
-func TestConsumeMealRefusedWhileFought(t *testing.T) {
+// A meal and a drink are taken while a creature fights their eater (the
+// owner, 2026-11-13: eating and drinking allowed in a fight; petition 1919
+// had refused the meal), and out of the fight too.
+func TestConsumeMealTakenWhileFought(t *testing.T) {
 	w, sess, p, now := newEater(t)
 	frog := &NPC{ServerID: 3003, Name: "froglok zol knight", Level: 62, HP: 100, MaxHP: 100, Threats: map[EntityID]int64{p.ServerID: 50}}
 	w.mu.Lock()
 	w.putNPCLocked(frog)
 	w.mu.Unlock()
-	if err := w.Consume(sess, Consumable{Name: "Food", Icon: breadIcon, Amount: 10}, now); err != ErrConsumeFighting {
-		t.Errorf("a meal while fought: %v, want ErrConsumeFighting", err)
+	if err := w.Consume(sess, Consumable{Name: "Food", Icon: breadIcon, Amount: 10}, now); err != nil {
+		t.Errorf("a meal while fought: %v, want it eaten (the owner, 2026-11-13)", err)
 	}
 	if err := w.Consume(sess, Consumable{Drink: true, Name: "well water", Icon: waterIcon, Amount: 2}, now); err != nil {
 		t.Errorf("a drink while fought: %v", err)
@@ -359,5 +366,20 @@ func TestConsumeMealRefusedWhileFought(t *testing.T) {
 	w.mu.Unlock()
 	if err := w.Consume(sess, Consumable{Name: "Food", Icon: breadIcon, Amount: 10}, now); err != nil {
 		t.Errorf("a meal out of the fight: %v", err)
+	}
+}
+
+// A meal runs on through a fight (the owner, 2026-11-13).
+func TestAMealRunsThroughAFight(t *testing.T) {
+	w, sess, p, now := newEater(t)
+	if err := w.Consume(sess, Consumable{Name: "Food", Icon: breadIcon, Amount: 10}, now); err != nil {
+		t.Fatal(err)
+	}
+	p.AttackTarget, p.LastCombatTime = 2002, now.Add(time.Second)
+	w.mu.Lock()
+	w.consumableSystem(now.Add(2 * time.Second))
+	w.mu.Unlock()
+	if p.HoTNow() < 10 {
+		t.Errorf("the meal ended in the fight: HoT %d", p.HoTNow())
 	}
 }

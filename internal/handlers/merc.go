@@ -293,17 +293,9 @@ func (m *Mercs) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 			return true
 		}
 		a.role = n
-		var rows []database.MercRow
-		if m.db != nil {
-			rows, _ = m.db.Mercs(p.CharServerID)
-		}
 		var answers []string
 		for _, c := range mercRoles[n].classes {
-			label := entity.ClassName(c)
-			if held, ok := mercClassHeld(rows, c); ok {
-				label += " (yours: " + held.Name + ")" // one of each class: chosen, it is refused
-			}
-			answers = append(answers, label)
+			answers = append(answers, entity.ClassName(c))
 		}
 		a.stage = mercStageClass
 		m.mu.Lock()
@@ -315,14 +307,6 @@ func (m *Mercs) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 			return true
 		}
 		a.class = classes[n]
-		if m.db != nil {
-			if rows, err := m.db.Mercs(p.CharServerID); err == nil {
-				if held, ok := mercClassHeld(rows, a.class); ok {
-					mercSay(sess, fmt.Sprintf(mercClassTakenLine, entity.ClassName(a.class), held.Name, held.Name))
-					return true
-				}
-			}
-		}
 		a.path = -1
 		if names := mercPathChoices(a.class); len(names) > 0 {
 			// its path now, for good (the owner, 2026-11-12: "at the bulletin
@@ -468,20 +452,10 @@ func mercNamesTaken(p *entity.Player, rows []database.MercRow) []string {
 	return out
 }
 
-// mercClassHeld is the player's hire of the class, false for none (the owner,
-// 2026-11-12: "for mercs players can only choose 1 of each class"): out, on
-// standby, resting or waiting, a row is a hire.
-func mercClassHeld(rows []database.MercRow, class int) (database.MercRow, bool) {
-	for _, r := range rows {
-		if r.Class == class {
-			return r, true
-		}
-	}
-	return database.MercRow{}, false
-}
-
-// mercClassTakenLine is the liaison's refusal of a second of a class.
-const mercClassTakenLine = "You already have a %s mercenary, %s. One of each class: /merc dismiss %s lets that one go first."
+// A class may be hired more than once, up to the three slots (petition 1920,
+// Hoggieson: "2 or 3 of the same class in our grp for merc requits, like 2
+// monks"; it lifts the owner's 2026-11-12 "only 1 of each class"). Each hire's
+// name is still its own (mercName passes over the names taken).
 
 // hire makes the merc of class, race and sex the player's, in its first free
 // slot: its row (its look chosen now), its kit at the player's level, beside
@@ -507,10 +481,6 @@ func (m *Mercs) hireWith(sess *session.Session, p *entity.Player, class, race, s
 		}
 		if slot = mercFreeSlot(rows); slot == 0 {
 			mercSay(sess, mercFullLine)
-			return
-		}
-		if held, ok := mercClassHeld(rows, class); ok {
-			mercSay(sess, fmt.Sprintf(mercClassTakenLine, entity.ClassName(class), held.Name, held.Name))
 			return
 		}
 	}

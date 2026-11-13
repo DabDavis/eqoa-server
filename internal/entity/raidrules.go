@@ -278,8 +278,8 @@ func (w *World) raidKillLocked(killer *Player, npc *NPC) *RaidKill {
 		}
 		s := seatOf(w, m, false)
 		k.Members = append(k.Members, s)
-		if m.World != npc.World {
-			continue
+		if m.World != npc.World || w.dungeonTookOutLocked(npc.Instance, m.CharServerID) {
+			continue // a member its instance took out has no seat from then on (instancemembers.go)
 		}
 		if dx, dz := m.X-npc.X, m.Z-npc.Z; dx*dx+dz*dz <= KillShareRange*KillShareRange {
 			k.Seats = append(k.Seats, s)

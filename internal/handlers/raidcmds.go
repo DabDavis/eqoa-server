@@ -4,6 +4,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/entity"
@@ -100,6 +101,11 @@ const (
 	// (u32, u32)
 	raidOpGroup = 12
 	raidOpSwap  = 13
+	// petition 1879 (entity/instancemembers.go): 14 a player added to the party's
+	// instance, 15 one taken out (u32 the player as the client knows it); the
+	// group's menu's as much as the raid's
+	raidOpInstAdd    = 14
+	raidOpInstRemove = 15
 )
 
 // handleCommand is 0x7E48: u8 op and its arguments, as the typed commands do.
@@ -175,6 +181,16 @@ func (h *RaidHandler) handleCommand(sess *session.Session, msg *protocol.Message
 		b, ok2 := u32()
 		if ok1 && ok2 {
 			gw.RaidGroupSwap(sess, "", "", a, b)
+		}
+	case raidOpInstAdd, raidOpInstRemove:
+		id, ok := u32()
+		if !ok {
+			return nil
+		}
+		if op == raidOpInstAdd {
+			dungeonsTell(sess, gw.DungeonAddMember(sess, "", id))
+		} else {
+			dungeonsTell(sess, gw.DungeonRemoveMember(sess, "", id, time.Now()))
 		}
 	default:
 		log.Printf("Raid: unknown command %d from %s", op, sess.RemoteAddr())

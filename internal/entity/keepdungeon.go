@@ -68,6 +68,17 @@ type KeptDungeonInst struct {
 	NPCs []KeptInstNPC `json:"npcs,omitempty"`
 	// In are the characters standing in it
 	In []uint32 `json:"in,omitempty"`
+	// Added are the characters added to it beyond its party, Removed those it took out
+	// and when (instancemembers.go)
+	Added   []KeptInstMember `json:"added,omitempty"`
+	Removed []KeptInstMember `json:"removed,omitempty"`
+}
+
+// KeptInstMember is a character an instance added (its name) or took out (when).
+type KeptInstMember struct {
+	Char uint32    `json:"char"`
+	Name string    `json:"name,omitempty"`
+	At   time.Time `json:"at,omitempty"`
 }
 
 // KeptInstNPC is an instance's creature: its state as keepnpc.go carries a
@@ -131,6 +142,14 @@ func (w *World) KeepDungeons(now time.Time) *KeptDungeons {
 			}
 		}
 		sort.Slice(ki.In, func(i, j int) bool { return ki.In[i] < ki.In[j] })
+		for c, n := range in.invited {
+			ki.Added = append(ki.Added, KeptInstMember{Char: c, Name: n})
+		}
+		for c, at := range in.removed {
+			ki.Removed = append(ki.Removed, KeptInstMember{Char: c, At: at})
+		}
+		sort.Slice(ki.Added, func(i, j int) bool { return ki.Added[i].Char < ki.Added[j].Char })
+		sort.Slice(ki.Removed, func(i, j int) bool { return ki.Removed[i].Char < ki.Removed[j].Char })
 		k.Insts = append(k.Insts, ki)
 	}
 	for c, s := range w.dungeons.stays {
@@ -174,6 +193,18 @@ func (w *World) RestoreDungeons(k *KeptDungeons) (ids map[EntityID]EntityID, r D
 		}
 		in := &dungeonInst{id: ki.ID, def: def, owner: ki.Owner, ownerName: ki.OwnerName, group: ki.Group,
 			opened: ki.Opened, lastIn: ki.LastIn, creatures: ki.Creatures}
+		for _, m := range ki.Added { // instancemembers.go
+			if in.invited == nil {
+				in.invited = map[uint32]string{}
+			}
+			in.invited[m.Char] = m.Name
+		}
+		for _, m := range ki.Removed {
+			if in.removed == nil {
+				in.removed = map[uint32]time.Time{}
+			}
+			in.removed[m.Char] = m.At
+		}
 		var nr NPCsRestored
 		for j := range ki.NPCs {
 			kn := &ki.NPCs[j]

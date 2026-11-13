@@ -50,7 +50,7 @@ const (
 	dungeonsAskBoard = "Raids for level 60 heroes in Tunaria's old dungeons. Each party gets its own copy. Where to?"
 	dungeonsTooFar   = "Come back to the Instanced Raids board or a Dungeon Warden to answer."
 	dungeonsReach    = 30
-	dungeonsHelp     = "/dungeon names your party's open dungeons; /dungeon enter <%s> goes in (a group's leader, or a player alone, opens its party's instance); /dungeon leave goes back out; /dungeon reset <name> closes the instance you opened while no one is inside. Or read the Instanced Raids board by Freeport's well."
+	dungeonsHelp     = "/dungeon names your party's open dungeons; /dungeon enter <%s> goes in (a group's leader, or a player alone, opens its party's instance); /dungeon leave goes back out; /dungeon reset <name> closes the instance you opened while no one is inside; /addinstance <player> and /removeinstance <player> (the leader's) add to and take from your party's instance. Or read the Instanced Raids board by Freeport's well."
 )
 
 type dungeonsDo int
@@ -119,6 +119,9 @@ type dungeonJSON struct {
 	Boxes    [][4]float32 `json:"boxes"`
 	Entrance arenaSpot    `json:"entrance"`
 	Note     string       `json:"note,omitempty"`
+	// Cap is how many players its instance holds (entity/instancemembers.go; 0:
+	// world.dungeons.cap)
+	Cap int `json:"cap,omitempty"`
 }
 
 // ReadDungeons is a built world's dungeons (its recipe's "dungeons" block), checked.
@@ -138,7 +141,10 @@ func ReadDungeons(b worlds.Built) ([]entity.DungeonDef, error) {
 			return nil, fmt.Errorf("world %d's dungeon %q: a key of its own, a name and a box are needed", b.World, j.Key)
 		}
 		seen[key] = true
-		d := entity.DungeonDef{Key: key, Name: j.Name}
+		if j.Cap < 0 || j.Cap > 200 {
+			return nil, fmt.Errorf("world %d's dungeon %q: cap %d: 0 (world.dungeons.cap) to 200 players", b.World, j.Key, j.Cap)
+		}
+		d := entity.DungeonDef{Key: key, Name: j.Name, Cap: j.Cap}
 		for _, bx := range j.Boxes {
 			x0, z0, x1, z1 := min(bx[0], bx[2]), min(bx[1], bx[3]), max(bx[0], bx[2]), max(bx[1], bx[3])
 			d.Boxes = append(d.Boxes, entity.DungeonBox{X0: x0, Z0: z0, X1: x1, Z1: z1})
@@ -165,7 +171,7 @@ func SetupDungeons(gw *entity.World, c config.DungeonsConfig, _ *database.SQLite
 	if gw == nil {
 		return false
 	}
-	set := entity.DungeonSettings{CloseAfter: c.CloseAfter, MaxInstances: c.MaxInstances}
+	set := entity.DungeonSettings{CloseAfter: c.CloseAfter, MaxInstances: c.MaxInstances, Cap: c.Cap, RaidCap: c.RaidCap}
 	if !c.Enabled {
 		gw.SetDungeons(false, world, nil, set)
 		return false
@@ -422,6 +428,10 @@ func dungeonCommand(gw *entity.World, sess *session.Session, rest string) {
 			return
 		}
 		dungeonsTell(sess, gw.DungeonReset(sess, arg))
+	case "add", "invite": // petition 1879 (entity/instancemembers.go): by name, else the target
+		dungeonsTell(sess, gw.DungeonAddMember(sess, arg, p.TargetObjectID))
+	case "remove", "kick":
+		dungeonsTell(sess, gw.DungeonRemoveMember(sess, arg, p.TargetObjectID, time.Now()))
 	default:
 		dungeonsTell(sess, dungeonsHelpLine(gw))
 	}
@@ -483,4 +493,15 @@ func dungeonLogin(gw *entity.World, record *database.CharacterRecord, held func(
 		record.CharName, out.X, out.Y, out.Z, out.World)
 	record.X, record.Y, record.Z, record.World = out.X, out.Y, out.Z, int(out.World)
 	return true
+}
+
+// dungeonMemberWord is /dungeon's word for a typed /addinstance or /removeinstance (# too), "" for any other word.
+func dungeonMemberWord(word string) string {
+	switch strings.ToLower(strings.TrimSpace(word)) {
+	case "/addinstance", "#addinstance":
+		return "add"
+	case "/removeinstance", "#removeinstance":
+		return "remove"
+	}
+	return ""
 }

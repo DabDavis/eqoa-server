@@ -78,6 +78,8 @@ type InteractHandler struct {
 	dabrish        dabrishAsks
 	dabrishLevel   func(*session.Session, *entity.Player, int) (int, error)
 	dabrishMastery func(*session.Session, int) (int, entity.Mastery, bool, error)
+	// dabrishEpic is his epic exchange (dabrishepic.go); nil: not offered
+	dabrishEpic *dabrishEpics
 
 	// signTexts is signtext (database.SignTexts): what the signs and boards
 	// say (signs.go). Nil: a sign says world.npc_text's words for its name.

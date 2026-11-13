@@ -205,7 +205,8 @@ func (h *ChatHandler) raidTell(sess *session.Session, player *entity.Player, nam
 		if rest != "" {
 			return false // a tell to someone called Raid
 		}
-	case "raidaoe", "raidinvite", "raidleave", "raidkick", "raidleader", "raidhelper", "raidassist", "raidloot", "rsay", "raidgroup", "raidswap", "readycheck":
+	case "raidaoe", "raidinvite", "raidleave", "raidkick", "raidleader", "raidhelper", "raidassist", "raidloot", "rsay", "raidgroup", "raidswap", "readycheck",
+		"grouploot", "groupnbg":
 	case "ready", "notready": // only while the sender has a ready check to answer
 		if rest != "" || !h.gameWorld.HasReadyCheck(sess) {
 			return false
@@ -282,6 +283,8 @@ func (h *ChatHandler) raidCommand(sess *session.Session, player *entity.Player, 
 		}
 	case "raidloot":
 		gw.RaidLootRule(sess, rest)
+	case "grouploot", "groupnbg": // petition 1878 (entity/grouploot.go)
+		gw.GroupLootRule(sess, rest)
 	case "rsay":
 		h.raidSay(sess, player, rest)
 	case "readycheck": // petition 1711 (entity/readycheck.go)
@@ -384,6 +387,7 @@ var playerHelpLines = []string{
 	"  /raidhelper <name|none> - the leader's one helper, who may invite and kick",
 	"  /raidassist <name|none> - the leader names the main assist; alone, assists them",
 	"  /raidloot ffa|needgreed|master - the leader's loot rule (not in combat)",
+	"  /grouploot needgreed|ffa - a group leader's loot rule, as a raid's",
 	"  /raidgroup - the raid's groups; /raidgroup <name> <n> moves one (leader, helper)",
 	"  /raidswap <name> <name> - trades two members' groups (the leader or the helper)",
 	"  /readycheck - asks your group or raid (its leader or helper) if all are ready",

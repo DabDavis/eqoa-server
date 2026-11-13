@@ -257,6 +257,9 @@ func seatOf(w *World, p *Player, claim bool) RaidSeat {
 func (w *World) raidKillLocked(killer *Player, npc *NPC) *RaidKill {
 	claims := w.takeRaidClaimsLocked(npc)
 	g := w.raidOfLocked(killer)
+	if g == nil {
+		g = w.plainGroupNeedGreedLocked(killer) // a group's own need before greed (grouploot.go)
+	}
 	if g == nil || g.rules.loot == LootFreeForAll {
 		return nil
 	}
@@ -328,7 +331,7 @@ func (w *World) raidStateBodyLocked(sess *session.Session, p *Player, fighting m
 	g := w.raidOfLocked(p)
 	leader := w.leaderOfLocked(g)
 	if g == nil || leader == nil {
-		return append(b, make([]byte, 14)...)
+		return w.groupLootStateLocked(p, b) // a plain group's need before greed, else all zero (grouploot.go)
 	}
 	id := func(e EntityID) uint32 {
 		if o := w.Players[e]; o != nil && o.GroupID == g.ID {

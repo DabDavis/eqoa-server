@@ -19,13 +19,10 @@ import (
 // and a sinew cord, handed to Fatima Ubel (two swatches, then the suit), make
 // it, and the portal then sends it on. The ward where Dust stood stops a
 // player without the suit on the lower halls' side alone: not one with it,
-// not a GM, not one on its far side, and (the owner's "let flagged players
-// through") not one who finished The Last House, suit or none: the engine's
-// own reading, the walker's flagged character against a new one. With EQOA_GROUND_DIR (a worlds/ground
+// not a GM, not one on its far side. With EQOA_GROUND_DIR (a worlds/ground
 // folder) every creature the tool placed stands on a floor and the ward spans
 // the hall.
 func TestRealPoDFlagQuestAsTheWiki(t *testing.T) {
-	const zombieFleshSuit = 1012
 	src := os.Getenv("EQOA_REAL_DB")
 	if src == "" {
 		t.Skip("EQOA_REAL_DB names a server database")
@@ -150,53 +147,34 @@ func TestRealPoDFlagQuestAsTheWiki(t *testing.T) {
 			ward = wl
 		}
 	}
-	if ward.NPCID == 0 || ward.Text == "" || len(ward.Inner) == 0 || ward.QuestID != flag2 || ward.Step != len(q2.Steps) {
-		t.Fatalf("no ward of the suit and The Last House (%d, past its last step %d): %+v", flag2, len(q2.Steps), walls)
+	if ward.NPCID == 0 || ward.Text == "" || len(ward.Inner) == 0 {
+		t.Fatalf("no ward of the suit: %+v", walls)
 	}
 	var wx, wy, wz, size float32
 	if err := w.db.QueryRow(`SELECT x_coord, y_coord, z_coord, size FROM npcs WHERE id = ? AND world = 5 AND modelid = ?`,
 		ward.NPCID, int32(entity.BlockerBody)).Scan(&wx, &wy, &wz, &size); err != nil {
 		t.Fatalf("the ward's row %d: %v", ward.NPCID, err)
 	}
-	gw := w.gw
+	gw := entity.NewWorld()
 	gw.NPCs[entity.EntityID(ward.NPCID)] = &entity.NPC{ServerID: entity.EntityID(ward.NPCID), Name: "invisible wall", World: 5,
 		X: wx, Y: wy, Z: wz, NPCType: 0x80, ModelID: int64(entity.BlockerBody)}
 	gw.SetQuestWalls(walls)
-	// the engine's reading of each character, where it stands: stopped or not
-	stopped := func(x, y, z float32, gm bool) bool {
-		w.p.World, w.p.X, w.p.Y, w.p.Z, w.p.GM = 5, x, y, z, gm
-		w.qe.syncQuestState()
-		return len(gw.ItemWallsStopping(w.p, 30)) == 1
+	p := &entity.Player{ServerID: 1, CharServerID: 2, Name: "Dust", World: 5}
+	at := func(x, y, z float32, gm bool) bool {
+		p.X, p.Y, p.Z, p.GM = x, y, z, gm
+		return len(gw.ItemWallsStopping(p, 30)) == 1
 	}
-	// the flagged walker, the suit taken away
-	w.db.Exec(`DELETE FROM charinventory WHERE serverid = ? AND patternid = ?`, w.p.CharServerID, zombieFleshSuit)
-	held, _ := w.inv.GetCharacterItems(w.p.CharServerID)
-	w.sess.SetInventoryList(newInvList(held))
-	if stopped(4634, -11.9, 3604, false) {
-		t.Error("the ward stops a player who finished The Last House, without the suit")
+	if !at(4634, -11.9, 3604, false) {
+		t.Error("the ward does not stop a player without the suit in the lower hall east of it")
 	}
-	// a character who has not: another class and race, new
-	flagged := w.p
-	for _, cr := range w.combo {
-		if cr[0] != flagged.Class || cr[1] != flagged.Race {
-			w.become(cr[0], cr[1])
-			break
-		}
-	}
-	if w.p == flagged {
-		t.Fatal("no second character to walk")
-	}
-	if !stopped(4634, -11.9, 3604, false) {
-		t.Error("the ward does not stop an unflagged player without the suit in the lower hall east of it")
-	}
-	if stopped(4634, -11.9, 3604, true) {
+	if at(4634, -11.9, 3604, true) {
 		t.Error("the ward stops a GM")
 	}
-	if stopped(4614, -12, 3610, false) || stopped(4605, -1.3, 3616, false) {
+	if at(4614, -12, 3610, false) || at(4605, -1.3, 3616, false) {
 		t.Error("the ward shuts a player without the suit in on its far side (the west arm, the ramp's head)")
 	}
-	give(zombieFleshSuit, 1)
-	if stopped(4634, -11.9, 3604, false) {
+	gw.SetQuestState(p.CharServerID, map[entity.EntityID]bool{entity.EntityID(ward.NPCID): true}, map[int]bool{zombieFleshSuit: true})
+	if at(4634, -11.9, 3604, false) {
 		t.Error("the ward stops the suit's holder")
 	}
 

@@ -1574,6 +1574,11 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// kept off until switched on (gmportal.go)
 		h.markPortalCommand(sess, player, parts[1:])
 
+	case "#hazard":
+		// #hazard add <damage> <every s> [radius] [still] [name] | list | remove [id]: a place that
+		// hurts a player in it (gmhazard.go, petition 1960)
+		h.hazardCommand(sess, player, parts[1:])
+
 	case "#help":
 		for _, l := range gmHelpLines {
 			h.gmReply(sess, l)
@@ -1746,5 +1751,6 @@ var gmHelpLines = []string{
 	"  #camp <creature>[, <creature>...] - a static spawn at each mark, popping one of them at random each time; #camp undo",
 	"  #path [loop|pingpong|once] [walk|run] - your target walks your marks; #path clear takes its path away",
 	"  #markportal - your target (an NPC) is a portal's entry; #markportal exit [place] - its landing: your target, else where you stand; filed as a ticket, off until #markportal on [id] (off, list, cancel)",
+	"  #hazard add <damage> <every seconds> [radius] [still] [name] - a place that hurts a player in it, where you stand (again only once moved; still: standing still too); #hazard list, #hazard remove [id]",
 	"  #who - list players",
 }

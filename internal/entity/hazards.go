@@ -22,9 +22,20 @@ import (
 // a drowning's), dying of it as of a drowning. Not hit: the dead, a GM flying (#fly), a session
 // loading a world. The Toxxulia cave's vines are tools/seed_hazards.py's rows, read off the disc's
 // zone actors (cmd/hazardscan).
+//
+// An on_move area (the GM Jibwiz's petition 1960, the thorns: "500 damage on a 6 second cool down
+// per individual player. If 5 people walk into the thorn, all of them should take 500 damage and if
+// they remain in it for 6 seconds THEN MOVE they take 500 again. However if they stay still it
+// should not continuously damage them") hits a player at once on stepping in, and after every_ms
+// again only once it has moved hazardStillReach from where the last hit took it. A GM places one
+// with /hazard (handlers/gmhazard.go).
 
-// hazardEvery is how often, in ticks, hazardSystem looks (0.5 s).
-const hazardEvery = 5
+// hazardEvery is how often, in ticks, hazardSystem looks (0.5 s); hazardStillReach how far a
+// player in an on_move area must be from its last hit's spot to be hit again.
+const (
+	hazardEvery      = 5
+	hazardStillReach = 0.5
+)
 
 // hazardState is the hazards by the world they lie in.
 type hazardState struct {
@@ -117,13 +128,18 @@ func (w *World) hazardSystem(now time.Time) {
 		}
 		h := w.hazardAtLocked(p.World, p.X, p.Y, p.Z)
 		if h == nil {
+			p.hazardHit = false // out of every area: the next step in is a hit
 			continue
+		}
+		if h.OnMove && p.hazardHit && distXZ(p.X, p.Z, p.hazardX, p.hazardZ) < hazardStillReach {
+			continue // standing still where the last hit took it (petition 1960)
 		}
 		sess := w.findSessionByEntityIDLocked(p.ServerID)
 		if sess != nil && sess.StateChannelsHeld() {
 			continue // loading a world
 		}
 		p.hazardNext = now.Add(time.Duration(h.EveryOr()) * time.Millisecond)
+		p.hazardX, p.hazardZ, p.hazardHit = p.X, p.Z, true
 		n := min(h.Damage, p.HP)
 		p.HP -= n
 		p.StatsDirty = true

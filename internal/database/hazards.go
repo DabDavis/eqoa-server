@@ -15,7 +15,11 @@ import (
 // any armour), every_ms the time from one hit to the next while the player stays in (0: the
 // server's, HazardDefaultEvery). words is what the player is told at each hit (%d its damage; empty:
 // "<name> hurts you for <n>."). name is the area as a GM reads it, note where it came from. source:
-// gm, or a tool's (tools/seed_hazards.py: its --undo deletes those no GM changed).
+// gm, or a tool's (tools/seed_hazards.py: its --undo deletes those no GM changed). on_move 1 (the GM
+// Jibwiz's petition 1960: the thorns, "if they remain in it for 6 seconds THEN MOVE they take 500
+// again. However if they stay still it should not continuously damage them") hits a player again
+// only once it has moved since its last hit; 0 hits it every every_ms while it stays in, still or
+// not. A GM places a round one where it stands with /hazard add (handlers/gmhazard.go).
 const hazardsSchema = `
 	CREATE TABLE IF NOT EXISTS hazards (
 		id       INTEGER PRIMARY KEY,
@@ -34,7 +38,8 @@ const hazardsSchema = `
 		every_ms INTEGER NOT NULL DEFAULT 0,
 		words    TEXT NOT NULL DEFAULT '',
 		note     TEXT NOT NULL DEFAULT '',
-		source   TEXT NOT NULL DEFAULT 'gm'
+		source   TEXT NOT NULL DEFAULT 'gm',
+		on_move  INTEGER NOT NULL DEFAULT 0
 	);`
 
 // Hazard is one row of hazards.
@@ -50,6 +55,7 @@ type Hazard struct {
 	EveryMS      int // 0 the server's
 	Words        string
 	Note, Source string
+	OnMove       bool // hit again only once moved (petition 1960)
 }
 
 // The hazards' defaults and bounds: a radius of HazardDefaultRadius, feet from HazardDefaultBelow
@@ -133,6 +139,15 @@ func (db *SQLiteDB) ensureHazards() error {
 	if _, err := db.Exec(hazardsSchema); err != nil {
 		return fmt.Errorf("hazards: %w", err)
 	}
+	var n int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('hazards') WHERE name = 'on_move'`).Scan(&n); err != nil {
+		return fmt.Errorf("hazards: %w", err)
+	}
+	if n == 0 {
+		if _, err := db.Exec(`ALTER TABLE hazards ADD COLUMN on_move INTEGER NOT NULL DEFAULT 0`); err != nil {
+			return fmt.Errorf("hazards: %w", err)
+		}
+	}
 	return nil
 }
 
@@ -140,7 +155,7 @@ func (db *SQLiteDB) ensureHazards() error {
 // refuses is left out and named in bad.
 func (db *SQLiteDB) Hazards() (out []Hazard, bad []string, err error) {
 	rows, err := db.Query(`SELECT id, name, world, x1, y1, z1, x2, y2, z2, radius, below, above, damage, every_ms, words,
-		note, source FROM hazards ORDER BY id`)
+		note, source, on_move FROM hazards ORDER BY id`)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -149,7 +164,7 @@ func (db *SQLiteDB) Hazards() (out []Hazard, bad []string, err error) {
 		var h Hazard
 		var world int
 		if err := rows.Scan(&h.ID, &h.Name, &world, &h.X1, &h.Y1, &h.Z1, &h.X2, &h.Y2, &h.Z2, &h.Radius, &h.Below, &h.Above,
-			&h.Damage, &h.EveryMS, &h.Words, &h.Note, &h.Source); err != nil {
+			&h.Damage, &h.EveryMS, &h.Words, &h.Note, &h.Source, &h.OnMove); err != nil {
 			return nil, nil, err
 		}
 		h.Name = strings.TrimSpace(h.Name)
@@ -161,4 +176,51 @@ func (db *SQLiteDB) Hazards() (out []Hazard, bad []string, err error) {
 		out = append(out, h)
 	}
 	return out, bad, rows.Err()
+}
+
+// AddHazardAudited keeps h as a new row in world (a GM's /hazard add: source gm), audited; it returns
+// its id. A row CheckHazard refuses is not kept.
+func (db *SQLiteDB) AddHazardAudited(h Hazard, world int, who GMEdit, detail string) (int64, error) {
+	if err := CheckHazard(h, world); err != nil {
+		return 0, err
+	}
+	if _, err := db.Exec(GMAuditSchema); err != nil {
+		return 0, err
+	}
+	if h.Source == "" {
+		h.Source = "gm"
+	}
+	tx, err := db.Begin()
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback()
+	fillWho(tx, &who)
+	id, err := auditedInsert(tx, who, "hazards", "id", detail,
+		`INSERT INTO hazards (name, world, x1, y1, z1, x2, y2, z2, radius, below, above, damage, every_ms, words, note,
+			source, on_move) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		h.Name, world, h.X1, h.Y1, h.Z1, h.X2, h.Y2, h.Z2, h.Radius, h.Below, h.Above, h.Damage, h.EveryMS, h.Words,
+		h.Note, h.Source, h.OnMove)
+	if err != nil {
+		return 0, err
+	}
+	return id, tx.Commit()
+}
+
+// DeleteHazardAudited deletes hazard id (a GM's /hazard remove), audited; false when there is none.
+func (db *SQLiteDB) DeleteHazardAudited(id int64, who GMEdit, detail string) (bool, error) {
+	if _, err := db.Exec(GMAuditSchema); err != nil {
+		return false, err
+	}
+	tx, err := db.Begin()
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback()
+	fillWho(tx, &who)
+	ok, err := auditedDelete(tx, who, "hazards", "id", id, detail)
+	if err != nil || !ok {
+		return false, err
+	}
+	return true, tx.Commit()
 }

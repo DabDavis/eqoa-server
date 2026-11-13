@@ -231,6 +231,9 @@ type SpellDef struct {
 	// ProcChance and ProcRound are its proc's own chance and its most a round
 	// (EffectRules, weaponproc.go's forms), 0 for the rule of every proc
 	ProcChance, ProcRound int
+	// ProcChanceFrom and ProcChanceMost are its proc's chance by its bearer's DEX in place of ProcChance (a form's of
+	// a weapon whose chance DEX raises: WeaponProc.ChanceFrom), 0 none
+	ProcChanceFrom, ProcChanceMost int
 	// ShareRadius is how far a group's share reaches the caster's group
 	// (ShareGroup: the workbook's radius of the spell), 0 its range
 	ShareRadius float32

@@ -138,6 +138,10 @@ type WeaponProc struct {
 	// Chance is its chance a hit in percent, 0 for the rule by DEX
 	// (weaponProcChancePct); a form's own proc has the same chance.
 	Chance int
+	// ChanceFrom and ChanceMost are a chance by DEX of its own, in place of Chance: ChanceFrom and one more for each
+	// weaponProcDexPer of its bearer's DEX, at most ChanceMost (the owner, 2026-11-13, of the Staff of Faykind: "let
+	// dex raise the chance"); a form's own proc has the same.
+	ChanceFrom, ChanceMost int
 	// Form, Body and Icon are a form's name on the effects list, its body and
 	// its icon; Duration its time. Damage to DamageTo are its own proc's, and
 	// RoundMost the most that proc does in one of its bearer's rounds.
@@ -145,6 +149,9 @@ type WeaponProc struct {
 	Body      uint32
 	Icon      uint32
 	RoundMost int
+	// DurationTo is a form's longest time when it is a range: each proc gives a time from Duration to DurationTo
+	// (the owner, 2026-11-13, of the Staff of Faykind: "form lasts 45-60 secs"); 0 Duration alone
+	DurationTo time.Duration
 	// FormStat and FormStatBy are a stat the form raises while it lasts, by that much
 	// (the Staff of Faykind's fairy form: 15 DEX); Scale and ScalePct a share of its
 	// bearer's stat the form's own proc adds at each proc ("380+70%Dex"), and the
@@ -200,10 +207,18 @@ func (wp *WeaponProc) holdWords() string {
 // chancePct is the chance, in percent, that a hit of a bearer of that DEX procs
 // it.
 func (wp *WeaponProc) chancePct(dex int) int {
+	if wp.ChanceFrom > 0 {
+		return dexChancePct(wp.ChanceFrom, wp.ChanceMost, dex)
+	}
 	if wp.Chance > 0 {
 		return wp.Chance
 	}
 	return weaponProcChancePct(dex)
+}
+
+// dexChancePct is a chance from from and one more for each weaponProcDexPer of dex, at most most.
+func dexChancePct(from, most, dex int) int {
+	return min(from+max(dex, 0)/weaponProcDexPer, max(most, from))
 }
 
 // weaponProcChancePct is the chance, in percent, that a hit procs a weapon of
@@ -259,8 +274,12 @@ var weaponProcsByName = map[string]WeaponProc{
 	// gives you 15 Dex and gives you a 380+70%Dex CR proc"; "Faystaff ...
 	// PROCs are scalable 350-999?, I think is CR based"); until then 400-800,
 	// AR. The owner's "up to 800" a round (2026-11-07) still holds.
-	"staff of faykind": {Kind: ProcForm, Chance: 30, Form: "Pixie Form", Body: 0x94BA77CD, Icon: 0xDE1BC5EC,
-		Duration: 30 * time.Second, Damage: 380, Scale: StatDex, ScalePct: 70, Resist: StatCR, RoundMost: 800,
+	// The owner, 2026-11-13: "make it scale to 800 and let dex raise the chance": 380 + 89% of DEX, 800 at the DEX
+	// cap of 475 (the round's most 800 holds it there), and its chance, the form's and the form's proc's, 20% and one
+	// more for each 20 DEX, at most 45% (30% at 200 DEX, 43% at the cap; until then a flat 30% and 70% of DEX); and
+	// "form lasts 45-60 secs" (until then 30 s), each proc's time drawn anew.
+	"staff of faykind": {Kind: ProcForm, ChanceFrom: 20, ChanceMost: 45, Form: "Pixie Form", Body: 0x94BA77CD, Icon: 0xDE1BC5EC,
+		Duration: 45 * time.Second, DurationTo: 60 * time.Second, Damage: 380, Scale: StatDex, ScalePct: 89, Resist: StatCR, RoundMost: 800,
 		FormStat: StatDex, FormStatBy: 15},
 	// QuestMasters' list (2006): "noroxus spine spear (War, Ran, Pal, and SK):
 	// procs root" (no figure: procRootFor)
@@ -490,10 +509,7 @@ func (wp WeaponProc) String() string {
 	case ProcRestore:
 		s = fmt.Sprintf("%s hit points and %d power to its wielder and group", figure, wp.Power)
 	case ProcForm:
-		long := fmt.Sprintf("%.0f min", wp.Duration.Minutes())
-		if wp.Duration < time.Minute {
-			long = fmt.Sprintf("%.0f s", wp.Duration.Seconds())
-		}
+		long := wp.formLong()
 		if wp.Scale != StatNone && wp.ScalePct != 0 {
 			figure += fmt.Sprintf(" + %d%% of %s", wp.ScalePct, procStatWord(wp.Scale))
 		}
@@ -504,7 +520,8 @@ func (wp WeaponProc) String() string {
 		if wp.FormStat != StatNone && wp.FormStatBy != 0 {
 			form += fmt.Sprintf(" (%+d %s)", wp.FormStatBy, procStatWord(wp.FormStat))
 		}
-		s = fmt.Sprintf("%s for %s, which procs %s at %d%% a hit, at most %d a round", form, long, figure, wp.Chance, wp.RoundMost)
+		chance := wp.formChance()
+		s = fmt.Sprintf("%s for %s, which procs %s at %s a hit, at most %d a round", form, long, figure, chance, wp.RoundMost)
 	case ProcRoot, ProcSnare:
 		s = wp.holdWords()
 	default:
@@ -628,6 +645,33 @@ func (w *World) weaponHoldLocked(sess *session.Session, p *Player, wp *WeaponPro
 	}
 }
 
+// formTime is how long one proc's form lasts: Duration, or a time from it to DurationTo.
+func (wp *WeaponProc) formTime() time.Duration {
+	if wp.DurationTo <= wp.Duration {
+		return wp.Duration
+	}
+	return wp.Duration + time.Duration(procIntn(int((wp.DurationTo-wp.Duration)/time.Second)+1))*time.Second
+}
+
+// formLong is a form's time as #stats and the panel say it: "30 s", "45-60 s", "5 min".
+func (wp *WeaponProc) formLong() string {
+	if wp.DurationTo > wp.Duration {
+		return fmt.Sprintf("%.0f-%.0f s", wp.Duration.Seconds(), wp.DurationTo.Seconds())
+	}
+	if wp.Duration < time.Minute {
+		return fmt.Sprintf("%.0f s", wp.Duration.Seconds())
+	}
+	return fmt.Sprintf("%.0f min", wp.Duration.Minutes())
+}
+
+// formChance is a form proc's chance as #stats and the panel say it.
+func (wp *WeaponProc) formChance() string {
+	if wp.ChanceFrom > 0 {
+		return fmt.Sprintf("%d%% (+1%% each %d DEX, at most %d%%)", wp.ChanceFrom, weaponProcDexPer, wp.ChanceMost)
+	}
+	return fmt.Sprintf("%d%%", wp.Chance)
+}
+
 // formProcLocked gives the wielder the weapon's form, if it procs and the form
 // is not on it already (the file's doc). Must be called with the lock held.
 func (w *World) formProcLocked(sess *session.Session, p *Player, wp *WeaponProc, now time.Time) {
@@ -638,14 +682,16 @@ func (w *World) formProcLocked(sess *session.Session, p *Player, wp *WeaponProc,
 	// the form on: the proc renews its time, nothing else (the file's doc)
 	for _, e := range p.Effects {
 		if e.SpellID == id && now.Before(e.Until) {
-			e.Until = now.Add(wp.Duration)
+			long := wp.formTime()
+			e.Until = now.Add(long)
 			w.broadcastCastLocked(p, p.ServerID, 0, wp.FX)
-			log.Printf("Proc: %s's %q renews its %s for %v", p.Name, wp.Item, wp.Form, wp.Duration)
+			log.Printf("Proc: %s's %q renews its %s for %v", p.Name, wp.Item, wp.Form, long)
 			return
 		}
 	}
 	cs := &castState{spell: CastSpell{SpellID: id, Name: wp.Form, Icon: wp.Icon, Level: p.Level, Def: SpellDef{Target: TargetSelf,
-		Duration: wp.Duration, FormKind: FormSelf, FormModel: wp.Body, ProcChance: wp.Chance, ProcRound: wp.RoundMost,
+		Duration: wp.formTime(), FormKind: FormSelf, FormModel: wp.Body, ProcChance: wp.Chance, ProcRound: wp.RoundMost,
+		ProcChanceFrom: wp.ChanceFrom, ProcChanceMost: wp.ChanceMost,
 		Effects: formEffects(wp)}},
 		caster: p.ServerID, targets: []EntityID{p.ServerID}}
 	w.broadcastCastLocked(p, p.ServerID, 0, wp.FX)

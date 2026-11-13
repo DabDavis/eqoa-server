@@ -39,23 +39,29 @@ func TestFaykindIsTheUsersFigures(t *testing.T) {
 	if !ok {
 		t.Fatal("no proc")
 	}
-	if wp.Kind != ProcForm || wp.Chance != 30 || wp.Duration != 30*time.Second || wp.Damage != 380 || wp.DamageTo != 0 ||
-		wp.Scale != StatDex || wp.ScalePct != 70 || wp.Resist != StatCR || wp.FormStat != StatDex || wp.FormStatBy != 15 ||
+	if wp.Kind != ProcForm || wp.Chance != 0 || wp.ChanceFrom != 20 || wp.ChanceMost != 45 || wp.Duration != 45*time.Second ||
+		wp.DurationTo != 60*time.Second || wp.Damage != 380 || wp.DamageTo != 0 ||
+		wp.Scale != StatDex || wp.ScalePct != 89 || wp.Resist != StatCR || wp.FormStat != StatDex || wp.FormStatBy != 15 ||
 		wp.RoundMost != 800 || wp.FX != fxBuff {
 		t.Errorf("%+v", wp)
 	}
-	if s := wp.String(); !strings.Contains(s, "Pixie Form (+15 DEX) for 30 s") ||
-		!strings.Contains(s, "380 + 70% of DEX CR at 30% a hit, at most 800 a round") {
+	if s := wp.String(); !strings.Contains(s, "Pixie Form (+15 DEX) for 45-60 s") ||
+		!strings.Contains(s, "380 + 89% of DEX CR at 20% (+1% each 20 DEX, at most 45%) a hit, at most 800 a round") {
 		t.Errorf("#stats says %q", s)
 	}
-	if s := wp.Explain(); !strings.Contains(s, "+15 DEX while it lasts") || !strings.Contains(s, "380 + 70% of DEX cold") {
+	if s := wp.Explain(); !strings.Contains(s, "+15 DEX while it lasts") || !strings.Contains(s, "for 45-60 s") ||
+		!strings.Contains(s, "380 + 89% of DEX cold at 20% (+1% each 20 DEX, at most 45%)") {
 		t.Errorf("the panel says %q", s)
 	}
 }
 
 // formProc is what the form's proc does in full on a hit of its bearer as it is now:
 // 380 and 70% of its DEX (the form's 15 in it).
-func (r *procRig) formProc() int { return 380 + r.friend.StatNow(StatDex)*70/100 }
+func (r *procRig) formProc() int { return 380 + r.friend.StatNow(StatDex)*89/100 }
+
+// formChance is the staff's and its form's chance a hit at the bearer's DEX now (the owner, 2026-11-13: "let dex
+// raise the chance"): 20% and one more each 20 DEX, at most 45%.
+func (r *procRig) formChance() int { return dexChancePct(20, 45, r.friend.StatNow(StatDex)) }
 
 // 30% a hit, whatever the wielder's INT (the rule by INT stops at 25): 29 of
 // 100 lands it, 30 does not. It shows the pixies' body for 30 seconds, its
@@ -64,13 +70,17 @@ func TestFaykindGivesTheFormAtThirtyPercent(t *testing.T) {
 	r := faykindRig(t)
 	body, _ := r.friend.Body()
 	dex := r.friend.StatNow(StatDex)
-	procIntn = dice(30)
+	c := r.formChance()
+	if c <= 20 || c > 45 {
+		t.Fatalf("the rig's DEX %d gives a chance of %d", dex, c)
+	}
+	procIntn = dice(c)
 	r.hit()
 	if now, _ := r.friend.Body(); now != body || len(r.friend.Effects) != 0 {
-		t.Fatalf("a roll of 30: body %#x, effects %d", now, len(r.friend.Effects))
+		t.Fatalf("a roll of %d: body %#x, effects %d", c, now, len(r.friend.Effects))
 	}
 	figures(r.fsess)
-	procIntn = dice(29)
+	procIntn = dice(c - 1)
 	before := time.Now()
 	r.hit()
 	if f := figures(r.fsess); len(f) != 1 {
@@ -83,11 +93,11 @@ func TestFaykindGivesTheFormAtThirtyPercent(t *testing.T) {
 		t.Fatalf("effects %d", len(r.friend.Effects))
 	}
 	e := r.friend.Effects[0]
-	if left := e.Until.Sub(before); left < 30*time.Second-time.Second || left > 30*time.Second+time.Second {
-		t.Errorf("it lasts %v", left)
+	if left := e.Until.Sub(before); left < 45*time.Second-time.Second || left > 60*time.Second+time.Second {
+		t.Errorf("it lasts %v, want 45-60 s", left)
 	}
-	if e.Name != "Pixie Form" || e.Proc != 380 || e.ProcMax != 380 || e.ProcScale != StatDex || e.ProcScalePct != 70 ||
-		e.Rules.Resist != StatCR || e.Rules.ProcChance != 30 || e.Rules.ProcRound != 800 {
+	if e.Name != "Pixie Form" || e.Proc != 380 || e.ProcMax != 380 || e.ProcScale != StatDex || e.ProcScalePct != 89 ||
+		e.Rules.Resist != StatCR || e.Rules.ProcChanceFrom != 20 || e.Rules.ProcChanceMost != 45 || e.Rules.ProcRound != 800 {
 		t.Errorf("%+v", e)
 	}
 	if now := r.friend.StatNow(StatDex); now != dex+15 {
@@ -118,8 +128,8 @@ func TestFaykindRenewsOnlyWhenItProcsAgain(t *testing.T) {
 	if len(r.friend.Effects) != 1 || r.friend.Effects[0] != e {
 		t.Fatalf("a proc: effects %+v, want the same one", r.friend.Effects)
 	}
-	if left := e.Until.Sub(before); left < 29*time.Second || left > 31*time.Second {
-		t.Errorf("a proc renewed it to %v, want 30 s", left)
+	if left := e.Until.Sub(before); left < 44*time.Second || left > 61*time.Second {
+		t.Errorf("a proc renewed it to %v, want 45-60 s", left)
 	}
 }
 
@@ -150,15 +160,16 @@ func TestFaykindFormProcsUpToEightHundredARound(t *testing.T) {
 		}
 		return f[1:] // the melee's first
 	}
+	c := r.formChance()
 	// chance, resist; then the staff's own roll is not made: the form is on
-	if f := hit(30, 99); len(f) != 0 {
-		t.Errorf("a roll of 30 procs %v", f)
+	if f := hit(c, 99); len(f) != 0 {
+		t.Errorf("a roll of %d procs %v", c, f)
 	}
 	// resisted: the least it does, 380, which counts against the round
-	if f := hit(29, 0); len(f) != 1 || f[0] != -380 {
+	if f := hit(c-1, 0); len(f) != 1 || f[0] != -380 {
 		t.Errorf("a resisted one procs %v, want its least, 380", f)
 	}
-	if f := hit(29, 99); len(f) != 1 || f[0] != -420 {
+	if f := hit(c-1, 99); len(f) != 1 || f[0] != -420 {
 		t.Errorf("second proc %v, want the 420 left of 800", f)
 	}
 	if f := hit(0, 99); len(f) != 0 {
@@ -235,8 +246,8 @@ func TestFaykindFormIsKeptOverALogout(t *testing.T) {
 		t.Fatalf("restored %d", n)
 	}
 	e := r.friend.Effects[0]
-	if e.Form != 0x94BA77CD || e.Proc != 380 || e.ProcScale != StatDex || e.ProcScalePct != 70 || e.Rules.Resist != StatCR ||
-		e.Mods.Dex != 15 || e.Rules.ProcChance != 30 || e.Rules.ProcRound != 800 {
+	if e.Form != 0x94BA77CD || e.Proc != 380 || e.ProcScale != StatDex || e.ProcScalePct != 89 || e.Rules.Resist != StatCR ||
+		e.Mods.Dex != 15 || e.Rules.ProcChanceFrom != 20 || e.Rules.ProcChanceMost != 45 || e.Rules.ProcRound != 800 {
 		t.Errorf("%+v", e)
 	}
 	if body, _ := r.friend.Body(); body != 0x94BA77CD {
@@ -275,5 +286,34 @@ func TestSteelwindStaffProcsAsTheFaykind(t *testing.T) {
 	}
 	if _, ok := WeaponProcOf(990999, "Steelwind Club", "A club."); ok {
 		t.Fatal("a weapon of no proc procced")
+	}
+}
+
+// The owner, 2026-11-13: "let dex raise the chance" and "form lasts 45-60 secs". 20% at no DEX, one more each 20 DEX,
+// at most 45%; a form's time drawn from 45 to 60 s at each proc, every second of it reachable.
+func TestFaykindChanceByDexAndTimeRange(t *testing.T) {
+	wp, _ := WeaponProcOf(715031, "Staff of Faykind", "")
+	for dex, want := range map[int]int{0: 20, 199: 29, 200: 30, 475: 43, 600: 45, 1000: 45} {
+		if got := wp.chancePct(dex); got != want {
+			t.Errorf("DEX %d: %d%%, want %d%%", dex, got, want)
+		}
+	}
+	defer func(f func(int) int) { procIntn = f }(procIntn)
+	seen := map[time.Duration]bool{}
+	for roll := 0; roll < 20; roll++ {
+		procIntn = dice(roll)
+		d := wp.formTime()
+		if d < 45*time.Second || d > 60*time.Second {
+			t.Fatalf("a roll of %d: %v", roll, d)
+		}
+		seen[d] = true
+	}
+	if !seen[45*time.Second] || !seen[60*time.Second] || len(seen) != 16 {
+		t.Errorf("times reached: %d of 16 (45 s %v, 60 s %v)", len(seen), seen[45*time.Second], seen[60*time.Second])
+	}
+	// the control: a form of one time keeps it
+	one := WeaponProc{Kind: ProcForm, Duration: 30 * time.Second}
+	if d := one.formTime(); d != 30*time.Second {
+		t.Errorf("a fixed form's time %v", d)
 	}
 }

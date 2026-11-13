@@ -645,7 +645,12 @@ or a castle's hall), out of the water, no creature within 40 by where it stands 
 orc tunnel). A level 60 GM landing in the Deathfist Citadel's middle died in three seconds; beside it
 a roamer still comes by. Without the ground files every camp lands on its anchor. `#goto <camp>` and
 the GM panel's teleport list take them too. Run the tool again (it gofmts its output) after moving a
-camp's creatures.
+camp's creatures. **The map's other camps** (2026-11-13, the owner: "add more xp camps to the map"): `--map-out
+internal/handlers/mapcamps.go` places EQOA-Data's 334 un-noted camps the same way (points of a name within 400 one camp,
+creatures by `MAP_KINDS` or the name's words, anchored only within 400 of the point, 900 in Odus; a camp within 300 of a
+`#tele` camp's anchor and of its kind is that camp; generic or repeated names take the map's zone, then a side), WITHOUT
+rewriting camps.go: 154 (Tunaria 137, Odus 17). They are the maps' alone (`mapCamps`, `MapCampMarkers`: the GM panel's
+`map_layers`, vanilla's map): never `#tele`, the Teleporter or `CampMarkers` (camp reports' place names).
 
 **A GM's marks become camps and paths** (`handlers/gmcamps.go`, `database/gmcamps.go`, `entity/campspawn.go`;
 the GM Jibrish setting up XP camps, 2026-11-08: "maybe a command to capture multiple points? so i can go HERE,

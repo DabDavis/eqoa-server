@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"sort"
+	"strings"
 
 	"github.com/eqoa/server/internal/entity"
 )
@@ -28,10 +29,28 @@ type campRare struct {
 	Drops []string
 }
 
+// mapCamp is one of EQOA-Data's map's other camps (mapcamps.go, written by
+// tools/gen_camp_teles.py --map-out): for the maps alone, never a #tele
+// shortcut or a Teleporter camp. Name is the one it is shown by (the map's,
+// its zone added where that alone would not tell it apart), Map the map's
+// name or names for it, Guide the map's level range ("" where it writes none).
+type mapCamp struct {
+	Name, Map, Zone, Label string
+	NPC                    string
+	X, Y, Z                float32
+	World                  uint8
+	Levels, Guide          string
+	MapX, MapY             float32
+	Creatures              []string
+	Rare                   []campRare
+}
+
 // CampMarker is an XP camp for a map.
 type CampMarker struct {
-	Key       string   // what #tele takes
+	Key       string   // what #tele takes; a map camp's own key (Tele false)
 	Aliases   []string // other names #tele takes
+	Tele      bool     // a #tele camp (campDests); else one of the map's (mapCamps)
+	Name      string   // a map camp's name as shown (its Label says where)
 	Label     string
 	Levels    string // the camp's creatures' here
 	Guide     string // EQOA-Data's guide's
@@ -64,7 +83,7 @@ func CampMarkers(gw *entity.World, world int) []CampMarker {
 		if world >= 0 && int(d.World) != world {
 			continue
 		}
-		m := CampMarker{Key: key, Label: d.Label, Levels: d.Levels, World: d.World, X: d.X, Y: d.Y, Z: d.Z, Fallback: true}
+		m := CampMarker{Key: key, Tele: true, Label: d.Label, Levels: d.Levels, World: d.World, X: d.X, Y: d.Y, Z: d.Z, Fallback: true}
 		if a := aliases[key]; len(a) > 0 {
 			sort.Strings(a)
 			m.Aliases = a
@@ -86,17 +105,56 @@ func CampMarkers(gw *entity.World, world int) []CampMarker {
 	return out
 }
 
-// CampMarkerOf is one camp by the name #tele takes (an alias too).
+// MapCampMarkers are CampMarkers and the map's other camps (mapCamps) of
+// world (every world's when world < 0), by key: what a map draws. A map camp
+// follows its anchor as a #tele camp does.
+func MapCampMarkers(gw *entity.World, world int) []CampMarker {
+	out := append(CampMarkers(gw, world), mapCampMarkers(gw, world)...)
+	sort.Slice(out, func(i, j int) bool { return out[i].Key < out[j].Key })
+	return out
+}
+
+func mapCampMarkers(gw *entity.World, world int) []CampMarker {
+	var out []CampMarker
+	for key, c := range mapCamps {
+		if world >= 0 && int(c.World) != world {
+			continue
+		}
+		m := CampMarker{Key: key, Name: c.Name, Label: c.Label, Levels: c.Levels, Guide: c.Guide, World: c.World,
+			X: c.X, Y: c.Y, Z: c.Z, Fallback: true, Creatures: c.Creatures}
+		if gw != nil {
+			if x, y, z, _, w, ok := gw.SpawnOfNPCNear(c.NPC, c.World, c.X, c.Z, campAnchorReach); ok {
+				m.X, m.Y, m.Z, m.World, m.Fallback = x, y, z, w, false
+			}
+		}
+		for _, r := range c.Rare {
+			m.Rare = append(m.Rare, CampRare{Name: r.Name, Level: r.Level, Drops: r.Drops})
+		}
+		out = append(out, m)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Key < out[j].Key })
+	return out
+}
+
+// CampMarkerOf is one camp by the name #tele takes (an alias too), else a map
+// camp by its key.
 func CampMarkerOf(gw *entity.World, name string) (CampMarker, bool) {
-	key, _, ok := findTeleDest(name)
+	if key, _, ok := findTeleDest(name); ok {
+		if _, camp := campDests[key]; camp {
+			for _, m := range CampMarkers(gw, -1) {
+				if m.Key == key {
+					return m, true
+				}
+			}
+		}
+	}
+	k := strings.ToLower(strings.TrimSpace(name))
+	c, ok := mapCamps[k]
 	if !ok {
 		return CampMarker{}, false
 	}
-	if _, camp := campDests[key]; !camp {
-		return CampMarker{}, false
-	}
-	for _, m := range CampMarkers(gw, -1) {
-		if m.Key == key {
+	for _, m := range mapCampMarkers(gw, int(c.World)) {
+		if m.Key == k {
 			return m, true
 		}
 	}

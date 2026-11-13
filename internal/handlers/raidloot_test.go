@@ -274,7 +274,7 @@ func TestNeedBeforeGreedHoldsTheRulesItems(t *testing.T) {
 	}
 	m := rolls[0]
 	id := binary.LittleEndian.Uint32(m[2:])
-	if secs := binary.LittleEndian.Uint16(m[6:]); secs != 120 || m[8]&1 == 0 || id == 0 {
+	if secs := binary.LittleEndian.Uint16(m[6:]); secs != 135 || m[8]&1 == 0 || id == 0 {
 		t.Fatalf("roll %d: %d s, flags %x", id, secs, m[8])
 	}
 	rd := buffer.NewReader(m[9:])
@@ -409,7 +409,7 @@ func TestNeedGoesByTheEquipRules(t *testing.T) {
 
 // A winner with a full pack is told; the item waits for it alone, out of everyone's
 // window; its opening the corpse puts it in its pack and opens no window; past five
-// minutes it is anyone's (the control). A roll no one answers ends at 120 s.
+// minutes it is anyone's (the control). A roll no one answers ends at raidRollFor.
 func TestAWonItemWaitsForItsWinner(t *testing.T) {
 	r := newRaidLootRig(t, 3)
 	r.item("Fine Steel Sword", 1, 12, 0, 5, 0, 1)
@@ -425,7 +425,7 @@ func TestAWonItemWaitsForItsWinner(t *testing.T) {
 	r.now = r.now.Add(raidRollFor) // the others never answer
 	r.f.h.RaidTick(r.now)
 	if r.rollOf("Fine Steel Sword") != nil {
-		t.Fatal("the roll outlived its 120 s")
+		t.Fatal("the roll outlived its time")
 	}
 	if l := r.lines(1); !raidSaid(l, "your pack is full") || !raidSaid(l, "Rb wins Fine Steel Sword with Need 40.") {
 		t.Fatalf("the winner heard %q", l)
@@ -663,5 +663,78 @@ func TestHelpListsTheRaidsCommands(t *testing.T) {
 	}
 	if m := missing(cut); len(m) != 1 || m[0] != "/raidkick" {
 		t.Fatalf("the control: %v", m)
+	}
+}
+
+// More than two items roll at once, each its own roll and window (petition 1939: "does nothing
+// beyond 2 items"), every one for raidRollFor (125 s) and 10 s more for each other one: three
+// items, 145 s each, three windows to a window client and three offers to a PS2. A second kill's
+// two rolls while those are open: 125 + 4 x 10 = 165 s for them, and 20 s more for each of the
+// first three, sent again to the seats still to choose.
+func TestRollsTakeTenSecondsMoreForEachRolledWithThem(t *testing.T) {
+	r := newRaidLootRig(t, 3)
+	r.item("Fine Steel Sword", 1, 12, 0, 5, 0, 1)
+	r.item("Ring of Vox", 1, 7, 1, 0, 0, 1)
+	r.item("Shield of Vox", 1, 7, 1, 0, 0, 1)
+	r.windows[r.sess[1]] = true
+	r.kill(entity.LootNeedGreed)
+	var secs []int
+	for _, m := range r.msgs(1) {
+		if opOf(m) == protocol.OpcodeRaidRoll {
+			secs = append(secs, int(binary.LittleEndian.Uint16(m[6:])))
+		}
+	}
+	if fmt.Sprint(secs) != "[145 145 145]" {
+		t.Fatalf("a window client's three rolls: %v s, want 145 each", secs)
+	}
+	l := r.lines(2)
+	for _, n := range []string{"Fine Steel Sword", "Ring of Vox", "Shield of Vox"} {
+		x := r.rollOf(n)
+		if x == nil || !x.ends.Equal(r.now.Add(145*time.Second)) || !raidSaid(l, fmt.Sprintf("Roll %d: %s.", x.id, n)) {
+			t.Fatalf("%s: roll %+v; the PS2's lines %q", n, x, l)
+		}
+	}
+	if !raidSaid(l, "Need, Greed or Pass within 145 seconds.") {
+		t.Errorf("the announcement: %q", l)
+	}
+
+	// a second kill's two, ten seconds later: Rb has chosen on the sword, so only the ring and the
+	// shield are sent to it again
+	sword := r.rollOf("Fine Steel Sword")
+	r.dice = []int{40}
+	r.f.h.RaidRollChoice(r.sess[1], sword.id, rollGreed)
+	r.drain()
+	r.now = r.now.Add(10 * time.Second)
+	ls := r.f.h.loots()
+	ls.mu.Lock()
+	var two []*lootRoll
+	other := &heldItem{rec: sword.item.rec}
+	other.rec.Pattern.ItemName = "Second Kill's Item"
+	for _, id := range []int{900, 901} {
+		x := &lootRoll{id: id, group: 1, item: other, seats: sword.seats}
+		ls.rolls[id] = x
+		two = append(two, x)
+	}
+	got := r.f.h.rollTimesLocked(ls, 1, two, r.now)
+	ls.mu.Unlock()
+	if got != 165*time.Second || !two[0].ends.Equal(r.now.Add(got)) {
+		t.Errorf("the second kill's rolls: %s, ending %s after now", got, two[0].ends.Sub(r.now))
+	}
+	for _, n := range []string{"Fine Steel Sword", "Ring of Vox", "Shield of Vox"} {
+		if x := r.rollOf(n); x.ends.Sub(r.now) != 155*time.Second {
+			t.Errorf("%s: %s left, want 135 + 20", n, x.ends.Sub(r.now))
+		}
+	}
+	secs = secs[:0]
+	for _, m := range r.msgs(1) {
+		if opOf(m) == protocol.OpcodeRaidRoll {
+			secs = append(secs, int(binary.LittleEndian.Uint16(m[6:])))
+		}
+	}
+	if fmt.Sprint(secs) != "[155 155]" {
+		t.Errorf("sent again to Rb: %v, want the ring's and the shield's 155 s", secs)
+	}
+	if l := r.lines(2); len(l) != 3 || !raidSaid(l, "155 seconds now to choose.") {
+		t.Errorf("the PS2 told: %q", l)
 	}
 }

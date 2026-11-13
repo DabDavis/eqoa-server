@@ -2784,7 +2784,7 @@ second). A voluntary leave keeps none. **The loot rules** (`handlers/raidloot.go
 another. A raid's kill (`KillCredit.Raid`, credited to a member) under **need before greed** is rolled at its death for the highest seat's
 level, and each item the rules cover (`raidCovers`: never a stackable or vendor trash; a no trade item, an item with stats, or anything else
 a raid boss drops) comes off the corpse and is offered to its seats (members within `KillShareRange` 200, alive or dead, and the claims):
-Need by the equip rules (`cannotWear`, `scrollRefusal`), Greed, or Pass, 120 s; a choice rolls 0-100 at once, said in raid chat; when all
+Need by the equip rules (`cannotWear`, `scrollRefusal`), Greed, or Pass, 125 s and 10 s more for each other roll of the raid open with it, older ones gaining 10 s for each new one (`rollTimesLocked`, petition 1939); a choice rolls 0-100 at once, said in raid chat; when all
 chose or time is up (no choice a pass) the highest Need wins, else the highest Greed, a tie rolling again between the tied; no roll leaves it
 on the corpse for anyone. The winner's item goes to its pack at once when there is room, else it waits for the winner alone for 5 minutes
 and its opening the corpse then puts it in the pack (or says the pack is full) and opens no window; then it is anyone's. **A raid boss**

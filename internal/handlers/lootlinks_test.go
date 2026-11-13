@@ -152,7 +152,7 @@ func TestRaidRollLinesLinkTheItem(t *testing.T) {
 	sword := r.rollOf("Fine Steel Sword")
 	rgb := func(text string) []byte { return coloredChatPayload(text, raidR, raidG, raidB) }
 
-	ann := "Need before greed on Lady Vox's loot: Fine Steel Sword, Ring of Vox. Need, Greed or Pass within 120 seconds."
+	ann := "Need before greed on Lady Vox's loot: Fine Steel Sword, Ring of Vox. Need, Greed or Pass within 135 seconds."
 	vMsgs, pMsgs := r.msgs(1), r.msgs(2)
 	if !plainHas(t, pMsgs, rgb(ann)) {
 		t.Fatalf("the PS2's announcement: %q", raidLinesOf(pMsgs))
@@ -163,11 +163,11 @@ func TestRaidRollLinesLinkTheItem(t *testing.T) {
 	}
 	swordLink := spans[0].id
 	// the roll offered by line, to a client without windows
-	offer := fmt.Sprintf("Roll %d: Fine Steel Sword. /t need %d, /t greed %d or /t pass %d within 120 seconds.", sword.id, sword.id, sword.id, sword.id)
-	if offer != rollOfferLine(sword, sword.seats[1]) {
-		t.Fatalf("the offer's words: %q", rollOfferLine(sword, sword.seats[1]))
+	offer := fmt.Sprintf("Roll %d: Fine Steel Sword. /t need %d, /t greed %d or /t pass %d within 135 seconds.", sword.id, sword.id, sword.id, sword.id)
+	if offer != rollOfferLine(sword, sword.seats[1], r.now) {
+		t.Fatalf("the offer's words: %q", rollOfferLine(sword, sword.seats[1], r.now))
 	}
-	if !plainHas(t, pMsgs, rgb(fmt.Sprintf("Roll %d: Fine Steel Sword. /t need %d, /t greed %d or /t pass %d within 120 seconds.", sword.id, sword.id, sword.id, sword.id))) {
+	if !plainHas(t, pMsgs, rgb(fmt.Sprintf("Roll %d: Fine Steel Sword. /t need %d, /t greed %d or /t pass %d within 135 seconds.", sword.id, sword.id, sword.id, sword.id))) {
 		t.Fatal("the PS2's offer")
 	}
 	if sp, in := linkedOnly(t, vMsgs, fmt.Sprintf("Roll %d: Fine Steel Sword.", sword.id)); !bytes.Equal(in, rgb(offer)) || sp[0].id != swordLink {

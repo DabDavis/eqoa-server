@@ -713,12 +713,10 @@ func (h *ClassMasteryHandler) resetMasteries(who *session.Session) cmReset {
 		}
 	}
 	list := h.gameWorld.CMList(who, h.cmKnowsOf(p))
+	out, back := entity.CMRemovalBook(h.ranksOf(res.Removed), nil) // the ranks as one (entity.CMRemovalBook)
+	h.takeAbilities(who, p, out)
+	h.giveAbilities(who, p, back)
 	for i, id := range res.Removed {
-		if r := h.gameWorld.CMRankByID(id); r != nil {
-			gives, takes := r.BookChange()
-			h.takeAbilities(who, p, gives)
-			h.giveAbilities(who, p, takes)
-		}
 		flags := flagsLastOf(i, len(res.Removed), list)
 		queueReliable(who, protocol.OpcodeClassMasteryServer, cmBig(func(w *buffer.Writer) {
 			w.WriteByte(cmRespRemoved)
@@ -730,6 +728,17 @@ func (h *ClassMasteryHandler) resetMasteries(who *session.Session) cmReset {
 	queueReliable(who, protocol.OpcodeClassMasteryServer, cmPoints(res.Mastery))
 	SendColoredChat(who, MasteryResetText, 255, 255, 0)
 	log.Printf("GM: masteries of '%s' reset, %d ranks, %d points back (%s)", p.Name, len(res.Removed), res.Paid, entity.MasteryLine(res.Mastery))
+	return out
+}
+
+// ranksOf is the catalog's ranks of the ids (one it lacks left out).
+func (h *ClassMasteryHandler) ranksOf(ids []int) []*entity.CMRank {
+	var out []*entity.CMRank
+	for _, id := range ids {
+		if r := h.gameWorld.CMRankByID(id); r != nil {
+			out = append(out, r)
+		}
+	}
 	return out
 }
 
@@ -773,13 +782,9 @@ func (h *ClassMasteryHandler) ResetOffline(serverID uint32, name string) string 
 		return fmt.Sprintf("%s's masteries not reset: %v", name, err)
 	}
 	if h.gameWorld != nil {
-		for _, id := range ids {
-			if r := h.gameWorld.CMRankByID(id); r != nil {
-				gives, takes := r.BookChange()
-				h.takeAbilitiesFrom(nil, serverID, gives)
-				h.giveAbilitiesTo(nil, serverID, name, takes)
-			}
-		}
+		out, back := entity.CMRemovalBook(h.ranksOf(ids), nil) // the ranks as one (entity.CMRemovalBook)
+		h.takeAbilitiesFrom(nil, serverID, out)
+		h.giveAbilitiesTo(nil, serverID, name, back)
 	}
 	log.Printf("GM: masteries of '%s' (offline) reset, %d ranks, %d points back (%s)", name, len(ids), back, entity.MasteryLine(PlayerMastery(m)))
 	return fmt.Sprintf("%s (not in the world: at the next login): %d masteries taken away, %d points back: %s",

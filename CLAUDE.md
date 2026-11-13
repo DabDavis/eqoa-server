@@ -2357,7 +2357,8 @@ healer: cleric, druid, shaman; a tank: warrior, paladin, shadow knight; a melee 
 caster: magician, necromancer, enchanter, wizard, alchemist), the class, a race ("Like me", the owner's own race and sex;
 the game's ten by fives; with `world.open_races` the froglok and every racedefs race creation offers, five a box) and a
 sex where the race has two bodies. Any race takes any class. Free, one a character: a new hire takes the place of the
-old. The hire is kept in table **`charmerc`** (name, class, race, sex, face and hair, stance, the end of a death's rest)
+old. (Since: three slots; **the same class may be hired up to three times**, petition 1920, which lifted the
+owner's 2026-11-12 "only 1 of each class".) The hire is kept in table **`charmerc`** (name, class, race, sex, face and hair, stance, the end of a death's rest)
 until dismissed, and a character's deletion drops it.
 
 **Since 2026-11-11 a liaison is the Mercenary Recruitment board** (the owner: "change mercenary liason NPC to a Bulletin
@@ -2409,7 +2410,9 @@ hurt and 70% of its power; a caster keeps its power for its best hit: a lesser s
 best). It never casts a summoning, charm, illusion, gate, resurrection, invisibility, run speed, cure, stance, lull,
 pickpocket, a reagent's or an item's spell, a backstab, a spell for animals or summoned creatures alone, a harmful area
 spell, or a pure debuff; a spell for undead alone only at undead. Its damage over time ticks as its hits
-(`ActiveEffect.merc`, `mercTickLocked`).
+(`ActiveEffect.merc`, `mercTickLocked`). **A wizard merc's spells do 65% of their damage** (hits and ticks: `mercSpellPct`,
+`mercSpellShare`; the GM Jibwiz's petition 1907, "Nerf the damage per cast on the mercenary wizard by 35%"); a
+player wizard's are untouched.
 
 **A player's own fights** (`entity/ownfight.go`, the GM Jibrish's petition 1491: "Correct it so mercenarys and healbot did not
 assist you in duels, pvp, or for mr moogies challenge"): `ownFightLocked` is a player flagged for PvP, in a duel that is on, or

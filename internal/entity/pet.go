@@ -730,6 +730,14 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 		pet.endRound()
 		w.sendChatToSession(sess, "Your pet backs off.")
 	case petCmdAttack:
+		switch pet.sheet.familiar() { // a wizard's familiar is told nothing (petition 1952), a duel's foe neither
+		case familiarPlain:
+			w.sendChatToSession(sess, petCannotAttack) // permanently passive
+			return
+		case familiarGuardian:
+			w.sendChatToSession(sess, guardianOnlyDefends) // it fights what hits it or its master alone
+			return
+		}
 		ent, ok := w.findEntityByObjectIDLocked(sess, target)
 		if ok && (w.duelPetCommandLocked(ps, ent) || w.pvpPetCommandLocked(ps, ent)) { // its owner's duel opponent (duelfight.go), or a foe (pvp.go)
 			w.sendChatToSession(sess, "Your pet attacks "+entityNameLocked(ent)+".")
@@ -785,7 +793,9 @@ func (w *World) petStandsDownLocked(ps *petState) {
 // Sandstorm's red "Out of range." a cast's, castOutOfRange), nor does a recording.
 const (
 	petCannotAttack = "Your pet cannot attack that."
-	petTargetTooFar = "Your target is too far away."
+	// guardianOnlyDefends answers an attack command to a wizard's guardian (petition 1952)
+	guardianOnlyDefends = "Your guardian only defends: it fights what strikes it or you."
+	petTargetTooFar     = "Your target is too far away."
 )
 
 // petStanceRefused is the line for a stance a workbook pet does not take.
@@ -1056,6 +1066,10 @@ func (w *World) petChooseTargetLocked(ps *petState, now time.Time) {
 	if ps.stance == petPassive || now.Before(ps.heldUntil) || !pet.petFights() {
 		return
 	}
+	if pet.sheet.familiar() == familiarGuardian {
+		w.guardianChooseLocked(ps) // only what hits it or its master (petition 1952)
+		return
+	}
 	if ps.stance == petAggressive {
 		if t := w.NPCs[owner.AttackTarget]; owner.Attacking() && petMayFight(pet, t) {
 			ps.target = t.ServerID
@@ -1079,6 +1093,28 @@ func (w *World) petChooseTargetLocked(ps *petState, now time.Time) {
 			mine = mine || hurt
 		}
 		if !mine {
+			continue
+		}
+		if d := distXZ(pet.X, pet.Z, npc.X, npc.Z); best == nil || d < bestD {
+			best, bestD = npc, d
+		}
+	}
+	if best != nil {
+		ps.target = best.ServerID
+	}
+}
+
+// guardianChooseLocked is a wizard's guardian's choice of a fight (petition 1952: the
+// mastery's familiar attacks "when hit only"): out of passive, the nearest creature in
+// reach fighting the guardian itself or its master, nothing else (no group's fight, no
+// fight of its master's own choosing). Must be called with the lock held.
+func (w *World) guardianChooseLocked(ps *petState) {
+	owner, pet := ps.owner, ps.npc
+	var best *NPC
+	var bestD float32
+	for _, id := range w.SpatialIndex.QueryRadius(owner.X, owner.Z, petAssist) {
+		npc := w.NPCs[id]
+		if !petMayFight(pet, npc) || npc.CurrentEnemy != pet.ServerID && npc.CurrentEnemy != owner.ServerID {
 			continue
 		}
 		if d := distXZ(pet.X, pet.Z, npc.X, npc.Z); best == nil || d < bestD {

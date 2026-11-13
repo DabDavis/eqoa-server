@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/eqoa/server/internal/database"
@@ -418,9 +419,43 @@ func petSheetStance(s *petSheet) petStance {
 }
 
 // petFights is whether the pet takes a fight at all: not a workbook
-// non-combat pet's.
+// non-combat pet's, nor a wizard's familiar (petition 1952).
 func (n *NPC) petFights() bool {
-	return n.sheet == nil || n.sheet.Type != database.PetTypeNonCombat
+	return n.sheet == nil || n.sheet.Type != database.PetTypeNonCombat && n.sheet.familiar() != familiarPlain
+}
+
+// A wizard's familiar as petition 1952 has it (the GM Jibwiz, 2026-11-13: "Only the CM
+// upgraded version of wizard familiars should attack when hit only. The default spell
+// summoned familiar was permanently passive"): the familiar line's pets (Minor, Lesser,
+// Greater, Elder and Arch Familiar, the Gargoyle Familiar: their rows' stances passive
+// alone) fight nothing, told or not; the guardians the masteries make of them (Guardian
+// Familiar 1-5's Lesser to Arch Guardian, the Gargoyle Guardian) fight only a creature
+// hitting them or their master (petChooseTargetLocked), never when told to, never in
+// another's fight. Told by their rows' names, the familiar line's own words.
+const (
+	familiarNone     = iota // any other pet
+	familiarPlain           // the spell's familiar: permanently passive
+	familiarGuardian        // the mastery's guardian: defends when hit
+)
+
+// familiar is which of a wizard's familiars the row is (familiarNone for any other).
+func (s *petSheet) familiar() int {
+	if s == nil {
+		return familiarNone
+	}
+	words := strings.Fields(strings.ToLower(s.Name))
+	if len(words) == 0 || len(words) > 2 {
+		return familiarNone
+	}
+	switch words[len(words)-1] {
+	case "familiar":
+		return familiarPlain
+	case "guardian":
+		if s.Element == "arcane" { // the wizard's (no other pet row is an arcane guardian)
+			return familiarGuardian
+		}
+	}
+	return familiarNone
 }
 
 // petResistShare is the share of a creature's spell of the element a

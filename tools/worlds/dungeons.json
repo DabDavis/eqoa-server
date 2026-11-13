@@ -208,15 +208,15 @@
         ]
       ],
       "entrance": {
-        "x": 22700,
+        "x": 22496.5,
         "y": 54.1,
-        "z": 8950,
+        "z": 8810.8,
         "toward": [
-          22700,
-          8850
+          22595.7,
+          8823.0
         ]
       },
-      "note": "south of the walled compound, 104 from the nearest creature"
+      "note": "the owner, 2026-11-13: players start where Dust stood (22496.5, 54.1, 8810.8), facing as he did"
     },
     {
       "key": "vox",

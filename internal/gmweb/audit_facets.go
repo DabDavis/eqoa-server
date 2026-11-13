@@ -141,7 +141,7 @@ var (
 		"auction_notices": "characters", "guilds": "characters", "importdamper_log": "characters",
 		"chartransfers": "transfers", "petitions": "petitions",
 		"accountinfo": "accounts", "gm_testers": "accounts", "gm_storytellers": "accounts", "gm_totp": "accounts",
-		"gmtriggers": "triggers", "orbs": "world", "mapmarks": "world", "racedefs": "world",
+		"gmtriggers": "triggers", "orbs": "world", "hazards": "world", "mapmarks": "world", "racedefs": "world",
 		"racesize": "world", "racearmorbody": "world", "guide_set_log": "world",
 		"gmcamps": "camps", "campspawns": "camps", "gmmarks": "camps", "campfix_reports": "camps",
 	}

@@ -193,7 +193,7 @@ func (ps *petState) petAbilityClocks(foe EntityID, now time.Time) *templateFight
 func petAtFoe(kind string) bool {
 	switch kind {
 	case database.AbilityNuke, database.AbilityAoE, database.AbilityLifetap, database.AbilityTaunt, database.AbilityRoot,
-		database.AbilityDoT:
+		database.AbilityDoT, database.AbilityDebuff:
 		return true
 	}
 	return false
@@ -230,9 +230,9 @@ func (w *World) petTemplateTurnLocked(ps *petState, t *NPC, now time.Time) bool 
 	}
 	for i := range abilities {
 		a := &abilities[i]
-		if a.Chain || now.Before(f.next[i]) || ps.npc.Level < a.From || petShareHeal(a) || a.Kind == database.AbilityDebuff ||
-			a.Kind == database.AbilityStrip {
-			continue // a debuff and a strip are a creature's, at a player (a strip at a pet too)
+		if a.Chain || now.Before(f.next[i]) || ps.npc.Level < a.From || petShareHeal(a) || a.Kind == database.AbilityStrip ||
+			a.Kind == database.AbilityDebuff && ps.npc.Charm != nil {
+			continue // a strip is a creature's, at a player or a pet; a charmed creature's debuff its own, at a player
 		}
 		if petAtFoe(a.Kind) && t == nil {
 			continue
@@ -373,7 +373,7 @@ func (w *World) petWantsLocked(ps *petState, a *templateAbility, now time.Time) 
 	case database.AbilityRoot:
 		t := w.NPCs[ps.target] // not again on what its root still holds
 		return t != nil && !t.rooted(now)
-	case database.AbilityDoT:
+	case database.AbilityDoT, database.AbilityDebuff:
 		// kept up: again once the one on its target is about to run out
 		t := w.NPCs[ps.target]
 		s := a.spellFor(petSpellClass(a, ps.npc), ps.npc.Level)
@@ -691,6 +691,52 @@ func (w *World) petRootLocked(ps *petState, t *NPC, spell *CastSpell, now time.T
 	}
 }
 
+// petDebuffLocked lands a summoned pet's debuff (AbilityDebuff; the magician
+// Waldorf's ticket 2001, of the Ghilan Noble: "casts a debuff on the mob. That
+// was one of the first spells she would use"): the stats and resists its
+// spell's lines take off (the negative ones, by their figures) lowered on its
+// target for the spell's time, as a player's debuff on a creature is (an effect
+// of the spell's: a resist taken off counts in what the creature resists,
+// workbook.go's npcResistKindPct, its stats in its fights, pet.go's
+// creatureMods), its owner's pets' earlier one of the spell replaced; and the
+// creature angered at the pet (a hostile act, as its hit is: a point of hate).
+// Never resisted, as a pet's nuke is not (ours). No time, nothing. Must be
+// called with the lock held.
+func (w *World) petDebuffLocked(ps *petState, t *NPC, spell *CastSpell, now time.Time) {
+	pet, d := ps.npc, &spell.Def
+	if d.Duration <= 0 || t.duelHeld() {
+		return
+	}
+	var loss StatMods
+	for _, e := range d.Effects {
+		if e.Kind == EffectStat && e.Amount < 0 && !e.Self {
+			loss.add(e.Stat, e.Amount)
+		}
+	}
+	if loss == (StatMods{}) {
+		return
+	}
+	owner := ps.owner.ServerID
+	keep := t.Effects[:0]
+	for _, e := range t.Effects {
+		if e.pet == 0 || e.SpellID != spell.SpellID || e.Caster != owner {
+			keep = append(keep, e)
+		}
+	}
+	for i := len(keep); i < len(t.Effects); i++ {
+		t.Effects[i] = nil
+	}
+	t.Effects = append(keep, &ActiveEffect{SpellID: spell.SpellID, Name: spell.Name, Icon: spell.Icon, Caster: owner,
+		Until: now.Add(d.Duration), Mods: loss, Line: BuffLine(spell), Rank: lineRank(spell), pet: pet.ServerID})
+	t.syncEffectMaxHP()
+	if w.affected == nil {
+		w.affected = make(map[EntityID]*NPC)
+	}
+	w.affected[t.ServerID] = t
+	w.updateAggro(t, pet.ServerID, 1)
+	log.Printf("Pet: %s's %q debuffs %s with %q for %v: %+v", ps.owner.Name, pet.Name, t.Name, spell.Name, d.Duration, loss)
+}
+
 // petDrainStatsLocked lands what a pet's drain takes of its target's stats
 // (the workbook's Undead Bane, its necromancer's pets from 30: STR and AC
 // taken and given to the pet for a minute; the user, 2026-11-01:
@@ -940,6 +986,13 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 		}
 		pet.LastCombatTime = now
 		w.petRootLocked(ps, t, c.spell, now)
+	case database.AbilityDebuff:
+		t := w.NPCs[c.target]
+		if t == nil || t.Dead || t.World != pet.World {
+			return
+		}
+		pet.LastCombatTime = now
+		w.petDebuffLocked(ps, t, c.spell, now)
 	case database.AbilityHeal:
 		n := petHealFigure(c.spell, a)
 		if pet.sheet != nil {

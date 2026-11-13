@@ -457,6 +457,16 @@ type TemplateAbility struct {
 	// one it fights alone).
 	SetHP  int     `json:"set_hp,omitempty"`
 	Radius float64 `json:"radius,omitempty"`
+	// Tick, TickAtCap and TickFor are a sethp's damage over time on everyone
+	// it reaches (the owner, 2026-11-13: the dreadnaught's "aoe that debuffs
+	// to 700hp also has a damage over time ticks 650 with no CR, with max CR
+	// is ticking around 80"): Tick hit points a tick at no resist (0: none),
+	// TickAtCap at a resist (Resist) at the cap (ResistCap's 315; 0: the
+	// server's share there, 90%), in proportion between, every tick (6 s)
+	// for TickFor seconds (0: 24, a tick line's with no time).
+	Tick      int     `json:"tick,omitempty"`
+	TickAtCap int     `json:"tick_at_cap,omitempty"`
+	TickFor   float64 `json:"tick_for,omitempty"`
 }
 
 // RangeOr is an out-of-reach ability's reach: its own, else
@@ -652,8 +662,8 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 			}
 			continue
 		}
-		if a.SetHP != 0 || a.Radius != 0 {
-			return fmt.Errorf("ability %d: set_hp and radius are a sethp's", n)
+		if a.SetHP != 0 || a.Radius != 0 || a.Tick != 0 || a.TickAtCap != 0 || a.TickFor != 0 {
+			return fmt.Errorf("ability %d: set_hp, radius and a tick are a sethp's", n)
 		}
 		if err := checkKindFields(n, a); err != nil {
 			return err
@@ -808,8 +818,14 @@ func checkBossMoment(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: a sethp's set_hp %d: 1 to 1000000 hit points (it never kills)", n, a.SetHP)
 	case a.Kind == AbilitySetHP && (a.Radius < 0 || a.Radius > MostSetHPRadius):
 		return fmt.Errorf("ability %d: a sethp's radius %.1f: 0 (the one it fights) to %d", n, a.Radius, MostSetHPRadius)
-	case a.Kind != AbilitySetHP && (a.SetHP != 0 || a.Radius != 0):
-		return fmt.Errorf("ability %d: set_hp and radius are a sethp's", n)
+	case a.Kind != AbilitySetHP && (a.SetHP != 0 || a.Radius != 0 || a.Tick != 0 || a.TickAtCap != 0 || a.TickFor != 0):
+		return fmt.Errorf("ability %d: set_hp, radius and a tick are a sethp's", n)
+	case !finite(a.TickFor) || a.Tick < 0 || a.Tick > 1000000 || a.TickAtCap < 0 || a.TickAtCap > a.Tick || a.TickFor < 0 || a.TickFor > 600:
+		return fmt.Errorf("ability %d: a tick of %d (1 to 1000000), at the cap %d (0 to its tick), for %.1f s (0 to 600)", n, a.Tick, a.TickAtCap, a.TickFor)
+	case a.Tick == 0 && (a.TickAtCap != 0 || a.TickFor != 0):
+		return fmt.Errorf("ability %d: tick_at_cap and tick_for are a tick's", n)
+	case !shieldResistKnown(a.Resist) || a.Resist != "" && a.Tick == 0:
+		return fmt.Errorf("ability %d: resist %q: FR, CR, LR, AR, PR or DR, and a sethp's tick's alone", n, a.Resist)
 	case len(a.Name) > StripNameMost:
 		return fmt.Errorf("ability %d: a name of more than %d characters", n, StripNameMost)
 	case a.Chain || a.Spell != "" || a.SpellID != 0 || a.Line != "" || a.DamagePct != 0 || a.Below != 0 || a.HealPct != 0 ||

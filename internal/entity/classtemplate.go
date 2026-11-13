@@ -1546,6 +1546,9 @@ func (w *World) npcTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 	share, how := 0.0, ResistFailed
 	if ae.npcResist != StatNone && npc.tmpl != nil {
 		share, how = npc.tmpl.rollResist(t.StatNow(ae.npcResist))
+		if ae.npcAtCap > 0 {
+			share *= ae.npcAtCap / ResistCapShare // its own share at the cap (bossmoments.go)
+		}
 	}
 	taken := max(int(math.Round(float64(-ae.HPTick)*(1-share))), 1)
 	t.HP = max(t.HP-taken, 0)

@@ -209,7 +209,9 @@ func (q *QuestEngine) syncHeadMarks(now time.Time) {
 			continue
 		}
 		c.headKey, c.headAt = key, now
+		end := q.beginPassLocked(p)
 		m := q.headMarksLocked(q.lookAt(sess), p, c)
+		end()
 		if s := headMarksText(m); s != c.headSent {
 			c.headSent = s
 			q.gw.SetQuestHeadMarks(id, m)

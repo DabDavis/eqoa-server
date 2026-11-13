@@ -236,7 +236,9 @@ func (q *QuestEngine) sendMarksLocked(sess *session.Session, p *entity.Player, c
 	if sess == nil || p == nil {
 		return
 	}
+	end := q.beginPassLocked(p)
 	marks, ok := q.marksLocked(q.lookAt(sess), p, c, time.Now())
+	end()
 	if !ok {
 		return
 	}

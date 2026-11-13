@@ -1406,6 +1406,7 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 	player.RobeTint, player.RobeColor = 0, 0
 	player.ArmorColors = [len(player.ArmorColors)]uint32{}
 	player.HeldColors = [len(player.HeldColors)]uint32{}
+	player.WornPieces, player.WornMask = [entity.AuraPieces]int{}, 0
 	player.PrimaryType, player.SecondaryType = 0, 0
 	player.CapeStyle, player.CapeColor = 0, 0
 	// the worn looks the character hides (entity/hidelook.go): a part is
@@ -1433,25 +1434,32 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 		case 1: // Head
 			player.Helm, player.ArmorColors[database.DyeHelm] = byte(model), color
 			hide(entity.HideHelm, item)
+			player.SetWornPiece(entity.AuraHelm, item.Pattern.PatternID) // its aura's (entity/pieceaura.go)
 		case 5: // Chest
 			player.Chest, player.ArmorColors[database.DyeChest] = byte(model), color
 			hide(entity.HideChest, item)
+			player.SetWornPiece(entity.AuraChest, item.Pattern.PatternID) // its aura's (entity/pieceaura.go)
 		case 7: // Bracers
 			player.Bracer, player.ArmorColors[database.DyeBracer] = byte(model), color
 			hide(entity.HideBracer, item)
+			player.SetWornPiece(entity.AuraBracer, item.Pattern.PatternID) // its aura's (entity/pieceaura.go)
 		case 10: // Legs
 			player.Legs, player.ArmorColors[database.DyeLegs] = byte(model), color
 			hide(entity.HideLegs, item)
+			player.SetWornPiece(entity.AuraLegs, item.Pattern.PatternID) // its aura's (entity/pieceaura.go)
 		case 11: // Feet
 			player.Boots, player.ArmorColors[database.DyeBoots] = byte(model), color
 			hide(entity.HideBoots, item)
+			player.SetWornPiece(entity.AuraBoots, item.Pattern.PatternID) // its aura's (entity/pieceaura.go)
 		case 19: // Hands/Gloves
 			player.Gloves, player.ArmorColors[database.DyeGloves] = byte(model), color
 			hide(entity.HideGloves, item)
+			player.SetWornPiece(entity.AuraGloves, item.Pattern.PatternID) // its aura's (entity/pieceaura.go)
 		case 2: // Robe: style 0 is a robe too; its tint and colour its record's
 			player.Robe, player.RobeWorn = uint32(model), true
 			player.RobeTint, player.RobeColor = entity.RobeLook(item.Pattern.Color)
 			hide(entity.HideRobe, item)
+			player.SetWornPiece(entity.AuraRobe, item.Pattern.PatternID) // its aura's (entity/pieceaura.go)
 		case wearCape: // the cape slot (capes.go): drawn only by a client that draws capes
 			if item.EquipLoc == equipCape {
 				player.CapeStyle, player.CapeColor = capeLook(&item.Pattern)
@@ -2645,7 +2653,7 @@ func (h *CharacterHandler) initPlayerStateChannel(sess *session.Session, player 
 
 	objectID := sess.PlayerObjectID()
 	// in the client's look: the disc's, or the live game's (livelook.go)
-	stateData := entity.ForViewer(sess, entity.SerializePlayerUpdate(objectID, player), player.LookDyes())
+	stateData := entity.ForViewerAuras(sess, entity.SerializePlayerUpdate(objectID, player), player.LookDyes(), h.gameWorld.PieceAurasOf(player))
 
 	channel0.SetActive(true)
 	entity.SetEntityState(channel0, stateData)

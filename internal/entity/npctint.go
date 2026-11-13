@@ -42,9 +42,15 @@ type npcTintState struct {
 	body  map[uint8][]byte // OpcodeNPCTints's body for tints, by layout; nil until made
 }
 
-// NPCTintsLayoutMost is the newest layout of OpcodeNPCTints: 2, each name's
-// colour followed by its glow (petition 1893).
-const NPCTintsLayoutMost = 2
+// NPCTintsLayoutMost is the newest layout of OpcodeNPCTints: 3, each name's
+// colour followed by its glow (2, petition 1893) and its aura (3, the owner,
+// 2026-11-13: Mr. Moogie's aura "can be a template to make any model have
+// particle effects").
+const NPCTintsLayoutMost = 3
+
+// NPCAuraSize is the bytes of a name's aura at layout 3: a u8 kind, a u32
+// source DictID, a u8 node count.
+const NPCAuraSize = 6
 
 // TintWireName is a tint's name as OpcodeNPCTints carries it: the key cut to
 // the bytes the entity channel carries a name in, keyed again (a trailing space
@@ -67,31 +73,43 @@ func EncodeNPCTints(tints []database.NPCTint) []byte {
 // EncodeNPCTints (the names whose colour tints, a glow alone left out); 2 the
 // names whose colour tints or whose glow lights, each its u32 colour then its
 // u32 glow (0xRRGGBBAA, 0 none; the GM Jibrish's petition 1893: Mr. Moogie's
-// body in a soft red glow).
+// body in a soft red glow); 3 as 2, the names whose aura's particles show with
+// no tint or glow too, each glow followed by its aura (NPCAuraSize: a u8 kind,
+// a u32 source DictID little-endian, a u8 node count). A glowing row of kind 0
+// is the shell alone, as a layout 2 client draws it.
 func EncodeNPCTintsLayout(tints []database.NPCTint, layout uint8) []byte {
 	seen := make(map[string]bool, len(tints))
 	var list []database.NPCTint
 	for _, t := range tints {
 		n := TintWireName(t.Name)
 		shows := database.NPCTintChanges(t.Color)
-		if layout >= 2 {
+		switch {
+		case layout >= 3:
 			shows = t.Shows()
+		case layout == 2:
+			shows = t.ShowsGlow()
 		}
 		if n == "" || seen[n] || !shows {
 			continue
 		}
 		seen[n] = true
-		list = append(list, database.NPCTint{Name: n, Color: t.Color, Glow: t.Glow})
+		t.Name = n
+		list = append(list, t)
 		if len(list) == NPCTintsMost {
 			break
 		}
 	}
-	b := binary.LittleEndian.AppendUint16(make([]byte, 0, 2+len(list)*(1+npcTintNameMost+8)), uint16(len(list)))
+	b := binary.LittleEndian.AppendUint16(make([]byte, 0, 2+len(list)*(1+npcTintNameMost+8+NPCAuraSize)), uint16(len(list)))
 	for _, t := range list {
 		b = wireStr(b, t.Name)
 		b = binary.LittleEndian.AppendUint32(b, t.Color)
 		if layout >= 2 {
 			b = binary.LittleEndian.AppendUint32(b, t.Glow)
+		}
+		if layout >= 3 {
+			b = append(b, t.AuraKind)
+			b = binary.LittleEndian.AppendUint32(b, t.AuraSource)
+			b = append(b, t.AuraNodes)
 		}
 	}
 	return b
@@ -198,9 +216,12 @@ func (w *World) NPCTintSummary() string {
 			names = append(names, "...")
 			break
 		}
-		if t.Glow != 0 {
+		switch {
+		case t.AuraKind != database.AuraDefault || t.AuraSource != 0 || t.AuraNodes != 0:
+			names = append(names, fmt.Sprintf("%s %08X glow %08X aura %d/%08X/%d", t.Name, t.Color, t.Glow, t.AuraKind, t.AuraSource, t.AuraNodes))
+		case t.Glow != 0:
 			names = append(names, fmt.Sprintf("%s %08X glow %08X", t.Name, t.Color, t.Glow))
-		} else {
+		default:
 			names = append(names, fmt.Sprintf("%s %08X", t.Name, t.Color))
 		}
 	}

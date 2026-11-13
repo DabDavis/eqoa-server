@@ -55,7 +55,9 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 	s.SetBugReports(true)
 	s.SetFlyClient(true)
 	s.SetNumberTagsLayout(2) // a client that reads the merc's bit
-	s.SetNPCTintsLayout(2)   // a client that reads the glows (petition 1893)
+	s.SetNPCTintsLayout(3)   // a client that reads the glows (petition 1893) and the auras
+	s.SetArmorLook(true)
+	s.SetPieceAuras(true) // the worn pieces' auras (entity/pieceaura.go)
 	s.SetMobInfo(true)
 	s.SetItemLinks(true)
 	s.SetDiscVersion(0x12)
@@ -102,8 +104,11 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 	if !r.NPCTints() || !r.TakeNPCTints("\x00\x00", true) || r.TakeNPCTints("\x00\x00", true) || s.TakeNPCTints("\x00\x00", true) {
 		t.Fatal("the NPC tints' answer not kept, or the set it holds not unknown")
 	}
-	if r.NPCTintsLayout() != 2 {
-		t.Fatalf("the NPC tints' layout: %d, want 2 kept", r.NPCTintsLayout())
+	if r.NPCTintsLayout() != 3 {
+		t.Fatalf("the NPC tints' layout: %d, want 3 kept", r.NPCTintsLayout())
+	}
+	if !r.ArmorLook() || !r.PieceAuras() {
+		t.Fatal("the armour look or the pieces' auras not kept")
 	}
 	// a monster's name and level (handlers/mobinfo.go): still shown in the
 	// client's details box, not a dialogue box

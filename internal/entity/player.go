@@ -59,7 +59,12 @@ type Player struct {
 	// colour, as ArmorColors (ArmorColor), drawn where the hand has no dye.
 	// A client that draws it recolours the item's glow (vanilla; the user,
 	// 2026-11-13: the Heirloom Sword of Twisted Virtue's crimson aura)
-	HeldColors    [3]uint32
+	HeldColors [3]uint32
+	// WornPieces are the item records (itempattern.patternid) worn on the
+	// pieces an aura can be on (AuraChest ... AuraRobe), WornMask which are
+	// worn: each piece's aura is its item's (pieceaura.go, table itemaura)
+	WornPieces    [AuraPieces]int
+	WornMask      uint8
 	Primary       uint32
 	Secondary     uint32
 	Shield        uint32

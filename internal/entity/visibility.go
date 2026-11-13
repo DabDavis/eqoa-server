@@ -330,10 +330,13 @@ func (w *World) serializeEntityForChannel(sess *session.Session, id EntityID, ob
 		return nil
 	}
 	var dyes *Dyes
+	var auras *PieceAuras
 	if p != nil {
-		dyes = p.LookDyes()
+		dyes, auras = p.LookDyes(), w.PieceAurasOf(p)
+	} else if n, ok := w.NPCs[id]; ok && n.WornMask != 0 {
+		auras = w.NPCPieceAurasOf(n) // a mercenary's heirlooms (pieceaura.go)
 	}
-	return ForViewer(sess, buf, dyes)
+	return ForViewerAuras(sess, buf, dyes, auras)
 }
 
 // serializeEntityDiscLocked is serializeEntityForChannel's buffer in the

@@ -94,3 +94,60 @@ func TestTintEditsAreLive(t *testing.T) {
 		t.Fatalf("the PS2 was sent %d tint messages", len(tints(ps2)))
 	}
 }
+
+// The auras in the panel (claude-notes/auras-20261113.md): npctint's aura
+// columns reach a layout 3 client at once, and a kind, node count or source
+// past what the client reads is refused; an itemaura row is the world's at
+// once (and gone with its delete), audited, and one of a kind past 4 refused.
+func TestAuraEditsAreLive(t *testing.T) {
+	f := newFixture(t)
+	c := f.browser()
+	c.login("gm")
+	van := f.s.d.Sessions.CreateSession(&net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 9300}, 30, 30, 1, 2, true)
+	van.SetCharacterInWorld(true)
+	van.SetNPCTintsLayout(3)
+	sent := func() int {
+		n := 0
+		for _, m := range van.Queue().PeekPending() {
+			if d := m.Data(); len(d) >= 2 && protocol.GameOpcode(binary.LittleEndian.Uint16(d)) == protocol.OpcodeNPCTints {
+				n++
+			}
+		}
+		return n
+	}
+	code, out := c.op("insert_row", map[string]any{"table": "npctint",
+		"values": map[string]any{"name": "a skeleton", "aura_kind": 3, "aura_source": float64(0x88EC092D), "aura_nodes": 12}})
+	if code != 200 || sent() != 1 {
+		t.Fatalf("insert: %d %v; %d sent", code, out, sent())
+	}
+	if w := f.world.NPCTints(); len(w) != 1 || w[0].AuraKind != 3 || w[0].AuraSource != 0x88EC092D || w[0].AuraNodes != 12 {
+		t.Fatalf("the world holds %+v", w)
+	}
+	for _, bad := range []map[string]any{{"name": "x", "aura_kind": 5}, {"name": "x", "aura_nodes": 33}, {"name": "x", "aura_source": float64(1 << 33)}} {
+		if code, out := c.op("insert_row", map[string]any{"table": "npctint", "values": bad}); code != 400 {
+			t.Errorf("insert %v: %d %v, want refused", bad, code, out)
+		}
+	}
+
+	mustExec(t, f.db, `INSERT INTO itempattern (patternid, itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent, unk4, attacktype,
+		weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, lore, unk6, craft, itemname, itemdesc, model, color)
+		VALUES (424242, 0, 0, 1, 0, 7, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 32767, 32767, 0, 0, 0, 0, 'Glowing Bracer', '', 4, 0)`)
+	code, out = c.op("insert_row", map[string]any{"table": "itemaura",
+		"values": map[string]any{"patternid": 424242, "color": float64(0xFF2020FF), "kind": 2, "note": "the test's"}})
+	if code != 200 || f.world.ItemAuraCount() != 1 {
+		t.Fatalf("itemaura insert: %d %v; the world holds %d", code, out, f.world.ItemAuraCount())
+	}
+	if live, _ := out["live"].(string); !strings.Contains(live, "at once") {
+		t.Errorf("live: %v", out["live"])
+	}
+	if code, out := c.op("insert_row", map[string]any{"table": "itemaura", "values": map[string]any{"patternid": 424243, "kind": 7}}); code != 400 {
+		t.Errorf("a kind of 7: %d %v, want refused", code, out)
+	}
+	if code, out := c.op("delete_row", map[string]any{"table": "itemaura", "key": map[string]any{"patternid": 424242}}); code != 200 || f.world.ItemAuraCount() != 0 {
+		t.Fatalf("itemaura delete: %d %v", code, out)
+	}
+	var n int
+	if err := f.db.QueryRow(`SELECT COUNT(*) FROM gm_audit WHERE tbl = 'itemaura'`).Scan(&n); err != nil || n != 2 {
+		t.Fatalf("%d itemaura audit lines, %v", n, err)
+	}
+}

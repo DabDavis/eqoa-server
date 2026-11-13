@@ -198,6 +198,25 @@ def fits(zones, rows):
     return out
 
 
+def camp_heart(kind, cands, close, gx, gz):
+    """The heart of a camp nearest the map's point (gx, gz): of the creatures
+    cands with at least half the most company any of them has within CLUSTER
+    of the camp's kind (and three; the most, where the fit is loose), the
+    nearest; then, of the commonest name within CLUSTER of it (not its named
+    one), the one of most company."""
+    def company(r):
+        return sum(1 for o in kind if math.hypot(o[2] - r[2], o[4] - r[4]) <= CLUSTER)
+    dense = [(company(r), r) for r in cands]
+    top = max(n for n, _ in dense)
+    floor = max(3, top // 2) if close else top
+    busy = [r for n, r in dense if n >= floor] or [r for _, r in dense]
+    near = min(busy, key=lambda r: (math.hypot(r[2] - gx, r[4] - gz), r[0]))
+    local = [r for r in cands if math.hypot(r[2] - near[2], r[4] - near[4]) <= CLUSTER]
+    common = collections.Counter(r[1].strip().lower() for r in local).most_common(1)[0][0]
+    local = [r for r in local if r[1].strip().lower() == common]
+    return min(local, key=lambda r: (-company(r), math.hypot(r[2] - near[2], r[4] - near[4]), r[0]))
+
+
 def place(spec, zones, rows, fitted):
     key, aliases, poi_name, which, pattern, label = spec
     # the guide's own points: the camps of that name with a note (the map has
@@ -220,22 +239,7 @@ def place(spec, zones, rows, fitted):
             continue
 
         def heart(cands):
-            # the heart of the camp nearest the point: of the creatures with
-            # at least half the most company any of them has within CLUSTER
-            # (and three), the nearest; then the one of most company within
-            # CLUSTER of it
-            def company(r):
-                return sum(1 for o in kind if math.hypot(o[2] - r[2], o[4] - r[4]) <= CLUSTER)
-            dense = [(company(r), r) for r in cands]
-            top = max(n for n, _ in dense)
-            floor = max(3, top // 2) if close else top
-            busy = [r for n, r in dense if n >= floor] or [r for _, r in dense]
-            near = min(busy, key=lambda r: (math.hypot(r[2] - gx, r[4] - gz), r[0]))
-            local = [r for r in cands if math.hypot(r[2] - near[2], r[4] - near[4]) <= CLUSTER]
-            # of the camp's commonest kind there (not its named one)
-            common = collections.Counter(r[1].strip().lower() for r in local).most_common(1)[0][0]
-            local = [r for r in local if r[1].strip().lower() == common]
-            return min(local, key=lambda r: (-company(r), math.hypot(r[2] - near[2], r[4] - near[4]), r[0]))
+            return camp_heart(kind, cands, close, gx, gz)
 
         near = [r for r in kind if math.hypot(r[2] - gx, r[4] - gz) <= REACH[w]]
         if near:
@@ -329,6 +333,318 @@ def rare_near(placed, zones, rows, fitted, drops):
         c["rare"] = [{"name": n, "level": lv, "drops": dr} for _, n, lv, dr in sorted(found)]
 
 
+# ---- the map's other camps: the map's, not #tele's ----
+#
+# EQOA-Data's map has 334 camps more, without a note: a name ("Goblins",
+# "Taksehir Miners") and a level range that is "1-1" for nearly all (no level
+# written: left out). Each this server really has is written to
+# internal/handlers/mapcamps.go (--map-out), for the maps alone (the GM panel's
+# map, vanilla's): never a #tele shortcut or a Teleporter's camp, and camps.go
+# is not rewritten (its 49 stay as they were placed). A camp: the points of a
+# name within GROUP of each other on the game's ground (by the fits below) are
+# one; its creatures are those MAP_KINDS names for it, else the npcs whose names
+# hold every word of its own (plurals made singular, "camp", "cave" and the
+# like left out); its world is its nearest zone's on the map (Odus's and
+# Rathe's zones carry no biomes: Odus's lie west of 3700); and it is anchored as
+# a #tele camp is (camp_heart), but only on creatures within MAP_REACH of its
+# point (no search of the whole world: a "Goblins" there is not another
+# goblin camp's). A camp left out (none of its kind in reach, under three) is
+# printed with why; one whose anchor is within SAME of a #tele camp's (camps.go)
+# or of another's and of that camp's kind is that camp (the bigger kept). A name that does not tell
+# a camp apart (GENERIC, or one more camps here have) takes its zone on the map
+# ("Goblins (Guardian Forest)"), and then a side ("Goblins (Snowfist, north)").
+
+MAP_WORLDS = (0, 1, 2)
+# Rathe's fit is ~75 off; Odus's ~160
+MAP_REACH = {0: 400.0, 1: 500.0, 2: 900.0}
+MAP_CLOSE = {0: True, 1: False, 2: False}
+GROUP = 400.0
+# a camp is another's (a #tele camp's, or one placed already) when its anchor
+# is within SAME of that one's and of that camp's kind
+SAME = 300.0
+# words of a camp's name that are not its creatures'
+STOP = {"camp", "cave", "tunnel", "underground", "outpost", "hive", "and", "the", "of", "village", "tower", "tomb", "fortress", "citadel"}
+# names that say what, not where
+GENERIC = {"Undead", "Orcs", "Goblins", "Gnolls", "Bandits", "Bandit", "Skeletons", "Spirits", "Treant", "Kobold",
+           "Aviak", "Aviaks", "Centaurs", "Faeries", "Frogloks", "Lizardman", "Lizardmen", "Mermen", "Ratman",
+           "Cyclops", "Antlion", "Crocodiles", "Ghosts", "Siloths", "Werewolfs", "Nixie"}
+# a camp's creatures where its name's words are not their names' (a regex on
+# npcs.npc_name, any case), by the camp's name on the map
+UNDEAD = r"undead|skelet|zombie|ghoul|mummy|wraith|spectre|ghost|ghast|rotting|decaying|cadaver|bones?$|lich\b"
+MAP_KINDS = {
+    # the map's word is the race, the npcs' the clan's ranks
+    "Frosteye Orcs": r"^frosteye ", "Frosteye orcs": r"^frosteye ",
+    "Wktaan Orcs": r"^wktaan ",
+    "Freezeblood goblins": r"^freezeblood ", "Freezeblood Goblins": r"^freezeblood ", "Freezeblood goblin cave": r"^freezeblood ",
+    "Snowfist Goblins": r"^snowfist ", "Snowfist goblins": r"^snowfist ", "Snowfist goblins cave": r"^snowfist ",
+    "Snowfist Guards": r"^snowfist (guard|defender|warrior)",
+    "Grimrik Trolls": r"^grimrik ",
+    "Glinaldal Druids & Rangers": r"^glinaldal ",
+    "Undead Druid & Rangers": r"^undead (druid|ranger)",
+    "Lesser ghouls & skeletons": r"^(lesser ghoul|skeleton)$",
+    "Treant Defender/Diviner": r"^treant (defender|diviner|elder)",
+    "Bone Hunters": r"^(bone hunter|flesh trampler)", "Bone hunter & Flesh Trampler": r"^(bone hunter|flesh trampler)",
+    "Flesh Trampler": r"^(bone hunter|flesh trampler)",
+    "Deathfist Legionaires": r"^deathfist legionn?aire",
+    "Deathfist Slayers": r"^deathfist (slayer|reaver|prophet)",
+    "Wasp workerss": r"^wasp ", "Wasp Harvesters": r"^wasp ",
+    "Wandering Spectres": r"^wandering (ghost|ghast|spectre)",
+    "Frost & ice elementals": r"^(freezing gust|frost elemental|icy wind|guardian wind)", "Wind guardian": r"^(freezing gust|frost elemental|icy wind|guardian wind)",
+    "Young Crabs": r"crab$",
+    # the Elemental Towers: the titans, and each element's own
+    "Elemental Titans": r"titan$|behemoth$",
+    "Unstable Elemental (earth)": r"^(rock|earth) elemental|^crag titan", "Unstable Elemental (air)": r"^(wind|air) elemental|^cyclone behemoth",
+    "Unstable Elemental (fire)": r"^(flame|fire) elemental|^lava titan", "Unstable Elemental (water)": r"^water elemental",
+    # the map spells Regal "Ragel", and Teir'dal three ways
+    "Ragel Aviaks": r"^regal (guard|priest)|aviak$", "Ragel High Aviaks": r"^regal high", "Elite Aviak": r"aviak$|^regal ", "Elite Aviaks": r"aviak$|^regal ",
+    "Teir'Dal Looter": r"^t(ie|ei)r.dal looter", "Teir'Dal Eliter Dragoon": r"^t(ie|ei)r.dal (elite )?dragoon",
+    "Teir'dal": r"^t(ie|ei)r.dal ", "Tier'dal": r"^t(ie|ei)r.dal ",
+    "Toltem centaurs": r"centaur",
+    "Rotbones": r"^(rotbone|darkbone)",
+    "Jaeger Mansion": r"^(charbone|spectre|terror)$",
+    "Undead Village": r"^(raised villager|undead farmer|enraged village guard|enraged farmer)$",
+    "Desert Bandit": r"bandit|^nasehir (rogue|warrior)",
+    # the map's undead: theirs of every kind
+    "Undead": UNDEAD, "Undead Tomb": UNDEAD, "Undead Tower": UNDEAD, "Undead Minions": UNDEAD, "Undead Skeletons": r"skelet",
+    "Skeletons": r"skelet", "Spirits": r"spirit|spectre|ghost",
+}
+
+
+# the map's typing slips, in the name a camp is shown by (its Map keeps it)
+MAP_SPELLING = {"Wasp workerss": "Wasp Workers"}
+
+
+def singular(w):
+    if w.endswith("men"):
+        return w[:-3] + "man"
+    if w.endswith("ies"):
+        return w[:-1]
+    if w.endswith("s") and not w.endswith("ss") and len(w) > 3:
+        return w[:-1]
+    return w
+
+
+def auto_kind(name):
+    """A regex for the npcs a camp's name names: every word of it (singular,
+    STOP left out) at a word's start, an apostrophe matching any or none."""
+    words = [singular(w) for w in re.findall(r"[a-z'`]+", re.sub(r"\([^)]*\)", " ", name.lower())) if w not in STOP]
+    words = [w for w in words if w.strip("'`")]
+    if not words:
+        return None
+    parts = ["(?=.*\\b" + "['`]?".join(re.escape(x) for x in re.split(r"['`]", w.strip("'`"))) + ")" for w in words]
+    return "^" + "".join(parts)
+
+
+def zone_of(zones, mx, my):
+    """The map's nearest zone to a point and its world: Odus's and Rathe's
+    zones have no biomes, Odus's west of 3700."""
+    z = min(zones["zones"], key=lambda q: math.hypot(q["x"] - mx, q["y"] - my))
+    if z.get("biomes"):
+        return z["name"], 0
+    return z["name"], (2 if z["x"] < 3700 else 1)
+
+
+def map_fits(zones, rows):
+    """fits()' fit for every world of MAP_WORLDS (Rathe's too)."""
+    byname = collections.defaultdict(list)
+    for r in rows:
+        byname[r[1].strip().lower()].append(r)
+    pairs = collections.defaultdict(list)
+    for p in zones["pois"] + zones["towns"]:
+        c = byname.get(clean(p["name"]))
+        if c and len(c) == 1:
+            pairs[c[0][5]].append((p["x"], p["y"], c[0][2], c[0][4]))
+    return {w: fit(pairs[w]) for w in MAP_WORLDS}
+
+
+def tele_camps(path):
+    """camps.go's campDests as written: key -> (anchor name, x, z, world)."""
+    out = {}
+    for m in re.finditer(r'"(\w+)":\s*\{NPC: "([^"]*)", Near: true, X: ([-\d.]+), Y: [-\d.]+, Z: ([-\d.]+), World: (\d+),', open(path).read()):
+        out[m.group(1)] = (m.group(2).strip().lower(), float(m.group(3)), float(m.group(4)), int(m.group(5)))
+    return out
+
+
+def levels_of(around):
+    lv = [o[6] for o in around if o[6]]
+    return f"{min(lv)}-{max(lv)}" if lv and min(lv) != max(lv) else (str(lv[0]) if lv else "")
+
+
+def map_camps(zones, rows, fitted, tele):
+    """The map's camps without a note this server has: (placed, left out)."""
+    tele_kind = {spec[0]: re.compile(spec[4], re.I) for spec in CAMPS}
+    pts = [p for p in zones["pois"] if p["category"] == "camp" and not p.get("note")]
+    # the points of a name (any case) near each other on the ground: one camp
+    groups = []
+    for low in sorted({p["name"].lower() for p in pts}):
+        spelled = [q["name"] for q in pts if q["name"].lower() == low]
+        # the spelling most points have, capitals first ("Freezeblood Goblins")
+        name = sorted(collections.Counter(spelled).items(), key=lambda kv: (-kv[1], kv[0]))[0][0]
+        mine = []
+        for p in (q for q in pts if q["name"].lower() == low):
+            zone, w = zone_of(zones, p["x"], p["y"])
+            (a, b, c, d), _, _, _ = fitted[w]
+            mine.append((p, w, zone, a * p["x"] + b, c * p["y"] + d))
+        parts = []
+        for m in mine:
+            hit = [g for g in parts if any(o[1] == m[1] and math.hypot(o[3] - m[3], o[4] - m[4]) <= GROUP for o in g)]
+            merged = [m]
+            for g in hit:
+                merged += g
+                parts.remove(g)
+            parts.append(merged)
+        for g in parts:
+            groups.append((name, g))
+    cands, left = [], []
+    for name, g in groups:
+        w = g[0][1]
+        mx = sum(m[0]["x"] for m in g) / len(g)
+        my = sum(m[0]["y"] for m in g) / len(g)
+        zone, _ = zone_of(zones, mx, my)
+        (a, b, c, d), _, _, _ = fitted[w]
+        gx, gz = a * mx + b, c * my + d
+        pattern = MAP_KINDS.get(name) or auto_kind(name)
+        where = f"{name} ({zone}, w{w}, {len(g)} point{'s' if len(g) > 1 else ''})"
+        if not pattern:
+            left.append((where, "no creature named"))
+            continue
+        rx = re.compile(pattern, re.I)
+        kind = [r for r in rows if r[5] == w and rx.search(r[1].strip())]
+        if not kind:
+            left.append((where, f"no creature of its kind ({pattern}) in world {w}"))
+            continue
+        near = [r for r in kind if math.hypot(r[2] - gx, r[4] - gz) <= MAP_REACH[w]]
+        if not near:
+            off = min(math.hypot(r[2] - gx, r[4] - gz) for r in kind)
+            left.append((where, f"its kind ({pattern}) is {off:.0f} off its point, past {MAP_REACH[w]:.0f}"))
+            continue
+        anchor = camp_heart(kind, near, MAP_CLOSE[w], gx, gz)
+        around = [o for o in kind if math.hypot(o[2] - anchor[2], o[4] - anchor[4]) <= LEVELS_WITHIN]
+        if len(around) < 3:
+            left.append((where, f"only {len(around)} of its creatures ({pattern}) here"))
+            continue
+        same = [k for k, (an, x, z, tw) in tele.items() if tw == w and math.hypot(x - anchor[2], z - anchor[4]) <= SAME
+                and k in tele_kind and (tele_kind[k].search(anchor[1].strip()) or rx.search(an))]
+        if same:
+            left.append((where, f"the #tele camp {same[0]}"))
+            continue
+        spell = collections.defaultdict(collections.Counter)
+        for o in kind:
+            if math.hypot(o[2] - anchor[2], o[4] - anchor[4]) <= CREATURE_REACH:
+                spell[o[1].strip().lower()][o[1].strip()] += 1
+        creatures = [cc.most_common(1)[0][0] for _, cc in sorted(spell.items(), key=lambda kv: (-sum(kv[1].values()), kv[0]))]
+        ranges = sorted({m[0]["levelRange"] for m in g if m[0].get("levelRange") and m[0]["levelRange"] != "1-1"})
+        cands.append({"name": MAP_SPELLING.get(name, name), "names": [name], "zone": zone, "world": w, "npc": anchor[1], "x": anchor[2], "y": anchor[3],
+                      "z": anchor[4], "levels": levels_of(around), "ranges": ranges, "count": len(around), "creatures": creatures,
+                      "mx": mx, "my": my, "points": len(g), "point": (gx, gz), "rx": rx, "where": where,
+                      "kinds": collections.Counter(o[1].strip() for o in around).most_common(4)})
+    # one camp under several names (the map's "Snowfist Guards" in its
+    # "Snowfist Goblins"): within SAME, either's anchor of the other's kind;
+    # the bigger (more creatures, then nearer its own point) keeps its place,
+    # its creatures and its name, the others' names kept as aliases (Map)
+    parent = list(range(len(cands)))
+
+    def root(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+    for i, p in enumerate(cands):
+        for j in range(i):
+            q = cands[j]
+            if p["world"] == q["world"] and math.hypot(p["x"] - q["x"], p["z"] - q["z"]) <= SAME \
+                    and (p["rx"].search(q["npc"].strip()) or q["rx"].search(p["npc"].strip())):
+                parent[root(i)] = root(j)
+    sets = collections.defaultdict(list)
+    for i, p in enumerate(cands):
+        sets[root(i)].append(p)
+    placed = []
+    for members in sets.values():
+        best = min(members, key=lambda p: (-p["count"], math.hypot(p["x"] - p["point"][0], p["z"] - p["point"][1]), p["name"]))
+        for p in members:
+            if p is not best:
+                left.append((p["where"], f"the same camp as {best['name']} ({best['zone']})"))
+                for n in p["names"]:
+                    if n.lower() not in {x.lower() for x in best["names"]}:
+                        best["names"].append(n)
+        ranges = sorted({r for p in members for r in p["ranges"]})
+        best["guide"] = ""
+        if ranges:
+            lo = min(int(r.split("-")[0]) for r in ranges)
+            hi = max(int(r.split("-")[-1]) for r in ranges)
+            best["guide"] = f"{lo}-{hi}" if lo != hi else str(lo)
+        best["map"] = " / ".join(best["names"])
+        placed.append(best)
+    # names: the map's, its zone added where that does not tell the camp
+    # apart (a GENERIC name, one more camps here have, a #tele camp's), then a
+    # side of the others of its name, +z being south
+    taken = {spec[2].lower() for spec in CAMPS}
+    count = collections.Counter(p["name"].lower() for p in placed)
+    for p in placed:
+        if (p["name"] in GENERIC or count[p["name"].lower()] > 1 or p["name"].lower() in taken) and p["zone"].lower() not in p["name"].lower():
+            p["name"] = f"{p['name']} ({p['zone']})"
+    by = collections.defaultdict(list)
+    for p in placed:
+        by[p["name"].lower()].append(p)
+    for ps in by.values():
+        if len(ps) < 2:
+            continue
+        cx = sum(p["x"] for p in ps) / len(ps)
+        cz = sum(p["z"] for p in ps) / len(ps)
+        for p in ps:
+            dx, dz = p["x"] - cx, p["z"] - cz
+            p["side"] = ("east" if dx > 0 else "west") if abs(dx) >= abs(dz) else ("south" if dz > 0 else "north")
+        sides = collections.Counter(p["side"] for p in ps)
+        n = collections.Counter()
+        for p in sorted(ps, key=lambda p: (p["z"], p["x"])):
+            tag = p["side"]
+            if sides[tag] > 1:
+                n[tag] += 1
+                tag = f"{tag} {n[tag]}"
+            p["name"] = p["name"][:-1] + ", " + tag + ")" if p["name"].endswith(")") else f"{p['name']} ({tag})"
+    keys = set(tele) | {a for spec in CAMPS for a in spec[1]}
+    for p in sorted(placed, key=lambda p: p["name"]):
+        k = re.sub(r"[^a-z0-9]", "", p["name"].lower())
+        base, i = k, 2
+        while k in keys:
+            k, i = f"{base}{i}", i + 1
+        keys.add(k)
+        p["key"] = k
+        p["label"] = p["name"] if p["zone"].lower() in p["name"].lower() else f"{p['name']}, {p['zone']}"
+    placed.sort(key=lambda p: p["key"])
+    return placed, left
+
+
+def render_map(placed):
+    lines = [
+        "// Code written by tools/gen_camp_teles.py --map-out; DO NOT EDIT: change",
+        "// the tool and run it again.",
+        "",
+        "package handlers",
+        "",
+        "// mapCamps are EQOA-Data's map's other camps (those without a note) that",
+        "// this server has, for the maps alone (the GM panel's, vanilla's): never a",
+        "// #tele shortcut or a Teleporter camp (campDests, camps.go). Name is the",
+        "// map's, its zone added where it would not tell the camp apart; Guide its",
+        "// level range where the map writes one; Levels the creatures' here; MapX",
+        "// and MapY its point on EQOA-Data's map.",
+        "var mapCamps = map[string]mapCamp{",
+    ]
+    for p in placed:
+        rare = ", ".join(
+            f'{{Name: {go_string(r["name"])}, Level: {r["level"]}, Drops: []string{{{", ".join(go_string(x) for x in r["drops"])}}}}}'
+            for r in p.get("rare", []))
+        lines.append(
+            f'\t{go_string(p["key"])}: {{Name: {go_string(p["name"])}, Map: {go_string(p["map"])}, Zone: {go_string(p["zone"])}, '
+            f'Label: {go_string(p["label"])}, NPC: {go_string(p["npc"])}, '
+            f'X: {p["x"]:.1f}, Y: {p["y"]:.1f}, Z: {p["z"]:.1f}, World: {p["world"]}, '
+            f'Levels: {go_string(p["levels"])}, Guide: {go_string(p["guide"])}, MapX: {p["mx"]:.0f}, MapY: {p["my"]:.0f}, '
+            f'Creatures: []string{{{", ".join(go_string(x) for x in p["creatures"])}}}, Rare: []campRare{{{rare}}}}},'
+        )
+    lines.append("}")
+    return "\n".join(lines) + "\n"
+
+
 def go_string(s):
     return json.dumps(s, ensure_ascii=False)
 
@@ -392,6 +708,9 @@ def main():
     ap.add_argument("--db", required=True)
     ap.add_argument("--eqoa-data", required=True)
     ap.add_argument("--out")
+    ap.add_argument("--map-out", help="write the map's other camps (mapcamps.go) here; camps.go is read, not written, unless --out")
+    ap.add_argument("--camps", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "internal", "handlers", "camps.go"),
+                    help="the #tele camps as written (camps.go), which the map's camps leave to them")
     args = ap.parse_args()
     db = sqlite3.connect(f"file:{args.db}?mode=ro", uri=True)
     zones, rows = load(db, args.eqoa_data)
@@ -417,6 +736,28 @@ def main():
             print(f"  {p['key']:15s} rare: " + ", ".join(f"{r['name']} ({r['level'] or '?'})" for r in p["rare"]), file=sys.stderr)
     towns = other_towns(zones, rows, fitted)
     print("  towns outside Tunaria: " + ", ".join(f"{t['name']} (w{t['world']})" for t in towns), file=sys.stderr)
+    if args.map_out is not None:
+        mfit = map_fits(zones, rows)
+        for w, ((a, b, c, d), kept, n, med) in mfit.items():
+            print(f"map fit world {w}: x = {a:.5f} mx {b:+.1f}, z = {c:.5f} my {d:+.1f} ({kept} of {n} named points, median {med:.1f})", file=sys.stderr)
+        mplaced, mleft = map_camps(zones, rows, mfit, tele_camps(args.camps))
+        rare_near(mplaced, zones, rows, mfit, drops_by_mob(args.eqoa_data))
+        for p in mplaced:
+            off = math.hypot(p["x"] - p["point"][0], p["z"] - p["point"][1])
+            kinds = ", ".join(f"{k} x{n}" for k, n in p["kinds"])
+            print(f"  map {p['key']:34s} w{p['world']} ({p['x']:.0f}, {p['z']:.0f}) {p['npc']!r} levels {p['levels']} guide {p['guide'] or '-'} {off:.0f} off, {p['points']} pts [{p['map']}]: {kinds}", file=sys.stderr)
+        for where, why in mleft:
+            print(f"  map -- {where}: {why}", file=sys.stderr)
+        per = collections.Counter(p["world"] for p in mplaced)
+        print(f"map camps: {len(mplaced)} placed ({dict(sorted(per.items()))}), {len(mleft)} left out", file=sys.stderr)
+        if args.map_out:
+            with open(args.map_out, "w") as f:
+                f.write(render_map(mplaced))
+            if shutil.which("gofmt"):
+                subprocess.run(["gofmt", "-w", args.map_out], check=True)
+            print(f"wrote {len(mplaced)} map camps to {args.map_out}", file=sys.stderr)
+        if not args.out:
+            return
     text = render(placed, towns)
     if args.out:
         with open(args.out, "w") as f:

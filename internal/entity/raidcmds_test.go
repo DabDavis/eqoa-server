@@ -613,3 +613,32 @@ func TestAHeldCorpseLiesUntilItsHoldEnds(t *testing.T) {
 }
 
 var _ = session.NewManager
+
+// A Metal Moogie killed by a raid is no raid's kill: his corpse (its Moogie
+// Tribute) is his challenger's alone, never rolled (the owner, 2026-11-13).
+// The control: another creature of the same raid's fight is the raid's.
+func TestAMetalMoogieIsNoRaidsKill(t *testing.T) {
+	r := newRaidRig(t, 6, 30)
+	r.form(6)
+	r.raidOf(0).flagged = true
+	r.raidOf(0).rules.loot = LootNeedGreed
+	var heard []KillCredit
+	r.w.OnKill(func(k KillCredit) { heard = append(heard, k) })
+	foe := r.fight(9400, 2)
+	foe.Name = MetalMoogieName
+	r.w.mu.Lock()
+	r.w.killNPC(foe)
+	r.w.creditKillLocked(r.sess[0], r.p[0], foe)
+	r.w.mu.Unlock()
+	if len(heard) != 1 || heard[0].Raid != nil {
+		t.Fatalf("a Metal Moogie's kill: %+v", heard)
+	}
+	other := r.fight(9401, 2)
+	r.w.mu.Lock()
+	r.w.killNPC(other)
+	r.w.creditKillLocked(r.sess[0], r.p[0], other)
+	r.w.mu.Unlock()
+	if len(heard) != 2 || heard[1].Raid == nil {
+		t.Fatalf("the control: %+v", heard)
+	}
+}

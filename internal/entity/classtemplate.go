@@ -903,9 +903,16 @@ func (f *templateFight) begin(t *ClassTemplate, now time.Time) {
 
 // templateWantsLocked is whether a due ability is wanted at target now: a heal
 // below its share, a debuff at a player, a damage over time not already up on
-// what it fights (creaturedot.go), anything else yes. One not wanted waits,
-// due. Must be called with the lock held.
+// what it fights (creaturedot.go), and any other cast with a Below only once its
+// creature's hit points are below that share; anything else yes. One not
+// wanted waits, due. Must be called with the lock held.
 func (w *World) templateWantsLocked(npc *NPC, a *templateAbility, target EntityID, now time.Time) bool {
+	if a.Kind != database.AbilityHeal && a.Below > 0 && npc.HP*100 >= npc.MaxHP*a.Below {
+		// a cast held for its creature's hit points below its share (the owner,
+		// 2026-11-13: Lord Koreshaa's "when he gets down to 1/3 hp 3500 ar nuke
+		// he fires once"): until then it waits, due
+		return false
+	}
 	switch a.Kind {
 	case database.AbilityHeal:
 		return npc.HP*100 < npc.MaxHP*a.BelowOr() // whole enough: it waits
@@ -1881,6 +1888,9 @@ func (w *World) templateLineLocked(npc *NPC, now time.Time) string {
 		}
 		if a.OutOfReach {
 			line += fmt.Sprintf(", only out of its reach within %g", a.RangeOr())
+		}
+		if a.Kind != database.AbilityHeal && a.Below > 0 {
+			line += fmt.Sprintf(", only below %d%% of its hit points", a.Below)
 		}
 		parts = append(parts, line+abilityTimesWords(npc, a, now)) // abilitytimes.go
 	}

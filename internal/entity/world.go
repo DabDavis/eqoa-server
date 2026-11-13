@@ -132,6 +132,9 @@ type World struct {
 	// The GMs' camps: their spawns, the rows their kinds are made from, their
 	// grounds the wander keeps out of (campspawn.go)
 	camps campTable
+	// The rare spawns on placeholders: by the placeholder's row, its own row and
+	// the rare's, and the chance (npcrare.go)
+	rares map[EntityID]*rareRule
 
 	// Each player race's two bodies by race and sex (charactermodel), the
 	// bodies a race's illusion shows (illusion.go)

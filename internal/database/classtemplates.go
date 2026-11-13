@@ -365,7 +365,11 @@ type TemplateAbility struct {
 	// damage over time (petition 1388).
 	Cast float64 `json:"cast,omitempty"`
 	// Below is a heal's: cast when the NPC's hit points are below this
-	// percent of its maximum (0: 50).
+	// percent of its maximum (0: 50). On a creature's other casts (a nuke, a
+	// lifetap, an area spell, a debuff, a damage over time, a root, a strip)
+	// it holds the cast until its hit points are below this percent (0: no
+	// hold); with an Every of an hour it is once a fight (Lord Koreshaa's
+	// 3,500 arcane nuke at a third, the owner 2026-11-13).
 	Below int `json:"below,omitempty"`
 	// From is the NPC level from which it casts it at all (0: any).
 	From int `json:"from,omitempty"`

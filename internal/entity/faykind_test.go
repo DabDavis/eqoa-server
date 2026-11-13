@@ -261,3 +261,19 @@ func TestOtherProcsHaveNoRoundLimit(t *testing.T) {
 		}
 	}
 }
+
+// Petition 1371 (Uzii): the Steelwind Staff, the Staff of Faykind's figures in the Steelwind's look, procs the
+// Faykind's pixie form; the control, another name, does not.
+func TestSteelwindStaffProcsAsTheFaykind(t *testing.T) {
+	want, ok := WeaponProcOf(715031, "Staff of Faykind", "")
+	if !ok {
+		t.Fatal("the Staff of Faykind has no proc")
+	}
+	got, ok := WeaponProcOf(990974, "Steelwind Staff", "A staff of old fay make, light as a reed.")
+	if !ok || got.Kind != ProcForm || got.Form != want.Form || got.Damage != want.Damage || got.Chance != want.Chance {
+		t.Fatalf("the Steelwind Staff's proc: %+v %v, want the Faykind's %+v", got, ok, want)
+	}
+	if _, ok := WeaponProcOf(990999, "Steelwind Club", "A club."); ok {
+		t.Fatal("a weapon of no proc procced")
+	}
+}

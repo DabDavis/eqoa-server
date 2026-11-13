@@ -1428,6 +1428,7 @@ var catalog = map[string]tableNote{
 			"proc_resist":    {Label: "Proc resist", Help: "the resist that cuts it: FR, CR, LR, AR, PR or DR; empty none", Section: "Melee proc"},
 			"resist_kind":    {Label: "Strong resist", Help: "the resists it is strong in: FR, CR, LR, AR, PR or DR, several with commas, each with its own percent or not (LR:75); empty none", Section: "Stat profile"},
 			"resist_pct":     {Label: "Strong resist %", Help: "of spell damage of that kind it does not take, players' and pets', less what a debuff of the kind takes off (0-100; at least 1 always lands)", Section: "Stat profile"},
+			"taken_resist":   {Label: "Resist damage taken %", Help: "the percent of a spell's or proc's damage of a resist it takes, after its strong resist: FR, CR, LR, AR, PR or DR each with its percent (1-1000), several with commas (LR:115: 15% more lightning); empty all at 100", Section: "Stat profile"},
 			"resist_fail":    {Label: "Resist failure %", Help: "how often a resist fails against its proc, shield and spells, at any figure of it: this percent altogether, twice this in part (0-30; 0 the game's own, 2.5 and 5 at the cap alone)", Section: "Melee proc"},
 			"taken_pct":      {Label: "Melee taken %", Help: "of a player's or a pet's melee hit on it that lands (1-1000): its armour", Section: "Stat profile"},
 			"melee_pct":      {Label: "Its melee %", Help: "of its own melee hits (10-1000)", Section: "Stat profile"},

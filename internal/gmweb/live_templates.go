@@ -174,6 +174,9 @@ func checkClassTemplateRow(row map[string]any) error {
 	if v, ok := row["resist_kind"]; ok && v != nil {
 		t.ResistKind = strings.TrimSpace(fmt.Sprint(v))
 	}
+	if v, ok := row["taken_resist"]; ok && v != nil {
+		t.TakenResist = strings.TrimSpace(fmt.Sprint(v))
+	}
 	if v, ok := row["abilities"]; ok && v != nil {
 		list, err := database.ParseTemplateAbilities(fmt.Sprint(v))
 		if err != nil {

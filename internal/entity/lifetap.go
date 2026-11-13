@@ -269,6 +269,11 @@ func (w *World) landOnCasterLocked(cs *castState, caster *Player, sess *session.
 				m.StatsDirty = true
 			}
 		}
+		// the group's mercs take it as its players do (petition 1909:
+		// Celedonicus' Grand Finale's +5000 reached no merc)
+		for _, id := range w.groupMercsLocked(caster, nil, groupShareReach(cs)) {
+			w.shareOnMercLocked(cs, caster, w.NPCs[id], shared, sharedStats && lasting, sharedPower, now)
+		}
 	}
 	return &out
 }
@@ -377,6 +382,26 @@ func (w *World) shareOnLocked(cs *castState, caster, bearer *Player, mods StatMo
 	}
 	w.dropLineLocked(bearer, ae)
 	w.addEffectLocked(bearer, ae, now)
+}
+
+// shareOnMercLocked is shareOnLocked's and the shared power's for a merc of
+// the caster's group: its stats an effect on it for the spell's time (as a
+// buff on a pet: putOnPetLocked; its body takes them, syncMercBody), its
+// power at once. Must be called with the lock held.
+func (w *World) shareOnMercLocked(cs *castState, caster *Player, m *NPC, mods StatMods, stats bool, power int, now time.Time) {
+	if m == nil || m.Dead {
+		return
+	}
+	if stats {
+		ae := &ActiveEffect{SpellID: -cs.spell.SpellID, Name: cs.spell.Name, Icon: cs.spell.Icon,
+			Caster: caster.ServerID, Until: now.Add(cs.spell.Def.Duration), Mods: mods}
+		if putOnPetLocked(m, &cs.spell, ae) == nil {
+			m.syncEffectMaxHP()
+		}
+	}
+	if power > 0 && m.MaxPower > 0 {
+		m.Power = min(m.Power+power, m.MaxPower)
+	}
 }
 
 // drainLocked gives the caster (or its group) what one drained effect took

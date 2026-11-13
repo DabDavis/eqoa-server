@@ -102,3 +102,23 @@ func TestShardListChecks(t *testing.T) {
 		t.Fatalf("shards %v, bad %v", shards, bad)
 	}
 }
+
+// A shard's name against the list's one line (the GM Jibwiz's petition 1923):
+// "Live Server - No Wipes Ever" draws 253 and is cut; the box's names and the
+// proposed one fit. Widths are ARIALUI.CSF's, each glyph and one.
+func TestShardNameFits(t *testing.T) {
+	for _, c := range []struct {
+		name  string
+		width int
+		fits  bool
+	}{
+		{"Heirloom Test Server", 189, true},
+		{"Heirloom - No Wipes Ever", 230, true},
+		{"Live - No Wipes Ever", 188, true},
+		{"Live Server - No Wipes Ever", 253, false},
+	} {
+		if w, fits := ShardNameWidth(c.name), ShardNameFits(c.name); w != c.width || fits != c.fits {
+			t.Errorf("%q: %d px, fits %v; want %d, %v", c.name, w, fits, c.width, c.fits)
+		}
+	}
+}

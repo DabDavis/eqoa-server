@@ -689,7 +689,8 @@ func (w *World) areaFriendsLocked(p *Player, cs *castState, cx, cy, cz, r float3
 }
 
 // groupNearLocked is a group's area beside its caster: each member alive in
-// its world within r of it, and each member's pet (its own too). Must be
+// its world within r of it, each member's pet (its own too) and the group's
+// mercs. Must be
 // called with the lock held.
 func (w *World) groupNearLocked(p *Player, r float32) []areaNear {
 	members := w.groupMembersLocked(p)
@@ -708,6 +709,14 @@ func (w *World) groupNearLocked(p *Player, r float32) []areaNear {
 		}
 		if pet := w.petOfLocked(m); pet != nil {
 			add(pet.ServerID, pet.World, pet.X, pet.Y, pet.Z)
+		}
+	}
+	// the group's mercs, members as its players are (mercgroup.go; Deathcore's
+	// petition 1909: until 2026-11-13 a group spell with a radius, a bard's
+	// power songs, a group heal, reached its players and pets and no merc)
+	for _, id := range w.groupMercsLocked(p, nil, r) {
+		if m := w.NPCs[id]; m != nil {
+			add(m.ServerID, m.World, m.X, m.Y, m.Z)
 		}
 	}
 	return out

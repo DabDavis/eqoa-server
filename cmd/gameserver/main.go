@@ -474,6 +474,10 @@ func main() {
 	onList := false
 	for _, sh := range shards {
 		log.Printf("Server list: %q on %s:%d (recommended: %v)", sh.Name, sh.IP, sh.Port, sh.Recommended != 0)
+		if !handlers.ShardNameFits(sh.Name) {
+			log.Printf("WARNING: shard %q draws %d pixels where the server list keeps %d on a line: the PS2 and vanilla cut it (handlers/server.go)",
+				sh.Name, handlers.ShardNameWidth(sh.Name), 236)
+		}
 		if int(sh.Port) == cfg.Server.GamePort && !onList {
 			handlers.SetCampfixShard(sh.Name) // the shard a camp report's board entry names (campfix.go)
 		}
@@ -530,6 +534,7 @@ func main() {
 	handlers.SetNoclipAccounts(cfg.World.NoclipAccounts)
 	handlers.SetTeleporter(cfg.World.Teleporter) // handlers/teleporter.go
 	handlers.SetMercs(cfg.World.Mercs)           // the mercenaries (handlers/merc.go)
+	handlers.SetQuestXPPct(cfg.World.QuestXPPct) // a one-time quest's experience (handlers/questxp.go)
 	handlers.SetFamiliars(cfg.World.Familiars)   // the familiars (handlers/familiar.go)
 	if cfg.World.Mercs || cfg.World.Familiars {
 		log.Printf("Mercenaries %v, familiars %v (world.mercs, world.familiars)", cfg.World.Mercs, cfg.World.Familiars)

@@ -51,8 +51,9 @@ import (
 // The server holds each stat's base to its own (FitTraining).
 
 // MasteryCap is the most mastery points a character holds, spent and
-// unspent together (F3 20261025-165747).
-const MasteryCap = 1500
+// unspent together (F3 20261025-165747: 1500; the owner, 2026-11-13: "lets
+// raise CM cap to 2000"). CMPointXP's table goes on past it unchanged.
+const MasteryCap = 2000
 
 // CMPointXP is the experience the character's nth mastery point takes (n
 // counts every point it has earned: spent, unspent and this one): the live

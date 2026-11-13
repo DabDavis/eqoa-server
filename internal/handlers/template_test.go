@@ -54,12 +54,12 @@ func TestTemplateMakesTheCharacterASixty(t *testing.T) {
 	}
 
 	c.say(gs, "/template")
-	// the mastery points to the most, spent and unspent: 60 spent keeps 1440
-	if gp.Mastery.Points != 1440 || gp.Mastery.Spent != 60 || kept.rows[gp.CharServerID].Points != 1440 {
-		t.Errorf("the mastery points: %+v, kept %+v; want 1440 unspent beside 60 spent", gp.Mastery, kept.rows[gp.CharServerID])
+	// the mastery points to the most, spent and unspent: 60 spent keeps 1940
+	if gp.Mastery.Points != 1940 || gp.Mastery.Spent != 60 || kept.rows[gp.CharServerID].Points != 1940 {
+		t.Errorf("the mastery points: %+v, kept %+v; want 1940 unspent beside 60 spent", gp.Mastery, kept.rows[gp.CharServerID])
 	}
-	if u, sp, ok := masteryPoints(gs); !ok || u != 1440 || sp != 60 {
-		t.Errorf("the client was told %d/%d (%v), want 1440/60", u, sp, ok)
+	if u, sp, ok := masteryPoints(gs); !ok || u != 1940 || sp != 60 {
+		t.Errorf("the client was told %d/%d (%v), want 1940/60", u, sp, ok)
 	}
 	row, err := store.GetByServerID(f.sid)
 	if err != nil {
@@ -101,7 +101,7 @@ func TestTemplateMakesTheCharacterASixty(t *testing.T) {
 		}
 	}
 	if len(said) != 4 || said[0] != "[GM] Template: level 60, 1000000 tunar, 2 spells scribed, 2 heirlooms given, 2 of them worn" ||
-		!strings.HasPrefix(said[3], "[GM]   Mastery points: 1400 more, 1440 unspent, 60 spent") {
+		!strings.HasPrefix(said[3], "[GM]   Mastery points: 1900 more, 1940 unspent, 60 spent") {
 		t.Errorf("the answer %q", said)
 	}
 }

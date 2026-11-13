@@ -118,7 +118,7 @@ type transferPlanArgs struct {
 
 var transferPlanSchema = obj(map[string]any{
 	"level":          integer("the level it gets (1-60; 0 leaves it)"),
-	"mastery_points": integer("unspent combat mastery points it gets (0-1500)"),
+	"mastery_points": integer("unspent combat mastery points it gets (0-2000)"),
 	"class_spells":   boolean("every spell its class gets by level, as #template gives (default true in the page)"),
 	"full_vitals":    boolean("whole hit points and power at the login"),
 	"items": arr(obj(map[string]any{

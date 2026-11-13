@@ -46,16 +46,16 @@ func TestGrantCMIsAGMsAndCapped(t *testing.T) {
 		t.Errorf("told %d/%d (%v), want 150/50", u, s, ok)
 	}
 	gs.Queue().GetPending()
-	c.say(gs, "/grantcm 1500")
-	if gp.Mastery.Points != 1450 {
-		t.Fatalf("150/50 + 1500: %d unspent, want 1450 (1500 in all)", gp.Mastery.Points)
+	c.say(gs, "/grantcm 2000")
+	if gp.Mastery.Points != 1950 {
+		t.Fatalf("150/50 + 2000: %d unspent, want 1950 (2000 in all)", gp.Mastery.Points)
 	}
-	if got := texts(heard(t, gs)); len(got) == 0 || !strings.Contains(got[len(got)-1], "Granted 1300 of 1500") {
+	if got := texts(heard(t, gs)); len(got) == 0 || !strings.Contains(got[len(got)-1], "Granted 1800 of 2000") {
 		t.Errorf("the GM was told %q", got)
 	}
 	gs.Queue().GetPending()
 	c.say(gs, "#grantcm 10")
-	if gp.Mastery.Points != 1450 {
+	if gp.Mastery.Points != 1950 {
 		t.Fatalf("at the most: %d unspent", gp.Mastery.Points)
 	}
 	if _, _, ok := masteryPoints(gs); ok {

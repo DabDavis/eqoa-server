@@ -107,8 +107,9 @@ func TestHideMercsTakesTheMercInViewAwayAndBack(t *testing.T) {
 }
 
 // A merc hidden from a group mate is out of that mate's view and still plays:
-// it shares the mate's place (npcSharesLocked), heals the mate, and the mate's
-// group buff reaches it.
+// it shares the mate's place (npcSharesLocked), heals its owner (never the
+// mate: a merc helps its owner's own alone, merccast.go), and the mate's group
+// buff reaches it.
 func TestAHiddenMercStillPlays(t *testing.T) {
 	r := newMercRig(t)
 	mateSess, mate := r.player("Mate", 0, 0)
@@ -125,11 +126,16 @@ func TestAHiddenMercStillPlays(t *testing.T) {
 	if !shares {
 		t.Error("the hidden merc no longer shares the mate's place")
 	}
-	top := mate.MaxHPNow()
-	mate.HP = top / 2
+	top := r.p.MaxHPNow()
+	r.p.HP = top / 2
+	mateTop := mate.MaxHPNow()
+	mate.HP = mateTop / 2
 	r.run(0, 9*time.Second)
-	if mate.HP <= top/2 {
-		t.Errorf("the hidden merc did not heal the mate: %d/%d", mate.HP, top)
+	if r.p.HP <= top/2 {
+		t.Errorf("the hidden merc did not heal its owner: %d/%d", r.p.HP, top)
+	}
+	if mate.HP != mateTop/2 {
+		t.Errorf("the merc healed the mate, not its owner's: %d/%d", mate.HP, mateTop)
 	}
 	buff := bookSpell(700189, "Group Daring", 2, 0, 0, 0, "Group, Increase AC by 200, Increase Maximum HP by 200, Radius 30, 30min")
 	r.w.mu.Lock()

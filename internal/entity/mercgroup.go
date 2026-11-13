@@ -28,8 +28,8 @@ import (
 // id, a creature's flags as a player's), and nothing of CLIENT's asks a member
 // to be a player but its invite (InviteEntity's m_p256 == 2), which no one
 // sends a merc. A group's heal or buff reaches it (cast.go: castTargetsLocked's
-// group, groupMercsLocked); its own group heals reach the group's players and
-// mercs (merccast.go). Experience is the players' alone: killexp.go's split
+// group, groupMercsLocked); its own group heals and buffs reach only its owner
+// and its owner's mercs (merccast.go, the owner 2026-11-13). Experience is the players' alone: killexp.go's split
 // takes the group's players (groupMembersLocked), so a merc takes no share and
 // cuts none; a raid group's cut is the raid flag's (only a flagged group passes
 // four with a merc in it).

@@ -324,9 +324,9 @@ func TestMercIsHitAsAPlayer(t *testing.T) {
 	}
 }
 
-// A healer heals a hurt member of its owner's group: with no one hurt it
-// casts nothing (the control); a member at half its hit points is healed, and
-// so is the healer itself.
+// A healer heals its owner: with no one hurt it casts nothing (the control);
+// its owner at half its hit points is healed, and so is the healer itself; a
+// member of its owner's group is not (merccast.go: its owner's own alone).
 func TestMercHealerHealsItsTeam(t *testing.T) {
 	r := newMercRig(t)
 	_, mate := r.player("Mate", 0, 0)
@@ -340,15 +340,22 @@ func TestMercHealerHealsItsTeam(t *testing.T) {
 	}
 	top := mate.MaxHPNow()
 	mate.HP = top / 2
-	r.run(3*time.Second+100*time.Millisecond, 9*time.Second)
-	if mate.HP <= top/2 {
-		t.Errorf("the mate at half its hit points was not healed: %d/%d", mate.HP, top)
+	r.run(3*time.Second+100*time.Millisecond, 6*time.Second)
+	if len(r.w.mercCasts) != 0 || len(ms.ready) != 0 || mate.HP != top/2 {
+		t.Fatalf("a group mate hurt, not its owner's: %d casts, %d cast, the mate %d/%d", len(r.w.mercCasts), len(ms.ready), mate.HP, top)
+	}
+	mate.HP = top
+	otop := r.p.MaxHPNow()
+	r.p.HP = otop / 2
+	r.run(6*time.Second+100*time.Millisecond, 12*time.Second)
+	if r.p.HP <= otop/2 {
+		t.Errorf("the owner at half its hit points was not healed: %d/%d", r.p.HP, otop)
 	}
 	if len(ms.ready) == 0 {
 		t.Error("no heal was cast")
 	}
-	// itself hurt, its team whole: it heals itself
-	mate.HP = top
+	// itself hurt, its owner whole: it heals itself
+	r.p.HP = otop
 	m := ms.npc
 	m.HP = m.MaxHP / 2
 	r.run(30*time.Second, 40*time.Second)

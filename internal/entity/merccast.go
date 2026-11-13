@@ -18,23 +18,29 @@ import (
 // player's of the merc's stats and level (cast.go's spellAmount on its body).
 //
 // Each turn the merc not already casting looks, in order, for:
-//   - a heal (mercHealTurnLocked): its team is itself, its owner and its
-//     owner's group, the players and their mercs, alive in its world (a raid
-//     group's whole roll, whatever its groups of four: the owner, 2026-11-12,
-//     "let mercs heal raid members"); a healer heals one below mercHurtPct of
+//   - a heal (mercHealTurnLocked): what it helps is its owner's alone
+//     (mercOwnTeamLocked): itself, its owner and its owner's other mercs,
+//     alive in its world, never another player of its owner's group or raid,
+//     nor their mercs (the owner, 2026-11-13: "the mercs that belong to a
+//     player only can effect that player and their mercs, not the whole
+//     raid"; from 2026-11-12 to then its heals went to the whole raid, "let
+//     mercs heal raid members"); a healer heals one below mercHurtPct of
 //     its hit points (a heal over time it has not put on it, else a heal; a
 //     group heal when two or more are in its reach), one below
 //     mercEmergencyPct first with its biggest heal; any other class with a
 //     heal in its book (a paladin's, a ranger's) only one below
 //     mercEmergencyPct. The one it heals is the worst off of those its heals
-//     reach and it sees (sight.go, as a player's heal: petition 1243), so one
-//     worse off across the zone or behind a wall no longer holds its heals
-//     from the rest: it chose the worst off of the whole raid in its world
-//     and, that one out of reach, healed no one. A heal lands only on one it
-//     still sees, a group heal on those of its team in reach it sees (its
-//     buffs are not held to its sight). Never a player in a duel, in Mr.
+//     reach and it sees (sight.go, as a player's heal: petition 1243), the
+//     next when one is out of reach or sight. A heal lands only on one it
+//     still sees, a group heal on those of its own in reach it sees (its
+//     buffs are not held to its sight). Every beneficial spell of a merc, a
+//     group's buff or song too, lands on its own alone (mercLandLocked,
+//     mercHelpLocked); a player's group spell still reaches the mercs of
+//     the caster's group (groupMercsLocked). Never a player in a duel, in Mr.
 //     Moogie's challenge or flagged for PvP (ownfight.go: no help in a fight
-//     that is a player's own);
+//     that is a player's own). Pets: its own pet it tends (mercpetbuff.go);
+//     its owner's pet and its owner's other mercs' pets are its owner's, so
+//     the rule allows them, but it has never tended them and still does not;
 //   - with no pet of its own out, its summoning (mercpet.go);
 //   - its pet's heal when it is hurt, then its pet's buffs, the best of
 //     each line kept on it (mercpetbuff.go);
@@ -459,8 +465,9 @@ func (mm mercMate) effects() []*ActiveEffect {
 
 // mercTeamLocked is the merc's team: itself, its owner, and its owner's
 // group's other players and mercs, alive and in its world; a player in a duel,
-// in Mr. Moogie's challenge or flagged for PvP left out (ownfight.go). Must be
-// called with the lock held.
+// in Mr. Moogie's challenge or flagged for PvP left out (ownfight.go). It is
+// whom the merc fights for (a tank's taunt off them: mercLooseFoeLocked); what
+// it helps is mercOwnTeamLocked's alone. Must be called with the lock held.
 func (w *World) mercTeamLocked(ms *mercState) []mercMate {
 	m := ms.npc
 	out := []mercMate{{n: m}}
@@ -489,6 +496,33 @@ func (w *World) mercTeamLocked(ms *mercState) []mercMate {
 	return out
 }
 
+// mercOwnTeamLocked is what the merc's beneficial spells may land on (the
+// file's doc): itself, its owner, and its owner's other mercs, alive and in
+// its world; its owner left out in a duel, in Mr. Moogie's challenge or
+// flagged for PvP (ownfight.go). Never the other players of its owner's group
+// or raid, nor their mercs. Must be called with the lock held.
+func (w *World) mercOwnTeamLocked(ms *mercState) []mercMate {
+	m, o := ms.npc, ms.owner
+	out := []mercMate{{n: m}}
+	if o != nil && !o.IsDead() && !o.respawnPending() && o.World == m.World && !w.ownFightLocked(o) {
+		out = append(out, mercMate{p: o})
+	}
+	for _, om := range w.mercsOfLocked(o) {
+		if n := om.npc; n != m && n.isMerc() && !n.Dead && n.World == m.World {
+			out = append(out, mercMate{n: n})
+		}
+	}
+	return out
+}
+
+// mercMayHelpLocked reports id one the merc's beneficial spell may land on:
+// itself, its owner, or another merc of its owner (mercOwnTeamLocked; its own
+// pet is mercPetLandLocked's). Must be called with the lock held.
+func (w *World) mercMayHelpLocked(ms *mercState, id EntityID) bool {
+	o := ms.owner
+	return id == ms.npc.ServerID || o != nil && (id == o.ServerID || w.mercHiredByLocked(id, o.ServerID))
+}
+
 // mercHealTurnLocked is a heal the merc casts now, if any (the file's doc).
 // It reports a cast begun. Must be called with the lock held.
 func (w *World) mercHealTurnLocked(ms *mercState, now time.Time) bool {
@@ -512,7 +546,7 @@ func (w *World) mercHealTurnLocked(ms *mercState, now time.Time) bool {
 		share float64
 	}
 	var hurts []hurt
-	for _, mm := range w.mercTeamLocked(ms) {
+	for _, mm := range w.mercOwnTeamLocked(ms) {
 		hp, top := mm.hp()
 		if top <= 0 || hp <= 0 || hp*100 >= top*hurtPct {
 			continue
@@ -953,7 +987,7 @@ func (w *World) mercLandLocked(c *mercCast, now time.Time) {
 	if s.Def.ShareRadius > 0 {
 		reach = s.Def.ShareRadius
 	}
-	for _, mm := range w.mercTeamLocked(ms) {
+	for _, mm := range w.mercOwnTeamLocked(ms) {
 		if heal && !w.mercGroupReachesLocked(ms, s, mm) {
 			continue // a group heal: its reach and its sight
 		}
@@ -999,6 +1033,11 @@ func (w *World) mercHelpLocked(ms *mercState, s *CastSpell, id EntityID, now tim
 	cs.spell.figures = figuresMerc // a merc's figures to a client that colours them (numbertags.go)
 	// its own pet (mercpetbuff.go)
 	if w.mercPetLandLocked(ms, cs, id, now) {
+		return
+	}
+	// its owner's own alone (the file's doc): a cast at another, chosen before
+	// the owner's raid was its team, lands on no one
+	if !w.mercMayHelpLocked(ms, id) {
 		return
 	}
 	if p := w.Players[id]; p != nil {

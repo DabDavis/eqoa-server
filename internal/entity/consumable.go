@@ -127,13 +127,9 @@ func (w *World) Consume(sess *session.Session, c Consumable, now time.Time) erro
 	if p == nil || p.IsDead() {
 		return ErrConsumeNoPlayer
 	}
-	if c.endsInFight() && (p.Attacking() || w.fightingLocked(p) > 0) {
-		// a meal a fight would end at once: refused and kept (Zerkziee's
-		// petition 1919, a ranger at range, auto-attack off: until
-		// 2026-11-13 the meal was taken, the ration spent, and the next
-		// arrow or hit ended it within the second)
-		return ErrConsumeFighting
-	}
+	// a meal or a drink is taken in a fight, and runs on through it (the
+	// owner, 2026-11-13: "players arent allowed to eat/drink during a fight
+	// but should be allowed"; petition 1919 had refused a meal in a fight)
 	d := c.Duration
 	if d <= 0 {
 		d = ConsumableDuration
@@ -169,6 +165,11 @@ func (w *World) endFoodOnCastLocked(p *Player) {
 	}
 }
 
+// foodRunsThroughFights keeps meals and drinks through a fight (the owner,
+// 2026-11-13: eating and drinking allowed in a fight); false brings back the
+// meal ending at a fight's first contact.
+var foodRunsThroughFights = true
+
 // consumableSystem ends a player's meal once it takes an aggressive action
 // or is hit after eating: auto-attack engaged, or a fight marked since
 // (LastCombatTime: its swing or harmful spell landing, a creature's or a
@@ -185,6 +186,7 @@ func (w *World) consumableSystem(now time.Time) {
 			if ae.Food != nil {
 				ends, since = ae.Food.EndsOnContact, ae.Food.Since
 			}
+			ends = ends && !foodRunsThroughFights
 			if !ends || !p.Attacking() && !p.LastCombatTime.After(since) {
 				continue
 			}

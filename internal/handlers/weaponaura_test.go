@@ -45,9 +45,13 @@ func TestAHeldItemsOwnColourIsItsHands(t *testing.T) {
 	if p.Dyes != (entity.Dyes{}) {
 		t.Fatal("the player's own dyes changed")
 	}
-	p.Dyes[database.DyePrimary] = 0x00FF00FF // dyed green: the dye wins
-	if got := p.LookDyes()[database.DyePrimary]; got != 0x00FF00FF {
-		t.Errorf("a dyed sword: %08X, want the dye", got)
+	p.Dyes[database.DyePrimary] = 0x00FF00FF // dyed green: the item's own colour wins (the owner, 2026-11-13)
+	if got := p.LookDyes()[database.DyePrimary]; got != twistedVirtue {
+		t.Errorf("a dyed sword: %08X, want its own colour", got)
+	}
+	p.Dyes[database.DyeSecondary] = 0x00FF00FF // a dyed hand holding a plain item keeps its dye
+	if got := p.LookDyes()[database.DyeSecondary]; got != 0x00FF00FF {
+		t.Errorf("a dyed plain item: %08X, want the dye", got)
 	}
 	p.Dyes = entity.Dyes{}
 

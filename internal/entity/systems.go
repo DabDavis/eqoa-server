@@ -320,6 +320,7 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 		player.HP = 0
 	}
 	player.LastCombatTime = now
+	npc.meleeLanded(damage, now)                // unreached.go
 	w.rampageLocked(npc, playerID, damage, now) // an enraged creature's share on the second of its list (enrage.go)
 
 	// Find player session to send feedback

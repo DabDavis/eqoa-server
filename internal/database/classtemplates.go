@@ -109,7 +109,9 @@ const (
 	// area spell (the workbook's Djinni Vizier's Air Root: entity/pettemplate.go)
 	AbilityRoot = "root"
 	// AbilityDebuff is an NPC's lasting harm on the player it fights: the stats
-	// its named spell takes, for the spell's time (entity/classtemplate.go).
+	// its named spell takes, for the spell's time (entity/classtemplate.go); a
+	// summoned pet's on the creature it fights, kept up (entity/pettemplate.go's
+	// petDebuffLocked; a charmed creature's own is never cast as a pet).
 	AbilityDebuff = "debuff"
 	// AbilityStrip is an NPC's cast that takes every beneficial effect off what
 	// it fights, a player or a pet (its buffs, damage shields, heals over time,

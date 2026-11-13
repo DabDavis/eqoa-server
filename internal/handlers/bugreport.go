@@ -27,7 +27,9 @@ import (
 //     disc's own window);
 //   - /bug <what happened> (vanilla forwards an unknown /command) or #bug (a
 //     PS2 keeps an unknown /command to itself but sends a # line as chat):
-//     filed on the spot under Bug Report / Sent from chat;
+//     filed on the spot under Bug Report / Sent from chat; /feature or
+//     #feature <what you would like> the same, under Bug Report / Feature
+//     Request (petition 1841), apart from the bugs;
 //   - vanilla's F3, which opens Support's form on Bug Report, from a client
 //     that answered this server's offer (protocol.OpcodeBugReportOffer).
 //
@@ -72,6 +74,15 @@ const (
 // bugSubcategory is the hidden topic a chat report is filed under (support.go
 // csCategories).
 const bugSubcategory = 19
+
+// featureSubcategory is Bug Report's Feature Request topic (support.go
+// csCategories; petition 1841): offered on the form to every client, and
+// /feature's (or #feature's). Bug Report's own ids, 10-19, are all taken, so
+// it is the first of a second hundred: no category's tens (20s Stuck, 30s
+// Player Issue, 90s Internal), and CLIENT keeps no table of its own (its
+// lists are the server's, VICSClient::RecvCategories). Vanilla's /feature
+// opens the form on it by this id (cs::FEATURE_REQUEST): never renumber it.
+const featureSubcategory = 100
 
 // reportLimiter counts each account's filings (off: none refused, for tests
 // that file many).
@@ -270,24 +281,40 @@ func (h *SupportHandler) tellGMs(from *session.Session, p database.Petition, cat
 // ChatReport is /bug (or #bug) <what happened>: a petition on the spot under
 // Bug Report / Sent from chat, the player told its ticket number.
 func (h *SupportHandler) ChatReport(sess *session.Session, me *entity.Player, text string) {
+	h.chatFile(sess, me, text, bugSubcategory, "/bug", "report",
+		"Type /bug (or #bug) and what went wrong, right where it happened: it goes to the GMs with where you are and what you were doing. A GM answers in Support's inbox (start menu).")
+}
+
+// ChatFeature is /feature (or #feature) <what you would like>: a petition on
+// the spot under Bug Report / Feature Request (petition 1841), apart from the
+// bugs, the player told its ticket number. A PS2 can pick the topic on
+// Support's form too; this is the typed way.
+func (h *SupportHandler) ChatFeature(sess *session.Session, me *entity.Player, text string) {
+	h.chatFile(sess, me, text, featureSubcategory, "/feature", "feature request",
+		"Type /feature (or #feature) and what you would like added or changed: it goes to the GMs as a feature request, apart from the bug reports. A GM answers in Support's inbox (start menu).")
+}
+
+// chatFile files text typed after word under Bug Report / sub (kind is what
+// the player is told it is); with no text, how is said.
+func (h *SupportHandler) chatFile(sess *session.Session, me *entity.Player, text string, sub int64, word, kind, how string) {
 	text = strings.TrimSpace(text)
 	if text == "" {
-		SendClientMessage(sess, "Type /bug (or #bug) and what went wrong, right where it happened: it goes to the GMs with where you are and what you were doing. A GM answers in Support's inbox (start menu).")
+		SendClientMessage(sess, how)
 		return
 	}
 	if h.store == nil {
 		SendErrorMessage(sess, "This server keeps no reports.")
 		return
 	}
-	p, err := h.fileTicket(sess, me, 1, bugSubcategory, text, "chat", time.Now())
+	p, err := h.fileTicket(sess, me, 1, sub, text, "chat", time.Now())
 	switch {
 	case err == errReportLimit:
 		SendErrorMessage(sess, reportLimitText)
 	case err != nil:
-		log.Printf("Support: %s's /bug refused: %v", me.Name, err)
-		SendErrorMessage(sess, "Your report could not be kept: "+refusalText(err))
+		log.Printf("Support: %s's %s refused: %v", me.Name, word, err)
+		SendErrorMessage(sess, "Your "+kind+" could not be kept: "+refusalText(err))
 	default:
-		SendColoredChat(sess, fmt.Sprintf("Thank you: your report is Ticket #%d. A GM answers in Support's inbox (start menu).", p.ID), 255, 255, 0)
+		SendColoredChat(sess, fmt.Sprintf("Thank you: your %s is Ticket #%d. A GM answers in Support's inbox (start menu).", kind, p.ID), 255, 255, 0)
 	}
 }
 

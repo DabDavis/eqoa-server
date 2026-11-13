@@ -1303,9 +1303,14 @@ Frontiers disc keeps working. Addresses below are Corsten's live CLIENT; word id
 The user, 2026-11-05: players report this server's bugs as petitions, over the game's own connection, so a
 server hears only its own players (the F3 report server, shut down 2026-10-31, took every server's). Three ways
 in, one petition each: Support's request form on every client (Bug Report's topics are the server's own: Quest,
-Creature or NPC, Item, loot or merchant, Spell or ability, Combat, Other, Game client; Crash and Graphics hidden),
-`/bug <what happened>` or `#bug` (a PS2 keeps an unknown /command to itself; filed under the hidden topic Sent
-from chat), and vanilla's F3, which opens the form on Bug Report from a client that answered the offer
+Creature or NPC, Item, loot or merchant, Spell or ability, Combat, Other, Game client, then Feature Request; Crash and
+Graphics hidden), `/bug <what happened>` or `#bug` (a PS2 keeps an unknown /command to itself; filed under the hidden
+topic Sent from chat), `/feature <what you would like>` or `#feature` (**Feature Request**, subcategory 100,
+`featureSubcategory`: petition 1841, the owner's "add feature req", players' asks kept apart from the bugs; Bug
+Report's 10-19 were all taken and CLIENT has no table of its own, its lists being ours, so a PS2's form offers it too;
+vanilla's `/feature` opens the form on it by that id: never renumber it; the panel's Petitions page shows it as "Bug
+Report / Feature Request" and has no kind filter, but its search finds the words, the ticket's text starting "Your
+request (Bug Report / Feature Request)"), and vanilla's F3, which opens the form on Bug Report from a client that answered the offer
 (**0x7E0E**, not retail, a u32 both ways, sent with the other offers; the server's is followed by a second, the most
 characters of a petition's text it takes, `CSTextMost`, which vanilla's form then holds). Each is filed with **the server's view**
 (`petitions.server_view`, JSON, the GMs' alone, never sent to the player, left out of every list): the moment and

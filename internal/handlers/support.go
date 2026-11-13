@@ -105,12 +105,14 @@ type csCategory struct {
 // Bug Report's topics are the server's own (bugreport.go): what a GM can act
 // on, and the game client apart. Crash and Graphics, its first two, stay
 // listed hidden so a ticket filed under them is still named; Sent from chat is
-// /bug's.
+// /bug's. Feature Request (petition 1841, the owner's "add feature req") is
+// the players' asks for something new, kept apart from the bugs: offered
+// last, after every bug's topic, and /feature's (bugreport.go).
 var csCategories = []csCategory{
 	{id: 1, name: "Bug Report", subs: []csSub{
 		{id: 12, name: "Quest"}, {id: 13, name: "Creature or NPC"}, {id: 14, name: "Item, loot or merchant"},
 		{id: 15, name: "Spell or ability"}, {id: 16, name: "Combat"}, {id: 17, name: "Other"},
-		{id: 18, name: "Game client"},
+		{id: 18, name: "Game client"}, {id: featureSubcategory, name: "Feature Request"},
 		{id: 10, name: "Crash", hidden: true}, {id: 11, name: "Graphics", hidden: true},
 		{id: bugSubcategory, name: "Sent from chat", hidden: true}}},
 	{id: 2, name: "Stuck", subs: []csSub{{id: 20, name: "In terrain"}, {id: 21, name: "Lost in a zone"}}},

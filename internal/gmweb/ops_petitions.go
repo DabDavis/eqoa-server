@@ -150,7 +150,7 @@ func (s *Server) registerPetitionOps() {
 		Name: "petition_get", Title: "Read a petition", Scope: scopeRead,
 		Description: "One petition whole (petition_list's fields, the text uncut) with its history (each GM's answer and " +
 			"close in the audit log) and server_view, the server's own view of the moment it was filed: when and how " +
-			"(via: support, the game's form; chat, /bug or #bug), the server's build, the client (disc version, whether it " +
+			"(via: support, the game's form; chat, /bug or #bug, /feature or #feature), the server's build, the client (disc version, whether it " +
 			"has the F3 key, its own note: build, platform, graphics, frame rate, what it showed), the character (place, " +
 			"hit points, whom it fought), #stats' lines on it and on its target, the entities it was shown with their " +
 			"distances, its quests under way, and lines: what it was shown in the last minutes (lines, boxes, questions, " +

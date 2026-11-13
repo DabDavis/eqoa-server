@@ -298,3 +298,103 @@ func TestAGMIsNotHeldToTheReportLimit(t *testing.T) {
 		t.Fatalf("%d petitions, want %d", n, reportsPerHour+4)
 	}
 }
+
+// Feature Request (petition 1841): Bug Report's lists offer it to every client
+// (a PS2's form too: CLIENT shows the server's lists), not hidden, after every
+// bug's topic, by featureSubcategory; the form files it labelled "(Bug Report /
+// Feature Request)", /feature and #feature file it from chat, the player told
+// it is a feature request and the GM told its topic; the old kinds are as they
+// were (a form's Creature or NPC, /bug's Sent from chat). The controls: /bug
+// still files 19, /feature alone says how and files nothing.
+func TestFeatureRequestFiledApart(t *testing.T) {
+	// the lists, as a client reads them
+	buf := make([]byte, 4096)
+	w := buffer.NewWriter(buf)
+	writeCSCategories(w)
+	r := buffer.NewReader(buf[:w.Position()])
+	n, _ := r.Read7BitEncodedInt64()
+	var offered []string // Bug Report's topics a client shows
+	for k := 0; k < int(n); k++ {
+		id, _ := r.Read7BitEncodedInt64()
+		r.ReadByte()
+		readWide(r)
+		m, _ := r.Read7BitEncodedInt64()
+		for j := 0; j < int(m); j++ {
+			sid, _ := r.Read7BitEncodedInt64()
+			hidden, _ := r.ReadByte()
+			name, _ := readWide(r)
+			if id == 1 && hidden == 0 {
+				offered = append(offered, fmt.Sprintf("%d %s", sid, name))
+			}
+		}
+	}
+	want := []string{"12 Quest", "13 Creature or NPC", "14 Item, loot or merchant", "15 Spell or ability", "16 Combat",
+		"17 Other", "18 Game client", "100 Feature Request"}
+	if strings.Join(offered, "|") != strings.Join(want, "|") {
+		t.Fatalf("Bug Report offers %q", offered)
+	}
+	for _, s := range []struct {
+		sub  int64
+		name string
+	}{{10, "Crash"}, {11, "Graphics"}, {12, "Quest"}, {13, "Creature or NPC"}, {18, "Game client"}, {19, "Sent from chat"},
+		{featureSubcategory, "Feature Request"}} {
+		if c, got := CSNames(1, s.sub); c != "Bug Report" || got != s.name {
+			t.Fatalf("CSNames(1, %d) = %q / %q", s.sub, c, got)
+		}
+	}
+
+	c, h, db, as, bs := bugWorld(t)
+	h.limit.off = true // several at once (TestChatReportFilesWithTheServersView holds the limit)
+	form := func(sub int64, text string) {
+		t.Helper()
+		got := csSend(t, h, as, 0, func(w *buffer.Writer) {
+			w.Write7BitEncodedInt64(1)
+			w.Write7BitEncodedInt64(sub)
+			writeWideString(w, text, 1024)
+		})
+		if len(got) != 1 || !bytes.Equal(got[0], []byte{0, csOK}) {
+			t.Fatalf("filing %d: % X", sub, got)
+		}
+	}
+	ticket := func(id, sub int64, head, text string) {
+		t.Helper()
+		p, ok, err := db.PetitionByID(id)
+		if err != nil || !ok || p.Category != 1 || p.Subcategory != sub ||
+			!strings.HasPrefix(p.Text, "Your request (Bug Report / "+head+") has been received:") || !strings.Contains(p.Text, text) {
+			t.Fatalf("ticket %d: %+v %v %v", id, p, ok, err)
+		}
+	}
+
+	bs.Queue().GetPending()
+	form(featureSubcategory, "a /lfg window please")
+	ticket(1001, featureSubcategory, "Feature Request", "a /lfg window please")
+	if got := sentText(t, bs); !strings.Contains(got, "[Petition] Ticket #1001 from Ann (Bug Report / Feature Request): a /lfg window please") {
+		t.Fatalf("the GM was told %q", got)
+	}
+	form(13, "the guard walks through walls")
+	ticket(1002, 13, "Creature or NPC", "the guard walks through walls")
+
+	chat(t, c, as, "/feature a bank in Qeynos")
+	if got := sentText(t, as); !strings.Contains(got, "your feature request is Ticket #1003") {
+		t.Fatalf("Ann was told %q", got)
+	}
+	ticket(1003, featureSubcategory, "Feature Request", "a bank in Qeynos")
+	chat(t, c, as, "#FEATURE more hair styles")
+	ticket(1004, featureSubcategory, "Feature Request", "more hair styles")
+	chat(t, c, as, "/bug the gate is shut")
+	if got := sentText(t, as); !strings.Contains(got, "your report is Ticket #1005") {
+		t.Fatalf("Ann was told %q", got)
+	}
+	ticket(1005, bugSubcategory, "Sent from chat", "the gate is shut")
+	if v := views(t, db); v[1003].Via != "chat" || v[1001].Via != "support" {
+		t.Fatalf("via %q %q", v[1003].Via, v[1001].Via)
+	}
+
+	chat(t, c, as, "/feature")
+	if got := sentText(t, as); !strings.Contains(got, "Type /feature (or #feature)") {
+		t.Fatalf("/feature alone: %q", got)
+	}
+	if n := len(views(t, db)); n != 5 {
+		t.Fatalf("%d petitions", n)
+	}
+}

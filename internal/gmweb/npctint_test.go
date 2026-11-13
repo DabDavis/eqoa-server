@@ -98,7 +98,8 @@ func TestTintEditsAreLive(t *testing.T) {
 // The auras in the panel (claude-notes/auras-20261113.md): npctint's aura
 // columns reach a layout 3 client at once, and a kind, node count or source
 // past what the client reads is refused; an itemaura row is the world's at
-// once (and gone with its delete), audited, and one of a kind past 4 refused.
+// once (and gone with its delete), audited, and one of a kind past 6 refused;
+// the trim kinds (5, 6) and a dark aura (a black colour) kept.
 func TestAuraEditsAreLive(t *testing.T) {
 	f := newFixture(t)
 	c := f.browser()
@@ -123,17 +124,30 @@ func TestAuraEditsAreLive(t *testing.T) {
 	if w := f.world.NPCTints(); len(w) != 1 || w[0].AuraKind != 3 || w[0].AuraSource != 0x88EC092D || w[0].AuraNodes != 12 {
 		t.Fatalf("the world holds %+v", w)
 	}
-	for _, bad := range []map[string]any{{"name": "x", "aura_kind": 5}, {"name": "x", "aura_nodes": 33}, {"name": "x", "aura_source": float64(1 << 33)}} {
+	for _, bad := range []map[string]any{{"name": "x", "aura_kind": 7}, {"name": "x", "aura_nodes": 33}, {"name": "x", "aura_source": float64(1 << 33)}} {
 		if code, out := c.op("insert_row", map[string]any{"table": "npctint", "values": bad}); code != 400 {
 			t.Errorf("insert %v: %d %v, want refused", bad, code, out)
 		}
+	}
+	// the trim kinds, and a dark aura (a black glow) that lights nothing but
+	// is named: kept and sent to the layout 3 client
+	code, out = c.op("insert_row", map[string]any{"table": "npctint",
+		"values": map[string]any{"name": "dust", "glow": float64(0x000000FF), "aura_kind": 5}})
+	if code != 200 || sent() != 2 {
+		t.Fatalf("a dark trim: %d %v; %d sent", code, out, sent())
+	}
+	if w := f.world.NPCTints(); len(w) != 2 {
+		t.Fatalf("the dark trim row not in the world: %+v", w)
+	}
+	if code, out := c.op("insert_row", map[string]any{"table": "npctint", "values": map[string]any{"name": "y", "aura_kind": 6}}); code != 200 {
+		t.Errorf("kind 6: %d %v", code, out)
 	}
 
 	mustExec(t, f.db, `INSERT INTO itempattern (patternid, itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent, unk4, attacktype,
 		weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, lore, unk6, craft, itemname, itemdesc, model, color)
 		VALUES (424242, 0, 0, 1, 0, 7, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 32767, 32767, 0, 0, 0, 0, 'Glowing Bracer', '', 4, 0)`)
 	code, out = c.op("insert_row", map[string]any{"table": "itemaura",
-		"values": map[string]any{"patternid": 424242, "color": float64(0xFF2020FF), "kind": 2, "note": "the test's"}})
+		"values": map[string]any{"patternid": 424242, "color": float64(0x000000FF), "kind": 5, "note": "the test's: a dark trim"}})
 	if code != 200 || f.world.ItemAuraCount() != 1 {
 		t.Fatalf("itemaura insert: %d %v; the world holds %d", code, out, f.world.ItemAuraCount())
 	}

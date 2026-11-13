@@ -66,8 +66,25 @@ func TestGMAuraCommand(t *testing.T) {
 	if a := got[int(pid)]; err != nil || a != (database.ItemAura{PatternID: int(pid), Color: 0x3060FFFF, Kind: database.AuraShell, Nodes: 4}) {
 		t.Fatalf("the row: %+v, %v", a, err)
 	}
+	// the trim in black: a dark aura, kept though its colour lights nothing
+	c.say(gs, "/aura item "+strconv.Itoa(int(pid))+" trim 000000FF")
+	if l := gmReplies(t, gs); !hasLine(l, "aura trim in 000000FF (dark)") || c.gw.ItemAuraCount() != 1 {
+		t.Fatalf("/aura item trim black: %q", l)
+	}
+	if got, _ := db.ItemAuras(); got[int(pid)] != (database.ItemAura{PatternID: int(pid), Color: 0x000000FF, Kind: database.AuraTrim}) {
+		t.Fatalf("the dark trim row: %+v", got[int(pid)])
+	}
+	c.say(gs, "/aura item "+strconv.Itoa(int(pid))+" 7 FFC040FF")
+	if l := gmReplies(t, gs); !hasLine(l, "Usage") {
+		t.Fatalf("kind 7: %q", l)
+	}
+	c.say(gs, "/aura item "+strconv.Itoa(int(pid))+" 6 FFC040FF")
+	if got, _ := db.ItemAuras(); got[int(pid)].Kind != database.AuraTrimShell {
+		t.Fatalf("kind 6 by number: %+v", got[int(pid)])
+	}
 	c.say(gs, "/aura item "+strconv.Itoa(int(pid))+" off")
-	if c.gw.ItemAuraCount() != 0 || auditLines(t, db, "itemaura", "insert") != 1 || auditLines(t, db, "itemaura", "delete") != 1 {
+	if c.gw.ItemAuraCount() != 0 || auditLines(t, db, "itemaura", "insert") != 1 || auditLines(t, db, "itemaura", "delete") != 1 ||
+		auditLines(t, db, "itemaura", "update") != 2 {
 		t.Fatal("/aura item off: not deleted, or not audited")
 	}
 }

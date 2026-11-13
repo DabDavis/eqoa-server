@@ -23,19 +23,21 @@ import (
 //	/aura item <id> <kind> <RRGGBBAA> [source] [nodes]
 //	/aura item <id> off
 //
-// kind: default, none, shell, particles, both (or 0-4); the colour hex, 0
-// none; source a DictID in hex (0 the Sword of Virtue's); nodes 0-32.
+// kind: default, none, shell, particles, both, trim, trimshell (or 0-6); the
+// colour hex, 0 none, a black or near-black one (database.AuraDark: every
+// channel at most 30) a DARK aura, a shadow; source a DictID in hex (0 the
+// Sword of Virtue's); nodes 0-32.
 
 const auraUsage = "Usage: /aura <kind> <RRGGBBAA> [source] [nodes] on your target NPC's name, /aura off; " +
-	"/aura item <id> <kind> <RRGGBBAA> [source] [nodes], /aura item <id> off. kind: default, none, shell, particles, both " +
-	"(0-4); source: a DictID in hex (0 the Sword of Virtue's); nodes 0-32 (0 the default)"
+	"/aura item <id> <kind> <RRGGBBAA> [source] [nodes], /aura item <id> off. kind: default, none, shell, particles, both, " +
+	"trim, trimshell (0-6); a colour of every channel at most 30 (000000FF black) is a dark aura; source: a DictID in hex (0 the Sword of Virtue's); nodes 0-32 (0 the default)"
 
 // auraKinds are the kinds by name (database.AuraDefault ...).
 var auraKinds = map[string]uint8{"default": database.AuraDefault, "none": database.AuraNone, "shell": database.AuraShell,
-	"particles": database.AuraParticles, "both": database.AuraBoth}
+	"particles": database.AuraParticles, "both": database.AuraBoth, "trim": database.AuraTrim, "trimshell": database.AuraTrimShell}
 
 // auraKindNames are the kinds' names by number.
-var auraKindNames = [...]string{"default", "none", "shell", "particles", "both"}
+var auraKindNames = [...]string{"default", "none", "shell", "particles", "both", "trim", "trimshell"}
 
 // parseHex32 reads a 32-bit hex value, with or without 0x.
 func parseHex32(s string) (uint32, bool) {
@@ -96,7 +98,11 @@ func auraWords(a database.ItemAura) string {
 	if a.Nodes != 0 {
 		nodes = fmt.Sprintf("%d nodes", a.Nodes)
 	}
-	return fmt.Sprintf("aura %s in %08X (particles %s, %s)", kind, a.Color, src, nodes)
+	dark := ""
+	if database.AuraDark(a.Color) && database.AuraNamed(a.Kind) {
+		dark = " (dark)"
+	}
+	return fmt.Sprintf("aura %s in %08X%s (particles %s, %s)", kind, a.Color, dark, src, nodes)
 }
 
 // auraCommand is /aura's: see the file's doc.

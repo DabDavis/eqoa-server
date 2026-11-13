@@ -705,6 +705,13 @@ const (
 	rangedShare              = 1.95
 )
 
+// rangedSwing is whether the player's swing is a bow's shot (playerShotHit's
+// arrows), not a melee roll or a thrown potion.
+func rangedSwing(p *Player) bool {
+	k := p.Swing.Kind
+	return k >= swingRange1 && k <= swingRange4 && p.Swing.Potion == 0
+}
+
 // playerShotHit is one landed player swing's damage before the balance: a
 // melee roll (playerMeleeHit), or a bow's shot of one arrow, or two at Range4,
 // each rangedShare times a ranged roll (playerRangedHit).
@@ -746,7 +753,10 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 	if !w.shotPowerLocked(sess, attacker) {
 		return true // a bow's shot without the power: the fight let go (rangedpower.go)
 	}
-	damage := w.meleeDealtLocked(npc, attacker, playerShotHit(attacker, npc, meleeIntn), meleeIntn) // balance.go
+	raw := playerShotHit(attacker, npc, meleeIntn)
+	damage := w.meleeDealtLocked(npc, attacker, raw, meleeIntn) // balance.go
+	damage = w.formulaDamage(damage, dmgIn{src: srcPlayer, kind: dkMelee, ap: attacker, dn: npc, raw: raw,
+		ranged: rangedSwing(attacker)}) // dmgformula.go: the operator's formula, if any
 	if npc.Dummy != NotDummy {
 		// told, taken off nothing; the dummy fights back (dummy.go)
 		now := time.Now()

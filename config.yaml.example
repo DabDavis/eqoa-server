@@ -402,6 +402,17 @@ auth:
     - username: "test"
       password: "changeme"
 
+# Damage formulas the operator keeps on this machine, outside the repository
+# (docs/damage-formulas.md): each formula named in the file replaces the
+# built-in damage of its path (player_melee, npc_spell, ...). Read at start,
+# again within a second of the file changing, and by the GM panel's
+# reload_formulas; a file with a mistake is refused whole (the formulas in use
+# stay), a formula that fails at a hit gives that hit its built-in figure. The
+# formulas' text is never logged or shown. Keep the file mode 600. Unset or "":
+# the built-in damage everywhere.
+# combat:
+#   formula_file: "/home/sdg/eqoa-server/private/damage.formula"
+
 gm:
   # The GM panel (internal/gmweb): a web page for GMs, and the same tools for
   # an AI agent (MCP with OAuth, or OpenAPI with a token). Off unless port is

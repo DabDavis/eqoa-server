@@ -279,6 +279,9 @@ func (w *World) mercMeleeHitLocked(ms *mercState, t *NPC, now time.Time) bool {
 // It reports a kill. Must be called with the lock held.
 func (w *World) mercDamageLocked(ms *mercState, t *NPC, n int, kind numberKind, now time.Time) bool {
 	owner, m := ms.owner, ms.npc
+	// the operator's formula for the hit's kind (dmgformula.go: merc_melee, merc_spell, ...)
+	n = w.formulaDamage(n, dmgIn{src: srcMerc, kind: dmgKindOf(kind), ap: ms.body, an: m, dn: t, owner: owner, raw: n,
+		ranged: kind == numberMelee && ms.body != nil && rangedSwing(ms.body)})
 	sess := w.findSessionByEntityIDLocked(owner.ServerID)
 	tell := func() {
 		if sess == nil {

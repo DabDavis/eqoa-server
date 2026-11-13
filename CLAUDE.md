@@ -2413,9 +2413,9 @@ hurt and 70% of its power; a caster keeps its power for its best hit: a lesser s
 best). It never casts a summoning, charm, illusion, gate, resurrection, invisibility, run speed, cure, stance, lull,
 pickpocket, a reagent's or an item's spell, a backstab, a spell for animals or summoned creatures alone, a harmful area
 spell, or a pure debuff; a spell for undead alone only at undead. Its damage over time ticks as its hits
-(`ActiveEffect.merc`, `mercTickLocked`). **A wizard merc's spells do 65% of their damage** (hits and ticks: `mercSpellPct`,
-`mercSpellShare`; the GM Jibwiz's petition 1907, "Nerf the damage per cast on the mercenary wizard by 35%"); a
-player wizard's are untouched.
+(`ActiveEffect.merc`, `mercTickLocked`). **A wizard merc's spells do 50% of their damage, its melee and shots 85%** (hits and ticks:
+`mercSpellPct`/`mercSpellShare`, `mercMeleePct`/`mercMeleeShare`; the GM Jibwiz's petition 1907, "Nerf the damage per
+cast on the mercenary wizard by 35%", then 1954, "an additional 15% across the board"); a player wizard's are untouched.
 
 **A player's own fights** (`entity/ownfight.go`, the GM Jibrish's petition 1491: "Correct it so mercenarys and healbot did not
 assist you in duels, pvp, or for mr moogies challenge"): `ownFightLocked` is a player flagged for PvP, in a duel that is on, or

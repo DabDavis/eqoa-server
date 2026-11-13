@@ -187,7 +187,7 @@ func (w *World) mercShotLandLocked(ms *mercState, now time.Time) bool {
 	b.Gear.WeaponDamage, b.Gear.WeaponCond, b.Gear.WeaponTwoHanded = bow.Damage, 1, false
 	b.Gear.WeaponSlot, b.Gear.WeaponType, b.Gear.BareHands = 18, int(bow.Type), false
 	b.Swing = ms.mercBowSwing()
-	n := w.meleeDealtLocked(t, b, playerShotHit(b, t, meleeIntn), meleeIntn) // attack.go, balance.go
+	n := mercMeleeShare(ms, w.meleeDealtLocked(t, b, playerShotHit(b, t, meleeIntn), meleeIntn)) // attack.go, balance.go; its class's share (merccast.go)
 	b.Gear, b.Swing = saveGear, saveSwing
 	log.Printf("Merc: %s's %q shoots %s", ms.owner.Name, m.Name, t.Name)
 	return w.mercDamageLocked(ms, t, n, numberMelee, now)

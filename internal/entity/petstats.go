@@ -446,7 +446,10 @@ func (n *NPC) petResistShare(element Stat) float64 {
 
 // petSheetRegen is a workbook pet's tick (npcregen.go's petRegen): its row's
 // HoT, scaled as the balance scaled its hit points, and PoT; a 50th of each
-// maximum where its row gives none.
+// maximum where its row gives none; and what its effects add to each, as any
+// other pet's (petRegen). Until 2026-11-13 a workbook pet's tick took none of
+// its effects' HoT and PoT, so a buff of them (Guided Meditation's) on a
+// summoned pet did nothing.
 func (n *NPC) petSheetRegen() {
 	s := n.sheet
 	hot, pot := max(1, n.MaxHP/50), max(1, n.MaxPower/50)
@@ -459,6 +462,9 @@ func (n *NPC) petSheetRegen() {
 	if s.PoT > 0 {
 		pot = s.PoT
 	}
+	m := n.effectMods()
+	hot += max(m.HoT, 0)
+	pot += max(m.PoT, 0)
 	if n.HP > 0 && n.HP < n.MaxHP {
 		n.HP = min(n.HP+hot, n.MaxHP)
 	}

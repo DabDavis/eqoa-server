@@ -339,6 +339,7 @@ func (h *ChatHandler) SendGMChannel(sess *session.Session) {
 	// spared the sun: entity/vampire.go)
 	if h.gameWorld != nil {
 		h.gameWorld.SetPlayerGM(sess, true)
+		h.restoreGMTagHidden(sess) // and the [GM] tag it hid, /hide gmtag (hidegmtag.go)
 	}
 	queueReliable(sess, protocol.OpcodeAdminCode, buildGMEnabled(1))
 	queueReliable(sess, protocol.OpcodeGMTriggers, buildTriggerNamesOffer())

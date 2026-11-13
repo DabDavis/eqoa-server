@@ -189,7 +189,13 @@ func (h *NPCWindowHandler) rollCorpse(npc *entity.NPC, died time.Time, level int
 		} else if len(rolls) > 0 {
 			for i := range rolls {
 				var n int
-				rolls[i].Choices, n = fitChoices(rolls[i].Choices, level)
+				choiceLevel := level
+				// This dedicated Heirloom category guarantees raid gear for every
+				// opener. Its items retain their normal equip-level requirements.
+				if rolls[i].Category == "sky twins ascended" {
+					choiceLevel = 0
+				}
+				rolls[i].Choices, n = fitChoices(rolls[i].Choices, choiceLevel)
 				cut += n
 			}
 			got := rollCategories(rolls, h.lootFloat, h.lootIntn)

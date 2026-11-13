@@ -333,6 +333,11 @@ A new login, a takeover too, ends the flight; a keep restart keeps it and the pl
 row has where it last stood, and a hover reports nothing), told again after its dump. Others see a body in the air at the
 height sent, running or standing as the channel's byte 58 says, upright; within 1.5 of a floor their client sets it on the
 floor (`ExtrapolateGround`), and the 0x40's box stops at 3 a second up, so a fast climb goes in the steps of its reports.
+**/noclip** (`handlers/noclip.go`, `entity/noclip.go`; petition 1904): a GM's (acctlevel 1+) of `world.noclip_accounts`
+(usernames; empty: nobody) alone; a toggle, `on`/`off`. On, the flight comes on with it and the client is told
+**0x7E7A** (`OpcodeNoclip`, u32 1/0, to a client that flies); off, both go; `#fly off`, a new login and a takeover end it; a
+keep restart keeps it. The movement check judges none of a flyer's moves already; the client's own walls are vanilla's to
+drop on 0x7E7A.
 
 **The GM's TEST menu** (`handlers/gmchannel.go`, `entity/gmchannel.go`; CLIENT's VIClientPart382E8,
 `claude-notes/vanilla-decomp-ports-20261028.md`; the user's "lets add it", 2026-10-28): a GM's client
@@ -502,6 +507,16 @@ with the code), each usable by any creature's template:
 - a **line at a kill** (`killsay`, `foes` names, `say`: its line in /say when a hit of its own kills one of them, its melee,
   casts, specials, kicks, procs, veil, rampage or damage over time, on a creature or a player; not a pet's kill, an add's
   (a Servant of Moogie's: an add says none of its creature's lines) or another's; petition 1458, Mr. Moogie's "Dab got dunked again" at Innoruuk's death: `entity/selfbuff.go`);
+- a **ward** (`ward`, once a fight below `below` %: for the rest of that fight every hit that lands on it heals it `heal` more,
+  beside its hit heal, and is answered at its next tick with `damage` on whoever landed it, player, pet, merc or NPC, pure:
+  no resist, armour or mitigation; `name` its lines' (Ward), `say` its line: `entity/ward.go`; petition 1892, Mr. Moogie's
+  "Royal Ward" at 15%, +500 and 5,000);
+- a **hold at 1 hit point** (`deathhold`, once a fight: the hit that would kill it leaves it at 1, and for `hold` s (30) no hit
+  lands on it (every NPC hit asks `npcTakesLocked`), nothing heals it, and it does nothing (aiSystem passes it by, no regen);
+  then its fight goes on at 1 and the next hit kills it; `say` its line: `entity/deathhold.go`; petition 1894). Their data
+  and petition 1896's (trigger "Mr. Moogie Defeated", scope all, one broadcast, fired by npcdeath "mr. moogie") are
+  `tools/moogie_gm_20261113.py [--apply|--undo]` (log `moogie_gm_1113_log`), after the laststand tool; an older binary
+  reads the template as unreadable;
 - a creature's **damage over time** (`dot`, until now a pet's alone): on a player its ticks as a debuff's damage tick, on a
   scripted fight's NPC each tick the fight's hit, kept up as a pet's (cast again as the one on its target runs out; at a pet it
   waits): `entity/creaturedot.go`.
@@ -860,6 +875,10 @@ it (nor its words), so:
   CLIENT's Challenge and Surrender need); a client that answers 0x7E09 {1} gets 0x1502 in place of boxes and lines and sees its
   opponent as a player (its own TargetInRange asks its duel part: sub 7 names the opponent and its pet). A PS2
   ignores both offers. S2's player search runs 0x1502 up and 0x1500/0x1501 down: no clash.
+
+**Mercs stand down for a duel** (petition 1901, `ownfight.go`): a duel is its two's own from its accept, the countdown
+too (`duelEngagedLocked`): no merc's or familiar's heal or buff lands then, a duelist's mercs take on nothing (their owner's
+target or any creature) and let go of what they fought, and `/merc attack` is refused, until the duel is over.
 
 ### The PvP flag: a server's own switch (`entity/pvp.go`, `handlers/pvp.go`, `world.pvp`)
 
@@ -1232,6 +1251,13 @@ treatment": the Tomb of Kings, Castle Felstar, Collonridge Cemetery, Vox's Lair,
   Verghest Felstar; Necromancer Warpheus; Lady Vox; Toxxulia; Skahyir; King Bardag), 84 records 995037-995120, a twin
   at each entrance. NPCs and templates are read at the start: a keep restart's `before.sh`. Tests: `TestDungeon*`
   (`entity/`, `handlers/`), `TestReadDungeonsRecipe`, `TestDungeonsPagesTheirBox`.
+
+**Adding and taking out players** (petition 1879, `entity/instancemembers.go`): `/addinstance [name] [dungeon]`,
+`/removeinstance` (`/dungeon add|remove`, `/t addinstance`, 0x7E48 ops 14/15 with a u32 target), the owner's, its group
+leader's or its raid helper's. An added player may stand in and enter it without its group, up to its cap (party and
+added together): the recipe's `cap` (4 on all ten: the heroic dungeons), else `world.dungeons.cap` (4); a raid's
+`world.dungeons.raid_cap` (50). Taken out: inside, warned and sent to Freeport (the warden by Dabrish) after 60 s; barred
+until added again; no need-before-greed seat at a kill after it. Kept over a keep restart (`KeptDungeonInst.Added/Removed`).
 
 ### Mail, resets, one Master Class, petitions: SOE's live client's, for every client
 
@@ -1620,6 +1646,9 @@ the World (`questHeadMarksSystem`, every 2 ticks) only maps them onto the NPCs o
 that differs. A PS2 ignores the offer. `tools/questmarks_20261112.py` flags each race and class's first quest
 (defaultcharacter's starts: the class or race quest of level 1 requiring none whose giver stands nearest the start;
 97 on Heirloom: 75 city class quests, 22 homeland quests); read at the start and at a panel quest edit.
+**A flagged quest's follow-ups are marked too** (petition 1875, `markedWithFollowUps`: every quest down its chain, by
+`successors`), so a turn-in shows the next quest's "!" at once (1,060 marked on Heirloom, 609 of the 648 quests of level
+10 and under).
 
 ### A quest's items wait for room in the pack (`handlers/questroom.go`, every quest)
 
@@ -2492,6 +2521,10 @@ Ascended rule's record), **Heroic Ceremonial Vestments** (965005, 4000: a copy o
 of the seven stats and six resists). A standing holds at most +2000, 4000 to spend: the robe is bought only at the top. The
 greeting says all of a standing above -2000 is spent (petition 1515: it always was; the words now say so).
 
+**A pick shows the ware first** (petition 1876, `Heroes.show`): before the Yes/No or a refusal, a line naming the item as
+an item link ("..., 350 faction. Click its name to see its stats.") to a client that takes links (made as a loot line's
+link), its stats in words to any other.
+
 ### Teleport orbs: a step onto a pad sends the player to its pair (`entity/orbs.go`, table `orbs`, `tools/seed_orbs.py`)
 
 The user, 2026-11-09: "the erudite starts that are in towers the orb wont teleport them yet to the main highbourne".
@@ -2753,6 +2786,10 @@ rules as they are.
 **The windows** (0x7E42-0x7E48, Key Server Protocol Details): a client that answered the offer gets the raid's state, its rolls and the
 master looter's list as messages; a PS2 the same as chat lines in the raid's orange ("Roll 7: ... /t need 7, /t greed 7 or /t pass 7",
 the master looter's items by number at its opening and after each assign).
+
+**A group's own need before greed** (petition 1878, `entity/grouploot.go`): `/grouploot needgreed|ffa` (on/off, `/groupnbg`,
+`/t grouploot`), `/raidloot` and the menu's 0x7E48 op 1 in a plain group, its leader's, not in combat; master looter stays a
+raid's. Under it a group's kill is a raid's kill to the loot. 0x7E44 to its members: leader 0, rule 1, flag bit 3 (8).
 
 ### A raid's groups inside it (`entity/raidsubgroups.go`)
 
@@ -3615,6 +3652,12 @@ PS2, and every client of a server without the table, draws the body in its own c
 0x2A7333FF (red x0.16, green x0.45, blue x0.20: near-black at noon with his scales' green showing, deep green on black
 in the morning sun; picked from vanilla's `eqoa shot ... tint=` beside 0x73B366FF, 0x598C54FF and 0x4D804DFF), logged
 in `npc_tint_seed_log`, `--undo` exact; run it before the server starts, or press the panel's Reload every NPC after.
+**A glow beside the tint** (petition 1893, Mr. Moogie's "whole body glow a soft red"): `npctint.glow` (0xRRGGBBAA, 0 none,
+added to an older table at the start) is a light of the body's own; the offer names layout **2** and a client answering 2 is
+sent each name's colour then its u32 glow (names of a glow alone too); vanilla before it answers 1 and keeps layout 1 (the
+session keeps the layout, over a keep restart too). Vanilla draws nothing of it until it answers 2 and lays the glow on
+the body's layers (aura.rs's emissive). `tools/moogie_glow_20261113.py` (log `moogie_glow_1113_log`): Mr. Moogie, no tint,
+glow 0xFF606099.
 **A damage meter for a client that draws one** (2026-11-10; `entity/dpsmeter.go`, `handlers/dpsmeter.go`,
 `claude-notes/dps-meter-20261110.md`; the owner: "lets add dps meters, will work solo, group, raid"). CLIENT has no
 meter. Beside 0x7E38 the server offers opcode **0x7E3A** (`OpcodeDPSMeterOffer`, a u8 1, the data's layout; not retail,

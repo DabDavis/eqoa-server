@@ -50,3 +50,79 @@ func TestCampMarkersFollowTheirAnchors(t *testing.T) {
 		t.Errorf("Odus has %d camps of %d", n, len(all))
 	}
 }
+
+// The map's other camps (mapcamps.go, tools/gen_camp_teles.py --map-out):
+// drawn on the maps beside the #tele camps, never a #tele name (so neither
+// #tele, #goto nor the Teleporter offers one: those read campDests alone),
+// each named apart, in its world, its anchor among its creatures; a map camp
+// follows its anchor as a #tele camp does. The controls: CampMarkers (what
+// the camp reports name) holds the #tele camps alone, and a #tele camp is
+// still found as one.
+func TestMapCampsAreTheMapsAlone(t *testing.T) {
+	if len(mapCamps) < 100 {
+		t.Fatalf("%d map camps; the tool wrote 154", len(mapCamps))
+	}
+	names := map[string]string{}
+	for k, c := range mapCamps {
+		if _, _, ok := findTeleDest(k); ok {
+			t.Errorf("map camp %s is a #tele name", k)
+		}
+		if _, ok := campDests[k]; ok {
+			t.Errorf("map camp %s is a #tele camp's key", k)
+		}
+		if o, ok := names[strings.ToLower(c.Name)]; ok {
+			t.Errorf("%s and %s are both named %q", k, o, c.Name)
+		}
+		names[strings.ToLower(c.Name)] = k
+		if c.World > 2 || c.NPC == "" || c.Levels == "" || c.Label == "" || c.Zone == "" {
+			t.Errorf("%s: %+v", k, c)
+		}
+		own := false
+		for _, n := range c.Creatures {
+			own = own || strings.EqualFold(strings.TrimSpace(n), strings.TrimSpace(c.NPC))
+		}
+		if !own {
+			t.Errorf("%s: its anchor %q is not among its creatures %v", k, c.NPC, c.Creatures)
+		}
+	}
+	if n := len(CampMarkers(nil, -1)); n != len(campDests) {
+		t.Errorf("CampMarkers holds %d, want the %d #tele camps alone", n, len(campDests))
+	}
+	all := MapCampMarkers(nil, -1)
+	if len(all) != len(campDests)+len(mapCamps) {
+		t.Fatalf("MapCampMarkers holds %d, want %d #tele and %d map camps", len(all), len(campDests), len(mapCamps))
+	}
+	tele := 0
+	for _, m := range all {
+		if m.Tele {
+			tele++
+			if _, ok := campDests[m.Key]; !ok {
+				t.Errorf("%s is drawn as a #tele camp", m.Key)
+			}
+		} else if m.Name == "" {
+			t.Errorf("map camp %s has no name", m.Key)
+		}
+	}
+	if tele != len(campDests) {
+		t.Errorf("%d #tele camps drawn, want %d", tele, len(campDests))
+	}
+	if n := len(MapCampMarkers(nil, 2)); n <= len(CampMarkers(nil, 2)) {
+		t.Errorf("Odus draws %d camps, no more than its #tele ones", n)
+	}
+	var key string
+	for k := range mapCamps {
+		if key == "" || k < key {
+			key = k
+		}
+	}
+	c := mapCamps[key]
+	w := entity.NewWorld()
+	w.NPCs[1] = &entity.NPC{ServerID: 1, Name: c.NPC, World: c.World, SpawnX: c.X + 40, SpawnZ: c.Z, SpawnY: 70}
+	m, ok := CampMarkerOf(w, strings.ToUpper(key))
+	if !ok || m.Tele || m.Fallback || m.X != c.X+40 || m.Y != 70 || m.Name != c.Name {
+		t.Fatalf("map camp %s: %+v (%v), want it at its moved anchor", key, m, ok)
+	}
+	if m, ok := CampMarkerOf(nil, "deathfist"); !ok || !m.Tele || m.Key != "dfc" {
+		t.Errorf("the control: deathfist is %+v (%v), want the #tele camp dfc", m, ok)
+	}
+}

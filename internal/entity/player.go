@@ -479,6 +479,9 @@ type Player struct {
 	ArmorBody uint32
 	// stuckNext is when /stuck may be used again (stuck.go)
 	stuckNext time.Time
+	// skyFallSince is when it began to be lost under the Plane of Sky's
+	// islands (skyfall.go), zero when it is not
+	skyFallSince time.Time
 }
 
 // BuffSlot is one active effect as CLIENT's Channel43 reads it into

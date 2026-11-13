@@ -621,20 +621,14 @@ func (h *ClassMasteryHandler) templateUsed(who *session.Session, p *entity.Playe
 	if h == nil || h.gameWorld == nil {
 		return
 	}
-	for _, id := range pl.Removed {
-		if rk := h.gameWorld.CMRankByID(id); rk != nil {
-			gives, takes := rk.BookChange()
-			h.takeAbilities(who, p, gives)
-			h.giveAbilities(who, p, takes)
-		}
-	}
-	for _, id := range pl.Added {
-		if rk := h.gameWorld.CMRankByID(id); rk != nil {
-			gives, takes := rk.BookChange()
-			h.giveAbilities(who, p, gives)
-			h.takeAbilities(who, p, takes)
-		}
-	}
+	// each set as one (entity.CMRemovalBook, CMAddBook): a line whose ranks
+	// replace the one before leaves its last step's spell alone
+	out, back := entity.CMRemovalBook(h.ranksOf(pl.Removed), h.ranksOf(pl.Kept))
+	h.takeAbilities(who, p, out)
+	h.giveAbilities(who, p, back)
+	give, take := entity.CMAddBook(h.ranksOf(pl.Added))
+	h.giveAbilities(who, p, give)
+	h.takeAbilities(who, p, take)
 	if len(pl.Removed) == 0 && len(pl.Added) == 0 && pl.Before == pl.After {
 		return
 	}

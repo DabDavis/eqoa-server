@@ -325,3 +325,38 @@ func (db *SQLiteDB) NPCRowName(name string) (string, bool) {
 	err := db.QueryRow(`SELECT npc_name FROM npcs WHERE npc_name = ? COLLATE NOCASE ORDER BY id LIMIT 1`, strings.TrimSpace(name)).Scan(&n)
 	return n, err == nil
 }
+
+// SetNPCRowSizeAudited sets npcs row id's size, with an audit line (detail
+// "/size in the game: " + what): a GM's /size on a creature kept over its
+// respawns and restarts (the owner, 2026-11-13: "size may not being
+// preserved across restarts"). sql.ErrNoRows when there is no such row.
+func (db *SQLiteDB) SetNPCRowSizeAudited(id int64, size float64, who GMEdit, what string) error {
+	if _, err := db.Exec(GMAuditSchema); err != nil {
+		return err
+	}
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	fillWho(tx, &who)
+	before, err := fullRow(tx, `SELECT * FROM npcs WHERE id = ?`, id)
+	if err != nil {
+		return err
+	}
+	if before == nil {
+		return sql.ErrNoRows
+	}
+	if _, err := tx.Exec(`UPDATE npcs SET size = ? WHERE id = ?`, size, id); err != nil {
+		return err
+	}
+	after, err := fullRow(tx, `SELECT * FROM npcs WHERE id = ?`, id)
+	if err != nil {
+		return err
+	}
+	detail := fmt.Sprintf("/size in the game: %s from %.2f to %.2f", what, num(before["size"]), size)
+	if _, err := auditRowChange(tx, who, "update", "npcs", map[string]any{"id": id}, before, after, detail); err != nil {
+		return err
+	}
+	return tx.Commit()
+}

@@ -58,24 +58,33 @@ func TestHideMercsSpellings(t *testing.T) {
 	}
 }
 
-// A login with its charhidemercs row has them hidden, and is told so once in
-// the world; one with no row has not, and is told nothing.
+// A login with no charhidemercs row has them hidden (the owner, 2026-11-13:
+// on by default) and is told so once in the world; one that chose /show mercs
+// keeps them shown and is told nothing; one that chose /hide mercs hides them.
 func TestHideMercsOutlivesALogin(t *testing.T) {
 	db, chars := newSafeDB(t)
 	c := newChatWorld(t)
 	h := &CharacterHandler{store: chars, gameWorld: c.gw}
 	s, p := c.join(5, "Plain", 100, 100, 0)
 	plain, _ := c.join(6, "Other", 101, 100, 0)
-	if err := db.SetMercsHidden(p.CharServerID, true); err != nil {
+	chose, cp := c.join(7, "Chooser", 102, 100, 0)
+	if err := db.SetMercsHidden(6, false); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.SetMercsHidden(cp.CharServerID, true); err != nil {
 		t.Fatal(err)
 	}
 	h.restoreMercsHidden(s, &database.CharacterRecord{ServerID: p.CharServerID, CharName: p.Name})
 	h.restoreMercsHidden(plain, &database.CharacterRecord{ServerID: 6, CharName: "Other"})
+	h.restoreMercsHidden(chose, &database.CharacterRecord{ServerID: cp.CharServerID, CharName: cp.Name})
 	if on, _ := c.gw.MercsHidden(s); !on {
-		t.Fatal("a login with its row shows the mercs")
+		t.Fatal("a login with no row (no choice made) shows the mercs")
+	}
+	if on, _ := c.gw.MercsHidden(chose); !on {
+		t.Fatal("a login that chose /hide mercs shows them")
 	}
 	if on, _ := c.gw.MercsHidden(plain); on {
-		t.Fatal("a login with no row hides the mercs")
+		t.Fatal("a login that chose /show mercs hides them")
 	}
 	tell := tellMercsHidden(c.gw)
 	tell(s, p)

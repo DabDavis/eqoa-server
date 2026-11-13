@@ -194,3 +194,64 @@ func TestASetHPOfNoRadiusIsItsFoesAlone(t *testing.T) {
 		t.Fatalf("the pet it fights: %d", pet.HP)
 	}
 }
+
+// The owner, 2026-11-13: the dreadnaught's "aoe that debuffs to 700hp also
+// has a damage over time ticks 650 with no CR, with max CR is ticking around
+// 80". At its landing, after the fall to 700: a player at no CR takes 650
+// (50 left), one at the cap (315) 80 (620 left), one already at 300 at the
+// cap is not lowered but takes its 80 (220); a creature of its side is
+// lowered and ticked for 650, no hate for the dreadnaught given. Each is told
+// the tick (a figure and a line). A second landing replaces the first.
+func TestASetHPDamageOverTimeScalesWithColdResist(t *testing.T) {
+	resistRand = func() float64 { return 0.5 } // a resist at the cap holds
+	defer func() { resistRand = rand.Float64 }()
+	m := database.TemplateAbility{Kind: database.AbilitySetHP, SetHP: 700, Radius: 30, Every: 30, Name: "Dread Curse",
+		Tick: 650, TickAtCap: 80, Resist: "CR"}
+	r := newSetHPRig(t, m)
+	capped, cappedSess := r.player(1002, "Capped", 5000, 1005, 1005)
+	capped.ColdR = 315
+	low, _ := r.player(1003, "Low", 300, 1005, 995)
+	low.ColdR = 400
+	ally := r.f().npc(3201, "dread wolf", 50, creationBody, 1015, 1005)
+	ally.HP, ally.MaxHP = 20000, 20000
+	vs := GetOrCreateVisibility(cappedSess) // the dreadnaught in its view
+	vs.ChannelEntity[0], vs.ChannelObjectID[0] = r.boss.ServerID, 0x01312EA0
+	r.at(0)
+	if r.p.HP != 50 || capped.HP != 620 || low.HP != 220 || ally.HP != 50 {
+		t.Fatalf("no CR %d (want 50), at the cap %d (want 620), below and capped %d (want 220), a creature %d (want 50)",
+			r.p.HP, capped.HP, low.HP, ally.HP)
+	}
+	if len(ally.Threats) != 0 {
+		t.Fatalf("its own side was given hate: %v", ally.Threats)
+	}
+	if got := figures(cappedSess); len(got) != 2 || got[0] != -4300 || got[1] != -80 {
+		t.Fatalf("the capped player's figures %v, want [-4300 -80]", got)
+	}
+	if n := countDoT(r.p.Effects); n != 1 {
+		t.Fatalf("%d of its damage over time on the player", n)
+	}
+	r.p.HP, ally.HP = 5000, 20000
+	r.at(30 * time.Second)
+	if n := countDoT(r.p.Effects); n != 1 || r.p.HP != 50 {
+		t.Fatalf("again: %d on the player, HP %d", n, r.p.HP)
+	}
+	if n := countDoT(ally.Effects); n != 1 {
+		t.Fatalf("%d of its damage over time on the creature", n)
+	}
+	// the calibration: no resist 650, the cap 80, half the cap between
+	half := database.TemplateAbility{Tick: 650, TickAtCap: 80}
+	share := ResistShare(157) * bossDoTAtCap(&half) / ResistCapShare
+	if got := int(650*(1-share) + 0.5); got != 366 {
+		t.Fatalf("at 157 CR a tick of %d, want 366", got)
+	}
+}
+
+func countDoT(es []*ActiveEffect) int {
+	n := 0
+	for _, e := range es {
+		if e.SpellID == setHPDoTSpellID {
+			n++
+		}
+	}
+	return n
+}

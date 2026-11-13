@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"slices"
 	"sort"
 	"time"
 
@@ -39,6 +40,15 @@ import (
 // A player sees the difference as a hit: its 0x00DB from the creature, its
 // bar from the stat channel, a line. Chance is the share of its due times it
 // goes off (0: every one), any moment's: Cazic Thule's random death touch.
+// Its damage over time (Tick: the owner, 2026-11-13, "dreadnaught's aoe that
+// debuffs to 700hp also has a damage over time ticks 650 with no CR, with max
+// CR is ticking around 80") lands on everyone it reaches, at or below its
+// figure too, after the fall: Tick a tick at no resist, TickAtCap at a resist
+// at the cap (ResistCap, 315), in proportion between, on the creature's
+// template's dice as its spells' ticks are (npcTickLocked), every effectTick
+// (6 s) from its landing for TickFor (0: tickDuration, 24 s); a second
+// landing replaces the first. On a creature its template's resists cut it and
+// it brings no hate (its own side's); it may kill, the fall never does.
 
 // bossHealReach is how near its creature a raid heal's players stand.
 const bossHealReach float32 = 60
@@ -133,14 +143,18 @@ func (w *World) bossMomentLocked(npc *NPC, m *database.TemplateAbility, now time
 }
 
 // setHPMomentLocked is a sethp of npc's (the file's doc): the players and the
-// creatures it reaches above m.SetHP taken down to it. Must be called with the
-// lock held.
+// creatures it reaches above m.SetHP taken down to it, and its damage over
+// time (m.Tick) on everyone it reaches. Must be called with the lock held.
 func (w *World) setHPMomentLocked(npc *NPC, m *database.TemplateAbility, now time.Time) {
 	to := m.SetHP
 	if to < 1 {
 		return
 	}
 	ps, ns := w.setHPReachLocked(npc, m, now)
+	if m.Tick <= 0 {
+		ps = slices.DeleteFunc(ps, func(p *Player) bool { return p.HP <= to })
+		ns = slices.DeleteFunc(ns, func(n *NPC) bool { return n.HP <= to })
+	}
 	if len(ps) == 0 && len(ns) == 0 {
 		return
 	}
@@ -162,10 +176,13 @@ func (w *World) setHPMomentLocked(npc *NPC, m *database.TemplateAbility, now tim
 		w.broadcastNPCSwingLocked(npc, others[0], 0, fx)
 	}
 	for _, p := range ps {
+		p.LastCombatTime = now
+		if p.HP <= to {
+			continue
+		}
 		taken := p.HP - to
 		p.HP = to
 		p.StatsDirty = true
-		p.LastCombatTime = now
 		if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
 			from := w.objectIDForEntityLocked(sess, npc.ServerID)
 			if from == 0 {
@@ -177,25 +194,103 @@ func (w *World) setHPMomentLocked(npc *NPC, m *database.TemplateAbility, now tim
 		log.Printf("Template: %s's %s takes %s from %d to %d (HP %d/%d)", npc.Name, name, p.Name, p.HP+taken, to, p.HP, p.MaxHPNow())
 	}
 	for _, n := range ns {
+		n.LastCombatTime = now
+		if n.HP <= to {
+			continue
+		}
 		log.Printf("Template: %s's %s takes the creature %q from %d to %d (HP %d/%d)", npc.Name, name, n.Name, n.HP, to, to, n.MaxHP)
 		n.HP = to
-		n.LastCombatTime = now
+	}
+	if m.Tick > 0 {
+		for _, p := range ps {
+			w.bossDoTOnPlayerLocked(npc, m, p, now)
+		}
+		for _, n := range ns {
+			w.bossDoTOnCreatureStartLocked(npc, m, n, now)
+		}
 	}
 }
 
-// setHPReachLocked is whom npc's sethp m reaches now above its hit points (the
-// file's doc), each list in id order. Must be called with the lock held.
+// setHPDoTSpellID is the spell id a sethp's damage over time is kept under on
+// whom it lands (ours; no record: a merc's own are its spells' ids negated,
+// all above -1,000,000), so a second landing replaces the first.
+const setHPDoTSpellID = -1_990_001
+
+// bossDoTFor is a sethp's damage over time's time: its own, else a tick line's
+// with no time.
+func bossDoTFor(m *database.TemplateAbility) time.Duration {
+	if m.TickFor > 0 {
+		return time.Duration(m.TickFor * float64(time.Second))
+	}
+	return tickDuration
+}
+
+// bossDoTOnPlayerLocked puts a sethp's damage over time on p: m.Tick a tick,
+// its resist (m.Resist) taking its share as a creature's spell's does
+// (npcTickLocked, on npc's template's dice), but at the cap its own share
+// (1 - TickAtCap/Tick), its first tick now. Must be called with the lock held.
+func (w *World) bossDoTOnPlayerLocked(npc *NPC, m *database.TemplateAbility, p *Player, now time.Time) {
+	ae := &ActiveEffect{SpellID: setHPDoTSpellID, Name: momentName(m), Caster: npc.ServerID, Until: now.Add(bossDoTFor(m)),
+		NextTick: now, HPTick: -m.Tick, npcFoe: npc.ServerID, npcResist: shieldResistStat(m.Resist), npcAtCap: bossDoTAtCap(m)}
+	ae.Rules.Harm = true
+	w.breakInvisLocked(p, "a hit") // invis.go
+	w.addEffectLocked(p, ae, now)  // its first tick now (npcTickLocked)
+}
+
+// bossDoTAtCap is the share of a sethp's tick a resist at the cap takes: one
+// less its tick there over its tick, else the server's (0).
+func bossDoTAtCap(m *database.TemplateAbility) float64 {
+	if m.Tick <= 0 || m.TickAtCap <= 0 {
+		return 0
+	}
+	return 1 - float64(m.TickAtCap)/float64(m.Tick)
+}
+
+// bossDoTOnCreatureStartLocked puts a sethp's damage over time on the creature
+// n, in place of one of the same before, cut by n's template resists of its
+// element (npcDoTTickLocked), its first tick now. Must be called with the lock
+// held.
+func (w *World) bossDoTOnCreatureStartLocked(npc *NPC, m *database.TemplateAbility, n *NPC, now time.Time) {
+	n.Effects = slices.DeleteFunc(n.Effects, func(e *ActiveEffect) bool { return e.SpellID == setHPDoTSpellID })
+	ae := &ActiveEffect{SpellID: setHPDoTSpellID, Name: momentName(m), Caster: npc.ServerID, Until: now.Add(bossDoTFor(m)),
+		NextTick: now, HPTick: -m.Tick, npcCaster: npc.ServerID, bossDoT: true,
+		Rules: EffectRules{Resist: shieldResistStat(m.Resist), Harm: true}}
+	n.Effects = append(n.Effects, ae)
+	if w.affected == nil {
+		w.affected = make(map[EntityID]*NPC)
+	}
+	w.affected[n.ServerID] = n
+	w.tickNPCEffectLocked(n, ae, now)
+}
+
+// bossDoTOnCreatureLocked is a tick of a sethp's damage over time on the
+// creature t: n off its hit points, no hate (its own side's as much as a
+// pet's), its death at nothing. Must be called with the lock held.
+func (w *World) bossDoTOnCreatureLocked(src, t *NPC, n int, name string) {
+	t.HP = max(t.HP-n, 0)
+	log.Printf("Template: %s's %q ticks on %s for %d (HP %d/%d)", src.Name, name, t.Name, n, t.HP, t.MaxHP)
+	if t.HP > 0 {
+		return
+	}
+	t.Effects = nil
+	w.killNPC(t)
+	w.dropAggroLocked(t.ServerID)
+	log.Printf("Combat: %s killed by %s's %q", t.Name, src.Name, name)
+}
+
+// setHPReachLocked is whom npc's sethp m reaches now, whatever their hit
+// points (the file's doc), each list in id order. Must be called with the
+// lock held.
 func (w *World) setHPReachLocked(npc *NPC, m *database.TemplateAbility, now time.Time) ([]*Player, []*NPC) {
-	to := m.SetHP
 	var ps []*Player
 	var ns []*NPC
 	creature := func(n *NPC) bool {
-		return n != nil && n != npc && !n.Dead && n.HP > to && n.NPCType&0x80 == 0 && n.Dummy == NotDummy &&
+		return n != nil && n != npc && !n.Dead && n.HP > 0 && n.NPCType&0x80 == 0 && n.Dummy == NotDummy &&
 			!n.hiddenAt(now) && w.npcsShareLocked(n, npc)
 	}
 	if m.Radius <= 0 {
 		if p := w.Players[npc.CurrentEnemy]; p != nil {
-			if !p.IsDead() && p.HP > to && w.npcSharesLocked(npc, p) {
+			if !p.IsDead() && !p.respawnPending() && w.npcSharesLocked(npc, p) {
 				ps = append(ps, p)
 			}
 		} else if n := w.NPCs[npc.CurrentEnemy]; creature(n) {
@@ -210,7 +305,7 @@ func (w *World) setHPReachLocked(npc *NPC, m *database.TemplateAbility, now time
 	place := areaPlace{world: npc.World, caster: [3]float32{npc.X, npc.Y, npc.Z}, centre: [3]float32{npc.X, npc.Y, npc.Z}}
 	for _, id := range w.SpatialIndex.QueryRadius(npc.X, npc.Z, r) {
 		if p := w.Players[id]; p != nil {
-			if p.IsDead() || p.HP <= to || !w.npcSharesLocked(npc, p) || !w.noticeableByLocked(npc, p) ||
+			if p.IsDead() || !w.npcSharesLocked(npc, p) || !w.noticeableByLocked(npc, p) ||
 				(w.safeLocked(p) && !inFightLocked(npc, p)) || w.apartLocked(p, npc) {
 				continue
 			}

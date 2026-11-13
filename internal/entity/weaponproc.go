@@ -277,6 +277,22 @@ var weaponProcsByName = map[string]WeaponProc{
 	"deadened hammer": {Kind: ProcTap, Damage: 34},
 }
 
+// weaponProcLooks are records made in another weapon's look, keeping that weapon's figures and its proc under a name of
+// their own: each takes its original's entry in weaponProcsByName (petition 1371, Uzii, 2026-11-13: "steelwind staff
+// not proccing", the Staff of Faykind's figures in the Steelwind's look, made for transfer 93, kept its stats and lost
+// its pixie form, its proc being the name's).
+var weaponProcLooks = map[string]string{
+	"steelwind staff": "staff of faykind",
+}
+
+func init() {
+	for look, original := range weaponProcLooks {
+		if wp, ok := weaponProcsByName[original]; ok {
+			weaponProcsByName[look] = wp
+		}
+	}
+}
+
 // procSpellsByName are the spells a description names its proc by ("Procs:
 // Life Tap"), as this server keeps them: Life Tap is spellpattern 880,
 // "Target, Drain HP by 20 give self".

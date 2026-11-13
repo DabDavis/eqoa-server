@@ -151,6 +151,10 @@ type MercLook struct {
 	Robe                       int
 	Primary, Secondary, Shield uint32
 	PrimaryType, SecondaryType byte
+	// WornPieces and WornMask: the item records on the pieces an aura can be
+	// on (Player.WornPieces; pieceaura.go)
+	WornPieces [AuraPieces]int
+	WornMask   uint8 `json:",omitempty"`
 }
 
 // mercState is one merc, kept by its owner's id and its slot.
@@ -531,6 +535,7 @@ func (w *World) dressMercLocked(n *NPC, k *MercKit, owner *Player) {
 	}
 	n.PrimaryWeapon, n.SecondaryWeapon, n.Shield = int(l.Primary), int(l.Secondary), int(l.Shield)
 	n.PrimaryType, n.SecondaryType = l.PrimaryType, l.SecondaryType
+	n.WornPieces, n.WornMask = l.WornPieces, l.WornMask
 	n.Class = k.Class
 }
 

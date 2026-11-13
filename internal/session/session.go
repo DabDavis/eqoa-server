@@ -150,6 +150,9 @@ type Session struct {
 	// no disc table names, and the armour's trim colours after the live
 	// channel and record (entity/livelook.go ArmorLook). Only with the live look.
 	armorLook bool
+	// pieceAuras: its answer also said it draws worn pieces' auras (bit 3,
+	// entity/pieceaura.go): every channel 295 bytes, the auras after the trims
+	pieceAuras bool
 	// creationOffered: the creation offer went out (protocol.OpcodeCreationOffer,
 	// handlers/creation.go), once a session as the live look's.
 	creationOffered bool
@@ -640,6 +643,22 @@ func (s *Session) ArmorLook() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.armorLook && s.liveLook
+}
+
+// SetPieceAuras records whether the session's client draws worn pieces'
+// auras after the trims (entity/pieceaura.go).
+func (s *Session) SetPieceAuras(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.pieceAuras = on
+}
+
+// PieceAuras is whether the session's client is sent the pieces' auras: it
+// asked, and draws this server's armour in the live look (ArmorLook).
+func (s *Session) PieceAuras() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.pieceAuras && s.armorLook && s.liveLook
 }
 
 // OfferLiveLookOnce reports whether the live look's offer is still to be

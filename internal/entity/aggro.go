@@ -220,6 +220,13 @@ func (w *World) hostileNatureLocked(npc *NPC) bool {
 	if r, ok := w.aggro.ruleFor(npc.Name); ok {
 		return r.Aggressive
 	}
+	if IsDungeonWorld(npc.World) {
+		// the instanced dungeons' creatures (dungeons.go) are a raid's foes, whatever their
+		// bodies: Guk's Maerik N'Toxis, a dark elf's body, showed the white face and let
+		// players pass (ticket 2005, Waldorf), as did the dungeons' Teir`Dal, bandits,
+		// bishops and thralls of players' races; the warden (the NPC bit) is above
+		return true
+	}
 	if len(w.playerModels) == 0 {
 		// no race models (charactermodel empty): a townsperson cannot be
 		// told from a creature, so none attacks but by a GM's rule (a local

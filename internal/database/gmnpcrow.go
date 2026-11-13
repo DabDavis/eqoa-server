@@ -31,6 +31,7 @@ var npcRowExtras = []struct {
 	{"signtext", "npcid", true},
 	{"npcpaths", "npcid", false},
 	{"campspawns", "npcid", false},
+	{"npcstands", "npc_row", true}, // a spawn-only name's row that stands (npcstands.go)
 }
 
 // npcDeletePrefix begins the audit detail of a /delete's lines; /delete undo
@@ -336,13 +337,16 @@ type NPCClone struct {
 // "/clone in the game: " + what). It returns the new row's id and the extras'
 // tables copied; sql.ErrNoRows when there is no such row.
 func (db *SQLiteDB) CloneNPCRowAudited(from int64, at NPCClone, who GMEdit, what string) (int64, []string, error) {
-	return db.copyNPCRowAudited(from, at, who, fmt.Sprintf("/clone in the game: %s, a copy of NPC %d", what, from))
+	return db.copyNPCRowAudited(from, at, who, fmt.Sprintf("/clone in the game: %s, a copy of NPC %d", what, from), "")
 }
 
 // PlaceNPCRowAudited is /place's copy: as CloneNPCRowAudited, its audit
-// detail "/place in the game: ".
-func (db *SQLiteDB) PlaceNPCRowAudited(from int64, at NPCClone, who GMEdit, what string) (int64, []string, error) {
-	return db.copyNPCRowAudited(from, at, who, fmt.Sprintf("/place in the game: %s, a copy of NPC %d", what, from))
+// detail "/place in the game: ". stands is a note for an npcstands row given
+// the new row when its name stands out of the world (npcspawnonly): the copy
+// stands in it, audited in the same transaction ("" for none; one copied from
+// the source row is kept as it is).
+func (db *SQLiteDB) PlaceNPCRowAudited(from int64, at NPCClone, who GMEdit, what, stands string) (int64, []string, error) {
+	return db.copyNPCRowAudited(from, at, who, fmt.Sprintf("/place in the game: %s, a copy of NPC %d", what, from), stands)
 }
 
 // PlaceSourceRow is the npcs row /place copies for a name (any case): of
@@ -398,9 +402,14 @@ func (db *SQLiteDB) PlaceSourceRow(name string, world int) (int64, error) {
 	return first[bk], nil
 }
 
-func (db *SQLiteDB) copyNPCRowAudited(from int64, at NPCClone, who GMEdit, detail string) (int64, []string, error) {
+func (db *SQLiteDB) copyNPCRowAudited(from int64, at NPCClone, who GMEdit, detail, stands string) (int64, []string, error) {
 	if _, err := db.Exec(GMAuditSchema); err != nil {
 		return 0, nil, err
+	}
+	if stands != "" {
+		if err := db.ensureNPCStands(); err != nil {
+			return 0, nil, err
+		}
 	}
 	tx, err := db.Begin()
 	if err != nil {
@@ -475,5 +484,27 @@ func (db *SQLiteDB) copyNPCRowAudited(from int64, at NPCClone, who GMEdit, detai
 		}
 		copied = append(copied, x.Table)
 	}
+	if stands != "" && !hasString(copied, "npcstands") {
+		if _, err := tx.Exec(`INSERT INTO npcstands (npc_row, note, source) VALUES (?, ?, 'gm')`, id, stands); err != nil {
+			return 0, nil, fmt.Errorf("npcstands: %w", err)
+		}
+		row, err := fullRow(tx, `SELECT * FROM npcstands WHERE npc_row = ?`, id)
+		if err != nil {
+			return 0, nil, err
+		}
+		if _, err := auditRowChange(tx, who, "insert", "npcstands", map[string]any{"npc_row": id}, nil, row, detail); err != nil {
+			return 0, nil, err
+		}
+		copied = append(copied, "npcstands")
+	}
 	return id, copied, tx.Commit()
+}
+
+func hasString(list []string, s string) bool {
+	for _, x := range list {
+		if x == s {
+			return true
+		}
+	}
+	return false
 }

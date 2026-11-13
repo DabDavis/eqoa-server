@@ -248,6 +248,9 @@ type World struct {
 	// The NPC names that stand out of the world, there only for the quests'
 	// and triggers' spawns that copy them, table npcspawnonly (spawnonly.go)
 	spawnOnly map[string]bool
+	// spawnStands: npcs rows that stand in the world though their names are
+	// in npcspawnonly, table npcstands (a GM's /place of such a name)
+	spawnStands map[EntityID]bool
 	// qwalls is the quests' walls and what each character passes and holds
 	// (questwalls.go)
 	qwalls questWallState

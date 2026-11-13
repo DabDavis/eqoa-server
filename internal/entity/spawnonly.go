@@ -2,6 +2,7 @@ package entity
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -47,10 +48,21 @@ func (w *World) spawnOnlyLocked(name string) bool {
 }
 
 // npcSpawnOnlyLocked is whether the NPC stands out of the world: its name's
-// row, or its own npcs row's ("#n", npcrow.go). Must be called with the lock
-// held.
+// row (unless its own npcs row stands, table npcstands: a GM's /place of the
+// name), or its own npcs row's ("#n", npcrow.go), or a dungeon's template.
+// Must be called with the lock held.
 func (w *World) npcSpawnOnlyLocked(npc *NPC) bool {
-	return w.spawnOnlyLocked(npc.Name) || w.spawnOnly[RowKey(npc.ServerID)] || w.dungeonTemplateLocked(npc)
+	return w.spawnOnlyLocked(npc.Name) && !w.spawnStands[npc.ServerID] || w.spawnOnly[RowKey(npc.ServerID)] ||
+		w.dungeonTemplateLocked(npc)
+}
+
+// StandsDespiteName reports an npcs row that stands in the world though its
+// name stands out of it (table npcstands; database/npcstands.go).
+func (w *World) StandsDespiteName(id EntityID) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	npc := w.NPCs[id]
+	return npc != nil && w.spawnStands[id] && w.spawnOnlyLocked(npc.Name)
 }
 
 // SpawnOnlyNamed is whether the NPCs of that name stand out of the world
@@ -70,12 +82,31 @@ func (w *World) SpawnOnlyNamed(name string) bool {
 func (w *World) SetSpawnOnly(names map[string]bool) (held, changed int) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	return w.setSpawnOnlyLocked(names, w.spawnStands)
+}
+
+// SetSpawnOnlyStands is SetSpawnOnly with table npcstands's rows too: those
+// rows stand in the world whatever their names.
+func (w *World) SetSpawnOnlyStands(names map[string]bool, stands map[int64]bool) (held, changed int) {
+	byID := make(map[EntityID]bool, len(stands))
+	for id, on := range stands {
+		if on && id > 0 && id <= math.MaxUint32 {
+			byID[EntityID(id)] = true
+		}
+	}
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return w.setSpawnOnlyLocked(names, byID)
+}
+
+func (w *World) setSpawnOnlyLocked(names map[string]bool, stands map[EntityID]bool) (held, changed int) {
 	w.spawnOnly = names
+	w.spawnStands = stands
 	for _, npc := range w.NPCs {
 		if npc.Temporary || npc.Owner != 0 {
 			continue
 		}
-		want := names[database.NPCClassKey(npc.Name)] || names[RowKey(npc.ServerID)] || w.dungeonTemplateLocked(npc)
+		want := w.npcSpawnOnlyLocked(npc)
 		if want {
 			held++
 		}
@@ -95,15 +126,19 @@ func (w *World) SetSpawnOnly(names map[string]bool) (held, changed int) {
 	return held, changed
 }
 
-// LoadSpawnOnly reads table npcspawnonly into the world: at the start and after
-// a GM's edit. Call it without the database held. It reports SetSpawnOnly's
-// counts.
+// LoadSpawnOnly reads tables npcspawnonly and npcstands into the world: at the
+// start and after a GM's edit. Call it without the database held. It reports
+// SetSpawnOnly's counts.
 func (w *World) LoadSpawnOnly(db *database.SQLiteDB) (held, changed int, err error) {
 	names, err := db.NPCSpawnOnly()
 	if err != nil {
 		return 0, 0, fmt.Errorf("npcspawnonly: %w", err)
 	}
-	held, changed = w.SetSpawnOnly(names)
+	stands, err := db.NPCStands()
+	if err != nil {
+		return 0, 0, fmt.Errorf("npcstands: %w", err)
+	}
+	held, changed = w.SetSpawnOnlyStands(names, stands)
 	return held, changed, nil
 }
 
@@ -117,8 +152,8 @@ func (w *World) SpawnOnlySummary() string {
 			n++
 		}
 	}
-	return fmt.Sprintf("%d NPCs of %d names stand out of the world, there only for the spawns that copy them (npcspawnonly)",
-		n, len(w.spawnOnly))
+	return fmt.Sprintf("%d NPCs of %d names stand out of the world, there only for the spawns that copy them (npcspawnonly); "+
+		"%d rows stand in it all the same (npcstands)", n, len(w.spawnOnly), len(w.spawnStands))
 }
 
 // SpawnOnlyNear reports a spawn-only NPC of one of names (trimmed, any case)

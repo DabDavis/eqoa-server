@@ -1197,6 +1197,23 @@ var catalog = map[string]tableNote{
 			"source": {Label: "Source", Help: "gm, or questspawn for tools/fix_quest_spawns.py's rows (its --undo deletes those)"},
 		},
 	},
+	"npcstands": {
+		Label: "NPC stands (spawn-only name)", Group: "World", Title: "npc_row", Sort: "npc_row",
+		Help: "An NPC row that stands in the world though its NAME is in NPC spawn only (entity/spawnonly.go): a GM's " +
+			"/place of a creature a quest step or a trigger spawns (filth squid, the Plane of Disease's moths and " +
+			"locusts) writes one for the row it makes (the owner, 2026-11-13). That row is in every view, fights, " +
+			"respawns by its own respawn time; every other row of the name stays out of the world, and the quests' " +
+			"and triggers' spawns copy the spawn-only original as before. One of the row's own: /delete in the game " +
+			"takes it with the row, /delete undo puts it back, /clone copies it. A row's own spawn only (\"#<row>\") " +
+			"and a dungeon's template are held out all the same.",
+		Live:   "At once: the row comes into every view, or (its entry deleted) leaves them.",
+		Search: []string{"note", "source"},
+		Cols: map[string]colNote{
+			"npc_row": {Label: "NPC row", Ref: "npcs", Help: "its id in NPCs"},
+			"note":    {Label: "Note", Help: "why: whose /place"},
+			"source":  {Label: "Source", Help: "gm, or the tool that wrote it"},
+		},
+	},
 	"npcdialog": {
 		Label: "NPC dialog", Group: "World", Title: "line", Sort: "town",
 		Help: "What a town's people and the guards of Norrath say when talked to and nothing else answers (no quest, " +

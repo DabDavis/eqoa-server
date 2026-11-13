@@ -124,6 +124,8 @@ type petState struct {
 	// target
 	taunts bool
 	rounds int
+	// enchanter is whether an enchanter summoned it (its taunts' threat cut: pettaunthate.go)
+	enchanter bool
 	// tapNext is when its life tap is up again (pettap.go)
 	tapNext time.Time
 	// kind is what it fights as (petrotation.go): ours, or one of the
@@ -472,7 +474,7 @@ func (w *World) makePetLocked(spell *CastSpell, caster, owner *Player, ms *mercS
 		hitScale = was / petHitRate(pet)                               // its damage a second kept
 	}
 	ps := &petState{owner: owner, npc: pet, stance: petSheetStance(sheet), last: now,
-		taunts: caster.Class == classEnchanter && pt == nil, kind: kind, hitScale: hitScale, tmpl: pt, spell: spell.SpellID, merc: ms}
+		taunts: caster.Class == classEnchanter && pt == nil, enchanter: caster.Class == classEnchanter, kind: kind, hitScale: hitScale, tmpl: pt, spell: spell.SpellID, merc: ms}
 	tmplName := "no template"
 	if pt != nil {
 		tmplName = fmt.Sprintf("template %q (class %d, swing %d)", pt.tmpl.Name, pet.Class, npcSwingKind(pet))
@@ -1225,6 +1227,7 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 // (Grand Animation's grandAnimationTaunt). It reports a kill.
 func (w *World) petTauntLocked(ps *petState, t *NPC, now time.Time) bool {
 	pet := ps.npc
+	defer w.petTauntHateCutLocked(ps, t)()         // an enchanter's pet's taunt: 70% of its threat (pettaunthate.go)
 	if t.Dummy == NotDummy && t.challenge == nil { // a Metal Moogie keeps to his challenger (metalmoogie.go)
 		var top int64
 		for id, v := range t.Threats {

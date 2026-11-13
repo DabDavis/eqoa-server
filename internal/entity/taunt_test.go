@@ -238,3 +238,27 @@ func TestATauntLandsAtOnceThenHoldsHalfASecond(t *testing.T) {
 		t.Error("a spell that is no taunt landed before castLand")
 	}
 }
+
+// A tank's taunt gives 5% more threat than another player's (petition 1935): the raise to the top and
+// its hate each at 105%; a wizard's (the rig's) as before (TestATauntTakesTheTop).
+func TestATanksTauntGivesFivePercentMore(t *testing.T) {
+	for _, c := range []struct {
+		class int
+		want  int64
+	}{
+		{13, 100_000 + goadHate},            // a wizard's: the top and Goad's
+		{0, 105_000 + (970*105+50)/100 + 1}, // a warrior's: 105% of the raise and of Goad's
+		{3, 105_000 + (970*105+50)/100 + 1}, // a shadow knight's
+		{2, 105_000 + (970*105+50)/100 + 1}, // a paladin's
+	} {
+		r, boss, _ := tauntRig(t)
+		r.p.Class = c.class
+		r.cast(t, goad(), boss.ServerID)
+		if got := boss.Threats[r.p.ServerID]; got != c.want || boss.CurrentEnemy != r.p.ServerID {
+			t.Errorf("class %d's Goad: threat %d (want %d), enemy %d", c.class, got, c.want, boss.CurrentEnemy)
+		}
+	}
+	if pctOf(-970, 105) != -1019 || pctOf(970, 70) != 679 || pctOf(5, 100) != 5 {
+		t.Errorf("pctOf: %d %d %d", pctOf(-970, 105), pctOf(970, 70), pctOf(5, 100))
+	}
+}

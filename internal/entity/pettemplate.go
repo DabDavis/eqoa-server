@@ -1078,6 +1078,7 @@ func petTauntFigure(hits [][3]float64, level int) (n int, ok bool) {
 // through the balance as its hits are.
 func (w *World) petTemplateTauntLocked(ps *petState, a *templateAbility, t *NPC, now time.Time) bool {
 	pet := ps.npc
+	defer w.petTauntHateCutLocked(ps, t)() // an enchanter's pet's taunt: 70% of its threat (pettaunthate.go)
 	w.petTopHateLocked(pet, t)
 	w.showPetTauntLocked(pet, t.ServerID) // pet.go
 	pet.LastCombatTime = now

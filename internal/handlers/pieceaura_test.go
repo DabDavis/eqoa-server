@@ -43,6 +43,20 @@ func TestThePiecesAurasAreGrantedWithTheArmour(t *testing.T) {
 	if noLive.PieceAuras() || noLive.LiveLook() {
 		t.Fatal("bits 2 and 3 without bit 0 granted something")
 	}
+	if van.BodyAura() {
+		t.Fatal("the body's aura granted without bit 4")
+	}
+	// bit 4 too: the body's aura (305 bytes), in force's third u32 4|8|16
+	body := f.session(55)
+	f.answer(t, body, 1|liveLookArmor|liveLookAuras|liveLookBody)
+	if d := sentOp(body, protocol.OpcodeLiveLookInForce); binary.LittleEndian.Uint32(d[10:]) != liveLookArmor|liveLookAuras|liveLookBody || !body.BodyAura() {
+		t.Fatalf("the body's aura in force: %x", d)
+	}
+	noPieces := f.session(56)
+	f.answer(t, noPieces, 1|liveLookArmor|liveLookBody)
+	if d := sentOp(noPieces, protocol.OpcodeLiveLookInForce); binary.LittleEndian.Uint32(d[10:]) != liveLookArmor || noPieces.BodyAura() {
+		t.Fatalf("bit 4 without bit 3: %x", d)
+	}
 	// it answers again without bit 3: off
 	f.answer(t, van, 1|liveLookArmor)
 	if van.PieceAuras() {

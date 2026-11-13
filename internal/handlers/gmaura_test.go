@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/entity"
 )
 
 // /aura (gmaura.go): a GM's aura on its target creature's name (npctint) and
@@ -59,15 +61,185 @@ func TestGMAuraCommand(t *testing.T) {
 		t.Fatalf("no such item: %q", l)
 	}
 	c.say(gs, "/aura item "+strconv.Itoa(int(pid))+" shell 3060FFFF 0 4")
-	if l := gmReplies(t, gs); !hasLine(l, "on its worn piece at once") || c.gw.ItemAuraCount() != 1 {
+	if l := gmReplies(t, gs); !hasLine(l, "everyone wearing it shows it") || c.gw.ItemAuraCount() != 1 {
 		t.Fatalf("/aura item: %q", l)
 	}
 	got, err := db.ItemAuras()
 	if a := got[int(pid)]; err != nil || a != (database.ItemAura{PatternID: int(pid), Color: 0x3060FFFF, Kind: database.AuraShell, Nodes: 4}) {
 		t.Fatalf("the row: %+v, %v", a, err)
 	}
+	// the trim in black: a dark aura, kept though its colour lights nothing
+	c.say(gs, "/aura item "+strconv.Itoa(int(pid))+" trim 000000FF")
+	if l := gmReplies(t, gs); !hasLine(l, "aura trim in 000000FF (dark)") || c.gw.ItemAuraCount() != 1 {
+		t.Fatalf("/aura item trim black: %q", l)
+	}
+	if got, _ := db.ItemAuras(); got[int(pid)] != (database.ItemAura{PatternID: int(pid), Color: 0x000000FF, Kind: database.AuraTrim}) {
+		t.Fatalf("the dark trim row: %+v", got[int(pid)])
+	}
+	c.say(gs, "/aura item "+strconv.Itoa(int(pid))+" 7 FFC040FF")
+	if l := gmReplies(t, gs); !hasLine(l, "Usage") {
+		t.Fatalf("kind 7: %q", l)
+	}
+	c.say(gs, "/aura item "+strconv.Itoa(int(pid))+" 6 FFC040FF")
+	if got, _ := db.ItemAuras(); got[int(pid)].Kind != database.AuraTrimShell {
+		t.Fatalf("kind 6 by number: %+v", got[int(pid)])
+	}
 	c.say(gs, "/aura item "+strconv.Itoa(int(pid))+" off")
-	if c.gw.ItemAuraCount() != 0 || auditLines(t, db, "itemaura", "insert") != 1 || auditLines(t, db, "itemaura", "delete") != 1 {
+	if c.gw.ItemAuraCount() != 0 || auditLines(t, db, "itemaura", "insert") != 1 || auditLines(t, db, "itemaura", "delete") != 1 ||
+		auditLines(t, db, "itemaura", "update") != 2 {
 		t.Fatal("/aura item off: not deleted, or not audited")
+	}
+}
+
+// The easy words (parseAuraEasy): colours by name and hex (six digits alpha
+// FF, black a dark aura), kinds and places in any order and case, source= and
+// nodes=, off; the refusals name the word. The old forms are still read as
+// they were (oldAuraForm), and six hex digits after a kind are the easy RRGGBB.
+func TestAuraEasyWords(t *testing.T) {
+	for _, c := range []struct {
+		in   string
+		want auraSpec
+	}{
+		{"blue particles chest", auraSpec{A: database.ItemAura{Color: 0x3060FFFF, Kind: database.AuraParticles}, Where: entity.AuraChest}},
+		{"CHEST Particles Blue", auraSpec{A: database.ItemAura{Color: 0x3060FFFF, Kind: database.AuraParticles}, Where: entity.AuraChest}},
+		{"yellow shell wholebody", auraSpec{A: database.ItemAura{Color: 0xFFFF30FF, Kind: database.AuraShell}, Where: auraWholeBody}},
+		{"black trim legs", auraSpec{A: database.ItemAura{Color: 0x000000FF, Kind: database.AuraTrim}, Where: entity.AuraLegs}},
+		{"ff8000 trimshell arms", auraSpec{A: database.ItemAura{Color: 0xFF8000FF, Kind: database.AuraTrimShell}, Where: entity.AuraBracer}},
+		{"#20FF2080 both feet nodes=4 source=88EC092D", auraSpec{A: database.ItemAura{Color: 0x20FF2080, Kind: database.AuraBoth, Source: 0x88EC092D, Nodes: 4}, Where: entity.AuraBoots}},
+		{"gold head", auraSpec{A: database.ItemAura{Color: 0xFFC040FF, Kind: database.AuraShell}, Where: entity.AuraHelm}},
+		{"sparkles hands source=Sword of Virtue", auraSpec{A: database.ItemAura{Kind: database.AuraParticles}, Where: entity.AuraGloves, SourceName: "Sword of Virtue"}},
+		{"purple body", auraSpec{A: database.ItemAura{Color: 0xA040FFFF, Kind: database.AuraShell}, Where: auraWholeBody}},
+		{"off chest", auraSpec{Off: true, Where: entity.AuraChest}},
+		{"off", auraSpec{Off: true, Where: -1}},
+		{"source=Heirloom_Sword red particles", auraSpec{A: database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraParticles}, Where: -1, SourceName: "Heirloom Sword"}},
+		{"teal robe", auraSpec{A: database.ItemAura{Color: 0x20C0B0FF, Kind: database.AuraShell}, Where: entity.AuraRobe}},
+	} {
+		got, err := parseAuraEasy(strings.Fields(c.in))
+		if err != nil || got != c.want {
+			t.Errorf("%q: %+v, %v; want %+v", c.in, got, err, c.want)
+		}
+	}
+	for _, bad := range []string{"blue red chest", "blue shell chest legs", "sparkly chest", "shell chest", "off blue chest",
+		"blue nodes=40", "blue shell trim", "blue foo=1", ""} {
+		if _, err := parseAuraEasy(strings.Fields(bad)); err == nil {
+			t.Errorf("%q: read, want refused", bad)
+		}
+	}
+	// the old forms
+	for _, c := range []struct {
+		in   string
+		want database.ItemAura
+		ok   bool
+	}{
+		{"both FF2020FF 88EC092D 12", database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraBoth, Source: 0x88EC092D, Nodes: 12}, true},
+		{"particles 0", database.ItemAura{Kind: database.AuraParticles}, true},
+		{"3 FF0000FF", database.ItemAura{Color: 0xFF0000FF, Kind: database.AuraParticles}, true},
+		{"shell ff0000", database.ItemAura{}, false},
+		{"shell blue chest", database.ItemAura{}, false},
+		{"blue shell", database.ItemAura{}, false},
+	} {
+		got, ok := oldAuraForm(strings.Fields(c.in))
+		if ok != c.ok || (ok && got != c.want) {
+			t.Errorf("old %q: %+v %v", c.in, got, ok)
+		}
+	}
+}
+
+// The easy words in the game (the owner's rules of 2026-11-13): a slot on a
+// targeted player sets THAT character's piece alone (charaura): another
+// player in the same item shows nothing; on yourself with no target, yours;
+// wholebody on a player is its body (slot 7); no place on a player is
+// refused naming both forms; wholebody on a creature its name's npctint; a
+// slot on a creature of sets is refused; charaura wins over the item's own
+// itemaura on that character, the other wearer keeping the item's; /aura
+// alone is the usage; off takes each away, every change audited.
+func TestGMAuraEasyCommand(t *testing.T) {
+	c, db, _, gs, gp, ps, pp := campWorldWithPlayer(t)
+	res, err := db.Exec(`INSERT INTO itempattern (itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent, unk4, attacktype,
+		weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, lore, unk6, craft, itemname, itemdesc, model, color)
+		VALUES (0, 0, 1, 0, 5, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 32767, 32767, 0, 0, 0, 0, 'Ornate Breastplate', '', 9, 0)`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pid, _ := res.LastInsertId()
+	gp.CharServerID, pp.CharServerID = 9001, 9002
+	gp.SetWornPiece(entity.AuraChest, int(pid))
+	pp.SetWornPiece(entity.AuraChest, int(pid))
+
+	c.say(gs, "/aura")
+	if l := gmReplies(t, gs); !hasLine(l, "/aura blue particles chest") {
+		t.Fatalf("/aura alone: %q", l)
+	}
+	// the targeted player's chest alone
+	targetAs(gp, pp.ServerID, 200202, gs)
+	c.say(gs, "/aura blue particles chest")
+	if l := gmReplies(t, gs); !hasLine(l, "Player's chest: now a blue particles aura") || !hasLine(l, "this character alone") {
+		t.Fatalf("/aura blue particles chest: %q", l)
+	}
+	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraChest] != (database.ItemAura{Color: 0x3060FFFF, Kind: database.AuraParticles}) {
+		t.Fatalf("the target's chest: %+v", a)
+	}
+	if a := c.gw.PieceAurasOf(gp); a != nil {
+		t.Fatalf("another wearer of the same item glows: %+v", a)
+	}
+	if c.gw.ItemAuraCount() != 0 || auditLines(t, db, "charaura", "insert") != 1 {
+		t.Fatal("an item's aura written, or not audited")
+	}
+	// its body: under its armour, its own slot
+	c.say(gs, "/aura purple shell wholebody")
+	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraBody] != (database.ItemAura{Color: 0xA040FFFF, Kind: database.AuraShell}) || a[entity.AuraChest].Kind != database.AuraParticles {
+		t.Fatalf("the body: %+v", a)
+	}
+	c.say(gs, "/aura red shell")
+	if l := gmReplies(t, gs); !hasLine(l, "name where on a player") || !hasLine(l, "wholebody") {
+		t.Fatalf("no place on a player: %q", l)
+	}
+	// the item's own aura: the other wearer shows it, the target its own
+	if _, err := db.SetItemAuraAudited(database.ItemAura{PatternID: int(pid), Color: 0xFFC040FF, Kind: database.AuraTrim}, database.GMEdit{}, "test"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := c.gw.LoadItemAuras(db); err != nil {
+		t.Fatal(err)
+	}
+	if a := c.gw.PieceAurasOf(gp); a == nil || a[entity.AuraChest].Kind != database.AuraTrim {
+		t.Fatalf("the other wearer: the item's own: %+v", a)
+	}
+	if a := c.gw.PieceAurasOf(pp); a[entity.AuraChest].Kind != database.AuraParticles {
+		t.Fatalf("charaura does not win: %+v", a)
+	}
+	// yourself, no target: yours
+	gp.TargetObjectID = 0
+	c.say(gs, "/aura black trim boots")
+	if l := gmReplies(t, gs); !hasLine(l, "Your boots: now a black (dark) trim aura") || !hasLine(l, "nothing worn there now") {
+		t.Fatalf("your boots: %q", l)
+	}
+	c.say(gs, "/aura off boots")
+	targetAs(gp, pp.ServerID, 200202, gs)
+	c.say(gs, "/aura off chest")
+	c.say(gs, "/aura off wholebody")
+	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraChest].Kind != database.AuraTrim || a[entity.AuraBody] != (database.ItemAura{}) {
+		t.Fatalf("taken away: the item's own back: %+v", a)
+	}
+	if auditLines(t, db, "charaura", "delete") != 3 {
+		t.Fatal("the deletes not audited")
+	}
+
+	// a creature: its whole body by name
+	targetAs(gp, campWolfNear, 100101, gs, ps)
+	c.say(gs, "/aura yellow shell wholebody")
+	if tints := c.gw.NPCTints(); len(tints) != 1 || tints[0].Glow != 0xFFFF30FF || tints[0].AuraKind != database.AuraShell {
+		t.Fatalf("wholebody: %+v", tints)
+	}
+	c.say(gs, "/aura black trim")
+	if tints := c.gw.NPCTints(); len(tints) != 1 || tints[0].Glow != 0x000000FF || tints[0].AuraKind != database.AuraTrim {
+		t.Fatalf("no place on a creature: its whole body: %+v", tints)
+	}
+	c.say(gs, "/aura blue shell chest")
+	if l := gmReplies(t, gs); !hasLine(l, "wears no items of its own") {
+		t.Fatalf("a slot on a creature of sets: %q", l)
+	}
+	c.say(gs, "/aura off wholebody")
+	if tints := c.gw.NPCTints(); len(tints) != 0 {
+		t.Fatalf("/aura off wholebody: %+v", tints)
 	}
 }

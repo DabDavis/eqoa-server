@@ -153,6 +153,9 @@ type Session struct {
 	// pieceAuras: its answer also said it draws worn pieces' auras (bit 3,
 	// entity/pieceaura.go): every channel 295 bytes, the auras after the trims
 	pieceAuras bool
+	// bodyAura: it also draws a character's body aura after the pieces'
+	// (bit 4, 16: entity.BodyAuraChannel, 305 bytes)
+	bodyAura bool
 	// creationOffered: the creation offer went out (protocol.OpcodeCreationOffer,
 	// handlers/creation.go), once a session as the live look's.
 	creationOffered bool
@@ -659,6 +662,22 @@ func (s *Session) PieceAuras() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.pieceAuras && s.armorLook && s.liveLook
+}
+
+// SetBodyAura records whether the session's client draws a character's body
+// aura after the pieces' (entity.BodyAuraChannel).
+func (s *Session) SetBodyAura(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.bodyAura = on
+}
+
+// BodyAura is whether the session's client is sent the body's aura: it asked,
+// with the pieces' (PieceAuras).
+func (s *Session) BodyAura() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.bodyAura && s.pieceAuras && s.armorLook && s.liveLook
 }
 
 // OfferLiveLookOnce reports whether the live look's offer is still to be

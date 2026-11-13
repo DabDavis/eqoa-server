@@ -42,8 +42,14 @@ import (
 // Two lines are drawn, at a man's head (a body is the walk's capsule, 2 tall)
 // and at his waist, the same heights at both ends. Either clear is enough for a
 // creature to notice someone: the head sees over a low wall, and the waist is
-// there for a creature whose head is in a low ceiling. An area spell needs both,
-// so a low rock shelters whoever crouches behind it. A big creature looks from
+// there for a creature whose head is in a low ceiling. An area spell asks the
+// same (petition 1882, Brother, 2026-11-13: "Blade Dance for Bravo MC sometimes
+// does not AoE attack"): it needed both until then, so anything over a man's
+// waist sheltered whoever stood behind it, and the knee-high stones of the
+// tenacious frost giants' camp in Tunaria (1.4 tall, the walls file's, 27 of
+// them round the camp) spared the giant behind each from every Blade Dance at
+// it, 13 times in an hour. Something as high as a man's head (a boulder, a
+// trunk, a wall, a ceiling) still spares him. A big creature looks from
 // the same heights, so a rock hides a player from a dragon as it would from a
 // man. Ours, not measured:
 // CLIENT has no such test (it never decides what attacks), and no capture
@@ -74,15 +80,11 @@ func (w *World) inSightLocked(world uint8, x0, y0, z0, x1, y1, z1 float32) bool 
 		s.Sees(world, x0, y0+sightWaist, z0, x1, y1+sightWaist, z1)
 }
 
-// clearLineLocked reports nothing between two bodies at either height (the
-// file's doc: what an area spell asks). Must be called with the lock held.
+// clearLineLocked is what an area spell asks of the line between two bodies:
+// a line of sight between them, at either height (inSightLocked; the file's
+// doc). Must be called with the lock held.
 func (w *World) clearLineLocked(world uint8, x0, y0, z0, x1, y1, z1 float32) bool {
-	s, ok := w.ground.(Sight)
-	if !ok {
-		return true
-	}
-	return s.Sees(world, x0, y0+sightHead, z0, x1, y1+sightHead, z1) &&
-		s.Sees(world, x0, y0+sightWaist, z0, x1, y1+sightWaist, z1)
+	return w.inSightLocked(world, x0, y0, z0, x1, y1, z1)
 }
 
 // castNotSeen refuses a heal or a buff on a body its caster cannot see (ours,

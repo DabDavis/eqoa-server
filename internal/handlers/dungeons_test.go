@@ -271,3 +271,52 @@ func TestDungeonMemberWords(t *testing.T) {
 		}
 	}
 }
+
+// The Instanced Raids board resets an instance its player opened (the owner, 2026-11-13): its box offers "Reset
+// <dungeon>" for each, and picking it closes the instance when no one is inside. The control: a Dungeon Warden offers
+// no reset.
+func TestDungeonBoardResetsAnInstance(t *testing.T) {
+	r := newPortalRig(t)
+	block := `[{"key":"bb","name":"Test Burrow","boxes":[[900,900,1100,1100]],"entrance":{"x":1000,"y":50,"z":1150,"toward":[1000,1000]}}]`
+	SetServerWorlds([]worlds.Built{{Recipe: worlds.Recipe{World: 14, Name: "the Test Dungeons", Dungeons: json.RawMessage(block)}}})
+	t.Cleanup(func() {
+		SetServerWorlds(nil)
+		r.gw.SetDungeons(false, 14, nil, entity.DungeonSettings{})
+	})
+	if !SetupDungeons(r.gw, config.DungeonsConfig{Enabled: true}, nil) {
+		t.Fatal("the dungeons are not on")
+	}
+	r.anna.SetServerWorlds([]uint8{14})
+	if line, ok := r.gw.DungeonEnter(r.anna, "bb", time.Now()); !ok {
+		t.Fatalf("not opened: %s", line)
+	}
+	r.pa.World, r.pa.Instance = 0, 0 // back out in Freeport: no one inside
+	board := &entity.NPC{ServerID: 7792, Name: entity.DungeonRaidBoardName, X: 5001, Y: 50, Z: 5000, Level: 60, HP: 1, MaxHP: 1, NPCType: 0x80}
+	warden := &entity.NPC{ServerID: 7793, Name: entity.DungeonWardenName, X: 5001, Y: 50, Z: 5001, Level: 60, HP: 1, MaxHP: 1, NPCType: 0x80}
+	r.gw.NPCs[board.ServerID], r.gw.NPCs[warden.ServerID] = board, warden
+	ds := dungeonsH.Load()
+	reset := func(npc *entity.NPC) (dungeonsAsk, int) {
+		ds.askRoot(r.anna, r.pa, npc, 0)
+		ds.mu.Lock()
+		defer ds.mu.Unlock()
+		a := ds.asked[r.pa.CharServerID]
+		for i, x := range a.answers {
+			if x.do == dungeonsDoReset {
+				return a, i
+			}
+		}
+		return a, -1
+	}
+	if _, i := reset(warden); i >= 0 {
+		t.Fatal("a Dungeon Warden offers a reset")
+	}
+	asked, i := reset(board)
+	if i < 0 || asked.answers[i].label != "Reset Test Burrow" {
+		t.Fatalf("the board offers no reset: %+v", asked.answers)
+	}
+	r.drain()
+	r.ih.answerDungeons(r.anna, r.pa, asked.box, byte(i))
+	if got := r.gw.DungeonChoices(r.anna); len(got) != 1 || got[0].Open {
+		t.Fatalf("the instance is still open: %+v (told %q)", got, r.msgs(r.anna))
+	}
+}

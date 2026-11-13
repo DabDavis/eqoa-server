@@ -28,11 +28,9 @@ import (
 //
 // The other file is opened read-only and closed again at each Pull: no lock or
 // page of it is kept, and a file put back under its name (a swap's rollback, a
-// restored backup) is simply the file read next. The database keeps its
-// rollback journal, so a read waits out a commit (busy_timeout) and a commit
-// waits out a read; each read here is a whole-table SELECT of a small table. A
-// read that finds a hot journal (the owner died mid-commit) fails, and the copy
-// stands until the owner has started and put it right.
+// restored backup) is simply the file read next. The database is in WAL mode
+// since 2026-11-13 (sqlite.go), so a read here and the owner's commits do not
+// wait for each other; each read is a whole-table SELECT of a small table.
 type AccountMirror struct {
 	db   *SQLiteDB
 	path string

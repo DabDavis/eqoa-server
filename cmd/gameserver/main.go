@@ -474,6 +474,10 @@ func main() {
 	onList := false
 	for _, sh := range shards {
 		log.Printf("Server list: %q on %s:%d (recommended: %v)", sh.Name, sh.IP, sh.Port, sh.Recommended != 0)
+		if !handlers.ShardNameFits(sh.Name) {
+			log.Printf("WARNING: shard %q draws %d pixels where the server list keeps %d on a line: the PS2 and vanilla cut it (handlers/server.go)",
+				sh.Name, handlers.ShardNameWidth(sh.Name), 236)
+		}
 		if int(sh.Port) == cfg.Server.GamePort && !onList {
 			handlers.SetCampfixShard(sh.Name) // the shard a camp report's board entry names (campfix.go)
 		}

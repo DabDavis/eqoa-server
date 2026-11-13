@@ -3815,7 +3815,9 @@ and the collision. Long form, with what was measured: `claude-notes/shards-20261
 
 - **The list** (`shards` in config, `handlers.ShardList`, 0x07B3): every process carries the same, so whichever a client asks
   shows the same; none in config is this server alone as "Marr's Fist" on its game port. CLIENT's window (`VIWndServerSelect`,
-  `VIShardInfo`) sorts by name, keeps a name of 31 characters, and picks the home shard game.opt names, else the first
+  `VIShardInfo`) sorts by name, keeps a name of 31 characters **and draws it whole only under 237 pixels** (the name
+  column 245, `TextBox` breaking 8 short at the last space with an ellipsis; ARIALUI's widths, `ShardNameWidth`; a wider name is listed
+  and warned of at the start; petition 1923: "Live Server - No Wipes Ever", 253, showed as "Live Server - No Wipes ..."), and picks the home shard game.opt names, else the first
   `recommended`, marking that one Recommended. A client asks for the list at one address (`eqahosts.txt`: 10070); each entry's
   own address is where it connects (its 64-bit id: endpoint 0xB991, port, IP), and every entry's endpoint is the game
   server's, so a shard differs from another by its address alone.

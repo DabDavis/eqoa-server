@@ -664,6 +664,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCharLockouts(); err != nil { // lockouts.go
 		return err
 	}
+	if err := db.ensureSpellRecastGroup(); err != nil { // recastgroup.go
+		return err
+	}
 	if err := db.ensureItemEffects(); err != nil {
 		return err
 	}

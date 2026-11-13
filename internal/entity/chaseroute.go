@@ -95,8 +95,8 @@ type chaseRoute struct {
 // routes its own walk asks for only on the terrain (petwalk.go's
 // petRoutesLocked). Must be called with the lock held.
 func (w *World) routesFor(npc *NPC) bool {
-	if !chaseRoutes || w.ground == nil || npc.swimming {
-		return false
+	if !chaseRoutes || w.ground == nil || (npc.swimming && !w.routeDry) {
+		return false // a swimmer goes straight, but one of the land on its way home (landwater.go)
 	}
 	return npc.walksTerrain() || w.spawnOnGroundLocked(npc) // a pet's by where it stands (petwalk.go)
 }
@@ -106,6 +106,7 @@ func (w *World) routesFor(npc *NPC) bool {
 // called with the lock held.
 func (w *World) routeLegLocked(npc *NPC, fx, fy, fz, x, z float32) (float32, bool) {
 	w.routeHeights = w.routeHeights[:0]
+	w.routeWet = 0 // its length in the water, counted on a dry search (landwater.go)
 	if !w.legFromLocked(npc, fx, fy, fz, x, z, &w.routeHeights, legRoute) || len(w.routeHeights) == 0 {
 		return fy, false
 	}
@@ -143,8 +144,8 @@ func (w *World) routeWayLocked(npc *NPC, r *chaseRoute, tx, ty, tz, d, step floa
 			return false, false
 		}
 		ahead := min(d, max(routeLook, 3*step))
-		if _, ok := w.routeLegLocked(npc, npc.X, npc.Y, npc.Z, npc.X+(tx-npc.X)/d*ahead, npc.Z+(tz-npc.Z)/d*ahead); ok {
-			return false, false
+		if _, ok := w.routeLegLocked(npc, npc.X, npc.Y, npc.Z, npc.X+(tx-npc.X)/d*ahead, npc.Z+(tz-npc.Z)/d*ahead); ok && w.routeWet == 0 {
+			return false, false // clear, and on a dry search out of the water (landwater.go)
 		}
 	}
 	r.edge = false
@@ -154,6 +155,8 @@ func (w *World) routeWayLocked(npc *NPC, r *chaseRoute, tx, ty, tz, d, step floa
 	most := routeNodes
 	if npc.walksTerrain() {
 		most = petRouteNodes // a pet's search is a short one (petwalk.go)
+	} else if w.routeDry {
+		most = homeDryNodes // a dry way home's is too (landwater.go)
 	}
 	limit := min(most, w.routeLeft())
 	if limit <= 0 {
@@ -261,6 +264,7 @@ type routeNode struct {
 	ix, iz  int32
 	checked bool
 	done    bool
+	wet     float32 // its leg's length in the water, on a dry search (landwater.go)
 }
 
 // routeKey is a cell and the floor in it.
@@ -327,6 +331,15 @@ func (w *World) planRouteLocked(npc *NPC, tx, ty, tz float32, limit int) ([]rout
 				continue
 			}
 			n.y, n.checked = y, true
+			if w.routeDry && w.routeWet > 0 {
+				// in the water: its way the dearer by routeWetCost a unit, and
+				// back in the queue at that (landwater.go)
+				n.wet = w.routeWet
+				n.g += routeWetCost * w.routeWet
+				n.done = false
+				heap.Push(q, routeItem{f: n.g + routeWeight*distXZ(n.x, n.z, tx, tz), i: i})
+				continue
+			}
 		}
 		k := routeKey{n.ix, n.iz, floorOf(n.y)}
 		if taken[k] {
@@ -341,7 +354,7 @@ func (w *World) planRouteLocked(npc *NPC, tx, ty, tz float32, limit int) ([]rout
 			}
 			if dxz <= routeFinish {
 				tried++
-				if y, ok := w.routeLegLocked(npc, n.x, n.y, n.z, tx, tz); ok && absf(y-ty) <= routeLevel {
+				if y, ok := w.routeLegLocked(npc, n.x, n.y, n.z, tx, tz); ok && absf(y-ty) <= routeLevel && w.routeWet == 0 {
 					return w.pullRouteLocked(npc, nodes, i), tried, true
 				}
 			}
@@ -376,6 +389,16 @@ func (w *World) pullRouteLocked(npc *NPC, nodes []routeNode, end int32) []routeP
 	for a, b := 0, len(path)-1; a < b; a, b = a+1, b-1 {
 		path[a], path[b] = path[b], path[a]
 	}
+	// each point's leg's length in the water, on a dry search (landwater.go)
+	var wet []float32
+	if w.routeDry {
+		for i := end; i >= 0; i = nodes[i].parent {
+			wet = append(wet, nodes[i].wet)
+		}
+		for a, b := 0, len(wet)-1; a < b; a, b = a+1, b-1 {
+			wet[a], wet[b] = wet[b], wet[a]
+		}
+	}
 	var out []routePoint
 	for at := 0; at < len(path)-1; {
 		next := at + 1
@@ -384,7 +407,12 @@ func (w *World) pullRouteLocked(npc *NPC, nodes []routeNode, end int32) []routeP
 			if j <= at+1 {
 				continue
 			}
-			if y, ok := w.routeLegLocked(npc, path[at].x, path[at].y, path[at].z, path[j].x, path[j].z); ok && absf(y-path[j].y) <= 1 {
+			var past float32 // the water of the points it pulls past
+			for k := at + 1; k <= j && wet != nil; k++ {
+				past += wet[k]
+			}
+			if y, ok := w.routeLegLocked(npc, path[at].x, path[at].y, path[at].z, path[j].x, path[j].z); ok && absf(y-path[j].y) <= 1 &&
+				w.routeWet <= past+routeSample {
 				next = j
 				break
 			}

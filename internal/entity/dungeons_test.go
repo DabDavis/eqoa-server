@@ -362,3 +362,47 @@ func TestDungeonStatusCountsKills(t *testing.T) {
 		t.Fatalf("status %q", got)
 	}
 }
+
+// A copy put in the open world (a quest's spawn, a GM trigger's) is of the
+// open world's original, never of a dungeon's template of the name (petition
+// 1886's walk of the stat quests: Sage's Wit's Necromancer Warpheus, whose open
+// world self was dead, came as the dungeon's level 65 boss); one put in the
+// dungeons' world may be of its template, and a name only the dungeon has is
+// still copied.
+func TestASpawnedCopyIsOfItsOwnWorldsOriginal(t *testing.T) {
+	r := newDungeons(t, 0)
+	w := r.w
+	w.mu.Lock()
+	for _, b := range []*NPC{
+		{ServerID: 920005, Name: "Necromancer Warpheus", X: 1000, Y: 50, Z: 1000, World: 14, Level: 65, HP: 90000, MaxHP: 90000},
+		{ServerID: 930001, Name: "Necromancer Warpheus", X: 3000, Y: 50, Z: 3000, World: 0, Level: 50, HP: 0, MaxHP: 5000, Dead: true},
+	} {
+		b.SpawnX, b.SpawnY, b.SpawnZ = b.X, b.Y, b.Z
+		w.putNPCLocked(b)
+		w.SpatialIndex.Insert(b.ServerID, b.X, b.Z)
+	}
+	w.mu.Unlock()
+	id, _, ok := w.SpawnNPCCopy("Necromancer Warpheus", 3010, 50, 3010, 0, 0)
+	if !ok {
+		t.Fatal("no copy")
+	}
+	w.mu.RLock()
+	c := w.NPCs[id]
+	level, of := c.Level, c.CopyOf
+	w.mu.RUnlock()
+	if level != 50 || of != 930001 {
+		t.Errorf("the open world's copy is level %d of row %d, want 50 of 930001 (the open world's, dead)", level, of)
+	}
+	// in the dungeons' world, its template
+	id, _, _ = w.SpawnNPCCopy("Necromancer Warpheus", 1010, 50, 1010, 0, 14)
+	w.mu.RLock()
+	of = w.NPCs[id].CopyOf
+	w.mu.RUnlock()
+	if of != 920005 {
+		t.Errorf("the dungeon's copy is of row %d, want its template 920005", of)
+	}
+	// a name only a dungeon has is copied still
+	if _, _, ok := w.SpawnNPCCopy("Lord Hoptor", 3010, 50, 3010, 0, 0); !ok {
+		t.Error("a name only the dungeon has was not copied")
+	}
+}

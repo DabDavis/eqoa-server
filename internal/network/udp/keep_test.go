@@ -303,8 +303,8 @@ func TestAnOldFileWithoutTheCreaturesStillWorks(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if snap.NPCs != nil || snap.Corpses != nil {
-		t.Fatalf("a section out of nothing: %+v %+v", snap.NPCs, snap.Corpses)
+	if snap.NPCs != nil || snap.Corpses != nil || snap.Dungeons != nil {
+		t.Fatalf("a section out of nothing: %+v %+v %+v", snap.NPCs, snap.Corpses, snap.Dungeons)
 	}
 	w := keepNPCWorld(t)
 	sm := session.NewManager()
@@ -401,5 +401,42 @@ func TestTheClientsAreToldTheCreaturesStandBeforeTheFreeze(t *testing.T) {
 	buf := make([]byte, 2048)
 	if n, _, err := client.ReadFromUDP(buf); err != nil || n == 0 {
 		t.Fatalf("nothing reached the client: %d bytes, %v", n, err)
+	}
+}
+
+// A dungeon's instance goes through the file and ResumeKept (entity/keepdungeon.go; the round trip with players,
+// groups and loot is handlers' TestADungeonInstanceGoesThroughAKeepRestart): it is open again under its id with its
+// creature where it stood at its hit points, before any session is put back.
+func TestADungeonInstanceGoesAcrossTheExec(t *testing.T) {
+	w := entity.NewWorld()
+	tmpl := &entity.NPC{ServerID: 930001, Name: "a froglok", Level: 60, HP: 5000, MaxHP: 5000, World: 14,
+		X: 1000, Y: 50, Z: 1000, SpawnX: 1000, SpawnY: 50, SpawnZ: 1000}
+	w.NPCs[tmpl.ServerID] = tmpl
+	w.SpatialIndex.Insert(tmpl.ServerID, tmpl.X, tmpl.Z)
+	w.SetDungeons(true, 14, []entity.DungeonDef{{Key: "guk", Name: "Test Guk",
+		Boxes: []entity.DungeonBox{{X0: 900, Z0: 900, X1: 1100, Z1: 1100}}, Entrance: entity.HomeSpot{X: 1000, Y: 50, Z: 1150}}},
+		entity.DungeonSettings{})
+	t.Cleanup(func() { w.SetDungeons(false, 14, nil, entity.DungeonSettings{}) })
+	place := [4]float32{1020, 50, 990, 1}
+	file := filepath.Join(t.TempDir(), "keep-sessions.json")
+	snap := &Snapshot{Version: KeepVersion, PID: os.Getpid(), Written: time.Now(), Dungeons: &entity.KeptDungeons{Next: 9,
+		Insts: []entity.KeptDungeonInst{{ID: 7, Key: "guk", Owner: 1, OwnerName: "Hero", Creatures: 3, Opened: time.Now(), LastIn: time.Now(),
+			NPCs: []entity.KeptInstNPC{{Row: 930001, KeptNPC: entity.KeptNPC{ID: 5555, Name: "a froglok", World: 14,
+				Spawn: [4]float32{1000, 50, 1000, 0}, Place: &place, HP: 700, MaxHP: 5000}}}}}}}
+	if err := snap.Write(file); err != nil {
+		t.Fatal(err)
+	}
+	back, err := ReadSnapshot(file, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	l := NewListener(config.DefaultConfig(), session.NewManager(), nil, w)
+	l.ResumeKept(back, time.Now())
+	c := w.NPCs[5555]
+	if c == nil || !c.Temporary || c.Instance != 7 || c.HP != 700 || c.X != 1020 || c.Z != 990 || c.CopyOf != 930001 {
+		t.Fatalf("the instance's creature: %+v", c)
+	}
+	if inst, open := w.DungeonInstanceInfo(5555); inst != 7 || !open {
+		t.Fatalf("instance %d open %v", inst, open)
 	}
 }

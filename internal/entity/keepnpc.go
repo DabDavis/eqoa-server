@@ -171,6 +171,14 @@ func (w *World) keptNPCLocked(npc *NPC, now time.Time) (KeptNPC, bool) {
 	if keepsNoNPC(npc) {
 		return KeptNPC{}, false
 	}
+	return w.keptStateLocked(npc, now, false)
+}
+
+// keptStateLocked is npc's state as a restart carries it at now (keptNPCLocked's,
+// whatever kind of NPC it is); with all, one that differs in nothing from what made
+// it too (a dungeon instance's creature: keepdungeon.go). False when it carries
+// nothing of it. Must be called with the lock held.
+func (w *World) keptStateLocked(npc *NPC, now time.Time, all bool) (KeptNPC, bool) {
 	k := KeptNPC{ID: uint32(npc.ServerID), Name: npc.Name, World: npc.World,
 		Spawn:     [4]float32{npc.SpawnX, npc.SpawnY, npc.SpawnZ, npc.SpawnFacing},
 		Cooldowns: npc.pendingCooldowns(now)}
@@ -205,7 +213,7 @@ func (w *World) keptNPCLocked(npc *NPC, now time.Time) (KeptNPC, bool) {
 	// a camp's spawn standing as another of its kinds than its row's: its name
 	// says which (campspawn.go)
 	kind := w.campKindChangedLocked(npc)
-	if !away && !k.Dead && k.MaxHP == 0 && k.Home == nil && k.PathDir == 0 && !k.ToSpawn && !kind && len(k.Cooldowns) == 0 {
+	if !all && !away && !k.Dead && k.MaxHP == 0 && k.Home == nil && k.PathDir == 0 && !k.ToSpawn && !kind && len(k.Cooldowns) == 0 {
 		return KeptNPC{}, false
 	}
 	if !k.finite() {

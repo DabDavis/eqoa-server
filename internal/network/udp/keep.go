@@ -90,6 +90,10 @@ type Snapshot struct {
 	// row makes them again) that lie (entity/keepcopy.go); a file without them
 	// (a binary's before 2026-11-12) leaves them gone, as every restart did.
 	Copies []entity.KeptCopy `json:"copies,omitempty"`
+	// Dungeons are the dungeons' open instances, their creatures (alive and
+	// corpses that lie) and who stands in them (entity/keepdungeon.go); a file
+	// without them (a binary's before 2026-11-13) leaves every instance closed.
+	Dungeons *entity.KeptDungeons `json:"dungeons,omitempty"`
 	// ItemLinks are the links in players' chat lines (handlers/itemlinks.go),
 	// so each still opens after the restart. A file without them leaves the
 	// links empty.
@@ -199,6 +203,7 @@ func (l *Listener) Snapshot(now time.Time) *Snapshot {
 		snap.Groups = l.gameWorld.KeepGroups()
 		snap.NPCs = l.gameWorld.KeepNPCs()
 		snap.Copies = l.gameWorld.KeepCopies()
+		snap.Dungeons = l.gameWorld.KeepDungeons(now)
 		snap.Corpses = handlers.KeepCorpses()
 	}
 	snap.ItemLinks = handlers.KeepItemLinks()
@@ -434,14 +439,21 @@ func (l *Listener) ResumeKept(snap *Snapshot, now time.Time) (resumed, told int)
 	}
 	var in []back
 	// the creatures first: each client's slots go on describing them (RestoreView)
-	if l.gameWorld != nil && (len(snap.NPCs) > 0 || len(snap.Corpses) > 0 || len(snap.Copies) > 0) {
+	if l.gameWorld != nil && (len(snap.NPCs) > 0 || len(snap.Corpses) > 0 || len(snap.Copies) > 0 || snap.Dungeons != nil) {
 		start := time.Now()
 		r := l.gameWorld.RestoreNPCs(snap.NPCs)
 		// the copies' corpses before anything else takes an id (a pet, a merc)
 		ids, lost := l.gameWorld.RestoreCopies(snap.Copies)
+		copies := len(ids)
+		// the dungeons' instances and their creatures, before the players who stand in them
+		dids, dr := l.gameWorld.RestoreDungeons(snap.Dungeons)
+		for from, to := range dids {
+			ids[from] = to
+		}
 		corpses := handlers.RestoreCorpsesAs(snap.Corpses, ids)
-		log.Printf("Keep: of %d NPCs written, %s; %d of %d copies' corpses made again (%d not); %d of %d corpses' contents and kill groups as they were; in %v",
-			len(snap.NPCs), r, len(ids), len(snap.Copies), lost, corpses, len(snap.Corpses), time.Since(start).Round(time.Millisecond))
+		log.Printf("Keep: of %d NPCs written, %s; %d of %d copies' corpses made again (%d not); dungeons: %d instances made again (%d not), %d creatures alive and %d corpses (%d not made), %d characters to put back in them; %d of %d corpses' contents and kill groups as they were; in %v",
+			len(snap.NPCs), r, copies, len(snap.Copies), lost, dr.Insts, dr.InstsLost, dr.Alive, dr.Dead, dr.NPCsLost, dr.Players,
+			corpses, len(snap.Corpses), time.Since(start).Round(time.Millisecond))
 	}
 	// the links in players' chat lines, which still open
 	if len(snap.ItemLinks) > 0 {
@@ -477,6 +489,12 @@ func (l *Listener) ResumeKept(snap *Snapshot, now time.Time) (resumed, told int)
 			log.Printf("Keep: groups: %v", err)
 		}
 		log.Printf("Keep: %d of %d groups formed again", n, len(snap.Groups))
+	}
+	if l.gameWorld != nil {
+		// the instances' groups are theirs again: those in the dungeons get a mover's grace (entity/keepdungeon.go)
+		if n := l.gameWorld.DungeonsResumed(now); n > 0 {
+			log.Printf("Keep: %d players back in their dungeon instances", n)
+		}
 	}
 	for _, b := range in {
 		if l.gameWorld != nil && b.ks.View != nil && b.ks.Session.CharacterInWorld {

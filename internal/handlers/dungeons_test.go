@@ -130,8 +130,8 @@ func TestDungeonsPagesTheirBox(t *testing.T) {
 	}
 }
 
-// TestDungeonKeepRestartSendsOut: a character inside an instance at a keep restart (no instance outlives the old
-// process) comes back in front of the Dungeon Warden outside, in its world, and its session is marked moved, so the
+// TestDungeonKeepRestartSendsOut: a character inside an instance at a keep restart whose instance did not come through
+// (a file from before entity/keepdungeon.go, or its dungeon gone from the recipe) comes back in front of the Dungeon Warden outside, in its world, and its session is marked moved, so the
 // client's reports of the instance's place until its dump do not carry the character there in that world (the owner,
 // 2026-11-12: "I was in instanced Castle Felstar and the server restarted and I reloaded into the normal level 20
 // version").

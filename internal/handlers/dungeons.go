@@ -72,7 +72,7 @@ var dungeonsRules = []string{
 	"- Creatures killed in an instance stay dead: nothing respawns. A cleared instance stays cleared. /dungeon shows how many of its creatures your party has killed.",
 	"- For a fresh one, the one who opened it types /dungeon reset <name> with no one inside; the next entry opens a new, full instance.",
 	"- An instance no one stands in closes by itself after a while.",
-	"- A server restart closes every instance: everyone inside comes back out by the board.",
+	"- A server update keeps every instance as it was (its creatures, corpses and loot) with everyone inside in it; only a full shutdown closes them.",
 	"- Only a client that builds the server's worlds (eqoa-rust-client-vanilla) can enter; a PS2 cannot.",
 }
 
@@ -447,6 +447,12 @@ func dungeonsHelpLine(gw *entity.World) string {
 func dungeonLogin(gw *entity.World, record *database.CharacterRecord, held func(world uint8) bool) bool {
 	if gw == nil {
 		return false
+	}
+	if inst, ok := gw.DungeonResumeIn(record.ServerID, record.World); ok && held != nil && held(uint8(record.World)) {
+		// carried through a restart standing in its instance (entity/keepdungeon.go): where it stood, in it
+		log.Printf("loginSpawn: '%s' resumes in dungeon instance %d where it stood (%.1f, %.1f, %.1f) world=%d (a restart)",
+			record.CharName, inst, record.X, record.Y, record.Z, record.World)
+		return true
 	}
 	dungeon, resume, inst, out := gw.DungeonLogin(record.ServerID, record.World, record.X, record.Z)
 	if !dungeon {

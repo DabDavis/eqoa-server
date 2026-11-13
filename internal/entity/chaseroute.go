@@ -209,10 +209,11 @@ func (w *World) followRouteLocked(npc *NPC, r *chaseRoute, speed, dt float32) {
 			npc.Y, npc.swimming = y0, swim0 // a gap between the search's points: across it at its height
 			noFloor = true                  // no floor of its own taken here
 		}
-		if w.intoGroundLocked(npc, noFloor) {
-			// across it at its height would be in the ground (groundnpc.go): not
-			// taken, the route dropped and the way searched again
-			npc.X, npc.Y, npc.Z, npc.swimming = x0, y0, z0, swim0
+		if w.intoGroundLocked(npc, noFloor) || w.movedUnderLocked(npc) {
+			// across it at its height would be in the ground, or under a floor
+			// (groundnpc.go): not taken, the route dropped and the way searched
+			// again
+			npc.X, npc.Y, npc.Z, npc.swimming, npc.under = x0, y0, z0, swim0, npc.wasUnder
 			r.pts, r.edge = nil, true
 			break
 		}
@@ -244,7 +245,7 @@ func (w *World) routeGroundLocked(npc *NPC) (noFloor bool) {
 	if !npc.walksTerrain() {
 		return w.groundNPCLocked(npc)
 	}
-	y, ok := w.ground.Floor(npc.World, npc.X, npc.Y, npc.Z)
+	y, ok := w.floorLocked(npc.World, npc.X, npc.Y, npc.Z)
 	if ok {
 		npc.Y = y
 	}
@@ -299,7 +300,7 @@ var routeDirs = [8]struct {
 // taken: a check is the search's cost). Must be called with the lock held.
 func (w *World) planRouteLocked(npc *NPC, tx, ty, tz float32, limit int) ([]routePoint, int, bool) {
 	sy := npc.Y
-	if f, ok := w.ground.Floor(npc.World, npc.X, npc.Y, npc.Z); ok {
+	if f, ok := w.floorLocked(npc.World, npc.X, npc.Y, npc.Z); ok {
 		sy = f
 	}
 	floorOf := func(y float32) int32 { return int32(math.Floor(float64(y / routeFloorStep))) }

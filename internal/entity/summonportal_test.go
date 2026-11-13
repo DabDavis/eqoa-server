@@ -189,17 +189,18 @@ func TestAPortalHearsWhoIsByIt(t *testing.T) {
 	}
 }
 
-// A bring is a travel to where the owner stood, each arrival on its own side of
-// it and never the side the portal stands on, handed to the hook by the tick. A
-// player from another world goes the same. The controls: no portal, a dead
-// player.
-func TestAPortalBringsPlayersRoundWhereItsOwnerStood(t *testing.T) {
+// A bring is a travel to the exact spot the owner stood on as it opened the
+// portal (the GM Jibwiz's petition 1922: ring 0, not a ring round it, and not
+// where the owner stands now), handed to the hook by the tick. A player from
+// another world goes the same. The controls: no portal, a dead player.
+func TestAPortalBringsPlayersWhereItsOwnerStood(t *testing.T) {
 	f := newPortalFixture(t)
-	_, s := f.player(1, "Anna", 1000, 1000, 0)
+	a, s := f.player(1, "Anna", 1000, 1000, 0)
 	id, err := f.w.OpenPortal(s, f.now)
 	if err != nil {
 		t.Fatal(err)
 	}
+	a.X, a.Z = 1040, 1040 // the owner walks off after opening it
 	b, bs := f.player(2, "Bert", 9000, 9000, 0)
 	b.World = 2
 	if !f.w.PortalBring(id, b.ServerID, bs) {
@@ -210,7 +211,7 @@ func TestAPortalBringsPlayersRoundWhereItsOwnerStood(t *testing.T) {
 		t.Fatalf("%d travels", len(f.sent))
 	}
 	tr := f.sent[0]
-	if tr.P != b || tr.Sess != bs || tr.To.World != 0 || tr.To.X != 1000 || tr.To.Y != 50 || tr.To.Z != 1000 || tr.Ring < 1 || tr.Spell != PortalName {
+	if tr.P != b || tr.Sess != bs || tr.To.World != 0 || tr.To.X != 1000 || tr.To.Y != 50 || tr.To.Z != 1000 || tr.Ring != 0 || tr.Spell != PortalName {
 		t.Errorf("the travel: %+v", tr)
 	}
 	f.sent = nil
@@ -227,24 +228,3 @@ func TestAPortalBringsPlayersRoundWhereItsOwnerStood(t *testing.T) {
 	}
 }
 
-// No arrival lands on the portal's side of the spot, whichever way the owner
-// faced, and two arrivals never share a ring.
-func TestAPortalsArrivalsPassOverItsSide(t *testing.T) {
-	for deg := 0; deg < 360; deg += 15 {
-		facing := float32(float64(deg) * math.Pi / 180)
-		f := float64(facing)
-		st := &portalState{facing: facing}
-		last := 0
-		for i := 0; i < 12; i++ {
-			r := st.nextRing()
-			if r <= last {
-				t.Fatalf("facing %d: ring %d after %d", deg, r, last)
-			}
-			last = r
-			h := float64(r-1) * math.Pi / 2
-			if dot := math.Cos(h)*math.Sin(f) + math.Sin(h)*math.Cos(f); dot >= 0.5 {
-				t.Errorf("facing %d: ring %d is toward the portal (%.2f)", deg, r, dot)
-			}
-		}
-	}
-}

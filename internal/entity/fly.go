@@ -66,6 +66,9 @@ func (w *World) setFlyingLocked(p *Player, on bool, now time.Time) {
 		return
 	}
 	p.Flying = on
+	if !on {
+		p.Noclip = false // no flight, no noclip: a body that walks needs its floors (noclip.go)
+	}
 	p.mv.init = false
 	p.flyGrace = time.Time{}
 	if !on {
@@ -93,6 +96,7 @@ func (w *World) Flying(sess *session.Session) (on, ok bool) {
 // called with the lock held.
 func (w *World) restoreFlyingLocked(p *Player, k KeptPlayer) {
 	p.Flying = k.Flying
+	p.Noclip = k.Flying && k.Noclip // noclip.go
 	if !k.Flying || k.World != p.World {
 		return
 	}

@@ -72,8 +72,12 @@ func (h *ChatHandler) flyCommand(sess *session.Session, args []string) {
 		h.gmReply(sess, flyCannotLine)
 		return
 	}
+	wasNoclip, _ := h.gameWorld.Noclip(sess)
 	if !h.gameWorld.SetFlying(sess, want, time.Now()) {
 		return
+	}
+	if wasNoclip && !want {
+		SendNoclip(sess, false) // the flight's end ends noclip (noclip.go)
 	}
 	SendFlying(sess, want)
 	if want {

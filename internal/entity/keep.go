@@ -45,6 +45,7 @@ type KeptPlayer struct {
 	GM              bool       `json:"gm,omitempty"`
 	HideGMTag       bool       `json:"hide_gm_tag,omitempty"`
 	Flying          bool       `json:"flying,omitempty"`
+	Noclip          bool       `json:"noclip,omitempty"` // a GM's /noclip (noclip.go)
 	Place           [3]float32 `json:"place"`
 	World           uint8      `json:"world"`
 	RaceLabels      bool       `json:"race_labels,omitempty"`
@@ -126,7 +127,7 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 		return KeptPlayer{}, false
 	}
 	k := KeptPlayer{CharServerID: p.CharServerID, Name: p.Name, Dead: p.IsDead() || p.respawnPending(),
-		Target: p.TargetObjectID, PowerBars: p.PowerBars, RaidRoster: p.RaidRoster, RaidRosterGroups: p.RaidRosterGroups, RaidRosterKinds: p.RaidRosterKinds, RaidWindows: p.RaidWindows, DuelWindow: p.DuelWindow, GM: p.GM, HideGMTag: p.HideGMTag, Flying: p.Flying,
+		Target: p.TargetObjectID, PowerBars: p.PowerBars, RaidRoster: p.RaidRoster, RaidRosterGroups: p.RaidRosterGroups, RaidRosterKinds: p.RaidRosterKinds, RaidWindows: p.RaidWindows, DuelWindow: p.DuelWindow, GM: p.GM, HideGMTag: p.HideGMTag, Flying: p.Flying, Noclip: p.Noclip,
 		Place: [3]float32{p.X, p.Y, p.Z}, World: p.World, PetEffects: p.PetEffects}
 	k.BuffWindow = p.BuffWindow
 	k.RaceLabels = p.RaceLabels

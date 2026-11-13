@@ -1454,6 +1454,10 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 	case "#fly":
 		// #fly [on|off]: a GM's flight, alone it turns over (fly.go)
 		h.flyCommand(sess, parts[1:])
+	case "#noclip":
+		// #noclip [on|off]: the server's own GMs' flight through walls, alone it
+		// turns over (noclip.go, petition 1904)
+		h.noclipCommand(sess, parts[1:])
 	case "#movecheck":
 		// #movecheck [off|log|enforce]: the server's view of players' own
 		// moves (movecheckcmd.go, entity/movecheck.go)

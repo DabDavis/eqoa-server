@@ -82,13 +82,13 @@ func TestTheArchonTowersPortals(t *testing.T) {
 
 // The Dead Hills' mausoleum portal is a travel NPC now, as Zizclank beside it is
 // (ticket 1197): it answers, and takes a player of level 50 to the Plane of
-// Disease's Portal to the Dead Hills. The control: below 50, it does not offer.
+// Disease (the wiki's level 51 since 2026-11-13). The control: below 51, it does not offer.
 func TestTheMausoleumPortalTalks(t *testing.T) {
 	if !IsWaysender("Mausoleum Portal") {
 		t.Fatal("the portal is not a travel NPC")
 	}
 	r := wayRoutes["Mausoleum Portal"]
-	if len(r) != 1 || r[0].To != "the Plane of Disease" || r[0].At != podArrival || r[0].MinLevel != 50 {
+	if len(r) != 1 || r[0].To != "the Plane of Disease" || r[0].At != podArrival || r[0].MinLevel != 51 {
 		t.Errorf("its route is %+v", r)
 	}
 	z := wayRoutes["Necrologist Zizclank"]

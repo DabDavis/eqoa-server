@@ -136,20 +136,3 @@ func (q *QuestEngine) tellWallsLocked(c *questChar, sess *session.Session, p *en
 		}
 	}
 }
-
-// Holds is whether the player carries or wears the item, as a show step reads
-// it (shownItems: the pack and what it wears, never the bank): a waysender's
-// trip that asks for one (waysender.go's wayRoute.Holds).
-func (q *QuestEngine) Holds(p *entity.Player, pattern int) bool {
-	if q == nil || p == nil || pattern <= 0 {
-		return false
-	}
-	q.mu.Lock()
-	defer q.mu.Unlock()
-	for _, r := range q.shownItems(p) {
-		if r.Pattern.PatternID == pattern {
-			return true
-		}
-	}
-	return false
-}

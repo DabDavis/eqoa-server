@@ -11,7 +11,7 @@ alone (refused when a GM changed one since its import, or one would be a draft):
     the suit (the wiki's first entry: the suit is made inside); the last step, at the Oozing Portal, shows the suit.
     The wiki's names: Deathknight Bileheart (the game's "Blieheart"), Deathknight Halik, Fatima Ubel, Rebo Chilins,
     Medelonia Virel, the Oozing Portal (was the Portal of the Last House), every npcs row and every name-keyed row with
-    them. The Oozing Portal's trip on to the Plane of Disease is flag-2's to unlock (waysender.go asks the suit too).
+    them. The Oozing Portal's trip on to the Plane of Disease is flag-2's to unlock (no suit asked of the flagged).
   - suit-swatch and suit-sew, two repeatable hand-ins at Fatima Ubel (ours: tailoring is not live): three Stitched
     Zombie Skin for a Zombie Swatch; two Zombie Swatches and a Sinew Cord for a zombie flesh suit. The three items are
     made (tradeable, craft components, stack 20), and the wiki's two tailoring recipes beside them (craftrecipes,
@@ -29,8 +29,10 @@ Beside the quests, as data:
   - the Last House Physician respawns every 10 minutes (Skywalker's ticket 1906; was 90 s).
   - the ward: an invisible wall (CHAR.ESF 0x6F412342, size 2: a box 10 a side) across the lower hall where Dust stood,
     the one way from the Last House's lower halls up to the Oozing Portal; a questwalls row of the suit (item 1012):
-    passed by whoever carries or wears it, by a GM, and by anyone on its far side (its inner boxes: the upper halls and
-    the lower hall's west arm up to the wall's middle), so no one is shut in; one stopped is told its line once.
+    passed by whoever carries or wears it, by whoever finished The Last House (the owner, 2026-11-13: "let flagged
+    players through": the row's quest, past its last step), by a GM, and by anyone on its far side (its inner boxes:
+    the upper halls and the lower hall's west arm up to the wall's middle), so no one is shut in; one stopped is told
+    its line once.
 
 Every row it changes is found by comparing the tables before and after, logged with its old and new values (table
 pod_wiki_1113_log), a gm_audit line a row; --undo puts each back and refuses, writing nothing, when a row it would put
@@ -342,10 +344,14 @@ def ward(db, say):
     rid = copy_npc(db, src, {"npc_name": WALL_NAME, "world": WORLD, "zone": 0, "x_coord": WALL_AT[0], "y_coord": WALL_AT[1],
                              "z_coord": WALL_AT[2], "facing": 0, "size": WALL_SIZE, "npc_level": 1, "npc_type": 128,
                              "modelid": BLOCKER_BODY})
-    db.execute("INSERT INTO questwalls (npcid, questid, step, note, source, item, inner, text) VALUES (?, 0, 0, ?, ?, ?, ?, ?)",
-               (rid, "the Last House's ward where Dust stood (the owner, 2026-11-13): the zombie flesh suit passes it", SRC,
-                SUIT, json.dumps(WALL_INNER), WALL_TEXT))
-    say(f"the ward: invisible wall row {rid} at {WALL_AT}, size {WALL_SIZE}; questwalls: item {SUIT}, far side {WALL_INNER}")
+    # passed by whoever finished The Last House (past its last step: the owner's "let flagged players through")
+    flag2 = db.execute("SELECT questid FROM quest_import_quests WHERE key = 'Portal/plane-of-disease/flag-2'").fetchone()[0]
+    last = db.execute("SELECT max(step) FROM queststeps WHERE questid = ?", (flag2,)).fetchone()[0]
+    db.execute("INSERT INTO questwalls (npcid, questid, step, note, source, item, inner, text) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+               (rid, flag2, last, "the Last House's ward where Dust stood (the owner, 2026-11-13): the zombie flesh suit passes it, "
+                "and having finished The Last House (\"let flagged players through\")", SRC, SUIT, json.dumps(WALL_INNER), WALL_TEXT))
+    say(f"the ward: invisible wall row {rid} at {WALL_AT}, size {WALL_SIZE}; questwalls: item {SUIT} or quest {flag2} finished "
+        f"(past step {last}), far side {WALL_INNER}")
 
 
 def run(db, say):

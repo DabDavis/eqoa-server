@@ -459,6 +459,9 @@ type Player struct {
 	// VampireSun.GMs may spare.
 	Vampire bool
 	GM      bool
+	// HideGMTag: a GM that hid its [GM] tag (/hide gmtag, handlers/hidegmtag.go):
+	// its name is drawn bare, as a player's; it is a GM as before
+	HideGMTag bool
 	// ArmorBody is its race's body for the armour on its chest, 0 its own (armorbody.go)
 	ArmorBody uint32
 	// stuckNext is when /stuck may be used again (stuck.go)

@@ -737,7 +737,8 @@ func SerializeBuffUpdate(p *Player) []byte {
 // in a target's window (the user, 2026-11-07: "also in games GMs need an
 // identifier next to their name like [GM]"): a GM is an account of acctlevel 1
 // or more (Player.GM, read at its login). Its name stays its own everywhere
-// else: chat, tells, a group's and a guild's lists.
+// else: chat, tells, a group's and a guild's lists. A GM may hide it
+// (Player.HideGMTag, /hide gmtag: the owner, 2026-11-13).
 const GMTag = "[GM] "
 
 // ShownName is the name the entity channel carries: a GM's with GMTag.
@@ -746,7 +747,7 @@ func (p *Player) ShownName() string {
 	if p.ctf.carries {
 		name = CTFCarrierTag + name // the arena's banner carrier (ctfflag.go)
 	}
-	if p.GM {
+	if p.GM && !p.HideGMTag {
 		return GMTag + name
 	}
 	return name

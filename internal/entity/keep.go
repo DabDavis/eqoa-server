@@ -43,6 +43,7 @@ type KeptPlayer struct {
 	RaidWindows     bool       `json:"raid_windows,omitempty"`
 	DuelWindow      bool       `json:"duel_window,omitempty"`
 	GM              bool       `json:"gm,omitempty"`
+	HideGMTag       bool       `json:"hide_gm_tag,omitempty"`
 	Flying          bool       `json:"flying,omitempty"`
 	Place           [3]float32 `json:"place"`
 	World           uint8      `json:"world"`
@@ -125,7 +126,7 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 		return KeptPlayer{}, false
 	}
 	k := KeptPlayer{CharServerID: p.CharServerID, Name: p.Name, Dead: p.IsDead() || p.respawnPending(),
-		Target: p.TargetObjectID, PowerBars: p.PowerBars, RaidRoster: p.RaidRoster, RaidRosterGroups: p.RaidRosterGroups, RaidRosterKinds: p.RaidRosterKinds, RaidWindows: p.RaidWindows, DuelWindow: p.DuelWindow, GM: p.GM, Flying: p.Flying,
+		Target: p.TargetObjectID, PowerBars: p.PowerBars, RaidRoster: p.RaidRoster, RaidRosterGroups: p.RaidRosterGroups, RaidRosterKinds: p.RaidRosterKinds, RaidWindows: p.RaidWindows, DuelWindow: p.DuelWindow, GM: p.GM, HideGMTag: p.HideGMTag, Flying: p.Flying,
 		Place: [3]float32{p.X, p.Y, p.Z}, World: p.World, PetEffects: p.PetEffects}
 	k.BuffWindow = p.BuffWindow
 	k.RaceLabels = p.RaceLabels
@@ -177,7 +178,7 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 	if k.DPSMeter {
 		p.dps = &dpsMeter{} // the next figure starts its fight (dpsmeter.go)
 	}
-	p.GM = k.GM
+	p.GM, p.HideGMTag = k.GM, k.HideGMTag
 	p.DuelWindow = k.DuelWindow
 	// its record's summary is read again (handlers/keep.go)
 	p.RecordWindow = k.RecordWindow

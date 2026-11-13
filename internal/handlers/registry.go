@@ -640,6 +640,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		chatHandler.SetSafeModeStore(charStore.DB())
 		// /hide mercs, kept (hidemercs.go)
 		chatHandler.SetMercsHiddenStore(charStore.DB())
+		chatHandler.SetGMTagHiddenStore(charStore.DB())
 
 		// the mercenaries (merc.go): the liaisons, /merc, the hires kept; and
 		// the familiars (familiar.go): their items' Use, /familiar

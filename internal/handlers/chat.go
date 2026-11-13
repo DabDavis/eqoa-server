@@ -82,6 +82,8 @@ type ChatHandler struct {
 	safe safeModeStore
 	// hideMercs is where /hide mercs is kept (hidemercs.go)
 	hideMercs mercsHiddenStore
+	// hideGMTag is where /hide gmtag is kept (hidegmtag.go)
+	hideGMTag gmTagHiddenStore
 	// welcome is /tutorial's box (welcome.go); nil: no guide
 	welcome *WelcomeGuide
 
@@ -366,6 +368,10 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 			h.hideMercsCommand(sess, player, hide)
 			return
 		}
+		if hide, ok := hideGMTagLine(word, rest); ok { // a GM's [GM] tag (hidegmtag.go)
+			h.hideGMTagCommand(sess, player, hide)
+			return
+		}
 	}
 
 	// /merc (or #merc; a PS2's is "/t merc ...", below): its mercenary, everyone's
@@ -460,6 +466,10 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		// mercs"; anything else to a "hide" or a "show" is a tell
 		if hide, ok := hideMercsLine("/"+name, body); ok {
 			h.hideMercsCommand(sess, player, hide)
+			return
+		}
+		if hide, ok := hideGMTagLine("/"+name, body); ok { // "/t hide gmtag" (hidegmtag.go)
+			h.hideGMTagCommand(sess, player, hide)
 			return
 		}
 		// and the mercenary's and the familiar's words (merc.go, familiar.go): "/t
@@ -1657,6 +1667,7 @@ var gmHelpLines = []string{
 	"  #giveitem <item id> <player> [count] - give an online player an item",
 	"  #summon <name> - bring an online player to you",
 	"  #spawn <name> - a copy of that NPC beside you; #despawn takes the target away",
+	"  #hide gmtag, #show gmtag - your [GM] tag off your name, or back (kept)",
 	"  #monstersearch <start of a name> - up to ten NPC names",
 	"  #nearby - NPCs within 200",
 	"  #tele <name> - teleport to a named place (no name lists them)",

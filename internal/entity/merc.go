@@ -59,12 +59,14 @@ type MercStance uint8
 const (
 	// MercPassive fights only what /merc attack names; a healer still heals
 	MercPassive MercStance = 1
-	// MercAssist fights what its owner fights: its owner's auto-attack's
-	// target, a creature fighting its owner or itself, one its owner hurt or
-	// its owner's pet fights (the default)
+	// MercAssist fights what its owner called it to (merccall.go): its
+	// owner's auto-attack's target, a creature its owner did a hostile act on
+	// or that fights one he healed or helped, and what fights the merc itself
+	// (the default)
 	MercAssist MercStance = 2
-	// MercAggressive also takes on what fights or is fought by its owner's
-	// group
+	// MercAggressive took on what fought or was fought by its owner's group;
+	// since GM ticket 1959 (merccall.go) it fights as MercAssist, kept so a
+	// saved stance and the word still read
 	MercAggressive MercStance = 3
 )
 

@@ -425,7 +425,8 @@ func TestMercCasterCastsOnCooldown(t *testing.T) {
 
 // A merc never takes on a player (its owner's duel opponent), nor a creature
 // players cannot attack, nor another's pet; passive, nothing fighting its
-// owner. The control: in assist it takes on the creature fighting its owner.
+// owner. In assist, a creature that aggroed on its owner is not taken on until
+// its owner hits it (GM ticket 1959, merccall.go); then it is (the control).
 func TestMercNeverFightsAPlayer(t *testing.T) {
 	r := newMercRig(t)
 	ms := r.hire(r.kit(0, 0, 0), MercAssist)
@@ -461,8 +462,15 @@ func TestMercNeverFightsAPlayer(t *testing.T) {
 	}
 	r.w.SetMercStance(r.sess, 0, MercAssist)
 	r.run(3*time.Second, 4*time.Second)
+	if ms.target != 0 {
+		t.Fatalf("an assisting merc took on a crab its owner never touched (target %d)", ms.target)
+	}
+	r.w.mu.Lock()
+	r.w.updateAggro(crab, r.p.ServerID, 10) // its owner's hit
+	r.w.mu.Unlock()
+	r.run(4*time.Second, 5*time.Second)
 	if ms.target != crab.ServerID {
-		t.Errorf("an assisting merc left the crab fighting its owner alone (target %d)", ms.target)
+		t.Errorf("an assisting merc left the crab its owner hit (target %d)", ms.target)
 	}
 }
 

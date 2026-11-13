@@ -1638,6 +1638,7 @@ func (w *World) retargetLocked(npc *NPC) {
 // petEffectsLocked, its AC, AGI, STR and DEX count in its fights: pet.go's
 // npcHitOnPet and petMeleeHit; its other stats a pet does not use).
 func (w *World) landOnPetLocked(cs *castState, caster *Player, casterSess *session.Session, pet *NPC, now time.Time) {
+	w.mercCallHelpLocked(caster, pet.ServerID, pet.World, pet.X, pet.Z) // a help on one fought calls the caster's mercs (merccall.go)
 	// a spell that raises the maximum heals after the raise, as on a player
 	// (landOnPlayerLocked), or a pet at full health would get none of it
 	raises := cs.spell.Def.RaisesMaxHP()

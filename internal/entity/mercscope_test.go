@@ -257,22 +257,27 @@ func TestPlayerGroupSpellStillReachesOthersMercs(t *testing.T) {
 	}
 }
 
-// Its fights are the raid's still (the owner, 2026-11-13: "they can attack when raid
-// engages"): a creature fighting a player of the other group of four is taken on and hit,
-// and an aggressive merc takes on what a raid member attacks, though it heals and buffs
-// its owner's own alone.
-func TestMercStillFightsWhatTheRaidEngages(t *testing.T) {
+// GM ticket 1959 replaced the owner's 2026-11-13 "they can attack when raid engages": a
+// creature fighting a player of the raid's other group of four is left alone, and so is
+// what a raid member attacks, an aggressive merc's too; once its owner hits the crab, the
+// merc takes it on and hits it.
+func TestMercLeavesTheRaidsFightsAlone(t *testing.T) {
 	s := newMercScope(t)
 	e := s.ps[4]
 	crab := s.creature("Crab", 28, 4)
 	crab.HP, crab.MaxHP = 900000, 900000
 	crab.CurrentEnemy = e.ServerID
+	crab.Threats = map[EntityID]int64{e.ServerID: 10}
 	s.run(0, 5*time.Second)
-	if s.second.target != crab.ServerID {
-		t.Fatalf("the merc's target %d: want the crab fighting E, of the raid's other group", s.second.target)
+	if s.second.target != 0 || crab.HP < crab.MaxHP {
+		t.Fatalf("the merc took on the crab fighting E, of the raid's other group (target %d)", s.second.target)
 	}
-	if crab.HP >= crab.MaxHP {
-		t.Error("the merc did not hit the crab the raid fights")
+	s.w.mu.Lock()
+	s.w.updateAggro(crab, s.p.ServerID, 1) // its owner's hit
+	s.w.mu.Unlock()
+	s.run(5*time.Second, 10*time.Second)
+	if s.second.target != crab.ServerID || crab.HP >= crab.MaxHP {
+		t.Errorf("its owner hit the crab: the merc's target %d, the crab's HP %d/%d", s.second.target, crab.HP, crab.MaxHP)
 	}
 
 	s2 := newMercScope(t)
@@ -282,7 +287,7 @@ func TestMercStillFightsWhatTheRaidEngages(t *testing.T) {
 	s2.second.stance = MercAggressive
 	d.AttackTarget, d.AutoAttack = rat.ServerID, true
 	s2.run(0, 5*time.Second)
-	if s2.second.target != rat.ServerID {
-		t.Fatalf("the aggressive merc's target %d: want the rat D attacks", s2.second.target)
+	if s2.second.target != 0 {
+		t.Fatalf("the aggressive merc took on the rat D attacks (target %d)", s2.second.target)
 	}
 }

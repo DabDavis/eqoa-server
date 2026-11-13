@@ -268,13 +268,13 @@ func (w *World) mercPetTurnLocked(ms *mercState, sess *session.Session, fight bo
 // attack (/merc attack: the merc's target), nothing of its own; any other's,
 // in turn, its hirer's auto-attack's target (so it switches when its hirer
 // starts on another), its merc's target, the one it fights while that still
-// fights it, its merc or its hirer or was hurt by its hirer, else the nearest
-// creature within petAssist of its hirer that does: one fighting the pet, its
-// merc or its hirer, or hurt by its hirer (a hit, a harmful spell), one
-// fighting anyone of its hirer's group (mercDefendsLocked), and for an
-// aggressive merc's also one its hirer's group fights (mercTeamFightsLocked).
-// A creature past petLeash from the hirer is none of its, as the merc's.
-// Must be called with the lock held.
+// fights it or its merc or is still called, else the nearest creature within
+// petAssist of its hirer its hirer called his mercs onto (GM ticket 1959,
+// merccall.go: a hostile act of his, or a help on one it fights) or fighting
+// the pet or its merc (self-defence). Never one only because it fights its
+// hirer's group or raid, nor by an aggressive stance. A creature past
+// petLeash from the hirer is none of its, as the merc's. Must be called with
+// the lock held.
 func (w *World) mercPetChooseTargetLocked(ms *mercState, ps *petState) {
 	pet, m, owner := ps.npc, ms.npc, ms.owner
 	valid := func(id EntityID) *NPC {
@@ -308,17 +308,10 @@ func (w *World) mercPetChooseTargetLocked(ms *mercState, ps *petState) {
 		set(t)
 		return
 	}
+	// its hirer's call (merccall.go), or what fights the pet or its merc
+	// (self-defence: GM ticket 1959)
 	mine := func(npc *NPC) bool {
-		if npc.CurrentEnemy == pet.ServerID || npc.CurrentEnemy == m.ServerID || npc.CurrentEnemy == owner.ServerID {
-			return true
-		}
-		if _, hurt := npc.Threats[owner.ServerID]; hurt {
-			return true
-		}
-		if w.mercDefendsLocked(ms, npc) { // anyone of its hirer's group attacked
-			return true
-		}
-		return ms.stance == MercAggressive && w.mercTeamFightsLocked(ms, npc)
+		return npc.CurrentEnemy == pet.ServerID || npc.CurrentEnemy == m.ServerID || w.mercCalledLocked(owner, npc)
 	}
 	if t := valid(ps.target); t != nil && mine(t) {
 		return // still its fight

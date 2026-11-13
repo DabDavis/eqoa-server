@@ -158,8 +158,10 @@ type World struct {
 	// Hired mercenaries by their owners' ids (merc.go), their casts on their
 	// way to landing (merccast.go), what became of them this tick for the
 	// handlers (runMercNotes), and a count telling one hire from the next
-	mercs      map[EntityID][]*mercState // by owner, by slot (merc.go)
-	mercCasts  []*mercCast
+	mercs     map[EntityID][]*mercState // by owner, by slot (merc.go)
+	mercCasts []*mercCast
+	// mercCalls: the creatures each owner called his mercs onto (merccall.go)
+	mercCalls  map[EntityID]map[EntityID]bool
 	mercNotes  []MercNote
 	onMercNote MercNoteFunc
 	mercLife   uint64
@@ -1008,7 +1010,8 @@ func (w *World) findSessionByEntityIDLocked(id EntityID) *session.Session {
 // killNPC marks an NPC as dead: a fresh corpse (corpse.go), standing where
 // it fell (a walk's velocity would carry the corpse on on every client).
 func (w *World) killNPC(npc *NPC) {
-	w.siegeNPCDownLocked(npc) // a siege's gate broken or its King slain, while its hate still says by whom (siege.go)
+	w.mercForgetCallsLocked(npc.ServerID) // its owners' calls onto it (merccall.go)
+	w.siegeNPCDownLocked(npc)             // a siege's gate broken or its King slain, while its hate still says by whom (siege.go)
 	npc.Dead = true
 	npc.DeathTime = time.Now()
 	npc.CorpseGone = time.Time{}
@@ -1031,7 +1034,8 @@ func (w *World) updateAggro(npc *NPC, attackerID EntityID, damage int) {
 	if npc.Dummy != NotDummy {
 		return // a dummy holds no grudge: it fights its one player (dummy.go)
 	}
-	contactNPCLocked(npc) // a lull ends at a hit or a hostile act (workbook.go)
+	contactNPCLocked(npc)                        // a lull ends at a hit or a hostile act (workbook.go)
+	w.mercCallLocked(w.Players[attackerID], npc) // a player's hostile act calls his mercs (merccall.go)
 	w.addThreatLocked(npc, attackerID, damage)
 	if npc.challenge != nil || npc.siege != nil {
 		return // a duel: no one comes to a Metal Moogie's help (metalmoogie.go), nor to a siege's (siege.go)

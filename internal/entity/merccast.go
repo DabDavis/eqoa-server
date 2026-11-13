@@ -553,7 +553,7 @@ func (w *World) mercHealTurnLocked(ms *mercState, now time.Time) bool {
 		}
 		hurts = append(hurts, hurt{mm, float64(hp) / float64(top)})
 	}
-	if len(hurts) == 0 {
+	if len(hurts) == 0 || w.mercHealHeldLocked(ms) { // its owner's fight not called yet (merccall.go)
 		return false
 	}
 	sort.SliceStable(hurts, func(i, j int) bool { return hurts[i].share < hurts[j].share })
@@ -718,8 +718,8 @@ func (w *World) mercBuffComingLocked(ms *mercState, s *CastSpell, id EntityID) b
 }
 
 // mercLooseFoeLocked is the nearest creature within petAssist of the merc's
-// owner fighting another of its team (a player, its pet, its merc), for a tank
-// already holding its own target. Must be called with the lock held.
+// owner fighting another of its team (a player, its pet, its merc) that its
+// owner called it to (merccall.go), for a tank already holding its own target. Must be called with the lock held.
 func (w *World) mercLooseFoeLocked(ms *mercState) *NPC {
 	m, o := ms.npc, ms.owner
 	team := map[EntityID]bool{}
@@ -735,7 +735,7 @@ func (w *World) mercLooseFoeLocked(ms *mercState) *NPC {
 	var bestD float32
 	for _, id := range w.SpatialIndex.QueryRadius(o.X, o.Z, petAssist) {
 		npc := w.NPCs[id]
-		if npc == nil || !mercMayFight(m, npc) || !team[npc.CurrentEnemy] {
+		if npc == nil || !mercMayFight(m, npc) || !team[npc.CurrentEnemy] || !w.mercCalledLocked(o, npc) {
 			continue
 		}
 		if d := distXZ(m.X, m.Z, npc.X, npc.Z); best == nil || d < bestD {

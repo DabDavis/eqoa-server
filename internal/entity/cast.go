@@ -1544,6 +1544,7 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 	if w.tooLowLocked(caster, casterSess, t, &cs.spell) { // workbook.go: below its lowest level
 		return
 	}
+	w.mercCallHelpLocked(caster, t.ServerID, t.World, t.X, t.Z) // a help on one fought calls the caster's mercs (merccall.go)
 	illusion := false
 	// a spell that raises the maximum heals after the raise (spellnotes.go),
 	// or a target at full health would get none of it

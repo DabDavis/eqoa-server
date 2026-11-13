@@ -923,6 +923,11 @@ func duelHalf(n int) int {
 // ends the duel. It reports the end.
 func (w *World) duelHurtLocked(d *Duel, attacker *Player, src EntityID, t *Player, n int, now time.Time, kind numberKind) bool {
 	dmg := d.hit(n)
+	if kind&^(numberByPet|numberByMerc) == numberMelee {
+		// a melee hit, the foe's or its pet's, less t's mitigations, as a creature's is
+		// (workbook.go: Stoneskin's share, its most spent as it goes, breaking at it)
+		dmg = w.mitigateLocked(t, dmg, now)
+	}
 	if d.pvp {
 		dmg = w.ctfHurtLocked(t, dmg) // ctfflag.go: a carrier held too long takes more
 	}

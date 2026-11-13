@@ -540,10 +540,14 @@ func contactNPCLocked(npc *NPC) {
 	npc.Effects = left
 }
 
-// mitigateLocked is a creature's melee hit of n on a player less what its
-// mitigations take off (the strongest one with any left), their most spent
-// as they go.
-func mitigateLocked(p *Player, n int, now time.Time) int {
+// mitigateLocked is a melee hit of n on a player (a creature's, its duel or PvP
+// foe's, or a foe's pet's: duel.go) less what its mitigations take off (the
+// strongest one with any left), their most spent as they go; one whose most is
+// spent breaks, off its bearer (the owner, 2026-11-13, of Stoneskin's "75% of
+// each melee hit stopped, breaks after 7500 stopped": until then a spent one
+// stayed on, doing nothing, until its time ran out). Must be called with the
+// lock held.
+func (w *World) mitigateLocked(p *Player, n int, now time.Time) int {
 	var best *ActiveEffect
 	for _, e := range p.Effects {
 		if e.Rules.MitigatePct <= 0 || !now.Before(e.Until) || e.Rules.MitigateCapped && e.Rules.MitigateLeft <= 0 {
@@ -563,6 +567,10 @@ func mitigateLocked(p *Player, n int, now time.Time) int {
 	}
 	if off > 0 {
 		log.Printf("Combat: %s's %q takes %d off a hit of %d", p.Name, best.Name, off, n)
+	}
+	if best.Rules.MitigateCapped && best.Rules.MitigateLeft <= 0 {
+		log.Printf("Combat: %s's %q breaks: its most stopped", p.Name, best.Name)
+		w.removeEffectLocked(p, best.SpellID)
 	}
 	return n - off
 }

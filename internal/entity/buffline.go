@@ -104,6 +104,13 @@ import (
 // as harmful, "Decrease AGI by 10", and is a buff.)
 func BuffLine(s *CastSpell) string {
 	d := &s.Def
+	if s.RecastGroup != "" && !d.Summons() && !d.Charms() {
+		bearer := "player"
+		if s.Scope == 3 {
+			bearer = "pet"
+		}
+		return recastGroupLine(s.RecastGroup, bearer) // a recast group's spells are one line (recastgroup.go)
+	}
 	if d.FormKind != FormNone || d.AltersLook || d.Summons() || d.Charms() {
 		return "" // a form's buff (AltersLook) is a form's: no line (petition 1529)
 	}
@@ -191,7 +198,7 @@ const stackLinePrefix = "stack"
 // above).
 func EffectLine(s *CastSpell) string {
 	l := BuffLine(s)
-	if l == "" || strings.HasPrefix(l, stackLinePrefix) {
+	if l == "" || strings.HasPrefix(l, stackLinePrefix) || strings.HasPrefix(l, recastLinePrefix) {
 		return l
 	}
 	if st := scopeStack(s.Scope); st > 0 {

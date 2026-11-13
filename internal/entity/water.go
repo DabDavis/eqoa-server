@@ -70,14 +70,18 @@ func (w *World) SetEnv(e Env) {
 	w.groundGen++
 }
 
-// waterAtLocked reports a point in the water; false where the server knows
-// none. Must be called with the lock held.
+// waterAtLocked reports a point in the water, or in slime, which bodies swim
+// in as they do in water (the Plane of Disease's lake is all slime: its
+// piranhas, keeping to the water, stood still on its spawn as "off the
+// ground", 2026-11-13, Skywalker; fishing already took both:
+// fishing.go); false where the server knows none. Must be called with the
+// lock held.
 func (w *World) waterAtLocked(world uint8, x, y, z float32) bool {
 	if w.env == nil {
 		return false
 	}
 	f, ok := w.env.Flags(world, x, y, z)
-	return ok && f&envWater != 0
+	return ok && f&(envWater|envSlime) != 0
 }
 
 // npcInWaterLocked and playerInWaterLocked report a body in the water.

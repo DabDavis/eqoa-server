@@ -24,9 +24,12 @@ import (
 // alone. It leaves PortalLasts after it came, when its owner uses the item
 // again (a new one in front of it, as a lamp's second genie), changes world or
 // leaves; or as any NPC does at a GM's #despawn or #kill. Those it brings land
-// round where its owner stood, a place a body stood on, as a Call of the Hero
-// lands round its caster (a travel: gates.go), and not at the NPC's own feet,
-// which may be behind a wall the owner was facing, and whose body is solid.
+// on the exact spot its owner stood on as it opened the portal (a travel:
+// gates.go, ring 0), a place a body stood on: not at the NPC's own feet, which
+// may be behind a wall the owner was facing, and whose body is solid, nor
+// round the spot (the GM Jibwiz's petition 1922: until 2026-11-13 arrivals
+// landed a ring 3 out, as a Call of the Hero's, and next to a wall a ring's
+// place out under the sky was past it, outside the map).
 //
 // Everything here is ours: the live game's records hold no such item.
 
@@ -51,31 +54,12 @@ const (
 var ErrPortalNoPlayer = errors.New("no living player to open a portal for")
 
 // portalState is a portal standing: its NPC, its owner, the place it lands
-// those it brings, the side of that place it stands on, its time, and how many
-// have landed (each lands on its own side: nextRing).
+// those it brings (where its owner stood as it opened) and its time.
 type portalState struct {
-	npc      *NPC
-	owner    EntityID
-	at       GateSpot
-	facing   float32
-	until    time.Time
-	arrivals int
-}
-
-// nextRing is the next arrival's place round where the owner stood, as
-// GateRingSpot counts them, passing over the side the portal stands on: a ring
-// is gateRing out, about PortalAhead, and a body landed inside another's is
-// not one that walks away cleanly (claude-notes/creature-collision-20261024.md).
-func (st *portalState) nextRing() int {
-	f := float64(st.facing)
-	for {
-		st.arrivals++
-		h := float64(st.arrivals-1) * math.Pi / 2
-		// the ring's way (cos h, sin h) against the portal's (sin f, cos f)
-		if math.Cos(h)*math.Sin(f)+math.Sin(h)*math.Cos(f) < 0.5 {
-			return st.arrivals
-		}
-	}
+	npc   *NPC
+	owner EntityID
+	at    GateSpot
+	until time.Time
 }
 
 // OpenPortal brings the session's player's portal: a new one PortalAhead in
@@ -115,7 +99,6 @@ func (w *World) OpenPortal(sess *session.Session, now time.Time) (EntityID, erro
 		npc:    npc,
 		owner:  p.ServerID,
 		at:     GateSpot{World: p.World, X: p.X, Y: p.Y, Z: p.Z, Place: "a summoning portal"},
-		facing: p.Facing,
 		until:  now.Add(PortalLasts),
 	}
 	p.portal = npc.ServerID
@@ -168,7 +151,7 @@ func (w *World) PortalBring(portal, player EntityID, sess *session.Session) bool
 		return false
 	}
 	log.Printf("Portal: %d brings %s", portal, p.Name)
-	w.gates.due = append(w.gates.due, GateTravel{Sess: sess, P: p, To: st.at, Ring: st.nextRing(), Spell: PortalName})
+	w.gates.due = append(w.gates.due, GateTravel{Sess: sess, P: p, To: st.at, Spell: PortalName})
 	return true
 }
 

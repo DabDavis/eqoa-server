@@ -2177,7 +2177,9 @@ world and any group. Refused in red to the caller: no such player, the caller it
 cannot load (`CanLoadWorld`), a target already holding a call, a second call within `PortalCallEvery` (5 s). Otherwise **while
 `PortalAsksFirst`** (the one rule to turn; false summons straight away) the target is asked ("<caller> calls you through a summoning
 portal. Go?", Yes, No) for `PortalCallWait` (1 minute); a yes sends it as a Call of the Hero's (`World.PortalBring`: a travel, the
-tick's `runTravels`, `travelPlayer`: the world loaded when it changes), round where the portal's owner stood when it opened, and
+tick's `runTravels`, `travelPlayer`: the world loaded when it changes), **on the exact spot the portal's owner stood on when it
+opened** (ring 0; the GM Jibwiz's petition 1922: until 2026-11-13 a ring 3 round it, which beside a wall landed players past it,
+outside the map), and
 the caller is told each end (answered, declined, no answer, left, closed). A box CLIENT declines itself because a menu is up
 (Msg0034, a 255 within `portalDeclinedWithin`) is no answer: the target is told in a line who calls and the box goes out again
 every 3 s until it shows. The box's second answer, "Take me to Freeport" (the user, 2026-11-09: "lets add to summoning portal to

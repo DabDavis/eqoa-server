@@ -251,6 +251,9 @@ var wayRoutes = map[string][]wayRoute{
 	// in, so Zizclank sends anyone of the quest's level to the portal
 	// players arrive at, which sends them back. tools/seed_pod.py places
 	// these NPCs.
+	// The owner, 2026-11-13: "the dead hills portal to Plane of Disease players cannot
+	// enter without the flesh suit and completing the quest": Zizclank's and the
+	// Mausoleum Portal's trips need the suit as well as the flag (questunlocks).
 	// The wiki's level, 51 (wiki.eqoa.live's "Plane of Disease: Portal
 	// Quest"; the owner, 2026-11-13: "yes match it to the wiki"). The trips
 	// land in the Last House's entrance hall, and its ward (a questwalls row
@@ -258,17 +261,29 @@ var wayRoutes = map[string][]wayRoute{
 	// zombie flesh suit from the halls up to the Oozing Portal: the wiki's
 	// "re-enter later if you bring a Zombie Flesh Suit".
 	"Necrologist Zizclank": {
-		{To: "the Plane of Disease", At: podArrival, MinLevel: podLevel},
+		{To: "the Plane of Disease", At: podArrival, MinLevel: podLevel,
+			Holds: zombieFleshSuit, Lacks: "The way will not open to you: you need a zombie flesh suit to pass into the Plane of Disease."},
 	},
 	"Mausoleum Portal": {
 		// The portal itself (ticket 1197): the guide's flag lets a player "port
 		// there anytime", and this talked only on The Last House's own first step.
 		// The same trip as Zizclank's, opened by the same quest (questunlocks).
-		{To: "the Plane of Disease", At: podArrival, MinLevel: podLevel},
+		{To: "the Plane of Disease", At: podArrival, MinLevel: podLevel,
+			Holds: zombieFleshSuit, Lacks: "The way will not open to you: you need a zombie flesh suit to pass into the Plane of Disease."},
 	},
 	// The Last House's far portal (the wiki's Oozing Portal): the quest's last
 	// step, then for one who finished it the way on, with the suit ("Have the
 	// suit in your inventory to pass through"); its landing the step's.
+	// The Last House's ward where Dust stood (the owner, 2026-11-13: "add a npc
+	// stone golem where dust stands that players talk to pass through the bbox
+	// that possess the flesh suit"; named "Last House Warden" by the owner): a
+	// stone golem beside the ward's invisible wall
+	// sets one with the zombie flesh suit past it, on its far side (the ward's
+	// questwalls row lets anyone there pass back down).
+	"Last House Warden": {
+		{To: "past the ward", At: &wayPlace{World: 5, X: 4614, Y: -11.9, Z: 3604, Facing: -1.595},
+			Holds: zombieFleshSuit, Lacks: "The golem bars the way: only one wearing the dead's own skin, a zombie flesh suit, may pass."},
+	},
 	"Oozing Portal": {
 		{To: "the Plane of Disease", At: &wayPlace{World: 5, X: 5063, Y: -25.3, Z: 3866}, MinLevel: podLevel,
 			Holds: zombieFleshSuit, Lacks: "The portal will not open to you: you need a zombie flesh suit to pass through."},

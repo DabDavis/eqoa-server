@@ -89,8 +89,31 @@ const (
 	AuraShell     = 2 // a form-fitting glow round the body (or piece), in the glow's colour
 	AuraParticles = 3 // a held item's emitter on the body's nodes; no glow: the source's colours
 	AuraBoth      = 4 // the shell and the particles
-	AuraKindMost  = AuraBoth
+	AuraTrim      = 5 // the armour's gold trim lit in the glow's colour (sets 4 and 9's plate), a soft halo off it
+	AuraTrimShell = 6 // the trim and the shell
+	AuraKindMost  = AuraTrimShell
 )
+
+// AuraDarkMost is the brightest an aura's colour (its RGB, before its alpha)
+// is and still a DARK aura: a colour whose every channel is at most this
+// (black 0x000000FF, a near-black 0x100018FF) draws as a darkening shadow, not
+// an additive glow (vanilla's net::npctint::dark; the owner, 2026-11-13:
+// "make dusts armor trim glow a black aura"). No wire of its own: the colour
+// says it.
+const AuraDarkMost = 0x30
+
+// AuraDark reports whether an aura colour (0xRRGGBBAA) is a dark aura: an
+// alpha, and RGB no channel of which passes AuraDarkMost (black included).
+func AuraDark(glow uint32) bool {
+	r, g, b := glow>>24, (glow>>16)&0xFF, (glow>>8)&0xFF
+	return glow&0xFF != 0 && r <= AuraDarkMost && g <= AuraDarkMost && b <= AuraDarkMost
+}
+
+// AuraNamed reports whether a kind names a shell or a trim outright (not the
+// default), which a black colour, lighting nothing, draws as a dark aura.
+func AuraNamed(kind uint8) bool {
+	return kind == AuraShell || kind == AuraBoth || kind == AuraTrim || kind == AuraTrimShell
+}
 
 // AuraNodesMost is the most nodes the client puts particles on.
 const AuraNodesMost = 32
@@ -100,12 +123,13 @@ const AuraNodesMost = 32
 func AuraParticlesShow(kind uint8) bool { return kind == AuraParticles || kind == AuraBoth }
 
 // AuraShows reports whether an aura of a glow (0xRRGGBBAA) and kind draws
-// anything: particles, or the shell while the glow lights.
+// anything: particles, or the shell (or trim) while the glow lights, or a
+// shell or trim named outright in a dark colour (AuraDark: black too).
 func AuraShows(glow uint32, kind uint8) bool {
 	if kind > AuraKindMost {
 		kind = AuraDefault // the client reads any other as the default
 	}
-	return AuraParticlesShow(kind) || (kind != AuraNone && NPCGlowShows(glow))
+	return AuraParticlesShow(kind) || (kind != AuraNone && NPCGlowShows(glow)) || (AuraNamed(kind) && AuraDark(glow))
 }
 
 // ValidAuraKind and ValidAuraNodes hold a GM's aura to what the client reads.
@@ -132,8 +156,11 @@ func NPCGlowShows(glow uint32) bool {
 }
 
 // Shows reports whether the row draws anything: its tint, its glow, or its
-// aura's particles (which need no glow: drawn at layout 3 alone).
-func (t NPCTint) Shows() bool { return t.ShowsGlow() || AuraParticlesShow(t.AuraKind) }
+// aura's particles (which need no glow) or a dark aura (a black glow lights
+// nothing): drawn at layout 3 alone.
+func (t NPCTint) Shows() bool {
+	return t.ShowsGlow() || AuraParticlesShow(t.AuraKind) || (AuraNamed(t.AuraKind) && AuraDark(t.Glow))
+}
 
 // ShowsGlow reports whether the row draws anything by its tint or its glow:
 // what a layout 2 client is told.

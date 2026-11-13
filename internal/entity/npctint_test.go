@@ -183,3 +183,31 @@ func TestEncodeNPCTintsLayoutThree(t *testing.T) {
 		t.Fatal("a later layout is not 3")
 	}
 }
+
+// A dark aura (a black glow with a trim or shell named, vanilla's dark aura)
+// is told at layout 3 alone: a layout 2 client, which would draw a black glow
+// as nothing, is sent exactly what it was without the row; the kind byte is
+// the trim's (5, 6) and the glow the black.
+func TestEncodeNPCTintsDarkTrim(t *testing.T) {
+	rows := []database.NPCTint{
+		{Name: "dust", Color: 0xFFFFFFFF, Glow: 0x000000FF, AuraKind: database.AuraTrim},
+		{Name: "a shade", Color: 0xFFFFFFFF, Glow: 0x000000C0, AuraKind: database.AuraShell},
+		{Name: "a knight", Color: 0xFFFFFFFF, Glow: 0xFFC040FF, AuraKind: database.AuraTrimShell},
+	}
+	if got, want := EncodeNPCTintsLayout(rows, 2), EncodeNPCTintsLayout(rows[2:], 2); !bytes.Equal(got, want) {
+		t.Fatalf("layout 2 told the dark rows: % x", got)
+	}
+	b := EncodeNPCTintsLayout(rows, 3)
+	if n := binary.LittleEndian.Uint16(b); n != 3 {
+		t.Fatalf("layout 3: %d names, want 3", n)
+	}
+	le := func(v uint32) []byte { return binary.LittleEndian.AppendUint32(nil, v) }
+	dust := append(append(append([]byte{4}, "dust"...), le(0xFFFFFFFF)...), le(0x000000FF)...)
+	dust = append(append(append(dust, database.AuraTrim), le(0)...), 0)
+	if !bytes.Equal(b[2:2+len(dust)], dust) {
+		t.Fatalf("dust: % x, want % x", b[2:2+len(dust)], dust)
+	}
+	if !bytes.Contains(b, append(le(0xFFC040FF), database.AuraTrimShell)) {
+		t.Fatal("the trim and shell's kind byte")
+	}
+}

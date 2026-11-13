@@ -317,7 +317,7 @@ func checkAuraCols(row map[string]any, kind, source, nodes string) error {
 		return fok && f == math.Trunc(f) && ok(int64(f))
 	}
 	if !whole(kind, database.ValidAuraKind) {
-		return badRequest("%s is 0 the default (the shell while the glow lights), 1 none, 2 the shell, 3 the particles, 4 both", kind)
+		return badRequest("%s is 0 the default (the shell while the glow lights), 1 none, 2 the shell, 3 the particles, 4 both, 5 the trim, 6 the trim and the shell", kind)
 	}
 	if !whole(source, database.ValidNPCTint) {
 		return badRequest("%s is a 32-bit DictID (an ITEM.ESF hand model, or any model with a particle sprite), 0 the Sword of Virtue's 0x88EC092D", source)

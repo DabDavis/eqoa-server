@@ -435,3 +435,53 @@ func TestAnAttackTurnsTheNPCTalkedTo(t *testing.T) {
 		t.Fatal("an attack by no NPC there did not say why")
 	}
 }
+
+// A kill of a later step's creature, before the step to do (petition 1874:
+// Quil'Eyne killed while Raldarith's blood was still to get), drops nothing and
+// counts for nothing, and the player is told so and what to do first, once a
+// minute a quest; a kill no later step names says nothing.
+func TestAKillOfALaterStepSaysWhatComesFirst(t *testing.T) {
+	f := newQuestFixture(t)
+	blood := f.pattern("Raldithar's blood", 20)
+	journal := f.pattern("quil`eyne's journal", 20)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver) VALUES (61, 'Quil''Eyne''s Journal', 1, 'Malsis')`)
+	f.exec(fmt.Sprintf(`INSERT INTO queststeps (questid, step, kind, target, items, count, chance, journal)
+		VALUES (61, 1, 'loot', 'Raldarith', '%d', 1, 1, 'Kill Raldarith for his blood.')`, blood))
+	f.exec(fmt.Sprintf(`INSERT INTO queststeps (questid, step, kind, target, items, count, chance, journal)
+		VALUES (61, 2, 'loot', 'Quil''Eyne', '%d', 1, 1, 'Kill Quil''Eyne for his journal.')`, journal))
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (61, 3, 'talk', 'Malsis', 'Return to Malsis.')`)
+	f.qe.Reload()
+	var drops []int
+	f.qe.drop = func(_ entity.EntityID, _ time.Time, _ uint32, rec database.CharInventoryEntry) {
+		drops = append(drops, rec.Pattern.PatternID)
+	}
+	f.qe.roll = func() float64 { return 0 }
+	if _, err := f.qe.SetCharacterQuest(f.sid, 61, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.msgs()
+
+	f.killFor("Quil'Eyne", 901)
+	if len(drops) != 0 {
+		t.Fatalf("Quil'Eyne dropped %v before Raldarith's step was done", drops)
+	}
+	f.want(f.msgs(), "chat:Quil'Eyne's Journal: Quil'Eyne counts later in the quest. First: Kill Raldarith for his blood.")
+	f.killFor("Quil'Eyne", 902) // a moment later: not said again
+	if m := f.msgs(); len(m) != 0 {
+		t.Errorf("said again at once: %q", m)
+	}
+	f.killFor("a bat", 903) // named by no step: nothing
+	if m := f.msgs(); len(m) != 0 {
+		t.Errorf("a kill no step names said %q", m)
+	}
+	if s, _ := f.progress(61); s != 1 {
+		t.Fatalf("the step is %d, want 1", s)
+	}
+	// in its order: Raldarith's blood, then Quil'Eyne drops his journal
+	f.killFor("Raldarith", 904)
+	f.qe.Looted(f.tw.s, f.tw.p, blood, 1)
+	f.killFor("Quil'Eyne", 905)
+	if len(drops) != 2 || drops[1] != journal {
+		t.Fatalf("the drops %v, want the blood then the journal", drops)
+	}
+}

@@ -92,6 +92,15 @@ func TestRealTeleporterLandings(t *testing.T) {
 		}
 		if sp.raid == nil {
 			camps++
+			// a camp's landing out of the lava (petition 1895: the moots' landed in it)
+			for _, y := range []float32{0.5, 1.5} {
+				if f, ok := env.Flags(dest.World, dest.X, dest.Y+y, dest.Z); ok && f&ground.EnvLava != 0 {
+					t.Errorf("%s: in the lava at %.1f up (%.1f, %.2f, %.1f)", sp.label, y, dest.X, dest.Y, dest.Z)
+				}
+			}
+			if sp.camp == "moots" {
+				t.Logf("%s: world %d (%.1f, %.2f, %.1f) facing %.2f", sp.label, dest.World, dest.X, dest.Y, dest.Z, dest.Facing)
+			}
 			continue
 		}
 		offered[sp.raid.name] = true

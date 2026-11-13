@@ -1180,6 +1180,17 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 		if reach := spell.Range + npcReachExtra(t); outOfRange(p, t.X, t.Y, t.Z, reach) {
 			return nil, refuseOutOfRange(p, spell, t.Name, t.X, t.Y, t.Z, reach)
 		}
+		// a harmful spell at a creature its caster cannot see is refused before
+		// it begins: no power spent, no casting shown (the owner, 2026-11-13:
+		// "casters that cast from behind a barrier ... still drains mana and
+		// visually casts but no damage, should just say no line of sight, no
+		// cast"); the landing still spares one moved out of sight (sight.go)
+		// (an area round its caster goes off where its caster stands: it
+		// needs no sight of its target, and spares what is out of sight)
+		if spell.Area.Centre != AreaOnCaster && (t.World != p.World || !w.inSightLocked(p.World, p.X, p.Y, p.Z, t.X, t.Y, t.Z)) {
+			log.Printf("LoS: %s's %q at %s refused before it began, out of sight", p.Name, spell.Name, t.Name)
+			return nil, castNotSeen
+		}
 		return []EntityID{t.ServerID}, ""
 	}
 	return nil, castNoTarget

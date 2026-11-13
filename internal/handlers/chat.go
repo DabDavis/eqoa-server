@@ -1417,7 +1417,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// (template.go); #template <player>: theirs
 		h.templateCommand(sess, parts[1:])
 	case "#grantcm":
-		// #grantcm <amount>: mastery points, never past 1500 in all
+		// #grantcm <amount>: mastery points, never past entity.MasteryCap in all
 		// (mastery.go)
 		h.grantMasteryCommand(sess, parts[1:])
 	case "#cm":
@@ -1678,7 +1678,7 @@ var gmHelpLines = []string{
 	"  #clearbuffs - every buff on you ended now, as its time running out ends it (#nukebuffs too)",
 	"  #reward [player] - GM's Reward on your target (a player) for an hour: DS 25, heal 25 when hit, +100 AC, +50 stats",
 	"  #faction <faction> [standing] - your standing with a faction, or set it",
-	"  #grantcm <amount> - mastery points, never past 1500 spent and unspent",
+	"  #grantcm <amount> - mastery points, never past 2000 spent and unspent",
 	"  #debt [amount] - your experience debt, or set it (0 clears)",
 	"  #cm - the masteries your target (a player) or you bought; #cmreset takes them all back, points returned",
 	"  #rst_mastr [name] - a character's masteries all taken back, points returned (no name: your target, else you)",

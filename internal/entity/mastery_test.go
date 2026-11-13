@@ -145,8 +145,8 @@ func TestTheShareDividesExperience(t *testing.T) {
 		{Mastery{Percent: 100, XP: CMPointXP(1) - 1}, CMPointXP(2), 0, CMPointXP(2), 1},
 		{Mastery{Percent: 100, XP: 0}, CMPointXP(1) - 1, 0, CMPointXP(1) - 1, 0},
 		{Mastery{Percent: 100, Points: 700, Spent: 69, XP: CMPointXP(770) - 5}, 10, 0, 10, 1},
-		{Mastery{Percent: 100, Points: 1000, Spent: 500}, 6000, 6000, 0, 0},
-		{Mastery{Percent: 100, Points: 1499, XP: CMPointXP(1500) - 100}, 30000, 0, 30000, 1},
+		{Mastery{Percent: 100, Points: 1500, Spent: 500}, 6000, 6000, 0, 0},
+		{Mastery{Percent: 100, Points: 1999, XP: CMPointXP(2000) - 100}, 30000, 0, 30000, 1},
 	} {
 		sh := splitXP(c.m, 30, 0, c.xp)
 		lvl, cm := sh.Level, sh.Mastery
@@ -171,7 +171,7 @@ func TestTheShareDividesExperience(t *testing.T) {
 // controls: below the cap the share still divides an award (a level 59 at 0%
 // gets no mastery experience), and with no debt nothing goes to one.
 func TestTheCapAndTheDebtDivideExperience(t *testing.T) {
-	full := Mastery{Points: 1000, Spent: 500}
+	full := Mastery{Points: 1500, Spent: 500}
 	for _, c := range []struct {
 		name            string
 		m               Mastery
@@ -212,19 +212,21 @@ func TestTheCapAndTheDebtDivideExperience(t *testing.T) {
 	}
 }
 
-// #grantcm as jib asked: spent and unspent never past 1500 together, the
-// grant unspent. The control: a grant with no cap would give 1500.
+// #grantcm as jib asked: spent and unspent never past MasteryCap (2000 since
+// 2026-11-13) together, the grant unspent. The control: a grant with no cap
+// would give it all.
 func TestGrantCMFollowsJibsExamples(t *testing.T) {
 	for _, c := range []struct {
 		m           Mastery
 		amount      int
 		give, after int
 	}{
-		{Mastery{Points: 100}, 1500, 1400, 1500},
-		{Mastery{Points: 50, Spent: 50}, 1500, 1400, 1450},
+		{Mastery{Points: 100}, 2000, 1900, 2000},
+		{Mastery{Points: 50, Spent: 50}, 2000, 1900, 1950},
 		{Mastery{Points: 50, Spent: 50}, 100, 100, 150},
-		{Mastery{Points: 0, Spent: 1500}, 10, 0, 0},
-		{Mastery{}, 2000, 1500, 1500},
+		{Mastery{Points: 0, Spent: 1500}, 10, 10, 10},
+		{Mastery{Points: 0, Spent: 2000}, 10, 0, 0},
+		{Mastery{}, 2500, 2000, 2000},
 	} {
 		m := c.m
 		if give := grantMastery(&m, c.amount); give != c.give || m.Points != c.after {
@@ -232,7 +234,7 @@ func TestGrantCMFollowsJibsExamples(t *testing.T) {
 		}
 	}
 	m := Mastery{Points: 50, Spent: 50}
-	if m.Points += 1500; m.Points == 1450 {
+	if m.Points += 2000; m.Points == 1950 {
 		t.Fatal("the control: an uncapped grant must differ")
 	}
 }

@@ -1587,7 +1587,7 @@ var catalog = map[string]tableNote{
 	},
 	"charmastery": {
 		Label: "Character mastery points", Group: "Players", Sort: "serverid",
-		Help: "Each character's mastery points: unspent, spent (at most 1500 together), the share of experience " +
+		Help: "Each character's mastery points: unspent, spent (at most 2000 together), the share of experience " +
 			"going to them (0-100) and the experience toward the next point.",
 		Live: "At the character's next login; a character in the world saves its own over it at its logout (in the " +
 			"game #grantcm gives points at once).",

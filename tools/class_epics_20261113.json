@@ -1,0 +1,1672 @@
+{
+ "made": "2026-11-13 from external/questmasters/text/id417.txt + id419.txt (primary) and jadiction.com's class epic pages and item pages, fetched 2026-11-13 (fallback)",
+ "items": [
+  {
+   "cls": "warrior",
+   "level": 49,
+   "name": "Foereaver",
+   "source": "questmasters id417",
+   "quote": "FoeReaver--- 668dmg 25str 70hpmax 80proc",
+   "stats": {
+    "str": 25,
+    "hp": 70
+   },
+   "dmg": 668
+  },
+  {
+   "cls": "warrior",
+   "level": 49,
+   "name": "Steelwind",
+   "source": "questmasters id417",
+   "quote": "Steelwind--- 581dmg 15str 70hpmax",
+   "stats": {
+    "str": 15,
+    "hp": 70
+   },
+   "dmg": 581
+  },
+  {
+   "cls": "shadowknight",
+   "level": 49,
+   "name": "Beheader of Isthiak",
+   "source": "questmasters id417",
+   "quote": "Beheader of Isthiak--- 664dmg 31str 14sta 5HoT",
+   "stats": {
+    "str": 31,
+    "sta": 14,
+    "hot": 5
+   },
+   "dmg": 664
+  },
+  {
+   "cls": "shadowknight",
+   "level": 49,
+   "name": "Downfall",
+   "source": "questmasters id417",
+   "quote": "Downfall--- 666dmg 120proc",
+   "stats": {},
+   "dmg": 666
+  },
+  {
+   "cls": "paladin",
+   "level": 49,
+   "name": "Virtus Ferrum",
+   "source": "questmasters id417",
+   "quote": "Virtus Ferrum--- 668dmg 100proc",
+   "stats": {},
+   "dmg": 668
+  },
+  {
+   "cls": "paladin",
+   "level": 49,
+   "name": "Judgement",
+   "source": "questmasters id417",
+   "quote": "Judgement--- 669dmg 14sta 20str 5HoT",
+   "stats": {
+    "str": 20,
+    "sta": 14,
+    "hot": 5
+   },
+   "dmg": 669
+  },
+  {
+   "cls": "bard",
+   "level": 49,
+   "name": "Selo's Jeweled Rapier",
+   "source": "questmasters id417",
+   "quote": "Selos Jeweled Rapiers--- 561dmg 13dex 50hpmax 140proc",
+   "stats": {
+    "dex": 13,
+    "hp": 50
+   },
+   "dmg": 561
+  },
+  {
+   "cls": "bard",
+   "level": 49,
+   "name": "Ballad of Mithril",
+   "source": "questmasters id417",
+   "quote": "Ballad of Mithril--- 580dmg 50hpmax 8HoT",
+   "stats": {
+    "hp": 50,
+    "hot": 8
+   },
+   "dmg": 580
+  },
+  {
+   "cls": "ranger",
+   "level": 49,
+   "name": "Pure Emerald Longsword",
+   "source": "questmasters id417",
+   "quote": "Pure Emerald Longswords--- 586 dmg 10agi 10dex 65 dur",
+   "stats": {
+    "agi": 10,
+    "dex": 10
+   },
+   "dmg": 586,
+   "dur": 65
+  },
+  {
+   "cls": "ranger",
+   "level": 49,
+   "name": "Scimitar of Fury",
+   "source": "questmasters id417",
+   "quote": "Scimitars of Fury--- 568dmg 100hpmax 100proc",
+   "stats": {
+    "hp": 100
+   },
+   "dmg": 568
+  },
+  {
+   "cls": "rogue",
+   "level": 49,
+   "name": "Blacktongue",
+   "source": "questmasters id417",
+   "quote": "Blacktongues--- 577dmg 50proc (the proc is a DoT, so it procs 50 per tick)",
+   "stats": {},
+   "dmg": 577
+  },
+  {
+   "cls": "rogue",
+   "level": 49,
+   "name": "Heartsbane",
+   "source": "questmasters id417",
+   "quote": "Heartsbane--- 585dmg 19agi 12dex",
+   "stats": {
+    "agi": 19,
+    "dex": 12
+   },
+   "dmg": 585
+  },
+  {
+   "cls": "monk",
+   "level": 49,
+   "name": "Sunsilver Blade",
+   "source": "questmasters id417",
+   "quote": "Sunsilver--- 567dmg lower agro proc",
+   "stats": {},
+   "dmg": 567
+  },
+  {
+   "cls": "monk",
+   "level": 49,
+   "name": "Ascendant staff",
+   "source": "questmasters id417",
+   "quote": "Ascendant Staff--- 668dmg 25agi 5sta 10HoT",
+   "stats": {
+    "sta": 5,
+    "agi": 25,
+    "hot": 10
+   },
+   "dmg": 668
+  },
+  {
+   "cls": "shaman",
+   "level": 49,
+   "name": "Cudgel of the Spirit Guide",
+   "source": "questmasters id417",
+   "quote": "Cudgel of the Spirit Guide--- 540dmg 10sta 20wis 12PoT 36ac 15ar",
+   "stats": {
+    "sta": 10,
+    "wis": 20,
+    "pot": 12,
+    "ac": 36,
+    "ar": 15
+   },
+   "dmg": 540
+  },
+  {
+   "cls": "shaman",
+   "level": 49,
+   "name": "Spear of Fate",
+   "source": "questmasters id417",
+   "quote": "Spear of Fate--- 596dmg 13cha 20sta 100hpmax 15PoT",
+   "stats": {
+    "sta": 20,
+    "cha": 13,
+    "hp": 100,
+    "pot": 15
+   },
+   "dmg": 596
+  },
+  {
+   "cls": "cleric",
+   "level": 49,
+   "name": "Hammer of Absolution",
+   "source": "questmasters id417",
+   "quote": "Hammer of Absolution--- 500dmg 20wis 15cha 60pow 60hpmax",
+   "stats": {
+    "wis": 20,
+    "cha": 15,
+    "hp": 60,
+    "pow": 60
+   },
+   "dmg": 500
+  },
+  {
+   "cls": "cleric",
+   "level": 49,
+   "name": "Mace of Repentence",
+   "source": "questmasters id417",
+   "quote": "Mace of Repentance--- 626dmg 20wis 15cha 15PoT 40ar",
+   "stats": {
+    "wis": 20,
+    "cha": 15,
+    "pot": 15,
+    "ar": 40
+   },
+   "dmg": 626
+  },
+  {
+   "cls": "enchanter",
+   "level": 49,
+   "name": "Mithril Eagle Rod",
+   "source": "questmasters id417",
+   "quote": "Mythril Eagle Rod--- 25int 10cha 50pow 10PoT 10lr 25ar",
+   "stats": {
+    "int": 25,
+    "cha": 10,
+    "pow": 50,
+    "pot": 10,
+    "lr": 10,
+    "ar": 25
+   }
+  },
+  {
+   "cls": "enchanter",
+   "level": 49,
+   "name": "Glory of Elddar",
+   "source": "questmasters id417",
+   "quote": "Glory of Elddar--- 576dmg 25cha 200pow 10PoT 25ar",
+   "stats": {
+    "cha": 25,
+    "pow": 200,
+    "pot": 10,
+    "ar": 25
+   },
+   "dmg": 576
+  },
+  {
+   "cls": "necromancer",
+   "level": 49,
+   "name": "Rod of Consuming Hatred",
+   "source": "questmasters id417",
+   "quote": "Rod of Consuming Hatred--- 25sta 10int 50pow 10PoT 25pr 10ar",
+   "stats": {
+    "sta": 25,
+    "int": 10,
+    "pow": 50,
+    "pot": 10,
+    "pr": 25,
+    "ar": 10
+   }
+  },
+  {
+   "cls": "necromancer",
+   "level": 49,
+   "name": "Sickle of Avhi Escron",
+   "source": "questmasters id417",
+   "quote": "Sickle of Escron--- 490dmg 125pow 15PoT 43ac",
+   "stats": {
+    "pow": 125,
+    "pot": 15,
+    "ac": 43
+   },
+   "dmg": 490
+  },
+  {
+   "cls": "wizard",
+   "level": 49,
+   "name": "Staff of Nebula",
+   "source": "questmasters id417",
+   "quote": "Staff of Nebula--- 526dmg 25dex 200pow 10PoT 25cr",
+   "stats": {
+    "dex": 25,
+    "pow": 200,
+    "pot": 10,
+    "cr": 25
+   },
+   "dmg": 526
+  },
+  {
+   "cls": "wizard",
+   "level": 49,
+   "name": "Pulsaric Rod",
+   "source": "questmasters id417",
+   "quote": "Pulsaric Rod--- 10dex 25int 10PoT 50pow 10cr 25lr",
+   "stats": {
+    "dex": 10,
+    "int": 25,
+    "pow": 50,
+    "pot": 10,
+    "cr": 10,
+    "lr": 25
+   }
+  },
+  {
+   "cls": "magician",
+   "level": 49,
+   "name": "Rod of Elemental Union",
+   "source": "questmasters id417",
+   "quote": "Rod of Elemental Union--- 10agi 25int 50pow 10PoT 25fr 10ar",
+   "stats": {
+    "agi": 10,
+    "int": 25,
+    "pow": 50,
+    "pot": 10,
+    "fr": 25,
+    "ar": 10
+   }
+  },
+  {
+   "cls": "magician",
+   "level": 49,
+   "name": "Crystalmana Crosier",
+   "source": "questmasters id417",
+   "quote": "Crystalmana Crosier--- 626dmg 25agi 200pow 10PoT 25lr",
+   "stats": {
+    "agi": 25,
+    "pow": 200,
+    "pot": 10,
+    "lr": 25
+   },
+   "dmg": 626
+  },
+  {
+   "cls": "druid",
+   "level": 49,
+   "name": "Triad Scimitar",
+   "source": "questmasters id417",
+   "quote": "Triad Scimitar--- 490dmg 24dex 6wis 100hpmax 13PoT 24fr",
+   "stats": {
+    "dex": 24,
+    "wis": 6,
+    "hp": 100,
+    "pot": 13,
+    "fr": 24
+   },
+   "dmg": 490
+  },
+  {
+   "cls": "druid",
+   "level": 49,
+   "name": "Oak Staff of Eilerawdl",
+   "source": "questmasters id417",
+   "quote": "Oak Staff of (don't remember)...--- 623 dmg 25dex 20PoT 25lr",
+   "stats": {
+    "dex": 25,
+    "pot": 20,
+    "lr": 25
+   },
+   "dmg": 623
+  },
+  {
+   "cls": "alchemist",
+   "level": 60,
+   "name": "Shroud of Icy Depths",
+   "source": "questmasters id419",
+   "quote": "Shroud of icy depths: wis 45 int -50 hp 150 ac 130 cr 50",
+   "stats": {
+    "wis": 45,
+    "int": -50,
+    "hp": 150,
+    "ac": 130,
+    "cr": 50
+   }
+  },
+  {
+   "cls": "bard",
+   "level": 60,
+   "name": "Tunic of White Lightning",
+   "source": "questmasters id419",
+   "quote": "White Lightening(purple) 25 dex, 10 cha, 150 pow, 375 ac, 50 LR",
+   "stats": {
+    "dex": 25,
+    "cha": 10,
+    "pow": 150,
+    "ac": 375,
+    "lr": 50
+   }
+  },
+  {
+   "cls": "bard",
+   "level": 60,
+   "name": "Tunic of Esoteric Forces",
+   "source": "questmasters id419",
+   "quote": "Esoteric Forces(green) 45 dex, -50 agi, 150 hps, 375 ac, 50 AR",
+   "stats": {
+    "agi": -50,
+    "dex": 45,
+    "hp": 150,
+    "ac": 375,
+    "ar": 50
+   }
+  },
+  {
+   "cls": "bard",
+   "level": 60,
+   "name": "Tunic of Icy Waters",
+   "source": "questmasters id419",
+   "quote": "Icy Waters (light green/torquise) 45 str, -50 cha, 150 hps, 375 ac, 50 CR",
+   "stats": {
+    "str": 45,
+    "cha": -50,
+    "hp": 150,
+    "ac": 375,
+    "cr": 50
+   }
+  },
+  {
+   "cls": "bard",
+   "level": 60,
+   "name": "Tunic of Intense Heat",
+   "source": "questmasters id419",
+   "quote": "Intense Heat (red) 25 dex, 10 str, 150 hps, 375 ac, 50 FR",
+   "stats": {
+    "str": 10,
+    "dex": 25,
+    "hp": 150,
+    "ac": 375,
+    "fr": 50
+   }
+  },
+  {
+   "cls": "bard",
+   "level": 60,
+   "name": "Axe of Ancient Melodies",
+   "source": "questmasters id419",
+   "quote": "Axe of Ancient Melodies - 30 dex 30 str -50 cha 225 hp 50 LR 926 damage",
+   "stats": {
+    "str": 30,
+    "dex": 30,
+    "cha": -50,
+    "hp": 225,
+    "lr": 50
+   },
+   "dmg": 926
+  },
+  {
+   "cls": "bard",
+   "level": 60,
+   "name": "Blade of Lyrical Harmony",
+   "source": "questmasters id419",
+   "quote": "Blades of Lyrical Harmony and Rhythm - 30 dex, 150 hp, 50 AR, 801 damage",
+   "stats": {
+    "dex": 30,
+    "hp": 150,
+    "ar": 50
+   },
+   "dmg": 801
+  },
+  {
+   "cls": "bard",
+   "level": 60,
+   "name": "Blade of Lyrical Refrain",
+   "source": "questmasters id419",
+   "quote": "Blades of Lyrical Harmony and Rhythm - 30 dex, 150 hp, 50 AR, 801 damage",
+   "stats": {
+    "dex": 30,
+    "hp": 150,
+    "ar": 50
+   },
+   "dmg": 801
+  },
+  {
+   "cls": "cleric",
+   "level": 60,
+   "name": "Hammer of Ethereal Conquest",
+   "source": "questmasters id419",
+   "quote": "Hammer of Ethereal Conquest-30 Wis 150 HP 50 AR",
+   "stats": {
+    "wis": 30,
+    "hp": 150,
+    "ar": 50
+   }
+  },
+  {
+   "cls": "druid",
+   "level": 60,
+   "name": "Tunic of the Fiery Inferno",
+   "source": "questmasters id419",
+   "quote": "Tunic of the Something Inferno(light red): -50str 10dex 25wis 150pow 50FR",
+   "stats": {
+    "str": -50,
+    "dex": 10,
+    "wis": 25,
+    "pow": 150,
+    "fr": 50
+   }
+  },
+  {
+   "cls": "druid",
+   "level": 60,
+   "name": "Tunic of the Frost Rift",
+   "source": "questmasters id419",
+   "quote": "Tunic of the Frost Something(Dark blue): 50str 45wis 150pow 50CR",
+   "stats": {
+    "str": 50,
+    "wis": 45,
+    "pow": 150,
+    "cr": 50
+   }
+  },
+  {
+   "cls": "druid",
+   "level": 60,
+   "name": "Tunic of Shocking Energies",
+   "source": "questmasters id419",
+   "quote": "Tunic of Shocking Energies(Light brown): 50str 10dex 25wis 150pow 50LR",
+   "stats": {
+    "str": 50,
+    "dex": 10,
+    "wis": 25,
+    "pow": 150,
+    "lr": 50
+   }
+  },
+  {
+   "cls": "druid",
+   "level": 60,
+   "name": "Tunic of the Prestidigitation",
+   "source": "questmasters id419",
+   "quote": "Tunic of the Prodi-something(Dark Green): 50str 45dex 150pow 50AR",
+   "stats": {
+    "str": 50,
+    "dex": 45,
+    "pow": 150,
+    "ar": 50
+   }
+  },
+  {
+   "cls": "druid",
+   "level": 60,
+   "name": "Hammer of the Cosmos",
+   "source": "questmasters id419",
+   "quote": "Hammer of the Cosmos-30 INT, 150 POW, 50 AR",
+   "stats": {
+    "int": 30,
+    "pow": 150,
+    "ar": 50
+   }
+  },
+  {
+   "cls": "druid",
+   "level": 60,
+   "name": "Staff of Nature's Blessing",
+   "source": "questmasters id419",
+   "quote": "Staff(appearance of 49 mag epic): -50 str 30 cha 30 wis 225 power 998 dmg",
+   "stats": {
+    "str": -50,
+    "wis": 30,
+    "cha": 30,
+    "pow": 225
+   },
+   "dmg": 998
+  },
+  {
+   "cls": "enchanter",
+   "level": 60,
+   "name": "Robe of Tumultous Storms",
+   "source": "questmasters id419",
+   "quote": "Robe of Tumultous Storms (no stats)",
+   "stats": {}
+  },
+  {
+   "cls": "enchanter",
+   "level": 60,
+   "name": "Staff of Coercing Energies",
+   "source": "questmasters id419",
+   "quote": "Staff of Coercing Energies (no stats)",
+   "stats": {}
+  },
+  {
+   "cls": "enchanter",
+   "level": 60,
+   "name": "Wand of Runic Currents",
+   "source": "questmasters id419",
+   "quote": "Wand of Runic Currents (no stats)",
+   "stats": {}
+  },
+  {
+   "cls": "magician",
+   "level": 60,
+   "name": "Robe of the Frost Rift",
+   "source": "questmasters id419",
+   "quote": "Frost rift(teal): STR -50 INT 45 CR 50 POW 150",
+   "stats": {
+    "str": -50,
+    "int": 45,
+    "pow": 150,
+    "cr": 50
+   }
+  },
+  {
+   "cls": "magician",
+   "level": 60,
+   "name": "Robe of the Fiery Inferno",
+   "source": "questmasters id419",
+   "quote": "Fiery inferno(red): STR -50 INT 45 FR 50",
+   "stats": {
+    "str": -50,
+    "int": 45,
+    "fr": 50
+   }
+  },
+  {
+   "cls": "magician",
+   "level": 60,
+   "name": "Robe of Magical Affluence",
+   "source": "questmasters id419",
+   "quote": "Magic affluence(light green): STR -50 AGI 45 HP 150 AR 50",
+   "stats": {
+    "str": -50,
+    "agi": 45,
+    "hp": 150,
+    "ar": 50
+   }
+  },
+  {
+   "cls": "magician",
+   "level": 60,
+   "name": "Robe of Shocking Energies",
+   "source": "questmasters id419",
+   "quote": "Shocking energies(purple): AGI 10 INT 25 HP 150 LR 50",
+   "stats": {
+    "agi": 10,
+    "int": 25,
+    "hp": 150,
+    "lr": 50
+   }
+  },
+  {
+   "cls": "magician",
+   "level": 60,
+   "name": "Staff of Dynamic Summoning",
+   "source": "questmasters id419",
+   "quote": "Staff of Dynamic Summoning - 2hnd 30 int 30 agi -50 str 225 pwr 50 lr 928 dmg",
+   "stats": {
+    "str": -50,
+    "agi": 30,
+    "int": 30,
+    "pow": 225,
+    "lr": 50
+   },
+   "dmg": 928
+  },
+  {
+   "cls": "magician",
+   "level": 60,
+   "name": "Totem of 1000 Beckons",
+   "source": "questmasters id419",
+   "quote": "Totem of 1000 Beckons-30 int 25 agi 150 pwr 50 ar",
+   "stats": {
+    "agi": 25,
+    "int": 30,
+    "pow": 150,
+    "ar": 50
+   }
+  },
+  {
+   "cls": "magician",
+   "level": 60,
+   "name": "Shroud of Voltage",
+   "source": "questmasters id419",
+   "quote": "Shroud of Voltage(dark blue): 10 Agi 25 Int 150 Pow 50 LR 85 AC",
+   "stats": {
+    "agi": 10,
+    "int": 25,
+    "pow": 150,
+    "ac": 85,
+    "lr": 50
+   }
+  },
+  {
+   "cls": "magician",
+   "level": 60,
+   "name": "Shroud of Frostweave",
+   "source": "questmasters id419",
+   "quote": "Shroud of Frostweave(blue): 50 Int -50 Str 150 Pow 85 AC 50 CR",
+   "stats": {
+    "str": -50,
+    "int": 50,
+    "pow": 150,
+    "ac": 85,
+    "cr": 50
+   }
+  },
+  {
+   "cls": "magician",
+   "level": 60,
+   "name": "Shroud of Prestidigitation",
+   "source": "questmasters id419",
+   "quote": "Shroud of Prestidigation(bright green): 45 Agi -50 Str 150 HP 85 AC 50 AR",
+   "stats": {
+    "str": -50,
+    "agi": 45,
+    "hp": 150,
+    "ac": 85,
+    "ar": 50
+   }
+  },
+  {
+   "cls": "magician",
+   "level": 60,
+   "name": "Shroud of Warmth",
+   "source": "questmasters id419",
+   "quote": "Shroud of Warmth(red): 25 Agi 10 Int 150 Pow 85 AC 50 FR",
+   "stats": {
+    "agi": 25,
+    "int": 10,
+    "pow": 150,
+    "ac": 85,
+    "fr": 50
+   }
+  },
+  {
+   "cls": "monk",
+   "level": 60,
+   "name": "Claws of Insurrection",
+   "source": "questmasters id419",
+   "quote": "Claws of Insurrection and Mayhem--30 AGI 150 HP 50 AR 801 DMG 65 DUR",
+   "stats": {
+    "agi": 30,
+    "hp": 150,
+    "ar": 50
+   },
+   "dmg": 801,
+   "dur": 65
+  },
+  {
+   "cls": "monk",
+   "level": 60,
+   "name": "Claws of Mayhem",
+   "source": "questmasters id419",
+   "quote": "Claws of Insurrection and Mayhem--30 AGI 150 HP 50 AR 801 DMG 65 DUR",
+   "stats": {
+    "agi": 30,
+    "hp": 150,
+    "ar": 50
+   },
+   "dmg": 801,
+   "dur": 65
+  },
+  {
+   "cls": "necromancer",
+   "level": 60,
+   "name": "Staff of the Banshee Wail",
+   "source": "questmasters id419",
+   "quote": "Staff of the Banshee Wail: 2 hander, -50 str, 225 pow, 50 lr, 30 int, 30 agil, and 928 damage",
+   "stats": {
+    "str": -50,
+    "agi": 30,
+    "int": 30,
+    "pow": 225,
+    "lr": 50
+   },
+   "dmg": 928
+  },
+  {
+   "cls": "necromancer",
+   "level": 60,
+   "name": "Totem of Ancient Reanimation",
+   "source": "questmasters id419",
+   "quote": "Totem of Ancient Reanimation: 30 int, 25 agil, 150 pow, 50 AR",
+   "stats": {
+    "agi": 25,
+    "int": 30,
+    "pow": 150,
+    "ar": 50
+   }
+  },
+  {
+   "cls": "necromancer",
+   "level": 60,
+   "name": "Shroud of Crystals",
+   "source": "questmasters id419",
+   "quote": "Shroud of Crystals: Hp 15800 dur 50 str -50, int 45, cr 50, ac 85, pow 150",
+   "stats": {
+    "str": -50,
+    "int": 45,
+    "pow": 150,
+    "ac": 85,
+    "cr": 50
+   },
+   "dur": 50,
+   "whole": true
+  },
+  {
+   "cls": "necromancer",
+   "level": 60,
+   "name": "Shroud of the Blaze",
+   "source": "questmasters id419",
+   "quote": "Shroud of the Blaze: Hp 15600 dur 50 sta 25, fr 50, ac 85, pow 150, int 10",
+   "stats": {
+    "sta": 25,
+    "int": 10,
+    "pow": 150,
+    "ac": 85,
+    "fr": 50
+   },
+   "dur": 50,
+   "whole": true
+  },
+  {
+   "cls": "necromancer",
+   "level": 60,
+   "name": "Shroud of Radioactivity",
+   "source": "questmasters id419",
+   "quote": "Shroud of Radioactivity: Hp 16200 dur 50 sta 10, pow 150, lr 50, int 25, ac 85",
+   "stats": {
+    "sta": 10,
+    "int": 25,
+    "pow": 150,
+    "ac": 85,
+    "lr": 50
+   },
+   "dur": 50,
+   "whole": true
+  },
+  {
+   "cls": "necromancer",
+   "level": 60,
+   "name": "Shroud of Trickery",
+   "source": "questmasters id419",
+   "quote": "Shroud of Trickery: Hp 15800 dur 50 str -50, ar 50, ac 85, hp 150, sta 45",
+   "stats": {
+    "str": -50,
+    "sta": 45,
+    "hp": 150,
+    "ac": 85,
+    "ar": 50
+   },
+   "dur": 50,
+   "whole": true
+  },
+  {
+   "cls": "ranger",
+   "level": 60,
+   "name": "Bow of Sharp Shooting",
+   "source": "questmasters id419",
+   "quote": "Bow of Sharp Shooting-150hp 50ar 30dex 801dmg",
+   "stats": {
+    "dex": 30,
+    "hp": 150,
+    "ar": 50
+   },
+   "dmg": 801
+  },
+  {
+   "cls": "ranger",
+   "level": 60,
+   "name": "Axe of Nature's Innocence",
+   "source": "owner",
+   "quote": "the owner, 2026-11-13: \"lets half the stat increase/decrease for the ranger 60 epics (the website meant for both equipped)\": questmasters' 30 STR 30 DEX -50 CHA 225 HP halved, the axes given as a pair (101118 step 2 *2)",
+   "stats": {
+    "str": 15,
+    "dex": 15,
+    "cha": -25,
+    "hp": 113
+   },
+   "dmg": 928,
+   "keep": {
+    "dmg": "kept 801: the owner made both axes one-handed (petfix234, 2026-11-11); questmasters' 928 is the two-handers' figure"
+   },
+   "qm_quote": "Blades of nature's innocence or purity-30str 30dex 225hp -50cha 928dmg Blade Pic"
+  },
+  {
+   "cls": "ranger",
+   "level": 60,
+   "name": "Axe of Nature's Purity",
+   "source": "owner",
+   "quote": "the owner, 2026-11-13: \"lets half the stat increase/decrease for the ranger 60 epics (the website meant for both equipped)\": questmasters' 30 STR 30 DEX -50 CHA 225 HP halved, the axes given as a pair (101118 step 2 *2)",
+   "stats": {
+    "str": 15,
+    "dex": 15,
+    "cha": -25,
+    "hp": 113
+   },
+   "dmg": 928,
+   "keep": {
+    "dmg": "kept 801: the owner made both axes one-handed (petfix234, 2026-11-11); questmasters' 928 is the two-handers' figure"
+   },
+   "qm_quote": "Blades of nature's innocence or purity-30str 30dex 225hp -50cha 928dmg Blade Pic"
+  },
+  {
+   "cls": "ranger",
+   "level": 60,
+   "name": "Tunic of Snowy Days",
+   "source": "questmasters id419",
+   "quote": "Snow white tunic (no stats)",
+   "stats": {}
+  },
+  {
+   "cls": "rogue",
+   "level": 60,
+   "name": "Tunic of Cyclones",
+   "source": "questmasters id419",
+   "quote": "Tunic of Cyclones (no stats)",
+   "stats": {}
+  },
+  {
+   "cls": "rogue",
+   "level": 60,
+   "name": "Axe of Bloodletting",
+   "source": "questmasters id419",
+   "quote": "Axe of Bloodletting-2hd, 928 Dmg Str 30 Dex 30 -50 Cha 225 HP 50 LR",
+   "stats": {
+    "str": 30,
+    "dex": 30,
+    "cha": -50,
+    "hp": 225,
+    "lr": 50
+   },
+   "dmg": 928
+  },
+  {
+   "cls": "rogue",
+   "level": 60,
+   "name": "Rogue's Epic Dagger",
+   "source": "questmasters id419",
+   "quote": "Daggers of _____-1HP, Secondary,801 dmg Str 30 HP 150 AR 50",
+   "stats": {
+    "str": 30,
+    "hp": 150,
+    "ar": 50
+   },
+   "dmg": 801
+  },
+  {
+   "cls": "shaman",
+   "level": 60,
+   "name": "Staff of Spiritual Energies",
+   "source": "questmasters id419",
+   "quote": "Staff of spiritual energies-30wis 30ch -50str 225power 50LR 928DMG",
+   "stats": {
+    "str": -50,
+    "wis": 30,
+    "cha": 30,
+    "pow": 225,
+    "lr": 50
+   },
+   "dmg": 928
+  },
+  {
+   "cls": "shaman",
+   "level": 60,
+   "name": "Hammer of Mystical Enlightenment",
+   "source": "questmasters id419",
+   "quote": "Hammer of mystical enlightnment-30wis 150hp 50AR 801DMG",
+   "stats": {
+    "wis": 30,
+    "hp": 150,
+    "ar": 50
+   },
+   "dmg": 801
+  },
+  {
+   "cls": "shaman",
+   "level": 60,
+   "name": "Tunic of Lavawalker",
+   "source": "questmasters id419",
+   "quote": "Tunic of Lavawalker(red)-wis25 cha10 ac376 fr50 pow150",
+   "stats": {
+    "wis": 25,
+    "cha": 10,
+    "pow": 150,
+    "ac": 376,
+    "fr": 50
+   }
+  },
+  {
+   "cls": "shaman",
+   "level": 60,
+   "name": "Tunic of Pure Energy",
+   "source": "questmasters id419",
+   "quote": "Tunic of Pure Energy(teal)-wis 25 ac 376 cha 10 lr50 pow150",
+   "stats": {
+    "wis": 25,
+    "cha": 10,
+    "pow": 150,
+    "ac": 376,
+    "lr": 50
+   }
+  },
+  {
+   "cls": "shaman",
+   "level": 60,
+   "name": "Tunic of Runic Warding",
+   "source": "questmasters id419",
+   "quote": "Tunic of Runic warding(green/yellow)-50str ac376 sta45 ar50 hp150",
+   "stats": {
+    "str": -50,
+    "sta": 45,
+    "hp": 150,
+    "ac": 376,
+    "ar": 50
+   }
+  },
+  {
+   "cls": "shaman",
+   "level": 60,
+   "name": "Tunic of Snowflake",
+   "source": "questmasters id419",
+   "quote": "Tunic of Snowflake(green)- -50str wis 45 cr50 ac375 pow150",
+   "stats": {
+    "str": -50,
+    "wis": 45,
+    "pow": 150,
+    "ac": 375,
+    "cr": 50
+   }
+  },
+  {
+   "cls": "shadowknight",
+   "level": 60,
+   "name": "Shadowknight's Epic Lance",
+   "source": "questmasters id419",
+   "quote": "Lance-801 dmg 50 Ar 30 Str 150 HP",
+   "stats": {
+    "str": 30,
+    "hp": 150,
+    "ar": 50
+   },
+   "dmg": 801
+  },
+  {
+   "cls": "shadowknight",
+   "level": 60,
+   "name": "Shadowknight's Epic Greataxe",
+   "source": "questmasters id419",
+   "quote": "2Hd-30 Sta 30 Int 50 LR 225 HP -30 Cha 938dmg 75dur",
+   "stats": {
+    "sta": 30,
+    "int": 30,
+    "cha": -30,
+    "hp": 225,
+    "lr": 50
+   },
+   "dmg": 938,
+   "dur": 75
+  },
+  {
+   "cls": "warrior",
+   "level": 60,
+   "name": "Warrior's Epic Greatsword",
+   "source": "questmasters id419",
+   "quote": "sword is 928 dmg 30 sta/wis, 225 hps and 50lr",
+   "stats": {
+    "sta": 30,
+    "wis": 30,
+    "hp": 225,
+    "lr": 50
+   },
+   "dmg": 928
+  },
+  {
+   "cls": "warrior",
+   "level": 60,
+   "name": "Warrior's Epic Blade",
+   "source": "questmasters id419",
+   "quote": "blades are 801 dmg 30 str, 150 hps and 50 ar each",
+   "stats": {
+    "str": 30,
+    "hp": 150,
+    "ar": 50
+   },
+   "dmg": 801
+  },
+  {
+   "cls": "wizard",
+   "level": 60,
+   "name": "Staff of the Enlightened",
+   "source": "questmasters id419",
+   "quote": "Staff of the Enlightened(appearance of 49 monk epic): Dur 50 Dmg 928 Str -50 Dex 30 Int 30 LR 50 Pow 225",
+   "stats": {
+    "str": -50,
+    "dex": 30,
+    "int": 30,
+    "pow": 225,
+    "lr": 50
+   },
+   "dmg": 928,
+   "dur": 50,
+   "look_of": "Ascendant staff"
+  },
+  {
+   "cls": "wizard",
+   "level": 60,
+   "name": "Focus of Mystifying Power",
+   "source": "questmasters id419",
+   "quote": "Totem of the Mystifying Power(Deepsong Verge graphic): 30 int 25 dex 150 pow 50 AR",
+   "stats": {
+    "dex": 25,
+    "int": 30,
+    "pow": 150,
+    "ar": 50
+   }
+  },
+  {
+   "cls": "wizard",
+   "level": 60,
+   "name": "Robe of Icy Waters",
+   "source": "questmasters id419",
+   "quote": "Robe of the Icy Waters (no stats)",
+   "stats": {}
+  },
+  {
+   "cls": "necromancer",
+   "level": 60,
+   "name": "Robe of Runic Warding",
+   "source": "questmasters id419",
+   "quote": "Robe of Runic Warding: Str -50 Agi 45 HP 150 AR 50 AC 85(interchangeable resists)",
+   "stats": {
+    "str": -50,
+    "agi": 45,
+    "hp": 150,
+    "ar": 50,
+    "ac": 85
+   },
+   "whole": true
+  },
+  {
+   "cls": "warrior",
+   "level": 60,
+   "name": "Chestguard of Dynamism",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/warrior + /database/items/chestguard-of-dynamism: STA +20, HP +100, AC +550, LR +35, HOT +25, DUR 75",
+   "stats": {
+    "sta": 20,
+    "hp": 100,
+    "ac": 550,
+    "lr": 35,
+    "hot": 25
+   },
+   "dur": 75
+  },
+  {
+   "cls": "warrior",
+   "level": 60,
+   "name": "Chestplate of the Icy Whirlwind",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/warrior + /database/items/chestplate-of-the-icy-whirlwind: STR +10, STA +30, HP +200, AC +550, CR +45, DUR 75",
+   "stats": {
+    "str": 10,
+    "sta": 30,
+    "hp": 200,
+    "ac": 550,
+    "cr": 45
+   },
+   "dur": 75
+  },
+  {
+   "cls": "magician",
+   "level": 60,
+   "name": "Elite Staff of the Summoner",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/magician + /database/items/elite-staff-of-the-summoner: AGI +30, INT +35, POW +200, AR +50, POT +15, DMG 928, DUR 50",
+   "stats": {
+    "agi": 30,
+    "int": 35,
+    "pow": 200,
+    "ar": 50,
+    "pot": 15
+   },
+   "dmg": 928,
+   "dur": 50
+  },
+  {
+   "cls": "magician",
+   "level": 60,
+   "name": "Focus of the Creator",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/magician + /database/items/focus-of-the-creator: AGI +25, INT +30, POW +225, AR +50, DUR 50",
+   "stats": {
+    "agi": 25,
+    "int": 30,
+    "pow": 225,
+    "ar": 50
+   },
+   "dur": 50
+  },
+  {
+   "cls": "alchemist",
+   "level": 49,
+   "name": "Metamorphic Robes",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/alchemist + /database/items/metamorphic-robes: STA +10, WIS +25, HP +80, AC +35, DUR 50",
+   "stats": {
+    "sta": 10,
+    "wis": 25,
+    "hp": 80,
+    "ac": 35
+   },
+   "dur": 50
+  },
+  {
+   "cls": "warrior",
+   "level": 60,
+   "name": "Miraculous Chestguard",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/warrior + /database/items/miraculous-chestguard: STR +30, STA +10, HP +200, AC +550, AR +45, DUR 75",
+   "stats": {
+    "str": 30,
+    "sta": 10,
+    "hp": 200,
+    "ac": 550,
+    "ar": 45
+   },
+   "dur": 75
+  },
+  {
+   "cls": "alchemist",
+   "level": 49,
+   "name": "Odan's Bonded Gloves",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/alchemist + /database/items/odans-bonded-gloves: STA +23, DEX +12, HP +100, AC +186, PR +20",
+   "stats": {
+    "sta": 23,
+    "dex": 12,
+    "hp": 100,
+    "ac": 186,
+    "pr": 20
+   }
+  },
+  {
+   "cls": "alchemist",
+   "level": 60,
+   "name": "Robe of Electric Currents",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/alchemist + /database/items/robe-of-electric-currents: STA +20, HP +100, AC +140, LR +35, POT +25, DUR 50",
+   "stats": {
+    "sta": 20,
+    "hp": 100,
+    "ac": 140,
+    "lr": 35,
+    "pot": 25
+   },
+   "dur": 50
+  },
+  {
+   "cls": "wizard",
+   "level": 60,
+   "name": "Robe of Icy Waters",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/wizard + /database/items/robe-of-icy-waters: DEX +10, INT +30, POW +200, AC +140, CR +45",
+   "stats": {
+    "dex": 10,
+    "int": 30,
+    "pow": 200,
+    "ac": 140,
+    "cr": 45
+   }
+  },
+  {
+   "cls": "wizard",
+   "level": 60,
+   "name": "Robe of Intense Heat",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/wizard + /database/items/robe-of-intense-heat: INT +20, POW +100, AC +140, FR +35, POT +25",
+   "stats": {
+    "int": 20,
+    "pow": 100,
+    "ac": 140,
+    "fr": 35,
+    "pot": 25
+   }
+  },
+  {
+   "cls": "alchemist",
+   "level": 60,
+   "name": "Robe of the Chilling Winds",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/alchemist + /database/items/robe-of-the-chilling-winds: STA +10, WIS +30, HP +200, AC +140, CR +45, DUR 50",
+   "stats": {
+    "sta": 10,
+    "wis": 30,
+    "hp": 200,
+    "ac": 140,
+    "cr": 45
+   },
+   "dur": 50
+  },
+  {
+   "cls": "warrior",
+   "level": 60,
+   "name": "Scintillating Chestplate",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/warrior + /database/items/scintillating-chestplate: STR +20, STA +20, HP +200, AC +550, FR +35, DUR 75",
+   "stats": {
+    "str": 20,
+    "sta": 20,
+    "hp": 200,
+    "ac": 550,
+    "fr": 35
+   },
+   "dur": 75
+  },
+  {
+   "cls": "wizard",
+   "level": 60,
+   "name": "Shroud of Astral Projection",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/wizard + /database/items/shroud-of-astral-projection: DEX +30, INT +10, POW +200, AC +140, AR +45",
+   "stats": {
+    "dex": 30,
+    "int": 10,
+    "pow": 200,
+    "ac": 140,
+    "ar": 45
+   }
+  },
+  {
+   "cls": "enchanter",
+   "level": 60,
+   "name": "Shroud of Bewitchment",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/enchanter + /database/items/shroud-of-bewitchment: INT +10, CHA +30, POW +200, AC +140, AR +45",
+   "stats": {
+    "int": 10,
+    "cha": 30,
+    "pow": 200,
+    "ac": 140,
+    "ar": 45
+   }
+  },
+  {
+   "cls": "enchanter",
+   "level": 60,
+   "name": "Shroud of Bitter Winds",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/enchanter + /database/items/shroud-of-bitter-winds: INT +30, CHA +10, POW +200, AC +140, CR +45",
+   "stats": {
+    "int": 30,
+    "cha": 10,
+    "pow": 200,
+    "ac": 140,
+    "cr": 45
+   }
+  },
+  {
+   "cls": "alchemist",
+   "level": 60,
+   "name": "Shroud of Combustion",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/alchemist + /database/items/shroud-of-combustion: DEX +10, WIS +25, HP +150, AC +130, FR +50",
+   "stats": {
+    "dex": 10,
+    "wis": 25,
+    "hp": 150,
+    "ac": 130,
+    "fr": 50
+   }
+  },
+  {
+   "cls": "wizard",
+   "level": 60,
+   "name": "Shroud of Diamond Dust",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/wizard + /database/items/shroud-of-diamond-dust: DEX +10, INT +30, POW +200, AC +140, CR +45",
+   "stats": {
+    "dex": 10,
+    "int": 30,
+    "pow": 200,
+    "ac": 140,
+    "cr": 45
+   }
+  },
+  {
+   "cls": "wizard",
+   "level": 60,
+   "name": "Shroud of Gravity",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/wizard + /database/items/shroud-of-gravity: DEX +20, POW +100, AC +140, LR +35, POT +25",
+   "stats": {
+    "dex": 20,
+    "pow": 100,
+    "ac": 140,
+    "lr": 35,
+    "pot": 25
+   }
+  },
+  {
+   "cls": "enchanter",
+   "level": 60,
+   "name": "Shroud of Ignited Energy",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/enchanter + /database/items/shroud-of-ignited-energy: CHA +20, POW +100, AC +140, LR +35, POT +25",
+   "stats": {
+    "cha": 20,
+    "pow": 100,
+    "ac": 140,
+    "lr": 35,
+    "pot": 25
+   }
+  },
+  {
+   "cls": "alchemist",
+   "level": 60,
+   "name": "Shroud of Magnetism",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/alchemist + /database/items/shroud-of-magnetism: STA +45, INT -50, HP +150, AC +130, LR +50",
+   "stats": {
+    "sta": 45,
+    "int": -50,
+    "hp": 150,
+    "ac": 130,
+    "lr": 50
+   }
+  },
+  {
+   "cls": "alchemist",
+   "level": 60,
+   "name": "Spectral shroud",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/alchemist + /database/items/spectral-shroud: STA +25, DEX +10, HP +150, AC +130, AR +50",
+   "stats": {
+    "sta": 25,
+    "dex": 10,
+    "hp": 150,
+    "ac": 130,
+    "ar": 50
+   }
+  },
+  {
+   "cls": "cleric",
+   "level": 60,
+   "name": "Staff of Divinity",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/cleric + /database/items/staff-of-divinity: WIS +30, CHA +35, POW +200, DR +25, PR +25, POT +25",
+   "stats": {
+    "wis": 30,
+    "cha": 35,
+    "pow": 200,
+    "dr": 25,
+    "pr": 25,
+    "pot": 25
+   }
+  },
+  {
+   "cls": "shadowknight",
+   "level": 60,
+   "name": "Sword of the Contender",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/shadowknight + /database/items/sword-of-the-contender: STR +35, STA +35, HP +180, AC +100, HOT +10, DMG 801, DUR 75",
+   "stats": {
+    "str": 35,
+    "sta": 35,
+    "hp": 180,
+    "ac": 100,
+    "hot": 10
+   },
+   "dmg": 801,
+   "dur": 75
+  },
+  {
+   "cls": "paladin",
+   "level": 60,
+   "name": "Sword of Virtue",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/paladin + /database/items/sword-of-virtue: STR +10, STA +35, HP +180, AC +100, HOT +10, DMG 801, DUR 75",
+   "stats": {
+    "str": 10,
+    "sta": 35,
+    "hp": 180,
+    "ac": 100,
+    "hot": 10
+   },
+   "dmg": 801,
+   "dur": 75
+  },
+  {
+   "cls": "rogue",
+   "level": 60,
+   "name": "Tunic of Fierce Flames",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/rogue + /database/items/tunic-of-fierce-flames: STR +30, AGI +10, HP +200, AC +420, FR +45",
+   "stats": {
+    "str": 30,
+    "agi": 10,
+    "hp": 200,
+    "ac": 420,
+    "fr": 45
+   }
+  },
+  {
+   "cls": "ranger",
+   "level": 60,
+   "name": "Tunic of Snowy Days",
+   "source": "jadiction",
+   "whole": true,
+   "quote": "jadiction.com/en/eqoa/info/epics/ranger + /database/items/tunic-of-snowy-days: STR +30, DEX +10, CHA -50, HP +200, AC +420, CR +45, DUR 65",
+   "stats": {
+    "str": 30,
+    "dex": 10,
+    "cha": -50,
+    "hp": 200,
+    "ac": 420,
+    "cr": 45
+   },
+   "dur": 65
+  }
+ ],
+ "new": [
+  {
+   "name": "Staff of the Banshee Wail",
+   "prefer_id": 960133,
+   "source": "questmasters id419 (Evil Necro Items), as petfix239 made it on the Heirloom shard",
+   "row": {
+    "itemcost": 4792,
+    "unk1": 0,
+    "itemicon": -597854559,
+    "unk2": 0,
+    "equipslot": 15,
+    "unk3": 0,
+    "trade": 0,
+    "rent": 1,
+    "unk4": 0,
+    "attacktype": 4,
+    "weapondamage": 928,
+    "unk5": 0,
+    "levelreq": 60,
+    "maxstack": 1,
+    "maxhp": 10578,
+    "duration": 65,
+    "classuse": 2048,
+    "raceuse": 1023,
+    "procanim": 0,
+    "lore": 0,
+    "unk6": 0,
+    "craft": 0,
+    "itemname": "Staff of the Banshee Wail",
+    "itemdesc": "A staff that seems to moan when it is raised.",
+    "model": 40739020,
+    "color": 4294967295,
+    "str": -50,
+    "sta": 0,
+    "agi": 30,
+    "wis": 0,
+    "dex": 0,
+    "cha": 0,
+    "intelligence": 30,
+    "HPMAX": 0,
+    "POWMAX": 225,
+    "PoT": 0,
+    "HoT": 0,
+    "AC": 0,
+    "PR": 0,
+    "DR": 0,
+    "FR": 0,
+    "CR": 0,
+    "LR": 50,
+    "AR": 0,
+    "weaponproc": 0,
+    "fish": 0
+   }
+  },
+  {
+   "name": "Totem of Ancient Reanimation",
+   "prefer_id": 718020,
+   "source": "questmasters id419 (Evil Necro Items), as petfix239 made it on the Heirloom shard",
+   "row": {
+    "itemcost": 4235,
+    "unk1": 0,
+    "itemicon": -1341171857,
+    "unk2": 0,
+    "equipslot": 18,
+    "unk3": 0,
+    "trade": 0,
+    "rent": 1,
+    "unk4": 0,
+    "attacktype": 0,
+    "weapondamage": 0,
+    "unk5": 0,
+    "levelreq": 60,
+    "maxstack": 1,
+    "maxhp": 12000,
+    "duration": 65,
+    "classuse": 2048,
+    "raceuse": 1023,
+    "procanim": 0,
+    "lore": 0,
+    "unk6": 0,
+    "craft": 0,
+    "itemname": "Totem of Ancient Reanimation",
+    "itemdesc": "An epic reward of the level 60 quests.",
+    "model": -40093608,
+    "color": 4294967295,
+    "str": 0,
+    "sta": 0,
+    "agi": 25,
+    "wis": 0,
+    "dex": 0,
+    "cha": 0,
+    "intelligence": 30,
+    "HPMAX": 0,
+    "POWMAX": 150,
+    "PoT": 0,
+    "HoT": 0,
+    "AC": 0,
+    "PR": 0,
+    "DR": 0,
+    "FR": 0,
+    "CR": 0,
+    "LR": 0,
+    "AR": 50,
+    "weaponproc": 0,
+    "fish": 0
+   }
+  }
+ ],
+ "quests": [
+  {
+   "key": "60/evil-caster/reward-necromancer",
+   "step": 2,
+   "source": "questmasters id419: Evil Necro Items (staff, totem, the four shrouds), as petfix239 set it on the Heirloom shard",
+   "options": [
+    "Shroud of Trickery",
+    "Shroud of Radioactivity",
+    "Shroud of Crystals",
+    "Shroud of the Blaze",
+    "Staff of the Banshee Wail",
+    "Totem of Ancient Reanimation"
+   ]
+  }
+ ],
+ "owner": [
+  {
+   "name": "Axe of Nature's Innocence",
+   "words": "Procs 250 damage.",
+   "said": "the owner, 2026-11-13: \"give the axe a 250 proc\""
+  },
+  {
+   "name": "Bow of Sharp Shooting",
+   "words": "Procs 250 damage.",
+   "said": "the owner, 2026-11-13 (applied live by the coordinator)"
+  }
+ ]
+}

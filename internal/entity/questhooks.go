@@ -74,6 +74,12 @@ func (w *World) creditKillLocked(sess *session.Session, p *Player, npc *NPC) {
 		return
 	}
 	raid := w.raidKillLocked(p, npc) // the kicked members' claims taken either way (raidrules.go)
+	if npc.challenge != nil || npc.Name == MetalMoogieName || npc.Name == MetalMoogieV2Name {
+		// a Metal Moogie's corpse is his challenger's alone (metalmoogie.go's
+		// ChallengeLooter), never a raid's to roll (the owner, 2026-11-13: "moogie
+		// tribute should only go to the player who summons metal moogie")
+		raid = nil
+	}
 	if len(w.onKill) == 0 {
 		return
 	}

@@ -96,10 +96,10 @@ func (w *World) OpenPortal(sess *session.Session, now time.Time) (EntityID, erro
 		w.portals = map[EntityID]*portalState{}
 	}
 	w.portals[npc.ServerID] = &portalState{
-		npc:    npc,
-		owner:  p.ServerID,
-		at:     GateSpot{World: p.World, X: p.X, Y: p.Y, Z: p.Z, Place: "a summoning portal"},
-		until:  now.Add(PortalLasts),
+		npc:   npc,
+		owner: p.ServerID,
+		at:    GateSpot{World: p.World, X: p.X, Y: p.Y, Z: p.Z, Place: "a summoning portal"},
+		until: now.Add(PortalLasts),
 	}
 	p.portal = npc.ServerID
 	log.Printf("Portal: %s's portal %d at (%.1f, %.1f) world=%d", p.Name, npc.ServerID, x, z, p.World)

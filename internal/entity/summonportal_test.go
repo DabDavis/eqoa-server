@@ -227,4 +227,3 @@ func TestAPortalBringsPlayersWhereItsOwnerStood(t *testing.T) {
 		t.Errorf("%d travels after the refusals", len(f.sent))
 	}
 }
-

@@ -1571,6 +1571,7 @@ func (w *World) npcFightPetLocked(npc, pet *NPC, now time.Time) {
 		pet.HP = max(pet.HP-n, 0)
 		pet.LastCombatTime = now
 		log.Printf("Pet: %s hit the pet %q for %d (HP %d/%d)", npc.Name, pet.Name, n, pet.HP, pet.MaxHP)
+		npc.meleeLanded(n, now)                    // unreached.go
 		w.rampageLocked(npc, pet.ServerID, n, now) // an enraged creature's share on the second of its list (enrage.go)
 		if pet.HP == 0 {
 			w.killNPC(pet)

@@ -339,6 +339,7 @@ func (w *World) npcHitNPCLocked(npc, foe *NPC, now time.Time) bool {
 	}
 	w.addThreatLocked(foe, npc.ServerID, n)
 	log.Printf("Combat: %s hit %s for %d (HP %d/%d)", npc.Name, foe.Name, n, foe.HP, foe.MaxHP)
+	npc.meleeLanded(n, now) // unreached.go
 	w.rampageLocked(npc, foe.ServerID, n, now)
 	if foe.HP > 0 {
 		w.hitLandedLocked(foe, n, nil, npc.ServerID) // its heal at every hit, its ward's answer (hitheal.go, ward.go)

@@ -52,6 +52,39 @@ const DefaultShardName = "Marr's Fist"
 // (VIElem_BFC798::m_name, 32 wide with its terminator; ReadString cuts there).
 const maxShardName = 31
 
+// shardNameRoom is the widest a shard's name may draw and stay whole on one
+// line of CLIENT's server list: VIWndServerSelect's name column is cols[1] -
+// cols[0] - 16 = 245 (cols 58, 319, 460 of 640), and VIUIWindow::TextBox
+// breaks a line once its text reaches 8 short of that, at the last space,
+// with an ellipsis on a one-line box (flag 2). Vanilla's TextBox is the same.
+// So "Live Server - No Wipes Ever" (253) showed as "Live Server - No Wipes
+// ..." (the GM Jibwiz's petition 1923).
+const shardNameRoom = 245 - 8
+
+// arialUIWidths is each printable ASCII glyph's width in ARIALUI.CSF (the
+// UI's font, 0x7020; ' ' through '~'), read off the disc's file.
+var arialUIWidths = [95]uint8{5, 5, 7, 10, 10, 15, 12, 4, 6, 6, 7, 10, 5, 6, 5, 5, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 5, 5,
+	10, 10, 10, 10, 17, 12, 12, 13, 13, 12, 11, 13, 13, 6, 9, 12, 10, 14, 13, 13, 12, 13, 13, 12, 11, 13, 12, 16, 12, 12, 11, 5,
+	5, 5, 9, 9, 6, 10, 10, 9, 10, 10, 5, 10, 10, 4, 4, 9, 4, 14, 10, 10, 10, 10, 6, 9, 5, 10, 9, 13, 9, 9, 9, 6, 5, 6, 10}
+
+// ShardNameWidth is how wide CLIENT draws a name in the list (GetStringWidth:
+// each glyph's width and one); a character past ASCII counts as the widest.
+func ShardNameWidth(name string) int {
+	w := 0
+	for _, r := range name {
+		if r >= ' ' && r <= '~' {
+			w += int(arialUIWidths[r-' ']) + 1
+		} else {
+			w += 18
+		}
+	}
+	return w
+}
+
+// ShardNameFits is whether a name draws whole on one line of the list
+// (shardNameRoom); a longer one is still listed, and the server says so.
+func ShardNameFits(name string) bool { return ShardNameWidth(name) < shardNameRoom }
+
 // ShardList is config's shards as the list's entries, with what is wrong with
 // any of them; none configured, this server alone under the default name.
 // Every entry's endpoint is the game server's (CLIENT connects to it whole,

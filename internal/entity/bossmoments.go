@@ -61,11 +61,13 @@ var bossMomentIntn = rand.Intn
 func (w *World) bossMomentsLocked(npc *NPC, f *templateFight, now time.Time) {
 	ms := npc.tmpl.moments
 	if len(f.momentNext) != len(ms) {
+		f.landedAt = now // the fight's start: no hit landed yet (unreached.go)
 		f.momentNext = make([]time.Time, len(ms))
 		for i, m := range ms {
 			f.momentNext[i] = now.Add(time.Duration(m.First * float64(time.Second)))
 		}
 	}
+	w.unreachedListLocked(npc, f, now) // who is on its hate list since when (unreached.go)
 	for i := range ms {
 		if now.Before(f.momentNext[i]) {
 			continue
@@ -90,6 +92,8 @@ func momentName(m *database.TemplateAbility) string {
 		return "Gift of Contention"
 	case database.AbilitySetHP:
 		return "Wither"
+	case database.AbilityUnreached:
+		return "Wrath"
 	}
 	return "Mind Drain"
 }
@@ -139,6 +143,8 @@ func (w *World) bossMomentLocked(npc *NPC, m *database.TemplateAbility, now time
 		log.Printf("Template: %s's %s: %s's power to 0", npc.Name, momentName(m), p.Name)
 	case database.AbilitySetHP:
 		w.setHPMomentLocked(npc, m, now)
+	case database.AbilityUnreached:
+		w.unreachedMomentLocked(npc, m, now) // unreached.go
 	}
 }
 

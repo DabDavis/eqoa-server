@@ -237,11 +237,23 @@ const (
 	// supposed to have an AoE which reduces hp to 700 for players and mobs.
 	// Cazic Thule sets to 10hp for his debuff")
 	AbilitySetHP = "sethp"
+	// AbilityUnreached: once its creature has landed no melee hit for Unhit
+	// seconds (0: DefaultUnhitSeconds) of a fight, each time Damage pure
+	// (unresisted) on every player that has been on its hate list for Unhit
+	// seconds or more, until it lands a hit again (entity/unreached.go; the GM
+	// Jibwiz's petition 1916: Mr. Moogie "if someone is on his hate list for
+	// more than 60 seconds, and he has not been able to hit any target on his
+	// hate list for more than 60 seconds, he nukes them unresistable for
+	// 20,000 every 6 seconds")
+	AbilityUnreached = "unreached"
 )
+
+// DefaultUnhitSeconds is an unreached moment's wait with none of its own.
+const DefaultUnhitSeconds = 60
 
 // BossMomentKind is whether an ability is one of a boss's moments.
 func BossMomentKind(k string) bool {
-	return k == AbilitySelfDoT || k == AbilityRaidHeal || k == AbilityPowerZero || k == AbilitySetHP
+	return k == AbilitySelfDoT || k == AbilityRaidHeal || k == AbilityPowerZero || k == AbilitySetHP || k == AbilityUnreached
 }
 
 // MostSetHPRadius is the widest a sethp's area reaches.
@@ -251,7 +263,7 @@ const MostSetHPRadius = 200
 var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff, AbilityRoot, AbilityDebuff,
 	AbilityStrip, AbilityHealShield, AbilityMeleeKind, AbilityDoT, AbilityHitHeal, AbilityPrefer, AbilitySummon, AbilityEnrage,
 	AbilityProc, AbilityVeil, AbilityKillSay, AbilityLastStand, AbilityWard, AbilityDeathHold, AbilitySelfDoT, AbilityRaidHeal,
-	AbilityPowerZero, AbilitySetHP}
+	AbilityPowerZero, AbilitySetHP, AbilityUnreached}
 
 // passiveKind is whether an ability of the kind casts nothing on a clock of its
 // own: what it does is a rule its creature keeps (a heal shield, a melee kind,
@@ -509,6 +521,18 @@ type TemplateAbility struct {
 	// Hold is a death hold's seconds frozen at 1 hit point (AbilityDeathHold;
 	// 0: DefaultHoldSeconds).
 	Hold float64 `json:"hold,omitempty"`
+	// Unhit is an unreached moment's seconds with no melee hit landed, and on
+	// its hate list, before it strikes (AbilityUnreached; 0:
+	// DefaultUnhitSeconds).
+	Unhit float64 `json:"unhit,omitempty"`
+}
+
+// UnhitOr is an unreached moment's wait: its own, else DefaultUnhitSeconds.
+func (a TemplateAbility) UnhitOr() float64 {
+	if a.Unhit <= 0 {
+		return DefaultUnhitSeconds
+	}
+	return a.Unhit
 }
 
 // HoldOr is a death hold's time: its own, else DefaultHoldSeconds.
@@ -715,6 +739,9 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 		if a.SetHP != 0 || a.Radius != 0 || a.Tick != 0 || a.TickAtCap != 0 || a.TickFor != 0 {
 			return fmt.Errorf("ability %d: set_hp, radius and a tick are a sethp's", n)
 		}
+		if a.Unhit != 0 {
+			return fmt.Errorf("ability %d: unhit is an unreached's", n)
+		}
 		if err := checkKindFields(n, a); err != nil {
 			return err
 		}
@@ -850,9 +877,9 @@ func checkKindFields(n int, a TemplateAbility) error {
 // for its lines; nothing of a cast's.
 func checkBossMoment(n int, a TemplateAbility) error {
 	finite := func(v float64) bool { return !math.IsNaN(v) && !math.IsInf(v, 0) }
-	figure := a.Kind == AbilitySelfDoT || a.Kind == AbilityRaidHeal
+	figure := a.Kind == AbilitySelfDoT || a.Kind == AbilityRaidHeal || a.Kind == AbilityUnreached
 	switch {
-	case !finite(a.Every) || !finite(a.First) || !finite(a.Radius):
+	case !finite(a.Every) || !finite(a.First) || !finite(a.Radius) || !finite(a.Unhit):
 		return fmt.Errorf("ability %d: a number that is not one", n)
 	case a.Every < 2 || a.Every > 3600:
 		return fmt.Errorf("ability %d: every %.1f: 2 to 3600 seconds from one to the next", n, a.Every)
@@ -864,6 +891,10 @@ func checkBossMoment(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: a %s's damage %d: 1 to 1000000 hit points", n, a.Kind, a.Damage)
 	case !figure && a.Damage != 0:
 		return fmt.Errorf("ability %d: a %s has no damage", n, a.Kind)
+	case a.Kind != AbilityUnreached && a.Unhit != 0:
+		return fmt.Errorf("ability %d: unhit is an unreached's", n)
+	case a.Unhit < 0 || a.Unhit > 3600:
+		return fmt.Errorf("ability %d: unhit %.1f: 0 (%d) to 3600 seconds", n, a.Unhit, DefaultUnhitSeconds)
 	case a.Kind == AbilityRaidHeal && (a.Count < 1 || a.Count > 40):
 		return fmt.Errorf("ability %d: a raidheal's count %d: 1 to 40 players", n, a.Count)
 	case a.Kind != AbilityRaidHeal && a.Count != 0:

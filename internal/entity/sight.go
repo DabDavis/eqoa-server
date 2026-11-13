@@ -36,6 +36,13 @@ import (
 //     before it lands is spared. Either line clear is enough (a low wall hides
 //     no one from a healer). A resurrection is not held to it.
 //
+//   - a ranged weapon's shot or a throw (a bow, a thrown weapon or potion: the
+//     ranged swings, kinds 8-11) at a creature: its shooter must see it as
+//     each shot is loosed (Hoofbite's petition 1924: "Able to pull Tinael
+//     Windstream through wall with ranged attack"); out of sight nothing
+//     lands, no hate, no power paid, castNotSeen in red, the fight let go,
+//     as a shot short of power is (rangedpower.go).
+//
 // Harmful single-target spells, melee, a fight once it has begun and a town
 // guard's help stay as they were.
 //
@@ -114,6 +121,23 @@ func (w *World) helpHiddenLocked(cs *castState, caster *Player, casterSess *sess
 	log.Printf("LoS: %s's %q spares %s at (%.1f, %.1f, %.1f), out of sight from (%.1f, %.1f, %.1f)", caster.Name, cs.spell.Name, name, x, y, z, caster.X, caster.Y, caster.Z)
 	if casterSess != nil && len(cs.targets) == 1 {
 		w.sendColoredLocked(casterSess, castNotSeen, castRefusalRGB)
+	}
+	return true
+}
+
+// shotUnseenLocked reports a ranged swing (a bow's shot, a throw) at npc that
+// its shooter cannot see (inSightLocked), told castNotSeen in red (sess nil:
+// untold) and logged; a melee swing, never. Must be called with the lock held.
+func (w *World) shotUnseenLocked(sess *session.Session, p *Player, npc *NPC) bool {
+	if p.Swing.Kind < swingRange1 || p.Swing.Kind > swingRange4 {
+		return false
+	}
+	if p.World == npc.World && w.inSightLocked(p.World, p.X, p.Y, p.Z, npc.X, npc.Y, npc.Z) {
+		return false
+	}
+	log.Printf("LoS: %s's shot at %s at (%.1f, %.1f, %.1f) refused, out of sight from (%.1f, %.1f, %.1f)", p.Name, npc.Name, npc.X, npc.Y, npc.Z, p.X, p.Y, p.Z)
+	if sess != nil {
+		w.sendColoredLocked(sess, castNotSeen, castRefusalRGB)
 	}
 	return true
 }

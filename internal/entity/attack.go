@@ -737,6 +737,9 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 	if npc.duelHeld() {
 		return false // a Metal Moogie's countdown: nothing lands (metalmoogie.go, petition 1623)
 	}
+	if w.shotUnseenLocked(sess, attacker, npc) {
+		return true // a shot or a throw at what its shooter cannot see: the fight let go (sight.go)
+	}
 	if attacker.Swing.Potion != 0 {
 		return w.thrownPotionHitLocked(sess, attacker, npc, objectID) // potion.go
 	}

@@ -7,7 +7,7 @@
    "giver": "Necrologist Zizclank",
    "classes": [],
    "races": [],
-   "minlevel": 50,
+   "minlevel": 51,
    "maxlevel": 60,
    "requires": [],
    "offer": "The Plague Lord's realm opens to few. Bring me the hearts of three death knights who walk Tunaria: Endraval, Bileheart and Halik. And see my assistant Xeptip first: you will need a suit.",
@@ -20,19 +20,7 @@
      "kind": "talk",
      "target": "Necrologist Xeptip",
      "journal": "Speak with Necrologist Xeptip, beside Zizclank in the Dead Hills.",
-     "says": "A suit of zombie flesh, sewn tight. Carry it whenever you go to the Plague Lord. The dead there do not question their own.",
-     "events": [
-      {
-       "on": "done",
-       "do": "give",
-       "items": [
-        {
-         "item": "zombie flesh suit",
-         "count": 1
-        }
-       ]
-      }
-     ]
+     "says": "You will need a suit of zombie flesh: the dead beyond the mausoleum do not question their own. I sew none for free.\nThe zombies of the Last House's upper halls shed stitched skin. Three make a swatch; two swatches and its master surgeon's sinew cord make a suit. Fatima Ubel sews them, or buy one."
     },
     {
      "kind": "loot",
@@ -49,7 +37,7 @@
     },
     {
      "kind": "loot",
-     "target": "Deathknight Blieheart",
+     "target": "Deathknight Bileheart",
      "items": [
       {
        "item": "corin's petrified heart",
@@ -62,7 +50,7 @@
     },
     {
      "kind": "loot",
-     "target": "deathknight Halik",
+     "target": "Deathknight Halik",
      "items": [
       {
        "item": "Halik's petrified heart",
@@ -95,7 +83,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Its first half. The guide's zombie flesh suit is crafted or bought at auction in the live game; nothing sells one here, so Xeptip hands one over. The guide lets the hearts be taken before the quest is logged; here each drops on its step, in the guide's order (Endraval, Bileheart, Halik). Deathknight Endraval is FrontiersForge's sighting (tools/quests/npcs/qe.json); Bileheart is the game's Deathknight Blieheart, his heart Corin Bileheart's."
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Portal Quest (github.com/Jadiction/EQOA-Data, MIT), its first half; matched to the wiki (https://wiki.eqoa.live/index.php?title=Plane_of_Disease:_Portal_Quest) 2026-11-13 (the owner: 'yes match it to the wiki'; tools/pod_wiki_20261113.py): level 51; the zombie flesh suit is no longer given by Xeptip (it is made from the Last House's zombies' stitched skin and its master surgeon's sinew cord, sewn by Fatima Ubel, or bought from another player), and he says how. The guide lets the hearts be taken before the quest is logged; here each drops on its step, in the guide's order (Endraval, Bileheart, Halik). Deathknight Endraval is FrontiersForge's sighting (tools/quests/npcs/qe.json); Deathknight Bileheart (the game's 'Blieheart', renamed to the wiki's) carries Corin Bileheart's heart."
   },
   {
    "key": "Portal/plane-of-disease/flag-2",
@@ -103,7 +91,7 @@
    "giver": "Necrologist Zizclank",
    "classes": [],
    "races": [],
-   "minlevel": 50,
+   "minlevel": 51,
    "maxlevel": 60,
    "requires": [
     "Portal/plane-of-disease/flag-1"
@@ -113,10 +101,14 @@
      "npc": "Necrologist Zizclank",
      "to": "the Plane of Disease"
     },
-     {
-      "npc": "Mausoleum Portal",
-      "to": "the Plane of Disease"
-     }
+    {
+     "npc": "Mausoleum Portal",
+     "to": "the Plane of Disease"
+    },
+    {
+     "npc": "Oozing Portal",
+     "to": "the Plane of Disease"
+    }
    ],
    "offer": "Beyond the mausoleum's portal lies the Last House, where plague is tended like a garden. Find your way through it to its far portal, and the Plane of Disease will be open to you.",
    "accept": "I will go through.",
@@ -125,16 +117,10 @@
    "started": "The mausoleum is in the middle of the tomb yard.",
    "steps": [
     {
-     "kind": "show",
+     "kind": "talk",
      "target": "Mausoleum Portal",
-     "items": [
-      {
-       "item": "zombie flesh suit",
-       "count": 1
-      }
-     ],
-     "journal": "Show your zombie flesh suit to the portal in the mausoleum of the Dead Hills' tomb yard.",
-     "says": "The portal ripples, tastes the dead flesh, and pulls you through.",
+     "journal": "Step into the portal in the mausoleum in the middle of the Dead Hills' tomb yard.",
+     "says": "The portal ripples, tastes the dead about you, and pulls you through.",
      "events": [
       {
        "on": "done",
@@ -148,7 +134,7 @@
     },
     {
      "kind": "talk",
-     "target": "Fatima",
+     "target": "Fatima Ubel",
      "journal": "Speak with Fatima in the Last House's entrance hall.",
      "says": "A visitor? The orderlies do not like visitors. There, they have seen you."
     },
@@ -196,7 +182,7 @@
     },
     {
      "kind": "talk",
-     "target": "Rebo",
+     "target": "Rebo Chilins",
      "journal": "Go on past Fatima and find Rebo, along the east hall.",
      "says": "You should not be here. Orderlies!"
     },
@@ -222,7 +208,7 @@
     },
     {
      "kind": "talk",
-     "target": "Fatima",
+     "target": "Fatima Ubel",
      "journal": "Return to Fatima.",
      "says": "Rebo will not help you. The pharmacist keeps the wasp venom: bring it to me."
     },
@@ -241,7 +227,7 @@
     },
     {
      "kind": "give",
-     "target": "Fatima",
+     "target": "Fatima Ubel",
      "items": [
       {
        "item": "wasp venom",
@@ -253,7 +239,7 @@
     },
     {
      "kind": "talk",
-     "target": "Medelonia",
+     "target": "Medelonia Virel",
      "journal": "Speak with Medelonia in the middle hall.",
      "says": "The physician wears the only robe the orderlies obey. Take it from him."
     },
@@ -274,7 +260,7 @@
      "kind": "talk",
      "target": "Watchful Orderly",
      "journal": "Wearing the robe, talk to the orderly at the end of the small hallway off the physician's room.",
-     "says": "Physician? Through the wall, then. Up the ramp and along the halls to the portal.",
+     "says": "Physician? Through the wall, then. Up the ramp and along the halls to the Oozing Portal. It opens only to one in a zombie flesh suit.",
      "events": [
       {
        "on": "done",
@@ -287,10 +273,10 @@
      ]
     },
     {
-     "kind": "talk",
-     "target": "Portal of the Last House",
-     "journal": "Go up the ramp and along the halls to the Last House's portal and pass through.",
-     "choose": "The portal swirls before you, sick and green. Pass through it?",
+     "kind": "show",
+     "target": "Oozing Portal",
+     "journal": "Wearing or carrying a zombie flesh suit, go up the ramp and along the halls to the Oozing Portal and pass through.",
+     "choose": "The Oozing Portal swirls before you, sick and green. Pass through it?",
      "choices": [
       {
        "answer": "Pass through the portal.",
@@ -311,11 +297,106 @@
        "y": -25.3,
        "z": 3866.0
       }
+     ],
+     "items": [
+      {
+       "item": "zombie flesh suit",
+       "count": 1
+      }
+     ],
+     "reminder": "The portal's ooze recoils from you. It opens only to one in a zombie flesh suit."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Portal Quest (github.com/Jadiction/EQOA-Data, MIT), its second half; matched to the wiki (https://wiki.eqoa.live/index.php?title=Plane_of_Disease:_Portal_Quest) 2026-11-13 (tools/pod_wiki_20261113.py): level 51; the wiki's names (Fatima Ubel, Rebo Chilins, Medelonia Virel, the Oozing Portal); the mausoleum's portal lets the quester in without the suit (the wiki's first entry; the suit is made inside), the Oozing Portal asks for it (a show step), and the Last House's ward (a questwalls row of the suit, where the owner's Dust stood) keeps anyone without it who has not finished this quest from the halls up to the portal (the owner: 'let flagged players through'), the way down left open. Finishing it flags the player for Zizclank's, the mausoleum's and the Oozing Portal's trips to PoD (unlocks). The Last House is placed in PoD's small closed building in the south-west (no walk enters it): its halls at y -12, the upper halls (the wiki's second floor) at -1.3; every spot there is ours. The orderlies stand white-faced and turn hostile by spawn events (two each time, where the guide says two or three); the orderly's wall is the step-13 teleport to the upper halls. The guide names no reward but the flag."
+  },
+  {
+   "key": "Portal/plane-of-disease/suit-swatch",
+   "name": "A Zombie Swatch",
+   "giver": "Fatima Ubel",
+   "classes": [],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Stitched skin from the zombies upstairs. Give me three and I will stitch you a swatch of it.",
+   "accept": "Stitch them for me.",
+   "decline": "Not now.",
+   "declined": "Keep them, then.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Fatima Ubel",
+     "items": [
+      {
+       "item": "Stitched Zombie Skin",
+       "count": 3
+      }
+     ],
+     "journal": "Give Fatima Ubel three stitched zombie skins for a zombie swatch.",
+     "says": "Fatima stitches the three skins into one swatch and hands it to you.",
+     "rewards": {
+      "items": [
+       "Zombie Swatch"
+      ]
+     },
+     "events": [
+      {
+       "on": "start",
+       "do": "dostep"
+      }
      ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Its second half; finishing it flags the player for Zizclank's trip to PoD (unlocks). The Last House is placed in PoD's small closed building in the south-west (no walk enters it): its halls at y -12, the far side of the wall the west wing at -1.3; every spot there is ours. The orderlies stand white-faced and turn hostile by spawn events (two each time, where the guide says two or three); the bathtub popup, the healer, the pharmacist and the physician stand in their rooms; the walk through the far side is cut to the portal by the landing. The guide's rule that the trip needs the flesh suit every time is not modelled (unlocks only). The guide names no reward but the flag."
+   "notes": "The wiki's Zombie Flesh Suit (https://wiki.eqoa.live/index.php?title=Plane_of_Disease:_Portal_Quest): 'A tailor with crafting level 10 can make it from six Stitched Zombie Skin (drops from Zombies in the Last House), one Sinew Cord (drops from the Master Surgeon), and two Zombie Swatches. Each swatch is made from three skins.' Tailoring is not live here (no tool, no recipe a character could level on to 10), so the recipe is a tailoring recipe too (craftrecipes, level 10: tools/pod_wiki_20261113.py) and, until tailoring is, a hand-in at Fatima Ubel inside the Last House (ours), where a quester on the Oozing Portal's step can reach her."
+  },
+  {
+   "key": "Portal/plane-of-disease/suit-sew",
+   "name": "A Zombie Flesh Suit",
+   "giver": "Fatima Ubel",
+   "classes": [],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Two swatches and the master surgeon's sinew cord: that is a suit. Shall I sew it?",
+   "accept": "Sew it for me.",
+   "decline": "Not now.",
+   "declined": "Keep them, then.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Fatima Ubel",
+     "items": [
+      {
+       "item": "Zombie Swatch",
+       "count": 2
+      },
+      {
+       "item": "Sinew Cord",
+       "count": 1
+      }
+     ],
+     "journal": "Give Fatima Ubel two zombie swatches and a sinew cord for a zombie flesh suit.",
+     "says": "Fatima sews the swatches together with the cord. A suit of zombie flesh: the dead will not question you now.",
+     "rewards": {
+      "items": [
+       "zombie flesh suit"
+      ]
+     },
+     "events": [
+      {
+       "on": "start",
+       "do": "dostep"
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "The wiki's Zombie Flesh Suit (https://wiki.eqoa.live/index.php?title=Plane_of_Disease:_Portal_Quest): 'A tailor with crafting level 10 can make it from six Stitched Zombie Skin (drops from Zombies in the Last House), one Sinew Cord (drops from the Master Surgeon), and two Zombie Swatches. Each swatch is made from three skins.' Tailoring is not live here (no tool, no recipe a character could level on to 10), so the recipe is a tailoring recipe too (craftrecipes, level 10: tools/pod_wiki_20261113.py) and, until tailoring is, a hand-in at Fatima Ubel inside the Last House (ours), where a quester on the Oozing Portal's step can reach her."
   },
   {
    "key": "Portal/plane-of-disease/queen-1",
@@ -4994,6 +5075,33 @@
   }
  ],
  "items": [
+  {
+   "name": "Stitched Zombie Skin",
+   "description": "A patch of stitched skin from a zombie of the Last House. Three make a zombie swatch.",
+   "notrade": false,
+   "like": "Zombie Patron Skin",
+   "set": {
+    "trade": 0
+   }
+  },
+  {
+   "name": "Zombie Swatch",
+   "description": "Three stitched zombie skins sewn into a swatch. Two, and a sinew cord, make a zombie flesh suit.",
+   "notrade": false,
+   "like": "Zombie Patron Skin",
+   "set": {
+    "trade": 0
+   }
+  },
+  {
+   "name": "Sinew Cord",
+   "description": "A cord of sinew from the Last House's master surgeon, strong enough to sew zombie flesh.",
+   "notrade": false,
+   "like": "zombie sinew",
+   "set": {
+    "trade": 0
+   }
+  },
   {
    "name": "Endraval's petrified heart",
    "description": "The petrified heart of the deathknight Endraval.",

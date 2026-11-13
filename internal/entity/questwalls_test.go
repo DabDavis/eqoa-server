@@ -94,3 +94,51 @@ func TestARowKeyNamesOneRow(t *testing.T) {
 		t.Fatalf("the outdoor one's template %+v", tp)
 	}
 }
+
+// A wall of an item (the Last House's ward, 2026-11-13): solid to a player
+// without the item, out of the view of one the engine says holds it, of a GM,
+// and of anyone standing on its far side (its inner boxes), so no one is shut
+// in. The engine watches the item near the wall, and the wall says who it
+// stops.
+func TestAnItemWallOpensForTheHolderAGMAndTheFarSide(t *testing.T) {
+	f := newAggroFix(t, 60)
+	wall := f.npc(3001, "invisible wall", 1, BlockerBody, 1006, 1000)
+	wall.NPCType = 0x80
+	// the near side east of the wall's middle (x 1006), the far side west
+	f.p.X = 1012
+	f.w.SetQuestWalls([]database.QuestWall{{NPCID: 3001, Item: 1012, Text: "turned back",
+		Inner: []database.WallBox{{X0: 990, Y0: 0, Z0: 990, X1: 1006, Y1: 20, Z1: 1010}}}})
+	if got := f.w.WatchedItems(); len(got) != 1 || got[0] != 1012 {
+		t.Fatalf("watched items %v, want the wall's 1012", got)
+	}
+	if !f.w.NearHoldingRule(f.p) {
+		t.Fatal("a player 6 off the wall is not near it for the engine")
+	}
+	if !f.inView(wall) {
+		t.Fatal("the wall is not solid to a player without the item")
+	}
+	if st := f.w.ItemWallsStopping(f.p, 8); len(st) != 1 || st[0].NPCID != 3001 || st[0].Text != "turned back" {
+		t.Fatalf("stops %+v, want the wall and its line", st)
+	}
+	f.w.SetQuestState(f.p.CharServerID, map[EntityID]bool{3001: true}, map[int]bool{1012: true})
+	if f.inView(wall) || len(f.w.ItemWallsStopping(f.p, 8)) != 0 {
+		t.Fatal("the wall stops the item's holder")
+	}
+	f.w.ForgetQuestState(f.p.CharServerID)
+	f.p.GM = true
+	if f.inView(wall) {
+		t.Fatal("the wall stops a GM")
+	}
+	f.p.GM = false
+	// the far side: in the box, without the item
+	f.p.X = 1003
+	if f.inView(wall) {
+		t.Fatal("the wall shuts in a player on its far side")
+	}
+	// the box is the wall's world's: a player of another world at the same place is outside it
+	f.p.World = 2
+	wall.World = 1
+	if insideWall(f.w.qwalls.walls[3001], wall, f.p) {
+		t.Fatal("a box of world 1 holds a player of world 2")
+	}
+}

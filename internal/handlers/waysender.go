@@ -55,6 +55,10 @@ type wayPlace struct {
 // to the Dead Hills.
 var podArrival = &wayPlace{World: 5, X: 4644.3, Y: -11.8, Z: 3818.7, Facing: 3.117049}
 
+// podLevel is the Plane of Disease's trips' level, the flag quest's (the
+// wiki's 51).
+const podLevel = 51
+
 // wayRoutes are each waysender's trips, by name; the guides' words beside.
 var wayRoutes = map[string][]wayRoute{
 	// "Talk to Waysender T'Thox, who is outside of the Blind Fish Tavern (you
@@ -236,17 +240,30 @@ var wayRoutes = map[string][]wayRoute{
 	// Necrologist Zizclank and his assistant Necroloigst Xeptip. Then you want
 	// to enter the mausoleum in the middle" (portal/plane-of-disease, "Dead
 	// Hills (NW)", the Rathe's: world 1). The live game's flag quest is not
-	// in, so Zizclank sends anyone of the quest's level, 50, to the portal
+	// in, so Zizclank sends anyone of the quest's level to the portal
 	// players arrive at, which sends them back. tools/seed_pod.py places
 	// these NPCs.
+	// The wiki's level, 51 (wiki.eqoa.live's "Plane of Disease: Portal
+	// Quest"; the owner, 2026-11-13: "yes match it to the wiki"). The trips
+	// land in the Last House's entrance hall; its ward (a questwalls row of
+	// the suit and The Last House: tools/pod_wiki_20261113.py) lets a player
+	// who finished the quest through, and anyone else only with the zombie
+	// flesh suit (the owner, 2026-11-13: "let flagged players through").
 	"Necrologist Zizclank": {
-		{To: "the Plane of Disease", At: podArrival, MinLevel: 50},
+		{To: "the Plane of Disease", At: podArrival, MinLevel: podLevel},
 	},
 	"Mausoleum Portal": {
 		// The portal itself (ticket 1197): the guide's flag lets a player "port
 		// there anytime", and this talked only on The Last House's own first step.
 		// The same trip as Zizclank's, opened by the same quest (questunlocks).
-		{To: "the Plane of Disease", At: podArrival, MinLevel: 50},
+		{To: "the Plane of Disease", At: podArrival, MinLevel: podLevel},
+	},
+	// The Last House's far portal (the wiki's Oozing Portal): the quest's last
+	// step (the suit shown), then for one who finished it the way on, no suit
+	// asked (the owner, 2026-11-13: "let flagged players through"); its
+	// landing the step's.
+	"Oozing Portal": {
+		{To: "the Plane of Disease", At: &wayPlace{World: 5, X: 5063, Y: -25.3, Z: 3866}, MinLevel: podLevel},
 	},
 	"Portal to the Dead Hills": {
 		{To: "the Dead Hills", Arrive: "Necrologist Zizclank"},

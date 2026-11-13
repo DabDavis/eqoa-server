@@ -519,6 +519,12 @@ func main() {
 		log.Printf("Item lists: the pack holds %d and the bank %d for a client that holds them; a PS2 holds %d of each (world.pack_slots, world.bank_slots)",
 			pack, bank, entity.ClientItemSlots)
 	}
+	// the operator's damage formulas (entity/dmgformula.go, docs/damage-formulas.md):
+	// read now, again within a second of the file changing; never logged but by name
+	if cfg.Combat.FormulaFile != "" {
+		gameWorld.SetDamageFormulaFile(cfg.Combat.FormulaFile)
+		go gameWorld.WatchDamageFormulas(nil)
+	}
 	gameWorld.SetJumps(cfg.World.Jump) // entity/jump.go, handlers/jump.go
 	handlers.SetJumps(cfg.World.Jump)
 	if cfg.World.Jump {

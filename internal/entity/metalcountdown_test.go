@@ -76,7 +76,7 @@ func TestMetalMoogieCountsDownToTheFight(t *testing.T) {
 		hp := c.HP
 		r.w.playerHitLocked(sa, a, c, oa)
 		r.w.landOnNPCLocked(&castState{spell: nuke, caster: a.ServerID, targets: []EntityID{c.ServerID}}, a, sa, c, r.at(d))
-		r.w.spellHitHateLocked(a, sa, c, 500, 0, numberSpell)
+		r.w.spellHitHateLocked(a, sa, c, 500, 0, numberSpell, nil)
 		if ids, why := r.w.castTargetsLocked(sa, a, &nuke, oa); len(ids) != 0 || why != MetalLineWait {
 			t.Errorf("Anna's nuke before FIGHT: %v %q", ids, why)
 		}

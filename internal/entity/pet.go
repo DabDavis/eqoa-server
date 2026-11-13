@@ -1377,6 +1377,12 @@ func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, bal
 			w.sendDamageIndication(sess, sess.PlayerObjectID(), -n, tid, kind.byPet())
 		}
 	}
+	raw := n
+	if balanced {
+		n = w.petDealtLocked(pet, t, n) // balance.go (a dummy's as it is: unbalanced)
+	}
+	// the operator's formula for the hit's kind (dmgformula.go: pet_melee, pet_spell, ...)
+	n = w.formulaDamage(n, dmgIn{src: srcPet, kind: dmgKindOf(kind), an: pet, dn: t, owner: owner, raw: raw})
 	if t.Dummy != NotDummy {
 		// told, taken off nothing; the dummy's hate is the pet's (dummy.go)
 		tell()
@@ -1385,9 +1391,6 @@ func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, bal
 	}
 	if t.duelHeld() {
 		return false // a Metal Moogie's countdown: nothing lands (metalmoogie.go, petition 1623)
-	}
-	if balanced {
-		n = w.petDealtLocked(pet, t, n) // balance.go
 	}
 	n = w.npcTakesLocked(t, n, now)             // nothing while held at 1 (deathhold.go)
 	w.tallyDamageLocked(t, owner, min(n, t.HP)) // killcredit.go: the owner's

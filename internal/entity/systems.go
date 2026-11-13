@@ -314,8 +314,10 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	// (balance.go: its level's, its con's and the player's class's); an add's
 	// as its creature's at its share (summon.go)
 	src := npc.figures()
-	damage := npc.shared(w.npcHitPlayerLocked(src, player, npcMeleeOn(src, player, meleeIntn)))
-	damage = mitigateLocked(player, damage, now) // workbook.go: a mitigation's share off
+	raw := npcMeleeOn(src, player, meleeIntn)
+	damage := npc.shared(w.npcHitPlayerLocked(src, player, raw))
+	damage = mitigateLocked(player, damage, now)                                                       // workbook.go: a mitigation's share off
+	damage = w.formulaDamage(damage, dmgIn{src: srcNPC, kind: dkMelee, an: npc, dp: player, raw: raw}) // dmgformula.go
 	player.HP -= damage
 	w.contactPlayerLocked(player)       // what ends at a hit (workbook.go)
 	w.breakInvisLocked(player, "a hit") // invis.go: every invisibility, whatever gave it

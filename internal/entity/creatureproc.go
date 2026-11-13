@@ -206,6 +206,7 @@ func (w *World) abilityProcsOnPlayerLocked(sess *session.Session, p *Player, npc
 		if taken <= 0 {
 			continue
 		}
+		taken = w.formulaDamage(taken, dmgIn{src: srcNPC, kind: dkProc, an: npc, dp: p, raw: take, resist: v.resist}) // dmgformula.go
 		w.veilLookLocked(npc, p.ServerID, v)
 		p.HP = max(p.HP-taken, 0)
 		p.StatsDirty = true
@@ -346,6 +347,7 @@ func (w *World) creatureProcStatHitLocked(sess *session.Session, p *Player, npc 
 		taken = max(int(math.Round(float64(taken)*(1-share))), 1)
 		words = " (" + resistWords(share, how) + ")"
 	}
+	taken = w.formulaDamage(taken, dmgIn{src: srcNPC, kind: dkProc, an: npc, dp: p, raw: damage, resist: resist}) // dmgformula.go
 	w.broadcastNPCSwingLocked(npc, p.ServerID, 0, fx)
 	p.HP = max(p.HP-taken, 0)
 	p.StatsDirty = true

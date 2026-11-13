@@ -56,6 +56,8 @@ func (w *World) creatureShieldLocked(sess *session.Session, p *Player, npc *NPC,
 		taken = max(int(math.Round(float64(taken)*(1-share))), 1)
 		words = " (" + resistWords(share, how) + ")"
 	}
+	taken = w.formulaDamage(taken, dmgIn{src: srcNPC, kind: dkShield, an: npc, dp: p, raw: t.ShieldDamage,
+		resist: shieldResistStat(t.ShieldResist)}) // dmgformula.go
 	w.broadcastNPCSwingLocked(npc, p.ServerID, 0, fxShieldHit)
 	p.HP = max(p.HP-taken, 0)
 	p.StatsDirty = true
@@ -143,6 +145,7 @@ func (w *World) creatureProcHitLocked(sess *session.Session, p *Player, npc *NPC
 		taken = max(int(math.Round(float64(taken)*(1-share))), 1)
 		words = " (" + resistWords(share, how) + ")"
 	}
+	taken = w.formulaDamage(taken, dmgIn{src: srcNPC, kind: dkProc, an: npc, dp: p, raw: damage, resist: shieldResistStat(resist)}) // dmgformula.go
 	w.broadcastNPCSwingLocked(npc, p.ServerID, 0, templateSpecialFX)
 	p.HP = max(p.HP-taken, 0)
 	p.StatsDirty = true

@@ -388,6 +388,32 @@ func (s *Server) registerWorldOps() {
 		},
 	})
 	s.addOp(&Op{
+		Name: "reload_formulas", Title: "Reload the damage formulas", Scope: scopeAdmin,
+		Description: "Read the server's damage formula file (combat.formula_file, kept on the server's machine) again " +
+			"at once, without a restart (the server also reloads it within a second of the file changing). Answers " +
+			"with the names of the formulas now in use; a file with a mistake is refused whole and the formulas in use " +
+			"stay. Never shows a formula's text. An admin only.",
+		Handler: func(c *opCtx) (any, error) {
+			if c.s.d.World == nil {
+				return nil, badRequest("no world is running")
+			}
+			names, err := c.s.d.World.ReloadDamageFormulas() // entity/dmgformula.go: the error names lines, never the text
+			if err != nil {
+				c.s.audit(c.a, "live", "", nil, nil, nil, "damage formulas not reloaded: "+err.Error())
+				return nil, badRequest("%v", err)
+			}
+			if names == nil {
+				names = []string{}
+			}
+			msg := fmt.Sprintf("damage formulas reloaded: %d in use", len(names))
+			if len(names) > 0 {
+				msg += " (" + strings.Join(names, ", ") + ")"
+			}
+			c.s.audit(c.a, "live", "", nil, nil, nil, msg)
+			return map[string]any{"formulas": names, "message": msg}, nil
+		},
+	})
+	s.addOp(&Op{
 		Name: "broadcast", Title: "Message everyone", Scope: scopeWrite, Core: true,
 		Description: "Send one line to every player in the world, in their chat window (as from the server).",
 		Input:       obj(map[string]any{"text": str("the line (up to 400 characters)"), "colour": colourSchema}, "text"),

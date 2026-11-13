@@ -997,6 +997,23 @@ var catalog = map[string]tableNote{
 			"source":  {Label: "Source", Help: "gm, or the tool that wrote it"},
 		},
 	},
+	"npcrare": {
+		Label: "Rare spawns", Group: "World", Title: "npc_row", Sort: "npc_row",
+		Help: "A rare spawn on a placeholder, by the placeholder's row in NPCs: each time it comes back from a death it " +
+			"comes back as the rare (an NPC name: the lowest row of that name is what it is made from, on the " +
+			"placeholder's spot) chance percent of the time while no creature of the rare's name stands alive, else as " +
+			"itself. The rare's own row should stand out of the world (NPC spawn only, \"#<its row>\"), so it is never on a " +
+			"clock of its own. Lord Koreshaa on the Welahi-nai myrmidons of Kerran Isle (the owner, 2026-11-13).",
+		Live:   "At once: each placeholder rolls by it the next time it comes back.",
+		Search: []string{"rare", "note"},
+		Cols: map[string]colNote{
+			"npc_row": {Label: "Placeholder row", Ref: "npcs", Help: "its id in NPCs"},
+			"rare":    {Label: "Rare", Help: "the NPC name it comes back as (any case)"},
+			"chance":  {Label: "Chance", Help: "percent of its returns, above 0 and at most 100"},
+			"note":    {Label: "Note"},
+			"source":  {Label: "Source", Help: "gm, or the tool that wrote it"},
+		},
+	},
 	"npcundead": {
 		Label: "Undead creatures", Group: "World", Title: "name", Sort: "name",
 		Help: "Which creatures are undead, by NPC NAME (lower case, no trailing $): the spells for undead alone (a " +

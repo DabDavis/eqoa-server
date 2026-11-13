@@ -251,6 +251,8 @@ func (w *World) respawnNPCLocked(npc *NPC) {
 	if npc.Dead {
 		// a camp's spawn back from a death pops one of its kinds (campspawn.go)
 		w.campRekindLocked(npc, time.Now())
+		// a placeholder pops its rare, or is itself again (npcrare.go)
+		w.rareRekindLocked(npc, time.Now())
 	}
 	npc.X = npc.SpawnX
 	npc.Y = npc.SpawnY

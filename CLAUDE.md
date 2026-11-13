@@ -2297,6 +2297,17 @@ Kithgrin, the Trial of Celerity, the statue, the talisman's self port of 500 cha
 at the start. Not built: the phantasms' root of players and mana tap, death touch, frontal cones, AoE DoTs, the walls
 that close when CazicThule wakes.
 
+**Rare spawns on placeholders and a cast held for a share of hit points** (2026-11-13, the owner's Lord Koreshaa: "wehali
+myrmidon in kerran isle is a placeholder", "when he gets down to 1/3 hp 3500 ar nuke he fires once"): table `npcrare`
+(`entity/npcrare.go`, panel "Rare spawns": placeholder `npc_row`, `rare` an NPC name, `chance` percent) makes the
+placeholder come back from a death as the rare (its lowest row of that name, on the placeholder's spot, as a camp's kind:
+`makeKindLocked`) at its chance while no creature of the rare's name stands alive, else as itself; the rare's own row is
+spawn-only by `#id`; a restart that keeps players keeps it. A template ability's `below` on any cast but a heal (nuke,
+lifetap, aoe, debuff, dot, root, strip) holds it until its creature's hit points are below that percent; `every` 3600
+makes it once a fight. Data: `tools/koreshaa_20261113.py` (Return Home's Lord Koreshaa row again, spawn-only; npcrare on
+myrmidon 132354 at 10%; template "lord koreshaa": 150,042 HP at 62, melee 750, a 1,500 crit, Fury of the Pride 3,500 AR
+below 34%, hitheal 15 as the Crown of the Jaguar's; the crown 6248 at 100%), read at the start.
+
 ### The Teleporter: every raid's way in and every XP camp (`handlers/teleporter.go`, `world.teleporter`, `tools/place_teleporter.py`)
 
 The owner, 2026-11-09: "lets add a portal npc named Teleporter. has destinations of all raids and camps", "put it next to

@@ -212,7 +212,7 @@ func (w *World) keptStateLocked(npc *NPC, now time.Time, all bool) (KeptNPC, boo
 	}
 	// a camp's spawn standing as another of its kinds than its row's: its name
 	// says which (campspawn.go)
-	kind := w.campKindChangedLocked(npc)
+	kind := w.campKindChangedLocked(npc) || w.rareKindChangedLocked(npc) // or a placeholder as its rare (npcrare.go)
 	if !all && !away && !k.Dead && k.MaxHP == 0 && k.Home == nil && k.PathDir == 0 && !k.ToSpawn && !kind && len(k.Cooldowns) == 0 {
 		return KeptNPC{}, false
 	}
@@ -305,8 +305,8 @@ func (w *World) RestoreNPCs(kept []KeptNPC) NPCsRestored {
 			r.NewNPC++
 			continue
 		}
-		if w.campKeptKindLocked(npc, k.Name) {
-			r.Kind++ // a camp's spawn, as the kind it stood as (campspawn.go)
+		if w.campKeptKindLocked(npc, k.Name) || w.rareKeptKindLocked(npc, k.Name) {
+			r.Kind++ // a camp's spawn, as the kind it stood as (campspawn.go), or a placeholder as its rare (npcrare.go)
 		}
 		w.restoreNPCLocked(npc, k, onRow, &r)
 	}

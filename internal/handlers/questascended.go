@@ -63,7 +63,13 @@ func (q *QuestEngine) ascendedMapLocked() map[int]int {
 	if q.items == nil {
 		return entity.AscendedItems()
 	}
+	if q.pass != nil && q.pass.asc != nil {
+		return q.pass.asc // read once a marks pass (questpass.go)
+	}
 	m, err := q.items.AscendedMap()
+	if err == nil && q.pass != nil {
+		q.pass.asc = m
+	}
 	if err != nil {
 		log.Printf("Quests: the Ascended records: %v", err)
 		return entity.AscendedItems()

@@ -97,7 +97,10 @@ func Quests() *QuestEngine { return questEngine.Load() }
 
 // QuestEngine runs the quests.
 type QuestEngine struct {
-	mu     sync.Mutex
+	mu sync.Mutex
+	// pass holds one player's pack and the Ascended table for a marks pass
+	// (questpass.go), nil outside one
+	pass   *questPass
 	store  *database.QuestStore
 	inv    *database.InventoryStore
 	items  *database.ItemPatternStore
@@ -1685,7 +1688,7 @@ func (q *QuestEngine) itemsOn(p *entity.Player, worn bool) []database.CharInvent
 	if q.inv == nil {
 		return nil
 	}
-	rows, err := q.inv.GetCharacterItems(p.CharServerID)
+	rows, err := q.packRowsLocked(p)
 	if err != nil {
 		log.Printf("Quests: %s's inventory: %v", p.Name, err)
 		return nil

@@ -144,6 +144,8 @@ type ClassTemplate struct {
 	veils     []templateVeil
 	selfBuffs []templateSelfBuff
 	killSays  []templateKillSay
+	// kickZones are its zones that kick who steps in (AbilityKickZone: kickzone.go)
+	kickZones []database.TemplateAbility
 	// farCasts: one of its abilities is cast only out of its reach (OutOfReach)
 	farCasts bool
 	// problems is what of it the world cannot use, for the log and the panel
@@ -397,6 +399,7 @@ func (w *World) applyTemplateLocked(npc *NPC) {
 		npc.tbase = templateBase{class: npc.Class, maxHP: npc.MaxHP}
 	}
 	npc.tmpl = t
+	w.kickZoneWatchLocked(npc) // kickzone.go
 	npc.endTemplateFight()
 	class, maxHP := npc.tbase.class, npc.tbase.maxHP
 	if t != nil {
@@ -676,6 +679,9 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 				continue
 			case database.AbilityKillSay:
 				t.killSays = append(t.killSays, killSayOf(ra)) // selfbuff.go
+				continue
+			case database.AbilityKickZone:
+				t.kickZones = append(t.kickZones, ra) // kickzone.go
 				continue
 			}
 			t.farCasts = t.farCasts || ra.OutOfReach

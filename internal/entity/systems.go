@@ -101,7 +101,8 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.npcRegenSystem(now) // creatures out of a fight (npcregen.go)
 	t.mark(tsNPCRegen)
 	w.breathSystem(now)
-	w.hazardSystem(now) // hazards.go
+	w.hazardSystem(now)   // hazards.go
+	w.kickZoneSystem(now) // kickzone.go
 	t.mark(tsBreath)
 	w.silentAirSystem(now) // movecheck.go
 	t.mark(tsSilentAir)

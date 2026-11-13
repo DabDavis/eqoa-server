@@ -33,9 +33,14 @@ import (
 // (owner) and the opener's group: its members go in from the Dungeon Warden (or /dungeon) into theirs. Who may stand
 // in one: its owner and the members of the owner's group of the moment (the instance follows its owner into a group
 // formed later, or another); anyone else is sent out within a few seconds (dungeonsSystem), as is a player standing in
-// the world with no instance (a GM's move or a keep restart: instances are not kept over a restart). An instance no
-// one has stood in for CloseAfter closes: its creatures go. Where a player came from is kept (in memory) for its way
-// out; else it goes in front of the Dungeon Warden outside.
+// the world with no instance (a GM's move, or a cold start: the instances live in memory). An instance no one has
+// stood in for CloseAfter closes: its creatures go. Where a player came from is kept (in memory) for its way out; else
+// it goes in front of the Dungeon Warden outside.
+//
+// A restart that keeps the sessions keeps the instances too (keepdungeon.go; the owner, 2026-11-13: "on server
+// restart the instanced raids are booting players, lets keep them in the instance and progress"): each under its id,
+// its creatures alive where they stood at their hit points, its corpses lying with what they hold, its killed ones
+// still killed, the players in it back in it where they stood, and the ways out.
 
 // DungeonWardenName is the NPC that opens the dungeons (tools/dungeons_20261112.py stands one beside Dabrish and its
 // twin, the way out, at each dungeon's entrance).
@@ -135,6 +140,9 @@ type dungeonsState struct {
 	movedAt map[EntityID]time.Time
 	badAt   map[EntityID]time.Time // when a player was first seen where it may not stand
 	checkAt time.Time
+	// resumeIn is, while a restart that keeps the sessions puts them back, the instance each character stood in
+	// (keepdungeon.go); empty otherwise
+	resumeIn map[uint32]uint32
 }
 
 // SetDungeons turns the dungeons on (or off) in world with its dungeons. Their rows become templates (out of the
@@ -565,6 +573,11 @@ func (w *World) dungeonNearEntranceLocked(def int, x, z float32) bool {
 func (w *World) dungeonInstanceOnLoadLocked(p *Player) uint32 {
 	if !w.inDungeonsLocked(p) {
 		return 0
+	}
+	if id, ok := w.dungeons.resumeIn[p.CharServerID]; ok && w.dungeons.insts[id] != nil {
+		// carried through a restart standing in it: back in it where it stood (keepdungeon.go), left alone a while
+		w.dungeons.movedAt[p.ServerID] = time.Now()
+		return id
 	}
 	if in := w.dungeonLoginInstLocked(p.CharServerID, p.GroupID, p.X, p.Z); in != nil {
 		return in.id

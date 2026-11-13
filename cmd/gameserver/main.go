@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/http"
+	"net/http/pprof"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -60,6 +62,21 @@ func main() {
 	if cfg.Server.GCPercent > 0 {
 		debug.SetGCPercent(cfg.Server.GCPercent)
 		log.Printf("Memory: the heap may grow %d%% past what is live before a collection", cfg.Server.GCPercent)
+	}
+	if a := cfg.Server.PprofAddr; a != "" {
+		if !strings.HasPrefix(a, "127.0.0.1:") && !strings.HasPrefix(a, "localhost:") && !strings.HasPrefix(a, "[::1]:") {
+			log.Printf("Profiler: %s is not a loopback address; not served", a)
+		} else {
+			// its own mux: the profiler never lands on a listener that serves the
+			// default one
+			mux := http.NewServeMux()
+			mux.HandleFunc("/debug/pprof/", pprof.Index)
+			mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+			mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+			mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+			go func() { log.Printf("Profiler: stopped: %v", http.ListenAndServe(a, mux)) }()
+			log.Printf("Profiler: net/http/pprof on %s", a)
+		}
 	}
 	if cfg.Server.NoHugePages {
 		if err := disableHugePages(); err != nil {

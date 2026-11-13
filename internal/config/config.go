@@ -143,6 +143,12 @@ type ServerConfig struct {
 	// any of, undoing what the runtime gives back: 60 MB of an idle server of 150.
 	NoHugePages bool `yaml:"no_huge_pages"`
 
+	// PprofAddr serves Go's profiler (net/http/pprof) at this address when
+	// set, for finding what a slow tick spends its time on (the owner,
+	// 2026-11-13: "lets look if we can fix tick spikes on the server"). Bind it
+	// to loopback only (127.0.0.1:6061): it is no one else's. Empty: off.
+	PprofAddr string `yaml:"pprof_addr"`
+
 	// PacketLog writes the packet path's debug lines: every packet received
 	// and sent, its DRDP and state channel work (internal/debuglog). Off by
 	// default: about 100 lines a second a player. cmd/movereplay reads the

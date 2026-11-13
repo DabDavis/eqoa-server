@@ -59,7 +59,8 @@ package entity
 //     gone; a spawn-only original, which never leaves its spawn.
 //   - what no row made (Temporary): a player's pet (made again by its spell
 //     beside its master who comes back: keeppet.go), a GM's /spawn, a quest's or
-//     a trigger's copy, a genie, a portal. Nothing makes the rest again: they
+//     a trigger's copy (a run's living spawn is carried with its run:
+//     keeptrigger.go), a genie, a portal. Nothing makes the rest again: they
 //     are gone, but for a copy's corpse that lies, which keepcopy.go carries
 //     (2026-11-12) with what is on it.
 //

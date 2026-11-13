@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+const mercCombatWait = time.Second
+
 // mercfight.go — a merc's fight (merc.go): what it takes on, its melee, and
 // its damage, whose kills are its owner's.
 //
@@ -130,9 +132,24 @@ func (w *World) mercLeftBehindLocked(ms *mercState, id EntityID) bool {
 // attacks in one), else its place: at its target's side swinging (a tank or a
 // melee fighter), in reach of it (a healer or a caster), else beside its owner
 // or where it holds. Must be called with the lock held.
-func (w *World) mercTurnLocked(ms *mercState, dt float32, now time.Time) {
+func (w *World) mercTurnLocked(ms *mercState, dt float32, now time.Time, ownerInCombat bool) {
 	m := ms.npc
 	w.mercChooseTargetLocked(ms)
+	// Wait once when combat begins. The owner's group remains in combat
+	// while a living creature has one of them on its hate list, even during
+	// a gap in this merc's targets. An explicit attack order can act at once.
+	if ms.target == 0 && !ownerInCombat && !w.mercInFightLocked(ms) {
+		ms.combatReady = time.Time{}
+	} else if ms.combatReady.IsZero() {
+		ms.combatReady = now.Add(mercCombatWait)
+	}
+	if ms.ordered == 0 && now.Before(ms.combatReady) {
+		ms.target = 0 // choose again after the wait, in case the pull is cancelled
+		ms.mercIdleNoteBusy(now)
+		m.endRound()
+		m.stopMoving()
+		return
+	}
 	t := w.NPCs[ms.target]
 	if ms.target == 0 {
 		t = nil

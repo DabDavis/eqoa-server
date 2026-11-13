@@ -181,6 +181,9 @@ type mercState struct {
 	// fought whatever its stance until it dies or goes
 	target, ordered EntityID
 	last            time.Time // its last step
+	// combatReady is the end of the wait at the start of automatic combat.
+	// It stays set across targets until the merc and its owner's fight ends.
+	combatReady time.Time
 	// ready is when each spell may be cast again (its lockout: cast time,
 	// recast and castLockoutExtra from its start), by id; artReady the arts'
 	// global cooldown (balance.go); busy a cast's time and castBusy after it,
@@ -937,6 +940,7 @@ func (w *World) mercSystem(now time.Time) {
 		return
 	}
 	w.mercCastSystemLocked(now)
+	engaged := w.dpsEngagedLocked()
 	for _, ms := range w.allMercsLocked() {
 		if !w.mercLiveLocked(ms) {
 			continue // gone in an earlier one's turn (its group's standby)
@@ -977,6 +981,7 @@ func (w *World) mercSystem(now time.Time) {
 			// out of its owner's group, its box (or another's) up: it stands
 			// where it is and fights nothing until the answer (mercgroup.go)
 			ms.target, ms.ordered = 0, 0
+			ms.combatReady = time.Time{}
 			n.endRound()
 			n.stopMoving()
 			w.mercPetTurnLocked(ms, sess, false, dt, now)
@@ -986,6 +991,7 @@ func (w *World) mercSystem(now time.Time) {
 			// its owner down: it stands where it is, out of every fight of its
 			// own (a creature fighting it still does), until its owner is back
 			ms.target, ms.ordered = 0, 0
+			ms.combatReady = time.Time{}
 			n.endRound()
 			n.stopMoving()
 			w.mercPetTurnLocked(ms, sess, false, dt, now)
@@ -1003,9 +1009,10 @@ func (w *World) mercSystem(now time.Time) {
 			w.SpatialIndex.Update(n.ServerID, oldX, oldZ, n.X, n.Z)
 			syncMercBody(ms)
 		}
-		w.mercTurnLocked(ms, dt, now)
+		w.mercTurnLocked(ms, dt, now, engaged[id])
 		syncMercBody(ms)
-		w.mercPetTurnLocked(ms, sess, true, dt, now) // its own pet (mercpet.go)
+		fight := ms.ordered != 0 || !now.Before(ms.combatReady)
+		w.mercPetTurnLocked(ms, sess, fight, dt, now) // its own pet (mercpet.go)
 	}
 }
 

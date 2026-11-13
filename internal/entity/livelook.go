@@ -113,9 +113,12 @@ func nearestTint(c uint32) byte {
 }
 
 // LookDyes is what the live game's look draws the player in: its dyes
-// (chardyes), and its worn robe's and armour's own colours where it has no
-// dye for the slot (RobeColor, ArmorColors: handlers' wornLook; the user,
-// 2026-11-06: "shirt of blackened links should be pitch black").
+// (chardyes), and its worn robe's, armour's and held items' own colours where
+// it has no dye for the slot (RobeColor, ArmorColors, HeldColors: handlers'
+// wornLook; the user, 2026-11-06: "shirt of blackened links should be pitch
+// black"; 2026-11-13: a sword "with a evil aura"). A held item's goes out as
+// the channel's bytes 99-110 (LiveChannel), which until then carried only a
+// weapon's dye; a PS2 is sent the disc's 162 bytes, which have no place for it.
 func (p *Player) LookDyes() *Dyes {
 	d := p.Dyes
 	changed := false
@@ -125,6 +128,11 @@ func (p *Player) LookDyes() *Dyes {
 	for i, c := range p.ArmorColors {
 		if c != 0 && d[i] == 0 {
 			d[i], changed = c, true
+		}
+	}
+	for i, c := range p.HeldColors {
+		if c != 0 && d[database.DyePrimary+i] == 0 {
+			d[database.DyePrimary+i], changed = c, true
 		}
 	}
 	if !changed {

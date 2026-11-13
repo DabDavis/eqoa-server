@@ -93,8 +93,12 @@ func (h *LiveLookHandler) HandleLiveLook(sess *session.Session, msg *protocol.Me
 }
 
 // listGear is a character's 0x002C gear as sess's client reads it: the
-// disc's 32 bytes, or the live game's 71 with its dyes.
-func (h *CharacterHandler) listGear(sess *session.Session, serverID uint32, disc []byte) []byte {
+// disc's 32 bytes, or the live game's 71 with its dyes and, where a slot has
+// none, the worn items' own colours (worn: its wornLook; Player.LookDyes, as
+// its channel carries them in the world). Until 2026-11-13 the list carried
+// the dyes alone, so a held item's colour (the Heirloom Sword of Twisted
+// Virtue's crimson) or a worn piece's did not show at character select.
+func (h *CharacterHandler) listGear(sess *session.Session, serverID uint32, disc []byte, worn *entity.Player) []byte {
 	if !sess.LiveLook() {
 		return disc
 	}
@@ -106,7 +110,11 @@ func (h *CharacterHandler) listGear(sess *session.Session, serverID uint32, disc
 			d = entity.Dyes(got)
 		}
 	}
-	return entity.LiveGear(disc, &d)
+	if worn == nil {
+		return entity.LiveGear(disc, &d)
+	}
+	worn.Dyes = d
+	return entity.LiveGear(disc, worn.LookDyes())
 }
 
 // loadDyes puts a character's dyes (table chardyes) on its player at a

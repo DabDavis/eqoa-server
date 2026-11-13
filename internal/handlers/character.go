@@ -1405,6 +1405,7 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 	player.Robe, player.RobeWorn, player.Primary, player.Secondary, player.Shield = 0, false, 0, 0, 0
 	player.RobeTint, player.RobeColor = 0, 0
 	player.ArmorColors = [len(player.ArmorColors)]uint32{}
+	player.HeldColors = [len(player.HeldColors)]uint32{}
 	player.PrimaryType, player.SecondaryType = 0, 0
 	player.CapeStyle, player.CapeColor = 0, 0
 	// the worn looks the character hides (entity/hidelook.go): a part is
@@ -1472,14 +1473,17 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 	}
 	if item := first(16, 14, 19); item != nil {
 		player.Primary, player.PrimaryType = uint32(item.Pattern.Model), byte(item.Pattern.AttackType)
+		player.HeldColors[0] = entity.ArmorColor(item.Pattern.Color)
 		hide(entity.HidePrimary, item)
 	}
 	if item := first(15, 20, 18); item != nil {
 		player.Secondary, player.SecondaryType = uint32(item.Pattern.Model), byte(item.Pattern.AttackType)
+		player.HeldColors[1] = entity.ArmorColor(item.Pattern.Color)
 		hide(entity.HideSecondary, item)
 	}
 	if item := first(17); item != nil {
 		player.Shield = uint32(item.Pattern.Model)
+		player.HeldColors[2] = entity.ArmorColor(item.Pattern.Color)
 		hide(entity.HideShield, item)
 	}
 }
@@ -1881,13 +1885,16 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 		}
 		// the live game's record to a client of its look, with the dyes
 		// (livelook.go); the disc's 32 bytes to every other
-		gear := characterGearHiding(items, h.hiddenLooks(uint32(c.ServerID)))
+		hidden := h.hiddenLooks(uint32(c.ServerID))
+		gear := characterGearHiding(items, hidden)
 		if entity.IsWispRace(int(c.Race)) {
 			// a Wisp at select is in its own form: nothing worn shows but its
 			// cape (entity/wispform.go)
 			entity.HideCharacterGear(gear)
 		}
-		writer.WriteBytes(h.listGear(sess, uint32(c.ServerID), gear))
+		worn := entity.Player{HiddenLocs: hidden}
+		wornLook(&worn, items)
+		writer.WriteBytes(h.listGear(sess, uint32(c.ServerID), gear, &worn))
 		// its cape, for a client that draws capes (capes.go), in its dye if it
 		// has one
 		if lc, ok := characterCape(uint32(c.ServerID), items, h.hiddenLooks(uint32(c.ServerID))); ok && wantCapes {

@@ -52,7 +52,14 @@ type Player struct {
 	// by dye slot (database.DyeChest ... DyeHelm), 0 none: a record's colour
 	// that is a colour (0xRRGGBBAA, not a disc tint's index or white), drawn
 	// where the slot has no dye, as a robe's is (ArmorColor, LookDyes)
-	ArmorColors   [6]uint32
+	ArmorColors [6]uint32
+	// HeldColors are the held items' own colours for the live game's look
+	// (main hand, off hand, shield: the channel's items 0-2, by dye slot
+	// database.DyePrimary + i), 0 none: the record's colour when it is a
+	// colour, as ArmorColors (ArmorColor), drawn where the hand has no dye.
+	// A client that draws it recolours the item's glow (vanilla; the user,
+	// 2026-11-13: the Heirloom Sword of Twisted Virtue's crimson aura)
+	HeldColors    [3]uint32
 	Primary       uint32
 	Secondary     uint32
 	Shield        uint32

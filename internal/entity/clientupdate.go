@@ -221,4 +221,6 @@ func (w *World) ApplyClientUpdate(id EntityID, u ClientUpdate) {
 	w.orbStepLocked(p, before, now)
 	// a banner, a stand or a power-up of the arena's match it touches (ctfflag.go)
 	w.ctfStepLocked(p, now)
+	// a fall off the Plane of Sky's islands (skyfall.go)
+	w.skyFallStepLocked(p, now)
 }

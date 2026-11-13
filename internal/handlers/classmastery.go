@@ -713,8 +713,8 @@ func (h *ClassMasteryHandler) resetMasteries(who *session.Session) cmReset {
 		}
 	}
 	list := h.gameWorld.CMList(who, h.cmKnowsOf(p))
-	out, back := entity.CMRemovalBook(h.ranksOf(res.Removed), nil) // the ranks as one (entity.CMRemovalBook)
-	h.takeAbilities(who, p, out)
+	gone, back := entity.CMRemovalBook(h.ranksOf(res.Removed), nil) // the ranks as one (entity.CMRemovalBook)
+	h.takeAbilities(who, p, gone)
 	h.giveAbilities(who, p, back)
 	for i, id := range res.Removed {
 		flags := flagsLastOf(i, len(res.Removed), list)

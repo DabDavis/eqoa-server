@@ -1464,6 +1464,16 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 	case "#fly":
 		// #fly [on|off]: a GM's flight, alone it turns over (fly.go)
 		h.flyCommand(sess, parts[1:])
+	case "#raidboss":
+		// #raidboss: the raid bosses alive in the world now, where, and their
+		// hit points (the GM Jibwiz's petition 1947; entity/heroes.go)
+		lines := h.gameWorld.RaidBossesUp()
+		if len(lines) == 0 {
+			h.gmReply(sess, "No raid boss is up.")
+		}
+		for _, l := range lines {
+			h.gmReply(sess, l)
+		}
 	case "#noclip":
 		// #noclip [on|off]: the server's own GMs' flight through walls, alone it
 		// turns over (noclip.go, petition 1904)

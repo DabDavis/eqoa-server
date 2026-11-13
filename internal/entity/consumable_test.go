@@ -52,9 +52,13 @@ func TestConsumeAddsToTheRegen(t *testing.T) {
 		p.Buffs[1] != (BuffSlot{Icon: waterIcon, Name: "well water"}) {
 		t.Fatalf("effects channel %+v", p.Buffs)
 	}
+	// each one's first tick at once (petition 1942): 500+10, 100+2
+	if p.HP != 510 || p.Power != 102 {
+		t.Errorf("eaten and drunk: %d HP, %d power; want 510, 102", p.HP, p.Power)
+	}
 	p.regenTick()
-	if p.HP != 530 || p.Power != 112 {
-		t.Errorf("a tick: %d HP, %d power; want 530, 112", p.HP, p.Power)
+	if p.HP != 540 || p.Power != 114 {
+		t.Errorf("a tick: %d HP, %d power; want 540, 114", p.HP, p.Power)
 	}
 	b := SerializeStatUpdate(p)
 	// CLIENT's stat 12 (offset 48) is HoT, 13 (52) PoT (petition 1091)
@@ -369,17 +373,23 @@ func TestConsumeMealTakenWhileFought(t *testing.T) {
 	}
 }
 
-// A meal runs on through a fight (the owner, 2026-11-13).
-func TestAMealRunsThroughAFight(t *testing.T) {
+// A meal eaten in a fight gives its first tick at once and ends at its
+// eater's next hit taken or aggressive act (the GM Jibwiz's petition 1942).
+func TestAMealInAFightTicksOnceThenEnds(t *testing.T) {
 	w, sess, p, now := newEater(t)
+	p.AttackTarget = 2002
+	hp := p.HP
 	if err := w.Consume(sess, Consumable{Name: "Food", Icon: breadIcon, Amount: 10}, now); err != nil {
 		t.Fatal(err)
 	}
-	p.AttackTarget, p.LastCombatTime = 2002, now.Add(time.Second)
+	if p.HP != hp+10 {
+		t.Fatalf("the first tick: HP %d, want %d", p.HP, hp+10)
+	}
+	p.LastCombatTime = now.Add(time.Second)
 	w.mu.Lock()
 	w.consumableSystem(now.Add(2 * time.Second))
 	w.mu.Unlock()
-	if p.HoTNow() < 10 {
-		t.Errorf("the meal ended in the fight: HoT %d", p.HoTNow())
+	if p.HoTNow() >= 30 {
+		t.Errorf("the meal ran on through the fight: HoT %d", p.HoTNow())
 	}
 }

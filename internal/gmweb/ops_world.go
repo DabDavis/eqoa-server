@@ -351,7 +351,7 @@ func (s *Server) registerWorldOps() {
 		Description: "Put the whole npcs table into the running world again: NPCs whose rows changed outside the " +
 			"panel (an importer, SQL) are remade, new rows spawn, deleted rows leave; unchanged NPCs are left as they " +
 			"are. The GMs' temporary spawns stay. The class templates (classtemplates, npctemplate) are read again first, " +
-			"and the NPCs' body tints (npctint) after, sent to the clients that draw them where they changed.",
+			"and the NPCs' body tints (npctint) and the items' auras (itemaura) after, sent to the clients that draw them where they changed.",
 		Handler: func(c *opCtx) (any, error) {
 			if c.s.d.World == nil || c.s.d.NPCs == nil {
 				return nil, badRequest("no world is running")
@@ -376,6 +376,12 @@ func (s *Server) registerWorldOps() {
 					return nil, err
 				}
 				msg += fmt.Sprintf("; %d name(s) tinted, sent to %d client(s)", names, told)
+				// and the worn pieces' auras (entity/pieceaura.go)
+				auras, err := c.s.d.World.LoadItemAuras(c.s.d.DB)
+				if err != nil {
+					return nil, err
+				}
+				msg += fmt.Sprintf("; %d item(s) with an aura", auras)
 			}
 			c.s.audit(c.a, "live", "npcs", nil, nil, nil, msg)
 			return map[string]any{"changed": changed, "removed": removed, "message": msg}, nil

@@ -434,7 +434,7 @@ func (w *World) stateSyncSystem() {
 		}
 
 		// in the client's look: the disc's, or the live game's (livelook.go)
-		stateData := ForViewer(sess, SerializePlayerUpdate(objectID, player), player.LookDyes())
+		stateData := ForViewerAuras(sess, SerializePlayerUpdate(objectID, player), player.LookDyes(), w.PieceAurasOf(player))
 
 		conn := sess.Connection()
 		if conn != nil {

@@ -370,6 +370,12 @@ func main() {
 		log.Printf("WARNING: %v; no NPC is tinted", err)
 	}
 	log.Printf("Creatures: %s", gameWorld.NPCTintSummary())
+	// The worn pieces' auras, by item (entity/pieceaura.go, table itemaura)
+	if n, err := gameWorld.LoadItemAuras(db); err != nil {
+		log.Printf("WARNING: %v; no worn piece shows an aura", err)
+	} else if n > 0 {
+		log.Printf("Items: %d with an aura on the worn piece (itemaura), drawn by the clients that ask", n)
+	}
 	// The necromancer's life taps its pets cast (entity/pettap.go)
 	if _, err := gameWorld.LoadPetTaps(db); err != nil {
 		log.Printf("WARNING: %v; no pet taps", err)

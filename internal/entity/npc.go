@@ -54,6 +54,10 @@ type NPC struct {
 	Face            int
 	RobeStyle       string
 	Race            string
+	// WornPieces and WornMask: the item records a mercenary wears on the
+	// pieces an aura can be on (MercLook's; pieceaura.go), none for others
+	WornPieces [AuraPieces]int
+	WornMask   uint8
 
 	// Health
 	HP, MaxHP      int

@@ -3228,6 +3228,7 @@ reach the rows. An enrolment begun before a restart starts again (its secret is 
   or deleted is applied to the World at once (the NPC is hidden from every view for
   `NPCRefreshHold` so each client re-creates it); `npcclass` re-classes NPCs by name; `npcspawnonly` takes the NPCs of a name out of the world or puts them back;
   `npctint` sends the NPCs' body tints to every client that draws them (vanilla; `reload_npcs` reads it again too);
+  `itemaura` puts the worn pieces' auras in the world's map, each wearer's channel at the next tick (`reload_npcs` too);
   `classtemplates` and `npctemplate` give the NPCs of a name their class template where they stand (`live_templates.go`);
   `defaultcharacter` invalidates both template caches; an online character's level, tunar,
   bank tunar and place are applied where it stands; a ban ejects (0x07A2) the account's
@@ -3680,6 +3681,12 @@ sent each name's colour then its u32 glow (names of a glow alone too); vanilla b
 session keeps the layout, over a keep restart too). Vanilla draws nothing of it until it answers 2 and lays the glow on
 the body's layers (aura.rs's emissive). `tools/moogie_glow_20261113.py` (log `moogie_glow_1113_log`): Mr. Moogie, no tint,
 glow 0xFF606099.
+**Auras as a template** (the owner, 2026-11-13; `claude-notes/auras-20261113.md`): `npctint.aura_kind` (0 default: the
+shell while the glow lights, 1 none, 2 shell, 3 particles, 4 both), `aura_source` (a particle sprite's DictID, 0 the Sword
+of Virtue's 0x88EC092D), `aura_nodes` (0 the default 8, 32 at most), ALTERed onto an older table. The offer names layout
+**3**: after each glow a u8 kind, u32 source LE, u8 nodes; a row of particles alone goes at 3 only, and layouts 1 and 2 are
+byte for byte as before. `/aura <kind> <RRGGBBAA> [source] [nodes]` | `off` on the target creature's name (its glow is the
+aura's colour), audited and sent at once.
 **A damage meter for a client that draws one** (2026-11-10; `entity/dpsmeter.go`, `handlers/dpsmeter.go`,
 `claude-notes/dps-meter-20261110.md`; the owner: "lets add dps meters, will work solo, group, raid"). CLIENT has no
 meter. Beside 0x7E38 the server offers opcode **0x7E3A** (`OpcodeDPSMeterOffer`, a u8 1, the data's layout; not retail,
@@ -3802,6 +3809,13 @@ drawn in that colour while the piece keeps its own dye. **Every other client is 
 `ForViewer` and `listGear`): CLIENT's `SetArmorSlot` clamps 9 to none, the bare body (before 2026-11-13 a PS2 drew Sandstorm's
 Ornate set so). The Armor Dyers' last answer is "Armor trim" (all of it, or chest, bracers, legs or boots); `#dye trim`,
 `#dye chesttrim ...`; the panel's dye slots 11-16.
+**Worn pieces' auras** (2026-11-13; `entity/pieceaura.go`, `claude-notes/auras-20261113.md`): a client that answers 0x7E0C
+with bit 3 (8) beside bit 2 (vanilla answers 15; 0x7E0D's third u32 then 12; `Session.PieceAuras`, kept) gets every entity
+channel at **295 bytes**: the 225 then seven pieces (chest, bracer, gloves, legs, boots, helm, robe), 10 bytes each (r,g,b,a,
+u8 kind, u32 source LE, u8 nodes; zeros none). Table `itemaura` (patternid, color, kind, source, nodes, note; the panel's
+"Item auras", live), filled per piece from the worn item (`wornLook` -> `Player.WornPieces`; a hidden piece none; a merc's
+heirlooms through `MercLook.WornPieces`); NPCs of an npcs row zeros. `/aura item <id> <kind> <RRGGBBAA> [source] [nodes]` |
+`off`. Every other client's channel is unchanged; character select carries no auras.
 
 **Voice chat was removed on 2026-11-08** (the user: "we removed voice chat from the client so we dont need for
 server"): the forwarding server (`internal/voice`, Pion), its opcodes 0x7E10-0x7E16 (left unused: an older client may

@@ -614,6 +614,7 @@ func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 	}
 	l.Primary, l.Secondary, l.Shield = p.Primary, p.Secondary, p.Shield
 	l.PrimaryType, l.SecondaryType = p.PrimaryType, p.SecondaryType
+	l.WornPieces, l.WornMask = p.WornPieces, p.WornMask // its pieces' auras (entity/pieceaura.go)
 	if row.Class == mercAlchemist {
 		if bottle := m.potionBottle(); bottle != 0 {
 			// in the hand the staff was, as the alchemists' NPCs hold one (the

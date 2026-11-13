@@ -654,6 +654,12 @@ func (w *World) areaCreaturesLocked(p *Player, cs *castState, cx, cy, cz, r floa
 		if w.apartLocked(p, npc) || undead && !w.undeadLocked(npc) { // water.go, undead.go
 			continue
 		}
+		if len(npc.Threats) == 0 && w.raidBossLocked(npc) {
+			// an area never pulls a raid boss not yet fighting: only its own
+			// target does (the owner, 2026-11-13: "mr moogie attacked some
+			// players", pulled by a Goading Shout on the Metal Moogie beside him)
+			continue
+		}
 		if in, dd := inArea(cone, cx, cy, cz, r, npc.X, npc.Y, npc.Z, npcReachExtra(npc)); in {
 			reached := w.reachesLocked(place, npc.X, npc.Y, npc.Z)
 			seen.note(reached, npc.Name, npc.X, npc.Y, npc.Z)

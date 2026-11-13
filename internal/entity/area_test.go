@@ -627,3 +627,23 @@ func equalInts(a, b []int) bool {
 	}
 	return true
 }
+
+// An area never pulls an idle raid boss: Hige's Goading Shout on the Metal
+// Moogie beside Mr. Moogie took him in (the owner, 2026-11-13). Once he is
+// fighting, an area reaches him as any creature.
+func TestAnAreaPullsNoIdleRaidBoss(t *testing.T) {
+	r := newAreaRig(t)
+	target := r.creature(2001, "Deathfist Pawn", 1020, 1000)
+	boss := r.creature(2002, "Mr. Moogie", 1022, 1000)
+	boss.HP, boss.MaxHP = 2000000, 2000000
+	r.w.SetRaidBossNames([]string{"Mr. Moogie"})
+	r.cast(t, fireStorm(), target.ServerID)
+	if boss.HP != boss.MaxHP || len(boss.Threats) != 0 {
+		t.Fatalf("the idle raid boss was pulled: HP %d, threats %v", boss.HP, boss.Threats)
+	}
+	boss.Threats = map[EntityID]int64{r.p.ServerID: 1}
+	r.cast(t, fireStorm(), target.ServerID)
+	if boss.HP == boss.MaxHP {
+		t.Fatal("the control: a raid boss in a fight was spared the area")
+	}
+}

@@ -511,6 +511,10 @@ with the code), each usable by any creature's template:
   beside its hit heal, and is answered at its next tick with `damage` on whoever landed it, player, pet, merc or NPC, pure:
   no resist, armour or mitigation; `name` its lines' (Ward), `say` its line: `entity/ward.go`; petition 1892, Mr. Moogie's
   "Royal Ward" at 15%, +500 and 5,000);
+- an **unreached** moment (`unreached`, a boss moment on `every`/`first`: once its melee has landed no hit on anyone for `unhit` s
+  (60) of a fight, `damage` pure on every player that has been on its hate list `unhit` s or more, each time until a hit lands again;
+  a miss is none; pets and mercs not struck; `name` its lines' (Wrath): `entity/unreached.go`; petition 1916, Mr. Moogie's "Royal
+  Wrath", 20,000 every 6 s: `tools/moogie_unreached_20261113.py`, after moogie_gm, his twelfth and last ability);
 - a **hold at 1 hit point** (`deathhold`, once a fight: the hit that would kill it leaves it at 1, and for `hold` s (30) no hit
   lands on it (every NPC hit asks `npcTakesLocked`), nothing heals it, and it does nothing (aiSystem passes it by, no regen);
   then its fight goes on at 1 and the next hit kills it; `say` its line: `entity/deathhold.go`; petition 1894). Their data

@@ -238,6 +238,11 @@ type templateFight struct {
 	// momentNext is when each of its template's moments comes next
 	// (bossmoments.go: index as moments'; nil before its first)
 	momentNext []time.Time
+	// landedAt is when its last melee hit landed on anyone this fight (its
+	// fight's start before one), listedAt when each of its hate list came on
+	// it: an unreached moment's (unreached.go)
+	landedAt time.Time
+	listedAt map[EntityID]time.Time
 }
 
 // templateContactGap is the longest gap between two of a templated NPC's
@@ -599,7 +604,7 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 			case database.AbilityHitHeal:
 				t.hitHeal += ra.Heal // hitheal.go
 				continue
-			case database.AbilitySelfDoT, database.AbilityRaidHeal, database.AbilityPowerZero, database.AbilitySetHP:
+			case database.AbilitySelfDoT, database.AbilityRaidHeal, database.AbilityPowerZero, database.AbilitySetHP, database.AbilityUnreached:
 				t.moments = append(t.moments, ra) // bossmoments.go
 				continue
 			case database.AbilityPrefer:

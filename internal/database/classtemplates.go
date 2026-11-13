@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -351,6 +352,11 @@ type TemplateAbility struct {
 	// SpellsOf is the class (0-14) whose spells it picks from in place of
 	// the template's: a pet's buff from a druid's or a shaman's line.
 	SpellsOf *int `json:"spells_of,omitempty"`
+	// Classes is the classes (0-14) of the creatures that cast it, for a
+	// template of the creature's own class (class -1): a warrior of the
+	// dungeons' tiers casts no nuke of its book (its arts) where their wizards
+	// do (petition 1900). Empty: every class.
+	Classes []int `json:"classes,omitempty"`
 	// Stat is the stat a buff's spell must raise (AbilityStats).
 	Stat string `json:"stat,omitempty"`
 	// Element is the element a harmful spell must be of (AbilityElements,
@@ -989,6 +995,8 @@ func checkPetAbility(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: while_out is a buff's on its owner", n)
 	case a.SpellsOf != nil && (*a.SpellsOf < 0 || *a.SpellsOf > 14):
 		return fmt.Errorf("ability %d: spells_of %d: 0 (Warrior) to 14 (Alchemist)", n, *a.SpellsOf)
+	case slices.ContainsFunc(a.Classes, func(c int) bool { return c < 0 || c > 14 }):
+		return fmt.Errorf("ability %d: classes %v: each 0 (Warrior) to 14 (Alchemist)", n, a.Classes)
 	case a.Stat != "" && !oneOf(a.Stat, AbilityStats):
 		return fmt.Errorf("ability %d: stat %q: one of %s", n, a.Stat, strings.Join(AbilityStats, ", "))
 	case a.Stat != "" && a.Kind != AbilityBuff:

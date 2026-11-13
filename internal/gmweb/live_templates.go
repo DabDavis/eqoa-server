@@ -37,6 +37,7 @@ const classTemplateAbilitiesHelp = `a JSON list, each {"kind": nuke | aoe | life
 	`(that % of its melee hits that land do that much more, fixed), "damage": a nuke's or a lifetap's fixed figure in place of its spell's (a lifetap's all back on it), ` +
 	`"resist": FR CR LR AR PR or DR, the resist that cuts a fixed figure (none: it lands as it is), "fx": the visual of one that pins no spell, ` +
 	`"out_of_reach": true to cast it only while what it fights stands beyond its melee reach (rooted, snared, kiting), within "range" (100) and in its sight; ` +
+	`"classes": [0-14, ...], the classes that cast it on a template of the creature's own class (-1; none: every class); ` +
 	`a pet's (Pet class templates): "target": self | owner (where its heal or buff lands: itself, the default, or its owner), "spells_of": the class ` +
 	`0-14 whose spells it picks, "stat": the stat a buff raises (ac str sta agi dex wis int cha hp power), "element": a ` +
 	`harmful spell's (fire cold lightning poison disease arcane), "heal_pct": a heal of that % of its most hit points (cast ` +

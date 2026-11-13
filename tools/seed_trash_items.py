@@ -378,6 +378,11 @@ def apply(db, plan, items, pool):
                 tpl.update(itemname=it["name"], itemcost=it["price"], maxstack=MAX_STACK, equipslot=-1, trade=0, lore=0,
                            craft=0, levelreq=0, maxhp=0, duration=0,
                            itemdesc=f"{article(it['name']).capitalize()}. A merchant will pay for it.")
+                # CLIENT's item type 0, as every trophy's (petition 1991: the bark's and root's template, "weak
+                # roots", is a potion of the usable type 2, so 23 barks and roots were listed with the usable
+                # items; tools/bark_root_type_20261113.py put them right)
+                if "procanim" in tpl:
+                    tpl["procanim"] = 0
                 cur = db.execute(f"INSERT INTO itempattern ({', '.join(tpl)}) VALUES ({', '.join('?' * len(tpl))})",
                                  list(tpl.values()))
                 it["pid"] = cur.lastrowid

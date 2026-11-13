@@ -444,10 +444,12 @@ beside it):
   when it filed the petition; then it is reviewed as any other (above). A petition's card on the page has the same button.
 - **The XP camps, the coaches, the quest givers and the towns** (the World map's layers): `map_layers` with a
   `world` lists its #tele XP camps (key, aliases, levels here and the guide's, EQOA-Data's note, the creatures
-  that make it, rare mobs near, where its anchor stands; `fallback` when it is not loaded), every coachman (its
+  that make it, rare mobs near, where its anchor stands; `fallback` when it is not loaded) and EQOA-Data's map's
+  other camps this server has (`tele` false, a `name`, no note: drawn paler; #tele and the Teleporter never offer
+  them; teleport a character to one by its x, y, z and world), every coachman (its
   town, its spawn, the towns its coach menu offers here, every other coach town of the world, and `live`: the
   live game's routes, EQOA-Data's coach map, which the page draws as lines) and `towns`, the names the map
-  shows (Tunaria's coach towns, Odus's by EQOA-Data's map). `map_camp` with a camp's key or alias adds the loot
+  shows (Tunaria's coach towns, Odus's by EQOA-Data's map). `map_camp` with a camp's key or alias (a map camp's key) adds the loot
   tables its creatures roll (a table, its chance a kill, its items at the camp's middle level). `map_quests`
   with a `world` lists every NPC there that gives a quest, where it spawns, with its quests (status as
   `quest_list` says) and the NPCs their steps send players to; `missing` names the givers no NPC is (place

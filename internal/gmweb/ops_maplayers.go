@@ -11,7 +11,8 @@ import (
 
 // The World map's two layers beside the NPCs (F3 pass 18, the user: "add the
 // camps and coaches to the GM panel map too"): the XP camps of #tele
-// (handlers/camps.go, campinfo.go) and the coach stops (entity
+// (handlers/camps.go, campinfo.go) with the map's other camps (mapcamps.go,
+// not #tele's) and the coach stops (entity
 // CoachMarkers). Both are the server's own: the camps' places and names as
 // tools/gen_camp_teles.py wrote them from EQOA-Data's map, the coachmen as the
 // world has them; nothing of the disc.
@@ -22,7 +23,9 @@ const lootSample = 8
 func (s *Server) registerMapLayerOps() {
 	s.addOp(&Op{
 		Name: "map_layers", Title: "Map layers: XP camps and coaches", Scope: scopeRead,
-		Description: "The World map's XP camps and coach stops of one world. camps: each #tele camp (key, the " +
+		Description: "The World map's XP camps and coach stops of one world. camps: each #tele camp and each of " +
+			"EQOA-Data's map's other camps this server has (key, tele: true for a #tele camp, false for a map camp, " +
+			"which #tele and the Teleporter do not offer; name: a map camp's name; the " +
 			"aliases #tele also takes, label, levels: its creatures' here, guide: EQOA-Data's levels, note: " +
 			"EQOA-Data's note on it, x/y/z: its anchor creature's spawn, fallback: the anchor is not loaded and " +
 			"the place is as written, creatures: the names that make it, rare: EQOA-Data's rare mobs near it with " +
@@ -42,7 +45,7 @@ func (s *Server) registerMapLayerOps() {
 				return nil, err
 			}
 			camps := []map[string]any{}
-			for _, m := range handlers.CampMarkers(c.s.d.World, req.World) {
+			for _, m := range handlers.MapCampMarkers(c.s.d.World, req.World) {
 				camps = append(camps, campJSON(m))
 			}
 			coaches := []map[string]any{}
@@ -87,11 +90,11 @@ func (s *Server) registerMapLayerOps() {
 	})
 	s.addOp(&Op{
 		Name: "map_camp", Title: "An XP camp", Scope: scopeRead,
-		Description: "One #tele camp (its key or an alias) as map_layers has it, with the loot its creatures roll " +
+		Description: "One camp (a #tele camp's key or alias, or a map camp's key) as map_layers has it, with the loot its creatures roll " +
 			"(Loot tables, Creature loot: database/loottables.go) for a creature of the camp's middle level: loot " +
 			"is each table bound to any of its creatures, its chance a roll (percent), rolls a kill, the creatures " +
 			"bound to it, how many items it has at that level and a few of them by name.",
-		Input: obj(map[string]any{"camp": str("the camp's #tele name (dfc) or an alias (deathfist)")}, "camp"),
+		Input: obj(map[string]any{"camp": str("the camp's #tele name (dfc), an alias (deathfist) or a map camp's key")}, "camp"),
 		Handler: func(c *opCtx) (any, error) {
 			var req struct{ Camp string }
 			if err := c.decode(&req); err != nil {
@@ -196,7 +199,7 @@ func campJSON(m handlers.CampMarker) map[string]any {
 		rare = append(rare, map[string]any{"name": r.Name, "level": r.Level, "drops": orEmpty(r.Drops)})
 	}
 	return map[string]any{
-		"key": m.Key, "aliases": orEmpty(m.Aliases), "label": m.Label, "levels": m.Levels, "guide": m.Guide,
+		"key": m.Key, "aliases": orEmpty(m.Aliases), "tele": m.Tele, "name": m.Name, "label": m.Label, "levels": m.Levels, "guide": m.Guide,
 		"note": m.Note, "world": m.World, "x": round1(m.X), "y": round1(m.Y), "z": round1(m.Z),
 		"fallback": m.Fallback, "creatures": orEmpty(m.Creatures), "rare": rare,
 	}

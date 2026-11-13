@@ -23,6 +23,11 @@ import "time"
 // swings run no procs), power on any with power. In a fight its power bursts
 // (Power Flow to Power Flood: 24 s of power) go on the one of its team lowest
 // in power, under half of it.
+//
+// Its team for these is its owner's own alone (merccast.go's doc,
+// mercOwnTeamLocked: itself, its owner, its owner's other mercs; the owner,
+// 2026-11-13): a bard's group song lands on no other player of its owner's
+// group or raid, nor their mercs.
 
 // mercBardSpare is the share of its power a bard keeps for its songs: its
 // arts only above it.
@@ -131,7 +136,7 @@ func (w *World) mercTeamBuffTurnLocked(ms *mercState, now time.Time) bool {
 	if ms.kit.Class != classEnchanter || m.MaxPower <= 0 || w.ownFightLocked(ms.owner) {
 		return false
 	}
-	team := w.mercTeamLocked(ms)
+	team := w.mercOwnTeamLocked(ms) // its owner's own alone (merccast.go's doc)
 	book := ms.mercBook()
 	reaches := func(s *CastSpell, mm mercMate) bool {
 		x, y, z := mm.place()

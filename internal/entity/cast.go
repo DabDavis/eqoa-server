@@ -165,6 +165,11 @@ type CastSpell struct {
 	// nil for a spell: its caster's, and nothing else lands; no ability of the
 	// book, as Travel's
 	Familiar *FamiliarDef
+	// RecastGroup is the spell's recast group, "" for none, and GroupMates
+	// the spells of it with their places in the caster's book (recastgroup.go):
+	// the handlers' (handlers/cast.go), from table spellrecastgroup
+	RecastGroup string
+	GroupMates  []GroupMate
 	// resist is the resist that cuts a templated NPC's spell's hit on a
 	// player, by its element (classtemplate.go); a player's spell has none
 	resist Stat
@@ -808,6 +813,7 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	lockout := spell.CastTime + spell.Recast + castLockoutExtra
 	if spell.Travel == nil && spell.Familiar == nil { // an item's travel or familiar is no ability: nothing to lock out
 		p.Lockouts = append(p.Lockouts, castLockout{spellID: spell.SpellID, displayIndex: spell.DisplayIndex, until: now.Add(lockout)})
+		w.lockRecastGroupLocked(sess, p, &spell, now, now.Add(lockout)) // recastgroup.go: its group's spells too
 	}
 	cs := &castState{spell: spell, caster: p.ServerID, targets: targets, ends: now.Add(spell.CastTime + busy), lands: now.Add(spell.CastTime + land),
 		castEnds: now.Add(spell.CastTime)}

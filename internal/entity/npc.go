@@ -300,6 +300,9 @@ type NPC struct {
 	// mercPet is the merc whose pet this is (mercpet.go: Owner its merc's
 	// hirer's), nil for every other NPC
 	mercPet *mercState
+	// racialPet: summoned by a racial ability (racialpet.go), its hit points the
+	// same whatever its owner's class
+	racialPet bool
 }
 
 // isMerc reports a hired mercenary.

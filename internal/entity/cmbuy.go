@@ -205,6 +205,8 @@ type cmCatalog struct {
 	byID  map[int]*CMRank
 	order []*CMRank
 	adds  map[int]bool // the spells a rank adds (masterySpellLocked)
+	// racial is the spells a racial rank adds (racialpet.go)
+	racial map[int]bool
 }
 
 // note keeps a rank, and the spells it adds.
@@ -217,6 +219,12 @@ func (c *cmCatalog) note(r *CMRank) {
 	for _, a := range r.Adds {
 		if a.SpellID != 0 {
 			c.adds[a.SpellID] = true
+			if r.racialRank() {
+				if c.racial == nil {
+					c.racial = map[int]bool{}
+				}
+				c.racial[a.SpellID] = true
+			}
 		}
 	}
 }

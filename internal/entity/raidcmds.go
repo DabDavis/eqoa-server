@@ -478,6 +478,10 @@ func (w *World) RaidLootRule(sess *session.Session, word string) {
 		w.refuseLocked(sess, "Loot rules: /raidloot ffa, /raidloot needgreed or /raidloot master.")
 		return
 	}
+	if w.raidOfLocked(p) == nil && p.GroupID != 0 {
+		w.groupLootRuleLocked(sess, p, rule) // a plain group's (grouploot.go)
+		return
+	}
 	w.raidLootRuleLocked(sess, p, rule)
 }
 
@@ -486,6 +490,10 @@ func (w *World) RaidLootRuleTo(sess *session.Session, rule LootRule) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	if p := w.sessionPlayerLocked(sess); p != nil && rule <= LootMaster {
+		if w.raidOfLocked(p) == nil && p.GroupID != 0 {
+			w.groupLootRuleLocked(sess, p, rule) // a plain group's (grouploot.go)
+			return
+		}
 		w.raidLootRuleLocked(sess, p, rule)
 	}
 }

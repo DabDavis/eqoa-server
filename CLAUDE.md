@@ -1199,8 +1199,14 @@ treatment": the Tomb of Kings, Castle Felstar, Collonridge Cemetery, Vox's Lair,
 - **Who**: an instance belongs to its opener and the opener's group of the moment (it follows the owner into a group
   formed later). Only a group's leader (its first member) or a player alone opens one; members enter theirs.
   `dungeonsSystem` (once a second) sends anyone else in world 14 out after 5 s (where it came from, else in front of the
-  Dungeon Warden outside): a member who left the group, a player with no instance (a GM's move, a keep restart: **an
-  instance is not kept over a restart**, its players go out). A GM may stand in any open instance. An instance no one
+  Dungeon Warden outside): a member who left the group, a player with no instance (a GM's move, a cold start). **A keep
+  restart keeps every instance** (`entity/keepdungeon.go`, the snapshot's `dungeons`; the owner, 2026-11-13: "on server
+  restart the instanced raids are booting players, lets keep them in the instance and progress"): the same id, its
+  dungeon by key, owner and group; its creatures alive where they stood at their hit points, its corpses lying with
+  their loot and kill rights (by `RestoreCorpsesAs`' id map), the killed ones still killed; the players inside back in
+  it where they stood (`resumeIn`, read by `dungeonLogin` and `dungeonInstanceOnLoadLocked` before the groups are
+  formed again), then a mover's grace (`DungeonsResumed`); the ways out. A fight and spells on a creature end. A GM may
+  stand in any open instance. An instance no one
   stood in for `close_after` closes (its creatures gone); its owner may close an empty one (`/dungeon reset <name>`).
   A logout inside resumes in the party's instance while it is open (`dungeonLogin`), **at its dungeon's entrance**
   (never where it logged out: petition 1808's player was stuck there), else out. **A landing must stand clear of the

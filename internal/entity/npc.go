@@ -189,6 +189,9 @@ type NPC struct {
 	// template (SetNPCOn's casts, classtemplate.go): its casts and specials land
 	// on that NPC too, where a fight between two NPCs is their melee alone. 0 none.
 	castsAt EntityID
+	// keptEvent is a trigger's spawn a keep restart made again under its id
+	// (keeptrigger.go): the clients' slots go on describing it (keep.go's RestoreView)
+	keptEvent bool
 
 	// Its melee round (rounds.go): when it began, how many of its hits
 	// have landed, and at whom.

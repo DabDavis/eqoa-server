@@ -327,7 +327,9 @@ func (w *World) movementLocked(npc *NPC) (wanders bool, why moveWhy, word string
 			return false, whyNotWildlife, ""
 		}
 	}
-	if w.ground != nil && !w.spawnOnGroundLocked(npc) && !w.spawnInWaterLocked(npc) {
+	if w.ground != nil && ((!w.spawnOnGroundLocked(npc) && !w.spawnInWaterLocked(npc)) || npc.spawnDeck) {
+		// off the ground; or high on a placed floor (a tower's), which was off
+		// it before the ground knew placed floors (groundnpc.go)
 		return false, whyOffGround, word
 	}
 	return true, why, word
@@ -428,10 +430,14 @@ func (w *World) legFromLocked(npc *NPC, fx, fy, fz, x, z float32, heights *[]flo
 		placed = nil // set down where it was sent: nothing of the ground's to keep it off
 	}
 	lift := max(spawnLift, 0) // its own floor over the terrain (a house's over the street)
+	// a wander of a creature spawned on the terrain keeps to the terrain's
+	// floors, as it did before the ground knew placed ones (a bench, a stair:
+	// clearLocked kept it off them); one spawned on a placed floor walks it
+	offPlaced := checks == legWhole && onGround && !npc.walksTerrain() && !npc.spawnPlaced
 	knee, px, py, pz := bodyKnee(npc), fx, y, fz
 	if onGround {
 		knee += spawnLift
-		if f, ok := w.ground.Floor(npc.World, fx, y, fz); ok {
+		if f, ok := w.floorLocked(npc.World, fx, y, fz); ok {
 			py = f
 		}
 		if heights != nil {
@@ -446,9 +452,9 @@ func (w *World) legFromLocked(npc *NPC, fx, fy, fz, x, z float32, heights *[]flo
 		t := float32(i) / float32(n)
 		sx, sz := fx+(x-fx)*t, fz+(z-fz)*t
 		if onGround {
-			f, ok := w.ground.Floor(npc.World, sx, y, sz)
-			if !ok || f < y-drop || f > y+rise {
-				return false // no floor, a fall, or a climb up a face
+			f, onPlaced, roofed, ok := w.standLocked(npc.World, sx, y, sz)
+			if !ok || f < y-drop || f > y+rise || (onPlaced && offPlaced) || roofed {
+				return false // no floor, a fall, a climb up a face, onto something placed, or under a floor
 			}
 			y = f
 			if heights != nil {
@@ -502,7 +508,7 @@ func (w *World) legFromLocked(npc *NPC, fx, fy, fz, x, z float32, heights *[]flo
 				return false
 			}
 			if !onGround && w.ground != nil {
-				if f, ok := w.ground.Floor(npc.World, sx, y, sz); ok && f > y {
+				if f, ok := w.floorLocked(npc.World, sx, y, sz); ok && f > y {
 					return false // the sea floor rises above it
 				}
 			}

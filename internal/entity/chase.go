@@ -343,12 +343,13 @@ func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (i
 	npc.X += ux * step
 	npc.Z += uz * step
 	noFloor := w.groundNPCLocked(npc)
-	if (guarded && (npc.Y < oldY-legDrop || npc.Y > oldY+routeClimb)) || w.intoGroundLocked(npc, noFloor) {
+	if (guarded && (npc.Y < oldY-legDrop || npc.Y > oldY+routeClimb)) || w.intoGroundLocked(npc, noFloor) || w.movedUnderLocked(npc) {
 		// off an edge the look ahead stepped over (or into the water below it),
-		// or into the ground (a bank too high out of the water, a face too
-		// steep: groundnpc.go): not taken, and the way searched at the next
-		// step (chaseroute.go)
-		npc.X, npc.Y, npc.Z, npc.swimming = oldX, oldY, oldZ, oldSwim
+		// into the ground (a bank too high out of the water, a face too steep:
+		// groundnpc.go), or under a floor (a slab a little higher than a step,
+		// groundnpc.go): not taken, and the way searched at the next step
+		// (chaseroute.go); with none, it holds there, and gives up at chaseHeld
+		npc.X, npc.Y, npc.Z, npc.swimming, npc.under = oldX, oldY, oldZ, oldSwim, npc.wasUnder
 		npc.chase.route.edge = true
 		npc.stopMoving()
 		if held.IsZero() {
@@ -473,9 +474,13 @@ func (w *World) homeSystem(now time.Time) {
 			kept = append(kept, npc)
 			continue
 		}
-		// the ground is asked from the height it left at or its own, the higher: below a
-		// floor it left, it would walk home underneath it
-		npc.Y = max(npc.Y, npc.chase.fromY)
+		// the ground is asked from its own height, the floor it walks on: from the
+		// height it left at (the higher, as it was), a floor it left over this one
+		// took it up through the floors between at a step (Collonridge
+		// Cemetery's tower, 2026-11-13: from its floor at 56.4 to 74.8 in one
+		// tick). Its way up is the route's above; one with none comes home under
+		// the place it left and stands there at the height it left
+		// (atHomeLocked)
 		w.liftOutLocked(npc) // groundnpc.go
 		bx, bz := npc.X, npc.Z
 		if w.stepNPCToward(npc, npc.chase.fromX, npc.chase.fromZ, speed, dt) {
@@ -515,7 +520,7 @@ func (w *World) floorKnownLocked(world uint8, x, y, z float32) bool {
 	if w.ground == nil {
 		return false
 	}
-	f, ok := w.ground.Floor(world, x, y, z)
+	f, ok := w.floorLocked(world, x, y, z)
 	return ok && y-f <= floorKnownBelow && f-y <= floorKnownBelow
 }
 

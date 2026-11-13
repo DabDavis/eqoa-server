@@ -6,6 +6,19 @@ type Ground interface {
 	Floor(world uint8, x, y, z float32) (float32, bool)
 }
 
+// Stands is a Ground that knows the floor as the game's collision has it
+// (internal/ground's Stand): the highest surface facing up, the terrain's or
+// anything placed on it (a mausoleum's slab, a tower's floors, a house's),
+// within the step over a height; whether it is something placed's; and whether
+// another floor is over it within a body's height (roofed: a slab's top a
+// little higher than a step, which a body standing under it is in). A Ground
+// that is also Stands sets a creature on it as it moves (floorLocked) and keeps
+// it out of a floor over it (movedUnderLocked); one that is not, on its Floor,
+// as before.
+type Stands interface {
+	Stand(world uint8, x, y, z float32) (y1 float32, placed, roofed, ok bool)
+}
+
 // Walls is what stands in a creature's way (internal/ground's Wall): whether
 // the way from one point to another passes through a wall, the terrain's or
 // anything placed on it (a house, a fence, a tree's trunk). A Ground that is
@@ -33,6 +46,25 @@ func (w *World) SetGround(g Ground) {
 	defer w.mu.Unlock()
 	w.ground = g
 	w.groundGen++
+}
+
+// floorLocked is the floor a creature at (x, y, z) stands on as it moves: the
+// ground's Stand where it has one (placed floors with the terrain's, no
+// ceiling), else its Floor. Must be called with the lock held and a ground.
+func (w *World) floorLocked(world uint8, x, y, z float32) (float32, bool) {
+	f, _, _, ok := w.standLocked(world, x, y, z)
+	return f, ok
+}
+
+// standLocked is floorLocked's floor, whether it is something placed's and
+// whether a floor is over it within a body's height (Stands'; neither, for a
+// ground that is not Stands). Must be called with the lock held and a ground.
+func (w *World) standLocked(world uint8, x, y, z float32) (f float32, placed, roofed, ok bool) {
+	if s, is := w.ground.(Stands); is {
+		return s.Stand(world, x, y, z)
+	}
+	f, ok = w.ground.Floor(world, x, y, z)
+	return f, false, false, ok
 }
 
 // How near the terrain a creature's spawn must be for it to stand on the
@@ -67,9 +99,15 @@ func (w *World) spawnOnGroundLocked(npc *NPC) bool {
 	}
 	if !npc.groundKnown {
 		npc.groundKnown = true
-		y, ok := w.ground.Floor(npc.World, npc.SpawnX, npc.SpawnY, npc.SpawnZ)
+		y, placed, _, ok := w.standLocked(npc.World, npc.SpawnX, npc.SpawnY, npc.SpawnZ)
 		npc.onGround = ok && y-npc.SpawnY <= spawnedBelow && npc.SpawnY-y <= spawnedAbove
 		npc.spawnLift = 0
+		npc.spawnPlaced = npc.onGround && placed
+		npc.spawnDeck = false
+		if npc.spawnPlaced {
+			t, on := w.ground.Floor(npc.World, npc.SpawnX, y, npc.SpawnZ)
+			npc.spawnDeck = !on || y-t > spawnedAbove
+		}
 		if npc.onGround && npc.SpawnY > y {
 			npc.spawnLift = npc.SpawnY - y
 		}
@@ -89,12 +127,14 @@ func (w *World) groundNPCLocked(npc *NPC) (noFloor bool) {
 	if w.ground == nil {
 		return false
 	}
+	npc.wasUnder, npc.under = npc.under, false
 	if w.spawnOnGroundLocked(npc) {
-		y, ok := w.floorOrBankLocked(npc.World, npc.X, npc.Y, npc.Z)
+		y, _, roofed, ok := w.floorOrBankRoofLocked(npc.World, npc.X, npc.Y, npc.Z)
 		if ok {
 			npc.Y = y
 		}
 		w.swimLocked(npc) // water.go: in deep water it swims at the surface
+		npc.under = ok && roofed && !npc.swimming
 		return !ok
 	}
 	if w.spawnInWaterLocked(npc) {
@@ -152,13 +192,37 @@ const (
 // ground's within its step under y, else the one over it within bankClimb;
 // false with neither. Must be called with the lock held.
 func (w *World) floorOrBankLocked(world uint8, x, y, z float32) (float32, bool) {
-	if f, ok := w.ground.Floor(world, x, y, z); ok {
-		return f, true
+	f, _, _, ok := w.floorOrBankRoofLocked(world, x, y, z)
+	return f, ok
+}
+
+// floorOrBankRoofLocked is floorOrBankLocked's floor, and whether a floor is
+// over it within a body's height (standLocked's roofed). Must be called with
+// the lock held.
+func (w *World) floorOrBankRoofLocked(world uint8, x, y, z float32) (f float32, placed, roofed, ok bool) {
+	if f, placed, roofed, ok := w.standLocked(world, x, y, z); ok {
+		return f, placed, roofed, true
 	}
-	if f, ok := w.ground.Floor(world, x, y+bankClimb-floorStepUp, z); ok && f > y {
-		return f, true
+	if f, placed, roofed, ok := w.standLocked(world, x, y+bankClimb-floorStepUp, z); ok && f > y {
+		return f, placed, roofed, true
 	}
-	return y, false
+	return y, false, false, false
+}
+
+// Under a floor (Collonridge Cemetery, 2026-11-13): a creature whose step took
+// it where another floor stands over its own within its body (a slab whose top
+// is a little higher than a step: the mausoleum's, 2.3 over the terrain round
+// it) stood in that floor, and CLIENT showed it there. Such a step is not
+// taken in a fight or on the way home after one, as one into the ground is not
+// (intoGroundLocked); a creature already under a floor (spawned under a stair)
+// may step on, and out. A wander's legs keep out from under one as they are
+// checked (movement.go), and a GM's path is walked as it was laid.
+
+// movedUnderLocked reports a creature in a fight or on its way home after one
+// that its last grounding (groundNPCLocked) set under a floor from a place that
+// was not. Must be called with the lock held.
+func (w *World) movedUnderLocked(npc *NPC) bool {
+	return npc.under && !npc.wasUnder && (npc.chase.on || npc.chase.returning)
 }
 
 // inGroundLocked reports a place in the ground: no floor within the step under
@@ -167,10 +231,10 @@ func (w *World) inGroundLocked(world uint8, x, y, z float32) bool {
 	if w.ground == nil {
 		return false
 	}
-	if _, ok := w.ground.Floor(world, x, y, z); ok {
+	if _, ok := w.floorLocked(world, x, y, z); ok {
 		return false
 	}
-	_, over := w.ground.Floor(world, x, y+groundOver, z)
+	_, over := w.ground.Floor(world, x, y+groundOver, z) // the terrain's rock over it
 	return over
 }
 

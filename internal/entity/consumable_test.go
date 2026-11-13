@@ -337,3 +337,27 @@ func TestARationIsItsEatersTenth(t *testing.T) {
 		t.Errorf("a meal of 1: HoT %d PoT %d; want 21, 10", q.HoTNow(), q.PoTNow())
 	}
 }
+
+// A meal is refused, and so kept, while a creature fights its eater with
+// auto-attack off (Zerkziee's petition 1919: a ranger at range ate, the
+// next arrow ended the meal, the ration spent); a drink is taken; out of the
+// fight the meal is taken (the control).
+func TestConsumeMealRefusedWhileFought(t *testing.T) {
+	w, sess, p, now := newEater(t)
+	frog := &NPC{ServerID: 3003, Name: "froglok zol knight", Level: 62, HP: 100, MaxHP: 100, Threats: map[EntityID]int64{p.ServerID: 50}}
+	w.mu.Lock()
+	w.putNPCLocked(frog)
+	w.mu.Unlock()
+	if err := w.Consume(sess, Consumable{Name: "Food", Icon: breadIcon, Amount: 10}, now); err != ErrConsumeFighting {
+		t.Errorf("a meal while fought: %v, want ErrConsumeFighting", err)
+	}
+	if err := w.Consume(sess, Consumable{Drink: true, Name: "well water", Icon: waterIcon, Amount: 2}, now); err != nil {
+		t.Errorf("a drink while fought: %v", err)
+	}
+	w.mu.Lock()
+	delete(frog.Threats, p.ServerID)
+	w.mu.Unlock()
+	if err := w.Consume(sess, Consumable{Name: "Food", Icon: breadIcon, Amount: 10}, now); err != nil {
+		t.Errorf("a meal out of the fight: %v", err)
+	}
+}

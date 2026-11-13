@@ -116,9 +116,10 @@ func (c Consumable) effectID() int {
 
 // Consume puts a meal or a drink on the session's player for
 // ConsumableDuration: its effect replaces the last of its kind. It refuses
-// no player or a dead one (ErrConsumeNoPlayer) and a meal with auto-attack
-// on (ErrConsumeFighting); a drink is taken in a fight, as Sandstorm took
-// one.
+// no player or a dead one (ErrConsumeNoPlayer) and a meal in a fight
+// (ErrConsumeFighting): auto-attack on, or a creature fighting it (its threat
+// on it, or it its enemy: linkdead.go's fightingLocked); a drink is taken in
+// a fight, as Sandstorm took one.
 func (w *World) Consume(sess *session.Session, c Consumable, now time.Time) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -126,7 +127,11 @@ func (w *World) Consume(sess *session.Session, c Consumable, now time.Time) erro
 	if p == nil || p.IsDead() {
 		return ErrConsumeNoPlayer
 	}
-	if p.Attacking() && c.endsInFight() {
+	if c.endsInFight() && (p.Attacking() || w.fightingLocked(p) > 0) {
+		// a meal a fight would end at once: refused and kept (Zerkziee's
+		// petition 1919, a ranger at range, auto-attack off: until
+		// 2026-11-13 the meal was taken, the ration spent, and the next
+		// arrow or hit ended it within the second)
 		return ErrConsumeFighting
 	}
 	d := c.Duration

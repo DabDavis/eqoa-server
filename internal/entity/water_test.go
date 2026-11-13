@@ -403,3 +403,35 @@ func TestAPetSwimsAfterItsOwner(t *testing.T) {
 		t.Errorf("the pet ended at x %.1f y %.2f, animation %d (swam %v); want beside its owner, treading water", pet.X, pet.Y, pet.Loco, swam)
 	}
 }
+
+// slimeLake is a world whose lake below 50 is slime, as the Plane of Disease's.
+type slimeLake struct{}
+
+func (slimeLake) Flags(_ uint8, _, y, _ float32) (uint32, bool) {
+	if y < 50 {
+		return envSlime, true
+	}
+	return 0, true
+}
+
+// Slime is swum in as water is (2026-11-13: the Plane of Disease's lake is
+// all slime, and its piranhas, keeping to the water, stood on their spawns as
+// "off the ground"): a creature spawned in it is of the water, and a point in
+// it is in the water.
+func TestSlimeIsWaterToSwimIn(t *testing.T) {
+	w := NewWorld()
+	w.SetEnv(slimeLake{})
+	fish := &NPC{ServerID: 1, Name: "plague piranha", World: 5, X: 10, Y: 40, Z: 10, SpawnX: 10, SpawnY: 40, SpawnZ: 10}
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if !w.spawnInWaterLocked(fish) || !w.npcInWaterLocked(fish) {
+		t.Fatal("a fish in the slime lake is not in the water")
+	}
+	if w.keepsToLocked(fish) != keepsToWater {
+		t.Fatalf("a fish spawned in slime keeps to %q, want the water", w.keepsToLocked(fish))
+	}
+	fish.SpawnY, fish.Y = 60, 60
+	if w.spawnInWaterLocked(fish) {
+		t.Fatal("the control: above the slime is in the water")
+	}
+}

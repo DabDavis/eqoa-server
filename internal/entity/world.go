@@ -29,6 +29,10 @@ type World struct {
 	routeTick    uint64
 	routeSpent   int
 	routeHeights []float32
+	// routeDry is a search for a creature of the land on its way home, its
+	// legs' length in the water counted into routeWet (landwater.go)
+	routeDry bool
+	routeWet float32
 
 	// the Wisps in a mortal form, for the race looks (wispform.go)
 	wispLooks wispLooks

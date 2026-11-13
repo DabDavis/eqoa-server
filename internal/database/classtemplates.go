@@ -77,6 +77,7 @@ const classTemplatesSchema = `
 		kick_first     REAL NOT NULL DEFAULT 0,
 		fight_regen    INTEGER NOT NULL DEFAULT 0,
 		run_speed      REAL NOT NULL DEFAULT 0,
+		taken_resist   TEXT NOT NULL DEFAULT '',
 		abilities      TEXT NOT NULL DEFAULT '[]',
 		note           TEXT NOT NULL DEFAULT '',
 		source         TEXT NOT NULL DEFAULT 'gm'
@@ -658,9 +659,15 @@ type ClassTemplate struct {
 	// RunSpeed is its pace in a chase and on its way home, in units a second (0: the
 	// creatures' 9.9, entity.NPCRunSpeed; petition 1254: Mr. Moogie's "double that of spirit
 	// of the wolf", 2 x 8.83 x 1.3)
-	RunSpeed  float64
-	Abilities []TemplateAbility
-	Note      string
+	RunSpeed float64
+	// TakenResist is the resists it is weak (or strong) in by the damage it takes of them, each
+	// with the percent of a hit or tick of that resist it takes, several with commas ("LR:115";
+	// empty: every one at 100%): the GM Jibwiz's petition 1944, 2026-11-13, of the Plane of
+	// Disease's raid bosses: "should take 15% more damage from lightning resistance based damage,
+	// procs and nukes" (entity/enchanter.go creatureResists, after resist_kind's cut)
+	TakenResist string
+	Abilities   []TemplateAbility
+	Note        string
 }
 
 // TemplateKey is a template's name as classtemplates and npctemplate key it:
@@ -1223,6 +1230,36 @@ func ResistKindPct(tok string) (kind string, pct int, ok bool) {
 	return kind, n, true
 }
 
+// takenResistsKnown is whether a taken_resist is known: empty, or one or several with commas, each
+// a resist and its percent (TakenResistPct).
+func takenResistsKnown(s string) bool {
+	if strings.TrimSpace(s) == "" {
+		return true
+	}
+	for _, k := range strings.Split(s, ",") {
+		if _, _, ok := TakenResistPct(k); !ok {
+			return false
+		}
+	}
+	return true
+}
+
+// TakenResistPct reads one of a taken_resist's resists: its name (FR, CR, LR, AR, PR or DR,
+// upper case) and the percent of its damage taken, "LR:115", 1 to 1000. False for anything else
+// (a resist with no percent too).
+func TakenResistPct(tok string) (kind string, pct int, ok bool) {
+	kind, fig, has := strings.Cut(strings.TrimSpace(tok), ":")
+	kind = strings.ToUpper(strings.TrimSpace(kind))
+	if !has || kind == "" || !shieldResistKnown(kind) {
+		return "", 0, false
+	}
+	n, err := strconv.Atoi(strings.TrimSpace(fig))
+	if err != nil || n < 1 || n > 1000 {
+		return "", 0, false
+	}
+	return kind, n, true
+}
+
 // CheckClassTemplate is what a template must be for an NPC to fight by it: a
 // name, a class of the fifteen (or -1), its hit points within a tenth to
 // MaxTemplateHPPct, its melee percents within a tenth to MaxTemplateMeleePct (a melee
@@ -1258,6 +1295,8 @@ func CheckClassTemplate(t ClassTemplate) error {
 		return fmt.Errorf("resist_pct %d: 0 to 100 percent of spell damage of its kind", t.ResistPct)
 	case t.ResistPct > 0 && strings.TrimSpace(t.ResistKind) == "":
 		return fmt.Errorf("a resist_pct of %d needs a resist_kind", t.ResistPct)
+	case !takenResistsKnown(t.TakenResist):
+		return fmt.Errorf("taken_resist %q: FR, CR, LR, AR, PR or DR with the percent of its damage taken (1-1000), several with commas (LR:115), or none", t.TakenResist)
 	case t.TakenPct < 1 || t.TakenPct > 1000:
 		return fmt.Errorf("taken_pct %d: 1 to 1000 percent of a melee hit on it", t.TakenPct)
 	case t.MeleePct < 10 || t.MeleePct > MaxTemplateMeleePct:
@@ -1358,6 +1397,7 @@ var classTemplateColumns = []struct{ col, decl string }{
 	{"kick_first", "REAL NOT NULL DEFAULT 0"},
 	{"fight_regen", "INTEGER NOT NULL DEFAULT 0"},
 	{"run_speed", "REAL NOT NULL DEFAULT 0"},
+	{"taken_resist", "TEXT NOT NULL DEFAULT ''"},
 }
 
 // ensureClassTemplates makes tables classtemplates and npctemplate
@@ -1406,7 +1446,7 @@ func (db *SQLiteDB) ensureClassTemplates() error {
 // JSON) is left out and named in bad.
 func (db *SQLiteDB) ClassTemplates() (templates map[string]ClassTemplate, bad []string, err error) {
 	rows, err := db.Query(`SELECT name, class, hp_pct, taken_pct, melee_pct, special, special_chance, special_damage,
-		special_fx, special_every, special_first, special_jitter, special_from, shield_damage, shield_resist, proc_chance, proc_damage, proc_name, proc_resist, resist_fail, resist_kind, resist_pct, kick_damage, kick_every, kick_first, fight_regen, run_speed, abilities, note FROM classtemplates
+		special_fx, special_every, special_first, special_jitter, special_from, shield_damage, shield_resist, proc_chance, proc_damage, proc_name, proc_resist, resist_fail, resist_kind, resist_pct, kick_damage, kick_every, kick_first, fight_regen, run_speed, taken_resist, abilities, note FROM classtemplates
 		WHERE name IS NOT NULL`)
 	if err != nil {
 		return nil, nil, err
@@ -1418,7 +1458,7 @@ func (db *SQLiteDB) ClassTemplates() (templates map[string]ClassTemplate, bad []
 		var fx int64
 		var abilities sql.NullString
 		if err := rows.Scan(&t.Name, &t.Class, &t.HPPct, &t.TakenPct, &t.MeleePct, &t.Special, &t.SpecialChance,
-			&t.SpecialDamage, &fx, &t.SpecialEvery, &t.SpecialFirst, &t.SpecialJitter, &t.SpecialFrom, &t.ShieldDamage, &t.ShieldResist, &t.ProcChance, &t.ProcDamage, &t.ProcName, &t.ProcResist, &t.ResistFail, &t.ResistKind, &t.ResistPct, &t.KickDamage, &t.KickEvery, &t.KickFirst, &t.FightRegen, &t.RunSpeed, &abilities, &t.Note); err != nil {
+			&t.SpecialDamage, &fx, &t.SpecialEvery, &t.SpecialFirst, &t.SpecialJitter, &t.SpecialFrom, &t.ShieldDamage, &t.ShieldResist, &t.ProcChance, &t.ProcDamage, &t.ProcName, &t.ProcResist, &t.ResistFail, &t.ResistKind, &t.ResistPct, &t.KickDamage, &t.KickEvery, &t.KickFirst, &t.FightRegen, &t.RunSpeed, &t.TakenResist, &abilities, &t.Note); err != nil {
 			return nil, nil, err
 		}
 		t.Name = TemplateKey(t.Name)

@@ -70,7 +70,7 @@ func (db *SQLiteDB) ItemAuras() (map[int]ItemAura, error) {
 		}
 		c, cok := tint32(color)
 		src, sok := tint32(source)
-		if !cok || !sok || !ValidAuraKind(kind) || !ValidAuraNodes(nodes) {
+		if !cok || !sok || !ValidItemAura(kind, nodes) {
 			continue
 		}
 		if a := (ItemAura{PatternID: id, Color: c, Kind: uint8(kind), Source: src, Nodes: uint8(nodes)}); a.Shows() {

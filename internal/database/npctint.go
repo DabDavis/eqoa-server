@@ -185,6 +185,19 @@ func ValidCharAuraNodes(slot, kind, n int64) bool {
 	return ValidAuraNodes(n)
 }
 
+// ValidItemAura holds an itemaura row's kind and nodes: the kinds a body or
+// piece has (ValidAuraKind, nodes ValidAuraNodes), or a circlet (AuraCirclet,
+// nodes its height 0-AuraAlongMost): an item that IS a circlet (the owner,
+// 2026-11-14: "for dusts circlet make it an actual item with that model we just
+// made, named crown of twist virtue"). A circlet is shown on a worn helm-slot
+// item alone (entity.pieceAuras): on any other piece it is none.
+func ValidItemAura(kind, nodes int64) bool {
+	if kind == AuraCirclet {
+		return nodes >= 0 && nodes <= AuraAlongMost
+	}
+	return ValidAuraKind(kind) && ValidAuraNodes(nodes)
+}
+
 // ValidCharAuraKind holds a charaura row's kind to what its slot draws: a
 // hand (CharAuraMainHand, CharAuraOffHand) none, the particles (the source's
 // particle sprites on the held item) or the epic's look (AuraEpic); every

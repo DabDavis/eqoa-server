@@ -344,27 +344,30 @@ func checkCharAuraRow(row map[string]any) error {
 			return badRequest("slot is 0 chest, 1 bracers, 2 gloves, 3 legs, 4 boots, 5 helm, 6 robe, 7 the body and underclothes (under the armour), 8 the cape, 9 the main hand's held item, 10 the off hand's")
 		}
 	}
-	// a hand's kinds (and epic a hand's alone), before the columns' own check
+	// a hand's kinds (and epic a hand's alone) and nodes (where along the
+	// held item), before the columns' own check
 	cols := row
 	slot, sok := asFloat(row["slot"])
-	kind, kok := asFloat(row["kind"])
-	if sok && kok && kind == math.Trunc(kind) {
-		hand := slot == database.CharAuraMainHand || slot == database.CharAuraOffHand
-		if !database.ValidCharAuraKind(int64(slot), int64(kind)) {
-			if hand {
-				return badRequest("a held item's aura (slot 9 or 10) is kind 1 none, 3 the particles or 7 epic (the source epic's own glow, sheen and particles)")
-			}
-			if kind == database.AuraEpic {
-				return badRequest("kind 7 (epic) is a held item's alone: slot 9 the main hand, 10 the off hand")
+	hand := sok && (slot == database.CharAuraMainHand || slot == database.CharAuraOffHand)
+	if kind, kok := asFloat(row["kind"]); sok && kok && kind == math.Trunc(kind) && !database.ValidCharAuraKind(int64(slot), int64(kind)) {
+		if hand {
+			return badRequest("a held item's aura (slot 9 or 10) is kind 1 none, 3 the particles or 7 epic (the source epic's own glow, sheen and particles)")
+		}
+		if kind == database.AuraEpic {
+			return badRequest("kind 7 (epic) is a held item's alone: slot 9 the main hand, 10 the off hand")
+		}
+	}
+	if hand {
+		if v, has := row["nodes"]; has {
+			if f, fok := asFloat(v); !fok || f != math.Trunc(f) || !database.ValidCharAuraNodes(int64(slot), int64(f)) {
+				return badRequest("a held item's Nodes is where along it the particles sit: 1-%d percent of its length from the hand, 0 where the epic has them", database.AuraAlongMost)
 			}
 		}
-		if hand {
-			// checked; checkAuraCols knows the bodies' kinds alone
-			cols = make(map[string]any, len(row))
-			for k, v := range row {
-				if k != "kind" {
-					cols[k] = v
-				}
+		// checked; checkAuraCols knows the bodies' kinds and nodes alone
+		cols = make(map[string]any, len(row))
+		for k, v := range row {
+			if k != "kind" && k != "nodes" {
+				cols[k] = v
 			}
 		}
 	}

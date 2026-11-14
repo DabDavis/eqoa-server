@@ -21,7 +21,9 @@ import (
 //   - a heal (mercHealTurnLocked): what it helps is its owner's alone
 //     (mercOwnTeamLocked): itself, its owner and its owner's other mercs,
 //     alive in its world, never another player of its owner's group or raid,
-//     nor their mercs (the owner, 2026-11-13: "the mercs that belong to a
+//     nor their mercs, unless it is aggressive (GM ticket 2025, merccall.go:
+//     its heals, not its buffs, reach its group mates and their mercs, in a
+//     raid those of its owner's group number) (the owner, 2026-11-13: "the mercs that belong to a
 //     player only can effect that player and their mercs, not the whole
 //     raid"; from 2026-11-12 to then its heals went to the whole raid, "let
 //     mercs heal raid members"); a healer heals one below mercHurtPct of
@@ -579,7 +581,7 @@ func (w *World) mercHealTurnLocked(ms *mercState, now time.Time) bool {
 		share float64
 	}
 	var hurts []hurt
-	for _, mm := range w.mercOwnTeamLocked(ms) {
+	for _, mm := range w.mercHealTeamLocked(ms) { // an aggressive merc's group mates too (merccall.go)
 		hp, top := mm.hp()
 		if top <= 0 || hp <= 0 || hp*100 >= top*hurtPct {
 			continue
@@ -752,7 +754,7 @@ func (w *World) mercBuffComingLocked(ms *mercState, s *CastSpell, id EntityID) b
 
 // mercLooseFoeLocked is the nearest creature within petAssist of the merc's
 // owner fighting another of its team (a player, its pet, its merc) that its
-// owner called it to (merccall.go), for a tank already holding its own target. Must be called with the lock held.
+// owner (or, aggressive, a group mate) called it to (merccall.go), for a tank already holding its own target. Must be called with the lock held.
 func (w *World) mercLooseFoeLocked(ms *mercState) *NPC {
 	m, o := ms.npc, ms.owner
 	team := map[EntityID]bool{}
@@ -766,9 +768,10 @@ func (w *World) mercLooseFoeLocked(ms *mercState) *NPC {
 	}
 	var best *NPC
 	var bestD float32
+	mates := w.mercGroupMatesLocked(ms) // an aggressive merc's (GM ticket 2025)
 	for _, id := range w.SpatialIndex.QueryRadius(o.X, o.Z, petAssist) {
 		npc := w.NPCs[id]
-		if npc == nil || !mercMayFight(m, npc) || !team[npc.CurrentEnemy] || !w.mercCalledLocked(o, npc) {
+		if npc == nil || !mercMayFight(m, npc) || !team[npc.CurrentEnemy] || !w.mercCalledForLocked(ms, mates, npc) {
 			continue
 		}
 		if d := distXZ(m.X, m.Z, npc.X, npc.Z); best == nil || d < bestD {
@@ -1020,7 +1023,11 @@ func (w *World) mercLandLocked(c *mercCast, now time.Time) {
 	if s.Def.ShareRadius > 0 {
 		reach = s.Def.ShareRadius
 	}
-	for _, mm := range w.mercOwnTeamLocked(ms) {
+	team := w.mercOwnTeamLocked(ms)
+	if heal {
+		team = w.mercHealTeamLocked(ms) // an aggressive merc's group mates too (merccall.go)
+	}
+	for _, mm := range team {
 		if heal && !w.mercGroupReachesLocked(ms, s, mm) {
 			continue // a group heal: its reach and its sight
 		}
@@ -1070,8 +1077,8 @@ func (w *World) mercHelpLocked(ms *mercState, s *CastSpell, id EntityID, now tim
 	}
 	// its owner's own alone (the file's doc): a cast at another, chosen before
 	// the owner's raid was its team, lands on no one
-	if !w.mercMayHelpLocked(ms, id) {
-		return
+	if !w.mercMayHelpLocked(ms, id) && !(mercHeals(s) && w.mercHealsMateLocked(ms, id)) {
+		return // an aggressive merc's heal on a group mate excepted (merccall.go)
 	}
 	if p := w.Players[id]; p != nil {
 		// not on one whose fight became its own while the cast was on its way

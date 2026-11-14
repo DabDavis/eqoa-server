@@ -2377,7 +2377,7 @@ var catalog = map[string]tableNote{
 			"is set); show: talk to it holding items, which are kept; give: hand that NPC items (patternid*count, comma " +
 			"separated) and tunar, which are taken; kill: kill count creatures " +
 			"named target (or one of the step's other creatures, queststeptargets); loot: kill creatures named target (or one of its others) until count of the item in items are taken off their corpses " +
-			"during the step, each kill dropping one on the corpse with chance for a player on the step; reach: come within radius of x, y, z in world. journal is " +
+			"during the step, each kill dropping one on the corpse with chance for a player on the step; reach: come within radius of x, z in world (and within height of y when height is set). journal is " +
 			"the journal's line while it is the step to do; says is the NPC's words when it is done; the rewards are given " +
 			"then; events are what happens when it becomes the step to do (start) and when it is done (done).",
 		Live:   "At once: the next talk, kill or step uses it.",
@@ -2395,6 +2395,7 @@ var catalog = map[string]tableNote{
 			"chance":      {Label: "Drop chance", Help: "a loot step's: 0 to 1 a kill; 0 every kill"},
 			"world":       {Label: "World", Enum: "world"},
 			"radius":      {Label: "Within"},
+			"height":      {Label: "Within up or down", Help: "a reach step's: the player within this of y too (one floor of a building); 0 any height"},
 			"journal":     {Label: "Journal line", Help: "at most 127 characters"},
 			"answer":      {Label: "Player's answer", Format: "multiline", Help: "the first line does it, any others change nothing; empty: done on talking"},
 			"notyet":      {Label: "Answer while items lack", Format: "multiline", Help: "show/give: offered instead of the answer until the items are held"},

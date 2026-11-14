@@ -49,6 +49,7 @@ with what is missing in its notes, so only whole quests are offered to players.
 | `items` | `[{"item": "<itempattern name>", "count": n}]` |
 | `tunar`, `count`, `chance` | as `kind` needs them; `chance` 0-1 is ours (the guides give none), 0 every kill |
 | `world`, `x`, `y`, `z`, `radius` | a `reach` step's place, game coordinates |
+| `height` | optional, a `reach` step's: the player within it of `y` too (one floor of a building whose floors stand over one another); none or 0 any height (the column `queststeps.height`) |
 | `journal` | the journal's line for the step (what to do next), one short sentence |
 | `says` | what `target` says when the step is done |
 | `waiting`, `notyet`, `reminder` | optional: the NPC's words while the step waits, the answer while items lack, the giver's reminder |

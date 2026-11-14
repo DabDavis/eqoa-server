@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS queststeps (
 	events      TEXT NOT NULL DEFAULT '',
 	byclass     TEXT NOT NULL DEFAULT '',
 	choices     TEXT NOT NULL DEFAULT '',
+	height      REAL NOT NULL DEFAULT 0,
 	PRIMARY KEY (questid, step)
 );
 CREATE TABLE IF NOT EXISTS questunlocks (
@@ -129,6 +130,7 @@ func (db *SQLiteDB) initQuests() error {
 		{"queststeps", "chance", `REAL NOT NULL DEFAULT 0`},
 		{"quests", "factionreq", `TEXT NOT NULL DEFAULT ''`}, {"queststeps", "byclass", `TEXT NOT NULL DEFAULT ''`},
 		{"queststeps", "choices", `TEXT NOT NULL DEFAULT ''`},
+		{"queststeps", "height", `REAL NOT NULL DEFAULT 0`},
 		{"charquests", "picks", `TEXT NOT NULL DEFAULT ''`},
 	} {
 		has, err := hasColumn(db.DB, c.table, c.col)
@@ -632,6 +634,11 @@ type QuestStep struct {
 	X, Y   float32
 	Z      float32
 	Radius float32
+	// Height is a reach step's reach up and down: the player within it of Y
+	// as well (a floor of a building whose floors stand over one another, the
+	// kappa fortress's top rooms: the FAQ's popup "as you approach the room
+	// with the wooden spiral ramp"); 0 any height, as before the column
+	Height float32
 	// Journal is the journal's line while this is the step to do.
 	Journal string
 	// Answer is the player's answer that does a talk or give step; "" does
@@ -1126,7 +1133,7 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 	}
 	srs, err := s.db.Query(`SELECT questid, step, kind, target, npcid, items, tunar, count, world, x, y, z, radius,
 		journal, answer, says, waiting, notyet, reminder, xp, rewardtunar, rewarditems, factions, spells, chance, events, byclass,
-		choices FROM queststeps ORDER BY questid, step`)
+		choices, height FROM queststeps ORDER BY questid, step`)
 	if err != nil {
 		return nil, err
 	}
@@ -1136,7 +1143,7 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 		if err := srs.Scan(&st.Quest, &st.Step, &st.Kind, &st.Target, &st.NPCID, &items, &st.Tunar, &st.Count, &st.World,
 			&st.X, &st.Y, &st.Z, &st.Radius, &st.Journal, &st.Answer, &st.Says, &st.Waiting, &st.NotYet, &st.Reminder,
 			&st.XP, &st.RewardTunar,
-			&rewardItems, &factions, &spells, &st.Chance, &events, &byClass, &choices); err != nil {
+			&rewardItems, &factions, &spells, &st.Chance, &events, &byClass, &choices, &st.Height); err != nil {
 			srs.Close()
 			return nil, err
 		}

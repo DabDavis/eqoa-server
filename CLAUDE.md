@@ -2416,20 +2416,26 @@ split, the merc in none; factions; quests).
 
 **How it fights** (`mercfight.go`, `merccast.go`): it follows as a pet (floors, swimming, a teleport or another world
 brings it along; never capture the flag's arena, where it waits outside until its owner leaves: `entity/ctfaway.go`) and assists: by stance (`/merc stance`) passive fights only what `/merc attack` names, **assist** (the
-default; aggressive is the same since GM ticket 1959) only what its owner CALLED it to (`entity/merccall.go`, Jibwiz's 1959,
+default) only what its owner CALLED it to (`entity/merccall.go`, Jibwiz's 1959,
 approved 2026-11-13, replacing "attack when the raid engages"): his auto-attack's target, a creature he did a hostile act on
 (any `updateAggro` with him the attacker: a hit, shot, harmful spell or art, resisted or not), or one fighting someone he
 healed or buffed (`landOnPlayerLocked`/`landOnPetLocked`); a call holds until the creature dies or its fight ends. Never a
 creature only for fighting his group or raid or for having him on its hate list (an aggro). Self-defence: it fights back what
 fights IT (its pet what fights the pet or its merc); its heals wait too while a creature fights its own team, until his
 fight is called or the merc itself is fought (`mercHealHeldLocked`; out of a fight it tops up as before); a merc's pet
-follows the same rule, a player's own pet is unchanged; never a
+follows the same rule, a player's own pet is unchanged. **Aggressive** (GM ticket 2025, Jibwiz, approved: "assist group
+members ... if on the right stance, such as aggressive") also answers its **group mates'** calls as its owner's: the other
+players of the group it is in (in a raid only its owner's group number, `raidsubgroups.go`: the owner's "not the whole raid"
+kept), in its world, none in a fight of its own; a mate's auto-attack's target, a creature a mate did a hostile act on, one
+fighting someone a mate healed (`mercGroupMatesLocked`, `mercCalledForLocked`); its heals (not its buffs) reach the mates and
+their mercs (`mercHealTeamLocked`), its tank's taunt-off and its pet too. Passive and assist keep the owner's call alone, and
+a merc out of its owner's group answers no mate. Never a
 player, a duel's opponent or pet (`duelFoeLocked` leaves a merc out), an unattackable NPC, another's pet or merc, a Metal
 Moogie. A tank or a melee fighter swings a player's rounds of its class and level at its target; a healer or a caster
 stands off in its spells' reach (at most 18) and does not swing. Its casts are a player's: cast time, landing 1.4 s after,
 its lockout (cast, recast and 300 ms) before it is cast again, the arts' global cooldown, its power paid as it begins,
 its 0x00B1 to all who see it. Each turn it looks for, in order: a **heal** for its team (itself, its owner, its owner's
-group's players and mercs, never a player in a fight of its own: flagged for PvP, in a duel, or in Mr. Moogie's challenge, `entity/ownfight.go`, below): a healer heals one below 70% (a heal over time it
+other mercs; an aggressive merc's group mates and their mercs too; never a player in a fight of its own: flagged for PvP, in a duel, or in Mr. Moogie's challenge, `entity/ownfight.go`, below): a healer heals one below 70% (a heal over time it
 has not put on it, else a heal; a group heal for two or more hurt), one below 40% first with its biggest; any other class
 with a heal only one below 40%; out of a fight a **buff** (the best rank of each line lasting 5 minutes or more) on itself,
 its owner or its group while half its power is left; a tank's **taunt** (its book's hate lines, the best that is ready, on

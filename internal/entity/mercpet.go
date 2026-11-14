@@ -327,8 +327,9 @@ func (w *World) mercPetChooseTargetLocked(ms *mercState, ps *petState) {
 	}
 	// its hirer's call (merccall.go), or what fights the pet or its merc
 	// (self-defence: GM ticket 1959)
+	mates := w.mercGroupMatesLocked(ms) // an aggressive merc's (GM ticket 2025)
 	mine := func(npc *NPC) bool {
-		return npc.CurrentEnemy == pet.ServerID || npc.CurrentEnemy == m.ServerID || w.mercCalledLocked(owner, npc)
+		return npc.CurrentEnemy == pet.ServerID || npc.CurrentEnemy == m.ServerID || w.mercCalledForLocked(ms, mates, npc)
 	}
 	if t := valid(ps.target); t != nil && mine(t) {
 		return // still its fight

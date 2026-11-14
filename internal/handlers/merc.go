@@ -1205,7 +1205,7 @@ const mercModeHealersLine = "Only a healer (a cleric, druid or shaman) is defens
 var mercStanceWords = map[entity.MercStance]string{
 	entity.MercPassive:    "Your mercenary is passive: it fights only what /merc attack names. A healer still heals.",
 	entity.MercAssist:     "Your mercenary assists you: it fights what you attack, and what fights anyone you heal. It fights back what attacks it.",
-	entity.MercAggressive: "Your mercenary is aggressive, which is now the same as assist: it fights what you attack, and what fights anyone you heal. It fights back what attacks it.",
+	entity.MercAggressive: "Your mercenary is aggressive: it fights what you or your group attack, and what fights anyone you or they heal, and it heals your group too. It fights back what attacks it.",
 }
 
 // status is /merc alone: each hire by slot, out (said), on standby, resting

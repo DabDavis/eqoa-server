@@ -96,10 +96,12 @@ func TestMercWaitsForItsOwnersCall(t *testing.T) {
 	}
 }
 
-// An aggressive stance is assist now: nothing of the group's fights.
-func TestAnAggressiveMercWaitsToo(t *testing.T) {
+// An assist merc (the default) leaves a group mate's fight alone: Bea's
+// auto-attack and hit call nothing of the owner's (GM ticket 2025 is the
+// aggressive stance's: merccallgroup_test.go).
+func TestAnAssistMercLeavesItsGroupsFights(t *testing.T) {
 	r := newMercRig(t)
-	ms := mercWithPet(t, r, MercAggressive)
+	ms := mercWithPet(t, r, MercAssist)
 	_, b := r.player("Bea", 0, 0)
 	r.group(b)
 	crab := bigCrab(r, 6)
@@ -108,7 +110,7 @@ func TestAnAggressiveMercWaitsToo(t *testing.T) {
 	r.w.updateAggro(crab, b.ServerID, 10) // Bea's own hit calls nothing of the owner's
 	r.w.mu.Unlock()
 	if m, p := chooseOnce(r, ms); m != 0 || p != 0 {
-		t.Errorf("an aggressive merc took on Bea's crab: merc %d, pet %d", m, p)
+		t.Errorf("an assist merc took on Bea's crab: merc %d, pet %d", m, p)
 	}
 }
 

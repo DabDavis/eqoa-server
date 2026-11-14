@@ -64,9 +64,10 @@ const (
 	// or that fights one he healed or helped, and what fights the merc itself
 	// (the default)
 	MercAssist MercStance = 2
-	// MercAggressive took on what fought or was fought by its owner's group;
-	// since GM ticket 1959 (merccall.go) it fights as MercAssist, kept so a
-	// saved stance and the word still read
+	// MercAggressive answers its group mates' calls as its owner's (GM ticket
+	// 2025, merccall.go): what a player of the group it is in (in a raid, of
+	// its owner's group number) attacks, and what fights one he healed; its
+	// heals reach them and their mercs
 	MercAggressive MercStance = 3
 )
 

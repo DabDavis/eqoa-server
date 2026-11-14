@@ -93,13 +93,15 @@ func (w *World) mercChooseTargetLocked(ms *mercState) {
 	}
 	var best *NPC
 	var bestD float32
+	mates := w.mercGroupMatesLocked(ms) // an aggressive merc's (GM ticket 2025)
 	for _, id := range w.SpatialIndex.QueryRadius(owner.X, owner.Z, petAssist) {
 		npc := w.NPCs[id]
 		if npc == nil || !mercMayFight(m, npc) {
 			continue
 		}
-		// its owner's call (merccall.go), or what fights the merc itself
-		if npc.CurrentEnemy != m.ServerID && !w.mercCalledLocked(owner, npc) {
+		// its owner's call or, aggressive, a group mate's (merccall.go), or
+		// what fights the merc itself
+		if npc.CurrentEnemy != m.ServerID && !w.mercCalledForLocked(ms, mates, npc) {
 			continue
 		}
 		if d := distXZ(m.X, m.Z, npc.X, npc.Z); best == nil || d < bestD {

@@ -884,8 +884,8 @@ func (e *TriggerEngine) stepLocked(r *triggerRun, s database.TriggerStep) string
 		if s.World != nil {
 			world = uint8(*s.World)
 		}
-		return fmt.Sprintf("%d of %s set walking", e.gw.WalkNPCsTo(strings.TrimSpace(s.NPC), r.world, r.x, r.z, e.reachOf(r, s),
-			world, s.X, s.Y, s.Z), s.NPC)
+		return fmt.Sprintf("%d of %s set walking", e.gw.WalkNPCsRoute(strings.TrimSpace(s.NPC), r.world, r.x, r.z, e.reachOf(r, s),
+			world, s.Points, s.X, s.Y, s.Z, s.Pace), s.NPC)
 	case database.TriggerHome:
 		return fmt.Sprintf("%d of %s sent home", e.gw.SendNPCsHome(strings.TrimSpace(s.NPC), r.world, r.x, r.z, e.reachOf(r, s)), s.NPC)
 	case database.TriggerRouse:

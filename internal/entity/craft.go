@@ -13,6 +13,11 @@ type CraftView struct {
 	// Stats is STR, STA, AGI, DEX, WIS, INT and CHA, in that order
 	// (CraftStatOrder).
 	Stats [7]int
+	// XPPct is the share of a tradeskill's XP the player gets, XPTag its line's words: the towns'
+	// boon and the GM's reward, as a kill's (gmrewardxp.go xpPctLocked; the owner, 2026-11-14: "the
+	// boon 6x bonus xp for live and heirloom applies to crafting also"). 0 is 100.
+	XPPct int
+	XPTag string
 }
 
 // CraftStatOrder is the stats of a CraftView's Stats, in their order.
@@ -28,6 +33,7 @@ func (w *World) CraftView(sess *session.Session) (CraftView, bool) {
 		return CraftView{}, false
 	}
 	v := CraftView{Name: p.Name, CharServerID: p.CharServerID, Level: p.Level, Dead: p.IsDead()}
+	v.XPPct, v.XPTag = w.xpPctLocked(p) // a boon's, a GM's reward's (gmrewardxp.go)
 	for i, st := range CraftStatOrder {
 		v.Stats[i] = p.StatNow(st)
 	}

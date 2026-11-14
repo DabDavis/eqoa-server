@@ -51,6 +51,13 @@ PAGES = {
         "Vendors/Jewelry.htm",
         "Tutorials/Jewelry.htm",
     ],
+    # Weaponcrafting: the 1H and 2H grids (checked against Prima's tables, which seed_tradeskills.py holds)
+    "weapon": [
+        "Recipes/Weapon/Original/OneHand.htm",
+        "Recipes/Weapon/Original/TwoHand.htm",
+        "Vendors/Weapon.htm",
+        "Tutorials/Weapon.htm",
+    ],
 }
 PRIMA_PDF = ("https://archive.org/download/EverQuest_Online_Adventures_Frontiers_Prima_Official_eGuide/"
              "EverQuest_Online_Adventures_Frontiers_Prima_Official_eGuide.pdf")

@@ -1,0 +1,786 @@
+[
+ {
+  "spellid": 700002,
+  "name": "Clever Thought",
+  "classes": "ALC",
+  "from": 1,
+  "to": 700002
+ },
+ {
+  "spellid": 700094,
+  "name": "Creative Thinking",
+  "classes": "ALC",
+  "from": 1,
+  "to": 700002
+ },
+ {
+  "spellid": 700262,
+  "name": "Ingenious Thought",
+  "classes": "ALC",
+  "from": 1,
+  "to": 700002
+ },
+ {
+  "spellid": 700435,
+  "name": "Inspired Thinking",
+  "classes": "ALC",
+  "from": 1,
+  "to": 700002
+ },
+ {
+  "spellid": 700730,
+  "name": "Prodigious Thought",
+  "classes": "ALC",
+  "from": 1,
+  "to": 700002
+ },
+ {
+  "spellid": 700065,
+  "name": "Focused Intent",
+  "classes": "ALC",
+  "from": 1,
+  "to": 700065
+ },
+ {
+  "spellid": 700191,
+  "name": "Honed Intent",
+  "classes": "ALC",
+  "from": 1,
+  "to": 700065
+ },
+ {
+  "spellid": 700362,
+  "name": "Applied Intent",
+  "classes": "ALC",
+  "from": 1,
+  "to": 700065
+ },
+ {
+  "spellid": 700587,
+  "name": "Direct Intent",
+  "classes": "ALC",
+  "from": 1,
+  "to": 700065
+ },
+ {
+  "spellid": 700773,
+  "name": "Cunning Intent",
+  "classes": "ALC",
+  "from": 1,
+  "to": 700065
+ },
+ {
+  "spellid": 700719,
+  "name": "Inspiration",
+  "classes": "ALC",
+  "from": 3,
+  "to": 700719
+ },
+ {
+  "spellid": 700833,
+  "name": "Group Cleverness",
+  "classes": "ALC",
+  "from": 3,
+  "to": 700833
+ },
+ {
+  "spellid": 700851,
+  "name": "Group Focus",
+  "classes": "ALC",
+  "from": 3,
+  "to": 700833
+ },
+ {
+  "spellid": 700864,
+  "name": "Group Creativity",
+  "classes": "ALC",
+  "from": 3,
+  "to": 700833
+ },
+ {
+  "spellid": 700890,
+  "name": "Group Intent",
+  "classes": "ALC",
+  "from": 3,
+  "to": 700833
+ },
+ {
+  "spellid": 700914,
+  "name": "Group Ingenuity",
+  "classes": "ALC",
+  "from": 3,
+  "to": 700833
+ },
+ {
+  "spellid": 700962,
+  "name": "Group Application",
+  "classes": "ALC",
+  "from": 3,
+  "to": 700833
+ },
+ {
+  "spellid": 700979,
+  "name": "Group Inspiration",
+  "classes": "ALC",
+  "from": 3,
+  "to": 700833
+ },
+ {
+  "spellid": 701026,
+  "name": "Group Direction",
+  "classes": "ALC",
+  "from": 3,
+  "to": 700833
+ },
+ {
+  "spellid": 701081,
+  "name": "Group Prodigiousness",
+  "classes": "ALC",
+  "from": 3,
+  "to": 700833
+ },
+ {
+  "spellid": 701153,
+  "name": "Group Cunning",
+  "classes": "ALC",
+  "from": 3,
+  "to": 700833
+ },
+ {
+  "spellid": 900127,
+  "name": "Concentration",
+  "classes": "ALC",
+  "from": 3,
+  "to": 900127
+ },
+ {
+  "spellid": 159,
+  "name": "Anthem of Hope +",
+  "classes": "BRD",
+  "from": 3,
+  "to": 159
+ },
+ {
+  "spellid": 160,
+  "name": "Anthem of Light +",
+  "classes": "BRD",
+  "from": 3,
+  "to": 159
+ },
+ {
+  "spellid": 175,
+  "name": "Anthem of Drive +",
+  "classes": "BRD",
+  "from": 3,
+  "to": 159
+ },
+ {
+  "spellid": 187,
+  "name": "Anthem of Deeds +",
+  "classes": "BRD",
+  "from": 3,
+  "to": 159
+ },
+ {
+  "spellid": 202,
+  "name": "Anthem of Triumph +",
+  "classes": "BRD",
+  "from": 3,
+  "to": 159
+ },
+ {
+  "spellid": 700765,
+  "name": "Anthem of Conquest",
+  "classes": "BRD",
+  "from": 3,
+  "to": 159
+ },
+ {
+  "spellid": 900154,
+  "name": "Anthem of Light",
+  "classes": "BRD",
+  "from": 3,
+  "to": 159
+ },
+ {
+  "spellid": 900158,
+  "name": "Anthem of Hope",
+  "classes": "BRD",
+  "from": 3,
+  "to": 159
+ },
+ {
+  "spellid": 900174,
+  "name": "Anthem of Drive",
+  "classes": "BRD",
+  "from": 3,
+  "to": 159
+ },
+ {
+  "spellid": 900186,
+  "name": "Anthem of Deeds",
+  "classes": "BRD",
+  "from": 3,
+  "to": 159
+ },
+ {
+  "spellid": 900201,
+  "name": "Anthem of Triumph",
+  "classes": "BRD",
+  "from": 3,
+  "to": 159
+ },
+ {
+  "spellid": 900217,
+  "name": "Anthem of Conquest +",
+  "classes": "BRD",
+  "from": 3,
+  "to": 159
+ },
+ {
+  "spellid": 196,
+  "name": "Rhapsody",
+  "classes": "BRD",
+  "from": 3,
+  "to": 171
+ },
+ {
+  "spellid": 700058,
+  "name": "Concerto",
+  "classes": "BRD",
+  "from": 3,
+  "to": 171
+ },
+ {
+  "spellid": 700714,
+  "name": "Harmony",
+  "classes": "BRD",
+  "from": 3,
+  "to": 171
+ },
+ {
+  "spellid": 700852,
+  "name": "Perfect Concerto",
+  "classes": "BRD",
+  "from": 3,
+  "to": 171
+ },
+ {
+  "spellid": 701012,
+  "name": "Perfect Rhapsody",
+  "classes": "BRD",
+  "from": 3,
+  "to": 171
+ },
+ {
+  "spellid": 701083,
+  "name": "Perfect Harmony",
+  "classes": "BRD",
+  "from": 3,
+  "to": 171
+ },
+ {
+  "spellid": 173,
+  "name": "Dirge of Refuge",
+  "classes": "BRD",
+  "from": 3,
+  "to": 173
+ },
+ {
+  "spellid": 185,
+  "name": "Dirge of Fastness",
+  "classes": "BRD",
+  "from": 3,
+  "to": 173
+ },
+ {
+  "spellid": 200,
+  "name": "Dirge of Redoubt",
+  "classes": "BRD",
+  "from": 3,
+  "to": 173
+ },
+ {
+  "spellid": 700095,
+  "name": "Dirge of Defense",
+  "classes": "BRD",
+  "from": 3,
+  "to": 173
+ },
+ {
+  "spellid": 700748,
+  "name": "Dirge of Succor",
+  "classes": "BRD",
+  "from": 3,
+  "to": 173
+ },
+ {
+  "spellid": 237,
+  "name": "Courage",
+  "classes": "CL",
+  "from": 1,
+  "to": 237
+ },
+ {
+  "spellid": 700090,
+  "name": "Center",
+  "classes": "CL",
+  "from": 1,
+  "to": 237
+ },
+ {
+  "spellid": 700180,
+  "name": "Daring",
+  "classes": "CL",
+  "from": 1,
+  "to": 237
+ },
+ {
+  "spellid": 700298,
+  "name": "Bravery",
+  "classes": "CL",
+  "from": 1,
+  "to": 237
+ },
+ {
+  "spellid": 700445,
+  "name": "Valor",
+  "classes": "CL",
+  "from": 1,
+  "to": 237
+ },
+ {
+  "spellid": 700639,
+  "name": "Resolution",
+  "classes": "CL",
+  "from": 1,
+  "to": 237
+ },
+ {
+  "spellid": 700805,
+  "name": "Order",
+  "classes": "CL",
+  "from": 1,
+  "to": 237
+ },
+ {
+  "spellid": 700189,
+  "name": "Group Daring",
+  "classes": "CL",
+  "from": 3,
+  "to": 700189
+ },
+ {
+  "spellid": 700843,
+  "name": "Group Courage",
+  "classes": "CL",
+  "from": 3,
+  "to": 700189
+ },
+ {
+  "spellid": 700863,
+  "name": "Group Center",
+  "classes": "CL",
+  "from": 3,
+  "to": 700189
+ },
+ {
+  "spellid": 700933,
+  "name": "Group Bravery",
+  "classes": "CL",
+  "from": 3,
+  "to": 700189
+ },
+ {
+  "spellid": 700980,
+  "name": "Group Valor",
+  "classes": "CL",
+  "from": 3,
+  "to": 700189
+ },
+ {
+  "spellid": 701028,
+  "name": "Group Resolution",
+  "classes": "CL",
+  "from": 3,
+  "to": 700189
+ },
+ {
+  "spellid": 701154,
+  "name": "Group Order",
+  "classes": "CL",
+  "from": 3,
+  "to": 700189
+ },
+ {
+  "spellid": 701249,
+  "name": "United Faith",
+  "classes": "CL",
+  "from": 3,
+  "to": 700189
+ },
+ {
+  "spellid": 700834,
+  "name": "Group Woodskin",
+  "classes": "DRD",
+  "from": 3,
+  "to": 700834
+ },
+ {
+  "spellid": 700865,
+  "name": "Group Rockskin",
+  "classes": "DRD",
+  "from": 3,
+  "to": 700834
+ },
+ {
+  "spellid": 700915,
+  "name": "Group Steelskin",
+  "classes": "DRD",
+  "from": 3,
+  "to": 700834
+ },
+ {
+  "spellid": 700978,
+  "name": "Group Diamondskin",
+  "classes": "DRD",
+  "from": 3,
+  "to": 700834
+ },
+ {
+  "spellid": 701027,
+  "name": "Group Natureskin",
+  "classes": "DRD",
+  "from": 3,
+  "to": 700834
+ },
+ {
+  "spellid": 701152,
+  "name": "Group Blessing",
+  "classes": "DRD",
+  "from": 3,
+  "to": 700834
+ },
+ {
+  "spellid": 900447,
+  "name": "Vitae's Blessing",
+  "classes": "DRD",
+  "from": 3,
+  "to": 700834
+ },
+ {
+  "spellid": 901074,
+  "name": "Alesthenies' Mercy",
+  "classes": "PAL",
+  "from": 1,
+  "to": 901074
+ },
+ {
+  "spellid": 700707,
+  "name": "Bladecoat",
+  "classes": "RAN",
+  "from": 1,
+  "to": 2
+ },
+ {
+  "spellid": 700061,
+  "name": "Feet Like Cat",
+  "classes": "RAN",
+  "from": 1,
+  "to": 700061
+ },
+ {
+  "spellid": 700236,
+  "name": "Nimble Ease",
+  "classes": "RAN",
+  "from": 1,
+  "to": 700061
+ },
+ {
+  "spellid": 700405,
+  "name": "Cat's Grace",
+  "classes": "RAN",
+  "from": 1,
+  "to": 700061
+ },
+ {
+  "spellid": 700556,
+  "name": "Serpent's Grace",
+  "classes": "RAN",
+  "from": 1,
+  "to": 700061
+ },
+ {
+  "spellid": 700750,
+  "name": "Fairy's Grace",
+  "classes": "RAN",
+  "from": 1,
+  "to": 700061
+ },
+ {
+  "spellid": 700905,
+  "name": "Nimble Grace",
+  "classes": "RAN",
+  "from": 1,
+  "to": 700061
+ },
+ {
+  "spellid": 700965,
+  "name": "Cat's Ease",
+  "classes": "RAN",
+  "from": 1,
+  "to": 700061
+ },
+ {
+  "spellid": 701020,
+  "name": "Serpent's Ease",
+  "classes": "RAN",
+  "from": 1,
+  "to": 700061
+ },
+ {
+  "spellid": 701089,
+  "name": "Fairy's Ease",
+  "classes": "RAN",
+  "from": 1,
+  "to": 700061
+ },
+ {
+  "spellid": 700901,
+  "name": "Tracker's Wisdom",
+  "classes": "RAN",
+  "from": 1,
+  "to": 700901
+ },
+ {
+  "spellid": 700937,
+  "name": "Stalker's Skill",
+  "classes": "RAN",
+  "from": 1,
+  "to": 700901
+ },
+ {
+  "spellid": 700981,
+  "name": "Hunter's Skill",
+  "classes": "RAN",
+  "from": 1,
+  "to": 700901
+ },
+ {
+  "spellid": 701033,
+  "name": "Predatorial Skill",
+  "classes": "RAN",
+  "from": 1,
+  "to": 700901
+ },
+ {
+  "spellid": 701202,
+  "name": "Predacious Skill",
+  "classes": "RAN",
+  "from": 1,
+  "to": 700901
+ },
+ {
+  "spellid": 901097,
+  "name": "Thistlecoat +",
+  "classes": "RAN",
+  "from": 1,
+  "to": 901097
+ },
+ {
+  "spellid": 901109,
+  "name": "Barbcoat +",
+  "classes": "RAN",
+  "from": 1,
+  "to": 901097
+ },
+ {
+  "spellid": 901126,
+  "name": "Bramblecoat +",
+  "classes": "RAN",
+  "from": 1,
+  "to": 901097
+ },
+ {
+  "spellid": 901157,
+  "name": "Spikecoat +",
+  "classes": "RAN",
+  "from": 1,
+  "to": 901097
+ },
+ {
+  "spellid": 901177,
+  "name": "Bladecoat +",
+  "classes": "RAN",
+  "from": 2,
+  "to": 901097
+ },
+ {
+  "spellid": 700062,
+  "name": "Finesse",
+  "classes": "SHA",
+  "from": 1,
+  "to": 700062
+ },
+ {
+  "spellid": 700141,
+  "name": "Deftness",
+  "classes": "SHA",
+  "from": 1,
+  "to": 700062
+ },
+ {
+  "spellid": 700243,
+  "name": "Accuracy",
+  "classes": "SHA",
+  "from": 1,
+  "to": 700062
+ },
+ {
+  "spellid": 700386,
+  "name": "Precision",
+  "classes": "SHA",
+  "from": 1,
+  "to": 700062
+ },
+ {
+  "spellid": 700497,
+  "name": "Exactness",
+  "classes": "SHA",
+  "from": 1,
+  "to": 700062
+ },
+ {
+  "spellid": 700702,
+  "name": "Acumen",
+  "classes": "SHA",
+  "from": 1,
+  "to": 700062
+ },
+ {
+  "spellid": 700149,
+  "name": "Group Deftness",
+  "classes": "SHA",
+  "from": 3,
+  "to": 700149
+ },
+ {
+  "spellid": 700233,
+  "name": "Group Tribal Strength",
+  "classes": "SHA",
+  "from": 3,
+  "to": 700149
+ },
+ {
+  "spellid": 700261,
+  "name": "Group Accuracy",
+  "classes": "SHA",
+  "from": 3,
+  "to": 700149
+ },
+ {
+  "spellid": 700352,
+  "name": "Group Tribal Force",
+  "classes": "SHA",
+  "from": 3,
+  "to": 700149
+ },
+ {
+  "spellid": 700378,
+  "name": "Group Precision",
+  "classes": "SHA",
+  "from": 3,
+  "to": 700149
+ },
+ {
+  "spellid": 700481,
+  "name": "Group Tribal Might",
+  "classes": "SHA",
+  "from": 3,
+  "to": 700149
+ },
+ {
+  "spellid": 700501,
+  "name": "Group Exactness",
+  "classes": "SHA",
+  "from": 3,
+  "to": 700149
+ },
+ {
+  "spellid": 700680,
+  "name": "Group Tribal Thew",
+  "classes": "SHA",
+  "from": 3,
+  "to": 700149
+ },
+ {
+  "spellid": 700713,
+  "name": "Group Acumen",
+  "classes": "SHA",
+  "from": 3,
+  "to": 700149
+ },
+ {
+  "spellid": 701245,
+  "name": "Tribal Spirit",
+  "classes": "SHA",
+  "from": 3,
+  "to": 700149
+ },
+ {
+  "spellid": 683,
+  "name": "Iron Will",
+  "classes": "WAR",
+  "from": 3,
+  "to": 683
+ },
+ {
+  "spellid": 684,
+  "name": "Iron Resolve",
+  "classes": "WAR",
+  "from": 3,
+  "to": 683
+ },
+ {
+  "spellid": 1557,
+  "name": "Iron Conviction",
+  "classes": "WAR",
+  "from": 3,
+  "to": 683
+ },
+ {
+  "spellid": 1573,
+  "name": "Iron Resolution",
+  "classes": "WAR",
+  "from": 3,
+  "to": 683
+ },
+ {
+  "spellid": 701163,
+  "name": "Jakai's Rallying Cry",
+  "classes": "WAR",
+  "from": 3,
+  "to": 701163
+ },
+ {
+  "spellid": 906640,
+  "name": "Ascended Jakai's Rallying Cry",
+  "classes": "WAR",
+  "from": 3,
+  "to": 701163
+ },
+ {
+  "spellid": 906759,
+  "name": "Ascended Jakai's Rallying Cry",
+  "classes": "WAR",
+  "from": 3,
+  "to": 701163
+ },
+ {
+  "spellid": 901847,
+  "name": "Pure Heart",
+  "classes": "WAR/RAN/PAL/BRD/RGE/DRD/CL/MAG/NEC/ENC/WIZ/ALC",
+  "from": 3,
+  "to": 901847
+ }
+]

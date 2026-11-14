@@ -522,6 +522,13 @@ func main() {
 		log.Printf("Item lists: the pack holds %d and the bank %d for a client that holds them; a PS2 holds %d of each (world.pack_slots, world.bank_slots)",
 			pack, bank, entity.ClientItemSlots)
 	}
+	// what a resist takes off elemental damage (entity/elemental.go): the model's version logged
+	rm, err := entity.ParseResistModel(cfg.Combat.ResistModel, cfg.Combat.ResistMode, cfg.Combat.ResistFullChance)
+	if err != nil {
+		log.Fatalf("Config: %v", err)
+	}
+	entity.SetResistModel(rm)
+	log.Printf("Resists: model %s (combat.resist_model)", rm)
 	// the operator's damage formulas (entity/dmgformula.go, docs/damage-formulas.md):
 	// read now, again within a second of the file changing; never logged but by name
 	if cfg.Combat.FormulaFile != "" {

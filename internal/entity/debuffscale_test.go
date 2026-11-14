@@ -166,9 +166,15 @@ func TestACreatureStrongInAResist(t *testing.T) {
 	}
 	npc.Effects = nil
 	tm.ResistPct = 100
-	if got := creatureResists(StatFR, npc, -1000, now); got != -1 {
-		t.Errorf("at 100%%: %d, want 1 landing", got)
+	if got := creatureResists(StatFR, npc, -1000, now); got != 0 {
+		t.Errorf("at 100%%: %d, want nothing (elemental.go)", got)
 	}
+	func() {
+		defer withResistModel(ResistModel{Version: ResistModelLegacy})()
+		if got := creatureResists(StatFR, npc, -1000, now); got != -1 {
+			t.Errorf("legacy, at 100%%: %d, want 1 landing", got)
+		}
+	}()
 	tm.ResistPct = 75
 
 	r, _, _ := charmRig(t)

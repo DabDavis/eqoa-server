@@ -52,9 +52,9 @@ func (w *World) creatureShieldLocked(sess *session.Session, p *Player, npc *NPC,
 	}
 	taken, words := npc.shared(t.ShieldDamage), "" // an add's at its share (summon.go)
 	if st := shieldResistStat(t.ShieldResist); st != StatNone {
-		share, how := t.rollResist(p.StatNow(st))
-		taken = max(int(math.Round(float64(taken)*(1-share))), 1)
-		words = " (" + resistWords(share, how) + ")"
+		res := resolvePlayerElemental(playerElem{d0: taken, resist: p.StatNow(st), tmpl: t}) // elemental.go
+		taken = res.Taken
+		words = " (" + resistWords(res.Share, res.How) + ")"
 	}
 	taken = w.formulaDamage(taken, dmgIn{src: srcNPC, kind: dkShield, an: npc, dp: p, raw: t.ShieldDamage,
 		resist: shieldResistStat(t.ShieldResist)}) // dmgformula.go
@@ -141,9 +141,9 @@ func (w *World) creatureProcLocked(sess *session.Session, p *Player, npc *NPC, n
 func (w *World) creatureProcHitLocked(sess *session.Session, p *Player, npc *NPC, name string, damage int, resist string, now time.Time) bool {
 	taken, words := damage, ""
 	if st := shieldResistStat(resist); st != StatNone {
-		share, how := npc.tmpl.rollResist(p.StatNow(st))
-		taken = max(int(math.Round(float64(taken)*(1-share))), 1)
-		words = " (" + resistWords(share, how) + ")"
+		res := resolvePlayerElemental(playerElem{d0: taken, resist: p.StatNow(st), tmpl: npc.tmpl}) // elemental.go
+		taken = res.Taken
+		words = " (" + resistWords(res.Share, res.How) + ")"
 	}
 	taken = w.formulaDamage(taken, dmgIn{src: srcNPC, kind: dkProc, an: npc, dp: p, raw: damage, resist: shieldResistStat(resist)}) // dmgformula.go
 	w.broadcastNPCSwingLocked(npc, p.ServerID, 0, templateSpecialFX)

@@ -422,8 +422,19 @@ auth:
 # stay), a formula that fails at a hit gives that hit its built-in figure. The
 # formulas' text is never logged or shown. Keep the file mode 600. Unset or "":
 # the built-in damage everywhere.
+#
+# What a resist takes off elemental (FR/CR/LR/AR/PR/DR) spell and effect damage
+# (internal/entity/elemental.go): "elemental-2026-11-14" (unset: it) lands
+# D0 x (350-R)/350 on a player (R 0..315) and D0 x (100-R)/100 on a creature
+# (R its template's 0..100; 100 takes nothing); "legacy" is the model before it,
+# for a rollback. resist_mode (the player's): magnitude_only (unset),
+# fixed_full_chance (resist_full_chance of the hits land whole) or
+# resistance_scaled. The model in force is logged at the start ("Resists: model").
 # combat:
 #   formula_file: "/home/sdg/eqoa-server/private/damage.formula"
+#   resist_model: "elemental-2026-11-14"
+#   resist_mode: "magnitude_only"
+#   resist_full_chance: 0.10
 
 gm:
   # The GM panel (internal/gmweb): a web page for GMs, and the same tools for

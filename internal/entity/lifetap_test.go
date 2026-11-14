@@ -247,11 +247,12 @@ func TestAPactCostsItsCaster(t *testing.T) {
 	}
 }
 
-// At the pact's resist cap (315: petition 1532's 350, the owner's 315 since 2026-11-11) a pact's price is a tenth (5
+// Under the legacy model (elemental.go): at the pact's resist cap (315: petition 1532's 350, the owner's 315 since 2026-11-11) a pact's price is a tenth (5
 // of 50), but the dice may fail the resist: wholly (the whole 50, "your
 // resist failed") or in part (a share of 54% at the bottom of its range: 23
 // of 50, "took only 54%").
 func TestAPactAtTheResistCap(t *testing.T) {
+	defer withResistModel(ResistModel{Version: ResistModelLegacy})()
 	defer func(f func() float64) { resistRand = f }(resistRand)
 	for _, tt := range []struct {
 		name  string

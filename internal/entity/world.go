@@ -1141,6 +1141,18 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 				break
 			}
 		}
+		// what the ding to MaxLevel left over is the masteries', as all
+		// experience past it is (splitXP), not lost in a level that holds
+		// none (XPInLevel)
+		if over := player.XPInLevel; player.Level >= MaxLevel && over > 0 {
+			player.XPInLevel = 0
+			player.TotalXP -= over
+			levelXP -= over
+			if player.Mastery.Points+player.Mastery.Spent < MasteryCap {
+				cmXP += over
+				made += gainMastery(&player.Mastery, over)
+			}
+		}
 	}
 
 	if t := player.TrainerCap(); t != statCap {

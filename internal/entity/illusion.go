@@ -200,8 +200,34 @@ func (p *Player) ownBody() (model uint32, size float32) {
 // endIllusionsLocked takes every illusion off a player but keep's (a spell
 // id, 0 none), reporting whether one went.
 func (w *World) endIllusionsLocked(t *Player, keep int) bool {
+	return w.endIllusionsKeepingLocked(t, keep, false)
+}
+
+// endFormsLocked is Remove Illusion and True Form: every illusion off, but a
+// buff that carries more than its body (Leopard's Elegance: DEX, WIS and CHA
+// with a leopard's look) loses only the body and keeps the rest to its time,
+// so the look is the bearer's choice (petition 2106, Felthious, 2026-11-14).
+// A were form and a Wisp's Raiment still go whole.
+func (w *World) endFormsLocked(t *Player) bool {
+	return w.endIllusionsKeepingLocked(t, 0, true)
+}
+
+// carriesMore is whether an illusion's effect does more than show a body.
+func (e *ActiveEffect) carriesMore() bool {
+	return e.Mods.gives() || e.HPTick > 0 || e.PowerTick > 0 || e.Speed || e.Invis || e.Proc != 0 ||
+		e.Shield != nil || e.Rules.SpeedPct > 0
+}
+
+func (w *World) endIllusionsKeepingLocked(t *Player, keep int, keepBuffs bool) bool {
 	gone := false
 	for _, e := range append([]*ActiveEffect(nil), t.Effects...) {
+		if keepBuffs && e.Form != 0 && !e.Rules.Raiment && !IsWereForm(e.Name) && e.carriesMore() {
+			e.Form, e.FormSize = 0, 0
+			t.StatsDirty = true
+			log.Printf("Cast: %q on %s: its body is gone, its buff kept", e.Name, t.Name)
+			gone = true
+			continue
+		}
 		if (e.Form != 0 || e.Rules.Raiment) && e.SpellID != keep { // a Wisp's Raiment a form too (wispform.go)
 			w.removeEffectLocked(t, e.SpellID)
 			log.Printf("Cast: %q ends on %s: the illusion is gone", e.Name, t.Name)

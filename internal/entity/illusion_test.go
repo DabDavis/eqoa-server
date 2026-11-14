@@ -232,3 +232,54 @@ func TestGlamourIsTheCastersOrTheGroups(t *testing.T) {
 		t.Errorf("at no one: the caster is model %d, want the elf man's", m)
 	}
 }
+
+// True Form takes a buff's body and leaves its stats (petition 2106: Leopard's
+// Elegance, DEX, WIS and CHA in a leopard's look): the bearer its own body
+// again, the stats on to their time, and kept so over a logout. An illusion
+// with nothing but its body goes whole, as before.
+func TestTrueFormKeepsAFormsBuff(t *testing.T) {
+	c := illusionRig(t)
+	elegance := illusionSpell(900490, "Illusion: Troll", "Self, Troll form, Increase DEX by 40, 30min", "A buff that increases your DEX. Changes your appearance.")
+	c.land(t, elegance, 0xFFFFFFFF, 0)
+	if m, _ := channelBody(c.p); m != trollMale {
+		t.Fatalf("the buff's body: model %d, want the troll's", m)
+	}
+	var buff *ActiveEffect
+	for _, e := range c.p.Effects {
+		if e.SpellID == 900490 {
+			buff = e
+		}
+	}
+	if buff == nil || buff.Mods.Dex <= 0 {
+		t.Fatalf("no DEX buff on: %+v", c.p.Effects)
+	}
+	trueForm := illusionSpell(454, "True Form", "", "Returns Caster to Natural Self.")
+	c.land(t, trueForm, 0xFFFFFFFF, 20*time.Second)
+	if m, _ := channelBody(c.p); m != gnomeMale {
+		t.Fatalf("after True Form: model %d, want the gnome's own %d", m, gnomeMale)
+	}
+	kept := false
+	for _, e := range c.p.Effects {
+		if e.SpellID == 900490 && e.Mods.Dex > 0 && e.Form == 0 {
+			kept = true
+		}
+	}
+	if !kept {
+		t.Fatalf("the DEX buff went with its body: %+v", c.p.Effects)
+	}
+	rows := savedEffects(c.p, c.at(30*time.Second))
+	d := illusionRig(t)
+	d.w.RestoreEffects(d.sess, rows, d.at(0))
+	if m, _ := channelBody(d.p); m != gnomeMale {
+		t.Fatalf("after a logout: model %d, want the gnome's own", m)
+	}
+
+	e := illusionRig(t)
+	e.land(t, troll(), 0xFFFFFFFF, 0)
+	e.land(t, trueForm, 0xFFFFFFFF, 20*time.Second)
+	for _, x := range e.p.Effects {
+		if x.SpellID == 565 {
+			t.Fatalf("a bare illusion stayed after True Form: %+v", x)
+		}
+	}
+}

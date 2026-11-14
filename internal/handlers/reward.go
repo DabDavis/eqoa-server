@@ -87,42 +87,13 @@ func (h *ChatHandler) rewardCommand(sess *session.Session, gm *entity.Player, ar
 	if h.gameWorld == nil {
 		return
 	}
-	var t *entity.Player
-	var ts *session.Session
-	switch {
-	case len(args) > 0 && strings.EqualFold(args[0], "help"):
+	if len(args) > 0 && strings.EqualFold(args[0], "help") {
 		h.gmReply(sess, rewardUsage)
 		return
-	case len(args) > 0:
-		var ok bool
-		if t, ts, ok = h.gmNamed(sess, strings.Join(args, " "), "#reward"); !ok {
-			return
-		}
-	default:
-		id := gm.TargetObjectID
-		if id == 0 || id == 0xFFFFFFFF {
-			h.gmReply(sess, rewardNoTarget)
-			return
-		}
-		ent, found := h.gameWorld.FindEntityByObjectID(sess, id)
-		if !found {
-			h.gmReply(sess, rewardNoTarget)
-			return
-		}
-		p, isPlayer := ent.(*entity.Player)
-		if !isPlayer {
-			name := "your target"
-			if n, ok := ent.(*entity.NPC); ok {
-				name = n.Name
-			}
-			h.gmReply(sess, fmt.Sprintf(rewardNotNPC, name))
-			return
-		}
-		t, ts = p, h.gameWorld.FindSessionByEntityID(p.ServerID)
-		if ts == nil {
-			h.gmReply(sess, fmt.Sprintf("%s has no session.", p.Name))
-			return
-		}
+	}
+	t, ts, ok := h.rewardTarget(sess, gm, args, "#reward", rewardNoTarget, rewardNotNPC)
+	if !ok {
+		return
 	}
 	spell, why := h.rewardSpell()
 	if why != "" {
@@ -147,4 +118,38 @@ func (h *ChatHandler) rewardCommand(sess *session.Session, gm *entity.Player, ar
 	log.Printf("GM: account %d (%s): %s", sess.AccountID(), gm.Name, detail)
 	h.gmReply(sess, fmt.Sprintf(rewardGMLine, t.Name))
 	SendColoredChat(ts, rewardYouLine, 255, 255, 0)
+}
+
+// rewardTarget is a GM's reward's player: the one named (args), or the GM's target, a player; what is wrong is said
+// to the GM (noTarget, or notPlayer with the creature's name) and ok is false.
+func (h *ChatHandler) rewardTarget(sess *session.Session, gm *entity.Player, args []string, what, noTarget, notPlayer string) (
+	*entity.Player, *session.Session, bool) {
+	if len(args) > 0 {
+		return h.gmNamed(sess, strings.Join(args, " "), what)
+	}
+	id := gm.TargetObjectID
+	if id == 0 || id == 0xFFFFFFFF {
+		h.gmReply(sess, noTarget)
+		return nil, nil, false
+	}
+	ent, found := h.gameWorld.FindEntityByObjectID(sess, id)
+	if !found {
+		h.gmReply(sess, noTarget)
+		return nil, nil, false
+	}
+	p, isPlayer := ent.(*entity.Player)
+	if !isPlayer {
+		name := "your target"
+		if n, ok := ent.(*entity.NPC); ok {
+			name = n.Name
+		}
+		h.gmReply(sess, fmt.Sprintf(notPlayer, name))
+		return nil, nil, false
+	}
+	ts := h.gameWorld.FindSessionByEntityID(p.ServerID)
+	if ts == nil {
+		h.gmReply(sess, fmt.Sprintf("%s has no session.", p.Name))
+		return nil, nil, false
+	}
+	return p, ts, true
 }

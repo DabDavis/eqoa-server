@@ -435,3 +435,153 @@ func TestSlimeIsWaterToSwimIn(t *testing.T) {
 		t.Fatal("the control: above the slime is in the water")
 	}
 }
+
+// slimePit is the Plane of Disease's slime as the disc has it: the pool's
+// surface a flat floor at 50 from x 2010, a bank rising off it half a unit a
+// unit to the shore at 70 (x 1970), and the zone leaf flagged slime reaching
+// over the surface to 65, over the bank's foot too (to x 1981); slimeWater
+// is the same leaf flagged water, the control.
+type slimePit struct{}
+
+func pitFloor(x float32) float32 {
+	switch {
+	case x >= 2010:
+		return 50
+	case x <= 1970:
+		return 70
+	}
+	return 50 + (2010-x)/2
+}
+
+func (slimePit) Floor(_ uint8, x, y, _ float32) (float32, bool) {
+	f := pitFloor(x)
+	return f, f <= y+2
+}
+
+type slimeLeaf struct{ flag uint32 }
+
+func (s slimeLeaf) Flags(_ uint8, _, y, _ float32) (uint32, bool) {
+	if y < 65 {
+		return s.flag, true
+	}
+	return 0, true
+}
+
+func pitWorld(t *testing.T, flag uint32) *World {
+	t.Helper()
+	w := roamWorld(t)
+	w.SetGround(slimePit{})
+	w.SetEnv(slimeLeaf{flag})
+	p := w.Players[1]
+	p.X, p.Y, p.Z = 1990, pitFloor(1990), 1000
+	w.SpatialIndex.Update(p.ServerID, 1000, 1000, p.X, p.Z)
+	return w
+}
+
+// A creature of the water in the slime keeps to the slime's surface it
+// spawned on: no wander leg up the bank, though the slime's leaf reaches
+// over the bank's foot (the owner, 2026-11-14: "the Fish seem to get out of
+// the water very easy here"). The control: the same leaf as water, where the
+// fish swims its depths and goes up the bank as far as the water is.
+func TestAFishInTheSlimeKeepsToItsSurface(t *testing.T) {
+	up := func(flag uint32) (bank, total int) {
+		w := pitWorld(t, flag)
+		fish := addNPC(w, 100, "plague piranha", 2015, 1000, creatureModel, 0)
+		fish.Y, fish.SpawnY = 50, 50
+		for _, l := range legs(w, fish, 300) {
+			total++
+			if pitFloor(l[0]) > 50+slimeLevel {
+				bank++
+			}
+		}
+		return bank, total
+	}
+	if bank, total := up(envSlime); bank != 0 || total < 100 {
+		t.Errorf("in the slime: %d of %d legs up the bank, want none of a hundred and more", bank, total)
+	}
+	if bank, _ := up(envWater); bank == 0 {
+		t.Error("in the water no leg went up the bank: the test proves nothing")
+	}
+}
+
+// A creature of the water in the slime chasing a player on the bank stops at
+// the bank's foot, on the slime's surface; in the water (the control) it
+// goes up the bank in the water after him.
+func TestAFishInTheSlimeStopsAtTheBank(t *testing.T) {
+	chase := func(flag uint32) *NPC {
+		w := pitWorld(t, flag)
+		fish := addNPC(w, 100, "plague piranha", 2030, 1000, creatureModel, 0)
+		fish.Y, fish.SpawnY = 50, 50
+		p := w.Players[1]
+		p.X, p.Y = 1995, pitFloor(1995) // 57.5: on the bank, in the leaf
+		now := time.Now()
+		w.mu.Lock()
+		defer w.mu.Unlock()
+		fish.chase.on, fish.chase.fromX, fish.chase.fromZ = true, fish.X, fish.Z
+		for i := 0; i < 80; i++ {
+			now = now.Add(100 * time.Millisecond)
+			fish.chase.last = now.Add(-100 * time.Millisecond)
+			w.chaseLocked(fish, p.X, p.Y, p.Z, 0, 0, now)
+		}
+		return fish
+	}
+	if f := chase(envSlime); f.Y > 50+slimeLevel || f.X < 2008 || f.X > 2020 {
+		t.Errorf("in the slime the fish stood at x %.2f y %.2f: want it at the bank's foot on the surface (50)", f.X, f.Y)
+	}
+	if f := chase(envWater); f.Y <= 50+slimeLevel {
+		t.Errorf("in the water the fish stood at x %.2f y %.2f: want it up the bank, the test proves nothing", f.X, f.Y)
+	}
+}
+
+// A creature of the water placed in the slime's leaf over its surface (a
+// GM's place, CLIENT floating his body at the leaf's top) is set on the
+// surface, and wanders it; in the water (the control) it keeps its depth.
+func TestAFishPlacedOverTheSlimeIsSetOnIt(t *testing.T) {
+	w := pitWorld(t, envSlime)
+	fish := addNPC(w, 100, "plague piranha", 2030, 1000, creatureModel, 0)
+	fish.Y, fish.SpawnY = 63.8, 63.8
+	w.mu.Lock()
+	on := w.spawnOnGroundLocked(fish)
+	w.mu.Unlock()
+	if !on || fish.SpawnY != 50 || fish.Y != 50 {
+		t.Errorf("placed over the slime: on the ground %v, spawn at %.2f, at %.2f; want on its surface at 50", on, fish.SpawnY, fish.Y)
+	}
+	if ls := legs(w, fish, 100); len(ls) < 30 {
+		t.Errorf("set on the slime it found %d legs, want it to wander", len(ls))
+	}
+	w = pitWorld(t, envWater)
+	fish = addNPC(w, 100, "plague piranha", 2030, 1000, creatureModel, 0)
+	fish.Y, fish.SpawnY = 63.8, 63.8
+	w.mu.Lock()
+	on = w.spawnOnGroundLocked(fish)
+	w.mu.Unlock()
+	if on || fish.SpawnY != 63.8 {
+		t.Errorf("placed in the water: on the ground %v, spawn at %.2f; want it at its depth", on, fish.SpawnY)
+	}
+}
+
+// One left up the bank in the slime's leaf (spawned on the surface, taken
+// there before this rule) comes down to the surface: its legs go down the
+// bank, never up it nor out of the leaf.
+func TestAFishUpTheBankComesDown(t *testing.T) {
+	w := pitWorld(t, envSlime)
+	fish := addNPC(w, 100, "plague piranha", 2030, 1000, creatureModel, 0)
+	fish.Y, fish.SpawnY = 50, 50
+	w.mu.Lock()
+	w.spawnOnGroundLocked(fish)
+	fish.X, fish.Y = 1990, pitFloor(1990) // 60, up the bank
+	w.mu.Unlock()
+	ls := legs(w, fish, 300)
+	down := 0
+	for _, l := range ls {
+		if pitFloor(l[0]) > 60 {
+			t.Fatalf("a leg to x %.2f went up the bank (floor %.2f)", l[0], pitFloor(l[0]))
+		}
+		if pitFloor(l[0]) <= 50+slimeLevel {
+			down++
+		}
+	}
+	if down == 0 {
+		t.Errorf("of %d legs none came down to the surface", len(ls))
+	}
+}

@@ -141,10 +141,13 @@ type NPC struct {
 	// is Stands, groundnpc.go), so its wander may keep to such floors;
 	// spawnDeck: that floor is further over the terrain than spawnedAbove,
 	// where it stood off the ground before the ground knew placed floors, and
-	// does not wander, as then (movement.go's movementLocked).
+	// does not wander, as then (movement.go's movementLocked). spawnFloor:
+	// the floor it spawned on, the slime's surface it keeps to for a
+	// creature of the water in the slime (water.go's keepsInLocked).
 	groundKnown, onGround  bool
 	spawnPlaced, spawnDeck bool
 	spawnLift              float32
+	spawnFloor             float32
 	// under: where it stands another floor is over its own within its body
 	// (groundnpc.go's movedUnderLocked), wasUnder before its last grounding
 	under, wasUnder bool

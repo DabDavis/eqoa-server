@@ -258,10 +258,25 @@ func (a *AuctionHouse) liveForm(sess *session.Session) bool {
 // lotView is how a session's client reads a lot: by the live form (live), and
 // whether it draws capes (capes: to one that does not, a cape lot's item is a
 // plain item, capes.go).
-type lotView struct{ live, capes bool }
+type lotView struct {
+	live, capes bool
+	now         time.Time // the house's clock (a standing lot's end; zero: the wall clock)
+}
 
 func (a *AuctionHouse) viewOf(sess *session.Session) lotView {
-	return lotView{live: a.liveForm(sess), capes: readsCapes(sess)}
+	v := lotView{live: a.liveForm(sess), capes: readsCapes(sess)}
+	if a != nil && a.now != nil {
+		v.now = a.now()
+	}
+	return v
+}
+
+// clock is the time a lot is shown at.
+func (v lotView) clock() time.Time {
+	if v.now.IsZero() {
+		return time.Now()
+	}
+	return v.now
 }
 
 // each is an amount of a lot as the client reads it: a stack a disc client
@@ -294,7 +309,7 @@ func auctionMinutes(unix int64) int64 { return unix / 60 }
 // and My Auctions' ids, and every page carries the whole lot.
 func writeLot(w *buffer.Writer, l *database.AuctionLot, thin bool, v lotView) {
 	for _, n := range []int64{int64(l.ID), int64(l.Item.StackLeft), int64(l.Item.RemainHP), int64(l.Item.Charges),
-		int64(v.each(l, l.MinBid)), int64(v.each(l, l.Buyout)), auctionMinutes(l.EndsAt)} {
+		int64(v.each(l, l.MinBid)), int64(v.each(l, l.Buyout)), auctionMinutes(l.ShownEnd(v.clock()))} {
 		w.Write7BitEncodedInt64(n)
 	}
 	writeString8(w, l.SellerName, 24)
@@ -578,10 +593,14 @@ func (a *AuctionHouse) bid(sess *session.Session, player *entity.Player, lot, am
 	defer bankMu.Unlock()
 	res, err := a.db.AuctionBid(database.AuctionBidRequest{
 		Bidder: player.CharServerID, Name: player.Name, Lot: lot, Amount: amount, Qty: count, Now: a.now(),
-		LiveForm: v.live,
+		LiveForm: v.live, Perpetual: PerpetualAuctionsOn(),
 	})
 	if err != nil {
 		a.refused(sess, player, "bid", err)
+		return
+	}
+	if res.Bought != nil {
+		a.boughtLocked(sess, player, &res, v)
 		return
 	}
 	l := &res.Lot
@@ -755,7 +774,11 @@ func (a *AuctionHouse) search(sess *session.Session, player *entity.Player, page
 		log.Printf("Auction: %s's search: %v", player.Name, err)
 	}
 	var hits []database.AuctionLot
+	perpetual := PerpetualAuctionsOn()
 	for i := range all {
+		if all[i].Perpetual && !perpetual {
+			continue
+		}
 		if q.matches(&all[i]) {
 			hits = append(hits, all[i])
 		}

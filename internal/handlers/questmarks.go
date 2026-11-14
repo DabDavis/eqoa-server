@@ -275,7 +275,17 @@ func (q *QuestEngine) markSpotsLocked(now time.Time) map[string][]entity.NPCSpot
 			}
 		}
 	}
+	// the travel NPCs and where their trips land, for a step in another world
+	for n, rs := range wayRoutes {
+		names[foldName(n)] = true
+		for _, r := range rs {
+			if r.Arrive != "" {
+				names[foldName(r.Arrive)] = true
+			}
+		}
+	}
 	q.spots, q.spotsAt = q.gw.NPCSpotsNamed(names), now
+	q.camps, q.hops = nil, nil
 	return q.spots
 }
 
@@ -302,29 +312,6 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 		}
 		return float32(math.Hypot(float64(s.X-x), float64(s.Z-z)))
 	}
-	// the nearest maxMarkSpots of the spawns of a step's names (of its first,
-	// only the one a step pins)
-	near := func(names []string, pinned int) []entity.NPCSpot {
-		var out []entity.NPCSpot
-		for i, name := range names {
-			for _, s := range spots[foldName(name)] {
-				if i > 0 || pinned == 0 || int(s.ID) == pinned {
-					out = append(out, s)
-				}
-			}
-		}
-		sort.SliceStable(out, func(i, j int) bool {
-			di, dj := dist(out[i]), dist(out[j])
-			if (di < 0) != (dj < 0) {
-				return di >= 0
-			}
-			return di < dj
-		})
-		if len(out) > maxMarkSpots {
-			out = out[:maxMarkSpots]
-		}
-		return out
-	}
 	byKey := map[string]*questMark{}
 	var marks []*questMark
 	// the spots a step's mark is at: a giver there shows its "?" alone
@@ -348,9 +335,26 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 			m.quests = append(m.quests, mq)
 		}
 	}
-	add := func(kind byte, names []string, pinned int, mq markQuest) {
-		for _, s := range near(names, pinned) {
-			addAt(kind, s, mq)
+	// a giver's: the nearest maxMarkSpots of its spawns that stand in the
+	// world (its spawn-only originals only where none does)
+	addGiver := func(name string, mq markQuest) {
+		var out, orig []entity.NPCSpot
+		for _, s := range spots[foldName(name)] {
+			if s.SpawnOnly {
+				orig = append(orig, s)
+			} else {
+				out = append(out, s)
+			}
+		}
+		if len(out) == 0 {
+			out = orig
+		}
+		nearestFirst(out, world, x, z)
+		if len(out) > maxMarkSpots {
+			out = out[:maxMarkSpots]
+		}
+		for _, s := range out {
+			addAt(markTake, s, mq)
 		}
 	}
 	for _, cq := range c.active() {
@@ -366,19 +370,28 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 		switch {
 		case database.AtNPC(st.Kind):
 			mq.detail = q.texts[qu.ID].needs[st.Step]
-			add(markStep, []string{st.Target}, st.NPCID, mq)
 		case st.Kind == database.StepKill:
 			mq.detail = fmt.Sprintf("%s: %d of %d killed", st.TargetWords(), cq.Count, max(st.Count, 1))
-			add(markHunt, st.Targets(), st.NPCID, mq)
 		case st.Kind == database.StepLoot:
 			_, need, _ := st.LootItem()
 			mq.detail = fmt.Sprintf("%s: %d of %d", q.texts[qu.ID].needs[st.Step], cq.Count, need)
-			add(markHunt, st.Targets(), st.NPCID, mq)
-		case st.Kind == database.StepReach && (st.X != 0 || st.Z != 0) && st.World >= 0 && st.World < 256:
+		case st.Kind == database.StepReach:
 			// the place's name is the journal line, so the quest's own line
 			// would only say it again
 			mq.line = ""
-			addAt(markStep, entity.NPCSpot{World: uint8(st.World), X: st.X, Z: st.Z, Name: st.Journal}, mq)
+		}
+		kind, at := q.stepSpotsLocked(spots, st, c.serverID, world, x, z)
+		for _, s := range at {
+			addAt(kind, s, mq)
+		}
+		// none in the player's world: the way there (questmarkspots.go)
+		if len(at) > 0 && at[0].World != world {
+			if h, ok := q.wayToLocked(spots, world, at[0].World, x, z); ok {
+				wq := mq
+				wq.line = st.Journal
+				wq.detail = wayLine(h, "")
+				addAt(markStep, h.from, wq)
+			}
 		}
 	}
 	// the quests to take, a name once: the names under way or finished (one
@@ -446,7 +459,7 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 		sort.SliceStable(takes, func(i, j int) bool { return c.timesDone(takes[i].ID) < c.timesDone(takes[j].ID) })
 		for _, qu := range takes {
 			t := q.texts[qu.ID]
-			add(markTake, []string{qu.Giver}, 0, markQuest{name: qu.Name, min: qu.MinLevel, max: qu.MaxLevel, line: t.offer, detail: t.rewardsFor(p.Class)})
+			addGiver(qu.Giver, markQuest{name: qu.Name, min: qu.MinLevel, max: qu.MaxLevel, line: t.offer, detail: t.rewardsFor(p.Class)})
 		}
 	}
 	sort.SliceStable(marks, func(i, j int) bool {

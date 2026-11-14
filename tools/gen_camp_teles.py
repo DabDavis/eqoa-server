@@ -58,14 +58,17 @@ CAMPS = [
     ("hatebonecave", [], "Hatebone Orc Cave", None, r"^hatebone ", "Halas' Hatebone orc cave"),
     ("nroundead", [], "Undead", [0], r"skeleton|zombie|rotting|decaying|grave rat", "Northern Ro's undead"),
     ("nroundead2", [], "Undead", [1], r"skeleton|zombie|rotting|decaying|grave rat", "Northern Ro's undead, the second camp"),
-    ("gharial", [], "Gharial", None, r"^gharial|deep sea ghoul", "the gharial island south of Moradhim"),
-    ("tendora", ["kerrans"], "Tendora-Buki", None, r"^kerran |kolbok", "Tendora-Buki, West Toxulia's kerran village"),
+    # gharial, tendora, phantoms, gargoyles, icegiants: with the kinds tools/faq_camps_20261114.py added or
+    # restored (the gharial island's ancient gharials and Mudscale, Himlar, the elder spirits and The Ancient One,
+    # Garhuuga, the frost drakes) and Tendora-Buki's own (its villagers are "Tendora-Buki ..." now, no kerran)
+    ("gharial", [], "Gharial", None, r"^(ancient )?gharial|deep sea ghoul|^mudscale$", "the gharial island south of Moradhim"),
+    ("tendora", ["kerrans"], "Tendora-Buki", None, r"^tendora-buki ", "Tendora-Buki, West Toxulia's kerran village"),
     ("kappa", ["slythis"], "Kappa", None, r"^kappa (guard|slave|worker|shaman|brute)", "Slythis Dwell's kappa"),
     ("kappawarriors", [], "Kappa Warrior", None, r"^kappa warrior", "Slythis Dwell's kappa warriors"),
     ("kappaelites", [], "Kappa Elites", None, r"^kappa elite", "Slythis Dwell's kappa elites"),
     ("drudges", [], "Kappa Drudge", None, r"^kappa drudge", "the East Plateau's kappa drudges"),
-    ("phantoms", [], "Phantoms", None, r"^phantom$", "the East Plateau's phantoms"),
-    ("gargoyles", [], "Gargoyle", None, r"gargoyle", "the South Barren Coast's gargoyles"),
+    ("phantoms", [], "Phantoms", None, r"^(phantom|himlar|elder spirit|the ancient one)$", "the East Plateau's phantoms"),
+    ("gargoyles", [], "Gargoyle", None, r"gargoyle|^garhuuga$|^statue guardian$", "the South Barren Coast's gargoyles"),
     ("harpies", [], "Harpy", None, r"harpy", "Erud's Crossing's harpies"),
     ("moots", [], "Moots", None, r"moot", "Erud's Crossing's moots"),
     ("blackburrow", ["bbgnolls"], "Gnolls", None, r"^gnoll ", "Blackburrow's gnolls"),
@@ -89,7 +92,7 @@ CAMPS = [
     ("klickpirates", [], "Pirates of Klick", None, r"pirate|deckhand", "the Klik'Anon coast's pirates"),
     ("cyclops", [], "Cyclops Fortress", None, r"^cyclops", "the cyclops"),
     ("siloths", [], "Siloths", None, r"^siloth ", "the Salt Mine's siloths"),
-    ("icegiants", [], "Ice Giant Refugees", None, r"^ice giant", "the ice giant refugees near Northgate"),
+    ("icegiants", [], "Ice Giant Refugees", None, r"^ice giant|^frost drake$", "the ice giant refugees near Northgate"),
     ("ghosts", [], "Ghosts", None, r"^wandering ghost$", "the wandering ghosts"),
     ("xrag", ["pariah"], "Pariah of Xragg", None, r"xrag|^sphere of annihilation", "the Elephant Graveyard's children of Xrag"),
     ("tombrats", [], "Tomb Rats", None, r"^(tomb|grim) rat", "the tomb rats"),
@@ -407,6 +410,9 @@ MAP_KINDS = {
     # the map's undead: theirs of every kind
     "Undead": UNDEAD, "Undead Tomb": UNDEAD, "Undead Tower": UNDEAD, "Undead Minions": UNDEAD, "Undead Skeletons": r"skelet",
     "Skeletons": r"skelet", "Spirits": r"spirit|spectre|ghost",
+    # the kinds the FAQ's camps tool added to these camps (tools/faq_camps_20261114.py)
+    "Snow Griffon": r"^(snow griffon|elder squeeks)$",
+    "Tenacious Frost Giant": r"^(tenacious frost giant|arctic adept|arctic spiritcaller)$",
 }
 
 
@@ -615,6 +621,99 @@ def map_camps(zones, rows, fitted, tele):
     return placed, left
 
 
+# ---- the FAQ's camps (the owner, 2026-11-14: "also add those new camps to the map") ----
+#
+# tools/faq_camps_20261114.py (Jarrod Garripoli's EQOA Frontiers FAQ, GameFAQs 48152) made four camps EQOA-Data's
+# map has no point for, filled others and re-levelled eight. FAQ_CAMPS are the camps of it no camp here was: each
+# written to mapcamps.go as a map camp, anchored as one (camp_heart) on its creatures within its reach of the FAQ
+# tool's centre, its levels and creatures those of its kind within that reach (the camp whole, not LEVELS_WITHIN of
+# the anchor), its MapX/MapY the anchor put back on EQOA-Data's sheet by the world's fit. One whose anchor is within
+# SAME of a placed camp of its kind is that camp (said, left out).
+# (key, name, world, the FAQ tool's centre (x, z), its creatures (a regex on npcs.npc_name, any case), reach)
+FAQ_CAMPS = [
+    ("frosteyeexcavation", "Frosteye Orcs (the excavation)", 0, (7571.3, 5687.0), r"^frosteye (centurion|patroller|sage)$", 250.0),
+    ("taeewaggressors", "Tae Ew Aggressors", 0, (18330.0, 30560.0), r"^tae ew (aggressor|sacrificer)$", 250.0),
+    ("desertbanditstakxiv", "Desert Bandits", 0, (19085.9, 25028.3), r"^desert (henchman|pillager)$", 250.0),
+    ("frogloksburialmounds", "Frogloks (Burial Mounds)", 0, (18408.5, 29538.5), r"^froglok (slayer|inquisitor)$", 250.0),
+    ("mossmouthgoblins", "Mossmouth Goblins", 0, (19390.0, 12378.0), r"^(goblin (gladiator|brigand|witch doctor|scout)|companion spirit)$", 700.0),
+    ("hobgoblinscyclopsfortress", "Hobgoblins (Cyclops' Fortress)", 1, (7114.0, 3346.0), r"^hobgoblin mercenary$", 500.0),
+    ("quintashislair", "Quintashi's Lair", 2, (4169.8, 8130.5), r"^(quintashi|quintashi's guardian)$", 200.0),
+    ("thehuntbeasts", "The Hunt's Beasts", 2, (5250.0, 10600.0), r"^(plagued insect cloud|sabretooth huntress|vercozian wyrm)$", 450.0),
+]
+
+# The camps the FAQ re-levelled (tools/faq_camps_20261114.py's LEVELS): their levels are their kind's in the FAQ
+# tool's box (the camp whole) with those about the anchor, so a map shows the FAQ's band, not the anchor's corner of
+# it. (the camp's key here, world, box (x0, z0, x1, z1) or None, the names re-levelled). Mossmouth's and the
+# Cyclops' Fortress hobgoblins' are FAQ_CAMPS (their reach is the box). A map draws these camps' levels as they
+# are here, not the guide's (vanilla's tools/gen_map_markers.py reads this).
+FAQ_LEVELS = [
+    ("cracktooth", 0, (24000, 11000, 26000, 14000), ["cracktooth matron", "cracktooth orc", "cracktooth warrior", "biter cracktooth"]),
+    ("taeewbrokenskullrock", 0, (20000, 30000, 22000, 32000), ["tae ew soldier", "tae ew shaman", "feral spirit"]),
+    ("gargoyles", 2, (9900, 7900, 11900, 10000), ["gargoyle soldier", "gargoyle watcher", "leering gargoyle", "statue guardian", "gargoyle"]),
+    ("ratmanthevastlydeep", 2, (10400, 6400, 11000, 6800), ["ratman fighter", "ratman scavenger"]),
+    ("clankolbokthewarrenssouth", 2, (8000, 7900, 10000, 9900), ["clan kolbok scout", "clan kolbok shaman"]),
+    ("tendora", 2, None, ["tendora-buki amir", "tendora-buki fisherman", "tendora-buki ghulam", "tendora-buki ispusar",
+                          "tendora-buki mamluk", "tendora-buki pasdar", "tendora-buki puzhal", "tendora-buki spahi"]),
+]
+FAQ_LEVELED = {k for k, _, _, _ in FAQ_LEVELS} | {"mossmouthgoblins", "hobgoblinscyclopsfortress"}
+
+
+def faq_levels(placed, rows):
+    """FAQ_LEVELS' camps' levels: their kind's rows in the FAQ's box (within CREATURE_REACH*4 of the anchor where
+    it gave none) with those the camp has."""
+    by = {p["key"]: p for p in placed}
+    for key, w, box, names in FAQ_LEVELS:
+        p = by.get(key)
+        if p is None:
+            continue
+        lv = [o[6] for o in rows if o[5] == w and o[1].strip().lower() in names and o[6] and (
+            box[0] <= o[2] <= box[2] and box[1] <= o[4] <= box[3] if box else
+            math.hypot(o[2] - p["x"], o[4] - p["z"]) <= CREATURE_REACH * 4)]
+        lo, hi = level_range_of(p["levels"])
+        if lv:
+            lo, hi = min([lo] + lv) if lo else min(lv), max([hi] + lv)
+        old = p["levels"]
+        p["levels"] = f"{lo}-{hi}" if lo != hi else str(lo)
+        print(f"  faq levels {key:26s} {old} -> {p['levels']}", file=sys.stderr)
+
+
+def level_range_of(text):
+    parts = [int(v) for v in text.split("-") if v.strip()]
+    return (parts[0], parts[-1]) if parts else (0, 0)
+
+
+def faq_camps(zones, rows, fitted, taken):
+    """FAQ_CAMPS placed: (placed, left out). taken: the camps placed already (tele and map), each (key, world, x, z,
+    kind regex, anchor's name)."""
+    placed, left = [], []
+    for key, name, w, (cx, cz), pattern, reach in FAQ_CAMPS:
+        rx = re.compile(pattern, re.I)
+        kind = [r for r in rows if r[5] == w and rx.search(r[1].strip())]
+        near = [r for r in kind if math.hypot(r[2] - cx, r[4] - cz) <= reach]
+        if len(near) < 3:
+            left.append((name, f"only {len(near)} of its creatures within {reach:.0f} of its centre"))
+            continue
+        anchor = camp_heart(kind, near, True, cx, cz)
+        same = [k for k, tw, x, z, trx, an in taken if tw == w and math.hypot(x - anchor[2], z - anchor[4]) <= SAME
+                and (trx.search(anchor[1].strip()) or rx.search(an.strip()))]
+        if same:
+            left.append((name, f"the camp {same[0]}"))
+            continue
+        spell = collections.defaultdict(collections.Counter)
+        for o in near:
+            spell[o[1].strip().lower()][o[1].strip()] += 1
+        creatures = [cc.most_common(1)[0][0] for _, cc in sorted(spell.items(), key=lambda kv: (-sum(kv[1].values()), kv[0]))]
+        (a, b, c, d), _, _, _ = fitted[w]
+        mx, my = (anchor[2] - b) / a, (anchor[4] - d) / c
+        zone, _ = zone_of(zones, mx, my)
+        label = name if zone.lower() in name.lower() else f"{name}, {zone}"
+        placed.append({"key": key, "name": name, "map": "", "zone": zone, "label": label, "world": w, "npc": anchor[1],
+                       "x": anchor[2], "y": anchor[3], "z": anchor[4], "levels": levels_of(near), "guide": "",
+                       "mx": mx, "my": my, "creatures": creatures, "point": (cx, cz), "points": 0,
+                       "kinds": collections.Counter(o[1].strip() for o in near).most_common(4)})
+    return placed, left
+
+
 def render_map(placed):
     lines = [
         "// Code written by tools/gen_camp_teles.py --map-out; DO NOT EDIT: change",
@@ -730,6 +829,7 @@ def main():
         off = f", the map {p['off']:.0f} off" if p["off"] else ""
         kinds = ", ".join(f"{k} x{n}" for k, n in p["kinds"])
         print(f"  {p['key']:15s} w{p['world']} ({p['x']:.0f}, {p['y']:.1f}, {p['z']:.0f}) {p['npc']!r} levels {p['levels']} (guide {p['guide']}){off}: {kinds}", file=sys.stderr)
+    faq_levels(placed, rows)
     rare_near(placed, zones, rows, fitted, drops_by_mob(args.eqoa_data))
     for p in placed:
         if p["rare"]:
@@ -741,6 +841,13 @@ def main():
         for w, ((a, b, c, d), kept, n, med) in mfit.items():
             print(f"map fit world {w}: x = {a:.5f} mx {b:+.1f}, z = {c:.5f} my {d:+.1f} ({kept} of {n} named points, median {med:.1f})", file=sys.stderr)
         mplaced, mleft = map_camps(zones, rows, mfit, tele_camps(args.camps))
+        spec_rx = {spec[0]: re.compile(spec[4], re.I) for spec in CAMPS}
+        taken = [(k, tw, x, z, spec_rx.get(k, re.compile(re.escape(an), re.I)), an) for k, (an, x, z, tw) in tele_camps(args.camps).items()]
+        taken += [(p["key"], p["world"], p["x"], p["z"], p["rx"], p["npc"]) for p in mplaced]
+        fplaced, fleft = faq_camps(zones, rows, mfit, taken)
+        mplaced = sorted(mplaced + fplaced, key=lambda p: p["key"])
+        mleft += [(f"FAQ {n}", why) for n, why in fleft]
+        faq_levels(mplaced, rows)
         rare_near(mplaced, zones, rows, mfit, drops_by_mob(args.eqoa_data))
         for p in mplaced:
             off = math.hypot(p["x"] - p["point"][0], p["z"] - p["point"][1])

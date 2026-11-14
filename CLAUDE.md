@@ -3180,6 +3180,17 @@ number, nor hint at one** (tests use toy files in `testdata/`); never log, send 
 give the line, column, formula name and part. A new damage path calls `w.formulaDamage(base, dmgIn{...})` and is
 added to the doc's tables.
 
+**The mode** (the owner, 2026-11-14: "lets do shadow mode on heirloom"; "give GMs /formula jibs heirloom/live,
+/formula default heirloom/live"; `entity/dmgshadow.go`, `internal/formulamode`, `database/formulamode.go`): off (the
+built-in), live (the formulas applied) or shadow (the built-in applied, every formula's figure recorded beside it
+with the hit's inputs in a private JSON-lines file, `combat.formula_shadow_log`, written off the tick by a goroutine
+of its own; a formula's steps named `shadow_*` are recorded too). The mode is a row of each shard's database
+(`formula_setting`; `combat.formula_mode` only seeds it); `/formula [jibs|default|shadow <shard>]` (an admin's,
+`gm.admin_level`; any GM sees the modes) and the panel's `formula_modes` / `set_formula_mode` switch it at once,
+audited and told on the GM channel; another shard (`combat.formula_peers`) gets the row and a line of its
+`formula_mode_inbox`, which its server reads every 3 s. `formula_shadow_summary` (admin) gives figures only. A
+World's zero mode is live (the tests'); the server always sets it from the row.
+
 ## The GM panel (`internal/gmweb`)
 
 A web page for GMs, and the same work for an AI agent, over the database and the running

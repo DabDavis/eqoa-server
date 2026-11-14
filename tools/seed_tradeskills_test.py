@@ -380,5 +380,181 @@ class SeedJewelry(unittest.TestCase):
         self.assertEqual(after, before)
 
 
+def weapon_grid(hands, tls, rows):
+    """eqoatrade's weapon grid in its shape: a header of metal codes, a row a modifier ("136 / 7")."""
+    code = {1: "CrIr", 2: "Ir", 3: "Brz", 4: "Brs", 5: "St", 6: "CoSt", 7: "Ad", 8: "Mi", 9: "Brl", 10: "Se"}
+    tr = ["<tr><td>Gem</td><td>Stat/Effect</td>" + "".join(f"<td>{code[t]}</td>" for t in tls) + "</tr>"]
+    for mod, (what, cells) in rows.items():
+        tr.append(f"<tr><td>{mod}</td><td>{what}</td>" + "".join(f"<td>{c}</td>" for c in cells) + "</tr>")
+    return "<html><table>" + "\n".join(tr) + "</table></html>"
+
+
+class SeedWeapons(unittest.TestCase):
+    """--craft weapon: Prima's tables (damage, stat and proc figures by trade level, a product a mold and trade level)
+    checked against eqoatrade's grids, Sandstorm's hammers and molds, looks from this server's own weapon records."""
+
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory()
+        d = self.dir.name
+        self.sources = os.path.join(d, "sources")
+        grid = os.path.join(self.sources, "eqoatrade", "Recipes", "Weapon", "Original")
+        os.makedirs(grid)
+        for hands, page_name in ((1, "OneHand.htm"), (2, "TwoHand.htm")):
+            dmg, st = M.WEAPON_DAMAGE[hands], M.WEAPON_STAT[hands]
+            rows = {"No Gem/Alloy/Powder": ("Dmg", [str(dmg[t - 1]) for t in range(1, 6)]),
+                    "Bloodstone": ("Dmg / Strength", ["-", "-"] + [f"{dmg[t - 1]} / {st[t - 1]}" for t in range(3, 6)])}
+            with open(os.path.join(grid, page_name), "w") as f:
+                f.write(weapon_grid(hands, range(1, 6), rows))
+        self.onehand = os.path.join(grid, "OneHand.htm")
+        vend = os.path.join(self.sources, "eqoatrade", "Vendors")
+        os.makedirs(vend)
+        with open(os.path.join(vend, "Weapon.htm"), "w") as f:
+            f.write("<p>Testport - Near the Blacksmith<br>Tutorial - Weaponsmith Anvil<br>Hammers - Merchant Hammer<br>"
+                    "Molds - Merchant Mold<br>Metal Blocks - Mechant Ore</p>")
+        wares = [ware(20304 + k, f"{m} Ore", 10 + k) for k, m in enumerate(M.METALS)]
+        wares += [ware(28507 + k, f"{h} Weaponsmith Hammer", 100 * (k + 1), wear=22, level=1 + 5 * k, craft=0, stack=1)
+                  for k, h in enumerate(M.KITS)]
+        wares += [ware(27493 + k, m, 10) for k, m in enumerate(M.WEAPON_MOLDS)]
+        with open(os.path.join(d, "harvest.json"), "w") as f:
+            json.dump({"character": {"world": 0}, "merchants": [{"name": "Merchant Nathenial", "wares": wares}]}, f)
+        self.db = os.path.join(d, "t.db")
+        db = sqlite3.connect(self.db)
+        db.execute(f"CREATE TABLE itempattern ({ITEM_COLS.replace('patternid INTEGER PRIMARY KEY', 'patternid INTEGER PRIMARY KEY AUTOINCREMENT')})")
+        # a look for every product's word: a weapon record of the hands named by it (model 1000 + n), and a
+        # two-handed claymore of another look the one-handed products must not take
+        n = 0
+        for mold, (hands, _, _, sprites) in M.WEAPON_MOLDS.items():
+            for sp in dict.fromkeys(x for x in sprites if x):
+                n += 1
+                db.execute("INSERT INTO itempattern (itemname, weapondamage, equipslot, model, color, itemicon, itemcost, levelreq, craft) "
+                           "VALUES (?, 50, ?, ?, -1, ?, 5, 10, 0)", (f"old {sp}", 12 if hands == 1 else 15, 1000 + n, 2000 + n))
+        db.execute("INSERT INTO itempattern (itemname, craft, equipslot, model, color, itemicon, itemcost, maxstack) "
+                   "VALUES ('Bloodstone', 1, -1, 0, 0, 77, 20, 50)")
+        db.execute("INSERT INTO itempattern (itemname, craft, equipslot, model, color, itemicon, itemcost, maxstack) "
+                   "VALUES ('leather strip', 0, -1, 0, 0, 78, 1, 20)")
+        db.execute("CREATE TABLE npcs (id INTEGER PRIMARY KEY, npc_name TEXT, npc_id INTEGER, npc_type INTEGER)")
+        db.executemany("INSERT INTO npcs VALUES (?, ?, ?, ?)", [(1, "Weaponsmith Anvil", 1, 128), (2, "Merchant Hammer", 2, 129),
+                                                                 (3, "Merchant Mold", 3, 129), (4, "Merchant Ore", 4, 129)])
+        db.execute("CREATE TABLE npcitem (itemid INTEGER PRIMARY KEY AUTOINCREMENT, npcid INTEGER, stackleft INTEGER, remainHP INTEGER, "
+                   "remaincharge INTEGER, patternid INTEGER, equiploc INTEGER, location INTEGER, listnumber INTEGER)")
+        strip = db.execute("SELECT patternid FROM itempattern WHERE itemname = 'leather strip'").fetchone()[0]
+        db.execute("INSERT INTO npcitem VALUES (10, 3, 1, 0, 0, ?, -1, 1, 0)", (strip,))  # a stand-in
+        db.execute("CREATE TABLE merchant_stock (what TEXT, key INTEGER, old TEXT, new TEXT, note TEXT)")
+        db.execute("INSERT INTO merchant_stock VALUES ('catalog', 10, NULL, '3,1,0', 'general goods')")
+        db.execute("CREATE TABLE lootpool (id INTEGER PRIMARY KEY AUTOINCREMENT, category TEXT NOT NULL, region TEXT NOT NULL DEFAULT '*', "
+                   "npc_name TEXT NOT NULL DEFAULT '', patternid INTEGER NOT NULL, weight INTEGER NOT NULL DEFAULT 1, "
+                   "minlevel INTEGER NOT NULL DEFAULT 1, maxlevel INTEGER NOT NULL DEFAULT 100, source TEXT NOT NULL DEFAULT 'gm')")
+        db.execute("INSERT INTO lootpool (category, patternid, weight) VALUES ('modifiers', 9, 30)")
+        db.execute("CREATE TABLE gm_audit (id INTEGER PRIMARY KEY AUTOINCREMENT, at TEXT, accountid INTEGER, username TEXT, via TEXT, "
+                   "ip TEXT, action TEXT, tbl TEXT, rowkey TEXT, before TEXT, after TEXT, detail TEXT, reverted_by INTEGER)")
+        db.commit()
+        db.close()
+
+    def tearDown(self):
+        self.dir.cleanup()
+
+    def tool(self, *args, ok=True):
+        r = subprocess.run([sys.executable, "-E", "-s", TOOL, "--db", self.db, "--no-backup", "--craft", "weapon", *args],
+                           capture_output=True, text=True)
+        if ok and r.returncode != 0:
+            raise AssertionError(r.stdout + r.stderr)
+        return r
+
+    def run_seed(self, *args, ok=True):
+        return self.tool("--sources", self.sources, "--harvests", self.dir.name, *args, ok=ok)
+
+    def q(self, sql, args=()):
+        c = sqlite3.connect(self.db)
+        try:
+            return c.execute(sql, args).fetchall()
+        finally:
+            c.close()
+
+    def snapshot(self):
+        c = sqlite3.connect(self.db)
+        try:
+            # the audit lines stay (an apply's and an undo's), and with them their counter
+            return {t: hashlib.sha256(repr(c.execute(f"SELECT * FROM {t} {'WHERE name != ' + repr('gm_audit') if t == 'sqlite_sequence' else ''} "
+                                                     "ORDER BY 1").fetchall()).encode()).hexdigest()
+                    for (t,) in c.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name != 'gm_audit'")}
+        finally:
+            c.close()
+
+    def test_apply_and_undo(self):
+        before = self.snapshot()
+        out = self.run_seed().stdout
+        self.assertIn("products and recipes: 1744", out)  # Prima's 1,742 and the two starters
+        self.assertNotIn("problem", out)
+        self.run_seed("--apply")
+        # Prima's counts: 130 mundane, 416 DD, 416 DoT, 52 drain, 728 with stats
+        kinds = dict(self.q("SELECT CASE WHEN rarity = 0 AND name NOT LIKE '% % % %' AND name NOT IN ('dull knife', 'crude rusty mace') "
+                            "THEN 'x' ELSE 'y' END, count(*) FROM craftrecipes GROUP BY 1"))
+        self.assertEqual(sum(kinds.values()), 1744)
+        self.assertEqual(self.q("SELECT count(*) FROM itempattern WHERE itemdesc LIKE '% damage, a %'"), [(416,)])
+        self.assertEqual(self.q("SELECT count(*) FROM itempattern WHERE itemdesc LIKE '% DoT, a %'"), [(416,)])
+        self.assertEqual(self.q("SELECT count(*) FROM itempattern WHERE itemdesc LIKE '%tap, a %'"), [(52,)])
+        self.assertEqual(self.q("SELECT count(*) FROM itempattern WHERE weapondamage > 0 AND coalesce(str, 0) + coalesce(sta, 0) + "
+                                "coalesce(agi, 0) + coalesce(dex, 0) + coalesce(wis, 0) + coalesce(intelligence, 0) + "
+                                "coalesce(cha, 0) > 0"), [(728,)])
+        # a mundane brass claymore: Prima's two-handed 221, level 18, 2H slash, the knights', the claymore's look
+        (pid, lvl, slot, at, dmg, cls, hp, dur, model, rent), = self.q(
+            "SELECT patternid, levelreq, equipslot, attacktype, weapondamage, classuse, maxhp, duration, model, rent "
+            "FROM itempattern WHERE itemname = 'brass claymore'")
+        claymore = self.q("SELECT model FROM itempattern WHERE itemname = 'old claymore'")[0][0]
+        self.assertEqual((lvl, slot, at, dmg, cls, hp, dur, model, rent),
+                         (18, 15, 2, 221, 0b1101, 200 * 18 + 400, 60, claymore, 1))
+        (comp, level, rarity, ing), = self.q("SELECT comp, level, rarity, ingredients FROM craftrecipes WHERE product = ?", (pid,))
+        mold = self.q("SELECT patternid FROM itempattern WHERE itemname = 'Two Hand Sword Mold'")[0][0]
+        self.assertEqual((comp, level, rarity, json.loads(ing)),
+                         (3, 4, 0, [{"item": 20307, "count": 1, "keep": False}, {"item": mold, "count": 1, "keep": False}]))
+        # Prima's "—": the row's first product (a crude iron long blade); the mace's look for a mace mold
+        self.assertEqual(len(self.q("SELECT 1 FROM itempattern WHERE itemname = 'crude iron long blade'")), 1)
+        # a fiery one-handed adamantite battle axe: 25-50 fire at 20% (Prima's DD row; eqoatrade's max twice it)
+        (desc, dmg), = self.q("SELECT itemdesc, weapondamage FROM itempattern WHERE itemname = 'fiery adamantite battle axe'")
+        self.assertEqual((desc, dmg), ("A weapon forged of adamantite. Procs 25-50 fire damage, a 20% chance each hit.", 346))
+        # the gem this server has is the one used, kept on a failure; its stat Prima's two-handed bronze 10
+        blood = self.q("SELECT patternid FROM itempattern WHERE itemname = 'Bloodstone'")[0][0]
+        ing = json.loads(self.q("SELECT ingredients FROM craftrecipes WHERE name = 'bloodstone bronze claymore'")[0][0])
+        self.assertEqual(ing[-1], {"item": blood, "count": 1, "keep": True})
+        self.assertEqual(self.q("SELECT str FROM itempattern WHERE itemname = 'bloodstone bronze claymore'"), [(10,)])
+        # no modifier below trade level 3, the drains at 9 and 10 alone
+        self.assertEqual(self.q("SELECT count(*) FROM itempattern WHERE itemname LIKE 'bloodstone iron %'"), [(0,)])
+        self.assertEqual(self.q("SELECT itemdesc FROM itempattern WHERE itemname = 'siphoning seralite katana'"),
+                         [("A weapon forged of seralite. Procs a 10 point mana tap, a 15% chance each hit.",)])
+        self.assertEqual(self.q("SELECT count(*) FROM itempattern WHERE itemname LIKE 'vampiric mithril %'"), [(0,)])
+        # Sandstorm's hammers and molds under their ids; the stand-in out; the wares in
+        self.assertEqual(self.q("SELECT itemname, equipslot FROM itempattern WHERE patternid = 28507"), [("Novice Weaponsmith Hammer", 22)])
+        self.assertEqual(self.q("SELECT count(*) FROM npcitem WHERE itemid = 10"), [(0,)])
+        self.assertEqual(self.q("SELECT count(*) FROM npcitem WHERE npcid = 2"), [(10,)])
+        self.assertEqual(self.q("SELECT count(*) FROM npcitem WHERE npcid = 3"), [(15,)])
+        self.assertEqual(self.q("SELECT count(*) FROM npcitem WHERE npcid = 4"), [(10,)])
+        # the starter by its scroll, the rusty mace by experiment, under Special
+        (scroll, disc, comp), = self.q("SELECT scroll, discover, comp FROM craftrecipes WHERE name = 'dull knife'")
+        self.assertEqual((disc, comp), (0, M.WEAPON_SPECIAL))
+        self.assertEqual(self.q("SELECT itemname FROM itempattern WHERE patternid = ?", (scroll,)), [("Dull Knife Recipe",)])
+        self.assertEqual(self.q("SELECT discover FROM craftrecipes WHERE name = 'crude rusty mace'"), [(1,)])
+        # the modifiers drop with the armorsmiths' (the lootpool's "modifiers"), every one ordinary (rent 1)
+        self.assertEqual(self.q("SELECT count(*) FROM lootpool WHERE category = 'modifiers'"), [(18,)])
+        made = self.q("SELECT p.rent, count(*) FROM itempattern p JOIN tradeskill_seed s ON s.tbl = 'itempattern' "
+                      "AND CAST(s.key AS INTEGER) = p.patternid GROUP BY p.rent")
+        self.assertEqual([r for r, _ in made], [1], made)
+        self.assertEqual(len(self.q("SELECT 1 FROM gm_audit")), 1)
+        self.assertNotEqual(self.run_seed("--apply", ok=False).returncode, 0, "a second --apply is refused")
+        self.tool("--undo")
+        after = self.snapshot()
+        after.pop("craftrecipes")  # the engine's table, made empty and left
+        self.assertEqual(after, before)
+
+    def test_a_cell_off_prima_writes_nothing(self):
+        with open(self.onehand) as f:
+            t = f.read()
+        with open(self.onehand, "w") as f:
+            f.write(t.replace("243 / 10", "243 / 12", 1))
+        out = self.run_seed("--apply", ok=False)
+        self.assertNotEqual(out.returncode, 0)
+        self.assertIn("stat 12, Prima 10", out.stdout)
+        self.assertEqual(self.q("SELECT count(*) FROM sqlite_master WHERE name = 'tradeskill_seed'"), [(0,)])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -51,6 +51,27 @@ gems this server lacks made as Sandstorm's are, a drop table "craft gems";
 eqoatrade's starter (a glass trinket, a cracked glass earring) under Special.
 A live record is the product only with the product's stats too.
 
+**Weapons** (--craft weapon): Prima's Frontiers guide's Weaponcrafting tables
+(pp. 446-447: the metals' bonus durability and hit points, the mundane damage
+by hand, the stat and proc figures by trade level, a product a mold and trade
+level), which eqoatrade's 1H and 2H grids are checked against (every filled
+cell agrees: a difference is a problem and nothing is written); QuestMasters'
+Weaponcrafting and gem pages (2006: id526, id459, id458) for who wields each
+mold and the seventeen modifiers (Prima's fourteen starred ones, in no other
+source, are left out). A recipe is an ore (Armor's: Sandstorm's), the mold and
+from trade level 3 a modifier (kept on a failure); a gem gives its stat, an
+alloy or crystal its proc in the words entity/weaponproc.go reads (a fiery,
+freezing, cursed or withering weapon's hit, a malign, venomous, volatile or
+ethereal one's damage over time, Prima's figure to twice it at Prima's chance;
+a vampiric one's life tap, a siphoning one's mana tap, at trade levels 9 and
+10). Names "<metal> <product>" and "<word> <metal> <product>" (eqoatrade's
+"Makes Fiery xxx", "Cursed Adamantite Flamberge"); each product's look (model,
+icon, colour) the commonest of this server's weapon records named as it is, a
+mold's wear slot its products' looks' commonest. Sandstorm's hammers and
+molds; eqoatrade's vendors (Prima's where eqoatrade's is no NPC here) and
+starter (a dull knife by its recipe, a crude rusty mace by experiment, both
+under Special); the modifiers drop from the loot categories' "modifiers".
+
 A product this server has the live record of (its name, level and slot: the
 heartsblood and mindflow sets, "heartsblood seralite breastplate") is that
 record; one of the name that is another item (a found "Steel Chain Tunic" of
@@ -70,7 +91,7 @@ Every row written and every value changed is logged in tradeskill_seed;
 the log is there. Report only by default. The server reads recipes, stock and
 loot as it goes; new items reach a client at its next login.
 
-    tools/seed_tradeskills.py [--db eqoa.db] --sources <folder> --harvests <dir or file> ... [--craft armor|jewel] [--apply | --undo]
+    tools/seed_tradeskills.py [--db eqoa.db] --sources <folder> --harvests <dir or file> ... [--craft armor|jewel|weapon] [--apply | --undo]
 """
 import argparse
 import collections
@@ -185,14 +206,16 @@ CRAFT_DDL = """CREATE TABLE IF NOT EXISTS craftrecipes (
 )"""
 LOG_DDL = """CREATE TABLE IF NOT EXISTS tradeskill_seed (
     seq    INTEGER PRIMARY KEY AUTOINCREMENT,
-    craft  TEXT NOT NULL,   -- armor | jewel
-    tbl    TEXT NOT NULL,   -- itempattern | craftrecipes | npcitem | npcs | loottables | npcloot
+    craft  TEXT NOT NULL,   -- armor | jewel | weapon
+    tbl    TEXT NOT NULL,   -- itempattern | craftrecipes | npcitem | npcs | loottables | npcloot | lootpool | sqlite_sequence
     key    TEXT NOT NULL,   -- the row's key (npcloot: npc name and table name, JSON)
     action TEXT NOT NULL,   -- inserted | updated | deleted
     old    TEXT,            -- the row before (updated, deleted), JSON
     new    TEXT             -- the row written (inserted, updated), JSON
 )"""
-KEYS = {"itempattern": "patternid", "craftrecipes": "id", "npcitem": "itemid", "npcs": "id", "loottables": "id"}
+SEQ_TABLES = ["itempattern", "npcitem", "loottables", "lootpool"]  # the AUTOINCREMENT tables a seed writes
+KEYS = {"itempattern": "patternid", "craftrecipes": "id", "npcitem": "itemid", "npcs": "id", "loottables": "id",
+        "lootpool": "id"}
 
 
 def has_table(db, name):
@@ -277,6 +300,7 @@ def read_grids(folder):
 VENDOR_PAGES = {
     "armor": ("Armor.htm", {"tutorial": "trainer", "hammers": "hammers", "molds and patterns": "molds", "metal blocks": "metal"}),
     "jewel": ("Jewelry.htm", {"tutorial": "trainer", "kits": "hammers", "molds, bars, glass": "molds"}),
+    "weapon": ("Weapon.htm", {"tutorial": "trainer", "hammers": "hammers", "molds": "molds", "metal blocks": "metal"}),
 }
 
 
@@ -553,11 +577,20 @@ def insert(db, tbl, row, key=None):
     return k
 
 
+def seq_of(db):
+    """The AUTOINCREMENT counters of the tables a seed writes."""
+    if not has_table(db, "sqlite_sequence"):
+        return {}
+    return dict(db.execute("SELECT name, seq FROM sqlite_sequence WHERE name IN (%s)" % ",".join("?" * len(SEQ_TABLES)),
+                           SEQ_TABLES).fetchall())
+
+
 def apply(db, p):
     db.execute("BEGIN IMMEDIATE")
     try:
         db.execute(LOG_DDL)
         db.execute(CRAFT_DDL)
+        seqs = seq_of(db)
         ids = dict(p["ids"])
         # Sandstorm's ids first: a new item takes the highest id + 1, which must not be one of theirs
         for pid, row in sorted(p["items"], key=lambda x: x[0] is None):
@@ -613,21 +646,48 @@ def apply(db, p):
         # the modifiers' drops, on every creature
         loot = 0
         lt = p["loot"]
-        for mod, rarity in lt["mods"]:
+        if lt.get("pool"):  # the loot categories (lootpool, region "*"): the drop rate is lootrate's for the category
+            for mod, rarity in lt["mods"]:
+                if db.execute("SELECT 1 FROM lootpool WHERE category = ? AND region = '*' AND npc_name = '' AND patternid = ?",
+                              (lt["pool"], ids[mod])).fetchone():
+                    continue
+                lo, hi = LOOT_LEVELS[rarity]
+                insert(db, "lootpool", {"category": lt["pool"], "region": "*", "npc_name": "", "patternid": ids[mod],
+                                        "weight": LOOT_WEIGHT[rarity], "minlevel": lo, "maxlevel": hi, "source": SOURCE})
+                loot += 1
+            lt = None
+        for mod, rarity in (lt or {}).get("mods", []):
             lo, hi = LOOT_LEVELS[rarity]
             insert(db, "loottables", {"tablename": lt["table"], "patternid": ids[mod], "weight": LOOT_WEIGHT[rarity],
                                       "minlevel": lo, "maxlevel": hi, "source": SOURCE})
             loot += 1
-        if db.execute("SELECT 1 FROM npcloot WHERE npc_name = '*' AND tablename = ?", (lt["table"],)).fetchone() is None:
+        if lt is not None and db.execute("SELECT 1 FROM npcloot WHERE npc_name = '*' AND tablename = ?",
+                                         (lt["table"],)).fetchone() is None:
             db.execute("INSERT INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES ('*', ?, ?, 1, ?, ?)",
                        (lt["table"], lt["chance"], lt["note"], SOURCE))
             log(db, "npcloot", ["*", lt["table"]], "inserted", new={"chance": lt["chance"], "rolls": 1})
+        # the tables' id counters, so --undo gives them back too (an AUTOINCREMENT's counter outlives its rows)
+        for name, seq in seq_of(db).items():
+            if seqs.get(name) != seq:
+                log(db, "sqlite_sequence", name, "updated", old={"seq": seqs.get(name)}, new={"seq": seq})
+        audit_line(db, "insert", f"tools/seed_tradeskills.py --craft {CRAFT['name']} --apply: {len(p['items']) + made} items, "
+                   f"{recipes} recipes, {wares_n} wares ({removed} stand-ins out), {loot} loot rows (each in tradeskill_seed)")
         db.execute("COMMIT")
     except BaseException:
         db.execute("ROLLBACK")
         raise
     return {"items": len(p["items"]) + made, "recipes": recipes, "wares": wares_n, "stand-ins removed": removed,
             "loot rows": loot}
+
+
+def audit_line(db, action, detail):
+    """One gm_audit line for a whole run (tradeskill_seed holds each row it wrote)."""
+    if not has_table(db, "gm_audit"):
+        return
+    at = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    db.execute("INSERT INTO gm_audit (at, accountid, username, via, ip, action, tbl, rowkey, before, after, detail) "
+               "VALUES (?, 0, 'dab', 'tool', '', ?, 'tradeskill_seed', ?, NULL, NULL, ?)",
+               (at, action, json.dumps({"craft": CRAFT["name"]}), detail))
 
 
 def logged(db, craft):
@@ -655,6 +715,17 @@ def undo(db, craft):
                 else:
                     kept += 1
                 continue
+            if tbl == "sqlite_sequence":
+                r = db.execute("SELECT seq FROM sqlite_sequence WHERE name = ?", (key,)).fetchone()
+                if r is not None and r[0] == new["seq"]:
+                    if old["seq"] is None:
+                        db.execute("DELETE FROM sqlite_sequence WHERE name = ?", (key,))
+                    else:
+                        db.execute("UPDATE sqlite_sequence SET seq = ? WHERE name = ?", (old["seq"], key))
+                    back += 1
+                else:
+                    kept += 1
+                continue
             k = int(key)
             now = row_of(db, tbl, k)
             if action == "inserted":
@@ -676,9 +747,14 @@ def undo(db, craft):
                     back += 1
                 else:
                     kept += 1
+        first = db.execute("SELECT min(seq) FROM tradeskill_seed WHERE craft = ?", (craft,)).fetchone()[0]
         db.execute("DELETE FROM tradeskill_seed WHERE craft = ?", (craft,))
         if db.execute("SELECT count(*) FROM tradeskill_seed").fetchone()[0] == 0:
             db.execute("DROP TABLE tradeskill_seed")
+        elif db.execute("SELECT count(*) FROM tradeskill_seed WHERE seq > ?", (first,)).fetchone()[0] == 0:
+            # the craft's lines were the log's last: its counter back to before them
+            db.execute("UPDATE sqlite_sequence SET seq = ? WHERE name = 'tradeskill_seed'", (first - 1,))
+        audit_line(db, "delete", f"tools/seed_tradeskills.py --craft {craft} --undo: {back} changes taken back, {kept} left")
         db.execute("COMMIT")
     except BaseException:
         db.execute("ROLLBACK")
@@ -1021,7 +1097,369 @@ def plan_jewel(db, folder, harvests):
             "products": products, "stock": stock, "left": left, "problems": problems, "loot": loot}
 
 
-PLANS = {"armor": plan, "jewel": plan_jewel}
+# ---- Weaponcrafting
+
+
+WEAPON = 0  # the skill: CLIENT's craft slot (Recipe Book: Weapons -> 0)
+WEAPON_SPECIAL = 10
+# Prima p. 446, "Metals" (Weaponcrafting): bonus durability and hit points by trade level; QuestMasters' Weaponcrafting
+# page (id526) prints the same table. The metals and their order are Armor's (CLIENT's own list): Sandstorm's ores.
+WEAPON_BONUS_DUR = [2, 5, 7, 10, 12, 15, 17, 20, 22, 25]
+WEAPON_BONUS_HP = [50, 100, 200, 400, 800, 1200, 1800, 2000, 2400, 2600]
+# p. 447, "Mundane Crafted Weapon Damage" (the damage itempattern.weapondamage holds: this server's merchant bronze
+# claymore 162, steel greatsword 313); eqoatrade's 1H and 2H grids give the same to Adamantite (checked: read_weapon_grid)
+WEAPON_DAMAGE = {1: [51, 82, 136, 190, 243, 295, 346, 400, 452, 505], 2: [59, 95, 159, 221, 284, 345, 407, 468, 531, 593]}
+# p. 447, "Crafted Weapon Proc Stats": a stat gem's figure by trade level (the "w/ Stat" rows; eqoatrade's grids agree
+# from Bronze to Adamantite, and give none below Bronze, as Prima's counts: modifiers from trade level 3)
+WEAPON_STAT = {1: [1, 4, 7, 8, 10, 11, 11, 11, 12, 14], 2: [2, 6, 10, 14, 18, 20, 24, 26, 32, 35]}
+# the "w/ DD", "w/ DoT" and "w/ Drain" rows from trade level 3: (figure, chance %); eqoatrade's grids print each DD and
+# DoT cell's "Max" as twice Prima's figure (1H 20/40/40/50 against 10/20/20/25), so a proc rolls Prima's figure to twice it
+WEAPON_DD = {1: [(10, 10), (20, 10), (20, 15), (25, 15), (25, 20), (30, 20), (30, 25), (40, 25)],
+             2: [(10, 10), (20, 10), (25, 15), (33, 15), (33, 20), (40, 20), (45, 25), (55, 25)]}
+WEAPON_DOT = {1: [(10, 10), (12, 10), (13, 15), (15, 15), (15, 20), (18, 20), (18, 25), (21, 25)],
+              2: [(10, 10), (12, 10), (15, 15), (17, 15), (17, 20), (21, 20), (23, 25), (25, 25)]}
+WEAPON_DRAIN = {1: {9: (10, 10), 10: (10, 15)}, 2: {9: (10, 20), 10: (10, 25)}}
+WEAPON_MOD_FROM = 3  # the least trade level a modifier works at (Prima's counts; eqoatrade; QuestMasters id341)
+# p. 446, "Weapon Molds" and "Metal Product Sprite by Mold and Trade Level": a mold's hands, its attack type (this
+# server's records': 1 slash, 3 blunt, 5 pierce one-handed; 2 slash, 4 blunt, 6 pierce two-handed), and its product by
+# trade level. Prima's "—" (no product printed) is the row's first product (ours), so every mold makes ten as Prima's
+# count says (130 mundane weapons); its "Sacrificial" (cut to a word in the print) is a sacrificial dagger (ours). Who
+# wields it: QuestMasters' Weaponcrafting page (id526) by mold.
+WAR, RAN, PAL, SK, MNK, BRD, RGE, DRD, SHA, CL = range(10)
+_MELEE = (WAR, SK, PAL, RAN, BRD, RGE)
+_KNIGHTS = (WAR, SK, PAL)
+_BLUNT = (WAR, SK, PAL, RAN, BRD, RGE, DRD, SHA, CL)
+WEAPON_MOLDS = {
+    "Knife Blade Mold": (1, 5, _MELEE, ["knife", "dirk", "dirk", "dagger", "dagger", "stiletto", "stiletto",
+                                        "sacrificial dagger", "sacrificial dagger", "tanto"]),
+    "Axe Head Mold": (1, 1, _MELEE, ["hand axe", "hand axe", "hatchet", "hatchet", "bearded axe", "bearded axe",
+                                     "battle axe", "battle axe", "war axe", "war axe"]),
+    "Two-Hand Axe Head Mold": (2, 2, _KNIGHTS, [None, None, "greataxe", "greataxe", "greataxe", "bearded greataxe",
+                                                "bearded greataxe", "bearded greataxe", "great waraxe", "great waraxe"]),
+    "Short Sword Blade Mold": (1, 1, _MELEE, ["battle knife", "battle knife", "short blade", "short blade", "small sword",
+                                              "gladius", "gladius", "short sword", "short sword", "wakizashi"]),
+    "Long Sword Blade Mold": (1, 1, _KNIGHTS, [None, None, "long blade", "long blade", "broad sword", "broad sword",
+                                               "long sword", "long sword", "warsword", "katana"]),
+    "Foil Mold": (1, 5, _MELEE, [None, None, "foil", "foil", "sabre", "sabre", "rapier", "rapier", "cutlass", "cutlass"]),
+    "Two Hand Sword Mold": (2, 2, _KNIGHTS, ["bastard sword", "bastard sword", "claymore", "claymore", "greatsword",
+                                             "greatsword", "flamberge", "flamberge", "zweihander", "no-dachi"]),
+    "Polearm Head Mold": (2, 6, _KNIGHTS, ["longspear", "longspear", "longspear", "partizan", "partizan", "partizan",
+                                           "spetum", "spetum", "spetum", "trident"]),
+    "Poleaxe Head Mold": (2, 2, _KNIGHTS, ["glaive", "glaive", "guisarme", "guisarme", "halberd", "halberd",
+                                           "bearded poleaxe", "bearded poleaxe", "pole axe", "naginata"]),
+    "Hammer Mold": (1, 3, _BLUNT, ["smith hammer", "smith hammer", "smith hammer", "hammer", "hammer", "hammer",
+                                   "military hammer", "military hammer", "mallet", "mallet"]),
+    "Two Hand Hammer Mold": (2, 4, (WAR, SK, PAL, DRD, SHA, CL), [None, None, "warhammer", "warhammer", "warhammer",
+                                                                  "battlehammer", "battlehammer", "battlehammer",
+                                                                  "bladed warhammer", "bladed warhammer"]),
+    "Mace Mold": (1, 3, _BLUNT, [None, "mace", "mace", "mace", "spiked mace", "spiked mace", "morning star",
+                                 "morning star", "bladed mace", "bladed mace"]),
+    # Prima: "By Product Sprite": the fists and knuckles blunt, the bladed knuckles and the katar pierce (ours)
+    "Martial Mold": (1, 3, (WAR, SK, PAL, MNK), ["fist", "fist", "knuckles", "knuckles", "spiked knuckles",
+                                                 "spiked knuckles", "bladed knuckles", "bladed knuckles", "katar", "katar"]),
+}
+MARTIAL_PIERCE = {"bladed knuckles", "katar"}
+# the words this server's own weapon records are named by where a product's are not theirs, for its look (the
+# product's word first): a record of the same kind lends its model and icon, never a model worked out by hand
+LOOK_WORDS = {
+    "sacrificial dagger": ["sacrificial", "dagger"], "bastard sword": ["bastardsword", "claymore"],
+    "long blade": ["longsword", "broadsword"], "broad sword": ["broadsword"], "long sword": ["longsword"],
+    "small sword": ["smallsword", "shortblade"], "short blade": ["shortblade"], "smith hammer": ["smithing hammer", "hammer"],
+    "pole axe": ["poleaxe", "halberd"], "bearded poleaxe": ["poleaxe", "halberd"], "great waraxe": ["greataxe"],
+    "bearded greataxe": ["bearded greataxe", "greataxe"], "spiked mace": ["morning star", "mace"],
+    "bladed warhammer": ["warhammer"], "military hammer": ["military hammer", "hammer"], "battle knife": ["battle knife", "knife"],
+    "war axe": ["war axe", "waraxe", "battle axe"], "battle axe": ["battle axe", "bearded axe"],
+    "hand axe": ["hand axe", "handaxe", "hatchet"], "warsword": ["warsword", "longsword"],
+}
+# The modifiers (QuestMasters' "Gems By Each Craft" and Weaponcrafting pages, id459 and id526, eqoatrade's item list and
+# Prima p. 446 agree on these seventeen; Prima's fourteen starred ones (the resist gems, Plague Dust, Viper Lead, Wisp
+# Energy, Liquid Inferno, Nitrogen Alloy, Electrified Copper and the three banes) are in neither of the others and are
+# left out): rarity (Prima's; QuestMasters' gem list id458 says rare for the last two), what each does, and the word a
+# product's name takes (eqoatrade's "Makes Fiery xxx" ...; the gems' and the two drains' are ours: a gem's own name,
+# as Armor's "sinhalite steel bracers", "vampiric" and "siphoning").
+WEAPON_MODS = {
+    "Bloodstone": (0, ("stat", "str"), "bloodstone"), "Citrine": (0, ("stat", "sta"), "citrine"),
+    "Tsavorite": (0, ("stat", "agi"), "tsavorite"), "Ametrine": (0, ("stat", "dex"), "ametrine"),
+    "Heliodor": (0, ("stat", "wis"), "heliodor"), "Moonstone": (0, ("stat", "intelligence"), "moonstone"),
+    "Erollite": (0, ("stat", "cha"), "erollite"),
+    "Magnesium Alloy": (1, ("dd", "fire"), "fiery"), "Dervish Ice Crystals": (1, ("dd", "cold"), "freezing"),
+    "Ectoplasmic Crystals": (1, ("dd", "arcane"), "cursed"),
+    # Prima "Arcane Power Damage", eqoatrade and QuestMasters "Non Damage Proc": a creature here has no power to take
+    # (charm.go), so it lands as arcane damage (ours)
+    "Intellect Spores": (1, ("dd", "arcane"), "withering"),
+    "Malign Alloy": (2, ("dot", "disease"), "malign"), "Rogue Metal": (2, ("dot", "poison"), "venomous"),
+    "Volatile Mana Crystals": (2, ("dot", "arcane"), "volatile"),
+    "Ethereal Mists": (2, ("dot", "arcane"), "ethereal"),  # "Arcane Power DoT": as Intellect Spores
+    "Negative Energy Stone": (3, ("drain", "mana tap"), "siphoning"),  # "Arcane Mana Tap Proc" (QuestMasters)
+    "Viscous Vampire Blood": (3, ("drain", "lifetap"), "vampiric"),   # "Arcane Blood Tap Proc"
+}
+WEAPON_MOD_ITEM = {}  # a modifier's item where this server names it otherwise (none: kept for the rule)
+STAT_WORD = {"str": "strength", "sta": "stamina", "agi": "agility", "dex": "dexterity", "wis": "wisdom",
+             "intelligence": "insight", "cha": "charisma"}
+WEAPON_STARTER_HAMMER = "Novice Weaponsmith Hammer"
+# eqoatrade's tutorial: "An apprentice weaponsmith hammer, a dull knife recipe, 1 dented iron block, 1 rusted bronze
+# block, 1 rusty iron block, 1 mace mold, and 1 knife blade mold"; the dull knife by the recipe ("under Special"),
+# "rusty bronze block plus mace mold" a crude rusty mace by experiment. The dull knife's ingredients are not given: the
+# rusty iron block and the knife blade mold (ours). The dented iron block's use was unknown to eqoatrade itself ("Does
+# anyone know what the dented iron block is for?"): not made.
+DULL_SCROLL, DULL_KNIFE, RUSTY_MACE = "Dull Knife Recipe", "dull knife", "crude rusty mace"
+RUSTY_IRON, RUSTED_BRONZE = "Rusty Iron Block", "Rusted Bronze Block"
+# Prima's city tables where eqoatrade's list names no NPC of this server's (or none): Neriak (eqoatrade: "Thesla
+# V`Ryn"; molds "Hmm, spent about 10 minutes looking"; "Merchant Veikara or Mechant Zairella"), Klick'Anon (eqoatrade's
+# "Lelil VII"), Grobb (eqoatrade's "Duliigh"), Rivervale (eqoatrade's "Bubba Whistetip"), Surefall Glade (Prima's mold
+# seller, where eqoatrade's Merchant Ilander is no NPC: the Live Server's)
+WEAPON_SELLERS = {"Neriak": {"hammers": "Weaponsmith Thesla", "molds": "Merchant Veikara", "metal": "Merchant Zairella"},
+                  "Klick Anon": {"metal": "Merchant Lelii VII"}, "Grobb": {"molds": "Merchant Dulilgh"},
+                  "Rivervale": {"hammers": "Bubba Whistletip"}}
+WEAPON_FALLBACK = {"Surefall Glade": {"molds": "Merchant Kaelara"}}
+WEAPON_POOL = "modifiers"  # the loot category the armorsmiths' modifiers drop from (lootpool, lootrate's own rate)
+
+
+def read_weapon_grid(folder, problems):
+    """eqoatrade's 1H and 2H grids (Recipes/Weapon/Original/{OneHand,TwoHand}.htm) against Prima's tables: each cell
+    it fills ("136 / 7": damage / a stat gem's figure) must be Prima's; none of a modifier below trade level 3."""
+    checked = 0
+    for hands, page in ((1, "OneHand.htm"), (2, "TwoHand.htm")):
+        path = os.path.join(folder, "eqoatrade", "Recipes", "Weapon", "Original", page)
+        if not os.path.exists(path):
+            problems.append(f"{path}: missing (tools/fetch_tradeskill_sources.py --craft weapon)")
+            continue
+        with open(path, "rb") as f:
+            t = f.read().decode("latin-1")
+        tls = None
+        for tr in re.findall(r"<tr.*?</tr>", t, flags=re.S | re.I):
+            row = cells_of(tr)
+            if len(row) >= 7 and row[0].lower() == "gem":
+                tls = {"CrIr": 1, "Ir": 2, "Brz": 3, "Brs": 4, "St": 5, "CoSt": 6, "Ad": 7, "Mi": 8, "Brl": 9, "Se": 10}
+                tls = [tls[c] for c in row[2:7]]
+                continue
+            if not tls or len(row) < 7:
+                continue
+            mod, what = row[0], row[1]
+            for tl, c in zip(tls, row[2:7]):
+                m = re.fullmatch(r"(\d+)(?:\s*/\s*(\d+|\?))?", c)
+                if not m:
+                    continue
+                checked += 1
+                if int(m.group(1)) != WEAPON_DAMAGE[hands][tl - 1]:
+                    problems.append(f"eqoatrade {page} {mod} TL{tl}: damage {m.group(1)}, Prima {WEAPON_DAMAGE[hands][tl - 1]}")
+                if mod.startswith("No Gem"):
+                    continue
+                if tl < WEAPON_MOD_FROM:
+                    problems.append(f"eqoatrade {page} {mod} TL{tl}: a modifier below trade level {WEAPON_MOD_FROM}")
+                stat = re.search(r"Strength|Stamina|Agility|Dexterity|Wisdom|Intelligence|Charisma", what)
+                if stat and m.group(2) not in (None, "?") and int(m.group(2)) != WEAPON_STAT[hands][tl - 1]:
+                    problems.append(f"eqoatrade {page} {mod} TL{tl}: stat {m.group(2)}, Prima {WEAPON_STAT[hands][tl - 1]}")
+    return checked
+
+
+def weapon_look(db, sprite, hands, cache):
+    """The look of a product: the commonest model (and that model's commonest icon, colour and wear slot) of this
+    server's weapon records of the hands named by the product's word, else by its LOOK_WORDS."""
+    key = (sprite, hands)
+    if key in cache:
+        return cache[key]
+    slots = (12, 14) if hands == 1 else (15,)
+    for w in [sprite] + LOOK_WORDS.get(sprite, []):
+        where = (f"weapondamage > 0 AND equipslot IN ({', '.join(map(str, slots))}) AND model != 0 AND "
+                 "(lower(itemname) LIKE ? OR lower(itemname) = ?)")
+        args = (f"% {w}", w)
+        model = commonest(db, f"SELECT model AS x FROM itempattern WHERE {where}", args)
+        if model is None:
+            continue
+        icon = commonest(db, f"SELECT itemicon AS x FROM itempattern WHERE {where} AND model = ?", (*args, model))
+        slot = db.execute(f"SELECT equipslot, count(*) FROM itempattern WHERE {where} AND model = ? GROUP BY equipslot "
+                          "ORDER BY count(*) DESC, equipslot LIMIT 1", (*args, model)).fetchone()[0]
+        color = db.execute(f"SELECT color, count(*) FROM itempattern WHERE {where} AND model = ? GROUP BY color "
+                           "ORDER BY count(*) DESC, color LIMIT 1", (*args, model)).fetchone()[0]
+        cache[key] = (model, icon or 0, slot, color, w)
+        return cache[key]
+    cache[key] = None
+    return None
+
+
+def class_mask(classes):
+    m = 0
+    for c in classes:
+        m |= 1 << c
+    return m
+
+
+def weapon_proc_words(kind, element, hands, tl):
+    """A product's proc in the words entity/weaponproc.go reads (WeaponProcFromText), or "" for none."""
+    if kind == "dd":
+        n, pct = WEAPON_DD[hands][tl - WEAPON_MOD_FROM]
+        return f"Procs {n}-{2 * n} {element} damage, a {pct}% chance each hit."
+    if kind == "dot":
+        n, pct = WEAPON_DOT[hands][tl - WEAPON_MOD_FROM]
+        return f"Procs a {n}-{2 * n} point {element} DoT, a {pct}% chance each hit."
+    if kind == "drain":
+        n, pct = WEAPON_DRAIN[hands][tl]
+        return f"Procs a {n} point {element}, a {pct}% chance each hit."
+    return ""
+
+
+def plan_weapon(db, folder, harvests):
+    """Weaponcrafting's items, recipes, stock and drops (the module's doc)."""
+    problems = []
+    cells = read_weapon_grid(folder, problems)
+    vendors = read_vendors(folder, "weapon")
+    hammers = [f"{h} Weaponsmith Hammer" for h in KITS]  # Sandstorm's: "Expert" where the armorsmiths' have "Craftsman"
+    ores = [f"{m} Ore" for m in METALS]
+    want = set(hammers) | set(WEAPON_MOLDS) | set(ores)
+    comps, missing = harvest_components(harvests, want)
+    if missing:
+        problems.append(f"the harvests lack Sandstorm's records of: {', '.join(missing)}")
+    cols = [r[1] for r in db.execute("PRAGMA table_info(itempattern)")]
+    taken = {r[0] for r in db.execute("SELECT patternid FROM itempattern")}
+    items, ids = [], {}
+    for name, row in sorted(comps.items()):
+        have = item_by_name(db, name)
+        if have is not None:
+            ids[name] = have
+            continue
+        pid = row["patternid"] if row["patternid"] not in taken else None
+        r = {c: v for c, v in row.items() if c in cols}
+        r.pop("patternid", None)
+        r.setdefault("model", 0)
+        r.setdefault("color", 0)
+        items.append((pid, r))
+        ids[name] = pid
+
+    # the modifiers: this server's own where it has them (Bloodstone, Ametrine ...), else made as its own are
+    gem_icon = commonest(db, "SELECT itemicon AS x FROM itempattern WHERE craft > 0 AND equipslot = -1 AND "
+                             "itemdesc LIKE '%crafters of weapons%'")
+    alloy_icon = commonest(db, "SELECT itemicon AS x FROM itempattern WHERE craft > 0 AND lower(itemname) LIKE '% alloy'")
+    rarities = ["common", "uncommon", "rare", "ultra rare"]
+    for name, (rarity, (kind, what), word) in WEAPON_MODS.items():
+        item = WEAPON_MOD_ITEM.get(name, name)
+        have = item_by_name(db, item)
+        if have is not None:
+            ids[item] = have
+            continue
+        if kind == "stat":
+            desc = (f"{name}s are often sought after by crafters of weapons for their ability to lend {STAT_WORD[what]} "
+                    "to the weapon's wielder.")
+            icon = gem_icon
+        else:
+            does = {"dd": f"{what} to its strikes", "dot": f"a lingering {what} to its strikes",
+                    "drain": "a draining touch to its strikes"}[kind]
+            desc = f"A{'n' if rarities[rarity][0] == 'u' else ''} {rarities[rarity]} {name.lower()} a weaponsmith works into a blade, lending {does}."
+            icon = alloy_icon if re.search(r"Alloy|Metal|Crystals|Stone|Blood|Mists|Spores", name) else gem_icon
+        items.append((None, base_item(item, icon or 0, MOD_PRICE[rarity], 0, -1, maxstack=50, craft=1, desc=desc)))
+        ids[item] = None
+
+    scroll_icon = commonest(db, "SELECT itemicon AS x FROM itempattern WHERE lower(itemname) LIKE '%recipe%'")
+    ore_icon = (comps.get("Crude Iron Ore") or {}).get("itemicon") or commonest(
+        db, "SELECT itemicon AS x FROM itempattern WHERE lower(itemname) LIKE '% ore' AND craft > 0")
+    for name, icon, price, desc, craft, stack in [
+        (DULL_SCROLL, scroll_icon, 10, "A recipe for a dull knife. Use it to scribe the recipe.", 0, 1),
+        (RUSTY_IRON, ore_icon, 2, "A block of rusty iron, for a weaponsmith's first work.", 1, 20),
+        (RUSTED_BRONZE, ore_icon, 2, "A block of rusted bronze, for a weaponsmith's first work.", 1, 20),
+    ]:
+        have = item_by_name(db, name)
+        if have is None:
+            items.append((None, base_item(name, icon or 0, price, 0, -1, maxstack=stack, craft=craft, desc=desc)))
+        ids[name] = have
+
+    looks, products = {}, []
+    # a mold's wear slot, one for all its products: the one most of its products' looks are worn in (a one-hander's
+    # primary hand, 12, or either hand, 14; a two-hander's 15)
+    mold_slot = {}
+    for mold, (hands, _, _, sprites) in WEAPON_MOLDS.items():
+        got = collections.Counter(lk[2] for lk in (weapon_look(db, sp, hands, looks) for sp in sprites if sp) if lk)
+        mold_slot[mold] = sorted(got.items(), key=lambda x: (-x[1], x[0]))[0][0] if got else (12 if hands == 1 else 15)
+
+    def product(name, sprite, hands, attack, classes, level, tl, comp, damage, desc, rarity, ings, extra=None):
+        look = weapon_look(db, sprite, hands, looks)
+        if look is None:
+            problems.append(f"no weapon record here looks like a {sprite} ({hands}-handed)")
+            return
+        model, icon, _, color, _ = look
+        slot = mold_slot[ings[1][0]] if ings[1][0] in mold_slot else look[2]
+        metal_tl = max(tl, 1)
+        ore_price = (comps.get(f"{METALS[metal_tl - 1]} Ore") or {}).get("itemcost") or 10 * metal_tl * metal_tl
+        row = base_item(name, icon, 3 * ore_price + 10 + (MOD_WORTH[rarity] if rarity is not None else 0), level, slot,
+                        maxstack=1, craft=0, classes=class_mask(classes), desc=desc, model=model, color=color,
+                        maxhp=200 * level + WEAPON_BONUS_HP[metal_tl - 1], duration=50 + WEAPON_BONUS_DUR[metal_tl - 1])
+        row["attacktype"], row["weapondamage"] = attack, damage
+        pr = {"name": name, "row": row, "have": None, "comp": comp, "level": tl, "rarity": rarity or 0, "ings": ings,
+              "sort": (tl, rarity or 0, name), "kind": f"{hands}H", "magical": rarity is not None}
+        r = db.execute("SELECT patternid FROM itempattern WHERE lower(itemname) = ? AND levelreq = ? AND equipslot = ? "
+                       "AND weapondamage = ? ORDER BY patternid LIMIT 1", (name.lower(), level, slot, damage)).fetchone()
+        pr["have"] = r[0] if r else None
+        pr.update(extra or {})
+        products.append(pr)
+
+    for mold, (hands, attack, classes, sprites) in WEAPON_MOLDS.items():
+        first = next(s for s in sprites if s)
+        for tl in range(1, 11):
+            sprite = sprites[tl - 1] or first
+            at = 5 if mold == "Martial Mold" and sprite in MARTIAL_PIERCE else attack
+            metal = METALS[tl - 1]
+            level = 5 * tl - 2
+            dmg = WEAPON_DAMAGE[hands][tl - 1]
+            base = f"A {'two-handed ' if hands == 2 else ''}weapon forged of {metal.lower()}."
+            ore = (f"{metal} Ore", 1, False)
+            product(f"{metal.lower()} {sprite}", sprite, hands, at, classes, level, tl, tl - 1, dmg, base, None,
+                    [ore, (mold, 1, False)])
+            if tl < WEAPON_MOD_FROM:
+                continue
+            for mod, (rarity, (kind, what), word) in WEAPON_MODS.items():
+                if kind == "drain" and tl not in WEAPON_DRAIN[hands]:
+                    continue
+                row_extra = {}
+                desc = base
+                if kind == "stat":
+                    row_extra[what] = WEAPON_STAT[hands][tl - 1]
+                else:
+                    desc = f"{base} {weapon_proc_words(kind, what, hands, tl)}"
+                name = f"{word} {metal.lower()} {sprite}"
+                before = len(products)
+                product(name, sprite, hands, at, classes, level, tl, tl - 1, dmg, desc, rarity,
+                        [ore, (mold, 1, False), (WEAPON_MOD_ITEM.get(mod, mod), 1, True)])
+                if len(products) > before:
+                    products[-1]["row"].update(row_extra)
+                    products[-1]["proc"] = kind
+    # the starter, under Special (its figures ours: a crude iron one's look, under its damage)
+    for name, sprite, attack, ings, extra in [
+        (DULL_KNIFE, "knife", 5, [(RUSTY_IRON, 1, False), ("Knife Blade Mold", 1, False)],
+         {"scroll": DULL_SCROLL, "discover": 0, "description": "The first weapon a weaponsmith's apprentice makes."}),
+        (RUSTY_MACE, "mace", 3, [(RUSTED_BRONZE, 1, False), ("Mace Mold", 1, False)],
+         {"discover": 1, "description": "An apprentice's mace of rusted bronze."}),
+    ]:
+        product(name, sprite, 1, attack, _BLUNT if sprite == "mace" else _MELEE, 1, 0, WEAPON_SPECIAL, 40,
+                f"A weaponsmith's first {name}.", None, ings,
+                dict(extra, level=1, sort=(99, name), kind="starter", magical=False, difficulty=1, xp=10, rarity=0))
+    names = collections.Counter(p["name"] for p in products)
+    problems += [f"{k} products named {n!r}" for n, k in names.items() if k > 1]
+
+    stock, left = [], []
+    molds = list(WEAPON_MOLDS) + [RUSTY_IRON, RUSTED_BRONZE]
+    for city, v in sorted(vendors.items()):
+        v = dict(v, **WEAPON_SELLERS.get(city, {}))
+        for role, wares, what in (("hammers", hammers, "hammers"), ("molds", molds, "molds"), ("metal", ores, "ores")):
+            name = v.get(role)
+            r = npc_named(db, name) if name else []
+            if not r and WEAPON_FALLBACK.get(city, {}).get(role):
+                alt = WEAPON_FALLBACK[city][role]
+                left.append(f"{city}: {name} ({what}) is no NPC here: Prima's {alt}")
+                name, r = alt, npc_named(db, alt)
+            if not name:
+                left.append(f"{city}: no {what} seller on eqoatrade's list or Prima's")
+                continue
+            if not r:
+                left.append(f"{city}: {name} ({what}) is no NPC here")
+                continue
+            if len(r) > 1:
+                left.append(f"{city}: {len(r)} NPCs named {name}: the first stocked")
+            stock.append((city, role, name, r[0], wares))
+    loot = {"pool": WEAPON_POOL, "mods": [(WEAPON_MOD_ITEM.get(m, m), v[0]) for m, v in WEAPON_MODS.items()]}
+    return {"skill": WEAPON, "cells": cells, "vendors": vendors, "comps": comps, "items": items, "ids": ids,
+            "products": products, "stock": stock, "left": left, "problems": problems, "loot": loot}
+
+
+PLANS = {"armor": plan, "jewel": plan_jewel, "weapon": plan_weapon}
 
 
 def backup(path):

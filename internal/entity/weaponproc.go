@@ -168,6 +168,12 @@ type WeaponProc struct {
 	Root, Snare bool
 	SnarePct    int
 	HoldFor     time.Duration
+	// PowerBack is a tap whose take goes back to its wielder as power, not
+	// health: a mana tap (the weaponsmiths' Negative Energy Stone, QuestMasters'
+	// "Arcane Mana Tap Proc", "Procs & Steals Pow from Mob"; its words "mana
+	// tap" or "power drain": manaTapRe). The creature's hit points pay it, as a
+	// life tap's do: a creature here has no power to take (charm.go).
+	PowerBack bool
 }
 
 // rootFor is how long its root holds.
@@ -328,6 +334,9 @@ var (
 	// chance each hit", "10% a hit", "10% per swing" (never a scale's "30%
 	// based on DEX")
 	procChanceRe = regexp.MustCompile(`(?i)\b(\d{1,3})\s*%\s*(?:chance\b|(?:a|an|per|each)\s+(?:hit|swing)s?\b)`)
+	// manaTapRe is a tap whose take is power (WeaponProc.PowerBack): "Procs a
+	// 10 point mana tap", "a power drain proc"; never "power drained"
+	manaTapRe = regexp.MustCompile(`(?i)\b(?:mana|power)\s+(?:tap|drain)\b`)
 	// procHoldRe is a proc that holds or slows, in one sentence: "Procs a root.",
 	// "Procs: Snare", "procs a 6 second root", "root proc", "a snaring proc", "Proc:
 	// Ensnare 40%"; never a "Rootweave" nor a root of a tree with no proc beside it
@@ -414,6 +423,8 @@ func WeaponProcFromText(desc string) (WeaponProc, bool) {
 		wp.DamageTo = hi
 	}
 	switch {
+	case manaTapRe.MatchString(desc):
+		wp.Kind, wp.PowerBack = ProcTap, true
 	case strings.Contains(lower, "lifetap"), strings.Contains(lower, "life tap"):
 		wp.Kind = ProcTap
 	case strings.Contains(lower, " dot"):
@@ -502,6 +513,9 @@ func (wp WeaponProc) String() string {
 	switch wp.Kind {
 	case ProcTap:
 		s = figure + " tap"
+		if wp.PowerBack {
+			s = figure + " mana tap"
+		}
 	case ProcDoT:
 		s = fmt.Sprintf("%s a tick for %.0f s", figure, procDoTFor.Seconds())
 	case ProcCalm:
@@ -620,12 +634,30 @@ func (w *World) weaponProcLocked(sess *session.Session, p *Player, npc *NPC, now
 		if npc.Dummy != NotDummy {
 			back = n // a dummy is told the figure and takes nothing
 		}
-		w.procHealLocked(p, sess, p, back)
+		w.tapBackLocked(p, sess, wp, back)
 	}
 	if !killed && !resisted && !npc.Dead {
 		w.weaponHoldLocked(sess, p, wp, npc, now) // its hold beside the hit, if any
 	}
 	return killed
+}
+
+// tapBackLocked gives the wielder what its tap took: health (procHealLocked),
+// or power for a mana tap (WeaponProc.PowerBack). Must be called with the
+// lock held.
+func (w *World) tapBackLocked(p *Player, sess *session.Session, wp *WeaponProc, back int) {
+	if back <= 0 {
+		return
+	}
+	if !wp.PowerBack {
+		w.procHealLocked(p, sess, p, back)
+		return
+	}
+	if mp := p.MaxPowerNow(); p.Power < mp {
+		p.Power = min(p.Power+back, mp)
+		p.StatsDirty = true
+	}
+	log.Printf("Proc: %s's %q gives it %d power", p.Name, wp.Item, back)
 }
 
 // weaponHoldLocked lays a weapon proc's root or snare on the creature (none when it

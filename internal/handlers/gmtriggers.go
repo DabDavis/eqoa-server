@@ -524,7 +524,7 @@ func (e *TriggerEngine) Fire(slot int, by TriggerFirer) ([]string, error) {
 	r.at = r.start
 	e.runs = append(e.runs, r)
 	log.Printf("Triggers: %s fired by %s at (%.1f, %.1f, %.1f) world=%d (run %d)", t.Title(), r.by, r.x, r.y, r.z, r.world, r.id)
-	lines := []string{fmt.Sprintf("%s fired at (%.0f, %.0f, %.0f) in %s", t.Title(), r.x, r.y, r.z, worldName(r.world))}
+	lines := []string{fmt.Sprintf("%s fired at (%.0f, %.0f, %.0f) in %s", t.Title(), r.x, r.y, r.z, placeName(r.world, r.x, r.y, r.z))}
 	lines = append(lines, e.advanceLocked(r)...)
 	e.syncNamesLocked()
 	return lines, nil
@@ -870,7 +870,7 @@ func (e *TriggerEngine) stepLocked(r *triggerRun, s database.TriggerStep) string
 		if s.Radius > 0 {
 			r.reach = s.Radius
 		}
-		return fmt.Sprintf("its place now (%.0f, %.0f) in %s", r.x, r.z, worldName(r.world))
+		return fmt.Sprintf("its place now (%.0f, %.0f) in %s", r.x, r.z, placeName(r.world, r.x, r.y, r.z))
 	case database.TriggerClock:
 		r.deadline = e.now().Add(time.Duration(s.Seconds * float64(time.Second)))
 		r.emptyAfter = time.Duration(s.Empty * float64(time.Second))
@@ -1422,7 +1422,7 @@ func (e *TriggerEngine) teleportLocked(r *triggerRun, s database.TriggerStep) st
 		e.gw.UpdatePosition(m.p.ServerID, s.X, s.Y, s.Z, facing)
 		n++
 	}
-	line := fmt.Sprintf("moved %s to (%.0f, %.0f, %.0f) in %s", players(n), s.X, s.Y, s.Z, worldName(world))
+	line := fmt.Sprintf("moved %s to (%.0f, %.0f, %.0f) in %s", players(n), s.X, s.Y, s.Z, placeName(world, s.X, s.Y, s.Z))
 	if refused > 0 {
 		line += fmt.Sprintf(" (%s whose game cannot load it stayed)", players(refused))
 	}
@@ -1819,7 +1819,7 @@ func (h *ChatHandler) listTriggers(sess *session.Session, e *TriggerEngine) {
 		}
 		where := "where you stand"
 		if t.Fixed() {
-			where = fmt.Sprintf("at (%.0f, %.0f) in %s", t.X, t.Z, worldName(uint8(t.World)))
+			where = fmt.Sprintf("at (%.0f, %.0f) in %s", t.X, t.Z, placeName(uint8(t.World), t.X, t.Y, t.Z))
 		}
 		scope := t.Scope
 		if t.Scope == database.TriggerScopeNear {

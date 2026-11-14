@@ -156,7 +156,7 @@ function hereButton(obj, redraw) {
       if (!me) { toast('You have no character in the world', 'error'); return; }
       Object.assign(obj, { world: me.world, x: me.x, y: me.y, z: me.z });
       redraw();
-      toast(`${me.name} stands at ${me.x}, ${me.z} in ${me.worldName}`, 'ok');
+      toast(`${me.name} stands at ${me.x}, ${me.z} in ${me.place || me.worldName}`, 'ok');
     } catch (e) { toast(e.message, 'error'); }
   } });
 }

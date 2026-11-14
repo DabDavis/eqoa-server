@@ -247,7 +247,7 @@ func (h *ChatHandler) gotoCommand(sess *session.Session, player *entity.Player, 
 		if !h.teleportTo(sess, sess, player, x, y, z, player.Facing, world) {
 			return
 		}
-		h.gmReply(sess, fmt.Sprintf("Teleported to %s - (%.0f, %.0f, %.0f) world=%s", via, x, y, z, worldName(world)))
+		h.gmReply(sess, fmt.Sprintf("Teleported to %s - (%.0f, %.0f, %.0f) world=%s", via, x, y, z, placeName(world, x, y, z)))
 		log.Printf("GM: %s teleported to %s", player.Name, via)
 		return
 	}
@@ -268,7 +268,7 @@ func (h *ChatHandler) gotoCommand(sess *session.Session, player *entity.Player, 
 		if !h.teleportTo(sess, sess, player, p.X, p.Y, p.Z, player.Facing, p.World) {
 			return
 		}
-		h.gmReply(sess, fmt.Sprintf("Teleported to %s (%s) - (%.0f, %.0f, %.0f) world=%s", p.Name, p.NPC, p.X, p.Y, p.Z, worldName(p.World)))
+		h.gmReply(sess, fmt.Sprintf("Teleported to %s (%s) - (%.0f, %.0f, %.0f) world=%s", p.Name, p.NPC, p.X, p.Y, p.Z, placeName(p.World, p.X, p.Y, p.Z)))
 		log.Printf("GM: %s teleported to %s", player.Name, p.Name)
 		return
 	}
@@ -288,7 +288,7 @@ func (h *ChatHandler) gotoCommand(sess *session.Session, player *entity.Player, 
 				return
 			}
 			h.gmReply(sess, fmt.Sprintf("Teleported to %s, where the %d NPCs %q finds stand - (%.0f, %.0f, %.0f) world=%s",
-				p.NPC, n, name, p.X, p.Y, p.Z, worldName(p.World)))
+				p.NPC, n, name, p.X, p.Y, p.Z, placeName(p.World, p.X, p.Y, p.Z)))
 			log.Printf("GM: %s teleported to %s (%q, %d NPCs)", player.Name, p.NPC, name, n)
 			return
 		}
@@ -308,7 +308,7 @@ func (h *ChatHandler) gotoCommand(sess *session.Session, player *entity.Player, 
 	if !h.teleportTo(sess, sess, player, x, y, z, player.Facing, world) {
 		return
 	}
-	h.gmReply(sess, fmt.Sprintf("Teleported to %s - (%.0f, %.0f, %.0f) world=%s", npcName, x, y, z, worldName(world)))
+	h.gmReply(sess, fmt.Sprintf("Teleported to %s - (%.0f, %.0f, %.0f) world=%s", npcName, x, y, z, placeName(world, x, y, z)))
 	log.Printf("GM: %s teleported to %s", player.Name, npcName)
 }
 
@@ -331,7 +331,7 @@ func (h *ChatHandler) gotoPlayerCommand(sess *session.Session, player *entity.Pl
 	if !h.teleportTo(sess, sess, player, t.X, t.Y, t.Z, player.Facing, t.World) {
 		return
 	}
-	h.gmReply(sess, fmt.Sprintf("Teleported to %s - (%.0f, %.0f, %.0f) world=%s", t.Name, t.X, t.Y, t.Z, worldName(t.World)))
+	h.gmReply(sess, fmt.Sprintf("Teleported to %s - (%.0f, %.0f, %.0f) world=%s", t.Name, t.X, t.Y, t.Z, placeName(t.World, t.X, t.Y, t.Z)))
 	log.Printf("GM: %s went to %s", player.Name, t.Name)
 }
 

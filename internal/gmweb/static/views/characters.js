@@ -37,14 +37,14 @@ export async function render(box, [id]) {
         card(on ? 'In the world now' : 'Offline', on
           ? h('div', { class: 'stack' },
             h('dl', { class: 'kv' },
-              h('dt', null, 'Where'), h('dd', null, `${r.worldName}: ${on.x.toFixed(1)}, ${on.y.toFixed(1)}, ${on.z.toFixed(1)}`),
+              h('dt', null, 'Where'), h('dd', null, `${r.onlinePlace || r.worldName}: ${on.x.toFixed(1)}, ${on.y.toFixed(1)}, ${on.z.toFixed(1)}`),
               h('dt', null, 'Health'), h('dd', null, on.dead ? 'dead' : `${on.hp} / ${on.maxHP} HP, ${on.power} / ${on.maxPower} power`),
               h('dt', null, 'Level'), h('dd', null, String(on.level)),
               h('dt', null, 'Tunar'), h('dd', null, on.tunar.toLocaleString()),
               on.fighting ? [h('dt', null, 'Fighting'), h('dd', null, on.fighting)] : null),
             playerActions(ch, refresh))
           : h('div', { class: 'stack' },
-            h('p', { class: 'muted' }, `Last saved in ${r.worldName} at ${Number(row.x).toFixed(0)}, ${Number(row.y).toFixed(0)}, ${Number(row.z).toFixed(0)}. Changes reach them at their next login.`),
+            h('p', { class: 'muted' }, `Last saved in ${r.place || r.worldName} at ${Number(row.x).toFixed(0)}, ${Number(row.y).toFixed(0)}, ${Number(row.z).toFixed(0)}. Changes reach them at their next login.`),
             h('div', { class: 'actions' },
               button('Teleport', { class: 'small', onclick: async () => { if (await teleport(ch)) location.reload(); } }),
               button('Level / money', { class: 'small', onclick: async () => { if (await setLevelMoney(ch)) location.reload(); } }),

@@ -763,7 +763,7 @@ func (h *ChatHandler) gmGotoLocation(sess *session.Session, gm *entity.Player, t
 	if !h.teleportTo(sess, sess, gm, float32(v[0]), float32(v[1]), float32(v[2]), gm.Facing, byte(world)) {
 		return
 	}
-	h.gmReply(sess, fmt.Sprintf("Teleported to (%.0f, %.0f, %.0f) world=%s", v[0], v[1], v[2], worldName(byte(world))))
+	h.gmReply(sess, fmt.Sprintf("Teleported to (%.0f, %.0f, %.0f) world=%s", v[0], v[1], v[2], placeName(byte(world), float32(v[0]), float32(v[1]), float32(v[2]))))
 	log.Printf("GM: %s went to (%.1f, %.1f, %.1f) world=%d", gm.Name, v[0], v[1], v[2], world)
 }
 
@@ -782,7 +782,7 @@ func (h *ChatHandler) gmSpawner(sess *session.Session, gm *entity.Player, sub by
 		if !h.teleportTo(sess, sess, gm, st.SpawnX, st.SpawnY, st.SpawnZ, gm.Facing, st.World) {
 			return
 		}
-		h.gmReply(sess, fmt.Sprintf("Teleported to %s's spawn - (%.0f, %.0f, %.0f) world=%s", st.Name, st.SpawnX, st.SpawnY, st.SpawnZ, worldName(st.World)))
+		h.gmReply(sess, fmt.Sprintf("Teleported to %s's spawn - (%.0f, %.0f, %.0f) world=%s", st.Name, st.SpawnX, st.SpawnY, st.SpawnZ, placeName(st.World, st.SpawnX, st.SpawnY, st.SpawnZ)))
 	case gmSubForceSpawn:
 		if h.gameWorld.RespawnNPCNow(id) {
 			h.gmReply(sess, fmt.Sprintf("%s spawned on its spawn point", st.Name))
@@ -883,7 +883,7 @@ func (h *ChatHandler) gmDebt(sess *session.Session, gm *entity.Player, id uint32
 // whereIs is Where Is's line: the player's world, place and, when a town's
 // coachman or a travel NPC stands within gmNearPlace, that town.
 func (h *ChatHandler) whereIs(t *entity.Player) string {
-	line := fmt.Sprintf("%s is in %s at (%.0f, %.0f, %.0f)", t.Name, worldName(t.World), t.X, t.Y, t.Z)
+	line := fmt.Sprintf("%s is in %s at (%.0f, %.0f, %.0f)", t.Name, placeName(t.World, t.X, t.Y, t.Z), t.X, t.Y, t.Z)
 	best, bestD := "", float64(gmNearPlace)
 	for _, p := range h.gameWorld.Places(nil) {
 		if p.World != t.World {

@@ -309,7 +309,7 @@ func (h *ChatHandler) markPortalEntry(sess *session.Session, player *entity.Play
 	h.portals.entries[sess.AccountID()] = e
 	h.portals.mu.Unlock()
 	h.gmReply(sess, fmt.Sprintf("Portal entry: %s (npc %d) at (%.1f, %.1f, %.1f) in %s. Now /markportal exit [place]: your target, else where you stand.",
-		e.Name, e.NPCID, e.X, e.Y, e.Z, worldName(byte(e.World))))
+		e.Name, e.NPCID, e.X, e.Y, e.Z, placeName(byte(e.World), float32(e.X), float32(e.Y), float32(e.Z))))
 	if len(e.Says) > 0 {
 		h.gmReply(sess, "It already has: "+strings.Join(e.Says, "; "))
 	}
@@ -412,7 +412,7 @@ func (h *ChatHandler) markPortalExit(sess *session.Session, player *entity.Playe
 		if n := nearestName(h.gameWorld, exit.World, exit.X, exit.Z, 100, entry.NPCID); n != "" {
 			place = n
 		} else {
-			place = worldName(byte(exit.World))
+			place = placeName(byte(exit.World), float32(exit.X), float32(exit.Y), float32(exit.Z))
 		}
 	}
 	p := database.GMPortal{NPCID: entry.NPCID, NPCName: entry.Name, EntryWorld: entry.World, EntryX: entry.X, EntryY: entry.Y,
@@ -435,7 +435,7 @@ func (h *ChatHandler) markPortalExit(sess *session.Session, player *entity.Playe
 		by = "your target, " + exit.Name
 	}
 	h.gmReply(sess, fmt.Sprintf("Portal %d: %s to %s, (%.1f, %.1f, %.1f) in %s, by %s.", p.ID, entry.Name, place, p.X, p.Y, p.Z,
-		worldName(byte(p.World)), by))
+		placeName(byte(p.World), float32(p.X), float32(p.Y), float32(p.Z)), by))
 
 	text := portalTicketText(h.gameWorld, p, entry, exit)
 	if h.support == nil || h.support.store == nil {
@@ -522,7 +522,7 @@ func portalTicketText(gw *entity.World, p database.GMPortal, entry portalEntry, 
 	default:
 		w("EXIT (where the GM stood, facing as it faced):")
 	}
-	w("%s (world %d) at (%.2f, %.2f, %.2f), facing %.4f rad (byte %d).", worldName(byte(p.World)), p.World, p.X, p.Y, p.Z, p.Facing,
+	w("%s (world %d) at (%.2f, %.2f, %.2f), facing %.4f rad (byte %d).", placeName(byte(p.World), float32(p.X), float32(p.Y), float32(p.Z)), p.World, p.X, p.Y, p.Z, p.Facing,
 		facingByte(p.Facing))
 	if near := portalLandmarks(gw, p.World, p.X, p.Z, exit.NPCID, 4); len(near) > 0 {
 		w("Near it: %s.", strings.Join(near, ", "))
@@ -608,7 +608,7 @@ func (h *ChatHandler) markPortalList(sess *session.Session) {
 			ticket = fmt.Sprintf(", ticket #%d", p.Petition)
 		}
 		h.gmReply(sess, fmt.Sprintf("Portal %d (%s): %s (npc %d) to %s, (%.0f, %.0f, %.0f) in %s%s", p.ID, state, p.NPCName, p.NPCID,
-			p.Place, p.X, p.Y, p.Z, worldName(byte(p.World)), ticket))
+			p.Place, p.X, p.Y, p.Z, placeName(byte(p.World), float32(p.X), float32(p.Y), float32(p.Z)), ticket))
 	}
 }
 

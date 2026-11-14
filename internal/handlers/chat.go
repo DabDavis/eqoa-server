@@ -14,6 +14,7 @@ import (
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
+	"github.com/eqoa/server/internal/skyisles"
 )
 
 // Chat, as a PS2 sends it and expects it back.
@@ -1104,6 +1105,12 @@ func teleNames() []string {
 	return names
 }
 
+// placeName is worldName with, in the Plane of Sky, the isle at (x, y, z)
+// (skyisles): "Plane of Sky (Night Chain 1)".
+func placeName(w byte, x, y, z float32) string {
+	return skyisles.Place(int(w), worldName(w), x, y, z)
+}
+
 // worldName labels a world index for GM output, tolerating an out-of-range one
 // rather than panicking on a value that only a bug could produce.
 func worldName(w byte) string {
@@ -1207,7 +1214,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		sendTeleportGM(sess, x, y, z, facing, world)
 		beginWorldLoad(sess, worldChanged)
 		h.gmReply(sess, fmt.Sprintf("Teleported to %s - (%.0f, %.0f, %.0f) world=%s",
-			via, x, y, z, worldName(world)))
+			via, x, y, z, placeName(world, x, y, z)))
 		log.Printf("GM: %s teleported to %s (%.1f, %.1f, %.1f) world=%d",
 			player.Name, name, x, y, z, world)
 
@@ -1220,7 +1227,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// back. Without this the only fix is editing the database.
 		if len(parts) < 2 {
 			h.gmReply(sess, fmt.Sprintf("World: %d (%s) at (%.0f, %.0f, %.0f)",
-				player.World, worldName(player.World), player.X, player.Y, player.Z))
+				player.World, placeName(player.World, player.X, player.Y, player.Z), player.X, player.Y, player.Z))
 			h.gmReply(sess, "Usage: #world <n> - set without teleporting")
 			return
 		}
@@ -1385,15 +1392,15 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		}
 
 	case "#pos":
-		h.gmReply(sess, fmt.Sprintf("Position: (%.1f, %.1f, %.1f) facing=%.2f",
-			player.X, player.Y, player.Z, player.Facing))
+		h.gmReply(sess, fmt.Sprintf("Position: (%.1f, %.1f, %.1f) facing=%.2f in %s",
+			player.X, player.Y, player.Z, player.Facing, placeName(player.World, player.X, player.Y, player.Z)))
 
 	case "#who":
 		count := 0
 		h.gameWorld.ForEachPlayer(func(p *entity.Player) {
 			count++
-			h.gmReply(sess, fmt.Sprintf("  %s Lv%d at (%.0f, %.0f, %.0f)",
-				p.Name, p.Level, p.X, p.Y, p.Z))
+			h.gmReply(sess, fmt.Sprintf("  %s Lv%d in %s at (%.0f, %.0f, %.0f)",
+				p.Name, p.Level, placeName(p.World, p.X, p.Y, p.Z), p.X, p.Y, p.Z))
 		})
 		h.gmReply(sess, fmt.Sprintf("%d players online", count))
 

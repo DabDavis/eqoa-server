@@ -349,3 +349,90 @@ func TestTheCapesAura(t *testing.T) {
 		t.Fatalf("a PS2: %d bytes", len(PS2))
 	}
 }
+
+// The held items' auras (charaura slots 9 and 10; the owner, 2026-11-14:
+// "give zaeires equipped weapons the necro's tainted aura from the epic
+// sickle"): to a session that asked for them too (bit 6) the channel is 335
+// bytes, the 315 then the main hand's ten and the off hand's; a session that
+// asked for the cape's alone gets the 315 bytes exactly as before (vanilla
+// 848590b's). A hand's aura is the character's own alone, whatever it holds:
+// no item record's (itemaura) and no worn mask. Kind epic (7) is valid on the
+// hands alone and always shows.
+func TestTheHandsAuras(t *testing.T) {
+	if HandAuraStateSize != 335 || AuraMainHand != 9 || AuraOffHand != 10 || database.CharAuraMainHand != AuraMainHand ||
+		database.CharAuraOffHand != AuraOffHand || database.CharAuraSlots != AuraSlots || AuraCape != 8 || AuraBody != 7 {
+		t.Fatalf("sizes: %d, hands %d %d, slots %d", HandAuraStateSize, AuraMainHand, AuraOffHand, AuraSlots)
+	}
+	taint := database.ItemAura{Kind: database.AuraEpic, Source: 0x5FD4AE7C}
+	if !taint.Shows() || !database.ValidCharAuraKind(9, database.AuraEpic) || !database.ValidCharAuraKind(10, database.AuraParticles) {
+		t.Fatal("an epic hand aura with no colour draws nothing")
+	}
+	for slot := int64(0); slot <= 8; slot++ {
+		if database.ValidCharAuraKind(slot, database.AuraEpic) {
+			t.Fatalf("epic valid on slot %d", slot)
+		}
+	}
+	if database.ValidCharAuraKind(9, database.AuraShell) || database.ValidCharAuraKind(10, database.AuraTrim) || database.ValidAuraKind(database.AuraEpic) {
+		t.Fatal("a shell or trim on a hand, or epic in npctint/itemaura")
+	}
+	w := NewWorld()
+	// an item aura on the held item's record does nothing on the hand
+	w.SetItemAuras(map[int]database.ItemAura{714100: {PatternID: 714100, Color: 0x3060FFFF, Kind: database.AuraParticles}})
+	a := ornatePlayer()
+	a.CharServerID = 193
+	cape := database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraShell}
+	var own [database.CharAuraSlots]database.ItemAura
+	own[AuraMainHand], own[AuraOffHand], own[AuraCape] = taint, taint, cape
+	w.SetCharAuras(map[database.CharAuraKey][database.CharAuraSlots]database.ItemAura{{CharID: 193}: own})
+	a.SetWornPiece(AuraMainHand, 714100) // no piece: ignored
+	if a.WornMask&(1<<AuraMainHand) != 0 {
+		t.Fatal("a hand recorded as a worn piece")
+	}
+	a.SetWornPiece(AuraCape, 717001)
+	pa := w.PieceAurasOf(a)
+	if pa == nil || pa[AuraMainHand] != taint || pa[AuraOffHand] != taint || pa[AuraCape] != cape {
+		t.Fatalf("the hands' own: %+v", pa)
+	}
+	disc := SerializePlayerUpdate(100001, a)
+	s := lookSession(t, 42)
+	s.SetLiveLook(true)
+	s.SetArmorLook(true)
+	s.SetPieceAuras(true)
+	s.SetBodyAura(true)
+	s.SetCapeAura(true)
+	old := ForViewerAuras(s, disc, &a.Dyes, pa)
+	// the 315 bytes as they were made before the hands: nine auras, no more
+	nine := append(ArmorChannel(disc, &a.Dyes), make([]byte, 8*PieceAuraSize)...)
+	nine = append(nine, auraBytes(cape)...)
+	if len(old) != CapeAuraStateSize || !bytes.Equal(old, nine) {
+		t.Fatalf("the cape's clients: %d bytes, changed", len(old))
+	}
+	s.SetHandAura(true)
+	got := ForViewerAuras(s, disc, &a.Dyes, pa)
+	want := append(append(append([]byte(nil), old...), auraBytes(taint)...), auraBytes(taint)...)
+	if len(got) != HandAuraStateSize || !bytes.Equal(got, want) {
+		t.Fatalf("the hands' clients: %d bytes, tail % x", len(got), got[CapeAuraStateSize:])
+	}
+	if got[CapeAuraStateSize+4] != database.AuraEpic || binary.LittleEndian.Uint32(got[CapeAuraStateSize+5:]) != 0x5FD4AE7C {
+		t.Fatalf("the main hand's bytes: % x", got[CapeAuraStateSize:CapeAuraStateSize+10])
+	}
+	if !bytes.Equal(got, HandAuraChannel(disc, &a.Dyes, pa)) {
+		t.Fatal("ForViewerAuras is not HandAuraChannel")
+	}
+	if n := ForViewerAuras(s, disc, nil, nil); len(n) != HandAuraStateSize || !bytes.Equal(n[CapeAuraStateSize:], make([]byte, 2*PieceAuraSize)) {
+		t.Fatal("no auras: the 335 bytes with the hands' none")
+	}
+	s.SetCapeAura(false)
+	if s.HandAura() || len(ForViewerAuras(s, disc, &a.Dyes, pa)) != BodyAuraStateSize {
+		t.Fatal("the hands' bit without the cape's counts")
+	}
+	if PS2 := ForViewerAuras(nil, disc, &a.Dyes, pa); len(PS2) != EntityStateSize {
+		t.Fatalf("a PS2: %d bytes", len(PS2))
+	}
+	// only the hands' own: a character with no charaura shows nothing there
+	b := ornatePlayer()
+	b.CharServerID = 194
+	if w.PieceAurasOf(b) != nil {
+		t.Fatal("an item record's aura on a hand")
+	}
+}

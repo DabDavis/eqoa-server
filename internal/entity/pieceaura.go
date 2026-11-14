@@ -49,11 +49,19 @@ const (
 // armor will cover it up"). AuraCape is the ninth (database.CharAuraCape),
 // the worn cape's (capes.go's slot; the owner, 2026-11-14: "also cannot
 // apply aura to capes yet"): after the body's, so every index before it
-// stays. AuraSlots counts them.
+// stays. AuraMainHand and AuraOffHand are the tenth and eleventh
+// (database.CharAuraMainHand, CharAuraOffHand): the item held in each hand
+// (the off hand's on a shield held there too), charaura alone, of kind
+// particles or epic (database.AuraEpic: an epic weapon's own glow, sheen and
+// particles on whatever the hand holds; the owner, 2026-11-14: "give zaeires
+// equipped weapons the necro's tainted aura from the epic sickle"). AuraSlots
+// counts them.
 const (
-	AuraBody  = AuraPieces
-	AuraCape  = AuraPieces + 1
-	AuraSlots = AuraPieces + 2
+	AuraBody     = AuraPieces
+	AuraCape     = AuraPieces + 1
+	AuraMainHand = AuraPieces + 2
+	AuraOffHand  = AuraPieces + 3
+	AuraSlots    = AuraPieces + 4
 )
 
 // PieceAuraSize is one piece's aura on the channel: r, g, b, a, a u8 kind, a
@@ -76,12 +84,21 @@ const BodyAuraStateSize = AuraStateSize + PieceAuraSize
 // BodyAuraStateSize, as before.
 const CapeAuraStateSize = BodyAuraStateSize + PieceAuraSize
 
-// PieceAuras is a wearer's auras by piece, then its body's (AuraBody) and its
-// cape's (AuraCape); the zero value is none.
+// HandAuraStateSize is the channel to a client that draws the held items'
+// auras too (session.HandAura, the live look's answer bit 6): the cape's
+// channel, then the main hand's aura and the off hand's (335 bytes). A
+// client that asked for the cape's alone is sent CapeAuraStateSize, as
+// before.
+const HandAuraStateSize = CapeAuraStateSize + 2*PieceAuraSize
+
+// PieceAuras is a wearer's auras by piece, then its body's (AuraBody), its
+// cape's (AuraCape) and its hands' (AuraMainHand, AuraOffHand); the zero
+// value is none.
 type PieceAuras [AuraSlots]database.ItemAura
 
 // putPieceAuras appends n of the auras (the seven pieces', the body's with n
-// AuraBody+1, and the cape's with n AuraSlots; a nil: none).
+// AuraBody+1, the cape's with n AuraCape+1, the hands' with n AuraSlots; a
+// nil: none).
 func putPieceAuras(out []byte, a *PieceAuras, n int) []byte {
 	for i := 0; i < n; i++ {
 		var p database.ItemAura
@@ -111,6 +128,12 @@ func BodyAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
 // CapeAuraChannel is BodyAuraChannel with the cape's aura after the body's:
 // a client that draws it's.
 func CapeAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
+	return putPieceAuras(ArmorChannel(disc, d), a, AuraCape+1)
+}
+
+// HandAuraChannel is CapeAuraChannel with the hands' auras after the cape's
+// (the main hand's, then the off hand's): a client that draws them's.
+func HandAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
 	return putPieceAuras(ArmorChannel(disc, d), a, AuraSlots)
 }
 
@@ -118,6 +141,9 @@ func CapeAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
 // which go after the trims to a client that asked for them.
 func ForViewerAuras(sess *session.Session, disc []byte, d *Dyes, a *PieceAuras) []byte {
 	if sess != nil && sess.PieceAuras() && len(disc) == EntityStateSize {
+		if sess.HandAura() {
+			return HandAuraChannel(disc, d, a)
+		}
 		if sess.CapeAura() {
 			return CapeAuraChannel(disc, d, a)
 		}
@@ -227,8 +253,11 @@ func (n *NPC) MercAuraKey() (database.CharAuraKey, bool) {
 
 // pieceAuras is a wearer's auras: each worn piece (not hidden) its own aura
 // (own, charaura's) or else its item's (itemaura), the worn cape (AuraCape,
-// not hidden: HideCape) the same, and its body's own aura whatever it wears
-// (the client hides it under the pieces).
+// not hidden: HideCape) the same, its body's own aura whatever it wears
+// (the client hides it under the pieces), and its hands' own (charaura
+// alone) whatever they hold: the client draws a hand's on the item held
+// there, nothing on an empty hand (or one whose look is hidden, which the
+// channel sends empty).
 func (w *World) pieceAuras(pieces *[AuraSlots]int, mask uint16, hidden uint16, own *[database.CharAuraSlots]database.ItemAura) *PieceAuras {
 	if w == nil {
 		return nil
@@ -237,7 +266,7 @@ func (w *World) pieceAuras(pieces *[AuraSlots]int, mask uint16, hidden uint16, o
 	var out PieceAuras
 	any := false
 	for i := 0; i < AuraSlots; i++ {
-		if i == AuraBody || mask&(1<<i) == 0 || hidden&auraHides(i) != 0 {
+		if ownOnly(i) || mask&(1<<i) == 0 || hidden&auraHides(i) != 0 {
 			continue
 		}
 		if own != nil && own[i].Shows() {
@@ -251,13 +280,21 @@ func (w *World) pieceAuras(pieces *[AuraSlots]int, mask uint16, hidden uint16, o
 			out[i], any = a, true
 		}
 	}
-	if own != nil && own[AuraBody].Shows() {
-		out[AuraBody], any = own[AuraBody], true
+	for _, i := range [...]int{AuraBody, AuraMainHand, AuraOffHand} {
+		if own != nil && own[i].Shows() {
+			out[i], any = own[i], true
+		}
 	}
 	if !any {
 		return nil
 	}
 	return &out
+}
+
+// ownOnly reports whether aura slot i is a character's own alone (charaura),
+// whatever it wears: the body's and the hands'.
+func ownOnly(i int) bool {
+	return i == AuraBody || i == AuraMainHand || i == AuraOffHand
 }
 
 // auraHides is the hidden part (Player.HiddenParts) that hides piece i's
@@ -271,9 +308,9 @@ func auraHides(i int) uint16 {
 }
 
 // SetWornPiece records the item worn on an aura's piece (handlers' wornLook),
-// the cape's (AuraCape) too; the body (AuraBody) is no piece.
+// the cape's (AuraCape) too; the body (AuraBody) and the hands are no piece.
 func (p *Player) SetWornPiece(piece, patternID int) {
-	if piece < 0 || piece >= AuraSlots || piece == AuraBody {
+	if piece < 0 || piece >= AuraSlots || ownOnly(piece) {
 		return
 	}
 	p.WornPieces[piece] = patternID

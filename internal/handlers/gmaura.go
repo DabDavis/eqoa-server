@@ -32,6 +32,10 @@ import (
 //	                                player its body and underclothes alone, under its armour (charaura)
 //	/aura black trim legs nodes=4 source=88EC092D
 //	/aura off chest, /aura off wholebody
+//	/aura epic weapons source=Sickle_of_Avhi_Escron
+//	                                the item held in each hand drawn with the epic's own glow, sheen and
+//	                                particles (charaura slots 9 and 10; the owner, 2026-11-14: "give zaeires
+//	                                equipped weapons the necro's tainted aura from the epic sickle")
 //
 // colour: a name (auraColors) or RRGGBB / RRGGBBAA hex, black a dark aura;
 // kind: shell, particles (sparkles), both, trim, trimshell, off (none); where:
@@ -39,7 +43,11 @@ import (
 // cape (cloak; 2026-11-14) (that character's piece in the slot alone, whatever item it is: charaura,
 // the owner's rule of 2026-11-13; itemaura, an item that always glows, is the
 // panel's and /aura item's) or wholebody (body, whole: an NPC's name; a
-// player's or merc's own body and underclothes); none: an NPC's whole body. source=
+// player's or merc's own body and underclothes), mainhand (primary), offhand
+// (secondary; a shield held there too) or weapons (both hands): the item held
+// there, whatever it is, of kind epic (the source epic's own glow, sheen and
+// particles; a colour recolours them, none keeps the epic's) or particles
+// alone; none: an NPC's whole body. source=
 // a DictID in hex or an item's name (its model), nodes= 0-32. The old forms
 // below are read first, as they were.
 //
@@ -57,7 +65,7 @@ var auraKinds = map[string]uint8{"default": database.AuraDefault, "none": databa
 	"particles": database.AuraParticles, "both": database.AuraBoth, "trim": database.AuraTrim, "trimshell": database.AuraTrimShell}
 
 // auraKindNames are the kinds' names by number.
-var auraKindNames = [...]string{"default", "none", "shell", "particles", "both", "trim", "trimshell"}
+var auraKindNames = [...]string{"default", "none", "shell", "particles", "both", "trim", "trimshell", "epic"}
 
 // parseHex32 reads a 32-bit hex value, with or without 0x.
 func parseHex32(s string) (uint32, bool) {
@@ -114,6 +122,13 @@ func auraWords(a database.ItemAura) string {
 	if a.Source != 0 {
 		src = fmt.Sprintf("%08X's", a.Source)
 	}
+	if a.Kind == database.AuraEpic {
+		color := "its own colours"
+		if database.NPCGlowShows(a.Color) {
+			color = fmt.Sprintf("in %08X", a.Color)
+		}
+		return fmt.Sprintf("aura epic: %s look (glow, sheen and particles), %s", src, color)
+	}
 	nodes := "the default nodes"
 	if a.Nodes != 0 {
 		nodes = fmt.Sprintf("%d nodes", a.Nodes)
@@ -127,9 +142,9 @@ func auraWords(a database.ItemAura) string {
 
 // auraUsageShort is /aura with nothing: the easy words, with examples.
 const auraUsageShort = "Usage: /aura <colour> <kind> <where>, any order: /aura blue particles chest, /aura yellow shell wholebody, " +
-	"/aura black trim legs, /aura off chest. Colour: red blue green yellow gold orange purple pink cyan white black silver teal " +
-	"or RRGGBB(AA) (black: a dark aura); kind: shell particles both trim trimshell off; where: chest bracers gloves legs boots " +
-	"helm robe cape (that character's piece alone) or wholebody (an NPC's whole model; a player's body under its armour); source=<DictID|item name> nodes=N"
+	"/aura epic weapons source=<epic>, /aura off chest. Colour: red blue green yellow gold orange purple pink cyan white black silver teal " +
+	"or RRGGBB(AA) (black: dark); kind: shell particles both trim trimshell epic off; where: chest bracers gloves legs boots " +
+	"helm robe cape mainhand offhand weapons (theirs alone) or wholebody (an NPC's whole model; a player's body under its armour); source=<DictID|item name> nodes=N"
 
 // auraColors are the colours by name, alpha FF.
 var auraColors = map[string]uint32{
@@ -138,24 +153,30 @@ var auraColors = map[string]uint32{
 	"black": 0x000000FF, "silver": 0xC0C8D8FF, "teal": 0x20C0B0FF,
 }
 
-// auraWhere are the places by word: a worn piece (entity.AuraChest ...), or
-// auraWholeBody.
-const auraWholeBody = -2
+// auraWhere are the places by word: a worn piece (entity.AuraChest ...), a
+// hand (entity.AuraMainHand, AuraOffHand), auraWholeBody, or auraBothHands
+// (both hands' slots at once).
+const (
+	auraWholeBody = -2
+	auraBothHands = -3
+)
 
 var auraWhere = map[string]int{
 	"chest": entity.AuraChest, "breastplate": entity.AuraChest, "bracers": entity.AuraBracer, "bracer": entity.AuraBracer,
 	"arms": entity.AuraBracer, "gloves": entity.AuraGloves, "hands": entity.AuraGloves, "legs": entity.AuraLegs,
 	"boots": entity.AuraBoots, "feet": entity.AuraBoots, "helm": entity.AuraHelm, "head": entity.AuraHelm,
-	"robe": entity.AuraRobe, "cape": entity.AuraCape, "cloak": entity.AuraCape, "wholebody": auraWholeBody, "body": auraWholeBody, "whole": auraWholeBody,
+	"robe": entity.AuraRobe, "cape": entity.AuraCape, "cloak": entity.AuraCape,
+	"mainhand": entity.AuraMainHand, "primary": entity.AuraMainHand, "offhand": entity.AuraOffHand, "secondary": entity.AuraOffHand,
+	"weapons": auraBothHands, "weapon": auraBothHands, "bothhands": auraBothHands, "wholebody": auraWholeBody, "body": auraWholeBody, "whole": auraWholeBody,
 }
 
 // auraPieceNames name the worn pieces in replies.
-var auraPieceNames = [entity.AuraSlots]string{"chest", "bracers", "gloves", "legs", "boots", "helm", "robe", "body", "cape"}
+var auraPieceNames = [entity.AuraSlots]string{"chest", "bracers", "gloves", "legs", "boots", "helm", "robe", "body", "cape", "main hand", "off hand"}
 
 // auraEasyKinds are the easy words' kinds (off is apart).
 var auraEasyKinds = map[string]uint8{"shell": database.AuraShell, "particles": database.AuraParticles,
 	"sparkles": database.AuraParticles, "both": database.AuraBoth, "trim": database.AuraTrim, "trimshell": database.AuraTrimShell,
-	"default": database.AuraDefault}
+	"default": database.AuraDefault, "epic": database.AuraEpic}
 
 // auraSpec is the easy words read.
 type auraSpec struct {
@@ -264,8 +285,8 @@ func parseAuraEasy(args []string) (sp auraSpec, err error) {
 		}
 		sp.A.Kind = database.AuraShell
 	}
-	if !color && sp.A.Kind != database.AuraParticles {
-		return sp, fmt.Errorf("name a colour (only particles need none: they keep the source's own)")
+	if !color && sp.A.Kind != database.AuraParticles && sp.A.Kind != database.AuraEpic {
+		return sp, fmt.Errorf("name a colour (only particles and epic need none: they keep the source's own)")
 	}
 	return sp, nil
 }
@@ -349,6 +370,10 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 		return
 	}
 	if isNPC && !isMerc {
+		if sp.A.Kind == database.AuraEpic && !sp.Off {
+			h.gmReply(sess, "/aura: epic is a held weapon's look: on a player (or a mercenary): /aura epic weapons source=<epic's name>")
+			return
+		}
 		if database.NPCClassKey(npc.Name) == "" {
 			h.gmReply(sess, "/aura: your target has no name to keep an aura by")
 			return
@@ -358,7 +383,7 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 	}
 	if sp.Where == -1 {
 		h.gmReply(sess, "/aura: name where on a player: wholebody (the body and underclothes, under the armour) or a slot "+
-			"(chest, bracers, gloves, legs, boots, helm, robe, cape): /aura blue shell wholebody, /aura blue shell chest")
+			"(chest, bracers, gloves, legs, boots, helm, robe, cape, mainhand, offhand, weapons): /aura blue shell wholebody, /aura blue shell chest")
 		return
 	}
 	// a character's own (charaura): the target player, yourself, or a mercenary
@@ -380,21 +405,45 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 		h.gmReply(sess, "/aura: "+who+" has no character record to keep an aura by")
 		return
 	}
-	slot, place := database.CharAuraBody, "body (under the armour)"
-	if sp.Where != auraWholeBody {
-		slot, place = sp.Where, auraPieceNames[sp.Where]
+	slots, place := []int{database.CharAuraBody}, "body (under the armour)"
+	switch sp.Where {
+	case auraWholeBody:
+	case auraBothHands:
+		slots, place = []int{database.CharAuraMainHand, database.CharAuraOffHand}, "weapons (both hands)"
+	default:
+		slots, place = []int{sp.Where}, auraPieceNames[sp.Where]
+	}
+	// a hand's kinds: epic or particles; epic a hand's alone
+	if sp.A.Shows() {
+		for _, slot := range slots {
+			if database.ValidCharAuraKind(int64(slot), int64(sp.A.Kind)) {
+				continue
+			}
+			if slot == database.CharAuraMainHand || slot == database.CharAuraOffHand {
+				h.gmReply(sess, "/aura: a held weapon takes epic or particles: /aura epic weapons source=Sickle_of_Avhi_Escron, /aura particles mainhand source=<item>")
+			} else {
+				h.gmReply(sess, "/aura: epic is a held weapon's look: mainhand, offhand or weapons")
+			}
+			return
+		}
 	}
 	detail := fmt.Sprintf("/aura in the game: %s %s: %s", whose, place, auraWords(sp.A))
-	if err := db.SetCharAuraAudited(key, slot, sp.A, gmEditOf(sess), detail); err != nil {
-		h.gmReply(sess, "/aura: not kept: "+err.Error())
-		return
+	for _, slot := range slots {
+		if err := db.SetCharAuraAudited(key, slot, sp.A, gmEditOf(sess), detail); err != nil {
+			h.gmReply(sess, "/aura: not kept: "+err.Error())
+			return
+		}
 	}
+	slot := slots[0]
 	if _, err := h.gameWorld.LoadItemAuras(db); err != nil {
 		h.gmReply(sess, "/aura: kept, not yet in the world: "+err.Error())
 		return
 	}
 	note := ""
-	if slot != database.CharAuraBody && mask&(1<<slot) == 0 && sp.A.Shows() {
+	switch {
+	case slot == database.CharAuraMainHand || slot == database.CharAuraOffHand:
+		note = " (on whatever that hand holds, from a client that draws held items' auras)"
+	case slot != database.CharAuraBody && mask&(1<<slot) == 0 && sp.A.Shows():
 		note = " (nothing worn there now: it shows when a piece is)"
 	}
 	h.gmReply(sess, fmt.Sprintf("%s %s: now %s (%s), %s alone%s.", strings.ToUpper(whose[:1])+whose[1:], place, auraNow(sp.A), auraWords(sp.A),
@@ -416,6 +465,9 @@ func auraNow(a database.ItemAura) string {
 		if c == a.Color {
 			color = n
 		}
+	}
+	if a.Kind == database.AuraEpic && !database.NPCGlowShows(a.Color) {
+		return fmt.Sprintf("the epic look of %08X", a.Source)
 	}
 	if database.AuraDark(a.Color) && database.AuraNamed(a.Kind) {
 		color += " (dark)"

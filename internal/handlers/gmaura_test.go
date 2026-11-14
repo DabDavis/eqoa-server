@@ -115,6 +115,11 @@ func TestAuraEasyWords(t *testing.T) {
 		{"teal robe", auraSpec{A: database.ItemAura{Color: 0x20C0B0FF, Kind: database.AuraShell}, Where: entity.AuraRobe}},
 		{"red trim cape", auraSpec{A: database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraTrim}, Where: entity.AuraCape}},
 		{"cloak blue particles", auraSpec{A: database.ItemAura{Color: 0x3060FFFF, Kind: database.AuraParticles}, Where: entity.AuraCape}},
+		{"epic weapons source=5FD4AE7C", auraSpec{A: database.ItemAura{Kind: database.AuraEpic, Source: 0x5FD4AE7C}, Where: auraBothHands}},
+		{"epic mainhand source=Sickle_of_Avhi_Escron", auraSpec{A: database.ItemAura{Kind: database.AuraEpic}, Where: entity.AuraMainHand, SourceName: "Sickle of Avhi Escron"}},
+		{"red epic offhand", auraSpec{A: database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraEpic}, Where: entity.AuraOffHand}},
+		{"particles secondary", auraSpec{A: database.ItemAura{Kind: database.AuraParticles}, Where: entity.AuraOffHand}},
+		{"off weapons", auraSpec{Off: true, Where: auraBothHands}},
 	} {
 		got, err := parseAuraEasy(strings.Fields(c.in))
 		if err != nil || got != c.want {
@@ -205,6 +210,44 @@ func TestGMAuraEasyCommand(t *testing.T) {
 	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraCape] != (database.ItemAura{}) {
 		t.Fatalf("the cape's taken away: %+v", a)
 	}
+	// its weapons (slots 9 and 10): the epic sickle's look on both hands,
+	// named by the item; a shell on a hand and epic on a piece refused
+	if _, err := db.Exec(`INSERT INTO itempattern (itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent, unk4, attacktype,
+		weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, lore, unk6, craft, itemname, itemdesc, model, color)
+		VALUES (0, 0, 1, 0, 14, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 32767, 32767, 0, 0, 0, 0, 'Sickle of Avhi Escron', '', 1607773820, 0)`); err != nil {
+		t.Fatal(err)
+	}
+	c.say(gs, "/aura epic weapons source=Sickle_of_Avhi_Escron")
+	if l := gmReplies(t, gs); !hasLine(l, "Player's weapons (both hands): now the epic look of 5FD4AE7C") || !hasLine(l, "whatever that hand holds") {
+		t.Fatalf("/aura epic weapons: %q", l)
+	}
+	taint := database.ItemAura{Kind: database.AuraEpic, Source: 0x5FD4AE7C}
+	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraMainHand] != taint || a[entity.AuraOffHand] != taint {
+		t.Fatalf("the weapons: %+v", a)
+	}
+	if a := c.gw.PieceAurasOf(gp); a != nil {
+		t.Fatalf("another character's weapons: %+v", a)
+	}
+	inserts := auditLines(t, db, "charaura", "insert")
+	c.say(gs, "/aura blue shell mainhand")
+	if l := gmReplies(t, gs); !hasLine(l, "a held weapon takes epic or particles") {
+		t.Fatalf("a shell on a hand: %q", l)
+	}
+	c.say(gs, "/aura epic chest source=5FD4AE7C")
+	if l := gmReplies(t, gs); !hasLine(l, "epic is a held weapon's look") {
+		t.Fatalf("epic on a piece: %q", l)
+	}
+	if auditLines(t, db, "charaura", "insert") != inserts {
+		t.Fatal("a refused aura written")
+	}
+	c.say(gs, "/aura off offhand")
+	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraMainHand] != taint || a[entity.AuraOffHand] != (database.ItemAura{}) {
+		t.Fatalf("the off hand's taken away: %+v", a)
+	}
+	c.say(gs, "/aura off weapons")
+	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraMainHand] != (database.ItemAura{}) {
+		t.Fatalf("the weapons taken away: %+v", a)
+	}
 	c.say(gs, "/aura red shell")
 	if l := gmReplies(t, gs); !hasLine(l, "name where on a player") || !hasLine(l, "wholebody") {
 		t.Fatalf("no place on a player: %q", l)
@@ -235,7 +278,7 @@ func TestGMAuraEasyCommand(t *testing.T) {
 	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraChest].Kind != database.AuraTrim || a[entity.AuraBody] != (database.ItemAura{}) {
 		t.Fatalf("taken away: the item's own back: %+v", a)
 	}
-	if auditLines(t, db, "charaura", "delete") != 4 {
+	if auditLines(t, db, "charaura", "delete") != 6 {
 		t.Fatal("the deletes not audited")
 	}
 
@@ -252,6 +295,10 @@ func TestGMAuraEasyCommand(t *testing.T) {
 	c.say(gs, "/aura blue shell chest")
 	if l := gmReplies(t, gs); !hasLine(l, "wears no items of its own") {
 		t.Fatalf("a slot on a creature of sets: %q", l)
+	}
+	c.say(gs, "/aura epic source=5FD4AE7C")
+	if l := gmReplies(t, gs); !hasLine(l, "epic is a held weapon's look") {
+		t.Fatalf("epic on a creature: %q", l)
 	}
 	c.say(gs, "/aura off wholebody")
 	if tints := c.gw.NPCTints(); len(tints) != 0 {

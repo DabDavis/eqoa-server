@@ -1129,7 +1129,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 	if len(parts) == 0 {
 		return
 	}
-	cmd := strings.ToLower(parts[0])
+	cmd := gmAlias(strings.ToLower(parts[0])) // "#copy" is "#clone" (devcmds.go)
 	if cmd != "#hddsetup" && !h.isGM(sess) && !h.granted(sess, cmd) {
 		SendErrorMessage(sess, fmt.Sprintf("Unrecognized command %q.", parts[0]))
 		return
@@ -1724,7 +1724,7 @@ var gmHelpLines = []string{
 	"  #size <factor> - your target (player or NPC), else you, at factor of its own size; 1 gives it back",
 	"  #aura <kind> <RRGGBBAA> [source] [nodes] | off - an aura on every NPC of your target's name (kind default/none/shell/particles/both); #aura item <id> ... the item's worn piece",
 	"  #delete [undo] - your target creature's row deleted for good (/t delete on a PS2); undo puts your last back",
-	"  #clone - a copy of your target creature's row where you stand, facing as you face (/t clone on a PS2)",
+	"  #clone - a copy of your target creature's row where you stand, facing as you face (/t clone on a PS2); #copy is the same",
 	"  #place <name> - a new creature of that name where you stand, facing as you face (/t place <name> on a PS2)",
 	"  #testmode - toggle: you take every hit in full and cannot die (1 HP left)",
 	"  #tankprofile1 / 2 / 3 - toggle: AGI 400 and AC 1000 / 2000 / 3000",

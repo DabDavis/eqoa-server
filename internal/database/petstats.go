@@ -124,7 +124,14 @@ var PetStances = []string{"passive", "defensive", "neutral", "aggressive"}
 // each is to CLIENT (the hands' attack types on the channel: 1 a one-handed
 // slash, 3 a blunt, 5 a pierce; Sandstorm's recorded Fire Elemental's hands
 // were 1 and 5, the workbook's slash and pierce).
-var PetWeaponTypes = map[string]byte{"slash": 1, "blunt": 3, "pierce": 5}
+var PetWeaponTypes = map[string]byte{"slash": 1, "blunt": 3, "pierce": 5,
+	// two-handed (CLIENT's attack types 2, 4, 6: its swing the two-handed one;
+	// the owner, 2026-11-14: "the scythe is supposed to swing as a 2h handed
+	// for the necro cm pets")
+	"2h slash": 2, "2h blunt": 4, "2h pierce": 6}
+
+// PetTwoHanded is whether a pet weapon type is two-handed.
+func PetTwoHanded(t byte) bool { return t == 2 || t == 4 || t == 6 }
 
 // PetStats is one row of petstats, read.
 type PetStats struct {
@@ -217,7 +224,7 @@ func CheckPetStats(p PetStats) error {
 	case p.Type != "" && !oneOf(p.Type, PetTypes):
 		return fmt.Errorf("type %q: one of %s (or empty)", p.Type, strings.Join(PetTypes, ", "))
 	case p.Wpn1Type != "" && PetWeaponTypes[p.Wpn1Type] == 0:
-		return fmt.Errorf("wpn1_type %q: slash, blunt or pierce (or empty)", p.Wpn1Type)
+		return fmt.Errorf("wpn1_type %q: slash, blunt, pierce or 2h slash, 2h blunt, 2h pierce (or empty)", p.Wpn1Type)
 	case p.Wpn2Type != "" && PetWeaponTypes[p.Wpn2Type] == 0:
 		return fmt.Errorf("wpn2_type %q: slash, blunt or pierce (or empty)", p.Wpn2Type)
 	}

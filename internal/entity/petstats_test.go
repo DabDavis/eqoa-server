@@ -147,3 +147,21 @@ func TestAPetTakesAPersonsSizeOfItsBody(t *testing.T) {
 		t.Errorf("the control: %+v, want the elemental's 1.35", got)
 	}
 }
+
+// A pet whose weapon is two-handed (the necromancer's scythe pets: the owner,
+// 2026-11-14) holds it in its main hand with the other hand empty, so its
+// swing is the two-handed one; a one-handed row keeps its two weapons.
+func TestATwoHandedPetHoldsItsWeaponAlone(t *testing.T) {
+	pet := &NPC{}
+	applyPetSheet(pet, &petSheet{PetStats: database.PetStats{PrimaryModel: 0x66073B90, SecondaryModel: 0x1234,
+		Wpn1Dmg: 500, Wpn1Type: "2h slash", Wpn2Dmg: 450, Wpn2Type: "pierce"}})
+	if pet.PrimaryType != 2 || pet.SecondaryType != attackTypeEmptyHand || pet.SecondaryWeapon != 0 {
+		t.Errorf("two-handed: primary %d, secondary %d (weapon %#x); want 2, empty, none", pet.PrimaryType, pet.SecondaryType, pet.SecondaryWeapon)
+	}
+	one := &NPC{}
+	applyPetSheet(one, &petSheet{PetStats: database.PetStats{PrimaryModel: 0x66073B90, SecondaryModel: 0x1234,
+		Wpn1Dmg: 500, Wpn1Type: "slash", Wpn2Dmg: 450, Wpn2Type: "pierce"}})
+	if one.PrimaryType != 1 || one.SecondaryType != 5 || one.SecondaryWeapon != 0x1234 {
+		t.Errorf("the control: primary %d, secondary %d (weapon %#x); want 1, 5, 0x1234", one.PrimaryType, one.SecondaryType, one.SecondaryWeapon)
+	}
+}

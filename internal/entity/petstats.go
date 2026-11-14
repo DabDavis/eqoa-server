@@ -219,8 +219,14 @@ func applyPetSheet(pet *NPC, s *petSheet) {
 	pet.PrimaryWeapon, pet.SecondaryWeapon, pet.Shield = int(s.PrimaryModel), int(s.SecondaryModel), 0
 	if t := database.PetWeaponTypes[s.Wpn1Type]; t != 0 {
 		pet.PrimaryType, pet.SecondaryType = t, attackTypeEmptyHand
-		if t2 := database.PetWeaponTypes[s.Wpn2Type]; t2 != 0 && s.Wpn2Dmg > 0 {
+		// a two-handed weapon's other hand holds nothing (its swing the
+		// two-handed one); the second weapon's damage still takes every
+		// other hit (petHitDamage)
+		if t2 := database.PetWeaponTypes[s.Wpn2Type]; t2 != 0 && s.Wpn2Dmg > 0 && !database.PetTwoHanded(t) {
 			pet.SecondaryType = t2
+		}
+		if database.PetTwoHanded(t) {
+			pet.SecondaryWeapon = 0
 		}
 	}
 	pet.OffMod, pet.DefMod = s.OffMod, s.DefMod

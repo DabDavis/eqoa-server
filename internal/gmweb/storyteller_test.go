@@ -255,6 +255,11 @@ func TestNothingInTheGameReadsTheStorytellers(t *testing.T) {
 			if strings.HasSuffix(path, "database/snapshot.go") {
 				return nil
 			}
+			// the shared accounts' copy carries the table to a shard as it is (the panel's role there too), reading
+			// nothing of it
+			if strings.HasSuffix(path, "database/accountmirror.go") || strings.HasSuffix(path, "database/accountmirror_test.go") {
+				return nil
+			}
 			if bytes.Contains(src, []byte("gm_storytellers")) || bytes.Contains(src, []byte("storytellerFlag")) {
 				t.Errorf("%s reads the storytellers' table", path)
 			}

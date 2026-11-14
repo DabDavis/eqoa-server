@@ -644,6 +644,19 @@ func (h *ChatHandler) roamerCommand(sess *session.Session, player *entity.Player
 	h.gmReply(sess, fmt.Sprintf("%s (row %d):%s", rec.NPCName, id, said))
 }
 
+// targetsCreature is whether the player's target is a creature (an NPC).
+func (h *ChatHandler) targetsCreature(sess *session.Session, player *entity.Player) bool {
+	if player == nil || player.TargetObjectID == 0 || player.TargetObjectID == 0xFFFFFFFF {
+		return false
+	}
+	ent, ok := h.gameWorld.FindEntityByObjectID(sess, player.TargetObjectID)
+	if !ok {
+		return false
+	}
+	_, isNPC := ent.(*entity.NPC)
+	return isNPC
+}
+
 // keepNPCSize saves the size a GM's /size gave its target creature to the
 // creature's npcs row, so it keeps it over respawns and restarts (the owner,
 // 2026-11-13). A player's size, a creature with no row (a pet, a summoned
@@ -661,6 +674,7 @@ func (h *ChatHandler) keepNPCSize(sess *session.Session, player *entity.Player) 
 		return
 	}
 	if _, why := h.gameWorld.RowNPCRefusal(npc.ServerID); why != "" {
+		h.gmReply(sess, fmt.Sprintf("%s's size is not kept over its respawns: it %s.", npc.Name, why))
 		return
 	}
 	size := float64(h.gameWorld.NPCSize(npc.ServerID))

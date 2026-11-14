@@ -412,6 +412,11 @@ func (w *World) legFromLocked(npc *NPC, fx, fy, fz, x, z float32, heights *[]flo
 	keeps := keepsToBoth
 	if w.env != nil && checks == legWhole {
 		keeps = w.keepsToLocked(npc)
+	} else if w.env != nil && checks == legRoute && w.keepsToLocked(npc) == keepsToWater {
+		// a chase's way round, of a creature of the water: in its water, as
+		// its straight steps are (chase.go: a fish ran up a bank of the
+		// Plane of Disease's slime by a way round to its enemy over it)
+		keeps = keepsToWater
 	}
 	y := fy
 	var walls, solid Walls
@@ -448,6 +453,9 @@ func (w *World) legFromLocked(npc *NPC, fx, fy, fz, x, z float32, heights *[]flo
 	// walk out of it: its leg may be in the water until its first point out
 	// of it, and not after (landwater.go)
 	leaving := keeps == keepsToLand && w.waterAtLocked(npc.World, fx, py+bodyAbove, fz)
+	// and one of the water off its slime's surface (up a bank) may come down
+	// through the slime to it, not out of the slime (water.go)
+	stranded := keeps == keepsToWater && !w.keepsInLocked(npc, fx, py, fz)
 	for i := 1; i <= n; i++ {
 		t := float32(i) / float32(n)
 		sx, sz := fx+(x-fx)*t, fz+(z-fz)*t
@@ -492,6 +500,7 @@ func (w *World) legFromLocked(npc *NPC, fx, fy, fz, x, z float32, heights *[]flo
 				return false
 			}
 		}
+		lastY := py
 		px, py, pz = sx, y, sz
 		if checks == legRoute && w.routeDry && w.waterAtLocked(npc.World, sx, y+bodyAbove, sz) {
 			w.routeWet += d / float32(n) // its length in the water (landwater.go)
@@ -504,7 +513,9 @@ func (w *World) legFromLocked(npc *NPC, fx, fy, fz, x, z float32, heights *[]flo
 				return false
 			}
 		case keepsToWater:
-			if !w.waterAtLocked(npc.World, sx, y+bodyAbove, sz) {
+			if w.keepsInLocked(npc, sx, y, sz) {
+				stranded = false
+			} else if !stranded || y > lastY || !w.waterAtLocked(npc.World, sx, y+bodyAbove, sz) {
 				return false
 			}
 			if !onGround && w.ground != nil {

@@ -1,0 +1,541 @@
+[
+ {
+  "questid": 100020,
+  "step": 1,
+  "quest": "Tillian Bracelets",
+  "before": "Speak with Ullie Darktoe.",
+  "after": "Speak with Ullie Darktoe. (Waysender Carowyn in Fayspires sends you to Moradhim.)"
+ },
+ {
+  "questid": 100030,
+  "step": 1,
+  "quest": "Tillian Bracelets",
+  "before": "Speak with Ullie Darktoe.",
+  "after": "Speak with Ullie Darktoe. (Waysender Carowyn in Fayspires sends you to Moradhim.)"
+ },
+ {
+  "questid": 100040,
+  "step": 1,
+  "quest": "Tillian Bracelets",
+  "before": "Speak with Ullie Darktoe.",
+  "after": "Speak with Ullie Darktoe. (Waysender Carowyn in Fayspires sends you to Moradhim.)"
+ },
+ {
+  "questid": 100050,
+  "step": 1,
+  "quest": "Tillian Bracelets",
+  "before": "Speak with Ullie Darktoe.",
+  "after": "Speak with Ullie Darktoe. (Waysender Carowyn in Fayspires sends you to Moradhim.)"
+ },
+ {
+  "questid": 100168,
+  "step": 1,
+  "quest": "Scornblade D'Eleth",
+  "before": "Speak with Scornblade D`Eleth.",
+  "after": "Speak with Scornblade D`Eleth. (Waysender Zapgit in Grobb sends you to Neriak.)"
+ },
+ {
+  "questid": 100168,
+  "step": 8,
+  "quest": "Scornblade D'Eleth",
+  "before": "Return to Underlord Bugrish.",
+  "after": "Return to Underlord Bugrish. (Waysender Ti`Thox in Neriak sends you to Grobb, 225 tunar.)"
+ },
+ {
+  "questid": 100170,
+  "step": 1,
+  "quest": "Seer Crelga's Trials",
+  "before": "Speak with Seer Crelga.",
+  "after": "Speak with Seer Crelga. (Waysender Zapgit in Grobb sends you to Honjour.)"
+ },
+ {
+  "questid": 100170,
+  "step": 9,
+  "quest": "Seer Crelga's Trials",
+  "before": "Bring the festering root to Underlord Solthe.",
+  "after": "Bring the festering root to Underlord Solthe. (Abodai in Freeport sends you to Neriak, Ti`Thox on to Grobb.)"
+ },
+ {
+  "questid": 100178,
+  "step": 1,
+  "quest": "Scornblade D'Eleth",
+  "before": "Speak with Scornblade D`Eleth.",
+  "after": "Speak with Scornblade D`Eleth. (Waysender Zapgit in Grobb sends you to Neriak.)"
+ },
+ {
+  "questid": 100178,
+  "step": 8,
+  "quest": "Scornblade D'Eleth",
+  "before": "Return to Underlord Bugrish.",
+  "after": "Return to Underlord Bugrish. (Waysender Ti`Thox in Neriak sends you to Grobb, 225 tunar.)"
+ },
+ {
+  "questid": 100180,
+  "step": 1,
+  "quest": "Seer Crelga's Trials",
+  "before": "Speak with Seer Crelga.",
+  "after": "Speak with Seer Crelga. (Waysender Zapgit in Grobb sends you to Honjour.)"
+ },
+ {
+  "questid": 100180,
+  "step": 9,
+  "quest": "Seer Crelga's Trials",
+  "before": "Bring the festering root to Hierophant Koligo.",
+  "after": "Bring the festering root to Hierophant Koligo. (Abodai in Freeport sends you to Neriak, Ti`Thox on to Grobb.)"
+ },
+ {
+  "questid": 100188,
+  "step": 1,
+  "quest": "Scornblade D'Eleth",
+  "before": "Speak with Scornblade D`Eleth.",
+  "after": "Speak with Scornblade D`Eleth. (Waysender Zapgit in Grobb sends you to Neriak.)"
+ },
+ {
+  "questid": 100188,
+  "step": 8,
+  "quest": "Scornblade D'Eleth",
+  "before": "Return to Underlord Bugrish.",
+  "after": "Return to Underlord Bugrish. (Waysender Ti`Thox in Neriak sends you to Grobb, 225 tunar.)"
+ },
+ {
+  "questid": 100190,
+  "step": 1,
+  "quest": "Seer Crelga's Trials",
+  "before": "Speak with Seer Crelga.",
+  "after": "Speak with Seer Crelga. (Waysender Zapgit in Grobb sends you to Honjour.)"
+ },
+ {
+  "questid": 100190,
+  "step": 9,
+  "quest": "Seer Crelga's Trials",
+  "before": "Bring the festering root to Warlord Jurglash.",
+  "after": "Bring the festering root to Warlord Jurglash. (Abodai in Freeport sends you to Neriak, Ti`Thox on to Grobb.)"
+ },
+ {
+  "questid": 100312,
+  "step": 2,
+  "quest": "The Earblowers' Gears",
+  "before": "Speak with Zale Earblower.",
+  "after": "Speak with Zale Earblower. (Waysender Glowbap in Klik'Anon sends you to Rivervale.)"
+ },
+ {
+  "questid": 100312,
+  "step": 7,
+  "quest": "The Earblowers' Gears",
+  "before": "Speak with Teka Harnswoof.",
+  "after": "Speak with Teka Harnswoof. (Waysender Windfoot in Rivervale sends you to Klik'Anon.)"
+ },
+ {
+  "questid": 100315,
+  "step": 6,
+  "quest": "Deactivating the Clockworks",
+  "before": "Bring Psova's Plans to Zale Earblower.",
+  "after": "Bring Psova's Plans to Zale Earblower. (Waysender Glowbap in Klik'Anon sends you to Rivervale.)"
+ },
+ {
+  "questid": 100315,
+  "step": 11,
+  "quest": "Deactivating the Clockworks",
+  "before": "Bring Psova's Plans to Psova Brinkbar.",
+  "after": "Bring Psova's Plans to Psova Brinkbar. (Waysender Windfoot in Rivervale sends you to Klik'Anon.)"
+ },
+ {
+  "questid": 100322,
+  "step": 2,
+  "quest": "Springs for the Earblowers",
+  "before": "Bring 3 Gold Springs to Zarene Earblower.",
+  "after": "Bring 3 Gold Springs to Zarene Earblower. (Waysender Glowbap in Klik'Anon sends you to Rivervale.)"
+ },
+ {
+  "questid": 100322,
+  "step": 6,
+  "quest": "Springs for the Earblowers",
+  "before": "Speak with Prof. Temwiddle.",
+  "after": "Speak with Prof. Temwiddle. (Waysender Windfoot in Rivervale sends you to Klik'Anon.)"
+ },
+ {
+  "questid": 100325,
+  "step": 7,
+  "quest": "Allister's Journal",
+  "before": "Bring Allister's Journal to Zale Earblower.",
+  "after": "Bring Allister's Journal to Zale Earblower. (Waysender Glowbap in Klik'Anon sends you to Rivervale.)"
+ },
+ {
+  "questid": 100325,
+  "step": 12,
+  "quest": "Allister's Journal",
+  "before": "Speak with Psova Brinkbar.",
+  "after": "Speak with Psova Brinkbar. (Waysender Windfoot in Rivervale sends you to Klik'Anon.)"
+ },
+ {
+  "questid": 100344,
+  "step": 4,
+  "quest": "Captain V'Ekelos",
+  "before": "Speak with Merchant Gilgash.",
+  "after": "Speak with Merchant Gilgash. (Waysender Ti`Thox in Neriak sends you to Freeport, 100 tunar.)"
+ },
+ {
+  "questid": 100344,
+  "step": 5,
+  "quest": "Captain V'Ekelos",
+  "before": "Bring Nightshade to Captain V`Ekelos.",
+  "after": "Bring Nightshade to Captain V`Ekelos. (Waysender Abodai in Freeport sends you to Neriak, 100 tunar.)"
+ },
+ {
+  "questid": 100354,
+  "step": 2,
+  "quest": "The U'Dedne Chalice",
+  "before": "Speak with Merchant Gilgash.",
+  "after": "Speak with Merchant Gilgash. (Waysender Ti`Thox in Neriak sends you to Freeport, 100 tunar.)"
+ },
+ {
+  "questid": 100354,
+  "step": 4,
+  "quest": "The U'Dedne Chalice",
+  "before": "Speak with Dragoon V'Ghen.",
+  "after": "Speak with Dragoon V'Ghen. (Waysender Abodai in Freeport sends you to Neriak, 100 tunar.)"
+ },
+ {
+  "questid": 100355,
+  "step": 2,
+  "quest": "The Enchanted Lantern",
+  "before": "Speak with Merchant Gilgash.",
+  "after": "Speak with Merchant Gilgash. (Waysender Ti`Thox in Neriak sends you to Freeport, 100 tunar.)"
+ },
+ {
+  "questid": 100355,
+  "step": 5,
+  "quest": "The Enchanted Lantern",
+  "before": "Bring Lantern of Ages, Final Thought Gem and Oriote Raven Foot to Zelthil J`Narus.",
+  "after": "Bring Lantern of Ages, Final Thought Gem and Oriote Raven Foot to Zelthil J`Narus. (Waysender Abodai sends you to Neriak.)"
+ },
+ {
+  "questid": 100362,
+  "step": 2,
+  "quest": "The Windmills of Rivervale",
+  "before": "Speak with Zarene Earblower.",
+  "after": "Speak with Zarene Earblower. (Waysender Glowbap in Klik'Anon sends you to Rivervale.)"
+ },
+ {
+  "questid": 100362,
+  "step": 6,
+  "quest": "The Windmills of Rivervale",
+  "before": "Speak with Captain Buntattle.",
+  "after": "Speak with Captain Buntattle. (Waysender Windfoot in Rivervale sends you to Klik'Anon.)"
+ },
+ {
+  "questid": 100365,
+  "step": 7,
+  "quest": "Allister's Journal",
+  "before": "Bring Allister's Journal to Zale Earblower.",
+  "after": "Bring Allister's Journal to Zale Earblower. (Waysender Glowbap in Klik'Anon sends you to Rivervale.)"
+ },
+ {
+  "questid": 100365,
+  "step": 12,
+  "quest": "Allister's Journal",
+  "before": "Speak with Psova Brinkbar.",
+  "after": "Speak with Psova Brinkbar. (Waysender Windfoot in Rivervale sends you to Klik'Anon.)"
+ },
+ {
+  "questid": 100372,
+  "step": 2,
+  "quest": "Gears for Zarene",
+  "before": "Bring 3 Small Gear Wheels to Zarene Earblower.",
+  "after": "Bring 3 Small Gear Wheels to Zarene Earblower. (Waysender Glowbap in Klik'Anon sends you to Rivervale.)"
+ },
+ {
+  "questid": 100372,
+  "step": 6,
+  "quest": "Gears for Zarene",
+  "before": "Speak with Prof. Pansoof.",
+  "after": "Speak with Prof. Pansoof. (Waysender Windfoot in Rivervale sends you to Klik'Anon.)"
+ },
+ {
+  "questid": 100375,
+  "step": 6,
+  "quest": "Autonomy Theory",
+  "before": "Bring Psova's Battle Plans to Zale Earblower.",
+  "after": "Bring Psova's Battle Plans to Zale Earblower. (Waysender Glowbap in Klik'Anon sends you to Rivervale.)"
+ },
+ {
+  "questid": 100375,
+  "step": 11,
+  "quest": "Autonomy Theory",
+  "before": "Bring Psova's Battle Plans to Psova Brinkbar.",
+  "after": "Bring Psova's Battle Plans to Psova Brinkbar. (Waysender Windfoot in Rivervale sends you to Klik'Anon.)"
+ },
+ {
+  "questid": 100434,
+  "step": 7,
+  "quest": "The House of U'Dedne",
+  "before": "Buy a chalice of the fallen from Merchant Gilgash in Freeport.",
+  "after": "Buy a chalice of the fallen from Merchant Gilgash in Freeport. (Waysender Ti`Thox in Neriak sends you to Freeport, 100 tunar.)"
+ },
+ {
+  "questid": 100434,
+  "step": 8,
+  "quest": "The House of U'Dedne",
+  "before": "Bring the chalice of the fallen to Durinex U`Dedne.",
+  "after": "Bring the chalice of the fallen to Durinex U`Dedne. (Waysender Abodai in Freeport sends you to Neriak, 100 tunar.)"
+ },
+ {
+  "questid": 100444,
+  "step": 7,
+  "quest": "Assassination",
+  "before": "Buy a sea of chains from Merchant Gilgash in Freeport.",
+  "after": "Buy a sea of chains from Merchant Gilgash in Freeport. (Waysender Ti`Thox in Neriak sends you to Freeport, 100 tunar.)"
+ },
+ {
+  "questid": 100444,
+  "step": 8,
+  "quest": "Assassination",
+  "before": "Bring the sea of chains to Durinex U`Dedne.",
+  "after": "Bring the sea of chains to Durinex U`Dedne. (Waysender Abodai in Freeport sends you to Neriak, 100 tunar.)"
+ },
+ {
+  "questid": 100452,
+  "step": 1,
+  "quest": "Frog Legs for Grobb",
+  "before": "Speak with Chef Blignart.",
+  "after": "Speak with Chef Blignart. (Waysender Ti`Thox in Neriak sends you to Grobb, 225 tunar.)"
+ },
+ {
+  "questid": 100452,
+  "step": 4,
+  "quest": "Frog Legs for Grobb",
+  "before": "Return to Elementalist R`Virr.",
+  "after": "Return to Elementalist R`Virr. (Waysender Zapgit in Grobb sends you to Neriak.)"
+ },
+ {
+  "questid": 100454,
+  "step": 2,
+  "quest": "Lady Furess's Packages",
+  "before": "Buy the ancient bracelet from Merchant Gilgash in Freeport.",
+  "after": "Buy the ancient bracelet from Merchant Gilgash in Freeport. (Waysender Ti`Thox in Neriak sends you to Freeport, 100 tunar.)"
+ },
+ {
+  "questid": 100454,
+  "step": 4,
+  "quest": "Lady Furess's Packages",
+  "before": "Bring the ancient bracelet to Lady Furess U`Dedne.",
+  "after": "Bring the ancient bracelet to Lady Furess U`Dedne. (Waysender Abodai in Freeport sends you to Neriak, 100 tunar.)"
+ },
+ {
+  "questid": 100454,
+  "step": 9,
+  "quest": "Lady Furess's Packages",
+  "before": "Bring the locked box to Nalzik P`Thek.",
+  "after": "Bring the locked box to Nalzik P`Thek. (Waysender Ti`Thox in Neriak sends you to Freeport, 100 tunar.)"
+ },
+ {
+  "questid": 100454,
+  "step": 10,
+  "quest": "Lady Furess's Packages",
+  "before": "Bring Furess's package to Lady Furess U`Dedne.",
+  "after": "Bring Furess's package to Lady Furess U`Dedne. (Waysender Abodai in Freeport sends you to Neriak, 100 tunar.)"
+ },
+ {
+  "questid": 100455,
+  "step": 2,
+  "quest": "The Lantern of Ages",
+  "before": "Buy the Lantern of Ages from Merchant Gilgash in Freeport.",
+  "after": "Buy the Lantern of Ages from Merchant Gilgash in Freeport. (Waysender Ti`Thox in Neriak sends you to Freeport, 100 tunar.)"
+ },
+ {
+  "questid": 100455,
+  "step": 5,
+  "quest": "The Lantern of Ages",
+  "before": "Bring the lantern of ages, the gem of wit and the oriote raven claw to Zelthil J`Narus.",
+  "after": "Bring the lantern of ages, the gem of wit and the oriote raven claw to Zelthil J`Narus. (Waysender Abodai sends you to Neriak.)"
+ },
+ {
+  "questid": 100462,
+  "step": 1,
+  "quest": "Frog Legs for Grobb",
+  "before": "Speak with Chef Blignart.",
+  "after": "Speak with Chef Blignart. (Waysender Ti`Thox in Neriak sends you to Grobb, 225 tunar.)"
+ },
+ {
+  "questid": 100462,
+  "step": 4,
+  "quest": "Frog Legs for Grobb",
+  "before": "Return to Grand Defiler J`Narus.",
+  "after": "Return to Grand Defiler J`Narus. (Waysender Zapgit in Grobb sends you to Neriak.)"
+ },
+ {
+  "questid": 100464,
+  "step": 2,
+  "quest": "Lady Furess's Packages",
+  "before": "Buy the ancient bracelet from Merchant Gilgash in Freeport.",
+  "after": "Buy the ancient bracelet from Merchant Gilgash in Freeport. (Waysender Ti`Thox in Neriak sends you to Freeport, 100 tunar.)"
+ },
+ {
+  "questid": 100464,
+  "step": 4,
+  "quest": "Lady Furess's Packages",
+  "before": "Bring the ancient bracelet to Lady Furess U`Dedne.",
+  "after": "Bring the ancient bracelet to Lady Furess U`Dedne. (Waysender Abodai in Freeport sends you to Neriak, 100 tunar.)"
+ },
+ {
+  "questid": 100464,
+  "step": 9,
+  "quest": "Lady Furess's Packages",
+  "before": "Bring the locked box to Nalzik P`Thek.",
+  "after": "Bring the locked box to Nalzik P`Thek. (Waysender Ti`Thox in Neriak sends you to Freeport, 100 tunar.)"
+ },
+ {
+  "questid": 100464,
+  "step": 10,
+  "quest": "Lady Furess's Packages",
+  "before": "Bring Furess's package to Lady Furess U`Dedne.",
+  "after": "Bring Furess's package to Lady Furess U`Dedne. (Waysender Abodai in Freeport sends you to Neriak, 100 tunar.)"
+ },
+ {
+  "questid": 100465,
+  "step": 2,
+  "quest": "The Lantern of Ages",
+  "before": "Buy the Lantern of Ages from Merchant Gilgash in Freeport.",
+  "after": "Buy the Lantern of Ages from Merchant Gilgash in Freeport. (Waysender Ti`Thox in Neriak sends you to Freeport, 100 tunar.)"
+ },
+ {
+  "questid": 100465,
+  "step": 5,
+  "quest": "The Lantern of Ages",
+  "before": "Bring the lantern of ages, the gem of obfuscation and the oriote raven beak to Zelthil J`Narus.",
+  "after": "Bring the lantern of ages, the gem of obfuscation and the oriote raven beak to Zelthil J`Narus. (Abodai sends you to Neriak.)"
+ },
+ {
+  "questid": 100472,
+  "step": 1,
+  "quest": "Biljoe's Taxes",
+  "before": "Speak with Maeyni Do`Traelix.",
+  "after": "Speak with Maeyni Do`Traelix. (Waysender Ti`Thox in Neriak sends you to Freeport, 100 tunar.)"
+ },
+ {
+  "questid": 100482,
+  "step": 1,
+  "quest": "Frog Legs for Grobb",
+  "before": "Speak with Chef Blignart.",
+  "after": "Speak with Chef Blignart. (Waysender Ti`Thox in Neriak sends you to Grobb, 225 tunar.)"
+ },
+ {
+  "questid": 100482,
+  "step": 4,
+  "quest": "Frog Legs for Grobb",
+  "before": "Return to Sythonis U`Dedne.",
+  "after": "Return to Sythonis U`Dedne. (Waysender Zapgit in Grobb sends you to Neriak.)"
+ },
+ {
+  "questid": 100484,
+  "step": 2,
+  "quest": "Lady Furess's Packages",
+  "before": "Buy the ancient bracelet from Merchant Gilgash in Freeport.",
+  "after": "Buy the ancient bracelet from Merchant Gilgash in Freeport. (Waysender Ti`Thox in Neriak sends you to Freeport, 100 tunar.)"
+ },
+ {
+  "questid": 100484,
+  "step": 4,
+  "quest": "Lady Furess's Packages",
+  "before": "Bring the ancient bracelet to Lady Furess U`Dedne.",
+  "after": "Bring the ancient bracelet to Lady Furess U`Dedne. (Waysender Abodai in Freeport sends you to Neriak, 100 tunar.)"
+ },
+ {
+  "questid": 100484,
+  "step": 9,
+  "quest": "Lady Furess's Packages",
+  "before": "Bring the locked box to Nalzik P`Thek.",
+  "after": "Bring the locked box to Nalzik P`Thek. (Waysender Ti`Thox in Neriak sends you to Freeport, 100 tunar.)"
+ },
+ {
+  "questid": 100484,
+  "step": 10,
+  "quest": "Lady Furess's Packages",
+  "before": "Bring Furess's package to Lady Furess U`Dedne.",
+  "after": "Bring Furess's package to Lady Furess U`Dedne. (Waysender Abodai in Freeport sends you to Neriak, 100 tunar.)"
+ },
+ {
+  "questid": 100485,
+  "step": 2,
+  "quest": "The Lantern of Ages",
+  "before": "Buy the Lantern of Ages from Merchant Gilgash in Freeport.",
+  "after": "Buy the Lantern of Ages from Merchant Gilgash in Freeport. (Waysender Ti`Thox in Neriak sends you to Freeport, 100 tunar.)"
+ },
+ {
+  "questid": 100485,
+  "step": 5,
+  "quest": "The Lantern of Ages",
+  "before": "Bring the lantern of ages, the gem of deception and the oriote raven eye to Zelthil J`Narus.",
+  "after": "Bring the lantern of ages, the gem of deception and the oriote raven eye to Zelthil J`Narus. (Abodai sends you to Neriak.)"
+ },
+ {
+  "questid": 100494,
+  "step": 7,
+  "quest": "The House of U'Dedne",
+  "before": "Buy a sea of chains from Merchant Gilgash in Freeport.",
+  "after": "Buy a sea of chains from Merchant Gilgash in Freeport. (Waysender Ti`Thox in Neriak sends you to Freeport, 100 tunar.)"
+ },
+ {
+  "questid": 100494,
+  "step": 8,
+  "quest": "The House of U'Dedne",
+  "before": "Bring the sea of chains to Durinex U`Dedne.",
+  "after": "Bring the sea of chains to Durinex U`Dedne. (Waysender Abodai in Freeport sends you to Neriak, 100 tunar.)"
+ },
+ {
+  "questid": 100502,
+  "step": 1,
+  "quest": "Frog Legs for Grobb",
+  "before": "Speak with Chef Blignart.",
+  "after": "Speak with Chef Blignart. (Waysender Ti`Thox in Neriak sends you to Grobb, 225 tunar.)"
+ },
+ {
+  "questid": 100502,
+  "step": 4,
+  "quest": "Frog Legs for Grobb",
+  "before": "Return to Sorceress X`Lottl.",
+  "after": "Return to Sorceress X`Lottl. (Waysender Zapgit in Grobb sends you to Neriak.)"
+ },
+ {
+  "questid": 100504,
+  "step": 2,
+  "quest": "Lady Furess's Packages",
+  "before": "Buy the ancient bracelet from Merchant Gilgash in Freeport.",
+  "after": "Buy the ancient bracelet from Merchant Gilgash in Freeport. (Waysender Ti`Thox in Neriak sends you to Freeport, 100 tunar.)"
+ },
+ {
+  "questid": 100504,
+  "step": 4,
+  "quest": "Lady Furess's Packages",
+  "before": "Bring the ancient bracelet to Lady Furess U`Dedne.",
+  "after": "Bring the ancient bracelet to Lady Furess U`Dedne. (Waysender Abodai in Freeport sends you to Neriak, 100 tunar.)"
+ },
+ {
+  "questid": 100504,
+  "step": 9,
+  "quest": "Lady Furess's Packages",
+  "before": "Bring the locked box to Nalzik P`Thek.",
+  "after": "Bring the locked box to Nalzik P`Thek. (Waysender Ti`Thox in Neriak sends you to Freeport, 100 tunar.)"
+ },
+ {
+  "questid": 100504,
+  "step": 10,
+  "quest": "Lady Furess's Packages",
+  "before": "Bring Furess's package to Lady Furess U`Dedne.",
+  "after": "Bring Furess's package to Lady Furess U`Dedne. (Waysender Abodai in Freeport sends you to Neriak, 100 tunar.)"
+ },
+ {
+  "questid": 100505,
+  "step": 2,
+  "quest": "The Lantern of Ages",
+  "before": "Buy the Lantern of Ages from Merchant Gilgash in Freeport.",
+  "after": "Buy the Lantern of Ages from Merchant Gilgash in Freeport. (Waysender Ti`Thox in Neriak sends you to Freeport, 100 tunar.)"
+ },
+ {
+  "questid": 100505,
+  "step": 5,
+  "quest": "The Lantern of Ages",
+  "before": "Bring the lantern of ages, the gem of fury and the oriote raven feather to Zelthil J`Narus.",
+  "after": "Bring the lantern of ages, the gem of fury and the oriote raven feather to Zelthil J`Narus. (Abodai sends you to Neriak.)"
+ }
+]

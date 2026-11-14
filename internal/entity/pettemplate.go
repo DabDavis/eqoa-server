@@ -143,7 +143,11 @@ func (w *World) petTakenLocked(pet *NPC, n int) int {
 		return max(1, pct(n, w.balance.MeleeTakenPctAt(b.Class, b.Level)))
 	}
 	ps := w.petStateOfNPCLocked(pet)
-	if ps == nil || ps.npc != pet || ps.tmpl == nil || ps.tmpl.tmpl.TakenPct == 100 || n <= 0 {
+	if ps == nil || ps.npc != pet || n <= 0 {
+		return n
+	}
+	n = w.earthPetTakenLocked(ps, n) // a tank's share of its owner's level (petearthtaken.go)
+	if ps.tmpl == nil || ps.tmpl.tmpl.TakenPct == 100 {
 		return n
 	}
 	return max(1, int(math.Round(float64(n)*float64(ps.tmpl.tmpl.TakenPct)/100)))
@@ -440,7 +444,7 @@ func (w *World) petCastLocked(ps *petState, i int, t *NPC, now time.Time) bool {
 	a := &abilities[i]
 	pet := ps.npc
 	if a.Kind == database.AbilityTaunt {
-		if t == nil || t.Dead {
+		if t == nil || t.Dead || w.petSparesTankLocked(ps, t) { // a grouped tank keeps it (pettaunttank.go)
 			return false
 		}
 		w.petTemplateTauntLocked(ps, a, t, now)
@@ -1136,7 +1140,7 @@ func petTauntFigure(hits [][3]float64, level int) (n int, ok bool) {
 // through the balance as its hits are.
 func (w *World) petTemplateTauntLocked(ps *petState, a *templateAbility, t *NPC, now time.Time) bool {
 	pet := ps.npc
-	defer w.petTauntHateCutLocked(ps, t)() // an enchanter's pet's taunt: 70% of its threat (pettaunthate.go)
+	defer w.petTauntHateCutLocked(ps, t)() // an enchanter's pet's taunt: 70% of its threat, an earth pet's 95% (pettaunthate.go)
 	w.petTopHateLocked(pet, t)
 	w.showPetTauntLocked(pet, t.ServerID) // pet.go
 	pet.LastCombatTime = now

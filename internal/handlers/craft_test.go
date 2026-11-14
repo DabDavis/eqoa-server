@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 	"unicode/utf16"
@@ -612,4 +613,26 @@ func containsLine(msgs [][]byte, text string) bool {
 		}
 	}
 	return false
+}
+
+// The owner, 2026-11-14: "the boon 6x bonus xp for live and heirloom applies to crafting also". A
+// success under a boon of 6x (CraftView.XPPct 600) gives the skill six times the recipe's 40 XP (two
+// ranks of level 1's 100 and 40 over), and says so in a line after the craft's messages.
+func TestCraftXPTakesTheBoon(t *testing.T) {
+	f := newCraftFixture(t)
+	f.standard(2)
+	f.learn(testRecipe)
+	f.view.XPPct, f.view.XPTag = 600, "boon x6"
+	f.dice = []float64{0.59}
+	got := f.create(testRecipe)
+	if s := f.skill(1); s.Level != 1 || s.Rank != 2 || s.XP != 40 {
+		t.Fatalf("Armor Crafting under a 6x boon kept as %+v, want rank 2 and 40 XP (240)", s)
+	}
+	last := got[len(got)-1]
+	if opOf(last) != protocol.OpcodeClientMessage || !strings.Contains(wideText(last[2:]), "240 XP (boon x6)") {
+		t.Fatalf("the boon's line: op %v %q", opOf(last), wideText(last[2:]))
+	}
+	if craftBoonXP(40, 0) != 40 || craftBoonXP(40, 110) != 44 {
+		t.Errorf("craftBoonXP: %d %d", craftBoonXP(40, 0), craftBoonXP(40, 110))
+	}
 }

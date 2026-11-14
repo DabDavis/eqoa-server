@@ -28,7 +28,7 @@ func TestAPetsTauntTakesAndHoldsTheCreature(t *testing.T) {
 	if e := r.w.pickEnemyLocked(r.npc); e != r.pet.ServerID {
 		t.Errorf("the caster's heal took the creature from the pet (%d)", e)
 	}
-	r.w.tauntHateLocked(r.npc, tank, 954, playerTauntHatePct(0))
+	r.w.tauntHateLocked(r.npc, tank, 954, playerTauntHatePct(0), 0)
 	r.w.mu.Unlock()
 	if r.npc.Threats[tank] <= r.npc.Threats[r.pet.ServerID] || r.npc.CurrentEnemy != tank {
 		t.Errorf("a tank's taunt did not take it back: tank %d, pet %d, enemy %d", r.npc.Threats[tank], r.npc.Threats[r.pet.ServerID], r.npc.CurrentEnemy)

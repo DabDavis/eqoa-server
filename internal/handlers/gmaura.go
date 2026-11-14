@@ -700,3 +700,85 @@ func (h *ChatHandler) setNPCAura(sess *session.Session, player *entity.Player, a
 	h.gmReply(sess, fmt.Sprintf("Every %s: %s, kept; sent to %d client(s) that draw auras.", name, auraWords(a), told))
 	log.Printf("GM: %s aura %s: %s", player.Name, name, auraWords(a))
 }
+
+// epicLook is a class's epic weapon's hand model, in the disc's order (ITEM.ESF
+// models 44-78, claude-notes/epic-weapons-looks-20261106.md), and what its look
+// carries: every one an emissive glow, some an additive sheen, some particles.
+type epicLook struct {
+	Class, Model, Name string
+	Source             uint32
+	Sheen, Particles   bool
+}
+
+// epicLooks are the epic weapons' looks, by class in the disc's order (the
+// level 60 epics wear these models too: the ranger's axes, the monk's claws).
+var epicLooks = []epicLook{
+	{"shadowknight", "Greatsword", "Beheader of Isthiak", 0x6EB7224D, true, true},
+	{"shadowknight", "Polearm", "Downfall", 0x867ED577, true, true},
+	{"shadowknight", "Greataxe", "the shadow knight's greataxe", 0x9A1DBA92, true, true},
+	{"paladin", "Warhammer", "Judgement", 0xF841266D, true, true},
+	{"paladin", "Greatsword", "Virtus Ferrum", 0x8A82B605, true, true},
+	{"paladin", "Lance", "the paladin's lance", 0xF2877ACE, true, true},
+	{"warrior", "Longsword", "Steelwind", 0x17F9870B, true, false},
+	{"warrior", "Greataxe", "Foereaver", 0x942735D3, true, false},
+	{"warrior", "Greatsword", "the warrior's greatsword", 0xB44E7A96, true, true},
+	{"druid", "Scimitar", "Triad Scimitar", 0xD03942DE, true, false},
+	{"druid", "Staff", "Oak Staff of Eilerawdl", 0xCBF4135A, true, true},
+	{"cleric", "Hammer", "Hammer of Absolution", 0xB2116A98, true, false},
+	{"cleric", "Greathammer", "Mace of Repentence", 0xD8406C85, true, false},
+	{"shaman", "Club", "Cudgel of the Spirit Guide", 0xDF034C5A, true, false},
+	{"shaman", "Spear", "Spear of Fate", 0x38107CE9, true, true},
+	{"bard", "Sabre", "Ballad of Mithril", 0x8E85E4A6, true, false},
+	{"bard", "Rapier", "Selo's Jeweled Rapier", 0xF4DD991A, true, false},
+	{"bard", "MainGauche", "the bard's main gauche", 0x9EA9384F, true, false},
+	{"ranger", "Longsword", "Pure Emerald Longsword", 0xF3A41E80, true, false},
+	{"ranger", "Scimitar", "Scimitar of Fury", 0xAB6B7D29, true, false},
+	{"ranger", "Axe", "Axe of Nature's Innocence/Purity", 0x11666A69, true, false},
+	{"monk", "Knuckles", "Sunsilver Blade", 0xAACB29AF, false, false},
+	{"monk", "Staff", "Ascendant staff", 0x1D875ECD, true, true},
+	{"monk", "Claws", "Claws of Insurrection/Mayhem", 0x039995A5, true, true},
+	{"rogue", "Stiletto", "Heartsbane", 0x0D54F88C, false, true},
+	{"rogue", "Dagger", "Blacktongue", 0xDD61A3D4, false, false},
+	{"rogue", "Dirk", "the rogue's dirk", 0xBD3C3DC8, false, false},
+	{"enchanter", "Rod", "Mithril Eagle Rod", 0x2EDA5089, true, true},
+	{"enchanter", "Staff", "Glory of Elddar", 0xDAF955A6, true, true},
+	{"wizard", "Rod", "Pulsaric Rod", 0x29B36334, true, true},
+	{"wizard", "Staff", "Staff of Nebula", 0x7C7DBEA9, false, true},
+	{"magician", "Rod", "Rod of Elemental Union", 0x784CC2A6, true, true},
+	{"magician", "Staff", "Crystalmana Crosier", 0x63DCEFAB, true, true},
+	{"necromancer", "Totem", "Rod of Consuming Hatred", 0xFD9C3858, true, true},
+	{"necromancer", "Sickle", "Sickle of Avhi Escron", 0x5FD4AE7C, false, true},
+}
+
+// The epics' named looks (the owner, 2026-11-14: "/aura epic necromancer
+// primary etc. to make it easier, if multiple make it druid1, druid2 etc. if
+// they have particle effect"): "epic <class>" its first epic's look, "epic
+// <class>N" each of them by the disc's order, on both weapons unless
+// primary/secondary (mainhand/offhand) is named. Every one glows (its emissive);
+// the line says which also carry a sheen and which particles.
+func init() {
+	n := map[string]int{}
+	for _, e := range epicLooks {
+		n[e.Class]++
+	}
+	seen := map[string]int{}
+	for _, e := range epicLooks {
+		seen[e.Class]++
+		what := "a glow"
+		if e.Sheen {
+			what += ", a sheen"
+		}
+		if e.Particles {
+			what += " and particles"
+		}
+		a := database.ItemAura{Kind: database.AuraEpic, Source: e.Source}
+		line := fmt.Sprintf("the %s epic %s, %s (%08X): %s", e.Class, strings.ToLower(e.Model), e.Name, e.Source, what)
+		if seen[e.Class] == 1 {
+			// the class's first, by its name alone
+			auraLooks = append(auraLooks, auraLook{[]string{"epic", e.Class}, a, line + fmt.Sprintf(" (also epic %s1)", e.Class), true})
+		}
+		if n[e.Class] > 1 || seen[e.Class] > 1 {
+			auraLooks = append(auraLooks, auraLook{[]string{"epic", fmt.Sprintf("%s%d", e.Class, seen[e.Class])}, a, line, true})
+		}
+	}
+}

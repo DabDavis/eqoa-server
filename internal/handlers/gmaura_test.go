@@ -134,6 +134,12 @@ func TestAuraEasyWords(t *testing.T) {
 		{"blue freezing offhand", auraSpec{A: database.ItemAura{Color: 0x3060FFFF, Kind: database.AuraParticles, Source: 0x6C151A60}, Where: entity.AuraOffHand, Look: "freezing"}},
 		{"freezing", auraSpec{A: database.ItemAura{Kind: database.AuraParticles, Source: 0x6C151A60}, Where: auraBothHands, Look: "freezing"}},
 		{"cyan freezing mainhand along=40", auraSpec{A: database.ItemAura{Color: 0x30FFFFFF, Kind: database.AuraParticles, Source: 0x6C151A60, Nodes: 40}, Where: entity.AuraMainHand, Look: "freezing"}},
+		// the epics by class (2026-11-14): the first by the class's name, each numbered; primary/secondary
+		{"epic necromancer primary", auraSpec{A: database.ItemAura{Kind: database.AuraEpic, Source: 0xFD9C3858}, Where: entity.AuraMainHand, Look: "epic necromancer"}},
+		{"epic necromancer2 secondary", auraSpec{A: database.ItemAura{Kind: database.AuraEpic, Source: 0x5FD4AE7C}, Where: entity.AuraOffHand, Look: "epic necromancer2"}},
+		{"epic druid2", auraSpec{A: database.ItemAura{Kind: database.AuraEpic, Source: 0xCBF4135A}, Where: auraBothHands, Look: "epic druid2"}},
+		{"Epic_Druid1 weapons", auraSpec{A: database.ItemAura{Kind: database.AuraEpic, Source: 0xD03942DE}, Where: auraBothHands, Look: "epic druid1"}},
+		{"red epic paladin mainhand", auraSpec{A: database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraEpic, Source: 0xF841266D}, Where: entity.AuraMainHand, Look: "epic paladin"}},
 		{"red energy offhand source=2EC56029", auraSpec{A: database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraEnergy, Source: 0x2EC56029}, Where: entity.AuraOffHand}},
 		{"monk circlet height=82", auraSpec{A: database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: 82}, Where: entity.AuraHelm, Look: "monk circlet"}},
 		{"red circlet head source=1D875ECD height=70%", auraSpec{A: database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: 70}, Where: entity.AuraHelm}},
@@ -150,7 +156,7 @@ func TestAuraEasyWords(t *testing.T) {
 		"druid staff",
 		"druid staff glow along=0", "druid staff glow along=101", "druid staff glow chest along=50", "blue shell chest along=50",
 		"epic weapons source=5FD4AE7C along=50 nodes=3", "off weapons along=50",
-		"monk circlet height=0", "monk circlet height=101", "blue shell chest height=50", "druid staff glow height=50", "monk circlet height=70 nodes=3"} {
+		"epic magician3", "monk circlet height=0", "monk circlet height=101", "blue shell chest height=50", "druid staff glow height=50", "monk circlet height=70 nodes=3"} {
 		if _, err := parseAuraEasy(strings.Fields(bad)); err == nil {
 			t.Errorf("%q: read, want refused", bad)
 		}
@@ -381,5 +387,44 @@ func TestGMAuraEasyCommand(t *testing.T) {
 	c.say(gs, "/aura off wholebody")
 	if tints := c.gw.NPCTints(); len(tints) != 0 {
 		t.Fatalf("/aura off wholebody: %+v", tints)
+	}
+}
+
+// The epics' named looks: each of the 14 classes with an epic model (not the alchemist) its first by its name,
+// each numbered where a class has more than one (35 models: 49 looks), every one
+// a held weapon's epic look of a disc model of models 44-78, and /aura looks a
+// line each, each one fragment.
+func TestEpicLooksByClass(t *testing.T) {
+	byName := map[string]auraLook{}
+	for _, l := range auraLooks {
+		byName[strings.Join(l.Words, " ")] = l
+	}
+	classes := []string{"shadowknight", "paladin", "warrior", "druid", "cleric", "shaman", "bard", "ranger", "monk", "rogue",
+		"enchanter", "wizard", "magician", "necromancer"}
+	for _, c := range classes {
+		l, ok := byName["epic "+c]
+		if !ok || l.A.Kind != database.AuraEpic || !l.Hands || l.A != byName["epic "+c+"1"].A {
+			t.Errorf("epic %s: %+v %v", c, l, ok)
+		}
+	}
+	if len(epicLooks) != 35 {
+		t.Fatalf("%d epic models", len(epicLooks))
+	}
+	n := 0
+	for name := range byName {
+		if strings.HasPrefix(name, "epic ") {
+			n++
+		}
+	}
+	if n != 35+len(classes) {
+		t.Fatalf("%d epic looks, want %d", n, 35+len(classes))
+	}
+	if byName["epic druid2"].A.Source != 0xCBF4135A || byName["epic rogue3"].A.Source != 0xBD3C3DC8 {
+		t.Fatal("the numbering is not the disc's order")
+	}
+	for _, line := range auraLooksReply() {
+		if len("[GM] "+line)*2+6 > 1156 {
+			t.Errorf("a line past one fragment: %q", line)
+		}
 	}
 }

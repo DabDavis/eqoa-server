@@ -118,9 +118,62 @@ func (w *World) staysInWaterLocked(npc *NPC) bool {
 	return w.env != nil && w.keepsToLocked(npc) == keepsToWater && w.npcInWaterLocked(npc)
 }
 
+// The slime's surface (the owner, 2026-11-14, the Plane of Disease: "the Fish
+// seem to get out of the water very easy here like the environment
+// boundaries didn't work very good"). The Plane's slime is a floor: its
+// pools' surface is the terrain, flat at -49.94 (the river's at -34.06),
+// and the zone leaf flagged slime over it reaches 14.7 to 25 units higher
+// (to -35.2 over the eastern pools), over the banks round it as well: of the
+// leaf's columns on world 5, 84,000 are the pools' flat surface and some
+// 40,000 the banks under the leaf's top. A creature of the water kept to
+// the leaf walked up the banks onto the shore, and one placed in it at a
+// swimmer's height (a GM's own, CLIENT floating his body at the leaf's
+// top) hung in the air over the slime: 75 of them taken out by hand,
+// 2026-11-13. So in the slime (no water there) a creature of the water
+// keeps to the surface it spawned on, within slimeLevel of its height (the
+// banks rise off it), and one placed over the surface is set on it
+// (groundnpc.go's spawnOnGroundLocked). The water is as it was: its
+// creatures swim at their depths.
+const slimeLevel float32 = 0.5
+
+// slimeOnlyLocked reports a point in the slime and not in the water. Must
+// be called with the lock held.
+func (w *World) slimeOnlyLocked(world uint8, x, y, z float32) bool {
+	if w.env == nil {
+		return false
+	}
+	f, ok := w.env.Flags(world, x, y, z)
+	return ok && f&envSlime != 0 && f&envWater == 0
+}
+
+// slimeSettlesLocked reports a creature of the water whose spawn is over
+// the floor at y, in the slime there and at the floor: set on the slime's
+// surface (spawnOnGroundLocked). Must be called with the lock held.
+func (w *World) slimeSettlesLocked(npc *NPC, y float32) bool {
+	return w.slimeOnlyLocked(npc.World, npc.SpawnX, npc.SpawnY+bodyAbove, npc.SpawnZ) &&
+		w.slimeOnlyLocked(npc.World, npc.SpawnX, y+bodyAbove, npc.SpawnZ) &&
+		w.keepsToLocked(npc) == keepsToWater
+}
+
+// keepsInLocked reports (x, z) at height y (its floor, for a creature on
+// the ground) as where a creature of the water may be: in the water; or in
+// the slime on the surface it spawned on (slimeLevel). Must be called with
+// the lock held.
+func (w *World) keepsInLocked(npc *NPC, x, y, z float32) bool {
+	if !w.waterAtLocked(npc.World, x, y+bodyAbove, z) {
+		return false
+	}
+	if !w.slimeOnlyLocked(npc.World, x, y+bodyAbove, z) || !w.spawnOnGroundLocked(npc) {
+		return true
+	}
+	return absf(y-npc.spawnFloor) <= slimeLevel
+}
+
 // waterAheadLocked reports the water at (x, z) where a creature would stand
-// there: on the floor for one on the ground, else at its height. Must be
-// called with the lock held.
+// there (on the floor for one on the ground, else at its height) as one of
+// the water keeps to it (keepsInLocked); one off its slime's surface (up a
+// bank, as it could go before) may come down to it through the slime. Must
+// be called with the lock held.
 func (w *World) waterAheadLocked(npc *NPC, x, z float32) bool {
 	y := npc.Y
 	if w.spawnOnGroundLocked(npc) {
@@ -128,7 +181,10 @@ func (w *World) waterAheadLocked(npc *NPC, x, z float32) bool {
 			y = f
 		}
 	}
-	return w.waterAtLocked(npc.World, x, y+bodyAbove, z)
+	if w.keepsInLocked(npc, x, y, z) {
+		return true
+	}
+	return y <= npc.Y && !w.keepsInLocked(npc, npc.X, npc.Y, npc.Z) && w.waterAtLocked(npc.World, x, y+bodyAbove, z)
 }
 
 // apartLocked reports a player and a creature on either side of the

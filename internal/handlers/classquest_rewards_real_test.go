@@ -63,16 +63,18 @@ func TestRealClassQuestRewardsScribe(t *testing.T) {
 	}
 	// the class's own spells: spell key -> the levels of its records
 	own := map[int]map[string]map[int]bool{}
-	rows, err := db.Query(`SELECT c.class, p.spellname, p.abilitylvl FROM classspells c JOIN spellpattern p ON p.spellid = c.spellid`)
+	classHas := map[[2]int]bool{} // (class, spell id) of classspells
+	rows, err := db.Query(`SELECT c.class, p.spellname, p.abilitylvl, p.spellid FROM classspells c JOIN spellpattern p ON p.spellid = c.spellid`)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for rows.Next() {
-		var c, lv int
+		var c, lv, id int
 		var name string
-		if err := rows.Scan(&c, &name, &lv); err != nil {
+		if err := rows.Scan(&c, &name, &lv, &id); err != nil {
 			t.Fatal(err)
 		}
+		classHas[[2]int{c, id}] = true
 		if own[c] == nil {
 			own[c] = map[string]map[int]bool{}
 		}
@@ -139,10 +141,20 @@ func TestRealClassQuestRewardsScribe(t *testing.T) {
 			rewards := append([]database.ItemCount(nil), st.RewardItems...)
 			if col == "choices" {
 				choices++
-				if len(st.Choices.Options) != 2 || !database.AtNPC(st.Kind) {
+				// the guides' two paths, and since the GMs' edits a third that gives a
+				// spell of the class (Elemental Ward, Clay Barrier: Heirloom and Live)
+				if n := len(st.Choices.Options); n < 2 || n > 3 || !database.AtNPC(st.Kind) {
 					t.Errorf("quest %d %q step %d: a %s step's choice of %d options", q.ID, q.Name, st.Step, st.Kind, len(st.Choices.Options))
 				}
 				for _, o := range st.Choices.Options {
+					if len(o.Reward.Items) == 0 && len(o.Reward.Spells) > 0 {
+						for _, id := range o.Reward.Spells {
+							if !classHas[[2]int{class, id}] {
+								t.Errorf("quest %d %q: option %q gives spell %d, not one of class %d's", q.ID, q.Name, o.Answer, id, class)
+							}
+						}
+						continue
+					}
 					if len(o.Reward.Items) != 1 {
 						t.Errorf("quest %d %q: option %q gives %d items", q.ID, q.Name, o.Answer, len(o.Reward.Items))
 					}

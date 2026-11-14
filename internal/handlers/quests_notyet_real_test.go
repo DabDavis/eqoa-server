@@ -145,12 +145,17 @@ func TestRealQuestNotYet(t *testing.T) {
 			if len(qu.FactionReqs) > 0 && strings.HasPrefix(why, "its standing") {
 				return nil, "a standing unmet"
 			}
+			if strings.HasPrefix(why, "it lacks ") {
+				// a hand-in done on the answer is offered only to one who holds it
+				// (mayTakeAtLocked): the probe holds nothing, and nothing is to say
+				return nil, "a hand-in not held"
+			}
 			return nil, why
 		}
 		return nil, "nothing to explain it"
 	}
 
-	type tally struct{ own, plain, offer, standing int }
+	type tally struct{ own, plain, offer, standing, held int }
 	tallies := map[string]*tally{}
 	unclear := map[string][]string{}
 	checked := 0
@@ -179,6 +184,8 @@ func TestRealQuestNotYet(t *testing.T) {
 			tl.offer++
 		case why == "a standing unmet":
 			tl.standing++
+		case why == "a hand-in not held":
+			tl.held++
 		case len(said) == 0:
 			t.Errorf("%q (L%d) at %s said nothing: %s", qu.Name, qu.MinLevel, qu.Giver, why)
 		case len(said) != 1 || !strings.HasPrefix(said[0], "box:"+strings.TrimSpace(qu.Giver)+": "):
@@ -219,7 +226,8 @@ func TestRealQuestNotYet(t *testing.T) {
 		if name == "" {
 			name = "(no city)"
 		}
-		t.Logf("%-22s its own line %4d, the line of no city %4d; nothing: a quest to take now %3d, a standing unmet %3d", name, tl.own, tl.plain, tl.offer, tl.standing)
+		t.Logf("%-22s its own line %4d, the line of no city %4d; nothing: a quest to take now %3d, a standing unmet %3d, a hand-in not held %3d",
+			name, tl.own, tl.plain, tl.offer, tl.standing, tl.held)
 	}
 	var givers []string
 	for g := range unclear {

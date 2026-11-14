@@ -1065,7 +1065,9 @@ func (w *World) cmRank(id int) *CMRank {
 
 // cmChangedLocked puts the player's ranks on its stats: the effects summed,
 // the stats again within the new caps, a new run speed told, and a new
-// TrainerCap (0x001C: where the trainer stops a base; mastery.go).
+// TrainerCap (0x001C: where the trainer stops a base; mastery.go), and the
+// HUD's bar again where it is the way to the next mastery point
+// (sendMasteryBarLocked).
 func (w *World) cmChangedLocked(p *Player) {
 	speed, trainer := p.SpeedNow(), p.TrainerCap()
 	p.refreshCMLocked(w.cms)
@@ -1074,6 +1076,7 @@ func (w *World) cmChangedLocked(p *Player) {
 	if w.SessionManager == nil {
 		return
 	}
+	w.sendMasteryBarLocked(p)
 	if s, t := p.SpeedNow(), p.TrainerCap(); s != speed || t != trainer {
 		if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
 			if s != speed {

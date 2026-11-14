@@ -1257,24 +1257,24 @@ near dabrish that says Real Estate Listings". `claude-notes/player-homes-2026111
   PS2 or an older vanilla is told why and not moved. No new opcodes. Room for later: furniture would be a table of its own
   keyed by the home's owner (`charhomeitems`), not made.
 
-### Instanced raid dungeons: ten of them in world 14 (`entity/dungeons.go`, `handlers/dungeons.go`, `world.dungeons`, `tools/dungeons_20261112.py`, `tools/dungeons_more_20261112.py`)
+### Instanced raid dungeons: eleven of them in world 14 (`entity/dungeons.go`, `handlers/dungeons.go`, `world.dungeons`, `tools/dungeons_20261112.py`, `tools/dungeons_more_20261112.py`, `tools/dungeons_saltmines_20261114.py`)
 
 The owner, 2026-11-12: "lets add a dungeon world. instanced versions of popular dungeons like Guk, Blackburrow, Runnyeye.
 they have the same mobs, but will be tuned for level 60 raids and raid gear". `claude-notes/dungeon-world-20261112.md`
 has the design, the numbers and what the rig showed. Then (the owner, later that day): "more instanced raids, same
 treatment": the Tomb of Kings, Castle Felstar, Collonridge Cemetery, Vox's Lair, Toxxulia's Lair, Box Canyon, Warren's Den.
 
-- **The world**: slot **14, the Dungeons** (`tools/worlds/dungeons.json`), 12 zones each where it stands: Tunaria 65
+- **The world**: slot **14, the Dungeons** (`tools/worlds/dungeons.json`), 13 zones each where it stands: Tunaria 65
   (Blackburrow), 54 (Misty Thicket, the valley before Runnyeye's gate, where its raids land), 67 (Runnyeye), 157 (Guk),
   9 (Permafrost: Vox's Lair), 43 (Castle Felstar), 44 (Collonridge Cemetery), 69 (Saerk Towers: in the world only so the
-  Tomb's north edge, 40 from its crypt, is no edge), 82 (Tomb of Kings), 121 (Box Canyons), and Odus 20 (Toxxulia's
+  Tomb's north edge, 40 from its crypt, is no edge), 82 (Tomb of Kings), 121 (Box Canyons), 105 (the Salt Mine, since 2026-11-14), and Odus 20 (Toxxulia's
   Lair) and 27 (the Warrens),
   every open edge closed by `cmd/worldedges`' rocks (`dungeons-edges.json`, 342; `-check` closed), made with
   `-keep` of every world-14 creature, each entrance, the way to each new dungeon and a 40 grid over its box (Box
   Canyon's box keeps 150 off its cell's edges, the canyon's rim, where its rocks stand), (since 2026-11-12, petition 1812: without it a north-edge rock
   of Blackburrow, scale 28 and 250 deep, buried the north-east mouth and its tunnel's end, an invisible wall inside). The recipe's
   `"dungeons"` block (`ReadDungeons`, carried into `worldN.json`, never the file): each dungeon's key, name, the boxes
-  its creatures stand in, its entrance (`toward` its gate). 86,972,184 bytes, CRC a47decaa (e42ecf47 with three dungeons, 1b39b6c4 before petition 1812). `world.dungeons.enabled`
+  its creatures stand in, its entrance (`toward` its gate). 96,202,006 bytes, CRC 8eca2c4d with the Salt Mine (86,972,184 d1edbebb before it, since build209's -0 fix; a47decaa before that; e42ecf47 with three dungeons, 1b39b6c4 before petition 1812). `world.dungeons.enabled`
   (off by default) with 14 in `server_worlds`; `close_after` (30m), `max_instances` (30).
 - **Templates and instances** (homes' engine: `Player.Instance`, `NPC.Instance`, `SamePlace`, `npcSharesLocked`):
   every npcs row of world 14 but the Dungeon Warden's is a **template**, held out of the world as a spawn-only NPC
@@ -1322,6 +1322,19 @@ treatment": the Tomb of Kings, Castle Felstar, Collonridge Cemetery, Vox's Lair,
   Verghest Felstar; Necromancer Warpheus; Lady Vox; Toxxulia; Skahyir; King Bardag), 84 records 995037-995120, a twin
   at each entrance. NPCs and templates are read at the start: a keep restart's `before.sh`. Tests: `TestDungeon*`
   (`entity/`, `handlers/`), `TestReadDungeonsRecipe`, `TestDungeonsPagesTheirBox`.
+
+**The Salt Mines** (the owner, 2026-11-14: "lets add salt mines dungeon to instanced raids. this is a deep dungeon
+with drachnids below"; `tools/dungeons_saltmines_20261114.py`, log `dungeons_saltmines_1114_log`, 321 rows): the
+Siloth's mine east of Forkwatch, Tunaria zone 105 (cell (7, 9)), key `saltmines`, box (14400, 18900)-(14680, 19160),
+landing (14760, 54.2, 19045) facing west into the mouth (98 from its door guards). Down its shaft: the Siloth floors
+(y 42 to -28: 28 slavers, 9 knights by `dungeon trash shadowknight`, 5 ritualists, a necromancer, 3 door guards: L60),
+the drachnids' nest (y -57 to -73: lurkers, spinners, gorgers, parasites, stalkers, a glyphed familiar, L60-62; the
+named Drachnid Body Snatcher, Faz, Fengzel, Grosp, Hezphire, Kezmire, Maestro of Rancor, Melanzalan, Thelanzelan,
+L64) and two bosses (L65): **Spider Queen Aszec** (the drachnids' queen, y -57) and **Mayong Mistmoore** in the crypt
+at the foot (y -88). 98 creatures; left out: Collin Ilbeth (a quest's), Slavemaster Hern, Lionell Redrick, the coffins
+and the Circle of the Spider Queen (friendly). Raid gear 995121-995132 (tables `dungeon saltmines boss|named`). Edges:
+`worldedges -zone 12 -keep` (the mine's creatures, landing, box): 107 rocks added, the other zones' unchanged; `-check`
+closed. The Siloth castle north-west is in the world, empty. Heirloom only (the Live Server lists no world 14).
 
 **Adding and taking out players** (petition 1879, `entity/instancemembers.go`): `/addinstance [name] [dungeon]`,
 `/removeinstance` (`/dungeon add|remove`, `/t addinstance`, 0x7E48 ops 14/15 with a u32 target), the owner's, its group

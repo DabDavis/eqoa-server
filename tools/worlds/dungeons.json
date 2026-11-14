@@ -1,7 +1,7 @@
 {
   "world": 14,
   "name": "the Dungeons",
-  "note": "The instanced raid dungeons (handlers/dungeons.go, entity/dungeons.go; claude-notes/dungeon-world-20261112.md): the disc's own zones of ten dungeons (Blackburrow, Runnyeye with Misty Thicket before its gate, Guk; since 2026-11-12 also the Tomb of Kings, Castle Felstar, Collonridge Cemetery, Vox's lair in Permafrost, Box Canyons, and Odus's Toxxulia's lair and the Warrens), each where it stands on Tunaria; every raid, group or lone player that goes in fights in a copy of its own (an instance). The dungeons block is read by the server, never written into the file: each dungeon's key, name, the boxes its creatures stand in (the world's npcs rows inside them are its templates, tools/dungeons_20261112.py) and where a player sent in lands, facing the way in. The open edges are closed by cmd/worldedges' rocks (dungeons-edges.json), kept by -keep clear of every creature, entrance and each new dungeon's box (petitions 1808/1812: a rock over a landing or a tunnel is an invisible wall). Built by cmd/worldbuild from the operator's disc.",
+  "note": "The instanced raid dungeons (handlers/dungeons.go, entity/dungeons.go; claude-notes/dungeon-world-20261112.md): the disc's own zones of ten dungeons (Blackburrow, Runnyeye with Misty Thicket before its gate, Guk; since 2026-11-12 also the Tomb of Kings, Castle Felstar, Collonridge Cemetery, Vox's lair in Permafrost, Box Canyons, and Odus's Toxxulia's lair and the Warrens; since 2026-11-14 the Salt Mines, the Siloth's shaft with the drachnids below), each where it stands on Tunaria; every raid, group or lone player that goes in fights in a copy of its own (an instance). The dungeons block is read by the server, never written into the file: each dungeon's key, name, the boxes its creatures stand in (the world's npcs rows inside them are its templates, tools/dungeons_20261112.py) and where a player sent in lands, facing the way in. The open edges are closed by cmd/worldedges' rocks (dungeons-edges.json), kept by -keep clear of every creature, entrance and each new dungeon's box (petitions 1808/1812: a rock over a landing or a tunnel is an invisible wall). Built by cmd/worldbuild from the operator's disc.",
   "extraFiles": [
     "dungeons-edges.json"
   ],
@@ -77,6 +77,12 @@
       "from": "ODUS.ESF",
       "zone": 27,
       "note": "Odus cell (4, 4): clan Kolbok's den in the hills, King Bardag's halls"
+    },
+    {
+      "name": "Salt Mine",
+      "from": "TUNARIA.ESF",
+      "zone": 105,
+      "note": "Tunaria cell (7, 9): the Siloth's salt mine east of Forkwatch, its shaft (14420-14615, 18930-19140) down from the mouth at (14600, 54, 19045) through the Siloth's floors (y 42 to -28) to the drachnids' nest (y -57 to -73) and the crypt at its foot (y -88); the Siloth castle north-west is in the world, empty"
     }
   ],
   "dungeons": [
@@ -315,6 +321,29 @@
         ]
       },
       "note": "before the den's north way in; King Bardag's hall at its heart"
+    },
+    {
+      "key": "saltmines",
+      "cap": 4,
+      "name": "Salt Mines",
+      "boxes": [
+        [
+          14400,
+          18900,
+          14680,
+          19160
+        ]
+      ],
+      "entrance": {
+        "x": 14760,
+        "y": 54.2,
+        "z": 19045,
+        "toward": [
+          14650,
+          19045
+        ]
+      },
+      "note": "before the mine's mouth from the east, 98 from its door guards; down through the Siloth slavers' floors to the drachnids, Spider Queen Aszec's nest at y -57 and Mayong Mistmoore's crypt at the foot (y -88)"
     }
   ]
 }

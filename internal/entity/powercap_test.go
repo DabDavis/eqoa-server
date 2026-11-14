@@ -94,7 +94,11 @@ func TestEyeHoldsMaximumPowerDown(t *testing.T) {
 	}
 }
 
-// Two ceilings: the lower holds (an Eye of 0 under an epic's 1500).
+// Two ceilings: the lower holds (an Eye of 0 under an epic's 1500). The Eye
+// (+140 WIS) cast under the epic (+305 WIS) is one line with it and the
+// weaker: refused (buffline.go's lineOutranks, 2026-11-14), the epic's
+// ceiling held; two ceilings on at once (the epic's kept beside an Eye, as
+// one kept from before the line rule is), the lower holds.
 func TestLowerPowerCeilingHolds(t *testing.T) {
 	c := newCaster(t)
 	c.p.Power, c.p.MaxPower = 3000, 3630
@@ -104,9 +108,19 @@ func TestLowerPowerCeilingHolds(t *testing.T) {
 	if c.p.MaxPowerNow() != 1500 || c.p.Power != 1500 {
 		t.Fatalf("under the epic: power %d of %d", c.p.Power, c.p.MaxPowerNow())
 	}
-	c.land(t, eyeSpell("Self, Increase WIS by 140, Set MaxPower to 0, Increase Power per tic by 20, 45sec"), c.me, time.Second)
-	if c.p.MaxPowerNow() != 0 || c.p.Power != 0 {
-		t.Errorf("under both: power %d of %d", c.p.Power, c.p.MaxPowerNow())
+	held := *c.p.Effects[0]
+	eye := eyeSpell("Self, Increase WIS by 140, Set MaxPower to 0, Increase Power per tic by 20, 45sec")
+	c.land(t, eye, c.me, time.Second)
+	if len(c.p.Effects) != 1 || c.p.Effects[0].Name != epic.Name || c.p.MaxPowerNow() != 1500 {
+		t.Errorf("the weaker Eye under the epic: %d effects, power %d of %d", len(c.p.Effects), c.p.Power, c.p.MaxPowerNow())
+	}
+
+	d := newCaster(t)
+	d.p.Power, d.p.MaxPower = 3000, 3630
+	d.land(t, eye, d.me, 0)
+	d.p.Effects = append(d.p.Effects, &held)
+	if d.p.MaxPowerNow() != 0 || d.p.Power != 0 {
+		t.Errorf("under both: power %d of %d", d.p.Power, d.p.MaxPowerNow())
 	}
 }
 

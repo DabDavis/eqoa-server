@@ -84,7 +84,7 @@ func (q *QuestEngine) preLootLocked(k entity.KillCredit, kp entity.KillPlayer, c
 			continue
 		}
 		held := sessionInvList(kp.Session).heldStandingFor(pid)
-		if held >= need {
+		if held-keptForEarlier(qu, st, pid) >= need {
 			continue
 		}
 		pat, err := q.items.GetItemPattern(pid)
@@ -106,6 +106,35 @@ func (q *QuestEngine) preLootLocked(k entity.KillCredit, kp entity.KillPlayer, c
 	}
 }
 
+// keptForEarlier is how many of a loot step's item the earlier loot steps of its quest want
+// that no give step between them and it hands in: the pack's items of that number are theirs,
+// kept for the hand-in that wants them all, not the step's own. The Split Ruby (Oggok, 100535):
+// a ruby half off a wandering forager at step 1, one off a fat piranha at step 2, the two given
+// to Oligan at step 4; step 2 counted step 1's half as its own when it started, was done at
+// once, and the hand-in wanted a second half the quest would never drop again.
+func keptForEarlier(qu *database.Quest, st *database.QuestStep, pid int) int {
+	n := 0
+	for i := range qu.Steps {
+		s := &qu.Steps[i]
+		if s.Step >= st.Step {
+			continue
+		}
+		switch s.Kind {
+		case database.StepLoot:
+			if p, need, ok := s.LootItem(); ok && p == pid {
+				n += need
+			}
+		case database.StepGive:
+			for _, it := range s.Items {
+				if it.PatternID == pid {
+					n = max(0, n-max(it.Count, 1))
+				}
+			}
+		}
+	}
+	return n
+}
+
 // lootStepHeldLocked counts, on a loot step become the step to do, the step's items the pack
 // holds already (up to what it wants), and does the step when they are enough (the file's doc).
 // It reports whether the step was done.
@@ -117,7 +146,7 @@ func (q *QuestEngine) lootStepHeldLocked(sess *session.Session, p *entity.Player
 	if !ok {
 		return false
 	}
-	held := min(sessionInvList(sess).heldStandingFor(pid), need)
+	held := min(max(0, sessionInvList(sess).heldStandingFor(pid)-keptForEarlier(qu, st, pid)), need)
 	if held <= cq.Count {
 		return false
 	}

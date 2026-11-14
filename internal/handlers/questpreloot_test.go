@@ -101,3 +101,58 @@ func TestTwoLootStepsOffOneCreatureDropBothOnOneKill(t *testing.T) {
 		t.Fatalf("both taken: step %d, want 3 (the wand held does step 2 at once)", s)
 	}
 }
+
+// The Split Ruby (Oggok, 100535): a ruby half off one creature at step 1, one off another at
+// step 2, both handed in at step 3. Step 2, become the step to do, does not count step 1's half
+// as its own (it would be done at once and the hand-in short of a half the quest never drops
+// again): it waits for its own, which its kill drops, and the two do the hand-in. The control:
+// a quest whose earlier step hands the item in counts the half held at the later step.
+func TestALaterLootStepOfTheSameItemWantsItsOwn(t *testing.T) {
+	f := newQuestFixture(t)
+	belt := f.pattern("slashed belt", 20)
+	ruby := f.pattern("ruby half", 1)
+	drops := lootQuest(f, belt, 0.1, 0.1, 0.1, 0.1)
+	r := strconv.Itoa(ruby)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver) VALUES (63, 'The Split Ruby', 1, 'Oligan')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, items, count, chance, journal)
+		VALUES (63, 1, 'loot', 'wandering forager', '` + r + `', 1, 1.0, 'A half.')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, items, count, chance, journal)
+		VALUES (63, 2, 'loot', 'fat piranha', '` + r + `', 1, 1.0, 'The other half.')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, items, journal) VALUES (63, 3, 'give', 'Oligan', '` + r + `*2', 'Both.')`)
+	f.qe.Reload()
+	if _, err := f.qe.SetCharacterQuest(f.sid, 63, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.killFor("wandering forager", 830)
+	f.own(ruby, 1)
+	f.qe.Looted(f.tw.s, f.tw.p, ruby, 1)
+	if s, _ := f.progress(63); s != 2 {
+		t.Fatalf("the first half taken: step %d, want 2 (waiting for its own half)", s)
+	}
+	*drops = nil
+	f.killFor("fat piranha", 831)
+	if len(*drops) != 1 || (*drops)[0] != (lootDrop{831, f.sid, ruby}) {
+		t.Fatalf("the piranha dropped %v, want the second half", *drops)
+	}
+	f.own(ruby, 1)
+	f.qe.Looted(f.tw.s, f.tw.p, ruby, 1)
+	if s, _ := f.progress(63); s != 3 {
+		t.Fatalf("the second half taken: step %d, want 3", s)
+	}
+
+	// the control: the first half handed in before the second loot step
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver) VALUES (64, 'Halves Apart', 1, 'Oligan')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, items, count, chance, journal)
+		VALUES (64, 1, 'loot', 'wandering forager', '` + r + `', 1, 1.0, 'A half.')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, items, journal) VALUES (64, 2, 'give', 'Oligan', '` + r + `', 'One.')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, items, count, chance, journal)
+		VALUES (64, 3, 'loot', 'fat piranha', '` + r + `', 1, 1.0, 'Another.')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (64, 4, 'talk', 'Oligan', 'Back.')`)
+	f.qe.Reload()
+	if _, err := f.qe.SetCharacterQuest(f.sid, 64, QuestSetStep, 3); err != nil {
+		t.Fatal(err)
+	}
+	if s, _ := f.progress(64); s != 4 {
+		t.Fatalf("a half held at a loot step after the hand-in: step %d, want 4 (counted at once)", s)
+	}
+}

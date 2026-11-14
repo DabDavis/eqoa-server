@@ -37,7 +37,8 @@ import (
 // player, a kill is a credit, a teleport moves the server's player; levels,
 // standings and room in the pack are given as a player would have them (the
 // pack is emptied, between quests, of what no hand-in of a quest the character
-// has not finished wants).
+// has not finished wants); a hand-in's item a merchant sells or a creature
+// carries or rolls (npcitem, lootpool, loottables) is had as a player has it.
 func TestRealQuestChainsWalk(t *testing.T) {
 	src := os.Getenv("EQOA_REAL_DB")
 	if src == "" {
@@ -75,6 +76,24 @@ func TestRealQuestChainsWalk(t *testing.T) {
 			}
 		}
 		sort.Ints(ids)
+	}
+	// a hand-in's item a merchant sells is bought, one a creature carries or rolls looted
+	// (Heirloom's first class quests since Jibrish's edits of 2026-11-11: "purchase a
+	// thick blue uniform from him"; its hand-ins of trash drops, a loot step no more)
+	w.obtain = func(qu *database.Quest, st *database.QuestStep) string {
+		for _, it := range st.Items {
+			var sold int
+			w.db.QueryRow(`SELECT (SELECT count(*) FROM npcitem WHERE patternid = ?1) + (SELECT count(*) FROM lootpool
+				WHERE patternid = ?1 AND weight > 0) + (SELECT count(*) FROM loottables WHERE patternid = ?1 AND weight > 0)`,
+				it.PatternID).Scan(&sold)
+			if sold == 0 {
+				continue
+			}
+			if pat, err := w.qe.items.GetItemPattern(it.PatternID); err == nil && pat != nil {
+				GiveItemNow(w.sess, w.gw, w.inv, *pat, max(it.Count, 1))
+			}
+		}
+		return ""
 	}
 	// the engine's log lines are many thousands here: kept out of the test's
 	log.SetOutput(io.Discard)
@@ -115,6 +134,10 @@ type questWalker struct {
 	byCombo map[[2]int]*walkChar
 	combo   [][2]int // the classes and races a character may be (defaultcharacter's, the froglok's)
 	fit     map[[3]int]bool
+	// obtain, when set, gets the character a show or give step's items it lacks as
+	// a player would (questcheck_real_test.go: bought, looted off a creature): ""
+	// when it did what it could, else why not
+	obtain func(qu *database.Quest, st *database.QuestStep) string
 }
 
 // walkChar is one walking character.
@@ -373,6 +396,15 @@ func (w *questWalker) walkOne(qu *database.Quest) string {
 	w.qe.mu.Lock()
 	why := w.qe.mayTakeLocked(w.qe.lookAt(w.sess), w.p, w.qe.charLocked(w.p.CharServerID), qu)
 	w.qe.mu.Unlock()
+	if strings.HasPrefix(why, "it lacks ") && w.obtain != nil {
+		// a hand-in done on the answer is offered to one who holds it: had first
+		if got := w.obtain(qu, qu.First()); got != "" {
+			return "its hand-in's items not had: " + got
+		}
+		w.qe.mu.Lock()
+		why = w.qe.mayTakeLocked(w.qe.lookAt(w.sess), w.p, w.qe.charLocked(w.p.CharServerID), qu)
+		w.qe.mu.Unlock()
+	}
 	if why != "" {
 		return "not to be taken: " + why
 	}
@@ -421,6 +453,14 @@ func (w *questWalker) doStep(qu *database.Quest, st *database.QuestStep) string 
 			w.qe.mu.Lock()
 			lack := w.qe.lackingLocked(w.p, st)
 			w.qe.mu.Unlock()
+			if lack != "" && w.obtain != nil {
+				if why := w.obtain(qu, st); why != "" {
+					return "its items not had: " + why
+				}
+				w.qe.mu.Lock()
+				lack = w.qe.lackingLocked(w.p, st)
+				w.qe.mu.Unlock()
+			}
 			if lack != "" {
 				return "the walk does not hold " + lack
 			}
@@ -435,7 +475,7 @@ func (w *questWalker) doStep(qu *database.Quest, st *database.QuestStep) string 
 		}
 		w.settle()
 	case database.StepLoot:
-		pid, need, _ := st.LootItem()
+		_, need, _ := st.LootItem()
 		for i := 0; i < need+2; i++ {
 			if s, _ := w.progress(qu.ID); s != st.Step {
 				break
@@ -453,7 +493,9 @@ func (w *questWalker) doStep(qu *database.Quest, st *database.QuestStep) string 
 				if got, err := GiveItemNow(w.sess, w.gw, w.inv, *pat, 1); err != nil || got == 0 {
 					return fmt.Sprintf("its %q not taken (%v)", pat.ItemName, err)
 				}
-				w.qe.Looted(w.sess, w.p, pid, 1)
+				// the item taken is what is counted: a kill drops other quests' items too
+				// ahead of their steps (questpreloot.go), which are not this step's
+				w.qe.Looted(w.sess, w.p, d, 1)
 			}
 			w.settle()
 		}

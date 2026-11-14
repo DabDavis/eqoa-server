@@ -397,13 +397,14 @@ func (w *World) petUndeadMayLocked(s *CastSpell, t *NPC) bool {
 	return s == nil || t == nil || !s.Def.undeadOnly() || w.undeadLocked(t)
 }
 
-// buffOn is whether effects hold the buff's effect, one of its line of its
-// rank or higher, or one that keeps it off (a nested line that covers it:
+// buffOn is whether effects hold the buff's effect, one of its line it does
+// not outrank (lineOutranks: as strong or stronger, then of its rank or
+// higher), or one that keeps it off (a nested line that covers it:
 // buffline.go's lineVerdict, putOnPetLocked), so casting it would do nothing.
 func buffOn(effects []*ActiveEffect, s *CastSpell) bool {
 	ae := &ActiveEffect{SpellID: s.SpellID, Line: EffectLine(s), Rank: lineRank(s), Mods: staticMods(s)}
 	for _, e := range effects {
-		if e.SpellID == s.SpellID || sameLine(e.Line, ae.Line) && e.Rank >= ae.Rank {
+		if e.SpellID == s.SpellID || sameLine(e.Line, ae.Line) && !lineOutranks(ae, e) {
 			return true
 		}
 	}

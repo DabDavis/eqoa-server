@@ -500,8 +500,8 @@ const (
 
 // lineTakesLocked marks a beneficial effect landing on a player with its
 // spell's line and rank and reports whether it takes (the file's doc): not
-// when an effect of its line of a higher rank is on, of which the caster is
-// told. Must be called with the lock held.
+// when an effect of its line that outranks it is on (lineOutranks: the
+// stronger, then the higher rank), of which the caster is told. Must be called with the lock held.
 func (w *World) lineTakesLocked(caster *Player, casterSess *session.Session, t *Player, spell *CastSpell, ae *ActiveEffect) bool {
 	ae.Line, ae.Rank = EffectLine(spell), lineRank(spell)
 	e := lineVerdict(t.Effects, ae)
@@ -521,8 +521,9 @@ func (w *World) lineTakesLocked(caster *Player, casterSess *session.Session, t *
 }
 
 // lineVerdict is the effect of effects that keeps ae off (the file's doc), nil
-// when ae takes: a proc rival above it, a nested line that covers it, or its
-// line's higher rank. ae's Line and Rank are set.
+// when ae takes: a proc rival above it, a nested line that covers it, or one
+// of its line that outranks it (lineOutranks: the stronger, then the higher
+// rank). ae's Line, Rank and Mods are set.
 func lineVerdict(effects []*ActiveEffect, ae *ActiveEffect) *ActiveEffect {
 	if ae.Line == "" {
 		return nil
@@ -539,12 +540,53 @@ func lineVerdict(effects []*ActiveEffect, ae *ActiveEffect) *ActiveEffect {
 			if !effectCovers(e, ae) {
 				continue // both on, each shared stat its stronger once (the doc above)
 			}
-		} else if !sameLine(e.Line, ae.Line) || e.Rank <= ae.Rank {
+		} else if !sameLine(e.Line, ae.Line) || !lineOutranks(e, ae) {
 			continue
 		}
 		return e
 	}
 	return nil
+}
+
+// The stronger of a line wins (the owner, 2026-11-14: "check the lines across
+// every class"; the user's rule of 2026-10-29 is "only the best of a line
+// counts"). Until then a line's rank alone said which of two was the better,
+// and on eqoaclassic's spells a higher rank is not always the stronger: the
+// bard's Harmony (55, +30 PoT) refused Power Vibe (49, +134), Rhapsody (44,
+// +20) Power Dance (20, +51); the wizard's Aktrana's Tower of Will (60, +1100
+// power and PoT) Towering Mind (49, +1325); the shaman's Accuracy (24, +30
+// AGI and DEX) Deftness (16, +50); and of two of one rank the later took the
+// other off, so an Ascended epic (Ascended Warcry, 715 hit points) went under
+// its plain form (Warcry, 650) cast after it. Since then two effects of one
+// line are weighed by what they give of the stats they share, as cast
+// (lineStrength: their sum); the rank decides only between two as strong
+// (lines of no shared stat, a shield's, a proc's, a speed's, among them).
+
+// lineStrength is what a gives of the stats its line shares with b's line:
+// the sum of a's amounts of each stat both raise ("+STR" in both lines).
+func lineStrength(a, b *ActiveEffect) int {
+	pa, oka := parseLine(a.Line)
+	pb, okb := parseLine(b.Line)
+	if !oka || !okb {
+		return 0
+	}
+	n := 0
+	for st := Stat(1); int(st) < len(statLineNames)-1; st++ {
+		k := "+" + statLineNames[st]
+		if slices.Contains(pa.keys, k) && slices.Contains(pb.keys, k) {
+			n += max(a.Mods.get(st), 0)
+		}
+	}
+	return n
+}
+
+// lineOutranks reports a, of b's line, keeping b off (the doc above): a gives
+// more of the stats they share, or as much and is of a higher rank.
+func lineOutranks(a, b *ActiveEffect) bool {
+	if sa, sb := lineStrength(a, b), lineStrength(b, a); sa != sb {
+		return sa > sb
+	}
+	return a.Rank > b.Rank
 }
 
 // lineDrops is the spell ids of effects ae takes off as it goes on
@@ -594,7 +636,7 @@ func (w *World) shareTakesLocked(caster *Player, ae *ActiveEffect) bool {
 		case nestedLines(e.Line, ae.Line):
 			refused = effectCovers(e, ae)
 		default:
-			refused = sameLine(e.Line, ae.Line) && e.Rank > ae.Rank
+			refused = sameLine(e.Line, ae.Line) && lineOutranks(e, ae)
 		}
 		if refused {
 			log.Printf("Cast: %s's share of %q (rank %d) does not take: %q (rank %d) is on", caster.Name, ae.Name, ae.Rank, e.Name, e.Rank)

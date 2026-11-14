@@ -143,7 +143,11 @@ func (w *World) petTakenLocked(pet *NPC, n int) int {
 		return max(1, pct(n, w.balance.MeleeTakenPctAt(b.Class, b.Level)))
 	}
 	ps := w.petStateOfNPCLocked(pet)
-	if ps == nil || ps.npc != pet || ps.tmpl == nil || ps.tmpl.tmpl.TakenPct == 100 || n <= 0 {
+	if ps == nil || ps.npc != pet || n <= 0 {
+		return n
+	}
+	n = w.earthPetTakenLocked(ps, n) // a tank's share of its owner's level (petearthtaken.go)
+	if ps.tmpl == nil || ps.tmpl.tmpl.TakenPct == 100 {
 		return n
 	}
 	return max(1, int(math.Round(float64(n)*float64(ps.tmpl.tmpl.TakenPct)/100)))

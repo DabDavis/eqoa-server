@@ -212,6 +212,7 @@ type auraLook struct {
 	Words []string
 	A     database.ItemAura
 	What  string
+	Hands bool // a held weapon's whatever its kind: both hands unless one is named
 }
 
 // CircletHeightMonk is the monk circlet's height on the head, percent of it
@@ -226,7 +227,7 @@ var auraLooks = []auraLook{
 	// zerkziee scimitar down the blade more"; until then at the staff's own
 	// share, 78%, near the tip)
 	{[]string{"druid", "staff", "glow"}, database.ItemAura{Kind: database.AuraEpic, Source: 0xCBF4135A, Nodes: 45},
-		"the druid's level 49 epic staff, Oak Staff of Eilerawdl (CBF4135A): an amber glow, a gold sheen and its sparkles mid-blade (along=N moves them)"},
+		"the druid's level 49 epic staff, Oak Staff of Eilerawdl (CBF4135A): an amber glow, a gold sheen and its sparkles mid-blade (along=N moves them)", false},
 	// the monk's level 49 epic, the Ascendant staff: the glowing ring with its
 	// criss-cross at its yin-yang end worn as a circlet (the owner,
 	// 2026-11-14: "the effect on the end of the monks epic yin yang staff the
@@ -236,9 +237,17 @@ var auraLooks = []auraLook{
 	// upper forehead and temples, above the brows (the owner, 2026-11-14: "the
 	// circlet is sitting too low on dust"; the client's own 62% crossed the eyes)
 	{[]string{"monk", "circlet"}, database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: CircletHeightMonk},
-		"the monk's level 49 epic staff, Ascendant staff (1D875ECD): its glowing ring with the criss-cross worn round the head at the temples (while no helm is drawn; height=N moves it)"},
+		"the monk's level 49 epic staff, Ascendant staff (1D875ECD): its glowing ring with the criss-cross worn round the head at the temples (while no helm is drawn; height=N moves it)", false},
 	{[]string{"sickle", "taint"}, database.ItemAura{Kind: database.AuraEpic, Source: 0x5FD4AE7C},
-		"the necromancer's epic, Sickle of Avhi Escron (5FD4AE7C): an olive glow and its green mist (Zaeire's)"},
+		"the necromancer's epic, Sickle of Avhi Escron (5FD4AE7C): an olive glow and its green mist (Zaeire's)", false},
+	// a spell visual's hand emitters on a held weapon (the owner, 2026-11-14:
+	// "0x6c151a60 the spell effect of the player's hands the ice dripping make
+	// a weapon aura with /aura blue freezing offhand"): the particles kind with
+	// the spell visual as its source (vanilla's aura::spell_emitters: the ice
+	// drip 0x5D471C8E its caster's list starts on the hands), at the hand, or
+	// along= up the weapon; a colour turns it that hue
+	{[]string{"freezing"}, database.ItemAura{Kind: database.AuraParticles, Source: 0x6C151A60},
+		"the ice dripping off a caster's hands (spell visual 6C151A60) on a held weapon (/aura blue freezing offhand)", true},
 }
 
 // takeAuraLook finds a named look in args (its words in a row, or run
@@ -387,7 +396,7 @@ func parseAuraEasy(args []string) (sp auraSpec, err error) {
 		if !along && !nodes && !height {
 			sp.A.Nodes = look.A.Nodes // the look's own place along the weapon, or height on the head
 		}
-		if sp.Where == -1 && look.A.Kind == database.AuraEpic {
+		if sp.Where == -1 && (look.A.Kind == database.AuraEpic || look.Hands) {
 			sp.Where = auraBothHands
 		}
 		if sp.Where == -1 && look.A.Kind == database.AuraCirclet {

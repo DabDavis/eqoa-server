@@ -255,3 +255,45 @@ func TestGMSizeKeptInTheRow(t *testing.T) {
 		t.Fatalf("%d npcs updates audited", n)
 	}
 }
+
+// The owner, 2026-11-14: "lets give the account for kobe, skywalker access to use
+// ./size ... will set that mobs size in the database so will stay that size and also
+// update it instantly". A player's /size is an unknown command (the control); made
+// a sub GM (forestwood's gm_testers row), its /size on a creature sizes it at once and
+// keeps it in the row, audited; with no creature targeted it is refused (a sub GM's
+// /size is a creature's), its own size left alone.
+func TestSubGMSizeKeptInTheRow(t *testing.T) {
+	c, db, _, _, _, ps := campWorld(t)
+	pp := c.gw.SessionPlayer(ps)
+	before := npcRowMap(t, db, campWolfNear)["size"].(float64)
+	targetAs(pp, campWolfNear, 100101, ps)
+	c.say(ps, "/size 2")
+	if l := gmReplies(t, ps); !hasLine(l, `Unrecognized command "/size"`) {
+		t.Fatalf("a player's /size: %q", l)
+	}
+	if got := npcRowMap(t, db, campWolfNear)["size"].(float64); got != before {
+		t.Fatalf("a player's /size changed the row: %v", got)
+	}
+
+	c.h.SetAccessLevels(subs{levels{1: 1, 2: 0}, map[int]bool{2: true}})
+	c.say(ps, "/size 2")
+	if l := gmReplies(t, ps); !hasLine(l, "keeps size") {
+		t.Fatalf("a sub GM's /size: %q", l)
+	}
+	if got := npcRowMap(t, db, campWolfNear)["size"].(float64); math.Abs(got-2*before) > 0.01 {
+		t.Fatalf("the row's size %v, want 2x %v", got, before)
+	}
+	if got := c.gw.NPCSize(campWolfNear); math.Abs(float64(got)-2*before) > 0.01 {
+		t.Fatalf("the creature's size in the world %v, want 2x %v", got, before)
+	}
+	if n := auditLines(t, db, "npcs", "update"); n != 1 {
+		t.Fatalf("%d npcs updates audited", n)
+	}
+
+	own := pp.Size
+	pp.TargetObjectID = 0
+	c.say(ps, "/size 3")
+	if l := gmReplies(t, ps); !hasLine(l, "target a creature first") || pp.Size != own {
+		t.Fatalf("a sub GM's /size on no creature: %q, size %v", l, pp.Size)
+	}
+}

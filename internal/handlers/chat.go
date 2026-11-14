@@ -1293,6 +1293,11 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 			h.gmReply(sess, "Usage: #size <factor> (or /size): your target, else you; 2.5 is two and a half times its own size, 1 its own")
 			return
 		}
+		if !h.isGM(sess) && !h.targetsCreature(sess, player) {
+			// a sub GM's /size is a creature's (devcmds.go's subGMCommands)
+			h.gmReply(sess, "/size: target a creature first")
+			return
+		}
 		line, ok := h.gameWorld.GMScale(player, float32(f))
 		h.gmReply(sess, line)
 		if ok {

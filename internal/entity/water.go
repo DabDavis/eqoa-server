@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"math"
 	"time"
 
 	"github.com/eqoa/server/internal/session"
@@ -136,6 +137,10 @@ func (w *World) staysInWaterLocked(npc *NPC) bool {
 // creatures swim at their depths.
 const slimeLevel float32 = 0.5
 
+// slimeSurfaces turns the slime's surface rule on; a test's control turns it
+// off (the leaf alone, as before).
+var slimeSurfaces = true
+
 // slimeOnlyLocked reports a point in the slime and not in the water. Must
 // be called with the lock held.
 func (w *World) slimeOnlyLocked(world uint8, x, y, z float32) bool {
@@ -146,11 +151,38 @@ func (w *World) slimeOnlyLocked(world uint8, x, y, z float32) bool {
 	return ok && f&envSlime != 0 && f&envWater == 0
 }
 
+// slimeSurfaceLocked is the slime's surface by a floor at y in it: the
+// lowest floor in the slime round it, within slimeLook, the banks rising off
+// the surface (one spawned up a bank keeps to the surface below it, and comes
+// down to it). Must be called with the lock held and a ground.
+func (w *World) slimeSurfaceLocked(world uint8, x, y, z float32) float32 {
+	low := y
+	for r := slimeStep; r <= slimeLook; r += slimeStep {
+		for a := 0; a < 16; a++ {
+			s, c := math.Sincos(float64(a) * math.Pi / 8)
+			px, pz := x+r*float32(c), z+r*float32(s)
+			f, ok := w.floorLocked(world, px, y, pz)
+			if ok && f < low && w.slimeOnlyLocked(world, px, f+bodyAbove, pz) {
+				low = f
+			}
+		}
+	}
+	return low
+}
+
+// slimeLook is how far round a spawn in the slime its surface is looked for
+// (the Plane of Disease's banks are 16 to 40 across), slimeStep the rings'
+// spacing.
+const (
+	slimeLook float32 = 48
+	slimeStep float32 = 3
+)
+
 // slimeSettlesLocked reports a creature of the water whose spawn is over
 // the floor at y, in the slime there and at the floor: set on the slime's
 // surface (spawnOnGroundLocked). Must be called with the lock held.
 func (w *World) slimeSettlesLocked(npc *NPC, y float32) bool {
-	return w.slimeOnlyLocked(npc.World, npc.SpawnX, npc.SpawnY+bodyAbove, npc.SpawnZ) &&
+	return slimeSurfaces && w.slimeOnlyLocked(npc.World, npc.SpawnX, npc.SpawnY+bodyAbove, npc.SpawnZ) &&
 		w.slimeOnlyLocked(npc.World, npc.SpawnX, y+bodyAbove, npc.SpawnZ) &&
 		w.keepsToLocked(npc) == keepsToWater
 }
@@ -163,7 +195,7 @@ func (w *World) keepsInLocked(npc *NPC, x, y, z float32) bool {
 	if !w.waterAtLocked(npc.World, x, y+bodyAbove, z) {
 		return false
 	}
-	if !w.slimeOnlyLocked(npc.World, x, y+bodyAbove, z) || !w.spawnOnGroundLocked(npc) {
+	if !slimeSurfaces || !w.slimeOnlyLocked(npc.World, x, y+bodyAbove, z) || !w.spawnOnGroundLocked(npc) {
 		return true
 	}
 	return absf(y-npc.spawnFloor) <= slimeLevel

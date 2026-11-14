@@ -27,9 +27,7 @@ func skyIsleOfTo(to string) string {
 // owner allowed, which the isles' outlines put elsewhere. A landing moved
 // back onto its isle fails this test until it leaves the list.
 var skyLandsOff = map[string]string{
-	"Rain Key 1": "Day Chain 2",   // petition 2049, Hoofbite's spot: Imerzan's castle isle
-	"Rain Key 2": "Day Chain 3",   // petition 2053, Hoofbite's spot: the winds' isle
-	"sun key":    "Watrya's Isle", // petition 2048, Thorinoak's spot: Madam Watrya's isle, not the brightstar fairies'
+	"sun key": "Watrya's Isle", // petition 2048, Thorinoak's spot: Madam Watrya's isle, not the brightstar fairies'
 }
 
 // Each passage lands on the isle its To names (skyisles' outlines), but the

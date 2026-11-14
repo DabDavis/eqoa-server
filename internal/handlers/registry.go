@@ -526,6 +526,12 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		welcome := NewWelcomeGuide(gameWorld, charStore.DB())
 		interactHandler.welcome, chatHandler.welcome = welcome, welcome
 		gameWorld.OnPlayerEntered(welcome.Entered)
+
+		// the GMs' announcement at login, the login's last line, and
+		// #announce (loginannounce.go; petition 2120)
+		announces := NewLoginAnnounces(charStore.DB())
+		chatHandler.announces = announces
+		gameWorld.OnPlayerEntered(announces.Entered)
 	}
 
 	// Register the spell book's requests (0x0033, 0x003A, 0x00FE), and the

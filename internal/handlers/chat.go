@@ -79,6 +79,9 @@ type ChatHandler struct {
 	rewards     rewardStore
 	rewardAudit rewardAuditor
 
+	// announces is the GMs' announcement at login, #announce's (loginannounce.go)
+	announces *LoginAnnounces
+
 	// safe is where /testinvis keeps a player's safe mode (safemode.go)
 	safe safeModeStore
 	// hideMercs is where /hide mercs is kept (hidemercs.go)
@@ -1442,6 +1445,11 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 			h.rewardCommand(sess, player, parts[1:])
 		}
 
+	case "#announce":
+		// #announce [<text> | off | clear | none]: the line every player
+		// entering the world is sent last (loginannounce.go; petition 2120)
+		h.announceCommand(sess, player, message)
+
 	case "#clearbuffs", "#nukebuffs":
 		// #clearbuffs: every effect on the GM ended now, as its time running
 		// out ends it (clearbuffscmd.go; F3 20261029-011146)
@@ -1740,6 +1748,7 @@ var gmHelpLines = []string{
 	"  #effect [<icon hex> [name] | clear] - list, add or clear the effects channel's slots (the spells behind them go on)",
 	"  #clearbuffs - every buff on you ended now, as its time running out ends it (#nukebuffs too)",
 	"  #reward [player] - GM's Reward on your target (a player) for an hour: DS 25, heal 25 when hit, +100 AC, +50 stats",
+	"  #announce [<text> | off] - the login announcement: every player entering the world is sent it last; alone, says it",
 	"  #faction <faction> [standing] - your standing with a faction, or set it",
 	"  #grantcm <amount> - mastery points, never past 2000 spent and unspent",
 	"  #debt [amount] - your experience debt, or set it (0 clears)",

@@ -74,6 +74,7 @@ type economySource struct {
 	Source string  `json:"source"`
 	Kind   string  `json:"kind"`
 	Label  string  `json:"label"`
+	Phrase string  `json:"phrase"`
 	Count  int64   `json:"count"`
 	Amount int64   `json:"amount"`
 	Share  float64 `json:"share"` // of its kind's total, percent
@@ -152,6 +153,12 @@ func (s *Server) economyReport(shard string, days int, now time.Time) (map[strin
 	}
 	first := database.TunarLedgerFirst(q)
 	out["first"] = first
+	// hours seeded from the server's log (tools/economy_backfill_20261114.py)
+	var bf struct{ lo, hi *int64 }
+	if q.QueryRow(`SELECT MIN(hour), MAX(hour) FROM tunar_backfill_log WHERE tbl = 'tunar_ledger'`).Scan(&bf.lo, &bf.hi) == nil && bf.lo != nil {
+		out["backfill"] = map[string]any{"from": *bf.lo, "until": *bf.hi + 3600,
+			"missing": "quest rewards, quest payments, waysender fares, trades, #tunar, #template, the panel's edits, new characters' purses (not in the log)"}
+	}
 
 	labels := map[string]economy.Info{}
 	for _, i := range economy.Sources {
@@ -167,9 +174,9 @@ func (s *Server) economyReport(shard string, days int, now time.Time) (map[strin
 			w.add(r.Kind, r.Amount)
 			e := by[r.Source]
 			if e == nil {
-				e = &economySource{Source: r.Source, Kind: r.Kind, Label: labels[r.Source].Label}
+				e = &economySource{Source: r.Source, Kind: r.Kind, Label: labels[r.Source].Label, Phrase: labels[r.Source].Phrase}
 				if e.Label == "" {
-					e.Label = r.Source
+					e.Label, e.Phrase = r.Source, r.Source
 				}
 				by[r.Source] = e
 			}
@@ -332,6 +339,10 @@ func (s *Server) economyReport(shard string, days int, now time.Time) (map[strin
 	todayTop, weekTop := tops(day), tops(day-6*86400)
 	out["top"] = map[string]any{"today": todayTop, "7d": weekTop}
 	out["callouts"] = economyCallouts(today, week, first, now, latest, out["wealth"], todayTop)
+	if b, ok := out["backfill"].(map[string]any); ok {
+		out["callouts"] = append(out["callouts"].([]string), fmt.Sprintf("Before %s UTC the counts are read back from the server's log, "+
+			"which does not say every source: no %s.", time.Unix(b["until"].(int64), 0).UTC().Format("Jan 2 15:04"), b["missing"]))
+	}
 	return out, nil
 }
 
@@ -414,7 +425,7 @@ func economyCallouts(today, week economyWindow, first int64, now time.Time, late
 	}
 	line := fmt.Sprintf("Net %s tunar today (%s made, %s spent)", signed(today.Net), tunarWords(today.Faucet), tunarWords(today.Sink))
 	if f, ok := lead(today, economy.Faucet); ok {
-		line += fmt.Sprintf(", %.0f%% of it made from %s", f.Share, strings.ToLower(f.Label))
+		line += fmt.Sprintf(", %.0f%% of it from %s", f.Share, f.Phrase)
 	}
 	out = append(out, line+".")
 	if today.Faucet > 0 {
@@ -422,12 +433,12 @@ func economyCallouts(today, week economyWindow, first int64, now time.Time, late
 		s, _ := lead(today, economy.Sink)
 		switch {
 		case ratio < 0.25:
-			out = append(out, fmt.Sprintf("Sinks remove only %.0f%% of what is made today: tunar is piling up (biggest sink: %s).", ratio*100, strings.ToLower(s.Label)))
+			out = append(out, fmt.Sprintf("Sinks remove only %.0f%% of what is made today: tunar is piling up (the biggest sink: %s).", ratio*100, s.Phrase))
 		case ratio > 1:
 			out = append(out, fmt.Sprintf("More is spent than made today (%.0f%%): the money supply is shrinking.", ratio*100))
 		default:
-			if s.Label != "" {
-				out = append(out, fmt.Sprintf("Sinks remove %.0f%% of what is made today, most of it %s.", ratio*100, strings.ToLower(s.Label)))
+			if s.Phrase != "" {
+				out = append(out, fmt.Sprintf("Sinks remove %.0f%% of what is made today, most of it by %s.", ratio*100, s.Phrase))
 			}
 		}
 	}
@@ -483,7 +494,7 @@ func economyCallouts(today, week economyWindow, first int64, now time.Time, late
 		lbl := best
 		for _, i := range economy.Sources {
 			if string(i.Source) == best {
-				lbl = strings.ToLower(i.Label)
+				lbl = i.Phrase
 			}
 		}
 		out = append(out, fmt.Sprintf("Top earner today: %s, %s made (mostly %s).", who, tunarWords(e.Made), lbl))

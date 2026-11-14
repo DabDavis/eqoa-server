@@ -152,7 +152,7 @@ func TestLedgerFlush(t *testing.T) {
 func TestSourcesListed(t *testing.T) {
 	seen := map[Source]bool{}
 	for _, i := range Sources {
-		if seen[i.Source] || i.Label == "" || (i.Kind != Faucet && i.Kind != Sink && i.Kind != Transfer) {
+		if seen[i.Source] || i.Label == "" || i.Phrase == "" || (i.Kind != Faucet && i.Kind != Sink && i.Kind != Transfer) {
 			t.Errorf("%+v", i)
 		}
 		seen[i.Source] = true

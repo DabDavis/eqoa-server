@@ -94,8 +94,9 @@ var skyPasses = []skyPass{
 		At: wayPlace{World: 4, X: 5608.0, Y: 374.06, Z: 4715.0, Facing: 3.66}, Steps: [][2]int{{101304, 4}}},
 	{NPC: "essence of day", X: 5380.8, Z: 4755.9, Key: "Day Key 2", To: "the third isle of day",
 		At: wayPlace{World: 4, X: 5463.3, Y: 380.19, Z: 4231.8, Facing: 1.76}, Steps: [][2]int{{101305, 4}}},
+	// lands where Hoofbite stood (petition 2054)
 	{NPC: "essence of day", X: 5459.6, Z: 4237.5, Key: "Day Key 3", To: "the fourth isle of day",
-		At: wayPlace{World: 4, X: 5229.3, Y: 430.94, Z: 4205.8, Facing: 4.99}, Steps: [][2]int{{101305, 7}}},
+		At: wayPlace{World: 4, X: 5215.63, Y: 430.88, Z: 4216.92, Facing: 4.786}, Steps: [][2]int{{101305, 7}}},
 	{NPC: "essence of day", X: 5054.4, Z: 4243.1, Key: "Day Key 4", To: "the Isle of Wonder",
 		At: skyIsleOfWonder, Steps: [][2]int{{101305, 10}}},
 

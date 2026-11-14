@@ -58,7 +58,9 @@ import (
 // (bought, looted), and must be finished.
 //
 // A finding is "broken" (the step cannot be done; the test fails) or "warn" (it can,
-// but something is off). EQOA_QUESTCHECK_OUT names a file for the full report.
+// but something is off). EQOA_QUESTCHECK_OUT names a file for the full report;
+// EQOA_QUESTCHECK_POCKETS=1 adds the flood's pockets (an NPC whose floor the flood
+// cannot leave: mostly a shop's counter or Fayspires' platforms, where players walk).
 func TestRealQuestTriggers(t *testing.T) {
 	src := os.Getenv("EQOA_REAL_DB")
 	if src == "" {
@@ -242,6 +244,9 @@ func oneEdit(a, b string) bool {
 }
 
 func (c *questCheck) add(broken bool, kind string, qu *database.Quest, step int, format string, a ...any) {
+	if kind == "pocket" && os.Getenv("EQOA_QUESTCHECK_POCKETS") == "" {
+		return // the flood's pockets are mostly shops and Fayspires' platforms: asked for alone
+	}
 	c.findings = append(c.findings, qcFinding{broken: broken, kind: kind, quest: qu.ID, step: step, text: fmt.Sprintf(format, a...)})
 }
 
@@ -953,6 +958,13 @@ func (c *questCheck) checkEvents(qu *database.Quest, step int, evs []database.Qu
 			default:
 				for _, pr := range database.TriggerProblems(tr) {
 					c.add(true, "event", qu, step, "trigger %q: %s", e.Trigger, pr)
+				}
+				steps, _ := database.ParseTriggerSteps(tr.Steps)
+				for _, ts := range steps {
+					if n := strings.TrimSpace(ts.NPC); n != "" && len(c.byFold[foldName(n)]) == 0 {
+						c.add(ts.Do == database.TriggerSpawn || ts.Do == database.TriggerResummon, "event", qu, step,
+							"trigger %q's %s names %q: no NPC row of that name", e.Trigger, ts.Do, n)
+					}
 				}
 			}
 		case database.EventGive:

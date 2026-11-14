@@ -87,8 +87,9 @@ var skyPasses = []skyPass{
 		At: skyIsleOfWonder, Steps: [][2]int{{101303, 11}}},
 
 	// the chain of the sun
+	// lands where Thorinoak stood, by the first isle's essence and Madam Watrya (petition 2048)
 	{NPC: "essence of sun", X: 5137.3, Z: 5188.3, Key: "sun key", To: "the first isle of day",
-		At: wayPlace{World: 4, X: 5607.0, Y: 235.06, Z: 5348.3, Facing: 6.18}, Steps: [][2]int{{101304, 2}}},
+		At: wayPlace{World: 4, X: 5773.76, Y: 280.0, Z: 5114.38, Facing: 4.639}, Steps: [][2]int{{101304, 2}}},
 	{NPC: "essence of day", X: 5597.3, Z: 5343.1, Key: "Day Key 1", To: "the second isle of day",
 		At: wayPlace{World: 4, X: 5608.0, Y: 374.06, Z: 4715.0, Facing: 3.66}, Steps: [][2]int{{101304, 4}}},
 	{NPC: "essence of day", X: 5380.8, Z: 4755.9, Key: "Day Key 2", To: "the third isle of day",

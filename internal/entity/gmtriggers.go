@@ -123,6 +123,34 @@ func (w *World) PlayerNear(world uint8, x, z, reach float32) bool {
 	return false
 }
 
+// PlayerNearAt reports a living player within reach of (x, z) in world, standing no
+// more than height above or below y: a trigger's awaitnear (the Plane of Sky's isles
+// lie over one another, so the flat reach alone would take a player on the isle above).
+func (w *World) PlayerNearAt(world uint8, x, y, z, reach, height float32) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	for _, p := range w.Players {
+		if p.World == world && !p.IsDead() && distXZ(p.X, p.Z, x, z) <= reach && p.Y-y <= height && y-p.Y <= height {
+			return true
+		}
+	}
+	return false
+}
+
+// SpawnName is the name a copy of name would have: a row key's ("#119543") row's own
+// name, else name as it is. What a trigger's spawn counts its max by.
+func (w *World) SpawnName(name string, world uint8) string {
+	if _, ok := ParseRowKey(name); !ok {
+		return name
+	}
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	if t := w.npcByNameForLocked(name, world); t != nil {
+		return t.Name
+	}
+	return name
+}
+
 // CountNear is how many living NPCs of that name stand within reach of (x, z) in world.
 func (w *World) CountNear(name string, world uint8, x, z, reach float32) int {
 	w.mu.RLock()

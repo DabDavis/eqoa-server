@@ -301,3 +301,48 @@ func TestThePassagesTable(t *testing.T) {
 		t.Errorf("%d steps, want the 23 the tool takes the teleports off", len(skyPassSteps()))
 	}
 }
+
+// Petitions 2077-2079 (the GM Jibcrotwo): the main isle's essence of snow
+// takes the snow key the Mark of the Majestic gives and sends the giver and
+// the group by it to the first isle of snow, where he stood; the first isle's
+// own essence, beside the landing, has no passage and is dim.
+func TestTheMainIslesSnowEssenceTakesTheSnowKey(t *testing.T) {
+	r := newSkyRig(t)
+	res, err := r.db.Exec(`INSERT INTO itempattern
+		(itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent, unk4, attacktype, weapondamage, unk5, levelreq, maxstack,
+		 maxhp, duration, classuse, raceuse, procanim, lore, unk6, craft, itemname, itemdesc, model, color)
+		VALUES (0, 0, -441710123, 0, -1, 0, 1, 1, 0, 0, 0, 0, 0, 999, 0, 50, 0, 0, 0, 0, 0, 0, 'snow key', '', 0, 0)`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	id, _ := res.LastInsertId()
+	r.keys["snow key"] = int(id)
+	r.essence("snow", "essence of snow", 4888.59, 274.32, 5858.41)
+	r.essence("snow1", "essence of snow", 5682.43, 553.75, 6412.11)
+	r.group()
+	r.by("snow")
+	r.talk(r.anna, r.npcs["snow"])
+	if got := r.msgs(r.anna); !hasMsg(got, "box:The essence of snow wants a snow key before it will take you on.") || hasMsg(got, "teleport") {
+		t.Fatalf("no key: %q", got)
+	}
+	r.own(r.pa, "snow key", 1)
+	r.talk(r.anna, r.npcs["snow"])
+	if got := r.msgs(r.anna); !hasMsg(got, "teleport") || r.pa.X != 5682.72 || r.pa.Z != 6418.1 {
+		t.Fatalf("the first isle of snow: %q at (%.1f, %.1f)", got, r.pa.X, r.pa.Z)
+	}
+	if r.held(r.pa, "snow key") != 0 {
+		t.Errorf("the key was not taken")
+	}
+	if r.pc.X != 5682.72 || r.pc.Z != 6418.1 {
+		t.Errorf("Cora, grouped by the essence, at (%.1f, %.1f)", r.pc.X, r.pc.Z)
+	}
+	r.own(r.pa, "snow key", 1)
+	r.by("snow1")
+	r.talk(r.anna, r.npcs["snow1"])
+	if got := r.msgs(r.anna); !hasMsg(got, "box:The essence of snow is dim: it takes no one from here.") || hasMsg(got, "teleport") {
+		t.Errorf("the first isle's essence: %q", got)
+	}
+	if r.held(r.pa, "snow key") != 1 {
+		t.Errorf("the first isle's essence took a key")
+	}
+}

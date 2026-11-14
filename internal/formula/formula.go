@@ -141,8 +141,16 @@ type Program struct {
 	first            int // the slot of the first step
 	slots            int // the Env's V must be at least this long
 	uses             []int
-	draws            bool // it calls a random draw
+	draws            bool     // it calls a random draw
+	stepNames        []string // the steps' names, in order
 }
+
+// StepNames is the program's steps' names, in order; the i-th step's value
+// is in slot StepSlot(i) after a run.
+func (p *Program) StepNames() []string { return p.stepNames }
+
+// StepSlot is the slot the i-th step's value is in.
+func (p *Program) StepSlot(i int) int { return p.first + i }
 
 // Slots is the length an Env's V must have at least.
 func (p *Program) Slots() int { return p.slots }
@@ -299,6 +307,7 @@ func (c *Compiler) Compile(src Source) (*Program, error) {
 			return nil, err
 		}
 		p.steps = append(p.steps, f)
+		p.stepNames = append(p.stepNames, s.Name)
 		scope[s.Name] = first + i
 	}
 	if strings.TrimSpace(src.Result.Text) == "" {

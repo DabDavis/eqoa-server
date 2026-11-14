@@ -492,6 +492,7 @@ type dmgIn struct {
 	spellID, spellLevel int
 	resist              Stat
 	ranged, duel, byPet bool
+	mitigated           int // what a mitigation took off base before (the shadow log's alone)
 }
 
 // dmgEntry is one loaded formula.
@@ -522,6 +523,9 @@ type dmgFormulaState struct {
 	modTime time.Time
 	size    int64
 	missing bool // the last look found no file (logged once)
+
+	mode   atomic.Int32 // a FormulaMode (dmgshadow.go): what a loaded formula does
+	shadow atomic.Pointer[dmgShadow]
 }
 
 // dmgRun is a run's scratch (the hit, its slots: the inputs, then the
@@ -537,9 +541,11 @@ var dmgScratch = sync.Pool{New: func() any {
 }}
 
 // formulaDamage is a hit's damage: base, the built-in figure, unless the
-// operator's file has a formula for its path, whose result it is then (base
-// again when that run fails). Cheap when no formula is loaded: one atomic
-// load.
+// operator's file has a formula for its path and the formula mode is live
+// (dmgshadow.go), whose result it is then (base again when that run fails).
+// In shadow mode the formula is run and its figure recorded beside base in
+// the private shadow log, and base lands. Cheap when no formula is loaded:
+// one atomic load.
 func (w *World) formulaDamage(base int, in dmgIn) int {
 	set := w.dmgf.set.Load()
 	if set == nil {
@@ -549,25 +555,42 @@ func (w *World) formulaDamage(base int, in dmgIn) int {
 	if e == nil {
 		return base
 	}
-	return e.apply(base, &in)
+	switch FormulaMode(w.dmgf.mode.Load()) {
+	case FormulaLive:
+		return e.apply(base, &in)
+	case FormulaShadow:
+		w.shadowDamage(e, base, &in)
+	}
+	return base
 }
 
 // apply runs the formula on the hit.
 func (e *dmgEntry) apply(base int, hit *dmgIn) int {
 	r := dmgScratch.Get().(*dmgRun)
 	defer dmgScratch.Put(r)
+	x, err := e.runOn(r, base, hit, formulaRand)
+	if err != nil {
+		e.failed(err)
+		return base
+	}
+	return x
+}
+
+// runOn runs the formula on the hit in r's scratch with the draws rnd: the
+// figure rounded and held at maxFormulaDamage, or the run's error. r keeps
+// the inputs the formula read and its steps' values.
+func (e *dmgEntry) runOn(r *dmgRun, base int, hit *dmgIn, rnd formula.Rand) (int, error) {
 	r.in = *hit
 	r.in.base = base
 	for _, i := range e.prog.Uses() {
 		r.v[i] = dmgVars[i].get(&r.in)
 	}
-	r.env = formula.Env{V: r.v, Rand: formulaRand}
+	r.env = formula.Env{V: r.v, Rand: rnd}
 	x, err := e.prog.Run(&r.env)
 	if err != nil {
-		e.failed(err)
-		return base
+		return base, err
 	}
-	return int(math.Round(math.Min(x, maxFormulaDamage)))
+	return int(math.Round(math.Min(x, maxFormulaDamage))), nil
 }
 
 // failed logs a formula's failed run, at most once a minute (with how many

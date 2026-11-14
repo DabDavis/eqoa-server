@@ -132,6 +132,8 @@ func wanderWords(w *database.NPCWanderSet) string {
 		return ""
 	case w.Clear:
 		return "its own wander taken away (it moves as its name's or its kind's rule says)"
+	case w.Stand:
+		return "it stands on its spawn until pulled, whatever its name's or its kind's rule (/roamer to roam again)"
 	case w.Radius > 70:
 		return fmt.Sprintf("a roamer, %g from its spawn, on long legs", w.Radius)
 	}
@@ -613,16 +615,26 @@ func (h *ChatHandler) moveUndo(sess *session.Session, player *entity.Player) {
 	log.Printf("GM: %s put NPC %d (%s) back from a /move", player.Name, r.ID, r.Name)
 }
 
-// roamerCommand is /roamer [<radius> | stay] (the owner, 2026-11-12: "/roamer
+// roamerCommand is /roamer [<radius> | off] (the owner, 2026-11-12: "/roamer
 // GM command to make existing mobs roam"): the targeted creature's own row
 // wanders as a roamer, database.RoamerRadius from its spawn (or <radius>), in
-// place, its spawn point kept; "stay" takes its own wander away. The same
+// place, its spawn point kept; "off" (stop, none, no, stay) stands it on its spawn
+// whatever its name's rule (a negative npcwander radius, 2026-11-14). The same
 // ranks, refusals and audit as /move's wander option.
 func (h *ChatHandler) roamerCommand(sess *session.Session, player *entity.Player, args []string) {
 	opt := []string{"roamer"}
 	switch {
-	case len(args) == 1 && strings.EqualFold(args[0], "stay"):
-		opt = []string{"stay"}
+	case len(args) == 1 && roamerOff[strings.ToLower(args[0])]:
+		// the owner, 2026-11-14: "/roamer off is not working for jib": it stands on
+		// its spawn, its name's rule notwithstanding (npcwander's negative radius)
+		id, rec, ok := h.npcRowTarget(sess, player, "roamer")
+		if !ok {
+			return
+		}
+		said := h.applyWander(sess, int64(id), &database.NPCWanderSet{Stand: true, Note: "a GM's /roamer off"},
+			fmt.Sprintf("/roamer off on %s (row %d)", rec.NPCName, id))
+		h.gmReply(sess, fmt.Sprintf("%s (row %d):%s", rec.NPCName, id, said))
+		return
 	case len(args) == 1:
 		opt = []string{"roamer", args[0]}
 	case len(args) > 1:
@@ -631,7 +643,7 @@ func (h *ChatHandler) roamerCommand(sess *session.Session, player *entity.Player
 	w, rest, bad := wanderOption(opt)
 	if bad != "" || w == nil || len(rest) > 0 {
 		if bad == "" {
-			bad = "use /roamer, /roamer <radius> or /roamer stay"
+			bad = "use /roamer, /roamer <radius>, or /roamer off (it stands on its spawn)"
 		}
 		h.gmReply(sess, "roamer: "+bad)
 		return
@@ -643,6 +655,9 @@ func (h *ChatHandler) roamerCommand(sess *session.Session, player *entity.Player
 	said := h.applyWander(sess, int64(id), w, fmt.Sprintf("/roamer on %s (row %d)", rec.NPCName, id))
 	h.gmReply(sess, fmt.Sprintf("%s (row %d):%s", rec.NPCName, id, said))
 }
+
+// roamerOff are /roamer's words for "this creature stops roaming".
+var roamerOff = map[string]bool{"off": true, "stop": true, "none": true, "no": true, "stay": true}
 
 // targetsCreature is whether the player's target is a creature (an NPC).
 func (h *ChatHandler) targetsCreature(sess *session.Session, player *entity.Player) bool {

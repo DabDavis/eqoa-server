@@ -384,6 +384,18 @@ type WorldConfig struct {
 	PackSlots int `yaml:"pack_slots"`
 	BankSlots int `yaml:"bank_slots"`
 
+	// AccountBank makes the bank the account's (the server owner, 2026-11-14:
+	// "make the heirloom server bank for players be account wide and increase
+	// capacity to 2000"; database/accountbank.go, handlers/accountbank.go):
+	// every character of an account shares its items and its tunar, and it
+	// holds AccountBankSlots records (unset or 0: 2000). No client shows that
+	// many (a PS2 40, vanilla bank_slots, at most 255): each is shown a page of
+	// its list's size, turned with /bank (a PS2's "/t bank next"). Before it
+	// is turned on, tools/account_bank_20261114.py --apply merges the
+	// characters' banks (--undo puts them back). Unset: each character's own.
+	AccountBank      bool `yaml:"account_bank"`
+	AccountBankSlots int  `yaml:"account_bank_slots"`
+
 	// MaxCharacters is how many characters an account may hold (the server
 	// owner, 2026-11-11: "lets make max 20 for now"; entity/charslots.go,
 	// handlers/charslots.go). A client whose select page lists them all and

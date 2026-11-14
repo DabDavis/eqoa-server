@@ -522,6 +522,11 @@ func main() {
 		log.Printf("Item lists: the pack holds %d and the bank %d for a client that holds them; a PS2 holds %d of each (world.pack_slots, world.bank_slots)",
 			pack, bank, entity.ClientItemSlots)
 	}
+	database.SetAccountBank(cfg.World.AccountBank, cfg.World.AccountBankSlots) // database/accountbank.go
+	if database.AccountBankOn() {
+		log.Printf("Bank: the account's, shared by its characters, %d records, shown a page at a time (world.account_bank)",
+			database.AccountBankSlots())
+	}
 	// what a resist takes off elemental damage (entity/elemental.go): the model's version logged
 	rm, err := entity.ParseResistModel(cfg.Combat.ResistModel, cfg.Combat.ResistMode, cfg.Combat.ResistFullChance)
 	if err != nil {

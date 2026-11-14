@@ -14,7 +14,11 @@ const DefaultTunar = 5000
 // stores, or DefaultTunar for a row that has never stored any (both columns
 // still at the schema's 0), counted as made (internal/economy, once a process).
 func StartingTunar(record *database.CharacterRecord) int {
-	if record.Tunar != 0 || record.BankTunar != 0 {
+	bank := record.BankTunar
+	if database.AccountBankOn() {
+		bank = record.OwnBankTunar // the row's own, not the account's (database/accountbank.go)
+	}
+	if record.Tunar != 0 || bank != 0 {
 		return record.Tunar
 	}
 	economy.StartedPurse(record.ServerID, record.CharName, DefaultTunar)

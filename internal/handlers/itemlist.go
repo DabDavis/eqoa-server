@@ -48,10 +48,17 @@ type invList struct {
 	// bank is the session's bank list beside its pack's (the pack's own; nil
 	// for the bank and before a dump): a Lore item there is one held too
 	bank *invList
+	// page is, for a bank list with the account bank, the row of the account's
+	// bank its page starts at (accountbank.go); its kept the items of the rows
+	// not on the page
+	page int
 }
 
 // keptHas is whether a row kept beside the list is of the item.
 func (l *invList) keptHas(patternID int) bool {
+	if l == nil {
+		return false
+	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	return l.kept[patternID]
@@ -297,7 +304,8 @@ func (l *invList) loreHeld(patternID int) bool {
 	if l == nil {
 		return false
 	}
-	return l.held(patternID) > 0 || l.keptHas(patternID) || l.bank.held(patternID) > 0
+	// (with the account bank, a row of its not on the page: accountbank.go)
+	return l.held(patternID) > 0 || l.keptHas(patternID) || l.bank.held(patternID) > 0 || l.bank.keptHas(patternID)
 }
 
 // stackOnto is the list index of the record a stackable item would join

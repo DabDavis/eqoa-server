@@ -564,6 +564,8 @@ func (a *AuctionHouse) sell(sess *session.Session, player *entity.Player, banker
 		return
 	}
 	n := lot.Item.StackLeft // what left the record: all of it, or count
+	// its account's other characters (accountbank.go)
+	defer syncAccountBankOf(player.CharServerID)
 	bank.took(i, n)
 	economy.Spent(economy.AuctionFee, player.CharServerID, player.Name, lot.Fee)
 	player.BankTunar = after
@@ -602,6 +604,7 @@ func (a *AuctionHouse) bid(sess *session.Session, player *entity.Player, lot, am
 		a.refused(sess, player, "bid", err)
 		return
 	}
+	defer syncAccountBankOf(player.CharServerID) // its account's other characters (accountbank.go)
 	if res.Bought != nil {
 		a.boughtLocked(sess, player, &res, v)
 		return
@@ -864,6 +867,7 @@ func (a *AuctionHouse) history(sess *session.Session, player *entity.Player, lot
 // refundedLocked tells an outbid leader in the world: its bank's tunar, its
 // record now holding nothing, the lot.
 func (a *AuctionHouse) refundedLocked(rf database.AuctionRefund, lot *database.AuctionLot) {
+	defer syncAccountBankOf(rf.Bidder) // its account's other characters (accountbank.go)
 	s, p := a.live(rf.Bidder)
 	if s == nil {
 		return
@@ -889,6 +893,12 @@ func (a *AuctionHouse) refundedLocked(rf database.AuctionRefund, lot *database.A
 // holding nothing now, the lot, the lines.
 func (a *AuctionHouse) settledLocked(st database.AuctionSettlement) {
 	l := &st.Lot
+	// the accounts' other characters, the winners' and the seller's (accountbank.go)
+	defer syncAccountBankOf(l.Seller)
+	defer syncAccountBankOf(st.Winner)
+	for _, w := range st.Winners {
+		defer syncAccountBankOf(w.Bidder)
+	}
 	countAuctionSale(st)
 	if st.Multi {
 		a.settledUnitsLocked(st)
@@ -991,6 +1001,11 @@ func (a *AuctionHouse) showLotLocked(serverID uint32, lot *database.AuctionLot) 
 // bank list and on its client (0x1251), as the client's AddItem keeps it.
 // With bankMu held.
 func (a *AuctionHouse) fileLocked(sess *session.Session, d database.AuctionDelivery) {
+	if database.AccountBankOn() {
+		// the account's bank: each of its sessions' pages brought to it (accountbank.go)
+		syncAccountBankOf(d.Holder)
+		return
+	}
 	bank := sessionBankList(sess)
 	if bank == nil {
 		return // no MemoryDump yet: the dump carries it
@@ -1095,6 +1110,7 @@ func (a *AuctionHouse) BeforeDump(sess *session.Session, player *entity.Player) 
 		log.Printf("Auction: %s's items at login: %v", player.Name, err)
 	} else if len(got) > 0 {
 		log.Printf("Auction: %s's %d items from the auction house filed at login", player.Name, len(got))
+		syncAccountBankOf(player.CharServerID) // its account's other characters (accountbank.go)
 	}
 }
 

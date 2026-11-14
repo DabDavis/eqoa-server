@@ -65,8 +65,7 @@ func buyPerpetualTx(tx *sql.Tx, req AuctionBidRequest, l AuctionLot, res *Auctio
 	if !ok {
 		return refuseAuction("Your bank has no room for %d %s.", qty, name)
 	}
-	if err := execOneTx(tx, `UPDATE characters SET bankTunar = bankTunar - ? WHERE serverid = ? AND bankTunar >= ?`,
-		cost, req.Bidder, cost); err != nil {
+	if err := takeBankTunarTx(tx, req.Bidder, cost); err != nil {
 		return err
 	}
 	d := AuctionDelivery{Lot: l.ID, Holder: req.Bidder, Item: l.Item, Merged: merged}

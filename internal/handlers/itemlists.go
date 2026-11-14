@@ -273,9 +273,20 @@ func planItemLists(rows []database.ItemListRow, pack, bank int, restore bool) it
 // first that fit, worn ones always). login brings kept rows back where there is
 // room; the moves it made are noted for the player (keptNotes). kept is the
 // items of the rows the pack's keeping holds after it (the pack list's kept).
-func (h *CharacterHandler) fitItemLists(serverID uint32, pack, bank int, login bool) (inv, bnk []database.CharInventoryEntry, kept map[int]bool) {
+//
+// With the account bank (accountbank.go) the bank is the account's and the
+// dump's bank list is its first page (accountBankPage); bankHidden is the
+// items of its rows not on the page. No bank row is kept then (the page is the
+// session's, not the row's), and a login brings back every bank row kept for
+// the character before.
+func (h *CharacterHandler) fitItemLists(serverID uint32, pack, bank int, login bool) (inv, bnk []database.CharInventoryEntry, kept, bankHidden map[int]bool) {
 	if h.inventoryStore == nil {
-		return nil, nil, nil
+		return nil, nil, nil, nil
+	}
+	acct := database.AccountBankOn()
+	planBank := bank
+	if acct {
+		planBank = database.AccountBankSlots()
 	}
 	var note keptNote
 	for look := 0; look < 3; look++ {
@@ -285,7 +296,7 @@ func (h *CharacterHandler) fitItemLists(serverID uint32, pack, bank int, login b
 			log.Printf("ItemLists: character %d's rows: %v", serverID, err)
 			rows = nil
 		}
-		plan := planItemLists(rows, pack, bank, login && look == 0)
+		plan := planItemLists(rows, pack, planBank, login && look == 0)
 		note.keptPack, note.keptBank = plan.keptPack, plan.keptBank
 		if len(plan.moves) > 0 {
 			moved, err := h.inventoryStore.MoveItemListRows(serverID, plan.moves)
@@ -315,7 +326,7 @@ func (h *CharacterHandler) fitItemLists(serverID uint32, pack, bank int, login b
 		all, err := h.inventoryStore.GetCharacterItems(serverID)
 		if err != nil {
 			log.Printf("SendMemoryDump: inventory query error: %v", err)
-			return nil, nil, nil
+			return nil, nil, nil, nil
 		}
 		inv, bnk = nil, nil
 		for i := range all {
@@ -325,12 +336,17 @@ func (h *CharacterHandler) fitItemLists(serverID uint32, pack, bank int, login b
 				inv = append(inv, all[i])
 			}
 		}
-		if len(inv) <= pack && len(bnk) <= bank {
+		if len(inv) <= pack && (acct || len(bnk) <= bank) {
 			break
 		}
 		log.Printf("ItemLists: character %d holds %d and %d past lists of %d and %d after a plan: fitted again", serverID, len(inv), len(bnk), pack, bank)
 	}
-	inv, bnk = capEntries(inv, pack), capEntries(bnk, bank)
+	inv = capEntries(inv, pack)
+	if acct {
+		bnk, bankHidden = accountBankPage(bnk, bank)
+	} else {
+		bnk = capEntries(bnk, bank)
+	}
 	if note.keptPack > 0 || note.keptBank > 0 {
 		// a Lore item kept beside either list is one held (itemlist.go's loreRoom)
 		pk, bk, err := h.inventoryStore.KeptPatterns(serverID)
@@ -352,7 +368,7 @@ func (h *CharacterHandler) fitItemLists(serverID uint32, pack, bank int, login b
 		keptNotes[serverID] = note
 		keptNotesMu.Unlock()
 	}
-	return inv, bnk, kept
+	return inv, bnk, kept, bankHidden
 }
 
 // capEntries is a list's rows as a list of most holds them (heldOf), the last

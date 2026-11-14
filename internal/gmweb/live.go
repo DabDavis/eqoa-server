@@ -713,6 +713,12 @@ func (s *Server) liveCharacter(a *actor, action string, before, after map[string
 	if changed("tunar") || changed("bankTunar") {
 		t, _ := asFloat(after["tunar"])
 		b, _ := asFloat(after["bankTunar"])
+		if database.AccountBankOn() {
+			// the bank is the account's, not this column (database/accountbank.go)
+			if _, cur, ok := s.d.World.PurseOf(uint32(id)); ok {
+				b = float64(cur)
+			}
+		}
 		if s.d.World.SetPlayerTunar(uint32(id), int(t), int(b)) && sess != nil {
 			handlers.SendPlayerTunar(sess, int64(t))
 		}

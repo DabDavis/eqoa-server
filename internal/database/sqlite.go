@@ -607,6 +607,10 @@ func (db *SQLiteDB) initSchema() error {
 	if err != nil {
 		return err
 	}
+	// the account bank's tables (accountbank.go), read only with world.account_bank
+	if _, err := db.Exec(accountBankSchema); err != nil {
+		return err
+	}
 	if err := db.seedFactions(); err != nil {
 		return fmt.Errorf("factions: %w", err)
 	}
@@ -940,6 +944,11 @@ type CharacterRecord struct {
 	PlayerFlags     string
 	CompletedQuests string
 	ActiveQuests    string
+
+	// OwnBankTunar is the row's own bankTunar column: with the account bank
+	// BankTunar is the account's (database/accountbank.go) and this is read
+	// only by entity.StartingTunar's never-held test
+	OwnBankTunar int
 }
 
 // charColumns is the list of character columns for SELECT queries.
@@ -1001,13 +1010,17 @@ func (s *SQLiteCharacterStore) Create(c *CharacterRecord) error {
 // GetByServerID retrieves a character by serverid (the PRIMARY KEY, sent by the client).
 func (s *SQLiteCharacterStore) GetByServerID(serverID uint32) (*CharacterRecord, error) {
 	row := s.db.QueryRow(`SELECT `+charColumns+` FROM characters WHERE serverid = ?`, serverID)
-	return s.scanCharacter(row)
+	c, err := s.scanCharacter(row)
+	s.fixBankTunar(c) // the account's, with the account bank (accountbank.go)
+	return c, err
 }
 
 // GetByName retrieves a character by name (case-insensitive).
 func (s *SQLiteCharacterStore) GetByName(name string) (*CharacterRecord, error) {
 	row := s.db.QueryRow(`SELECT `+charColumns+` FROM characters WHERE LOWER(charName) = LOWER(?)`, name)
-	return s.scanCharacter(row)
+	c, err := s.scanCharacter(row)
+	s.fixBankTunar(c) // the account's, with the account bank (accountbank.go)
+	return c, err
 }
 
 // GetByAccountID retrieves all characters for an account.
@@ -1026,7 +1039,12 @@ func (s *SQLiteCharacterStore) GetByAccountID(accountID int) ([]*CharacterRecord
 		}
 		chars = append(chars, c)
 	}
-	return chars, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	rows.Close()
+	s.fixBankTunar(chars...) // the account's, with the account bank (accountbank.go)
+	return chars, nil
 }
 
 // GetAll retrieves all characters.
@@ -1045,7 +1063,12 @@ func (s *SQLiteCharacterStore) GetAll() ([]*CharacterRecord, error) {
 		}
 		chars = append(chars, c)
 	}
-	return chars, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	rows.Close()
+	s.fixBankTunar(chars...) // the account's, with the account bank (accountbank.go)
+	return chars, nil
 }
 
 // NameExists checks if a character name exists (case-insensitive).
@@ -1144,6 +1167,10 @@ func (s *SQLiteCharacterStore) SetTrainingPoints(serverID uint32, unused, total 
 
 // Delete deletes a character by serverid.
 func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
+	// with the account bank its bank rows stay the account's (accountbank.go)
+	if err := keepBankRowsTx(s.db, serverID, time.Now().Unix()); err != nil {
+		return err
+	}
 	result, err := s.db.Exec(`DELETE FROM characters WHERE serverid = ?`, serverID)
 	if err != nil {
 		return err

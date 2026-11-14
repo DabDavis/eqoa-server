@@ -124,7 +124,7 @@ func (s *Server) economyReport(shard string, days int, now time.Time) (map[strin
 	switch shard {
 	case "", "here":
 		// the counts not yet written first, so the page is to the second
-		_ = economy.Default.Flush(s.d.DB)
+		_ = s.ledger().Flush(s.d.DB)
 	case "other":
 		if other == "" {
 			return nil, badRequest("this panel names no other shard's database (gm.economy_other_db)")
@@ -517,7 +517,7 @@ func sourceAmount(w economyWindow, src economy.Source) int64 {
 
 // countTunarEdit counts a GM's edit of a character's tunar or bank (a row
 // change through the panel, a revert among them) as a grant or a removal.
-func countTunarEdit(action string, before, after map[string]any) {
+func (s *Server) countTunarEdit(action string, before, after map[string]any) {
 	if action != "update" || before == nil || after == nil {
 		return
 	}
@@ -531,5 +531,13 @@ func countTunarEdit(action string, before, after map[string]any) {
 	}
 	id, _ := asFloat(after["serverid"])
 	name, _ := after["charName"].(string)
-	economy.GMChange(uint32(id), name, int(delta))
+	s.ledger().GMChange(uint32(id), name, int(delta))
+}
+
+// ledger is the panel's tunar ledger (Deps.Ledger, else economy.Default).
+func (s *Server) ledger() *economy.Ledger {
+	if s.d.Ledger != nil {
+		return s.d.Ledger
+	}
+	return economy.Default
 }

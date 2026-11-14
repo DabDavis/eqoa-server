@@ -637,9 +637,9 @@ func (s *Server) liveAccount(a *actor, action string, before, after map[string]a
 }
 
 func (s *Server) liveCharacter(a *actor, action string, before, after map[string]any) string {
-	countTunarEdit(action, before, after) // ops_economy.go
-	s.refreshRaceLabels(before, after)    // live_racesize.go
-	s.refreshRaceLooks(before, after)     // live_racesize.go
+	s.countTunarEdit(action, before, after) // ops_economy.go
+	s.refreshRaceLabels(before, after)      // live_racesize.go
+	s.refreshRaceLooks(before, after)       // live_racesize.go
 	row := after
 	if row == nil {
 		row = before

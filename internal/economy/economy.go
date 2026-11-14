@@ -201,11 +201,14 @@ func Moved(src Source, fromID uint32, fromName string, toID uint32, toName strin
 
 // GMChange counts a GM's change of a character's tunar by delta: a grant
 // upward, a removal downward.
-func GMChange(id uint32, name string, delta int) {
+func GMChange(id uint32, name string, delta int) { Default.GMChange(id, name, delta) }
+
+// GMChange counts a GM's change into l.
+func (l *Ledger) GMChange(id uint32, name string, delta int) {
 	if delta > 0 {
-		Made(GMGive, id, name, delta)
+		l.Made(GMGive, id, name, delta)
 	} else if delta < 0 {
-		Spent(GMTake, id, name, -delta)
+		l.Spent(GMTake, id, name, -delta)
 	}
 }
 

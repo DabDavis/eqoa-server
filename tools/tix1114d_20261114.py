@@ -26,6 +26,23 @@
        (25372.8, 17330.2), height and facing kept (no two rows were within a unit of each other: none deleted). Both
        shards.
 
+  2101 (Zerkziee, Heirloom): "nashirs outside of freeport not giving freeport guard or other Freeport faction correctly".
+       The Nasehir bandits' camps round Freeport (fourteen kinds, "nasehir bandit" ... "nasehir yven") gave Heirloom's
+       video-audit hits alone (Nasehir Cutthroats -10, The Taksehir Nation +1, Tunaria Gypsies +5, Smugglers of Temby +1):
+       nothing of Freeport's, where the other bandits and raiders round the city (highwayman, the hatebone orcs, orc
+       burglars) give The Freeport Militia +1 and Citizens of Freeport +1. Each kind -> those two as well, as the
+       highwayman's. The Live shard had none of the 264 video-audit rows: there each kind gets the four of Heirloom's
+       (Tunaria Gypsies only where the faction is: Live has none, so left out) and the two of Freeport's.
+
+  5065 (Innoruuk, Live): "Quests, such as lvl 7 delf ones, don't say to talk to an npc to get to grobb, just say to go
+       to chef blignart in grobb". Every step of a quest whose NPC stands in another city than the step before's (the
+       giver's for the first), a waysender's trip between them (waysender.go's routes: Ti`Thox Neriak -> Freeport 100 /
+       Grobb 225, Abodai Freeport -> Neriak 100, Zapgit Grobb -> Neriak / Honjour, Glowbap Klik'Anon -> Rivervale,
+       Windfoot back, Carowyn Fayspires -> Moradhim; two at most), its journal line given the trip: "Speak with Chef
+       Blignart. (Waysender Ti`Thox in Neriak sends you to Grobb, 225 tunar.)", within the journal's 127 characters
+       (quests.go questLineChars). 77 steps of 44 quests, listed in tools/tix1114d_trips_20261114.json (made from
+       Heirloom's NPCs: a city an NPC's nearest waysender or coach within 900); none named the waysender before.
+
 Refused, nothing written, when a row is not as expected (a GM's edit since). Report only by default; --apply in one
 transaction, a gm_audit line a row, log tix1114d_log; a second --apply does nothing; --undo exact (a row changed since
 is left and said). --only limits it to those petitions. npcs, npcrespawn and quests are read at the server's start: a
@@ -36,6 +53,7 @@ restart (a keep restart's before.sh).
 import argparse
 import datetime
 import json
+import os
 import sqlite3
 import sys
 
@@ -53,7 +71,16 @@ CROCS = (((162787, 168973), "crocodile", (25362.625, 17326.041015625), (25367.5,
          ((1038,), "crocodile", (25382.4, 17326.24), (25376.0, 17325.0)),
          ((3216,), "crocodile", (25378.31, 17332.77), (25372.8, 17330.2)))
 
+NASEHIR = ("bandit", "bard", "cleric", "hunter", "kresni", "lookout", "poisonkeeper", "ranger", "rogue", "sandcaster", "scout",
+           "warrior", "wizard", "yven")
+NASEHIR_HITS = (("Nasehir Cutthroats", -10), ("The Taksehir Nation", 1), ("Tunaria Gypsies", 5), ("Smugglers of Temby", 1),
+                ("The Freeport Militia", 1), ("Citizens of Freeport", 1))
+
+TRIPS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tix1114d_trips_20261114.json")
+
 DETAILS = {
+    5065: "petition 5065 (Innoruuk): a quest's step in another city names the waysender who sends you there",
+    2101: "petition 2101 (Zerkziee): the Nasehir bandits' kills raise Freeport's Militia and Citizens, as the highwayman's",
     2098: "petition 2098 (Fullmetal): Armis stands on Box Canyon's floor by the camp, not on the mesa top",
     2099: "petition 2099 (Zerkziee): four more spheres of annihilation round Archaeologist Duggan, the gasket at every kill",
     5040: "petition 5040 (Innoruuk): Croc Island's crocodiles in the hut's room, apart, not on the porch outside its walls",
@@ -253,6 +280,29 @@ def plan(db, only):
                 return None
             for col, old, new in (("x_coord", was[0], to[0]), ("z_coord", was[1], to[1])):
                 p.column(5040, "npcs", "id", rid, col, (old,), new, f"Croc Island's {name}", chk)
+    if 2101 in only:
+        factions = {r[0] for r in db.execute("SELECT name FROM factions")}
+        for kind in NASEHIR:
+            npc = "nasehir " + kind
+            for fac, delta in NASEHIR_HITS:
+                if fac not in factions:
+                    p.lines.append(f"2101: {npc} {fac}: no such faction here: left out")
+                    continue
+                r = rowdict(db, "SELECT * FROM factionhits WHERE lower(npc_name) = ? AND faction = ?", (npc, fac))
+                if r is not None:
+                    if r["delta"] != delta:
+                        p.refusals.append(f"2101: factionhits {npc} {fac} is {r['delta']}, want {delta}")
+                    continue
+                nid = db.execute("SELECT COALESCE(MAX(id), 0) FROM factionhits").fetchone()[0] + 1 + \
+                    sum(1 for c in p.changes if c[1] == "factionhits")
+                p.changes.append((2101, "factionhits", "id", nid, ROW, None,
+                                  {"id": nid, "npc_name": npc, "faction": fac, "delta": delta, "source": "petition 2101"}))
+                p.lines.append(f"2101: factionhits {nid}: a kill of {npc} {fac} {delta:+d}")
+    if 5065 in only:
+        with open(TRIPS, encoding="utf-8") as f:
+            for t in json.load(f):
+                p.column_where(5065, "queststeps", ("questid", "step"), (t["questid"], t["step"]), "journal", (t["before"],),
+                               t["after"], f"{t['quest']} step {t['step']}")
     return p
 
 

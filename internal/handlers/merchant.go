@@ -8,6 +8,7 @@ import (
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/economy"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
@@ -439,6 +440,7 @@ func (h *NPCWindowHandler) buy(sess *session.Session, id uint32, index, count in
 			break
 		}
 		player.Tunar -= cost
+		economy.Spent(economy.MerchantBuy, player.CharServerID, player.Name, cost)
 		queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(rec, key, readsCapes(sess)))
 		log.Printf("MerchantBuy: %s bought %d %q from %q for %d", player.Name, took, p.ItemName, npc.Name, cost)
 	}
@@ -561,6 +563,7 @@ func (h *NPCWindowHandler) sell(sess *session.Session, id, key uint32, n int) bo
 		return false
 	}
 	player.Tunar += paid
+	economy.Made(economy.MerchantSell, player.CharServerID, player.Name, paid)
 	h.saveTunar(player)
 	keepBuyBack(h.inv, player, &row, n, paid, database.BuyBackSold)
 	h.refreshMerchant(sess, player, npc, id) // the line it makes, before the answer (buyback.go)

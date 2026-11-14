@@ -20,6 +20,7 @@ import (
 	"github.com/eqoa/server/internal/config"
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/debuglog"
+	"github.com/eqoa/server/internal/economy"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/gmweb"
 	"github.com/eqoa/server/internal/ground"
@@ -781,6 +782,11 @@ func main() {
 		stopMirror := mirror.Run(cfg.Auth.SharedRefresh)
 		defer stopMirror()
 	}
+	// The tunar ledger (internal/economy): every movement of tunar counted
+	// where it happens, written once a minute, the wealth measured hourly,
+	// for the GM panel's Economy page
+	stopEconomy := economy.Run(db, time.Minute, max(cfg.GM.MinLevel, 1))
+	defer stopEconomy()
 	if cfg.Server.AuthPort != 0 {
 		authListener := tcp.NewListener(cfg, authHandler)
 		if err := authListener.Start(); err != nil {
@@ -928,6 +934,7 @@ func main() {
 		noticeRestart(cfg.World, sessionMgr)
 		udpListener.NoticeShutdown()
 		udpListener.SaveAll()
+		stopEconomy() // its last counts written before the exec
 		exe, err := os.Executable()
 		if err != nil {
 			return err
@@ -1115,7 +1122,12 @@ func main() {
 		// nothing of this process writes the database once it is held: a swap
 		// may put the file back from its copy
 		mirror.Hold(true)
+		// the ledger's counts written now, then none until the exec (a
+		// restart that fails holds them for the next minute's write)
+		_ = economy.Default.Flush(db)
+		economy.Default.Hold(true)
 		err := udpListener.KeepRestart(keepOptions(cfg))
+		economy.Default.Hold(false)
 		mirror.Hold(false)
 		log.Printf("Keep: the restart did not happen: %v; the server goes on", err)
 	}
@@ -1126,6 +1138,7 @@ func main() {
 	noticeRestart(cfg.World, sessionMgr)
 	udpListener.NoticeShutdown()
 	udpListener.SaveAll()
+	stopEconomy()
 
 	log.Println("Server stopped")
 }

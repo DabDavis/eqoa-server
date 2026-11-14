@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/economy"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
@@ -305,6 +306,7 @@ func (h *ChatHandler) addBankTunar(sess *session.Session, s gmSubject, n int) {
 		tunar, before, ok := h.gameWorld.PurseOf(s.serverID)
 		after := database.AddTunar(before, n)
 		if ok {
+			economy.GMChange(s.serverID, s.name, after-before)
 			h.gameWorld.SetPlayerTunar(s.serverID, tunar, after)
 			if h.purse != nil {
 				if err := h.purse.SetTunar(s.serverID, tunar, after); err != nil {
@@ -330,6 +332,7 @@ func (h *ChatHandler) addBankTunar(sess *session.Session, s gmSubject, n int) {
 		h.gmReply(sess, fmt.Sprintf("Bank tunar of %s: %v", s.name, err))
 		return
 	}
+	economy.GMChange(s.serverID, s.name, n)
 	h.gmReply(sess, fmt.Sprintf("%s's bank (not in the world): %d tunar now", s.name, after))
 	log.Printf("GM: bank tunar of '%s' (offline) %+d -> %d", s.name, n, after)
 }

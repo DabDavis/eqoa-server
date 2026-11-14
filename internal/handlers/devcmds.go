@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/eqoa/server/internal/economy"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/session"
 )
@@ -614,6 +615,7 @@ func (h *ChatHandler) setTunar(sess *session.Session, player *entity.Player, amo
 	// the bank's tunar is written only under bankMu (bank.go): as it is now
 	bankMu.Lock()
 	defer bankMu.Unlock()
+	economy.GMChange(player.CharServerID, player.Name, amount-player.Tunar)
 	h.gameWorld.SetPlayerTunar(player.CharServerID, amount, player.BankTunar)
 	SendPlayerTunar(sess, int64(amount))
 	if h.purse != nil {

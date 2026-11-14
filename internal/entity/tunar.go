@@ -1,6 +1,9 @@
 package entity
 
-import "github.com/eqoa/server/internal/database"
+import (
+	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/economy"
+)
 
 // DefaultTunar is the purse a character starts with when its row has never
 // held one. Every login used to set it, whatever the row said; the merchant,
@@ -9,11 +12,12 @@ const DefaultTunar = 5000
 
 // StartingTunar is the purse a login takes from the character's row: what it
 // stores, or DefaultTunar for a row that has never stored any (both columns
-// still at the schema's 0).
+// still at the schema's 0), counted as made (internal/economy, once a process).
 func StartingTunar(record *database.CharacterRecord) int {
 	if record.Tunar != 0 || record.BankTunar != 0 {
 		return record.Tunar
 	}
+	economy.StartedPurse(record.ServerID, record.CharName, DefaultTunar)
 	return DefaultTunar
 }
 

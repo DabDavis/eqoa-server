@@ -8,6 +8,7 @@ import (
 	"slices"
 
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/economy"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/session"
 )
@@ -218,6 +219,7 @@ func (h *CharacterHandler) ApplyTemplate(sess *session.Session) ([]string, error
 	if err := h.inventoryStore.SetPurse(sid, purse); err != nil {
 		return nil, fmt.Errorf("the tunar: %w", err)
 	}
+	economy.GMChange(sid, player.Name, purse-snap.Tunar)
 	added, err := h.store.GrantEveryClassSpell(sid, snap.Class)
 	if err != nil {
 		return nil, fmt.Errorf("the spells: %w", err)

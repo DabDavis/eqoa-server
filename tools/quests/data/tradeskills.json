@@ -1488,6 +1488,688 @@
       ],
       "unresolved": [],
       "notes": "eqoatrade.com's jewelry tutorial (2003-04): the trainer's kit, the glass trinket recipe and the cracked glass earring found by experiment. The words are ours."
+    },
+    {
+      "key": "tradeskills/weapon/freeport",
+      "name": "Weaponcrafting",
+      "giver": "Weaponsmith Farimore",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You want to make blades, not just swing them? Every weapon begins with a block of metal and a mold. Take this hammer, a recipe and what it takes. Make a dull knife and show it to me. Will you learn?",
+      "accept": "I will learn the weaponsmith's craft.",
+      "decline": "Not now.",
+      "declined": "The anvil will wait. Come back when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Weapons and make the knife from the rusty iron block and the knife blade mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Weaponsmith Farimore",
+          "items": [
+            {
+              "item": "dull knife",
+              "count": 1
+            }
+          ],
+          "journal": "Make a dull knife and show it to Weaponsmith Farimore.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the knife from your recipe book.",
+          "says": "A blade, of a sort. Now experiment: the rusted bronze block and the mace mold make something too. Ore and a mold make a weapon; a gem or an alloy makes it more. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Weaponsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Dull Knife Recipe",
+              "count": 1
+            },
+            {
+              "item": "Rusty Iron Block",
+              "count": 1
+            },
+            {
+              "item": "Rusted Bronze Block",
+              "count": 1
+            },
+            {
+              "item": "Knife Blade Mold",
+              "count": 1
+            },
+            {
+              "item": "Mace Mold",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's weapon tutorial (2003-04): the trainer's kit (its \"apprentice weaponsmith hammer\" is Sandstorm's Novice tier, as the armorsmiths' is; its dented iron block, whose use eqoatrade did not know, is left out), the dull knife by its recipe and the crude rusty mace by experiment. Tethelin's Weaponsmith Silvast sends players to Weaponsmith Vellana in Fayspires (eqoatrade, QuestMasters id526): no quest of his own. The words are ours."
+    },
+    {
+      "key": "tradeskills/weapon/rivervale",
+      "name": "Weaponcrafting",
+      "giver": "Weaponsmith Feepo",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You want to make blades, not just swing them? Every weapon begins with a block of metal and a mold. Take this hammer, a recipe and what it takes. Make a dull knife and show it to me. Will you learn?",
+      "accept": "I will learn the weaponsmith's craft.",
+      "decline": "Not now.",
+      "declined": "The anvil will wait. Come back when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Weapons and make the knife from the rusty iron block and the knife blade mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Weaponsmith Feepo",
+          "items": [
+            {
+              "item": "dull knife",
+              "count": 1
+            }
+          ],
+          "journal": "Make a dull knife and show it to Weaponsmith Feepo.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the knife from your recipe book.",
+          "says": "A blade, of a sort. Now experiment: the rusted bronze block and the mace mold make something too. Ore and a mold make a weapon; a gem or an alloy makes it more. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Weaponsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Dull Knife Recipe",
+              "count": 1
+            },
+            {
+              "item": "Rusty Iron Block",
+              "count": 1
+            },
+            {
+              "item": "Rusted Bronze Block",
+              "count": 1
+            },
+            {
+              "item": "Knife Blade Mold",
+              "count": 1
+            },
+            {
+              "item": "Mace Mold",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's weapon tutorial (2003-04): the trainer's kit (its \"apprentice weaponsmith hammer\" is Sandstorm's Novice tier, as the armorsmiths' is; its dented iron block, whose use eqoatrade did not know, is left out), the dull knife by its recipe and the crude rusty mace by experiment. Tethelin's Weaponsmith Silvast sends players to Weaponsmith Vellana in Fayspires (eqoatrade, QuestMasters id526): no quest of his own. The words are ours."
+    },
+    {
+      "key": "tradeskills/weapon/fayspires",
+      "name": "Weaponcrafting",
+      "giver": "Weaponsmith Vellana",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You want to make blades, not just swing them? Every weapon begins with a block of metal and a mold. Take this hammer, a recipe and what it takes. Make a dull knife and show it to me. Will you learn?",
+      "accept": "I will learn the weaponsmith's craft.",
+      "decline": "Not now.",
+      "declined": "The anvil will wait. Come back when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Weapons and make the knife from the rusty iron block and the knife blade mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Weaponsmith Vellana",
+          "items": [
+            {
+              "item": "dull knife",
+              "count": 1
+            }
+          ],
+          "journal": "Make a dull knife and show it to Weaponsmith Vellana.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the knife from your recipe book.",
+          "says": "A blade, of a sort. Now experiment: the rusted bronze block and the mace mold make something too. Ore and a mold make a weapon; a gem or an alloy makes it more. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Weaponsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Dull Knife Recipe",
+              "count": 1
+            },
+            {
+              "item": "Rusty Iron Block",
+              "count": 1
+            },
+            {
+              "item": "Rusted Bronze Block",
+              "count": 1
+            },
+            {
+              "item": "Knife Blade Mold",
+              "count": 1
+            },
+            {
+              "item": "Mace Mold",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's weapon tutorial (2003-04): the trainer's kit (its \"apprentice weaponsmith hammer\" is Sandstorm's Novice tier, as the armorsmiths' is; its dented iron block, whose use eqoatrade did not know, is left out), the dull knife by its recipe and the crude rusty mace by experiment. Tethelin's Weaponsmith Silvast sends players to Weaponsmith Vellana in Fayspires (eqoatrade, QuestMasters id526): no quest of his own. The words are ours."
+    },
+    {
+      "key": "tradeskills/weapon/qeynos",
+      "name": "Weaponcrafting",
+      "giver": "Weaponsmith Danialle",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You want to make blades, not just swing them? Every weapon begins with a block of metal and a mold. Take this hammer, a recipe and what it takes. Make a dull knife and show it to me. Will you learn?",
+      "accept": "I will learn the weaponsmith's craft.",
+      "decline": "Not now.",
+      "declined": "The anvil will wait. Come back when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Weapons and make the knife from the rusty iron block and the knife blade mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Weaponsmith Danialle",
+          "items": [
+            {
+              "item": "dull knife",
+              "count": 1
+            }
+          ],
+          "journal": "Make a dull knife and show it to Weaponsmith Danialle.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the knife from your recipe book.",
+          "says": "A blade, of a sort. Now experiment: the rusted bronze block and the mace mold make something too. Ore and a mold make a weapon; a gem or an alloy makes it more. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Weaponsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Dull Knife Recipe",
+              "count": 1
+            },
+            {
+              "item": "Rusty Iron Block",
+              "count": 1
+            },
+            {
+              "item": "Rusted Bronze Block",
+              "count": 1
+            },
+            {
+              "item": "Knife Blade Mold",
+              "count": 1
+            },
+            {
+              "item": "Mace Mold",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's weapon tutorial (2003-04): the trainer's kit (its \"apprentice weaponsmith hammer\" is Sandstorm's Novice tier, as the armorsmiths' is; its dented iron block, whose use eqoatrade did not know, is left out), the dull knife by its recipe and the crude rusty mace by experiment. Tethelin's Weaponsmith Silvast sends players to Weaponsmith Vellana in Fayspires (eqoatrade, QuestMasters id526): no quest of his own. The words are ours."
+    },
+    {
+      "key": "tradeskills/weapon/highbourne",
+      "name": "Weaponcrafting",
+      "giver": "Weaponsmith Khelar",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You want to make blades, not just swing them? Every weapon begins with a block of metal and a mold. Take this hammer, a recipe and what it takes. Make a dull knife and show it to me. Will you learn?",
+      "accept": "I will learn the weaponsmith's craft.",
+      "decline": "Not now.",
+      "declined": "The anvil will wait. Come back when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Weapons and make the knife from the rusty iron block and the knife blade mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Weaponsmith Khelar",
+          "items": [
+            {
+              "item": "dull knife",
+              "count": 1
+            }
+          ],
+          "journal": "Make a dull knife and show it to Weaponsmith Khelar.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the knife from your recipe book.",
+          "says": "A blade, of a sort. Now experiment: the rusted bronze block and the mace mold make something too. Ore and a mold make a weapon; a gem or an alloy makes it more. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Weaponsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Dull Knife Recipe",
+              "count": 1
+            },
+            {
+              "item": "Rusty Iron Block",
+              "count": 1
+            },
+            {
+              "item": "Rusted Bronze Block",
+              "count": 1
+            },
+            {
+              "item": "Knife Blade Mold",
+              "count": 1
+            },
+            {
+              "item": "Mace Mold",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's weapon tutorial (2003-04): the trainer's kit (its \"apprentice weaponsmith hammer\" is Sandstorm's Novice tier, as the armorsmiths' is; its dented iron block, whose use eqoatrade did not know, is left out), the dull knife by its recipe and the crude rusty mace by experiment. Tethelin's Weaponsmith Silvast sends players to Weaponsmith Vellana in Fayspires (eqoatrade, QuestMasters id526): no quest of his own. The words are ours."
+    },
+    {
+      "key": "tradeskills/weapon/klick-anon",
+      "name": "Weaponcrafting",
+      "giver": "Weaponsmith Zephick",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You want to make blades, not just swing them? Every weapon begins with a block of metal and a mold. Take this hammer, a recipe and what it takes. Make a dull knife and show it to me. Will you learn?",
+      "accept": "I will learn the weaponsmith's craft.",
+      "decline": "Not now.",
+      "declined": "The anvil will wait. Come back when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Weapons and make the knife from the rusty iron block and the knife blade mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Weaponsmith Zephick",
+          "items": [
+            {
+              "item": "dull knife",
+              "count": 1
+            }
+          ],
+          "journal": "Make a dull knife and show it to Weaponsmith Zephick.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the knife from your recipe book.",
+          "says": "A blade, of a sort. Now experiment: the rusted bronze block and the mace mold make something too. Ore and a mold make a weapon; a gem or an alloy makes it more. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Weaponsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Dull Knife Recipe",
+              "count": 1
+            },
+            {
+              "item": "Rusty Iron Block",
+              "count": 1
+            },
+            {
+              "item": "Rusted Bronze Block",
+              "count": 1
+            },
+            {
+              "item": "Knife Blade Mold",
+              "count": 1
+            },
+            {
+              "item": "Mace Mold",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's weapon tutorial (2003-04): the trainer's kit (its \"apprentice weaponsmith hammer\" is Sandstorm's Novice tier, as the armorsmiths' is; its dented iron block, whose use eqoatrade did not know, is left out), the dull knife by its recipe and the crude rusty mace by experiment. Tethelin's Weaponsmith Silvast sends players to Weaponsmith Vellana in Fayspires (eqoatrade, QuestMasters id526): no quest of his own. The words are ours."
+    },
+    {
+      "key": "tradeskills/weapon/halas",
+      "name": "Weaponcrafting",
+      "giver": "Weaponsmith Sorumal",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You want to make blades, not just swing them? Every weapon begins with a block of metal and a mold. Take this hammer, a recipe and what it takes. Make a dull knife and show it to me. Will you learn?",
+      "accept": "I will learn the weaponsmith's craft.",
+      "decline": "Not now.",
+      "declined": "The anvil will wait. Come back when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Weapons and make the knife from the rusty iron block and the knife blade mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Weaponsmith Sorumal",
+          "items": [
+            {
+              "item": "dull knife",
+              "count": 1
+            }
+          ],
+          "journal": "Make a dull knife and show it to Weaponsmith Sorumal.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the knife from your recipe book.",
+          "says": "A blade, of a sort. Now experiment: the rusted bronze block and the mace mold make something too. Ore and a mold make a weapon; a gem or an alloy makes it more. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Weaponsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Dull Knife Recipe",
+              "count": 1
+            },
+            {
+              "item": "Rusty Iron Block",
+              "count": 1
+            },
+            {
+              "item": "Rusted Bronze Block",
+              "count": 1
+            },
+            {
+              "item": "Knife Blade Mold",
+              "count": 1
+            },
+            {
+              "item": "Mace Mold",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's weapon tutorial (2003-04): the trainer's kit (its \"apprentice weaponsmith hammer\" is Sandstorm's Novice tier, as the armorsmiths' is; its dented iron block, whose use eqoatrade did not know, is left out), the dull knife by its recipe and the crude rusty mace by experiment. Tethelin's Weaponsmith Silvast sends players to Weaponsmith Vellana in Fayspires (eqoatrade, QuestMasters id526): no quest of his own. The words are ours."
+    },
+    {
+      "key": "tradeskills/weapon/moradhim",
+      "name": "Weaponcrafting",
+      "giver": "Weaponsmith Gourell",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You want to make blades, not just swing them? Every weapon begins with a block of metal and a mold. Take this hammer, a recipe and what it takes. Make a dull knife and show it to me. Will you learn?",
+      "accept": "I will learn the weaponsmith's craft.",
+      "decline": "Not now.",
+      "declined": "The anvil will wait. Come back when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Weapons and make the knife from the rusty iron block and the knife blade mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Weaponsmith Gourell",
+          "items": [
+            {
+              "item": "dull knife",
+              "count": 1
+            }
+          ],
+          "journal": "Make a dull knife and show it to Weaponsmith Gourell.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the knife from your recipe book.",
+          "says": "A blade, of a sort. Now experiment: the rusted bronze block and the mace mold make something too. Ore and a mold make a weapon; a gem or an alloy makes it more. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Weaponsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Dull Knife Recipe",
+              "count": 1
+            },
+            {
+              "item": "Rusty Iron Block",
+              "count": 1
+            },
+            {
+              "item": "Rusted Bronze Block",
+              "count": 1
+            },
+            {
+              "item": "Knife Blade Mold",
+              "count": 1
+            },
+            {
+              "item": "Mace Mold",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's weapon tutorial (2003-04): the trainer's kit (its \"apprentice weaponsmith hammer\" is Sandstorm's Novice tier, as the armorsmiths' is; its dented iron block, whose use eqoatrade did not know, is left out), the dull knife by its recipe and the crude rusty mace by experiment. Tethelin's Weaponsmith Silvast sends players to Weaponsmith Vellana in Fayspires (eqoatrade, QuestMasters id526): no quest of his own. The words are ours."
+    },
+    {
+      "key": "tradeskills/weapon/surefall-glade",
+      "name": "Weaponcrafting",
+      "giver": "Weaponsmith Argelles",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You want to make blades, not just swing them? Every weapon begins with a block of metal and a mold. Take this hammer, a recipe and what it takes. Make a dull knife and show it to me. Will you learn?",
+      "accept": "I will learn the weaponsmith's craft.",
+      "decline": "Not now.",
+      "declined": "The anvil will wait. Come back when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Weapons and make the knife from the rusty iron block and the knife blade mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Weaponsmith Argelles",
+          "items": [
+            {
+              "item": "dull knife",
+              "count": 1
+            }
+          ],
+          "journal": "Make a dull knife and show it to Weaponsmith Argelles.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the knife from your recipe book.",
+          "says": "A blade, of a sort. Now experiment: the rusted bronze block and the mace mold make something too. Ore and a mold make a weapon; a gem or an alloy makes it more. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Weaponsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Dull Knife Recipe",
+              "count": 1
+            },
+            {
+              "item": "Rusty Iron Block",
+              "count": 1
+            },
+            {
+              "item": "Rusted Bronze Block",
+              "count": 1
+            },
+            {
+              "item": "Knife Blade Mold",
+              "count": 1
+            },
+            {
+              "item": "Mace Mold",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's weapon tutorial (2003-04): the trainer's kit (its \"apprentice weaponsmith hammer\" is Sandstorm's Novice tier, as the armorsmiths' is; its dented iron block, whose use eqoatrade did not know, is left out), the dull knife by its recipe and the crude rusty mace by experiment. Tethelin's Weaponsmith Silvast sends players to Weaponsmith Vellana in Fayspires (eqoatrade, QuestMasters id526): no quest of his own. The words are ours."
+    },
+    {
+      "key": "tradeskills/weapon/neriak",
+      "name": "Weaponcrafting",
+      "giver": "Weaponsmith Laelle",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You want to make blades, not just swing them? Every weapon begins with a block of metal and a mold. Take this hammer, a recipe and what it takes. Make a dull knife and show it to me. Will you learn?",
+      "accept": "I will learn the weaponsmith's craft.",
+      "decline": "Not now.",
+      "declined": "The anvil will wait. Come back when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Weapons and make the knife from the rusty iron block and the knife blade mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Weaponsmith Laelle",
+          "items": [
+            {
+              "item": "dull knife",
+              "count": 1
+            }
+          ],
+          "journal": "Make a dull knife and show it to Weaponsmith Laelle.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the knife from your recipe book.",
+          "says": "A blade, of a sort. Now experiment: the rusted bronze block and the mace mold make something too. Ore and a mold make a weapon; a gem or an alloy makes it more. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Weaponsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Dull Knife Recipe",
+              "count": 1
+            },
+            {
+              "item": "Rusty Iron Block",
+              "count": 1
+            },
+            {
+              "item": "Rusted Bronze Block",
+              "count": 1
+            },
+            {
+              "item": "Knife Blade Mold",
+              "count": 1
+            },
+            {
+              "item": "Mace Mold",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's weapon tutorial (2003-04): the trainer's kit (its \"apprentice weaponsmith hammer\" is Sandstorm's Novice tier, as the armorsmiths' is; its dented iron block, whose use eqoatrade did not know, is left out), the dull knife by its recipe and the crude rusty mace by experiment. Tethelin's Weaponsmith Silvast sends players to Weaponsmith Vellana in Fayspires (eqoatrade, QuestMasters id526): no quest of his own. The words are ours."
+    },
+    {
+      "key": "tradeskills/weapon/grobb",
+      "name": "Weaponcrafting",
+      "giver": "Weaponsmith Oolshka",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You want to make blades, not just swing them? Every weapon begins with a block of metal and a mold. Take this hammer, a recipe and what it takes. Make a dull knife and show it to me. Will you learn?",
+      "accept": "I will learn the weaponsmith's craft.",
+      "decline": "Not now.",
+      "declined": "The anvil will wait. Come back when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Weapons and make the knife from the rusty iron block and the knife blade mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Weaponsmith Oolshka",
+          "items": [
+            {
+              "item": "dull knife",
+              "count": 1
+            }
+          ],
+          "journal": "Make a dull knife and show it to Weaponsmith Oolshka.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the knife from your recipe book.",
+          "says": "A blade, of a sort. Now experiment: the rusted bronze block and the mace mold make something too. Ore and a mold make a weapon; a gem or an alloy makes it more. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Weaponsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Dull Knife Recipe",
+              "count": 1
+            },
+            {
+              "item": "Rusty Iron Block",
+              "count": 1
+            },
+            {
+              "item": "Rusted Bronze Block",
+              "count": 1
+            },
+            {
+              "item": "Knife Blade Mold",
+              "count": 1
+            },
+            {
+              "item": "Mace Mold",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's weapon tutorial (2003-04): the trainer's kit (its \"apprentice weaponsmith hammer\" is Sandstorm's Novice tier, as the armorsmiths' is; its dented iron block, whose use eqoatrade did not know, is left out), the dull knife by its recipe and the crude rusty mace by experiment. Tethelin's Weaponsmith Silvast sends players to Weaponsmith Vellana in Fayspires (eqoatrade, QuestMasters id526): no quest of his own. The words are ours."
     }
   ],
   "items": []

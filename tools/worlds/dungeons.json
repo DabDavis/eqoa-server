@@ -1,7 +1,7 @@
 {
   "world": 14,
   "name": "the Dungeons",
-  "note": "The instanced raid dungeons (handlers/dungeons.go, entity/dungeons.go; claude-notes/dungeon-world-20261112.md): the disc's own zones of ten dungeons (Blackburrow, Runnyeye with Misty Thicket before its gate, Guk; since 2026-11-12 also the Tomb of Kings, Castle Felstar, Collonridge Cemetery, Vox's lair in Permafrost, Box Canyons, and Odus's Toxxulia's lair and the Warrens; since 2026-11-14 the Salt Mines, the Siloth's shaft with the drachnids below), each where it stands on Tunaria; every raid, group or lone player that goes in fights in a copy of its own (an instance). The dungeons block is read by the server, never written into the file: each dungeon's key, name, the boxes its creatures stand in (the world's npcs rows inside them are its templates, tools/dungeons_20261112.py) and where a player sent in lands, facing the way in. The open edges are closed by cmd/worldedges' rocks (dungeons-edges.json), kept by -keep clear of every creature, entrance and each new dungeon's box (petitions 1808/1812: a rock over a landing or a tunnel is an invisible wall). Built by cmd/worldbuild from the operator's disc.",
+  "note": "The instanced raid dungeons (handlers/dungeons.go, entity/dungeons.go; claude-notes/dungeon-world-20261112.md): the disc's own zones of ten dungeons (Blackburrow, Runnyeye with Misty Thicket before its gate, Guk; since 2026-11-12 also the Tomb of Kings, Castle Felstar, Collonridge Cemetery, Vox's lair in Permafrost, Box Canyons, and Odus's Toxxulia's lair and the Warrens; since 2026-11-14 the Salt Mines, the Siloth's shaft with the drachnids below, and Crethley Manor, the necromancer lord's house and its graveyard), each where it stands on Tunaria; every raid, group or lone player that goes in fights in a copy of its own (an instance). The dungeons block is read by the server, never written into the file: each dungeon's key, name, the boxes its creatures stand in (the world's npcs rows inside them are its templates, tools/dungeons_20261112.py) and where a player sent in lands, facing the way in. The open edges are closed by cmd/worldedges' rocks (dungeons-edges.json), kept by -keep clear of every creature, entrance and each new dungeon's box (petitions 1808/1812: a rock over a landing or a tunnel is an invisible wall). Built by cmd/worldbuild from the operator's disc.",
   "extraFiles": [
     "dungeons-edges.json"
   ],
@@ -83,6 +83,12 @@
       "from": "TUNARIA.ESF",
       "zone": 105,
       "note": "Tunaria cell (7, 9): the Siloth's salt mine east of Forkwatch, its shaft (14420-14615, 18930-19140) down from the mouth at (14600, 54, 19045) through the Siloth's floors (y 42 to -28) to the drachnids' nest (y -57 to -73) and the crypt at its foot (y -88); the Siloth castle north-west is in the world, empty"
+    },
+    {
+      "name": "Crethley Manor",
+      "from": "TUNARIA.ESF",
+      "zone": 75,
+      "note": "Tunaria cell (3, 7): the Crethleys' manor south of Wyndhaven, north of the lake: the house (6660-6790, 14410-14500; its floors y 58-64, the study y 44-48 and the cellar y 31-33, Lord and Mary Crethley's) and its graveyard yard south to 14570; Elzilor Marbe's farm by the lake south is in the world, empty"
     }
   ],
   "dungeons": [
@@ -344,6 +350,29 @@
         ]
       },
       "note": "before the mine's mouth from the east, 98 from its door guards; down through the Siloth slavers' floors to the drachnids, Spider Queen Aszec's nest at y -57 and Mayong Mistmoore's crypt at the foot (y -88)"
+    },
+    {
+      "key": "crethley",
+      "cap": 4,
+      "name": "Crethley Manor",
+      "boxes": [
+        [
+          6560,
+          14400,
+          6800,
+          14580
+        ]
+      ],
+      "entrance": {
+        "x": 6716.4,
+        "y": 57.7,
+        "z": 14519.3,
+        "toward": [
+          6673.6,
+          14428.9
+        ]
+      },
+      "note": "the owner, 2026-11-14 (\"dust is there\"): players start where Dust stood (6716.4, 57.7, 14519.3), in the graveyard yard south of the house, facing it as he did (205 degrees, north-north-west); its zombies 25 off, the house's door guards and the cellar's Lord Crethley beyond"
     }
   ]
 }

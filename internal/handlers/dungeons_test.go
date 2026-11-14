@@ -38,7 +38,7 @@ func TestReadDungeonsRecipe(t *testing.T) {
 	for _, d := range defs {
 		keys[d.Key] = d
 	}
-	for _, k := range []string{"guk", "blackburrow", "runnyeye", "saltmines"} {
+	for _, k := range []string{"guk", "blackburrow", "runnyeye", "saltmines", "crethley"} {
 		d, ok := keys[k]
 		if !ok || len(d.Boxes) == 0 || d.Entrance.X == 0 {
 			t.Fatalf("%s: %+v", k, d)
@@ -61,6 +61,17 @@ func TestReadDungeonsRecipe(t *testing.T) {
 		if sm.Entrance.X >= b.X0 && sm.Entrance.X <= b.X1 && sm.Entrance.Z >= b.Z0 && sm.Entrance.Z <= b.Z1 {
 			t.Fatalf("the Salt Mines' landing %+v is inside its box", sm.Entrance)
 		}
+	}
+	// Crethley Manor (2026-11-14): its box inside Tunaria's cell (3, 7), the manor's zone 75; its landing where Dust
+	// stood, in the graveyard yard inside the box, facing the house as he did (205 degrees, north-north-west)
+	cm := keys["crethley"]
+	for _, b := range cm.Boxes {
+		if b.X0 < 6000 || b.X1 > 8000 || b.Z0 < 14000 || b.Z1 > 16000 {
+			t.Fatalf("Crethley Manor's box %+v is not in cell (3, 7)", b)
+		}
+	}
+	if e := cm.Entrance; e.X != 6716.4 || e.Z != 14519.3 || e.Facing < 3.55 || e.Facing > 3.61 {
+		t.Fatalf("Crethley Manor's landing %+v, want Dust's spot facing 3.58", e)
 	}
 	// Guk's entrance faces north (toward smaller z: its gate), a facing of pi
 	if f := keys["guk"].Entrance.Facing; f < 3.1 || f > 3.2 {
@@ -122,11 +133,11 @@ func TestDungeonLoginAtTheEntrance(t *testing.T) {
 	}
 }
 
-// TestDungeonsPagesTheirBox: ten dungeons (eleven since the Salt Mines) and the way out are more than a box holds (maxDialogOptions): five a box and
+// TestDungeonsPagesTheirBox: ten dungeons (eleven since the Salt Mines, twelve with Crethley Manor) and the way out are more than a box holds (maxDialogOptions): five a box and
 // "More dungeons", the last page back to the first.
 func TestDungeonsPagesTheirBox(t *testing.T) {
 	var all []dungeonsAnswer
-	for i := 0; i < 11; i++ {
+	for i := 0; i < 12; i++ {
 		all = append(all, dungeonsAnswer{do: dungeonsDoEnter, key: string(rune('a' + i))})
 	}
 	seen := map[string]bool{}
@@ -141,8 +152,8 @@ func TestDungeonsPagesTheirBox(t *testing.T) {
 		}
 		page = box[len(box)-1].page
 	}
-	if len(seen) != 11 || page != 0 {
-		t.Fatalf("three pages showed %d of 11, then page %d", len(seen), page)
+	if len(seen) != 12 || page != 0 {
+		t.Fatalf("three pages showed %d of 12, then page %d", len(seen), page)
 	}
 	if got := dungeonsPage(all[:6], 0); len(got) != 6 || got[5].do == dungeonsDoMore {
 		t.Fatalf("six answers fit one box: %+v", got)

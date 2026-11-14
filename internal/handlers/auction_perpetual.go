@@ -6,6 +6,7 @@ import (
 	"sync/atomic"
 
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/economy"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
@@ -33,6 +34,8 @@ func PerpetualAuctionsOn() bool { return perpetualAuctionsOn.Load() }
 // house's lock and bankMu held.
 func (a *AuctionHouse) boughtLocked(sess *session.Session, player *entity.Player, res *database.AuctionBidResult, v lotView) {
 	b, l := res.Bought, &res.Lot
+	// the house's own lot: what it cost is gone (internal/economy)
+	economy.Spent(economy.AuctionHouse, player.CharServerID, player.Name, b.Paid)
 	player.BankTunar = res.BidderBank
 	queueReliable(sess, protocol.OpcodeConfirmBankTunar, bankTunarPayload(res.BidderBank))
 	a.fileLocked(sess, b.Delivery)

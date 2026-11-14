@@ -38,7 +38,7 @@ func TestReadDungeonsRecipe(t *testing.T) {
 	for _, d := range defs {
 		keys[d.Key] = d
 	}
-	for _, k := range []string{"guk", "blackburrow", "runnyeye"} {
+	for _, k := range []string{"guk", "blackburrow", "runnyeye", "saltmines"} {
 		d, ok := keys[k]
 		if !ok || len(d.Boxes) == 0 || d.Entrance.X == 0 {
 			t.Fatalf("%s: %+v", k, d)
@@ -49,6 +49,17 @@ func TestReadDungeonsRecipe(t *testing.T) {
 	for _, d := range defs {
 		if d.Cap != 4 {
 			t.Errorf("%s's cap %d, want 4", d.Key, d.Cap)
+		}
+	}
+	// the Salt Mines (2026-11-14): its shaft's box inside Tunaria's cell (7, 9), the mine's zone 105, and its
+	// landing outside the box, east of the mouth
+	sm := keys["saltmines"]
+	for _, b := range sm.Boxes {
+		if b.X0 < 14000 || b.X1 > 16000 || b.Z0 < 18000 || b.Z1 > 20000 {
+			t.Fatalf("the Salt Mines' box %+v is not in cell (7, 9)", b)
+		}
+		if sm.Entrance.X >= b.X0 && sm.Entrance.X <= b.X1 && sm.Entrance.Z >= b.Z0 && sm.Entrance.Z <= b.Z1 {
+			t.Fatalf("the Salt Mines' landing %+v is inside its box", sm.Entrance)
 		}
 	}
 	// Guk's entrance faces north (toward smaller z: its gate), a facing of pi
@@ -111,7 +122,7 @@ func TestDungeonLoginAtTheEntrance(t *testing.T) {
 	}
 }
 
-// TestDungeonsPagesTheirBox: ten dungeons and the way out are more than a box holds (maxDialogOptions): five a box and
+// TestDungeonsPagesTheirBox: ten dungeons (eleven since the Salt Mines) and the way out are more than a box holds (maxDialogOptions): five a box and
 // "More dungeons", the last page back to the first.
 func TestDungeonsPagesTheirBox(t *testing.T) {
 	var all []dungeonsAnswer

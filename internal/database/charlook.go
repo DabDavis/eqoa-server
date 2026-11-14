@@ -181,3 +181,52 @@ func (db *SQLiteDB) HasCharLook(serverID uint32) bool {
 	}
 	return n > 0
 }
+
+// SetCharLookAudited writes serverID's charlook row of part as a colour
+// (LookColour) of value, value 0 deleting it, with a gm_audit line: a GM's
+// /aura <colour> hair|gnomecap|glasses (entity/gmlooks.go). Source "gm".
+func (db *SQLiteDB) SetCharLookAudited(serverID uint32, part string, value uint32, who GMEdit, detail string) error {
+	if _, err := db.Exec(GMAuditSchema); err != nil {
+		return err
+	}
+	if err := db.ensureCharLook(); err != nil {
+		return err
+	}
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	fillWho(tx, &who)
+	key := map[string]any{"serverid": int64(serverID), "part": part}
+	const sel = `SELECT * FROM charlook WHERE serverid = ? AND part = ?`
+	before, err := fullRow(tx, sel, serverID, part)
+	if err != nil {
+		return err
+	}
+	action := "update"
+	switch {
+	case value == 0:
+		if before == nil {
+			return nil
+		}
+		action = "delete"
+		_, err = tx.Exec(`DELETE FROM charlook WHERE serverid = ? AND part = ?`, serverID, part)
+	case before == nil:
+		action = "insert"
+		_, err = tx.Exec(`INSERT INTO charlook (serverid, part, kind, value, source) VALUES (?, ?, ?, ?, 'gm')`, serverID, part, LookColour, int64(value))
+	default:
+		_, err = tx.Exec(`UPDATE charlook SET kind = ?, value = ?, source = 'gm' WHERE serverid = ? AND part = ?`, LookColour, int64(value), serverID, part)
+	}
+	if err != nil {
+		return err
+	}
+	after, err := fullRow(tx, sel, serverID, part)
+	if err != nil {
+		return err
+	}
+	if _, err := auditRowChange(tx, who, action, "charlook", key, before, after, detail); err != nil {
+		return err
+	}
+	return tx.Commit()
+}

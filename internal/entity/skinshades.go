@@ -106,7 +106,7 @@ func gameRaceRows(race int) []OptionRow {
 		rows = append(rows, OptionRow{Key: skinRowKey, Label: "Skin", Kind: KindColour,
 			Parts: []OptionPart{whole(b[0].body, b[0].entries...), whole(b[1].body, b[1].entries...)}, Male: skinShades})
 	}
-	return rows
+	return append(rows, gmLookRows(race)...)
 }
 
 // isGameRace is whether race is one of the game's ten (its rows are shown under

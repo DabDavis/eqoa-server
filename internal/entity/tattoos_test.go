@@ -43,7 +43,7 @@ func TestTheBarbarianHasATattooRow(t *testing.T) {
 		if race == raceBarbarian {
 			want = []string{"tattoo", "skin"}
 		}
-		if got := keys(RaceOptions(race)); !slices.Equal(got, want) {
+		if got := keys(RaceOptionsFor(race, raceAnswerNewest)); !slices.Equal(got, want) {
 			t.Fatalf("race %d: %v, want %v", race, got, want)
 		}
 	}
@@ -70,10 +70,10 @@ func TestTheBarbarianHasATattooRow(t *testing.T) {
 	}
 	// the tattoo alone, without the shades: the barbarian's one row
 	withTattoos(t, false, true)
-	if got := keys(RaceOptions(raceBarbarian)); !slices.Equal(got, []string{"tattoo"}) {
+	if got := keys(RaceOptionsFor(raceBarbarian, raceAnswerNewest)); !slices.Equal(got, []string{"tattoo"}) {
 		t.Fatalf("no shades: %v", got)
 	}
-	if got := keys(RaceOptions(0)); len(got) != 0 {
+	if got := keys(RaceOptionsFor(0, raceAnswerNewest)); len(got) != 0 {
 		t.Fatalf("no shades: a human has %v", got)
 	}
 }

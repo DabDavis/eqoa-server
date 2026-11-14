@@ -4,6 +4,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/eqoa/server/internal/database"
@@ -36,6 +37,24 @@ import (
 // menu again, No changes nothing. Only the signing is granted: a coach still
 // runs only to its neighbours. Its question goes under box mark 0x57000000,
 // beside the dyers' 0x56 (dyer.go names the others).
+//
+// That offer is off unless world.coach_sign_all (the owner, 2026-11-14, on
+// petition 5114: "The live server allows you to sign all coach ledgers at
+// once. For this server it would make sense to force people to make coach
+// runs as that was always a big part of the early game."): with it off, no
+// coachman offers it, and a Yes to a question asked before it was turned off
+// signs nothing, so a ledger is signed only at its own coachman. Ledgers
+// already signed, by the offer too, stay signed.
+
+// coachSignAll is world.coach_sign_all (SetCoachSignAll): whether coachmen
+// offer every ledger at once. Unset: off.
+var coachSignAll atomic.Bool
+
+// SetCoachSignAll is world.coach_sign_all.
+func SetCoachSignAll(on bool) { coachSignAll.Store(on) }
+
+// CoachSignAll is whether coachmen offer every ledger at once.
+func CoachSignAll() bool { return coachSignAll.Load() }
 
 // coachLedger keeps the ledgers (database.SQLiteCharacterStore).
 type coachLedger interface {
@@ -133,7 +152,7 @@ func (h *InteractHandler) coachDests(sess *session.Session, player *entity.Playe
 	signed, err := h.ledger.CoachTowns(player.CharServerID)
 	if err != nil {
 		log.Printf("Coach: reading %s's ledgers: %v", player.Name, err)
-	} else if player.CharServerID != 0 {
+	} else if player.CharServerID != 0 && CoachSignAll() {
 		every = len(unsignedLedgers(signed)) > 0
 	}
 	// the towns his coach runs to, for what he says when none is signed: the
@@ -211,6 +230,8 @@ const (
 	everyLedgerYes    = "Yes, sign them all"
 	everyLedgerNo     = "No, I'll sign them as I travel"
 	everyLedgerDone   = "Your name is in every stable's ledger now."
+	// everyLedgerOff is his word to a Yes once the offer is off
+	everyLedgerOff = "Each stable keeps its own ledger. Sign it there, with its coachman."
 )
 
 // coachBoxMark marks a coachman's question's id (0x0034's u32, echoed by
@@ -316,6 +337,11 @@ func (h *InteractHandler) answerEveryLedger(sess *session.Session, player *entit
 	}
 	if option != 0 {
 		log.Printf("Coach: %s chose not to sign every stable's ledger at %s's", player.Name, npc.Name)
+		return true
+	}
+	if !CoachSignAll() { // asked before world.coach_sign_all went off: each ledger at its own stable now
+		log.Printf("Coach: %s said Yes to every stable's ledger at %s's, but that offer is off (world.coach_sign_all)", player.Name, npc.Name)
+		h.sendDialogueBox(sess, npc.Name+": "+everyLedgerOff)
 		return true
 	}
 	towns := entity.CoachTownNames()

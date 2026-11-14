@@ -428,3 +428,63 @@ func TestSanctuarySendsItsCasterToTheLanding(t *testing.T) {
 		t.Errorf("the control: no row, and Sanctuary began (sent %q)", k.travellers())
 	}
 }
+
+// Petition 5107 (the owner): a female bearer of Vampire Form wears the body
+// Vampire Tserrina wears, the human woman's (0x0D537335), at the human's
+// size, by the seed's line (the form by name) and by the workbook's sprite
+// (0x83801BCE) alike; a male bearer keeps the fledgling vampire's. It is kept
+// over a logout as the body it showed. Bat Form is the bat's on a woman too.
+func TestAFemaleVampireWearsTserrinasBody(t *testing.T) {
+	const fledgling, bat, humanFemale uint32 = 0xCE1B8083, 2163553232, 0x0D537335
+	rig := func(sex int) *caster {
+		c := illusionRig(t)
+		models := raceBodies()
+		models[[2]int{0, 0}], models[[2]int{0, 1}] = 0x70D898C6, humanFemale
+		c.w.SetRaceModels(models)
+		c.w.SetRaceSizes(map[int]float64{0: 1.1, 3: 0.7})
+		c.p.Sex = sex
+		c.w.NPCs[6001] = &NPC{ServerID: 6001, Name: "fledgling vampire", Level: 35, ModelID: int64(fledgling), Size: 1}
+		c.w.NPCs[6002] = &NPC{ServerID: 6002, Name: "bat", Level: 5, ModelID: int64(bat), Size: 0.8}
+		return c
+	}
+	form := vampireSpell(vampireAbilityNamed(t, "Vampire Form"))
+	bySprite := form
+	bySprite.SpellID = form.SpellID + 1
+	bySprite.Def.FormModel = spriteBody(0x83801BCE)
+
+	for _, spell := range []CastSpell{form, bySprite} {
+		her := rig(1)
+		her.land(t, spell, her.me, 0)
+		if m, size := her.p.Body(); m != humanFemale || size != 1.1 {
+			t.Errorf("%q (sprite %#x) on a woman shows %#x at %.2f, want Tserrina's %#x at the human's 1.10",
+				spell.Name, spell.Def.FormModel, m, size, humanFemale)
+		}
+		him := rig(0)
+		him.land(t, spell, him.me, 0)
+		if m, _ := him.p.Body(); m != fledgling {
+			t.Errorf("%q (sprite %#x) on a man shows %#x, want the fledgling vampire's %#x", spell.Name, spell.Def.FormModel, m, fledgling)
+		}
+	}
+
+	// kept over a logout: the next login shows the same body
+	her := rig(1)
+	her.land(t, form, her.me, 0)
+	rows, ok := her.w.SavedEffects(her.p.ServerID, her.at(30*time.Second))
+	if !ok || len(rows) != 1 {
+		t.Fatalf("kept %d (%v)", len(rows), ok)
+	}
+	again := rig(1)
+	if n := again.w.RestoreEffects(again.sess, rows, again.at(time.Hour)); n != 1 {
+		t.Fatalf("restored %d", n)
+	}
+	if m, size := again.p.Body(); m != humanFemale || size != 1.1 {
+		t.Errorf("after the login a female vampire shows %#x at %.2f, want %#x at 1.10", m, size, humanFemale)
+	}
+
+	// Bat Form is the bat's on a woman as on a man
+	b := rig(1)
+	b.land(t, vampireSpell(vampireAbilityNamed(t, "Bat Form")), b.me, 0)
+	if m, size := b.p.Body(); m != bat || size != 0.8 {
+		t.Errorf("Bat Form on a woman shows %#x at %.2f, want the bat's %#x at 0.80", m, size, bat)
+	}
+}

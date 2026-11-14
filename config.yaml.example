@@ -55,6 +55,12 @@ world:
   # Off unless set.
   # jump: true
 
+  # A coachman's offer to sign every stable's ledger at once
+  # (handlers/coachledger.go). Off unless set: each ledger is signed only by
+  # talking to its own coachman, so players make the coach runs (petition
+  # 5114). Ledgers already signed stay signed either way.
+  # coach_sign_all: true
+
   # A monster's name and level, and nothing else, when a player presses the
   # talk button on it (square; Q on vanilla's keyboard) and it has nothing to
   # say, or stands out of the talk's reach (handlers/mobinfo.go). Vanilla

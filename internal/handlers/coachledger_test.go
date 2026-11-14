@@ -72,6 +72,14 @@ func coachWorld(t *testing.T) (*talkWorld, uint32, ledgerBook) {
 	return tw, ronks, book
 }
 
+// coachSignAllOn turns world.coach_sign_all on for the test: the coachmen's
+// offer to sign every ledger at once, off by default since petition 5114.
+func coachSignAllOn(t *testing.T) {
+	was := CoachSignAll()
+	SetCoachSignAll(true)
+	t.Cleanup(func() { SetCoachSignAll(was) })
+}
+
 // offered is the towns the open coach menu lists, every page of it (the
 // offer to sign every ledger at once is no town: offersEvery).
 func offered(p *entity.Player) []string {
@@ -92,8 +100,7 @@ func offersEvery(p *entity.Player) bool {
 }
 
 // A coachman's menu offers the towns his coach runs to whose ledgers the
-// player has signed, and nothing else (but, last, his offer to sign every
-// ledger at once): Rivervale and Qeynos signed but never on Freeport's coach
+// player has signed, and nothing else: Rivervale and Qeynos signed but never on Freeport's coach
 // are not offered, nor Neriak, Bobble-by-Water and Muniel's Tea Garden, on it
 // but not signed. The control: Neriak signed is offered too (EQOA-Data lists
 // Neriak only as Freeport's destination, so the road is read both ways), and
@@ -103,15 +110,15 @@ func TestACoachRunsOnlyToSignedNeighbours(t *testing.T) {
 	book[44] = map[string]bool{"Freeport": true, "Highpass Hold": true, "Rivervale": true, "Qeynos": true}
 
 	tw.talk(ronks)
-	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Highpass Hold", everyLedgerOption}) {
-		t.Fatalf("Ronks offered %q; want Highpass Hold alone and his offer (Rivervale and Qeynos are signed but his "+
+	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Highpass Hold"}) {
+		t.Fatalf("Ronks offered %q; want Highpass Hold alone (Rivervale and Qeynos are signed but his "+
 			"coach never ran there; Neriak, Bobble-by-Water and Muniel's Tea Garden it ran to are not signed)", got)
 	}
 
 	book[44]["Neriak"] = true
 	tw.talk(ronks)
-	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Highpass Hold", "Neriak", everyLedgerOption}) {
-		t.Fatalf("with Neriak signed Ronks offered %q, want Highpass Hold, Neriak and his offer", got)
+	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Highpass Hold", "Neriak"}) {
+		t.Fatalf("with Neriak signed Ronks offered %q, want Highpass Hold and Neriak", got)
 	}
 	tw.pick(ronks, 1)
 	if x, z, world, moved := teleported(tw.s); !moved || x != 24925 || z != 9429 || world != 0 {
@@ -121,8 +128,8 @@ func TestACoachRunsOnlyToSignedNeighbours(t *testing.T) {
 
 // Talking to a coachman signs his town's ledger, said once in chat; with no
 // town his coach runs to signed, he says so (the towns it runs to, Ronks's
-// words) where the menu would be, and offers no town, only to sign every
-// ledger at once, so a pick then moves nobody. At Highpass Hold the return
+// words) where the menu would be, and offers nothing (no ledger signed at
+// once: petition 5114), so a pick then moves nobody. At Highpass Hold the return
 // trip is offered: Quicksteed signs his ledger and offers Freeport, signed at
 // Ronks's. The controls: before the talk the book is empty, and a second talk
 // says nothing of the ledger.
@@ -143,8 +150,8 @@ func TestTalkingToACoachmanSignsHisLedger(t *testing.T) {
 	if got := dialogueBoxes(tw.s); !slices.Equal(got, []string{want}) {
 		t.Errorf("Ronks's answer %q, want %q", got, want)
 	}
-	if len(offered(tw.p)) != 0 || !offersEvery(tw.p) {
-		t.Errorf("after the refusal the menu holds %v (every ledger: %v), want no town and his offer alone",
+	if len(offered(tw.p)) != 0 || offersEvery(tw.p) {
+		t.Errorf("after the refusal the menu holds %v (every ledger: %v), want nothing",
 			offered(tw.p), offersEvery(tw.p))
 	}
 	tw.pick(ronks, 0)
@@ -164,8 +171,8 @@ func TestTalkingToACoachmanSignsHisLedger(t *testing.T) {
 	if !book[44]["Highpass Hold"] {
 		t.Errorf("Quicksteed did not sign Highpass Hold: %v", book[44])
 	}
-	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Freeport", everyLedgerOption}) {
-		t.Errorf("Quicksteed offered %q, want Freeport (signed at Ronks's) and his offer", got)
+	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Freeport"}) {
+		t.Errorf("Quicksteed offered %q, want Freeport (signed at Ronks's) alone", got)
 	}
 }
 
@@ -302,6 +309,7 @@ func TestTheEveryLedgerWordsFit(t *testing.T) {
 // coach. The controls: before Yes the book holds what the player signed, and
 // a pick of a town still travels.
 func TestACoachmanSignsEveryLedgerAtOnce(t *testing.T) {
+	coachSignAllOn(t)
 	tw, ronks, book := coachWorld(t)
 	book[44] = map[string]bool{"Highpass Hold": true}
 
@@ -361,6 +369,7 @@ func TestACoachmanSignsEveryLedgerAtOnce(t *testing.T) {
 // his offer alone, asked as a question of its own; a close (255) of his
 // question changes nothing and leaves it to answer, and Yes then signs.
 func TestACoachmanOffersEveryLedgerWhenNoneHeRunsToIsSigned(t *testing.T) {
+	coachSignAllOn(t)
 	tw, ronks, book := coachWorld(t)
 	tw.talk(ronks)
 	msgs := questMsgs(tw.s)
@@ -387,6 +396,7 @@ func TestACoachmanOffersEveryLedgerWhenNoneHeRunsToIsSigned(t *testing.T) {
 // question had, or one never asked, signs nothing. The control: the same
 // character one town short is offered it.
 func TestNoEveryLedgerOfferWhereItGrantsNothing(t *testing.T) {
+	coachSignAllOn(t)
 	tw, ronks, book := coachWorld(t)
 	book[44] = map[string]bool{}
 	for _, town := range entity.CoachTownNames() {
@@ -437,6 +447,7 @@ func TestNoEveryLedgerOfferWhereItGrantsNothing(t *testing.T) {
 // signed, source coachman-all; a ledger signed at its stable keeps its row
 // (source talk, its time).
 func TestEveryLedgerAtOnceIsKeptAsItsOwnSource(t *testing.T) {
+	coachSignAllOn(t)
 	tw, ronks, _ := coachWorld(t)
 	db, err := database.NewSQLite(t.TempDir() + "/ledgers.db")
 	if err != nil {
@@ -513,5 +524,84 @@ func TestOggoksCoachRunsAcrossWorlds(t *testing.T) {
 	off, _, _ := tw.h.coachDests(tw.s, tw.p, wanderer)
 	if len(off) != 1 || off[0].Name != "Oggok" {
 		t.Errorf("a coachman of no town in the Rathe offers %+v, want the Rathe's Oggok alone", off)
+	}
+}
+
+// Petition 5114 (the owner, 2026-11-14): a ledger is signed only at its own
+// coachman. With world.coach_sign_all off (the default) Ronks signs Freeport's
+// alone and makes no offer to sign the rest, at a menu of towns or at none;
+// Quicksteed then signs Highpass Hold's, and neither signs another's. Ledgers
+// signed before, by the old offer too, stay signed and are offered.
+func TestEachLedgerIsSignedAtItsOwnCoachman(t *testing.T) {
+	if CoachSignAll() {
+		t.Fatal("world.coach_sign_all is on by default")
+	}
+	tw, ronks, book := coachWorld(t)
+	tw.talk(ronks)
+	if want := map[string]bool{"Freeport": true}; !maps.Equal(book[44], want) {
+		t.Fatalf("after Ronks the book holds %v, want %v", book[44], want)
+	}
+	msgs := questMsgs(tw.s)
+	if len(msgs) != 2 || msgs[0] != "chat:Coachman Ronks: "+ledgerSigned || !strings.HasPrefix(msgs[1], "box:Coachman Ronks: My horses run to ") {
+		t.Fatalf("Ronks answered %q, want his ledger signed and why he offers no town, no offer to sign every ledger", msgs)
+	}
+	if offersEvery(tw.p) || len(tw.p.PendingCoachDests) != 0 {
+		t.Errorf("Ronks's menu holds %v, want nothing", tw.p.PendingCoachDests)
+	}
+
+	quick := tw.add(2, tw.w.NPCs[415])
+	tw.w.UpdatePosition(tw.p.ServerID, 16781, 188, 15353, 0)
+	tw.talk(quick)
+	if want := map[string]bool{"Freeport": true, "Highpass Hold": true}; !maps.Equal(book[44], want) {
+		t.Fatalf("after Quicksteed the book holds %v, want %v", book[44], want)
+	}
+	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Freeport"}) {
+		t.Errorf("Quicksteed offered %q, want Freeport alone", got)
+	}
+
+	// a character that signed every ledger at the old offer keeps them
+	book[45] = map[string]bool{}
+	for _, town := range entity.CoachTownNames() {
+		book[45][town] = true
+	}
+	tw.p.CharServerID = 45
+	tw.w.UpdatePosition(tw.p.ServerID, 25274, 54, 15716, 0)
+	tw.talk(ronks)
+	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Bobble-by-Water", "Highpass Hold", "Muniel's Tea Garden", "Neriak"}) {
+		t.Errorf("with every ledger signed before, Ronks offered %q, want his four neighbours", got)
+	}
+	if len(book[45]) != len(entity.CoachTownNames()) {
+		t.Errorf("the talk took ledgers away: %d of %d", len(book[45]), len(entity.CoachTownNames()))
+	}
+}
+
+// The old sign-all path no longer signs: a question asked while
+// world.coach_sign_all was on, answered Yes after it went off, signs nothing
+// and the coachman says each stable keeps its own ledger. The control: the
+// same Yes with it on signs every ledger.
+func TestTheEveryLedgerOfferSignsNothingOnceOff(t *testing.T) {
+	coachSignAllOn(t)
+	tw, ronks, book := coachWorld(t)
+	tw.talk(ronks)
+	questMsgs(tw.s)
+	tw.pick(ronks, 0)
+	box := everyAsked(t, questMsgs(tw.s), "Coachman Ronks")
+
+	SetCoachSignAll(false)
+	tw.pick(box, 0) // Yes
+	if want := map[string]bool{"Freeport": true}; !maps.Equal(book[44], want) {
+		t.Fatalf("Yes with the offer off signed %v, want %v", book[44], want)
+	}
+	if msgs := questMsgs(tw.s); !slices.Equal(msgs, []string{"box:Coachman Ronks: " + everyLedgerOff}) {
+		t.Errorf("Yes with the offer off answered %q", msgs)
+	}
+
+	SetCoachSignAll(true)
+	tw.talk(ronks)
+	questMsgs(tw.s)
+	tw.pick(ronks, 0)
+	tw.pick(everyAsked(t, questMsgs(tw.s), "Coachman Ronks"), 0)
+	if len(book[44]) != len(entity.CoachTownNames()) {
+		t.Errorf("the control: Yes with the offer on signed %d of %d", len(book[44]), len(entity.CoachTownNames()))
 	}
 }

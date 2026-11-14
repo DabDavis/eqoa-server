@@ -541,6 +541,12 @@ func main() {
 		log.Printf("Jump: a client that can jumps (world.jump)")
 	}
 	handlers.SetQuestMarksBelow(cfg.World.QuestMarksBelow) // handlers/questmarks.go
+	// a coachman's offer to sign every ledger at once (coachledger.go): off
+	// unless world.coach_sign_all (petition 5114)
+	handlers.SetCoachSignAll(cfg.World.CoachSignAll)
+	if cfg.World.CoachSignAll {
+		log.Printf("Coach: coachmen offer every stable's ledger at once (world.coach_sign_all)")
+	}
 	// the journal's pointers to a finished quest's next giver (questpointers.go)
 	handlers.SetNextGiverPointer(cfg.Quests.NextGiverPointer == nil || *cfg.Quests.NextGiverPointer)
 	if n := handlers.QuestMarksBelow(); n < 0 {

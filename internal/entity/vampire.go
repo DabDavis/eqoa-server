@@ -309,7 +309,9 @@ func (w *World) SunOn(sess *session.Session, now time.Time) (s SunState, ok bool
 //   - the gaze ("Set Aggro to 0": Vampiric Gaze): the creature forgets its
 //     hate for the caster (forgetLocked).
 //   - Vampire Form shows the fledgling vampires' body, Bat Form the bats'
-//     (illusion.go, pet.go's petBodyAliases); Mist Form has no body of its
+//     (illusion.go, pet.go's petBodyAliases); a female bearer of Vampire
+//     Form the human woman's, the body Vampire Tserrina wears (petition
+//     5107: illusion.go's femaleFormBodies); Mist Form has no body of its
 //     own on this server (the guide's red mist) and lands as its stats.
 //   - "Prevents invis/sow pots" (the guide): a vampire may not drink a potion
 //     that makes it invisible or quickens it (VampirePotionRefusal).

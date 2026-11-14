@@ -63,7 +63,8 @@ const homesMenuGerntar = "Gerntar Mines (the Homelands)"
 
 // A home's coachman is a stable as any: the talk signs his home's ledger, said
 // once; with no ledger of a town his coach runs to he says so, the homes
-// together by their world's name, and offers only to sign every ledger. With
+// together by their world's name, and offers nothing (no ledger signed at
+// once: world.coach_sign_all is off, petition 5114). With
 // Freeport's and another home's signed he offers those, and the rides land on
 // the coachmen's own spots, Freeport's in Tunaria. No town but Freeport is
 // his coach's: Highpass Hold, signed, is not offered.
@@ -82,15 +83,15 @@ func TestAHomesCoachRunsToFreeportAndTheOtherHomes(t *testing.T) {
 	if got := dialogueBoxes(tw.s); !slices.Equal(got, []string{want}) {
 		t.Errorf("Harrek's answer %q, want %q", got, want)
 	}
-	if len(offered(tw.p)) != 0 || !offersEvery(tw.p) {
-		t.Errorf("with no ledger the menu holds %v (every ledger: %v), want his offer alone", offered(tw.p), offersEvery(tw.p))
+	if len(offered(tw.p)) != 0 || offersEvery(tw.p) {
+		t.Errorf("with no ledger the menu holds %v (every ledger: %v), want nothing", offered(tw.p), offersEvery(tw.p))
 	}
 	tw.s.Queue().GetPending()
 
 	book[44]["Freeport"], book[44]["West Plateau"], book[44]["Highpass Hold"] = true, true, true
 	tw.talk(harrek)
-	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Freeport", "West Plateau", everyLedgerOption}) {
-		t.Fatalf("Harrek offered %q, want Freeport, West Plateau and his offer (Highpass Hold is signed, and no coach of a home's "+
+	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Freeport", "West Plateau"}) {
+		t.Fatalf("Harrek offered %q, want Freeport and West Plateau (Highpass Hold is signed, and no coach of a home's "+
 			"runs there; Gerntar Mines' ledger is not signed)", got)
 	}
 	tw.pick(harrek, 0)
@@ -123,8 +124,8 @@ func TestFreeportsCoachRunsToTheHomesAClientHolds(t *testing.T) {
 	if got := offered(tw.p); !slices.Equal(got, want) {
 		t.Fatalf("Ronks offered %q, want %q (Tunaria's Gerntar Mines is no neighbour of Freeport's)", got, want)
 	}
-	if got := optionBox(t, tw.s); len(got) != 5 || got[4] != everyLedgerOption {
-		t.Errorf("Ronks's page %q, want the four towns and his offer", got)
+	if got := optionBox(t, tw.s); !slices.Equal(got, want) {
+		t.Errorf("Ronks's page %q, want the four towns alone", got)
 	}
 	tw.pick(ronks, 0)
 	if x, z, world, moved := teleported(tw.s); !moved || x != 9211.7 || z != 21547.1 || world != 10 {
@@ -180,11 +181,12 @@ func TestFreeportsCoachRunsToTheHomesAClientHolds(t *testing.T) {
 	}
 }
 
-// The offer to sign every ledger at once takes the homes' in: Yes signs
-// them with the towns', and the menu then lists them. A coachman standing in a
-// zone of the server's world that is no race's home runs no coach, signs
-// nothing and says nothing.
+// The offer to sign every ledger at once (world.coach_sign_all on) takes the
+// homes' in: Yes signs them with the towns', and the menu then lists them. A
+// coachman standing in a zone of the server's world that is no race's home
+// runs no coach, signs nothing and says nothing.
 func TestEveryLedgerTakesTheHomesIn(t *testing.T) {
+	coachSignAllOn(t)
 	tw, ronks, book := homesCoachWorld(t)
 	tw.talk(ronks)
 	tw.s.Queue().GetPending()

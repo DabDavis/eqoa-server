@@ -231,6 +231,14 @@ type WorldConfig struct {
 	CorpseOpenAfter  time.Duration `yaml:"corpse_open_after"`
 	CorpseDecayAfter time.Duration `yaml:"corpse_decay_after"`
 
+	// CoachSignAll turns back on a coachman's offer to sign every stable's
+	// ledger at once (handlers/coachledger.go; the user, 2026-11-06). Unset or
+	// false: each ledger is signed only by talking to its own coachman (the
+	// owner, 2026-11-14, petition 5114: "force people to make coach runs as
+	// that was always a big part of the early game"). Ledgers already signed
+	// stay signed either way.
+	CoachSignAll bool `yaml:"coach_sign_all"`
+
 	// Aggro is whether creatures attack a player on sight (entity/aggro.go):
 	// unset, they do; false, none attacks first.
 	Aggro *bool `yaml:"aggro"`

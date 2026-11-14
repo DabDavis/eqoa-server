@@ -254,6 +254,37 @@ func (w *World) raceBodyLocked(model uint32, sex int) (body uint32, race int, ok
 	return model, 0, false
 }
 
+// femaleFormBodies is, by an illusion's body, the body a female bearer of it
+// takes instead, at that body's race's size: a form whose creature has a
+// body of one sex alone. Vampire Form's fledgling vampire is a man's body
+// (the owner, petition 5107: a female vampire wears the body Vampire
+// Tserrina wears, the human woman's). A body not here is everyone's.
+var femaleFormBodies = map[uint32]uint32{
+	bodyFledglingVampire: bodyHumanFemale,
+}
+
+// bodyFledglingVampire is the fledgling vampires' body (CHAR.ESF's DictID;
+// the workbook's sprite 0x83801BCE read the other way round), Vampire Form's
+// (vampire.go).
+const bodyFledglingVampire = 0xCE1B8083
+
+// femaleFormBodyLocked is, for a female bearer (sex 1) of an illusion of
+// model, the body femaleFormBodies gives it and that body's race; ok is false
+// for a male bearer and for a body every bearer wears.
+func (w *World) femaleFormBodyLocked(model uint32, sex int) (body uint32, race int, ok bool) {
+	if sex != 1 {
+		return model, 0, false
+	}
+	b, has := femaleFormBodies[model]
+	if !has {
+		return model, 0, false
+	}
+	if _, race, isRace := w.raceBodyLocked(b, sex); isRace {
+		return b, race, true
+	}
+	return b, 0, true // a human's when charactermodel names none (racesize: the human's is PlayerSize's)
+}
+
 // landIllusionLocked gives an illusion's lasting effect its body and takes
 // any other illusion off its bearer first (a new illusion replaces the
 // old). An illusion of a body this server lacks lands as its stats alone.
@@ -281,6 +312,10 @@ func (w *World) landIllusionLocked(cs *castState, t *Player, ae *ActiveEffect) {
 	}
 	if d.FormSize > 0 { // its line's own size for the body ("Body Size 4.05": spelltext.go)
 		size = d.FormSize
+	}
+	if b, race, female := w.femaleFormBodyLocked(model, t.Sex); female && onDisc(b) {
+		// a woman's body for a form of a man's (Vampire Form), at its race's size
+		model, size = b, w.raceSizeLocked(race)
 	}
 	ae.Form, ae.FormSize = model, size
 	log.Printf("Cast: %q shows %s as %q (model %#x, size %.2f)", cs.spell.Name, t.Name, d.Form, model, size)
@@ -359,6 +394,9 @@ func (w *World) landNPCIllusionLocked(cs *castState, npc *NPC, ae *ActiveEffect)
 	}
 	if d.FormSize > 0 { // its line's own size for the body (spelltext.go)
 		size = d.FormSize
+	}
+	if b, _, female := w.femaleFormBodyLocked(model, sex); female && onDisc(b) {
+		model, size = b, 0 // a woman's body for a form of a man's, at the creature's own size (racesize.go)
 	}
 	ae.Form, ae.FormSize = model, size
 	log.Printf("Cast: %q shows %s as model %#x", cs.spell.Name, npc.Name, model)

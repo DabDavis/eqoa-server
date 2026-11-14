@@ -260,7 +260,7 @@ func TestGMSizeKeptInTheRow(t *testing.T) {
 // The owner, 2026-11-14: "lets give the account for kobe, skywalker access to use
 // ./size ... will set that mobs size in the database so will stay that size and also
 // update it instantly". A player's /size is an unknown command (the control); made
-// a sub GM (forestwood's gm_testers row), its /size on a creature sizes it at once and
+// a sub GM (forestwood's tester row, marked sub GM), its /size on a creature sizes it at once and
 // keeps it in the row, audited; with no creature targeted it is refused (a sub GM's
 // /size is a creature's), its own size left alone.
 func TestSubGMSizeKeptInTheRow(t *testing.T) {

@@ -196,8 +196,9 @@ func TestCorpseDoesNotRegenerate(t *testing.T) {
 // A death leaves the live game's experience debt for its level (the wiki's
 // unrezzed chart, which SOE's Corsten state bears out: five level 49 deaths,
 // 30,689,845 owed), told to the client (0x00D9, the debt itself) and added to
-// what was owed; below level 6 a death costs nothing. The chart's blanks lie
-// on its curve: 51 and 53 between their neighbours, 60 above 54.
+// what was owed; below level 6 a death costs nothing. The chart's blanks are
+// CLIENT's ExpCost (deathdebt.go): 51 and 53 between their neighbours, 60 the
+// forum thread's own.
 func TestADeathLeavesTheLiveGamesDebt(t *testing.T) {
 	debtSent := func(s *session.Session) []uint32 {
 		var out []uint32
@@ -240,7 +241,7 @@ func TestADeathLeavesTheLiveGamesDebt(t *testing.T) {
 			t.Errorf("level %d's debt %d is not between %d and %d", l, d, DeathDebt(l-1), DeathDebt(l+1))
 		}
 	}
-	if d := DeathDebt(60); d < 13_700_000 || d > 13_900_000 {
-		t.Errorf("level 60's debt %d is off the chart's curve (~13.8M)", d)
+	if d := DeathDebt(60); d != 13_752_774 {
+		t.Errorf("level 60's debt %d, the thread's 13,752,774 (xpcalc_test.go)", d)
 	}
 }

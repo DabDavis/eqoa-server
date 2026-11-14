@@ -327,3 +327,37 @@ func TestFactionHitsTakeTheNameInAnyCase(t *testing.T) {
 		t.Errorf("standings %v, want Citizens of Freeport -24 (once) and The Freeport Militia -49", got)
 	}
 }
+
+// A kill moves the standings of every member who shares it, as its
+// experience is shared (petition 5078, Horizon: only the killer's moved):
+// the killer and a member beside it take the hits; a member out of range and
+// a dead one do not.
+func TestAGroupsKillMovesEverySharersFactions(t *testing.T) {
+	f := newGuardFight(t)
+	f.w.mu.Lock()
+	defer f.w.mu.Unlock()
+	mk := func(id EntityID, name string, dx float32) *Player {
+		m := &Player{ServerID: id, Name: name, Level: f.p.Level, HP: 100, MaxHP: 100, World: f.npc.World,
+			X: f.npc.X + dx, Y: f.npc.Y, Z: f.npc.Z, CharServerID: uint32(id)}
+		f.w.Players[id] = m
+		return m
+	}
+	near, far, dead := mk(7001, "Horizon", 5), mk(7002, "Faraway", KillShareRange+50), mk(7003, "Fallen", 3)
+	dead.HP = 0
+	g := f.w.formGroupLocked(f.p)
+	for _, m := range []*Player{near, far, dead} {
+		g.Members = append(g.Members, m.ServerID)
+		m.GroupID = g.ID
+	}
+	f.w.factionKillLocked(f.sess, f.p, f.npc)
+	for _, m := range []*Player{f.p, near} {
+		if got := m.Factions["Citizens of Freeport"]; got != -24 {
+			t.Errorf("%s: Citizens of Freeport %d, want -24", m.Name, got)
+		}
+	}
+	for _, m := range []*Player{far, dead} {
+		if len(m.Factions) != 0 {
+			t.Errorf("%s took the hits: %v", m.Name, m.Factions)
+		}
+	}
+}

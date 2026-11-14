@@ -545,6 +545,20 @@ func (w *World) factionKillLocked(sess *session.Session, p *Player, npc *NPC) {
 	if len(hits) == 0 {
 		return
 	}
+	// the killer and its group's members who share the kill (killexp.go's
+	// rule, the experience's and the quests'): each takes the hits (petition
+	// 5078, Horizon, 2026-11-14: only the killer's standings moved)
+	for _, m := range w.killSharersLocked(p, npc) {
+		ms := sess
+		if m != p {
+			ms = w.sessionOfLocked(m)
+		}
+		w.takeFactionHitsLocked(ms, m, npc, hits)
+	}
+}
+
+// takeFactionHitsLocked moves one player's standings by a kill's hits.
+func (w *World) takeFactionHitsLocked(sess *session.Session, p *Player, npc *NPC, hits []FactionHit) {
 	quiet := sess == nil || sess.FactionMessagesOff()
 	for _, h := range hits {
 		if h.Delta == 0 {

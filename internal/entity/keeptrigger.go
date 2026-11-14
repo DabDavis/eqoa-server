@@ -43,7 +43,7 @@ type KeptEventNPC struct {
 	Level   int    `json:"level"`
 	FullHP  int    `json:"full_hp"` // its hit points' maximum
 	NPCType int    `json:"npc_type"`
-	Event   bool   `json:"event,omitempty"` // EventAggro: attacks any player on sight
+	Event   bool   `json:"event,omitempty"`  // EventAggro: attacks any player on sight
 	NoLoot  bool   `json:"noloot,omitempty"` // a trigger's spawn of a corpse of nothing
 	// Enemy is the NPC a sic set it on (0 none), Casts whether it fights it by
 	// its class template's casts too

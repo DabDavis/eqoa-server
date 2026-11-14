@@ -40,6 +40,10 @@ const huntCampLink = 120
 // huntCampFew is the size of camp a lone spawn or a pair is passed over for.
 const huntCampFew = 3
 
+// huntPlaceReach is how near a hunt step's own place (queststeps x, z) a camp
+// must stand to be marked for it.
+const huntPlaceReach = 1500
+
 // huntCamp is a camp of a name's spawns: the spawn nearest its middle, and how
 // many it has.
 type huntCamp struct {
@@ -239,6 +243,23 @@ func (q *QuestEngine) stepSpotsLocked(spots map[string][]entity.NPCSpot, st *dat
 		camps := q.campsLocked(spots, names)
 		if len(camps) == 0 {
 			break
+		}
+		// a step with a place of its own ("the giant widows of central
+		// Collonridge Cemetery": queststeps x, z, world): the camps of any
+		// size within huntPlaceReach of it, before the camps elsewhere
+		// (petition 5099/5104, Lostinpot: the mark went to Sslathis's six
+		// widows, 20,000 off, for the cemetery's scattered ones)
+		if st.X != 0 || st.Z != 0 {
+			var at []entity.NPCSpot
+			for _, c := range camps {
+				if int(c.at.World) == st.World && math.Hypot(float64(c.at.X-st.X), float64(c.at.Z-st.Z)) <= huntPlaceReach {
+					at = append(at, c.at)
+				}
+			}
+			if len(at) > 0 {
+				out = append(out, at...)
+				break
+			}
 		}
 		big := 0
 		for _, c := range camps {

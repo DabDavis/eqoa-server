@@ -609,7 +609,7 @@ input.look-raw { width: 9.5em; }
 :root[data-theme="light"] { --s-made: #2a78d6; --s-spent: #eb6834; --s-moved: #8a909c; }
 .econ-chart { width: 100%; }
 .econ-plot { position: relative; }
-.econ-svg { width: 100%; height: auto; display: block; overflow: visible; }
+.econ-svg { display: block; overflow: visible; max-width: 100%; }
 .econ-grid { stroke: var(--border); stroke-width: 1; }
 .econ-zero { stroke: var(--border-2); stroke-width: 1.5; }
 .econ-axis { fill: var(--faint); font-size: 11px; font-variant-numeric: tabular-nums; }

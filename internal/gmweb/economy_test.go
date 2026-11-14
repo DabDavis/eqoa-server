@@ -84,7 +84,7 @@ func TestEconomyOp(t *testing.T) {
 		t.Errorf("traders: %v", tr)
 	}
 	calls := strings.Join(toStrings(out["callouts"]), "\n")
-	for _, want := range []string{"Net +700 tunar today (1000 made, 300 spent), 80% of it made from corpse coins.",
+	for _, want := range []string{"Net +700 tunar today (1000 made, 300 spent), 80% of it from corpse coins.",
 		"Top earner today: Hero, 800 made (mostly corpse coins).", "Money supply"} {
 		if !strings.Contains(calls, want) {
 			t.Errorf("no %q in:\n%s", want, calls)

@@ -64,30 +64,32 @@ type Info struct {
 	Kind   Kind   `json:"kind"`
 	Label  string `json:"label"`
 	Help   string `json:"help"`
+	// Phrase is the source in a sentence ("80% of it from corpse coins").
+	Phrase string `json:"phrase"`
 }
 
 // Sources are every source, faucets, then sinks, then transfers.
 var Sources = []Info{
-	{Loot, Faucet, "Corpse coins", "a creature's corpse's tunar, the share of the one who opened it"},
-	{LootSplit, Faucet, "Corpse coins, group shares", "the other group members' equal shares of a corpse's tunar"},
-	{Pickpocket, Faucet, "Pickpocketing", "a rogue's pick of a creature's pockets"},
-	{MerchantSell, Faucet, "Sold to merchants", "items sold to an NPC merchant"},
-	{QuestReward, Faucet, "Quest rewards", "a quest step's tunar reward"},
-	{QuestRefund, Faucet, "Quest hand-backs", "a step's tunar handed back when its encounter is put back"},
-	{StartingPurse, Faucet, "New characters' purses", "the 5,000 tunar a character's first login starts with"},
-	{GMGive, Faucet, "GM grants", "#tunar, #banktunar and #template raising a purse or a bank, and the panel's edits upward"},
-	{MerchantBuy, Sink, "Bought from merchants", "items bought from an NPC merchant"},
-	{BuyBack, Sink, "Bought back", "items sold or destroyed, bought back at a merchant"},
-	{Repair, Sink, "Repairs", "a blacksmith mending an item"},
-	{QuestPayment, Sink, "Quest payments", "a quest step's tunar handed in (a portal guardian's fare)"},
-	{Travel, Sink, "Waysender fares", "a waysender's fee for a trip"},
-	{Cure, Sink, "Fever cures", "a were fever drawn out at the campfire"},
-	{AuctionFee, Sink, "Auction listing fees", "the auction house's fee for putting a lot up"},
-	{AuctionHouse, Sink, "Auction house's own lots", "buys from the house's standing lots, which have no seller"},
-	{GMTake, Sink, "GM removals", "#tunar, #banktunar and the panel's edits lowering a purse or a bank"},
-	{Trade, Transfer, "Trades", "tunar given in a trade window"},
-	{AuctionSale, Transfer, "Auction sales", "an auction won between players: its price, from the winner to the seller"},
-	{DuelWager, Transfer, "Duel wagers", "a duel's lost stake, paid to its winner"},
+	{Loot, Faucet, "Corpse coins", "a creature's corpse's tunar, the share of the one who opened it", "corpse coins"},
+	{LootSplit, Faucet, "Corpse coins, group shares", "the other group members' equal shares of a corpse's tunar", "corpse coins' group shares"},
+	{Pickpocket, Faucet, "Pickpocketing", "a rogue's pick of a creature's pockets", "pickpocketing"},
+	{MerchantSell, Faucet, "Sold to merchants", "items sold to an NPC merchant", "items sold to merchants"},
+	{QuestReward, Faucet, "Quest rewards", "a quest step's tunar reward", "quest rewards"},
+	{QuestRefund, Faucet, "Quest hand-backs", "a step's tunar handed back when its encounter is put back", "quest hand-backs"},
+	{StartingPurse, Faucet, "New characters' purses", "the 5,000 tunar a character's first login starts with", "new characters' purses"},
+	{GMGive, Faucet, "GM grants", "#tunar, #banktunar and #template raising a purse or a bank, and the panel's edits upward", "GM grants"},
+	{MerchantBuy, Sink, "Bought from merchants", "items bought from an NPC merchant", "merchant purchases"},
+	{BuyBack, Sink, "Bought back", "items sold or destroyed, bought back at a merchant", "buy-backs"},
+	{Repair, Sink, "Repairs", "a blacksmith mending an item", "repairs"},
+	{QuestPayment, Sink, "Quest payments", "a quest step's tunar handed in (a portal guardian's fare)", "quest payments"},
+	{Travel, Sink, "Waysender fares", "a waysender's fee for a trip", "waysender fares"},
+	{Cure, Sink, "Fever cures", "a were fever drawn out at the campfire", "fever cures"},
+	{AuctionFee, Sink, "Auction listing fees", "the auction house's fee for putting a lot up", "auction listing fees"},
+	{AuctionHouse, Sink, "Auction house's own lots", "buys from the house's standing lots, which have no seller", "the auction house's own lots"},
+	{GMTake, Sink, "GM removals", "#tunar, #banktunar and the panel's edits lowering a purse or a bank", "GM removals"},
+	{Trade, Transfer, "Trades", "tunar given in a trade window", "trades"},
+	{AuctionSale, Transfer, "Auction sales", "an auction won between players: its price, from the winner to the seller", "auction sales"},
+	{DuelWager, Transfer, "Duel wagers", "a duel's lost stake, paid to its winner", "duel wagers"},
 }
 
 var kinds = func() map[Source]Kind {

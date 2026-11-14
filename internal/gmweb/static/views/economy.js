@@ -30,20 +30,33 @@ const KIND_LABEL = { faucet: 'Made', sink: 'Spent', transfer: 'Moved' };
 
 // lineChart draws series over points [{t, ...}] on one axis, with a hover
 // crosshair and a tooltip listing every value at that point.
-function lineChart(points, series, { fmtT, tip, height = 220 }) {
-  const W = 720, H = height, L = 52, R = 12, T = 12, B = 26;
+function lineChart(points, series, opts) {
   const wrap = h('div', { class: 'econ-chart' });
+  // drawn at the width it is given, so its text stays the page's size; again
+  // when that width changes
+  let drawn = 0;
+  const paint = () => {
+    const w = Math.round(wrap.clientWidth);
+    if (w > 0 && w !== drawn) { drawn = w; drawChart(wrap, points, series, { ...opts, width: w }); }
+  };
+  requestAnimationFrame(paint);
+  if (window.ResizeObserver) new ResizeObserver(paint).observe(wrap);
+  return wrap;
+}
+
+function drawChart(wrap, points, series, { fmtT, tip, height = 220, width = 720 }) {
+  const W = Math.max(width, 280), H = height, L = 56, R = 14, T = 12, B = 26;
   const vals = points.flatMap((p) => series.map((se) => se.get(p)).filter((v) => v !== null && v !== undefined));
   if (!vals.length) {
     mount(wrap, empty('Nothing counted in this range yet.'));
-    return wrap;
+    return;
   }
   let lo = Math.min(0, ...vals), hi = Math.max(0, ...vals);
   if (hi === lo) hi = lo + 1;
   const pad = (hi - lo) * 0.06; hi += pad; if (lo < 0) lo -= pad;
   const x = (i) => L + (points.length === 1 ? (W - L - R) / 2 : (i * (W - L - R)) / (points.length - 1));
   const y = (v) => T + ((hi - v) * (H - T - B)) / (hi - lo);
-  const svg = s('svg', { viewBox: `0 0 ${W} ${H}`, class: 'econ-svg', role: 'img', 'aria-label': series.map((se) => se.label).join(', ') });
+  const svg = s('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, class: 'econ-svg', role: 'img', 'aria-label': series.map((se) => se.label).join(', ') });
   // grid: 4 lines, recessive
   for (let k = 0; k <= 4; k++) {
     const v = lo + ((hi - lo) * k) / 4;
@@ -52,9 +65,11 @@ function lineChart(points, series, { fmtT, tip, height = 220 }) {
     svg.appendChild(tx);
   }
   if (lo < 0) svg.appendChild(s('line', { x1: L, x2: W - R, y1: y(0), y2: y(0), class: 'econ-zero' }));
-  const every = Math.max(1, Math.ceil(points.length / 8));
+  const every = Math.max(1, Math.ceil(points.length / Math.max(2, Math.floor((W - L - R) / 90))));
   points.forEach((p, i) => {
-    if (i % every && i !== points.length - 1) return;
+    const last = i === points.length - 1;
+    if (i % every && !last) return;
+    if (!last && points.length - 1 - i < every * 0.75) return; // no label over the last one's
     const tx = s('text', { x: x(i), y: H - 8, class: 'econ-axis', 'text-anchor': 'middle' }); tx.textContent = fmtT(p.t);
     svg.appendChild(tx);
   });
@@ -62,7 +77,7 @@ function lineChart(points, series, { fmtT, tip, height = 220 }) {
     let d = '', on = false;
     points.forEach((p, i) => {
       const v = se.get(p);
-      if (v === null || v === undefined) { on = false; return; }
+      if (v === null || v === undefined) { if (!se.spanGaps) on = false; return; }
       d += (on ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1);
       on = true;
     });
@@ -102,7 +117,6 @@ function lineChart(points, series, { fmtT, tip, height = 220 }) {
   hit.addEventListener('pointerleave', () => { tipBox.hidden = true; cross.setAttribute('visibility', 'hidden'); marks.forEach((m) => m.setAttribute('visibility', 'hidden')); });
   const legend = series.length > 1 ? h('div', { class: 'econ-legend' }, ...series.map((se) => h('span', null, h('i', { class: 'swatch ' + se.cls + (se.dash ? ' dash' : '') }), se.label))) : null;
   mount(wrap, legend, h('div', { class: 'econ-plot' }, svg, tipBox));
-  return wrap;
 }
 
 const hourFmt = (t) => new Date(t * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -167,8 +181,8 @@ export async function render(box, id) {
     const net = lineChart(pts, [{ label: 'Net (made minus spent)', cls: 's-net', get: (p) => p.net }],
       { fmtT, height: 150, tip: (p) => [h('div', { class: 'econ-tip-t' }, fmtT(p.t)), h('div', null, 'Net ', h('b', null, (p.net > 0 ? '+' : '') + full(p.net)))] });
     const supply = lineChart(pts, [
-      { label: 'All tunar held', cls: 's-made', get: (p) => p.supply ?? null },
-      { label: 'Players\' (no GMs)', cls: 's-spent', dash: true, get: (p) => p.playerSupply ?? null },
+      { label: 'All tunar held', cls: 's-made', spanGaps: true, get: (p) => p.supply ?? null },
+      { label: 'Players\' (no GMs)', cls: 's-spent', dash: true, spanGaps: true, get: (p) => p.playerSupply ?? null },
     ], { fmtT, height: 180, tip: (p) => [h('div', { class: 'econ-tip-t' }, fmtT(p.t)),
       h('div', null, 'All held ', h('b', null, p.supply == null ? '—' : full(p.supply))),
       h('div', null, 'Players\' ', h('b', null, p.playerSupply == null ? '—' : full(p.playerSupply)))] });

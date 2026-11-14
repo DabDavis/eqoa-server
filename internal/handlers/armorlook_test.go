@@ -166,7 +166,7 @@ func TestTheDyerDyesTheTrim(t *testing.T) {
 	for _, c := range trim.sub[1:] {
 		labels = append(labels, c.label)
 	}
-	if strings.Join(labels, ",") != "Chest trim,Bracers trim,Legs trim,Boots trim" {
+	if strings.Join(labels, ",") != "Chest or robe top trim,Bracers and gloves trim,Legs or robe skirt trim,Boots trim,Helm trim" {
 		t.Fatalf("the pieces: %v", labels)
 	}
 	if len(dyeSlotsHere()) != database.DyeSlots-1 || !database.IsTrimSlot(dyeSlotsHere()[len(dyeSlotsHere())-1]) {
@@ -223,11 +223,11 @@ func TestTheDyerDyesTheTrimTalkedThrough(t *testing.T) {
 	}
 	pick(pick(pick(talk(), 0), 0), 2) // All my armor, whites, grey
 	got = pick(talk(), 4)             // Armor trim
-	if !strings.Contains(got[len(got)-1], ":Which one?|All my armor's trim|Chest trim|Bracers trim|Legs trim|Boots trim") {
+	if !strings.Contains(got[len(got)-1], ":Which one?|All my armor's trim|Chest or robe top trim|Bracers and gloves trim|Legs or robe skirt trim|Boots trim|Helm trim") {
 		t.Fatalf("the trims: %q", got[len(got)-1])
 	}
-	got = pick(got, 3) // Legs trim
-	if !strings.Contains(got[len(got)-1], ":Which colors for legs trim?|") {
+	got = pick(got, 3) // Legs or robe skirt trim
+	if !strings.Contains(got[len(got)-1], ":Which colors for legs or robe skirt trim?|") {
 		t.Fatalf("the families: %q", got[len(got)-1])
 	}
 	pick(pick(got, 4), 3) // Blues and teals, Royal blue
@@ -237,6 +237,15 @@ func TestTheDyerDyesTheTrimTalkedThrough(t *testing.T) {
 	}
 	if _, _, on, ok := tw.w.DyeTarget(tw.s); !ok || on[database.DyeLegsTrim] != 0x2050E0FF {
 		t.Fatal("not on the character where it stands")
+	}
+	pick(pick(pick(pick(talk(), 4), 2), 1), 0) // Armor trim, Bracers and gloves trim, reds, red
+	c = dyes()
+	if c[database.DyeBracerTrim] != 0xD10000FF || c[database.DyeGlovesTrim] != 0xD10000FF || c[database.DyeChestTrim] != 0 || c[database.DyeHelmTrim] != 0 {
+		t.Fatalf("bracers and gloves: bracer %08X gloves %08X chest %08X helm %08X", c[database.DyeBracerTrim], c[database.DyeGlovesTrim], c[database.DyeChestTrim], c[database.DyeHelmTrim])
+	}
+	pick(pick(pick(pick(talk(), 4), 5), 1), 0) // Armor trim, Helm trim, reds, red
+	if c := dyes(); c[database.DyeHelmTrim] != 0xD10000FF {
+		t.Fatalf("the helm's trim: %08X", c[database.DyeHelmTrim])
 	}
 	pick(pick(pick(pick(talk(), 4), 0), 1), 0) // Armor trim, all, reds, red
 	c = dyes()

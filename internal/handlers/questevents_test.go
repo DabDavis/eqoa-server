@@ -462,9 +462,12 @@ func TestAKillOfALaterStepSaysWhatComesFirst(t *testing.T) {
 	f.msgs()
 
 	f.killFor("Quil'Eyne", 901)
-	if len(drops) != 0 {
-		t.Fatalf("Quil'Eyne dropped %v before Raldarith's step was done", drops)
+	// his journal drops ahead of its step (questpreloot.go, the owner's "allow pre-looting
+	// for all quests", 2026-11-14), and counts only when its step comes
+	if len(drops) != 1 || drops[0] != journal {
+		t.Fatalf("Quil'Eyne dropped %v before Raldarith's step was done, want his journal ahead", drops)
 	}
+	drops = nil
 	f.want(f.msgs(), "chat:Quil'Eyne's Journal: Quil'Eyne counts later in the quest. First: Kill Raldarith for his blood.")
 	f.killFor("Quil'Eyne", 902) // a moment later: not said again
 	if m := f.msgs(); len(m) != 0 {
@@ -478,6 +481,7 @@ func TestAKillOfALaterStepSaysWhatComesFirst(t *testing.T) {
 		t.Fatalf("the step is %d, want 1", s)
 	}
 	// in its order: Raldarith's blood, then Quil'Eyne drops his journal
+	drops = nil
 	f.killFor("Raldarith", 904)
 	f.qe.Looted(f.tw.s, f.tw.p, blood, 1)
 	f.killFor("Quil'Eyne", 905)

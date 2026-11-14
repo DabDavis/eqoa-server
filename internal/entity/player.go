@@ -374,6 +374,8 @@ type Player struct {
 	hazardNext       time.Time
 	hazardX, hazardZ float32
 	hazardHit        bool
+	// hazardStrikes are its warnings of each hazard of strikes (hazards.go), by row id
+	hazardStrikes map[int64]hazardStrike
 
 	// Stood is the last place the player was known to stand, on a floor or
 	// in a liquid (clientupdate.go's Standing): where it arrived (a login, a

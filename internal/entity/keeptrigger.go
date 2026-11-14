@@ -44,6 +44,7 @@ type KeptEventNPC struct {
 	FullHP  int    `json:"full_hp"` // its hit points' maximum
 	NPCType int    `json:"npc_type"`
 	Event   bool   `json:"event,omitempty"` // EventAggro: attacks any player on sight
+	NoLoot  bool   `json:"noloot,omitempty"` // a trigger's spawn of a corpse of nothing
 	// Enemy is the NPC a sic set it on (0 none), Casts whether it fights it by
 	// its class template's casts too
 	Enemy uint32 `json:"enemy,omitempty"`
@@ -67,7 +68,7 @@ func (w *World) KeepEventNPCs(ids []EntityID, now time.Time) []KeptEventNPC {
 		if !ok {
 			continue
 		}
-		k := KeptEventNPC{KeptNPC: kn, Row: uint32(c.CopyOf), Level: c.Level, FullHP: c.MaxHP, NPCType: c.NPCType, Event: c.EventAggro}
+		k := KeptEventNPC{KeptNPC: kn, Row: uint32(c.CopyOf), Level: c.Level, FullHP: c.MaxHP, NPCType: c.NPCType, Event: c.EventAggro, NoLoot: c.NoLoot}
 		if e := w.NPCs[c.CurrentEnemy]; c.CurrentEnemy != 0 && e != nil && !e.Dead {
 			k.Enemy = uint32(c.CurrentEnemy)
 			k.Casts = c.castsAt == c.CurrentEnemy
@@ -105,7 +106,7 @@ func (w *World) RestoreEventNPCs(kept []KeptEventNPC) (ids map[EntityID]EntityID
 		if p := w.paths.byNPC[t.ServerID]; p != nil && p.World == k.World {
 			w.setPathLocked(c.ServerID, p)
 		}
-		c.Name, c.NPCType, c.EventAggro = k.Name, k.NPCType, k.Event
+		c.Name, c.NPCType, c.EventAggro, c.NoLoot = k.Name, k.NPCType, k.Event, k.NoLoot
 		if k.Level > 0 {
 			c.Level = k.Level
 		}

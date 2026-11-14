@@ -188,6 +188,14 @@ type TriggerStep struct {
 	// Pace its speed (0: the run's; under 7 walked, not run)
 	Points [][3]float32 `json:"points,omitempty"`
 	Pace   float32      `json:"pace,omitempty"`
+	// Spots (spawn): places [x, y, z] of its world, the one nearest the run's place taken
+	// (a death's: the Erych patroller of the quarter where its placeholder fell)
+	Spots [][3]float32 `json:"spots,omitempty"`
+	// Untouchable (spawn): its copies carry the NPC bit, no player hurts them and they
+	// attack no one (the Erych Arbiter asleep in her ring); NoLoot: their corpses are
+	// of nothing (the Arbiter's first two lives)
+	Untouchable bool `json:"untouchable,omitempty"`
+	NoLoot      bool `json:"noloot,omitempty"`
 }
 
 // GMTrigger is one row of gmtriggers.
@@ -418,6 +426,12 @@ func StepProblems(steps []TriggerStep) []string {
 			}
 			if s.Minutes < 0 || s.Minutes > TriggerMaxMinutes {
 				add(i, "spawn's stay %.1f minutes: 0 (%d) to %d", s.Minutes, TriggerDefaultStay, TriggerMaxMinutes)
+			}
+			if len(s.Spots) > TriggerMaxSteps {
+				add(i, "spawn's spots: %d, %d at most", len(s.Spots), TriggerMaxSteps)
+			}
+			if s.Untouchable && (s.Hostile || s.Attackable) {
+				add(i, "spawn untouchable is neither hostile nor attackable")
 			}
 			if s.World != nil {
 				if *s.World < 0 || *s.World > 29 {

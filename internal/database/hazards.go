@@ -39,7 +39,8 @@ const hazardsSchema = `
 		words    TEXT NOT NULL DEFAULT '',
 		note     TEXT NOT NULL DEFAULT '',
 		source   TEXT NOT NULL DEFAULT 'gm',
-		on_move  INTEGER NOT NULL DEFAULT 0
+		on_move  INTEGER NOT NULL DEFAULT 0,
+		strikes  INTEGER NOT NULL DEFAULT 0
 	);`
 
 // Hazard is one row of hazards.
@@ -56,7 +57,16 @@ type Hazard struct {
 	Words        string
 	Note, Source string
 	OnMove       bool // hit again only once moved (petition 1960)
+	// Strikes (0: none) makes its hits warnings, its words told with %d the warning's number
+	// and no damage, until the Strikes-th within HazardStrikesForget of the last, which takes
+	// its damage (Desolation 4's unstable rocks: "If you get too close you'll get a warning about
+	// them being unstable. 3 warnings=death")
+	Strikes int
 }
+
+// HazardStrikesForget is how long after a player's last warning of a hazard of strikes its count
+// is forgotten (ours).
+const HazardStrikesForget = 30 * 60 // seconds
 
 // The hazards' defaults and bounds: a radius of HazardDefaultRadius, feet from HazardDefaultBelow
 // under the segment to HazardDefaultAbove over it, a hit every HazardDefaultEvery ms; hazardFar is
@@ -113,6 +123,8 @@ func CheckHazard(h Hazard, world int) error {
 		return fmt.Errorf("damage %d: 1 to %d", h.Damage, HazardDamageMax)
 	case h.EveryMS != 0 && (h.EveryMS < 500 || h.EveryMS > 3600000):
 		return fmt.Errorf("every_ms %d: 0 (the server's %d) or 500 to 3600000", h.EveryMS, HazardDefaultEvery)
+	case h.Strikes < 0 || h.Strikes > 100:
+		return fmt.Errorf("strikes %d: 0 (none) to 100", h.Strikes)
 	case strings.Count(h.Words, "%") > strings.Count(h.Words, "%d"):
 		return fmt.Errorf("words: no %% but its %%d")
 	}
@@ -148,6 +160,14 @@ func (db *SQLiteDB) ensureHazards() error {
 			return fmt.Errorf("hazards: %w", err)
 		}
 	}
+	if err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('hazards') WHERE name = 'strikes'`).Scan(&n); err != nil {
+		return fmt.Errorf("hazards: %w", err)
+	}
+	if n == 0 {
+		if _, err := db.Exec(`ALTER TABLE hazards ADD COLUMN strikes INTEGER NOT NULL DEFAULT 0`); err != nil {
+			return fmt.Errorf("hazards: %w", err)
+		}
+	}
 	return nil
 }
 
@@ -155,7 +175,7 @@ func (db *SQLiteDB) ensureHazards() error {
 // refuses is left out and named in bad.
 func (db *SQLiteDB) Hazards() (out []Hazard, bad []string, err error) {
 	rows, err := db.Query(`SELECT id, name, world, x1, y1, z1, x2, y2, z2, radius, below, above, damage, every_ms, words,
-		note, source, on_move FROM hazards ORDER BY id`)
+		note, source, on_move, strikes FROM hazards ORDER BY id`)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -164,7 +184,7 @@ func (db *SQLiteDB) Hazards() (out []Hazard, bad []string, err error) {
 		var h Hazard
 		var world int
 		if err := rows.Scan(&h.ID, &h.Name, &world, &h.X1, &h.Y1, &h.Z1, &h.X2, &h.Y2, &h.Z2, &h.Radius, &h.Below, &h.Above,
-			&h.Damage, &h.EveryMS, &h.Words, &h.Note, &h.Source, &h.OnMove); err != nil {
+			&h.Damage, &h.EveryMS, &h.Words, &h.Note, &h.Source, &h.OnMove, &h.Strikes); err != nil {
 			return nil, nil, err
 		}
 		h.Name = strings.TrimSpace(h.Name)

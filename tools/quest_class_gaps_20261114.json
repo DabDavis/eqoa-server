@@ -1,0 +1,1092 @@
+{
+ "made": "tools/quest_class_audit_20261114.py",
+ "quests": [
+  {
+   "questid": 100747,
+   "name": "The Necromancer of Sslathis",
+   "key": "17/fayspire/main",
+   "level": 17,
+   "allowed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 5,
+     "fill": {
+      "0": {
+       "set": true
+      },
+      "3": {
+       "set": true
+      },
+      "4": {
+       "set": true
+      },
+      "8": {
+       "set": true
+      },
+      "11": {
+       "set": true
+      },
+      "14": {
+       "set": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 100748,
+   "name": "The Scribe's Inks",
+   "key": "17/freeport/main",
+   "level": 17,
+   "allowed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 4,
+     "fill": {
+      "14": {
+       "set": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 100749,
+   "name": "Froglok Liver",
+   "key": "17/grobb/main",
+   "level": 17,
+   "allowed": [
+    0,
+    3,
+    4,
+    5,
+    6,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [
+    5,
+    14
+   ],
+   "steps": [
+    {
+     "step": 4,
+     "fill": {
+      "5": {
+       "set": true
+      },
+      "14": {
+       "set": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 100750,
+   "name": "Bloodmaw",
+   "key": "17/halas/main",
+   "level": 17,
+   "allowed": [
+    0,
+    1,
+    2,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 4,
+     "fill": {
+      "4": {
+       "set": true
+      },
+      "14": {
+       "set": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 100751,
+   "name": "Ulria Veshiue",
+   "key": "17/highbourne/main",
+   "level": 17,
+   "allowed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 4,
+     "fill": {
+      "3": {
+       "set": true
+      },
+      "4": {
+       "set": true
+      },
+      "5": {
+       "set": true
+      },
+      "10": {
+       "set": true
+      },
+      "11": {
+       "set": true
+      },
+      "13": {
+       "set": true
+      },
+      "14": {
+       "set": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 100752,
+   "name": "Grave Silk",
+   "key": "17/highpass/p1",
+   "level": 17,
+   "allowed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 2,
+     "fill": {
+      "1": {
+       "set": true
+      },
+      "2": {
+       "set": true
+      },
+      "5": {
+       "set": true
+      },
+      "7": {
+       "set": true
+      },
+      "14": {
+       "set": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 100753,
+   "name": "Courier Svex",
+   "key": "17/highpass/p2",
+   "level": 17,
+   "allowed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 4,
+     "fill": {
+      "1": {
+       "set": true
+      },
+      "2": {
+       "set": true
+      },
+      "5": {
+       "set": true
+      },
+      "7": {
+       "set": true
+      },
+      "14": {
+       "set": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 100754,
+   "name": "Deidre IV",
+   "key": "17/klick-anon/main",
+   "level": 17,
+   "allowed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 4,
+     "fill": {
+      "14": {
+       "set": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 100755,
+   "name": "Murien's Brew",
+   "key": "17/moradhim/main",
+   "level": 17,
+   "allowed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 4,
+     "fill": {
+      "0": {
+       "guide": [
+        "Soldier's Belt"
+       ]
+      },
+      "10": {
+       "set": true
+      },
+      "14": {
+       "set": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 100756,
+   "name": "The Ceremony",
+   "key": "17/neriak-nektulos/main",
+   "level": 17,
+   "allowed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 4,
+     "fill": {
+      "14": {
+       "set": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 100757,
+   "name": "The Shadowhand Receipt",
+   "key": "17/qeynos/main",
+   "level": 17,
+   "allowed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 5,
+     "fill": {
+      "3": {
+       "set": true
+      },
+      "5": {
+       "set": true
+      },
+      "13": {
+       "set": true
+      },
+      "14": {
+       "set": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 100758,
+   "name": "Tesht'uzu",
+   "key": "17/rivervale/main",
+   "level": 17,
+   "allowed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 4,
+     "fill": {
+      "3": {
+       "set": true
+      },
+      "4": {
+       "set": true
+      },
+      "8": {
+       "set": true
+      },
+      "10": {
+       "set": true
+      },
+      "11": {
+       "set": true
+      },
+      "14": {
+       "set": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 100760,
+   "name": "The Glowing Shield",
+   "key": "23-47/23/p2",
+   "level": 23,
+   "allowed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 5,
+     "fill": {
+      "0": {
+       "set": true
+      },
+      "4": {
+       "set": true
+      },
+      "5": {
+       "set": true
+      },
+      "7": {
+       "set": true
+      },
+      "10": {
+       "set": true
+      },
+      "11": {
+       "set": true
+      },
+      "12": {
+       "set": true
+      },
+      "13": {
+       "set": true
+      },
+      "14": {
+       "set": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 100761,
+   "name": "The Remains of Manger MacGray",
+   "key": "23-47/23/p3",
+   "level": 23,
+   "allowed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 6,
+     "fill": {
+      "0": {
+       "set": true
+      },
+      "3": {
+       "set": true
+      },
+      "4": {
+       "set": true
+      },
+      "5": {
+       "set": true
+      },
+      "7": {
+       "set": true
+      },
+      "9": {
+       "set": true
+      },
+      "10": {
+       "set": true
+      },
+      "11": {
+       "set": true
+      },
+      "12": {
+       "set": true
+      },
+      "13": {
+       "set": true
+      },
+      "14": {
+       "set": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 100763,
+   "name": "The Ancient Stone Golem",
+   "key": "23-47/25/blackswan",
+   "level": 25,
+   "allowed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 4,
+     "fill": {
+      "6": {
+       "set": true
+      },
+      "13": {
+       "set": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 100765,
+   "name": "The Goblin Poison",
+   "key": "23-47/27/p1",
+   "level": 27,
+   "allowed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 7,
+     "fill": {
+      "11": {
+       "set": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 100791,
+   "name": "Margun Leafstrider",
+   "key": "23-47/47/p2",
+   "level": 47,
+   "allowed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 11,
+     "fill": {
+      "6": {
+       "set": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 101025,
+   "name": "The Professor's Field Work",
+   "key": "53-59/55/p3",
+   "level": 55,
+   "allowed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 24,
+     "fill": {
+      "14": {
+       "set": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 101027,
+   "name": "The Kerran Disguise",
+   "key": "53-59/57/p2",
+   "level": 57,
+   "allowed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 25,
+     "fill": {
+      "14": {
+       "set": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 101028,
+   "name": "The Scepter of the Ritualists",
+   "key": "53-59/57/p3",
+   "level": 57,
+   "allowed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 31,
+     "fill": {
+      "14": {
+       "set": true
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 101277,
+   "name": "The Staff of Rainbow Magic: The Handle",
+   "key": "Misc/acolyte-of-bristlebane/p6",
+   "level": 51,
+   "allowed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 3,
+     "fill": {
+      "2": {
+       "guide": [
+        "Gloves of Mischief"
+       ]
+      },
+      "3": {
+       "guide": [
+        "Boots of Trickery"
+       ]
+      },
+      "4": {
+       "set": true
+      },
+      "5": {
+       "set": true
+      },
+      "6": {
+       "guide": [
+        "Trickster's Gloves"
+       ]
+      },
+      "7": {
+       "set": true
+      },
+      "8": {
+       "set": true
+      },
+      "9": {
+       "guide": [
+        "Leggings of the Trickster"
+       ]
+      },
+      "11": {
+       "guide": [
+        "Leggings of Trickery"
+       ]
+      },
+      "12": {
+       "guide": [
+        "Pants of the Trickster"
+       ]
+      },
+      "13": {
+       "guide": [
+        "Gloves of Trickery"
+       ]
+      },
+      "14": {
+       "guide": [
+        "Mischievous Pants"
+       ]
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 101294,
+   "name": "Yarfsnoogle's Anatomy",
+   "key": "Portal/plane-of-disease/spell",
+   "level": 50,
+   "allowed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 9,
+     "fill": {
+      "9": {
+       "guide": [
+        "Purifying Winds of Nife"
+       ]
+      }
+     }
+    },
+    {
+     "step": 10,
+     "fill": {
+      "1": {
+       "guide": [
+        "Fetid Scaled Flesh Helm"
+       ]
+      },
+      "5": {
+       "guide": [
+        "Fetid Scaled Flesh Helm"
+       ]
+      },
+      "6": {
+       "guide": [
+        "Fetid Scaled Flesh Helm"
+       ]
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 101295,
+   "name": "The Plague Weapons",
+   "key": "Portal/plane-of-disease/weapon",
+   "level": 50,
+   "allowed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 5,
+     "fill": {
+      "1": {
+       "guide": [
+        "The Bloodsabre"
+       ]
+      },
+      "4": {
+       "guide": [
+        "Thorn of Deatharn"
+       ]
+      },
+      "5": {
+       "guide": [
+        "The Bloodsabre"
+       ]
+      },
+      "6": {
+       "guide": [
+        "The Bloodsabre"
+       ]
+      }
+     }
+    }
+   ]
+  },
+  {
+   "questid": 101387,
+   "name": "The Siloth Shipment",
+   "key": "Weres/werehunter/p2",
+   "level": 40,
+   "allowed": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ],
+   "widen": [],
+   "steps": [
+    {
+     "step": 9,
+     "fill": {
+      "0": {
+       "set": true
+      },
+      "1": {
+       "set": true
+      },
+      "2": {
+       "set": true
+      },
+      "3": {
+       "set": true
+      },
+      "4": {
+       "set": true
+      },
+      "5": {
+       "set": true
+      },
+      "6": {
+       "set": true
+      },
+      "10": {
+       "set": true
+      },
+      "11": {
+       "set": true
+      },
+      "12": {
+       "set": true
+      },
+      "13": {
+       "set": true
+      },
+      "14": {
+       "set": true
+      }
+     }
+    }
+   ]
+  }
+ ]
+}

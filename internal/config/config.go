@@ -488,6 +488,15 @@ type WorldConfig struct {
 	// Heirloom Test Server sets it.
 	MobInfo bool `yaml:"mob_info"`
 
+	// PerpetualAuctions shows and sells the auction house's standing lots
+	// (database/auction_perpetual.go, handlers/auction_perpetual.go): lots
+	// that never end and never run out, a buy at the price filing the items
+	// into the buyer's bank and leaving the lot up (the owner, 2026-11-14: the
+	// crafting materials from "ilovetesters", tools/ah_materials_20261114.py).
+	// Unset or false: such lots are left out of every search and refused as
+	// closed. Both shards set it.
+	PerpetualAuctions bool `yaml:"perpetual_auctions"`
+
 	// CTF is capture the flag in an arena world of the server's own (entity/ctf.go, handlers/ctf.go): the
 	// PvP Events herald signs players up, two teams fight over each other's banners. Off unless enabled, and
 	// only with its world built and listed in ServerWorlds (its places are the built recipe's "arena").

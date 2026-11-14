@@ -595,6 +595,11 @@ func main() {
 			}
 		}()
 	}
+	// the auction house's standing lots (handlers/auction_perpetual.go)
+	handlers.SetPerpetualAuctions(cfg.World.PerpetualAuctions)
+	if cfg.World.PerpetualAuctions {
+		log.Printf("Auctions: the house's standing lots are up (world.perpetual_auctions)")
+	}
 	// a monster's name and level on the talk button (handlers/mobinfo.go)
 	handlers.SetMobInfo(cfg.World.MobInfo)
 	if cfg.World.MobInfo {

@@ -101,6 +101,12 @@ def plan(db):
     if one(db, "SELECT count(*) FROM npcs WHERE lower(trim(npc_name)) = ?", (KEY,)):
         refusals.append(f"an NPC called {NAME!r} is there already")
     src = row_of(db, "npcs", {"id": SOURCE_ROW})
+    if src is None or src["npc_name"].lower() != "wicker man":
+        # the row was taken since (Heirloom, 2026-11-14): the first level-LEVEL wicker man of world 0 stands in
+        alt = one(db, "SELECT min(id) FROM npcs WHERE lower(npc_name) = 'wicker man' AND world = 0 AND npc_level = ?",
+                  (LEVEL,))
+        if alt:
+            src = row_of(db, "npcs", {"id": alt})
     if src is None or src["npc_name"].lower() != "wicker man" or src["world"] != 0 or src["npc_level"] != LEVEL:
         refusals.append(f"npcs {SOURCE_ROW} is not a level {LEVEL} wicker man of world 0: {src}")
     for f in (FACTION, OPPOSING):

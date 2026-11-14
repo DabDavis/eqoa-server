@@ -258,10 +258,25 @@ func (a *AuctionHouse) liveForm(sess *session.Session) bool {
 // lotView is how a session's client reads a lot: by the live form (live), and
 // whether it draws capes (capes: to one that does not, a cape lot's item is a
 // plain item, capes.go).
-type lotView struct{ live, capes bool }
+type lotView struct {
+	live, capes bool
+	now         time.Time // the house's clock (a standing lot's end; zero: the wall clock)
+}
 
 func (a *AuctionHouse) viewOf(sess *session.Session) lotView {
-	return lotView{live: a.liveForm(sess), capes: readsCapes(sess)}
+	v := lotView{live: a.liveForm(sess), capes: readsCapes(sess)}
+	if a != nil && a.now != nil {
+		v.now = a.now()
+	}
+	return v
+}
+
+// clock is the time a lot is shown at.
+func (v lotView) clock() time.Time {
+	if v.now.IsZero() {
+		return time.Now()
+	}
+	return v.now
 }
 
 // each is an amount of a lot as the client reads it: a stack a disc client
@@ -294,7 +309,7 @@ func auctionMinutes(unix int64) int64 { return unix / 60 }
 // and My Auctions' ids, and every page carries the whole lot.
 func writeLot(w *buffer.Writer, l *database.AuctionLot, thin bool, v lotView) {
 	for _, n := range []int64{int64(l.ID), int64(l.Item.StackLeft), int64(l.Item.RemainHP), int64(l.Item.Charges),
-		int64(v.each(l, l.MinBid)), int64(v.each(l, l.Buyout)), auctionMinutes(l.ShownEnd(time.Now()))} {
+		int64(v.each(l, l.MinBid)), int64(v.each(l, l.Buyout)), auctionMinutes(l.ShownEnd(v.clock()))} {
 		w.Write7BitEncodedInt64(n)
 	}
 	writeString8(w, l.SellerName, 24)

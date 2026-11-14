@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"log"
-	"math"
 	"os"
 	"path/filepath"
 	"sort"
@@ -276,7 +275,7 @@ func appendExtras(b []byte, extras []worlds.Extra) []byte {
 		b = append(b, at)
 		b = binary.LittleEndian.AppendUint32(b, uint32(e.Sprite))
 		for _, v := range [7]float32{e.At[0], e.At[1], e.At[2], e.HPR[0], e.HPR[1], e.HPR[2], e.ActorScale()} {
-			b = binary.LittleEndian.AppendUint32(b, math.Float32bits(v))
+			b = binary.LittleEndian.AppendUint32(b, worlds.ActorBits(v))
 		}
 		l := e.ActorLight()
 		b = append(b, l[:]...)

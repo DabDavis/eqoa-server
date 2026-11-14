@@ -586,16 +586,27 @@ func pickRoom(rooms []room, p [3]float32) int {
 	return best
 }
 
+// ActorBits is an extra's number as the world file and the server-worlds
+// list both carry it: -0 as 0. A client builds the file off the list, so the
+// two must agree bit for bit; a -0 in the file and 0 on the wire made every
+// client's Dungeons (world 14) fail its CRC (2026-11-14).
+func ActorBits(v float32) uint32 {
+	if v == 0 {
+		v = 0
+	}
+	return math.Float32bits(v)
+}
+
 // actorNode is an extra's ZoneActor record.
 func actorNode(e Extra) *node {
 	b := binary.LittleEndian.AppendUint32(nil, uint32(e.Sprite))
 	for _, v := range e.At {
-		b = binary.LittleEndian.AppendUint32(b, math.Float32bits(v))
+		b = binary.LittleEndian.AppendUint32(b, ActorBits(v))
 	}
 	for _, v := range e.HPR {
-		b = binary.LittleEndian.AppendUint32(b, math.Float32bits(v))
+		b = binary.LittleEndian.AppendUint32(b, ActorBits(v))
 	}
-	b = binary.LittleEndian.AppendUint32(b, math.Float32bits(e.ActorScale()))
+	b = binary.LittleEndian.AppendUint32(b, ActorBits(e.ActorScale()))
 	l := e.ActorLight()
 	b = append(b, l[:]...)
 	return &node{ty: typeActor, version: actorVersion, tail: b, old: -1}

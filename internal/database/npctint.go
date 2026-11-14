@@ -172,10 +172,14 @@ func ValidAuraNodes(n int64) bool { return n >= 0 && n <= AuraNodesMost }
 // scimitar down the blade more"). A client before it ignores it.
 const AuraAlongMost = 100
 
-// ValidCharAuraNodes holds a charaura row's nodes to its slot: a hand's
-// 0-AuraAlongMost (where along the held item), every other's ValidAuraNodes.
-func ValidCharAuraNodes(slot, n int64) bool {
-	if slot == CharAuraMainHand || slot == CharAuraOffHand {
+// ValidCharAuraNodes holds a charaura row's nodes to its slot and kind: a
+// hand's 0-AuraAlongMost (where along the held item), a circlet's (kind
+// AuraCirclet) 0-AuraAlongMost too (how high on the head it sits: 1-100 the
+// share in percent of the head's height from the chin, 0 the client's own
+// 62%, which crossed the eyes: the owner, 2026-11-14, "the circlet is sitting
+// too low on dust"), every other's ValidAuraNodes.
+func ValidCharAuraNodes(slot, kind, n int64) bool {
+	if slot == CharAuraMainHand || slot == CharAuraOffHand || kind == AuraCirclet {
 		return n >= 0 && n <= AuraAlongMost
 	}
 	return ValidAuraNodes(n)

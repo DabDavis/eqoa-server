@@ -193,7 +193,8 @@ func TestCharAurasHands(t *testing.T) {
 	if _, err := db.Exec(`INSERT INTO charaura (charid, merc, slot, color, kind, source, nodes) VALUES
 		(193, 0, 9, 0, 7, 1607773820, 0), (193, 0, 10, 4280295679, 7, 1607773820, 0), (193, 0, 1, 0, 7, 1607773820, 0),
 		(194, 0, 9, 4280295679, 2, 0, 0), (194, 0, 11, 0, 7, 1607773820, 0), (194, 0, 10, 0, 3, 0, 0),
-		(196, 0, 9, 0, 7, 3421770586, 45), (196, 0, 10, 0, 7, 3421770586, 101), (196, 0, 7, 4280295679, 2, 0, 45)`); err != nil {
+		(196, 0, 9, 0, 7, 3421770586, 45), (196, 0, 10, 0, 7, 3421770586, 101), (196, 0, 7, 4280295679, 2, 0, 45),
+		(198, 0, 5, 3759675647, 8, 495410893, 75), (199, 0, 5, 0, 8, 495410893, 101), (199, 0, 0, 4280295679, 2, 0, 75)`); err != nil {
 		t.Fatal(err)
 	}
 	got, err := db.CharAuras()
@@ -216,7 +217,15 @@ func TestCharAurasHands(t *testing.T) {
 	if err := db.SetCharAuraAudited(CharAuraKey{CharID: 197}, CharAuraOffHand, ItemAura{Kind: AuraEpic, Source: 0xCBF4135A, Nodes: 101}, GMEdit{}, "test"); err == nil {
 		t.Fatal("101% along kept")
 	}
+	// a circlet's nodes is how high on the head, 0-100; a shell's on a piece 0-32
+	if z := got[CharAuraKey{CharID: 198}]; z[CharAuraHelm] != (ItemAura{Color: 0xE01818FF, Kind: AuraCirclet, Source: 0x1D875ECD, Nodes: 75}) {
+		t.Fatalf("a red circlet 75%% up: %+v", z)
+	}
+	if _, ok := got[CharAuraKey{CharID: 199}]; ok {
+		t.Fatalf("a circlet past 100%%, a chest shell of 75 nodes: read %+v", got[CharAuraKey{CharID: 199}])
+	}
 	delete(got, CharAuraKey{CharID: 196})
+	delete(got, CharAuraKey{CharID: 198})
 	if other[CharAuraMainHand] != (ItemAura{}) || other[CharAuraOffHand] != (ItemAura{Kind: AuraParticles}) || len(got) != 2 {
 		t.Fatalf("a hand's shell, a slot past 10: %+v (%d keys)", other, len(got))
 	}

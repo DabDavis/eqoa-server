@@ -75,7 +75,7 @@ func (db *SQLiteDB) CharAuras() (map[CharAuraKey][CharAuraSlots]ItemAura, error)
 		}
 		c, cok := tint32(color)
 		src, sok := tint32(source)
-		if !cok || !sok || !ValidCharAuraKind(slot, kind) || !ValidCharAuraNodes(slot, nodes) || slot < 0 || slot >= CharAuraSlots || charid <= 0 || merc < 0 {
+		if !cok || !sok || !ValidCharAuraKind(slot, kind) || !ValidCharAuraNodes(slot, kind, nodes) || slot < 0 || slot >= CharAuraSlots || charid <= 0 || merc < 0 {
 			continue
 		}
 		a := ItemAura{Color: c, Kind: uint8(kind), Source: src, Nodes: uint8(nodes)}
@@ -100,7 +100,7 @@ func (db *SQLiteDB) SetCharAuraAudited(k CharAuraKey, slot int, a ItemAura, who 
 	if a.Shows() && !ValidCharAuraKind(int64(slot), int64(a.Kind)) {
 		return fmt.Errorf("charaura: slot %d takes no aura of kind %d (a held item's: particles or epic; epic only a held item's)", slot, a.Kind)
 	}
-	if !ValidCharAuraNodes(int64(slot), int64(a.Nodes)) {
+	if !ValidCharAuraNodes(int64(slot), int64(a.Kind), int64(a.Nodes)) {
 		return fmt.Errorf("charaura: slot %d takes no nodes %d (a held item's along 0-%d, every other 0-%d)", slot, a.Nodes, AuraAlongMost, AuraNodesMost)
 	}
 	if _, err := db.Exec(GMAuditSchema); err != nil {

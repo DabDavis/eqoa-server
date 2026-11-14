@@ -127,7 +127,11 @@ func auraWords(a database.ItemAura) string {
 		if database.NPCGlowShows(a.Color) {
 			color = fmt.Sprintf("in %08X", a.Color)
 		}
-		return fmt.Sprintf("aura circlet: %s glowing ring worn round the head (while no helm is drawn), %s", src, color)
+		at := ""
+		if a.Nodes != 0 {
+			at = fmt.Sprintf(", %d%% up the head", a.Nodes)
+		}
+		return fmt.Sprintf("aura circlet: %s glowing ring worn round the head (while no helm is drawn), %s%s", src, color, at)
 	}
 	if a.Kind == database.AuraEpic {
 		color := "its own colours"
@@ -210,6 +214,10 @@ type auraLook struct {
 	What  string
 }
 
+// CircletHeightMonk is the monk circlet's height on the head, percent of it
+// from the chin (database.ValidCharAuraNodes).
+const CircletHeightMonk = 72
+
 // auraLooks are the named looks, /aura looks lists them.
 var auraLooks = []auraLook{
 	// Nodes on a hand is where along the weapon (database.AuraAlongMost): the
@@ -224,8 +232,11 @@ var auraLooks = []auraLook{
 	// 2026-11-14: "the effect on the end of the monks epic yin yang staff the
 	// circle of light with the criss cross lets make that effect into a
 	// circlet on the head of dust")
-	{[]string{"monk", "circlet"}, database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD},
-		"the monk's level 49 epic staff, Ascendant staff (1D875ECD): its glowing ring with the criss-cross worn round the head (while no helm is drawn)"},
+	// Nodes on a circlet is how high on the head (database.AuraAlongMost): the
+	// upper forehead and temples, above the brows (the owner, 2026-11-14: "the
+	// circlet is sitting too low on dust"; the client's own 62% crossed the eyes)
+	{[]string{"monk", "circlet"}, database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: CircletHeightMonk},
+		"the monk's level 49 epic staff, Ascendant staff (1D875ECD): its glowing ring with the criss-cross worn round the head at the temples (while no helm is drawn; height=N moves it)"},
 	{[]string{"sickle", "taint"}, database.ItemAura{Kind: database.AuraEpic, Source: 0x5FD4AE7C},
 		"the necromancer's epic, Sickle of Avhi Escron (5FD4AE7C): an olive glow and its green mist (Zaeire's)"},
 }
@@ -275,7 +286,7 @@ func isHex(s string, n int) bool {
 func parseAuraEasy(args []string) (sp auraSpec, err error) {
 	sp.Where = -1
 	args, look := takeAuraLook(args)
-	color, kind, naming, along, nodes := false, false, false, false, false
+	color, kind, naming, along, nodes, height := false, false, false, false, false, false
 	for _, raw := range args {
 		w := strings.ToLower(strings.TrimSpace(raw))
 		if w == "" {
@@ -307,8 +318,15 @@ func parseAuraEasy(args []string) (sp auraSpec, err error) {
 					return sp, fmt.Errorf("%s: along is 1-%d, percent of the weapon's length from the hand", raw, database.AuraAlongMost)
 				}
 				sp.A.Nodes, along = uint8(n), true
+			case "height":
+				// how high on the head a circlet sits: a share of the head in percent
+				n, e := strconv.Atoi(strings.TrimSuffix(v, "%"))
+				if e != nil || n < 1 || n > database.AuraAlongMost {
+					return sp, fmt.Errorf("%s: height is 1-%d, percent of the head from the chin", raw, database.AuraAlongMost)
+				}
+				sp.A.Nodes, height = uint8(n), true
 			default:
-				return sp, fmt.Errorf("%s: only source=, nodes= and along= take a value", raw)
+				return sp, fmt.Errorf("%s: only source=, nodes=, along= and height= take a value", raw)
 			}
 			continue
 		}
@@ -366,14 +384,22 @@ func parseAuraEasy(args []string) (sp auraSpec, err error) {
 			return sp, fmt.Errorf("%s names its own source", strings.Join(look.Words, " "))
 		}
 		sp.A.Kind, sp.A.Source, sp.Look = look.A.Kind, look.A.Source, strings.Join(look.Words, " ")
-		if !along && !nodes {
-			sp.A.Nodes = look.A.Nodes // the look's own place along the weapon
+		if !along && !nodes && !height {
+			sp.A.Nodes = look.A.Nodes // the look's own place along the weapon, or height on the head
 		}
 		if sp.Where == -1 && look.A.Kind == database.AuraEpic {
 			sp.Where = auraBothHands
 		}
 		if sp.Where == -1 && look.A.Kind == database.AuraCirclet {
 			sp.Where = entity.AuraHelm // a circlet goes round the head
+		}
+	}
+	if height {
+		switch {
+		case along || nodes:
+			return sp, fmt.Errorf("height= is a circlet's, one byte with along= and nodes=")
+		case sp.A.Kind != database.AuraCirclet:
+			return sp, fmt.Errorf("height= is a circlet's: /aura monk circlet height=N")
 		}
 	}
 	if along {

@@ -365,16 +365,22 @@ func checkCharAuraRow(row map[string]any) error {
 		if slot != database.CharAuraHelm {
 			return badRequest("kind 8 (circlet) is the helm's slot alone: slot 5")
 		}
+		// a circlet's nodes is how high on the head (0-100)
+		if v, has := row["nodes"]; has {
+			if f, fok := asFloat(v); !fok || f != math.Trunc(f) || !database.ValidCharAuraNodes(int64(slot), database.AuraCirclet, int64(f)) {
+				return badRequest("a circlet's Nodes is how high on the head it sits: 1-%d percent of the head from the chin, 0 the default", database.AuraAlongMost)
+			}
+		}
 		cols = make(map[string]any, len(row))
 		for k, v := range row {
-			if k != "kind" {
+			if k != "kind" && k != "nodes" {
 				cols[k] = v
 			}
 		}
 	}
 	if hand {
 		if v, has := row["nodes"]; has {
-			if f, fok := asFloat(v); !fok || f != math.Trunc(f) || !database.ValidCharAuraNodes(int64(slot), int64(f)) {
+			if f, fok := asFloat(v); !fok || f != math.Trunc(f) || !database.ValidCharAuraNodes(int64(slot), 0, int64(f)) {
 				return badRequest("a held item's Nodes is where along it the particles sit: 1-%d percent of its length from the hand, 0 where the epic has them", database.AuraAlongMost)
 			}
 		}

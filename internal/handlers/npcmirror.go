@@ -168,6 +168,9 @@ func (h *ChatHandler) applyNPCMirrorInbox() int {
 			log.Printf("NPC mirror inbox: row %d deleted by another shard's mirror, out of the world", n.Row)
 			continue
 		}
+		if !hasTable(n.Tables, "npcs") {
+			continue // its extras alone (a wander): read again above, as the command's own server does
+		}
 		if _, err := h.upsertRowNPC(n.Row); err != nil {
 			if !errors.Is(err, sql.ErrNoRows) {
 				log.Printf("NPC mirror inbox: row %d not put into the world: %v", n.Row, err)
@@ -177,6 +180,15 @@ func (h *ChatHandler) applyNPCMirrorInbox() int {
 		log.Printf("NPC mirror inbox: row %d from another shard's mirror put into the world (%v)", n.Row, n.Tables)
 	}
 	return len(notes)
+}
+
+func hasTable(list []string, t string) bool {
+	for _, x := range list {
+		if x == t {
+			return true
+		}
+	}
+	return false
 }
 
 // npcPlaceColumns are the npcs columns a /move changes, which its mirror copies.

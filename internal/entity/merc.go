@@ -155,8 +155,8 @@ type MercLook struct {
 	PrimaryType, SecondaryType byte
 	// WornPieces and WornMask: the item records on the pieces an aura can be
 	// on (Player.WornPieces; pieceaura.go)
-	WornPieces [AuraPieces]int
-	WornMask   uint8 `json:",omitempty"`
+	WornPieces [AuraSlots]int
+	WornMask   uint16 `json:",omitempty"`
 }
 
 // mercState is one merc, kept by its owner's id and its slot.

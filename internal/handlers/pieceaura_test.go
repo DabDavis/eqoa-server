@@ -52,6 +52,20 @@ func TestThePiecesAurasAreGrantedWithTheArmour(t *testing.T) {
 	if d := sentOp(body, protocol.OpcodeLiveLookInForce); binary.LittleEndian.Uint32(d[10:]) != liveLookArmor|liveLookAuras|liveLookBody || !body.BodyAura() {
 		t.Fatalf("the body's aura in force: %x", d)
 	}
+	if body.CapeAura() {
+		t.Fatal("the cape's aura granted without bit 5")
+	}
+	// bit 5 too: the cape's aura (315 bytes), in force's third u32 4|8|16|32
+	cape := f.session(57)
+	f.answer(t, cape, 1|liveLookArmor|liveLookAuras|liveLookBody|liveLookCape)
+	if d := sentOp(cape, protocol.OpcodeLiveLookInForce); binary.LittleEndian.Uint32(d[10:]) != liveLookArmor|liveLookAuras|liveLookBody|liveLookCape || !cape.CapeAura() {
+		t.Fatalf("the cape's aura in force: %x", d)
+	}
+	noBody := f.session(58)
+	f.answer(t, noBody, 1|liveLookArmor|liveLookAuras|liveLookCape)
+	if d := sentOp(noBody, protocol.OpcodeLiveLookInForce); binary.LittleEndian.Uint32(d[10:]) != liveLookArmor|liveLookAuras || noBody.CapeAura() {
+		t.Fatalf("bit 5 without bit 4: %x", d)
+	}
 	noPieces := f.session(56)
 	f.answer(t, noPieces, 1|liveLookArmor|liveLookBody)
 	if d := sentOp(noPieces, protocol.OpcodeLiveLookInForce); binary.LittleEndian.Uint32(d[10:]) != liveLookArmor || noPieces.BodyAura() {
@@ -96,5 +110,24 @@ func TestWornLookPutsEachPiecesAura(t *testing.T) {
 	wornLook(&p, nil)
 	if w.PieceAurasOf(&p) != nil || p.WornMask != 0 {
 		t.Fatal("nothing worn: auras")
+	}
+	// a cape worn in the cape's slot (capes.go): its item's aura on the cape;
+	// hidden, none; in the pack, none
+	w.SetItemAuras(map[int]database.ItemAura{717001: {PatternID: 717001, Color: 0xFF2020FF, Kind: database.AuraTrim}})
+	cape := database.CharInventoryEntry{EquipLoc: equipCape, Pattern: database.ItemPatternRecord{PatternID: 717001, EquipSlot: wearCape, Model: 1}}
+	wornLook(&p, []database.CharInventoryEntry{cape})
+	if a := w.PieceAurasOf(&p); a == nil || a[entity.AuraCape].Kind != database.AuraTrim {
+		t.Fatalf("the worn cape's aura: %+v", a)
+	}
+	p.HiddenLocs = 1 << equipCape
+	wornLook(&p, []database.CharInventoryEntry{cape})
+	if w.PieceAurasOf(&p) != nil {
+		t.Fatal("a hidden cape's aura shows")
+	}
+	p.HiddenLocs = 0
+	cape.EquipLoc = -1
+	wornLook(&p, []database.CharInventoryEntry{cape})
+	if w.PieceAurasOf(&p) != nil {
+		t.Fatal("a cape in the pack shows its aura")
 	}
 }

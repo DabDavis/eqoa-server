@@ -271,3 +271,81 @@ func TestTheBodysAuraAndACharactersOwn(t *testing.T) {
 		t.Fatal("the body bit without the pieces' counts")
 	}
 }
+
+// The cape's aura (charaura slot 8, or the worn cape item's itemaura; the
+// owner, 2026-11-14: "also cannot apply aura to capes yet"): to a session that
+// asked for it too (bit 5) the channel is 315 bytes, the 305 then the cape's
+// ten; a session that asked for the body's alone gets the 305 bytes exactly
+// as before (vanilla 481ce51's), the cape left out, and the indices before it
+// stay. A worn cape shows its item's aura, the character's own over it; a
+// hidden cape and no cape show none, whatever charaura says.
+func TestTheCapesAura(t *testing.T) {
+	if CapeAuraStateSize != 315 || AuraBody != 7 || AuraCape != 8 || database.CharAuraCape != AuraCape || database.CharAuraSlots != AuraSlots {
+		t.Fatalf("sizes: %d, body %d cape %d", CapeAuraStateSize, AuraBody, AuraCape)
+	}
+	w := NewWorld()
+	item := database.ItemAura{PatternID: 717001, Color: 0x3060FFFF, Kind: database.AuraShell}
+	w.SetItemAuras(map[int]database.ItemAura{717001: item})
+	a, b := ornatePlayer(), ornatePlayer()
+	a.CharServerID, b.CharServerID = 7, 8
+	mine := database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraTrim}
+	body := database.ItemAura{Color: 0x000000FF, Kind: database.AuraShell}
+	var own [database.CharAuraSlots]database.ItemAura
+	own[AuraCape], own[AuraBody] = mine, body
+	w.SetCharAuras(map[database.CharAuraKey][database.CharAuraSlots]database.ItemAura{{CharID: 7}: own})
+	if p := w.PieceAurasOf(a); p == nil || p[AuraCape] != (database.ItemAura{}) || p[AuraBody] != body {
+		t.Fatalf("no cape worn: its charaura row shows nothing: %+v", p)
+	}
+	a.SetWornPiece(AuraCape, 717001)
+	b.SetWornPiece(AuraCape, 717001)
+	a.SetWornPiece(AuraBody, 717001) // no piece: ignored
+	if a.WornMask&(1<<AuraBody) != 0 {
+		t.Fatal("the body recorded as a worn piece")
+	}
+	pa, pb := w.PieceAurasOf(a), w.PieceAurasOf(b)
+	if pa == nil || pa[AuraCape] != mine {
+		t.Fatalf("the character's own cape aura: %+v", pa)
+	}
+	if pb == nil || pb[AuraCape] != item {
+		t.Fatalf("the cape item's own: %+v", pb)
+	}
+	b.HiddenParts = HideCape
+	if w.PieceAurasOf(b) != nil {
+		t.Fatal("a hidden cape shows its aura")
+	}
+	b.HiddenParts = HideRobe // another part hidden: the cape still shows
+	if p := w.PieceAurasOf(b); p == nil || p[AuraCape] != item {
+		t.Fatalf("the robe hidden hid the cape: %+v", p)
+	}
+	disc := SerializePlayerUpdate(100001, a)
+	s := lookSession(t, 41)
+	s.SetLiveLook(true)
+	s.SetArmorLook(true)
+	s.SetPieceAuras(true)
+	s.SetBodyAura(true)
+	old := ForViewerAuras(s, disc, &a.Dyes, pa)
+	// the 305 bytes as they were made before the cape: eight auras, no more
+	eight := append(ArmorChannel(disc, &a.Dyes), make([]byte, 7*PieceAuraSize)...)
+	eight = append(eight, auraBytes(body)...)
+	if len(old) != BodyAuraStateSize || !bytes.Equal(old, eight) {
+		t.Fatalf("the body's clients: %d bytes, changed", len(old))
+	}
+	s.SetCapeAura(true)
+	got := ForViewerAuras(s, disc, &a.Dyes, pa)
+	if len(got) != CapeAuraStateSize || !bytes.Equal(got[:BodyAuraStateSize], old) || !bytes.Equal(got[BodyAuraStateSize:], auraBytes(mine)) {
+		t.Fatalf("the cape's clients: %d bytes, tail % x", len(got), got[BodyAuraStateSize:])
+	}
+	if !bytes.Equal(got, CapeAuraChannel(disc, &a.Dyes, pa)) {
+		t.Fatal("ForViewerAuras is not CapeAuraChannel")
+	}
+	if n := ForViewerAuras(s, disc, nil, nil); len(n) != CapeAuraStateSize || !bytes.Equal(n[BodyAuraStateSize:], make([]byte, PieceAuraSize)) {
+		t.Fatal("no auras: the 315 bytes with the cape's none")
+	}
+	s.SetBodyAura(false)
+	if s.CapeAura() || len(ForViewerAuras(s, disc, &a.Dyes, pa)) != AuraStateSize {
+		t.Fatal("the cape bit without the body's counts")
+	}
+	if PS2 := ForViewerAuras(nil, disc, &a.Dyes, pa); len(PS2) != EntityStateSize {
+		t.Fatalf("a PS2: %d bytes", len(PS2))
+	}
+}

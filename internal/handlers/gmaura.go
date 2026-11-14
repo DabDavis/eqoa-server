@@ -35,8 +35,8 @@ import (
 //
 // colour: a name (auraColors) or RRGGBB / RRGGBBAA hex, black a dark aura;
 // kind: shell, particles (sparkles), both, trim, trimshell, off (none); where:
-// chest, bracers (arms), gloves (hands), legs, boots (feet), helm (head), robe
-// (that character's piece in the slot alone, whatever item it is: charaura,
+// chest, bracers (arms), gloves (hands), legs, boots (feet), helm (head), robe,
+// cape (cloak; 2026-11-14) (that character's piece in the slot alone, whatever item it is: charaura,
 // the owner's rule of 2026-11-13; itemaura, an item that always glows, is the
 // panel's and /aura item's) or wholebody (body, whole: an NPC's name; a
 // player's or merc's own body and underclothes); none: an NPC's whole body. source=
@@ -129,7 +129,7 @@ func auraWords(a database.ItemAura) string {
 const auraUsageShort = "Usage: /aura <colour> <kind> <where>, any order: /aura blue particles chest, /aura yellow shell wholebody, " +
 	"/aura black trim legs, /aura off chest. Colour: red blue green yellow gold orange purple pink cyan white black silver teal " +
 	"or RRGGBB(AA) (black: a dark aura); kind: shell particles both trim trimshell off; where: chest bracers gloves legs boots " +
-	"helm robe (that character's piece alone) or wholebody (an NPC's whole model; a player's body under its armour); source=<DictID|item name> nodes=N"
+	"helm robe cape (that character's piece alone) or wholebody (an NPC's whole model; a player's body under its armour); source=<DictID|item name> nodes=N"
 
 // auraColors are the colours by name, alpha FF.
 var auraColors = map[string]uint32{
@@ -146,11 +146,11 @@ var auraWhere = map[string]int{
 	"chest": entity.AuraChest, "breastplate": entity.AuraChest, "bracers": entity.AuraBracer, "bracer": entity.AuraBracer,
 	"arms": entity.AuraBracer, "gloves": entity.AuraGloves, "hands": entity.AuraGloves, "legs": entity.AuraLegs,
 	"boots": entity.AuraBoots, "feet": entity.AuraBoots, "helm": entity.AuraHelm, "head": entity.AuraHelm,
-	"robe": entity.AuraRobe, "wholebody": auraWholeBody, "body": auraWholeBody, "whole": auraWholeBody,
+	"robe": entity.AuraRobe, "cape": entity.AuraCape, "cloak": entity.AuraCape, "wholebody": auraWholeBody, "body": auraWholeBody, "whole": auraWholeBody,
 }
 
 // auraPieceNames name the worn pieces in replies.
-var auraPieceNames = [...]string{"chest", "bracers", "gloves", "legs", "boots", "helm", "robe"}
+var auraPieceNames = [entity.AuraSlots]string{"chest", "bracers", "gloves", "legs", "boots", "helm", "robe", "body", "cape"}
 
 // auraEasyKinds are the easy words' kinds (off is apart).
 var auraEasyKinds = map[string]uint8{"shell": database.AuraShell, "particles": database.AuraParticles,
@@ -358,12 +358,12 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 	}
 	if sp.Where == -1 {
 		h.gmReply(sess, "/aura: name where on a player: wholebody (the body and underclothes, under the armour) or a slot "+
-			"(chest, bracers, gloves, legs, boots, helm, robe): /aura blue shell wholebody, /aura blue shell chest")
+			"(chest, bracers, gloves, legs, boots, helm, robe, cape): /aura blue shell wholebody, /aura blue shell chest")
 		return
 	}
 	// a character's own (charaura): the target player, yourself, or a mercenary
 	var key database.CharAuraKey
-	var mask uint8
+	var mask uint16
 	who, whose := "You", "your"
 	switch t := target.(type) {
 	case nil:

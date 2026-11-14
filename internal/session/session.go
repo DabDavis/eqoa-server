@@ -156,6 +156,9 @@ type Session struct {
 	// bodyAura: it also draws a character's body aura after the pieces'
 	// (bit 4, 16: entity.BodyAuraChannel, 305 bytes)
 	bodyAura bool
+	// capeAura: it also draws a cape's aura after the body's (bit 5, 32:
+	// entity.CapeAuraChannel, 315 bytes)
+	capeAura bool
 	// creationOffered: the creation offer went out (protocol.OpcodeCreationOffer,
 	// handlers/creation.go), once a session as the live look's.
 	creationOffered bool
@@ -678,6 +681,22 @@ func (s *Session) BodyAura() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.bodyAura && s.pieceAuras && s.armorLook && s.liveLook
+}
+
+// SetCapeAura records whether the session's client draws a cape's aura after
+// the body's (entity.CapeAuraChannel).
+func (s *Session) SetCapeAura(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.capeAura = on
+}
+
+// CapeAura is whether the session's client is sent the cape's aura: it asked,
+// with the body's (BodyAura).
+func (s *Session) CapeAura() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.capeAura && s.bodyAura && s.pieceAuras && s.armorLook && s.liveLook
 }
 
 // OfferLiveLookOnce reports whether the live look's offer is still to be

@@ -113,6 +113,8 @@ func TestAuraEasyWords(t *testing.T) {
 		{"off", auraSpec{Off: true, Where: -1}},
 		{"source=Heirloom_Sword red particles", auraSpec{A: database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraParticles}, Where: -1, SourceName: "Heirloom Sword"}},
 		{"teal robe", auraSpec{A: database.ItemAura{Color: 0x20C0B0FF, Kind: database.AuraShell}, Where: entity.AuraRobe}},
+		{"red trim cape", auraSpec{A: database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraTrim}, Where: entity.AuraCape}},
+		{"cloak blue particles", auraSpec{A: database.ItemAura{Color: 0x3060FFFF, Kind: database.AuraParticles}, Where: entity.AuraCape}},
 	} {
 		got, err := parseAuraEasy(strings.Fields(c.in))
 		if err != nil || got != c.want {
@@ -190,6 +192,19 @@ func TestGMAuraEasyCommand(t *testing.T) {
 	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraBody] != (database.ItemAura{Color: 0xA040FFFF, Kind: database.AuraShell}) || a[entity.AuraChest].Kind != database.AuraParticles {
 		t.Fatalf("the body: %+v", a)
 	}
+	// its cape (slot 8): kept, nothing worn there yet
+	c.say(gs, "/aura red trim cape")
+	if l := gmReplies(t, gs); !hasLine(l, "Player's cape: now a red trim aura") || !hasLine(l, "nothing worn there now") {
+		t.Fatalf("/aura red trim cape: %q", l)
+	}
+	pp.SetWornPiece(entity.AuraCape, int(pid))
+	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraCape] != (database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraTrim}) {
+		t.Fatalf("the cape: %+v", a)
+	}
+	c.say(gs, "/aura off cape")
+	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraCape] != (database.ItemAura{}) {
+		t.Fatalf("the cape's taken away: %+v", a)
+	}
 	c.say(gs, "/aura red shell")
 	if l := gmReplies(t, gs); !hasLine(l, "name where on a player") || !hasLine(l, "wholebody") {
 		t.Fatalf("no place on a player: %q", l)
@@ -220,7 +235,7 @@ func TestGMAuraEasyCommand(t *testing.T) {
 	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraChest].Kind != database.AuraTrim || a[entity.AuraBody] != (database.ItemAura{}) {
 		t.Fatalf("taken away: the item's own back: %+v", a)
 	}
-	if auditLines(t, db, "charaura", "delete") != 3 {
+	if auditLines(t, db, "charaura", "delete") != 4 {
 		t.Fatal("the deletes not audited")
 	}
 

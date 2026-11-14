@@ -184,6 +184,10 @@ type TriggerStep struct {
 	// spawns taken away, the rest left undone (Night 3's bishops, dead before the dukes
 	// reach the maiden)
 	Fail string `json:"fail,omitempty"`
+	// Points (walk): a route walked in order before x/y/z (none: straight there), and
+	// Pace its speed (0: the run's; under 7 walked, not run)
+	Points [][3]float32 `json:"points,omitempty"`
+	Pace   float32      `json:"pace,omitempty"`
 }
 
 // GMTrigger is one row of gmtriggers.
@@ -468,6 +472,12 @@ func StepProblems(steps []TriggerStep) []string {
 			}
 			if s.Do == TriggerWalk && s.X == 0 && s.Z == 0 {
 				add(i, "walk's place is 0, 0")
+			}
+			if len(s.Points) > TriggerMaxSteps {
+				add(i, "walk's route has %d points: %d at most", len(s.Points), TriggerMaxSteps)
+			}
+			if s.Pace < 0 || s.Pace > 30 {
+				add(i, "walk's pace %.1f: 0 (the run's) to 30", s.Pace)
 			}
 		case TriggerAwaitDead:
 		case TriggerProtect:

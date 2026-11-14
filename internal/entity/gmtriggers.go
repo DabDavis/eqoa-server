@@ -225,6 +225,13 @@ func (w *World) SetNPCOn(id EntityID, target string, reach float32, casts bool) 
 // other: a path walked once, until SendNPCsHome. A fight takes them off it as it
 // takes anyone off a path. It says how many went.
 func (w *World) WalkNPCsTo(name string, world uint8, x, z, reach float32, toWorld uint8, tx, ty, tz float32) int {
+	return w.WalkNPCsRoute(name, world, x, z, reach, toWorld, nil, tx, ty, tz, 0)
+}
+
+// WalkNPCsRoute is WalkNPCsTo by a route: the points in order, then (tx, ty, tz), at a
+// pace of its own (0: the run's; under pathRunFrom it is walked: an escort, Ryini down
+// her mountain).
+func (w *World) WalkNPCsRoute(name string, world uint8, x, z, reach float32, toWorld uint8, route [][3]float32, tx, ty, tz, pace float32) int {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	now := time.Now()
@@ -243,7 +250,12 @@ func (w *World) WalkNPCsTo(name string, world uint8, x, z, reach float32, toWorl
 			px += float32(3 * math.Sin(a))
 			pz += float32(3 * math.Cos(a))
 		}
-		w.setPathLocked(n.ServerID, &NPCPath{World: toWorld, Mode: PathOnce, Run: true, Points: []PathPoint{{X: px, Y: ty, Z: pz, Pause: -1}}})
+		pts := make([]PathPoint, 0, len(route)+1)
+		for _, q := range route {
+			pts = append(pts, PathPoint{X: q[0], Y: q[1], Z: q[2], Pause: 0})
+		}
+		pts = append(pts, PathPoint{X: px, Y: ty, Z: pz, Pause: -1})
+		w.setPathLocked(n.ServerID, &NPCPath{World: toWorld, Mode: PathOnce, Run: pace == 0 || pace >= pathRunFrom, Pace: pace, Points: pts})
 		w.wakeNPCLocked(n)
 	}
 	return len(npcs)

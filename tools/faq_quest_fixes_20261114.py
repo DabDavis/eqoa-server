@@ -482,7 +482,7 @@ def fix_fire(db, say):
                 "carry rubilent gems. Take a jewelcrafting kit: 32 gems make one pristine gem, and a pristine gem I can make a ward.",
                 "Thirty-two gems.", Q_FIRE))
     set_step(db, Q_FIRE, 1, items=f"{gem}*32", count=32, chance=1.0,
-             journal="Take 32 rubilent gems from the rubilent drakes on the path past Blacksmith Kadeshi, behind Lavastorm's goblin fort.")
+             journal="Take 32 rubilent gems from the rubilent drakes past Blacksmith Kadeshi in Lavastorm; they stack to ten: refine as you go.")
     set_step(db, Q_FIRE, 2, kind="show", items=str(pristine), events="",
              journal="With a jewelcrafting kit make 4 gems a refined, 4 refined a polished, 2 polished a pristine; show Keeper Amani.",
              says="Pristine, and still hot. Cool it in the well behind Tradesman Ralis, in Blackwater, then bring it back to me.")

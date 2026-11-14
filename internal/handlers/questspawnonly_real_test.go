@@ -71,10 +71,17 @@ func TestRealQuestSpawnsStandOutOfTheWorld(t *testing.T) {
 	if held == 0 || len(names) == 0 {
 		t.Fatalf("npcspawnonly: %d names, %d NPCs out of the world", len(names), held)
 	}
+	stands, err := db.NPCStands()
+	if err != nil {
+		t.Fatal(err)
+	}
 	count := 0
 	for _, st := range w.NPCStates(-1) {
-		if st.SpawnOnly != names[database.NPCClassKey(st.Name)] {
-			t.Errorf("%q (%d): out of the world %v, its name in npcspawnonly %v", st.Name, st.ID, st.SpawnOnly, names[database.NPCClassKey(st.Name)])
+		// out of the world by its name (unless its own row stands, npcstands) or by
+		// its own row's key ("#n": a trigger's or a quest's held row, npcrow.go)
+		want := names[database.NPCClassKey(st.Name)] && !stands[int64(st.ID)] || names[entity.RowKey(st.ID)]
+		if st.SpawnOnly != want {
+			t.Errorf("%q (%d): out of the world %v, by npcspawnonly %v", st.Name, st.ID, st.SpawnOnly, want)
 		}
 		if st.SpawnOnly {
 			count++
@@ -95,6 +102,7 @@ func TestRealQuestSpawnsStandOutOfTheWorld(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	te := NewTriggerEngine(db, w, mgr, nil)
 	var drops []lootDrop
 	qe.drop = func(npc entity.EntityID, _ time.Time, char uint32, rec database.CharInventoryEntry) {
 		drops = append(drops, lootDrop{npc, char, rec.Pattern.PatternID})
@@ -133,6 +141,24 @@ func TestRealQuestSpawnsStandOutOfTheWorld(t *testing.T) {
 			continue
 		}
 		checked++
+		if prev := qu.Step(4); prev != nil && len(database.EventsOn(prev.Events, database.EventDone)) > 0 &&
+			database.EventsOn(prev.Events, database.EventDone)[0].Do == database.EventTrigger {
+			// its creation is raised by a GM trigger (petitions 1415-1417): a lost one is
+			// not made again at the hut but the quest put back to step 4 to hand in again
+			// (questencounter.go), which wants the link and the trigger's spawn of it
+			trig := database.EventsOn(prev.Events, database.EventDone)[0].Trigger
+			linked := false
+			for _, l := range qe.cat.encounters {
+				if l.quest == qu.ID && l.from == 4 && l.kill == 5 && strings.EqualFold(l.trigger, trig) {
+					linked = true
+				}
+			}
+			if !linked || !te.SpawnsNPC(trig, "Jarek's Creation") {
+				t.Errorf("%d %q: step 4 fires %q, linked to step 5 %v, the trigger spawns the creation %v", qu.ID, qu.Name, trig,
+					linked, te.SpawnsNPC(trig, "Jarek's Creation"))
+			}
+			continue
+		}
 		if _, err := qe.SetCharacterQuest(rec.ServerID, qu.ID, QuestSetStep, 5); err != nil {
 			t.Fatalf("%d: %v", qu.ID, err)
 		}

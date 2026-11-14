@@ -107,13 +107,25 @@ const (
 	// Hold) left undone ("Since the popups have an Area of Effect, your quest will still be
 	// advanced if you have the necessary items")
 	TriggerQuestStep = "queststep"
+	// The rest waits for credited kills of the creatures named npc (a comma list) within
+	// the run's reach, its spawns or any other of the name (the Plane of Sky's bishops
+	// standing in their towers): count of each name (0: one), or with any count of them
+	// all together
+	TriggerAwaitKill = "awaitkill"
+	// The rest waits for a living player within radius (0: the run's reach) of the run's
+	// place, at about its height (TriggerNearHeight)
+	TriggerAwaitNear = "awaitnear"
 )
+
+// TriggerNearHeight is how far above or below a run's place an awaitnear's player
+// may stand: the Plane of Sky's isles lie over one another.
+const TriggerNearHeight float32 = 40
 
 // TriggerActions is every action, in the order the panel offers them.
 var TriggerActions = []string{TriggerBroadcast, TriggerPopup, TriggerSay, TriggerGive, TriggerVisual,
 	TriggerTeleport, TriggerSpawn, TriggerDespawn, TriggerStop, TriggerWait,
 	TriggerLock, TriggerPlace, TriggerClock, TriggerEnd, TriggerAwaitTalk, TriggerAwaitDead, TriggerWalk, TriggerHome, TriggerHide, TriggerRouse, TriggerSic,
-	TriggerResummon, TriggerProtect, TriggerQuestStep}
+	TriggerResummon, TriggerProtect, TriggerQuestStep, TriggerAwaitKill, TriggerAwaitNear}
 
 // TriggerStep is one step of a trigger, kept in the steps column's array.
 type TriggerStep struct {
@@ -161,6 +173,17 @@ type TriggerStep struct {
 	// Quest and QuestStep (queststep): the quest's id and the step done
 	Quest     int `json:"quest,omitempty"`
 	QuestStep int `json:"step,omitempty"`
+	// Start (awaittalk, awaitnear: the trigger's first step but its locks): the trigger
+	// fires itself when it happens, a talk to npc or a player come near its own place,
+	// whenever no run of it lives and its lock is free; a run fired otherwise (a GM, a
+	// quest, a death) passes it by. A talk start with no text lets the NPC answer as
+	// ever (its quests, its lines) after the firing; with text that is its answer
+	Start bool `json:"start,omitempty"`
+	// Fail (awaitdead, awaitkill, awaitnear with seconds): its seconds run out with what
+	// it waits on not done, the run fails: this text in a window to its players, its
+	// spawns taken away, the rest left undone (Night 3's bishops, dead before the dukes
+	// reach the maiden)
+	Fail string `json:"fail,omitempty"`
 }
 
 // GMTrigger is one row of gmtriggers.
@@ -319,7 +342,25 @@ func TriggerProblems(t GMTrigger) []string {
 	if err != nil {
 		return append(out, "its steps are not a JSON list of steps: "+err.Error())
 	}
+	if StartStep(steps) != nil && !t.Fixed() {
+		out = append(out, "a trigger that fires itself (start) needs a place of its own (world 0 to 29)")
+	}
 	return append(out, StepProblems(steps)...)
+}
+
+// StartStep is the step a trigger fires itself on (Start on an awaittalk or an
+// awaitnear, its first step but its locks), nil for none.
+func StartStep(steps []TriggerStep) *TriggerStep {
+	for i := range steps {
+		if steps[i].Do == TriggerLock {
+			continue
+		}
+		if steps[i].Start && (steps[i].Do == TriggerAwaitTalk || steps[i].Do == TriggerAwaitNear) {
+			return &steps[i]
+		}
+		return nil
+	}
+	return nil
 }
 
 // StepProblems is what is wrong with a trigger's steps, each by its number.
@@ -410,6 +451,17 @@ func StepProblems(steps []TriggerStep) []string {
 				add(i, "clock %.1f s: more than 0, at most %d", s.Seconds, TriggerMaxMinutes*60)
 			}
 		case TriggerEnd:
+		case TriggerAwaitKill:
+			if len(SplitNames(s.NPC)) == 0 {
+				add(i, "awaitkill names no NPC")
+			}
+			if s.Count < 0 || s.Count > 1000 {
+				add(i, "awaitkill's count %d: 0 (one) to 1000", s.Count)
+			}
+		case TriggerAwaitNear:
+			if s.Radius < 0 || s.Radius > TriggerMaxSpread*5 {
+				add(i, "awaitnear's radius %.1f: 0 (the run's reach) to %d", s.Radius, TriggerMaxSpread*5)
+			}
 		case TriggerAwaitTalk, TriggerWalk, TriggerHome, TriggerHide, TriggerRouse:
 			if strings.TrimSpace(s.NPC) == "" {
 				add(i, "%s names no NPC", s.Do)
@@ -444,8 +496,30 @@ func StepProblems(steps []TriggerStep) []string {
 				add(i, "resummon's stay %.1f minutes: 0 (%d) to %d", s.Minutes, TriggerDefaultStay, TriggerMaxMinutes)
 			}
 		}
+		if s.Start {
+			first := true
+			for _, o := range steps[:i] {
+				if o.Do != TriggerLock {
+					first = false
+				}
+			}
+			switch {
+			case s.Do != TriggerAwaitTalk && s.Do != TriggerAwaitNear:
+				add(i, "start is an awaittalk's or an awaitnear's")
+			case !first:
+				add(i, "start is the trigger's first step (its locks before it)")
+			}
+		}
+		if strings.TrimSpace(s.Fail) != "" {
+			switch {
+			case s.Do != TriggerAwaitDead && s.Do != TriggerAwaitKill && s.Do != TriggerAwaitNear:
+				add(i, "fail is an awaitdead's, an awaitkill's or an awaitnear's")
+			case s.Seconds <= 0:
+				add(i, "fail needs the seconds it waits")
+			}
+		}
 		switch s.Do {
-		case TriggerAwaitTalk, TriggerAwaitDead:
+		case TriggerAwaitTalk, TriggerAwaitDead, TriggerAwaitKill, TriggerAwaitNear:
 			if s.Seconds < 0 || s.Seconds > TriggerMaxMinutes*60 {
 				add(i, "%s's %.1f s: 0 (for good, or the clock's) to %d", s.Do, s.Seconds, TriggerMaxMinutes*60)
 			}
@@ -454,6 +528,17 @@ func StepProblems(steps []TriggerStep) []string {
 			TriggerWalk, TriggerHome, TriggerHide, TriggerRouse, TriggerSic, TriggerResummon, TriggerProtect, TriggerQuestStep:
 		default:
 			add(i, "do %q is not one of %s", s.Do, strings.Join(TriggerActions, ", "))
+		}
+	}
+	return out
+}
+
+// SplitNames is a comma list of NPC names, trimmed, the empty ones dropped.
+func SplitNames(s string) []string {
+	var out []string
+	for _, n := range strings.Split(s, ",") {
+		if n = strings.TrimSpace(n); n != "" {
+			out = append(out, n)
 		}
 	}
 	return out

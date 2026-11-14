@@ -525,3 +525,14 @@ const (
 	discExtrasSize = 6139437
 	discExtrasCRC  = 0x25A4139A
 )
+
+// A -0 angle is written as 0, as the server-worlds list sends it (2026-11-14).
+func TestActorBitsNegativeZero(t *testing.T) {
+	negz := float32(math.Copysign(0, -1))
+	if ActorBits(negz) != 0 || ActorBits(0) != 0 {
+		t.Fatalf("-0 is %08x", ActorBits(negz))
+	}
+	if ActorBits(-1.5) != math.Float32bits(-1.5) {
+		t.Fatal("a number other than zero is kept")
+	}
+}

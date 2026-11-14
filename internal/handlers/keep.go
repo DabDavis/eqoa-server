@@ -178,6 +178,8 @@ type KeptCorpse struct {
 type KeptRight struct {
 	Chars []uint32 `json:"chars"`
 	Group uint32   `json:"group,omitempty"`
+	// OpenAt is when the corpse is anyone's (lootrights.go), absent never
+	OpenAt *time.Time `json:"open_at,omitempty"`
 }
 
 // keptRight is the kill group h holds for the corpse of the death died, nil
@@ -192,6 +194,10 @@ func (h *NPCWindowHandler) keptRight(id entity.EntityID, died time.Time) *KeptRi
 		return nil
 	}
 	k := &KeptRight{Group: r.group}
+	if !r.openAt.IsZero() {
+		at := r.openAt
+		k.OpenAt = &at
+	}
 	for c := range r.chars {
 		k.Chars = append(k.Chars, c)
 	}
@@ -281,6 +287,9 @@ func RestoreCorpsesAs(kept []KeptCorpse, ids map[entity.EntityID]entity.EntityID
 		}
 		if k.Right != nil {
 			r := lootRight{died: died, chars: make(map[uint32]bool, len(k.Right.Chars)), group: k.Right.Group}
+			if k.Right.OpenAt != nil {
+				r.openAt = *k.Right.OpenAt
+			}
 			for _, c := range k.Right.Chars {
 				r.chars[c] = true
 			}

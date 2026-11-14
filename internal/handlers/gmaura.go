@@ -65,7 +65,7 @@ var auraKinds = map[string]uint8{"default": database.AuraDefault, "none": databa
 	"particles": database.AuraParticles, "both": database.AuraBoth, "trim": database.AuraTrim, "trimshell": database.AuraTrimShell}
 
 // auraKindNames are the kinds' names by number.
-var auraKindNames = [...]string{"default", "none", "shell", "particles", "both", "trim", "trimshell", "epic"}
+var auraKindNames = [...]string{"default", "none", "shell", "particles", "both", "trim", "trimshell", "epic", "circlet"}
 
 // parseHex32 reads a 32-bit hex value, with or without 0x.
 func parseHex32(s string) (uint32, bool) {
@@ -121,6 +121,13 @@ func auraWords(a database.ItemAura) string {
 	src := "the Sword of Virtue's"
 	if a.Source != 0 {
 		src = fmt.Sprintf("%08X's", a.Source)
+	}
+	if a.Kind == database.AuraCirclet {
+		color := "its own colours"
+		if database.NPCGlowShows(a.Color) {
+			color = fmt.Sprintf("in %08X", a.Color)
+		}
+		return fmt.Sprintf("aura circlet: %s glowing ring worn round the head (while no helm is drawn), %s", src, color)
 	}
 	if a.Kind == database.AuraEpic {
 		color := "its own colours"
@@ -180,7 +187,7 @@ var auraPieceNames = [entity.AuraSlots]string{"chest", "bracers", "gloves", "leg
 // auraEasyKinds are the easy words' kinds (off is apart).
 var auraEasyKinds = map[string]uint8{"shell": database.AuraShell, "particles": database.AuraParticles,
 	"sparkles": database.AuraParticles, "both": database.AuraBoth, "trim": database.AuraTrim, "trimshell": database.AuraTrimShell,
-	"default": database.AuraDefault, "epic": database.AuraEpic}
+	"default": database.AuraDefault, "epic": database.AuraEpic, "circlet": database.AuraCirclet}
 
 // auraSpec is the easy words read.
 type auraSpec struct {
@@ -212,6 +219,13 @@ var auraLooks = []auraLook{
 	// share, 78%, near the tip)
 	{[]string{"druid", "staff", "glow"}, database.ItemAura{Kind: database.AuraEpic, Source: 0xCBF4135A, Nodes: 45},
 		"the druid's level 49 epic staff, Oak Staff of Eilerawdl (CBF4135A): an amber glow, a gold sheen and its sparkles mid-blade (along=N moves them)"},
+	// the monk's level 49 epic, the Ascendant staff: the glowing ring with its
+	// criss-cross at its yin-yang end worn as a circlet (the owner,
+	// 2026-11-14: "the effect on the end of the monks epic yin yang staff the
+	// circle of light with the criss cross lets make that effect into a
+	// circlet on the head of dust")
+	{[]string{"monk", "circlet"}, database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD},
+		"the monk's level 49 epic staff, Ascendant staff (1D875ECD): its glowing ring with the criss-cross worn round the head (while no helm is drawn)"},
 	{[]string{"sickle", "taint"}, database.ItemAura{Kind: database.AuraEpic, Source: 0x5FD4AE7C},
 		"the necromancer's epic, Sickle of Avhi Escron (5FD4AE7C): an olive glow and its green mist (Zaeire's)"},
 }
@@ -238,14 +252,14 @@ func takeAuraLook(args []string) ([]string, *auraLook) {
 	return args, nil
 }
 
-// auraLooksReply is /aura looks: every named look and how to give it.
-func auraLooksReply() string {
-	var b strings.Builder
-	b.WriteString("Named auras (on a targeted player or yourself; an epic look goes on the held weapons, or name mainhand/offhand; a colour recolours it):")
+// auraLooksReply is /aura looks: every named look and how to give it, a
+// line each (one chat message each stays one fragment).
+func auraLooksReply() []string {
+	out := []string{"Named auras (on a targeted player or yourself; an epic look goes on the held weapons, or name mainhand/offhand; a circlet on the head; a colour recolours it):"}
 	for _, l := range auraLooks {
-		fmt.Fprintf(&b, " /aura %s: %s.", strings.Join(l.Words, " "), l.What)
+		out = append(out, fmt.Sprintf("/aura %s: %s.", strings.Join(l.Words, " "), l.What))
 	}
-	return b.String()
+	return out
 }
 
 // isHex reports whether s is n hex digits.
@@ -358,6 +372,9 @@ func parseAuraEasy(args []string) (sp auraSpec, err error) {
 		if sp.Where == -1 && look.A.Kind == database.AuraEpic {
 			sp.Where = auraBothHands
 		}
+		if sp.Where == -1 && look.A.Kind == database.AuraCirclet {
+			sp.Where = entity.AuraHelm // a circlet goes round the head
+		}
 	}
 	if along {
 		hand := sp.Where == entity.AuraMainHand || sp.Where == entity.AuraOffHand || sp.Where == auraBothHands
@@ -386,7 +403,7 @@ func parseAuraEasy(args []string) (sp auraSpec, err error) {
 		}
 		sp.A.Kind = database.AuraShell
 	}
-	if !color && sp.A.Kind != database.AuraParticles && sp.A.Kind != database.AuraEpic {
+	if !color && sp.A.Kind != database.AuraParticles && sp.A.Kind != database.AuraEpic && sp.A.Kind != database.AuraCirclet {
 		return sp, fmt.Errorf("name a colour (only particles and epic need none: they keep the source's own)")
 	}
 	return sp, nil
@@ -437,7 +454,9 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 		return
 	}
 	if len(args) == 1 && strings.EqualFold(args[0], "looks") {
-		h.gmReply(sess, auraLooksReply())
+		for _, l := range auraLooksReply() {
+			h.gmReply(sess, l)
+		}
 		return
 	}
 	sp, err := parseAuraEasy(args)
@@ -477,6 +496,10 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 	if isNPC && !isMerc {
 		if sp.A.Kind == database.AuraEpic && !sp.Off {
 			h.gmReply(sess, "/aura: epic is a held weapon's look: on a player (or a mercenary): /aura epic weapons source=<epic's name>")
+			return
+		}
+		if sp.A.Kind == database.AuraCirclet && !sp.Off {
+			h.gmReply(sess, "/aura: a circlet is a player's (or a mercenary's) head's: /aura monk circlet")
 			return
 		}
 		if database.NPCClassKey(npc.Name) == "" {
@@ -526,6 +549,8 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 			}
 			if slot == database.CharAuraMainHand || slot == database.CharAuraOffHand {
 				h.gmReply(sess, "/aura: a held weapon takes epic or particles: /aura epic weapons source=Sickle_of_Avhi_Escron, /aura particles mainhand source=<item>")
+			} else if sp.A.Kind == database.AuraCirclet {
+				h.gmReply(sess, "/aura: a circlet goes round the head: /aura monk circlet (or helm/head)")
 			} else {
 				h.gmReply(sess, "/aura: epic is a held weapon's look: mainhand, offhand or weapons")
 			}
@@ -554,6 +579,8 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 	switch {
 	case slot == database.CharAuraMainHand || slot == database.CharAuraOffHand:
 		note += " (on whatever that hand holds, from a client that draws held items' auras)"
+	case sp.A.Kind == database.AuraCirclet:
+		note += " (round the head while no helm is drawn, from a client that draws circlets)"
 	case slot != database.CharAuraBody && mask&(1<<slot) == 0 && sp.A.Shows():
 		note += " (nothing worn there now: it shows when a piece is)"
 	}
@@ -576,6 +603,9 @@ func auraNow(a database.ItemAura) string {
 		if c == a.Color {
 			color = n
 		}
+	}
+	if a.Kind == database.AuraCirclet && !database.NPCGlowShows(a.Color) {
+		return fmt.Sprintf("a circlet of %08X", a.Source)
 	}
 	if a.Kind == database.AuraEpic && !database.NPCGlowShows(a.Color) {
 		return fmt.Sprintf("the epic look of %08X", a.Source)

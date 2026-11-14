@@ -18,15 +18,16 @@ import (
 // called Rain Key 3"). Each isle's essence takes one key of its isle and sends
 // the player on to the next isle, the group standing by it along (moveGroup,
 // as the Teleporter's trips were until petition 1938): one key, one trip for the giver and the
-// group. The keys of the main isle's three essences are the ones Liztin
-// Misseliania sells (rain key, sun key, key of the ancients); every other
+// group. The keys of the main isle's essences are the ones Liztin Misseliania
+// sells (rain key, sun key, key of the ancients) and the snow key the Mark of
+// the Majestic gives (petitions 2077-2079); every other
 // isle's is its boss's, twenty on its corpse (tools/sky_keys_20261111.py, the
 // set sky-keys: the isle's boss is the one whose shard the guide's chain has
 // it drop, Granavik for the third isle of rain as Jibrish named him, the Arch
 // Bishop Lancel for the third of night, which has none). The order of the
 // isles is EQOA-Data's Portal/plane-of-sky guide's (Rain 1-5, Day 1-4, Night
-// 1-5, Snow 2-4 after Snow 1's jump, Desolation 1-4), each last isle's essence
-// to the Isle of Wonder. A landing was measured over the ground and walls
+// 1-5, Snow 1 from the main isle, Snow 2-4 after Snow 1's jump, Desolation
+// 1-4), each last isle's essence to the Isle of Wonder. A landing was measured over the ground and walls
 // files of world 4 and its creatures (2026-11-11): on the isle's own open
 // ground, no creature within 40 (DefaultAggroRadius is 30), out of the water,
 // under the sky; where the guide says where one comes in, there ("Talk to
@@ -119,8 +120,21 @@ var skyPasses = []skyPass{
 	{NPC: "essence of night", X: 4400.0, Z: 7135.8, Key: "Night Key 5", To: "the Isle of Wonder",
 		At: skyIsleOfWonder, Steps: [][2]int{{101306, 17}}},
 
-	// the chain of snow, from the igloo village below the first isle's
-	// mountain (the Mark of the Majestic's trip to it: waysender.go)
+	// the chain of snow: the main isle's essence, south-east of Liztin's hut,
+	// where the GM Jibcrotwo stood (petitions 2077-2079: "We need a snow
+	// essence right where im standing like the other islands"), to where he
+	// stood on the first isle, beside its own essence (which has no passage:
+	// the guide has the first isle left by the waterfall, Ryini's walk, and no
+	// key of its own); its snow key the Mark of the Majestic gives as the chain
+	// is taken (quest 101307's accept, tools/snow1_essence_20261114.py: "Speak
+	// to the Mark of the Majestic and he will give you a snow key ... Then go
+	// back to the main isle on PoS and find the Snow Essence Portal"), the
+	// quest's first step the gargoyle's eye on the isle, so the passage does none
+	{NPC: "essence of snow", X: 4888.6, Z: 5858.4, Key: "snow key", To: "the first isle of snow",
+		At: wayPlace{World: 4, X: 5682.72, Y: 553.75, Z: 6418.1, Facing: 3.190}},
+	// then from the igloo village below the first isle's mountain (Ryini's
+	// walk, or the Mark of the Majestic's trip to the first isle for those who
+	// finished the chain: waysender.go)
 	{NPC: "essence of snow", X: 5766.8, Z: 6702.1, Key: "Snow Key 2", To: "the third isle of snow",
 		At: wayPlace{World: 4, X: 5832.8, Y: 176.62, Z: 7079.7, Facing: 0.07}, Steps: [][2]int{{101307, 8}}},
 	{NPC: "essence of snow", X: 5906.3, Z: 7570.5, Key: "Snow Key 3", To: "the fourth isle of snow",

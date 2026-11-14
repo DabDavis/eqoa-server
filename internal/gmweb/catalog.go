@@ -1103,7 +1103,9 @@ var catalog = map[string]tableNote{
 			"player's pieces alone): slot 0-6 the pieces (chest, bracers, gloves, legs, boots, helm, robe), shown on whatever item it wears " +
 			"there; 7 the body and underclothes, which its armour covers; 8 the cape (shown on whatever cape it wears; a trim there lights the whole cape); " +
 			"9 the main hand's held item and 10 the off hand's (a shield held there too): kind 7 epic draws the source epic's own glow, sheen and particles on " +
-			"whatever the hand holds (Particles the epic's model, Colour 0 its own colours), kind 3 its particles alone. Over the item's own aura (Item auras). merc 0 the character, " +
+			"whatever the hand holds (Particles the epic's model, Colour 0 its own colours), kind 3 its particles alone. " +
+			"The named looks (/aura looks in the game): druid staff glow is kind 7 with Particles CBF4135A (Oak Staff of Eilerawdl), " +
+			"sickle taint kind 7 with 5FD4AE7C (Sickle of Avhi Escron). Over the item's own aura (Item auras). merc 0 the character, " +
 			"else its mercenary of that hire slot. /aura <colour> <kind> <slot|wholebody> on a targeted player (or yourself) sets a row.",
 		Live:   "At once: the character's channel carries it at the next tick.",
 		Search: []string{"note"},

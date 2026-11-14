@@ -142,7 +142,7 @@ func auraWords(a database.ItemAura) string {
 
 // auraUsageShort is /aura with nothing: the easy words, with examples.
 const auraUsageShort = "Usage: /aura <colour> <kind> <where>, any order: /aura blue particles chest, /aura yellow shell wholebody, " +
-	"/aura epic weapons source=<epic>, /aura off chest. Colour: red blue green yellow gold orange purple pink cyan white black silver teal " +
+	"/aura epic weapons source=<epic>, /aura looks: named. Colour: red blue green yellow gold orange purple pink cyan white black silver teal " +
 	"or RRGGBB(AA) (black: dark); kind: shell particles both trim trimshell epic off; where: chest bracers gloves legs boots " +
 	"helm robe cape mainhand offhand weapons (theirs alone) or wholebody (an NPC's whole model; a player's body under its armour); source=<DictID|item name> nodes=N"
 
@@ -184,6 +184,59 @@ type auraSpec struct {
 	Off        bool
 	Where      int // a piece, auraWholeBody, or -1 none named
 	SourceName string
+	Look       string // a named look's name (auraLooks), "" none
+}
+
+// auraLook is a named aura a GM gives by its name (the owner, 2026-11-14:
+// "give zerkziee hachet and ranger level 60 epics the level 49 druid staff
+// glow (also make a template like other auras)"): its words, in order, in
+// /aura (any case; also run together or with underscores), and the aura they
+// stand for. An epic look goes on a held weapon (both hands when no place is
+// named); a colour named with it recolours it.
+type auraLook struct {
+	Words []string
+	A     database.ItemAura
+	What  string
+}
+
+// auraLooks are the named looks, /aura looks lists them.
+var auraLooks = []auraLook{
+	{[]string{"druid", "staff", "glow"}, database.ItemAura{Kind: database.AuraEpic, Source: 0xCBF4135A},
+		"the druid's level 49 epic staff, Oak Staff of Eilerawdl (CBF4135A): an amber glow, a gold sheen and its sparkles"},
+	{[]string{"sickle", "taint"}, database.ItemAura{Kind: database.AuraEpic, Source: 0x5FD4AE7C},
+		"the necromancer's epic, Sickle of Avhi Escron (5FD4AE7C): an olive glow and its green mist (Zaeire's)"},
+}
+
+// takeAuraLook finds a named look in args (its words in a row, or run
+// together, or joined by underscores) and returns the rest without it.
+func takeAuraLook(args []string) ([]string, *auraLook) {
+	low := make([]string, len(args))
+	for i, a := range args {
+		low[i] = strings.ToLower(strings.TrimSpace(a))
+	}
+	for k := range auraLooks {
+		l := &auraLooks[k]
+		joined := strings.Join(l.Words, "")
+		for i := range low {
+			if strings.ReplaceAll(low[i], "_", "") == joined {
+				return append(append([]string(nil), args[:i]...), args[i+1:]...), l
+			}
+			if i+len(l.Words) <= len(low) && strings.Join(low[i:i+len(l.Words)], " ") == strings.Join(l.Words, " ") {
+				return append(append([]string(nil), args[:i]...), args[i+len(l.Words):]...), l
+			}
+		}
+	}
+	return args, nil
+}
+
+// auraLooksReply is /aura looks: every named look and how to give it.
+func auraLooksReply() string {
+	var b strings.Builder
+	b.WriteString("Named auras (on a targeted player or yourself; an epic look goes on the held weapons, or name mainhand/offhand; a colour recolours it):")
+	for _, l := range auraLooks {
+		fmt.Fprintf(&b, " /aura %s: %s.", strings.Join(l.Words, " "), l.What)
+	}
+	return b.String()
 }
 
 // isHex reports whether s is n hex digits.
@@ -198,6 +251,7 @@ func isHex(s string, n int) bool {
 // parseAuraEasy reads the easy words; an error names the word it could not.
 func parseAuraEasy(args []string) (sp auraSpec, err error) {
 	sp.Where = -1
+	args, look := takeAuraLook(args)
 	color, kind, naming := false, false, false
 	for _, raw := range args {
 		w := strings.ToLower(strings.TrimSpace(raw))
@@ -272,6 +326,21 @@ func parseAuraEasy(args []string) (sp auraSpec, err error) {
 		}
 		sp.A.Color, color = c, true
 	}
+	if look != nil {
+		switch {
+		case sp.Off:
+			return sp, fmt.Errorf("off takes only a place (/aura off weapons)")
+		case kind && sp.A.Kind != look.A.Kind:
+			return sp, fmt.Errorf("%s names its own kind", strings.Join(look.Words, " "))
+		case sp.A.Source != 0 || sp.SourceName != "":
+			return sp, fmt.Errorf("%s names its own source", strings.Join(look.Words, " "))
+		}
+		sp.A.Kind, sp.A.Source, sp.Look = look.A.Kind, look.A.Source, strings.Join(look.Words, " ")
+		if sp.Where == -1 && look.A.Kind == database.AuraEpic {
+			sp.Where = auraBothHands
+		}
+		return sp, nil
+	}
 	if sp.Off {
 		if color || kind {
 			return sp, fmt.Errorf("off takes only a place (/aura off chest)")
@@ -333,6 +402,10 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 	}
 	if a, ok := oldAuraForm(args); ok {
 		h.setNPCAura(sess, player, a)
+		return
+	}
+	if len(args) == 1 && strings.EqualFold(args[0], "looks") {
+		h.gmReply(sess, auraLooksReply())
 		return
 	}
 	sp, err := parseAuraEasy(args)
@@ -428,6 +501,9 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 		}
 	}
 	detail := fmt.Sprintf("/aura in the game: %s %s: %s", whose, place, auraWords(sp.A))
+	if sp.Look != "" {
+		detail += " (the named look " + sp.Look + ")"
+	}
 	for _, slot := range slots {
 		if err := db.SetCharAuraAudited(key, slot, sp.A, gmEditOf(sess), detail); err != nil {
 			h.gmReply(sess, "/aura: not kept: "+err.Error())
@@ -440,11 +516,14 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 		return
 	}
 	note := ""
+	if sp.Look != "" && sp.A.Shows() {
+		note = " (" + sp.Look + ")"
+	}
 	switch {
 	case slot == database.CharAuraMainHand || slot == database.CharAuraOffHand:
-		note = " (on whatever that hand holds, from a client that draws held items' auras)"
+		note += " (on whatever that hand holds, from a client that draws held items' auras)"
 	case slot != database.CharAuraBody && mask&(1<<slot) == 0 && sp.A.Shows():
-		note = " (nothing worn there now: it shows when a piece is)"
+		note += " (nothing worn there now: it shows when a piece is)"
 	}
 	h.gmReply(sess, fmt.Sprintf("%s %s: now %s (%s), %s alone%s.", strings.ToUpper(whose[:1])+whose[1:], place, auraNow(sp.A), auraWords(sp.A),
 		map[bool]string{true: "this mercenary", false: "this character"}[isMerc], note))

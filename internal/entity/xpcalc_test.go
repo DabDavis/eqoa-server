@@ -1,9 +1,13 @@
 package entity
 
 import (
+	"encoding/binary"
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/eqoa/server/internal/protocol"
+	"github.com/eqoa/server/internal/session"
 )
 
 // The players' "XP to next Level" chart (eqoa.forumotion.com/t279-calculations,
@@ -137,4 +141,66 @@ func contains(lines []string, s string) bool {
 		}
 	}
 	return false
+}
+
+// barsSent is the 0x0020s a session was sent: each one's level and bar.
+func barsSent(s *session.Session) [][2]int64 {
+	var out [][2]int64
+	for _, m := range s.Queue().GetPending() {
+		d := m.Data()
+		if protocol.GameOpcode(binary.LittleEndian.Uint16(d)) != protocol.OpcodeGrantXP {
+			continue
+		}
+		var v [2]int64
+		i := 2
+		for k := range v {
+			var u uint64
+			for shift := 0; i < len(d); shift += 7 {
+				b := d[i]
+				i++
+				u |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			v[k] = int64(u>>1) ^ -int64(u&1) // zigzag
+		}
+		out = append(out, v)
+	}
+	return out
+}
+
+// Where the HUD's bar is the way to the next mastery point (a level 60, or
+// all of it going to the masteries), what that point costs moves with the
+// points held and spent: a GM's #grantcm and a rank removed (its points
+// gone) tell the bar again (0x0020), as no award would until the next kill.
+// The control: a level 30 giving none to the masteries, whose bar is the
+// level's, is told nothing.
+func TestAMasteryChangeTellsTheBar(t *testing.T) {
+	k := newKillWorld(t, 60, 30)
+	p, q := k.players[0], k.players[1]
+	p.Mastery = Mastery{Points: 3, XP: 100000}
+	if _, _, ok := k.w.GrantMastery(k.sess[0], 1); !ok {
+		t.Fatal("no player")
+	}
+	want := int64(ExpForLevel(61)) * 100000 / int64(CMPointXP(5))
+	if b := barsSent(k.sess[0]); len(b) != 1 || b[0] != [2]int64{60, want} || int(want) != p.BarXP() {
+		t.Fatalf("a #grantcm at 60: told %v, want [60 %d]", b, want)
+	}
+	p.Mastery.Spent, p.Mastery.Points = 10, 0
+	k.w.mu.Lock()
+	k.w.cmChangedLocked(p)
+	k.w.mu.Unlock()
+	if b := barsSent(k.sess[0]); len(b) != 1 || b[0][1] != int64(p.BarXP()) {
+		t.Errorf("a rank's change at 60: told %v, want the bar %d", b, p.BarXP())
+	}
+
+	q.Mastery = Mastery{XP: 100000}
+	k.w.GrantMastery(k.sess[1], 1)
+	k.w.mu.Lock()
+	k.w.cmChangedLocked(q)
+	k.w.mu.Unlock()
+	if b := barsSent(k.sess[1]); len(b) != 0 {
+		t.Errorf("the control, a level 30 at 0%%: told %v", b)
+	}
 }

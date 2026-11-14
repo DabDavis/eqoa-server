@@ -22,7 +22,7 @@ export async function render(box) {
           h('td', null, h('strong', null, p.name), p.guild ? h('span', { class: 'faint' }, ' <' + p.guild + '>') : null),
           h('td', null, p.account),
           h('td', { class: 'num' }, `${p.level} ${p.race} ${p.class}`),
-          h('td', null, p.worldName),
+          h('td', null, p.place || p.worldName),
           h('td', { class: 'mono' }, `${p.x}, ${p.y}, ${p.z}`),
           h('td', null, p.dead ? h('span', { class: 'badge danger' }, 'dead') : `${p.hp} / ${p.maxHP}`),
           h('td', { class: 'num' }, p.tunar.toLocaleString()),

@@ -58,7 +58,7 @@ export async function render(box) {
             const tr = h('tr', null,
               h('td', null, h('a', { href: '#/characters/' + p.serverid }, p.name), p.dead ? h('span', { class: 'badge danger' }, 'dead') : null),
               h('td', null, `${p.level} ${p.race} ${p.class}`),
-              h('td', null, `${p.worldName} (${Math.round(p.x)}, ${Math.round(p.z)})`),
+              h('td', null, `${p.place || p.worldName} (${Math.round(p.x)}, ${Math.round(p.z)})`),
               h('td', null, h('a', { href: '#/accounts/' + p.accountid }, p.account)));
             return tr;
           }))))

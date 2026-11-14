@@ -15,6 +15,7 @@ import (
 
 	"github.com/eqoa/server/internal/auth"
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/skyisles"
 )
 
 // AccountServer provides HTTP endpoints for account registration and character management.
@@ -879,7 +880,7 @@ func (s *AccountServer) handleCharactersPage(w http.ResponseWriter, r *http.Requ
                         <div class="char-info">
                             <h3>${c.name}</h3>
                             <p>Level ${c.level} ${races[c.race] || 'Unknown'} ${classes[c.class] || 'Unknown'}</p>
-                            <p class="loc">Last saved: ${worldName(c.world)} (${Math.round(c.x)}, ${Math.round(c.y)}, ${Math.round(c.z)})</p>
+                            <p class="loc">Last saved: ${c.isle ? 'Plane of Sky (' + c.isle + ')' : worldName(c.world)} (${Math.round(c.x)}, ${Math.round(c.y)}, ${Math.round(c.z)})</p>
                             <div class="tele-row">
                                 <select id="dest-${c.id}" onchange="toggleCustom(${c.id})">
                                     ${destOptions()}
@@ -1189,6 +1190,8 @@ func (s *AccountServer) handleAPICharacters(w http.ResponseWriter, r *http.Reque
 			"x":     c.X,
 			"y":     c.Y,
 			"z":     c.Z,
+			// the Plane of Sky's isle (skyisles): "Night Chain 1"
+			"isle": skyisles.In(c.World, c.X, c.Y, c.Z),
 		}
 	}
 

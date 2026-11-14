@@ -266,6 +266,11 @@ type NPC struct {
 	// back when the charm ends or it comes back after dying; nil for a
 	// creature no one charmed.
 	Charm *charmHold
+	// charmDied: it died charmed (charm.go releaseCharmLocked), its corpse one
+	// of nothing (CorpseOfNothing) until it comes back, in charmHome, the world
+	// it was charmed in (respawnNPCLocked).
+	charmDied bool
+	charmHome uint8
 
 	// calmTicks counts the six-second ticks it has been out of a fight;
 	// past npcCalmTicks it heals fast (npcregen.go). Any threat puts it

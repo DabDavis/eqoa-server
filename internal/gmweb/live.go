@@ -332,14 +332,40 @@ func checkAuraCols(row map[string]any, kind, source, nodes string) error {
 }
 
 // checkCharAuraRow holds a charaura row to a character, a slot (0-6 the
-// pieces, 7 the body, 8 the cape), a 32-bit colour and an aura the client reads.
+// pieces, 7 the body, 8 the cape, 9 and 10 the hands), a 32-bit colour and an
+// aura the client reads there (database.ValidCharAuraKind: a hand's
+// particles or epic, epic a hand's alone).
 func checkCharAuraRow(row map[string]any) error {
 	if f, ok := asFloat(row["charid"]); !ok || f != math.Trunc(f) || f <= 0 {
 		return badRequest("charid is the character's server_id (Characters)")
 	}
 	if v, ok := row["slot"]; ok {
 		if f, fok := asFloat(v); !fok || f != math.Trunc(f) || f < 0 || f >= database.CharAuraSlots {
-			return badRequest("slot is 0 chest, 1 bracers, 2 gloves, 3 legs, 4 boots, 5 helm, 6 robe, 7 the body and underclothes (under the armour), 8 the cape")
+			return badRequest("slot is 0 chest, 1 bracers, 2 gloves, 3 legs, 4 boots, 5 helm, 6 robe, 7 the body and underclothes (under the armour), 8 the cape, 9 the main hand's held item, 10 the off hand's")
+		}
+	}
+	// a hand's kinds (and epic a hand's alone), before the columns' own check
+	cols := row
+	slot, sok := asFloat(row["slot"])
+	kind, kok := asFloat(row["kind"])
+	if sok && kok && kind == math.Trunc(kind) {
+		hand := slot == database.CharAuraMainHand || slot == database.CharAuraOffHand
+		if !database.ValidCharAuraKind(int64(slot), int64(kind)) {
+			if hand {
+				return badRequest("a held item's aura (slot 9 or 10) is kind 1 none, 3 the particles or 7 epic (the source epic's own glow, sheen and particles)")
+			}
+			if kind == database.AuraEpic {
+				return badRequest("kind 7 (epic) is a held item's alone: slot 9 the main hand, 10 the off hand")
+			}
+		}
+		if hand {
+			// checked; checkAuraCols knows the bodies' kinds alone
+			cols = make(map[string]any, len(row))
+			for k, v := range row {
+				if k != "kind" {
+					cols[k] = v
+				}
+			}
 		}
 	}
 	if v, ok := row["merc"]; ok {
@@ -353,7 +379,7 @@ func checkCharAuraRow(row map[string]any) error {
 			return badRequest("color is 0xRRGGBBAA, 0 none; black 000000FF a dark aura")
 		}
 	}
-	return checkAuraCols(row, "kind", "source", "nodes")
+	return checkAuraCols(cols, "kind", "source", "nodes")
 }
 
 // checkItemAuraRow holds an itemaura row to an item, a 32-bit colour and an

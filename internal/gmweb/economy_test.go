@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/economy"
 )
 
 // seedLedger puts a day of counts in db: today's loot, sales and purchases,
@@ -40,6 +41,7 @@ func seedLedger(t *testing.T, db *database.SQLiteDB, now time.Time, scale int64)
 
 func TestEconomyOp(t *testing.T) {
 	f := newFixture(t)
+	f.s.d.Ledger = economy.New() // the package's other tests' logins count into Default
 	now := time.Now()
 	seedLedger(t, f.db, now, 1)
 	gm := f.browser()
@@ -129,6 +131,7 @@ func TestEconomyOp(t *testing.T) {
 // by the op's own flush.
 func TestEconomyCountsPanelEdits(t *testing.T) {
 	f := newFixture(t)
+	f.s.d.Ledger = economy.New()
 	boss := f.browser()
 	boss.login("boss")
 	code, out := boss.op("update_row", map[string]any{"table": "characters", "key": map[string]any{"serverid": 7},

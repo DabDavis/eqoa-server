@@ -10,8 +10,8 @@ import "fmt"
 // one camp's creatures roaming where the rest of their name stands, need a rule
 // by the row, as a path is (npcpaths). A row is the whole rule: the creature
 // wanders within radius of its spawn (0: as its name's row or the server's
-// radius), whatever its name's row or its kind says, unless it is one that
-// never wanders (a pet, a training dummy, a path's, a camp's static spawn, a
+// radius; below 0: it does not wander at all), whatever its name's row or its
+// kind says, unless it is one that never wanders (a pet, a training dummy, a path's, a camp's static spawn, a
 // spawn-only original, one with no body or the NPC bit, one off the ground).
 // source: gm, or the tool that wrote it (tools/disperse_patrol_20261112.py:
 // disperse, its --undo deletes its own).
@@ -32,7 +32,9 @@ func (db *SQLiteDB) ensureNPCWander() error {
 }
 
 // NPCWanderRows is every row of npcwander: the radius by the npcs row's id (0
-// for its name's or the server's; a negative one counts as 0).
+// for its name's or the server's; a negative one, read as -1, for none: the
+// creature stands on its spawn until pulled, whatever its name's or its kind,
+// the GM Jibcrotwo's petitions 2088-2089: "He does not roam").
 func (db *SQLiteDB) NPCWanderRows() (map[int64]float32, error) {
 	rows, err := db.Query(`SELECT npcid, radius FROM npcwander`)
 	if err != nil {
@@ -46,7 +48,7 @@ func (db *SQLiteDB) NPCWanderRows() (map[int64]float32, error) {
 		if err := rows.Scan(&id, &r); err != nil {
 			return nil, err
 		}
-		out[id] = float32(max(r, 0))
+		out[id] = float32(max(r, -1))
 	}
 	return out, rows.Err()
 }

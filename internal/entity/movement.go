@@ -145,7 +145,8 @@ func (w *World) LoadMoveRules(db *database.SQLiteDB) (int, error) {
 }
 
 // SetRowWander sets table npcwander's rows: a creature's own wander by its
-// npcs row, with its radius (0: its name's or the server's).
+// npcs row, with its radius (0: its name's or the server's; below 0: it does
+// not wander at all).
 func (w *World) SetRowWander(rows map[EntityID]float32) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -226,6 +227,7 @@ const (
 	whyCompanion
 	whyRowOwnWanders
 	whySiege
+	whyRowOwnStands
 )
 
 // MoveWhyText says why, in a GM's words (the panel's NPC page); word is the
@@ -270,6 +272,8 @@ func MoveWhyText(why moveWhy, word string) string {
 		return "a creature's own pet (companion.go): it keeps beside its owner, walking where its owner wanders"
 	case whySiege:
 		return "a siege's King or gate (siege.go): it stands where the siege put it"
+	case whyRowOwnStands:
+		return "it stands on its spawn until pulled: its own row says so (npcwander, a negative radius), whatever its name's"
 	}
 	return ""
 }
@@ -306,7 +310,12 @@ func (w *World) movementLocked(npc *NPC) (wanders bool, why moveWhy, word string
 	case npc.RoamRadius <= 0:
 		return false, whyNoRadius, ""
 	}
-	if _, own := w.rowWander[npc.ServerID]; own {
+	if r, own := w.rowWander[npc.ServerID]; own && r < 0 {
+		// its row's own "it does not roam" (a negative radius: the GM
+		// Jibcrotwo's petitions 2088-2089, Croc Island's crocodiles in the
+		// hut), ahead of its name's and its kind
+		return false, whyRowOwnStands, ""
+	} else if own {
 		why = whyRowOwnWanders // its row's rule, ahead of its name's and its kind (npcwander)
 	} else if r, ok := w.moveRuleLocked(npc); ok && !r.ByKind {
 		if !r.Roam {

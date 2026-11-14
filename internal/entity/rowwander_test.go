@@ -52,7 +52,7 @@ func TestARowsOwnWanderIsAheadOfItsNameAndKind(t *testing.T) {
 	w.mu.Unlock()
 }
 
-// The table, read: its rows by npcs id, a negative radius as 0.
+// The table, read: its rows by npcs id, a negative radius as -1 (it stands).
 func TestNPCWanderRowsAreRead(t *testing.T) {
 	db, err := database.NewSQLite(filepath.Join(t.TempDir(), "eqoa.db"))
 	if err != nil {
@@ -71,7 +71,7 @@ func TestNPCWanderRowsAreRead(t *testing.T) {
 	if err != nil || n != 2 {
 		t.Fatalf("LoadRowWander = %d, %v", n, err)
 	}
-	if w.rowWander[7] != 45 || w.rowWander[9] != 0 {
+	if w.rowWander[7] != 45 || w.rowWander[9] != -1 {
 		t.Errorf("rows read %v", w.rowWander)
 	}
 	var _ *sql.DB
@@ -116,5 +116,30 @@ func TestAFarRoamerCrossesItsGround(t *testing.T) {
 	med, reach = far(0) // the server's radius: the control
 	if reach > float64(DefaultRoamRadius)+0.01 || med < 14 || med > 25 {
 		t.Errorf("at the server's radius: legs median %.1f, went %.1f; want Sandstorm's legs within %v", med, reach, DefaultRoamRadius)
+	}
+}
+
+// A row of its own with a negative radius stands its creature (petitions
+// 2088-2089, the GM Jibcrotwo: "He does not roam"), though its name wanders
+// (crocodiles: wildlife, npcmove's roam); the control, the same name with no
+// row, wanders.
+func TestARowsOwnNoRoamStandsItsCreature(t *testing.T) {
+	w := roamWorld(t)
+	w.SetMoveRules(map[string]database.NPCMoveRule{"crocodile": {Roam: true}})
+	still := addNPC(w, 301, "crocodile", 1000, 1000, creatureModel, 0)
+	walks := addNPC(w, 302, "crocodile", 1010, 1000, creatureModel, 0)
+	w.SetRowWander(map[EntityID]float32{301: -1})
+	run(w, time.Now(), 3*time.Minute, nil)
+	if still.X != still.SpawnX || still.Z != still.SpawnZ {
+		t.Errorf("the row's own no-roam moved to (%.1f, %.1f)", still.X, still.Z)
+	}
+	if walks.X == walks.SpawnX && walks.Z == walks.SpawnZ {
+		t.Errorf("the control, no row, never moved")
+	}
+	w.mu.Lock()
+	ok, why, _ := w.movementLocked(still)
+	w.mu.Unlock()
+	if ok || why != whyRowOwnStands {
+		t.Errorf("movement %v, %v; want it stands by its own row", ok, why)
 	}
 }

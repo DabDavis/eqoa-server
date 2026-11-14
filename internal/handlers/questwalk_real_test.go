@@ -115,6 +115,10 @@ type questWalker struct {
 	byCombo map[[2]int]*walkChar
 	combo   [][2]int // the classes and races a character may be (defaultcharacter's, the froglok's)
 	fit     map[[3]int]bool
+	// obtain, when set, gets the character a show or give step's items it lacks as
+	// a player would (questcheck_real_test.go: bought, looted off a creature): ""
+	// when it did what it could, else why not
+	obtain func(qu *database.Quest, st *database.QuestStep) string
 }
 
 // walkChar is one walking character.
@@ -373,6 +377,15 @@ func (w *questWalker) walkOne(qu *database.Quest) string {
 	w.qe.mu.Lock()
 	why := w.qe.mayTakeLocked(w.qe.lookAt(w.sess), w.p, w.qe.charLocked(w.p.CharServerID), qu)
 	w.qe.mu.Unlock()
+	if strings.HasPrefix(why, "it lacks ") && w.obtain != nil {
+		// a hand-in done on the answer is offered to one who holds it: had first
+		if got := w.obtain(qu, qu.First()); got != "" {
+			return "its hand-in's items not had: " + got
+		}
+		w.qe.mu.Lock()
+		why = w.qe.mayTakeLocked(w.qe.lookAt(w.sess), w.p, w.qe.charLocked(w.p.CharServerID), qu)
+		w.qe.mu.Unlock()
+	}
 	if why != "" {
 		return "not to be taken: " + why
 	}
@@ -421,6 +434,14 @@ func (w *questWalker) doStep(qu *database.Quest, st *database.QuestStep) string 
 			w.qe.mu.Lock()
 			lack := w.qe.lackingLocked(w.p, st)
 			w.qe.mu.Unlock()
+			if lack != "" && w.obtain != nil {
+				if why := w.obtain(qu, st); why != "" {
+					return "its items not had: " + why
+				}
+				w.qe.mu.Lock()
+				lack = w.qe.lackingLocked(w.p, st)
+				w.qe.mu.Unlock()
+			}
 			if lack != "" {
 				return "the walk does not hold " + lack
 			}

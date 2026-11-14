@@ -693,7 +693,10 @@ internal/handlers/mapcamps.go` places EQOA-Data's 334 un-noted camps the same wa
 creatures by `MAP_KINDS` or the name's words, anchored only within 400 of the point, 900 in Odus; a camp within 300 of a
 `#tele` camp's anchor and of its kind is that camp; generic or repeated names take the map's zone, then a side), WITHOUT
 rewriting camps.go: 154 (Tunaria 137, Odus 17). They are the maps' alone (`mapCamps`, `MapCampMarkers`: the GM panel's
-`map_layers`, vanilla's map): never `#tele`, the Teleporter or `CampMarkers` (camp reports' place names).
+`map_layers`, vanilla's map): never `#tele`, the Teleporter or `CampMarkers` (camp reports' place names). **The FAQ's camps** (2026-11-14, the owner: "also add those new camps to the map"): `FAQ_CAMPS` places
+`tools/faq_camps_20261114.py`'s camps EQOA-Data has no point for as map camps (8, the Rathe's first among them), and
+`FAQ_LEVELS` gives the camps it re-levelled their kind's levels over the FAQ tool's box (vanilla's map shows those, not
+the guide's: `gen_map_markers.py` reads `FAQ_LEVELED`). Tendora-Buki's anchor is the village's own (no kerran there).
 
 **A GM's marks become camps and paths** (`handlers/gmcamps.go`, `database/gmcamps.go`, `entity/campspawn.go`;
 the GM Jibrish setting up XP camps, 2026-11-08: "maybe a command to capture multiple points? so i can go HERE,
@@ -3882,7 +3885,15 @@ mark on its rim): of the quests of a name the player may take, only the nearest 
 while one of that name is under way or finished (a finished repeatable one aside); only quests whose
 lowest level is at most **`world.quest_marks_below`** below the player's (unset or 0: 10; -1 any: a
 level 60 with nothing done goes from 40 "!" to 27 in Tunaria, 2 of them in Freeport, all for 50 and up);
-and a giver where a step of the player's is to be done shows that step's "?" alone.
+and a giver where a step of the player's is to be done shows that step's "?" alone. **Where a step's marks go** (2026-11-14, the owner: "lets update quest
+helper to be more accurate"; `handlers/questmarkspots.go`): a talk/show/give step's NPC where one stands (the character's
+own spawned copy first; a spawn-only original only where none stands; a pinned spawn alone); a kill/loot step's creatures'
+nearest CAMP, every name the step counts together (spawns within 120 linked; a camp of under 3, or the world's biggest if
+smaller, passed over: never a stray), marked at the camp's spawn nearest its middle; a reach step's place; and where none
+is in the player's world a "?" at the nearest travel NPC of `wayRoutes` (waysender, dockmaster, gate; a quest-only trip
+where nothing else leads) whose trips lead there in the fewest, "Travel with X to Y". `TestRealQuestMarks`
+(EQOA_REAL_DB, EQOA_QUESTMARKS_OUT) holds every step of both shards to its real targets: 248 stray marks and 263 steps
+with no way before, 0 and 43 after (no travel NPC leads out of Lavastorm, the Plane of Sky or world 14).
 
 **The quest tracker for a client's HUD** (F3 pass 18; `handlers/questprogress.go`; the user's "add
 quest progress hud item similar to WoW ... if quest says obtain 3 bat eyes, have 0/3"). Beside

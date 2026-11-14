@@ -266,7 +266,8 @@ var weaponProcsByName = map[string]WeaponProc{
 	"sunsilver blade": {Kind: ProcCalm},
 	// EQOA-Data's 5, and the records' "a chance to do additional poison damage"
 	"greater corrosive stick":  {Kind: ProcHit, Damage: 5, Resist: StatPR},
-	"superior corrosive stick": {Kind: ProcHit, Damage: 5, Resist: StatPR},
+	// petition 2043, Deathcore: "was 900 on live" (EQOA-Data's 5 is likely its chance, not its damage)
+	"superior corrosive stick": {Kind: ProcHit, Damage: 900, Resist: StatPR},
 	// described with no figure (ours): the Flamberge of Horror's 25, the one
 	// lifetap with a figure; Blacktongue's 50, the other level 49 DoT; the
 	// low end of the level 47-49 weapons' hits (Thornsting's 75-100)

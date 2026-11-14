@@ -77,9 +77,9 @@ var skyPasses = []skyPass{
 		At: wayPlace{World: 4, X: 4614.2, Y: 112.97, Z: 4936.5, Facing: 3.90}, Steps: [][2]int{{101302, 4}}},
 	{NPC: "essence of rain", X: 4638.6, Z: 4655.2, Key: "Rain Key 3", To: "the fourth isle of rain",
 		At: wayPlace{World: 4, X: 4242.0, Y: 80.06, Z: 4305.3, Facing: 3.37}, Steps: [][2]int{{101303, 5}}},
-	// Granavik's portal, standing where he fell (petition 1612)
+	// Granavik's portal, standing where he fell (petition 1612); it lands where the GM Kobe stood (petition 2038)
 	{NPC: "Rain 3 Portal", Key: "Rain Key 3", To: "the fourth isle of rain",
-		At: wayPlace{World: 4, X: 4242.0, Y: 80.06, Z: 4305.3, Facing: 3.37}, Steps: [][2]int{{101303, 5}}, StepsAs: "essence of rain"},
+		At: wayPlace{World: 4, X: 4225.39, Y: 229.13, Z: 5506.07, Facing: 6.185}, Steps: [][2]int{{101303, 5}}, StepsAs: "essence of rain"},
 	{NPC: "essence of rain", X: 4199.7, Z: 4148.3, Key: "Rain Key 4", To: "the fifth isle of rain",
 		At: wayPlace{World: 4, X: 4869.0, Y: 26.75, Z: 4316.0, Facing: 4.67}, Steps: [][2]int{{101303, 9}}},
 	{NPC: "essence of rain", X: 4516.5, Z: 4271.6, Key: "Rain Key 5", To: "the Isle of Wonder",

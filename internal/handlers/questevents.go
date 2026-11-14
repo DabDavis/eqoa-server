@@ -662,6 +662,7 @@ func (q *QuestEngine) teleportLocked(sess *session.Session, p *entity.Player, qu
 // stepStartedLocked is a step become the step to do: its start events.
 func (q *QuestEngine) stepStartedLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep) {
 	q.stepEventsLocked(sess, p, c, qu, st, database.EventStart, st.Step)
+	q.lootStepHeldLocked(sess, p, c, qu, cq, st) // a loot step's items held already (questpreloot.go)
 }
 
 // lootKillLocked is a kill on a loot step: its item dropped for the player

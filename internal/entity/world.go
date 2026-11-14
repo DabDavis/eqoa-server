@@ -118,8 +118,11 @@ type World struct {
 	// goes its creature comes back, and the hook told which went.
 	corpseDecay  time.Duration
 	respawnAfter time.Duration
-	respawnRows  map[EntityID]time.Duration // a GM's by the npcs row (corpse.go, table npcrespawn)
-	onCorpseGone CorpseGoneFunc
+	// corpseOpenAfter is how long after its death a non-raid kill's corpse is anyone's
+	// (corpseopen.go); 0 or below never
+	corpseOpenAfter time.Duration
+	respawnRows     map[EntityID]time.Duration // a GM's by the npcs row (corpse.go, table npcrespawn)
+	onCorpseGone    CorpseGoneFunc
 
 	// Creatures' wandering (roam.go): how far from its spawn one goes, those
 	// near a player (the ones that move), the players' race models (whose
@@ -300,15 +303,16 @@ type World struct {
 // NewWorld creates and initializes a new game world.
 func NewWorld() *World {
 	w := &World{
-		Players:      make(map[EntityID]*Player),
-		NPCs:         make(map[EntityID]*NPC),
-		SpatialIndex: NewQuadTree(Bounds{X: 0, Y: 0, Width: 50000, Height: 50000}),
-		nextEntityID: 1000, // Reserve IDs below 1000
-		corpseDecay:  DefaultCorpseDecay,
-		respawnAfter: DefaultRespawnAfter,
-		roamRadius:   DefaultRoamRadius,
-		vampireSun:   DefaultVampireSun,
-		boon:         DefaultBoon,
+		Players:         make(map[EntityID]*Player),
+		NPCs:            make(map[EntityID]*NPC),
+		SpatialIndex:    NewQuadTree(Bounds{X: 0, Y: 0, Width: 50000, Height: 50000}),
+		nextEntityID:    1000, // Reserve IDs below 1000
+		corpseDecay:     DefaultCorpseDecay,
+		respawnAfter:    DefaultRespawnAfter,
+		corpseOpenAfter: DefaultCorpseOpenAfter,
+		roamRadius:      DefaultRoamRadius,
+		vampireSun:      DefaultVampireSun,
+		boon:            DefaultBoon,
 	}
 	log.Println("Entity World initialized")
 	return w

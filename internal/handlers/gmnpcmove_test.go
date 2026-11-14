@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"math"
+	"strings"
 	"testing"
 
 	"github.com/eqoa/server/internal/database"
@@ -227,8 +228,8 @@ func TestGMRoamer(t *testing.T) {
 		t.Fatalf("/roamer 120: %v %v", r, ok)
 	}
 	c.say(gs, "/roamer stay")
-	if _, ok := wanderRadius(t, db, campWolfNear); ok {
-		t.Fatal("/roamer stay left a wander")
+	if r, ok := wanderRadius(t, db, campWolfNear); !ok || r != -1 {
+		t.Fatalf("/roamer stay: %v %v, want the row's own stand (-1)", r, ok)
 	}
 	c.say(gs, "/roamer fast")
 	if l := gmReplies(t, gs); !hasLine(l, "roamer:") {
@@ -253,5 +254,82 @@ func TestGMSizeKeptInTheRow(t *testing.T) {
 	}
 	if n := auditLines(t, db, "npcs", "update"); n != 1 {
 		t.Fatalf("%d npcs updates audited", n)
+	}
+}
+
+// The owner, 2026-11-14: "lets give the account for kobe, skywalker access to use
+// ./size ... will set that mobs size in the database so will stay that size and also
+// update it instantly". A player's /size is an unknown command (the control); made
+// a sub GM (forestwood's tester row, marked sub GM), its /size on a creature sizes it at once and
+// keeps it in the row, audited; with no creature targeted it is refused (a sub GM's
+// /size is a creature's), its own size left alone.
+func TestSubGMSizeKeptInTheRow(t *testing.T) {
+	c, db, _, _, _, ps := campWorld(t)
+	pp := c.gw.SessionPlayer(ps)
+	before := npcRowMap(t, db, campWolfNear)["size"].(float64)
+	targetAs(pp, campWolfNear, 100101, ps)
+	c.say(ps, "/size 2")
+	if l := gmReplies(t, ps); !hasLine(l, `Unrecognized command "/size"`) {
+		t.Fatalf("a player's /size: %q", l)
+	}
+	if got := npcRowMap(t, db, campWolfNear)["size"].(float64); got != before {
+		t.Fatalf("a player's /size changed the row: %v", got)
+	}
+
+	c.h.SetAccessLevels(subs{levels{1: 1, 2: 0}, map[int]bool{2: true}})
+	c.say(ps, "/size 2")
+	if l := gmReplies(t, ps); !hasLine(l, "keeps size") {
+		t.Fatalf("a sub GM's /size: %q", l)
+	}
+	if got := npcRowMap(t, db, campWolfNear)["size"].(float64); math.Abs(got-2*before) > 0.01 {
+		t.Fatalf("the row's size %v, want 2x %v", got, before)
+	}
+	if got := c.gw.NPCSize(campWolfNear); math.Abs(float64(got)-2*before) > 0.01 {
+		t.Fatalf("the creature's size in the world %v, want 2x %v", got, before)
+	}
+	if n := auditLines(t, db, "npcs", "update"); n != 1 {
+		t.Fatalf("%d npcs updates audited", n)
+	}
+
+	own := pp.Size
+	pp.TargetObjectID = 0
+	c.say(ps, "/size 3")
+	if l := gmReplies(t, ps); !hasLine(l, "target a creature first") || pp.Size != own {
+		t.Fatalf("a sub GM's /size on no creature: %q, size %v", l, pp.Size)
+	}
+}
+
+// The owner, 2026-11-14: "/roamer off is not working for jib". /roamer off (and stop, none,
+// no) on a creature whose NAME's rule roams writes the row's own stand (npcwander -1), audited,
+// read into the world at once: it stands. /roamer again roams it (300), replacing the stand.
+func TestGMRoamerOffStandsANameRuleRoamer(t *testing.T) {
+	c, db, _, gs, gp, _ := campWorld(t)
+	targetAs(gp, campWolfNear, 100101, gs)
+	name := npcRowMap(t, db, campWolfNear)["npc_name"].(string)
+	c.gw.SetMoveRules(map[string]database.NPCMoveRule{strings.ToLower(name): {Roam: true}})
+	movement := func() string {
+		st, _ := c.gw.NPCStateOf(entity.EntityID(campWolfNear))
+		return st.Movement
+	}
+	if m := movement(); !strings.HasPrefix(m, "it wanders") {
+		t.Fatalf("the name's rule: %q, want it wanders", m)
+	}
+	for _, word := range []string{"off", "stop", "none", "no"} {
+		c.say(gs, "/roamer "+word)
+		l := gmReplies(t, gs)
+		if r, ok := wanderRadius(t, db, campWolfNear); !ok || r != -1 || !hasLine(l, "It stands on its spawn") {
+			t.Fatalf("/roamer %s: %v %v, %q", word, r, ok, l)
+		}
+		if m := movement(); strings.HasPrefix(m, "it wanders") {
+			t.Fatalf("/roamer %s: %q, want it stands", word, m)
+		}
+		c.say(gs, "/roamer")
+		gmReplies(t, gs)
+		if r, _ := wanderRadius(t, db, campWolfNear); r != 300 || !strings.HasPrefix(movement(), "it wanders") {
+			t.Fatalf("/roamer after %s: radius %v, %q", word, r, movement())
+		}
+	}
+	if n := auditLines(t, db, "npcwander", "update") + auditLines(t, db, "npcwander", "insert"); n < 8 {
+		t.Fatalf("%d npcwander changes audited", n)
 	}
 }

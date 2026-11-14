@@ -329,6 +329,7 @@ func (w *World) restoreNPCLocked(npc *NPC, k *KeptNPC, onRow bool, r *NPCsRestor
 	switch {
 	case !onRow:
 		r.RowMoved++
+		npc.keptMoved = true // its clients let go of it (keep.go RestoreView)
 	case k.Place != nil:
 		oldX, oldZ := npc.X, npc.Z
 		npc.X, npc.Y, npc.Z, npc.Facing = k.Place[0], k.Place[1], k.Place[2], k.Place[3]

@@ -105,22 +105,22 @@ func TestALootStepDropsItsItemAtItsChance(t *testing.T) {
 	}
 }
 
-// A loot step counts what is taken while it is the step to do: items held
-// from before do not do it, nor one taken before the quest; two taken on the
-// step at once (a stack) do. The count outlives the engine.
+// A loot step counts what is taken while it is the step to do, and what the pack holds
+// when it becomes the step to do (questpreloot.go, the owner's "allow pre-looting for all
+// quests"): one belt held before the quest counts at once (1 of 2); one taken on the step
+// does it. The count outlives the engine.
 func TestALootStepCountsWhatIsTakenOnIt(t *testing.T) {
 	f := newQuestFixture(t)
 	belt := f.pattern("slashed belt", 20)
 	lootQuest(f, belt)
-	f.own(belt, 2)
-	f.qe.Looted(f.tw.s, f.tw.p, belt, 1) // before the quest: not counted
+	f.own(belt, 1)
+	f.qe.Looted(f.tw.s, f.tw.p, belt, 1) // before the quest: not counted as a take
 	if _, err := f.qe.SetCharacterQuest(f.sid, 60, QuestGive, 0); err != nil {
 		t.Fatal(err)
 	}
 	if s, _ := f.progress(60); s != 1 {
-		t.Fatalf("two belts held before it, the step is %d, want 1", s)
+		t.Fatalf("one belt held before it, the step is %d, want 1", s)
 	}
-	f.qe.Looted(f.tw.s, f.tw.p, belt, 1)
 	f.msgs()
 	again, err := NewQuestEngine(f.db, f.tw.w, f.tw.mgr, f.inv, nil)
 	if err != nil {
@@ -128,11 +128,11 @@ func TestALootStepCountsWhatIsTakenOnIt(t *testing.T) {
 	}
 	again.items = f.qe.items
 	if got := again.CharacterQuests(f.sid); len(got) != 1 || got[0].Count != 1 {
-		t.Fatalf("after a restart: %+v, want one taken", got)
+		t.Fatalf("after a restart: %+v, want the one held counted", got)
 	}
-	f.qe.Looted(f.tw.s, f.tw.p, belt, 2)
+	f.qe.Looted(f.tw.s, f.tw.p, belt, 1)
 	if s, _ := f.progress(60); s != 2 {
-		t.Fatalf("three taken on the step, it is %d, want 2", s)
+		t.Fatalf("one held and one taken on the step, it is %d, want 2", s)
 	}
 }
 
@@ -462,9 +462,12 @@ func TestAKillOfALaterStepSaysWhatComesFirst(t *testing.T) {
 	f.msgs()
 
 	f.killFor("Quil'Eyne", 901)
-	if len(drops) != 0 {
-		t.Fatalf("Quil'Eyne dropped %v before Raldarith's step was done", drops)
+	// his journal drops ahead of its step (questpreloot.go, the owner's "allow pre-looting
+	// for all quests", 2026-11-14), and counts only when its step comes
+	if len(drops) != 1 || drops[0] != journal {
+		t.Fatalf("Quil'Eyne dropped %v before Raldarith's step was done, want his journal ahead", drops)
 	}
+	drops = nil
 	f.want(f.msgs(), "chat:Quil'Eyne's Journal: Quil'Eyne counts later in the quest. First: Kill Raldarith for his blood.")
 	f.killFor("Quil'Eyne", 902) // a moment later: not said again
 	if m := f.msgs(); len(m) != 0 {
@@ -478,6 +481,7 @@ func TestAKillOfALaterStepSaysWhatComesFirst(t *testing.T) {
 		t.Fatalf("the step is %d, want 1", s)
 	}
 	// in its order: Raldarith's blood, then Quil'Eyne drops his journal
+	drops = nil
 	f.killFor("Raldarith", 904)
 	f.qe.Looted(f.tw.s, f.tw.p, blood, 1)
 	f.killFor("Quil'Eyne", 905)

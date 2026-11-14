@@ -20,6 +20,9 @@ import (
 // own word 675, "That corpse belongs to another player or group" (0x0085 3). A
 // corpse no player was credited with (the town guards', a dummy's, one from before
 // a restart) is anyone's, as every corpse was.
+// From the kill's OpenAt (five minutes after the death, entity/corpseopen.go) a
+// corpse killed outside a raid is anyone's too, whatever is left on it; a raid's
+// keeps its kill group for as long as it lies.
 //
 // One looter at a time (petition 1540, Hoofbite: "should only allow one person to
 // loot corpse at a time"): while a corpse's window is open for one player, another
@@ -43,6 +46,8 @@ type lootRight struct {
 	died  time.Time
 	chars map[uint32]bool
 	group uint32
+	// openAt is when it is anyone's (KillCredit.OpenAt), zero never
+	openAt time.Time
 }
 
 // heardKillRight takes a kill from the World (its lock held: never wait here)
@@ -51,7 +56,7 @@ func (h *NPCWindowHandler) heardKillRight(k entity.KillCredit) {
 	if len(k.Players) == 0 {
 		return
 	}
-	r := lootRight{died: k.Died, chars: map[uint32]bool{}, group: k.Group}
+	r := lootRight{died: k.Died, chars: map[uint32]bool{}, group: k.Group, openAt: k.OpenAt}
 	for _, p := range k.Players {
 		r.chars[p.ServerID] = true
 	}
@@ -69,7 +74,14 @@ func (h *NPCWindowHandler) mayLoot(player *entity.Player, id entity.EntityID, di
 	if !r.died.Equal(died) || player == nil || r.chars[player.CharServerID] {
 		return true
 	}
-	return r.group != 0 && h.groupIDOf != nil && h.groupIDOf(player) == r.group
+	if r.group != 0 && h.groupIDOf != nil && h.groupIDOf(player) == r.group {
+		return true
+	}
+	if !r.openAt.IsZero() && !h.lootClock().Before(r.openAt) {
+		log.Printf("Loot: %s opens another's kill: anyone's %v after its death (not a raid's)", player.Name, r.openAt.Sub(r.died))
+		return true
+	}
+	return false
 }
 
 // heldByOtherLocked reports whether another player's window holds the corpse

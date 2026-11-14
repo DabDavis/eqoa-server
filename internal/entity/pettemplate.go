@@ -1157,8 +1157,8 @@ func (w *World) petTemplateTauntLocked(ps *petState, a *templateAbility, t *NPC,
 	return w.petDamageLocked(ps, t, m, now, numberSpell) // a taunt's: an ability's
 }
 
-// petTopHateLocked puts the pet at the top of t's hate, and makes it what t
-// fights (a training dummy's hate is its own: dummy.go).
+// petTopHateLocked puts the pet at the top of t's hate and a margin over it
+// (pettauntmargin.go), and makes it what t fights (a training dummy's hate is its own: dummy.go).
 func (w *World) petTopHateLocked(pet, t *NPC) {
 	if t.Dummy != NotDummy {
 		w.dummyTopHateLocked(t, pet.ServerID, time.Now()) // a dummy's hate is its own (dummy.go, petition 1484)
@@ -1176,8 +1176,8 @@ func (w *World) petTopHateLocked(pet, t *NPC) {
 	if t.Threats == nil {
 		t.Threats = make(map[EntityID]int64)
 	}
-	if t.Threats[pet.ServerID] <= top {
-		t.Threats[pet.ServerID] = top + 1
+	if want := top + petTauntMargin(pet, top); t.Threats[pet.ServerID] < want {
+		t.Threats[pet.ServerID] = want // the top and a margin (pettauntmargin.go)
 	}
 	t.CurrentEnemy = w.tauntedLocked(t, pet.ServerID) // a preferred foe of its stays its enemy (prefer.go)
 	w.wakeNPCLocked(t)                                // npcsets.go

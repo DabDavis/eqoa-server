@@ -127,7 +127,11 @@ func auraWords(a database.ItemAura) string {
 		if database.NPCGlowShows(a.Color) {
 			color = fmt.Sprintf("in %08X", a.Color)
 		}
-		return fmt.Sprintf("aura epic: %s look (glow, sheen and particles), %s", src, color)
+		where := ""
+		if a.Nodes != 0 {
+			where = fmt.Sprintf(", its particles %d%% along the weapon", a.Nodes)
+		}
+		return fmt.Sprintf("aura epic: %s look (glow, sheen and particles), %s%s", src, color, where)
 	}
 	nodes := "the default nodes"
 	if a.Nodes != 0 {
@@ -201,8 +205,13 @@ type auraLook struct {
 
 // auraLooks are the named looks, /aura looks lists them.
 var auraLooks = []auraLook{
-	{[]string{"druid", "staff", "glow"}, database.ItemAura{Kind: database.AuraEpic, Source: 0xCBF4135A},
-		"the druid's level 49 epic staff, Oak Staff of Eilerawdl (CBF4135A): an amber glow, a gold sheen and its sparkles"},
+	// Nodes on a hand is where along the weapon (database.AuraAlongMost): the
+	// staff's sparkles at 45% of the weapon's length, mid-blade on a
+	// scimitar (the owner, 2026-11-14: "lets move the druid epic aura down
+	// zerkziee scimitar down the blade more"; until then at the staff's own
+	// share, 78%, near the tip)
+	{[]string{"druid", "staff", "glow"}, database.ItemAura{Kind: database.AuraEpic, Source: 0xCBF4135A, Nodes: 45},
+		"the druid's level 49 epic staff, Oak Staff of Eilerawdl (CBF4135A): an amber glow, a gold sheen and its sparkles mid-blade (along=N moves them)"},
 	{[]string{"sickle", "taint"}, database.ItemAura{Kind: database.AuraEpic, Source: 0x5FD4AE7C},
 		"the necromancer's epic, Sickle of Avhi Escron (5FD4AE7C): an olive glow and its green mist (Zaeire's)"},
 }
@@ -252,7 +261,7 @@ func isHex(s string, n int) bool {
 func parseAuraEasy(args []string) (sp auraSpec, err error) {
 	sp.Where = -1
 	args, look := takeAuraLook(args)
-	color, kind, naming := false, false, false
+	color, kind, naming, along, nodes := false, false, false, false, false
 	for _, raw := range args {
 		w := strings.ToLower(strings.TrimSpace(raw))
 		if w == "" {
@@ -276,9 +285,16 @@ func parseAuraEasy(args []string) (sp auraSpec, err error) {
 				if e != nil || !database.ValidAuraNodes(int64(n)) {
 					return sp, fmt.Errorf("%s: nodes is 0-%d", raw, database.AuraNodesMost)
 				}
-				sp.A.Nodes = uint8(n)
+				sp.A.Nodes, nodes = uint8(n), true
+			case "along":
+				// where along a held weapon: a share of its length in percent
+				n, e := strconv.Atoi(strings.TrimSuffix(v, "%"))
+				if e != nil || n < 1 || n > database.AuraAlongMost {
+					return sp, fmt.Errorf("%s: along is 1-%d, percent of the weapon's length from the hand", raw, database.AuraAlongMost)
+				}
+				sp.A.Nodes, along = uint8(n), true
 			default:
-				return sp, fmt.Errorf("%s: only source= and nodes= take a value", raw)
+				return sp, fmt.Errorf("%s: only source=, nodes= and along= take a value", raw)
 			}
 			continue
 		}
@@ -336,9 +352,25 @@ func parseAuraEasy(args []string) (sp auraSpec, err error) {
 			return sp, fmt.Errorf("%s names its own source", strings.Join(look.Words, " "))
 		}
 		sp.A.Kind, sp.A.Source, sp.Look = look.A.Kind, look.A.Source, strings.Join(look.Words, " ")
+		if !along && !nodes {
+			sp.A.Nodes = look.A.Nodes // the look's own place along the weapon
+		}
 		if sp.Where == -1 && look.A.Kind == database.AuraEpic {
 			sp.Where = auraBothHands
 		}
+	}
+	if along {
+		hand := sp.Where == entity.AuraMainHand || sp.Where == entity.AuraOffHand || sp.Where == auraBothHands
+		switch {
+		case nodes:
+			return sp, fmt.Errorf("along= and nodes= are one byte: along= on a weapon, nodes= on the body")
+		case !hand:
+			return sp, fmt.Errorf("along= is a held weapon's: mainhand, offhand or weapons")
+		case sp.Off:
+			return sp, fmt.Errorf("off takes only a place (/aura off weapons)")
+		}
+	}
+	if look != nil {
 		return sp, nil
 	}
 	if sp.Off {

@@ -14,7 +14,9 @@ import "fmt"
 // charid is the character's server_id; merc 0 the character itself, 1.. its
 // mercenary of that hire slot (keyed by its owner's character); slot
 // CharAuraChest ... CharAuraRobe as the channel's pieces, CharAuraBody the
-// body and underclothes under them, CharAuraCape the worn cape. The columns as itemaura's.
+// body and underclothes under them, CharAuraCape the worn cape, CharAuraMainHand
+// and CharAuraOffHand the item held in each hand (2026-11-14: kind
+// AuraParticles or AuraEpic alone, ValidCharAuraKind). The columns as itemaura's.
 const charAuraSchema = `
 	CREATE TABLE IF NOT EXISTS charaura (
 		charid INTEGER NOT NULL,
@@ -29,12 +31,17 @@ const charAuraSchema = `
 	);`
 
 // CharAuraSlots is how many slots a character's aura has: the seven pieces
-// (entity.AuraChest ... AuraRobe), the body, and the cape (entity.AuraCape,
-// 2026-11-14).
+// (entity.AuraChest ... AuraRobe), the body, the cape (entity.AuraCape,
+// 2026-11-14), and the held items, the main hand's and the off hand's
+// (entity.AuraMainHand, AuraOffHand, 2026-11-14: the owner's "give zaeires
+// equipped weapons the necro's tainted aura from the epic sickle"; the off
+// hand's is on a shield held there too).
 const (
-	CharAuraBody  = 7
-	CharAuraCape  = 8
-	CharAuraSlots = 9
+	CharAuraBody     = 7
+	CharAuraCape     = 8
+	CharAuraMainHand = 9
+	CharAuraOffHand  = 10
+	CharAuraSlots    = 11
 )
 
 // ensureCharAura makes table charaura (initSchema).
@@ -68,7 +75,7 @@ func (db *SQLiteDB) CharAuras() (map[CharAuraKey][CharAuraSlots]ItemAura, error)
 		}
 		c, cok := tint32(color)
 		src, sok := tint32(source)
-		if !cok || !sok || !ValidAuraKind(kind) || !ValidAuraNodes(nodes) || slot < 0 || slot >= CharAuraSlots || charid <= 0 || merc < 0 {
+		if !cok || !sok || !ValidCharAuraKind(slot, kind) || !ValidAuraNodes(nodes) || slot < 0 || slot >= CharAuraSlots || charid <= 0 || merc < 0 {
 			continue
 		}
 		a := ItemAura{Color: c, Kind: uint8(kind), Source: src, Nodes: uint8(nodes)}
@@ -89,6 +96,9 @@ func (db *SQLiteDB) CharAuras() (map[CharAuraKey][CharAuraSlots]ItemAura, error)
 func (db *SQLiteDB) SetCharAuraAudited(k CharAuraKey, slot int, a ItemAura, who GMEdit, detail string) error {
 	if slot < 0 || slot >= CharAuraSlots || k.CharID == 0 {
 		return fmt.Errorf("charaura: no slot %d of character %d", slot, k.CharID)
+	}
+	if a.Shows() && !ValidCharAuraKind(int64(slot), int64(a.Kind)) {
+		return fmt.Errorf("charaura: slot %d takes no aura of kind %d (a held item's: particles or epic; epic only a held item's)", slot, a.Kind)
 	}
 	if _, err := db.Exec(GMAuditSchema); err != nil {
 		return err

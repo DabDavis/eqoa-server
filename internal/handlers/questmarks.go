@@ -335,9 +335,20 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 			m.quests = append(m.quests, mq)
 		}
 	}
-	// a giver's: the nearest maxMarkSpots of its spawns
+	// a giver's: the nearest maxMarkSpots of its spawns that stand in the
+	// world (its spawn-only originals only where none does)
 	addGiver := func(name string, mq markQuest) {
-		out := append([]entity.NPCSpot(nil), spots[foldName(name)]...)
+		var out, orig []entity.NPCSpot
+		for _, s := range spots[foldName(name)] {
+			if s.SpawnOnly {
+				orig = append(orig, s)
+			} else {
+				out = append(out, s)
+			}
+		}
+		if len(out) == 0 {
+			out = orig
+		}
 		nearestFirst(out, world, x, z)
 		if len(out) > maxMarkSpots {
 			out = out[:maxMarkSpots]

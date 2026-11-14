@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/eqoa/server/internal/database"
@@ -115,5 +116,54 @@ func TestWayToAnotherWorld(t *testing.T) {
 	}
 	if _, ok := q.wayToLocked(spots, 0, 0, 0, 0); ok {
 		t.Errorf("the player's own world: no way")
+	}
+}
+
+// A step in another world shows its mark there and, in the player's world, a
+// "?" at the travel NPC whose trip leads there, saying the trip; the control:
+// once the player stands in that world, no way mark.
+func TestQuestMarksTheWayToAnotherWorld(t *testing.T) {
+	f := newQuestFixture(t)
+	f.tw.p.HP, f.tw.p.MaxHP = 100, 100
+	f.tw.add(2, &entity.NPC{ServerID: 702, Name: "Dockmaster Yarnning", SpawnX: 25500, SpawnY: 54.1, SpawnZ: 15700})
+	f.tw.add(3, &entity.NPC{ServerID: 703, Name: "Dockmaster Killeron", SpawnX: 5000, SpawnY: 54.1, SpawnZ: 5000})
+	f.tw.w.NPCs[703].World = 2
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, minlevel, maxlevel) VALUES (20051, 'Over the sea', 1, 'Malsis', 1, 10)`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, world, x, y, z, radius, journal) VALUES
+		(20051, 1, 'reach', '', 2, 6000, 50, 6000, 40, 'Find the shrine in Odus.')`)
+	f.reload()
+	if _, err := f.qe.SetCharacterQuest(f.sid, 20051, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.msgs()
+	f.qe.SetMarkers(f.tw.s, f.tw.p, true)
+	marks, _ := sentMarks(t, f.tw.s)
+	var there, way *questMark
+	for i := range marks {
+		m := &marks[i]
+		switch {
+		case m.kind == markStep && m.world == 2:
+			there = m
+		case m.kind == markStep && m.world == 0:
+			way = m
+		}
+	}
+	if there == nil || there.x != 6000 || there.z != 6000 {
+		t.Fatalf("the shrine's mark in Odus: %+v", marks)
+	}
+	if way == nil || way.npc != "Dockmaster Yarnning" || way.x != 25500 || len(way.quests) != 1 ||
+		way.quests[0].line != "Find the shrine in Odus." || !strings.HasPrefix(way.quests[0].detail, "Travel with Dockmaster Yarnning to ") {
+		t.Fatalf("the way mark at Freeport's dockmaster: %+v", way)
+	}
+	f.qe.SetMarkers(f.tw.s, f.tw.p, false)
+
+	// in Odus: the shrine alone
+	f.tw.p.World, f.tw.p.X, f.tw.p.Z = 2, 5000, 5000
+	f.qe.SetMarkers(f.tw.s, f.tw.p, true)
+	marks, _ = sentMarks(t, f.tw.s)
+	for _, m := range marks {
+		if m.kind == markStep && m.world == 0 {
+			t.Fatalf("a way mark in Odus itself: %+v", marks)
+		}
 	}
 }

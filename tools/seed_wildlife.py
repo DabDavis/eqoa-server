@@ -151,8 +151,14 @@ class Ground:
                 vs.append((bx + (qx + 32768) / 4.0, by + qy / 8.0, bz + (qz + 32768) / 4.0))
             p += 6 * n
             for k in range(n - 2):
-                t = (vs[k], vs[k + 1], vs[k + 2])
-                if floor(t):
+                # a strip's every other triangle turned, as the server's ground
+                # loader turns it (internal/ground/ground.go), so its front is
+                # the game's; only a front looking up is a floor: a cave's
+                # ceiling (a front looking down) put seeded NPCs inside the
+                # rock above their caves (the owner, 2026-11-14: Gnolan
+                # Boltratchet, Nizen Flangletoggle, Frost Fur and others)
+                t = (vs[k], vs[k + 1], vs[k + 2]) if k % 2 == 0 else (vs[k + 1], vs[k], vs[k + 2])
+                if floor(t) and faces_up(t):
                     tris.append(t)
         grid = collections.defaultdict(list)
         c = self.CELL
@@ -189,6 +195,14 @@ class Ground:
             if y - below <= h <= y + above and (best is None or abs(h - y) < abs(best - y)):
                 best = h
         return best
+
+
+def faces_up(t):
+    """A triangle's front looks up (internal/ground/surface.go facesUp)."""
+    (ax, _, az), (bx, _, bz), (cx, _, cz) = t
+    ux, uz = bx - ax, bz - az
+    vx, vz = cx - ax, cz - az
+    return uz * vx - ux * vz < 0
 
 
 def floor(t):

@@ -130,6 +130,10 @@ func TestAuraEasyWords(t *testing.T) {
 		{"monk circlet", auraSpec{A: database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: CircletHeightMonk}, Where: entity.AuraHelm, Look: "monk circlet"}},
 		{"gold monk_circlet head", auraSpec{A: database.ItemAura{Color: 0xFFC040FF, Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: CircletHeightMonk}, Where: entity.AuraHelm, Look: "monk circlet"}},
 		// how high on the head (2026-11-14): height=N on a circlet, the monk circlet's own by default
+		// a spell visual's hand emitters, named (2026-11-14): both hands unless one is named
+		{"blue freezing offhand", auraSpec{A: database.ItemAura{Color: 0x3060FFFF, Kind: database.AuraParticles, Source: 0x6C151A60}, Where: entity.AuraOffHand, Look: "freezing"}},
+		{"freezing", auraSpec{A: database.ItemAura{Kind: database.AuraParticles, Source: 0x6C151A60}, Where: auraBothHands, Look: "freezing"}},
+		{"cyan freezing mainhand along=40", auraSpec{A: database.ItemAura{Color: 0x30FFFFFF, Kind: database.AuraParticles, Source: 0x6C151A60, Nodes: 40}, Where: entity.AuraMainHand, Look: "freezing"}},
 		{"red energy offhand source=2EC56029", auraSpec{A: database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraEnergy, Source: 0x2EC56029}, Where: entity.AuraOffHand}},
 		{"monk circlet height=82", auraSpec{A: database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: 82}, Where: entity.AuraHelm, Look: "monk circlet"}},
 		{"red circlet head source=1D875ECD height=70%", auraSpec{A: database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: 70}, Where: entity.AuraHelm}},
@@ -296,6 +300,14 @@ func TestGMAuraEasyCommand(t *testing.T) {
 	}
 	c.say(gs, "/aura off helm")
 	gmReplies(t, gs)
+	// freezing on the off hand: the ice drip of spell visual 6C151A60, blue
+	c.say(gs, "/aura blue freezing offhand")
+	if l := gmReplies(t, gs); !hasLine(l, "Player's off hand: now a blue particles aura") || !hasLine(l, "(freezing)") {
+		t.Fatalf("/aura blue freezing offhand: %q", l)
+	}
+	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraOffHand] != (database.ItemAura{Color: 0x3060FFFF, Kind: database.AuraParticles, Source: 0x6C151A60}) {
+		t.Fatalf("freezing: %+v", a)
+	}
 	c.say(gs, "/aura druid staff glow chest")
 	if l := gmReplies(t, gs); !hasLine(l, "epic is a held weapon's look") {
 		t.Fatalf("a named epic look on a piece: %q", l)

@@ -408,6 +408,19 @@ ask (acctlevel 1+, as every GM command): anyone else's is logged and dropped, no
 there, never a roof or a tree; the client's walk takes a placed floor over it from there); a spot with no ground
 known, past every world's edge (1e6) or in no world is told in a [GM] line and moves no one.
 
+**The Sun, Snow and Desolation chains finished** (the owner, 2026-11-14, with t213, t212, t208; `tools/sky_events2_20261114.py
+--db <db> [--apply|--undo]`, set `sky-events-2`, on top of `sky-events`, whose triggers 212 and 213 it rewrites: undo it first;
+imports seed_guide_gaps and sky_events_20261114, so the box needs the whole tools folder): Sun 2's invisible wall (an invisible
+blocker at the courtyard's ramp, a quest wall of 101305 step 2, opened thirty minutes for everyone by trigger 221 at the
+talisman), Sun 4's rapacious drakes as the rancorous drake's placeholders (npcrare), Snow 2's Whirlwind round the igloo village
+(npcpaths) and its ice (hazards, 6,000), Snow 3's behemoth pair at the landing (222), Snow 4's ordinary Aeyinar (eight hours),
+Desolation 1's patroller of the quarter (a spawn's `spots`), the Arbiter asleep in her ring (220, `untouchable`) and her first two
+lives' corpses of nothing (`noloot`, `NPC.NoLoot`, kept over a keep restart), Desolation 2's elder back an hour after a death, and
+Desolation 4's unstable rocks: **hazards of strikes** (column `strikes`, made at the start and by the tool when missing: a hit is a
+warning, its words with %d the warning's number and no damage, until the strikes-th within `HazardStrikesForget`, 30 minutes, of
+the last, which takes its damage and says "<name> gives way under you!"; `Player.hazardStrikes`). Tests: `hazards_test.go`'s
+strikes, `triggerspawnmarks_test.go`, `sky_events2_test.go` (the tool's `--dump`).
+
 **The Plane of Sky's scripted events** (the owner, 2026-11-14: "we are missing scripted events in PoS"; `tools/sky_events_20261114.py
 --db <db> [--apply|--undo]`, set `sky-events`, triggers 201-219; the walkthroughs of 2010 in its docstring): Night 1's Voice of the Ancients
 and its waves, Night 3's race for the maiden, Kaglanor at Sterie's talk, the necrologist near his spot and Chimareon at his death, Ryini's walk

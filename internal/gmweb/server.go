@@ -47,6 +47,7 @@ import (
 	"github.com/eqoa/server/internal/auth"
 	"github.com/eqoa/server/internal/config"
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/economy"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/session"
 )
@@ -86,6 +87,9 @@ type Deps struct {
 	// NoTransfers: this server takes no character transfers (it has no account
 	// pages for the form): the panel neither offers nor lists them.
 	NoTransfers bool
+	// Ledger is the tunar ledger the Economy page writes before it reads and
+	// the panel's edits count into (ops_economy.go); nil: economy.Default.
+	Ledger *economy.Ledger
 }
 
 // Server is the GM panel's HTTP server.

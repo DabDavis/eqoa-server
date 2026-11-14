@@ -6,6 +6,7 @@ import (
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/economy"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
@@ -450,6 +451,10 @@ func (h *TradeHandler) completeLocked(t *trade) {
 		log.Printf("Trade: %d %q from %s to %s", m.n, m.row.Pattern.ItemName, m.from.player.Name, m.to.player.Name)
 	}
 	if t.a.money != 0 || t.b.money != 0 {
+		for _, s := range []*tradeSide{t.a, t.b} {
+			o := t.other(s).player
+			economy.Moved(economy.Trade, s.player.CharServerID, s.player.Name, o.CharServerID, o.Name, s.money)
+		}
 		for _, s := range []*tradeSide{t.a, t.b} {
 			s.player.Tunar += t.other(s).money - s.money
 			h.items.saveTunar(s.player)

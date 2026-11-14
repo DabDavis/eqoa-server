@@ -13,6 +13,7 @@ import (
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/economy"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
@@ -1611,7 +1612,7 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 		log.Printf("Quests: %s did step %d of %q with Ascended items", who, st.Step, qu.Name)
 	}
 	rw.XP = questXPShare(qu, rw.XP) // world.quest_xp_pct (questxp.go)
-	lines = append(lines, q.rewardLocked(sess, p, rw)...)
+	lines = append(lines, q.rewardLocked(sess, p, rw, economy.QuestReward)...)
 	if next == nil && sess != nil {
 		// a mastery rank the quest opens (cmcatalog.require_quests: each
 		// stat-boost trial its line's next rank), in the guide's words:
@@ -1654,13 +1655,14 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 // rewardLocked gives a step's tunar, items and spells for the player (its
 // RewardFor the player's class; experience and factions are the World's,
 // after the lines) and returns the lines that say so.
-func (q *QuestEngine) rewardLocked(sess *session.Session, p *entity.Player, rw database.ClassReward) []string {
+func (q *QuestEngine) rewardLocked(sess *session.Session, p *entity.Player, rw database.ClassReward, src economy.Source) []string {
 	if sess == nil || p == nil {
 		return nil
 	}
 	var lines []string
 	if rw.Tunar > 0 && q.inv != nil {
 		p.Tunar += rw.Tunar
+		economy.Made(src, p.CharServerID, p.Name, rw.Tunar)
 		if err := q.inv.SetPurse(p.CharServerID, p.Tunar); err != nil {
 			log.Printf("Quests: %s's tunar: %v", p.Name, err)
 		}
@@ -1824,6 +1826,7 @@ func (q *QuestEngine) payStepTunarLocked(sess *session.Session, p *entity.Player
 		return
 	}
 	p.Tunar -= st.Tunar
+	economy.Spent(economy.QuestPayment, p.CharServerID, p.Name, st.Tunar)
 	if err := q.inv.SetPurse(p.CharServerID, p.Tunar); err != nil {
 		log.Printf("Quests: %s's tunar: %v", p.Name, err)
 	}

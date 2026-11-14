@@ -661,6 +661,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCharAura(); err != nil { // charaura.go
 		return err
 	}
+	if err := db.ensureEconomy(); err != nil { // economy.go
+		return err
+	}
 	if err := db.ensurePotionCooldowns(); err != nil { // potioncooldown.go
 		return err
 	}

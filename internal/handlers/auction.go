@@ -12,6 +12,7 @@ import (
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/economy"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
@@ -564,6 +565,7 @@ func (a *AuctionHouse) sell(sess *session.Session, player *entity.Player, banker
 	}
 	n := lot.Item.StackLeft // what left the record: all of it, or count
 	bank.took(i, n)
+	economy.Spent(economy.AuctionFee, player.CharServerID, player.Name, lot.Fee)
 	player.BankTunar = after
 	queueReliable(sess, protocol.OpcodeRemoveBankItem, bankTookPayload(i, n))
 	queueReliable(sess, protocol.OpcodeConfirmBankTunar, bankTunarPayload(after))
@@ -591,6 +593,7 @@ func (a *AuctionHouse) bid(sess *session.Session, player *entity.Player, lot, am
 	defer a.mu.Unlock()
 	bankMu.Lock()
 	defer bankMu.Unlock()
+	bankBefore := player.BankTunar
 	res, err := a.db.AuctionBid(database.AuctionBidRequest{
 		Bidder: player.CharServerID, Name: player.Name, Lot: lot, Amount: amount, Qty: count, Now: a.now(),
 		LiveForm: v.live, Perpetual: PerpetualAuctionsOn(),
@@ -605,6 +608,11 @@ func (a *AuctionHouse) bid(sess *session.Session, player *entity.Player, lot, am
 	}
 	l := &res.Lot
 	name := l.Item.Pattern.ItemName
+	if l.Seller == 0 && res.Settled == nil && bankBefore > res.BidderBank {
+		// a lot of no one's: the house's own standing lots (no seller is
+		// paid), so what the bank gave is gone
+		economy.Spent(economy.AuctionHouse, player.CharServerID, player.Name, bankBefore-res.BidderBank)
+	}
 	player.BankTunar = res.BidderBank
 	sub := byte(132)
 	if res.HadBid {
@@ -881,6 +889,7 @@ func (a *AuctionHouse) refundedLocked(rf database.AuctionRefund, lot *database.A
 // holding nothing now, the lot, the lines.
 func (a *AuctionHouse) settledLocked(st database.AuctionSettlement) {
 	l := &st.Lot
+	countAuctionSale(st)
 	if st.Multi {
 		a.settledUnitsLocked(st)
 		return
@@ -909,6 +918,29 @@ func (a *AuctionHouse) settledLocked(st database.AuctionSettlement) {
 	}
 	log.Printf("Auction: lot %d (%s) closed %s: winner %d at %d, seller %d; item delivered %v",
 		l.ID, l.Item.Pattern.ItemName, l.State, st.Winner, l.Price, l.Seller, l.Delivered)
+}
+
+// countAuctionSale counts a settlement's tunar (internal/economy): each
+// winner's price paid to the seller, or, a lot of no seller's (the house's
+// own), gone.
+func countAuctionSale(st database.AuctionSettlement) {
+	l := &st.Lot
+	pay := func(id uint32, name string, n int) {
+		if l.Seller == 0 {
+			economy.Spent(economy.AuctionHouse, id, name, n)
+			return
+		}
+		economy.Moved(economy.AuctionSale, id, name, l.Seller, l.SellerName, n)
+	}
+	if st.Multi {
+		for _, w := range st.Winners {
+			pay(w.Bidder, w.Bid.Name, w.Paid)
+		}
+		return
+	}
+	if st.Winner != 0 && l.State == database.AuctionSold {
+		pay(st.Winner, l.HighName, l.Price)
+	}
 }
 
 // settledUnitsLocked tells a closed stack's winners and seller in the world:

@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 
+	"github.com/eqoa/server/internal/economy"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
@@ -68,6 +69,7 @@ func (h *NPCWindowHandler) giveCorpseCoins(sess *session.Session, npc *entity.NP
 		n -= each * (len(sharers) - 1)
 	}
 	player.Tunar += n
+	economy.Made(economy.Loot, player.CharServerID, player.Name, n)
 	h.saveTunar(player)
 	queueReliable(sess, protocol.OpcodePlayerTunar, tunarPayload(player.Tunar))
 	if !sess.LootMessagesOff() { // the client's Loot Messages option (faction.go)
@@ -84,6 +86,7 @@ func (h *NPCWindowHandler) giveCoinSplit(ms *session.Session, m *entity.Player, 
 	if !ok {
 		return
 	}
+	economy.Made(economy.LootSplit, m.CharServerID, m.Name, n)
 	if h.inv != nil {
 		if err := h.inv.SetPurse(m.CharServerID, purse); err != nil {
 			log.Printf("tunar: saving %s's purse %d: %v", m.Name, purse, err)

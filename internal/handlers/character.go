@@ -1481,16 +1481,21 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 		return nil
 	}
 	if item := first(16, 14, 19); item != nil {
+		player.SetWornPiece(entity.AuraMainHand, item.Pattern.PatternID) // its own aura's (entity/pieceaura.go)
 		player.Primary, player.PrimaryType = uint32(item.Pattern.Model), byte(item.Pattern.AttackType)
 		player.HeldColors[0] = entity.ArmorColor(item.Pattern.Color)
 		hide(entity.HidePrimary, item)
 	}
 	if item := first(15, 20, 18); item != nil {
+		player.SetWornPiece(entity.AuraOffHand, item.Pattern.PatternID)
 		player.Secondary, player.SecondaryType = uint32(item.Pattern.Model), byte(item.Pattern.AttackType)
 		player.HeldColors[1] = entity.ArmorColor(item.Pattern.Color)
 		hide(entity.HideSecondary, item)
 	}
 	if item := first(17); item != nil {
+		if player.WornMask&(1<<entity.AuraOffHand) == 0 {
+			player.SetWornPiece(entity.AuraOffHand, item.Pattern.PatternID) // the off hand's: a shield there
+		}
 		player.Shield = uint32(item.Pattern.Model)
 		player.HeldColors[2] = entity.ArmorColor(item.Pattern.Color)
 		hide(entity.HideShield, item)

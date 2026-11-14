@@ -1086,7 +1086,9 @@ var catalog = map[string]tableNote{
 			"record's colour (Items), not this. A hidden piece shows none. /aura item <id> ... in the game sets a row. " +
 			"Kind 8 (circlet) on a helm-slot item makes the item a circlet: the source's glowing ring round the wearer's head " +
 			"(Particles 1D875ECD the monk staff's, Nodes its height 1-100 percent of the head, 72 the temples), drawn while no " +
-			"helm is (give the item model 0: the Crown of Twisted Virtue); on any other piece it shows nothing.",
+			"helm is (give the item model 0: the Crown of Twisted Virtue); on any other piece it shows nothing. A held item (weapon " +
+			"or shield) takes 3 particles, 7 an epic's look or 9 an energy skin (the source's additive layers over the item: the " +
+			"Heirloom Shield of Twisted Virtue wears 2EC56029's), shown on the hand that holds it unless the character has its own (Character auras 9/10).",
 		Live:   "At once: every wearer's channel carries it at the next tick.",
 		Search: []string{"note"},
 		Cols: map[string]colNote{

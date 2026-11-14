@@ -130,6 +130,7 @@ func TestAuraEasyWords(t *testing.T) {
 		{"monk circlet", auraSpec{A: database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: CircletHeightMonk}, Where: entity.AuraHelm, Look: "monk circlet"}},
 		{"gold monk_circlet head", auraSpec{A: database.ItemAura{Color: 0xFFC040FF, Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: CircletHeightMonk}, Where: entity.AuraHelm, Look: "monk circlet"}},
 		// how high on the head (2026-11-14): height=N on a circlet, the monk circlet's own by default
+		{"red energy offhand source=2EC56029", auraSpec{A: database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraEnergy, Source: 0x2EC56029}, Where: entity.AuraOffHand}},
 		{"monk circlet height=82", auraSpec{A: database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: 82}, Where: entity.AuraHelm, Look: "monk circlet"}},
 		{"red circlet head source=1D875ECD height=70%", auraSpec{A: database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: 70}, Where: entity.AuraHelm}},
 		{"circlet helm source=1D875ECD", auraSpec{A: database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD}, Where: entity.AuraHelm}},
@@ -248,7 +249,7 @@ func TestGMAuraEasyCommand(t *testing.T) {
 	}
 	inserts := auditLines(t, db, "charaura", "insert")
 	c.say(gs, "/aura blue shell mainhand")
-	if l := gmReplies(t, gs); !hasLine(l, "a held weapon takes epic or particles") {
+	if l := gmReplies(t, gs); !hasLine(l, "a held weapon takes epic, energy or particles") {
 		t.Fatalf("a shell on a hand: %q", l)
 	}
 	c.say(gs, "/aura epic chest source=5FD4AE7C")

@@ -102,8 +102,9 @@ var skyPasses = []skyPass{
 		At: skyIsleOfWonder, Steps: [][2]int{{101305, 10}}},
 
 	// the chain of night: the main isle's essence, south of Liztin's hut
+	// lands where Hoofbite stood (petition 2055)
 	{NPC: "essence of night", X: 4621.4, Z: 5729.6, Key: "key of the ancients", To: "the first isle of night",
-		At: wayPlace{World: 4, X: 4161.0, Y: 612.38, Z: 6384.0, Facing: 3.14}, Steps: [][2]int{{101306, 2}}},
+		At: wayPlace{World: 4, X: 4160.69, Y: 612.38, Z: 6064.46, Facing: 0.025}, Steps: [][2]int{{101306, 2}}},
 	{NPC: "essence of night", X: 4160.7, Z: 6404.1, Key: "Night Key 1", To: "the second isle of night",
 		At: wayPlace{World: 4, X: 4425.0, Y: 448.75, Z: 6453.0, Facing: 2.98}, Steps: [][2]int{{101306, 8}}},
 	{NPC: "essence of night", X: 4441.2, Z: 6436.7, Key: "Night Key 2", To: "the third isle of night",

@@ -1406,7 +1406,7 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 	player.RobeTint, player.RobeColor = 0, 0
 	player.ArmorColors = [len(player.ArmorColors)]uint32{}
 	player.HeldColors = [len(player.HeldColors)]uint32{}
-	player.WornPieces, player.WornMask = [entity.AuraPieces]int{}, 0
+	player.WornPieces, player.WornMask = [entity.AuraSlots]int{}, 0
 	player.PrimaryType, player.SecondaryType = 0, 0
 	player.CapeStyle, player.CapeColor = 0, 0
 	// the worn looks the character hides (entity/hidelook.go): a part is
@@ -1468,6 +1468,7 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 				if player.HiddenParts&entity.HideCape != 0 {
 					player.CapeStyle, player.CapeColor = 0, 0
 				}
+				player.SetWornPiece(entity.AuraCape, item.Pattern.PatternID) // its aura's (entity/pieceaura.go)
 			}
 		}
 	}

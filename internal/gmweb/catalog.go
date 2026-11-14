@@ -1081,7 +1081,7 @@ var catalog = map[string]tableNote{
 	"itemaura": {
 		Label: "Item auras", Group: "Items & spells", Title: "patternid", Sort: "patternid",
 		Help: "An aura on a worn piece of armour or a robe (entity/pieceaura.go): every character (and mercenary) wearing the item shows it " +
-			"on that piece alone (chest, bracer, gloves, legs, boots, helm or robe), each piece its own colour. Drawn only by " +
+			"on that piece alone (chest, bracer, gloves, legs, boots, helm, robe or cape), each piece its own colour. Drawn only by " +
 			"eqoa-rust-client-vanilla, which asks for the pieces' auras; a PS2 draws the piece as it is. A held item's glow is its " +
 			"record's colour (Items), not this. A hidden piece shows none. /aura item <id> ... in the game sets a row.",
 		Live:   "At once: every wearer's channel carries it at the next tick.",
@@ -1101,14 +1101,14 @@ var catalog = map[string]tableNote{
 		Label: "Character auras", Group: "Items & spells", Title: "charid", Sort: "charid",
 		Help: "An aura on ONE character's piece or body (entity/pieceaura.go; the owner, 2026-11-13: the GM command affects the targeted " +
 			"player's pieces alone): slot 0-6 the pieces (chest, bracers, gloves, legs, boots, helm, robe), shown on whatever item it wears " +
-			"there; 7 the body and underclothes, which its armour covers. Over the item's own aura (Item auras). merc 0 the character, " +
+			"there; 7 the body and underclothes, which its armour covers; 8 the cape (shown on whatever cape it wears; a trim there lights the whole cape). Over the item's own aura (Item auras). merc 0 the character, " +
 			"else its mercenary of that hire slot. /aura <colour> <kind> <slot|wholebody> on a targeted player (or yourself) sets a row.",
 		Live:   "At once: the character's channel carries it at the next tick.",
 		Search: []string{"note"},
 		Cols: map[string]colNote{
 			"charid": {Label: "Character", Ref: "characters"},
 			"merc":   {Label: "Merc", Help: "0 the character itself, else its mercenary of that hire slot"},
-			"slot":   {Label: "Slot", Help: "0 chest, 1 bracers, 2 gloves, 3 legs, 4 boots, 5 helm, 6 robe, 7 the body and underclothes (under the armour)"},
+			"slot":   {Label: "Slot", Help: "0 chest, 1 bracers, 2 gloves, 3 legs, 4 boots, 5 helm, 6 robe, 7 the body and underclothes (under the armour), 8 the cape"},
 			"color":  {Label: "Colour", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA; black 000000FF with a shell or trim a dark aura"},
 			"kind":   {Label: "Aura", Help: "0 default, 1 none, 2 shell, 3 particles, 4 both, 5 trim, 6 trim and shell"},
 			"source": {Label: "Particles", Format: hex32, Look: lookItem, Store: storeUint32, Help: "the particles' DictID; 0 the Sword of Virtue's"},

@@ -48,12 +48,19 @@ const liveLookAuras = 8
 // carries it too. A client before it (vanilla a95b250) is sent the 295 bytes.
 const liveLookBody = 16
 
+// liveLookCape is bit 5 of a client's answer (with liveLookBody): it also
+// draws a cape's aura, a ninth after the body's (entity.CapeAuraChannel, 315
+// bytes; the owner, 2026-11-14: "also cannot apply aura to capes yet").
+// Granted, the look in force's third u32 carries it too. A client before it
+// (vanilla 481ce51) is sent the 305 bytes, a PS2 the disc's 162.
+const liveLookCape = 32
+
 // buildLiveLookInForce is OpcodeLiveLookInForce: 1 the live game's look, 0
 // the disc's; then the characters the client is listed and may make
 // (charslots.go), and liveLookArmor when this server's armour is in force
 // (else 0; with liveLookAuras when the pieces' auras are too), which a client
 // that reads only the first u32 never sees.
-func buildLiveLookInForce(on bool, chars int, armor, auras, body bool) []byte {
+func buildLiveLookInForce(on bool, chars int, armor, auras, body, cape bool) []byte {
 	return build(protocol.OpcodeLiveLookInForce, 14, func(w *buffer.Writer) {
 		v := uint32(0)
 		if on {
@@ -68,6 +75,9 @@ func buildLiveLookInForce(on bool, chars int, armor, auras, body bool) []byte {
 				a |= liveLookAuras
 				if body {
 					a |= liveLookBody
+					if cape {
+						a |= liveLookCape
+					}
 				}
 			}
 		}
@@ -103,7 +113,8 @@ func (h *LiveLookHandler) RegisterHandlers(r *Registry) {
 // the live game's, bit 1 its select page lists every character (charslots.go),
 // bit 2 it draws this server's armour (set 9 and the trims; with bit 0 alone),
 // bit 3 the worn pieces' auras after the trims (with bit 2 alone), bit 4 the
-// body's aura after them (with bit 3 alone).
+// body's aura after them (with bit 3 alone), bit 5 the cape's after the
+// body's (with bit 4 alone).
 // It says what is now in force (the look, and the characters it is listed),
 // and sends the list again in it to a client still choosing a character.
 func (h *LiveLookHandler) HandleLiveLook(sess *session.Session, msg *protocol.Message) error {
@@ -116,14 +127,16 @@ func (h *LiveLookHandler) HandleLiveLook(sess *session.Session, msg *protocol.Me
 	on, many, armor := v&1 != 0, v&2 != 0, v&liveLookArmor != 0 && v&1 != 0
 	auras := armor && v&liveLookAuras != 0
 	body := auras && v&liveLookBody != 0
+	cape := body && v&liveLookCape != 0
 	was, wasMany, wasArmor := sess.LiveLook(), sess.ManyChars(), sess.ArmorLook()
 	sess.SetLiveLook(on)
 	sess.SetManyChars(many)
 	sess.SetArmorLook(armor)
 	sess.SetPieceAuras(auras)
 	sess.SetBodyAura(body)
-	queueReliable(sess, protocol.OpcodeLiveLookInForce, buildLiveLookInForce(on, charCap(sess), armor, auras, body))
-	log.Printf("LiveLook: %s reads %s look, lists %d characters, this server's armour %v, pieces' auras %v", sess.RemoteAddr(), map[bool]string{true: "the live game's", false: "the disc's"}[on], charCap(sess), armor, auras)
+	sess.SetCapeAura(cape)
+	queueReliable(sess, protocol.OpcodeLiveLookInForce, buildLiveLookInForce(on, charCap(sess), armor, auras, body, cape))
+	log.Printf("LiveLook: %s reads %s look, lists %d characters, this server's armour %v, pieces' auras %v, body %v, cape %v", sess.RemoteAddr(), map[bool]string{true: "the live game's", false: "the disc's"}[on], charCap(sess), armor, auras, body, cape)
 	if (on != was || many != wasMany || armor != wasArmor) && h.chars != nil && sess.State() == session.StateCharacterSelect && !sess.CharacterInWorld() {
 		h.chars.SendCharacterSelectEQOA(sess)
 	}

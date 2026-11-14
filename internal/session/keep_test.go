@@ -59,6 +59,7 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 	s.SetArmorLook(true)
 	s.SetPieceAuras(true) // the worn pieces' auras (entity/pieceaura.go)
 	s.SetBodyAura(true)   // and the body's
+	s.SetCapeAura(true)   // and the cape's
 	s.SetMobInfo(true)
 	s.SetItemLinks(true)
 	s.SetDiscVersion(0x12)
@@ -108,7 +109,7 @@ func TestAKeptSessionResumesWhereItWas(t *testing.T) {
 	if r.NPCTintsLayout() != 3 {
 		t.Fatalf("the NPC tints' layout: %d, want 3 kept", r.NPCTintsLayout())
 	}
-	if !r.ArmorLook() || !r.PieceAuras() || !r.BodyAura() {
+	if !r.ArmorLook() || !r.PieceAuras() || !r.BodyAura() || !r.CapeAura() {
 		t.Fatal("the armour look or the pieces' auras not kept")
 	}
 	// a monster's name and level (handlers/mobinfo.go): still shown in the

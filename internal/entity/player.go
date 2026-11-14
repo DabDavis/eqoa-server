@@ -63,8 +63,8 @@ type Player struct {
 	// WornPieces are the item records (itempattern.patternid) worn on the
 	// pieces an aura can be on (AuraChest ... AuraRobe), WornMask which are
 	// worn: each piece's aura is its item's (pieceaura.go, table itemaura)
-	WornPieces    [AuraPieces]int
-	WornMask      uint8
+	WornPieces    [AuraSlots]int
+	WornMask      uint16
 	Primary       uint32
 	Secondary     uint32
 	Shield        uint32

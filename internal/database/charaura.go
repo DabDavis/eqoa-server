@@ -14,7 +14,7 @@ import "fmt"
 // charid is the character's server_id; merc 0 the character itself, 1.. its
 // mercenary of that hire slot (keyed by its owner's character); slot
 // CharAuraChest ... CharAuraRobe as the channel's pieces, CharAuraBody the
-// body and underclothes under them. The columns as itemaura's.
+// body and underclothes under them, CharAuraCape the worn cape. The columns as itemaura's.
 const charAuraSchema = `
 	CREATE TABLE IF NOT EXISTS charaura (
 		charid INTEGER NOT NULL,
@@ -29,10 +29,12 @@ const charAuraSchema = `
 	);`
 
 // CharAuraSlots is how many slots a character's aura has: the seven pieces
-// (entity.AuraChest ... AuraRobe) and the body.
+// (entity.AuraChest ... AuraRobe), the body, and the cape (entity.AuraCape,
+// 2026-11-14).
 const (
 	CharAuraBody  = 7
-	CharAuraSlots = 8
+	CharAuraCape  = 8
+	CharAuraSlots = 9
 )
 
 // ensureCharAura makes table charaura (initSchema).

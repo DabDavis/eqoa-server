@@ -331,14 +331,14 @@ func checkAuraCols(row map[string]any, kind, source, nodes string) error {
 }
 
 // checkCharAuraRow holds a charaura row to a character, a slot (0-6 the
-// pieces, 7 the body), a 32-bit colour and an aura the client reads.
+// pieces, 7 the body, 8 the cape), a 32-bit colour and an aura the client reads.
 func checkCharAuraRow(row map[string]any) error {
 	if f, ok := asFloat(row["charid"]); !ok || f != math.Trunc(f) || f <= 0 {
 		return badRequest("charid is the character's server_id (Characters)")
 	}
 	if v, ok := row["slot"]; ok {
 		if f, fok := asFloat(v); !fok || f != math.Trunc(f) || f < 0 || f >= database.CharAuraSlots {
-			return badRequest("slot is 0 chest, 1 bracers, 2 gloves, 3 legs, 4 boots, 5 helm, 6 robe, 7 the body and underclothes (under the armour)")
+			return badRequest("slot is 0 chest, 1 bracers, 2 gloves, 3 legs, 4 boots, 5 helm, 6 robe, 7 the body and underclothes (under the armour), 8 the cape")
 		}
 	}
 	if v, ok := row["merc"]; ok {

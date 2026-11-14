@@ -161,7 +161,8 @@ func TestRealPoDFlagQuestAsTheWiki(t *testing.T) {
 	gw.SetQuestWalls(walls)
 	p := &entity.Player{ServerID: 1, CharServerID: 2, Name: "Dust", World: 5}
 	at := func(x, y, z float32, gm bool) bool {
-		p.X, p.Y, p.Z, p.GM = x, y, z, gm
+		// a GM passes an item's wall with /noclip on (the owner, 2026-11-13), not without
+		p.X, p.Y, p.Z, p.GM, p.Noclip = x, y, z, gm, gm
 		return len(gw.ItemWallsStopping(p, 30)) == 1
 	}
 	if !at(4634, -11.9, 3604, false) {

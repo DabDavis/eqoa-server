@@ -435,7 +435,7 @@ func (w *questWalker) doStep(qu *database.Quest, st *database.QuestStep) string 
 		}
 		w.settle()
 	case database.StepLoot:
-		pid, need, _ := st.LootItem()
+		_, need, _ := st.LootItem()
 		for i := 0; i < need+2; i++ {
 			if s, _ := w.progress(qu.ID); s != st.Step {
 				break
@@ -453,7 +453,9 @@ func (w *questWalker) doStep(qu *database.Quest, st *database.QuestStep) string 
 				if got, err := GiveItemNow(w.sess, w.gw, w.inv, *pat, 1); err != nil || got == 0 {
 					return fmt.Sprintf("its %q not taken (%v)", pat.ItemName, err)
 				}
-				w.qe.Looted(w.sess, w.p, pid, 1)
+				// the item taken is what is counted: a kill drops other quests' items too
+				// ahead of their steps (questpreloot.go), which are not this step's
+				w.qe.Looted(w.sess, w.p, d, 1)
 			}
 			w.settle()
 		}

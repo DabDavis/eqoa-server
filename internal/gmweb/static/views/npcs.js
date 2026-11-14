@@ -59,7 +59,7 @@ export async function render(box, [id, tab]) {
               ...(r.typeFlags || []).map((f) => h('span', { class: 'badge accent' }, f))),
             h('dl', { class: 'kv' },
               h('dt', null, 'Health'), h('dd', null, `${live.hp} / ${live.maxHP}`),
-              h('dt', null, 'Stands at'), h('dd', null, `${r.worldName}: ${live.x.toFixed(1)}, ${live.y.toFixed(1)}, ${live.z.toFixed(1)}`),
+              h('dt', null, 'Stands at'), h('dd', null, `${r.place || r.worldName}: ${live.x.toFixed(1)}, ${live.y.toFixed(1)}, ${live.z.toFixed(1)}`),
               live.fighting ? [h('dt', null, 'Fighting'), h('dd', null, live.fighting)] : null,
               live.movement ? [h('dt', null, 'Moves'), h('dd', null, live.movement)] : null,
               h('dt', null, 'Respawns'), h('dd', null, `${live.respawnSec} s after it dies`)),
@@ -123,7 +123,7 @@ async function moveToCharacter(row) {
     title: 'Move ' + row.npc_name, submitLabel: 'Move it there',
     intro: 'Its spawn point becomes where the character stands now (walk your GM character to the spot first). It reappears there in a second.',
     fields: [
-      { name: 'who', label: 'Where this character stands', type: 'select', options: players.map((p) => ({ value: p.serverid, label: `${p.name} (${p.worldName} ${Math.round(p.x)}, ${Math.round(p.z)})` })) },
+      { name: 'who', label: 'Where this character stands', type: 'select', options: players.map((p) => ({ value: p.serverid, label: `${p.name} (${p.place || p.worldName} ${Math.round(p.x)}, ${Math.round(p.z)})` })) },
       { name: 'face', label: 'Face the way they face', type: 'checkbox', value: true },
     ],
   });

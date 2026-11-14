@@ -60,7 +60,7 @@ export async function render(box) {
     const c = v.character || {};
     const kv = (label, val) => (val === undefined || val === null || val === '' ? null
       : h('div', { class: 'row small' }, h('span', { class: 'faint', style: 'min-width: 8em' }, label), h('span', null, String(val))));
-    const place = (e) => `world ${e.world ?? ''} (${Math.round(e.x)}, ${Math.round(e.y)}, ${Math.round(e.z)})`;
+    const place = (e) => `world ${e.world ?? ''}${e.isle ? ' (' + e.isle + ')' : ''} (${Math.round(e.x)}, ${Math.round(e.y)}, ${Math.round(e.z)})`;
     const lines = (title, list) => (list && list.length
       ? h('details', null, h('summary', { class: 'small' }, `${title} (${list.length})`), h('pre', { class: 'json' }, list.join('\n'))) : null);
     const t = v.target;

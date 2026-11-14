@@ -120,7 +120,7 @@ func (s *Server) registerWorldOps() {
 				out = append(out, map[string]any{
 					"serverid": p.ServerID, "name": p.Name, "account": acct, "accountid": p.AccountID,
 					"level": p.Level, "class": className(p.Class), "race": raceName(p.Race),
-					"world": p.World, "worldName": worldName(int(p.World)),
+					"world": p.World, "worldName": worldName(int(p.World)), "place": placeName(int(p.World), p.X, p.Y, p.Z),
 					"x": round1(p.X), "y": round1(p.Y), "z": round1(p.Z), "facing": p.Facing,
 					"hp": p.HP, "maxHP": p.MaxHP, "power": p.Power, "maxPower": p.MaxPower,
 					"tunar": p.Tunar, "dead": p.Dead, "fighting": p.Fighting, "guild": p.GuildName,
@@ -341,7 +341,7 @@ func (s *Server) registerWorldOps() {
 			if !ok {
 				return nil, notFound("no NPC called %q in the world", req.Template)
 			}
-			msg := fmt.Sprintf("spawned a temporary %s (id %d) at (%.0f, %.0f, %.0f) in %s", spelled, id, x, y, z, worldName(int(world)))
+			msg := fmt.Sprintf("spawned a temporary %s (id %d) at (%.0f, %.0f, %.0f) in %s", spelled, id, x, y, z, placeName(int(world), x, y, z))
 			c.s.audit(c.a, "live", "", nil, nil, nil, msg)
 			return map[string]any{"id": id, "name": spelled, "message": msg}, nil
 		},
@@ -708,7 +708,7 @@ func (s *Server) teleportCharacter(a *actor, who any, place string, npc any, pla
 		return nil, err
 	}
 	return map[string]any{"online": false, "message": fmt.Sprintf("%s is offline: their next login starts at %s (%.0f, %.0f, %.0f) in %s",
-		name, via, tx, ty, tz, worldName(int(saveWorld))), "change": ch}, nil
+		name, via, tx, ty, tz, placeName(int(saveWorld), tx, ty, tz)), "change": ch}, nil
 }
 
 // npcPlace is where an NPC named by id or name stands now (its spawn point

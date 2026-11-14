@@ -408,6 +408,20 @@ type WorldConfig struct {
 	// Unset or empty: nobody.
 	NoclipAccounts []string `yaml:"noclip_accounts"`
 
+	// MirrorNPCEditsAccounts are the accounts (accountinfo.username, any case)
+	// whose GM edits of NPC rows here are written to the shard database
+	// MirrorNPCDB names as well (handlers/npcmirror.go; the owner, 2026-11-14:
+	// "his placements and copies should show on heirloom also"): a /place,
+	// /clone or /copy makes a row there too, and a later /move, /roamer, /size
+	// or /delete of such a row changes its copy. Unset or empty: nobody's.
+	MirrorNPCEditsAccounts []string `yaml:"mirror_npc_edits_accounts"`
+
+	// MirrorNPCDB is the other shard's database file for MirrorNPCEditsAccounts
+	// (the Live Server's: /home/sdg/eqoa-server/eqoa.db, Heirloom's). The other
+	// shard's server reads the change into its world within seconds (its
+	// npc_mirror_inbox). Unset: nothing is mirrored.
+	MirrorNPCDB string `yaml:"mirror_npc_db"`
+
 	// Teleporter turns on the Teleporter (handlers/teleporter.go): an NPC of
 	// that name (tools/place_teleporter.py stands one beside Dabrish) sends a
 	// player to every raid's way in and beside every XP camp, a box at a time,

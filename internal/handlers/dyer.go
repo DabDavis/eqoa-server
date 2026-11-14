@@ -37,8 +37,14 @@ import (
 // due to the colors, lets add trim color dyeing also") is the last answer of the
 // first question, "Armor trim", after "Take every dye off" (so More leaves the
 // cursor on the trim, never on taking every dye off), and asks which: all the
-// armour's trim or a piece's, of the pieces whose art has trim (the plate sets 4
-// and 9: chest, bracers, legs and boots; their gloves and helms have none). A
+// armour's trim or a piece's: the chest's (a robe's top takes it), the bracers'
+// and gloves' together, the legs' (a robe's skirt takes it), the boots', the
+// helm's: six answers, CLIENT's box's most (a GM's #dye names each slot alone).
+// Every set has trim in its art now, not the plate's gold alone (the owner,
+// 2026-11-13: "armor trim for cloth isnt showing, also make sure leather,
+// chain, etc. all sets can be trimmed"; the client finds each texture's trim,
+// claude-notes/armor-trim-all-sets-20261113.md); a piece whose art has none
+// (the plate's gloves, helms 4 and 6, ...) shows nothing of its trim's dye. A
 // trim's dye (chardyes' trim slots) is drawn by a client that draws this
 // server's armour (entity/livelook.go); "Take every dye off" takes it off too.
 
@@ -68,8 +74,10 @@ func one(label string, slot int) dyerChoice { return dyerChoice{label: label, sl
 var dyerTrim = dyerChoice{label: "Armor trim", sub: []dyerChoice{
 	{label: "All my armor's trim", slots: []int{database.DyeChestTrim, database.DyeBracerTrim, database.DyeGlovesTrim,
 		database.DyeLegsTrim, database.DyeBootsTrim, database.DyeHelmTrim}},
-	one("Chest trim", database.DyeChestTrim), one("Bracers trim", database.DyeBracerTrim),
-	one("Legs trim", database.DyeLegsTrim), one("Boots trim", database.DyeBootsTrim)}}
+	one("Chest or robe top trim", database.DyeChestTrim),
+	{label: "Bracers and gloves trim", slots: []int{database.DyeBracerTrim, database.DyeGlovesTrim}},
+	one("Legs or robe skirt trim", database.DyeLegsTrim), one("Boots trim", database.DyeBootsTrim),
+	one("Helm trim", database.DyeHelmTrim)}}
 
 var dyerChoices = []dyerChoice{
 	{label: "All my armor", slots: []int{database.DyeChest, database.DyeBracer, database.DyeGloves, database.DyeLegs,

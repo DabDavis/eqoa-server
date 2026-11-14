@@ -277,6 +277,9 @@ func (w *World) pieceAuras(pieces *[AuraSlots]int, mask uint16, hidden uint16, o
 			continue
 		}
 		if a, ok := (*m)[pieces[i]]; ok {
+			if a.Kind == database.AuraCirclet && i != AuraHelm {
+				continue // a circlet is a helm's alone (database.ValidItemAura)
+			}
 			out[i], any = a, true
 		}
 	}

@@ -1083,7 +1083,10 @@ var catalog = map[string]tableNote{
 		Help: "An aura on a worn piece of armour or a robe (entity/pieceaura.go): every character (and mercenary) wearing the item shows it " +
 			"on that piece alone (chest, bracer, gloves, legs, boots, helm, robe or cape), each piece its own colour. Drawn only by " +
 			"eqoa-rust-client-vanilla, which asks for the pieces' auras; a PS2 draws the piece as it is. A held item's glow is its " +
-			"record's colour (Items), not this. A hidden piece shows none. /aura item <id> ... in the game sets a row.",
+			"record's colour (Items), not this. A hidden piece shows none. /aura item <id> ... in the game sets a row. " +
+			"Kind 8 (circlet) on a helm-slot item makes the item a circlet: the source's glowing ring round the wearer's head " +
+			"(Particles 1D875ECD the monk staff's, Nodes its height 1-100 percent of the head, 72 the temples), drawn while no " +
+			"helm is (give the item model 0: the Crown of Twisted Virtue); on any other piece it shows nothing.",
 		Live:   "At once: every wearer's channel carries it at the next tick.",
 		Search: []string{"note"},
 		Cols: map[string]colNote{

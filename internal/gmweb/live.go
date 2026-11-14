@@ -418,6 +418,21 @@ func checkItemAuraRow(row map[string]any) error {
 			return badRequest("color is 0xRRGGBBAA (0x3060FFFF a blue), 0 none: the aura's colour, AA how much of it")
 		}
 	}
+	// a circlet (kind 8): an item worn on the head that is one (nodes its height 0-100)
+	if kind, kok := asFloat(row["kind"]); kok && kind == database.AuraCirclet {
+		if v, has := row["nodes"]; has {
+			if f, fok := asFloat(v); !fok || f != math.Trunc(f) || !database.ValidItemAura(database.AuraCirclet, int64(f)) {
+				return badRequest("a circlet's Nodes is how high on the head it sits: 1-%d percent of the head from the chin, 0 the default", database.AuraAlongMost)
+			}
+		}
+		cols := make(map[string]any, len(row))
+		for k, v := range row {
+			if k != "kind" && k != "nodes" {
+				cols[k] = v
+			}
+		}
+		return checkAuraCols(cols, "kind", "source", "nodes")
+	}
 	return checkAuraCols(row, "kind", "source", "nodes")
 }
 

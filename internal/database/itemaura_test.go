@@ -244,3 +244,25 @@ func TestCharAurasHands(t *testing.T) {
 		t.Fatalf("written: %+v", a)
 	}
 }
+
+// itemaura's circlet (kind 8, 2026-11-14): read with its height (nodes up to
+// 100); past 100 dropped; a shell's nodes still 0-32.
+func TestItemAurasCirclet(t *testing.T) {
+	db, err := NewSQLite(t.TempDir() + "/itemaura.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	if _, err := db.Exec(`INSERT INTO itemaura (patternid, color, kind, source, nodes) VALUES
+		(714385, 3759675647, 8, 495410893, 72), (714386, 3759675647, 8, 495410893, 101), (714387, 4280295679, 2, 0, 72)`); err != nil {
+		t.Fatal(err)
+	}
+	got, err := db.ItemAuras()
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := map[int]ItemAura{714385: {PatternID: 714385, Color: 0xE01818FF, Kind: AuraCirclet, Source: 0x1D875ECD, Nodes: 72}}
+	if len(got) != 1 || got[714385] != want[714385] {
+		t.Fatalf("got %+v", got)
+	}
+}

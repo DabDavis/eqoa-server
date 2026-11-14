@@ -475,3 +475,38 @@ func TestACircletOnTheHead(t *testing.T) {
 		t.Fatalf("a shell on a hidden helm: %+v", a)
 	}
 }
+
+// An item that is a circlet (itemaura kind 8, 2026-11-14: the Crown of
+// Twisted Virtue): worn in the helm's slot it shows, its height and colour
+// as the row's; hidden, none; worn on any other piece, none; a character's
+// own circlet (charaura) still wins over it.
+func TestAnItemThatIsACirclet(t *testing.T) {
+	crown := database.ItemAura{PatternID: 714385, Color: 0xE01818FF, Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: 72}
+	w := NewWorld()
+	w.SetItemAuras(map[int]database.ItemAura{714385: crown})
+	p := ornatePlayer()
+	p.CharServerID = 197
+	p.WornMask, p.WornPieces = 0, [AuraSlots]int{}
+	p.SetWornPiece(AuraHelm, 714385)
+	if a := w.PieceAurasOf(p); a == nil || a[AuraHelm] != crown {
+		t.Fatalf("the crown worn: %+v", a)
+	}
+	p.HiddenParts = HideHelm
+	if a := w.PieceAurasOf(p); a != nil {
+		t.Fatalf("a hidden crown: %+v", a)
+	}
+	p.HiddenParts = 0
+	p.WornMask, p.WornPieces = 0, [AuraSlots]int{}
+	p.SetWornPiece(AuraChest, 714385)
+	if a := w.PieceAurasOf(p); a != nil {
+		t.Fatalf("a circlet record on the chest: %+v", a)
+	}
+	var own [database.CharAuraSlots]database.ItemAura
+	own[AuraHelm] = database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD}
+	w.SetCharAuras(map[database.CharAuraKey][database.CharAuraSlots]database.ItemAura{{CharID: 197}: own})
+	p.WornMask, p.WornPieces = 0, [AuraSlots]int{}
+	p.SetWornPiece(AuraHelm, 714385)
+	if a := w.PieceAurasOf(p); a == nil || a[AuraHelm] != own[AuraHelm] {
+		t.Fatalf("the character's own circlet wins: %+v", a)
+	}
+}

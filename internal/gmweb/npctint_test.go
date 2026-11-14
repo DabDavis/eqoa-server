@@ -164,6 +164,16 @@ func TestAuraEditsAreLive(t *testing.T) {
 	if err := f.db.QueryRow(`SELECT COUNT(*) FROM gm_audit WHERE tbl = 'itemaura'`).Scan(&n); err != nil || n != 2 {
 		t.Fatalf("%d itemaura audit lines, %v", n, err)
 	}
+	// an item that is a circlet (kind 8, its height in nodes up to 100)
+	if code, out := c.op("insert_row", map[string]any{"table": "itemaura", "values": map[string]any{"patternid": 424243, "color": float64(0xE01818FF), "kind": 8, "source": float64(0x1D875ECD), "nodes": 72}}); code != 200 {
+		t.Fatalf("itemaura circlet insert: %d %v", code, out)
+	}
+	if code, out := c.op("insert_row", map[string]any{"table": "itemaura", "values": map[string]any{"patternid": 424244, "kind": 8, "nodes": 101}}); code != 400 {
+		t.Fatalf("itemaura circlet past 100: %d %v", code, out)
+	}
+	if code, out := c.op("delete_row", map[string]any{"table": "itemaura", "key": map[string]any{"patternid": 424243}}); code != 200 {
+		t.Fatalf("itemaura circlet delete: %d %v", code, out)
+	}
 	// a character's own (charaura): a body aura kept, a slot past 7 and a
 	// kind past 6 refused
 	if code, out := c.op("insert_row", map[string]any{"table": "charaura", "values": map[string]any{"charid": 9001, "merc": 0, "slot": 7, "color": float64(0xA040FFFF), "kind": 2}}); code != 200 {

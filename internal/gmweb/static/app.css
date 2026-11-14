@@ -601,3 +601,38 @@ input.look-raw { width: 9.5em; }
 .look-index .with select { flex: 1; min-width: 5.5em; }
 .look .with > input.look-num { min-width: 0; width: 3.6em; flex: none; }
 .look .look-sliders:has(.look-ch.wide) { max-width: 560px; }
+
+/* The Economy page (views/economy.js): made = categorical slot 1 (blue),
+   spent = slot 2 (orange), the reference palette's validated pair. */
+:root { --s-made: #3987e5; --s-spent: #d95926; --s-moved: #9ba4b6; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --s-made: #2a78d6; --s-spent: #eb6834; --s-moved: #8a909c; } }
+:root[data-theme="light"] { --s-made: #2a78d6; --s-spent: #eb6834; --s-moved: #8a909c; }
+.econ-chart { width: 100%; }
+.econ-plot { position: relative; }
+.econ-svg { width: 100%; height: auto; display: block; overflow: visible; }
+.econ-grid { stroke: var(--border); stroke-width: 1; }
+.econ-zero { stroke: var(--border-2); stroke-width: 1.5; }
+.econ-axis { fill: var(--faint); font-size: 11px; font-variant-numeric: tabular-nums; }
+.econ-line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.econ-line.s-made, .econ-dot.s-made { stroke: var(--s-made); }
+.econ-line.s-spent, .econ-dot.s-spent { stroke: var(--s-spent); }
+.econ-line.s-net, .econ-dot.s-net { stroke: var(--text); }
+.econ-dot { fill: var(--panel); stroke-width: 2; }
+.econ-cross { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.econ-tip { position: absolute; top: 4px; min-width: 170px; background: var(--raise); border: 1px solid var(--border-2); border-radius: var(--radius-sm);
+  padding: 8px 10px; font-size: 12px; pointer-events: none; box-shadow: var(--shadow); font-variant-numeric: tabular-nums; }
+.econ-tip-t { color: var(--muted); margin-bottom: 4px; }
+.econ-tip b { font-weight: 650; }
+.econ-legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.swatch { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; background: var(--muted); }
+.swatch.s-made { background: var(--s-made); } .swatch.s-spent { background: var(--s-spent); } .swatch.s-net { background: var(--text); }
+.swatch.dash { background: repeating-linear-gradient(90deg, var(--s-spent) 0 4px, transparent 4px 7px); }
+.econ-up .value { color: var(--ok); } .econ-down .value { color: var(--danger); }
+.econ-callouts { margin: 0; padding-left: 18px; line-height: 1.6; }
+.econ-range { margin-top: 4px; }
+.econ-range button.small, .card .tabs button.small { font-size: 12px; padding: 9px 8px; }
+table.plain .num, table.plain th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.econ-sources tr.econ-kind th { color: var(--text); padding-top: 12px; }
+.econ-barcell { width: 30%; min-width: 80px; }
+.econ-bar { height: 8px; border-radius: 0 4px 4px 0; background: var(--muted); }
+.econ-bar.s-made { background: var(--s-made); } .econ-bar.s-spent { background: var(--s-spent); } .econ-bar.s-moved { background: var(--s-moved); }

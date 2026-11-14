@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"math"
 	"time"
 
 	"github.com/eqoa/server/internal/session"
@@ -118,9 +119,128 @@ func (w *World) staysInWaterLocked(npc *NPC) bool {
 	return w.env != nil && w.keepsToLocked(npc) == keepsToWater && w.npcInWaterLocked(npc)
 }
 
+// The slime's surface (the owner, 2026-11-14, the Plane of Disease: "the Fish
+// seem to get out of the water very easy here like the environment
+// boundaries didn't work very good"). The Plane's slime is a floor: its
+// pools' surface is the terrain, flat at -49.94 (the river's at -34.06;
+// beds slope on below the pools' top in places, to -51.6), and the zone leaf flagged slime over it reaches 14.7 to 25 units higher
+// (to -35.2 over the eastern pools), over the banks round it as well: of the
+// leaf's columns on world 5, 84,000 are the pools' flat surface and some
+// 40,000 the banks under the leaf's top. A creature of the water kept to
+// the leaf walked up the banks onto the shore, and one placed in it at a
+// swimmer's height (a GM's own, CLIENT floating his body at the leaf's
+// top) hung in the air over the slime: 75 of them taken out by hand,
+// 2026-11-13. So in the slime (no water there) a creature of the water
+// keeps to its pool: no more than slimeLevel over the pool's flat top
+// (slimeSurfaceLocked; the banks rise off it), and one placed over the
+// surface is set on it
+// (groundnpc.go's spawnOnGroundLocked). The water is as it was: its
+// creatures swim at their depths.
+const slimeLevel float32 = 0.5
+
+// slimeSurfaces turns the slime's surface rule on; a test's control turns it
+// off (the leaf alone, as before).
+var slimeSurfaces = true
+
+// slimeOnlyLocked reports a point in the slime and not in the water. Must
+// be called with the lock held.
+func (w *World) slimeOnlyLocked(world uint8, x, y, z float32) bool {
+	if w.env == nil {
+		return false
+	}
+	f, ok := w.env.Flags(world, x, y, z)
+	return ok && f&envSlime != 0 && f&envWater == 0
+}
+
+// slimeSurfaceLocked is the slime's surface by a floor at y in it: its pool's
+// flat top, the floor flat round a point in the slime (the Plane of
+// Disease's pools at -49.94, their beds sloping on below it in places to
+// -51.6; its river at -34.06; the banks rising off them are not flat),
+// within slimeLook: the highest such no higher than y over it (one spawned
+// up a bank keeps to the pool below it, and comes down to it), else the
+// lowest (one spawned on a bed below its pool's top); y where none is. Must
+// be called with the lock held and a ground.
+func (w *World) slimeSurfaceLocked(world uint8, x, y, z float32) float32 {
+	flat := func(px, pz, f float32) bool {
+		for _, d := range [4][2]float32{{1, 0}, {-1, 0}, {0, 1}, {0, -1}} {
+			g, ok := w.floorLocked(world, px+d[0], f+1, pz+d[1])
+			if !ok || absf(g-f) > 0.02 {
+				return false
+			}
+		}
+		return w.slimeOnlyLocked(world, px, f+bodyAbove, pz)
+	}
+	under, over := float32(0), float32(0)
+	foundUnder, foundOver := false, false
+	for r := float32(0); r <= slimeLook; r += slimeStep {
+		n := 16
+		if r == 0 {
+			n = 1
+		}
+		for a := 0; a < n; a++ {
+			s, c := math.Sincos(float64(a) * math.Pi / 8)
+			px, pz := x+r*float32(c), z+r*float32(s)
+			f, ok := w.floorLocked(world, px, y+slimeAbove, pz)
+			if !ok || !flat(px, pz, f) {
+				continue
+			}
+			if f <= y+slimeLevel {
+				if !foundUnder || f > under {
+					under, foundUnder = f, true
+				}
+			} else if !foundOver || f < over {
+				over, foundOver = f, true
+			}
+		}
+	}
+	switch {
+	case foundUnder:
+		return under
+	case foundOver:
+		return over
+	}
+	return y
+}
+
+// slimeLook is how far round a spawn in the slime its surface is looked for
+// (the Plane of Disease's banks are 16 to 40 across), slimeStep the rings'
+// spacing, slimeAbove how far over the spawn's floor a floor is looked for
+// (its pool's top over a bed below it).
+const (
+	slimeLook  float32 = 48
+	slimeStep  float32 = 3
+	slimeAbove float32 = 4
+)
+
+// slimeSettlesLocked reports a creature of the water whose spawn is over
+// the floor at y, in the slime there and at the floor: set on the slime's
+// surface (spawnOnGroundLocked). Must be called with the lock held.
+func (w *World) slimeSettlesLocked(npc *NPC, y float32) bool {
+	return slimeSurfaces && w.slimeOnlyLocked(npc.World, npc.SpawnX, npc.SpawnY+bodyAbove, npc.SpawnZ) &&
+		w.slimeOnlyLocked(npc.World, npc.SpawnX, y+bodyAbove, npc.SpawnZ) &&
+		w.keepsToLocked(npc) == keepsToWater
+}
+
+// keepsInLocked reports (x, z) at height y (its floor, for a creature on
+// the ground) as where a creature of the water may be: in the water; or in
+// the slime no more than slimeLevel over its pool's flat top
+// (slimeSurfaceLocked). Must be called with
+// the lock held.
+func (w *World) keepsInLocked(npc *NPC, x, y, z float32) bool {
+	if !w.waterAtLocked(npc.World, x, y+bodyAbove, z) {
+		return false
+	}
+	if !slimeSurfaces || !w.slimeOnlyLocked(npc.World, x, y+bodyAbove, z) || !w.spawnOnGroundLocked(npc) {
+		return true
+	}
+	return y <= npc.spawnFloor+slimeLevel // its pool's top, or its bed below it
+}
+
 // waterAheadLocked reports the water at (x, z) where a creature would stand
-// there: on the floor for one on the ground, else at its height. Must be
-// called with the lock held.
+// there (on the floor for one on the ground, else at its height) as one of
+// the water keeps to it (keepsInLocked); one off its slime's surface (up a
+// bank, as it could go before) may come down to it through the slime. Must
+// be called with the lock held.
 func (w *World) waterAheadLocked(npc *NPC, x, z float32) bool {
 	y := npc.Y
 	if w.spawnOnGroundLocked(npc) {
@@ -128,7 +248,10 @@ func (w *World) waterAheadLocked(npc *NPC, x, z float32) bool {
 			y = f
 		}
 	}
-	return w.waterAtLocked(npc.World, x, y+bodyAbove, z)
+	if w.keepsInLocked(npc, x, y, z) {
+		return true
+	}
+	return y <= npc.Y && !w.keepsInLocked(npc, npc.X, npc.Y, npc.Z) && w.waterAtLocked(npc.World, x, y+bodyAbove, z)
 }
 
 // apartLocked reports a player and a creature on either side of the

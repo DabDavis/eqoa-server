@@ -101,7 +101,18 @@ func (w *World) spawnOnGroundLocked(npc *NPC) bool {
 		npc.groundKnown = true
 		y, placed, _, ok := w.standLocked(npc.World, npc.SpawnX, npc.SpawnY, npc.SpawnZ)
 		npc.onGround = ok && y-npc.SpawnY <= spawnedBelow && npc.SpawnY-y <= spawnedAbove
-		npc.spawnLift = 0
+		npc.spawnLift, npc.spawnFloor = 0, y
+		if ok && !placed && npc.SpawnY > y && (!npc.onGround || npc.SpawnY-y > slimeLevel) && w.slimeSettlesLocked(npc, y) {
+			// a creature of the water placed up in the slime's leaf, over its
+			// surface: set on the surface (water.go)
+			if npc.X == npc.SpawnX && npc.Z == npc.SpawnZ && npc.Y == npc.SpawnY {
+				npc.Y = y
+			}
+			npc.SpawnY, npc.onGround = y, true
+		}
+		if npc.onGround && w.slimeOnlyLocked(npc.World, npc.SpawnX, y+bodyAbove, npc.SpawnZ) {
+			npc.spawnFloor = w.slimeSurfaceLocked(npc.World, npc.SpawnX, y, npc.SpawnZ) // water.go
+		}
 		npc.spawnPlaced = npc.onGround && placed
 		npc.spawnDeck = false
 		if npc.spawnPlaced {

@@ -10,6 +10,7 @@ const NAV = [
     ['dashboard', 'Dashboard', 'home'],
     ['work', 'Work board', 'clipboard'],
     ['online', 'Players online', 'users'],
+    ['economy', 'Economy', 'chart'],
     ['map', 'World map', 'map'],
   ]],
   ['Players', [
@@ -73,6 +74,7 @@ const VIEWS = {
   dashboard: () => import('./views/dashboard.js'),
   work: () => import('./views/work.js'),
   online: () => import('./views/online.js'),
+  economy: () => import('./views/economy.js'),
   map: () => import('./views/map.js'),
   accounts: () => import('./views/accounts.js'),
   characters: () => import('./views/characters.js'),

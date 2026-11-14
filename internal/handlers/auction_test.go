@@ -1083,3 +1083,29 @@ func TestAuctionQuietSessionKeepsItsLines(t *testing.T) {
 		t.Errorf("at login %q", ls)
 	}
 }
+
+// A search by class leaves out what nothing wears and every class may hold (a
+// gem); the class's own spell scroll and its gear still show, and a search
+// for any class still finds the gem (petition 2136).
+func TestAClassSearchLeavesOutGems(t *testing.T) {
+	q := auctionQuery{classes: 1 << 1, races: 0xFFFFFFFF, minLevel: 1, maxLevel: 60, maxPrice: 999999999, wear: -2, attack: -1, open: true}
+	lot := func(slot, class int) *database.AuctionLot {
+		l := &database.AuctionLot{State: database.AuctionOpen, MinBid: 10}
+		l.Item.Pattern.EquipSlot, l.Item.Pattern.ClassUse, l.Item.Pattern.LevelReq = slot, class, 10
+		return l
+	}
+	if q.matches(lot(-1, 32767)) {
+		t.Error("a gem (worn nowhere, every class) shows under the ranger")
+	}
+	if !q.matches(lot(-1, 2)) {
+		t.Error("the ranger's own scroll is left out")
+	}
+	if !q.matches(lot(16, 2)) {
+		t.Error("the ranger's bow is left out")
+	}
+	all := q
+	all.classes = 0xFFFFFFFF
+	if !all.matches(lot(-1, 32767)) {
+		t.Error("a search for any class leaves the gem out")
+	}
+}

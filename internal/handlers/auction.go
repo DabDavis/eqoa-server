@@ -755,6 +755,12 @@ func (q *auctionQuery) matches(l *database.AuctionLot) bool {
 		return false
 	case q.classes != 0xFFFFFFFF && p.ClassUse != 0 && uint32(p.ClassUse)&q.classes == 0:
 		return false
+	case q.classes != 0xFFFFFFFF && p.EquipSlot < 0 && (p.ClassUse == 0 || p.ClassUse&0x7FFF == 0x7FFF):
+		// a search by class is for what the class can use: an item nothing
+		// wears and every class may hold (a gem, a crafting material) is
+		// left out of it; a class's own spell scroll still shows (petition
+		// 2136, Zerkziee: "it lists gems as well")
+		return false
 	}
 	races := uint32(raceUseForWire(p.RaceUse))
 	switch q.races {

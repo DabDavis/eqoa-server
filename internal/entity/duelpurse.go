@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/economy"
 	"github.com/eqoa/server/internal/session"
 )
 
@@ -169,6 +170,16 @@ func (w *World) settleStakesLocked(d *Duel, loser EntityID) {
 		}
 	}
 	w.queueDuelPurseLocked(op)
+	// the loser's stake, the winner's now (internal/economy)
+	if lose, win := -1, -1; loser == d.A || loser == d.B {
+		lose, win = 0, 1
+		if loser == d.B {
+			lose, win = 1, 0
+		}
+		if l, wi := d.who[lose], d.who[win]; l != nil && wi != nil {
+			economy.Moved(economy.DuelWager, l.CharServerID, l.Name, wi.CharServerID, wi.Name, d.Stake[lose])
+		}
+	}
 	log.Printf("Duel %d: the wager (%d and %d) pays %d and %d", d.ID, d.Stake[0], d.Stake[1], pays[0], pays[1])
 }
 

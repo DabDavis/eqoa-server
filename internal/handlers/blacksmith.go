@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/economy"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
@@ -101,6 +102,7 @@ func (h *NPCWindowHandler) HandleRepair(sess *session.Session, msg *protocol.Mes
 		return nil
 	}
 	player.Tunar -= cost
+	economy.Spent(economy.Repair, player.CharServerID, player.Name, cost)
 	h.saveTunar(player)
 	queueReliable(sess, protocol.OpcodeAdjustItemHP, adjustItemHPPayload(key, p.MaxHP))
 	queueReliable(sess, protocol.OpcodePlayerTunar, tunarPayload(player.Tunar))

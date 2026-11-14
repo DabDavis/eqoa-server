@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/economy"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
@@ -375,6 +376,7 @@ func (h *NPCWindowHandler) buyBack(sess *session.Session, player *entity.Player,
 		return false
 	}
 	player.Tunar -= e.Price
+	economy.Spent(economy.BuyBack, player.CharServerID, player.Name, e.Price)
 	key, _ := inv.add(itemID, p.PatternID, n, p.MaxStack)
 	rec := wireRecord(e.Item)
 	rec.ItemID = itemID

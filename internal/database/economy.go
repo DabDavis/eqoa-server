@@ -311,3 +311,10 @@ func TunarLedgerFirst(q Queryer) int64 {
 	_ = q.QueryRow(`SELECT MIN(hour) FROM tunar_ledger`).Scan(&h)
 	return h.Int64
 }
+
+// OpenReadOnly opens another database file read-only (query_only, a short
+// busy timeout), as the account mirror reads its source: the caller closes it.
+func OpenReadOnly(path string) (*sql.DB, error) {
+	m := &AccountMirror{path: path}
+	return m.open()
+}

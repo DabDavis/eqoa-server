@@ -172,11 +172,18 @@ func meleeKindOf(attackType byte) Stat {
 }
 
 // npcMeleeDebuffPct is how many percent more a creature takes from melee of
-// a kind: its strongest debuff of that melee resist.
-func npcMeleeDebuffPct(npc *NPC, kind Stat, now time.Time) int {
+// a kind: its strongest debuff of that melee resist. attackType is the
+// hitting weapon's (0 an ability's own pierce hit): the rogue's Rakish line
+// raises only a one-handed piercer's hits (attack type 5), in either hand
+// (the owner 2026-11-14: "raskish should only boost 1H pierce even if in
+// offhand/mainhand"), not a two-handed piercer's or a ranged weapon's.
+func npcMeleeDebuffPct(npc *NPC, kind Stat, attackType byte, now time.Time) int {
 	most := 0
 	for _, e := range npc.Effects {
 		if !now.Before(e.Until) {
+			continue
+		}
+		if kind == StatPierce && attackType != 0 && attackType != 5 && isRakish(e.Name) {
 			continue
 		}
 		var v int
@@ -197,7 +204,8 @@ func npcMeleeDebuffPct(npc *NPC, kind Stat, now time.Time) int {
 // of the kind of the weapon that made it (handType: hit its number in the
 // round; a ranged weapon's when it is the ranged one that swings).
 func meleeDebuffed(p *Player, hit int, npc *NPC, n int, now time.Time) int {
-	if pct := npcMeleeDebuffPct(npc, meleeKindOf(p.handType(hit)), now); pct > 0 {
+	t := p.handType(hit)
+	if pct := npcMeleeDebuffPct(npc, meleeKindOf(t), t, now); pct > 0 {
 		return n * (100 + pct) / 100
 	}
 	return n
@@ -218,21 +226,25 @@ func meleeArtDebuffed(d *SpellDef, e SpellEffect, p *Player, npc *NPC, n int, no
 	if n >= 0 || npc == nil || e.DebuffPct != 0 {
 		return n
 	}
-	kind := StatNone
+	kind, t := StatNone, byte(0)
 	switch e.Resist {
 	case StatPierce, StatRanged:
 		kind = StatPierce
+		if e.Resist == StatRanged {
+			t = 10 // a ranged ability's hit is no one-handed piercer's
+		}
 	case StatSlash, StatBlunt:
 		kind = e.Resist
 	case StatNone:
 		if d != nil && d.Backstab && p != nil {
-			kind = meleeKindOf(p.heldType())
+			t = p.heldType()
+			kind = meleeKindOf(t)
 		}
 	}
 	if kind == StatNone {
 		return n
 	}
-	if pct := npcMeleeDebuffPct(npc, kind, now); pct > 0 {
+	if pct := npcMeleeDebuffPct(npc, kind, t, now); pct > 0 {
 		return n * (100 + pct) / 100
 	}
 	return n
@@ -483,4 +495,10 @@ func npcMeleeRollFor(npc *NPC, p *Player) meleeRoll {
 		return creatureRoll(max(npc.Level-p.Mods.DefMod, 1)).withMods(npc.creatureMods()) // its effects' STR and DEX (pet.go)
 	}
 	return npcMeleeRoll(npc)
+}
+
+// isRakish is whether an effect is one of the rogue's Rakish line's
+// (Rakish Lunge, Jab, Strike, Thrust, Assault).
+func isRakish(name string) bool {
+	return strings.HasPrefix(strings.ToLower(name), "rakish ")
 }

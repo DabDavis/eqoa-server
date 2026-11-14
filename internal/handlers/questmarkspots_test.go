@@ -167,3 +167,31 @@ func TestQuestMarksTheWayToAnotherWorld(t *testing.T) {
 		}
 	}
 }
+
+// A hunt step with a place of its own marks the creatures' camps near it, of
+// any size, before a bigger camp far off (petition 5104: Collonridge
+// Cemetery's scattered widows, not Sslathis's six); with none near the place,
+// the camps as before.
+func TestHuntMarkAtTheStepsPlace(t *testing.T) {
+	q := &QuestEngine{}
+	spots := map[string][]entity.NPCSpot{"giant widow": {
+		spotAt(1, "giant widow", 0, 22500, 29500), spotAt(2, "giant widow", 0, 22550, 29520), spotAt(3, "giant widow", 0, 22520, 29560),
+		spotAt(4, "giant widow", 0, 22600, 29600), spotAt(5, "giant widow", 0, 22480, 29450), spotAt(6, "giant widow", 0, 22530, 29530),
+		spotAt(7, "giant widow", 0, 23404, 9092), spotAt(8, "giant widow", 0, 22900, 9500),
+	}}
+	st := &database.QuestStep{Kind: database.StepLoot, Target: "giant widow", World: 0, X: 23100, Z: 9300}
+	_, at := q.stepSpotsLocked(spots, st, 0, 0, 25000, 8800)
+	if len(at) == 0 || at[0].Z > 10000 {
+		t.Fatalf("the cemetery's widows, by the step's place: %v", at)
+	}
+	for _, s := range at {
+		if s.Z > 10000 {
+			t.Errorf("a mark at Sslathis's camp: %v", at)
+		}
+	}
+	// the control: no place on the step: the big camp, as before
+	plain := &database.QuestStep{Kind: database.StepLoot, Target: "giant widow"}
+	if _, at := q.stepSpotsLocked(spots, plain, 0, 0, 25000, 8800); len(at) == 0 || at[0].Z < 20000 {
+		t.Errorf("no place: the camp of six: %v", at)
+	}
+}

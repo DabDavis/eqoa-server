@@ -315,3 +315,83 @@ func TestMercPetPick(t *testing.T) {
 		t.Errorf("after the pick: pet %+v, the air one dead %v", ms.pet, first.Dead)
 	}
 }
+
+// Ticket 2020 (Kyro: "Magician merc still using lvl 1 pet at lvl 13"): a
+// class's usual kind (a magician's earth line, MercKit.PetUsual) is taken only
+// while it keeps up with the book's best (mercPetUsualKeep), a hirer's own
+// pick whatever its rank; and a pet out when its merc's new level's book casts
+// a better one goes, the better one summoned in its place. The controls: a
+// kit made again with the same book keeps its pet; a charmed creature is not
+// let go for a level.
+func TestMercPetFollowsItsLevel(t *testing.T) {
+	r := newMercRig(t)
+	earth := bookSpell(632, "Earth Elementaling", 0, 0, 0, 10, "Summons an Earth Elementaling to aid you")
+	air := bookSpell(648, "Air Elementaling", 0, 0, 0, 10, "Summons an Air Elementaling to aid you")
+	kin := bookSpell(657, "Earth Elementalkin", 0, 0, 0, 10, "Summons an Earth Elementalkin to aid you")
+	water := bookSpell(669, "Water Elementalkin", 0, 0, 0, 10, "Summons a Water Elementalkin to aid you")
+	earth.Level, air.Level, kin.Level, water.Level = 1, 12, 16, 20
+	r.w.mu.Lock() // the bodies the pets wear
+	for i, n := range []string{"Earth Elementaling", "Air Elementaling", "Earth Elementalkin"} {
+		r.w.putNPCLocked(&NPC{ServerID: EntityID(4900 + i), Name: n, Level: 5, HP: 200, MaxHP: 200, ModelID: 0x8A416241, Size: 1,
+			NPCType: 0x80, X: 20000, Z: 20000, World: 0})
+	}
+	r.w.mu.Unlock()
+
+	usual := func(spells ...CastSpell) *CastSpell {
+		k := r.kit(10, 0, 0, spells...)
+		k.PetPick, k.PetUsual = []string{"earth", "badi"}, true
+		return MercPetFor(k)
+	}
+	for _, c := range []struct {
+		book []CastSpell
+		want int
+	}{
+		{[]CastSpell{earth}, 632}, {[]CastSpell{earth, air}, 648}, // 13: the air elementaling, not the earth's of 1
+		{[]CastSpell{earth, air, kin}, 657}, {[]CastSpell{earth, air, kin, water}, 657}, // 16 of 20 keeps up
+	} {
+		if s := usual(c.book...); s == nil || s.SpellID != c.want {
+			t.Errorf("the usual earth of a book of %d: %v, want %d", len(c.book), s, c.want)
+		}
+	}
+	picked := r.kit(10, 0, 0, earth, air)
+	picked.PetPick = []string{"earth", "badi"}
+	if s := MercPetFor(picked); s == nil || s.SpellID != 632 {
+		t.Errorf("earth picked by its hirer: %v, want the earth elementaling", s)
+	}
+
+	// hired at 11 (the earth elementaling, its usual), then 13 (the air)
+	k := r.kit(10, 0, 0, earth)
+	k.PetPick, k.PetUsual = []string{"earth", "badi"}, true
+	ms := r.hire(k, MercAssist)
+	r.run(0, 10*time.Second)
+	if ms.pet == nil || ms.pet.spell != 632 {
+		t.Fatalf("its first pet: %+v", ms.pet)
+	}
+	first := ms.pet.npc
+	r.w.SetMercKit(r.p.CharServerID, 1, k) // the same book: kept
+	if ms.pet == nil || ms.pet.npc != first || first.Dead {
+		t.Fatal("a kit of the same book sent its pet away")
+	}
+	k.Spells = append(k.Spells, air)
+	k.Level = 13
+	r.w.SetMercKit(r.p.CharServerID, 1, k)
+	r.run(10*time.Second+100*time.Millisecond, 20*time.Second)
+	if ms.pet == nil || ms.pet.spell != 648 || !first.Dead {
+		t.Fatalf("at 13: pet %+v, the elementaling of 1 dead %v", ms.pet, first.Dead)
+	}
+
+	// a charmed creature stays through a level
+	r.w.mu.Lock()
+	ms.pet.npc.Charm = &charmHold{}
+	r.w.mu.Unlock()
+	held := ms.pet.npc
+	k.Spells = append(k.Spells, kin)
+	k.Level = 16
+	r.w.SetMercKit(r.p.CharServerID, 1, k)
+	if ms.pet == nil || ms.pet.npc != held || held.Dead {
+		t.Error("a level let its charmed creature go")
+	}
+	r.w.mu.Lock()
+	held.Charm = nil
+	r.w.mu.Unlock()
+}

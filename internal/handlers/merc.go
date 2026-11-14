@@ -642,6 +642,7 @@ func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 	}
 	k.Spells = mercPathBook(row.Class, row.Path, k.Spells) // its path's, no other's (mercpath.go)
 	k.PetPick = mercPetPick(row.Class, row.Pet)            // the pet kind its hirer picked (mercpetkind.go)
+	k.PetUsual = row.Pet == "" && len(k.PetPick) > 0       // its class's usual kind, no pick of its hirer's
 	return k, err
 }
 

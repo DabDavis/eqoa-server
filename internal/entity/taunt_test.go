@@ -47,13 +47,15 @@ func TestATauntTakesTheTop(t *testing.T) {
 	if boss.CurrentEnemy != me {
 		t.Fatalf("after Goad the boss fights %d, want the taunter %d", boss.CurrentEnemy, me)
 	}
-	if got, want := boss.Threats[me], int64(100_000+goadHate); got != want {
-		t.Errorf("the taunter's threat is %d, want the top (100000) and Goad's %d: %d", got, goadHate, want)
+	// Goad's 970 is under the margin a pet's taunt gets, 10% of the top (pettaunttank.go): 10,000, and
+	// the cast's anger of 1
+	if got, want := boss.Threats[me], int64(100_000+10_000+1); got != want {
+		t.Errorf("the taunter's threat is %d, want the top (100000) and 10%% of it: %d", got, want)
 	}
 
 	r.p.artReady = time.Time{} // its 0.5 s over (TestATauntLandsAtOnceThenHoldsHalfASecond)
 	r.cast(t, goad(), boss.ServerID)
-	if got, want := boss.Threats[me], int64(100_000+2*goadHate); got != want || boss.CurrentEnemy != me {
+	if got, want := boss.Threats[me], int64(100_000+2*(10_000+1)); got != want || boss.CurrentEnemy != me {
 		t.Errorf("a second Goad on top: threat %d (want %d), enemy %d", got, want, boss.CurrentEnemy)
 	}
 
@@ -160,8 +162,8 @@ func TestAResistedTauntChangesNothing(t *testing.T) {
 		switch {
 		case resisted && (boss.CurrentEnemy != dps || boss.Threats[me] != 1):
 			t.Errorf("a resisted taunt: enemy %d (want %d), the taunter's threat %d (want 1)", boss.CurrentEnemy, dps, boss.Threats[me])
-		case !resisted && (boss.CurrentEnemy != me || boss.Threats[me] != 100_000+954+1):
-			t.Errorf("the taunt not resisted: enemy %d (want %d), threat %d (want %d)", boss.CurrentEnemy, me, boss.Threats[me], 100_000+954+1)
+		case !resisted && (boss.CurrentEnemy != me || boss.Threats[me] != 100_000+10_000+1): // 10% of the top over 954 (pettaunttank.go)
+			t.Errorf("the taunt not resisted: enemy %d (want %d), threat %d (want %d)", boss.CurrentEnemy, me, boss.Threats[me], 100_000+10_000+1)
 		}
 	}
 }
@@ -246,10 +248,11 @@ func TestATanksTauntGivesFivePercentMore(t *testing.T) {
 		class int
 		want  int64
 	}{
-		{13, 100_000 + goadHate},            // a wizard's: the top and Goad's
-		{0, 105_000 + (970*105+50)/100 + 1}, // a warrior's: 105% of the raise and of Goad's
-		{3, 105_000 + (970*105+50)/100 + 1}, // a shadow knight's
-		{2, 105_000 + (970*105+50)/100 + 1}, // a paladin's
+		// Goad's 970 under the floor of 10% of the top (pettaunttank.go): its 10,000 the taunt's hate
+		{13, 100_000 + 10_000 + 1}, // a wizard's: the top and the floor
+		{0, 105_000 + 10_500 + 1},  // a warrior's: 105% of the raise and of the floor
+		{3, 105_000 + 10_500 + 1},  // a shadow knight's
+		{2, 105_000 + 10_500 + 1},  // a paladin's
 	} {
 		r, boss, _ := tauntRig(t)
 		r.p.Class = c.class

@@ -100,7 +100,10 @@ func pctOf(n int64, pct int) int64 {
 // its friends called), both at pct percent (playerTauntHatePct: a tank's 105). A dummy, a Metal
 // Moogie's challenge and a familiar keep their own rules (updateAggro and addThreatLocked refuse
 // them). Must be called with the lock held.
-func (w *World) tauntHateLocked(npc *NPC, by EntityID, hate, pct int) {
+//
+// level is the player's (pettaunttank.go: the hate is at least the margin a pet of that level's
+// taunt takes the creature by, playerTauntFloor); 0 keeps the taunt's own hate.
+func (w *World) tauntHateLocked(npc *NPC, by EntityID, hate, pct, level int) {
 	if hate <= 0 {
 		w.updateAggro(npc, by, hate) // a taunt's hate that takes away (none of the records'): as ever
 		return
@@ -117,6 +120,9 @@ func (w *World) tauntHateLocked(npc *NPC, by EntityID, hate, pct int) {
 		}
 		if was := npc.Threats[by]; was < top {
 			npc.Threats[by] = was + pctOf(top-was, pct)
+		}
+		if level > 0 {
+			hate = int(playerTauntFloor(hate, level, top)) // pettaunttank.go
 		}
 	}
 	w.updateAggro(npc, by, int(pctOf(int64(hate), pct)))

@@ -127,6 +127,9 @@ func TestAuraEasyWords(t *testing.T) {
 		// where along the weapon (2026-11-14): along=N (or N%) on a hand, the look's own 45 by default
 		{"druid staff glow along=30", auraSpec{A: database.ItemAura{Kind: database.AuraEpic, Source: 0xCBF4135A, Nodes: 30}, Where: auraBothHands, Look: "druid staff glow"}},
 		{"epic mainhand source=5FD4AE7C along=60%", auraSpec{A: database.ItemAura{Kind: database.AuraEpic, Source: 0x5FD4AE7C, Nodes: 60}, Where: entity.AuraMainHand}},
+		{"monk circlet", auraSpec{A: database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD}, Where: entity.AuraHelm, Look: "monk circlet"}},
+		{"gold monk_circlet head", auraSpec{A: database.ItemAura{Color: 0xFFC040FF, Kind: database.AuraCirclet, Source: 0x1D875ECD}, Where: entity.AuraHelm, Look: "monk circlet"}},
+		{"circlet helm source=1D875ECD", auraSpec{A: database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD}, Where: entity.AuraHelm}},
 		{"sickle taint epic weapons", auraSpec{A: database.ItemAura{Kind: database.AuraEpic, Source: 0x5FD4AE7C}, Where: auraBothHands, Look: "sickle taint"}},
 	} {
 		got, err := parseAuraEasy(strings.Fields(c.in))
@@ -274,6 +277,20 @@ func TestGMAuraEasyCommand(t *testing.T) {
 	if a := c.gw.PieceAurasOf(pp); a[entity.AuraMainHand].Nodes != 30 || a[entity.AuraOffHand].Nodes != 45 {
 		t.Fatalf("along: %+v", a)
 	}
+	// the monk circlet (2026-11-14): the helm's slot, whether a helm is worn or not
+	c.say(gs, "/aura monk circlet")
+	if l := gmReplies(t, gs); !hasLine(l, "Player's helm: now a circlet of 1D875ECD") || !hasLine(l, "(monk circlet)") {
+		t.Fatalf("/aura monk circlet: %q", l)
+	}
+	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraHelm] != (database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD}) {
+		t.Fatalf("the circlet, no helm worn: %+v", a)
+	}
+	c.say(gs, "/aura monk circlet chest")
+	if l := gmReplies(t, gs); !hasLine(l, "a circlet goes round the head") {
+		t.Fatalf("a circlet on the chest: %q", l)
+	}
+	c.say(gs, "/aura off helm")
+	gmReplies(t, gs)
 	c.say(gs, "/aura druid staff glow chest")
 	if l := gmReplies(t, gs); !hasLine(l, "epic is a held weapon's look") {
 		t.Fatalf("a named epic look on a piece: %q", l)
@@ -318,7 +335,7 @@ func TestGMAuraEasyCommand(t *testing.T) {
 	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraChest].Kind != database.AuraTrim || a[entity.AuraBody] != (database.ItemAura{}) {
 		t.Fatalf("taken away: the item's own back: %+v", a)
 	}
-	if auditLines(t, db, "charaura", "delete") != 6 {
+	if auditLines(t, db, "charaura", "delete") != 7 {
 		t.Fatal("the deletes not audited")
 	}
 
@@ -339,6 +356,10 @@ func TestGMAuraEasyCommand(t *testing.T) {
 	c.say(gs, "/aura epic source=5FD4AE7C")
 	if l := gmReplies(t, gs); !hasLine(l, "epic is a held weapon's look") {
 		t.Fatalf("epic on a creature: %q", l)
+	}
+	c.say(gs, "/aura monk circlet wholebody")
+	if l := gmReplies(t, gs); !hasLine(l, "a circlet is a player's") {
+		t.Fatalf("a circlet on a creature: %q", l)
 	}
 	c.say(gs, "/aura off wholebody")
 	if tints := c.gw.NPCTints(); len(tints) != 0 {

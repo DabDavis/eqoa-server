@@ -32,6 +32,14 @@
        20935), the canyon's floor 215 south of it, reached from the canyon (step 3's Armis is spawned beside the
        player; his standing row on the mesa is left). quests are read at the server's start: a restart (a keep
        restart's before.sh).
+  5023 (Trulyblind, Live): "the Spirit OF Rolyat Haley and Ghostly Mage are in the wrong spot, and there is 2 Ghostly
+       Mages". Dueler's Crest (Collonridge; the plateau at 70 with the duelers' platform at 86, the skeletal dogs,
+       lost thoughts and the maundering soul) holds the ghostly mage (npcs 1346, on the plateau), the Spirit of Rolyat
+       Haley (2473, on the platform) and a second Spirit of Rolyat Haley (2977) 29 from the mage: FrontiersForge's
+       sighting of both at one spot (23508, 9298: the watcher's place, not the creature's), the mage's matched to 1346,
+       Rolyat's promoted as a new row (tools/import_ff_npcs.py --promote). Rolyat wears the mage's ghost body
+       (3965346723) at its size (1.3): the "second ghostly mage". npcs 2977 and its npcrespawn row are deleted (the
+       rows kept in the log for --undo). npcs are read at the server's start: a restart.
   5021 (Innoruuk, Live): "Wrong form for level 16 mage pet". The magician's level 16 pet, Earth Elementalkin (657,
        workbook pet 001C), wore the Earth Elementaling's body (931615263, 0x3787521F: floating rocks). -> 931615264
        (0x37875220), the elementalkin's (the NPCs "Earth Elementalkin" wear it). Both shards had it.
@@ -67,6 +75,7 @@ DETAILS = {
     2071: "petition 2071 (Lonewulf): Queen Saersalia's Circlet a head piece (it was made from a held item)",
     2072: "petition 2072 (Fullmetal): Robe of the Frozen Throne is a tunic: named so",
     2073: "petition 2073 (Fullmetal): Gaulin's abandoned camp on Box Canyon's floor, not on the mesa top",
+    5023: "petition 5023 (Trulyblind): one Spirit of Rolyat Haley on Dueler's Crest, not two",
     5021: "petition 5021 (Innoruuk): the level 16 Earth Elementalkin wears the elementalkin's body, not the elementaling's",
 }
 
@@ -92,13 +101,16 @@ def compact(v):
 
 
 def audit(db, ticket, tbl, keycol, keyval, col, before, after):
+    action = "update" if col != ROW else ("delete" if after is None else "insert")
+    if col == ROW:
+        before, after = ({} if before is None else before), ({} if after is None else after)
     acct = db.execute("SELECT accountid FROM accountinfo WHERE username = ?", (WHO,)).fetchone() if table(db, "accountinfo") else None
     at = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     cur = db.execute("INSERT INTO gm_audit (at, accountid, username, via, ip, action, tbl, rowkey, before, after, detail) "
-                     "VALUES (?, ?, ?, ?, '', 'update', ?, ?, ?, ?, ?)",
-                     (at, acct[0] if acct else 0, WHO, VIA, tbl,
+                     "VALUES (?, ?, ?, ?, '', ?, ?, ?, ?, ?, ?)",
+                     (at, acct[0] if acct else 0, WHO, VIA, action, tbl,
                       compact(dict(zip(str(keycol).split(","), (int(v) for v in str(keyval).split(","))))),
-                      compact({col: before}), compact({col: after}), DETAILS[ticket] + ": tools/tix2067_20261114.py"))
+                      compact(before if col == ROW else {col: before}), compact(after if col == ROW else {col: after}), DETAILS[ticket] + ": tools/tix2067_20261114.py"))
     return cur.lastrowid
 
 
@@ -150,6 +162,18 @@ class Plan:
         self.changes.append((ticket, tbl, ",".join(keycols), ",".join(str(k) for k in keys), col, v, after))
         self.lines.append(f"{ticket}: {tbl} {keys} ({label}) {col} {v!r} -> {after!r}")
 
+    def delete(self, ticket, tbl, keycol, key, label, check):
+        row = rowdict(self.db, f"SELECT * FROM {tbl} WHERE {keycol} = ?", (key,))
+        if row is None:
+            self.lines.append(f"{ticket}: {tbl} {key} ({label}) not there: nothing to delete")
+            return
+        bad = check(row)
+        if bad:
+            self.refusals.append(f"{ticket}: {tbl} {key}: {bad}")
+            return
+        self.changes.append((ticket, tbl, keycol, key, ROW, row, None))
+        self.lines.append(f"{ticket}: {tbl} {key} ({label}) deleted")
+
     def stack(self, ticket, spellid, name, want, new):
         r = self.db.execute("SELECT p.spellname, e.effects FROM spellpattern p JOIN spelleffect e USING(spellid) "
                             "WHERE p.spellid = ?", (spellid,)).fetchone()
@@ -175,6 +199,12 @@ class Plan:
         eff["stack"] = new
         self.changes.append((ticket, "spelleffect", "spellid", spellid, "effects", text, compact(eff)))
         self.lines.append(f"{ticket}: spelleffect {spellid} ({name}) stack {want} -> {new}")
+
+
+def rowdict(db, sql, args):
+    cur = db.execute(sql, args)
+    r = cur.fetchone()
+    return None if r is None else dict(zip([d[0] for d in cur.description], r))
 
 
 def db_row(db, tbl, keycol, key):
@@ -216,15 +246,40 @@ def plan(db, only):
         for col, old, new in (("x", 20937.0, CAMP[0]), ("y", 54.0, CAMP[1]), ("z", 20722.0, CAMP[2])):
             p.column_where(2073, "queststeps", ("questid", "step"), (101278, 2), col, (old,), new,
                            "Harbingers of Khalimet step 2, the camp", chk)
+    if 5023 in only:
+        def dup(r):
+            if r["npc_name"] != "Spirit of Rolyat Haley" or r["world"] != 0 or abs(r["x_coord"] - 23508.4) > 2 or abs(r["z_coord"] - 9298.3) > 2:
+                return f"{r['npc_name']!r} in world {r['world']} at ({r['x_coord']}, {r['z_coord']}), not the second Rolyat"
+            if rowdict(db, "SELECT id FROM npcs WHERE id = 2473 AND npc_name = 'Spirit of Rolyat Haley'", ()) is None:
+                return "the first Spirit of Rolyat Haley (2473) is not there: this one would be the only one"
+            return None
+        p.delete(5023, "npcs", "id", 2977, "the second Spirit of Rolyat Haley (FrontiersForge's sighting)", dup)
+        if table(db, "npcrespawn"):
+            p.delete(5023, "npcrespawn", "npc_row", 2977, "its respawn row",
+                     lambda r: None if r["seconds"] == 90.0 else f"seconds {r['seconds']}")
     if 5021 in only:
         p.column(5021, "petstats", "spellid", 657, "model", (931615263,), 931615264, "Earth Elementalkin",
                  check=lambda r: None if r["name"] == "Earth Elementalkin" else f"name {r['name']!r}")
     return p
 
 
+ROW = "*row*"  # a change of a whole row: before None an insert, after None a delete (the row as a dict)
+
+
 def write(db, tbl, keycol, keyval, col, before, after):
     cols, vals = str(keycol).split(","), [int(v) for v in str(keyval).split(",")]
     where = " AND ".join(f"{c} = ?" for c in cols)
+    if col == ROW:
+        now = rowdict(db, f"SELECT * FROM {tbl} WHERE {where}", vals)
+        if after is None:  # delete: the row must be as it was read
+            if now != before:
+                return False
+            return db.execute(f"DELETE FROM {tbl} WHERE {where}", vals).rowcount == 1
+        if now is not None:  # insert: nothing there
+            return False
+        names = list(after)
+        db.execute(f"INSERT INTO {tbl} ({', '.join(names)}) VALUES ({', '.join('?' * len(names))})", [after[n] for n in names])
+        return True
     cur = db.execute(f"UPDATE {tbl} SET {col} = ? WHERE {where} AND {col} IS ?", (after, *vals, before))
     return cur.rowcount == 1
 

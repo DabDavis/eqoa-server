@@ -65,7 +65,7 @@ var auraKinds = map[string]uint8{"default": database.AuraDefault, "none": databa
 	"particles": database.AuraParticles, "both": database.AuraBoth, "trim": database.AuraTrim, "trimshell": database.AuraTrimShell}
 
 // auraKindNames are the kinds' names by number.
-var auraKindNames = [...]string{"default", "none", "shell", "particles", "both", "trim", "trimshell", "epic", "circlet"}
+var auraKindNames = [...]string{"default", "none", "shell", "particles", "both", "trim", "trimshell", "epic", "circlet", "energy"}
 
 // parseHex32 reads a 32-bit hex value, with or without 0x.
 func parseHex32(s string) (uint32, bool) {
@@ -191,7 +191,7 @@ var auraPieceNames = [entity.AuraSlots]string{"chest", "bracers", "gloves", "leg
 // auraEasyKinds are the easy words' kinds (off is apart).
 var auraEasyKinds = map[string]uint8{"shell": database.AuraShell, "particles": database.AuraParticles,
 	"sparkles": database.AuraParticles, "both": database.AuraBoth, "trim": database.AuraTrim, "trimshell": database.AuraTrimShell,
-	"default": database.AuraDefault, "epic": database.AuraEpic, "circlet": database.AuraCirclet}
+	"default": database.AuraDefault, "epic": database.AuraEpic, "circlet": database.AuraCirclet, "energy": database.AuraEnergy}
 
 // auraSpec is the easy words read.
 type auraSpec struct {
@@ -429,7 +429,7 @@ func parseAuraEasy(args []string) (sp auraSpec, err error) {
 		}
 		sp.A.Kind = database.AuraShell
 	}
-	if !color && sp.A.Kind != database.AuraParticles && sp.A.Kind != database.AuraEpic && sp.A.Kind != database.AuraCirclet {
+	if !color && sp.A.Kind != database.AuraParticles && sp.A.Kind != database.AuraEpic && sp.A.Kind != database.AuraCirclet && sp.A.Kind != database.AuraEnergy {
 		return sp, fmt.Errorf("name a colour (only particles and epic need none: they keep the source's own)")
 	}
 	return sp, nil
@@ -574,7 +574,7 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 				continue
 			}
 			if slot == database.CharAuraMainHand || slot == database.CharAuraOffHand {
-				h.gmReply(sess, "/aura: a held weapon takes epic or particles: /aura epic weapons source=Sickle_of_Avhi_Escron, /aura particles mainhand source=<item>")
+				h.gmReply(sess, "/aura: a held weapon takes epic, energy or particles: /aura epic weapons source=Sickle_of_Avhi_Escron, /aura energy offhand source=<item>")
 			} else if sp.A.Kind == database.AuraCirclet {
 				h.gmReply(sess, "/aura: a circlet goes round the head: /aura monk circlet (or helm/head)")
 			} else {

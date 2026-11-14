@@ -61,13 +61,13 @@ func TestNPCTintAuras(t *testing.T) {
 		kind uint8
 		want bool
 	}{{0, AuraDefault, false}, {0xFF0000FF, AuraDefault, true}, {0xFF0000FF, AuraNone, false}, {0, AuraShell, false},
-		{0xFF000000, AuraShell, false}, {0, AuraParticles, true}, {0, AuraBoth, true}, {0xFF0000FF, 9, true}, {0, 9, false},
+		{0xFF000000, AuraShell, false}, {0, AuraParticles, true}, {0, AuraBoth, true}, {0xFF0000FF, 10, true}, {0, 10, false},
 		// the trim kinds, and a dark (black) aura: named outright it shows,
 		// the default and none draw nothing of black, and alpha 0 is none
 		{0xFFC040FF, AuraTrim, true}, {0xFFC040FF, AuraTrimShell, true}, {0x000000FF, AuraTrim, true},
 		{0x000000FF, AuraTrimShell, true}, {0x000000FF, AuraShell, true}, {0x000000FF, AuraBoth, true},
 		{0x000000FF, AuraDefault, false}, {0x000000FF, AuraNone, false}, {0x00000000, AuraTrim, false},
-		{0x10001880, AuraTrim, true}, {0xFFC04000, AuraTrim, false}, {0x000000FF, 9, false}, {0, AuraCirclet, true},
+		{0x10001880, AuraTrim, true}, {0xFFC04000, AuraTrim, false}, {0x000000FF, 10, false}, {0, AuraCirclet, true}, {0, AuraEnergy, true},
 		// epic (a held item's alone, charaura 9 and 10): the source's own
 		// look, so it shows with any colour or none
 		{0, AuraEpic, true}, {0x000000FF, AuraEpic, true}, {0xFF2020FF, AuraEpic, true}} {

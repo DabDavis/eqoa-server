@@ -317,7 +317,9 @@ var catalog = map[string]tableNote{
 			"kind 2 a colour, 3 a texture; value the colour (a mode in the high byte: 1 a dye, 2 a tone, then three bytes) or " +
 			"the texture's DictID, as creation wrote it from the race's steps. Drawn only by vanilla, which is told them, and " +
 			"only on the body the character wears as its own (characters.modelid: a body it chose is that, not a row here): " +
-			"under an illusion or an armour body it is that body. A PS2 never sees one. A part with no row is the body's own.",
+			"under an illusion or an armour body it is that body. A PS2 never sees one. A part with no row is the body's own. " +
+			"A GM's colours on the game's races (entity/gmlooks.go; /aura <colour> hair|gnomecap|glasses in the game): part haircolour " +
+			"(every race's hair), gnomecap and glasses (a gnome's), kind 2, value a paint (mode 8: a dye with the part's layer white).",
 		Live:   "At once: every client that shows looks is sent the list again, and draws it from its next frame.",
 		Search: []string{"part", "note", "source"},
 		Cols: map[string]colNote{

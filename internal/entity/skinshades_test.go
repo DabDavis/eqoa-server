@@ -23,7 +23,7 @@ func withSkins(t *testing.T, on bool) {
 func TestEveryGameRaceHasItsSkinShades(t *testing.T) {
 	withSkins(t, false)
 	for race := range 10 {
-		if rows := RaceOptions(race); len(rows) != 0 {
+		if rows := RaceOptionsFor(race, raceAnswerNewest); len(rows) != 0 { // the offered rows (the GM rows, gmlooks.go, never are)
 			t.Fatalf("the control: race %d has rows on a server without shades: %+v", race, rows)
 		}
 	}
@@ -34,7 +34,7 @@ func TestEveryGameRaceHasItsSkinShades(t *testing.T) {
 		8: {0x320C0B47, 0x4F1A3CBE}, 9: {0x84807490, 0xACC00B4F},
 	}
 	for race, b := range bodies {
-		rows := RaceOptions(race)
+		rows := RaceOptionsFor(race, raceAnswerNewest)
 		if len(rows) != 1 || rows[0].Key != "skin" || rows[0].Kind != KindColour {
 			t.Fatalf("race %d: %+v", race, rows)
 		}

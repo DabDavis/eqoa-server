@@ -58,10 +58,10 @@ func stripSpell(a database.TemplateAbility) *CastSpell {
 // them), or that does nothing the server reads (a buff's icon alone). Never a harmful spell's
 // (Rules.Harm: a creature's debuff), a duel's or a PvP foe's (duelFoe), a creature's damage over
 // time (npcFoe), a price that gives nothing (a pact's paid on its caster, apart from what it
-// gave), or the towns' Boon.
+// gave), the towns' Boon or a GM's reward (gmrewardxp.go).
 func beneficialEffect(ae *ActiveEffect) bool {
 	switch {
-	case ae.Rules.Harm || ae.duelFoe != 0 || ae.npcFoe != 0 || ae.SpellID == BoonEffectID || ae.Rules.Kept:
+	case ae.Rules.Harm || ae.duelFoe != 0 || ae.npcFoe != 0 || outlivesDeath(ae.SpellID) || ae.Rules.Kept:
 		return false
 	case ae.gives():
 		return true

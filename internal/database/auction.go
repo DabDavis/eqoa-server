@@ -77,7 +77,8 @@ const auctionSchema = `
 		item_from   INTEGER NOT NULL DEFAULT 0,
 		item_to     INTEGER NOT NULL DEFAULT 0,
 		per_item    INTEGER NOT NULL DEFAULT 0,
-		demand      INTEGER NOT NULL DEFAULT 0
+		demand      INTEGER NOT NULL DEFAULT 0,
+		perpetual   INTEGER NOT NULL DEFAULT 0
 	);
 	CREATE INDEX IF NOT EXISTS idx_auction_lots_state ON auction_lots(state, ends_at);
 	CREATE INDEX IF NOT EXISTS idx_auction_lots_seller ON auction_lots(seller);
@@ -119,6 +120,7 @@ const auctionSchema = `
 var auctionColumns = []struct{ table, col, decl string }{
 	{"auction_lots", "per_item", `INTEGER NOT NULL DEFAULT 0`},
 	{"auction_lots", "demand", `INTEGER NOT NULL DEFAULT 0`},
+	{"auction_lots", "perpetual", `INTEGER NOT NULL DEFAULT 0`},
 	{"auction_bids", "qty", `INTEGER NOT NULL DEFAULT 1`},
 	{"auction_bids", "seq", `INTEGER NOT NULL DEFAULT 0`},
 	{"auction_bids", "won", `INTEGER NOT NULL DEFAULT 0`},
@@ -212,6 +214,10 @@ type AuctionLot struct {
 	// Demand is how many items the bids that hold escrow ask for (Multi):
 	// with fewer than the stack a unit is still free at the starting bid.
 	Demand int
+	// Perpetual: a standing lot of the house's own (auction_perpetual.go),
+	// never ending and never running out: a buy at its buyout files the
+	// items into the buyer's bank and leaves it up.
+	Perpetual bool
 }
 
 // Multi reports a lot sold by the item in more than one unit: the highest
@@ -224,7 +230,7 @@ func (l *AuctionLot) Bundle() bool { return !l.PerItem && l.Item.StackLeft >= 2 
 
 // Running reports a lot still taking bids: open and its time not up.
 func (l *AuctionLot) Running(now time.Time) bool {
-	return l.State == AuctionOpen && now.Unix() < l.EndsAt
+	return l.State == AuctionOpen && (l.Perpetual || now.Unix() < l.EndsAt)
 }
 
 // CurrentBid is the lot's current bid, -1 with none (the page's second
@@ -328,18 +334,19 @@ func execOneTx(tx sqlRunner, query string, args ...any) error {
 
 const auctionLotColumns = `l.lot, l.seller, l.seller_name, l.stack, l.remainhp, l.charges, l.item_from,
 	l.min_bid, l.buyout, l.fee, l.listed_at, l.ends_at, l.state, l.high_bidder, l.high_name,
-	l.high_max, l.price, l.bids, l.closed_at, l.holder, l.delivered, l.item_to, l.per_item, l.demand, ` + itemPatternColumns
+	l.high_max, l.price, l.bids, l.closed_at, l.holder, l.delivered, l.item_to, l.per_item, l.demand, l.perpetual, ` + itemPatternColumns
 
 func scanAuctionLot(scan func(...any) error) (AuctionLot, error) {
 	var l AuctionLot
-	var delivered, perItem int
+	var delivered, perItem, perpetual int
 	err := scan(append([]any{
 		&l.ID, &l.Seller, &l.SellerName, &l.Item.StackLeft, &l.Item.RemainHP, &l.Item.Charges, &l.Item.ItemID,
 		&l.MinBid, &l.Buyout, &l.Fee, &l.ListedAt, &l.EndsAt, &l.State, &l.High, &l.HighName,
-		&l.HighMax, &l.Price, &l.Bids, &l.ClosedAt, &l.Holder, &delivered, &l.ItemTo, &perItem, &l.Demand,
+		&l.HighMax, &l.Price, &l.Bids, &l.ClosedAt, &l.Holder, &delivered, &l.ItemTo, &perItem, &l.Demand, &perpetual,
 	}, patternDest(&l.Item.Pattern)...)...)
 	l.Delivered = delivered != 0
 	l.PerItem = perItem != 0
+	l.Perpetual = perpetual != 0
 	l.Item.EquipLoc, l.Item.Location = -1, -1
 	return l, err
 }
@@ -583,6 +590,9 @@ type AuctionBidRequest struct {
 	// A stack a disc client put up whole is shown to it at each item's share
 	// of the prices, and it bids for the whole stack: Amount x Qty.
 	LiveForm bool
+	// Perpetual lets a bid buy from the house's standing lots
+	// (world.perpetual_auctions); without it they are closed to bids.
+	Perpetual bool
 }
 
 // AuctionBidKind is what a bid did.
@@ -594,6 +604,7 @@ const (
 	BidTookLead                        // over the leader's proxy: it leads, the old leader's escrow went back
 	BidOutbid                          // at or under the leader's proxy: outbid at once, nothing held
 	BidBoughtOut                       // at the buyout: the lot is the bidder's, settled at once
+	BidPerpetual                       // bought from a standing lot: the items in the bank, the lot still up
 )
 
 // AuctionRefund is an outbid leader's escrow returned to its bank.
@@ -620,6 +631,8 @@ type AuctionBidResult struct {
 	// (their escrow back), and the units this one wins now.
 	Refunds []AuctionRefund
 	Units   int
+	// Bought: a buy from a standing lot of the house's (BidPerpetual).
+	Bought *AuctionPurchase
 }
 
 // AuctionBid places a bid, in one transaction: the escrow out of the
@@ -635,8 +648,11 @@ func (db *SQLiteDB) AuctionBid(req AuctionBidRequest) (AuctionBidResult, error) 
 		if err != nil {
 			return err
 		}
-		if !ok || !l.Running(req.Now) {
+		if !ok || !l.Running(req.Now) || (l.Perpetual && !req.Perpetual) {
 			return refuseAuction("You cannot bid on a closed auction.") // word 1776
+		}
+		if l.Perpetual {
+			return buyPerpetualTx(tx, req, l, &res)
 		}
 		if l.Seller == req.Bidder {
 			return refuseAuction("You cannot bid on your own auctions.") // word 1775
@@ -834,7 +850,7 @@ func (db *SQLiteDB) AuctionSettle(lot int, now time.Time) (AuctionSettlement, bo
 	settled := false
 	err := db.auctionTx(func(tx *sql.Tx) error {
 		l, ok, err := auctionLotTx(tx, lot)
-		if err != nil || !ok || l.State != AuctionOpen {
+		if err != nil || !ok || l.State != AuctionOpen || l.Perpetual {
 			return err
 		}
 		if st, err = settleTx(tx, l, now); err != nil {
@@ -1200,7 +1216,7 @@ type AuctionSweep struct {
 // a closed lot's item whose holder is gone is marked delivered.
 func (db *SQLiteDB) AuctionSettleDue(now time.Time) (AuctionSweep, error) {
 	var sw AuctionSweep
-	orphans, err := auctionLots(db, `WHERE l.state = ? AND NOT EXISTS
+	orphans, err := auctionLots(db, `WHERE l.state = ? AND l.perpetual = 0 AND NOT EXISTS
 		(SELECT 1 FROM characters c WHERE c.serverid = l.seller) ORDER BY l.lot`, AuctionOpen)
 	if err != nil {
 		return sw, err
@@ -1309,7 +1325,8 @@ func (db *SQLiteDB) AuctionSettleDue(now time.Time) (AuctionSweep, error) {
 		}
 		sw.Refunds = append(sw.Refunds, rfs...)
 	}
-	due, err := auctionLots(db, `WHERE l.state = ? AND l.ends_at <= ? ORDER BY l.ends_at, l.lot`, AuctionOpen, now.Unix())
+	due, err := auctionLots(db, `WHERE l.state = ? AND l.perpetual = 0 AND l.ends_at <= ? ORDER BY l.ends_at, l.lot`,
+		AuctionOpen, now.Unix())
 	if err != nil {
 		return sw, err
 	}
@@ -1325,15 +1342,16 @@ func (db *SQLiteDB) AuctionSettleDue(now time.Time) (AuctionSweep, error) {
 	return sw, nil
 }
 
-// AuctionOpenLots is every lot taking bids, newest first.
+// AuctionOpenLots is every lot taking bids, newest first (the house's
+// standing lots among them, whatever their end).
 func (db *SQLiteDB) AuctionOpenLots(now time.Time) ([]AuctionLot, error) {
-	return auctionLots(db, `WHERE l.state = ? AND l.ends_at > ? ORDER BY l.lot DESC`, AuctionOpen, now.Unix())
+	return auctionLots(db, `WHERE l.state = ? AND (l.ends_at > ? OR l.perpetual = 1) ORDER BY l.lot DESC`, AuctionOpen, now.Unix())
 }
 
 // AuctionClosedLots is every lot sold or unsold since then (or whose time is
 // up), newest first: a search's "Status: Closed".
 func (db *SQLiteDB) AuctionClosedLots(now time.Time, since time.Time) ([]AuctionLot, error) {
-	return auctionLots(db, `WHERE (l.state = ? AND l.ends_at <= ?) OR (l.state IN (?, ?) AND l.closed_at >= ?)
+	return auctionLots(db, `WHERE (l.state = ? AND l.perpetual = 0 AND l.ends_at <= ?) OR (l.state IN (?, ?) AND l.closed_at >= ?)
 		ORDER BY l.lot DESC`, AuctionOpen, now.Unix(), AuctionSold, AuctionUnsold, since.Unix())
 }
 

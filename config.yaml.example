@@ -62,6 +62,13 @@ world:
   # a player's, while the button is held; a PS2 in a dialogue box. Off unless
   # set (the Heirloom Test Server sets it).
   # mob_info: true
+
+  # The auction house's standing lots (handlers/auction_perpetual.go): lots
+  # that never end and never run out, a buy at the price putting the items in
+  # the buyer's bank and leaving the lot up (tools/ah_materials_20261114.py
+  # puts the crafting materials up, seller "ilovetesters"). Off unless set:
+  # such lots are then left out of every search and refused as closed.
+  # perpetual_auctions: true
   # A GM's #reward (/reward) as the reward of experience: 10% more experience
   # for 30 minutes of play on the GM's target, a player (handlers/rewardxp.go,
   # petition 5033). Unset: #reward is GM's Reward, the buff (handlers/reward.go).

@@ -135,7 +135,11 @@ func (wp WeaponProc) Explain() string {
 	case ProcHit:
 		what = fmt.Sprintf("hits for %s %s damage", figure, strings.ToLower(StatName(wp.Resist)))
 	case ProcTap:
-		what = fmt.Sprintf("taps %s (%s): the damage landed comes back to the wielder as health", figure, strings.ToLower(StatName(wp.Resist)))
+		back := "health"
+		if wp.PowerBack {
+			back = "power"
+		}
+		what = fmt.Sprintf("taps %s (%s): the damage landed comes back to the wielder as %s", figure, strings.ToLower(StatName(wp.Resist)), back)
 	case ProcDoT:
 		what = fmt.Sprintf("lays %s %s damage every 6 s for %.0f s", figure, strings.ToLower(StatName(wp.Resist)), procDoTFor.Seconds())
 	case ProcCalm:

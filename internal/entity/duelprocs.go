@@ -185,7 +185,7 @@ func (w *World) duelWeaponProcLocked(d *Duel, p *Player, sess *session.Session, 
 	log.Printf("%s: %s's %q hits %s for %d", d.tag(), p.Name, wp.Item, m.name(), n)
 	over := w.duelHurtMarkLocked(d, p, m, n, now, numberProc)
 	if wp.Kind == ProcTap && !p.IsDead() {
-		w.procHealLocked(p, sess, p, d.hit(n))
+		w.tapBackLocked(p, sess, wp, d.hit(n))
 	}
 	return over
 }

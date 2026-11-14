@@ -158,6 +158,21 @@ func (w *World) CountNear(name string, world uint8, x, z, reach float32) int {
 	return len(w.npcsNearLocked(name, world, x, z, reach))
 }
 
+// MarkSpawn sets what a trigger's spawn step asks of its copy beyond hostile and
+// attackable: untouchable sets its NPC bit (no player hurts it, it attacks no one:
+// the Erych Arbiter asleep in her ring), noloot makes its corpse one of nothing.
+func (w *World) MarkSpawn(id EntityID, untouchable, noloot bool) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if c := w.NPCs[id]; c != nil {
+		if untouchable {
+			c.NPCType |= 0x80
+			c.EventAggro = false
+		}
+		c.NoLoot = noloot
+	}
+}
+
 // MakeAttackable clears a copy's NPC bit, and no more: it does not attack on sight.
 func (w *World) MakeAttackable(id EntityID) {
 	w.mu.Lock()

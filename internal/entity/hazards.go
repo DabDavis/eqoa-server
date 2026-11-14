@@ -116,6 +116,41 @@ func hazardWords(h *database.Hazard, n int) string {
 	return fmt.Sprintf("%s hurts you for %d.", name, n)
 }
 
+// orName is a hazard's name, or what its lines call one with none.
+func orName(n string) string {
+	if n == "" {
+		return "Something here"
+	}
+	return n
+}
+
+// hazardStrike is a player's warnings of a hazard of strikes: how many, the last when.
+type hazardStrike struct {
+	n    int
+	last time.Time
+}
+
+// hazardStrikeLocked counts a warning of h for p (one forgotten HazardStrikesForget after the
+// last), and reports whether it is the strike that hits: its count then begins again. Must be
+// called with the lock held.
+func (p *Player) hazardStrikeLocked(h *database.Hazard, now time.Time) bool {
+	if p.hazardStrikes == nil {
+		p.hazardStrikes = map[int64]hazardStrike{}
+	}
+	st := p.hazardStrikes[h.ID]
+	if !st.last.IsZero() && now.Sub(st.last) > database.HazardStrikesForget*time.Second {
+		st = hazardStrike{}
+	}
+	st.n++
+	st.last = now
+	if st.n >= h.Strikes {
+		delete(p.hazardStrikes, h.ID)
+		return true
+	}
+	p.hazardStrikes[h.ID] = st
+	return false
+}
+
 // hazardSystem hits each living player standing in an area (the file's doc). Must be called with
 // the lock held.
 func (w *World) hazardSystem(now time.Time) {
@@ -140,6 +175,13 @@ func (w *World) hazardSystem(now time.Time) {
 		}
 		p.hazardNext = now.Add(time.Duration(h.EveryOr()) * time.Millisecond)
 		p.hazardX, p.hazardZ, p.hazardHit = p.X, p.Z, true
+		if h.Strikes > 0 && !p.hazardStrikeLocked(h, now) {
+			if sess != nil {
+				w.sendColoredLocked(sess, hazardWords(h, p.hazardStrikes[h.ID].n), castRefusalRGB)
+			}
+			log.Printf("Hazard: %s warned by %d %q (%d of %d)", p.Name, h.ID, h.Name, p.hazardStrikes[h.ID].n, h.Strikes)
+			continue
+		}
 		n := min(h.Damage, p.HP)
 		p.HP -= n
 		p.StatsDirty = true
@@ -148,7 +190,11 @@ func (w *World) hazardSystem(now time.Time) {
 		if sess != nil {
 			me := sess.PlayerObjectID()
 			w.sendDamageIndication(sess, me, -n, me, 0)
-			w.sendColoredLocked(sess, hazardWords(h, n), castRefusalRGB)
+			line := hazardWords(h, n)
+			if h.Strikes > 0 { // its words were the warnings'
+				line = fmt.Sprintf("%s gives way under you!", orName(h.Name))
+			}
+			w.sendColoredLocked(sess, line, castRefusalRGB)
 		}
 		if p.HP <= 0 {
 			w.playerDiedLocked(sess, p, now)

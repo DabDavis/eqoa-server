@@ -316,6 +316,9 @@ type NPC struct {
 	// MarkMasterPet), set at its death (killNPC), a corpse of nothing whichever of it and its master died
 	// first (ticket 2008); its next life clears it
 	masterPet bool
+	// NoLoot: a GM trigger's spawn of a corpse of nothing (its step's noloot: the Erych
+	// Arbiter's first two lives, the shard and keys on her last)
+	NoLoot bool
 	// merc is a hired mercenary's (merc.go: Owner its hirer's), familiar a
 	// familiar's (familiar.go: never owned); nil for every other NPC
 	merc     *mercState

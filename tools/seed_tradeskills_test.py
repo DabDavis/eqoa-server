@@ -545,6 +545,52 @@ class SeedWeapons(unittest.TestCase):
         after.pop("craftrecipes")  # the engine's table, made empty and left
         self.assertEqual(after, before)
 
+    def test_two_steps_write_what_one_does(self):
+        """--plan-out against a copy writes nothing to it; --plan-in --apply on the target writes what a single
+        --apply writes (every table alike, the log too); a second is refused; --undo is exact. The controls: a
+        target whose catalog changed after the plan is refused, nothing written."""
+        import shutil
+        before = self.snapshot()
+        one = os.path.join(self.dir.name, "one.db")
+        shutil.copy(self.db, one)
+        copy = os.path.join(self.dir.name, "copy.db")
+        shutil.copy(self.db, copy)
+        plan = os.path.join(self.dir.name, "plan.json")
+        r = subprocess.run([sys.executable, "-E", "-s", TOOL, "--db", copy, "--no-backup", "--craft", "weapon", "--sources",
+                            self.sources, "--harvests", self.dir.name, "--plan-out", plan], capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        with open(copy, "rb") as a, open(self.db, "rb") as b:
+            self.assertEqual(a.read(), b.read(), "--plan-out wrote to its database")
+        # a target changed since: refused
+        stale = os.path.join(self.dir.name, "stale.db")
+        shutil.copy(self.db, stale)
+        c = sqlite3.connect(stale)
+        c.execute("UPDATE npcitem SET listnumber = 5 WHERE itemid = 10")
+        c.commit()
+        c.close()
+        r = subprocess.run([sys.executable, "-E", "-s", TOOL, "--db", stale, "--no-backup", "--craft", "weapon", "--plan-in", plan,
+                            "--apply"], capture_output=True, text=True)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("catalog_rows", r.stdout + r.stderr)
+        c = sqlite3.connect(stale)
+        self.assertEqual(c.execute("SELECT count(*) FROM sqlite_master WHERE name = 'tradeskill_seed'").fetchone(), (0,))
+        c.close()
+        # the plan on the target; the single step on its twin: alike
+        r = self.tool("--plan-in", plan, "--apply")
+        self.assertIn("wrote 1796 items, 1744 recipes", r.stdout)
+        r = subprocess.run([sys.executable, "-E", "-s", TOOL, "--db", one, "--no-backup", "--craft", "weapon", "--sources",
+                            self.sources, "--harvests", self.dir.name, "--apply"], capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        two = self.snapshot()
+        saved, self.db = self.db, one
+        self.assertEqual(self.snapshot(), two)
+        self.db = saved
+        self.assertNotEqual(self.tool("--plan-in", plan, "--apply", ok=False).returncode, 0, "a second --apply is refused")
+        self.tool("--undo")
+        after = self.snapshot()
+        after.pop("craftrecipes")
+        self.assertEqual(after, before)
+
     def test_a_cell_off_prima_writes_nothing(self):
         with open(self.onehand) as f:
             t = f.read()

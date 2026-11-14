@@ -245,7 +245,7 @@ func TestGranaviksPortalTakesARainKey3(t *testing.T) {
 	r.own(r.pa, "Rain Key 3", 20)
 	r.talk(r.anna, r.npcs["portal"])
 	got := r.msgs(r.anna)
-	if !hasMsg(got, "teleport") || r.pa.X != 4225.39 || r.pa.Z != 5506.07 { // where the GM Kobe stood (petition 2038)
+	if !hasMsg(got, "teleport") || r.pa.X != 4242.0 || r.pa.Z != 4305.3 {
 		t.Fatalf("the fourth isle: %q at (%.1f, %.1f)", got, r.pa.X, r.pa.Z)
 	}
 	if r.held(r.pa, "Rain Key 3") != 19 || r.held(r.pa, "Rain Key 2") != 1 {

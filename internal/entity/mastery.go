@@ -304,7 +304,27 @@ func (w *World) GrantMastery(sess *session.Session, amount int) (int, Mastery, b
 		return 0, Mastery{}, false
 	}
 	give := grantMastery(&p.Mastery, amount)
+	if give > 0 {
+		w.sendMasteryBarLocked(p)
+	}
 	return give, p.Mastery, true
+}
+
+// sendMasteryBarLocked tells p's client its HUD bar (0x0020, BarXP) when the
+// bar is the way to the next mastery point: the points held and spent decide
+// what that point costs (CMPointXP), so a rank removed (its points gone), a
+// GM's #grantcm or the cap reached move the bar as no award does. Must be
+// called with the lock held.
+func (w *World) sendMasteryBarLocked(p *Player) {
+	if p.Level < MaxLevel && p.Mastery.Percent < 100 {
+		return // the level's bar: no mastery point moves it
+	}
+	if w.SessionManager == nil {
+		return
+	}
+	if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
+		w.sendGrantXP(sess, p.Level, p.BarXP())
+	}
 }
 
 // SendMasteryPoints is 0x1402 sub-op 3 (CLIENT's Recv03): the unspent and

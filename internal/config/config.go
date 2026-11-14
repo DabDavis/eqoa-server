@@ -35,6 +35,30 @@ type CombatConfig struct {
 	// reload_formulas. Unset or "": the built-in damage everywhere.
 	FormulaFile string `yaml:"formula_file"`
 
+	// FormulaMode is what a loaded formula does (entity/dmgshadow.go,
+	// internal/formulamode): "" or "off" the built-in damage, "live" a
+	// formula's result applied, "shadow" the built-in applied and the
+	// formula's figure recorded beside it in FormulaShadowLog. It only seeds
+	// the shard's database row (formula_setting): a GM's /formula switch
+	// overwrites it there, and a restart keeps the GM's.
+	FormulaMode string `yaml:"formula_mode"`
+
+	// FormulaShadowLog is shadow mode's private file of (built-in, formula)
+	// pairs, one JSON line a hit, outside the repository and the server's log
+	// (created mode 600, its directory 700; rotated to <file>.1 at
+	// FormulaShadowMaxMB, unset 64). FormulaShadowSample is the share of hits
+	// recorded (unset or 0: every hit).
+	FormulaShadowLog    string  `yaml:"formula_shadow_log"`
+	FormulaShadowSample float64 `yaml:"formula_shadow_sample"`
+	FormulaShadowMaxMB  int     `yaml:"formula_shadow_max_mb"`
+
+	// FormulaShard is this shard's name in /formula ("heirloom"), and
+	// FormulaPeers the other shards' databases by their names ({live:
+	// /home/sdg/eqoa-live/eqoa.db}), whose mode a GM here may switch too (the
+	// other server takes it up within seconds). Unset: this shard alone.
+	FormulaShard string            `yaml:"formula_shard"`
+	FormulaPeers map[string]string `yaml:"formula_peers"`
+
 	// ResistModel is what a resist takes off elemental spell and effect
 	// damage (entity/elemental.go): "elemental-2026-11-14" (unset: it), a
 	// player D0 x (350-R)/350 at R 0..315 and a creature D0 x (100-R)/100 at

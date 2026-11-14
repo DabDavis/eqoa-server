@@ -127,6 +127,7 @@ type dmgShadow struct {
 	written atomic.Int64
 	done    chan struct{}
 	stop    chan struct{}
+	flush   chan chan error
 
 	f    *os.File
 	bw   *bufio.Writer
@@ -150,7 +151,8 @@ func (w *World) SetDamageFormulaShadow(cfg ShadowLogConfig) error {
 	if cfg.MaxBytes <= 0 {
 		cfg.MaxBytes = DefaultShadowMaxBytes
 	}
-	sh := &dmgShadow{cfg: cfg, ch: make(chan *shadowRec, shadowQueue), done: make(chan struct{}), stop: make(chan struct{})}
+	sh := &dmgShadow{cfg: cfg, ch: make(chan *shadowRec, shadowQueue), done: make(chan struct{}), stop: make(chan struct{}),
+		flush: make(chan chan error)}
 	if err := sh.open(); err != nil {
 		return err
 	}
@@ -171,14 +173,19 @@ func (w *World) DamageFormulaShadowLog() (path string, written, dropped int64) {
 }
 
 // FlushDamageFormulaShadow writes every record handed to the shadow log so
-// far and flushes it (a test's, and the shutdown's): it closes the writer and
-// starts it again.
+// far and flushes it (the summary's, a test's).
 func (w *World) FlushDamageFormulaShadow() error {
 	sh := w.dmgf.shadow.Load()
 	if sh == nil {
 		return nil
 	}
-	return w.SetDamageFormulaShadow(sh.cfg)
+	done := make(chan error, 1)
+	select {
+	case sh.flush <- done:
+		return <-done
+	case <-sh.done:
+		return nil
+	}
 }
 
 // open opens (creating) the file, mode 600, in a directory of mode 700.
@@ -232,6 +239,23 @@ func (sh *dmgShadow) run() {
 			if err := sh.bw.Flush(); err != nil {
 				fail(err)
 			}
+		case done := <-sh.flush:
+			var err error
+		drain:
+			for {
+				select {
+				case r := <-sh.ch:
+					if e := sh.write(r); e != nil && err == nil {
+						err = e
+					}
+				default:
+					break drain
+				}
+			}
+			if e := sh.bw.Flush(); e != nil && err == nil {
+				err = e
+			}
+			done <- err
 		case <-sh.stop:
 			for {
 				select {

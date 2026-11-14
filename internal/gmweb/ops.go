@@ -141,6 +141,7 @@ func (s *Server) registerOps() {
 	s.registerCampfixOps()  // ops_campfix.go: camp reports wait for a GM's approval
 	s.registerPwResetOps()  // ops_pwreset.go: forgotten passwords, reset by a GM
 	s.registerEconomyOps()  // ops_economy.go: the tunar ledger
+	s.registerFormulaOps()  // ops_formula.go: the damage formula's mode, its switch, the shadow summary
 	if !s.d.NoTransfers {
 		s.registerTransferOps() // ops_transfers.go
 	}

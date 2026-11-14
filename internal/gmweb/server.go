@@ -49,6 +49,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/economy"
 	"github.com/eqoa/server/internal/entity"
+	"github.com/eqoa/server/internal/formulamode"
 	"github.com/eqoa/server/internal/session"
 )
 
@@ -90,6 +91,9 @@ type Deps struct {
 	// Ledger is the tunar ledger the Economy page writes before it reads and
 	// the panel's edits count into (ops_economy.go); nil: economy.Default.
 	Ledger *economy.Ledger
+	// Formula is the damage formula mode's switch (internal/formulamode); nil:
+	// the panel offers none.
+	Formula *formulamode.Control
 }
 
 // Server is the GM panel's HTTP server.

@@ -32,7 +32,10 @@ const MaxWanderRadius = 2000
 // npcwander row away (/... stay: it moves as its name's row or its kind
 // says); otherwise its npcwander row gets Radius.
 type NPCWanderSet struct {
-	Clear  bool
+	Clear bool
+	// Stand is a row of its own that stands its creature on its spawn whatever its
+	// name's or its kind's rule (radius -1: NPCWanderRows), /roamer off
+	Stand  bool
 	Radius float64
 	Note   string
 }
@@ -61,7 +64,9 @@ func setNPCWanderTx(tx *sql.Tx, who GMEdit, id int64, w NPCWanderSet, detail str
 		_, err := auditRowChange(tx, who, "delete", "npcwander", key, before, nil, detail)
 		return err == nil, err
 	}
-	if w.Radius <= 0 || w.Radius > MaxWanderRadius || math.IsNaN(w.Radius) {
+	if w.Stand {
+		w.Radius = -1
+	} else if w.Radius <= 0 || w.Radius > MaxWanderRadius || math.IsNaN(w.Radius) {
 		return false, fmt.Errorf("a wander radius is 1 to %d", MaxWanderRadius)
 	}
 	action := "insert"

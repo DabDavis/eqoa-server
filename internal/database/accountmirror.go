@@ -319,6 +319,11 @@ func (m *AccountMirror) Pull() (changed, gone, total int, err error) {
 		}
 		changed++
 	}
+	roles, err := mirrorRoles(tx, src)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	changed += roles
 	if changed > 0 || gone > 0 {
 		if err := tx.Commit(); err != nil {
 			return 0, 0, 0, err
@@ -378,4 +383,109 @@ func (m *AccountMirror) PullOne(username string) error {
 		}
 	}
 	return tx.Commit()
+}
+
+// mirrorRoleTables are the panel's role tables, keyed by accountid, that go
+// with the accounts (gmweb/shard.go: "Testers and storytellers go with the
+// accounts: one is made on the owner's panel"): a tester, a sub GM (a tester's
+// row marked subgm: handlers/devcmds.go's subGMCommands) and a storyteller of
+// the main shard are one here too. Until 2026-11-14 a Pull copied accountinfo
+// alone, so on the Live Server nobody was a tester, a sub GM or a storyteller,
+// and its panel refused to make one ("change them on that server's GM panel").
+var mirrorRoleTables = []string{"gm_testers", "gm_storytellers"}
+
+// mirrorRoles makes each of mirrorRoleTables here, inside tx, the other
+// database's (src) rows of it, in the columns both have; a table either side
+// lacks is passed over (the panel makes them at its start). It returns how many
+// rows it wrote or took away.
+func mirrorRoles(tx *sql.Tx, src *sql.DB) (int, error) {
+	n := 0
+	for _, t := range mirrorRoleTables {
+		if !tableExists(src, t) || !tableExists(tx, t) {
+			continue
+		}
+		mine, err := tableColumns(tx, t)
+		if err != nil {
+			return 0, err
+		}
+		rows, err := src.Query(`SELECT name FROM pragma_table_info(?)`, t)
+		if err != nil {
+			return 0, err
+		}
+		theirs := map[string]bool{}
+		for rows.Next() {
+			var c string
+			if err := rows.Scan(&c); err != nil {
+				rows.Close()
+				return 0, err
+			}
+			theirs[c] = true
+		}
+		rows.Close()
+		var cols []string
+		for _, c := range mine {
+			if theirs[c] {
+				cols = append(cols, quoteCol(c))
+			}
+		}
+		if len(cols) == 0 || !theirs["accountid"] {
+			continue
+		}
+		read := func(q interface {
+			Query(string, ...any) (*sql.Rows, error)
+		}) (map[string][]any, error) {
+			rs, err := q.Query(`SELECT ` + strings.Join(cols, ", ") + ` FROM ` + t)
+			if err != nil {
+				return nil, err
+			}
+			defer rs.Close()
+			out := map[string][]any{}
+			for rs.Next() {
+				r := make([]any, len(cols))
+				ptr := make([]any, len(cols))
+				for i := range r {
+					ptr[i] = &r[i]
+				}
+				if err := rs.Scan(ptr...); err != nil {
+					return nil, err
+				}
+				for i, v := range r {
+					if b, ok := v.([]byte); ok {
+						r[i] = append([]byte(nil), b...)
+					}
+				}
+				out[fmt.Sprintf("%#v", r)] = r
+			}
+			return out, rs.Err()
+		}
+		want, err := read(src)
+		if err != nil {
+			return 0, err
+		}
+		have, err := read(tx)
+		if err != nil {
+			return 0, err
+		}
+		same := len(want) == len(have)
+		for k := range want {
+			if _, ok := have[k]; !ok {
+				same = false
+			}
+		}
+		if same {
+			continue
+		}
+		if _, err := tx.Exec(`DELETE FROM ` + t); err != nil {
+			return 0, err
+		}
+		marks := strings.TrimSuffix(strings.Repeat("?, ", len(cols)), ", ")
+		for _, r := range want {
+			if _, err := tx.Exec(`INSERT INTO `+t+` (`+strings.Join(cols, ", ")+`) VALUES (`+marks+`)`, r...); err != nil {
+				return 0, fmt.Errorf("%s: %w", t, err)
+			}
+		}
+		n += len(want) + len(have)
+		log.Printf("Accounts: %s copied from the shared accounts' database (%d rows, %d before)", t, len(want), len(have))
+	}
+	return n, nil
 }

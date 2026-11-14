@@ -71,11 +71,12 @@ var skyPasses = []skyPass{
 	// the chain of rain: the main isle's essence, over the bridge north-west
 	{NPC: "essence of rain", X: 4482.5, Z: 5293.2, Key: "rain key", To: "the first isle of rain",
 		At: wayPlace{World: 4, X: 4236.2, Y: 233.05, Z: 5727.7, Facing: 3.38}, Steps: [][2]int{{101301, 2}}},
+	// lands where Hoofbite stood (petition 2049, the owner: "you can do what they say")
 	{NPC: "essence of rain", X: 4222.7, Z: 5714.6, Key: "Rain Key 1", To: "the second isle of rain",
-		At: wayPlace{World: 4, X: 4177.0, Y: 180.06, Z: 5210.0, Facing: 3.98}, Steps: [][2]int{{101301, 4}}},
-	// lands where the GM Kobe stood (petition 2042)
+		At: wayPlace{World: 4, X: 5643.74, Y: 326.63, Z: 4903.25, Facing: 3.068}, Steps: [][2]int{{101301, 4}}},
+	// lands where Hoofbite stood (petition 2053, the owner: "you can do what they say"; was Kobe's 2042 spot)
 	{NPC: "essence of rain", X: 4158.6, Z: 5122.5, Key: "Rain Key 2", To: "the third isle of rain",
-		At: wayPlace{World: 4, X: 4397.54, Y: 110.80, Z: 4559.93, Facing: 1.10}, Steps: [][2]int{{101302, 4}}},
+		At: wayPlace{World: 4, X: 5731.73, Y: 404.03, Z: 4207.61, Facing: 5.007}, Steps: [][2]int{{101302, 4}}},
 	{NPC: "essence of rain", X: 4638.6, Z: 4655.2, Key: "Rain Key 3", To: "the fourth isle of rain",
 		At: wayPlace{World: 4, X: 4242.0, Y: 80.06, Z: 4305.3, Facing: 3.37}, Steps: [][2]int{{101303, 5}}},
 	// Granavik's portal, standing where he fell (petition 1612)

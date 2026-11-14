@@ -182,7 +182,7 @@ func TestTheSecondIsleOfRainsEssenceTakesItsKey(t *testing.T) {
 	if !hasMsg(got, "chat:essence of rain: your Rain Key 2 turns in the light, and it takes you to the third isle of rain.") || !hasMsg(got, "teleport") {
 		t.Fatalf("with the key: %q", got)
 	}
-	if r.pa.World != 4 || r.pa.X != 4397.54 || r.pa.Y != 110.80 || r.pa.Z != 4559.93 {
+	if r.pa.World != 4 || r.pa.X != 5731.73 || r.pa.Y != 404.03 || r.pa.Z != 4207.61 {
 		t.Errorf("Anna landed at world %d (%.2f, %.2f, %.2f)", r.pa.World, r.pa.X, r.pa.Y, r.pa.Z)
 	}
 	if n := r.held(r.pa, "Rain Key 2"); n != 2 {

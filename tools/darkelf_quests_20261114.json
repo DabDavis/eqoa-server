@@ -1,0 +1,775 @@
+{
+ "about": "tools/darkelf_quests_20261114.py: each change, its shards' text before and after (h Heirloom Test, l Live)",
+ "changes": [
+  {
+   "city": "alchemist",
+   "questid": 100422,
+   "step": 0,
+   "col": "offer",
+   "why": "wiki+t53 L7: south gate (of Klik'Anon, by the coach), hillside SE; our spawn 122133 (23438,7328) is 1100 south of Klik'Anon, 2280 NW of Neriak: the offer said south-east of Neriak",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Zezilbe Veldinox is on her way to Klick'Anon. Go out by the south gate past the lake and find her on the hills to the south-east. She must not arrive.",
+     "after": "Zezilbe Veldinox is on her way to Klick'Anon. Take the coach there, go out its south gate and find her on a low hill between two mountains. She must not arrive."
+    }
+   ]
+  },
+  {
+   "city": "alchemist",
+   "questid": 100422,
+   "step": 1,
+   "col": "journal",
+   "why": "wiki+t53 L7, at our spawn",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Slay Zezilbe Veldinox on a hillside in south-east Klick'Anon, north-west of Neriak.",
+     "after": "Slay Zezilbe Veldinox on a low hill between two mountains, south of Klik'Anon's south gate."
+    }
+   ]
+  },
+  {
+   "city": "ceremony",
+   "questid": 100756,
+   "step": 2,
+   "col": "journal",
+   "why": "t101: 'Go to Blakedown and kill a Wandering Priestess (CONs Red)... roaming'; ours (11156,17228), 5,600 west of Highpass Hold's coach; journal named no way there",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Kill the wandering priestess who roams Blakedown for a vial of blood.",
+     "after": "Kill the wandering priestess, who roams Blakedown west of Highpass Hold, for a vial of blood. She cons red: bring friends."
+    }
+   ]
+  },
+  {
+   "city": "ceremony",
+   "questid": 100756,
+   "step": 0,
+   "col": "offer",
+   "why": "t101: Blakedown named with no way there",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "The ceremony wants a ceremonial dagger, from Adrassya in the basement of the Spurned Enclave, and a vial of blood from a wandering priestess in Blakedown. Bring both.",
+     "after": "The ceremony wants a ceremonial dagger, from Adrassya in the basement of the Spurned Enclave, and a vial of blood from a wandering priestess in Blakedown, west of Highpass Hold. Bring both."
+    }
+   ]
+  },
+  {
+   "city": "cleric",
+   "questid": 100431,
+   "step": 1,
+   "col": "journal",
+   "why": "wiki/t54 L5: hills north; our fire bats: five NW (24380,8350), five SE (25170,9210)",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Take the torn fire bat wing from the fire bats in the hills north of Neriak.",
+     "after": "Take the torn fire bat wing from the fire bats on the hills north-west of Neriak (more on the hills south-east, by the coast)."
+    }
+   ]
+  },
+  {
+   "city": "cleric",
+   "questid": 100431,
+   "step": 0,
+   "col": "offer",
+   "why": "as the journal",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Fire bats nest in the hills north of the city. Kill one and bring back a torn fire bat wing. Take a friend if you must.",
+     "after": "Fire bats nest on the hills north-west of the city and south-east by the coast. Bring me a torn fire bat wing."
+    }
+   ]
+  },
+  {
+   "city": "cleric",
+   "questid": 100432,
+   "step": 0,
+   "col": "offer",
+   "why": "the step's target is R'Nox since today's fix (R`Noxt was a duplicate, deleted); the offer still named R'Noxt",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Denouncer R'Noxt at the Hazinak Outpost has a report for me. Waysender Ti'Thox outside the Blind Fish Tavern will send you to Freeport, and Dockmaster Endol on to Hazinak.",
+     "after": "Denouncer R'Nox at the Hazinak Outpost has a report for me. Waysender Ti`Thox outside the Blind Fish Tavern will send you to Freeport, and Dockmaster Endol on to Hazinak."
+    }
+   ]
+  },
+  {
+   "city": "cleric",
+   "questid": 100433,
+   "step": 2,
+   "col": "journal",
+   "why": "one tomb rat (2557) by the river; the step counts the rats too (queststeptargets: diseased, large, pestilence rat, rat)",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Take the undead sigil from the tomb rats south along the river from X'Talin's tower.",
+     "after": "Take the undead sigil from the tomb rat or the other rats along the River Saren, south of X'Talin's tower toward Neriak."
+    }
+   ]
+  },
+  {
+   "city": "enchanter",
+   "questid": 100441,
+   "step": 1,
+   "col": "journal",
+   "why": "wiki/t55 L5: hills north; our fire bats NW and SE",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Take the torn fire bat wing from the fire bats in the hills north of Neriak.",
+     "after": "Take the torn fire bat wing from the fire bats on the hills north-west of Neriak (more on the hills south-east, by the coast)."
+    }
+   ]
+  },
+  {
+   "city": "enchanter",
+   "questid": 100441,
+   "step": 0,
+   "col": "offer",
+   "why": "as the journal",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Fire bats nest in the hills north of the city. Kill one and bring back a torn fire bat wing. Take a friend if you must.",
+     "after": "Fire bats nest on the hills north-west of the city and south-east by the coast. Bring me a torn fire bat wing."
+    }
+   ]
+  },
+  {
+   "city": "enchanter",
+   "questid": 100443,
+   "step": 2,
+   "col": "journal",
+   "why": "one tomb rat by the river; the step counts the rats (queststeptargets)",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Take the undead sigil from the tomb rats south along the river from X'Talin's tower.",
+     "after": "Take the undead sigil from the tomb rat or the other rats along the River Saren, south of X'Talin's tower toward Neriak."
+    }
+   ]
+  },
+  {
+   "city": "enchanter",
+   "questid": 100446,
+   "step": 8,
+   "col": "spells",
+   "why": "t55 L20: 'Path choice: Spacious Mind or Power boon'; ours gave Spacious Mind alone: now the pick",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "700215",
+     "after": ""
+    }
+   ]
+  },
+  {
+   "city": "enchanter",
+   "questid": 100446,
+   "step": 8,
+   "col": "choices",
+   "why": "t55 L20 path choice",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "",
+     "after": "{\"ask\":\"Which path do you take?\",\"options\":[{\"answer\":\"Spacious Mind\",\"says\":\"Then it is yours. More mana will rest within you.\",\"spells\":\"700215\"},{\"answer\":\"Power Boon\",\"says\":\"Then it is yours. Your mana will flow into others.\",\"spells\":\"700207\"}]}"
+    }
+   ]
+  },
+  {
+   "city": "enchanter",
+   "questid": 100446,
+   "step": 8,
+   "col": "says",
+   "why": "t55 L20",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "It is done. Choose your path.",
+     "after": "It is done. Choose your path: Spacious Mind, to hold more mana within, or Power Boon, to channel mana into others."
+    }
+   ]
+  },
+  {
+   "city": "l15hint",
+   "questid": 100455,
+   "step": 5,
+   "col": "journal",
+   "why": "the hint was wrong: the step before (oriote raven) is by Neriak, not in Freeport",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Bring the lantern of ages, the gem of wit and the oriote raven claw to Zelthil J`Narus. (Waysender Abodai sends you to Neriak.)",
+     "after": "Bring the lantern of ages, the gem of wit and the oriote raven claw to Zelthil J`Narus in Neriak."
+    }
+   ]
+  },
+  {
+   "city": "l15hint",
+   "questid": 100465,
+   "step": 5,
+   "col": "journal",
+   "why": "the hint was wrong: the step before (oriote raven) is by Neriak, not in Freeport",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Bring the lantern of ages, the gem of obfuscation and the oriote raven beak to Zelthil J`Narus. (Abodai sends you to Neriak.)",
+     "after": "Bring the lantern of ages, the gem of obfuscation and the oriote raven beak to Zelthil J`Narus in Neriak."
+    }
+   ]
+  },
+  {
+   "city": "l15hint",
+   "questid": 100485,
+   "step": 5,
+   "col": "journal",
+   "why": "the hint was wrong: the step before (oriote raven) is by Neriak, not in Freeport",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Bring the lantern of ages, the gem of deception and the oriote raven eye to Zelthil J`Narus. (Abodai sends you to Neriak.)",
+     "after": "Bring the lantern of ages, the gem of deception and the oriote raven eye to Zelthil J`Narus in Neriak."
+    }
+   ]
+  },
+  {
+   "city": "l15hint",
+   "questid": 100505,
+   "step": 5,
+   "col": "journal",
+   "why": "the hint was wrong: the step before (oriote raven) is by Neriak, not in Freeport",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Bring the lantern of ages, the gem of fury and the oriote raven feather to Zelthil J`Narus. (Abodai sends you to Neriak.)",
+     "after": "Bring the lantern of ages, the gem of fury and the oriote raven feather to Zelthil J`Narus in Neriak."
+    }
+   ]
+  },
+  {
+   "city": "magician",
+   "questid": 100451,
+   "step": 1,
+   "col": "journal",
+   "why": "fire bats spawn in two camps: north-west of the city (24380,8350) and by the rock spires near Lothi (25170,9210); none north",
+   "variants": [
+    {
+     "shards": "h",
+     "before": "Bring a torn fire bat wing from the fire bats in the hills north of Neriak to Magician Ka`Zuth.",
+     "after": "Bring a fire bat wing (bats north-west of Neriak, or by the rocks near Coachman Lothi) to Magician Ka`Zuth."
+    },
+    {
+     "shards": "l",
+     "before": "Take the torn fire bat wing from the fire bats in the hills north of Neriak.",
+     "after": "Take the torn fire bat wing from the fire bats in the hills north-west of Neriak or by the rocks near Coachman Lothi."
+    }
+   ]
+  },
+  {
+   "city": "magician",
+   "questid": 100451,
+   "step": 0,
+   "col": "offer",
+   "why": "fire bats spawn in two camps: north-west of the city (24380,8350) and by the rock spires near Lothi (25170,9210); none north",
+   "variants": [
+    {
+     "shards": "h",
+     "before": "Yes?",
+     "after": "Yes?"
+    },
+    {
+     "shards": "l",
+     "before": "Fire bats nest in the hills north of the city. Kill one and bring back a torn fire bat wing. Take a friend if you must.",
+     "after": "Fire bats nest in the hills north-west of the city, and by the rocks near the coach outside its south exit.\nKill one and bring back a torn fire bat wing. Take a friend if you must."
+    }
+   ]
+  },
+  {
+   "city": "magician",
+   "questid": 100452,
+   "step": 2,
+   "col": "journal",
+   "why": "Grobb's crabs (Grobb Crab + star crab, 36 spawns) walk the beaches east and south of Grobb (x 25680-25900 / z ~31900), not north-west",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Take two crab legs from the crabs on the beach north-west of Grobb.",
+     "after": "Take two crab legs from the Grobb crabs and star crabs on the beaches east and south of Grobb."
+    }
+   ]
+  },
+  {
+   "city": "magician",
+   "questid": 100452,
+   "step": 1,
+   "col": "says",
+   "why": "Grobb's crabs (Grobb Crab + star crab, 36 spawns) walk the beaches east and south of Grobb (x 25680-25900 / z ~31900), not north-west",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "The order? I need two crab legs from the crabs on the beach north-west of Grobb before I can send anything.",
+     "after": "The order? I need two crab legs from the crabs on the beaches east and south of Grobb before I can send anything."
+    }
+   ]
+  },
+  {
+   "city": "magician",
+   "questid": 100452,
+   "step": 3,
+   "col": "journal",
+   "why": "the chef's place named",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Bring two crab legs to Chef Blignart.",
+     "after": "Bring two crab legs to Chef Blignart in Grobb."
+    }
+   ]
+  },
+  {
+   "city": "magician",
+   "questid": 100452,
+   "step": 0,
+   "col": "offer",
+   "why": "wiki/forum: Ti`Thox sends you; the chef named",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "An order of frog legs from Grobb has not come. Ask the waysender to send you to Grobb, and speak with the chef there.",
+     "after": "An order of frog legs from Grobb has not come.\nHave Waysender Ti`Thox, outside the Blind Fish Tavern, send you to Grobb, and speak with Chef Blignart there."
+    }
+   ]
+  },
+  {
+   "city": "necromancer",
+   "questid": 100461,
+   "step": 1,
+   "col": "journal",
+   "why": "fire bats spawn in two camps: north-west of the city (24380,8350) and by the rock spires near Lothi (25170,9210); none north",
+   "variants": [
+    {
+     "shards": "h",
+     "before": "Bring a torn fire bat wing from the fire bats in the hills north of Neriak to Necromancer D`Unarr.",
+     "after": "Bring a fire bat wing (bats north-west of Neriak, or by the rocks near Coachman Lothi) to Necromancer D`Unarr."
+    },
+    {
+     "shards": "l",
+     "before": "Take the torn fire bat wing from the fire bats in the hills north of Neriak.",
+     "after": "Take the torn fire bat wing from the fire bats in the hills north-west of Neriak or by the rocks near Coachman Lothi."
+    }
+   ]
+  },
+  {
+   "city": "necromancer",
+   "questid": 100461,
+   "step": 0,
+   "col": "offer",
+   "why": "fire bats spawn in two camps: north-west of the city (24380,8350) and by the rock spires near Lothi (25170,9210); none north",
+   "variants": [
+    {
+     "shards": "h",
+     "before": "I'm busy, go away!",
+     "after": "I'm busy, go away!"
+    },
+    {
+     "shards": "l",
+     "before": "Fire bats nest in the hills north of the city. Kill one and bring back a torn fire bat wing. Take a friend if you must.",
+     "after": "Fire bats nest in the hills north-west of the city, and by the rocks near the coach outside its south exit.\nKill one and bring back a torn fire bat wing. Take a friend if you must."
+    }
+   ]
+  },
+  {
+   "city": "necromancer",
+   "questid": 100462,
+   "step": 2,
+   "col": "journal",
+   "why": "Grobb's crabs (Grobb Crab + star crab, 36 spawns) walk the beaches east and south of Grobb (x 25680-25900 / z ~31900), not north-west",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Take two crab legs from the crabs on the beach north-west of Grobb.",
+     "after": "Take two crab legs from the Grobb crabs and star crabs on the beaches east and south of Grobb."
+    }
+   ]
+  },
+  {
+   "city": "necromancer",
+   "questid": 100462,
+   "step": 1,
+   "col": "says",
+   "why": "Grobb's crabs (Grobb Crab + star crab, 36 spawns) walk the beaches east and south of Grobb (x 25680-25900 / z ~31900), not north-west",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "The order? I need two crab legs from the crabs on the beach north-west of Grobb before I can send anything.",
+     "after": "The order? I need two crab legs from the crabs on the beaches east and south of Grobb before I can send anything."
+    }
+   ]
+  },
+  {
+   "city": "necromancer",
+   "questid": 100462,
+   "step": 3,
+   "col": "journal",
+   "why": "the chef's place named",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Bring two crab legs to Chef Blignart.",
+     "after": "Bring two crab legs to Chef Blignart in Grobb."
+    }
+   ]
+  },
+  {
+   "city": "necromancer",
+   "questid": 100466,
+   "step": 8,
+   "col": "spells",
+   "why": "forum t57 L20: a choice between Blood or Power; ours gave Blood Gale and said \"Choose your path\" with no pick",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "700170",
+     "after": ""
+    }
+   ]
+  },
+  {
+   "city": "necromancer",
+   "questid": 100466,
+   "step": 8,
+   "col": "choices",
+   "why": "forum t57 L20: Blood or Power (as Klik'Anon's and Highbourne's necromancer L20: scrolls 8536/8537)",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "",
+     "after": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Blood Gale\",\"says\":\"Then it is yours.\",\"items\":\"8536\"},{\"answer\":\"Power Gale\",\"says\":\"Then it is yours.\",\"items\":\"8537\"}]}"
+    }
+   ]
+  },
+  {
+   "city": "rogue",
+   "questid": 100471,
+   "step": 1,
+   "col": "journal",
+   "why": "fire bats spawn in two camps: north-west of the city (24380,8350) and by the rock spires near Lothi (25170,9210); none north",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Take the torn fire bat wing from the fire bats in the hills north of Neriak.",
+     "after": "Take the torn fire bat wing from the fire bats in the hills north-west of Neriak or by the rocks near Coachman Lothi."
+    }
+   ]
+  },
+  {
+   "city": "rogue",
+   "questid": 100471,
+   "step": 0,
+   "col": "offer",
+   "why": "fire bats spawn in two camps: north-west of the city (24380,8350) and by the rock spires near Lothi (25170,9210); none north",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Fire bats nest in the hills north of the city. Kill one and bring back a torn fire bat wing. Take a friend if you must.",
+     "after": "Fire bats nest in the hills north-west of the city, and by the rocks near the coach outside its south exit.\nKill one and bring back a torn fire bat wing. Take a friend if you must."
+    }
+   ]
+  },
+  {
+   "city": "rogue",
+   "questid": 100476,
+   "step": 9,
+   "col": "spells",
+   "why": "forum t58 L20: choose Avoidance or Minor Wound; ours gave Avoidance with \"Choose your path\" and no pick",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "700167",
+     "after": ""
+    }
+   ]
+  },
+  {
+   "city": "rogue",
+   "questid": 100476,
+   "step": 9,
+   "col": "choices",
+   "why": "forum t58 L20: Avoidance or Minor Wound (scrolls 8548/8549, as every other city's rogue L20)",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "",
+     "after": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Avoidance\",\"says\":\"Then it is yours.\",\"items\":\"8548\"},{\"answer\":\"Minor Wound\",\"says\":\"Then it is yours.\",\"items\":\"8549\"}]}"
+    }
+   ]
+  },
+  {
+   "city": "shadowknight",
+   "questid": 100481,
+   "step": 0,
+   "col": "offer",
+   "why": "fire bats spawn at two camps: (24380,8350) the hill north-west, and (25170,9215) south of the city by the spires; none north",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Fire bats nest in the hills north of the city. Kill one and bring back a torn fire bat wing. Take a friend if you must.",
+     "after": "Fire bats nest on the hill north-west of the city and by the rock spires south of it. Bring me a torn fire bat wing."
+    }
+   ]
+  },
+  {
+   "city": "shadowknight",
+   "questid": 100481,
+   "step": 1,
+   "col": "journal",
+   "why": "fire bats spawn at two camps: (24380,8350) the hill north-west, and (25170,9215) south of the city by the spires; none north",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Take the torn fire bat wing from the fire bats in the hills north of Neriak.",
+     "after": "Take the torn fire bat wing from the fire bats on the hill north-west of Neriak, or by the rock spires south of the city."
+    }
+   ]
+  },
+  {
+   "city": "shadowknight",
+   "questid": 100482,
+   "step": 1,
+   "col": "says",
+   "why": "Grobb Crab (18) and star crab spawns ring Grobb: east shore x 25680-25904, south z 31800-31912, west x 23752-24920; none north-west",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "The order? I need two crab legs from the crabs on the beach north-west of Grobb before I can send anything.",
+     "after": "The order? I need two crab legs from the crabs on the shores round Grobb, just outside the city, before I can send anything."
+    }
+   ]
+  },
+  {
+   "city": "shadowknight",
+   "questid": 100482,
+   "step": 2,
+   "col": "journal",
+   "why": "Grobb Crab (18) and star crab spawns ring Grobb: east shore x 25680-25904, south z 31800-31912, west x 23752-24920; none north-west",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Take two crab legs from the crabs on the beach north-west of Grobb.",
+     "after": "Take two crab legs from the crabs on the shores round Grobb, just outside the city."
+    }
+   ]
+  },
+  {
+   "city": "shadowknight",
+   "questid": 100486,
+   "step": 8,
+   "col": "choices",
+   "why": "t59 L20: 'he will ask you to choose Bloodwasp or Shadow Tower'; ours said 'Choose your path.' but gave Bloodwasp (spell 1436) with no choice; scrolls 8558/8557 as Highbourne's SK L20 (100286)",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "",
+     "after": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Bloodwasp\",\"says\":\"Then it is yours.\",\"items\":\"8558\"},{\"answer\":\"Shadow Tower\",\"says\":\"Then it is yours.\",\"items\":\"8557\"}]}"
+    }
+   ]
+  },
+  {
+   "city": "shadowknight",
+   "questid": 100486,
+   "step": 8,
+   "col": "spells",
+   "why": "the pick gives the scroll; Bloodwasp no longer given outright beside the choice",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "1436",
+     "after": ""
+    }
+   ]
+  },
+  {
+   "city": "warrior",
+   "questid": 100491,
+   "step": 0,
+   "col": "offer",
+   "why": "fire bats spawn at two camps: (24380,8350) the hill north-west, and (25170,9215) south of the city by the spires; none north",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Fire bats nest in the hills north of the city. Kill one and bring back a torn fire bat wing. Take a friend if you must.",
+     "after": "Fire bats nest on the hill north-west of the city and by the rock spires south of it. Bring me a torn fire bat wing."
+    }
+   ]
+  },
+  {
+   "city": "warrior",
+   "questid": 100491,
+   "step": 1,
+   "col": "journal",
+   "why": "fire bats spawn at two camps: (24380,8350) the hill north-west, and (25170,9215) south of the city by the spires; none north",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Take the torn fire bat wing from the fire bats in the hills north of Neriak.",
+     "after": "Take the torn fire bat wing from the fire bats on the hill north-west of Neriak, or by the rock spires south of the city."
+    }
+   ]
+  },
+  {
+   "city": "wizard",
+   "questid": 100501,
+   "step": 0,
+   "col": "offer",
+   "why": "fire bats spawn at two camps: (24380,8350) the hill north-west, and (25170,9215) south of the city by the spires; none north",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Fire bats nest in the hills north of the city. Kill one and bring back a torn fire bat wing. Take a friend if you must.",
+     "after": "Fire bats nest on the hill north-west of the city and by the rock spires south of it. Bring me a torn fire bat wing."
+    }
+   ]
+  },
+  {
+   "city": "wizard",
+   "questid": 100501,
+   "step": 1,
+   "col": "says",
+   "why": "fire bats spawn at two camps: (24380,8350) the hill north-west, and (25170,9215) south of the city by the spires; none north",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Kill a fire bat in the hills north of the city and bring me a torn wing.",
+     "after": "Kill a fire bat on the hill north-west of the city, or by the rock spires south of it, and bring me a torn wing."
+    }
+   ]
+  },
+  {
+   "city": "wizard",
+   "questid": 100501,
+   "step": 2,
+   "col": "journal",
+   "why": "fire bats spawn at two camps: (24380,8350) the hill north-west, and (25170,9215) south of the city by the spires; none north",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Take the torn fire bat wing from the fire bats in the hills north of Neriak.",
+     "after": "Take the torn fire bat wing from the fire bats on the hill north-west of Neriak, or by the rock spires south of the city."
+    }
+   ]
+  },
+  {
+   "city": "wizard",
+   "questid": 100502,
+   "step": 1,
+   "col": "says",
+   "why": "Grobb Crab (18) and star crab spawns ring Grobb: east shore x 25680-25904, south z 31800-31912, west x 23752-24920; none north-west",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "The order? I need two crab legs from the crabs on the beach north-west of Grobb before I can send anything.",
+     "after": "The order? I need two crab legs from the crabs on the shores round Grobb, just outside the city, before I can send anything."
+    }
+   ]
+  },
+  {
+   "city": "wizard",
+   "questid": 100502,
+   "step": 2,
+   "col": "journal",
+   "why": "Grobb Crab (18) and star crab spawns ring Grobb: east shore x 25680-25904, south z 31800-31912, west x 23752-24920; none north-west",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": "Take two crab legs from the crabs on the beach north-west of Grobb.",
+     "after": "Take two crab legs from the crabs on the shores round Grobb, just outside the city."
+    }
+   ]
+  },
+  {
+   "city": "neriak",
+   "questid": 102374,
+   "step": -1,
+   "col": "*row*",
+   "why": "Leelak Hk'Arr (npcs 102374) is a second Leelak 3 from the merchant Leelak Hk'Aarr (1823), attackable, no wares: a duplicate",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": {
+      "id": 102374,
+      "npc_name": "Leelak Hk'Arr",
+      "zone": 1143,
+      "unk_a": 1,
+      "unk_b": 82,
+      "x_coord": 25168.5,
+      "y_coord": 1.09375,
+      "z_coord": 8889.26,
+      "facing": 51,
+      "world": 0,
+      "dt_kill": null,
+      "hp": 1,
+      "hp_percent": 255,
+      "modelid": 2128125354,
+      "size": 1.0,
+      "unk_d": 0,
+      "unk_f": 0,
+      "unk_g": 0,
+      "primary_weapon": 0,
+      "secondary_weapon": 0,
+      "shield": 0,
+      "unk_h": 0,
+      "torso": 0,
+      "forearm": 0,
+      "gloves": 0,
+      "legs": 0,
+      "feet": 0,
+      "head": 0,
+      "hair_color": 0,
+      "hair_length": 3,
+      "hair_style": 3,
+      "face": 0,
+      "robe_style": "255",
+      "race": "0",
+      "unk_j": 0,
+      "npc_level": 32,
+      "npc_type": 0,
+      "npc_id": 102374,
+      "unk_k": 0,
+      "unk_i": "15",
+      "pd_icon": 0,
+      "unk_m": 0,
+      "unk_n": 1,
+      "unk_o": 0
+     },
+     "after": null
+    }
+   ]
+  },
+  {
+   "city": "neriak",
+   "questid": 102374,
+   "step": -2,
+   "col": "*row*",
+   "why": "Leelak Hk'Arr (npcs 102374) is a second Leelak 3 from the merchant Leelak Hk'Aarr (1823), attackable, no wares: a duplicate",
+   "variants": [
+    {
+     "shards": "hl",
+     "before": {
+      "npc_row": 102374,
+      "seconds": 90.0,
+      "note": "named: keeps the old 90 s when normal mobs went to 15 s (the owner, 2026-11-11)",
+      "source": "petfix259"
+     },
+     "after": null
+    }
+   ]
+  }
+ ]
+}

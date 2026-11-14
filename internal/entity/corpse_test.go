@@ -24,6 +24,7 @@ func corpseWorld(t *testing.T, died time.Time) (*World, *NPC) {
 func TestACorpseLiesItsDecayThenGoesAndComesBackAMinuteLater(t *testing.T) {
 	died := time.Now()
 	w, npc := corpseWorld(t, died)
+	w.SetCorpseLinger(-1) // the creature's own corpse time, no linger (corpselinger.go)
 
 	// in view a minute after its death: the old rule hid it after 30 s
 	if gone := w.corpseSystem(died.Add(time.Minute)); len(gone) != 0 || !npc.corpseLies(died.Add(time.Minute), w.corpseDecay) {
@@ -113,6 +114,7 @@ func TestACorpseIsInViewWhileItLies(t *testing.T) {
 func TestAGMSpawnLeavesWithItsCorpse(t *testing.T) {
 	died := time.Now()
 	w, npc := corpseWorld(t, died)
+	w.SetCorpseLinger(-1) // the creature's own corpse time, no linger (corpselinger.go)
 	npc.Temporary = true
 	w.corpseSystem(died.Add(time.Minute))
 	if _, ok := w.NPCs[npc.ServerID]; !ok {

@@ -22,18 +22,17 @@ func lastLootCount(t *testing.T, s *session.Session) int64 {
 	return n
 }
 
-// The owner, 2026-11-14: "corpse if not looted for 5 mins should be open to all if
-// not a raid". A group's kill (KillCredit.OpenAt five minutes after the death, as the
-// World gives one outside a raid): an outsider is refused until then (word 675), the
-// killer takes one of its two items, and at five minutes after the death (from the
-// death, not the take) the outsider opens what is left. A raid's kill (OpenAt zero)
+// The GM Jibrish's Live petition 5035: a kill's corpse is its owners' for six minutes. A
+// group's kill (KillCredit.OpenAt six minutes after the death, as the World gives every kill): an outsider is refused until then (word 675), the
+// killer takes one of its two items, and at six minutes after the death (from the
+// death, not the take) the outsider opens what is left. A kill with no open time (the rule off)
 // stays its kill group's at ten minutes.
-func TestACorpseIsAnyonesFiveMinutesAfterItsDeath(t *testing.T) {
+func TestACorpseIsAnyonesSixMinutesAfterItsDeath(t *testing.T) {
 	r := newRightsRig(t, 2)
 	r.groups[r.player] = 7
 	died := r.npc.DeathTime
 	r.now = died
-	r.h.heardKillRight(entity.KillCredit{NPCID: r.npc.ServerID, Died: died, Group: 7, OpenAt: died.Add(5 * time.Minute),
+	r.h.heardKillRight(entity.KillCredit{NPCID: r.npc.ServerID, Died: died, Group: 7, OpenAt: died.Add(6 * time.Minute),
 		Players: []entity.KillPlayer{{ServerID: r.player.CharServerID, Name: r.player.Name}}})
 
 	r.h.OpenCorpse(r.sess, r.npc) // the killer takes one
@@ -49,26 +48,26 @@ func TestACorpseIsAnyonesFiveMinutesAfterItsDeath(t *testing.T) {
 	r.h.HandleLootClose(r.sess, nil)
 	r.sent()
 
-	r.now = died.Add(5*time.Minute - time.Second)
+	r.now = died.Add(6*time.Minute - time.Second)
 	r.h.OpenCorpse(r.other, r.npc)
 	if got := why(r.other); got != lootAnotherOwner {
-		t.Fatalf("an outsider just before five minutes: 0x0085 %d, want %d", got, lootAnotherOwner)
+		t.Fatalf("an outsider just before six minutes: 0x0085 %d, want %d", got, lootAnotherOwner)
 	}
-	r.now = died.Add(5 * time.Minute)
+	r.now = died.Add(6 * time.Minute)
 	r.h.OpenCorpse(r.other, r.npc)
 	if n := lastLootCount(t, r.other); n != 1 {
-		t.Fatalf("an outsider at five minutes: %d items shown, want the 1 left", n)
+		t.Fatalf("an outsider at six minutes: %d items shown, want the 1 left", n)
 	}
 	r.h.HandleLootClose(r.other, nil)
 	r.other.Queue().GetPending()
 
-	// a raid's kill keeps its kill group
+	// a kill with no open time (the rule off) keeps its kill group
 	r.h.heardKillRight(entity.KillCredit{NPCID: r.npc.ServerID, Died: died, Group: 7,
 		Players: []entity.KillPlayer{{ServerID: r.player.CharServerID, Name: r.player.Name}}})
 	r.now = died.Add(10 * time.Minute)
 	r.h.OpenCorpse(r.other, r.npc)
 	if got := why(r.other); got != lootAnotherOwner || opened(r.other) {
-		t.Fatalf("an outsider on a raid's kill at ten minutes: 0x0085 %d", got)
+		t.Fatalf("an outsider on a kill with no open time at ten minutes: 0x0085 %d", got)
 	}
 }
 
@@ -78,7 +77,7 @@ func TestACorpsesOpenTimeComesThroughARestart(t *testing.T) {
 	r := newRightsRig(t, 2)
 	died := r.npc.DeathTime
 	r.now = died
-	r.h.heardKillRight(entity.KillCredit{NPCID: r.npc.ServerID, Died: died, OpenAt: died.Add(5 * time.Minute),
+	r.h.heardKillRight(entity.KillCredit{NPCID: r.npc.ServerID, Died: died, OpenAt: died.Add(6 * time.Minute),
 		Players: []entity.KillPlayer{{ServerID: r.player.CharServerID, Name: r.player.Name}}})
 	prev := keepWindows.Swap(r.h)
 	t.Cleanup(func() { keepWindows.Store(prev) })
@@ -97,11 +96,11 @@ func TestACorpsesOpenTimeComesThroughARestart(t *testing.T) {
 	r.now = died.Add(time.Minute)
 	r.h.OpenCorpse(r.other, r.npc)
 	if got := why(r.other); got != lootAnotherOwner {
-		t.Fatalf("an outsider after the restart, before five minutes: 0x0085 %d", got)
+		t.Fatalf("an outsider after the restart, before six minutes: 0x0085 %d", got)
 	}
-	r.now = died.Add(5 * time.Minute)
+	r.now = died.Add(6 * time.Minute)
 	r.h.OpenCorpse(r.other, r.npc)
 	if !opened(r.other) {
-		t.Fatal("an outsider after the restart, at five minutes, could not open it")
+		t.Fatal("an outsider after the restart, at six minutes, could not open it")
 	}
 }

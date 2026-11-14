@@ -195,6 +195,9 @@ type NPC struct {
 	// keptEvent is a trigger's spawn a keep restart made again under its id
 	// (keeptrigger.go): the clients' slots go on describing it (keep.go's RestoreView)
 	keptEvent bool
+	// corpseLeft is a corpse a row's creature left where it fell (corpselinger.go)
+	// whose loot the handlers have not taken over yet: no one's to open until then
+	corpseLeft bool
 	// keptMoved is a creature a keep restart put on its row's new place, a data step
 	// having moved its spawn (keepnpc.go): every client that had it in view is made to
 	// let go of it (RestoreView), so it comes in again where it stands, not sliding there

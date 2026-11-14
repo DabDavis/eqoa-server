@@ -40,6 +40,7 @@ func regenTicks(w *World, k int) {
 // and its respawn takes it out of that one again.
 func TestNPCSetsHoldOnlyTheNPCsWithWork(t *testing.T) {
 	w, p := setsWorld(t, 500)
+	w.SetCorpseLinger(-1) // the creature's own corpse time, no linger (corpselinger.go)
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	now := time.Now()

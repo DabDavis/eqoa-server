@@ -93,7 +93,7 @@ type questCheck struct {
 	g   *ground.Ground
 	env *ground.Env
 
-	quests  []*database.Quest       // the quests checked, by id
+	quests  []*database.Quest        // the quests checked, by id
 	byFold  map[string][]*entity.NPC // every NPC by its folded name
 	loose   map[string][]string      // folded names by their loose key (no ` ' - space)
 	signs   map[int]database.SignText

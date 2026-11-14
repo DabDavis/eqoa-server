@@ -127,8 +127,11 @@ func TestAuraEasyWords(t *testing.T) {
 		// where along the weapon (2026-11-14): along=N (or N%) on a hand, the look's own 45 by default
 		{"druid staff glow along=30", auraSpec{A: database.ItemAura{Kind: database.AuraEpic, Source: 0xCBF4135A, Nodes: 30}, Where: auraBothHands, Look: "druid staff glow"}},
 		{"epic mainhand source=5FD4AE7C along=60%", auraSpec{A: database.ItemAura{Kind: database.AuraEpic, Source: 0x5FD4AE7C, Nodes: 60}, Where: entity.AuraMainHand}},
-		{"monk circlet", auraSpec{A: database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD}, Where: entity.AuraHelm, Look: "monk circlet"}},
-		{"gold monk_circlet head", auraSpec{A: database.ItemAura{Color: 0xFFC040FF, Kind: database.AuraCirclet, Source: 0x1D875ECD}, Where: entity.AuraHelm, Look: "monk circlet"}},
+		{"monk circlet", auraSpec{A: database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: CircletHeightMonk}, Where: entity.AuraHelm, Look: "monk circlet"}},
+		{"gold monk_circlet head", auraSpec{A: database.ItemAura{Color: 0xFFC040FF, Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: CircletHeightMonk}, Where: entity.AuraHelm, Look: "monk circlet"}},
+		// how high on the head (2026-11-14): height=N on a circlet, the monk circlet's own by default
+		{"monk circlet height=82", auraSpec{A: database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: 82}, Where: entity.AuraHelm, Look: "monk circlet"}},
+		{"red circlet head source=1D875ECD height=70%", auraSpec{A: database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: 70}, Where: entity.AuraHelm}},
 		{"circlet helm source=1D875ECD", auraSpec{A: database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD}, Where: entity.AuraHelm}},
 		{"sickle taint epic weapons", auraSpec{A: database.ItemAura{Kind: database.AuraEpic, Source: 0x5FD4AE7C}, Where: auraBothHands, Look: "sickle taint"}},
 	} {
@@ -141,7 +144,8 @@ func TestAuraEasyWords(t *testing.T) {
 		"blue nodes=40", "blue shell trim", "blue foo=1", "", "druid staff glow shell", "druid staff glow source=88EC092D", "off druid staff glow",
 		"druid staff",
 		"druid staff glow along=0", "druid staff glow along=101", "druid staff glow chest along=50", "blue shell chest along=50",
-		"epic weapons source=5FD4AE7C along=50 nodes=3", "off weapons along=50"} {
+		"epic weapons source=5FD4AE7C along=50 nodes=3", "off weapons along=50",
+		"monk circlet height=0", "monk circlet height=101", "blue shell chest height=50", "druid staff glow height=50", "monk circlet height=70 nodes=3"} {
 		if _, err := parseAuraEasy(strings.Fields(bad)); err == nil {
 			t.Errorf("%q: read, want refused", bad)
 		}
@@ -282,7 +286,7 @@ func TestGMAuraEasyCommand(t *testing.T) {
 	if l := gmReplies(t, gs); !hasLine(l, "Player's helm: now a circlet of 1D875ECD") || !hasLine(l, "(monk circlet)") {
 		t.Fatalf("/aura monk circlet: %q", l)
 	}
-	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraHelm] != (database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD}) {
+	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraHelm] != (database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: CircletHeightMonk}) {
 		t.Fatalf("the circlet, no helm worn: %+v", a)
 	}
 	c.say(gs, "/aura monk circlet chest")

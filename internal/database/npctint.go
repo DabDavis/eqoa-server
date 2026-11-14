@@ -103,7 +103,21 @@ const (
 	// the live look's bit 6 is sent: never in npctint or itemaura, so
 	// AuraKindMost stays 6 and every older client reads what it did.
 	AuraEpic = 7
+	// AuraCirclet is an epic's effect worn as a circlet round the head (the
+	// owner, 2026-11-14: "the effect on the end of the monks epic yin yang
+	// staff the circle of light with the criss cross lets make that effect
+	// into a circlet on the head of dust"): the source's glowing additive
+	// part (the Ascendant staff's ring at its yin-yang end, 0x1D875ECD) laid
+	// flat round the head at the brow and sized to it, following the head.
+	// On the helm's charaura slot alone (CharAuraHelm), shown whether a helm
+	// is worn or not (the client draws it while no helm is drawn); never in
+	// npctint or itemaura. A client before it reads the default (a shell on a
+	// worn helm while the colour lights: nothing with no colour).
+	AuraCirclet = 8
 )
+
+// CharAuraHelm is the helm's charaura slot (entity.AuraHelm): a circlet's.
+const CharAuraHelm = 5
 
 // AuraDarkMost is the brightest an aura's colour (its RGB, before its alpha)
 // is and still a DARK aura: a colour whose every channel is at most this
@@ -137,7 +151,7 @@ func AuraParticlesShow(kind uint8) bool { return kind == AuraParticles || kind =
 // anything: particles, or the shell (or trim) while the glow lights, or a
 // shell or trim named outright in a dark colour (AuraDark: black too).
 func AuraShows(glow uint32, kind uint8) bool {
-	if kind == AuraEpic {
+	if kind == AuraEpic || kind == AuraCirclet {
 		return true // the source's own look, coloured or not
 	}
 	if kind > AuraKindMost {
@@ -174,6 +188,9 @@ func ValidCharAuraNodes(slot, n int64) bool {
 func ValidCharAuraKind(slot, k int64) bool {
 	if slot == CharAuraMainHand || slot == CharAuraOffHand {
 		return k == AuraNone || k == AuraParticles || k == AuraEpic
+	}
+	if slot == CharAuraHelm && k == AuraCirclet {
+		return true // the helm's slot: a circlet too
 	}
 	return ValidAuraKind(k)
 }

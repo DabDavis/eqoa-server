@@ -67,7 +67,7 @@ func TestNPCTintAuras(t *testing.T) {
 		{0xFFC040FF, AuraTrim, true}, {0xFFC040FF, AuraTrimShell, true}, {0x000000FF, AuraTrim, true},
 		{0x000000FF, AuraTrimShell, true}, {0x000000FF, AuraShell, true}, {0x000000FF, AuraBoth, true},
 		{0x000000FF, AuraDefault, false}, {0x000000FF, AuraNone, false}, {0x00000000, AuraTrim, false},
-		{0x10001880, AuraTrim, true}, {0xFFC04000, AuraTrim, false}, {0x000000FF, 8, false},
+		{0x10001880, AuraTrim, true}, {0xFFC04000, AuraTrim, false}, {0x000000FF, 9, false}, {0, AuraCirclet, true},
 		// epic (a held item's alone, charaura 9 and 10): the source's own
 		// look, so it shows with any colour or none
 		{0, AuraEpic, true}, {0x000000FF, AuraEpic, true}, {0xFF2020FF, AuraEpic, true}} {

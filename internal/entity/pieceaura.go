@@ -285,6 +285,11 @@ func (w *World) pieceAuras(pieces *[AuraSlots]int, mask uint16, hidden uint16, o
 			out[i], any = own[i], true
 		}
 	}
+	// a circlet on the head (database.AuraCirclet) whatever is worn there or
+	// hidden: the client draws it while no helm is drawn
+	if own != nil && own[AuraHelm].Kind == database.AuraCirclet {
+		out[AuraHelm], any = own[AuraHelm], true
+	}
 	if !any {
 		return nil
 	}

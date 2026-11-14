@@ -1114,7 +1114,7 @@ var catalog = map[string]tableNote{
 			"merc":   {Label: "Merc", Help: "0 the character itself, else its mercenary of that hire slot"},
 			"slot":   {Label: "Slot", Help: "0 chest, 1 bracers, 2 gloves, 3 legs, 4 boots, 5 helm, 6 robe, 7 the body and underclothes (under the armour), 8 the cape, 9 the main hand's held item, 10 the off hand's"},
 			"color":  {Label: "Colour", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA; black 000000FF with a shell or trim a dark aura"},
-			"kind":   {Label: "Aura", Help: "0 default, 1 none, 2 shell, 3 particles, 4 both, 5 trim, 6 trim and shell; 7 epic (slots 9 and 10 alone: the source epic's own look on the held item); a hand takes 3 or 7"},
+			"kind":   {Label: "Aura", Help: "0 default, 1 none, 2 shell, 3 particles, 4 both, 5 trim, 6 trim and shell; 7 epic (slots 9 and 10 alone: the source epic's own look on the held item); a hand takes 3 or 7; 8 circlet (slot 5 alone: the source's glowing ring worn round the head, shown while no helm is drawn; monk circlet: Particles 1D875ECD)"},
 			"source": {Label: "Particles", Format: hex32, Look: lookItem, Store: storeUint32, Help: "the particles' DictID; 0 the Sword of Virtue's; with kind 7 the epic whose look it is (the Sickle of Avhi Escron 5FD4AE7C)"},
 			"nodes":  {Label: "Nodes", Help: "0 the default, 32 at most; on a held item (slots 9, 10) where along it the particles sit: 1-100 percent of its length from the hand, 0 where the epic has them (druid staff glow: 45)"},
 			"note":   {Label: "Note", Help: "why"},

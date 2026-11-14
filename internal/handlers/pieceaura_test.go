@@ -66,6 +66,20 @@ func TestThePiecesAurasAreGrantedWithTheArmour(t *testing.T) {
 	if d := sentOp(noBody, protocol.OpcodeLiveLookInForce); binary.LittleEndian.Uint32(d[10:]) != liveLookArmor|liveLookAuras || noBody.CapeAura() {
 		t.Fatalf("bit 5 without bit 4: %x", d)
 	}
+	if cape.HandAura() {
+		t.Fatal("the hands' auras granted without bit 6")
+	}
+	// bit 6 too: the held items' auras (335 bytes), in force's third u32 4|8|16|32|64
+	hands := f.session(59)
+	f.answer(t, hands, 1|liveLookArmor|liveLookAuras|liveLookBody|liveLookCape|liveLookHands)
+	if d := sentOp(hands, protocol.OpcodeLiveLookInForce); binary.LittleEndian.Uint32(d[10:]) != liveLookArmor|liveLookAuras|liveLookBody|liveLookCape|liveLookHands || !hands.HandAura() {
+		t.Fatalf("the hands' auras in force: %x", d)
+	}
+	noCape := f.session(60)
+	f.answer(t, noCape, 1|liveLookArmor|liveLookAuras|liveLookBody|liveLookHands)
+	if d := sentOp(noCape, protocol.OpcodeLiveLookInForce); binary.LittleEndian.Uint32(d[10:]) != liveLookArmor|liveLookAuras|liveLookBody || noCape.HandAura() {
+		t.Fatalf("bit 6 without bit 5: %x", d)
+	}
 	noPieces := f.session(56)
 	f.answer(t, noPieces, 1|liveLookArmor|liveLookBody)
 	if d := sentOp(noPieces, protocol.OpcodeLiveLookInForce); binary.LittleEndian.Uint32(d[10:]) != liveLookArmor || noPieces.BodyAura() {

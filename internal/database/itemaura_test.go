@@ -67,7 +67,10 @@ func TestNPCTintAuras(t *testing.T) {
 		{0xFFC040FF, AuraTrim, true}, {0xFFC040FF, AuraTrimShell, true}, {0x000000FF, AuraTrim, true},
 		{0x000000FF, AuraTrimShell, true}, {0x000000FF, AuraShell, true}, {0x000000FF, AuraBoth, true},
 		{0x000000FF, AuraDefault, false}, {0x000000FF, AuraNone, false}, {0x00000000, AuraTrim, false},
-		{0x10001880, AuraTrim, true}, {0xFFC04000, AuraTrim, false}, {0x000000FF, 7, false}} {
+		{0x10001880, AuraTrim, true}, {0xFFC04000, AuraTrim, false}, {0x000000FF, 8, false},
+		// epic (a held item's alone, charaura 9 and 10): the source's own
+		// look, so it shows with any colour or none
+		{0, AuraEpic, true}, {0x000000FF, AuraEpic, true}, {0xFF2020FF, AuraEpic, true}} {
 		if AuraShows(c.glow, c.kind) != c.want {
 			t.Errorf("AuraShows(%08X, %d) = %v", c.glow, c.kind, !c.want)
 		}
@@ -172,5 +175,50 @@ func TestAuraDark(t *testing.T) {
 	if !(NPCTint{Name: "dust", Color: 0xFFFFFFFF, Glow: 0x000000FF, AuraKind: AuraTrim}).Shows() ||
 		(NPCTint{Name: "dust", Color: 0xFFFFFFFF, Glow: 0x000000FF, AuraKind: AuraTrim}).ShowsGlow() {
 		t.Fatal("a black trim aura: shown at layout 3 alone")
+	}
+}
+
+// charaura's hands (slots 9 and 10, 2026-11-14): a row of kind epic (7) is
+// read, colour or none (tools/zaeire_taint_20261114.py's rows: colour 0,
+// source the Sickle of Avhi Escron 1607773820); a hand's shell, epic on a
+// piece and a slot past 10 are dropped on read; SetCharAuraAudited refuses
+// a hand's shell and epic on a piece, writing nothing, and keeps a hand's
+// epic.
+func TestCharAurasHands(t *testing.T) {
+	db, err := NewSQLite(t.TempDir() + "/charaura.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	if _, err := db.Exec(`INSERT INTO charaura (charid, merc, slot, color, kind, source, nodes) VALUES
+		(193, 0, 9, 0, 7, 1607773820, 0), (193, 0, 10, 4280295679, 7, 1607773820, 0), (193, 0, 1, 0, 7, 1607773820, 0),
+		(194, 0, 9, 4280295679, 2, 0, 0), (194, 0, 11, 0, 7, 1607773820, 0), (194, 0, 10, 0, 3, 0, 0)`); err != nil {
+		t.Fatal(err)
+	}
+	got, err := db.CharAuras()
+	if err != nil {
+		t.Fatal(err)
+	}
+	z, other := got[CharAuraKey{CharID: 193}], got[CharAuraKey{CharID: 194}]
+	taint := ItemAura{Kind: AuraEpic, Source: 0x5FD4AE7C}
+	if z[CharAuraMainHand] != taint || z[CharAuraOffHand] != (ItemAura{Color: 0xFF2020FF, Kind: AuraEpic, Source: 0x5FD4AE7C}) || z[1] != (ItemAura{}) {
+		t.Fatalf("Zaeire's: %+v", z)
+	}
+	if other[CharAuraMainHand] != (ItemAura{}) || other[CharAuraOffHand] != (ItemAura{Kind: AuraParticles}) || len(got) != 2 {
+		t.Fatalf("a hand's shell, a slot past 10: %+v (%d keys)", other, len(got))
+	}
+	k := CharAuraKey{CharID: 195}
+	if err := db.SetCharAuraAudited(k, CharAuraMainHand, ItemAura{Color: 0xFF2020FF, Kind: AuraShell}, GMEdit{}, "test"); err == nil {
+		t.Fatal("a hand's shell kept")
+	}
+	if err := db.SetCharAuraAudited(k, CharAuraBody, taint, GMEdit{}, "test"); err == nil {
+		t.Fatal("epic on the body kept")
+	}
+	if err := db.SetCharAuraAudited(k, CharAuraOffHand, taint, GMEdit{}, "test"); err != nil {
+		t.Fatal(err)
+	}
+	got, _ = db.CharAuras()
+	if a := got[k]; a[CharAuraOffHand] != taint || a[CharAuraMainHand] != (ItemAura{}) || a[CharAuraBody] != (ItemAura{}) {
+		t.Fatalf("written: %+v", a)
 	}
 }

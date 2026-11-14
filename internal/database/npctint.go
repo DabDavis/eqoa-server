@@ -92,6 +92,17 @@ const (
 	AuraTrim      = 5 // the armour's gold trim lit in the glow's colour (sets 4 and 9's plate), a soft halo off it
 	AuraTrimShell = 6 // the trim and the shell
 	AuraKindMost  = AuraTrimShell
+	// AuraEpic is a held weapon drawn with an epic weapon's own look (the
+	// owner, 2026-11-14: "give zaeires equipped weapons the necro's tainted
+	// aura from the epic sickle"): the source's model (an ITEM.ESF hand
+	// model, the epic's) lends the held item its materials' emissive glow,
+	// its additive sheen and its particle sprites; a colour that lights
+	// recolours them (as a held item's own colour does its glow), none keeps
+	// the source's own. On the hands' charaura slots alone (CharAuraMainHand,
+	// CharAuraOffHand: ValidCharAuraKind), which only a client that answered
+	// the live look's bit 6 is sent: never in npctint or itemaura, so
+	// AuraKindMost stays 6 and every older client reads what it did.
+	AuraEpic = 7
 )
 
 // AuraDarkMost is the brightest an aura's colour (its RGB, before its alpha)
@@ -126,6 +137,9 @@ func AuraParticlesShow(kind uint8) bool { return kind == AuraParticles || kind =
 // anything: particles, or the shell (or trim) while the glow lights, or a
 // shell or trim named outright in a dark colour (AuraDark: black too).
 func AuraShows(glow uint32, kind uint8) bool {
+	if kind == AuraEpic {
+		return true // the source's own look, coloured or not
+	}
 	if kind > AuraKindMost {
 		kind = AuraDefault // the client reads any other as the default
 	}
@@ -135,6 +149,17 @@ func AuraShows(glow uint32, kind uint8) bool {
 // ValidAuraKind and ValidAuraNodes hold a GM's aura to what the client reads.
 func ValidAuraKind(k int64) bool  { return k >= 0 && k <= AuraKindMost }
 func ValidAuraNodes(n int64) bool { return n >= 0 && n <= AuraNodesMost }
+
+// ValidCharAuraKind holds a charaura row's kind to what its slot draws: a
+// hand (CharAuraMainHand, CharAuraOffHand) none, the particles (the source's
+// particle sprites on the held item) or the epic's look (AuraEpic); every
+// other slot the kinds an aura on a body or piece has (ValidAuraKind).
+func ValidCharAuraKind(slot, k int64) bool {
+	if slot == CharAuraMainHand || slot == CharAuraOffHand {
+		return k == AuraNone || k == AuraParticles || k == AuraEpic
+	}
+	return ValidAuraKind(k)
+}
 
 // NPCTint is a row of npctint, read: the name's key, its colour, its glow and
 // its aura.

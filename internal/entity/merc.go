@@ -134,6 +134,10 @@ type MercKit struct {
 	// PetPick is the words of the pet kind its hirer picked (/merc pet:
 	// mercpet.go's mercPetSpell), none for its best
 	PetPick []string
+	// PetUsual: PetPick is its class's usual kind (a magician's earth line),
+	// not one its hirer picked: taken only while that line keeps up with its
+	// book's best (mercPetSpell, ticket 2020)
+	PetUsual bool
 	// SpellsOff is the spells its hirer turned off in its menu (handlers'
 	// mercmenu.go), by id: its book keeps them out (mercBook)
 	SpellsOff []int
@@ -817,13 +821,18 @@ func (w *World) SetMercKit(charID uint32, slot int, kit MercKit) bool {
 func (w *World) rekitMercLocked(ms *mercState, kit MercKit) {
 	n := ms.npc
 	hp, pw := share(n.HP, n.MaxHP), share(n.Power, n.MaxPower)
-	picked := strings.Join(ms.kit.PetPick, ",") != strings.Join(kit.PetPick, ",")
+	picked := strings.Join(ms.kit.PetPick, ",") != strings.Join(kit.PetPick, ",") || ms.kit.PetUsual != kit.PetUsual
 	ms.kit = kit
 	ms.bowOut, ms.shot = false, nil // its hands the new kit's (mercshoot.go)
-	// a new pick of its pet's kind (/merc pet): a pet out of another
-	// summoning goes, and the picked one is summoned (mercpet.go)
-	if ps := w.mercPetOutLocked(ms); picked && ps != nil {
+	// a new pick of its pet's kind (/merc pet), or a new level's book (ticket
+	// 2020, Kyro: "Magician merc still using lvl 1 pet at lvl 13"): a pet out
+	// of another summoning than the one the kit now casts goes, and that one
+	// is summoned at the merc's next turn (mercpet.go's mercSummonTurnLocked);
+	// a charmed creature is let go only for a new pick
+	if ps := w.mercPetOutLocked(ms); ps != nil && (picked || ps.npc.Charm == nil) {
 		if want := ms.mercPetSpell(); want != nil && want.SpellID != ps.spell {
+			log.Printf("Merc: %s's %q's pet %q (spell %d) gives way to %q (spell %d)", ms.owner.Name, n.Name, ps.npc.Name,
+				ps.spell, want.Name, want.SpellID)
 			w.mercPetGoesLocked(ms, time.Now())
 		}
 	}

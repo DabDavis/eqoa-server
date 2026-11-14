@@ -91,13 +91,30 @@ func (w *World) petMasterLocked(npc *NPC) *Player {
 // book's (a pet's, not a charm's, a familiar item's or a trip's), the dearest
 // of those, the highest id of those; nil for a book with none. Its hirer's
 // pick of a kind (MercKit.PetPick, /merc pet: petition 1564) takes the best of
-// that kind's, and the best of all when its book has none of it yet.
+// that kind's, and the best of all when its book has none of it yet. Its
+// class's usual kind (MercKit.PetUsual: a magician's earth line) is taken only
+// while that kind's best is of the book's best's rank, its level at least
+// mercPetUsualKeep of the best's (ticket 2020, Kyro: "Magician merc still
+// using lvl 1 pet at lvl 13": the earth line has Earth Elementaling at 1 and
+// nothing more until Earth Elementalkin at 16, so a magician of 4 to 15 sent
+// out a level 1 pet beside its book's water, fire and air Elementalings of 4,
+// 8 and 12); a kind its hirer picked is kept whatever its rank.
 func (ms *mercState) mercPetSpell() *CastSpell {
+	best := ms.mercPetSpellOf(nil)
 	if s := ms.mercPetSpellOf(ms.kit.PetPick); s != nil {
-		return s
+		if !ms.kit.PetUsual || best == nil || float64(s.Level) >= mercPetUsualKeep*float64(best.Level) {
+			return s
+		}
 	}
-	return ms.mercPetSpellOf(nil)
+	return best
 }
+
+// mercPetUsualKeep is the share of the book's best summoning's level a class's
+// usual kind's best keeps up with to be taken (ours, ticket 2020): the
+// magician's earth line from 16 on (Earth Elementalkin of 16 beside Water
+// Elementalkin of 20; the masteries' ranks of 24 to 44, Summon Badi from 49),
+// not its Earth Elementaling of 1 past level 3.
+const mercPetUsualKeep = 0.8
 
 // MercPetFor is the summoning a merc of the kit casts (mercPetSpell), nil for
 // none: the handlers' real-data test's.

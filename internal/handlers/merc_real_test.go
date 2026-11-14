@@ -138,6 +138,13 @@ func TestRealMercPetsAtTheirLevel(t *testing.T) {
 		{10, 60, "fire", "Summon Efreeti Lord"}, {10, 60, "water", "Summon Ghilan Noble"}, {10, 60, "best", "Summon Efreeti Lord"},
 		{11, 60, "", "Swarming Death"}, {12, 60, "", "Storm of Blades"}, {8, 60, "", "Primal Spirit"}, {13, 60, "", "Arch Familiar"},
 		{7, 60, "", ""},
+		// ticket 2020 (Kyro's magician of 13 sent out the Earth Elementaling of
+		// 1): its usual earth line only once it keeps up with its book's best
+		{10, 1, "", "Earth Elementaling"}, {10, 5, "", "Water Elementaling"}, {10, 10, "", "Fire Elementaling"},
+		{10, 13, "", "Air Elementaling"}, {10, 16, "", "Earth Elementalkin"}, {10, 22, "", "Earth Elementalkin"},
+		{10, 13, "earth", "Earth Elementaling"}, {10, 13, "best", "Air Elementaling"}, {10, 13, "fire", "Fire Elementaling"},
+		// the other pet classes' at 13: their book's newest
+		{11, 13, "", "Lumbering Bones"}, {12, 13, "", "Mercyls Animation"}, {8, 13, "", "Kindred Spirit"}, {13, 13, "", "Minor Familiar"},
 	} {
 		if got := pet(c.class, c.level, c.pick); got != c.want {
 			t.Errorf("%s %d %q: %q, want %q", entity.ClassName(c.class), c.level, c.pick, got, c.want)

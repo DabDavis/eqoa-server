@@ -544,6 +544,10 @@ func main() {
 	}
 	log.Printf("Quest marks over heads: %s (quests.markers)", handlers.QuestHeadMarksMode())
 	handlers.SetHeirloomsGiven(cfg.World.Heirlooms == nil || *cfg.World.Heirlooms)
+	handlers.SetRewardXP(cfg.World.GMRewardXP) // #reward: the reward of experience (world.gm_reward_xp, the Live shard's)
+	if cfg.World.GMRewardXP {
+		log.Printf("GM reward: #reward gives 10%% more experience for 30 minutes (world.gm_reward_xp)")
+	}
 	if cfg.World.Heirlooms != nil && !*cfg.World.Heirlooms {
 		log.Printf("Heirlooms: none given at a login (world.heirlooms: false)")
 	}

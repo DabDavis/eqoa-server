@@ -62,6 +62,11 @@ world:
   # a player's, while the button is held; a PS2 in a dialogue box. Off unless
   # set (the Heirloom Test Server sets it).
   # mob_info: true
+  # A GM's #reward (/reward) as the reward of experience: 10% more experience
+  # for 30 minutes of play on the GM's target, a player (handlers/rewardxp.go,
+  # petition 5033). Unset: #reward is GM's Reward, the buff (handlers/reward.go).
+  # The Live shard sets it, the Heirloom Test Server does not.
+  # gm_reward_xp: true
 
   # The accounts (accountinfo.username) whose GMs may /noclip: a flight through
   # every wall, floor and ceiling (handlers/noclip.go). Empty: nobody.

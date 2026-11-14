@@ -1987,6 +1987,9 @@ func (w *World) effectSystem(now time.Time) {
 				}
 				w.removeEffectLocked(p, ae.SpellID)
 				log.Printf("Cast: %q wears off %s", ae.Name, p.Name)
+				if ae.SpellID == RewardXPEffectID {
+					w.rewardXPEndedLocked(p) // its bearer told (gmrewardxp.go)
+				}
 				continue
 			}
 			w.tickEffectLocked(p, ae, now)
@@ -2028,11 +2031,11 @@ func (w *World) effectSystem(now time.Time) {
 }
 
 // clearSpellsLocked ends a dead player's cast and takes its effects off, all
-// but a town's boon, which outlives a death (boon.go).
+// but a town's boon and a GM's reward, which outlive a death (boon.go, gmrewardxp.go).
 func (w *World) clearSpellsLocked(p *Player) {
 	p.Casting = nil
 	for _, ae := range append([]*ActiveEffect(nil), p.Effects...) {
-		if ae.SpellID != BoonEffectID {
+		if !outlivesDeath(ae.SpellID) {
 			w.removeEffectLocked(p, ae.SpellID)
 		}
 	}

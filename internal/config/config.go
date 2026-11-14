@@ -202,10 +202,14 @@ type WorldConfig struct {
 	CorpseDecay  time.Duration `yaml:"corpse_decay"`
 	RespawnAfter time.Duration `yaml:"respawn_after"`
 	RoamRadius   float32       `yaml:"roam_radius"`
-	// CorpseOpenAfter is how long after its death a corpse killed outside a raid
-	// is anyone's to loot, not its kill group's alone (unset or 0: 5m; below 0,
-	// never). entity/corpseopen.go.
-	CorpseOpenAfter time.Duration `yaml:"corpse_open_after"`
+	// CorpseOpenAfter is how long after its death a kill's corpse (a raid's too) is
+	// its kill group's alone, then anyone's (unset or 0: 6m; below 0, always its
+	// group's). entity/corpseopen.go. CorpseDecayAfter is how long a lootable corpse
+	// lies from its death (unset or 0: 20m; at or below corpse_decay, none lingers):
+	// past corpse_decay it lies on as a copy and its creature comes back as before
+	// (entity/corpselinger.go).
+	CorpseOpenAfter  time.Duration `yaml:"corpse_open_after"`
+	CorpseDecayAfter time.Duration `yaml:"corpse_decay_after"`
 
 	// Aggro is whether creatures attack a player on sight (entity/aggro.go):
 	// unset, they do; false, none attacks first.

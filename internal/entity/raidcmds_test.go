@@ -571,6 +571,7 @@ func TestARaidsRulesAreKeptOverARestart(t *testing.T) {
 func TestAHeldCorpseLiesUntilItsHoldEnds(t *testing.T) {
 	w := NewWorld()
 	w.SetCorpseTimes(time.Minute, time.Second)
+	w.SetCorpseLinger(-1) // the creature's own corpse time, no linger (corpselinger.go)
 	npc := &NPC{ServerID: 9700, Name: "Lady Vox", Level: 55, HP: 1, MaxHP: 1, X: 1, Z: 1, RespawnTime: time.Hour}
 	w.mu.Lock()
 	w.putNPCLocked(npc)

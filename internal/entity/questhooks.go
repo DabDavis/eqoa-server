@@ -35,9 +35,8 @@ type KillCredit struct {
 	// Raid is the killer's raid's loot rule and seats when it has one but free for
 	// all (raidrules.go's RaidKill), nil otherwise
 	Raid *RaidKill
-	// OpenAt is when the corpse is anyone's to loot, its kill group's or not: five
-	// minutes after the death for a kill outside a raid; zero for a raid's, which
-	// keeps its rules (corpseopen.go)
+	// OpenAt is when the corpse is anyone's to loot, its kill group's or not: six
+	// minutes after the death, a raid's too; zero never (corpseopen.go)
 	OpenAt time.Time
 }
 
@@ -84,7 +83,7 @@ func (w *World) creditKillLocked(sess *session.Session, p *Player, npc *NPC) {
 		// tribute should only go to the player who summons metal moogie")
 		raid = nil
 	}
-	openAt := w.corpseOpenLocked(p, npc) // a non-raid kill's corpse anyone's after five minutes (corpseopen.go)
+	openAt := w.corpseOpenLocked(npc) // the corpse anyone's six minutes after the death (corpseopen.go)
 	if len(w.onKill) == 0 {
 		return
 	}

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/eqoa/server/internal/session"
+	"github.com/eqoa/server/internal/skyisles"
 )
 
 // PetitionView is the server's own view of a player at the moment it files a
@@ -30,6 +31,7 @@ type PetitionCharacter struct {
 	X         float32 `json:"x"`
 	Y         float32 `json:"y"`
 	Z         float32 `json:"z"`
+	Isle      string  `json:"isle,omitempty"` // the Plane of Sky's isle (skyisles): "Night Chain 1"
 	Facing    float32 `json:"facing"`
 	HP        int     `json:"hp"`
 	MaxHP     int     `json:"maxHP"`
@@ -78,7 +80,7 @@ func (w *World) PetitionView(sess *session.Session, now time.Time) (PetitionView
 		Character: PetitionCharacter{
 			Name: p.Name, ServerID: p.CharServerID, Level: p.Level,
 			Class: nameIn(classNames, p.Class), Race: RaceName(p.Race),
-			World: p.World, X: p.X, Y: p.Y, Z: p.Z, Facing: p.Facing,
+			World: p.World, X: p.X, Y: p.Y, Z: p.Z, Isle: skyisles.In(int(p.World), p.X, p.Y, p.Z), Facing: p.Facing,
 			HP: p.HP, MaxHP: p.MaxHPNow(), Power: p.Power, MaxPower: p.MaxPowerNow(),
 			Dead: p.HP <= 0 || !p.DiedAt.IsZero(), Fighting: w.petitionNameLocked(p.AttackTarget),
 			Group: p.GroupID, Guild: p.GuildName, Tunar: p.Tunar, BankTunar: p.BankTunar, Effects: len(p.Effects),

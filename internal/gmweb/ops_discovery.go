@@ -558,12 +558,23 @@ func (s *Server) characterOverview(id int64) (map[string]any, error) {
 	out["className"], out["raceName"] = className(int(cls)), raceName(int(race))
 	w, _ := asFloat(ch["world"])
 	out["worldName"] = worldName(int(w))
+	out["place"] = rowPlace(int(w), ch["x"], ch["y"], ch["z"])
 	if p, on := s.onlineCharacter(uint32(id)); on {
 		out["online"] = p
+		out["onlinePlace"] = placeName(int(p.World), p.X, p.Y, p.Z)
 	} else {
 		out["online"] = nil
 	}
 	return out, nil
+}
+
+// rowPlace is placeName of a row's world and coordinates (the Plane of Sky's
+// isle, skyisles).
+func rowPlace(w int, x, y, z any) string {
+	fx, _ := asFloat(x)
+	fy, _ := asFloat(y)
+	fz, _ := asFloat(z)
+	return placeName(w, float32(fx), float32(fy), float32(fz))
 }
 
 func (s *Server) npcOverview(id int64) (map[string]any, error) {
@@ -581,6 +592,7 @@ func (s *Server) npcOverview(id int64) (map[string]any, error) {
 	out["spawnsOfThisName"] = spawns
 	w, _ := asFloat(npc["world"])
 	out["worldName"] = worldName(int(w))
+	out["place"] = rowPlace(int(w), npc["x_coord"], npc["y_coord"], npc["z_coord"])
 	typ, _ := asFloat(npc["npc_type"])
 	var flags []string
 	for _, f := range flagSets()["npctype"] {

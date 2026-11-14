@@ -9,6 +9,7 @@ import (
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/handlers"
 	"github.com/eqoa/server/internal/session"
+	"github.com/eqoa/server/internal/skyisles"
 )
 
 // What a committed row change does to the running game, where the game holds
@@ -527,7 +528,7 @@ func (s *Server) liveNPC(action string, before, after map[string]any) string {
 			msgs = append(msgs, "not applied to the world: "+err.Error())
 		case created:
 			msgs = append(msgs, fmt.Sprintf("%s spawned in %s at (%.0f, %.0f, %.0f)", rec.NPCName,
-				worldName(rec.World), rec.XCoord, rec.YCoord, rec.ZCoord))
+				placeName(rec.World, rec.XCoord, rec.YCoord, rec.ZCoord), rec.XCoord, rec.YCoord, rec.ZCoord))
 		default:
 			msgs = append(msgs, fmt.Sprintf("%s changed in the world: it leaves every view for a second and comes back as edited, on its spawn point", rec.NPCName))
 		}
@@ -697,12 +698,18 @@ func (s *Server) teleportLive(p entity.PlayerState, x, y, z float32, world byte)
 	if !handlers.TeleportOnlineCharacter(s.d.World, s.d.Sessions, p.ID, x, y, z, w) {
 		return "", fmt.Errorf("%s has no session to send it to", p.Name)
 	}
-	return fmt.Sprintf("teleported to (%.0f, %.0f, %.0f) in %s", x, y, z, worldName(int(w))), nil
+	return fmt.Sprintf("teleported to (%.0f, %.0f, %.0f) in %s", x, y, z, placeName(int(w), x, y, z)), nil
 }
 
 // sessionFor is a character's in-world session, or nil.
 func (s *Server) sessionFor(serverID uint32) *session.Session {
 	return handlers.SessionOfCharacter(s.d.World, s.d.Sessions, serverID)
+}
+
+// placeName is worldName with, in the Plane of Sky, the isle at (x, y, z)
+// (skyisles): "Plane of Sky (Night Chain 1)".
+func placeName(w int, x, y, z float32) string {
+	return skyisles.Place(w, worldName(w), x, y, z)
 }
 
 func worldName(w int) string {

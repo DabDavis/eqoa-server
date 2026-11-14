@@ -829,13 +829,29 @@ func (h *CraftHandler) attempt(c *craftCtx, a *craftAttempt, discovery bool, out
 	}
 	taken := h.takeCraft(c.char(), c.l, a.held, a.all, out)
 	given := h.giveCraft(c.char(), c.l, a.product, rec.Yield, out, readsCapes(c.sess))
-	gain := a.skill.addXP(craftGain(rec.XP, rec.Level, a.skill.level, discovery))
+	gain := a.skill.addXP(craftBoonXP(craftGain(rec.XP, rec.Level, a.skill.level, discovery), c.view.XPPct))
 	if err := h.db.SetCharCraftSkill(c.char(), rec.Skill, a.skill.row()); err != nil {
 		log.Printf("Craft: %s's %s: %v", c.view.Name, craftSkillName(rec.Skill), err)
 	}
-	log.Printf("Craft: %s made %d %q (recipe %d, chance %.2f): %s level %d rank %d, +%d XP", c.view.Name, rec.Yield,
-		a.product.ItemName, rec.ID, chance, craftSkillName(rec.Skill), a.skill.level, a.skill.rank, gain)
+	boon := ""
+	if c.view.XPTag != "" {
+		boon = " (" + c.view.XPTag + ")"
+		if gain > 0 {
+			out.add(protocol.OpcodeClientMessage, clientMessagePayload(fmt.Sprintf("Your %s gains %d XP%s.", craftSkillName(rec.Skill), gain, boon)))
+		}
+	}
+	log.Printf("Craft: %s made %d %q (recipe %d, chance %.2f): %s level %d rank %d, +%d XP%s", c.view.Name, rec.Yield,
+		a.product.ItemName, rec.ID, chance, craftSkillName(rec.Skill), a.skill.level, a.skill.rank, gain, boon)
 	return craftMade, taken, given, gain
+}
+
+// craftBoonXP is a success's XP at the player's share of experience (CraftView.XPPct: the towns'
+// boon, the GM's reward; 0 is 100), as a kill's award is multiplied (world.go awardXP).
+func craftBoonXP(xp, pct int) int {
+	if pct <= 0 || pct == 100 {
+		return xp
+	}
+	return xp * pct / 100
 }
 
 // recovering is whether the session's last attempt was under craftCooldown

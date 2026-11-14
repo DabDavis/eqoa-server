@@ -88,7 +88,20 @@ func (h *ChatHandler) isSubGM(sess *session.Session) bool {
 // "#fly") though it is no GM's: a sub GM's commands (subGMCommands), none of a
 // GM's others.
 func (h *ChatHandler) granted(sess *session.Session, cmd string) bool {
-	return subGMCommands[cmd] && h.isSubGM(sess)
+	return subGMCommands[gmAlias(cmd)] && h.isSubGM(sess)
+}
+
+// gmAliases are GM commands' other names (spelled "#copy"): the same command,
+// whoever may use it. The owner, 2026-11-14: "./copy should work for jib also
+// on live server": /copy is /clone.
+var gmAliases = map[string]string{"#copy": "#clone"}
+
+// gmAlias is the command cmd (spelled "#copy", lower case) names.
+func gmAlias(cmd string) string {
+	if a, ok := gmAliases[cmd]; ok {
+		return a
+	}
+	return cmd
 }
 
 func (h *ChatHandler) isGM(sess *session.Session) bool {
@@ -115,6 +128,7 @@ var gmCommands = map[string]bool{
 	"#giveitem": true, "#size": true, "#mark": true, "#marks": true, "#camp": true, "#path": true,
 	"#markportal": true, "#delete": true, "#clone": true, "#place": true, "#move": true, "#roamer": true,
 	"#noclip": true, "#raidboss": true, "#aura": true, "#hazard": true,
+	"#copy": true, // #clone (gmAliases)
 }
 
 // slashGM is the # spelling of a /command line that names a GM command

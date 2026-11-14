@@ -497,6 +497,10 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// /mark, /camp and /path, and a GM's marks in its petitions (gmcamps.go)
 	if charStore != nil {
 		chatHandler.SetCampStore(charStore.DB())
+		if gameWorld != nil {
+			// rows another shard's GM mirrored here, into the world (npcmirror.go)
+			chatHandler.watchNPCMirrorInbox()
+		}
 		supportHandler.SetMarks(charStore.DB())
 		// /markportal and the portals it makes (gmportal.go)
 		portals := NewGMPortals(charStore.DB())

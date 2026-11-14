@@ -57,7 +57,8 @@ import (
 // an instance. Every row's change has its gm_audit line (via "game").
 
 // npcRowWords are /delete's and /clone's words, lower case.
-var npcRowWords = map[string]bool{"delete": true, "clone": true, "place": true, "move": true, "roamer": true}
+var npcRowWords = map[string]bool{"delete": true, "clone": true, "place": true, "move": true, "roamer": true,
+	"copy": true} // /copy is /clone (devcmds.go's gmAliases)
 
 // npcRowTell reads a PS2's "/t delete" or "/t clone" (its keyboards type no
 // #, and it keeps an unknown /command to itself): the word and what follows
@@ -156,7 +157,8 @@ func (h *ChatHandler) applyWander(sess *session.Session, id int64, w *database.N
 	if changed {
 		h.reloadNPCExtras([]string{"npcwander"})
 	}
-	return " " + upperFirst(wanderWords(w)) + "." + h.wanderNote(id)
+	return " " + upperFirst(wanderWords(w)) + "." + h.wanderNote(id) +
+		h.mirrorNPC(sess, database.MirrorUpdate, id, 0, nil, detail) // npcmirror.go
 }
 
 // wanderNote is " (it stands: why)" when the world's rules keep row id from
@@ -311,7 +313,9 @@ func (h *ChatHandler) deleteCommand(sess *session.Session, player *entity.Player
 	if len(d.Extras) > 0 {
 		line += ", with its " + strings.Join(d.Extras, ", ")
 	}
-	h.gmReply(sess, line+". /delete undo puts it back.")
+	line += ". /delete undo puts it back."
+	line += h.mirrorNPC(sess, database.MirrorDelete, int64(id), 0, nil, "/delete in the game: "+what) // npcmirror.go
+	h.gmReply(sess, line)
 	log.Printf("GM: %s deleted NPC %s at (%.1f, %.1f, %.1f) world %d, extras %v", player.Name, what,
 		rec.XCoord, rec.YCoord, rec.ZCoord, rec.World, d.Extras)
 }
@@ -393,6 +397,8 @@ func (h *ChatHandler) cloneCommand(sess *session.Session, player *entity.Player,
 	}
 	line += h.applyWander(sess, nid, wander, fmt.Sprintf("/clone in the game: %s, a copy of NPC %d", what, id))
 	line += standsWords(copied)
+	line += h.mirrorNPC(sess, database.MirrorCreate, nid, int64(id), nil,
+		fmt.Sprintf("/clone in the game: %s, a copy of NPC %d", what, id)) // npcmirror.go
 	if player.Flying {
 		line += " (you fly: it stands in the air)"
 	}
@@ -488,6 +494,8 @@ func (h *ChatHandler) placeCommand(sess *session.Session, player *entity.Player,
 	}
 	line += h.applyWander(sess, nid, wander, fmt.Sprintf("/place in the game: %s (row %d), a copy of NPC %d", name, src, src))
 	line += standsWords(copied)
+	line += h.mirrorNPC(sess, database.MirrorCreate, nid, src, nil,
+		fmt.Sprintf("/place in the game: %s (row %d), a copy of NPC %d", name, src, src)) // npcmirror.go
 	if player.Flying {
 		line += " (you fly: it stands in the air)"
 	}
@@ -581,6 +589,7 @@ func (h *ChatHandler) moveCommand(sess *session.Session, player *entity.Player, 
 	if h.gameWorld.HasNPCPath(id) {
 		line += " It walks a path (npcpaths), which is where it was: change the path in the GM panel."
 	}
+	line += h.mirrorNPC(sess, database.MirrorUpdate, int64(id), 0, npcPlaceColumns, "/move in the game: "+what) // npcmirror.go
 	if player.Flying {
 		line += " (you fly: it stands in the air)"
 	}
@@ -611,6 +620,8 @@ func (h *ChatHandler) moveUndo(sess *session.Session, player *entity.Player) {
 	if _, err := h.upsertRowNPC(r.ID); err != nil {
 		line += fmt.Sprintf(" It is not moved in the world yet (at the next start): %v.", err)
 	}
+	line += h.mirrorNPC(sess, database.MirrorUpdate, r.ID, 0, npcPlaceColumns,
+		fmt.Sprintf("/move undo in the game: %s (row %d)", r.Name, r.ID)) // npcmirror.go
 	h.gmReply(sess, line)
 	log.Printf("GM: %s put NPC %d (%s) back from a /move", player.Name, r.ID, r.Name)
 }
@@ -700,5 +711,6 @@ func (h *ChatHandler) keepNPCSize(sess *session.Session, player *entity.Player) 
 		}
 		return
 	}
-	h.gmReply(sess, fmt.Sprintf("%s keeps size %.2f over respawns and restarts.", npc.Name, size))
+	h.gmReply(sess, fmt.Sprintf("%s keeps size %.2f over respawns and restarts.", npc.Name, size)+
+		h.mirrorNPC(sess, database.MirrorUpdate, int64(npc.ServerID), 0, []string{"size"}, "/size in the game: "+what)) // npcmirror.go
 }

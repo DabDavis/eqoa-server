@@ -37,7 +37,12 @@ const triggerStepsHelp = `the steps in order, each {"do", ...}: broadcast {text}
 	`rouse {npc} the run's spawns of that name attack on sight; sic {npc, target, radius, casts} the run's spawns of that name (none: all) ` +
 	`attack the NPC named target nearest each within radius (0: the run's reach), and it fights back; casts: they fight it by their whole class ` +
 	`template, its spells and specials as well as its melee (without it two NPCs fight by their melee alone); teleport also takes max (how many, the nearest first, a pet counting as one) and refuse ` +
-	`(said to those left); spawn also takes attackable (it may be attacked, and does not attack on sight). text may hold %p, each ` +
+	`(said to those left); spawn also takes attackable (it may be attacked, and does not attack on sight). awaitkill {npc: "a, b", count, any, ` +
+	`seconds} for credited kills of creatures of those names within reach, the world's own as well as its spawns (count of each, any: all together); ` +
+	`awaitnear {radius, seconds} for a living player near the place at about its height; start (on an awaittalk or awaitnear, the first step but its ` +
+	`locks, a trigger with a place of its own): the trigger fires itself on that talk or player whenever no run of it lives and its lock is free ` +
+	`(a lock's text is said to a talker while it is busy); fail {text} on an awaitdead, awaitkill or awaitnear with seconds: its time out with what ` +
+	`it waits on undone fails the run (a window, its spawns taken); walk also takes points [[x,y,z],...] a route before x/y/z and pace (under 7 walked). text may hold %p, each ` +
 	`player's name. The players a step reaches are looked at as it runs`
 
 func (s *Server) registerTriggerOps() {

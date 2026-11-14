@@ -123,6 +123,34 @@ func (w *World) PlayerNear(world uint8, x, z, reach float32) bool {
 	return false
 }
 
+// PlayerNearAt reports a living player within reach of (x, z) in world, standing no
+// more than height above or below y: a trigger's awaitnear (the Plane of Sky's isles
+// lie over one another, so the flat reach alone would take a player on the isle above).
+func (w *World) PlayerNearAt(world uint8, x, y, z, reach, height float32) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	for _, p := range w.Players {
+		if p.World == world && !p.IsDead() && distXZ(p.X, p.Z, x, z) <= reach && p.Y-y <= height && y-p.Y <= height {
+			return true
+		}
+	}
+	return false
+}
+
+// SpawnName is the name a copy of name would have: a row key's ("#119543") row's own
+// name, else name as it is. What a trigger's spawn counts its max by.
+func (w *World) SpawnName(name string, world uint8) string {
+	if _, ok := ParseRowKey(name); !ok {
+		return name
+	}
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	if t := w.npcByNameForLocked(name, world); t != nil {
+		return t.Name
+	}
+	return name
+}
+
 // CountNear is how many living NPCs of that name stand within reach of (x, z) in world.
 func (w *World) CountNear(name string, world uint8, x, z, reach float32) int {
 	w.mu.RLock()
@@ -197,6 +225,13 @@ func (w *World) SetNPCOn(id EntityID, target string, reach float32, casts bool) 
 // other: a path walked once, until SendNPCsHome. A fight takes them off it as it
 // takes anyone off a path. It says how many went.
 func (w *World) WalkNPCsTo(name string, world uint8, x, z, reach float32, toWorld uint8, tx, ty, tz float32) int {
+	return w.WalkNPCsRoute(name, world, x, z, reach, toWorld, nil, tx, ty, tz, 0)
+}
+
+// WalkNPCsRoute is WalkNPCsTo by a route: the points in order, then (tx, ty, tz), at a
+// pace of its own (0: the run's; under pathRunFrom it is walked: an escort, Ryini down
+// her mountain).
+func (w *World) WalkNPCsRoute(name string, world uint8, x, z, reach float32, toWorld uint8, route [][3]float32, tx, ty, tz, pace float32) int {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	now := time.Now()
@@ -215,7 +250,12 @@ func (w *World) WalkNPCsTo(name string, world uint8, x, z, reach float32, toWorl
 			px += float32(3 * math.Sin(a))
 			pz += float32(3 * math.Cos(a))
 		}
-		w.setPathLocked(n.ServerID, &NPCPath{World: toWorld, Mode: PathOnce, Run: true, Points: []PathPoint{{X: px, Y: ty, Z: pz, Pause: -1}}})
+		pts := make([]PathPoint, 0, len(route)+1)
+		for _, q := range route {
+			pts = append(pts, PathPoint{X: q[0], Y: q[1], Z: q[2], Pause: 0})
+		}
+		pts = append(pts, PathPoint{X: px, Y: ty, Z: pz, Pause: -1})
+		w.setPathLocked(n.ServerID, &NPCPath{World: toWorld, Mode: PathOnce, Run: pace == 0 || pace >= pathRunFrom, Pace: pace, Points: pts})
 		w.wakeNPCLocked(n)
 	}
 	return len(npcs)

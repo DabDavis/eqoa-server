@@ -42,7 +42,9 @@ const triggerStepsHelp = `the steps in order, each {"do", ...}: broadcast {text}
 	`awaitnear {radius, seconds} for a living player near the place at about its height; start (on an awaittalk or awaitnear, the first step but its ` +
 	`locks, a trigger with a place of its own): the trigger fires itself on that talk or player whenever no run of it lives and its lock is free ` +
 	`(a lock's text is said to a talker while it is busy); fail {text} on an awaitdead, awaitkill or awaitnear with seconds: its time out with what ` +
-	`it waits on undone fails the run (a window, its spawns taken); walk also takes points [[x,y,z],...] a route before x/y/z and pace (under 7 walked). text may hold %p, each ` +
+	`it waits on undone fails the run (a window, its spawns taken); walk also takes points [[x,y,z],...] a route before x/y/z and pace (under 7 walked); spawn also takes spots [[x,y,z],...] ` +
+	`(the one nearest the run's place), untouchable (its copies carry the NPC bit: no one hurts them, they attack no one) and noloot (their ` +
+	`corpses are of nothing). text may hold %p, each ` +
 	`player's name. The players a step reaches are looked at as it runs`
 
 func (s *Server) registerTriggerOps() {

@@ -1445,6 +1445,14 @@ func (e *TriggerEngine) spawnLocked(r *triggerRun, s database.TriggerStep) strin
 	if s.World != nil {
 		world, cx, cy, cz = uint8(*s.World), s.X, s.Y, s.Z
 	}
+	if len(s.Spots) > 0 { // the listed spot nearest the run's place
+		best := math.Inf(1)
+		for _, q := range s.Spots {
+			if d := math.Hypot(float64(q[0]-r.x), float64(q[2]-r.z)); d < best {
+				best, cx, cy, cz = d, q[0], q[1], q[2]
+			}
+		}
+	}
 	n := max(s.Count, 1)
 	if s.Max > 0 {
 		n = min(n, s.Max-e.gw.CountNear(e.gw.SpawnName(strings.TrimSpace(s.NPC), world), world, cx, cz, 300))
@@ -1477,6 +1485,9 @@ func (e *TriggerEngine) spawnLocked(r *triggerRun, s database.TriggerStep) strin
 		}
 		if s.Attackable {
 			e.gw.MakeAttackable(id)
+		}
+		if s.Untouchable || s.NoLoot {
+			e.gw.MarkSpawn(id, s.Untouchable, s.NoLoot)
 		}
 		spelled = sp
 		r.spawns = append(r.spawns, triggerSpawn{id: id, name: sp, until: until})

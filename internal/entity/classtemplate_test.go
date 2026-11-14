@@ -1289,8 +1289,8 @@ func TestATemplateRunsAtItsSpeed(t *testing.T) {
 	if run := brute.X - bx; run < 22 || run > 23.5 {
 		t.Errorf("the sprinter ran %.2f in a second, want 22.97", run)
 	}
-	if run := guard.X - gx; run < 9.5 || run > 10.3 {
-		t.Errorf("the control ran %.2f in a second, want 9.9", run)
+	if run := guard.X - gx; run < 8.5 || run > 9.2 {
+		t.Errorf("the control ran %.2f in a second, want 8.83 (NPCChaseSpeed)", run)
 	}
 }
 

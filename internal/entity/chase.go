@@ -46,16 +46,33 @@ import (
 // and the creature stood at 70% of its reach, 3.15 off: inside a big one's
 // body, as nothing gave a big one its reach (reach.go).
 
-// NPCRunSpeed is a creature's pace in a chase and on its way home.
+// NPCRunSpeed is a creature's pace on its way home: Sandstorm's 9.9.
 const NPCRunSpeed float32 = 9.9
 
-// runSpeed is the NPC's pace in a chase and on its way home: its template's
-// run_speed, else NPCRunSpeed.
+// NPCChaseSpeed is a creature's pace in a chase: a player's base run
+// (RunSpeed, 8.83), below Sandstorm's 9.9 (the owner, 2026-11-14: "neo should
+// be able to outrun the mobs to kite. players cannot exceed spirit of wolf
+// speed"): a player at the base run is kept pace with, the movement masteries
+// (MoveRate) pull away, and Spirit of the Wolf (11.48) is gone. A template's
+// run_speed (Mr. Moogie, the epic bears) is its own in both.
+var NPCChaseSpeed = RunSpeed
+
+// runSpeed is the NPC's pace on its way home: its template's run_speed,
+// else NPCRunSpeed.
 func (n *NPC) runSpeed() float32 {
 	if n.tmpl != nil && n.tmpl.RunSpeed > 0 {
 		return float32(n.tmpl.RunSpeed)
 	}
 	return NPCRunSpeed
+}
+
+// chaseSpeed is the NPC's pace in a chase: its template's run_speed, else
+// NPCChaseSpeed.
+func (n *NPC) chaseSpeed() float32 {
+	if n.tmpl != nil && n.tmpl.RunSpeed > 0 {
+		return float32(n.tmpl.RunSpeed)
+	}
+	return NPCChaseSpeed
 }
 
 // npcStopShort is how far inside its reach a chasing creature stands: half
@@ -264,7 +281,7 @@ func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (i
 	// ground (a ledge): no fight from there, but its way round to it at its run,
 	// where the ground has one (chaseroute.go)
 	if !shooting && d <= reach+routeLook && absf(y-npc.Y) > routeLevel && !still && dt > 0 {
-		run := npc.runSpeed() * npc.snareFactor(now)
+		run := npc.chaseSpeed() * npc.snareFactor(now)
 		routing, hold := w.routeWayLocked(npc, &npc.chase.route, x, y, z, d, run*dt, true, now)
 		if routing {
 			w.followRouteLocked(npc, &npc.chase.route, run, dt)
@@ -289,7 +306,7 @@ func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (i
 	if d > 0 {
 		away = max((vx*(x-npc.X)+vz*(z-npc.Z))/d, 0)
 	}
-	speed := npc.runSpeed()
+	speed := npc.chaseSpeed()
 	speed *= npc.snareFactor(now) // a snare's slow (workbook.go)
 	pace := min(away+chaseGain*(d-stop), speed)
 	step := pace * dt

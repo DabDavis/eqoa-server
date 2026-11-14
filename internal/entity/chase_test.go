@@ -42,13 +42,13 @@ func TestACreatureRunsAtItsEnemyAndFightsWhenItReaches(t *testing.T) {
 	if c.npc.CurrentEnemy != c.p.ServerID {
 		t.Fatal("dropped an enemy 28 away instead of running at it")
 	}
-	if !c.npc.moving() || c.npc.Loco != LocoRun || !near(c.npc.VelX, NPCRunSpeed) || c.npc.VelZ != 0 {
+	if !c.npc.moving() || c.npc.Loco != LocoRun || !near(c.npc.VelX, NPCChaseSpeed) || c.npc.VelZ != 0 {
 		t.Errorf("not running at it: velocity (%.2f, %.2f), loco %d", c.npc.VelX, c.npc.VelZ, c.npc.Loco)
 	}
 	if !near(c.npc.Facing, math.Pi/2) {
 		t.Errorf("facing %.3f, want pi/2 (toward +x)", c.npc.Facing)
 	}
-	if !near(c.npc.X, 102+NPCRunSpeed*0.1) {
+	if !near(c.npc.X, 102+NPCChaseSpeed*0.1) {
 		t.Errorf("x %.3f after a tenth of a second", c.npc.X)
 	}
 	if got := c.sent(); len(got) != 0 {
@@ -72,8 +72,8 @@ func TestACreatureRunsAtItsEnemyAndFightsWhenItReaches(t *testing.T) {
 	// eases off in the last unit and a quarter), the first tick in reach;
 	// this test asked 2.6 to 3 s of the player's base run (8.83) and the
 	// easing over 2.5 units until F3 pass 16
-	if swungAt < 2300*time.Millisecond || swungAt > 2500*time.Millisecond {
-		t.Errorf("swung at %v, want 2.3 to 2.5 s", swungAt)
+	if swungAt < 2600*time.Millisecond || swungAt > 2800*time.Millisecond {
+		t.Errorf("swung at %v, want 2.6 to 2.8 s (a chase at a player's base run, 8.83: the owner, 2026-11-14)", swungAt)
 	}
 	// then it eases in to half a step inside its reach, and stands, its round
 	// going on meanwhile

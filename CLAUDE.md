@@ -408,6 +408,22 @@ ask (acctlevel 1+, as every GM command): anyone else's is logged and dropped, no
 there, never a roof or a tree; the client's walk takes a placed floor over it from there); a spot with no ground
 known, past every world's edge (1e6) or in no world is told in a [GM] line and moves no one.
 
+**The Plane of Sky's scripted events** (the owner, 2026-11-14: "we are missing scripted events in PoS"; `tools/sky_events_20261114.py
+--db <db> [--apply|--undo]`, set `sky-events`, triggers 201-219; the walkthroughs of 2010 in its docstring): Night 1's Voice of the Ancients
+and its waves, Night 3's race for the maiden, Kaglanor at Sterie's talk, the necrologist near his spot and Chimareon at his death, Ryini's walk
+down the mountain (quest 101307 step 2), Enraged Aeyinar (step 15), Sun 3's wind chain, Randarin at the rancorous drake's death, Desolation 1's
+patrollers, guardians and the Arbiter's three lives, Desolation 2's six waves on the aviak elder, Desolation 3's harpies and their queen; the
+prototypes held out of the world by row key. Four more parts of the triggers came with it (`internal/handlers/triggerstart_test.go`,
+`sky_events_test.go` plays three events from the tool's `--dump`): **start** on an awaittalk or awaitnear (the first step but its locks, a fixed
+trigger): the trigger fires itself on that talk (`TriggerEngine.Talk`; with no text the NPC answers as ever afterwards, its quests too; a busy
+lock's step `text` is said, else nothing) or on a living player within its radius at about its height (`StartNear` after each Tick,
+`TriggerNearHeight` 40), whenever no run of it lives and its lock is free; a run fired otherwise passes the start by. **awaitkill** {npc "a, b",
+count, any}: credited kills of creatures of those names within reach, the world's standing ones too (`heardKillLocked` from `Killed`; kept over
+a keep restart in `died`). **fail** {text} on an awaitdead, awaitkill or awaitnear with seconds: its time out with the wait not met fails the
+run (`failLocked`: a window, its spawns taken). **walk** takes `points` (a route before x/y/z) and `pace` (under 7 walked, `WalkNPCsRoute`). A
+spawn's `max` counts a row key's copies by their name (`World.SpawnName`). An older server reads such triggers as problems: the data goes in
+with the code.
+
 **A raid's encounter runs on the triggers** (the user, 2026-11-07: "lets build them all"; the Plane of Sky's
 constructs and twins, Rallos Zek, Razeal Moloch, each a set of `tools/seed_guide_gaps.py`'s `tools/guidegaps/<set>.json`,
 `--apply`/`--undo`, or `--save-plan` on a copy and `--plan` live, one short transaction; the JSON and the quest

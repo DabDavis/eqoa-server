@@ -7,8 +7,9 @@ drakes  "im seeing emerald drake in Isle of dread but should not be": every emer
         campspawns / npcitem row of it (none today: wildspread 2026-11-01 added them as plain rows; its own
         wildspread_adds* history rows are left, as a GM's in-game /delete leaves them). Their loot is by name
         (npcloot), shared with the drakes elsewhere in Tunaria: untouched. Live: 31 rows; Heirloom: 1 left (the GM
-        forestwood /deleted 30 drakes and 36 dire worgs there in the game, 01:59-07:08 UTC). The dire worgs stay
-        (the owner named only the drakes): their count and places are reported.
+        forestwood /deleted 30 drakes and 36 dire worgs there in the game, 01:59-07:08 UTC). Then "remove the dire
+        worgs from IoD too": every dire worg row there likewise (Live 36, Heirloom none left), their loot by name
+        (shared with the worgs elsewhere) untouched.
 
 necklace "the diamond necklace for the lvl 25 quest should not drop from mobs, only bought from the quest mob":
         report only. No quest of either shard takes or gives a diamond necklace; the one "diamond necklace" record
@@ -61,7 +62,7 @@ import sys
 LOG = "data_1114b_log"
 WHO, VIA = "dab", "tool"
 DETAIL = {
-    "drakes": "the owner (2026-11-14): no emerald drakes on the Isle of Dread: tools/data_1114b_20261114.py",
+    "drakes": "the owner (2026-11-14): no emerald drakes or dire worgs on the Isle of Dread: tools/data_1114b_20261114.py",
     "earthpets": "the owner (2026-11-14): magician earth pets tank better than the necromancer's pet of the tier: "
                  "tools/data_1114b_20261114.py",
     "heirloom": "the owner (2026-11-14): Zerkziee's scimitar a ranger heirloom (Heirloom Ykesha): tools/data_1114b_20261114.py",
@@ -70,6 +71,7 @@ PARTS = ("drakes", "necklace", "earthpets", "heirloom")
 
 IOD = (0, 23800, 26200, 2000, 4200)  # world, x, z
 DRAKE = "emerald drake"
+KINDS = (DRAKE, "dire worg")
 NPC_REFS = [("npcrespawn", "npc_row"), ("npcwander", "npcid"), ("npcpaths", "npcid"), ("npcstands", "npc_row"),
             ("npcrare", "npc_row"), ("campspawns", "npcid"), ("npcitem", "npcid")]
 
@@ -140,7 +142,7 @@ def in_iod(where_prefix=""):
 
 
 def plan_drakes(db, lines):
-    rows = rowdict(db, "npcs", f"npc_name = ? AND {in_iod()}", (DRAKE,))
+    rows = rowdict(db, "npcs", f"npc_name IN (?, ?) AND {in_iod()}", KINDS)
     changes = []
     for r in rows:
         refs = []
@@ -150,14 +152,12 @@ def plan_drakes(db, lines):
                     refs.append((t, c, rr))
         changes.append((r, refs))
     nref = sum(len(x[1]) for x in changes)
-    lines.append(f"drakes: {len(rows)} emerald drake rows on the Isle of Dread to delete, {nref} rows naming them")
+    for k in KINDS:
+        lines.append(f"drakes: {sum(r['npc_name'] == k for r, _ in changes)} {k} rows on the Isle of Dread to delete")
+    lines.append(f"drakes: {nref} rows naming them")
     for r, refs in changes:
-        lines.append(f"  npcs {r['id']} L{r['npc_level']} ({r['x_coord']:.0f}, {r['z_coord']:.0f})" +
+        lines.append(f"  npcs {r['id']} {r['npc_name']} L{r['npc_level']} ({r['x_coord']:.0f}, {r['z_coord']:.0f})" +
                      "".join(f"; {t} row" for t, _, _ in refs))
-    worgs = db.execute(f"SELECT id, npc_level, x_coord, z_coord FROM npcs WHERE npc_name = 'dire worg' AND {in_iod()} "
-                       "ORDER BY x_coord").fetchall()
-    lines.append(f"drakes: dire worgs on the island, left: {len(worgs)}" +
-                 (" at " + ", ".join(f"{i} L{lv} ({x:.0f},{z:.0f})" for i, lv, x, z in worgs) if worgs else ""))
     return changes
 
 
@@ -170,7 +170,7 @@ def apply_drakes(db, changes):
                 raise Refused(f"{t} row of npcs {r['id']} changed under the delete")
             logrow(db, "drakes", t, {c: r["id"]}, rr, None, audit(db, "drakes", "delete", t, {c: r["id"]}, rr, None))
             n += 1
-        if db.execute("DELETE FROM npcs WHERE id = ? AND npc_name = ?", (r["id"], DRAKE)).rowcount != 1:
+        if db.execute("DELETE FROM npcs WHERE id = ? AND npc_name = ?", (r["id"], r["npc_name"])).rowcount != 1:
             raise Refused(f"npcs {r['id']} changed under the delete")
         logrow(db, "drakes", "npcs", {"id": r["id"]}, r, None, audit(db, "drakes", "delete", "npcs", {"id": r["id"]}, r, None))
         n += 1

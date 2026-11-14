@@ -428,3 +428,66 @@ func TestEpicLooksByClass(t *testing.T) {
 		}
 	}
 }
+
+// /aura <colour> hair|gnomecap|glasses (2026-11-14): the target player's (or your
+// own) charlook row, audited; a gnome's cap only on a gnome that shows it, its
+// glasses only on one that wears them; off takes it away; an NPC refused; and
+// the words read as a colour alone.
+func TestGMLookColours(t *testing.T) {
+	for _, c := range []struct {
+		in   string
+		want auraSpec
+	}{
+		{"white hair", auraSpec{A: database.ItemAura{Color: 0xFFFFFFFF, Kind: 0}, Where: auraHair}},
+		{"red gnomecap", auraSpec{A: database.ItemAura{Color: 0xFF2020FF}, Where: auraGnomeCap}},
+		{"gold glasses", auraSpec{A: database.ItemAura{Color: 0xFFC040FF}, Where: auraGlasses}},
+		{"off glasses", auraSpec{Off: true, Where: auraGlasses}},
+	} {
+		got, err := parseAuraEasy(strings.Fields(c.in))
+		if err != nil || got != c.want {
+			t.Errorf("%q: %+v, %v; want %+v", c.in, got, err, c.want)
+		}
+	}
+	for _, bad := range []string{"hair", "red shell hair", "gold glasses source=88EC092D", "red gnomecap nodes=3"} {
+		if _, err := parseAuraEasy(strings.Fields(bad)); err == nil {
+			t.Errorf("%q: read, want refused", bad)
+		}
+	}
+	c, db, _, gs, gp, ps, pp := campWorldWithPlayer(t)
+	gp.CharServerID, pp.CharServerID = 9001, 9002
+	pp.Race, pp.Sex, pp.HairStyle, pp.HairLength = 0, 0, 1, 1
+	targetAs(gp, pp.ServerID, 200202, gs)
+	c.say(gs, "/aura red gnomecap")
+	if l := gmReplies(t, gs); !hasLine(l, "gnomecap is a gnome's") {
+		t.Fatalf("a human's cap: %q", l)
+	}
+	c.say(gs, "/aura white hair")
+	if l := gmReplies(t, gs); !hasLine(l, "Player's hair: now white") {
+		t.Fatalf("/aura white hair: %q", l)
+	}
+	looks, _ := db.CharLooks(9002)
+	if len(looks) != 1 || looks[0] != (database.CharLook{Part: entity.LookHair, Kind: database.LookColour, Value: entity.Paint(0xFFFFFF)}) {
+		t.Fatalf("the hair's row: %+v", looks)
+	}
+	pp.Race, pp.Sex, pp.HairStyle, pp.HairLength = 3, 1, 2, 3
+	c.say(gs, "/aura gold glasses")
+	if l := gmReplies(t, gs); !hasLine(l, "wears no glasses") {
+		t.Fatalf("a gnome woman of style 2: %q", l)
+	}
+	pp.HairStyle = 3
+	c.say(gs, "/aura gold glasses")
+	c.say(gs, "/aura red gnomecap")
+	if looks, _ := db.CharLooks(9002); len(looks) != 3 {
+		t.Fatalf("three rows: %+v", looks)
+	}
+	c.say(gs, "/aura off glasses")
+	if looks, _ := db.CharLooks(9002); len(looks) != 2 || auditLines(t, db, "charlook", "delete") != 1 || auditLines(t, db, "charlook", "insert") != 3 {
+		t.Fatalf("off: %+v", looks)
+	}
+	gmReplies(t, gs)
+	targetAs(gp, campWolfNear, 100101, gs, ps)
+	c.say(gs, "/aura white hair")
+	if l := gmReplies(t, gs); !hasLine(l, "a player's") {
+		t.Fatalf("an NPC's hair: %q", l)
+	}
+}

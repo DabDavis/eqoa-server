@@ -90,6 +90,10 @@ type OptionRow struct {
 	// Customize re-chooses (SelectRows; a game race's are its skin's): the
 	// Wisp's colour.
 	AtSelect bool
+	// GM is a row a GM sets (/aura <colour> hair|gnomecap|glasses: gmlooks.go),
+	// never offered on a create page or Customize (RaceOptionsFor leaves it
+	// out), whose charlook value is laid as any row's (lookParts).
+	GM bool
 }
 
 // Steps is the row's steps for sex (1 female).
@@ -125,6 +129,10 @@ type Recolour = uint32
 const (
 	ModeDye  uint32 = 1
 	ModeTone uint32 = 2
+	// ModePaint is ModeDye with the part's layer colour made white, so the dye
+	// is the whole colour (a gnome's glasses' layer is 36 grey, its cap's
+	// red): gmlooks.go's. A client before it changes nothing.
+	ModePaint uint32 = 8
 )
 
 // Dye is a ModeDye colour: hue in degrees, saturation and lightness in per cent

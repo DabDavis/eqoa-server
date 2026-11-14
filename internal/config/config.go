@@ -304,6 +304,12 @@ type WorldConfig struct {
 	// has none in its database as well.
 	Heirlooms *bool `yaml:"heirlooms"`
 
+	// GMRewardXP makes a GM's #reward (/reward) the reward of experience: 10% more experience for 30 minutes of
+	// play on the GM's target, a player (petition 5033, the GM Jibrish: "LIVE ONLY NOT HEIRLOOM";
+	// handlers/rewardxp.go). Set on the Live shard alone. Unset: #reward is GM's Reward, the buff of petition 1501
+	// (handlers/reward.go), as before.
+	GMRewardXP bool `yaml:"gm_reward_xp"`
+
 	// OpenRaces offers at character creation, beside the game's own, the
 	// froglok (race 10) and every race of table racedefs (entity/creation.go):
 	// a client that can show them (vanilla) is told them before the world

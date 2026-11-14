@@ -1093,11 +1093,11 @@ func (w *World) addThreatLocked(npc *NPC, attackerID EntityID, damage int) {
 // A town's boon on the player multiplies the whole award
 // first (boon.go), and its lines say so.
 func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
-	pct := w.boonPctLocked(player)
+	pct, tag := w.xpPctLocked(player) // a boon's, a GM's reward's (gmrewardxp.go)
 	xp = xp * pct / 100
 	boon := ""
-	if pct != 100 {
-		boon = " (" + boonTag(pct) + ")"
+	if tag != "" {
+		boon = " (" + tag + ")"
 	}
 	shares := splitXP(player.Mastery, player.Level, player.Debt, xp)
 	levelXP, cmXP := shares.Level, shares.Mastery
@@ -1173,7 +1173,7 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 		SendMasteryPoints(sess, player.Mastery)
 		logMastery(player.Name, made, player.Mastery)
 	}
-	log.Printf("Combat: awarded %d XP to %s (level %d, xpInLevel: %d/%d; %d to the level, %d to masteries, %d to the debt, %d owed; boon %d%%)",
+	log.Printf("Combat: awarded %d XP to %s (level %d, xpInLevel: %d/%d; %d to the level, %d to masteries, %d to the debt, %d owed; share %d%%)",
 		xp, sess.RemoteAddr(), player.Level, player.XPInLevel, CharXPDict[player.Level], levelXP, cmXP, shares.Debt, player.Debt, pct)
 }
 

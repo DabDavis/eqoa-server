@@ -1427,9 +1427,15 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.effectCommand(sess, parts[1:])
 
 	case "#reward":
-		// #reward [player]: GM's Reward on the GM's target, a player, for an
-		// hour (reward.go; petition 1501)
-		h.rewardCommand(sess, player, parts[1:])
+		// #reward [player]: on a server with world.gm_reward_xp (the Live
+		// shard), 10% more experience for 30 minutes (rewardxp.go; petition
+		// 5033); else GM's Reward on the GM's target, a player, for an hour
+		// (reward.go; petition 1501)
+		if RewardXPOn() {
+			h.rewardXPCommand(sess, player, parts[1:])
+		} else {
+			h.rewardCommand(sess, player, parts[1:])
+		}
 
 	case "#clearbuffs", "#nukebuffs":
 		// #clearbuffs: every effect on the GM ended now, as its time running

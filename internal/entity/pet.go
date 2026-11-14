@@ -126,6 +126,9 @@ type petState struct {
 	rounds int
 	// enchanter is whether an enchanter summoned it (its taunts' threat cut: pettaunthate.go)
 	enchanter bool
+	// earth is whether it is a magician's earth pet (the "pet earth" template's: its taunts'
+	// threat cut to 95%, pettaunthate.go)
+	earth bool
 	// tapNext is when its life tap is up again (pettap.go)
 	tapNext time.Time
 	// kind is what it fights as (petrotation.go): ours, or one of the
@@ -226,6 +229,7 @@ var petClassStandIn = map[int]string{
 
 const (
 	classWarrior       = 0
+	classMagician      = 10
 	classEnchanter     = 12
 	enchanterAnimation = "animation"
 	// grandAnimation is the Animator's pet (EQOA-Data's enchanter master
@@ -453,6 +457,7 @@ func (w *World) makePetLocked(spell *CastSpell, caster, owner *Player, ms *mercS
 	kind := petKindOf(caster.Class, spell.Name)
 	hitScale := 1.0
 	pt := w.petTemplateForLocked(spell)
+	earth := caster.Class == classMagician && pt != nil && pt.tmpl != nil && pt.tmpl.Name == magicianEarthTemplate // pettaunthate.go
 	ownSwing := false
 	if sheet != nil {
 		// its own spells, its template row's class and swing (petstats.go);
@@ -474,7 +479,7 @@ func (w *World) makePetLocked(spell *CastSpell, caster, owner *Player, ms *mercS
 		hitScale = was / petHitRate(pet)                               // its damage a second kept
 	}
 	ps := &petState{owner: owner, npc: pet, stance: petSheetStance(sheet), last: now,
-		taunts: caster.Class == classEnchanter && pt == nil, enchanter: caster.Class == classEnchanter, kind: kind, hitScale: hitScale, tmpl: pt, spell: spell.SpellID, merc: ms}
+		taunts: caster.Class == classEnchanter && pt == nil, enchanter: caster.Class == classEnchanter, earth: earth, kind: kind, hitScale: hitScale, tmpl: pt, spell: spell.SpellID, merc: ms}
 	tmplName := "no template"
 	if pt != nil {
 		tmplName = fmt.Sprintf("template %q (class %d, swing %d)", pt.tmpl.Name, pet.Class, npcSwingKind(pet))
@@ -1263,7 +1268,10 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 // (Grand Animation's grandAnimationTaunt). It reports a kill.
 func (w *World) petTauntLocked(ps *petState, t *NPC, now time.Time) bool {
 	pet := ps.npc
-	defer w.petTauntHateCutLocked(ps, t)() // an enchanter's pet's taunt: 70% of its threat (pettaunthate.go)
+	if w.petSparesTankLocked(ps, t) { // a grouped tank keeps it (pettaunttank.go)
+		return false
+	}
+	defer w.petTauntHateCutLocked(ps, t)() // an enchanter's pet's taunt: 70% of its threat, an earth pet's 95% (pettaunthate.go)
 	w.petTopHateLocked(pet, t)             // the top of its hate and a margin (pettemplate.go, pettauntmargin.go)
 	n := petMeleeHit(pet, t, meleeIntn)
 	if petName(pet.Name) == grandAnimation {

@@ -30,12 +30,15 @@ before sky-events'):
           then: trigger 220 keeps an untouchable copy of her in the ring while a player is on the isle, hidden by the
           ring's controller (213) while she fights.
   Deso 2  "if you fail, you must wait one hour for the Elder to respawn": the elder's row back an hour after a death.
+  Rain 4  the necrologist's popup "roams": trigger 223, 204's event from a second spot by the isle's portal, the same lock.
+  Rain 5  Rag-Adah ("If you have lava 59 logged, run to the left near some lava"): quest 101031 step 20's popup brings
+          him (trigger 224, his row held out of the world).
   Deso 4  "Be careful around some of the rocks. If you get too close you'll get a warning about them being unstable. 3
           warnings=death": the ten mid-sized boulders round the Quintessence's mountain (the disc's 0x6630AE67, LOD
           sprites 10 across; the big boulders, 0x4B0A2400, are the raid's cover and left), hazards of three strikes
           (the engine's new strikes: a warning a hit, the third a death), a hit every 3 s while one stays (ours).
 
-Refused, nothing written, unless sky-events is in and its triggers 212 and 213 are as it wrote them, slots 220-222 are
+Refused, nothing written, unless sky-events is in and its triggers 212 and 213 are as it wrote them, slots 220-224 are
 free, each row is the creature it should be, the new names are not taken and quest 101305 step 2 is as imported.
 Report only by default (but for hazards' column strikes, made as the code's start makes it when it is missing: an undo leaves
 it, which an older binary ignores); --apply in one transaction with a gm_audit line; an --apply when the set is in says so and does
@@ -70,7 +73,7 @@ EXTRA_TABLES = ("hazards", "questwalls", "npcrare", "npcpaths")
 ROWS = {120212: "rapacious drake", 120213: "rapacious drake", 120214: "rapacious drake", 120215: "rapacious drake",
         120216: "rapacious drake", 120217: "rapacious drake", 120218: "rancorous drake", 119637: "Whirlwind",
         119574: "aviak elder", 119534: "Erych Arbiter", 119679: "Enraged Aeyinar", 120174: "imerzan sycophant",
-        119543: "erych patroller", 119550: "erych patroller", 119551: "erych patroller", 119558: "erych patroller"}
+        120152: "Rag-Adah", 120149: "Necrologist", 120225: "essence of rain", 119543: "erych patroller", 119550: "erych patroller", 119551: "erych patroller", 119558: "erych patroller"}
 NEW_NAMES = ("an unseen wall", "aeyinar")
 
 WALL = (5569.0, 370.5, 4664.0)
@@ -139,7 +142,26 @@ def spec():
                      {"do": "wait", "seconds": 600}],
                  "notes": "Snow 3 (t212): 'the apes (glacial behemoths) will spawn almost directly on top of your party as you port "
                           "in and you need to get safe; they tend to spawn in pairs.' The landing's own spot; ten minutes' rest (ours)."})
+    necro = next(t for t in one.spec()["triggers"] if t["slot"] == 204)
+    portal_steps = copy.deepcopy(necro["steps"])
+    for st in portal_steps:
+        if st.get("npc") == "#120149":
+            st.update({"world": W, "x": 4231.7, "y": 85.76, "z": 4214.52})
+    trig.append({"slot": 223, "name": "Rain 4: The Necrologist (Portal)", "scope": "near", "radius": 120, "world": W,
+                 "x": 4199.7, "y": 80.9, "z": 4148.27, "steps": portal_steps,
+                 "notes": "Rain 4 (t211): 'the popup is sometimes near the portal, or sometimes on opposite side of Isle, it roams'. "
+                          "Trigger 204's event from a second spot, by the isle's essence of rain (its row), the same lock: whichever "
+                          "a player reaches first; the necrologist on his row."})
+    trig.append({"slot": 224, "name": "Rain 5: Rag-Adah Rises", "scope": "near", "radius": 120, "world": W,
+                 "x": 4669.23, "y": 24.63, "z": 4351.28, "steps": [
+                     {"do": "lock", "lock": "rag-adah"},
+                     {"do": "spawn", "npc": "#120152", "hostile": True, "spread": 1, "minutes": 30},
+                     {"do": "awaitdead"}],
+                 "notes": "Rain 5 (t211): 'If you have lava 59 logged, run to the left near some lava'; quest 101031 step 20's "
+                          "popup ('Rag-Adah rises from it!') now brings him (his row held out of the world), thirty minutes (ours)."})
     sql = []
+    sql.append(["INSERT INTO npcspawnonly (name, note, source) VALUES ('#120152', ?, ?)",
+                ["Rag-Adah: brought by quest 101031 step 20 (trigger 224), by sky-events-2", SRC]])
     # Sun 2: the wall, and the quest wall on it
     sql.append(["INSERT INTO npcs (npc_name, zone, unk_a, unk_b, x_coord, y_coord, z_coord, facing, world, hp, hp_percent, modelid, size, "
                 "npc_level, npc_type, npc_id) SELECT 'an unseen wall', zone, unk_a, unk_b, ?, ?, ?, 0, ?, hp, hp_percent, modelid, 3.0, 1, 128, 0 "
@@ -188,10 +210,14 @@ def spec():
     return {"set": SET, "triggers": trig, "sql": sql,
             "step_events": [
                 {"quest": quest_key_sun(), "step": 2, "target": "Master Fiharaz",
-                 "events": [{"on": "done", "do": "trigger", "trigger": "Sun 2: Fiharaz Opens the Wall"}]}]}
+                 "events": [{"on": "done", "do": "trigger", "trigger": "Sun 2: Fiharaz Opens the Wall"}]},
+                {"quest": _LAVA_KEY or "Lavastorm/rag-adah", "step": 20, "target": "",
+                 "events": [{"on": "done", "do": "trigger", "trigger": "Rain 5: Rag-Adah Rises",
+                             "text": "Rag-Adah has risen already: wait until he falls."}]}]}
 
 
 _SUN_KEY = None
+_LAVA_KEY = None
 
 
 def quest_key_sun():
@@ -243,6 +269,11 @@ def refusals(db, s):
     r = db.execute("SELECT kind, target, events FROM queststeps WHERE questid = 101305 AND step = 2").fetchone()
     if r != ("give", "Master Fiharaz", ""):
         out.append(f"quest 101305 step 2 is not as imported: {r}")
+    r = db.execute("SELECT kind, events FROM queststeps WHERE questid = 101031 AND step = 20").fetchone()
+    if not r or r[0] != "reach" or "trigger" in r[1]:
+        out.append(f"quest 101031 step 20 is not as imported: {r}")
+    if db.execute("SELECT 1 FROM npcspawnonly WHERE name = '#120152'").fetchone():
+        out.append("#120152 is held out already")
     return out
 
 
@@ -258,7 +289,7 @@ def check(db):
 
 
 def main():
-    global _SUN_KEY
+    global _SUN_KEY, _LAVA_KEY
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--db", default="eqoa.db")
     ap.add_argument("--apply", action="store_true")
@@ -284,6 +315,9 @@ def main():
     r = db.execute("SELECT key FROM quest_import_quests WHERE questid = 101305").fetchone()
     if r:
         _SUN_KEY = r[0]
+    r = db.execute("SELECT key FROM quest_import_quests WHERE questid = 101031").fetchone()
+    if r:
+        _LAVA_KEY = r[0]
     s = spec()
     bad = refusals(db, s)
     if bad:

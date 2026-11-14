@@ -37,7 +37,8 @@ import (
 // player, a kill is a credit, a teleport moves the server's player; levels,
 // standings and room in the pack are given as a player would have them (the
 // pack is emptied, between quests, of what no hand-in of a quest the character
-// has not finished wants).
+// has not finished wants); a hand-in's item a merchant sells or a creature
+// carries or rolls (npcitem, lootpool, loottables) is had as a player has it.
 func TestRealQuestChainsWalk(t *testing.T) {
 	src := os.Getenv("EQOA_REAL_DB")
 	if src == "" {
@@ -75,6 +76,24 @@ func TestRealQuestChainsWalk(t *testing.T) {
 			}
 		}
 		sort.Ints(ids)
+	}
+	// a hand-in's item a merchant sells is bought, one a creature carries or rolls looted
+	// (Heirloom's first class quests since Jibrish's edits of 2026-11-11: "purchase a
+	// thick blue uniform from him"; its hand-ins of trash drops, a loot step no more)
+	w.obtain = func(qu *database.Quest, st *database.QuestStep) string {
+		for _, it := range st.Items {
+			var sold int
+			w.db.QueryRow(`SELECT (SELECT count(*) FROM npcitem WHERE patternid = ?1) + (SELECT count(*) FROM lootpool
+				WHERE patternid = ?1 AND weight > 0) + (SELECT count(*) FROM loottables WHERE patternid = ?1 AND weight > 0)`,
+				it.PatternID).Scan(&sold)
+			if sold == 0 {
+				continue
+			}
+			if pat, err := w.qe.items.GetItemPattern(it.PatternID); err == nil && pat != nil {
+				GiveItemNow(w.sess, w.gw, w.inv, *pat, max(it.Count, 1))
+			}
+		}
+		return ""
 	}
 	// the engine's log lines are many thousands here: kept out of the test's
 	log.SetOutput(io.Discard)

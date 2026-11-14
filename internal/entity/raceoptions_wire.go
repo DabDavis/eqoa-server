@@ -50,7 +50,7 @@ func optionRaces(answer uint32) []int {
 func RaceOptionsFor(race int, answer uint32) []OptionRow {
 	var out []OptionRow
 	for _, r := range RaceOptions(race) {
-		if r.Answer <= answer {
+		if r.Answer <= answer && !r.GM {
 			out = append(out, r)
 		}
 	}

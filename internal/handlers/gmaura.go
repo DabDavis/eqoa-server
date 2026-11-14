@@ -174,6 +174,11 @@ var auraColors = map[string]uint32{
 const (
 	auraWholeBody = -2
 	auraBothHands = -3
+	// a character's hair, a gnome's cap and glasses: a colour on its body's
+	// parts (charlook, entity/gmlooks.go), not an aura
+	auraHair     = -4
+	auraGnomeCap = -5
+	auraGlasses  = -6
 )
 
 var auraWhere = map[string]int{
@@ -183,6 +188,7 @@ var auraWhere = map[string]int{
 	"robe": entity.AuraRobe, "cape": entity.AuraCape, "cloak": entity.AuraCape,
 	"mainhand": entity.AuraMainHand, "primary": entity.AuraMainHand, "offhand": entity.AuraOffHand, "secondary": entity.AuraOffHand,
 	"weapons": auraBothHands, "weapon": auraBothHands, "bothhands": auraBothHands, "wholebody": auraWholeBody, "body": auraWholeBody, "whole": auraWholeBody,
+	"hair": auraHair, "gnomecap": auraGnomeCap, "glasses": auraGlasses,
 }
 
 // auraPieceNames name the worn pieces in replies.
@@ -425,6 +431,16 @@ func parseAuraEasy(args []string) (sp auraSpec, err error) {
 	if look != nil {
 		return sp, nil
 	}
+	// a colour on the hair, a gnome's cap or glasses: a colour alone
+	if sp.Where <= auraHair && sp.Where >= auraGlasses {
+		switch {
+		case kind || along || nodes || height || sp.A.Source != 0 || sp.SourceName != "":
+			return sp, fmt.Errorf("hair, gnomecap and glasses take a colour alone (/aura white hair, /aura off hair)")
+		case !color && !sp.Off:
+			return sp, fmt.Errorf("name a colour: /aura white hair, /aura red gnomecap, /aura gold glasses")
+		}
+		return sp, nil
+	}
 	if sp.Off {
 		if color || kind {
 			return sp, fmt.Errorf("off takes only a place (/aura off chest)")
@@ -517,6 +533,10 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 			return
 		}
 		target = ent
+	}
+	if sp.Where <= auraHair && sp.Where >= auraGlasses {
+		h.lookColour(sess, player, target, sp)
+		return
 	}
 	npc, isNPC := target.(*entity.NPC)
 	mercKey, isMerc := database.CharAuraKey{}, false
@@ -781,4 +801,49 @@ func init() {
 			auraLooks = append(auraLooks, auraLook{[]string{"epic", fmt.Sprintf("%s%d", e.Class, seen[e.Class])}, a, line, true})
 		}
 	}
+}
+
+// lookColour is /aura <colour> hair|gnomecap|glasses (entity/gmlooks.go): the
+// colour kept on the target player's (or your own) body part in charlook,
+// audited, and every client that shows looks told at once; off takes it away.
+// A gnome's cap and glasses only on a gnome that shows them; never on an NPC.
+func (h *ChatHandler) lookColour(sess *session.Session, player *entity.Player, target entity.Entity, sp auraSpec) {
+	db := h.camps.db
+	p, ok := target.(*entity.Player)
+	switch {
+	case target == nil:
+		p, ok = player, true
+	case !ok:
+		h.gmReply(sess, "/aura: hair, gnomecap and glasses are a player's: target a player or nothing (yourself)")
+		return
+	}
+	part, word := map[int][2]string{auraHair: {entity.LookHair, "hair"}, auraGnomeCap: {entity.LookGnomeCap, "cap"},
+		auraGlasses: {entity.LookGlasses, "glasses"}}[sp.Where][0], map[int]string{auraHair: "hair", auraGnomeCap: "cap", auraGlasses: "glasses"}[sp.Where]
+	if why := entity.GMLookShown(part, p.Race, p.Sex, p.HairStyle, p.HairLength); why != "" && !sp.Off {
+		h.gmReply(sess, "/aura: "+p.Name+": "+why)
+		return
+	}
+	if p.CharServerID == 0 {
+		h.gmReply(sess, "/aura: "+p.Name+" has no character record to keep it by")
+		return
+	}
+	var value uint32
+	colour := "its own colour"
+	if !sp.Off {
+		value = entity.Paint(sp.A.Color >> 8)
+		colour = fmt.Sprintf("%06X", sp.A.Color>>8)
+		for n, c := range auraColors {
+			if c == sp.A.Color {
+				colour = n
+			}
+		}
+	}
+	detail := fmt.Sprintf("/aura in the game: %s's %s %s", p.Name, word, colour)
+	if err := db.SetCharLookAudited(p.CharServerID, part, value, gmEditOf(sess), detail); err != nil {
+		h.gmReply(sess, "/aura: not kept: "+err.Error())
+		return
+	}
+	told := h.gameWorld.RefreshRaceLooks(db)
+	h.gmReply(sess, fmt.Sprintf("%s's %s: now %s; told %d client(s) that show looks (a PS2 draws the game's).", p.Name, word, colour, told))
+	log.Printf("GM: %s look %s's %s: %s", player.Name, p.Name, word, colour)
 }

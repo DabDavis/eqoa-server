@@ -198,11 +198,11 @@ func (w *World) abilityProcsOnPlayerLocked(sess *session.Session, p *Player, npc
 		}
 		v := &t.veils[i]
 		take := v.tapOf(npc)
-		share, how := 0.0, ResistFailed
+		share, how, taken := 0.0, ResistFailed, take
 		if v.resist != StatNone {
-			share, how = t.rollResist(p.StatNow(v.resist))
+			res := resolvePlayerElemental(playerElem{d0: take, resist: p.StatNow(v.resist), tmpl: t, noFloor: true}) // elemental.go
+			share, how, taken = res.Share, res.How, res.Taken
 		}
-		taken := int(math.Round(float64(take) * (1 - share)))
 		if taken <= 0 {
 			continue
 		}
@@ -343,9 +343,9 @@ func (w *World) creatureProcStatHitLocked(sess *session.Session, p *Player, npc 
 	now time.Time) bool {
 	taken, words := damage, ""
 	if resist != StatNone {
-		share, how := npc.tmpl.rollResist(p.StatNow(resist))
-		taken = max(int(math.Round(float64(taken)*(1-share))), 1)
-		words = " (" + resistWords(share, how) + ")"
+		res := resolvePlayerElemental(playerElem{d0: taken, resist: p.StatNow(resist), tmpl: npc.tmpl}) // elemental.go
+		taken = res.Taken
+		words = " (" + resistWords(res.Share, res.How) + ")"
 	}
 	taken = w.formulaDamage(taken, dmgIn{src: srcNPC, kind: dkProc, an: npc, dp: p, raw: damage, resist: resist}) // dmgformula.go
 	w.broadcastNPCSwingLocked(npc, p.ServerID, 0, fx)

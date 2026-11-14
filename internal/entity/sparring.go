@@ -61,7 +61,7 @@ const (
 )
 
 // sparStrikeDamage is a strike of a dummy of level, spread by roll (0 to 1),
-// less the share its target's resist took (resist.go's RollResist).
+// less the share its target's resist took (elemental.go: the player's line).
 func sparStrikeDamage(level int, share, roll float64) int {
 	base := float64(level*sparStrikePerLevel) * (0.8 + 0.4*roll)
 	return max(int(math.Round(base*(1-share))), 1)
@@ -108,7 +108,7 @@ func (w *World) sparRoundLocked(sess *session.Session, npc *NPC, p *Player, star
 	}
 	npc.SparStruck = npc.RoundStart
 	el := SparElements[npc.SparElement]
-	share, how := RollResist(p.StatNow(el.Resist))
+	share, how := playerResistShareNow(p.StatNow(el.Resist), nil)              // elemental.go: a creature's strike on a player, the player's line
 	damage := npc.sparHits(sparStrikeDamage(npc.Level, share, rand.Float64())) // as hard as the dummy hits (dummy.go)
 	w.broadcastNPCSwingLocked(npc, p.ServerID, 0, sparFX)
 	line := fmt.Sprintf("%s strikes you with %s for %d (%s).", npc.Name, el.Name, damage, resistWords(share, how))

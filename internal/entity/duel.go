@@ -922,7 +922,21 @@ func duelHalf(n int) int {
 // a figure another made on it); a hit t cannot take leaves it DuelLoserHP and
 // ends the duel. It reports the end.
 func (w *World) duelHurtLocked(d *Duel, attacker *Player, src EntityID, t *Player, n int, now time.Time, kind numberKind) bool {
-	dmg := d.hit(n)
+	return w.duelHurtAtLocked(d, attacker, src, t, d.hit(n), n, now, kind)
+}
+
+// share is the fight's share of a hit: DuelDamageShare, or a PvP fight's.
+func (d *Duel) share() float64 {
+	if d.pvp {
+		return PvPDamageShare
+	}
+	return DuelDamageShare
+}
+
+// duelHurtAtLocked is duelHurtLocked with the fight's share already taken: dmg
+// what lands of n (an elemental hit resolved with its share once:
+// elemental.go, duelfight.go).
+func (w *World) duelHurtAtLocked(d *Duel, attacker *Player, src EntityID, t *Player, dmg, n int, now time.Time, kind numberKind) bool {
 	if kind&^(numberByPet|numberByMerc) == numberMelee {
 		// a melee hit, the foe's or its pet's, less t's mitigations, as a creature's is
 		// (workbook.go: Stoneskin's share, its most spent as it goes, breaking at it)

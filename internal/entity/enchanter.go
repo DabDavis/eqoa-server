@@ -207,7 +207,7 @@ const arcaneDebuffPer = 15
 // Jibrish, of the lava centipede: "very resistant to FR. Not immune, but very strong
 // to it"): it does not take resist_pct percent of it (or the kind's own, "LR:75":
 // templateResistPct), less what a debuff of that kind on it takes off
-// (npcResistKindPct), and at least 1 lands. Then its template's taken_resist percent
+// (npcResistKindPct), and at least 1 lands (none at 100 under the elemental model: elemental.go). Then its template's taken_resist percent
 // of the resist (petition 1944: the Plane of Disease's raid bosses' "LR:115"), at
 // least 1 again. Any other as it is. Its chance to resist a spell whole is another
 // matter: that goes by the levels.
@@ -216,13 +216,18 @@ func creatureResists(resist Stat, npc *NPC, n int, now time.Time) int {
 		return n
 	}
 	n = creatureStrongIn(resist, npc, n, now)
+	if n == 0 {
+		return 0 // immune (elemental.go): nothing for taken_resist to scale
+	}
 	if pct := templateTakenPct(npc.tmpl.TakenResist, resist); pct != 100 {
 		n = min(int(math.Round(float64(n)*float64(pct)/100)), -1)
 	}
 	return n
 }
 
-// creatureStrongIn is creatureResists' cut of a resist the creature is strong in.
+// creatureStrongIn is creatureResists' cut of a resist the creature is strong in: the elemental
+// model's (elemental.go npcElementalTaken: its percent is R on the creature's 0..100 line, a debuff's
+// points off first; nothing at 100), the legacy model's at least 1 even at 100.
 func creatureStrongIn(resist Stat, npc *NPC, n int, now time.Time) int {
 	pct := templateResistPct(npc.tmpl.ResistKind, npc.tmpl.ResistPct, resist)
 	if pct <= 0 {
@@ -231,6 +236,9 @@ func creatureStrongIn(resist Stat, npc *NPC, n int, now time.Time) int {
 	pct -= npcResistKindPct(npc, resist, now)
 	if pct <= 0 {
 		return n
+	}
+	if !legacyResists() {
+		return npcElementalTaken(n, pct) // elemental.go: 0 at 100
 	}
 	return min(int(math.Round(float64(n)*float64(100-pct)/100)), -1)
 }

@@ -408,6 +408,20 @@ ask (acctlevel 1+, as every GM command): anyone else's is logged and dropped, no
 there, never a roof or a tree; the client's walk takes a placed floor over it from there); a spot with no ground
 known, past every world's edge (1e6) or in no world is told in a [GM] line and moves no one.
 
+**The GameFAQs FAQ's listed quest problems** (the owner, 2026-11-14: "fix the other listed quest problems too", the
+quest-guides-17 review's lists; `tools/faq_quest_fixes_20261114.py --db <db> [--apply|--undo]`, set `faq-quest-fixes-1114` of
+seed_guide_gaps' machinery, each shard's own rows, read at the start): **a reach step's `height`** (`queststeps.height`,
+`withinHeight`: the player within it of `y` too; 0 any height) puts 101026's Shrixiv at the kappa fortress's fourth floor (a reach
+step 11, her hostile copy at step 12's start); the drake lord chain gets the Smitka trade (101260: show, trade, hand-in), the gem
+crafting (101262: 32 gems, three level-1 jewelry recipes discovered by an Experiment, the pristine gem shown, cooled, given) and
+Gedwin by Klick'Anon's east gate (101263: Magifent's four gems for a ring of four; two rings made); the drake gems lose Lore
+(a loot step of four could hold one); 101308 starts with the Majestic's and the Frigid's stones (its teleport at their hand-in);
+Live gets Heirloom's passage 102388; gates on 100763/100764/100766/100782/100783 with kill hits to earn them (Live's "Tunarian
+Gypsies" renamed as Heirloom's); more pickclaw soldiers and Hawkblade mercenaries; Slick and Bucktooth at 38; each pickclaw
+tier's own sash and 12 pickclaw and 15 were-part hand-ins (loot tables of their own). Steps put in move what keys their number and
+the characters on them. Tests: `questreachheight_test.go`, `TestRealFAQQuestFixes` and `TestRealQuestChainsWalk` with
+`EQOA_WALK_QUESTS`.
+
 **The Sun, Snow and Desolation chains finished** (the owner, 2026-11-14, with t213, t212, t208; `tools/sky_events2_20261114.py
 --db <db> [--apply|--undo]`, set `sky-events-2`, on top of `sky-events`, whose triggers 212 and 213 it rewrites: undo it first;
 imports seed_guide_gaps and sky_events_20261114, so the box needs the whole tools folder): Sun 2's invisible wall (an invisible

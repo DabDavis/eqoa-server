@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
@@ -401,6 +402,13 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		return
 	}
 
+	// /bank [page | next | prev] (or #bank; a PS2's "/t bank ...", below): the page
+	// of the account's bank shown, with world.account_bank (accountbank.go)
+	if word, rest, _ := strings.Cut(message, " "); bankPageWord(word) && database.AccountBankOn() {
+		acctBankWindows.Load().bankPageCommand(sess, rest)
+		return
+	}
+
 	// /tutorial (or #tutorial, and a PS2's "/t tutorial"): the welcome guide's box
 	// again, everyone's (welcome.go)
 	if tutorialLine(message) {
@@ -463,6 +471,11 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		// and /home (homes.go): "/t home", "/t home invite Name", ...
 		if strings.EqualFold(name, "home") {
 			homeCommand(h.gameWorld, sess, body)
+			return
+		}
+		// and /bank's pages (accountbank.go): "/t bank", "/t bank next", "/t bank 3"
+		if strings.EqualFold(name, "bank") && bankPageArg(body) && database.AccountBankOn() {
+			acctBankWindows.Load().bankPageCommand(sess, body)
 			return
 		}
 		// and /stuck (entity/stuck.go)

@@ -2802,6 +2802,50 @@ with no check, so a 41st overruns the VIClient fields after the list. So **a PS2
 - The keep restart carries the sizes (the session's answer, each list's cap and its kept items). The dump's buffer is
   sized by its records (a record is at most ~900 bytes).
 
+### The account bank (`world.account_bank`; `database/accountbank.go`, `handlers/accountbank.go`, `tools/account_bank_20261114.py`)
+
+The server owner, 2026-11-14: "make the heirloom server bank for players be account wide and increase capacity to 2000".
+Off (unset, Live): each character's own bank, as before. On (Heirloom): every character of an account shares **one bank, its
+items and its tunar**, holding `world.account_bank_slots` records (unset: 2000).
+- **Where it is kept.** The items are the charinventory rows at location 1 of every character of the account and of its
+  characters deleted since (`accountbank_holders`, written by `Delete`: a serverid is AUTOINCREMENT, never made again, so a
+  deleted character's bank stays the account's). A row keeps the serverid of whoever banked it (the merge leaves every row's
+  owner; a withdrawal makes it the withdrawer's, `MoveCharItem`). Every query of a bank row is the account's (`bankCond`), of a
+  held row the character's pack and the account's bank (`heldCond`): `GetCharacterItems`, `GetCharItem`, `SetItemStack`,
+  charges, condition, `DeleteCharItem`, `MoveCharItem`, `SetEquipLoc`, `AddCharItem`'s listnumber, the auction's listing and
+  filing (`fileItemTx`, `BankSlotsOf` = the account's 2000), charmove's bank count. The tunar is `accountbank.tunar` (one row an
+  account): `bankTunarTx`, `addBankTunarTx` (every `UPDATE characters SET bankTunar` of the auction's), `setBankTunarTx`
+  (`SetTunar`, `AddBankTunar`), and a character record's `BankTunar` is the account's (`fixBankTunar`; `OwnBankTunar` the
+  column, read only by `StartingTunar`'s never-held test). `characters.bankTunar` is not read with it on. The GM panel's
+  `bank_tunar` sets the account's (`handlers.SetAccountBankTunar`, a `live` audit line); a row edit of the column does nothing.
+- **What a client is shown.** No client shows 2000: CLIENT's bank is a `VIItemList` of 40 (VIBankControl+8; `RecvAdded` is
+  `AddItem(item, maxStack, 40)`, `VIItemList::Read` writes the dump's count into 40 with no check); vanilla's holds
+  `world.bank_slots` (at most 255: 0x1250 names a record by a byte). So the session's bank list is a **page** of the account's
+  bank, its client's size: the dump sends the first page (`accountBankPage`), no bank row is ever kept (location 3) and a
+  login brings back the character's kept bank rows. The page moves only by the bank's own messages, which both clients take
+  with any window open: 0x1250 (Took) a record off, 0x1251 (AddItem) one on, never past the list's size and never one AddItem
+  would stack onto another record (`pageFill`: a second stack of a stackable item, a row holding more than AddItem keeps).
+  `/bank [page | next | prev | first | last]` (a PS2's `/t bank next`) turns it: every record off, the page's on. A deposit
+  whose page is full goes into the account's bank all the same (`bankDepositUnshown`: 0x003C, 0x1253 to end the wait, a
+  line); the 2001st new record is refused. The rows off the page count as held for the Lore rule (`invList.kept`).
+- **Two of an account's characters in the world at once** (multibox): every change to the bank (a move at a banker, a tunar
+  move, the auction's fee, escrow, refunds, payments and deliveries, `#banktunar`, a rehab cost, a login's dump) is followed
+  under `bankMu` (the account bank's one lock) by `syncAccountBank`: each of the account's sessions in the world is sent the
+  tunar when its Player's differs (0x1253) and its page brought to the bank as it stands (`syncBankPage`: records gone or
+  smaller taken off, a grown first record of its item grown, the room filled from the page's place on). A request names a
+  record by its key in its own session's copy, which every message changed in step, so a record the other character took is
+  refused, never another's. Tested on a model of CLIENT's list, both sizes (`accountbank_test.go`).
+- **The merge**: `tools/account_bank_20261114.py --db eqoa.db [--apply | --undo]`, with the server stopped, before it starts
+  with the switch on: kept bank rows back to the bank, each account's rows numbered one list (its characters in serverid
+  order), `accountbank.tunar` the sum of its characters' bankTunar (their columns left), a gm_audit line an account, every
+  row's and column's old value in `account_bank_1114_log` / `_tunar`. `--undo` (server stopped, switch off) puts back every
+  logged row still in the bank as it was, leaves a withdrawn one with its withdrawer, gives a deleted character's banked rows
+  to the account's first character and the tunar the bank gained or lost since to it. Rehearsed on Heirloom's copy of
+  2026-11-14 23:30: 53 accounts, 1,210 bank records (13 accounts with more than one character's bank, the largest 130 from
+  7), 39,368,310 tunar; none past 2000; 44 bank rows of characters deleted before it are no account's and left. Undo gave
+  back charinventory and every bankTunar byte for byte.
+- Paging sends a 0x1250 or 0x1251 a record, and each plays CLIENT's sound 5: a page turn of 40 is a burst of them.
+
 ### Items with charges, and the Rolling Dice
 
 **Charges** (`itemeffect.charges`, petition 1088, the alchemists' Reconstructive: 4; the user: "do what koolade says"): how

@@ -28,6 +28,12 @@ type CharInventoryEntry struct {
 // the pack (LocPack) and the bank (LocBank), never the rows kept for a larger client
 // (LocPackKept, LocBankKept: itemlists.go), which nothing in the game may reach.
 func (s *InventoryStore) GetCharacterItems(serverID uint32) ([]CharInventoryEntry, error) {
+	// with the account bank, the pack's rows and the account's bank (accountbank.go)
+	held, args := heldCond("c.", serverID)
+	order := `c.location, c.listnumber`
+	if AccountBankOn() {
+		order += `, c.itemid`
+	}
 	rows, err := s.db.Query(`
 		SELECT c.itemid, c.stackleft, c.remainHP, c.remaincharge, c.equiploc, c.location, c.listnumber,
 			p.patternid, p.itemcost, p.unk1, p.itemicon, p.unk2, p.equipslot, p.unk3,
@@ -38,9 +44,8 @@ func (s *InventoryStore) GetCharacterItems(serverID uint32) ([]CharInventoryEntr
 			p.HPMAX, p.POWMAX, p.PoT, p.HoT, p.AC, p.PR, p.DR, p.FR, p.CR, p.LR, p.AR
 		FROM charinventory c
 		JOIN itempattern p ON c.patternid = p.patternid
-		WHERE c.serverid = ? AND `+heldLocations+`
-		ORDER BY c.location, c.listnumber
-	`, serverID)
+		WHERE `+held+`
+		ORDER BY `+order, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +143,7 @@ func (s *InventoryStore) SetInventoryOrder(serverID uint32, itemIDs []int) error
 // character's inventory.
 func (s *InventoryStore) SetEquipLoc(serverID uint32, itemID int, equipLoc int) error {
 	_, err := s.db.Exec(
-		`UPDATE charinventory SET equiploc = ? WHERE itemid = ? AND serverid = ? AND location IN (0, 1)`,
-		equipLoc, itemID, serverID)
+		`UPDATE charinventory SET equiploc = ? WHERE itemid = ? AND `+heldOf(serverID),
+		append([]any{equipLoc, itemID}, heldArgsOf(serverID)...)...)
 	return err
 }

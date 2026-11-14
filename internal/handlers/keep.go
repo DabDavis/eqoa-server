@@ -71,6 +71,8 @@ type KeptList struct {
 	Cap  int           `json:"cap,omitempty"`
 	// Kept: the items of the rows kept beside the list (invList.kept)
 	Kept []int `json:"kept,omitempty"`
+	// Page: a bank list's page of the account bank (invList.page, accountbank.go)
+	Page int `json:"page,omitempty"`
 }
 
 // KeptListRec is one of a KeptList's records.
@@ -87,7 +89,7 @@ func keptList(l *invList) *KeptList {
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	k := &KeptList{Next: l.next, Recs: make([]KeptListRec, 0, len(l.recs)), Cap: l.cap}
+	k := &KeptList{Next: l.next, Recs: make([]KeptListRec, 0, len(l.recs)), Cap: l.cap, Page: l.page}
 	for _, r := range l.recs {
 		k.Recs = append(k.Recs, KeptListRec{Key: r.key, Item: r.itemID, Pattern: r.patternID, Qty: r.qty})
 	}
@@ -102,7 +104,7 @@ func (k *KeptList) list() *invList {
 	if k == nil {
 		return nil
 	}
-	l := &invList{next: k.Next, recs: make([]invRec, 0, len(k.Recs)), cap: k.Cap}
+	l := &invList{next: k.Next, recs: make([]invRec, 0, len(k.Recs)), cap: k.Cap, page: k.Page}
 	for _, r := range k.Recs {
 		l.recs = append(l.recs, invRec{key: r.Key, itemID: r.Item, patternID: r.Pattern, qty: r.Qty})
 	}

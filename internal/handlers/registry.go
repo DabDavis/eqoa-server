@@ -321,6 +321,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	targetHandler.corpseCon = npcWindowHandler.ConsideredCorpse // a corpse's lock said on a con (lootrights.go)
 	npcWindowHandler.links = chatHandler.links                  // loot lines' item links (lootlinks.go)
 	keepWindows.Store(npcWindowHandler)                         // what a restart carries of the corpses (keep.go)
+	acctBankWindows.Store(npcWindowHandler)                     // the account bank's sessions kept in step (accountbank.go)
 	npcWindowHandler.takeOff = equipHandler.TakeOff             // a worn item banked or traded comes off first
 	if gameWorld != nil {
 		npcWindowHandler.SetGameWorld(gameWorld)

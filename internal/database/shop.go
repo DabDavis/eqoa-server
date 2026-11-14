@@ -83,8 +83,8 @@ func (s *InventoryStore) GetCharItem(serverID uint32, itemID int) (CharInventory
 		`+itemPatternColumns+`
 		FROM charinventory c
 		JOIN itempattern p ON c.patternid = p.patternid
-		WHERE c.serverid = ? AND c.itemid = ? AND `+heldLocations+`
-	`, serverID, itemID)
+		WHERE c.itemid = ? AND `+heldOfC(serverID)+`
+	`, append([]any{itemID}, heldArgsOf(serverID)...)...)
 	e, err := scanItemRow(row.Scan)
 	if err == sql.ErrNoRows {
 		return e, fmt.Errorf("character %d has no item %d", serverID, itemID)
@@ -101,11 +101,11 @@ func (s *InventoryStore) AddCharItem(serverID uint32, patternID, stack, remainHP
 	if charges == 0 {
 		charges = s.ItemCharges(patternID) // a new one holds them all
 	}
+	next, nargs := nextListSQL(serverID, location) // the account bank's end (accountbank.go)
 	res, err := s.db.Exec(`
 		INSERT INTO charinventory (serverid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber)
-		VALUES (?, ?, ?, ?, ?, -1, ?,
-			(SELECT COALESCE(MAX(listnumber), -1) + 1 FROM charinventory WHERE serverid = ? AND location = ?))
-	`, serverID, stack, remainHP, charges, patternID, location, serverID, location)
+		VALUES (?, ?, ?, ?, ?, -1, ?, `+next+`)
+	`, append([]any{serverID, stack, remainHP, charges, patternID, location}, nargs...)...)
 	if err != nil {
 		return 0, err
 	}
@@ -117,8 +117,8 @@ func (s *InventoryStore) AddCharItem(serverID uint32, patternID, stack, remainHP
 // like every change here to a row in the pack or the bank, never to one kept
 // for a larger client (itemlists.go): that is an error, as a row not there is.
 func (s *InventoryStore) SetItemStack(serverID uint32, itemID, stack int) error {
-	return s.execOne(`UPDATE charinventory SET stackleft = ? WHERE itemid = ? AND serverid = ? AND location IN (0, 1)`,
-		stack, itemID, serverID)
+	return s.execOne(`UPDATE charinventory SET stackleft = ? WHERE itemid = ? AND `+heldOf(serverID),
+		append([]any{stack, itemID}, heldArgsOf(serverID)...)...)
 }
 
 // ItemCharges is how many uses a new one of the item holds (itemeffect.charges),
@@ -137,19 +137,20 @@ func (s *InventoryStore) ItemCharges(patternID int) int {
 
 // SetItemCharges sets a row's charges left (a use).
 func (s *InventoryStore) SetItemCharges(serverID uint32, itemID, charges int) error {
-	return s.execOne(`UPDATE charinventory SET remaincharge = ? WHERE itemid = ? AND serverid = ? AND location IN (0, 1)`,
-		charges, itemID, serverID)
+	return s.execOne(`UPDATE charinventory SET remaincharge = ? WHERE itemid = ? AND `+heldOf(serverID),
+		append([]any{charges, itemID}, heldArgsOf(serverID)...)...)
 }
 
 // SetItemRemainHP sets a row's condition (a repair).
 func (s *InventoryStore) SetItemRemainHP(serverID uint32, itemID, hp int) error {
-	return s.execOne(`UPDATE charinventory SET remainHP = ? WHERE itemid = ? AND serverid = ? AND location IN (0, 1)`,
-		hp, itemID, serverID)
+	return s.execOne(`UPDATE charinventory SET remainHP = ? WHERE itemid = ? AND `+heldOf(serverID),
+		append([]any{hp, itemID}, heldArgsOf(serverID)...)...)
 }
 
 // DeleteCharItem removes a row (sold, or the last of a stack moved).
 func (s *InventoryStore) DeleteCharItem(serverID uint32, itemID int) error {
-	if err := s.execOne(`DELETE FROM charinventory WHERE itemid = ? AND serverid = ? AND location IN (0, 1)`, itemID, serverID); err != nil {
+	if err := s.execOne(`DELETE FROM charinventory WHERE itemid = ? AND `+heldOf(serverID),
+		append([]any{itemID}, heldArgsOf(serverID)...)...); err != nil {
 		return err
 	}
 	return s.dropQuickSlot(serverID, itemID)
@@ -158,12 +159,18 @@ func (s *InventoryStore) DeleteCharItem(serverID uint32, itemID int) error {
 // MoveCharItem moves a row to the end of the list at location, unequipped
 // (an item crosses between the inventory and the bank whole) and off its
 // quick slot.
+//
+// With the account bank the row becomes the character's as it moves (one out of
+// the account's bank is the withdrawer's), and one into the bank goes at the end
+// of the account's (accountbank.go).
 func (s *InventoryStore) MoveCharItem(serverID uint32, itemID, location int) error {
+	next, nargs := nextListSQL(serverID, location)
+	args := append([]any{location, serverID}, nargs...)
+	args = append(append(args, itemID), heldArgsOf(serverID)...)
 	if err := s.execOne(`
-		UPDATE charinventory SET location = ?, equiploc = -1,
-			listnumber = (SELECT COALESCE(MAX(listnumber), -1) + 1 FROM charinventory WHERE serverid = ? AND location = ?)
-		WHERE itemid = ? AND serverid = ? AND location IN (0, 1)
-	`, location, serverID, location, itemID, serverID); err != nil {
+		UPDATE charinventory SET location = ?, equiploc = -1, serverid = ?,
+			listnumber = `+next+`
+		WHERE itemid = ? AND `+heldOf(serverID), args...); err != nil {
 		return err
 	}
 	return s.dropQuickSlot(serverID, itemID)
@@ -176,6 +183,14 @@ func (s *InventoryStore) SetPurse(serverID uint32, tunar int) error {
 
 // SetTunar stores a character's purse and bank tunar.
 func (s *InventoryStore) SetTunar(serverID uint32, tunar, bankTunar int) error {
+	if AccountBankOn() {
+		// the bank is the account's (accountbank.go)
+		if err := s.SetPurse(serverID, tunar); err != nil {
+			return err
+		}
+		_, err := setBankTunarTx(s.db, serverID, bankTunar)
+		return err
+	}
 	return s.execOne(`UPDATE characters SET tunar = ?, bankTunar = ? WHERE serverid = ?`,
 		tunar, bankTunar, serverID)
 }

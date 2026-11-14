@@ -230,8 +230,7 @@ func bidUnitsTx(tx *sql.Tx, req AuctionBidRequest, l AuctionLot, qty int, res *A
 	}
 	switch delta := escrow - prior.Escrow; {
 	case delta > 0:
-		if err := execOneTx(tx, `UPDATE characters SET bankTunar = bankTunar - ? WHERE serverid = ? AND bankTunar >= ?`,
-			delta, req.Bidder, delta); err != nil {
+		if err := takeBankTunarTx(tx, req.Bidder, delta); err != nil {
 			return err
 		}
 		res.Taken = delta

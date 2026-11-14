@@ -391,6 +391,15 @@ func auctionBidTx(q sqlRunner, lot int, bidder uint32) (AuctionBid, bool, error)
 // bankTunarTx is a character's bank tunar, and whether the character is
 // there at all.
 func bankTunarTx(q sqlRunner, serverID uint32) (int, bool, error) {
+	if AccountBankOn() {
+		// the account's (accountbank.go)
+		acct, there, err := accountOfChar(q, serverID)
+		if err != nil || !there {
+			return 0, false, err
+		}
+		bank, err := accountTunarTx(q, acct)
+		return bank, err == nil, err
+	}
 	var bank int
 	err := q.QueryRow(`SELECT bankTunar FROM characters WHERE serverid = ?`, serverID).Scan(&bank)
 	if err == sql.ErrNoRows {
@@ -419,12 +428,17 @@ func creditBankTx(tx sqlRunner, serverID uint32, n int) (bool, error) {
 	if n == 0 {
 		return true, nil
 	}
-	res, err := tx.Exec(`UPDATE characters SET bankTunar = bankTunar + ? WHERE serverid = ?`, n, serverID)
-	if err != nil {
-		return false, err
+	return addBankTunarTx(tx, serverID, n, false) // the account's, with the account bank (accountbank.go)
+}
+
+// takeBankTunarTx takes n tunar out of a character's bank while it holds
+// that much; an error (errAuctionChanged) when it does not.
+func takeBankTunarTx(tx sqlRunner, serverID uint32, n int) error {
+	ok, err := addBankTunarTx(tx, serverID, -n, true)
+	if err == nil && !ok {
+		err = fmt.Errorf("%w: character %d's bank holds less than %d", errAuctionChanged, serverID, n)
 	}
-	k, err := res.RowsAffected()
-	return k == 1, err
+	return err
 }
 
 // AuctionListing is a bank record put up.
@@ -474,11 +488,13 @@ func (db *SQLiteDB) AuctionList(req AuctionListing) (AuctionLot, int, error) {
 	}
 	var lot AuctionLot
 	var bank int
+	held, heldArgs := heldCond("c.", req.Seller) // the account's bank, with the account bank (accountbank.go)
+	inBank, bankArgs := bankCond("", req.Seller)
 	err := db.auctionTx(func(tx *sql.Tx) error {
 		row := tx.QueryRow(`SELECT c.itemid, c.stackleft, c.remainHP, c.remaincharge, c.equiploc, c.location, c.listnumber,
 			`+itemPatternColumns+`
 			FROM charinventory c JOIN itempattern p ON p.patternid = c.patternid
-			WHERE c.itemid = ? AND c.serverid = ?`, req.ItemID, req.Seller)
+			WHERE c.itemid = ? AND `+held, append([]any{req.ItemID}, heldArgs...)...)
 		e, err := scanItemRow(row.Scan)
 		if err == sql.ErrNoRows {
 			return refuseAuction("That item is not in your bank.")
@@ -525,27 +541,26 @@ func (db *SQLiteDB) AuctionList(req AuctionListing) (AuctionLot, int, error) {
 		if req.PerItem {
 			fee *= n // DrawSell's "Listing fee", max(1, m_price / 100) x m_qty
 		}
-		res, err := tx.Exec(`UPDATE characters SET bankTunar = bankTunar - ? WHERE serverid = ? AND bankTunar >= ?`,
-			fee, req.Seller, fee)
+		paid, err := addBankTunarTx(tx, req.Seller, -fee, true)
 		if err != nil {
 			return err
 		}
-		if k, _ := res.RowsAffected(); k != 1 {
+		if !paid {
 			have, _, _ := bankTunarTx(tx, req.Seller)
 			return refuseAuction("The listing fee is %d tunar, and your bank holds %d.", fee, have)
 		}
 		if n == e.StackLeft {
-			if err := execOneTx(tx, `DELETE FROM charinventory WHERE itemid = ? AND serverid = ? AND location = 1
+			if err := execOneTx(tx, `DELETE FROM charinventory WHERE itemid = ? AND `+inBank+`
 				AND equiploc = -1 AND stackleft = ? AND patternid = ?`,
-				e.ItemID, req.Seller, e.StackLeft, p.PatternID); err != nil {
+				append(append([]any{e.ItemID}, bankArgs...), e.StackLeft, p.PatternID)...); err != nil {
 				return err
 			}
 			if _, err := tx.Exec(`DELETE FROM quickslots WHERE serverid = ? AND itemid = ?`, req.Seller, e.ItemID); err != nil {
 				return err
 			}
-		} else if err := execOneTx(tx, `UPDATE charinventory SET stackleft = stackleft - ? WHERE itemid = ? AND serverid = ?
-			AND location = 1 AND equiploc = -1 AND stackleft = ? AND patternid = ?`,
-			n, e.ItemID, req.Seller, e.StackLeft, p.PatternID); err != nil {
+		} else if err := execOneTx(tx, `UPDATE charinventory SET stackleft = stackleft - ? WHERE itemid = ? AND `+inBank+`
+			AND equiploc = -1 AND stackleft = ? AND patternid = ?`,
+			append(append([]any{n, e.ItemID}, bankArgs...), e.StackLeft, p.PatternID)...); err != nil {
 			return err
 		}
 		perItem := 0
@@ -728,8 +743,7 @@ func (db *SQLiteDB) AuctionBid(req AuctionBidRequest) (AuctionBidResult, error) 
 			return refuseAuction("Your bank holds %d tunar; that bid needs %d.", bank, hold)
 		}
 		if need > 0 {
-			if err := execOneTx(tx, `UPDATE characters SET bankTunar = bankTunar - ? WHERE serverid = ? AND bankTunar >= ?`,
-				need, req.Bidder, need); err != nil {
+			if err := takeBankTunarTx(tx, req.Bidder, need); err != nil {
 				return err
 			}
 		}
@@ -992,6 +1006,10 @@ func SetBankSlotsOf(f func(holder uint32) int) {
 // holder out of the world is filed as CLIENT's, and what waits is filed at its
 // login (handlers/auction.go's BeforeDump), as its client's list then holds.
 func BankSlotsOf(holder uint32) int {
+	if AccountBankOn() {
+		// the account's bank, of which a client is shown a page (accountbank.go)
+		return AccountBankSlots()
+	}
 	if f := bankSlotsOf.Load(); f != nil {
 		if n := (*f)(holder); n > 0 {
 			return n
@@ -1049,8 +1067,9 @@ func deliverTx(tx sqlRunner, l *AuctionLot, now time.Time) (*AuctionDelivery, er
 // (BankSlotsOf: CLIENT's 40 or more). ok false: no room, and nothing was
 // written.
 func fileItemTx(tx sqlRunner, holder uint32, item *CharInventoryEntry, n int) (itemID int, merged, ok bool, err error) {
+	cond, cargs := bankCond("", holder) // the account's, with the account bank (accountbank.go)
 	rows, err := tx.Query(`SELECT itemid, patternid, stackleft FROM charinventory
-		WHERE serverid = ? AND location = 1 ORDER BY listnumber, itemid`, holder)
+		WHERE `+cond+` ORDER BY listnumber, itemid`, cargs...)
 	if err != nil {
 		return 0, false, false, err
 	}
@@ -1084,18 +1103,18 @@ func fileItemTx(tx sqlRunner, holder uint32, item *CharInventoryEntry, n int) (i
 			return 0, false, false, nil
 		}
 		if err := execOneTx(tx, `UPDATE charinventory SET stackleft = stackleft + ?
-			WHERE itemid = ? AND serverid = ? AND location = 1 AND stackleft = ?`,
-			n, bank[onto].itemID, holder, bank[onto].stack); err != nil {
+			WHERE itemid = ? AND stackleft = ? AND `+cond,
+			append([]any{n, bank[onto].itemID, bank[onto].stack}, cargs...)...); err != nil {
 			return 0, false, false, err
 		}
 		return bank[onto].itemID, true, true, nil
 	case len(bank) >= BankSlotsOf(holder):
 		return 0, false, false, nil
 	}
+	next, nargs := nextListSQL(holder, LocBank)
 	r, err := tx.Exec(`INSERT INTO charinventory (serverid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber)
-		VALUES (?, ?, ?, ?, ?, -1, 1,
-			(SELECT COALESCE(MAX(listnumber), -1) + 1 FROM charinventory WHERE serverid = ? AND location = 1))`,
-		holder, n, item.RemainHP, item.Charges, p.PatternID, holder)
+		VALUES (?, ?, ?, ?, ?, -1, 1, `+next+`)`,
+		append([]any{holder, n, item.RemainHP, item.Charges, p.PatternID}, nargs...)...)
 	if err != nil {
 		return 0, false, false, err
 	}

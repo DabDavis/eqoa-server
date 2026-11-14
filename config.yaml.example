@@ -213,6 +213,14 @@ world:
   # pack_slots: 100
   # bank_slots: 100
 
+  # One bank for every character of an account, its items and its tunar, up to
+  # account_bank_slots records (unset: 2000). A client is shown a page of its
+  # list's size (a PS2 40, vanilla bank_slots), turned with /bank next (a PS2:
+  # /t bank next). Run tools/account_bank_20261114.py --apply on the database
+  # before turning it on (it merges the characters' banks; --undo parts them).
+  # account_bank: true
+  # account_bank_slots: 2000
+
   # A cape slot of this server's own (entity/capes.go): items of wear slot 28
   # (tools/seed_capes.py makes them) worn in equip slot 22, drawn by a client
   # that draws capes (vanilla, offered them with opcode 0x7E25); a PS2 is sent

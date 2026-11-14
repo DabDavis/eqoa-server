@@ -113,16 +113,16 @@ func (s *SQLiteCharacterStore) AddBankTunar(serverID uint32, n int) (int, error)
 		return 0, err
 	}
 	defer tx.Rollback()
-	var bank int
-	err = tx.QueryRow(`SELECT bankTunar FROM characters WHERE serverid = ?`, serverID).Scan(&bank)
-	if errors.Is(err, sql.ErrNoRows) {
-		return 0, ErrCharacterNotFound
-	}
+	// the account's, with the account bank (accountbank.go)
+	bank, there, err := bankTunarTx(tx, serverID)
 	if err != nil {
 		return 0, err
 	}
+	if !there {
+		return 0, ErrCharacterNotFound
+	}
 	bank = AddTunar(bank, n)
-	if _, err := tx.Exec(`UPDATE characters SET bankTunar = ? WHERE serverid = ?`, bank, serverID); err != nil {
+	if _, err := setBankTunarTx(tx, serverID, bank); err != nil {
 		return 0, err
 	}
 	return bank, tx.Commit()

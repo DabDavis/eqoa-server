@@ -304,6 +304,7 @@ func (h *ChatHandler) addBankTunar(sess *session.Session, s gmSubject, n int) {
 	if s.sess != nil {
 		bankMu.Lock()
 		tunar, before, ok := h.gameWorld.PurseOf(s.serverID)
+		before = accountBankTunarNow(s.serverID, before)
 		after := database.AddTunar(before, n)
 		if ok {
 			economy.GMChange(s.serverID, s.name, after-before)
@@ -313,6 +314,7 @@ func (h *ChatHandler) addBankTunar(sess *session.Session, s gmSubject, n int) {
 					log.Printf("GM: #banktunar for '%s' not kept: %v", s.name, err)
 				}
 			}
+			syncAccountBankOf(s.serverID) // its account's other characters (accountbank.go)
 		}
 		bankMu.Unlock()
 		if ok {
@@ -333,6 +335,9 @@ func (h *ChatHandler) addBankTunar(sess *session.Session, s gmSubject, n int) {
 		return
 	}
 	economy.GMChange(s.serverID, s.name, n)
+	bankMu.Lock()
+	syncAccountBankOf(s.serverID) // its account's characters in the world (accountbank.go)
+	bankMu.Unlock()
 	h.gmReply(sess, fmt.Sprintf("%s's bank (not in the world): %d tunar now", s.name, after))
 	log.Printf("GM: bank tunar of '%s' (offline) %+d -> %d", s.name, n, after)
 }

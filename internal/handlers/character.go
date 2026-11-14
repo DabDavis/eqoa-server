@@ -2139,12 +2139,13 @@ func (h *CharacterHandler) queueMemoryDumpAt(sess *session.Session, player *enti
 			bankTunar = live.BankTunar
 		}
 	}
+	bankTunar = accountBankTunarNow(player.CharServerID, bankTunar) // the account's (accountbank.go)
 	// The lists, as many records as the client holds (itemlists.go): a
 	// character with more keeps the rest, and a login's brings kept ones back
 	// where there is room. Read before the buffer is made, which their size
 	// sets.
 	packCap, bankCap := listCaps(sess)
-	invItems, bankItems, keptPack := h.fitItemLists(player.CharServerID, packCap, bankCap, login)
+	invItems, bankItems, keptPack, bankHidden := h.fitItemLists(player.CharServerID, packCap, bankCap, login)
 
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeMemoryDump)
 	// MemoryDump can be 30KB+ with items/spells/hotkeys; write to a large
@@ -2272,8 +2273,12 @@ func (h *CharacterHandler) queueMemoryDumpAt(sess *session.Session, player *enti
 	log.Printf("SendMemoryDump: wrote %d bank items", len(bankItems))
 	// The bank list keeps keys of its own, numbered the same way.
 	bankList := newInvListCap(bankItems, bankCap)
-	packList.bank = bankList // a Lore item in the bank is one held (itemlist.go's loreRoom)
+	bankList.kept = bankHidden // the account bank's rows not on its first page (accountbank.go)
+	packList.bank = bankList   // a Lore item in the bank is one held (itemlist.go's loreRoom)
 	sess.SetBankList(bankList)
+	// the account's other characters in the world see what this dump's reading
+	// changed of their bank (kept rows back, the auction's deliveries: accountbank.go)
+	syncAccountBankOf(player.CharServerID)
 
 	var spells []database.CharSpellEntry
 	if h.spellbookStore != nil {

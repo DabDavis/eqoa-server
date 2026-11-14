@@ -59,13 +59,24 @@ func (s *Server) registerPlayerOps() {
 				}
 				vals["tunar"] = *req.Tunar
 			}
+			out := map[string]any{"character": name}
 			if req.BankTunar != nil {
 				if *req.BankTunar < 0 {
 					return nil, badRequest("bank_tunar cannot be negative")
 				}
-				vals["bankTunar"] = *req.BankTunar
+				if database.AccountBankOn() {
+					// the account's bank (database/accountbank.go), not the row's column
+					before, err := handlers.SetAccountBankTunar(uint32(id), int(*req.BankTunar))
+					if err != nil {
+						return nil, err
+					}
+					msg := fmt.Sprintf("%s's account bank tunar %d -> %d", name, before, *req.BankTunar)
+					c.s.audit(c.a, "live", "", nil, nil, nil, msg)
+					out["bankTunar"] = msg
+				} else {
+					vals["bankTunar"] = *req.BankTunar
+				}
 			}
-			out := map[string]any{"character": name}
 			if len(vals) > 0 {
 				t, err := c.s.table("characters")
 				if err != nil {

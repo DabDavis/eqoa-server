@@ -975,6 +975,7 @@ func (r *Rehab) takeItems(sess *session.Session, p *entity.Player, patternID, n 
 				take(row, sessionBankList(sess), true)
 			}
 		}
+		syncAccountBankOf(p.CharServerID) // the account's bank (accountbank.go)
 		bankMu.Unlock()
 	}
 	return took

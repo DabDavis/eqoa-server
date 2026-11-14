@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"sync"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
@@ -133,6 +135,24 @@ func (h *NPCWindowHandler) bankItem(sess *session.Session, id uint32, fromBank b
 	}
 	p := &row.Pattern
 	took := dst.wouldAdd(p.PatternID, n, p.MaxStack)
+	if !fromBank && database.AccountBankOn() {
+		// the account's bank (accountbank.go): never a record past its size,
+		// and one past the page goes in unshown
+		have, err := h.inv.BankRowCount(player.CharServerID)
+		if err != nil {
+			log.Printf("BankItem: %s's bank: %v", player.Name, err)
+			return false
+		}
+		newRecord := took == 0 || dst.stackOnto(p.PatternID, p.MaxStack) < 0
+		if newRecord && have >= database.AccountBankSlots() {
+			log.Printf("BankItem: %s: the account's bank holds %d, its most", player.Name, have)
+			SendErrorMessage(sess, fmt.Sprintf("Your account's bank is full: it holds %d items.", database.AccountBankSlots()))
+			return false
+		}
+		if took == 0 {
+			return h.bankDepositUnshown(sess, player, src, i, rec, row, n)
+		}
+	}
 	if took == 0 {
 		log.Printf("BankItem: %s: no room for %q", player.Name, p.ItemName)
 		return false
@@ -170,6 +190,44 @@ func (h *NPCWindowHandler) bankItem(sess *session.Session, id uint32, fromBank b
 	}
 	log.Printf("BankItem: %s moved %d %q %s", player.Name, took, p.ItemName,
 		map[bool]string{true: "out of the bank", false: "into the bank"}[fromBank])
+	syncAccountBankOf(player.CharServerID) // the account's other characters see it (accountbank.go)
+	return true
+}
+
+// bankDepositUnshown is a deposit into the account's bank whose page has no
+// room for it (accountbank.go): n of the pack's record at i into a row of the
+// bank's (the whole row when n is all of it), the pack told (0x003C) and the
+// bank's wait ended (0x1253, its tunar as it is), and the player told where it
+// went. With bankMu held; the account's bank has room (bankItem counted it).
+func (h *NPCWindowHandler) bankDepositUnshown(sess *session.Session, player *entity.Player, inv *invList, i int, rec invRec, row database.CharInventoryEntry, n int) bool {
+	p := &row.Pattern
+	if p.MaxStack < 2 {
+		n = rec.qty // a record of an item that does not stack crosses whole
+	}
+	if n >= rec.qty {
+		n = rec.qty
+		if err := h.inv.MoveCharItem(player.CharServerID, rec.itemID, database.LocBank); err != nil {
+			log.Printf("BankItem: %s: %v", player.Name, err)
+			return false
+		}
+		inv.took(i, n)
+	} else {
+		if err := h.takeItem(player, inv, i, rec, n); err != nil {
+			log.Printf("BankItem: %s: %v", player.Name, err)
+			return false
+		}
+		if _, err := h.inv.AddCharItem(player.CharServerID, p.PatternID, n, row.RemainHP, row.Charges, database.LocBank); err != nil {
+			log.Printf("BankItem: %s: %v (%d %q left the pack and arrived nowhere)", player.Name, err, n, p.ItemName)
+			return false
+		}
+	}
+	queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(i, 0, n))
+	queueReliable(sess, protocol.OpcodeConfirmBankTunar, bankTunarPayload(player.BankTunar))
+	have, _ := h.inv.BankRowCount(player.CharServerID)
+	SendColoredChat(sess, fmt.Sprintf("%s went into your account's bank (%d of %d items) past the page you see: /bank last to see it.",
+		p.ItemName, have, database.AccountBankSlots()), 255, 255, 0)
+	log.Printf("BankItem: %s moved %d %q into the account's bank, past its page (%d records)", player.Name, n, p.ItemName, have)
+	syncAccountBankOf(player.CharServerID)
 	return true
 }
 
@@ -189,6 +247,12 @@ func (h *NPCWindowHandler) HandleBankTunar(sess *session.Session, msg *protocol.
 	}
 	bankMu.Lock()
 	defer bankMu.Unlock()
+	if database.AccountBankOn() && h.inv != nil {
+		// the account's, as kept (another of its characters may have moved it: accountbank.go)
+		if bank, ok, err := h.inv.BankTunarOf(player.CharServerID); err == nil && ok {
+			player.BankTunar = bank
+		}
+	}
 	a := int(amount)
 	if dir == 0 && a <= player.Tunar {
 		player.Tunar -= a
@@ -211,5 +275,6 @@ func (h *NPCWindowHandler) HandleBankTunar(sess *session.Session, msg *protocol.
 	queueReliable(sess, protocol.OpcodePlayerTunar, tunarPayload(player.Tunar))
 	queueReliable(sess, protocol.OpcodeConfirmBankTunar, bankTunarPayload(player.BankTunar))
 	log.Printf("BankTunar: %s now %d carried, %d banked", player.Name, player.Tunar, player.BankTunar)
+	syncAccountBankOf(player.CharServerID) // the account's other characters (accountbank.go)
 	return nil
 }

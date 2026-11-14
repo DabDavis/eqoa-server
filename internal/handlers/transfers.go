@@ -49,6 +49,10 @@ func (h *CharacterHandler) applyTransfer(serverID uint32, room listSizes) bool {
 	}
 	plan.CharacterID = serverID
 	plan.PackSlots, plan.BankSlots = room.packOf(), room.bankOf()
+	if database.AccountBankOn() {
+		// the account's bank, a page of it shown (accountbank.go)
+		plan.BankSlots = database.AccountBankSlots()
+	}
 	// a transfer's gear comes in as its imported copies, damped; a GM's grant
 	// as given (database/imported.go; petition 1314)
 	plan.Imported = plan.Imported || t.FromServer != database.GMGrantSource

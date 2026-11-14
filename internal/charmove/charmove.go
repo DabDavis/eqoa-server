@@ -676,9 +676,14 @@ func (m *migration) giveItems(items []Item, made map[string]int, to string, forc
 	if len(items) == 0 {
 		return nil
 	}
-	var pack, bank int
-	if err := m.tx.QueryRow(`SELECT COALESCE(SUM(location = 0), 0), COALESCE(SUM(location = 1), 0) FROM charinventory WHERE serverid = ?`,
-		m.ch.serverID).Scan(&pack, &bank); err != nil {
+	var pack int
+	if err := m.tx.QueryRow(`SELECT COALESCE(SUM(location = 0), 0) FROM charinventory WHERE serverid = ?`,
+		m.ch.serverID).Scan(&pack); err != nil {
+		return err
+	}
+	// the bank's records: its account's with the account bank (database/accountbank.go)
+	bank, err := database.BankRowCount(m.tx, m.ch.serverID)
+	if err != nil {
 		return err
 	}
 	rows := 0

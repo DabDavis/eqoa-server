@@ -289,8 +289,8 @@ func mercPlainBuff(s *CastSpell) bool {
 
 // mercBestBuffs is the book with each buff line's best alone (the owner,
 // 2026-11-12): a buff goes when another of the book is of its line
-// (sameLine, the kinds across: buffline.go) and of a higher rank (of one
-// rank, the first kept), or of a nested line that covers it (covers, by the
+// (sameLine, the kinds across: buffline.go) and outranks it (spellOutranks:
+// the stronger, then the higher rank; of one, the first kept), or of a nested line that covers it (covers, by the
 // figures: staticMods), so a lower one, which would only be refused or take
 // off the better, is never cast (the cleric's Disease, Poison, Flame and Ice
 // Ward under Lightning Ward; Minor Blessing beside Blessing). Of two short
@@ -321,7 +321,7 @@ func mercBestBuffs(book []mercSpell) []mercSpell {
 					continue
 				}
 			}
-			if sameLine(la, lb) && (rb > ra || rb == ra && j < i) || nestedLines(la, lb) && spellCovers(b.s, a.s) {
+			if sameLine(la, lb) && spellOutranks(b.s, a.s, rb, ra, j < i) || nestedLines(la, lb) && spellCovers(b.s, a.s) {
 				beaten = true
 				break
 			}
@@ -744,7 +744,7 @@ func (w *World) mercBuffComingLocked(ms *mercState, s *CastSpell, id EntityID) b
 			continue
 		}
 		cl := EffectLine(&c.spell)
-		if c.spell.SpellID == s.SpellID || sameLine(cl, line) && lineRank(&c.spell) >= lineRank(s) ||
+		if c.spell.SpellID == s.SpellID || sameLine(cl, line) && !spellOutranks(s, &c.spell, lineRank(s), lineRank(&c.spell), false) ||
 			nestedLines(cl, line) && spellCovers(&c.spell, s) {
 			return true
 		}
@@ -1247,4 +1247,16 @@ func (w *World) mercSelfShareLocked(ms *mercState, s *CastSpell, now time.Time) 
 	ae := &ActiveEffect{SpellID: -s.SpellID, Name: s.Name, Icon: s.Icon, Caster: m.ServerID, Until: now.Add(s.Def.Duration), Mods: mods}
 	putOnPetLocked(m, s, ae) // its own effect (its id negative), apart from what the spell puts on its target
 	syncMercBody(ms)
+}
+
+// spellOutranks is buffline.go's lineOutranks for two spells by their figures
+// (staticMods): a gives more of the stats their lines share, or as much and
+// is of a higher rank (ra, rb), or of one rank when first is true.
+func spellOutranks(a, b *CastSpell, ra, rb int, first bool) bool {
+	ea := &ActiveEffect{Line: EffectLine(a), Mods: staticMods(a)}
+	eb := &ActiveEffect{Line: EffectLine(b), Mods: staticMods(b)}
+	if sa, sb := lineStrength(ea, eb), lineStrength(eb, ea); sa != sb {
+		return sa > sb
+	}
+	return ra > rb || ra == rb && first
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/economy"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
@@ -852,6 +853,9 @@ func (h *InteractHandler) travel(sess *session.Session, player *entity.Player, d
 		h.sendDialogueBox(sess, fmt.Sprintf("The trip to %s costs %d tunar.", dest.Name, dest.Fee))
 		log.Printf("Waysender: %s cannot pay %d for %s", player.Name, dest.Fee, dest.Name)
 		return
+	}
+	if dest.Fee > 0 && h.spend != nil {
+		economy.Spent(economy.Travel, player.CharServerID, player.Name, dest.Fee)
 	}
 	if dest.Via != "" {
 		sess.Queue().AddWithSequence(buildClientMessage(dest.Via + ": " + wayGo))

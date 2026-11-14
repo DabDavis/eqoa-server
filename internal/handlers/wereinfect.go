@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/economy"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/session"
 )
@@ -261,6 +262,7 @@ func (q *QuestEngine) AdvisorAnswer(sess *session.Session, p *entity.Player, box
 		return true
 	}
 	say(fmt.Sprintf("The %s's fever leaves your blood.", beast(fever)))
+	economy.Spent(economy.Cure, p.CharServerID, p.Name, CurePrice)
 	log.Printf("Weres: %s was cured of the %s's fever by %s for %d tunar", p.Name, beast(fever), b.speaker, CurePrice)
 	return true
 }

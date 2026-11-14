@@ -39,6 +39,7 @@ import (
 	"time"
 
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/economy"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/session"
 )
@@ -195,7 +196,7 @@ func (q *QuestEngine) putBackLocked(sess *session.Session, p *entity.Player, c *
 		q.saveLocked(cq)
 		said = fmt.Sprintf("%s: the encounter ended before %s fell. Its step is yours to do again.", qu.Name, l.targets[0])
 	}
-	lines := append([]string{said}, q.rewardLocked(sess, p, back)...)
+	lines := append([]string{said}, q.rewardLocked(sess, p, back, economy.QuestRefund)...)
 	q.tellLocked(c, sess, "", lines...)
 	log.Printf("Quests: %s's %q put back from step %d to step %d: no run of %q lives and %s did not fall (handed back: %d items, %d tunar)",
 		p.Name, qu.Name, at, l.from, l.trigger, l.targets[0], len(back.Items), back.Tunar)

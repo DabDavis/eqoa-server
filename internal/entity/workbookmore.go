@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/economy"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
@@ -458,6 +459,7 @@ func (w *World) pickpocketLocked(p *Player, sess *session.Session, npc *NPC, now
 	lvl := max(npc.Level, 1)
 	n := lvl + pickIntn(lvl+1)
 	p.Tunar += n
+	economy.Made(economy.Pickpocket, p.CharServerID, p.Name, n)
 	log.Printf("Pickpocket: %s takes %d tunar from %s (%d now)", p.Name, n, npc.Name, p.Tunar)
 	say(pickTook, n, npc.Name)
 	if sess != nil {

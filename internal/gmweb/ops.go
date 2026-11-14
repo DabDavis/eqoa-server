@@ -140,6 +140,7 @@ func (s *Server) registerOps() {
 	s.registerPetitionOps() // ops_petitions.go
 	s.registerCampfixOps()  // ops_campfix.go: camp reports wait for a GM's approval
 	s.registerPwResetOps()  // ops_pwreset.go: forgotten passwords, reset by a GM
+	s.registerEconomyOps()  // ops_economy.go: the tunar ledger
 	if !s.d.NoTransfers {
 		s.registerTransferOps() // ops_transfers.go
 	}

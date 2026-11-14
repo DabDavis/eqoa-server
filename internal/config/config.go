@@ -114,6 +114,13 @@ type GMConfig struct {
 	// visual as 0x00B1 plays it, off the GM's own disc. Empty: no preview.
 	// Its host must allow the panel to frame it (frame-ancestors).
 	PreviewURL string `yaml:"preview_url"`
+
+	// EconomyOtherDB is another shard's database file, opened read-only at
+	// each read of the Economy page (gmweb/ops_economy.go), so this panel shows
+	// that shard's ledger beside its own (its own panel writes it); empty:
+	// this shard's alone. EconomyOtherName is what the page calls it.
+	EconomyOtherDB   string `yaml:"economy_other_db"`
+	EconomyOtherName string `yaml:"economy_other_name"`
 }
 
 // ServerConfig holds network server settings.

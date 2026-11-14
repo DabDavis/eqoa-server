@@ -105,22 +105,22 @@ func TestALootStepDropsItsItemAtItsChance(t *testing.T) {
 	}
 }
 
-// A loot step counts what is taken while it is the step to do: items held
-// from before do not do it, nor one taken before the quest; two taken on the
-// step at once (a stack) do. The count outlives the engine.
+// A loot step counts what is taken while it is the step to do, and what the pack holds
+// when it becomes the step to do (questpreloot.go, the owner's "allow pre-looting for all
+// quests"): one belt held before the quest counts at once (1 of 2); one taken on the step
+// does it. The count outlives the engine.
 func TestALootStepCountsWhatIsTakenOnIt(t *testing.T) {
 	f := newQuestFixture(t)
 	belt := f.pattern("slashed belt", 20)
 	lootQuest(f, belt)
-	f.own(belt, 2)
-	f.qe.Looted(f.tw.s, f.tw.p, belt, 1) // before the quest: not counted
+	f.own(belt, 1)
+	f.qe.Looted(f.tw.s, f.tw.p, belt, 1) // before the quest: not counted as a take
 	if _, err := f.qe.SetCharacterQuest(f.sid, 60, QuestGive, 0); err != nil {
 		t.Fatal(err)
 	}
 	if s, _ := f.progress(60); s != 1 {
-		t.Fatalf("two belts held before it, the step is %d, want 1", s)
+		t.Fatalf("one belt held before it, the step is %d, want 1", s)
 	}
-	f.qe.Looted(f.tw.s, f.tw.p, belt, 1)
 	f.msgs()
 	again, err := NewQuestEngine(f.db, f.tw.w, f.tw.mgr, f.inv, nil)
 	if err != nil {
@@ -128,11 +128,11 @@ func TestALootStepCountsWhatIsTakenOnIt(t *testing.T) {
 	}
 	again.items = f.qe.items
 	if got := again.CharacterQuests(f.sid); len(got) != 1 || got[0].Count != 1 {
-		t.Fatalf("after a restart: %+v, want one taken", got)
+		t.Fatalf("after a restart: %+v, want the one held counted", got)
 	}
-	f.qe.Looted(f.tw.s, f.tw.p, belt, 2)
+	f.qe.Looted(f.tw.s, f.tw.p, belt, 1)
 	if s, _ := f.progress(60); s != 2 {
-		t.Fatalf("three taken on the step, it is %d, want 2", s)
+		t.Fatalf("one held and one taken on the step, it is %d, want 2", s)
 	}
 }
 

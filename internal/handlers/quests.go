@@ -1431,6 +1431,7 @@ func (q *QuestEngine) killed(k entity.KillCredit) {
 	defer q.mu.Unlock()
 	for _, kp := range k.Players {
 		c := q.namedLocked(kp.ServerID, kp.Name)
+		rolled := map[int]bool{} // the items rolled for the player on this kill (questpreloot.go)
 		for _, cq := range c.active() {
 			qu := q.cat.byID[cq.QuestID]
 			if qu == nil {
@@ -1438,6 +1439,9 @@ func (q *QuestEngine) killed(k entity.KillCredit) {
 			}
 			st := qu.Step(cq.Step)
 			if st != nil && st.Kind == database.StepLoot && stepNPC(st, k.NPCName, k.NPCSpawn) {
+				if pid, _, ok := st.LootItem(); ok {
+					rolled[pid] = true
+				}
 				q.lootKillLocked(k, kp, c, qu, cq, st) // questevents.go
 				continue
 			}
@@ -1464,6 +1468,7 @@ func (q *QuestEngine) killed(k entity.KillCredit) {
 			}
 			q.completeStepLocked(kp.Session, p, c, qu, cq, st, nil, nil)
 		}
+		q.preLootLocked(k, kp, c, rolled) // after its steps' own: the steps it is not on yet (questpreloot.go)
 	}
 }
 

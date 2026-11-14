@@ -180,24 +180,26 @@ func TestARepeatableGiverGoesOnThroughItsQuests(t *testing.T) {
 // at the kill (CLIENT keeps no more past a full first record, opening no
 // second), and is done at its count; the controls: a stack with room takes
 // the drop onto the corpse as ever, and an item that does not stack does too.
+// The full stack of two held from before counts two of the step's three when
+// it is taken (questpreloot.go).
 func TestALootStepCountsWhatAFullStackCannotTake(t *testing.T) {
 	f := newQuestFixture(t)
 	wand := f.pattern("froglok summoner's wand", 2)
 	drops := lootQuest(f, wand, 0.1, 0.1, 0.1, 0.1)
+	f.exec(`UPDATE queststeps SET count = 3 WHERE questid = 60 AND step = 1`)
+	f.qe.Reload()
 	f.own(wand, 2) // a full stack, held from before
 	if _, err := f.qe.SetCharacterQuest(f.sid, 60, QuestGive, 0); err != nil {
 		t.Fatal(err)
 	}
-	f.msgs()
+	f.want(f.msgs(), "chat:froglok summoner's wand: 2 of 3.")
 	f.killFor("Orc Pawn", 811)
 	if len(*drops) != 0 {
 		t.Fatalf("a drop a full stack cannot take went on the corpse: %v", *drops)
 	}
-	f.want(f.msgs(), "chat:You can carry no more froglok summoner's wand: this one counts.", "chat:froglok summoner's wand: 1 of 2.")
-	f.killFor("Orc Pawn", 812)
-	f.want(f.msgs(), "drop:0", "add:Return to Malsis.")
+	f.want(f.msgs(), "chat:You can carry no more froglok summoner's wand: this one counts.", "drop:0", "add:Return to Malsis.")
 	if s, _ := f.progress(60); s != 2 {
-		t.Fatalf("two counted, the step is %d", s)
+		t.Fatalf("three counted, the step is %d", s)
 	}
 	if f.held(wand) != 2 {
 		t.Errorf("the stack held: %d", f.held(wand))

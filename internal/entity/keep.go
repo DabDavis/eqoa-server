@@ -244,7 +244,12 @@ func (w *World) RestoreView(sess *session.Session, k KeptView) (kept, gone int) 
 		case "npc":
 			// a dungeon instance's creature is made again under its id (keepdungeon.go)
 			// and a trigger's spawn under its id (keeptrigger.go)
-			if npc, ok := w.NPCs[EntityID(s.ID)]; ok && (!npc.Temporary || npc.Instance != 0 && IsDungeonWorld(npc.World) || npc.keptEvent) && npc.Name == s.Name {
+			// one put on its row's new place is let go of (keepnpc.go): kept, the client
+			// would slide it there from where it had it, at many times its run (Croc
+			// Island's crocodiles at build215's restart, the owner, 2026-11-14: "a croc
+			// that aggroed weird ... it charged very fast")
+			if npc, ok := w.NPCs[EntityID(s.ID)]; ok && (!npc.Temporary || npc.Instance != 0 && IsDungeonWorld(npc.World) || npc.keptEvent) && npc.Name == s.Name &&
+				!npc.keptMoved {
 				id = npc.ServerID
 			}
 		case "plate":

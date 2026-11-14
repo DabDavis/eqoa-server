@@ -1293,6 +1293,11 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 			h.gmReply(sess, "Usage: #size <factor> (or /size): your target, else you; 2.5 is two and a half times its own size, 1 its own")
 			return
 		}
+		if !h.isGM(sess) && !h.targetsCreature(sess, player) {
+			// a sub GM's /size is a creature's (devcmds.go's subGMCommands)
+			h.gmReply(sess, "/size: target a creature first")
+			return
+		}
 		line, ok := h.gameWorld.GMScale(player, float32(f))
 		h.gmReply(sess, line)
 		if ok {
@@ -1721,7 +1726,8 @@ var gmHelpLines = []string{
 	"  #hddsetup [check|create|format] - hard disk setup",
 	"  #speed <1-10> - your run speed at that many times your own; 1 gives it back",
 	"  #setlevel [name] <lvl> - set a level, nothing else (no name: your target player, else you)",
-	"  #size <factor> - your target (player or NPC), else you, at factor of its own size; 1 gives it back",
+	"  #size <factor> - your target (player or NPC), else you, at factor of its own size; 1 gives it back; a creature keeps it in its row (a sub GM's: a creature alone)",
+	"  #roamer [radius] - the target creature roams (300, or radius) from its spawn; #roamer off (stop, none, no, stay): it stands on its spawn whatever its name's rule",
 	"  #aura <kind> <RRGGBBAA> [source] [nodes] | off - an aura on every NPC of your target's name (kind default/none/shell/particles/both); #aura item <id> ... the item's worn piece",
 	"  #delete [undo] - your target creature's row deleted for good (/t delete on a PS2); undo puts your last back",
 	"  #clone - a copy of your target creature's row where you stand, facing as you face (/t clone on a PS2)",

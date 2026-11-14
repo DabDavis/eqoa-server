@@ -105,12 +105,15 @@ var skyPasses = []skyPass{
 	// lands where Hoofbite stood (petition 2055)
 	{NPC: "essence of night", X: 4621.4, Z: 5729.6, Key: "key of the ancients", To: "the first isle of night",
 		At: wayPlace{World: 4, X: 4160.69, Y: 612.38, Z: 6064.46, Facing: 0.025}, Steps: [][2]int{{101306, 2}}},
+	// lands where Hoofbite stood (petition 2062)
 	{NPC: "essence of night", X: 4160.7, Z: 6404.1, Key: "Night Key 1", To: "the second isle of night",
-		At: wayPlace{World: 4, X: 4425.0, Y: 448.75, Z: 6453.0, Facing: 2.98}, Steps: [][2]int{{101306, 8}}},
+		At: wayPlace{World: 4, X: 4441.49, Y: 448.69, Z: 6229.33, Facing: 3.093}, Steps: [][2]int{{101306, 8}}},
+	// lands where Hoofbite stood (petition 2064, his "rain chain 3": the spot is on this isle)
 	{NPC: "essence of night", X: 4441.2, Z: 6436.7, Key: "Night Key 2", To: "the third isle of night",
-		At: wayPlace{World: 4, X: 4122.0, Y: 569.38, Z: 6538.0, Facing: 0.89}, Steps: [][2]int{{101306, 10}}},
+		At: wayPlace{World: 4, X: 4250.22, Y: 569.56, Z: 6556.09, Facing: 6.258}, Steps: [][2]int{{101306, 10}}},
+	// lands where Hoofbite stood (petition 2066)
 	{NPC: "essence of night", X: 4250.0, Z: 6806.4, Key: "Night Key 3", To: "the fourth isle of night",
-		At: wayPlace{World: 4, X: 4122.6, Y: 353.12, Z: 7574.4, Facing: 0.84}},
+		At: wayPlace{World: 4, X: 4129.56, Y: 353.09, Z: 7583.49, Facing: 1.571}},
 	{NPC: "essence of night", X: 4322.6, Z: 7754.4, Key: "Night Key 4", To: "the fifth isle of night",
 		At: wayPlace{World: 4, X: 4160.0, Y: 208.25, Z: 6980.0, Facing: 0.97}, Steps: [][2]int{{101306, 15}}},
 	{NPC: "essence of night", X: 4400.0, Z: 7135.8, Key: "Night Key 5", To: "the Isle of Wonder",

@@ -436,3 +436,42 @@ func TestTheHandsAuras(t *testing.T) {
 		t.Fatal("an item record's aura on a hand")
 	}
 }
+
+// A circlet (kind 8 on the helm's charaura slot, 2026-11-14): sent whether a
+// helm is worn or not, hidden or not (the client draws it while no helm is
+// drawn); kind 8 valid on the helm's slot alone, and it always shows.
+func TestACircletOnTheHead(t *testing.T) {
+	c := database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD}
+	if !c.Shows() || !database.ValidCharAuraKind(database.CharAuraHelm, database.AuraCirclet) || database.CharAuraHelm != AuraHelm {
+		t.Fatal("a circlet with no colour draws nothing, or the helm's slot refuses it")
+	}
+	for slot := int64(0); slot < database.CharAuraSlots; slot++ {
+		if slot != database.CharAuraHelm && database.ValidCharAuraKind(slot, database.AuraCirclet) {
+			t.Fatalf("a circlet on slot %d", slot)
+		}
+	}
+	if database.ValidAuraKind(database.AuraCirclet) {
+		t.Fatal("a circlet in npctint or itemaura")
+	}
+	w := NewWorld()
+	p := ornatePlayer()
+	p.CharServerID = 197
+	var own [database.CharAuraSlots]database.ItemAura
+	own[AuraHelm] = c
+	w.SetCharAuras(map[database.CharAuraKey][database.CharAuraSlots]database.ItemAura{{CharID: 197}: own})
+	p.WornMask &^= 1 << AuraHelm
+	if a := w.PieceAurasOf(p); a == nil || a[AuraHelm] != c {
+		t.Fatalf("no helm worn: %+v", a)
+	}
+	p.SetWornPiece(AuraHelm, 714043)
+	p.HiddenParts = HideHelm
+	if a := w.PieceAurasOf(p); a == nil || a[AuraHelm] != c {
+		t.Fatalf("a hidden helm: %+v", a)
+	}
+	// the control: a shell on the helm's slot still needs a helm worn and shown
+	own[AuraHelm] = database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraShell}
+	w.SetCharAuras(map[database.CharAuraKey][database.CharAuraSlots]database.ItemAura{{CharID: 197}: own})
+	if a := w.PieceAurasOf(p); a != nil {
+		t.Fatalf("a shell on a hidden helm: %+v", a)
+	}
+}

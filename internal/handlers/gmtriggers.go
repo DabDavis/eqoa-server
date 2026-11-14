@@ -83,7 +83,7 @@ type TriggerEngine struct {
 	items *database.ItemPatternStore
 
 	// cat is the table as last read (Reload, each firing): the names
-	cat    []database.GMTrigger
+	cat []database.GMTrigger
 	// starts is cat's triggers that fire themselves, by their start's kind (nil: to
 	// be read again from cat)
 	starts map[string][]triggerStart

@@ -5,12 +5,11 @@ import (
 	"time"
 )
 
-// The owner, 2026-11-14: "corpse if not looted for 5 mins should be open to all if
-// not a raid". A group of three's kill (no raid) carries OpenAt five minutes after
-// the death and its corpse lies at least a minute past it, though the world's decay
-// is three; a raid's kill (six) carries none and lies its decay alone; a pet's corpse
-// (Owner) none either; and the rule off (corpse_open_after below 0) gives none.
-func TestANonRaidCorpseOpensToAllAfterFiveMinutes(t *testing.T) {
+// The GM Jibrish's Live petition 5035 (the owner: "use jibrish rule"): every kill's corpse is
+// its owners' for six minutes, then anyone's: a solo kill, a group of three's, and a raid's (six)
+// all carry OpenAt six minutes after the death; a pet's corpse (Owner) none; the rule off
+// (corpse_open_after below 0) none.
+func TestEveryCorpseOpensToAllAfterSixMinutes(t *testing.T) {
 	r := newRaidRig(t, 6, 30)
 	var heard []KillCredit
 	r.w.OnKill(func(k KillCredit) { heard = append(heard, k) })
@@ -24,29 +23,20 @@ func TestANonRaidCorpseOpensToAllAfterFiveMinutes(t *testing.T) {
 		r.w.mu.Unlock()
 		return npc, heard[len(heard)-1]
 	}
-	decay, _ := r.w.CorpseTimes()
-
-	npc, k := kill(9700, 0) // solo
-	if !k.OpenAt.Equal(npc.DeathTime.Add(5 * time.Minute)) {
-		t.Fatalf("a solo kill opens to all at %v after its death, want 5m", k.OpenAt.Sub(npc.DeathTime))
+	six := func(what string, npc *NPC, k KillCredit) {
+		t.Helper()
+		if !k.OpenAt.Equal(npc.DeathTime.Add(6 * time.Minute)) {
+			t.Errorf("%s opens to all %v after its death, want 6m", what, k.OpenAt.Sub(npc.DeathTime))
+		}
 	}
-	if got := npc.corpseEnds(decay).Sub(npc.DeathTime); got != 6*time.Minute {
-		t.Fatalf("a solo kill's corpse lies %v, want 6m", got)
-	}
-
+	npc, k := kill(9700, 0)
+	six("a solo kill", npc, k)
 	r.form(3)
-	if g := r.raidOf(0); g == nil || raidingLocked(g) {
-		t.Fatal("not a plain group of three")
-	}
 	npc, k = kill(9701, 0)
-	if !k.OpenAt.Equal(npc.DeathTime.Add(5*time.Minute)) || npc.corpseEnds(decay).Sub(npc.DeathTime) != 6*time.Minute {
-		t.Fatalf("a group's kill: open at %v, lies %v", k.OpenAt.Sub(npc.DeathTime), npc.corpseEnds(decay).Sub(npc.DeathTime))
+	six("a group's kill", npc, k)
+	if _, k = kill(9702, 1); !k.OpenAt.IsZero() {
+		t.Error("a pet's corpse opens to all")
 	}
-	_, k = kill(9702, 1) // a pet's corpse: no one's to loot
-	if !k.OpenAt.IsZero() {
-		t.Fatal("a pet's corpse opens to all")
-	}
-
 	for i := 3; i < 6; i++ {
 		r.join(0, i)
 	}
@@ -54,22 +44,10 @@ func TestANonRaidCorpseOpensToAllAfterFiveMinutes(t *testing.T) {
 		t.Fatal("not a raid of six")
 	}
 	npc, k = kill(9703, 0)
-	if !k.OpenAt.IsZero() {
-		t.Fatal("a raid's kill opens to all")
-	}
-	if got := npc.corpseEnds(decay).Sub(npc.DeathTime); got != decay {
-		t.Fatalf("a raid's kill's corpse lies %v, want its decay %v", got, decay)
-	}
+	six("a raid's kill", npc, k)
 
 	r.w.SetCorpseOpenAfter(-1)
-	r.w.mu.Lock()
-	r.w.leaveGroupLocked(r.p[0])
-	r.w.mu.Unlock()
-	if r.p[0].GroupID != 0 {
-		t.Fatal("still in the raid")
-	}
-	npc, k = kill(9704, 0)
-	if !k.OpenAt.IsZero() || npc.corpseEnds(decay).Sub(npc.DeathTime) != decay {
-		t.Fatal("the rule off, a solo kill still opens to all")
+	if _, k = kill(9704, 0); !k.OpenAt.IsZero() {
+		t.Error("the rule off, a kill still opens to all")
 	}
 }

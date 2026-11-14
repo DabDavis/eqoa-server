@@ -17,7 +17,10 @@ import (
 //     at once (ClearCorpse, from handlers/loot.go);
 //   - once it has gone it is in no one's view, and the creature comes back
 //     on its spawn point its respawn time later (world.respawn_after, 60 s);
-//   - a GM's /spawn leaves the world when its corpse goes.
+//   - a GM's /spawn leaves the world when its corpse goes;
+//   - since 2026-11-14 (petition 5035) a lootable corpse still there at its
+//     decay lies on to 20 minutes after the death as a copy left where it fell,
+//     the creature going and coming back as above (corpselinger.go).
 //
 // Until 2026-10-25 a corpse stayed in view 30 s and every creature came back
 // 60 s after its death, looted or not.
@@ -172,8 +175,8 @@ func (w *World) CorpseLies(id EntityID) (died time.Time, ok bool) {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	npc, found := w.NPCs[id]
-	if !found || !npc.corpseLies(time.Now(), w.corpseDecay) {
-		return time.Time{}, false
+	if !found || npc.corpseLeft || !npc.corpseLies(time.Now(), w.corpseDecay) {
+		return time.Time{}, false // a corpse just left is the loot's once it has moved (corpselinger.go)
 	}
 	return npc.DeathTime, true
 }
@@ -222,8 +225,20 @@ func (w *World) corpseSystem(now time.Time) []EntityID {
 			if npc.corpseLies(now, w.corpseDecay) {
 				continue
 			}
-			npc.CorpseGone = npc.corpseEnds(w.corpseDecay)
-			gone = append(gone, npc.ServerID)
+			// a lootable corpse lies on to its linger (corpselinger.go): a copy's in
+			// place, a row's creature's as a copy left where it fell, the creature
+			// going as its corpse would have gone and coming back as it would have
+			if w.lingersLocked(npc) {
+				if npc.Temporary {
+					npc.CorpseDecay = w.corpseLinger
+					continue
+				}
+				w.leaveCorpseLocked(npc)
+				npc.CorpseGone = npc.corpseEnds(w.corpseDecay)
+			} else {
+				npc.CorpseGone = npc.corpseEnds(w.corpseDecay)
+				gone = append(gone, npc.ServerID)
+			}
 		}
 		// A GM's /spawn leaves once its corpse is gone (devspawn.go).
 		if npc.Temporary {
@@ -283,8 +298,10 @@ func (w *World) respawnNPCLocked(npc *NPC) {
 	w.companionsBackLocked(npc) // the pets that went with it, back with it (companion.go)
 }
 
-// runCorpsesGone tells the hook which corpses decayed, the lock let go.
+// runCorpsesGone tells the hooks which corpses were left as copies (corpselinger.go)
+// and which decayed, the lock let go.
 func (w *World) runCorpsesGone(gone []EntityID) {
+	w.runCorpsesLeft()
 	if len(gone) == 0 {
 		return
 	}

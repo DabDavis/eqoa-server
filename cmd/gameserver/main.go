@@ -123,7 +123,8 @@ func main() {
 	// A creature's corpse, its return and its wander (entity/corpse.go,
 	// entity/roam.go), set before the NPCs are loaded so each takes them.
 	gameWorld.SetCorpseTimes(cfg.World.CorpseDecay, cfg.World.RespawnAfter)
-	gameWorld.SetCorpseOpenAfter(cfg.World.CorpseOpenAfter) // a non-raid kill's corpse anyone's after it (entity/corpseopen.go)
+	gameWorld.SetCorpseOpenAfter(cfg.World.CorpseOpenAfter) // a kill's corpse anyone's after it (entity/corpseopen.go)
+	gameWorld.SetCorpseLinger(cfg.World.CorpseDecayAfter)   // a lootable corpse lies to it (entity/corpselinger.go)
 	// The server's own view of a player's moves (entity/movecheck.go)
 	if m, err := entity.ParseMoveCheckMode(cfg.World.MoveCheck); err != nil {
 		log.Printf("WARNING: world.%v; the movement check logs", err)

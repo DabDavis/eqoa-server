@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -20,9 +21,11 @@ import (
 // own word 675, "That corpse belongs to another player or group" (0x0085 3). A
 // corpse no player was credited with (the town guards', a dummy's, one from before
 // a restart) is anyone's, as every corpse was.
-// From the kill's OpenAt (five minutes after the death, entity/corpseopen.go) a
-// corpse killed outside a raid is anyone's too, whatever is left on it; a raid's
-// keeps its kill group for as long as it lies.
+// From the kill's OpenAt (six minutes after the death, entity/corpseopen.go: the
+// GM Jibrish's Live petition 5035) a corpse is anyone's too, a raid's included,
+// whatever is left on it; it lies to 20 minutes after the death
+// (entity/corpselinger.go). Considering a corpse (0x0010 on it) says so in one line
+// (corpseConLine).
 //
 // One looter at a time (petition 1540, Hoofbite: "should only allow one person to
 // loot corpse at a time"): while a corpse's window is open for one player, another
@@ -124,4 +127,61 @@ func (h *NPCWindowHandler) lootClock() time.Time {
 		return h.lootNow()
 	}
 	return time.Now()
+}
+
+// corpseConLine is the line a player considering a corpse is told (petition 5035: "When
+// you con ... it should show a brief timer of how long is left till the corpse unlocks in
+// the chat log"): to one not of the kill, "This corpse unlocks for everyone in M:SS."; to
+// its owners, "Yours alone for M:SS more."; once it is anyone's, "Anyone may loot this
+// corpse; it decays in M:SS." "" for a corpse no one loots (a pet's, an add's, the
+// guards'), one gone, or none.
+func (h *NPCWindowHandler) corpseConLine(sess *session.Session, npc *entity.NPC, decays time.Time) string {
+	if npc == nil || !npc.Dead || npc.Owner != 0 || npc.CorpseOfNothing() || (h.guardsKill != nil && h.guardsKill(npc.ServerID)) {
+		return ""
+	}
+	died, lies := h.corpseOf(npc)
+	if !lies {
+		return ""
+	}
+	now := h.lootClock()
+	if v, ok := h.killRights.Load(npc.ServerID); ok {
+		if r := v.(lootRight); r.died.Equal(died) && (r.openAt.IsZero() || now.Before(r.openAt)) {
+			var opener *entity.Player
+			if h.playerOf != nil {
+				opener = h.playerOf(sess)
+			}
+			mine := opener != nil && (r.chars[opener.CharServerID] ||
+				r.group != 0 && h.groupIDOf != nil && h.groupIDOf(opener) == r.group)
+			switch {
+			case r.openAt.IsZero() && mine:
+				return "This corpse is yours alone."
+			case r.openAt.IsZero():
+				return "This corpse belongs to another player or group."
+			case mine:
+				return "Yours alone for " + corpseClock(r.openAt.Sub(now)) + " more."
+			}
+			return "This corpse unlocks for everyone in " + corpseClock(r.openAt.Sub(now)) + "."
+		}
+	}
+	if decays.IsZero() {
+		return "Anyone may loot this corpse."
+	}
+	return "Anyone may loot this corpse; it decays in " + corpseClock(decays.Sub(now)) + "."
+}
+
+// corpseClock is a time left as M:SS, rounded up to the second, 0:00 at the least.
+func corpseClock(d time.Duration) string {
+	s := int((d + time.Second - 1) / time.Second)
+	if s < 0 {
+		s = 0
+	}
+	return fmt.Sprintf("%d:%02d", s/60, s%60)
+}
+
+// ConsideredCorpse tells a player who considers (targets) a corpse its line
+// (corpseConLine), once a con. decays is when the corpse goes (World.CorpseDecaysAt).
+func (h *NPCWindowHandler) ConsideredCorpse(sess *session.Session, npc *entity.NPC, decays time.Time) {
+	if line := h.corpseConLine(sess, npc, decays); line != "" {
+		SendClientMessage(sess, line)
+	}
 }

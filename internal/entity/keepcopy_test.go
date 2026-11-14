@@ -84,6 +84,7 @@ func TestACopysCorpseComesThroughARestart(t *testing.T) {
 
 	w := keepNPCProcess(t, db)
 	ids, lost := w.RestoreCopies(kept)
+	w.SetCorpseLinger(-1) // the creature's own corpse time, no linger (corpselinger.go)
 	got := w.NPCs[dead.ServerID]
 	if lost != 0 || ids[dead.ServerID] != dead.ServerID || got == nil {
 		t.Fatalf("restored %v (%d lost), %+v", ids, lost, got)

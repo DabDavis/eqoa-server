@@ -36,8 +36,9 @@ func (w *World) duelSpellTargetLocked(p *Player, spell *CastSpell, target Entity
 
 // duelLandLocked is landLocked's duel half for a player target: a harmful
 // spell on the caster's duel opponent lands as on a creature, each hit at
-// DuelDamageShare (duelHurtLocked): its damage (a life tap's take is the
-// halved damage), its power taken, and what lasts (a damage over time
+// DuelDamageShare (duelHurtLocked): its damage, less the opponent's resist of
+// each component's element under the elemental model (elemental.go; a life
+// tap's take is what landed), its power taken, and what lasts (a damage over time
 // halved at each tick, a stat taken, a hold or a slow) put on the opponent
 // as the duel's (duelFoe), off it at the duel's end. A harmful spell on a
 // player whose duel is over (a cast that outlived it) lands on nothing. It
@@ -63,10 +64,16 @@ func (w *World) duelLandLocked(cs *castState, caster *Player, casterSess *sessio
 		switch e.Kind {
 		case EffectHP:
 			if n := spellAmount(e, caster); n < 0 {
-				if e.Drain != DrainNone {
-					w.drainLocked(cs, caster, casterSess, e, d.hit(-n), now)
+				// the opponent's resist of the component's element, then the fight's share,
+				// once (elemental.go); the legacy model's duels rolled no resist
+				dmg := d.hit(-n)
+				if !legacyResists() && elementStat(e.Resist) {
+					dmg = resolvePlayerElemental(playerElem{d0: -n, resist: t.StatNow(e.Resist), fight: d.share()}).Taken
 				}
-				if w.duelHurtLocked(d, caster, caster.ServerID, t, -n, now, cs.spell.hitKind()) {
+				if e.Drain != DrainNone {
+					w.drainLocked(cs, caster, casterSess, e, dmg, now)
+				}
+				if w.duelHurtAtLocked(d, caster, caster.ServerID, t, dmg, -n, now, cs.spell.hitKind()) {
 					return true // the duel is over: nothing more of it lands
 				}
 			}
@@ -123,7 +130,8 @@ func (w *World) duelLandPetLocked(cs *castState, caster *Player, pet *NPC, now t
 }
 
 // duelTickLocked is a damage over time's tick on t (cast.go's
-// tickEffectLocked): the duel's, from its opponent, halved; anything else's
+// tickEffectLocked): the duel's, from its opponent, less t's resist of its
+// element (elemental.go), halved; anything else's
 // (a duel since ended) nothing.
 func (w *World) duelTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 	if ae.duelFoe == 0 || ae.HPTick >= 0 {
@@ -141,7 +149,12 @@ func (w *World) duelTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 	if ae.pet != 0 {
 		src, kind = ae.pet, kind.byPet() // its pet's damage over time (duelpet.go)
 	}
-	w.duelHurtLocked(d, caster, src, t, -ae.HPTick, now, kind)
+	dmg := d.hit(-ae.HPTick)
+	if !legacyResists() && elementStat(ae.Rules.Resist) {
+		// its element's resist at each tick, then the fight's share once (elemental.go)
+		dmg = resolvePlayerElemental(playerElem{d0: -ae.HPTick, resist: t.StatNow(ae.Rules.Resist), fight: d.share()}).Taken
+	}
+	w.duelHurtAtLocked(d, caster, src, t, dmg, -ae.HPTick, now, kind)
 }
 
 // duelPetLocked is petSystem's duel half: a duelist's pet fights the

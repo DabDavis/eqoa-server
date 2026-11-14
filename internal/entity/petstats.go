@@ -459,14 +459,14 @@ func (s *petSheet) familiar() int {
 }
 
 // petResistShare is the share of a creature's spell of the element a
-// workbook pet resists (resist.go's roll of its resist), 0 for any other.
+// workbook pet resists (elemental.go, on the player's line: its figures are a player's), 0 for any other.
 func (n *NPC) petResistShare(element Stat) float64 {
 	if n.isMerc() {
 		// a player's resists of its heirlooms and buffs (merc.go)
 		if element == StatNone {
 			element = StatAR
 		}
-		share, _ := RollResist(n.merc.body.StatNow(element))
+		share, _ := playerResistShareNow(n.merc.body.StatNow(element), nil) // elemental.go: the player's line
 		return share
 	}
 	if n.sheet == nil {
@@ -475,7 +475,7 @@ func (n *NPC) petResistShare(element Stat) float64 {
 	if element == StatNone {
 		element = StatAR
 	}
-	share, _ := RollResist(n.petStat(element))
+	share, _ := playerResistShareNow(n.petStat(element), nil) // elemental.go: a pet's figures are on the player's line
 	return share
 }
 

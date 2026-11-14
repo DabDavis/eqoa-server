@@ -3,7 +3,6 @@ package entity
 import (
 	"fmt"
 	"log"
-	"math"
 	"regexp"
 	"sort"
 	"strings"
@@ -288,12 +287,14 @@ func groupShareReach(cs *castState) float32 {
 }
 
 // payPriceLocked takes a price of n hit points off the caster, less its
-// arcane resist's share on the pact's own scale (resist.go RollPactResist:
-// 90% at 315: petition 1532, the owner 2026-11-11): the figure on the caster, a line saying it,
+// arcane resist's share on the player's line (elemental.go; the legacy model's
+// resist.go RollPactResist, 90% at 315: petition 1532, the owner 2026-11-11): the figure on the caster, a line saying it,
 // and a death when nothing is left.
 func (w *World) payPriceLocked(cs *castState, caster *Player, sess *session.Session, n int, now time.Time) {
-	share, how := RollPactResist(caster.StatNow(StatAR)) // resist.go
-	taken := int(math.Round(float64(n) * (1 - share)))
+	// the player's line (elemental.go; the owner, 2026-11-14: "pacts worked exactly like other player
+	// calculations"), 315/350 = 90% at the cap as petition 1532's scale had it
+	res := resolvePlayerElemental(playerElem{d0: n, resist: caster.StatNow(StatAR), pact: true, noFloor: true})
+	share, how, taken := res.Share, res.How, res.Taken
 	log.Printf("Cast: %s's %q costs %s %d of %d hit points (resist %.0f%%; HP %d)",
 		caster.Name, cs.spell.Name, caster.Name, taken, n, share*100, caster.HP)
 	if sess != nil {

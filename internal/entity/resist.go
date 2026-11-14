@@ -5,7 +5,14 @@ import (
 	"math/rand"
 )
 
-// resist.go — what a player's resist takes off a spell's damage, as jib has
+// resist.go — the LEGACY model of what a player's resist takes off a spell's
+// damage (combat.resist_model "legacy"): elemental.go is the one owner of
+// elemental hit-point damage and calls RollResist, rollResist and
+// RollPactResist only under that model, for a rollback. resistDebuffShare
+// (a debuff's points off a creature's chance: charm, procs, shields) is no
+// damage and holds in either model.
+//
+// As it was: what a player's resist takes off a spell's damage, as jib has
 // the live game's (F3 20261026-015346): "if you have 315 cap, it hits you
 // for 75%", and at that cap "a 2.5% chance to completely fail and hit for
 // full, and an additional 5% shot to roll a partial", the partial "between

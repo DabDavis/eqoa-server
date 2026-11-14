@@ -34,6 +34,19 @@ type CombatConfig struct {
 	// paths they name, reloaded when it changes and by the GM panel's
 	// reload_formulas. Unset or "": the built-in damage everywhere.
 	FormulaFile string `yaml:"formula_file"`
+
+	// ResistModel is what a resist takes off elemental spell and effect
+	// damage (entity/elemental.go): "elemental-2026-11-14" (unset: it), a
+	// player D0 x (350-R)/350 at R 0..315 and a creature D0 x (100-R)/100 at
+	// R 0..100, none at 100; or "legacy", the model before it, for a
+	// rollback. Logged at the start.
+	ResistModel string `yaml:"resist_model"`
+	// ResistMode is the elemental model's for a player's resist:
+	// "magnitude_only" (unset: every hit the reduction), "fixed_full_chance"
+	// (ResistFullChance of hits land whole) or "resistance_scaled" (whole at
+	// (350-R)/350). A creature's never rolls.
+	ResistMode       string  `yaml:"resist_mode"`
+	ResistFullChance float64 `yaml:"resist_full_chance"`
 }
 
 // QuestsConfig is the quest engine's settings (internal/handlers/quests.go).

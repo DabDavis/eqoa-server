@@ -120,6 +120,11 @@ func TestAuraEasyWords(t *testing.T) {
 		{"red epic offhand", auraSpec{A: database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraEpic}, Where: entity.AuraOffHand}},
 		{"particles secondary", auraSpec{A: database.ItemAura{Kind: database.AuraParticles}, Where: entity.AuraOffHand}},
 		{"off weapons", auraSpec{Off: true, Where: auraBothHands}},
+		// the named looks (2026-11-14): their words in a row, run together or with underscores; both hands by default
+		{"druid staff glow", auraSpec{A: database.ItemAura{Kind: database.AuraEpic, Source: 0xCBF4135A}, Where: auraBothHands, Look: "druid staff glow"}},
+		{"Druid_Staff_Glow mainhand", auraSpec{A: database.ItemAura{Kind: database.AuraEpic, Source: 0xCBF4135A}, Where: entity.AuraMainHand, Look: "druid staff glow"}},
+		{"offhand druidstaffglow red", auraSpec{A: database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraEpic, Source: 0xCBF4135A}, Where: entity.AuraOffHand, Look: "druid staff glow"}},
+		{"sickle taint epic weapons", auraSpec{A: database.ItemAura{Kind: database.AuraEpic, Source: 0x5FD4AE7C}, Where: auraBothHands, Look: "sickle taint"}},
 	} {
 		got, err := parseAuraEasy(strings.Fields(c.in))
 		if err != nil || got != c.want {
@@ -127,7 +132,8 @@ func TestAuraEasyWords(t *testing.T) {
 		}
 	}
 	for _, bad := range []string{"blue red chest", "blue shell chest legs", "sparkly chest", "shell chest", "off blue chest",
-		"blue nodes=40", "blue shell trim", "blue foo=1", ""} {
+		"blue nodes=40", "blue shell trim", "blue foo=1", "", "druid staff glow shell", "druid staff glow source=88EC092D", "off druid staff glow",
+		"druid staff"} {
 		if _, err := parseAuraEasy(strings.Fields(bad)); err == nil {
 			t.Errorf("%q: read, want refused", bad)
 		}
@@ -240,6 +246,25 @@ func TestGMAuraEasyCommand(t *testing.T) {
 	if auditLines(t, db, "charaura", "insert") != inserts {
 		t.Fatal("a refused aura written")
 	}
+	// a named look by its name (/aura looks lists them): the druid's staff on both hands
+	c.say(gs, "/aura looks")
+	if l := gmReplies(t, gs); !hasLine(l, "/aura druid staff glow: the druid's level 49 epic staff") {
+		t.Fatalf("/aura looks: %q", l)
+	}
+	c.say(gs, "/aura druid staff glow")
+	if l := gmReplies(t, gs); !hasLine(l, "Player's weapons (both hands): now the epic look of CBF4135A") || !hasLine(l, "(druid staff glow)") {
+		t.Fatalf("/aura druid staff glow: %q", l)
+	}
+	staff := database.ItemAura{Kind: database.AuraEpic, Source: 0xCBF4135A}
+	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraMainHand] != staff || a[entity.AuraOffHand] != staff {
+		t.Fatalf("the staff's glow: %+v", a)
+	}
+	c.say(gs, "/aura druid staff glow chest")
+	if l := gmReplies(t, gs); !hasLine(l, "epic is a held weapon's look") {
+		t.Fatalf("a named epic look on a piece: %q", l)
+	}
+	c.say(gs, "/aura epic weapons source=Sickle_of_Avhi_Escron")
+	gmReplies(t, gs)
 	c.say(gs, "/aura off offhand")
 	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraMainHand] != taint || a[entity.AuraOffHand] != (database.ItemAura{}) {
 		t.Fatalf("the off hand's taken away: %+v", a)

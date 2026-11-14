@@ -318,10 +318,11 @@ func (t *potionTable) throwPowerCost(p *Player) int {
 	if t.throwPctSet {
 		pct = t.throwPct
 	}
-	if pct <= 0 || p.MaxPower <= 0 {
+	most := p.MaxPowerNow() // under a ceiling, as a ranged shot's (rangedpower.go)
+	if pct <= 0 || most <= 0 {
 		return 0
 	}
-	return (p.MaxPower*pct + 50) / 100
+	return (most*pct + 50) / 100
 }
 
 // throwPowerLocked takes a throw's power from p and reports true, or tells p

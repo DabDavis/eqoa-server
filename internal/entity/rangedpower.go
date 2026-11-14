@@ -52,10 +52,15 @@ func (w *World) shotPowerCost(p *Player) int {
 	if w.rangedPower.set {
 		pct = w.rangedPower.pct
 	}
-	if pct <= 0 || p.MaxPower <= 0 {
+	// the maximum as it stands, under the ranger Eyes' ceiling (powercap.go:
+	// Eagle Eye holds it at 800, so a shot is 80, not a tenth of the
+	// ranger's own; the owner, 2026-11-14: "ranged attacks should always take
+	// 10% of power max ... so rangers dont run out of mana for bow shots")
+	most := p.MaxPowerNow()
+	if pct <= 0 || most <= 0 {
 		return 0
 	}
-	return (p.MaxPower*pct + 50) / 100
+	return (most*pct + 50) / 100
 }
 
 // shotPowerLocked takes a ranged shot's power from p and reports true (any

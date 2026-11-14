@@ -69,3 +69,20 @@ func TestARangedShotCostsPower(t *testing.T) {
 		t.Errorf("at 25%%: %d power, want %d", c.p.Power, 900-256*2)
 	}
 }
+
+// Under a ceiling on the maximum power (Eagle Eye's "Set Maximum Power to
+// 800": powercap.go) a shot costs a tenth of the ceiling, not of the
+// shooter's own maximum (the owner, 2026-11-14: "so rangers dont run out of
+// mana for bow shots").
+func TestAShotUnderAPowerCeilingCostsATenthOfIt(t *testing.T) {
+	c := newCaster(t)
+	c.p.Effects = append(c.p.Effects, &ActiveEffect{SpellID: 700591, Name: "Eagle Eye", PowerCap: 300, PowerCapped: true,
+		Until: c.at(10 * time.Minute)})
+	c.p.Power = 300
+	c.w.mu.Lock()
+	cost := c.w.shotPowerCost(c.p)
+	c.w.mu.Unlock()
+	if cost != 30 {
+		t.Fatalf("a shot under a 300 ceiling costs %d, want 30 (own maximum %d)", cost, c.p.MaxPower)
+	}
+}

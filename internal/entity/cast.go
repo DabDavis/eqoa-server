@@ -1600,7 +1600,7 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 				t.StatsDirty = true
 			}
 		case EffectEndIllusion:
-			w.endIllusionsLocked(t, 0) // illusion.go
+			w.endFormsLocked(t) // illusion.go: a buff with a body keeps the buff
 		case EffectRaiment:
 			// a form of its own: another form off first, its own again
 			// refreshed (wispform.go)

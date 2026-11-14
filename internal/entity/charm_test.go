@@ -339,18 +339,44 @@ func TestACharmedCreatureDiesAndComesBackItself(t *testing.T) {
 	r, _, _ := charmRig(t)
 	crab := r.enemy
 	castCharm(t, r, captivation(), crabID, 0)
+	r.sent()
 	r.w.mu.Lock()
+	crab.World = 0 // led to Tunaria, killed there (a GM's TEST menu KILL: no hit)
+	crab.HP = 0
 	r.w.killNPC(crab)
 	r.w.mu.Unlock()
 	r.tick(time.Minute + time.Second)
-	if crab.Owner == 0 || r.w.pets[r.p.ServerID] != nil {
-		t.Errorf("its corpse: owner %d (no one's to loot needs its master's), pet kept %v", crab.Owner, r.w.pets[r.p.ServerID] != nil)
+	// its death ends the charm (the owner, 2026-11-14: "jib has charmed 2 dead
+	// crocodiles and they stayed charmed"): off its master's bar, its master
+	// told, the corpse a creature's again (no owner, no charmed flags), of
+	// nothing (no one's to loot), lying where it fell
+	cleared := false
+	for _, m := range r.sent() {
+		cleared = cleared || opOfMsg(m) == protocol.OpcodeClearPet
+	}
+	if crab.Owner != 0 || crab.Charm != nil || crab.NPCType != 0x0100 || r.w.pets[r.p.ServerID] != nil || !cleared {
+		t.Errorf("its corpse: owner %d, charm %v, npc type %#x, pet kept %v, master told %v", crab.Owner, crab.Charm != nil,
+			crab.NPCType, r.w.pets[r.p.ServerID] != nil, cleared)
+	}
+	if !crab.Dead || !crab.CorpseOfNothing() || crab.World != 0 {
+		t.Errorf("its corpse: dead %v, of nothing %v, world %d (where it fell, 0)", crab.Dead, crab.CorpseOfNothing(), crab.World)
 	}
 	r.w.mu.Lock()
 	r.w.respawnNPCLocked(crab)
 	r.w.mu.Unlock()
-	if crab.Owner != 0 || crab.Charm != nil || crab.NPCType != 0x0100 || crab.World != 2 || crab.X != crab.SpawnX {
+	if crab.Owner != 0 || crab.Charm != nil || crab.NPCType != 0x0100 || crab.World != 2 || crab.X != crab.SpawnX || crab.CorpseOfNothing() {
 		t.Errorf("back: %+v", *crab)
+	}
+
+	// a dead creature is not charmed: the charm lands on nothing
+	rd, _, _ := charmRig(t)
+	rd.w.mu.Lock()
+	rd.enemy.HP = 0
+	rd.w.killNPC(rd.enemy)
+	rd.w.mu.Unlock()
+	castCharm(t, rd, captivation(), crabID, 0)
+	if rd.enemy.Owner != 0 || rd.enemy.Charm != nil || rd.w.pets[rd.p.ServerID] != nil {
+		t.Errorf("a corpse charmed: owner %d, charm %v", rd.enemy.Owner, rd.enemy.Charm != nil)
 	}
 
 	r2, _, _ := charmRig(t)

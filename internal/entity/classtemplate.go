@@ -1397,17 +1397,17 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 		if resist == StatNone {
 			resist = StatAR
 		}
-		share, how := c.tmpl.rollResist(p.StatNow(resist))
-		if c.spell.unresistable {
-			share, how = 0, ResistFailed
-		}
+		// its resist's share (elemental.go, the one owner): of the spell's element, none
+		// for an unresistable one; a fixed figure lands as it is but for its own resist's
+		el, resisted := resist, !c.spell.unresistable
 		if c.fixed > 0 {
-			// a fixed figure lands as it is but for its own resist's share
-			share, how = 0, ResistFailed
-			if c.fixedResist != StatNone {
-				share, how = c.tmpl.rollResist(p.StatNow(c.fixedResist))
-			}
+			el, resisted = c.fixedResist, c.fixedResist != StatNone
 		}
+		res := elemResult{Taken: max(hit, 1), Real: float64(hit), How: ResistFailed}
+		if resisted {
+			res = resolvePlayerElemental(playerElem{d0: max(hit, 1), resist: p.StatNow(el), tmpl: c.tmpl}) // a power tap's share too
+		}
+		share, how := res.Share, res.How
 		p.StatsDirty = true
 		p.LastCombatTime = now
 		w.breakInvisLocked(p, "a hit") // invis.go: every invisibility, whatever gave it
@@ -1424,7 +1424,7 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 				ps*100, p.Power, p.MaxPower)
 		}
 		if hit > 0 {
-			taken := max(int(math.Round(float64(hit)*(1-share))), 1)
+			taken := res.Taken
 			taken = w.formulaDamage(taken, dmgIn{src: srcNPC, kind: dkSpell, an: npc, dp: p, raw: hit, spell: c.spell, resist: resist}) // dmgformula.go
 			drained = int(math.Round(float64(drained) * (1 - share)))
 			p.HP = max(p.HP-taken, 0)
@@ -1596,14 +1596,14 @@ func (w *World) npcTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 	if npc == nil || npc.Dead || !w.npcSharesLocked(npc, t) {
 		return
 	}
-	share, how := 0.0, ResistFailed
+	// its element's resist (elemental.go, rolled at each tick), at a boss's own share at the
+	// cap (npcAtCap: bossmoments.go)
+	res := elemResult{Taken: max(-ae.HPTick, 1), How: ResistFailed}
 	if ae.npcResist != StatNone && npc.tmpl != nil {
-		share, how = npc.tmpl.rollResist(t.StatNow(ae.npcResist))
-		if ae.npcAtCap > 0 {
-			share *= ae.npcAtCap / ResistCapShare // its own share at the cap (bossmoments.go)
-		}
+		res = resolvePlayerElemental(playerElem{d0: -ae.HPTick, resist: t.StatNow(ae.npcResist), tmpl: npc.tmpl, atCap: ae.npcAtCap})
 	}
-	taken := max(int(math.Round(float64(-ae.HPTick)*(1-share))), 1)
+	share, how := res.Share, res.How
+	taken := res.Taken
 	taken = w.formulaDamage(taken, dmgIn{src: srcNPC, kind: dkDoT, an: npc, dp: t, raw: -ae.HPTick, spellID: ae.SpellID,
 		spellLevel: ae.spellLevel, resist: ae.npcResist}) // dmgformula.go
 	t.HP = max(t.HP-taken, 0)

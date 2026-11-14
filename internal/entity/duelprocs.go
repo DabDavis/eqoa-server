@@ -21,7 +21,7 @@ import (
 //
 // Their damage goes through duelHurtLocked as any duel hit does, so it is halved
 // (DuelDamageShare), and leaves the loser standing. A heal or power given is whole: it is the
-// item's figure, not a hit. A weapon's proc rolls no resist, as a duel's spells roll none; its
+// item's figure, not a hit. A weapon's proc rolls no resist (a duel's spells roll their elements' under the elemental model: duelfight.go); its
 // calm has no hate to take here. Must be called with the lock held.
 
 // duelMark is what a hit in a duel lands on: a duelist, or a duelist's pet.

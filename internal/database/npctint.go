@@ -114,6 +114,16 @@ const (
 	// npctint or itemaura. A client before it reads the default (a shell on a
 	// worn helm while the colour lights: nothing with no colour).
 	AuraCirclet = 8
+	// AuraEnergy is an energy skin on a held item (the owner, 2026-11-14, of
+	// Dust's Heirloom Shield of Twisted Virtue: "should look like the shield he
+	// had before but shaped like the current shield now with the same diamond
+	// and cross pattern but with the energy shield effect"): the held item keeps
+	// its own mesh and layers, and the source's additive layers (texture,
+	// colour, scroll: the old energy shield 0x2EC56029's streaks) are laid over
+	// it, in the colour's hue when it lights (vanilla's aura::energy_skin). A
+	// hand's alone (charaura 9/10, or the held item's own itemaura); a client
+	// before it draws nothing of it.
+	AuraEnergy = 9
 )
 
 // CharAuraHelm is the helm's charaura slot (entity.AuraHelm): a circlet's.
@@ -151,7 +161,7 @@ func AuraParticlesShow(kind uint8) bool { return kind == AuraParticles || kind =
 // anything: particles, or the shell (or trim) while the glow lights, or a
 // shell or trim named outright in a dark colour (AuraDark: black too).
 func AuraShows(glow uint32, kind uint8) bool {
-	if kind == AuraEpic || kind == AuraCirclet {
+	if kind == AuraEpic || kind == AuraCirclet || kind == AuraEnergy {
 		return true // the source's own look, coloured or not
 	}
 	if kind > AuraKindMost {
@@ -192,10 +202,18 @@ func ValidCharAuraNodes(slot, kind, n int64) bool {
 // made, named crown of twist virtue"). A circlet is shown on a worn helm-slot
 // item alone (entity.pieceAuras): on any other piece it is none.
 func ValidItemAura(kind, nodes int64) bool {
-	if kind == AuraCirclet {
-		return nodes >= 0 && nodes <= AuraAlongMost
+	if kind == AuraCirclet || kind == AuraEpic || kind == AuraEnergy {
+		return nodes >= 0 && nodes <= AuraAlongMost // a circlet's height, a held item's along
 	}
 	return ValidAuraKind(kind) && ValidAuraNodes(nodes)
+}
+
+// HandAuraKind reports whether a kind draws on a held item: the particles,
+// an epic's look, an energy skin. An itemaura row of one on a held item's
+// record shows on whatever hand holds it (entity.pieceAuras); of epic or
+// energy on a worn piece, none.
+func HandAuraKind(k int64) bool {
+	return k == AuraParticles || k == AuraEpic || k == AuraEnergy
 }
 
 // ValidCharAuraKind holds a charaura row's kind to what its slot draws: a
@@ -204,7 +222,7 @@ func ValidItemAura(kind, nodes int64) bool {
 // other slot the kinds an aura on a body or piece has (ValidAuraKind).
 func ValidCharAuraKind(slot, k int64) bool {
 	if slot == CharAuraMainHand || slot == CharAuraOffHand {
-		return k == AuraNone || k == AuraParticles || k == AuraEpic
+		return HandAuraKind(k) || k == AuraNone
 	}
 	if slot == CharAuraHelm && k == AuraCirclet {
 		return true // the helm's slot: a circlet too

@@ -412,6 +412,11 @@ func (w *World) legFromLocked(npc *NPC, fx, fy, fz, x, z float32, heights *[]flo
 	keeps := keepsToBoth
 	if w.env != nil && checks == legWhole {
 		keeps = w.keepsToLocked(npc)
+	} else if w.env != nil && checks == legRoute && w.keepsToLocked(npc) == keepsToWater {
+		// a chase's way round, of a creature of the water: in its water, as
+		// its straight steps are (chase.go: a fish ran up a bank of the
+		// Plane of Disease's slime by a way round to its enemy over it)
+		keeps = keepsToWater
 	}
 	y := fy
 	var walls, solid Walls

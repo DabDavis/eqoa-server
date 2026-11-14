@@ -68,7 +68,7 @@ func (w *World) addsDieLocked(npc *NPC, now time.Time) {
 // (summon.go: "a dead servant gives no loot"), one that died with its master (the file's doc), or a
 // creature's own pet killed before its master (markCompanionPetLocked, MarkMasterPet).
 func (n *NPC) CorpseOfNothing() bool {
-	return n != nil && (n.add != nil || n.withMaster || n.masterPet || n.NoLoot)
+	return n != nil && (n.add != nil || n.withMaster || n.masterPet || n.NoLoot || n.charmDied)
 }
 
 // markCompanionPetLocked marks npc, dying, a creature's own pet when it is one (companion.go's pairs): its

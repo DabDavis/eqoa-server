@@ -398,8 +398,9 @@ func charmFar(npc *NPC, home, world uint8, x, z float32) bool {
 // releaseCharmLocked lets a charmed pet go: off its master's pet bar
 // (0x007F, its non-collide entry off) with the line, the creature its own
 // again (unCharmLocked), sent home if it is past its grace (charmFar), and,
-// hostile and still near, turned on its master. A dead one keeps the hold
-// until it comes back, so its corpse is no one's to loot. sess is the
+// hostile and still near, turned on its master. A dead one is let go at once,
+// its corpse a creature's of nothing (no one's to loot) that comes back home
+// (charmDied, charmHome). sess is the
 // master's, or nil. Must be called with the lock held.
 func (w *World) releaseCharmLocked(ps *petState, sess *session.Session, text string, hostile bool) {
 	npc, owner := ps.npc, ps.owner
@@ -420,7 +421,16 @@ func (w *World) releaseCharmLocked(ps *petState, sess *session.Session, text str
 		}
 	}
 	if npc.Dead {
-		log.Printf("Charm: %s's charmed %q died", owner.Name, npc.Name)
+		// its death ends the charm at once (the owner, 2026-11-14: "jib has
+		// charmed 2 dead crocodiles and they stayed charmed"): until then a
+		// dead one kept its hold, its owner and the charmed flags until it came
+		// back, so its corpse lay as its master's charmed pet on every client.
+		// Now it is a creature's corpse again, of nothing still (its master's
+		// kill: no loot, CorpseOfNothing), and comes back on its own spawn in
+		// its own world (respawnNPCLocked: charmHome).
+		home := w.unCharmLocked(npc)
+		npc.charmDied, npc.charmHome = true, home
+		log.Printf("Charm: %s's charmed %q died: the charm ends (its corpse a creature's, of nothing)", owner.Name, npc.Name)
 		return
 	}
 	home := w.unCharmLocked(npc)

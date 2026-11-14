@@ -123,6 +123,12 @@ type World struct {
 	corpseOpenAfter time.Duration
 	respawnRows     map[EntityID]time.Duration // a GM's by the npcs row (corpse.go, table npcrespawn)
 	onCorpseGone    CorpseGoneFunc
+	// onCorpseLeft hears the corpses left as copies, and corpsesLeft are those left
+	// in a tick, told after it (corpselinger.go); corpseLinger is how long a lootable
+	// corpse lies from its death
+	onCorpseLeft CorpseLeftFunc
+	corpsesLeft  []CorpseLeft
+	corpseLinger time.Duration
 
 	// Creatures' wandering (roam.go): how far from its spawn one goes, those
 	// near a player (the ones that move), the players' race models (whose
@@ -310,6 +316,7 @@ func NewWorld() *World {
 		corpseDecay:     DefaultCorpseDecay,
 		respawnAfter:    DefaultRespawnAfter,
 		corpseOpenAfter: DefaultCorpseOpenAfter,
+		corpseLinger:    DefaultCorpseLinger,
 		roamRadius:      DefaultRoamRadius,
 		vampireSun:      DefaultVampireSun,
 		boon:            DefaultBoon,

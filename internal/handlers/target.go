@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"log"
+	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
@@ -15,6 +16,9 @@ type TargetHandler struct {
 	sessionManager *session.Manager
 	gameWorld      *entity.World
 	inventoryStore *database.InventoryStore
+	// corpseCon tells a player considering a corpse how long it is whose
+	// (NPCWindowHandler.ConsideredCorpse, lootrights.go); nil says nothing
+	corpseCon func(sess *session.Session, npc *entity.NPC, decays time.Time)
 }
 
 // NewTargetHandler creates a new target handler.
@@ -152,6 +156,12 @@ func (h *TargetHandler) HandleTarget(sess *session.Session, msg *protocol.Messag
 		// an NPC of a faction (npcfaction) the player's standing with it;
 		// a pet's the players' (entity/pet.go)
 		info.faceColor = h.gameWorld.TargetFace(player, t)
+		if t.Dead && h.corpseCon != nil {
+			// petition 5035: a con of a corpse says how long it is whose
+			if decays, lies := h.gameWorld.CorpseDecaysAt(t.ServerID); lies {
+				defer h.corpseCon(sess, t, decays) // after the target's info
+			}
+		}
 	default:
 		info.name = "???"
 		info.level = 1

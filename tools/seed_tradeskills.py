@@ -92,6 +92,11 @@ the log is there. Report only by default. The server reads recipes, stock and
 loot as it goes; new items reach a client at its next login.
 
     tools/seed_tradeskills.py [--db eqoa.db] --sources <folder> --harvests <dir or file> ... [--craft armor|jewel|weapon] [--apply | --undo]
+
+In two steps, for a server that must not wait on the sources' reading (it takes ~25 s): --plan-out PLAN.json
+against a copy of the target (decides everything, writes nothing), then --db <target> --plan-in PLAN.json --apply
+(reads only the plan; refused unless the target is as the plan found it: the items it names or reuses, its fixed
+ids, the merchants and their catalogs, the drop rows; one transaction, the same log, undo and audit line).
 """
 import argparse
 import collections
@@ -585,99 +590,299 @@ def seq_of(db):
                            SEQ_TABLES).fetchall())
 
 
-def apply(db, p):
+def chunks(seq, n=500):
+    seq = list(seq)
+    for i in range(0, len(seq), n):
+        yield seq[i:i + n]
+
+
+def rows_by_key(db, tbl, keys):
+    """Full rows of a table by their keys, a few queries for any number (row_of's dict, keyed)."""
+    if not keys:
+        return {}
+    cols = [r[1] for r in db.execute(f"PRAGMA table_info({tbl})")]
+    k = cols.index(KEYS[tbl])
+    out = {}
+    for part in chunks(keys):
+        for r in db.execute(f"SELECT * FROM {tbl} WHERE {KEYS[tbl]} IN ({','.join('?' * len(part))})", part):
+            out[r[k]] = dict(zip(cols, r))
+    return out
+
+
+def resolve(db, p):
+    """Everything --apply will do, decided against the database as it is, as data (JSON-able): the items and
+    products to make (a new one named by a ref, "@<name>", its id given when written), the recipes, the merchants'
+    changes, the drops; and what of the database those decisions rest on ("assume", assumptions()). Reads only."""
+    ref = {}  # item name -> an existing id, or "@name" for one this run makes
+    for name, pid in p["ids"].items():
+        ref[name] = pid
+    items = []
+    for pid, row in sorted(p["items"], key=lambda x: x[0] is None):  # Sandstorm's ids first (as one by one did)
+        # one under Sandstorm's id is that id already (a catalog may list it: Sandstorm's own); else a ref
+        ref[row["itemname"]] = pid or "@" + row["itemname"]
+        items.append({"ref": ref[row["itemname"]], "fixed": pid, "row": row})
+    for name, v in list(ref.items()):
+        if v is None:
+            raise SystemExit(f"{name}: no item and none planned")
+    products, recipes = [], []
+    for pr in sorted(p["products"], key=lambda x: x["sort"]):
+        if pr["have"] is not None:
+            pid = pr["have"]
+        else:
+            pid = "@@" + pr["name"]  # a product's own ref (a product may share a component's name: never here)
+            products.append({"ref": pid, "row": pr["row"]})
+        lvl, rarity = pr["level"], pr["rarity"]
+        recipes.append({
+            "skill": p["skill"], "comp": pr["comp"], "level": lvl, "rarity": rarity, "name": pr["name"], "product": pid,
+            "yield": 1, "ingredients": [{"item": ref[n], "count": c, "keep": k} for n, c, k in pr["ings"]],
+            "difficulty": pr.get("difficulty", 10 * lvl + 2 * rarity), "xp": pr.get("xp", 25 * lvl * (1 + rarity)),
+            "discover": pr.get("discover", 1), "scroll": ref[pr["scroll"]] if pr.get("scroll") else 0,
+            "description": pr.get("description", ""), "source": SOURCE})
+    # the suppliers, each catalog as it stands and as earlier merchants of this run leave it
+    stand_in = set()
+    if has_table(db, "merchant_stock"):
+        stand_in = {k for (k,) in db.execute("SELECT key FROM merchant_stock WHERE what = 'catalog' AND note = 'general goods'")}
+    npc_rows = rows_by_key(db, "npcs", sorted({npc for _, _, _, (npc, _, _), _ in p["stock"]}))
+    npc_now = {k: {"npc_type": v["npc_type"], "npc_id": v["npc_id"]} for k, v in npc_rows.items()}
+    npc_upd, del_rows, adds, catalogs = [], [], [], {}
+    for city, role, name, (npc, npc_id, typ), wares in p["stock"]:
+        now = npc_now[npc]
+        if not (now["npc_type"] or 0) & 0x01:
+            npc_upd.append({"id": npc, "old": {"npc_type": now["npc_type"]}, "new": {"npc_type": (now["npc_type"] or 0) | 0x01}})
+            now["npc_type"] = (now["npc_type"] or 0) | 0x01
+        if not now["npc_id"]:
+            npc_upd.append({"id": npc, "old": {"npc_id": now["npc_id"]}, "new": {"npc_id": npc}})
+            now["npc_id"] = npc
+        catalog = now["npc_id"] or npc
+        if catalog not in catalogs:
+            cols = [r[1] for r in db.execute("PRAGMA table_info(npcitem)")]
+            catalogs[catalog] = [dict(zip(cols, r)) for r in db.execute("SELECT * FROM npcitem WHERE npcid = ? ORDER BY itemid", (catalog,))]
+        rows = catalogs[catalog]
+        for r in [r for r in rows if r.get("itemid") in stand_in]:
+            del_rows.append(r)
+            rows.remove(r)
+        have = {r["patternid"] for r in rows}
+        n = max([r["listnumber"] for r in rows if r["listnumber"] is not None], default=-1) + 1
+        for w in wares:
+            if ref[w] in have:
+                continue
+            row = {"npcid": catalog, "stackleft": 1, "remainHP": 0, "remaincharge": 0, "patternid": ref[w], "equiploc": -1,
+                   "location": 1, "listnumber": n}
+            adds.append(row)
+            rows.append(dict(row, itemid=None))
+            have.add(ref[w])
+            n += 1
+    pool, tables, npcloot = [], [], None
+    lt = p["loot"]
+    if lt.get("pool"):
+        existing = set()
+        known = [ref[m] for m, _ in lt["mods"] if isinstance(ref[m], int)]
+        for part in chunks(known):
+            existing |= {r[0] for r in db.execute("SELECT patternid FROM lootpool WHERE category = ? AND region = '*' AND "
+                                                  f"npc_name = '' AND patternid IN ({','.join('?' * len(part))})", [lt["pool"], *part])}
+        for mod, rarity in lt["mods"]:
+            if ref[mod] in existing:
+                continue
+            lo, hi = LOOT_LEVELS[rarity]
+            pool.append({"category": lt["pool"], "region": "*", "npc_name": "", "patternid": ref[mod],
+                         "weight": LOOT_WEIGHT[rarity], "minlevel": lo, "maxlevel": hi, "source": SOURCE})
+    else:
+        for mod, rarity in lt["mods"]:
+            lo, hi = LOOT_LEVELS[rarity]
+            tables.append({"tablename": lt["table"], "patternid": ref[mod], "weight": LOOT_WEIGHT[rarity],
+                           "minlevel": lo, "maxlevel": hi, "source": SOURCE})
+        if db.execute("SELECT 1 FROM npcloot WHERE npc_name = '*' AND tablename = ?", (lt["table"],)).fetchone() is None:
+            npcloot = {"tablename": lt["table"], "chance": lt["chance"], "note": lt["note"]}
+    ops = {"version": 1, "craft": CRAFT["name"], "items": items, "products": products, "recipes": recipes,
+           "npcs": npc_upd, "npcitem_del": del_rows, "npcitem_add": adds, "lootpool": pool, "loottables": tables,
+           "npcloot": npcloot, "catalogs": sorted(catalogs), "pool": lt.get("pool"), "loot_table": lt.get("table"),
+           "mod_ids": sorted({ref[m] for m, _ in lt["mods"] if isinstance(ref[m], int)}),
+           "stock_npcs": sorted(npc_rows)}
+    ops["assume"] = assumptions(db, ops)
+    return ops
+
+
+def assumptions(db, ops):
+    """What of the database a plan's decisions rest on, read the same way when it is made and when it is applied:
+    the existing items it refers to (id and name), every record named as an item or product it makes or reuses
+    (whose presence decides make-or-reuse), its fixed ids, the merchants and their catalogs, the stand-ins among
+    them, the drop rows of its modifiers. Equal, the plan is what a single --apply would do now."""
+    names = sorted({x["row"]["itemname"].lower() for x in ops["items"]} | {r["name"].lower() for r in ops["recipes"]} |
+                   {x["row"]["itemname"].lower() for x in ops["products"]})
+    named = []
+    for part in chunks(names):
+        named += db.execute("SELECT patternid, lower(itemname), levelreq, equipslot FROM itempattern WHERE lower(itemname) IN "
+                            f"({','.join('?' * len(part))})", part).fetchall()
+    refs = sorted({i["item"] for r in ops["recipes"] for i in r["ingredients"] if isinstance(i["item"], int)} |
+                  {r["product"] for r in ops["recipes"] if isinstance(r["product"], int)} |
+                  {r["scroll"] for r in ops["recipes"] if isinstance(r["scroll"], int) and r["scroll"]} |
+                  {a["patternid"] for a in ops["npcitem_add"] if isinstance(a["patternid"], int)} | set(ops["mod_ids"]))
+    known = []
+    for part in chunks(refs):
+        known += db.execute(f"SELECT patternid, itemname FROM itempattern WHERE patternid IN ({','.join('?' * len(part))})",
+                            part).fetchall()
+    catalogs, mod_ids, pool = ops["catalogs"], ops["mod_ids"], ops["pool"]
+    fixed = sorted(x["fixed"] for x in ops["items"] if x["fixed"])
+    taken = []
+    for part in chunks(fixed):
+        taken += [r[0] for r in db.execute(f"SELECT patternid FROM itempattern WHERE patternid IN ({','.join('?' * len(part))})", part)]
+    npcs = sorted(set(ops["stock_npcs"]) | set(catalogs))
+    npc_state = [[k, v["npc_type"], v["npc_id"]] for k, v in sorted(rows_by_key(db, "npcs", npcs).items())]
+    cat = []
+    for part in chunks(catalogs):
+        cat += db.execute(f"SELECT * FROM npcitem WHERE npcid IN ({','.join('?' * len(part))}) ORDER BY itemid", part).fetchall()
+    stand = []
+    if has_table(db, "merchant_stock") and cat:
+        ids = {r[0] for r in cat}
+        stand = sorted(k for (k,) in db.execute("SELECT key FROM merchant_stock WHERE what = 'catalog' AND note = 'general goods'")
+                       if k in ids)
+    drops = []
+    if pool:
+        for part in chunks(mod_ids):
+            drops += db.execute(f"SELECT id, patternid FROM lootpool WHERE category = ? AND patternid IN ({','.join('?' * len(part))})",
+                                [pool, *part]).fetchall()
+    loot = db.execute("SELECT count(*) FROM npcloot WHERE npc_name = '*' AND tablename = ?", (ops["loot_table"],)).fetchone()[0] \
+        if ops["loot_table"] and has_table(db, "npcloot") else 0
+    return json.loads(json.dumps({"named": sorted(named), "known": sorted(known), "fixed_taken": taken, "npcs": npc_state,
+                                  "catalogs": catalogs, "catalog_rows": cat, "stand_ins": stand, "drops": sorted(drops),
+                                  "npcloot": loot}))
+
+
+def write_ops(db, ops):
+    """Write a resolved plan, in the transaction the caller holds: explicit ids (an AUTOINCREMENT's next, as one by
+    one gave), every table's rows by executemany, then one log line a change (tradeskill_seed: the rows as written,
+    read back a few hundred at a time) and the id counters. Returns the counts."""
+    seqs = seq_of(db)
+
+    def next_id(tbl, key, floor=0):
+        a = db.execute(f"SELECT max({key}) FROM {tbl}").fetchone()[0] or 0
+        return max(a, seqs.get(tbl) or 0, floor) + 1
+
+    def put(tbl, rows):  # rows: dicts with their key; grouped by their columns for executemany
+        groups = collections.defaultdict(list)
+        for r in rows:
+            groups[tuple(r)].append(r)
+        for cols, rs in groups.items():
+            db.executemany(f"INSERT INTO {tbl} ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})",
+                           [[r[c] for c in cols] for r in rs])
+
+    ids = {}
+    fixed = [x for x in ops["items"] if x["fixed"]]
+    nid = next_id("itempattern", "patternid", max([x["fixed"] for x in fixed], default=0))
+    item_rows = []
+    for x in ops["items"]:
+        pid = x["fixed"]
+        if not pid:
+            pid, nid = nid, nid + 1
+        ids[x["ref"]] = pid
+        item_rows.append(dict({"patternid": pid}, **x["row"]))
+    for x in ops["products"]:
+        ids[x["ref"]], nid = nid, nid + 1
+        item_rows.append(dict({"patternid": ids[x["ref"]]}, **x["row"]))
+
+    def real(v):
+        return ids[v] if isinstance(v, str) and v.startswith("@") else v
+    put("itempattern", item_rows)
+    rid = next_id("craftrecipes", "id")
+    recipe_rows = []
+    for r in ops["recipes"]:
+        row = dict(r, id=rid, product=real(r["product"]), scroll=real(r["scroll"]),
+                   ingredients=json.dumps([dict(i, item=real(i["item"])) for i in r["ingredients"]]))
+        recipe_rows.append(row)
+        rid += 1
+    put("craftrecipes", recipe_rows)
+    for u in ops["npcs"]:
+        (col, v), = u["new"].items()
+        db.execute(f"UPDATE npcs SET {col} = ? WHERE id = ?", (v, u["id"]))
+    db.executemany("DELETE FROM npcitem WHERE itemid = ?", [(r["itemid"],) for r in ops["npcitem_del"]])
+    iid = next_id("npcitem", "itemid")
+    add_rows = []
+    for a in ops["npcitem_add"]:
+        add_rows.append(dict(a, itemid=iid, patternid=real(a["patternid"])))
+        iid += 1
+    put("npcitem", add_rows)
+    pool_rows, table_rows = [], []
+    if ops["lootpool"]:
+        lid = next_id("lootpool", "id")
+        for r in ops["lootpool"]:
+            pool_rows.append(dict(r, id=lid, patternid=real(r["patternid"])))
+            lid += 1
+        put("lootpool", pool_rows)
+    if ops["loottables"]:
+        lid = next_id("loottables", "id")
+        for r in ops["loottables"]:
+            table_rows.append(dict(r, id=lid, patternid=real(r["patternid"])))
+            lid += 1
+        put("loottables", table_rows)
+    if ops["npcloot"]:
+        nl = ops["npcloot"]
+        db.execute("INSERT INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES ('*', ?, ?, 1, ?, ?)",
+                   (nl["tablename"], nl["chance"], nl["note"], SOURCE))
+    # the log, in the order one by one wrote it
+    logs = []
+
+    def j(v):
+        return None if v is None else json.dumps(v, sort_keys=True)
+
+    def inserted(tbl, rows):
+        back = rows_by_key(db, tbl, [r[KEYS[tbl]] for r in rows])
+        for r in rows:
+            k = r[KEYS[tbl]]
+            logs.append((CRAFT["name"], tbl, str(k), "inserted", None, j(back[k])))
+    inserted("itempattern", item_rows[:len(ops["items"])])
+    # a product and its recipe, recipe by recipe
+    prod_back = rows_by_key(db, "itempattern", [r["patternid"] for r in item_rows[len(ops["items"]):]])
+    rec_back = rows_by_key(db, "craftrecipes", [r["id"] for r in recipe_rows])
+    made = set(prod_back)
+    for r in recipe_rows:
+        if r["product"] in made:
+            logs.append((CRAFT["name"], "itempattern", str(r["product"]), "inserted", None, j(prod_back[r["product"]])))
+            made.discard(r["product"])
+        logs.append((CRAFT["name"], "craftrecipes", str(r["id"]), "inserted", None, j(rec_back[r["id"]])))
+    for u in ops["npcs"]:
+        logs.append((CRAFT["name"], "npcs", str(u["id"]), "updated", j(u["old"]), j(u["new"])))
+    for r in ops["npcitem_del"]:
+        logs.append((CRAFT["name"], "npcitem", str(r["itemid"]), "deleted", j(r), None))
+    inserted("npcitem", add_rows)
+    inserted("lootpool", pool_rows)
+    inserted("loottables", table_rows)
+    if ops["npcloot"]:
+        logs.append((CRAFT["name"], "npcloot", json.dumps(["*", ops["npcloot"]["tablename"]]), "inserted", None,
+                     j({"chance": ops["npcloot"]["chance"], "rolls": 1})))
+    for name, seq in seq_of(db).items():
+        if seqs.get(name) != seq:
+            logs.append((CRAFT["name"], "sqlite_sequence", name, "updated", j({"seq": seqs.get(name)}), j({"seq": seq})))
+    db.executemany("INSERT INTO tradeskill_seed (craft, tbl, key, action, old, new) VALUES (?, ?, ?, ?, ?, ?)", logs)
+    counts = {"items": len(item_rows), "recipes": len(recipe_rows), "wares": len(add_rows),
+              "stand-ins removed": len(ops["npcitem_del"]), "loot rows": len(pool_rows) + len(table_rows)}
+    audit_line(db, "insert", f"tools/seed_tradeskills.py --craft {CRAFT['name']} --apply: {counts['items']} items, "
+               f"{counts['recipes']} recipes, {counts['wares']} wares ({counts['stand-ins removed']} stand-ins out), "
+               f"{counts['loot rows']} loot rows (each in tradeskill_seed)")
+    return counts
+
+
+def apply(db, p, ops=None):
+    """Write a plan in one transaction: p (a single step: resolved here, inside it), or ops (--plan-in: a resolved
+    plan, applied only when the database is still as it assumed)."""
     db.execute("BEGIN IMMEDIATE")
     try:
         db.execute(LOG_DDL)
         db.execute(CRAFT_DDL)
-        seqs = seq_of(db)
-        ids = dict(p["ids"])
-        # Sandstorm's ids first: a new item takes the highest id + 1, which must not be one of theirs
-        for pid, row in sorted(p["items"], key=lambda x: x[0] is None):
-            ids[row["itemname"]] = insert(db, "itempattern", row, pid)
-        # the recipes, in the book's order: by metal, then rarity and name
-        nxt = (db.execute("SELECT max(id) FROM craftrecipes").fetchone()[0] or 0) + 1
-        recipes = made = 0
-        for pr in sorted(p["products"], key=lambda x: x["sort"]):
-            if pr["have"] is not None:
-                pid = pr["have"]
-            else:
-                pid = insert(db, "itempattern", pr["row"])
-                made += 1
-            lvl, rarity = pr["level"], pr["rarity"]
-            insert(db, "craftrecipes", {
-                "skill": p["skill"], "comp": pr["comp"], "level": lvl, "rarity": rarity, "name": pr["name"], "product": pid,
-                "yield": 1, "ingredients": json.dumps([{"item": ids[n], "count": c, "keep": k} for n, c, k in pr["ings"]]),
-                "difficulty": pr.get("difficulty", 10 * lvl + 2 * rarity), "xp": pr.get("xp", 25 * lvl * (1 + rarity)),
-                "discover": pr.get("discover", 1), "scroll": ids[pr["scroll"]] if pr.get("scroll") else 0,
-                "description": pr.get("description", ""), "source": SOURCE}, nxt)
-            nxt += 1
-            recipes += 1
-        # the suppliers
-        stand_in = set()
-        if has_table(db, "merchant_stock"):
-            stand_in = {k for (k,) in db.execute("SELECT key FROM merchant_stock WHERE what = 'catalog' AND note = 'general goods'")}
-        wares_n = removed = 0
-        for city, role, name, (npc, npc_id, typ), wares in p["stock"]:
-            now = row_of(db, "npcs", npc)
-            if not (now["npc_type"] or 0) & 0x01:
-                db.execute("UPDATE npcs SET npc_type = ? WHERE id = ?", ((now["npc_type"] or 0) | 0x01, npc))
-                log(db, "npcs", npc, "updated", old={"npc_type": now["npc_type"]}, new={"npc_type": (now["npc_type"] or 0) | 0x01})
-            if not now["npc_id"]:
-                db.execute("UPDATE npcs SET npc_id = ? WHERE id = ?", (npc, npc))
-                log(db, "npcs", npc, "updated", old={"npc_id": now["npc_id"]}, new={"npc_id": npc})
-            catalog = now["npc_id"] or npc
-            for item_id, in db.execute("SELECT itemid FROM npcitem WHERE npcid = ? ORDER BY itemid", (catalog,)).fetchall():
-                if item_id in stand_in:
-                    old = row_of(db, "npcitem", item_id)
-                    db.execute("DELETE FROM npcitem WHERE itemid = ?", (item_id,))
-                    log(db, "npcitem", item_id, "deleted", old=old)
-                    removed += 1
-            have = {r[0] for r in db.execute("SELECT patternid FROM npcitem WHERE npcid = ?", (catalog,))}
-            n = (db.execute("SELECT max(listnumber) FROM npcitem WHERE npcid = ?", (catalog,)).fetchone()[0] or -1) + 1
-            for w in wares:
-                if ids[w] in have:
-                    continue
-                insert(db, "npcitem", {"npcid": catalog, "stackleft": 1, "remainHP": 0, "remaincharge": 0, "patternid": ids[w],
-                                       "equiploc": -1, "location": 1, "listnumber": n})
-                have.add(ids[w])
-                n += 1
-                wares_n += 1
-        # the modifiers' drops, on every creature
-        loot = 0
-        lt = p["loot"]
-        if lt.get("pool"):  # the loot categories (lootpool, region "*"): the drop rate is lootrate's for the category
-            for mod, rarity in lt["mods"]:
-                if db.execute("SELECT 1 FROM lootpool WHERE category = ? AND region = '*' AND npc_name = '' AND patternid = ?",
-                              (lt["pool"], ids[mod])).fetchone():
-                    continue
-                lo, hi = LOOT_LEVELS[rarity]
-                insert(db, "lootpool", {"category": lt["pool"], "region": "*", "npc_name": "", "patternid": ids[mod],
-                                        "weight": LOOT_WEIGHT[rarity], "minlevel": lo, "maxlevel": hi, "source": SOURCE})
-                loot += 1
-            lt = None
-        for mod, rarity in (lt or {}).get("mods", []):
-            lo, hi = LOOT_LEVELS[rarity]
-            insert(db, "loottables", {"tablename": lt["table"], "patternid": ids[mod], "weight": LOOT_WEIGHT[rarity],
-                                      "minlevel": lo, "maxlevel": hi, "source": SOURCE})
-            loot += 1
-        if lt is not None and db.execute("SELECT 1 FROM npcloot WHERE npc_name = '*' AND tablename = ?",
-                                         (lt["table"],)).fetchone() is None:
-            db.execute("INSERT INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES ('*', ?, ?, 1, ?, ?)",
-                       (lt["table"], lt["chance"], lt["note"], SOURCE))
-            log(db, "npcloot", ["*", lt["table"]], "inserted", new={"chance": lt["chance"], "rolls": 1})
-        # the tables' id counters, so --undo gives them back too (an AUTOINCREMENT's counter outlives its rows)
-        for name, seq in seq_of(db).items():
-            if seqs.get(name) != seq:
-                log(db, "sqlite_sequence", name, "updated", old={"seq": seqs.get(name)}, new={"seq": seq})
-        audit_line(db, "insert", f"tools/seed_tradeskills.py --craft {CRAFT['name']} --apply: {len(p['items']) + made} items, "
-                   f"{recipes} recipes, {wares_n} wares ({removed} stand-ins out), {loot} loot rows (each in tradeskill_seed)")
+        if ops is None:
+            ops = resolve(db, p)
+        else:
+            if ops.get("version") != 1 or ops.get("craft") != CRAFT["name"]:
+                raise SystemExit(f"the plan is not a --craft {CRAFT['name']} plan of this tool's")
+            now = assumptions(db, ops)
+            diff = [k for k in ops["assume"] if ops["assume"][k] != now.get(k)]
+            if diff:
+                raise SystemExit(f"the database is not as the plan found it ({', '.join(diff)}): nothing written; plan again")
+        done = write_ops(db, ops)
         db.execute("COMMIT")
     except BaseException:
         db.execute("ROLLBACK")
         raise
-    return {"items": len(p["items"]) + made, "recipes": recipes, "wares": wares_n, "stand-ins removed": removed,
-            "loot rows": loot}
+    return done
 
 
 def audit_line(db, action, detail):
@@ -1476,10 +1681,18 @@ def main():
     ap.add_argument("--harvests", nargs="*", default=[], help="eqoa harvest JSON files, or folders of them")
     ap.add_argument("--craft", default="armor", choices=sorted(PLANS))
     ap.add_argument("--no-backup", action="store_true", help="no copy of the database first (tests)")
+    ap.add_argument("--plan-out", metavar="PLAN.json", help="decide everything (against this database, a copy of the "
+                    "target's) and write the plan, nothing to the database")
+    ap.add_argument("--plan-in", metavar="PLAN.json", help="with --apply: write a --plan-out plan (no sources read), "
+                    "refused unless the database is as the plan found it")
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--apply", action="store_true")
     g.add_argument("--undo", action="store_true")
     a = ap.parse_args()
+    if a.plan_in and (not a.apply or a.plan_out):
+        sys.exit("--plan-in goes with --apply (and not --plan-out)")
+    if a.plan_out and a.apply:
+        sys.exit("--plan-out writes a plan, not the database: apply it with --plan-in PLAN.json --apply")
     if not os.path.exists(a.db):
         sys.exit(f"{a.db}: no such database")
     db = sqlite3.connect(a.db, timeout=30, isolation_level=None)
@@ -1489,6 +1702,16 @@ def main():
         if not a.no_backup and logged(db, a.craft):
             print(f"copy: {backup(a.db)}")
         undo(db, a.craft)
+        return
+    if a.plan_in:
+        if logged(db, a.craft):
+            sys.exit(f"tradeskill_seed holds {a.craft}: applied already (--undo --craft {a.craft} first)")
+        with open(a.plan_in) as f:
+            ops = json.load(f)
+        if not a.no_backup:
+            print(f"copy: {backup(a.db)}")
+        done = apply(db, None, ops)
+        print("wrote " + ", ".join(f"{v} {k}" for k, v in done.items()))
         return
     if not a.sources or not a.harvests:
         sys.exit("give --sources and --harvests")
@@ -1510,8 +1733,17 @@ def main():
         print(f"left: {ln}")
     for ln in p["problems"]:
         print(f"problem: {ln}")
-    if p["problems"] and a.apply:
+    if p["problems"] and (a.apply or a.plan_out):
         sys.exit("problems: nothing written")
+    if a.plan_out:
+        if logged(db, a.craft):
+            sys.exit(f"tradeskill_seed holds {a.craft}: applied already (--undo --craft {a.craft} first)")
+        ops = resolve(db, p)
+        with open(a.plan_out, "w") as f:
+            json.dump(ops, f)
+        print(f"plan: {a.plan_out} ({len(ops['items']) + len(ops['products'])} items, {len(ops['recipes'])} recipes, "
+              f"{len(ops['npcitem_add'])} wares, {len(ops['npcitem_del'])} stand-ins out); nothing written to {a.db}")
+        return
     if not a.apply:
         print("report only: --apply to write")
         return

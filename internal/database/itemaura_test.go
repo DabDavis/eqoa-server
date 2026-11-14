@@ -192,7 +192,8 @@ func TestCharAurasHands(t *testing.T) {
 	t.Cleanup(func() { db.Close() })
 	if _, err := db.Exec(`INSERT INTO charaura (charid, merc, slot, color, kind, source, nodes) VALUES
 		(193, 0, 9, 0, 7, 1607773820, 0), (193, 0, 10, 4280295679, 7, 1607773820, 0), (193, 0, 1, 0, 7, 1607773820, 0),
-		(194, 0, 9, 4280295679, 2, 0, 0), (194, 0, 11, 0, 7, 1607773820, 0), (194, 0, 10, 0, 3, 0, 0)`); err != nil {
+		(194, 0, 9, 4280295679, 2, 0, 0), (194, 0, 11, 0, 7, 1607773820, 0), (194, 0, 10, 0, 3, 0, 0),
+		(196, 0, 9, 0, 7, 3421770586, 45), (196, 0, 10, 0, 7, 3421770586, 101), (196, 0, 7, 4280295679, 2, 0, 45)`); err != nil {
 		t.Fatal(err)
 	}
 	got, err := db.CharAuras()
@@ -204,6 +205,18 @@ func TestCharAurasHands(t *testing.T) {
 	if z[CharAuraMainHand] != taint || z[CharAuraOffHand] != (ItemAura{Color: 0xFF2020FF, Kind: AuraEpic, Source: 0x5FD4AE7C}) || z[1] != (ItemAura{}) {
 		t.Fatalf("Zaeire's: %+v", z)
 	}
+	// a hand's nodes is where along the weapon, 0-100; a body's 0-32
+	if along := got[CharAuraKey{CharID: 196}]; along[CharAuraMainHand] != (ItemAura{Kind: AuraEpic, Source: 0xCBF4135A, Nodes: 45}) ||
+		along[CharAuraOffHand] != (ItemAura{}) || along[CharAuraBody] != (ItemAura{}) {
+		t.Fatalf("along: %+v", along)
+	}
+	if err := db.SetCharAuraAudited(CharAuraKey{CharID: 197}, CharAuraBody, ItemAura{Color: 0xFF2020FF, Kind: AuraShell, Nodes: 45}, GMEdit{}, "test"); err == nil {
+		t.Fatal("45 nodes on the body kept")
+	}
+	if err := db.SetCharAuraAudited(CharAuraKey{CharID: 197}, CharAuraOffHand, ItemAura{Kind: AuraEpic, Source: 0xCBF4135A, Nodes: 101}, GMEdit{}, "test"); err == nil {
+		t.Fatal("101% along kept")
+	}
+	delete(got, CharAuraKey{CharID: 196})
 	if other[CharAuraMainHand] != (ItemAura{}) || other[CharAuraOffHand] != (ItemAura{Kind: AuraParticles}) || len(got) != 2 {
 		t.Fatalf("a hand's shell, a slot past 10: %+v (%d keys)", other, len(got))
 	}

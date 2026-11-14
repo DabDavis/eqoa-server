@@ -173,7 +173,11 @@ func TestAuraEditsAreLive(t *testing.T) {
 	if code, out := c.op("insert_row", map[string]any{"table": "charaura", "values": map[string]any{"charid": 9001, "merc": 0, "slot": 9, "color": 0, "kind": 7, "source": float64(0x5FD4AE7C)}}); code != 200 {
 		t.Fatalf("charaura epic insert: %d %v", code, out)
 	}
-	for _, bad := range []map[string]any{{"charid": 9001, "slot": 11}, {"charid": 9001, "slot": 1, "kind": 7}, {"charid": 0, "slot": 1},
+	// where along it (nodes, 0-100 on a hand)
+	if code, out := c.op("insert_row", map[string]any{"table": "charaura", "values": map[string]any{"charid": 9001, "merc": 0, "slot": 10, "color": 0, "kind": 7, "source": float64(0xCBF4135A), "nodes": 45}}); code != 200 {
+		t.Fatalf("charaura along insert: %d %v", code, out)
+	}
+	for _, bad := range []map[string]any{{"charid": 9001, "slot": 11}, {"charid": 9001, "slot": 9, "kind": 7, "nodes": 101}, {"charid": 9001, "slot": 7, "kind": 2, "nodes": 45}, {"charid": 9001, "slot": 1, "kind": 7}, {"charid": 0, "slot": 1},
 		{"charid": 9001, "slot": 10, "kind": 2}, {"charid": 9001, "slot": 10, "kind": 8}, {"charid": 9001, "slot": 8, "kind": 7}} {
 		if code, out := c.op("insert_row", map[string]any{"table": "charaura", "values": bad}); code != 400 {
 			t.Errorf("charaura %v: %d %v, want refused", bad, code, out)

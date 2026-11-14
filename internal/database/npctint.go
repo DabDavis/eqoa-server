@@ -150,6 +150,23 @@ func AuraShows(glow uint32, kind uint8) bool {
 func ValidAuraKind(k int64) bool  { return k >= 0 && k <= AuraKindMost }
 func ValidAuraNodes(n int64) bool { return n >= 0 && n <= AuraNodesMost }
 
+// AuraAlongMost is the most a held item's aura's nodes byte says: on a hand
+// (CharAuraMainHand, CharAuraOffHand) it is no node count but where along
+// the held item the borrowed particles sit, 1-100 the share in percent of
+// its reach from the hand (vanilla's aura::along), 0 the source's own share
+// (the owner, 2026-11-14: "lets move the druid epic aura down zerkziee
+// scimitar down the blade more"). A client before it ignores it.
+const AuraAlongMost = 100
+
+// ValidCharAuraNodes holds a charaura row's nodes to its slot: a hand's
+// 0-AuraAlongMost (where along the held item), every other's ValidAuraNodes.
+func ValidCharAuraNodes(slot, n int64) bool {
+	if slot == CharAuraMainHand || slot == CharAuraOffHand {
+		return n >= 0 && n <= AuraAlongMost
+	}
+	return ValidAuraNodes(n)
+}
+
 // ValidCharAuraKind holds a charaura row's kind to what its slot draws: a
 // hand (CharAuraMainHand, CharAuraOffHand) none, the particles (the source's
 // particle sprites on the held item) or the epic's look (AuraEpic); every

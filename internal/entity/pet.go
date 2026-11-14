@@ -1263,25 +1263,8 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 // (Grand Animation's grandAnimationTaunt). It reports a kill.
 func (w *World) petTauntLocked(ps *petState, t *NPC, now time.Time) bool {
 	pet := ps.npc
-	defer w.petTauntHateCutLocked(ps, t)()         // an enchanter's pet's taunt: 70% of its threat (pettaunthate.go)
-	if t.Dummy == NotDummy && t.challenge == nil { // a Metal Moogie keeps to his challenger (metalmoogie.go)
-		var top int64
-		for id, v := range t.Threats {
-			if id != pet.ServerID && v > top {
-				top = v
-			}
-		}
-		if t.Threats == nil {
-			t.Threats = make(map[EntityID]int64)
-		}
-		if t.Threats[pet.ServerID] <= top {
-			t.Threats[pet.ServerID] = top + 1
-		}
-		t.CurrentEnemy = w.tauntedLocked(t, pet.ServerID) // a preferred foe of its stays its enemy (prefer.go)
-		w.wakeNPCLocked(t)                                // npcsets.go
-	} else if t.Dummy != NotDummy {
-		w.dummyTopHateLocked(t, pet.ServerID, now) // a dummy's hate is its own (dummy.go, petition 1484)
-	}
+	defer w.petTauntHateCutLocked(ps, t)() // an enchanter's pet's taunt: 70% of its threat (pettaunthate.go)
+	w.petTopHateLocked(pet, t)             // the top of its hate and a margin (pettemplate.go, pettauntmargin.go)
 	n := petMeleeHit(pet, t, meleeIntn)
 	if petName(pet.Name) == grandAnimation {
 		n = grandAnimationTaunt

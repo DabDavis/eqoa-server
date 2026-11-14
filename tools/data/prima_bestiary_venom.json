@@ -1,0 +1,592 @@
+[
+[
+"Arctic Spider",
+"16-20",
+"Lesser Poison"
+],
+[
+"Frozen Fang Spider",
+"21-23",
+"Lesser Poison"
+],
+[
+"Frozen Fang Spider",
+"24-25",
+"Poison"
+],
+[
+"Great Wasp",
+"36-40",
+"Greater Poison"
+],
+[
+"Ice Wasp",
+"31-33",
+"Poison"
+],
+[
+"Ice Wasp",
+"34-35",
+"Greater Poison"
+],
+[
+"Needle Fang Spider",
+"7-10",
+"Minor Poison"
+],
+[
+"Wooly Spider",
+"11-15",
+"Minor Poison"
+],
+[
+"Young Spider",
+"6",
+"Minor Poison"
+],
+[
+"Arachnalith",
+"46-50",
+"Major Poison"
+],
+[
+"Crag Spider",
+"41-43",
+"Greater Poison"
+],
+[
+"Crag Spider",
+"44-45",
+"Major Poison"
+],
+[
+"Crypt Mummy",
+"21-23",
+"Lesser Infection"
+],
+[
+"Crypt Mummy",
+"24-25",
+"Infection"
+],
+[
+"Death Rattler",
+"21-25",
+"Lesser Poison"
+],
+[
+"Death Rattler",
+"24-25",
+"Poison"
+],
+[
+"Defiled Mummy",
+"41-43",
+"Greater Infection"
+],
+[
+"Defiled Mummy",
+"44-45",
+"Major Infection 44-55"
+],
+[
+"Dune Mummy",
+"26-30",
+"Infection"
+],
+[
+"DuneMummyL27",
+"27",
+"Infection 24-33"
+],
+[
+"Fallen Mummy",
+"36-40",
+"Greater Infection"
+],
+[
+"Mummy",
+"16-20",
+"Lesser Infection"
+],
+[
+"Rattle Snake",
+"16-20",
+"Lesser Poison"
+],
+[
+"Rock Spider",
+"31-33",
+"Poison"
+],
+[
+"Rock Spider",
+"34-35",
+"Greater Poison"
+],
+[
+"Scorpion",
+"31-33",
+"Poison"
+],
+[
+"Scorpion",
+"34-35",
+"Greater Poison"
+],
+[
+"Singetail Scorpion",
+"41-43",
+"Greater Poison"
+],
+[
+"Singetail Scorpion",
+"44-45",
+"Major Poison"
+],
+[
+"Stone Spider",
+"36-40",
+"Greater Poison"
+],
+[
+"Tainted Mummy",
+"31-33",
+"Infection"
+],
+[
+"Tainted Mummy",
+"34-35",
+"Greater Infection"
+],
+[
+"Whiptail Scorpion",
+"36-40",
+"Greater Poison"
+],
+[
+"Wretched Mummy",
+"46-50",
+"Major Infection"
+],
+[
+"Young Rattler",
+"11-15",
+"Minor Poison"
+],
+[
+"Black Widow",
+"11-15",
+"Minor Poison"
+],
+[
+"Giant Widow",
+"16-20",
+"Lesser Poison"
+],
+[
+"Heart Spider",
+"26-30",
+"Poison"
+],
+[
+"Widow Hatchling",
+"6",
+"Minor Poison"
+],
+[
+"Widowmaker",
+"21-23",
+"Lesser Poison"
+],
+[
+"Widowmaker",
+"24-25",
+"Poison"
+],
+[
+"Widow Spiderling",
+"7-10",
+"Minor Poison"
+],
+[
+"Chaos Rat",
+"21-23",
+"Lesser Infection"
+],
+[
+"Chaos Rat",
+"24-25",
+"Infection"
+],
+[
+"Copperhead",
+"11-15",
+"Minor Poison"
+],
+[
+"Crypt Rat",
+"11-15",
+"Minor Infection"
+],
+[
+"Decaying Zombie",
+"16-20",
+"Lesser Infection"
+],
+[
+"Dire Rat",
+"16-20",
+"Lesser Infection"
+],
+[
+"Diseased Rat",
+"6",
+"Minor Infection"
+],
+[
+"Doomed",
+"31-33",
+"Infection"
+],
+[
+"Doomed",
+"34",
+"Greater Infection"
+],
+[
+"Dreadwolf",
+"21-23",
+"Lesser Infection"
+],
+[
+"Dreadwolf",
+"24-25",
+"Infection"
+],
+[
+"Dreadworg",
+"26-30",
+"Infection"
+],
+[
+"Dwarf Zombie",
+"26-30",
+"Infection"
+],
+[
+"Frightwolf",
+"31-33",
+"Infection"
+],
+[
+"Frightwolf",
+"34-35",
+"Greater Infection"
+],
+[
+"Giant Rat",
+"7-10",
+"Minor Infection"
+],
+[
+"Giant Spider",
+"11-15",
+"Minor Poison"
+],
+[
+"Grave Rat",
+"16-20",
+"Lesser Infection"
+],
+[
+"Great Spider",
+"21-23",
+"Lesser Poison"
+],
+[
+"Great Spider",
+"24-25",
+"Poison"
+],
+[
+"Grim Rat",
+"7-10",
+"Minor Infection"
+],
+[
+"Kingsnake",
+"7-10",
+"Minor Poison"
+],
+[
+"Large Spider",
+"7-10",
+"Minor Poison"
+],
+[
+"Moss Viper",
+"16-20",
+"Lesser Poison"
+],
+[
+"Restless",
+"26-30",
+"Infection"
+],
+[
+"Rotting Wolf",
+"16-20",
+"Lesser Infection"
+],
+[
+"Spider",
+"6",
+"Minor Poison"
+],
+[
+"Tarantula",
+"16-20",
+"Lesser Poison"
+],
+[
+"Tomb Rat",
+"7-15",
+"Minor Infection"
+],
+[
+"Tree Snake",
+"6",
+"Minor Poison"
+],
+[
+"Tree Viper",
+"11-15",
+"Minor Poison"
+],
+[
+"Troll Zombie",
+"21-23",
+"Lesser Infection"
+],
+[
+"Troll Zombie",
+"24-30",
+"Infection"
+],
+[
+"Troll Zombie",
+"36-40",
+"Greater Infection"
+],
+[
+"Zombie",
+"21-23",
+"Lesser Infection"
+],
+[
+"Zombie",
+"24-25",
+"Infection"
+],
+[
+"Fierce Hornet",
+"21-25",
+"Lesser Poison"
+],
+[
+"Giant Wasp",
+"11-15",
+"Minor Poison"
+],
+[
+"Huge Wasp",
+"16-20",
+"Lesser Poison"
+],
+[
+"Giant Arachnid",
+"36-40",
+"Greater Poison"
+],
+[
+"Giant Araneae",
+"26-30",
+"Poison 24-33"
+],
+[
+"Huge Araneae",
+"31-33",
+"Poison"
+],
+[
+"Huge Araneae",
+"34-35",
+"Greater Poison"
+],
+[
+"Spitting Arachnid",
+"41-43",
+"Greater Poison"
+],
+[
+"Spitting Arachnid",
+"44-45",
+"Major Poison"
+],
+[
+"Poisonbite Angler",
+"11-15",
+"Minor Poison"
+],
+[
+"Black Widow",
+"11-15",
+"Minor Poison"
+],
+[
+"Blood Wasp",
+"31-33",
+"Infection"
+],
+[
+"Blood Wasp",
+"34-35",
+"Greater Infection"
+],
+[
+"Giant Widow",
+"16-20",
+"Lesser Poison"
+],
+[
+"Heart Spider",
+"26-30",
+"Poison"
+],
+[
+"Infectious Wasp",
+"16-20",
+"Lesser Infection"
+],
+[
+"Plague Bringer",
+"26-30",
+"Infection"
+],
+[
+"Plague Wasp",
+"21-23",
+"Lesser Infection"
+],
+[
+"Plague Wasp",
+"24-25",
+"Infection"
+],
+[
+"Water Moccasin",
+"7-10",
+"Minor Poison"
+],
+[
+"Widowmaker",
+"21-23",
+"Lesser Poison"
+],
+[
+"Widowmaker",
+"24-25",
+"Poison"
+],
+[
+"Widow Queen",
+"31-33",
+"Poison"
+],
+[
+"Widow Queen",
+"34-35",
+"Greater Poison"
+],
+[
+"Widow Spiderling",
+"6-10",
+"Minor Poison"
+],
+[
+"Funnel Web Spider",
+"51-55",
+"Major Poison"
+],
+[
+"Giant Millipede",
+"51-55",
+"Major Poison"
+],
+[
+"Large Millipede",
+"46-50",
+"Major Poison"
+],
+[
+"Vineweb Recluse",
+"46-50",
+"Major Poison"
+],
+[
+"Vineweb Spiderling",
+"41",
+"Major Poison"
+],
+[
+"Vineweb Spiderling",
+"42-43",
+"Greater Poison"
+],
+[
+"Vineweb Spiderling",
+"44-45",
+"Major Poison"
+],
+[
+"Hooded Cobra",
+"36-40",
+"Greater Poison"
+],
+[
+"Young Cobra",
+"31-33",
+"Poison"
+],
+[
+"Young Cobra",
+"34-35",
+"Greater Poison"
+],
+[
+"Murkwood Hunter",
+"41-43",
+"Greater Poison"
+],
+[
+"Murkwood Hunter",
+"44-45",
+"Major Poison"
+],
+[
+"Murkwood Lurker",
+"36-40",
+"Greater Poison"
+],
+[
+"Murkwood Spider",
+"31-33",
+"Poison"
+],
+[
+"Murkwood Spider",
+"34-35",
+"Greater Poison"
+]
+]

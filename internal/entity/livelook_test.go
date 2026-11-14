@@ -209,6 +209,32 @@ func TestLiveGear(t *testing.T) {
 	}
 }
 
+// A slot dyed White goes out as database.WhiteDyeWire, which the vanilla
+// client draws bleached, on the channel and in the record alike; an undyed
+// slot of tint 0 stays white (its texture as it is), and every other dye,
+// Silver and a white a step off too, its own colour.
+func TestAWhiteDyeIsSentApartFromWhite(t *testing.T) {
+	p := dyedPlayer()
+	p.Dyes[database.DyeChest] = database.WhiteDye
+	p.Dyes[database.DyeLegs] = database.RGBA(database.DiscTints[10]) // Silver
+	p.Dyes[database.DyeBoots] = 0xFFFFFDFF
+	p.Dyes[database.DyeRobe] = database.WhiteDye
+	if c, err := database.ParseDyeColor("white"); err != nil || c != database.WhiteDye {
+		t.Fatalf("#dye white: %08x %v", c, err)
+	}
+	l := readCreature(LiveChannel(SerializePlayerUpdate(100001, p), &p.Dyes), true)
+	want := [6]uint32{database.WhiteDyeWire, 0xFFFFFFFF, 0xFFFFFFFF, 0xA0AAB4FF, 0xFFFFFDFF, 0xFFFFFFFF}
+	if l.armorCol != want || l.robeCol != database.WhiteDyeWire {
+		t.Fatalf("armour %08x robe %08x, want %08x and %08x", l.armorCol, l.robeCol, want, uint32(database.WhiteDyeWire))
+	}
+	disc := make([]byte, DiscGearSize)
+	g := LiveGear(disc, &p.Dyes)
+	col := func(o int) uint32 { return binary.BigEndian.Uint32(g[o:]) }
+	if col(43) != database.WhiteDyeWire || col(47) != 0xFFFFFFFF || col(67) != database.WhiteDyeWire {
+		t.Fatalf("the record: chest %08x bracer %08x robe %08x", col(43), col(47), col(67))
+	}
+}
+
 func lookSession(t *testing.T, n byte) *session.Session {
 	t.Helper()
 	sess := session.NewManager().CreateSession(&net.UDPAddr{IP: net.IPv4(10, 0, 0, n), Port: 7000 + int(n)}, uint32(n), uint32(n), 1, 2, true)

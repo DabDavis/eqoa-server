@@ -1535,8 +1535,8 @@ func (q *QuestEngine) checkReach() {
 				break
 			}
 			p := q.playerOf(sess)
-			world, x, _, z, ok := q.gw.PlayerPlace(p)
-			if !ok || int(world) != st.World {
+			world, x, y, z, ok := q.gw.PlayerPlace(p)
+			if !ok || int(world) != st.World || !withinHeight(st, y) {
 				continue
 			}
 			r := st.Radius
@@ -1548,6 +1548,16 @@ func (q *QuestEngine) checkReach() {
 			}
 		}
 	}
+}
+
+// withinHeight is whether a player at height y is on a reach step's floor:
+// within its Height of its Y, any height when it has none.
+func withinHeight(st *database.QuestStep, y float32) bool {
+	if st.Height <= 0 {
+		return true
+	}
+	d := y - st.Y
+	return d <= st.Height && -d <= st.Height
 }
 
 // completeStepLocked does a step in Sandstorm's order (its first warrior

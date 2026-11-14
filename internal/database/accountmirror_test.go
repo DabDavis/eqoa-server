@@ -336,3 +336,71 @@ func TestTheMirrorAndTheOwnerTakeTurns(t *testing.T) {
 		t.Errorf("the owner's write: %v", err)
 	}
 }
+
+// The panel's roles go with the accounts (gmweb/shard.go): a tester, a sub GM
+// and a storyteller of the owner's are one in the copy too, a role taken away
+// there is gone here, and a SubGM check here reads it. The control: a shard
+// whose database has no role table (its panel not started yet) is passed over.
+func TestTheMirrorCarriesTheRoles(t *testing.T) {
+	owner, shard, m, _ := twoShards(t)
+	store := NewSQLiteAccountStore(owner)
+	kobe, _ := store.Create("forestwood", "h")
+	tess, _ := store.Create("zaeire", "h")
+	story, _ := store.Create("new1", "h")
+	ddl := `CREATE TABLE gm_testers (accountid INTEGER PRIMARY KEY, granted_by TEXT NOT NULL DEFAULT '',
+		granted_at TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '', subgm INTEGER NOT NULL DEFAULT 0);
+		CREATE TABLE gm_storytellers (accountid INTEGER PRIMARY KEY, granted_by TEXT NOT NULL DEFAULT '',
+		granted_at TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '');`
+	if _, err := owner.Exec(ddl); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := owner.Exec(`INSERT INTO gm_testers (accountid, granted_by, subgm) VALUES (?, 'dab', 1), (?, 'dab', 0)`, kobe.ID, tess.ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := owner.Exec(`INSERT INTO gm_storytellers (accountid, granted_by) VALUES (?, 'dab')`, story.ID); err != nil {
+		t.Fatal(err)
+	}
+	// the shard's panel has not made its tables yet: accounts copied, roles passed over
+	if _, _, _, err := m.Pull(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := shard.Exec(ddl); err != nil {
+		t.Fatal(err)
+	}
+	m.force()
+	if _, _, _, err := m.Pull(); err != nil {
+		t.Fatal(err)
+	}
+	here := NewSQLiteAccountStore(shard)
+	if yes, err := here.SubGM(kobe.ID); err != nil || !yes {
+		t.Fatalf("the sub GM here: %v %v", yes, err)
+	}
+	if yes, _ := here.SubGM(tess.ID); yes {
+		t.Fatal("a tester made a sub GM")
+	}
+	var n int
+	shard.QueryRow(`SELECT COUNT(*) FROM gm_testers`).Scan(&n)
+	if n != 2 {
+		t.Fatalf("%d testers here", n)
+	}
+	shard.QueryRow(`SELECT COUNT(*) FROM gm_storytellers WHERE accountid = ?`, story.ID).Scan(&n)
+	if n != 1 {
+		t.Fatal("the storyteller not copied")
+	}
+	// a role taken away there
+	if _, err := owner.Exec(`DELETE FROM gm_testers WHERE accountid = ?`, kobe.ID); err != nil {
+		t.Fatal(err)
+	}
+	m.force()
+	if _, _, _, err := m.Pull(); err != nil {
+		t.Fatal(err)
+	}
+	if yes, _ := here.SubGM(kobe.ID); yes {
+		t.Fatal("a sub GM taken away there is one here still")
+	}
+	// nothing changed: nothing written
+	m.force()
+	if ch, gone, _, err := m.Pull(); err != nil || ch != 0 || gone != 0 {
+		t.Fatalf("an unchanged pull: %d %d %v", ch, gone, err)
+	}
+}

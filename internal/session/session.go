@@ -599,6 +599,15 @@ func (s *Session) TakeReportNotice() bool {
 	return true
 }
 
+// ReportNoticeSent is whether the line on how to report a bug went out this
+// session (TakeReportNotice was asked): the login's announcement waits for it
+// (handlers/loginannounce.go).
+func (s *Session) ReportNoticeSent() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.reportNotice
+}
+
 // MailLiveForms is whether the client said it sends the live mail forms. A
 // client that never answered (a PS2) did not.
 func (s *Session) MailLiveForms() bool {

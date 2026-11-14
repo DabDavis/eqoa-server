@@ -124,6 +124,7 @@ func (s *Server) registerOps() {
 	s.registerWorkOps() // ops_work.go: the work board, read before anything changes
 	s.registerRowOps()
 	s.registerWorldOps()
+	s.registerAnnounceOps() // ops_announce.go: the login announcement
 	s.registerPlayerOps()
 	s.registerAccountOps()
 	s.registerAdminOps()

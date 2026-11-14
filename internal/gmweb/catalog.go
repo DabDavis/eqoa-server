@@ -347,6 +347,20 @@ var catalog = map[string]tableNote{
 			"source":   {Label: "Source", Help: "gm (a GM's) or quest (the bats' infection)"},
 		},
 	},
+	"loginannounce": {
+		Label: "Login announcement", Group: "World",
+		Help: "The GMs' announcement at login, one row or none (petition 2120): every player entering the world is sent " +
+			"\"Announcement: \" and its text as the last line of the login, in light violet (handlers/loginannounce.go). " +
+			"Set it with set_login_announce or #announce <text> in the game, which keep it to what a PS2 can show; " +
+			"delete the row (or #announce off) to have none.",
+		Live: "At each player's next login.",
+		Cols: map[string]colNote{
+			"id":      {Label: "Id", Help: "always 1"},
+			"text":    {Label: "Text", Help: "the line, without its \"Announcement: \""},
+			"set_by":  {Label: "Set by", ReadOnly: true, Help: "the account that set it"},
+			"changed": {Label: "Changed", Format: "stamp", ReadOnly: true, Help: "when it was set (UTC)"},
+		},
+	},
 	"charwelcome": {
 		Label: "Welcome guide", Group: "Players", Sort: "serverid",
 		Help: "The welcome guide's box, a row a character once asked (handlers/welcome.go): a character's first world entry " +

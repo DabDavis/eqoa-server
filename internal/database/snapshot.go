@@ -153,6 +153,11 @@ var snapshotRules = map[string]snapshotRule{
 	"hotkeys": {clear: true, allow: []string{"hotkeyid"},
 		why: "the quick-chat lines a player typed (hotkeyid is the row's id)"},
 
+	// Named like a secret ("login"), holding none: the line every player is
+	// sent at login (loginannounce.go), and the GM's account name that set it,
+	// which accountinfo keeps as it is (only players' accounts are renamed).
+	"loginannounce": {why: "the GMs' announcement at login: one line every player is sent, and the GM who set it"},
+
 	// Named like a secret, holding none: the content tools' provenance (their
 	// --undo, and what the real-data tests read). A key column is a row's key
 	// in the table the tool changed, a meta table's key the name of a fact.

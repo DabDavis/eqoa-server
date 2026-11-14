@@ -829,9 +829,24 @@ func (h *CraftHandler) attempt(c *craftCtx, a *craftAttempt, discovery bool, out
 	}
 	taken := h.takeCraft(c.char(), c.l, a.held, a.all, out)
 	given := h.giveCraft(c.char(), c.l, a.product, rec.Yield, out, readsCapes(c.sess))
+	beforeLevel, beforeRank, wasCapped := a.skill.level, a.skill.rank, a.skill.capped()
 	gain := a.skill.addXP(craftBoonXP(craftGain(rec.XP, rec.Level, a.skill.level, discovery), c.view.XPPct))
 	if err := h.db.SetCharCraftSkill(c.char(), rec.Skill, a.skill.row()); err != nil {
 		log.Printf("Craft: %s's %s: %v", c.view.Name, craftSkillName(rec.Skill), err)
+	}
+	// petition 5073 (Innoruuk): say when a recipe is too easy to teach
+	// anything, and when the skill rises a rank or a level
+	switch {
+	case gain == 0 && !wasCapped && rec.XP > 0 && beforeLevel-rec.Level > 1:
+		out.add(protocol.OpcodeClientMessage, clientMessagePayload(fmt.Sprintf(
+			"That recipe is too easy for your %s (level %d) to teach you anything: recipes of level %d give full XP, level %d half.",
+			craftSkillName(rec.Skill), beforeLevel, beforeLevel, beforeLevel-1)))
+	case a.skill.level > beforeLevel:
+		out.add(protocol.OpcodeClientMessage, clientMessagePayload(fmt.Sprintf(
+			"Your %s is now level %d!", craftSkillName(rec.Skill), a.skill.level)))
+	case a.skill.rank > beforeRank:
+		out.add(protocol.OpcodeClientMessage, clientMessagePayload(fmt.Sprintf(
+			"Your %s rises to level %d rank %d.", craftSkillName(rec.Skill), a.skill.level, a.skill.rank)))
 	}
 	boon := ""
 	if c.view.XPTag != "" {

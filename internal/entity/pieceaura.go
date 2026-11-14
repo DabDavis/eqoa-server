@@ -277,8 +277,8 @@ func (w *World) pieceAuras(pieces *[AuraSlots]int, mask uint16, hidden uint16, o
 			continue
 		}
 		if a, ok := (*m)[pieces[i]]; ok {
-			if a.Kind == database.AuraCirclet && i != AuraHelm {
-				continue // a circlet is a helm's alone (database.ValidItemAura)
+			if a.Kind == database.AuraCirclet && i != AuraHelm || a.Kind == database.AuraEpic || a.Kind == database.AuraEnergy {
+				continue // a circlet is a helm's alone, epic and energy a held item's (database.ValidItemAura)
 			}
 			out[i], any = a, true
 		}
@@ -286,6 +286,14 @@ func (w *World) pieceAuras(pieces *[AuraSlots]int, mask uint16, hidden uint16, o
 	for _, i := range [...]int{AuraBody, AuraMainHand, AuraOffHand} {
 		if own != nil && own[i].Shows() {
 			out[i], any = own[i], true
+			continue
+		}
+		// a held item's own aura (itemaura on its record: the Heirloom Shield
+		// of Twisted Virtue's energy skin), of a hand's kinds alone
+		if i != AuraBody && m != nil && mask&(1<<i) != 0 {
+			if a, ok := (*m)[pieces[i]]; ok && database.HandAuraKind(int64(a.Kind)) {
+				out[i], any = a, true
+			}
 		}
 	}
 	// a circlet on the head (database.AuraCirclet) whatever is worn there or
@@ -316,9 +324,10 @@ func auraHides(i int) uint16 {
 }
 
 // SetWornPiece records the item worn on an aura's piece (handlers' wornLook),
-// the cape's (AuraCape) too; the body (AuraBody) and the hands are no piece.
+// the cape's (AuraCape) and the held items' (AuraMainHand, AuraOffHand: a held
+// item's own aura) too; the body (AuraBody) is no piece.
 func (p *Player) SetWornPiece(piece, patternID int) {
-	if piece < 0 || piece >= AuraSlots || ownOnly(piece) {
+	if piece < 0 || piece >= AuraSlots || piece == AuraBody {
 		return
 	}
 	p.WornPieces[piece] = patternID

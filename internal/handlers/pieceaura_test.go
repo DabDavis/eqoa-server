@@ -125,6 +125,20 @@ func TestWornLookPutsEachPiecesAura(t *testing.T) {
 	if w.PieceAurasOf(&p) != nil || p.WornMask != 0 {
 		t.Fatal("nothing worn: auras")
 	}
+	// a shield held (equiploc 17): its own aura, an energy skin, on the off
+	// hand (2026-11-14); a weapon in the off hand (15) is the off hand's over it
+	w.SetItemAuras(map[int]database.ItemAura{714383: {PatternID: 714383, Color: 0xC10F0EFF, Kind: database.AuraEnergy, Source: 0x2EC56029},
+		714100: {PatternID: 714100, Kind: database.AuraParticles}})
+	shield := database.CharInventoryEntry{EquipLoc: 17, Pattern: database.ItemPatternRecord{PatternID: 714383, EquipSlot: 13, Model: 0x2486A8D7}}
+	wornLook(&p, []database.CharInventoryEntry{shield})
+	if a := w.PieceAurasOf(&p); a == nil || a[entity.AuraOffHand].Kind != database.AuraEnergy || a[entity.AuraMainHand] != (database.ItemAura{}) {
+		t.Fatalf("the held shield's energy skin: %+v", a)
+	}
+	dagger := database.CharInventoryEntry{EquipLoc: 15, Pattern: database.ItemPatternRecord{PatternID: 714100, EquipSlot: 14, Model: 1}}
+	wornLook(&p, []database.CharInventoryEntry{shield, dagger})
+	if a := w.PieceAurasOf(&p); a == nil || a[entity.AuraOffHand].Kind != database.AuraParticles {
+		t.Fatalf("the off hand's weapon over the shield: %+v", a)
+	}
 	// a cape worn in the cape's slot (capes.go): its item's aura on the cape;
 	// hidden, none; in the pack, none
 	w.SetItemAuras(map[int]database.ItemAura{717001: {PatternID: 717001, Color: 0xFF2020FF, Kind: database.AuraTrim}})

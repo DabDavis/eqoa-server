@@ -376,7 +376,7 @@ func TestTheHandsAuras(t *testing.T) {
 		t.Fatal("a shell or trim on a hand, or epic in npctint/itemaura")
 	}
 	w := NewWorld()
-	// an item aura on the held item's record does nothing on the hand
+	// an item aura on the held item's record: the character's own wins over it
 	w.SetItemAuras(map[int]database.ItemAura{714100: {PatternID: 714100, Color: 0x3060FFFF, Kind: database.AuraParticles}})
 	a := ornatePlayer()
 	a.CharServerID = 193
@@ -384,9 +384,9 @@ func TestTheHandsAuras(t *testing.T) {
 	var own [database.CharAuraSlots]database.ItemAura
 	own[AuraMainHand], own[AuraOffHand], own[AuraCape] = taint, taint, cape
 	w.SetCharAuras(map[database.CharAuraKey][database.CharAuraSlots]database.ItemAura{{CharID: 193}: own})
-	a.SetWornPiece(AuraMainHand, 714100) // no piece: ignored
-	if a.WornMask&(1<<AuraMainHand) != 0 {
-		t.Fatal("a hand recorded as a worn piece")
+	a.SetWornPiece(AuraMainHand, 714100) // the held item (2026-11-14: its own aura)
+	if a.WornMask&(1<<AuraMainHand) == 0 {
+		t.Fatal("a held item not recorded")
 	}
 	a.SetWornPiece(AuraCape, 717001)
 	pa := w.PieceAurasOf(a)
@@ -433,7 +433,47 @@ func TestTheHandsAuras(t *testing.T) {
 	b := ornatePlayer()
 	b.CharServerID = 194
 	if w.PieceAurasOf(b) != nil {
-		t.Fatal("an item record's aura on a hand")
+		t.Fatal("an item record's aura on a hand nothing holds")
+	}
+}
+
+// A held item's own aura (itemaura on its record, 2026-11-14: the Heirloom
+// Shield of Twisted Virtue's energy skin, kind 9): shown on the hand that
+// holds it when the character has none of its own there; of a hand's kinds
+// alone (a shell on a held item's record, none); an epic or energy record
+// worn as a piece shows nothing; a character's own hand aura wins.
+func TestAHeldItemsOwnAura(t *testing.T) {
+	skin := database.ItemAura{PatternID: 714383, Color: 0xC10F0EFF, Kind: database.AuraEnergy, Source: 0x2EC56029}
+	shell := database.ItemAura{PatternID: 714384, Color: 0xFF2020FF, Kind: database.AuraShell}
+	if !skin.Shows() || !database.ValidCharAuraKind(10, database.AuraEnergy) || database.ValidCharAuraKind(5, database.AuraEnergy) || !database.ValidItemAura(database.AuraEnergy, 0) {
+		t.Fatal("energy: shows, a hand's, an item's")
+	}
+	w := NewWorld()
+	w.SetItemAuras(map[int]database.ItemAura{714383: skin, 714384: shell})
+	p := ornatePlayer()
+	p.CharServerID = 197
+	p.WornMask, p.WornPieces = 0, [AuraSlots]int{}
+	p.SetWornPiece(AuraOffHand, 714383)
+	if a := w.PieceAurasOf(p); a == nil || a[AuraOffHand] != skin {
+		t.Fatalf("the shield's energy skin: %+v", a)
+	}
+	p.WornMask, p.WornPieces = 0, [AuraSlots]int{}
+	p.SetWornPiece(AuraMainHand, 714384)
+	if a := w.PieceAurasOf(p); a != nil {
+		t.Fatalf("a shell record held: %+v", a)
+	}
+	p.WornMask, p.WornPieces = 0, [AuraSlots]int{}
+	p.SetWornPiece(AuraChest, 714383)
+	if a := w.PieceAurasOf(p); a != nil {
+		t.Fatalf("an energy record worn on the chest: %+v", a)
+	}
+	var own [database.CharAuraSlots]database.ItemAura
+	own[AuraOffHand] = database.ItemAura{Kind: database.AuraEpic, Source: 0x5FD4AE7C}
+	w.SetCharAuras(map[database.CharAuraKey][database.CharAuraSlots]database.ItemAura{{CharID: 197}: own})
+	p.WornMask, p.WornPieces = 0, [AuraSlots]int{}
+	p.SetWornPiece(AuraOffHand, 714383)
+	if a := w.PieceAurasOf(p); a == nil || a[AuraOffHand] != own[AuraOffHand] {
+		t.Fatalf("the character's own wins: %+v", a)
 	}
 }
 

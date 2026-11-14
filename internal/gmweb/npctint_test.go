@@ -154,8 +154,8 @@ func TestAuraEditsAreLive(t *testing.T) {
 	if live, _ := out["live"].(string); !strings.Contains(live, "at once") {
 		t.Errorf("live: %v", out["live"])
 	}
-	if code, out := c.op("insert_row", map[string]any{"table": "itemaura", "values": map[string]any{"patternid": 424243, "kind": 7}}); code != 400 {
-		t.Errorf("a kind of 7: %d %v, want refused", code, out)
+	if code, out := c.op("insert_row", map[string]any{"table": "itemaura", "values": map[string]any{"patternid": 424243, "kind": 10}}); code != 400 {
+		t.Errorf("a kind of 10: %d %v, want refused", code, out)
 	}
 	if code, out := c.op("delete_row", map[string]any{"table": "itemaura", "key": map[string]any{"patternid": 424242}}); code != 200 || f.world.ItemAuraCount() != 0 {
 		t.Fatalf("itemaura delete: %d %v", code, out)
@@ -170,6 +170,13 @@ func TestAuraEditsAreLive(t *testing.T) {
 	}
 	if code, out := c.op("insert_row", map[string]any{"table": "itemaura", "values": map[string]any{"patternid": 424244, "kind": 8, "nodes": 101}}); code != 400 {
 		t.Fatalf("itemaura circlet past 100: %d %v", code, out)
+	}
+	// a held item's energy skin (kind 9)
+	if code, out := c.op("insert_row", map[string]any{"table": "itemaura", "values": map[string]any{"patternid": 424245, "color": float64(0xC10F0EFF), "kind": 9, "source": float64(0x2EC56029)}}); code != 200 {
+		t.Fatalf("itemaura energy insert: %d %v", code, out)
+	}
+	if code, out := c.op("delete_row", map[string]any{"table": "itemaura", "key": map[string]any{"patternid": 424245}}); code != 200 {
+		t.Fatalf("itemaura energy delete: %d %v", code, out)
 	}
 	if code, out := c.op("delete_row", map[string]any{"table": "itemaura", "key": map[string]any{"patternid": 424243}}); code != 200 {
 		t.Fatalf("itemaura circlet delete: %d %v", code, out)

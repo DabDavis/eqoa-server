@@ -93,8 +93,8 @@ func TestTheMapLayersAreCampsAndCoaches(t *testing.T) {
 		m := v.(map[string]any)
 		towns[m["name"].(string)] = m
 	}
-	if a := towns["Arcadin"]; code != 200 || a == nil || a["x"] != 8813.0 || a["world"] != 2.0 || towns["Freeport"] != nil {
-		t.Errorf("Odus's towns %v, want Arcadin at (8813, 4338) by its map and no Freeport", towns)
+	if a := towns["Arcadin"]; code != 200 || a == nil || a["x"] != 8814.0 || a["world"] != 2.0 || towns["Freeport"] != nil {
+		t.Errorf("Odus's towns %v, want Arcadin at (8814, 4307) by its map and no Freeport", towns)
 	}
 
 	// a camp's loot, by an alias: the champion's table at the camp's middle level

@@ -159,6 +159,10 @@ type QuestEngine struct {
 	saysPlaces map[string]string
 	spots      map[string][]entity.NPCSpot
 	spotsAt    time.Time
+	// camps are the hunt steps' creatures' camps and hops the travel NPCs'
+	// trips (questmarkspots.go), made from spots and forgotten with them
+	camps map[string][]huntCamp
+	hops  []wayHop
 
 	// marked is table questmarks, the quests flagged for the marks over
 	// their NPCs' heads (questheadmarks.go), read at Reload; gen counts the
@@ -452,7 +456,7 @@ func (q *QuestEngine) Reload() error {
 	q.marked = markedWithFollowUps(marked, cat.successors) // questheadmarks.go
 	q.texts, q.names = texts, names
 	q.saysPlaces = nil
-	q.spots = nil // the marks read the NPCs' places again
+	q.spots, q.camps, q.hops = nil, nil, nil // the marks read the NPCs' places again
 	q.mu.Unlock()
 	q.nudge() // a GM's edit: the marks and trackers again
 	return nil

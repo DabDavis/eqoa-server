@@ -12,6 +12,10 @@ type NPCSpot struct {
 	World uint8
 	X, Z  float32
 	Name  string
+	// SpawnOnly is an original that stands out of the world (spawnonly.go):
+	// a step's spawns come again by it, so a mark may point there, but a
+	// standing NPC of the name is where a player meets it
+	SpawnOnly bool
 }
 
 // NPCSpotsNamed is the spawns of the NPCs of each name in names (trimmed and
@@ -29,7 +33,8 @@ func (w *World) NPCSpotsNamed(names map[string]bool) map[string][]NPCSpot {
 		if !names[k] {
 			continue
 		}
-		out[k] = append(out[k], NPCSpot{ID: n.ServerID, World: n.World, X: n.SpawnX, Z: n.SpawnZ, Name: n.Name})
+		out[k] = append(out[k], NPCSpot{ID: n.ServerID, World: n.World, X: n.SpawnX, Z: n.SpawnZ, Name: n.Name,
+			SpawnOnly: n.SpawnOnly || w.npcSpawnOnlyLocked(n)})
 	}
 	for k := range out {
 		s := out[k]

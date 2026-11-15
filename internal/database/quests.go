@@ -289,6 +289,9 @@ type QuestEvent struct {
 	X          float32 `json:"x,omitempty"`       // teleport: the place
 	Y          float32 `json:"y,omitempty"`
 	Z          float32 `json:"z,omitempty"`
+	// Facing (teleport): the heading it lands with (radians, 0 facing +z, as a
+	// waysender's trip); none (0) keeps the player's own
+	Facing float32 `json:"facing,omitempty"`
 	// To (teleport): "mainland" sends the player to its race's spot on the disc's
 	// worlds instead of World/X/Y/Z: its wire race's start row for its class
 	// (SQLiteCharacterStore.MainlandPlace), where it would have started before

@@ -361,3 +361,38 @@ func TestAGroupsKillMovesEverySharersFactions(t *testing.T) {
 		}
 	}
 }
+
+// A kill's faction change by place (factionhitareas, petition 2105): a
+// Nasehir spawned by Muniel's Tea Garden gives +2 Smugglers of Temby, one
+// outside Freeport its name's +1; the other factions of its row as they are.
+func TestAFactionHitByPlace(t *testing.T) {
+	f := newGuardFight(t)
+	if kept, unknown := f.w.SetFactionHits([]database.FactionHitRow{
+		{NPCName: "Nasehir rogue", Faction: "Smugglers of Temby", Delta: 1},
+		{NPCName: "Nasehir rogue", Faction: "Citizens of Freeport", Delta: 1},
+	}); kept != 2 || unknown != 0 {
+		t.Fatalf("hits kept %d, unknown %d", kept, unknown)
+	}
+	if kept, _ := f.w.SetFactionHitAreas([]database.FactionHitAreaRow{
+		{NPCName: "Nasehir rogue", Faction: "Smugglers of Temby", Delta: 2, World: 0, X: 23000, Z: 21500, Radius: 3200},
+	}); kept != 1 {
+		t.Fatalf("areas kept %d", kept)
+	}
+	f.w.mu.Lock()
+	defer f.w.mu.Unlock()
+	mtg := &NPC{Name: "Nasehir rogue", SpawnX: 23000, SpawnZ: 21000}
+	fp := &NPC{Name: "Nasehir rogue", SpawnX: 24000, SpawnZ: 16000}
+	got := func(n *NPC) map[string]int {
+		m := map[string]int{}
+		for _, h := range f.w.factions.hitsAt(n) {
+			m[h.Faction] = h.Delta
+		}
+		return m
+	}
+	if m := got(mtg); m["Smugglers of Temby"] != 2 || m["Citizens of Freeport"] != 1 {
+		t.Errorf("by Muniel's: %v, want Smugglers +2, Freeport +1", m)
+	}
+	if m := got(fp); m["Smugglers of Temby"] != 1 {
+		t.Errorf("outside Freeport (out of the area): %v, want Smugglers +1", m)
+	}
+}

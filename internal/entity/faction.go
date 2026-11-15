@@ -201,6 +201,7 @@ type factionTable struct {
 	list   []FactionStanding // standing high to low, then name
 	byName map[string]int
 	hits   map[string][]FactionHit    // by NPCClassKey
+	areas  map[string][]hitArea       // by NPCClassKey: a kill's change in one place (factionhitareas)
 	starts map[string][]startRow      // by faction, the most specific first
 	npcs   map[string][]npcFactionRow // by NPCClassKey, the most specific first
 	nStart int                        // starts kept
@@ -336,6 +337,71 @@ func (w *World) SetFactionHits(rows []database.FactionHitRow) (kept, unknown int
 	return kept, unknown
 }
 
+// hitArea is a factionhitareas row: Delta of Faction for a kill of the name
+// spawned in World within Radius of (X, Z).
+type hitArea struct {
+	FactionHit
+	World        uint8
+	X, Z, Radius float32
+}
+
+// SetFactionHitAreas sets the kills' faction changes by place
+// (factionhitareas), reporting the rows kept and those naming no faction.
+func (w *World) SetFactionHitAreas(rows []database.FactionHitAreaRow) (kept, unknown int) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.factions.ensure()
+	areas := make(map[string][]hitArea)
+	for _, r := range rows {
+		if _, ok := w.factions.byName[r.Faction]; !ok {
+			unknown++
+			continue
+		}
+		k := database.NPCClassKey(r.NPCName)
+		areas[k] = append(areas[k], hitArea{FactionHit{r.Faction, r.Delta}, uint8(r.World), float32(r.X), float32(r.Z), float32(r.Radius)})
+		kept++
+	}
+	w.factions.areas = areas
+	return kept, unknown
+}
+
+// hitsAt is what killing npc does: its name's hits (hitsFor), each faction
+// an area row names for where npc spawned changed to the area's (the
+// smallest area holding it), a faction only an area names added. Must be
+// called with the World's lock held.
+func (t *factionTable) hitsAt(npc *NPC) []FactionHit {
+	base := t.hitsFor(npc.Name)
+	rows := t.areas[database.NPCClassKey(npc.Name)]
+	if len(rows) == 0 {
+		return base
+	}
+	best := map[string]hitArea{}
+	for _, a := range rows {
+		dx, dz := npc.SpawnX-a.X, npc.SpawnZ-a.Z
+		if npc.World != a.World || dx*dx+dz*dz > a.Radius*a.Radius {
+			continue
+		}
+		if b, ok := best[a.Faction]; !ok || a.Radius < b.Radius {
+			best[a.Faction] = a
+		}
+	}
+	if len(best) == 0 {
+		return base
+	}
+	out := make([]FactionHit, 0, len(base)+len(best))
+	for _, h := range base {
+		if a, ok := best[h.Faction]; ok {
+			h.Delta = a.Delta
+			delete(best, h.Faction)
+		}
+		out = append(out, h)
+	}
+	for _, a := range best {
+		out = append(out, a.FactionHit)
+	}
+	return out
+}
+
 // hitsFor is what killing an NPC of this name does (factionhits, by
 // NPCClassKey). Must be called with the World's lock held.
 func (t *factionTable) hitsFor(name string) []FactionHit {
@@ -414,12 +480,19 @@ func (w *World) LoadFactions(db *database.SQLiteDB) error {
 	if err != nil {
 		return fmt.Errorf("npcfaction: %w", err)
 	}
+	areas, err := db.FactionHitAreas()
+	if err != nil {
+		return fmt.Errorf("factionhitareas: %w", err)
+	}
 	if len(defaults) > 0 {
 		w.SetFactionDefaults(defaults)
 	}
 	kept, unknown := w.SetFactionHits(hits)
 	sKept, sUnknown := w.SetFactionStarts(starts)
 	nKept, nUnknown := w.SetNPCFactions(members)
+	if aKept, aUnknown := w.SetFactionHitAreas(areas); aKept+aUnknown > 0 {
+		log.Printf("Factions: %d kill hits by place (%d naming no faction)", aKept, aUnknown)
+	}
 	log.Printf("Factions: %d factions, %d kill hits on %d NPC names (%d naming no faction); %d starts by race, class and home city (%d naming no faction); %d npcfaction rows (%d naming no faction): %s",
 		len(defaults), kept, w.factionHitNames(), unknown, sKept, sUnknown, nKept, nUnknown, w.FactionMembersSummary())
 	return nil
@@ -541,7 +614,7 @@ func (w *World) factionKillLocked(sess *session.Session, p *Player, npc *NPC) {
 	// pet, a GM's #kill): the quests hear it (questhooks.go)
 	w.creditKillLocked(sess, p, npc)
 	w.factions.ensure()
-	hits := w.factions.hitsFor(npc.Name)
+	hits := w.factions.hitsAt(npc) // its name's, or its place's (factionhitareas)
 	if len(hits) == 0 {
 		return
 	}

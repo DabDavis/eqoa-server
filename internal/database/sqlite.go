@@ -551,6 +551,23 @@ func (db *SQLiteDB) initSchema() error {
 	);
 	CREATE INDEX IF NOT EXISTS idx_factionhits_npc ON factionhits(npc_name);
 
+	-- a kill's faction change in one place: an NPC of npc_name spawned in
+	-- world within radius of (x, z) changes faction by delta in place of its
+	-- factionhits row (petition 2105: the Nasehirs by Muniel's Tea Garden
+	-- give +2 Smugglers of Temby, those outside Freeport +1)
+	CREATE TABLE IF NOT EXISTS factionhitareas (
+		id       INTEGER PRIMARY KEY AUTOINCREMENT,
+		npc_name TEXT NOT NULL,
+		faction  TEXT NOT NULL,
+		delta    INTEGER NOT NULL,
+		world    INTEGER NOT NULL DEFAULT 0,
+		x        REAL NOT NULL,
+		z        REAL NOT NULL,
+		radius   REAL NOT NULL,
+		note     TEXT NOT NULL DEFAULT '',
+		source   TEXT NOT NULL DEFAULT 'gm'
+	);
+
 	-- charmastery: a character's class mastery points, unspent and spent, the
 	-- share of its experience going to them and the experience gathered
 	-- toward the next (mastery.go, entity/mastery.go)

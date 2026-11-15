@@ -496,6 +496,32 @@ func (db *SQLiteDB) FactionHits() ([]FactionHitRow, error) {
 	return out, rows.Err()
 }
 
+// FactionHitAreaRow is one row of factionhitareas: a kill's faction change
+// for NPCs of a name spawned within Radius of (X, Z) in World.
+type FactionHitAreaRow struct {
+	NPCName, Faction string
+	Delta, World     int
+	X, Z, Radius     float64
+}
+
+// FactionHitAreas is the factionhitareas table.
+func (db *SQLiteDB) FactionHitAreas() ([]FactionHitAreaRow, error) {
+	rows, err := db.Query(`SELECT npc_name, faction, delta, world, x, z, radius FROM factionhitareas ORDER BY id`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []FactionHitAreaRow
+	for rows.Next() {
+		var h FactionHitAreaRow
+		if err := rows.Scan(&h.NPCName, &h.Faction, &h.Delta, &h.World, &h.X, &h.Z, &h.Radius); err != nil {
+			return nil, err
+		}
+		out = append(out, h)
+	}
+	return out, rows.Err()
+}
+
 // FactionStarts is the factionstart table.
 func (db *SQLiteDB) FactionStarts() ([]FactionStartRow, error) {
 	rows, err := db.Query(`SELECT race, class, humtype, faction, standing FROM factionstart ORDER BY id`)

@@ -13,6 +13,9 @@
 //	workboard done 12 -result "18 guards moved"
 //	workboard overview                 the overview and its version
 //	workboard overview set -version 4 -file overview.md
+//	workboard boards                   the personal boards, with what is unread
+//	workboard board jib                a personal board's newest messages
+//	workboard post jib -reply 7 "the fix is live"
 //
 // Run it where config.yaml is (the database is its server.db_path), or give
 // -db. `workboard help` says it all.
@@ -60,6 +63,13 @@ Commands:
   overview set -version n [-file f | -text t]
                                     replace it (stdin when neither); refused if it changed since version n
   overview default                  the text a new board starts with
+
+Personal boards (a GM's private thread with dab's sessions; config.yaml's gm.personal_boards):
+  boards                            the boards, each with its messages and what is unread to you
+  board <name> [-n 20] [-since id] [-peek]
+                                    the newest n messages (or those after -since), oldest first; marks them read
+  post <name> [-reply id] [-file f] text...
+                                    post a message (markdown; - or -file - reads stdin)
 
 Statuses: in_progress, blocked, planned, done. Areas: code, data, quests, client, gm_tools, other.
 -touches is comma separated: table names (npcs, queststeps), paths (internal/gmweb/ops.go) or folders.
@@ -155,8 +165,20 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		err = c.list(rest)
 	case "show":
 		err = c.show(rest)
-	case "add", "post":
+	case "add":
 		err = c.add(rest)
+	case "post":
+		// post <board> text is a personal board's; post -title ... the old
+		// spelling of add
+		if postsWork(rest) {
+			err = c.add(rest)
+		} else {
+			err = c.postBoard(rest)
+		}
+	case "boards":
+		err = c.boards(rest)
+	case "board":
+		err = c.board(rest)
 	case "update", "set":
 		err = c.update(rest, "update", nil)
 	case "start":

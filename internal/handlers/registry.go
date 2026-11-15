@@ -385,6 +385,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		if interactHandler.heroes != nil {
 			interactHandler.heroes.links = chatHandler.links // a ware shown as an item link (heroes.go, petition 1876)
 		}
+		interactHandler.bugBoard = NewBugBoard(charStore.DB()) // the Bug Finder Leaderboard (bugboard.go)
 		equipHandler.training = charStore
 		interactHandler.binds = charStore
 		// the stables' ledgers (coachledger.go)

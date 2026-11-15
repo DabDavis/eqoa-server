@@ -1269,6 +1269,21 @@ near dabrish that says Real Estate Listings". `claude-notes/player-homes-2026111
   PS2 or an older vanilla is told why and not moved. No new opcodes. Room for later: furniture would be a table of its own
   keyed by the home's owner (`charhomeitems`), not made.
 
+### The Bug Finder Leaderboard against Freeport's well (`handlers/bugboard.go`, `database/bugboard.go`, `world.bug_board`, `tools/bugboard_20261115.py`)
+
+The owner, 2026-11-15: "lets add a bulletin board in freeport by the well like the others with Bug Finder Leaderboard. the
+same list from the website with out jib and I." Any NPC named `Bug Finder Leaderboard` (`BugBoardName`; talked to before the
+signs) says the list in 0x0046 boxes packed to 217 characters (`sayPacked`): a heading, the top `world.bug_board.top` (15,
+at most 50) ranked, and how to report (F3 or `#bug` by the client). The counts are the website's contributors page's
+(`contributors.html`, made by hand 2026-11-13; matched exactly on the 2026-11-13 05:47 backups, 906 bugs, 15 crashes, 55
+players): petitions of category 1, a crash subcategory 10, any other a bug, any status (deleted too), by account and
+shard, Feature Request (100, newer than the page) not counted; ranked by the total, then the name in any case. Counted live,
+at most once a minute: this shard's database and `world.bug_board.other_db` (read-only), whose players are marked
+`other_mark` (this shard's `mark`; the page marks the Live server's "Live"). `exclude` (unset: `BugBoardExcludeDefault`, dab,
+funyun and jibrish: the owner's and Jib's accounts) are never listed. The tool stands one on each shard, the papered board
+(name plate by `boardplate.go`), on the well's south-east side at (25301.084, 54.13, 15754.484) facing 32: 6.2 off the
+well's centre as the other boards, the other diagonals taken. npcs are read at the start: a restart.
+
 ### Instanced raid dungeons: twelve of them in world 14 (`entity/dungeons.go`, `handlers/dungeons.go`, `world.dungeons`, `tools/dungeons_20261112.py`, `tools/dungeons_more_20261112.py`, `tools/dungeons_saltmines_20261114.py`, `tools/dungeons_crethley_20261114.py`)
 
 The owner, 2026-11-12: "lets add a dungeon world. instanced versions of popular dungeons like Guk, Blackburrow, Runnyeye.

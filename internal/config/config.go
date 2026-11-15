@@ -544,6 +544,14 @@ type WorldConfig struct {
 	// Heirloom Test Server sets it.
 	TestingHeroes bool `yaml:"testing_heroes"`
 
+	// BugBoard is the Bug Finder Leaderboard (handlers/bugboard.go; the owner,
+	// 2026-11-15: "lets add a bulletin board in freeport by the well like the
+	// others with Bug Finder Leaderboard"): any NPC of that name, talked to,
+	// lists the players whose bug and crash reports filed in the game are the
+	// most, as the website's contributors page counts them. Unset: this
+	// shard's reports alone, no shard marked, the default exclusions.
+	BugBoard BugBoardConfig `yaml:"bug_board"`
+
 	// PetHealGroup lets a magician's water pet heal its owner's group and raid
 	// group (entity/petmemberheal.go; the user, 2026-11-11: "lets allow mage
 	// water pets to heal other group/raid members also on heirloom server"):
@@ -627,6 +635,24 @@ type DungeonsConfig struct {
 	// own (unset: 4, the heroic dungeons'); RaidCap a raid's instance's (unset: 50)
 	Cap     int `yaml:"cap"`
 	RaidCap int `yaml:"raid_cap"`
+}
+
+// BugBoardConfig is world.bug_board (handlers/bugboard.go).
+type BugBoardConfig struct {
+	// Mark is what this shard's players are marked with on the board ("Live"
+	// on the Live server; unset: none, as the page leaves the Heirloom
+	// server's unmarked).
+	Mark string `yaml:"mark"`
+	// OtherDB is the other shard's database file, opened read-only at each
+	// count (at most once a minute), whose reports are counted too, its players
+	// marked OtherMark; unset: this shard's alone.
+	OtherDB   string `yaml:"other_db"`
+	OtherMark string `yaml:"other_mark"`
+	// Exclude are the accounts (accountinfo.username, any case) never listed;
+	// unset: handlers.BugBoardExcludeDefault (the owner's and the GM Jib's).
+	Exclude []string `yaml:"exclude"`
+	// Top is how many are listed (unset or 0: 15; at most 50).
+	Top int `yaml:"top"`
 }
 
 // HomesConfig is world.homes: the players' homes' switch and their world's slot.

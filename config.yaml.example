@@ -248,6 +248,17 @@ world:
   # sets it): no credit, no faction in the window, no vendor.
   # testing_heroes: true
 
+  # The Bug Finder Leaderboard (handlers/bugboard.go; tools/bugboard_20261115.py
+  # stands it against Freeport's well): its list counts this shard's bug and
+  # crash reports and, with other_db, the other shard's too (opened read-only,
+  # at most once a minute), its players marked other_mark. exclude names the
+  # accounts never listed (unset: the owner's and the GM Jib's); top how many
+  # are listed (unset: 15). On the Heirloom server:
+  # bug_board:
+  #   other_db: "/path/to/the/live/eqoa.db"
+  #   other_mark: "Live"
+  # and on the Live server: mark "Live", other_db the Heirloom server's.
+
   # A magician's water pet heals the worst off of its side, not only its owner
   # or itself (entity/petmemberheal.go): its single-target heals land on the
   # lowest share of hit points below the heal's threshold among its owner,

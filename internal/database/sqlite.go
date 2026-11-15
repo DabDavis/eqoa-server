@@ -673,6 +673,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureQuestWalls(); err != nil { // questwalls.go (after npcaggro)
 		return err
 	}
+	if err := db.ensureItemFactions(); err != nil { // itemfactions.go
+		return err
+	}
 	if err := db.ensureNPCTint(); err != nil { // npctint.go
 		return err
 	}

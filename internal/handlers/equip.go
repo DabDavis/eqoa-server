@@ -559,6 +559,10 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 		if row.EquipLoc < 0 && h.useItemHide(sess, player, &row.Pattern) {
 			return nil
 		}
+		// an item that raises the user's standings, never spent (itemfactions.go)
+		if row.EquipLoc < 0 && h.useItemFactions(sess, player, &row.Pattern) {
+			return nil
+		}
 		// the Rolling Dice, rolled for the room, never spent (roll.go)
 		if IsRollingDice(&row.Pattern) && h.dice != nil {
 			h.dice(sess, player, time.Now())

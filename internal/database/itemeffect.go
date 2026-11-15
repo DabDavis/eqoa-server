@@ -12,7 +12,9 @@ import (
 //
 //   - line: what it does, in spelleffect's words (entity/spelltext.go); its
 //     first word says on whom: "Self" (drunk: a draught, a speed or an
-//     invisibility potion) or "Target" (thrown at a creature);
+//     invisibility potion) or "Target" (thrown at a creature); a clause
+//     "Visual 0x..." names the 0x00B1 visual its use plays (entity/potion.go
+//     readVisual; Live petition 5173, the magician's Lava Stone);
 //   - name: the effect's name on the effects list (” is the item's own);
 //   - icon: the effect's icon there, an ability's front icon (a UI.CSF
 //     surface, spellpattern.icon), 0 for none;

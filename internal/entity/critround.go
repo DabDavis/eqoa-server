@@ -103,6 +103,9 @@ func (w *World) critStrikeLocked(npc *NPC, target EntityID, hits []time.Duration
 // critHitLocked is a creature's crit on target (a player, a pet). Must be
 // called with the lock held.
 func (w *World) critHitLocked(npc *NPC, target EntityID, now time.Time) {
+	if w.wereCritLocked(npc, target, now) {
+		return // a were's crit with its infection (werecrit.go)
+	}
 	w.templateSpecialHitLocked(npc, target, now)
 }
 

@@ -152,6 +152,8 @@ type ClassTemplate struct {
 	farCasts bool
 	// problems is what of it the world cannot use, for the log and the panel
 	problems []string
+	// were marks a were's own copy of its template (werecrit.go, work 1461)
+	were bool
 }
 
 // templateAbility is one of a template's abilities: its row's fields, its
@@ -363,13 +365,29 @@ type classTemplates struct {
 	// sheets is the workbook's pets by summoning spell (petstats.go)
 	sheets   map[int]*petSheet
 	problems []string
+	// weres is the weres' own copies of the templates, by the template (nil:
+	// of none), made as they are first given (werecrit.go)
+	weres map[*ClassTemplate]*ClassTemplate
 }
 
 // templateForLocked is the template the NPC fights by: its name's
 // npctemplate row's, if the template is there. Never a pet's nor a training
 // dummy's (they fight their own ways). Must be called with the lock held.
 func (w *World) templateForLocked(npc *NPC) *ClassTemplate {
-	if len(w.templates.use) == 0 || npc.Owner != 0 || npc.Dummy != NotDummy {
+	if npc.Owner != 0 || npc.Dummy != NotDummy {
+		return nil
+	}
+	t := w.namedTemplateLocked(npc)
+	if WereLine(npc.Name) != "" {
+		return w.wereTemplateLocked(t) // a were's own copy of it, or of none (werecrit.go)
+	}
+	return t
+}
+
+// namedTemplateLocked is the template npctemplate gives the NPC, nil for none.
+// Must be called with the lock held.
+func (w *World) namedTemplateLocked(npc *NPC) *ClassTemplate {
+	if len(w.templates.use) == 0 {
 		return nil
 	}
 	// its own row's first ("#n", npcrow.go), then its name's
@@ -1772,8 +1790,18 @@ func (w *World) templateKickLocked(npc *NPC, target EntityID, now time.Time) {
 // player's or a pet's, through any armour, with the special's visual; name says it in the log.
 // Must be called with the lock held.
 func (w *World) templateStrikeLocked(npc *NPC, target EntityID, now time.Time, damage int, name string) {
+	w.templateStrikeFXLocked(npc, target, now, damage, name, 0, nil)
+}
+
+// templateStrikeFXLocked is templateStrikeLocked with a visual of its own (0: the
+// special's), and landed told of a player it hit who stands after it (a were's
+// infection: werecrit.go). Must be called with the lock held.
+func (w *World) templateStrikeFXLocked(npc *NPC, target EntityID, now time.Time, damage int, name string, fx uint32,
+	landed func(*session.Session, *Player)) {
 	t := npc.tmpl
-	fx := t.SpecialFX
+	if fx == 0 {
+		fx = t.SpecialFX
+	}
 	if fx == 0 {
 		fx = templateSpecialFX
 	}
@@ -1803,7 +1831,9 @@ func (w *World) templateStrikeLocked(npc *NPC, target EntityID, now time.Time, d
 			w.killedPlayerLocked(npc, p) // its line at the kill (selfbuff.go)
 			return
 		}
-		w.wereBiteLocked(sess, p, npc)                 // a were's bite may infect (wereinfect.go)
+		if landed != nil {
+			landed(sess, p) // a were's infection on its crit (werecrit.go)
+		}
 		if !w.playerShieldsLocked(sess, p, npc, now) { // a melee hit's answer (dshield.go)
 			w.defenceProcsLocked(sess, p, npc, now)
 		}
@@ -1891,6 +1921,9 @@ func (w *World) templateLineLocked(npc *NPC, now time.Time) string {
 		parts = append(parts, fmt.Sprintf("%s every %g-%g s at its enemy for %d, the first %g-%g s in", specialName(t),
 			t.SpecialEvery-t.SpecialJitter, t.SpecialEvery+t.SpecialJitter, max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1),
 			math.Max(t.SpecialFirst-t.SpecialJitter, 0), t.SpecialFirst+t.SpecialJitter))
+	}
+	if w := wereWords(npc, now); w != "" {
+		parts = append(parts, w) // werecrit.go
 	}
 	for i := range t.abilities {
 		a := &t.abilities[i]

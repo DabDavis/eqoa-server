@@ -35,7 +35,9 @@ package entity
 //     one that was fighting or on its way home runs back to where the fight began
 //     (Home; chase.go's goHomeLocked), its hit points as they were.
 //   - its template abilities' cooldowns, each to its time (abilitytimes.go: Mr.
-//     Moogie's Lay Hands is once an hour, a restart or no), dead or alive.
+//     Moogie's Lay Hands is once an hour, a restart or no), dead or alive; a
+//     living were's infection spent, to its time (werecrit.go: a day, a restart
+//     or no), with its spawn's generation.
 //   - one walking back to its spawn with its path taken away goes on doing so,
 //     and so does one with nothing to bring it back: left away from its spawn by
 //     a charm's end, say, standing or past its wander's reach of it (ToSpawn).
@@ -122,6 +124,10 @@ type KeptNPC struct {
 	// Cooldowns are its template abilities' cooldowns still running, by ability
 	// (abilitytimes.go: an hour is an hour, petition 1394), alive or dead.
 	Cooldowns map[string]time.Time `json:"cooldowns,omitempty"`
+	// WereReady is a living were's infection ability's time to be ready again
+	// (werecrit.go), zero for ready; SpawnGen its spawn's generation
+	WereReady time.Time `json:"were_ready,omitzero"`
+	SpawnGen  uint32    `json:"spawn_gen,omitempty"`
 }
 
 // StandNPCs stops every creature where it stands, its channel on each client's
@@ -197,6 +203,9 @@ func (w *World) keptStateLocked(npc *NPC, now time.Time, all bool) (KeptNPC, boo
 		if npc.HP < npc.MaxHP {
 			k.HP, k.MaxHP = npc.HP, npc.MaxHP
 		}
+		if now.Before(npc.wereReady) {
+			k.WereReady, k.SpawnGen = npc.wereReady, npc.spawnGen // its infection spent: kept spent (werecrit.go)
+		}
 		if npc.chase.on || npc.chase.returning {
 			k.Home = &[3]float32{npc.chase.fromX, npc.chase.fromY, npc.chase.fromZ}
 		}
@@ -214,7 +223,7 @@ func (w *World) keptStateLocked(npc *NPC, now time.Time, all bool) (KeptNPC, boo
 	// a camp's spawn standing as another of its kinds than its row's: its name
 	// says which (campspawn.go)
 	kind := w.campKindChangedLocked(npc) || w.rareKindChangedLocked(npc) // or a placeholder as its rare (npcrare.go)
-	if !all && !away && !k.Dead && k.MaxHP == 0 && k.Home == nil && k.PathDir == 0 && !k.ToSpawn && !kind && len(k.Cooldowns) == 0 {
+	if !all && !away && !k.Dead && k.MaxHP == 0 && k.Home == nil && k.PathDir == 0 && !k.ToSpawn && !kind && len(k.Cooldowns) == 0 && k.WereReady.IsZero() {
 		return KeptNPC{}, false
 	}
 	if !k.finite() {
@@ -271,6 +280,7 @@ type NPCsRestored struct {
 	RowMoved int // on the new place of a row a data step moved
 	Kind     int // camps' spawns made again as the kinds they stood as (campspawn.go)
 	Cooldown int // with an ability's cooldown running on (abilitytimes.go)
+	Were     int // weres with their infection spent (werecrit.go)
 
 	RowGone int // not used: the row is gone
 	NewNPC  int // not used: another creature on the id (a new spawn and another name)
@@ -278,8 +288,8 @@ type NPCsRestored struct {
 }
 
 func (r NPCsRestored) String() string {
-	return fmt.Sprintf("%d back (%d dead, %d hurt, %d where they stood, %d going back to where a fight began, %d taking up their paths, %d walking to their spawns, %d on a row's new place, %d camp spawns as the kinds they stood as, %d with a cooldown running); not used: %d rows gone, %d other creatures on the id, %d of a kind not kept",
-		r.Back, r.Dead, r.Hurt, r.Placed, r.Fight, r.Path, r.ToSpawn, r.RowMoved, r.Kind, r.Cooldown, r.RowGone, r.NewNPC, r.NotKept)
+	return fmt.Sprintf("%d back (%d dead, %d hurt, %d where they stood, %d going back to where a fight began, %d taking up their paths, %d walking to their spawns, %d on a row's new place, %d camp spawns as the kinds they stood as, %d with a cooldown running, %d weres with their infection spent); not used: %d rows gone, %d other creatures on the id, %d of a kind not kept",
+		r.Back, r.Dead, r.Hurt, r.Placed, r.Fight, r.Path, r.ToSpawn, r.RowMoved, r.Kind, r.Cooldown, r.Were, r.RowGone, r.NewNPC, r.NotKept)
 }
 
 // RestoreNPCs gives the NPCs a restart's file names what was kept of them (the
@@ -319,6 +329,10 @@ func (w *World) RestoreNPCs(kept []KeptNPC) NPCsRestored {
 // with the lock held.
 func (w *World) restoreNPCLocked(npc *NPC, k *KeptNPC, onRow bool, r *NPCsRestored) {
 	r.Back++
+	if !k.WereReady.IsZero() && !k.Dead {
+		npc.wereReady, npc.spawnGen = k.WereReady, k.SpawnGen // its infection spent, as it was (werecrit.go)
+		r.Were++
+	}
 	if len(k.Cooldowns) > 0 {
 		npc.abilityReady = make(map[string]time.Time, len(k.Cooldowns)) // its cooldowns run on (abilitytimes.go)
 		for key, until := range k.Cooldowns {

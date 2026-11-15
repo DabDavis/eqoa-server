@@ -363,7 +363,6 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 			return
 		}
 	}
-	w.wereBiteLocked(sess, player, npc)               // a were's bite may infect (wereinfect.go)
 	if w.creatureProcLocked(sess, player, npc, now) { // a template's melee proc (creatureshield.go)
 		return
 	}

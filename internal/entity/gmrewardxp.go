@@ -72,6 +72,13 @@ func (w *World) xpPctLocked(p *Player) (int, string) {
 	if pct != 100 {
 		tag = boonTag(pct)
 	}
+	if add := insightPct(p); add > 0 {
+		pct += add // Moogie's Insight: the Boon's percent and 25 more (moogieitems.go)
+		if tag != "" {
+			tag += ", "
+		}
+		tag += insightTag
+	}
 	if p.hasEffect(RewardXPEffectID) {
 		pct = pct * RewardXPPct / 100
 		if tag != "" {
@@ -83,9 +90,9 @@ func (w *World) xpPctLocked(p *Player) (int, string) {
 }
 
 // outlivesDeath reports an effect a death, a strip and a buffs' clear (but a GM's #clearbuffs) leave on: the towns'
-// boon and the GM's reward.
+// boon, the GM's reward and Moogie's Insight.
 func outlivesDeath(spellID int) bool {
-	return spellID == BoonEffectID || spellID == RewardXPEffectID
+	return spellID == BoonEffectID || spellID == RewardXPEffectID || spellID == InsightEffectID // moogieitems.go
 }
 
 // rewardXPEndedLocked tells p its reward's time is over. Must be called with the lock held.

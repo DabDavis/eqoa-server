@@ -133,6 +133,15 @@ type PotionEffect struct {
 	// cooldown; 0 none): the user, 2026-11-07, Reconstructive on the Heirloom
 	// server, 15 minutes
 	Cooldown time.Duration
+	// Special is one of the Metal Moogie chain's uses its line names (moogieitems.go: PotionSnowball,
+	// PotionInsight, PotionDeputy), "" for any other; SpecialFX a snowball's visual, SpecialSpell and
+	// SpecialRadius a Deputy's Draught's spell and reach, and Grant that spell as the handler read its
+	// record (nil: none, the draught refused)
+	Special       string
+	SpecialFX     uint32
+	SpecialSpell  int
+	SpecialRadius float32
+	Grant         *CastSpell
 }
 
 // reDispel is a cure's words in a line ("Dispel Effect x3"): spelltext.go
@@ -163,6 +172,7 @@ func NewPotionEffect(patternID int, itemName, line, name string, icon uint32, br
 		}
 	}
 	pe.readBody()
+	pe.readMoogieUse(line) // the Metal Moogie chain's uses (moogieitems.go)
 	return pe
 }
 
@@ -468,6 +478,9 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 	w.potions.note(pe)
 	if refusal := w.potionCoolingLocked(p, &pe, now); refusal != "" {
 		return refusal, nil, nil
+	}
+	if pe.Special != "" {
+		return w.moogieUseLocked(sess, p, &pe, targetObjectID, now), nil, nil // moogieitems.go
 	}
 	spell := pe.castSpell()
 	if pe.Thrown() {

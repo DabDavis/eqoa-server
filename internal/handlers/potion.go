@@ -104,6 +104,9 @@ func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, i
 			return false
 		}
 	}
+	if pe.Special == entity.PotionDeputy && pe.Grant == nil {
+		pe.Grant = h.grantSpell(pe.SpecialSpell) // the spell a Deputy's Draught lands (entity/moogieitems.go)
+	}
 	used := time.Now()
 	refusal, err := h.gameWorld.UsePotion(sess, pe, target, used)
 	switch {
@@ -351,4 +354,27 @@ func (h *EquipHandler) potionThrown(sess *session.Session, charServerID uint32, 
 	if row.EquipLoc >= 0 && row.StackLeft <= 1 {
 		h.wornChanged(sess, p, charServerID) // the last of the worn stack: the hands empty (a monk's bare again)
 	}
+}
+
+// grantSpell is the spell of the id as the World lands it on a player (a Deputy's Draught's: entity/
+// moogieitems.go), nil when the server has no record of it.
+func (h *EquipHandler) grantSpell(id int) *entity.CastSpell {
+	if h.spells == nil || id <= 0 {
+		return nil
+	}
+	sp, err := h.spells.SpellPattern(id)
+	if err != nil || sp == nil {
+		log.Printf("Potion: spell %d: %v", id, err)
+		return nil
+	}
+	row, found, err := h.spells.SpellEffectRow(id)
+	if err != nil {
+		log.Printf("Potion: spell %d's effects: %v", id, err)
+		return nil
+	}
+	if !found {
+		row = database.SpellEffectRow{}
+	}
+	s := entity.SpellOfRow(sp, 0, row.Line, row.Effects, row.FX)
+	return &s
 }

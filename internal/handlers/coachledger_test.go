@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"maps"
+	"math"
 	"slices"
 	"strings"
 	"testing"
@@ -121,7 +122,7 @@ func TestACoachRunsOnlyToSignedNeighbours(t *testing.T) {
 		t.Fatalf("with Neriak signed Ronks offered %q, want Highpass Hold and Neriak", got)
 	}
 	tw.pick(ronks, 1)
-	if x, z, world, moved := teleported(tw.s); !moved || x != 24925 || z != 9429 || world != 0 {
+	if x, z, world, moved := teleported(tw.s); !moved || !nearCoach(x, z, 24925, 9429) || world != 0 {
 		t.Errorf("the pick went to (%.0f, %.0f) world %d (%v), want Neriak's coach (24925, 9429)", x, z, world, moved)
 	}
 }
@@ -360,7 +361,7 @@ func TestACoachmanSignsEveryLedgerAtOnce(t *testing.T) {
 		t.Error("with every ledger signed the menu still offers to sign them")
 	}
 	tw.pick(ronks, 3)
-	if x, z, _, moved := teleported(tw.s); !moved || x != 24925 || z != 9429 {
+	if x, z, _, moved := teleported(tw.s); !moved || !nearCoach(x, z, 24925, 9429) {
 		t.Errorf("the pick went to (%.0f, %.0f) (%v), want Neriak's coach", x, z, moved)
 	}
 }
@@ -604,4 +605,13 @@ func TestTheEveryLedgerOfferSignsNothingOnceOff(t *testing.T) {
 	if len(book[44]) != len(entity.CoachTownNames()) {
 		t.Errorf("the control: Yes with the offer on signed %d of %d", len(book[44]), len(entity.CoachTownNames()))
 	}
+}
+
+// nearCoach reports a ride set down in front of its coachman: within
+// entity's coachLandOut (5) and a little of his spot, not on it (Live petition
+// 5131: a rider on his spot stood in the coach).
+func nearCoach(x, z, cx, cz float32) bool {
+	dx, dz := float64(x-cx), float64(z-cz)
+	d := math.Hypot(dx, dz)
+	return d > 1 && d < 5.1
 }

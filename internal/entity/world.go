@@ -1527,6 +1527,12 @@ func (w *World) GetCoachDestinationsEveryWorld(excludeName string) []CoachDest {
 	return w.coachDestinations(excludeName, func(*NPC) bool { return true })
 }
 
+// coachLandOut is how far in front of a coachman (along his facing) a coach
+// sets its rider down: on his own spot the rider stood in the coach beside him
+// (Live petition 5131, Innoruuk, 2026-11-15: "Spawning inside of coaches
+// instead of in front of them").
+const coachLandOut float32 = 5
+
 func (w *World) coachDestinations(excludeName string, keep func(*NPC) bool) []CoachDest {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
@@ -1540,11 +1546,12 @@ func (w *World) coachDestinations(excludeName string, keep func(*NPC) bool) []Co
 			continue
 		}
 		label, _ := coachLabel(npc)
+		f := float64(npc.SpawnFacing)
 		dests = append(dests, CoachDest{
 			Name:   label,
-			X:      npc.SpawnX,
+			X:      npc.SpawnX + coachLandOut*float32(math.Sin(f)),
 			Y:      npc.SpawnY,
-			Z:      npc.SpawnZ,
+			Z:      npc.SpawnZ + coachLandOut*float32(math.Cos(f)),
 			Facing: npc.SpawnFacing,
 			World:  npc.World,
 		})

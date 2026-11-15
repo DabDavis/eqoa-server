@@ -95,7 +95,7 @@ func TestAHomesCoachRunsToFreeportAndTheOtherHomes(t *testing.T) {
 			"runs there; Gerntar Mines' ledger is not signed)", got)
 	}
 	tw.pick(harrek, 0)
-	if x, z, world, moved := teleported(tw.s); !moved || x != 25273.7 || z != 15719.1 || world != 0 {
+	if x, z, world, moved := teleported(tw.s); !moved || !nearCoach(x, z, 25273.7, 15719.1) || world != 0 {
 		t.Errorf("the ride to Freeport went to (%.1f, %.1f) world %d (%v), want Ronks's spot in Tunaria", x, z, world, moved)
 	}
 	tw.s.Queue().GetPending()
@@ -104,7 +104,7 @@ func TestAHomesCoachRunsToFreeportAndTheOtherHomes(t *testing.T) {
 	tw.talk(harrek)
 	tw.s.Queue().GetPending()
 	tw.pick(harrek, 1)
-	if x, z, world, moved := teleported(tw.s); !moved || x != 6947 || z != 3300 || world != 10 {
+	if x, z, world, moved := teleported(tw.s); !moved || !nearCoach(x, z, 6947, 3300) || world != 10 {
 		t.Errorf("the ride to West Plateau went to (%.0f, %.0f) world %d (%v), want its coachman's spot in the Homelands", x, z, world, moved)
 	}
 }
@@ -128,7 +128,7 @@ func TestFreeportsCoachRunsToTheHomesAClientHolds(t *testing.T) {
 		t.Errorf("Ronks's page %q, want the four towns alone", got)
 	}
 	tw.pick(ronks, 0)
-	if x, z, world, moved := teleported(tw.s); !moved || x != 9211.7 || z != 21547.1 || world != 10 {
+	if x, z, world, moved := teleported(tw.s); !moved || !nearCoach(x, z, 9211.7, 21547.1) || world != 10 {
 		t.Errorf("the ride to Aviak Village went to (%.1f, %.1f) world %d (%v), want Harrek's spot in the Homelands", x, z, world, moved)
 	}
 	tw.s.Queue().GetPending()

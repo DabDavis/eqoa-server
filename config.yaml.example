@@ -69,6 +69,12 @@ world:
   # set (the Heirloom Test Server sets it).
   # mob_info: true
 
+  # A target's level, for every player (handlers/conlevel.go, Live petition
+  # 5130): /con (a PS2's "/t con") says "<name> is level N." of the player's
+  # target, and vanilla (offered it with opcode 0x7E70) shows the level in its
+  # target box beside the name. Off unless set: /con is then an unknown command.
+  # con_level: true
+
   # The auction house's standing lots (handlers/auction_perpetual.go): lots
   # that never end and never run out, a buy at the price putting the items in
   # the buyer's bank and leaving the lot up (tools/ah_materials_20261114.py

@@ -175,7 +175,7 @@ func (ms *mercState) mercPetSpellWhere(words []string, keep func(*CastSpell) boo
 	for i := range ms.kit.Spells {
 		s := &ms.kit.Spells[i]
 		if !s.Def.Summons() || s.Def.Charms() || s.Familiar != nil || s.Travel != nil || !MercPetKindOf(s.Name, words) ||
-			keep != nil && !keep(s) {
+			keep != nil && !keep(s) || !ms.slotted(s.SpellID) {
 			continue
 		}
 		if best == nil || s.Level > best.Level || s.Level == best.Level && (s.PowerCost > best.PowerCost ||

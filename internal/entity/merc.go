@@ -142,6 +142,11 @@ type MercKit struct {
 	// SpellsOff is the spells its hirer turned off in its menu (handlers'
 	// mercmenu.go), by id: its book keeps them out (mercBook)
 	SpellsOff []int
+	// Loadout is the ten spells its hirer put on its slots in vanilla's spell
+	// window (handlers/mercwin.go, charmerc.spell_slots), by id, 0 an empty
+	// slot: it casts only those (slotted); nil, none set, its whole book as
+	// before
+	Loadout []int
 	// Offensive: a healer's /merc offensive, its hits and damage over time
 	// cast as well as its heals; false, defensive (the default), heals and
 	// buffs alone (merccast.go's mercAttackTurnLocked)

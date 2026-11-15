@@ -2613,6 +2613,24 @@ while he holds none). A dismissal or a boot puts what it held in the keeping (sl
 hire, delivered to the pack as it has room (then at each login and `/merc claim`); a death keeps it. `TestMercAlchemist*`,
 `TestMercGive*`, `TestMercEquip*`, `TestMercItems*`, `TestMercMenuItems`.
 
+**Vanilla's merc windows** (`handlers/mercwin.go`, `entity/mercloadout.go`, 0x7E72-0x7E77 in `protocol/opcodes.go`; the
+owner, 2026-11-15: "the merc inventory should pop up like player inventory menu also show the merc equipped gear. players
+can replace it and/or give them new equipment like a player", and "also merc spell menu should be like players also with
+spell book and 10 spells"): offered at world entry (world.mercs on); a client that answers 1 (`sess.MercWindow`, kept over
+a keep restart) has the menu's Items > Inventory, `/merc [name] inv`, the menu's Spells and **`/merc [name] spells`** open
+its windows in place of the boxes, and is sent the merc's whole state after every change by any road (the boxes, /merc,
+the window: `pushWindow`, `pushSpells`). Its asks are /merc's own moves (`giveItem`, `equipAt` into a chosen slot,
+`takeItem`; every rule theirs; `equipPlanAt`: a filled slot swapped, the old piece carried), each answered by 0x7E75. The
+state lists its own worn records, its heirlooms where it wears nothing of its own (shown only), what it carries, and its
+figures (`MercSheetOf`: its body now when out). **The ten spell slots** (`charmerc.spell_slots`, ten ids, 0 empty; empty
+none set): set, the merc casts only what they hold (its fight book, its pet's summoning and pet spells, its charm, an
+alchemist's thrown potions each check `slotted`); none set, its whole book as before, and the window shows its default
+ten (`mercDefaultLoadout`: the first of each use of its fight book, its pet, its pet's heal and buffs, a charm, its potions,
+then the rest by worth). The PS2's Spells box maps onto them: on puts a spell on the first empty slot (full: said), off
+takes it off its slot (and into `spells_off`); a spell off only by the slots is not put in `spells_off`. A PS2 never
+answers and keeps the boxes. `TestMercWindow*`, `TestMercSpellWindowSlots`, `TestMercCastsOnlyFromItsTenSlots`,
+`TestMercDefaultLoadoutKeepsTodaysPicks`.
+
 **A Master Class at 55** (`entity/mercmaster.go`, `handlers/mercmaster.go`, `charmerc.master`; the owner, 2026-11-15, from
 Hogknight's "is it possible to give the gnome mercs a tinker pet option?": "if 55+ choose the merc's master class tag (which
 comes with the master class abilities)", then "tinker is racial master class, so account for archetype master class, racial,

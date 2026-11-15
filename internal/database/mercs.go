@@ -29,7 +29,11 @@ import (
 // its area cocktails; 0, /merc single, the default, its single-target
 // potions: handlers/mercinv.go). master is the Master Class its hirer gave
 // it at 55 or more (handlers/mercmaster.go: cmcatalog's mastery name, "" none;
-// the owner, 2026-11-15). A merc on standby (out of a
+// the owner, 2026-11-15). spell_slots is the ten spells its hirer put on
+// its ten slots in vanilla's spell window (handlers/mercwin.go: the owner,
+// 2026-11-15, "merc spell menu should be like players also with spell book
+// and 10 spells"), ten ids comma-separated, 0 an empty slot; empty none set, its
+// whole book cast as before. A merc on standby (out of a
 // full group for a player: entity/mercbench.go) keeps its row as it is.
 const charMercSchema = `
 	CREATE TABLE IF NOT EXISTS charmerc (
@@ -52,6 +56,7 @@ const charMercSchema = `
 		spells_off  TEXT NOT NULL DEFAULT '',
 		aoe         INTEGER NOT NULL DEFAULT 0,
 		master      TEXT NOT NULL DEFAULT '',
+		spell_slots TEXT NOT NULL DEFAULT '',
 		PRIMARY KEY (serverid, slot)
 	);`
 
@@ -93,7 +98,7 @@ func (db *SQLiteDB) ensureMercs() error {
 		// path, pet, offensive and spells_off, to a table made before them
 		for _, col := range []struct{ name, def string }{{"path", "INTEGER NOT NULL DEFAULT -1"}, {"pet", "TEXT NOT NULL DEFAULT ''"},
 			{"offensive", "INTEGER NOT NULL DEFAULT 0"}, {"spells_off", "TEXT NOT NULL DEFAULT ''"}, {"aoe", "INTEGER NOT NULL DEFAULT 0"},
-			{"master", "TEXT NOT NULL DEFAULT ''"}} {
+			{"master", "TEXT NOT NULL DEFAULT ''"}, {"spell_slots", "TEXT NOT NULL DEFAULT ''"}} {
 			if err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('charmerc') WHERE name = ?`, col.name).Scan(&n); err != nil {
 				return fmt.Errorf("charmerc: %w", err)
 			}
@@ -160,21 +165,23 @@ type MercRow struct {
 	SpellsOff                              []int     // the spells turned off in its menu, by id
 	AoE                                    bool      // a Cocktail alchemist's area cocktails (false: single-target potions)
 	Master                                 string    // its Master Class (cmcatalog's mastery), "" none
+	SpellSlots                             []int     // its ten spell slots by spell id (0 empty), nil none set
 	DeadUntil                              time.Time // zero: alive
 	Hired                                  time.Time
 }
 
-const mercCols = `serverid, slot, name, class, race, sex, face, hair_color, hair_length, hair_style, stance, dead_until, hired, path, pet, offensive, spells_off, aoe, master`
+const mercCols = `serverid, slot, name, class, race, sex, face, hair_color, hair_length, hair_style, stance, dead_until, hired, path, pet, offensive, spells_off, aoe, master, spell_slots`
 
 // scanMerc reads a row of mercCols.
 func scanMerc(sc interface{ Scan(...any) error }) (MercRow, error) {
 	var r MercRow
-	var dead, hired, off string
+	var dead, hired, off, slots string
 	if err := sc.Scan(&r.ServerID, &r.Slot, &r.Name, &r.Class, &r.Race, &r.Sex, &r.Face, &r.HairColor, &r.HairLength, &r.HairStyle,
-		&r.Stance, &dead, &hired, &r.Path, &r.Pet, &r.Offensive, &off, &r.AoE, &r.Master); err != nil {
+		&r.Stance, &dead, &hired, &r.Path, &r.Pet, &r.Offensive, &off, &r.AoE, &r.Master, &slots); err != nil {
 		return MercRow{}, err
 	}
 	r.SpellsOff = parseSpellIDs(off)
+	r.SpellSlots = ParseMercSpellSlots(slots)
 	r.DeadUntil, _ = time.Parse(time.RFC3339, dead)
 	r.Hired, _ = time.Parse(time.RFC3339, hired)
 	return r, nil
@@ -220,9 +227,9 @@ func (db *SQLiteDB) SetMerc(r MercRow) error {
 	if !r.Hired.IsZero() {
 		hired = r.Hired.UTC().Format(time.RFC3339)
 	}
-	_, err := db.Exec(`INSERT OR REPLACE INTO charmerc (`+mercCols+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, r.ServerID,
+	_, err := db.Exec(`INSERT OR REPLACE INTO charmerc (`+mercCols+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, r.ServerID,
 		max(r.Slot, 1), r.Name, r.Class, r.Race, r.Sex, r.Face, r.HairColor, r.HairLength, r.HairStyle, r.Stance, dead, hired, r.Path, r.Pet,
-		r.Offensive, joinSpellIDs(r.SpellsOff), r.AoE, r.Master)
+		r.Offensive, joinSpellIDs(r.SpellsOff), r.AoE, r.Master, joinMercSpellSlots(r.SpellSlots))
 	return err
 }
 
@@ -249,6 +256,52 @@ func (db *SQLiteDB) SetMercMaster(serverID uint32, slot int, master string) erro
 func (db *SQLiteDB) SetMercSpellsOff(serverID uint32, slot int, off []int) error {
 	_, err := db.Exec(`UPDATE charmerc SET spells_off = ? WHERE serverid = ? AND slot = ?`, joinSpellIDs(off), serverID, max(slot, 1))
 	return err
+}
+
+// MercSpellSlotCount is the slots of a merc's spell window: a player's ten
+// (the game's two bars of five).
+const MercSpellSlotCount = 10
+
+// SetMercSpellSlots keeps the ten spells on the character's merc's slots (nil:
+// none set, its whole book cast).
+func (db *SQLiteDB) SetMercSpellSlots(serverID uint32, slot int, slots []int) error {
+	_, err := db.Exec(`UPDATE charmerc SET spell_slots = ? WHERE serverid = ? AND slot = ?`, joinMercSpellSlots(slots), serverID, max(slot, 1))
+	return err
+}
+
+// ParseMercSpellSlots reads charmerc.spell_slots: empty, none set (nil), else
+// MercSpellSlotCount ids (a word not a number, or a slot past what is kept,
+// empty: 0).
+func ParseMercSpellSlots(s string) []int {
+	if strings.TrimSpace(s) == "" {
+		return nil
+	}
+	out := make([]int, MercSpellSlotCount)
+	for i, f := range strings.Split(s, ",") {
+		if i >= MercSpellSlotCount {
+			break
+		}
+		if n, err := strconv.Atoi(strings.TrimSpace(f)); err == nil && n > 0 {
+			out[i] = n
+		}
+	}
+	return out
+}
+
+// joinMercSpellSlots writes charmerc.spell_slots (empty for nil).
+func joinMercSpellSlots(slots []int) string {
+	if slots == nil {
+		return ""
+	}
+	parts := make([]string, MercSpellSlotCount)
+	for i := range parts {
+		n := 0
+		if i < len(slots) {
+			n = max(slots[i], 0)
+		}
+		parts[i] = strconv.Itoa(n)
+	}
+	return strings.Join(parts, ",")
 }
 
 // parseSpellIDs reads charmerc.spells_off: ids comma-separated (a word not

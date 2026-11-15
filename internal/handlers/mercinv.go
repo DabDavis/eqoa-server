@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"sort"
 	"strings"
 
@@ -312,6 +313,7 @@ func (m *Mercs) giveItem(sess *session.Session, p *entity.Player, row database.M
 	log.Printf("Merc: %s gives %d %q (item %d) to %q (slot %d)", p.Name, n, name, itemID, row.Name, row.Slot)
 	SendClientMessage(sess, fmt.Sprintf(mercGiveLine, name, row.Name))
 	m.rekitSlot(p, row.Slot)
+	m.pushWindow(sess, p, row.Slot)
 	return true
 }
 
@@ -363,17 +365,19 @@ func (m *Mercs) toPack(sess *session.Session, p *entity.Player, it database.Merc
 }
 
 // takeItem takes the merc's record back into the pack (its kit made again).
-func (m *Mercs) takeItem(sess *session.Session, p *entity.Player, row database.MercRow, it database.MercItem) {
+func (m *Mercs) takeItem(sess *session.Session, p *entity.Player, row database.MercRow, it database.MercItem) bool {
 	came, why := m.toPack(sess, p, it, row.Name)
 	if why != "" {
 		SendErrorMessage(sess, why)
 	}
 	if came == 0 {
-		return
+		return false
 	}
 	log.Printf("Merc: %s takes %d %q back from %q (slot %d)", p.Name, came, it.Pattern.ItemName, row.Name, row.Slot)
 	SendClientMessage(sess, fmt.Sprintf(mercTakeLine, row.Name, it.Pattern.ItemName))
 	m.rekitSlot(p, row.Slot)
+	m.pushWindow(sess, p, row.Slot)
+	return true
 }
 
 // claimKeeping brings the keeping into the pack as it has room, and says what
@@ -430,12 +434,23 @@ func itemNamed[T any](list []T, name func(T) string, words string) (T, bool) {
 // held item and a weapon either hand holds by the player's rules, what that
 // slot's wear takes off coming off. A worn one comes off.
 func equipPlanFor(items []database.MercItem, it database.MercItem, class int) ([]database.MercEquipChange, int, bool) {
-	if it.EquipLoc >= 0 {
+	return equipPlanAt(items, it, class, -1)
+}
+
+// equipPlanAt is equipPlanFor into the equip slot want (vanilla's merc
+// window, mercwin.go: a slot of the item's wear, whatever fills it coming off,
+// carried), -1 the slot equipPlanFor chooses. A worn item asked into another
+// slot of its wear moves there; asked into its own, nothing changes.
+func equipPlanAt(items []database.MercItem, it database.MercItem, class, want int) ([]database.MercEquipChange, int, bool) {
+	if it.EquipLoc >= 0 && (want < 0 || want == it.EquipLoc) {
+		if want == it.EquipLoc {
+			return nil, want, true
+		}
 		return []database.MercEquipChange{{ID: it.ID, EquipLoc: -1}}, -1, true
 	}
 	wear := it.Pattern.EquipSlot
 	slots := equipSlotsFor(wear, class)
-	if len(slots) == 0 || wear == wearCape {
+	if len(slots) == 0 || wear == wearCape || want >= 0 && !slices.Contains(slots, want) {
 		return nil, 0, false
 	}
 	inv := make([]*database.CharInventoryEntry, 0, len(items))
@@ -462,6 +477,8 @@ func equipPlanFor(items []database.MercItem, it database.MercItem, class int) ([
 		}
 	}
 	switch {
+	case want >= 0:
+		chosen = want
 	case wear == wearHeld:
 		chosen = heldSlot(worn)
 	case wear == wearEitherHand && !offHandWeaponBarred(class):
@@ -481,13 +498,18 @@ func equipPlanFor(items []database.MercItem, it database.MercItem, class int) ([
 // equip puts the merc's record on (or takes it off when worn), by the
 // player's gates and slots, its kit made again.
 func (m *Mercs) equip(sess *session.Session, p *entity.Player, row database.MercRow, it database.MercItem, items []database.MercItem) bool {
-	if it.EquipLoc < 0 {
+	return m.equipAt(sess, p, row, it, items, -1)
+}
+
+// equipAt is equip into the equip slot want (equipPlanAt; -1 equip's).
+func (m *Mercs) equipAt(sess *session.Session, p *entity.Player, row database.MercRow, it database.MercItem, items []database.MercItem, want int) bool {
+	if it.EquipLoc < 0 || want >= 0 && want != it.EquipLoc {
 		if why := cannotWear(mercWearer(row, p.Level), &it.Pattern); why != "" {
 			SendErrorMessage(sess, fmt.Sprintf(mercEquipNot, row.Name, it.Pattern.ItemName)+" "+why)
 			return false
 		}
 	}
-	changes, slot, ok := equipPlanFor(items, it, row.Class)
+	changes, slot, ok := equipPlanAt(items, it, row.Class, want)
 	if !ok {
 		SendErrorMessage(sess, fmt.Sprintf(mercEquipNot, row.Name, it.Pattern.ItemName))
 		return false
@@ -505,6 +527,7 @@ func (m *Mercs) equip(sess *session.Session, p *entity.Player, row database.Merc
 	log.Printf("Merc: %s's %q (slot %d) %v %q: %+v", p.Name, row.Name, row.Slot, map[bool]string{true: "takes off", false: "wears"}[slot < 0],
 		it.Pattern.ItemName, changes)
 	m.rekitSlot(p, row.Slot)
+	m.pushWindow(sess, p, row.Slot)
 	return true
 }
 
@@ -555,6 +578,9 @@ func (m *Mercs) invCommand(sess *session.Session, p *entity.Player, rows []datab
 		}
 		m.giveItem(sess, p, row, it.ItemID)
 	case "inv", "inventory", "items":
+		if m.openWindow(sess, p, row) {
+			return // vanilla's window (mercwin.go)
+		}
 		items, ok := m.mercItemsOf(sess, row)
 		if !ok {
 			return
@@ -876,6 +902,9 @@ func (m *Mercs) itemsAnswer(sess *session.Session, p *entity.Player, a mercAsk, 
 		}
 		switch a.keys[n] {
 		case "inv":
+			if row, ok := m.mercRowOf(sess, p, a.slot); ok && m.openWindow(sess, p, row) {
+				return // vanilla's window (mercwin.go)
+			}
 			m.menuInv(sess, p, a.slot, 0)
 		case "give":
 			m.menuGive(sess, p, a.slot, 0)

@@ -158,6 +158,9 @@ func (ms *mercState) mercPetBook() mercPetSpells {
 	var lines []*line
 	for i := range ms.kit.Spells {
 		s := &ms.kit.Spells[i]
+		if !ms.slotted(s.SpellID) {
+			continue // left off its ten slots (mercloadout.go)
+		}
 		if isPetHeal(s) {
 			out.heals = append(out.heals, s)
 			continue

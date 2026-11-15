@@ -69,7 +69,7 @@ func (w *World) MercCharm(sess *session.Session, slot int, now time.Time) (line,
 	m := ms.npc
 	var charms []*CastSpell
 	for i := range ms.kit.Spells {
-		if s := &ms.kit.Spells[i]; s.Def.Charms() {
+		if s := &ms.kit.Spells[i]; s.Def.Charms() && ms.slotted(s.SpellID) {
 			charms = append(charms, s)
 		}
 	}
@@ -248,7 +248,7 @@ func (w *World) mercCharmTurnLocked(ms *mercState, sess *session.Session, now ti
 // charms reports a charm in the merc's book.
 func (ms *mercState) charms() bool {
 	for i := range ms.kit.Spells {
-		if ms.kit.Spells[i].Def.Charms() {
+		if ms.kit.Spells[i].Def.Charms() && ms.slotted(ms.kit.Spells[i].SpellID) {
 			return true
 		}
 	}

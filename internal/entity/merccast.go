@@ -243,8 +243,8 @@ func (ms *mercState) mercBook() []mercSpell {
 	for i := range ms.kit.Spells {
 		s := &ms.kit.Spells[i]
 		u := mercUseOf(s)
-		if u == useNone || slices.Contains(ms.kit.SpellsOff, s.SpellID) {
-			continue // one its hirer turned off (mercmenu.go)
+		if u == useNone || slices.Contains(ms.kit.SpellsOff, s.SpellID) || !ms.slotted(s.SpellID) {
+			continue // one its hirer turned off (mercmenu.go), or left off its ten slots (mercloadout.go)
 		}
 		if ms.mercThrowsPotions() && mercPotionSpell(s) {
 			continue // an alchemist's potion spell is thrown, not cast (mercthrow.go)

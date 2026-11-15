@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/session"
 )
@@ -54,6 +55,7 @@ const (
 	mercSpellOff    = "%s leaves %s alone."
 	mercNoSpells    = "%s casts no spells."
 	mercPetAsk      = "%s summons %s. Which pet?"
+	mercSlotsFull   = "%s's ten spell slots are full: take one off to cast %s."
 )
 
 // mercAdvice is each class's merc's advice, in its voice (ours).
@@ -196,6 +198,9 @@ func (m *Mercs) menuAnswer(sess *session.Session, p *entity.Player, a mercAsk, n
 				SendDialogueBox(sess, 0, part)
 			}
 		case "spells":
+			if m.openSpellsWindow(sess, p, a.slot) {
+				return // vanilla's spell window (mercwin.go)
+			}
 			m.menuSpells(sess, p, a.slot, 0)
 		case "stance":
 			a.stage = mercStageStance
@@ -330,17 +335,23 @@ func (m *Mercs) menuSpellChoice(sess *session.Session, p *entity.Player, a mercA
 	}
 	s := shown[n]
 	var off []int
-	for _, x := range spells {
-		if x.Off && x.ID != s.ID {
-			off = append(off, x.ID)
-		}
+	var row database.MercRow
+	haveRow := false
+	if m.db != nil {
+		row, haveRow, _ = m.db.Merc(p.CharServerID, a.slot)
 	}
-	if m.db != nil { // one off its book now (a level since) stays off
-		if row, ok, _ := m.db.Merc(p.CharServerID, a.slot); ok {
-			for _, id := range row.SpellsOff {
-				if id != s.ID && !slices.ContainsFunc(spells, func(x entity.MercSpell) bool { return x.ID == id }) {
-					off = append(off, id)
-				}
+	if haveRow {
+		// its row's (one off its book now, a level since, stays off); a spell
+		// off only by its ten slots is not put in spells_off (mercwin.go)
+		for _, id := range row.SpellsOff {
+			if id != s.ID {
+				off = append(off, id)
+			}
+		}
+	} else {
+		for _, x := range spells {
+			if x.Off && x.ID != s.ID {
+				off = append(off, x.ID)
 			}
 		}
 	}
@@ -348,6 +359,30 @@ func (m *Mercs) menuSpellChoice(sess *session.Session, p *entity.Player, a mercA
 		off = append(off, s.ID)
 	}
 	slices.Sort(off)
+	// the ten slots, where its hirer set them in vanilla's spell window
+	// (mercwin.go): on puts it on the first empty slot, off takes it off
+	if haveRow && row.SpellSlots != nil {
+		slots := slices.Clone(row.SpellSlots)
+		at := slices.Index(slots, s.ID)
+		switch {
+		case s.Off && at < 0:
+			free := slices.Index(slots, 0)
+			if free < 0 {
+				mercSay(sess, fmt.Sprintf(mercSlotsFull, info.Name, s.Name))
+				m.menuSpells(sess, p, a.slot, a.page)
+				return
+			}
+			slots[free] = s.ID
+		case !s.Off && at >= 0:
+			slots[at] = 0
+		}
+		if err := m.db.SetMercSpellSlots(p.CharServerID, a.slot, slots); err != nil {
+			log.Printf("Merc: %s's %q's spell slots not kept: %v", p.Name, info.Name, err)
+			mercSay(sess, mercKitFailed)
+			return
+		}
+		m.gw.SetMercLoadout(sess, a.slot, slots)
+	}
 	if m.db != nil {
 		if err := m.db.SetMercSpellsOff(p.CharServerID, a.slot, off); err != nil {
 			log.Printf("Merc: %s's %q's spells not kept: %v", p.Name, info.Name, err)
@@ -356,6 +391,7 @@ func (m *Mercs) menuSpellChoice(sess *session.Session, p *entity.Player, a mercA
 		}
 	}
 	m.gw.SetMercSpellsOff(sess, a.slot, off)
+	m.pushSpells(sess, p, a.slot)
 	log.Printf("Merc: %s turns %q (spell %d) of %q %s", p.Name, s.Name, s.ID, info.Name, map[bool]string{true: "on", false: "off"}[s.Off])
 	if s.Off {
 		SendClientMessage(sess, fmt.Sprintf(mercSpellOnLine, info.Name, s.Name))

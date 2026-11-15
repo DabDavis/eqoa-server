@@ -138,8 +138,8 @@ func (w *World) mercThrowablesLocked(ms *mercState) []mercThrowable {
 	}
 	for i := range ms.kit.Spells {
 		s := &ms.kit.Spells[i]
-		if containsInt(ms.kit.SpellsOff, s.SpellID) {
-			continue
+		if containsInt(ms.kit.SpellsOff, s.SpellID) || !ms.slotted(s.SpellID) {
+			continue // turned off, or left off its ten slots (mercloadout.go)
 		}
 		if mercPotionSpell(s) {
 			add(mercThrowable{pe: PotionEffect{ItemName: s.Name, Name: s.Name, Icon: s.Icon, Def: s.Def}, spell: s.SpellID})

@@ -288,6 +288,13 @@ type Session struct {
 	// name plate)
 	mercsLayout uint8
 
+	// mercWindow is the layout of the merc windows' state the client answered
+	// their offer with (protocol.OpcodeMercWindowOffer, handlers/mercwin.go):
+	// 1, its merc's inventory and spell windows open in place of the boxes
+	// and are sent the merc's state after each change. 0, a client that never
+	// answered (a PS2, an older build), keeps the boxes.
+	mercWindow uint8
+
 	// groupReg: the client answered the group search's offer 1
 	// (protocol.OpcodeGroupRegOffer, handlers/groupreg.go), so it is sent its
 	// standing (OpcodeGroupRegState) whenever it differs from groupRegSent
@@ -478,6 +485,25 @@ func (s *Session) MercsLayout() uint8 {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.mercsLayout
+}
+
+// SetMercWindow records the client's answer to the merc windows' offer (0
+// none).
+func (s *Session) SetMercWindow(layout uint8) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.mercWindow = layout
+}
+
+// MercWindow is the layout of the merc windows' state the client reads, 0
+// for a client that never answered (it is sent the boxes).
+func (s *Session) MercWindow() uint8 {
+	if s == nil {
+		return 0
+	}
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.mercWindow
 }
 
 // MercsTold is whether the client asked for the mercs it may see.

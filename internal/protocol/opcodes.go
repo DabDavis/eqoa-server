@@ -1063,6 +1063,81 @@ const (
 	OpcodeGroupInvitesSetting GameOpcode = 0x7E5F
 )
 
+// A merc's inventory and spell windows in vanilla, like the player's own
+// (handlers/mercwin.go; the owner, 2026-11-15: "the merc inventory should pop
+// up like player inventory menu also show the merc equipped gear. players can
+// replace it and/or give them new equipment like a player", and "also merc
+// spell menu should be like players also with spell book and 10 spells").
+// None is retail: a PS2 ignores the offer (CLIENT's dispatcher has no case
+// above 0x1402 and no default), never answers, and keeps the merc's boxes
+// (0x0034) and /merc. The server stays the judge of every move (the player's
+// gates, two-handers, a full merc or pack, NO TRADE and LORE, never an item
+// lost: mercinv.go) and answers each ask with the merc's whole state. All
+// little-endian; a string is a u8 byte count and its UTF-8 bytes.
+const (
+	// OpcodeMercWindowOffer both ways. Server to client once the player is in
+	// the world, where world.mercs is on: a u8, 1, the layout of
+	// OpcodeMercWindowState and OpcodeMercSpellsState. Client to server: a u8,
+	// the layout it reads (1), 0 to stop. A client that answered 1 has the
+	// merc's menu's Items > Inventory and Spells, and /merc [name] inv, open
+	// its windows in place of the boxes, and is sent the merc's state after
+	// every change to what it holds or casts, by any road (the boxes, /merc,
+	// the window).
+	OpcodeMercWindowOffer GameOpcode = 0x7E72
+	// OpcodeMercWindowAsk client to server: a u8 the merc's slot (1-3; 0 the
+	// player's only one, as /merc without a name), a u8 the ask, then its
+	// fields:
+	//   1 open: none; answered by OpcodeMercWindowState with flag 1;
+	//   2 give: a u32, the pack record's key (VINetItem's inv_index, as 0x003E
+	//     names it): the whole record goes to the merc (/merc give's rules);
+	//   3 equip: a u32 the merc's record id, then an i8 the equip slot (0-21;
+	//     -1 the first its wear takes, as /merc equip): a filled slot is
+	//     swapped, what it held (and what a two-hander takes off) carried;
+	//   4 unequip: a u32 the merc's record id: worn to carried;
+	//   5 take: a u32 the merc's record id: into the player's pack (0x003B),
+	//     as much as fits, a LORE item only while the player holds none.
+	// Each is answered by OpcodeMercWindowResult and, done, the state.
+	OpcodeMercWindowAsk GameOpcode = 0x7E73
+	// OpcodeMercWindowState server to client: a u8 layout (1); a u8 of flags
+	// (bit 0 open the window, bit 1 the hire is gone: close it); a u8 the
+	// merc's slot; its name; a u8 class, a u8 race, a u8 level; five u32s, its
+	// hit points and most, power and most, and AC; seven u32s, STR STA AGI DEX WIS INT CHA (its figures now
+	// while it is out, its buffs among them; else as its row makes it); a u8
+	// the records it holds at most (40); a u8 the count, and each record: a
+	// u32 its id (0 an heirloom, which is only shown), a u8 its kind (0
+	// carried, 1 worn, 2 an heirloom worn where it wears nothing of its own),
+	// then the record as 0x003B carries it (ReadNetItem: its equip slot the
+	// worn slot, -1 carried).
+	OpcodeMercWindowState GameOpcode = 0x7E74
+	// OpcodeMercWindowResult server to client, after each OpcodeMercWindowAsk
+	// and OpcodeMercSpellsAsk: a u8 the opcode's low byte (0x73 or 0x76), a u8
+	// the ask, a u8 1 done or 0 refused. Why a refusal is, and what was done,
+	// comes as the chat line every client gets.
+	OpcodeMercWindowResult GameOpcode = 0x7E75
+	// OpcodeMercSpellsAsk client to server: a u8 the merc's slot (as
+	// OpcodeMercWindowAsk's), a u8 the ask, then its fields:
+	//   1 open: none; answered by OpcodeMercSpellsState with flag 1;
+	//   2 set: a u8 the slot (0-9), a u32 the spell id (0 empties the slot); a
+	//     spell on another slot moves; the first change of a merc with none
+	//     set starts from its default ten;
+	//   3 clear: every slot emptied (it casts nothing it does not slot);
+	//   4 default: none set again (its whole book, as before the window).
+	// The merc casts only what its ten hold once they are set
+	// (entity/mercloadout.go); a spell turned on in a PS2's Spells box goes on
+	// the first empty slot, one turned off comes off its slot.
+	OpcodeMercSpellsAsk GameOpcode = 0x7E76
+	// OpcodeMercSpellsState server to client: a u8 layout (1); a u8 of flags
+	// (bit 0 open the window, bit 1 the merc is not out: close it, bit 2 its
+	// ten were set by its hirer, else they are its default); a u8 the merc's
+	// slot; its name; a u8 class, a u8 level; a u8 the count, and each spell
+	// of its book: the ability record as VIAbility::Read reads it (the
+	// MemoryDump's: its display index its place in this list, valid 1 and slot
+	// its slot 0-9 while on one, else 0 and -1, +0x14 1), then its use (a
+	// string: "hit", "heal", "buff", "pet", "potion"...) and a u8 1 when its
+	// menu turned it off; then ten u32s, the slots' spell ids (0 empty).
+	OpcodeMercSpellsState GameOpcode = 0x7E77
+)
+
 // Item links in chat, EQ1's: a player puts a link to one of its own items in a
 // line, and whoever clicks it sees the item as the linker held it then
 // (handlers/itemlinks.go; the GM Jibrish's petition 1463, 2026-11-10). A PS2,
@@ -1453,6 +1528,18 @@ func (op GameOpcode) String() string {
 		return "MercsData"
 	case OpcodeMercDismiss:
 		return "MercDismiss"
+	case OpcodeMercWindowOffer:
+		return "MercWindowOffer"
+	case OpcodeMercWindowAsk:
+		return "MercWindowAsk"
+	case OpcodeMercWindowState:
+		return "MercWindowState"
+	case OpcodeMercWindowResult:
+		return "MercWindowResult"
+	case OpcodeMercSpellsAsk:
+		return "MercSpellsAsk"
+	case OpcodeMercSpellsState:
+		return "MercSpellsState"
 	case OpcodeGroupRegOffer:
 		return "GroupRegOffer"
 	case OpcodeGroupRegState:

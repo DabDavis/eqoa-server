@@ -36,6 +36,7 @@ type plan struct {
 	// kills or loots counted questWeight times (-quest-weight)
 	near        []circle
 	zones       []string // -zone: only in these zones of CLIENT's grid (WORDS.TXT's names), lower case
+	notZones    []string // -not-zone: never in these, lower case
 	noSpread    bool
 	gapFill     float64
 	fillSpacing float64
@@ -356,13 +357,21 @@ func (p *plan) inNear(x, z float64) bool {
 }
 
 // inZones says whether (x, z) is in one of -zone's zones (every place
-// without -zone). The zones are Tunaria's and Rathe's grids (zones.go's
+// without -zone) and in none of -not-zone's. The zones are Tunaria's and Rathe's grids (zones.go's
 // zoneWord): a run's worlds are those -zone names.
 func (p *plan) inZones(x, z float64) bool {
-	if len(p.zones) == 0 {
+	if len(p.zones) == 0 && len(p.notZones) == 0 {
 		return true
 	}
 	name := strings.ToLower(p.zoneAt(p.curWorld, x, z))
+	for _, zn := range p.notZones {
+		if name == zn {
+			return false
+		}
+	}
+	if len(p.zones) == 0 {
+		return true
+	}
 	for _, zn := range p.zones {
 		if name == zn {
 			return true
@@ -869,6 +878,7 @@ func (p *plan) spread(land *landGrid, movers []*npcRow, open func(int) bool, rng
 		})
 	}
 	// a clump's ground: its samples joined to its middle without leaving it
+	var clumpGround map[int32][]int // each clump's open samples, made when first needed
 	for i, c := range clumps {
 		start := -1
 		best := math.Inf(1)
@@ -882,10 +892,29 @@ func (p *plan) spread(land *landGrid, movers []*npcRow, open func(int) bool, rng
 			}
 		}
 		if start < 0 {
-			// its middle's own sample, or the nearest of its ground
+			// its middle's own sample, or the nearest of its ground (its
+			// creatures' own samples all closed: a GM's row or a camp's NPC
+			// stands within npcClear of each, Forkwatch's parade by the GM's
+			// young black bears)
 			k := land.cell(c.mx, c.mz)
 			if k >= 0 && owner[k] == int32(i) {
 				start = k
+			} else {
+				if clumpGround == nil {
+					clumpGround = map[int32][]int{}
+					for k, o := range owner {
+						if o >= 0 {
+							clumpGround[o] = append(clumpGround[o], k)
+						}
+					}
+				}
+				best := math.Inf(1)
+				for _, k := range clumpGround[int32(i)] {
+					x, z := land.xz(k)
+					if d := math.Hypot(x-c.mx, z-c.mz); d < best {
+						start, best = k, d
+					}
+				}
 			}
 		}
 		if start < 0 {

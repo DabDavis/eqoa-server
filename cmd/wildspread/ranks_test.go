@@ -2,6 +2,7 @@ package main
 
 import (
 	"math"
+	"os"
 	"testing"
 )
 
@@ -83,5 +84,24 @@ func TestZones(t *testing.T) {
 	p.curWorld = 1
 	if p.inNear(13305, 24737) {
 		t.Error("Rathe's grid has no Kelinar")
+	}
+	p.curWorld, p.zones, p.notZones = 0, nil, []string{"kelinar"}
+	if p.inNear(13305, 24737) || !p.inNear(13060, 26507) {
+		t.Error("-not-zone Kelinar: out of Kelinar, in Gerntar Mines")
+	}
+}
+
+func TestReadHold(t *testing.T) {
+	path := t.TempDir() + "/hold.txt"
+	if err := os.WriteFile(path, []byte("# held\n12\n 34 # two\n\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if got, err := readHold("@" + path); err != nil || len(got) != 2 || got[0] != 12 || got[1] != 34 {
+		t.Errorf("got %v %v", got, err)
+	}
+	for _, bad := range []string{"12", "@" + path + ".none"} {
+		if _, err := readHold(bad); err == nil {
+			t.Errorf("%q taken", bad)
+		}
 	}
 }

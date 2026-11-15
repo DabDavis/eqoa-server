@@ -39,7 +39,7 @@ type input struct {
 	water     map[string]string // npcmove's water word by name
 	moveNote  map[string]string // npcmove's note by name
 	undead    map[string]bool   // npcundead's word by name
-	protected map[int64]string  // rows another tool or table places, and why
+	protected map[int64]string  // rows another tool or table places, and why (and -hold's)
 	places    []placeRule       // npcfaction's rules bound to a place
 }
 
@@ -165,6 +165,11 @@ func (in *input) readTables(db *database.SQLiteDB) error {
 	ids("its path's seed (npcpaths_seed)", `SELECT npcid FROM npcpaths_seed`)
 	ids("a sign (signtext)", `SELECT npcid FROM signtext`)
 	ids("a quest step names it (queststeps)", `SELECT npcid FROM queststeps WHERE npcid > 0`)
+	// a GM's own rows and edits (the panel's audit: a /place, a /clone, a
+	// camp report approved, a tool's fix of a camp) and a guide set's rows (a
+	// boss of the sky's twins): placed for a camp, a quest or an event
+	ids("a GM placed or changed it (gm_audit_facets)", `SELECT rid FROM gm_audit_facets WHERE tbl = 'npcs' AND action IN ('insert', 'update') AND rid > 0`)
+	ids("placed by a guide set (guide_set_log)", `SELECT rid FROM guide_set_log WHERE tbl = 'npcs' AND rid > 0`)
 	// a tagged run's fills (-tag) stay where it put them
 	var tagged []string
 	if tabs, err := db.Query(`SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'wildspread\_adds\_%' ESCAPE '\'`); err == nil {

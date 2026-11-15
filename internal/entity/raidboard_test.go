@@ -10,7 +10,7 @@ func TestTheInstancedRaidsBoardOpensTheDungeons(t *testing.T) {
 			t.Errorf("%q does not open the dungeons", name)
 		}
 	}
-	if IsDungeonWarden("PvP Events") || IsDungeonRaidBoard("Dungeon Warden") || !IsDungeonRaidBoard("Instanced Raids") {
+	if IsDungeonWarden("PvP Events") || IsDungeonRaidBoard("Dungeon Warden") || !IsDungeonRaidBoard("Instanced Raids") || !IsDungeonRaidBoard("Heroic Dungeons") || !IsDungeonWarden("Heroic Dungeons") {
 		t.Error("the board's name test is wrong")
 	}
 	board := &NPC{Name: DungeonRaidBoardName, ModelID: int64(PaperedBoardBody), Size: 1}
@@ -21,7 +21,7 @@ func TestTheInstancedRaidsBoardOpensTheDungeons(t *testing.T) {
 	w.dungeons.on, w.dungeons.world = true, 14
 	w.NPCs[10] = &NPC{ServerID: 10, Name: DungeonRaidBoardName, World: 0, X: 100, Z: 200, Facing: 0}
 	spot, _, ok := w.dungeonWardenSpotLocked()
-	if !ok || spot.Place != "in front of the Instanced Raids" || spot.Z <= 200 {
+	if !ok || spot.Place != "in front of the Heroic Dungeons" || spot.Z <= 200 {
 		t.Errorf("the way out: %+v %v", spot, ok)
 	}
 }

@@ -51,7 +51,7 @@ const (
 	dungeonsNoWorld  = "Your game cannot see the dungeons, so you cannot go there. It needs a client that builds the server's worlds (eqoa-rust-client-vanilla)."
 	dungeonsNotOpen  = "No instance of %s is open for your party, and only your group's leader may open one."
 	dungeonsAskBoard = "Raids for level 60 heroes in Tunaria's old dungeons. Each party gets its own copy. Where to?"
-	dungeonsTooFar   = "Come back to the Instanced Raids board or a Dungeon Warden to answer."
+	dungeonsTooFar   = "Come back to the Heroic Dungeons board or a Dungeon Warden to answer."
 	dungeonsReach    = 30
 	dungeonsHelp     = "/dungeon names your party's open dungeons; /dungeon enter <%s> goes in (a group's leader, or a player alone, opens its party's instance); /dungeon leave goes back out; /dungeon reset <name> closes the instance you opened while no one is inside; /addinstance <player> and /removeinstance <player> (the leader's) add to and take from your party's instance. Or read the Instanced Raids board by Freeport's well."
 )

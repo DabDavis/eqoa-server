@@ -49,17 +49,22 @@ const DungeonWardenName = "Dungeon Warden"
 // DungeonRaidBoardName is Freeport's papered board against the well that offers the same dungeons (the owner,
 // 2026-11-12: "for the instanced raids add them to a bulletin board similar to PvP Events, against the well";
 // tools/raidboard_20261112.py made the Freeport warden that board; the entrance twins stay wardens).
-const DungeonRaidBoardName = "Instanced Raids"
+// Named "Heroic Dungeons" since 2026-11-15 (the owner: "lets change Instanced Raids name to Heroic Dungeons");
+// a board still named the old way (dungeonRaidBoardOldName) is the same board.
+const DungeonRaidBoardName = "Heroic Dungeons"
 
-// IsDungeonWarden is whether an NPC of the name opens the dungeons: a Dungeon Warden or the Instanced Raids board.
+// dungeonRaidBoardOldName is the board's name before 2026-11-15.
+const dungeonRaidBoardOldName = "Instanced Raids"
+
+// IsDungeonWarden is whether an NPC of the name opens the dungeons: a Dungeon Warden or the Heroic Dungeons board.
 func IsDungeonWarden(name string) bool {
-	n := strings.TrimSpace(name)
-	return strings.EqualFold(n, DungeonWardenName) || strings.EqualFold(n, DungeonRaidBoardName)
+	return strings.EqualFold(strings.TrimSpace(name), DungeonWardenName) || IsDungeonRaidBoard(name)
 }
 
-// IsDungeonRaidBoard is whether an NPC of the name is the Instanced Raids board.
+// IsDungeonRaidBoard is whether an NPC of the name is the Heroic Dungeons board.
 func IsDungeonRaidBoard(name string) bool {
-	return strings.EqualFold(strings.TrimSpace(name), DungeonRaidBoardName)
+	n := strings.TrimSpace(name)
+	return strings.EqualFold(n, DungeonRaidBoardName) || strings.EqualFold(n, dungeonRaidBoardOldName)
 }
 
 // dungeonsCheckEvery is how often the dungeons' world is looked over.

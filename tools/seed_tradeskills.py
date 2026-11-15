@@ -72,6 +72,27 @@ molds; eqoatrade's vendors (Prima's where eqoatrade's is no NPC here) and
 starter (a dull knife by its recipe, a crude rusty mace by experiment, both
 under Special); the modifiers drop from the loot categories' "modifiers".
 
+**Tailoring** (--craft tailor): Prima's Frontiers guide's Tailoring pages
+(pp. 444-445; eqoatrade has none, nor any other source a recipe): the
+textiles (ten cloth from fur to mithril silk, eight leather from tattered
+hide at trade level 3 to stonehide, a tab each in CLIENT's own list), their
+bonus durability, hit points and AC, the mundane AC of each cloth and leather
+piece, the stat bonuses by trade level and the 22 modifiers (the armorsmiths'
+thirteen gems, tailoring's own studs, threads and sap), checked against the
+guide's text (a difference is a problem and nothing is written). A recipe is a
+textile, a pattern and from trade level 4 (a robe's from 3: Prima's counts,
+2,088 in all) a modifier, kept on a failure. Names "<textile> <piece>" and
+"<word> <textile> <piece>" in Title Case, by Prima's naming conventions
+("Titan*", "Heartsblood*") and the live record's "Heartsblood Stonehide Helm"
+(a leather cap is a helm). Padded cloth (CLIENT's armor set 1), leather (2),
+robes style 0, each tinted by Prima's colour for its trade level. Sandstorm's
+kits (wear slot 24, Tailoring's tool), patterns and textiles; Prima's city
+tables for the trainers and sellers (every NPC of a seller's name stocked; a
+name the two shards spell two ways set to Prima's); the starter (no source
+has one: ours) a patchwork cap by its recipe and patchwork hide gloves by
+experiment, under Special; the modifiers drop from the loot categories'
+"modifiers". A record of a product's name is the product only with its stats.
+
 A product this server has the live record of (its name, level and slot: the
 heartsblood and mindflow sets, "heartsblood seralite breastplate") is that
 record; one of the name that is another item (a found "Steel Chain Tunic" of
@@ -91,7 +112,7 @@ Every row written and every value changed is logged in tradeskill_seed;
 the log is there. Report only by default. The server reads recipes, stock and
 loot as it goes; new items reach a client at its next login.
 
-    tools/seed_tradeskills.py [--db eqoa.db] --sources <folder> --harvests <dir or file> ... [--craft armor|jewel|weapon] [--apply | --undo]
+    tools/seed_tradeskills.py [--db eqoa.db] --sources <folder> --harvests <dir or file> ... [--craft armor|jewel|weapon|tailor] [--apply | --undo]
 
 In two steps, for a server that must not wait on the sources' reading (it takes ~25 s): --plan-out PLAN.json
 against a copy of the target (decides everything, writes nothing), then --db <target> --plan-in PLAN.json --apply
@@ -2115,7 +2136,8 @@ def main():
     for x in p["products"]:
         if x["have"] is not None:
             print(f"  {x['name']!r} is here already ({x['have']}): its recipe makes that record")
-    print(f"cells read: {p['cells']}" + (" (Prima's count: 2,329)" if a.craft == "armor" else ""))
+    print(f"cells read: {p['cells']}" + (" (Prima's count: 2,329)" if a.craft == "armor" else
+                                          " (Prima's figures checked)" if a.craft == "tailor" else ""))
     for city, role, name, (npc, _, _), wares in p["stock"]:
         print(f"  {city}: {name} ({npc}) sells the {len(wares)} {role}")
     for ln in p["left"]:

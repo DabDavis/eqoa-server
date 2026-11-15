@@ -2170,6 +2170,564 @@
       ],
       "unresolved": [],
       "notes": "eqoatrade.com's weapon tutorial (2003-04): the trainer's kit (its \"apprentice weaponsmith hammer\" is Sandstorm's Novice tier, as the armorsmiths' is; its dented iron block, whose use eqoatrade did not know, is left out), the dull knife by its recipe and the crude rusty mace by experiment. Tethelin's Weaponsmith Silvast sends players to Weaponsmith Vellana in Fayspires (eqoatrade, QuestMasters id526): no quest of his own. The words are ours."
+    },
+    {
+      "key": "tradeskills/tailor/halas",
+      "name": "Tailoring",
+      "giver": "Seamster Jackson",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You would learn the needle? Every garment begins with cloth or hide and a pattern. Take this kit, a recipe and a few scraps. Sew a patchwork cap and show it to me. Will you learn?",
+      "accept": "I will learn the tailor's craft.",
+      "decline": "Not now.",
+      "declined": "The needle will keep. Come back when your hands are ready.",
+      "started": "Hold the kit, read the recipe, then open your recipe book under Tailoring and sew the cap from the scrap of cloth and the cloth cap pattern, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Seamster Jackson",
+          "items": [
+            {
+              "item": "Patchwork Cap",
+              "count": 1
+            }
+          ],
+          "journal": "Sew a patchwork cap and show it to Seamster Jackson.",
+          "notyet": "Not yet. Hold the kit, read the recipe, and sew the cap from your recipe book.",
+          "says": "Crooked, but it will keep the rain off. Now experiment: the scrap of hide and the leather gloves pattern make something too. A textile and a pattern make a piece; a gem or a stud makes it more."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Tailor's Kit",
+              "count": 1
+            },
+            {
+              "item": "Patchwork Cap Recipe",
+              "count": 1
+            },
+            {
+              "item": "Scrap of Cloth",
+              "count": 1
+            },
+            {
+              "item": "Scrap of Hide",
+              "count": 1
+            },
+            {
+              "item": "Cloth Cap Pattern",
+              "count": 1
+            },
+            {
+              "item": "Leather Gloves Pattern",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "No source records Tailoring's starter (eqoatrade has no tailoring pages; Prima names only the trainers): the kit is Sandstorm's Novice Tailor's Kit, the patchwork cap by its recipe and the patchwork hide gloves by experiment are ours, as the other crafts' starters are shaped. The trainer is Prima's (Fayspires: this server's Seamster Bliss beside Prima's two merchants). The words are ours."
+    },
+    {
+      "key": "tradeskills/tailor/fayspires",
+      "name": "Tailoring",
+      "giver": "Seamster Bliss",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You would learn the needle? Every garment begins with cloth or hide and a pattern. Take this kit, a recipe and a few scraps. Sew a patchwork cap and show it to me. Will you learn?",
+      "accept": "I will learn the tailor's craft.",
+      "decline": "Not now.",
+      "declined": "The needle will keep. Come back when your hands are ready.",
+      "started": "Hold the kit, read the recipe, then open your recipe book under Tailoring and sew the cap from the scrap of cloth and the cloth cap pattern, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Seamster Bliss",
+          "items": [
+            {
+              "item": "Patchwork Cap",
+              "count": 1
+            }
+          ],
+          "journal": "Sew a patchwork cap and show it to Seamster Bliss.",
+          "notyet": "Not yet. Hold the kit, read the recipe, and sew the cap from your recipe book.",
+          "says": "Crooked, but it will keep the rain off. Now experiment: the scrap of hide and the leather gloves pattern make something too. A textile and a pattern make a piece; a gem or a stud makes it more."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Tailor's Kit",
+              "count": 1
+            },
+            {
+              "item": "Patchwork Cap Recipe",
+              "count": 1
+            },
+            {
+              "item": "Scrap of Cloth",
+              "count": 1
+            },
+            {
+              "item": "Scrap of Hide",
+              "count": 1
+            },
+            {
+              "item": "Cloth Cap Pattern",
+              "count": 1
+            },
+            {
+              "item": "Leather Gloves Pattern",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "No source records Tailoring's starter (eqoatrade has no tailoring pages; Prima names only the trainers): the kit is Sandstorm's Novice Tailor's Kit, the patchwork cap by its recipe and the patchwork hide gloves by experiment are ours, as the other crafts' starters are shaped. The trainer is Prima's (Fayspires: this server's Seamster Bliss beside Prima's two merchants). The words are ours."
+    },
+    {
+      "key": "tradeskills/tailor/klick-anon",
+      "name": "Tailoring",
+      "giver": "Seamster Snifle",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You would learn the needle? Every garment begins with cloth or hide and a pattern. Take this kit, a recipe and a few scraps. Sew a patchwork cap and show it to me. Will you learn?",
+      "accept": "I will learn the tailor's craft.",
+      "decline": "Not now.",
+      "declined": "The needle will keep. Come back when your hands are ready.",
+      "started": "Hold the kit, read the recipe, then open your recipe book under Tailoring and sew the cap from the scrap of cloth and the cloth cap pattern, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Seamster Snifle",
+          "items": [
+            {
+              "item": "Patchwork Cap",
+              "count": 1
+            }
+          ],
+          "journal": "Sew a patchwork cap and show it to Seamster Snifle.",
+          "notyet": "Not yet. Hold the kit, read the recipe, and sew the cap from your recipe book.",
+          "says": "Crooked, but it will keep the rain off. Now experiment: the scrap of hide and the leather gloves pattern make something too. A textile and a pattern make a piece; a gem or a stud makes it more."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Tailor's Kit",
+              "count": 1
+            },
+            {
+              "item": "Patchwork Cap Recipe",
+              "count": 1
+            },
+            {
+              "item": "Scrap of Cloth",
+              "count": 1
+            },
+            {
+              "item": "Scrap of Hide",
+              "count": 1
+            },
+            {
+              "item": "Cloth Cap Pattern",
+              "count": 1
+            },
+            {
+              "item": "Leather Gloves Pattern",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "No source records Tailoring's starter (eqoatrade has no tailoring pages; Prima names only the trainers): the kit is Sandstorm's Novice Tailor's Kit, the patchwork cap by its recipe and the patchwork hide gloves by experiment are ours, as the other crafts' starters are shaped. The trainer is Prima's (Fayspires: this server's Seamster Bliss beside Prima's two merchants). The words are ours."
+    },
+    {
+      "key": "tradeskills/tailor/rivervale",
+      "name": "Tailoring",
+      "giver": "Seamster Brine",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You would learn the needle? Every garment begins with cloth or hide and a pattern. Take this kit, a recipe and a few scraps. Sew a patchwork cap and show it to me. Will you learn?",
+      "accept": "I will learn the tailor's craft.",
+      "decline": "Not now.",
+      "declined": "The needle will keep. Come back when your hands are ready.",
+      "started": "Hold the kit, read the recipe, then open your recipe book under Tailoring and sew the cap from the scrap of cloth and the cloth cap pattern, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Seamster Brine",
+          "items": [
+            {
+              "item": "Patchwork Cap",
+              "count": 1
+            }
+          ],
+          "journal": "Sew a patchwork cap and show it to Seamster Brine.",
+          "notyet": "Not yet. Hold the kit, read the recipe, and sew the cap from your recipe book.",
+          "says": "Crooked, but it will keep the rain off. Now experiment: the scrap of hide and the leather gloves pattern make something too. A textile and a pattern make a piece; a gem or a stud makes it more."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Tailor's Kit",
+              "count": 1
+            },
+            {
+              "item": "Patchwork Cap Recipe",
+              "count": 1
+            },
+            {
+              "item": "Scrap of Cloth",
+              "count": 1
+            },
+            {
+              "item": "Scrap of Hide",
+              "count": 1
+            },
+            {
+              "item": "Cloth Cap Pattern",
+              "count": 1
+            },
+            {
+              "item": "Leather Gloves Pattern",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "No source records Tailoring's starter (eqoatrade has no tailoring pages; Prima names only the trainers): the kit is Sandstorm's Novice Tailor's Kit, the patchwork cap by its recipe and the patchwork hide gloves by experiment are ours, as the other crafts' starters are shaped. The trainer is Prima's (Fayspires: this server's Seamster Bliss beside Prima's two merchants). The words are ours."
+    },
+    {
+      "key": "tradeskills/tailor/freeport",
+      "name": "Tailoring",
+      "giver": "Seamster Jonns",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You would learn the needle? Every garment begins with cloth or hide and a pattern. Take this kit, a recipe and a few scraps. Sew a patchwork cap and show it to me. Will you learn?",
+      "accept": "I will learn the tailor's craft.",
+      "decline": "Not now.",
+      "declined": "The needle will keep. Come back when your hands are ready.",
+      "started": "Hold the kit, read the recipe, then open your recipe book under Tailoring and sew the cap from the scrap of cloth and the cloth cap pattern, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Seamster Jonns",
+          "items": [
+            {
+              "item": "Patchwork Cap",
+              "count": 1
+            }
+          ],
+          "journal": "Sew a patchwork cap and show it to Seamster Jonns.",
+          "notyet": "Not yet. Hold the kit, read the recipe, and sew the cap from your recipe book.",
+          "says": "Crooked, but it will keep the rain off. Now experiment: the scrap of hide and the leather gloves pattern make something too. A textile and a pattern make a piece; a gem or a stud makes it more."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Tailor's Kit",
+              "count": 1
+            },
+            {
+              "item": "Patchwork Cap Recipe",
+              "count": 1
+            },
+            {
+              "item": "Scrap of Cloth",
+              "count": 1
+            },
+            {
+              "item": "Scrap of Hide",
+              "count": 1
+            },
+            {
+              "item": "Cloth Cap Pattern",
+              "count": 1
+            },
+            {
+              "item": "Leather Gloves Pattern",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "No source records Tailoring's starter (eqoatrade has no tailoring pages; Prima names only the trainers): the kit is Sandstorm's Novice Tailor's Kit, the patchwork cap by its recipe and the patchwork hide gloves by experiment are ours, as the other crafts' starters are shaped. The trainer is Prima's (Fayspires: this server's Seamster Bliss beside Prima's two merchants). The words are ours."
+    },
+    {
+      "key": "tradeskills/tailor/qeynos",
+      "name": "Tailoring",
+      "giver": "Seamster Clors",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You would learn the needle? Every garment begins with cloth or hide and a pattern. Take this kit, a recipe and a few scraps. Sew a patchwork cap and show it to me. Will you learn?",
+      "accept": "I will learn the tailor's craft.",
+      "decline": "Not now.",
+      "declined": "The needle will keep. Come back when your hands are ready.",
+      "started": "Hold the kit, read the recipe, then open your recipe book under Tailoring and sew the cap from the scrap of cloth and the cloth cap pattern, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Seamster Clors",
+          "items": [
+            {
+              "item": "Patchwork Cap",
+              "count": 1
+            }
+          ],
+          "journal": "Sew a patchwork cap and show it to Seamster Clors.",
+          "notyet": "Not yet. Hold the kit, read the recipe, and sew the cap from your recipe book.",
+          "says": "Crooked, but it will keep the rain off. Now experiment: the scrap of hide and the leather gloves pattern make something too. A textile and a pattern make a piece; a gem or a stud makes it more."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Tailor's Kit",
+              "count": 1
+            },
+            {
+              "item": "Patchwork Cap Recipe",
+              "count": 1
+            },
+            {
+              "item": "Scrap of Cloth",
+              "count": 1
+            },
+            {
+              "item": "Scrap of Hide",
+              "count": 1
+            },
+            {
+              "item": "Cloth Cap Pattern",
+              "count": 1
+            },
+            {
+              "item": "Leather Gloves Pattern",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "No source records Tailoring's starter (eqoatrade has no tailoring pages; Prima names only the trainers): the kit is Sandstorm's Novice Tailor's Kit, the patchwork cap by its recipe and the patchwork hide gloves by experiment are ours, as the other crafts' starters are shaped. The trainer is Prima's (Fayspires: this server's Seamster Bliss beside Prima's two merchants). The words are ours."
+    },
+    {
+      "key": "tradeskills/tailor/surefall-glade",
+      "name": "Tailoring",
+      "giver": "Seamstress Wyndham",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You would learn the needle? Every garment begins with cloth or hide and a pattern. Take this kit, a recipe and a few scraps. Sew a patchwork cap and show it to me. Will you learn?",
+      "accept": "I will learn the tailor's craft.",
+      "decline": "Not now.",
+      "declined": "The needle will keep. Come back when your hands are ready.",
+      "started": "Hold the kit, read the recipe, then open your recipe book under Tailoring and sew the cap from the scrap of cloth and the cloth cap pattern, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Seamstress Wyndham",
+          "items": [
+            {
+              "item": "Patchwork Cap",
+              "count": 1
+            }
+          ],
+          "journal": "Sew a patchwork cap and show it to Seamstress Wyndham.",
+          "notyet": "Not yet. Hold the kit, read the recipe, and sew the cap from your recipe book.",
+          "says": "Crooked, but it will keep the rain off. Now experiment: the scrap of hide and the leather gloves pattern make something too. A textile and a pattern make a piece; a gem or a stud makes it more."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Tailor's Kit",
+              "count": 1
+            },
+            {
+              "item": "Patchwork Cap Recipe",
+              "count": 1
+            },
+            {
+              "item": "Scrap of Cloth",
+              "count": 1
+            },
+            {
+              "item": "Scrap of Hide",
+              "count": 1
+            },
+            {
+              "item": "Cloth Cap Pattern",
+              "count": 1
+            },
+            {
+              "item": "Leather Gloves Pattern",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "No source records Tailoring's starter (eqoatrade has no tailoring pages; Prima names only the trainers): the kit is Sandstorm's Novice Tailor's Kit, the patchwork cap by its recipe and the patchwork hide gloves by experiment are ours, as the other crafts' starters are shaped. The trainer is Prima's (Fayspires: this server's Seamster Bliss beside Prima's two merchants). The words are ours."
+    },
+    {
+      "key": "tradeskills/tailor/oggok",
+      "name": "Tailoring",
+      "giver": "Seamster Pugs",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You would learn the needle? Every garment begins with cloth or hide and a pattern. Take this kit, a recipe and a few scraps. Sew a patchwork cap and show it to me. Will you learn?",
+      "accept": "I will learn the tailor's craft.",
+      "decline": "Not now.",
+      "declined": "The needle will keep. Come back when your hands are ready.",
+      "started": "Hold the kit, read the recipe, then open your recipe book under Tailoring and sew the cap from the scrap of cloth and the cloth cap pattern, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Seamster Pugs",
+          "items": [
+            {
+              "item": "Patchwork Cap",
+              "count": 1
+            }
+          ],
+          "journal": "Sew a patchwork cap and show it to Seamster Pugs.",
+          "notyet": "Not yet. Hold the kit, read the recipe, and sew the cap from your recipe book.",
+          "says": "Crooked, but it will keep the rain off. Now experiment: the scrap of hide and the leather gloves pattern make something too. A textile and a pattern make a piece; a gem or a stud makes it more."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Tailor's Kit",
+              "count": 1
+            },
+            {
+              "item": "Patchwork Cap Recipe",
+              "count": 1
+            },
+            {
+              "item": "Scrap of Cloth",
+              "count": 1
+            },
+            {
+              "item": "Scrap of Hide",
+              "count": 1
+            },
+            {
+              "item": "Cloth Cap Pattern",
+              "count": 1
+            },
+            {
+              "item": "Leather Gloves Pattern",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "No source records Tailoring's starter (eqoatrade has no tailoring pages; Prima names only the trainers): the kit is Sandstorm's Novice Tailor's Kit, the patchwork cap by its recipe and the patchwork hide gloves by experiment are ours, as the other crafts' starters are shaped. The trainer is Prima's (Fayspires: this server's Seamster Bliss beside Prima's two merchants). The words are ours."
+    },
+    {
+      "key": "tradeskills/tailor/grobb",
+      "name": "Tailoring",
+      "giver": "Seamster Hweit",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You would learn the needle? Every garment begins with cloth or hide and a pattern. Take this kit, a recipe and a few scraps. Sew a patchwork cap and show it to me. Will you learn?",
+      "accept": "I will learn the tailor's craft.",
+      "decline": "Not now.",
+      "declined": "The needle will keep. Come back when your hands are ready.",
+      "started": "Hold the kit, read the recipe, then open your recipe book under Tailoring and sew the cap from the scrap of cloth and the cloth cap pattern, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Seamster Hweit",
+          "items": [
+            {
+              "item": "Patchwork Cap",
+              "count": 1
+            }
+          ],
+          "journal": "Sew a patchwork cap and show it to Seamster Hweit.",
+          "notyet": "Not yet. Hold the kit, read the recipe, and sew the cap from your recipe book.",
+          "says": "Crooked, but it will keep the rain off. Now experiment: the scrap of hide and the leather gloves pattern make something too. A textile and a pattern make a piece; a gem or a stud makes it more."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Tailor's Kit",
+              "count": 1
+            },
+            {
+              "item": "Patchwork Cap Recipe",
+              "count": 1
+            },
+            {
+              "item": "Scrap of Cloth",
+              "count": 1
+            },
+            {
+              "item": "Scrap of Hide",
+              "count": 1
+            },
+            {
+              "item": "Cloth Cap Pattern",
+              "count": 1
+            },
+            {
+              "item": "Leather Gloves Pattern",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "No source records Tailoring's starter (eqoatrade has no tailoring pages; Prima names only the trainers): the kit is Sandstorm's Novice Tailor's Kit, the patchwork cap by its recipe and the patchwork hide gloves by experiment are ours, as the other crafts' starters are shaped. The trainer is Prima's (Fayspires: this server's Seamster Bliss beside Prima's two merchants). The words are ours."
     }
   ],
   "items": []

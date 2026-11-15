@@ -602,5 +602,183 @@ class SeedWeapons(unittest.TestCase):
         self.assertEqual(self.q("SELECT count(*) FROM sqlite_master WHERE name = 'tradeskill_seed'"), [(0,)])
 
 
+def tailor_prima_text():
+    """Prima's Tailoring pages (pp. 444-445) in their layout text's shapes, from the tool's own tables."""
+    out = ["Blue Diamond N\\A", "", "Tailoring", "There are 108 total mundane pieces of armor, ... 2088",
+           "total tailoring products that can be created via the tailoring tradeskill.",
+           "Textile Name           Trade Level         Product Level    Bonus Dur.     Bonus HP       AC Chart        Bonus AC"]
+    for tl in range(1, 11):
+        names = "/".join(w for w, _, _, t in M.TEXTILES if t == tl)
+        chart = "Cloth" if tl < 3 else "Cloth/Leather"
+        out.append(f"{names:<24}{tl:>4}{5 * tl - 4:>16}–{5 * tl}{M.TAILOR_BONUS_DUR[tl - 1]:>10}{M.TAILOR_BONUS_HP[tl - 1]:>14}"
+                   f"        {chart}{M.TAILOR_BONUS_AC[tl - 1]:>10}          Cap                   Head")
+    out.append("Material Name           Rarity         Magical Property     Conventions")
+    rar = ["Common", "Uncommon", "Rare", "Ultra-Rare"]
+    mods = list(M.TAILOR_MODS.items())
+    for i in range(0, len(mods), 2):
+        cells = []
+        for name, (rarity, _, cols, word) in mods[i:i + 2]:
+            prop = M.TAILOR_PROPERTY[cols[0] if len(cols) == 1 else cols]
+            pw = "Sinahlite" if word == "Sinhalite" else word
+            cells.append(f"{name:<22} {rar[rarity]:<14} {prop:<26} {pw}*")
+        out.append("      ".join(cells))
+    out.append("Mold/Pattern         TL1             TL2")
+    for kind in ("cloth", "leather"):
+        for piece in ("cap", "tunic", "bracers", "gloves", "leggings", "boots"):
+            out.append(f"{piece.title():<20}" + "".join(f"{n:>5} AC" for n in M.TAILOR_AC[kind][piece]))
+    for label, kind in (("Resist", "one"), ("Attribute", "one"), ("Two Resists", "two"), ("Two Attributes", "two"),
+                        ("Hit Point or Power Max", "max"), ("Hit Point and Power Max", "both"),
+                        ("Hit Points Over Time", "over"), ("Power Over Time", "over")):
+        two = kind in ("two", "both")
+        out.append(f"{label:<29}" + "".join(f"{'—' if n is None else (f'{n}/{n}' if two else n):>10}"
+                                            for n in M.TAILOR_STAT[kind]))
+    out += ["primagames.com 445", "", "Weaponcrafting"]
+    return "\n".join(out) + "\n"
+
+
+class SeedTailoring(unittest.TestCase):
+    """--craft tailor: Prima's Tailoring tables (textiles, mundane AC, stat bonuses, modifiers) checked against its text,
+    Sandstorm's kits, patterns and textiles, Prima's city tables for the sellers (each NPC of a name stocked; a shard's
+    other spelling of an NPC set to Prima's, and put back by --undo)."""
+
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory()
+        d = self.dir.name
+        self.sources = os.path.join(d, "sources")
+        os.makedirs(os.path.join(self.sources, "prima"))
+        self.prima = os.path.join(self.sources, "prima", "prima-frontiers-layout.txt")
+        with open(self.prima, "w") as f:
+            f.write(tailor_prima_text())
+        wares = [ware(28527 + k, f"{h} Tailor's Kit", 100 * (k + 1), wear=24, level=1 + 5 * k, craft=0, stack=1)
+                 for k, h in enumerate(M.KITS)]
+        pats = [p for ps in M.TAILOR_PIECES.values() for _, _, _, p in ps]
+        wares += [ware(28537 + k, p, 10) for k, p in enumerate(pats)]
+        wares += [ware(27516 + k, n, 14 + 40 * k) for k, (_, n, _, _) in enumerate(M.TEXTILES)]
+        with open(os.path.join(d, "harvest.json"), "w") as f:
+            json.dump({"character": {"world": 0}, "merchants": [{"name": "Merchant Flagan", "wares": wares}]}, f)
+        self.db = os.path.join(d, "t.db")
+        db = sqlite3.connect(self.db)
+        db.execute(f"CREATE TABLE itempattern ({ITEM_COLS.replace('patternid INTEGER PRIMARY KEY', 'patternid INTEGER PRIMARY KEY AUTOINCREMENT')})")
+        # this server's looks: a padded cap (model 1), a leather helm (2), a robe (0); the armorsmiths' gems
+        for name, slot, model, icon in (("old padded cap", 1, 1, 301), ("old leather helm", 1, 2, 302), ("old robe", 2, 0, 303)):
+            db.execute("INSERT INTO itempattern (itemname, equipslot, model, color, itemicon, itemcost, levelreq, craft) "
+                       "VALUES (?, ?, ?, -1, ?, 5, 10, 0)", (name, slot, model, icon))
+        for m, (rarity, _, _, _) in M.TAILOR_MODS.items():
+            if rarity == 0:
+                db.execute("INSERT INTO itempattern (itemname, craft, equipslot, model, color, itemicon, itemcost, maxstack) "
+                           "VALUES (?, 1, -1, 0, 0, 77, 20, 50)", (m,))
+        # a record of a product's name and level with other stats (a transfer's): another item
+        db.execute("INSERT INTO itempattern (itemname, equipslot, model, color, itemicon, itemcost, levelreq, craft, AC, wis, HPMAX) "
+                   "VALUES ('Heartsblood Stonehide Helm', 1, 2, 0, 9, 5, 48, 0, 60, 27, 95)")
+        db.execute("INSERT INTO itempattern (itemname, craft, equipslot, model, color, itemicon, itemcost, maxstack) "
+                   "VALUES ('leather strip', 0, -1, 0, 0, 78, 1, 20)")
+        db.execute("CREATE TABLE npcs (id INTEGER PRIMARY KEY, npc_name TEXT, npc_id INTEGER, npc_type INTEGER)")
+        npcs = [(n, name, n, 129) for n, name in enumerate(
+            [x for v in M.TAILOR_SELLERS.values() for x in (v["kits"], v["material"])], start=1)]
+        npcs = [(i, {"Merchant Finwork": "Merhant Finwork"}.get(nm, nm), j, t) for i, nm, j, t in npcs]
+        npcs += [(100, "Merchant Dirlen", 100, 129), (101, "Seamster Wyndham", 0, 128), (102, "Seamster Jonns", 0, 128)]
+        db.executemany("INSERT INTO npcs VALUES (?, ?, ?, ?)", npcs)
+        db.execute("CREATE TABLE npcitem (itemid INTEGER PRIMARY KEY AUTOINCREMENT, npcid INTEGER, stackleft INTEGER, remainHP INTEGER, "
+                   "remaincharge INTEGER, patternid INTEGER, equiploc INTEGER, location INTEGER, listnumber INTEGER)")
+        strip = db.execute("SELECT patternid FROM itempattern WHERE itemname = 'leather strip'").fetchone()[0]
+        db.execute("INSERT INTO npcitem VALUES (10, 100, 1, 0, 0, ?, -1, 1, 0)", (strip,))  # a stand-in at the second Dirlen
+        db.execute("CREATE TABLE merchant_stock (what TEXT, key INTEGER, old TEXT, new TEXT, note TEXT)")
+        db.execute("INSERT INTO merchant_stock VALUES ('catalog', 10, NULL, '100,1,0', 'general goods')")
+        db.execute("CREATE TABLE lootpool (id INTEGER PRIMARY KEY AUTOINCREMENT, category TEXT NOT NULL, region TEXT NOT NULL DEFAULT '*', "
+                   "npc_name TEXT NOT NULL DEFAULT '', patternid INTEGER NOT NULL, weight INTEGER NOT NULL DEFAULT 1, "
+                   "minlevel INTEGER NOT NULL DEFAULT 1, maxlevel INTEGER NOT NULL DEFAULT 100, source TEXT NOT NULL DEFAULT 'gm')")
+        gem = db.execute("SELECT patternid FROM itempattern WHERE itemname = 'Sinhalite'").fetchone()[0]
+        db.execute("INSERT INTO lootpool (category, patternid, weight) VALUES ('modifiers', ?, 30)", (gem,))
+        db.execute("CREATE TABLE gm_audit (id INTEGER PRIMARY KEY AUTOINCREMENT, at TEXT, accountid INTEGER, username TEXT, via TEXT, "
+                   "ip TEXT, action TEXT, tbl TEXT, rowkey TEXT, before TEXT, after TEXT, detail TEXT, reverted_by INTEGER)")
+        db.commit()
+        db.close()
+
+    tearDown = SeedWeapons.tearDown
+    q = SeedWeapons.q
+    snapshot = SeedWeapons.snapshot
+
+    def tool(self, *args, ok=True):
+        r = subprocess.run([sys.executable, "-E", "-s", TOOL, "--db", self.db, "--no-backup", "--craft", "tailor", *args],
+                           capture_output=True, text=True)
+        if ok and r.returncode != 0:
+            raise AssertionError(r.stdout + r.stderr)
+        return r
+
+    def run_seed(self, *args, ok=True):
+        return self.tool("--sources", self.sources, "--harvests", self.dir.name, *args, ok=ok)
+
+    def test_apply_and_undo(self):
+        before = self.snapshot()
+        out = self.run_seed().stdout
+        self.assertIn("products and recipes: 2090", out)  # Prima's 2,088 and the two starters
+        self.assertNotIn("problem", out)
+        self.run_seed("--apply")
+        # Prima's counts: 108 mundane pieces, 10 mundane robes, 170 magical robes, 1,800 magical pieces
+        n = dict(self.q("SELECT (CASE WHEN p.equipslot = 2 THEN 'robe' ELSE 'piece' END) || (CASE WHEN r.rarity = 0 AND "
+                        "r.ingredients NOT LIKE '%true%' THEN ' mundane' ELSE ' magical' END), count(*) FROM craftrecipes r "
+                        "JOIN itempattern p ON p.patternid = r.product WHERE r.comp != ? GROUP BY 1", (M.TAILOR_SPECIAL,)))
+        self.assertEqual(n, {"piece mundane": 108, "robe mundane": 10, "robe magical": 170, "piece magical": 1800})
+        # a mundane cloth cap of fur: Prima's 5 AC, level 3, padded (model 1), Tan, every class, 200 x 3 + 50 HP
+        (lvl, slot, model, color, ac, hp, dur, cls, icon), = self.q(
+            "SELECT levelreq, equipslot, model, color, AC, maxhp, duration, classuse, itemicon FROM itempattern WHERE itemname = 'Fur Cap'")
+        self.assertEqual((lvl, slot, model, color, ac, hp, dur, cls, icon), (3, 1, 1, 11, 5, 650, 51, 32767, 301))
+        (skill, comp, level, rarity, ing), = self.q("SELECT skill, comp, level, rarity, ingredients FROM craftrecipes WHERE name = 'Fur Cap'")
+        self.assertEqual((skill, comp, level, rarity, json.loads(ing)),
+                         (2, 0, 1, 0, [{"item": 27516, "count": 1, "keep": False}, {"item": 28537, "count": 1, "keep": False}]))
+        # a leather cap is a helm; stonehide is the last tab (17); a heartsblood one heals over time from trade level 6
+        (pid, ac, hot, cls, model), = self.q("SELECT patternid, AC, HoT, classuse, model FROM itempattern "
+                                             "WHERE itemname = 'Heartsblood Stonehide Helm' AND HoT > 0")
+        self.assertEqual((ac, hot, cls, model), (60, 10, 17407, 2))
+        self.assertEqual(self.q("SELECT comp, level, rarity FROM craftrecipes WHERE product = ?", (pid,)), [(17, 10, 3)])
+        self.assertEqual(self.q("SELECT count(*) FROM itempattern WHERE itemname LIKE 'Heartsblood Hemp %'"), [(0,)])
+        # robes take a modifier from trade level 3, pieces from 4; a robe's AC Prima's bonus AC, its own wearers
+        self.assertEqual(self.q("SELECT AC, intelligence, classuse, model FROM itempattern WHERE itemname = 'Leucite Wool Robe'"),
+                         [(6, 8, 32656, 0)])
+        self.assertEqual(self.q("SELECT count(*) FROM itempattern WHERE itemname = 'Leucite Wool Tunic'"), [(0,)])
+        self.assertEqual(self.q("SELECT sta, cha FROM itempattern WHERE itemname = 'Blessed Silk Tunic'"), [(9, 9)])
+        # the gem is kept on a failure; leather starts at trade level 3 (tattered hide, tab 3)
+        ing = json.loads(self.q("SELECT ingredients FROM craftrecipes WHERE name = 'Treant Leather Tunic'")[0][0])
+        self.assertEqual(ing[-1]["keep"], True)
+        self.assertEqual(self.q("SELECT min(level) FROM craftrecipes WHERE comp = 3"), [(3,)])
+        # the transfer's record of the name is another item: kept, and the product made beside it
+        self.assertEqual(self.q("SELECT count(*) FROM itempattern WHERE itemname = 'Heartsblood Stonehide Helm'"), [(2,)])
+        # the starter under Special: the cap by its scroll, the gloves by experiment
+        (scroll, disc, comp), = self.q("SELECT scroll, discover, comp FROM craftrecipes WHERE name = 'Patchwork Cap'")
+        self.assertEqual((disc, comp), (0, M.TAILOR_SPECIAL))
+        self.assertEqual(self.q("SELECT itemname FROM itempattern WHERE patternid = ?", (scroll,)), [("Patchwork Cap Recipe",)])
+        self.assertEqual(self.q("SELECT discover FROM craftrecipes WHERE name = 'Patchwork Hide Gloves'"), [(1,)])
+        # Sandstorm's kits (wear 24, Tailoring's tool) under their ids; every Dirlen stocked, the stand-in out
+        self.assertEqual(self.q("SELECT itemname, equipslot FROM itempattern WHERE patternid = 28527"), [("Novice Tailor's Kit", 24)])
+        self.assertEqual(self.q("SELECT count(*) FROM npcitem WHERE itemid = 10"), [(0,)])
+        dirlen = [r[0] for r in self.q("SELECT id FROM npcs WHERE npc_name = 'Merchant Dirlen'")]
+        self.assertEqual(len(dirlen), 2)
+        for i in dirlen:
+            self.assertEqual(self.q("SELECT count(*) FROM npcitem WHERE npcid = ?", (i,)), [(20,)])
+        flagan = self.q("SELECT id FROM npcs WHERE npc_name = 'Merchant Flagan'")[0][0]
+        self.assertEqual(self.q("SELECT count(*) FROM npcitem WHERE npcid = ?", (flagan,)), [(23,)])
+        # the shards' other spellings set to Prima's (the quest file's givers)
+        self.assertEqual(self.q("SELECT npc_name FROM npcs WHERE id IN (101, 7) ORDER BY id"),
+                         [("Merchant Finwork",), ("Seamstress Wyndham",)])
+        # every modifier drops with the modifiers (the gem there already stays one row)
+        self.assertEqual(self.q("SELECT count(*) FROM lootpool WHERE category = 'modifiers'"), [(len(M.TAILOR_MODS),)])
+        self.assertEqual(len(self.q("SELECT 1 FROM gm_audit")), 1)
+        self.assertNotEqual(self.run_seed("--apply", ok=False).returncode, 0, "a second --apply is refused")
+        self.tool("--undo")
+        after = self.snapshot()
+        after.pop("craftrecipes")
+        self.assertEqual(after, before)
+
+    def test_a_figure_off_prima_writes_nothing(self):
+        with open(self.prima) as f:
+            t = f.read()
+        with open(self.prima, "w") as f:
+            f.write(t.replace("163 AC", "165 AC", 1))
+        out = self.run_seed("--apply", ok=False)
+        self.assertNotEqual(out.returncode, 0)
+        self.assertIn("Prima's mundane AC row 8", out.stdout)
+        self.assertEqual(self.q("SELECT count(*) FROM sqlite_master WHERE name = 'tradeskill_seed'"), [(0,)])
+
+
 if __name__ == "__main__":
     unittest.main()

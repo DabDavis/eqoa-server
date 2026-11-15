@@ -89,7 +89,7 @@ func TestTheBuffWindowGoesToAClientThatAsked(t *testing.T) {
 	petID := r.w.objectIDForEntityLocked(r.sess, pet.ServerID)
 	r.petBuffsItself(petOwnBuff, 10*time.Second)
 	r.castAt(t, ownerOnPet, petID, 20*time.Second)
-	r.castAt(t, ownerOnSelf, r.me, 30*time.Second) // lands at 32.4 s
+	r.castAt(t, ownerOnSelf, r.me, 30*time.Second) // lands at 31.5 s (its 1 s and castLand)
 	r.w.mu.Lock()
 	r.p.Effects = append(r.p.Effects, &ActiveEffect{SpellID: 9399, Name: "Plague", Icon: 77, Until: r.at(10 * time.Minute), HPTick: -5})
 	r.w.mu.Unlock()
@@ -113,7 +113,7 @@ func TestTheBuffWindowGoesToAClientThatAsked(t *testing.T) {
 	if ls[0].id != uint32(ownerOnSelf.SpellID) || ls[0].icon != ownerOnSelf.Icon {
 		t.Errorf("the first line's id %d icon %#x, want %d %#x", ls[0].id, ls[0].icon, ownerOnSelf.SpellID, ownerOnSelf.Icon)
 	}
-	if want := uint32((10*time.Minute - 7600*time.Millisecond).Milliseconds()); ls[0].left != want {
+	if want := uint32((10*time.Minute - (40*time.Second - 31*time.Second - castLand)).Milliseconds()); ls[0].left != want {
 		t.Errorf("Dark Ward's time left %d ms, want %d", ls[0].left, want)
 	}
 	r.lookBW(41 * time.Second)

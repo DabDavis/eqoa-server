@@ -17,8 +17,8 @@ import (
 // A spell's recast group is data (database/recastgroup.go, table spellrecastgroup),
 // handed to the cast with the spells of the group the caster's book holds
 // (CastSpell.RecastGroup, GroupMates: handlers/cast.go). Casting one of a group locks
-// out every one of them for the cast spell's own lockout (its cast time, its recast
-// and castLockoutExtra), each told by its own 0x00CD so the client greys its button
+// out every one of them for the cast spell's own lockout (its cast time and its
+// recast, castLockoutExtra 0), each told by its own 0x00CD so the client greys its button
 // too; a cast of any of them while locked is refused as a recast is (castWaitFor
 // finds the mate's lockout), and each lockout ends with its 0x00CD 0 and is kept
 // over a logout and a restart as any other (lockoutsave.go, keep.go). A spell of the

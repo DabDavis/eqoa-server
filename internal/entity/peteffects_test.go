@@ -163,7 +163,7 @@ func TestThePetsEffectsGoToAClientThatAsked(t *testing.T) {
 	pet, _ := r.summon(t, fireElemental(), 0)
 	petID := r.w.objectIDForEntityLocked(r.sess, pet.ServerID)
 	r.petBuffsItself(petOwnBuff, 10*time.Second)
-	r.castAt(t, ownerOnPet, petID, 20*time.Second) // lands at 22.4 s
+	r.castAt(t, ownerOnPet, petID, 20*time.Second) // lands at 21.5 s (its 1 s and castLand)
 	r.sent()
 	r.look(30 * time.Second)
 	if got := r.petEffectsSent(); len(got) != 0 {
@@ -185,11 +185,11 @@ func TestThePetsEffectsGoToAClientThatAsked(t *testing.T) {
 	if fx[0].icon != petOwnBuff.Icon || fx[1].icon != ownerOnPet.Icon {
 		t.Errorf("icons %#x, %#x; want %#x, %#x", fx[0].icon, fx[1].icon, petOwnBuff.Icon, ownerOnPet.Icon)
 	}
-	// its own 30 minutes from 10 s, the owner's 10 minutes from 22.4 s: as of 30 s
+	// its own 30 minutes from 10 s, the owner's 10 minutes from 21.5 s: as of 30 s
 	if want := uint32((30*time.Minute - 20*time.Second).Milliseconds()); fx[0].left != want {
 		t.Errorf("its own buff's time left %d ms, want %d", fx[0].left, want)
 	}
-	if want := uint32((10*time.Minute - 7600*time.Millisecond).Milliseconds()); fx[1].left != want {
+	if want := uint32((10*time.Minute - (30*time.Second - 21*time.Second - castLand)).Milliseconds()); fx[1].left != want {
 		t.Errorf("the owner's buff's time left %d ms, want %d", fx[1].left, want)
 	}
 
@@ -211,11 +211,11 @@ func TestThePetsEffectsGoToAClientThatAsked(t *testing.T) {
 	if got := r.petEffectsSent(); len(got) != 1 {
 		t.Errorf("a recast: %d sets, want one", len(got))
 	} else if fx, _ := readPetEffects(got[0]); names(fx) != "Undead Proc, Largesse of Plague, Soul Mastery" ||
-		fx[2].left != uint32((10*time.Minute-600*time.Millisecond).Milliseconds()) {
+		fx[2].left != uint32((10*time.Minute-(53*time.Second-51*time.Second-castLand)).Milliseconds()) {
 		t.Errorf("a recast: %v, want Soul Mastery last with its time whole", fx)
 	}
 
-	r.look(42*time.Second + 5*time.Minute + time.Second) // Largesse of Plague ran out (5 min from 42.4 s)
+	r.look(42*time.Second + 5*time.Minute + time.Second) // Largesse of Plague ran out (5 min from 41.5 s)
 	if got := r.petEffectsSent(); len(got) != 1 {
 		t.Errorf("an effect ran out: %d sets, want one", len(got))
 	} else if fx, _ := readPetEffects(got[0]); names(fx) != "Undead Proc, Soul Mastery" {

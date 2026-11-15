@@ -105,19 +105,20 @@ func strike() CastSpell {
 		Def: ParseSpellText("Target, Decrease Hitpoints by 26 ; Increase 8% based on DEX")}
 }
 
-// The start: 0x00CD then 0x00B1, in Sandstorm's bytes (its druid's ids), the
-// cost taken at once. Then the landing 1.4 s after the cast time: 0x00DB of
-// +35 (20 + 25% of CHA 60), byte for byte, and the effect on the channel.
-// Then the lockout's end, 3300 ms from the start: 0x00CD with 0.
-func TestCastIsSandstorms(t *testing.T) {
+// The start: 0x00CD then 0x00B1, in Sandstorm's bytes (its druid's ids) but
+// for the lockout's figure, the cost taken at once. Then the landing 0.5 s
+// after the cast time (castLand): 0x00DB of +35 (20 + 25% of CHA 60), byte for
+// byte, and the effect on the channel. Then the lockout's end, the cast time
+// and the recast (3000 ms) from the start: 0x00CD with 0.
+func TestCastBeginsLandsAndLocksOut(t *testing.T) {
 	c := newCaster(t)
 	if !c.w.StartCast(c.sess, minorHeal(), c.me, c.at(0)) {
 		t.Fatal("not begun")
 	}
 	msgs := c.sent()
 	wantOps(t, msgs, protocol.OpcodeCooldownTimer, protocol.OpcodeCastingCombat)
-	if w := unhex(t, "cd000000000000c833"); !bytes.Equal(msgs[0], w) {
-		t.Errorf("0x00CD % X, want Sandstorm's % X", msgs[0], w)
+	if w := unhex(t, "cd000000000000f02e"); !bytes.Equal(msgs[0], w) { // 3000 ms
+		t.Errorf("0x00CD % X, want % X", msgs[0], w)
 	}
 	if w := unhex(t, "b100d0a12414d0a1241400d0070000fa00b7c2"); !bytes.Equal(msgs[1], w) {
 		t.Errorf("0x00B1 % X, want Sandstorm's % X", msgs[1], w)
@@ -126,12 +127,12 @@ func TestCastIsSandstorms(t *testing.T) {
 		t.Errorf("power %d (dirty %v), want 885 at once", c.p.Power, c.p.StatsDirty)
 	}
 
-	// the lockout's end (3.3 s) comes before the landing
-	c.tick(3399 * time.Millisecond)
-	if msgs := c.sent(); len(msgs) != 1 || opOfMsg(msgs[0]) != protocol.OpcodeCooldownTimer {
-		t.Fatalf("by 3.399 s: %x, want the lockout's end alone", msgs)
+	// the landing at 2.5 s, before the lockout's end
+	c.tick(2499 * time.Millisecond)
+	if msgs := c.sent(); len(msgs) != 0 {
+		t.Fatalf("by 2.499 s: %x, want nothing", msgs)
 	}
-	c.tick(3400 * time.Millisecond)
+	c.tick(2500 * time.Millisecond)
 	msgs = c.sent()
 	wantOps(t, msgs, protocol.OpcodeDamageIndication)
 	if w := unhex(t, "db00d0a1241446d0a12414"); !bytes.Equal(msgs[0], w) {
@@ -140,19 +141,28 @@ func TestCastIsSandstorms(t *testing.T) {
 	if c.p.HP != 535 || len(c.p.Buffs) != 1 || c.p.Buffs[0] != (BuffSlot{Icon: 0x828563AF, Name: "Minor Mending"}) {
 		t.Errorf("HP %d, effects %+v", c.p.HP, c.p.Buffs)
 	}
+	// the lockout's end at 3 s
+	c.tick(2999 * time.Millisecond)
+	if msgs := c.sent(); len(msgs) != 0 {
+		t.Fatalf("by 2.999 s: %x, want nothing", msgs)
+	}
+	c.tick(3000 * time.Millisecond)
+	if msgs := c.sent(); len(msgs) != 1 || !bytes.Equal(msgs[0], unhex(t, "cd00000000000000")) {
+		t.Fatalf("at 3 s: %x, want the lockout's end alone", msgs)
+	}
 	// the next tick, 6 s on: +35 again (short of the maximum by 1)
-	c.tick(9400 * time.Millisecond)
+	c.tick(8500 * time.Millisecond)
 	if msgs := c.sent(); len(msgs) != 1 || !bytes.Equal(msgs[0], unhex(t, "db00d0a1241446d0a12414")) || c.p.HP != 536 {
 		t.Errorf("second tick: %x, HP %d", msgs, c.p.HP)
 	}
 	// at full hit points a tick is told whole all the same (Sandstorm told
 	// nothing; petition 2016, owner-approved 2026-11-15: cast.go's healLocked)
-	c.tick(15400 * time.Millisecond)
+	c.tick(14500 * time.Millisecond)
 	if msgs := c.sent(); len(msgs) != 1 || !bytes.Equal(msgs[0], unhex(t, "db00d0a1241446d0a12414")) || c.p.HP != 536 {
 		t.Errorf("a tick at full HP: %x, HP %d; want +35 told, nothing healed", msgs, c.p.HP)
 	}
 	// 24 s after landing it wears off
-	c.tick(27400 * time.Millisecond)
+	c.tick(26500 * time.Millisecond)
 	if len(c.p.Effects) != 0 || len(c.p.Buffs) != 0 {
 		t.Errorf("still on: %+v", c.p.Buffs)
 	}
@@ -162,14 +172,14 @@ func TestCastLockoutEnds(t *testing.T) {
 	c := newCaster(t)
 	c.w.StartCast(c.sess, minorHeal(), c.me, c.at(0))
 	c.sent()
-	c.p.HP = c.p.MaxHP // no heal figure
-	c.tick(3299 * time.Millisecond)
+	c.p.HP = c.p.MaxHP              // no heal figure
+	c.tick(2999 * time.Millisecond) // cast 2 + recast 1: 3000 ms
 	for _, m := range c.sent() {
 		if opOfMsg(m) == protocol.OpcodeCooldownTimer {
 			t.Fatal("the lockout ended early")
 		}
 	}
-	c.tick(3300 * time.Millisecond)
+	c.tick(3000 * time.Millisecond)
 	msgs := c.sent()
 	wantOps(t, msgs, protocol.OpcodeCooldownTimer)
 	if w := unhex(t, "cd00000000000000"); !bytes.Equal(msgs[0], w) {
@@ -239,7 +249,7 @@ func TestCastDuringACastIsNotAnswered(t *testing.T) {
 
 // A cast sent into its own recovery, its cast time over, is answered as
 // Sandstorm answered four spammed (lane-spellfx24): the red line with the
-// lockout left to a tenth, Sandstorm's bytes for its "(3.2 s)", and the
+// lockout left to a tenth, Sandstorm's line with this lockout's "(2.9 s)", and the
 // player's own 0x00B1 at itself, cast 0, the lockout cloud 0x9EC7854A, in
 // those bytes with this player's id; then nothing for 1.2 s, then answered
 // again; nothing taken, nothing begun, until the lockout is over. The
@@ -248,7 +258,7 @@ func TestCastDuringACastIsNotAnswered(t *testing.T) {
 func TestCastIntoItsRecoveryIsAnswered(t *testing.T) {
 	c := newCaster(t)
 	rock := minorHeal()
-	rock.SpellID, rock.DisplayIndex, rock.CastTime, rock.Recast = 353, 8, 4*time.Second, 3*time.Second // Rockskin's 4 + 3: 7300 ms
+	rock.SpellID, rock.DisplayIndex, rock.CastTime, rock.Recast = 353, 8, 4*time.Second, 3*time.Second // Rockskin's 4 + 3: 7000 ms
 	if !c.w.StartCast(c.sess, rock, c.me, c.at(0)) {
 		t.Fatal("the cast did not begin")
 	}
@@ -260,15 +270,15 @@ func TestCastIntoItsRecoveryIsAnswered(t *testing.T) {
 	if c.w.StartCast(c.sess, strike(), c.npcO, c.at(4100*time.Millisecond)) || len(c.sent()) != 0 {
 		t.Error("another spell 0.1 s after the cast was answered")
 	}
-	// 4.1 s in: 3.2 s of the 7.3 left, as Sandstorm's line said 4.26 s into its Rockskin
+	// 4.1 s in: 2.9 s of the 7 left (Sandstorm's line, 4.26 s into its Rockskin, said 3.2 of its 7.3)
 	if c.w.StartCast(c.sess, rock, c.me, c.at(4100*time.Millisecond)) {
 		t.Fatal("begun inside its own lockout")
 	}
 	msgs := c.sent()
 	wantOps(t, msgs, protocol.OpcodeColoredChat, protocol.OpcodeCastingCombat)
 	line := unhex(t, "7b0a370000005200650063006f0076006500720079002000740069006d006500200066006f007200200074006800610074002000"+
-		"6100620069006c00690074007900200068006100730020006e006f00740020006200650065006e0020006d00650074002000280033002e00"+
-		"3200200073002900ff3f3f")
+		"6100620069006c00690074007900200068006100730020006e006f00740020006200650065006e0020006d00650074002000280032002e00"+
+		"3900200073002900ff3f3f")
 	if !bytes.Equal(msgs[0], line) {
 		t.Errorf("the line % X\n want Sandstorm's % X", msgs[0], line)
 	}
@@ -285,13 +295,13 @@ func TestCastIntoItsRecoveryIsAnswered(t *testing.T) {
 	}
 	msgs = c.sent()
 	wantOps(t, msgs, protocol.OpcodeColoredChat, protocol.OpcodeCastingCombat)
-	if !bytes.Contains(msgs[0], utf16le(" (1.9 s)")) {
-		t.Errorf("the second line % X, want the 1.9 s left", msgs[0])
+	if !bytes.Contains(msgs[0], utf16le(" (1.6 s)")) {
+		t.Errorf("the second line % X, want the 1.6 s left", msgs[0])
 	}
 	if c.p.Power != power || len(c.p.Lockouts) != 1 {
 		t.Errorf("an answer took power or locked: power %d -> %d, %d lockouts", power, c.p.Power, len(c.p.Lockouts))
 	}
-	c.tick(7300 * time.Millisecond) // the lockout's end
+	c.tick(7000 * time.Millisecond) // the lockout's end
 	c.sent()
 	if !c.w.StartCast(c.sess, rock, c.me, c.at(7400*time.Millisecond)) {
 		t.Error("refused after its lockout")
@@ -455,10 +465,10 @@ func TestCastGate(t *testing.T) {
 	sp := CastSpell{SpellID: 1623, DisplayIndex: 1, Scope: 0, Name: "Go Home", CastTime: 60 * time.Second, Recast: 5 * time.Second,
 		PowerCost: 25, Range: 4.5, Def: ParseSpellText("Returns you to last bind point")}
 	c.w.StartCast(c.sess, sp, 0xFFFFFFFF, c.at(0))
-	if g := c.tick(61 * time.Second); len(g) != 0 {
+	if g := c.tick(60*time.Second + castLand - time.Millisecond); len(g) != 0 {
 		t.Fatal("home before it landed")
 	}
-	if g := c.tick(61400 * time.Millisecond); len(g) != 1 || g[0].p != c.p || g[0].sess != c.sess {
+	if g := c.tick(60*time.Second + castLand); len(g) != 1 || g[0].p != c.p || g[0].sess != c.sess {
 		t.Errorf("gates %+v", g)
 	}
 }

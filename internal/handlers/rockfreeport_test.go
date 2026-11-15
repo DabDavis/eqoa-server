@@ -222,12 +222,12 @@ func TestTheRockOfFreeportCastsYouToDabrish(t *testing.T) {
 	if want.X != 5100+3 || math.Abs(float64(want.Z-5200)) > 1e-3 || want.Y != 50 || want.World != 0 {
 		t.Fatalf("freeportSpot %+v, want 3 in front of Dabrish facing +x", want)
 	}
-	r.gw.Tick(t0.Add(RockCastTime + 1350*time.Millisecond))
+	r.gw.Tick(t0.Add(RockCastTime + 450*time.Millisecond)) // castLand (entity, 0.5 s) not yet over
 	if snap, _ := r.gw.PlayerSnapshot(r.p.ServerID); snap.X != 9000 || snap.Z != 9000 {
 		t.Fatalf("moved before the landing, to (%.1f, %.1f)", snap.X, snap.Z)
 	}
 	r.sent()
-	r.gw.Tick(t1.Add(RockCastTime + 1400*time.Millisecond))
+	r.gw.Tick(t1.Add(RockCastTime + 500*time.Millisecond))
 	snap, _ := r.gw.PlayerSnapshot(r.p.ServerID)
 	if snap.World != want.World || snap.X != want.X || snap.Y != want.Y || snap.Z != want.Z {
 		t.Errorf("Wanderer stands at world %d (%.2f, %.2f, %.2f), want %+v", snap.World, snap.X, snap.Y, snap.Z, want)
@@ -253,7 +253,7 @@ func TestTheRockOfFreeportCastsYouToDabrish(t *testing.T) {
 	if c := castOf(r.use(r.key(r.rock), 1)); !bytes.Equal(c, wantCast(ReturnHomeVisual)) {
 		t.Errorf("the quick slot's cast % X, want % X", c, wantCast(ReturnHomeVisual))
 	}
-	r.gw.Tick(time.Now().Add(RockCastTime + 1400*time.Millisecond))
+	r.gw.Tick(time.Now().Add(RockCastTime + 500*time.Millisecond))
 	r.sent()
 
 	// the control: no Dabrish, no cast

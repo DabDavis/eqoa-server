@@ -198,7 +198,7 @@ func TestALogoutAndALoginKeepTheLockouts(t *testing.T) {
 	long, quick := r.spell(longWard), r.spell(quickWard)
 	// a lockout of 3 s: longer than the login takes, so one whose time ran
 	// only in the world would still be on when the login is done
-	quick.Recast = 2700 * time.Millisecond
+	quick.Recast = 3 * time.Second
 	t0 := time.Now()
 	quickEnd := t0.Add(3 * time.Second)
 	if !r.w.StartCast(first, long, first.PlayerObjectID(), t0.Add(-time.Second)) {
@@ -216,8 +216,8 @@ func TestALogoutAndALoginKeepTheLockouts(t *testing.T) {
 		t.Fatal("the session's end left the character in the world")
 	}
 	kept := r.kept()
-	if until, ok := kept[longWard]; !ok || until.Sub(t0) < 599*time.Second || until.Sub(t0) > 600*time.Second {
-		t.Fatalf("the long ward kept until %v from the cast (%v); want 599.3 s", until.Sub(t0), kept)
+	if until, ok := kept[longWard]; !ok || until.Sub(t0) < 598*time.Second || until.Sub(t0) > 599*time.Second {
+		t.Fatalf("the long ward kept until %v from the cast (%v); want 599 s", until.Sub(t0), kept)
 	}
 	if _, ok := kept[quickWard]; !ok {
 		// a save over by its end had it running: it must have kept it (a
@@ -273,8 +273,8 @@ func TestALogoutAndALoginKeepTheLockouts(t *testing.T) {
 	// a shutdown's save keeps both, the long ward's end unchanged
 	r.l.SaveAll()
 	kept = r.kept()
-	if !kept[longWard].Equal(t0.Add(-time.Second).Add(600*time.Second + 300*time.Millisecond).Truncate(time.Millisecond)) {
-		t.Errorf("the shutdown kept the long ward until %v, want %v", kept[longWard], t0.Add(599300*time.Millisecond))
+	if !kept[longWard].Equal(t0.Add(-time.Second).Add(600 * time.Second).Truncate(time.Millisecond)) {
+		t.Errorf("the shutdown kept the long ward until %v, want %v", kept[longWard], t0.Add(599*time.Second))
 	}
 	if until, ok := kept[quickWard]; !ok || until.Before(now) {
 		t.Errorf("the shutdown did not keep the quick ward cast again: %v", kept)

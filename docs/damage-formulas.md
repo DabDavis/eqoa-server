@@ -266,15 +266,18 @@ Where each takes effect:
 - `player_melee`: `entity/attack.go` `playerHitLocked`
   (`playerShotFormulaLocked`), after the balance's shares
   (`meleeDealtLocked`). A bow's shot (the branch `playerShotParts` takes: a
-  ranged swing, no thrown potion) runs it **once for each arrow** by default:
-  the arrows are rolled as before (each its ranged roll at its share), the
+  ranged swing, no thrown potion) runs it once on the whole shot, as it
+  always has; a file that says `options: ranged: arrow` has it run **once
+  for each arrow**: the arrows are rolled as before (each its ranged roll at its share), the
   balance's share is taken once on their sum as before, and arrow i's run
   gets that figure's share by its roll (`base`: the shares sum to the
   built-in figure, the last arrow taking the rounding) and its own roll
   (`raw`), with `arrow` = i and `projectiles` = the count. The runs' figures
   are summed into the swing's one hit: one figure to the client, one threat,
-  the swing's procs, its power, a kill, as before. The file's
-  `options: ranged:` changes it (below).
+  the swing's procs, its power, a kill, as before. The formula set and the
+  mode are read once for the swing: a reload or a switch between its arrows
+  does not reach it (every arrow runs on, and is logged with, the same
+  file).
 - `player_spell`, `player_dot`, `player_proc`, `player_shield`:
   `entity/cast.go` `spellHitHateLocked`, the one place a player's spell, tick,
   proc, damage mark and damage shield land on a creature, after `dealtLocked`.
@@ -307,7 +310,7 @@ YAML, four sections, all optional:
 version: 2026-11-15a       # optional: one line, at most 64 characters; logged
                            #   at load and in each shadow line (file_version)
 options:                   # optional
-  ranged: per_arrow        # per_arrow (default) | swing | builtin
+  ranged: swing            # swing (default) | arrow | builtin
 tables:
   <table>:                 # lower-case letters, digits, _
     <key>:                 # a record, under any text key
@@ -332,10 +335,11 @@ a comment to the end of its line inside one.
 
 `options: ranged:` is what a bow's shot takes of the formulas:
 
-- `per_arrow` (the default): `player_melee` runs once for each arrow (above);
-  any other path's shot (`pvp_melee`, `merc_melee`) once on the whole shot.
-- `swing`: once on the whole shot (`arrow` 0, `raw` the arrows' sum), as
-  before 2026-11-15.
+- `swing` (the default, and what a file without the option gets): once on
+  the whole shot (`arrow` 0, `raw` the arrows' sum, `base` the shot's
+  figure), as before 2026-11-15, so an older file lands what it did.
+- `arrow`: `player_melee` runs once for each arrow (above); any other path's
+  shot (`pvp_melee`, `merc_melee`) once on the whole shot.
 - `builtin`: every bow's shot (a player's, PvP's, a merc's) keeps the
   built-in figure; no formula runs on it and nothing of it is shadowed.
 
@@ -422,7 +426,7 @@ own: its `_str` ... `_ar` are what its effects add.
 | `weapon_kind` | the typed melee resist `weapon_type` routes to: `"slash"` (types 1, 2), `"pierce"` (5, 6, 7, 9, 10, and every bow's shot), `"blunt"` (the rest, and a player's bare hands); `""` for -1 and no player attacker |
 | `ranged_weapon_dmg`, `ranged_weapon_type` | the item in the attacker's ranged slot's damage and attack type, 0 for none, whatever the hands hold. A bow's shot in the built-in rolls on `weapon_dmg`, which is the hands' weapon's when one is held and the ranged slot's only when none is |
 | `projectiles` | a bow's shot's arrows: 1, or 2 at the fourth ranged swing; 0 for a swing that is no shot |
-| `arrow` | which arrow of the shot this run is (1, 2) under `ranged: per_arrow`; 0 for a run on the whole shot and for no shot |
+| `arrow` | which arrow of the shot this run is (1, 2) under `ranged: arrow`; 0 for a run on the whole shot and for no shot |
 | `d_kind` | the defender: `"player"`, `"creature"` or `"pet"` |
 | `d_name`, `d_family`, `d_race`, `d_class`, `d_class_name`, `d_level` | as the attacker's |
 | `d_offmod`, `d_defmod` | its OFF and DEF mods (as `a_offmod`) |

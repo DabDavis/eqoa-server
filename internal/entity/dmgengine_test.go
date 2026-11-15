@@ -5,6 +5,9 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/eqoa/server/internal/formula"
+	"github.com/eqoa/server/internal/session"
 )
 
 // Fallback hits (a formula that fails, the built-in figure standing) and
@@ -279,88 +282,215 @@ func TestDamageFormulaMasteryOffDef(t *testing.T) {
 	}
 }
 
-// A bow's shot under per_arrow: two arrows, two formula runs, each on its
-// share of the built-in figure with its own roll, summed into the swing's
-// one hit; the rolls, the shot's power, the threat and the landed hit as the
-// built-in's otherwise. swing: one run; builtin: none.
-func TestRangedShotPerArrow(t *testing.T) {
+// shotRig is a ranger with a melee weapon in the hand (damage 25, slash)
+// and a bow in the ranged slot (damage 60): the two deliberately different,
+// so a formula reading ranged_weapon_dmg tells them apart.
+type shotRig struct {
+	r     *templateRig
+	guard *NPC
+	p     *Player
+	sess  *session.Session
+	shoot func(kind int) shotOut
+}
+
+type shotOut struct {
+	dealt, rolls, power, threat int
+	killed                      bool
+}
+
+func newShotRig(t *testing.T) *shotRig {
 	r := newTemplateRig(t)
 	guard := r.npc("Gnoll Guard")
 	guard.Name = "Toy Golem"
 	p, sess := r.player("Hero", guard.X+1, guard.Z)
 	p.Class, p.Level = classRanger, 30
-	p.Gear.RangedDamage, p.Gear.RangedType, p.Gear.WeaponDamage, p.Gear.WeaponSlot, p.Gear.WeaponType = 60, 7, 60, 18, 7
-	type out struct{ dealt, rolls, power, threat int }
-	var rolls int
-	shoot := func(kind int) out {
+	p.Gear.WeaponDamage, p.Gear.WeaponSlot, p.Gear.WeaponType, p.PrimaryType = 25, 14, 1, 1
+	p.Gear.RangedDamage, p.Gear.RangedType = 60, 7
+	sr := &shotRig{r: r, guard: guard, p: p, sess: sess}
+	sr.shoot = func(kind int) shotOut {
+		rolls := 0
 		oldIntn := meleeIntn
 		meleeIntn = func(n int) int { rolls++; return n / 3 }
 		defer func() { meleeIntn = oldIntn }()
-		rolls = 0
 		p.Swing.Kind = kind
 		p.Power, p.MaxPower = 10_000, 10_000
 		guard.HP, guard.MaxHP, guard.Dead, guard.Threats = 1_000_000, 1_000_000, false, nil
 		r.w.mu.Lock()
 		defer r.w.mu.Unlock()
-		r.w.playerHitLocked(sess, p, guard, r.objectID(guard.ServerID))
-		return out{1_000_000 - guard.HP, rolls, 10_000 - p.Power, int(guard.Threats[p.ServerID])}
+		killed := r.w.playerHitLocked(sess, p, guard, r.objectID(guard.ServerID))
+		return shotOut{1_000_000 - guard.HP, rolls, 10_000 - p.Power, int(guard.Threats[p.ServerID]), killed}
 	}
+	return sr
+}
+
+// An older file (no options) runs once on the whole shot, as before: a
+// constant, or a figure not linear in base, lands the same on one- and
+// two-arrow shots as it did when the formula ran once per swing.
+func TestRangedOlderFileRunsOncePerShot(t *testing.T) {
+	sr := newShotRig(t)
 	fixDice(t)
-	built1, built2 := shoot(swingRange1), shoot(swingRange4)
+	built1, built2 := sr.shoot(swingRange1), sr.shoot(swingRange4)
 	if built2.dealt <= built1.dealt || built2.rolls != 2*built1.rolls {
 		t.Fatalf("the built-in shots: %+v %+v", built1, built2)
 	}
+	writeFormulas(t, sr.r.w, "formulas:\n  player_melee: 17\n")
+	for _, k := range []int{swingRange1, swingRange4} {
+		if got := sr.shoot(k); got.dealt != 17 {
+			t.Errorf("a constant 17, swing kind %d: dealt %d", k, got.dealt)
+		}
+	}
+	writeFormulas(t, sr.r.w, "formulas:\n  player_melee: 'min(base, 5) * ranged_weapon_dmg + projectiles + arrow * 1000'\n")
+	// once on the whole shot: min of the shot's figure, not a sum of each arrow's
+	if got, want := sr.shoot(swingRange1), min(built1.dealt, 5)*60+1; got.dealt != want {
+		t.Errorf("non-linear, one arrow: %d, want %d", got.dealt, want)
+	}
+	if got, want := sr.shoot(swingRange4), min(built2.dealt, 5)*60+2; got.dealt != want {
+		t.Errorf("non-linear, two arrows: %d, want %d", got.dealt, want)
+	}
+}
 
-	writeFormulas(t, r.w, "formulas:\n  player_melee: 'base + arrow * 1000 + projectiles * 100000 + uniform() * 0'\n")
+// A bow's shot under ranged: arrow: two arrows, two formula runs, each on its
+// share of the built-in figure with its own roll, reading the bow's damage
+// (not the hand's), summed into the swing's one hit; the rolls, the shot's
+// power and the threat as the built-in's otherwise. swing: one run; builtin:
+// none.
+func TestRangedShotPerArrow(t *testing.T) {
+	sr := newShotRig(t)
+	fixDice(t)
+	built1, built2 := sr.shoot(swingRange1), sr.shoot(swingRange4)
+
+	writeFormulas(t, sr.r.w, "options:\n  ranged: arrow\nformulas:\n  player_melee: 'base + arrow * 1000 + projectiles * 100000 + ranged_weapon_dmg * 10 + uniform() * 0'\n")
 	f := fixDice(t, 0.5, 0.5, 0.5)
-	live2 := shoot(swingRange4)
+	live2 := sr.shoot(swingRange4)
 	if f.Next != 2 {
 		t.Errorf("two arrows ran %d formula runs, want 2", f.Next)
 	}
-	if want := built2.dealt + 1000 + 2000 + 2*200_000; live2.dealt != want {
+	if want := built2.dealt + 1000 + 2000 + 2*200_000 + 2*600; live2.dealt != want {
 		t.Errorf("live, two arrows: dealt %d, want %d", live2.dealt, want)
 	}
 	if live2.rolls != built2.rolls || live2.power != built2.power || live2.threat <= built2.threat {
 		t.Errorf("live, two arrows: %+v against the built-in's %+v", live2, built2)
 	}
 	f = fixDice(t, 0.5)
-	if live1 := shoot(swingRange1); live1.dealt != built1.dealt+1000+100_000 || f.Next != 1 || live1.rolls != built1.rolls {
-		t.Errorf("live, one arrow: %+v (%d runs)", live1, f.Next)
+	if live1 := sr.shoot(swingRange1); live1.dealt != built1.dealt+1000+100_000+600 || f.Next != 1 || live1.rolls != built1.rolls {
+		t.Errorf("live, one arrow: %+v (%d runs), want dealt %d", live1, f.Next, built1.dealt+1000+100_000+600)
 	}
 
 	// shadow: two records, the arrows' shares summing to the built-in, the built-in landing
-	path := shadowOn(t, r.w, 0)
+	path := shadowOn(t, sr.r.w, 0)
 	game := fixDice(t)
 	sf := fixShadowDice(t, 0.1, 0.9)
-	if sh := shoot(swingRange4); sh != built2 {
+	if sh := sr.shoot(swingRange4); sh != built2 {
 		t.Errorf("shadow landed %+v, the built-in %+v", sh, built2)
 	}
-	recs := readShadow(t, r.w, path)
+	recs := readShadow(t, sr.r.w, path)
 	if len(recs) != 2 || recs[0].Arrow != 1 || recs[1].Arrow != 2 || recs[0].Arrows != 2 || recs[0].Attack != "ranged" ||
-		recs[0].Builtin+recs[1].Builtin != built2.dealt || sf.Next != 2 || game.Next != 0 || recs[0].WeapType != 7 {
+		recs[0].Builtin+recs[1].Builtin != built2.dealt || sf.Next != 2 || game.Next != 0 || recs[0].WeapType != 7 ||
+		recs[0].In["ranged_weapon_dmg"] != 60.0 || recs[0].In["weapon_dmg"] != 25.0 {
 		t.Errorf("shadow's records: %+v (shadow draws %d, game draws %d)", recs, sf.Next, game.Next)
 	}
-	if recs[0].Raw <= 0 || recs[1].Raw <= 0 {
-		t.Errorf("an arrow's own roll: %d %d", recs[0].Raw, recs[1].Raw)
+	if recs[0].Raw <= 0 || recs[1].Raw <= 0 || recs[0].Value != recs[0].Builtin+1000+200_000+600 {
+		t.Errorf("an arrow's own roll and run: %+v", recs[0])
 	}
 
 	// swing: once on the whole shot; builtin: the built-in figure, no run
-	r.w.SetDamageFormulaMode(FormulaLive)
-	writeFormulas(t, r.w, "options:\n  ranged: swing\nformulas:\n  player_melee: 'base + arrow * 1000 + 7'\n")
-	if got := shoot(swingRange4); got.dealt != built2.dealt+7 {
-		t.Errorf("swing: dealt %d, want %d", got.dealt, built2.dealt+7)
+	sr.r.w.SetDamageFormulaMode(FormulaLive)
+	writeFormulas(t, sr.r.w, "options:\n  ranged: swing\nformulas:\n  player_melee: 'base + arrow * 1000 + ranged_weapon_dmg'\n")
+	if got := sr.shoot(swingRange4); got.dealt != built2.dealt+60 {
+		t.Errorf("swing: dealt %d, want %d", got.dealt, built2.dealt+60)
 	}
-	writeFormulas(t, r.w, "options:\n  ranged: builtin\nformulas:\n  player_melee: 'base + 7'\n")
-	if got := shoot(swingRange4); got != built2 {
+	writeFormulas(t, sr.r.w, "options:\n  ranged: builtin\nformulas:\n  player_melee: 'base + ranged_weapon_dmg'\n")
+	if got := sr.shoot(swingRange4); got != built2 {
 		t.Errorf("builtin: %+v, want %+v", got, built2)
 	}
-	p.Swing.Kind = 0 // a melee swing still runs the formula
-	p.Gear.WeaponSlot, p.Gear.WeaponType, p.PrimaryType = 14, 1, 1
-	guard.HP = 1_000_000
-	r.w.mu.Lock()
-	r.w.playerHitLocked(sess, p, guard, r.objectID(guard.ServerID))
-	r.w.mu.Unlock()
 }
+
+// A two-arrow shot that kills only by the two arrows' figures summed: through
+// playerHitLocked, one kill (one death, one award of experience: what a
+// built-in kill gives), as a built-in shot's kill.
+func TestRangedTwoArrowKill(t *testing.T) {
+	sr := newShotRig(t)
+	fixDice(t)
+	g, p, w := sr.guard, sr.p, sr.r.w
+	kill := func(hp int) (bool, int) {
+		oldIntn := meleeIntn
+		meleeIntn = func(n int) int { return n / 3 }
+		defer func() { meleeIntn = oldIntn }()
+		p.Swing.Kind = swingRange4
+		p.Power, p.MaxPower = 10_000, 10_000
+		g.HP, g.MaxHP, g.Dead, g.Threats = hp, 1_000_000, false, nil
+		xp := p.TotalXP
+		w.mu.Lock()
+		defer w.mu.Unlock()
+		killed := w.playerHitLocked(sr.sess, p, g, sr.r.objectID(g.ServerID))
+		return killed, p.TotalXP - xp
+	}
+	builtKilled, builtXP := kill(1) // the built-in shot's kill
+	if !builtKilled || !g.Dead {
+		t.Fatalf("the built-in shot did not kill")
+	}
+
+	// each arrow 600 (the bow's 60 x 10): one alone leaves 1000 standing
+	writeFormulas(t, w, "options:\n  ranged: arrow\nformulas:\n  player_melee: 'ranged_weapon_dmg * 10 + arrow * 0'\n")
+	w.SetDamageFormulaMode(FormulaLive)
+	killed, xp := kill(1100)
+	if !killed || !g.Dead || g.HP != 0 || xp != builtXP {
+		t.Errorf("the two arrows' kill: killed %v, dead %v, HP %d, experience %d (the built-in's %d)", killed, g.Dead, g.HP, xp, builtXP)
+	}
+	if killed, _ := kill(1300); killed || g.Dead || g.HP != 100 {
+		t.Errorf("1,200 on 1,300: killed %v, HP %d", killed, g.HP)
+	}
+}
+
+// A reload between a shot's arrows does not reach the shot: the set and the
+// mode are read once for the swing, so both arrows run on, and are logged
+// with, the file the swing began with.
+func TestRangedShotOneSnapshot(t *testing.T) {
+	sr := newShotRig(t)
+	w := sr.r.w
+	fixDice(t)
+	writeFormulas(t, w, "options:\n  ranged: arrow\nformulas:\n  player_melee: '100 + uniform() * 0'\n")
+	first := w.dmgf.set.Load()
+	other, errs := compileDamageFormulas([]byte("options:\n  ranged: swing\nformulas:\n  player_melee: '5000 + uniform() * 0'\n"))
+	if len(errs) > 0 || other.hash == first.hash {
+		t.Fatal(errs)
+	}
+	swapAtFirstDraw := func() formula.Rand {
+		n := 0
+		return drawHook{func() float64 {
+			if n++; n == 1 {
+				w.dmgf.set.Store(other) // a reload, published mid-shot
+			}
+			return 0.5
+		}}
+	}
+	old, oldShadow := formulaRand, shadowRand
+	t.Cleanup(func() { formulaRand, shadowRand = old, oldShadow })
+
+	formulaRand = swapAtFirstDraw()
+	if got := sr.shoot(swingRange4); got.dealt != 200 {
+		t.Errorf("live: dealt %d, want 200 (both arrows the first file's)", got.dealt)
+	}
+
+	w.dmgf.set.Store(first)
+	path := shadowOn(t, w, 0)
+	shadowRand = swapAtFirstDraw()
+	sr.shoot(swingRange4)
+	recs := readShadow(t, w, path)
+	if len(recs) != 2 || recs[0].FileHash != first.hash || recs[1].FileHash != first.hash || recs[0].Value != 100 || recs[1].Value != 100 {
+		t.Errorf("shadow's records: %+v", recs)
+	}
+	if w.dmgf.set.Load() != other {
+		t.Error("the reload did not happen")
+	}
+}
+
+// drawHook is a formula.Rand whose every draw is f's.
+type drawHook struct{ f func() float64 }
+
+func (d drawHook) Uniform() float64            { return d.f() }
+func (d drawHook) Normal(_, _ float64) float64 { return d.f() }
+func (d drawHook) Beta(_, _ float64) float64   { return d.f() }
 
 // arrowShare's shares sum to the figure, by the arrows' rolls.
 func TestArrowShare(t *testing.T) {

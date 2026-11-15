@@ -793,12 +793,12 @@ type dmgFormulaSet struct {
 type rangedMode int
 
 const (
-	rangedPerArrow   rangedMode = iota // per_arrow (the default): the formula runs once for each arrow of the shot
-	rangedWholeSwing                   // swing: once on the whole shot, as before 2026-11-15
+	rangedWholeSwing rangedMode = iota // swing (the default, and a file that says nothing): once on the whole shot, as before 2026-11-15
+	rangedPerArrow                     // arrow: once for each arrow of the shot (player_melee alone)
 	rangedBuiltin                      // builtin: a shot keeps the built-in figure; no formula runs on it, nothing is shadowed
 )
 
-var rangedModeWords = map[string]rangedMode{"per_arrow": rangedPerArrow, "swing": rangedWholeSwing, "builtin": rangedBuiltin}
+var rangedModeWords = map[string]rangedMode{"swing": rangedWholeSwing, "arrow": rangedPerArrow, "builtin": rangedBuiltin}
 
 // dmgFileOption is the options a formula file may give, and their words.
 func dmgFileOption(name, value string) bool {
@@ -856,7 +856,33 @@ func (w *World) formulaDamage(base int, in dmgIn) int {
 // completes with what landed once the stage has run (nil when there is
 // none). A bow's shot under the file's ranged: builtin is left alone.
 func (w *World) formulaBegin(base int, in *dmgIn) (int, *shadowRec) {
-	set := w.dmgf.set.Load()
+	return w.formulaBeginOn(w.formulaSnap(), base, in)
+}
+
+// dmgSnap is the formula set and the mode as one hit reads them, once: a
+// reload or a switch while the hit is resolved (between a shot's arrows)
+// does not reach it.
+type dmgSnap struct {
+	set  *dmgFormulaSet
+	mode FormulaMode
+}
+
+// formulaSnap is the set and the mode now.
+func (w *World) formulaSnap() dmgSnap {
+	return dmgSnap{set: w.dmgf.set.Load(), mode: FormulaMode(w.dmgf.mode.Load())}
+}
+
+// ranged is what the snapshot's file makes of a bow's shot.
+func (sn dmgSnap) ranged() rangedMode {
+	if sn.set == nil {
+		return rangedWholeSwing
+	}
+	return sn.set.ranged
+}
+
+// formulaBeginOn is formulaBegin on a snapshot taken before.
+func (w *World) formulaBeginOn(sn dmgSnap, base int, in *dmgIn) (int, *shadowRec) {
+	set := sn.set
 	if set == nil {
 		return base, nil
 	}
@@ -864,21 +890,13 @@ func (w *World) formulaBegin(base int, in *dmgIn) (int, *shadowRec) {
 	if e == nil || in.ranged && set.ranged == rangedBuiltin {
 		return base, nil
 	}
-	switch FormulaMode(w.dmgf.mode.Load()) {
+	switch sn.mode {
 	case FormulaLive:
 		return e.apply(base, in), nil
 	case FormulaShadow:
 		return base, w.shadowRun(set, e, base, in)
 	}
 	return base, nil
-}
-
-// rangedFormulaMode is what the loaded file makes of a bow's shot.
-func (w *World) rangedFormulaMode() rangedMode {
-	if set := w.dmgf.set.Load(); set != nil {
-		return set.ranged
-	}
-	return rangedPerArrow
 }
 
 // apply runs the formula on the hit.

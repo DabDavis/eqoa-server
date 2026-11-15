@@ -773,22 +773,28 @@ func arrowShare(damage, raw int, parts [maxShotArrows]int, arrows, i int) int {
 
 // playerShotFormulaLocked is the operator's formula on a landed swing
 // (dmgformula.go player_melee): on a melee hit, or a bow's shot under the
-// file's ranged: swing, once on the swing's figure; on a shot under
-// per_arrow (the default), once for each arrow, each on its share of the
-// built-in figure and its own roll as raw, the arrows' figures summed into the
-// swing's one hit (the rolls, the balance's share, the hit's figure to the
-// client, its threat, procs and a kill are the swing's, as before); under
-// builtin a shot keeps the built-in figure (formulaBegin).
+// file's ranged: swing (the default), once on the swing's figure; on a shot
+// under ranged: arrow, once for each arrow, each on its share of the built-in
+// figure and its own roll as raw, the arrows' figures summed into the swing's
+// one hit (the rolls, the balance's share, the hit's figure to the client,
+// its threat, procs and a kill are the swing's, as before); under builtin a
+// shot keeps the built-in figure (formulaBeginOn). The set and the mode are
+// read once for the swing (formulaSnap): every arrow runs on the same load.
 func (w *World) playerShotFormulaLocked(attacker *Player, npc *NPC, damage, raw int, parts [maxShotArrows]int, arrows int) int {
+	sn := w.formulaSnap()
 	in := dmgIn{src: srcPlayer, kind: dkMelee, ap: attacker, dn: npc, raw: raw, ranged: arrows > 0, arrows: arrows}
-	if arrows == 0 || w.rangedFormulaMode() != rangedPerArrow {
-		return w.formulaDamage(damage, in)
+	if arrows == 0 || sn.ranged() != rangedPerArrow {
+		x, rec := w.formulaBeginOn(sn, damage, &in)
+		w.formulaFinish(rec, x, mitSnap{})
+		return x
 	}
 	total := 0
 	for i := range arrows {
 		a := in
 		a.raw, a.arrow = parts[i], i+1
-		total += w.formulaDamage(arrowShare(damage, raw, parts, arrows, i), a)
+		x, rec := w.formulaBeginOn(sn, arrowShare(damage, raw, parts, arrows, i), &a)
+		w.formulaFinish(rec, x, mitSnap{})
+		total += x
 	}
 	return total
 }

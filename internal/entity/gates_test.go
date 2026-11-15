@@ -640,3 +640,35 @@ func TestAnEvacuationTakesEveryTravellersPower(t *testing.T) {
 		t.Errorf("the control's power: caster %d (want %d), member %d (want 500)", c.caster.Power, 2000-400, cn.Power)
 	}
 }
+
+// A logout ends a cast on its way (Live petition 5125, Indulgence: "Return
+// Home used to be able to be cancelled if you logged out before it went
+// off"): the caster leaves, logs in again under the same ServerID, and the
+// cast never lands on the new login. The control: a caster that stays has it
+// land.
+func TestALogoutEndsACastOnItsWay(t *testing.T) {
+	heal := bookSpell(700187, "Field Dress", 0, 10*time.Second, 19*time.Second, 10, "Self, Increase Hitpoints by 125")
+	for _, leaves := range []bool{false, true} {
+		f := newGateFixture(t)
+		f.caster.HP = 100
+		if !f.w.StartCast(f.sess, heal, 0xFFFFFFFF, f.t0) {
+			t.Fatal("the cast did not begin")
+		}
+		caster := f.caster
+		if leaves {
+			f.w.RemovePlayerBySession(f.sess)
+			caster, f.sess = f.player(f.caster.ServerID, "Wizard", 1000, 50, 1000)
+			caster.HP = 100
+		}
+		f.w.mu.Lock()
+		f.w.castSystem(f.t0.Add(heal.CastTime + castLand))
+		left := len(f.w.casts)
+		f.w.mu.Unlock()
+		if leaves && (caster.HP != 100 || left != 0) {
+			t.Errorf("logged out mid-cast: the new login's HP %d (want 100), %d casts left (want 0)", caster.HP, left)
+		}
+		if !leaves && caster.HP <= 100 {
+			t.Errorf("the control: the caster that stayed was not healed: HP %d", caster.HP)
+		}
+	}
+}

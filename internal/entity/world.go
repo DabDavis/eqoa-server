@@ -578,6 +578,7 @@ func (w *World) leavingLocked(p *Player) []func(*Player) {
 
 	w.mercLeavingLocked(p)     // its merc goes, its hire kept (merc.go)
 	w.familiarLeavingLocked(p) // its familiar goes (familiar.go)
+	w.castsLeavingLocked(p)    // its casts on their way go unlanded (cast.go)
 	fns := make([]func(*Player), len(w.leaving))
 	copy(fns, w.leaving)
 	return fns

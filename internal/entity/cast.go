@@ -1278,6 +1278,28 @@ func (w *World) objectIDSeenByLocked(s *session.Session, id EntityID) uint32 {
 	return w.objectIDForEntityLocked(s, id)
 }
 
+// castsLeavingLocked drops the casts of a player leaving the world, unlanded:
+// a logout ends a cast as it did on the live game (Live petition 5125,
+// Indulgence, 2026-11-15: "Return Home used to be able to be cancelled if you
+// logged out before it went off"; her Return Home began, she logged out and
+// in 26 s later, and it landed on the new login, its caster found by the same
+// ServerID). Must be called with the lock held.
+func (w *World) castsLeavingLocked(p *Player) {
+	keep := w.casts[:0]
+	for _, cs := range w.casts {
+		if cs.caster == p.ServerID {
+			log.Printf("Cast: %s's %q ends unlanded: its caster left the world", p.Name, cs.spell.Name)
+			continue
+		}
+		keep = append(keep, cs)
+	}
+	for i := len(keep); i < len(w.casts); i++ {
+		w.casts[i] = nil
+	}
+	w.casts = keep
+	p.Casting = nil
+}
+
 // castSystem lands every cast whose time has come, and ends the lockouts
 // that are over. Every tick; must be called with the lock held. It returns
 // the players a gate sends home, for the gate hook.

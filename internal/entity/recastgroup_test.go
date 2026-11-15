@@ -56,7 +56,7 @@ func cooldownsOf(msgs [][]byte) map[byte]int64 {
 }
 
 // Ticket 2011: casting Wolf's Instinct locks Hunter's Instinct out too, for the
-// wolf's own lockout (3 s cast + 1800 s recast + 300 ms), each told by its own
+// wolf's own lockout (3 s cast + 1800 s recast), each told by its own
 // 0x00CD so both buttons grey out; Hunter's Instinct cast inside it is refused
 // as a recast is (its line, nothing taken, no effect); at the lockout's end both
 // are told free (0x00CD 0 on 7 and 9) and the hunter is cast. Its landing takes
@@ -67,16 +67,16 @@ func TestRecastGroupSharesOneLockout(t *testing.T) {
 	c.p.Level, c.p.Class = 60, 1
 	wolf, hunter := instincts(true)
 	lock := wolf.CastTime + wolf.Recast + castLockoutExtra
-	if lock != 1803300*time.Millisecond {
-		t.Fatalf("the wolf's lockout %v, want 1803.3 s", lock)
+	if lock != 1803*time.Second {
+		t.Fatalf("the wolf's lockout %v, want 1803 s", lock)
 	}
 
 	c.p.Power = c.p.MaxPower
 	if !c.w.StartCast(c.sess, wolf, c.me, c.at(0)) {
 		t.Fatal("Wolf's Instinct not begun")
 	}
-	if got := cooldownsOf(c.sent()); len(got) != 2 || got[7] != 1803300 || got[9] != 1803300 {
-		t.Fatalf("0x00CD sent %v, want abilities 7 and 9 at 1803300 ms", got)
+	if got := cooldownsOf(c.sent()); len(got) != 2 || got[7] != 1803000 || got[9] != 1803000 {
+		t.Fatalf("0x00CD sent %v, want abilities 7 and 9 at 1803000 ms", got)
 	}
 	c.tick(wolf.CastTime + castLand)
 	c.sent()
@@ -147,7 +147,7 @@ func TestUngroupedInstinctsStack(t *testing.T) {
 	if !c.w.StartCast(c.sess, hunter, c.me, c.at(10*time.Second)) {
 		t.Fatal("ungrouped, Hunter's Instinct was refused")
 	}
-	if got := cooldownsOf(c.sent()); len(got) != 1 || got[9] != 1803300 {
+	if got := cooldownsOf(c.sent()); len(got) != 1 || got[9] != 1803000 {
 		t.Fatalf("0x00CD %v, want ability 9 alone", got)
 	}
 	c.tick(10*time.Second + hunter.CastTime + castLand)
@@ -170,14 +170,14 @@ func TestRecastGroupLocksAMateNotInTheBook(t *testing.T) {
 		t.Fatal("Wolf's Instinct not begun")
 	}
 	got := cooldownsOf(c.sent())
-	if len(got) != 2 || got[7] != 1803300 || got[4] != int64(5*time.Hour/time.Millisecond) {
-		t.Fatalf("0x00CD %v, want 7 at 1803300 and 4 kept at 5 h", got)
+	if len(got) != 2 || got[7] != 1803000 || got[4] != int64(5*time.Hour/time.Millisecond) {
+		t.Fatalf("0x00CD %v, want 7 at 1803000 and 4 kept at 5 h", got)
 	}
 	ends := map[int]time.Time{}
 	for _, l := range c.p.Lockouts {
 		ends[l.spellID] = l.until
 	}
-	if len(ends) != 3 || !ends[760110].Equal(c.at(1803300*time.Millisecond)) || !ends[5555].Equal(far) {
+	if len(ends) != 3 || !ends[760110].Equal(c.at(1803000*time.Millisecond)) || !ends[5555].Equal(far) {
 		t.Fatalf("lockouts %+v", c.p.Lockouts)
 	}
 }

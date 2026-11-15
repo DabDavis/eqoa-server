@@ -29,7 +29,8 @@ func (c *caster) healed(d time.Duration, last *int) int {
 func TestHoTFirstTickAtOnceThenTheRegularTick(t *testing.T) {
 	c := newCaster(t)
 	c.p.HP, c.p.MaxHP = 100, 2000
-	c.w.regenAt = c.at(1400 * time.Millisecond) // the landing (3.4 s) is 2 s into a tick
+	land := 2*time.Second + castLand
+	c.w.regenAt = c.at(land - 2*time.Second) // the landing is 2 s into a tick
 	sp := hotSpell(901, 30, "Mending")
 	if !c.w.StartCast(c.sess, sp, c.me, c.at(0)) {
 		t.Fatal("not begun")
@@ -39,13 +40,13 @@ func TestHoTFirstTickAtOnceThenTheRegularTick(t *testing.T) {
 		at   time.Duration
 		want int
 	}{
-		{3399 * time.Millisecond, 0},
-		{3400 * time.Millisecond, 30},  // at once
-		{7399 * time.Millisecond, 0},   // not 6 s after the landing...
-		{7400 * time.Millisecond, 30},  // ...but at the regular tick
-		{13400 * time.Millisecond, 30}, // and every regular tick
-		{19400 * time.Millisecond, 30}, // the fourth
-		{25400 * time.Millisecond, 0},  // none after: four in all
+		{land - time.Millisecond, 0},
+		{land, 30}, // at once
+		{land + 4*time.Second - time.Millisecond, 0}, // not 6 s after the landing...
+		{land + 4*time.Second, 30},                   // ...but at the regular tick
+		{land + 10*time.Second, 30},                  // and every regular tick
+		{land + 16*time.Second, 30},                  // the fourth
+		{land + 22*time.Second, 0},                   // none after: four in all
 	} {
 		if got := c.healed(step.at, &last); got != step.want {
 			t.Fatalf("at %v healed %d, want %d", step.at, got, step.want)
@@ -54,7 +55,7 @@ func TestHoTFirstTickAtOnceThenTheRegularTick(t *testing.T) {
 	if len(c.p.Effects) != 1 || c.p.Effects[0].Ticks != 0 {
 		t.Fatalf("effects %+v", c.p.Effects)
 	}
-	c.tick(27400 * time.Millisecond)
+	c.tick(land + 24*time.Second)
 	if len(c.p.Effects) != 0 {
 		t.Errorf("not worn off at 24 s: %+v", c.p.Effects)
 	}

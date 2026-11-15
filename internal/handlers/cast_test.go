@@ -96,8 +96,8 @@ func TestUseSkillCastsTheSlotsSpell(t *testing.T) {
 	if len(msgs) != 2 {
 		t.Fatalf("sent %x", msgs)
 	}
-	if want := mustHex(t, "cd000c00000000e852"); !bytes.Equal(msgs[0], want) {
-		t.Errorf("0x00CD % X, want Sandstorm's % X", msgs[0], want)
+	if want := mustHex(t, "cd000c00000000904e"); !bytes.Equal(msgs[0], want) { // 5000 ms: its cast and recast
+		t.Errorf("0x00CD % X, want % X", msgs[0], want)
 	}
 	if want := mustHex(t, "b1001e0d3314982e310100d0070000d92480e7"); !bytes.Equal(msgs[1], want) {
 		t.Errorf("0x00B1 % X, want Sandstorm's % X", msgs[1], want)

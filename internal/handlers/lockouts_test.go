@@ -122,11 +122,11 @@ func TestATakeoverKeepsAndWritesItsLockouts(t *testing.T) {
 		t.Fatal("not taken over")
 	}
 	told, n := toldLockouts(t, second)
-	if ms, ok := told[3]; !ok || n != 1 || ms > 600_300 || ms < 590_000 {
-		t.Fatalf("told after the takeover's dump: %v (%d sent); want ability 3 once, about 600300 ms", told, n)
+	if ms, ok := told[3]; !ok || n != 1 || ms > 600_000 || ms < 590_000 {
+		t.Fatalf("told after the takeover's dump: %v (%d sent); want ability 3 once, about 600000 ms", told, n)
 	}
 	rows, err := r.store.LoadLockouts(rec.ServerID, time.Now())
-	want := cast.Add(600*time.Second + 300*time.Millisecond).Truncate(time.Millisecond)
+	want := cast.Add(600 * time.Second).Truncate(time.Millisecond)
 	if err != nil || len(rows) != 1 || rows[0].SpellID != 901 || !rows[0].Until.Equal(want) {
 		t.Fatalf("the takeover kept %+v (%v), want spell 901 until %v", rows, err, want)
 	}

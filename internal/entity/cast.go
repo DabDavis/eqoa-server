@@ -12,18 +12,21 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// cast.go — casting a spell, as Sandstorm answers it.
+// cast.go — casting a spell.
 //
 // The client's request is Send0032 (0x0032): the ability stamp, the bar slot,
 // the target (handlers/spellbook.go resolves the slot's spell and its line).
-// What Sandstorm does with one, recorded with eqoa harvest on 2026-10-21 (a
-// druid of 23; claude-notes/casting-sandstorm-20261021.md):
+// What the server does with one, its wire as Sandstorm's (recorded with eqoa
+// harvest on 2026-10-21, a druid of 23: claude-notes/casting-sandstorm-20261021.md)
+// but for its timings, which are the original game's as players remember them
+// (petition 2184, 2026-11-15; Sandstorm's 1.4 s landing and 300 ms lockout
+// extra before):
 //
 //   - started, in one datagram: 0x00CD (the ability's display index, stamp 0,
-//     a lockout of cast time + recast + 300 ms), 0x00B1 (caster, target, no
+//     a lockout of cast time + recast), 0x00B1 (caster, target, no
 //     others, the cast time in ms, the spell's visual), and the stat channel
 //     with the power cost already taken;
-//   - landed 1.3 to 1.6 s after the cast time: a heal or a hit is a 0x00DB
+//   - landed castLand (0.5 s) after the cast time: a heal or a hit is a 0x00DB
 //     (caster, the amount signed, target) — a heal only when the target was
 //     short of its maximum, and for the whole amount — and an effect with a
 //     duration goes on the effects channel (0x43) as the ability's front icon
@@ -40,21 +43,23 @@ import (
 //     at most one about every 1.25 s (recoveryAnswerLocked).
 //
 // What a spell does comes from its line (spelltext.go); a line this cannot
-// read lands as nothing, the cast itself (power, lockout, animation) as on
-// Sandstorm.
+// read lands as nothing, the cast itself (power, lockout, animation) as any
+// other.
 
-// castLand is how long after its cast time a spell lands: Sandstorm's land
-// 1.2 to 1.7 s after, 1.4 typically (14 casts in the captures, 9 recorded).
-const castLand = 1400 * time.Millisecond
+// castLand is how long after its cast time a spell lands: half a second, as the
+// original game's players remember it (petition 2184: "2 cast, the 0.5 delay for dmg
+// to land"; 1.4 s before, a reading of another server's captures).
+const castLand = 500 * time.Millisecond
 
 // castBusy is how long past its cast time a cast keeps another from
 // starting: Sandstorm dropped one 0.37 s after a 2 s cast and took one 0.55 s
 // after.
 const castBusy = 400 * time.Millisecond
 
-// castLockoutExtra is what Sandstorm's lockout adds to the cast time and the
-// recast: 300 ms on every one recorded (3300 for a 2 s cast of recast 1).
-const castLockoutExtra = 300 * time.Millisecond
+// castLockoutExtra is what a lockout adds to the cast time and the recast: none,
+// the ability ready again at cast time + recast (petition 2184: "5s total for it to
+// ungrey"; 300 ms before, a reading of another server's captures).
+const castLockoutExtra = 0
 
 // effectTick is a "per tic" effect's tick: six seconds, so the lists' 24 s
 // heals tick four times ("63 x4").
@@ -194,7 +199,7 @@ type CastSpell struct {
 // SpellOf is an ability record as the World casts it: handlers' castSpell
 // for a player's book (displayIndex its place there), a templated NPC's
 // (classtemplate.go) with none. The record gives cast time and recast in
-// seconds (Sandstorm's: Minor Healing's 2 and 1 are a 3300 ms lockout), the
+// seconds (Minor Healing's 2 and 1 are a 3000 ms lockout), the
 // front icon the effects channel shows, the range as writeAbilityRecord
 // sends it; its line is read with its name, which says what an illusion is
 // (illusion.go) and gives a line where the database has none, and its area
@@ -800,7 +805,7 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	p.Power -= spell.PowerCost
 	p.StatsDirty = true
 	// a taunt lands at once, then holds every ability tauntLockout (taunt.go); else the arts' cooldown
-	// after an art, the cast's busy time and Sandstorm's landing
+	// after an art, the cast's busy time and its landing (castLand)
 	taunt := isTaunt(&spell)
 	busy, land := castBusy, castLand
 	if taunt {

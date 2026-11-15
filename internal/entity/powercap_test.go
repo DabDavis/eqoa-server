@@ -81,7 +81,7 @@ func TestEyeHoldsMaximumPowerDown(t *testing.T) {
 	if c.p.Power != 0 || c.p.MaxPowerNow() != 0 {
 		t.Errorf("30 s in: power %d of %d", c.p.Power, c.p.MaxPowerNow())
 	}
-	c.tick(47 * time.Second) // landed at 1.4 s, gone 45 s after
+	c.tick(47 * time.Second) // landed at castLand (0.5 s), gone 45 s after
 	if len(c.p.Effects) != 0 || c.p.MaxPowerNow() != own || c.p.Power != 0 || c.p.StatNow(StatWis) != wis {
 		t.Errorf("after the Eye: %d effects, power %d of %d (own %d), WIS %d", len(c.p.Effects), c.p.Power, c.p.MaxPowerNow(), own, c.p.StatNow(StatWis))
 	}

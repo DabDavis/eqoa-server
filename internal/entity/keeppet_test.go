@@ -32,7 +32,7 @@ func TestAPetComesThroughARestart(t *testing.T) {
 		return *back.Pet
 	}
 
-	// charmed: a 4 minute charm and 150 CHA's 37.5 s, landed at 6.4 s
+	// charmed: a 4 minute charm and 150 CHA's 37.5 s, landed at 5.5 s (its cast and castLand)
 	timed := entrancing("Entrancing Captivation", 39, "Target, Charm ; Increase 25% based on CHA , 4min")
 	a, _, _ := charmRig(t)
 	if began, _ := castCharm(t, a, timed, crabID, 0); !began || a.w.petOfLocked(a.p) != a.enemy {
@@ -41,7 +41,7 @@ func TestAPetComesThroughARestart(t *testing.T) {
 	a.enemy.HP = 1020
 	a.enemy.X += 2
 	k := carry(t, a, time.Minute)
-	left := 4*time.Minute + 37500*time.Millisecond + 6400*time.Millisecond - time.Minute
+	left := 4*time.Minute + 37500*time.Millisecond + timed.CastTime + castLand - time.Minute
 	if k.NPC != 3200 || k.Charm != "Entrancing Captivation" || time.Duration(k.LeftMS)*time.Millisecond != left || k.HPPct != 0.5 {
 		t.Errorf("kept %+v, want the crab, its charm and %v left at half", k, left)
 	}

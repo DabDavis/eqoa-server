@@ -338,7 +338,7 @@ func TestNoAssignmentChangesNothing(t *testing.T) {
 // max_cast leaves out) 2 s into the fight, naming the player beside its
 // target and not one beyond the area, then at once its single target's
 // (Burning Gaze, not Explode, whose recast is 180 s, nor Static Shock, lower);
-// both every 15 s. Each lands 1.4 s after its cast time, at 35%: the target
+// both every 15 s. Each lands castLand after its cast time, at 35%: the target
 // the storm's 82 and the gaze's 134, the one beside it the storm's 36.
 func TestTheWizardChainCastsAnAreaThenASingleTarget(t *testing.T) {
 	r := newTemplateRig(t)
@@ -365,7 +365,7 @@ func TestTheWizardChainCastsAnAreaThenASingleTarget(t *testing.T) {
 	}
 	var casts []when
 	got := map[string][]string{}
-	// to 21 s: the second storm (17 s) lands at 20.4, its cast time and castLand on
+	// to 21 s: the second storm (17 s) lands at 19.5, its cast time and castLand on
 	for d := time.Duration(0); d <= 21*time.Second; d += 100 * time.Millisecond {
 		r.tick(d)
 		msgs := map[string][][]byte{"target": drain(ts), "beside": drain(bs), "far": drain(fs)}

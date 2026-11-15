@@ -166,7 +166,8 @@ func steps(first, every, last int) []int {
 
 // checkSwarmKit holds a 110 s fight (the attack at 9.6 s, the clocks from 9.7)
 // to the kit: the damage over time cast at 10.7 s in half a second and again
-// every 24 s as the one on the crab runs out, landing 1.9 s after its cast, so
+// every 24 s as the one on the crab runs out, landing 1 s after its cast (its
+// half second and castLand), so
 // it is never down from its first landing (a tick every 6 s, 300 each) and
 // never two; the harm touch at 12.7 s and every 50 s, instant, 2000; the tap at
 // 14.7 s and every 30 s, a second's cast, 1000 and the pet healed by it; and
@@ -196,15 +197,16 @@ func checkSwarmKit(t *testing.T, f *swarmFight, fxPlague, fxLeech, fxTouch uint3
 			}
 		}
 	}
-	if want := steps(12600, 6000, last); fmt.Sprint(f.ticks) != fmt.Sprint(want) || f.most != 1 {
-		t.Errorf("its damage over time ticked at %v (at most %d at once), want every 6 s from its landing at 12.6 s, one: %v",
-			f.ticks, f.most, want)
+	landed := 10700 + 500 + int(castLand/time.Millisecond)
+	if want := steps(landed, 6000, last); fmt.Sprint(f.ticks) != fmt.Sprint(want) || f.most != 1 {
+		t.Errorf("its damage over time ticked at %v (at most %d at once), want every 6 s from its landing at %d ms, one: %v",
+			f.ticks, f.most, landed, want)
 	}
 	for _, c := range []struct {
 		line string
 		n    int
 	}{
-		{`"Swarming Plague" ticks on Desert Crab for 300 before`, len(steps(12600, 6000, last))},
+		{`"Swarming Plague" ticks on Desert Crab for 300 before`, len(steps(landed, 6000, last))},
 		{`lands "Swarming Harm Touch" on Desert Crab for 2000 before`, len(steps(12700, 50000, last))},
 		{`lands "Swarming Leech" on Desert Crab for 1000 before`, len(steps(14700, 30000, last))},
 	} {
@@ -228,7 +230,7 @@ func checkSwarmKit(t *testing.T, f *swarmFight, fxPlague, fxLeech, fxTouch uint3
 // A Swarming Death of the kit fights with all four; the control, its template
 // row's "pet necromancer" (no proc), casts the same spells and procs nothing.
 // Its damage over time on a clock of 2 s is kept up the same: not cast again
-// while one is on its way (1.9 s) or has more than that to run.
+// while one is on its way (1 s) or has more than that to run.
 func TestASwarmingDeathFightsWithItsKit(t *testing.T) {
 	for _, c := range []struct {
 		name, template string
@@ -303,7 +305,7 @@ func TestASwarmingDeathsDoTIsNeverStacked(t *testing.T) {
 
 // Its damage over time is wanted again only as the one on its target runs out:
 // not while a cast of it is on its way there (a 2 s clock is shorter than a
-// 1.5 s cast and its 1.4 s landing), not while the one there has more than its
+// 1.5 s cast and its 0.5 s landing), not while the one there has more than its
 // cast's time and landing to run, and then yes, so the new one lands as the
 // old one ends.
 func TestASwarmingDeathsDoTIsWantedAsItRunsOut(t *testing.T) {
@@ -325,12 +327,12 @@ func TestASwarmingDeathsDoTIsWantedAsItRunsOut(t *testing.T) {
 		want bool
 		why  string
 	}{
-		{22000, false, "its cast on its way (it lands at 22.9 s)"},
-		{22900, false, "landed: 24 s to run"},
-		{43999, false, "a hair over 2.9 s to run, its cast's time and landing"},
-		{44000, true, "2.9 s to run: the new one lands as it ends"},
+		{21900, false, "its cast on its way (it lands at 22 s)"},
+		{22000, false, "landed: 24 s to run"},
+		{43999, false, "a hair over 2 s to run, its cast's time and landing"},
+		{44000, true, "2 s to run: the new one lands as it ends"},
 	} {
-		if c.ms == 22900 {
+		if c.ms == 22000 {
 			r.w.petCastSystemLocked(at(c.ms))
 		}
 		if got := r.w.petWantsLocked(ps, a, at(c.ms)); got != c.want {
@@ -387,7 +389,7 @@ func TestASwarmingDeathsProcIsResistedAsItsSpells(t *testing.T) {
 
 // A creature template's ability may cast in its own time too: the necromancer's
 // tap (Siphon Life, a 2 s record) cast in half a second, its 0x00B1 saying so
-// and its hit landing 1.9 s after its cast began.
+// and its hit landing 1 s after its cast began (its half second and castLand).
 func TestATemplateAbilityCastsInItsOwnTime(t *testing.T) {
 	r := newTemplateRig(t)
 	if _, err := r.db.Exec(`INSERT INTO classtemplates (name, class, abilities, note) VALUES ('quick necromancer', 11,
@@ -418,7 +420,7 @@ func TestATemplateAbilityCastsInItsOwnTime(t *testing.T) {
 			}
 		}
 	}
-	if castAt < 0 || landAt-castAt != 1900*time.Millisecond {
-		t.Errorf("cast at %v, landed at %v: want 1.9 s after", castAt, landAt)
+	if castAt < 0 || landAt-castAt != 500*time.Millisecond+castLand {
+		t.Errorf("cast at %v, landed at %v: want %v after", castAt, landAt, 500*time.Millisecond+castLand)
 	}
 }

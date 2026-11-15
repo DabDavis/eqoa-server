@@ -14,7 +14,7 @@ import (
 // Ticket 2011 through the database: table spellrecastgroup puts Wolf's Instinct
 // (book place 7, bar slot 1) and Hunter's Instinct (place 9, slot 2) in one group
 // with a third spell the book lacks. A 0x0032 of the wolf locks both of the book
-// out, 0x00CD on 7 and 9 with the wolf's 1803.3 s, nothing for the third; a 0x0032
+// out, 0x00CD on 7 and 9 with the wolf's 1803 s, nothing for the third; a 0x0032
 // of the hunter then is refused (the recovery line and its cloud, no 0x00CD, no
 // power). The control: a spell in no group (place 12, slot 3) is cast, its own
 // 0x00CD alone. RecastGroup reads the group back; "" takes a spell out.
@@ -114,8 +114,8 @@ func TestUseSkillLocksTheRecastGroup(t *testing.T) {
 	if len(got) != 2 || got[7] == nil || got[9] == nil || string(got[7]) != string(got[9]) {
 		t.Fatalf("0x00CD after the wolf % X, want abilities 7 and 9, the same lockout", got)
 	}
-	if want := zz(1803300); string(got[9]) != string(want) {
-		t.Errorf("ability 9's lockout % X, want % X (1803300 ms)", got[9], want)
+	if want := zz(1803000); string(got[9]) != string(want) {
+		t.Errorf("ability 9's lockout % X, want % X (1803000 ms)", got[9], want)
 	}
 	power := p.Power
 	p.Casting = nil // the wolf's cast time past (a cast within it is let go unanswered)

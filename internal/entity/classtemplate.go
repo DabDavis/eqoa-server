@@ -311,6 +311,15 @@ func (n *NPC) meleeOut(hit int) int {
 	return n.stoodOut(max(1, int(math.Round(float64(hit)*float64(n.tmpl.MeleePct)/100))))
 }
 
+// meleeFixed is each melee hit of the NPC's that lands as its template fixes it (melee_fixed: work board
+// #688's Moogie Gearling, 25), an add's at its share; 0 for none, its roll as ever.
+func (n *NPC) meleeFixed() int {
+	if n == nil || n.tmpl == nil || n.tmpl.MeleeFixed <= 0 {
+		return 0
+	}
+	return n.shared(n.tmpl.MeleeFixed)
+}
+
 // meleeTaken is a player's or a pet's melee hit on the NPC as its template
 // takes it (taken_pct), at least 1.
 func (n *NPC) meleeTaken(hit int) int {
@@ -927,9 +936,12 @@ func (w *World) templateWantsLocked(npc *NPC, a *templateAbility, target EntityI
 	}
 	switch a.Kind {
 	case database.AbilityHeal:
+		if npc.healBarred() {
+			return false // nothing heals it (metalv5.go): it waits
+		}
 		return npc.HP*100 < npc.MaxHP*a.BelowOr() // whole enough: it waits
-	case database.AbilityDebuff:
-		return w.Players[target] != nil // a pet: it waits
+	case database.AbilityDebuff, database.AbilityRoot:
+		return w.Players[target] != nil // a pet: it waits (a root is a player's: creatureroot.go)
 	case database.AbilityDoT:
 		return w.creatureDoTWantedLocked(npc, a, target, now) // creaturedot.go
 	}
@@ -1007,6 +1019,7 @@ type npcCast struct {
 	noCure bool // a debuff's: no cure takes it off
 	strip  bool // every beneficial effect off its target, nothing of its spell (strip.go)
 	dot    bool // its spell's damage over time on what it fights, kept up (creaturedot.go)
+	root   bool // a hold on the player it fights, CreatureRootHold (creatureroot.go)
 	// ability is the index of the ability cast in tmpl's, for what its landing
 	// does past itself (abilitytimes.go); healPct a heal of the NPC's share
 	ability int
@@ -1045,7 +1058,7 @@ func (w *World) templateCastLocked(npc *NPC, i int, target EntityID, now time.Ti
 	ct := a.castTime(spell)
 	c := &npcCast{npc: npc, tmpl: t, spell: spell, pct: npc.shared(a.DamageOr()), target: target,
 		debuff: a.Kind == database.AbilityDebuff, noCure: a.NoCure, strip: a.Kind == database.AbilityStrip,
-		dot: a.Kind == database.AbilityDoT, ability: i, lands: now.Add(ct + castLand)}
+		dot: a.Kind == database.AbilityDoT, root: a.Kind == database.AbilityRoot, ability: i, lands: now.Add(ct + castLand)}
 	if a.Damage > 0 {
 		c.fixed, c.fixedResist, c.tap = npc.stoodOut(npc.shared(a.Damage)), shieldResistStat(a.Resist), a.Kind == database.AbilityLifetap
 	}
@@ -1311,6 +1324,9 @@ func (w *World) templateLandLocked(c *npcCast, now time.Time) {
 	case c.dot:
 		w.templateDoTLocked(c, now) // creaturedot.go
 		return
+	case c.root:
+		w.templateRootLocked(c, now) // creatureroot.go
+		return
 	}
 	place := w.templateAreaPlaceLocked(npc, c.spell, c.target)
 	var seen areaLog
@@ -1492,7 +1508,7 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 	} else {
 		return
 	}
-	if drained > 0 && npc.HP < npc.MaxHP {
+	if drained > 0 && npc.HP < npc.MaxHP && !npc.healBarred() {
 		npc.HP = min(npc.HP+drained, npc.MaxHP)
 		w.tellNPCHealLocked(sess, npc, drained)
 	}
@@ -1641,10 +1657,11 @@ func (w *World) templateHealLocked(c *npcCast) {
 		// it (abilitytimes.go: Mr. Moogie's Lay Hands, all of it)
 		n = min(petShareAmount(npc.MaxHP, c.healPct), npc.MaxHP-npc.HP)
 	}
-	if n <= 0 || npc.HP >= npc.MaxHP {
+	if n <= 0 || npc.HP >= npc.MaxHP || npc.healBarred() {
 		return
 	}
 	npc.HP = min(npc.HP+n, npc.MaxHP)
+	npc.selfHealed = true // a heal of its own landed (metalv5.go: V5's Self Repair)
 	var sess *session.Session
 	if p := w.Players[npc.CurrentEnemy]; p != nil {
 		sess = w.findSessionByEntityIDLocked(p.ServerID)
@@ -1863,6 +1880,12 @@ func (w *World) templateLineLocked(npc *NPC, now time.Time) string {
 	t := npc.tmpl
 	parts := []string{fmt.Sprintf("Class template %s: a %s, hit points %d (%d%% of its %d), melee taken %d%%, its melee %d%%",
 		t.Name, nameIn(classNames, npc.Class), npc.MaxHP, t.HPPct, npc.tbase.maxHP, t.TakenPct, t.MeleePct)}
+	if f := npc.meleeFixed(); f > 0 {
+		parts = append(parts, fmt.Sprintf("each melee hit a fixed %d, through any armour (melee_fixed)", f))
+	}
+	if npc.healBarred() {
+		parts = append(parts, "nothing heals it (Metal Moogie V5's malfunction)")
+	}
 	specials := t.SpecialDamage > 0 && (t.SpecialChance > 0 || t.SpecialEvery > 0)
 	if specials && t.SpecialFrom > npc.Level {
 		parts = append(parts, fmt.Sprintf("no %s below level %d", specialName(t), t.SpecialFrom))

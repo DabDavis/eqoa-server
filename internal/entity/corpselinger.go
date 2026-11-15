@@ -71,7 +71,7 @@ func (w *World) lingersLocked(npc *NPC) bool {
 	if w.corpseLinger <= w.corpseDecay || npc.CorpseDecay != 0 || npc.withMaster || npc.Owner != 0 || npc.Charm != nil ||
 		npc.CorpseOfNothing() || npc.Dummy != NotDummy || npc.DuelSpawn() || npc.Instance != 0 || npc.challenge != nil ||
 		npc.siege != nil || npc.guardHit || npc.GenieOf != 0 || npc.PortalOf != 0 || npc.isMerc() || npc.isFamiliar() ||
-		npc.Name == MetalMoogieName || npc.Name == MetalMoogieV2Name {
+		IsMetalMoogieName(npc.Name) {
 		return false
 	}
 	return npc.DeathTime.Add(w.corpseLinger).After(npc.corpseEnds(w.corpseDecay))

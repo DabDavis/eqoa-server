@@ -328,7 +328,7 @@ func (w *World) creatureProcOnNPCLocked(npc, foe *NPC, n int, now time.Time) boo
 // veilHealLocked heals npc what its veil took, up to its most, told to sess (whom it hit's client, or nil).
 // Must be called with the lock held.
 func (w *World) veilHealLocked(npc *NPC, v *templateVeil, taken int, sess *session.Session) {
-	if npc.Dead || taken <= 0 || npc.HP >= npc.MaxHP {
+	if npc.Dead || taken <= 0 || npc.HP >= npc.MaxHP || npc.healBarred() {
 		return
 	}
 	heal := min(taken, npc.MaxHP-npc.HP)

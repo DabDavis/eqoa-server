@@ -327,6 +327,9 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 		stage: dmgStage{on: true, formulaBefore: true, pre: pre}})
 	damage, mit := w.mitigateSnapLocked(player, damage, now) // workbook.go: a mitigation's share off
 	w.formulaFinish(rec, damage, mit)
+	if fixed := npc.meleeFixed(); fixed > 0 {
+		damage = fixed // its template's fixed melee (melee_fixed): that figure, through any armour, not rolled
+	}
 	player.HP -= damage
 	w.contactPlayerLocked(player)       // what ends at a hit (workbook.go)
 	w.breakInvisLocked(player, "a hit") // invis.go: every invisibility, whatever gave it

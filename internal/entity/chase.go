@@ -334,13 +334,11 @@ func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (i
 		return d <= reach, false
 	}
 	ux, uz := (x-npc.X)/d, (z-npc.Z)/d
-	if w.staysInWaterLocked(npc) && !w.waterAheadLocked(npc, npc.X+ux*step, npc.Z+uz*step) {
+	inWater := w.staysInWaterLocked(npc)
+	if inWater && !w.waterAheadLocked(npc, npc.X+ux*step, npc.Z+uz*step) {
 		// a creature of the water stops at its edge, turned to its enemy
 		// (water.go)
-		if npc.moving() {
-			npc.stopMoving()
-		}
-		return d <= reach, false
+		return w.waterEdgeLocked(npc, x, y, z, d, reach, held, now)
 	}
 	// the way: straight while the ground lets it run so, else round what stands
 	// between, at its run (chaseroute.go)
@@ -356,6 +354,7 @@ func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (i
 		return d <= reach && absf(y-npc.Y) <= routeLevel, false
 	}
 	oldX, oldY, oldZ, oldSwim := npc.X, npc.Y, npc.Z, npc.swimming
+	keptIn := inWater && w.keepsInLocked(npc, npc.X, npc.Y, npc.Z) // in its water now (not up a slime bank)
 	guarded := w.routesFor(npc) && !now.Before(npc.chase.route.failedUntil)
 	npc.X += ux * step
 	npc.Z += uz * step
@@ -376,6 +375,13 @@ func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (i
 		in := d <= reach && absf(y-npc.Y) <= routeLevel
 		return in, !in && now.Sub(held) >= chaseHeld
 	}
+	if keptIn && !w.keepsInLocked(npc, npc.X, npc.Y, npc.Z) {
+		// the step took a creature of the water out of it (a swimmer off the
+		// ground lifted up the sea's bed onto the beach: the Isle of Dread's
+		// manta rays, petition 2190): not taken, it stops at the edge
+		npc.X, npc.Y, npc.Z, npc.swimming, npc.under = oldX, oldY, oldZ, oldSwim, npc.wasUnder
+		return w.waterEdgeLocked(npc, x, y, z, d, reach, held, now)
+	}
 	if w.SpatialIndex != nil {
 		w.SpatialIndex.Update(npc.ServerID, oldX, oldZ, npc.X, npc.Z)
 	}
@@ -386,6 +392,28 @@ func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (i
 	}
 	npc.Loco = locoIn(npc.Loco, npc.swimming, pace) // a chase into deep water swims (water.go)
 	return d-step <= reach, false
+}
+
+// waterEdgeLocked is a creature of the water held at the water's edge in its
+// chase of an enemy at (x, y, z), d off: standing, turned to it. An enemy in
+// the water, or wading at the edge, within its reach it fights; one out on the
+// dry land it cannot reach (no hit passes the edge: apartLocked), and once it
+// has stood so for chaseHeld it breaks off and goes home, as a chase the
+// ground holds does (Heirloom petitions 2189/2190, the owner, 2026-11-15: "the
+// sting rays chased players out of water at isle of dread"). Must be called
+// with the lock held.
+func (w *World) waterEdgeLocked(npc *NPC, x, y, z, d, reach float32, held, now time.Time) (inReach, giveUp bool) {
+	if npc.moving() {
+		npc.stopMoving()
+	}
+	if w.wetAtLocked(npc.World, x, y, z) {
+		return d <= reach, false // its enemy in the water with it
+	}
+	if held.IsZero() {
+		held = now
+	}
+	npc.chase.heldSince = held
+	return false, now.Sub(held) >= chaseHeld
 }
 
 // giveUpLocked ends an NPC's fight past its leash: its threats dropped,

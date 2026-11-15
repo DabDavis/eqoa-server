@@ -2577,7 +2577,7 @@ The merc's own box waits while any other is up. Familiars take no place.
 **`/merc`** (`#merc`, a PS2's `/t merc ...`; everyone's): alone its state (its class, race, level, hit points, power,
 stance, target) and its words; `stance passive|assist|aggressive` (kept in its row), `follow`, `stay` (holds its place out
 of a fight: a melee merc still goes to what it fights, then back), `attack` (its owner's target, whatever its stance), `group` (the box again), `revive`, `dismiss`
-(the hire ended). **A death**: its corpse lies a pet's time, it leaves the group, and it **rests 60 s** (`MercRest`, kept in
+(the hire ended), `master` (below). **A death**: its corpse lies a pet's time, it leaves the group, and it **rests 60 s** (`MercRest`, kept in
 its row); `/merc` (or `/merc revive`) after the rest brings it back beside its owner, whole. It goes with its owner at a
 logout and **comes back at the next login** (`OnPlayerEntered`; still resting, told how long); through a **keep restart**
 it is carried where it stood with its shares of hit points and power, its stance and its group place
@@ -2604,6 +2604,31 @@ items that vanish at logout are refused; NO TRADE and LORE go (they never leave 
 while he holds none). A dismissal or a boot puts what it held in the keeping (slot 0) in the transaction that ends the
 hire, delivered to the pack as it has room (then at each login and `/merc claim`); a death keeps it. `TestMercAlchemist*`,
 `TestMercGive*`, `TestMercEquip*`, `TestMercItems*`, `TestMercMenuItems`.
+
+**A Master Class at 55** (`entity/mercmaster.go`, `handlers/mercmaster.go`, `charmerc.master`; the owner, 2026-11-15, from
+Hogknight's "is it possible to give the gnome mercs a tinker pet option?": "if 55+ choose the merc's master class tag (which
+comes with the master class abilities)", then "tinker is racial master class, so account for archetype master class, racial,
+etc."): `/merc [name] master` lists what its class and race are offered (cmcatalog category 4, `OfferedTo`, as a player's
+window), by kind: its class's (one class's bit: the magician's Aero/Pyro/Hydro/Geomancer and Sage), its race's (`racialRank`:
+the gnome's Tinker, the human's Mercenary) and an archetype's (several classes: the were-hunters); `master <name>` (a unique
+beginning will do) gives one in place of any, `master none` takes it away; its owner below 55 is refused. Its menu's Master
+(55+) asks the kinds, then a kind's names a page at a time (the dialog room less one, More). It holds every rank up to its
+level as a player who bought them: the ranks' effects on its body (`mercMasterBody`, `refreshCMLocked`) and its book changed
+by `CMAddBook` (a player's purchase's swaps); what a player must have first that a merc never has (other masteries' ranks,
+trained base stats, a quest: the were-hunters') is not asked, an ability a rank replaces is (Slayer's Curse needs Hand of
+Bertoxxulous), and a rank that is another look of a pet it has (Construct (Rat), (Drachnid)) is left out. The target window
+shows it in place of the class (`MercTitle` in 0x0010's title, as a player's Master Class); `/merc` says it. The kit is made
+from the row, so a login and a keep restart keep it; a change takes the old abilities and pet away at once (`rekit`). **Its
+pet**: a Master Class's summoning (Tinker's Construct, the Death Knight's Servant, the Animator's Grand Animation:
+`MercKit.MasterPets`) before the class's book's, a hirer's `/merc pet` pick still first; a **racial ability's summoning**
+(the gnome's Invention from 6, the troll's Swamp Friends, the Mermaid's Aquatic Birthright: `RacialPets`, the one racial
+mastery a merc is given) only when nothing else of its book summons. Its pet's spells (Repair) by `mercpetbuff.go`. A
+Master Class's hit with an area round its target (the Sorcerer's Furies, Blade Dance, Threnody: `CastSpell.MercSplash`) is
+cast at its target, its splash only on what already fights its team (`mercSplashLocked`); every other harmful area spell
+stays one it never casts. Never cast, by the existing rules: debuffs (Expose, Muscle Lock, Umbral Curse, Storm Caller's
+Curse), backstabs (Assassinate, Silent Blade), pickpockets (Quick Hands, Brilliant Strike), hate drops (Jolt, Soothing
+Prayer), forms and invisibility (Lich, Elder Form, Wild Nature, Vanish), Divine Reclamation, Mark of Faith, Subversion,
+Tribal Ward, Power Ballad. `TestMercMaster*`, `TestRealMercMasterClasses` (`EQOA_REAL_DB`).
 
 **Familiars** (`entity/familiar.go`, `handlers/familiar.go`, table `familiars`, `world.familiars`,
 `tools/seed_familiars.py [--list] [--apply|--undo]`; the GM Jibrish's petition 1445: Healbot): a follower an item calls,

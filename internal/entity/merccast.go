@@ -155,7 +155,7 @@ func mercSkips(s *CastSpell) bool {
 	case s.Travel != nil || s.Familiar != nil || d.Summons() || d.Charms() || d.FormKind != FormNone || d.Resurrects() > 0,
 		d.Reagent != "" || d.Backstab || d.TargetKind != "" || d.Stance || len(d.Items) > 0,
 		s.Scope == 3 || s.Scope == 4,
-		d.Harmful && s.Area.Centre != AreaNone:
+		d.Harmful && s.Area.Centre != AreaNone && !(s.MercSplash && s.Area.Centre == AreaOnTarget):
 		return true
 	}
 	for _, e := range d.Effects {
@@ -1017,7 +1017,19 @@ func (w *World) mercLandLocked(c *mercCast, now time.Time) {
 		if t == nil || t.Dead || t.World != m.World || !mercMayFight(m, t) {
 			return
 		}
+		splash := w.mercSplashLocked(ms, s, t, now) // found before the target's hit may kill it
 		w.mercHarmLocked(ms, s, t, now)
+		if len(splash) > 0 {
+			other := *s
+			if len(s.Area.Effects) > 0 {
+				other.Def.Effects = s.Area.Effects // what its others take
+			}
+			for _, o := range splash {
+				if !o.Dead && w.mercLiveLocked(ms) {
+					w.mercHarmLocked(ms, &other, o, now)
+				}
+			}
+		}
 		return
 	}
 	heal := mercHeals(s)
@@ -1046,6 +1058,40 @@ func (w *World) mercLandLocked(c *mercCast, now time.Time) {
 			w.mercHelpLocked(ms, s, mm.id(), now)
 		}
 	}
+}
+
+// mercSplashLocked is the creatures a merc's Master Class hit splashes
+// (CastSpell.MercSplash) round its target t: those within its area's radius
+// that already fight its team, the merc may fight and it reaches, nearest t
+// first, up to the area's cap with t counted; none for any other spell.
+// Must be called with the lock held.
+func (w *World) mercSplashLocked(ms *mercState, s *CastSpell, t *NPC, now time.Time) []*NPC {
+	if !s.MercSplash || s.Area.Centre != AreaOnTarget {
+		return nil
+	}
+	m := ms.npc
+	r := s.Area.radiusFor(true)
+	team := w.mercTeamIDsLocked(ms)
+	place := areaPlace{world: t.World, caster: [3]float32{m.X, m.Y, m.Z}, centre: [3]float32{t.X, t.Y, t.Z}, onOther: true}
+	var out []*NPC
+	for _, id := range w.SpatialIndex.QueryRadius(t.X, t.Z, r) {
+		o := w.NPCs[id]
+		if o == nil || o == t || o.Dead || o.World != t.World || !mercMayFight(m, o) || o.NPCType&0x80 != 0 || o.hiddenAt(now) ||
+			!team[o.CurrentEnemy] {
+			continue // what fights its team alone: it pulls nothing
+		}
+		if dist3(o.X, o.Y, o.Z, t.X, t.Y, t.Z) > r || !w.reachesLocked(place, o.X, o.Y, o.Z) {
+			continue
+		}
+		out = append(out, o)
+	}
+	sort.Slice(out, func(i, j int) bool {
+		return dist3(out[i].X, out[i].Y, out[i].Z, t.X, t.Y, t.Z) < dist3(out[j].X, out[j].Y, out[j].Z, t.X, t.Y, t.Z)
+	})
+	if most := s.Area.most() - 1; len(out) > most {
+		out = out[:max(most, 0)]
+	}
+	return out
 }
 
 // mercHeals is whether s is one of the merc's heals (a heal, a heal over time,

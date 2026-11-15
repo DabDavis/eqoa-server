@@ -111,7 +111,7 @@ const (
 	mercRestLine  = "Your mercenary %s rests for %d more seconds."
 	mercBackLine  = "Your mercenary %s is back at your side."
 	mercKitFailed = "The liaison's ledger is out of order. Try again."
-	mercHelpLine  = "/merc [name or 1-3] menu, stance passive|assist|aggressive, defensive|offensive (a healer), follow, stay, attack (your target), path, pet, charm [off], group, revive, dismiss, give [item], inv, equip|unequip|take <item>, aoe|single (a Cocktail alchemist), stock, claim: with no name, every merc out. /familiar dismiss sends a familiar away."
+	mercHelpLine  = "/merc [name or 1-3] menu, stance passive|assist|aggressive, defensive|offensive (a healer), follow, stay, attack (your target), path, pet, master [name|none] (55+), charm [off], group, revive, dismiss, give [item], inv, equip|unequip|take <item>, aoe|single (a Cocktail alchemist), stock, claim: with no name, every merc out. /familiar dismiss sends a familiar away."
 )
 
 // mercRoles are the liaison's first answers, each role's classes in their
@@ -150,17 +150,19 @@ const (
 	mercStageRace
 	mercStageSex
 	mercStagePath
-	mercStageMenu    // a merc's own menu (mercmenu.go)
-	mercStageSpells  // its spells, a page
-	mercStageStance  // its stance
-	mercStageDismiss // its dismissal, to be sure
-	mercStagePet     // its pet's kind
-	mercStageMore    // its menu's second box (mercmenu.go)
-	mercStageItems   // its items (mercinv.go)
-	mercStageInv     // what it holds, a page
-	mercStageItem    // one record of it
-	mercStageGive    // the pack's records it may take, a page
-	mercStageStock   // the alchemists' stock, a page
+	mercStageMenu       // a merc's own menu (mercmenu.go)
+	mercStageSpells     // its spells, a page
+	mercStageStance     // its stance
+	mercStageDismiss    // its dismissal, to be sure
+	mercStagePet        // its pet's kind
+	mercStageMore       // its menu's second box (mercmenu.go)
+	mercStageItems      // its items (mercinv.go)
+	mercStageInv        // what it holds, a page
+	mercStageItem       // one record of it
+	mercStageGive       // the pack's records it may take, a page
+	mercStageStock      // the alchemists' stock, a page
+	mercStageMaster     // its Master Class's kinds (mercmaster.go)
+	mercStageMasterList // a kind's Master Classes, a page
 )
 
 // mercAsk is a liaison's open question: its box, its stage, what was chosen
@@ -179,6 +181,8 @@ type mercAsk struct {
 	ids  []int
 	item int
 	npc  entity.EntityID
+	// kind is the Master Class kind a page lists (mercmaster.go)
+	kind string
 }
 
 // Mercs is the handlers' half of the mercenaries.
@@ -370,7 +374,7 @@ func (m *Mercs) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 			m.askRaces(sess, p, a)
 		}
 	case mercStageMenu, mercStageSpells, mercStageStance, mercStageDismiss, mercStagePet, mercStageMore,
-		mercStageItems, mercStageInv, mercStageItem, mercStageGive, mercStageStock:
+		mercStageItems, mercStageInv, mercStageItem, mercStageGive, mercStageStock, mercStageMaster, mercStageMasterList:
 		m.menuAnswer(sess, p, a, n) // its own menu (mercmenu.go)
 	case mercStagePath:
 		if n >= len(archivistPathLines[a.class]) {
@@ -691,6 +695,9 @@ func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 	k.Spells = mercPathBook(row.Class, row.Path, k.Spells) // its path's, no other's (mercpath.go)
 	k.PetPick = mercPetPick(row.Class, row.Pet)            // the pet kind its hirer picked (mercpetkind.go)
 	k.PetUsual = row.Pet == "" && len(k.PetPick) > 0       // its class's usual kind, no pick of its hirer's
+	if err == nil {
+		m.mercMasterKit(row, &k) // its race's pets, its Master Class (mercmaster.go)
+	}
 	return k, err
 }
 
@@ -1132,6 +1139,10 @@ func (m *Mercs) Command(sess *session.Session, p *entity.Player, args string) {
 		if slot = m.oneSlot(sess, rows, slot, "path"); slot > 0 {
 			m.path(sess, p, slot, strings.Join(words[1:], " "))
 		}
+	case "master":
+		if slot = m.oneSlot(sess, rows, slot, "master"); slot > 0 {
+			m.master(sess, p, slot, strings.Join(words[1:], " ")) // mercmaster.go
+		}
 	case "pet":
 		if slot = m.oneSlot(sess, rows, slot, "pet"); slot > 0 {
 			m.pet(sess, p, slot, strings.Join(words[1:], " ")) // mercpetkind.go
@@ -1242,7 +1253,7 @@ func (m *Mercs) dismiss(sess *session.Session, p *entity.Player, slot int) {
 // (chat.go: anything else to a "merc" is a tell).
 var mercVerbs = map[string]bool{"status": true, "dismiss": true, "stance": true, "follow": true, "stay": true, "attack": true,
 	"group": true, "revive": true, "help": true, "path": true, "pet": true, "charm": true, "list": true, "defensive": true,
-	"offensive": true, "menu": true, "aoe": true, "single": true, "give": true, "inv": true, "inventory": true, "items": true,
+	"offensive": true, "menu": true, "master": true, "aoe": true, "single": true, "give": true, "inv": true, "inventory": true, "items": true,
 	"equip": true, "unequip": true, "take": true, "stock": true, "claim": true}
 
 // mercWords reports a tell's body that is /merc's: none, or one of its words
@@ -1304,6 +1315,9 @@ func (m *Mercs) status(sess *session.Session, p *entity.Player, rows []database.
 			line := fmt.Sprintf("%sYour mercenary %s, a level %d %s %s (%s): %d/%d hit points, %d/%d power, %s", head,
 				info.Name, info.Level, entity.RaceName(info.Race), entity.ClassName(info.Class), entity.MercRoleName(info.Class),
 				info.HP, info.MaxHP, info.Power, info.MaxPower, entity.MercStanceNames[info.Stance])
+			if info.Master != "" {
+				line += ", Master Class " + info.Master
+			}
 			if mode := entity.MercModeName(info.Class, info.Offensive); mode != "" {
 				line += ", " + mode
 			}

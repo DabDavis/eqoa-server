@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 	"time"
 
@@ -105,10 +106,28 @@ func (w *World) petMasterLocked(npc *NPC) *Player {
 // nothing more until Earth Elementalkin at 16, so a magician of 4 to 15 sent
 // out a level 1 pet beside its book's water, fire and air Elementalings of 4,
 // 8 and 12); a kind its hirer picked is kept whatever its rank.
+//
+// A Master Class's summoning (MercKit.MasterPets: Tinker's Construct) comes
+// before the class's book's, unless its hirer picked a kind it has
+// (mercmaster.go); a racial ability's (MercKit.RacialPets: the gnome's
+// Invention) only when nothing else of its book summons.
 func (ms *mercState) mercPetSpell() *CastSpell {
-	best := ms.mercPetSpellOf(nil)
-	if s := ms.mercPetSpellOf(ms.kit.PetPick); s != nil {
-		if !ms.kit.PetUsual || best == nil || float64(s.Level) >= mercPetUsualKeep*float64(best.Level) {
+	racial := func(s *CastSpell) bool { return slices.Contains(ms.kit.RacialPets, s.SpellID) }
+	master := func(s *CastSpell) bool { return slices.Contains(ms.kit.MasterPets, s.SpellID) }
+	if len(ms.kit.PetPick) > 0 && !ms.kit.PetUsual {
+		if s := ms.mercPetSpellWhere(ms.kit.PetPick, func(s *CastSpell) bool { return !racial(s) }); s != nil {
+			return s // its hirer's pick
+		}
+	}
+	if s := ms.mercPetSpellWhere(nil, master); s != nil {
+		return s
+	}
+	best := ms.mercPetSpellWhere(nil, func(s *CastSpell) bool { return !racial(s) })
+	if best == nil {
+		return ms.mercPetSpellWhere(nil, racial)
+	}
+	if s := ms.mercPetSpellWhere(ms.kit.PetPick, func(s *CastSpell) bool { return !racial(s) }); s != nil {
+		if !ms.kit.PetUsual || float64(s.Level) >= mercPetUsualKeep*float64(best.Level) {
 			return s
 		}
 	}
@@ -146,10 +165,17 @@ func MercPetKindOf(name string, words []string) bool {
 // mercPetSpellOf is mercPetSpell's best of the book's summonings of the kind
 // whose words are given (MercPetKindOf), nil for none.
 func (ms *mercState) mercPetSpellOf(words []string) *CastSpell {
+	return ms.mercPetSpellWhere(words, nil)
+}
+
+// mercPetSpellWhere is mercPetSpellOf of the summonings keep takes (nil:
+// every one).
+func (ms *mercState) mercPetSpellWhere(words []string, keep func(*CastSpell) bool) *CastSpell {
 	var best *CastSpell
 	for i := range ms.kit.Spells {
 		s := &ms.kit.Spells[i]
-		if !s.Def.Summons() || s.Def.Charms() || s.Familiar != nil || s.Travel != nil || !MercPetKindOf(s.Name, words) {
+		if !s.Def.Summons() || s.Def.Charms() || s.Familiar != nil || s.Travel != nil || !MercPetKindOf(s.Name, words) ||
+			keep != nil && !keep(s) {
 			continue
 		}
 		if best == nil || s.Level > best.Level || s.Level == best.Level && (s.PowerCost > best.PowerCost ||

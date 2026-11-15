@@ -233,3 +233,18 @@ func (s *Server) handleTOTP(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, `action is "begin", "confirm" or "disable"`)
 	}
 }
+
+// AccountTOTP is the account pages' check of an authenticator's code
+// (tcp.AccountServer.TOTP: changing an e-mail): enrolled false for an account
+// with none; a right code is spent as a sign-in's is.
+func (s *Server) AccountTOTP(accountID int, code string) (enrolled, ok bool) {
+	on, err := s.totpEnabled(accountID)
+	if err != nil {
+		return true, false
+	}
+	if !on {
+		return false, false
+	}
+	good, err := s.totpCheck(accountID, code)
+	return true, err == nil && good
+}

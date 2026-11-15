@@ -868,6 +868,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensurePwResets(); err != nil { // pwresets.go: forgotten passwords, a GM's to reset
 		return err
 	}
+	if err := db.ensureEmailVerify(); err != nil { // emailverify.go: the accounts' e-mail, verified and reset links
+		return err
+	}
 	if err := db.ensureHeroes(); err != nil { // heroes.go: the Testing Heroes' stock, purchases and bonus training points
 		return err
 	}

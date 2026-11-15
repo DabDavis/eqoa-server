@@ -1661,6 +1661,8 @@ player must change it at next login." **The page** is `/password` on the account
 `/eqoa/password`, its routes `/eqoa/account/api/password/{forgot,change}`: nginx locations of their own, as the
 transfer page's), linked from the account login page and the transfer page's sign-in. Every write is JSON with an
 `X-EQOA-Account` header (no other site's page can send it).
+- **With e-mail on** (`mail.accounts`, the next section) an account with a verified address gets a reset link by
+  mail instead and no GM is asked; this GM path stays the fallback for one without (the contact then optional).
 - **Forgot**: account name, contact (2-200 characters), an optional note, a hidden honeypot field (`website`). The
   answer is the same whether or not the account exists or a request was kept ("If the account exists, a GM will
   contact you"). Limits: 5 forms an hour an address (in memory), 3 kept a day an address (by its salted hash,
@@ -1681,6 +1683,63 @@ transfer page's), linked from the account login page and the transfer page's sig
   each world entry says in red to change it at `auth.password_url` (`handlers.PasswordTempNotice`). The Change form
   (account, current password, new) clears the flag and ends the account's web sessions. `pwtemp` is a column of
   `accountinfo`, so a shard's mirrored copy has it.
+
+### Account e-mail: verified addresses, e-mailed resets, the requirement (`internal/accountmail`, `internal/mailer`, `tcp/accountemail.go`, `tcp/stationemail.go`, `tcp/stationpages.go`, `database/emailverify.go`, `handlers/emailgate.go`, `gmweb/ops_email.go`)
+
+The owner, 2026-11-15: "lets add email verification to accounts, so we can make sure players dont lose their account. and
+we can setup email password reset"; "A verified email is REQUIRED for every account, old ones included"; "change the station
+page to faciliate the email verification and remove the old fields that create account doesnt need, no credit card address
+etc". **All of it is off unless `mail.accounts`** (config below): a server with no `mail:` block runs as before.
+- **The mail** (`internal/mailer`): a queue in the background (`Post` never blocks; retried after 1, 5 and 30 minutes, then
+  dropped with a log line), SMTP to `mail.smtp` (127.0.0.1:25, the box's send-only Postfix: no login, STARTTLS only off
+  loopback) from `mail.from`; with `mail.enabled` false the log-only sender (to whom masked and the subject; `log_bodies`
+  the text, links included: a developer's box only). The log never has more of an address than `mailer.Mask`
+  ("d***@g***.com"). `mailer.Normalize` keeps an address trimmed and lower case, one plain address of at most 127.
+- **What is kept**: `accountinfo.email` (normalised), `email_verified_at` (RFC 3339, '' while not) and `email_verified_by`
+  ("link", or "GM <name>"): columns of accountinfo, so a shard's `AccountMirror` copy has them. `email_tokens` holds each
+  link mailed: the SHA-256 of a random token (32 bytes, base64url), the account, the address it went to, its kind (verify
+  24 h, reset 1 h), made, ends, used. A token is good once, before it ends, while the account's address is still the one it
+  went to: changing the address voids every link not yet used and clears verified. Snapshots clear `email_tokens` and blank
+  the columns (not in accountinfo's keep list).
+- **Limits** (`accountmail`): two minutes between links of a kind to one account; five verify links a day an account and an
+  address (over every account naming it; a GM's resend skips the account's, never the address's); three resets a day an
+  account; ten mails an hour asked from one network address (in memory, /64 for IPv6). A limit is a 429 with the wait.
+- **The account page** is the password page (`/password`, public `/eqoa/password`) with an **E-mail** tab, its routes under
+  `/api/password/` so nginx's one location passes them: `email` (account, password, the GM panel authenticator's code when
+  the account has one: `AccountServer.TOTP` = `gmweb.Server.AccountTOTP`; sets the address, unverified, and mails the link),
+  `email/status` (the address whole, to who gave the password), `email/resend`, `email/verify` {token}, `reset` {token,
+  password}. A link is `<base_url><page_path>#verify=<token>` or `#reset=<token>`: a fragment, which no server, log or
+  referrer sees; the page takes it off the address bar at once and asks for a click (a mail scanner's fetch spends nothing).
+  **Forgot**: an account with a verified address is mailed a reset link and no GM is asked; one without files the GM's
+  request as before, the contact optional (no contact: nothing kept); the answer is the same for every case. A reset sets
+  the password as the Change form does (the temporary flag cleared, the page sessions ended, an authenticator untouched).
+  `/api/register` requires an address with e-mail on and mails its link ("Check your e-mail").
+- **STATION** (`tcp/stationemail.go`): 0x38 SubmitAcctCreate MAKES the account (the DES password as the login's, the
+  e-mail at payload 340, 128 bytes; none or a bad one is refused with a text STATION shows; "exists" for a taken name, which
+  STATION answers with word 1371; three a day an address), the address kept and its link mailed; with e-mail off it still
+  answers success and makes nothing (auto-register at the login that follows). 0x40 (the account update: the id at 4, the
+  e-mail at 72) changes the address of the account the connection logged in as (none with an authenticator: the website),
+  answered 0x41 (16 bytes, the word at 12: STATION's 1345/1254). 0x42 (forgot: user, month, day, year 32 bytes each and the
+  e-mail 128, AES-256-ECB under the session key, which is `serverHelloBlob` under the login's DES) mails a reset link when the
+  typed address is the account's verified one, answered 0x43 with 1 always (word 1396). **The pages** (`stationpages.go`,
+  served in station.pak by `repointStationPak` with e-mail on; a PS2 reads the card's pak, vanilla its disc's): IDCreate is
+  name and password twice, IDCreat2 the e-mail alone, AcctMgmt Change Password and Change E-mail (no billing, no cancel),
+  UpAcct the e-mail, FrgtPass name and e-mail. STATION's code reads every old field by name and refuses a form without one
+  (word 1264), and CheckName wants a letter or a digit: those fields stay as hidden Texts holding "x", "Jan", "1", "1977",
+  placed before the page's two backgrounds, which are drawn over them; nothing the server keeps comes of them. STATION's
+  CheckEmail takes letters, digits, `_`, `@` and `.` alone: an address with `-` or `+` is set on the website.
+- **The requirement** (`accountmail.Gate`, `handlers.EmailGate`; `mail.require_verified`, `mail.require_after`): no game
+  client shows a refused Station login's reason (STATION's word 1394 for every one), so the account logs in and the world
+  says it, on every shard (each reads its own copy). Before the date: a yellow line at world entry and every
+  `mail.remind_every` (30 min) naming the page. From it: at world entry the reason in red (and yellow), then
+  `EmailGateEject` (12 s) later the session is ejected as a GM's eject (0x07A2, word 716). A failed read lets the player in.
+  The GM's override (`email_mark_verified`) satisfies it with or without an address (no reset by mail without one).
+- **The GM panel**: the **E-mail** page (Players) and the account page show the address MASKED with its state; `email_counts`,
+  `email_list` (unverified, pending, none, verified, all), `email_get`, `email_resend`, `email_mark_verified` (a note required,
+  audited without the address, GM level and not an account above the GM's). The two writes are refused on a shard's copy
+  (`sharedAccountOps`). accountinfo's `email` and the old Station sign-up's person fields (firstname, lastname, midinitial,
+  unknown1/2, countryAB, zip, birth*, sex) are `Secret` in the catalog: never read, searched or written by the editor; the
+  values stay in the database.
 
 ### Rehabilitators: a character's resets, for every client (`handlers/rehab.go`, `rehabpaths.go`, `rehabtemplates.go`, `database/rehab.go`)
 
@@ -4253,6 +4312,15 @@ world:
 auth:
   shared_db: "/srv/one/eqoa.db"   # another shard's accounts, a copy here; every sign-in by the token's password
   shared_refresh: 10s
+mail:                       # the accounts' e-mail (internal/accountmail); everything off unless set
+  accounts: true            # the E-mail tab, e-mailed resets, an address required at creation, the STATION pages
+  enabled: true             # deliver by SMTP; false: logged only
+  smtp: "127.0.0.1:25"      # the box's send-only Postfix (the default)
+  from: "no-reply@example.com"
+  base_url: "https://example.com"   # the links' site; page_path: /eqoa/password (the default)
+  require_verified: true    # every account: reminded until require_after, refused the world from it
+  require_after: "2026-12-15"
+  remind_every: 30m
 shards:                     # the server list, the same in every process
   - name: "First Shard"     # 31 characters at most
     port: 10070

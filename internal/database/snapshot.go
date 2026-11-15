@@ -137,6 +137,8 @@ var snapshotRules = map[string]snapshotRule{
 	"pwresets": {clear: true, scan: []string{"addr_hash"},
 		why: "a player's request for a new password: the account, the contact they gave (a Discord name, a character), " +
 			"their note, their address's salted hash, and the GMs' decisions"},
+	"email_tokens": {clear: true, scan: []string{"token_hash", "email"},
+		why: "the links mailed to the accounts (verify, password reset): each token's hash and the address it went to"},
 	"pwreset_meta": {clear: true, scan: []string{"value"},
 		why: "the salt the password reset form's senders' addresses are hashed with, as spellfx_meta's"},
 	"campfix_reports": {clear: true,

@@ -2601,8 +2601,12 @@ no target, throw or cast, nothing fighting it or its owner, its owner not swingi
 once both stand. It brews to **a full stack of each potion it uses** (`mercBrewWantsLocked`: its best single-target potion,
 its best area cocktail, its book's best power draught; the stack the record's `maxstack` via `itemeffect`'s read, most 2,000
 or 9,999, held lower by `world.merc_brew_stack` above 0), the least full first, then stops; `world.merc_brew_cap` above 0
-is a ceiling on the whole stock besides (unset none, 0 none brewed). Below 30% power it drinks its best power draught (carried, stock, its refinements'),
-a player's figures, never under `world.merc_draught_hp_floor_pct` (50) of its health; out of a fight below 70% health it
+is a ceiling on the whole stock besides (unset none, 0 none brewed). **Its draughts** (the owner, 2026-11-15: "the alchemist
+mercs are not draughting to restore power even though cleric merc can heal them"): in a fight or out, when its power plus what
+a draught on it has still to give is under 30%, it drinks its best power draught (carried, stock, its refinements'), a
+player's figures; until then it waited out each draught's 18 s (the live log: one draught every 19 s, at 4% power, its
+spells draining faster than one gives). Its health's cost may not leave it under `world.merc_draught_hp_floor_pct` (50)
+unless a healer (cleric, druid, shaman: player or merc, alive, in its world) is in its team, and never under 10%; out of a fight below 70% health it
 eats (a meal it carries, else a ration's figures); each shown with the eating-and-drinking visual. **What a merc holds**
 (`handlers/mercinv.go`, table `charmercitem`; the owner: "lets add inventory to mercs same as players, can equip or hold
 items"): `/merc [name] give [item]`, `inv`, `equip|unequip|take <item>`, `stock`, `claim`, and the menu's Items (Inventory,

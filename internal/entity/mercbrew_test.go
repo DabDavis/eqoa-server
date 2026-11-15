@@ -462,3 +462,112 @@ func TestMercAlchemistEatsOutOfAFight(t *testing.T) {
 
 // A fight's throws and casts together: tested in TestMercAlchemistThrowsItsPotions
 // (Range1 throws and Fire Spray casts in one fight).
+
+// draughtRig is an alchemist with a refinement's draughts in a fight with a
+// crab, a cleric merc beside it when healer; its draughts never resisted.
+func draughtRig(t *testing.T, healer bool) (*mercRig, *mercState, *NPC) {
+	r := newMercRig(t)
+	alcSupplyPotions(r.w)
+	saved := draughtIntn
+	draughtIntn = func(int) int { return 9999 } // never resisted
+	t.Cleanup(func() { draughtIntn = saved })
+	refine := bookSpell(50, "Refinement", 0, 2*time.Second, 3*time.Second, 10, "Self, Summon Draught x3")
+	ms := r.alchemist(refine)
+	if healer {
+		k := r.kit(9, 0, 0)
+		k.Name = "Mirela"
+		if _, why, _ := r.w.HireMercAt(r.sess, 2, k, MercPassive, r.at(0)); why != "" {
+			t.Fatalf("the cleric's hire: %s", why)
+		}
+		r.w.mu.Lock()
+		_, up := r.w.invites[r.p.ServerID][r.p.ServerID]
+		r.w.mu.Unlock()
+		if up {
+			r.w.GroupAccept(r.sess, r.sess.PlayerObjectID())
+		}
+		r.w.mu.Lock()
+		near := r.w.mercHealerNearLocked(ms)
+		r.w.mu.Unlock()
+		if !near {
+			t.Fatal("the cleric merc is no healer near it")
+		}
+	}
+	crab := r.creature("Crab", 28, 6)
+	crab.HP, crab.MaxHP = 900000, 900000
+	r.w.mu.Lock()
+	crab.CurrentEnemy = ms.npc.ServerID
+	r.w.wakeNPCLocked(crab)
+	r.w.mu.Unlock()
+	return r, ms, crab
+}
+
+// In a fight, low on power and hurt past the floor, it drinks with a healer
+// in its team; never past the hard floor.
+func TestMercAlchemistDrinksInAFightWithAHealer(t *testing.T) {
+	r, ms, crab := draughtRig(t, true)
+	m := ms.npc
+	r.w.mu.Lock()
+	defer r.w.mu.Unlock()
+	if !r.w.mercInFightLocked(ms) || crab.CurrentEnemy != m.ServerID {
+		t.Fatal("no fight")
+	}
+	m.Power = m.MaxPower / 10
+	m.HP = m.MaxHP/2 + 100 // the draught's 400 takes it under half
+	if !r.w.mercDrinkTurnLocked(ms, r.at(time.Second)) {
+		t.Fatal("with a cleric beside it, it drank nothing in the fight")
+	}
+	if m.HP != m.MaxHP/2-300 {
+		t.Errorf("health %d after the draught, want %d", m.HP, m.MaxHP/2-300)
+	}
+	r.w.dropNPCEffect(m, PotionEffectID(testDraught))
+	m.HP = m.MaxHP*mercDraughtHardFloor/100 + 399 // 400 takes it under the hard floor
+	if r.w.mercDrinkTurnLocked(ms, r.at(2*time.Second)) {
+		t.Error("drank past the hard floor")
+	}
+}
+
+// With no healer its floor holds, in a fight too.
+func TestMercAlchemistDrinksNoDraughtPastItsFloorWithoutAHealer(t *testing.T) {
+	r, ms, _ := draughtRig(t, false)
+	m := ms.npc
+	r.w.mu.Lock()
+	defer r.w.mu.Unlock()
+	m.Power = m.MaxPower / 10
+	m.HP = m.MaxHP/2 + 100
+	if r.w.mercDrinkTurnLocked(ms, r.at(time.Second)) {
+		t.Error("no healer near: drank under its floor")
+	}
+	m.HP = m.MaxHP/2 + 401
+	if !r.w.mercDrinkTurnLocked(ms, r.at(time.Second)) {
+		t.Error("no draught with the health for it")
+	}
+}
+
+// Its power drained faster than a draught gives: it drinks again as its
+// power and what its draught has still to give fall low, not once a draught's
+// whole time.
+func TestMercAlchemistDrinksAgainAsPowerDrops(t *testing.T) {
+	r, ms, _ := draughtRig(t, true)
+	m := ms.npc
+	var at []time.Duration
+	for d := time.Duration(0); d <= 60*time.Second; d += 100 * time.Millisecond {
+		r.w.mu.Lock()
+		m.Power = max(m.Power-15, 0) // 150 a second: its spells and throws
+		m.HP = m.MaxHP               // its cleric's heals
+		if r.w.mercDrinkTurnLocked(ms, r.at(d)) {
+			at = append(at, d)
+		}
+		r.w.mu.Unlock()
+		r.tick(d)
+	}
+	// a draught gives 1,200 over its 18 s (300 a tick), short of the drain:
+	// the next follows before the last's time is out, as its power runs low
+	if len(at) < 5 {
+		t.Fatalf("%d draughts in a minute (at %v), want more than one a draught's 18 s", len(at), at)
+	}
+	for i := 1; i < len(at); i++ {
+		if gap := at[i] - at[i-1]; gap >= 18*time.Second {
+			t.Errorf("draught %d came %v after the last: it waited out the draught's whole time", i, gap)
+		}
+	}
+}

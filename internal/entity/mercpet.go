@@ -328,8 +328,8 @@ func (w *World) mercPetChooseTargetLocked(ms *mercState, ps *petState) {
 	pet, m, owner := ps.npc, ms.npc, ms.owner
 	valid := func(id EntityID) *NPC {
 		t := w.NPCs[id]
-		if id == 0 || t == nil || !mercMayFight(pet, t) || distXZ(owner.X, owner.Z, t.X, t.Z) > petLeash {
-			return nil
+		if id == 0 || t == nil || !mercMayFight(pet, t) || distXZ(owner.X, owner.Z, t.X, t.Z) > petLeash || w.walledOffLocked(owner, pet, t) {
+			return nil // a quest wall between too (questwallfight.go, petition 2198)
 		}
 		return t
 	}

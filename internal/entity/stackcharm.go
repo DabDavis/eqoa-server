@@ -320,7 +320,7 @@ func (w *World) sideChooseTargetLocked(ps *petState, now time.Time) {
 			return 0
 		}
 		t := w.NPCs[main.target]
-		if t == nil || !petMayFight(pet, t) || distXZ(owner.X, owner.Z, t.X, t.Z) > petLeash {
+		if t == nil || !petMayFight(pet, t) || distXZ(owner.X, owner.Z, t.X, t.Z) > petLeash || w.walledOffLocked(owner, pet, t) {
 			return 0
 		}
 		return t.ServerID

@@ -851,6 +851,9 @@ func (w *World) MercAttack(sess *session.Session, slot int) (name, refusal strin
 	if distXZ(p.X, p.Z, t.X, t.Z) > petLeash {
 		return "", petTargetTooFar
 	}
+	if w.walledOffLocked(p, nil, t) {
+		return "", petBehindWall // a quest wall between (questwallfight.go, petition 2198)
+	}
 	for _, ms := range list {
 		if mercMayFight(ms.npc, t) {
 			ms.ordered, ms.target = t.ServerID, t.ServerID

@@ -57,8 +57,8 @@ func (w *World) mercChooseTargetLocked(ms *mercState) {
 	}
 	valid := func(id EntityID) *NPC {
 		t := w.NPCs[id]
-		if t == nil || !mercMayFight(m, t) || distXZ(owner.X, owner.Z, t.X, t.Z) > petLeash {
-			return nil
+		if t == nil || !mercMayFight(m, t) || distXZ(owner.X, owner.Z, t.X, t.Z) > petLeash || w.walledOffLocked(owner, m, t) {
+			return nil // a quest wall between too (questwallfight.go, petition 2198)
 		}
 		return t
 	}
@@ -96,7 +96,7 @@ func (w *World) mercChooseTargetLocked(ms *mercState) {
 	mates := w.mercGroupMatesLocked(ms) // an aggressive merc's (GM ticket 2025)
 	for _, id := range w.SpatialIndex.QueryRadius(owner.X, owner.Z, petAssist) {
 		npc := w.NPCs[id]
-		if npc == nil || !mercMayFight(m, npc) {
+		if npc == nil || !mercMayFight(m, npc) || w.walledOffLocked(owner, m, npc) {
 			continue
 		}
 		// its owner's call or, aggressive, a group mate's (merccall.go), or

@@ -958,6 +958,14 @@ func (w *World) castRefusalLocked(sess *session.Session, p *Player, spell *CastS
 	if refusal == "" && spell.Def.Backstab {
 		refusal = w.backstabRefusalLocked(p, targets) // backstab.go
 	}
+	if refusal == "" && spell.Def.Harmful {
+		for _, id := range targets {
+			if w.playerWalledOffLocked(p, w.NPCs[id], "cast of "+spell.Name) {
+				refusal = castNotSeen // a quest wall between (questwallfight.go, petition 2198)
+				break
+			}
+		}
+	}
 	if refusal == "" && spell.Def.Charms() {
 		refusal = w.charmStartLocked(spell, targets) // charm.go
 	}

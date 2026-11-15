@@ -769,6 +769,10 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 			w.sendChatToSession(sess, petTargetTooFar) // one it could fight, too far off (petition 1399)
 			return
 		}
+		if w.walledOffLocked(p, pet, npc) {
+			w.sendChatToSession(sess, petBehindWall) // a quest wall between (questwallfight.go, petition 2198)
+			return
+		}
 		ps.target = npc.ServerID
 		ps.heldUntil = time.Time{}
 		w.sendChatToSession(sess, "Your pet attacks "+npc.Name+".")
@@ -1065,7 +1069,7 @@ func (w *World) petChooseTargetLocked(ps *petState, now time.Time) {
 	owner, pet := ps.owner, ps.npc
 	if ps.target != 0 {
 		t := w.NPCs[ps.target]
-		if t == nil || !petMayFight(pet, t) || distXZ(owner.X, owner.Z, t.X, t.Z) > petLeash {
+		if t == nil || !petMayFight(pet, t) || distXZ(owner.X, owner.Z, t.X, t.Z) > petLeash || w.walledOffLocked(owner, pet, t) {
 			ps.target = 0
 			pet.endRound()
 		} else {
@@ -1080,7 +1084,7 @@ func (w *World) petChooseTargetLocked(ps *petState, now time.Time) {
 		return
 	}
 	if ps.stance == petAggressive {
-		if t := w.NPCs[owner.AttackTarget]; owner.Attacking() && petMayFight(pet, t) {
+		if t := w.NPCs[owner.AttackTarget]; owner.Attacking() && petMayFight(pet, t) && !w.walledOffLocked(owner, pet, t) {
 			ps.target = t.ServerID
 			return
 		}
@@ -1089,7 +1093,7 @@ func (w *World) petChooseTargetLocked(ps *petState, now time.Time) {
 	var bestD float32
 	for _, id := range w.SpatialIndex.QueryRadius(owner.X, owner.Z, petAssist) {
 		npc := w.NPCs[id]
-		if !petMayFight(pet, npc) {
+		if !petMayFight(pet, npc) || w.walledOffLocked(owner, pet, npc) {
 			continue
 		}
 		mine := npc.CurrentEnemy == pet.ServerID
@@ -1123,7 +1127,7 @@ func (w *World) guardianChooseLocked(ps *petState) {
 	var bestD float32
 	for _, id := range w.SpatialIndex.QueryRadius(owner.X, owner.Z, petAssist) {
 		npc := w.NPCs[id]
-		if !petMayFight(pet, npc) || npc.CurrentEnemy != pet.ServerID && npc.CurrentEnemy != owner.ServerID {
+		if !petMayFight(pet, npc) || npc.CurrentEnemy != pet.ServerID && npc.CurrentEnemy != owner.ServerID || w.walledOffLocked(owner, pet, npc) {
 			continue
 		}
 		if d := distXZ(pet.X, pet.Z, npc.X, npc.Z); best == nil || d < bestD {

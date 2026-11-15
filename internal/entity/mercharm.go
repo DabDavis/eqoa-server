@@ -84,6 +84,9 @@ func (w *World) MercCharm(sess *session.Session, slot int, now time.Time) (line,
 	if !ok || !isNPC || !mercMayFight(m, t) || t.Owner != 0 || t.Charm != nil {
 		return "", mercCharmNoFoe
 	}
+	if w.walledOffLocked(p, m, t) {
+		return "", petBehindWall // a quest wall between (questwallfight.go, petition 2198)
+	}
 	if now.Before(ms.busy) {
 		return "", mercCharmBusy
 	}

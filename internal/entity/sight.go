@@ -132,7 +132,8 @@ func (w *World) shotUnseenLocked(sess *session.Session, p *Player, npc *NPC) boo
 	if p.Swing.Kind < swingRange1 || p.Swing.Kind > swingRange4 {
 		return false
 	}
-	if p.World == npc.World && w.inSightLocked(p.World, p.X, p.Y, p.Z, npc.X, npc.Y, npc.Z) {
+	if p.World == npc.World && w.inSightLocked(p.World, p.X, p.Y, p.Z, npc.X, npc.Y, npc.Z) &&
+		!w.playerWalledOffLocked(p, npc, "shot") { // nor through a quest wall (questwallfight.go, petition 2198)
 		return false
 	}
 	log.Printf("LoS: %s's shot at %s at (%.1f, %.1f, %.1f) refused, out of sight from (%.1f, %.1f, %.1f)", p.Name, npc.Name, npc.X, npc.Y, npc.Z, p.X, p.Y, p.Z)

@@ -3416,6 +3416,7 @@ reach the rows. An enrolment begun before a restart starts again (its secret is 
   | `spellfx_meta`, `mapmark_meta` | every row deleted | the salts the community senders' addresses are hashed with (with one an IPv4 hash walks back); a server makes new ones |
   | `spellfx_suggestions.addr_hash`, `mapmark_suggestions.sender_hash` | each value replaced by an HMAC under a key thrown away | one sender's rows still group; nothing links them to the live hashes |
   | `workboard`, `workboard_overview` | every row deleted | what people and agents wrote each other (a note can hold a password or a token); the default overview is seeded again on open |
+  | `gmboard`, `gmboard_read` | every row deleted | the personal boards: one GM's private thread with dab's sessions, and how far each reader has read |
   | `petitions` | every row deleted | a player's own words to the staff and the staff's answers, with the account they came from |
   | `chartransfers` | every row deleted | a player's own words about a character on another server, the GMs' answers, with the account they came from |
   | `campfix_reports` | every row deleted | a player's camp report (`/campfix`, or a petition's request made one): the account and the character that sent it, its note, the GMs' review |

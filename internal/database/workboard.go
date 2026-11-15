@@ -238,8 +238,8 @@ func (e *WorkConflict) Error() string {
 		e.What, e.Given, e.Version, last, e.Version)
 }
 
-// ensureWorkBoard makes the board's tables and seeds its overview
-// (initSchema, OpenWorkBoard). The audit log's table is made too: every
+// ensureWorkBoard makes the board's tables (and the personal boards',
+// gmboard.go) and seeds its overview (initSchema, OpenWorkBoard). The audit log's table is made too: every
 // change to the board is written there, whether or not the panel runs.
 func (db *SQLiteDB) ensureWorkBoard() error {
 	if _, err := db.Exec(GMAuditSchema); err != nil {
@@ -252,7 +252,9 @@ func (db *SQLiteDB) ensureWorkBoard() error {
 		VALUES (1, ?, 1, ?, 'the server')`, workText(DefaultWorkOverview), workStamp(time.Now())); err != nil {
 		return fmt.Errorf("workboard_overview: %w", err)
 	}
-	return nil
+	// the personal boards (gmboard.go) live beside it: cmd/workboard reads
+	// and writes them too, through OpenWorkBoard
+	return db.ensureGMBoard()
 }
 
 // OpenWorkBoard opens an existing database for the board alone: the audit

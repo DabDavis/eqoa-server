@@ -145,8 +145,8 @@ func TestPetitionRefusals(t *testing.T) {
 			t.Errorf("%s of a closed one: %v", name, err)
 		}
 	}
-	if _, err := db.PlayerRead(1, p.ID); !errors.Is(err, ErrPetitionClosed) {
-		t.Errorf("read of a closed one: %v", err)
+	if got, err := db.PlayerRead(1, p.ID); !errors.Is(err, ErrPetitionClosed) || got.Text == "" {
+		t.Errorf("read of a closed one: %v, its text with it %q", err, got.Text)
 	}
 	if err := PetitionProblem("answered", ""); err == nil {
 		t.Error("a status the table lacks")

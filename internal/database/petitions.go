@@ -301,7 +301,8 @@ func (db *SQLiteDB) PlayerRead(serverID uint32, id int64) (Petition, error) {
 	}
 	defer tx.Rollback()
 	p, err := playerPetitionTx(tx, serverID, id)
-	if err != nil {
+	closed := errors.Is(err, ErrPetitionClosed)
+	if err != nil && !closed {
 		return Petition{}, err
 	}
 	if p.Unread {
@@ -310,7 +311,13 @@ func (db *SQLiteDB) PlayerRead(serverID uint32, id int64) (Petition, error) {
 		}
 		p.Unread = false
 	}
-	return p, tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return Petition{}, err
+	}
+	if closed {
+		return p, ErrPetitionClosed // its text with it: a closed ticket is read, never replied to
+	}
+	return p, nil
 }
 
 // PlayerDelete takes the character's open petition out of its inbox: deleted,

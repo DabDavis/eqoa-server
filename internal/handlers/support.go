@@ -63,6 +63,9 @@ const (
 	csAddressed byte = 8 // closed by a GM: the live client's "addressed"
 )
 
+// csClosedNote ends a closed ticket's text when it is read: no reply can be added.
+const csClosedNote = "\n\n(This ticket is closed. To ask more, file a new one.)"
+
 // csShownMax is the most of a ticket's text CLIENT keeps (its message
 // buffer, 8192 wide characters with the end).
 const csShownMax = 8191
@@ -366,6 +369,15 @@ func (h *SupportHandler) handleRequest(sess *session.Session, msg *protocol.Mess
 			return nil
 		}
 		p, err := h.store.PlayerRead(me.CharServerID, id)
+		if errors.Is(err, database.ErrPetitionClosed) && p.Text != "" {
+			// A closed ticket is still read (petition 2175, Fallenangel: the disc says only
+			// "System is temporarily unavailable. (Code: -8)" of status 8, so players could not
+			// read their old answers): its text with a last line saying it is closed. A reply
+			// to it or its deletion is still refused (status 8).
+			text := p.Text + csClosedNote
+			csReply(sess, 3, csOK, func(w *buffer.Writer) { writeWideString(w, csShown(text), 2*(csShownMax+1)) })
+			return nil
+		}
 		if err != nil {
 			csReply(sess, 3, csStatus(err), nil)
 			return nil

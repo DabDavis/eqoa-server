@@ -204,8 +204,8 @@ func TestPetitionsThroughTheGame(t *testing.T) {
 	if _, _, err := db.ClosePetition(1001, gm, false, time.Now()); err != nil {
 		t.Fatal(err)
 	}
-	if st, _ := open(as, 1001); st != csAddressed {
-		t.Errorf("opening a closed one: %d", st)
+	if st, text := open(as, 1001); st != csOK || !strings.HasSuffix(text, "GM Jib: Moved you out."+csClosedNote) {
+		t.Errorf("opening a closed one reads it with the closed line: %d %q", st, text)
 	}
 	if got := csSend(t, h, as, 1, func(w *buffer.Writer) {
 		w.Write7BitEncodedInt64(1001)

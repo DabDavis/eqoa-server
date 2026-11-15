@@ -52,20 +52,22 @@ func (h *SpellbookHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeUseSkill, h.handleUseSkill)
 }
 
-// rows reads the request's stamp and two bytes, and the character's rows.
-func (h *SpellbookHandler) rows(sess *session.Session, msg *protocol.Message, two bool) (uint32, byte, byte, uint32, []database.SpellRow, bool) {
+// rows reads the request's stamp and two bytes, and the character's rows,
+// its book locked (booklock.go) until the returned unlock, which the caller
+// calls once its change is written and its answer queued (ok true only).
+func (h *SpellbookHandler) rows(sess *session.Session, msg *protocol.Message, two bool) (uint32, byte, byte, uint32, []database.SpellRow, func(), bool) {
 	if h.gameWorld == nil || h.store == nil {
 		log.Printf("Spellbook: 0x%04X with no world or spell store", uint16(msg.Opcode))
-		return 0, 0, 0, 0, nil, false
+		return 0, 0, 0, 0, nil, nil, false
 	}
 	p := h.gameWorld.SessionPlayer(sess)
 	if p == nil {
 		log.Printf("Spellbook: 0x%04X from a session with no player", uint16(msg.Opcode))
-		return 0, 0, 0, 0, nil, false
+		return 0, 0, 0, 0, nil, nil, false
 	}
 	data := msg.Data()
 	if len(data) < 4 || (two && len(data) < 6) {
-		return 0, 0, 0, 0, nil, false
+		return 0, 0, 0, 0, nil, nil, false
 	}
 	r := buffer.NewReader(data)
 	stamp, _ := r.ReadUint32()
@@ -74,12 +76,14 @@ func (h *SpellbookHandler) rows(sess *session.Session, msg *protocol.Message, tw
 		a, _ = r.ReadByte()
 		b, _ = r.ReadByte()
 	}
+	unlock := lockBook(p.CharServerID)
 	rows, err := h.store.GetSpellRows(p.CharServerID)
 	if err != nil {
+		unlock()
 		log.Printf("Spellbook: rows for %d: %v", p.CharServerID, err)
-		return 0, 0, 0, 0, nil, false
+		return 0, 0, 0, 0, nil, nil, false
 	}
-	return stamp, a, b, p.CharServerID, rows, true
+	return stamp, a, b, p.CharServerID, rows, unlock, true
 }
 
 func (h *SpellbookHandler) save(id uint32, rows []database.SpellRow, before map[int]database.SpellRow) {
@@ -149,10 +153,11 @@ func arrange(rows []database.SpellRow, from, to int) {
 }
 
 func (h *SpellbookHandler) handleMemorize(sess *session.Session, msg *protocol.Message) error {
-	stamp, index, slot, id, rows, ok := h.rows(sess, msg, true)
+	stamp, index, slot, id, rows, unlock, ok := h.rows(sess, msg, true)
 	if !ok {
 		return nil
 	}
+	defer unlock()
 	before := snapshot(rows)
 	if !memorize(rows, int(index), int(slot)) {
 		log.Printf("Spellbook: %d: no ability at display index %d", id, index)
@@ -169,10 +174,11 @@ func (h *SpellbookHandler) handleMemorize(sess *session.Session, msg *protocol.M
 }
 
 func (h *SpellbookHandler) handleArrange(sess *session.Session, msg *protocol.Message) error {
-	stamp, from, to, id, rows, ok := h.rows(sess, msg, true)
+	stamp, from, to, id, rows, unlock, ok := h.rows(sess, msg, true)
 	if !ok {
 		return nil
 	}
+	defer unlock()
 	before := snapshot(rows)
 	arrange(rows, int(from), int(to))
 	h.save(id, rows, before)
@@ -185,10 +191,11 @@ func (h *SpellbookHandler) handleArrange(sess *session.Session, msg *protocol.Me
 }
 
 func (h *SpellbookHandler) handleUnmemorizeAll(sess *session.Session, msg *protocol.Message) error {
-	stamp, _, _, id, rows, ok := h.rows(sess, msg, false)
+	stamp, _, _, id, rows, unlock, ok := h.rows(sess, msg, false)
 	if !ok {
 		return nil
 	}
+	defer unlock()
 	before := snapshot(rows)
 	for i := range rows {
 		if rows[i].AddedOrder < 252 {

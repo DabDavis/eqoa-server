@@ -503,6 +503,7 @@ func (h *ClassMasteryHandler) giveAbilitiesTo(sess *session.Session, serverID ui
 	if h.book == nil {
 		return
 	}
+	defer lockBook(serverID)() // booklock.go: one change to a book at a time
 	for _, a := range abilities {
 		if a.SpellID <= 0 {
 			continue
@@ -558,6 +559,7 @@ func (h *ClassMasteryHandler) takeAbilitiesFrom(sess *session.Session, serverID 
 	if h.store == nil {
 		return nil
 	}
+	defer lockBook(serverID)() // booklock.go: one change to a book at a time
 	index := map[int]int{} // spell -> display index, the book's before the change
 	if h.book != nil {
 		if book, err := h.book.GetCharacterSpells(serverID); err == nil {

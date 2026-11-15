@@ -254,13 +254,34 @@ func (w *World) waterAheadLocked(npc *NPC, x, z float32) bool {
 	return y <= npc.Y && !w.keepsInLocked(npc, npc.X, npc.Y, npc.Z) && w.waterAtLocked(npc.World, x, y+bodyAbove, z)
 }
 
+// bodyWet is how far above its feet a body is tested for water at its feet:
+// a body wading (water there, not at bodyAbove) is on both sides of the edge.
+const bodyWet float32 = 0.05
+
+// wetAtLocked reports water (or slime) at a body's feet or over them. Must be
+// called with the lock held.
+func (w *World) wetAtLocked(world uint8, x, y, z float32) bool {
+	return w.waterAtLocked(world, x, y+bodyWet, z) || w.waterAtLocked(world, x, y+bodyAbove, z)
+}
+
+// apartBodies is whether two bodies are on either side of the water's edge:
+// one in the water (at bodyAbove) and the other dry (no water at its feet).
+// A body wading in shallow water is apart from neither (Heirloom petition
+// 2145, Zerkx, 2026-11-15, Guk: "ill be fighting a mob and will get the error
+// 'your target is in the water' even if im in the water or the water is very
+// low").
+func apartBodies(inA, wetA, inB, wetB bool) bool {
+	return inA && !wetB || inB && !wetA
+}
+
 // apartLocked reports a player and a creature on either side of the
 // water's edge. Must be called with the lock held.
 func (w *World) apartLocked(p *Player, npc *NPC) bool {
 	if w.env == nil {
 		return false
 	}
-	return w.playerInWaterLocked(p) != w.npcInWaterLocked(npc)
+	return apartBodies(w.playerInWaterLocked(p), w.wetAtLocked(p.World, p.X, p.Y, p.Z),
+		w.npcInWaterLocked(npc), w.wetAtLocked(npc.World, npc.X, npc.Y, npc.Z))
 }
 
 // waterRefusalLocked is a harmful cast's refusal when its target is on the
@@ -271,16 +292,17 @@ func (w *World) waterRefusalLocked(caster *Player, targets []EntityID) string {
 		return ""
 	}
 	in := w.playerInWaterLocked(caster)
-	var theirs bool
+	wet := w.wetAtLocked(caster.World, caster.X, caster.Y, caster.Z)
+	var theirs, theirsWet bool
 	if npc := w.NPCs[targets[0]]; npc != nil {
-		theirs = w.npcInWaterLocked(npc)
+		theirs, theirsWet = w.npcInWaterLocked(npc), w.wetAtLocked(npc.World, npc.X, npc.Y, npc.Z)
 	} else if p := w.Players[targets[0]]; p != nil && p != caster {
-		theirs = w.playerInWaterLocked(p)
+		theirs, theirsWet = w.playerInWaterLocked(p), w.wetAtLocked(p.World, p.X, p.Y, p.Z)
 	} else {
 		return ""
 	}
 	switch {
-	case in == theirs:
+	case !apartBodies(in, wet, theirs, theirsWet):
 		return ""
 	case theirs:
 		return castTargetInWater

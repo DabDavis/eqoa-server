@@ -585,3 +585,28 @@ func TestAFishUpTheBankComesDown(t *testing.T) {
 		t.Errorf("of %d legs none came down to the surface", len(ls))
 	}
 }
+
+// A player wading in shallow water (water at its feet, not half a unit up)
+// is on neither side of the edge: its attack on a creature in deeper water
+// is not refused (Heirloom petition 2145, Zerkx, Guk: "'your target is in
+// the water' even if im in the water or the water is very low"). The
+// control: a player just out of it, dry at its feet, still is refused.
+func TestAWadingPlayerIsNotAcrossTheWatersEdge(t *testing.T) {
+	w := beachWorld(t, true)
+	p := w.Players[1]
+	croc := addNPC(w, 100, "crocodile", 2030, 1000, creatureModel, 0)
+	croc.Y, croc.SpawnY = 40, 40
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p.X, p.Y = 2000.3, 49.7 // the water to its ankles
+	if got := w.waterRefusalLocked(p, []EntityID{croc.ServerID}); got != "" {
+		t.Errorf("wading at a creature in the water: %q, want no refusal", got)
+	}
+	if w.apartLocked(p, croc) {
+		t.Error("wading: apart from a creature in the water")
+	}
+	p.Y = 50.0 // dry at its feet
+	if got := w.waterRefusalLocked(p, []EntityID{croc.ServerID}); got != castTargetInWater {
+		t.Errorf("dry at the edge at a creature in the water: %q, want %q", got, castTargetInWater)
+	}
+}

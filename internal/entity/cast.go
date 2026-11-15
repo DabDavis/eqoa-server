@@ -1654,14 +1654,19 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 }
 
 // healLocked restores n hit points to t; the amount is told (0x00DB, whole,
-// as Sandstorm tells it, kind to the caster: tellAmountLocked) only when t was
-// short of its maximum.
+// as Sandstorm tells it, kind to the caster: tellAmountLocked) whatever t
+// was short of: what the heal was worth, not what it filled (petition 2016,
+// Lonewullf, owner-approved 2026-11-15: "can we see the green healing numbers
+// when full hp? hard to test healing abilities when you dont know what they
+// do"; until then a full target was told nothing). Its hate still takes what
+// it restored (healHateLocked).
 func (w *World) healLocked(caster *Player, casterSess *session.Session, t *Player, n int, kind numberKind) {
 	if n <= 0 {
 		return
 	}
 	top := t.MaxHPNow()
 	if t.HP >= top {
+		w.tellAmountLocked(caster, casterSess, t.ServerID, n, kind)
 		w.healHateLocked(caster, t, n, 0) // a full target: a fifth of it is hate still (1967, aggro.go)
 		return
 	}

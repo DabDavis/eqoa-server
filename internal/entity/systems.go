@@ -403,7 +403,9 @@ func (w *World) regenSystem(now time.Time) {
 		// over time may take the last hit point (the Lich form's)
 		if p.regenTick() {
 			dead = append(dead, p)
+			continue
 		}
+		w.tellPlayerStatHoTLocked(p) // a spell's HoT stat, its part alone (hotfigures.go)
 	}
 	for _, p := range dead {
 		log.Printf("Regen: %s's price over time (HoT %d) takes its last hit point", p.Name, p.HoTNow())

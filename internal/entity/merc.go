@@ -1036,8 +1036,9 @@ func (w *World) mercEffectsLocked(ms *mercState, now time.Time) {
 			continue
 		}
 		ae.NextTick = ae.NextTick.Add(effectTick)
-		if ae.HPTick > 0 && n.HP < n.MaxHP {
+		if ae.HPTick > 0 {
 			n.HP = min(n.HP+ae.HPTick, n.MaxHP)
+			w.tellNPCHoTLocked(n, ae, ae.HPTick) // hotfigures.go
 		}
 		if ae.PowerTick > 0 && n.Power < n.MaxPower {
 			n.Power = min(n.Power+ae.PowerTick, n.MaxPower)

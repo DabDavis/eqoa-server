@@ -9,7 +9,7 @@ import (
 )
 
 // The simulator's hands are the server's (balancekit.go SimHands, the
-// switch of handlers/handswitch.go): what a kit holds decides its swing, its
+// switch, the server's own until 2026-11-15: handlers/takeoff.go): what a kit holds decides its swing, its
 // DMG and which of its arts it may cast, and it switches for an art as a
 // player's hands are switched. The kits and arts here are made up.
 
@@ -52,9 +52,9 @@ func TestASimKitSwitchesItsHandsForItsArts(t *testing.T) {
 	kit.Hands = []SimHands{blades, bow}
 	r, logged := simFightLog(kit, foe)
 	arrows, edges := strings.Count(logged, `begins "an arrow"`), strings.Count(logged, `begins "a blade"`)
-	if arrows == 0 || edges == 0 || strings.Contains(logged, "right weapon") || !strings.Contains(logged, "hands changed") {
+	if arrows == 0 || edges == 0 || strings.Contains(logged, "hold none of") || !strings.Contains(logged, "hands changed") {
 		t.Errorf("with its bow: %d arrows, %d blades, refused for its weapon %v, hands changed %v (won %v in %v)",
-			arrows, edges, strings.Contains(logged, "right weapon"), strings.Contains(logged, "hands changed"), r.Won, r.Time)
+			arrows, edges, strings.Contains(logged, "hold none of"), strings.Contains(logged, "hands changed"), r.Won, r.Time)
 	}
 	if !strings.Contains(logged, "reach 25.00") || !strings.Contains(logged, "reach 4.50") {
 		t.Error("its rounds not both the blades' (reach 4.5) and the bow's (25)")
@@ -62,7 +62,7 @@ func TestASimKitSwitchesItsHandsForItsArts(t *testing.T) {
 
 	kit.Hands = []SimHands{blades}
 	_, logged = simFightLog(kit, foe)
-	if strings.Contains(logged, `begins "an arrow"`) || !strings.Contains(logged, "right weapon") || strings.Contains(logged, "reach 25.00") {
+	if strings.Contains(logged, `begins "an arrow"`) || !strings.Contains(logged, "hold none of") || strings.Contains(logged, "reach 25.00") {
 		t.Error("the control: with no bow its arrow arts were cast, or it fought at a bow's reach")
 	}
 }
@@ -79,7 +79,7 @@ func TestASimMonkPunchesBareHanded(t *testing.T) {
 	bare.Play = SimPlay{Melee: true, Spells: true}
 	foe := SimNPC{Level: 30}
 	r, logged := simFightLog(bare, foe)
-	if !r.Won || !strings.Contains(logged, `begins "a punch"`) || strings.Contains(logged, "right weapon") {
+	if !r.Won || !strings.Contains(logged, `begins "a punch"`) || strings.Contains(logged, "hold none of") {
 		t.Fatalf("a bare-handed monk: won %v, punched %v", r.Won, strings.Contains(logged, `begins "a punch"`))
 	}
 	zero := bare
@@ -90,14 +90,14 @@ func TestASimMonkPunchesBareHanded(t *testing.T) {
 	armed := simKit(classMonk, 30)
 	armed.Spells = bare.Spells
 	armed.Play = bare.Play
-	if _, logged := simFightLog(armed, foe); strings.Contains(logged, `begins "a punch"`) || !strings.Contains(logged, "right weapon") {
+	if _, logged := simFightLog(armed, foe); strings.Contains(logged, `begins "a punch"`) || !strings.Contains(logged, "hold none of") {
 		t.Error("the control: a monk with a weapon punched")
 	}
 }
 
 // A ranger whose only art is an arrow art, fighting in melee, is back on its
 // blades after each one has landed, as the server puts a player's back
-// (handlers/handswitch.go HandsBack): after its first arrow its hits are the
+// (the server's until 2026-11-15): after its first arrow its hits are the
 // blades' (reach 4.5) again, a bow's (one hit a round, reach 25) only from
 // a round begun before an arrow landed, never more than one an arrow. The
 // control: a kit whose fighting hands hold nothing has nothing to put back,

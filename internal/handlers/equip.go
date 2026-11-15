@@ -69,8 +69,6 @@ type EquipHandler struct {
 	// they are kept at the logout alone
 	training trainingKeeper
 
-	// hands is what the switches for an art remember (handswitch.go)
-	hands handMemory
 }
 
 // NewEquipHandler creates the handler. spells may be nil: no scroll is then
@@ -659,12 +657,7 @@ func mayWear(sess *session.Session, player *entity.Player, p *database.ItemPatte
 
 // applyPlan writes a plan's equip slots and tells the client: UnequipItem for
 // the slot it vacates, then EquipItem. False when the database refused one.
-// A change of the hands forgets the ranged weapon a switch took up (keptHands'
-// took: the switch that made it sets it again after, handswitch.go).
 func (h *EquipHandler) applyPlan(sess *session.Session, serverID uint32, plan equipPlan, who string) bool {
-	if (plan.equip && handSlot(plan.slot)) || handSlot(plan.unequip) {
-		h.hands.update(serverID, func(k *keptHands) { k.took = 0 })
-	}
 	for _, c := range plan.changes {
 		if err := h.inventoryStore.SetEquipLoc(serverID, c.itemID, c.equipLoc); err != nil {
 			log.Printf("%s: item %d -> equiploc %d: %v", who, c.itemID, c.equipLoc, err)
@@ -682,11 +675,6 @@ func (h *EquipHandler) applyPlan(sess *session.Session, serverID uint32, plan eq
 		log.Printf("%s: serverID=%d EQUIP %q (key=%d, list index %d) to slot %d, %d displaced",
 			who, serverID, plan.name, plan.key, plan.index, plan.slot, len(plan.changes)-1)
 		queueEquip(sess, plan.index, plan.slot)
-		if plan.slot == equipRanged && len(plan.changes) > 0 {
-			// the ranged weapon it holds now, for the switch for an art (handswitch.go)
-			id := plan.changes[len(plan.changes)-1].itemID
-			h.hands.update(serverID, func(k *keptHands) { k.ranged = id })
-		}
 	}
 	return true
 }

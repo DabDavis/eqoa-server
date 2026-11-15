@@ -57,7 +57,6 @@ func (h *SpellbookHandler) handleUseSkill(sess *session.Session, msg *protocol.M
 	spell := h.areaOf(castSpellRow(e, row)) // spellarea.go
 	h.recastGroupOf(&spell, book)           // its recast group's spells (entity/recastgroup.go)
 	if spell.Def.Reagent == "" || spell.Def.ReagentCount <= 0 {
-		h.handsFor(sess, p, &spell, target)
 		h.gameWorld.StartCast(sess, spell, target, time.Now())
 		return nil
 	}
@@ -67,7 +66,6 @@ func (h *SpellbookHandler) handleUseSkill(sess *session.Session, msg *protocol.M
 	if !ok {
 		return nil
 	}
-	h.handsFor(sess, p, &spell, target)
 	if h.gameWorld.StartCast(sess, spell, target, time.Now()) {
 		h.takeReagent(sess, p, held, spell.Def.ReagentCount)
 	}
@@ -97,19 +95,6 @@ func (h *SpellbookHandler) recastGroupOf(spell *entity.CastSpell, book []databas
 		}
 		spell.GroupMates = append(spell.GroupMates, entity.GroupMate{SpellID: id, DisplayIndex: at})
 	}
-}
-
-// handsFor puts what the cast's required equipment names in the caster's
-// hands, from its pack, when that alone would refuse the cast (entity's
-// CastWantsHands; handswitch.go), and marks the cast whose landing in melee
-// reach puts the hands it took off back (HandsBack: it took up a ranged
-// weapon for them). Any other cast keeps its hands, and StartCast answers it
-// as before.
-func (h *SpellbookHandler) handsFor(sess *session.Session, p *entity.Player, spell *entity.CastSpell, target uint32) {
-	if h.switchHands == nil || spell.Def.ReqEquip == "" || !h.gameWorld.CastWantsHands(sess, *spell, target, time.Now()) {
-		return
-	}
-	_, spell.HandsBack = h.switchHands(sess, p, spell.Def.ReqEquip)
 }
 
 // castSpell is a book entry as the World casts it. The record gives cast

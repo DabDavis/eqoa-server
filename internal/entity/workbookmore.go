@@ -57,7 +57,8 @@ import (
 //   - Required equipment (the legend: "Spell must check equipped weapon types
 //     before cast"): refused unless a hand holds one of the weapons it names
 //     (1HS, 2HS, 1HB, 2HB, 1HP, 2HP, Range, Shield; None bare hands), in red
-//     (ours: "You do not have the right weapon for that.").
+//     (ours: "You need a blunt weapon equipped to use Cleave.", equipRefusal),
+//     no power spent, no lockout, the hands left as they are.
 //   - Target types Animal and Summoned: refused at anything else, as a spell
 //     for undead alone is (undead.go): an animal is wildlife (wildlife.go), a
 //     summoned creature a pet or one whose name's last word is a summoned
@@ -338,24 +339,131 @@ func equipFits(p *Player, req string) bool {
 	return false
 }
 
-// HandsFit is equipFits for the handlers: whether the hands a player's worn
-// look gives it (PrimaryType, SecondaryType, Shield) hold what a spell's
-// required equipment names; the switch for an art checks the hands it would
-// make with it before it makes them (handlers/handswitch.go).
-func HandsFit(p *Player, req string) bool { return equipFits(p, req) }
-
-// castWrongWeapon refuses a cast whose required equipment no hand holds
-// (ours).
-const castWrongWeapon = "You do not have the right weapon for that."
-
 // equipRefusal is a cast's refusal for its required equipment, "" when the
-// hands hold it.
-func equipRefusal(p *Player, req string) string {
+// hands hold it: the line names the spell and the weapons it takes, in words
+// (equipWords). The server never puts them in the hands itself: a player
+// takes them up by hand and casts again (the owner, 2026-11-15: "abilities
+// are causing players to auto switch weapons, but should require players to
+// switch manually to use those abilities if they dont have the correct
+// weapon"; from 2026-11-01 until then handlers/handswitch.go switched them
+// from the pack, petition 5161's Cleave taking a No Dachi off for a club).
+func equipRefusal(p *Player, req, spell string) string {
 	if equipFits(p, req) {
 		return ""
 	}
 	log.Printf("Cast: %s's hands (%d, %d, shield %v) hold none of %q", p.Name, p.PrimaryType, p.SecondaryType, p.Shield != 0, req)
-	return castWrongWeapon
+	return equipRefusalLine(req, spell)
+}
+
+// equipRefusalLine is the refusal's words (ours): "You need a blunt weapon
+// equipped to use Cleave.", "You need empty hands to use Fists of Fury." for
+// None, "the right weapon" for codes it does not know.
+func equipRefusalLine(req, spell string) string {
+	worn, bare := equipWords(req)
+	if spell == "" {
+		spell = "that"
+	}
+	var need string
+	switch {
+	case len(worn) == 0 && bare:
+		need = "empty hands"
+	case len(worn) == 0:
+		need = "the right weapon equipped"
+	default:
+		need = orList(worn) + " equipped"
+		if bare {
+			need += " or empty hands"
+		}
+	}
+	return "You need " + need + " to use " + spell + "."
+}
+
+// equipWords is a required equipment's weapons in words, in its order: a
+// kind held in either grip one word ("a blunt weapon" for 1HB and 2HB), a
+// grip's three kinds one ("a one-handed weapon"), all six "a melee weapon",
+// Range "a ranged weapon", Shield "a shield"; bare is whether it names None.
+func equipWords(req string) (words []string, bare bool) {
+	has := map[string]bool{}
+	var order []string
+	for _, code := range ReqEquipCodes(req) {
+		if code == "RANGED" {
+			code = "RANGE"
+		}
+		if !has[code] {
+			has[code] = true
+			order = append(order, code)
+		}
+	}
+	kinds := []struct{ letter, word string }{{"S", "slashing"}, {"B", "blunt"}, {"P", "piercing"}}
+	all := func(codes ...string) bool {
+		for _, c := range codes {
+			if !has[c] {
+				return false
+			}
+		}
+		return true
+	}
+	done := map[string]bool{}
+	add := func(w string, codes ...string) {
+		words = append(words, w)
+		for _, c := range codes {
+			done[c] = true
+		}
+	}
+	for _, code := range order {
+		if done[code] {
+			continue
+		}
+		switch code {
+		case "NONE":
+			bare, done[code] = true, true
+			continue
+		case "RANGE":
+			add("a ranged weapon", code)
+			continue
+		case "SHIELD":
+			add("a shield", code)
+			continue
+		}
+		if len(code) != 3 || equipCodes[code] == nil {
+			continue // not a weapon's code: no word
+		}
+		grip, kind := code[:2], code[2:]
+		switch {
+		case all("1HS", "2HS", "1HB", "2HB", "1HP", "2HP"):
+			add("a melee weapon", "1HS", "2HS", "1HB", "2HB", "1HP", "2HP")
+		case all(grip+"S", grip+"B", grip+"P"):
+			w := "a one-handed weapon"
+			if grip == "2H" {
+				w = "a two-handed weapon"
+			}
+			add(w, grip+"S", grip+"B", grip+"P")
+		default:
+			var word string
+			for _, k := range kinds {
+				if k.letter == kind {
+					word = k.word
+				}
+			}
+			switch {
+			case all("1H"+kind, "2H"+kind):
+				add("a "+word+" weapon", "1H"+kind, "2H"+kind)
+			case grip == "1H":
+				add("a one-handed "+word+" weapon", code)
+			default:
+				add("a two-handed "+word+" weapon", code)
+			}
+		}
+	}
+	return words, bare
+}
+
+// orList joins words as a sentence does: "a, b or c".
+func orList(words []string) string {
+	if len(words) < 2 {
+		return strings.Join(words, "")
+	}
+	return strings.Join(words[:len(words)-1], ", ") + " or " + words[len(words)-1]
 }
 
 // The refusals of a spell for animals or for summoned creatures alone (ours,

@@ -51,8 +51,8 @@ type SimPlayer struct {
 	// fights with (Gear, Worn and the types above are those, on its Body),
 	// the others what it switches to for an art the hands it holds do not
 	// fit (a ranger's bow for its arrows, its blades back for its blade
-	// arts), as the server switches a player's (handlers/handswitch.go):
-	// its swing and its DMG are then those of what it holds. Nil: it holds
+	// arts), as a player switches by hand (the server switched itself
+	// until 2026-11-15, handlers/takeoff.go): its swing and its DMG are then those of what it holds. Nil: it holds
 	// what Gear and Worn say, the whole fight
 	Hands []SimHands
 	// Body is what it wears but its hands, with Hands
@@ -417,9 +417,9 @@ func (f *simFight) swing() Swing {
 	return SwingFor(f.p.Class, f.p.Level, h.Worn, h.AttackType != 0, h.AttackType, h.Range)
 }
 
-// hold switches the player's hands to the kit's Hands i, as the server's
-// switch does (handlers/handswitch.go): what they add and their attack
-// types, its stats from them, and a fight's swing from its next round
+// hold switches the player's hands to the kit's Hands i, as a player's
+// switch by hand does (the server's own until 2026-11-15, handlers/takeoff.go):
+// what they add and their attack types, its stats from them, and a fight's swing from its next round
 // (HandsChanged). Any change of hands forgets a switch's ranged weapon (took),
 // as the server's applyPlan does; handsFor sets it again after its own.
 func (f *simFight) hold(i int) {
@@ -432,10 +432,10 @@ func (f *simFight) hold(i int) {
 	w.HandsChanged(f.sess, f.swing())
 }
 
-// handsFor is the server's switch for a spell its hands do not fit, when
+// handsFor is a player's switch by hand for a spell its hands do not fit
+// (the server made it itself until 2026-11-15, handlers/takeoff.go), when
 // that alone would refuse it (CastWantsHands): the first of the kit's other
-// Hands that fits it (handlers/handswitch.go takes the ones a switch took
-// off first, a kit's first Hands). A switch to a ranged weapon from hands
+// Hands that fits it (a kit's first Hands, the ones a switch took off, first). A switch to a ranged weapon from hands
 // that held anything remembers them for the way back (back, took: handsBack)
 // and marks the spell (CastSpell.HandsBack: a self cast's own switch), as
 // the server's does.
@@ -455,9 +455,9 @@ func (f *simFight) handsFor(s *CastSpell, target uint32) {
 	}
 }
 
-// handsBack is the server's way back after a cast that wants a ranged weapon
-// (handlers/handswitch.go HandsBack): the hands a switch took off to take up
-// the one it holds taken up again, while it holds that weapon still, nothing
+// handsBack is the way back after a cast that wants a ranged weapon (the
+// server's own until 2026-11-15, handlers/takeoff.go): the hands a switch
+// took off to take up the one it holds taken up again, while it holds that weapon still, nothing
 // else changed since (took).
 func (f *simFight) handsBack() {
 	if f.took && f.pl.Hands[f.hands].Worn[18] {

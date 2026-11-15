@@ -161,7 +161,7 @@ type CastSpell struct {
 	MercSplash bool
 	// HandsBack is the handlers' switch of hands for the cast having taken
 	// up a ranged weapon in place of the hands it took off
-	// (handlers/handswitch.go): a self cast's landing gives them back, the
+	// (the balance's simulated switch, balancesim.go): a self cast's landing gives them back, the
 	// bow borrowed for it (handsBackLocked; a cast at a creature gives back
 	// a switch's hands by its reach, marked or not)
 	HandsBack bool
@@ -932,7 +932,7 @@ func (w *World) castRefusalLocked(sess *session.Session, p *Player, spell *CastS
 		refusal, fizzle = w.targetKindStartLocked(&spell.Def, targets) // workbookmore.go
 	}
 	if refusal == "" && hands && spell.Def.ReqEquip != "" {
-		refusal = equipRefusal(p, spell.Def.ReqEquip) // workbookmore.go
+		refusal = equipRefusal(p, spell.Def.ReqEquip, spell.Name) // workbookmore.go
 	}
 	if refusal == "" && spell.Def.Backstab {
 		refusal = w.backstabRefusalLocked(p, targets) // backstab.go
@@ -956,9 +956,10 @@ func (w *World) castRefusalLocked(sess *session.Session, p *Player, spell *CastS
 // the spell names weapons the player's hands do not hold (the workbook's
 // required equipment, workbookmore.go), and nothing else (its target, its
 // range, power, the ability's lockout, the arts' cooldown, another cast on)
-// would refuse it or let it go. The handlers then put what it wants in the
-// hands from the pack (handlers/handswitch.go) before StartCast; any other
-// cast is StartCast's to answer as it always was, the hands left alone.
+// would refuse it or let it go. Only the balance's simulated fights act on it
+// (balancesim.go handsFor: a player who switches by hand); the server never
+// switches a player's hands for a cast since 2026-11-15 (handlers/takeoff.go),
+// StartCast refuses it (equipRefusal).
 func (w *World) CastWantsHands(sess *session.Session, spell CastSpell, targetObjectID uint32, now time.Time) bool {
 	if spell.Def.ReqEquip == "" {
 		return false
@@ -977,7 +978,8 @@ func (w *World) CastWantsHands(sess *session.Session, spell CastSpell, targetObj
 }
 
 // HandsBackFunc is the hook that puts back the hands a switch took off for
-// a cast (handlers' HandsBack, handswitch.go). It runs with the World's lock
+// a cast (the balance's simulated fights' alone since 2026-11-15: the
+// handlers set none, handlers/takeoff.go). It runs with the World's lock
 // let go, after the tick that landed the cast (runHandsBack).
 type HandsBackFunc func(sess *session.Session, p *Player)
 
@@ -991,7 +993,7 @@ func (w *World) OnHandsBack(fn HandsBackFunc) {
 // handsBackLocked is a cast's hands at its landing. Any cast whose required
 // equipment is a ranged weapon (wantsRanged: an arrow art) hands its caster
 // to the hands-back hook (runHandsBack), which gives back the hands a switch
-// took off to take up the bow it holds (handlers/handswitch.go: whenever that
+// took off to take up the bow it holds (the balance's simulated switch, balancesim.go: whenever that
 // was, a pull at range's arrow art too), when the caster stands within its
 // melee reach of the cast's target: CLIENT's TargetInRange for bare hands or
 // a melee weapon (meleeReach, a creature's allowance for its size: npcReach,

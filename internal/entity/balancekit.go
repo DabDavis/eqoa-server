@@ -116,8 +116,8 @@ func SimKitFromDB(db *database.SQLiteDB, class, race, level int, tier float64) (
 	// hand to hand: offence.go), and it carries no weapon (until 2026-11-01
 	// it held one and its 30 punches were never cast). What its other arts
 	// want it carries beside (simOtherHands: a ranger's bow for its arrows)
-	// and switches to for them, as the server switches a player's hands for
-	// an art (handlers/handswitch.go)
+	// and switches to for them, as a player switches its hands by hand for
+	// an art (handlers/takeoff.go)
 	hands := simHandsOf(book)
 	fight := simBareHands()
 	if class != classMonk {

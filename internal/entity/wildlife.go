@@ -34,7 +34,7 @@ bear grizzly kodiak cub greatbear blackbear
 lion lioness lionness tiger panther puma cougar catamount lynx jaguar leopard sabretooth sabertooth cat kitten
 boar pig hog sawtusk warthog
 deer elk stag doe fawn moose caribou bison buffalo ox oxen yak cow bull horse pony mule goat ram sheep mammoth rhino rhinoceros elephant hippo camel
-gorilla ape monkey baboon
+gorilla ape monkey baboon simian
 bat bird hawk eagle falcon vulture crow raven owl parrot gull seagull pelican heron crane stork flamingo ostrich rooster chicken turkey duck goose geese swan kestrel buzzard condor magpie rook
 snake asp viper cobra python adder rattler rattlesnake moccasin boa serpent serpant copperhead cooperhead kingsnake anaconda sidewinder mamba
 lizard gecko iguana skink crocodile alligator caiman gharial turtle tortoise terrapin frog toad salamander newt
@@ -56,6 +56,15 @@ var wildlifeTitles = wordSet(`
 mother father matriarch patriarch queen king alpha leader pack brood broodmother young elder runt pup calf kit chick
 stalker worker soldier drone carpenter leafcutter harvester scout warrior hunter lurker breeder monarch swarm
 `)
+
+// wildlifeApes are the brutes of an ape's body, animals by their whole name
+// ("brute" alone is no animal's noun: an orc, gnoll, froglok or kappa brute
+// is a person). The owner, 2026-11-15: "gorilla not considered an animal, but
+// ahould be" (a Kerran's Cat Magnetism refused at a superior brute: "This
+// spell only works on animals."). By body: superior and karba'nai brutes
+// share 0x95EE6EC6, the rabid brute is 0x04B9B13F, the snow brute 0x0C07A935
+// (the Deranged Simian's: "simian" is a noun of wildlifeNouns).
+var wildlifeApes = map[string]bool{"superior brute": true, "karba'nai brute": true, "rabid brute": true, "snow brute": true}
 
 // wildlifeGuards are a guard's words: a creature named one keeps its post.
 var wildlifeGuards = wordSet(`
@@ -131,6 +140,9 @@ func headNoun(words []string) string {
 // "" when the name is not an animal's (the file's comment). The name alone:
 // an undead creature of such a name is not wildlife (wildlifeLocked).
 func WildlifeWord(name string) string {
+	if wildlifeApes[strings.ToLower(strings.TrimSpace(name))] {
+		return "brute"
+	}
 	words := nameWords(name)
 	if len(words) == 0 {
 		return ""

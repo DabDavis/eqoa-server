@@ -89,7 +89,7 @@ bear grizzly kodiak cub greatbear blackbear
 lion lioness lionness tiger panther puma cougar catamount lynx jaguar leopard sabretooth sabertooth cat kitten
 boar pig hog sawtusk warthog
 deer elk stag doe fawn moose caribou bison buffalo ox oxen yak cow bull horse pony mule goat ram sheep mammoth rhino rhinoceros elephant hippo camel
-gorilla ape monkey baboon
+gorilla ape monkey baboon simian
 bat bird hawk eagle falcon vulture crow raven owl parrot gull seagull pelican heron crane stork flamingo ostrich rooster chicken turkey duck goose geese swan kestrel buzzard condor magpie rook
 snake asp viper cobra python adder rattler rattlesnake moccasin boa serpent serpant copperhead cooperhead kingsnake anaconda sidewinder mamba
 lizard gecko iguana skink crocodile alligator caiman gharial turtle tortoise terrapin frog toad salamander newt

@@ -33,6 +33,12 @@ func TestWildlifeWord(t *testing.T) {
 		"fire giant reaver":           "",
 		"Lord Nagafen":                "",
 		"Orc Pawn":                    "",
+		"superior brute":              "brute", // an ape's body (wildlifeApes): Cat Magnetism takes it
+		"Rabid Brute":                 "brute",
+		"Deranged Simian":             "simian",
+		"orc brute":                   "",
+		"froglok brute":               "",
+		"darkpaw brute":               "",
 		"Deathfist reaver":            "",
 		"gnoll scout":                 "",
 		"Kobold Slayer":               "",

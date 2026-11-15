@@ -135,21 +135,26 @@ func TestSetNineAndTrimsAtCharacterSelect(t *testing.T) {
 	}
 }
 
-// The Armor Dyers ask "Armor trim" last in their first question, whatever the
-// server (after "Take every dye off": More leaves the cursor on the trim), and
-// dye a piece's trim, or all six, into chardyes' trim slots; "Take every dye
-// off" takes the trims off too. The control: the body's slots keep their dye.
+// The dyers ask "Armor trim" third in their first question, whatever the
+// server, and "Remove all dyes" last (the owner, 2026-11-15: "organize for easy
+// parsing"): six answers, so a PS2's More (three a page) leaves the cursor on
+// the fifth, Weapons, never on taking every dye off. The trim dyes a piece's
+// trim, or all six, into chardyes' trim slots; "Remove all dyes" takes the
+// trims off too. The control: the body's slots keep their dye.
 func TestTheDyerDyesTheTrim(t *testing.T) {
 	for _, capes := range []bool{false, true} {
 		entity.SetCapes(capes)
 		menu := dyerMenu()
-		if len(menu) > maxDialogOptions || menu[len(menu)-1].label != "Armor trim" {
-			t.Fatalf("capes %v: %d answers, last %q", capes, len(menu), menu[len(menu)-1].label)
+		if len(menu) != maxDialogOptions || len(menu) != 6 || menu[2].label != "Armor trim" {
+			t.Fatalf("capes %v: %d answers, third %q", capes, len(menu), menu[2].label)
 		}
-		if menu[len(menu)-2].sub == nil && menu[len(menu)-2].slots == nil && len(menu) == 6 {
-			t.Fatalf("capes %v: More's second line takes every dye off", capes)
+		if off := menu[len(menu)-1]; off.label != "Remove all dyes" || off.sub != nil || off.slots != nil {
+			t.Fatalf("capes %v: the last answer %+v, want Remove all dyes", capes, off)
 		}
-		for _, c := range menu[len(menu)-1].sub {
+		if m := menu[4]; m.label != "Weapons" || (m.sub == nil && m.slots == nil) {
+			t.Fatalf("capes %v: More's second line is %q, and must not take every dye off", capes, m.label)
+		}
+		for _, c := range menu[2].sub {
 			for _, s := range c.slots {
 				if !database.IsTrimSlot(s) {
 					t.Fatalf("%q dyes slot %d, not a trim", c.label, s)
@@ -158,8 +163,8 @@ func TestTheDyerDyesTheTrim(t *testing.T) {
 		}
 	}
 	entity.SetCapes(false)
-	trim := dyerMenu()[len(dyerMenu())-1]
-	if trim.sub[0].label != "All my armor's trim" || len(trim.sub[0].slots) != database.DyeTrims {
+	trim := dyerMenu()[2]
+	if trim.sub[0].label != "All armor trim" || len(trim.sub[0].slots) != database.DyeTrims {
 		t.Fatalf("the trim's first answer: %+v", trim.sub[0])
 	}
 	labels := []string{}
@@ -178,8 +183,9 @@ func TestTheDyerDyesTheTrim(t *testing.T) {
 }
 
 // The dyer's trim, talked through: "Armor trim", a piece, a family, a colour
-// dyes that piece's trim alone; "All my armor's trim" all six; the body's dye
-// is left as it was, and "Take every dye off" takes the trims off too.
+// dyes that piece's trim alone; "All armor trim" all six; the body's dye is
+// left as it was, and "Remove all dyes" takes the trims off too. The dyer here
+// is an "Equipment Dyer", the dyers' name since 2026-11-15.
 func TestTheDyerDyesTheTrimTalkedThrough(t *testing.T) {
 	entity.SetCapes(false)
 	tw := newTalkWorld(t, 100, 100)
@@ -194,7 +200,10 @@ func TestTheDyerDyesTheTrimTalkedThrough(t *testing.T) {
 	}
 	tw.p.CharServerID = rec.ServerID
 	d := NewDyer(tw.w, db)
-	dyer := &entity.NPC{ServerID: 3101, Name: "Armor Dyer", NPCType: 0x80}
+	dyer := &entity.NPC{ServerID: 3101, Name: EquipmentDyerName, NPCType: 0x80}
+	if !IsArmorDyer("Equipment Dyer") || !IsArmorDyer(" equipment dyer ") || !IsArmorDyer("Armor Dyer") {
+		t.Fatal("an Equipment Dyer (or an Armor Dyer) is no dyer")
+	}
 	questMsgs(tw.s)
 	talk := func() []string {
 		t.Helper()
@@ -218,12 +227,12 @@ func TestTheDyerDyesTheTrimTalkedThrough(t *testing.T) {
 		return c
 	}
 	got := talk()
-	if !strings.HasSuffix(got[len(got)-1], "|Take every dye off|Armor trim") {
+	if !strings.HasSuffix(got[len(got)-1], ":What shall I dye?|All armor|One armor piece|Armor trim|Robe and shield|Weapons|Remove all dyes") {
 		t.Fatalf("the first question: %q", got[len(got)-1])
 	}
-	pick(pick(pick(talk(), 0), 0), 2) // All my armor, whites, grey
-	got = pick(talk(), 4)             // Armor trim
-	if !strings.Contains(got[len(got)-1], ":Which one?|All my armor's trim|Chest or robe top trim|Bracers and gloves trim|Legs or robe skirt trim|Boots trim|Helm trim") {
+	pick(pick(pick(talk(), 0), 0), 2) // All armor, whites, grey
+	got = pick(talk(), 2)             // Armor trim
+	if !strings.Contains(got[len(got)-1], ":Which one?|All armor trim|Chest or robe top trim|Bracers and gloves trim|Legs or robe skirt trim|Boots trim|Helm trim") {
 		t.Fatalf("the trims: %q", got[len(got)-1])
 	}
 	got = pick(got, 3) // Legs or robe skirt trim
@@ -238,16 +247,16 @@ func TestTheDyerDyesTheTrimTalkedThrough(t *testing.T) {
 	if _, _, on, ok := tw.w.DyeTarget(tw.s); !ok || on[database.DyeLegsTrim] != 0x2050E0FF {
 		t.Fatal("not on the character where it stands")
 	}
-	pick(pick(pick(pick(talk(), 4), 2), 1), 0) // Armor trim, Bracers and gloves trim, reds, red
+	pick(pick(pick(pick(talk(), 2), 2), 1), 0) // Armor trim, Bracers and gloves trim, reds, red
 	c = dyes()
 	if c[database.DyeBracerTrim] != 0xD10000FF || c[database.DyeGlovesTrim] != 0xD10000FF || c[database.DyeChestTrim] != 0 || c[database.DyeHelmTrim] != 0 {
 		t.Fatalf("bracers and gloves: bracer %08X gloves %08X chest %08X helm %08X", c[database.DyeBracerTrim], c[database.DyeGlovesTrim], c[database.DyeChestTrim], c[database.DyeHelmTrim])
 	}
-	pick(pick(pick(pick(talk(), 4), 5), 1), 0) // Armor trim, Helm trim, reds, red
+	pick(pick(pick(pick(talk(), 2), 5), 1), 0) // Armor trim, Helm trim, reds, red
 	if c := dyes(); c[database.DyeHelmTrim] != 0xD10000FF {
 		t.Fatalf("the helm's trim: %08X", c[database.DyeHelmTrim])
 	}
-	pick(pick(pick(pick(talk(), 4), 0), 1), 0) // Armor trim, all, reds, red
+	pick(pick(pick(pick(talk(), 2), 0), 1), 0) // Armor trim, all, reds, red
 	c = dyes()
 	for i := 0; i < database.DyeTrims; i++ {
 		if c[database.DyeTrimOf(i)] != 0xD10000FF {
@@ -257,7 +266,7 @@ func TestTheDyerDyesTheTrimTalkedThrough(t *testing.T) {
 	if c[database.DyeChest] != 0x808080FF {
 		t.Fatalf("the body's dye: %08X", c[database.DyeChest])
 	}
-	pick(talk(), 3) // Take every dye off
+	pick(talk(), 5) // Remove all dyes
 	if c := dyes(); c != ([database.DyeSlots]uint32{}) {
 		t.Fatalf("every dye off: %08X", c)
 	}

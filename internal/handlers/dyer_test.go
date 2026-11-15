@@ -8,11 +8,12 @@ import (
 	"github.com/eqoa/server/internal/entity"
 )
 
-// An Armor Dyer: talked to, it asks what to dye (one piece of armour, and
-// the robe, shield or a weapon, a question further), a family of colours and
-// a colour, and dyes it at once in chardyes and on the character; "All my
-// armor" is the six armour slots and the robe, "No dye" one slot's dye off,
-// "Take every dye off" every slot; an answered box answered again does
+// A dyer (an "Armor Dyer", or an "Equipment Dyer", the name since
+// 2026-11-15): talked to, it asks what to dye (one armor piece, the robe and
+// shield, the weapons, a question further), a family of colours and a colour,
+// and dyes it at once in chardyes and on the character; "All armor" is the six
+// armour slots and the robe, "Both weapons" the two hands, "No dye" one slot's
+// dye off, "Remove all dyes" every slot; an answered box answered again does
 // nothing; another NPC is no dyer.
 func TestTheArmorDyer(t *testing.T) {
 	tw := newTalkWorld(t, 100, 100)
@@ -58,10 +59,10 @@ func TestTheArmorDyer(t *testing.T) {
 	}
 
 	got := talk()
-	if !hasMsg(got, "ask#*") || !strings.Contains(got[len(got)-1], ":What shall I dye?|All my armor|One piece of armor|Robe, shield or weapons|Take every dye off") {
+	if !hasMsg(got, "ask#*") || !strings.HasSuffix(got[len(got)-1], ":What shall I dye?|All armor|One armor piece|Armor trim|Robe and shield|Weapons|Remove all dyes") {
 		t.Fatalf("the dyer's question: %q", got)
 	}
-	got = pick(got, 1) // One piece of armor
+	got = pick(got, 1) // One armor piece
 	if !strings.Contains(got[len(got)-1], ":Which one?|Chest|Bracers|Gloves|Legs|Boots|Helm") {
 		t.Fatalf("the pieces: %q", got)
 	}
@@ -88,7 +89,7 @@ func TestTheArmorDyer(t *testing.T) {
 		t.Errorf("an answered box changed the chest to %08X", dyes()[database.DyeChest])
 	}
 
-	pick(pick(pick(talk(), 0), 4), 5) // All my armor, Blues and teals, Navy
+	pick(pick(pick(talk(), 0), 4), 5) // All armor, Blues and teals, Navy
 	navy := database.RGBA(database.DiscTints[4])
 	c := dyes()
 	for _, s := range []int{database.DyeChest, database.DyeBracer, database.DyeGloves, database.DyeLegs, database.DyeBoots, database.DyeHelm, database.DyeRobe} {
@@ -101,11 +102,15 @@ func TestTheArmorDyer(t *testing.T) {
 	}
 
 	// the shield violet, then its dye off (the first family's "No dye")
-	pick(pick(pick(pick(talk(), 2), 1), 5), 1) // Robe, shield or weapons; Shield; Purples; Violet
+	got = pick(talk(), 3) // Robe and shield
+	if !strings.HasSuffix(got[len(got)-1], ":Which one?|Robe|Shield") {
+		t.Fatalf("the robe and shield: %q", got)
+	}
+	pick(pick(pick(got, 1), 5), 1) // Shield; Purples; Violet
 	if c := dyes(); c[database.DyeShield] != 0x8A2BE2FF || c[database.DyeChest] != navy {
 		t.Errorf("the shield violet: %08X (chest %08X)", c[database.DyeShield], c[database.DyeChest])
 	}
-	got = pick(pick(pick(talk(), 2), 1), 0) // ...; Shield; Whites, greys and blacks
+	got = pick(pick(pick(talk(), 3), 1), 0) // ...; Shield; Whites, greys and blacks
 	if !strings.Contains(got[len(got)-1], "|No dye") {
 		t.Fatalf("no dye among the whites: %q", got)
 	}
@@ -114,12 +119,34 @@ func TestTheArmorDyer(t *testing.T) {
 		t.Errorf("the shield's dye off: %08X (chest %08X)", c[database.DyeShield], c[database.DyeChest])
 	}
 
-	pick(talk(), 3) // Take every dye off
+	// the weapons: both, then the secondary alone
+	got = pick(talk(), 4) // Weapons
+	if !strings.HasSuffix(got[len(got)-1], ":Which one?|Both weapons|Primary weapon|Secondary weapon") {
+		t.Fatalf("the weapons: %q", got)
+	}
+	pick(pick(pick(got, 0), 1), 1) // Both weapons; Reds and pinks; Crimson
+	if c := dyes(); c[database.DyePrimary] != 0xA0001EFF || c[database.DyeSecondary] != 0xA0001EFF || c[database.DyeShield] != 0 {
+		t.Errorf("both weapons crimson: primary %08X secondary %08X shield %08X", c[database.DyePrimary], c[database.DyeSecondary], c[database.DyeShield])
+	}
+	pick(pick(pick(pick(talk(), 4), 2), 4), 5) // Weapons; Secondary weapon; Blues and teals; Navy
+	if c := dyes(); c[database.DyeSecondary] != navy || c[database.DyePrimary] != 0xA0001EFF {
+		t.Errorf("the secondary navy: %08X, primary %08X", c[database.DyeSecondary], c[database.DyePrimary])
+	}
+
+	pick(talk(), 5) // Remove all dyes
 	if c := dyes(); c != ([database.DyeSlots]uint32{}) {
 		t.Errorf("every dye off: %08X", c)
 	}
 	if d.Talk(tw.s, tw.p, &entity.NPC{ServerID: 3102, Name: "Armor Merchant", NPCType: 0x81}) {
 		t.Error("an Armor Merchant answered as a dyer")
+	}
+	if !IsArmorDyer("Equipment Dyer") || !IsArmorDyer(EquipmentDyerName) || !IsArmorDyer("Armour Dyer") {
+		t.Error("an Equipment Dyer (or an Armour Dyer) is no dyer")
+	}
+	if !d.Talk(tw.s, tw.p, &entity.NPC{ServerID: 3103, Name: "Equipment Dyer", NPCType: 0x80}) {
+		t.Error("an Equipment Dyer did not answer")
+	} else if got := questMsgs(tw.s); !hasMsg(got, "box:Equipment Dyer: I dye armor*") || !strings.Contains(got[len(got)-1], ":What shall I dye?|All armor|") {
+		t.Errorf("the Equipment Dyer said %q", got)
 	}
 }
 

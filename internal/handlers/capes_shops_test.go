@@ -174,12 +174,12 @@ func boxOf(t *testing.T, msgs [][]byte) uint32 {
 	return 0
 }
 
-// An Armor Dyer on a server with capes dyes the cape (dyer.go): "Robe, cape,
-// shield or weapons" names it second, "My cape" is the first question's third
-// answer, "All my armor" takes it in, "Take every dye off" takes its dye off;
-// its dye is chardyes' cape slot and the colour the character's cape is drawn
-// in (CapeTint), over the record's own. The control: without capes the dyer's
-// "All my armor" leaves the cape's slot alone.
+// A dyer on a server with capes dyes the cape (dyer.go): "Robe, cape and
+// shield", the first question's fourth answer, names it second, "All armor"
+// takes it in, "Remove all dyes" takes its dye off; its dye is chardyes' cape
+// slot and the colour the character's cape is drawn in (CapeTint), over the
+// record's own. The control: without capes the fourth answer is "Robe and
+// shield" and the dyer's "All armor" leaves the cape's slot alone.
 func TestTheArmorDyerDyesTheCape(t *testing.T) {
 	capesOn(t)
 	tw := newTalkWorld(t, 100, 100)
@@ -221,35 +221,36 @@ func TestTheArmorDyerDyesTheCape(t *testing.T) {
 	}
 
 	got := talk()
-	if !hasMsg(got, "box:Armor Dyer: I dye armor and capes*") ||
-		!strings.HasSuffix(got[len(got)-1], ":What shall I dye?|All my armor|One piece of armor|My cape|Take every dye off|Robe, cape, shield or weapons|Armor trim") {
+	if !hasMsg(got, "box:Armor Dyer: I dye armor, robes, capes, shields and weapons*") ||
+		!strings.HasSuffix(got[len(got)-1], ":What shall I dye?|All armor|One armor piece|Armor trim|Robe, cape and shield|Weapons|Remove all dyes") {
 		t.Fatalf("the dyer's question with capes: %q", got)
 	}
-	got = pick(got, 4)
-	if !strings.Contains(got[len(got)-1], ":Which one?|Robe|Cape|Shield|Primary weapon|Secondary weapon") {
+	got = pick(got, 3) // Robe, cape and shield
+	if !strings.HasSuffix(got[len(got)-1], ":Which one?|Robe|Cape|Shield") {
 		t.Fatalf("the robe's question: %q", got)
 	}
 	pick(pick(pick(got, 1), 1), 1) // Cape; Reds and pinks; Crimson
 	if c := capeDye(); c != 0xA0001EFF || tw.p.CapeTint() != 0xA0001EFF {
 		t.Fatalf("the cape crimson: row %08X, drawn %08X", c, tw.p.CapeTint())
 	}
-	pick(pick(pick(talk(), 0), 4), 5) // All my armor, Blues and teals, Navy
+	pick(pick(pick(talk(), 0), 4), 5) // All armor, Blues and teals, Navy
 	if navy := database.RGBA(database.DiscTints[4]); capeDye() != navy {
-		t.Fatalf("all my armor: the cape %08X, want navy", capeDye())
+		t.Fatalf("all armor: the cape %08X, want navy", capeDye())
 	}
-	pick(talk(), 3) // Take every dye off
+	pick(talk(), 5) // Remove all dyes
 	if capeDye() != 0 || tw.p.CapeTint() != 0x7020A0FF {
 		t.Fatalf("every dye off: the cape %08X, drawn %08X (want its record's)", capeDye(), tw.p.CapeTint())
 	}
 
 	entity.SetCapes(false)
 	got = talk()
-	if !strings.Contains(got[len(got)-1], "|Robe, shield or weapons|") || hasMsg(got, "box:Armor Dyer: I dye armor and capes*") {
+	if !strings.Contains(got[len(got)-1], "|Robe and shield|") || strings.Contains(got[len(got)-1], "ape") ||
+		hasMsg(got, "box:Armor Dyer: I dye armor, robes, capes*") {
 		t.Fatalf("the control, no capes: %q", got)
 	}
-	pick(pick(pick(got, 0), 4), 5) // All my armor, Blues and teals, Navy
+	pick(pick(pick(got, 0), 4), 5) // All armor, Blues and teals, Navy
 	if capeDye() != 0 {
-		t.Fatalf("the control: all my armor dyed the cape %08X on a server without capes", capeDye())
+		t.Fatalf("the control: all armor dyed the cape %08X on a server without capes", capeDye())
 	}
 }
 

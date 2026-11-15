@@ -13,7 +13,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// A cape dyed alone, not with the rest as "All my armor" dyes it (the owner,
+// A cape dyed alone, not with the rest as "All armor" dyes it (the owner,
 // 2026-11-09: "i dont see the cape changing colors on its own, only when you
 // select all armor"): from the dyer's answer, or #dye, to the capes its client
 // is sent next (entity/capes.go). Item names are made up.
@@ -43,8 +43,8 @@ func oneCape(id uint32, style uint8, color uint32) []byte {
 	return binary.LittleEndian.AppendUint32(b, color)
 }
 
-// A cape dyed alone goes out at once in its dye: the Armor Dyer's "Cape" (the
-// second answer of "Robe, cape, shield or weapons") and #dye cape each put the
+// A cape dyed alone goes out at once in its dye: the dyer's "Cape" (the second
+// answer of "Robe, cape and shield", the first question's fourth) and #dye cape each put the
 // dye on the character where it stands, and the next tick sends its client its
 // capes in view with the cape in the new colour. The controls: the robe dyed
 // alone sends no capes, nor does a tick with nothing changed.
@@ -71,7 +71,7 @@ func TestACapeDyedAloneGoesOutAtOnce(t *testing.T) {
 		tw.w.Tick(time.Now())
 		return capeSetsSent(tw.s)
 	}
-	// which: the robe's question's answer (0 the robe, 1 the cape), dyed
+	// which: "Robe, cape and shield"'s answer (0 the robe, 1 the cape), dyed
 	// Reds and pinks' Crimson
 	dyeAlone := func(which byte) {
 		t.Helper()
@@ -79,7 +79,7 @@ func TestACapeDyedAloneGoesOutAtOnce(t *testing.T) {
 			t.Fatal("the dyer did not answer")
 		}
 		msgs := questMsgs(tw.s)
-		for _, n := range []byte{4, which, 1, 1} {
+		for _, n := range []byte{3, which, 1, 1} {
 			if !d.Answer(tw.s, tw.p, boxID(msgs), n) {
 				t.Fatalf("not the dyer's box: %q", msgs)
 			}
@@ -126,14 +126,14 @@ func TestACapeDyedAloneGoesOutAtOnce(t *testing.T) {
 	}
 }
 
-// "My cape", a dyer's third answer to "What shall I dye?" on a server with
-// capes (the owner, 2026-11-09: "up front"), goes straight to the colours and
-// dyes the cape alone: chardyes' cape slot and no other, and the next tick's
-// capes in view in the dye. CLIENT's answer box shows three answers a page, so
-// it ends the first page, and the robe's question and "Take every dye off" are
-// on the second. The control: without capes the question is its four answers
-// as it was, and its third answer the robe's question, with no cape in it.
-func TestMyCapeGoesStraightToTheColours(t *testing.T) {
+// The cape alone, under the first question's fourth answer, "Robe, cape and
+// shield" (the owner, 2026-11-15: the menu in plain categories; "My cape", a
+// top-level answer since 2026-11-09, is gone), dyes the cape and nothing else:
+// chardyes' cape slot and no other, and the next tick's capes in view in the
+// dye. The first question is the same six answers on every server but that
+// one, "Remove all dyes" last. The control: without capes the fourth answer is
+// "Robe and shield", with no cape in it.
+func TestTheCapeAloneIsUnderRobeCapeAndShield(t *testing.T) {
 	capesOn(t)
 	tw := newTalkWorld(t, 100, 100)
 	capeSession(tw.s)
@@ -181,15 +181,19 @@ func TestMyCapeGoesStraightToTheColours(t *testing.T) {
 	}
 
 	got := talk()
-	if !strings.HasSuffix(last(got), ":What shall I dye?|All my armor|One piece of armor|My cape|Take every dye off|Robe, cape, shield or weapons|Armor trim") {
+	if !strings.HasSuffix(last(got), ":What shall I dye?|All armor|One armor piece|Armor trim|Robe, cape and shield|Weapons|Remove all dyes") {
 		t.Fatalf("the first question with capes: %q", got)
 	}
-	got = pick(got, 2)
-	if !strings.HasSuffix(last(got), ":Which colors for my cape?|"+strings.Join(families, "|")) {
-		t.Fatalf("My cape: %q, want the colours' families at once", got)
+	got = pick(got, 3) // Robe, cape and shield
+	if !strings.HasSuffix(last(got), ":Which one?|Robe|Cape|Shield") {
+		t.Fatalf("Robe, cape and shield: %q", got)
+	}
+	got = pick(got, 1) // Cape
+	if !strings.HasSuffix(last(got), ":Which colors for cape?|"+strings.Join(families, "|")) {
+		t.Fatalf("Cape: %q, want the colours' families", got)
 	}
 	got = pick(got, 1) // Reds and pinks
-	if !strings.Contains(last(got), ":Which color for my cape?|") {
+	if !strings.Contains(last(got), ":Which color for cape?|") {
 		t.Fatalf("the family's colours: %q", got)
 	}
 	if got = pick(got, 1); !hasMsg(got, "box:Armor Dyer: There: crimson.") { // Crimson
@@ -201,20 +205,20 @@ func TestMyCapeGoesStraightToTheColours(t *testing.T) {
 	}
 	for slot, c := range dyes {
 		if want := map[bool]uint32{true: 0xA0001EFF}[slot == database.DyeCape]; c != want {
-			t.Fatalf("My cape dyed %s %08X, want %08X", database.DyeSlotNames[slot], c, want)
+			t.Fatalf("the cape alone dyed %s %08X, want %08X", database.DyeSlotNames[slot], c, want)
 		}
 	}
 	tw.w.Tick(time.Now())
 	if got, want := capeSetsSent(tw.s), oneCape(4242, 2, 0xA0001EFF); len(got) != 1 || !bytes.Equal(got[0], want) {
-		t.Fatalf("My cape's dye: %x, want %x (crimson)", got, want)
+		t.Fatalf("the cape's dye: %x, want %x (crimson)", got, want)
 	}
 
 	entity.SetCapes(false)
 	got = talk()
-	if !strings.HasSuffix(last(got), ":What shall I dye?|All my armor|One piece of armor|Robe, shield or weapons|Take every dye off|Armor trim") {
-		t.Fatalf("the control, no capes: %q, want the answers as they were, the trim last", got)
+	if !strings.HasSuffix(last(got), ":What shall I dye?|All armor|One armor piece|Armor trim|Robe and shield|Weapons|Remove all dyes") {
+		t.Fatalf("the control, no capes: %q", got)
 	}
-	if got = pick(got, 2); !strings.HasSuffix(last(got), ":Which one?|Robe|Shield|Primary weapon|Secondary weapon") {
-		t.Fatalf("the control: the third answer without capes asked %q, want the robe's question", got)
+	if got = pick(got, 3); !strings.HasSuffix(last(got), ":Which one?|Robe|Shield") {
+		t.Fatalf("the control: the fourth answer without capes asked %q, want the robe and shield, no cape", got)
 	}
 }

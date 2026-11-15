@@ -54,10 +54,14 @@ const dyerBoxMark = 0x56000000
 // IsDyerBox reports a box a dyer asked.
 func IsDyerBox(id uint32) bool { return id&0xFF000000 == dyerBoxMark }
 
+// EquipmentDyerName is the dyers' name (the owner, 2026-11-15: "lets rename
+// armor dyer npc to equipment dyer"); one still named "Armor Dyer" is one too.
+const EquipmentDyerName = "Equipment Dyer"
+
 // IsArmorDyer is whether an NPC of the name is a dyer.
 func IsArmorDyer(name string) bool {
 	n := strings.ToLower(strings.TrimSpace(name))
-	return n == "armor dyer" || n == "armour dyer"
+	return n == "equipment dyer" || n == "armor dyer" || n == "armour dyer"
 }
 
 // dyerChoice is an answer to what to dye: the slots it dyes, or a further
@@ -72,42 +76,50 @@ func one(label string, slot int) dyerChoice { return dyerChoice{label: label, sl
 
 // dyerTrim is "Armor trim": every armour slot's trim, or one piece's.
 var dyerTrim = dyerChoice{label: "Armor trim", sub: []dyerChoice{
-	{label: "All my armor's trim", slots: []int{database.DyeChestTrim, database.DyeBracerTrim, database.DyeGlovesTrim,
+	{label: "All armor trim", slots: []int{database.DyeChestTrim, database.DyeBracerTrim, database.DyeGlovesTrim,
 		database.DyeLegsTrim, database.DyeBootsTrim, database.DyeHelmTrim}},
 	one("Chest or robe top trim", database.DyeChestTrim),
 	{label: "Bracers and gloves trim", slots: []int{database.DyeBracerTrim, database.DyeGlovesTrim}},
 	one("Legs or robe skirt trim", database.DyeLegsTrim), one("Boots trim", database.DyeBootsTrim),
 	one("Helm trim", database.DyeHelmTrim)}}
 
+// The first question, one category an answer (the owner, 2026-11-15: "lets
+// rename armor dyer npc to equipment dyer, also organize for easy parsing"):
+// the armour whole, a piece of it, its trim, the robe (cape) and shield, the
+// weapons, and taking every dye off, last. Six answers, CLIENT's box's most;
+// a PS2 shows three a page, so More leaves its cursor on the second page's
+// second line, Weapons, never on taking every dye off.
+var dyerArmorPiece = dyerChoice{label: "One armor piece", sub: []dyerChoice{one("Chest", database.DyeChest),
+	one("Bracers", database.DyeBracer), one("Gloves", database.DyeGloves), one("Legs", database.DyeLegs),
+	one("Boots", database.DyeBoots), one("Helm", database.DyeHelm)}}
+
+var dyerWeapons = dyerChoice{label: "Weapons", sub: []dyerChoice{
+	{label: "Both weapons", slots: []int{database.DyePrimary, database.DyeSecondary}},
+	one("Primary weapon", database.DyePrimary), one("Secondary weapon", database.DyeSecondary)}}
+
+var dyerOff = dyerChoice{label: "Remove all dyes"}
+
 var dyerChoices = []dyerChoice{
-	{label: "All my armor", slots: []int{database.DyeChest, database.DyeBracer, database.DyeGloves, database.DyeLegs,
+	{label: "All armor", slots: []int{database.DyeChest, database.DyeBracer, database.DyeGloves, database.DyeLegs,
 		database.DyeBoots, database.DyeHelm, database.DyeRobe}},
-	{label: "One piece of armor", sub: []dyerChoice{one("Chest", database.DyeChest), one("Bracers", database.DyeBracer),
-		one("Gloves", database.DyeGloves), one("Legs", database.DyeLegs), one("Boots", database.DyeBoots),
-		one("Helm", database.DyeHelm)}},
-	{label: "Robe, shield or weapons", sub: []dyerChoice{one("Robe", database.DyeRobe), one("Shield", database.DyeShield),
-		one("Primary weapon", database.DyePrimary), one("Secondary weapon", database.DyeSecondary)}},
-	{label: "Take every dye off"},
+	dyerArmorPiece,
 	dyerTrim,
+	{label: "Robe and shield", sub: []dyerChoice{one("Robe", database.DyeRobe), one("Shield", database.DyeShield)}},
+	dyerWeapons,
+	dyerOff,
 }
 
-// dyerChoicesCapes are dyerChoices on a server with capes: the cape in "All my
-// armor", the second of the robe's question, and "My cape", the third answer,
-// straight to the colours (the owner's choice, 2026-11-09: until then the cape
-// alone was only under the robe's question; then "up front"). CLIENT's answer
-// box shows three answers a page, so "My cape" ends the first page and
-// "Take every dye off" and the robe's question are on the second, after More,
-// in that order: More leaves the cursor on the second page's second line, and
-// a press there must not take every dye off at once.
+// dyerChoicesCapes are dyerChoices on a server with capes: the cape in "All
+// armor" and beside the robe and shield.
 var dyerChoicesCapes = []dyerChoice{
-	{label: "All my armor", slots: []int{database.DyeChest, database.DyeBracer, database.DyeGloves, database.DyeLegs,
+	{label: "All armor", slots: []int{database.DyeChest, database.DyeBracer, database.DyeGloves, database.DyeLegs,
 		database.DyeBoots, database.DyeHelm, database.DyeRobe, database.DyeCape}},
-	dyerChoices[1],
-	one("My cape", database.DyeCape),
-	dyerChoices[3],
-	{label: "Robe, cape, shield or weapons", sub: []dyerChoice{one("Robe", database.DyeRobe), one("Cape", database.DyeCape),
-		one("Shield", database.DyeShield), one("Primary weapon", database.DyePrimary), one("Secondary weapon", database.DyeSecondary)}},
+	dyerArmorPiece,
 	dyerTrim,
+	{label: "Robe, cape and shield", sub: []dyerChoice{one("Robe", database.DyeRobe), one("Cape", database.DyeCape),
+		one("Shield", database.DyeShield)}},
+	dyerWeapons,
+	dyerOff,
 }
 
 // dyerMenu is what a dyer asks on this server: dyerChoicesCapes where capes
@@ -200,9 +212,9 @@ func (d *Dyer) Offer(sess *session.Session, p *entity.Player, speaker string) {
 		d.say(sess, speaker, "My vats are dry today.")
 		return
 	}
-	greeting := "I dye armor any color you like, free of charge. Only those who see the live game's colors see a dye."
+	greeting := "I dye armor, robes, shields and weapons any color you like, free of charge. Only those who see the live game's colors see a dye."
 	if entity.CapesOn() {
-		greeting = "I dye armor and capes any color you like, free of charge. Only those who see the live game's colors see a dye."
+		greeting = "I dye armor, robes, capes, shields and weapons any color you like, free of charge. Only those who see the live game's colors see a dye."
 	}
 	d.say(sess, speaker, greeting)
 	d.ask(sess, p, dyerAsk{speaker: speaker, stage: askWhat}, "What shall I dye?", choiceLabels(dyerMenu()))

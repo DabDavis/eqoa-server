@@ -1612,6 +1612,16 @@ func (w *World) templateDebuffLocked(c *npcCast, now time.Time) {
 			ae.npcResist = StatNone
 		}
 	}
+	if ae.Mods.AC < 0 {
+		// a creature's AC debuff takes a player's AC to 0 at most (Heirloom
+		// petition 2189: Impale's Impaling Gore, "a 0 AC debuff", AC -2,500 on a
+		// wizard of 1,000 left him at -1,500, every roll on him 0.11 a point
+		// higher still: 5,668 a hit). Its last landing's share is off first: a
+		// new one takes its place (addEffectLocked). A player's own form keeps
+		// its price whole (a vampire's Bat Form: AC -963)
+		w.removeEffectLocked(p, ae.SpellID)
+		ae.Mods.AC = -min(-ae.Mods.AC, max(p.StatNow(StatAC), 0))
+	}
 	p.LastCombatTime = now
 	w.breakInvisLocked(p, "a hit") // invis.go: every invisibility, whatever gave it
 	w.addEffectLocked(p, ae, now)

@@ -491,6 +491,9 @@ func (w *World) drawNearLocked(p *Player, now time.Time, onSight bool) {
 		if d2 > r*r || !w.inSightLocked(npc.World, npc.X, npc.Y, npc.Z, p.X, p.Y, p.Z) {
 			continue
 		}
+		if w.staysInWaterLocked(npc) && w.apartLocked(p, npc) {
+			continue // a creature of the water takes up no one out on the land (water.go; petition 2190)
+		}
 		// a hit's own entry, but no one else told: the NPCs of its own come
 		// only to a player's attack (socialaggro.go)
 		w.addThreatLocked(npc, p.ServerID, 1)

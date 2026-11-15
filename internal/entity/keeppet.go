@@ -47,6 +47,9 @@ type KeptPet struct {
 	Charm  string `json:"charm,omitempty"`
 	LeftMS int64  `json:"left_ms,omitempty"`
 	Home   uint8  `json:"home,omitempty"`
+	// Stacks: a stacking charm took it (stackcharm.go), so it comes back
+	// beside a pet when one is out (KeptPlayer.SidePet's is always one)
+	Stacks bool `json:"stacks,omitempty"`
 	// Effects are the spells on it (its buffs, its own and its owner's), as a
 	// logout keeps a player's (buffsave.go); OwnerBuffs its buffs on its owner
 	// that last while it is out (pettemplate.go's WhileOut: an Undead
@@ -98,13 +101,28 @@ func restorePetEffectsLocked(p *Player, pet *NPC, k KeptPet, now time.Time) {
 // nothing could make again (a summoned pet with no spell). Must be called with
 // the lock held.
 func (w *World) keptPetLocked(p *Player, now time.Time) *KeptPet {
-	ps := w.petStateLocked(p)
+	return w.keptPetOfLocked(p, w.petStateLocked(p), now)
+}
+
+// keptSidePetLocked is the animal beside p's pet as a restart carries it
+// (stackcharm.go), nil for none. Must be called with the lock held.
+func (w *World) keptSidePetLocked(p *Player, now time.Time) *KeptPet {
+	ps := w.sidePets[p.ServerID]
+	if ps == nil || ps.owner != p || ps.npc.Dead || ps.npc.Charm == nil {
+		return nil
+	}
+	return w.keptPetOfLocked(p, ps, now)
+}
+
+// keptPetOfLocked is p's pet ps as a restart carries it (keptPetLocked).
+// Must be called with the lock held.
+func (w *World) keptPetOfLocked(p *Player, ps *petState, now time.Time) *KeptPet {
 	if ps == nil {
 		return nil
 	}
 	pet := ps.npc
 	k := &KeptPet{Name: pet.Name, Stance: byte(ps.stance), Place: [4]float32{pet.X, pet.Y, pet.Z, pet.Facing}, World: pet.World,
-		HPPct: float64(pet.HP) / float64(max(pet.MaxHP, 1))}
+		HPPct: float64(pet.HP) / float64(max(pet.MaxHP, 1)), Stacks: ps.stacks}
 	k.keepPetEffects(p, pet, now)
 	switch h := pet.Charm; {
 	case h != nil:
@@ -127,8 +145,17 @@ func (w *World) RestorePet(sess *session.Session, k KeptPet, spell *CastSpell, n
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
-	if p == nil || p.IsDead() || p.respawnPending() || w.petStateLocked(p) != nil {
+	if p == nil || p.IsDead() || p.respawnPending() {
 		return false
+	}
+	// a stacking charm's animal comes back beside a pet out (stackcharm.go);
+	// anything else only with none out
+	side := false
+	if w.petStateLocked(p) != nil {
+		if !k.Stacks || k.NPC == 0 || w.sidePets[p.ServerID] != nil {
+			return false
+		}
+		side = true
 	}
 	if k.NPC != 0 {
 		npc := w.NPCs[EntityID(k.NPC)]
@@ -147,10 +174,15 @@ func (w *World) RestorePet(sess *session.Session, k KeptPet, spell *CastSpell, n
 		if k.LeftMS > 0 {
 			hold.until = now.Add(time.Duration(k.LeftMS) * time.Millisecond)
 		}
-		w.holdCharmLocked(p, nil, npc, hold, now) // told after its dump (petSystem)
-		w.pets[p.ServerID].stance = petStance(k.Stance)
-		log.Printf("Keep: %s's charmed %q back (%d/%d HP, %s left)", p.Name, npc.Name, npc.HP, npc.MaxHP,
-			time.Duration(k.LeftMS)*time.Millisecond)
+		if side {
+			w.holdSideLocked(p, nil, npc, hold, now) // put on its non-collide list by sidePetSystem
+		} else {
+			w.holdCharmLocked(p, nil, npc, hold, now) // told after its dump (petSystem)
+			ps := w.pets[p.ServerID]
+			ps.stance, ps.stacks = petStance(k.Stance), k.Stacks
+		}
+		log.Printf("Keep: %s's charmed %q back (%d/%d HP, %s left, beside its pet %v)", p.Name, npc.Name, npc.HP, npc.MaxHP,
+			time.Duration(k.LeftMS)*time.Millisecond, side)
 		return true
 	}
 	if spell == nil || spell.SpellID != k.Spell {

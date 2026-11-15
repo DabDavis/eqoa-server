@@ -64,6 +64,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.attackSystem(now)
 	t.mark(tsAttack)
 	w.petSystem(now)
+	w.sidePetSystem(now) // the animals beside the pets (stackcharm.go)
 	w.mercSystem(now)     // the mercenaries (merc.go)
 	w.familiarSystem(now) // the familiars (familiar.go)
 	w.uiToldSystem(now)   // the mercs and the group search's standing told (uitold.go)

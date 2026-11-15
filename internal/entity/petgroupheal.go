@@ -57,6 +57,9 @@ func (w *World) petSideLocked(ps *petState, reach float32) petSide {
 		if mate := w.pets[p.ServerID]; mate != nil && mate.npc != pet {
 			addNPC(mate.npc)
 		}
+		if mate := w.sidePets[p.ServerID]; mate != nil && mate.npc != pet {
+			addNPC(mate.npc) // the animal beside it (stackcharm.go)
+		}
 		for _, ms := range w.mercs[p.ServerID] {
 			addNPC(ms.npc)
 		}

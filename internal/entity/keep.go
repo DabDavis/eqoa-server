@@ -70,6 +70,9 @@ type KeptPlayer struct {
 	GroupChatHidden bool `json:"group_chat_hidden,omitempty"`
 	// Pet: its pet, summoned or charmed (keeppet.go), nil none
 	Pet *KeptPet `json:"pet,omitempty"`
+	// SidePet: the animal a stacking charm keeps beside it (stackcharm.go),
+	// nil none
+	SidePet *KeptPet `json:"side_pet,omitempty"`
 	// Mercs and Familiar: its mercenaries, out and on standby, and its
 	// familiar (keepmerc.go), none for none. Merc is a process's before
 	// 2026-11-12 (one merc a player): its slot 1, read, never written
@@ -145,6 +148,7 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 		}
 	}
 	k.Pet = w.keptPetLocked(p, now)     // keeppet.go
+	k.SidePet = w.keptSidePetLocked(p, now)
 	k.Mercs = w.keptMercsLocked(p, now) // keepmerc.go
 	k.Familiar = w.keptFamiliarLocked(p)
 	w.ctfKeptAwayLocked(p, &k) // what waits outside the arena, carried as if out (ctfaway.go)

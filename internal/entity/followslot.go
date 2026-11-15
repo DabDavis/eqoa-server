@@ -57,6 +57,7 @@ const (
 	slotMercPet                    // a merc's own pet: behind its merc
 	slotMerc2                      // a second merc: its left
 	slotMerc3                      // a third merc: behind it
+	slotSidePet                    // a stacking charm's animal beside the pet (stackcharm.go): ahead of its left
 )
 
 // mercFollowSlot is the follow slot of the merc of a hire's slot (1 to
@@ -80,6 +81,7 @@ var followSlotAngle = [...]float32{
 	slotMercPet:  math.Pi,
 	slotMerc2:    -math.Pi / 2,
 	slotMerc3:    math.Pi,
+	slotSidePet:  -math.Pi / 4,
 }
 
 const (
@@ -223,6 +225,9 @@ func (w *World) followSiblingsLocked(a *Player, n *NPC) []*NPC {
 	var out []*NPC
 	if ps := w.pets[a.ServerID]; ps != nil && ps.npc != nil && ps.npc != n {
 		out = append(out, ps.npc)
+	}
+	if ps := w.sidePets[a.ServerID]; ps != nil && ps.npc != nil && ps.npc != n {
+		out = append(out, ps.npc) // stackcharm.go
 	}
 	for _, ms := range w.mercs[a.ServerID] {
 		if ms.npc != nil && ms.npc != n {

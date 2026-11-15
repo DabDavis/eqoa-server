@@ -113,6 +113,7 @@ func (r *petRig) tick(d time.Duration) {
 	defer r.w.mu.Unlock()
 	r.w.aiSystem(r.at(d))
 	r.w.petSystem(r.at(d))
+	r.w.sidePetSystem(r.at(d)) // stackcharm.go
 }
 
 // The lines of this server's pet spells (spelleffect) make a pet, the

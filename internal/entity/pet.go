@@ -153,6 +153,9 @@ type petState struct {
 	spell int
 	// merc is the merc whose pet it is, nil for a player's own (mercpet.go)
 	merc *mercState
+	// stacks is whether a stacking charm took it (Cat Magnetism: stackcharm.go),
+	// side whether it is kept beside its owner's pet (World.sidePets), not as it
+	stacks, side bool
 }
 
 // petOfLocked is the player's pet, alive, or nil.
@@ -391,7 +394,7 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 	if ps == nil {
 		return
 	}
-	if old := w.pets[caster.ServerID]; old != nil {
+	if old := w.pets[caster.ServerID]; old != nil && !w.sideStepLocked(old, caster, sess) { // a stacking charm's animal stays beside it (stackcharm.go)
 		w.dismissPetLocked(old, sess, "", now)
 	}
 	pet := ps.npc
@@ -629,7 +632,7 @@ func (w *World) dismissPetLocked(ps *petState, sess *session.Session, text strin
 	if sess != nil {
 		sendClearPet(sess)
 		if ps.noCollide {
-			sendNoCollideRemove(sess, petNoCollideID)
+			sendNoCollideRemove(sess, ps.noCollideID())
 		}
 		if text != "" {
 			w.sendChatToSession(sess, text)
@@ -733,6 +736,7 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 		ps.target, ps.pvpTarget = 0, 0
 		ps.heldUntil = now.Add(petBackOffHold)
 		pet.endRound()
+		w.sideBackOffLocked(p, ps.heldUntil) // the animal beside it too (stackcharm.go)
 		w.sendChatToSession(sess, "Your pet backs off.")
 	case petCmdAttack:
 		switch pet.sheet.familiar() { // a wizard's familiar is told nothing (petition 1952), a duel's foe neither
@@ -1159,12 +1163,13 @@ func groupPetsFight(w *World, ps *petState, npc *NPC) bool {
 		return false
 	}
 	for _, id := range g.Members {
-		mate := w.pets[id]
-		if mate == nil || mate == ps || mate.npc == nil || mate.npc.Dead {
-			continue
-		}
-		if npc.CurrentEnemy == mate.npc.ServerID || mate.target == npc.ServerID {
-			return true
+		for _, mate := range []*petState{w.pets[id], w.sidePets[id]} { // and the animals beside them (stackcharm.go)
+			if mate == nil || mate == ps || mate.npc == nil || mate.npc.Dead {
+				continue
+			}
+			if npc.CurrentEnemy == mate.npc.ServerID || mate.target == npc.ServerID {
+				return true
+			}
 		}
 	}
 	return false

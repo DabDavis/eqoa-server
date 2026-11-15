@@ -62,6 +62,9 @@ func (w *World) petStateOfNPCLocked(pet *NPC) *petState {
 	if ps := w.pets[pet.Owner]; ps != nil && ps.npc == pet {
 		return ps
 	}
+	if ps := w.sidePets[pet.Owner]; ps != nil && ps.npc == pet {
+		return ps // a stacking charm's animal (stackcharm.go)
+	}
 	if ms := pet.mercPet; ms != nil && ms.pet != nil && ms.pet.npc == pet {
 		return ms.pet
 	}
@@ -73,6 +76,9 @@ func (w *World) petStateOfNPCLocked(pet *NPC) *petState {
 func (w *World) petLiveLocked(ps *petState) bool {
 	if ms := ps.merc; ms != nil {
 		return ms.pet == ps && w.mercLiveLocked(ms)
+	}
+	if ps.side {
+		return w.sidePets[ps.owner.ServerID] == ps // stackcharm.go
 	}
 	return w.pets[ps.owner.ServerID] == ps
 }

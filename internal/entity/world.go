@@ -163,6 +163,9 @@ type World struct {
 
 	// Summoned pets by their owners' ids (pet.go)
 	pets map[EntityID]*petState
+	// sidePets are the animals a stacking charm (Cat Magnetism) keeps beside
+	// those pets, by their owners' ids (stackcharm.go)
+	sidePets map[EntityID]*petState
 
 	// Hired mercenaries by their owners' ids (merc.go), their casts on their
 	// way to landing (merccast.go), what became of them this tick for the

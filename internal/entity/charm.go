@@ -231,11 +231,12 @@ func (w *World) charmResistLocked(npc *NPC, now time.Time) int {
 
 // charmPetRefusalLocked is the line refusing a charm its caster casts with a
 // charmed creature out ("" for any other spell, no pet, or a summoned one,
-// which goes when the charm takes hold: petition 1348, charmLandLocked): the
-// first of a cast's checks, so whatever is targeted the charm is not cast (F3
+// which goes when the charm takes hold: petition 1348, charmLandLocked; nor
+// for a stacking charm, or a charmed pet one took: stackcharm.go): the first
+// of a cast's checks, so whatever is targeted the charm is not cast (F3
 // 20261029-082049). Must be called with the lock held.
 func (w *World) charmPetRefusalLocked(p *Player, spell *CastSpell) string {
-	if pet := w.petOfLocked(p); spell.Def.Charms() && pet != nil && pet.Charm != nil {
+	if w.charmBlockedLocked(p, spell) {
 		return charmHavePet
 	}
 	return ""
@@ -269,7 +270,7 @@ func (w *World) charmLandLocked(cs *castState, caster *Player, sess *session.Ses
 	if npc.Dead || npc.Owner != 0 {
 		return
 	}
-	if pet := w.petOfLocked(caster); pet != nil && pet.Charm != nil {
+	if w.charmBlockedLocked(caster, &cs.spell) {
 		// a charmed one came while it was cast
 		if sess != nil {
 			w.sendColoredLocked(sess, charmHavePet, castRefusalRGB)
@@ -291,7 +292,13 @@ func (w *World) charmLandLocked(cs *castState, caster *Player, sess *session.Ses
 		log.Printf("Charm: %s's %q resisted by %s (%d%%)", caster.Name, cs.spell.Name, npc.Name, resist)
 		return
 	}
-	if old := w.pets[caster.ServerID]; old != nil {
+	if w.stackingCharmLocked(&cs.spell) {
+		w.stackCharmLandLocked(caster, sess, npc, &cs.spell, now) // beside the pet out (stackcharm.go)
+		return
+	}
+	if old := w.pets[caster.ServerID]; old != nil && w.sideStepLocked(old, caster, sess) {
+		// a stacking charm's animal stays, beside the new one (stackcharm.go)
+	} else if old != nil {
 		// one pet at a time (petition 1351): the summoned pet that held the
 		// creature goes as the charm takes hold (petition 1348), its 0x007F
 		// before the creature's 0x007E so the bar takes the new name; one
@@ -314,11 +321,7 @@ func (w *World) charmLandLocked(cs *castState, caster *Player, sess *session.Ses
 // npccharm row's template (pettemplate.go) when the world has it. Must be
 // called with the lock held.
 func (w *World) charmLocked(caster *Player, sess *session.Session, npc *NPC, spell *CastSpell, now time.Time) {
-	hold := &charmHold{npcType: npc.NPCType, faction: npc.Faction, world: npc.World, spell: spell.Name}
-	if d := charmDuration(spell, caster.StatNow(StatCha)); d > 0 {
-		hold.until = now.Add(d)
-	}
-	w.holdCharmLocked(caster, sess, npc, hold, now)
+	w.holdCharmLocked(caster, sess, npc, newCharmHold(caster, npc, spell, now), now)
 }
 
 // holdCharmLocked makes the creature the caster's pet under hold: a charm's
@@ -407,14 +410,20 @@ func (w *World) releaseCharmLocked(ps *petState, sess *session.Session, text str
 	if w.pets[owner.ServerID] == ps {
 		delete(w.pets, owner.ServerID)
 	}
+	if w.sidePets[owner.ServerID] == ps {
+		delete(w.sidePets, owner.ServerID) // a stacking charm's animal (stackcharm.go)
+	}
 	ps.target = 0
 	npc.endRound()
 	npc.RoundTarget = 0
 	npc.stopMoving()
 	if sess != nil {
-		sendClearPet(sess)
+		if !ps.side {
+			sendClearPet(sess) // the animal beside the pet is not on the bar (stackcharm.go)
+		}
 		if ps.noCollide {
-			sendNoCollideRemove(sess, petNoCollideID)
+			sendNoCollideRemove(sess, ps.noCollideID())
+			ps.noCollide = false
 		}
 		if text != "" {
 			w.sendChatToSession(sess, text)
@@ -472,12 +481,19 @@ func (w *World) CoachLeavesCharm(sess *session.Session) bool {
 	if p == nil {
 		return false
 	}
-	ps := w.pets[p.ServerID]
-	if ps == nil || ps.npc == nil || ps.npc.Charm == nil {
-		return false
+	broke := false
+	for _, ps := range []*petState{w.pets[p.ServerID], w.sidePets[p.ServerID]} { // and a stacking charm's animal (stackcharm.go)
+		if ps == nil || ps.npc == nil || ps.npc.Charm == nil {
+			continue
+		}
+		line := charmNoCoach
+		if broke {
+			line = "" // told once
+		}
+		w.releaseCharmLocked(ps, sess, line, false)
+		broke = true
 	}
-	w.releaseCharmLocked(ps, sess, charmNoCoach, false)
-	return true
+	return broke
 }
 
 // unCharmLocked puts back what a charm changed on the creature and returns

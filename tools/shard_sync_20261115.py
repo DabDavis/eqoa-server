@@ -11,8 +11,15 @@ How rows are matched (ids differ between the shards):
   - itempattern: a patternid below 960000 is the same record on both (renames kept the id); from 960000 up each shard
     minted its own, matched by lower(itemname)|equipslot|levelreq.
   - quests: a questid below 101471 is the same quest; from 101471 up (the imports interleaved) by source|name|giver.
-  - npcs: name|world|round(x)|round(z); else the nearest unpaired row of the name and world within 60; else a rename
-    on the very spot.
+  - npcs: first by the row's own id: an id below SHARED_NPC_IDS is a row of the database both shards were cloned
+    from, the same NPC on both however far a GM moved it, whatever it was renamed to or remade as (petitions 2193,
+    2194, 2198: the first run matched by position and copied every such row to the other shard, so it stood twice);
+    an id made since with the same name and world on both is the same tool run. Then name|world|round(x)|round(z);
+    else the nearest unpaired row of the name and world within 60; else a rename on the very spot; else the row the
+    same audited insert made on the other shard (a GM's /clone or /place followed to the row it copies); else, for a
+    named NPC, the one row of its name in its world on each shard. A paired NPC's name is compared as content.
+    A row one shard has that the other deleted is never copied back: an audited delete of that id (whatever its
+    name by then), of its twin (the same insert's row there), or a shared row gone with no audit (left, listed).
   - spellpattern: lower(spellname)|abilitylvl.
   - every reference (item, spell, quest and npcs id columns, '#<npcs id>' names, ids inside text and JSON) by what it
     points at; a row written to the other shard gets that shard's ids (new records: an id of its own sequence, or the
@@ -64,6 +71,9 @@ NAMES = {"H": "Heirloom", "L": "Live"}
 
 SHARED_ITEM_IDS = 960000
 SHARED_QUEST_IDS = 101471
+# npcs ids below this are the rows of the database both shards were cloned from (Live's first row of its own is 162560,
+# 2026-11-08): such a row is the same NPC on both shards whatever a GM has done to it since (moved, renamed, a new body)
+SHARED_NPC_IDS = 162560
 FEATURE_WORLDS = {10, 11, 12, 13, 14, 15}   # Heirloom's server_worlds: homelands 10, CTF 11/12, homes 13, dungeons 14, siege 15
 EXCLUDED_QUESTS = {101301, 101304, 101306}  # the Plane of Sky key quests: another lane's (2026-11-15)
 EXCLUDED_MERCHANTS = {"liztin misseliania"}  # her shop: another lane's
@@ -200,6 +210,7 @@ QUEST_TABLES = ("quests", "queststeps", "queststeptargets")
 
 NUM = re.compile(r"(?<![\w.])(\d{4,7})(?![\w.])")
 ROWREF = re.compile(r"^#(\d+)$")
+CLONE_OF = re.compile(r"^/(?:clone|place) in the game: .*\(row (\d+)\)")
 OTHER = {"H": "L", "L": "H"}
 
 
@@ -268,7 +279,10 @@ class Shards:
         both = set(self.SPELL["H"]) & set(self.SPELL["L"])
         for s in "HL":
             self.SPELL[s] = {i: (f"#{i}" if i in both else f"n:{v}") for i, v in self.SPELL[s].items()}
-        # NPC pairing
+        # NPC pairing. First by the row's own id: a row of the shared database (below SHARED_NPC_IDS) is the same NPC
+        # on both shards however far a GM moved it, whatever it was renamed to (petition 2193: a move of 119 was
+        # copied back as a second NPC on each shard); a row made since under the same id, name and world is the same
+        # tool run on both. Then the rest by name and position, then by the insert that made them (twins).
         def k(n, w, x, z):
             return f"{n}|w{w}|{round(x)}|{round(z)}"
         NH = {i: k(*v) for i, v in self.NPCROW["H"].items()}
@@ -280,8 +294,14 @@ class Shards:
             byexact[NH[i]].append(i)
             grp[(v[0].lower(), v[1])].append(i)
         used = set()
+        for i, v in sorted(self.NPCROW["L"].items()):
+            h = self.NPCROW["H"].get(i)
+            if h is not None and (i < SHARED_NPC_IDS or (h[1] == v[1] and h[0].strip().lower() == v[0].strip().lower())):
+                used.add(i); NL[i] = NH[i]; pair[i] = i
         pend = []
         for i, v in sorted(self.NPCROW["L"].items()):
+            if i in pair:
+                continue
             kk = k(*v)
             cand = [h for h in byexact.get(kk, []) if h not in used]
             if cand:
@@ -307,13 +327,38 @@ class Shards:
         for h, v in self.NPCROW["H"].items():
             if h not in used:
                 spot[(v[1], round(v[2]), round(v[3]))].append(h)
+        made = self.MADE = {s: self._npc_inserts(db) for s, db in self.db.items()}
+        twins = collections.defaultdict(list)   # (insert detail, name, world) -> unpaired Heirloom rows it made
+        for h, (det, x0, z0, _) in made["H"].items():
+            if h not in used and h in self.NPCROW["H"]:
+                v = self.NPCROW["H"][h]
+                twins[(det, v[0].strip().lower(), v[1])].append((h, x0, z0))
         for i in rest:
             v = self.NPCROW["L"][i]
             cand = [h for h in spot.get((v[1], round(v[2]), round(v[3])), []) if h not in used]
+            if not cand and i in made["L"]:
+                # the same audited insert (the same tool run) made it on each shard under its own id; nearest where
+                # they were made, since a GM may have moved either
+                det, x0, z0, _ = made["L"][i]
+                tw = sorted((math.hypot(hx - x0, hz - z0), h) for h, hx, hz in
+                            twins.get((det, v[0].strip().lower(), v[1]), []) if h not in used)
+                if tw and tw[0][0] < 5:
+                    cand = [tw[0][1]]
             if cand:
                 used.add(cand[0]); NL[i] = NH[cand[0]]; pair[i] = cand[0]
             else:
                 NL[i] = k(*v)
+        # last: a named NPC (a capital letter), the one row of its name in its world on each shard and neither paired:
+        # the same NPC, whatever a GM moved or remade (the Master Surgeon, made by an unaudited tool on each shard)
+        one = {}
+        for s in "HL":
+            c = collections.Counter((v[0].strip().lower(), v[1]) for v in self.NPCROW[s].values())
+            one[s] = {(v[0].strip().lower(), v[1]): i for i, v in self.NPCROW[s].items()
+                      if v[0][:1].isupper() and c[(v[0].strip().lower(), v[1])] == 1}
+        for nk, i in sorted(one["L"].items(), key=lambda x: x[1]):
+            h = one["H"].get(nk)
+            if h is not None and i not in pair and h not in used:
+                used.add(h); NL[i] = NH[h]; pair[i] = h
         self.NPC = {"H": NH, "L": NL}
         self.PAIR = {"L": pair, "H": {h: l for l, h in pair.items()}}  # side -> {its id: the other's id}
         self.QREV = {s: collections.defaultdict(list) for s in "HL"}
@@ -328,6 +373,36 @@ class Shards:
                 for i, ident in sorted(M[s].items()):
                     m[ident].append(i)
                 self.IDS[(kind, s)] = m
+
+    @staticmethod
+    def _npc_inserts(db):
+        """npcs id -> (the detail of the gm_audit insert that made it, x, z where it was made, its name then): a tool's or a GM's
+        own words, not this tool's copies. A GM's /clone or /place of a row is followed to the row it copies, so a
+        clone (and its clones) answers with the insert that made the first row (the Master Surgeon, petition 2193)."""
+        own = {}
+        if not has(db, "gm_audit"):
+            return own
+        for rk, after, detail in db.execute(
+                "SELECT rowkey, after, detail FROM gm_audit WHERE tbl = 'npcs' AND action = 'insert' AND reverted_by IS NULL "
+                "AND detail <> '' AND detail NOT LIKE 'shard sync%' ORDER BY id"):
+            try:
+                kk = json.loads(rk)
+                i = int(kk["id"]) if isinstance(kk, dict) else int(kk)
+                a = json.loads(after) if after else {}
+                own[i] = (detail, float(a["x_coord"]), float(a["z_coord"]), str(a.get("npc_name") or "").strip().lower())
+            except Exception:
+                continue
+        out = {}
+        for i in own:
+            j, seen = i, set()
+            while j in own and j not in seen:
+                seen.add(j)
+                m = CLONE_OF.match(own[j][0])
+                if not m or int(m.group(1)) == j:
+                    break
+                j = int(m.group(1))
+            out[i] = own[j] if j in own else own[i]
+        return out
 
     # ---- gm_audit ------------------------------------------------------------------------------------------------
     def _audit(self):
@@ -368,6 +443,26 @@ class Shards:
                         pass
                     dele[(tbl, vals)].append((at, aid, "delete", user, detail, nm))
             self.IDX[side], self.DET[side], self.DELETED[side] = idx, det, dele
+
+    def deleted_twin(self, side, ids):
+        """a row the same insert made on the other shard (its twin) that a GM deleted there, and no row of it left
+        there: the NPC was deleted on the other shard under its own id (the Harvest Feast's NPCs, petition 2193)"""
+        o = OTHER[side]
+        for i in ids:
+            mk = self.MADE[side].get(i)
+            if not mk or i not in self.NPCROW[side]:
+                continue
+            twins = [j for j, (det, x, z, n) in self.MADE[o].items()
+                     if det == mk[0] and n == mk[3] and math.hypot(x - mk[1], z - mk[2]) < 5]
+            alive = [j for j in twins if j in self.NPCROW[o]]
+            dead = [j for j in twins if j not in self.NPCROW[o] and any(
+                    e[2] == "delete" and e[5] is None for e in self.IDX[o].get(("npcs", str(j)), []))]
+            if dead and not alive:
+                j = dead[0]
+                e = [e for e in self.IDX[o][("npcs", str(j))] if e[2] == "delete"][-1]
+                return (f"{NAMES[o]} deleted its own row of the same insert ({j}): audit {e[1]} {e[0][:16]} {e[3]}: "
+                        f"{(e[4] or '(panel/game edit)')[:80]}; not copied back")
+        return None
 
     def shared(self, side, tbl, ent):
         if not ent[4]:
@@ -444,7 +539,7 @@ class Shards:
             k = (self.NPC[side][r["id"]],)
         else:
             k = tuple(val(c) for c in keyc)
-        v = tuple((c, val(c)) for c in allc if c not in ign and c not in keyc)
+        v = tuple((c, val(c)) for c in allc if c not in ign and (c not in keyc or spec.get("round_key")))
         return k, v
 
     def compare(self):
@@ -577,7 +672,8 @@ class Shards:
                 cands.append(tuple(str(x) for x in kk))
             for cnd in cands:
                 for e in self.DELETED[side].get((t, cnd), []):
-                    if t == "npcs" and e[5] and e[5].lower() != npc_name(kk[0]).lower():
+                    if t == "npcs" and e[5] and e[5].lower() != npc_name(kk[0]).lower() and \
+                            not (cnd[0].isdigit() and int(cnd[0]) < SHARED_NPC_IDS):
                         continue
                     return e
             return None
@@ -688,6 +784,14 @@ class Shards:
                 if dele:
                     return cls, ("delete_on_H" if cls == "a" else "delete_on_L"), "deleted-on-other", \
                         f"{NAMES[OTHER[side]]} deleted it: audit {dele[1]} {dele[0][:16]} {dele[3]}: {(dele[4] or '(panel/game edit)')[:80]}"
+                if t == "npcs":
+                    tw = self.deleted_twin(side, r.get(side + "id") or [])
+                    if tw:
+                        return "d", "leave", "deleted-on-other", tw
+                    gone = [i for i in (r.get(side + "id") or []) if i < SHARED_NPC_IDS and i not in self.NPCROW[OTHER[side]]]
+                    if gone:
+                        return "d", "leave", "deleted-unaudited", \
+                            f"a row of the shared database {NAMES[OTHER[side]]} no longer has (deleted with no row audit): left, not copied back"
                 e = probe(t, r, side)
                 who = f"{e[3]} {e[0][:10]}: {(e[4] or '(panel/game edit)')[:90]}" if e else (
                     "source " + src.strip()[:60] if src.strip() else "no gm_audit")
@@ -749,10 +853,14 @@ class Shards:
                     r.update(action="quest_L_from_H", group="owner-approved", reason="its quest is owner-approved")
         # an NPC deleted on one shard takes its extras on the other with it
         npc_del = {s: {r["key"][0] for r in out["npcs"] if r["action"] == f"delete_on_{s}"} for s in "HL"}
+        npc_gone = {r["key"][0] for r in out["npcs"] if r["group"] == "deleted-unaudited"}
         for t, _c in NPC_EXTRAS:
             for r in out.get(t, []):
                 n0 = r["key"][0]
                 if isinstance(n0, str) and n0.startswith("N<"):
+                    if n0[2:-1] in npc_gone and r["action"] != "leave":
+                        r.update(cls="d", action="leave", group="deleted-unaudited", reason="its NPC was deleted on the other shard (no row audit)")
+                        continue
                     for s in "HL":
                         if n0[2:-1] in npc_del[s] and r["action"] not in ("leave",):
                             r.update(action=f"delete_on_{s}", group="deleted-on-other", reason="its NPC was deleted on the other shard")

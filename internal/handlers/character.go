@@ -799,6 +799,8 @@ func (h *CharacterHandler) enterFromRecord(sess *session.Session, record *databa
 		} else if n := h.gameWorld.RestoreEffects(sess, rows, time.Now()); n > 0 {
 			log.Printf("SelectedChar: '%s' keeps %d spell effects from its last session", record.CharName, n)
 		}
+		// and its were infection, to its end (wereinfect.go)
+		Quests().InfectionLogin(sess, player)
 		// and its abilities still locked out, the time it was away counted
 		// (entity/lockoutsave.go): a logout made every recast ready until
 		// 2026-11-09

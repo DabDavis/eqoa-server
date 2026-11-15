@@ -665,8 +665,11 @@ func TestATimedSpecialComesOnItsClock(t *testing.T) {
 		want  []time.Duration
 		label string
 	}{
-		{func(int) int { return 0 }, []time.Duration{10 * time.Second, 35 * time.Second, 60 * time.Second}, "low end: 10 s, then every 25 s"},
-		{func(n int) int { return n - 1 }, []time.Duration{20 * time.Second, 55 * time.Second}, "high end: 20 s, then every 35 s"},
+		// work 1340: the crit opens the fight at the first round's impact (0.5 s), whatever
+		// special_first, and is a round of its own at the first round start (4 s rounds) once
+		// it is ready again
+		{func(int) int { return 0 }, []time.Duration{500 * time.Millisecond, 28500 * time.Millisecond, 56500 * time.Millisecond}, "low end: the opening, then ready every 25 s"},
+		{func(n int) int { return n - 1 }, []time.Duration{500 * time.Millisecond, 36500 * time.Millisecond}, "high end: the opening, then ready every 35 s"},
 	} {
 		func() {
 			defer func(f func(int) int) { templateIntn = f }(templateIntn)
@@ -676,6 +679,8 @@ func TestATimedSpecialComesOnItsClock(t *testing.T) {
 			q, qsess := r.player("Control", 3001.5, 100)
 			brute.endTemplateFight()
 			guard.endTemplateFight()
+			brute.endRound()
+			guard.endRound()
 			r.fight(brute, p.ServerID)
 			r.fight(guard, q.ServerID)
 			var at []time.Duration
@@ -728,7 +733,7 @@ func TestATimedSpecialWaitsForACast(t *testing.T) {
 	r.fight(mage, p.ServerID)
 	var specials, casts []time.Duration
 	var castEnds []time.Duration
-	for d := time.Duration(0); d <= 12*time.Second; d += 100 * time.Millisecond {
+	for d := time.Duration(0); d <= 14*time.Second; d += 100 * time.Millisecond {
 		r.tick(d)
 		for _, c := range castsIn(drain(sess)) {
 			if c.caster != r.objectID(mage.ServerID) {
@@ -743,8 +748,10 @@ func TestATimedSpecialWaitsForACast(t *testing.T) {
 			}
 		}
 	}
-	if len(specials) == 0 || len(casts) == 0 || specials[0] != 6900*time.Millisecond {
-		t.Fatalf("specials at %v (want the first at 6.9 s, after the casts), casts at %v", specials, casts)
+	// work 1340: the crit opens the fight (0.5 s, the first round's impact), and the next comes
+	// at a round's start once its clock, stopped through the casts, has run out
+	if len(specials) < 2 || len(casts) == 0 || specials[0] != 500*time.Millisecond {
+		t.Fatalf("specials at %v (want the first at 0.5 s, then another after the casts), casts at %v", specials, casts)
 	}
 	for _, s := range specials {
 		for i, c := range casts {
@@ -797,7 +804,7 @@ func TestARoamerCritsFromLevelTen(t *testing.T) {
 		lines := strings.Join(r.w.StatsReport(sess, r.objectID(brute.ServerID), r.at(0)), "\n")
 		want := "no Critical Hit below level 10"
 		if c.level >= 10 {
-			want = "Critical Hit every 25-35 s at its enemy for 74, the first 10-20 s in"
+			want = "Critical Hit for 74 in place of a round: the first of every fight, then ready every 25-35 s at its enemy"
 		}
 		if !strings.Contains(lines, want) {
 			t.Errorf("a level %d roamer's #stats has no %q:\n%s", c.level, want, lines)
@@ -821,11 +828,12 @@ func TestATimedSpecialCountsTimeAtItsEnemy(t *testing.T) {
 	brute := r.npc("Gnoll Brute")
 	for _, held := range []bool{false, true} {
 		brute.endTemplateFight()
+		brute.endRound()
 		brute.Effects = nil
 		p, sess := r.player("Hero", 2001.5, 100)
 		r.fight(brute, p.ServerID)
 		var crits []time.Duration
-		for d := time.Duration(0); d <= 45*time.Second; d += 100 * time.Millisecond {
+		for d := time.Duration(0); d <= 60*time.Second; d += 100 * time.Millisecond {
 			if held && d == 5*time.Second {
 				brute.Effects = append(brute.Effects, &ActiveEffect{Name: "Root", Root: true, Until: r.at(35 * time.Second)})
 				p.X = brute.X + 15
@@ -840,9 +848,13 @@ func TestATimedSpecialCountsTimeAtItsEnemy(t *testing.T) {
 				}
 			}
 		}
-		want := []time.Duration{10 * time.Second, 35 * time.Second}
+		// work 1340: the opening crit at 0.5 s, then ready 25 s of time at its enemy later, at a
+		// round start (4 s rounds): in reach throughout, 25 s (the round at 28 s); held off from
+		// 5 s to 35 s, 4.9 s counted before and 20.1 s after its return (55.1 s: the round at 59 s,
+		// its rounds begun again at 35 s)
+		want := []time.Duration{500 * time.Millisecond, 28500 * time.Millisecond, 56500 * time.Millisecond}
 		if held {
-			want = []time.Duration{40100 * time.Millisecond}
+			want = []time.Duration{500 * time.Millisecond, 59500 * time.Millisecond}
 		}
 		if fmt.Sprint(crits) != fmt.Sprint(want) {
 			t.Errorf("held off %v: crits at %v, want %v", held, crits, want)

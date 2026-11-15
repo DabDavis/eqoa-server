@@ -48,7 +48,9 @@ import (
 //     AT its enemy (its turns in reach, templateContactGap apart at most):
 //     time closing in, held off by a root or casting is not counted, as
 //     Sandstorm's specials come with its rounds (one round in five) and a
-//     creature out of reach has none; either only from special_from on, a
+//     creature out of reach has none (a creature's, no pet's, comes as a round
+//     of its own, its first opening every fight whatever special_first: work
+//     1340, critround.go); either only from special_from on, a
 //     level (the roamer's 10: the user's "they get it around level 10
 //     starting, but before only auto attack"), the creature's own;
 //   - casts its abilities in its fights, from where it stands in reach of its
@@ -150,6 +152,8 @@ type ClassTemplate struct {
 	farCasts bool
 	// problems is what of it the world cannot use, for the log and the panel
 	problems []string
+	// were marks a were's own copy of its template (werecrit.go, work 1461)
+	were bool
 }
 
 // templateAbility is one of a template's abilities: its row's fields, its
@@ -213,9 +217,12 @@ type templateFight struct {
 	round   time.Time
 	special time.Time
 	// timedLeft is its timed special's time at its enemy still to go, from
-	// timedSeen, its last turn in reach (zero: its clock not begun)
-	timedLeft time.Duration
-	timedSeen time.Time
+	// timedSeen, its last turn in reach (zero: its clock not begun);
+	// critRounds that the special comes as a round of its own this fight
+	// (critround.go), its rounds spending the clock
+	timedLeft  time.Duration
+	timedSeen  time.Time
+	critRounds bool
 	// kickLeft and kickSeen are its kick's clock (KickEvery), as timedLeft's
 	kickLeft time.Duration
 	kickSeen time.Time
@@ -367,13 +374,29 @@ type classTemplates struct {
 	// sheets is the workbook's pets by summoning spell (petstats.go)
 	sheets   map[int]*petSheet
 	problems []string
+	// weres is the weres' own copies of the templates, by the template (nil:
+	// of none), made as they are first given (werecrit.go)
+	weres map[*ClassTemplate]*ClassTemplate
 }
 
 // templateForLocked is the template the NPC fights by: its name's
 // npctemplate row's, if the template is there. Never a pet's nor a training
 // dummy's (they fight their own ways). Must be called with the lock held.
 func (w *World) templateForLocked(npc *NPC) *ClassTemplate {
-	if len(w.templates.use) == 0 || npc.Owner != 0 || npc.Dummy != NotDummy {
+	if npc.Owner != 0 || npc.Dummy != NotDummy {
+		return nil
+	}
+	t := w.namedTemplateLocked(npc)
+	if WereLine(npc.Name) != "" {
+		return w.wereTemplateLocked(t) // a were's own copy of it, or of none (werecrit.go)
+	}
+	return t
+}
+
+// namedTemplateLocked is the template npctemplate gives the NPC, nil for none.
+// Must be called with the lock held.
+func (w *World) namedTemplateLocked(npc *NPC) *ClassTemplate {
+	if len(w.templates.use) == 0 {
 		return nil
 	}
 	// its own row's first ("#n", npcrow.go), then its name's
@@ -1700,7 +1723,9 @@ func (w *World) templateSpecialLocked(npc *NPC, target EntityID, now time.Time) 
 		return // a creature below its template's special_from fights with its melee alone
 	}
 	f := npc.fight()
-	if t.SpecialEvery > 0 {
+	if t.SpecialEvery > 0 && f.critRounds {
+		critClock(f, now) // its crit is a round of its own: its rounds pick it (critround.go)
+	} else if t.SpecialEvery > 0 {
 		switch gap := now.Sub(f.timedSeen); {
 		case f.timedSeen.IsZero():
 			f.timedLeft = templateJitter(t.SpecialFirst, t.SpecialJitter)
@@ -1713,8 +1738,8 @@ func (w *World) templateSpecialLocked(npc *NPC, target EntityID, now time.Time) 
 			w.templateSpecialHitLocked(npc, target, now)
 		}
 	}
-	if t.SpecialChance <= 0 || npc.RoundStart.IsZero() {
-		return
+	if t.SpecialChance <= 0 || npc.RoundStart.IsZero() || npc.RoundCrit {
+		return // a crit round is the round: no chance special beside it (critround.go)
 	}
 	if !npc.RoundStart.Equal(f.round) {
 		f.round, f.special = npc.RoundStart, time.Time{}
@@ -1782,8 +1807,18 @@ func (w *World) templateKickLocked(npc *NPC, target EntityID, now time.Time) {
 // player's or a pet's, through any armour, with the special's visual; name says it in the log.
 // Must be called with the lock held.
 func (w *World) templateStrikeLocked(npc *NPC, target EntityID, now time.Time, damage int, name string) {
+	w.templateStrikeFXLocked(npc, target, now, damage, name, 0, nil)
+}
+
+// templateStrikeFXLocked is templateStrikeLocked with a visual of its own (0: the
+// special's), and landed told of a player it hit who stands after it (a were's
+// infection: werecrit.go). Must be called with the lock held.
+func (w *World) templateStrikeFXLocked(npc *NPC, target EntityID, now time.Time, damage int, name string, fx uint32,
+	landed func(*session.Session, *Player)) {
 	t := npc.tmpl
-	fx := t.SpecialFX
+	if fx == 0 {
+		fx = t.SpecialFX
+	}
 	if fx == 0 {
 		fx = templateSpecialFX
 	}
@@ -1813,7 +1848,9 @@ func (w *World) templateStrikeLocked(npc *NPC, target EntityID, now time.Time, d
 			w.killedPlayerLocked(npc, p) // its line at the kill (selfbuff.go)
 			return
 		}
-		w.wereBiteLocked(sess, p, npc)                 // a were's bite may infect (wereinfect.go)
+		if landed != nil {
+			landed(sess, p) // a were's infection on its crit (werecrit.go)
+		}
 		if !w.playerShieldsLocked(sess, p, npc, now) { // a melee hit's answer (dshield.go)
 			w.defenceProcsLocked(sess, p, npc, now)
 		}
@@ -1895,10 +1932,21 @@ func (w *World) templateLineLocked(npc *NPC, now time.Time) string {
 		parts = append(parts, fmt.Sprintf("%s in %d%% of its rounds for %d", specialName(t), t.SpecialChance,
 			max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1)))
 	}
-	if specials && t.SpecialEvery > 0 {
+	if specials && t.SpecialEvery > 0 && npc.Owner == 0 {
+		// its crit is a round of its own (critround.go)
+		every := fmt.Sprintf("%g", t.SpecialEvery)
+		if t.SpecialJitter > 0 {
+			every = fmt.Sprintf("%g-%g", t.SpecialEvery-t.SpecialJitter, t.SpecialEvery+t.SpecialJitter)
+		}
+		parts = append(parts, fmt.Sprintf("%s for %d in place of a round: the first of every fight, then ready every %s s at its enemy",
+			specialName(t), max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1), every))
+	} else if specials && t.SpecialEvery > 0 {
 		parts = append(parts, fmt.Sprintf("%s every %g-%g s at its enemy for %d, the first %g-%g s in", specialName(t),
 			t.SpecialEvery-t.SpecialJitter, t.SpecialEvery+t.SpecialJitter, max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1),
 			math.Max(t.SpecialFirst-t.SpecialJitter, 0), t.SpecialFirst+t.SpecialJitter))
+	}
+	if w := wereWords(npc, now); w != "" {
+		parts = append(parts, w) // werecrit.go
 	}
 	for i := range t.abilities {
 		a := &t.abilities[i]

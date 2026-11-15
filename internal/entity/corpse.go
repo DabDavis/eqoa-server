@@ -267,6 +267,8 @@ func (w *World) respawnNPCLocked(npc *NPC) {
 		npc.World, npc.charmDied = npc.charmHome, false
 	}
 	if npc.Dead {
+		// a new spawn: a were's infection ready again (werecrit.go)
+		npc.wereReady, npc.spawnGen = time.Time{}, npc.spawnGen+1
 		// a camp's spawn back from a death pops one of its kinds (campspawn.go)
 		w.campRekindLocked(npc, time.Now())
 		// a placeholder pops its rare, or is itself again (npcrare.go)

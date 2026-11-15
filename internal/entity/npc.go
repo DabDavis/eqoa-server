@@ -204,10 +204,12 @@ type NPC struct {
 	keptMoved bool
 
 	// Its melee round (rounds.go): when it began, how many of its hits
-	// have landed, and at whom.
+	// have landed, and at whom; RoundCrit that the round is its critical hit
+	// in place of its hits (critround.go)
 	RoundStart  time.Time
 	RoundHits   int
 	RoundTarget EntityID
+	RoundCrit   bool
 
 	// Dummy is a training dummy's kind (dummy.go), by its name, and the
 	// one it fights: a player, or a player's pet or mercenary.
@@ -303,6 +305,13 @@ type NPC struct {
 	// its fight, so a fight's end and its death leave it; a restart that keeps
 	// the sessions carries it (keepnpc.go). nil for none.
 	abilityReady map[string]time.Time
+	// wereReady is when a were's infection ability is ready again (werecrit.go:
+	// zero, ready), on the creature and not its fight, and spawnGen its spawn's
+	// generation: a death and a new spawn make it ready and count one more
+	// (respawnNPCLocked); a restart that keeps the sessions carries both
+	// (keepnpc.go)
+	wereReady time.Time
+	spawnGen  uint32
 
 	// sheet is a workbook pet's petstats row (petstats.go), nil for every
 	// other NPC

@@ -1598,8 +1598,12 @@ func (w *World) npcFightPetLocked(npc, pet *NPC, now time.Time) {
 		if npc.RoundStart.IsZero() || now.Sub(next) >= length {
 			next = now
 		}
-		npc.RoundStart, npc.RoundHits = next, 0
-		w.npcSwingLocked(npc, pet.ServerID, uint32(delay/time.Millisecond), fx, now) // none while it casts
+		npc.RoundStart = next
+		w.npcRoundStartLocked(npc, pet.ServerID, now, delay, fx) // its crit or its swing, none while it casts (critround.go)
+	}
+	if npc.critDue(hits, now) {
+		w.critStrikeLocked(npc, pet.ServerID, hits, now) // the crit in place of the round's hits (critround.go)
+		return
 	}
 	for npc.RoundHits < len(hits) && !now.Before(npc.RoundStart.Add(hits[npc.RoundHits])) {
 		npc.RoundHits++

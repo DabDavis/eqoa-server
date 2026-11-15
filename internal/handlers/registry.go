@@ -565,6 +565,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 			log.Printf("Quests: not running: %v", err)
 		} else {
 			qe.drop = npcWindowHandler.AddQuestDrop // a loot step's drops (questloot.go)
+			qe.dropAhead = npcWindowHandler.AddQuestDropAhead // those ahead of the step (questpreloot.go)
 			supportHandler.SetQuests(qe)            // a petition's quests (petitionview.go)
 			qe.Start()
 			r.Register(protocol.OpcodeDeleteQuest, qe.HandleDrop)

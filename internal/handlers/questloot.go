@@ -14,17 +14,35 @@ import (
 // item dropped for one player on the live game. The corpse's window lists the
 // two together, keyed by position, so Take and Take all go on as before; a
 // corpse goes when its window closes with its own items AND every
-// character's drops gone, else when it decays.
+// character's drops gone, else when it decays. A drop ahead of its step
+// (questpreloot.go) keeps no corpse: it is there to take while the corpse
+// lies, and goes with it (Live petition 5118, Waldorf, 2026-11-14: ant
+// soldiers by Klick lay on, empty to him, holding Ant Chitin his other
+// characters could have the quest for: "could have a lot of dead wildlife
+// just waiting to despawn holding up other people").
 
 // questDrops is one death's drops, each character's own.
 type questDrops struct {
 	died  time.Time
 	items map[uint32][]database.CharInventoryEntry // by characters.serverid
+	// ahead is each character's items (pattern ids) dropped ahead of their
+	// step: they keep no corpse (emptyLocked)
+	ahead map[uint32]map[int]bool
 }
 
 // AddQuestDrop puts rec on character serverID's view of the corpse of the
 // death died of NPC id (a loot step's drop): a stack of the same item grows.
 func (h *NPCWindowHandler) AddQuestDrop(id entity.EntityID, died time.Time, serverID uint32, rec database.CharInventoryEntry) {
+	h.addQuestDrop(id, died, serverID, rec, false)
+}
+
+// AddQuestDropAhead is AddQuestDrop for an item dropped ahead of its step
+// (questpreloot.go): it keeps no corpse.
+func (h *NPCWindowHandler) AddQuestDropAhead(id entity.EntityID, died time.Time, serverID uint32, rec database.CharInventoryEntry) {
+	h.addQuestDrop(id, died, serverID, rec, true)
+}
+
+func (h *NPCWindowHandler) addQuestDrop(id entity.EntityID, died time.Time, serverID uint32, rec database.CharInventoryEntry, ahead bool) {
 	ls := h.loots()
 	ls.mu.Lock()
 	defer ls.mu.Unlock()
@@ -34,6 +52,15 @@ func (h *NPCWindowHandler) AddQuestDrop(id entity.EntityID, died time.Time, serv
 		ls.drops[id] = d
 	}
 	rec = catalogRecord(rec)
+	if ahead {
+		if d.ahead == nil {
+			d.ahead = map[uint32]map[int]bool{}
+		}
+		if d.ahead[serverID] == nil {
+			d.ahead[serverID] = map[int]bool{}
+		}
+		d.ahead[serverID][rec.Pattern.PatternID] = true
+	}
 	mine := d.items[serverID]
 	for i := range mine {
 		if mine[i].Pattern.PatternID == rec.Pattern.PatternID {
@@ -95,14 +122,24 @@ func (ls *lootState) tookLocked(id entity.EntityID, c *corpse, serverID uint32, 
 	}
 }
 
-// emptyLocked is whether nothing is left on the corpse for anyone: its own
-// items and every character's drops.
+// emptyLocked is whether nothing is left on the corpse that keeps it: its own
+// items and every character's drops, but those dropped ahead of their step.
 func (ls *lootState) emptyLocked(id entity.EntityID, c *corpse) bool {
 	if len(c.items) > 0 || c.raid != nil && len(c.raid.held) > 0 { // a raid's rolled and won items (raidloot.go)
 		return false
 	}
 	d := ls.drops[id]
-	return d == nil || !d.died.Equal(c.died) || len(d.items) == 0
+	if d == nil || !d.died.Equal(c.died) {
+		return true
+	}
+	for sid, recs := range d.items {
+		for _, r := range recs {
+			if !d.ahead[sid][r.Pattern.PatternID] {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 // charOf is the character (characters.serverid) a session plays, 0 none.

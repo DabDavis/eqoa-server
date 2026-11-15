@@ -125,6 +125,9 @@ type QuestEngine struct {
 	// drop puts a loot step's item on one character's view of a corpse (the
 	// windows' AddQuestDrop, questloot.go); nil drops nothing
 	drop func(npc entity.EntityID, died time.Time, serverID uint32, rec database.CharInventoryEntry)
+	// dropAhead is drop's for an item dropped ahead of its step (questpreloot.go): it keeps
+	// no corpse (the windows' AddQuestDropAhead); nil uses drop
+	dropAhead func(npc entity.EntityID, died time.Time, serverID uint32, rec database.CharInventoryEntry)
 	// roll is a loot step's draw in [0, 1) (tests fix it)
 	roll func() float64
 	// spawns are the NPCs steps' spawn events placed, by character

@@ -96,3 +96,43 @@ func (f *corpseFixture) heldOf(pattern int) int {
 		f.player.CharServerID, pattern).Scan(&n)
 	return n
 }
+
+// A drop ahead of its step (questpreloot.go) keeps no corpse (Live petition
+// 5118, Waldorf: ant soldiers by Klick lay on, empty to him, holding Ant
+// Chitin dropped ahead for his other characters): the corpse's own item
+// taken, the corpse goes with another character's drop ahead still on it.
+func TestADropAheadKeepsNoCorpse(t *testing.T) {
+	f := newCorpseFixture(t, 1)
+	other := uint32(f.charSID + 100)
+	f.h.AddQuestDropAhead(f.npc.ServerID, f.npc.DeathTime, other, f.dropOf(f.bait))
+	f.h.OpenCorpse(f.sess, f.npc)
+	if n := lootCount(t, f.sent()[0]); n != 1 {
+		t.Fatalf("the looter sees %d records, want its corpse's 1 alone", n)
+	}
+	f.send(protocol.OpcodeClientLoot, func(w *buffer.Writer) { w.WriteUint32(0); w.WriteUint32(1) })
+	f.sent()
+	if len(f.cleared) != 1 {
+		t.Fatalf("emptied but for another's drop ahead, the corpse did not go: cleared %v", f.cleared)
+	}
+}
+
+// The control: the other character's drop ahead lies on its view while the
+// corpse does, and an on-step drop beside it still keeps the corpse.
+func TestADropAheadIsTakenWhileTheCorpseLies(t *testing.T) {
+	f := newCorpseFixture(t, 1)
+	other := uint32(f.charSID + 100)
+	f.h.AddQuestDrop(f.npc.ServerID, f.npc.DeathTime, other, f.dropOf(f.bait))
+	f.h.AddQuestDropAhead(f.npc.ServerID, f.npc.DeathTime, f.charSID, f.dropOf(f.bait))
+	f.h.OpenCorpse(f.sess, f.npc)
+	if n := lootCount(t, f.sent()[0]); n != 2 {
+		t.Fatalf("the looter sees %d records, want its corpse's 1 and its drop ahead", n)
+	}
+	f.send(protocol.OpcodeLootTakeAll, nil)
+	f.sent()
+	if f.heldOf(f.bait) != 1 {
+		t.Fatalf("the drop ahead not taken: bait %d", f.heldOf(f.bait))
+	}
+	if len(f.cleared) != 0 {
+		t.Fatal("the corpse went with another character's on-step drop on it")
+	}
+}

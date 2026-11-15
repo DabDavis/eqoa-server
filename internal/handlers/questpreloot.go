@@ -101,7 +101,11 @@ func (q *QuestEngine) preLootLocked(k entity.KillCredit, kp entity.KillPlayer, c
 		if fullStack(sessionInvList(kp.Session), pat) {
 			continue
 		}
-		q.drop(k.NPCID, k.Died, kp.ServerID, database.CharInventoryEntry{StackLeft: 1, EquipLoc: -1, Pattern: *pat})
+		drop := q.drop
+		if q.dropAhead != nil {
+			drop = q.dropAhead
+		}
+		drop(k.NPCID, k.Died, kp.ServerID, database.CharInventoryEntry{StackLeft: 1, EquipLoc: -1, Pattern: *pat})
 		log.Printf("Quests: %q dropped %q for %s ahead of step %d of %q", k.NPCName, pat.ItemName, kp.Name, st.Step, qu.Name)
 	}
 }

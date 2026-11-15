@@ -222,8 +222,12 @@ func (h *EquipHandler) scribe(sess *session.Session, player *entity.Player, idx 
 		refuse(scribeTooLow)
 		return
 	}
+	// the book locked from its read to the spell's write (booklock.go), not
+	// over the scroll's taking (the inventory's own locks)
+	unlock := lockBook(player.CharServerID)
 	book, err := h.spells.GetCharacterSpells(player.CharServerID)
 	if err != nil {
+		unlock()
 		log.Printf("Scribe: %s, %q: the book: %v", player.Name, p.ItemName, err)
 		return
 	}
@@ -232,6 +236,7 @@ func (h *EquipHandler) scribe(sess *session.Session, player *entity.Player, idx 
 	key := exactKey(spell.Name)
 	for _, e := range book {
 		if e.Pattern.SpellID == spell.SpellID || exactKey(e.Pattern.SpellName) == key {
+			unlock()
 			refuse(scribeKnown)
 			return
 		}
@@ -240,7 +245,9 @@ func (h *EquipHandler) scribe(sess *session.Session, player *entity.Player, idx 
 	// The spell first: should taking the scroll then fail, the player keeps
 	// a scroll of a spell known, rather than losing one for nothing.
 	order := nextDisplayIndex(book)
-	if err := h.spells.AddSpell(player.CharServerID, spell.SpellID, order); err != nil {
+	err = h.spells.AddSpell(player.CharServerID, spell.SpellID, order)
+	unlock()
+	if err != nil {
 		log.Printf("Scribe: %s, %q: adding spell %d: %v", player.Name, p.ItemName, spell.SpellID, err)
 		return
 	}

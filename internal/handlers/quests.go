@@ -1717,6 +1717,7 @@ func (q *QuestEngine) teachLocked(sess *session.Session, p *entity.Player, spell
 	if q.spells == nil {
 		return "", false
 	}
+	defer lockBook(p.CharServerID)() // booklock.go: one change to a book at a time
 	book, err := q.spells.GetCharacterSpells(p.CharServerID)
 	if err != nil {
 		return "", false

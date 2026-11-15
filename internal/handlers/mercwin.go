@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"slices"
+	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
@@ -41,6 +42,8 @@ const (
 	mercAskEquip   = 3
 	mercAskUnequip = 4
 	mercAskTake    = 5
+	mercAskStock   = 6 // take from the owner's potion stock
+	mercAskClose   = 7 // the window closed
 
 	mercSpellsOpen    = 1
 	mercSpellsSet     = 2
@@ -60,7 +63,18 @@ const (
 	mercRecCarried = 0
 	mercRecWorn    = 1
 	mercRecHeir    = 2
+	mercRecStock   = 3 // the owner's potion stock (an alchemist's: mercbrew.go), its id the item's
 )
+
+// mercStockEvery is the least time between two states a brew or a throw's
+// change to the stock sends an open window (a take is sent at once).
+const mercStockEvery = 5 * time.Second
+
+// mercWinOpen is a window open: its merc's slot, when the stock last went.
+type mercWinOpen struct {
+	slot   int
+	pushed time.Time
+}
 
 // SendMercWindowOffer offers the session's client the merc windows, where
 // world.mercs is on; elsewhere nothing goes.
@@ -203,6 +217,29 @@ func (m *Mercs) windowAsk(sess *session.Session, p *entity.Player, slot int, op 
 	switch op {
 	case mercAskOpen:
 		return m.openWindow(sess, p, row)
+	case mercAskClose:
+		m.winMu.Lock()
+		delete(m.winOpen, p.CharServerID)
+		m.winMu.Unlock()
+		return true
+	case mercAskStock:
+		if len(rest) < 4 {
+			return false
+		}
+		id, n := int(binary.LittleEndian.Uint32(rest)), 0
+		if len(rest) >= 8 {
+			n = int(binary.LittleEndian.Uint32(rest[4:]))
+		}
+		for _, s := range m.stockRows(p) {
+			if s.pat.PatternID == id {
+				ok := m.takeStockN(sess, p, s, n)
+				m.pushWindow(sess, p, row.Slot)
+				return ok
+			}
+		}
+		SendErrorMessage(sess, "Your alchemists' stock holds none of that.")
+		m.pushWindow(sess, p, row.Slot)
+		return false
 	case mercAskGive:
 		key, ok := u32()
 		l := sessionInvList(sess)
@@ -260,8 +297,33 @@ func (m *Mercs) openWindow(sess *session.Session, p *entity.Player, row database
 	if !mercWindows(sess) {
 		return false
 	}
+	m.winMu.Lock()
+	m.winOpen[p.CharServerID] = &mercWinOpen{slot: row.Slot, pushed: m.now()}
+	m.winMu.Unlock()
 	m.sendWindow(sess, p, row, mercStateOpen)
 	return true
+}
+
+// stockChanged sends the player's open window its stock after a brew or a
+// throw changed it, at most every mercStockEvery; none open, nothing.
+func (m *Mercs) stockChanged(p *entity.Player) {
+	if p == nil || m.gw == nil {
+		return
+	}
+	now := m.now()
+	m.winMu.Lock()
+	w := m.winOpen[p.CharServerID]
+	due := w != nil && now.Sub(w.pushed) >= mercStockEvery
+	if due {
+		w.pushed = now
+	}
+	m.winMu.Unlock()
+	if !due {
+		return
+	}
+	if sess := m.gw.FindSessionByEntityID(p.ServerID); sess != nil {
+		m.pushWindow(sess, p, w.slot)
+	}
 }
 
 // pushWindow sends a window-taking client the hire's state after a change
@@ -288,7 +350,7 @@ type mercWindowRec struct {
 // windowRecords is what the hire holds and wears, as the state lists them:
 // its own worn, then its heirlooms where it wears nothing of its own (and
 // nothing its own's wear takes off: itemsOver), then what it carries.
-func (m *Mercs) windowRecords(row database.MercRow, level int) []mercWindowRec {
+func (m *Mercs) windowRecords(p *entity.Player, row database.MercRow, level int) []mercWindowRec {
 	items, err := m.db.MercItems(row.ServerID, row.Slot)
 	if err != nil {
 		return nil
@@ -315,7 +377,16 @@ func (m *Mercs) windowRecords(row database.MercRow, level int) []mercWindowRec {
 			}
 		}
 	}
-	return append(worn, carried...)
+	out := append(worn, carried...)
+	if row.Class == mercAlchemist {
+		// its owner's potion stock, which it brews into and throws and drinks
+		// from (mercbrew.go): each potion's record, its count the stack
+		for _, s := range m.stockRows(p) {
+			out = append(out, mercWindowRec{id: s.pat.PatternID, kind: mercRecStock,
+				e: database.CharInventoryEntry{StackLeft: s.n, RemainHP: s.pat.MaxHP, EquipLoc: -1, Pattern: s.pat}})
+		}
+	}
+	return out
 }
 
 // buildMercWindowState is OpcodeMercWindowState (the opcode's doc).
@@ -366,7 +437,7 @@ func (m *Mercs) sendWindow(sess *session.Session, p *entity.Player, row database
 	}
 	sh := m.gw.MercSheetOf(sess, row.Slot, kit)
 	sh.Name = row.Name
-	queueReliable(sess, protocol.OpcodeMercWindowState, buildMercWindowState(flags, row.Slot, sh, m.windowRecords(row, kit.Level), readsCapes(sess)))
+	queueReliable(sess, protocol.OpcodeMercWindowState, buildMercWindowState(flags, row.Slot, sh, m.windowRecords(p, row, kit.Level), readsCapes(sess)))
 }
 
 // spellsAsk does one of the spell window's asks (protocol.OpcodeMercSpellsAsk);

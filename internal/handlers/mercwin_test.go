@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/binary"
 	"slices"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
@@ -437,5 +439,113 @@ func TestMercWindowPS2KeepsTheBoxes(t *testing.T) {
 	m.Command(r.anna, r.pa, "inv")
 	if st, ok := lastMercWinState(t, r.anna); !ok || st.flags&mercStateOpen == 0 || len(queued(r.anna, protocol.OpcodeQuestPopupMulti)) != 0 {
 		t.Errorf("vanilla's /merc inv: state %v flags %d", ok, st.flags)
+	}
+}
+
+// An alchemist's window shows its owner's potion stock (kind 3, each potion's
+// count its stack; a draught too), takes a stack or a count of one into the
+// pack (a LORE one only while none is held), and while it is open a brew
+// sends the state again at most every 5 s; closed, none. Another class's
+// window shows no stock; the PS2's Potion stock box lists the draught.
+func TestMercWindowStock(t *testing.T) {
+	r, m, db := newMercFixture(t)
+	invItems(t, db)
+	const itDraught = 910010
+	putItem(t, db, database.ItemPatternRecord{PatternID: itDraught, ItemName: "Infused Draught", EquipSlot: -1, LevelReq: 1, MaxStack: 20})
+	now := m.now()
+	m.now = func() time.Time { return now }
+	m.hireWith(r.anna, r.pa, 14, 0, 0, 0) // an alchemist
+	r.relist(db)                          // her client's list: an empty pack
+	r.anna.SetMercWindow(1)
+	h := NewMercWindowHandler(r.gw, m)
+	brew := func(pattern, n int) {
+		m.note(entity.MercNote{Kind: entity.MercNoteBrewed, Owner: r.pa, Slot: 1, PatternID: pattern, Count: n})
+	}
+	brew(itPotion, 120)
+	brew(itDraught, 30)
+	brew(itStone, 1)
+	r.drain()
+	stock := func() map[int64]int64 {
+		t.Helper()
+		st, ok := lastMercWinState(t, r.anna)
+		if !ok {
+			t.Fatal("no state")
+		}
+		out := map[int64]int64{}
+		for _, rec := range st.recs {
+			if rec.kind == mercRecStock {
+				if int64(rec.id) != rec.item.pattern {
+					t.Errorf("a stock record's id %d, its item %d", rec.id, rec.item.pattern)
+				}
+				out[rec.item.pattern] = rec.item.stack
+			}
+		}
+		return out
+	}
+	winAsk(t, h, r.anna, 1, mercAskOpen)
+	if got := stock(); got[itPotion] != 120 || got[itDraught] != 30 || got[itStone] != 1 {
+		t.Fatalf("the stock shown %v", got)
+	}
+	// a stack, then a count
+	winAsk(t, h, r.anna, 1, mercAskStock, u32b(itPotion))
+	if got := lastMercResult(t, r.anna); got[2] != 1 || packHas(t, db, r.pa.CharServerID, itPotion) != 100 {
+		t.Fatalf("a stack: result % x, pack %d", got, packHas(t, db, r.pa.CharServerID, itPotion))
+	}
+	winAsk(t, h, r.anna, 1, mercAskStock, u32b(itDraught), u32b(5))
+	if packHas(t, db, r.pa.CharServerID, itDraught) != 5 {
+		t.Fatalf("five draughts: pack %d", packHas(t, db, r.pa.CharServerID, itDraught))
+	}
+	if got := stock(); got[itPotion] != 20 || got[itDraught] != 25 {
+		t.Fatalf("after the takes %v", got)
+	}
+	// a LORE one while one is held: refused, kept in the stock
+	r.pack(db, [2]int{itStone, 1})
+	winAsk(t, h, r.anna, 1, mercAskStock, u32b(itStone))
+	if got := lastMercResult(t, r.anna); got[2] != 0 || packHas(t, db, r.pa.CharServerID, itStone) != 1 {
+		t.Fatalf("a second LORE stone: result % x", got)
+	}
+	if got := stock(); got[itStone] != 1 {
+		t.Error("the refused stone left the stock")
+	}
+	// brews while open: at most every 5 s
+	r.drain()
+	now = now.Add(6 * time.Second)
+	brew(itPotion, 1)
+	brew(itPotion, 1)
+	if n := len(queuedWhole(r.anna, protocol.OpcodeMercWindowState)); n != 1 {
+		t.Fatalf("two brews in a moment sent %d states, want 1", n)
+	}
+	if st, _ := lastMercWinState(t, r.anna); st.flags&mercStateOpen != 0 {
+		t.Error("a brew's state opens the window")
+	}
+	r.drain()
+	now = now.Add(6 * time.Second)
+	brew(itPotion, 1)
+	if n := len(queuedWhole(r.anna, protocol.OpcodeMercWindowState)); n != 1 {
+		t.Fatalf("a brew 6 s later sent %d", n)
+	}
+	// closed: none
+	winAsk(t, h, r.anna, 1, mercAskClose)
+	r.drain()
+	now = now.Add(6 * time.Second)
+	brew(itPotion, 1)
+	if n := len(queuedWhole(r.anna, protocol.OpcodeMercWindowState)); n != 0 {
+		t.Errorf("a closed window was sent %d states", n)
+	}
+	// the PS2's box lists the draught
+	m.menuStock(r.anna, r.pa, 0)
+	if got := r.msgs(r.anna); len(got) != 1 || !strings.Contains(got[0], "|Infused Draught x25") {
+		t.Errorf("the Potion stock box: %q", got)
+	}
+	// another class's window: no stock
+	r2, m2, db2 := newMercFixture(t)
+	invItems(t, db2)
+	m2.hireWith(r2.anna, r2.pa, 0, 0, 0, -1)
+	m2.note(entity.MercNote{Kind: entity.MercNoteBrewed, Owner: r2.pa, Slot: 1, PatternID: itPotion, Count: 5})
+	r2.anna.SetMercWindow(1)
+	r2.drain()
+	m2.Command(r2.anna, r2.pa, "inv")
+	if st, ok := lastMercWinState(t, r2.anna); !ok || slices.ContainsFunc(st.recs, func(x mercWinRec) bool { return x.kind == mercRecStock }) {
+		t.Errorf("a warrior's window: state %v with stock", ok)
 	}
 }

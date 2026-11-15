@@ -1096,6 +1096,11 @@ const (
 	//   4 unequip: a u32 the merc's record id: worn to carried;
 	//   5 take: a u32 the merc's record id: into the player's pack (0x003B),
 	//     as much as fits, a LORE item only while the player holds none.
+	//   6 stock: a u32 the item's id (a stock record's id), then a u32 how
+	//     many (0, or none sent: a stack): from its owner's potion stock into
+	//     the pack, at most a stack, as /merc stock takes it (NO TRADE and LORE
+	//     as for one summoned);
+	//   7 close: none; the window is down (no stock's change is sent it).
 	// Each is answered by OpcodeMercWindowResult and, done, the state.
 	OpcodeMercWindowAsk GameOpcode = 0x7E73
 	// OpcodeMercWindowState server to client: a u8 layout (1); a u8 of flags
@@ -1105,9 +1110,12 @@ const (
 	// while it is out, its buffs among them; else as its row makes it); a u8
 	// the records it holds at most (40); a u8 the count, and each record: a
 	// u32 its id (0 an heirloom, which is only shown), a u8 its kind (0
-	// carried, 1 worn, 2 an heirloom worn where it wears nothing of its own),
-	// then the record as 0x003B carries it (ReadNetItem: its equip slot the
-	// worn slot, -1 carried).
+	// carried, 1 worn, 2 an heirloom worn where it wears nothing of its own,
+	// 3 the owner's potion stock: an alchemist's window's, its id the item's
+	// id, its stack the stock's count), then the record as 0x003B carries it
+	// (ReadNetItem: its equip slot the worn slot, -1 carried). While the
+	// window is open (from its open to ask 7) a brew or a throw's change to
+	// the stock sends it again, at most every 5 s.
 	OpcodeMercWindowState GameOpcode = 0x7E74
 	// OpcodeMercWindowResult server to client, after each OpcodeMercWindowAsk
 	// and OpcodeMercSpellsAsk: a u8 the opcode's low byte (0x73 or 0x76), a u8

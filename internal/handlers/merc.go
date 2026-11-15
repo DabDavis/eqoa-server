@@ -197,13 +197,18 @@ type Mercs struct {
 	mu    sync.Mutex
 	seq   uint32
 	asked map[uint32]mercAsk
+
+	// winMu guards winOpen: each character's merc inventory window open in
+	// vanilla (mercwin.go), its merc's slot and when its stock was last sent
+	winMu   sync.Mutex
+	winOpen map[uint32]*mercWinOpen
 }
 
 // NewMercs is the mercenaries' handler over the World and the database; heir
 // gives the heirlooms' figures (nil: none, the merc in plain records).
 func NewMercs(gw *entity.World, db *database.SQLiteDB, heir *Heirlooms) *Mercs {
 	return &Mercs{gw: gw, db: db, heir: heir, now: time.Now, after: func(d time.Duration, f func()) { time.AfterFunc(d, f) },
-		asked: map[uint32]mercAsk{}}
+		asked: map[uint32]mercAsk{}, winOpen: map[uint32]*mercWinOpen{}}
 }
 
 // mercsH is the handler RegisterDefaultHandlers made (a keep restart's).

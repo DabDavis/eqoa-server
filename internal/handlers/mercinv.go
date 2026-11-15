@@ -659,13 +659,22 @@ func (m *Mercs) stockRows(p *entity.Player) []stockRow {
 
 // takeStock takes a stack of the stock's item (its stack's most, or what is
 // left) into the pack, as much as fits.
-func (m *Mercs) takeStock(sess *session.Session, p *entity.Player, s stockRow) {
+func (m *Mercs) takeStock(sess *session.Session, p *entity.Player, s stockRow) bool {
+	return m.takeStockN(sess, p, s, 0)
+}
+
+// takeStockN is takeStock of n (0: a stack), at most a stack and what the
+// stock holds (vanilla's merc window's Take: mercwin.go); true when any came.
+func (m *Mercs) takeStockN(sess *session.Session, p *entity.Player, s stockRow, n int) bool {
 	l := sessionInvList(sess)
 	if l == nil {
-		return
+		return false
 	}
 	pat := s.pat
 	want := min(s.n, max(pat.MaxStack, 1))
+	if n > 0 {
+		want = min(want, n)
+	}
 	room := l.loreRoom(&pat, l.wouldAdd(pat.PatternID, want, pat.MaxStack))
 	if room == 0 {
 		if l.wouldAdd(pat.PatternID, want, pat.MaxStack) > 0 {
@@ -673,7 +682,7 @@ func (m *Mercs) takeStock(sess *session.Session, p *entity.Player, s stockRow) {
 		} else {
 			SendErrorMessage(sess, fmt.Sprintf(mercPackFull, pat.ItemName))
 		}
-		return
+		return false
 	}
 	onto := 0
 	if i := l.stackOnto(pat.PatternID, pat.MaxStack); i >= 0 {
@@ -684,7 +693,7 @@ func (m *Mercs) takeStock(sess *session.Session, p *entity.Player, s stockRow) {
 	if err != nil {
 		log.Printf("Merc: %s's stock of %q to the pack: %v", p.Name, pat.ItemName, err)
 		SendErrorMessage(sess, mercKitFailed)
-		return
+		return false
 	}
 	if st, err := m.db.MercStock(p.CharServerID); err == nil {
 		m.gw.SetMercStock(p.CharServerID, st) // the World's copy as kept
@@ -694,6 +703,7 @@ func (m *Mercs) takeStock(sess *session.Session, p *entity.Player, s stockRow) {
 	queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(&out, key, readsCapes(sess)))
 	log.Printf("Merc: %s takes %d %q from the alchemists' stock", p.Name, room, pat.ItemName)
 	SendClientMessage(sess, fmt.Sprintf(mercStockTake, room, pat.ItemName))
+	return true
 }
 
 // loadStock gives the World the character's stock as kept (a login, a keep
@@ -735,6 +745,7 @@ func (m *Mercs) noteSupply(n entity.MercNote) {
 		if _, err := m.db.UseMercStock(char, n.PatternID, max(n.Count, 1)); err != nil {
 			log.Printf("Merc: %s's stock's %d not taken: %v", n.Owner.Name, n.PatternID, err)
 		}
+		m.stockChanged(n.Owner) // an open window's Stock (mercwin.go)
 	case entity.MercNoteBrewed:
 		got, err := m.db.AddMercStock(char, n.PatternID, max(n.Count, 1), m.gw.MercBrewCapNow())
 		if err != nil {
@@ -743,6 +754,7 @@ func (m *Mercs) noteSupply(n entity.MercNote) {
 		if err != nil || got < max(n.Count, 1) {
 			m.loadStock(n.Owner) // the World's copy past what was kept
 		}
+		m.stockChanged(n.Owner) // an open window's Stock (mercwin.go)
 	}
 }
 

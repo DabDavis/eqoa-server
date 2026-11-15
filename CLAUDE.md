@@ -2626,13 +2626,16 @@ its windows in place of the boxes, and is sent the merc's whole state after ever
 the window: `pushWindow`, `pushSpells`). Its asks are /merc's own moves (`giveItem`, `equipAt` into a chosen slot,
 `takeItem`; every rule theirs; `equipPlanAt`: a filled slot swapped, the old piece carried), each answered by 0x7E75. The
 state lists its own worn records, its heirlooms where it wears nothing of its own (shown only), what it carries, and its
-figures (`MercSheetOf`: its body now when out). **The ten spell slots** (`charmerc.spell_slots`, ten ids, 0 empty; empty
+figures (`MercSheetOf`: its body now when out); an alchemist's also lists its owner's potion stock (kind 3, each potion's
+count its stack; the owner's "alchemist mercs are missing draughts": the stock is `charmercstock`, not its records), taken
+a stack or a count at a time by ask 6 (`takeStockN`, /merc stock's rules), and while the window is open (ask 7 closes it)
+a brew or a throw sends the state again at most every 5 s (`stockChanged`, `mercStockEvery`). **The ten spell slots** (`charmerc.spell_slots`, ten ids, 0 empty; empty
 none set): set, the merc casts only what they hold (its fight book, its pet's summoning and pet spells, its charm, an
 alchemist's thrown potions each check `slotted`); none set, its whole book as before, and the window shows its default
 ten (`mercDefaultLoadout`: the first of each use of its fight book, its pet, its pet's heal and buffs, a charm, its potions,
 then the rest by worth). The PS2's Spells box maps onto them: on puts a spell on the first empty slot (full: said), off
 takes it off its slot (and into `spells_off`); a spell off only by the slots is not put in `spells_off`. A PS2 never
-answers and keeps the boxes. `TestMercWindow*`, `TestMercSpellWindowSlots`, `TestMercCastsOnlyFromItsTenSlots`,
+answers and keeps the boxes. `TestMercWindow*` (`TestMercWindowStock`), `TestMercSpellWindowSlots`, `TestMercCastsOnlyFromItsTenSlots`,
 `TestMercDefaultLoadoutKeepsTodaysPicks`.
 
 **A Master Class at 55** (`entity/mercmaster.go`, `handlers/mercmaster.go`, `charmerc.master`; the owner, 2026-11-15, from

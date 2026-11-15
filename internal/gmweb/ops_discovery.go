@@ -520,8 +520,14 @@ func (s *Server) accountOverview(id int64) (map[string]any, error) {
 		ch["className"], ch["raceName"] = className(int(cls)), raceName(int(race))
 	}
 	tot, _ := s.totpEnabled(int(id))
+	// the address masked (it is its owner's alone to see) and its state
+	var email map[string]any
+	if st, err := s.d.DB.AccountEmail(int(id)); err == nil {
+		email = emailJSON(st)
+	}
 	return map[string]any{
 		"title": acc["username"], "account": acc, "characters": chars, "tester": s.testerFlag(int(id)),
+		"email":         email,
 		"storyteller":   s.storytellerFlag(int(id)),
 		"isGM":          func() bool { l, _ := asFloat(acc["acctlevel"]); return int(l) >= s.cfg.MinLevel }(),
 		"banned":        func() bool { st, _ := asFloat(acc["acctstatus"]); return st < 0 }(),

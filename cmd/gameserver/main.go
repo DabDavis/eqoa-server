@@ -15,6 +15,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/eqoa/server/internal/accountmail"
 	"github.com/eqoa/server/internal/auth"
 	"github.com/eqoa/server/internal/bootelf"
 	"github.com/eqoa/server/internal/config"
@@ -906,10 +907,46 @@ func main() {
 		defer worldUDP.Stop()
 	}
 
+	// The accounts' e-mail (internal/accountmail; mail.accounts, off unless
+	// set): addresses verified by a mailed link, resets by one, an address asked
+	// for where an account is made. The process that owns the accounts mails;
+	// every shard holds its players to the requirement (mail.require_verified)
+	// by its own copy of the accounts.
+	var accountMail *accountmail.Service
+	if cfg.Mail.Accounts && !sharedAccounts {
+		accountMail = accountmail.New(db, cfg.Mail, nil)
+		defer accountMail.Close()
+		authHandler.SetAccountMail(accountMail, db)
+		if cfg.Mail.Enabled {
+			log.Printf("Accounts: e-mail on, sent through %s from %s; links to %s", accountmail.Filled(cfg.Mail).SMTP,
+				accountmail.Filled(cfg.Mail).From, accountMail.PageURL())
+		} else {
+			log.Printf("Accounts: e-mail on, LOGGED ONLY (mail.enabled false); links to %s", accountMail.PageURL())
+		}
+	}
+	emailGate, err := accountmail.NewGate(db, cfg.Mail)
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
+	if g := handlers.NewEmailGate(emailGate, sessionMgr); g != nil {
+		gameWorld.OnPlayerEntered(g.Entered)
+		stopRemind := g.Run()
+		defer stopRemind()
+		if emailGate.Cutoff.IsZero() {
+			log.Printf("Accounts: a verified e-mail is required: reminded every %v, never refused", emailGate.Every)
+		} else {
+			log.Printf("Accounts: a verified e-mail is required: reminded every %v until %s, refused the world from then",
+				emailGate.Every, emailGate.Cutoff.Format(time.RFC3339))
+		}
+	} else if cfg.Mail.RequireVerified {
+		log.Printf("WARNING: mail.require_verified is set but mail.accounts is not: nothing is required")
+	}
+
 	// Initialize and start account registration server
 	var accountServer *tcp.AccountServer
 	if cfg.Server.AccountPort != 0 {
 		accountServer = tcp.NewAccountServer(db, cfg.Server.AccountPort, cfg.Auth.BCryptCost)
+		accountServer.Mail = accountMail
 		accountServer.SetNewCharacterRules(newRules)
 		accountServer.MaxCharacters = entity.CharSlots()
 		// races past the game's, where creation takes them (entity/creation.go)
@@ -1036,9 +1073,15 @@ func main() {
 			AccountsShared: sharedAccounts,
 			NoTransfers:    accountServer == nil,
 			Formula:        formulaCtl,
+			AccountMail:    accountMail,
 		})
 		if err != nil {
 			log.Fatalf("GM panel: %v", err)
+		}
+		// changing an account's e-mail on the account page asks for its
+		// authenticator's code when it has one (the panel's)
+		if accountServer != nil {
+			accountServer.TOTP = gm.AccountTOTP
 		}
 		if err := gm.Start(); err != nil {
 			log.Fatalf("GM panel: %v", err)

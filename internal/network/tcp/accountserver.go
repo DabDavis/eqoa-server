@@ -13,8 +13,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/eqoa/server/internal/accountmail"
 	"github.com/eqoa/server/internal/auth"
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/mailer"
 	"github.com/eqoa/server/internal/skyisles"
 )
 
@@ -109,6 +111,15 @@ type AccountServer struct {
 	// /api/mapmarks/suggest (package mapmarks), the suggestion handed the
 	// client's address as getClientIP reads it. Nil: both answer 404.
 	MapMarks MapMarksRoutes
+
+	// Mail is the accounts' e-mail (accountemail.go, internal/accountmail):
+	// the page's E-mail tab, e-mailed resets, an address required at
+	// registration. Nil (mail.accounts off): none of it, as before.
+	Mail *accountmail.Service
+	// TOTP checks code against the account's authenticator (the GM panel's,
+	// gmweb.Server.AccountTOTP): enrolled false for an account with none.
+	// Changing an address asks for it. Nil: never asked.
+	TOTP func(accountID int, code string) (enrolled, ok bool)
 
 	// PwResetTell, when set, says a new password reset request to the GMs in
 	// the world (accountpassword.go), with the account's name.
@@ -288,6 +299,11 @@ func (s *AccountServer) Handler() http.Handler {
 	mux.HandleFunc("/password", s.handlePasswordPage)
 	mux.HandleFunc("/api/password/forgot", s.handleAPIForgot)
 	mux.HandleFunc("/api/password/change", s.handleAPIChangePassword)
+	mux.HandleFunc("/api/password/email", s.handleAPIEmailSet)
+	mux.HandleFunc("/api/password/email/status", s.handleAPIEmailStatus)
+	mux.HandleFunc("/api/password/email/resend", s.handleAPIEmailResend)
+	mux.HandleFunc("/api/password/email/verify", s.handleAPIEmailVerify)
+	mux.HandleFunc("/api/password/reset", s.handleAPIPasswordReset)
 	mux.HandleFunc("/api/register", s.handleAPIRegister)
 	mux.HandleFunc("/api/login", s.handleAPILogin)
 	mux.HandleFunc("/api/characters", s.handleAPICharacters)
@@ -667,6 +683,10 @@ func (s *AccountServer) handleRegisterPage(w http.ResponseWriter, r *http.Reques
                 <label for="confirm">Confirm Password</label>
                 <input type="password" id="confirm" name="confirm" required>
             </div>
+            <!--email--><div class="form-group" id="emailGroup" style="display:none">
+                <label for="email">E-mail address (required: we send a link to it to verify your account)</label>
+                <input type="email" id="email" name="email" maxlength="127" autocomplete="email">
+            </div>
             <button type="submit" style="width:100%">Create Account</button>
         </form>
     </div>
@@ -678,6 +698,13 @@ func (s *AccountServer) handleRegisterPage(w http.ResponseWriter, r *http.Reques
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const confirm = document.getElementById('confirm').value;
+            const email = document.getElementById('email').value;
+            const mail = document.getElementById('emailGroup').style.display !== 'none';
+            if (mail && !email) {
+                msg.className = 'message error';
+                msg.textContent = 'Type your e-mail address';
+                return;
+            }
             if (password !== confirm) {
                 msg.className = 'message error';
                 msg.textContent = 'Passwords do not match';
@@ -687,10 +714,13 @@ func (s *AccountServer) handleRegisterPage(w http.ResponseWriter, r *http.Reques
                 const response = await fetch('/api/register', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({username, password})
+                    body: JSON.stringify({username, password, email})
                 });
                 const data = await response.json();
-                if (data.success) {
+                if (data.success && data.message) {
+                    msg.className = 'message success';
+                    msg.textContent = data.message;
+                } else if (data.success) {
                     msg.className = 'message success';
                     msg.textContent = 'Account created! Redirecting to login...';
                     setTimeout(() => window.location.href = '/login', 1500);
@@ -706,6 +736,11 @@ func (s *AccountServer) handleRegisterPage(w http.ResponseWriter, r *http.Reques
     </script>
 </body>
 </html>`
+	if s.Mail != nil {
+		html = strings.Replace(html, `<!--email--><div class="form-group" id="emailGroup" style="display:none">`,
+			`<div class="form-group" id="emailGroup">`, 1)
+		html = strings.Replace(html, `id="email" name="email" maxlength`, `id="email" name="email" required maxlength`, 1)
+	}
 	w.Header().Set("Content-Type", "text/html")
 	w.Write([]byte(html))
 }
@@ -1067,16 +1102,43 @@ func (s *AccountServer) handleAPIRegister(w http.ResponseWriter, r *http.Request
 	var req struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
+		Email    string `json:"email"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := json.NewDecoder(io.LimitReader(r.Body, 4096)).Decode(&req); err != nil {
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Invalid request"})
 		return
 	}
 
+	// with e-mail on (accountemail.go), an address is asked for and required,
+	// and mailed its link at once
+	if s.Mail != nil {
+		if _, err := mailer.Normalize(req.Email); err != nil {
+			json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": err.Error()})
+			return
+		}
+	}
 	clientIP := s.getClientIP(r)
 	err := s.createAccount(clientIP, req.Username, req.Password)
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": err.Error()})
+		return
+	}
+	if s.Mail != nil {
+		acc, err := s.accountStore.GetByUsername(strings.TrimSpace(req.Username))
+		if err != nil {
+			log.Printf("AccountServer: the new account '%s' could not be read back for its e-mail: %v", req.Username, err)
+			json.NewEncoder(w).Encode(map[string]interface{}{"success": true})
+			return
+		}
+		masked, err := s.Mail.SetEmail(acc.ID, req.Email, clientIP)
+		if err != nil {
+			log.Printf("AccountServer: the new account '%s''s e-mail: %v", acc.Username, err)
+			json.NewEncoder(w).Encode(map[string]interface{}{"success": true,
+				"message": "Account created, but its e-mail could not be saved: set it on the account page's E-mail tab."})
+			return
+		}
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": true, "email": masked,
+			"message": "Account created. Check your e-mail: we sent a link to " + masked + " to verify your account (check spam too)."})
 		return
 	}
 

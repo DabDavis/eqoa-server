@@ -230,6 +230,9 @@ type AuthServer struct {
 	// refreshAccount, when set, brings a username's account up to date before
 	// a handshake's password is checked (SetAccountRefresh).
 	refreshAccount func(username string) error
+
+	// STATION's e-mail forms (stationemail.go, SetAccountMail)
+	stationMailState
 }
 
 // SetAccountRefresh has CheckUDPPassword bring the account up to date first
@@ -429,6 +432,9 @@ func (s *AuthServer) HandleConnection(conn net.Conn) {
 	// The client reuses the connection when navigating between pages
 	// (e.g. login → create account → back → login).
 	buf := make([]byte, 512)
+	// the account this connection logged in as (0: none), for the account
+	// update STATION sends after it (stationemail.go)
+	loggedIn := 0
 	for {
 		conn.SetReadDeadline(time.Now().Add(120 * time.Second))
 		n, err := conn.Read(buf)
@@ -454,11 +460,8 @@ func (s *AuthServer) HandleConnection(conn net.Conn) {
 		opcode := binary.BigEndian.Uint32(data[4:8])
 		payload := data[8:] // everything after length + opcode
 
-		var response []byte
-		switch opcode {
-		case MsgLoginRequest:
-			var ip net.IP
-			relayed := false
+		// the client's address, a relayed player's page's (asked of the relay)
+		who := func() (ip net.IP, relayed bool) {
 			if a, ok := conn.RemoteAddr().(*net.TCPAddr); ok {
 				ip = a.IP
 				relayed = s.Relayed(a.IP)
@@ -466,11 +469,27 @@ func (s *AuthServer) HandleConnection(conn net.Conn) {
 					ip = s.clientIP(a.IP, a.Port)
 				}
 			}
+			return ip, relayed
+		}
+		var response []byte
+		switch {
+		case opcode == MsgLoginRequest:
+			ip, relayed := who()
 			response = s.handleLoginVia(payload, ip, relayed)
-		case MsgSubmitAcctCreate:
+			loggedIn = loginAccepted(response)
+		case opcode == MsgSubmitAcctCreate && s.mail != nil:
+			ip, _ := who()
+			response = s.handleCreateAccountMail(payload, ip)
+		case opcode == MsgSubmitAcctCreate:
 			response = s.handleCreateAccount(payload)
-		case MsgChangePassword:
+		case opcode == MsgChangePassword:
 			response = s.handleChangePassword(payload)
+		case opcode == MsgAccountUpdate && s.mail != nil:
+			ip, _ := who()
+			response = s.handleAccountUpdate(payload, loggedIn, ip)
+		case opcode == MsgForgotPassword && s.mail != nil:
+			ip, _ := who()
+			response = s.handleForgotPassword(payload, ip)
 		default:
 			log.Printf("Auth: unknown opcode 0x%08X from %s", opcode, conn.RemoteAddr())
 			return
@@ -484,6 +503,15 @@ func (s *AuthServer) HandleConnection(conn net.Conn) {
 			}
 		}
 	}
+}
+
+// loginAccepted is the account a login response accepted, or 0.
+func loginAccepted(response []byte) int {
+	if len(response) != 168 || binary.BigEndian.Uint32(response[4:8]) != MsgLoginResponse ||
+		binary.BigEndian.Uint32(response[8:12]) != 0 || binary.BigEndian.Uint32(response[84:88]) != 3 {
+		return 0
+	}
+	return int(binary.BigEndian.Uint32(response[80:84]))
 }
 
 // handleLogin processes a login request (opcode 0x24).

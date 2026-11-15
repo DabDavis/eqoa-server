@@ -34,6 +34,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/eqoa/server/internal/accountmail"
 	"io/fs"
 	"log"
 	"net"
@@ -94,6 +95,9 @@ type Deps struct {
 	// Formula is the damage formula mode's switch (internal/formulamode); nil:
 	// the panel offers none.
 	Formula *formulamode.Control
+	// AccountMail is the accounts' e-mail (internal/accountmail): the E-mail
+	// page's resend. Nil: e-mail off, or a shard (the owner's panel mails).
+	AccountMail *accountmail.Service
 }
 
 // Server is the GM panel's HTTP server.

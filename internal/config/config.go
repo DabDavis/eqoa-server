@@ -17,6 +17,7 @@ type Config struct {
 	GM     GMConfig     `yaml:"gm"`
 	Quests QuestsConfig `yaml:"quests"`
 	Combat CombatConfig `yaml:"combat"`
+	Mail   MailConfig   `yaml:"mail"`
 
 	// Shards is the server list every client is sent (0x07B3): each entry a
 	// game server of its own, and CLIENT lets its player pick (the user,
@@ -24,6 +25,45 @@ type Config struct {
 	// "Marr's Fist", on server.game_port. Every process of a set of shards
 	// carries the same list, so whichever a client asks shows the same.
 	Shards []ShardConfig `yaml:"shards"`
+}
+
+// MailConfig is the accounts' e-mail (internal/accountmail; the owner,
+// 2026-11-15: "lets add email verification to accounts, so we can make sure
+// players dont lose their account. and we can setup email password reset").
+// Everything is off unless set: a server with no mail block behaves as
+// before it existed.
+type MailConfig struct {
+	// Accounts turns the e-mail features on: the account page's E-mail tab
+	// (add, change, verify, resend), the Forgot password form's e-mailed link
+	// for an account with a verified address, an address asked for and
+	// required where an account is made (the account pages' register and
+	// STATION's Create User Name, whose pages the served station.pak trims to
+	// what is needed), the GM panel's E-mail page and the reminders below.
+	Accounts bool `yaml:"accounts"`
+
+	// Enabled delivers the mail through SMTP; false logs each message
+	// instead (to whom, masked, and its subject; LogBodies the whole text,
+	// links included: a developer's box only).
+	Enabled   bool `yaml:"enabled"`
+	LogBodies bool `yaml:"log_bodies"`
+	// SMTP is the relay's address (unset: 127.0.0.1:25, the box's own
+	// send-only Postfix), From the sender (unset: no-reply@eqoaclassic.com).
+	SMTP string `yaml:"smtp"`
+	From string `yaml:"from"`
+	// BaseURL is the site the links name (unset: https://eqoaclassic.com),
+	// PagePath the account page on it (unset: /eqoa/password, which nginx
+	// passes to the account server's /password).
+	BaseURL  string `yaml:"base_url"`
+	PagePath string `yaml:"page_path"`
+
+	// RequireVerified makes a verified address every account's: before
+	// RequireAfter (a date, 2006-01-02, UTC midnight) an account without one
+	// plays and is reminded at each world entry and every RemindEvery (unset:
+	// 30 minutes); from it on, its login is refused with the page to go to.
+	// RequireAfter unset: reminded only, never refused.
+	RequireVerified bool          `yaml:"require_verified"`
+	RequireAfter    string        `yaml:"require_after"`
+	RemindEvery     time.Duration `yaml:"remind_every"`
 }
 
 // CombatConfig is combat's settings.

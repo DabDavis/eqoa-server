@@ -19,6 +19,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/eqoa/server/internal/accountmail"
 	"github.com/eqoa/server/internal/auth"
 	"github.com/eqoa/server/internal/config"
 )
@@ -1167,6 +1168,13 @@ func (s *PatchServer) repointStationPak(data []byte) []byte {
 				"/patch/web/eqoa/motd/news.html\r\n"),
 	}
 
+	// with e-mail on, STATION's account pages trimmed to what is needed
+	// (stationpages.go)
+	var pages map[string][]byte
+	if s.cfg.Mail.Accounts {
+		pages = stationEmailPages(accountmail.Short(s.cfg.Mail))
+	}
+
 	var out bytes.Buffer
 	var changed []string
 	for off := 0; off+4 <= len(data); {
@@ -1189,6 +1197,10 @@ func (s *PatchServer) repointStationPak(data []byte) []byte {
 			log.Printf("station.pak: %s: %q -> %q", name, body, repl)
 			body = repl
 			changed = append(changed, name)
+		}
+		if page, ok := pages[name]; ok {
+			log.Printf("station.pak: %s: the e-mail page (%d -> %d bytes)", name, len(body), len(page))
+			body = page
 		}
 		if strings.HasPrefix(name, "data/ui/") && strings.HasSuffix(strings.ToLower(name), ".xml") {
 			if raised, n := raisePasswordFields(body); n > 0 {

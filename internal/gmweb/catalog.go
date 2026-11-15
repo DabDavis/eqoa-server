@@ -187,7 +187,7 @@ var catalog = map[string]tableNote{
 			"Passwords are bcrypt hashes and are set with the account tools, never written here.",
 		Live:   "A ban (acctstatus below 0) ejects the account's sessions at once. Levels and passwords have their own tools.",
 		Show:   []string{"accountid", "username", "acctlevel", "acctstatus", "lastlogin", "ipaddress", "acctcreation"},
-		Search: []string{"username", "email", "ipaddress"},
+		Search: []string{"username", "ipaddress"},
 		Cols: map[string]colNote{
 			"accountid":    {Label: "Account", ReadOnly: true},
 			"username":     {Label: "Name"},
@@ -199,6 +199,24 @@ var catalog = map[string]tableNote{
 			"ipaddress":    {Label: "Address"},
 			"pwtemp": {Label: "Temporary password", ReadOnly: true,
 				Help: "1 while the password is a temporary one a GM set (a password reset): the account pages ask its owner for their own first"},
+			// the address is its owner's alone to see: the panel shows it
+			// masked (email_list, the account's page); and the Station
+			// sign-up's old person fields, asked for no more, are shown no more
+			"email": {Label: "E-mail", Secret: true},
+			"email_verified_at": {Label: "E-mail verified", ReadOnly: true, Format: "stamp",
+				Help: "when its address was confirmed (its link opened) or a GM marked it verified; empty: not verified"},
+			"email_verified_by": {Label: "Verified by", ReadOnly: true, Help: "link, or GM <name> (email_mark_verified)"},
+			"firstname":         {Secret: true},
+			"midinitial":        {Secret: true},
+			"lastname":          {Secret: true},
+			"unknown1":          {Secret: true},
+			"unknown2":          {Secret: true},
+			"countryAB":         {Secret: true},
+			"zip":               {Secret: true},
+			"birthday":          {Secret: true},
+			"birthyear":         {Secret: true},
+			"birthmon":          {Secret: true},
+			"sex":               {Secret: true},
 		},
 	},
 	"characters": {
@@ -722,6 +740,7 @@ var catalog = map[string]tableNote{
 	},
 	// the password reset form's senders' salt, hidden as spellfx_meta
 	"pwreset_meta": {Hidden: true},
+	"email_tokens": {Hidden: true},
 	"campfix_reports": {
 		Label: "Camp fix reports", Group: "World", Title: "charname", Sort: "id",
 		Help: "Players' camp reports (handlers/campfix.go; /campfix, then /mark, /markadd, /markremove where a camp's " +

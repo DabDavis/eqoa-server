@@ -15,6 +15,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/eqoa/server/internal/accountmail"
 	"github.com/eqoa/server/internal/auth"
 	"github.com/eqoa/server/internal/database"
 )
@@ -77,6 +78,12 @@ const (
 // not, so it says nothing about an account.
 const forgotAnswer = "Thank you. If the account exists, a GM will contact you there to confirm it is yours and give you a " +
 	"temporary password. You will set your own the first time you use it on this page."
+
+// forgotAnswerMail is forgotAnswer with e-mail on (accountemail.go): a verified
+// address is sent a link, an account without one waits on a GM as before.
+const forgotAnswerMail = "Thank you. If the account exists and has a verified e-mail address, a link to set a new password is " +
+	"on its way there (it works for an hour; check spam too). If it has none, a GM will contact you at the contact you gave to " +
+	"confirm it is yours and give you a temporary password."
 
 // TempPasswordRefusal is what a page's sign-in says to a temporary password.
 const TempPasswordRefusal = "Your password is a temporary one from a GM: set your own on the password page first"
@@ -196,10 +203,18 @@ func (s *AccountServer) handleAPIForgot(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	account, contact, note := strings.TrimSpace(in.Account), strings.TrimSpace(in.Contact), strings.TrimSpace(in.Note)
+	// with e-mail on, a contact is for an account with no verified address
+	// alone, and may be left out
+	mailOn := s.Mail != nil
+	answer := forgotAnswer
+	if mailOn {
+		answer = forgotAnswerMail
+	}
 	switch {
 	case account == "" || utf8.RuneCountInString(account) > 32 || !pwPlain(account, false):
 		pwJSON(w, http.StatusBadRequest, map[string]any{"ok": false, "error": "Type your account name (the one you log in with)"})
 		return
+	case mailOn && contact == "":
 	case utf8.RuneCountInString(contact) < 2 || utf8.RuneCountInString(contact) > pwContactMost || !pwPlain(contact, false):
 		pwJSON(w, http.StatusBadRequest, map[string]any{"ok": false,
 			"error": fmt.Sprintf("Say how a GM can reach you (2 to %d characters): your Discord name, or a character's name and level", pwContactMost)})
@@ -215,7 +230,7 @@ func (s *AccountServer) handleAPIForgot(w http.ResponseWriter, r *http.Request) 
 	}
 	if strings.TrimSpace(in.Website) != "" { // the field no person sees
 		log.Printf("AccountServer: a password reset form with the hidden field filled, not kept")
-		pwJSON(w, http.StatusOK, map[string]any{"ok": true, "message": forgotAnswer})
+		pwJSON(w, http.StatusOK, map[string]any{"ok": true, "message": answer})
 		return
 	}
 	hash, err := s.pwAddrHash(ip)
@@ -250,7 +265,17 @@ func (s *AccountServer) handleAPIForgot(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	// From here on every answer is the same, kept or not.
+	if mailOn && acc != nil {
+		// a verified address gets the link, and no GM is asked
+		if st, err := s.db.AccountEmail(acc.ID); err == nil && accountmail.HasVerifiedEmail(st) {
+			s.Mail.SendReset(st, "", ip)
+			pwJSON(w, http.StatusOK, map[string]any{"ok": true, "message": answer})
+			return
+		}
+	}
 	switch {
+	case mailOn && contact == "":
+		log.Printf("AccountServer: password reset for an account with no verified e-mail and no contact (sender %s), not kept", hash[:8])
 	case acc == nil:
 		log.Printf("AccountServer: password reset for no such account (sender %s), not kept", hash[:8])
 	case lim.AccountWait || lim.ForAccount >= forgotPerDayAccount:
@@ -269,7 +294,7 @@ func (s *AccountServer) handleAPIForgot(w http.ResponseWriter, r *http.Request) 
 			s.PwResetTell(kept, acc.Username)
 		}
 	}
-	pwJSON(w, http.StatusOK, map[string]any{"ok": true, "message": forgotAnswer})
+	pwJSON(w, http.StatusOK, map[string]any{"ok": true, "message": answer})
 }
 
 // PwResetBoardOwner is the owner of a request's board entry: the GMs, who
@@ -384,8 +409,13 @@ func (s *AccountServer) handlePasswordPage(w http.ResponseWriter, r *http.Reques
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("X-Frame-Options", "DENY")
-	w.Header().Set("Referrer-Policy", "same-origin")
-	io.WriteString(w, passwordPage)
+	// a link's token is in the fragment, which no referrer carries; no-referrer all the same
+	w.Header().Set("Referrer-Policy", "no-referrer")
+	page := passwordPage
+	if s.Mail != nil {
+		page = strings.Replace(page, `<body data-mail="0">`, `<body data-mail="1">`, 1)
+	}
+	io.WriteString(w, page)
 }
 
 // passwordPage is the password page: Forgot (#forgot, the default) and Change
@@ -397,13 +427,15 @@ const passwordPage = `<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Account password - EQOA</title>
+<meta name="referrer" content="no-referrer">
+<title>Account - EQOA</title>
 <style>
   * { box-sizing: border-box; }
   body { font-family: 'Segoe UI', Arial, sans-serif; background: #1a1a2e; color: #e8e8e8; margin: 0; padding: 24px 12px; }
   main { max-width: 560px; margin: 0 auto; }
   h1 { color: #e0c070; font-size: 1.6em; margin: 0 0 8px; }
   h2 { color: #e0c070; font-size: 1.15em; margin: 0 0 12px; }
+  h3 { color: #e0c070; font-size: 1em; margin: 18px 0 6px; }
   .card { background: #16213e; border: 1px solid #2a3a5e; border-radius: 8px; padding: 18px; margin: 16px 0; }
   p { line-height: 1.5; color: #c8c8d8; }
   label { display: block; margin: 10px 0 4px; font-size: .92em; color: #b8b8c8; }
@@ -412,11 +444,12 @@ const passwordPage = `<!DOCTYPE html>
   textarea { min-height: 80px; resize: vertical; }
   button { margin-top: 14px; padding: 9px 18px; background: #c9a646; color: #1a1a2e; border: 0; border-radius: 5px; font-weight: 600;
     cursor: pointer; font: inherit; }
+  button.ghost { background: transparent; color: #c9a646; border: 1px solid #c9a646; }
   button:disabled { opacity: .6; cursor: default; }
-  .tabs { display: flex; gap: 8px; }
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
   .tabs a { color: #c9a646; text-decoration: none; padding: 6px 12px; border: 1px solid #2a3a5e; border-radius: 5px; }
   .tabs a.on { background: #c9a646; color: #1a1a2e; }
-  .msg { min-height: 1.2em; margin-top: 10px; line-height: 1.5; }
+  .msg { min-height: 1.2em; margin-top: 10px; line-height: 1.5; overflow-wrap: anywhere; }
   .err { color: #ff8a80; }
   .ok { color: #8be78b; }
   .hidden { display: none; }
@@ -424,21 +457,25 @@ const passwordPage = `<!DOCTYPE html>
   .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 </style>
 </head>
-<body>
+<body data-mail="0">
 <main>
-  <h1>Account password</h1>
-  <nav class="tabs"><a href="#forgot" id="tabForgot">Forgot password?</a><a href="#change" id="tabChange">Change password</a></nav>
+  <h1>Account</h1>
+  <nav class="tabs"><a href="#forgot" id="tabForgot">Forgot password?</a><a href="#change" id="tabChange">Change password</a><a
+    href="#email" id="tabEmail" class="mailonly hidden">E-mail</a></nav>
 
   <div class="card" id="forgot">
     <h2>Forgot your password?</h2>
-    <p>Accounts here have no e-mail, so a GM resets a password by hand. Tell us your account and how to reach you: a GM
+    <p class="nomail">Accounts here have no e-mail, so a GM resets a password by hand. Tell us your account and how to reach you: a GM
       checks it is you (they may ask about your characters) and gives you a temporary password. You set your own the first
       time you use it, on the Change password form.</p>
+    <p class="mailonly hidden">If your account has a verified e-mail address, we mail it a link to choose a new password. If it has
+      none, tell us how to reach you: a GM checks it is you (they may ask about your characters) and gives you a temporary
+      password, which you change the first time you use it.</p>
     <form id="forgotForm" autocomplete="off">
       <label for="fa">Account name (the one you log in with)</label>
       <input id="fa" required maxlength="32" autocomplete="username">
-      <label for="fc">How can a GM reach you?</label>
-      <input id="fc" required maxlength="200" placeholder="Your Discord name, or a character's name and level">
+      <label for="fc">How can a GM reach you?<span class="mailonly hidden"> (only needed if your account has no verified e-mail)</span></label>
+      <input id="fc" maxlength="200" placeholder="Your Discord name, or a character's name and level">
       <label for="fn">Anything else (optional)</label>
       <textarea id="fn" maxlength="500" placeholder="Your characters, when you last played..."></textarea>
       <div class="hp" aria-hidden="true"><label for="fw">Leave this empty</label><input id="fw" tabindex="-1" autocomplete="off"></div>
@@ -463,13 +500,60 @@ const passwordPage = `<!DOCTYPE html>
       <div class="msg" id="changeMsg" role="alert"></div>
     </form>
   </div>
+
+  <div class="card hidden" id="email">
+    <h2>Your e-mail address</h2>
+    <p>A verified address keeps your account yours: with it you can reset a forgotten password by e-mail. We use it for
+      nothing else, and no one else sees it.</p>
+    <form id="emailForm">
+      <label for="ea">Account name</label>
+      <input id="ea" required maxlength="32" autocomplete="username">
+      <label for="ep">Password</label>
+      <input id="ep" type="password" required maxlength="64" autocomplete="current-password">
+      <label for="et">Authenticator code (only if you use one on the GM panel)</label>
+      <input id="et" inputmode="numeric" maxlength="8" autocomplete="one-time-code">
+      <div class="msg" id="emailState"></div>
+      <button type="button" class="ghost" id="emailCheck">Show my e-mail</button>
+      <button type="button" class="ghost" id="emailResend">Send the link again</button>
+      <h3>Set or change it</h3>
+      <label for="ee">E-mail address</label>
+      <input id="ee" type="email" maxlength="127" autocomplete="email">
+      <label for="ef">E-mail address again</label>
+      <input id="ef" type="email" maxlength="127" autocomplete="email">
+      <button type="submit">Save and send the link</button>
+      <div class="msg" id="emailMsg" role="alert"></div>
+    </form>
+    <p class="small">The link works for 24 hours. A new address is unverified until its link is opened.</p>
+  </div>
+
+  <div class="card hidden" id="verify">
+    <h2>Verify your e-mail</h2>
+    <p>Confirm that this address is yours and belongs to your account.</p>
+    <button type="button" id="verifyGo">Verify my e-mail</button>
+    <div class="msg" id="verifyMsg" role="alert"></div>
+  </div>
+
+  <div class="card hidden" id="reset">
+    <h2>Choose a new password</h2>
+    <form id="resetForm">
+      <label for="rp">New password (4 to 31 characters)</label>
+      <input id="rp" type="password" required minlength="4" maxlength="31" autocomplete="new-password">
+      <label for="rq">New password again</label>
+      <input id="rq" type="password" required minlength="4" maxlength="31" autocomplete="new-password">
+      <button type="submit">Set my password</button>
+      <div class="msg" id="resetMsg" role="alert"></div>
+    </form>
+    <p class="small">The link works once, for an hour. Your account's other sessions on these pages end.</p>
+  </div>
   <p class="small">The game and these pages share one password.</p>
 </main>
 <script>
 (function () {
   'use strict';
   var base = location.pathname.indexOf('/eqoa/') === 0 ? '/eqoa/account/api/password/' : '/api/password/';
+  var mail = document.body.getAttribute('data-mail') === '1';
   var $ = function (id) { return document.getElementById(id); };
+  var token = '';
   function call(path, body) {
     return fetch(base + path, { method: 'POST', credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json', 'X-EQOA-Account': '1' }, body: JSON.stringify(body) })
@@ -477,16 +561,31 @@ const passwordPage = `<!DOCTYPE html>
       .catch(function () { return { ok: false, error: 'Connection error: try again later' }; });
   }
   function say(id, text, ok) { var m = $(id); m.textContent = text || ''; m.className = 'msg ' + (ok ? 'ok' : 'err'); }
+  document.querySelectorAll('.mailonly').forEach(function (e) { e.classList.toggle('hidden', !mail); });
+  document.querySelectorAll('.nomail').forEach(function (e) { e.classList.toggle('hidden', mail); });
+  if (!mail) $('fc').required = true;
+  // a link's token comes in the fragment (never sent to a server or logged),
+  // and is taken off the address bar at once
+  function take() {
+    var m = /^#(verify|reset)=([A-Za-z0-9_-]{20,})$/.exec(location.hash);
+    if (!m) return;
+    token = m[2];
+    history.replaceState(null, '', location.pathname + location.search + '#' + m[1]);
+  }
   function show() {
-    var change = location.hash === '#change';
-    $('forgot').classList.toggle('hidden', change);
-    $('change').classList.toggle('hidden', !change);
-    $('tabForgot').classList.toggle('on', !change);
-    $('tabChange').classList.toggle('on', change);
+    take();
+    var v = (location.hash || '#forgot').slice(1);
+    var views = ['forgot', 'change'].concat(mail ? ['email', 'verify', 'reset'] : []);
+    if (views.indexOf(v) < 0) v = 'forgot';
+    ['forgot', 'change', 'email', 'verify', 'reset'].forEach(function (k) { $(k).classList.toggle('hidden', k !== v); });
+    $('tabForgot').classList.toggle('on', v === 'forgot');
+    $('tabChange').classList.toggle('on', v === 'change');
+    $('tabEmail').classList.toggle('on', v === 'email' || v === 'verify');
+    if ((v === 'verify' || v === 'reset') && !token) say(v + 'Msg', 'Open the link from your e-mail again: this page has no token from it.');
   }
   window.addEventListener('hashchange', show);
   var q = new URLSearchParams(location.search);
-  if (q.get('account')) { $('ca').value = q.get('account'); $('fa').value = q.get('account'); }
+  if (q.get('account')) { $('ca').value = q.get('account'); $('fa').value = q.get('account'); $('ea').value = q.get('account'); }
   if (q.get('temporary')) { $('tempNote').classList.remove('hidden'); if (!location.hash) location.hash = '#change'; }
   show();
   $('forgotForm').addEventListener('submit', function (e) {
@@ -509,6 +608,58 @@ const passwordPage = `<!DOCTYPE html>
       say('changeMsg', r.message, true);
       $('tempNote').classList.add('hidden');
       $('cc').value = $('cp').value = $('cq').value = '';
+    });
+  });
+  function who() { return { account: $('ea').value, password: $('ep').value, code: $('et').value }; }
+  function stateLine(r) {
+    if (!r.email) return 'No e-mail address on this account yet.';
+    return r.email + (r.verified ? ' - verified' : ' - not verified yet: open the link we sent, or send it again');
+  }
+  $('emailCheck').addEventListener('click', function () {
+    say('emailMsg', '');
+    call('email/status', who()).then(function (r) {
+      if (!r.ok) { say('emailState', r.error); return; }
+      say('emailState', stateLine(r), r.verified);
+    });
+  });
+  $('emailResend').addEventListener('click', function () {
+    say('emailMsg', '');
+    call('email/resend', who()).then(function (r) { say('emailMsg', r.ok ? r.message : r.error, r.ok); });
+  });
+  $('emailForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!$('ee').value) { say('emailMsg', 'Type your e-mail address'); return; }
+    if ($('ee').value.trim().toLowerCase() !== $('ef').value.trim().toLowerCase()) { say('emailMsg', 'The two addresses do not match'); return; }
+    var b = e.target.querySelector('button[type=submit]'); b.disabled = true; say('emailMsg', '');
+    var body = who(); body.email = $('ee').value;
+    call('email', body).then(function (r) {
+      b.disabled = false;
+      if (!r.ok) { say('emailMsg', r.error); return; }
+      say('emailMsg', r.message, true);
+      $('ee').value = $('ef').value = '';
+    });
+  });
+  $('verifyGo').addEventListener('click', function (e) {
+    if (!token) return;
+    e.target.disabled = true;
+    call('email/verify', { token: token }).then(function (r) {
+      if (!r.ok) { e.target.disabled = false; say('verifyMsg', r.error); return; }
+      token = '';
+      say('verifyMsg', r.message, true);
+    });
+  });
+  $('resetForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!token) return;
+    if ($('rp').value !== $('rq').value) { say('resetMsg', 'The new passwords do not match'); return; }
+    var b = e.target.querySelector('button'); b.disabled = true; say('resetMsg', '');
+    call('reset', { token: token, password: $('rp').value }).then(function (r) {
+      b.disabled = false;
+      if (!r.ok) { say('resetMsg', r.error); return; }
+      token = '';
+      b.disabled = true;
+      say('resetMsg', r.message, true);
+      $('rp').value = $('rq').value = '';
     });
   });
 })();

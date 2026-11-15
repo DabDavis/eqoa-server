@@ -19,6 +19,7 @@ const NAV = [
     ['petitions', 'Petitions', 'send'],
     ['transfers', 'Character transfers', 'users'],
     ['pwresets', 'Password resets', 'lock'],
+    ['emails', 'E-mail', 'send'],
   ]],
   ['World', [
     ['npcs', 'NPCs', 'skull'],
@@ -81,6 +82,7 @@ const VIEWS = {
   petitions: () => import('./views/petitions.js'),
   transfers: () => import('./views/transfers.js'),
   pwresets: () => import('./views/pwresets.js'),
+  emails: () => import('./views/emails.js'),
   npcs: () => import('./views/npcs.js'),
   merchants: () => import('./views/merchants.js'),
   campfix: () => import('./views/campfix.js'),

@@ -504,7 +504,13 @@ goes on the work board above; a personal board is for talking about it.
   `tell`, a line to send them); it is kept nowhere, so pass it on now in a direct message. Not them: `pwreset_decline`.
   A player who asked on Discord instead: `pwreset_start` `{account, contact, note}` (filed and approved at once). They
   must set their own on the website before its pages let them in; the game takes the temporary one and tells them
-  to change it. Refused on a shard whose accounts are a copy: use the main shard's panel.
+  to change it. Refused on a shard whose accounts are a copy: use the main shard's panel. With e-mail on, an account
+  with a verified address resets its own by a mailed link and never reaches this list.
+- **Accounts' e-mail**: `email_counts`, `email_list` `{filter: unverified|pending|none|verified|all}`, `email_get`
+  `{account}`. An address is its owner's: you see it masked (`d***@g***.com`) and never whole, and you never ask a player
+  for theirs. A player whose link is lost: `email_resend` `{account}`. A player who has shown the account is theirs and
+  cannot receive the mail: `email_mark_verified` `{account, note}` (the note says how you confirmed it; audited). Both
+  refused on a shard whose accounts are a copy.
 
 ## Limits
 

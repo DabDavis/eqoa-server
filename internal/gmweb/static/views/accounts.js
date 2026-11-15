@@ -4,6 +4,7 @@ import { isAdmin, state, go } from '../lib/nav.js';
 import { ago, when } from '../lib/fmt.js';
 import { listPage, recordPage } from './tablepage.js';
 import { ban } from './actions.js';
+import { emailBadge, emailActions } from './emails.js';
 
 export async function render(box, [id]) {
   if (id === undefined) {
@@ -45,7 +46,9 @@ export async function render(box, [id]) {
             r.tester ? h('span', { class: 'badge ok' }, 'Tester') : null,
             r.storyteller ? h('span', { class: 'badge ok' }, 'Storyteller') : null,
             r.authenticator ? h('span', { class: 'badge info' }, 'Authenticator') : null),
-          h('dl', { class: 'kv' }, h('dt', null, 'Last address'), h('dd', null, row.ipaddress || '—'), h('dt', null, 'Email'), h('dd', null, row.email || '—')))),
+          h('dl', { class: 'kv' }, h('dt', null, 'Last address'), h('dd', null, row.ipaddress || '—'),
+            h('dt', null, 'E-mail'), h('dd', null, h('span', { class: 'mono' }, r.email?.email || '—'), ' ', emailBadge(r.email))),
+          r.email ? h('div', { class: 'row' }, ...emailActions(r.email, () => location.reload())) : null)),
         card(`Characters (${r.characters.length})`, r.characters.length
           ? h('div', { class: 'table-scroll' }, h('table', { class: 'plain' }, h('tbody', null, ...r.characters.map((c) => h('tr', null,
             h('td', null, h('a', { href: '#/characters/' + c.serverid }, c.charName), c.online ? h('span', { class: 'badge ok' }, 'online') : null),

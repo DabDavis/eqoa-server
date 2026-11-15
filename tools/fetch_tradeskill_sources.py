@@ -9,7 +9,8 @@ For a craft:
   product's AC and stats, or "N/C" (no combine); jewelry's are Prima's
   Frontiers guide's gem tables instead (the gems changed in December 2003,
   after eqoatrade's grid), so for it the guide's PDF from archive.org, made
-  into layout text with pdftotext (poppler-utils);
+  into layout text with pdftotext (poppler-utils); tailoring's are the
+  guide's alone (eqoatrade has none);
 - its vendors by city: the trainer, and who sells the tools, the molds and
   patterns, and the metal;
 - its tutorial: the trainer's starter kit.
@@ -58,10 +59,12 @@ PAGES = {
         "Vendors/Weapon.htm",
         "Tutorials/Weapon.htm",
     ],
+    # Tailoring: eqoatrade has no tailoring pages (it predates the craft, 30 Oct 2003); Prima's guide alone
+    "tailor": [],
 }
 PRIMA_PDF = ("https://archive.org/download/EverQuest_Online_Adventures_Frontiers_Prima_Official_eGuide/"
              "EverQuest_Online_Adventures_Frontiers_Prima_Official_eGuide.pdf")
-NEEDS_PRIMA = {"jewel"}
+NEEDS_PRIMA = {"jewel", "tailor"}
 
 
 def fetch(url, dest):

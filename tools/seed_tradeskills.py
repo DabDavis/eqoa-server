@@ -645,6 +645,11 @@ def resolve(db, p):
     npc_rows = rows_by_key(db, "npcs", sorted({npc for _, _, _, (npc, _, _), _ in p["stock"]}))
     npc_now = {k: {"npc_type": v["npc_type"], "npc_id": v["npc_id"]} for k, v in npc_rows.items()}
     npc_upd, del_rows, adds, catalogs = [], [], [], {}
+    # a name a shard spells otherwise than the other and the record (Tailoring's: tailor_npc), set to theirs
+    renames = rows_by_key(db, "npcs", sorted({n for n, _, _ in p.get("renames", [])}))
+    for npc, old, new in p.get("renames", []):
+        if renames.get(npc, {}).get("npc_name") == old:
+            npc_upd.append({"id": npc, "old": {"npc_name": old}, "new": {"npc_name": new}})
     for city, role, name, (npc, npc_id, typ), wares in p["stock"]:
         now = npc_now[npc]
         if not (now["npc_type"] or 0) & 0x01:
@@ -697,7 +702,7 @@ def resolve(db, p):
            "npcs": npc_upd, "npcitem_del": del_rows, "npcitem_add": adds, "lootpool": pool, "loottables": tables,
            "npcloot": npcloot, "catalogs": sorted(catalogs), "pool": lt.get("pool"), "loot_table": lt.get("table"),
            "mod_ids": sorted({ref[m] for m, _ in lt["mods"] if isinstance(ref[m], int)}),
-           "stock_npcs": sorted(npc_rows)}
+           "stock_npcs": sorted(npc_rows), "renamed": sorted(u["id"] for u in npc_upd if "npc_name" in u["new"])}
     ops["assume"] = assumptions(db, ops)
     return ops
 
@@ -728,6 +733,8 @@ def assumptions(db, ops):
         taken += [r[0] for r in db.execute(f"SELECT patternid FROM itempattern WHERE patternid IN ({','.join('?' * len(part))})", part)]
     npcs = sorted(set(ops["stock_npcs"]) | set(catalogs))
     npc_state = [[k, v["npc_type"], v["npc_id"]] for k, v in sorted(rows_by_key(db, "npcs", npcs).items())]
+    if ops.get("renamed"):  # the names a plan sets (a plan without them reads as before)
+        npc_state += [[k, v["npc_name"]] for k, v in sorted(rows_by_key(db, "npcs", ops["renamed"]).items())]
     cat = []
     for part in chunks(catalogs):
         cat += db.execute(f"SELECT * FROM npcitem WHERE npcid IN ({','.join('?' * len(part))}) ORDER BY itemid", part).fetchall()
@@ -1664,7 +1671,389 @@ def plan_weapon(db, folder, harvests):
             "products": products, "stock": stock, "left": left, "problems": problems, "loot": loot}
 
 
-PLANS = {"armor": plan, "jewel": plan_jewel, "weapon": plan_weapon}
+# ---- Tailoring
+
+
+TAILOR = 2  # the skill: CLIENT's craft slot (Recipe Book: Tailoring -> 2, with S2; tool wear slot 24, TAILORING)
+# CLIENT's Tailoring list (VIWndRecipe::ComponentName, spec 3.2): the book's tab is a textile's index, Special last.
+# Each: its word in a product's name (Prima p. 444, "Textiles"), Sandstorm's record of it (Freeport's Merchant Dirlen),
+# cloth or leather, its trade level.
+TEXTILES = [
+    ("Fur", "Fur Swatch", "cloth", 1), ("Cotton", "Cotton Swatch", "cloth", 2), ("Wool", "Wool Swatch", "cloth", 3),
+    ("Tattered Hide", "Sheet of Tattered Hide", "leather", 3), ("Hemp", "Hemp Swatch", "cloth", 4),
+    ("Hide", "Sheet of Hide", "leather", 4), ("Ramie", "Ramie Swatch", "cloth", 5),
+    ("Suede", "Sheet of Suede Hide", "leather", 5), ("Canvas", "Canvas Swatch", "cloth", 6),
+    ("Leather", "Sheet of Leather Hide", "leather", 6), ("Linen", "Linen Swatch", "cloth", 7),
+    ("Analine Leather", "Sheet of Analine Leather Hide", "leather", 7), ("Silk", "Silk Swatch", "cloth", 8),
+    ("Nubuck Leather", "Sheet of Nubuck Leather Hide", "leather", 8), ("Elven Twill", "Elven Twill Swatch", "cloth", 9),
+    ("Vale Leather", "Sheet of Vale Leather Hide", "leather", 9), ("Mithril Silk", "Mithril Silk Swatch", "cloth", 10),
+    ("Stonehide", "Sheet of Stonehide Leather", "leather", 10),
+]
+TAILOR_SPECIAL = len(TEXTILES)  # 18
+# p. 444, "Textiles": bonus durability, bonus hit points and bonus AC by trade level (cloth and leather alike)
+TAILOR_BONUS_DUR = [1, 3, 8, 12, 15, 18, 20, 22, 26, 30]
+TAILOR_BONUS_HP = [50, 100, 200, 400, 800, 1200, 1800, 2200, 2500, 2800]
+TAILOR_BONUS_AC = [3, 4, 6, 8, 10, 12, 14, 18, 20, 22]
+# p. 444, "Tailored Armor Type and Color by Pattern and Trade Level": Tan, Tan, Brown, Brown, Yellow, Orange, Red, Blue,
+# Green, Steel as CLIENT's $Tints holds them (armor-tint-system.md)
+TAILOR_TINT = [11, 11, 3, 3, 14, 6, 8, 4, 5, 10]
+# p. 445, "Mundane Crafted Armor AC By Trade Level And Location": its first six rows cloth, its last six leather
+TAILOR_AC = {
+    "cloth": {"cap": [5, 7, 11, 15, 19, 23, 27, 33, 37, 41], "tunic": [9, 15, 24, 34, 43, 53, 62, 74, 83, 93],
+              "bracers": [6, 9, 15, 21, 27, 32, 38, 46, 52, 57], "gloves": [6, 9, 15, 21, 27, 32, 38, 46, 52, 57],
+              "leggings": [7, 11, 18, 25, 32, 39, 46, 55, 62, 69], "boots": [5, 8, 12, 17, 21, 26, 30, 37, 41, 46]},
+    "leather": {"cap": [6, 10, 15, 22, 28, 34, 40, 48, 54, 60], "tunic": [15, 25, 42, 59, 76, 93, 110, 129, 146, 163],
+                "bracers": [9, 15, 24, 34, 43, 53, 62, 74, 83, 93], "gloves": [9, 15, 24, 34, 43, 53, 62, 74, 83, 93],
+                "leggings": [11, 18, 30, 42, 54, 66, 78, 92, 104, 116], "boots": [7, 11, 18, 25, 32, 39, 46, 55, 62, 69]},
+}
+# a piece: its equip slot, its word in a product's name, and Sandstorm's pattern (Merchant Flagan). A leather cap is a
+# "Helm" as the live records name it ("Heartsblood Stonehide Helm", level 48); a robe is cloth's alone (p. 444).
+TAILOR_PIECES = {
+    "cloth": [("cap", 1, "Cap", "Cloth Cap Pattern"), ("tunic", 5, "Tunic", "Cloth Tunic Pattern"),
+              ("bracers", 7, "Bracers", "Cloth Bracers Pattern"), ("gloves", 19, "Gloves", "Cloth Gloves Pattern"),
+              ("leggings", 10, "Leggings", "Cloth Leggings Pattern"), ("boots", 11, "Boots", "Cloth Boots Pattern"),
+              ("robe", 2, "Robe", "Cloth Robe Pattern")],
+    "leather": [("cap", 1, "Helm", "Leather Cap Pattern"), ("tunic", 5, "Tunic", "Leather Tunic Pattern"),
+                ("bracers", 7, "Bracers", "Leather Bracers Pattern"), ("gloves", 19, "Gloves", "Leather Gloves Pattern"),
+                ("leggings", 10, "Leggings", "Leather Leggings Pattern"), ("boots", 11, "Boots", "Leather Boots Pattern")],
+}
+# CLIENT's armor sets ($Armor) as the live records carry them: padded cloth 1, leather 2; a robe is style 0 (its tint
+# its record's colour: entity.RobeLook). Who wears it: the live records' commonest masks (cloth every class, leather all
+# but the four int casters); a robe the casters', priests' and monks' (this server's black wool robe; QuestMasters'
+# robes page "monk/healer/caster": ours).
+TAILOR_MODEL = {"cloth": 1, "leather": 2, "robe": 0}
+TAILOR_CLASSES = {"cloth": 32767, "leather": 17407, "robe": 32656}
+# p. 445, "Crafted Armor Stat Bonuses" by trade level (None: none at that level)
+TAILOR_STAT = {
+    "one": [4, 6, 8, 10, 12, 14, 18, 18, 20, 20],         # a resist or an attribute
+    "two": [2, 4, 5, 6, 7, 8, 8, 9, 10, 10],              # each of two attributes (or resists)
+    "max": [10, 25, 35, 40, 50, 55, 60, 65, 70, 75],      # hit point or power max
+    "both": [10, 15, 20, 24, 28, 30, 34, 36, 38, 40],     # each of hit point and power max
+    "over": [None, None, None, None, None, 4, 6, 8, 10, 10],  # hit points or power over time
+}
+# p. 444, "Magical Studs, Tannins, and Gems": rarity, what it gives (its kind's row above and the columns), and the word
+# a product's name takes (the "Naming Conventions": "Titan*", "Heartsblood*" ...). The thirteen gems are the
+# armorsmiths' (QuestMasters id458: "Armor/Tailor"); the nine studs, threads and sap tailoring's own.
+TAILOR_MODS = {
+    "Amblygonite": (0, "one", ("PR",), "Amblygonite"), "Indicolite": (0, "one", ("CR",), "Indicolite"),
+    "Rubellite": (0, "one", ("FR",), "Rubellite"), "Schorl": (0, "one", ("DR",), "Schorl"),
+    "Dravite": (0, "one", ("LR",), "Dravite"), "Achroite": (0, "one", ("AR",), "Achroite"),
+    "Sinhalite": (0, "one", ("str",), "Sinhalite"), "Leucite": (0, "one", ("intelligence",), "Leucite"),
+    "Apatite": (0, "one", ("wis",), "Apatite"), "Rhodizite": (0, "one", ("sta",), "Rhodizite"),
+    "Zoisite": (0, "one", ("dex",), "Zoisite"), "Pectolite": (0, "one", ("agi",), "Pectolite"),
+    "Idocrase": (0, "one", ("cha",), "Idocrase"),
+    "Titan Alloy Studs": (1, "max", ("HPMAX",), "Titan"), "Mana Infused Thread": (1, "max", ("POWMAX",), "Infused"),
+    "Marr Blessed Studs": (1, "two", ("sta", "cha"), "Blessed"), "Tunare Hair Thread": (1, "two", ("agi", "wis"), "Tunare"),
+    "Rallosian Studs": (1, "two", ("str", "intelligence"), "Rallosian"),
+    "Takish Ivory Studs": (1, "two", ("dex", "cha"), "Takish"),
+    "Ancient Treant Sap": (2, "both", ("HPMAX", "POWMAX"), "Treant"),
+    "Heartsblood Alloy Studs": (3, "over", ("HoT",), "Heartsblood"), "Mindflow Thread": (3, "over", ("PoT",), "Mindflow"),
+}
+# the least trade level a modifier works at: Prima's counts (1,800 magical pieces: 20 modifiers x 7 levels + the two over
+# time x 5, a piece; 170 magical robes: 20 x 8 + 2 x 5) say 4 for the pieces, as Armor's, and 3 for the robes
+# (QuestMasters id341: "Tailoring a pattern and material with an optional gem at level 3+")
+TAILOR_MOD_FROM = {"piece": 4, "robe": 3}
+TAILOR_POOL = "modifiers"  # the loot category the armorsmiths' and weaponsmiths' modifiers drop from
+# Prima's words for what each modifier does (the property column), for the check against its table
+TAILOR_PROPERTY = {
+    "PR": "Poison Resist", "CR": "Cold Resist", "FR": "Fire Resist", "DR": "Disease Resist", "LR": "Lightning Resist",
+    "AR": "Arcane Resist", "str": "Strength", "intelligence": "Intelligence", "wis": "Wisdom", "sta": "Stamina",
+    "dex": "Dexterity", "agi": "Agility", "cha": "Charisma", "HPMAX": "Hit Point Max", "POWMAX": "Power Max",
+    ("sta", "cha"): "Stamina and Charisma", ("agi", "wis"): "Agility and Wisdom",
+    ("str", "intelligence"): "Strength and Intelligence", ("dex", "cha"): "Dexterity and Charisma",
+    ("HPMAX", "POWMAX"): "Hit Point and Power Max", "HoT": "Hit Point Regen", "PoT": "Power Regen",
+}
+TAILOR_PRIMA_WORD = {"Sinahlite": "Sinhalite"}  # Prima's naming column's misprint
+# The trainers and suppliers, Prima's city tables ("Teaches Tailoring", "Patterns/Tailoring Kits Level 1-46",
+# "Material"; eqoatrade has no tailoring pages): Halas p. 70, Fayspires (its table names no trainer: this server's
+# Seamster Bliss stands beside its two merchants, ours), Klick'Anon, Rivervale, Freeport, Qeynos, Surefall Glade,
+# Oggok, Grobb. Neriak, Moradhim, Tethelin and Highbourne have none in Prima.
+TAILOR_SELLERS = {
+    "Halas": {"trainer": "Seamster Jackson", "kits": "Merchant Yurn", "material": "Merchant Grugan"},
+    "Fayspires": {"trainer": "Seamster Bliss", "kits": "Merchant Morgan", "material": "Merchant Jacobitz"},
+    "Klick'Anon": {"trainer": "Seamster Snifle", "kits": "Merchant Snufu", "material": "Merchant Gerick"},
+    "Rivervale": {"trainer": "Seamstress Brine", "kits": "Merchant Finwork", "material": "Merchant Julen"},
+    "Freeport": {"trainer": "Seamster Jonns", "kits": "Merchant Flagan", "material": "Merchant Dirlen"},
+    "Qeynos": {"trainer": "Seamster Clors", "kits": "Merchant Rigins", "material": "Merchant Delnor"},
+    "Surefall Glade": {"trainer": "Seamstress Wyndham", "kits": "Merchant Windom", "material": "Merchant Mithel"},
+    "Oggok": {"trainer": "Seamster Pugs", "kits": "Merchant Glugin", "material": "Merchant Fron"},
+    "Grobb": {"trainer": "Seamster Hweit", "kits": "Merchant Tolik", "material": "Merchant Glurg"},
+}
+# this server's spellings of Prima's names: the first found is the NPC. Where the two shards spell one NPC two ways
+# (Heirloom's "Seamster Wyndham", Live's "Seamstress Wyndham" as Prima; Live's "Merhant Finwork"), it is set to the
+# other's and Prima's (logged; --undo puts it back), so one quest file names the giver on both.
+TAILOR_NPC_NAMES = {"Seamstress Brine": ["Seamster Brine"], "Seamstress Wyndham": ["Seamstress Wyndham", "Seamster Wyndham"],
+                    "Merchant Finwork": ["Merchant Finwork", "Merhant Finwork"]}
+TAILOR_RENAME = {"Seamster Wyndham": "Seamstress Wyndham", "Merhant Finwork": "Merchant Finwork"}
+# The starter (no source records Tailoring's: ours, in the others' shape): the trainer's quest gives the Novice kit, the
+# Patchwork Cap Recipe, a scrap of cloth and of hide, the cloth cap and leather gloves patterns; the cap by its recipe,
+# the gloves by experiment, both under Special.
+TAILOR_KIT = "Tailor's Kit"
+PATCH_SCROLL, PATCH_CAP, PATCH_GLOVES = "Patchwork Cap Recipe", "Patchwork Cap", "Patchwork Hide Gloves"
+SCRAP_CLOTH, SCRAP_HIDE = "Scrap of Cloth", "Scrap of Hide"
+
+
+def tailor_mod_stats(mod, tl):
+    """A modifier's stats at a trade level ({column: figure}), or None where it does not work."""
+    _, kind, cols, _ = TAILOR_MODS[mod]
+    n = TAILOR_STAT[kind][tl - 1]
+    return None if n is None else {c: n for c in cols}
+
+
+def read_prima_tailor(folder, problems):
+    """Prima's Tailoring pages (pp. 444-445, its layout text: tools/fetch_tradeskill_sources.py --craft tailor) against
+    the tables above: the textiles' rows, the mundane AC rows, the stat bonus rows and each modifier's rarity and
+    property. A difference is a problem (nothing is written). Returns how many figures were checked."""
+    path = os.path.join(folder, "prima", "prima-frontiers-layout.txt")
+    if not os.path.exists(path):
+        problems.append(f"{path}: missing (tools/fetch_tradeskill_sources.py --craft tailor)")
+        return 0
+    with open(path, encoding="utf-8", errors="replace") as f:
+        t = f.read()
+    a = t.find("total tailoring products")
+    b = t.find("Weaponcrafting", a)
+    if a < 0 or b < 0:
+        problems.append(f"{path}: no Tailoring pages")
+        return 0
+    lines = t[a:b].splitlines()
+    checked = 0
+
+    def nums(s):
+        return [int(x) for x in re.findall(r"\d+", s)]
+    # the textiles: "Wool/Tattered Hide 3 11–15 8 200 Cloth/Leather 6 Tunic Chest"
+    rows = [m for m in (re.match(r"^([A-Z][A-Za-z /]+?)\s+(\d+)\s+\d+\S\d+\s+(\d+)\s+(\d+)\s+Cloth(?:/Leather)?\s+(\d+)", ln)
+                        for ln in lines) if m]
+    if len(rows) != 10:
+        problems.append(f"Prima's textiles: {len(rows)} rows read, not 10")
+    for m in rows:
+        tl, dur, hp, ac = int(m.group(2)), int(m.group(3)), int(m.group(4)), int(m.group(5))
+        words = [w.strip() for w in m.group(1).split("/")]
+        ours = [w for w, _, _, t2 in TEXTILES if t2 == tl]
+        if [w.replace(" Leather", "") for w in words] != [w.replace(" Leather", "") for w in ours]:
+            problems.append(f"Prima's trade level {tl} textiles {words}, ours {ours}")
+        checked += 4
+        if (dur, hp, ac) != (TAILOR_BONUS_DUR[tl - 1], TAILOR_BONUS_HP[tl - 1], TAILOR_BONUS_AC[tl - 1]):
+            problems.append(f"Prima's trade level {tl} textile: durability {dur}, HP {hp}, AC {ac}; ours "
+                            f"{TAILOR_BONUS_DUR[tl - 1]}, {TAILOR_BONUS_HP[tl - 1]}, {TAILOR_BONUS_AC[tl - 1]}")
+    # the mundane AC: twelve rows of ten "N AC"
+    ac_rows = [nums(ln) for ln in lines if len(re.findall(r"\d+ AC", ln)) == 10]
+    want = [TAILOR_AC[k][p] for k in ("cloth", "leather") for p in ("cap", "tunic", "bracers", "gloves", "leggings", "boots")]
+    if len(ac_rows) != 12:
+        problems.append(f"Prima's mundane AC: {len(ac_rows)} rows read, not 12")
+    for i, (got, w) in enumerate(zip(ac_rows, want)):
+        checked += 10
+        if got != w:
+            problems.append(f"Prima's mundane AC row {i + 1}: {got}, ours {w}")
+    # the stat bonuses
+    labels = {"Resist ": "one", "Attribute ": "one", "Two Resists": "two", "Two Attributes": "two",
+              "Hit Point or Power Max": "max", "Hit Point and Power Max": "both", "Hit Points Over Time": "over",
+              "Power Over Time": "over"}
+    seen = 0
+    for ln in lines:
+        s = ln.strip()
+        for label, kind in labels.items():
+            if not s.startswith(label):
+                continue
+            seen += 1
+            cells = re.findall(r"\d+(?:/\d+)?|—", s[len(label):])
+            got = [None if c == "—" else int(c.split("/")[0]) for c in cells]
+            if any("/" in c and len(set(c.split("/"))) > 1 for c in cells):
+                problems.append(f"Prima's {label.strip()}: two figures that differ")
+            checked += len(got)
+            if got != TAILOR_STAT[kind]:
+                problems.append(f"Prima's {label.strip()}: {got}, ours {TAILOR_STAT[kind]}")
+    if seen != len(labels):
+        problems.append(f"Prima's stat bonuses: {seen} of {len(labels)} rows read")
+    # the modifiers: "<name> <rarity> <property> <word>*", two to a line
+    rarity_of = {"common": 0, "uncommon": 1, "rare": 2, "ultra-rare": 3}
+    by_word = {w: m for m, (_, _, _, w) in TAILOR_MODS.items()}
+    found = set()
+    for ln in lines:
+        for m in re.finditer(r"(Common|Uncommon|Rare|Ultra-Rare)\s+([A-Z][A-Za-z ]+?)\s+([A-Z][a-z]+)\*", ln):
+            word = TAILOR_PRIMA_WORD.get(m.group(3), m.group(3))
+            mod = by_word.get(word)
+            if mod is None:
+                problems.append(f"Prima's modifier {word!r}: not ours")
+                continue
+            found.add(mod)
+            rarity, _, cols, _ = TAILOR_MODS[mod]
+            prop = TAILOR_PROPERTY[cols[0] if len(cols) == 1 else cols]
+            checked += 2
+            if rarity_of[m.group(1).lower()] != rarity or m.group(2).strip() != prop:
+                problems.append(f"Prima's {word}: {m.group(1)} {m.group(2).strip()!r}, ours {rarity} {prop!r}")
+    missing = sorted(set(TAILOR_MODS) - found)
+    if missing:
+        problems.append(f"Prima's modifier table lacks: {', '.join(missing)}")
+    return checked
+
+
+def tailor_npc(db, name):
+    """The NPCs of Prima's name (any of this server's spellings), and the renames that set a shard's other spelling to
+    Prima's: ([(id, npc_id, npc_type)], [(id, old name, new name)])."""
+    for alt in TAILOR_NPC_NAMES.get(name, [name]):
+        r = db.execute("SELECT id, npc_id, npc_type, npc_name FROM npcs WHERE lower(replace(npc_name, '`', \"'\")) = ? "
+                       "ORDER BY id", (norm(alt),)).fetchall()
+        if r:
+            ren = [(i, n, TAILOR_RENAME[n]) for i, _, _, n in r if n in TAILOR_RENAME]
+            return [(i, j, k) for i, j, k, _ in r], ren
+    return [], []
+
+
+def tailor_record(db, name, level, slot, row):
+    """This server's record of a product: its name (any case), level, slot, AC and every stat a product carries (an
+    item of the name with other stats, a transfer's "Heartsblood Stonehide Helm", is another item)."""
+    cols = ["AC"] + STAT_COLS
+    for r in db.execute(f"SELECT patternid, {', '.join(c for c in cols if c != 'AC')}, AC FROM itempattern "
+                        "WHERE lower(itemname) = ? AND levelreq = ? AND equipslot = ? ORDER BY patternid",
+                        (norm(name), level, slot)):
+        have = dict(zip([c for c in cols if c != "AC"] + ["AC"], r[1:]))
+        if all((have.get(c) or 0) == (row.get(c) or 0) for c in cols):
+            return r[0]
+    return None
+
+
+def plan_tailor(db, folder, harvests):
+    """Tailoring's items, recipes, stock and drops (the module's doc)."""
+    problems = []
+    cells = read_prima_tailor(folder, problems)
+    kits = [f"{k} {TAILOR_KIT}" for k in KITS]  # Sandstorm's: "Expert" as the jewelers' kits
+    patterns = [p for ps in TAILOR_PIECES.values() for _, _, _, p in ps]
+    textiles = [n for _, n, _, _ in TEXTILES]
+    comps, missing = harvest_components(harvests, set(kits) | set(patterns) | set(textiles))
+    if missing:
+        problems.append(f"the harvests lack Sandstorm's records of: {', '.join(missing)}")
+    cols = [r[1] for r in db.execute("PRAGMA table_info(itempattern)")]
+    taken = {r[0] for r in db.execute("SELECT patternid FROM itempattern")}
+    items, ids = [], {}
+    for name, row in sorted(comps.items()):
+        have = item_by_name(db, name)
+        if have is not None:
+            ids[name] = have
+            continue
+        pid = row["patternid"] if row["patternid"] not in taken else None
+        r = {c: v for c, v in row.items() if c in cols}
+        r.pop("patternid", None)
+        r.setdefault("model", 0)
+        r.setdefault("color", 0)
+        items.append((pid, r))
+        ids[name] = pid
+
+    # the modifiers: the armorsmiths' gems (this server has them), the nine of tailoring's own made where it lacks them
+    gem_icon = commonest(db, "SELECT itemicon AS x FROM itempattern WHERE craft > 0 AND equipslot = -1 AND lower(itemname) IN ("
+                         + ",".join("?" * 13) + ")", [m.lower() for m, v in TAILOR_MODS.items() if v[0] == 0])
+    stud_icon = commonest(db, "SELECT itemicon AS x FROM itempattern WHERE craft > 0 AND equipslot = -1 AND "
+                              "(lower(itemname) LIKE '% studs' OR lower(itemname) LIKE '% alloy')") or gem_icon
+    thread_icon = commonest(db, "SELECT itemicon AS x FROM itempattern WHERE craft > 0 AND equipslot = -1 AND "
+                                "(lower(itemname) LIKE '% thread' OR lower(itemname) LIKE '% cord')") or stud_icon
+    rarities = ["common", "uncommon", "rare", "ultra rare"]
+    for name, (rarity, kind, mcols, word) in TAILOR_MODS.items():
+        have = item_by_name(db, name)
+        if have is not None:
+            ids[name] = have
+            continue
+        what = " and ".join(STAT_WORDS.get(c, c) for c in mcols)
+        desc = (f"A{'n' if rarities[rarity][0] == 'u' else ''} {rarities[rarity]} {name.lower()} a tailor works into "
+                f"cloth or leather, lending {what}.")
+        icon = thread_icon if re.search(r"Thread|Sap", name) else stud_icon
+        items.append((None, base_item(name, icon or 0, MOD_PRICE[rarity], 0, -1, maxstack=50, craft=1, desc=desc)))
+        ids[name] = None
+
+    scroll_icon = commonest(db, "SELECT itemicon AS x FROM itempattern WHERE lower(itemname) LIKE '%recipe%'")
+    cloth_icon = (comps.get("Fur Swatch") or {}).get("itemicon") or thread_icon
+    hide_icon = (comps.get("Sheet of Tattered Hide") or {}).get("itemicon") or cloth_icon
+    for name, icon, price, desc, craft, stack in [
+        (PATCH_SCROLL, scroll_icon, 10, "A recipe for a patchwork cap. Use it to scribe the recipe.", 0, 1),
+        (SCRAP_CLOTH, cloth_icon, 2, "A scrap of cloth, for a tailor's first work.", 1, 20),
+        (SCRAP_HIDE, hide_icon, 2, "A scrap of hide, for a tailor's first work.", 1, 20),
+    ]:
+        have = item_by_name(db, name)
+        if have is None:
+            items.append((None, base_item(name, icon or 0, price, 0, -1, maxstack=stack, craft=craft, desc=desc)))
+        ids[name] = have
+
+    icon_cache = {}
+
+    def piece_icon(slot, model):
+        if (slot, model) not in icon_cache:
+            icon_cache[(slot, model)] = (
+                commonest(db, "SELECT itemicon AS x FROM itempattern WHERE equipslot = ? AND model = ?", (slot, model))
+                or commonest(db, "SELECT itemicon AS x FROM itempattern WHERE equipslot = ?", (slot,)) or 0)
+        return icon_cache[(slot, model)]
+
+    products = []
+
+    def product(name, kind, piece, slot, pattern, comp, tl, ac, stats, mod, desc):
+        level = 5 * tl - 2
+        look = "robe" if piece == "robe" else kind
+        rarity = TAILOR_MODS[mod][0] if mod else 0
+        textile_item = TEXTILES[comp][1]
+        price = 3 * ((comps.get(textile_item) or {}).get("itemcost") or 10 * tl * tl) + 10 + (MOD_WORTH[rarity] if mod else 0)
+        row = base_item(name, piece_icon(slot, TAILOR_MODEL[look]), price, level, slot, maxstack=1, craft=0,
+                        classes=TAILOR_CLASSES[look], desc=desc, model=TAILOR_MODEL[look], color=TAILOR_TINT[tl - 1],
+                        maxhp=200 * level + TAILOR_BONUS_HP[tl - 1], duration=50 + TAILOR_BONUS_DUR[tl - 1])
+        row["AC"] = ac
+        row.update(stats)
+        ings = [(textile_item, 1, False), (pattern, 1, False)] + ([(mod, 1, True)] if mod else [])
+        products.append({"name": name, "row": row, "have": tailor_record(db, name, level, slot, row), "comp": comp,
+                         "level": tl, "rarity": rarity, "ings": ings, "sort": (tl, rarity, name),
+                         "kind": f"{kind} {piece}", "magical": mod is not None})
+
+    for comp, (word, _, kind, tl) in enumerate(TEXTILES):
+        for piece, slot, pword, pattern in TAILOR_PIECES[kind]:
+            ac = TAILOR_BONUS_AC[tl - 1] if piece == "robe" else TAILOR_AC[kind][piece][tl - 1]
+            made = "A robe" if piece == "robe" else ("Armor" if kind == "cloth" else "Leather armor")
+            desc = f"{made} sewn of {word.lower()}."
+            product(f"{word} {pword}", kind, piece, slot, pattern, comp, tl, ac, {}, None, desc)
+            if tl < TAILOR_MOD_FROM["robe" if piece == "robe" else "piece"]:
+                continue
+            for mod, (_, _, _, mword) in TAILOR_MODS.items():
+                st = tailor_mod_stats(mod, tl)
+                if st is None:
+                    continue
+                product(f"{mword} {word} {pword}", kind, piece, slot, pattern, comp, tl, ac, st, mod, desc)
+    # the starter, under Special (ours: level 1, AC 1)
+    for name, kind, slot, ings, extra in [
+        (PATCH_CAP, "cloth", 1, [(SCRAP_CLOTH, 1, False), ("Cloth Cap Pattern", 1, False)],
+         {"scroll": PATCH_SCROLL, "discover": 0, "description": "The first thing a tailor's apprentice sews."}),
+        (PATCH_GLOVES, "leather", 19, [(SCRAP_HIDE, 1, False), ("Leather Gloves Pattern", 1, False)],
+         {"discover": 1, "description": "An apprentice's gloves of scrap hide."}),
+    ]:
+        row = base_item(name, piece_icon(slot, TAILOR_MODEL[kind]), 2, 1, slot, maxstack=1, craft=0,
+                        classes=TAILOR_CLASSES[kind], desc=f"A tailor's first {name.lower()}.", model=TAILOR_MODEL[kind],
+                        color=TAILOR_TINT[0], maxhp=200 + TAILOR_BONUS_HP[0], duration=50 + TAILOR_BONUS_DUR[0])
+        row["AC"] = 1
+        products.append(dict({"name": name, "row": row, "have": None, "comp": TAILOR_SPECIAL, "level": 1, "rarity": 0,
+                              "ings": ings, "sort": (99, name), "kind": "starter", "magical": False, "difficulty": 1,
+                              "xp": 10}, **extra))
+    names = collections.Counter(p["name"] for p in products)
+    problems += [f"{k} products named {n!r}" for n, k in names.items() if k > 1]
+
+    stock, left, renames = [], [], []
+    material = textiles + [SCRAP_CLOTH, SCRAP_HIDE]
+    for city, v in TAILOR_SELLERS.items():
+        r, ren = tailor_npc(db, v["trainer"])
+        renames += ren
+        if not r:
+            left.append(f"{city}: the trainer {v['trainer']} is no NPC here (no quest)")
+        for role, wares, what in (("kits", kits + patterns, "kits and patterns"), ("material", material, "textiles")):
+            name = v[role]
+            r, ren = tailor_npc(db, name)
+            renames += ren
+            if not r:
+                left.append(f"{city}: {name} ({what}) is no NPC here")
+                continue
+            if len(r) > 1:
+                left.append(f"{city}: {len(r)} NPCs named {name}: each stocked")
+            for npc in r:
+                stock.append((city, role, name, npc, wares))
+    for npc, old, new in renames:
+        left.append(f"NPC {npc} {old!r} is set to {new!r} (the other shard's and Prima's spelling)")
+    loot = {"pool": TAILOR_POOL, "mods": [(m, v[0]) for m, v in TAILOR_MODS.items()]}
+    return {"skill": TAILOR, "cells": cells, "vendors": TAILOR_SELLERS, "comps": comps, "items": items, "ids": ids,
+            "products": products, "stock": stock, "left": left, "problems": problems, "loot": loot, "renames": renames}
+
+
+PLANS = {"armor": plan, "jewel": plan_jewel, "weapon": plan_weapon, "tailor": plan_tailor}
 
 
 def backup(path):

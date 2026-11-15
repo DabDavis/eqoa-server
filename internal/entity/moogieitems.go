@@ -16,7 +16,7 @@ import (
 // whose line names it (NewPotionEffect reads the words, readMoogieUse): handlers/potion.go's Use takes it as
 // any potion's (its stack's 0x003C, a charge, its row's cooldown), and UsePotion does it here.
 //
-//   - "Target, Snowball 0x15C6A459": thrown at another player, alive, in the thrower's world and within
+//   - "Target, Snowball 0x15C66F59": thrown at another player, alive, in the thrower's world and within
 //     SnowballRange; anything else is refused in red (SnowballRefusal), nothing used. A 0x00B1 from the thrower
 //     to the target, cast 0, the line's visual (Frost Shot's projectile unless a GM writes another), then 1 off
 //     the target's hit points, told in its 0x00DB, never below 1. No PvP act: no flag, no hate, no duel and no
@@ -42,7 +42,7 @@ const (
 // The Snowball's numbers and words (the GM Jibrish's).
 const (
 	SnowballRange     float32 = 30
-	SnowballFX        uint32  = 0x15C6A459 // Frost Shot's projectile
+	SnowballFX        uint32  = 0x15C66F59 // Frost Shot's projectile
 	SnowballRefusal           = "You can only throw a snowball at another player."
 	snowballHitLine           = "%s hits you with a snowball!"
 	snowballThrowLine         = "You hit %s with a snowball!"

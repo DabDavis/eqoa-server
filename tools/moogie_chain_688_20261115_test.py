@@ -110,7 +110,7 @@ class MoogieChainTest(unittest.TestCase):
         self.assertEqual(db.execute("SELECT count(*) FROM npcspawnonly").fetchone()[0], 5)
         self.assertEqual(db.execute("SELECT name, heal, size FROM familiars").fetchall(), [("Mini Metal Moogie", 0, 2.0)])
         lines = dict(db.execute("SELECT p.itemname, e.line FROM itemeffect e JOIN itempattern p ON p.patternid = e.patternid").fetchall())
-        self.assertEqual(lines["Snowball"], "Target, Snowball 0x15C6A459")
+        self.assertEqual(lines["Snowball"], "Target, Snowball 0x15C66F59")
         db.close()
         r = run(self.path, "--apply")
         self.assertIn("nothing to write", r.stdout)

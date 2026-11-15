@@ -11,7 +11,7 @@ that code's: run it as the before.sh of the restart that brings it, never under 
       levelreq 1, classuse/raceuse 32767 (the spec names no level or classes: every class may drink it);
     Moogie Winding Stone: Healbot's Cog's record (lore, no trade, procanim 7, duration 80, never used up);
   itemeffect for the three consumables, as the code reads them (entity/moogieitems.go):
-    Snowball "Target, Snowball 0x15C6A459" (Frost Shot's projectile, a GM's to change), cooldown 1 s;
+    Snowball "Target, Snowball 0x15C66F59" (Frost Shot's projectile, a GM's to change), cooldown 1 s;
     Potion of Moogie's Insight "Self, Moogie's Insight", 1 charge;
     Deputy's Draught "Self, Deputy's Draught 901843, Radius 30" (Halfling Heroism), 1 charge;
   npcs, 4 new, spawn-only (an npcspawnonly row each, before they reach the world): Metal Moogie V3, V4, V5 as
@@ -85,7 +85,7 @@ ITEMS = [  # name, the record it copies, the fields set, its description
      "Winds up a tiny Metal Moogie who follows you about. Use it as often as you like: one familiar at a time."),
 ]
 EFFECTS = {  # itemeffect by its item's name
-    "Snowball": {"line": "Target, Snowball 0x15C6A459", "name": "", "icon": 0, "charges": 0, "cooldown": 1.0},
+    "Snowball": {"line": "Target, Snowball 0x15C66F59", "name": "", "icon": 0, "charges": 0, "cooldown": 1.0},
     "Potion of Moogie's Insight": {"line": "Self, Moogie's Insight", "name": "Moogie's Insight", "icon": 0xDA6F7DE9, "charges": 1, "cooldown": 0.0},
     "Deputy's Draught": {"line": f"Self, Deputy's Draught {HEROISM}, Radius 30", "name": "", "icon": 0, "charges": 1, "cooldown": 0.0},
 }

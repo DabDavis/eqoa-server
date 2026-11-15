@@ -462,7 +462,7 @@ func TestMetalChainSnowballTargetsAndFloor(t *testing.T) {
 	d, sd := r.player("Dora", 1031, 1000)
 	e, se := r.player("Eve", 1005, 1000)
 	e.World = 3
-	pe := NewPotionEffect(9901, "Snowball", "Target, Snowball 0x15C6A459", "", 0, "", 0, 0)
+	pe := NewPotionEffect(9901, "Snowball", "Target, Snowball 0x15C66F59", "", 0, "", 0, 0)
 	pe.Cooldown = time.Second
 	if pe.Special != PotionSnowball || pe.SpecialFX != SnowballFX || !pe.Thrown() {
 		t.Fatalf("the snowball's row read as %+v", pe)
@@ -498,7 +498,7 @@ func TestMetalChainSnowballTargetsAndFloor(t *testing.T) {
 	}
 	var fx bool
 	for _, m := range drain(sb) {
-		if opOfMsg(m) == 0x00B1 && strings.Contains(string(m), string([]byte{0x59, 0xA4, 0xC6, 0x15})) {
+		if opOfMsg(m) == 0x00B1 && strings.Contains(string(m), string([]byte{0x59, 0x6F, 0xC6, 0x15})) {
 			fx = true
 		}
 	}

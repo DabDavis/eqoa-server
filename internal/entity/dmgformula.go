@@ -887,14 +887,22 @@ func (w *World) formulaBeginOn(sn dmgSnap, base int, in *dmgIn) (int, *shadowRec
 		return base, nil
 	}
 	e := set.paths[in.src][in.kind]
-	if e == nil || in.ranged && set.ranged == rangedBuiltin {
+	if e == nil {
+		return base, nil
+	}
+	if in.ranged && set.ranged == rangedBuiltin {
+		// the file leaves bow shots on the built-in figure: no run; in shadow
+		// a line saying so, so that every shot is counted (a fallback)
+		if sn.mode == FormulaShadow {
+			return base, w.shadowRun(set, e, base, in, FallbackRangedBuiltin)
+		}
 		return base, nil
 	}
 	switch sn.mode {
 	case FormulaLive:
 		return e.apply(base, in), nil
 	case FormulaShadow:
-		return base, w.shadowRun(set, e, base, in)
+		return base, w.shadowRun(set, e, base, in, "")
 	}
 	return base, nil
 }

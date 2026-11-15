@@ -40,6 +40,7 @@ type ShadowStats struct {
 	Hits      int     `json:"hits"`
 	Covered   int     `json:"covered"`
 	Failed    int     `json:"failed"`
+	Fallbacks int     `json:"fallbacks"` // lines whose built-in figure stood for the formula's (a failure, or a shot the file leaves on the built-in)
 	BuiltMean float64 `json:"builtin_mean"`
 	BuiltMed  float64 `json:"builtin_median"`
 	BuiltP90  float64 `json:"builtin_p90"`
@@ -75,6 +76,8 @@ type ShadowSummary struct {
 	ByTag    []*ShadowStats `json:"by_tag,omitempty"`
 	Largest  []ShadowDiff   `json:"largest_differences"`
 	Failures map[string]int `json:"failures,omitempty"` // a run's failure (part and kind) -> hits
+	// FallbackReasons is "path / fallback" -> lines (ranged_builtin, negative, ...)
+	FallbackReasons map[string]int `json:"fallback_reasons,omitempty"`
 }
 
 // shadowBand is a level's band: 1-10, 11-20, ... 61+.
@@ -171,11 +174,20 @@ func SummarizeShadowLog(path string, o ShadowSummaryOptions) (*ShadowSummary, er
 				if r.Fail != "" {
 					st.Failed++
 				}
+				if r.Fallback != "" {
+					st.Fallbacks++
+				}
 				if covered {
 					st.Covered++
 					st.built = append(st.built, float64(built))
 					st.form = append(st.form, float64(form))
 				}
+			}
+			if r.Fallback != "" {
+				if s.FallbackReasons == nil {
+					s.FallbackReasons = map[string]int{}
+				}
+				s.FallbackReasons[r.Path+" / "+r.Fallback]++
 			}
 			if r.Fail != "" {
 				if s.Failures == nil {

@@ -338,6 +338,11 @@ var shadowInputSlots = func() []int {
 	return out
 }()
 
+// FallbackRangedBuiltin is a shadow line's fallback for a bow's shot the
+// file leaves on the built-in figure (options: ranged: builtin): no formula
+// ran.
+const FallbackRangedBuiltin = "ranged_builtin"
+
 // ShadowTagPrefix begins the name of a formula's step that the shadow log
 // records.
 const ShadowTagPrefix = "shadow_"
@@ -516,7 +521,12 @@ func (sh *dmgShadow) sampled() bool {
 // shadowRun runs e on the hit for the shadow log, landing nothing: the
 // record, for formulaFinish to complete and hand to the log; nil when no log
 // is set or the hit is not sampled.
-func (w *World) shadowRun(set *dmgFormulaSet, e *dmgEntry, base int, in *dmgIn) *shadowRec {
+//
+// skip, when not "", is why the formula is not run on this hit at all (the
+// file's choice: FallbackRangedBuiltin): the line records the built-in figure
+// as the formula's, no draw, that reason as its fallback, and the inputs every
+// line carries.
+func (w *World) shadowRun(set *dmgFormulaSet, e *dmgEntry, base int, in *dmgIn, skip string) *shadowRec {
 	sh := w.dmgf.shadow.Load()
 	if sh == nil || !sh.sampled() {
 		return nil
@@ -524,7 +534,13 @@ func (w *World) shadowRun(set *dmgFormulaSet, e *dmgEntry, base int, in *dmgIn) 
 	r := dmgScratch.Get().(*dmgRun)
 	defer dmgScratch.Put(r)
 	cr := &countRand{r: shadowRand} // never the game's source (shadowRand)
-	x, err := e.runOn(r, base, in, cr)
+	x, err := base, error(nil)
+	if skip == "" {
+		x, err = e.runOn(r, base, in, cr)
+	} else {
+		r.in = *in
+		r.in.base = base
+	}
 	wt, mismatch := in.weaponTypeOf()
 	rec := &shadowRec{sh: sh, at: time.Now(), path: dmgPathName(in.src, in.kind), entry: e.name, builtin: base, formula: x,
 		raw: in.raw, mit: in.mitigated, draws: cr.n, builtinPre: base, preview: x, stage: in.stage,
@@ -536,6 +552,7 @@ func (w *World) shadowRun(set *dmgFormulaSet, e *dmgEntry, base int, in *dmgIn) 
 			rec.preview = in.stage.preview(x)
 		}
 	}
+	rec.fallback = skip
 	if err != nil {
 		rec.fail = err.Error()
 		rec.fallback = "error"
@@ -549,16 +566,18 @@ func (w *World) shadowRun(set *dmgFormulaSet, e *dmgEntry, base int, in *dmgIn) 
 	}
 	read := make(map[int]bool, len(e.prog.Uses()))
 	rec.in = make([]shadowVal, 0, len(shadowInputSlots)+len(e.prog.Uses()))
-	for _, i := range e.prog.Uses() {
-		read[i] = true
-		rec.in = append(rec.in, shadowVal{dmgVars[i].name, r.v[i]})
+	if skip == "" {
+		for _, i := range e.prog.Uses() {
+			read[i] = true
+			rec.in = append(rec.in, shadowVal{dmgVars[i].name, r.v[i]})
+		}
 	}
 	for _, i := range shadowInputSlots {
 		if !read[i] {
 			rec.in = append(rec.in, shadowVal{dmgVars[i].name, dmgVars[i].get(&r.in)})
 		}
 	}
-	if err == nil {
+	if err == nil && skip == "" {
 		for i, n := range e.prog.StepNames() {
 			if v := r.v[e.prog.StepSlot(i)]; strings.HasPrefix(n, ShadowTagPrefix) && (v.K == formula.Num || v.K == formula.Str) {
 				rec.tags = append(rec.tags, shadowVal{n, v})

@@ -189,7 +189,10 @@ rotated before it: hits, how many the formula modelled (it ran and drew, or
 gave a figure other than the built-in), failures, the mean, median and 90th
 percentile of the built-in and the formula's figures and their ratio,
 overall, by path, and by path / attacker kind / attacker level band (1-10 ...
-61+), and the largest differences. The figures compared are each line's as
+61+), and the largest differences. Each group counts its `fallbacks` (lines
+whose built-in figure stood for the formula's: a failed run, or a shot left
+on the built-in), and `fallback_reasons` counts them by path and reason
+(`player_melee / ranged_builtin`, `npc_melee / negative`). The figures compared are each line's as
 they would land (`builtin_after_effects`, `formula_after_effects`; a line
 written before those, `builtin` and `value`). With `tag` (a `shadow_` step's
 name, with or without the prefix) it also groups the hits by path and that
@@ -197,6 +200,14 @@ step's value (`by_tag`: `npc_melee / band=high`; a hit without it under
 `band=(none)`), so the populations a formula tells apart are summed apart.
 Figures only: no formula's text, and no tag but the one asked for, whose
 values then show.
+
+The per-character figures the inputs read (the bow's damage and type, the
+masteries' OFF/DEF points and rank counts) are never kept through a
+session-keeping restart: a resumed character is built from its rows as a
+login builds it (`handlers/keep.go` `ResumeCharacter` through
+`enterFromRecord`: its masteries, then its worn items), so a keep state
+written before they existed resumes with them filled (a test holds both
+paths).
 
 ## What is safe about it
 
@@ -341,7 +352,10 @@ a comment to the end of its line inside one.
 - `arrow`: `player_melee` runs once for each arrow (above); any other path's
   shot (`pvp_melee`, `merc_melee`) once on the whole shot.
 - `builtin`: every bow's shot (a player's, PvP's, a merc's) keeps the
-  built-in figure; no formula runs on it and nothing of it is shadowed.
+  built-in figure; no formula runs on it. In shadow mode each such shot still
+  writes its line, with `fallback: ranged_builtin`, `attack: ranged`, the
+  built-in figures (`value` the built-in's), no draws and the inputs every
+  line carries, so each shot is a counted fallback in the summary.
 
 An option the server does not know, or a word it does not take, refuses the
 file (by line and the option's name). A load logs the file's hash (the first

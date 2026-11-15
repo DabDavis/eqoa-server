@@ -595,3 +595,51 @@ func TestWeaponTypeRoutesToTypedResist(t *testing.T) {
 		}
 	}
 }
+
+// Under ranged: builtin a bow's shot runs no formula, and shadow mode still
+// writes its line: the built-in figure as the formula's, no draw, the
+// fallback ranged_builtin, the attack's kind; the summary counts each shot as
+// a fallback, by path and by reason. A melee swing runs the formula as ever.
+func TestRangedBuiltinShotsAreCountedFallbacks(t *testing.T) {
+	sr := newShotRig(t)
+	fixDice(t)
+	built1, built2 := sr.shoot(swingRange1), sr.shoot(swingRange4)
+	writeFormulas(t, sr.r.w, "options:\n  ranged: builtin\nformulas:\n  player_melee: 'base + ranged_weapon_dmg + uniform() * 0'\n")
+	path := shadowOn(t, sr.r.w, 0)
+	sf := fixShadowDice(t, 0.5)
+	if got := sr.shoot(swingRange4); got != built2 {
+		t.Errorf("shadow, two arrows: %+v, want %+v", got, built2)
+	}
+	if got := sr.shoot(swingRange1); got != built1 {
+		t.Errorf("shadow, one arrow: %+v, want %+v", got, built1)
+	}
+	sr.shoot(0) // a melee swing: the formula runs (one draw)
+	recs := readShadow(t, sr.r.w, path)
+	if len(recs) != 3 {
+		t.Fatalf("%d lines, want 3: %+v", len(recs), recs)
+	}
+	for i, want := range []shotOut{built2, built1} {
+		r := recs[i]
+		if r.Fallback != FallbackRangedBuiltin || r.Attack != "ranged" || r.Draws != 0 || r.Value != r.Builtin || r.Builtin != want.dealt ||
+			r.FormulaAfter != r.BuiltinAfter || r.Fail != "" || r.In["ranged_weapon_dmg"] != 60.0 || r.In["d_dummy"] == nil {
+			t.Errorf("shot %d's line: %+v", i, r)
+		}
+	}
+	if recs[0].Arrows != 2 || recs[1].Arrows != 1 {
+		t.Errorf("the shots' arrows: %d %d", recs[0].Arrows, recs[1].Arrows)
+	}
+	if m := recs[2]; m.Fallback != "" || m.Attack != "melee" || m.Draws != 1 || m.Value != m.Builtin+60 {
+		t.Errorf("the melee swing's line: %+v", m)
+	}
+	if sf.Next != 1 {
+		t.Errorf("shadow draws %d, want the melee swing's 1", sf.Next)
+	}
+	s, err := SummarizeShadowLog(path, ShadowSummaryOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.FallbackReasons["player_melee / ranged_builtin"] != 2 || len(s.ByPath) != 1 || s.ByPath[0].Hits != 3 || s.ByPath[0].Fallbacks != 2 ||
+		s.ByPath[0].Covered != 1 || s.Total.Fallbacks != 2 {
+		t.Errorf("the summary: reasons %v, by path %+v", s.FallbackReasons, s.ByPath)
+	}
+}

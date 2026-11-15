@@ -106,25 +106,32 @@ func TestHideMercsTakesTheMercInViewAwayAndBack(t *testing.T) {
 	}
 }
 
-// A merc hidden from a group mate is out of that mate's view and still plays:
-// it shares the mate's place (npcSharesLocked), heals its owner (never the
-// mate: a merc helps its owner's own alone, merccast.go), and the mate's group
-// buff reaches it.
+// A group mate that hid the mercs still sees its mates' mercs (petition 2138,
+// Hogknight: "i cant see my raid grp mercs and pets"), a stranger that hid
+// them does not; hidden from the stranger the merc still plays: it shares the
+// stranger's place (npcSharesLocked), heals its owner (never the mate: a merc
+// helps its owner's own alone, merccast.go), and the mate's group buff reaches
+// it.
 func TestAHiddenMercStillPlays(t *testing.T) {
 	r := newMercRig(t)
 	mateSess, mate := r.player("Mate", 0, 0)
 	r.group(mate)
 	heal := bookSpell(700187, "Field Dress", 1, 3*time.Second, 19*time.Second, 180, "Target, Increase Hitpoints by 125 ; Increase 25% based on CHA")
 	ms := r.hire(r.kit(9, 0, 0, heal), MercAssist)
+	strangerSess, stranger := r.player("Stranger", 0, 0)
 	r.w.SetMercsHidden(mateSess, true)
-	if inView(r.w, mateSess, ms.npc.ServerID) {
-		t.Fatal("the merc in the view of a mate that hid the mercs")
+	r.w.SetMercsHidden(strangerSess, true)
+	if !inView(r.w, mateSess, ms.npc.ServerID) {
+		t.Fatal("a group mate's merc hidden from a mate that hid the mercs")
+	}
+	if inView(r.w, strangerSess, ms.npc.ServerID) {
+		t.Fatal("the merc in the view of a stranger that hid the mercs")
 	}
 	r.w.mu.Lock()
-	shares := r.w.npcSharesLocked(ms.npc, mate)
+	shares := r.w.npcSharesLocked(ms.npc, stranger)
 	r.w.mu.Unlock()
 	if !shares {
-		t.Error("the hidden merc no longer shares the mate's place")
+		t.Error("the hidden merc no longer shares the stranger's place")
 	}
 	top := r.p.MaxHPNow()
 	r.p.HP = top / 2
@@ -148,7 +155,10 @@ func TestAHiddenMercStillPlays(t *testing.T) {
 	if why != "" || !found {
 		t.Errorf("the mate's group buff's targets %v (%q): not the hidden merc", ids, why)
 	}
-	if inView(r.w, mateSess, ms.npc.ServerID) {
-		t.Error("the merc back in the mate's view after playing")
+	if inView(r.w, strangerSess, ms.npc.ServerID) {
+		t.Error("the merc back in the stranger's view after playing")
+	}
+	if !inView(r.w, mateSess, ms.npc.ServerID) {
+		t.Error("the merc out of the mate's view after playing")
 	}
 }

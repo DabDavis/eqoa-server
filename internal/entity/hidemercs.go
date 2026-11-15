@@ -13,7 +13,10 @@ import "github.com/eqoa/server/internal/session"
 // slot as any entity leaving view does (MarkRemoved: the client takes its body
 // and its name plate away), and comes back on a slot, made anew, at the next
 // pass after /show mercs. Its own mercs stay in view: it commands them through
-// the merc menu (□ on its own merc), which needs the merc on a slot.
+// the merc menu (□ on its own merc), which needs the merc on a slot. Its
+// group's (a raid's too) stay in view as well: a mate's merc fights beside it
+// and is healed and buffed by it (petition 2138, Hogknight, 2026-11-15: "i
+// cant see my raid grp mercs and pets").
 //
 // It is the viewer's view alone. Nothing of the game looks here: a hidden merc
 // fights, heals, is healed and buffed, takes its group place and is found by
@@ -58,8 +61,9 @@ func (w *World) SetMercsHidden(sess *session.Session, on bool) bool {
 
 // mercHiddenFromLocked reports npc kept out of viewer's view by /hide mercs:
 // a mercenary or a merc's pet (Owner the hirer's) of another player's, while
-// viewer hid them. Its own are never hidden. Must be called with the lock
-// held.
+// viewer hid them. Its own are never hidden, nor its group's: one whose
+// hirer or itself is a member of viewer's group (a raid is one group). Must be
+// called with the lock held.
 func (w *World) mercHiddenFromLocked(npc *NPC, viewer *Player) bool {
 	if viewer == nil || !w.mercsHidden[viewer.CharServerID] {
 		return false
@@ -67,5 +71,15 @@ func (w *World) mercHiddenFromLocked(npc *NPC, viewer *Player) bool {
 	if !npc.isMerc() && !npc.isMercPet() {
 		return false
 	}
-	return npc.Owner != viewer.ServerID
+	if npc.Owner == viewer.ServerID {
+		return false
+	}
+	if g := w.groups[viewer.GroupID]; viewer.GroupID != 0 && g != nil {
+		for _, id := range g.Members {
+			if id == npc.Owner || id == npc.ServerID {
+				return false
+			}
+		}
+	}
+	return true
 }

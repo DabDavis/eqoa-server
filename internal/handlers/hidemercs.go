@@ -29,9 +29,9 @@ import (
 
 // The lines it answers with.
 const (
-	mercsHiddenLine      = "Other players' mercenaries are hidden from your view (/show mercs to see them again). Your own stay in view."
+	mercsHiddenLine      = "Other players' mercenaries are hidden from your view (/show mercs to see them again). Your own and your group's stay in view."
 	mercsShownLine       = "Other players' mercenaries are in your view again (/hide mercs to hide them)."
-	mercsHiddenLoginLine = "Other players' mercenaries are hidden from your view. Type /show mercs to see them again."
+	mercsHiddenLoginLine = "Other players' mercenaries are hidden from your view, but your group's stay. Type /show mercs to see them all again."
 )
 
 // mercsHiddenStore is where /hide mercs is kept (database.SQLiteDB).

@@ -437,7 +437,8 @@ def plan(db, files, routes=False):
                         if e.get("seconds"):
                             ev["seconds"] = float(e["seconds"])
                     elif do == "teleport":
-                        for k in ("world", "x", "y", "z"):
+                        # facing: the heading it lands with (a waysender's trip's: handlers/questevents.go)
+                        for k in ("world", "x", "y", "z", "facing"):
                             if k in e:
                                 ev[k] = e[k]
                         # "mainland": the player's race's spot on the disc's worlds (handlers/questevents.go)

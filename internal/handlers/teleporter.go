@@ -127,7 +127,7 @@ var telePlaces = []struct {
 	label string
 	at    wayPlace
 }{
-	{"Isle of Dread", wayPlace{World: 0, X: 24578, Y: 52.6, Z: 3626, Facing: 3.9}},
+	{"Isle of Dread", iodRaft},
 	{"Plane of Sky", wayPlace{World: 4, X: 5000.09, Y: 333.54, Z: 4998.23, Facing: 3.068}},
 }
 

@@ -354,10 +354,10 @@ var wayRoutes = map[string][]wayRoute{
 	// with a palm tree. he will teleport you to Isle of Dread onto the little
 	// raft for 10k"; then "Keep the medallion gate": still only for those who
 	// finished The Medallion of the Faceless, 10,000 tunar, landing on the deck of
-	// the fishing raft moored in the cove south of Graumord's pier (the deck's
-	// top 52.44 off the walls file, the water's 51.36), facing the pier.
+	// the fishing raft moored in the cove south of Graumord's pier, facing the
+	// pier (iodRaft). The quest's hand-in is the first trip and lands there too.
 	"Norach": {
-		{To: "the Isle of Dread", At: &wayPlace{World: 0, X: 24578, Y: 52.6, Z: 3626, Facing: 3.9}, Fee: 10000, QuestOnly: true},
+		{To: "the Isle of Dread", At: &iodRaft, Fee: 10000, QuestOnly: true},
 	},
 	// "With the five Ruins and 5,000 tunar you can talk to portal NPC and be
 	// ported to Zaoran Plateau" (questmasters1.com's Zaoran Plateau page, 2006-07,
@@ -435,6 +435,16 @@ var wayRoutes = map[string][]wayRoute{
 		{To: "Solusek's Eye", At: &wayPlace{World: 3, X: 5704.62, Y: 75.25, Z: 5932.4}, Vampire: true},
 	},
 }
+
+// iodRaft is where every trip to the Isle of Dread's raft lands: Norach's (and
+// the hand-in of his quest, The Medallion of the Faceless: its teleport is the
+// first trip, tools/norach_raft_20261115.py) and the Teleporter's. The deck of
+// the fishing raft moored in the cove south of Graumord's pier, its top 52.48 off
+// the walls file (the water's 51.36), 5 or more from every edge of the deck,
+// facing the pier. Until 2026-11-15 the hand-in landed in Graumord itself,
+// (24500, 54.1, 3330), 300 north of the raft (the owner: "players are not always
+// porting onto the raft from Norrach").
+var iodRaft = wayPlace{World: 0, X: 24578, Y: 52.6, Z: 3626, Facing: 3.9}
 
 // sanctuaryLanding is where the vampires' Sanctuary is reached: Sandstorm's
 // landing for its Sanctuary spell (claude-notes/sanctuary-memcard-patch-

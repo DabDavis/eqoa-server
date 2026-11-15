@@ -639,6 +639,9 @@ func (q *QuestEngine) teleportLocked(sess *session.Session, p *entity.Player, qu
 	if !ok {
 		return
 	}
+	if e.Facing != 0 {
+		facing = e.Facing // its landing's heading (a waysender's trip's: iodRaft)
+	}
 	sendTeleportWarp(sess, world, e.X, e.Y, e.Z, facing, counter)
 	beginWorldLoad(sess, changed)
 	q.gw.UpdatePosition(p.ServerID, e.X, e.Y, e.Z, facing)

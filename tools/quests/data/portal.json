@@ -3033,15 +3033,16 @@
        "on": "done",
        "do": "teleport",
        "world": 0,
-       "x": 24500.0,
-       "y": 54.1,
-       "z": 3330.0
+       "x": 24578.0,
+       "y": 52.6,
+       "z": 3626.0,
+       "facing": 3.9
       }
      ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/Portal/isle-of-dread.json, ## Isle of Dread (IoD) Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Finishing it flags the player for Norach's trip to the Isle of Dread (unlocks: the route should take the guide's 10,000 tunar each time); the first trip is the hand-in's own (a teleport to Graumord, the isle's town, ours)."
+   "notes": "From EQOA-Data Quests/Portal/isle-of-dread.json, ## Isle of Dread (IoD) Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Finishing it flags the player for Norach's trip to the Isle of Dread (unlocks: the route should take the guide's 10,000 tunar each time); the first trip is the hand-in's own, landing as every trip does on the fishing raft south of Graumord's pier, facing the pier (handlers/waysender.go iodRaft; until 2026-11-15 Graumord itself, (24500, 54.1, 3330): tools/norach_raft_20261115.py)."
   },
   {
    "key": "Portal/isle-of-dread/standing",

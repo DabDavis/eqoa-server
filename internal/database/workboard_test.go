@@ -387,7 +387,7 @@ func TestOpenWorkBoardTouchesNothingElse(t *testing.T) {
 		names = append(names, n)
 	}
 	rows.Close()
-	if got := strings.Join(names, ","); got != "characters,gm_audit,workboard,workboard_overview" {
+	if got := strings.Join(names, ","); got != "characters,gm_audit,gmboard,gmboard_read,workboard,workboard_overview" {
 		t.Fatalf("tables after OpenWorkBoard: %s", got)
 	}
 }

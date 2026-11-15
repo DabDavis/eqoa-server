@@ -158,6 +158,14 @@ type GMConfig struct {
 	// this shard's alone. EconomyOtherName is what the page calls it.
 	EconomyOtherDB   string `yaml:"economy_other_db"`
 	EconomyOtherName string `yaml:"economy_other_name"`
+
+	// PersonalBoards are the personal boards (database/gmboard.go,
+	// gmweb/ops_boards.go): a board's name to the panel accounts that may
+	// read and post it ({jib: [jibrish]}), each a private thread between
+	// that GM (with the GM's AI agents, signed in as the account) and dab's
+	// sessions (cmd/workboard on the box). The panel's admins (admin_level)
+	// read and post every board; no other GM reads one. Unset: no boards.
+	PersonalBoards map[string][]string `yaml:"personal_boards"`
 }
 
 // ServerConfig holds network server settings.

@@ -508,6 +508,16 @@ gm:
   # origin>" on that one file). Empty: no preview.
   # preview_url: "https://example.org/eqoa/play/fxview.html"
 
+  # Personal boards: a private thread between one GM (and that GM's AI
+  # agents, signed in as the account) and dab's sessions (cmd/workboard on the
+  # box: workboard board jib, workboard post jib "..."). A board's name (a-z,
+  # 0-9, - and _) to the panel accounts that may read and post it; the
+  # admins (admin_level) read and post every board, no other GM reads one.
+  # The panel's ops: my_boards, board_messages, post_board_message. Read at
+  # the panel's start. Unset: no boards.
+  # personal_boards:
+  #   jib: ["jibrish"]
+
 # The server list, the same in every process (unset: this server alone, as
 # "Marr's Fist"). A name is 31 characters at most; the list shows sorted by name;
 # recommended is where a client with no home shard in the list starts. A shard

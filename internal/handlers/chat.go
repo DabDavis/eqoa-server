@@ -370,6 +370,13 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		return
 	}
 
+	// /con (or #con; a PS2's is "/t con", below): the target's level, everyone's,
+	// where world.con_level is on (conlevel.go)
+	if word, rest, _ := strings.Cut(message, " "); ConLevelOn() && conLine(word, rest) {
+		conCommand(h.gameWorld, sess, player)
+		return
+	}
+
 	// /hide mercs and /show mercs (or #hide mercs, #show mercs; a PS2's is "/t hide
 	// mercs", below): other players' mercenaries out of the player's own view or
 	// back, everyone's (hidemercs.go)
@@ -481,6 +488,12 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		// and /stuck (entity/stuck.go)
 		if body == "" && strings.EqualFold(name, "stuck") {
 			stuckCommand(h.gameWorld, sess)
+			return
+		}
+		// and /con, the target's level (conlevel.go): "/t con" alone, where
+		// world.con_level is on; "/t con hello" is a tell
+		if ConLevelOn() && strings.TrimSpace(body) == "" && strings.EqualFold(name, "con") {
+			conCommand(h.gameWorld, sess, player)
 			return
 		}
 		// and /testinvis, safe mode (safemode.go)

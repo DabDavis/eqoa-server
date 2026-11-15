@@ -564,6 +564,14 @@ type WorldConfig struct {
 	// Heirloom Test Server sets it.
 	MobInfo bool `yaml:"mob_info"`
 
+	// ConLevel lets every player see a target's level (handlers/conlevel.go;
+	// Live petition 5130, the owner 2026-11-15: "yes lets allow"): /con (a
+	// PS2's "/t con") says "<name> is level N." of the player's target, and a
+	// client that can (vanilla) is offered it (protocol.OpcodeConLevelOffer)
+	// and shows the level in its target box. Unset or false: /con is an
+	// unknown command and the target box the game's, as before.
+	ConLevel bool `yaml:"con_level"`
+
 	// PerpetualAuctions shows and sells the auction house's standing lots
 	// (database/auction_perpetual.go, handlers/auction_perpetual.go): lots
 	// that never end and never run out, a buy at the price filing the items

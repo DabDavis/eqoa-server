@@ -988,6 +988,19 @@ const (
 	OpcodeMobInfo GameOpcode = 0x7E4E
 )
 
+// A target's level beside its name (handlers/conlevel.go, world.con_level; Live
+// petition 5130, the owner 2026-11-15: "yes lets allow").
+const (
+	// OpcodeConLevelOffer is not retail: the server's offer, server to client
+	// once the player is in the world, only where world.con_level is on: a u8,
+	// 1, its layout. A client that knows it (vanilla) shows its target's level
+	// (the entity channel's byte 140, sent everywhere) in its target box; it
+	// answers nothing. A PS2 ignores it (CLIENT's dispatcher has no case above
+	// 0x1402 and no default); its players type /con ("/t con"). 0x7E70, not
+	// the next free, is this lane's (sibling lanes hold 0x7E69-0x7E6F).
+	OpcodeConLevelOffer GameOpcode = 0x7E70
+)
+
 // Mercenaries told apart and dismissed from the menu, and the group search's
 // registration and its "Allow anyone in my group to invite" (the GM Jibrish's
 // petitions 1475, 1476 and 1488, 2026-11-11; handlers/mercui.go,
@@ -1513,6 +1526,8 @@ func (op GameOpcode) String() string {
 		return "ReadyCheckReply"
 	case OpcodeDPSMeterOffer:
 		return "DPSMeterOffer"
+	case OpcodeConLevelOffer:
+		return "ConLevelOffer"
 	case OpcodeDPSMeterAnswer:
 		return "DPSMeterAnswer"
 	case OpcodeDPSMeterData:

@@ -639,6 +639,11 @@ func main() {
 	if cfg.World.PerpetualAuctions {
 		log.Printf("Auctions: the house's standing lots are up (world.perpetual_auctions)")
 	}
+	// a target's level, /con and vanilla's target box (handlers/conlevel.go)
+	handlers.SetConLevel(cfg.World.ConLevel)
+	if cfg.World.ConLevel {
+		log.Printf("Con level: a target's level is shown (world.con_level)")
+	}
 	// a monster's name and level on the talk button (handlers/mobinfo.go)
 	handlers.SetMobInfo(cfg.World.MobInfo)
 	if cfg.World.MobInfo {

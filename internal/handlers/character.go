@@ -982,6 +982,10 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// world.mob_info is on: a client that shows them there asks, a PS2
 	// ignores it and is shown them in a dialogue box
 	SendMobInfoOffer(sess)
+	// and a target's level in the target box (conlevel.go), where
+	// world.con_level is on: a client that draws it shows it, a PS2 ignores
+	// it (its players type /con)
+	SendConLevelOffer(sess)
 	// and links to items in chat lines (itemlinks.go): a client that takes
 	// them answers, a PS2 ignores it and is sent the item's name in the line
 	SendItemLinksOffer(sess)

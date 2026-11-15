@@ -134,15 +134,21 @@ func TestShadowStageMitigation(t *testing.T) {
 	}
 }
 
-// dmgStage's preview: a mitigation, then a carrier's wounds, as the PvP path
-// takes them; nothing changes on the stage.
+// dmgStage's preview: for a formula before the stage, a mitigation then a
+// carrier's wounds; after it, the formula's figure as it is. Nothing changes
+// on the stage.
 func TestDmgStagePreview(t *testing.T) {
-	s := dmgStage{on: true, pre: 100, mit: mitSnap{on: true, pct: 40, capped: true, left: 25}, ctfPct: 10}
+	s := dmgStage{on: true, formulaBefore: true, pre: 100, mit: mitSnap{on: true, pct: 40, capped: true, left: 25}, ctfPct: 10}
 	if got := s.preview(200); got != ctfWounded(200-25, 10) {
 		t.Errorf("preview %d", got)
 	}
 	if got := s.preview(200); got != 193 || s.mit.left != 25 {
 		t.Errorf("a second preview %d, left %d", got, s.mit.left)
+	}
+	after := s
+	after.formulaBefore = false
+	if got := after.preview(200); got != 200 {
+		t.Errorf("a formula after the stage: %d", got)
 	}
 	if s.steps() != "mitigation+ctf" || (&dmgStage{}).steps() != "" || (&dmgStage{on: true}).steps() != "none" {
 		t.Errorf("steps %q", s.steps())
@@ -168,6 +174,7 @@ func TestDamageFormulaNewerInputs(t *testing.T) {
 	fixDice(t)
 	p := &Player{Name: "Hero", Level: 30, World: 4, Instance: 9}
 	p.Gear.WeaponType, p.Gear.RangedDamage, p.Gear.RangedType = 3, 40, 7
+	p.PrimaryType = 3 // the main hand's (handType)
 	p.Swing.Kind = swingRange4
 	p.CMEffects[cmSlotOff], p.CMEffects[cmSlotDef] = 5, 6
 	p.Mods.OffMod, p.Mods.DefMod = 1, 2

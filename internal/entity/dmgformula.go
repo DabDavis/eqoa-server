@@ -29,6 +29,8 @@ package entity
 // a pet or a mercenary).
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
@@ -136,12 +138,7 @@ var dmgVars = []struct {
 	}},
 	{"raw", func(in *dmgIn) formula.Value { return num(in.raw) }},
 	{"kind", func(in *dmgIn) formula.Value { return num(int(in.kind)) }},
-	{"mode", func(in *dmgIn) formula.Value {
-		if in.ranged {
-			return formula.String("ranged")
-		}
-		return formula.String(dmgKindNames[in.kind])
-	}},
+	{"mode", func(in *dmgIn) formula.Value { return formula.String(in.attackMode()) }},
 	{"pvp", func(in *dmgIn) formula.Value { return flag(in.src == srcPvP) }},
 	{"duel", func(in *dmgIn) formula.Value { return flag(in.duel) }},
 	{"ranged", func(in *dmgIn) formula.Value { return flag(in.ranged) }},
@@ -180,6 +177,8 @@ var dmgVars = []struct {
 	{"a_effect_defmod", func(in *dmgIn) formula.Value { _, def := sideEffectMods(in.ap, in.an); return num(def) }},
 	{"a_cm_offmod", func(in *dmgIn) formula.Value { off, _ := sideCMMods(in.ap); return num(off) }},
 	{"a_cm_defmod", func(in *dmgIn) formula.Value { _, def := sideCMMods(in.ap); return num(def) }},
+	{"a_cm_off_ranks", func(in *dmgIn) formula.Value { off, _ := sideCMRanks(in.ap); return num(off) }},
+	{"a_cm_def_ranks", func(in *dmgIn) formula.Value { _, def := sideCMRanks(in.ap); return num(def) }},
 	{"a_npc_row", func(in *dmgIn) formula.Value { return num(sideRow(in.an)) }},
 	{"a_hp", func(in *dmgIn) formula.Value { return num(sideHP(in.ap, in.an)) }},
 	{"a_maxhp", func(in *dmgIn) formula.Value { return num(sideMaxHP(in.ap, in.an)) }},
@@ -215,7 +214,28 @@ var dmgVars = []struct {
 		_, _, two := in.ap.meleeWeapon()
 		return flag(two)
 	}},
-	{"weapon_type", func(in *dmgIn) formula.Value { return num(in.weaponType()) }},
+	{"weapon_type", func(in *dmgIn) formula.Value { t, _ := in.weaponTypeOf(); return num(t) }},
+	{"weapon_mismatch", func(in *dmgIn) formula.Value { _, m := in.weaponTypeOf(); return flag(m) }},
+	{"weapon_kind", func(in *dmgIn) formula.Value { return formula.String(meleeKindName(in.weaponKind())) }},
+	{"d_kind_resist", func(in *dmgIn) formula.Value { return num(sideKindResist(in.dp, in.dn, in.weaponKind())) }},
+	{"d_kind_debuff_pct", func(in *dmgIn) formula.Value {
+		k := in.weaponKind()
+		if in.dp != nil || in.dn == nil || k == StatNone {
+			return num(0)
+		}
+		t, _ := in.weaponTypeOf()
+		return num(npcMeleeDebuffPct(in.dn, k, byte(max(t, 0)), time.Now()))
+	}},
+	{"d_kind_taken_pct", func(in *dmgIn) formula.Value {
+		k := in.weaponKind()
+		if in.dp != nil || in.dn == nil || k == StatNone || in.dn.tmpl == nil || in.dn.tmpl.kindTaken == nil {
+			return num(100)
+		}
+		if pct, ok := in.dn.tmpl.kindTaken[k]; ok {
+			return num(pct)
+		}
+		return num(100)
+	}},
 	{"ranged_weapon_dmg", func(in *dmgIn) formula.Value {
 		if in.ap == nil {
 			return num(0)
@@ -228,12 +248,8 @@ var dmgVars = []struct {
 		}
 		return num(in.ap.Gear.RangedType)
 	}},
-	{"projectiles", func(in *dmgIn) formula.Value {
-		if !in.ranged || in.ap == nil {
-			return num(0)
-		}
-		return num(shotArrows(in.ap))
-	}},
+	{"projectiles", func(in *dmgIn) formula.Value { return num(in.shotArrows()) }},
+	{"arrow", func(in *dmgIn) formula.Value { return num(in.arrow) }},
 
 	{"d_kind", func(in *dmgIn) formula.Value { return formula.String(in.defenderKind()) }},
 	{"d_name", func(in *dmgIn) formula.Value { return formula.String(sideName(in.dp, in.dn, false)) }},
@@ -252,6 +268,8 @@ var dmgVars = []struct {
 	{"d_effect_defmod", func(in *dmgIn) formula.Value { _, def := sideEffectMods(in.dp, in.dn); return num(def) }},
 	{"d_cm_offmod", func(in *dmgIn) formula.Value { off, _ := sideCMMods(in.dp); return num(off) }},
 	{"d_cm_defmod", func(in *dmgIn) formula.Value { _, def := sideCMMods(in.dp); return num(def) }},
+	{"d_cm_off_ranks", func(in *dmgIn) formula.Value { off, _ := sideCMRanks(in.dp); return num(off) }},
+	{"d_cm_def_ranks", func(in *dmgIn) formula.Value { _, def := sideCMRanks(in.dp); return num(def) }},
 	{"d_npc_row", func(in *dmgIn) formula.Value { return num(sideRow(in.dn)) }},
 	{"d_hp", func(in *dmgIn) formula.Value { return num(sideHP(in.dp, in.dn)) }},
 	{"d_maxhp", func(in *dmgIn) formula.Value { return num(sideMaxHP(in.dp, in.dn)) }},
@@ -444,13 +462,112 @@ func (in *dmgIn) place() (world, instance int) {
 	return 0, 0
 }
 
-// weaponType is the attacker's weapon's attack type (Gear.WeaponType), 0 for
-// none and for a creature.
-func (in *dmgIn) weaponType() int {
-	if in.ap == nil {
+// isRangedAttackType is whether an attack type is a ranged weapon's (7 a
+// bow, 9 a crossbow, 10 thrown: workbookmore.go equipCodes).
+func isRangedAttackType(t int) bool { return t == 7 || t == 9 || t == 10 }
+
+// weaponTypeOf is the attack type of the weapon the hit's branch used: a
+// bow's shot the ranged slot's item's (its hand's weapon's when the slot's
+// item has none); any other hit the hand's whose hit it is, as the built-in
+// routes it (handType: the off hand's every second hit of a round, a ranged
+// weapon's when it is the one that swings). A melee hit whose weapon is a
+// ranged one's is unknown (-1), with mismatch set. 0 for no player attacker.
+func (in *dmgIn) weaponTypeOf() (t int, mismatch bool) {
+	p := in.ap
+	if p == nil {
+		return 0, false
+	}
+	if in.ranged {
+		if p.Gear.RangedType != 0 {
+			return p.Gear.RangedType, false
+		}
+		return int(p.handType(p.RoundHits)), false
+	}
+	t = int(p.handType(p.RoundHits))
+	if in.kind == dkMelee && isRangedAttackType(t) {
+		return -1, true
+	}
+	return t, false
+}
+
+// weaponKind is the typed melee resist weapon_type routes to: a type's
+// (meleeKindOf: 1-2 slash, 5-7, 9, 10 pierce, the rest blunt; a bow's shot
+// pierce), a player's bare hands blunt; StatNone for an unknown type and for
+// no player attacker.
+func (in *dmgIn) weaponKind() Stat {
+	t, _ := in.weaponTypeOf()
+	if in.ap == nil || t < 0 {
+		return StatNone
+	}
+	if in.ranged {
+		return StatPierce
+	}
+	return meleeKindOf(byte(t))
+}
+
+func meleeKindName(k Stat) string {
+	switch k {
+	case StatSlash:
+		return "slash"
+	case StatPierce:
+		return "pierce"
+	case StatBlunt:
+		return "blunt"
+	}
+	return ""
+}
+
+// sideKindResist is a side's typed melee resist of the kind (its effects'
+// Slash, Pierce or Blunt: a debuff's negative), 0 for none.
+func sideKindResist(p *Player, n *NPC, k Stat) int {
+	var m StatMods
+	switch {
+	case p != nil:
+		m = p.Mods
+	case n != nil:
+		m = n.effectMods()
+	default:
 		return 0
 	}
-	return in.ap.Gear.WeaponType
+	switch k {
+	case StatSlash:
+		return m.Slash
+	case StatPierce:
+		return m.Pierce
+	case StatBlunt:
+		return m.Blunt
+	}
+	return 0
+}
+
+// attackMode is the hit's kind of attack: "ranged" for a bow's shot, else
+// its kind's name (melee, spell, dot, shield, proc, special).
+func (in *dmgIn) attackMode() string {
+	if in.ranged {
+		return "ranged"
+	}
+	return dmgKindNames[in.kind]
+}
+
+// shotArrows is the shot's arrows: the caller's count, or the attacker's
+// swing's (shotArrows) for a shot run once; 0 for no shot.
+func (in *dmgIn) shotArrows() int {
+	switch {
+	case in.arrows > 0:
+		return in.arrows
+	case in.ranged && in.ap != nil:
+		return shotArrows(in.ap)
+	}
+	return 0
+}
+
+// sideCMRanks is how many of a player's bought mastery ranks give OFF MOD and
+// DEF MOD (Player.CMOffRanks, CMDefRanks), 0 for a creature.
+func sideCMRanks(p *Player) (off, def int) {
+	if p == nil {
+		return 0, 0
+	}
+	return p.CMOffRanks, p.CMDefRanks
 }
 
 func sideHP(p *Player, n *NPC) int {
@@ -560,6 +677,8 @@ var dmgVarsYield = map[string]bool{
 	"a_effect_offmod": true, "a_effect_defmod": true, "a_cm_offmod": true, "a_cm_defmod": true, "a_npc_row": true,
 	"d_effect_offmod": true, "d_effect_defmod": true, "d_cm_offmod": true, "d_cm_defmod": true, "d_npc_row": true,
 	"weapon_type": true, "ranged_weapon_dmg": true, "ranged_weapon_type": true, "projectiles": true,
+	"weapon_mismatch": true, "weapon_kind": true, "d_kind_resist": true, "d_kind_debuff_pct": true, "d_kind_taken_pct": true,
+	"arrow": true, "a_cm_off_ranks": true, "a_cm_def_ranks": true, "d_cm_off_ranks": true, "d_cm_def_ranks": true,
 }
 
 // DamageFormulaVars is every input's name, in order (the docs' test).
@@ -598,28 +717,34 @@ type dmgIn struct {
 	ranged, duel, byPet bool
 	mitigated           int // what a mitigation took off base before (the shadow log's alone)
 	stage               dmgStage
+	// arrow is this run's arrow of a bow's shot (1, 2), arrows the shot's
+	// count; 0 for a shot run once on the whole and for no shot
+	arrow, arrows int
 }
 
-// dmgStage is what a path did to the built-in figure after its balance's
-// shares and before base, where a formula's figure is put in its place: a
-// creature's melee on a player (systems.go npcAttackPlayer) and a PvP hit
-// (duel.go duelHurtAtLocked) take a mitigation off (workbook.go) and a PvP
-// hit adds a flag carrier's wounds (ctfflag.go). on: the path has the stage;
-// pre the built-in figure before it; mit the mitigation as it stood before
-// the hit spent any; ctfPct the wounds' share. The shadow log records pre
-// (builtin_pre) and the formula's figure through the same steps (preview).
+// dmgStage is what a path does to the built-in figure after its balance's
+// shares: a creature's melee on a player (systems.go npcAttackPlayer) takes
+// the player's mitigation off (workbook.go), a PvP hit (duel.go
+// duelHurtAtLocked) a melee hit's mitigation and adds a flag carrier's
+// wounds (ctfflag.go). on: the path has the stage; pre the built-in figure
+// before it; mit the mitigation as it stood before the hit spent any; ctfPct
+// the wounds' share. formulaBefore: the formula stands before the stage (a
+// creature's melee: its figure goes through the mitigation, live, once), else
+// after it (PvP: its figure lands as it is).
 type dmgStage struct {
-	on     bool
-	pre    int
-	mit    mitSnap
-	ctfPct int
+	on            bool
+	formulaBefore bool
+	pre           int
+	mit           mitSnap
+	ctfPct        int
 }
 
-// preview is n through the stage's steps as the built-in figure went
-// through them, from the state captured before the hit: nothing is spent,
-// broken, logged or drawn.
+// preview is a formula's figure n as it would land: through the stage's
+// steps for a formula that stands before them, from the state captured
+// before the hit (nothing is spent, broken, logged or drawn); n for one that
+// stands after them.
 func (s *dmgStage) preview(n int) int {
-	if !s.on {
+	if !s.on || !s.formulaBefore {
 		return n
 	}
 	return ctfWounded(s.mit.take(n), s.ctfPct)
@@ -656,6 +781,33 @@ type dmgFormulaSet struct {
 	paths  [nDmgSources][nDmgKinds]*dmgEntry
 	names  []string
 	tables int
+	// hash is the file's SHA-256, its first 16 hex digits; version what the
+	// file says it is (version:, "" none): both recorded in each shadow line
+	hash, version string
+	// ranged is what a bow's shot of a player's on a creature takes of the
+	// formulas (options: ranged:)
+	ranged rangedMode
+}
+
+// rangedMode is the file's options: ranged: word.
+type rangedMode int
+
+const (
+	rangedPerArrow   rangedMode = iota // per_arrow (the default): the formula runs once for each arrow of the shot
+	rangedWholeSwing                   // swing: once on the whole shot, as before 2026-11-15
+	rangedBuiltin                      // builtin: a shot keeps the built-in figure; no formula runs on it, nothing is shadowed
+)
+
+var rangedModeWords = map[string]rangedMode{"per_arrow": rangedPerArrow, "swing": rangedWholeSwing, "builtin": rangedBuiltin}
+
+// dmgFileOption is the options a formula file may give, and their words.
+func dmgFileOption(name, value string) bool {
+	switch name {
+	case "ranged":
+		_, ok := rangedModeWords[value]
+		return ok
+	}
+	return false
 }
 
 // dmgFormulaState is the World's: the set in use (nil: the built-in
@@ -692,21 +844,41 @@ var dmgScratch = sync.Pool{New: func() any {
 // the private shadow log, and base lands. Cheap when no formula is loaded:
 // one atomic load.
 func (w *World) formulaDamage(base int, in dmgIn) int {
+	x, rec := w.formulaBegin(base, &in)
+	w.formulaFinish(rec, x, mitSnap{})
+	return x
+}
+
+// formulaBegin is formulaDamage's first half, for a path whose formula
+// stands before a stage of its own (dmgStage.formulaBefore: a creature's melee
+// on a player, before the mitigation): the figure to go on with (live: the
+// formula's; else base) and, in shadow, the record, which formulaFinish
+// completes with what landed once the stage has run (nil when there is
+// none). A bow's shot under the file's ranged: builtin is left alone.
+func (w *World) formulaBegin(base int, in *dmgIn) (int, *shadowRec) {
 	set := w.dmgf.set.Load()
 	if set == nil {
-		return base
+		return base, nil
 	}
 	e := set.paths[in.src][in.kind]
-	if e == nil {
-		return base
+	if e == nil || in.ranged && set.ranged == rangedBuiltin {
+		return base, nil
 	}
 	switch FormulaMode(w.dmgf.mode.Load()) {
 	case FormulaLive:
-		return e.apply(base, &in)
+		return e.apply(base, in), nil
 	case FormulaShadow:
-		w.shadowDamage(e, base, &in)
+		return base, w.shadowRun(set, e, base, in)
 	}
-	return base
+	return base, nil
+}
+
+// rangedFormulaMode is what the loaded file makes of a bow's shot.
+func (w *World) rangedFormulaMode() rangedMode {
+	if set := w.dmgf.set.Load(); set != nil {
+		return set.ranged
+	}
+	return rangedPerArrow
 }
 
 // apply runs the formula on the hit.
@@ -817,17 +989,20 @@ func (w *World) loadDamageFormulasLocked() ([]string, error) {
 		return nil, fmt.Errorf("the formula file has %d mistake(s), refused (the first: %v); the formulas in use stay", len(errs), errs[0])
 	}
 	st.set.Store(set)
-	log.Printf("Damage formulas loaded: %d (%s), %d table(s)", len(set.names), strings.Join(set.names, ", "), set.tables)
+	log.Printf("Damage formulas loaded: %d (%s), %d table(s), file %s%s", len(set.names), strings.Join(set.names, ", "), set.tables,
+		set.hash, map[bool]string{true: ", version " + set.version}[set.version != ""])
 	return set.names, nil
 }
 
 // compileDamageFormulas compiles a file's text into a set.
 func compileDamageFormulas(data []byte) (*dmgFormulaSet, []error) {
-	progs, tables, errs := formula.ParseFileYield(data, knownDamageFormula, dmgVarIndex, dmgVarsYield)
+	progs, tables, meta, errs := formula.ParseFileMeta(data, knownDamageFormula, dmgVarIndex, dmgVarsYield, dmgFileOption)
 	if len(errs) > 0 {
 		return nil, errs
 	}
-	set := &dmgFormulaSet{names: formula.Names(progs), tables: tables}
+	sum := sha256.Sum256(data)
+	set := &dmgFormulaSet{names: formula.Names(progs), tables: tables, hash: hex.EncodeToString(sum[:8]), version: meta.Version,
+		ranged: rangedModeWords[meta.Options["ranged"]]}
 	byName := map[string]*dmgEntry{}
 	for name, p := range progs {
 		if p.Slots() > len(dmgVars)+formula.MaxSteps {

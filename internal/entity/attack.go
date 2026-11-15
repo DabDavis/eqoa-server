@@ -728,15 +728,69 @@ func shotArrows(p *Player) int {
 // melee roll (playerMeleeHit), or a bow's shot of one arrow, or two at Range4,
 // each rangedShare times a ranged roll (playerRangedHit).
 func playerShotHit(p *Player, npc *NPC, intn func(int) int) int {
-	arrows := shotArrows(p)
-	if arrows == 0 {
-		return playerMeleeHit(p, npc, intn)
-	}
-	hit := 0
-	for range arrows {
-		hit += int(math.Round(float64(playerRangedHit(p, npc, intn)) * rangedShare))
-	}
+	hit, _, _ := playerShotParts(p, npc, intn)
 	return hit
+}
+
+// maxShotArrows is the most arrows a shot has (Range4's two).
+const maxShotArrows = 2
+
+// playerShotParts is playerShotHit with each arrow's figure (its roll at
+// rangedShare, rounded) and the arrows' count, 0 for a melee hit; the rolls
+// and their order are playerShotHit's.
+func playerShotParts(p *Player, npc *NPC, intn func(int) int) (hit int, parts [maxShotArrows]int, arrows int) {
+	arrows = shotArrows(p)
+	if arrows == 0 {
+		return playerMeleeHit(p, npc, intn), parts, 0
+	}
+	for i := range arrows {
+		parts[i] = int(math.Round(float64(playerRangedHit(p, npc, intn)) * rangedShare))
+		hit += parts[i]
+	}
+	return hit, parts, arrows
+}
+
+// arrowShare is arrow i's share of a shot's built-in figure damage: damage
+// apportioned by the arrows' figures (parts, summing to raw), the last arrow
+// taking what is left so the shares sum to damage; the first all of it when
+// raw is 0.
+func arrowShare(damage, raw int, parts [maxShotArrows]int, arrows, i int) int {
+	if raw <= 0 {
+		if i == 0 {
+			return damage
+		}
+		return 0
+	}
+	if i == arrows-1 {
+		given := 0
+		for j := range i {
+			given += damage * parts[j] / raw
+		}
+		return damage - given
+	}
+	return damage * parts[i] / raw
+}
+
+// playerShotFormulaLocked is the operator's formula on a landed swing
+// (dmgformula.go player_melee): on a melee hit, or a bow's shot under the
+// file's ranged: swing, once on the swing's figure; on a shot under
+// per_arrow (the default), once for each arrow, each on its share of the
+// built-in figure and its own roll as raw, the arrows' figures summed into the
+// swing's one hit (the rolls, the balance's share, the hit's figure to the
+// client, its threat, procs and a kill are the swing's, as before); under
+// builtin a shot keeps the built-in figure (formulaBegin).
+func (w *World) playerShotFormulaLocked(attacker *Player, npc *NPC, damage, raw int, parts [maxShotArrows]int, arrows int) int {
+	in := dmgIn{src: srcPlayer, kind: dkMelee, ap: attacker, dn: npc, raw: raw, ranged: arrows > 0, arrows: arrows}
+	if arrows == 0 || w.rangedFormulaMode() != rangedPerArrow {
+		return w.formulaDamage(damage, in)
+	}
+	total := 0
+	for i := range arrows {
+		a := in
+		a.raw, a.arrow = parts[i], i+1
+		total += w.formulaDamage(arrowShare(damage, raw, parts, arrows, i), a)
+	}
+	return total
 }
 
 // playerHitLocked is one landed player swing: Sandstorm's roll on the worn
@@ -761,10 +815,9 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 	if !w.shotPowerLocked(sess, attacker) {
 		return true // a bow's shot without the power: the fight let go (rangedpower.go)
 	}
-	raw := playerShotHit(attacker, npc, meleeIntn)
-	damage := w.meleeDealtLocked(npc, attacker, raw, meleeIntn) // balance.go
-	damage = w.formulaDamage(damage, dmgIn{src: srcPlayer, kind: dkMelee, ap: attacker, dn: npc, raw: raw,
-		ranged: rangedSwing(attacker)}) // dmgformula.go: the operator's formula, if any
+	raw, parts, arrows := playerShotParts(attacker, npc, meleeIntn)
+	damage := w.meleeDealtLocked(npc, attacker, raw, meleeIntn)                   // balance.go
+	damage = w.playerShotFormulaLocked(attacker, npc, damage, raw, parts, arrows) // dmgformula.go: the operator's formula, if any
 	if npc.Dummy != NotDummy {
 		// told, taken off nothing; the dummy fights back (dummy.go)
 		now := time.Now()

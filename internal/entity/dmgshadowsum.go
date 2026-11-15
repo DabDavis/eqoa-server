@@ -4,7 +4,10 @@ package entity
 // formula's figures compare with the built-in ones, by path, attacker kind
 // and attacker level band. It reads the file (and the one rotated before it)
 // off the tick, and shows figures alone: no formula's text, and none of the
-// records' shadow_ tags.
+// records' shadow_ tags but the one a summary is asked to group by (Tag).
+// The figures compared are a line's comparable ones, as each would land
+// (builtin_after_effects, formula_after_effects); a line written before
+// those were recorded, its builtin and value.
 
 import (
 	"bufio"
@@ -23,6 +26,10 @@ type ShadowSummaryOptions struct {
 	Path  string    // a path's name (npc_melee ...); "" for all
 	Since time.Time // records at or after it; zero for all
 	Top   int       // how many of the largest differences; 0: 10
+	// Tag groups the hits again by the value of one of the formula's
+	// shadow_ steps (its name without the prefix): ByTag's "path / tag=value",
+	// a hit without it under "tag=(none)". "" for none.
+	Tag string
 }
 
 // ShadowStats are one group's figures. Covered hits are those the formula
@@ -65,6 +72,7 @@ type ShadowSummary struct {
 	Total    ShadowStats    `json:"total"`
 	ByPath   []*ShadowStats `json:"by_path"`
 	Groups   []*ShadowStats `json:"groups"`
+	ByTag    []*ShadowStats `json:"by_tag,omitempty"`
 	Largest  []ShadowDiff   `json:"largest_differences"`
 	Failures map[string]int `json:"failures,omitempty"` // a run's failure (part and kind) -> hits
 }
@@ -102,7 +110,7 @@ func SummarizeShadowLog(path string, o ShadowSummaryOptions) (*ShadowSummary, er
 		o.Top = 10
 	}
 	s := &ShadowSummary{Total: ShadowStats{Key: "all"}}
-	paths, groups := map[string]*ShadowStats{}, map[string]*ShadowStats{}
+	paths, groups, tags := map[string]*ShadowStats{}, map[string]*ShadowStats{}, map[string]*ShadowStats{}
 	var diffs []ShadowDiff
 	for _, f := range []string{path + ".1", path} {
 		fh, err := os.Open(f)
@@ -142,16 +150,31 @@ func SummarizeShadowLog(path string, o ShadowSummaryOptions) (*ShadowSummary, er
 			if groups[gk] == nil {
 				groups[gk] = &ShadowStats{Key: gk}
 			}
-			covered := r.Fail == "" && (r.Draws > 0 || r.Value != r.Builtin)
-			for _, st := range []*ShadowStats{&s.Total, paths[r.Path], groups[gk]} {
+			built, form := r.Builtin, r.Value
+			if r.FormulaAt != "" {
+				built, form = r.BuiltinAfter, r.FormulaAfter
+			}
+			covered := r.Fail == "" && (r.Draws > 0 || form != built)
+			sts := []*ShadowStats{&s.Total, paths[r.Path], groups[gk]}
+			if o.Tag != "" {
+				tk := r.Path + " / " + o.Tag + "=(none)"
+				if v, ok := r.Tags[o.Tag]; ok {
+					tk = fmt.Sprintf("%s / %s=%v", r.Path, o.Tag, v)
+				}
+				if tags[tk] == nil {
+					tags[tk] = &ShadowStats{Key: tk}
+				}
+				sts = append(sts, tags[tk])
+			}
+			for _, st := range sts {
 				st.Hits++
 				if r.Fail != "" {
 					st.Failed++
 				}
 				if covered {
 					st.Covered++
-					st.built = append(st.built, float64(r.Builtin))
-					st.form = append(st.form, float64(r.Value))
+					st.built = append(st.built, float64(built))
+					st.form = append(st.form, float64(form))
 				}
 			}
 			if r.Fail != "" {
@@ -160,11 +183,11 @@ func SummarizeShadowLog(path string, o ShadowSummaryOptions) (*ShadowSummary, er
 				}
 				s.Failures[r.Fail]++
 			}
-			if covered && r.Value != r.Builtin {
+			if covered && form != built {
 				diffs = append(diffs, ShadowDiff{At: r.At, Path: r.Path,
 					Attacker: fmt.Sprintf("%s (%s, %d)", inStr(r.In, "a_name"), kind, inNum(r.In, "a_level")),
 					Defender: fmt.Sprintf("%s (%s, %d)", inStr(r.In, "d_name"), inStr(r.In, "d_kind"), inNum(r.In, "d_level")),
-					Builtin:  r.Builtin, Formula: r.Value, Diff: r.Value - r.Builtin})
+					Builtin:  built, Formula: form, Diff: form - built})
 				if len(diffs) > 4*o.Top+64 { // keep the largest only, as it reads
 					sortDiffs(diffs)
 					diffs = diffs[:o.Top]
@@ -189,6 +212,11 @@ func SummarizeShadowLog(path string, o ShadowSummaryOptions) (*ShadowSummary, er
 		st.finish()
 		s.Groups = append(s.Groups, st)
 	}
+	for _, st := range tags {
+		st.finish()
+		s.ByTag = append(s.ByTag, st)
+	}
+	sort.Slice(s.ByTag, func(i, j int) bool { return s.ByTag[i].Key < s.ByTag[j].Key })
 	sort.Slice(s.ByPath, func(i, j int) bool { return s.ByPath[i].Key < s.ByPath[j].Key })
 	sort.Slice(s.Groups, func(i, j int) bool { return s.Groups[i].Key < s.Groups[j].Key })
 	sortDiffs(diffs)

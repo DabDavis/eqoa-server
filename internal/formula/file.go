@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"sort"
 	"strconv"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -46,19 +47,41 @@ func ParseFile(data []byte, known func(name string) bool, inputs map[string]int)
 // ParseFileYield is ParseFile with the inputs a step's name may take over
 // (Compiler.Yield): inputs added after files were written.
 func ParseFileYield(data []byte, known func(name string) bool, inputs map[string]int, yield map[string]bool) (map[string]*Program, int, []error) {
+	progs, tables, _, errs := ParseFileMeta(data, known, inputs, yield, nil)
+	return progs, tables, errs
+}
+
+// MaxVersionLen bounds a file's version: string.
+const MaxVersionLen = 64
+
+// Meta is what a file says of itself besides its tables and formulas: its
+// optional version (a string the operator writes, version: at the top level,
+// logged and recorded beside each shadow line) and its options (options: a
+// mapping of names to words, each checked by the caller's option func).
+type Meta struct {
+	Version string
+	Options map[string]string
+}
+
+// ParseFileMeta is ParseFileYield reading the file's version: and options:
+// too. option checks an option's name and word (nil: no option is known); a
+// file with an option it refuses is refused, by line, with the option's name.
+func ParseFileMeta(data []byte, known func(name string) bool, inputs map[string]int, yield map[string]bool,
+	option func(name, value string) bool) (map[string]*Program, int, Meta, []error) {
+	var meta Meta
 	if len(data) > MaxFileSize {
-		return nil, 0, []error{fmt.Errorf("file larger than %d bytes", MaxFileSize)}
+		return nil, 0, meta, []error{fmt.Errorf("file larger than %d bytes", MaxFileSize)}
 	}
 	var doc yaml.Node
 	if err := yaml.Unmarshal(data, &doc); err != nil {
-		return nil, 0, []error{yamlErr(err)}
+		return nil, 0, meta, []error{yamlErr(err)}
 	}
 	if doc.Kind == 0 || len(doc.Content) == 0 {
-		return map[string]*Program{}, 0, nil // empty: no formula
+		return map[string]*Program{}, 0, meta, nil // empty: no formula
 	}
 	root := doc.Content[0]
 	if root.Kind != yaml.MappingNode {
-		return nil, 0, []error{fmt.Errorf("line %d: the file is a mapping of tables and formulas", root.Line)}
+		return nil, 0, meta, []error{fmt.Errorf("line %d: the file is a mapping of tables and formulas", root.Line)}
 	}
 	var errs []error
 	var tablesNode, formulasNode *yaml.Node
@@ -69,8 +92,28 @@ func ParseFileYield(data []byte, known func(name string) bool, inputs map[string
 			tablesNode = v
 		case "formulas":
 			formulasNode = v
+		case "version":
+			if v.Kind != yaml.ScalarNode || len(v.Value) > MaxVersionLen || strings.ContainsAny(v.Value, "\n\r") {
+				errs = append(errs, fmt.Errorf("line %d: version: is one line of at most %d characters", v.Line, MaxVersionLen))
+			} else {
+				meta.Version = v.Value
+			}
+		case "options":
+			if v.Kind != yaml.MappingNode {
+				errs = append(errs, fmt.Errorf("line %d: options: is a mapping of names to words", v.Line))
+				break
+			}
+			meta.Options = map[string]string{}
+			for j := 0; j+1 < len(v.Content); j += 2 {
+				ok, ov := v.Content[j], v.Content[j+1]
+				if ov.Kind != yaml.ScalarNode || option == nil || !option(ok.Value, ov.Value) {
+					errs = append(errs, fmt.Errorf("line %d: an option this server does not know, or a word it does not take for it (%s)", ok.Line, safeName(ok.Value)))
+					continue
+				}
+				meta.Options[ok.Value] = ov.Value
+			}
 		default:
-			errs = append(errs, fmt.Errorf("line %d: the file holds only tables: and formulas:", k.Line))
+			errs = append(errs, fmt.Errorf("line %d: the file holds only version:, options:, tables: and formulas:", k.Line))
 		}
 	}
 	tables := map[string]*Record{}
@@ -83,9 +126,18 @@ func ParseFileYield(data []byte, known func(name string) bool, inputs map[string
 		progs, errs = readFormulas(c, formulasNode, known, errs)
 	}
 	if len(errs) > 0 {
-		return nil, 0, errs
+		return nil, 0, Meta{}, errs
 	}
-	return progs, len(tables), nil
+	return progs, len(tables), meta, nil
+}
+
+// safeName is an option's name for an error when it is a name (letters,
+// digits, _), else "?": an error never quotes free text of the file.
+func safeName(s string) string {
+	if validName(s) {
+		return s
+	}
+	return "?"
 }
 
 var yamlLine = regexp.MustCompile(`line (\d+)`)

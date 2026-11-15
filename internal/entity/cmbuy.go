@@ -397,12 +397,18 @@ func (r *CMRank) OfferedTo(class, race int) bool {
 func (p *Player) refreshCMLocked(cat *cmCatalog) {
 	var s [CMSlots]int
 	ownBody := false
-	breath := 0
+	breath, offRanks, defRanks := 0, 0, 0
 	if cat != nil {
 		for id := range p.CMs {
 			if r := cat.byID[id]; r != nil {
 				for i, v := range r.Effects {
 					s[i] += v
+				}
+				if r.Effects[cmSlotOff] != 0 {
+					offRanks++
+				}
+				if r.Effects[cmSlotDef] != 0 {
+					defRanks++
 				}
 				ownBody = ownBody || r.NoWereIllusion
 				breath += r.BreathPct
@@ -411,6 +417,7 @@ func (p *Player) refreshCMLocked(cat *cmCatalog) {
 	}
 	p.CMBreathPct = breath
 	p.CMEffects = s
+	p.CMOffRanks, p.CMDefRanks = offRanks, defRanks
 	p.MoveRateBonus = s[cmSlotMoveRate]
 	p.WereOwnBody = ownBody
 }

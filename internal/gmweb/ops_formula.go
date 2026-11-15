@@ -69,7 +69,8 @@ func (s *Server) registerFormulaOps() {
 			"never a formula's text. An admin only.",
 		Input: obj(map[string]any{"path": str("one path only (npc_melee, player_melee, ...); empty: all"),
 			"hours": integer("only the last this many hours; 0: all"),
-			"top":   integer("how many of the largest differences (default 10, at most 100)")}),
+			"top":   integer("how many of the largest differences (default 10, at most 100)"),
+			"tag":   str("group the hits again by one of the formula's shadow_ steps (its name without shadow_); empty: none")}),
 		Handler: func(c *opCtx) (any, error) {
 			if c.s.d.World == nil {
 				return nil, badRequest("no world is running")
@@ -85,11 +86,13 @@ func (s *Server) registerFormulaOps() {
 				Path  string
 				Hours int
 				Top   int
+				Tag   string
 			}
 			if err := c.decode(&req); err != nil {
 				return nil, err
 			}
-			o := entity.ShadowSummaryOptions{Path: strings.TrimSpace(req.Path), Top: min(max(req.Top, 0), 100)}
+			o := entity.ShadowSummaryOptions{Path: strings.TrimSpace(req.Path), Top: min(max(req.Top, 0), 100),
+				Tag: strings.TrimPrefix(strings.TrimSpace(req.Tag), entity.ShadowTagPrefix)}
 			if req.Hours > 0 {
 				o.Since = time.Now().Add(-time.Duration(req.Hours) * time.Hour)
 			}

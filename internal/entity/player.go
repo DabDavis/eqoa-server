@@ -159,6 +159,10 @@ type Player struct {
 	// stats (cmbuy.go), which RecalcStats puts on its stats.
 	CMs       map[int]int
 	CMEffects [CMSlots]int
+	// CMOffRanks and CMDefRanks are how many of its bought ranks give any OFF
+	// MOD or DEF MOD (cmcatalog effects offmod/defmod), beside the points
+	// they sum to in CMEffects (the damage formulas' inputs: dmgformula.go)
+	CMOffRanks, CMDefRanks int
 	// WereOwnBody is whether a rank it owns keeps it in its own body under a
 	// were form (NoWereIllusion, wereownbody.go), summed with CMEffects
 	WereOwnBody bool

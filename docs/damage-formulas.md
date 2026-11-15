@@ -52,63 +52,101 @@ combat:
   by size. Every path a formula covers is shadowed: a file defining
   `npc_melee` alone shadows creatures' melee on players alone.
 
-A line holds: `t`, `path` (the hit's), `formula` (the one that ran),
-`builtin` (what landed), `value` (the formula's figure), `raw`, `mitigated`
-(what a mitigation took off before the built-in figure: a creature's melee, a
-PvP melee hit), `builtin_pre`, `formula_final_preview` and `stage` (the
-comparison stages, below), `draws` (the formula's random draws), `fail` (a
-run's failure, part and kind; `value` is then `builtin`), `weapon_type` (the
-attacker's weapon's attack type), `d_resist` (the defender's resist the hit
-is against), `in` (the inputs the formula reads, and always the sides' kinds,
-names, families, races, classes, levels, mods (the level-based ones, the
-effects' and the masteries'), npc rows, the defender's AC and AGI and
-`d_dummy`, the attacker's STR and DEX, the weapon's damage, delay, hands and
-type, the ranged slot's damage and the shot's arrows, the flags, the spell,
-the resist, `base_pre`, `world` and `instance`), and `tags`: the value of
-every step whose name begins with `shadow_` (a number or a string), the
-file's own way to record, say, which of its records a hit matched. Never a
-formula's text.
+A line holds:
+
+- `t`; `path` (the hit's); `formula` (the one that ran); `file_hash` (the
+  formula file's SHA-256, its first 16 hex digits: which load ran) and
+  `file_version` (the file's own `version:`, left out when it has none);
+  `sample` (the share of hits recorded) and `since` (when this sampling began,
+  the shadow log being set: the window is `since` to `t`).
+- The figures (the comparison stages, below): `builtin` (what landed),
+  `value` (the formula's figure), `builtin_pre`, `formula_final_preview`,
+  `formula_at`, `builtin_before_effects`, `builtin_after_effects`,
+  `formula_before_effects`, `formula_after_effects`, `stage`, `raw`,
+  `mitigated` (what a mitigation took off the built-in figure: a creature's
+  melee, a PvP melee hit).
+- `draws` (the formula's random draws); `fail` (a run's failure, part and
+  kind) and `fallback` (the failure's kind alone: `negative`, `not a number
+  (NaN)`, `infinite`, a missing field ...; the built-in figure then stood for
+  the formula's, so `value` is the built-in's at the formula's place).
+- `attack` (the attack's kind: `melee`, `ranged` for a bow's shot, `spell`,
+  `dot`, `shield`, `proc`, `special`), `arrow` (which arrow of a shot this run
+  is, 1 or 2; left out for a run on the whole shot or no shot) and `arrows`
+  (the shot's arrows); `weapon_type` (the input of that name: the attack's
+  weapon's type, -1 unknown) and `weapon_mismatch` (a ranged weapon's type on
+  a hit that is no shot); `d_resist` (the defender's resist the hit is
+  against).
+- `in`: the inputs the formula reads, and always the sides' kinds, names,
+  families, races, classes, levels, mods (the level-based ones, the effects',
+  the masteries' and their ranks), npc rows, the defender's AC and AGI and
+  `d_dummy`, the attacker's STR and DEX, the weapon's damage, delay, hands,
+  type, kind and the defender's resist of that kind, the ranged slot's damage,
+  the shot's arrows and the arrow, the flags, `mode`, the spell, the resist,
+  `base_pre`, `world` and `instance`.
+- `tags`: the value of every step whose name begins with `shadow_` (a number
+  or a string), the file's own way to record, say, which of its records a hit
+  matched.
+
+Never a formula's text.
 
 ### The comparison stages
 
 Every path's figure goes, in order: the roll (`raw`), the balance's shares
 (and an add's share of its creature), then, on two paths, a **stage** of
-steps, and only then the formula's hook. In **live mode a formula's result
-replaces the figure at the hook, after the stage**: the stage is not run on
-it again, and what the formula returns is what lands (before the boss-hold
-and the dummy, as for every path). So in live mode a formula's `base` is the
-figure after the stage, and `base_pre` the figure before it.
+steps (the hit's *effects*), with the formula standing before the stage on
+one path and after it on the other:
 
-| Path | Its stage, in order |
-|------|---------------------|
-| `npc_melee` (`systems.go` `npcAttackPlayer`) | the player's mitigation (`workbook.go` `mitigateLocked`: the strongest mitigation with any left takes its percent off, a capped one no more than it has left, spending that much and breaking when spent) |
-| `pvp_melee` (`duel.go` `duelHurtAtLocked`) | the defender's mitigation, as above; then, in a PvP fight (not a duel), a wounded flag carrier's added share (`ctfflag.go`) |
-| other `pvp_*` | in a PvP fight, the flag carrier's added share |
-| every other path | none |
+| Path | Its stage, in order | The formula stands |
+|------|---------------------|--------------------|
+| `npc_melee` (`systems.go` `npcAttackPlayer`) | the player's mitigation (`workbook.go` `mitigateSnapLocked`: the strongest mitigation with any left takes its percent off, a capped one no more than it has left, spending that much and breaking when spent; an invulnerability is a mitigation of 100%) | **before** the stage (`formula_at: before_effects`) |
+| `pvp_melee` (`duel.go` `duelHurtAtLocked`) | the duel's or PvP's share comes first (with the balance's), then the defender's mitigation, as above; then, in a PvP fight (not a duel), a wounded flag carrier's added share (`ctfflag.go`) | **after** the stage (`after_effects`) |
+| other `pvp_*` | the share, then in a PvP fight the flag carrier's added share | after |
+| every other path | none | after (at the end) |
 
-Each shadow line then holds three figures of the hit:
+- **`npc_melee`, live**: the formula runs on the figure before the
+  mitigation (`base` = `base_pre` = the balance-shared figure), its result
+  takes that figure's place, and then the mitigation's whole lifecycle runs
+  on it, once, as it runs on the built-in figure: its share off, a capped
+  pool spent by what it took, the mitigation broken when spent. What is left
+  lands. (Until 2026-11-15 the formula ran after the mitigation on the
+  landed figure; a file meant for that keeps its figure only where no
+  mitigation is up.)
+- **Every other path, live**: a formula's result replaces the figure at the
+  end, after the stage: the stage is not run on it again. Its `base` is the
+  figure after the stage, `base_pre` the figure before it.
+- **Shadow**, every path: the built-in lands, and spends what it spends,
+  unchanged. The formula runs where it would run live, with the same `base`.
 
-- `builtin_pre`: the built-in figure **before the stage** (after the
-  balance's shares), `builtin` on a path with none. For `npc_melee` it is
-  `builtin + mitigated`.
-- `builtin`: the built-in figure **after the stage**: what landed, and the
-  figure a live formula's result takes the place of (`base`).
-- `formula_final_preview`: the formula's figure (`value`) put **through the
-  same stage**, as the built-in figure went through it, computed from the
-  state as it stood before the hit: the mitigation's percent and what a
-  capped one had left before this hit spent any, the carrier's wounds. It is
-  a preview with no side effect: it spends no mitigation, breaks none, logs
-  nothing, sets off no proc and draws nothing. On a path with no stage it is
-  `value`.
+Each shadow line holds the comparable figures:
+
+- `builtin_before_effects` (also `builtin_pre`): the built-in figure before
+  the stage, after the balance's shares (and a duel's share); the landed
+  figure on a path with no stage. For `npc_melee` it is `builtin + mitigated`.
+- `builtin_after_effects` (also `builtin`): the built-in figure after the
+  stage: what landed.
+- `formula_before_effects` (`npc_melee` alone; left out where the formula
+  stands after the effects): the formula's figure, `value`.
+- `formula_after_effects` (also `formula_final_preview`): the formula's figure
+  as it would land. For `npc_melee` it is `value` put through the mitigation
+  **as it stood before this hit** (its percent, and what a capped one had
+  left before the built-in's hit spent any): a preview with no side effect,
+  spending no pool, breaking no mitigation, logging nothing, setting off no
+  proc and drawing nothing. Elsewhere it is `value`.
 - `stage`: the stage's steps: `mitigation`, `ctf`, `mitigation+ctf`, `none`
   (a stage that met no mitigation and no wounds), left out on a path with no
   stage.
 
-So a formula written for the figure before mitigation (reading `base_pre`)
-is compared against the built-in by `formula_final_preview` against
-`builtin`, and one written for the landed figure (reading `base`) by `value`
-against `builtin`. The figures that land are unchanged by shadow mode, and
-live mode is as it was: its result is the landed figure.
+Compare `formula_after_effects` with `builtin_after_effects` (the summary
+does), and `formula_before_effects` with `builtin_before_effects`.
+
+A later step put after the duel's share and the mitigation, before the
+formula's hook (say a flat share off every incoming hit), would on
+`pvp_melee` be inside the stage: part of `builtin_after_effects`, and a
+`pvp_*` formula's result would replace a figure that already had it. On
+`npc_melee` it would sit after `formulaBegin` if put after the mitigation:
+it would then need its own pure preview in `dmgStage.preview` (and its
+capture in `formulaFinish`) for `formula_after_effects` to include it; until
+then the preview stops at the mitigation (and a carrier's wounds).
 
 ### The draws in shadow mode
 
@@ -116,13 +154,13 @@ A shadowed formula draws from a random source of its own, seeded at start
 and apart from the game's (math/rand's global source, which the melee rolls,
 procs and every other gameplay roll draw from), so switching shadow mode on
 changes no gameplay roll's sequence: with the game's seed fixed the game's
-draws come out the same with shadow on or off (a test holds it). The
-sampling of `formula_shadow_sample` has its own source too.
-`entity.SeedShadowRand(seed)` fixes the shadow source's seed (a test's, or
-two shadow runs to compare alike). **Live mode draws from the game's
-source**, as before: there the formula's figure lands and is part of the
-game, as the built-in roll it replaces is, and an older file gives the same
-figures from the same seed it did.
+draws come out the same with shadow on or off, with formulas that fail (and
+fall back) and with shadow runs from several goroutines at once (tests hold
+it, under `-race` too). The sampling of `formula_shadow_sample` has its own
+source too. `entity.SeedShadowRand(seed)` fixes the shadow source's seed (a
+test's, or two shadow runs to compare alike). **Live mode draws from the
+game's source**, as before: there the formula's figure lands and is part of
+the game, as the built-in roll it replaces is.
 
 The mode is kept in each shard's database (table `formula_setting`):
 `formula_mode` only seeds it, and a GM's switch overwrites it and outlives a
@@ -151,7 +189,14 @@ rotated before it: hits, how many the formula modelled (it ran and drew, or
 gave a figure other than the built-in), failures, the mean, median and 90th
 percentile of the built-in and the formula's figures and their ratio,
 overall, by path, and by path / attacker kind / attacker level band (1-10 ...
-61+), and the largest differences. Figures only: no formula's text, no tags.
+61+), and the largest differences. The figures compared are each line's as
+they would land (`builtin_after_effects`, `formula_after_effects`; a line
+written before those, `builtin` and `value`). With `tag` (a `shadow_` step's
+name, with or without the prefix) it also groups the hits by path and that
+step's value (`by_tag`: `npc_melee / band=high`; a hit without it under
+`band=(none)`), so the populations a formula tells apart are summed apart.
+Figures only: no formula's text, and no tag but the one asked for, whose
+values then show.
 
 ## What is safe about it
 
@@ -218,16 +263,27 @@ of a hit is the one its damage number is tagged with for the client.
 
 Where each takes effect:
 
-- `player_melee`: `entity/attack.go` `playerHitLocked`, after the balance's
-  shares (`meleeDealtLocked`).
+- `player_melee`: `entity/attack.go` `playerHitLocked`
+  (`playerShotFormulaLocked`), after the balance's shares
+  (`meleeDealtLocked`). A bow's shot (the branch `playerShotParts` takes: a
+  ranged swing, no thrown potion) runs it **once for each arrow** by default:
+  the arrows are rolled as before (each its ranged roll at its share), the
+  balance's share is taken once on their sum as before, and arrow i's run
+  gets that figure's share by its roll (`base`: the shares sum to the
+  built-in figure, the last arrow taking the rounding) and its own roll
+  (`raw`), with `arrow` = i and `projectiles` = the count. The runs' figures
+  are summed into the swing's one hit: one figure to the client, one threat,
+  the swing's procs, its power, a kill, as before. The file's
+  `options: ranged:` changes it (below).
 - `player_spell`, `player_dot`, `player_proc`, `player_shield`:
   `entity/cast.go` `spellHitHateLocked`, the one place a player's spell, tick,
   proc, damage mark and damage shield land on a creature, after `dealtLocked`.
 - `pvp_*`: `entity/duel.go` `duelHurtLocked`, after the duel's or PvP's share,
   a melee hit's mitigation and a flag carrier's bonus (`raw` is the figure
   before the share).
-- `npc_melee`: `entity/systems.go` `npcAttackPlayer`, after the balance and a
-  mitigation. `npc_spell` and `npc_dot`: `entity/classtemplate.go`
+- `npc_melee`: `entity/systems.go` `npcAttackPlayer`, after the balance and
+  **before** the mitigation, which then runs on the formula's figure
+  ("The comparison stages"). `npc_spell` and `npc_dot`: `entity/classtemplate.go`
   (`templateHitLocked`, `npcTickLocked`), after the resist. `npc_special`:
   `templateStrikeLocked`. `npc_shield`: `entity/creatureshield.go`.
   `npc_proc`: a template's proc (`creatureshield.go`), its ability procs and
@@ -245,9 +301,13 @@ mercenary, a hit on a pet in a duel).
 
 ## The file
 
-YAML, two sections, both optional:
+YAML, four sections, all optional:
 
 ```yaml
+version: 2026-11-15a       # optional: one line, at most 64 characters; logged
+                           #   at load and in each shadow line (file_version)
+options:                   # optional
+  ranged: per_arrow        # per_arrow (default) | swing | builtin
 tables:
   <table>:                 # lower-case letters, digits, _
     <key>:                 # a record, under any text key
@@ -269,6 +329,19 @@ formulas:
 
 An expression may be written on several lines with YAML's `|`, and `#` starts
 a comment to the end of its line inside one.
+
+`options: ranged:` is what a bow's shot takes of the formulas:
+
+- `per_arrow` (the default): `player_melee` runs once for each arrow (above);
+  any other path's shot (`pvp_melee`, `merc_melee`) once on the whole shot.
+- `swing`: once on the whole shot (`arrow` 0, `raw` the arrows' sum), as
+  before 2026-11-15.
+- `builtin`: every bow's shot (a player's, PvP's, a merc's) keeps the
+  built-in figure; no formula runs on it and nothing of it is shadowed.
+
+An option the server does not know, or a word it does not take, refuses the
+file (by line and the option's name). A load logs the file's hash (the first
+16 hex digits of its SHA-256) and its version.
 
 ## The language
 
@@ -315,7 +388,7 @@ own: its `_str` ... `_ar` are what its effects add.
 | `base_pre` | the built-in figure before the path's stage (a mitigation, a flag carrier's wounds: "The comparison stages"); `base` on a path with none |
 | `raw` | the path's figure before the balance's shares (the weapon roll, the spell's amount after resists; `base` where the path has none) |
 | `kind` | 1 melee, 2 spell, 3 dot, 4 shield, 5 proc, 6 special |
-| `mode` | `"melee"`, `"ranged"`, `"spell"`, `"dot"`, `"shield"`, `"proc"` or `"special"` |
+| `mode` | the attack's kind: `"melee"`, `"ranged"` (a bow's shot), `"spell"`, `"dot"`, `"shield"`, `"proc"` or `"special"` |
 | `pvp` | 1 for a `pvp_*` hit |
 | `duel` | 1 in a duel (0 in a fight of two flagged players) |
 | `ranged` | 1 for a bow's shot |
@@ -334,7 +407,8 @@ own: its `_str` ... `_ar` are what its effects add.
 | `a_level` | its level |
 | `a_offmod`, `a_defmod` | its OFF and DEF mods: a player's from its effects; a creature's its level-based estimate (its row's level through `NPCOffMod`/`NPCDefMod`; a pet its sheet's) |
 | `a_effect_offmod`, `a_effect_defmod` | its OFF and DEF mods from its effects alone: a player's (as `a_offmod`), a creature's what its effects add |
-| `a_cm_offmod`, `a_cm_defmod` | the OFF MOD and DEF MOD a player's bought masteries give (the sum of its ranks' `offmod`/`defmod`, `CMEffects`); 0 for a creature |
+| `a_cm_offmod`, `a_cm_defmod` | the OFF MOD and DEF MOD points a player's bought masteries give: the sum over its owned ranks of each rank's `cmcatalog` effect `offmod` / `defmod` (`CMEffects` OFF MOD and DEF MOD rows, what the mastery window shows). One unit is one point of OFF (DEF) MOD as the window shows it; a rank gives what its row says, so points equal ranks only where each rank's row gives 1. Not in `a_offmod` (a player's effects') nor in the level estimates; 0 for a creature |
+| `a_cm_off_ranks`, `a_cm_def_ranks` | how many of its owned ranks give any OFF MOD (DEF MOD): a count of ranks, whatever each gives; 0 for a creature |
 | `a_npc_row` | a creature's `npcs` row id (a copy's, a spawn's, the row it was copied from; 0 for a copy of none and for a player) |
 | `a_eff_level` | its combat level: `a_level + a_offmod` |
 | `a_hp`, `a_maxhp`, `a_power`, `a_maxpower` | its hit points and power now, and their maxima |
@@ -343,13 +417,19 @@ own: its `_str` ... `_ar` are what its effects add.
 | `weapon_cond` | its condition, 0 to 1 |
 | `weapon_delay` | its swing's delay in seconds |
 | `two_handed` | 1 for a two-handed weapon |
-| `weapon_type` | the attacker's weapon's attack type (the one `weapon_dmg` is; the line's `weapon_type`), 0 for none and for a creature |
+| `weapon_type` | the attack type of the weapon the attack's branch used: a bow's shot the ranged slot's item's (the hand's when it has none); any other hit the hand's whose hit it is, as the built-in routes the hit's resist (`handType`: the off hand's every second hit of a round, a ranged weapon's when it is the one that swings). A melee hit whose type is a ranged weapon's (7 a bow, 9 a crossbow, 10 thrown) is **-1** (unknown). 0 for no player attacker (a creature, a pet). The line's `weapon_type` too |
+| `weapon_mismatch` | 1 for that melee hit with a ranged weapon's type, else 0 (the line's `weapon_mismatch`) |
+| `weapon_kind` | the typed melee resist `weapon_type` routes to: `"slash"` (types 1, 2), `"pierce"` (5, 6, 7, 9, 10, and every bow's shot), `"blunt"` (the rest, and a player's bare hands); `""` for -1 and no player attacker |
 | `ranged_weapon_dmg`, `ranged_weapon_type` | the item in the attacker's ranged slot's damage and attack type, 0 for none, whatever the hands hold. A bow's shot in the built-in rolls on `weapon_dmg`, which is the hands' weapon's when one is held and the ranged slot's only when none is |
-| `projectiles` | a bow's shot's arrows: 1, or 2 at the fourth ranged swing (each rolled and taken at its share, summed in `raw`); 0 for a swing that is no shot |
+| `projectiles` | a bow's shot's arrows: 1, or 2 at the fourth ranged swing; 0 for a swing that is no shot |
+| `arrow` | which arrow of the shot this run is (1, 2) under `ranged: per_arrow`; 0 for a run on the whole shot and for no shot |
 | `d_kind` | the defender: `"player"`, `"creature"` or `"pet"` |
 | `d_name`, `d_family`, `d_race`, `d_class`, `d_class_name`, `d_level` | as the attacker's |
 | `d_offmod`, `d_defmod` | its OFF and DEF mods (as `a_offmod`) |
-| `d_effect_offmod`, `d_effect_defmod`, `d_cm_offmod`, `d_cm_defmod`, `d_npc_row` | as the attacker's |
+| `d_effect_offmod`, `d_effect_defmod`, `d_cm_offmod`, `d_cm_defmod`, `d_cm_off_ranks`, `d_cm_def_ranks`, `d_npc_row` | as the attacker's |
+| `d_kind_resist` | the defender's typed melee resist of `weapon_kind`: what its effects give it of slash, pierce or blunt (a debuff's negative), a player's and a creature's alike; 0 for no kind |
+| `d_kind_debuff_pct` | a creature's strongest debuff of that kind, in percent more taken (the built-in's `npcMeleeDebuffPct`, with the Rakish line's one-handed-pierce rule on `weapon_type`); 0 for a player and no kind |
+| `d_kind_taken_pct` | a creature's class template's share taken of that kind (`kindTaken`), 100 for none |
 | `d_eff_level` | its combat level: `d_level + d_defmod` |
 | `d_hp`, `d_maxhp`, `d_power`, `d_maxpower` | as the attacker's |
 | `d_defence` | a creature's defence figure in the built-in melee roll (0 for a player) |
@@ -364,8 +444,10 @@ The built-in has no critical hits; a formula that wants them draws its own.
 
 The inputs added on 2026-11-15 (`base_pre`, `world`, `instance`,
 `a_/d_effect_offmod`, `a_/d_effect_defmod`, `a_/d_cm_offmod`,
-`a_/d_cm_defmod`, `a_/d_npc_row`, `weapon_type`, `ranged_weapon_dmg`,
-`ranged_weapon_type`, `projectiles`) may be a step's name in a file: from that
+`a_/d_cm_defmod`, `a_/d_cm_off_ranks`, `a_/d_cm_def_ranks`, `a_/d_npc_row`,
+`weapon_type`, `weapon_mismatch`, `weapon_kind`, `d_kind_resist`,
+`d_kind_debuff_pct`, `d_kind_taken_pct`, `ranged_weapon_dmg`,
+`ranged_weapon_type`, `projectiles`, `arrow`) may be a step's name in a file: from that
 step on the name is the step's (the steps before it read the input), so a
 file written before them, with a step of one of those names, loads and gives
 the figures it did. A step named as any older input is refused as before.

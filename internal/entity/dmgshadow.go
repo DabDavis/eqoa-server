@@ -125,6 +125,7 @@ const shadowFlushEvery = time.Second
 // dmgShadow is the shadow log's writer.
 type dmgShadow struct {
 	cfg     ShadowLogConfig
+	since   time.Time // when it was set: its sampling began
 	ch      chan *shadowRec
 	dropped atomic.Int64
 	written atomic.Int64
@@ -154,7 +155,7 @@ func (w *World) SetDamageFormulaShadow(cfg ShadowLogConfig) error {
 	if cfg.MaxBytes <= 0 {
 		cfg.MaxBytes = DefaultShadowMaxBytes
 	}
-	sh := &dmgShadow{cfg: cfg, ch: make(chan *shadowRec, shadowQueue), done: make(chan struct{}), stop: make(chan struct{}),
+	sh := &dmgShadow{cfg: cfg, since: time.Now(), ch: make(chan *shadowRec, shadowQueue), done: make(chan struct{}), stop: make(chan struct{}),
 		flush: make(chan chan error)}
 	if err := sh.open(); err != nil {
 		return err
@@ -321,7 +322,8 @@ var shadowInputs = []string{
 	"d_dummy", "base_pre", "world", "instance", "a_npc_row", "d_npc_row",
 	"a_effect_offmod", "a_effect_defmod", "a_cm_offmod", "a_cm_defmod",
 	"d_effect_offmod", "d_effect_defmod", "d_cm_offmod", "d_cm_defmod",
-	"weapon_type", "ranged_weapon_dmg", "projectiles",
+	"weapon_type", "weapon_mismatch", "weapon_kind", "d_kind_resist", "ranged_weapon_dmg", "projectiles", "arrow",
+	"a_cm_off_ranks", "a_cm_def_ranks", "d_cm_off_ranks", "d_cm_def_ranks", "mode",
 }
 
 var shadowInputSlots = func() []int {
@@ -348,15 +350,21 @@ type shadowVal struct {
 
 // shadowRec is one hit's record.
 type shadowRec struct {
+	sh                         *dmgShadow
 	at                         time.Time
 	path, entry                string
 	builtin, formula, raw, mit int
 	builtinPre, preview        int
-	steps                      string
+	formulaBefore              bool // the formula stands before the path's stage (dmgStage)
+	stage                      dmgStage
 	draws                      int
-	fail                       string
+	fail, fallback             string
 	weaponType                 int
+	weaponMismatch             bool
+	attack                     string
+	arrow, arrows              int
 	dResist                    int
+	fileHash, fileVersion      string
 	in, tags                   []shadowVal
 }
 
@@ -368,22 +376,44 @@ type ShadowRecord struct {
 	Builtin   int    `json:"builtin"`   // the built-in figure: what landed
 	Value     int    `json:"value"`     // the formula's figure (builtin when it failed)
 	Raw       int    `json:"raw"`       // the path's figure before the balance's shares
-	Mitigated int    `json:"mitigated"` // what a mitigation took off before the built-in figure
+	Mitigated int    `json:"mitigated"` // what a mitigation took off the built-in figure
 	// BuiltinPre is the built-in figure before the path's stage (dmgStage: a
 	// mitigation, a flag carrier's wounds), builtin where the path has none;
-	// Preview the formula's figure through that stage's steps on the state
-	// captured before the hit, nothing spent (value where the path has none);
+	// Preview the formula's figure as it would land (formula_after_effects);
 	// Stage the stage's steps ("" none, "none" a stage that did nothing,
 	// "mitigation", "ctf", "mitigation+ctf")
-	BuiltinPre int            `json:"builtin_pre"`
-	Preview    int            `json:"formula_final_preview"`
-	Stage      string         `json:"stage,omitempty"`
-	Draws      int            `json:"draws"`          // the random draws the formula made
-	Fail       string         `json:"fail,omitempty"` // the run's failure (part and kind)
-	WeapType   int            `json:"weapon_type"`    // the attacker's weapon's attack type (0 for none)
-	DResist    int            `json:"d_resist"`       // the defender's resist the hit is against (0 for none)
-	In         map[string]any `json:"in"`             // the inputs
-	Tags       map[string]any `json:"tags,omitempty"` // the formula's shadow_ steps
+	BuiltinPre int    `json:"builtin_pre"`
+	Preview    int    `json:"formula_final_preview"`
+	Stage      string `json:"stage,omitempty"`
+	// The comparable figures (docs/damage-formulas.md, "The comparison
+	// stages"): the built-in's before and after the path's effects (its
+	// stage), the formula's where it stands (before_effects: before the
+	// stage, its figure then put through it; after_effects: it lands as it
+	// is, and has no figure before the effects)
+	FormulaAt     string `json:"formula_at"` // "before_effects" or "after_effects"
+	BuiltinBefore int    `json:"builtin_before_effects"`
+	BuiltinAfter  int    `json:"builtin_after_effects"`
+	FormulaBefore *int   `json:"formula_before_effects,omitempty"`
+	FormulaAfter  int    `json:"formula_after_effects"`
+	Draws         int    `json:"draws"`              // the random draws the formula made
+	Fail          string `json:"fail,omitempty"`     // the run's failure (part and kind)
+	Fallback      string `json:"fallback,omitempty"` // why the built-in figure stood for the formula's: the failure's kind
+	// Attack is the hit's kind of attack ("melee", "ranged", "spell", "dot",
+	// "shield", "proc", "special"); Arrow which arrow of a bow's shot this
+	// run is (1, 2; 0 for a run on the whole shot and for no shot), Arrows
+	// the shot's arrows (0 for no shot)
+	Attack         string         `json:"attack"`
+	Arrow          int            `json:"arrow,omitempty"`
+	Arrows         int            `json:"arrows,omitempty"`
+	WeapType       int            `json:"weapon_type"`               // the attack's weapon's attack type (weapon_type: -1 unknown, 0 none)
+	WeaponMismatch bool           `json:"weapon_mismatch,omitempty"` // a ranged weapon's type on a hit that is no shot
+	DResist        int            `json:"d_resist"`                  // the defender's resist the hit is against (0 for none)
+	FileHash       string         `json:"file_hash"`                 // the formula file's SHA-256, its first 16 hex digits
+	FileVersion    string         `json:"file_version,omitempty"`    // the file's own version:
+	Sample         float64        `json:"sample"`                    // the share of hits recorded
+	Since          string         `json:"since"`                     // when this sampling began (the log was set): the window is since..t
+	In             map[string]any `json:"in"`                        // the inputs
+	Tags           map[string]any `json:"tags,omitempty"`            // the formula's shadow_ steps
 }
 
 func valOut(v formula.Value) any {
@@ -398,8 +428,18 @@ func valOut(v formula.Value) any {
 
 func (r *shadowRec) out() ShadowRecord {
 	o := ShadowRecord{At: r.at.UTC().Format(time.RFC3339Nano), Path: r.path, Formula: r.entry, Builtin: r.builtin,
-		Value: r.formula, Raw: r.raw, Mitigated: r.mit, BuiltinPre: r.builtinPre, Preview: r.preview, Stage: r.steps, Draws: r.draws, Fail: r.fail, WeapType: r.weaponType,
-		DResist: r.dResist, In: make(map[string]any, len(r.in))}
+		Value: r.formula, Raw: r.raw, Mitigated: r.mit, BuiltinPre: r.builtinPre, Preview: r.preview, Stage: r.stage.steps(),
+		BuiltinBefore: r.builtinPre, BuiltinAfter: r.builtin, FormulaAfter: r.preview, FormulaAt: "after_effects",
+		Draws: r.draws, Fail: r.fail, Fallback: r.fallback, Attack: r.attack, Arrow: r.arrow, Arrows: r.arrows,
+		WeapType: r.weaponType, WeaponMismatch: r.weaponMismatch, DResist: r.dResist, FileHash: r.fileHash,
+		FileVersion: r.fileVersion, In: make(map[string]any, len(r.in))}
+	if r.formulaBefore {
+		v := r.formula
+		o.FormulaAt, o.FormulaBefore = "before_effects", &v
+	}
+	if r.sh != nil {
+		o.Sample, o.Since = r.sh.cfg.Sample, r.sh.since.UTC().Format(time.RFC3339Nano)
+	}
 	for _, v := range r.in {
 		o.In[v.name] = valOut(v.v)
 	}
@@ -473,25 +513,36 @@ func (sh *dmgShadow) sampled() bool {
 	return shadowSample.Float64() < sh.cfg.Sample
 }
 
-// shadowDamage runs e on the hit and hands the pair to the shadow log; it
-// lands nothing.
-func (w *World) shadowDamage(e *dmgEntry, base int, in *dmgIn) {
+// shadowRun runs e on the hit for the shadow log, landing nothing: the
+// record, for formulaFinish to complete and hand to the log; nil when no log
+// is set or the hit is not sampled.
+func (w *World) shadowRun(set *dmgFormulaSet, e *dmgEntry, base int, in *dmgIn) *shadowRec {
 	sh := w.dmgf.shadow.Load()
 	if sh == nil || !sh.sampled() {
-		return
+		return nil
 	}
 	r := dmgScratch.Get().(*dmgRun)
 	defer dmgScratch.Put(r)
 	cr := &countRand{r: shadowRand} // never the game's source (shadowRand)
 	x, err := e.runOn(r, base, in, cr)
-	rec := &shadowRec{at: time.Now(), path: dmgPathName(in.src, in.kind), entry: e.name, builtin: base, formula: x,
-		raw: in.raw, mit: in.mitigated, draws: cr.n, builtinPre: base, preview: x, steps: in.stage.steps(),
-		weaponType: in.weaponType()}
+	wt, mismatch := in.weaponTypeOf()
+	rec := &shadowRec{sh: sh, at: time.Now(), path: dmgPathName(in.src, in.kind), entry: e.name, builtin: base, formula: x,
+		raw: in.raw, mit: in.mitigated, draws: cr.n, builtinPre: base, preview: x, stage: in.stage,
+		formulaBefore: in.stage.on && in.stage.formulaBefore, weaponType: wt, weaponMismatch: mismatch,
+		attack: in.attackMode(), arrow: in.arrow, arrows: in.shotArrows(), fileHash: set.hash, fileVersion: set.version}
 	if in.stage.on {
-		rec.builtinPre, rec.preview = in.stage.pre, in.stage.preview(x)
+		rec.builtinPre = in.stage.pre
+		if !rec.formulaBefore {
+			rec.preview = in.stage.preview(x)
+		}
 	}
 	if err != nil {
 		rec.fail = err.Error()
+		rec.fallback = "error"
+		var re *formula.RunError
+		if errors.As(err, &re) {
+			rec.fallback = re.Msg
+		}
 	}
 	if in.resist != 0 {
 		rec.dResist = sideStat(in.dp, in.dn, in.resist)
@@ -514,9 +565,28 @@ func (w *World) shadowDamage(e *dmgEntry, base int, in *dmgIn) {
 			}
 		}
 	}
+	return rec
+}
+
+// formulaFinish completes a shadow record (nil: none) and hands it to the
+// log. For a formula that stands before its path's stage, landed is the
+// built-in figure after the stage and mit the mitigation as it stood before
+// the hit (mitigateSnapLocked's): the formula's figure is put through it as a
+// preview, spending nothing. For any other path landed is base, as the
+// record has it.
+func (w *World) formulaFinish(rec *shadowRec, landed int, mit mitSnap) {
+	if rec == nil {
+		return
+	}
+	if rec.formulaBefore {
+		rec.mit = rec.builtinPre - landed
+		rec.builtin = landed
+		rec.stage.mit = mit
+		rec.preview = rec.stage.preview(rec.formula)
+	}
 	select {
-	case sh.ch <- rec:
+	case rec.sh.ch <- rec:
 	default:
-		sh.dropped.Add(1)
+		rec.sh.dropped.Add(1)
 	}
 }

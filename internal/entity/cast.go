@@ -148,6 +148,12 @@ type CastSpell struct {
 	Def          SpellDef
 	FX           uint32    // 0x00B1's visual; 0 for the stand-in of its kind
 	Area         SpellArea // what it lands on beside its target (area.go)
+	// MercSplash: a merc's Master Class hit with an area round its target
+	// (the Sorcerer's Furies, Blade Dance), which a merc casts at its target
+	// and whose splash lands only on what already fights its team (merc
+	// casting's mercSplashLocked: it pulls nothing), where any other harmful
+	// area spell is one a merc never casts (mercSkips)
+	MercSplash bool
 	// HandsBack is the handlers' switch of hands for the cast having taken
 	// up a ranged weapon in place of the hands it took off
 	// (handlers/handswitch.go): a self cast's landing gives them back, the

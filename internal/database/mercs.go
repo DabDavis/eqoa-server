@@ -27,7 +27,9 @@ import (
 // spells its hirer turned off in its menu (handlers/mercmenu.go), their ids
 // comma-separated. aoe is a Cocktail alchemist's /merc aoe (1: it throws
 // its area cocktails; 0, /merc single, the default, its single-target
-// potions: handlers/mercinv.go). A merc on standby (out of a
+// potions: handlers/mercinv.go). master is the Master Class its hirer gave
+// it at 55 or more (handlers/mercmaster.go: cmcatalog's mastery name, "" none;
+// the owner, 2026-11-15). A merc on standby (out of a
 // full group for a player: entity/mercbench.go) keeps its row as it is.
 const charMercSchema = `
 	CREATE TABLE IF NOT EXISTS charmerc (
@@ -49,6 +51,7 @@ const charMercSchema = `
 		offensive   INTEGER NOT NULL DEFAULT 0,
 		spells_off  TEXT NOT NULL DEFAULT '',
 		aoe         INTEGER NOT NULL DEFAULT 0,
+		master      TEXT NOT NULL DEFAULT '',
 		PRIMARY KEY (serverid, slot)
 	);`
 
@@ -89,7 +92,8 @@ func (db *SQLiteDB) ensureMercs() error {
 	if n > 0 {
 		// path, pet, offensive and spells_off, to a table made before them
 		for _, col := range []struct{ name, def string }{{"path", "INTEGER NOT NULL DEFAULT -1"}, {"pet", "TEXT NOT NULL DEFAULT ''"},
-			{"offensive", "INTEGER NOT NULL DEFAULT 0"}, {"spells_off", "TEXT NOT NULL DEFAULT ''"}, {"aoe", "INTEGER NOT NULL DEFAULT 0"}} {
+			{"offensive", "INTEGER NOT NULL DEFAULT 0"}, {"spells_off", "TEXT NOT NULL DEFAULT ''"}, {"aoe", "INTEGER NOT NULL DEFAULT 0"},
+			{"master", "TEXT NOT NULL DEFAULT ''"}} {
 			if err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('charmerc') WHERE name = ?`, col.name).Scan(&n); err != nil {
 				return fmt.Errorf("charmerc: %w", err)
 			}
@@ -155,18 +159,19 @@ type MercRow struct {
 	Offensive                              bool      // a healer's /merc offensive (false: defensive)
 	SpellsOff                              []int     // the spells turned off in its menu, by id
 	AoE                                    bool      // a Cocktail alchemist's area cocktails (false: single-target potions)
+	Master                                 string    // its Master Class (cmcatalog's mastery), "" none
 	DeadUntil                              time.Time // zero: alive
 	Hired                                  time.Time
 }
 
-const mercCols = `serverid, slot, name, class, race, sex, face, hair_color, hair_length, hair_style, stance, dead_until, hired, path, pet, offensive, spells_off, aoe`
+const mercCols = `serverid, slot, name, class, race, sex, face, hair_color, hair_length, hair_style, stance, dead_until, hired, path, pet, offensive, spells_off, aoe, master`
 
 // scanMerc reads a row of mercCols.
 func scanMerc(sc interface{ Scan(...any) error }) (MercRow, error) {
 	var r MercRow
 	var dead, hired, off string
 	if err := sc.Scan(&r.ServerID, &r.Slot, &r.Name, &r.Class, &r.Race, &r.Sex, &r.Face, &r.HairColor, &r.HairLength, &r.HairStyle,
-		&r.Stance, &dead, &hired, &r.Path, &r.Pet, &r.Offensive, &off, &r.AoE); err != nil {
+		&r.Stance, &dead, &hired, &r.Path, &r.Pet, &r.Offensive, &off, &r.AoE, &r.Master); err != nil {
 		return MercRow{}, err
 	}
 	r.SpellsOff = parseSpellIDs(off)
@@ -215,9 +220,9 @@ func (db *SQLiteDB) SetMerc(r MercRow) error {
 	if !r.Hired.IsZero() {
 		hired = r.Hired.UTC().Format(time.RFC3339)
 	}
-	_, err := db.Exec(`INSERT OR REPLACE INTO charmerc (`+mercCols+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, r.ServerID,
+	_, err := db.Exec(`INSERT OR REPLACE INTO charmerc (`+mercCols+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, r.ServerID,
 		max(r.Slot, 1), r.Name, r.Class, r.Race, r.Sex, r.Face, r.HairColor, r.HairLength, r.HairStyle, r.Stance, dead, hired, r.Path, r.Pet,
-		r.Offensive, joinSpellIDs(r.SpellsOff), r.AoE)
+		r.Offensive, joinSpellIDs(r.SpellsOff), r.AoE, r.Master)
 	return err
 }
 
@@ -231,6 +236,12 @@ func (db *SQLiteDB) SetMercPath(serverID uint32, slot, path int) error {
 // SetMercPet keeps the pet kind the character's merc summons ("" its best).
 func (db *SQLiteDB) SetMercPet(serverID uint32, slot int, pet string) error {
 	_, err := db.Exec(`UPDATE charmerc SET pet = ? WHERE serverid = ? AND slot = ?`, pet, serverID, max(slot, 1))
+	return err
+}
+
+// SetMercMaster keeps the character's merc's Master Class ("" none).
+func (db *SQLiteDB) SetMercMaster(serverID uint32, slot int, master string) error {
+	_, err := db.Exec(`UPDATE charmerc SET master = ? WHERE serverid = ? AND slot = ?`, master, serverID, max(slot, 1))
 	return err
 }
 

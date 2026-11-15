@@ -552,6 +552,13 @@ func SimBookFromDB(db *database.SQLiteDB, class, level int, all bool) ([]CastSpe
 		}
 	}
 	rows.Close()
+	return CastSpellsByID(db, ids), nil
+}
+
+// CastSpellsByID is the spells of the ids as a book holds them (SimBookFromDB's),
+// in their order, each its display index; an id with no spellpattern row is
+// left out.
+func CastSpellsByID(db *database.SQLiteDB, ids []int) []CastSpell {
 	store := database.NewSpellbookStore(db)
 	var book []CastSpell
 	for i, id := range ids {
@@ -568,7 +575,7 @@ func SimBookFromDB(db *database.SQLiteDB, class, level int, all bool) ([]CastSpe
 			Range: math.Float32frombits(uint32(uint16(sp.Range)) << 16), Def: def, FX: fx,
 			Area: ReadSpellArea(sp.SpellName, line, def)})
 	}
-	return book, nil
+	return book
 }
 
 // SimWithSpell is the kit with the spell of that id in its book, from every

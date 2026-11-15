@@ -75,3 +75,49 @@ func TestMercSlotsMigration(t *testing.T) {
 		t.Errorf("after the character's deletion: %d rows", len(rows))
 	}
 }
+
+// A table made before charmerc.master gets it at the open (none for every
+// hire), and a hire's Master Class is kept and read back.
+func TestMercMasterColumn(t *testing.T) {
+	path := t.TempDir() + "/old.db"
+	raw, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, q := range []string{
+		`CREATE TABLE charmerc (serverid INTEGER NOT NULL, slot INTEGER NOT NULL DEFAULT 1, name TEXT NOT NULL, class INTEGER NOT NULL,
+			race INTEGER NOT NULL, sex INTEGER NOT NULL DEFAULT 0, face INTEGER NOT NULL DEFAULT 0, hair_color INTEGER NOT NULL DEFAULT 0,
+			hair_length INTEGER NOT NULL DEFAULT 0, hair_style INTEGER NOT NULL DEFAULT 0, stance INTEGER NOT NULL DEFAULT 2,
+			dead_until TEXT NOT NULL DEFAULT '', hired TEXT NOT NULL DEFAULT '', path INTEGER NOT NULL DEFAULT -1,
+			pet TEXT NOT NULL DEFAULT '', offensive INTEGER NOT NULL DEFAULT 0, spells_off TEXT NOT NULL DEFAULT '',
+			aoe INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (serverid, slot))`,
+		`INSERT INTO charmerc (serverid, slot, name, class, race) VALUES (77, 1, 'Fizzle', 0, 3)`,
+	} {
+		if _, err := raw.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	raw.Close()
+	db, err := NewSQLite(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if r, ok, err := db.Merc(77, 1); err != nil || !ok || r.Master != "" {
+		t.Fatalf("after the open: %+v %v %v", r, ok, err)
+	}
+	if err := db.SetMercMaster(77, 1, "Tinker"); err != nil {
+		t.Fatal(err)
+	}
+	if r, _, _ := db.Merc(77, 1); r.Master != "Tinker" || r.Name != "Fizzle" {
+		t.Errorf("kept: %+v", r)
+	}
+	r, _, _ := db.Merc(77, 1)
+	r.Slot = 2
+	if err := db.SetMerc(r); err != nil {
+		t.Fatal(err)
+	}
+	if r2, _, _ := db.Merc(77, 2); r2.Master != "Tinker" {
+		t.Errorf("SetMerc's: %+v", r2)
+	}
+}

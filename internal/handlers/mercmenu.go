@@ -32,6 +32,8 @@ import (
 //   - Items: what it holds (Inventory, each record its Equip or Unequip and
 //     Take back), Give an item, an alchemist's Potion stock, and what waits
 //     in the keeping (mercinv.go);
+//   - a merc of 55 or more's Master: its Master Class's kinds, then a kind's
+//     names (/merc master: mercmaster.go);
 //   - Dismiss, asked again before it goes (/merc dismiss).
 //
 // A box holds six answers (maxDialogOptions): a menu of more shows its first
@@ -117,6 +119,15 @@ func (m *Mercs) menuChoices(p *entity.Player, slot int, info entity.MercInfo) (k
 			add("throws", "Throws: "+map[bool]string{true: "AoE", false: "single"}[row.AoE])
 		}
 	}
+	if info.Level >= entity.MercMasterLevel && m.db != nil {
+		if row, ok, _ := m.db.Merc(p.CharServerID, slot); ok && len(m.gw.MercMasterClasses(row.Class, row.Race)) > 0 {
+			held := "none"
+			if mc, ok := m.mercMasterOf(row); ok {
+				held = mc.Name
+			}
+			add("master", "Master: "+held) // mercmaster.go
+		}
+	}
 	add("items", "Items")
 	add("dismiss", "Dismiss")
 	return keys, answers
@@ -153,6 +164,10 @@ func (m *Mercs) menuAnswer(sess *session.Session, p *entity.Player, a mercAsk, n
 		SendErrorMessage(sess, mercNoneOut(a.slot, nil))
 		return
 	}
+	if a.stage == mercStageMaster || a.stage == mercStageMasterList {
+		m.masterAnswer(sess, p, a, info, n) // mercmaster.go
+		return
+	}
 	order := func(words string) { m.Command(sess, p, fmt.Sprintf("%d %s", a.slot, words)) }
 	switch a.stage {
 	case mercStageMenu, mercStageMore:
@@ -170,6 +185,8 @@ func (m *Mercs) menuAnswer(sess *session.Session, p *entity.Player, a mercAsk, n
 			}
 		case "items":
 			m.menuItems(sess, p, a.slot)
+		case "master":
+			m.menuMaster(sess, p, a.slot, info) // mercmaster.go
 		case "advice":
 			line := mercAdvice[info.Class]
 			if healer {

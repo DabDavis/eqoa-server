@@ -156,6 +156,9 @@ func (h *TargetHandler) HandleTarget(sess *session.Session, msg *protocol.Messag
 		// an NPC of a faction (npcfaction) the player's standing with it;
 		// a pet's the players' (entity/pet.go)
 		info.faceColor = h.gameWorld.TargetFace(player, t)
+		// a merc's Master Class in place of its class, as a player's
+		// (entity/mercmaster.go)
+		info.title = h.gameWorld.MercTitle(t)
 		if t.Dead && h.corpseCon != nil {
 			// petition 5035: a con of a corpse says how long it is whose
 			if decays, lies := h.gameWorld.CorpseDecaysAt(t.ServerID); lies {

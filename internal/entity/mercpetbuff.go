@@ -276,3 +276,15 @@ func (w *World) mercPetLandLocked(ms *mercState, cs *castState, id EntityID, now
 	}
 	return true
 }
+
+// MercPetUseName is what a merc casts a spell of scope 3 for on its own pet
+// ("pet heal", "pet buff"), "" for none: the handlers' real-data test's.
+func MercPetUseName(s *CastSpell) string {
+	switch {
+	case isPetHeal(s):
+		return "pet heal"
+	case len(petBuffKeys(s)) > 0:
+		return "pet buff"
+	}
+	return ""
+}

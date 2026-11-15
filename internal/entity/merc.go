@@ -153,6 +153,16 @@ type MercKit struct {
 	// Carried is what it carries that it uses up (handlers/mercinv.go): its
 	// potions, draughts and meals, each a record of charmercitem
 	Carried []MercCarried
+	// Master is the Master Class it holds (mercmaster.go), "" none;
+	// MasterRanks its ranks up to its level, on its body as a player's
+	// (their stats: mercMasterBody), MasterPets the summonings they put in
+	// its book (its pet before its class's: mercPetSpell)
+	Master      string
+	MasterRanks []*CMRank
+	MasterPets  []int
+	// RacialPets are the summonings its race's racial abilities put in its
+	// book (the gnome's Invention): its pet only when its book has no other
+	RacialPets []int
 }
 
 // MercCarried is one record a merc carries to use (MercKit.Carried): its
@@ -481,6 +491,8 @@ type MercInfo struct {
 	Worn [21]bool
 	// AoE: a Cocktail alchemist's area cocktails (MercKit.AoE)
 	AoE bool
+	// Master is its Master Class (MercKit.Master), "" none
+	Master string
 }
 
 // MercInfosOf is the session's player's mercs out, by slot.
@@ -492,7 +504,7 @@ func (w *World) MercInfosOf(sess *session.Session) []MercInfo {
 		n := ms.npc
 		info := MercInfo{Slot: ms.slot, Name: n.Name, Class: ms.kit.Class, Race: ms.kit.Race, Sex: ms.kit.Sex, Level: n.Level, HP: n.HP,
 			MaxHP: n.MaxHP, Power: n.Power, MaxPower: n.MaxPower, Stance: ms.stance, Stay: ms.stay, Grouped: w.mercInOwnGroupLocked(ms), Offensive: ms.kit.Offensive,
-			AC: ms.body.StatNow(StatAC), Worn: ms.kit.Worn, AoE: ms.kit.AoE}
+			AC: ms.body.StatNow(StatAC), Worn: ms.kit.Worn, AoE: ms.kit.AoE, Master: ms.kit.Master}
 		if t := w.NPCs[ms.target]; t != nil {
 			info.Target = t.Name
 		}
@@ -550,6 +562,7 @@ func newMercBody(id EntityID, k *MercKit) *Player {
 		p.Shield = max(k.Look.Shield, 1) // a shield in hand, for a spell's required equipment (equipFits)
 	}
 	p.Swing = SwingFor(k.Class, p.Level, k.Worn, k.AttackType != 0, k.AttackType, k.Range)
+	mercMasterBody(p, k) // its Master Class's stats (mercmaster.go)
 	p.RecalcStats(true)
 	return p
 }

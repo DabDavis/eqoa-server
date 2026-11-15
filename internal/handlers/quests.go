@@ -118,7 +118,11 @@ type QuestEngine struct {
 	// the cures the campfire's advisors offered, by character
 	infections chan entity.InfectionHit
 	cures      map[uint32]advisorBox
-	stop       chan struct{}
+	// later is the infections to grant again (their keeping failed, or the
+	// queue was full), wereq the catalog's were quests (wereinfect.go)
+	later laterInfections
+	wereq wereQuests
+	stop  chan struct{}
 	// wake is nudge's: the marks and trackers looked at now
 	wake chan struct{}
 
@@ -199,6 +203,10 @@ type questCatalog struct {
 // questChar is one character's quests.
 type questChar struct {
 	serverID uint32
+	// infection is its were infection's row (nil none), read once when
+	// infectionRead (wereinfect.go)
+	infection     *database.Infection
+	infectionRead bool
 	// qstate is what the World was last told of its walls and items
 	// (questwalls.go)
 	qstate questState
@@ -416,6 +424,8 @@ func (q *QuestEngine) run() {
 			q.syncPointers()
 			q.syncQuestState() // questwalls.go: the walls passed, the items held
 			q.syncHeadMarks(time.Now())
+			q.retryInfections()           // wereinfect.go: grants whose keeping failed
+			q.sweepInfections(time.Now()) // wereinfect.go: infections at their end
 		}
 	}
 }
@@ -456,6 +466,7 @@ func (q *QuestEngine) Reload() error {
 	}
 	q.mu.Lock()
 	q.cat = cat
+	q.wereq = wereQuestsOf(cat)                            // wereinfect.go
 	q.marked = markedWithFollowUps(marked, cat.successors) // questheadmarks.go
 	q.texts, q.names = texts, names
 	q.saysPlaces = nil
@@ -1001,6 +1012,9 @@ func (q *QuestEngine) mayTakeAtLocked(look *factionLook, p *entity.Player, c *qu
 	// a homeland's quest stands finished when the city class quest it stands
 	// for is (standsFinishedLocked): for its own offer and for the next one's
 	finished := func(id int) bool {
+		if line, ok := q.wereQuestsLocked().markerLine[id]; ok {
+			return q.feverLineLocked(c, time.Now()) == line // a fever marker is the infection in force (wereinfect.go)
+		}
 		return c.hasFinished(id) || q.standsFinishedLocked(p, c, q.cat.byID[id])
 	}
 	if g, unmet := database.UnmetRequire(qu.Required(), finished); unmet {
@@ -1590,6 +1604,7 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 	if next == nil {
 		cq.Step, cq.Count = 0, 0
 		cq.Done++
+		q.turnedLocked(c, qu) // a were line's third quest: its infection ends (wereinfect.go)
 		if qu.Repeatable {
 			c.forgetOffer(qu.ID) // a shop's window offers it again
 		}

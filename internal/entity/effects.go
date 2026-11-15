@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/eqoa/server/internal/session"
 )
@@ -60,8 +61,10 @@ func (w *World) ClearBuffs(sess *session.Session) (names []string, slots int, ok
 	if p == nil {
 		return nil, 0, false
 	}
-	for len(p.Effects) > 0 {
-		ae := p.Effects[0]
+	for _, ae := range append([]*ActiveEffect(nil), p.Effects...) {
+		if infectionEffect(ae.SpellID) {
+			continue // a were's infection is no buff: its flag's, until its end or its cure (wereinfect.go)
+		}
 		w.removeEffectLocked(p, ae.SpellID)
 		name := ae.Name
 		if name == "" {
@@ -70,8 +73,16 @@ func (w *World) ClearBuffs(sess *session.Session) (names []string, slots int, ok
 		names = append(names, name)
 		log.Printf("Cast: %q taken off %s (#clearbuffs)", ae.Name, p.Name)
 	}
-	if slots = len(p.Buffs); slots > 0 {
-		p.Buffs = nil
+	kept := p.Buffs[:0]
+	for _, b := range p.Buffs {
+		if b.Icon == InfectionIcon && strings.HasSuffix(b.Name, " infection") && p.hasInfection() {
+			kept = append(kept, b)
+			continue
+		}
+		slots++
+	}
+	if slots > 0 {
+		p.Buffs = kept
 		p.StatsDirty = true
 	}
 	return names, slots, true

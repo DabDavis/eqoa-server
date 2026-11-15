@@ -182,3 +182,13 @@ func (w *World) Infection(sess *session.Session) (line string, until time.Time) 
 	}
 	return "", time.Time{}
 }
+
+// hasInfection reports an infection's effect on p.
+func (p *Player) hasInfection() bool {
+	for _, e := range p.Effects {
+		if infectionEffect(e.SpellID) {
+			return true
+		}
+	}
+	return false
+}

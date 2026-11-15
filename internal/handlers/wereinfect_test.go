@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -18,8 +19,9 @@ type wereFixture struct {
 	t   *testing.T
 	tw  *talkWorld
 	db  *database.SQLiteDB
-	qe  *QuestEngine
-	sid uint32
+	qe   *QuestEngine
+	sid  uint32
+	keys int
 }
 
 const (
@@ -42,18 +44,18 @@ func newWereFixture(t *testing.T) *wereFixture {
 	tw.p.CharServerID, tw.p.Level, tw.p.Tunar = rec.ServerID, 45, 30000
 	f := &wereFixture{t: t, tw: tw, db: db, sid: rec.ServerID}
 	for _, q := range []struct {
-		id               int
-		key, name, giver string
-		on               int
+		id                         int
+		key, name, giver, requires string
+		on                         int
 	}{
-		{wolfFever, "Weres/wolfwere/infection", "The Wolf's Fever", "", 0},
-		{wolfTurned, "Weres/wolfwere/p3", "Duskrender's Trial", "Edward Duskrender", 1},
-		{bearFever, "Weres/bearwere/infection", "The Bear's Fever", "", 0},
-		{bearTurned, "Weres/bearwere/p3", "Mirin", "Dorandas", 1},
-		{hunterBrand, "Weres/werehunter/brand", "The Brand", "Levandius", 1},
+		{wolfFever, "Weres/wolfwere/infection", "The Wolf's Fever", "", "", 0},
+		{wolfTurned, "Weres/wolfwere/p3", "Duskrender's Trial", "Edward Duskrender", "", 1},
+		{bearFever, "Weres/bearwere/infection", "The Bear's Fever", "", "", 0},
+		{bearTurned, "Weres/bearwere/p3", "Mirin", "Dorandas", "", 1},
+		{hunterBrand, "Weres/werehunter/brand", "The Brand", "Levandius", "", 1},
 	} {
-		f.exec(`INSERT INTO quests (questid, name, enabled, giver, minlevel, maxlevel, classes, source)
-			VALUES (?, ?, ?, ?, 1, 60, '0', ?)`, q.id, q.name, q.on, q.giver, "EQOA-Data "+q.key+" (tools/import_quests.py)")
+		f.exec(`INSERT INTO quests (questid, name, enabled, giver, minlevel, maxlevel, classes, source, requires)
+			VALUES (?, ?, ?, ?, 1, 60, '', ?, ?)`, q.id, q.name, q.on, q.giver, "EQOA-Data "+q.key+" (tools/import_quests.py)", q.requires)
 		if q.giver != "" {
 			f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (?, 1, 'talk', ?, 'Talk.')`, q.id, q.giver)
 		}
@@ -100,7 +102,9 @@ func (f *wereFixture) set(id int, action string) {
 // what the character was sent.
 func (f *wereFixture) bite(line string) []string {
 	questMsgs(f.tw.s)
-	f.qe.infect(entity.InfectionHit{Session: f.tw.s, ServerID: f.sid, Name: "Talker", Line: line, NPCName: "Elder " + line})
+	f.keys++
+	f.qe.infect(entity.InfectionHit{Session: f.tw.s, ServerID: f.sid, Name: "Talker", Line: line, NPCName: "Elder " + line,
+		At: time.Now(), Key: fmt.Sprintf("test/%d", f.keys)})
 	return questMsgs(f.tw.s)
 }
 
@@ -109,13 +113,16 @@ func (f *wereFixture) bite(line string) []string {
 func TestABiteGivesItsLinesFever(t *testing.T) {
 	f := newWereFixture(t)
 	got := f.bite("wolfwere")
-	if !f.done(wolfFever) || !hasMsg(got, "chat:A fever burns where the elder wolfwere's claws found you.") {
+	if !f.done(wolfFever) || !hasMsg(got, "chat:A fever burns where the elder wolfwere's claws found you.") ||
+		!hasMsg(got, "chat:You have contracted the were-wolf infection: 7 days, 0 hours left.") {
 		t.Fatalf("the wolf's bite: fever %v, sent %q", f.done(wolfFever), got)
 	}
 	if got := f.bite("bearwere"); f.done(bearFever) || len(got) != 0 {
 		t.Errorf("a bear's bite on the wolf's fever: fever %v, sent %q", f.done(bearFever), got)
 	}
-	f.set(wolfFever, QuestReset)
+	f.qe.mu.Lock()
+	f.qe.endLocked(f.qe.charLocked(f.sid), database.InfectionCured, time.Now())
+	f.qe.mu.Unlock()
 	if f.bite("bearwere"); !f.done(bearFever) || f.done(wolfFever) {
 		t.Errorf("a bear's bite once the wolf's fever is gone: bear %v, wolf %v", f.done(bearFever), f.done(wolfFever))
 	}
@@ -234,5 +241,252 @@ func TestTheAntidoteTakesItsLinesFever(t *testing.T) {
 	}
 	if wolfDeclined || f.done(wolfFever) {
 		t.Errorf("the wolf's antidote left its fever (engine %v, row %v)", wolfDeclined, f.done(wolfFever))
+	}
+}
+
+// row is the character's infection row as the database has it, nil for none.
+func (f *wereFixture) row() *database.Infection {
+	f.t.Helper()
+	inf, err := database.NewQuestStore(f.db).CharInfection(f.sid)
+	if err != nil {
+		f.t.Fatal(err)
+	}
+	return inf
+}
+
+// shown is the infection on the player: its line and end.
+func (f *wereFixture) shown() (string, time.Time) { return f.tw.w.Infection(f.tw.s) }
+
+// fresh is a new engine on the same database: a restart's.
+func (f *wereFixture) fresh() {
+	f.t.Helper()
+	f.qe.Stop()
+	qe, err := NewQuestEngine(f.db, f.tw.w, f.tw.mgr, database.NewInventoryStore(f.db), database.NewSpellbookStore(f.db))
+	if err != nil {
+		f.t.Fatal(err)
+	}
+	f.qe = qe
+	f.t.Cleanup(qe.Stop)
+}
+
+// The infection is its row (work 1463): a successful crit writes one active row
+// of the line with a seven-day absolute end from the crit's time, the line's
+// marker in the same step, and puts one harmful icon on the player named for the
+// family; the effect ends with the row. Repeated delivery of the same grant
+// (its key) writes nothing more.
+func TestAnInfectionIsItsRowAndItsIcon(t *testing.T) {
+	for _, line := range []string{"wolfwere", "bearwere", "ratwere", "lionwere", "gatorwere"} {
+		f := newWereFixture(t)
+		at := time.Now().Add(-time.Minute)
+		f.qe.infect(entity.InfectionHit{Session: f.tw.s, ServerID: f.sid, Name: "Talker", Line: line, NPCName: "Elder " + line, At: at, Key: "k1"})
+		inf := f.row()
+		if inf == nil || inf.Line != line || !inf.Active(time.Now()) || inf.AppliedAt.Unix() != at.Unix() ||
+			inf.ExpiresAt.Unix() != at.Add(7*24*time.Hour).Unix() || inf.Key != "k1" {
+			t.Fatalf("%s: row %+v", line, inf)
+		}
+		got, until := f.shown()
+		if got != line || until.Unix() != inf.ExpiresAt.Unix() {
+			t.Errorf("%s: shown %q until %v, want the row's end %v", line, got, until, inf.ExpiresAt)
+		}
+		effs := f.tw.w.PlayerEffects(f.tw.s)
+		if len(effs) != 1 || effs[0].Name != entity.InfectionName(line) || effs[0].Icon != entity.InfectionIcon {
+			t.Errorf("%s: effects %+v", line, effs)
+		}
+		if marker := map[string]int{"wolfwere": wolfFever, "bearwere": bearFever}[line]; marker != 0 && !f.done(marker) {
+			t.Errorf("%s: no marker", line)
+		}
+		// the same grant again: one row, still k1, one effect
+		f.qe.infect(entity.InfectionHit{Session: f.tw.s, ServerID: f.sid, Name: "Talker", Line: line, NPCName: "Elder " + line, At: at, Key: "k1"})
+		if again := f.row(); again.Key != "k1" || again.ExpiresAt != inf.ExpiresAt || len(f.tw.w.PlayerEffects(f.tw.s)) != 1 {
+			t.Errorf("%s: a repeated grant changed it: %+v, %d effects", line, again, len(f.tw.w.PlayerEffects(f.tw.s)))
+		}
+	}
+	// a failed roll is nothing heard: no row, no icon (entity's TestTheInfectionsChanceByCon rolls it)
+	f := newWereFixture(t)
+	if f.row() != nil || len(f.tw.w.PlayerEffects(f.tw.s)) != 0 {
+		t.Error("an infection with no grant")
+	}
+}
+
+// A grant whose keeping fails is kept for later and tried again with the same
+// key, never rolled again: the table renamed away fails it, put back it takes.
+func TestAFailedKeepingIsTriedAgain(t *testing.T) {
+	f := newWereFixture(t)
+	f.exec(`ALTER TABLE charinfection RENAME TO charinfection_away`)
+	f.qe.infect(entity.InfectionHit{Session: f.tw.s, ServerID: f.sid, Name: "Talker", Line: "wolfwere", NPCName: "wolfwere", At: time.Now(), Key: "k9"})
+	if line, _ := f.shown(); line != "" || f.done(wolfFever) {
+		t.Fatalf("shown %q, marker %v before it was kept", line, f.done(wolfFever))
+	}
+	f.exec(`ALTER TABLE charinfection_away RENAME TO charinfection`)
+	f.qe.retryInfections()
+	if inf := f.row(); inf == nil || inf.Key != "k9" || !f.done(wolfFever) {
+		t.Fatalf("the retry: %+v, marker %v", inf, f.done(wolfFever))
+	}
+	if line, _ := f.shown(); line != "wolfwere" {
+		t.Errorf("the retry shows %q", line)
+	}
+	f.qe.retryInfections() // nothing left to try
+	if n := len(f.qe.later.take()); n != 0 {
+		t.Errorf("%d grants still waiting", n)
+	}
+}
+
+// Seven days of real time from its catching, online or not: its end in the
+// past ends the row expired, takes its marker and its icon off, and says so to
+// one online; a login before its end puts it on to its end, one after it
+// nothing. A restart (a new engine on the database) reads the same.
+func TestAnInfectionEndsAfterSevenDays(t *testing.T) {
+	f := newWereFixture(t)
+	f.bite("wolfwere")
+	// a restart: the row is the flag
+	f.fresh()
+	f.tw.w.TakeInfection(f.tw.s)
+	f.qe.InfectionLogin(f.tw.s, f.tw.p)
+	if line, until := f.shown(); line != "wolfwere" || until.Unix() != f.row().ExpiresAt.Unix() {
+		t.Fatalf("after a restart's login: %q until %v", line, until)
+	}
+	// its end comes while online
+	f.exec(`UPDATE charinfection SET expires_at = ? WHERE serverid = ?`, time.Now().Add(-time.Second).Unix(), f.sid)
+	questMsgs(f.tw.s)
+	f.qe.sweepInfections(time.Now())
+	inf := f.row()
+	if inf.EndedHow != database.InfectionExpired || f.done(wolfFever) {
+		t.Errorf("at its end: %+v, marker %v", inf, f.done(wolfFever))
+	}
+	if !hasMsg(questMsgs(f.tw.s), "chat:The were-wolf infection has run its course.") {
+		t.Error("its end not said")
+	}
+	if line, _ := f.shown(); line != "" {
+		t.Errorf("still shown: %q", line)
+	}
+	// a login after its end: nothing
+	f.qe.InfectionLogin(f.tw.s, f.tw.p)
+	if line, _ := f.shown(); line != "" {
+		t.Errorf("shown after its end: %q", line)
+	}
+	// offline: the sweep ends it with no one to tell
+	g := newWereFixture(t)
+	g.bite("bearwere")
+	g.tw.s.SetCharacterInWorld(false)
+	g.exec(`UPDATE charinfection SET expires_at = ? WHERE serverid = ?`, time.Now().Add(-time.Second).Unix(), g.sid)
+	g.qe.sweepInfections(time.Now())
+	if inf := g.row(); inf.EndedHow != database.InfectionExpired || g.done(bearFever) {
+		t.Errorf("offline at its end: %+v, marker %v", inf, g.done(bearFever))
+	}
+}
+
+// The third quest asks the infection, not the marker: an active infection
+// offers it; a marker left with its infection over, or a marker of no infection
+// at all once its migration is recorded, does not.
+func TestTheFormsQuestAsksTheInfection(t *testing.T) {
+	f := newWereFixture(t)
+	f.exec(`UPDATE quests SET requires = ? WHERE questid = ?`, fmt.Sprint(wolfFever), wolfTurned) // as the live quests' 101346 requires 101422
+	if err := f.qe.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	why := func() string {
+		f.qe.mu.Lock()
+		defer f.qe.mu.Unlock()
+		return f.qe.mayTakeLocked(nil, f.tw.p, f.qe.charLocked(f.sid), f.qe.cat.byID[wolfTurned])
+	}
+	if w := why(); w == "" {
+		t.Fatal("the form's quest offered with no infection")
+	}
+	f.bite("wolfwere")
+	if w := why(); w != "" {
+		t.Fatalf("the form's quest with the infection: %q", w)
+	}
+	// the row's end passes; the marker is still there (no sweep yet)
+	f.exec(`UPDATE charinfection SET expires_at = ? WHERE serverid = ?`, time.Now().Add(-time.Second).Unix(), f.sid)
+	f.qe.mu.Lock()
+	f.qe.charLocked(f.sid).infectionRead = false
+	f.qe.mu.Unlock()
+	if w := why(); w == "" {
+		t.Error("the form's quest offered on an expired infection's marker")
+	}
+}
+
+// The cure, the antidote and the form each end the infection at once: the row
+// ended as each says, the marker and the icon gone together.
+func TestCureAntidoteAndFormEndIt(t *testing.T) {
+	for _, how := range []string{database.InfectionCured, database.InfectionAntidote, database.InfectionTurned} {
+		f := newWereFixture(t)
+		f.bite("wolfwere")
+		f.qe.mu.Lock()
+		c := f.qe.charLocked(f.sid)
+		switch how {
+		case database.InfectionCured:
+			f.qe.endLocked(c, how, time.Now())
+		case database.InfectionAntidote:
+			f.qe.antidoteLocked(c, f.qe.cat.byID[wolfTurned])
+		case database.InfectionTurned:
+			f.qe.turnedLocked(c, f.qe.cat.byID[wolfTurned])
+		}
+		f.qe.mu.Unlock()
+		inf := f.row()
+		line, _ := f.shown()
+		if inf.EndedHow != how || f.done(wolfFever) || line != "" {
+			t.Errorf("%s: row %+v, marker %v, shown %q", how, inf, f.done(wolfFever), line)
+		}
+	}
+}
+
+// Migration: a fever marker held from before the table, with no row and no
+// record, is migrated once at the character's first ask: from its timestamp
+// (its end seven days after it), seven days from now with none, ended expired
+// (the marker taken) when its seven days are over, the marker taken with no
+// infection for a character already turned; a second ask (a restart) renews
+// nothing; the migration row records what the marker was.
+func TestFeverMarkersAreMigratedOnce(t *testing.T) {
+	now := time.Now()
+	for _, c := range []struct {
+		name    string
+		updated string
+		turned  bool
+		active  bool
+		applied time.Time
+	}{
+		{"a marker of two days ago", now.Add(-48 * time.Hour).UTC().Format(time.RFC3339), false, true, now.Add(-48 * time.Hour)},
+		{"a marker with no timestamp", "", false, true, now},
+		{"a marker of eight days ago", now.Add(-8 * 24 * time.Hour).UTC().Format(time.RFC3339), false, false, now.Add(-8 * 24 * time.Hour)},
+		{"a marker on a character turned", now.Add(-time.Hour).UTC().Format(time.RFC3339), true, false, now.Add(-time.Hour)},
+	} {
+		f := newWereFixture(t)
+		f.exec(`INSERT INTO charquests (serverid, questid, step, count, done, slot, updated) VALUES (?, ?, 0, 0, 1, 0, ?)`, f.sid, wolfFever, c.updated)
+		if c.turned {
+			f.exec(`INSERT INTO charquests (serverid, questid, step, count, done, slot, updated) VALUES (?, ?, 0, 0, 1, 0, '')`, f.sid, bearTurned)
+		}
+		f.fresh() // the engine reads the marker
+		f.qe.InfectionLogin(f.tw.s, f.tw.p)
+		inf := f.row()
+		if inf == nil {
+			t.Fatalf("%s: no row", c.name)
+		}
+		if inf.Active(time.Now()) != c.active || f.done(wolfFever) != c.active || inf.Source != "migration" {
+			t.Errorf("%s: row %+v (active %v), marker %v; want active %v", c.name, inf, inf.Active(time.Now()), f.done(wolfFever), c.active)
+		}
+		if d := inf.AppliedAt.Sub(c.applied); d < -5*time.Second || d > 5*time.Second {
+			t.Errorf("%s: applied %v, want %v", c.name, inf.AppliedAt, c.applied)
+		}
+		if line, _ := f.shown(); (line == "wolfwere") != c.active {
+			t.Errorf("%s: shown %q", c.name, line)
+		}
+		var n int
+		var outcome, before string
+		f.db.QueryRow(`SELECT COUNT(*), MAX(outcome), MAX(marker_updated) FROM charinfection_migration WHERE serverid = ?`, f.sid).Scan(&n, &outcome, &before)
+		if n != 1 || before != c.updated {
+			t.Errorf("%s: %d migration rows (%q, before %q)", c.name, n, outcome, before)
+		}
+		// again: nothing renewed
+		end := inf.ExpiresAt
+		f.fresh()
+		f.qe.InfectionLogin(f.tw.s, f.tw.p)
+		if again := f.row(); !again.ExpiresAt.Equal(end) {
+			t.Errorf("%s: a second start renewed it: %v -> %v", c.name, end, again.ExpiresAt)
+		}
+		f.db.QueryRow(`SELECT COUNT(*) FROM charinfection_migration WHERE serverid = ?`, f.sid).Scan(&n)
+		if n != 1 {
+			t.Errorf("%s: %d migration rows after a second start", c.name, n)
+		}
 	}
 }

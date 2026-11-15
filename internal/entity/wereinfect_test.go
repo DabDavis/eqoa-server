@@ -425,3 +425,52 @@ func TestARestartKeepsAWeresInfectionSpent(t *testing.T) {
 		t.Errorf("a dead were's infection was kept: %+v", k)
 	}
 }
+
+// The infection's effect (work 1463): one harmful icon of the family's name and
+// Disease Cloud's, to its end; a death, a cure, a strip and a GM's #clearbuffs
+// leave it; it is never kept in charbuffs (its row is its keeping); with the
+// eight slots taken it takes the last; effectSystem takes it off at its end.
+func TestTheInfectionsEffect(t *testing.T) {
+	c := newCaster(t)
+	now := c.at(0)
+	until := now.Add(InfectionDuration)
+	for i := 0; i < MaxEffects; i++ {
+		c.p.Buffs = append(c.p.Buffs, BuffSlot{Icon: uint32(i + 1), Name: fmt.Sprintf("buff %d", i)})
+	}
+	if !c.w.PutInfection(c.sess, "lionwere", until, now) {
+		t.Fatal("not put on")
+	}
+	if len(c.p.Buffs) != MaxEffects || c.p.Buffs[MaxEffects-1] != (BuffSlot{Icon: InfectionIcon, Name: "were-lion infection"}) {
+		t.Errorf("slots %+v", c.p.Buffs)
+	}
+	c.w.mu.Lock()
+	c.w.curePlayerLocked(c.p, 10)
+	c.w.playerDiedLocked(c.sess, c.p, now)
+	for _, ae := range append([]*ActiveEffect(nil), c.p.Effects...) {
+		if beneficialEffect(ae) {
+			t.Errorf("a strip would take %q", ae.Name)
+		}
+	}
+	c.w.mu.Unlock()
+	if _, _, ok := c.w.ClearBuffs(c.sess); !ok {
+		t.Fatal("no clear")
+	}
+	if line, u := c.w.Infection(c.sess); line != "lionwere" || !u.Equal(until) {
+		t.Fatalf("after a cure, a death and #clearbuffs: %q until %v", line, u)
+	}
+	if rows, _ := c.w.SavedEffects(c.p.ServerID, now); len(rows) != 0 {
+		t.Errorf("kept in charbuffs: %+v", rows)
+	}
+	c.w.mu.Lock()
+	c.w.effectSystem(until.Add(-time.Second))
+	before := c.p.hasInfection()
+	c.w.effectSystem(until)
+	after := c.p.hasInfection()
+	c.w.mu.Unlock()
+	if !before || after {
+		t.Errorf("a second before its end %v, at its end %v; want on, then off", before, after)
+	}
+	if c.w.PutInfection(c.sess, "lionwere", now, now) || c.w.PutInfection(c.sess, "snake", until, now) {
+		t.Error("an infection ended already, or of no line, put on")
+	}
+}

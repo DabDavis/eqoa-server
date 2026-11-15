@@ -102,7 +102,9 @@ func effectRows(effects []*ActiveEffect, now time.Time, keep func(*ActiveEffect)
 	var rows []database.BuffRow
 	for _, e := range effects {
 		left := e.Until.Sub(now)
-		if left <= 0 || e.duelFoe != 0 || e.npcFoe != 0 || keep != nil && !keep(e) { // a duel's harm ends with it (duel.go), a creature's poison with the logout
+		// a duel's harm ends with it (duel.go), a creature's poison with the logout; a were's
+		// infection is its own row's, put on again at the login (wereinfect.go)
+		if left <= 0 || e.duelFoe != 0 || e.npcFoe != 0 || infectionEffect(e.SpellID) || keep != nil && !keep(e) {
 			continue
 		}
 		tick := int64(-1)
@@ -150,7 +152,7 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 	}
 	n := 0
 	for _, r := range rows {
-		if r.LeftMS <= 0 || p.hasEffect(r.SpellID) {
+		if r.LeftMS <= 0 || p.hasEffect(r.SpellID) || infectionEffect(r.SpellID) {
 			continue
 		}
 		ae := effectFromRow(r, now)

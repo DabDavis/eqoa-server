@@ -65,20 +65,36 @@ const (
 	moogieDoReset
 	moogieDoFavor
 	moogieDoV2
+	// moogieDoTrophies asks the hand-ins' own box (metalmoogie.go's trophyAnswers); moogieDoPart and
+	// the two after it, with a part's index (moogieParts) added, are its answer in his box, its reward and
+	// its next version's duel (work board #688)
+	moogieDoTrophies
+	moogieDoPart       moogieDo = 100
+	moogieDoPartReward moogieDo = 200
+	moogieDoPartNext   moogieDo = 300
 )
 
 // moogieAnswers is his box's answers for p, in order, and what each does: the reset always, the duel
 // while his metal twin is on the server (entity's MetalMoogieHere), the tribute while p holds one and his
-// favor or Metal Moogie V2 is there. CLIENT's box holds six answers (maxDialogOptions): the tribute's two
-// uses are its second question's (moogieTributeAnswers), so this one never has more.
+// favor or Metal Moogie V2 is there, and each part of the chain held (work board #688). CLIENT's box holds six
+// answers (maxDialogOptions): the tribute's two uses are its second question's (moogieTributeAnswers), a
+// part's its own, and when the hand-ins do not fit beside the rest they are one answer asking a box of
+// their own (moogieTrophiesOpt), so this one never has more.
 func (h *InteractHandler) moogieAnswers(p *entity.Player) ([]string, []moogieDo) {
 	labels := []string{moogieClearOpt, moogieHealOpt, moogieResetOpt}
 	does := []moogieDo{moogieDoClear, moogieDoHeal, moogieDoReset}
 	if h.gameWorld != nil && h.gameWorld.MetalMoogieHere() {
 		labels, does = append(labels, moogieProveOpt), append(does, moogieDoProve)
 	}
-	if h.favor.offers(p) || h.v2Offered(p) {
-		labels, does = append(labels, moogieTributeOpt), append(does, moogieDoTribute)
+	// the hand-ins: the tribute's, and each part of the chain held (work board #688); one answer for them
+	// all when they do not fit beside the rest
+	hand := h.trophyAnswers(p)
+	hand.labels, hand.does = hand.labels[:len(hand.labels)-1], hand.does[:len(hand.does)-1] // its No
+	switch {
+	case len(labels)+len(hand.labels)+1 <= maxDialogOptions:
+		labels, does = append(labels, hand.labels...), append(does, hand.does...)
+	case len(hand.labels) > 0:
+		labels, does = append(labels, moogieTrophiesOpt), append(does, moogieDoTrophies)
 	}
 	return append(labels, moogieNoOpt), append(does, moogieDoNothing)
 }
@@ -170,6 +186,10 @@ func (h *InteractHandler) answerMoogie(sess *session.Session, p *entity.Player, 
 		h.moogieHandIn(sess, p)
 	case moogieDoV2:
 		h.moogieV2(sess, p, asked.npc) // metalmoogie.go
+	case moogieDoTrophies:
+		h.moogieAsk(sess, p, asked.npc, moogieTrophiesAsk, h.trophyAnswers(p)) // metalmoogie.go
+	default:
+		h.moogiePartAnswered(sess, p, asked.npc, do) // a part of the chain's (metalmoogie.go)
 	}
 	return true
 }

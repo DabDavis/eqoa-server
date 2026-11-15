@@ -1518,6 +1518,7 @@ var catalog = map[string]tableNote{
 			"resist_fail":    {Label: "Resist failure %", Help: "how often a resist fails against its proc, shield and spells, at any figure of it: this percent altogether, twice this in part (0-30; 0 the game's own, 2.5 and 5 at the cap alone)", Section: "Melee proc"},
 			"taken_pct":      {Label: "Melee taken %", Help: "of a player's or a pet's melee hit on it that lands (1-1000): its armour", Section: "Stat profile"},
 			"melee_pct":      {Label: "Its melee %", Help: "of its own melee hits (10-1000)", Section: "Stat profile"},
+			"melee_fixed":    {Label: "Fixed melee", Help: "each of its melee hits that lands is this figure, through any armour, not rolled (0 its roll; 0-100000): the Moogie Gearling's 25", Section: "Stat profile"},
 			"special":        {Label: "Special", Help: "its special melee's name (Kick); empty none", Section: "Special melee"},
 			"special_chance": {Label: "Special %", Help: "of its rounds it comes in, a second after the round's last hit (0-100)", Section: "Special melee"},
 			"special_damage": {Label: "Special damage", Help: "a level (0-200), fixed and through any armour: Sandstorm's crab's 251 at 34 is 7.4", Section: "Special melee"},

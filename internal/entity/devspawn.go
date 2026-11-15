@@ -192,8 +192,9 @@ func (w *World) spawnCopyAsLocked(t *NPC, x, y, z, facing float32, world uint8, 
 	c.Temporary = true
 	c.SpawnOnly, c.HiddenUntil = false, time.Time{} // in every view near it
 	c.endDummyFight()
-	c.tfight = nil    // its template's fight is its own (classtemplate.go)
-	c.challenge = nil // a duel's is its own (metalmoogie.go)
+	c.tfight = nil                        // its template's fight is its own (classtemplate.go)
+	c.challenge = nil                     // a duel's is its own (metalmoogie.go)
+	c.noHeal, c.selfHealed = false, false // its own life's (metalv5.go)
 	c.path = pathState{}
 	w.putNPCLocked(&c)
 	w.SpatialIndex.Insert(c.ServerID, x, z)

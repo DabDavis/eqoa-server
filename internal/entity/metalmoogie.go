@@ -73,11 +73,46 @@ import (
 // does (the data's: one Moogie Tribute, as his).
 
 // MetalMoogieName is his name: the spawn-only NPC of it is the original copied; MetalMoogieV2Name his
-// remade twin's (petition 1441).
+// remade twin's (petition 1441); V3 to V5 the chain past him (work board #688, the GM Jibrish's: each a
+// duel of V2's rules, risen for the last one's part), and MoogieGearlingName the adds V4 and V5 call.
 const (
-	MetalMoogieName   = "Metal Moogie"
-	MetalMoogieV2Name = "Metal Moogie V2"
+	MetalMoogieName    = "Metal Moogie"
+	MetalMoogieV2Name  = "Metal Moogie V2"
+	MetalMoogieV3Name  = "Metal Moogie V3"
+	MetalMoogieV4Name  = "Metal Moogie V4"
+	MetalMoogieV5Name  = "Metal Moogie V5"
+	MoogieGearlingName = "Moogie Gearling"
 )
+
+// MetalMoogieNames are the five, in the chain's order.
+var MetalMoogieNames = []string{MetalMoogieName, MetalMoogieV2Name, MetalMoogieV3Name, MetalMoogieV4Name, MetalMoogieV5Name}
+
+// IsMetalMoogieName reports one of the five's names (any case), never another's: the familiar "Mini Metal
+// Moogie" is none of them.
+func IsMetalMoogieName(name string) bool {
+	name = strings.TrimSpace(name)
+	for _, n := range MetalMoogieNames {
+		if strings.EqualFold(name, n) {
+			return true
+		}
+	}
+	return false
+}
+
+// The parts a duel's corpse gives past V1's tribute (work board #688): V2's legs, V3's torso, V4's arms, V5's
+// head (the data's npcitem rows; the turn-in is handlers' moogie.go).
+const (
+	MetalLegsName  = "Metal Moogie Legs"
+	MetalTorsoName = "Metal Moogie Torso"
+	MetalArmsName  = "Metal Moogie Arms"
+	MetalHeadName  = "Metal Moogie Head"
+)
+
+// metalPartOf is the item each version's corpse gives, by his name (lower case): what his won line names.
+var metalPartOf = map[string]string{
+	"metal moogie v2": MetalLegsName, "metal moogie v3": MetalTorsoName,
+	"metal moogie v4": MetalArmsName, "metal moogie v5": MetalHeadName,
+}
 
 // The challenge's numbers (ours).
 const (
@@ -107,6 +142,8 @@ const (
 const (
 	MetalLineRises   = "Mr. Moogie says, 'So, %s, you would prove your worth? Face my metal twin, and you alone!'"
 	MetalLineRisesV2 = "Mr. Moogie says, 'Your tribute buys a greater trial, %s: face my metal twin remade, and you alone!'"
+	// MetalLineRisesN is V2's rising line with the version's name, V3 to V5's (work board #688)
+	MetalLineRisesN  = "Mr. Moogie says, 'Your tribute buys a greater trial, %s: face my metal twin remade, %s, and you alone!'"
 	MetalLineBusy    = "Mr. Moogie says, 'My metal twin is already dueling %s. One challenger at a time.'"
 	MetalLineMine    = "Mr. Moogie says, 'You are already dueling my metal twin. Finish what you started.'"
 	MetalLineAbsent  = "Mr. Moogie says, 'My metal twin is not here today.'"
@@ -116,6 +153,8 @@ const (
 	MetalLineCharm   = "Metal Moogie cannot be charmed."
 	MetalLineTalk    = "Metal Moogie is dueling %s and pays you no mind."
 	MetalLineWon     = "Metal Moogie falls! Take his Moogie Tribute to Mr. Moogie."
+	// MetalLineWonPart is a version's of V2 to V5: his name and the part his corpse gives (work board #688)
+	MetalLineWonPart = "%s falls! Take his %s to Mr. Moogie."
 	MetalLineLost    = "Metal Moogie has defeated you."
 	MetalLineFled    = "You fled the duel. Metal Moogie returns to Mr. Moogie's side."
 	MetalLineTime    = "The duel has gone on too long. Metal Moogie returns to Mr. Moogie's side."
@@ -153,6 +192,8 @@ type metalDuel struct {
 	// count is the countdown's next number to say (MetalCountdown down to 1, 0 for FIGHT), at next
 	count int
 	next  time.Time
+	// v5 is Metal Moogie V5's script's state (metalv5.go), its zero value for any other's duel
+	v5 metalV5
 }
 
 // metalOriginalLocked is the spawn-only NPC of his name, nil when the server has none. Must be called
@@ -186,6 +227,17 @@ func (w *World) MetalMoogieV2Here() bool {
 	return w.metalOriginalOfLocked(MetalMoogieV2Name) != nil
 }
 
+// MetalMoogieVersionHere reports whether Mr. Moogie can send the version of the name (Metal Moogie V2 to V5):
+// its spawn-only original is there (work board #688).
+func (w *World) MetalMoogieVersionHere(name string) bool {
+	if !IsMetalMoogieName(name) {
+		return false
+	}
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return w.metalOriginalOfLocked(name) != nil
+}
+
 // duelLine is one of the challenge's lines that names Metal Moogie, naming npc instead when it is another
 // (Metal Moogie V2: "Metal Moogie V2 duels Anna alone."); its first "Metal Moogie" alone, so Mr. Moogie
 // stays himself.
@@ -194,6 +246,14 @@ func duelLine(line string, npc *NPC) string {
 		return line
 	}
 	return strings.Replace(line, MetalMoogieName, npc.Name, 1)
+}
+
+// wonLine is the challenger's line at his death: V1's tribute, a version's part (work board #688).
+func (d *metalDuel) wonLine() string {
+	if part := metalPartOf[strings.ToLower(strings.TrimSpace(d.name))]; part != "" {
+		return fmt.Sprintf(MetalLineWonPart, d.name, part)
+	}
+	return d.line(MetalLineWon)
 }
 
 // line is duelLine for the duel standing, by its NPC's name.
@@ -215,6 +275,19 @@ func (w *World) MetalMoogieChallenge(sess *session.Session, moogie EntityID, now
 // he stands (petition 1441, handlers' moogie.go).
 func (w *World) MetalMoogieV2Challenge(sess *session.Session, moogie EntityID, now time.Time) (string, bool) {
 	return w.metalChallenge(sess, moogie, MetalMoogieV2Name, MetalLineRisesV2, now)
+}
+
+// MetalMoogieVersionChallenge is MetalMoogieV2Challenge of the version named (Metal Moogie V2 to V5), for a
+// part (or V2's tribute) the caller takes once he stands (work board #688, handlers' moogie.go): every rule
+// of the duel his, one metal duel of the five at a time, his rising line V2's with his name.
+func (w *World) MetalMoogieVersionChallenge(sess *session.Session, moogie EntityID, name string, now time.Time) (string, bool) {
+	switch {
+	case strings.EqualFold(name, MetalMoogieV2Name):
+		return w.MetalMoogieV2Challenge(sess, moogie, now)
+	case !IsMetalMoogieName(name) || strings.EqualFold(name, MetalMoogieName):
+		return MetalLineAbsent, false
+	}
+	return w.metalChallenge(sess, moogie, name, MetalLineRisesN, now)
 }
 
 // metalChallenge is a challenge of the spawn-only original of the name, risen with that line.
@@ -262,6 +335,9 @@ func (w *World) metalChallenge(sess *session.Session, moogie EntityID, name, ris
 		x: (x + p.X) / 2, y: (y + p.Y) / 2, z: (z + p.Z) / 2, began: now, count: MetalCountdown, next: now}
 	log.Printf("Metal Moogie: %s challenges Mr. Moogie: %s (%d, level %d, %d HP, size %.2f, template %q) rises at (%.1f, %.1f, %.1f)",
 		p.Name, c.Name, c.ServerID, c.Level, c.MaxHP, c.Size, c.TemplateName(), x, y, z)
+	if rises == MetalLineRisesN {
+		return fmt.Sprintf(rises, p.Name, c.Name), true
+	}
 	return fmt.Sprintf(rises, p.Name), true
 }
 
@@ -437,6 +513,7 @@ func (w *World) endMetalLocked(how string, now time.Time) {
 	if npc := w.NPCs[d.npc]; npc != nil && npc.challenge == d.c && !npc.Dead {
 		w.removeNPCLocked(npc)
 	}
+	w.duelAddsGoLocked(d) // his gearlings with him, and their roots on the challenger (metalv5.go)
 	log.Printf("Metal Moogie: %s's duel with %s ends (%s) after %v", d.c.name, d.name, how, now.Sub(d.began).Round(time.Second))
 }
 
@@ -463,7 +540,7 @@ func (w *World) metalMoogieSystem(now time.Time) {
 	if npc.Dead {
 		w.endMetalLocked("won", now)
 		if sess != nil {
-			w.sendColoredLocked(sess, d.line(MetalLineWon), duelOrange)
+			w.sendColoredLocked(sess, d.wonLine(), duelOrange)
 		}
 		return
 	}
@@ -488,6 +565,9 @@ func (w *World) metalMoogieSystem(now time.Time) {
 	if npc.CurrentEnemy != p.ServerID && !p.IsDead() {
 		w.addThreatLocked(npc, p.ServerID, 1) // let go (a feigned death, an invisibility): taken up again
 		npc.CurrentEnemy = p.ServerID
+	}
+	if strings.EqualFold(d.name, MetalMoogieV5Name) {
+		w.metalV5Locked(d, npc, now) // his script (metalv5.go)
 	}
 }
 
@@ -567,11 +647,21 @@ func (w *World) GiveDuelistsFavor(sess *session.Session, spell CastSpell, now ti
 	return false
 }
 
-// metalWord is the duel in a line for #stats: whom a Metal Moogie duels, "" for any other NPC.
+// metalWord is the duel in a line for #stats: whom a Metal Moogie duels, "" for any other NPC; a duel's
+// gearling says whose duel it is (work board #688).
 func metalWord(npc *NPC) string {
 	if npc == nil || npc.challenge == nil {
 		return ""
 	}
-	return fmt.Sprintf("Duels %s alone (Mr. Moogie's challenge): only %s and %s's pet may hurt it", npc.challenge.name,
+	of := "Mr. Moogie's challenge"
+	if by := npc.summoner(); by != nil {
+		of = fmt.Sprintf("Mr. Moogie's challenge, a summon of %s's duel", by.Name)
+	} else if !strings.EqualFold(npc.Name, MetalMoogieName) {
+		of = fmt.Sprintf("Mr. Moogie's challenge, %s's duel", npc.Name)
+	}
+	return fmt.Sprintf("Duels %s alone (%s): only %s and %s's pet may hurt it", npc.challenge.name, of,
 		npc.challenge.name, npc.challenge.name)
 }
+
+// DuelWord is metalWord for #npcinfo: whose duel a Metal Moogie or his gearling is, "" for any other NPC.
+func (n *NPC) DuelWord() string { return metalWord(n) }

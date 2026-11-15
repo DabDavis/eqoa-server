@@ -36,7 +36,7 @@ func (w *World) SetCorpseOpenAfter(d time.Duration) {
 func (w *World) corpseOpenLocked(npc *NPC) time.Time {
 	if w.corpseOpenAfter <= 0 || npc.DeathTime.IsZero() || npc.Owner != 0 || npc.CorpseOfNothing() ||
 		npc.Charm != nil || npc.Dummy != NotDummy || npc.DuelSpawn() ||
-		npc.challenge != nil || npc.Name == MetalMoogieName || npc.Name == MetalMoogieV2Name {
+		npc.challenge != nil || IsMetalMoogieName(npc.Name) {
 		return time.Time{}
 	}
 	return npc.DeathTime.Add(w.corpseOpenAfter)

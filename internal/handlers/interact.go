@@ -554,6 +554,9 @@ func EntityInfo(target entity.Entity, objectID uint32) string {
 			t.PrimaryWeapon, t.SecondaryWeapon, t.Shield,
 			t.Torso, t.Forearm, t.NPCGloves,
 			t.NPCLegs, t.Feet, t.Head)
+		if w := t.DuelWord(); w != "" {
+			info += w + "\n" // whose metal duel it is, his gearlings' too (entity/metalmoogie.go)
+		}
 	case *entity.Player:
 		info += fmt.Sprintf("[%s] ServerID=%d ObjID=%d\n", t.Name, t.ServerID, objectID)
 		info += fmt.Sprintf("HP=%d/%d Power=%d/%d\n", t.HP, t.MaxHP, t.Power, t.MaxPower)

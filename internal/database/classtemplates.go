@@ -79,6 +79,7 @@ const classTemplatesSchema = `
 		fight_regen    INTEGER NOT NULL DEFAULT 0,
 		run_speed      REAL NOT NULL DEFAULT 0,
 		taken_resist   TEXT NOT NULL DEFAULT '',
+		melee_fixed    INTEGER NOT NULL DEFAULT 0,
 		abilities      TEXT NOT NULL DEFAULT '[]',
 		note           TEXT NOT NULL DEFAULT '',
 		source         TEXT NOT NULL DEFAULT 'gm'
@@ -686,8 +687,11 @@ type ClassTemplate struct {
 	// Disease's raid bosses: "should take 15% more damage from lightning resistance based damage,
 	// procs and nukes" (entity/enchanter.go creatureResists, after resist_kind's cut)
 	TakenResist string
-	Abilities   []TemplateAbility
-	Note        string
+	// MeleeFixed is each of its melee hits that lands as this figure, through any armour and not rolled (0:
+	// none, its roll as ever): work board #688's Moogie Gearling, 25 a hit, four a round
+	MeleeFixed int
+	Abilities  []TemplateAbility
+	Note       string
 }
 
 // TemplateKey is a template's name as classtemplates and npctemplate key it:
@@ -1348,6 +1352,8 @@ func CheckClassTemplate(t ClassTemplate) error {
 		return fmt.Errorf("taken_resist %q: FR, CR, LR, AR, PR or DR with the percent of its damage taken (1-1000), several with commas (LR:115), or none", t.TakenResist)
 	case t.TakenPct < 1 || t.TakenPct > 1000:
 		return fmt.Errorf("taken_pct %d: 1 to 1000 percent of a melee hit on it", t.TakenPct)
+	case t.MeleeFixed < 0 || t.MeleeFixed > MaxTemplateShield:
+		return fmt.Errorf("melee_fixed %d: 0 (its roll) to %d a melee hit", t.MeleeFixed, MaxTemplateShield)
 	case t.MeleePct < 10 || t.MeleePct > MaxTemplateMeleePct:
 		return fmt.Errorf("melee_pct %d: 10 to %d percent of its roll", t.MeleePct, MaxTemplateMeleePct)
 	case t.SpecialChance < 0 || t.SpecialChance > 100:
@@ -1447,6 +1453,7 @@ var classTemplateColumns = []struct{ col, decl string }{
 	{"fight_regen", "INTEGER NOT NULL DEFAULT 0"},
 	{"run_speed", "REAL NOT NULL DEFAULT 0"},
 	{"taken_resist", "TEXT NOT NULL DEFAULT ''"},
+	{"melee_fixed", "INTEGER NOT NULL DEFAULT 0"},
 }
 
 // ensureClassTemplates makes tables classtemplates and npctemplate
@@ -1495,7 +1502,7 @@ func (db *SQLiteDB) ensureClassTemplates() error {
 // JSON) is left out and named in bad.
 func (db *SQLiteDB) ClassTemplates() (templates map[string]ClassTemplate, bad []string, err error) {
 	rows, err := db.Query(`SELECT name, class, hp_pct, taken_pct, melee_pct, special, special_chance, special_damage,
-		special_fx, special_every, special_first, special_jitter, special_from, shield_damage, shield_resist, proc_chance, proc_damage, proc_name, proc_resist, resist_fail, resist_kind, resist_pct, kick_damage, kick_every, kick_first, fight_regen, run_speed, taken_resist, abilities, note FROM classtemplates
+		special_fx, special_every, special_first, special_jitter, special_from, shield_damage, shield_resist, proc_chance, proc_damage, proc_name, proc_resist, resist_fail, resist_kind, resist_pct, kick_damage, kick_every, kick_first, fight_regen, run_speed, taken_resist, melee_fixed, abilities, note FROM classtemplates
 		WHERE name IS NOT NULL`)
 	if err != nil {
 		return nil, nil, err
@@ -1507,7 +1514,7 @@ func (db *SQLiteDB) ClassTemplates() (templates map[string]ClassTemplate, bad []
 		var fx int64
 		var abilities sql.NullString
 		if err := rows.Scan(&t.Name, &t.Class, &t.HPPct, &t.TakenPct, &t.MeleePct, &t.Special, &t.SpecialChance,
-			&t.SpecialDamage, &fx, &t.SpecialEvery, &t.SpecialFirst, &t.SpecialJitter, &t.SpecialFrom, &t.ShieldDamage, &t.ShieldResist, &t.ProcChance, &t.ProcDamage, &t.ProcName, &t.ProcResist, &t.ResistFail, &t.ResistKind, &t.ResistPct, &t.KickDamage, &t.KickEvery, &t.KickFirst, &t.FightRegen, &t.RunSpeed, &t.TakenResist, &abilities, &t.Note); err != nil {
+			&t.SpecialDamage, &fx, &t.SpecialEvery, &t.SpecialFirst, &t.SpecialJitter, &t.SpecialFrom, &t.ShieldDamage, &t.ShieldResist, &t.ProcChance, &t.ProcDamage, &t.ProcName, &t.ProcResist, &t.ResistFail, &t.ResistKind, &t.ResistPct, &t.KickDamage, &t.KickEvery, &t.KickFirst, &t.FightRegen, &t.RunSpeed, &t.TakenResist, &t.MeleeFixed, &abilities, &t.Note); err != nil {
 			return nil, nil, err
 		}
 		t.Name = TemplateKey(t.Name)

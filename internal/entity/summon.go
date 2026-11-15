@@ -178,6 +178,9 @@ func (w *World) summonLocked(npc *NPC, f *templateFight, s *templateSummon, now 
 		c.NPCType &^= 0x80 // a fighter, attackable
 		c.EventAggro, c.QuestSpawn = false, false
 		c.add = &addTie{by: npc, fight: f, pct: s.Share, level: npc.Level, class: npc.Class}
+		// a metal duel's creature's adds are the duel's as he is (metalv5.go: his gearlings): the challenger's
+		// alone to fight and to be fought by, every other client shown them with the NPC bit
+		c.challenge = npc.challenge
 		if s.Share > 0 {
 			// its creature's template at its share: its hit points the share of the creature's most
 			c.tmpl, c.tfight = npc.tmpl, nil

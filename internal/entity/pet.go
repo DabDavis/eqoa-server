@@ -1606,6 +1606,9 @@ func (w *World) npcFightPetLocked(npc, pet *NPC, now time.Time) {
 		src := npc.figures()                                                                                        // an add's are its creature's (summon.go)
 		n := npc.shared(w.npcHitLocked(src, w.balanceLevelOf(pet), src.meleeOut(npcHitOnPet(src, pet, meleeIntn)))) // balance.go, then its class template
 		n = w.petTakenLocked(pet, n)                                                                                // the pet's template's taken_pct (pettemplate.go)
+		if fixed := npc.meleeFixed(); fixed > 0 {
+			n = fixed // its template's fixed melee (melee_fixed), through any armour
+		}
 		pet.HP = max(pet.HP-n, 0)
 		pet.LastCombatTime = now
 		log.Printf("Pet: %s hit the pet %q for %d (HP %d/%d)", npc.Name, pet.Name, n, pet.HP, pet.MaxHP)

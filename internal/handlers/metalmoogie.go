@@ -210,3 +210,193 @@ func (h *InteractHandler) metalTalk(sess *session.Session, npc *entity.NPC) bool
 	SendColoredChat(sess, line, 255, 64, 64)
 	return true
 }
+
+// The Metal Moogie chain's parts (work board #688, the GM Jibrish's): each version's corpse gives one, and
+// Mr. Moogie takes it for a reward or for the next version's duel. His box adds an answer for each part
+// held in the pack (moogieAnswers); its second question has the reward, the next duel (while that
+// version's original is on the server) and No; the head has no question, the reward at once. The reward
+// goes into the pack and the part is taken (0x003C, as the tribute is) after it; the next duel takes the part
+// only once he stands (refused, nothing taken), as V2's does the tribute. Each part allows one turn-in:
+// the part is the flag (lore, no trade), taken by either answer. The words are the GM Jibrish's.
+type moogiePart struct {
+	item      string // the part (entity.MetalLegsName ...)
+	answer    string // its answer in his box
+	question  string // its second question, "" none: the reward at once
+	rewardOpt string
+	nextOpt   string
+	reward    string // the reward's item, by its name, and how many
+	count     int
+	next      string // the next version's name, "" none
+	thanks    string // what he says at the reward (%s the player's name)
+}
+
+// moogieParts are the parts in the chain's order.
+var moogieParts = []moogiePart{
+	{item: entity.MetalLegsName, answer: "I bring you Metal Moogie's Legs",
+		question:  "Mr. Moogie: 'My twin's legs! Snowballs for your trouble, or will you face him rebuilt, stronger still?'",
+		rewardOpt: "I'll take the snowballs", nextOpt: "Summon Metal Moogie V3", reward: "Snowball", count: 99,
+		next: entity.MetalMoogieV3Name, thanks: moogieFairTrade},
+	{item: entity.MetalTorsoName, answer: "I bring you Metal Moogie's Torso",
+		question:  "Mr. Moogie: 'His torso! A draught of my insight, or his next rebuild?'",
+		rewardOpt: "I'll take the potion", nextOpt: "Summon Metal Moogie V4", reward: "Potion of Moogie's Insight", count: 1,
+		next: entity.MetalMoogieV4Name, thanks: moogieFairTrade},
+	{item: entity.MetalArmsName, answer: "I bring you Metal Moogie's Arms",
+		question:  "Mr. Moogie: 'His arms! A deputy's draught, or his final form?'",
+		rewardOpt: "I'll take the draught", nextOpt: "Summon Metal Moogie V5", reward: "Deputy's Draught", count: 1,
+		next: entity.MetalMoogieV5Name, thanks: moogieFairTrade},
+	{item: entity.MetalHeadName, answer: "I bring you Metal Moogie's Head", reward: "Moogie Winding Stone", count: 1,
+		thanks: "Mr. Moogie says, 'You are worthy, %s. Truly worthy. Take this stone: my twin will follow you, small and loyal, for as long as you like.'"},
+}
+
+// The parts' other words: his thanks at a reward (the GM Jibrish's), the No of a part's question, and ours:
+// the one answer for every hand-in when they do not fit his box with the rest (CLIENT's box holds
+// maxDialogOptions), its question, a full pack, a reward the server has not, a part slipped away.
+const (
+	moogieFairTrade   = "Mr. Moogie says, 'A fair trade, %s.'"
+	moogiePartNo      = "No"
+	moogieTrophiesOpt = "I bring you Metal Moogie's parts"
+	moogieTrophiesAsk = "Mr. Moogie: 'What have you brought me of my twin?'"
+	moogiePackFull    = "Mr. Moogie says, 'Make room in your pack first, %s.'"
+	moogieNoReward    = "Mr. Moogie says, 'I have nothing to give for that today. Keep it.'"
+	moogieNoPart      = "Mr. Moogie says, 'You carry no such part of my twin.'"
+	moogiePartUntaken = "Mr. Moogie says, 'Your part slipped away, %s. My twin waits for another.'"
+)
+
+// held is the player's first row of the item named in the pack (not banked, not worn), ok false for none.
+func (f *MoogieFavor) held(p *entity.Player, name string) (database.CharInventoryEntry, bool) {
+	if f == nil || p == nil {
+		return database.CharInventoryEntry{}, false
+	}
+	rows, err := f.inv.GetCharacterItems(p.CharServerID)
+	if err != nil {
+		log.Printf("Moogie: %s's inventory: %v", p.Name, err)
+		return database.CharInventoryEntry{}, false
+	}
+	for _, r := range rows {
+		if r.Location == 0 && r.EquipLoc < 0 && r.StackLeft > 0 && strings.EqualFold(strings.TrimSpace(r.Pattern.ItemName), name) {
+			return r, true
+		}
+	}
+	return database.CharInventoryEntry{}, false
+}
+
+// partsHeld is the parts p holds, by their index in moogieParts, in the chain's order.
+func (h *InteractHandler) partsHeld(p *entity.Player) []int {
+	var out []int
+	for i := range moogieParts {
+		if _, ok := h.favor.held(p, moogieParts[i].item); ok {
+			out = append(out, i)
+		}
+	}
+	return out
+}
+
+// partAnswers is a part's second question's answers: its reward, the next version's duel while his original
+// is on the server, No.
+func (h *InteractHandler) partAnswers(i int) moogieChoices {
+	part := &moogieParts[i]
+	c := moogieChoices{labels: []string{part.rewardOpt}, does: []moogieDo{moogieDoPartReward + moogieDo(i)}}
+	if part.next != "" && h.gameWorld != nil && h.gameWorld.MetalMoogieVersionHere(part.next) {
+		c.labels, c.does = append(c.labels, part.nextOpt), append(c.does, moogieDoPartNext+moogieDo(i))
+	}
+	c.labels, c.does = append(c.labels, moogiePartNo), append(c.does, moogieDoNothing)
+	return c
+}
+
+// trophyAnswers is the hand-ins' own box (moogieTrophiesOpt): the tribute's while it is offered, each part
+// held, No.
+func (h *InteractHandler) trophyAnswers(p *entity.Player) moogieChoices {
+	var c moogieChoices
+	if h.favor.offers(p) || h.v2Offered(p) {
+		c.labels, c.does = append(c.labels, moogieTributeOpt), append(c.does, moogieDoTribute)
+	}
+	for _, i := range h.partsHeld(p) {
+		c.labels, c.does = append(c.labels, moogieParts[i].answer), append(c.does, moogieDoPart+moogieDo(i))
+	}
+	c.labels, c.does = append(c.labels, moogiePartNo), append(c.does, moogieDoNothing)
+	return c
+}
+
+// moogiePartAnswered is one of a part's answers (does is moogieDoPart, moogieDoPartReward or moogieDoPartNext
+// and the part's index): the part's question (the head: its reward at once), its reward, the next version's
+// duel. It reports false for any other answer.
+func (h *InteractHandler) moogiePartAnswered(sess *session.Session, p *entity.Player, moogie entity.EntityID, do moogieDo) bool {
+	switch {
+	case do >= moogieDoPart && int(do-moogieDoPart) < len(moogieParts):
+		i := int(do - moogieDoPart)
+		if moogieParts[i].question == "" {
+			h.partReward(sess, p, i)
+			return true
+		}
+		if _, ok := h.favor.held(p, moogieParts[i].item); !ok {
+			SendClientMessage(sess, moogieNoPart)
+			return true
+		}
+		h.moogieAsk(sess, p, moogie, moogieParts[i].question, h.partAnswers(i))
+	case do >= moogieDoPartReward && int(do-moogieDoPartReward) < len(moogieParts):
+		h.partReward(sess, p, int(do-moogieDoPartReward))
+	case do >= moogieDoPartNext && int(do-moogieDoPartNext) < len(moogieParts):
+		h.partNext(sess, p, moogie, int(do-moogieDoPartNext))
+	default:
+		return false
+	}
+	return true
+}
+
+// partReward is a part handed in for its reward: the reward into the pack, then the part taken, and his
+// thanks; a pack with no room for it keeps the part, told so.
+func (h *InteractHandler) partReward(sess *session.Session, p *entity.Player, i int) {
+	part := &moogieParts[i]
+	f := h.favor
+	r, ok := f.held(p, part.item)
+	if !ok {
+		SendClientMessage(sess, moogieNoPart)
+		return
+	}
+	pattern, found, err := f.inv.ItemPatternByName(part.reward)
+	if err != nil || !found {
+		if err != nil {
+			log.Printf("Moogie: %q: %v", part.reward, err)
+		}
+		SendClientMessage(sess, moogieNoReward)
+		return
+	}
+	given, err := GiveItemNow(sess, h.gameWorld, f.inv, pattern, part.count)
+	if err != nil {
+		log.Printf("Moogie: giving %s %d of %q: %v", p.Name, part.count, part.reward, err)
+	}
+	if given == 0 {
+		SendColoredChat(sess, fmt.Sprintf(moogiePackFull, p.Name), 255, 63, 63)
+		return
+	}
+	if !f.take(sess, p, r) {
+		log.Printf("Moogie: %s has %d of %q, and the %s could not be taken", p.Name, given, part.reward, part.item)
+	}
+	log.Printf("Moogie: %s hands Mr. Moogie the %s for %d of %q", p.Name, part.item, given, part.reward)
+	SendClientMessage(sess, fmt.Sprintf(part.thanks, p.Name))
+}
+
+// partNext is a part spent on the next version's duel: he rises as V2 does for a tribute (entity's
+// MetalMoogieVersionChallenge, every rule of the duel his), and the part is taken only once he stands;
+// refused (another's duel, his original gone), nothing is taken. A part that cannot be taken after he rose
+// ends his duel at once.
+func (h *InteractHandler) partNext(sess *session.Session, p *entity.Player, moogie entity.EntityID, i int) {
+	part := &moogieParts[i]
+	f := h.favor
+	r, ok := f.held(p, part.item)
+	if !ok || part.next == "" {
+		SendClientMessage(sess, moogieNoPart)
+		return
+	}
+	line, rose := h.gameWorld.MetalMoogieVersionChallenge(sess, moogie, part.next, time.Now())
+	SendClientMessage(sess, line)
+	if !rose {
+		return
+	}
+	if !f.take(sess, p, r) {
+		h.gameWorld.EndMetalDuelOf(sess, "the part could not be taken")
+		SendClientMessage(sess, fmt.Sprintf(moogiePartUntaken, p.Name))
+		return
+	}
+	log.Printf("Moogie: %s spends the %s on %s's duel", p.Name, part.item, part.next)
+}

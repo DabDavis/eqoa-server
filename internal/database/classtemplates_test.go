@@ -739,3 +739,37 @@ func TestWardAndDeathHoldAbilities(t *testing.T) {
 		}
 	}
 }
+
+// melee_fixed (work board #688's Moogie Gearling: 25 a hit) is read with its template, 0 by default, and a
+// figure past MaxTemplateShield or below 0 leaves the row out; a creature's root reads as an ability of a
+// class template (it was a pet's alone).
+func TestTemplateMeleeFixedAndACreaturesRoot(t *testing.T) {
+	db, err := NewSQLite(t.TempDir() + "/templates.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	for _, q := range []string{
+		`INSERT INTO classtemplates (name, class, melee_fixed, abilities) VALUES ('moogie gearling', 0, 25, '[{"kind":"root","spell_id":460,"every":18,"first":3}]')`,
+		`INSERT INTO classtemplates (name, class, melee_fixed) VALUES ('too hard', 0, 100001)`,
+		`INSERT INTO classtemplates (name, class, melee_fixed) VALUES ('below', 0, -1)`,
+	} {
+		if _, err := db.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	got, bad, err := db.ClassTemplates()
+	if err != nil {
+		t.Fatal(err)
+	}
+	g, ok := got["moogie gearling"]
+	if !ok || g.MeleeFixed != 25 || len(g.Abilities) != 1 || g.Abilities[0].Kind != AbilityRoot || g.Abilities[0].SpellID != 460 {
+		t.Errorf("the gearling: %+v (ok %v)", g, ok)
+	}
+	if got["tank"].MeleeFixed != 0 {
+		t.Errorf("a seed's melee_fixed: %d", got["tank"].MeleeFixed)
+	}
+	if _, ok := got["too hard"]; ok || len(bad) != 2 {
+		t.Errorf("bad rows: %q", bad)
+	}
+}

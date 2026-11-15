@@ -63,6 +63,11 @@
 // bodies of kinds it has (made.go: Rathe's), for the fill where nothing round
 // will do.
 //
+// -ranks spreads the blocks of creatures Return Home's spawn table stood in
+// rows, a kind to a row (ranks.go), within rankTerritory of where they stood;
+// -zone Kelinar[,...] keeps a run to zones of CLIENT's grid as -near keeps
+// it to circles (both given: in both).
+//
 // A run round a few places (2026-11-03, the towns' newbie ground: the user,
 // "we also have bare areas around grobb ... use prima guide to fill with
 // correct mobs for the levels", of a troll warrior's pythons "too few and
@@ -141,6 +146,8 @@ func main() {
 	undo := flag.Bool("undo", false, "take an applied plan out again")
 	tag := flag.String("tag", "", "a run of its own: its log in wildspread_*_<tag>, applied and undone apart from the others")
 	nearFlag := flag.String("near", "", "only round these places, x,z,r[;x,z,r...] or @file (one a line): a creature outside them stays, nothing is placed outside them")
+	zoneFlag := flag.String("zone", "", "only in these zones of CLIENT's grid, by WORDS.TXT's name (needs -words), a,b,...: a creature outside them stays, nothing is placed outside them")
+	ranks := flag.Bool("ranks", false, "spread blocks of creatures standing in rows (ranks.go: Return Home's parades) within 200 of their middle, whatever they are")
 	noSpread := flag.Bool("no-spread", false, "fill only: no creature moves")
 	gap := flag.Float64("gap", gapFill, "land farther than this from any creature is filled")
 	spacing := flag.Float64("spacing", fillSpacing, "a filled creature from any other creature")
@@ -232,6 +239,22 @@ func main() {
 	p := newPlan(in, g, env, *groundDir, words, camps, *seed)
 	p.near, p.noSpread, p.gapFill, p.fillSpacing, p.questWeight = near, *noSpread, *gap, *spacing, *questWeight
 	p.layers = layers
+	p.ranks = *ranks
+	for _, zn := range strings.Split(*zoneFlag, ",") {
+		if zn = strings.ToLower(strings.TrimSpace(zn)); zn != "" {
+			p.zones = append(p.zones, zn)
+		}
+	}
+	if len(p.zones) > 0 {
+		if words == nil {
+			log.Fatal("-zone names CLIENT's zones by WORDS.TXT: give -words")
+		}
+		for _, zn := range p.zones {
+			if !zoneKnown(words, zn) {
+				log.Fatalf("-zone %q: no zone of Tunaria's or Rathe's grid has that name", zn)
+			}
+		}
+	}
 	p.groupSizes, p.groupWeights, p.groupRadius = sizes, weights, *groupRadius
 	p.questMin, p.questMinReach = *questMin, *questMinReach
 	if *questWeight != 1 || *questMin > 0 {
@@ -282,6 +305,21 @@ func quiet(f func()) {
 	log.SetOutput(io.Discard)
 	defer log.SetOutput(os.Stderr)
 	f()
+}
+
+// zoneKnown says whether a zone of Tunaria's or Rathe's grid has the name
+// (lower case).
+func zoneKnown(words []string, name string) bool {
+	for _, grid := range [][][]int{zones0, zones1} {
+		for _, row := range grid {
+			for _, wd := range row {
+				if wd < len(words) && strings.ToLower(strings.TrimSpace(words[wd])) == name {
+					return true
+				}
+			}
+		}
+	}
+	return false
 }
 
 func readWords(path string) ([]string, error) {

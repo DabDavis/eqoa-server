@@ -22,6 +22,9 @@ type plan struct {
 	prima     map[string][]primaEntry
 	biomes    map[string][]string
 	worlds    []*worldPlan
+	curWorld  int            // the world being planned (-zone's grid)
+	ranks     bool           // -ranks: blocks of creatures standing in rows are spread (ranks.go)
+	ranked    map[int64]bool // the world's block creatures that move
 	// zones.go's: the kinds its rules name, the undead's bodies and kinds
 	ruled      map[string]*kind
 	deadBodies map[uint32]bool
@@ -32,6 +35,7 @@ type plan struct {
 	// fill's distances (-gap, -spacing); and a kind a quest near the place
 	// kills or loots counted questWeight times (-quest-weight)
 	near        []circle
+	zones       []string // -zone: only in these zones of CLIENT's grid (WORDS.TXT's names), lower case
 	noSpread    bool
 	gapFill     float64
 	fillSpacing float64
@@ -337,11 +341,30 @@ const questReach = 2500.0
 
 // inNear says whether (x, z) is in the run's places (every place without -near).
 func (p *plan) inNear(x, z float64) bool {
+	if !p.inZones(x, z) {
+		return false
+	}
 	if len(p.near) == 0 {
 		return true
 	}
 	for _, c := range p.near {
 		if math.Hypot(x-c.X, z-c.Z) <= c.R {
+			return true
+		}
+	}
+	return false
+}
+
+// inZones says whether (x, z) is in one of -zone's zones (every place
+// without -zone). The zones are Tunaria's and Rathe's grids (zones.go's
+// zoneWord): a run's worlds are those -zone names.
+func (p *plan) inZones(x, z float64) bool {
+	if len(p.zones) == 0 {
+		return true
+	}
+	name := strings.ToLower(p.zoneAt(p.curWorld, x, z))
+	for _, zn := range p.zones {
+		if name == zn {
 			return true
 		}
 	}
@@ -392,17 +415,25 @@ type fill struct {
 
 // worldPlan is one world's plan and what it measured.
 type worldPlan struct {
-	w      int
-	land   *landGrid
-	clumps int
-	moves  []move
-	fills  []fill
-	kept   map[string]int // why a wandering creature stayed, by reason
-	empty  int            // gap samples no wildlife was near enough to fill
-	before coverage
-	after  coverage
+	w        int
+	land     *landGrid
+	clumps   int
+	moves    []move
+	fills    []fill
+	kept     map[string]int // why a wandering creature stayed, by reason
+	unranked int            // block creatures (-ranks) that move
+	// every creature in the run's places that stayed, and why (kept.csv)
+	keptRows []keptRow
+	empty    int // gap samples no wildlife was near enough to fill
+	before   coverage
+	after    coverage
 	// the creatures as they stand before and after, for the maps
 	pointsBefore, pointsAfter []pt
+}
+
+type keptRow struct {
+	row *npcRow
+	why string
 }
 
 // coverage is the placeable land by its distance from the nearest creature.
@@ -519,6 +550,7 @@ func creature(r *npcRow) bool {
 func (p *plan) world(w int) {
 	in := p.in
 	wp := &worldPlan{w: w, kept: map[string]int{}}
+	p.curWorld = w
 	var rows []*npcRow
 	for _, r := range in.rows {
 		if r.world == w {
@@ -554,13 +586,29 @@ func (p *plan) world(w int) {
 		}
 	}
 	var movers []*npcRow
+	var ranked map[int64]bool
+	if p.ranks {
+		ranked = findRanks(rows)
+	}
+	p.ranked = map[int64]bool{}
 	for _, r := range rows {
 		if !creature(r) {
 			continue
 		}
-		if why := p.stays(r, land, towns, camps); why != "" {
+		why := p.stays(r, land, towns, camps)
+		if why != "" && ranked[r.id] && !p.noSpread && p.inNear(r.x, r.z) {
+			// a block's (ranks.go): it moves unless its place keeps it
+			if why = p.placeStays(r, land, towns); why == "" {
+				p.ranked[r.id] = true
+				wp.unranked++
+			}
+		}
+		if why != "" {
 			if r.wanders {
 				wp.kept[why]++
+			}
+			if p.inNear(r.x, r.z) {
+				wp.keptRows = append(wp.keptRows, keptRow{r, why})
 			}
 			continue
 		}
@@ -642,8 +690,8 @@ func (p *plan) world(w int) {
 	wp.fills = append(wp.fills, questFills...)
 	wp.after = measure(land, open, wp.pointsAfter)
 	p.worlds = append(p.worlds, wp)
-	say("world %d: %d creatures, %d spread in %d clumps, %d filled; open land beyond 250 of a creature %.1f%% -> %.1f%%",
-		w, len(wp.pointsBefore), len(wp.moves), wp.clumps, len(wp.fills),
+	say("world %d: %d creatures, %d spread in %d clumps (%d of them a block's, -ranks), %d filled; open land beyond 250 of a creature %.1f%% -> %.1f%%",
+		w, len(wp.pointsBefore), len(wp.moves), wp.clumps, wp.unranked, len(wp.fills),
 		pct(wp.before.Far[1], wp.before.Land), pct(wp.after.Far[1], wp.after.Land))
 }
 
@@ -656,7 +704,6 @@ func pct(a, b int) float64 {
 
 // stays is why a creature does not move ("" when it does).
 func (p *plan) stays(r *npcRow, land *landGrid, towns, camps *index) string {
-	in := p.in
 	switch {
 	case !r.wanders:
 		return "stands" // the server does not wander it: a camp's, a named one's
@@ -666,8 +713,23 @@ func (p *plan) stays(r *npcRow, land *landGrid, towns, camps *index) string {
 		return "not a wildlife kind (one of a kind, a pet's name, of the water, mostly in caves)"
 	case p.kinds[r.key].spotsIn(r.world) < 2:
 		return "its kind stands in one spot of the world alone: a camp"
-	case in.protected[r.id] != "":
-		return in.protected[r.id]
+	}
+	if why := p.placeStays(r, land, towns); why != "" {
+		return why
+	}
+	if camps.within(r.x, r.z, campKeep) {
+		return "an EQOA-Data camp's"
+	}
+	return ""
+}
+
+// placeStays is why a creature stays for its place, whatever it is ("" when
+// nothing of its place keeps it): stays's second half, a block's (-ranks)
+// whole test.
+func (p *plan) placeStays(r *npcRow, land *landGrid, towns *index) string {
+	in := p.in
+	if why := in.protected[r.id]; why != "" {
+		return why
 	}
 	for _, pr := range in.places {
 		if pr.key == r.key && pr.world == r.world && math.Hypot(pr.x-r.x, pr.z-r.z) <= pr.r+5 {
@@ -682,8 +744,6 @@ func (p *plan) stays(r *npcRow, land *landGrid, towns, camps *index) string {
 		return "in the water"
 	case towns.within(r.x, r.z, townClear):
 		return "in or near a town"
-	case camps.within(r.x, r.z, campKeep):
-		return "an EQOA-Data camp's"
 	}
 	if z := p.ruleAt(r.world, r.x, r.z); z != nil && z.leave {
 		return "in a zone left as it is (" + z.zone + ")"
@@ -774,7 +834,22 @@ func (p *plan) spread(land *landGrid, movers []*npcRow, open func(int) bool, rng
 		c.mz /= float64(len(ms))
 		clumps = append(clumps, c)
 	}
-	// each open sample to the nearest clump's middle within territory
+	// a clump's reach: territory, or rankTerritory for a block's (most of
+	// its creatures a block's, ranks.go)
+	reach := make([]float64, len(clumps))
+	for i, c := range clumps {
+		reach[i] = territory
+		n := 0
+		for _, r := range c.members {
+			if p.ranked[r.id] {
+				n++
+			}
+		}
+		if n*2 > len(c.members) {
+			reach[i] = rankTerritory
+		}
+	}
+	// each open sample to the nearest clump's middle within its reach
 	middles := newIndex(territory)
 	for i, c := range clumps {
 		middles.add(c.mx, c.mz, i)
@@ -786,9 +861,12 @@ func (p *plan) spread(land *landGrid, movers []*npcRow, open func(int) bool, rng
 			continue
 		}
 		x, z := land.xz(k)
-		if d, q := middles.nearest(x, z, territory); q.v >= 0 && d <= territory {
-			owner[k] = int32(q.v)
-		}
+		best := math.Inf(1)
+		middles.near(x, z, territory, func(q pt, d float64) {
+			if d <= reach[q.v] && (d < best || d == best && int32(q.v) < owner[k]) {
+				best, owner[k] = d, int32(q.v)
+			}
+		})
 	}
 	// a clump's ground: its samples joined to its middle without leaving it
 	for i, c := range clumps {

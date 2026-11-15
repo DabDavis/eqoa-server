@@ -59,6 +59,14 @@ func (p *plan) report(dir string) error {
 		return err
 	}
 	defer ff.Close()
+	kf, err := os.Create(filepath.Join(dir, "kept.csv"))
+	if err != nil {
+		return err
+	}
+	defer kf.Close()
+	kw := csv.NewWriter(kf)
+	kw.Write([]string{"world", "id", "name", "level", "x", "y", "z", "why"})
+	defer kw.Flush()
 	fw := csv.NewWriter(ff)
 	fw.Write([]string{"world", "name", "level", "place_level", "source", "x", "y", "z", "facing", "template_row", "zone"})
 	for _, wp := range p.worlds {
@@ -70,6 +78,10 @@ func (p *plan) report(dir string) error {
 			dists = append(dists, d)
 			mw.Write([]string{fmt.Sprint(wp.w), fmt.Sprint(m.row.id), m.row.name, fmt.Sprint(m.row.level), fmt.Sprint(m.clump),
 				f1(m.row.x), f1(m.row.y), f1(m.row.z), f1(m.x), f1(m.y), f1(m.z), f1(d)})
+		}
+		for _, k := range wp.keptRows {
+			kw.Write([]string{fmt.Sprint(wp.w), fmt.Sprint(k.row.id), k.row.name, fmt.Sprint(k.row.level),
+				f1(k.row.x), f1(k.row.y), f1(k.row.z), k.why})
 		}
 		sort.Float64s(dists)
 		if len(dists) > 0 {

@@ -133,6 +133,10 @@ type PotionEffect struct {
 	// cooldown; 0 none): the user, 2026-11-07, Reconstructive on the Heirloom
 	// server, 15 minutes
 	Cooldown time.Duration
+	// MaxStack is its record's stack's most (itempattern.maxstack, 0 not
+	// known): an alchemist merc brews a full stack of each potion it uses
+	// (mercbrew.go)
+	MaxStack int
 	// Special is one of the Metal Moogie chain's uses its line names (moogieitems.go: PotionSnowball,
 	// PotionInsight, PotionDeputy), "" for any other; SpecialFX a snowball's visual, SpecialSpell and
 	// SpecialRadius a Deputy's Draught's spell and reach, and Grant that spell as the handler read its

@@ -3,6 +3,7 @@ package handlers
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
@@ -392,5 +393,76 @@ func TestMercMenuItems(t *testing.T) {
 	r2.answer(got, "Throws: single")
 	if !r2.mercInfo(2).AoE {
 		t.Error("its Throws answer did not turn aoe on")
+	}
+}
+
+// The alchemists' stock is the owner's rows: a brewed batch and a throw are
+// kept, a dismissal keeps it, and a hire after a restart that carried no merc
+// of the owner's (no login read it) reads it, so the new merc brews on it and
+// throws from it. A ceiling (world.merc_brew_cap) holds a batch to it.
+func TestMercAlchemistStockOverRestartAndDismissal(t *testing.T) {
+	r, m, db := newMercFixture(t)
+	invItems(t, db)
+	char := r.pa.CharServerID
+	m.hireWith(r.anna, r.pa, 14, 0, 0, 0)
+	if !r.gw.MercStockKnown(char) {
+		t.Fatal("the hire gave the World no stock")
+	}
+	m.note(entity.MercNote{Kind: entity.MercNoteBrewed, Owner: r.pa, Slot: 1, PatternID: itPotion, Count: 20})
+	m.note(entity.MercNote{Kind: entity.MercNoteStockUsed, Owner: r.pa, Slot: 1, PatternID: itPotion, Count: 1})
+	if st, _ := db.MercStock(char); st[itPotion] != 19 {
+		t.Fatalf("kept %v, want 19 (a batch of 20, one thrown)", st)
+	}
+	m.Command(r.anna, r.pa, "dismiss")
+	if rows, _ := db.Mercs(char); len(rows) != 0 {
+		t.Fatalf("the hire not ended: %+v", rows)
+	}
+	if st, _ := db.MercStock(char); st[itPotion] != 19 {
+		t.Fatalf("its dismissal took the stock: %v", st)
+	}
+	// a restart into a new World, no merc of hers kept, no login read
+	r2 := newPortalRig(t)
+	r2.gw.SetRaceModels(map[[2]int]uint32{{0, 0}: 1893243078, {0, 1}: 223572789, {2, 0}: 2128125354, {2, 1}: 2358987577})
+	heir := NewHeirlooms(db)
+	heir.Start(nil, nil)
+	m2 := NewMercs(r2.gw, db, heir)
+	r2.ih.mercs, r2.h.mercs = m2, m2
+	r2.pa.Level, r2.pa.Race, r2.pa.Class = 30, 0, 0
+	if r2.pa.CharServerID != char {
+		t.Fatalf("the rig's character %d, want %d", r2.pa.CharServerID, char)
+	}
+	if r2.gw.MercStockKnown(char) {
+		t.Fatal("a new World knew the stock before a hire")
+	}
+	m2.hireWith(r2.anna, r2.pa, 14, 0, 0, 0)
+	if st := r2.gw.MercStockOf(char); st[itPotion] != 19 {
+		t.Fatalf("a hire after the restart: the World's stock %v, want the 19 kept", st)
+	}
+	// a ceiling: a batch past it is kept to it, and the World's copy with it
+	r2.gw.SetMercBrew(0, 25, -1)
+	r2.gw.SetMercStock(char, map[int]int{itPotion: 39}) // the World's batch, ahead of the rows
+	m2.note(entity.MercNote{Kind: entity.MercNoteBrewed, Owner: r2.pa, Slot: 1, PatternID: itPotion, Count: 20})
+	if st, _ := db.MercStock(char); st[itPotion] != 25 {
+		t.Errorf("kept %v past the ceiling of 25", st)
+	}
+	if st := r2.gw.MercStockOf(char); st[itPotion] != 25 {
+		t.Errorf("the World's copy %v, want the rows' 25", st)
+	}
+	// a keep restart carrying the merc: its Restore reads the stock
+	row, ok, _ := db.Merc(char, 1)
+	if !ok {
+		t.Fatal("no hire kept")
+	}
+	r3 := newPortalRig(t)
+	r3.gw.SetRaceModels(map[[2]int]uint32{{0, 0}: 1893243078, {0, 1}: 223572789, {2, 0}: 2128125354, {2, 1}: 2358987577})
+	m3 := NewMercs(r3.gw, db, heir)
+	r3.ih.mercs, r3.h.mercs = m3, m3
+	r3.pa.Level, r3.pa.Race, r3.pa.Class = 30, 0, 0
+	m3.Restore(r3.anna, r3.pa, entity.KeptMerc{Slot: 1, Name: row.Name, HPPct: 1, PowerPct: 1}, time.Now())
+	if _, ok := r3.gw.MercInfoOf(r3.anna); !ok {
+		t.Fatal("the kept merc not restored")
+	}
+	if st := r3.gw.MercStockOf(char); st[itPotion] != 25 {
+		t.Errorf("after a keep restart the World's stock %v, want the 25 kept", st)
 	}
 }

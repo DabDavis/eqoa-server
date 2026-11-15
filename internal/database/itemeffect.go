@@ -99,16 +99,19 @@ type ItemEffectRow struct {
 	TargetLine string
 	Charges    int
 	Cooldown   float64 // seconds
+	// MaxStack is its record's stack's most (itempattern.maxstack; 0 with no
+	// record): an alchemist merc brews a stack of it (entity/mercbrew.go)
+	MaxStack int
 }
 
 const itemEffectSelect = `SELECT e.patternid, COALESCE(p.itemname, ''), e.line, e.name, e.icon, e.breaks, e.wear, e.area,
-	e.body, e.target_line, e.charges, e.cooldown
+	e.body, e.target_line, e.charges, e.cooldown, COALESCE(p.maxstack, 0)
 	FROM itemeffect e LEFT JOIN itempattern p ON p.patternid = e.patternid`
 
 func scanItemEffect(sc interface{ Scan(...any) error }) (ItemEffectRow, error) {
 	var r ItemEffectRow
 	var icon, body int64
-	err := sc.Scan(&r.PatternID, &r.ItemName, &r.Line, &r.Name, &icon, &r.Breaks, &r.Wear, &r.Area, &body, &r.TargetLine, &r.Charges, &r.Cooldown)
+	err := sc.Scan(&r.PatternID, &r.ItemName, &r.Line, &r.Name, &icon, &r.Breaks, &r.Wear, &r.Area, &body, &r.TargetLine, &r.Charges, &r.Cooldown, &r.MaxStack)
 	r.Icon, r.Body = uint32(icon), uint32(body)
 	return r, err
 }

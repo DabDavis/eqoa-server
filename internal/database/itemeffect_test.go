@@ -62,3 +62,34 @@ func TestItemEffectGainsBodyAndTargetLine(t *testing.T) {
 		}
 	}
 }
+
+// A use's row carries its record's stack's most (what an alchemist merc
+// brews to: entity/mercbrew.go), 0 for a use with no record. Made-up items.
+func TestItemEffectReadsMaxStack(t *testing.T) {
+	db, err := NewSQLite(t.TempDir() + "/stack.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if err := NewItemPatternStore(db).UpsertItemPattern(&ItemPatternRecord{PatternID: 90002, ItemName: "Test Potion", EquipSlot: -1,
+		MaxStack: 2000, RaceUse: 32767, ClassUse: 1}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(`INSERT INTO itemeffect (patternid, line) VALUES (90002, 'Target, Decrease Hitpoints by 20'),
+		(90003, 'Target, Decrease Hitpoints by 30')`); err != nil {
+		t.Fatal(err)
+	}
+	store := NewInventoryStore(db)
+	if r, ok, err := store.ItemEffect(90002); err != nil || !ok || r.MaxStack != 2000 {
+		t.Errorf("the potion's row: %+v %v (%v), want its stack of 2000", r, ok, err)
+	}
+	all, err := store.ItemEffects()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, r := range all {
+		if r.PatternID == 90003 && r.MaxStack != 0 {
+			t.Errorf("a use with no record reads a stack of %d", r.MaxStack)
+		}
+	}
+}

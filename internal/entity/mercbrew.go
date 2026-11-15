@@ -11,15 +11,39 @@ import (
 // restore mana, hurts hp, they eat to restore hp, throw the pots and cast
 // spells").
 //
-// Its owner's stock: while out and alive an alchemist merc makes one of its
-// path's potions (the one it would throw of its own kind, /merc aoe or
-// single: mercBrewPickLocked) every brew interval (world.merc_brew_seconds,
-// MercBrewEvery by default) into its owner's stock, the whole stock held to
-// world.merc_brew_cap potions (MercBrewCap). The stock is its owner's, not
-// the merc's: the handlers keep it in table charmercstock and hand the World
-// its counts at each login (SetMercStock), so it outlives a dismissal, a
-// death, a logout and a restart, and an alchemist hired later throws from it.
-// Its owner takes potions out of it through the merc's menu (handlers).
+// Its owner's stock (the owner, 2026-11-15, again: "the alchemist mercs
+// should keep making pots until full stack if they are sitting idle, but if
+// player moves they follow until idle again, then they keep making more pots
+// until full (they carry over to future sessions and are not lost on
+// dismiss/death) so they can throw single/aoe pots without running out"):
+//
+//   - It brews only at ease (mercBrewIdleLocked): alive, beside its owner in
+//     its world, no target, no throw or cast on its way, nothing fighting it
+//     or its owner, its owner neither swinging nor dead, and for
+//     world.merc_brew_settle_seconds (MercBrewSettle) none of that, nor a
+//     step of its owner's (followslot.go's frame), nor a step of its own (a
+//     stroll at ease, mercidle.go, is no step: it is how it idles), nor a
+//     fight of its or its owner's. Its owner's move pauses it: it follows as
+//     ever, and its clock starts again once both stand.
+//   - At ease it brews a batch (world.merc_brew_batch, MercBrewBatch) every
+//     world.merc_brew_seconds (MercBrewEvery), its first batch that long
+//     after it settled.
+//   - What it brews (mercBrewWantsLocked): a full stack (the potion's own
+//     itempattern.maxstack, or world.merc_brew_stack when that is less) of
+//     each potion it uses: its best single-target potion and its best area
+//     cocktail, as mercThrowablesLocked ranks its path's (so /merc aoe and
+//     single both find their kind in the stock), and its book's best power
+//     draught (it drinks them: below). Each batch goes to the one least full
+//     (its throws' own kind first of two as full). With every one full it
+//     brews nothing. Meals are not brewed (no alchemist's book makes one; a
+//     merc with none eats a ration's figures). world.merc_brew_cap, when set
+//     above 0, is a ceiling on the whole stock besides (0: none brewed).
+//
+// The stock is its owner's, not the merc's: the handlers keep it in table
+// charmercstock and hand the World its counts at each login, keep restart and
+// hire (SetMercStock), so it outlives a dismissal, a death, a logout and a
+// restart, and an alchemist hired later throws from it. Its owner takes
+// potions out of it through the merc's menu (handlers).
 //
 // Its draughts: below mercDraughtBelow of its power, out of a cast, with no
 // draught working on it, it drinks the best power draught it has (a Self
@@ -43,12 +67,18 @@ import (
 // eating-and-drinking visual (fxConsumed) on the merc.
 
 // The alchemist's stock's defaults (world.merc_brew_seconds,
-// world.merc_brew_cap): one potion every 30 s while out, at most 200 in the
-// stock (ours: twice a pack's stack of a common potion's 100, so a stock
-// lasts some fights and a player's withdrawal leaves some).
+// merc_brew_batch, merc_brew_settle_seconds, merc_brew_cap, merc_brew_stack):
+// 20 potions every 5 s at ease, 3 s after it and its owner stood still, so a
+// 2,000 stack (most potions' and cocktails') fills in some 8 minutes of rest
+// and a 9,999 one in 42; no ceiling on the whole stock but the stacks, and
+// each stack its record's.
 const (
-	MercBrewEvery = 30 * time.Second
-	MercBrewCap   = 200
+	MercBrewEvery  = 5 * time.Second
+	MercBrewBatch  = 20
+	MercBrewSettle = 3 * time.Second
+	MercBrewCap    = 0
+	// mercBrewStackUnknown is a stack's most for a potion with no record's
+	mercBrewStackUnknown = 20
 )
 
 // MercDraughtFloorPct is the share of its most health below which a draught
@@ -68,10 +98,16 @@ const (
 // (the handlers' rows), and the rates.
 type mercSupply struct {
 	stock map[EntityID]map[int]int // by owner's entity id
-	every time.Duration
-	cap   int
-	floor int // percent of its most health a draught keeps it above
-	set   bool
+	// char is whose stock each entity's is (an entity id is used again by
+	// another login: its stock is not the new player's)
+	char   map[EntityID]uint32
+	every  time.Duration
+	batch  int
+	settle time.Duration
+	stack  int // a stack's most at the most (0: its record's)
+	cap    int // -1 none, 0 none brewed, else the whole stock's ceiling
+	floor  int // percent of its most health a draught keeps it above
+	set    bool
 }
 
 func (s *mercSupply) brewEvery() time.Duration {
@@ -81,11 +117,43 @@ func (s *mercSupply) brewEvery() time.Duration {
 	return MercBrewEvery
 }
 
-func (s *mercSupply) brewCap() int {
-	if s.set && s.cap >= 0 {
-		return s.cap
+func (s *mercSupply) brewBatch() int {
+	if s.batch > 0 {
+		return s.batch
 	}
-	return MercBrewCap
+	return MercBrewBatch
+}
+
+func (s *mercSupply) brewSettle() time.Duration {
+	if s.settle > 0 {
+		return s.settle
+	}
+	return MercBrewSettle
+}
+
+// brewCeiling is the whole stock's ceiling (0 none) and whether brewing is
+// off (world.merc_brew_cap 0).
+func (s *mercSupply) brewCeiling() (most int, off bool) {
+	switch {
+	case s.set && s.cap == 0:
+		return 0, true
+	case s.set && s.cap > 0:
+		return s.cap, false
+	}
+	return MercBrewCap, false
+}
+
+// stackOf is the most of pe the merc brews: its record's stack, at most
+// world.merc_brew_stack.
+func (s *mercSupply) stackOf(pe *PotionEffect) int {
+	n := mercBrewStackUnknown
+	if pe != nil && pe.MaxStack > 0 {
+		n = pe.MaxStack
+	}
+	if s.stack > 0 {
+		n = min(n, s.stack)
+	}
+	return n
 }
 
 func (s *mercSupply) draughtFloor() int {
@@ -97,7 +165,7 @@ func (s *mercSupply) draughtFloor() int {
 
 // stockOf is the owner's stock, nil before the handlers gave it.
 func (s *mercSupply) stockOf(p *Player) map[int]int {
-	if p == nil || s.stock == nil {
+	if p == nil || s.stock == nil || s.char[p.ServerID] != p.CharServerID {
 		return nil
 	}
 	return s.stock[p.ServerID]
@@ -130,7 +198,7 @@ func (s *mercSupply) take(p *Player, patternID, n int) int {
 
 // SetMercBrew sets the stock's rate and cap and a draught's floor
 // (world.merc_brew_seconds, merc_brew_cap, merc_draught_hp_floor_pct: below 0
-// each its default).
+// each its default; a cap of 0 brews none).
 func (w *World) SetMercBrew(every time.Duration, cap, floorPct int) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -140,11 +208,30 @@ func (w *World) SetMercBrew(every time.Duration, cap, floorPct int) {
 	}
 }
 
-// MercBrewCapNow is the stock's cap as set (MercBrewCap by default).
+// SetMercBrewBatch sets how many potions a brew makes, how long it and its
+// owner stand before it brews, and a stack's most at the most
+// (world.merc_brew_batch, merc_brew_settle_seconds, merc_brew_stack: 0 or
+// below each its default, the stack its record's).
+func (w *World) SetMercBrewBatch(batch int, settle time.Duration, stack int) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.mercSupply.batch, w.mercSupply.settle, w.mercSupply.stack = max(batch, 0), max(settle, 0), max(stack, 0)
+}
+
+// MercBrewCapNow is the whole stock's ceiling as set, 0 for none.
 func (w *World) MercBrewCapNow() int {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
-	return w.mercSupply.brewCap()
+	most, _ := w.mercSupply.brewCeiling()
+	return most
+}
+
+// MercStockKnown is whether the World holds the character's stock (given at
+// its login, a keep restart's merc or a hire).
+func (w *World) MercStockKnown(charID uint32) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return w.mercSupply.stockOf(w.playerByCharacterLocked(charID)) != nil
 }
 
 // SetMercStock gives the World the character's stock as kept (the handlers'
@@ -158,6 +245,7 @@ func (w *World) SetMercStock(charID uint32, stock map[int]int) bool {
 	}
 	if w.mercSupply.stock == nil {
 		w.mercSupply.stock = map[EntityID]map[int]int{}
+		w.mercSupply.char = map[EntityID]uint32{}
 	}
 	st := make(map[int]int, len(stock))
 	for id, n := range stock {
@@ -166,6 +254,7 @@ func (w *World) SetMercStock(charID uint32, stock map[int]int) bool {
 		}
 	}
 	w.mercSupply.stock[p.ServerID] = st
+	w.mercSupply.char[p.ServerID] = p.CharServerID
 	return true
 }
 
@@ -203,27 +292,89 @@ func (w *World) GiveBackMercStock(charID uint32, patternID, n int) {
 	}
 }
 
-// mercBrewPickLocked is the potion the merc makes: the best of its path's of
-// its own kind (/merc aoe or single), else its path's best. Must be called
-// with the lock held.
-func (w *World) mercBrewPickLocked(ms *mercState) (int, bool) {
-	aoe := ms.mercAoE()
-	book := w.mercThrowablesLocked(ms)
-	for _, c := range book {
-		if c.spell == 0 && (c.pe.Area > 0) == aoe {
-			return c.pe.PatternID, true
-		}
-	}
-	for _, c := range book {
-		if c.spell == 0 {
-			return c.pe.PatternID, true
-		}
-	}
-	return 0, false
+// mercBrewWant is a potion the merc keeps a stack of: its use, the stack's
+// most and how many the stock holds.
+type mercBrewWant struct {
+	pe         *PotionEffect
+	most, have int
 }
 
-// mercBrewLocked makes the merc's potion into its owner's stock when its
-// time has come (the file's doc). Must be called with the lock held.
+// mercBrewWantsLocked is what the merc keeps a full stack of (the file's
+// doc), its throws' own kind (/merc aoe or single) first, then the other
+// kind, then its draught. Must be called with the lock held.
+func (w *World) mercBrewWantsLocked(ms *mercState) []mercBrewWant {
+	st := w.mercSupply.stockOf(ms.owner)
+	var out []mercBrewWant
+	add := func(id int) {
+		pe := w.potions.byPattern[id]
+		if pe == nil {
+			return
+		}
+		for _, o := range out {
+			if o.pe.PatternID == id {
+				return
+			}
+		}
+		out = append(out, mercBrewWant{pe: pe, most: w.mercSupply.stackOf(pe), have: st[id]})
+	}
+	aoe := ms.mercAoE()
+	book := w.mercThrowablesLocked(ms) // best first
+	for _, kind := range []bool{aoe, !aoe} {
+		for _, c := range book {
+			if c.spell == 0 && (c.pe.Area > 0) == kind {
+				add(c.pe.PatternID)
+				break
+			}
+		}
+	}
+	if d := w.mercBookDraughtsLocked(ms); len(d) > 0 {
+		add(d[0].pe.PatternID)
+	}
+	return out
+}
+
+// mercBrewPickLocked is the potion the merc brews next and how many may go
+// in: of its wants (mercBrewWantsLocked) the least full, false with every
+// stack full. Must be called with the lock held.
+func (w *World) mercBrewPickLocked(ms *mercState) (int, int, bool) {
+	best, room := -1, 0
+	var bestFill float64
+	for _, c := range w.mercBrewWantsLocked(ms) {
+		if c.have >= c.most {
+			continue
+		}
+		fill := float64(c.have) / float64(c.most)
+		if best < 0 || fill < bestFill {
+			best, bestFill, room = c.pe.PatternID, fill, c.most-c.have
+		}
+	}
+	if best < 0 {
+		return 0, 0, false
+	}
+	return best, room, true
+}
+
+// mercBrewIdleLocked is whether the merc is at ease to brew (the file's doc),
+// noting its own steps. Must be called with the lock held.
+func (w *World) mercBrewIdleLocked(ms *mercState, now time.Time) bool {
+	o, n := ms.owner, ms.npc
+	if n.moving() && !ms.idle.walking {
+		ms.brewStirred = now // a step of its own (a stroll at ease is none)
+	}
+	if n.Dead || o.IsDead() || o.respawnPending() || n.World != o.World || ms.target != 0 || ms.throwing != nil ||
+		now.Before(ms.busy) || o.Attacking() || distXZ(n.X, n.Z, o.X, o.Z) > petLost || w.mercInFightLocked(ms) {
+		return false
+	}
+	settle := w.mercSupply.brewSettle()
+	settled := func(t time.Time) bool { return t.IsZero() || !now.Before(t.Add(settle)) }
+	f := w.followFrameLocked(o, now)
+	return settled(f.movedAt) && settled(ms.brewStirred) && settled(ms.idle.quiet) && settled(ms.busy) &&
+		settled(n.LastCombatTime) && settled(o.LastCombatTime)
+}
+
+// mercBrewLocked brews the merc's potions into its owner's stock when it is
+// at ease and its time has come (the file's doc). Must be called with the
+// lock held.
 func (w *World) mercBrewLocked(ms *mercState, now time.Time) {
 	if !ms.mercThrowsPotions() {
 		return
@@ -231,6 +382,14 @@ func (w *World) mercBrewLocked(ms *mercState, now time.Time) {
 	st := w.mercSupply.stockOf(ms.owner)
 	if st == nil {
 		return // its owner's stock not read yet
+	}
+	ceiling, off := w.mercSupply.brewCeiling()
+	if off {
+		return
+	}
+	if !w.mercBrewIdleLocked(ms, now) {
+		ms.brewAt = time.Time{} // paused: its clock starts again at ease
+		return
 	}
 	every := w.mercSupply.brewEvery()
 	if ms.brewAt.IsZero() {
@@ -241,15 +400,19 @@ func (w *World) mercBrewLocked(ms *mercState, now time.Time) {
 		return
 	}
 	ms.brewAt = now.Add(every)
-	if cap := w.mercSupply.brewCap(); cap <= 0 || w.mercSupply.total(ms.owner) >= cap {
-		return // full, or a cap of 0: none made
-	}
-	id, ok := w.mercBrewPickLocked(ms)
+	id, room, ok := w.mercBrewPickLocked(ms)
 	if !ok {
+		return // every stack full
+	}
+	n := min(w.mercSupply.brewBatch(), room)
+	if ceiling > 0 {
+		n = min(n, ceiling-w.mercSupply.total(ms.owner))
+	}
+	if n <= 0 {
 		return
 	}
-	st[id]++
-	w.noteMercLocked(MercNote{Kind: MercNoteBrewed, Owner: ms.owner, Slot: ms.slot, Name: ms.npc.Name, PatternID: id, Count: 1})
+	st[id] += n
+	w.noteMercLocked(MercNote{Kind: MercNoteBrewed, Owner: ms.owner, Slot: ms.slot, Name: ms.npc.Name, PatternID: id, Count: n})
 }
 
 // mercDraught is a draught the merc may drink: its use, where from, its
@@ -312,11 +475,22 @@ func (w *World) mercDraughtsLocked(ms *mercState) []mercDraught {
 			stock = append(stock, mercDraught{pe: *pe, stock: true, cost: cost, power: power})
 		}
 	}
+	book = w.mercBookDraughtsLocked(ms)
+	add(carried)
+	add(stock)
+	out = append(out, book...)
+	return out
+}
+
+// mercBookDraughtsLocked is the draughts its book's refinements make (its
+// path's own), the most power first. Must be called with the lock held.
+func (w *World) mercBookDraughtsLocked(ms *mercState) []mercDraught {
 	byName := map[string]*PotionEffect{}
 	for _, pe := range w.potions.byPattern {
 		byName[lowerTrim(pe.ItemName)] = pe
 	}
 	seen := map[int]bool{}
+	var book []mercDraught
 	for i := range ms.kit.Spells {
 		s := &ms.kit.Spells[i]
 		if containsInt(ms.kit.SpellsOff, s.SpellID) || s.Def.Summons() {
@@ -330,10 +504,12 @@ func (w *World) mercDraughtsLocked(ms *mercState) []mercDraught {
 			}
 		}
 	}
-	add(carried)
-	add(stock)
-	add(book)
-	return out
+	for i := 1; i < len(book); i++ {
+		for j := i; j > 0 && book[j].power > book[j-1].power; j-- {
+			book[j], book[j-1] = book[j-1], book[j]
+		}
+	}
+	return book
 }
 
 // mercDrinkingLocked is whether a draught still works on the merc.

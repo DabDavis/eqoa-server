@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"slices"
 	"testing"
 	"time"
 )
@@ -569,5 +570,51 @@ func TestMercAlchemistDrinksAgainAsPowerDrops(t *testing.T) {
 		if gap := at[i] - at[i-1]; gap >= 18*time.Second {
 			t.Errorf("draught %d came %v after the last: it waited out the draught's whole time", i, gap)
 		}
+	}
+}
+
+// Petition 2195 (Lonewulff: "when you use a alc merc and change its class MC
+// they dont make any of thore potions"): with its ten spell slots set (the
+// window's, which never lists a refinement) an alchemist still brews its
+// refinements' potions and throws them; a potion spell is still thrown only
+// from its slots.
+func TestMercAlchemistBrewsWithItsSlotsSet(t *testing.T) {
+	r := newMercRig(t)
+	alcSupplyPotions(r.w)
+	r.w.SetMercBrew(time.Second, -1, -1)
+	r.w.SetMercBrewBatch(5, time.Second, 0)
+	refine := bookSpell(50, "Refinement", 0, 2*time.Second, 3*time.Second, 10, "Self, Summon Draught x3")
+	fire := bookSpell(700606, "Freeport Fire Potion", 1, 2*time.Second, 3*time.Second, 20, "Target, Decrease Hitpoints by 900")
+	frost := bookSpell(700607, "Frost Potion", 1, 2*time.Second, 3*time.Second, 20, "Target, Decrease Hitpoints by 800")
+	k := r.kit(14, 0, 0, bookSpell(700085, "Volatile Mixture", 0, 2*time.Second, 3*time.Second, 20, "Self, Summon Volatile Potion x3"),
+		refine, fire, frost)
+	k.Loadout = []int{700606, 0, 0, 0, 0, 0, 0, 0, 0, 0} // Fire on a slot, Frost and the refinements on none
+	ms := r.hire(k, MercAssist)
+	r.w.SetMercStock(r.p.CharServerID, map[int]int{})
+	r.w.mu.Lock()
+	var names []string
+	for _, c := range r.w.mercThrowablesLocked(ms) {
+		names = append(names, c.pe.ItemName)
+	}
+	wants := r.w.mercBrewWantsLocked(ms)
+	r.w.mu.Unlock()
+	if !slices.Contains(names, "Volatile Potion") || !slices.Contains(names, "Freeport Fire Potion") || slices.Contains(names, "Frost Potion") {
+		t.Fatalf("throws %v: want its Volatile Potion and its slotted Fire Potion, not the unslotted Frost Potion", names)
+	}
+	if len(wants) != 2 || wants[0].pe.PatternID != testVolatile || wants[1].pe.PatternID != testDraught {
+		t.Fatalf("keeps stacks of %+v, want its Volatile Potion and its draught", wants)
+	}
+	r.run(0, 20*time.Second)
+	r.w.runMercNotes()
+	if st := r.w.MercStockOf(r.p.CharServerID); st[testVolatile] == 0 || st[testDraught] == 0 {
+		t.Fatalf("stock %v with its slots set: want both its potion and its draught brewed", st)
+	}
+	// a refinement turned off in its menu is still not brewed
+	r.w.mu.Lock()
+	ms.kit.SpellsOff = []int{700085}
+	wants = r.w.mercBrewWantsLocked(ms)
+	r.w.mu.Unlock()
+	if len(wants) != 1 || wants[0].pe.PatternID != testDraught {
+		t.Errorf("with its Volatile Mixture turned off it keeps %+v", wants)
 	}
 }

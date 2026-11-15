@@ -138,13 +138,22 @@ func (w *World) mercThrowablesLocked(ms *mercState) []mercThrowable {
 	}
 	for i := range ms.kit.Spells {
 		s := &ms.kit.Spells[i]
-		if containsInt(ms.kit.SpellsOff, s.SpellID) || !ms.slotted(s.SpellID) {
-			continue // turned off, or left off its ten slots (mercloadout.go)
+		if containsInt(ms.kit.SpellsOff, s.SpellID) {
+			continue // turned off
 		}
 		if mercPotionSpell(s) {
+			if !ms.slotted(s.SpellID) {
+				continue // a potion spell left off its ten slots (mercloadout.go)
+			}
 			add(mercThrowable{pe: PotionEffect{ItemName: s.Name, Name: s.Name, Icon: s.Icon, Def: s.Def}, spell: s.SpellID})
 			continue
 		}
+		// a refinement's potions whatever its ten slots hold (petition 2195,
+		// Lonewulff: "when you use a alc merc and change its class MC they
+		// dont make any of thore potions"): a refinement is never cast, so its
+		// window never lists it and no slot can hold it (mercWindowBook); with
+		// its slots set it brewed none, threw none of its path's and kept its
+		// draughts alone
 		var made []SpellItem
 		if !s.Def.Summons() {
 			made = append(append(made, s.Def.Items...), unreadSummons(&s.Def)...)

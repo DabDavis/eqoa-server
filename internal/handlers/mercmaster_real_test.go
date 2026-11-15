@@ -120,3 +120,59 @@ func TestRealMercMasterClasses(t *testing.T) {
 		t.Errorf("no Repair in the book")
 	}
 }
+
+// Petition 2195 on a real database (EQOA_REAL_DB, a copy): an alchemist of
+// every Master Class it may take (a human's, a gnome's and a barbarian's
+// racial ones), its ten slots set as Lonewulff's Cardor's were (buffs, a
+// potion spell, a nuke: no refinement, which the window never lists), keeps
+// the same stacks as one with no Master Class and no slots: its
+// single-target potion, its cocktail (a Cocktail alchemist) and its draught.
+func TestRealMercAlchemistMasterClassesBrew(t *testing.T) {
+	path := os.Getenv("EQOA_REAL_DB")
+	if path == "" {
+		t.Skip("EQOA_REAL_DB unset")
+	}
+	db, err := database.NewSQLite(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	gw := entity.NewWorld()
+	if _, err := gw.LoadCMCatalog(db); err != nil {
+		t.Fatal(err)
+	}
+	eh := NewEquipHandler(nil, database.NewInventoryStore(db), nil, nil)
+	eh.gameWorld = gw
+	eh.LoadPotions()
+	m := NewMercs(gw, db, NewHeirlooms(db))
+	slots := []int{700730, 900782, 900127, 700606, 700484, 700792, 900124, 0, 0, 0}
+	tried := 0
+	for _, race := range []int{0, 3, 6} {
+		for _, path := range []int{0, 1} {
+			plain, err := m.kit(database.MercRow{Name: "Real", Class: 14, Race: race, Path: path}, 60)
+			if err != nil {
+				t.Fatal(err)
+			}
+			want := gw.MercBrewsFor(plain)
+			if len(want) < 2 {
+				t.Fatalf("race %d path %d: a plain alchemist keeps %v", race, path, want)
+			}
+			for _, mc := range gw.MercMasterClasses(14, race) {
+				k, err := m.kit(database.MercRow{Name: "Real", Class: 14, Race: race, Path: path, Master: mc.Name, SpellSlots: slots}, 60)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if k.Master != mc.Name {
+					t.Errorf("%s: master %q", mc.Name, k.Master)
+				}
+				if got := gw.MercBrewsFor(k); !slices.Equal(got, want) {
+					t.Errorf("race %d path %d %s with its slots set keeps %v, want %v", race, path, mc.Name, got, want)
+				}
+				tried++
+			}
+		}
+	}
+	if tried < 6*5 {
+		t.Errorf("only %d Master Class kits tried", tried)
+	}
+}

@@ -695,3 +695,17 @@ func lowerTrim(s string) string {
 	}
 	return string(b)
 }
+
+// MercBrewsFor is the potions (pattern ids) a merc of the kit keeps a stack
+// of in its owner's stock (mercBrewWantsLocked), its body made from the kit:
+// the handlers' tests'.
+func (w *World) MercBrewsFor(kit MercKit) []int {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	ms := &mercState{kit: kit, body: newMercBody(1, &kit)}
+	var out []int
+	for _, c := range w.mercBrewWantsLocked(ms) {
+		out = append(out, c.pe.PatternID)
+	}
+	return out
+}

@@ -33,9 +33,10 @@ func expCost(level int) int {
 }
 
 // MaxDebt is the most experience debt a character carries (the owner,
-// 2026-11-15: "lets cap debt at 69 million"): a death past it adds nothing
+// 2026-11-15: "lets cap debt at 69 million", then "make it 69 million and
+// 323,269"): a death past it adds nothing
 // more, a login or a GM's #debt above it is held to it.
-const MaxDebt = 69_000_000
+const MaxDebt = 69_323_269
 
 // capDebt is a debt held to 0..MaxDebt.
 func capDebt(d int) int { return min(max(0, d), MaxDebt) }

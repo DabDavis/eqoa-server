@@ -41,7 +41,7 @@ func TestMercMenu(t *testing.T) {
 	r.drain()
 	r.talk(r.anna, merc)
 	got := r.msgs(r.anna)
-	if len(got) != 1 || !strings.HasSuffix(got[0], "|Advice|Spells|Stance: assist|Be offensive|Dismiss") {
+	if len(got) != 1 || !strings.HasSuffix(got[0], "|Advice|Spells|Stance: assist|Be offensive|Items|Dismiss") {
 		t.Fatalf("the menu: %q", got)
 	}
 	adv := r.answer(got, "Advice")
@@ -105,7 +105,7 @@ func TestMercMenuPet(t *testing.T) {
 	r.drain()
 	r.talk(r.anna, merc)
 	got := r.msgs(r.anna)
-	if len(got) != 1 || !strings.HasSuffix(got[0], "|Advice|Spells|Stance: assist|Pet: Earth (its usual)|Dismiss") {
+	if len(got) != 1 || !strings.HasSuffix(got[0], "|Advice|Spells|Stance: assist|Pet: Earth (its usual)|Items|Dismiss") {
 		t.Fatalf("the menu: %q", got)
 	}
 	got = r.answer(got, "Pet: Earth (its usual)")

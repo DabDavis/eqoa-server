@@ -27,7 +27,15 @@ import (
 //   - a healer's Defensive or Offensive, the other of what it is (/merc
 //     defensive, offensive);
 //   - a pet class's Pet: its kinds and Best (/merc pet: mercpetkind.go);
+//   - a Cocktail alchemist's Throws: AoE or single (/merc aoe, single:
+//     mercinv.go);
+//   - Items: what it holds (Inventory, each record its Equip or Unequip and
+//     Take back), Give an item, an alchemist's Potion stock, and what waits
+//     in the keeping (mercinv.go);
 //   - Dismiss, asked again before it goes (/merc dismiss).
+//
+// A box holds six answers (maxDialogOptions): a menu of more shows its first
+// five and More, the rest in a second box.
 //
 // Another player's merc has no menu: its talk is anything else's.
 
@@ -87,22 +95,58 @@ func (m *Mercs) menu(sess *session.Session, p *entity.Player, slot int) {
 		SendErrorMessage(sess, mercNoneOut(slot, nil))
 		return
 	}
-	answers := []string{"Advice", "Spells", "Stance: " + entity.MercStanceNames[info.Stance]}
+	keys, answers := m.menuChoices(p, slot, info)
+	m.menuBox(sess, p, slot, info, keys, answers, 0)
+}
+
+// menuChoices is the menu's answers (the file's doc) and their meanings.
+func (m *Mercs) menuChoices(p *entity.Player, slot int, info entity.MercInfo) (keys, answers []string) {
+	add := func(k, a string) { keys, answers = append(keys, k), append(answers, a) }
+	add("advice", "Advice")
+	add("spells", "Spells")
+	add("stance", "Stance: "+entity.MercStanceNames[info.Stance])
 	if mode := entity.MercModeName(info.Class, info.Offensive); mode != "" {
-		answers = append(answers, map[bool]string{false: "Be offensive", true: "Be defensive"}[info.Offensive])
+		add("mode", map[bool]string{false: "Be offensive", true: "Be defensive"}[info.Offensive])
 	}
 	if len(mercPetKinds[info.Class]) > 0 {
-		answers = append(answers, "Pet: "+m.menuPetSaid(p, slot, info.Class))
+		add("pet", "Pet: "+m.menuPetSaid(p, slot, info.Class))
 	}
-	answers = append(answers, "Dismiss")
+	if m.db != nil {
+		if row, ok, _ := m.db.Merc(p.CharServerID, slot); ok && mercCocktail(row) {
+			add("throws", "Throws: "+map[bool]string{true: "AoE", false: "single"}[row.AoE])
+		}
+	}
+	add("items", "Items")
+	add("dismiss", "Dismiss")
+	return keys, answers
+}
+
+// menuBox asks the menu's box of the page: all of it when it fits a box,
+// else its first five and More, then the rest.
+func (m *Mercs) menuBox(sess *session.Session, p *entity.Player, slot int, info entity.MercInfo, keys, answers []string, page int) {
+	stage := mercStageMenu
+	if len(keys) > maxDialogOptions {
+		split := maxDialogOptions - 1
+		if page == 0 {
+			keys, answers = append(keys[:split:split], "more"), append(answers[:split:split], "More")
+		} else {
+			stage = mercStageMore
+			keys, answers = append(keys[split:len(keys):len(keys)], "back"), append(answers[split:len(answers):len(answers)], "Back")
+		}
+	}
 	m.mu.Lock()
-	m.askLocked(sess, p, mercAsk{stage: mercStageMenu, slot: slot},
+	m.askLocked(sess, p, mercAsk{stage: stage, slot: slot, keys: keys},
 		fmt.Sprintf(mercMenuAsk, info.Name, info.Level, entity.RaceName(info.Race), entity.ClassName(info.Class)), answers)
 	m.mu.Unlock()
 }
 
 // menuAnswer is a choice in a merc's menu's boxes (Answer's).
 func (m *Mercs) menuAnswer(sess *session.Session, p *entity.Player, a mercAsk, n int) {
+	switch a.stage {
+	case mercStageItems, mercStageInv, mercStageItem, mercStageGive, mercStageStock:
+		m.itemsAnswer(sess, p, a, n) // mercinv.go: its row's, out or not
+		return
+	}
 	info, ok := m.menuMerc(sess, a.slot)
 	if !ok {
 		SendErrorMessage(sess, mercNoneOut(a.slot, nil))
@@ -110,20 +154,21 @@ func (m *Mercs) menuAnswer(sess *session.Session, p *entity.Player, a mercAsk, n
 	}
 	order := func(words string) { m.Command(sess, p, fmt.Sprintf("%d %s", a.slot, words)) }
 	switch a.stage {
-	case mercStageMenu:
+	case mercStageMenu, mercStageMore:
 		healer := entity.MercModeName(info.Class, info.Offensive) != ""
-		choices := []string{"advice", "spells", "stance"}
-		if healer {
-			choices = append(choices, "mode")
-		}
-		if len(mercPetKinds[info.Class]) > 0 {
-			choices = append(choices, "pet")
-		}
-		choices = append(choices, "dismiss")
-		if n >= len(choices) {
+		if n >= len(a.keys) {
 			return
 		}
-		switch choices[n] {
+		switch a.keys[n] {
+		case "more", "back":
+			keys, answers := m.menuChoices(p, a.slot, info)
+			m.menuBox(sess, p, a.slot, info, keys, answers, map[string]int{"more": 1, "back": 0}[a.keys[n]])
+		case "throws":
+			if row, ok, _ := m.db.Merc(p.CharServerID, a.slot); ok {
+				order(map[bool]string{true: "single", false: "aoe"}[row.AoE])
+			}
+		case "items":
+			m.menuItems(sess, p, a.slot)
 		case "advice":
 			line := mercAdvice[info.Class]
 			if healer {

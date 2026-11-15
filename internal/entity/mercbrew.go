@@ -241,8 +241,8 @@ func (w *World) mercBrewLocked(ms *mercState, now time.Time) {
 		return
 	}
 	ms.brewAt = now.Add(every)
-	if cap := w.mercSupply.brewCap(); cap > 0 && w.mercSupply.total(ms.owner) >= cap {
-		return
+	if cap := w.mercSupply.brewCap(); cap <= 0 || w.mercSupply.total(ms.owner) >= cap {
+		return // full, or a cap of 0: none made
 	}
 	id, ok := w.mercBrewPickLocked(ms)
 	if !ok {
@@ -424,14 +424,19 @@ func (w *World) mercEatTurnLocked(ms *mercState, now time.Time) bool {
 	if fight || m.HP*100 >= m.MaxHP*mercEatBelow {
 		return false
 	}
+	ration, _ := RationRestore(ms.body)
 	name, hot, carried := "Ration", 0, 0
 	for _, c := range ms.kit.Carried {
-		if c.Food && c.Count > 0 && c.HoT > hot {
-			name, hot, carried = c.Name, c.HoT, c.ID
+		v := c.HoT
+		if v <= 0 {
+			v = ration // a ration it carries: a player's (consumable.go)
+		}
+		if c.Food && c.Count > 0 && v > hot {
+			name, hot, carried = c.Name, v, c.ID
 		}
 	}
 	if carried == 0 {
-		hot, _ = RationRestore(ms.body)
+		hot = ration
 	}
 	ae := &ActiveEffect{SpellID: FoodEffectID, Name: name, Icon: mercMealIcon, Caster: m.ServerID, Until: now.Add(ConsumableDuration)}
 	ae.Mods.HoT = hot

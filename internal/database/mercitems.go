@@ -380,3 +380,14 @@ func (db *SQLiteDB) MercStockToPack(serverID uint32, patternID, n, hp, onto int)
 	}
 	return itemID, tx.Commit()
 }
+
+// KeepMercItems puts whatever charmercitem holds under the character's slot
+// in the keeping: a new hire of the slot starts with nothing of another's
+// (a row taken out of charmerc by other means than DeleteMerc).
+func (db *SQLiteDB) KeepMercItems(serverID uint32, slot int) error {
+	if slot <= MercKeeping {
+		return nil
+	}
+	_, err := db.Exec(`UPDATE charmercitem SET slot = ?, equiploc = -1 WHERE serverid = ? AND slot = ?`, MercKeeping, serverID, slot)
+	return err
+}

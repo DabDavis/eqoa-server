@@ -518,6 +518,16 @@ type WorldConfig struct {
 	// Heirloom Test Server sets it.
 	Mercs bool `yaml:"mercs"`
 
+	// MercBrewSeconds is how often an alchemist merc out makes a potion into
+	// its owner's stock (entity/mercbrew.go); unset or 0, 30. MercBrewCap is
+	// the most potions the stock holds; unset, 200, 0 none made.
+	// MercDraughtHPFloorPct is the share of its most health an alchemist merc
+	// keeps when it drinks a draught for power (none that would take it
+	// under); unset, 50.
+	MercBrewSeconds       *int `yaml:"merc_brew_seconds"`
+	MercBrewCap           *int `yaml:"merc_brew_cap"`
+	MercDraughtHPFloorPct *int `yaml:"merc_draught_hp_floor_pct"`
+
 	// QuestXPPct is the percent of its experience a quest's step gives, for
 	// a quest that is neither repeatable nor a hunt and gather (EQOA-Data's
 	// HuntAndGather, all repeatable): 400 four times (the GM Jibwiz's petition

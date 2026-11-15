@@ -476,6 +476,11 @@ type MercInfo struct {
 	Offensive bool
 	// Grouped: in its owner's group
 	Grouped bool
+	// AC is its armour now, Worn the equip slots its hands fill (its kit's)
+	AC   int
+	Worn [21]bool
+	// AoE: a Cocktail alchemist's area cocktails (MercKit.AoE)
+	AoE bool
 }
 
 // MercInfosOf is the session's player's mercs out, by slot.
@@ -486,7 +491,8 @@ func (w *World) MercInfosOf(sess *session.Session) []MercInfo {
 	for _, ms := range w.mercsOfLocked(w.sessionPlayerLocked(sess)) {
 		n := ms.npc
 		info := MercInfo{Slot: ms.slot, Name: n.Name, Class: ms.kit.Class, Race: ms.kit.Race, Sex: ms.kit.Sex, Level: n.Level, HP: n.HP,
-			MaxHP: n.MaxHP, Power: n.Power, MaxPower: n.MaxPower, Stance: ms.stance, Stay: ms.stay, Grouped: w.mercInOwnGroupLocked(ms), Offensive: ms.kit.Offensive}
+			MaxHP: n.MaxHP, Power: n.Power, MaxPower: n.MaxPower, Stance: ms.stance, Stay: ms.stay, Grouped: w.mercInOwnGroupLocked(ms), Offensive: ms.kit.Offensive,
+			AC: ms.body.StatNow(StatAC), Worn: ms.kit.Worn, AoE: ms.kit.AoE}
 		if t := w.NPCs[ms.target]; t != nil {
 			info.Target = t.Name
 		}

@@ -32,6 +32,9 @@ option's answer, words, rewards, and whether it stays).
 A quest's requires are keys, each finished first; a list among them is a
 group any one of which will do (a token each class gets from its own quest),
 written "a, b|c" in the requires column (the engine's database.ParseRequires).
+A quest's excludes are keys too: the quests whose doing (finished or under
+way) keeps it from a character, two tellings of one errand (petition 2199),
+written by id in the excludes column ("a, b"; database.Quest.Excludes).
 
 Quests are kept by their key: their ids are logged in quest_import_quests
 (from 100001, past every quest there is), so a run again rewrites what an
@@ -86,7 +89,7 @@ CREATE TABLE IF NOT EXISTS quests (
 	repeatable INTEGER NOT NULL DEFAULT 0, offer TEXT NOT NULL DEFAULT '', accept TEXT NOT NULL DEFAULT '',
 	decline TEXT NOT NULL DEFAULT '', declined TEXT NOT NULL DEFAULT '', started TEXT NOT NULL DEFAULT '',
 	source TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '', events TEXT NOT NULL DEFAULT '',
-	factionreq TEXT NOT NULL DEFAULT '');
+	factionreq TEXT NOT NULL DEFAULT '', excludes TEXT NOT NULL DEFAULT '');
 CREATE TABLE IF NOT EXISTS queststeps (
 	questid INTEGER NOT NULL, step INTEGER NOT NULL, kind TEXT NOT NULL DEFAULT 'talk',
 	target TEXT NOT NULL DEFAULT '', npcid INTEGER NOT NULL DEFAULT 0, items TEXT NOT NULL DEFAULT '',
@@ -109,7 +112,7 @@ ADDED_COLUMNS = [("quests", "declined", "TEXT NOT NULL DEFAULT ''"), ("queststep
                  ("queststeps", "reminder", "TEXT NOT NULL DEFAULT ''"), ("quests", "events", "TEXT NOT NULL DEFAULT ''"),
                  ("queststeps", "events", "TEXT NOT NULL DEFAULT ''"), ("queststeps", "chance", "REAL NOT NULL DEFAULT 0"),
                  ("quests", "factionreq", "TEXT NOT NULL DEFAULT ''"), ("queststeps", "byclass", "TEXT NOT NULL DEFAULT ''"),
-                 ("queststeps", "choices", "TEXT NOT NULL DEFAULT ''")]
+                 ("queststeps", "choices", "TEXT NOT NULL DEFAULT ''"), ("quests", "excludes", "TEXT NOT NULL DEFAULT ''")]
 
 LOG_DDL = [
     "CREATE TABLE IF NOT EXISTS quest_import_quests (key TEXT PRIMARY KEY, questid INTEGER NOT NULL, file TEXT NOT NULL, "
@@ -119,14 +122,14 @@ LOG_DDL = [
 ]
 
 QUEST_COLS = ["questid", "name", "enabled", "giver", "minlevel", "maxlevel", "classes", "races", "requires", "repeatable",
-              "offer", "accept", "decline", "declined", "started", "source", "notes", "events", "factionreq"]
+              "offer", "accept", "decline", "declined", "started", "source", "notes", "events", "factionreq", "excludes"]
 STEP_COLS = ["questid", "step", "kind", "target", "npcid", "items", "tunar", "count", "world", "x", "y", "z", "radius",
              "journal", "answer", "says", "waiting", "notyet", "reminder", "xp", "rewardtunar", "rewarditems", "factions",
              "spells", "chance", "events", "byclass", "choices"]
 # the columns added after imports had logged their digests: a quest that
 # leaves them empty digests as it did before them (digest), so a run again
 # still knows an earlier import's quest as its own
-LATER_COLS = {"factionreq", "byclass", "choices"}
+LATER_COLS = {"factionreq", "byclass", "choices", "excludes"}
 FACTION_MIN, FACTION_MAX = -2000, 2000   # entity/faction.go's FactionMin, FactionMax
 
 
@@ -273,6 +276,18 @@ def requires_of(q):
                 out.append(g[0])
         elif str(r).strip():
             out.append(str(r).strip())
+    return out
+
+
+def excludes_of(q):
+    """A quest's excludes: the keys of the quests whose doing (finished or
+    under way) keeps it from a character, two tellings of one errand
+    (petition 2199), as the excludes column writes them by id ("a, b")."""
+    out = []
+    for r in q.get("excludes") or []:
+        for k in (r if isinstance(r, list) else [r]):
+            if str(k).strip() and str(k).strip() not in out:
+                out.append(str(k).strip())
     return out
 
 
@@ -582,7 +597,8 @@ def plan(db, files, routes=False):
             told = [str(u) for u in (q.get("unresolved") or []) if str(u).strip()]
             quests.append(dict(key=key, file=fname, q=q, classes=classes, giver=giver or (q.get("giver") or ""),
                                steps=steps, events=qev, miss=miss, told=told, factionreq=", ".join(reqs),
-                               unlocks=unlocks, requires=requires_of(q), hidden=bool(q.get("hidden"))))
+                               unlocks=unlocks, requires=requires_of(q), excludes=excludes_of(q),
+                               hidden=bool(q.get("hidden"))))
     # a quest needing one that is missing or a draft is a draft too; a quest a
     # GM has changed since its import (left as it is) counts as the database has it
     by_key = {x["key"]: x for x in quests}
@@ -838,6 +854,7 @@ def write(db, p, own=True):
                 group = [ids[k] if k in ids else logged[k][0] for k in (r if isinstance(r, list) else [r]) if k in ids or k in logged]
                 if group:
                     requires.append("|".join(map(str, group)))
+            excludes = [str(ids[k] if k in ids else logged[k][0]) for k in x.get("excludes", []) if k in ids or k in logged]
             vals = dict(questid=qid, name=q.get("name") or x["key"], enabled=0 if x["draft"] else 1, giver=x["giver"],
                         minlevel=int(q.get("minlevel") or 1), maxlevel=int(q.get("maxlevel") or 60),
                         classes=", ".join(map(str, x["classes"])), races=", ".join(map(str, class_ids(q.get("races")))),
@@ -845,7 +862,7 @@ def write(db, p, own=True):
                         offer=q.get("offer") or "", accept=q.get("accept") or "", decline=q.get("decline") or "",
                         declined=q.get("declined") or "", started=q.get("started") or "",
                         source=f"EQOA-Data {x['key']} (tools/import_quests.py)", notes=notes, events=fix_events(x["events"]),
-                        factionreq=x["factionreq"])
+                        factionreq=x["factionreq"], excludes=", ".join(excludes))
             db.execute(f"INSERT INTO quests ({', '.join(QUEST_COLS)}) VALUES ({', '.join('?' * len(QUEST_COLS))})",
                        [vals[c] for c in QUEST_COLS])
             for st in x["steps"]:

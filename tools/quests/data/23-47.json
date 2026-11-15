@@ -1292,6 +1292,9 @@
    "minlevel": 30,
    "maxlevel": 60,
    "requires": [],
+   "excludes": [
+    "30,40,49/group-1-good/L30-a"
+   ],
    "offer": "North of town, past where the road fades, lie the Al'Karad Ruins. Read the tablet deep in the dungeon there, then kill the savage bear that prowls the ruins and bring me its pelt.",
    "accept": "I will do it.",
    "decline": "Not now.",

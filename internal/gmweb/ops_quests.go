@@ -20,7 +20,7 @@ import (
 
 // questCols are a quest row's columns the editor sends, in the table's order.
 var questCols = []string{"name", "enabled", "giver", "minlevel", "maxlevel", "classes", "races", "requires",
-	"repeatable", "offer", "accept", "decline", "declined", "started", "source", "notes", "events", "factionreq"}
+	"repeatable", "offer", "accept", "decline", "declined", "started", "source", "notes", "events", "factionreq", "excludes"}
 
 // stepCols are a step row's columns the editor sends.
 var stepCols = []string{"kind", "target", "npcid", "items", "tunar", "count", "world", "x", "y", "z", "radius",
@@ -52,6 +52,7 @@ func (s *Server) registerQuestOps() {
 		"classes":    str("class ids that may take it, comma separated; empty: any (0 Warrior ... 14 Alchemist)"),
 		"races":      str("race ids, comma separated; empty: any"),
 		"requires":   str("quest ids finished first, comma separated; ids joined by | are one requirement any of them meets (\"10, 11|12\": 10, and 11 or 12)"),
+		"excludes":   str("quest ids whose doing keeps it from a character, comma separated: not offered nor taken by one who finished any of them or has one under way (two tellings of one errand); empty: none"),
 		"repeatable": integer("1: may be taken again once finished"),
 		"offer":      str("the giver's words offering it: a paragraph (lines between blank lines) a question, a line a box, each paragraph's last line the question"),
 		"accept":     str("the player's answers that take it, a line a question (the last one gives the quest); empty: taken as soon as the giver is talked to"),

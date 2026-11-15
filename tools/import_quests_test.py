@@ -490,5 +490,52 @@ class RequireGroups(unittest.TestCase):
         self.assertTrue(any("group" in w for w in why), why)
 
 
+class Excludes(unittest.TestCase):
+    """A quest's excludes (petition 2199: two tellings of one errand) are
+    written by id in the excludes column, each of the two the other's; a run
+    again writes nothing new (its digest its own); a key no file or log has is
+    left out; a quest with none digests as one from before the column."""
+
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory()
+        self.path = os.path.join(self.dir.name, "q.db")
+        self.db = make_db(self.path)
+
+    def tearDown(self):
+        self.db.close()
+        self.dir.cleanup()
+
+    def plan(self):
+        def q(key, excludes):
+            return {"key": key, "name": key, "giver": "Captain Brindle", "excludes": excludes,
+                    "steps": [{"kind": "kill", "target": "Field Boar", "count": 1, "journal": "Kill."}]}
+        doc = {"city": "testmoor", "quests": [q("Misc/t/crikston", ["Misc/t/argot"]),
+                                             q("Misc/t/argot", ["Misc/t/crikston", "Misc/t/nobody"]),
+                                             q("Misc/t/plain", [])]}
+        path = os.path.join(self.dir.name, "twins.json")
+        with open(path, "w") as f:
+            json.dump(doc, f)
+        return iq.plan(self.db, iq.load_files([path]))
+
+    def row(self, key):
+        return self.db.execute("SELECT q.questid, q.enabled, q.excludes FROM quests q JOIN quest_import_quests k "
+                               "ON k.questid = q.questid WHERE k.key = ?", (key,)).fetchone()
+
+    def test_twins_exclude_each_other(self):
+        iq.write(self.db, self.plan())
+        c, a, plain = self.row("Misc/t/crikston"), self.row("Misc/t/argot"), self.row("Misc/t/plain")
+        self.assertEqual(c[2], str(a[0]))
+        self.assertEqual(a[2], str(c[0]), "the unknown key left out")
+        self.assertEqual((c[1], a[1], plain[2]), (1, 1, ""))
+        before = state(self.db)
+        written, kept, _ = iq.write(self.db, self.plan())
+        self.assertEqual(kept, [], "a run again took its own quests for a GM's")
+        self.assertEqual(state(self.db), before)
+        # a quest with no excludes digests as one logged before the column
+        h = iq.digest(self.db, plain[0])
+        self.db.execute("UPDATE quests SET excludes = '' WHERE questid = ?", (plain[0],))
+        self.assertEqual(iq.digest(self.db, plain[0]), h)
+
+
 if __name__ == "__main__":
     unittest.main()

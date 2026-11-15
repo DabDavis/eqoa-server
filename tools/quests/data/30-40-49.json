@@ -2723,6 +2723,9 @@
      "30,40,49/group-1-good/L30-tethelin-bard"
     ]
    ],
+   "excludes": [
+    "23-47/30/blakedown"
+   ],
    "offer": "Argot Bittersteel in Blakedown, west and south of the Dagnor's Cauldron coach, lost goods in Al-Karad's Ruin, and a savage bear there carries the clay tablet. Show him my note.",
    "accept": "I will do it.",
    "decline": "Not now.",

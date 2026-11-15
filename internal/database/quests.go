@@ -53,7 +53,8 @@ CREATE TABLE IF NOT EXISTS quests (
 	source     TEXT NOT NULL DEFAULT '',
 	notes      TEXT NOT NULL DEFAULT '',
 	events     TEXT NOT NULL DEFAULT '',
-	factionreq TEXT NOT NULL DEFAULT ''
+	factionreq TEXT NOT NULL DEFAULT '',
+	excludes   TEXT NOT NULL DEFAULT ''
 );
 CREATE TABLE IF NOT EXISTS queststeps (
 	questid     INTEGER NOT NULL,
@@ -132,6 +133,7 @@ func (db *SQLiteDB) initQuests() error {
 		{"queststeps", "choices", `TEXT NOT NULL DEFAULT ''`},
 		{"queststeps", "height", `REAL NOT NULL DEFAULT 0`},
 		{"charquests", "picks", `TEXT NOT NULL DEFAULT ''`},
+		{"quests", "excludes", `TEXT NOT NULL DEFAULT ''`},
 	} {
 		has, err := hasColumn(db.DB, c.table, c.col)
 		if err != nil {
@@ -536,6 +538,15 @@ type Quest struct {
 	// hand-in each class gets from a quest of its own (a recruiter's token)
 	// asks for those as one group.
 	RequireGroups [][]int
+	// Excludes is the quests whose doing keeps it from a character (the
+	// excludes column, ids as ParseIntList reads them): it is not offered nor
+	// taken by one who has finished any of them or has one under way. Two
+	// guides' tellings of one errand exclude each other (petition 2199,
+	// Cardile: "argot bittersteel is asking for the runed tablet. i already
+	// retrieved it but hes sending me back to get it again": Crikston's The
+	// Runed Clay Tablet, 100868, and Argot's own The Al'Karad Tablet, 100770,
+	// the same story and the same reward; tools/quest_twins_20261115.py).
+	Excludes []int
 	// Offer is the giver's words offering it, a paragraph (lines between
 	// blank lines) a question: its lines a box each, its last line the
 	// question the paragraph's answer (Accept's line of that number) answers.
@@ -1101,7 +1112,7 @@ func (s *QuestStore) MarkVampire(serverID uint32, quest string) (bool, error) {
 // LoadQuests reads every quest, drafts too, with its steps in order.
 func (s *QuestStore) LoadQuests() ([]Quest, error) {
 	rs, err := s.db.Query(`SELECT questid, name, enabled, giver, minlevel, maxlevel, classes, races, requires,
-		repeatable, offer, accept, decline, declined, started, source, notes, events, factionreq FROM quests ORDER BY questid`)
+		repeatable, offer, accept, decline, declined, started, source, notes, events, factionreq, excludes FROM quests ORDER BY questid`)
 	if err != nil {
 		return nil, err
 	}
@@ -1110,15 +1121,16 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 	for rs.Next() {
 		var q Quest
 		var enabled, repeatable int
-		var classes, races, requires, events, factionReq string
+		var classes, races, requires, events, factionReq, excludes string
 		if err := rs.Scan(&q.ID, &q.Name, &enabled, &q.Giver, &q.MinLevel, &q.MaxLevel, &classes, &races, &requires,
-			&repeatable, &q.Offer, &q.Accept, &q.Decline, &q.Declined, &q.Started, &q.Source, &q.Notes, &events, &factionReq); err != nil {
+			&repeatable, &q.Offer, &q.Accept, &q.Decline, &q.Declined, &q.Started, &q.Source, &q.Notes, &events, &factionReq, &excludes); err != nil {
 			rs.Close()
 			return nil, err
 		}
 		q.Enabled, q.Repeatable = enabled != 0, repeatable != 0
 		q.Classes, q.Races, q.Requires = ParseIntList(classes), ParseIntList(races), ParseIntList(requires)
 		q.RequireGroups = ParseRequires(requires)
+		q.Excludes = ParseIntList(excludes)
 		if q.Events, err = ParseQuestEvents(events); err != nil {
 			log.Printf("Quests: quest %d's events are not read: %v", q.ID, err)
 		}

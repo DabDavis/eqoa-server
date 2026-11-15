@@ -1023,6 +1023,18 @@ func (q *QuestEngine) mayTakeAtLocked(look *factionLook, p *entity.Player, c *qu
 		}
 		return fmt.Sprintf("one of quests %s is to be finished first", formatAlternatives(g))
 	}
+	// a twin's doing (database.Quest.Excludes, petition 2199): finished, or under way
+	for _, id := range qu.Excludes {
+		if id == qu.ID {
+			continue
+		}
+		if finished(id) {
+			return fmt.Sprintf("quest %d, which excludes it, is finished", id)
+		}
+		if cq := c.quests[id]; cq != nil && cq.Active() {
+			return fmt.Sprintf("quest %d, which excludes it, is under way", id)
+		}
+	}
 	if cq := c.quests[qu.ID]; cq != nil {
 		if cq.Active() {
 			return "under way"

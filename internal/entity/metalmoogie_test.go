@@ -39,6 +39,12 @@ type metalRig struct {
 
 func newMetalRig(t *testing.T) *metalRig {
 	t.Helper()
+	return newMetalRigWith(t, nil)
+}
+
+// newMetalRigWith is newMetalRig with more rows written (more) before the world reads them.
+func newMetalRigWith(t *testing.T, more func(exec func(q string, args ...any))) *metalRig {
+	t.Helper()
 	db, err := database.NewSQLite(t.TempDir() + "/metal.db")
 	if err != nil {
 		t.Fatal(err)
@@ -64,6 +70,9 @@ func newMetalRig(t *testing.T) *metalRig {
 		VALUES ('metal moogie', 0, 347, 100, ?, 25, 500, 'Static Discharge', 'LR', 750, 6, 6, ?, 'test', 'test')`,
 		metalTestMelee, fmt.Sprintf(`[{"kind":"lifetap","spell_id":%d,"every":30,"first":30}]`, metalTapSpell))
 	exec(`INSERT INTO npctemplate (name, template, note, source) VALUES ('metal moogie', 'metal moogie', 'test', 'test')`)
+	if more != nil {
+		more(exec)
+	}
 	r := &metalRig{t: t, db: db, t0: time.Unix(1_800_000_000, 0)}
 	w := NewWorld()
 	r.mgr = session.NewManager()

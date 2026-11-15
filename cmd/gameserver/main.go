@@ -295,6 +295,17 @@ func main() {
 			floor = max(*v, 0)
 		}
 		gameWorld.SetMercBrew(every, most, floor)
+		batch, settle, stack := 0, time.Duration(0), 0
+		if v := cfg.World.MercBrewBatch; v != nil {
+			batch = *v
+		}
+		if v := cfg.World.MercBrewSettleSeconds; v != nil && *v > 0 {
+			settle = time.Duration(*v) * time.Second
+		}
+		if v := cfg.World.MercBrewStack; v != nil {
+			stack = *v
+		}
+		gameWorld.SetMercBrewBatch(batch, settle, stack)
 	}
 	if cfg.World.ThrowPowerPct != nil {
 		gameWorld.SetThrowPowerPct(max(*cfg.World.ThrowPowerPct, 0)) // entity/potion.go

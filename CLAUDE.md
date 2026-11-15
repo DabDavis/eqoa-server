@@ -2591,9 +2591,17 @@ thrown, never cast (until then a 2 s cast); its other spells are cast between th
 carries (used up), then its owner's stock, then its path's own (its mixtures' and cocktails' summons, never used up).
 **A Cocktail alchemist's `/merc aoe | single`** (`charmerc.aoe`, the menu's Throws; single the default: until then a
 cocktail was never thrown): an area cocktail only at a creature already fighting its team, its splash only on what fights
-its team (it pulls nothing). **Its supply** (`entity/mercbrew.go`): it makes its path's potion into its owner's stock
-(table `charmercstock`, the owner's, so a later hire throws from it) every `world.merc_brew_seconds` (30) up to
-`world.merc_brew_cap` (200; 0 none); below 30% power it drinks its best power draught (carried, stock, its refinements'),
+its team (it pulls nothing). **Its supply** (`entity/mercbrew.go`; the owner, 2026-11-15: "keep making pots until full
+stack if they are sitting idle, but if player moves they follow until idle again"): it brews into its owner's stock (table
+`charmercstock`, the owner's: a death, a dismissal, a logout and a restart keep it, and a later hire throws from it; the
+World is handed it at a login, a kept merc's Restore and, when it holds none, a hire) **only at ease** (`mercBrewIdleLocked`:
+no target, throw or cast, nothing fighting it or its owner, its owner not swinging or dead, and for
+`world.merc_brew_settle_seconds` (3) no step of its owner's, no step of its own but a stroll at ease, no fight): a batch of
+`world.merc_brew_batch` (20) every `world.merc_brew_seconds` (5), its owner's move pausing it and its clock starting again
+once both stand. It brews to **a full stack of each potion it uses** (`mercBrewWantsLocked`: its best single-target potion,
+its best area cocktail, its book's best power draught; the stack the record's `maxstack` via `itemeffect`'s read, most 2,000
+or 9,999, held lower by `world.merc_brew_stack` above 0), the least full first, then stops; `world.merc_brew_cap` above 0
+is a ceiling on the whole stock besides (unset none, 0 none brewed). Below 30% power it drinks its best power draught (carried, stock, its refinements'),
 a player's figures, never under `world.merc_draught_hp_floor_pct` (50) of its health; out of a fight below 70% health it
 eats (a meal it carries, else a ration's figures); each shown with the eating-and-drinking visual. **What a merc holds**
 (`handlers/mercinv.go`, table `charmercitem`; the owner: "lets add inventory to mercs same as players, can equip or hold

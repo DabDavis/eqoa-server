@@ -255,8 +255,10 @@ type mercState struct {
 	throwing   *mercThrowing
 	throwReady time.Time
 	// brewAt is when an alchemist next makes a potion into its owner's stock
-	// (mercbrew.go)
-	brewAt time.Time
+	// (mercbrew.go), zero while it is not at ease; brewStirred its last step
+	// of its own (a stroll at ease aside)
+	brewAt      time.Time
+	brewStirred time.Time
 }
 
 // mercNoCollideID is a merc's entry on its owner's non-collide list (0x1003:

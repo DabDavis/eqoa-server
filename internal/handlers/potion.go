@@ -62,6 +62,7 @@ func potionFromRow(r database.ItemEffectRow, itemName string) entity.PotionEffec
 	pe.SetBody(r.Body)              // the body it shows (entity/illusion.go)
 	pe.SetTargetShare(r.TargetLine) // a thrown one's target's own share
 	pe.Cooldown = time.Duration(r.Cooldown * float64(time.Second))
+	pe.MaxStack = r.MaxStack // a stack's most: what an alchemist merc brews to (entity/mercbrew.go)
 	return pe
 }
 

@@ -526,6 +526,7 @@ func (m *Mercs) hireWith(sess *session.Session, p *entity.Player, class, race, s
 		mercSay(sess, mercKitFailed)
 		return
 	}
+	m.stockFor(p) // its alchemists' stock, if the World has none of its (mercinv.go)
 	name, why, _ := m.gw.HireMercAt(sess, slot, kit, entity.MercStance(row.Stance), now)
 	if why != "" {
 		mercSay(sess, why)
@@ -955,6 +956,7 @@ func (m *Mercs) bring(sess *session.Session, p *entity.Player, row database.Merc
 		SendErrorMessage(sess, mercKitFailed)
 		return false
 	}
+	m.stockFor(p) // its alchemists' stock, if the World has none of its (mercinv.go)
 	name, why, standby := m.gw.HireMercAt(sess, row.Slot, kit, entity.MercStance(row.Stance), now)
 	if why != "" {
 		SendErrorMessage(sess, why)

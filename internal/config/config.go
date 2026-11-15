@@ -518,14 +518,22 @@ type WorldConfig struct {
 	// Heirloom Test Server sets it.
 	Mercs bool `yaml:"mercs"`
 
-	// MercBrewSeconds is how often an alchemist merc out makes a potion into
-	// its owner's stock (entity/mercbrew.go); unset or 0, 30. MercBrewCap is
-	// the most potions the stock holds; unset, 200, 0 none made.
+	// MercBrewSeconds is how often an alchemist merc at ease (it and its owner
+	// standing, out of a fight) brews a batch of potions into its owner's
+	// stock (entity/mercbrew.go); unset or 0, 5. MercBrewBatch is a batch's
+	// potions; unset or 0, 20. MercBrewSettleSeconds is how long it and its
+	// owner stand still before it brews; unset or 0, 3. It brews to a full
+	// stack (the potion's maxstack) of each potion it uses: MercBrewStack,
+	// above 0, holds each stack to that at the most. MercBrewCap, above 0, is a
+	// ceiling on the whole stock besides; unset, none; 0, none brewed.
 	// MercDraughtHPFloorPct is the share of its most health an alchemist merc
 	// keeps when it drinks a draught for power (none that would take it
 	// under); unset, 50.
 	MercBrewSeconds       *int `yaml:"merc_brew_seconds"`
 	MercBrewCap           *int `yaml:"merc_brew_cap"`
+	MercBrewBatch         *int `yaml:"merc_brew_batch"`
+	MercBrewSettleSeconds *int `yaml:"merc_brew_settle_seconds"`
+	MercBrewStack         *int `yaml:"merc_brew_stack"`
 	MercDraughtHPFloorPct *int `yaml:"merc_draught_hp_floor_pct"`
 
 	// QuestXPPct is the percent of its experience a quest's step gives, for

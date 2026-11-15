@@ -27,37 +27,296 @@ func (r *mercRig) alchemist(spells ...CastSpell) *mercState {
 	return r.hire(r.kit(14, 0, 0, append([]CastSpell{mix}, spells...)...), MercAssist)
 }
 
-func TestMercAlchemistBrewsIntoItsOwnersStock(t *testing.T) {
-	r := newMercRig(t)
-	alcSupplyPotions(r.w)
-	r.w.SetMercBrew(10*time.Second, 3, -1)
-	ms := r.alchemist()
+// brewNotes counts the merc's brews as told (each a batch).
+func (r *mercRig) brewNotes() *[]MercNote {
 	var brewed []MercNote
 	r.w.OnMercNote(func(n MercNote) {
 		if n.Kind == MercNoteBrewed {
 			brewed = append(brewed, n)
 		}
 	})
+	return &brewed
+}
+
+func TestMercAlchemistBrewsIntoItsOwnersStock(t *testing.T) {
+	r := newMercRig(t)
+	alcSupplyPotions(r.w)
+	r.w.SetMercBrew(10*time.Second, 3, -1)
+	r.w.SetMercBrewBatch(1, 0, 0)
+	ms := r.alchemist()
+	brewed := r.brewNotes()
 	// no stock read for its owner yet: nothing made
 	r.run(0, 15*time.Second)
 	r.w.runMercNotes()
-	if len(brewed) != 0 {
-		t.Fatalf("made %d before its owner's stock was read", len(brewed))
+	if len(*brewed) != 0 {
+		t.Fatalf("made %d before its owner's stock was read", len(*brewed))
 	}
 	r.w.SetMercStock(r.p.CharServerID, map[int]int{testVolatile: 1})
-	r.run(15100*time.Millisecond, 60*time.Second) // 45 s: four or five at its rate, two past the cap of 3
+	r.run(15100*time.Millisecond, 60*time.Second) // 45 s at ease: four at its rate, two past the ceiling of 3
 	r.w.runMercNotes()
 	st := r.w.MercStockOf(r.p.CharServerID)
-	if st[testVolatile] != 3 || len(brewed) != 2 {
-		t.Fatalf("stock %v after 45 s with %d made, want the cap's 3 (2 made)", st, len(brewed))
+	if st[testVolatile] != 3 || len(*brewed) != 2 {
+		t.Fatalf("stock %v after 45 s with %d made, want the ceiling's 3 (2 made)", st, len(*brewed))
 	}
-	if brewed[0].PatternID != testVolatile || brewed[0].Owner != r.p {
-		t.Errorf("made %+v", brewed[0])
+	if (*brewed)[0].PatternID != testVolatile || (*brewed)[0].Owner != r.p {
+		t.Errorf("made %+v", (*brewed)[0])
 	}
 	_ = ms
 	// a hire's stock is its owner's: another alchemist of his sees it
 	if r.w.TakeMercStock(r.p.CharServerID, testVolatile, 2) != 2 || r.w.MercStockOf(r.p.CharServerID)[testVolatile] != 1 {
 		t.Error("the owner's withdrawal")
+	}
+	// a cap of 0: none brewed
+	r.w.SetMercBrew(10*time.Second, 0, -1)
+	r.run(60100*time.Millisecond, 90*time.Second)
+	if st := r.w.MercStockOf(r.p.CharServerID); st[testVolatile] != 1 {
+		t.Errorf("a cap of 0 brewed: %v", st)
+	}
+}
+
+// It brews only at ease: its owner's walk pauses it (it follows), a fight
+// pauses it, and once both stand the settle and its rate start again.
+func TestMercAlchemistBrewsOnlyAtEase(t *testing.T) {
+	r := newMercRig(t)
+	alcSupplyPotions(r.w)
+	r.w.SetMercBrew(5*time.Second, -1, -1)
+	r.w.SetMercBrewBatch(1, 3*time.Second, 0)
+	ms := r.alchemist()
+	r.w.SetMercStock(r.p.CharServerID, map[int]int{})
+	brewed := r.brewNotes()
+	count := func() int {
+		r.w.runMercNotes()
+		return r.w.MercStockOf(r.p.CharServerID)[testVolatile]
+	}
+	// standing: its first 3 s settle, then one every 5 s (8, 13, 18 s)
+	r.run(0, 7900*time.Millisecond)
+	if n := count(); n != 0 {
+		t.Fatalf("%d brewed in its settle and first 5 s", n)
+	}
+	r.run(8*time.Second, 19*time.Second)
+	if n := count(); n != 3 {
+		t.Fatalf("%d brewed standing 19 s, want 3 (8, 13, 18 s)", n)
+	}
+	// its owner walks for 20 s: it follows, and brews nothing
+	walkFrom := 19100 * time.Millisecond
+	for d := walkFrom; d <= 39*time.Second; d += 100 * time.Millisecond {
+		r.w.mu.Lock()
+		r.p.X += 0.4 // 4 a second, a walk
+		r.w.SpatialIndex.Update(r.p.ServerID, r.p.X-0.4, r.p.Z, r.p.X, r.p.Z)
+		r.w.mu.Unlock()
+		r.tick(d)
+	}
+	if n := count(); n != 3 {
+		t.Fatalf("%d brewed while its owner walked, want still 3", n)
+	}
+	if d := distXZ(ms.npc.X, ms.npc.Z, r.p.X, r.p.Z); d > 12 {
+		t.Fatalf("it did not follow: %.1f off its owner", d)
+	}
+	// both stand again: it catches up, settles 3 s, and brews 5 s after
+	r.run(39100*time.Millisecond, 60*time.Second)
+	if n := count(); n < 4 {
+		t.Fatalf("%d after standing again 21 s: brewing did not resume", n)
+	}
+	if ms.npc.moving() && !ms.idle.walking {
+		t.Error("it still follows") // a stroll at ease is its idling
+	}
+	// a fight pauses it: a crab on its owner
+	before := count()
+	crab := r.creature("Crab", 28, 30)
+	r.w.mu.Lock()
+	crab.CurrentEnemy = r.p.ServerID
+	r.w.wakeNPCLocked(crab)
+	r.w.mu.Unlock()
+	r.run(60100*time.Millisecond, 75*time.Second)
+	if n := count(); n != before {
+		t.Errorf("%d brewed with a creature on its owner", n-before)
+	}
+	r.w.mu.Lock()
+	crab.CurrentEnemy = 0
+	r.w.wakeNPCLocked(crab)
+	r.w.mu.Unlock()
+	r.run(75100*time.Millisecond, 90*time.Second)
+	if n := count(); n <= before {
+		t.Errorf("none brewed after the fight ended (%d)", n)
+	}
+	_ = brewed
+}
+
+// It fills a full stack of each potion it uses, its single-target potion,
+// its cocktail and its draught, the least full first, and then stops.
+func TestMercAlchemistBrewsFullStacks(t *testing.T) {
+	r := newMercRig(t)
+	vol := NewPotionEffect(testVolatile, "Volatile Potion", "Target, Decrease Hitpoints by 300", "", 0, "", 0, 0)
+	vol.MaxStack = 60
+	ck := NewPotionEffect(testCocktail, "Klik'Anon Cocktail", "Target, Decrease Hitpoints by 214", "", 0, "", 0, 10)
+	ck.MaxStack = 40
+	weak := NewPotionEffect(50013, "Icy Potion", "Target, Decrease Hitpoints by 10", "", 0, "", 0, 0) // a weaker single, never brewed
+	weak.MaxStack = 2000
+	d := NewPotionEffect(testDraught, "Draught", "Self, Decrease Hitpoints by 400, Increase Power per tic by 300, 18sec", "", 0, "", 0, 0)
+	d.MaxStack = 25
+	r.w.SetPotionEffects([]PotionEffect{vol, ck, weak, d})
+	r.w.SetMercBrew(time.Second, -1, -1)
+	r.w.SetMercBrewBatch(5, time.Second, 0)
+	cocktail := bookSpell(700195, "Klik'Anon Cocktail", 0, 2*time.Second, 3*time.Second, 20, "Self, Summon Klik'Anon Cocktail x3")
+	icy := bookSpell(700086, "Icy Mixture", 0, 2*time.Second, 3*time.Second, 20, "Self, Summon Icy Potion x3")
+	refine := bookSpell(50, "Refinement", 0, 2*time.Second, 3*time.Second, 10, "Self, Summon Draught x3")
+	k := r.kit(14, 0, 0, bookSpell(700085, "Volatile Mixture", 0, 2*time.Second, 3*time.Second, 20, "Self, Summon Volatile Potion x3"),
+		cocktail, icy, refine)
+	k.Cocktail = true
+	ms := r.hire(k, MercAssist)
+	r.w.SetMercStock(r.p.CharServerID, map[int]int{testVolatile: 58})
+	brewed := r.brewNotes()
+	r.w.mu.Lock()
+	wants := r.w.mercBrewWantsLocked(ms)
+	r.w.mu.Unlock()
+	if len(wants) != 3 || wants[0].pe.PatternID != testVolatile || wants[1].pe.PatternID != testCocktail || wants[2].pe.PatternID != testDraught {
+		t.Fatalf("keeps stacks of %+v, want its Volatile Potion, its cocktail and its draught", wants)
+	}
+	// (60-58) + 40 + 25 = 67 to brew, 5 a second: within 20 s at ease
+	r.run(0, 30*time.Second)
+	r.w.runMercNotes()
+	st := r.w.MercStockOf(r.p.CharServerID)
+	if st[testVolatile] != 60 || st[testCocktail] != 40 || st[testDraught] != 25 || st[50013] != 0 {
+		t.Fatalf("stock %v, want full stacks of 60, 40 and 25 and no Icy Potion", st)
+	}
+	// the least full first: the nearly full Volatile Potion's 2 last
+	if (*brewed)[0].PatternID == testVolatile {
+		t.Errorf("brewed its nearly full stack first: %+v", (*brewed)[0])
+	}
+	last := len(*brewed)
+	r.run(30100*time.Millisecond, 50*time.Second)
+	r.w.runMercNotes()
+	if len(*brewed) != last {
+		t.Errorf("brewed %d more with every stack full", len(*brewed)-last)
+	}
+	// a throw from the stock opens a place, brewed again at ease
+	r.w.mu.Lock()
+	r.w.mercUsedLocked(ms, 0, true, testCocktail)
+	r.w.mu.Unlock()
+	r.run(50100*time.Millisecond, 55*time.Second)
+	r.w.runMercNotes()
+	if st := r.w.MercStockOf(r.p.CharServerID); st[testCocktail] != 40 {
+		t.Errorf("the thrown cocktail not brewed again: %v", st)
+	}
+	// world.merc_brew_stack holds a stack lower
+	r.w.SetMercBrewBatch(5, time.Second, 10)
+	r.w.mu.Lock()
+	for _, w := range r.w.mercBrewWantsLocked(ms) {
+		if w.most != 10 {
+			t.Errorf("%q's stack %d with merc_brew_stack 10", w.pe.ItemName, w.most)
+		}
+	}
+	r.w.mu.Unlock()
+}
+
+// The stock is its owner's: a death, a dismissal and a new hire keep it,
+// and the new hire brews on it and throws from it.
+func TestMercAlchemistStockOutlivesDeathAndDismissal(t *testing.T) {
+	r := newMercRig(t)
+	alcSupplyPotions(r.w)
+	r.w.SetMercBrew(time.Second, -1, -1)
+	r.w.SetMercBrewBatch(3, time.Second, 0)
+	ms := r.alchemist()
+	r.w.SetMercStock(r.p.CharServerID, map[int]int{testCocktail: 7})
+	r.run(0, 5*time.Second)
+	had := r.w.MercStockOf(r.p.CharServerID)
+	if had[testVolatile] == 0 || had[testCocktail] != 7 {
+		t.Fatalf("stock %v after 5 s at ease", had)
+	}
+	// its death: the stock stays
+	r.w.mu.Lock()
+	ms.npc.HP, ms.npc.Dead = 0, true
+	r.w.wakeNPCLocked(ms.npc)
+	r.w.mu.Unlock()
+	r.run(5100*time.Millisecond, 7*time.Second)
+	if r.w.merc1(r.p.ServerID) != nil && !r.w.merc1(r.p.ServerID).npc.Dead {
+		t.Fatal("its death did not take")
+	}
+	after := r.w.MercStockOf(r.p.CharServerID)
+	if after[testVolatile] < had[testVolatile] || after[testCocktail] != 7 {
+		t.Fatalf("its death took from the stock: %v, had %v", after, had)
+	}
+	// dismissed (or gone at its death): a new hire finds the stock as it was
+	if r.w.merc1(r.p.ServerID) != nil {
+		if _, ok := r.w.DismissMerc(r.sess, 1, r.at(7*time.Second)); !ok {
+			t.Fatal("not dismissed")
+		}
+	}
+	if st := r.w.MercStockOf(r.p.CharServerID); st[testVolatile] != after[testVolatile] || st[testCocktail] != 7 {
+		t.Fatalf("its dismissal took from the stock: %v", st)
+	}
+	k := r.kit(14, 0, 0, bookSpell(700085, "Volatile Mixture", 0, 2*time.Second, 3*time.Second, 20, "Self, Summon Volatile Potion x3"))
+	if _, why := r.w.HireMerc(r.sess, k, MercAssist, r.at(8*time.Second)); why != "" {
+		t.Fatalf("the new hire refused: %s", why)
+	}
+	ms2 := r.w.merc1(r.p.ServerID)
+	crab := r.creature("Crab", 28, 10)
+	r.w.mu.Lock()
+	c, ok := r.w.mercThrowPickLocked(ms2, crab)
+	r.w.mu.Unlock()
+	if !ok || !c.stock || c.pe.PatternID != testVolatile {
+		t.Fatalf("the new hire throws %+v, want its owner's stock's Volatile Potion", c)
+	}
+	// an entity id used again by another login is not its stock
+	r.w.mu.Lock()
+	r.p.CharServerID += 1000
+	r.w.mu.Unlock()
+	if r.w.MercStockKnown(r.p.CharServerID) {
+		t.Error("another character on the same entity id has the stock")
+	}
+}
+
+// Both of the toggle's modes keep throwing while the stock holds potions,
+// down to its last; then its path's own.
+func TestMercAlchemistThrowsFromStockBothModes(t *testing.T) {
+	for _, aoe := range []bool{false, true} {
+		r := newMercRig(t)
+		alcPotions(r.w)
+		ck := bookSpell(700195, "Klik'Anon Cocktail", 0, 2*time.Second, 3*time.Second, 20, "Self, Summon Klik'Anon Cocktail x3")
+		mix := bookSpell(700085, "Volatile Mixture", 0, 2*time.Second, 3*time.Second, 20, "Self, Summon Volatile Potion x3")
+		k := r.kit(14, 0, 0, ck, mix)
+		k.Cocktail, k.AoE = true, aoe
+		ms := r.hire(k, MercAssist)
+		r.w.SetMercStock(r.p.CharServerID, map[int]int{testVolatile: 3, testCocktail: 3})
+		crab := r.creature("Crab", 28, 10)
+		crab.HP, crab.MaxHP = 900000, 900000
+		other := r.creature("Crab Two", 28, 12)
+		other.HP, other.MaxHP = 900000, 900000
+		crab.CurrentEnemy, other.CurrentEnemy = r.p.ServerID, r.p.ServerID // fighting its team: a cocktail may go
+		want := testVolatile
+		if aoe {
+			want = testCocktail
+		}
+		for i := range 3 {
+			r.w.mu.Lock()
+			c, ok := r.w.mercThrowPickLocked(ms, crab)
+			if ok && c.stock {
+				r.w.mercUsedLocked(ms, 0, true, c.pe.PatternID)
+			}
+			r.w.mu.Unlock()
+			if !ok || !c.stock || c.pe.PatternID != want {
+				t.Fatalf("aoe %v, throw %d: %+v, want the stock's %d", aoe, i, c, want)
+			}
+		}
+		// its own kind's stock spent: its path's own of its kind, never a failure
+		r.w.mu.Lock()
+		c, ok := r.w.mercThrowPickLocked(ms, crab)
+		r.w.mu.Unlock()
+		if !ok || c.stock || c.pe.PatternID != want {
+			t.Fatalf("aoe %v, own kind's stock spent: %+v ok %v", aoe, c, ok)
+		}
+		// and in a real fight the stock goes down as it throws
+		r.seeRig(ms.npc.ServerID, crab.ServerID)
+		r.w.SetMercStock(r.p.CharServerID, map[int]int{want: 4})
+		r.run(0, time.Second)
+		ms.ordered = crab.ServerID
+		r.run(1100*time.Millisecond, 12*time.Second)
+		if left := r.w.MercStockOf(r.p.CharServerID)[want]; left >= 4 {
+			t.Errorf("aoe %v: the fight threw none of the stock (%d left)", aoe, left)
+		}
+		if crab.HP >= crab.MaxHP {
+			t.Errorf("aoe %v: nothing landed", aoe)
+		}
 	}
 }
 

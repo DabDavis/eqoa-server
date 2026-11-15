@@ -684,6 +684,18 @@ func (m *Mercs) loadStock(p *entity.Player) {
 	m.gw.SetMercStock(p.CharServerID, st)
 }
 
+// stockFor gives the World the character's stock as kept when it holds none
+// of the character's (a hire after a keep restart that carried no merc of
+// its: only a kept merc's Restore and a login read it), so a merc out always
+// brews into and throws from its owner's stock. One the World holds is its
+// own copy, newer than the rows by the notes on their way.
+func (m *Mercs) stockFor(p *entity.Player) {
+	if m.db == nil || p == nil || m.gw.MercStockKnown(p.CharServerID) {
+		return
+	}
+	m.loadStock(p)
+}
+
 // noteSupply keeps an alchemist's use of what it carried or of the stock, and
 // what it made (entity/mercbrew.go's notes).
 func (m *Mercs) noteSupply(n entity.MercNote) {

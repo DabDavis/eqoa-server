@@ -148,6 +148,33 @@ type PotionEffect struct {
 	// Stone "should not cost mana to use"). The power of a throw is the
 	// alchemists' potions' (DefaultThrowPowerPct), every one a thrown weapon.
 	Magic bool
+	// FX is the visual its use plays (its line's "Visual 0x..." clause, readVisual; 0 none: a thrown one's
+	// kind's stand-in, a drunk one nothing): Live petition 5173, Groceries, of the magician's Lava Stone,
+	// "should be a fire ball coming out of hand when thrown". Its stand-in, the damage one, is Fire Bolt's
+	// (0xE78024D9: a cast and a hit at the target, no projectile, SPELLFX.CSF's caster list ending in a
+	// PlayTargetInstant); Fingers of Flame's (0x889D7E79) casts from the hand and flies a fire projectile
+	// (PlayTargetProjectile). A thrown one's 0x00B1 from its user to its target as a spell's (the Use's and
+	// a worn one's auto-attack throws; a merc's throw is its own swing), a drunk one's on its drinker.
+	FX uint32
+}
+
+// reVisual is a line's visual clause ("Target, Decrease Hitpoints by 214, Visual 0x889D7E79"): a 0x00B1
+// DictID, hex or decimal, never the line's first clause. A parser before it read the clause as unread
+// words and nothing more.
+var reVisual = regexp.MustCompile(`(?i)\s*[,;]\s*visual\s+(0x[0-9a-f]{1,8}|\d{1,10})\s*\.?\s*([,;]|$)`)
+
+// readVisual is the line's visual (0 none) and the line without its clause, for the spell-text reader.
+func readVisual(line string) (uint32, string) {
+	m := reVisual.FindStringSubmatchIndex(line)
+	if m == nil {
+		return 0, line
+	}
+	n := line[m[2]:m[3]]
+	v, err := strconv.ParseUint(strings.TrimPrefix(strings.ToLower(n), "0x"), base(n), 32)
+	if err != nil {
+		return 0, line
+	}
+	return uint32(v), line[:m[0]] + line[m[4]:m[5]] + line[m[1]:]
 }
 
 // reDispel is a cure's words in a line ("Dispel Effect x3"): spelltext.go
@@ -156,8 +183,9 @@ var reDispel = regexp.MustCompile(`^(?:dispel|cure|remove)\s+(?:harmful\s+)?effe
 
 // NewPotionEffect reads an itemeffect row.
 func NewPotionEffect(patternID int, itemName, line, name string, icon uint32, breaks string, wear int, area float64) PotionEffect {
+	fx, words := readVisual(line)
 	pe := PotionEffect{PatternID: patternID, ItemName: itemName, Name: name, Icon: icon,
-		Def: ParseSpellText(line), Area: float32(area), WearPct: wear}
+		Def: ParseSpellText(words), Area: float32(area), WearPct: wear, FX: fx}
 	if strings.TrimSpace(pe.Name) == "" {
 		pe.Name = itemName
 	}
@@ -247,7 +275,7 @@ func (pe *PotionEffect) duration() time.Duration {
 // castSpell is the potion as a spell for the cast code's landing: its effect
 // id, name and icon, its line, scope 0 (self) or 1 (target).
 func (pe *PotionEffect) castSpell() CastSpell {
-	s := CastSpell{SpellID: PotionEffectID(pe.PatternID), Name: pe.Name, Icon: pe.Icon, Def: pe.Def}
+	s := CastSpell{SpellID: PotionEffectID(pe.PatternID), Name: pe.Name, Icon: pe.Icon, Def: pe.Def, FX: pe.FX}
 	if pe.Thrown() {
 		s.Scope, s.Range = 1, PotionRange
 	}
@@ -615,6 +643,9 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 			drunk.Def.Effects = append(drunk.Def.Effects, e)
 		}
 	}
+	if pe.FX != 0 {
+		w.broadcastCastLocked(p, p.ServerID, 0, pe.FX) // its line's visual on its drinker
+	}
 	cs := &castState{spell: drunk, caster: p.ServerID, targets: []EntityID{p.ServerID}}
 	w.landOnPlayerLocked(cs, p, sess, p, now)
 	if gift > 0 {
@@ -703,6 +734,9 @@ func (w *World) thrownPotionAtFoeLocked(p *Player, t *Player, now time.Time) boo
 	if !w.throwPowerLocked(sess, p, pe) {
 		return true // not enough power: the fight let go (the doc above)
 	}
+	if pe.FX != 0 {
+		w.broadcastCastLocked(p, t.ServerID, 0, pe.FX) // its line's visual (the client's swing is its own)
+	}
 	over := w.throwAtFoeLocked(sess, p, pe, t, now)
 	p.Swing.PotionLeft--
 	if fn := w.potions.onThrown; fn != nil && sess != nil {
@@ -727,6 +761,9 @@ func (w *World) thrownPotionHitLocked(sess *session.Session, p *Player, npc *NPC
 	}
 	if !w.throwPowerLocked(sess, p, pe) {
 		return true // not enough power: the fight let go (the doc above)
+	}
+	if pe.FX != 0 {
+		w.broadcastCastLocked(p, npc.ServerID, 0, pe.FX) // its line's visual (the client's swing is its own)
 	}
 	w.throwLocked(sess, p, pe, npc, time.Now())
 	p.Swing.PotionLeft--

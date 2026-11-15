@@ -283,6 +283,19 @@ func main() {
 	if cfg.World.FactionAggro != nil && !*cfg.World.FactionAggro {
 		gameWorld.SetFactionAggro(false)
 	}
+	{ // an alchemist merc's stock and draughts (entity/mercbrew.go)
+		every, most, floor := time.Duration(0), -1, -1
+		if v := cfg.World.MercBrewSeconds; v != nil && *v > 0 {
+			every = time.Duration(*v) * time.Second
+		}
+		if v := cfg.World.MercBrewCap; v != nil {
+			most = max(*v, 0)
+		}
+		if v := cfg.World.MercDraughtHPFloorPct; v != nil {
+			floor = max(*v, 0)
+		}
+		gameWorld.SetMercBrew(every, most, floor)
+	}
 	if cfg.World.ThrowPowerPct != nil {
 		gameWorld.SetThrowPowerPct(max(*cfg.World.ThrowPowerPct, 0)) // entity/potion.go
 	}

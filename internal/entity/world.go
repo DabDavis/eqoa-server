@@ -177,6 +177,9 @@ type World struct {
 	mercNotes  []MercNote
 	onMercNote MercNoteFunc
 	mercLife   uint64
+	// mercSupply is the alchemists' potion stocks by owner, the rates they
+	// brew at and the floor a draught keeps (mercbrew.go)
+	mercSupply mercSupply
 	// mercBench is each owner's mercs on standby (mercbench.go), mercBenchSeq
 	// the order they stepped out in
 	mercBench    map[EntityID][]*mercBenched

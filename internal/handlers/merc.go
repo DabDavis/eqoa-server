@@ -111,7 +111,7 @@ const (
 	mercRestLine  = "Your mercenary %s rests for %d more seconds."
 	mercBackLine  = "Your mercenary %s is back at your side."
 	mercKitFailed = "The liaison's ledger is out of order. Try again."
-	mercHelpLine  = "/merc [name or 1-3] menu, stance passive|assist|aggressive, defensive|offensive (a healer), follow, stay, attack (your target), path, pet, charm [off], group, revive, dismiss: with no name, every merc out. /familiar dismiss sends a familiar away."
+	mercHelpLine  = "/merc [name or 1-3] menu, stance passive|assist|aggressive, defensive|offensive (a healer), follow, stay, attack (your target), path, pet, charm [off], group, revive, dismiss, give [item], inv, equip|unequip|take <item>, aoe|single (a Cocktail alchemist), stock, claim: with no name, every merc out. /familiar dismiss sends a familiar away."
 )
 
 // mercRoles are the liaison's first answers, each role's classes in their
@@ -155,6 +155,12 @@ const (
 	mercStageStance  // its stance
 	mercStageDismiss // its dismissal, to be sure
 	mercStagePet     // its pet's kind
+	mercStageMore    // its menu's second box (mercmenu.go)
+	mercStageItems   // its items (mercinv.go)
+	mercStageInv     // what it holds, a page
+	mercStageItem    // one record of it
+	mercStageGive    // the pack's records it may take, a page
+	mercStageStock   // the alchemists' stock, a page
 )
 
 // mercAsk is a liaison's open question: its box, its stage, what was chosen
@@ -167,7 +173,12 @@ type mercAsk struct {
 	path               int // the path picked (mercStagePath), -1 its class's default
 	slot               int // the merc a menu is of (mercmenu.go)
 	others             bool
-	npc                entity.EntityID
+	// keys are a box's answers' meanings, ids its records (mercinv.go), item
+	// the record a record's box is of
+	keys []string
+	ids  []int
+	item int
+	npc  entity.EntityID
 }
 
 // Mercs is the handlers' half of the mercenaries.
@@ -358,7 +369,8 @@ func (m *Mercs) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 			a.page++
 			m.askRaces(sess, p, a)
 		}
-	case mercStageMenu, mercStageSpells, mercStageStance, mercStageDismiss, mercStagePet:
+	case mercStageMenu, mercStageSpells, mercStageStance, mercStageDismiss, mercStagePet, mercStageMore,
+		mercStageItems, mercStageInv, mercStageItem, mercStageGive, mercStageStock:
 		m.menuAnswer(sess, p, a, n) // its own menu (mercmenu.go)
 	case mercStagePath:
 		if n >= len(archivistPathLines[a.class]) {
@@ -516,6 +528,11 @@ func (m *Mercs) hireWith(sess *session.Session, p *entity.Player, class, race, s
 		return
 	}
 	if m.db != nil {
+		// nothing of another's under its slot (a row ended by other means
+		// than DeleteMerc): back to its owner (mercinv.go)
+		if err := m.db.KeepMercItems(p.CharServerID, slot); err != nil {
+			log.Printf("Merc: %s's slot %d's items: %v", p.Name, slot, err)
+		}
 		if err := m.db.SetMerc(row); err != nil {
 			log.Printf("Merc: %s's hire of %q not kept: %v", p.Name, name, err)
 		}
@@ -528,7 +545,13 @@ func (m *Mercs) hireWith(sess *session.Session, p *entity.Player, class, race, s
 	if entity.MercIsHealer(class) {
 		SendClientMessage(sess, fmt.Sprintf(mercDefensiveLine, name, strings.ToLower(name)))
 	}
+	if mercCocktail(row) {
+		SendClientMessage(sess, fmt.Sprintf(mercCocktailLine, name, strings.ToLower(name)))
+	}
 }
+
+// mercCocktailLine tells a Cocktail alchemist's hirer its throws.
+const mercCocktailLine = "%s throws single-target potions. /merc %s aoe has it throw its area cocktails at what fights you."
 
 // mercDefensiveLine tells a healer's hirer its mode.
 const mercDefensiveLine = "%s is defensive: it heals and buffs alone. /merc %s offensive has it cast its attacks as well."
@@ -598,7 +621,7 @@ const mercDualFrom = 20
 // kit is the merc of the row at level as it fights (the file's doc).
 func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 	k := entity.MercKit{Class: row.Class, Race: row.Race, Sex: row.Sex, Level: max(level, 1), Name: row.Name, Offensive: row.Offensive,
-		SpellsOff: row.SpellsOff}
+		SpellsOff: row.SpellsOff, Cocktail: mercCocktail(row), AoE: row.AoE}
 	k.Look = entity.MercLook{Face: row.Face, HairColor: row.HairColor, HairLength: row.HairLength, HairStyle: row.HairStyle, Robe: -1}
 	k.Base = entity.MercBaseStats(row.Class, row.Race, k.Level) // its role's (entity/mercroles.go)
 	if m.db == nil {
@@ -607,6 +630,17 @@ func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 	items, err := m.heirlooms(row.Class, row.Race, k.Level)
 	if err != nil {
 		return k, err
+	}
+	// what it wears of its own over them, what it carries to use (mercinv.go)
+	own, carried, err := m.mercOwnItems(row, k.Level)
+	if err != nil {
+		return k, err
+	}
+	items = itemsOver(items, own)
+	k.Carried = carried
+	ownHand := false
+	for _, it := range own {
+		ownHand = ownHand || it.EquipLoc >= 14 && it.EquipLoc <= 20
 	}
 	k.Gear = wornGear(items)
 	if entity.MercIsTank(row.Class) {
@@ -626,11 +660,14 @@ func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 	l.Primary, l.Secondary, l.Shield = p.Primary, p.Secondary, p.Shield
 	l.PrimaryType, l.SecondaryType = p.PrimaryType, p.SecondaryType
 	l.WornPieces, l.WornMask = p.WornPieces, p.WornMask // its pieces' auras (entity/pieceaura.go)
-	if row.Class == mercAlchemist {
+	if row.Class == mercAlchemist && !ownHand {         // its own in its hands shown as a player's
 		if bottle := m.potionBottle(); bottle != 0 {
-			// in the hand the staff was, as the alchemists' NPCs hold one (the
-			// Chemists of Freeport, Aemilia); its staff's figures kept
-			l.Primary, l.PrimaryType = bottle, thrownAttackType
+			// in its second hand, as a player's potion worn in the ranged slot
+			// is shown (character.go's wornLook: slot 18 in the second hand),
+			// the hand CLIENT's Range1 throws from (entity/mercthrow.go); its
+			// staff's figures kept, its first hand empty
+			l.Primary, l.PrimaryType = 0, 0
+			l.Secondary, l.SecondaryType = bottle, thrownAttackType
 		}
 	}
 	for _, it := range items {
@@ -811,7 +848,9 @@ func (m *Mercs) comeBack(sess *session.Session, p *entity.Player) {
 		return
 	}
 	rows = m.distinctNames(p, rows)
-	m.gw.HoldMercAsk(sess, true) // one group box for all of them
+	m.loadStock(p)                // its alchemists' stock (mercinv.go)
+	m.claimKeeping(sess, p, true) // what came back from a hire that ended
+	m.gw.HoldMercAsk(sess, true)  // one group box for all of them
 	defer m.gw.HoldMercAsk(sess, false)
 	for _, row := range rows {
 		m.comeBackRow(sess, p, row)
@@ -935,6 +974,8 @@ func (m *Mercs) note(n entity.MercNote) {
 		return
 	}
 	switch n.Kind {
+	case entity.MercNoteUsed, entity.MercNoteStockUsed, entity.MercNoteBrewed:
+		m.noteSupply(n) // mercinv.go
 	case entity.MercNoteDied:
 		if err := m.db.SetMercRest(n.Owner.CharServerID, n.Slot, n.Until); err != nil {
 			log.Printf("Merc: %s's %q's rest not kept: %v", n.Owner.Name, n.Name, err)
@@ -943,6 +984,9 @@ func (m *Mercs) note(n entity.MercNote) {
 	case entity.MercNoteDismissed:
 		if err := m.db.DeleteMerc(n.Owner.CharServerID, n.Slot); err != nil {
 			log.Printf("Merc: %s's %q's hire not ended: %v", n.Owner.Name, n.Name, err)
+		}
+		if n.Sess != nil {
+			go m.claimKeeping(n.Sess, n.Owner, false) // what it held, back (mercinv.go)
 		}
 	case entity.MercNoteLevel:
 		go m.rekit(n.Owner.CharServerID, n.Level)
@@ -1108,6 +1152,8 @@ func (m *Mercs) Command(sess *session.Session, p *entity.Player, args string) {
 		if line := m.gw.AskMercGroup(sess); line != "" {
 			SendClientMessage(sess, line)
 		}
+	case "aoe", "single", "give", "inv", "inventory", "items", "equip", "unequip", "take", "stock", "claim":
+		m.invCommand(sess, p, rows, slot, verb, strings.Join(words[1:], " ")) // mercinv.go
 	default:
 		SendClientMessage(sess, mercHelpLine)
 	}
@@ -1187,13 +1233,17 @@ func (m *Mercs) dismiss(sess *session.Session, p *entity.Player, slot int) {
 		}
 	}
 	SendClientMessage(sess, fmt.Sprintf("You dismiss %s. The Mercenary Recruitment board will hire you another.", name))
+	if m.db != nil {
+		m.claimKeeping(sess, p, false) // what it held comes back (mercinv.go)
+	}
 }
 
 // mercVerbs are /merc's words, which "/t merc <word>" takes as the command
 // (chat.go: anything else to a "merc" is a tell).
 var mercVerbs = map[string]bool{"status": true, "dismiss": true, "stance": true, "follow": true, "stay": true, "attack": true,
 	"group": true, "revive": true, "help": true, "path": true, "pet": true, "charm": true, "list": true, "defensive": true,
-	"offensive": true, "menu": true}
+	"offensive": true, "menu": true, "aoe": true, "single": true, "give": true, "inv": true, "inventory": true, "items": true,
+	"equip": true, "unequip": true, "take": true, "stock": true, "claim": true}
 
 // mercWords reports a tell's body that is /merc's: none, or one of its words
 // first.
@@ -1307,5 +1357,6 @@ func (m *Mercs) Restore(sess *session.Session, p *entity.Player, k entity.KeptMe
 		log.Printf("Keep: %s's mercenary %q: %v", p.Name, row.Name, err)
 		return
 	}
+	m.loadStock(p) // its alchemists' stock (mercinv.go)
 	m.gw.RestoreMerc(sess, kit, k, now)
 }

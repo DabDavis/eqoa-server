@@ -2583,6 +2583,28 @@ logout and **comes back at the next login** (`OnPlayerEntered`; still resting, t
 it is carried where it stood with its shares of hit points and power, its stance and its group place
 (`entity/keepmerc.go`, `KeptPlayer.Merc`). `TestMerc*`, `TestRealMercKits` (`EQOA_REAL_DB`).
 
+**An alchemist merc throws its potions** (`entity/mercthrow.go`; the owner, 2026-11-15: "the alchemist mercs should be
+throwing their pots but arent currently"): a player alchemist's ranged throw, Range1's round (3.5 s, the hit 0.5 s in, a
+throw's power), 0x00B1 with Range1's effect from the merc at its target, the bottle in its second hand (the hand Range1
+throws from), the potion landed as `throwLocked` lands one through `mercHarmLocked`. Its book's "... Potion" spells are
+thrown, never cast (until then a 2 s cast); its other spells are cast between throws. What it throws: a thrown potion it
+carries (used up), then its owner's stock, then its path's own (its mixtures' and cocktails' summons, never used up).
+**A Cocktail alchemist's `/merc aoe | single`** (`charmerc.aoe`, the menu's Throws; single the default: until then a
+cocktail was never thrown): an area cocktail only at a creature already fighting its team, its splash only on what fights
+its team (it pulls nothing). **Its supply** (`entity/mercbrew.go`): it makes its path's potion into its owner's stock
+(table `charmercstock`, the owner's, so a later hire throws from it) every `world.merc_brew_seconds` (30) up to
+`world.merc_brew_cap` (200; 0 none); below 30% power it drinks its best power draught (carried, stock, its refinements'),
+a player's figures, never under `world.merc_draught_hp_floor_pct` (50) of its health; out of a fight below 70% health it
+eats (a meal it carries, else a ration's figures); each shown with the eating-and-drinking visual. **What a merc holds**
+(`handlers/mercinv.go`, table `charmercitem`; the owner: "lets add inventory to mercs same as players, can equip or hold
+items"): `/merc [name] give [item]`, `inv`, `equip|unequip|take <item>`, `stock`, `claim`, and the menu's Items (Inventory,
+Give an item, Potion stock, the keeping's claim); up to 40 records, a player's class, race and level gates and slots
+(two-handers, the knights' off hand), what it wears over its heirlooms (its stats, AC, swing and look a player's). No Rent
+items that vanish at logout are refused; NO TRADE and LORE go (they never leave the owner; a LORE item comes back only
+while he holds none). A dismissal or a boot puts what it held in the keeping (slot 0) in the transaction that ends the
+hire, delivered to the pack as it has room (then at each login and `/merc claim`); a death keeps it. `TestMercAlchemist*`,
+`TestMercGive*`, `TestMercEquip*`, `TestMercItems*`, `TestMercMenuItems`.
+
 **Familiars** (`entity/familiar.go`, `handlers/familiar.go`, table `familiars`, `world.familiars`,
 `tools/seed_familiars.py [--list] [--apply|--undo]`; the GM Jibrish's petition 1445: Healbot): a follower an item calls,
 which neither fights nor is fought and does one thing of its own; table `familiars` (GM-editable) holds each by the item

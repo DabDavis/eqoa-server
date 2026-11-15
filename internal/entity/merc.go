@@ -146,6 +146,22 @@ type MercKit struct {
 	// cast as well as its heals; false, defensive (the default), heals and
 	// buffs alone (merccast.go's mercAttackTurnLocked)
 	Offensive bool
+	// Cocktail: an alchemist of the Cocktail path, whose throws AoE picks
+	// (mercthrow.go): its area cocktails (true, /merc aoe) or its
+	// single-target potions (false, /merc single, the default)
+	Cocktail, AoE bool
+	// Carried is what it carries that it uses up (handlers/mercinv.go): its
+	// potions, draughts and meals, each a record of charmercitem
+	Carried []MercCarried
+}
+
+// MercCarried is one record a merc carries to use (MercKit.Carried): its
+// charmercitem id, its item and how many; a meal's health a tick (Food).
+type MercCarried struct {
+	ID, PatternID, Count int
+	Name                 string
+	Food                 bool
+	HoT                  int
 }
 
 // MercLook is what a merc's channel shows of its body and its heirlooms.
@@ -224,6 +240,13 @@ type mercState struct {
 	bowOut    bool
 	shot      *mercShot
 	shotReady time.Time
+	// throwing: an alchemist's potion on its way, throwReady when it may
+	// throw again (mercthrow.go)
+	throwing   *mercThrowing
+	throwReady time.Time
+	// brewAt is when an alchemist next makes a potion into its owner's stock
+	// (mercbrew.go)
+	brewAt time.Time
 }
 
 // mercNoCollideID is a merc's entry on its owner's non-collide list (0x1003:
@@ -276,6 +299,13 @@ const (
 	// (mercbench.go): the handlers make it again from its row (Slot's; 0
 	// every row's), as at a login
 	MercNoteBack
+	// MercNoteUsed: it used Count of its carried record ItemID (a potion
+	// thrown or drunk, a meal eaten: mercthrow.go, mercbrew.go)
+	MercNoteUsed
+	// MercNoteStockUsed: it used Count of its owner's stock of PatternID
+	MercNoteStockUsed
+	// MercNoteBrewed: it made Count of PatternID into its owner's stock
+	MercNoteBrewed
 )
 
 // MercNote is a merc's event, handed to the hook after the tick's lock.
@@ -288,6 +318,9 @@ type MercNote struct {
 	Name  string
 	Level int
 	Until time.Time
+	// ItemID, PatternID and Count: what MercNoteUsed, MercNoteStockUsed
+	// and MercNoteBrewed name
+	ItemID, PatternID, Count int
 }
 
 // MercNoteFunc hears a merc's events (handlers/merc.go: its row, its kit).
@@ -443,6 +476,11 @@ type MercInfo struct {
 	Offensive bool
 	// Grouped: in its owner's group
 	Grouped bool
+	// AC is its armour now, Worn the equip slots its hands fill (its kit's)
+	AC   int
+	Worn [21]bool
+	// AoE: a Cocktail alchemist's area cocktails (MercKit.AoE)
+	AoE bool
 }
 
 // MercInfosOf is the session's player's mercs out, by slot.
@@ -453,7 +491,8 @@ func (w *World) MercInfosOf(sess *session.Session) []MercInfo {
 	for _, ms := range w.mercsOfLocked(w.sessionPlayerLocked(sess)) {
 		n := ms.npc
 		info := MercInfo{Slot: ms.slot, Name: n.Name, Class: ms.kit.Class, Race: ms.kit.Race, Sex: ms.kit.Sex, Level: n.Level, HP: n.HP,
-			MaxHP: n.MaxHP, Power: n.Power, MaxPower: n.MaxPower, Stance: ms.stance, Stay: ms.stay, Grouped: w.mercInOwnGroupLocked(ms), Offensive: ms.kit.Offensive}
+			MaxHP: n.MaxHP, Power: n.Power, MaxPower: n.MaxPower, Stance: ms.stance, Stay: ms.stay, Grouped: w.mercInOwnGroupLocked(ms), Offensive: ms.kit.Offensive,
+			AC: ms.body.StatNow(StatAC), Worn: ms.kit.Worn, AoE: ms.kit.AoE}
 		if t := w.NPCs[ms.target]; t != nil {
 			info.Target = t.Name
 		}
@@ -976,6 +1015,7 @@ func (w *World) mercSystem(now time.Time) {
 		w.mercEffectsLocked(ms, now)
 		w.mercLevelLocked(ms, sess)
 		syncMercBody(ms)
+		w.mercBrewLocked(ms, now) // an alchemist's potions into its owner's stock (mercbrew.go)
 		if sess != nil {
 			w.mercTellLocked(ms, sess)
 		}

@@ -141,7 +141,7 @@ func (w *World) mercTurnLocked(ms *mercState, dt float32, now time.Time) {
 	}
 	// its bow (mercshoot.go): an arrow on its way lands, and the bow or its
 	// melee hands in hand by its target's distance
-	if w.mercShotLandLocked(ms, now) {
+	if w.mercShotLandLocked(ms, now) || w.mercThrowLandLocked(ms, now) { // an alchemist's potion too (mercthrow.go)
 		t = w.NPCs[ms.target]
 		if ms.target == 0 {
 			t = nil

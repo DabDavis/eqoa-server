@@ -25,7 +25,9 @@ import (
 // heals; 0, defensive, the default, heals and buffs alone: the owner,
 // 2026-11-12, "add defensive/offensive for healers"). spells_off is the
 // spells its hirer turned off in its menu (handlers/mercmenu.go), their ids
-// comma-separated. A merc on standby (out of a
+// comma-separated. aoe is a Cocktail alchemist's /merc aoe (1: it throws
+// its area cocktails; 0, /merc single, the default, its single-target
+// potions: handlers/mercinv.go). A merc on standby (out of a
 // full group for a player: entity/mercbench.go) keeps its row as it is.
 const charMercSchema = `
 	CREATE TABLE IF NOT EXISTS charmerc (
@@ -46,6 +48,7 @@ const charMercSchema = `
 		pet         TEXT NOT NULL DEFAULT '',
 		offensive   INTEGER NOT NULL DEFAULT 0,
 		spells_off  TEXT NOT NULL DEFAULT '',
+		aoe         INTEGER NOT NULL DEFAULT 0,
 		PRIMARY KEY (serverid, slot)
 	);`
 
@@ -86,7 +89,7 @@ func (db *SQLiteDB) ensureMercs() error {
 	if n > 0 {
 		// path, pet, offensive and spells_off, to a table made before them
 		for _, col := range []struct{ name, def string }{{"path", "INTEGER NOT NULL DEFAULT -1"}, {"pet", "TEXT NOT NULL DEFAULT ''"},
-			{"offensive", "INTEGER NOT NULL DEFAULT 0"}, {"spells_off", "TEXT NOT NULL DEFAULT ''"}} {
+			{"offensive", "INTEGER NOT NULL DEFAULT 0"}, {"spells_off", "TEXT NOT NULL DEFAULT ''"}, {"aoe", "INTEGER NOT NULL DEFAULT 0"}} {
 			if err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('charmerc') WHERE name = ?`, col.name).Scan(&n); err != nil {
 				return fmt.Errorf("charmerc: %w", err)
 			}
@@ -106,7 +109,7 @@ func (db *SQLiteDB) ensureMercs() error {
 	if _, err := db.Exec(familiarsSchema); err != nil {
 		return fmt.Errorf("familiars: %w", err)
 	}
-	return nil
+	return db.ensureMercItems() // mercitems.go: what mercs hold, the alchemists' stock
 }
 
 // mercSlotsTable makes a table of one merc a character (its key the
@@ -151,18 +154,19 @@ type MercRow struct {
 	Pet                                    string    // the pet kind its hirer picked, "" its best
 	Offensive                              bool      // a healer's /merc offensive (false: defensive)
 	SpellsOff                              []int     // the spells turned off in its menu, by id
+	AoE                                    bool      // a Cocktail alchemist's area cocktails (false: single-target potions)
 	DeadUntil                              time.Time // zero: alive
 	Hired                                  time.Time
 }
 
-const mercCols = `serverid, slot, name, class, race, sex, face, hair_color, hair_length, hair_style, stance, dead_until, hired, path, pet, offensive, spells_off`
+const mercCols = `serverid, slot, name, class, race, sex, face, hair_color, hair_length, hair_style, stance, dead_until, hired, path, pet, offensive, spells_off, aoe`
 
 // scanMerc reads a row of mercCols.
 func scanMerc(sc interface{ Scan(...any) error }) (MercRow, error) {
 	var r MercRow
 	var dead, hired, off string
 	if err := sc.Scan(&r.ServerID, &r.Slot, &r.Name, &r.Class, &r.Race, &r.Sex, &r.Face, &r.HairColor, &r.HairLength, &r.HairStyle,
-		&r.Stance, &dead, &hired, &r.Path, &r.Pet, &r.Offensive, &off); err != nil {
+		&r.Stance, &dead, &hired, &r.Path, &r.Pet, &r.Offensive, &off, &r.AoE); err != nil {
 		return MercRow{}, err
 	}
 	r.SpellsOff = parseSpellIDs(off)
@@ -211,9 +215,9 @@ func (db *SQLiteDB) SetMerc(r MercRow) error {
 	if !r.Hired.IsZero() {
 		hired = r.Hired.UTC().Format(time.RFC3339)
 	}
-	_, err := db.Exec(`INSERT OR REPLACE INTO charmerc (`+mercCols+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, r.ServerID,
+	_, err := db.Exec(`INSERT OR REPLACE INTO charmerc (`+mercCols+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, r.ServerID,
 		max(r.Slot, 1), r.Name, r.Class, r.Race, r.Sex, r.Face, r.HairColor, r.HairLength, r.HairStyle, r.Stance, dead, hired, r.Path, r.Pet,
-		r.Offensive, joinSpellIDs(r.SpellsOff))
+		r.Offensive, joinSpellIDs(r.SpellsOff), r.AoE)
 	return err
 }
 
@@ -264,6 +268,13 @@ func (db *SQLiteDB) SetMercOffensive(serverID uint32, slot int, on bool) error {
 	return err
 }
 
+// SetMercAoE keeps the character's Cocktail alchemist merc's throws: its
+// area cocktails (true) or its single-target potions (false).
+func (db *SQLiteDB) SetMercAoE(serverID uint32, slot int, on bool) error {
+	_, err := db.Exec(`UPDATE charmerc SET aoe = ? WHERE serverid = ? AND slot = ?`, on, serverID, max(slot, 1))
+	return err
+}
+
 // SetMercStance keeps the character's merc's stance.
 func (db *SQLiteDB) SetMercStance(serverID uint32, slot, stance int) error {
 	_, err := db.Exec(`UPDATE charmerc SET stance = ? WHERE serverid = ? AND slot = ?`, stance, serverID, max(slot, 1))
@@ -281,16 +292,34 @@ func (db *SQLiteDB) SetMercRest(serverID uint32, slot int, until time.Time) erro
 	return err
 }
 
-// DeleteMerc ends the character's hire of the slot.
+// DeleteMerc ends the character's hire of the slot, what it held put in the
+// keeping (mercitems.go: back to its owner's pack as it has room) in the same
+// transaction: no hire ends with an item lost.
 func (db *SQLiteDB) DeleteMerc(serverID uint32, slot int) error {
-	_, err := db.Exec(`DELETE FROM charmerc WHERE serverid = ? AND slot = ?`, serverID, max(slot, 1))
-	return err
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if _, err := tx.Exec(`UPDATE charmercitem SET slot = ?, equiploc = -1 WHERE serverid = ? AND slot = ?`, MercKeeping, serverID, max(slot, 1)); err != nil {
+		return err
+	}
+	if _, err := tx.Exec(`DELETE FROM charmerc WHERE serverid = ? AND slot = ?`, serverID, max(slot, 1)); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
-// DeleteMercs ends every hire of the character's (its deletion).
+// DeleteMercs ends every hire of the character's (its deletion), what they
+// held and its alchemists' stock with it, as its own pack goes.
 func (db *SQLiteDB) DeleteMercs(serverID uint32) error {
-	_, err := db.Exec(`DELETE FROM charmerc WHERE serverid = ?`, serverID)
-	return err
+	for _, q := range []string{`DELETE FROM charmerc WHERE serverid = ?`, `DELETE FROM charmercitem WHERE serverid = ?`,
+		`DELETE FROM charmercstock WHERE serverid = ?`} {
+		if _, err := db.Exec(q, serverID); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // FamiliarRow is a familiar as table familiars has it.

@@ -32,6 +32,14 @@ func expCost(level int) int {
 	return (max(level-19, 0) + 1) * worth
 }
 
+// MaxDebt is the most experience debt a character carries (the owner,
+// 2026-11-15: "lets cap debt at 69 million"): a death past it adds nothing
+// more, a login or a GM's #debt above it is held to it.
+const MaxDebt = 69_000_000
+
+// capDebt is a debt held to 0..MaxDebt.
+func capDebt(d int) int { return min(max(0, d), MaxDebt) }
+
 // DeathDebt is the experience debt a death at level leaves.
 func DeathDebt(level int) int {
 	return expCost(min(level, MaxLevel))
@@ -57,7 +65,7 @@ func (w *World) SetDebt(id EntityID, debt int) bool {
 	if p == nil {
 		return false
 	}
-	p.Debt = max(0, debt)
+	p.Debt = capDebt(debt)
 	sendExpDebt(w.findSessionByEntityIDLocked(id), p.Debt)
 	return true
 }

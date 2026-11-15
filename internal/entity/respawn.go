@@ -94,7 +94,8 @@ func (w *World) playerDownLocked(sess *session.Session, p *Player, now time.Time
 	p.disengage()
 	w.clearSpellsLocked(p)
 	w.dropAggroLocked(p.ServerID)
-	p.Debt += debt
+	debt = min(debt, MaxDebt-capDebt(p.Debt)) // deathdebt.go: no more past the cap
+	p.Debt = capDebt(p.Debt + debt)
 	p.noteRezChance(debt, now) // resurrect.go: what a rez may give back of it
 	if sess != nil {
 		w.sendPlayerDied(sess)

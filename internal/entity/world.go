@@ -431,7 +431,7 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 		Level:        level,
 		XPInLevel:    XPInLevel(level, record.TotalXP),
 		TotalXP:      TotalXP(level, XPInLevel(level, record.TotalXP)),
-		Debt:         max(0, record.Debt),
+		Debt:         capDebt(int(record.Debt)),
 		Speed:        RunSpeed,
 		Faction:      FactionFriendly,
 		Str:          str,

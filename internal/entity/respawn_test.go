@@ -245,3 +245,33 @@ func TestADeathLeavesTheLiveGamesDebt(t *testing.T) {
 		t.Errorf("level 60's debt %d, the thread's 13,752,774 (xpcalc_test.go)", d)
 	}
 }
+
+// Debt stops at MaxDebt (the owner, 2026-11-15: "lets cap debt at 69
+// million"): a death of a character near the cap adds only what is left
+// under it, and a rez's chance gives back no more than that death added.
+func TestDeathDebtStopsAtTheCap(t *testing.T) {
+	w := NewWorld()
+	w.SessionManager = session.NewManager()
+	p := &Player{ServerID: 9001, Name: "Debtor", Level: 60, HP: 100, MaxHP: 100, Debt: MaxDebt - 1000}
+	w.Players[p.ServerID] = p
+	now := time.Unix(1_800_000_000, 0)
+	w.mu.Lock()
+	w.playerDownLocked(nil, p, now, DeathDebt(60))
+	w.mu.Unlock()
+	if p.Debt != MaxDebt {
+		t.Fatalf("debt %d after a death near the cap, want %d", p.Debt, MaxDebt)
+	}
+	if p.Rez.Debt != 1000 {
+		t.Errorf("the rez chance holds %d, want the 1000 the death added", p.Rez.Debt)
+	}
+	p.HP, p.DiedAt = 100, time.Time{} // respawned
+	w.mu.Lock()
+	w.playerDownLocked(nil, p, now.Add(time.Minute), DeathDebt(60))
+	w.mu.Unlock()
+	if p.Debt != MaxDebt || p.Rez.Debt != 0 {
+		t.Errorf("a death at the cap: debt %d (want %d), rez %d (want 0)", p.Debt, MaxDebt, p.Rez.Debt)
+	}
+	if !w.SetDebt(p.ServerID, MaxDebt*2) || p.Debt != MaxDebt {
+		t.Errorf("#debt above the cap: %d, want %d", p.Debt, MaxDebt)
+	}
+}

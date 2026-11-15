@@ -8,6 +8,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
+	"github.com/eqoa/server/internal/session"
 )
 
 // Potions against the scribe's fixture (a level 23 druid) in a real World:
@@ -295,5 +296,42 @@ func TestForagedFoodArrivesAsAMeal(t *testing.T) {
 	c, ok := consumableOf(&rows[0].Pattern)
 	if !ok || c.Drink || c.Amount != 5 {
 		t.Errorf("foraged berries eaten as %+v (%v), want a meal of 5", c, ok)
+	}
+}
+
+// Petition 5166 (Trulyblind, Live): the magician's Lava Stone is a Magic tab
+// item, worn nowhere and no thrown weapon (attack type 0), so Use throws it at
+// the target and takes no power, even from a thrower with none; a thrown
+// potion worn nowhere (attack type 10, a GM's) still costs its 10%.
+func TestMagicItemThrownByUseCostsNoPower(t *testing.T) {
+	for _, tc := range []struct {
+		attack    int
+		power     int
+		wantPower int
+		wantHP    int
+	}{
+		{0, 0, 0, 46}, {10, 100, 50, 46}, {10, 0, 0, 100},
+	} {
+		f := newScribeFixture(t)
+		w := f.potionWorld()
+		w.SessionManager = session.NewManager() // a hit's numbers are told by session
+		f.player.Power = tc.power
+		npc := &entity.NPC{ServerID: 2002, Name: "a fire beetle", Level: 1, HP: 100, MaxHP: 100,
+			X: f.player.X + 2, Y: f.player.Y, Z: f.player.Z}
+		w.NPCs[npc.ServerID] = npc
+		vs := entity.GetOrCreateVisibility(f.sess)
+		vs.ChannelEntity[0] = npc.ServerID
+		vs.ChannelObjectID[0] = 0x01312E98
+		id := f.potion("Lava Stone", -1, 4, 0, "Target, Decrease Hitpoints by 54", "", "")
+		if _, err := f.db.Exec(`UPDATE itempattern SET attacktype = ? WHERE patternid = ?`, tc.attack, id); err != nil {
+			t.Fatal(err)
+		}
+		f.own(id, 4)
+		f.loadList()
+		f.useAs(0, 0x01312E98, 0)
+		if f.player.Power != tc.wantPower || npc.HP != tc.wantHP {
+			t.Errorf("attack type %d at %d power: %d power, the creature at %d; want %d, %d",
+				tc.attack, tc.power, f.player.Power, npc.HP, tc.wantPower, tc.wantHP)
+		}
 	}
 }

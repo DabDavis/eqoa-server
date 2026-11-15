@@ -103,3 +103,31 @@ func TestPoisonResistAgainstADraught(t *testing.T) {
 		}
 	}
 }
+
+// Petition 5166 (Trulyblind, Live): an item of the Magic tab, no thrown
+// weapon (the magician's Lava Stone, PotionEffect.Magic), thrown by Use costs
+// no power, and with none at all it is still thrown; the same line as a
+// potion costs its 10%.
+func TestAMagicItemsThrowCostsNoPower(t *testing.T) {
+	c := newCaster(t)
+	c.npc.HP, c.npc.MaxHP = 100, 100
+	c.p.Power = 0
+	stone := thrown()
+	stone.Magic = true
+	if r := c.use(t, stone, c.npcO, 0); r != "" {
+		t.Fatalf("refused: %q", r)
+	}
+	if c.p.Power != 0 || c.npc.HP != 80 {
+		t.Errorf("after a magic item's throw: %d power, the creature at %d; want 0, 80", c.p.Power, c.npc.HP)
+	}
+	c.p.Power = 150
+	if r := c.use(t, stone, c.npcO, time.Second); r != "" || c.p.Power != 150 {
+		t.Errorf("a magic item's second throw: %q, %d power; want thrown, 150", r, c.p.Power)
+	}
+	// control: the potion's throw costs 103
+	c = newCaster(t)
+	c.p.Power = 150
+	if r := c.use(t, thrown(), c.npcO, 0); r != "" || c.p.Power != 47 {
+		t.Errorf("a potion's throw: %q, %d power; want thrown, 47", r, c.p.Power)
+	}
+}

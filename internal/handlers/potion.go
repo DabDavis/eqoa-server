@@ -107,6 +107,9 @@ func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, i
 	if pe.Special == entity.PotionDeputy && pe.Grant == nil {
 		pe.Grant = h.grantSpell(pe.SpecialSpell) // the spell a Deputy's Draught lands (entity/moogieitems.go)
 	}
+	// an item of the Magic tab, no thrown weapon (the magician's Lava Stone):
+	// its throw costs no power (entity's PotionEffect.Magic)
+	pe.Magic = row.Pattern.AttackType != 10
 	used := time.Now()
 	refusal, err := h.gameWorld.UsePotion(sess, pe, target, used)
 	switch {

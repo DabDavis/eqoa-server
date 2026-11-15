@@ -142,6 +142,12 @@ type PotionEffect struct {
 	SpecialSpell  int
 	SpecialRadius float32
 	Grant         *CastSpell
+	// Magic is an item used from the Magic tab, no thrown weapon (its record's
+	// attack type not 10: the handlers set it, usePotion): its throw by Use
+	// costs no power (petition 5166, Trulyblind, Live: the magician's Lava
+	// Stone "should not cost mana to use"). The power of a throw is the
+	// alchemists' potions' (DefaultThrowPowerPct), every one a thrown weapon.
+	Magic bool
 }
 
 // reDispel is a cure's words in a line ("Dispel Effect x3"): spelltext.go
@@ -335,11 +341,20 @@ func (t *potionTable) throwPowerCost(p *Player) int {
 	return (most*pct + 50) / 100
 }
 
+// throwCostOf is what throwing pe costs p now: none for a magic item
+// (PotionEffect.Magic), else throwPowerCost.
+func (t *potionTable) throwCostOf(p *Player, pe *PotionEffect) int {
+	if pe.Magic {
+		return 0
+	}
+	return t.throwPowerCost(p)
+}
+
 // throwPowerLocked takes a throw's power from p and reports true, or tells p
 // it has not enough (sess nil: untold) and reports false, nothing taken. Must
 // be called with the lock held.
 func (w *World) throwPowerLocked(sess *session.Session, p *Player, pe *PotionEffect) bool {
-	cost := w.potions.throwPowerCost(p)
+	cost := w.potions.throwCostOf(p, pe)
 	if cost <= 0 {
 		return true
 	}
@@ -510,7 +525,7 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 		}
 		// at a duel's or a PvP fight's foe (castTargetsLocked's duel and pvp halves)
 		if t := w.Players[targets[0]]; t != nil && spell.duel {
-			if p.Power < w.potions.throwPowerCost(p) {
+			if p.Power < w.potions.throwCostOf(p, &pe) {
 				return ThrowNoPower, nil, nil
 			}
 			w.throwPowerLocked(nil, p, &pe)
@@ -524,7 +539,7 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 		if npc == nil {
 			return castNoTarget, nil, nil
 		}
-		if p.Power < w.potions.throwPowerCost(p) {
+		if p.Power < w.potions.throwCostOf(p, &pe) {
 			return ThrowNoPower, nil, nil
 		}
 		w.throwPowerLocked(nil, p, &pe)

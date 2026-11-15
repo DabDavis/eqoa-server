@@ -24,9 +24,12 @@ package entity
 // goroutine of its own encodes, writes (buffered, flushed every second) and
 // rotates the file by size (to <file>.1, the one before it dropped). A sample
 // rate below 1 records that share of the hits, the others not run at all. The
-// formula's draws in shadow come from the same source as live's, and the
-// built-in figure is made before the formula runs, so shadow changes no
-// figure that lands. The file is created mode 600, its directory 700.
+// formula's draws in shadow come from a source of their own (shadowRand), not
+// the game's (formulaRand, math/rand's global source, which every gameplay
+// roll draws from), and the built-in figure is made before the formula runs,
+// so shadow changes no figure that lands and no later gameplay roll: the
+// game's sequence of draws is the same with shadow on or off. The file is
+// created mode 600, its directory 700.
 //
 // What a record holds: when, the path's and the formula's names, the
 // built-in figure (base: what landed), the formula's, raw, what a mitigation
@@ -315,6 +318,10 @@ var shadowInputs = []string{
 	"d_ac", "d_agi", "a_str", "a_dex",
 	"weapon_dmg", "weapon_delay", "two_handed", "ranged", "duel", "by_pet",
 	"spell_id", "spell_level", "resist", "con",
+	"d_dummy", "base_pre", "world", "instance", "a_npc_row", "d_npc_row",
+	"a_effect_offmod", "a_effect_defmod", "a_cm_offmod", "a_cm_defmod",
+	"d_effect_offmod", "d_effect_defmod", "d_cm_offmod", "d_cm_defmod",
+	"weapon_type", "ranged_weapon_dmg", "projectiles",
 }
 
 var shadowInputSlots = func() []int {
@@ -344,6 +351,8 @@ type shadowRec struct {
 	at                         time.Time
 	path, entry                string
 	builtin, formula, raw, mit int
+	builtinPre, preview        int
+	steps                      string
 	draws                      int
 	fail                       string
 	weaponType                 int
@@ -353,19 +362,28 @@ type shadowRec struct {
 
 // ShadowRecord is a record's line in the shadow log.
 type ShadowRecord struct {
-	At        string         `json:"t"`
-	Path      string         `json:"path"`           // the hit's path: npc_melee ...
-	Formula   string         `json:"formula"`        // the formula that ran (the path's, or its source's)
-	Builtin   int            `json:"builtin"`        // the built-in figure: what landed
-	Value     int            `json:"value"`          // the formula's figure (builtin when it failed)
-	Raw       int            `json:"raw"`            // the path's figure before the balance's shares
-	Mitigated int            `json:"mitigated"`      // what a mitigation took off before the built-in figure
-	Draws     int            `json:"draws"`          // the random draws the formula made
-	Fail      string         `json:"fail,omitempty"` // the run's failure (part and kind)
-	WeapType  int            `json:"weapon_type"`    // the attacker's weapon's attack type (0 for none)
-	DResist   int            `json:"d_resist"`       // the defender's resist the hit is against (0 for none)
-	In        map[string]any `json:"in"`             // the inputs
-	Tags      map[string]any `json:"tags,omitempty"` // the formula's shadow_ steps
+	At        string `json:"t"`
+	Path      string `json:"path"`      // the hit's path: npc_melee ...
+	Formula   string `json:"formula"`   // the formula that ran (the path's, or its source's)
+	Builtin   int    `json:"builtin"`   // the built-in figure: what landed
+	Value     int    `json:"value"`     // the formula's figure (builtin when it failed)
+	Raw       int    `json:"raw"`       // the path's figure before the balance's shares
+	Mitigated int    `json:"mitigated"` // what a mitigation took off before the built-in figure
+	// BuiltinPre is the built-in figure before the path's stage (dmgStage: a
+	// mitigation, a flag carrier's wounds), builtin where the path has none;
+	// Preview the formula's figure through that stage's steps on the state
+	// captured before the hit, nothing spent (value where the path has none);
+	// Stage the stage's steps ("" none, "none" a stage that did nothing,
+	// "mitigation", "ctf", "mitigation+ctf")
+	BuiltinPre int            `json:"builtin_pre"`
+	Preview    int            `json:"formula_final_preview"`
+	Stage      string         `json:"stage,omitempty"`
+	Draws      int            `json:"draws"`          // the random draws the formula made
+	Fail       string         `json:"fail,omitempty"` // the run's failure (part and kind)
+	WeapType   int            `json:"weapon_type"`    // the attacker's weapon's attack type (0 for none)
+	DResist    int            `json:"d_resist"`       // the defender's resist the hit is against (0 for none)
+	In         map[string]any `json:"in"`             // the inputs
+	Tags       map[string]any `json:"tags,omitempty"` // the formula's shadow_ steps
 }
 
 func valOut(v formula.Value) any {
@@ -380,7 +398,7 @@ func valOut(v formula.Value) any {
 
 func (r *shadowRec) out() ShadowRecord {
 	o := ShadowRecord{At: r.at.UTC().Format(time.RFC3339Nano), Path: r.path, Formula: r.entry, Builtin: r.builtin,
-		Value: r.formula, Raw: r.raw, Mitigated: r.mit, Draws: r.draws, Fail: r.fail, WeapType: r.weaponType,
+		Value: r.formula, Raw: r.raw, Mitigated: r.mit, BuiltinPre: r.builtinPre, Preview: r.preview, Stage: r.steps, Draws: r.draws, Fail: r.fail, WeapType: r.weaponType,
 		DResist: r.dResist, In: make(map[string]any, len(r.in))}
 	for _, v := range r.in {
 		o.In[v.name] = valOut(v.v)
@@ -404,20 +422,55 @@ func (c *countRand) Uniform() float64            { c.n++; return c.r.Uniform() }
 func (c *countRand) Normal(m, s float64) float64 { c.n++; return c.r.Normal(m, s) }
 func (c *countRand) Beta(a, b float64) float64   { c.n++; return c.r.Beta(a, b) }
 
+// lockedRand is a *rand.Rand of its own behind a mutex (several worlds, a
+// test's, may shadow at once).
+type lockedRand struct {
+	mu sync.Mutex
+	r  *rand.Rand
+}
+
+func newLockedRand(seed int64) *lockedRand { return &lockedRand{r: rand.New(rand.NewSource(seed))} }
+
+func (l *lockedRand) Float64() float64 {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.r.Float64()
+}
+
+func (l *lockedRand) NormFloat64() float64 {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.r.NormFloat64()
+}
+
 // shadowSample is the shadow log's sampling draw (its own source: the game's
 // draws are not taken from).
-var shadowSample = struct {
-	sync.Mutex
-	r *rand.Rand
-}{r: rand.New(rand.NewSource(time.Now().UnixNano()))}
+var shadowSample = newLockedRand(time.Now().UnixNano())
+
+// shadowRand is a shadowed formula's draws: a source of its own, apart from
+// the game's (formulaRand: math/rand's global source, which the melee rolls,
+// procs and every other gameplay roll draw from), so that running a formula
+// in shadow takes no draw from the game and shifts no later gameplay roll.
+// Live mode draws from formulaRand, as the game's own rolls do: there the
+// formula's figure lands, and its draws are part of the game. A test fixes it
+// (a formula.Forced, or SeedShadowRand).
+var shadowRand formula.Rand = shadowSourceOf(time.Now().UnixNano())
+
+func shadowSourceOf(seed int64) formula.Rand {
+	l := newLockedRand(seed)
+	return formula.RandSource{Float64: l.Float64, NormFloat64: l.NormFloat64}
+}
+
+// SeedShadowRand gives shadow runs' draws a fixed seed (a test's, or an
+// operator's who wants two shadow runs' draws alike); the game's draws are
+// untouched.
+func SeedShadowRand(seed int64) { shadowRand = shadowSourceOf(seed) }
 
 func (sh *dmgShadow) sampled() bool {
 	if sh.cfg.Sample >= 1 {
 		return true
 	}
-	shadowSample.Lock()
-	defer shadowSample.Unlock()
-	return shadowSample.r.Float64() < sh.cfg.Sample
+	return shadowSample.Float64() < sh.cfg.Sample
 }
 
 // shadowDamage runs e on the hit and hands the pair to the shadow log; it
@@ -429,15 +482,16 @@ func (w *World) shadowDamage(e *dmgEntry, base int, in *dmgIn) {
 	}
 	r := dmgScratch.Get().(*dmgRun)
 	defer dmgScratch.Put(r)
-	cr := &countRand{r: formulaRand}
+	cr := &countRand{r: shadowRand} // never the game's source (shadowRand)
 	x, err := e.runOn(r, base, in, cr)
 	rec := &shadowRec{at: time.Now(), path: dmgPathName(in.src, in.kind), entry: e.name, builtin: base, formula: x,
-		raw: in.raw, mit: in.mitigated, draws: cr.n}
+		raw: in.raw, mit: in.mitigated, draws: cr.n, builtinPre: base, preview: x, steps: in.stage.steps(),
+		weaponType: in.weaponType()}
+	if in.stage.on {
+		rec.builtinPre, rec.preview = in.stage.pre, in.stage.preview(x)
+	}
 	if err != nil {
 		rec.fail = err.Error()
-	}
-	if in.ap != nil {
-		rec.weaponType = in.ap.Gear.WeaponType
 	}
 	if in.resist != 0 {
 		rec.dResist = sideStat(in.dp, in.dn, in.resist)

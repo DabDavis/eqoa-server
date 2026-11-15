@@ -548,6 +548,36 @@ func contactNPCLocked(npc *NPC) {
 // stayed on, doing nothing, until its time ran out). Must be called with the
 // lock held.
 func (w *World) mitigateLocked(p *Player, n int, now time.Time) int {
+	n, _ = w.mitigateSnapLocked(p, n, now)
+	return n
+}
+
+// mitSnap is the mitigation a hit met, as it stood before the hit spent any
+// of it: its share and, for a capped one, what it had left. Its take is
+// mitigateLocked's arithmetic on a figure with nothing spent, broken or
+// logged (the shadow log's preview: dmgshadow.go).
+type mitSnap struct {
+	on     bool // a mitigation was there
+	pct    int
+	capped bool
+	left   int
+}
+
+// take is n less what the mitigation would take off it.
+func (m mitSnap) take(n int) int {
+	if !m.on || n <= 0 {
+		return n
+	}
+	off := n * m.pct / 100
+	if m.capped {
+		off = min(off, m.left)
+	}
+	return n - off
+}
+
+// bestMitigation is the mitigation a melee hit on p meets now (the strongest
+// one with any left), nil for none; it changes nothing.
+func bestMitigation(p *Player, now time.Time) *ActiveEffect {
 	var best *ActiveEffect
 	for _, e := range p.Effects {
 		if e.Rules.MitigatePct <= 0 || !now.Before(e.Until) || e.Rules.MitigateCapped && e.Rules.MitigateLeft <= 0 {
@@ -557,12 +587,22 @@ func (w *World) mitigateLocked(p *Player, n int, now time.Time) int {
 			best = e
 		}
 	}
-	if best == nil || n <= 0 {
-		return n
+	return best
+}
+
+// mitigateSnapLocked is mitigateLocked, also giving the mitigation as it was
+// before the hit (mitSnap).
+func (w *World) mitigateSnapLocked(p *Player, n int, now time.Time) (int, mitSnap) {
+	best := bestMitigation(p, now)
+	if best == nil {
+		return n, mitSnap{}
 	}
-	off := n * best.Rules.MitigatePct / 100
+	snap := mitSnap{on: true, pct: best.Rules.MitigatePct, capped: best.Rules.MitigateCapped, left: best.Rules.MitigateLeft}
+	if n <= 0 {
+		return n, snap
+	}
+	off := n - snap.take(n)
 	if best.Rules.MitigateCapped {
-		off = min(off, best.Rules.MitigateLeft)
 		best.Rules.MitigateLeft -= off
 	}
 	if off > 0 {
@@ -572,7 +612,7 @@ func (w *World) mitigateLocked(p *Player, n int, now time.Time) int {
 		log.Printf("Combat: %s's %q breaks: its most stopped", p.Name, best.Name)
 		w.removeEffectLocked(p, best.SpellID)
 	}
-	return n - off
+	return n - off, snap
 }
 
 // noLowestLevelUpTo is the highest spell level with no lowest level to receive it

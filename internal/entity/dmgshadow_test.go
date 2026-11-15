@@ -80,7 +80,8 @@ func TestShadowModeNeverChangesAppliedDamage(t *testing.T) {
 	}
 
 	path := shadowOn(t, r.w, 0)
-	f := fixDice(t, 0.9, 0.9)
+	game := fixDice(t, 0.9, 0.9)
+	f := fixShadowDice(t, 0.9, 0.9)
 	if got := swing(); got != builtSwing {
 		t.Errorf("shadow: a swing landed %d, the built-in %d", got, builtSwing)
 	}
@@ -89,6 +90,9 @@ func TestShadowModeNeverChangesAppliedDamage(t *testing.T) {
 	}
 	if f.Next != 1 {
 		t.Errorf("the formulas made %d draws, want 1 (the toy's pick)", f.Next)
+	}
+	if game.Next != 0 {
+		t.Errorf("shadow took %d draws from the game's source", game.Next)
 	}
 	recs := readShadow(t, r.w, path)
 	if len(recs) != 2 {
@@ -175,7 +179,7 @@ func TestShadowSummary(t *testing.T) {
 	w := NewWorld()
 	fixDice(t)
 	writeFormulas(t, w, "formulas:\n  npc_melee: 'a_level > 20 ? base * 2 : base'\n  player_melee: base + 1\n")
-	path := shadowOn(t, w, 2000) // small: it rotates
+	path := shadowOn(t, w, 8000) // small: it rotates
 	for i := range 40 {
 		lvl := 10
 		if i%2 == 1 {

@@ -937,18 +937,21 @@ func (d *Duel) share() float64 {
 // what lands of n (an elemental hit resolved with its share once:
 // elemental.go, duelfight.go).
 func (w *World) duelHurtAtLocked(d *Duel, attacker *Player, src EntityID, t *Player, dmg, n int, now time.Time, kind numberKind) bool {
+	stage := dmgStage{on: true, pre: dmg} // the steps after the share, for the shadow log (dmgshadow.go)
 	if kind&^(numberByPet|numberByMerc) == numberMelee {
 		// a melee hit, the foe's or its pet's, less t's mitigations, as a creature's is
 		// (workbook.go: Stoneskin's share, its most spent as it goes, breaking at it)
-		dmg = w.mitigateLocked(t, dmg, now)
+		dmg, stage.mit = w.mitigateSnapLocked(t, dmg, now)
 	}
 	if d.pvp {
-		dmg = w.ctfHurtLocked(t, dmg) // ctfflag.go: a carrier held too long takes more
+		stage.ctfPct = w.ctfHurtPctLocked(t)
+		dmg = ctfWounded(dmg, stage.ctfPct) // ctfflag.go: a carrier held too long takes more
 	}
 	// the operator's formula for the hit's kind (dmgformula.go: pvp_melee,
 	// pvp_spell, ...), base what lands after the duel's share
 	fi := &dmgIn{src: srcPvP, kind: dmgKindOf(kind), ap: attacker, dp: t, raw: n, duel: !d.pvp,
-		ranged: kind == numberMelee && src == attacker.ServerID && rangedSwing(attacker)}
+		ranged: kind == numberMelee && src == attacker.ServerID && rangedSwing(attacker), stage: stage,
+		mitigated: stage.pre - stage.mit.take(stage.pre)}
 	if src != attacker.ServerID {
 		fi.byPet, fi.ap, fi.an, fi.owner = true, nil, w.NPCs[src], attacker
 	}

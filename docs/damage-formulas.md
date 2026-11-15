@@ -54,16 +54,75 @@ combat:
 
 A line holds: `t`, `path` (the hit's), `formula` (the one that ran),
 `builtin` (what landed), `value` (the formula's figure), `raw`, `mitigated`
-(what a mitigation took off before the built-in figure: a creature's melee),
-`draws` (the formula's random draws), `fail` (a run's failure, part and kind;
-`value` is then `builtin`), `weapon_type` (the attacker's weapon's attack
-type), `d_resist` (the defender's resist the hit is against), `in` (the inputs
-the formula reads, and always the sides' kinds, names, families, races,
-classes, levels, mods, the defender's AC and AGI, the attacker's STR and DEX,
-the weapon's damage, delay and hands, the flags, the spell and the resist),
-and `tags`: the value of every step whose name begins with `shadow_` (a number
-or a string), the file's own way to record, say, which of its records a hit
-matched. Never a formula's text.
+(what a mitigation took off before the built-in figure: a creature's melee, a
+PvP melee hit), `builtin_pre`, `formula_final_preview` and `stage` (the
+comparison stages, below), `draws` (the formula's random draws), `fail` (a
+run's failure, part and kind; `value` is then `builtin`), `weapon_type` (the
+attacker's weapon's attack type), `d_resist` (the defender's resist the hit
+is against), `in` (the inputs the formula reads, and always the sides' kinds,
+names, families, races, classes, levels, mods (the level-based ones, the
+effects' and the masteries'), npc rows, the defender's AC and AGI and
+`d_dummy`, the attacker's STR and DEX, the weapon's damage, delay, hands and
+type, the ranged slot's damage and the shot's arrows, the flags, the spell,
+the resist, `base_pre`, `world` and `instance`), and `tags`: the value of
+every step whose name begins with `shadow_` (a number or a string), the
+file's own way to record, say, which of its records a hit matched. Never a
+formula's text.
+
+### The comparison stages
+
+Every path's figure goes, in order: the roll (`raw`), the balance's shares
+(and an add's share of its creature), then, on two paths, a **stage** of
+steps, and only then the formula's hook. In **live mode a formula's result
+replaces the figure at the hook, after the stage**: the stage is not run on
+it again, and what the formula returns is what lands (before the boss-hold
+and the dummy, as for every path). So in live mode a formula's `base` is the
+figure after the stage, and `base_pre` the figure before it.
+
+| Path | Its stage, in order |
+|------|---------------------|
+| `npc_melee` (`systems.go` `npcAttackPlayer`) | the player's mitigation (`workbook.go` `mitigateLocked`: the strongest mitigation with any left takes its percent off, a capped one no more than it has left, spending that much and breaking when spent) |
+| `pvp_melee` (`duel.go` `duelHurtAtLocked`) | the defender's mitigation, as above; then, in a PvP fight (not a duel), a wounded flag carrier's added share (`ctfflag.go`) |
+| other `pvp_*` | in a PvP fight, the flag carrier's added share |
+| every other path | none |
+
+Each shadow line then holds three figures of the hit:
+
+- `builtin_pre`: the built-in figure **before the stage** (after the
+  balance's shares), `builtin` on a path with none. For `npc_melee` it is
+  `builtin + mitigated`.
+- `builtin`: the built-in figure **after the stage**: what landed, and the
+  figure a live formula's result takes the place of (`base`).
+- `formula_final_preview`: the formula's figure (`value`) put **through the
+  same stage**, as the built-in figure went through it, computed from the
+  state as it stood before the hit: the mitigation's percent and what a
+  capped one had left before this hit spent any, the carrier's wounds. It is
+  a preview with no side effect: it spends no mitigation, breaks none, logs
+  nothing, sets off no proc and draws nothing. On a path with no stage it is
+  `value`.
+- `stage`: the stage's steps: `mitigation`, `ctf`, `mitigation+ctf`, `none`
+  (a stage that met no mitigation and no wounds), left out on a path with no
+  stage.
+
+So a formula written for the figure before mitigation (reading `base_pre`)
+is compared against the built-in by `formula_final_preview` against
+`builtin`, and one written for the landed figure (reading `base`) by `value`
+against `builtin`. The figures that land are unchanged by shadow mode, and
+live mode is as it was: its result is the landed figure.
+
+### The draws in shadow mode
+
+A shadowed formula draws from a random source of its own, seeded at start
+and apart from the game's (math/rand's global source, which the melee rolls,
+procs and every other gameplay roll draw from), so switching shadow mode on
+changes no gameplay roll's sequence: with the game's seed fixed the game's
+draws come out the same with shadow on or off (a test holds it). The
+sampling of `formula_shadow_sample` has its own source too.
+`entity.SeedShadowRand(seed)` fixes the shadow source's seed (a test's, or
+two shadow runs to compare alike). **Live mode draws from the game's
+source**, as before: there the formula's figure lands and is part of the
+game, as the built-in roll it replaces is, and an older file gives the same
+figures from the same seed it did.
 
 The mode is kept in each shard's database (table `formula_setting`):
 `formula_mode` only seeds it, and a GM's switch overwrites it and outlives a
@@ -164,8 +223,9 @@ Where each takes effect:
 - `player_spell`, `player_dot`, `player_proc`, `player_shield`:
   `entity/cast.go` `spellHitHateLocked`, the one place a player's spell, tick,
   proc, damage mark and damage shield land on a creature, after `dealtLocked`.
-- `pvp_*`: `entity/duel.go` `duelHurtLocked`, after the duel's or PvP's share
-  and a flag carrier's bonus (`raw` is the figure before the share).
+- `pvp_*`: `entity/duel.go` `duelHurtLocked`, after the duel's or PvP's share,
+  a melee hit's mitigation and a flag carrier's bonus (`raw` is the figure
+  before the share).
 - `npc_melee`: `entity/systems.go` `npcAttackPlayer`, after the balance and a
   mitigation. `npc_spell` and `npc_dot`: `entity/classtemplate.go`
   (`templateHitLocked`, `npcTickLocked`), after the resist. `npc_special`:
@@ -226,7 +286,8 @@ Values are numbers, strings (`"text"`), records and lists.
   is named by a string written in the formula, checked at load.
 - `field(rec, "name", default)`: a field, or the default when the record
   lacks it. `has(rec, "name")`: 1 or 0. `len(list)`, `at(list, i)` (from 0).
-- Random draws, from the server's own random source:
+- Random draws, from the server's own random source (in shadow mode, a
+  source of the shadow runs' own: "The draws in shadow mode"):
   `uniform()` in [0, 1), `uniform(lo, hi)`, `normal(mu, sigma)`,
   `beta(alpha, beta)` (X/(X+Y) of two Gamma draws by Marsaglia and Tsang's
   method), `pick(list)` (one item of a list, chosen by one uniform draw with
@@ -251,6 +312,7 @@ own: its `_str` ... `_ar` are what its effects add.
 | Input | Meaning |
 |-------|---------|
 | `base` | the built-in figure of this hit, what would land without a formula |
+| `base_pre` | the built-in figure before the path's stage (a mitigation, a flag carrier's wounds: "The comparison stages"); `base` on a path with none |
 | `raw` | the path's figure before the balance's shares (the weapon roll, the spell's amount after resists; `base` where the path has none) |
 | `kind` | 1 melee, 2 spell, 3 dot, 4 shield, 5 proc, 6 special |
 | `mode` | `"melee"`, `"ranged"`, `"spell"`, `"dot"`, `"shield"`, `"proc"` or `"special"` |
@@ -262,6 +324,7 @@ own: its `_str` ... `_ar` are what its effects add.
 | `spell_level` | the spell's level (the ability's; 0 for none or unknown) |
 | `resist` | the resist the hit is against: 0 none, 11 FR, 12 CR, 13 PR, 14 DR, 15 LR, 16 AR |
 | `con` | the defender's level less the attacker's |
+| `world`, `instance` | the world index the hit is in and the instanced world's copy (0 for none): the defender's (a player's before a creature's), else the attacker's |
 | `a_kind` | the attacker: `"player"`, `"creature"`, `"pet"` or `"merc"` |
 | `a_name` | its name (a merc's its NPC's) |
 | `a_family` | a creature's family key: the class template it fights by (`""` for none and for a player) |
@@ -269,7 +332,10 @@ own: its `_str` ... `_ar` are what its effects add.
 | `a_class` | its class id (WAR=0 ... ALC=14) |
 | `a_class_name` | its class's name (`"Warrior"` ...) |
 | `a_level` | its level |
-| `a_offmod`, `a_defmod` | its OFF and DEF mods |
+| `a_offmod`, `a_defmod` | its OFF and DEF mods: a player's from its effects; a creature's its level-based estimate (its row's level through `NPCOffMod`/`NPCDefMod`; a pet its sheet's) |
+| `a_effect_offmod`, `a_effect_defmod` | its OFF and DEF mods from its effects alone: a player's (as `a_offmod`), a creature's what its effects add |
+| `a_cm_offmod`, `a_cm_defmod` | the OFF MOD and DEF MOD a player's bought masteries give (the sum of its ranks' `offmod`/`defmod`, `CMEffects`); 0 for a creature |
+| `a_npc_row` | a creature's `npcs` row id (a copy's, a spawn's, the row it was copied from; 0 for a copy of none and for a player) |
 | `a_eff_level` | its combat level: `a_level + a_offmod` |
 | `a_hp`, `a_maxhp`, `a_power`, `a_maxpower` | its hit points and power now, and their maxima |
 | `a_str`, `a_sta`, `a_agi`, `a_dex`, `a_wis`, `a_int`, `a_cha`, `a_ac` | its stats as the client shows them |
@@ -277,9 +343,13 @@ own: its `_str` ... `_ar` are what its effects add.
 | `weapon_cond` | its condition, 0 to 1 |
 | `weapon_delay` | its swing's delay in seconds |
 | `two_handed` | 1 for a two-handed weapon |
+| `weapon_type` | the attacker's weapon's attack type (the one `weapon_dmg` is; the line's `weapon_type`), 0 for none and for a creature |
+| `ranged_weapon_dmg`, `ranged_weapon_type` | the item in the attacker's ranged slot's damage and attack type, 0 for none, whatever the hands hold. A bow's shot in the built-in rolls on `weapon_dmg`, which is the hands' weapon's when one is held and the ranged slot's only when none is |
+| `projectiles` | a bow's shot's arrows: 1, or 2 at the fourth ranged swing (each rolled and taken at its share, summed in `raw`); 0 for a swing that is no shot |
 | `d_kind` | the defender: `"player"`, `"creature"` or `"pet"` |
 | `d_name`, `d_family`, `d_race`, `d_class`, `d_class_name`, `d_level` | as the attacker's |
-| `d_offmod`, `d_defmod` | its OFF and DEF mods |
+| `d_offmod`, `d_defmod` | its OFF and DEF mods (as `a_offmod`) |
+| `d_effect_offmod`, `d_effect_defmod`, `d_cm_offmod`, `d_cm_defmod`, `d_npc_row` | as the attacker's |
 | `d_eff_level` | its combat level: `d_level + d_defmod` |
 | `d_hp`, `d_maxhp`, `d_power`, `d_maxpower` | as the attacker's |
 | `d_defence` | a creature's defence figure in the built-in melee roll (0 for a player) |
@@ -289,6 +359,16 @@ own: its `_str` ... `_ar` are what its effects add.
 | `owner_level`, `owner_class`, `owner_class_name` | a pet's or a merc's owner's (0, -1, `""` for none) |
 
 The built-in has no critical hits; a formula that wants them draws its own.
+
+### Older files and newer inputs
+
+The inputs added on 2026-11-15 (`base_pre`, `world`, `instance`,
+`a_/d_effect_offmod`, `a_/d_effect_defmod`, `a_/d_cm_offmod`,
+`a_/d_cm_defmod`, `a_/d_npc_row`, `weapon_type`, `ranged_weapon_dmg`,
+`ranged_weapon_type`, `projectiles`) may be a step's name in a file: from that
+step on the name is the step's (the steps before it read the input), so a
+file written before them, with a step of one of those names, loads and gives
+the figures it did. A step named as any older input is refused as before.
 
 ## A made-up example
 

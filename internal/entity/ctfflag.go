@@ -364,17 +364,32 @@ func (w *World) ctfWoundsLocked(m *ctfMatch, now time.Time) {
 
 // ctfHurtLocked is a PvP hit of dmg on t (duelHurtLocked's, after the share): more on a wounded carrier.
 func (w *World) ctfHurtLocked(t *Player, dmg int) int {
+	return ctfWounded(dmg, w.ctfHurtPctLocked(t))
+}
+
+// ctfHurtPctLocked is the share, in percent, a PvP hit on t is raised by
+// (ctfHurtLocked's): a wounded carrier's wounds, 0 for any other. It changes
+// nothing.
+func (w *World) ctfHurtPctLocked(t *Player) int {
 	defer w.ctfForLocked(t)()
 	m := w.ctf.m
 	if !t.inMatch(m) || !t.ctf.carries {
-		return dmg
+		return 0
 	}
 	for _, f := range m.flags {
 		if f != nil && f.state == ctfFlagCarried && f.carrier == t.ServerID && f.wounds > 0 {
-			return dmg + int(math.Round(float64(dmg)*float64(f.wounds)/100))
+			return f.wounds
 		}
 	}
-	return dmg
+	return 0
+}
+
+// ctfWounded is dmg raised by wounds percent.
+func ctfWounded(dmg, wounds int) int {
+	if wounds <= 0 {
+		return dmg
+	}
+	return dmg + int(math.Round(float64(dmg)*float64(wounds)/100))
 }
 
 // ctfDownLocked is a match's player dying (playerDownLocked): its banner drops where it fell, its death counted.

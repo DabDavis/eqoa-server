@@ -40,6 +40,12 @@ const (
 // the part, never an expression's text or a table's value; the programs and
 // the count of tables are returned only when there is none.
 func ParseFile(data []byte, known func(name string) bool, inputs map[string]int) (map[string]*Program, int, []error) {
+	return ParseFileYield(data, known, inputs, nil)
+}
+
+// ParseFileYield is ParseFile with the inputs a step's name may take over
+// (Compiler.Yield): inputs added after files were written.
+func ParseFileYield(data []byte, known func(name string) bool, inputs map[string]int, yield map[string]bool) (map[string]*Program, int, []error) {
 	if len(data) > MaxFileSize {
 		return nil, 0, []error{fmt.Errorf("file larger than %d bytes", MaxFileSize)}
 	}
@@ -73,7 +79,7 @@ func ParseFile(data []byte, known func(name string) bool, inputs map[string]int)
 	}
 	progs := map[string]*Program{}
 	if formulasNode != nil {
-		c := &Compiler{Inputs: inputs, Tables: tables}
+		c := &Compiler{Inputs: inputs, Tables: tables, Yield: yield}
 		progs, errs = readFormulas(c, formulasNode, known, errs)
 	}
 	if len(errs) > 0 {

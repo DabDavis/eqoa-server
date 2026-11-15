@@ -44,6 +44,17 @@ func fixDice(t *testing.T, draws ...float64) *formula.Forced {
 	return f
 }
 
+// fixShadowDice makes shadow runs' draws a test's (shadowRand: a source
+// apart from the game's).
+func fixShadowDice(t *testing.T, draws ...float64) *formula.Forced {
+	t.Helper()
+	old := shadowRand
+	t.Cleanup(func() { shadowRand = old })
+	f := &formula.Forced{Draws: draws}
+	shadowRand = f
+	return f
+}
+
 // With no formula file the built-in figures stand: a player's melee hit lands
 // what it did, a formula of base alone changes nothing, the toy model's
 // figure lands while it is loaded, and the built-in is back once the file is

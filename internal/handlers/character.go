@@ -1615,6 +1615,9 @@ func wornGear(items []database.CharInventoryEntry) entity.Gear {
 			g.MainProc = &wp
 		}
 	}
+	if ranged != nil {
+		g.RangedDamage, g.RangedType = ranged.Pattern.WeaponDamage, ranged.Pattern.AttackType
+	}
 	if off != nil {
 		g.OffArmed, g.OffType = true, off.Pattern.AttackType
 		procName, procDesc := off.Pattern.ProcSource()

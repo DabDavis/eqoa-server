@@ -353,3 +353,33 @@ func BenchmarkArithmetic(b *testing.B) {
 		_, _ = p.Run(e)
 	}
 }
+
+// A step may take over an input the compiler lets yield (one added after a
+// file was written): the steps before it read the input, the ones after the
+// step; an input that does not yield, or an earlier step's name, is refused.
+func TestStepTakesOverAYieldingInput(t *testing.T) {
+	c := &Compiler{Inputs: testVars, Yield: map[string]bool{"family": true}}
+	p, err := c.Compile(Source{Steps: []NamedExpr{
+		{Name: "before", Expr: Expr{Text: "family"}},
+		{Name: "family", Expr: Expr{Text: "base * 2"}},
+	}, Result: Expr{Text: "family + before"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	e := env(Number(10), Number(0), Number(0), Number(0), Number(0), Number(3))
+	if got, err := p.Run(e); err != nil || got != 23 {
+		t.Errorf("got %v %v, want 23", got, err)
+	}
+	for _, steps := range [][]NamedExpr{
+		{{Name: "base", Expr: Expr{Text: "1"}}},
+		{{Name: "family", Expr: Expr{Text: "1"}}, {Name: "family", Expr: Expr{Text: "2"}}},
+	} {
+		if _, err := c.Compile(Source{Steps: steps, Result: Expr{Text: "1"}}); err == nil {
+			t.Errorf("%v compiled", steps)
+		}
+	}
+	if _, err := (&Compiler{Inputs: testVars}).Compile(Source{Steps: []NamedExpr{{Name: "family", Expr: Expr{Text: "1"}}},
+		Result: Expr{Text: "1"}}); err == nil {
+		t.Error("a step took over an input that does not yield")
+	}
+}

@@ -712,17 +712,25 @@ func rangedSwing(p *Player) bool {
 	return k >= swingRange1 && k <= swingRange4 && p.Swing.Potion == 0
 }
 
+// shotArrows is how many arrows the player's swing shoots: 1, or 2 at
+// Range4; 0 for a swing that is no bow's shot (melee, a thrown potion).
+func shotArrows(p *Player) int {
+	if !rangedSwing(p) {
+		return 0
+	}
+	if p.Swing.Kind == swingRange4 {
+		return 2
+	}
+	return 1
+}
+
 // playerShotHit is one landed player swing's damage before the balance: a
 // melee roll (playerMeleeHit), or a bow's shot of one arrow, or two at Range4,
 // each rangedShare times a ranged roll (playerRangedHit).
 func playerShotHit(p *Player, npc *NPC, intn func(int) int) int {
-	kind := p.Swing.Kind
-	if kind < swingRange1 || kind > swingRange4 || p.Swing.Potion != 0 {
+	arrows := shotArrows(p)
+	if arrows == 0 {
 		return playerMeleeHit(p, npc, intn)
-	}
-	arrows := 1
-	if kind == swingRange4 {
-		arrows = 2
 	}
 	hit := 0
 	for range arrows {

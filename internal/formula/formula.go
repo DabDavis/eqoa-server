@@ -210,6 +210,11 @@ func (p *Program) Run(e *Env) (float64, error) {
 type Compiler struct {
 	Inputs map[string]int     // an input's slot
 	Tables map[string]*Record // a table: a record of records, by key
+	// Yield names the inputs a step's name may take over (nil: none): inputs
+	// added after files were written, so that a file whose step is named as a
+	// newer input still loads and means what it did. From that step on the
+	// name is the step's; the steps before it read the input.
+	Yield map[string]bool
 }
 
 // Source is a program's text: its steps in order, its result and clamps
@@ -296,7 +301,7 @@ func (c *Compiler) Compile(src Source) (*Program, error) {
 		if !validName(s.Name) {
 			return nil, fmt.Errorf("%s: a step's name is letters, digits and _", part)
 		}
-		if _, taken := scope[s.Name]; taken {
+		if j, taken := scope[s.Name]; taken && (j >= first || !c.Yield[s.Name]) {
 			return nil, fmt.Errorf("%s: a step's name is an input's or an earlier step's", part)
 		}
 		if _, taken := funcs[s.Name]; taken {

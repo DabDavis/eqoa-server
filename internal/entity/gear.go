@@ -29,6 +29,11 @@ type Gear struct {
 	WeaponTwoHanded bool
 	WeaponSlot      int
 	WeaponType      int
+	// RangedDamage and RangedType are the item in the ranged slot's (18)
+	// itempattern.weapondamage and attack type, 0 for none, whatever the
+	// hands hold (a bow's shot rolls on WeaponDamage: offence.go; these are
+	// the damage formulas' inputs alone, dmgformula.go)
+	RangedDamage, RangedType int
 	// BareHands: no weapon in the hands (equip slots 14, 15 and 16; a shield
 	// or an item held is none) and nothing in the ranged slot (18), where a
 	// monk's melee rolls on its hand to hand (offence.go)

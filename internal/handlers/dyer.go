@@ -131,6 +131,31 @@ func dyerMenu() []dyerChoice {
 	return dyerChoices
 }
 
+// dyerMenuIn is dyerMenu for a box of room answers (dialogRoom): in CLIENT's
+// six it is dyerMenu itself; in a bigger box (a client that said it shows
+// more, dialogroom.go) each category's own question is put in its place, in
+// order, while the whole still fits (the owner, 2026-11-15: "lets increase the
+// dialog box ... to stack higher"): in twelve, the six pieces of armour and
+// the robe and shield stand in the first question beside All armor, Armor
+// trim, Weapons and Remove all dyes. A category that would not fit keeps its
+// question.
+func dyerMenuIn(room int) []dyerChoice {
+	menu := dyerMenu()
+	if room <= len(menu) {
+		return menu
+	}
+	out := append([]dyerChoice(nil), menu...)
+	for i := 0; i < len(out); i++ {
+		c := out[i]
+		if c.sub == nil || len(out)-1+len(c.sub) > room {
+			continue
+		}
+		out = append(out[:i:i], append(append([]dyerChoice(nil), c.sub...), out[i+1:]...)...)
+		i += len(c.sub) - 1
+	}
+	return out
+}
+
 // dyerShades is a family's colours as the dyer offers them: the first
 // family's with "No dye" after them (the dye of what was chosen taken off).
 func dyerShades(family int) []database.DyeColour {
@@ -168,6 +193,7 @@ type dyerAsk struct {
 	slots   []int
 	what    string
 	family  int
+	room    int // the answers its client's box holds (dialogRoom): which first question it was asked
 	speaker string
 }
 
@@ -217,7 +243,8 @@ func (d *Dyer) Offer(sess *session.Session, p *entity.Player, speaker string) {
 		greeting = "I dye armor, robes, capes, shields and weapons any color you like, free of charge. Only those who see the live game's colors see a dye."
 	}
 	d.say(sess, speaker, greeting)
-	d.ask(sess, p, dyerAsk{speaker: speaker, stage: askWhat}, "What shall I dye?", choiceLabels(dyerMenu()))
+	room := dialogRoom(sess)
+	d.ask(sess, p, dyerAsk{speaker: speaker, stage: askWhat, room: room}, "What shall I dye?", choiceLabels(dyerMenuIn(room)))
 }
 
 func choiceLabels(cs []dyerChoice) []string {
@@ -229,11 +256,12 @@ func choiceLabels(cs []dyerChoice) []string {
 }
 
 // chosen goes on from a choice of what to dye: its own question, every dye
-// off, or the colours' families. parent is its index in dyerChoices.
-func (d *Dyer) chosen(sess *session.Session, p *entity.Player, speaker string, c dyerChoice, parent int) {
+// off, or the colours' families. parent is its index in dyerMenuIn(room), the
+// first question as it was asked.
+func (d *Dyer) chosen(sess *session.Session, p *entity.Player, speaker string, c dyerChoice, parent, room int) {
 	switch {
 	case c.sub != nil:
-		d.ask(sess, p, dyerAsk{speaker: speaker, stage: askWhich, parent: parent}, "Which one?", choiceLabels(c.sub))
+		d.ask(sess, p, dyerAsk{speaker: speaker, stage: askWhich, parent: parent, room: room}, "Which one?", choiceLabels(c.sub))
 	case c.slots == nil:
 		d.dye(sess, p, speaker, allDyeSlots(), 0, "Every dye is off.")
 	default:
@@ -268,12 +296,14 @@ func (d *Dyer) Answer(sess *session.Session, p *entity.Player, box uint32, optio
 	n := int(option)
 	switch a.stage {
 	case askWhat:
-		if menu := dyerMenu(); n < len(menu) {
-			d.chosen(sess, p, a.speaker, menu[n], n)
+		if menu := dyerMenuIn(a.room); n < len(menu) {
+			d.chosen(sess, p, a.speaker, menu[n], n, a.room)
 		}
 	case askWhich:
-		if sub := dyerMenu()[a.parent].sub; n < len(sub) {
-			d.chosen(sess, p, a.speaker, sub[n], a.parent)
+		if menu := dyerMenuIn(a.room); a.parent < len(menu) {
+			if sub := menu[a.parent].sub; n < len(sub) {
+				d.chosen(sess, p, a.speaker, sub[n], a.parent, a.room)
+			}
 		}
 	case askFamily:
 		if n < len(database.DyeFamilies) {

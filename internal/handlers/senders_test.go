@@ -295,7 +295,7 @@ func TestDialogsAndJournal(t *testing.T) {
 	r.done(t)
 
 	opts := []string{"one", strings.Repeat("o", 80), "3", "4", "5", "6", "7", "8"}
-	r = open(t, buildQuestPopupMulti(9, strings.Repeat("q", 200), opts), protocol.OpcodeQuestPopupMulti)
+	r = open(t, buildQuestPopupMulti(9, strings.Repeat("q", 200), opts, maxDialogOptions), protocol.OpcodeQuestPopupMulti)
 	if id, q := r.u32(), r.wide(256); id != 9 || len(q) != 127 {
 		t.Fatalf("0x0034: id %d, question %d characters", id, len(q))
 	}

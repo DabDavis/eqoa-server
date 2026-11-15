@@ -22,7 +22,7 @@ import (
 // warp, the world loaded): for nothing, at any level, and whatever quest a
 // raid's own way in asks first (a test server's convenience: the Heirloom Test
 // Server sets world.teleporter). Every box holds at most maxDialogOptions
-// answers, which CLIENT shows three a page with its own More and Back; the
+// answers (or the more its client said it shows: dialogroom.go), which CLIENT shows three a page with its own More and Back; the
 // first is "Raids" and the camps by their levels:
 //
 //   - Raids: by where they are (teleRaidGroups), then the raid, named with its
@@ -493,7 +493,8 @@ func (t *Teleporter) tree(gw *entity.World, sess *session.Session) *teleNode {
 	for _, n := range camps {
 		n.high = n.low // a camp's part goes by the levels its camps start at
 	}
-	parts := levelFold(camps, maxDialogOptions-len(root.kids))
+	room := dialogRoom(sess)
+	parts := levelFold(camps, room-len(root.kids), room)
 	for _, p := range parts {
 		if p.spot == nil { // a range of camps: named as the first box's
 			p.label = "Camps, " + strings.ToLower(p.label[:1]) + p.label[1:]
@@ -504,16 +505,16 @@ func (t *Teleporter) tree(gw *entity.World, sess *session.Session) *teleNode {
 }
 
 // levelFold puts nodes (sorted by level) in boxes: as they are when they fit
-// in room answers; else in parts of at most maxDialogOptions each, split
-// where the levels change where it can (levelParts), folded again until the
-// parts fit in room.
-func levelFold(nodes []*teleNode, room int) []*teleNode {
+// in room answers; else in parts of at most box each (the client's box,
+// dialogRoom), split where the levels change where it can (levelParts),
+// folded again until the parts fit in room.
+func levelFold(nodes []*teleNode, room, box int) []*teleNode {
 	if len(nodes) <= room {
 		return nodes
 	}
-	parts := levelParts(nodes, maxDialogOptions)
-	for len(parts) > room {
-		parts = levelParts(parts, maxDialogOptions)
+	parts := levelParts(nodes, box)
+	for len(parts) > max(room, 1) {
+		parts = levelParts(parts, box)
 	}
 	return parts
 }

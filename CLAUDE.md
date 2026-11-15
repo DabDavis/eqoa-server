@@ -3818,6 +3818,18 @@ goroutine each: where the message before one is not known yet, the listener wait
 that address (at most a second) and asks again; nothing else waits. A PS2 never sends one that long (its longest, a
 petition or a gram of 511 characters, is under 1,100 bytes); vanilla does for a long petition.
 
+**More answers in an NPC's box, for a client that shows them** (2026-11-15; `session/dialogroom.go`,
+`handlers/dialogroom.go`; the owner: "lets increase the dialog box for heroic dungeons, coachmen etc. to stack higher
+before pagination"). CLIENT's `Msg0034` reads a 0x0034's answers into six `m_options` on its stack, unchecked: a
+seventh overruns. At the first 0x0014 the server offers **0x7E71** (`OpcodeDialogRoom`, a u32: `session.MaxDialogRoom`,
+12); vanilla answers with its own (12) and the session's room is the least of the two (`dialogRoom(sess)`; kept over a
+keep restart), six for a PS2, which never answers. `SendQuestPopupMulti` and `sendOptionBox` cut every box to it, and
+every paged list pages by it: coachmen/waysenders (`navPage`: room-1 and More on the first page, room-2 with More and
+Back on a middle one, which until then sent a PS2 seven answers past ten stops), the Heroic Dungeons board, the Testing
+Heroes Vendor, the Teleporter's level folds, the homes' friends, a merc's spells and other races, the archivist's paths,
+Dabrish's epics, the rehabilitators' paths; the Equipment Dyer's first question takes its categories' own answers in
+place while they fit (`dyerMenuIn`: in twelve, the six pieces and the robe and shield).
+
 **More than 24 NPCs and players in view, and farther, for a client that keeps them**
 (2026-10-24; `session/entityslots.go`, `handlers/entityslots.go`). CLIENT keeps 24 entity
 slots, the state channels 0x00-0x17; DRDP has 248 (0x00-0xF7), and CLIENT reads 0x40

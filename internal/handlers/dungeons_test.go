@@ -143,7 +143,7 @@ func TestDungeonsPagesTheirBox(t *testing.T) {
 	seen := map[string]bool{}
 	page := 0
 	for k := 0; k < 3; k++ {
-		box := dungeonsPage(all, page)
+		box := dungeonsPage(all, page, maxDialogOptions)
 		if len(box) > maxDialogOptions || box[len(box)-1].do != dungeonsDoMore {
 			t.Fatalf("page %d: %d answers, last %+v", page, len(box), box[len(box)-1])
 		}
@@ -155,8 +155,21 @@ func TestDungeonsPagesTheirBox(t *testing.T) {
 	if len(seen) != 12 || page != 0 {
 		t.Fatalf("three pages showed %d of 12, then page %d", len(seen), page)
 	}
-	if got := dungeonsPage(all[:6], 0); len(got) != 6 || got[5].do == dungeonsDoMore {
+	if got := dungeonsPage(all[:6], 0, maxDialogOptions); len(got) != 6 || got[5].do == dungeonsDoMore {
 		t.Fatalf("six answers fit one box: %+v", got)
+	}
+	// a client of twelve (dialogroom.go): the twelve in one box; thirteen eleven and More, then two and More
+	if got := dungeonsPage(all, 0, 12); len(got) != 12 || got[11].do == dungeonsDoMore {
+		t.Fatalf("twelve answers fit a box of twelve: %d", len(got))
+	}
+	all = append(all, dungeonsAnswer{do: dungeonsDoEnter, key: "m"})
+	first := dungeonsPage(all, 0, 12)
+	if len(first) != 12 || first[11].do != dungeonsDoMore || first[10].key != "k" {
+		t.Fatalf("thirteen in boxes of twelve, the first: %+v", first)
+	}
+	second := dungeonsPage(all, first[11].page, 12)
+	if len(second) != 3 || second[0].key != "l" || second[1].key != "m" || second[2].do != dungeonsDoMore || second[2].page != 0 {
+		t.Fatalf("thirteen in boxes of twelve, the second: %+v", second)
 	}
 }
 

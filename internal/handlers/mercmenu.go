@@ -31,7 +31,8 @@ import (
 //
 // Another player's merc has no menu: its talk is anything else's.
 
-// mercMenuPage is how many spells a box lists (the dungeon board's five).
+// mercMenuPage is how many spells a box lists (the dungeon board's five; a
+// client that shows more answers, its room less one: dialogroom.go).
 const mercMenuPage = 5
 
 const (
@@ -227,17 +228,18 @@ func (m *Mercs) menuSpells(sess *session.Session, p *entity.Player, slot, page i
 		mercSay(sess, fmt.Sprintf(mercNoSpells, info.Name))
 		return
 	}
-	pages := (len(spells) + mercMenuPage - 1) / mercMenuPage
+	per := dialogRoom(sess) - 1 // mercMenuPage on a PS2
+	pages := (len(spells) + per - 1) / per
 	page = max(0, min(page, pages-1))
 	var answers []string
-	for _, s := range spells[page*mercMenuPage : min((page+1)*mercMenuPage, len(spells))] {
+	for _, s := range spells[page*per : min((page+1)*per, len(spells))] {
 		answers = append(answers, s.Name+map[bool]string{false: ": on", true: ": off"}[s.Off])
 	}
 	if pages > 1 {
 		answers = append(answers, "More")
 	}
 	m.mu.Lock()
-	m.askLocked(sess, p, mercAsk{stage: mercStageSpells, slot: slot, page: page},
+	m.askLocked(sess, p, mercAsk{stage: mercStageSpells, slot: slot, page: page, per: per},
 		fmt.Sprintf(mercSpellsAsk, info.Name, page+1, pages), answers)
 	m.mu.Unlock()
 }
@@ -250,11 +252,12 @@ func (m *Mercs) menuSpellChoice(sess *session.Session, p *entity.Player, a mercA
 	if !ok {
 		return
 	}
-	from := a.page * mercMenuPage
-	shown := spells[min(from, len(spells)):min(from+mercMenuPage, len(spells))]
+	per := a.perBox()
+	from := a.page * per
+	shown := spells[min(from, len(spells)):min(from+per, len(spells))]
 	if n == len(shown) {
 		next := a.page + 1
-		if next*mercMenuPage >= len(spells) {
+		if next*per >= len(spells) {
 			next = 0
 		}
 		m.menuSpells(sess, p, a.slot, next)

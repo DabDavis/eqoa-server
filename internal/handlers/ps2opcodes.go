@@ -727,9 +727,10 @@ func SendSkyboxWeather(sess *session.Session, weatherType byte) {
 // Dialogs and the quest journal
 // =============================================================================
 
-// Room CLIENT has for the option dialog (Msg0034 0x00BDBD58).
+// Room CLIENT has for the option dialog (Msg0034 0x00BDBD58): a session's
+// own is dialogRoom (dialogroom.go), this unless its client said more.
 const (
-	maxDialogOptions = 6
+	maxDialogOptions = session.RetailDialogRoom
 )
 
 // buildDialogueBox is opcode 0x0046 — the case at 0x00BD1A4C: a u32, then a
@@ -750,10 +751,11 @@ func SendDialogueBox(sess *session.Session, counter uint32, text string) {
 // buildQuestPopupMulti is opcode 0x0034 — Msg0034 (0x00BDBD58): a u32 id the
 // answer (0x0035) echoes, the question as a wide string of at most 127
 // characters, a u8 option count and each option as a wide string of at most 63.
-// CLIENT has room for six options; more would run past them.
-func buildQuestPopupMulti(counter uint32, greeting string, options []string) []byte {
-	if len(options) > maxDialogOptions {
-		options = options[:maxDialogOptions]
+// CLIENT has room for six options; more would run past them, so a box holds at
+// most room (its client's, dialogRoom: six unless it said more).
+func buildQuestPopupMulti(counter uint32, greeting string, options []string, room int) []byte {
+	if len(options) > room {
+		options = options[:room]
 	}
 	return build(protocol.OpcodeQuestPopupMulti, 2+4+4+254+1+len(options)*(4+126), func(w *buffer.Writer) {
 		w.WriteUint32(counter)
@@ -765,9 +767,10 @@ func buildQuestPopupMulti(counter uint32, greeting string, options []string) []b
 	})
 }
 
-// SendQuestPopupMulti sends opcode 0x0034.
+// SendQuestPopupMulti sends opcode 0x0034, cut to the answers the session's
+// client shows (dialogRoom).
 func SendQuestPopupMulti(sess *session.Session, counter uint32, greeting string, options []string) {
-	queueReliable(sess, protocol.OpcodeQuestPopupMulti, buildQuestPopupMulti(counter, greeting, options))
+	queueReliable(sess, protocol.OpcodeQuestPopupMulti, buildQuestPopupMulti(counter, greeting, options, dialogRoom(sess)))
 }
 
 // buildQuestAdd is opcode 0x007C — the case at 0x00BD2B60: the u32 journal

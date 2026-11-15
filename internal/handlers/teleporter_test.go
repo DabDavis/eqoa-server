@@ -344,7 +344,7 @@ func TestLevelFoldShapes(t *testing.T) {
 			nodes[i] = &teleNode{label: "c", low: lv, high: lv, spot: &teleSpot{}}
 		}
 		sort.Slice(nodes, func(i, j int) bool { return nodes[i].low < nodes[j].low })
-		parts := levelFold(append([]*teleNode(nil), nodes...), 5)
+		parts := levelFold(append([]*teleNode(nil), nodes...), 5, maxDialogOptions)
 		if len(parts) > 5 {
 			t.Fatalf("%d camps: %d answers at first", n, len(parts))
 		}

@@ -71,6 +71,7 @@ type Kept struct {
 	BugReports         bool   `json:"bug_reports,omitempty"`
 	AckMasks           bool   `json:"ack_masks,omitempty"`
 	FlyClient          bool   `json:"fly_client,omitempty"`
+	DialogRoom         uint8  `json:"dialog_room,omitempty"` // the answers its client shows in a box, 0 six
 	NumberTags         bool   `json:"number_tags,omitempty"`
 	// NumberTagsLayout is the number tags' layout the client asked for, when
 	// past 1 (a kept file before it has NumberTags alone: layout 1)
@@ -230,6 +231,7 @@ func (s *Session) Keep() Kept {
 		BugReports:         s.bugReports,
 		AckMasks:           s.ackMasks,
 		FlyClient:          s.flyClient,
+		DialogRoom:         s.dialogRoom,
 		NumberTags:         s.numberTags != 0,
 		NumberTagsLayout:   s.numberTags,
 		NPCTints:           s.npcTints,
@@ -402,6 +404,7 @@ func (s *Session) restore(k Kept, now time.Time) {
 	s.bugReports = k.BugReports
 	s.ackMasks = k.AckMasks
 	s.flyClient = k.FlyClient
+	s.dialogRoom = k.DialogRoom
 	s.numberTags = k.NumberTagsLayout
 	if s.numberTags == 0 && k.NumberTags {
 		s.numberTags = 1

@@ -604,8 +604,9 @@ func (a *Archivist) askPaths(sess *session.Session, id uint32) {
 	answers := make([]string, 0, len(paths)+1)
 	offered := make([]int, 0, len(paths))
 	var names []string
+	room := dialogRoom(sess)
 	for i, pa := range paths {
-		if len(answers) == maxDialogOptions-1 {
+		if len(answers) == room-1 {
 			break // CLIENT's box holds six answers, Neither one of them
 		}
 		answers = append(answers, clipRunes(fmt.Sprintf(archivistPathAnswer, pa.name), questAnswerChars))

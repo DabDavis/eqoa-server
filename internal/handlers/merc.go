@@ -132,6 +132,16 @@ var mercRaceGroups = [][]int{{0, 1, 2, 3, 4}, {5, 6, 7, 8, 9}}
 
 const mercRacesABox = 5
 
+// perBox is the races or spells a page of a's lists: five (mercRacesABox,
+// mercMenuPage), or the room less one its client said it shows (dialogRoom),
+// as it was when the list was first asked.
+func (a mercAsk) perBox() int {
+	if a.per > 0 {
+		return a.per
+	}
+	return mercRacesABox
+}
+
 // The liaison's questions.
 const (
 	mercStageRole = iota
@@ -153,6 +163,7 @@ type mercAsk struct {
 	box                uint32
 	stage, role, class int
 	race, page         int
+	per                int // the races or spells a page lists (perBox), 0 five
 	path               int // the path picked (mercStagePath), -1 its class's default
 	slot               int // the merc a menu is of (mercmenu.go)
 	others             bool
@@ -326,12 +337,12 @@ func (m *Mercs) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 			a.stage, a.others, a.page = mercStageRace, false, n-1
 			m.askRaces(sess, p, a)
 		case n-1 == len(mercRaceGroups) && len(mercOtherRaces()) > 0:
-			a.stage, a.others, a.page = mercStageRace, true, 0
+			a.stage, a.others, a.page, a.per = mercStageRace, true, 0, dialogRoom(sess)-1
 			m.askRaces(sess, p, a)
 		}
 	case mercStageRace:
 		races := m.racesOf(a)
-		more := a.others && (a.page+1)*mercRacesABox < len(mercOtherRaces())
+		more := a.others && (a.page+1)*a.perBox() < len(mercOtherRaces())
 		switch {
 		case n < len(races):
 			r := races[n]
@@ -394,11 +405,11 @@ func (m *Mercs) racesOf(a mercAsk) []mercRace {
 		return out
 	}
 	all := mercOtherRaces()
-	from := a.page * mercRacesABox
+	from := a.page * a.perBox()
 	if from >= len(all) {
 		return nil
 	}
-	return all[from:min(from+mercRacesABox, len(all))]
+	return all[from:min(from+a.perBox(), len(all))]
 }
 
 // askRaces asks which race of a group or page, "More races" last when the
@@ -408,7 +419,7 @@ func (m *Mercs) askRaces(sess *session.Session, p *entity.Player, a mercAsk) {
 	for _, r := range m.racesOf(a) {
 		answers = append(answers, r.name)
 	}
-	if a.others && (a.page+1)*mercRacesABox < len(mercOtherRaces()) {
+	if a.others && (a.page+1)*a.perBox() < len(mercOtherRaces()) {
 		answers = append(answers, "More races")
 	}
 	if len(answers) == 0 {

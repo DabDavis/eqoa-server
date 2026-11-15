@@ -480,34 +480,36 @@ func TestTheHeroesVendorIsOffUnlessSet(t *testing.T) {
 // More going round; every question and answer is as long as CLIENT shows, for
 // the petition's five and for names as long as a record's may be.
 func TestTheHeroesVendorsBoxesFit(t *testing.T) {
-	for n := 0; n <= 14; n++ {
-		seen := map[int]bool{}
-		pages := 0
-		for page := 0; ; page++ {
-			shown, more := heroesPageOf(n, page)
-			count := shown[1] - shown[0]
-			if more {
-				count++
+	for _, room := range []int{maxDialogOptions, 12} {
+		for n := 0; n <= 30; n++ {
+			seen := map[int]bool{}
+			pages := 0
+			for page := 0; ; page++ {
+				shown, more := heroesPageOf(n, page, room)
+				count := shown[1] - shown[0]
+				if more {
+					count++
+				}
+				if count > room || (n > 0 && shown[1] <= shown[0]) {
+					t.Fatalf("room %d, %d wares, page %d: %v more %v", room, n, page, shown, more)
+				}
+				for i := shown[0]; i < shown[1]; i++ {
+					seen[i] = true
+				}
+				pages++
+				if !more || len(seen) >= n {
+					break
+				}
 			}
-			if count > maxDialogOptions || (n > 0 && shown[1] <= shown[0]) {
-				t.Fatalf("%d wares, page %d: %v more %v", n, page, shown, more)
+			if len(seen) != n || (n <= room && pages != 1) {
+				t.Errorf("room %d, %d wares: %d seen in %d pages", room, n, len(seen), pages)
 			}
-			for i := shown[0]; i < shown[1]; i++ {
-				seen[i] = true
-			}
-			pages++
-			if !more || len(seen) >= n {
-				break
-			}
-		}
-		if len(seen) != n || (n <= maxDialogOptions && pages != 1) {
-			t.Errorf("%d wares: %d seen in %d pages", n, len(seen), pages)
-		}
-		if n > maxDialogOptions { // round to the first
-			last, _ := heroesPageOf(n, pages-1)
-			again, _ := heroesPageOf(n, pages)
-			if again[0] != 0 || last[1] != n {
-				t.Errorf("%d wares: the last page %v, the one after %v", n, last, again)
+			if n > room { // round to the first
+				last, _ := heroesPageOf(n, pages-1, room)
+				again, _ := heroesPageOf(n, pages, room)
+				if again[0] != 0 || last[1] != n {
+					t.Errorf("room %d, %d wares: the last page %v, the one after %v", room, n, last, again)
+				}
 			}
 		}
 	}

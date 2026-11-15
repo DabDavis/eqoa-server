@@ -960,6 +960,10 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// a PS2 ignores it, a client that keeps more says how many and how far
 	SendEntityViewOffer(sess)
 
+	// Offer more answers in an NPC's box than CLIENT's six (dialogroom.go):
+	// a PS2 ignores it, a client that shows more says how many
+	SendDialogRoomOffer(sess)
+
 	// Offer others' power (powerbars.go): a client that draws power bars
 	// asks for it, a PS2 ignores it
 	SendPowerBarsOffer(sess)

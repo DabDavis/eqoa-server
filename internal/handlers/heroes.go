@@ -31,7 +31,7 @@ import (
 // stands at and may spend (0x0046), then a question listing his stock, each
 // "<item>: <cost>" (0x0034 under box mark 0x64000000, beside Call of the
 // Hero's 0x63; six answers a box, so more than six wares go five a page with
-// "More..."). A pick says what the item is (its heroes_stock row's words, else
+// "More...", or as many as the client said it shows: dialogroom.go). A pick says what the item is (its heroes_stock row's words, else
 // its record's description; that the buyer could not wear it) and asks again;
 // Yes buys: the stock row is read again (a price changed since the list asks
 // again), the standing above the floor must cover the cost, a Lore item not be
@@ -53,10 +53,6 @@ const heroesBoxMark = 0x64000000
 
 // heroesReach is how near the vendor a box is answered.
 const heroesReach = 30
-
-// heroesPage is how many wares a box lists when there are more than a box
-// holds (maxDialogOptions): the sixth answer is then "More...".
-const heroesPage = maxDialogOptions - 1
 
 var heroesOn atomic.Bool
 
@@ -126,6 +122,7 @@ type heroesAsk struct {
 	stage int
 	wares []heroesWare
 	page  int
+	room  int // the answers its box held (dialogRoom), its page's size
 	ware  heroesWare
 	npc   entity.EntityID
 }
@@ -243,27 +240,30 @@ func (h *Heroes) Talk(sess *session.Session, p *entity.Player, npc *entity.NPC) 
 
 // list asks which ware, a page of them.
 func (h *Heroes) list(sess *session.Session, p *entity.Player, wares []heroesWare, page int, npc entity.EntityID, balance int) {
-	shown, more := heroesPageOf(len(wares), page)
-	answers := make([]string, 0, maxDialogOptions)
+	room := dialogRoom(sess)
+	shown, more := heroesPageOf(len(wares), page, room)
+	answers := make([]string, 0, room)
 	for _, w := range wares[shown[0]:shown[1]] {
 		answers = append(answers, w.label())
 	}
 	if more {
 		answers = append(answers, heroesMore)
 	}
-	h.ask(sess, p, heroesAsk{stage: heroesStageList, wares: wares, page: page, npc: npc}, fmt.Sprintf(heroesAskList, balance), answers)
+	h.ask(sess, p, heroesAsk{stage: heroesStageList, wares: wares, page: page, room: room, npc: npc}, fmt.Sprintf(heroesAskList, balance), answers)
 }
 
 // heroesPageOf is the wares a page lists ([from, to)) and whether "More..."
-// follows them: every ware in one box up to maxDialogOptions, else heroesPage
-// a page, the last page's More going round to the first.
-func heroesPageOf(n, page int) (shown [2]int, more bool) {
-	if n <= maxDialogOptions {
+// follows them: every ware in one box up to room (the client's, dialogRoom),
+// else room-1 a page, "More..." the room'th answer, the last page's More going
+// round to the first.
+func heroesPageOf(n, page, room int) (shown [2]int, more bool) {
+	if n <= room {
 		return [2]int{0, n}, false
 	}
-	pages := (n + heroesPage - 1) / heroesPage
+	per := room - 1
+	pages := (n + per - 1) / per
 	page = ((page % pages) + pages) % pages
-	return [2]int{page * heroesPage, min((page+1)*heroesPage, n)}, true
+	return [2]int{page * per, min((page+1)*per, n)}, true
 }
 
 // Answer is HandleDialogueOption's question for his box: a ware asked about, a
@@ -299,7 +299,7 @@ func (h *Heroes) Answer(sess *session.Session, p *entity.Player, box uint32, opt
 	n := int(option)
 	switch a.stage {
 	case heroesStageList:
-		shown, more := heroesPageOf(len(a.wares), a.page)
+		shown, more := heroesPageOf(len(a.wares), a.page, max(a.room, maxDialogOptions))
 		switch {
 		case more && n == shown[1]-shown[0]:
 			h.list(sess, p, a.wares, a.page+1, a.npc, balance)

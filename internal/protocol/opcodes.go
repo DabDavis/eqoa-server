@@ -1001,6 +1001,20 @@ const (
 	OpcodeConLevelOffer GameOpcode = 0x7E70
 )
 
+// More answers in an NPC's box (handlers/dialogroom.go, session/dialogroom.go;
+// the owner, 2026-11-15: "lets increase the dialog box for heroic dungeons,
+// coachmen etc. to stack higher before pagination").
+const (
+	// OpcodeDialogRoom is not retail: how many answers a client shows in one
+	// 0x0034, a u32 after the opcode, both ways. The server offers its most
+	// (session.MaxDialogRoom) once the player is in the world; a client that
+	// shows more than CLIENT's six answers with its own, and the session's
+	// boxes hold the least of the two from then on. A PS2 ignores the offer
+	// (CLIENT's dispatcher has no case above 0x1402 and no default) and never
+	// answers, so its boxes keep six. 0x7E71 is this lane's.
+	OpcodeDialogRoom GameOpcode = 0x7E71
+)
+
 // Mercenaries told apart and dismissed from the menu, and the group search's
 // registration and its "Allow anyone in my group to invite" (the GM Jibrish's
 // petitions 1475, 1476 and 1488, 2026-11-11; handlers/mercui.go,
@@ -1528,6 +1542,8 @@ func (op GameOpcode) String() string {
 		return "DPSMeterOffer"
 	case OpcodeConLevelOffer:
 		return "ConLevelOffer"
+	case OpcodeDialogRoom:
+		return "DialogRoom"
 	case OpcodeDPSMeterAnswer:
 		return "DPSMeterAnswer"
 	case OpcodeDPSMeterData:

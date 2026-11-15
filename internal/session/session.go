@@ -246,6 +246,11 @@ type Session struct {
 	// build) is sent none.
 	flyClient bool
 
+	// dialogRoom is the answers the client said it shows in one 0x0034 box
+	// (protocol.OpcodeDialogRoom, dialogroom.go): 0, a client that never said
+	// (a PS2), is RetailDialogRoom.
+	dialogRoom uint8
+
 	// numberTags is the tags' layout the client answered the number tags'
 	// offer with (protocol.OpcodeNumberTagsAnswer, handlers/numbertags.go): 1
 	// or more, each 0x00DB it is sent of a figure its player, its player's pet

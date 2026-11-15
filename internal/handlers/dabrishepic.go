@@ -329,7 +329,7 @@ func (h *InteractHandler) dabrishEpicStart(sess *session.Session, p *entity.Play
 		h.dabrishEpicAsk(sess, p, npc, swaps[0])
 		return
 	}
-	swaps = swaps[:min(len(swaps), maxDialogOptions)]
+	swaps = swaps[:min(len(swaps), dialogRoom(sess))]
 	answers := make([]string, len(swaps))
 	for i, s := range swaps {
 		answers[i] = clipRunes(s.fromName, questAnswerChars)

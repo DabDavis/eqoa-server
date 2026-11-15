@@ -80,7 +80,7 @@ var dungeonsRules = []string{
 	"- Only a client that builds the server's worlds (eqoa-rust-client-vanilla) can enter; a PS2 cannot.",
 }
 
-// dungeonsAnsMore is the answer that shows the next box of dungeons (a box holds maxDialogOptions answers).
+// dungeonsAnsMore is the answer that shows the next box of dungeons (a box holds dialogRoom's answers).
 const dungeonsAnsMore = "More dungeons"
 
 type dungeonsAnswer struct {
@@ -281,7 +281,7 @@ func (ds *Dungeons) askRoot(sess *session.Session, p *entity.Player, npc *entity
 		return
 	}
 	answers = append([]dungeonsAnswer{{do: dungeonsDoRules, label: dungeonsAnsRules}}, answers...)
-	ds.ask(sess, p, as+question, dungeonsPage(answers, page), npc.ServerID)
+	ds.ask(sess, p, as+question, dungeonsPage(answers, page, dialogRoom(sess)), npc.ServerID)
 }
 
 func (ds *Dungeons) ask(sess *session.Session, p *entity.Player, question string, answers []dungeonsAnswer, npc entity.EntityID) {
@@ -338,13 +338,13 @@ func (h *InteractHandler) answerDungeons(sess *session.Session, p *entity.Player
 	return true
 }
 
-// dungeonsPage is the page'th box of the answers: maxDialogOptions a box, the last of a box that does not hold the rest
-// "More dungeons" (to the next page, after the last back to the first).
-func dungeonsPage(answers []dungeonsAnswer, page int) []dungeonsAnswer {
-	if len(answers) <= maxDialogOptions {
+// dungeonsPage is the page'th box of the answers: room a box (the client's, dialogRoom), the last of a box that does
+// not hold the rest "More dungeons" (to the next page, after the last back to the first).
+func dungeonsPage(answers []dungeonsAnswer, page, room int) []dungeonsAnswer {
+	if len(answers) <= room {
 		return answers
 	}
-	per := maxDialogOptions - 1
+	per := room - 1
 	pages := (len(answers) + per - 1) / per
 	page %= pages
 	out := append([]dungeonsAnswer(nil), answers[page*per:min(len(answers), (page+1)*per)]...)

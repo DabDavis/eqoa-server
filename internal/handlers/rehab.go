@@ -594,8 +594,8 @@ func (r *Rehab) askPaths(sess *session.Session, p *entity.Player, speaker string
 		r.say(sess, speaker, rehabNoPath)
 		return
 	}
-	if len(picks) > maxDialogOptions {
-		picks = picks[len(picks)-maxDialogOptions:] // the latest
+	if room := dialogRoom(sess); len(picks) > room {
+		picks = picks[len(picks)-room:] // the latest
 	}
 	labels := make([]string, len(picks))
 	for i, pk := range picks {

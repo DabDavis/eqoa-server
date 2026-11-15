@@ -572,24 +572,16 @@ func EntityInfo(target entity.Entity, objectID uint32) string {
 	return info
 }
 
-// coachDestsPerPage is the max destinations per page (client option box limit is 6,
-// reserve slots for "More..." / "Back" navigation as needed).
-const coachDestsPerPage = 5
-
-// sendCoachPage sends the current page of coaching destinations to the player.
+// sendCoachPage sends the current page of coaching destinations to the player:
+// as many as its client's box holds beside "More..." and "Back" (navPage,
+// dialogRoom: five a box, and four on a middle page, on a PS2).
 func (h *InteractHandler) sendCoachPage(sess *session.Session, player *entity.Player) {
 	dests := player.PendingCoachDests
 	page := player.CoachPage
 	total := len(dests)
 
-	start := page * coachDestsPerPage
-	end := start + coachDestsPerPage
-	if end > total {
-		end = total
-	}
+	start, end, hasMore, hasBack := navPage(total, page, dialogRoom(sess))
 	pageDests := dests[start:end]
-	hasMore := end < total
-	hasBack := page > 0
 
 	options := make([]string, 0, len(pageDests)+2)
 	for _, d := range pageDests {
@@ -794,14 +786,8 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	page := player.CoachPage
 	total := len(dests)
 
-	start := page * coachDestsPerPage
-	end := start + coachDestsPerPage
-	if end > total {
-		end = total
-	}
+	start, end, hasMore, hasBack := navPage(total, page, dialogRoom(sess))
 	destsOnPage := end - start
-	hasMore := end < total
-	hasBack := page > 0
 
 	idx := int(selectedOption)
 
@@ -825,7 +811,7 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 
 	// Destination selection
 	destIdx := start + idx
-	if destIdx >= total {
+	if idx >= destsOnPage || destIdx >= total { // an answer past the page's is none of its stops
 		log.Printf("DialogueOption: invalid option %d (page %d, total %d)", selectedOption, page, total)
 		player.PendingCoachDests = nil
 		return nil
@@ -922,6 +908,9 @@ func (h *InteractHandler) sendOptionBox(sess *session.Session, text string, opti
 	writer.WriteUint16(uint16(protocol.OpcodeQuestPopupMulti))
 	writer.WriteUint32(0) // dialogue counter (not option count)
 	writer.WriteStringUnicode(text)
+	if room := dialogRoom(sess); len(options) > room {
+		options = options[:room] // CLIENT's box holds six (maxDialogOptions)
+	}
 	writer.WriteByte(byte(len(options))) // text options count
 	for _, opt := range options {
 		writer.WriteStringUnicode(opt)

@@ -274,14 +274,15 @@ func (hs *Homes) wayOutName(p *entity.Player) string {
 	return "Freeport"
 }
 
-// askFriends is the box of the friends' homes, page by page (five a box and "More homes").
+// askFriends is the box of the friends' homes, page by page (five a box and "More homes", or the room less one its
+// client said it shows: dialogRoom).
 func (hs *Homes) askFriends(sess *session.Session, p *entity.Player, npc entity.EntityID, page int) {
 	open := hs.gw.HomesOpenTo(sess)
 	if len(open) == 0 {
 		teleSay(sess, homesNoFriends)
 		return
 	}
-	const per = maxDialogOptions - 1
+	per := dialogRoom(sess) - 1
 	if page*per >= len(open) {
 		page = 0
 	}

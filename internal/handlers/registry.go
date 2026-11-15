@@ -556,6 +556,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// Register the client's entity view (0x7E00; entityslots.go): a client
 	// that keeps more than CLIENT's 24 says how many, and how far
 	NewEntityViewHandler().RegisterHandlers(r)
+	// and the answers it shows in an NPC's box (0x7E71; dialogroom.go)
+	NewDialogRoomHandler().RegisterHandlers(r)
 
 	// The quests (quests.go): an NPC talked to asks them first, their boxes'
 	// answers, the kills and places that do steps, the journal and the

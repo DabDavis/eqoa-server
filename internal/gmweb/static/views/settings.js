@@ -82,6 +82,24 @@ export async function render(box) {
     h('p', { class: 'muted small' }, 'A copy of the live database with every credential and person\'s data taken out (password hashes, tokens, authenticators, OAuth clients, the audit log, the work board, e-mail and IP addresses; players\' login names become account-<id>) and the game whole: for the real-data tests on your own machine (EQOA_REAL_DB). Its link works once, for ten minutes. Never commit, attach or share the file.'),
     snapshotButton, snapshotOut);
 
+  // the damage formula's mode on each shard (ops_formula.go; /formula in the game)
+  const formulaBox = h('div', { class: 'stack' });
+  const MODES = [['default', 'Default (built-in)'], ['jibs', 'Jibs (formula file applied)'], ['shadow', 'Shadow (built-in, formula recorded)']];
+  const modeWord = (m) => (m === 'live' ? 'jibs' : m === 'shadow' ? 'shadow' : 'default');
+  const loadFormula = async () => {
+    let out;
+    try { out = await op('formula_modes'); } catch (e) { mount(formulaBox, h('p', { class: 'faint' }, e.message)); return; }
+    mount(formulaBox, h('p', { class: 'muted small' }, 'Which damage each shard lands: the built-in, the formula file applied, or the built-in with the formula\'s figure recorded beside it in a private file. At once here, within seconds on the other shard; kept over a restart; audited and told to the GMs in the game (/formula there).'),
+      h('div', { class: 'table-scroll' }, h('table', { class: 'plain' }, h('tbody', null, ...out.shards.map((st) => h('tr', null,
+        h('td', { class: 'nowrap' }, st.shard + (st.here ? ' (here)' : '')),
+        h('td', { class: 'mono' }, modeWord(st.mode)),
+        h('td', { class: 'muted small' }, `${st.formulas_loaded} formula(s) loaded${st.shadow_log ? ', shadow log set' : ''}${st.by ? '; set by ' + st.by + ' ' + when(st.at) : ''}${st.error ? ' (' + st.error + ')' : ''}`),
+        h('td', { class: 'nowrap' }, ...(admin ? MODES.filter(([w]) => w !== modeWord(st.mode)).map(([w, label]) => button(label, { class: 'small', onclick: async () => {
+          if (!(await confirmBox({ title: `Switch ${st.shard} to ${w}?`, confirmLabel: 'Switch', message: 'Every hit on that shard follows it from now on.' }))) return;
+          try { const r = await op('set_formula_mode', { shard: st.shard, mode: w }); toast(r.message, 'ok'); loadFormula(); } catch (e) { toast(e.message, 'error'); }
+        } })) : []))))))));
+  };
+
   mount(box,
     pageHead('Settings', admin ? 'These apply at once and are written to ' + (view.configFile || 'config.yaml') + ' (backed up first), so a restart keeps them.' : 'An admin changes these.'),
     h('div', { class: 'cols' },
@@ -102,6 +120,7 @@ export async function render(box) {
         h('label', null, 'Experience while it lasts, percent (200: double; 100: no boon)', boonPct),
         h('label', null, 'Minutes of play it lasts (240: four hours)', boonMinutes),
         h('p', { class: 'muted small' }, 'Talking to a town\'s announcement board (Freeport Announcements and the rest) gives the player this boon, or puts it back to its whole time. The percent counts at once for every boon on; the minutes for boons given after. Its time runs only while the character is in the world, and a death does not end it.')))),
+    card('Damage formula', formulaBox),
     card('What NPCs say', h('div', { class: 'stack' },
       h('p', { class: 'muted small' }, 'An NPC of this exact name answers a talk with these words instead of the debug box.'),
       rows, admin ? button('Add a line', { icon: 'plus', class: 'small', onclick: () => addRow() }) : null)),
@@ -119,4 +138,5 @@ export async function render(box) {
       } }))) : null,
     card('The rest of the configuration (read-only)', h('pre', { class: 'json' }, JSON.stringify(view.config, null, 2))));
   loadBackups();
+  loadFormula();
 }

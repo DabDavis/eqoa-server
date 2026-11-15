@@ -1513,6 +1513,10 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		for _, l := range lines {
 			h.gmReply(sess, l)
 		}
+	case "#formula":
+		// #formula [jibs|default|shadow <shard>]: each shard's damage formula
+		// mode, and an admin's switch of one (formulacmd.go)
+		h.formulaCommand(sess, parts[1:])
 	case "#noclip":
 		// #noclip [on|off]: the server's own GMs' flight through walls, alone it
 		// turns over (noclip.go, petition 1904)

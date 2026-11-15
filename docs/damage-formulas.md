@@ -25,6 +25,75 @@ combat:
 - A load logs `Damage formulas loaded: N (names), K table(s)`, the formulas'
   names only.
 
+## The mode: off, live, shadow
+
+```yaml
+combat:
+  formula_file: /home/sdg/eqoa-server/private/damage.formula
+  formula_mode: shadow            # "" or off | live | shadow
+  formula_shadow_log: /home/sdg/eqoa-server/private/formula-shadow.jsonl
+  formula_shadow_sample: 1        # the share of hits recorded (unset: all)
+  formula_shadow_max_mb: 64       # rotated to <file>.1 at this size
+  formula_shard: heirloom         # this shard's name in /formula
+  formula_peers:                  # other shards' databases, switchable from here
+    live: /home/sdg/eqoa-live/eqoa.db
+```
+
+- **off** (`""`, `off`): the file is read (so `reload_formulas` names what it
+  holds) and nothing of it lands: the built-in damage everywhere.
+- **live**: a formula's result replaces the built-in figure of its path.
+- **shadow**: on every hit of a path a formula covers, the formula runs as live
+  would run it and its figure is **not** applied: the built-in figure lands,
+  unchanged. The pair is written, one JSON line a hit, to
+  `formula_shadow_log`, created mode 600 in a directory of mode 700, outside
+  the repository and outside the server's log. The tick does no I/O: a record
+  is handed to a queue (8,192; a full queue drops the record and counts it) and
+  a goroutine of its own writes it, buffered, flushed every second, rotating
+  by size. Every path a formula covers is shadowed: a file defining
+  `npc_melee` alone shadows creatures' melee on players alone.
+
+A line holds: `t`, `path` (the hit's), `formula` (the one that ran),
+`builtin` (what landed), `value` (the formula's figure), `raw`, `mitigated`
+(what a mitigation took off before the built-in figure: a creature's melee),
+`draws` (the formula's random draws), `fail` (a run's failure, part and kind;
+`value` is then `builtin`), `weapon_type` (the attacker's weapon's attack
+type), `d_resist` (the defender's resist the hit is against), `in` (the inputs
+the formula reads, and always the sides' kinds, names, families, races,
+classes, levels, mods, the defender's AC and AGI, the attacker's STR and DEX,
+the weapon's damage, delay and hands, the flags, the spell and the resist),
+and `tags`: the value of every step whose name begins with `shadow_` (a number
+or a string), the file's own way to record, say, which of its records a hit
+matched. Never a formula's text.
+
+The mode is kept in each shard's database (table `formula_setting`):
+`formula_mode` only seeds it, and a GM's switch overwrites it and outlives a
+restart.
+
+- In the game, `/formula` (or `#formula`) shows each shard's mode to any GM;
+  `/formula jibs <shard>` (live), `/formula default <shard>` (off) and
+  `/formula shadow <shard>` switch it, an admin's (`gm.admin_level`). Left
+  out, the shard is this one. A shard with no formula loaded refuses `jibs`
+  and `shadow` ("no formula loaded"), one with no shadow log `shadow`.
+- On the GM panel (Settings, Damage formula): `formula_modes` (any GM),
+  `set_formula_mode` (an admin).
+- A switch of this shard takes effect at once; of another shard
+  (`formula_peers`), its database's row is written with a line of its
+  `formula_mode_inbox`, and its server takes it up within 3 seconds and tells
+  its GMs. Each server writes beside its row how many formulas it has loaded
+  and whether it has a shadow log, which is what the other shard's GM is
+  refused by. A shard whose database is not named in `formula_peers` is
+  refused with a line saying so.
+- Every switch has its `gm_audit` line in the database of the shard switched
+  (and a line in the switching shard's own), and a `[Formula]` line on the GM
+  channel of both.
+
+`formula_shadow_summary` (the panel, an admin's) reads the file and the one
+rotated before it: hits, how many the formula modelled (it ran and drew, or
+gave a figure other than the built-in), failures, the mean, median and 90th
+percentile of the built-in and the formula's figures and their ratio,
+overall, by path, and by path / attacker kind / attacker level band (1-10 ...
+61+), and the largest differences. Figures only: no formula's text, no tags.
+
 ## What is safe about it
 
 - **The text never leaves the file.** No formula, step, table key or table

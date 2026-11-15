@@ -22,6 +22,7 @@ import (
 	"github.com/eqoa/server/internal/debuglog"
 	"github.com/eqoa/server/internal/economy"
 	"github.com/eqoa/server/internal/entity"
+	"github.com/eqoa/server/internal/formulamode"
 	"github.com/eqoa/server/internal/gmweb"
 	"github.com/eqoa/server/internal/ground"
 	"github.com/eqoa/server/internal/handlers"
@@ -540,6 +541,24 @@ func main() {
 		gameWorld.SetDamageFormulaFile(cfg.Combat.FormulaFile)
 		go gameWorld.WatchDamageFormulas(nil)
 	}
+	// what a loaded formula does (off, live, shadow; entity/dmgshadow.go): the
+	// config seeds the shard's row, a GM's /formula switches it (internal/formulamode)
+	seedMode, err := entity.ParseFormulaMode(cfg.Combat.FormulaMode)
+	if err != nil {
+		log.Fatalf("Config: %v", err)
+	}
+	if err := gameWorld.SetDamageFormulaShadow(entity.ShadowLogConfig{Path: cfg.Combat.FormulaShadowLog,
+		Sample: cfg.Combat.FormulaShadowSample, MaxBytes: int64(cfg.Combat.FormulaShadowMaxMB) << 20}); err != nil {
+		log.Printf("Damage formulas: %v; shadow mode records nothing", err)
+	}
+	defer gameWorld.SetDamageFormulaShadow(entity.ShadowLogConfig{}) // its last records flushed
+	formulaCtl, err := formulamode.New(db, gameWorld, cfg.Combat.FormulaShard, cfg.Combat.FormulaPeers, seedMode)
+	if err != nil {
+		log.Printf("Damage formulas: the mode's row: %v", err)
+	}
+	formulaCtl.SetTell(func(line string) { handlers.TellGMs(sessionMgr, accountStore, nil, line) })
+	handlers.SetFormulaControl(formulaCtl, cfg.GM.AdminLevel)
+	go formulaCtl.Watch(nil)
 	gameWorld.SetJumps(cfg.World.Jump) // entity/jump.go, handlers/jump.go
 	handlers.SetJumps(cfg.World.Jump)
 	if cfg.World.Jump {
@@ -986,6 +1005,7 @@ func main() {
 			// account pages here, so no transfer form feeding the panel's page.
 			AccountsShared: sharedAccounts,
 			NoTransfers:    accountServer == nil,
+			Formula:        formulaCtl,
 		})
 		if err != nil {
 			log.Fatalf("GM panel: %v", err)

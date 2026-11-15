@@ -128,7 +128,7 @@ var gmCommands = map[string]bool{
 	"#rst_mastr": true, "#rst_both": true, "#rem_abil": true, "#banktunar": true, "#servdown": true,
 	"#giveitem": true, "#size": true, "#mark": true, "#marks": true, "#camp": true, "#path": true,
 	"#markportal": true, "#delete": true, "#clone": true, "#place": true, "#move": true, "#roamer": true,
-	"#noclip": true, "#raidboss": true, "#aura": true, "#hazard": true, "#announce": true,
+	"#noclip": true, "#raidboss": true, "#aura": true, "#hazard": true, "#announce": true, "#formula": true,
 	"#copy": true, // #clone (gmAliases)
 }
 

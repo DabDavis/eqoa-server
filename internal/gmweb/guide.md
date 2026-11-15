@@ -89,6 +89,9 @@ beside it):
   an authenticator code; a refusal that says so is not an error to work around.
 - `reload_formulas` (an admin's) reads the server's damage formula file again: it answers with the formulas'
   names, never their text, which stays on the server's machine and is not to be asked for or reconstructed.
+  `formula_modes` shows each shard's damage formula mode (default, jibs = the file applied, shadow = the built-in
+  applied and the formula recorded beside it); `set_formula_mode` and `formula_shadow_summary` are an admin's. The
+  summary is figures alone; do not try to infer the formula from it.
 
 ## The data
 

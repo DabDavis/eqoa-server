@@ -117,3 +117,21 @@ func TestHomesOfOneNameAreToldApartOrLeftOut(t *testing.T) {
 		t.Errorf("the stables %q, want %q", got, want)
 	}
 }
+
+// The owner's names for a home's stable stand in for its zone's
+// (homeStableNames): Cazic-Thule's home is "Cazic-Thule (Homelands)".
+func TestAHomesStableTakesTheOwnersName(t *testing.T) {
+	SetCoachHomes([]CoachHome{
+		{World: 10, WorldName: "the Homelands", Zone: "Cazic-Thule", MinX: 0, MinZ: 0, MaxX: 2000, MaxZ: 2000},
+	})
+	t.Cleanup(func() { SetCoachHomes(nil) })
+	if got, want := CoachHomeNames(), []string{"Cazic-Thule (Homelands)"}; !slices.Equal(got, want) {
+		t.Errorf("the stables %q, want %q", got, want)
+	}
+	if town, ok := coachHomeAt(10, 100, 100); !ok || town != "Cazic-Thule (Homelands)" {
+		t.Errorf("the home's town %q (%v), want %q", town, ok, "Cazic-Thule (Homelands)")
+	}
+	if IsCoachHome("Cazic-Thule") {
+		t.Error("the old name is still a stable")
+	}
+}

@@ -80,6 +80,9 @@ func SetCoachHomes(homes []CoachHome) {
 			continue
 		}
 		town := h.Zone
+		if n, ok := homeStableNames[town]; ok {
+			town = n
+		}
 		if game[town] || taken[town] {
 			town = h.Zone + " (" + h.WorldName + ")"
 		}
@@ -94,6 +97,16 @@ func SetCoachHomes(homes []CoachHome) {
 		set.byTown[set.homes[i].town] = &set.homes[i]
 	}
 	coachHomes.Store(set)
+}
+
+// homeStableNames are homes whose stable the owner named apart from the
+// zone: a home that bears the name of a place players look for in another
+// world (the owner, 2026-11-15: the Freeport coach's "Cazic-Thule" ran to
+// the Homelands' copy, where Norach does not stand; "rename it to
+// Cazic-Thule (Homelands)"). The ledgers signed under the old name were
+// moved to the new one (charcoaches) when this went in.
+var homeStableNames = map[string]string{
+	"Cazic-Thule": "Cazic-Thule (Homelands)",
 }
 
 func loadCoachHomes() *coachHomeSet {

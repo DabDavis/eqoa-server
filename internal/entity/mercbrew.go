@@ -45,16 +45,23 @@ import (
 // restart, and an alchemist hired later throws from it. Its owner takes
 // potions out of it through the merc's menu (handlers).
 //
-// Its draughts: below mercDraughtBelow of its power, out of a cast, with no
-// draught working on it, it drinks the best power draught it has (a Self
-// potion whose line gives power over time and costs health: the Watery to the
-// Infused Draught), from what it carries, else its owner's stock, else its
-// path's own (what its book's refinements summon, conjured as its throws'),
-// its figures a player's (cast.go's spellAmount on its body): the health
-// taken at once (a player's draught's poison resist may spare it:
-// draughtResisted), the power over the draught's time. Never when the health
-// it costs would leave it under world.merc_draught_hp_floor_pct of its most
-// (MercDraughtFloorPct by default), nor one whose cost is more than it has.
+// Its draughts (the owner, 2026-11-15: "the alchemist mercs are not
+// draughting to restore power even though cleric merc can heal them"): in a
+// fight or out of one, out of a cast, when its power and what a draught
+// working on it has still to give come under mercDraughtBelow of its most
+// (so a draught spent while its spells drain it faster than a draught gives
+// is followed by the next, where until then it waited out each draught's
+// whole time near empty), it drinks the best power draught it has (a Self
+// potion whose line gives power over time and costs health: the Watery to
+// the Infused Draught), from what it carries, else its owner's stock, else
+// its path's own (what its book's refinements summon, conjured as its
+// throws'), its figures a player's (cast.go's spellAmount on its body): the
+// health taken at once (a player's draught's poison resist may spare it:
+// draughtResisted), the power over the draught's time. The health it costs
+// may not leave it under world.merc_draught_hp_floor_pct of its most
+// (MercDraughtFloorPct by default) unless a healer stands in its team (a
+// cleric, druid or shaman, player or merc, alive and in its world:
+// mercHealerNearLocked), and never under mercDraughtHardFloor of its most.
 //
 // Its meals: out of a fight (nothing fighting it, its owner or its owner's
 // mercs, its owner swinging at nothing), below mercEatBelow of its health,
@@ -89,7 +96,11 @@ const MercDraughtFloorPct = 50
 // When it drinks and eats (ours).
 const (
 	// mercDraughtBelow: it drinks a draught below this share of its power
+	// (with what a draught on it has still to give)
 	mercDraughtBelow = 30
+	// mercDraughtHardFloor: no draught leaves it under this share of its
+	// health, a healer near or not
+	mercDraughtHardFloor = 10
 	// mercEatBelow: out of a fight it eats below this share of its health
 	mercEatBelow = 70
 )
@@ -512,10 +523,33 @@ func (w *World) mercBookDraughtsLocked(ms *mercState) []mercDraught {
 	return book
 }
 
-// mercDrinkingLocked is whether a draught still works on the merc.
-func mercDrinking(n *NPC) bool {
+// mercDraughtComing is the power the draughts on the merc have still to
+// give: each tick's power for the ticks left of it.
+func mercDraughtComing(n *NPC, now time.Time) int {
+	coming := 0
 	for _, e := range n.Effects {
-		if _, ok := potionOfEffect(e.SpellID); ok && e.PowerTick > 0 {
+		if _, ok := potionOfEffect(e.SpellID); !ok || e.PowerTick <= 0 {
+			continue
+		}
+		if left := e.Until.Sub(now); left > 0 {
+			coming += e.PowerTick * (int(left/effectTick) + 1)
+		}
+	}
+	return coming
+}
+
+// mercHealerClass is whether the class heals: a cleric, druid or shaman.
+func mercHealerClass(class int) bool { return class == 7 || class == 8 || class == 9 }
+
+// mercHealerNearLocked is whether a healer stands in the merc's team (its
+// owner, its group's players and mercs, alive in its world). Must be called
+// with the lock held.
+func (w *World) mercHealerNearLocked(ms *mercState) bool {
+	for _, mm := range w.mercTeamLocked(ms) {
+		switch {
+		case mm.p != nil && mercHealerClass(mm.p.Class):
+			return true
+		case mm.n != nil && mm.n != ms.npc && mm.n.merc != nil && mercHealerClass(mm.n.merc.kit.Class):
 			return true
 		}
 	}
@@ -526,10 +560,13 @@ func mercDrinking(n *NPC) bool {
 // doc); it reports one drunk. Must be called with the lock held.
 func (w *World) mercDrinkTurnLocked(ms *mercState, now time.Time) bool {
 	m := ms.npc
-	if !ms.mercThrowsPotions() || m.MaxPower <= 0 || m.Power*100 >= m.MaxPower*mercDraughtBelow || mercDrinking(m) {
+	if !ms.mercThrowsPotions() || m.MaxPower <= 0 || (m.Power+mercDraughtComing(m, now))*100 >= m.MaxPower*mercDraughtBelow {
 		return false
 	}
-	floor := m.MaxHP * w.mercSupply.draughtFloor() / 100
+	floor := m.MaxHP * mercDraughtHardFloor / 100
+	if !w.mercHealerNearLocked(ms) {
+		floor = max(floor, m.MaxHP*w.mercSupply.draughtFloor()/100)
+	}
 	for _, d := range w.mercDraughtsLocked(ms) {
 		if m.HP-d.cost < max(floor, 1) {
 			continue // it would leave it in danger

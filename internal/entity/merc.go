@@ -146,6 +146,22 @@ type MercKit struct {
 	// cast as well as its heals; false, defensive (the default), heals and
 	// buffs alone (merccast.go's mercAttackTurnLocked)
 	Offensive bool
+	// Cocktail: an alchemist of the Cocktail path, whose throws AoE picks
+	// (mercthrow.go): its area cocktails (true, /merc aoe) or its
+	// single-target potions (false, /merc single, the default)
+	Cocktail, AoE bool
+	// Carried is what it carries that it uses up (handlers/mercinv.go): its
+	// potions, draughts and meals, each a record of charmercitem
+	Carried []MercCarried
+}
+
+// MercCarried is one record a merc carries to use (MercKit.Carried): its
+// charmercitem id, its item and how many; a meal's health a tick (Food).
+type MercCarried struct {
+	ID, PatternID, Count int
+	Name                 string
+	Food                 bool
+	HoT                  int
 }
 
 // MercLook is what a merc's channel shows of its body and its heirlooms.
@@ -228,6 +244,9 @@ type mercState struct {
 	// throw again (mercthrow.go)
 	throwing   *mercThrowing
 	throwReady time.Time
+	// brewAt is when an alchemist next makes a potion into its owner's stock
+	// (mercbrew.go)
+	brewAt time.Time
 }
 
 // mercNoCollideID is a merc's entry on its owner's non-collide list (0x1003:
@@ -280,6 +299,13 @@ const (
 	// (mercbench.go): the handlers make it again from its row (Slot's; 0
 	// every row's), as at a login
 	MercNoteBack
+	// MercNoteUsed: it used Count of its carried record ItemID (a potion
+	// thrown or drunk, a meal eaten: mercthrow.go, mercbrew.go)
+	MercNoteUsed
+	// MercNoteStockUsed: it used Count of its owner's stock of PatternID
+	MercNoteStockUsed
+	// MercNoteBrewed: it made Count of PatternID into its owner's stock
+	MercNoteBrewed
 )
 
 // MercNote is a merc's event, handed to the hook after the tick's lock.
@@ -292,6 +318,9 @@ type MercNote struct {
 	Name  string
 	Level int
 	Until time.Time
+	// ItemID, PatternID and Count: what MercNoteUsed, MercNoteStockUsed
+	// and MercNoteBrewed name
+	ItemID, PatternID, Count int
 }
 
 // MercNoteFunc hears a merc's events (handlers/merc.go: its row, its kit).
@@ -980,6 +1009,7 @@ func (w *World) mercSystem(now time.Time) {
 		w.mercEffectsLocked(ms, now)
 		w.mercLevelLocked(ms, sess)
 		syncMercBody(ms)
+		w.mercBrewLocked(ms, now) // an alchemist's potions into its owner's stock (mercbrew.go)
 		if sess != nil {
 			w.mercTellLocked(ms, sess)
 		}

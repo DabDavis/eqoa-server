@@ -140,22 +140,48 @@ func TestMercAlchemistThrowsTheBest(t *testing.T) {
 	}
 }
 
-// A cocktail's splash lands on the creatures round its target, as
-// throwLocked's, never on another's pet.
-func TestMercAlchemistCocktailSplash(t *testing.T) {
+// A cocktail's splash lands on the creatures round its target that fight its
+// team, as throwLocked's, never on a bystander (it pulls nothing) nor another's
+// pet; /merc aoe throws it, /merc single (the default) its single-target
+// potion; an area cocktail goes only at a creature already fighting its team.
+func TestMercAlchemistCocktailToggle(t *testing.T) {
 	r := newMercRig(t)
 	alcPotions(r.w)
 	ck := bookSpell(700195, "Klik'Anon Cocktail", 0, 2*time.Second, 3*time.Second, 20, "Self, Summon Klik'Anon Cocktail x3")
-	ms := r.hire(r.kit(14, 0, 0, ck), MercAssist)
+	mix := bookSpell(700085, "Volatile Mixture", 0, 2*time.Second, 3*time.Second, 20, "Self, Summon Volatile Potion x3")
+	k := r.kit(14, 0, 0, ck, mix)
+	k.Cocktail = true
+	ms := r.hire(k, MercAssist)
 	a := r.creature("Crab A", 28, 10)
 	b := r.creature("Crab B", 28, 13)
+	idle := r.creature("Bystander Crab", 28, 12)
 	pet := r.creature("Someone's Pet", 28, 12)
 	pet.Owner = 999999
+	pick := func() int {
+		r.w.mu.Lock()
+		defer r.w.mu.Unlock()
+		c, _ := r.w.mercThrowPickLocked(ms, a)
+		return c.pe.PatternID
+	}
+	if got := pick(); got != testVolatile {
+		t.Fatalf("single (its default): throws %d, want the Volatile Potion", got)
+	}
+	ms.kit.AoE = true
+	if got := pick(); got != testVolatile {
+		t.Fatalf("aoe at a creature fighting no one: throws %d, want its single-target potion", got)
+	}
+	a.CurrentEnemy, b.CurrentEnemy = r.p.ServerID, ms.npc.ServerID // fighting its team
+	if got := pick(); got != testCocktail {
+		t.Fatalf("aoe at a creature fighting its owner: throws %d, want the cocktail", got)
+	}
 	r.run(0, time.Second)
 	ms.ordered = a.ServerID
 	r.run(1100*time.Millisecond, 3*time.Second)
 	if a.HP >= a.MaxHP || b.HP >= b.MaxHP {
-		t.Fatalf("the cocktail's target %d/%d, its splash %d/%d", a.HP, a.MaxHP, b.HP, b.MaxHP)
+		t.Fatalf("the cocktail's target %d/%d, its splash on a creature fighting the merc %d/%d", a.HP, a.MaxHP, b.HP, b.MaxHP)
+	}
+	if idle.HP < idle.MaxHP {
+		t.Error("the splash hit a bystander: a pull")
 	}
 	if pet.HP < pet.MaxHP {
 		t.Error("the splash hit another's pet")

@@ -30,12 +30,28 @@ import (
 // (mercHarmLocked: its figures, the balance, its owner's kill). No cast time,
 // no spell lockout.
 //
-// What it throws (mercThrowPickLocked) is the best of: the thrown potions its
-// book's summonings make (a mixture's "Summon Volatile Potion x3", a
-// cocktail's), and its book's own potion spells ("Freeport Fire Potion",
-// which it no longer casts: mercPotionSpell), each by what it is worth on its
-// body (mercWorth). A spell its hirer turned off is not thrown. Its other
-// spells (the sprays, roots, buffs) are cast as before, between its throws.
+// What it throws (mercThrowPickLocked), in order: a thrown potion it carries
+// (given it: handlers/mercinv.go, the owner's "that is also a way to switch
+// pots on an alc merc"), used up one a throw; then one of its owner's stock
+// (mercbrew.go), one a throw; then its path's own, conjured as its spells
+// conjure them and never used up: the best of the thrown potions its book's
+// summonings make (a mixture's "Summon Volatile Potion x3", a cocktail's) and
+// its book's own potion spells ("Freeport Fire Potion", which it no longer
+// casts: mercPotionSpell), each by what it is worth on its body (mercWorth).
+// A spell its hirer turned off is not thrown. Its other spells (the sprays,
+// roots, buffs) are cast as before, between its throws.
+//
+// A Cocktail alchemist's throws are its hirer's choice (the owner: "if
+// player chooses cocktail path should have a toggle for aoe cocktail thrown
+// pots or the single target pots like the knack alc"): /merc aoe, its area
+// cocktails (itemeffect.area) first; /merc single (the default, as it threw
+// until the toggle: a cocktail was never thrown), the single-target potions
+// a Knack alchemist throws, its book's cocktails left alone. A potion of the
+// other kind it carries or its owner's stock holds is thrown only when none
+// of its own kind is. An area potion pulls nothing (as a merc casts no
+// harmful area spell): it is thrown only at a creature already fighting its
+// team (its owner, its group, the mercs), and its splash lands only on
+// creatures fighting its team; else a single-target potion goes.
 
 // classAlchemist is the alchemist's class.
 const classAlchemist = 14
@@ -50,7 +66,11 @@ type mercThrowable struct {
 	pe PotionEffect
 	// spell is the book's spell id it stands for (a potion spell), 0 an item
 	spell int
-	worth float64
+	// carried is the merc's charmercitem record it is one of (0 none);
+	// stock, one of its owner's stock
+	carried int
+	stock   bool
+	worth   float64
 }
 
 // mercThrowing is a throw on its way: its target and when it lands.
@@ -77,8 +97,29 @@ func (ms *mercState) mercThrowSwing() Swing {
 	return SwingFor(ms.kit.Class, ms.body.Level, worn, true, 10, PotionRange)
 }
 
-// mercThrowablesLocked is every potion the merc may throw, best first (the
-// file's doc). Must be called with the lock held.
+// throwWorth is what a potion thrown is worth on the merc's body, false for
+// one that is no harm at a creature (a charm, a debuff alone).
+func (ms *mercState) throwWorth(pe *PotionEffect) (float64, bool) {
+	cs := pe.castSpell()
+	u := mercUseOf(&cs)
+	if !pe.Thrown() || (u != useNuke && u != useDoT) {
+		return 0, false
+	}
+	return mercWorth(&cs, u, ms.body), true
+}
+
+// sortThrowables puts the best first; of two as big, an item's (a real
+// potion) before a potion spell's.
+func sortThrowables(out []mercThrowable) {
+	for i := 1; i < len(out); i++ {
+		for j := i; j > 0 && (out[j].worth > out[j-1].worth || out[j].worth == out[j-1].worth && out[j].spell == 0 && out[j-1].spell != 0); j-- {
+			out[j], out[j-1] = out[j-1], out[j]
+		}
+	}
+}
+
+// mercThrowablesLocked is every potion of its path the merc may throw (its
+// book's: the file's doc), best first. Must be called with the lock held.
 func (w *World) mercThrowablesLocked(ms *mercState) []mercThrowable {
 	if !ms.mercThrowsPotions() {
 		return nil
@@ -90,13 +131,10 @@ func (w *World) mercThrowablesLocked(ms *mercState) []mercThrowable {
 	seen := map[int]bool{}
 	var out []mercThrowable
 	add := func(t mercThrowable) {
-		cs := t.pe.castSpell()
-		u := mercUseOf(&cs)
-		if !t.pe.Thrown() || (u != useNuke && u != useDoT) {
-			return
+		var ok bool
+		if t.worth, ok = ms.throwWorth(&t.pe); ok {
+			out = append(out, t)
 		}
-		t.worth = mercWorth(&cs, u, ms.body)
-		out = append(out, t)
 	}
 	for i := range ms.kit.Spells {
 		s := &ms.kit.Spells[i]
@@ -120,11 +158,56 @@ func (w *World) mercThrowablesLocked(ms *mercState) []mercThrowable {
 			add(mercThrowable{pe: *pe})
 		}
 	}
-	// the biggest first; of two as big, the item's (a real potion) first
-	for i := 1; i < len(out); i++ {
-		for j := i; j > 0 && (out[j].worth > out[j-1].worth || out[j].worth == out[j-1].worth && out[j].spell == 0 && out[j-1].spell != 0); j-- {
-			out[j], out[j-1] = out[j-1], out[j]
+	sortThrowables(out)
+	return out
+}
+
+// mercAoE is whether the merc throws its area cocktails (/merc aoe; a
+// Cocktail alchemist's alone).
+func (ms *mercState) mercAoE() bool { return ms.kit.Cocktail && ms.kit.AoE }
+
+// mercCarriedThrowsLocked is the thrown potions the merc carries and those of
+// its owner's stock, best first, each marked where it is from. Must be called
+// with the lock held.
+func (w *World) mercCarriedThrowsLocked(ms *mercState) (carried, stock []mercThrowable) {
+	for _, c := range ms.kit.Carried {
+		pe := w.potions.byPattern[c.PatternID]
+		if pe == nil || c.Count <= 0 || c.Food {
+			continue
 		}
+		if v, ok := ms.throwWorth(pe); ok {
+			carried = append(carried, mercThrowable{pe: *pe, carried: c.ID, worth: v})
+		}
+	}
+	for id, n := range w.mercSupply.stockOf(ms.owner) {
+		pe := w.potions.byPattern[id]
+		if pe == nil || n <= 0 {
+			continue
+		}
+		if v, ok := ms.throwWorth(pe); ok {
+			stock = append(stock, mercThrowable{pe: *pe, stock: true, worth: v})
+		}
+	}
+	sortThrowables(carried)
+	sortThrowables(stock)
+	return carried, stock
+}
+
+// mercTeamIDsLocked is the ids of the merc's team (mercTeamLocked). Must be
+// called with the lock held.
+func (w *World) mercTeamIDsLocked(ms *mercState) map[EntityID]bool {
+	out := map[EntityID]bool{}
+	for _, mm := range w.mercTeamLocked(ms) {
+		out[mm.id()] = true
+	}
+	for _, om := range w.mercsOfLocked(ms.owner) {
+		out[om.npc.ServerID] = true
+		if om.pet != nil && om.pet.npc != nil {
+			out[om.pet.npc.ServerID] = true
+		}
+	}
+	if ps := w.pets[ms.owner.ServerID]; ps != nil && ps.npc != nil {
+		out[ps.npc.ServerID] = true
 	}
 	return out
 }
@@ -138,17 +221,70 @@ func containsInt(list []int, v int) bool {
 	return false
 }
 
-// mercThrowPickLocked is the potion the merc throws at t now, false for none:
-// the best of mercThrowablesLocked that may land on t (a spell for undead
-// alone only at undead). Must be called with the lock held.
+// mercThrowPickLocked is the potion the merc throws at t now, false for none
+// (the file's doc): what it carries, then its owner's stock, then its path's,
+// each of its kind (/merc aoe or single) first; an area potion only at a
+// creature fighting its team; a spell for undead alone only at undead. Must
+// be called with the lock held.
 func (w *World) mercThrowPickLocked(ms *mercState, t *NPC) (mercThrowable, bool) {
-	for _, c := range w.mercThrowablesLocked(ms) {
+	aoe := ms.mercAoE()
+	engaged := t != nil && w.mercTeamIDsLocked(ms)[t.CurrentEnemy]
+	may := func(c *mercThrowable) bool {
+		if c.pe.Area > 0 && !engaged {
+			return false // it would pull what it splashes
+		}
 		cs := c.pe.castSpell()
-		if w.petUndeadMayLocked(&cs, t) {
+		return t == nil || w.petUndeadMayLocked(&cs, t)
+	}
+	first := func(list []mercThrowable, kind func(*mercThrowable) bool) (mercThrowable, bool) {
+		for i := range list {
+			if (kind == nil || kind(&list[i])) && may(&list[i]) {
+				return list[i], true
+			}
+		}
+		return mercThrowable{}, false
+	}
+	own := func(c *mercThrowable) bool { return (c.pe.Area > 0) == aoe }
+	carried, stock := w.mercCarriedThrowsLocked(ms)
+	book := w.mercThrowablesLocked(ms)
+	for _, try := range []struct {
+		list []mercThrowable
+		kind func(*mercThrowable) bool
+	}{{carried, own}, {stock, own}, {book, own}, {carried, nil}, {stock, nil}} {
+		if c, ok := first(try.list, try.kind); ok {
 			return c, true
 		}
 	}
+	if aoe { // no cocktail may go: its single-target potions
+		return first(book, nil)
+	}
 	return mercThrowable{}, false
+}
+
+// mercUsedLocked takes one of what the merc threw or drank off where it came
+// from: its carried record, else its owner's stock (the handlers told, to
+// keep it); its path's own is never used up. Must be called with the lock
+// held.
+func (w *World) mercUsedLocked(ms *mercState, carried int, stock bool, patternID int) {
+	switch {
+	case carried != 0:
+		for i := range ms.kit.Carried {
+			c := &ms.kit.Carried[i]
+			if c.ID != carried {
+				continue
+			}
+			c.Count--
+			if c.Count <= 0 {
+				ms.kit.Carried = append(ms.kit.Carried[:i:i], ms.kit.Carried[i+1:]...)
+			}
+			break
+		}
+		w.noteMercLocked(MercNote{Kind: MercNoteUsed, Owner: ms.owner, Slot: ms.slot, Name: ms.npc.Name, ItemID: carried, PatternID: patternID, Count: 1})
+	case stock:
+		if w.mercSupply.take(ms.owner, patternID, 1) > 0 {
+			w.noteMercLocked(MercNote{Kind: MercNoteStockUsed, Owner: ms.owner, Slot: ms.slot, Name: ms.npc.Name, PatternID: patternID, Count: 1})
+		}
+	}
 }
 
 // mercThrowTurnLocked is the merc's throw at t when its round allows one (the
@@ -178,6 +314,7 @@ func (w *World) mercThrowTurnLocked(ms *mercState, t *NPC, now time.Time) bool {
 	}
 	m.stopMoving()
 	m.Facing = headingTo(t.X-m.X, t.Z-m.Z)
+	w.mercUsedLocked(ms, what.carried, what.stock, what.pe.PatternID)
 	ms.throwReady = now.Add(s.Delay)
 	ms.throwing = &mercThrowing{target: t.ServerID, lands: now.Add(mercThrowLand), what: what}
 	ms.busy = now.Add(mercThrowLand) // it stands for its throw
@@ -217,10 +354,12 @@ func (w *World) mercThrowLandLocked(ms *mercState, now time.Time) bool {
 	// the splash, found before the target's hit may kill it
 	var splash []*NPC
 	if pe.Area > 0 {
+		team := w.mercTeamIDsLocked(ms)
 		place := areaPlace{world: t.World, caster: [3]float32{m.X, m.Y, m.Z}, centre: [3]float32{t.X, t.Y, t.Z}, onOther: true}
 		for _, id := range w.SpatialIndex.QueryRadius(t.X, t.Z, pe.Area) {
 			o := w.NPCs[id]
-			if o == nil || o == t || o.Dead || o.World != t.World || !mercMayFight(m, o) || o.NPCType&0x80 != 0 || o.hiddenAt(now) {
+			if o == nil || o == t || o.Dead || o.World != t.World || !mercMayFight(m, o) || o.NPCType&0x80 != 0 || o.hiddenAt(now) ||
+				!team[o.CurrentEnemy] { // what fights its team alone: it pulls nothing (the file's doc)
 				continue
 			}
 			if dist3(o.X, o.Y, o.Z, t.X, t.Y, t.Z) > pe.Area || !w.reachesLocked(place, o.X, o.Y, o.Z) {

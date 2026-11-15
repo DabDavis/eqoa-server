@@ -63,10 +63,15 @@
 // bodies of kinds it has (made.go: Rathe's), for the fill where nothing round
 // will do.
 //
+// -hold @file keeps those npcs rows where they are (2026-11-15: Halas's and
+// Qeynos's Sandstorm census, held since 2026-11-03). A GM's rows and edits
+// (gm_audit_facets) and a guide set's (guide_set_log) always stay.
+//
 // -ranks spreads the blocks of creatures Return Home's spawn table stood in
 // rows, a kind to a row (ranks.go), within rankTerritory of where they stood;
 // -zone Kelinar[,...] keeps a run to zones of CLIENT's grid as -near keeps
-// it to circles (both given: in both).
+// it to circles (both given: in both); -not-zone Runnyeye[,...] keeps it out
+// of those.
 //
 // A run round a few places (2026-11-03, the towns' newbie ground: the user,
 // "we also have bare areas around grobb ... use prima guide to fill with
@@ -147,6 +152,8 @@ func main() {
 	tag := flag.String("tag", "", "a run of its own: its log in wildspread_*_<tag>, applied and undone apart from the others")
 	nearFlag := flag.String("near", "", "only round these places, x,z,r[;x,z,r...] or @file (one a line): a creature outside them stays, nothing is placed outside them")
 	zoneFlag := flag.String("zone", "", "only in these zones of CLIENT's grid, by WORDS.TXT's name (needs -words), a,b,...: a creature outside them stays, nothing is placed outside them")
+	notZoneFlag := flag.String("not-zone", "", "never in these zones of CLIENT's grid (as -zone names them): a creature in them stays, nothing is placed in them")
+	holdFlag := flag.String("hold", "", "@file: npcs ids (one a line, '#' a comment) that stay where they are")
 	ranks := flag.Bool("ranks", false, "spread blocks of creatures standing in rows (ranks.go: Return Home's parades) within 200 of their middle, whatever they are")
 	noSpread := flag.Bool("no-spread", false, "fill only: no creature moves")
 	gap := flag.Float64("gap", gapFill, "land farther than this from any creature is filled")
@@ -236,6 +243,18 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	if *holdFlag != "" {
+		held, err := readHold(*holdFlag)
+		if err != nil {
+			log.Fatalf("-hold: %v", err)
+		}
+		for _, id := range held {
+			if _, ok := in.protected[id]; !ok {
+				in.protected[id] = "held by -hold"
+			}
+		}
+		say("-hold: %d rows", len(held))
+	}
 	p := newPlan(in, g, env, *groundDir, words, camps, *seed)
 	p.near, p.noSpread, p.gapFill, p.fillSpacing, p.questWeight = near, *noSpread, *gap, *spacing, *questWeight
 	p.layers = layers
@@ -245,11 +264,16 @@ func main() {
 			p.zones = append(p.zones, zn)
 		}
 	}
-	if len(p.zones) > 0 {
-		if words == nil {
-			log.Fatal("-zone names CLIENT's zones by WORDS.TXT: give -words")
+	for _, zn := range strings.Split(*notZoneFlag, ",") {
+		if zn = strings.ToLower(strings.TrimSpace(zn)); zn != "" {
+			p.notZones = append(p.notZones, zn)
 		}
-		for _, zn := range p.zones {
+	}
+	if len(p.zones)+len(p.notZones) > 0 {
+		if words == nil {
+			log.Fatal("-zone and -not-zone name CLIENT's zones by WORDS.TXT: give -words")
+		}
+		for _, zn := range append(append([]string{}, p.zones...), p.notZones...) {
 			if !zoneKnown(words, zn) {
 				log.Fatalf("-zone %q: no zone of Tunaria's or Rathe's grid has that name", zn)
 			}
@@ -305,6 +329,32 @@ func quiet(f func()) {
 	log.SetOutput(io.Discard)
 	defer log.SetOutput(os.Stderr)
 	f()
+}
+
+// readHold reads -hold's @file: an npcs id a line, '#' starting a comment.
+func readHold(s string) ([]int64, error) {
+	if !strings.HasPrefix(s, "@") {
+		return nil, fmt.Errorf("%q: @file", s)
+	}
+	b, err := os.ReadFile(s[1:])
+	if err != nil {
+		return nil, err
+	}
+	var out []int64
+	for _, line := range strings.Split(string(b), "\n") {
+		if i := strings.Index(line, "#"); i >= 0 {
+			line = line[:i]
+		}
+		if line = strings.TrimSpace(line); line == "" {
+			continue
+		}
+		n, err := strconv.ParseInt(line, 10, 64)
+		if err != nil || n <= 0 {
+			return nil, fmt.Errorf("%q: an npcs id", line)
+		}
+		out = append(out, n)
+	}
+	return out, nil
 }
 
 // zoneKnown says whether a zone of Tunaria's or Rathe's grid has the name

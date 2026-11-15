@@ -261,6 +261,7 @@ func (h *InteractHandler) skyPass(sess *session.Session, p *entity.Player, npc *
 		stepsAs = pass.StepsAs
 	}
 	held := q.HeldNamed(p, pass.Key)
+	q.StartPassSteps(sess, p, stepsAs, npc.ServerID, pass.Steps)
 	q.PassSteps(sess, p, stepsAs, npc.ServerID, pass.Steps)
 	if q.HeldNamed(p, pass.Key) >= held && !q.TakeNamed(sess, p, pass.Key) {
 		h.sendDialogueBox(sess, fmt.Sprintf(skyPassWants, npc.Name, withArticle(pass.Key)))
@@ -272,7 +273,9 @@ func (h *InteractHandler) skyPass(sess *session.Session, p *entity.Player, npc *
 	h.moveGroup(p, npc.ServerID, dest, fmt.Sprintf(skyGroupWords, npc.Name, pass.To), "SkyPass",
 		func(ms *session.Session, m *entity.Player) {
 			// a member's own steps of the passage are done too (its own key
-			// taken by a step that gives one)
+			// taken by a step that gives one), a chain it holds the key of
+			// taken up first
+			q.StartPassSteps(ms, m, stepsAs, npc.ServerID, pass.Steps)
 			q.PassSteps(ms, m, stepsAs, npc.ServerID, pass.Steps)
 		})
 }
@@ -302,6 +305,47 @@ func (q *QuestEngine) StepHereBesides(p *entity.Player, name string, spawn entit
 		}
 	}
 	return false
+}
+
+// StartPassSteps takes up each quest among those (quest, step) whose first
+// step that is, at the NPC called name, for a player who may take it and
+// holds what the step gives (the owner, 2026-11-15: "the plane of sky key
+// vendor should just show the keys in the shop menu not the menu prompts"):
+// the main isle's chains begin at their essence with a key bought from
+// Liztin Misseliania's shop, their old first step, her 2,000 tunar for the
+// key, gone (tools/sky_key_shop_20261115.py). PassSteps then does the step.
+// It reports how many it took up.
+func (q *QuestEngine) StartPassSteps(sess *session.Session, p *entity.Player, name string, spawn entity.EntityID, those [][2]int) int {
+	if q == nil || p == nil || len(those) == 0 {
+		return 0
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	c := q.namedLocked(p.CharServerID, p.Name)
+	look := q.lookAt(sess)
+	n := 0
+	for _, s := range those {
+		qu := q.cat.byID[s[0]]
+		if qu == nil {
+			continue
+		}
+		st := qu.First()
+		if st == nil || st.Step != s[1] || !database.AtNPC(st.Kind) || !stepNPC(st, name, spawn) {
+			continue
+		}
+		if q.mayTakeLocked(look, p, c, qu) != "" {
+			continue
+		}
+		if (st.Kind == database.StepGive || st.Kind == database.StepShow) && q.lackingLocked(p, st) != "" {
+			continue
+		}
+		if why := q.startLocked(sess, p, c, qu, st.Step, false); why != "" {
+			log.Printf("SkyPass: %s could not take up %q at %s: %s", p.Name, qu.Name, name, why)
+			continue
+		}
+		n++
+	}
+	return n
 }
 
 // PassSteps does each of the player's quest steps among those at the NPC

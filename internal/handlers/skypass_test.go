@@ -346,3 +346,88 @@ func TestTheMainIslesSnowEssenceTakesTheSnowKey(t *testing.T) {
 		t.Errorf("the first isle's essence took a key")
 	}
 }
+
+// The owner, 2026-11-15 ("the plane of sky key vendor should just show the
+// keys in the shop menu not the menu prompts"): with the chain's first step
+// at the main isle's essence (Liztin's tunar step gone, the quest given by
+// the essence), a key bought from her shop takes the chain up there and does
+// its step: one key taken, the giver and a grouped member holding its own key
+// both on the kill step after; Liztin offers nothing; one below the chain's
+// level is sent on by the key alone; a finished run is taken up again.
+func TestTheMainIslesEssenceTakesUpTheChain(t *testing.T) {
+	r := newSkyRig(t)
+	for _, q := range []string{
+		`DELETE FROM queststeps WHERE questid = 101301 AND step = 1`,
+		`UPDATE quests SET giver = 'essence of rain', repeatable = 1 WHERE questid = 101301`,
+	} {
+		if _, err := r.db.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := Quests().Reload(); err != nil {
+		t.Fatal(err)
+	}
+	r.essence("liztin", "Liztin Misseliania", 4600, 244.7, 5700)
+	if Quests().AtWindow(r.anna, r.pa, r.npcs["liztin"]) {
+		t.Errorf("Liztin's window answered with a quest")
+	}
+	r.group()
+	r.own(r.pa, "rain key", 2)
+	r.own(r.pc, "rain key", 1)
+	r.by("main")
+	r.talk(r.anna, r.npcs["main"])
+	got := r.msgs(r.anna)
+	if !hasMsg(got, "teleport") || r.pa.X != 4236.2 || r.pa.Z != 5727.7 {
+		t.Fatalf("the first isle: %q at (%.1f, %.1f)", got, r.pa.X, r.pa.Z)
+	}
+	if s, d := r.step(r.pa, 101301); s != 3 || d != 0 {
+		t.Errorf("Anna's chain: step %d done %d, want 3", s, d)
+	}
+	if n := r.held(r.pa, "rain key"); n != 1 {
+		t.Errorf("Anna holds %d rain keys, want 1", n)
+	}
+	if s, _ := r.step(r.pc, 101301); s != 3 || r.held(r.pc, "rain key") != 0 {
+		t.Errorf("Cora's chain: step %d, %d keys", s, r.held(r.pc, "rain key"))
+	}
+	if r.pc.X != r.pa.X || r.pc.Z != r.pa.Z {
+		t.Errorf("Cora was not taken along")
+	}
+
+	// below level 50: the key alone
+	r.pa.Level = 40
+	if _, err := r.db.Exec(`DELETE FROM charquests WHERE serverid = ?`, r.pa.CharServerID); err != nil {
+		t.Fatal(err)
+	}
+	forgetQuestChar(r.pa)
+	r.gw.GroupLeave(r.anna)
+	r.by("main")
+	r.talk(r.anna, r.npcs["main"])
+	if got := r.msgs(r.anna); !hasMsg(got, "teleport") || r.held(r.pa, "rain key") != 0 {
+		t.Errorf("below the level: %q, %d keys", got, r.held(r.pa, "rain key"))
+	}
+	if s, _ := r.step(r.pa, 101301); s != -1 {
+		t.Errorf("below the level the chain was taken: step %d", s)
+	}
+
+	// a finished run, taken up again
+	r.pa.Level = 60
+	if _, err := r.db.Exec(`INSERT OR REPLACE INTO charquests (serverid, questid, step, done) VALUES (?, 101301, 0, 1)`, r.pa.CharServerID); err != nil {
+		t.Fatal(err)
+	}
+	forgetQuestChar(r.pa)
+	r.own(r.pa, "rain key", 1)
+	r.by("main")
+	r.talk(r.anna, r.npcs["main"])
+	if s, d := r.step(r.pa, 101301); s != 3 || d != 1 {
+		t.Errorf("the chain again: step %d done %d, want 3 done 1", s, d)
+	}
+}
+
+// forgetQuestChar has the engine read the character's quests again (a row
+// written behind its back).
+func forgetQuestChar(p *entity.Player) {
+	q := Quests()
+	q.mu.Lock()
+	delete(q.chars, p.CharServerID)
+	q.mu.Unlock()
+}

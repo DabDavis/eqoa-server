@@ -85,7 +85,7 @@ const (
 	genieNothing
 )
 
-var genieAnswers = []string{"My bank", "Your wares", "Mend my gear", "Rehabilitation", "Dye my armor", "Nothing, thank you"}
+var genieAnswers = []string{"My bank", "Your wares", "Mend my gear", "Rehabilitation", "Dye my equipment", "Nothing, thank you"}
 
 // The genie's words (ours).
 const (

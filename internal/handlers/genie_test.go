@@ -132,7 +132,7 @@ func (f *genieFixture) summon() uint32 {
 	msgs := questMsgs(f.sess)
 	id := boxID(msgs)
 	if !IsGenieBox(id) || !hasMsg(msgs, "box:Genie: Your wish is my command, master.") ||
-		!strings.Contains(strings.Join(msgs, "\n"), ":What do you wish?|My bank|Your wares|Mend my gear|Rehabilitation|Dye my armor|Nothing, thank you") {
+		!strings.Contains(strings.Join(msgs, "\n"), ":What do you wish?|My bank|Your wares|Mend my gear|Rehabilitation|Dye my equipment|Nothing, thank you") {
 		f.t.Fatalf("the genie's coming: %q", msgs)
 	}
 	return id

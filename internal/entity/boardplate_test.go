@@ -166,6 +166,7 @@ func TestWhichBoardsHaveAPlate(t *testing.T) {
 		{"Mercenary Recruitment", PaperedBoardBody, 1, true, 3.5},
 		{"Real Estate Listings", PaperedBoardBody, 1, true, 3.5},
 		{"PvP Events", PaperedBoardBody, 1, true, 3.5},
+		{"Bug Finder Leaderboard", PaperedBoardBody, 1, true, 3.5},
 		{"Freeport Announcements", SignpostBody, 1, true, 4.266},
 		{"Surefall Anouncements", SignpostBody, 1, true, 4.266},
 		{"Guild Board", 0x6DE5B2CC, 0.3, true, 1.025},

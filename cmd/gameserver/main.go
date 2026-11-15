@@ -619,6 +619,7 @@ func main() {
 	}
 	gameWorld.SetTestingHeroes(cfg.World.TestingHeroes)
 	handlers.SetTestingHeroes(cfg.World.TestingHeroes)
+	handlers.SetBugBoard(cfg.World.BugBoard) // the Bug Finder Leaderboard (handlers/bugboard.go)
 	if cfg.World.TestingHeroes {
 		n, err := gameWorld.LoadRaidBossNames(db)
 		if err != nil {

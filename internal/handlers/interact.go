@@ -110,6 +110,8 @@ type InteractHandler struct {
 	// heroes is the Testing Heroes Vendor's talk (heroes.go); nil: an NPC of his
 	// name has nothing to say
 	heroes *Heroes
+	// bugBoard is the Bug Finder Leaderboard's talk (bugboard.go); nil: the board says it cannot be read
+	bugBoard *BugBoard
 }
 
 // SetDialogLines gives the handler npcdialog's reader (database.NPCDialog).
@@ -332,6 +334,11 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 
 	// The Testing Heroes Vendor (heroes.go): his stock, for the faction's standing.
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.heroes.Talk(sess, player, npc) {
+		return nil
+	}
+
+	// The Bug Finder Leaderboard (bugboard.go): the players who reported the most bugs.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.bugBoard.Talk(sess, player, npc) {
 		return nil
 	}
 

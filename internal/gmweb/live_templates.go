@@ -146,7 +146,7 @@ func checkClassTemplateRow(row map[string]any) error {
 	}{
 		{"special_damage", "the special's damage a level", &t.SpecialDamage},
 		{"special_every", "seconds from one timed special to the next (0 none)", &t.SpecialEvery},
-		{"special_first", "seconds into a fight for the first timed special", &t.SpecialFirst},
+		{"special_first", "seconds into a fight for the first timed special (a pet's or an NPC fight's: a creature's crit opens every fight)", &t.SpecialFirst},
 		{"special_jitter", "seconds either way on each timed special", &t.SpecialJitter},
 		{"kick_every", "seconds from one kick to the next (0 none)", &t.KickEvery},
 		{"kick_first", "seconds into a fight for the first kick", &t.KickFirst},

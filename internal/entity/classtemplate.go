@@ -48,7 +48,9 @@ import (
 //     AT its enemy (its turns in reach, templateContactGap apart at most):
 //     time closing in, held off by a root or casting is not counted, as
 //     Sandstorm's specials come with its rounds (one round in five) and a
-//     creature out of reach has none; either only from special_from on, a
+//     creature out of reach has none (a creature's, no pet's, comes as a round
+//     of its own, its first opening every fight whatever special_first: work
+//     1340, critround.go); either only from special_from on, a
 //     level (the roamer's 10: the user's "they get it around level 10
 //     starting, but before only auto attack"), the creature's own;
 //   - casts its abilities in its fights, from where it stands in reach of its
@@ -213,9 +215,12 @@ type templateFight struct {
 	round   time.Time
 	special time.Time
 	// timedLeft is its timed special's time at its enemy still to go, from
-	// timedSeen, its last turn in reach (zero: its clock not begun)
-	timedLeft time.Duration
-	timedSeen time.Time
+	// timedSeen, its last turn in reach (zero: its clock not begun);
+	// critRounds that the special comes as a round of its own this fight
+	// (critround.go), its rounds spending the clock
+	timedLeft  time.Duration
+	timedSeen  time.Time
+	critRounds bool
 	// kickLeft and kickSeen are its kick's clock (KickEvery), as timedLeft's
 	kickLeft time.Duration
 	kickSeen time.Time
@@ -1683,7 +1688,9 @@ func (w *World) templateSpecialLocked(npc *NPC, target EntityID, now time.Time) 
 		return // a creature below its template's special_from fights with its melee alone
 	}
 	f := npc.fight()
-	if t.SpecialEvery > 0 {
+	if t.SpecialEvery > 0 && f.critRounds {
+		critClock(f, now) // its crit is a round of its own: its rounds pick it (critround.go)
+	} else if t.SpecialEvery > 0 {
 		switch gap := now.Sub(f.timedSeen); {
 		case f.timedSeen.IsZero():
 			f.timedLeft = templateJitter(t.SpecialFirst, t.SpecialJitter)
@@ -1696,8 +1703,8 @@ func (w *World) templateSpecialLocked(npc *NPC, target EntityID, now time.Time) 
 			w.templateSpecialHitLocked(npc, target, now)
 		}
 	}
-	if t.SpecialChance <= 0 || npc.RoundStart.IsZero() {
-		return
+	if t.SpecialChance <= 0 || npc.RoundStart.IsZero() || npc.RoundCrit {
+		return // a crit round is the round: no chance special beside it (critround.go)
 	}
 	if !npc.RoundStart.Equal(f.round) {
 		f.round, f.special = npc.RoundStart, time.Time{}
@@ -1872,7 +1879,15 @@ func (w *World) templateLineLocked(npc *NPC, now time.Time) string {
 		parts = append(parts, fmt.Sprintf("%s in %d%% of its rounds for %d", specialName(t), t.SpecialChance,
 			max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1)))
 	}
-	if specials && t.SpecialEvery > 0 {
+	if specials && t.SpecialEvery > 0 && npc.Owner == 0 {
+		// its crit is a round of its own (critround.go)
+		every := fmt.Sprintf("%g", t.SpecialEvery)
+		if t.SpecialJitter > 0 {
+			every = fmt.Sprintf("%g-%g", t.SpecialEvery-t.SpecialJitter, t.SpecialEvery+t.SpecialJitter)
+		}
+		parts = append(parts, fmt.Sprintf("%s for %d in place of a round: the first of every fight, then ready every %s s at its enemy",
+			specialName(t), max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1), every))
+	} else if specials && t.SpecialEvery > 0 {
 		parts = append(parts, fmt.Sprintf("%s every %g-%g s at its enemy for %d, the first %g-%g s in", specialName(t),
 			t.SpecialEvery-t.SpecialJitter, t.SpecialEvery+t.SpecialJitter, max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1),
 			math.Max(t.SpecialFirst-t.SpecialJitter, 0), t.SpecialFirst+t.SpecialJitter))

@@ -204,10 +204,12 @@ type NPC struct {
 	keptMoved bool
 
 	// Its melee round (rounds.go): when it began, how many of its hits
-	// have landed, and at whom.
+	// have landed, and at whom; RoundCrit that the round is its critical hit
+	// in place of its hits (critround.go)
 	RoundStart  time.Time
 	RoundHits   int
 	RoundTarget EntityID
+	RoundCrit   bool
 
 	// Dummy is a training dummy's kind (dummy.go), by its name, and the
 	// one it fights: a player, or a player's pet or mercenary.

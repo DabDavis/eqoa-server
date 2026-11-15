@@ -112,8 +112,11 @@ func (w *World) npcRoundAtLocked(npc *NPC, target EntityID, now time.Time, hit f
 			next = now
 		}
 		npc.RoundStart = next
-		npc.RoundHits = 0
-		w.npcSwingLocked(npc, target, uint32(delay/time.Millisecond), fx, now) // none while it casts (classtemplate.go)
+		w.npcRoundStartLocked(npc, target, now, delay, fx) // its crit or its swing (critround.go)
+	}
+	if npc.critDue(hits, now) {
+		w.critStrikeLocked(npc, target, hits, now) // the crit in place of the round's hits (critround.go)
+		return
 	}
 	for npc.RoundHits < len(hits) && !now.Before(npc.RoundStart.Add(hits[npc.RoundHits])) {
 		npc.RoundHits++
@@ -131,6 +134,10 @@ func (n *NPC) loseDueHits(now time.Time) {
 		return
 	}
 	_, _, _, hits := npcRound(n)
+	if n.critDue(hits, now) {
+		n.loseCrit(hits) // its crit unlanded, ready again (critround.go)
+		return
+	}
 	for n.RoundHits < len(hits) && !now.Before(n.RoundStart.Add(hits[n.RoundHits])) {
 		n.RoundHits++
 	}
@@ -139,6 +146,12 @@ func (n *NPC) loseDueHits(now time.Time) {
 // endRound forgets the NPC's round: its next fight starts a new one.
 func (n *NPC) endRound() {
 	n.RoundStart = time.Time{}
+	if n.RoundCrit {
+		n.RoundCrit = false
+		if n.tfight != nil && n.RoundHits == 0 {
+			n.tfight.timedLeft = 0 // its crit round ended unlanded: ready again (critround.go)
+		}
+	}
 	n.RoundHits = 0
 }
 

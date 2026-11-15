@@ -246,6 +246,9 @@ func (ms *mercState) mercBook() []mercSpell {
 		if u == useNone || slices.Contains(ms.kit.SpellsOff, s.SpellID) {
 			continue // one its hirer turned off (mercmenu.go)
 		}
+		if ms.mercThrowsPotions() && mercPotionSpell(s) {
+			continue // an alchemist's potion spell is thrown, not cast (mercthrow.go)
+		}
 		short := false
 		if u == useBuff {
 			if s.Def.Duration < mercBuffLasts {
@@ -442,6 +445,9 @@ func (w *World) mercCastTurnLocked(ms *mercState, t *NPC, now time.Time) bool {
 		return w.mercBuffTurnLocked(ms, now)
 	}
 	if ms.role == roleTank && w.mercTauntTurnLocked(ms, t, now) {
+		return true
+	}
+	if w.mercThrowTurnLocked(ms, w.NPCs[ms.target], now) { // an alchemist's potion (mercthrow.go)
 		return true
 	}
 	return w.mercAttackTurnLocked(ms, w.NPCs[ms.target], now)

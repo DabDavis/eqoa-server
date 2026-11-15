@@ -617,9 +617,12 @@ func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 	l.WornPieces, l.WornMask = p.WornPieces, p.WornMask // its pieces' auras (entity/pieceaura.go)
 	if row.Class == mercAlchemist {
 		if bottle := m.potionBottle(); bottle != 0 {
-			// in the hand the staff was, as the alchemists' NPCs hold one (the
-			// Chemists of Freeport, Aemilia); its staff's figures kept
-			l.Primary, l.PrimaryType = bottle, thrownAttackType
+			// in its second hand, as a player's potion worn in the ranged slot
+			// is shown (character.go's wornLook: slot 18 in the second hand),
+			// the hand CLIENT's Range1 throws from (entity/mercthrow.go); its
+			// staff's figures kept, its first hand empty
+			l.Primary, l.PrimaryType = 0, 0
+			l.Secondary, l.SecondaryType = bottle, thrownAttackType
 		}
 	}
 	for _, it := range items {

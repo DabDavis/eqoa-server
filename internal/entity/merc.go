@@ -224,6 +224,10 @@ type mercState struct {
 	bowOut    bool
 	shot      *mercShot
 	shotReady time.Time
+	// throwing: an alchemist's potion on its way, throwReady when it may
+	// throw again (mercthrow.go)
+	throwing   *mercThrowing
+	throwReady time.Time
 }
 
 // mercNoCollideID is a merc's entry on its owner's non-collide list (0x1003:

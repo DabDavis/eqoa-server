@@ -1642,7 +1642,8 @@ func (w *World) landOnPetLocked(cs *castState, caster *Player, casterSess *sessi
 				continue
 			}
 			switch n := spellAmount(e, caster); {
-			case n > 0 && pet.HP < pet.MaxHP:
+			case n > 0:
+				// told whole at full health too (healLocked: petition 2016)
 				pet.HP = min(pet.HP+n, pet.MaxHP)
 				w.tellAmountLocked(caster, casterSess, pet.ServerID, n, cs.spell.healKind())
 			case n < 0 && !e.Self && !pet.Dead:
@@ -1782,8 +1783,9 @@ func (w *World) petEffectsLocked(ps *petState, now time.Time) {
 		if ae.Rules.Twice { // the workbook's first tick, twice (workbook.go)
 			ae.Rules.Twice, n, pw = false, 2*n, 2*pw
 		}
-		if n > 0 && pet.HP < pet.MaxHP {
+		if n > 0 {
 			pet.HP = min(pet.HP+n, pet.MaxHP)
+			w.tellNPCHoTLocked(pet, ae, n) // hotfigures.go
 		}
 		if pw > 0 && pet.MaxPower > 0 && pet.Power < pet.MaxPower {
 			pet.Power = min(pet.Power+pw, pet.MaxPower) // its power over time (charm.go: what its master gives it)

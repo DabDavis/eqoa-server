@@ -117,29 +117,29 @@ func (w *World) petGroupHealLocked(ps *petState, spell *CastSpell, n int) {
 	healed, total := 0, 0
 	for _, p := range side.players {
 		top := p.MaxHPNow()
-		h := min(n, top-p.HP)
-		if h <= 0 {
-			continue
+		if h := min(n, top-p.HP); h > 0 {
+			p.HP += h
+			p.StatsDirty = true
+			healed, total = healed+1, total+h
 		}
-		p.HP += h
-		p.StatsDirty = true
-		healed, total = healed+1, total+h
+		// told whole, a full one too: what the heal was worth (cast.go's
+		// healLocked, petition 2016)
 		if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
 			if id := w.objectIDForEntityLocked(sess, pet.ServerID); id != 0 {
-				w.sendDamageIndication(sess, id, h, sess.PlayerObjectID(), numberHeal.byPet())
+				w.sendDamageIndication(sess, id, n, sess.PlayerObjectID(), numberHeal.byPet())
 			}
 		}
 	}
 	for _, t := range side.pets {
+		if t == pet {
+			w.tellPetHealLocked(ps, n) // whole, as a player's (above)
+		}
 		h := min(n, t.MaxHP-t.HP)
 		if h <= 0 {
 			continue
 		}
 		t.HP += h
 		healed, total = healed+1, total+h
-		if t == pet {
-			w.tellPetHealLocked(ps, h)
-		}
 		if t.isMerc() {
 			syncMercBody(t.merc)
 		}

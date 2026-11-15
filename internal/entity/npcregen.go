@@ -65,7 +65,8 @@ func (w *World) npcRegenSystem(now time.Time) {
 			continue
 		}
 		if npc.Owner != 0 {
-			npc.petRegen() // a pet, as a player (the file's doc)
+			npc.petRegen()              // a pet, as a player (the file's doc)
+			w.tellPetStatHoTLocked(npc) // a spell's HoT stat, its part alone (hotfigures.go)
 			continue
 		}
 		if npc.CurrentEnemy != 0 {

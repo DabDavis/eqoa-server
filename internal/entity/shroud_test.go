@@ -194,14 +194,13 @@ func TestAProcsHealIsSeenAtFullHealth(t *testing.T) {
 	healed("a mark", 65)
 	guard.Effects = nil
 
-	// the controls: a spell's heal on a full player, none; a hurt one's life steal, healed
+	// a spell's heal on a full player, told whole too since petition 2016
+	// (cast.go's healLocked); a hurt one's life steal, healed
 	full()
 	r.w.mu.Lock()
 	r.w.healLocked(p, sess, p, 300, numberHeal)
 	r.w.mu.Unlock()
-	if figs := figuresIn(drain(sess)); len(figs) != 0 {
-		t.Errorf("a spell's heal on a full player: %v", figs)
-	}
+	healed("a spell's heal", 300)
 	p.Effects = []*ActiveEffect{{Name: "Shroud of Death +", Proc: 100, ProcMax: 100, Until: now.Add(time.Hour), Rules: EffectRules{ProcHeal: 100}}}
 	p.HP = 1000
 	drain(sess)

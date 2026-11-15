@@ -161,6 +161,7 @@ func (w *World) petMemberHealLocked(ps *petState, c *petCast, n int) {
 		if c.a.HealPct > 0 {
 			n = petShareAmount(top, c.a.HealPct)
 		}
+		worth := n // told whole: what the heal was worth (cast.go's healLocked, petition 2016)
 		if n = min(n, top-p.HP); n <= 0 {
 			return
 		}
@@ -168,7 +169,7 @@ func (w *World) petMemberHealLocked(ps *petState, c *petCast, n int) {
 		p.StatsDirty = true
 		if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
 			if id := w.objectIDForEntityLocked(sess, pet.ServerID); id != 0 {
-				w.sendDamageIndication(sess, id, n, sess.PlayerObjectID(), numberHeal.byPet())
+				w.sendDamageIndication(sess, id, worth, sess.PlayerObjectID(), numberHeal.byPet())
 			}
 		}
 		log.Printf("Pet: %s's %q heals %s with %q for %d (HP %d/%d)", ps.owner.Name, pet.Name, p.Name, c.spell.Name, n, p.HP, top)
@@ -181,12 +182,13 @@ func (w *World) petMemberHealLocked(ps *petState, c *petCast, n int) {
 		if c.a.HealPct > 0 {
 			n = petShareAmount(t.MaxHP, c.a.HealPct)
 		}
+		worth := n
 		if n = min(n, t.MaxHP-t.HP); n <= 0 {
 			return
 		}
 		t.HP += n
 		if t == pet {
-			w.tellPetHealLocked(ps, n)
+			w.tellPetHealLocked(ps, worth)
 		}
 		if t.isMerc() {
 			syncMercBody(t.merc)

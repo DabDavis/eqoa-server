@@ -46,8 +46,10 @@ package entity
 //     own part for its caster (landOnCasterLocked), a drain's or a life tap's
 //     take (drainLocked), a drunk potion's; a pet's heal on itself or its
 //     owner, and its tap's take (tellPetHealLocked, petLandLocked, pettap.go).
-//   - numberHoT: a heal over time's tick (runTickLocked), and a drain over
-//     time's take at each tick (tickNPCEffectLocked).
+//   - numberHoT: a heal over time's tick (runTickLocked; on a pet or a merc
+//     tellNPCHoTLocked), a spell's HoT stat at the regen tick
+//     (hotfigures.go), and a drain over time's take at each tick
+//     (tickNPCEffectLocked).
 //
 // numberByPet is set on any of them the player's pet made. A spell the pet
 // casts for its owner lands as the owner's own cast (petLandLocked's buff), its

@@ -1024,12 +1024,13 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 			if n <= 0 || o.IsDead() || o.HP >= o.MaxHPNow() {
 				return
 			}
+			worth := n // told whole: what the heal was worth (cast.go's healLocked, petition 2016)
 			n = min(n, o.MaxHPNow()-o.HP)
 			o.HP += n
 			o.StatsDirty = true
 			if sess := w.findSessionByEntityIDLocked(o.ServerID); sess != nil {
 				if id := w.objectIDForEntityLocked(sess, pet.ServerID); id != 0 {
-					w.sendDamageIndication(sess, id, n, sess.PlayerObjectID(), numberHeal.byPet()) // its pet's heal on it (numbertags.go)
+					w.sendDamageIndication(sess, id, worth, sess.PlayerObjectID(), numberHeal.byPet()) // its pet's heal on it (numbertags.go)
 				}
 			}
 			log.Printf("Pet: %s's %q heals its owner with %q for %d (HP %d/%d)", o.Name, pet.Name, c.spell.Name, n, o.HP, o.MaxHPNow())
@@ -1038,9 +1039,10 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 		if a.HealPct > 0 {
 			n = petShareAmount(pet.MaxHP, a.HealPct)
 		}
-		if n = min(n, pet.MaxHP-pet.HP); n > 0 {
+		if worth := n; worth > 0 && pet.HP < pet.MaxHP {
+			n = min(n, pet.MaxHP-pet.HP)
 			pet.HP += n
-			w.tellPetHealLocked(ps, n)
+			w.tellPetHealLocked(ps, worth) // whole (cast.go's healLocked, petition 2016)
 			log.Printf("Pet: %s's %q heals itself with %q for %d (HP %d/%d)", ps.owner.Name, pet.Name, c.spell.Name, n, pet.HP, pet.MaxHP)
 		}
 	case database.AbilityBuff:

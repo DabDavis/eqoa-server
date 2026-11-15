@@ -145,10 +145,11 @@ func TestCastIsSandstorms(t *testing.T) {
 	if msgs := c.sent(); len(msgs) != 1 || !bytes.Equal(msgs[0], unhex(t, "db00d0a1241446d0a12414")) || c.p.HP != 536 {
 		t.Errorf("second tick: %x, HP %d", msgs, c.p.HP)
 	}
-	// at full hit points a tick tells nothing
+	// at full hit points a tick is told whole all the same (Sandstorm told
+	// nothing; petition 2016, owner-approved 2026-11-15: cast.go's healLocked)
 	c.tick(15400 * time.Millisecond)
-	if msgs := c.sent(); len(msgs) != 0 {
-		t.Errorf("a tick at full HP sent %x", msgs)
+	if msgs := c.sent(); len(msgs) != 1 || !bytes.Equal(msgs[0], unhex(t, "db00d0a1241446d0a12414")) || c.p.HP != 536 {
+		t.Errorf("a tick at full HP: %x, HP %d; want +35 told, nothing healed", msgs, c.p.HP)
 	}
 	// 24 s after landing it wears off
 	c.tick(27400 * time.Millisecond)

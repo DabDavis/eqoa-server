@@ -85,7 +85,9 @@ type Kept struct {
 	// MercsLayout is the layout of OpcodeMercsData the client asked for (2
 	// names each merc's hirer, the client's "<X's Mercenary>" tag): without
 	// it a kept session fell back to 1 and every tag went (2026-11-11).
-	MercsLayout      uint8 `json:"mercs_layout,omitempty"`
+	MercsLayout uint8 `json:"mercs_layout,omitempty"`
+	// MercWindow is the merc windows' layout the client answered (mercwin.go)
+	MercWindow       uint8 `json:"merc_window,omitempty"`
 	GroupReg         bool  `json:"group_reg,omitempty"`
 	ItemLinks        bool  `json:"item_links,omitempty"`
 	ReportNotice     bool  `json:"report_notice,omitempty"`
@@ -239,6 +241,7 @@ func (s *Session) Keep() Kept {
 		MobInfo:            s.mobInfo,
 		MercsTold:          s.mercsTold,
 		MercsLayout:        s.mercsLayout,
+		MercWindow:         s.mercWindow,
 		GroupReg:           s.groupReg,
 		ItemLinks:          s.itemLinks,
 		ReportNotice:       s.reportNotice,
@@ -419,6 +422,7 @@ func (s *Session) restore(k Kept, now time.Time) {
 	// what they were sent is sent again at the next refresh (the client
 	// keeps it; the world may have changed in the hold)
 	s.mercsTold, s.mercsLayout, s.mercsSent = k.MercsTold, k.MercsLayout, ""
+	s.mercWindow = k.MercWindow
 	s.groupReg, s.groupRegSent = k.GroupReg, ""
 	s.itemLinks = k.ItemLinks
 	s.reportNotice = k.ReportNotice

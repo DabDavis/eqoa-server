@@ -1038,6 +1038,7 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// and the mercs' names (mercui.go, world.mercs): a client that tints them
 	// and dismisses one from its menu asks, a PS2 ignores it
 	SendMercsOffer(sess)
+	SendMercWindowOffer(sess) // vanilla's merc windows (mercwin.go)
 	// and the whole of a raid group (entity/raidroster.go): a client that shows it
 	// asks, a PS2 ignores it
 	SendRaidRosterOffer(sess)

@@ -673,6 +673,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 			mercs.Start()
 			// their names told and Group > Dismiss Mercenary (mercui.go)
 			NewMercUIHandler(gameWorld, mercs).RegisterHandlers(r)
+			NewMercWindowHandler(gameWorld, mercs).RegisterHandlers(r) // vanilla's merc windows (mercwin.go)
 			familiars := NewFamiliars(gameWorld, charStore.DB())
 			equipHandler.familiars, chatHandler.familiars = familiars, familiars
 			familiars.Start()

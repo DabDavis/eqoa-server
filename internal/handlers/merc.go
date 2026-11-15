@@ -625,7 +625,7 @@ const mercDualFrom = 20
 // kit is the merc of the row at level as it fights (the file's doc).
 func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 	k := entity.MercKit{Class: row.Class, Race: row.Race, Sex: row.Sex, Level: max(level, 1), Name: row.Name, Offensive: row.Offensive,
-		SpellsOff: row.SpellsOff, Cocktail: mercCocktail(row), AoE: row.AoE}
+		SpellsOff: row.SpellsOff, Loadout: row.SpellSlots, Cocktail: mercCocktail(row), AoE: row.AoE}
 	k.Look = entity.MercLook{Face: row.Face, HairColor: row.HairColor, HairLength: row.HairLength, HairStyle: row.HairStyle, Robe: -1}
 	k.Base = entity.MercBaseStats(row.Class, row.Race, k.Level) // its role's (entity/mercroles.go)
 	if m.db == nil {
@@ -1071,6 +1071,10 @@ func (m *Mercs) Command(sess *session.Session, p *entity.Player, args string) {
 		if slot = m.oneSlot(sess, rows, slot, "menu"); slot > 0 {
 			m.menu(sess, p, slot)
 		}
+	case "spells": // its spells: vanilla's window (mercwin.go), else the Spells box
+		if slot = m.oneSlot(sess, rows, slot, "spells"); slot > 0 && !m.openSpellsWindow(sess, p, slot) {
+			m.menuSpells(sess, p, slot, 0)
+		}
 	case "", "status", "revive", "list":
 		m.status(sess, p, rows, slot, verb == "revive")
 	case "dismiss":
@@ -1254,7 +1258,7 @@ func (m *Mercs) dismiss(sess *session.Session, p *entity.Player, slot int) {
 var mercVerbs = map[string]bool{"status": true, "dismiss": true, "stance": true, "follow": true, "stay": true, "attack": true,
 	"group": true, "revive": true, "help": true, "path": true, "pet": true, "charm": true, "list": true, "defensive": true,
 	"offensive": true, "menu": true, "master": true, "aoe": true, "single": true, "give": true, "inv": true, "inventory": true, "items": true,
-	"equip": true, "unequip": true, "take": true, "stock": true, "claim": true}
+	"equip": true, "unequip": true, "take": true, "stock": true, "claim": true, "spells": true}
 
 // mercWords reports a tell's body that is /merc's: none, or one of its words
 // first.

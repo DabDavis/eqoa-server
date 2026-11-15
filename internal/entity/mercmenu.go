@@ -45,11 +45,11 @@ func (w *World) MercSpells(sess *session.Session, slot int) ([]MercSpell, bool) 
 		return nil, false
 	}
 	all := &mercState{kit: ms.kit, body: ms.body}
-	all.kit.SpellsOff = nil
+	all.kit.SpellsOff, all.kit.Loadout = nil, nil
 	book := all.mercBook()
 	out := make([]MercSpell, 0, len(book))
 	for _, sp := range book {
-		out = append(out, MercSpell{ID: sp.s.SpellID, Name: sp.s.Name, Use: MercUseName(sp.s), Off: slices.Contains(ms.kit.SpellsOff, sp.s.SpellID)})
+		out = append(out, MercSpell{ID: sp.s.SpellID, Name: sp.s.Name, Use: MercUseName(sp.s), Off: slices.Contains(ms.kit.SpellsOff, sp.s.SpellID) || !ms.slotted(sp.s.SpellID)})
 	}
 	levels := map[int]int{}
 	for _, sp := range book {

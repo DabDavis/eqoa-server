@@ -61,6 +61,27 @@ const castBusy = 400 * time.Millisecond
 // ungrey"; 300 ms before, a reading of another server's captures).
 const castLockoutExtra = 0
 
+// castLockoutLeast is the shortest lockout a cast's 0x00CD tells: the cast's
+// busy time (castBusy), in which no other cast starts anyway. A spell of no
+// cast time and no recast (the rogue's Agony, Halting Strike, Wounding) was
+// told a lockout of 0 from petition 2184's castLockoutExtra of 0, and CLIENT
+// greys no button for that (petition 2197, Hoofbite: "Agony rogue spell no
+// longer darkens spell icon to indicate it being cast. should darken"); 300 ms
+// before, the extra.
+const castLockoutLeast = castBusy
+
+// castLockoutOf is the lockout a player's cast of the spell begins (0x00CD's,
+// and its recovery): its cast time and recast, an art's at least the arts'
+// cooldown (artCooldown, balance.go: no art is taken before it), and never less
+// than castLockoutLeast.
+func castLockoutOf(spell *CastSpell, artCooldown time.Duration) time.Duration {
+	lockout := spell.CastTime + spell.Recast + castLockoutExtra
+	if isArt(spell) && !isTaunt(spell) {
+		lockout = max(lockout, artCooldown)
+	}
+	return max(lockout, castLockoutLeast)
+}
+
 // effectTick is a "per tic" effect's tick: six seconds, so the lists' 24 s
 // heals tick four times ("63 x4").
 const effectTick = 6 * time.Second
@@ -824,7 +845,7 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 		w.breakBoardWolfLocked(p, "a harmful spell") // boardwolf.go
 	}
 	w.dispelOnCastLocked(p, spell.Def.Harmful) // workbook.go: what ends at a cast (a run speed only at a harmful one)
-	lockout := spell.CastTime + spell.Recast + castLockoutExtra
+	lockout := castLockoutOf(&spell, w.balance.ArtCooldown(p.Level))
 	if spell.Travel == nil && spell.Familiar == nil { // an item's travel or familiar is no ability: nothing to lock out
 		p.Lockouts = append(p.Lockouts, castLockout{spellID: spell.SpellID, displayIndex: spell.DisplayIndex, until: now.Add(lockout)})
 		w.lockRecastGroupLocked(sess, p, &spell, now, now.Add(lockout)) // recastgroup.go: its group's spells too

@@ -169,8 +169,10 @@ func TestAPetsAreaNukeAndRootLandRoundItsTarget(t *testing.T) {
 	gust := wbSpell(9601, 40, 1, "Test Gust", `{"v":1,"scope":"target_aoe","target_type":"Enemy","harmful":true,"stack":0,"level":40,"radius":15,
 		"effects":[{"id":"0001","type":"Dmg/Heal","kind":"hp","amount":-100},{"id":"0001","type":"Dmg/Heal","kind":"hp2","amount":-40}]}`)
 	a := &templateAbility{TemplateAbility: database.TemplateAbility{Kind: database.AbilityNuke}}
-	if !petOnly(&templateAbility{TemplateAbility: database.TemplateAbility{Kind: database.AbilityRoot}}) || petOnly(a) {
-		t.Fatal("a root is a pet's alone (a creature of the template casts none), a nuke anyone's")
+	// a root is a creature's too since work board #688 (creatureroot.go: at the player it fights), a taunt still a pet's alone
+	if petOnly(&templateAbility{TemplateAbility: database.TemplateAbility{Kind: database.AbilityRoot}}) || petOnly(a) ||
+		!petOnly(&templateAbility{TemplateAbility: database.TemplateAbility{Kind: database.AbilityTaunt}}) {
+		t.Fatal("a root and a nuke are anyone's, a taunt a pet's alone")
 	}
 	r.w.mu.Lock()
 	r.w.petLandLocked(&petCast{ps: ps, tmpl: ps.tmpl, a: a, spell: &gust, target: target.ServerID}, r.at(20*time.Second))

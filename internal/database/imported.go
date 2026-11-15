@@ -234,8 +234,15 @@ func ImportedCopyTx(tx *sql.Tx, base int, source string, now time.Time) (id int,
 	if isCopy > 0 || !IsImportedGear(equip, stack, name) {
 		return base, false, nil
 	}
-	if err := tx.QueryRow(`SELECT COALESCE(MAX(patternid), ?) + 1 FROM itempattern WHERE patternid BETWEEN ? AND ?`,
-		importedFirst-1, importedFirst, importedLast).Scan(&id); err != nil {
+	// The lowest free id of the range, not the highest + 1: other records were put inside it
+	// (the tradeskill seed's up to 999999), so its top was taken while thousands below were free
+	// (petition 2180: a transfer refused "no id left").
+	if err := tx.QueryRow(`SELECT COALESCE(MIN(p.patternid + 1), ?) FROM (
+			SELECT patternid FROM itempattern WHERE patternid BETWEEN ? AND ?
+			UNION ALL SELECT ?) p
+		WHERE p.patternid + 1 BETWEEN ? AND ?
+		  AND NOT EXISTS (SELECT 1 FROM itempattern q WHERE q.patternid = p.patternid + 1)`,
+		importedLast+1, importedFirst, importedLast, importedFirst-1, importedFirst, importedLast).Scan(&id); err != nil {
 		return 0, false, err
 	}
 	if id > importedLast {

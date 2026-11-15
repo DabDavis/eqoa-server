@@ -169,3 +169,18 @@ func TestTheShareIsASettingAndTheCopiesFollowIt(t *testing.T) {
 		t.Errorf("a share past 100%% is held to it: %v", ImportedShare())
 	}
 }
+
+// A record put at the top of the copies' range (the tradeskill seed's up to 999999) does not
+// leave the range "full": the next copy takes the lowest free id (petition 2180).
+func TestAnImportedCopyTakesTheLowestFreeID(t *testing.T) {
+	db := importedDB(t)
+	cols := `itemcost,unk1,itemicon,unk2,equipslot,unk3,trade,rent,unk4,attacktype,weapondamage,unk5,levelreq,maxstack,maxhp,duration,classuse,raceuse,procanim,lore,unk6,craft,itemname,itemdesc,model,color`
+	for _, id := range []int{importedFirst, importedLast} {
+		if _, err := db.Exec(`INSERT INTO itempattern (patternid,`+cols+`) SELECT ?,`+cols+` FROM itempattern WHERE patternid = 1026`, id); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if id, made := copyOf(t, db, 1026); !made || id != importedFirst+1 {
+		t.Errorf("Steelwind's copy beside a taken top: %d (made %v), want %d", id, made, importedFirst+1)
+	}
+}

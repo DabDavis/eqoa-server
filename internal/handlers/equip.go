@@ -576,7 +576,7 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 			return nil
 		}
 		// a potion is drunk or thrown (potion.go)
-		if pe, ok := h.potionOf(&row.Pattern); ok && usesPotion(&pe, &row.Pattern, interaction) {
+		if pe, ok := h.potionOf(&row.Pattern); ok && usesPotion(&pe, &row.Pattern, interaction, h.snowballAtPlayer(sess, &pe, target)) {
 			h.usePotion(sess, player, idx, row, pe, target)
 			return nil
 		}

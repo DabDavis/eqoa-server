@@ -70,9 +70,24 @@ func potionFromRow(r database.ItemEffectRow, itemName string) entity.PotionEffec
 // potion drunk is used from the item menu and a quick slot alike; a thrown
 // one is a ranged weapon, worn by every Use (the ranged auto-attack throws
 // it), unless it is worn nowhere. interaction (the menu's 0, a quick slot's
-// 1) changes nothing.
-func usesPotion(pe *entity.PotionEffect, p *database.ItemPatternRecord, interaction byte) bool {
+// 1) changes nothing, but for a snowball (entity/moogieitems.go; petition
+// 2204): CLIENT's ranged auto-attack never swings at a player outside a duel
+// or a PvP fight, so a worn one is thrown by Use, at another player targeted
+// (atPlayer) from the menu or a quick slot, and at anything from a quick slot
+// (the snowball's refusal for no player); from the menu with no other player
+// targeted it is worn or taken off, the Equipment list's Equip and Unequip
+// being the same 0x003E as the usable list's Use.
+func usesPotion(pe *entity.PotionEffect, p *database.ItemPatternRecord, interaction byte, atPlayer bool) bool {
+	if pe.Special == entity.PotionSnowball {
+		return p.EquipSlot < 0 || interaction == 1 || atPlayer
+	}
 	return !pe.Thrown() || p.EquipSlot < 0
+}
+
+// snowballAtPlayer is whether a Use of the item is a snowball's at another
+// player (usesPotion's atPlayer): false for any other item.
+func (h *EquipHandler) snowballAtPlayer(sess *session.Session, pe *entity.PotionEffect, target uint32) bool {
+	return pe.Special == entity.PotionSnowball && h.gameWorld != nil && h.gameWorld.TargetsOtherPlayer(sess, target)
 }
 
 // usePotion answers a Use of the potion at list index idx (row): used and one
@@ -150,6 +165,11 @@ func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, i
 			return false
 		}
 		queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(idx, 0, 1))
+		if row.EquipLoc >= 0 {
+			// a worn snowball thrown by Use (entity/moogieitems.go): the swing's count of
+			// the worn stack, and with the last the hands, as potionThrown's
+			h.wornChanged(sess, player, player.CharServerID)
+		}
 	}
 	if reagent != "" {
 		// the stack the potion came off is one less now, if it is one of them

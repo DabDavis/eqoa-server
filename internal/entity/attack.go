@@ -342,6 +342,10 @@ func (w *World) engageLocked(sess *session.Session, p *Player, objectID uint32, 
 		// swinging at it, though the 0x000F still comes.
 		return false
 	}
+	if w.wornSnowballLocked(swing) != nil {
+		w.snowballAtNPCLocked(sess, p, now) // a snowball is for players (moogieitems.go)
+		return false
+	}
 	if line := challengeRefusal(npc, p.ServerID); line != "" {
 		w.tellChallengeLocked(sess, p, line, now) // another's duel (metalmoogie.go)
 		return false

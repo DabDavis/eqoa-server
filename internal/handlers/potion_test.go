@@ -145,11 +145,11 @@ func TestThrownPotionFromAQuickSlot(t *testing.T) {
 	th := entity.NewPotionEffect(1, "Unstable Potion", "Target, Decrease Hitpoints by 54", "", 0, "", 0, 0)
 	dr := entity.NewPotionEffect(2, "Draught", "Self, Increase Power per tic by 25", "", 0, "", 0, 0)
 	for _, in := range []byte{0, 1} {
-		if usesPotion(&th, &database.ItemPatternRecord{EquipSlot: 16}, in) {
+		if usesPotion(&th, &database.ItemPatternRecord{EquipSlot: 16}, in, true) {
 			t.Errorf("a worn thrown potion is thrown by Use (interaction %d), not worn", in)
 		}
-		if !usesPotion(&th, &database.ItemPatternRecord{EquipSlot: -1}, in) ||
-			!usesPotion(&dr, &database.ItemPatternRecord{EquipSlot: -1}, in) {
+		if !usesPotion(&th, &database.ItemPatternRecord{EquipSlot: -1}, in, false) ||
+			!usesPotion(&dr, &database.ItemPatternRecord{EquipSlot: -1}, in, false) {
 			t.Errorf("a draught, or a thrown potion worn nowhere, is not used (interaction %d)", in)
 		}
 	}

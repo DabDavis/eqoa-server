@@ -42,6 +42,8 @@ import (
 //     a range of levels; a camp is offered where its creatures stand, and lands
 //     where #tele's does, beside it out of its creatures' notice
 //     (World.CampLanding), facing it.
+//   - Areas: a place offered in steps (teleAreas: Lavastorm, from its
+//     outpost to Solusek's Eye), a box of its stops, each a fixed landing.
 //
 // Only worlds the player's client loads are offered (CanLoadWorld), and a box
 // is answered only within teleReach of the Teleporter. The list is read again
@@ -86,16 +88,17 @@ const (
 
 // Its words.
 const (
-	teleAskRoot     = "Teleporter: 'I open the way to every raid and every experience camp. Where to?'"
-	teleAskRaids    = "Teleporter: 'Raids, by where they are. Which?'"
-	teleAskRaid     = "Teleporter: 'Which raid? I set you down at its way in, out of its notice.'"
-	teleAskLevels   = "Teleporter: 'Which levels?'"
-	teleAskCamp     = "Teleporter: 'Which camp? I set you down beside it, out of its creatures' notice.'"
-	teleClosed      = "My portals are closed on this server."
-	teleNowhere     = "I know of no raid or camp you could reach from here."
-	teleTooFar      = "Come back to me to go: my portals open beside me."
-	teleLost        = "I cannot find that place now. Ask me again."
-	teleAnswerRaids = "Raids"
+	teleAskRoot      = "Teleporter: 'I open the way to every raid and every experience camp. Where to?'"
+	teleAskRaids     = "Teleporter: 'Raids, by where they are. Which?'"
+	teleAskRaid      = "Teleporter: 'Which raid? I set you down at its way in, out of its notice.'"
+	teleAskLevels    = "Teleporter: 'Which levels?'"
+	teleAskCamp      = "Teleporter: 'Which camp? I set you down beside it, out of its creatures' notice.'"
+	teleAskLavastorm = "Teleporter: 'Lavastorm, from its outpost over the lava to the goblins' fort and Solusek's Eye. Where?'"
+	teleClosed       = "My portals are closed on this server."
+	teleNowhere      = "I know of no raid or camp you could reach from here."
+	teleTooFar       = "Come back to me to go: my portals open beside me."
+	teleLost         = "I cannot find that place now. Ask me again."
+	teleAnswerRaids  = "Raids"
 )
 
 // teleRaid is one of its raids.
@@ -129,6 +132,59 @@ var telePlaces = []struct {
 }{
 	{"Isle of Dread", iodRaft},
 	{"Plane of Sky", wayPlace{World: 4, X: 5000.09, Y: 333.54, Z: 4998.23, Facing: 3.068}},
+}
+
+// teleArea is a place it sends to in steps (the owner, 2026-11-16: "for
+// lavastorm add several port locations for the teleporter, the bridge, and the
+// very beginning traversing the terrain"): an answer of its first box after
+// telePlaces, a box of its stops along the way players walk, each named with
+// the levels of the creatures about it, for nothing as every trip of it.
+type teleArea struct {
+	label string // the first box's answer
+	ask   string // its box's question
+	stops []teleStop
+}
+
+// teleStop is a stop of an area: its answer and where it lands, facing on.
+type teleStop struct {
+	label string
+	at    wayPlace
+}
+
+// teleAreas are its areas. Lavastorm's stops (world 3) were measured
+// 2026-11-16 over the box's baked ground, walls and environment for world 3
+// and its creatures' rows: each on the terrain's floor, out of the lava, no
+// wall within 4, and no creature's spawn within 100 (its roam, 70, and its
+// notice, 30), on the walk from Explorer Springa's outpost (the waysender's
+// landing, where the game's way in sets players down) over the three lava
+// bridges to the bridge into the fire goblins' fort, then round by the south
+// road to the gate of Solusek's Eye, the way players took it (the box's logs:
+// the outpost, (7677, 5340) by the first bridges, the fort, the south road,
+// the Eye). Each faces on along that walk; the levels are of the creatures within
+// 400 (the named 65s about the gate and the third bridge too).
+var teleAreas = []teleArea{
+	{label: "Lavastorm", ask: teleAskLavastorm, stops: []teleStop{
+		// beside Explorer Springa on the outpost's deck, where the waysender's
+		// trip lands, facing its ramp down to the plain
+		{"The outpost, the way in", wayPlace{World: 3, X: 7906, Y: 75.34, Z: 5923, Facing: 3.608}},
+		// between the first two lava bridges (the first at (7570, 5540), the
+		// next at (7415, 5345)), 141 from a fire goblin champion, facing the next
+		{"Between the lava bridges (59-63)", wayPlace{World: 3, X: 7476, Y: 54.09, Z: 5440, Facing: 3.705}},
+		// past the third lava bridge (7110, 5012), on the road north-west to
+		// the fort, 322 from Megametamilipizon, facing up it
+		{"Past the third lava bridge (60-65)", wayPlace{World: 3, X: 7040, Y: 54.09, Z: 4960, Facing: 3.927}},
+		// before the bridge into the fort over its lava moat (from (6432,
+		// 4410) to (6500, 4473), Oracle Frish on it): the nearest ground 100
+		// clear of the goblins' camps round it (101 from a champion, 184 from
+		// the bridge's foot), facing the bridge
+		{"The bridge, the goblins' fort (58-63)", wayPlace{World: 3, X: 6680, Y: 54.09, Z: 4512, Facing: 4.392}},
+		// on the south road, the way round the rivers' ends from the fort to
+		// the Eye, 342 from a fire goblin shaman, facing west along it
+		{"The south road (59-61)", wayPlace{World: 3, X: 6900, Y: 66.51, Z: 5796, Facing: 4.832}},
+		// before the gate of Solusek's Eye in the west wall, 104 from a fire
+		// goblin champion and 110 from the gate's Solusek champions, facing it
+		{"The gate of Solusek's Eye (59-65)", wayPlace{World: 3, X: 5808, Y: 75.25, Z: 5268, Facing: 3.691}},
+	}},
 }
 
 // teleRaids are its raids, each with where it lands (measured 2026-11-09 over
@@ -480,6 +536,22 @@ func (t *Teleporter) tree(gw *entity.World, sess *session.Session) *teleNode {
 		root.kids = append(root.kids, &teleNode{label: pl.label,
 			spot: &teleSpot{label: pl.label, world: at.World, place: &at}})
 	}
+	for i := range teleAreas {
+		a := &teleAreas[i]
+		area := &teleNode{label: a.label, ask: a.ask}
+		for j := range a.stops {
+			st := &a.stops[j]
+			if !CanLoadWorld(sess, st.at.World) {
+				continue
+			}
+			at := st.at
+			area.kids = append(area.kids, &teleNode{label: st.label,
+				spot: &teleSpot{label: a.label + ": " + st.label, world: at.World, place: &at}})
+		}
+		if len(area.kids) > 0 {
+			root.kids = append(root.kids, area)
+		}
+	}
 	sort.SliceStable(camps, func(i, j int) bool {
 		a, b := camps[i], camps[j]
 		if a.low != b.low {
@@ -661,16 +733,16 @@ func (h *InteractHandler) answerTeleporter(sess *session.Session, p *entity.Play
 	}
 	dest, ok := teleLanding(h.gameWorld, kid.spot)
 	if !ok {
-		log.Printf("Teleporter: %s's trip to %s: no landing", p.Name, kid.label)
+		log.Printf("Teleporter: %s's trip to %s: no landing", p.Name, kid.spot.label)
 		teleSay(sess, teleLost)
 		return true
 	}
 	if _, err := ValidateTeleport(dest.X, dest.Y, dest.Z, dest.World); err != nil || !CanLoadWorld(sess, dest.World) {
-		log.Printf("Teleporter: %s's trip to %s refused: %v (world %d)", p.Name, kid.label, err, dest.World)
+		log.Printf("Teleporter: %s's trip to %s refused: %v (world %d)", p.Name, kid.spot.label, err, dest.World)
 		teleSay(sess, teleLost)
 		return true
 	}
-	log.Printf("Teleporter: %s to %s", p.Name, kid.label)
+	log.Printf("Teleporter: %s to %s", p.Name, kid.spot.label)
 	// the picker alone: the GM Jibwiz's petition 1938, 2026-11-13 ("The teleporter NPC in freeport
 	// when used will take everyone in your entire group or raid with you. This should not be the
 	// case, it is individual"), undoing petition 1408's group trip (Waldorf, 2026-11-09). The Sky

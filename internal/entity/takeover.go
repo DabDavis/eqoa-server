@@ -177,6 +177,7 @@ func (w *World) handedOverLocked(p *Player) {
 	p.RaidRoster, p.raidRosterSent, p.RaidRosterGroups, p.RaidRosterKinds = false, "", false, false
 	p.dps = nil                             // its meter too (dpsmeter.go)
 	delete(w.invites, p.ServerID)           // the new client has no box up
+	w.mercHandedOverLocked(p)               // and no group: its mercs' box asks it to show theirs (mercgroup.go)
 	w.setFlyingLocked(p, false, time.Now()) // a new login: its client is not flying (fly.go)
 	p.Jumps, p.mv.jump = false, jumpState{} // and its answer to the jump offer says whether it jumps (jump.go)
 	p.StatsDirty = true

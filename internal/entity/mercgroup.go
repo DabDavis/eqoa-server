@@ -179,7 +179,9 @@ func (w *World) mercGroupJoinLocked(ms *mercState, sess *session.Session) {
 // of its out of a group and not asked yet. Must be called with the lock held.
 func (w *World) mercAskLocked(ms *mercState, sess *session.Session) {
 	o := ms.owner
-	if sess == nil || o.GroupID != 0 || ms.asked || w.mercAskHeld[o.ServerID] {
+	if !mercClientReady(sess) || o.GroupID != 0 || ms.asked || w.mercAskHeld[o.ServerID] {
+		// a client not in the world yet (a takeover's before its 0x0014, a
+		// keep restart's before its dump): asked once it is, not lost to it
 		return
 	}
 	if w.boxWaitingLocked(o) {
@@ -197,17 +199,83 @@ func (w *World) mercAskLocked(ms *mercState, sess *session.Session) {
 	if len(names) == 0 {
 		return
 	}
-	// the box's name is short in CLIENT's box (a rig's "Mercenaries
-	// Ironwall, M"): several are counted there, named in the line
-	who := strings.Join(names, " and ")
-	words := fmt.Sprintf(mercBoxWords, who)
+	who, words := mercBoxNames(names)
+	w.askLocked(o, o, sess, groupAsk{merc: true}, words)
+	w.sendChatToSession(sess, fmt.Sprintf(mercAskLine, who))
+	log.Printf("Merc: %s asked into a group with %q", o.Name, names)
+}
+
+// mercBoxNames is the line's names and the box's words for the mercs named:
+// the box's name is short in CLIENT's box (a rig's "Mercenaries Ironwall,
+// M"), so several are counted there and named in the line.
+func mercBoxNames(names []string) (who, words string) {
+	who = strings.Join(names, " and ")
+	words = fmt.Sprintf(mercBoxWords, who)
 	if len(names) > 1 {
 		who = strings.Join(names[:len(names)-1], ", ") + " and " + names[len(names)-1]
 		words = fmt.Sprintf(mercsBoxWords, len(names))
 	}
-	w.askLocked(o, o, sess, groupAsk{merc: true}, words)
-	w.sendChatToSession(sess, fmt.Sprintf(mercAskLine, who))
-	log.Printf("Merc: %s asked into a group with %q", o.Name, names)
+	return who, words
+}
+
+// mercClientReady reports sess's client in the world and able to show a box:
+// not one still entering it (a takeover's new client before its 0x0014), nor
+// one a keep restart holds for its dump.
+func mercClientReady(sess *session.Session) bool {
+	return sess != nil && sess.CharacterInWorld() && !sess.ResumePending()
+}
+
+// mercRejoinAskLocked sends o's client its mercs' own box though o is in a
+// group with them here (petition 2213, Drizzt: "mercenaries drop group after
+// a reset. seemingly still with me but dont help"): CLIENT holds itself in a
+// group only after its own Invite or Accept, and Connect clears it, so a new
+// client of a character taken over (keep restart's frozen client logging in
+// again, a crash's) ignored every roster of the group the server still held,
+// the merc in it, and its group window stayed empty. The box is a probe: a
+// client in a group answers it 2 for itself and shows nothing (Msg0773), taken
+// as the yes; one in none shows it, and its yes (AcceptInvite: m_inGroup set)
+// is sent the roster. The merc fights and heals on in the group meanwhile. A
+// no dismisses it, as at any merc's box. Must be called with the lock held.
+func (w *World) mercRejoinAskLocked(o *Player, sess *session.Session) {
+	if !mercClientReady(sess) || w.mercAskHeld[o.ServerID] || w.boxWaitingLocked(o) {
+		return
+	}
+	var names []string
+	line := false
+	for _, m := range w.mercsOfLocked(o) {
+		if m.rejoin && w.mercInOwnGroupLocked(m) {
+			names = append(names, m.npc.Name)
+			line = line || m.rejoinLine
+			m.asked = true
+		}
+		m.rejoin, m.rejoinLine = false, false
+	}
+	if len(names) == 0 {
+		return
+	}
+	who, words := mercBoxNames(names)
+	w.askLocked(o, o, sess, groupAsk{merc: true, rejoin: true}, words)
+	if line {
+		w.sendChatToSession(sess, fmt.Sprintf(mercAskLine, who))
+	}
+	log.Printf("Merc: %s's client asked to show its group %d with %q", o.Name, o.GroupID, names)
+}
+
+// mercHandedOverLocked is p's mercs at a takeover (takeover.go): its new
+// client holds no group (Connect clears m_inGroup), so a merc in its group
+// (or to be, a keep restart's regroup) has its box sent to it once it is in
+// the world (mercRejoinAskLocked), with its line; a merc whose box was up on
+// the old client (gone with it: handedOverLocked drops the invitations) is
+// asked again, where the group upkeep would have dismissed it as answered.
+// Must be called with the lock held.
+func (w *World) mercHandedOverLocked(p *Player) {
+	for _, ms := range w.mercsOfLocked(p) {
+		if ms.regroup || w.mercInOwnGroupLocked(ms) {
+			ms.rejoin, ms.rejoinLine = true, true
+			continue
+		}
+		ms.asked = false
+	}
 }
 
 // HoldMercAsk holds the box asking the session's player into a group with
@@ -262,13 +330,28 @@ func (w *World) AskMercGroup(sess *session.Session) string {
 		for _, ms := range w.mercsOfLocked(p) {
 			if groupHas(g, ms.npc.ServerID) {
 				in = append(in, ms.npc.Name)
+				ms.rejoin = true
 			}
 		}
 		if len(in) == 0 {
 			return mercGroupFull
 		}
+		// and its box as a probe: a client that does not hold the group (its
+		// window empty) shows it, one that does answers for itself
+		w.mercRejoinAskLocked(p, sess)
 		return strings.Join(in, ", ") + " in your group."
 	case w.boxWaitingLocked(p):
+		if ask, up := w.invites[p.ServerID][p.ServerID]; up && ask.merc && ask.declined.IsZero() {
+			// its own box, perhaps lost to its client (sent as it froze or
+			// left): sent again
+			var names []string
+			for _, ms := range list {
+				names = append(names, ms.npc.Name)
+			}
+			_, words := mercBoxNames(names)
+			w.askLocked(p, p, sess, ask, words)
+			return ""
+		}
 		return mercBoxUpLine
 	}
 	for _, ms := range list {
@@ -447,11 +530,21 @@ func (w *World) mercGroupUpkeepLocked(ms *mercState, sess *session.Session) {
 	case own != nil:
 		ms.regroup = false
 		w.mercIntoGroupLocked(ms, own) // no place: on standby (mercbench.go)
+		if ms.rejoin {
+			w.mercRejoinAskLocked(o, sess) // its owner's client may not hold it
+		}
 	case ms.regroup:
-		// a keep restart's: its owner's client holds the group of the two of
-		// them, which no box need ask again (keepmerc.go)
+		// a keep restart's (from a snapshot without the group of the owner and
+		// its mercs alone, keep.go's KeptGroup.Order): its owner's client
+		// holds the group of them, which its probe box checks (keepmerc.go)
 		ms.regroup = false
-		w.sendRosterLocked(w.formGroupLocked(o), true)
+		g := w.formGroupLocked(o)
+		w.sendRosterLocked(g, true)
+		for _, m := range w.mercsOfLocked(o) {
+			if groupHas(g, m.npc.ServerID) {
+				m.rejoin = true
+			}
+		}
 	case !ms.asked:
 		// out of a group of others, or a box its group gave way to answered no:
 		// asked again, once no other box is up (mercAskLocked)
@@ -470,7 +563,7 @@ func (w *World) mercGroupUpkeepLocked(ms *mercState, sess *session.Session) {
 func (w *World) mercOwnYesLocked(sess *session.Session, p *Player) {
 	if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil {
 		w.mercFollowIntoLocked(p)
-		w.sendRosterLocked(g, true)
+		w.sendRosterLocked(g, true) // a rejoin box's yes: its client holds the group now (mercRejoinAskLocked)
 		return
 	}
 	if len(w.mercsOfLocked(p)) == 0 {
@@ -485,9 +578,26 @@ func (w *World) mercOwnYesLocked(sess *session.Session, p *Player) {
 // client answers 2 for itself when it holds itself in a group already, where
 // the server has none (raidFlagOwnNoLocked's case): that is a yes. Must be
 // called with the lock held.
-func (w *World) mercOwnNoLocked(sess *session.Session, p *Player, why byte) {
+func (w *World) mercOwnNoLocked(sess *session.Session, p *Player, why byte, ask groupAsk) {
 	if why == 2 && p.GroupID == 0 {
 		w.mercOwnYesLocked(sess, p)
+		return
+	}
+	if ask.rejoin {
+		if why == 2 {
+			// its client holds the group already: the probe's quiet answer
+			// (mercRejoinAskLocked); the roster again, should it be stale
+			if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil {
+				w.sendRosterLocked(g, true)
+			}
+			return
+		}
+		log.Printf("Merc: %s declined showing its group with its mercenaries", p.Name)
+		for _, ms := range w.mercsOfLocked(p) {
+			if w.mercInOwnGroupLocked(ms) {
+				w.mercOutLocked(ms, sess, mercOutLine)
+			}
+		}
 		return
 	}
 	log.Printf("Merc: %s declined a group with its mercenaries", p.Name)

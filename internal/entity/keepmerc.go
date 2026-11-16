@@ -5,6 +5,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/session"
 )
 
@@ -49,6 +50,10 @@ type KeptMerc struct {
 	// once. Before 2026-11-12 the merc summoned a new one after its first turns,
 	// whole and bare, and the pet was seen gone until then.
 	Pet *KeptPet `json:"pet,omitempty"`
+	// Effects are the spells on it (its own buffs, its owner's, its group's),
+	// as a pet's are kept (keeppet.go). Before 2026-11-16 it came back bare,
+	// its hit points and armour short of its buffs' until it cast them again.
+	Effects []database.BuffRow `json:"effects,omitempty"`
 }
 
 // KeptMercsOf is what a kept player carries of its mercs: Mercs, or a
@@ -88,7 +93,8 @@ func (w *World) keptMercsLocked(p *Player, now time.Time) []KeptMerc {
 func (w *World) keptMercLocked(p *Player, ms *mercState, now time.Time) *KeptMerc {
 	n := ms.npc
 	k := &KeptMerc{Slot: ms.slot, Name: n.Name, HPPct: share(n.HP, n.MaxHP), PowerPct: share(n.Power, n.MaxPower), Stance: byte(ms.stance),
-		Stay: ms.stay, StayAt: ms.stayAt, Place: [4]float32{n.X, n.Y, n.Z, n.Facing}, World: n.World}
+		Stay: ms.stay, StayAt: ms.stayAt, Place: [4]float32{n.X, n.Y, n.Z, n.Facing}, World: n.World,
+		Effects: effectRows(n.Effects, now, nil)}
 	if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil && groupHas(g, n.ServerID) {
 		k.Grouped = true
 	}
@@ -139,6 +145,12 @@ func (w *World) RestoreMerc(sess *session.Session, kit MercKit, k KeptMerc, now 
 		w.SpatialIndex.Update(n.ServerID, oldX, oldZ, n.X, n.Z)
 		ms.stay, ms.stayAt = k.Stay, k.StayAt
 	}
+	for _, r := range k.Effects {
+		if r.LeftMS > 0 {
+			n.Effects = append(n.Effects, effectFromRow(r, now))
+		}
+	}
+	syncMercBody(ms) // its effects' figures, before its shares are taken of them
 	n.HP = keptShare(k.HPPct, n.MaxHP)
 	n.Power = min(n.MaxPower, int(k.PowerPct*float64(n.MaxPower)+0.5))
 	syncMercBody(ms)
@@ -148,9 +160,13 @@ func (w *World) RestoreMerc(sess *session.Session, kit MercKit, k KeptMerc, now 
 	// hold) or waiting outside the arena, asked, as at its return from there:
 	// a merc fights only in its owner's group (mercgroup.go)
 	ms.asked = k.Grouped && !k.Away
-	// its group place at the group upkeep, once the kept groups are formed
-	// again (RestoreGroups comes after every session's character)
+	// its group place where it stood among the members, as RestoreGroups
+	// forms the kept groups again (after every session's character: keep.go's
+	// KeptGroup.Order), else at the group upkeep; and its box to its owner's
+	// client once it has its dump, a probe it answers for itself when it
+	// holds the group (mercRejoinAskLocked; petition 2213)
 	ms.regroup = k.Grouped
+	ms.rejoin = k.Grouped && !k.Away
 	log.Printf("Keep: %s's mercenary %q back (%d/%d HP, %s, grouped %v)", p.Name, n.Name, n.HP, n.MaxHP,
 		MercStanceNames[ms.stance], k.Grouped)
 	return true

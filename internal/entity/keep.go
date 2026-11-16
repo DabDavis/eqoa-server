@@ -20,6 +20,7 @@ package entity
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/eqoa/server/internal/session"
@@ -118,6 +119,21 @@ type KeptGroup struct {
 	// Subs: each member's group inside the raid, by Members' places
 	// (raidsubgroups.go); none from a server before them: filled again
 	Subs []uint8 `json:"subs,omitempty"`
+	// Order is every member in its place, players and mercs (mercgroup.go):
+	// a merc by its owner's character and its slot. A group of a player and
+	// its mercs alone is kept by it (Members one player), under its own id.
+	// Before 2026-11-16 a merc was put back at the group upkeep after the
+	// players, in no kept order, and the group of an owner and its mercs alone
+	// was formed anew under another id (petition 2213). A snapshot without it
+	// is formed from Members, its mercs coming at the upkeep.
+	Order []KeptGroupMember `json:"order,omitempty"`
+}
+
+// KeptGroupMember is one place in a kept group: a player (Merc 0) or the
+// player's merc of slot Merc.
+type KeptGroupMember struct {
+	Char uint32 `json:"char"`
+	Merc int    `json:"merc,omitempty"`
 }
 
 // KeepPlayer is what a restart carries of sess's player, false when it has
@@ -293,9 +309,12 @@ func (w *World) KeepGroups() []KeptGroup {
 		for _, id := range g.Members {
 			if p := w.Players[id]; p != nil {
 				k.Members = append(k.Members, p.CharServerID)
+				k.Order = append(k.Order, KeptGroupMember{Char: p.CharServerID})
 				if subs != nil {
 					k.Subs = append(k.Subs, subs[id])
 				}
+			} else if n := w.NPCs[id]; n.isMerc() && !n.Dead && n.merc.owner != nil {
+				k.Order = append(k.Order, KeptGroupMember{Char: n.merc.owner.CharServerID, Merc: n.merc.slot})
 			}
 		}
 		if p := w.Players[g.rules.helper]; p != nil {
@@ -304,7 +323,7 @@ func (w *World) KeepGroups() []KeptGroup {
 		if p := w.Players[g.rules.assist]; p != nil {
 			k.Assist = p.CharServerID
 		}
-		if len(k.Members) >= 2 {
+		if len(k.Members) >= 2 || len(k.Members) == 1 && len(k.Order) >= 2 {
 			out = append(out, k)
 		}
 	}
@@ -348,11 +367,19 @@ func (w *World) RestoreGroups(groups []KeptGroup) (int, error) {
 				}
 			}
 		}
-		if len(g.Members) < 2 {
+		players := len(g.Members)
+		if len(k.Order) > 0 {
+			g.Members = w.keptOrderLocked(g.Members, k.Order)
+		}
+		if players == 0 || len(g.Members) < 2 {
 			continue
 		}
 		for _, id := range g.Members {
-			w.Players[id].GroupID = g.ID
+			if p := w.Players[id]; p != nil {
+				p.GroupID = g.ID
+			} else if n := w.NPCs[id]; n.isMerc() {
+				n.merc.regroup = false // in its place again (keepmerc.go)
+			}
 		}
 		w.groups[g.ID] = g
 		w.nextGroupID = max(w.nextGroupID, g.ID)
@@ -362,6 +389,49 @@ func (w *World) RestoreGroups(groups []KeptGroup) (int, error) {
 		return n, fmt.Errorf("%v", errs)
 	}
 	return n, nil
+}
+
+// keptOrderLocked is a kept group's members in their kept order: players,
+// the group's players formed again, each in its place, and the merc of each
+// one's slot alive here (restored before the groups: keepmerc.go), in no
+// group yet, in its. Must be called with the lock held.
+func (w *World) keptOrderLocked(players []EntityID, order []KeptGroupMember) []EntityID {
+	out := make([]EntityID, 0, len(order))
+	for _, m := range order {
+		p := w.playerByCharacterLocked(m.Char)
+		if p == nil || !slices.Contains(players, p.ServerID) {
+			continue
+		}
+		if m.Merc == 0 {
+			if !slices.Contains(out, p.ServerID) {
+				out = append(out, p.ServerID)
+			}
+			continue
+		}
+		ms := w.mercAtLocked(p, m.Merc)
+		if ms == nil || slices.Contains(out, ms.npc.ServerID) || w.mercInAnyGroupLocked(ms) {
+			continue
+		}
+		out = append(out, ms.npc.ServerID)
+	}
+	// a player Order missed (it cannot, but a member is never dropped)
+	for _, id := range players {
+		if !slices.Contains(out, id) {
+			out = append(out, id)
+		}
+	}
+	return out
+}
+
+// mercInAnyGroupLocked reports the merc a member of any group. Must be called
+// with the lock held.
+func (w *World) mercInAnyGroupLocked(ms *mercState) bool {
+	for _, g := range w.groups {
+		if groupHas(g, ms.npc.ServerID) {
+			return true
+		}
+	}
+	return false
 }
 
 // PlaceKeptDead puts a character that was dead when the restart came at its

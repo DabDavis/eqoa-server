@@ -234,6 +234,11 @@ type mercState struct {
 	// regroup: a keep restart carried it in its owner's group, its owner's
 	// client holding the group (keepmerc.go): the group upkeep puts it back
 	regroup bool
+	// rejoin: in its owner's group here, its owner's client perhaps not
+	// holding it (a takeover's new client, a keep restart's): the merc's own
+	// box goes to that client once it is in the world, as a probe
+	// (mercgroup.go's mercRejoinAskLocked); rejoinLine: with the box's line
+	rejoin, rejoinLine bool
 	// book is its book as it casts it (merccast.go), made for bookOf, its
 	// body when it was made
 	book   []mercSpell

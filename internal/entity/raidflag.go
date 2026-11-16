@@ -51,7 +51,11 @@ type groupAsk struct {
 	raid bool
 	// merc: a merc's own box, its owner asked into a group with it
 	// (mercgroup.go)
-	merc     bool
+	merc bool
+	// rejoin: a merc's own box to an owner already in a group with it
+	// (mercgroup.go's mercRejoinAskLocked): its client's yes, or its answer
+	// 2 for itself (it holds the group), shows the group; a no dismisses it
+	rejoin   bool
 	declined time.Time
 	// invite is, on a caller's own box, whom its yes invites (raidcmds.go's /raidinvite and
 	// /invite from one in no group); 0 is the flag's ask of everyone within reach

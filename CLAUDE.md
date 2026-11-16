@@ -64,7 +64,7 @@ petition 1363, Battaryhog: "if my mag or enc sets still to long the pets despawn
 restarts in four hours ended every pet, and a charmed creature came back free on its spawn, where its master hunted, and
 attacked him on sight): a summoned pet is made again by its summoning spell beside its owner with its share of hit points
 and its stance, a charmed creature (by its row's id) is charmed to its master again where it stood, under its charm for
-the time that had left, no resist rolled; the client is told after its dump. The client's reliable messages are taken
+the time that had left, no resist rolled; the client is told after its dump. **A merc comes back in its place in its group** (petition 2213, Drizzt: "mercenaries drop group after a reset"; `entity/keepmerc.go`, `KeptGroup.Order`, `entity/keepmercgroup_test.go`): the group, its owner and its mercs alone too, under its own id, each merc where it stood among the members, with the spells on it; its owner's client, once it has its dump, is sent the merc's box as a probe (`mercRejoinAskLocked`: a client in a group answers 2 for itself, Msg0773). A takeover's new client holds no group (CLIENT's Connect clears m_inGroup; Msg0772 returns without it), so it is asked with that box once in the world, the merc healing on in the group meanwhile; `/merc group` sends it again. The client's reliable messages are taken
 once each on a resumed session (`TakeReliable`: it resends what went unanswered through the freeze). **Ours go again under
 their own numbers** (`restoredMessage` stamps each numbered, `Queued`, which PreparePacket reads to keep a number; petition 1378,
 `udp/keepnumbers_test.go`): from 2119f18 (05:20 UTC 2026-11-09) to that fix a restored message went out under the next new

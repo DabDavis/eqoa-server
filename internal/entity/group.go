@@ -427,7 +427,7 @@ func (w *World) GroupDecline(sess *session.Session, inviterID uint32, why byte) 
 	}
 	if inviter == p {
 		if ask.merc {
-			w.mercOwnNoLocked(sess, p, why) // mercgroup.go
+			w.mercOwnNoLocked(sess, p, why, ask) // mercgroup.go
 			return
 		}
 		w.ownBoxNoLocked(sess, p, why, ask) // raidflag.go

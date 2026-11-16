@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// 0x7E91 (protocol.OpcodeWeatherData), the timelines a client that draws the
+// 0x7E94 (protocol.OpcodeWeatherData), the timelines a client that draws the
 // weather itself is sent (vanilla, #1550), little-endian:
 //
 //	u8 zones (<= 4: the player's, then any other within 100 units of it), each:
@@ -26,7 +26,7 @@ const (
 	NearZoneUnits    = 100 // another zone is sent when the player is this near it
 )
 
-// ZoneData is one zone of a 0x7E91.
+// ZoneData is one zone of a 0x7E94.
 type ZoneData struct {
 	Zone      Zone
 	Timelines []Timeline
@@ -57,7 +57,7 @@ func ZonesNear(world int, x, z float32) []Zone {
 	return out
 }
 
-// DataKey is what a 0x7E91 of these zones says, for sending it only when it
+// DataKey is what a 0x7E94 of these zones says, for sending it only when it
 // changes: the zones' ids and their timelines' revisions.
 func DataKey(zones []ZoneData) string {
 	var b strings.Builder
@@ -71,7 +71,7 @@ func DataKey(zones []ZoneData) string {
 	return b.String()
 }
 
-// EncodeData is 0x7E91's body for zones at now (each phase's time relative to
+// EncodeData is 0x7E94's body for zones at now (each phase's time relative to
 // it). Zones past the fourth, timelines past the third, a zone off the u16
 // grid and a timeline of fewer than 2 or more than 12 phases are left out.
 func EncodeData(zones []ZoneData, now time.Time) []byte {

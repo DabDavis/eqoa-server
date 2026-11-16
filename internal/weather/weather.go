@@ -24,7 +24,7 @@ import (
 	"strings"
 )
 
-// Kind is a weather's kind, as 0x7E91 numbers it.
+// Kind is a weather's kind, as 0x7E94 numbers it.
 type Kind uint8
 
 const (
@@ -291,7 +291,7 @@ func ZoneOfSquare(world, sx, sz int) Zone {
 // strength: VIAtmosphere's lv table {0, .15, .5, 1, .15, .5, 1} and its st
 // split make 1-3 rain light/moderate/heavy and 4-6 snow (whatever the
 // decomp's WXTYPE names say), 0 clear. A whiteout is heavy snow's byte; sand
-// has none (0): only a client that draws 0x7E91 shows it.
+// has none (0): only a client that draws 0x7E94 shows it.
 func RetailByte(k Kind, s float64) byte {
 	var base byte
 	switch k {

@@ -287,10 +287,10 @@ type Player struct {
 	powerBarsSent string
 	powerBarsDue  bool
 	// WeatherDraws: the player's client draws the weather's timelines and
-	// asked for them (weather.go, opcode 0x7E90); weatherSent whether its
+	// asked for them (weather.go, opcode 0x7E93); weatherSent whether its
 	// retail byte went since the last WeatherResend (else the next goes as
 	// 0x00C7, at once: the spec's weatherByte -1), weatherByte the byte last
-	// sent, weatherKey the zones and revisions of the last 0x7E91
+	// sent, weatherKey the zones and revisions of the last 0x7E94
 	WeatherDraws bool
 	weatherSent  bool
 	weatherByte  byte

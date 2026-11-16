@@ -55,7 +55,7 @@ func (t *Timeline) End() time.Time { return t.Phases[len(t.Phases)-1].At }
 // Weights is how strong each kind is at now: between phases a and b,
 // t = smoothstep((now - a)/(b - a)), a's kind takes a.s*(1-t), b's b.s*t;
 // clear's weight is dropped; outside the first..last phase nothing (as the
-// vanilla client samples 0x7E91).
+// vanilla client samples 0x7E94).
 func (t *Timeline) Weights(now time.Time) (w [kinds]float64) {
 	n := len(t.Phases)
 	if n == 0 || now.Before(t.Phases[0].At) || now.After(t.Phases[n-1].At) {
@@ -490,7 +490,7 @@ func (e *Engine) zoneLocked(z Zone, now time.Time) []Timeline {
 	return out
 }
 
-// Zone is a zone's timelines at now (0x7E91's).
+// Zone is a zone's timelines at now (0x7E94's).
 func (e *Engine) Zone(z Zone, now time.Time) []Timeline {
 	e.mu.Lock()
 	defer e.mu.Unlock()

@@ -29,8 +29,8 @@ import (
 // again as 0x00C7 (WeatherResend), as on a first entry.
 //
 // A client that draws the weather itself (vanilla, #1550) answers the offer
-// (OpcodeWeather 0x7E90, a u32 1) with 1, and is sent the timelines of its
-// zone and of any other within 100 units of it (OpcodeWeatherData 0x7E91,
+// (OpcodeWeather 0x7E93, a u32 1) with 1, and is sent the timelines of its
+// zone and of any other within 100 units of it (OpcodeWeatherData 0x7E94,
 // weather.EncodeData) on entry, a change of zone and a change of revision.
 //
 // A player in an instance (a home, a dungeon: Instance != 0) has no weather.
@@ -58,7 +58,7 @@ func (w *World) LoadWeather(db *database.SQLiteDB) (profiles, zones, climates in
 }
 
 // SetWeatherDraws makes sess's player's client draw the weather's timelines
-// (on: 0x7E91 from the next pass) or stop. False when sess has no player.
+// (on: 0x7E94 from the next pass) or stop. False when sess has no player.
 func (w *World) SetWeatherDraws(sess *session.Session, on bool) bool {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -81,7 +81,7 @@ func (w *World) WeatherResend(sess *session.Session) {
 	}
 }
 
-// weatherOfLocked is a player's retail byte and its 0x7E91 zones at now.
+// weatherOfLocked is a player's retail byte and its 0x7E94 zones at now.
 func (w *World) weatherOfLocked(p *Player, now time.Time, zones bool) (byte, []weather.ZoneData) {
 	if p.Instance != 0 {
 		return 0, nil

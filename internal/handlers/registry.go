@@ -595,7 +595,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// Register others' power (0x7E01; powerbars.go): a client that draws
 	// power bars under its group's, its target's and their target's health
 	NewPowerBarsHandler(gameWorld).RegisterHandlers(r)
-	// The regional weather's timelines (0x7E90; weather.go): a client that
+	// The regional weather's timelines (0x7E93; weather.go): a client that
 	// draws the server's sandstorms and whiteouts
 	NewWeatherHandler(gameWorld).RegisterHandlers(r)
 	// The pet's effects (0x7E32; peteffects.go): a client that draws them

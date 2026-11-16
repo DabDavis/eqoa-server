@@ -359,7 +359,8 @@ func (m *Mercs) windowRecords(p *entity.Player, row database.MercRow, level int)
 	var own []database.CharInventoryEntry
 	for _, it := range items {
 		pat := it.Pattern
-		e := database.CharInventoryEntry{ItemID: -it.ID, StackLeft: max(it.Stack, 1), RemainHP: it.RemainHP, Charges: it.Charges, EquipLoc: it.EquipLoc, Pattern: pat}
+		e := database.CharInventoryEntry{ItemID: -it.ID, StackLeft: max(it.Stack, 1), RemainHP: it.RemainHP, Charges: it.Charges, EquipLoc: it.EquipLoc, Pattern: pat,
+			AuraTag: database.InstanceTag(-it.ID)} // the copy's own tag (instanceaura)
 		if it.EquipLoc >= 0 {
 			if m.heir != nil {
 				m.heir.ViewFor(row.Race, level, &e.Pattern) // its figures as it wears it (mercOwnItems)

@@ -357,7 +357,8 @@ func (m *Mercs) toPack(sess *session.Session, p *entity.Player, it database.Merc
 		}
 		it.Stack -= took
 		key, _ := l.add(itemID, pat.PatternID, took, pat.MaxStack)
-		out := wireRecord(database.CharInventoryEntry{ItemID: itemID, StackLeft: took, RemainHP: it.RemainHP, Charges: it.Charges, Pattern: pat})
+		out := wireRecord(database.CharInventoryEntry{ItemID: itemID, StackLeft: took, RemainHP: it.RemainHP, Charges: it.Charges, Pattern: pat,
+			AuraTag: database.InstanceTag(itemID)}) // the copy's own tag, carried (instanceaura)
 		queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(&out, key, readsCapes(sess)))
 		came += took
 	}

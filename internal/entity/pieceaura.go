@@ -201,6 +201,22 @@ type itemAuraState struct {
 	chars2 atomic.Pointer[map[database.CharAuraKey][2]database.ItemAura]
 }
 
+// SetInstanceAuras sets the item copies' own auras and tags (table
+// instanceaura, as database.InstanceAuras reads it): each aura shows at the
+// next tick, each tag on the next record sent. The rows live in the
+// database package's cache (database.SetInstanceAuraCache), which a copy's
+// carry to a new row moves at once.
+func (w *World) SetInstanceAuras(by map[int]database.InstanceAura) {
+	database.SetInstanceAuraCache(by)
+}
+
+// instanceAura is a held copy's own aura row (false none, or one that draws
+// no aura: a tag alone).
+func (w *World) instanceAura(itemID int) (database.InstanceAura, bool) {
+	a, ok := database.InstanceAuraHeld(itemID)
+	return a, ok && a.Shows()
+}
+
 // SetCharSecondAuras sets the characters' own hands' second auras
 // (database.CharSecondAuras): each shows at the next tick.
 func (w *World) SetCharSecondAuras(by map[database.CharAuraKey][2]database.ItemAura) {
@@ -292,6 +308,12 @@ func (w *World) LoadItemAuras(db *database.SQLiteDB) (int, error) {
 		return len(by), fmt.Errorf("charaura's second auras: %w", err)
 	}
 	w.SetCharSecondAuras(chars2)
+	// and the item copies' own (instanceaura.go), the same edits reload
+	inst, err := db.InstanceAuras()
+	if err != nil {
+		return len(by), fmt.Errorf("instanceaura: %w", err)
+	}
+	w.SetInstanceAuras(inst)
 	return len(by), nil
 }
 
@@ -311,7 +333,7 @@ func (w *World) PieceAurasOf(p *Player) *PieceAuras {
 		return nil
 	}
 	k := database.CharAuraKey{CharID: p.CharServerID}
-	return w.pieceAuras(&p.WornPieces, p.WornMask, p.ShownHiddenParts(), w.charAuras(k), w.charSecondAuras(k))
+	return w.pieceAuras(&p.WornPieces, &p.WornItems, p.WornMask, p.ShownHiddenParts(), w.charAuras(k), w.charSecondAuras(k))
 }
 
 // NPCPieceAurasOf is the auras an NPC dressed in item records shows (a
@@ -325,7 +347,7 @@ func (w *World) NPCPieceAurasOf(n *NPC) *PieceAuras {
 	if k, ok := n.MercAuraKey(); ok {
 		own, own2 = w.charAuras(k), w.charSecondAuras(k)
 	}
-	return w.pieceAuras(&n.WornPieces, n.WornMask, 0, own, own2)
+	return w.pieceAuras(&n.WornPieces, &n.WornItems, n.WornMask, 0, own, own2)
 }
 
 // MercAuraKey is a mercenary's key in charaura: its owner's character and its
@@ -346,7 +368,13 @@ func (n *NPC) MercAuraKey() (database.CharAuraKey, bool) {
 // channel sends empty). A hand's own row (its first aura or its second,
 // own2: [0] the main hand's, [1] the off hand's) takes the held item's
 // place whole: both of the item's auras give way to both of the row's.
-func (w *World) pieceAuras(pieces *[AuraSlots]int, mask uint16, hidden uint16, own *[database.CharAuraSlots]database.ItemAura, own2 *[2]database.ItemAura) *PieceAuras {
+//
+// A hand's precedence: the character's own row (charaura 9/10), then the
+// held COPY's own (instanceaura, by items: the copy's itemid in each hand),
+// then the held item's record's (itemaura). Each takes the hand's place
+// whole, its first and its second: a copy's aura shows on whoever holds that
+// copy, and on no other copy of the item.
+func (w *World) pieceAuras(pieces *[AuraSlots]int, items *[AuraSlots]int, mask uint16, hidden uint16, own *[database.CharAuraSlots]database.ItemAura, own2 *[2]database.ItemAura) *PieceAuras {
 	if w == nil {
 		return nil
 	}
@@ -384,6 +412,19 @@ func (w *World) pieceAuras(pieces *[AuraSlots]int, mask uint16, hidden uint16, o
 		if own != nil && own[i].Shows() {
 			out[i], any = own[i], true
 			continue
+		}
+		// the held copy's own (instanceaura): its row whole
+		if i != AuraBody && items != nil && mask&(1<<i) != 0 {
+			if ia, ok := w.instanceAura(items[i]); ok {
+				if ia.First.SecondShows() {
+					out[i] = ia.First
+				}
+				if ia.Second.SecondShows() {
+					out[i-AuraMainHand+AuraMainHand2] = ia.Second
+				}
+				any = true
+				continue
+			}
 		}
 		// a held item's own aura (itemaura on its record: the Heirloom Shield
 		// of Twisted Virtue's energy skin), of a hand's kinds alone

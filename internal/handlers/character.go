@@ -1418,6 +1418,7 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 	player.ArmorColors = [len(player.ArmorColors)]uint32{}
 	player.HeldColors = [len(player.HeldColors)]uint32{}
 	player.WornPieces, player.WornMask = [entity.AuraSlots]int{}, 0
+	player.WornItems = [entity.AuraSlots]int{}
 	player.PrimaryType, player.SecondaryType = 0, 0
 	player.CapeStyle, player.CapeColor = 0, 0
 	// the worn looks the character hides (entity/hidelook.go): a part is
@@ -1493,12 +1494,14 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 	}
 	if item := first(16, 14, 19); item != nil {
 		player.SetWornPiece(entity.AuraMainHand, item.Pattern.PatternID) // its own aura's (entity/pieceaura.go)
+		player.WornItems[entity.AuraMainHand] = item.ItemID              // and the copy's (instanceaura)
 		player.Primary, player.PrimaryType = uint32(item.Pattern.Model), byte(item.Pattern.AttackType)
 		player.HeldColors[0] = entity.ArmorColor(item.Pattern.Color)
 		hide(entity.HidePrimary, item)
 	}
 	if item := first(15, 20, 18); item != nil {
 		player.SetWornPiece(entity.AuraOffHand, item.Pattern.PatternID)
+		player.WornItems[entity.AuraOffHand] = item.ItemID
 		player.Secondary, player.SecondaryType = uint32(item.Pattern.Model), byte(item.Pattern.AttackType)
 		player.HeldColors[1] = entity.ArmorColor(item.Pattern.Color)
 		hide(entity.HideSecondary, item)
@@ -1506,6 +1509,7 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 	if item := first(17); item != nil {
 		if player.WornMask&(1<<entity.AuraOffHand) == 0 {
 			player.SetWornPiece(entity.AuraOffHand, item.Pattern.PatternID) // the off hand's: a shield there
+			player.WornItems[entity.AuraOffHand] = item.ItemID
 		}
 		player.Shield = uint32(item.Pattern.Model)
 		player.HeldColors[2] = entity.ArmorColor(item.Pattern.Color)
@@ -2567,7 +2571,9 @@ func writeItemPattern(w *buffer.Writer, e *database.CharInventoryEntry, capes bo
 
 	// Item name + description (WriteStringUnicode = int32 charCount + UTF-16LE)
 	w.WriteStringUnicode(itemNameShown(p))
-	w.WriteStringUnicode(p.ItemDesc)
+	// a copy's own tag ("Aura: Virtuous", database/instanceaura.go) heads
+	// its description, a line of its own: every client's item info shows it
+	w.WriteStringUnicode(database.InstanceTagged(p.ItemDesc, e.AuraTag, itemDescMax))
 
 	// Stats: collect non-zero stats as index/value pairs
 	// Index mapping: 0=str 1=sta 2=agi 3=dex 4=wis 5=int 6=cha

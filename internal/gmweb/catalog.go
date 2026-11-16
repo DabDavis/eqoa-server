@@ -1169,6 +1169,32 @@ var catalog = map[string]tableNote{
 			"nodes2":  {Label: "Second along", Help: "where along the held item the second aura's particles sit: 1-100 percent of its length from the hand (100 the tip), 0 the source's own place"},
 		},
 	},
+	"instanceaura": {
+		Label: "Item copy auras", Group: "Items & spells", Title: "itemid", Sort: "itemid",
+		Help: "An aura on ONE copy of a held item, not on its record (database/instanceaura.go; the owner, 2026-11-16: \"they can be marked " +
+			"for an aura though they are the same weapon as other players, it will have a tag 'Aura: Virtuous'\"). itemid is the copy: a Character " +
+			"items row (its Item row), or a mercenary's record negated (-charmercitem.id). It shows on whoever holds that copy, in the hand " +
+			"that holds it, and goes with it through a trade, the bank, the account bank, the auction house and a mercenary. The Tag shows on " +
+			"every client, a PS2 too, as \"Aura: <Tag>\" at the head of the item's description. A hand's order: the character's own " +
+			"(Character auras 9/10), then this, then the record's (Item auras); a row with a Tag and no aura is a tag alone (the record's aura " +
+			"shows). Set one by character and hand with the set_instance_aura operation, or /aura weapon <mainhand|offhand|weapons> <Tag> ... in the game.",
+		Live:   "At once: the holder's channel carries it at the next tick; the tag on the item's next record (its holder's next login or move of it).",
+		Search: []string{"tag", "note", "source_tool"},
+		Cols: map[string]colNote{
+			"itemid":      {Label: "Item copy", Ref: "charinventory", Help: "Character items' Item row; negative: a mercenary's record (charmercitem.id)"},
+			"tag":         {Label: "Tag", Help: "shown as \"Aura: <Tag>\" with the item, on every client; 24 letters, digits, spaces, ' or - at most; empty none"},
+			"color":       {Label: "Colour", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA, 0 the source's own colours; black 000000FF a dark aura"},
+			"kind":        {Label: "Aura", Help: "a held item's: 0 none, 3 the particles, 7 an epic's look, 9 an energy skin"},
+			"source":      {Label: "Particles", Format: hex32, Look: lookItem, Store: storeUint32, Help: "the source DictID (an epic's model: Sickle of Avhi Escron 5FD4AE7C; a spell visual: the freezing 6C151A60); 0 the Sword of Virtue's"},
+			"nodes":       {Label: "Along", Help: "where along the held item the particles sit: 1-100 percent of its length from the hand, 0 the source's own place"},
+			"color2":      {Label: "Second colour", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "the second aura's colour, 0 its source's own"},
+			"kind2":       {Label: "Second aura", Help: "0 none, 3 the particles, 7 an epic's look, 9 an energy skin"},
+			"source2":     {Label: "Second particles", Format: hex32, Look: lookItem, Store: storeUint32, Help: "the second aura's source DictID (the star flare's twinkle 1D875ECD)"},
+			"nodes2":      {Label: "Second along", Help: "where along it the second aura sits, 1-100 (100 the tip), 0 the source's own place"},
+			"note":        {Label: "Note", Help: "why"},
+			"source_tool": {Label: "Source", Help: "gm, or the tool that wrote it (tools/instance_aura_migrate_20261116.py: its --undo takes out exactly what it wrote)"},
+		},
+	},
 	"npctitle": {
 		Label: "NPC titles", Group: "World", Title: "title", Sort: "npcid",
 		Help: "A line over an NPC's name, by its NPCs row (entity/npctitle.go), as the Mercenary Recruitment boards' words " +

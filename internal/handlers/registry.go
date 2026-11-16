@@ -653,6 +653,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		chatHandler.SetDyeStore(charStore.DB())
 		// the Armor Dyers (dyer.go) dye as #dye does
 		interactHandler.dyer = NewDyer(gameWorld, charStore.DB())
+		// the Weapon Enchanters (enchanter.go): a held copy's own auras
+		interactHandler.enchanter = NewEnchanter(gameWorld, charStore.DB())
 		// the lamps' genies (genie.go): the bank, an outfitter's wares, the forge
 		genie := NewGenie(gameWorld, charStore.DB(), npcWindowHandler)
 		interactHandler.genie, equipHandler.genie = genie, genie

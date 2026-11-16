@@ -20,6 +20,10 @@ type CharInventoryEntry struct {
 	EquipLoc  int // equipment slot (-1 = not equipped)
 	Location  int // LocPack (worn and carried), LocBank; LocPackKept, LocBankKept never read here (itemlists.go)
 	ListNum   int
+	// AuraTag is the copy's own tag (instanceaura.tag, "Virtuous": shown as
+	// "Aura: Virtuous" at the head of its description), "" none; set as a
+	// copy is read (tagRows), carried by every copy of the entry.
+	AuraTag string
 	// Pattern data (from itempattern)
 	Pattern ItemPatternRecord
 }
@@ -81,6 +85,7 @@ func (s *InventoryStore) GetCharacterItems(serverID uint32) ([]CharInventoryEntr
 	for i := range items {
 		s.db.ViewPattern(serverID, &items[i].Pattern) // heirlooms.go: the character's own view
 	}
+	tagRows(items) // each copy's own tag (instanceaura.go)
 	return items, nil
 }
 

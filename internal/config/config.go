@@ -549,6 +549,15 @@ type WorldConfig struct {
 	// Heirloom Test Server sets it.
 	Teleporter bool `yaml:"teleporter"`
 
+	// EnchanterPrice is what a Weapon Enchanter (handlers/enchanter.go) takes
+	// for one aura put on a held weapon: that many of EnchanterToken (an item
+	// record by name; EnchanterTokenID the record when no record has the
+	// name) from the pack. Unset: 1; 0: free. EnchanterToken unset: "Holly
+	// Token", the Christmas event's.
+	EnchanterPrice   *int   `yaml:"enchanter_price"`
+	EnchanterToken   string `yaml:"enchanter_token"`
+	EnchanterTokenID int    `yaml:"enchanter_token_id"`
+
 	// Mercs turns on the mercenaries (handlers/merc.go, entity/merc.go): a
 	// Mercenary Liaison (tools/place_merc_liaisons.py stands one beside each
 	// city's announcements board and Dabrish) hires one for nothing, a player

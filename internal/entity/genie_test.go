@@ -77,10 +77,12 @@ func TestASummonedGenieStandsBeforeItsMaster(t *testing.T) {
 	}
 }
 
-// A window it opened: the genie leaves the world, and the window is the
+// A window it opened: the genie stays standing by it (the owner, 2026-11-16:
+// "the genie disappears too quick let him linger"), and the window is the
 // master's: the bank's with any id, the shop's and the forge's with theirs,
 // never another kind's; it ends GenieReach from where the genie stood, in
-// another world, dead, idle GenieWindowIdle, or closed (the forge).
+// another world, dead, idle GenieWindowIdle, or closed (the forge), the genie
+// going with it, but for the forge's close, after which it lingers.
 func TestAGenieWindowIsItsMastersWhileItLasts(t *testing.T) {
 	w, sess, p, now := newGenieWorld(t)
 	open := func(kind GenieWindow) uint32 {
@@ -96,8 +98,8 @@ func TestAGenieWindowIsItsMastersWhileItLasts(t *testing.T) {
 		if !w.GenieOpened(sess, kind, wid, now) {
 			t.Fatal("not opened")
 		}
-		if len(genies(w)) != 0 {
-			t.Fatal("the genie stays in the world once its window is open")
+		if gs := genies(w); len(gs) != 1 || gs[0].ServerID != id {
+			t.Fatal("the genie left the world once its window was open")
 		}
 		return GenieWindowID(id)
 	}
@@ -116,8 +118,11 @@ func TestAGenieWindowIsItsMastersWhileItLasts(t *testing.T) {
 	if !ok(GenieBank, 1, now.Add(GenieWindowIdle-time.Second)) || !ok(GenieBank, 1, now.Add(2*GenieWindowIdle-2*time.Second)) {
 		t.Error("the bank's window lapsed while used")
 	}
-	if ok(GenieBank, 1, now.Add(4*GenieWindowIdle)) || p.genie != nil {
-		t.Error("the bank's window held past its idle time")
+	if len(genies(w)) != 1 {
+		t.Error("the genie left while its bank was used")
+	}
+	if ok(GenieBank, 1, now.Add(4*GenieWindowIdle)) || p.genie != nil || len(genies(w)) != 0 {
+		t.Error("the bank's window (or the genie) held past its idle time")
 	}
 
 	shop := open(GenieShop)
@@ -125,8 +130,8 @@ func TestAGenieWindowIsItsMastersWhileItLasts(t *testing.T) {
 		t.Error("the shop's window by its id alone")
 	}
 	p.X += GenieReach + 1
-	if ok(GenieShop, shop, now) || p.genie != nil {
-		t.Error("the shop's window held away from where the genie stood")
+	if ok(GenieShop, shop, now) || p.genie != nil || len(genies(w)) != 0 {
+		t.Error("the shop's window (or the genie) held away from where the genie stood")
 	}
 	p.X -= GenieReach + 1
 
@@ -134,25 +139,81 @@ func TestAGenieWindowIsItsMastersWhileItLasts(t *testing.T) {
 	if !ok(GenieSmith, smith, now) {
 		t.Fatal("the forge's window")
 	}
-	w.EndGenieWindow(sess, GenieShop) // another kind's close: kept
+	w.EndGenieWindow(sess, GenieShop, now) // another kind's close: kept
 	if !ok(GenieSmith, smith, now) {
 		t.Fatal("the forge ended by another window's close")
 	}
-	w.EndGenieWindow(sess, GenieSmith)
-	if ok(GenieSmith, smith, now) {
+	closed := now.Add(time.Minute)
+	w.EndGenieWindow(sess, GenieSmith, closed)
+	if ok(GenieSmith, smith, closed) {
 		t.Error("the forge held past its close")
+	}
+	w.mu.Lock()
+	w.genieSystem(closed.Add(GenieLinger - time.Second))
+	w.mu.Unlock()
+	if len(genies(w)) != 1 {
+		t.Fatal("the genie left at once when its forge closed")
+	}
+	w.mu.Lock()
+	w.genieSystem(closed.Add(GenieLinger + time.Second))
+	w.mu.Unlock()
+	if len(genies(w)) != 0 || p.genie != nil {
+		t.Fatal("the genie outlived its linger after the forge closed")
 	}
 
 	open(GenieBank)
 	p.World = 1
-	if ok(GenieBank, 1, now) {
+	if ok(GenieBank, 1, now) || len(genies(w)) != 0 {
 		t.Error("the bank's window held in another world")
 	}
 	p.World = 0
 	open(GenieBank)
 	p.HP = 0
-	if ok(GenieBank, 1, now) {
+	if ok(GenieBank, 1, now) || len(genies(w)) != 0 {
 		t.Error("the bank's window held for the dead")
+	}
+}
+
+// A lingering genie's window swapped: the bank for the shop, the same genie,
+// the bank's requests refused once the shop is open. And the genie stands
+// while its window is in use, past GenieLinger, going (genieSystem) when the
+// window lapses.
+func TestALingeringGenieSwapsItsWindow(t *testing.T) {
+	w, sess, p, now := newGenieWorld(t)
+	id, err := w.SummonGenie(sess, 5002, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	w.GenieOpened(sess, GenieBank, 0, now)
+	at := now.Add(30 * time.Second)
+	if !w.GenieLingers(sess, GenieWait, at) || !w.GenieOpened(sess, GenieShop, GenieWindowID(id), at) {
+		t.Fatal("the lingering genie would not open its shop")
+	}
+	if _, ok := w.GenieWindowNPC(sess, GenieBank, 1, at); ok {
+		t.Error("the bank's request taken once the shop was open")
+	}
+	if npc, ok := w.GenieWindowNPC(sess, GenieShop, GenieWindowID(id), at); !ok || npc.ServerID != id {
+		t.Fatalf("the shop's request: %+v %v", npc, ok)
+	}
+	// used every 4 minutes for 12, well past its linger: it stands
+	tick := func(d time.Duration) {
+		w.mu.Lock()
+		w.genieSystem(at.Add(d))
+		w.mu.Unlock()
+	}
+	for d := 4 * time.Minute; d <= 12*time.Minute; d += 4 * time.Minute {
+		tick(d - time.Second)
+		if _, ok := w.GenieWindowNPC(sess, GenieShop, GenieWindowID(id), at.Add(d)); !ok || len(genies(w)) != 1 {
+			t.Fatalf("the genie gone while its shop was used, at %v", d)
+		}
+	}
+	tick(12*time.Minute + GenieWindowIdle - time.Second)
+	if len(genies(w)) != 1 {
+		t.Fatal("the genie gone before its window lapsed")
+	}
+	tick(12*time.Minute + GenieWindowIdle + time.Second)
+	if len(genies(w)) != 0 || p.genie != nil {
+		t.Fatal("the genie outlived its lapsed window")
 	}
 }
 
@@ -175,6 +236,35 @@ func TestAGenieWaitsThenGoes(t *testing.T) {
 	w.mu.Unlock()
 	if len(genies(w)) != 0 || p.genie != nil {
 		t.Fatal("still there past its wait")
+	}
+	// a box answered without a window: it lingers GenieLinger from the
+	// answer, past its wait, then goes
+	if _, err := w.SummonGenie(sess, 0, now); err != nil {
+		t.Fatal(err)
+	}
+	answered := now.Add(GenieWait - 10*time.Second)
+	if !w.GenieLingers(sess, GenieLinger, answered) {
+		t.Fatal("no genie to linger")
+	}
+	w.mu.Lock()
+	w.genieSystem(answered.Add(GenieLinger - time.Second))
+	w.mu.Unlock()
+	if len(genies(w)) != 1 {
+		t.Fatal("gone before its linger")
+	}
+	// lingering never shortens: a shorter linger leaves the longer one
+	w.GenieLingers(sess, time.Second, answered)
+	w.mu.Lock()
+	w.genieSystem(answered.Add(GenieLinger - time.Second))
+	w.mu.Unlock()
+	if len(genies(w)) != 1 {
+		t.Fatal("a shorter linger cut the longer")
+	}
+	w.mu.Lock()
+	w.genieSystem(answered.Add(GenieLinger + time.Second))
+	w.mu.Unlock()
+	if len(genies(w)) != 0 || p.genie != nil {
+		t.Fatal("still there past its linger")
 	}
 	// its master leaves
 	if _, err := w.SummonGenie(sess, 0, now); err != nil {

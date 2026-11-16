@@ -89,6 +89,8 @@ type monkeyState struct {
 	last  time.Time
 	// noCollide: its owner was sent its non-collide entry
 	noCollide bool
+	// nextThrow is its next try at a snowball (monkeythrow.go)
+	nextThrow time.Time
 }
 
 // isMonkey reports a monkey (monkeys.go).
@@ -166,7 +168,7 @@ func (w *World) monkeyComesLocked(p *Player, sess *session.Session, now time.Tim
 	n.X, n.Y, n.Z = w.followPlaceLocked(n, p, monkeySlots[slot])
 	n.Facing = headingTo(p.X-n.X, p.Z-n.Z)
 	n.SpawnX, n.SpawnY, n.SpawnZ, n.SpawnFacing = n.X, n.Y, n.Z, n.Facing
-	ms := &monkeyState{owner: p, npc: n, slot: slot, last: now}
+	ms := &monkeyState{owner: p, npc: n, slot: slot, last: now, nextThrow: monkeyNextThrow(now)}
 	n.monkey = ms
 	w.putNPCLocked(n)
 	w.SpatialIndex.Insert(n.ServerID, n.X, n.Z)
@@ -274,6 +276,7 @@ func (w *World) monkeySystem(now time.Time) {
 			n.Level = owner.Level
 			w.monkeyTellLocked(ms, sess)
 		}
+		w.monkeyThrowsLocked(owner, out, now) // now and then a snowball (monkeythrow.go)
 	}
 }
 

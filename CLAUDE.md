@@ -2410,14 +2410,21 @@ potion quick slot), LORE, NO TRADE, worth 0, never spent, known by its name (`Is
 of 5)"), up to `MonkeysMax` 5; the fifth's line says the next Use sends them home, and a Use with five out sends all five
 back ("Your monkeys scramble back into the barrel."). **A monkey**: a Temporary NPC with the NPC bit, never owned (no pet slot,
 no 0x007E; a pet, charm, familiar, genie and mercs go on beside it), in the karba'nai brute's gorilla (CHAR.ESF 0x95EE6EC6)
-at `MonkeySize` 1.2 (picked by a render beside Moose's hill giant: knee to thigh high; `~/.cache/barrelmonkeys/pics/`), a
+at `MonkeySize` 0.7 (the owner: "make the monkeys smaller"; 1.2 stood to the hill giant's thigh), a
 random name of 40 (`monkeyNames`, none twice among his), on no hate list (`isFamiliarIDLocked`), and **never a target**: its
 channel's byte 26 is 0 (not selectable: Tab and the pick skip it, so no life bar and no con), byte 142 a pet's 3 (its name in
 the pet's blue), 143 0; its owner walks through it (0x1003, ids `petNoCollideID + 0x10 + slot`). Each follows in a slot of
 its own (`slotMonkey1`-`5` in followslot.go, `monkeyRadius` 3 off, behind and to both sides), walking and running with him
 through every zone. They all go back, told once ("Your monkeys scamper back into their barrel."), at his death, a change of
 world, a move farther than `petLost` at once (a teleport, a gate), capture the flag's arena, and silently at a logout; not
-kept over a keep restart (the barrel brings them again). `TestMonkeys*`, `TestTheBarrelLetsOutMonkeys`.
+kept over a keep restart (the barrel brings them again). **They throw snowballs** (`entity/monkeythrow.go`; the owner:
+"make moose's monkeys throw snowballs at players"): each monkey tries every 20-40 s at random (`monkeyThrowMin`/`Max`), never
+while its owner fights (auto-attack on, a blow within 10 s, PvP flag, a duel), at a random other player within
+`SnowballRange` 30 and in sight, in its owner's world and instance, alive, not fighting, not invisible or GM-hidden, not
+loading, and not hit by any of that owner's monkeys within `monkeyThrowGap` 30 s; never its owner or an NPC. The throw is
+the snowball's: `SnowballFX` from the monkey, 1 HP off and never below 1, "Bongo hits you with a snowball!" to the player and
+"Bongo hits Zed with a snowball!" to the owner; no PvP flag, no fight, no hate. `TestMonkeys*`, `TestMonkey*`,
+`TestAMonkeyHitsAPlayerWithASnowball`, `TestTheBarrelLetsOutMonkeys`.
 
 ### The Rock of Freeport: a heirloom cast to Dabrish (`handlers/rockfreeport.go`, `world.rock_of_freeport`)
 

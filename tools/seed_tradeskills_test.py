@@ -63,7 +63,8 @@ class SeedTradeskills(unittest.TestCase):
                     "Achroite": {10: "290 AC, 20 AR"}, "Titan Alloy": {10: "290 AC, 75 Hp"},
                     "Mindflow Crystals": {10: "290 AC, 10 PoT"}, "Apatite": {10: "290 AC, 20 Wis"},
                     "Mana Infused Alloy": {10: "290 AC, 75 Pow"}, "Enstatite": {4: "85 AC, 6 Str, 6 Int"},
-                    "Takish Ivory": {4: "85 AC, 6 Dex, 6 Cha"}}
+                    "Takish Ivory": {4: "85 AC, 6 Dex, 6 Cha"}, "Marr Blessed Alloy": {4: "85 AC, 6 Sta, 6 Cha"},
+                    "Lazulite": {4: "85 AC, 6 Agi, 6 Wis"}}
             if key == "Plate/BP.htm":
                 self.bp = rows
             with open(os.path.join(grid, key), "w") as f:
@@ -179,6 +180,12 @@ class SeedTradeskills(unittest.TestCase):
         self.assertEqual(self.q("SELECT str, intelligence, sta FROM itempattern WHERE itemname = 'enstatite brass breastplate'"),
                          [(6, None, 6)])
         self.assertEqual(self.q("SELECT dex, cha, agi FROM itempattern WHERE itemname = 'takish ivory brass breastplate'"),
+                         [(6, None, 6)])
+        # Marr Blessed Alloy its Cha as Wis (5201)
+        self.assertEqual(self.q("SELECT sta, cha, wis FROM itempattern WHERE itemname = 'marr blessed brass breastplate'"),
+                         [(6, None, 6)])
+        # Lazulite its Wis as Sta (5202)
+        self.assertEqual(self.q("SELECT agi, wis, sta FROM itempattern WHERE itemname = 'lazulite brass breastplate'"),
                          [(6, None, 6)])
         # the live record is the product
         self.assertEqual(self.q("SELECT product, rarity FROM craftrecipes WHERE name = 'heartsblood seralite breastplate'"), [(1042, 3)])
@@ -633,6 +640,7 @@ def tailor_prima_text():
     for i in range(0, len(mods), 2):
         cells = []
         for name, (rarity, _, cols, word) in mods[i:i + 2]:
+            cols = M.TAILOR_PRIMA_COLS.get(name, cols)  # Prima's own words
             prop = M.TAILOR_PROPERTY[cols[0] if len(cols) == 1 else cols]
             pw = "Sinahlite" if word == "Sinhalite" else word
             cells.append(f"{name:<22} {rar[rarity]:<14} {prop:<26} {pw}*")
@@ -752,6 +760,10 @@ class SeedTailoring(unittest.TestCase):
                          [(6, 8, 32656, 0)])
         self.assertEqual(self.q("SELECT count(*) FROM itempattern WHERE itemname = 'Leucite Wool Tunic'"), [(0,)])
         self.assertEqual(self.q("SELECT sta, cha FROM itempattern WHERE itemname = 'Blessed Silk Tunic'"), [(9, 9)])
+        # Rallosian Studs give Sta and Dex, not Prima's Str and Int (petition 5200)
+        self.assertEqual(self.q("SELECT str, intelligence, sta, dex FROM itempattern WHERE itemname = 'Rallosian Silk Tunic'"),
+                         [(None, None, 9, 9)])
+        self.assertIn("stamina and dexterity", self.q("SELECT itemdesc FROM itempattern WHERE itemname = 'Rallosian Studs'")[0][0])
         # the gem is kept on a failure; leather starts at trade level 3 (tattered hide, tab 3)
         ing = json.loads(self.q("SELECT ingredients FROM craftrecipes WHERE name = 'Treant Leather Tunic'")[0][0])
         self.assertEqual(ing[-1]["keep"], True)

@@ -900,12 +900,9 @@ func (h *InteractHandler) warp(sess *session.Session, player *entity.Player, des
 	log.Printf("Coaching: teleporting %s to %s (%.1f, %.1f, %.1f) world=%d",
 		player.Name, dest.Name, dest.X, dest.Y, dest.Z, dest.World)
 
-	// a coach (or a harbor's boat: no waysender) takes no charmed pet
-	// (entity/charm.go's leash); a waysender's trip is a teleport, and the
-	// charm's one zone grace decides
-	if dest.Via == "" && h.gameWorld != nil && h.gameWorld.CoachLeavesCharm(sess) {
-		log.Printf("Coaching: %s's charmed pet stays behind", player.Name)
-	}
+	// a trip (a coach, a harbor's boat, a waysender) neither breaks nor
+	// carries a charm: petSystem's distance check (entity/charm.go's
+	// charmRunRange) decides, a charmed pet within it running after its master
 
 	// Increment teleport counter
 	player.TeleportCounter++

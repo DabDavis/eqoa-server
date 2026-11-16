@@ -26,9 +26,11 @@ import (
 // is the merc's pet (mercpet.go) in place of its summoned one (gone as the
 // charm takes hold): it fights what the merc fights, follows it, and is kept
 // healed and buffed by it; a kill of its is the hirer's. The charm breaking
-// (its time out, /merc charm off) turns it on the merc; led past its grace
-// (charmFar) it goes home at once; the merc going (a dismissal, a death, its
-// hirer's logout) lets it go where it stands. Dead as a pet, its corpse is no
+// (its time out, /merc charm off) turns it on the merc; past charmRunRange
+// from its hirer (charm.go's check) it is let go (home at once past its
+// grace, charmFar), and within it, after a trip, it runs to the merc; the
+// merc going (a dismissal, a death, its hirer's logout) lets it go where it
+// stands. Dead as a pet, its corpse is no
 // one's to loot and it comes back itself (corpse.go), and the merc summons
 // its own pet again.
 
@@ -222,9 +224,9 @@ func (w *World) mercCharmReleaseLocked(ms *mercState, hostile bool) {
 }
 
 // mercCharmTurnLocked keeps the merc's charm or ends it: its time out (the
-// creature turned on the merc, its hirer told), past its grace from where it
-// spawned or where the merc stands (let go, home at once). It reports the
-// charm ended. Must be called with the lock held.
+// creature turned on the merc, its hirer told), or past charmRunRange from
+// its hirer, or in another world (charmOutOfReach: let go where it stands,
+// home at once past its grace). It reports the charm ended. Must be called with the lock held.
 func (w *World) mercCharmTurnLocked(ms *mercState, sess *session.Session, now time.Time) bool {
 	ps := ms.pet
 	if ps == nil || ps.npc.Charm == nil || ps.npc.Dead {
@@ -238,9 +240,9 @@ func (w *World) mercCharmTurnLocked(ms *mercState, sess *session.Session, now ti
 		}
 		w.mercCharmReleaseLocked(ms, true)
 		return true
-	case charmFar(pet, h.world, pet.World, pet.X, pet.Z), charmFar(pet, h.world, ms.npc.World, ms.npc.X, ms.npc.Z):
+	case charmOutOfReach(pet, ms.owner): // charm.go's check, from the player
 		if sess != nil {
-			w.sendChatToSession(sess, charmTooFar)
+			w.sendChatToSession(sess, fmt.Sprintf(mercCharmWore, ms.npc.Name, pet.Name))
 		}
 		w.mercCharmReleaseLocked(ms, false)
 		return true

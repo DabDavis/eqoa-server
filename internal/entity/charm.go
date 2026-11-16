@@ -81,8 +81,8 @@ import (
 //     the druid's at anything not an animal (workbookmore.go). Resisted, it
 //     fights the caster.
 //   - taken, the creature is the caster's pet (pet.go) as it is: its level,
-//     hit points and swing; it follows, takes the stances and attack, comes
-//     along through teleports within its grace (below). Its npccharm row's
+//     hit points and swing; it follows, takes the stances and attack, runs
+//     to its master after any trip (the run, below). Its npccharm row's
 //     template (classtemplates) is what it casts as a pet (pettemplate.go:
 //     the Charmable Mobs page's nukes, heals, damage shields, taps and
 //     crits); its spells cost it power (its pet's power, 28 a level), which
@@ -102,20 +102,29 @@ import (
 //     the mob is charmed in"), or in another world, goes home at once and
 //     fights no one ("If a charm expires on an NPC that has been taken a
 //     significant distance away from their spawn location, the NPC will
-//     despawn immediately"); a master teleported (a gate, a rez, a coach)
-//     past it loses the pet the same way ("There is a one zone grace for
-//     being CoHed or rezzed with a charmed pet before it will disappear").
-//     A zone is the world's 2000-unit square (CLIENT's zone-name grid, the
-//     ground files' zones). One that dies as a pet leaves a corpse no one
-//     may loot (OpenCorpse) and comes back itself.
-//   - the leash (the user, 2026-11-06: "the maximum distance you can recharm
-//     without them returning their spawn is 1 zone away. If charm duration
-//     persists you can run across the world"; "charm pets ... cannot
-//     coach"): a charmed creature led past its grace on foot, its charm
-//     still running, is let go there and goes home at once (petSystem); and a
-//     coach never takes one (CoachLeavesCharm: the charm breaks where it
-//     stands, within its grace, so it can be charmed again there). A
-//     waysender's trip is a teleport and keeps the grace.
+//     despawn immediately"). A zone is the world's 2000-unit square (CLIENT's
+//     zone-name grid, the ground files' zones). The grace decides only where
+//     a released creature ends up; it breaks no charm. One that dies as a pet
+//     leaves a corpse no one may loot (OpenCorpse) and comes back itself.
+//   - the check (charmOutOfReach; jibrish, 2026-11-16, petition 2233: "its
+//     an absolute distance check from player location to pet"): every tick,
+//     whatever it is doing, a charmed creature farther than charmRunRange
+//     (4,920: the Isle of Dread's middle to Klik'Anon's, plus 10%) from its
+//     master, the player, or in another world, is let go there with "Your
+//     charm spell has worn off." (petSystem; the Kerran's side animal and a
+//     merc's charmed pet the same, measured from the player). On foot it
+//     follows, so the check never trips.
+//   - the run (jibrish: "It should run to the enchanter at max sow speed in
+//     a straight line and then when it hits a zone wall run through it"):
+//     no trip breaks or carries a charm, a coach, a harbor's boat, a
+//     waysender, Return Home, a gate or a rez alike. Inside charmRunRange,
+//     a charmed pet more than petLost from its master runs to it
+//     (charmRunStepLocked): straight, at Spirit of the Wolf's pace
+//     (charmRunSpeed), through walls and terrain, on the ground's top at
+//     each step, taking no target and not stopping when hit, until it is
+//     petCatchUp off; then it follows. Its master travelling again past
+//     charmRunRange from it lets it go then. A summoned pet still comes
+//     along at once.
 
 // charmHold is what a charm changed on a creature, to put back.
 type charmHold struct {
@@ -146,7 +155,16 @@ const (
 	animalCharmCapBelow = 3
 	// charmZone is a zone's side: the world's squares (the grace, charmFar).
 	charmZone = 2000
+	// charmRunRange is the farthest a charmed creature may be from its master
+	// (the player) and keep its charm, checked every tick: the Isle of Dread
+	// zone's middle (25000, 3000) to Klik'Anon's (23000, 7000), 4472.1, plus
+	// 10% (jibrish, 2026-11-16), rounded up.
+	charmRunRange float32 = 4920
 )
+
+// charmRunSpeed is a charmed creature's pace when it runs to its master:
+// Spirit of the Wolf's, the movement rate's most (100).
+var charmRunSpeed = RunSpeed * speedBuff // 11.483
 
 // soeCharmCaps are the caps SOE's own notes give by the spell's name (lower
 // case): the Class Balancing page of 2010's "Allure and Entrancing Allure now
@@ -161,10 +179,6 @@ const (
 	charmTooLow   = "Your target is too low a level for this charm." // ours: a charm with a lowest level (CharmMin)
 	charmResisted = "Attempt resisted!"                              // Sandstorm's
 	charmWornOff  = "Your charm spell has worn off."
-	// charmTooFar is the line when a charmed creature is led past its grace
-	// (charmFar), and charmNoCoach when its master takes a coach.
-	charmTooFar  = "Your charm breaks: the creature will not be led so far from its home."
-	charmNoCoach = "Your charm breaks: a charmed creature will not ride a coach."
 	// charmPetLeaves follows a summoned pet's name when it goes as a charm
 	// takes hold (petition 1348; ours)
 	charmPetLeaves = " departs as your charm takes hold."
@@ -470,30 +484,62 @@ func (w *World) releaseCharmLocked(ps *petState, sess *session.Session, text str
 	log.Printf("Charm: %s's %q goes free (hostile %v, sent home %v)", owner.Name, npc.Name, hostile, popped)
 }
 
-// CoachLeavesCharm breaks the charm on sess's charmed pet as its master takes
-// a coach (the file's doc: a charmed creature does not ride one), quietly:
-// it stays where it stands, its own again and fighting no one, and its master
-// is told. It reports whether there was one; a summoned pet comes along.
-func (w *World) CoachLeavesCharm(sess *session.Session) bool {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	p := w.sessionPlayerLocked(sess)
-	if p == nil {
+// charmOutOfReach reports a charmed pet past its master's reach (the file's
+// doc): the player in another world than the pet, or farther than
+// charmRunRange.
+func charmOutOfReach(pet *NPC, p *Player) bool {
+	return p.World != pet.World || distXZ(pet.X, pet.Z, p.X, p.Z) > charmRunRange
+}
+
+// charmRunStepLocked is one step of a charmed creature's run to its master
+// (the file's doc): straight toward (x, z) at charmRunSpeed, never past it,
+// through walls, quest walls, water's edges and terrain alike (no route, no
+// stepNPCToward refusals), on the top of the terrain at its place (over the
+// sea, the bed), else at y (its master's). Must be called with the lock held.
+func (w *World) charmRunStepLocked(npc *NPC, x, y, z, dt float32) {
+	dx, dz := x-npc.X, z-npc.Z
+	d := float32(math.Sqrt(float64(dx*dx + dz*dz)))
+	if d <= 0 {
+		return
+	}
+	ux, uz := dx/d, dz/d
+	step := min(charmRunSpeed*dt, d)
+	oldX, oldZ := npc.X, npc.Z
+	npc.X, npc.Z = npc.X+ux*step, npc.Z+uz*step
+	if step == d {
+		npc.X, npc.Z = x, z
+	}
+	npc.Y = y
+	if w.ground != nil {
+		if fy, ok := w.ground.Floor(npc.World, npc.X, 1e6, npc.Z); ok {
+			npc.Y = fy
+		}
+	}
+	npc.Facing = headingTo(dx, dz)
+	npc.VelX, npc.VelY, npc.VelZ = ux*charmRunSpeed, 0, uz*charmRunSpeed
+	npc.Loco = LocoRun
+	if w.SpatialIndex != nil {
+		w.SpatialIndex.Update(npc.ServerID, oldX, oldZ, npc.X, npc.Z)
+	}
+}
+
+// charmRunTurnLocked is a running charmed pet's turn (ps.running: the file's
+// doc), toward its master at (x, y, z): no target, no round, one step of its
+// run, and its run over once it is petCatchUp off (its follow from the next
+// tick). It reports whether the turn was the run's. Must be called with the
+// lock held.
+func (w *World) charmRunTurnLocked(ps *petState, x, y, z, dt float32) bool {
+	if !ps.running {
 		return false
 	}
-	broke := false
-	for _, ps := range []*petState{w.pets[p.ServerID], w.sidePets[p.ServerID]} { // and a stacking charm's animal (stackcharm.go)
-		if ps == nil || ps.npc == nil || ps.npc.Charm == nil {
-			continue
-		}
-		line := charmNoCoach
-		if broke {
-			line = "" // told once
-		}
-		w.releaseCharmLocked(ps, sess, line, false)
-		broke = true
+	pet := ps.npc
+	ps.target = 0
+	pet.endRound()
+	w.charmRunStepLocked(pet, x, y, z, dt)
+	if distXZ(pet.X, pet.Z, x, z) <= petCatchUp {
+		ps.running = false
 	}
-	return broke
+	return true
 }
 
 // unCharmLocked puts back what a charm changed on the creature and returns

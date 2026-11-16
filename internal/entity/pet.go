@@ -131,6 +131,9 @@ type petState struct {
 	earth bool
 	// tapNext is when its life tap is up again (pettap.go)
 	tapNext time.Time
+	// running is whether a charmed pet runs to its master after a trip,
+	// taking no target, until it is petCatchUp off (charm.go's run)
+	running bool
 	// kind is what it fights as (petrotation.go): ours, or one of the
 	// necromancer's pets Sandstorm's were recorded as; tapIn the swings to
 	// its next tap, specialIn to a spectre's next instant, specialAt when
@@ -867,10 +870,11 @@ func (w *World) petSystem(now time.Time) {
 			w.releaseCharmLocked(ps, sess, charmWornOff, true) // charm.go
 			continue
 		}
-		if h := pet.Charm; h != nil && charmFar(pet, h.world, pet.World, pet.X, pet.Z) {
-			// led past its grace on foot, its charm still running: let go
-			// there, and home at once (charm.go's leash)
-			w.releaseCharmLocked(ps, sess, charmTooFar, false)
+		if pet.Charm != nil && charmOutOfReach(pet, owner) {
+			// its master past charmRunRange or in another world, every tick
+			// whatever it is doing: let go where it stands (home at once past
+			// its grace: charm.go's check)
+			w.releaseCharmLocked(ps, sess, charmWornOff, false)
 			continue
 		}
 		dt := float32(now.Sub(ps.last).Seconds())
@@ -879,21 +883,27 @@ func (w *World) petSystem(now time.Time) {
 
 		w.petEffectsLocked(ps, now)
 		if pet.World != owner.World || distXZ(pet.X, pet.Z, owner.X, owner.Z) > petLost {
-			if h := pet.Charm; h != nil && charmFar(pet, h.world, owner.World, owner.X, owner.Z) {
-				// its master taken past its grace: the charm is gone, and it
-				// home (charm.go: "a one zone grace for being CoHed or rezzed")
-				w.releaseCharmLocked(ps, sess, charmWornOff, false)
-				continue
+			if pet.Charm != nil {
+				// a trip of its master's within charmRunRange: a charmed one
+				// is not carried, it runs to its master (charm.go's run)
+				ps.running = true
+			} else {
+				// a teleport, another world, a coach: a summoned pet comes
+				// along at once (a trip never carries a charmed one)
+				oldX, oldZ := pet.X, pet.Z
+				pet.World = owner.World
+				pet.X, pet.Y, pet.Z = w.followPlaceLocked(pet, owner, slotPet)
+				pet.stopMoving()
+				ps.target = 0
+				pet.endRound()
+				w.SpatialIndex.Update(pet.ServerID, oldX, oldZ, pet.X, pet.Z)
 			}
-			// a teleport, another world, a summoned pet's coach: it comes
-			// along (a coach never takes a charmed one: CoachLeavesCharm)
-			oldX, oldZ := pet.X, pet.Z
-			pet.World = owner.World
-			pet.X, pet.Y, pet.Z = w.followPlaceLocked(pet, owner, slotPet)
-			pet.stopMoving()
-			ps.target = 0
-			pet.endRound()
-			w.SpatialIndex.Update(pet.ServerID, oldX, oldZ, pet.X, pet.Z)
+		}
+		if w.charmRunTurnLocked(ps, owner.X, owner.Y, owner.Z, dt) { // charm.go: no fight, no target while it runs
+			if sess != nil {
+				w.announcePetLocked(ps, sess)
+			}
+			continue
 		}
 		w.petChooseTargetLocked(ps, now)
 		if w.duelPetLocked(ps, dt, now) || w.pvpPetLocked(ps, dt, now) { // its owner's duel (duelfight.go), or a foe (pvp.go)

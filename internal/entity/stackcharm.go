@@ -267,8 +267,8 @@ func (w *World) sidePetSystem(now time.Time) {
 			w.releaseCharmLocked(ps, sess, fmt.Sprintf(stackWornOff, pet.Name), true)
 			continue
 		}
-		if charmFar(pet, h.world, pet.World, pet.X, pet.Z) {
-			w.releaseCharmLocked(ps, sess, charmTooFar, false)
+		if charmOutOfReach(pet, owner) { // charm.go's check, from the player
+			w.releaseCharmLocked(ps, sess, fmt.Sprintf(stackWornOff, pet.Name), false)
 			continue
 		}
 		if w.pets[id] == nil {
@@ -280,17 +280,13 @@ func (w *World) sidePetSystem(now time.Time) {
 		dt = min(max(dt, 0), 0.5)
 		w.petEffectsLocked(ps, now)
 		if pet.World != owner.World || distXZ(pet.X, pet.Z, owner.X, owner.Z) > petLost {
-			if charmFar(pet, h.world, owner.World, owner.X, owner.Z) {
-				w.releaseCharmLocked(ps, sess, fmt.Sprintf(stackWornOff, pet.Name), false)
-				continue
+			ps.running = true // within charmRunRange: it runs to its master (charm.go's run)
+		}
+		if w.charmRunTurnLocked(ps, owner.X, owner.Y, owner.Z, dt) {
+			if sess != nil {
+				w.announceSideLocked(ps, sess)
 			}
-			oldX, oldZ := pet.X, pet.Z
-			pet.World = owner.World
-			pet.X, pet.Y, pet.Z = w.followPlaceLocked(pet, owner, slotSidePet)
-			pet.stopMoving()
-			ps.target = 0
-			pet.endRound()
-			w.SpatialIndex.Update(pet.ServerID, oldX, oldZ, pet.X, pet.Z)
+			continue
 		}
 		w.sideChooseTargetLocked(ps, now)
 		if t := w.NPCs[ps.target]; ps.target != 0 && t != nil {

@@ -2,6 +2,7 @@ package entity
 
 import (
 	"encoding/binary"
+	"fmt"
 	"testing"
 	"time"
 
@@ -290,5 +291,53 @@ func TestARestartKeepsTheAnimal(t *testing.T) {
 	k.Stacks = false
 	if r4.w.RestorePet(r4.sess, k, nil, r4.at(time.Second)) {
 		t.Error("a kept charm that does not stack came back beside a pet")
+	}
+}
+
+// The Kerran's animal is held to the same check as a charmed pet (#1574,
+// charm.go): its master 3,000 off, the summoned pet comes along at once and
+// the animal runs after them at charmRunSpeed, taking no target; its master
+// moved 4,921 from it, it is let go there, its master told, the summoned pet
+// kept.
+func TestTheAnimalRunsToItsMasterAndIsLetGoPastRange(t *testing.T) {
+	defer func(f func(int) int) { charmIntn = f }(charmIntn)
+	charmIntn = dice(99)
+	r, _, _ := kerranRig(t)
+	crab := r.enemy
+	pet, _ := r.summon(t, fireElemental(), 0)
+	castCharm(t, r, catMagnetism(), crabID, 10*time.Second)
+	ps := r.w.sidePets[r.p.ServerID]
+	if ps == nil || ps.npc != crab {
+		t.Fatal("no animal")
+	}
+	r.charmTicks(20*time.Second, 21*time.Second)
+	r.w.mu.Lock()
+	r.p.Z += 3000
+	r.w.mu.Unlock()
+	r.tick(22 * time.Second)
+	d0 := distXZ(crab.X, crab.Z, r.p.X, r.p.Z)
+	if crab.Charm == nil || !ps.running || crab.Loco != LocoRun || d0 < 2900 {
+		t.Fatalf("after the trip: charm %v, running %v, loco %d, %.0f off", crab.Charm != nil, ps.running, crab.Loco, d0)
+	}
+	if d := distXZ(pet.X, pet.Z, r.p.X, r.p.Z); d > petFollow+petFollowStart {
+		t.Errorf("the summoned pet %.0f off its master", d)
+	}
+	r.charmTicks(22*time.Second+100*time.Millisecond, 23*time.Second)
+	if got := d0 - distXZ(crab.X, crab.Z, r.p.X, r.p.Z); got < charmRunSpeed-0.5 || got > charmRunSpeed+0.5 || ps.target != 0 {
+		t.Errorf("a second's run: %.2f nearer (want %.2f), target %d", got, charmRunSpeed, ps.target)
+	}
+	r.sent()
+	x, z := crab.X, crab.Z
+	r.w.mu.Lock()
+	r.p.X, r.p.Z = crab.X+charmRunRange+1, crab.Z
+	r.w.mu.Unlock()
+	r.tick(23*time.Second + 100*time.Millisecond)
+	msgs := r.sent()
+	if crab.Charm != nil || len(r.w.sidePets) != 0 || crab.X != x || crab.Z != z || crab.CurrentEnemy == r.p.ServerID {
+		t.Fatalf("4,921 off: charm %v, side %d, at (%.0f, %.0f) was (%.0f, %.0f), enemy %d", crab.Charm != nil,
+			len(r.w.sidePets), crab.X, crab.Z, x, z, crab.CurrentEnemy)
+	}
+	if !toldLine(msgs, fmt.Sprintf(stackWornOff, crab.Name)) || r.w.petOfLocked(r.p) != pet {
+		t.Errorf("its master not told, or the summoned pet gone: %x", msgs)
 	}
 }

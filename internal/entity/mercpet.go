@@ -282,8 +282,10 @@ func (w *World) mercPetTurnLocked(ms *mercState, sess *session.Session, fight bo
 	}
 	ps.last = now
 	w.petEffectsLocked(ps, now)
-	if pet.World != m.World || distXZ(pet.X, pet.Z, m.X, m.Z) > petLost {
-		// its merc taken along (a teleport, another world): it comes too
+	if pet.Charm != nil && pet.World == m.World && distXZ(pet.X, pet.Z, m.X, m.Z) > petLost {
+		ps.running = true // a charmed one runs to its merc (charm.go's run)
+	} else if pet.World != m.World || distXZ(pet.X, pet.Z, m.X, m.Z) > petLost {
+		// its merc taken along (a teleport, another world): a summoned one comes too
 		oldX, oldZ := pet.X, pet.Z
 		pet.World = m.World
 		pet.X, pet.Y, pet.Z = w.followPlaceLocked(pet, ms.body, slotMercPet)
@@ -291,6 +293,9 @@ func (w *World) mercPetTurnLocked(ms *mercState, sess *session.Session, fight bo
 		ps.target = 0
 		pet.endRound()
 		w.SpatialIndex.Update(pet.ServerID, oldX, oldZ, pet.X, pet.Z)
+	}
+	if w.charmRunTurnLocked(ps, m.X, m.Y, m.Z, dt) {
+		return
 	}
 	if !fight {
 		ps.target = 0

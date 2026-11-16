@@ -429,73 +429,204 @@ func wide16(s string) []byte {
 	return b
 }
 
-// Led on foot with its charm still running, a charmed creature goes no
-// farther than the zones next to the one it spawned in (the user,
-// 2026-11-06: "the maximum distance you can recharm without them returning
-// their spawn is 1 zone away. If charm duration persists you can run across
-// the world"): a zone off it follows on, charmed; past that it is let go and
-// is home at once, fighting no one, its master told.
-func TestACharmedCreatureIsLeashedToItsZones(t *testing.T) {
-	defer func(f func(int) int) { charmIntn = f }(charmIntn)
-	charmIntn = dice(99)
-	r, _, _ := charmRig(t)
-	crab := r.enemy
-	castCharm(t, r, captivation(), crabID, 0)
-	if crab.Owner == 0 {
-		t.Fatal("not charmed")
-	}
-	move := func(dx float32) {
-		r.w.mu.Lock()
-		crab.X = crab.SpawnX + dx
-		r.p.X = crab.X + 2
-		r.w.mu.Unlock()
-	}
-	move(charmZone) // the control: a zone off, inside its grace
-	r.tick(time.Minute)
-	if crab.Owner == 0 || crab.Charm == nil {
-		t.Fatal("let go a zone from home")
-	}
-	r.sent()
-	move(2*charmZone + 10)
-	r.tick(time.Minute + time.Second)
-	msgs := r.sent()
-	if crab.Owner != 0 || crab.Charm != nil || r.w.pets[r.p.ServerID] != nil {
-		t.Fatalf("still charmed two zones from home: %+v", *crab)
-	}
-	if crab.X != crab.SpawnX || crab.CurrentEnemy != 0 {
-		t.Fatalf("not home, or hostile: at %.0f (spawn %.0f), enemy %d", crab.X, crab.SpawnX, crab.CurrentEnemy)
-	}
-	told := false
-	for _, m := range msgs {
-		told = told || opOfMsg(m) == protocol.OpcodeClearPet
-	}
-	if !told {
-		t.Fatalf("its master was not told: %x", msgs)
+// charmTicks ticks the rig every 100 ms from a to b, as the tick does.
+func (r *petRig) charmTicks(a, b time.Duration) {
+	for d := a; d <= b; d += 100 * time.Millisecond {
+		r.tick(d)
 	}
 }
 
-// A coach takes no charmed creature: its charm breaks where it stands (inside
-// its grace: it stays, its own again and fighting no one, to be charmed again
-// there), its master told. The control: with no pet out, nothing.
-func TestACoachLeavesACharmedPetBehind(t *testing.T) {
+// toldLine is whether msgs hold the chat line.
+func toldLine(msgs [][]byte, line string) bool {
+	for _, m := range msgs {
+		if opOfMsg(m) == protocol.OpcodeClientMessage && bytes.Contains(m, wide16(line)) {
+			return true
+		}
+	}
+	return false
+}
+
+// Charm is one absolute check (#1574, jibrish 2026-11-16, petition 2233:
+// "basically its an absolute distance check from player location to pet"):
+// its master taken 3,000 off in its world (a gate, a coach: alike now), a
+// charmed creature is not carried and not let go, it runs to its master at
+// Spirit of the Wolf's pace, straight, taking no target though a creature
+// beside its path attacks it, until petCatchUp off, then follows; its master
+// moved again within charmRunRange it runs on to the new place; past it (4,921
+// from the pet) or in another world, it is let go that tick where it stands,
+// "Your charm spell has worn off.", fighting no one. Led on foot two zones
+// from its spawn, it stays charmed (the old leash is gone).
+func TestACharmedCreatureRunsToItsMaster(t *testing.T) {
+	defer func(f func(int) int) { charmIntn = f }(charmIntn)
+	charmIntn = dice(99)
+	r, flesh, _ := charmRig(t)
+	crab := r.enemy
+	castCharm(t, r, captivation(), crabID, 0)
+	if crab.Charm == nil || r.w.pets[r.p.ServerID] == nil {
+		t.Fatal("not charmed")
+	}
+	ps := r.w.pets[r.p.ServerID]
+	r.charmTicks(10*time.Second, 11*time.Second) // following beside its master
+
+	// a creature beside its path that fights it
+	r.w.mu.Lock()
+	flesh.X, flesh.Z = crab.X+2, crab.Z+20
+	r.w.SpatialIndex.Update(flesh.ServerID, 8635, 5425, flesh.X, flesh.Z)
+	r.w.updateAggro(flesh, crab.ServerID, 50)
+	flesh.CurrentEnemy = crab.ServerID
+	r.p.Z += 3000 // a gate: 3,000 off in its world
+	r.w.mu.Unlock()
+	r.tick(12 * time.Second)
+	if crab.Charm == nil || r.w.pets[r.p.ServerID] != ps {
+		t.Fatal("let go by its master's trip within range")
+	}
+	d0 := distXZ(crab.X, crab.Z, r.p.X, r.p.Z)
+	if d0 < 2900 || !ps.running || crab.Loco != LocoRun {
+		t.Fatalf("after the trip: %.0f off its master (placed beside it?), running %v, loco %d", d0, ps.running, crab.Loco)
+	}
+	r.charmTicks(12*time.Second+100*time.Millisecond, 13*time.Second)
+	if got := d0 - distXZ(crab.X, crab.Z, r.p.X, r.p.Z); got < charmRunSpeed-0.5 || got > charmRunSpeed+0.5 {
+		t.Errorf("a second's run: %.2f nearer, want %.2f", got, charmRunSpeed)
+	}
+	if ps.target != 0 || crab.RoundTarget != 0 || !ps.running {
+		t.Errorf("attacked on its way: target %d, round %d, running %v", ps.target, crab.RoundTarget, ps.running)
+	}
+
+	// its master moved again, still within range of it: on to the new place
+	r.w.mu.Lock()
+	r.p.X += 1500
+	r.w.mu.Unlock()
+	d1 := distXZ(crab.X, crab.Z, r.p.X, r.p.Z)
+	r.charmTicks(13*time.Second+100*time.Millisecond, 14*time.Second)
+	if crab.Charm == nil || !ps.running || d1-distXZ(crab.X, crab.Z, r.p.X, r.p.Z) < charmRunSpeed-0.5 {
+		t.Fatalf("its master moved within range: charm %v, running %v, %.0f -> %.0f", crab.Charm != nil, ps.running, d1,
+			distXZ(crab.X, crab.Z, r.p.X, r.p.Z))
+	}
+
+	// ticked on, it arrives and follows
+	end := 14 * time.Second
+	for ps.running && end < 10*time.Minute {
+		end += 100 * time.Millisecond
+		r.tick(end)
+	}
+	if ps.running || crab.Charm == nil || distXZ(crab.X, crab.Z, r.p.X, r.p.Z) > petCatchUp {
+		t.Fatalf("never arrived: running %v, %.0f off", ps.running, distXZ(crab.X, crab.Z, r.p.X, r.p.Z))
+	}
+	r.charmTicks(end+100*time.Millisecond, end+5*time.Second)
+	if crab.Charm == nil || ps.running || distXZ(crab.X, crab.Z, r.p.X, r.p.Z) > petCatchUp {
+		t.Fatalf("not following: %.0f off", distXZ(crab.X, crab.Z, r.p.X, r.p.Z))
+	}
+
+	// led on foot two zones from its spawn: still charmed
+	r.w.mu.Lock()
+	crab.X, crab.Z = crab.SpawnX+2*charmZone+10, crab.SpawnZ
+	r.p.X, r.p.Z = crab.X+2, crab.Z
+	r.w.mu.Unlock()
+	end += 6 * time.Second
+	r.charmTicks(end, end+time.Second)
+	if crab.Charm == nil || r.w.pets[r.p.ServerID] != ps || ps.running {
+		t.Fatalf("led two zones on foot: charm %v, running %v", crab.Charm != nil, ps.running)
+	}
+
+	for _, c := range []struct {
+		name  string
+		world uint8
+		dx    float32
+	}{
+		{"4,921 off", 2, charmRunRange + 1},
+		{"another world", 0, 2000},
+	} {
+		r, _, _ := charmRig(t)
+		crab := r.enemy
+		castCharm(t, r, captivation(), crabID, 0)
+		r.charmTicks(10*time.Second, 11*time.Second)
+		r.w.mu.Lock()
+		r.p.Z += 3000
+		r.w.mu.Unlock()
+		r.charmTicks(11*time.Second+100*time.Millisecond, 12*time.Second) // running
+		if ps := r.w.pets[r.p.ServerID]; ps == nil || !ps.running {
+			t.Fatalf("%s: not running", c.name)
+		}
+		r.sent()
+		x, z := crab.X, crab.Z
+		r.w.mu.Lock()
+		r.p.World, r.p.X, r.p.Z = c.world, crab.X+c.dx, crab.Z
+		r.w.mu.Unlock()
+		r.tick(12*time.Second + 100*time.Millisecond)
+		msgs := r.sent()
+		if crab.Charm != nil || crab.Owner != 0 || r.w.pets[r.p.ServerID] != nil {
+			t.Fatalf("%s: still charmed", c.name)
+		}
+		if crab.X != x || crab.Z != z || crab.CurrentEnemy == r.p.ServerID || crab.Threats[r.p.ServerID] != 0 {
+			t.Errorf("%s: at (%.1f, %.1f), was (%.1f, %.1f); enemy %d", c.name, crab.X, crab.Z, x, z, crab.CurrentEnemy)
+		}
+		if !toldLine(msgs, charmWornOff) || opIndex(msgs, protocol.OpcodeClearPet) < 0 {
+			t.Errorf("%s: its master not told: %x", c.name, msgs)
+		}
+	}
+}
+
+// Zerkziee's flesh crawler (petition 2233): charmed on the Isle of Dread at
+// its spawn (24848.5, 3306), its master gone home by Return Home to Klik'Anon
+// (23619.4, 6289.0), 3,226 off: it is not let go, it runs, and it arrives in
+// about 281 s at charmRunSpeed.
+func TestZerkzieesCrawlerRunsToKlikAnon(t *testing.T) {
 	defer func(f func(int) int) { charmIntn = f }(charmIntn)
 	charmIntn = dice(99)
 	r, _, _ := charmRig(t)
 	crab := r.enemy
-	if r.w.CoachLeavesCharm(r.sess) {
-		t.Fatal("a charm broken with no pet out")
-	}
+	r.w.mu.Lock()
+	ox, oz := crab.X, crab.Z
+	crab.World, crab.X, crab.Z = 0, 24848.5, 3306
+	crab.SpawnX, crab.SpawnZ = crab.X, crab.Z
+	r.w.SpatialIndex.Update(crab.ServerID, ox, oz, crab.X, crab.Z)
+	px, pz := r.p.X, r.p.Z
+	r.p.World, r.p.X, r.p.Z = 0, crab.X-10, crab.Z
+	r.w.SpatialIndex.Update(r.p.ServerID, px, pz, r.p.X, r.p.Z)
+	r.w.mu.Unlock()
 	castCharm(t, r, captivation(), crabID, 0)
-	x := crab.X
-	r.sent()
-	if !r.w.CoachLeavesCharm(r.sess) {
-		t.Fatal("no charm broken")
+	if crab.Charm == nil {
+		t.Fatal("not charmed")
 	}
-	msgs := r.sent()
-	if crab.Owner != 0 || crab.Charm != nil || r.w.pets[r.p.ServerID] != nil || crab.X != x || crab.CurrentEnemy != 0 {
-		t.Fatalf("after the coach: %+v", *crab)
+	ps := r.w.pets[r.p.ServerID]
+	r.w.mu.Lock()
+	crab.X, crab.Z = crab.SpawnX, crab.SpawnZ
+	r.p.X, r.p.Z = 23619.4, 6289.0 // Return Home
+	r.w.mu.Unlock()
+	if d := distXZ(crab.X, crab.Z, r.p.X, r.p.Z); d < 3226 || d > 3227 {
+		t.Fatalf("%.1f apart", d)
 	}
-	if len(msgs) == 0 || opOfMsg(msgs[0]) != protocol.OpcodeClearPet {
-		t.Fatalf("its master was not told: %x", msgs)
+	start := 10 * time.Second
+	r.tick(start)
+	if crab.Charm == nil || !ps.running {
+		t.Fatalf("at the trip: charm %v, running %v", crab.Charm != nil, ps.running)
+	}
+	end := start
+	for ps.running && end < start+10*time.Minute {
+		end += 100 * time.Millisecond
+		r.tick(end)
+	}
+	took := (end - start).Seconds()
+	// 3,226.3 at 11.483 a second, petCatchUp short of its master: 279.7 s
+	if crab.Charm == nil || ps.running || took < 278 || took > 282 {
+		t.Errorf("arrived after %.1f s (want about 280): charm %v, running %v", took, crab.Charm != nil, ps.running)
+	}
+}
+
+// A summoned pet still comes along at once: its master 3,000 off, it is
+// beside its master the next tick.
+func TestASummonedPetStillComesAlong(t *testing.T) {
+	r := newPetRig(t)
+	pet, _ := r.summon(t, fireElemental(), 0)
+	if pet == nil {
+		t.Fatal("no pet")
+	}
+	r.tick(20 * time.Second)
+	r.w.mu.Lock()
+	r.p.Z += 3000
+	r.w.mu.Unlock()
+	r.tick(21 * time.Second)
+	if d := distXZ(pet.X, pet.Z, r.p.X, r.p.Z); d > petFollow+petFollowStart || r.w.pets[r.p.ServerID].running {
+		t.Errorf("a summoned pet 3,000 behind: %.0f off its master the next tick", d)
 	}
 }

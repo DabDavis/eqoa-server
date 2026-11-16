@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"testing"
 	"time"
 )
@@ -148,5 +149,54 @@ func TestMercEnchanterGivesItsTeam(t *testing.T) {
 	}
 	if buffOn(bea.Effects, &flow) {
 		t.Error("Bea, a group mate, got its Power Flow")
+	}
+}
+
+// A merc's charmed pet is held to charm.go's check, from the player (#1574):
+// its hirer 3,000 off (the merc comes along at once), it runs to the merc at
+// charmRunSpeed, taking no target; its hirer moved 4,921 from it, it is let go
+// there, the hirer told the merc's charm wore off.
+func TestAMercsCharmedPetRunsAndIsLetGoPastRange(t *testing.T) {
+	defer func(f func(int) int) { charmIntn = f }(charmIntn)
+	charmIntn = func(int) int { return 99 } // never resisted
+	r := newMercRig(t)
+	r.p.Level = 49
+	ms := r.hire(r.kit(classEnchanter, 0, 0, entrancing("Entrancing Enticement", 30, "Target, Charm ; Increase 25% based on CHA , 10min")), MercAssist)
+	m := ms.npc
+	crab := r.creature("Desert Crab", 20, 10)
+	r.charmTarget(crab)
+	if _, why := r.w.MercCharm(r.sess, 0, r.at(0)); why != "" {
+		t.Fatalf("/merc charm: %q", why)
+	}
+	r.run(0, 8*time.Second)
+	if ms.pet == nil || ms.pet.npc != crab || crab.Charm == nil {
+		t.Fatal("not charmed")
+	}
+	ps := ms.pet
+	r.w.mu.Lock()
+	r.p.Z += 3000
+	r.w.mu.Unlock()
+	r.tick(8*time.Second + 100*time.Millisecond)
+	d0 := distXZ(crab.X, crab.Z, m.X, m.Z)
+	if crab.Charm == nil || !ps.running || crab.Loco != LocoRun || d0 < 2900 || distXZ(m.X, m.Z, r.p.X, r.p.Z) > petLost {
+		t.Fatalf("after the trip: charm %v, running %v, loco %d, %.0f off the merc, the merc %.0f off its hirer",
+			crab.Charm != nil, ps.running, crab.Loco, d0, distXZ(m.X, m.Z, r.p.X, r.p.Z))
+	}
+	r.run(8*time.Second+200*time.Millisecond, 9*time.Second+100*time.Millisecond)
+	if got := d0 - distXZ(crab.X, crab.Z, m.X, m.Z); got < charmRunSpeed-1 || got > charmRunSpeed+1 || ps.target != 0 {
+		t.Errorf("a second's run: %.2f nearer the merc (want about %.2f), target %d", got, charmRunSpeed, ps.target)
+	}
+	r.sent()
+	x, z := crab.X, crab.Z
+	r.w.mu.Lock()
+	r.p.X, r.p.Z = crab.X+charmRunRange+1, crab.Z
+	r.w.mu.Unlock()
+	r.tick(9*time.Second + 200*time.Millisecond)
+	if crab.Charm != nil || crab.Owner != 0 || ms.pet == ps || crab.X != x || crab.Z != z {
+		t.Fatalf("4,921 from its hirer: charm %v, owner %d, at (%.0f, %.0f) was (%.0f, %.0f)", crab.Charm != nil, crab.Owner,
+			crab.X, crab.Z, x, z)
+	}
+	if !r.told(fmt.Sprintf(mercCharmWore, m.Name, crab.Name)) {
+		t.Error("its hirer was not told")
 	}
 }

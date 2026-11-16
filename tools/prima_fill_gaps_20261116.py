@@ -35,6 +35,9 @@ Left alone, the whole record (each listed with its reason):
   - with --other-db (the other shard, a copy): a record of the same name left alone there as deliberately changed
     (not for its id, a made-record table or its own stats' slide, which are each shard's own).
 
+The plan (seconds: it reads gm_audit, every tool log and the board) runs in a read transaction; --apply then takes the
+write lock, refuses if an itempattern audit line was written or a planned gap filled meanwhile, and writes.
+
 Report only by default, with a CSV of every change (--csv) and one of every exclusion (<csv>-excluded.csv). --apply in
 one transaction, a gm_audit line a record (the whole row before and after, as the panel writes), logged in
 prima_fill_20261116_log; a second --apply finds nothing to do; --undo puts back exactly what was there (a record changed
@@ -501,6 +504,19 @@ def summary(db, changes, excluded, stats):
     return lines
 
 
+def since(db, mark, changes):
+    """What changed under the plan: an itempattern audit line after mark, or a gap no longer 0/NULL."""
+    out = [f"gm_audit {i} ({who}): itempattern {key}" for i, who, key in db.execute(
+        "SELECT id, username, rowkey FROM gm_audit WHERE id > ? AND tbl LIKE '%itempattern%' AND detail NOT LIKE ?",
+        (mark, f"%{TOOL}%"))]
+    for pid, name, fill, g in changes:
+        cur = row(db, "itempattern", {"patternid": pid})
+        for f, (b, a) in fill.items():
+            if cur is None or cur[f] != b:
+                out.append(f"{pid} {name!r} {f}: {b} when planned, {None if cur is None else cur[f]} now")
+    return out
+
+
 def apply(db, changes):
     db.execute(LOG_DDL)
     for pid, name, fill, g in changes:
@@ -551,35 +567,43 @@ def main(argv=None):
     prima = sqlite3.connect(f"file:{os.path.abspath(a.prima)}?mode=ro", uri=True)
     prima.row_factory = sqlite3.Row
     other = sqlite3.connect(f"file:{os.path.abspath(a.other_db)}?mode=ro", uri=True) if a.other_db else None
-    db.execute("BEGIN IMMEDIATE")
     try:
         if a.undo:
+            db.execute("BEGIN IMMEDIATE")
             back, left = undo(db)
             db.execute("COMMIT")
             print(f"undone: {back} records back" + "".join(f"\n  left: {w}" for w in left))
             return 0 if not left else 1
+        # The plan reads gm_audit, the tool logs and the board (seconds on a shard): it runs in a read transaction,
+        # so the server's writes go on meanwhile; the write lock is taken only to check and write.
+        db.execute("BEGIN")
         for t in ("itempattern", "gm_audit"):
             if not table(db, t):
                 db.execute("ROLLBACK")
                 print(f"REFUSED: no {t} table here")
                 return 1
+        mark = db.execute("SELECT COALESCE(MAX(id), 0) FROM gm_audit").fetchone()[0]
         changes, excluded, stats = plan(db, prima, other)
+        db.execute("ROLLBACK")
         print("\n".join(summary(db, changes, excluded, stats)))
         if a.csv:
             write_csvs(a.csv, a.shard or os.path.basename(a.db), changes, excluded)
             print(f"csv: {a.csv} (+ -excluded)")
         if not changes:
-            db.execute("ROLLBACK")
             print("nothing to do")
             return 0
         if table(db, LOG):
-            db.execute("ROLLBACK")
             print(f"applied before and gaps found since ({LOG} is there): --undo first")
             return 1
         if not a.apply:
-            db.execute("ROLLBACK")
             print(f"(report only: {len(changes)} records; --apply to write)")
             return 0
+        db.execute("BEGIN IMMEDIATE")
+        moved = since(db, mark, changes)
+        if moved:
+            db.execute("ROLLBACK")
+            print("REFUSED, nothing written: changed while planning (run again):" + "".join(f"\n  {m}" for m in moved))
+            return 1
         n = apply(db, changes)
         db.execute("COMMIT")
         print(f"applied: {n} records, in gm_audit and {LOG}; holders see it at their next login, imported copies at the next start")

@@ -242,6 +242,24 @@ class PrimaFill(unittest.TestCase):
         self.assertEqual(self.item(1002)["cha"], None)
         self.assertEqual(self.q("SELECT count(*) FROM prima_fill_20261116_log")[0][0], 1)
 
+    def test_since_refuses_a_change_under_the_plan(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("pf", TOOL)
+        pf = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(pf)
+        db = sqlite3.connect(self.db)
+        mark = db.execute("SELECT MAX(id) FROM gm_audit").fetchone()[0]
+        changes = [(1001, "Plain Greaves", {"sta": (0, 10)}, {})]
+        self.assertEqual(pf.since(db, mark, changes), [])
+        db.execute("UPDATE itempattern SET sta = 3 WHERE patternid = 1001")
+        db.execute("INSERT INTO gm_audit (at, accountid, username, via, ip, action, tbl, rowkey) VALUES "
+                   "('2026-11-16T22:00:00Z', 3, 'Zaeire', 'web', '', 'update', 'itempattern', '1001')")
+        got = pf.since(db, mark, changes)
+        db.close()
+        self.assertEqual(len(got), 2)
+        self.assertIn("Zaeire", got[0])
+        self.assertIn("sta: 0 when planned, 3 now", got[1])
+
 
 if __name__ == "__main__":
     unittest.main()

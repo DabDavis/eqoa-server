@@ -109,13 +109,15 @@ func FamiliarCast(d FamiliarDef) CastSpell {
 	return CastSpell{SpellID: familiarCastID, Name: d.Name, CastTime: d.Cast, FX: fx, Familiar: &def}
 }
 
-// isFamiliarIDLocked reports a familiar's entity id (addThreatLocked's
-// refusal). Must be called with the lock held.
+// isFamiliarIDLocked reports a familiar's entity id, or a monkey's
+// (monkeys.go), neither of which draws hate (addThreatLocked's refusal).
+// Must be called with the lock held.
 func (w *World) isFamiliarIDLocked(id EntityID) bool {
-	if len(w.familiars) == 0 {
+	if len(w.familiars) == 0 && len(w.monkeys) == 0 {
 		return false
 	}
-	return w.NPCs[id].isFamiliar()
+	n := w.NPCs[id]
+	return n.isFamiliar() || n.isMonkey()
 }
 
 // summonFamiliarLocked is a familiar item's cast landing: the familiar beside

@@ -606,6 +606,11 @@ func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
 	// the capture shows it holds for NPCs too: retail's three NPC channels are
 	// all zero above 161.
 
+	// a Barrel of Monkeys' monkey is never a target (monkeys.go)
+	if n.isMonkey() {
+		monkeyChannel(buf)
+	}
+
 	return buf
 }
 

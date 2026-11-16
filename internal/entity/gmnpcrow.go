@@ -28,6 +28,8 @@ func rowNPCRefusalOf(npc *NPC) string {
 		return "is a mercenary's (or its pet): it has no row"
 	case npc.isFamiliar():
 		return "is a familiar: it has no row"
+	case npc.isMonkey():
+		return "is a Barrel of Monkeys' monkey: it has no row"
 	case npc.Owner != 0 || npc.Charm != nil:
 		return "is a player's pet: it has no row of its own to change"
 	case npc.GenieOf != 0:

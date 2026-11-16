@@ -548,6 +548,11 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 			h.useRockOfFreeport(sess, player)
 			return nil
 		}
+		// the Barrel of Monkeys, never spent: one more monkey (monkeybarrel.go)
+		if row.EquipLoc < 0 && IsMonkeyBarrel(&row.Pattern) {
+			h.useMonkeyBarrel(sess, player, &row.Pattern)
+			return nil
+		}
 		// an item that calls a familiar, never spent: its cast (familiar.go)
 		if row.EquipLoc < 0 && h.familiars.IsItem(row.Pattern.PatternID) {
 			h.familiars.Use(sess, player, &row.Pattern)

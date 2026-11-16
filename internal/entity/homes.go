@@ -92,6 +92,8 @@ func (w *World) npcOwnerLocked(n *NPC) *Player {
 		return n.mercPet.owner
 	case n.familiar != nil:
 		return n.familiar.owner
+	case n.monkey != nil:
+		return n.monkey.owner
 	case n.GenieOf != 0:
 		return w.Players[n.GenieOf]
 	case n.PortalOf != 0:

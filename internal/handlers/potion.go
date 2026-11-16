@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
@@ -104,6 +105,11 @@ func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, i
 	}
 	if h.gameWorld == nil {
 		return false
+	}
+	// a toy illusion's item (one with an outfit: entity/outfit.go) used while its
+	// body is on takes it off, nothing spent and no cooldown begun
+	if h.gameWorld.EndItemForm(sess, row.Pattern.PatternID, strings.TrimSpace(row.Pattern.ItemName), time.Now()) {
+		return true
 	}
 	// a vampire drinks no invisibility or speed potion (entity/vampire.go)
 	if text := h.gameWorld.VampirePotionRefusal(sess, pe); text != "" {

@@ -2539,6 +2539,66 @@ var catalog = map[string]tableNote{
 			"source":    {Label: "Source", Help: "gm, or testing-heroes for the tool's rows"},
 		},
 	},
+	"tokenshop": {
+		Label: "Token shops' stock", Group: "Items & spells", Sort: "shop",
+		Help: "Shops paid in an item, not in tunar (handlers/tokenshop.go; the owner, 2026-11-16: the Toy Shoppe by Freeport's " +
+			"Christmas tree). Every NPC whose name has rows here is a shop: talked to, it lists its stock in talk boxes, each " +
+			"\"<item>: <price>\", and a Yes buys one, the price taken from the buyer's pack in its token (the bank's do not " +
+			"count). tools/toy_shoppe_20261116.py wrote Toymaker Tinsel's (source toy-shoppe); a row of yours adds a ware, or " +
+			"a shop (a new NPC of the name). A record is sold once a shop. To add an illusion toy as Santa's Elf is: an item " +
+			"record (usable, procanim 2), its Item uses row (line \"Self, Unlimited Uses, 30min\", a body, a cooldown), its " +
+			"Item outfits rows and a row here.",
+		Live:   "At once: a shop reads its stock at every talk and again at the buyer's Yes (a new shop's name within 30 seconds).",
+		Search: []string{"shop", "token", "says", "source"},
+		Cols: map[string]colNote{
+			"id":        {Label: "Entry", ReadOnly: true},
+			"shop":      {Label: "Shop", Help: "the NPC's name (any NPC of it is the shop; case and spaces round it do not count)"},
+			"patternid": {Label: "Item", Ref: "itempattern"},
+			"price":     {Label: "Price", Help: "how many of the token; 0 or less: not offered"},
+			"token":     {Label: "Paid in", Help: "the token's item by name; empty: Holly Token, the Christmas season's"},
+			"says":      {Label: "What the shop says of it", Help: "before the buyer says yes, 190 characters at most and no percent sign (a box draws none); empty: the item's own description"},
+			"sort":      {Label: "Order", Help: "its place in the list, lowest first (then the cheapest)"},
+			"source":    {Label: "Source", Help: "gm, or toy-shoppe for the tool's rows"},
+		},
+	},
+	"tokenshop_purchases": {
+		Label: "Token shop purchases", Group: "Players", Sort: "id",
+		Help: "Every purchase from a token shop (the Toy Shoppe), written as it is made: who, the shop, the item and its price. " +
+			"A log: nothing reads it back, and changing a row gives nothing back.",
+		Search: []string{"charname", "shop", "item"},
+		Cols: map[string]colNote{
+			"id":        {Label: "Entry", ReadOnly: true},
+			"at":        {Label: "When", ReadOnly: true},
+			"serverid":  {Label: "Character", Ref: "characters", ReadOnly: true},
+			"charname":  {Label: "Name", ReadOnly: true},
+			"accountid": {Label: "Account", ReadOnly: true},
+			"shop":      {Label: "Shop", ReadOnly: true},
+			"patternid": {Label: "Item", Ref: "itempattern", ReadOnly: true},
+			"item":      {Label: "Item's name", ReadOnly: true},
+			"price":     {Label: "Price", ReadOnly: true},
+			"token":     {Label: "Paid in", ReadOnly: true},
+		},
+	},
+	"itemoutfit": {
+		Label: "Item outfits", Group: "Items & spells", Title: "patternid", Sort: "patternid",
+		Help: "What an item's illusion dresses its bearer in (entity/outfit.go): an item whose use shows a body (Item uses: its " +
+			"body, or an Illusion: name) and has rows here is a toy illusion. While that body is the one shown, the bearer's own " +
+			"armour, robe and their colours are not drawn but these are, a row a slot: an armour slot with no row is bare, and " +
+			"no robe is worn without one. A PS2 draws each colour as the nearest of the disc's fifteen tints, and no trim; " +
+			"vanilla draws the colours, trims too. The held items, the cape, hair and face stay the bearer's. Used again while " +
+			"its body is on, the item takes the illusion off. Santa's Elf (716912): a gnome in a red tunic with a white trim, " +
+			"green bracers, white gloves, green leggings, red boots and a green cap with a red band.",
+		Live:   "At once: every bearer's channel carries it at the next tick.",
+		Search: []string{"note", "source"},
+		Cols: map[string]colNote{
+			"patternid": {Label: "Item", Ref: "itempattern"},
+			"slot":      {Label: "Slot", Help: "chardyes' numbers: 0 chest, 1 bracer, 2 gloves, 3 legs, 4 boots, 5 helm, 9 robe, 11-16 the trims of chest .. helm"},
+			"look":      {Label: "Set", Help: "an armour slot's set (0 bare, 1 cloth, 2 leather, 3 chain, 4 plate, 5-8 the others); the robe's style (255 none); a trim's: unused"},
+			"color":     {Label: "Colour", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA; 0 none (white)"},
+			"note":      {Label: "Note", Help: "why"},
+			"source":    {Label: "Source", Help: "gm, or toy-shoppe for the tool's rows"},
+		},
+	},
 	"heroes_purchases": {
 		Label: "Testing Heroes purchases", Group: "Players", Sort: "id",
 		Help: "Every purchase from the Testing Heroes Vendor, written as it is made: who, the item, its cost and the buyer's " +

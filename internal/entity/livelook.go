@@ -138,6 +138,10 @@ func (p *Player) LookDyes() *Dyes {
 			d[database.DyePrimary+i], changed = c, true
 		}
 	}
+	// a toy illusion's outfit is drawn in its own colours (outfit.go)
+	if o := p.shownOutfit(); o != nil {
+		return outfitDyes(o, &d)
+	}
 	if !changed {
 		return &p.Dyes
 	}

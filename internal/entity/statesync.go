@@ -246,6 +246,8 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 	// and the worn looks the character hides (hidelook.go), and a worn helm on
 	// a body with a helm of its own (ownhelm.go)
 	hideLookParts(buf, p.ShownHiddenParts())
+	// a toy illusion dresses its body in its own outfit, over all of that (outfit.go)
+	putOutfit(p.shownOutfit(), buf)
 
 	// Offset 111: eqoa.live constant = 6 across ALL entities
 	buf[111] = 6

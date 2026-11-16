@@ -61,6 +61,10 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return "at once: earned so while its season is on"
 	case "npctint":
 		return s.liveTints()
+	case "itemoutfit":
+		return s.liveOutfits()
+	case "tokenshop":
+		return "at once: the shop reads its stock at every talk and again at the buyer's Yes (a new shop's name within 30 seconds)"
 	case "itemaura", "charaura", "instanceaura":
 		return s.liveItemAuras()
 	case "npctitle":
@@ -305,6 +309,19 @@ func (s *Server) liveTints() string {
 		return "not applied to the world: " + err.Error()
 	}
 	return fmt.Sprintf("at once: %d name(s) tinted; the new set sent to %d client(s) in the game that draw tints (a PS2 draws none)", names, told)
+}
+
+// liveOutfits reads the items' outfits again (entity/outfit.go): each bearer's
+// channel shows them at the next tick.
+func (s *Server) liveOutfits() string {
+	if s.d.World == nil || s.d.DB == nil {
+		return "no world is running: at the next start"
+	}
+	n, err := s.d.World.LoadItemOutfits(s.d.DB)
+	if err != nil {
+		return "not applied to the world: " + err.Error()
+	}
+	return fmt.Sprintf("at once: %d item(s) dress their illusion in an outfit, seen on each bearer at the next tick", n)
 }
 
 // liveItemAuras reads the worn pieces' auras again (entity/pieceaura.go): each

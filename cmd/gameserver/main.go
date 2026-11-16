@@ -452,6 +452,13 @@ func main() {
 		log.Printf("WARNING: %v; no NPC is tinted", err)
 	}
 	log.Printf("Creatures: %s", gameWorld.NPCTintSummary())
+	// What a toy illusion's item dresses its bearer in (entity/outfit.go, table
+	// itemoutfit: Santa's Elf's red and green)
+	if n, err := gameWorld.LoadItemOutfits(db); err != nil {
+		log.Printf("WARNING: %v; no item's illusion has an outfit", err)
+	} else if n > 0 {
+		log.Printf("Items: %d illusions with an outfit (itemoutfit)", n)
+	}
 	// The decoration lights of the seasons that are on, for the clients that
 	// draw them (entity/decorlights.go, tables lighttemplates, lightstrings,
 	// gmseasons)

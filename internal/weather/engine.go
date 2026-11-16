@@ -882,3 +882,20 @@ func (e *Engine) WeatherNow(world int, now time.Time) []ZoneNow {
 	}
 	return out
 }
+
+// Rules is a copy of the tables' word it holds.
+func (e *Engine) Rules() Rules {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	r := Rules{Profiles: map[int]Climate{}, Zones: map[Zone]Climate{}, Climates: map[Climate]Rule{}}
+	for k, v := range e.rules.Profiles {
+		r.Profiles[k] = v
+	}
+	for k, v := range e.rules.Zones {
+		r.Zones[k] = v
+	}
+	for k, v := range e.rules.Climates {
+		r.Climates[k] = v
+	}
+	return r
+}

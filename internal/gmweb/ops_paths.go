@@ -72,6 +72,9 @@ func checkRow(table string, row map[string]any) error {
 	if table == "orbs" && row != nil {
 		return checkOrbRow(row) // live_orbs.go
 	}
+	if (table == "weatherprofiles" || table == "weatherzones" || table == "weatherclimates") && row != nil {
+		return checkWeatherRow(table, row) // ops_weather.go
+	}
 	if table == "hazards" && row != nil {
 		return checkHazardRow(row) // live_hazards.go
 	}

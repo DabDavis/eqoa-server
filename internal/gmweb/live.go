@@ -43,6 +43,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveAggro()
 	case "npcrespawn":
 		return s.liveRespawn()
+	case "weatherprofiles", "weatherzones", "weatherclimates":
+		return s.liveWeather() // ops_weather.go
 	case "npcundead":
 		return s.liveUndead()
 	case "npccharm":

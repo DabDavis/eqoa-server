@@ -27,6 +27,7 @@ const DOS = {
   despawn: "Take this run's spawns away",
   stop: "Stop another trigger's runs",
   wait: 'Wait',
+  weather: 'Weather in their region',
 };
 const MENU = 8;
 
@@ -198,6 +199,22 @@ function stepsEditor(obj, worlds) {
     });
     return h('label', { class: 'check' }, c, "A place of their own (else the trigger's)");
   };
+  // a select of choices [value, label] onto e[key]; '' deletes it
+  const choose = (e, key, choices, then) => {
+    const s = h('select', null, ...choices.map(([v, label]) => h('option', { value: v, selected: String(e[key] ?? '') === String(v) }, label)));
+    s.addEventListener('change', () => { if (s.value === '') delete e[key]; else e[key] = s.value; keep(); if (then) then(); });
+    return s;
+  };
+  // a weather step's place of its own: world, x, z set, else the run's
+  const weatherPlace = (e) => {
+    const c = h('input', { type: 'checkbox', checked: e.world !== undefined });
+    c.addEventListener('change', () => {
+      if (c.checked) Object.assign(e, { world: 0, x: 0, y: 0, z: 0 });
+      else { delete e.world; delete e.x; delete e.y; delete e.z; }
+      keep(); draw();
+    });
+    return h('label', { class: 'check' }, c, "A place of its own (else the run's)");
+  };
   const row = (e, i) => {
     const what = h('select', null, ...Object.entries(DOS).map(([k, label]) => h('option', { value: k, selected: e.do === k }, label)));
     what.addEventListener('change', () => { e.do = what.value; keep(); draw(); });
@@ -232,6 +249,16 @@ function stepsEditor(obj, worlds) {
       fields.push(field('Whom', npcInput(e, 'npc', 'whose copies'), "empty: every spawn of this run", true));
     } else if (e.do === 'stop') {
       fields.push(field('Trigger', num(e, 'slot', { min: 0 }), "its slot; 0: every run but this one"));
+    } else if (e.do === 'weather') {
+      if (!e.weather) e.weather = 'rain';
+      fields.push(field('Kind', choose(e, 'weather', [['rain', 'Rain'], ['snow', 'Snow'], ['sand', 'Sandstorm'], ['whiteout', 'Whiteout'], ['clear', 'Clear (holds the sky clear)']])),
+        field('Strength', choose(e, 'strength', [['', 'Heavy'], ['moderate', 'Moderate'], ['light', 'Light']])),
+        field('Minutes', num(e, 'minutes', { min: 0, max: 120 }), '2 to 120; 0: 10'),
+        field('Where', choose(e, 'where', [['', 'Its zone (here)'], ['near', 'Zones near'], ['world', 'Its whole world']], () => { if (e.where !== 'near') delete e.near; draw(); })));
+      if (e.where === 'near') fields.push(field('Near', num(e, 'near', { min: 1, max: 5 }), 'zones round it, 1 to 5'));
+      fields.push(field('Text', area(e, 'text', 2), "said to the players in those zones (%p: each one's name), the GMs' yellow; empty: nothing", true),
+        field('', weatherPlace(e)));
+      if (e.world !== undefined) fields.push(...placeFields());
     } else if (e.do === 'wait') {
       fields.push(field('Seconds', num(e, 'seconds', { min: 0.5, max: 3600, step: 'any' }), 'the steps after it run then (at most 3600)'));
     }

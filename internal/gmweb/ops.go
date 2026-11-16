@@ -146,6 +146,7 @@ func (s *Server) registerOps() {
 	s.registerEmailOps()    // ops_email.go: the accounts' e-mail, masked; resend, a GM's override
 	s.registerEconomyOps()  // ops_economy.go: the tunar ledger
 	s.registerFormulaOps()  // ops_formula.go: the damage formula's mode, its switch, the shadow summary
+	s.registerWeatherOps()  // ops_weather.go: the regional weather, a GM's weather
 	if !s.d.NoTransfers {
 		s.registerTransferOps() // ops_transfers.go
 	}

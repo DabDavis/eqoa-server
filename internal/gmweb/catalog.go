@@ -1032,6 +1032,64 @@ var catalog = map[string]tableNote{
 			"source":  {Label: "Source", Help: "gm, or the tool that wrote it"},
 		},
 	},
+	"weatherprofiles": {
+		Label: "Weather profiles", Group: "World", Title: "profile", Sort: "profile",
+		Help: "The regional weather's climate of each of the disc's 22 terrain profiles (VIWorld::SetProfiles), the ground under each " +
+			"500x500 square (<world>.profiles, cmd/groundbake -only-profiles): temperate rains, arctic snows (a heavy snow sometimes a " +
+			"whiteout), desert has sandstorms, none has nothing. A square takes its zone's Weather zones row first, then its profile's row " +
+			"here; a profile with no row is none. Empty (and no Weather zones): no automatic weather, a GM's #weather still works. " +
+			"tools/seed_weather.py's rows: 2 and 10 arctic (the icy fog tint), 3 and 11 desert (the sand tint), 19 none (the Lavastorm's).",
+		Live:   "At once: the next weather tick uses it.",
+		Search: []string{"climate", "note"},
+		Cols: map[string]colNote{
+			"profile": {Label: "Profile", Help: "the terrain profile's number, 0-255 (the disc has 0-21)"},
+			"climate": {Label: "Climate", Help: "temperate, arctic, desert or none"},
+			"note":    {Label: "Note"},
+			"source":  {Label: "Source", Help: "gm, or seed for tools/seed_weather.py's rows (its --undo deletes those no GM changed)"},
+		},
+	},
+	"weatherzones": {
+		Label: "Weather zones", Group: "World", Title: "climate", Sort: "world",
+		Help: "A GM's word on a whole zone's climate (all 16 of its squares), above the Weather profiles: a 2000x2000 cell, col = " +
+			"floor(x/2000), row = floor(z/2000), its id w<world>-c<col>-r<row> (#weather names the one a GM stands in). none keeps the " +
+			"automatic weather off it (the Lavastorm world, Zaoran Plateau's islands in lava); a GM's #weather still reaches it.",
+		Live:   "At once: the next weather tick uses it.",
+		Search: []string{"climate", "note"},
+		Cols: map[string]colNote{
+			"world":   {Label: "World", Help: "0-29 (0 Tunaria, 1 the Rathe, 2 Odus, 3 Lavastorm, 4 the Plane of Sky, 5 Secrets)"},
+			"col":     {Label: "Col", Help: "floor(x/2000)"},
+			"row":     {Label: "Row", Help: "floor(z/2000)"},
+			"climate": {Label: "Climate", Help: "temperate, arctic, desert or none"},
+			"note":    {Label: "Note"},
+			"source":  {Label: "Source", Help: "gm, or seed for tools/seed_weather.py's rows"},
+		},
+	},
+	"weatherclimates": {
+		Label: "Weather climates", Group: "World", Title: "climate", Sort: "climate",
+		Help: "How each climate's automatic weather comes. Each area (a climate's squares in a 3x3 block of zones) has a cycle of " +
+			"cycle_minutes; each cycle has an event with event_chance, event_min to event_max minutes long, starting at least 5 minutes in, " +
+			"of a strength by the weights (light 0.15, moderate 0.5, heavy 1), fading in and out over fade_seconds; a heavy snow has a " +
+			"whiteout in its middle with whiteout_chance, held whiteout_min to whiteout_max seconds. Nothing is saved: the same clock gives " +
+			"the same weather on both shards. A climate with no row has no automatic weather.",
+		Live:   "At once: the next weather tick uses it (an event under way may change).",
+		Search: []string{"note"},
+		Cols: map[string]colNote{
+			"climate":         {Label: "Climate", Help: "temperate, arctic or desert"},
+			"kind":            {Label: "Kind", Help: "rain for temperate, snow for arctic, sand for desert"},
+			"cycle_minutes":   {Label: "Cycle", Help: "minutes, 10-240; at most one event a cycle"},
+			"event_chance":    {Label: "Event chance", Help: "0-1, of an event in a cycle"},
+			"event_min":       {Label: "Event min", Help: "minutes, 1-120"},
+			"event_max":       {Label: "Event max", Help: "minutes, 1-120; event_max*60 + 720 <= cycle*60 (12 minutes clear at least)"},
+			"weight_light":    {Label: "Light weight", Help: "0-10000, not all three 0"},
+			"weight_moderate": {Label: "Moderate weight"},
+			"weight_heavy":    {Label: "Heavy weight"},
+			"whiteout_chance": {Label: "Whiteout chance", Help: "0-1, of a whiteout in a heavy snow (arctic)"},
+			"whiteout_min":    {Label: "Whiteout min", Help: "seconds it holds, 1-600"},
+			"whiteout_max":    {Label: "Whiteout max", Help: "seconds, 1-600"},
+			"fade_seconds":    {Label: "Fade", Help: "seconds, 1-60: how long it takes to come in and to go"},
+			"note":            {Label: "Note"},
+		},
+	},
 	"npcrare": {
 		Label: "Rare spawns", Group: "World", Title: "npc_row", Sort: "npc_row",
 		Help: "A rare spawn on a placeholder, by the placeholder's row in NPCs: each time it comes back from a death it " +

@@ -549,8 +549,8 @@ func (w *World) pathHomeStepLocked(npc *NPC, now time.Time) (done bool) {
 		}
 		return false
 	}
-	speed := NPCWalkSpeed
-	speed *= npc.snareFactor(now) // a snare's slow (workbook.go)
+	speed := w.walkSpeedLocked(npc) // its name's, else NPCWalkSpeed (movement.go)
+	speed *= npc.snareFactor(now)   // a snare's slow (workbook.go)
 	arrived := w.stepNPCToward(npc, npc.SpawnX, npc.SpawnZ, speed, dt)
 	w.pathHeightLocked(npc, npc.SpawnX, npc.SpawnY, npc.SpawnZ)
 	if !arrived || dt <= 0 {

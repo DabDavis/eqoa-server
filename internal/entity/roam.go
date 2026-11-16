@@ -383,8 +383,8 @@ func (w *World) roamStepLocked(npc *NPC, now time.Time) {
 		npc.roam.toX, npc.roam.toZ = w.roamPointLocked(npc)
 		npc.roam.walking = true
 	}
-	speed := NPCWalkSpeed
-	speed *= npc.snareFactor(now) // a snare's slow (workbook.go)
+	speed := w.walkSpeedLocked(npc) // its name's, else NPCWalkSpeed (movement.go)
+	speed *= npc.snareFactor(now)   // a snare's slow (workbook.go)
 	if w.stepNPCOnLegLocked(npc, speed, dt) {
 		npc.roam.walking = false
 		npc.roam.restUntil = now.Add(w.roamDuration(roamRestMin, roamRestMax))

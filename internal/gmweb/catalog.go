@@ -1494,6 +1494,10 @@ var catalog = map[string]tableNote{
 			"roam":   {Label: "Wanders", Enum: "roam", Help: "-1 as its kind (wildlife wanders, the rest stands), 1 wanders, 0 stands until pulled"},
 			"radius": {Label: "Radius", Help: "how far from its spawn it wanders; 0 the server's (75)"},
 			"water":  {Label: "Water", Help: "land, both, water, or empty: by where it spawned (in the water: water)"},
+			"speed": {Label: "Walk speed", Unit: "units/s", Help: "its pace as it wanders (and walks home off a path), " +
+				"0 the server's (5.0, a man's walk); 0.5 to 9.9. Not its chase (9.9). CLIENT plays the walk at the body's own rate " +
+				"whatever the speed, so a body whose walk covers less ground than a man's (crocodiles, gharials, caiman) " +
+				"slides at 5.0: give it its own (petition 5189). From 7 the run is played"},
 			"note":   {Label: "Note", Help: "why"},
 			"source": {Label: "Source", Help: "gm, or seed for tools/seed_npc_move.py's rows (its --undo deletes those)"},
 		},

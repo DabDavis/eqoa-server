@@ -60,6 +60,31 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
+	// What the restart kept, read now, and its clients sent a beat every
+	// couple of seconds while the world loads (udp/keepbeat.go): CLIENT gives
+	// up on a server silent 30 s, and the load and the characters' building
+	// took longer than that with 30 players (2026-11-16)
+	if keptConn != nil {
+		if a, ok := keptConn.LocalAddr().(*net.UDPAddr); !ok || a.Port != cfg.Server.GamePort {
+			log.Printf("Keep: the socket handed over is %s, not the game port %d: closed, the game port bound anew", keptConn.LocalAddr(), cfg.Server.GamePort)
+			keptConn.Close()
+			keptConn = nil
+		}
+	}
+	keptBeats := udp.InheritedBeats()
+	var keptSnap *udp.Snapshot
+	if keptFile != "" {
+		if snap, err := udp.ReadSnapshot(keptFile, time.Now()); err != nil {
+			log.Printf("Keep: no sessions resumed: %v", err)
+		} else if keptConn == nil {
+			log.Printf("Keep: %d sessions written down, but no socket came with them: none resumed", len(snap.Sessions))
+		} else {
+			snap.Beaten(keptBeats)
+			keptSnap = snap
+			udp.StartSnapshotBeat(keptConn, snap) // ResumeKept stops it
+		}
+	}
+
 	// How much memory the process holds beyond what it uses (config's words),
 	// before the load makes any of it
 	if cfg.Server.GCPercent > 0 {
@@ -1133,24 +1158,13 @@ func main() {
 	// The sessions a restart kept (udp/keep.go), put back before a datagram
 	// is read: the clients' packets wait in the socket meanwhile
 	if keptConn != nil {
-		if a, ok := keptConn.LocalAddr().(*net.UDPAddr); !ok || a.Port != cfg.Server.GamePort {
-			log.Printf("Keep: the socket handed over is %s, not the game port %d: closed, the game port bound anew", keptConn.LocalAddr(), cfg.Server.GamePort)
-			keptConn.Close()
-			keptConn = nil
-		} else {
-			udpListener.Adopt(keptConn)
-		}
+		udpListener.Adopt(keptConn)
 	}
-	if keptFile != "" {
-		if snap, err := udp.ReadSnapshot(keptFile, time.Now()); err != nil {
-			log.Printf("Keep: no sessions resumed: %v", err)
-		} else if keptConn == nil {
-			log.Printf("Keep: %d sessions written down, but no socket came with them: none resumed", len(snap.Sessions))
-		} else {
-			resumed, told := udpListener.ResumeKept(snap, time.Now())
-			log.Printf("Keep: %d of %d sessions resumed, %d told the server went down; written %v ago",
-				resumed, len(snap.Sessions), told, time.Since(snap.Written).Round(time.Millisecond))
-		}
+	if keptSnap != nil {
+		snap := keptSnap
+		resumed, told := udpListener.ResumeKept(snap, time.Now())
+		log.Printf("Keep: %d of %d sessions resumed, %d told the server went down; written %v ago",
+			resumed, len(snap.Sessions), told, time.Since(snap.Written).Round(time.Millisecond))
 	}
 
 	// Start UDP listener

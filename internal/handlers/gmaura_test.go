@@ -536,3 +536,44 @@ func TestGMAuraItemSecond(t *testing.T) {
 		t.Fatalf("sword of virtue: %+v %v", sp, err)
 	}
 }
+
+// /aura second ... on a player (2026-11-16, Dust's sword: "it will keep the
+// red aura it has and stack the twinkle"): the hand's second kept beside its
+// own first (charaura's color2 ... nodes2), audited, in the world at once; a
+// piece's slot and a shell refused; second off clears it, the first kept.
+func TestGMAuraCharSecond(t *testing.T) {
+	c, db, _, gs, gp, ps, pp := campWorldWithPlayer(t)
+	_ = ps
+	gp.CharServerID, pp.CharServerID = 9001, 197
+	targetAs(gp, pp.ServerID, 200202, gs)
+	c.say(gs, "/aura black particles mainhand")
+	gmReplies(t, gs)
+	c.say(gs, "/aura second particles mainhand source=1D875ECD along=100")
+	if l := gmReplies(t, gs); !hasLine(l, "main hand's second aura: now") {
+		t.Fatalf("/aura second: %q", l)
+	}
+	red := database.ItemAura{Color: 0x000000FF, Kind: database.AuraParticles}
+	twinkle := database.ItemAura{Kind: database.AuraParticles, Source: 0x1D875ECD, Nodes: 100}
+	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraMainHand] != red || a[entity.AuraMainHand2] != twinkle {
+		t.Fatalf("not in the world: %+v", a)
+	}
+	if a := c.gw.PieceAurasOf(gp); a != nil {
+		t.Fatalf("the GM's own: %+v", a)
+	}
+	c.say(gs, "/aura second particles chest source=1D875ECD")
+	if l := gmReplies(t, gs); !hasLine(l, "held weapon's") {
+		t.Fatalf("a second on the chest: %q", l)
+	}
+	c.say(gs, "/aura second red shell mainhand")
+	if l := gmReplies(t, gs); !hasLine(l, "particles, epic or energy") {
+		t.Fatalf("a shell second: %q", l)
+	}
+	c.say(gs, "/aura second off mainhand")
+	gmReplies(t, gs)
+	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraMainHand] != red || a[entity.AuraMainHand2] != (database.ItemAura{}) {
+		t.Fatalf("second off: %+v", a)
+	}
+	if auditLines(t, db, "charaura", "insert") != 1 || auditLines(t, db, "charaura", "update") != 2 {
+		t.Fatal("not audited")
+	}
+}

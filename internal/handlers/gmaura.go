@@ -45,6 +45,10 @@ import (
 //	                                the item held in each hand drawn with the epic's own glow, sheen and
 //	                                particles (charaura slots 9 and 10; the owner, 2026-11-14: "give zaeires
 //	                                equipped weapons the necro's tainted aura from the epic sickle")
+//	/aura second particles mainhand source=1D875ECD along=100
+//	                                a SECOND aura on the hand (charaura's color2 ... nodes2), beside its first,
+//	                                the target's alone (2026-11-16: Dust's sword "will keep the red aura it has
+//	                                and stack the twinkle"); /aura second off mainhand clears it
 //
 // colour: a name (auraColors) or RRGGBB / RRGGBBAA hex, black a dark aura;
 // kind: shell, particles (sparkles), both, trim, trimshell, off (none); where:
@@ -253,6 +257,9 @@ type auraSpec struct {
 	Where      int // a piece, auraWholeBody, or -1 none named
 	SourceName string
 	Look       string // a named look's name (auraLooks), "" none
+	// Second: the hand's second aura (charaura's color2 ... nodes2), the
+	// word "second" named: /aura second particles mainhand source=1D875ECD along=100
+	Second bool
 }
 
 // auraLook is a named aura a GM gives by its name (the owner, 2026-11-14:
@@ -405,6 +412,10 @@ func parseAuraEasy(args []string) (sp auraSpec, err error) {
 			continue
 		}
 		naming = false
+		if w == "second" {
+			sp.Second = true
+			continue
+		}
 		if w == "off" || w == "none" {
 			sp.Off = true
 			continue
@@ -611,6 +622,10 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 		return
 	}
 	if isNPC && !isMerc {
+		if sp.Second {
+			h.gmReply(sess, "/aura: a second aura is a held weapon's: on a player (or a mercenary): /aura second particles mainhand source=<DictID>")
+			return
+		}
 		if sp.A.Kind == database.AuraEpic && !sp.Off {
 			h.gmReply(sess, "/aura: epic is a held weapon's look: on a player (or a mercenary): /aura epic weapons source=<epic's name>")
 			return
@@ -658,6 +673,10 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 	default:
 		slots, place = []int{sp.Where}, auraPieceNames[sp.Where]
 	}
+	if sp.Second {
+		h.setCharSecondAura(sess, player, key, slots, place, whose, isMerc, sp)
+		return
+	}
 	// a hand's kinds: epic or particles; epic a hand's alone
 	if sp.A.Shows() {
 		for _, slot := range slots {
@@ -704,6 +723,45 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 	h.gmReply(sess, fmt.Sprintf("%s %s: now %s (%s), %s alone%s.", strings.ToUpper(whose[:1])+whose[1:], place, auraNow(sp.A), auraWords(sp.A),
 		map[bool]string{true: "this mercenary", false: "this character"}[isMerc], note))
 	log.Printf("GM: %s aura %s %s: %s", player.Name, whose, place, auraWords(sp.A))
+}
+
+// setCharSecondAura keeps a character's (or a mercenary's) hand's second
+// aura (charaura's color2 ... nodes2, audited), beside its first on whatever
+// that hand holds (the owner, 2026-11-16, of Dust's sword: "it will keep the
+// red aura it has and stack the twinkle"): /aura second <kind> <hand> ...
+func (h *ChatHandler) setCharSecondAura(sess *session.Session, player *entity.Player, key database.CharAuraKey, slots []int, place, whose string, isMerc bool, sp auraSpec) {
+	db := h.camps.db
+	for _, slot := range slots {
+		if !database.CharHandSlot(int64(slot)) {
+			h.gmReply(sess, "/aura: a second aura is a held weapon's: /aura second particles mainhand source=1D875ECD along=100 (or offhand, weapons)")
+			return
+		}
+	}
+	if !sp.Off && !database.ValidItemAuraSecond(int64(sp.A.Kind), int64(sp.A.Nodes)) || !sp.Off && !database.HandAuraKind(int64(sp.A.Kind)) {
+		h.gmReply(sess, "/aura: a second aura is particles, epic or energy: /aura second particles mainhand source=1D875ECD along=100, /aura second off mainhand")
+		return
+	}
+	a := sp.A
+	if sp.Off {
+		a = database.ItemAura{}
+	}
+	detail := fmt.Sprintf("/aura in the game: %s %s's second aura: %s", whose, place, auraWords(a))
+	if sp.Look != "" {
+		detail += " (the named look " + sp.Look + ")"
+	}
+	for _, slot := range slots {
+		if err := db.SetCharAuraSecondAudited(key, slot, a, gmEditOf(sess), detail); err != nil {
+			h.gmReply(sess, "/aura: not kept: "+err.Error())
+			return
+		}
+	}
+	if _, err := h.gameWorld.LoadItemAuras(db); err != nil {
+		h.gmReply(sess, "/aura: kept, not yet in the world: "+err.Error())
+		return
+	}
+	h.gmReply(sess, fmt.Sprintf("%s %s's second aura: now %s (%s), beside its first on whatever that hand holds, %s alone (from a client that draws second auras).",
+		strings.ToUpper(whose[:1])+whose[1:], place, auraNow(a), auraWords(a), map[bool]string{true: "this mercenary", false: "this character"}[isMerc]))
+	log.Printf("GM: %s second aura %s %s: %s", player.Name, whose, place, auraWords(a))
 }
 
 // auraNow says an aura in the easy words: "a blue particles aura", "no aura".

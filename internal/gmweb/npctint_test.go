@@ -198,6 +198,16 @@ func TestAuraEditsAreLive(t *testing.T) {
 	if code, out := c.op("insert_row", map[string]any{"table": "charaura", "values": map[string]any{"charid": 9001, "merc": 0, "slot": 5, "color": float64(0xE01818FF), "kind": 8, "source": float64(0x1D875ECD), "nodes": 75}}); code != 200 {
 		t.Fatalf("charaura circlet insert: %d %v", code, out)
 	}
+	// a hand's second aura (color2 ... nodes2, 2026-11-16: Dust's twinkle)
+	if code, out := c.op("insert_row", map[string]any{"table": "charaura", "values": map[string]any{"charid": 9002, "merc": 0, "slot": 9, "color": float64(0x000000FF), "kind": 3, "kind2": 3, "source2": float64(0x1D875ECD), "nodes2": 100}}); code != 200 {
+		t.Fatalf("charaura second insert: %d %v", code, out)
+	}
+	for _, bad := range []map[string]any{{"charid": 9003, "slot": 7, "kind": 2, "color": float64(0xA040FFFF), "kind2": 3}, {"charid": 9003, "slot": 9, "kind": 3, "kind2": 2},
+		{"charid": 9003, "slot": 9, "kind": 3, "kind2": 3, "nodes2": 101}, {"charid": 9003, "slot": 10, "kind": 3, "nodes2": 50, "kind2": 8}, {"charid": 9003, "slot": 5, "kind": 2, "color": float64(0xA040FFFF), "nodes2": 5}} {
+		if code, out := c.op("insert_row", map[string]any{"table": "charaura", "values": bad}); code != 400 {
+			t.Errorf("charaura second %v: %d %v, want refused", bad, code, out)
+		}
+	}
 	for _, bad := range []map[string]any{{"charid": 9001, "slot": 11}, {"charid": 9001, "slot": 0, "kind": 8}, {"charid": 9001, "slot": 9, "kind": 8}, {"charid": 9001, "slot": 5, "kind": 8, "nodes": 101}, {"charid": 9001, "slot": 9, "kind": 7, "nodes": 101}, {"charid": 9001, "slot": 7, "kind": 2, "nodes": 45}, {"charid": 9001, "slot": 1, "kind": 7}, {"charid": 0, "slot": 1},
 		{"charid": 9001, "slot": 10, "kind": 2}, {"charid": 9001, "slot": 10, "kind": 8}, {"charid": 9001, "slot": 8, "kind": 7}} {
 		if code, out := c.op("insert_row", map[string]any{"table": "charaura", "values": bad}); code != 400 {

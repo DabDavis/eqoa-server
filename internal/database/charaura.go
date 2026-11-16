@@ -1,6 +1,9 @@
 package database
 
-import "fmt"
+import (
+	"database/sql"
+	"fmt"
+)
 
 // charaura: an aura on ONE character's worn piece or body, not on the item
 // (the owner, 2026-11-13: "lets make it where the gm command only affects that
@@ -27,8 +30,22 @@ const charAuraSchema = `
 		source INTEGER NOT NULL DEFAULT 0,
 		nodes  INTEGER NOT NULL DEFAULT 0,
 		note   TEXT NOT NULL DEFAULT '',
+		color2 INTEGER NOT NULL DEFAULT 0,
+		kind2  INTEGER NOT NULL DEFAULT 0,
+		source2 INTEGER NOT NULL DEFAULT 0,
+		nodes2 INTEGER NOT NULL DEFAULT 0,
 		PRIMARY KEY (charid, merc, slot)
 	);`
+
+// charAuraSecondCols are a held item's second aura's columns on a hand's row
+// (CharAuraMainHand, CharAuraOffHand alone; the owner, 2026-11-16, of Dust's
+// sword: "it will keep the red aura it has and stack the twinkle"): color2,
+// kind2, source2, nodes2, as itemaura's (ValidItemAuraSecond). All 0 (the
+// default) none. A character's hand row takes the held item's place whole,
+// both its auras (entity.pieceAuras): its first in the hand's place, its
+// second in the hand's second (entity.AuraMainHand2, AuraOffHand2), which
+// only a client that asked for second auras is sent.
+var charAuraSecondCols = []string{"color2", "kind2", "source2", "nodes2"}
 
 // CharAuraSlots is how many slots a character's aura has: the seven pieces
 // (entity.AuraChest ... AuraRobe), the body, the cape (entity.AuraCape,
@@ -44,12 +61,144 @@ const (
 	CharAuraSlots    = 11
 )
 
-// ensureCharAura makes table charaura (initSchema).
+// ensureCharAura makes table charaura (initSchema), and gives a table made
+// before the hands' second auras (2026-11-16) their columns.
 func (db *SQLiteDB) ensureCharAura() error {
 	if _, err := db.Exec(charAuraSchema); err != nil {
 		return fmt.Errorf("charaura: %w", err)
 	}
+	for _, col := range charAuraSecondCols {
+		has, err := hasColumn(db.DB, "charaura", col)
+		if err != nil {
+			return fmt.Errorf("charaura: %w", err)
+		}
+		if !has {
+			if _, err := db.Exec(`ALTER TABLE charaura ADD COLUMN ` + col + ` INTEGER NOT NULL DEFAULT 0`); err != nil {
+				return fmt.Errorf("charaura: %s: %w", col, err)
+			}
+		}
+	}
 	return nil
+}
+
+// CharHandSlot reports whether a charaura slot is a hand's (the slots a
+// second aura is on).
+func CharHandSlot(slot int64) bool { return slot == CharAuraMainHand || slot == CharAuraOffHand }
+
+// CharSecondAuras is every hand row's second aura that draws something
+// (SecondShows), by whose: [0] the main hand's, [1] the off hand's. A row out
+// of the client's ranges, or on a slot not a hand's, is left out.
+func (db *SQLiteDB) CharSecondAuras() (map[CharAuraKey][2]ItemAura, error) {
+	rows, err := db.Query(`SELECT charid, merc, slot, color2, kind2, source2, nodes2 FROM charaura WHERE kind2 != 0`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := make(map[CharAuraKey][2]ItemAura)
+	for rows.Next() {
+		var charid, merc, slot, color, kind, source, nodes int64
+		if err := rows.Scan(&charid, &merc, &slot, &color, &kind, &source, &nodes); err != nil {
+			return nil, err
+		}
+		c, cok := tint32(color)
+		src, sok := tint32(source)
+		if !cok || !sok || !CharHandSlot(slot) || !ValidItemAuraSecond(kind, nodes) || charid <= 0 || merc < 0 {
+			continue
+		}
+		a := ItemAura{Color: c, Kind: uint8(kind), Source: src, Nodes: uint8(nodes)}
+		if !a.SecondShows() {
+			continue
+		}
+		k := CharAuraKey{CharID: uint32(charid), Merc: int(merc)}
+		s := out[k]
+		s[slot-CharAuraMainHand] = a
+		out[k] = s
+	}
+	return out, rows.Err()
+}
+
+// charAuraHasSecond reports whether whose slot's row (in tx) carries a second
+// aura that draws.
+func charAuraHasSecond(tx *sql.Tx, k CharAuraKey, slot int) (bool, error) {
+	var c, kind, s, n int64
+	err := tx.QueryRow(`SELECT color2, kind2, source2, nodes2 FROM charaura WHERE charid = ? AND merc = ? AND slot = ?`, k.CharID, k.Merc, slot).Scan(&c, &kind, &s, &n)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	cc, _ := tint32(c)
+	ss, _ := tint32(s)
+	return ItemAura{Color: cc, Kind: uint8(kind), Source: ss, Nodes: uint8(n)}.SecondShows(), nil
+}
+
+// SetCharAuraSecondAudited writes whose hand slot's second aura (an aura that
+// draws nothing clears the columns; the row made, its first none, when there
+// is none; a row left with neither deleted), with an audit line: a GM's
+// /aura second ... mainhand. The aura must be a held item's
+// (ValidItemAuraSecond), the slot a hand's.
+func (db *SQLiteDB) SetCharAuraSecondAudited(k CharAuraKey, slot int, a ItemAura, who GMEdit, detail string) error {
+	if !CharHandSlot(int64(slot)) || k.CharID == 0 {
+		return fmt.Errorf("charaura: a second aura is a held item's: slot %d or %d, not %d", CharAuraMainHand, CharAuraOffHand, slot)
+	}
+	if a.Kind != AuraDefault && a.Kind != AuraNone && !ValidItemAuraSecond(int64(a.Kind), int64(a.Nodes)) {
+		return fmt.Errorf("charaura: a second aura is a held item's: particles, epic or energy, along 0-%d", AuraAlongMost)
+	}
+	if !a.SecondShows() {
+		a = ItemAura{}
+	}
+	if _, err := db.Exec(GMAuditSchema); err != nil {
+		return err
+	}
+	if err := db.ensureCharAura(); err != nil {
+		return err
+	}
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	fillWho(tx, &who)
+	key := map[string]any{"charid": int64(k.CharID), "merc": k.Merc, "slot": slot}
+	const sel = `SELECT * FROM charaura WHERE charid = ? AND merc = ? AND slot = ?`
+	before, err := fullRow(tx, sel, k.CharID, k.Merc, slot)
+	if err != nil {
+		return err
+	}
+	action := "update"
+	switch {
+	case before == nil && !a.SecondShows():
+		return nil
+	case before == nil:
+		action = "insert"
+		_, err = tx.Exec(`INSERT INTO charaura (charid, merc, slot, kind, color2, kind2, source2, nodes2) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+			k.CharID, k.Merc, slot, AuraNone, int64(a.Color), a.Kind, int64(a.Source), a.Nodes)
+	default:
+		_, err = tx.Exec(`UPDATE charaura SET color2 = ?, kind2 = ?, source2 = ?, nodes2 = ? WHERE charid = ? AND merc = ? AND slot = ?`,
+			int64(a.Color), a.Kind, int64(a.Source), a.Nodes, k.CharID, k.Merc, slot)
+		if err == nil && !a.SecondShows() {
+			// neither aura left: the row goes, as a first aura cleared does
+			var c, kind int64
+			if err = tx.QueryRow(`SELECT color, kind FROM charaura WHERE charid = ? AND merc = ? AND slot = ?`, k.CharID, k.Merc, slot).Scan(&c, &kind); err == nil {
+				if cc, ok := tint32(c); ok && !AuraShows(cc, uint8(kind)) {
+					action = "delete"
+					_, err = tx.Exec(`DELETE FROM charaura WHERE charid = ? AND merc = ? AND slot = ?`, k.CharID, k.Merc, slot)
+				}
+			}
+		}
+	}
+	if err != nil {
+		return err
+	}
+	after, err := fullRow(tx, sel, k.CharID, k.Merc, slot)
+	if err != nil {
+		return err
+	}
+	if _, err := auditRowChange(tx, who, action, "charaura", key, before, after, detail); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 // CharAuraKey is whose a charaura row is: a character (Merc 0) or its
@@ -122,7 +271,16 @@ func (db *SQLiteDB) SetCharAuraAudited(k CharAuraKey, slot int, a ItemAura, who 
 		return err
 	}
 	action := "update"
+	second := false
+	if before != nil && CharHandSlot(int64(slot)) {
+		if second, err = charAuraHasSecond(tx, k, slot); err != nil {
+			return err
+		}
+	}
 	switch {
+	case !a.Shows() && second:
+		// the first aura cleared, the second kept: the row stays, its first none
+		_, err = tx.Exec(`UPDATE charaura SET color = 0, kind = ?, source = 0, nodes = 0 WHERE charid = ? AND merc = ? AND slot = ?`, AuraNone, k.CharID, k.Merc, slot)
 	case !a.Shows():
 		if before == nil {
 			return nil

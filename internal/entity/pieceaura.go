@@ -71,7 +71,10 @@ const (
 // hands' first auras on the channel to a client that asked for them
 // (session.SecondAura, the live look's answer bit 7). A character's own hand
 // aura (charaura 9/10) takes the hand's place whole: no second then. AuraWire
-// counts every aura the channel can carry.
+// counts every aura the channel can carry. A character's hand row may carry a
+// second aura of its own (charaura's color2 ... nodes2, 2026-11-16: Dust's
+// sword "will keep the red aura it has and stack the twinkle"), sent here as
+// the item's second would be.
 const (
 	AuraMainHand2 = AuraSlots
 	AuraOffHand2  = AuraSlots + 1
@@ -193,6 +196,31 @@ type itemAuraState struct {
 	second atomic.Pointer[map[int]database.ItemAura]
 	// chars is charaura's rows, by whose (database.CharAuraKey)
 	chars atomic.Pointer[map[database.CharAuraKey][database.CharAuraSlots]database.ItemAura]
+	// chars2 is charaura's hand rows' second auras, by whose ([0] the main
+	// hand's, [1] the off hand's)
+	chars2 atomic.Pointer[map[database.CharAuraKey][2]database.ItemAura]
+}
+
+// SetCharSecondAuras sets the characters' own hands' second auras
+// (database.CharSecondAuras): each shows at the next tick.
+func (w *World) SetCharSecondAuras(by map[database.CharAuraKey][2]database.ItemAura) {
+	m := make(map[database.CharAuraKey][2]database.ItemAura, len(by))
+	for k, v := range by {
+		m[k] = v
+	}
+	w.itemAuras.chars2.Store(&m)
+}
+
+// charSecondAuras is whose own hands' second auras, nil none.
+func (w *World) charSecondAuras(k database.CharAuraKey) *[2]database.ItemAura {
+	m := w.itemAuras.chars2.Load()
+	if m == nil || k.CharID == 0 {
+		return nil
+	}
+	if a, ok := (*m)[k]; ok {
+		return &a
+	}
+	return nil
 }
 
 // SetCharAuras sets the characters' own auras (table charaura, as
@@ -258,6 +286,12 @@ func (w *World) LoadItemAuras(db *database.SQLiteDB) (int, error) {
 		return len(by), fmt.Errorf("charaura: %w", err)
 	}
 	w.SetCharAuras(chars)
+	// and their hands' second auras (charaura's color2 ... nodes2)
+	chars2, err := db.CharSecondAuras()
+	if err != nil {
+		return len(by), fmt.Errorf("charaura's second auras: %w", err)
+	}
+	w.SetCharSecondAuras(chars2)
 	return len(by), nil
 }
 
@@ -276,7 +310,8 @@ func (w *World) PieceAurasOf(p *Player) *PieceAuras {
 	if p == nil {
 		return nil
 	}
-	return w.pieceAuras(&p.WornPieces, p.WornMask, p.ShownHiddenParts(), w.charAuras(database.CharAuraKey{CharID: p.CharServerID}))
+	k := database.CharAuraKey{CharID: p.CharServerID}
+	return w.pieceAuras(&p.WornPieces, p.WornMask, p.ShownHiddenParts(), w.charAuras(k), w.charSecondAuras(k))
 }
 
 // NPCPieceAurasOf is the auras an NPC dressed in item records shows (a
@@ -286,10 +321,11 @@ func (w *World) NPCPieceAurasOf(n *NPC) *PieceAuras {
 		return nil
 	}
 	var own *[database.CharAuraSlots]database.ItemAura
+	var own2 *[2]database.ItemAura
 	if k, ok := n.MercAuraKey(); ok {
-		own = w.charAuras(k)
+		own, own2 = w.charAuras(k), w.charSecondAuras(k)
 	}
-	return w.pieceAuras(&n.WornPieces, n.WornMask, 0, own)
+	return w.pieceAuras(&n.WornPieces, n.WornMask, 0, own, own2)
 }
 
 // MercAuraKey is a mercenary's key in charaura: its owner's character and its
@@ -307,8 +343,10 @@ func (n *NPC) MercAuraKey() (database.CharAuraKey, bool) {
 // (the client hides it under the pieces), and its hands' own (charaura
 // alone) whatever they hold: the client draws a hand's on the item held
 // there, nothing on an empty hand (or one whose look is hidden, which the
-// channel sends empty).
-func (w *World) pieceAuras(pieces *[AuraSlots]int, mask uint16, hidden uint16, own *[database.CharAuraSlots]database.ItemAura) *PieceAuras {
+// channel sends empty). A hand's own row (its first aura or its second,
+// own2: [0] the main hand's, [1] the off hand's) takes the held item's
+// place whole: both of the item's auras give way to both of the row's.
+func (w *World) pieceAuras(pieces *[AuraSlots]int, mask uint16, hidden uint16, own *[database.CharAuraSlots]database.ItemAura, own2 *[2]database.ItemAura) *PieceAuras {
 	if w == nil {
 		return nil
 	}
@@ -335,6 +373,14 @@ func (w *World) pieceAuras(pieces *[AuraSlots]int, mask uint16, hidden uint16, o
 		}
 	}
 	for _, i := range [...]int{AuraBody, AuraMainHand, AuraOffHand} {
+		if i != AuraBody && own2 != nil && own2[i-AuraMainHand].SecondShows() {
+			// the character's own second on this hand: its row whole
+			out[i-AuraMainHand+AuraMainHand2], any = own2[i-AuraMainHand], true
+			if own != nil && own[i].Shows() {
+				out[i] = own[i]
+			}
+			continue
+		}
 		if own != nil && own[i].Shows() {
 			out[i], any = own[i], true
 			continue

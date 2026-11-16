@@ -102,6 +102,13 @@ type Snapshot struct {
 	// so each still opens after the restart. A file without them leaves the
 	// links empty.
 	ItemLinks []handlers.KeptItemLink `json:"item_links,omitempty"`
+
+	// live are the sessions written, in Sessions' order: the old image beats
+	// them through the hold (keepbeat.go).
+	live []*session.Session
+	// beat is the new image's beat over the sessions while it loads
+	// (StartSnapshotBeat), stopped by ResumeKept as it puts them back
+	beat *SnapshotBeat
 }
 
 // KeptSession is one session in a Snapshot: its connection, and with a
@@ -187,6 +194,7 @@ func (l *Listener) Snapshot(now time.Time) *Snapshot {
 			return true
 		}
 		ks := KeptSession{Session: sess.Keep()}
+		live := sess
 		if sess.InGame() && l.gameWorld != nil {
 			kp, ok := l.gameWorld.KeepPlayer(sess, now)
 			if !ok {
@@ -201,6 +209,7 @@ func (l *Listener) Snapshot(now time.Time) *Snapshot {
 			}
 		}
 		snap.Sessions = append(snap.Sessions, ks)
+		snap.live = append(snap.live, live)
 		return true
 	})
 	if l.gameWorld != nil {
@@ -305,6 +314,15 @@ func (l *Listener) KeepRestart(o KeepOptions) error {
 	l.SaveAll()
 	snap := l.Snapshot(time.Now())
 	l.frozen.Store(true)
+	// from here no send goes but the beats (keepbeat.go): the clients hear
+	// from the server through the save, the swap's step and the exec
+	beat := startKeepBeat(l.conn, snap.live)
+	undo = func(err error) error {
+		beat.Stop()
+		l.Unpause()
+		f.Close()
+		return err
+	}
 	if err := snap.Write(o.File); err != nil {
 		return undo(fmt.Errorf("the snapshot: %w", err))
 	}
@@ -337,13 +355,14 @@ func (l *Listener) KeepRestart(o KeepOptions) error {
 			}
 		}
 	}
-	env := []string{KeepFDEnv + "=" + strconv.Itoa(fd), KeepFileEnv + "=" + o.File}
+	beats := beat.Stop()
+	env := []string{KeepFDEnv + "=" + strconv.Itoa(fd), KeepFileEnv + "=" + o.File, KeepBeatsEnv + "=" + strconv.Itoa(beats)}
 	for _, e := range o.Env {
-		if !strings.HasPrefix(e, KeepFDEnv+"=") && !strings.HasPrefix(e, KeepFileEnv+"=") {
+		if !strings.HasPrefix(e, KeepFDEnv+"=") && !strings.HasPrefix(e, KeepFileEnv+"=") && !strings.HasPrefix(e, KeepBeatsEnv+"=") {
 			env = append(env, e)
 		}
 	}
-	log.Printf("Keep: becoming %s, the game socket as descriptor %d, %v after the signal", o.Exe, fd, time.Since(start).Round(time.Millisecond))
+	log.Printf("Keep: becoming %s, the game socket as descriptor %d, %v after the signal (%d beats in the hold)", o.Exe, fd, time.Since(start).Round(time.Millisecond), beats)
 	err = o.Exec(o.Exe, o.Args, env)
 	os.Remove(o.File)
 	return undo(fmt.Errorf("exec %s: %w", o.Exe, err))
@@ -469,6 +488,12 @@ func (l *Listener) ResumeKept(snap *Snapshot, now time.Time) (resumed, told int)
 	if len(snap.ItemLinks) > 0 {
 		log.Printf("Keep: %d of %d item links as they were", handlers.RestoreItemLinks(snap.ItemLinks), len(snap.ItemLinks))
 	}
+	// every connection back first, and beaten while the characters are built
+	// (keepbeat.go): building them takes a while each, one after another
+	var conns []back
+	var beaten []*session.Session
+	snap.beat.Stop() // the copies' numbers into the snapshot, before it is read
+	snap.beat = nil
 	for _, ks := range snap.Sessions {
 		sess, err := l.sessionManager.Resume(ks.Session)
 		if err != nil {
@@ -477,6 +502,18 @@ func (l *Listener) ResumeKept(snap *Snapshot, now time.Time) (resumed, told int)
 		}
 		addr := sess.RemoteAddr()
 		sess.SetSendFunc(func(data []byte) error { return l.SendTo(data, addr) })
+		conns = append(conns, back{sess, ks})
+		beaten = append(beaten, sess)
+	}
+	if l.conn != nil && len(beaten) > 0 {
+		beat := startKeepBeat(l.conn, beaten)
+		defer beat.Stop()
+	}
+	for _, c := range conns {
+		sess, ks := c.sess, c.ks
+		if testResumeEach != nil {
+			testResumeEach(sess) // a character's building, as long as a test makes it
+		}
 		if ks.Session.InGame && ks.Player != nil {
 			ex := handlers.KeptExtras{}
 			if ks.Extras != nil {
@@ -521,6 +558,9 @@ func (l *Listener) ResumeKept(snap *Snapshot, now time.Time) (resumed, told int)
 	}
 	return resumed, told
 }
+
+// testResumeEach, when set, runs as each session's character is built.
+var testResumeEach func(*session.Session)
 
 // resumeDump sends a resumed session its dump (handlers.ResumeDump).
 func (l *Listener) resumeDump(sess *session.Session, dead bool) {

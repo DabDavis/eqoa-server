@@ -69,7 +69,14 @@ once each on a resumed session (`TakeReliable`: it resends what went unanswered 
 their own numbers** (`restoredMessage` stamps each numbered, `Queued`, which PreparePacket reads to keep a number; petition 1378,
 `udp/keepnumbers_test.go`): from 2119f18 (05:20 UTC 2026-11-09) to that fix a restored message went out under the next new
 number, so a client that had not had it (one still queued at the restart) held every reliable message after it for good, chat,
-cons and windows, while the creatures moved on their state channels, until its player logged in again; one it had came twice. A session
+cons and windows, while the creatures moved on their state channels, until its player logged in again; one it had came twice. **The hold is never silent**
+(`udp/keepbeat.go`, `udp/keepbeat_test.go`; 2026-11-16): CLIENT ends a connection with a reliable message unacknowledged
+past 30 s from which nothing has arrived for 30 s, and the hold had grown with the players (the new image's world load ~8 s,
+then ~0.65 s a character, one after another: 31.6 s with 33 at 02:18, 35.2 s with 34 at 02:27), so every client playing
+at the freeze froze and its player logged in again (a takeover), web, native and PS2 alike. Every kept session is now sent an
+ack-only packet (byte for byte PreparePacket's with nothing queued) every 2 s: by the old image from the freeze to the exec
+(the count to the next in `EQOA_KEEP_BEATS`), by the new one from reading the snapshot (main, before the world loads) and
+through ResumeKept, which puts every connection back before building any character. A session
 that cannot be put back is told the server went down (0x07C0). The snapshot is read only by the same PID, in its
 format, under 60 s old. A failed exec leaves the server running. **The first swap INTO a binary with this is a
 cold one** (an older binary ignores SIGUSR2: `swap_keep.sh` then exits 3 and swaps nothing). Measured with

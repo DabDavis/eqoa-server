@@ -320,6 +320,11 @@ type WorldConfig struct {
 	// unset, it does; false, every NPC by the rules of no faction.
 	FactionAggro *bool `yaml:"faction_aggro"`
 
+	// Weather is whether the regional weather runs (entity/weather.go,
+	// internal/weather): unset, it does; false, no engine, nothing is sent
+	// and #weather says it is off.
+	Weather *bool `yaml:"weather"`
+
 	// ThrowPowerPct is what a thrown potion costs its thrower, a percent of
 	// its most power (entity/potion.go, petitions 1489, 1581): unset, 10; 0, none.
 	ThrowPowerPct *int `yaml:"throw_power_pct"`

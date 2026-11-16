@@ -1587,6 +1587,10 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// #dye [<slot|armor|all> <colour|none>]: the target's (a player) or
 		// the GM's dyes, drawn by clients of the live game's look (dye.go)
 		h.dyeCommand(sess, parts[1:])
+	case "#weather":
+		// #weather [status|list|auto|end <id>|reload|<kind> ...]: the regional
+		// weather where the GM stands, and a GM's (weather.go)
+		h.weatherCommand(sess, player, parts[1:])
 	case "#vampire":
 		// #vampire [on|off]: whether the target (a player) or the GM is a
 		// vampire, whom the sun burns by day, and what the sun does to it
@@ -1757,6 +1761,7 @@ var gmHelpLines = []string{
 	"  #spawn <name> - a copy of that NPC beside you; #despawn takes the target away",
 	"  #hide gmtag, #show gmtag - your [GM] tag off your name, or back (kept)",
 	"  #monstersearch <start of a name> - up to ten NPC names",
+	"  " + weatherUsage + " - the regional weather: status, a GM's weather (heavy, 10 min, here unless given), end it",
 	"  #nearby - NPCs within 200",
 	"  #tele <name> - teleport to a named place (no name lists them)",
 	"  #world [n] - show/set world without teleporting",

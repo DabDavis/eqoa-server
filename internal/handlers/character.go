@@ -928,6 +928,11 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 					conn.ResendAll(), sess.RemoteAddr())
 			}
 		}
+		// The weather's byte again, at once (0x00C7), and its timelines:
+		// the MemoryDump this answers reset the client's atmosphere
+		if h.gameWorld != nil {
+			h.gameWorld.WeatherResend(sess)
+		}
 		// Client keeps sending this while waiting - just ACK
 		sess.Queue().SetBodyFlags(protocol.BodyFlagGuaranteedAck)
 		return nil
@@ -969,6 +974,11 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// Offer others' power (powerbars.go): a client that draws power bars
 	// asks for it, a PS2 ignores it
 	SendPowerBarsOffer(sess)
+	// and the weather's timelines (weather.go): a client that draws the
+	// server's sandstorms and whiteouts asks, a PS2 ignores it
+	if h.gameWorld != nil && h.gameWorld.Weather != nil {
+		SendWeatherOffer(sess)
+	}
 	// and the pet's effects (peteffects.go): a client that draws them under
 	// its pet's bar asks for them, a PS2 ignores it
 	SendPetEffectsOffer(sess)

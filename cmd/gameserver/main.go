@@ -34,6 +34,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 	"github.com/eqoa/server/internal/spellfx"
 	"github.com/eqoa/server/internal/transfers"
+	"github.com/eqoa/server/internal/weather"
 	"github.com/eqoa/server/internal/worlds"
 )
 
@@ -308,6 +309,26 @@ func main() {
 	}
 	if cfg.World.FactionAggro != nil && !*cfg.World.FactionAggro {
 		gameWorld.SetFactionAggro(false)
+	}
+	// The regional weather (entity/weather.go, internal/weather): the ground
+	// under each square from <worlds>/ground/<world>.profiles (cmd/groundbake
+	// -only-profiles, read once), the GMs' tables (weatherprofiles,
+	// weatherzones, weatherclimates)
+	if cfg.World.Weather != nil && !*cfg.World.Weather {
+		log.Printf("Weather: off (world.weather: false)")
+	} else {
+		gameWorld.Weather = weather.NewEngine()
+		grids, err := weather.ReadProfilesDir(filepath.Join(worlds.Dir(cfg.Patch.WorldsDir), "ground"))
+		if err != nil {
+			log.Printf("WARNING: the weather's profile files: %v; no square has a climate but a weatherzones row's", err)
+		}
+		gameWorld.Weather.SetGrids(grids)
+		if pr, zn, cl, err := gameWorld.LoadWeather(db); err != nil {
+			log.Printf("WARNING: the weather's tables: %v; GM weather only", err)
+		} else {
+			log.Printf("Weather: the ground of %d worlds; %d profiles, %d zones, %d climates in the tables%s", len(grids), pr, zn, cl,
+				map[bool]string{true: " (empty: no automatic weather, GM weather only)", false: ""}[pr == 0 && zn == 0])
+		}
 	}
 	{ // an alchemist merc's stock and draughts (entity/mercbrew.go)
 		every, most, floor := time.Duration(0), -1, -1

@@ -14,6 +14,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
+	"github.com/eqoa/server/internal/weather"
 )
 
 // EntityEnterCallback is called when a new entity enters a player's visibility.
@@ -111,6 +112,9 @@ type World struct {
 	regenAt time.Time
 	// How the sun treats vampires (vampire.go)
 	vampireSun VampireSun
+	// Weather is the regional weather (weather.go, internal/weather); nil
+	// when world.weather is false: nothing sent
+	Weather *weather.Engine
 	// What the towns' boards' boon gives and for how long (boon.go)
 	boon Boon
 

@@ -100,6 +100,8 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	t.mark(tsRegen)
 	w.vampireSunSystem(now) // after the regen, as Sandstorm's (vampire.go)
 	t.mark(tsVampires)
+	w.weatherSystem(now) // the regional weather, once a second (weather.go)
+	t.mark(tsWeather)
 	w.npcRegenSystem(now) // creatures out of a fight (npcregen.go)
 	t.mark(tsNPCRegen)
 	w.breathSystem(now)

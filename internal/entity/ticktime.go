@@ -42,6 +42,7 @@ const (
 	tsRespawns
 	tsRegen
 	tsVampires
+	tsWeather
 	tsNPCRegen
 	tsBreath
 	tsSilentAir
@@ -60,7 +61,7 @@ const (
 var tickLapNames = [tsCount]string{
 	"lockwait", "aggro", "guards", "ai", "templates", "home", "attack", "pets", "duels", "casts",
 	"effects", "consumables", "potions", "corpses", "roam", "paths", "respawns", "regen",
-	"vampires", "npcregen", "breath", "silentair", "statesync", "entitychannels", "statchannels",
+	"vampires", "weather", "npcregen", "breath", "silentair", "statesync", "entitychannels", "statchannels",
 	"buffchannels", "guildannounce", "visibility", "groupsync", "powersync", "afterlock",
 }
 

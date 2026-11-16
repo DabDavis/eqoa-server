@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/eqoa/server/internal/weather"
 )
 
 // gmtriggers: a GM's scripted events (handlers/gmtriggers.go), a row a
@@ -115,6 +117,12 @@ const (
 	// The rest waits for a living player within radius (0: the run's reach) of the run's
 	// place, at about its height (TriggerNearHeight)
 	TriggerAwaitNear = "awaitnear"
+	// A GM's weather (#1549, internal/weather) on the zones round the step's place (its
+	// world/x/z, else the run's): weather the kind (rain, snow, sand, whiteout, clear),
+	// strength light/moderate/heavy (heavy), minutes 2-120 (0: 10), where here/near/world
+	// (here) and near 1-5 for near; text said to the players in those zones (%p the
+	// player's name). Stopping the run ends it.
+	TriggerWeather = "weather"
 )
 
 // TriggerNearHeight is how far above or below a run's place an awaitnear's player
@@ -125,7 +133,7 @@ const TriggerNearHeight float32 = 40
 var TriggerActions = []string{TriggerBroadcast, TriggerPopup, TriggerSay, TriggerGive, TriggerVisual,
 	TriggerTeleport, TriggerSpawn, TriggerDespawn, TriggerStop, TriggerWait,
 	TriggerLock, TriggerPlace, TriggerClock, TriggerEnd, TriggerAwaitTalk, TriggerAwaitDead, TriggerWalk, TriggerHome, TriggerHide, TriggerRouse, TriggerSic,
-	TriggerResummon, TriggerProtect, TriggerQuestStep, TriggerAwaitKill, TriggerAwaitNear}
+	TriggerResummon, TriggerProtect, TriggerQuestStep, TriggerAwaitKill, TriggerAwaitNear, TriggerWeather}
 
 // TriggerStep is one step of a trigger, kept in the steps column's array.
 type TriggerStep struct {
@@ -196,6 +204,13 @@ type TriggerStep struct {
 	// of nothing (the Arbiter's first two lives)
 	Untouchable bool `json:"untouchable,omitempty"`
 	NoLoot      bool `json:"noloot,omitempty"`
+	// Weather (weather): the kind; Strength light/moderate/heavy (none: heavy); Where
+	// here/near/world (none: here) and Near the zones round for near (1-5); minutes,
+	// text, world/x/z as the step says
+	Weather  string `json:"weather,omitempty"`
+	Strength string `json:"strength,omitempty"`
+	Where    string `json:"where,omitempty"`
+	Near     int    `json:"near,omitempty"`
 }
 
 // GMTrigger is one row of gmtriggers.
@@ -404,6 +419,36 @@ func StepProblems(steps []TriggerStep) []string {
 			if s.Seconds < 0 || s.Seconds > 30 {
 				add(i, "visual's casting part %.1f s: 0 to 30", s.Seconds)
 			}
+		case TriggerWeather:
+			if _, ok := weather.ParseKind(s.Weather); !ok || strings.EqualFold(strings.TrimSpace(s.Weather), "sandstorm") {
+				add(i, "weather %q: rain, snow, sand, whiteout or clear", s.Weather)
+			}
+			if st := strings.TrimSpace(s.Strength); st != "" {
+				if _, ok := weather.ParseStrength(st); !ok || strings.EqualFold(st, "medium") {
+					add(i, "weather's strength %q: light, moderate or heavy (none: heavy)", s.Strength)
+				}
+			}
+			if s.Minutes != 0 && (s.Minutes < 2 || s.Minutes > 120 || s.Minutes != float64(int(s.Minutes))) {
+				add(i, "weather's %.1f minutes: 2 to 120, whole (0: 10)", s.Minutes)
+			}
+			switch strings.ToLower(strings.TrimSpace(s.Where)) {
+			case "", "here", "world":
+				if s.Near != 0 {
+					add(i, "weather's near is for where: near")
+				}
+			case "near":
+				if s.Near < 1 || s.Near > 5 {
+					add(i, "weather's near %d: 1 to 5 zones", s.Near)
+				}
+			default:
+				add(i, "weather's where %q: here, near or world", s.Where)
+			}
+			if len([]rune(s.Text)) > 200 {
+				add(i, "weather's text: %d letters, 200 at most", len([]rune(s.Text)))
+			}
+			if s.World != nil && (*s.World < 0 || *s.World > 29) {
+				add(i, "weather's world %d: 0 to 29", *s.World)
+			}
 		case TriggerTeleport:
 			switch {
 			case s.World == nil:
@@ -549,7 +594,8 @@ func StepProblems(steps []TriggerStep) []string {
 			}
 		case TriggerBroadcast, TriggerPopup, TriggerSay, TriggerGive, TriggerVisual, TriggerTeleport, TriggerSpawn,
 			TriggerDespawn, TriggerStop, TriggerWait, TriggerLock, TriggerPlace, TriggerClock, TriggerEnd,
-			TriggerWalk, TriggerHome, TriggerHide, TriggerRouse, TriggerSic, TriggerResummon, TriggerProtect, TriggerQuestStep:
+			TriggerWalk, TriggerHome, TriggerHide, TriggerRouse, TriggerSic, TriggerResummon, TriggerProtect, TriggerQuestStep,
+			TriggerWeather:
 		default:
 			add(i, "do %q is not one of %s", s.Do, strings.Join(TriggerActions, ", "))
 		}

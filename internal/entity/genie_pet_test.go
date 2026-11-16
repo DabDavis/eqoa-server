@@ -89,7 +89,7 @@ func TestTheGenieNeverTakesAPet(t *testing.T) {
 			if r.w.objectIDForEntityLocked(r.sess, gid) == 0 {
 				t.Error("the genie is on none of its master's slots: the view did not run")
 			}
-			// its bank: the genie leaves, the window stays its master's
+			// its bank: the genie stays by it, the window its master's
 			if !r.w.GenieOpened(r.sess, GenieBank, 0, r.at(31*time.Second)) {
 				t.Fatal("no genie to open the bank")
 			}

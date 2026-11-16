@@ -114,7 +114,7 @@ func (h *NPCWindowHandler) HandleRepair(sess *session.Session, msg *protocol.Mes
 // a genie's forge ends with it (genie.go).
 func (h *NPCWindowHandler) HandleBlacksmithClose(sess *session.Session, msg *protocol.Message) error {
 	if h.genie != nil && h.genie.gw != nil {
-		h.genie.gw.EndGenieWindow(sess, entity.GenieSmith)
+		h.genie.gw.EndGenieWindow(sess, entity.GenieSmith, h.genie.now())
 	}
 	return nil
 }

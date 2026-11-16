@@ -126,8 +126,8 @@ func TestTheGenieSellsCapes(t *testing.T) {
 	}
 	gid := entity.GenieWindowID(f.genieNPC().ServerID)
 	msgs = f.answer(wares, 1) // Heirloom capes
-	if len(msgs) != 1 || opOf(msgs[0]) != protocol.OpcodeMerchantBox || f.genieNPC() != nil {
-		t.Fatalf("the capes: sent %s, genie %v", ops(msgs), f.genieNPC())
+	if len(msgs) != 1 || opOf(msgs[0]) != protocol.OpcodeMerchantBox || f.genieNPC() == nil {
+		t.Fatalf("the capes: sent %s, genie %v (it lingers by its window)", ops(msgs), f.genieNPC())
 	}
 	if r := buffer.NewReader(msgs[0][2:]); func() uint32 { id, _ := r.ReadUint32(); return id }() != gid || merchantCount(t, msgs[0]) != 2 ||
 		!bytes.Contains(msgs[0], utf16le("Heirloom Crimson Cloak")) || bytes.Contains(msgs[0], utf16le("Heirloom Blade")) {
@@ -146,8 +146,17 @@ func TestTheGenieSellsCapes(t *testing.T) {
 	}
 	f.loadLists()
 
-	// the gear, the cape its outfitter stocks among it
-	msgs = f.answer(f.summon(), genieShop)
+	// the gear, the cape its outfitter stocks among it: asked of the genie
+	// lingering by its capes, with no second rub of the lamp
+	f.sess.Queue().GetPending()
+	if !f.g.Talk(f.sess, f.p, f.genieNPC()) {
+		t.Fatal("the lingering genie not talked to")
+	}
+	msgs = nil
+	for _, m := range f.sess.Queue().GetPending() {
+		msgs = append(msgs, append([]byte(nil), m.Data()...))
+	}
+	msgs = f.answer(boxOf(t, msgs), genieShop)
 	msgs = f.answer(boxOf(t, msgs), 0)
 	if len(msgs) != 1 || opOf(msgs[0]) != protocol.OpcodeMerchantBox || merchantCount(t, msgs[0]) != 2 ||
 		!bytes.Contains(msgs[0], utf16le("Heirloom Blade")) || !bytes.Contains(msgs[0], utf16le("Heirloom Azure Knight's Cape")) {

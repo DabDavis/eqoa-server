@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
-"""Drizzt's scale mail: six records he alone may wear, given into his pack (the owner, 2026-11-16: "give drizzt a set
-of the plate 9 armor that he alone can wear drizzt only", then "lets replace drizzt armoe with scale mail").
+"""Drizzt's scale mail and ornate plate: twelve records he alone may wear, given into his pack (the owner, 2026-11-16:
+"give drizzt a set of the plate 9 armor that he alone can wear drizzt only", "lets replace drizzt armoe with scale
+mail", then "give drizzt both scale mail and plate 9 for him only with lore from drizzt d urden").
 
-1. The records, itempattern 715043-715048 (beside his Twinkle, Icingdeath and Taulmaril, 715040-715042): a coif,
-   tunic, bracers, gloves, leggings and boots, model 7 (CHAR.ESF's scale mail, every slot, the helm too: helm set 7)
-   in the disc art's own colours (colour 0xFFFFFFFF, untinted; a dyer still dyes them), the crafted scale sets' icons
-   (the Adamantite ... Seralite Scale Coif/Tunic/...). Ranger only (classuse 2), level 60, NO TRADE (trade 1, the
-   server's trade refuses it), kept over logout (rent 1), LORE (one each), worth nothing (no sale for profit).
-   Their figures beat, field by field, what he wears in each slot now (the report prints both): the Gravemold Tunic
-   (STR 15, STA 15, AGI 75, DEX 10, INT 80) and his heirloom bracers, gauntlets, greaves and boots (as a level 60
-   ranger sees them, capped at 49: +10 every stat, 40 HP and power, the bracers AC 232); no helm is worn (his bank's
-   Glacierplate Helm: AC 100, HP 50, STA 15, WIS 15, FR 63, CR 15).
+1. The records: two sets of a helm, chest, bracers, gloves, legs and boots. Scale mail, itempattern 715043-715048
+   (beside his Twinkle, Icingdeath and Taulmaril, 715040-715042): model 7 (CHAR.ESF's scale mail, the helm too: helm
+   set 7), the crafted scale sets' icons. Ornate plate, 715051-715056: model 9 (CHAR.ESF's set 9, Dust's 711000-711004
+   look; set 9 has no helm of its own, so its helm is drawn as helm 4, plain steel, as every client draws set 9's),
+   the Glacierplate set's icons. Both in the disc art's own colours (0xFFFFFFFF, untinted; a dyer still dyes them),
+   no aura. Each description is a line in Drizzt Do'Urden's own voice, written for these records (no novel's line),
+   at most DESC_MAX characters (CLIENT's m_desc holds 255). Ranger only (classuse 2), level 60, NO TRADE (trade 1,
+   the server's trade refuses it), kept over logout (rent 1), LORE (one each), worth nothing (no sale for profit).
+   Both sets carry the same figures, which beat, field by field, what he wears in each slot now (the report prints
+   both): the Gravemold Tunic (STR 15, STA 15, AGI 75, DEX 10, INT 80) and his heirloom bracers, gauntlets, greaves
+   and boots (as a level 60 ranger sees them, capped at 49: +10 every stat, 40 HP and power, the bracers AC 232); no
+   helm is worn (his bank's Glacierplate Helm: AC 100, HP 50, STA 15, WIS 15, FR 63, CR 15).
 2. Only he may wear them: table itemowner (database/itemowner.go, server branch drizzt-plate) binds each record to his
    serverid; the server refuses anyone else's equip of a copy ("This item can only be worn by the one it was made
    for."), a merc's and another raid seat's Need. His account (98) has another level 60 ranger (Destiny) who shares
@@ -18,7 +22,7 @@ of the plate 9 armor that he alone can wear drizzt only", then "lets replace dri
    itemowner: the class mask and NO TRADE still hold.
 3. --give: one of each into his pack (location 0, unequipped, at the end of the list, as the GM panel's give does
    offline), only those he does not hold already; nothing taken away. Run it only while he is OFFLINE (the rows reach
-   him at his next login); while he is online give the six by the GM panel's give (by patternid), which sends them
+   him at his next login); while he is online give the twelve by the GM panel's give (by patternid), which sends them
    at once.
 
 The character is found by name (Drizzt) and must be a level 60 dark elf ranger, else REFUSED and nothing written (the
@@ -40,8 +44,8 @@ LOG = "drizzt_armor_1116_log"
 DETAIL = "Drizzt's scale mail, his alone (the owner, 2026-11-16); tools/drizzt_armor_20261116.py"
 WHO, VIA = "dab", "tool"
 NAME, CLASS, RACE, LEVEL = "Drizzt", 1, 2, 60  # ranger, dark elf
-SCALE, PLAIN = 7, 0xFFFFFFFF
-DESC = "Scale mail made for Drizzt Do'Urden alone; it will sit on no other shoulders."
+SCALE, ORNATE, PLAIN = 7, 9, 0xFFFFFFFF
+LOOK = {SCALE: "scale mail", ORNATE: "ornate plate (set 9)"}
 
 OWNER_DDL = """CREATE TABLE IF NOT EXISTS itemowner (
 		patternid INTEGER PRIMARY KEY,
@@ -55,24 +59,52 @@ def stats(ac, hp, pw, s=15, st=15, ag=15, dx=15, wi=15, it=15, ch=15, pr=15, dr=
             "intelligence": it, "cha": ch, "PR": pr, "DR": dr, "FR": fr, "CR": cr, "LR": lr, "AR": ar}
 
 
-# patternid -> (name, wear slot, icon, figures)
+# Drizzt Do'Urden's own words on each piece (the owner, 2026-11-16: "with lore from drizzt d urden"), written for
+# these records, not the novels' lines; each at most DESC_MAX (CLIENT's VIItem::m_desc holds 256 UTF-16 units with its
+# NUL, decomp game.h) and plain ASCII with no '|' (a PS2's TextBox overruns on a run of them)
+DESC_MAX = 200
+
+# patternid -> (name, wear slot, model, icon, figures, description). Scale mail (model 7) wears the crafted scale sets'
+# icons; the ornate plate (model 9, CHAR.ESF's set 9; its helm is drawn as helm 4, as every client draws set 9's) the
+# Glacierplate set's, so the two sets tell apart in the pack.
+FIGS = {1: stats(148, 125, 50, fr=63), 5: stats(474, 200, 50, s=20, st=20, ag=75, dx=20, it=80),
+        7: stats(252, 150, 50), 19: stats(252, 150, 50), 10: stats(326, 150, 50), 11: stats(178, 150, 50)}
 PIECES = {
-    715043: ("Drizzt's Scale Mail Coif", 1, 1087965268, stats(148, 125, 50, fr=63)),
-    715044: ("Drizzt's Scale Mail Tunic", 5, -427326871, stats(474, 200, 50, s=20, st=20, ag=75, dx=20, it=80)),
-    715045: ("Drizzt's Scale Mail Bracers", 7, -393670558, stats(252, 150, 50)),
-    715046: ("Drizzt's Scale Mail Gloves", 19, -1591038372, stats(252, 150, 50)),
-    715047: ("Drizzt's Scale Mail Leggings", 10, 1189600244, stats(326, 150, 50)),
-    715048: ("Drizzt's Scale Mail Boots", 11, -215262289, stats(178, 150, 50)),
+    715043: ("Drizzt's Scale Mail Coif", 1, SCALE, 1087965268,
+             "I learned to trust the dark beneath Menzoberranzan. Up here I keep my eyes open, under steel and sky alike."),
+    715044: ("Drizzt's Scale Mail Tunic", 5, SCALE, -427326871,
+             "No armor guards the heart. Every scale here is only steel; what I choose to do while wearing it is the true defense."),
+    715045: ("Drizzt's Scale Mail Bracers", 7, SCALE, -393670558,
+             "These bind the wrists that carry Twinkle and Icingdeath. The blades remember every promise I have made with them."),
+    715046: ("Drizzt's Scale Mail Gloves", 19, SCALE, -1591038372,
+             "A ranger's hands must be quick and gentle both: to draw a blade, to ease an arrow free, to scratch a panther behind the ear."),
+    715047: ("Drizzt's Scale Mail Leggings", 10, SCALE, 1189600244,
+             "From the frozen tundra of Icewind Dale to these strange shores, I walk where my conscience leads, not where my blood commands."),
+    715048: ("Drizzt's Scale Mail Boots", 11, SCALE, -215262289,
+             "Silent steps, learned in the tunnels of my birth. Guenhwyvar hears them still, and comes when I call."),
+    715051: ("Drizzt's Ornate Helm", 1, ORNATE, -1651410546,
+             "My eyes were made for darkness. I wear this beneath the sun to remember that I chose the light, burn as it may."),
+    715052: ("Drizzt's Ornate Breastplate", 5, ORNATE, 337212673,
+             "Gold upon steel, a gift I never sought. Fine armor shields the body; it is friends who shield the soul."),
+    715053: ("Drizzt's Ornate Vambraces", 7, ORNATE, -1255645254,
+             "Two scimitars, two wrists, one purpose: to stand between the helpless and those who would do them harm."),
+    715054: ("Drizzt's Ornate Gauntlets", 19, ORNATE, -220605916,
+             "Clasped in friendship by a dwarf king, in parting by a halfling. A hand is measured by the hands it has held."),
+    715055: ("Drizzt's Ornate Greaves", 10, ORNATE, -59935236,
+             "My father taught me the dance of the blade. My own heart taught me when to end the dance."),
+    715056: ("Drizzt's Ornate Sabatons", 11, ORNATE, 549277255,
+             "Where the panther runs ahead, I follow. In all our years Guenhwyvar has never once led me astray."),
 }
 DURABILITY = 12000
 
 
 def record(pid):
-    name, wear, icon, figs = PIECES[pid]
+    name, wear, model, icon, desc = PIECES[pid]
+    figs = FIGS[wear]
     r = {"itemcost": 0, "unk1": 0, "itemicon": icon, "unk2": 0, "equipslot": wear, "unk3": 0, "trade": 1, "rent": 1,
          "unk4": 0, "attacktype": 0, "weapondamage": 0, "unk5": 0, "levelreq": LEVEL, "maxstack": 1,
          "maxhp": DURABILITY, "duration": 65, "classuse": 1 << CLASS, "raceuse": 1023, "procanim": 0, "lore": 1,
-         "unk6": 0, "craft": 0, "itemname": name, "itemdesc": DESC, "model": SCALE, "color": PLAIN,
+         "unk6": 0, "craft": 0, "itemname": name, "itemdesc": desc, "model": model, "color": PLAIN,
          "PoT": 0, "HoT": 0, "weaponproc": 0, "fish": 0}
     r.update(figs)
     return r
@@ -180,7 +212,10 @@ def plan(db, give, pack_slots):
     if not owner_rows:
         writes.append(("ddl", None, OWNER_DDL))
         lines.append("  table itemowner made (database/itemowner.go's schema; the drizzt-plate server reads it)")
-    for pid, (name, wear, _, figs) in PIECES.items():
+    for pid, (name, wear, model, _, desc) in PIECES.items():
+        figs = FIGS[wear]
+        if len(desc) > DESC_MAX or "|" in desc or not desc.isascii():
+            refusals.append(f"{name}: its description is {len(desc)} characters (at most {DESC_MAX}, ASCII, no '|')")
         want = record(pid)
         cur = row(db, "itempattern", {"patternid": pid})
         if cur is not None and cur["itemname"] != name:
@@ -189,7 +224,7 @@ def plan(db, give, pack_slots):
         if cur is None or {k: cur[k] for k in want} != want:
             writes.append(("itempattern", {"patternid": pid}, want))
             lines.append(f"  itempattern {pid} {name}: " + ("new" if cur is None else "made as below") +
-                         f"; wear {wear}, model {SCALE} scale, ranger only, level {LEVEL}, NO TRADE, LORE")
+                         f"; wear {wear}, model {model} {LOOK[model]}, ranger only, level {LEVEL}, NO TRADE, LORE")
         lines.append(f"      new: {fig_line(figs)}")
         if wear in worn:
             wpid, wname = worn[wear]
@@ -312,7 +347,7 @@ def main(argv=None):
         db.execute("COMMIT")
         print(f"applied: {n} rows, in gm_audit and {LOG}" +
               ("; the pack rows reach him at his next login" if a.give else
-               "; give the six by the GM panel's give (patternids 715043-715048)"))
+               "; give the twelve by the GM panel's give (patternids 715043-715048, 715051-715056)"))
         return 0
     except BaseException:
         db.execute("ROLLBACK")

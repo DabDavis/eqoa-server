@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """drizzt_armor_20261116.py on a small database: the report writes nothing; --apply makes the six scale mail records
-(model 7, ranger only, NO TRADE, LORE), table itemowner and a row binding each to Drizzt, each write with a gm_audit
+(model 7) and the six ornate plate records (model 9), each ranger only, NO TRADE, LORE, with its own description of
+at most 200 plain characters, table itemowner and a row binding each to Drizzt, each write with a gm_audit
 line; --apply --give then puts one of each in his pack, unequipped at the end of the list; a third apply finds nothing
 to do; --undo puts the database back as it was (gm_audit aside), and leaves a record someone still holds. The
 controls: a Drizzt who is no level 60 dark elf ranger, a taken id, a pack with no room, or a piece worse than what he
@@ -14,7 +15,8 @@ import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TOOL = os.path.join(HERE, "drizzt_armor_20261116.py")
-IDS = range(715043, 715049)
+IDS = list(range(715043, 715049)) + list(range(715051, 715057))
+SCALE_IDS, PLATE_IDS = IDS[:6], IDS[6:]
 
 SCHEMA = """
 CREATE TABLE characters (charName TEXT UNIQUE NOT NULL, accountid INTEGER NOT NULL, serverid INTEGER PRIMARY KEY,
@@ -53,7 +55,7 @@ def make(path, cls=1, taken=False, full=False, strong_tunic=False):
                " VALUES (327, 1, 10600, 0, 2216, 5, 0, 61)")
     if taken:
         item(db, 715045, "Someone's Bracers", 7)
-    for n in range(99 if full else 0):
+    for n in range(90 if full else 0):  # 91 of 100: no room for 12
         db.execute("INSERT INTO charinventory (serverid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber)"
                    " VALUES (327, 1, 0, 0, 2216, -1, 0, ?)", (70 + n,))
     db.commit()
@@ -92,22 +94,28 @@ class DrizztArmor(unittest.TestCase):
         code, out = run(self.path, "--apply")
         self.assertEqual(code, 0, out)
         db = sqlite3.connect(self.path)
-        rows = db.execute("SELECT patternid, model, classuse, trade, rent, lore, levelreq, equipslot FROM itempattern "
-                          "WHERE patternid BETWEEN 715043 AND 715048 ORDER BY 1").fetchall()
-        self.assertEqual([r[0] for r in rows], list(IDS))
-        self.assertEqual({r[1:7] for r in rows}, {(7, 2, 1, 1, 1, 60)})
-        self.assertEqual(sorted(r[7] for r in rows), [1, 5, 7, 10, 11, 19])
+        rows = db.execute("SELECT patternid, model, classuse, trade, rent, lore, levelreq, equipslot, itemdesc FROM itempattern "
+                          "WHERE patternid BETWEEN 715043 AND 715056 ORDER BY 1").fetchall()
+        self.assertEqual([r[0] for r in rows], IDS)
+        self.assertEqual({r[1:7] for r in rows if r[0] in SCALE_IDS}, {(7, 2, 1, 1, 1, 60)})
+        self.assertEqual({r[1:7] for r in rows if r[0] in PLATE_IDS}, {(9, 2, 1, 1, 1, 60)})
+        for ids in (SCALE_IDS, PLATE_IDS):
+            self.assertEqual(sorted(r[7] for r in rows if r[0] in ids), [1, 5, 7, 10, 11, 19])
+        descs = [r[8] for r in rows]
+        self.assertEqual(len(set(descs)), 12)
+        self.assertTrue(all(0 < len(d) <= 200 and d.isascii() and "|" not in d for d in descs), descs)
         self.assertEqual(db.execute("SELECT patternid, serverid FROM itemowner ORDER BY 1").fetchall(), [(i, 327) for i in IDS])
-        self.assertEqual(db.execute("SELECT COUNT(*) FROM gm_audit").fetchone()[0], 13)
-        tunic = db.execute("SELECT str, sta, agi, dex, intelligence FROM itempattern WHERE patternid = 715044").fetchone()
-        self.assertTrue(all(a >= b for a, b in zip(tunic, (15, 15, 75, 10, 80))), tunic)
+        self.assertEqual(db.execute("SELECT COUNT(*) FROM gm_audit").fetchone()[0], 25)
+        for chest in (715044, 715052):
+            tunic = db.execute("SELECT str, sta, agi, dex, intelligence FROM itempattern WHERE patternid = ?", (chest,)).fetchone()
+            self.assertTrue(all(a >= b for a, b in zip(tunic, (15, 15, 75, 10, 80))), tunic)
         db.close()
 
         code, out = run(self.path, "--give", "--apply")
         self.assertEqual(code, 0, out)
         db = sqlite3.connect(self.path)
         given = db.execute("SELECT patternid, equiploc, location, listnumber FROM charinventory WHERE serverid = 327 "
-                           "AND patternid >= 715043 ORDER BY listnumber").fetchall()
+                           "AND patternid BETWEEN 715043 AND 715056 ORDER BY listnumber").fetchall()
         self.assertEqual(given, [(pid, -1, 0, 62 + n) for n, pid in enumerate(IDS)])
         self.assertEqual(db.execute("SELECT COUNT(*) FROM charinventory WHERE patternid = 2216").fetchone()[0], 1)  # nothing taken
         db.close()
@@ -130,7 +138,7 @@ class DrizztArmor(unittest.TestCase):
         code, out = run(self.path, "--undo")
         self.assertEqual(code, 1, out)
         db = sqlite3.connect(self.path)
-        self.assertEqual(db.execute("SELECT patternid FROM itempattern WHERE patternid >= 715043").fetchall(), [(715046,)])
+        self.assertEqual(db.execute("SELECT patternid FROM itempattern WHERE patternid BETWEEN 715043 AND 715056").fetchall(), [(715046,)])
         self.assertEqual(db.execute("SELECT patternid, serverid FROM itemowner").fetchall(), [(715046, 327)])
         db.close()
 

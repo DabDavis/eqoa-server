@@ -165,6 +165,9 @@ type Session struct {
 	// secondAura: it also draws the held items' second auras after the
 	// hands' (bit 7, 128: entity.SecondAuraChannel, 355 bytes)
 	secondAura bool
+	// hatAura: it also draws the helm's hat apart from the helm's aura, after
+	// the hands' seconds (bit 8, 256: entity.HatAuraChannel, 365 bytes)
+	hatAura bool
 	// creationOffered: the creation offer went out (protocol.OpcodeCreationOffer,
 	// handlers/creation.go), once a session as the live look's.
 	creationOffered bool
@@ -781,6 +784,22 @@ func (s *Session) SecondAura() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.secondAura && s.handAura && s.capeAura && s.bodyAura && s.pieceAuras && s.armorLook && s.liveLook
+}
+
+// SetHatAura records whether the session's client draws the helm's hat apart
+// from the helm's aura (entity.HatAuraChannel).
+func (s *Session) SetHatAura(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.hatAura = on
+}
+
+// HatAura is whether the session's client is sent the helm's hat apart from
+// the helm's aura: it asked, with the seconds' (SecondAura).
+func (s *Session) HatAura() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.hatAura && s.secondAura && s.handAura && s.capeAura && s.bodyAura && s.pieceAuras && s.armorLook && s.liveLook
 }
 
 // OfferLiveLookOnce reports whether the live look's offer is still to be

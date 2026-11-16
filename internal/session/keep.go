@@ -58,6 +58,7 @@ type Kept struct {
 	CapeAura           bool   `json:"cape_aura,omitempty"`
 	HandAura           bool   `json:"hand_aura,omitempty"`
 	SecondAura         bool   `json:"second_aura,omitempty"`
+	HatAura            bool   `json:"hat_aura,omitempty"`
 	CreationOffered    bool   `json:"creation_offered,omitempty"`
 	Capes              bool   `json:"capes,omitempty"`
 	CapesOffered       bool   `json:"capes_offered,omitempty"`
@@ -222,6 +223,7 @@ func (s *Session) Keep() Kept {
 		CapeAura:           s.capeAura,
 		HandAura:           s.handAura,
 		SecondAura:         s.secondAura,
+		HatAura:            s.hatAura,
 		CreationOffered:    s.creationOffered,
 		Capes:              s.capes,
 		CapesOffered:       s.capesOffered,
@@ -392,6 +394,7 @@ func (s *Session) restore(k Kept, now time.Time) {
 	s.capeAura = k.CapeAura
 	s.handAura = k.HandAura
 	s.secondAura = k.SecondAura
+	s.hatAura = k.HatAura
 	s.creationOffered = k.CreationOffered
 	s.serverWorldsOffered = k.ServerWorldsOffered
 	s.serverWorldsTaken = k.ServerWorldsTaken

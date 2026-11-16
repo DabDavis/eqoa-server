@@ -671,14 +671,18 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 	// a character's own (charaura): the target player, yourself, or a mercenary
 	var key database.CharAuraKey
 	var mask uint16
+	var shown func() *entity.PieceAuras // what the wearer shows now
 	who, whose := "You", "your"
 	switch t := target.(type) {
 	case nil:
 		key, mask = database.CharAuraKey{CharID: player.CharServerID}, player.WornMask
+		shown = func() *entity.PieceAuras { return h.gameWorld.PieceAurasOf(player) }
 	case *entity.Player:
 		key, mask, who, whose = database.CharAuraKey{CharID: t.CharServerID}, t.WornMask, t.Name, t.Name+"'s"
+		shown = func() *entity.PieceAuras { return h.gameWorld.PieceAurasOf(t) }
 	case *entity.NPC:
 		key, mask, who, whose = mercKey, t.WornMask, t.Name, t.Name+"'s"
+		shown = func() *entity.PieceAuras { return h.gameWorld.NPCPieceAurasOf(t) }
 	default:
 		h.gmReply(sess, "/aura: target a player, a mercenary or nothing (yourself)")
 		return
@@ -717,6 +721,15 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 			return
 		}
 	}
+	// a character's own hat (charaura's helm row, kind hat) is that row: another
+	// aura there would take its place, so it is refused; a hat ITEM worn there
+	// keeps its hat whatever the row says (they stack: entity.AuraHelmHat)
+	if sp.A.Shows() && sp.A.Kind != database.AuraHat && len(slots) == 1 && slots[0] == database.CharAuraHelm &&
+		h.gameWorld.CharAuraOf(key, database.CharAuraHelm).Kind == database.AuraHat {
+		h.gmReply(sess, "/aura: "+whose+" helm row is a hat of its own (charaura): another aura there would replace it. "+
+			"Give the hat as an item (itemaura kind 10 on a helm record) and the aura stacks round it; or /aura off helm first")
+		return
+	}
 	detail := fmt.Sprintf("/aura in the game: %s %s: %s", whose, place, auraWords(sp.A))
 	if sp.Look != "" {
 		detail += " (the named look " + sp.Look + ")"
@@ -743,6 +756,8 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 		note += " (round the head while no helm is drawn, from a client that draws circlets)"
 	case sp.A.Kind == database.AuraHat:
 		note += " (on the head in place of the helm, from a client that draws hats; a PS2 shows the helm)"
+	case slot == database.CharAuraHelm && sp.A.Shows() && wearsHat(shown()):
+		note += " (round the hat worn there, from a client that draws a hat's aura; an older client shows the hat alone)"
 	case slot != database.CharAuraBody && mask&(1<<slot) == 0 && sp.A.Shows():
 		note += " (nothing worn there now: it shows when a piece is)"
 	}
@@ -788,6 +803,12 @@ func (h *ChatHandler) setCharSecondAura(sess *session.Session, player *entity.Pl
 	h.gmReply(sess, fmt.Sprintf("%s %s's second aura: now %s (%s), beside its first on whatever that hand holds, %s alone (from a client that draws second auras).",
 		strings.ToUpper(whose[:1])+whose[1:], place, auraNow(a), auraWords(a), map[bool]string{true: "this mercenary", false: "this character"}[isMerc]))
 	log.Printf("GM: %s second aura %s %s: %s", player.Name, whose, place, auraWords(a))
+}
+
+// wearsHat reports whether a wearer's auras (PieceAurasOf) carry a hat on
+// the head (entity.AuraHelmHat).
+func wearsHat(a *entity.PieceAuras) bool {
+	return a != nil && a[entity.AuraHelmHat].Kind == database.AuraHat
 }
 
 // auraNow says an aura in the easy words: "a blue particles aura", "no aura".

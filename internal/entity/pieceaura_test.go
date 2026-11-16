@@ -576,15 +576,15 @@ func TestAHatOnTheHead(t *testing.T) {
 	own[AuraHelm] = hat
 	w.SetCharAuras(map[database.CharAuraKey][database.CharAuraSlots]database.ItemAura{{CharID: 213}: own})
 	p.WornMask &^= 1 << AuraHelm
-	if a := w.PieceAurasOf(p); a == nil || a[AuraHelm] != hat {
+	if a := w.PieceAurasOf(p); a == nil || a[AuraHelmHat] != hat || a[AuraHelm] != (database.ItemAura{}) {
 		t.Fatalf("no helm worn: %+v", a)
 	}
 	p.SetWornPiece(AuraHelm, 990058)
-	if a := w.PieceAurasOf(p); a == nil || a[AuraHelm] != hat {
+	if a := w.PieceAurasOf(p); a == nil || a[AuraHelmHat] != hat {
 		t.Fatalf("a helm worn: %+v", a)
 	}
 	p.HiddenParts = HideHelm
-	if a := w.PieceAurasOf(p); a == nil || a[AuraHelm] != hat {
+	if a := w.PieceAurasOf(p); a == nil || a[AuraHelmHat] != hat {
 		t.Fatalf("a hidden helm: %+v", a)
 	}
 }
@@ -604,7 +604,7 @@ func TestAnItemThatIsAHat(t *testing.T) {
 	p.CharServerID = 197
 	p.WornMask, p.WornPieces = 0, [AuraSlots]int{}
 	p.SetWornPiece(AuraHelm, 714388)
-	if a := w.PieceAurasOf(p); a == nil || a[AuraHelm] != turban {
+	if a := w.PieceAurasOf(p); a == nil || a[AuraHelmHat] != turban || a[AuraHelm] != (database.ItemAura{}) {
 		t.Fatalf("the turban worn: %+v", a)
 	}
 	p.HiddenParts = HideHelm
@@ -622,7 +622,7 @@ func TestAnItemThatIsAHat(t *testing.T) {
 	w.SetCharAuras(map[database.CharAuraKey][database.CharAuraSlots]database.ItemAura{{CharID: 197}: own})
 	p.WornMask, p.WornPieces = 0, [AuraSlots]int{}
 	p.SetWornPiece(AuraHelm, 714388)
-	if a := w.PieceAurasOf(p); a == nil || a[AuraHelm] != own[AuraHelm] {
+	if a := w.PieceAurasOf(p); a == nil || a[AuraHelmHat] != own[AuraHelm] {
 		t.Fatalf("the character's own hat wins: %+v", a)
 	}
 }

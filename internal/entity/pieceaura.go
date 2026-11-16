@@ -78,8 +78,20 @@ const (
 const (
 	AuraMainHand2 = AuraSlots
 	AuraOffHand2  = AuraSlots + 1
-	AuraWire      = AuraSlots + 2
+	AuraHelmHat   = AuraSlots + 2
+	AuraWire      = AuraSlots + 3
 )
+
+// AuraHelmHat is the helm's hat (database.AuraHat: the character's own,
+// charaura slot 5, or else the worn helm record's itemaura) when it stacks
+// with another aura on the helm (the owner, 2026-11-16: "when i put /aura on
+// dusts turban turns it into a cloth cap"): the hat here, the helm's other
+// aura (a shell, particles, a trim, a circlet) in AuraHelm, which the client
+// draws on the hat. Sent after the hands' seconds to a client that asked for
+// it (session.HatAura, the live look's answer bit 8, HatAuraChannel); every
+// channel before it carries the hat in the helm's place instead
+// (foldHelmHat), so an older client draws the hat, never its fallback helm.
+// A hat alone goes here too (the helm's place empty).
 
 // PieceAuraSize is one piece's aura on the channel: r, g, b, a, a u8 kind, a
 // u32 source DictID little-endian, a u8 node count; all zero none.
@@ -115,6 +127,13 @@ const HandAuraStateSize = CapeAuraStateSize + 2*PieceAuraSize
 // HandAuraStateSize, as before.
 const SecondAuraStateSize = HandAuraStateSize + 2*PieceAuraSize
 
+// HatAuraStateSize is the channel to a client that draws the helm's hat apart
+// from the helm's aura (session.HatAura, the live look's answer bit 8): the
+// seconds' channel, then the helm's hat (AuraHelmHat; 365 bytes). A client
+// that asked for the seconds alone is sent SecondAuraStateSize, the hat in the
+// helm's place.
+const HatAuraStateSize = SecondAuraStateSize + PieceAuraSize
+
 // PieceAuras is a wearer's auras by piece, then its body's (AuraBody), its
 // cape's (AuraCape), its hands' (AuraMainHand, AuraOffHand) and its hands'
 // second (AuraMainHand2, AuraOffHand2); the zero value is none.
@@ -140,38 +159,61 @@ func putPieceAuras(out []byte, a *PieceAuras, n int) []byte {
 // AuraChannel is ArmorChannel with the pieces' auras after it: a client that
 // draws them's.
 func AuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
-	return putPieceAuras(ArmorChannel(disc, d), a, AuraPieces)
+	return putPieceAuras(ArmorChannel(disc, d), foldHelmHat(a), AuraPieces)
 }
 
 // BodyAuraChannel is AuraChannel with the body's aura after the pieces': a
 // client that draws it's.
 func BodyAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
-	return putPieceAuras(ArmorChannel(disc, d), a, AuraBody+1)
+	return putPieceAuras(ArmorChannel(disc, d), foldHelmHat(a), AuraBody+1)
 }
 
 // CapeAuraChannel is BodyAuraChannel with the cape's aura after the body's:
 // a client that draws it's.
 func CapeAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
-	return putPieceAuras(ArmorChannel(disc, d), a, AuraCape+1)
+	return putPieceAuras(ArmorChannel(disc, d), foldHelmHat(a), AuraCape+1)
 }
 
 // HandAuraChannel is CapeAuraChannel with the hands' auras after the cape's
 // (the main hand's, then the off hand's): a client that draws them's.
 func HandAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
-	return putPieceAuras(ArmorChannel(disc, d), a, AuraSlots)
+	return putPieceAuras(ArmorChannel(disc, d), foldHelmHat(a), AuraSlots)
 }
 
 // SecondAuraChannel is HandAuraChannel with the hands' second auras after
 // the hands' (the main hand's, then the off hand's): a client that draws
 // them's.
 func SecondAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
+	return putPieceAuras(ArmorChannel(disc, d), foldHelmHat(a), AuraHelmHat)
+}
+
+// HatAuraChannel is SecondAuraChannel with the helm's hat after the seconds
+// (AuraHelmHat), the helm's other aura in its place: a client that draws a
+// hat with an aura on it's.
+func HatAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
 	return putPieceAuras(ArmorChannel(disc, d), a, AuraWire)
+}
+
+// foldHelmHat is a for a channel with no place for the helm's hat
+// (AuraHelmHat): the hat in the helm's place, over the helm's other aura (the
+// hat drawn, not the helm's fallback look; the other aura not). Nil, or no
+// hat: a as it is.
+func foldHelmHat(a *PieceAuras) *PieceAuras {
+	if a == nil || a[AuraHelmHat].Kind != database.AuraHat {
+		return a
+	}
+	f := *a
+	f[AuraHelm], f[AuraHelmHat] = f[AuraHelmHat], database.ItemAura{}
+	return &f
 }
 
 // ForViewerAuras is ForViewer with the wearer's pieces' auras (nil: none),
 // which go after the trims to a client that asked for them.
 func ForViewerAuras(sess *session.Session, disc []byte, d *Dyes, a *PieceAuras) []byte {
 	if sess != nil && sess.PieceAuras() && len(disc) == EntityStateSize {
+		if sess.HatAura() {
+			return HatAuraChannel(disc, d, a)
+		}
 		if sess.SecondAura() {
 			return SecondAuraChannel(disc, d, a)
 		}
@@ -247,6 +289,14 @@ func (w *World) SetCharAuras(by map[database.CharAuraKey][database.CharAuraSlots
 		m[k] = v
 	}
 	w.itemAuras.chars.Store(&m)
+}
+
+// CharAuraOf is whose own aura on charaura slot (zero none).
+func (w *World) CharAuraOf(k database.CharAuraKey, slot int) database.ItemAura {
+	if a := w.charAuras(k); a != nil && slot >= 0 && slot < database.CharAuraSlots {
+		return a[slot]
+	}
+	return database.ItemAura{}
 }
 
 // charAuras is whose own auras, nil none.
@@ -442,10 +492,28 @@ func (w *World) pieceAuras(pieces *[AuraSlots]int, items *[AuraSlots]int, mask u
 	}
 	// a circlet on the head (database.AuraCirclet) whatever is worn there or
 	// hidden: the client draws it while no helm is drawn
-	// and a hat another body has built in (database.AuraHat) the same: the
-	// client draws it in place of the helm
-	if own != nil && (own[AuraHelm].Kind == database.AuraCirclet || own[AuraHelm].Kind == database.AuraHat) {
+	if own != nil && own[AuraHelm].Kind == database.AuraCirclet {
 		out[AuraHelm], any = own[AuraHelm], true
+	}
+	// a hat another body has built in (database.AuraHat): the character's own
+	// (charaura 5) whatever is worn there or hidden, else the worn helm
+	// record's (itemaura, not hidden); it goes in AuraHelmHat and the helm's
+	// other aura (a GM's shell on it, say) stays in AuraHelm: they stack, the
+	// other drawn on the hat (the owner, 2026-11-16: "when i put /aura on dusts
+	// turban turns it into a cloth cap")
+	var hat database.ItemAura
+	if own != nil && own[AuraHelm].Kind == database.AuraHat {
+		hat = own[AuraHelm]
+	} else if m != nil && mask&(1<<AuraHelm) != 0 && hidden&auraHides(AuraHelm) == 0 {
+		if a, ok := (*m)[pieces[AuraHelm]]; ok && a.Kind == database.AuraHat {
+			hat = a
+		}
+	}
+	if hat.Kind == database.AuraHat {
+		if out[AuraHelm].Kind == database.AuraHat {
+			out[AuraHelm] = database.ItemAura{}
+		}
+		out[AuraHelmHat], any = hat, true
 	}
 	if !any {
 		return nil

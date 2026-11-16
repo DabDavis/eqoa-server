@@ -320,27 +320,30 @@ def read_grids(folder):
                 problems.append(f"{key} trade level {lvl} {mod}: AC {s.get('AC')} is not the mundane one's")
             if bonus.setdefault((lvl, mod), extra) != extra:
                 problems.append(f"{key} trade level {lvl} {mod}: {extra} where another piece has {bonus[(lvl, mod)]}")
-    heartsblood_stats(grids, bonus, problems)
+    ultra_stats(grids, bonus, problems)
     return grids, bonus, problems
 
 
-# Heartsblood gives Stamina, Arcane Resist and Hit Points beside the grid's HoT (petition 5196, 2026-11-16: "Heartsblood
-# Alloy is supposed to give Stamina, AR and HP in stats for plate armor. Currently only giving HoT."; the live records'
-# heartsblood seralite plate and scale give them): each at least the single-stat modifier's at the trade level.
-# tools/heartsblood_armor_5196_20261116.py made the live records so.
-HEARTSBLOOD = "Heartsblood Alloy"
-HEARTSBLOOD_PLUS = {"sta": "Rhodizite", "AR": "Achroite", "HPMAX": "Titan Alloy"}
+# The ultra-rare modifiers give three stats beside the grid's HoT / PoT (Innoruuk's petitions, 2026-11-16: 5196
+# "Heartsblood Alloy is supposed to give Stamina, AR and HP in stats for plate armor. Currently only giving HoT."; 5197
+# "mindflow crystals supposed to give wisdom, power and AR to armor when crafted. Only giving PoT."; the live records'
+# heartsblood seralite plate and scale give Sta, AR and HP): each at least the single-stat modifier's at the trade
+# level. tools/heartsblood_mindflow_5196_20261116.py made the live records so.
+ULTRA_PLUS = {
+    "Heartsblood Alloy": {"sta": "Rhodizite", "AR": "Achroite", "HPMAX": "Titan Alloy"},
+    "Mindflow Crystals": {"wis": "Apatite", "POWMAX": "Mana Infused Alloy", "AR": "Achroite"},
+}
 
 
-def heartsblood_stats(grids, bonus, problems):
+def ultra_stats(grids, bonus, problems):
     for (lvl, mod), extra in list(bonus.items()):
-        if mod != HEARTSBLOOD:
+        if mod not in ULTRA_PLUS:
             continue
         add = {}
-        for col, src in HEARTSBLOOD_PLUS.items():
+        for col, src in ULTRA_PLUS[mod].items():
             least = bonus.get((lvl, src), {}).get(col)
             if least is None:
-                problems.append(f"trade level {lvl} {HEARTSBLOOD}: no {src} {col} to give it")
+                problems.append(f"trade level {lvl} {mod}: no {src} {col} to give it")
                 continue
             add[col] = max(least, extra.get(col, 0))
         bonus[(lvl, mod)] = dict(extra, **add)

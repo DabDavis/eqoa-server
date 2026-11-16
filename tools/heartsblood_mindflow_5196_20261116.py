@@ -1,26 +1,28 @@
 #!/usr/bin/env python3
-"""Heartsblood armour gives Stamina, Arcane Resist and Hit Points (petition 5196, Innoruuk, 2026-11-16: "Heartsblood
-Alloy is supposed to give Stamina, AR and HP in stats for plate armor. Currently only giving HoT."; a player's claim
-about an item's stats is taken as the truth).
+"""Heartsblood armour gives Stamina, Arcane Resist and Hit Points, Mindflow armour Wisdom, Power and Arcane Resist
+(Innoruuk's petitions, 2026-11-16: 5196 "Heartsblood Alloy is supposed to give Stamina, AR and HP in stats for plate
+armor. Currently only giving HoT."; 5197 "mindflow crystals supposed to give wisdom, power and AR to armor when crafted.
+Only giving PoT."; a player's claim about an item's stats is taken as the truth).
 
-The armorsmiths' products of Heartsblood Alloy (craftrecipes skill 1 whose modifier is the "heartsblood alloy" item:
-85 records, trade levels 6-10, the six plate pieces, the six scale pieces and the five shields) were made off
-eqoatrade's grid, whose Heartsblood row holds the AC and a HoT alone (4, 6, 8, 10, 10 at trade levels 6-10: Prima
-p. 441, whose modifier table names Heartsblood Alloy "Hit Point Regen"). The live records this server holds of the
-same pieces (Return Home's "heartsblood seralite breastplate" and kin: Sta 18, AR 18, HP 81; the scale set: 27, 27,
-95) give Stamina, Arcane Resist and Hit Points, as the player says.
+The armorsmiths' products of the two ultra-rare modifiers (craftrecipes skill 1 whose modifier is the "heartsblood
+alloy" or "mindflow crystals" item: 85 records each, trade levels 6-10, the six plate pieces, the six scale pieces and
+the five shields) were made off eqoatrade's grid, whose rows hold the AC and a HoT or PoT alone (4, 6, 8, 10, 10 at
+trade levels 6-10: Prima p. 441, whose modifier table names them "Hit Point Regen" and "Power Regen"). The live
+records this server holds of Heartsblood pieces (Return Home's "heartsblood seralite breastplate" and kin: Sta 18,
+AR 18, HP 81; the scale set: 27, 27, 95) give Stamina, Arcane Resist and Hit Points, as the player says.
 
-Each one is given, at least, what the same piece at the same trade level gives by the single-stat modifier:
-- sta   as its Rhodizite twin's   (14, 18, 18, 20, 20 at trade levels 6-10),
-- AR    as its Achroite twin's    (14, 18, 18, 20, 20),
-- HPMAX as its Titan Alloy twin's (55, 60, 65, 70, 75),
-- HoT   Prima's figure (4, 6, 8, 10, 10): Prima gives it, so it stays, and the live records that lacked it get it.
+Each one is given, at least, what the same piece at the same trade level gives by the single-stat modifiers:
+- Heartsblood: sta as its Rhodizite twin's (14, 18, 18, 20, 20 at trade levels 6-10), AR as its Achroite twin's
+  (the same), HPMAX as its Titan Alloy twin's (55, 60, 65, 70, 75);
+- Mindflow: wis as its Apatite twin's (14, 18, 18, 20, 20), POWMAX as its Mana Infused Alloy twin's (55, 60, 65, 70,
+  75), AR as its Achroite twin's;
+- its HoT / PoT Prima's figure (4, 6, 8, 10, 10): Prima gives it, so it stays, and a live record that lacked it gets it.
 The twin is the recipe of the same trade level with the same ore and mold. A figure already higher is kept (nothing is
 lowered); AC and every other column are left as they are. tools/seed_tradeskills.py makes the same figures for a
-product it writes.
+product it writes. Tailoring's Heartsblood and Mindflow products (studs, thread) are not touched.
 
-Checked as found, else REFUSED and nothing written: the modifiers' items by name, 85 Heartsblood products each with
-its three twins, the grid's products' HoT Prima's. Report by default; --apply in one transaction, a gm_audit line a
+Checked as found, else REFUSED and nothing written: the modifiers' items by name, 85 products of each with their
+three twins, the grid's products' HoT / PoT Prima's. Report by default; --apply in one transaction, a gm_audit line a
 row (as the panel's), logged in heartsblood_5196_log; a second --apply finds nothing to do; --undo puts back exactly
 what was there (a row changed since is left and listed).
 
@@ -28,7 +30,7 @@ After --apply: no restart. A character's items are sent at its login, so a holde
 login (eject to apply now). Imported copies of these records (itemimported) are made their bases again at the next
 server start (SyncImportedCopies).
 
-    python3 -E -s tools/heartsblood_armor_5196_20261116.py --db eqoa.db [--apply | --undo]
+    python3 -E -s tools/heartsblood_mindflow_5196_20261116.py --db eqoa.db [--apply | --undo]
 """
 import argparse
 import datetime
@@ -37,18 +39,21 @@ import sqlite3
 import sys
 
 LOG = "heartsblood_5196_log"
-DETAIL = ("Heartsblood armour gives Stamina, Arcane Resist and Hit Points (its Rhodizite, Achroite and Titan Alloy "
-          "twins' figures at least) beside Prima's HoT (petition 5196, 2026-11-16); tools/heartsblood_armor_5196_20261116.py")
+DETAIL = ("Heartsblood armour gives Stamina, Arcane Resist and Hit Points, Mindflow armour Wisdom, Power and Arcane "
+          "Resist (their single-stat twins' figures at least) beside Prima's HoT / PoT (petitions 5196, 5197, 2026-11-16); "
+          "tools/heartsblood_mindflow_5196_20261116.py")
 WHO, VIA = "dab", "tool"
 
 ARMOR = 1  # craftrecipes.skill: Armorcrafting
-HEARTSBLOOD = "heartsblood alloy"
-# the column -> the modifier whose twin sets its least figure
-TWINS = {"sta": "rhodizite", "AR": "achroite", "HPMAX": "titan alloy"}
-# Prima p. 441's HoT by trade level (eqoatrade's Heartsblood row agrees, every piece)
-HOT = {6: 4, 7: 6, 8: 8, 9: 10, 10: 10}
-COLS = ["sta", "AR", "HPMAX", "HoT"]
-EXPECT = 85  # 17 pieces x trade levels 6-10
+# the modifier -> (its column -> the modifier whose twin sets its least figure; its tick column)
+MODS = {
+    "heartsblood alloy": ({"sta": "rhodizite", "AR": "achroite", "HPMAX": "titan alloy"}, "HoT"),
+    "mindflow crystals": ({"wis": "apatite", "POWMAX": "mana infused alloy", "AR": "achroite"}, "PoT"),
+}
+# Prima p. 441's HoT / PoT by trade level (eqoatrade's rows agree, every piece)
+TICK = {6: 4, 7: 6, 8: 8, 9: 10, 10: 10}
+COLS = ["sta", "wis", "AR", "HPMAX", "POWMAX", "HoT", "PoT"]
+EXPECT = 85  # a modifier's: 17 pieces x trade levels 6-10
 
 LOG_DDL = f"""CREATE TABLE {LOG} (
     seq    INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -114,55 +119,58 @@ def plan(db):
             refusals.append(f"no {t} table here")
     if refusals:
         return writes, lines, refusals
-    hb = item_id(db, HEARTSBLOOD, refusals)
-    twin_ids = {col: item_id(db, name, refusals) for col, name in TWINS.items()}
+    mods = {name: item_id(db, name, refusals) for name in MODS}
+    twin_ids = {name: item_id(db, name, refusals) for name in {t for twins, _ in MODS.values() for t in twins.values()}}
     if refusals:
         return writes, lines, refusals
     # every armorsmith recipe by (trade level, ore, mold) -> {modifier item: product}
     by_base = {}
     for level, ings, product in db.execute("SELECT level, ingredients, product FROM craftrecipes WHERE skill = ?", (ARMOR,)):
         ings = json.loads(ings)
-        mods = [i["item"] for i in ings if i.get("keep")]
+        keep = [i["item"] for i in ings if i.get("keep")]
         base = tuple(i["item"] for i in ings if not i.get("keep"))
-        if len(mods) == 1:
-            by_base.setdefault((level, base), {})[mods[0]] = product
-    targets = sorted(((lvl, base), m[hb]) for (lvl, base), m in by_base.items() if hb in m)
-    if len(targets) != EXPECT:
-        refusals.append(f"{len(targets)} Heartsblood armour products here, not {EXPECT}")
-    for (lvl, base), pid in targets:
-        cur = row(db, "itempattern", {"patternid": pid})
-        if cur is None:
-            refusals.append(f"recipe product {pid} (trade level {lvl}) has no itempattern row")
-            continue
-        if lvl not in HOT:
-            refusals.append(f"{pid} {cur['itemname']!r}: trade level {lvl}, Heartsblood is 6-10")
-            continue
-        want = {}
-        twins = {}
-        for col, mid in twin_ids.items():
-            tp = by_base[(lvl, base)].get(mid)
-            t = row(db, "itempattern", {"patternid": tp}) if tp is not None else None
-            if t is None or not t.get(col):
-                refusals.append(f"{pid} {cur['itemname']!r}: no {TWINS[col]} twin with {col} (trade level {lvl})")
+        if len(keep) == 1:
+            by_base.setdefault((level, base), {})[keep[0]] = product
+    ids = []
+    for mod, (want_twins, tick) in MODS.items():
+        mid = mods[mod]
+        targets = sorted(((lvl, base), m[mid]) for (lvl, base), m in by_base.items() if mid in m)
+        if len(targets) != EXPECT:
+            refusals.append(f"{len(targets)} {mod} armour products here, not {EXPECT}")
+        lines.append(f"{mod}: {len(targets)} products")
+        for (lvl, base), pid in targets:
+            ids.append(pid)
+            cur = row(db, "itempattern", {"patternid": pid})
+            if cur is None:
+                refusals.append(f"recipe product {pid} (trade level {lvl}) has no itempattern row")
                 continue
-            twins[col] = t[col]
-        if len(twins) != len(twin_ids):
-            continue
-        if cur.get("HoT") and cur["HoT"] != HOT[lvl]:
-            refusals.append(f"{pid} {cur['itemname']!r}: HoT {cur['HoT']}, Prima's is {HOT[lvl]} at trade level {lvl}")
-            continue
-        for col, least in list(twins.items()) + [("HoT", HOT[lvl])]:
-            have = cur.get(col) or 0
-            if have < least:
-                want[col] = least
-        new = {c: want.get(c, cur.get(c)) for c in COLS}
-        line = (f"  {pid:>7} TL{lvl} {cur['itemname']:<40} AC {cur['AC']:>3}  "
-                + "  ".join(f"{c} {fig(cur.get(c))}->{fig(new[c])}" for c in COLS))
-        lines.append(line)
-        if want:
-            writes.append(({"patternid": pid}, want))
+            if lvl not in TICK:
+                refusals.append(f"{pid} {cur['itemname']!r}: trade level {lvl}, {mod} is 6-10")
+                continue
+            twins = {}
+            for col, tname in want_twins.items():
+                tp = by_base[(lvl, base)].get(twin_ids[tname])
+                t = row(db, "itempattern", {"patternid": tp}) if tp is not None else None
+                if t is None or not t.get(col):
+                    refusals.append(f"{pid} {cur['itemname']!r}: no {tname} twin with {col} (trade level {lvl})")
+                    continue
+                twins[col] = t[col]
+            if len(twins) != len(want_twins):
+                continue
+            if cur.get(tick) and cur[tick] != TICK[lvl]:
+                refusals.append(f"{pid} {cur['itemname']!r}: {tick} {cur[tick]}, Prima's is {TICK[lvl]} at trade level {lvl}")
+                continue
+            want = {}
+            for col, least in list(twins.items()) + [(tick, TICK[lvl])]:
+                if (cur.get(col) or 0) < least:
+                    want[col] = least
+            shown = list(want_twins) + [tick]
+            new = {c: want.get(c, cur.get(c)) for c in shown}
+            lines.append(f"  {pid:>7} TL{lvl} {cur['itemname']:<40} AC {cur['AC']:>3}  "
+                         + "  ".join(f"{c} {fig(cur.get(c))}->{fig(new[c])}" for c in shown))
+            if want:
+                writes.append(({"patternid": pid}, want))
     if table(db, "charinventory"):
-        ids = [pid for _, pid in targets]
         if ids:
             q = ",".join("?" * len(ids))
             n, chars = db.execute(f"SELECT count(*), count(DISTINCT serverid) FROM charinventory WHERE patternid IN ({q})", ids).fetchone()

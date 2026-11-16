@@ -311,7 +311,7 @@ func mayNeed(s entity.RaidSeat, p *database.ItemPatternRecord) bool {
 	if isScroll(p) {
 		return scrollRefusal(p.ClassUse, p.RaceUse, p.LevelReq, s.Class, s.Race, s.Level) == ""
 	}
-	return cannotWear(&entity.Player{Class: s.Class, Race: s.Race, Level: s.Level}, p) == ""
+	return cannotWear(&entity.Player{CharServerID: s.ServerID, Class: s.Class, Race: s.Race, Level: s.Level}, p) == ""
 }
 
 // heardRaidKill takes a kill from the World (its lock held: never wait here): a raid's is

@@ -41,6 +41,15 @@ import (
 // STATION's own check of an address (CheckEmail) takes letters, digits, '_',
 // '@' and '.' alone; an address with a '-' or a '+' is set on the website.
 
+// stationZip is the hidden PostalCode. SubmitAcctCreate and SubmitAcctUpdate
+// refuse a postal code that is not five digits (IsZip, word 1354 "zip") when the
+// Country begins "US -", and PushPage sets a US console's Country to "US - USA"
+// whatever the page holds (the region's default, before the page's own value):
+// so a hidden "x" stopped every US player at Create Account (the owner,
+// 2026-11-16: "the hidden zip field is restricting moose from creating
+// account"). Five digits pass both checks in any country.
+const stationZip = "00000"
+
 // stationHidden is a field the code needs and no player fills in.
 func stationHidden(name, val string) string {
 	return fmt.Sprintf("\t<Text name=%q val=%q>\n\t\t<Position x=\"0\" y=\"0\"/>\n\t\t<Size width=\"24\" height=\"16\"/>\n"+
@@ -209,7 +218,7 @@ func stationEmailPages(page string, refusal bool) map[string][]byte {
 			stationHelp("Create Account", "Choose a user name and a password, and enter the password twice. Next you give your "+
 				"e-mail address: we send a link to it to verify your account.")),
 		"data/ui/IDCreat2.xml": stationPage(3, 2,
-			stationHidden("Country", "x"), stationHidden("PostalCode", "x"), stationHidden("BirthMonth", "Jan"),
+			stationHidden("Country", "US - USA"), stationHidden("PostalCode", stationZip), stationHidden("BirthMonth", "Jan"),
 			stationHidden("BirthDay", "1"), stationHidden("BirthYear", "1977"), stationHidden("Gender", "x"),
 			stationBackdrop,
 			stationLabel("EmailAddressLabel", "E-mail Address", 30, 177), stationField("EmailAddress", "E-mail Address", 0, 176, 100, false),
@@ -226,7 +235,7 @@ func stationEmailPages(page string, refusal bool) map[string][]byte {
 			stationNote("Both are on the web too, at", page),
 			stationHelp("Manage Account", "Change your password, or the e-mail address on your account.")),
 		"data/ui/UpAcct.xml": stationPage(3, 2,
-			stationHidden("Country", "x"), stationHidden("PostalCode", "x"),
+			stationHidden("Country", "US - USA"), stationHidden("PostalCode", stationZip),
 			stationBackdrop,
 			stationLabel("EmailAddressLabel", "E-mail Address", 30, 177), stationField("EmailAddress", "E-mail Address", 0, 176, 100, false),
 			stationButton("Update", "SubmitAcctUpdate", 1, 140, 270, 162),

@@ -20,6 +20,15 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
+// authIdle is how long the auth port waits for a Station connection's next
+// message. STATION sends nothing while a player fills in a page: its ping
+// (VIStationAPI::Process, after a minute) never goes out, because Connect,
+// called every frame, sets the time it counts from. At 120 s a player still
+// typing a name, a password and an e-mail on a pad's keyboard had the
+// connection closed under them, and Create Account then sat on
+// "Connecting..." for good (seen on PCSX2, 2026-11-16).
+var authIdle = 30 * time.Minute
+
 // Auth message types (big-endian)
 const (
 	MsgServerHello            = 0x04
@@ -448,7 +457,7 @@ func (s *AuthServer) HandleConnection(conn net.Conn) {
 	// update STATION sends after it (stationemail.go)
 	loggedIn := 0
 	for {
-		conn.SetReadDeadline(time.Now().Add(120 * time.Second))
+		conn.SetReadDeadline(time.Now().Add(authIdle))
 		n, err := conn.Read(buf)
 		if err != nil {
 			log.Printf("Auth: client %s disconnected", conn.RemoteAddr())

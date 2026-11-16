@@ -49,11 +49,12 @@ const MonkeysMax = 5
 // MonkeyBody is a monkey's body: the karba'nai brute's gorilla (CHAR.ESF
 // #73), MonkeySize its size, picked by a render beside Moose's hill giant
 // (the owner's "the gorillas make small like monkeys", next to him knee to
-// waist high): at 1.2 they stand to his thigh; at 0.45 they reached his
-// ankle.
+// waist high): at 1.2 they stood to his thigh, too big (the owner,
+// 2026-11-16: "make the monkeys smaller"); at 0.7 about a man's knee, his
+// shin; at 0.45 they reached his ankle.
 const (
 	MonkeyBody uint32  = 0x95EE6EC6
-	MonkeySize float32 = 1.2
+	MonkeySize float32 = 0.7
 )
 
 // monkeyRadius is how far off its owner a monkey's place is (followRadius is

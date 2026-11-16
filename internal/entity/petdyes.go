@@ -33,7 +33,28 @@ type petDyed struct {
 	id, look uint32
 	dye      PetDye
 	mask     uint64
+	// rule: the client splits the body by its own rule (layout 2,
+	// PetDyesByRule): area 1 its clothing, area 2 the rest; else area 2 is
+	// mask's materials (a petdyeareas row)
+	rule bool
 }
+
+// The rule bytes of OpcodePetDyes's layout 2, after each pet's mask.
+const (
+	// PetDyesByRule: area 1 is the body's clothing (garments, armour, cloth,
+	// leather, metal, its trappings), area 2 the rest of it (skin, fur, hide,
+	// carapace), as the client tells them apart; the mask is unused (the owner,
+	// 2026-11-16: "the pets need their clothes as one dye and the rest another
+	// like we two tone equipment")
+	PetDyesByRule = 0
+	// PetDyesByMask: area 2 is the mask's materials (a petdyeareas row), area
+	// 1 the rest; a mask of 0 is area 1 the whole body
+	PetDyesByMask = 1
+)
+
+// PetDyesLayoutMost is the newest layout of OpcodePetDyes: 2, a rule byte per
+// pet.
+const PetDyesLayoutMost = 2
 
 // SetPetDyeAreas sets table petdyeareas (as database.PetDyeAreaRows reads it)
 // and has every client that draws pet dyes told its view's again.
@@ -99,6 +120,10 @@ type PetLook struct {
 	Area database.PetDyeArea
 	// Dye is what it wears now
 	Dye PetDye
+	// Rule: no petdyeareas row, so its areas are the client's rule's (area 1
+	// its clothing, area 2 the rest); Clothed whether the body wears any
+	// clothing by that rule (PetBodyClothed)
+	Rule, Clothed bool
 }
 
 // PetLookOf is the player's pet, alive, as the Groomer dyes it; false when
@@ -114,7 +139,8 @@ func (w *World) PetLookOf(sess *session.Session) (PetLook, bool) {
 	look := uint32(pet.ModelID)
 	area, ok := w.PetDyeArea(look)
 	if !ok {
-		area = database.PetDyeArea{Look: look, Area1: "Body"}
+		area = database.PetDyeArea{Look: look, Area1: "Clothing", Area2: "Body"}
+		return PetLook{Name: pet.Name, Look: look, Area: area, Dye: p.PetDyes[look], Rule: true, Clothed: PetBodyClothed(look)}, true
 	}
 	return PetLook{Name: pet.Name, Look: look, Area: area, Dye: p.PetDyes[look]}, true
 }
@@ -126,9 +152,12 @@ func (n *NPC) isOwnedPet() bool {
 }
 
 // petDyesInViewLocked is the dyed pets on sess's entity slots, by the slot's
-// id, in slot order: each a pet whose owner has dyes on its body. Must be
-// called with the lock held.
-func (w *World) petDyesInViewLocked(sess *session.Session) []petDyed {
+// id, in slot order: each a pet whose owner has dyes on its body. A body of a
+// petdyeareas row is split by its mask; one without, in layout 2 by the
+// client's rule (both colours), in layout 1 (a client before the rule) as it
+// was: one area, area 1's colour on the whole body. Must be called with the
+// lock held.
+func (w *World) petDyesInViewLocked(sess *session.Session, layout uint8) []petDyed {
 	vs, _ := sess.VisibilityState().(*VisibilityState)
 	if vs == nil {
 		return nil
@@ -152,7 +181,12 @@ func (w *World) petDyesInViewLocked(sess *session.Session) []petDyed {
 			continue
 		}
 		var mask uint64
-		if a, ok := w.PetDyeArea(look); ok && a.TwoAreas() {
+		a, row := w.PetDyeArea(look)
+		if !row && layout >= 2 {
+			out = append(out, petDyed{id: vs.ChannelObjectID[i], look: look, dye: d, rule: true})
+			continue
+		}
+		if row && a.TwoAreas() {
 			mask = a.Mask
 		} else {
 			d[1] = 0 // one area: the second's dye, if any, shows nowhere
@@ -170,8 +204,9 @@ const PetDyesMost = 255
 
 // encodePetDyes is OpcodePetDyes's body: a u8 count, then each pet's u32 id,
 // u32 body, u32 colours of areas 1 and 2 and u64 area 2's materials,
-// little-endian (the first PetDyesMost).
-func encodePetDyes(pets []petDyed) []byte {
+// little-endian (the first PetDyesMost); in layout 2 each followed by a u8,
+// how its areas are told apart (PetDyesByRule, PetDyesByMask).
+func encodePetDyes(pets []petDyed, layout uint8) []byte {
 	if len(pets) > PetDyesMost {
 		pets = pets[:PetDyesMost]
 	}
@@ -183,6 +218,9 @@ func encodePetDyes(pets []petDyed) []byte {
 		out = binary.LittleEndian.AppendUint32(out, p.dye[0])
 		out = binary.LittleEndian.AppendUint32(out, p.dye[1])
 		out = binary.LittleEndian.AppendUint64(out, p.mask)
+		if layout >= 2 {
+			out = append(out, map[bool]byte{false: PetDyesByMask, true: PetDyesByRule}[p.rule])
+		}
 	}
 	return out
 }
@@ -211,7 +249,8 @@ func (w *World) petDyesSyncSystem() {
 			return true
 		}
 		vs := GetOrCreateVisibility(s)
-		body := encodePetDyes(w.petDyesInViewLocked(s))
+		layout := s.PetDyesLayout()
+		body := encodePetDyes(w.petDyesInViewLocked(s, layout), layout)
 		if !vs.petDyesDue.Swap(false) && string(body) == vs.petDyesSent {
 			return true
 		}
@@ -220,3 +259,10 @@ func (w *World) petDyesSyncSystem() {
 		return true
 	})
 }
+
+// PetBodyClothed is whether a pet body wears clothing by the client's rule
+// (vanilla's petdye::clothing: garments, armour, cloth, leather and metal on
+// the body, its trappings): petClothedBodies, made by vanilla's `eqoa
+// petclothes` from the disc's CHAR.ESF (petclothes.go). A body that wears none
+// is dyed whole, its one area the rule's area 2.
+func PetBodyClothed(look uint32) bool { return petClothedBodies[look] }

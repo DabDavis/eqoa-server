@@ -116,7 +116,7 @@ func petDyeSets(s *session.Session) [][]byte {
 }
 
 // petDyesBody is a set's body from its entries.
-func petDyesBody(e ...petDyed) []byte { return encodePetDyes(e) }
+func petDyesBody(e ...petDyed) []byte { return encodePetDyes(e, 1) }
 
 // A client that draws pet dyes is sent the dyed pets on its entity slots, by
 // the slot's id: the owner's dyes on the pet's body, area 2's materials by
@@ -178,12 +178,49 @@ func TestPetDyesInViewOnlyToClientsThatDrawThem(t *testing.T) {
 
 // OpcodePetDyes's body: a u8 count, then 24 bytes a pet, little-endian.
 func TestEncodePetDyes(t *testing.T) {
-	got := encodePetDyes([]petDyed{{id: 0x01020304, look: jarekLook, dye: PetDye{0xAABBCCDD, 0x11223344}, mask: 1<<63 | 5}})
+	got := encodePetDyes([]petDyed{{id: 0x01020304, look: jarekLook, dye: PetDye{0xAABBCCDD, 0x11223344}, mask: 1<<63 | 5}}, 1)
 	want := []byte{1, 4, 3, 2, 1, 0xA8, 0x4D, 0x76, 0x15, 0xDD, 0xCC, 0xBB, 0xAA, 0x44, 0x33, 0x22, 0x11, 5, 0, 0, 0, 0, 0, 0, 0x80}
 	if !bytes.Equal(got, want) {
 		t.Fatalf("%x, want %x", got, want)
 	}
-	if b := encodePetDyes(nil); !bytes.Equal(b, []byte{0}) {
+	if b := encodePetDyes(nil, 2); !bytes.Equal(b, []byte{0}) {
 		t.Fatalf("none: %x", b)
+	}
+}
+
+// Layout 2 (the owner, 2026-11-16: "the pets need their clothes as one dye
+// and the rest another like we two tone equipment"): a body with no
+// petdyeareas row goes by the client's rule, both colours and a rule byte of
+// 0; one with a row by its mask, a rule byte of 1; a layout 1 client of the
+// same pet is told it as before (one area, area 1's colour; the control).
+func TestPetDyesLayoutTwoByTheRule(t *testing.T) {
+	aw := newAssistWorld(t)
+	w := aw.w
+	pet := &NPC{ServerID: 2100, Name: "Construct", ModelID: jarekLook, Owner: aw.b.ServerID}
+	w.NPCs[pet.ServerID] = pet
+	vs := GetOrCreateVisibility(aw.asker)
+	vs.ChannelEntity[5], vs.ChannelObjectID[5] = pet.ServerID, 100009
+	aw.b.PetDyes = map[uint32]PetDye{jarekLook: {0xD10000FF, 0x008000FF}}
+	aw.asker.SetPetDyesLayout(2)
+	w.petDyesSyncSystem()
+	want := encodePetDyes([]petDyed{{id: 100009, look: jarekLook, dye: PetDye{0xD10000FF, 0x008000FF}, rule: true}}, 2)
+	if got := petDyeSets(aw.asker); len(got) != 1 || !bytes.Equal(got[0], want) || want[len(want)-1] != PetDyesByRule || len(want) != 1+25 {
+		t.Fatalf("by the rule: %x, want %x", got, want)
+	}
+	w.SetPetDyeAreas(map[uint32]database.PetDyeArea{jarekLook: {Look: jarekLook, Area1: "Torso", Area2: "Spider body", Mask: 1}})
+	w.petDyesSyncSystem()
+	want = encodePetDyes([]petDyed{{id: 100009, look: jarekLook, dye: PetDye{0xD10000FF, 0x008000FF}, mask: 1}}, 2)
+	if got := petDyeSets(aw.asker); len(got) != 1 || !bytes.Equal(got[0], want) || want[len(want)-1] != PetDyesByMask {
+		t.Fatalf("by a row's mask: %x, want %x", got, want)
+	}
+	w.SetPetDyeAreas(nil)
+	aw.asker.SetPetDyesLayout(1)
+	GetOrCreateVisibility(aw.asker).ResendPetDyes()
+	w.petDyesSyncSystem()
+	if got, one := petDyeSets(aw.asker), petDyesBody(petDyed{id: 100009, look: jarekLook, dye: PetDye{0xD10000FF, 0}}); len(got) != 1 || !bytes.Equal(got[0], one) {
+		t.Fatalf("layout 1: %x, want %x", got, one)
+	}
+	if !PetBodyClothed(jarekLook) || PetBodyClothed(0x8A416241) {
+		t.Error("the drachnid wears clothing by the rule, the fire elemental none")
 	}
 }

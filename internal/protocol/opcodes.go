@@ -590,15 +590,17 @@ const (
 	// decorations' 0x7E80-0x7E82, are this lane's.
 
 	// OpcodePetDyesOffer is not retail: the server's offer of its pets' dyes,
-	// server to client once the player is in the world: a u8, the layout (1).
+	// server to client once the player is in the world: a u8, the newest layout
+	// it sends (2 since 2026-11-16, a rule byte per pet; 1 before).
 	// A PS2 ignores it (CLIENT's dispatcher has no case above 0x1402 and no
 	// default) and never answers, so it draws every pet in its body's own
 	// colours.
 	OpcodePetDyesOffer GameOpcode = 0x7E90
 
 	// OpcodePetDyesAnswer is a client's answer to OpcodePetDyesOffer, client to
-	// server: a u8, the layout it reads (1), 0 to stop (a wider answer is read
-	// by its first byte). From a 1 on it is sent OpcodePetDyes.
+	// server: a u8, the layout it reads (1, or 2 with the rule byte; one past
+	// the offer's is the offer's), 0 to stop (a wider answer is read by its
+	// first byte). From a 1 on it is sent OpcodePetDyes.
 	OpcodePetDyesAnswer GameOpcode = 0x7E91
 
 	// OpcodePetDyes is the dyed pets in a client's view, server to a client
@@ -612,7 +614,12 @@ const (
 	// body and area 2 nothing), little-endian. A colour multiplies the
 	// area's layer colours' red, green and blue as an NPC's body tint does
 	// (OpcodeNPCTints), as much of it as its alpha says. Each one is the
-	// whole set: an id it leaves out is drawn in its own colours.
+	// whole set: an id it leaves out is drawn in its own colours. Layout 2
+	// (the owner, 2026-11-16: "the pets need their clothes as one dye and the
+	// rest another like we two tone equipment") puts a u8 after each mask: 0
+	// (entity.PetDyesByRule) the client tells the areas apart, area 1 the
+	// body's clothing and area 2 the rest of it, the mask unused (a body with
+	// no petdyeareas row); 1 (PetDyesByMask) the mask as layout 1 has it.
 	OpcodePetDyes GameOpcode = 0x7E92
 
 	// OpcodeNoclip is not retail: a GM's /noclip (handlers/noclip.go,

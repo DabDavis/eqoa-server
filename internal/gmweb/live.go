@@ -490,8 +490,9 @@ func checkItemAuraRow(row map[string]any) error {
 	}
 	// a circlet (kind 8): an item worn on the head that is one (nodes its height
 	// 0-100); an epic look or an energy skin (7, 9): a held item's own (nodes
-	// where along it 0-100)
-	if kind, kok := asFloat(row["kind"]); kok && (kind == database.AuraCirclet || kind == database.AuraEpic || kind == database.AuraEnergy) {
+	// where along it 0-100); a hat (10): an item worn on the head that is one
+	// (its source a body with a hat built in, nodes 0-32 unused)
+	if kind, kok := asFloat(row["kind"]); kok && (kind == database.AuraCirclet || kind == database.AuraEpic || kind == database.AuraEnergy || kind == database.AuraHat) {
 		if v, has := row["nodes"]; has {
 			if f, fok := asFloat(v); !fok || f != math.Trunc(f) || !database.ValidItemAura(int64(kind), int64(f)) {
 				return badRequest("a circlet's Nodes is how high on the head it sits, a held item's where along it: 1-%d percent, 0 the default", database.AuraAlongMost)

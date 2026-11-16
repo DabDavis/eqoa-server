@@ -2136,13 +2136,8 @@ func (h *CharacterHandler) SendMemoryDump(sess *session.Session) {
 // and the character's stored items and spells, and queues it. A login sends
 // it after Camera1 and Time (SendMemoryDump); a respawn sends it alone
 // (respawnPlayer), as Sandstorm does.
-//
-// The server's clock follows it (0x0013): the client's sun has fallen behind
-// the world's since its last (session/gameclock.go), and VISyncTime blends
-// the new reading in. A login's dump comes after one already.
 func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity.Player) {
 	h.queueMemoryDumpAt(sess, player, false)
-	sess.QueueGameTime(time.Now())
 }
 
 // queueMemoryDumpAt is queueMemoryDump; login (SendMemoryDump's) also brings

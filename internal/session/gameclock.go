@@ -35,9 +35,9 @@ import (
 // degrees, and two players who entered the world an hour apart see it that
 // far apart (the owner, 2026-11-16: "the sun is not all in the same spot").
 // The server's clock is the one truth: a client in the world is sent it
-// again every ClockResync (QueueGameTime, the listener's tick), and after
-// every dump (a respawn, a gate, a restart's resume), which VISyncTime blends
-// in with no jump. Between two the clock loses at most 1.7% of ClockResync.
+// again every ClockResync (QueueGameTime, the listener's tick: a dump alone
+// is a respawn's, so a restart's resume is resynced on the tick after its
+// dump, its clock long due), which VISyncTime blends in with no jump. Between two the clock loses at most 1.7% of ClockResync.
 
 // ClockResync is how often a client in the world is sent the server's clock
 // again: its sun at most 2.04 s of the clock behind, 0.8 game minutes.

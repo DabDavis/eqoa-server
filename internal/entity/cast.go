@@ -1238,7 +1238,7 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 		// cast"); the landing still spares one moved out of sight (sight.go)
 		// (an area round its caster goes off where its caster stands: it
 		// needs no sight of its target, and spares what is out of sight)
-		if spell.Area.Centre != AreaOnCaster && (t.World != p.World || !w.inSightLocked(p.World, p.X, p.Y, p.Z, t.X, t.Y, t.Z)) {
+		if spell.Area.Centre != AreaOnCaster && !w.seesCreatureLocked(p, t) { // its body, as big as it is (petition 2202)
 			log.Printf("LoS: %s's %q at %s refused before it began, out of sight", p.Name, spell.Name, t.Name)
 			return nil, castNotSeen
 		}

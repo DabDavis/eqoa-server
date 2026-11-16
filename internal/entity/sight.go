@@ -46,6 +46,19 @@ import (
 // Harmful single-target spells, melee, a fight once it has begun and a town
 // guard's help stay as they were.
 //
+// A player's shot or harmful spell at a creature bigger than a man looks at
+// its body where it stands up (seesCreatureLocked): the target end's heights
+// are a man's times its body (bodyScale, at most bodyKneeMost), the shooter's
+// his own. Heirloom petition 2202 (Zerkziee, 2026-11-16, the Isle of Dread):
+// "Megaladon fight doesnt seem right with range in the water I had to get on
+// top of him to actually shoot him with a bow ability/attack". The shark (size
+// 4, its body's edge 33) swims in the channel along the beach with its feet at
+// 50.8, under the sand's 54.1, so a man's head over its feet (52.5) was under
+// the beach from where a player stood on it: Burning Shot within its reach was
+// refused out of sight while its back stood out of the water, and only a
+// player over it could shoot. What hides a man from a man still hides it
+// (anything as high as its scaled head: at most 3 times a man's).
+//
 // Two lines are drawn, at a man's head (a body is the walk's capsule, 2 tall)
 // and at his waist, the same heights at both ends. Either clear is enough for a
 // creature to notice someone: the head sees over a low wall, and the waist is
@@ -87,6 +100,27 @@ func (w *World) inSightLocked(world uint8, x0, y0, z0, x1, y1, z1 float32) bool 
 		s.Sees(world, x0, y0+sightWaist, z0, x1, y1+sightWaist, z1)
 }
 
+// seesCreatureLocked reports a player's line of sight to a creature, as he
+// shoots it or begins a harmful spell at it (the file's doc): either line
+// from him to its body at a man's heights (inSightLocked), or, for a body
+// bigger than a man's, to its own heights (bodyScale). Must be called with
+// the lock held.
+func (w *World) seesCreatureLocked(p *Player, npc *NPC) bool {
+	if p.World != npc.World {
+		return false
+	}
+	if w.inSightLocked(p.World, p.X, p.Y, p.Z, npc.X, npc.Y, npc.Z) {
+		return true
+	}
+	k := bodyScale(npc)
+	s, ok := w.ground.(Sight)
+	if !ok || k <= 1 {
+		return false
+	}
+	return s.Sees(p.World, p.X, p.Y+sightHead, p.Z, npc.X, npc.Y+sightHead*k, npc.Z) ||
+		s.Sees(p.World, p.X, p.Y+sightWaist, p.Z, npc.X, npc.Y+sightWaist*k, npc.Z)
+}
+
 // clearLineLocked is what an area spell asks of the line between two bodies:
 // a line of sight between them, at either height (inSightLocked; the file's
 // doc). Must be called with the lock held.
@@ -126,13 +160,13 @@ func (w *World) helpHiddenLocked(cs *castState, caster *Player, casterSess *sess
 }
 
 // shotUnseenLocked reports a ranged swing (a bow's shot, a throw) at npc that
-// its shooter cannot see (inSightLocked), told castNotSeen in red (sess nil:
+// its shooter cannot see (seesCreatureLocked), told castNotSeen in red (sess nil:
 // untold) and logged; a melee swing, never. Must be called with the lock held.
 func (w *World) shotUnseenLocked(sess *session.Session, p *Player, npc *NPC) bool {
 	if p.Swing.Kind < swingRange1 || p.Swing.Kind > swingRange4 {
 		return false
 	}
-	if p.World == npc.World && w.inSightLocked(p.World, p.X, p.Y, p.Z, npc.X, npc.Y, npc.Z) &&
+	if w.seesCreatureLocked(p, npc) && // its body, as big as it is
 		!w.playerWalledOffLocked(p, npc, "shot") { // nor through a quest wall (questwallfight.go, petition 2198)
 		return false
 	}

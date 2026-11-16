@@ -80,15 +80,23 @@ const bodyKneeMost float32 = 3
 // times its size over a man's edge, never below a man's knee nor past
 // bodyKneeMost of it; a man's for a body the server does not know.
 func bodyKnee(npc *NPC) float32 {
+	return legKnee * bodyScale(npc)
+}
+
+// bodyScale is how many times a man's the creature's body is, for its knee
+// (bodyKnee) and its heights as a target is looked at (sight.go): its model's
+// edge times its size over a man's edge, never below 1 nor past
+// bodyKneeMost; 1 for a body the server does not know.
+func bodyScale(npc *NPC) float32 {
 	r, ok := ModelRadius(uint32(npc.ModelID))
 	if !ok || r <= 0 {
-		return legKnee
+		return 1
 	}
 	size := npc.Size
 	if size <= 0 {
 		size = 1
 	}
-	return legKnee * min(max(r*size/humanRadius, 1), bodyKneeMost)
+	return min(max(r*size/humanRadius, 1), bodyKneeMost)
 }
 
 // CLIENT's ground probe and the room a creature is kept clear in

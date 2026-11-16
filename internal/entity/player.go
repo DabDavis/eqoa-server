@@ -83,6 +83,9 @@ type Player struct {
 	// Dyes: a colour per armour slot, held item and the robe (livelook.go,
 	// table chardyes), drawn by a client of the live game's look; 0 none.
 	Dyes Dyes
+	// PetDyes: its pets' dyes by body, [area 1, area 2] each 0xRRGGBBAA (0
+	// none; petdyes.go, table petdyes), drawn by a client that asked for them
+	PetDyes map[uint32]PetDye
 	// CapeStyle is the worn cape's style (its record's model, 1-255; 0 none
 	// worn) and CapeColor its colour (0xRRGGBBAA, 0 the art's own): an equip
 	// slot of this server's own, told only to the clients that draw capes

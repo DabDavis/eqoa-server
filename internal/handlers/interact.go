@@ -43,6 +43,8 @@ type InteractHandler struct {
 	dyer *Dyer
 	// enchanter answers the Weapon Enchanters (enchanter.go); nil: none
 	enchanter *Enchanter
+	// groomer answers the Pet Groomers (petgroomer.go); nil: no groomer
+	groomer *Groomer
 	// genie is the lamps' genies (genie.go)
 	genie *Genie
 	// portal is the Summoning Portals' talk (summonportal.go)
@@ -439,6 +441,10 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.enchanter.Talk(sess, player, npc) {
 		return nil
 	}
+	// a Pet Groomer (petgroomer.go)
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.groomer.Talk(sess, player, npc) {
+		return nil
+	}
 
 	// A GM's portal switched on at this NPC (gmportal.go, /markportal): Yes
 	// or No to its place (a waysender's own trips listed with it).
@@ -669,6 +675,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// a Weapon Enchanter's (enchanter.go)
 	if h.enchanter.Answer(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// a groomer's (petgroomer.go); an old one does nothing
+	if h.groomer.Answer(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// a genie's (genie.go); an old one does nothing

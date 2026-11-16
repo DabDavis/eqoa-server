@@ -583,6 +583,38 @@ const (
 	// but what the server may send it: only #fly turns flight on.
 	OpcodeFly GameOpcode = 0x7E1B
 
+	// The Pet Groomer's dyes on pets (entity/petdyes.go, handlers/petgroomer.go,
+	// tables petdyes and petdyeareas; the owner, 2026-11-16: the drachnid pet
+	// should "have 2 different color areas that can be changed like armor dye
+	// (will be a template for pet color dye)"). 0x7E90-0x7E92, past the
+	// decorations' 0x7E80-0x7E82, are this lane's.
+
+	// OpcodePetDyesOffer is not retail: the server's offer of its pets' dyes,
+	// server to client once the player is in the world: a u8, the layout (1).
+	// A PS2 ignores it (CLIENT's dispatcher has no case above 0x1402 and no
+	// default) and never answers, so it draws every pet in its body's own
+	// colours.
+	OpcodePetDyesOffer GameOpcode = 0x7E90
+
+	// OpcodePetDyesAnswer is a client's answer to OpcodePetDyesOffer, client to
+	// server: a u8, the layout it reads (1), 0 to stop (a wider answer is read
+	// by its first byte). From a 1 on it is sent OpcodePetDyes.
+	OpcodePetDyesAnswer GameOpcode = 0x7E91
+
+	// OpcodePetDyes is the dyed pets in a client's view, server to a client
+	// that answered 1, in the world, when the set changes and again at each
+	// MemoryDump and world change: a u8 count, then for each pet a u32 id (as
+	// that client knows the entity: the visibility channel's object id), a
+	// u32 body (the model DictID the dyes are for: the client draws them only
+	// on that body), a u32 colour of area 1 and a u32 of area 2 (0xRRGGBBAA,
+	// red first; 0 that area's own colours), and a u64 mask of area 2's
+	// materials (bit n the body's palette material n; 0: area 1 is the whole
+	// body and area 2 nothing), little-endian. A colour multiplies the
+	// area's layer colours' red, green and blue as an NPC's body tint does
+	// (OpcodeNPCTints), as much of it as its alpha says. Each one is the
+	// whole set: an id it leaves out is drawn in its own colours.
+	OpcodePetDyes GameOpcode = 0x7E92
+
 	// OpcodeNoclip is not retail: a GM's /noclip (handlers/noclip.go,
 	// entity/noclip.go; the GM Jibrish's petition 1904), server to a client that
 	// flies (OpcodeFly's): a u32, 1 on and 0 off. On, the client's walk passes
@@ -1655,6 +1687,12 @@ func (op GameOpcode) String() string {
 		return "NPCTintsAnswer"
 	case OpcodeNPCTints:
 		return "NPCTints"
+	case OpcodePetDyesOffer:
+		return "PetDyesOffer"
+	case OpcodePetDyesAnswer:
+		return "PetDyesAnswer"
+	case OpcodePetDyes:
+		return "PetDyes"
 	case OpcodeItemLinksOffer:
 		return "ItemLinksOffer"
 	case OpcodeItemLinkSay:

@@ -104,6 +104,10 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return msg
 	case "chardyes":
 		return s.liveDyes(before, after) // live_dyes.go
+	case "petdyes":
+		return s.livePetDyes(before, after) // live_dyes.go
+	case "petdyeareas":
+		return s.livePetDyeAreas() // live_dyes.go
 	case "charlook":
 		return s.liveLooks() // live_racesize.go
 	case "charvampire":

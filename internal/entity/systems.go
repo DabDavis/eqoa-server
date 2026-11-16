@@ -122,6 +122,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	t.mark(tsGuildAnnounce)
 	w.visibilitySystem()
 	w.capesSyncSystem()      // the capes on this tick's slots, to the clients that draw them (capes.go)
+	w.petDyesSyncSystem()    // the dyed pets on this tick's slots, to the clients that draw them (petdyes.go)
 	w.questHeadMarksSystem() // the quest marks over the NPCs on this tick's slots (questheadmarks.go)
 	t.mark(tsVisibility)
 	w.groupSyncSystem()

@@ -491,3 +491,48 @@ func TestGMLookColours(t *testing.T) {
 		t.Fatalf("an NPC's hair: %q", l)
 	}
 }
+
+// /aura item <id> second (2026-11-16): a held item's second aura kept beside
+// its first, audited, in the world at once; a shell refused; off clears it;
+// the named look "sword of virtue" is the paladin's epic's.
+func TestGMAuraItemSecond(t *testing.T) {
+	c, db, _, gs, _, _ := campWorld(t)
+	res, err := db.Exec(`INSERT INTO itempattern (itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent, unk4, attacktype,
+		weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, lore, unk6, craft, itemname, itemdesc, model, color)
+		VALUES (0, 0, 1, 0, 14, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 32767, 32767, 0, 0, 0, 0, 'Icingdeath', '', 4, 0)`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pid64, _ := res.LastInsertId()
+	pid := strconv.Itoa(int(pid64))
+	c.say(gs, "/aura item "+pid+" second shell 3060FFFF")
+	if l := gmReplies(t, gs); !hasLine(l, "Usage") {
+		t.Fatalf("a shell as a second: %q", l)
+	}
+	c.say(gs, "/aura item "+pid+" second particles 3060FFFF 6C151A60 0")
+	if l := gmReplies(t, gs); !hasLine(l, "second aura: now") {
+		t.Fatalf("/aura item second: %q", l)
+	}
+	c.say(gs, "/aura item "+pid+" second epic 3060FFFF 88EC092D 101")
+	if l := gmReplies(t, gs); !hasLine(l, "Usage") {
+		t.Fatalf("along 101: %q", l)
+	}
+	second, _ := db.ItemSecondAuras()
+	if a := second[int(pid64)]; a != (database.ItemAura{PatternID: int(pid64), Color: 0x3060FFFF, Kind: database.AuraParticles, Source: 0x6C151A60}) {
+		t.Fatalf("the second: %+v", a)
+	}
+	p := &entity.Player{}
+	p.CharServerID = 9
+	p.SetWornPiece(entity.AuraMainHand, int(pid64))
+	if a := c.gw.PieceAurasOf(p); a == nil || a[entity.AuraMainHand2].Source != 0x6C151A60 {
+		t.Fatalf("not in the world: %+v", a)
+	}
+	c.say(gs, "/aura item "+pid+" second off")
+	if second, _ := db.ItemSecondAuras(); len(second) != 0 || auditLines(t, db, "itemaura", "insert") != 1 || auditLines(t, db, "itemaura", "delete") != 1 {
+		t.Fatal("/aura item second off: not deleted, or not audited")
+	}
+	sp, err := parseAuraEasy([]string{"blue", "sword", "of", "virtue", "mainhand"})
+	if err != nil || sp.A != (database.ItemAura{Color: 0x3060FFFF, Kind: database.AuraEpic, Source: 0x88EC092D}) || sp.Where != entity.AuraMainHand || sp.Look != "sword of virtue" {
+		t.Fatalf("sword of virtue: %+v %v", sp, err)
+	}
+}

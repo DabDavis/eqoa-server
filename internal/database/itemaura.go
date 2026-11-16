@@ -30,13 +30,39 @@ const itemAuraSchema = `
 		kind      INTEGER NOT NULL DEFAULT 0,
 		source    INTEGER NOT NULL DEFAULT 0,
 		nodes     INTEGER NOT NULL DEFAULT 0,
-		note      TEXT NOT NULL DEFAULT ''
+		note      TEXT NOT NULL DEFAULT '',
+		color2    INTEGER NOT NULL DEFAULT 0,
+		kind2     INTEGER NOT NULL DEFAULT 0,
+		source2   INTEGER NOT NULL DEFAULT 0,
+		nodes2    INTEGER NOT NULL DEFAULT 0
 	);`
 
-// ensureItemAura makes table itemaura (initSchema).
+// itemAuraSecondCols are a held item's second aura's columns (the owner,
+// 2026-11-16: "also give icing death the sword of virtue aura blue and also
+// the freezing so we can have 2 auras now"): color2, kind2, source2, nodes2,
+// as color, kind, source, nodes are the first's. All 0 (the default) none. A
+// second aura is a held item's alone (HandAuraKind: the particles, an epic's
+// look, an energy skin), sent after the hands' first auras to a client that
+// asked for it (the live look's bit 7, entity.SecondAuraChannel); an older
+// server never reads the columns, an older client is never sent them.
+var itemAuraSecondCols = []string{"color2", "kind2", "source2", "nodes2"}
+
+// ensureItemAura makes table itemaura (initSchema), and gives a table made
+// before the second auras (2026-11-16) their columns.
 func (db *SQLiteDB) ensureItemAura() error {
 	if _, err := db.Exec(itemAuraSchema); err != nil {
 		return fmt.Errorf("itemaura: %w", err)
+	}
+	for _, col := range itemAuraSecondCols {
+		has, err := hasColumn(db.DB, "itemaura", col)
+		if err != nil {
+			return fmt.Errorf("itemaura: %w", err)
+		}
+		if !has {
+			if _, err := db.Exec(`ALTER TABLE itemaura ADD COLUMN ` + col + ` INTEGER NOT NULL DEFAULT 0`); err != nil {
+				return fmt.Errorf("itemaura: %s: %w", col, err)
+			}
+		}
 	}
 	return nil
 }
@@ -80,6 +106,129 @@ func (db *SQLiteDB) ItemAuras() (map[int]ItemAura, error) {
 	return out, rows.Err()
 }
 
+// ValidItemAuraSecond holds an itemaura row's second aura (kind2, nodes2): a
+// held item's kind (HandAuraKind) with its along (0-AuraAlongMost), or none
+// (kind 0 with nothing else: the columns' default; or AuraNone).
+func ValidItemAuraSecond(kind, nodes int64) bool {
+	if kind == AuraDefault || kind == AuraNone {
+		return nodes == 0
+	}
+	return HandAuraKind(kind) && nodes >= 0 && nodes <= AuraAlongMost
+}
+
+// SecondShows reports whether a second aura draws anything: one of a held
+// item's kinds (a default or none draws nothing there).
+func (a ItemAura) SecondShows() bool { return HandAuraKind(int64(a.Kind)) && a.Shows() }
+
+// ItemSecondAuras is every itemaura row's second aura that draws something
+// (SecondShows), by patternid: a held item's second (entity.pieceAuras). A row
+// out of the client's ranges left out.
+func (db *SQLiteDB) ItemSecondAuras() (map[int]ItemAura, error) {
+	rows, err := db.Query(`SELECT patternid, color2, kind2, source2, nodes2 FROM itemaura WHERE kind2 != 0`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := make(map[int]ItemAura)
+	for rows.Next() {
+		var id int
+		var color, kind, source, nodes int64
+		if err := rows.Scan(&id, &color, &kind, &source, &nodes); err != nil {
+			return nil, err
+		}
+		c, cok := tint32(color)
+		src, sok := tint32(source)
+		if !cok || !sok || !ValidItemAuraSecond(kind, nodes) {
+			continue
+		}
+		if a := (ItemAura{PatternID: id, Color: c, Kind: uint8(kind), Source: src, Nodes: uint8(nodes)}); a.SecondShows() {
+			out[id] = a
+		}
+	}
+	return out, rows.Err()
+}
+
+// SetItemAuraSecondAudited writes item a.PatternID's second aura (an aura that
+// draws nothing clears the columns; the row made, with no first aura, when
+// there is none; a row left with neither deleted), with an audit line: a GM's
+// /aura item <id> second. It reports whether an itempattern of that id exists
+// (none: no change). The aura must be a held item's (ValidItemAuraSecond).
+func (db *SQLiteDB) SetItemAuraSecondAudited(a ItemAura, who GMEdit, detail string) (bool, error) {
+	if a.Kind != AuraDefault && a.Kind != AuraNone && !ValidItemAuraSecond(int64(a.Kind), int64(a.Nodes)) {
+		return false, fmt.Errorf("a second aura is a held item's: particles, epic or energy")
+	}
+	if !a.SecondShows() {
+		a = ItemAura{PatternID: a.PatternID}
+	}
+	if _, err := db.Exec(GMAuditSchema); err != nil {
+		return false, err
+	}
+	tx, err := db.Begin()
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback()
+	var n int
+	if err := tx.QueryRow(`SELECT COUNT(*) FROM itempattern WHERE patternid = ?`, a.PatternID).Scan(&n); err != nil || n == 0 {
+		return false, err
+	}
+	fillWho(tx, &who)
+	key := map[string]any{"patternid": a.PatternID}
+	before, err := fullRow(tx, `SELECT * FROM itemaura WHERE patternid = ?`, a.PatternID)
+	if err != nil {
+		return true, err
+	}
+	action := "update"
+	switch {
+	case before == nil && !a.SecondShows():
+		return true, nil
+	case before == nil:
+		action = "insert"
+		_, err = tx.Exec(`INSERT INTO itemaura (patternid, kind, color2, kind2, source2, nodes2) VALUES (?, ?, ?, ?, ?, ?)`,
+			a.PatternID, AuraNone, int64(a.Color), a.Kind, int64(a.Source), a.Nodes)
+	default:
+		_, err = tx.Exec(`UPDATE itemaura SET color2 = ?, kind2 = ?, source2 = ?, nodes2 = ? WHERE patternid = ?`,
+			int64(a.Color), a.Kind, int64(a.Source), a.Nodes, a.PatternID)
+		if err == nil && !a.SecondShows() {
+			// neither aura left: the row goes, as a first aura cleared does
+			var c, k int64
+			if err = tx.QueryRow(`SELECT color, kind FROM itemaura WHERE patternid = ?`, a.PatternID).Scan(&c, &k); err == nil {
+				if cc, ok := tint32(c); ok && !AuraShows(cc, uint8(k)) {
+					action = "delete"
+					_, err = tx.Exec(`DELETE FROM itemaura WHERE patternid = ?`, a.PatternID)
+				}
+			}
+		}
+	}
+	if err != nil {
+		return true, err
+	}
+	after, err := fullRow(tx, `SELECT * FROM itemaura WHERE patternid = ?`, a.PatternID)
+	if err != nil {
+		return true, err
+	}
+	if _, err := auditRowChange(tx, who, action, "itemaura", key, before, after, detail); err != nil {
+		return true, err
+	}
+	return true, tx.Commit()
+}
+
+// itemAuraHasSecond reports whether item id's itemaura row (in tx) carries a
+// second aura that draws (the first cleared keeps the row for it).
+func itemAuraHasSecond(tx *sql.Tx, id int) (bool, error) {
+	var c, k, s, n int64
+	err := tx.QueryRow(`SELECT color2, kind2, source2, nodes2 FROM itemaura WHERE patternid = ?`, id).Scan(&c, &k, &s, &n)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	cc, _ := tint32(c)
+	ss, _ := tint32(s)
+	return ItemAura{Color: cc, Kind: uint8(k), Source: ss, Nodes: uint8(n)}.SecondShows(), nil
+}
+
 // SetItemAuraAudited writes item patternid's aura (a row made when there is
 // none; an aura that draws nothing deletes it), with an audit line: a GM's
 // /aura item. It reports whether an itempattern of that id exists (none: no
@@ -104,7 +253,16 @@ func (db *SQLiteDB) SetItemAuraAudited(a ItemAura, who GMEdit, detail string) (b
 		return true, err
 	}
 	action := "update"
+	second := false
+	if before != nil {
+		if second, err = itemAuraHasSecond(tx, a.PatternID); err != nil {
+			return true, err
+		}
+	}
 	switch {
+	case !a.Shows() && second:
+		// the first aura cleared, the second kept: the row stays, its first none
+		_, err = tx.Exec(`UPDATE itemaura SET color = 0, kind = ?, source = 0, nodes = 0 WHERE patternid = ?`, AuraNone, a.PatternID)
 	case !a.Shows():
 		if before == nil {
 			return true, nil

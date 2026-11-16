@@ -123,7 +123,8 @@ func ServerWorldList() []worlds.Built {
 // server's own worlds and names their slots (worldNames), and says what it
 // found. A recipe whose file is missing or of another size is passed over,
 // loudly: a client told to build it would build a world the server does not
-// have.
+// have. So is one whose file was built before -0 was written as 0
+// (worlds.StaleNegativeZeros): every client's build of it fails the CRC.
 func LoadServerWorlds(configured string, slots []int) []worlds.Built {
 	dir := worlds.Dir(configured)
 	var out []worlds.Built
@@ -148,6 +149,12 @@ func LoadServerWorlds(configured string, slots []int) []worlds.Built {
 		st, err := os.Stat(filepath.Join(dir, worlds.Name(slot)))
 		if err != nil || st.Size() != b.Size {
 			log.Printf("Server worlds: %s is not the %d bytes %s was built as (%v); not offered", worlds.Name(slot), b.Size, meta, err)
+			continue
+		}
+		// a file built before -0 was written as 0 (worlds.ActorBits): every
+		// client builds it with 0s, another CRC, and holds none of it
+		if stale, err := worlds.StaleNegativeZeros(filepath.Join(dir, worlds.Name(slot)), b); err != nil || stale > 0 {
+			log.Printf("Server worlds: %s was built before -0 was written as 0 (%d of its extras' records are not as the list sends them, %v): no client builds its CRC; rebuild it (cmd/worldbuild -recipe %s) and its ground; not offered", worlds.Name(slot), stale, err, meta)
 			continue
 		}
 		out = append(out, b)
@@ -273,12 +280,7 @@ func appendExtras(b []byte, extras []worlds.Extra) []byte {
 			at = byte(index[place{strings.ToUpper(e.From), e.Zone}])
 		}
 		b = append(b, at)
-		b = binary.LittleEndian.AppendUint32(b, uint32(e.Sprite))
-		for _, v := range [7]float32{e.At[0], e.At[1], e.At[2], e.HPR[0], e.HPR[1], e.HPR[2], e.ActorScale()} {
-			b = binary.LittleEndian.AppendUint32(b, worlds.ActorBits(v))
-		}
-		l := e.ActorLight()
-		b = append(b, l[:]...)
+		b = append(b, worlds.ActorTail(e)...)
 	}
 	return b
 }

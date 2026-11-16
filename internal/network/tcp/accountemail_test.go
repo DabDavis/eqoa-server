@@ -276,13 +276,14 @@ func newMailAuth(t *testing.T) (*AuthServer, *mailRig) {
 func TestStationCreatesTheAccountWithItsEmail(t *testing.T) {
 	s, r := newMailAuth(t)
 	ip := []byte{198, 51, 100, 40}
-	// no address: refused, and said why
-	resp := s.handleCreateAccountMail(createPayload(t, "frodo", "ringbearer", ""), ip)
-	if binary.BigEndian.Uint32(resp[12:16]) != 0 || !strings.Contains(replyText(resp), "e-mail address is required") || len(resp) != 276 {
+	// no address (the disc's own form, before a patch): made without one, as the owner asked on 2026-11-16;
+	// the reminders and the deadline ask for it later
+	resp := s.handleCreateAccountMail(createPayload(t, "bilbo", "ringbearer", ""), []byte{198, 51, 100, 41})
+	if binary.BigEndian.Uint32(resp[12:16]) != 1 || len(resp) != 276 {
 		t.Fatalf("no address: %q", replyText(resp))
 	}
-	if _, err := database.NewSQLiteAccountStore(r.db).GetByUsername("frodo"); err == nil {
-		t.Fatal("an account made without an address")
+	if _, err := database.NewSQLiteAccountStore(r.db).GetByUsername("bilbo"); err != nil {
+		t.Fatalf("the account without an address was not made: %v", err)
 	}
 	resp = s.handleCreateAccountMail(createPayload(t, "frodo", "ringbearer", "frodo@example.com"), ip)
 	if binary.BigEndian.Uint32(resp[12:16]) != 1 {

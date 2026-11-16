@@ -201,12 +201,14 @@ func (s *AuthServer) handleCreateAccountMail(payload []byte, ip net.IP) []byte {
 	if err := validNewAccount(username, password); err != nil {
 		return buildCreateReply(false, err.Error())
 	}
+	// No usable address (the owner, 2026-11-16: "players are getting stuck on zip code and extra fields"): a
+	// client that has not patched yet shows the disc's own Create Account (zip code and the rest, no e-mail at
+	// this offset), and refusing it left them nowhere to go. The account is made without an address; the world's
+	// reminders and mail.require_after ask for one, as for every account made before e-mail.
 	email, err := mailer.Normalize(raw)
 	if err != nil {
-		if strings.TrimSpace(raw) == "" {
-			return buildCreateReply(false, "An e-mail address is required: go back and enter yours. We send a link to it to verify your account.")
-		}
-		return buildCreateReply(false, "That e-mail address is not one we can use: "+err.Error()+".")
+		log.Printf("Auth: create account for '%s': no usable e-mail (%q: %v): made without one, to be added on the website", username, strings.TrimSpace(raw), err)
+		email = ""
 	}
 	if _, err := s.store.GetByUsername(username); err == nil {
 		log.Printf("Auth: create account: '%s' exists already", username)
@@ -235,6 +237,10 @@ func (s *AuthServer) handleCreateAccountMail(payload []byte, ip net.IP) []byte {
 	ipText := ""
 	if ip != nil {
 		ipText = ip.String()
+	}
+	if email == "" {
+		log.Printf("Auth: account '%s' (ID: %d) made by STATION from %v without an e-mail", username, acc.ID, ip)
+		return buildCreateReply(true, "")
 	}
 	masked, err := s.mail.SetEmail(acc.ID, email, ipText)
 	if err != nil {

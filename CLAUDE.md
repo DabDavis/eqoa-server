@@ -2748,7 +2748,15 @@ cast at its target, its splash only on what already fights its team (`mercSplash
 stays one it never casts. Never cast, by the existing rules: debuffs (Expose, Muscle Lock, Umbral Curse, Storm Caller's
 Curse), backstabs (Assassinate, Silent Blade), pickpockets (Quick Hands, Brilliant Strike), hate drops (Jolt, Soothing
 Prayer), forms and invisibility (Lich, Elder Form, Wild Nature, Vanish), Divine Reclamation, Mark of Faith, Subversion,
-Tribal Ward, Power Ballad. `TestMercMaster*`, `TestRealMercMasterClasses` (`EQOA_REAL_DB`).
+Tribal Ward, Power Ballad. `TestMercMaster*`, `TestRealMercMasterClasses` (`EQOA_REAL_DB`). **An alchemist's Master Class
+mixtures** (`entity/mercselfpotion.go`, petition 2216: "alc merc missing master class abilitys"; until then a Transmuter
+or Metabolist merc had its ranks' stats only, a mixture being a summoning no merc casts): the Transmuter's Transformative
+Pill it takes whenever it is not on it (its stats, never its ogre's look), its Transmutive Potion (a debuff) it throws
+first at a creature already fighting its team with none of it on (not again within half its time); the Metabolist's
+Miraculous Draught it drinks below 60% health; conjured, never used up, whatever its ten slots, not when the mixture is
+turned off; only its own Master Class's (classspells gives every alchemist all three by 60 under a plain `eqoa-data`
+source, so the book alone says nothing). `TestMercTransmuter*`, `TestMercMetabolist*`,
+`TestRealMercAlchemistMasterMixtures` (`EQOA_REAL_DB`).
 
 **Familiars** (`entity/familiar.go`, `handlers/familiar.go`, table `familiars`, `world.familiars`,
 `tools/seed_familiars.py [--list] [--apply|--undo]`; the GM Jibrish's petition 1445: Healbot): a follower an item calls,

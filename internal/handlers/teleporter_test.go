@@ -128,7 +128,7 @@ func TestTeleporterBoxes(t *testing.T) {
 		}
 		return l
 	}
-	if got := strings.Join(labels(root), "|"); got != "Raids|Isle of Dread|Plane of Sky|Camps, levels 1-22|Camps, levels 25-61" {
+	if got := strings.Join(labels(root), "|"); got != "Raids|Isle of Dread|Plane of Sky|Lavastorm|Camps, levels 1-22|Camps, levels 25-61" {
 		t.Errorf("the first box: %q", got)
 	}
 	if got := strings.Join(labels(root.kids[0]), "|"); got != strings.Join(teleRaidGroups, "|") {
@@ -153,7 +153,15 @@ func TestTeleporterBoxes(t *testing.T) {
 			t.Errorf("the camp on Xrag's rock is listed apart from the xrag camp: %q", s)
 		}
 	}
-	if n != 1 || len(trips) != len(teleRaids)+len(telePlaces)+len(campDests)+1 {
+	stops := 0
+	for _, a := range teleAreas {
+		stops += len(a.stops)
+	}
+	if got := strings.Join(labels(root.kids[3]), "|"); got != "The outpost, the way in|Between the lava bridges (59-63)|"+
+		"Past the third lava bridge (60-65)|The bridge, the goblins' fort (58-63)|The south road (59-61)|The gate of Solusek's Eye (59-65)" {
+		t.Errorf("Lavastorm's box: %q", got)
+	}
+	if n != 1 || len(trips) != len(teleRaids)+len(telePlaces)+stops+len(campDests)+1 {
 		t.Errorf("%d trips, %d of the GM's frost bats: %q", len(trips), n, trips)
 	}
 	// the camps in their levels' order
@@ -162,7 +170,7 @@ func TestTeleporterBoxes(t *testing.T) {
 		lo, _ := parseLevels(strings.TrimSuffix(s[i+1:], ")"))
 		return lo
 	}
-	camps := trips[len(teleRaids)+len(telePlaces):]
+	camps := trips[len(teleRaids)+len(telePlaces)+stops:]
 	if !sort.SliceIsSorted(camps, func(i, j int) bool { return lv(camps[i]) < lv(camps[j]) }) {
 		t.Errorf("the camps out of their levels' order: %q", camps)
 	}
@@ -238,6 +246,19 @@ func TestTeleporterTrips(t *testing.T) {
 		math.Abs(float64(r.pa.Facing)-3.068) > 0.01 || r.pa.Tunar != tunar {
 		t.Errorf("the Plane of Sky: %q, world %d (%.2f, %.2f, %.2f) facing %.2f", got, r.pa.World,
 			r.pa.X, r.pa.Y, r.pa.Z, r.pa.Facing)
+	}
+
+	// Lavastorm in steps (the owner, 2026-11-16): each stop where it says,
+	// facing on, for nothing
+	for _, st := range teleAreas[0].stops {
+		back()
+		got = pickPath(t, r, tp, "Lavastorm", st.label)
+		if !hasMsg(got, "chat:Teleporter: Very well.") || !hasMsg(got, "teleport") || r.pa.World != 3 ||
+			r.pa.X != st.at.X || r.pa.Y != st.at.Y || r.pa.Z != st.at.Z ||
+			math.Abs(float64(r.pa.Facing-st.at.Facing)) > 0.01 || r.pa.Tunar != tunar {
+			t.Errorf("Lavastorm, %s: %q, world %d (%.2f, %.2f, %.2f) facing %.2f, tunar %d -> %d", st.label, got,
+				r.pa.World, r.pa.X, r.pa.Y, r.pa.Z, r.pa.Facing, tunar, r.pa.Tunar)
+		}
 	}
 
 	back()
@@ -385,7 +406,7 @@ func TestLevelFoldShapes(t *testing.T) {
 
 // Its words fit their boxes.
 func TestTeleporterWordsFit(t *testing.T) {
-	for _, q := range []string{teleAskRoot, teleAskRaids, teleAskRaid, teleAskLevels, teleAskCamp} {
+	for _, q := range []string{teleAskRoot, teleAskRaids, teleAskRaid, teleAskLevels, teleAskCamp, teleAskLavastorm} {
 		if n := len([]rune(q)); n > questAskChars {
 			t.Errorf("%q is %d characters, a question shows %d", q, n, questAskChars)
 		}
@@ -399,6 +420,16 @@ func TestTeleporterWordsFit(t *testing.T) {
 		}
 		if n == 0 || n > maxDialogOptions {
 			t.Errorf("%s holds %d raids", name, n)
+		}
+	}
+	for _, a := range teleAreas {
+		if n := len(a.stops); n == 0 || n > maxDialogOptions {
+			t.Errorf("%s holds %d stops", a.label, n)
+		}
+		for _, st := range a.stops {
+			if l := len([]rune(a.label + ": " + st.label)); l > questAnswerChars {
+				t.Errorf("%q is %d characters", st.label, l)
+			}
 		}
 	}
 	for k, name := range teleCampNames {

@@ -148,6 +148,54 @@ func TestRealTeleporterLandings(t *testing.T) {
 		t.Errorf("only %d camps of %d offered", camps, len(campDests))
 	}
 	t.Logf("%d raids and %d camps", len(offered), camps)
+
+	// the areas' stops (Lavastorm's, the owner's of 2026-11-16): each on the
+	// floor the game's collision has there, under the sky, out of the water,
+	// the lava and the slime and with none within 10, no wall within 4 a step
+	// up, and no fighting creature's spawn within 100 (its roam, 70, and its
+	// notice, 30), townsfolk and guards aside (a players' race's body attacks
+	// no one on sight: entity's hostileNatureLocked; the outpost's guards)
+	bodies, err := database.NewNPCStore(db).PlayerModels()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, a := range teleAreas {
+		for _, st := range a.stops {
+			at, name := st.at, a.label+": "+st.label
+			h, _, roofed, on := g.Stand(at.World, at.X, at.Y+2, at.Z)
+			if !on || math.Abs(float64(h-at.Y)) > 0.5 || roofed || g.Roof(at.World, at.X, at.Y+0.5, at.Y+6, at.Z) {
+				t.Errorf("%s: lands at %.2f over a floor at %.2f (%v), roofed %v", name, at.Y, h, on, roofed)
+			}
+			for _, y := range []float32{0.5, 1.5} {
+				if f, ok := env.Flags(at.World, at.X, at.Y+y, at.Z); ok && f != 0 {
+					t.Errorf("%s: in water, lava or slime (%d) at %.1f up", name, f, y)
+				}
+			}
+			for i := 0; i < 16; i++ {
+				ang := float64(i) * math.Pi / 8
+				for _, r := range []float32{4, 10} {
+					x, z := at.X+r*float32(math.Sin(ang)), at.Z+r*float32(math.Cos(ang))
+					if r == 4 && g.Wall(at.World, at.X, at.Y+1, at.Z, x, at.Y+1, z) {
+						t.Errorf("%s: a wall within 4 toward %.2f", name, ang)
+					}
+					if fy, ok := g.Floor(at.World, x, at.Y+3, z); ok {
+						if f, ok := env.Flags(at.World, x, fy+0.5, z); ok && f&ground.EnvLava != 0 {
+							t.Errorf("%s: lava %.0f off toward %.2f", name, r, ang)
+						}
+					}
+				}
+			}
+			for _, c := range w.NPCs {
+				if c.World != at.World || c.NPCType&0x80 != 0 || c.Temporary || c.Level < 10 || bodies[uint32(c.ModelID)] {
+					continue
+				}
+				if d := math.Hypot(float64(c.SpawnX-at.X), float64(c.SpawnZ-at.Z)); d < 100 {
+					t.Errorf("%s: %s (%d) spawns %.0f off", name, c.Name, c.Level, d)
+				}
+			}
+			t.Logf("%s: world %d (%.1f, %.2f, %.1f) facing %.2f", name, at.World, at.X, at.Y, at.Z, at.Facing)
+		}
+	}
 }
 
 // sameName is NPC names as the world compares them: any case, no edge spaces.

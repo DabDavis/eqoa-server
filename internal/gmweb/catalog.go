@@ -1350,6 +1350,22 @@ var catalog = map[string]tableNote{
 			"source":   {Label: "Source", Help: "gm, or the tool that wrote the row"},
 		},
 	},
+	"npcdyes": {
+		Label: "NPC dyes", Group: "World", Title: "name", Sort: "name",
+		Help: "Dyes on the NPCs of a NAME (any case), slot by slot as a character's (entity/npcdyes.go; the owner, 2026-11-16: the " +
+			"Holiday Elf in red and green, Santa Claus's suit): slot 0 chest, 1 bracer, 2 gloves, 3 legs, 4 boots, 5 helm, 9 robe, " +
+			"11-16 the trims of chest .. helm (a robe's top takes the chest trim, its skirt the legs'). A client of the live look " +
+			"(vanilla) draws each colour and trim; a PS2 is sent the disc tint nearest each armour slot's and the robe's, no trim.",
+		Live:   "At once: each client sees it when the NPC's channel is next sent.",
+		Search: []string{"name", "note", "source"},
+		Cols: map[string]colNote{
+			"name":   {Label: "NPC name", Help: "as in NPCs, any case"},
+			"slot":   {Label: "Slot", Help: "0 chest, 1 bracer, 2 gloves, 3 legs, 4 boots, 5 helm, 9 robe, 11-16 the trims (chest .. helm)"},
+			"color":  {Label: "Colour", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA: 0xC81E1EFF red, 0x1E8C3CFF green, 0xFFFFFFFF white"},
+			"note":   {Label: "Note"},
+			"source": {Label: "Source", Help: "gm, or the tool that wrote the row"},
+		},
+	},
 	"npcspawnonly": {
 		Label: "NPC spawn only", Group: "World", Title: "name", Sort: "name",
 		Help: "NPCs that stand in no one's world, by NPC NAME (any case; entity/spawnonly.go): every NPC of the name is " +

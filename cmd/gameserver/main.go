@@ -463,6 +463,12 @@ func main() {
 		}
 	}
 	log.Printf("Creatures: %s", gameWorld.DecorLightSummary())
+	// The NPCs' dyes, by name (entity/npcdyes.go, table npcdyes)
+	if n, err := gameWorld.LoadNPCDyes(db); err != nil {
+		log.Printf("WARNING: %v; no NPC is dyed", err)
+	} else if n > 0 {
+		log.Printf("Creatures: %d NPC names dyed (npcdyes); a PS2 sees the nearest tints", n)
+	}
 	// The pet bodies' dye areas, the Pet Groomers' (entity/petdyes.go, table
 	// petdyeareas)
 	if n, err := gameWorld.LoadPetDyeAreas(db); err != nil {

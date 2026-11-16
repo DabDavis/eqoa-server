@@ -128,3 +128,23 @@ func checkLightStringRow(row map[string]any) error {
 	}
 	return nil
 }
+
+// checkNPCDyeRow holds an npcdyes row to a name, a dye slot and a colour.
+func checkNPCDyeRow(row map[string]any) error {
+	if v, ok := row["name"]; ok {
+		if name, _ := v.(string); database.NPCClassKey(name) == "" {
+			return badRequest("name is the NPC's name, as in NPCs (any case)")
+		}
+	}
+	if v, ok := row["slot"]; ok {
+		if f, fok := asFloat(v); !fok || f < 0 || f >= database.DyeSlots || f != float64(int(f)) {
+			return badRequest("slot is 0 chest, 1 bracer, 2 gloves, 3 legs, 4 boots, 5 helm, 9 robe, 11-16 the trims")
+		}
+	}
+	if v, ok := row["color"]; ok {
+		if f, fok := asFloat(v); !fok || f <= 0 || f > 0xFFFFFFFF || f != float64(int64(f)) {
+			return badRequest("color is 0xRRGGBBAA, not 0")
+		}
+	}
+	return nil
+}

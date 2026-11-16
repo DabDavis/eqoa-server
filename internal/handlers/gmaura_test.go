@@ -144,6 +144,10 @@ func TestAuraEasyWords(t *testing.T) {
 		{"monk circlet height=82", auraSpec{A: database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: 82}, Where: entity.AuraHelm, Look: "monk circlet"}},
 		{"red circlet head source=1D875ECD height=70%", auraSpec{A: database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: 70}, Where: entity.AuraHelm}},
 		{"circlet helm source=1D875ECD", auraSpec{A: database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD}, Where: entity.AuraHelm}},
+		// a hat another body has built in (2026-11-16, Hoofbite's): on the head by default
+		{"kappa hat", auraSpec{A: database.ItemAura{Kind: database.AuraHat, Source: database.KappaHat}, Where: entity.AuraHelm, Look: "kappa hat"}},
+		{"green Kappa_Hat head", auraSpec{A: database.ItemAura{Color: 0x30FF40FF, Kind: database.AuraHat, Source: database.KappaHat}, Where: entity.AuraHelm, Look: "kappa hat"}},
+		{"hat helm source=F0FAB933", auraSpec{A: database.ItemAura{Kind: database.AuraHat, Source: database.KappaHat}, Where: entity.AuraHelm}},
 		{"sickle taint epic weapons", auraSpec{A: database.ItemAura{Kind: database.AuraEpic, Source: 0x5FD4AE7C}, Where: auraBothHands, Look: "sickle taint"}},
 	} {
 		got, err := parseAuraEasy(strings.Fields(c.in))

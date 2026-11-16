@@ -359,6 +359,22 @@ func checkCharAuraRow(row map[string]any) error {
 		if kind == database.AuraCirclet {
 			return badRequest("kind 8 (circlet) is the helm's slot alone: slot 5")
 		}
+		if kind == database.AuraHat {
+			return badRequest("kind 10 (hat) is the helm's slot alone: slot 5")
+		}
+	}
+	// a hat on the helm's slot (kind 10, its source a body with a hat built
+	// in): its nodes unused (ValidCharAuraNodes, 0-32), past checkAuraCols' kinds
+	if kind, kok := asFloat(row["kind"]); sok && kok && !hand && kind == database.AuraHat {
+		if slot != database.CharAuraHelm {
+			return badRequest("kind 10 (hat) is the helm's slot alone: slot 5")
+		}
+		cols = make(map[string]any, len(row))
+		for k, v := range row {
+			if k != "kind" {
+				cols[k] = v
+			}
+		}
 	}
 	// a circlet on the helm's slot (kind 8): checked here, past checkAuraCols' kinds
 	if kind, kok := asFloat(row["kind"]); sok && kok && !hand && kind == database.AuraCirclet {

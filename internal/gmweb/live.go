@@ -504,6 +504,24 @@ func (s *Server) liveMove() string {
 	return "at once: the next step of every creature of that name uses it"
 }
 
+// checkNPCMoveRow holds an npcmove row's speed to what a wander can walk
+// (database.CheckNPCMoveSpeed): 0, the server's walk, or 0.5 to 9.9 units a
+// second; a row that leaves it out takes the default 0.
+func checkNPCMoveRow(row map[string]any) error {
+	v, ok := row["speed"]
+	if !ok || v == nil {
+		return nil
+	}
+	f, fok := asFloat(v)
+	if !fok || math.IsInf(f, 0) {
+		return badRequest("speed is a number of units a second (0: the server's walk, 5.0)")
+	}
+	if err := database.CheckNPCMoveSpeed(f); err != nil {
+		return badRequest("%v", err)
+	}
+	return nil
+}
+
 // liveCMCatalog reads the class masteries again (entity/cmbuy.go; the change
 // is committed: the database is free).
 func (s *Server) liveCMCatalog() string {

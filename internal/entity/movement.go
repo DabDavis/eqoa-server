@@ -211,6 +211,32 @@ func (w *World) moveRuleLocked(npc *NPC) (database.NPCMoveRule, bool) {
 	return r, ok
 }
 
+// walkSpeedLocked is the pace a creature wanders at (roam.go) and walks
+// home off a path (path.go): its name's npcmove speed, else NPCWalkSpeed.
+// A body whose walk covers less ground a cycle than a man's is given a slower
+// one (petition 5189, Innoruuk, 2026-11-16: "Gharial conned runs too fast
+// when roaming"): CLIENT plays byte 58's walk at the body's own rate,
+// whatever the velocity (VIClient::UpdateCreatures, SetLocomotion), so at a
+// man's 5.0 a crocodile's short stride slides along the ground. A chase
+// keeps its run (chase.go). Must be called with the lock held.
+func (w *World) walkSpeedLocked(npc *NPC) float32 {
+	if r, ok := w.moveRuleLocked(npc); ok && r.Speed > 0 {
+		return r.Speed
+	}
+	return NPCWalkSpeed
+}
+
+// WalkSpeedOf is the pace the creatures called name wander at
+// (walkSpeedLocked): their npcmove speed, else NPCWalkSpeed.
+func (w *World) WalkSpeedOf(name string) float32 {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	if r, ok := w.moveRules[database.NPCClassKey(name)]; ok && r.Speed > 0 {
+		return r.Speed
+	}
+	return NPCWalkSpeed
+}
+
 // moveWhy is why an NPC wanders or stands (movementLocked), said in a GM's
 // words by MoveWhyText.
 type moveWhy uint8

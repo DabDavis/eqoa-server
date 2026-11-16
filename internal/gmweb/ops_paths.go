@@ -78,6 +78,9 @@ func checkRow(table string, row map[string]any) error {
 	if table == "noroam" && row != nil {
 		return checkNoRoamRow(row) // live_hazards.go
 	}
+	if table == "npcmove" && row != nil {
+		return checkNPCMoveRow(row) // live.go
+	}
 	if table == "racesize" && row != nil {
 		return checkRaceSizeRow(row) // live_racesize.go
 	}

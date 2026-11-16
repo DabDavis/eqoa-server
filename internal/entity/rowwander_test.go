@@ -2,6 +2,7 @@ package entity
 
 import (
 	"database/sql"
+	"math"
 	"path/filepath"
 	"sort"
 	"testing"
@@ -141,5 +142,45 @@ func TestARowsOwnNoRoamStandsItsCreature(t *testing.T) {
 	w.mu.Unlock()
 	if ok || why != whyRowOwnStands {
 		t.Errorf("movement %v, %v; want it stands by its own row", ok, why)
+	}
+}
+
+// A name's npcmove speed is its wander's pace (petition 5189, Innoruuk:
+// "Gharial conned runs too fast when roaming"): a gharial at 3 units a
+// second, walking (byte 58's 1), its velocity 3; the control, a name with
+// no speed, at NPCWalkSpeed. And the chase keeps its run.
+func TestANamesSpeedIsItsWanderPace(t *testing.T) {
+	w := roamWorld(t)
+	w.SetMoveRules(map[string]database.NPCMoveRule{"gharial": {Roam: true, Speed: 3}, "crocodile": {Roam: true}})
+	slow := addNPC(w, 401, "gharial", 1000, 1000, creatureModel, 0)
+	ctl := addNPC(w, 402, "crocodile", 1010, 1000, creatureModel, 0)
+	var slowMax, ctlMax float64
+	slowLoco := map[byte]int{}
+	run(w, time.Now(), 3*time.Minute, func(time.Time) {
+		if v := math.Hypot(float64(slow.VelX), float64(slow.VelZ)); v > 0 {
+			slowMax = math.Max(slowMax, v)
+			slowLoco[slow.Loco]++
+		}
+		ctlMax = math.Max(ctlMax, math.Hypot(float64(ctl.VelX), float64(ctl.VelZ)))
+	})
+	if math.Abs(slowMax-3) > 0.01 {
+		t.Errorf("the gharial wandered at %.2f, want 3", slowMax)
+	}
+	if len(slowLoco) != 1 || slowLoco[LocoWalk] == 0 {
+		t.Errorf("the gharial's animations while moving %v, want the walk only", slowLoco)
+	}
+	if math.Abs(ctlMax-float64(NPCWalkSpeed)) > 0.01 {
+		t.Errorf("the control wandered at %.2f, want %v", ctlMax, NPCWalkSpeed)
+	}
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if s := w.walkSpeedLocked(slow); s != 3 {
+		t.Errorf("walkSpeedLocked %v", s)
+	}
+	if s := slow.chaseSpeed(); s != NPCChaseSpeed {
+		t.Errorf("its chase %v, want %v", s, NPCChaseSpeed)
+	}
+	if s := slow.runSpeed(); s != NPCRunSpeed {
+		t.Errorf("its way home after a fight %v, want the run %v", s, NPCRunSpeed)
 	}
 }

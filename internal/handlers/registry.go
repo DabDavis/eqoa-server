@@ -367,6 +367,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// heirlooms (heirloom.go): each character's figures on its records, the
 	// worn gear refreshed at a level up
 	if charStore != nil {
+		itemOwners.Store(charStore.DB()) // records one character alone may wear (itemowner.go)
 		heirlooms := NewHeirlooms(charStore.DB())
 		charHandler.heirlooms = heirlooms
 		heirlooms.Start(gameWorld, func(p *entity.Player) {

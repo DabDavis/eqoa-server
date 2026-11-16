@@ -631,7 +631,15 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 // equip them"). A class or race mask of 0 is not checked (ours): 2,189 of
 // this server's wearable items, nearly all the old dump's, carry no class
 // mask, which CLIENT would read as no class.
+//
+// A record bound to one character (table itemowner, database/itemowner.go) is
+// refused to everyone else first, whatever its masks: another character of
+// the account who took it from the account bank, a merc (no character: its
+// wearer's CharServerID is 0), a raid seat's Need.
 func cannotWear(player *entity.Player, p *database.ItemPatternRecord) string {
+	if owner, ok := itemOwnerOf(p.PatternID); ok && owner != player.CharServerID {
+		return itemNotYours
+	}
 	switch {
 	case p.ClassUse != 0 && p.ClassUse&(1<<uint(player.Class)) == 0:
 		return scribeWrongClass

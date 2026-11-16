@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
@@ -277,6 +278,9 @@ type World struct {
 	// The NPCs' body tints by name, table npctint, as the clients that draw
 	// them are told (npctint.go)
 	npcTints npcTintState
+	// petDyeAreas is table petdyeareas, by body (petdyes.go): read at the
+	// start and at a GM's edit, read by the pet dyes' sync without the lock
+	petDyeAreas atomic.Pointer[map[uint32]database.PetDyeArea]
 	// The worn pieces' auras by item, table itemaura (pieceaura.go)
 	itemAuras itemAuraState
 	// The masteries a character may buy, table cmcatalog (cmbuy.go)

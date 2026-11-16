@@ -327,6 +327,39 @@ var catalog = map[string]tableNote{
 			"source":   {Label: "Source", Help: "gm"},
 		},
 	},
+	"petdyes": {
+		Label: "Pet dyes", Group: "Players", Sort: "serverid",
+		Help: "A character's dyes on a pet body (entity/petdyes.go; the Pet Groomers put them on): two colours, one on each of " +
+			"the body's areas (Pet dye areas names them; a body with no row there is one area, its whole body, and area 2 is " +
+			"drawn nowhere). Kept by the body, so each look of a pet keeps its own. Drawn only by eqoa-rust-client-vanilla, " +
+			"which asks for pet dyes; a PS2 draws the pet in its own colours. Colours are 0xRRGGBBAA, red in the high byte, " +
+			"each multiplying its area's colours (0xD10000FF red, 0xFFFFFFFF white); 0 that area undyed; alpha 0 is refused.",
+		Live:   "At once where the character stands (its pet redrawn by every client that asks, from the next tick), else at its next login.",
+		Search: []string{"note"},
+		Cols: map[string]colNote{
+			"serverid": {Label: "Character", Ref: "characters"},
+			"look":     {Label: "Pet body", Format: hex32, Look: lookChar, Store: storeUint32, Help: "CHAR.ESF DictID of the pet's body (its npcs.modelid)"},
+			"area1":    {Label: "Area 1", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA, 0 none: the colour of the body's first area (its whole body when it has one)"},
+			"area2":    {Label: "Area 2", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA, 0 none: the colour of the body's second area"},
+			"note":     {Label: "Note", Help: "why"},
+		},
+	},
+	"petdyeareas": {
+		Label: "Pet dye areas", Group: "World", Title: "look", Sort: "look",
+		Help: "A pet body's two areas for the Pet Groomers (entity/petdyes.go): materials are area 2's, the indices of the body's " +
+			"palette materials (\"0,2,5\", 0-63; eqoa-rust-client-vanilla's `eqoa dress <body> out.png petareas=1` prints them); " +
+			"every other material is area 1. Area 1 and area 2 are the words the groomer asks with (\"Torso\", \"Spider body\"). " +
+			"A body with no row is one area: the groomer dyes its whole body in one colour. A template: a row makes any pet body two areas.",
+		Live:   "At once: every client that asks for pet dyes is told its view's pets again.",
+		Search: []string{"area1", "area2", "note"},
+		Cols: map[string]colNote{
+			"look":      {Label: "Pet body (key)", Format: hex32, Look: lookChar, Store: storeUint32, Help: "CHAR.ESF DictID of the body"},
+			"area1":     {Label: "Area 1", Help: "its name as the groomer asks it (Body)"},
+			"area2":     {Label: "Area 2", Help: "its name as the groomer asks it; empty: one area"},
+			"materials": {Label: "Area 2 materials", Help: "the body's palette materials that are area 2, 0-63, apart by commas"},
+			"note":      {Label: "Note", Help: "why"},
+		},
+	},
 	"charlook": {
 		Label: "Race looks", Group: "Players", Sort: "serverid",
 		Help: "A part of a custom race's body as its character chose it at creation (entity/raceoptions.go: the race's options, " +

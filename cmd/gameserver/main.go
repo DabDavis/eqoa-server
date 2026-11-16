@@ -431,6 +431,13 @@ func main() {
 		log.Printf("WARNING: %v; no NPC is tinted", err)
 	}
 	log.Printf("Creatures: %s", gameWorld.NPCTintSummary())
+	// The pet bodies' dye areas, the Pet Groomers' (entity/petdyes.go, table
+	// petdyeareas)
+	if n, err := gameWorld.LoadPetDyeAreas(db); err != nil {
+		log.Printf("WARNING: %v; every pet is dyed in one area", err)
+	} else if n > 0 {
+		log.Printf("Pets: %d bodies dyed in two areas (petdyeareas), drawn by the clients that ask", n)
+	}
 	// The worn pieces' auras, by item (entity/pieceaura.go, table itemaura)
 	if n, err := gameWorld.LoadItemAuras(db); err != nil {
 		log.Printf("WARNING: %v; no worn piece shows an aura", err)

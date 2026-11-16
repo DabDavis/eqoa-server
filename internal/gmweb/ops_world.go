@@ -382,6 +382,12 @@ func (s *Server) registerWorldOps() {
 					return nil, err
 				}
 				msg += fmt.Sprintf("; %d item(s) with an aura", auras)
+				// and the pet bodies' dye areas (entity/petdyes.go; tools/pet_groomers_20261116.py)
+				areas, err := c.s.d.World.LoadPetDyeAreas(c.s.d.DB)
+				if err != nil {
+					return nil, err
+				}
+				msg += fmt.Sprintf("; %d pet bodies of two dye areas", areas)
 			}
 			c.s.audit(c.a, "live", "npcs", nil, nil, nil, msg)
 			return map[string]any{"changed": changed, "removed": removed, "message": msg}, nil

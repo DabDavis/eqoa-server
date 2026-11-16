@@ -185,6 +185,10 @@ type Session struct {
 	// capesOffered: the offer went out, once a session as the live look's.
 	capes        bool
 	capesOffered bool
+	// petDyes: the client answered the pet dyes' offer 1
+	// (protocol.OpcodePetDyesOffer, handlers/petgroomer.go): it draws a pet's
+	// two dyed areas, so it is told the dyed pets in its view (entity/petdyes.go).
+	petDyes bool
 	// selectInfo: the client answered the select info's offer 1
 	// (protocol.OpcodeSelectInfo, handlers/selectinfo.go); selectInfoOffered:
 	// the offer went out, once a session.
@@ -966,6 +970,21 @@ func (s *Session) ServerWorlds() []uint8 {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return append([]uint8(nil), s.serverWorlds...)
+}
+
+// SetPetDyes records the client's answer to the pet dyes' offer.
+func (s *Session) SetPetDyes(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.petDyes = on
+}
+
+// PetDyes is whether the client said it draws pets' dyes. A client that
+// never answered (a PS2) did not.
+func (s *Session) PetDyes() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.petDyes
 }
 
 // SetCapes records the client's answer to the cape offer: it draws capes.

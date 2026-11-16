@@ -62,6 +62,7 @@ func clearVisibilityChannels(sess *session.Session) {
 
 	// the new scene's capes, whatever its client was told of the old one's (capes.go)
 	vis.ResendCapes()
+	vis.ResendPetDyes() // and its pets' dyes (petdyes.go)
 
 	log.Printf("World change: cleared %d occupied visibility channels for %s", cleared, sess.RemoteAddr())
 }

@@ -162,7 +162,18 @@ type CMRank struct {
 	// BreathPct makes its owner's breath last longer under water: each 6 s
 	// step of it taken BreathPct% later (effects "Breath:N", no slot of the
 	// window's: the Hold Breath line, the owner 2026-11-11)
-	BreathPct     int
+	BreathPct int
+	// PetLook is the body its owner's pets take (a model DictID; effects
+	// "PetLook:N", no slot of the window's: cmpetlook.go): of the pets its
+	// Requires' spells summon (any of them, a require_spells "a|b|c"'s
+	// alternatives too), every pet of its owner's where it requires none;
+	// 0 none. Only the look: the pet's numbers and abilities are its spell's
+	// (the owner, 2026-11-16: Zerkziee's construct as Jarek's Creation)
+	PetLook uint32
+	// OnlyFor is the one character (its CharServerID) the rank is offered to
+	// (effects "OnlyFor:N": "cm only for him", the owner 2026-11-16); 0
+	// every character of its classes and races
+	OnlyFor       uint32
 	Adds, Removes []CMAbility
 	Description   string
 	Enabled       bool
@@ -261,6 +272,12 @@ func ParseCMRank(r database.CMRankRow) *CMRank {
 		}
 		if k == "breath" && v > 0 {
 			c.BreathPct += v
+		}
+		if k == cmPetLook && v > 0 && v <= 0xFFFFFFFF {
+			c.PetLook = uint32(v)
+		}
+		if k == cmOnlyFor && v > 0 && v <= 0xFFFFFFFF {
+			c.OnlyFor = uint32(v)
 		}
 	}
 	c.Requires = parseAbilities(r.Requires, r.RequireSpells)
@@ -390,12 +407,24 @@ func (w *World) CMSummary() string {
 // offered is whether the rank is listed for the player: enabled, and for its
 // class and race.
 func (r *CMRank) offered(p *Player) bool {
+	if r.OnlyFor != 0 {
+		// one character's alone (OnlyFor), and of its classes and races
+		return p != nil && p.CharServerID == r.OnlyFor && r.classRaceOffered(p.Class, p.Race)
+	}
 	return r.OfferedTo(p.Class, p.Race)
 }
 
 // OfferedTo is whether the rank is listed for a character of the class and
 // race: enabled, and for both (the Spell Archivist's, handlers/archivistmastery.go).
 func (r *CMRank) OfferedTo(class, race int) bool {
+	return r.OnlyFor == 0 && r.classRaceOffered(class, race)
+}
+
+// classRaceOffered is OfferedTo whoever the rank is for: enabled, and for the
+// class and race. A rank for one character alone (OnlyFor) is OfferedTo no
+// class and race, so no list made by class and race (the Spell Archivist's,
+// the mercs') shows it; offered shows it to its one character.
+func (r *CMRank) classRaceOffered(class, race int) bool {
 	return r.Enabled && class >= 0 && r.Classes&(1<<uint(class)) != 0 && raceInMask(r.Races, race)
 }
 

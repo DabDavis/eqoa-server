@@ -604,6 +604,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	NewNumberTagsHandler().RegisterHandlers(r)
 	// The NPCs' body tints (0x7E3F; npctint.go): a client that draws them
 	NewNPCTintsHandler(gameWorld).RegisterHandlers(r)
+	(&PetDyesHandler{}).RegisterHandlers(r) // the pets' dyes (petgroomer.go)
 	// A damage meter (0x7E3B, 0x7E3D; dpsmeter.go): a client that draws one
 	NewDPSMeterHandler(gameWorld).RegisterHandlers(r)
 	// The worn looks a character hides (0x7E6D; hidelook.go)
@@ -653,6 +654,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		chatHandler.SetDyeStore(charStore.DB())
 		// the Armor Dyers (dyer.go) dye as #dye does
 		interactHandler.dyer = NewDyer(gameWorld, charStore.DB())
+		// the Pet Groomers (petgroomer.go) dye a pet's two areas as the dyers dye armour
+		interactHandler.groomer = NewGroomer(gameWorld, charStore.DB())
 		// the lamps' genies (genie.go): the bank, an outfitter's wares, the forge
 		genie := NewGenie(gameWorld, charStore.DB(), npcWindowHandler)
 		interactHandler.genie, equipHandler.genie = genie, genie

@@ -859,6 +859,8 @@ func (h *CharacterHandler) enterFromRecord(sess *session.Session, record *databa
 	}
 	// and its dyes, drawn by a client of the live game's look (livelook.go)
 	h.loadDyes(player, record.ServerID)
+	// and its pets' dyes, the Pet Groomers' (petgroomer.go)
+	h.loadPetDyes(record.ServerID)
 	// and the hit points and power it left the world with, and what its HoT
 	// and PoT gave back while it was away, within the maxima its gear gives
 	// it now (entity/linkdead.go): until 2026-10-31 every login filled them
@@ -981,6 +983,9 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// and the NPCs' body tints (npctint.go): a client that draws them asks,
 	// a PS2 ignores it
 	SendNPCTintsOffer(sess)
+	// and the pets' dyes (petgroomer.go): a client that draws them asks, a
+	// PS2 ignores it
+	SendPetDyesOffer(sess)
 	// and a damage meter (dpsmeter.go): a client that draws one asks, a PS2
 	// ignores it
 	SendDPSMeterOffer(sess)
@@ -2149,6 +2154,10 @@ func (h *CharacterHandler) queueMemoryDumpAt(sess *session.Session, player *enti
 	// capes again whatever it was told before (capes.go)
 	if readsCapes(sess) {
 		defer entity.GetOrCreateVisibility(sess).ResendCapes()
+	}
+	// and its pets' dyes (entity/petdyes.go)
+	if sess.PetDyes() {
+		defer entity.GetOrCreateVisibility(sess).ResendPetDyes()
 	}
 	// The bank as one piece (bank.go's bankMu): its tunar, its list and the
 	// auction's lots and bids read and the dump queued with nothing of the

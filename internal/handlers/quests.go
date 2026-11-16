@@ -1592,12 +1592,41 @@ func (q *QuestEngine) checkReach() {
 				q.reachBusyLocked(sess, c, qu, line, time.Now())
 				continue
 			}
-			if !q.waitsForRoomLocked(sess, p, c, qu, cq, st) {
-				q.completeStepLocked(sess, p, c, qu, cq, st, nil, nil)
+			if reachTakes(st) {
+				if lack := q.lackingLocked(p, st); lack != "" {
+					q.reachBusyLocked(sess, c, qu, orText(st.Reminder, orText(st.Waiting, questReachLacks)), time.Now())
+					continue
+				}
 			}
+			if q.waitsForRoomLocked(sess, p, c, qu, cq, st) {
+				continue
+			}
+			if reachTakes(st) {
+				give := *st
+				give.Kind = database.StepGive
+				if _, ok := q.takeLocked(sess, p, &give); !ok {
+					continue
+				}
+				log.Printf("Quests: %s set down step %d's items of %q", p.Name, st.Step, qu.Name)
+			}
+			q.completeStepLocked(sess, p, c, qu, cq, st, nil, nil)
 		}
 	}
 }
+
+// reachTakes is whether a reach step wants items or tunar held: it is done
+// only with them in the pack, and they are taken at its doing (set down, as
+// the primal stew of "The Scepter of the Ritualists" is in Permafrost to
+// raise the enraged Lady Vox, tools/enraged_vox_20261116.py). The player
+// there without them is told its reminder (or waiting line), once a
+// laterSayGap, and the step stays.
+func reachTakes(st *database.QuestStep) bool {
+	return st.Kind == database.StepReach && (len(st.Items) > 0 || st.Tunar > 0)
+}
+
+// questReachLacks is what a player at a reach step that wants items is told
+// without them, when the step has no reminder or waiting line of its own.
+const questReachLacks = "You lack what is needed here."
 
 // reachBusyLocked tells a player at a reach step whose trigger's lock is held
 // what the step's event says (triggerBusyLocked), once a laterSayGap a quest.

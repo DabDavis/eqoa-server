@@ -320,7 +320,33 @@ def read_grids(folder):
                 problems.append(f"{key} trade level {lvl} {mod}: AC {s.get('AC')} is not the mundane one's")
             if bonus.setdefault((lvl, mod), extra) != extra:
                 problems.append(f"{key} trade level {lvl} {mod}: {extra} where another piece has {bonus[(lvl, mod)]}")
+    heartsblood_stats(grids, bonus, problems)
     return grids, bonus, problems
+
+
+# Heartsblood gives Stamina, Arcane Resist and Hit Points beside the grid's HoT (petition 5196, 2026-11-16: "Heartsblood
+# Alloy is supposed to give Stamina, AR and HP in stats for plate armor. Currently only giving HoT."; the live records'
+# heartsblood seralite plate and scale give them): each at least the single-stat modifier's at the trade level.
+# tools/heartsblood_armor_5196_20261116.py made the live records so.
+HEARTSBLOOD = "Heartsblood Alloy"
+HEARTSBLOOD_PLUS = {"sta": "Rhodizite", "AR": "Achroite", "HPMAX": "Titan Alloy"}
+
+
+def heartsblood_stats(grids, bonus, problems):
+    for (lvl, mod), extra in list(bonus.items()):
+        if mod != HEARTSBLOOD:
+            continue
+        add = {}
+        for col, src in HEARTSBLOOD_PLUS.items():
+            least = bonus.get((lvl, src), {}).get(col)
+            if least is None:
+                problems.append(f"trade level {lvl} {HEARTSBLOOD}: no {src} {col} to give it")
+                continue
+            add[col] = max(least, extra.get(col, 0))
+        bonus[(lvl, mod)] = dict(extra, **add)
+        for cells in grids.values():
+            if (lvl, mod) in cells:
+                cells[(lvl, mod)] = dict(cells[(lvl, mod)], **add)
 
 
 VENDOR_PAGES = {

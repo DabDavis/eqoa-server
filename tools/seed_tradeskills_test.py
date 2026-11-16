@@ -59,7 +59,8 @@ class SeedTradeskills(unittest.TestCase):
         for key in M.PIECES:
             os.makedirs(os.path.dirname(os.path.join(grid, key)), exist_ok=True)
             rows = {M.MUNDANE: {1: "15 AC", 4: "85 AC", 10: "290 AC"}, "Sinhalite": {4: "85 AC, 10 Str"},
-                    "Heartsblood Alloy": {10: "290 AC, 10 HoT"}}
+                    "Heartsblood Alloy": {10: "290 AC, 10 HoT"}, "Rhodizite": {10: "290 AC, 20 Sta"},
+                    "Achroite": {10: "290 AC, 20 AR"}, "Titan Alloy": {10: "290 AC, 75 Hp"}}
             if key == "Plate/BP.htm":
                 self.bp = rows
             with open(os.path.join(grid, key), "w") as f:
@@ -165,6 +166,9 @@ class SeedTradeskills(unittest.TestCase):
         made = self.q("SELECT p.rent, count(*) FROM itempattern p JOIN tradeskill_seed s ON s.tbl = 'itempattern' "
                       "AND s.action = 'inserted' AND CAST(s.key AS INTEGER) = p.patternid GROUP BY p.rent")
         self.assertEqual([r for r, _ in made], [1], made)
+        # Heartsblood gives its Rhodizite, Achroite and Titan Alloy twins' Sta, AR and HP beside the grid's HoT (petition 5196)
+        self.assertEqual(self.q("SELECT AC, sta, AR, HPMAX, HoT FROM itempattern WHERE itemname = 'heartsblood seralite helm'"),
+                         [(290, 20, 20, 75, 10)])
         # the live record is the product
         self.assertEqual(self.q("SELECT product, rarity FROM craftrecipes WHERE name = 'heartsblood seralite breastplate'"), [(1042, 3)])
         # the targe and tear by Prima's AC rows; a tear has none below trade level 5

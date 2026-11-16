@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"strings"
 	"sync"
 	"time"
 
@@ -29,6 +30,16 @@ import (
 
 // emailRemindRGB is the reminder's colour (a GM's broadcast's yellow).
 var emailRemindRGB = [3]uint8{255, 230, 90}
+
+// sendEmailReminder tells the player twice: the yellow line in the chat, and
+// the same words in a popup box (0x0046, ShowDialog; queued behind a box
+// already open), so it is not lost in a busy chat (the owner, 2026-11-16: "make
+// an ingame popup to encourage to verify email every 15 mins until they do";
+// the interval is mail.remind_every).
+func sendEmailReminder(sess *session.Session, line string) {
+	SendColoredChat(sess, line, emailRemindRGB[0], emailRemindRGB[1], emailRemindRGB[2])
+	SendDialogueBox(sess, 0, strings.ReplaceAll(line, "%", "%%"))
+}
 
 // EmailGate is the requirement at work in the world.
 type EmailGate struct {
@@ -64,7 +75,7 @@ func (e *EmailGate) Entered(sess *session.Session, _ *entity.Player) {
 	now := e.now()
 	id := sess.AccountID()
 	if line := e.gate.Reminder(id, now); line != "" {
-		SendColoredChat(sess, line, emailRemindRGB[0], emailRemindRGB[1], emailRemindRGB[2])
+		sendEmailReminder(sess, line)
 		e.mu.Lock()
 		e.last[sess] = now
 		e.mu.Unlock()
@@ -123,7 +134,7 @@ func (e *EmailGate) Remind() int {
 	}
 	e.mu.Unlock()
 	for _, d := range told {
-		SendColoredChat(d.sess, d.line, emailRemindRGB[0], emailRemindRGB[1], emailRemindRGB[2])
+		sendEmailReminder(d.sess, d.line)
 	}
 	return len(told)
 }

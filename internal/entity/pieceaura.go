@@ -328,7 +328,7 @@ func (w *World) pieceAuras(pieces *[AuraSlots]int, mask uint16, hidden uint16, o
 			continue
 		}
 		if a, ok := (*m)[pieces[i]]; ok {
-			if a.Kind == database.AuraCirclet && i != AuraHelm || a.Kind == database.AuraEpic || a.Kind == database.AuraEnergy {
+			if a.Kind == database.AuraCirclet && i != AuraHelm || a.Kind == database.AuraEpic || a.Kind == database.AuraEnergy || a.Kind == database.AuraHat {
 				continue // a circlet is a helm's alone, epic and energy a held item's (database.ValidItemAura)
 			}
 			out[i], any = a, true
@@ -355,7 +355,9 @@ func (w *World) pieceAuras(pieces *[AuraSlots]int, mask uint16, hidden uint16, o
 	}
 	// a circlet on the head (database.AuraCirclet) whatever is worn there or
 	// hidden: the client draws it while no helm is drawn
-	if own != nil && own[AuraHelm].Kind == database.AuraCirclet {
+	// and a hat another body has built in (database.AuraHat) the same: the
+	// client draws it in place of the helm
+	if own != nil && (own[AuraHelm].Kind == database.AuraCirclet || own[AuraHelm].Kind == database.AuraHat) {
 		out[AuraHelm], any = own[AuraHelm], true
 	}
 	if !any {

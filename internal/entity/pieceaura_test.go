@@ -550,3 +550,49 @@ func TestAnItemThatIsACirclet(t *testing.T) {
 		t.Fatalf("the character's own circlet wins: %+v", a)
 	}
 }
+
+// A hat another body has built in (kind 10 on the helm's charaura slot,
+// 2026-11-16: Hoofbite's kappa straw hat): sent whether a helm is worn or
+// not, hidden or not (the client draws it in place of the helm); valid on the
+// helm's charaura slot alone, never in npctint or itemaura, and it always
+// shows, with no colour too. The control: an itemaura row of kind 10 (which
+// the database refuses) is never sent.
+func TestAHatOnTheHead(t *testing.T) {
+	hat := database.ItemAura{Kind: database.AuraHat, Source: database.KappaHat}
+	if !hat.Shows() || !database.ValidCharAuraKind(database.CharAuraHelm, database.AuraHat) || !database.ValidCharAuraNodes(database.CharAuraHelm, database.AuraHat, 0) {
+		t.Fatal("a hat with no colour draws nothing, or the helm's slot refuses it")
+	}
+	for slot := int64(0); slot < database.CharAuraSlots; slot++ {
+		if slot != database.CharAuraHelm && database.ValidCharAuraKind(slot, database.AuraHat) {
+			t.Fatalf("a hat on slot %d", slot)
+		}
+	}
+	if database.ValidAuraKind(database.AuraHat) || database.ValidItemAura(database.AuraHat, 0) {
+		t.Fatal("a hat in npctint or itemaura")
+	}
+	w := NewWorld()
+	p := ornatePlayer()
+	p.CharServerID = 213
+	var own [database.CharAuraSlots]database.ItemAura
+	own[AuraHelm] = hat
+	w.SetCharAuras(map[database.CharAuraKey][database.CharAuraSlots]database.ItemAura{{CharID: 213}: own})
+	p.WornMask &^= 1 << AuraHelm
+	if a := w.PieceAurasOf(p); a == nil || a[AuraHelm] != hat {
+		t.Fatalf("no helm worn: %+v", a)
+	}
+	p.SetWornPiece(AuraHelm, 990058)
+	if a := w.PieceAurasOf(p); a == nil || a[AuraHelm] != hat {
+		t.Fatalf("a helm worn: %+v", a)
+	}
+	p.HiddenParts = HideHelm
+	if a := w.PieceAurasOf(p); a == nil || a[AuraHelm] != hat {
+		t.Fatalf("a hidden helm: %+v", a)
+	}
+	// the control: the same as an item's aura is never sent
+	w.SetCharAuras(nil)
+	p.HiddenParts = 0
+	w.SetItemAuras(map[int]database.ItemAura{990058: {PatternID: 990058, Kind: database.AuraHat, Source: database.KappaHat}})
+	if a := w.PieceAurasOf(p); a != nil {
+		t.Fatalf("an item's hat: %+v", a)
+	}
+}

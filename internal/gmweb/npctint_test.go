@@ -198,8 +198,14 @@ func TestAuraEditsAreLive(t *testing.T) {
 	if code, out := c.op("insert_row", map[string]any{"table": "charaura", "values": map[string]any{"charid": 9001, "merc": 0, "slot": 5, "color": float64(0xE01818FF), "kind": 8, "source": float64(0x1D875ECD), "nodes": 75}}); code != 200 {
 		t.Fatalf("charaura circlet insert: %d %v", code, out)
 	}
+	// a hat on the helm's slot (kind 10, its source the kappa's body): here on
+	// the character's merc 1, whose slot 5 is free
+	if code, out := c.op("insert_row", map[string]any{"table": "charaura", "values": map[string]any{"charid": 9001, "merc": 1, "slot": 5, "color": 0, "kind": 10, "source": float64(0xF0FAB933)}}); code != 200 {
+		t.Fatalf("charaura hat insert: %d %v", code, out)
+	}
 	for _, bad := range []map[string]any{{"charid": 9001, "slot": 11}, {"charid": 9001, "slot": 0, "kind": 8}, {"charid": 9001, "slot": 9, "kind": 8}, {"charid": 9001, "slot": 5, "kind": 8, "nodes": 101}, {"charid": 9001, "slot": 9, "kind": 7, "nodes": 101}, {"charid": 9001, "slot": 7, "kind": 2, "nodes": 45}, {"charid": 9001, "slot": 1, "kind": 7}, {"charid": 0, "slot": 1},
-		{"charid": 9001, "slot": 10, "kind": 2}, {"charid": 9001, "slot": 10, "kind": 8}, {"charid": 9001, "slot": 8, "kind": 7}} {
+		{"charid": 9001, "slot": 10, "kind": 2}, {"charid": 9001, "slot": 10, "kind": 8}, {"charid": 9001, "slot": 8, "kind": 7},
+		{"charid": 9001, "slot": 0, "kind": 10}, {"charid": 9001, "slot": 9, "kind": 10}, {"charid": 9001, "slot": 7, "kind": 10}} {
 		if code, out := c.op("insert_row", map[string]any{"table": "charaura", "values": bad}); code != 400 {
 			t.Errorf("charaura %v: %d %v, want refused", bad, code, out)
 		}

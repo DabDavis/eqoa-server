@@ -74,7 +74,7 @@ var auraKinds = map[string]uint8{"default": database.AuraDefault, "none": databa
 	"particles": database.AuraParticles, "both": database.AuraBoth, "trim": database.AuraTrim, "trimshell": database.AuraTrimShell}
 
 // auraKindNames are the kinds' names by number.
-var auraKindNames = [...]string{"default", "none", "shell", "particles", "both", "trim", "trimshell", "epic", "circlet", "energy"}
+var auraKindNames = [...]string{"default", "none", "shell", "particles", "both", "trim", "trimshell", "epic", "circlet", "energy", "hat"}
 
 // parseHex32 reads a 32-bit hex value, with or without 0x.
 func parseHex32(s string) (uint32, bool) {
@@ -180,6 +180,13 @@ func auraWords(a database.ItemAura) string {
 		}
 		return fmt.Sprintf("aura circlet: %s glowing ring worn round the head (while no helm is drawn), %s%s", src, color, at)
 	}
+	if a.Kind == database.AuraHat {
+		color := "its own colours"
+		if database.NPCGlowShows(a.Color) {
+			color = fmt.Sprintf("in %08X", a.Color)
+		}
+		return fmt.Sprintf("aura hat: the hat %08X has built in, worn on the head in place of the helm, %s", a.Source, color)
+	}
 	if a.Kind == database.AuraEpic {
 		color := "its own colours"
 		if database.NPCGlowShows(a.Color) {
@@ -244,7 +251,7 @@ var auraPieceNames = [entity.AuraSlots]string{"chest", "bracers", "gloves", "leg
 // auraEasyKinds are the easy words' kinds (off is apart).
 var auraEasyKinds = map[string]uint8{"shell": database.AuraShell, "particles": database.AuraParticles,
 	"sparkles": database.AuraParticles, "both": database.AuraBoth, "trim": database.AuraTrim, "trimshell": database.AuraTrimShell,
-	"default": database.AuraDefault, "epic": database.AuraEpic, "circlet": database.AuraCirclet, "energy": database.AuraEnergy}
+	"default": database.AuraDefault, "epic": database.AuraEpic, "circlet": database.AuraCirclet, "energy": database.AuraEnergy, "hat": database.AuraHat}
 
 // auraSpec is the easy words read.
 type auraSpec struct {
@@ -296,6 +303,12 @@ var auraLooks = []auraLook{
 	// icing death the sword of virtue aura blue"; a colour recolours it)
 	{[]string{"sword", "of", "virtue"}, database.ItemAura{Kind: database.AuraEpic, Source: 0x88EC092D},
 		"the paladin's level 60 epic, the Sword of Virtue (88EC092D): its glow, its sheen and its sparkles (a colour recolours them: /aura blue sword of virtue weapons)", false},
+	// the kappa's wide-brimmed straw hat (CHAR.ESF 0xF0FAB933, part of its
+	// body) worn on the head in place of the helm (the owner, 2026-11-16, of
+	// Hoofbite: "for his monk hat lets use the kappas built in hat that is
+	// wide brimmed for his model")
+	{[]string{"kappa", "hat"}, database.ItemAura{Kind: database.AuraHat, Source: database.KappaHat},
+		"the kappa's wide-brimmed straw hat (F0FAB933, built into its body) worn on the head in place of the helm (a colour recolours it)", false},
 	{[]string{"sickle", "taint"}, database.ItemAura{Kind: database.AuraEpic, Source: 0x5FD4AE7C},
 		"the necromancer's epic, Sickle of Avhi Escron (5FD4AE7C): an olive glow and its green mist (Zaeire's)", false},
 	// a spell visual's hand emitters on a held weapon (the owner, 2026-11-14:
@@ -457,8 +470,8 @@ func parseAuraEasy(args []string) (sp auraSpec, err error) {
 		if sp.Where == -1 && (look.A.Kind == database.AuraEpic || look.Hands) {
 			sp.Where = auraBothHands
 		}
-		if sp.Where == -1 && look.A.Kind == database.AuraCirclet {
-			sp.Where = entity.AuraHelm // a circlet goes round the head
+		if sp.Where == -1 && (look.A.Kind == database.AuraCirclet || look.A.Kind == database.AuraHat) {
+			sp.Where = entity.AuraHelm // a circlet goes round the head, a hat on it
 		}
 	}
 	if height {
@@ -506,7 +519,7 @@ func parseAuraEasy(args []string) (sp auraSpec, err error) {
 		}
 		sp.A.Kind = database.AuraShell
 	}
-	if !color && sp.A.Kind != database.AuraParticles && sp.A.Kind != database.AuraEpic && sp.A.Kind != database.AuraCirclet && sp.A.Kind != database.AuraEnergy {
+	if !color && sp.A.Kind != database.AuraParticles && sp.A.Kind != database.AuraEpic && sp.A.Kind != database.AuraCirclet && sp.A.Kind != database.AuraEnergy && sp.A.Kind != database.AuraHat {
 		return sp, fmt.Errorf("name a colour (only particles and epic need none: they keep the source's own)")
 	}
 	return sp, nil
@@ -619,6 +632,10 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 			h.gmReply(sess, "/aura: a circlet is a player's (or a mercenary's) head's: /aura monk circlet")
 			return
 		}
+		if sp.A.Kind == database.AuraHat && !sp.Off {
+			h.gmReply(sess, "/aura: a hat is a player's (or a mercenary's) head's: /aura kappa hat")
+			return
+		}
 		if database.NPCClassKey(npc.Name) == "" {
 			h.gmReply(sess, "/aura: your target has no name to keep an aura by")
 			return
@@ -668,6 +685,8 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 				h.gmReply(sess, "/aura: a held weapon takes epic, energy or particles: /aura epic weapons source=Sickle_of_Avhi_Escron, /aura energy offhand source=<item>")
 			} else if sp.A.Kind == database.AuraCirclet {
 				h.gmReply(sess, "/aura: a circlet goes round the head: /aura monk circlet (or helm/head)")
+			} else if sp.A.Kind == database.AuraHat {
+				h.gmReply(sess, "/aura: a hat goes on the head: /aura kappa hat (or helm/head)")
 			} else {
 				h.gmReply(sess, "/aura: epic is a held weapon's look: mainhand, offhand or weapons")
 			}
@@ -698,6 +717,8 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 		note += " (on whatever that hand holds, from a client that draws held items' auras)"
 	case sp.A.Kind == database.AuraCirclet:
 		note += " (round the head while no helm is drawn, from a client that draws circlets)"
+	case sp.A.Kind == database.AuraHat:
+		note += " (on the head in place of the helm, from a client that draws hats; a PS2 shows the helm)"
 	case slot != database.CharAuraBody && mask&(1<<slot) == 0 && sp.A.Shows():
 		note += " (nothing worn there now: it shows when a piece is)"
 	}
@@ -723,6 +744,9 @@ func auraNow(a database.ItemAura) string {
 	}
 	if a.Kind == database.AuraCirclet && !database.NPCGlowShows(a.Color) {
 		return fmt.Sprintf("a circlet of %08X", a.Source)
+	}
+	if a.Kind == database.AuraHat && !database.NPCGlowShows(a.Color) {
+		return fmt.Sprintf("the hat of %08X", a.Source)
 	}
 	if a.Kind == database.AuraEpic && !database.NPCGlowShows(a.Color) {
 		return fmt.Sprintf("the epic look of %08X", a.Source)

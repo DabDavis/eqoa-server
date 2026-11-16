@@ -321,6 +321,7 @@ def read_grids(folder):
             if bonus.setdefault((lvl, mod), extra) != extra:
                 problems.append(f"{key} trade level {lvl} {mod}: {extra} where another piece has {bonus[(lvl, mod)]}")
     ultra_stats(grids, bonus, problems)
+    moved_stats(grids, bonus)
     return grids, bonus, problems
 
 
@@ -333,6 +334,29 @@ ULTRA_PLUS = {
     "Heartsblood Alloy": {"sta": "Rhodizite", "AR": "Achroite", "HPMAX": "Titan Alloy"},
     "Mindflow Crystals": {"wis": "Apatite", "POWMAX": "Mana Infused Alloy", "AR": "Achroite"},
 }
+
+
+# a modifier's stat given as another, the same figure (Innoruuk's petitions, 2026-11-16: 5198 "Enstatite gem should give
+# strength and stamina to armor when crafted, not strength and intelligence."; 5199 "Takish ivory should give dex and
+# agility when crafted, not charisma."; the grid and Prima give Str and Int, Dex and Cha).
+# tools/two_stat_mods_5198_20261116.py made the live records so.
+MOVED = {"Enstatite": {"intelligence": "sta"}, "Takish Ivory": {"cha": "agi"}}
+
+
+def moved_stats(grids, bonus):
+    def move(stats, mod):
+        out = dict(stats)
+        for old, new in MOVED[mod].items():
+            if old in out:
+                out[new] = out.pop(old)
+        return out
+    for (lvl, mod), extra in list(bonus.items()):
+        if mod in MOVED:
+            bonus[(lvl, mod)] = move(extra, mod)
+    for cells in grids.values():
+        for (lvl, mod), stats in list(cells.items()):
+            if mod in MOVED:
+                cells[(lvl, mod)] = move(stats, mod)
 
 
 def ultra_stats(grids, bonus, problems):

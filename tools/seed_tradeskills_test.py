@@ -62,7 +62,8 @@ class SeedTradeskills(unittest.TestCase):
                     "Heartsblood Alloy": {10: "290 AC, 10 HoT"}, "Rhodizite": {10: "290 AC, 20 Sta"},
                     "Achroite": {10: "290 AC, 20 AR"}, "Titan Alloy": {10: "290 AC, 75 Hp"},
                     "Mindflow Crystals": {10: "290 AC, 10 PoT"}, "Apatite": {10: "290 AC, 20 Wis"},
-                    "Mana Infused Alloy": {10: "290 AC, 75 Pow"}}
+                    "Mana Infused Alloy": {10: "290 AC, 75 Pow"}, "Enstatite": {4: "85 AC, 6 Str, 6 Int"},
+                    "Takish Ivory": {4: "85 AC, 6 Dex, 6 Cha"}}
             if key == "Plate/BP.htm":
                 self.bp = rows
             with open(os.path.join(grid, key), "w") as f:
@@ -174,6 +175,11 @@ class SeedTradeskills(unittest.TestCase):
         # Mindflow its Apatite, Mana Infused and Achroite twins' Wis, Power and AR beside the grid's PoT (petition 5197)
         self.assertEqual(self.q("SELECT AC, wis, POWMAX, AR, PoT FROM itempattern WHERE itemname = 'mindflow seralite helm'"),
                          [(290, 20, 75, 20, 10)])
+        # Enstatite its Int as Sta (petition 5198), Takish Ivory its Cha as Agi (5199)
+        self.assertEqual(self.q("SELECT str, intelligence, sta FROM itempattern WHERE itemname = 'enstatite brass breastplate'"),
+                         [(6, None, 6)])
+        self.assertEqual(self.q("SELECT dex, cha, agi FROM itempattern WHERE itemname = 'takish ivory brass breastplate'"),
+                         [(6, None, 6)])
         # the live record is the product
         self.assertEqual(self.q("SELECT product, rarity FROM craftrecipes WHERE name = 'heartsblood seralite breastplate'"), [(1042, 3)])
         # the targe and tear by Prima's AC rows; a tear has none below trade level 5

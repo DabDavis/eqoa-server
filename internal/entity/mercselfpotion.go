@@ -128,8 +128,14 @@ func mercDebuffPotion(pe *PotionEffect) bool {
 // (spells of its book its ranks add), each once, a mixture its hirer turned
 // off left out. Must be called with the lock held.
 func (w *World) mercMasterPotionsLocked(ms *mercState) []*PotionEffect {
+	return w.mercRankPotionsLocked(ms, ms.kit.MasterRanks)
+}
+
+// mercRankPotionsLocked is mercMasterPotionsLocked for the ranks given. Must
+// be called with the lock held.
+func (w *World) mercRankPotionsLocked(ms *mercState, ranks []*CMRank) []*PotionEffect {
 	master := map[int]bool{}
-	for _, r := range ms.kit.MasterRanks {
+	for _, r := range ranks {
 		for _, a := range r.Adds {
 			if a.SpellID > 0 {
 				master[a.SpellID] = true

@@ -40,7 +40,8 @@ import (
 //     merc with none eats a ration's figures). world.merc_brew_cap, when set
 //     above 0, is a ceiling on the whole stock besides (0: none brewed).
 //   - Its Master Class's keepsakes (mercKeepsLocked): the Transmuter's
-//     Transformative Pill, one at a time for its owner, brewed only when none
+//     Transformative Pill and Transmutive Potion, the Metabolist's
+//     Miraculous Draught, one at a time for its owner, brewed only when none
 //     is held.
 //
 // The stock is its owner's, not the merc's: the handlers keep it in table
@@ -367,75 +368,38 @@ func (w *World) mercBrewWantsLocked(ms *mercState) []mercBrewWant {
 // can take it from their inventory").
 const mercKeepOne = 1
 
-// mercKeepsLocked is what its Master Class's mixtures make that the merc never
-// uses itself but brews for its owner, one at a time (the owner, 2026-11-16:
-// "alchemist mercs should also make the transformative ogre pills if they are
-// the right level"): a drunk potion that shows its drinker in another body
-// (an illusion or form on its drinker, no power draught), made by a spell a
-// rank of its Master Class gives (CMRank.BookChange) at its level or below,
-// in its book and not turned off. So the Transformative Pill (an ogre's body
-// for 30 minutes) of Create Transformative, the Transmuter's second rank, at
-// 60: the gate a player alchemist's is, who has the spell only by buying that
-// rank (cmcatalog 7402), where classspells' level-60 row would hand it to any
-// alchemist. A keepsake's stack is one (mercKeepOne): it brews one when its
-// owner's stock and what it carries hold none, at ease and at its rate as its
-// other potions, and none while one waits there; its owner takes it from the
-// Stock tab, and it brews the next. It never throws one (no Target use:
-// throwWorth) nor drinks one (no power: draughtOf). Must be called with the
+// mercKeepsLocked is what its Master Class's mixtures make, which the merc
+// brews for its owner one at a time (the owner, 2026-11-16: "alchemist mercs
+// should also make the transformative ogre pills if they are the right
+// level", "and they will only make if they dont have one so player can take
+// it from their inventory", then "make the transmutive potion and miraculous
+// draught one at a time too"): each potion a mixture its own Master Class's
+// ranks give makes (mercRankPotionsLocked: a spell its ranks add, in its
+// book, not turned off; the ranks its level's, as the handlers give them, and
+// none above its level here either). So a Transmuter of 60 keeps a
+// Transformative Pill (Creative Transmutation, cmcatalog 7402: Create
+// Transformative) and a Transmutive Potion (Transmutative Mixture, 7403), a
+// Metabolist of 60 a Miraculous Draught (Miraculous Mix, 7412): the gate a
+// player alchemist's is, who has those spells only by buying the rank, where
+// classspells' level-60 rows hand them to any alchemist. A keepsake's stack is
+// one (mercKeepOne): it brews one when its owner's stock and what it carries
+// hold none, at ease and at its rate as its other potions, and none while one
+// waits there; its owner takes it from the Stock tab, and it brews the next.
+// A stock copy is its owner's: the merc never throws or drinks one (no
+// damage throw: throwWorth; no power: draughtOf); its own uses of them are
+// conjured, never from the stock (mercselfpotion.go). Must be called with the
 // lock held.
 func (w *World) mercKeepsLocked(ms *mercState) []*PotionEffect {
-	if !ms.mercThrowsPotions() || len(ms.kit.MasterRanks) == 0 {
+	if !ms.mercThrowsPotions() {
 		return nil
 	}
-	given := map[int]bool{}
+	var ranks []*CMRank
 	for _, r := range ms.kit.MasterRanks {
-		if r == nil || r.Level > ms.kit.Level {
-			continue
-		}
-		gives, _ := r.BookChange()
-		for _, a := range gives {
-			if a.SpellID > 0 {
-				given[a.SpellID] = true
-			}
+		if r != nil && r.Level <= ms.kit.Level {
+			ranks = append(ranks, r)
 		}
 	}
-	if len(given) == 0 {
-		return nil
-	}
-	var byName map[string]*PotionEffect
-	seen := map[int]bool{}
-	var out []*PotionEffect
-	for i := range ms.kit.Spells {
-		s := &ms.kit.Spells[i]
-		if !given[s.SpellID] || containsInt(ms.kit.SpellsOff, s.SpellID) || s.Def.Summons() || mercPotionSpell(s) {
-			continue
-		}
-		if byName == nil {
-			byName = make(map[string]*PotionEffect, len(w.potions.byPattern))
-			for _, pe := range w.potions.byPattern {
-				byName[lowerTrim(pe.ItemName)] = pe
-			}
-		}
-		for _, it := range append(append([]SpellItem(nil), s.Def.Items...), unreadSummons(&s.Def)...) {
-			pe := byName[lowerTrim(it.Name)]
-			if pe == nil || seen[pe.PatternID] || !mercKeepsake(ms, pe) {
-				continue
-			}
-			seen[pe.PatternID] = true
-			out = append(out, pe)
-		}
-	}
-	return out
-}
-
-// mercKeepsake is whether pe is a keepsake (mercKeepsLocked): drunk, a body
-// shown on its drinker, no power draught.
-func mercKeepsake(ms *mercState, pe *PotionEffect) bool {
-	if pe.Thrown() || pe.Def.FormKind != FormSelf || pe.Def.Form == "" && pe.Def.FormModel == 0 {
-		return false
-	}
-	_, _, draught := ms.draughtOf(pe)
-	return !draught
+	return w.mercRankPotionsLocked(ms, ranks)
 }
 
 // mercBrewPickLocked is the potion the merc brews next and how many may go

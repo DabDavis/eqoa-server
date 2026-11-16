@@ -1241,6 +1241,122 @@ var catalog = map[string]tableNote{
 			"source": {Label: "Source", Help: "gm, or questspawn for tools/fix_quest_spawns.py's rows (its --undo deletes those)"},
 		},
 	},
+	"gmseasons": {
+		Label: "Seasons", Group: "World", Title: "name", Sort: "name",
+		Help: "A season a GM turns on and off (database/seasons.go; the owner, 2026-11-16: \"lets make a christmas season " +
+			"trigger\"), kept over restarts: a trigger's season step turns it (on, off, or over: the Christmas Season " +
+			"trigger fired again puts it away), or this page. While a season is off, the NPCs of its names (NPC seasons) " +
+			"stand out of the world as spawn-only ones do, and its strings of lights (Light strings) are not lit.",
+		Live:   "At once: its NPCs come into every view or leave them, its lights are lit or put out for every client that draws them.",
+		Search: []string{"name", "by", "note"},
+		Cols: map[string]colNote{
+			"name":    {Label: "Season (key)", Help: "any case: Christmas"},
+			"active":  {Label: "On", Help: "1 on, 0 off"},
+			"changed": {Label: "Turned", Help: "when it was last turned (UTC)"},
+			"by":      {Label: "By", Help: "who turned it (a trigger's firer)"},
+			"note":    {Label: "Note"},
+		},
+	},
+	"npcseason": {
+		Label: "NPC seasons", Group: "World", Title: "name", Sort: "name",
+		Help: "NPCs that stand in the world only while their season is on (Seasons), by NPC NAME (any case): the season " +
+			"off, every NPC of the name is held out of the world as an NPC spawn only name is (in no view, fighting and " +
+			"helping no one), and comes back into every view as it turns on. Freeport's Christmas tree is one.",
+		Live:   "At once: every NPC of the name leaves every view or comes back into them, as its season is.",
+		Search: []string{"name", "season", "note", "source"},
+		Cols: map[string]colNote{
+			"name":   {Label: "NPC name (key)", Help: "as in NPCs, any case"},
+			"season": {Label: "Season", Help: "as in Seasons (Christmas)"},
+			"note":   {Label: "Note"},
+			"source": {Label: "Source", Help: "gm, or the tool that wrote the row"},
+		},
+	},
+	"seasonrewards": {
+		Label: "Season currency", Group: "World", Title: "season", Sort: "season",
+		Help: "A season's token and how it is earned while the season is on (handlers/seasonrewards.go; the owner, 2026-11-16: " +
+			"\"the weapon enchanter will cost christmas currency for our christmas event\"): drop_pct of the kills of a creature " +
+			"the killer does not see green, named_pct of a named one's (a capitalised name), on the killer's own view of the " +
+			"corpse; gift_count from gift_npc once a day (UTC) a character; hourly for each full hour in the world. Nothing " +
+			"while the season is off; tokens kept stay. The season's daily quests (quests repeatable 2) pay their own.",
+		Live:   "Within a minute (each tick), and at once when a season turns.",
+		Search: []string{"season", "gift_npc", "note", "source"},
+		Cols: map[string]colNote{
+			"season":     {Label: "Season (key)", Help: "as in Seasons"},
+			"item":       {Label: "Token", Ref: "itempattern", Help: "its item (Holly Token 716900)"},
+			"drop_pct":   {Label: "Drop %", Help: "of a kill not green to the killer"},
+			"named_pct":  {Label: "Named drop %", Help: "of a named creature's kill"},
+			"gift_npc":   {Label: "Gift NPC", Help: "who gives the gift of the day (Holiday Elf)"},
+			"gift_count": {Label: "Gift", Help: "tokens a day"},
+			"hourly":     {Label: "Hourly", Help: "tokens an hour in the world"},
+			"note":       {Label: "Note"},
+			"source":     {Label: "Source", Help: "gm, or the tool that wrote the row"},
+		},
+	},
+	"lighttemplates": {
+		Label: "Light templates", Group: "World", Title: "name", Sort: "name",
+		Help: "How a string of decoration lights looks (database/decorlights.go; the owner, 2026-11-16: lights \"in different " +
+			"colors\", \"a template so we can put christmas lights on fences buildings etc\"): its bulbs' colours, laid in " +
+			"turn (cycle) or at random, how they light (steady; twinkle, each on its own; alternate, odd and even in turn; " +
+			"chase, a run of light along the string), how fast, how far apart along the string, how big a bulb's glow is " +
+			"and how bright. Vanilla draws them (a glow a bulb, and their light with Dynamic Lighting); a PS2 draws none.",
+		Live:   "At once: every string of the template is laid again and sent to every client that draws them.",
+		Search: []string{"name", "colors", "note", "source"},
+		Cols: map[string]colNote{
+			"name":    {Label: "Template (key)", Help: "any case: Christmas lights"},
+			"colors":  {Label: "Colours", Help: "RRGGBB, comma separated, up to 16: FF2020, 20D040, 3070FF, FFC030, FFFFFF"},
+			"pattern": {Label: "Pattern", Help: "cycle: the colours in turn; random: at random (never the same twice in a row)"},
+			"effect":  {Label: "Effect", Help: "steady, twinkle, alternate or chase"},
+			"period":  {Label: "Period", Unit: "s", Help: "one twinkle, alternation or chase step's cycle (0: 1.5)"},
+			"spacing": {Label: "Spacing", Help: "between bulbs along a string, in the units of where it hangs (an NPC's at its size 1)"},
+			"size":    {Label: "Bulb size", Help: "a bulb's glow across"},
+			"bright":  {Label: "Brightness", Help: "1 full, up to 4"},
+			"note":    {Label: "Note"},
+			"source":  {Label: "Source", Help: "gm, or the tool that wrote the row"},
+		},
+	},
+	"decorart": {
+		Label: "Decoration art", Group: "World", Title: "name", Sort: "name",
+		Help: "An NPC (by NAME) that a client drawing decorations (vanilla) sees in other art than its NPCs row's body: " +
+			"model, a sprite one of the world's zones holds (zone: its index in the world's file), which that client " +
+			"reads off its own disc. Every other client (a PS2) is sent the row's own body, which must be one CHAR.ESF " +
+			"holds: a zone's sprite is not loaded far from its zone, and a PS2 draws the debug figure for a model it lacks. " +
+			"Freeport's Christmas tree: a fir of Tunaria's northern zones (0x0E318233, zone 32) to vanilla, a treant's " +
+			"body to a PS2.",
+		Live:   "At once for the zones a client reads; the body itself at the next time each client is sent the NPC (it comes into view again).",
+		Search: []string{"name", "note", "source"},
+		Cols: map[string]colNote{
+			"name":   {Label: "NPC name (key)", Help: "as in NPCs, any case"},
+			"model":  {Label: "Art", Help: "the sprite's DictID, as a number (0x0E318233 is 238125619)"},
+			"world":  {Label: "World", Help: "0 Tunaria"},
+			"zone":   {Label: "Zone", Help: "the zone of the world's file that holds the sprite (its index)"},
+			"sink":   {Label: "Sink", Help: "the art drawn this much lower than the NPC stands, in its own units (times the NPC's size): a fir's bare stem below its boughs (9.6), so they rest on the ground"},
+			"note":   {Label: "Note"},
+			"source": {Label: "Source", Help: "gm, or the tool that wrote the row"},
+		},
+	},
+	"lightstrings": {
+		Label: "Light strings", Group: "World", Title: "id", Sort: "id",
+		Help: "Where decoration lights hang (database/decorlights.go): on every NPC of a name (npc: in its own frame, x " +
+			"right, y up, z ahead, at its size 1, turned and sized with it, and gone when it goes) or in a world (npc " +
+			"blank: world coordinates), in a shape, by a template (Light templates), lit while its season (Seasons) is on " +
+			"(none: always). Shapes and their params (JSON): spiral {base:[x,y,z], r0, y0, r1, y1, turns, top} a garland " +
+			"round a cone (a tree; top RRGGBB a star); rings {base, r0, y0, r1, y1, rings, top}; line {from:[x,y,z], " +
+			"to:[x,y,z], sag, posts} (a fence's rail sagging between posts); box {min:[x,y,z], max:[x,y,z], edges: top, " +
+			"bottom or all} (a building's roof line); points {points:[[x,y,z], ...]}. Any shape may take spacing, its own.",
+		Live:   "At once: laid again and sent to every client that draws them.",
+		Search: []string{"template", "npc", "season", "note", "source"},
+		Cols: map[string]colNote{
+			"id":       {Label: "String"},
+			"template": {Label: "Template", Help: "as in Light templates"},
+			"npc":      {Label: "On NPC", Help: "the NPC name it hangs on (any case); blank: placed in the world"},
+			"world":    {Label: "World", Help: "a string in the world's: 0 Tunaria"},
+			"shape":    {Label: "Shape", Help: "spiral, rings, line, box or points"},
+			"params":   {Label: "Params", Help: "JSON, as the shape says"},
+			"season":   {Label: "Season", Help: "lit while it is on (Seasons); blank: always"},
+			"note":     {Label: "Note"},
+			"source":   {Label: "Source", Help: "gm, or the tool that wrote the row"},
+		},
+	},
 	"npcstands": {
 		Label: "NPC stands (spawn-only name)", Group: "World", Title: "npc_row", Sort: "npc_row",
 		Help: "An NPC row that stands in the world though its NAME is in NPC spawn only (entity/spawnonly.go): a GM's " +

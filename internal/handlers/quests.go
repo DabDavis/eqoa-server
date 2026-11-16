@@ -1042,6 +1042,10 @@ func (q *QuestEngine) mayTakeAtLocked(look *factionLook, p *entity.Player, c *qu
 		if cq.Done > 0 && !qu.Repeatable {
 			return "finished"
 		}
+		// a daily quest (repeatable 2) once a day: finished today, again tomorrow
+		if cq.Done > 0 && qu.Daily && strings.HasPrefix(cq.Updated, time.Now().UTC().Format("2006-01-02")) {
+			return "finished today: again tomorrow"
+		}
 	}
 	if !qu.Repeatable && q.standsFinishedLocked(p, c, qu) {
 		return "finished: the city class quest it stands for is"

@@ -953,6 +953,37 @@ const (
 	// glow (vanilla's aura.rs) on every layer of it, the colour at the alpha's
 	// share; it lists the names of a glow alone too.
 	OpcodeNPCTints GameOpcode = 0x7E40
+
+	// OpcodeDecorLightsOffer is not retail: the server's offer of its
+	// decoration lights (entity/decorlights.go; the owner, 2026-11-16: the
+	// Christmas tree's lights "in different colors", a template "so we can put
+	// christmas lights on fences buildings etc"), server to client once the
+	// player is in the world: a u8, the newest layout it sends (1). A PS2
+	// ignores it and draws none.
+	OpcodeDecorLightsOffer GameOpcode = 0x7E80
+
+	// OpcodeDecorLightsAnswer is a client's answer to OpcodeDecorLightsOffer:
+	// a u8, the layout it reads (0: none, stop). From a nonzero answer on the
+	// client drops what it held and is sent the lights (OpcodeDecorLights) at
+	// once and whenever they change.
+	OpcodeDecorLightsAnswer GameOpcode = 0x7E81
+
+	// OpcodeDecorLights is every string of lights of a season that is on (and
+	// every one of none), server to a client that answered, the whole set each
+	// time, little-endian: a u16 count of strings, then each: u8 anchor (1 on
+	// every NPC of a name, 0 in a world); for 1 its name (u8 byte count and
+	// UTF-8, keyed as OpcodeNPCTints keys one), the bulbs in the NPC's own frame
+	// at its size 1 (x right, y up, z ahead), for 0 a u8 world, the bulbs in
+	// world coordinates; u8 effect (0 steady, 1 twinkle, 2 alternate, 3 chase),
+	// f32 period (s), f32 size (a bulb's glow across), f32 brightness, u8 colour
+	// count and each u32 0xRRGGBBFF, u16 bulb count and each: f32 x, y, z, u8
+	// colour index (bit 7: the string's top, a tree's star), u8 phase (of 256
+	// in its effect's cycle). Then the art the decorations' NPCs wear, sent to
+	// this client in their bodies' place: a u16 count, each a u32 sprite
+	// DictID, a u8 world, a u16 zone (its index in the world's file), the zone
+	// that holds it, which the client reads to have the sprite, and an f32
+	// sink: the art drawn that much lower, in its own units.
+	OpcodeDecorLights GameOpcode = 0x7E82
 )
 
 // A monster's name and level when the player talks to it (□, Q on vanilla's
@@ -1655,6 +1686,12 @@ func (op GameOpcode) String() string {
 		return "NPCTintsAnswer"
 	case OpcodeNPCTints:
 		return "NPCTints"
+	case OpcodeDecorLightsOffer:
+		return "DecorLightsOffer"
+	case OpcodeDecorLightsAnswer:
+		return "DecorLightsAnswer"
+	case OpcodeDecorLights:
+		return "DecorLights"
 	case OpcodeItemLinksOffer:
 		return "ItemLinksOffer"
 	case OpcodeItemLinkSay:

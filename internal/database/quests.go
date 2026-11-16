@@ -532,6 +532,9 @@ type Quest struct {
 	Races      []int // race ids; none: any
 	Requires   []int // every quest it names to be finished first (each alternative too)
 	Repeatable bool
+	// Daily (repeatable 2): repeatable once each day (UTC), its last finish's day
+	// not today (a season's holiday quests)
+	Daily bool
 	// RequireGroups is what it asks finished first (the requires column,
 	// ParseRequires): every group met, a group by any one of its quests,
 	// so "a, b|c" is a, and b or c. A quest several classes take whose
@@ -1127,7 +1130,7 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 			rs.Close()
 			return nil, err
 		}
-		q.Enabled, q.Repeatable = enabled != 0, repeatable != 0
+		q.Enabled, q.Repeatable, q.Daily = enabled != 0, repeatable != 0, repeatable == 2
 		q.Classes, q.Races, q.Requires = ParseIntList(classes), ParseIntList(races), ParseIntList(requires)
 		q.RequireGroups = ParseRequires(requires)
 		q.Excludes = ParseIntList(excludes)

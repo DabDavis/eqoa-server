@@ -370,6 +370,8 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 	h.gameWorld.RefreshRaceLooks(h.store.DB(), sess)
 	// and the NPCs' body tints, to a client that asked (npctint.go)
 	h.gameWorld.RefreshNPCTints(sess)
+	// and the decoration lights, the same (decorlights.go)
+	h.gameWorld.RefreshDecorLights(sess)
 	// the lists the client has, until its dump sends them anew
 	pack, bank := ex.Inventory.list(), ex.Bank.list()
 	if pack != nil {

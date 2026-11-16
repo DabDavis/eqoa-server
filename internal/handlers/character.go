@@ -981,6 +981,9 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// and the NPCs' body tints (npctint.go): a client that draws them asks,
 	// a PS2 ignores it
 	SendNPCTintsOffer(sess)
+	// and the decoration lights (decorlights.go): a client that draws them
+	// asks, a PS2 ignores it
+	SendDecorLightsOffer(sess)
 	// and a damage meter (dpsmeter.go): a client that draws one asks, a PS2
 	// ignores it
 	SendDPSMeterOffer(sess)

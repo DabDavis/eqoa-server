@@ -1,0 +1,75 @@
+{
+  "_note": "The decoration lights' templates and strings for tools/christmas_season_20261116.py (the owner, 2026-11-16). A template is how bulbs look (lighttemplates); a string is where they hang (lightstrings: on an NPC by name in its own frame at size 1, or in a world). Shapes: spiral, rings, line, box, points (database/decorlights.go). Only the tree's for now; a fence would be {\"template\": \"Christmas lights\", \"npc\": \"\", \"world\": 0, \"shape\": \"line\", \"params\": {\"from\": [x,y,z], \"to\": [x,y,z], \"sag\": 0.3, \"posts\": 4}}, a building's roof {\"shape\": \"box\", \"params\": {\"min\": [...], \"max\": [...], \"edges\": \"top\"}}.",
+  "templates": [
+    {
+      "name": "Christmas lights",
+      "colors": "FF2A2A, 2AE04A, 3A78FF, FFC23A, FFFFFF, FF4FD0",
+      "pattern": "random",
+      "effect": "twinkle",
+      "period": 1.8,
+      "spacing": 0.9,
+      "size": 1.1,
+      "bright": 1.5,
+      "note": "Multi-coloured twinkling bulbs: red, green, blue, gold, white, pink, at random along the string."
+    }
+  ],
+  "strings": [
+    {
+      "template": "Christmas lights",
+      "npc": "Christmas Tree",
+      "shape": "spiral",
+      "params": {
+        "r0": 7.36,
+        "y0": 0.0,
+        "r1": 3.68,
+        "y1": 2.0,
+        "turns": 1.25
+      },
+      "season": "Christmas",
+      "note": "Freeport's Christmas tree, bough tier 1 of 4 (the fir 0x0E318233's own frame at size 1, sunk 13 as the tree is drawn)"
+    },
+    {
+      "template": "Christmas lights",
+      "npc": "Christmas Tree",
+      "shape": "spiral",
+      "params": {
+        "r0": 10.0,
+        "y0": 5.0,
+        "r1": 2.99,
+        "y1": 9.4,
+        "turns": 2.0
+      },
+      "season": "Christmas",
+      "note": "Freeport's Christmas tree, bough tier 2 of 4 (the fir 0x0E318233's own frame at size 1, sunk 13 as the tree is drawn)"
+    },
+    {
+      "template": "Christmas lights",
+      "npc": "Christmas Tree",
+      "shape": "spiral",
+      "params": {
+        "r0": 9.31,
+        "y0": 12.9,
+        "r1": 2.53,
+        "y1": 16.8,
+        "turns": 2.0
+      },
+      "season": "Christmas",
+      "note": "Freeport's Christmas tree, bough tier 3 of 4 (the fir 0x0E318233's own frame at size 1, sunk 13 as the tree is drawn)"
+    },
+    {
+      "template": "Christmas lights",
+      "npc": "Christmas Tree",
+      "shape": "spiral",
+      "params": {
+        "r0": 6.55,
+        "y0": 18.8,
+        "r1": 0.57,
+        "y1": 33.2,
+        "turns": 3.5,
+        "top": "FFE070"
+      },
+      "season": "Christmas",
+      "note": "Freeport's Christmas tree, bough tier 4 of 4 (the fir 0x0E318233's own frame at size 1, sunk 13 as the tree is drawn), a gold star at the top"
+    }
+  ]
+}

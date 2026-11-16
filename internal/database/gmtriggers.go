@@ -115,6 +115,17 @@ const (
 	// The rest waits for a living player within radius (0: the run's reach) of the run's
 	// place, at about its height (TriggerNearHeight)
 	TriggerAwaitNear = "awaitnear"
+	// A season turned on, off or over (the owner, 2026-11-16: "lets make a christmas season
+	// trigger"): its NPCs (npcseason) into the world or out of it, its decoration lights
+	// (lightstrings) lit or put out, kept over restarts (gmseasons)
+	TriggerSeason = "season"
+)
+
+// The turns of a season step: on, off, or toggle (the default).
+const (
+	SeasonOn     = "on"
+	SeasonOff    = "off"
+	SeasonToggle = "toggle"
 )
 
 // TriggerNearHeight is how far above or below a run's place an awaitnear's player
@@ -125,7 +136,7 @@ const TriggerNearHeight float32 = 40
 var TriggerActions = []string{TriggerBroadcast, TriggerPopup, TriggerSay, TriggerGive, TriggerVisual,
 	TriggerTeleport, TriggerSpawn, TriggerDespawn, TriggerStop, TriggerWait,
 	TriggerLock, TriggerPlace, TriggerClock, TriggerEnd, TriggerAwaitTalk, TriggerAwaitDead, TriggerWalk, TriggerHome, TriggerHide, TriggerRouse, TriggerSic,
-	TriggerResummon, TriggerProtect, TriggerQuestStep, TriggerAwaitKill, TriggerAwaitNear}
+	TriggerResummon, TriggerProtect, TriggerQuestStep, TriggerAwaitKill, TriggerAwaitNear, TriggerSeason}
 
 // TriggerStep is one step of a trigger, kept in the steps column's array.
 type TriggerStep struct {
@@ -196,6 +207,12 @@ type TriggerStep struct {
 	// of nothing (the Arbiter's first two lives)
 	Untouchable bool `json:"untouchable,omitempty"`
 	NoLoot      bool `json:"noloot,omitempty"`
+	// Season (season): the season it turns (gmseasons, database/seasons.go), Turn on, off
+	// or toggle ("" toggle: the trigger fired again turns it back), Text said to its
+	// players (a broadcast) as it turns on, OffText as it turns off (none: nothing said)
+	Season  string `json:"season,omitempty"`
+	Turn    string `json:"turn,omitempty"`
+	OffText string `json:"offtext,omitempty"`
 }
 
 // GMTrigger is one row of gmtriggers.
@@ -502,6 +519,15 @@ func StepProblems(steps []TriggerStep) []string {
 			if s.Quest <= 0 || s.QuestStep <= 0 {
 				add(i, "queststep names no quest and step (quest, step)")
 			}
+		case TriggerSeason:
+			if strings.TrimSpace(s.Season) == "" {
+				add(i, "season names no season")
+			}
+			switch strings.ToLower(strings.TrimSpace(s.Turn)) {
+			case "", SeasonOn, SeasonOff, SeasonToggle:
+			default:
+				add(i, "season's turn %q: on, off or toggle (none: toggle)", s.Turn)
+			}
 		case TriggerSic:
 			if strings.TrimSpace(s.Target) == "" {
 				add(i, "sic names no target")
@@ -549,7 +575,8 @@ func StepProblems(steps []TriggerStep) []string {
 			}
 		case TriggerBroadcast, TriggerPopup, TriggerSay, TriggerGive, TriggerVisual, TriggerTeleport, TriggerSpawn,
 			TriggerDespawn, TriggerStop, TriggerWait, TriggerLock, TriggerPlace, TriggerClock, TriggerEnd,
-			TriggerWalk, TriggerHome, TriggerHide, TriggerRouse, TriggerSic, TriggerResummon, TriggerProtect, TriggerQuestStep:
+			TriggerWalk, TriggerHome, TriggerHide, TriggerRouse, TriggerSic, TriggerResummon, TriggerProtect, TriggerQuestStep,
+			TriggerSeason:
 		default:
 			add(i, "do %q is not one of %s", s.Do, strings.Join(TriggerActions, ", "))
 		}

@@ -126,13 +126,23 @@ func (w *World) setSpawnOnlyLocked(names map[string]bool, stands map[EntityID]bo
 	return held, changed
 }
 
-// LoadSpawnOnly reads tables npcspawnonly and npcstands into the world: at the
-// start and after a GM's edit. Call it without the database held. It reports
+// LoadSpawnOnly reads tables npcspawnonly, npcstands and npcseason (a season's
+// NPCs while it is off) into the world: at the start, after a GM's edit and
+// when a season turns. Call it without the database held. It reports
 // SetSpawnOnly's counts.
 func (w *World) LoadSpawnOnly(db *database.SQLiteDB) (held, changed int, err error) {
 	names, err := db.NPCSpawnOnly()
 	if err != nil {
 		return 0, 0, fmt.Errorf("npcspawnonly: %w", err)
+	}
+	// the NPCs of a season that is off (table npcseason, database/seasons.go)
+	// are held out as these are
+	off, err := db.NPCSeasonHeld()
+	if err != nil {
+		return 0, 0, fmt.Errorf("npcseason: %w", err)
+	}
+	for k := range off {
+		names[k] = true
 	}
 	stands, err := db.NPCStands()
 	if err != nil {

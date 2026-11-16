@@ -591,6 +591,13 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	if charStore != nil && gameWorld != nil {
 		NewTriggerEngine(charStore.DB(), gameWorld, sessionMgr, invStore).Start()
 	}
+	// A season's currency (seasonrewards.go): drops, the gift of the day and
+	// the playtime's tokens while its season is on
+	if charStore != nil && gameWorld != nil {
+		sr := NewSeasonRewards(charStore.DB(), gameWorld, sessionMgr, invStore)
+		sr.drop = npcWindowHandler.AddQuestDrop
+		sr.Start()
+	}
 
 	// Register others' power (0x7E01; powerbars.go): a client that draws
 	// power bars under its group's, its target's and their target's health
@@ -604,6 +611,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	NewNumberTagsHandler().RegisterHandlers(r)
 	// The NPCs' body tints (0x7E3F; npctint.go): a client that draws them
 	NewNPCTintsHandler(gameWorld).RegisterHandlers(r)
+	NewDecorLightsHandler(gameWorld).RegisterHandlers(r)
 	// A damage meter (0x7E3B, 0x7E3D; dpsmeter.go): a client that draws one
 	NewDPSMeterHandler(gameWorld).RegisterHandlers(r)
 	// The worn looks a character hides (0x7E6D; hidelook.go)

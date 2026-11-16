@@ -431,6 +431,17 @@ func main() {
 		log.Printf("WARNING: %v; no NPC is tinted", err)
 	}
 	log.Printf("Creatures: %s", gameWorld.NPCTintSummary())
+	// The decoration lights of the seasons that are on, for the clients that
+	// draw them (entity/decorlights.go, tables lighttemplates, lightstrings,
+	// gmseasons)
+	if _, _, _, problems, err := gameWorld.LoadDecorLights(db); err != nil {
+		log.Printf("WARNING: %v; no decoration lights", err)
+	} else {
+		for _, p := range problems {
+			log.Printf("WARNING: decoration lights: %s", p)
+		}
+	}
+	log.Printf("Creatures: %s", gameWorld.DecorLightSummary())
 	// The worn pieces' auras, by item (entity/pieceaura.go, table itemaura)
 	if n, err := gameWorld.LoadItemAuras(db); err != nil {
 		log.Printf("WARNING: %v; no worn piece shows an aura", err)

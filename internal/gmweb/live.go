@@ -51,6 +51,12 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveSocial()
 	case "npcspawnonly", "npcstands":
 		return s.liveSpawnOnly()
+	case "gmseasons", "npcseason", "lighttemplates", "lightstrings", "decorart":
+		handlers.Rewards().Refresh() // a season turned: its currency (seasonrewards.go)
+		return s.liveSeasons()       // live_seasons.go
+	case "seasonrewards":
+		handlers.Rewards().Refresh()
+		return "at once: earned so while its season is on"
 	case "npctint":
 		return s.liveTints()
 	case "itemaura", "charaura":

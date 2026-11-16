@@ -126,6 +126,18 @@ func checkRow(table string, row map[string]any) error {
 	if table == "npcspawnonly" && row != nil {
 		return checkSpawnOnlyRow(row) // live.go
 	}
+	if table == "gmseasons" && row != nil {
+		return checkSeasonRow(row) // live_seasons.go
+	}
+	if table == "npcseason" && row != nil {
+		return checkNPCSeasonRow(row) // live_seasons.go
+	}
+	if table == "lighttemplates" && row != nil {
+		return checkLightTemplateRow(row) // live_seasons.go
+	}
+	if table == "lightstrings" && row != nil {
+		return checkLightStringRow(row) // live_seasons.go
+	}
 	if table == "npctint" && row != nil {
 		return checkTintRow(row) // live.go
 	}

@@ -271,6 +271,13 @@ type Session struct {
 	// with each name's glow: entity.EncodeNPCTintsLayout); 0 with npcTints off
 	npcTintsLayout uint8
 
+	// decorLights is the layout the client answered the decoration lights'
+	// offer with (protocol.OpcodeDecorLightsAnswer, handlers/decorlights.go; 0
+	// none, a PS2), decorLightsSent what it was last sent ("" none since its
+	// answer; npcTintsUnknown after a keep restart): entity/decorlights.go
+	decorLights     uint8
+	decorLightsSent string
+
 	// mobInfo: the client answered the mob info's offer 1
 	// (protocol.OpcodeMobInfoAnswer, handlers/mobinfo.go), so a monster's name
 	// and level go to it as OpcodeMobInfo, shown in its target's details box. A
@@ -456,6 +463,37 @@ func (s *Session) TakeNPCTints(body string, empty bool) bool {
 		return false
 	}
 	s.npcTintsSent = body
+	return true
+}
+
+// SetDecorLights records the client's answer to the decoration lights' offer:
+// the layout it reads (0 none). Either way it holds none now.
+func (s *Session) SetDecorLights(layout uint8) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.decorLights = layout
+	s.decorLightsSent = ""
+}
+
+// DecorLightsLayout is the layout of the decoration lights the client is sent
+// (0: none).
+func (s *Session) DecorLightsLayout() uint8 {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.decorLights
+}
+
+// TakeDecorLights reports whether the lights' message body is to go to the
+// client now, and if so takes it as what the client holds: only to a client
+// that asked, only when it differs from what it was last sent, and an empty
+// set (empty) never to one that holds none.
+func (s *Session) TakeDecorLights(body string, empty bool) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.decorLights == 0 || body == s.decorLightsSent || (empty && s.decorLightsSent == "") {
+		return false
+	}
+	s.decorLightsSent = body
 	return true
 }
 

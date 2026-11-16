@@ -397,6 +397,11 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		h.signLedger(sess, player, npc)
 	}
 
+	// A season's gift of the day from its NPC (seasonrewards.go); the talk goes on
+	if npc, ok := targetEntity.(*entity.NPC); ok {
+		Rewards().Talk(sess, player, npc)
+	}
+
 	// A trigger's run waiting for someone to talk to this NPC (gmtriggers.go).
 	if npc, ok := targetEntity.(*entity.NPC); ok && Triggers().Talk(sess, player, npc) {
 		return nil

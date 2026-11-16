@@ -941,6 +941,8 @@ func (e *TriggerEngine) stepLocked(r *triggerRun, s database.TriggerStep) string
 			log.Printf("Triggers: %s: step %d of quest %d done for %s", title, step, quest, players(n))
 		}()
 		return fmt.Sprintf("step %d of quest %d for those of %s on it", step, quest, players(len(members)))
+	case database.TriggerSeason:
+		return e.seasonLocked(r, s)
 	case database.TriggerHide:
 		until := time.Time{}
 		if s.Minutes > 0 {
@@ -1887,4 +1889,67 @@ func (h *ChatHandler) HandleGMTriggerFire(sess *session.Session, msg *protocol.M
 	log.Printf("GM channel: %s: TRIGGER slot %d", gm.Name, slot)
 	h.fireTrigger(sess, gm, int(slot))
 	return nil
+}
+
+// seasonLocked turns a season (a season step: on, off, or over), keeps it in
+// gmseasons, and makes the world hold it: its NPCs (npcseason) into every view
+// or out of them, its decoration lights lit or put out for every client that
+// draws them. Its text (on) or offtext (off) is said to the run's players. Must
+// be called with e.mu held.
+func (e *TriggerEngine) seasonLocked(r *triggerRun, s database.TriggerStep) string {
+	name := strings.TrimSpace(s.Season)
+	if e.db == nil {
+		return fmt.Sprintf("season %s: no database", name)
+	}
+	was, err := e.db.SeasonActive(name)
+	if err != nil {
+		log.Printf("Triggers: season %s: %v", name, err)
+		return fmt.Sprintf("season %s not turned: %v", name, err)
+	}
+	on := !was
+	switch strings.ToLower(strings.TrimSpace(s.Turn)) {
+	case database.SeasonOn:
+		on = true
+	case database.SeasonOff:
+		on = false
+	}
+	if _, err := e.db.SetSeason(name, on, r.by); err != nil {
+		log.Printf("Triggers: season %s: %v", name, err)
+		return fmt.Sprintf("season %s not turned: %v", name, err)
+	}
+	line := fmt.Sprintf("season %s %s", name, map[bool]string{true: "ON", false: "OFF"}[on])
+	if on == was {
+		line += " (it was already)"
+	}
+	if e.gw != nil {
+		held, changed, err := e.gw.LoadSpawnOnly(e.db)
+		if err != nil {
+			log.Printf("Triggers: season %s: %v", name, err)
+		}
+		strs, bulbs, told, problems, err := e.gw.LoadDecorLights(e.db)
+		if err != nil {
+			log.Printf("Triggers: season %s: %v", name, err)
+		}
+		for _, p := range problems {
+			log.Printf("Triggers: season %s: decoration lights: %s", name, p)
+		}
+		n, _ := e.db.NPCSeasonCount(name)
+		line += fmt.Sprintf(": its %d NPC name(s) %s (%d NPCs changed, %d held out in all); %d strings of lights lit (%d bulbs), sent to %d client(s)",
+			n, map[bool]string{true: "in the world", false: "out of it"}[on], changed, held, strs, bulbs, told)
+	}
+	// its currency earned from now on, or no longer (seasonrewards.go)
+	Rewards().Refresh()
+	text := s.Text
+	if !on {
+		text = s.OffText
+	}
+	if strings.TrimSpace(text) != "" && on != was {
+		who := e.audience(r)
+		for _, m := range who {
+			GMLine(m.sess, triggerText(text, m.p.Name), gmBroadcastRGB)
+		}
+		line += "; said to " + players(len(who))
+	}
+	log.Printf("Triggers: %s by %s: %s", r.trig.Title(), r.by, line)
+	return line
 }

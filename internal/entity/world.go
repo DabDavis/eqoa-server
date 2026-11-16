@@ -194,6 +194,8 @@ type World struct {
 	groupInvitesShut map[uint32]bool
 	// Familiars by their owners' ids (familiar.go)
 	familiars map[EntityID]*familiarState
+	// Barrels of Monkeys' monkeys by their owners' ids (monkeys.go)
+	monkeys map[EntityID][]*monkeyState
 
 	// Duels, asked and on (duel.go), and their wagers' writes (duelpurse.go)
 	duels     duelTable
@@ -586,6 +588,7 @@ func (w *World) leavingLocked(p *Player) []func(*Player) {
 
 	w.mercLeavingLocked(p)     // its merc goes, its hire kept (merc.go)
 	w.familiarLeavingLocked(p) // its familiar goes (familiar.go)
+	w.monkeysLeavingLocked(p)  // its monkeys go back into the barrel (monkeys.go)
 	w.castsLeavingLocked(p)    // its casts on their way go unlanded (cast.go)
 	fns := make([]func(*Player), len(w.leaving))
 	copy(fns, w.leaving)

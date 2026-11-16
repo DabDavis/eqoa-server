@@ -58,6 +58,11 @@ const (
 	slotMerc2                      // a second merc: its left
 	slotMerc3                      // a third merc: behind it
 	slotSidePet                    // a stacking charm's animal beside the pet (stackcharm.go): ahead of its left
+	slotMonkey1                    // the Barrel of Monkeys' five (monkeys.go): monkeySlotAngle, monkeyRadius off
+	slotMonkey2
+	slotMonkey3
+	slotMonkey4
+	slotMonkey5
 )
 
 // mercFollowSlot is the follow slot of the merc of a hire's slot (1 to
@@ -82,6 +87,23 @@ var followSlotAngle = [...]float32{
 	slotMerc2:    -math.Pi / 2,
 	slotMerc3:    math.Pi,
 	slotSidePet:  -math.Pi / 4,
+	slotMonkey1:  monkeySlotAngle[0],
+	slotMonkey2:  monkeySlotAngle[1],
+	slotMonkey3:  monkeySlotAngle[2],
+	slotMonkey4:  monkeySlotAngle[3],
+	slotMonkey5:  monkeySlotAngle[4],
+}
+
+// isMonkeySlot reports one of the monkeys' slots.
+func isMonkeySlot(s followSlot) bool { return s >= slotMonkey1 && s <= slotMonkey5 }
+
+// followSlotRadius is how far off whom it follows n's slot s is: a monkey's
+// monkeyRadius, any other's followRadiusOf.
+func followSlotRadius(n *NPC, s followSlot) float32 {
+	if isMonkeySlot(s) {
+		return monkeyRadius
+	}
+	return followRadiusOf(n)
 }
 
 const (
@@ -211,7 +233,11 @@ func followSpotAt(x, z, heading, angle, r float32) (float32, float32) {
 // own place. n's world must be p's. Must be called with the lock held.
 func (w *World) followPlaceLocked(n *NPC, p *Player, s followSlot) (x, y, z float32) {
 	for _, t := range followTries {
-		x, z := followSpotAt(p.X, p.Z, p.Facing, followSlotAngle[s]+t.turn, followRadius*t.share)
+		r := followRadius
+		if isMonkeySlot(s) {
+			r = monkeyRadius
+		}
+		x, z := followSpotAt(p.X, p.Z, p.Facing, followSlotAngle[s]+t.turn, r*t.share)
 		if w.followSpotWalkableLocked(n, p, x, z) {
 			return x, p.Y, z
 		}
@@ -220,7 +246,7 @@ func (w *World) followPlaceLocked(n *NPC, p *Player, s followSlot) (x, y, z floa
 }
 
 // followSiblingsLocked is the other followers round a: its class pet, its
-// mercs and its familiar but n. Must be called with the lock held.
+// mercs, its familiar and its monkeys but n. Must be called with the lock held.
 func (w *World) followSiblingsLocked(a *Player, n *NPC) []*NPC {
 	var out []*NPC
 	if ps := w.pets[a.ServerID]; ps != nil && ps.npc != nil && ps.npc != n {
@@ -237,6 +263,11 @@ func (w *World) followSiblingsLocked(a *Player, n *NPC) []*NPC {
 	if fs := w.familiars[a.ServerID]; fs != nil && fs.npc != nil && fs.npc != n {
 		out = append(out, fs.npc)
 	}
+	for _, ms := range w.monkeys[a.ServerID] {
+		if ms.npc != nil && ms.npc != n {
+			out = append(out, ms.npc) // monkeys.go
+		}
+	}
 	return out
 }
 
@@ -250,7 +281,7 @@ func (w *World) followSlotLocked(n *NPC, a *Player, s followSlot) (x, z float32,
 	}
 	align := c.align && c.anchor == a
 	*c = followSlotCache{anchor: a, stamp: f.stamp, slot: s, align: align}
-	r := followRadiusOf(n)
+	r := followSlotRadius(n, s)
 	sibs := w.followSiblingsLocked(a, n)
 	for _, t := range followTries {
 		x, z := followSpotAt(a.X, a.Z, f.heading, followSlotAngle[s]+t.turn, r*t.share)

@@ -864,7 +864,7 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	if len(targets) > 0 {
 		target = targets[0]
 	}
-	w.broadcastCastLocked(p, target, spell.CastTime, spell.visual(), cs.others...)
+	w.broadcastCastLocked(p, target, spell.CastTime, p.castVisual(&spell), cs.others...)
 	log.Printf("Cast: %s begins %q (spell %d) on %#x: %v cast, %d power (%d left), lands in %v",
 		p.Name, spell.Name, spell.SpellID, targetObjectID, spell.CastTime, spell.PowerCost, p.Power, spell.CastTime+land)
 	return true

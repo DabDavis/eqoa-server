@@ -2136,8 +2136,13 @@ func (h *CharacterHandler) SendMemoryDump(sess *session.Session) {
 // and the character's stored items and spells, and queues it. A login sends
 // it after Camera1 and Time (SendMemoryDump); a respawn sends it alone
 // (respawnPlayer), as Sandstorm does.
+//
+// The server's clock follows it (0x0013): the client's sun has fallen behind
+// the world's since its last (session/gameclock.go), and VISyncTime blends
+// the new reading in. A login's dump comes after one already.
 func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity.Player) {
 	h.queueMemoryDumpAt(sess, player, false)
+	sess.QueueGameTime(time.Now())
 }
 
 // queueMemoryDumpAt is queueMemoryDump; login (SendMemoryDump's) also brings
@@ -2825,22 +2830,10 @@ func (h *CharacterHandler) SendBuddyList(sess *session.Session) {
 // sendTimeOnly sends just the Time message (opcode 0x13) without Ping.
 // Used in MemoryDump sequence where C# only sends Time, not Ping.
 func (h *CharacterHandler) sendTimeOnly(sess *session.Session) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeTime)
-	writer := buffer.NewWriter(msg.Span())
-
-	// Write opcode in data
-	writer.WriteUint16(uint16(protocol.OpcodeTime))
-	// Write time data - two uint64 LE epoch-millisecond timestamps; the
-	// client's time of day is the second's, and the session keeps the clock
-	// the client sets by it (session/gameclock.go: a vampire's daylight)
-	at := time.Now()
-	now := uint64(at.UnixMilli())
-	writer.WriteUint64(now)
-	writer.WriteUint64(now + session.ClockOffset)
-	msg.SetSize(writer.Position())
-
-	sess.Queue().AddWithSequence(msg)
-	sess.SetGameClock(int64(now+session.ClockOffset), at)
+	// two u64 LE epoch-millisecond readings; the client's time of day is the
+	// second's, and the session keeps the clock the client sets by it
+	// (session/gameclock.go: a vampire's daylight, the resync)
+	now := sess.QueueGameTime(time.Now())
 	log.Printf("sendTimeOnly: sent Time message to %s (epoch=%d)", sess.RemoteAddr(), now)
 }
 

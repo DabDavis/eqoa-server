@@ -436,6 +436,7 @@ func (s *Session) restore(k Kept, now time.Time) {
 	}
 	if c := k.Clock; c != nil {
 		s.clock = gameClock{ready: true, remote: c.Remote, local: timerAt(time.UnixMilli(c.LocalUnix)), blend: c.Blend}
+		s.clockSentAt = time.UnixMilli(c.LocalUnix)
 	}
 	s.lastActivity = now
 	s.resumed = true

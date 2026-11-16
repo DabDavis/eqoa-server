@@ -1,6 +1,11 @@
 package session
 
-import "time"
+import (
+	"encoding/binary"
+	"time"
+
+	"github.com/eqoa/server/internal/protocol"
+)
 
 // The time of day a client shows, kept for each session as the client keeps
 // it. 0x0013 carries two readings of the server's clock; CLIENT sets one
@@ -24,6 +29,19 @@ import "time"
 // 1793330744412), so at the moment of a 0x0013 a client's hour is
 // ((ms + 1,350,000) % 3,600,000) / 150,000: midnight at 37.5 minutes past
 // every real hour, the sun up from 52.5 past to 22.5 past the next.
+
+// So a client's sun falls behind the world's the longer it plays: a minute
+// of the clock an hour is 0.41 game hours, 24 game minutes, the sun 6.1
+// degrees, and two players who entered the world an hour apart see it that
+// far apart (the owner, 2026-11-16: "the sun is not all in the same spot").
+// The server's clock is the one truth: a client in the world is sent it
+// again every ClockResync (QueueGameTime, the listener's tick), and after
+// every dump (a respawn, a gate, a restart's resume), which VISyncTime blends
+// in with no jump. Between two the clock loses at most 1.7% of ClockResync.
+
+// ClockResync is how often a client in the world is sent the server's clock
+// again: its sun at most 2.04 s of the clock behind, 0.8 game minutes.
+const ClockResync = 2 * time.Minute
 
 // ClockOffset is what the server adds to its clock (Unix milliseconds) for
 // the second reading of 0x0013, the one a client's time of day is read from.
@@ -98,6 +116,33 @@ func (s *Session) SetGameClock(reading int64, t time.Time) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.clock.set(reading, timerAt(t))
+	s.clockSentAt = t
+}
+
+// QueueGameTime queues a 0x0013 of the server's clock at t: two u64
+// readings, Unix milliseconds and that plus ClockOffset (CLIENT's
+// ProcessMessage case 0x0013 reads two longs, 8 bytes on its ABI, into
+// VIClient::SetTime), and keeps the clock the client sets by it. It returns
+// the first reading.
+func (s *Session) QueueGameTime(t time.Time) uint64 {
+	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeTime)
+	b := msg.Span()
+	now := uint64(t.UnixMilli())
+	binary.LittleEndian.PutUint16(b[0:], uint16(protocol.OpcodeTime))
+	binary.LittleEndian.PutUint64(b[2:], now)
+	binary.LittleEndian.PutUint64(b[10:], now+ClockOffset)
+	msg.SetSize(18)
+	s.Queue().AddWithSequence(msg)
+	s.SetGameClock(int64(now+ClockOffset), t)
+	return now
+}
+
+// GameTimeDue reports the client's clock last set ClockResync or more
+// before now (or never), so due the server's again.
+func (s *Session) GameTimeDue(now time.Time) bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return !s.clock.ready || now.Sub(s.clockSentAt) >= ClockResync
 }
 
 // GameHour is the time of day the session's client shows at t, 0 to

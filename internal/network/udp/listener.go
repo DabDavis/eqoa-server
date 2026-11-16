@@ -598,6 +598,13 @@ func (l *Listener) tickAllSessions() {
 		}
 
 		if sess.CharacterInWorld() {
+			// the server's clock again, ClockResync after the last: the
+			// client's own runs 1.7% slow, and every player's sun is the
+			// world's only so (session/gameclock.go). Not while a world loads
+			// or a restart's dump waits: that dump brings one.
+			if now := time.Now(); sess.GameTimeDue(now) && !sess.ResumePending() && !sess.WorldLoadUnderway(now, resumeLoadMax) {
+				sess.QueueGameTime(now)
+			}
 			// Full tick: timeout checks, state updates, packet send
 			rdp.TickSession(sess)
 		} else if sess.InGame() {

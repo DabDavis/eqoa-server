@@ -223,6 +223,8 @@ type Session struct {
 	// clock is the game clock the session's client keeps, set by each 0x0013
 	// it was sent: its time of day (gameclock.go).
 	clock gameClock
+	// clockSentAt is when the last 0x0013 was sent (GameTimeDue).
+	clockSentAt time.Time
 
 	// bugReports is the client's answer to the bug report offer
 	// (protocol.OpcodeBugReportOffer, handlers/bugreport.go): it opens

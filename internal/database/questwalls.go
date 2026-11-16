@@ -86,6 +86,9 @@ func (db *SQLiteDB) ensureQuestWalls() error {
 	if _, err := db.Exec(itemHideSchema); err != nil {
 		return fmt.Errorf("itemhide: %w", err)
 	}
+	if _, err := db.Exec(questDoorsSchema); err != nil { // questdoors.go
+		return fmt.Errorf("questdoors: %w", err)
+	}
 	ok, err := hasColumn(db.DB, "npcaggro", "holding")
 	if err != nil {
 		return fmt.Errorf("npcaggro: %w", err)

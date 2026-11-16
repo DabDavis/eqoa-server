@@ -73,7 +73,8 @@ func (w *World) QuestWalls() []database.QuestWall {
 }
 
 // WatchedItems is every item a creature's aggro looks for (npcaggro's
-// holding) and every item a wall opens for (questwalls' item).
+// holding) and every item a wall or a door opens for (questwalls' and
+// questdoors' item).
 func (w *World) WatchedItems() []int {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
@@ -89,6 +90,12 @@ func (w *World) WatchedItems() []int {
 		if q.Item > 0 && !seen[q.Item] {
 			seen[q.Item] = true
 			out = append(out, q.Item)
+		}
+	}
+	for _, d := range w.qdoors {
+		if d.Item > 0 && !seen[d.Item] {
+			seen[d.Item] = true
+			out = append(out, d.Item)
 		}
 	}
 	sort.Ints(out)
@@ -204,8 +211,8 @@ func (w *World) holdsLocked(p *Player, pattern int) bool {
 const questHoldReach float32 = 150
 
 // NearHoldingRule is whether p stands within questHoldReach of a creature
-// whose aggro looks for an item (npcaggro's holding) or of a wall an item
-// opens (questwalls' item).
+// whose aggro looks for an item (npcaggro's holding) or of a wall or a door
+// an item opens (questwalls' and questdoors' item).
 func (w *World) NearHoldingRule(p *Player) bool {
 	if p == nil {
 		return false
@@ -222,6 +229,9 @@ func (w *World) NearHoldingRule(p *Player) bool {
 				return true
 			}
 		}
+	}
+	if w.nearDoorItemLocked(p, questHoldReach) {
+		return true
 	}
 	if w.SpatialIndex == nil {
 		return false

@@ -393,6 +393,13 @@ func main() {
 	} else if n > 0 {
 		log.Printf("Creatures: %d quest walls (questwalls)", n)
 	}
+	// The doors an NPC keeps, kept by the server too (entity/questdoors.go,
+	// table questdoors)
+	if n, err := gameWorld.LoadQuestDoors(db); err != nil {
+		log.Printf("WARNING: %v; no NPC's door is kept by the server", err)
+	} else if n > 0 {
+		log.Printf("Creatures: %d doors an NPC keeps (questdoors)", n)
+	}
 	// The NPCs' body tints, for the clients that draw them (entity/npctint.go,
 	// table npctint)
 	if _, _, err := gameWorld.LoadNPCTints(db); err != nil {

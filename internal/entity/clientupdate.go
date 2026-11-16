@@ -152,7 +152,8 @@ var locoStates = [256]bool{0: true, 1: true, 2: true, 3: true, 4: true, 5: true,
 // sync never sees the position without its velocity. Its place is judged
 // first (movecheck.go): a place the judge does not take leaves the player
 // where it was, standing still. A place taken in a teleport orb sends the
-// player on (orbs.go).
+// player on (orbs.go); one through a door it may not pass turns it back
+// (questdoors.go).
 func (w *World) ApplyClientUpdate(id EntityID, u ClientUpdate) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -175,6 +176,10 @@ func (w *World) ApplyClientUpdate(id EntityID, u ClientUpdate) {
 		oldX, oldZ := p.X, p.Z
 		p.X, p.Y, p.Z = x, y, z
 		w.SpatialIndex.Update(id, oldX, oldZ, x, z)
+	}
+	// a door an NPC keeps that the report steps through (questdoors.go)
+	if w.doorStepLocked(p, before, &u, now) {
+		take = false
 	}
 	p.mv.tookMove(p, now, take)
 	if u.HasFacing {

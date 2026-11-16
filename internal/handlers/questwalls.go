@@ -39,8 +39,9 @@ func (q *QuestEngine) syncQuestState() {
 		return
 	}
 	walls := q.gw.QuestWalls()
+	doors := q.gw.QuestDoors()
 	items := q.gw.WatchedItems()
-	if len(walls) == 0 && len(items) == 0 {
+	if len(walls) == 0 && len(doors) == 0 && len(items) == 0 {
 		return
 	}
 	itemWalls := false
@@ -96,6 +97,19 @@ func (q *QuestEngine) syncQuestState() {
 			if wl.Item > 0 && holds[wl.Item] && !passes[entity.EntityID(wl.NPCID)] {
 				passes[entity.EntityID(wl.NPCID)] = true
 				keys = append(keys, fmt.Sprintf("w%d", wl.NPCID))
+			}
+		}
+		// a door an NPC keeps (entity/questdoors.go): past its quest's
+		// step, or holding its item
+		for _, d := range doors {
+			id := entity.EntityID(d.NPCID)
+			if passes[id] {
+				continue
+			}
+			cq := c.quests[d.QuestID]
+			if d.QuestID != 0 && cq != nil && (cq.Done > 0 || (cq.Active() && cq.Step > d.Step)) || d.Item > 0 && holds[d.Item] {
+				passes[id] = true
+				keys = append(keys, fmt.Sprintf("d%d", d.NPCID))
 			}
 		}
 		sort.Strings(keys)

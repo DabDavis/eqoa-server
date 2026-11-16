@@ -269,6 +269,8 @@ type World struct {
 	// qwalls is the quests' walls and what each character passes and holds
 	// (questwalls.go)
 	qwalls questWallState
+	// qdoors is the doors an NPC keeps, by its npcs row (questdoors.go)
+	qdoors map[EntityID]database.QuestDoor
 	// qhead is the quest marks over the NPCs' heads each character's client
 	// is shown, as the quest engine last worked them out (questheadmarks.go)
 	qhead map[uint32]*QuestHeadMarks

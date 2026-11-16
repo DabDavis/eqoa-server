@@ -373,6 +373,10 @@ type Player struct {
 	// orb is its standing with the teleport orbs (orbs.go): the orb it is
 	// in, its place at the last report, its orbs' rest
 	orb orbWatch
+	// door is its standing with the quests' doors (questdoors.go): the side
+	// of each it is on, its place at the last report, a turn back the
+	// client has not answered
+	door doorWatch
 	// hazardNext is when a hazard may hit it again (hazards.go); hazardX/hazardZ where its last
 	// hit took it, while hazardHit (an on_move hazard's still player is not hit again)
 	hazardNext       time.Time

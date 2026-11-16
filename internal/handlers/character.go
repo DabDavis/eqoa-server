@@ -1553,6 +1553,17 @@ func characterGearHiding(items []database.CharInventoryEntry, hidden uint32) []b
 	return g
 }
 
+// characterGearOn is characterGearHiding of a character shown in body model:
+// a body with a helm of its own (the fire giant reaver's) shows no worn helm
+// (entity/ownhelm.go).
+func characterGearOn(model uint32, items []database.CharInventoryEntry, hidden uint32) []byte {
+	g := characterGearHiding(items, hidden)
+	if entity.BodyWearsHelm(model) {
+		entity.HideCharacterParts(g, entity.HideHelm)
+	}
+	return g
+}
+
 // wornGear sums the stats of the items worn (an equip slot, not the bank),
 // by the stat ids the dump gives them (itemPatternStats), and takes the
 // swinging weapon's damage, its condition (hit points over their most; an
@@ -1914,7 +1925,7 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 		// the live game's record to a client of its look, with the dyes
 		// (livelook.go); the disc's 32 bytes to every other
 		hidden := h.hiddenLooks(uint32(c.ServerID))
-		gear := characterGearHiding(items, hidden)
+		gear := characterGearOn(uint32(c.ModelID), items, hidden)
 		if entity.IsWispRace(int(c.Race)) {
 			// a Wisp at select is in its own form: nothing worn shows but its
 			// cape (entity/wispform.go)

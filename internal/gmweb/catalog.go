@@ -1123,7 +1123,8 @@ var catalog = map[string]tableNote{
 			"(Particles 1D875ECD the monk staff's, Nodes its height 1-100 percent of the head, 72 the temples), drawn while no " +
 			"helm is (give the item model 0: the Crown of Twisted Virtue); on any other piece it shows nothing. A held item (weapon " +
 			"or shield) takes 3 particles, 7 an epic's look or 9 an energy skin (the source's additive layers over the item: the " +
-			"Heirloom Shield of Twisted Virtue wears 2EC56029's), shown on the hand that holds it unless the character has its own (Character auras 9/10).",
+			"Heirloom Shield of Twisted Virtue wears 2EC56029's), shown on the hand that holds it unless the character has its own (Character auras 9/10). " +
+			"A held item may carry a SECOND aura too (Second aura ... Second along: 3, 7 or 9), drawn beside the first; /aura item <id> second ... in the game.",
 		Live:   "At once: every wearer's channel carries it at the next tick.",
 		Search: []string{"note"},
 		Cols: map[string]colNote{
@@ -1132,9 +1133,13 @@ var catalog = map[string]tableNote{
 			"kind": {Label: "Aura", Help: "0 the default (the shell while the colour lights), 1 none, 2 the shell (a glow fitted round the piece), 3 the particles, 4 both, " +
 				"5 the trim (sets 4 and 9's gold trim lit in the colour, a soft halo off it; nothing on a piece with no trim), 6 the trim and the shell. " +
 				"A black or near-black colour (every channel at most 30, 000000FF too) with 2, 4, 5 or 6 is a DARK aura: a smoky shadow, the trim darkened"},
-			"source": {Label: "Particles", Format: hex32, Look: lookItem, Store: storeUint32, Help: "the DictID of the item (an ITEM.ESF hand model) or model whose particle sprite the particles are; 0 the Sword of Virtue's (0x88EC092D)"},
-			"nodes":  {Label: "Nodes", Help: "on how many of the piece's nodes the particles go; 0 the default, 32 at most"},
-			"note":   {Label: "Note", Help: "why"},
+			"source":  {Label: "Particles", Format: hex32, Look: lookItem, Store: storeUint32, Help: "the DictID of the item (an ITEM.ESF hand model) or model whose particle sprite the particles are; 0 the Sword of Virtue's (0x88EC092D)"},
+			"nodes":   {Label: "Nodes", Help: "on how many of the piece's nodes the particles go; 0 the default, 32 at most"},
+			"note":    {Label: "Note", Help: "why"},
+			"color2":  {Label: "Second colour", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "a held item's SECOND aura (drawn beside the first on the hand that holds it; Icingdeath: the Sword of Virtue's look and the freezing): its colour 0xRRGGBBAA, 0 the source's own colours"},
+			"kind2":   {Label: "Second aura", Help: "the second aura's kind, a held item's: 0 none, 3 the particles, 7 an epic's look, 9 an energy skin; drawn by a vanilla that asks for second auras"},
+			"source2": {Label: "Second particles", Format: hex32, Look: lookItem, Store: storeUint32, Help: "the second aura's source DictID (an epic's model, a spell visual, a model with particles); 0 the Sword of Virtue's"},
+			"nodes2":  {Label: "Second along", Help: "where along the held item the second aura's particles sit: 1-100 percent of its length from the hand, 0 the source's own place (a spell visual's: the tip)"},
 		},
 	},
 	"charaura": {

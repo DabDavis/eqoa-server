@@ -7693,7 +7693,7 @@
     {
      "kind": "loot",
      "target": "Relk Icemapper",
-     "journal": "Take Relk Icemapper's key: right from this room, right at the hall, second right, down the stairs.",
+     "journal": "Take Relk Icemapper's key: right, right at the hall, the second right, down the stairs. He spawns mid-room, once a day.",
      "items": [
       {
        "item": "Relk's Key",
@@ -7717,18 +7717,9 @@
      "chance": 1.0
     },
     {
-     "kind": "reach",
-     "world": 0,
-     "x": 4861,
-     "y": 81,
-     "z": 4605,
-     "radius": 30,
-     "journal": "Find Warlord Kraven by the big ramp, a level down past the two ice giants."
-    },
-    {
      "kind": "loot",
      "target": "Warlord Kraven",
-     "journal": "Take Warlord Kraven's key.",
+     "journal": "Take Warlord Kraven's key: left, left, the first left, up past two ice giants, left, down a level. He spawns by the big ramp.",
      "items": [
       {
        "item": "Kraven's Key",
@@ -7736,15 +7727,7 @@
       }
      ],
      "count": 1,
-     "chance": 1.0,
-     "events": [
-      {
-       "on": "start",
-       "do": "spawn",
-       "npc": "Warlord Kraven",
-       "hostile": true
-      }
-     ]
+     "chance": 1.0
     },
     {
      "kind": "give",
@@ -7773,32 +7756,36 @@
      "y": 91,
      "z": 4470,
      "radius": 25,
-     "journal": "Go behind the tapestry in the throne room of Vox's Castle.",
-     "events": [
-      {
-       "on": "done",
-       "do": "popup",
-       "text": "Grilmesh Frostcackle cackles a rhyme, and the snow piles up into a twenty-foot snowman!"
-      }
-     ]
+     "journal": "Go behind the tapestry in the throne room of Vox's Castle."
     },
     {
      "kind": "kill",
      "target": "Snowgrin",
-     "journal": "Kill Snowgrin.",
+     "journal": "Kill Snowgrin, the snowman Grilmesh Frostcackle raises by the ice throne of Vox's Castle.",
      "count": 1,
      "events": [
       {
        "on": "start",
        "do": "spawn",
+       "npc": "Grilmesh Frostcackle"
+      },
+      {
+       "on": "start",
+       "do": "say",
        "npc": "Grilmesh Frostcackle",
+       "text": "Snow on stone and frost on bone, the keys are turned, the way is shown!\nRise from the drift with a frozen grin: wake for the warm ones, Snowgrin!"
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Snowgrin",
        "hostile": true
       }
      ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/Misc/snowgrin.json, # Snowgrin Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Karis McDonough and Grilmash Frostcackle are the game's Karis McDonogh and Grilmesh Frostcackle. Snowgrin's rares (Dragoneye, Crystalline Spear, Storm's Edge ...) are loot, not a quest reward; the quest gives none. Warlord Kraven stands as a townsperson (npc_type 0x80): the set's attackable list makes them attackable, and the kill step's start spawns a hostile copy."
+   "notes": "From EQOA-Data Quests/Misc/snowgrin.json, # Snowgrin Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Karis McDonough and Grilmash Frostcackle are the game's Karis McDonogh and Grilmesh Frostcackle. Snowgrin's rares (Dragoneye, Crystalline Spear, Storm's Edge ...) are loot, not a quest reward; the quest gives none. Warlord Kraven is a standing creature, as Relk Icemapper and General Frostbeard are, back once a day (npcrespawn 86400): the owner's walkthrough (eqoa.forumotion.com t179, Ronson 2010, 2026-11-16) has no summoned copy of him, so his reach step and the kill step's spawn are gone. Grilmesh Frostcackle appears first and says his rhyme (the words are ours: the walkthrough gives none), then Snowgrin (tools/snowgrin_20261116.py)."
   },
   {
    "key": "Misc/terrorantula/p1",

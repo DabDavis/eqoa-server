@@ -64,6 +64,20 @@ const (
 	AuraSlots    = AuraPieces + 4
 )
 
+// AuraMainHand2 and AuraOffHand2 are the held items' second auras (the
+// owner, 2026-11-16: "also give icing death the sword of virtue aura blue and
+// also the freezing so we can have 2 auras now"): the held item's itemaura
+// row's second (color2, kind2, source2, nodes2), of a hand's kinds, after the
+// hands' first auras on the channel to a client that asked for them
+// (session.SecondAura, the live look's answer bit 7). A character's own hand
+// aura (charaura 9/10) takes the hand's place whole: no second then. AuraWire
+// counts every aura the channel can carry.
+const (
+	AuraMainHand2 = AuraSlots
+	AuraOffHand2  = AuraSlots + 1
+	AuraWire      = AuraSlots + 2
+)
+
 // PieceAuraSize is one piece's aura on the channel: r, g, b, a, a u8 kind, a
 // u32 source DictID little-endian, a u8 node count; all zero none.
 const PieceAuraSize = 10
@@ -91,10 +105,17 @@ const CapeAuraStateSize = BodyAuraStateSize + PieceAuraSize
 // before.
 const HandAuraStateSize = CapeAuraStateSize + 2*PieceAuraSize
 
+// SecondAuraStateSize is the channel to a client that draws the held items'
+// second auras too (session.SecondAura, the live look's answer bit 7): the
+// hands' channel, then the main hand's second aura and the off hand's (355
+// bytes). A client that asked for the hands' alone is sent
+// HandAuraStateSize, as before.
+const SecondAuraStateSize = HandAuraStateSize + 2*PieceAuraSize
+
 // PieceAuras is a wearer's auras by piece, then its body's (AuraBody), its
-// cape's (AuraCape) and its hands' (AuraMainHand, AuraOffHand); the zero
-// value is none.
-type PieceAuras [AuraSlots]database.ItemAura
+// cape's (AuraCape), its hands' (AuraMainHand, AuraOffHand) and its hands'
+// second (AuraMainHand2, AuraOffHand2); the zero value is none.
+type PieceAuras [AuraWire]database.ItemAura
 
 // putPieceAuras appends n of the auras (the seven pieces', the body's with n
 // AuraBody+1, the cape's with n AuraCape+1, the hands' with n AuraSlots; a
@@ -137,10 +158,20 @@ func HandAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
 	return putPieceAuras(ArmorChannel(disc, d), a, AuraSlots)
 }
 
+// SecondAuraChannel is HandAuraChannel with the hands' second auras after
+// the hands' (the main hand's, then the off hand's): a client that draws
+// them's.
+func SecondAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
+	return putPieceAuras(ArmorChannel(disc, d), a, AuraWire)
+}
+
 // ForViewerAuras is ForViewer with the wearer's pieces' auras (nil: none),
 // which go after the trims to a client that asked for them.
 func ForViewerAuras(sess *session.Session, disc []byte, d *Dyes, a *PieceAuras) []byte {
 	if sess != nil && sess.PieceAuras() && len(disc) == EntityStateSize {
+		if sess.SecondAura() {
+			return SecondAuraChannel(disc, d, a)
+		}
 		if sess.HandAura() {
 			return HandAuraChannel(disc, d, a)
 		}
@@ -158,6 +189,8 @@ func ForViewerAuras(sess *session.Session, disc []byte, d *Dyes, a *PieceAuras) 
 // itemAuraState is the world's itemaura rows, by patternid; swapped whole.
 type itemAuraState struct {
 	by atomic.Pointer[map[int]database.ItemAura]
+	// second is the rows' second auras (a held item's), by patternid
+	second atomic.Pointer[map[int]database.ItemAura]
 	// chars is charaura's rows, by whose (database.CharAuraKey)
 	chars atomic.Pointer[map[database.CharAuraKey][database.CharAuraSlots]database.ItemAura]
 }
@@ -195,6 +228,16 @@ func (w *World) SetItemAuras(by map[int]database.ItemAura) {
 	w.itemAuras.by.Store(&m)
 }
 
+// SetItemSecondAuras sets the held items' second auras (database.
+// ItemSecondAuras): each shows at the next tick.
+func (w *World) SetItemSecondAuras(by map[int]database.ItemAura) {
+	m := make(map[int]database.ItemAura, len(by))
+	for k, v := range by {
+		m[k] = v
+	}
+	w.itemAuras.second.Store(&m)
+}
+
 // LoadItemAuras reads table itemaura into the world: at the start and after a
 // GM's edit. It reports how many items have an aura.
 func (w *World) LoadItemAuras(db *database.SQLiteDB) (int, error) {
@@ -203,6 +246,12 @@ func (w *World) LoadItemAuras(db *database.SQLiteDB) (int, error) {
 		return 0, fmt.Errorf("itemaura: %w", err)
 	}
 	w.SetItemAuras(by)
+	// and the held items' second auras (itemaura's color2 ... nodes2)
+	second, err := db.ItemSecondAuras()
+	if err != nil {
+		return len(by), fmt.Errorf("itemaura's second auras: %w", err)
+	}
+	w.SetItemSecondAuras(second)
 	// and the characters' own (charaura.go), which the same edits reload
 	chars, err := db.CharAuras()
 	if err != nil {
@@ -221,12 +270,13 @@ func (w *World) ItemAuraCount() int {
 }
 
 // PieceAurasOf is the auras a player's worn pieces show (nil when none
-// does): each worn piece's item's (Player.WornPieces), a hidden piece's none.
+// does): each worn piece's item's (Player.WornPieces), a hidden piece's none
+// (a helm on a body with its own, ownhelm.go, too).
 func (w *World) PieceAurasOf(p *Player) *PieceAuras {
 	if p == nil {
 		return nil
 	}
-	return w.pieceAuras(&p.WornPieces, p.WornMask, p.HiddenParts, w.charAuras(database.CharAuraKey{CharID: p.CharServerID}))
+	return w.pieceAuras(&p.WornPieces, p.WornMask, p.ShownHiddenParts(), w.charAuras(database.CharAuraKey{CharID: p.CharServerID}))
 }
 
 // NPCPieceAurasOf is the auras an NPC dressed in item records shows (a
@@ -263,6 +313,7 @@ func (w *World) pieceAuras(pieces *[AuraSlots]int, mask uint16, hidden uint16, o
 		return nil
 	}
 	m := w.itemAuras.by.Load()
+	m2 := w.itemAuras.second.Load()
 	var out PieceAuras
 	any := false
 	for i := 0; i < AuraSlots; i++ {
@@ -293,6 +344,12 @@ func (w *World) pieceAuras(pieces *[AuraSlots]int, mask uint16, hidden uint16, o
 		if i != AuraBody && m != nil && mask&(1<<i) != 0 {
 			if a, ok := (*m)[pieces[i]]; ok && database.HandAuraKind(int64(a.Kind)) {
 				out[i], any = a, true
+			}
+		}
+		// and its second (a held item's alone: AuraMainHand2, AuraOffHand2)
+		if i != AuraBody && m2 != nil && mask&(1<<i) != 0 {
+			if a, ok := (*m2)[pieces[i]]; ok && a.SecondShows() {
+				out[i-AuraMainHand+AuraMainHand2], any = a, true
 			}
 		}
 	}

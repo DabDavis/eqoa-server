@@ -156,6 +156,9 @@ type CMRank struct {
 	// NoWereIllusion keeps its owner in its own body under a were form
 	// (effects "NoWereIllusion:1", no slot of the window's: wereownbody.go)
 	NoWereIllusion bool
+	// GracefulKick plays its owner's Graceful Strike as a kick (effects
+	// "GracefulKick:1", no slot of the window's: gracefulkick.go)
+	GracefulKick bool
 	// BreathPct makes its owner's breath last longer under water: each 6 s
 	// step of it taken BreathPct% later (effects "Breath:N", no slot of the
 	// window's: the Hold Breath line, the owner 2026-11-11)
@@ -252,6 +255,9 @@ func ParseCMRank(r database.CMRankRow) *CMRank {
 		}
 		if k == cmNoWereIllusion && v > 0 {
 			c.NoWereIllusion = true
+		}
+		if k == cmGracefulKick && v > 0 {
+			c.GracefulKick = true
 		}
 		if k == "breath" && v > 0 {
 			c.BreathPct += v
@@ -396,7 +402,7 @@ func (r *CMRank) OfferedTo(class, race int) bool {
 // refreshCMLocked sums the player's ranks' effects again.
 func (p *Player) refreshCMLocked(cat *cmCatalog) {
 	var s [CMSlots]int
-	ownBody := false
+	ownBody, kick := false, false
 	breath, offRanks, defRanks := 0, 0, 0
 	if cat != nil {
 		for id := range p.CMs {
@@ -411,6 +417,7 @@ func (p *Player) refreshCMLocked(cat *cmCatalog) {
 					defRanks++
 				}
 				ownBody = ownBody || r.NoWereIllusion
+				kick = kick || r.GracefulKick
 				breath += r.BreathPct
 			}
 		}
@@ -420,6 +427,7 @@ func (p *Player) refreshCMLocked(cat *cmCatalog) {
 	p.CMOffRanks, p.CMDefRanks = offRanks, defRanks
 	p.MoveRateBonus = s[cmSlotMoveRate]
 	p.WereOwnBody = ownBody
+	p.GracefulKick = kick
 }
 
 // RestoreCMs puts the ranks a character bought on its session's player at

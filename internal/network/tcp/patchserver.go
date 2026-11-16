@@ -1142,6 +1142,12 @@ func (s *PatchServer) handleRequest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// stationPakFloor is the size the pak with the e-mail pages is padded to: more
+// than any station.pak a card is known to hold (the disc's 82,094 bytes, the
+// PAL discs' 84,486, eqoa.live's 34,255), and well inside the 0x32000 STATION
+// reads a card's copy into.
+const stationPakFloor = 96 * 1024
+
 // repointStationPak rewrites the two entries inside station.pak that name a
 // server, so the STATION layer talks to THIS server.
 //
@@ -1172,7 +1178,7 @@ func (s *PatchServer) repointStationPak(data []byte) []byte {
 	// (stationpages.go)
 	var pages map[string][]byte
 	if s.cfg.Mail.Accounts {
-		pages = stationEmailPages(accountmail.Short(s.cfg.Mail))
+		pages = stationEmailPages(accountmail.Short(s.cfg.Mail), s.cfg.Mail.RequireVerified)
 	}
 
 	var out bytes.Buffer
@@ -1219,6 +1225,27 @@ func (s *PatchServer) repointStationPak(data []byte) []byte {
 		out.Write(body)
 
 		off = bodyOff + dataLen
+	}
+
+	// The e-mail pages are smaller than the disc's, and a PS2's patcher writes
+	// a file over the card's copy without truncating it
+	// (claude-notes/patch-build-pipeline.md): the card would keep the old
+	// file's tail, which STATION's VIFlatFileSystem reads on as records. So
+	// the pak is padded to stationPakFloor, past every station.pak a card is
+	// known to hold, with one record STATION never opens.
+	if pages != nil && out.Len() < stationPakFloor {
+		const name = "stationdata/pad.txt"
+		n := stationPakFloor - out.Len() - 8 - len(name)
+		if n < 0 {
+			n = 0
+		}
+		var hdr [4]byte
+		binary.BigEndian.PutUint32(hdr[:], uint32(len(name)))
+		out.Write(hdr[:])
+		out.WriteString(name)
+		binary.BigEndian.PutUint32(hdr[:], uint32(n))
+		out.Write(hdr[:])
+		out.Write(bytes.Repeat([]byte{' '}, n))
 	}
 
 	if len(changed) != len(replacements) {

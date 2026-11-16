@@ -33,6 +33,14 @@ func (r *Registry) SetPasswordChecker(c PasswordChecker) {
 	}
 }
 
+// SetEmailRefusal has the UDP handshake refuse an account with no verified
+// e-mail past the cutoff. See AuthHandler.SetEmailRefusal.
+func (r *Registry) SetEmailRefusal(f func(accountID int) bool) {
+	if r.authHandler != nil {
+		r.authHandler.SetEmailRefusal(f)
+	}
+}
+
 // SetLoginTickets makes the UDP handshake require a completed TCP login. See
 // AuthHandler.SetLoginTickets.
 func (r *Registry) SetLoginTickets(t *auth.TicketStore) {

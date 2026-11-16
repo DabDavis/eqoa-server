@@ -1722,18 +1722,34 @@ etc". **All of it is off unless `mail.accounts`** (config below): a server with 
   answered 0x41 (16 bytes, the word at 12: STATION's 1345/1254). 0x42 (forgot: user, month, day, year 32 bytes each and the
   e-mail 128, AES-256-ECB under the session key, which is `serverHelloBlob` under the login's DES) mails a reset link when the
   typed address is the account's verified one, answered 0x43 with 1 always (word 1396). **The pages** (`stationpages.go`,
-  served in station.pak by `repointStationPak` with e-mail on; a PS2 reads the card's pak, vanilla its disc's): IDCreate is
+  served in station.pak by `repointStationPak` with e-mail on; a PS2 reads the card's pak, vanilla its server folder's): IDCreate is
   name and password twice, IDCreat2 the e-mail alone, AcctMgmt Change Password and Change E-mail (no billing, no cancel),
   UpAcct the e-mail, FrgtPass name and e-mail. STATION's code reads every old field by name and refuses a form without one
   (word 1264), and CheckName wants a letter or a digit: those fields stay as hidden Texts holding "x", "Jan", "1", "1977",
   placed before the page's two backgrounds, which are drawn over them; nothing the server keeps comes of them. STATION's
   CheckEmail takes letters, digits, `_`, `@` and `.` alone: an address with `-` or `+` is set on the website.
-- **The requirement** (`accountmail.Gate`, `handlers.EmailGate`; `mail.require_verified`, `mail.require_after`): no game
-  client shows a refused Station login's reason (STATION's word 1394 for every one), so the account logs in and the world
-  says it, on every shard (each reads its own copy). Before the date: a yellow line at world entry and every
-  `mail.remind_every` (30 min) naming the page. From it: at world entry the reason in red (and yellow), then
-  `EmailGateEject` (12 s) later the session is ejected as a GM's eject (0x07A2, word 716). A failed read lets the player in.
-  The GM's override (`email_mark_verified`) satisfies it with or without an address (no reset by mail without one).
+- **The requirement** (`accountmail.Gate`, `handlers.EmailGate`; `mail.require_verified`, `mail.require_after`): before
+  the date a yellow line at world entry and every `mail.remind_every` (30 min) naming the page. **From it the account is
+  refused at the login** (the owner: "we are able to update and patch the station.pak to accomodate ps2/pcsx2"), on every
+  shard (each reads its own copy), and the world says nothing. STATION shows no text a server sends with a login reply
+  (`OnValidateLogin`, wire offsets: result 12, status 84): a nonzero result is word 1394 ("Your login failed..."), and with
+  result 0 it goes by the status: 3 plays, **4 (our wrong password) is word 1364 "Unknown error logging in."** (seen on
+  PCSX2; this section said 1394 before), 8 is 1385 "banned", and **2, SOE's "needs an account key", closes the dialog and
+  opens `data/ui/EnterKey.xml`**, a page the server writes. No other path of ours opens it (we send no 0 or 10, and game
+  features with bit 2), so `tcp.EmailRefusalStatus` (2) is the e-mail refusal (`buildEmailRefusedResponse`: result 0,
+  the error word at 8 set for readers of the server's own layout, no ticket) and the served pak's EnterKey.xml
+  (`EmailRefusalPage`, with `require_verified`) says "Your account needs a verified e-mail. Verify it at <page>." and how,
+  nothing to select, Triangle back to the login. The UDP handshake refuses the account too, by ticket or token password
+  (`AuthHandler.SetEmailRefusal`: a ticket from before the date, a shard's sign-in), as a bad login, which sends CLIENT to
+  STATION's login and its page. Vanilla reads the server folder's station.pak (its `pregame/station` `pak_for`) and shows
+  the same page. A failed read lets the player in. The GM's override (`email_mark_verified`) satisfies it with or without
+  an address (no reset by mail without one).
+- **The served station.pak is padded to 96 KB** (`stationPakFloor`, with `mail.accounts`): the e-mail pages make it smaller
+  than a card's copy, and a PS2's patcher does not truncate, so the card would keep the old tail and STATION read it on as
+  records. **The help panel** (right) holds about ten short lines and breaks a web address mid-word: the address goes under
+  a page's button on a line of its own (`stationNote`). **eqoaclassic served no files at all until this** (its
+  `patches/serve/` is empty: "0 files from patches/serve"), so a PS2 there reads whatever station.pak its card holds; the
+  pages and the refusal reach one only with the disc's `STATION.PAK` in `patches/serve/station.pak`.
 - **The GM panel**: the **E-mail** page (Players) and the account page show the address MASKED with its state; `email_counts`,
   `email_list` (unverified, pending, none, verified, all), `email_get`, `email_resend`, `email_mark_verified` (a note required,
   audited without the address, GM level and not an account above the GM's). The two writes are refused on a shard's copy
@@ -4318,7 +4334,7 @@ mail:                       # the accounts' e-mail (internal/accountmail); every
   smtp: "127.0.0.1:25"      # the box's send-only Postfix (the default)
   from: "no-reply@example.com"
   base_url: "https://example.com"   # the links' site; page_path: /eqoa/password (the default)
-  require_verified: true    # every account: reminded until require_after, refused the world from it
+  require_verified: true    # every account: reminded until require_after, refused at the login from it
   require_after: "2026-12-15"
   remind_every: 30m
 shards:                     # the server list, the same in every process

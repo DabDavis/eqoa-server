@@ -139,3 +139,27 @@ func TestAUsernameWithNoTicketSignsInByItsToken(t *testing.T) {
 		t.Errorf("another account at the address told the client %v, want 0x00EC", got)
 	}
 }
+
+// An account without a verified e-mail past the cutoff is refused at the
+// handshake as a bad login, by a ticket (a Station login from before the
+// cutoff) and by its token's password (a shard's sign-in) alike; CLIENT's
+// server list then offers STATION's login, which shows why.
+func TestTheHandshakeRefusesAnAccountWithoutAVerifiedEmail(t *testing.T) {
+	h := &AuthHandler{loginTickets: auth.NewTicketStore(0)}
+	h.SetPasswordChecker(&fakePasswords{id: 7})
+	h.SetEmailRefusal(func(id int) bool { return id == 7 || id == 9 })
+	h.loginTickets.Grant("erin", 9, "made-up pass")
+	for _, user := range []string{"erin", "dave"} {
+		s := testSession()
+		if _, ok := h.authorizeUsername(s, "Authenticate", user, madeUpToken); ok {
+			t.Errorf("%s signed in with no verified e-mail", user)
+		}
+		if got := queuedOps(s); !slices.Equal(got, []protocol.GameOpcode{protocol.OpcodeBadLoginPassword}) {
+			t.Errorf("%s was told %v", user, got)
+		}
+	}
+	h.SetEmailRefusal(func(id int) bool { return false })
+	if id, ok := h.authorizeUsername(testSession(), "Authenticate", "erin", madeUpToken); !ok || id != 9 {
+		t.Errorf("the control: erin signed in as %d (%v)", id, ok)
+	}
+}

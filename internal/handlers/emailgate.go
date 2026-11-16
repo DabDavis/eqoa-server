@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"sync"
 	"time"
 
@@ -12,24 +11,21 @@ import (
 
 // Every account needs a verified e-mail (the owner, 2026-11-15: "A verified
 // email is REQUIRED for every account, old ones included"; mail.require_verified
-// and mail.require_after, internal/accountmail's Gate). The world says it, as it
-// says a temporary password (pwtemp.go): no game client shows a reason for a
-// refused Station login (STATION answers every one with its own word 1394,
-// "Your login failed."), so the account logs in and the world tells it.
+// and mail.require_after, internal/accountmail's Gate).
 //
 //   - Before the cutoff: a line in yellow at each world entry and every
 //     mail.remind_every (30 minutes) while it plays, naming the account page.
-//   - From the cutoff: at world entry the line in red, why and where to go,
-//     and EmailGateEject later the session is ended as a GM's eject ends one
-//     (0x07A2: "You have been ejected by a server administrator."). The pages
-//     stay open to it, and the next login after the link is opened plays.
+//   - From the cutoff the account is refused at the login, not in the world
+//     (the owner: "we are able to update and patch the station.pak to
+//     accomodate ps2/pcsx2"): the Station login answers it with
+//     tcp.EmailRefusalStatus, whose page the served station.pak writes (the
+//     reason and the website), and the UDP handshake refuses it as a bad
+//     login (AuthHandler.SetEmailRefusal). So nothing here acts past the
+//     cutoff; a session already in the world then (kept over a restart) plays
+//     on to its next login.
 //
 // The gate reads this process's accounts, so a shard (its copy of the owner's,
 // database.AccountMirror) holds its players to it the same.
-
-// EmailGateEject is how long a refused account stands in the world with the
-// reason before it is ejected: long enough to read it.
-var EmailGateEject = 12 * time.Second
 
 // emailRemindRGB is the reminder's colour (a GM's broadcast's yellow).
 var emailRemindRGB = [3]uint8{255, 230, 90}
@@ -40,10 +36,6 @@ type EmailGate struct {
 	sm   *session.Manager
 	// Now is the clock (tests set it); nil: time.Now.
 	Now func() time.Time
-	// eject ends a refused session (tests set it); nil: Eject.
-	eject func(*session.Session)
-	// after runs f after d (tests set it); nil: time.AfterFunc.
-	after func(d time.Duration, f func())
 
 	mu   sync.Mutex
 	last map[*session.Session]time.Time
@@ -71,22 +63,6 @@ func (e *EmailGate) Entered(sess *session.Session, _ *entity.Player) {
 	}
 	now := e.now()
 	id := sess.AccountID()
-	if why := e.gate.Refusal(id, now); why != "" {
-		text := "Your account needs a verified e-mail address to play. Add one at " + e.gate.Page +
-			" (the E-mail tab) and open the link we send you, then log in again."
-		SendErrorMessage(sess, text)
-		SendColoredChat(sess, text, emailRemindRGB[0], emailRemindRGB[1], emailRemindRGB[2])
-		log.Printf("Accounts: account %d has no verified e-mail: told, ejected in %v", id, EmailGateEject)
-		eject, after := e.eject, e.after
-		if eject == nil {
-			eject = Eject
-		}
-		if after == nil {
-			after = func(d time.Duration, f func()) { time.AfterFunc(d, f) }
-		}
-		after(EmailGateEject, func() { eject(sess) })
-		return
-	}
 	if line := e.gate.Reminder(id, now); line != "" {
 		SendColoredChat(sess, line, emailRemindRGB[0], emailRemindRGB[1], emailRemindRGB[2])
 		e.mu.Lock()

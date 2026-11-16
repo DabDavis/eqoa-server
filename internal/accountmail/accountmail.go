@@ -449,7 +449,7 @@ func (g *Gate) Reminder(accountID int, now time.Time) string {
 	t := "Your account has no verified e-mail address. Add one at " + g.Page +
 		" (the E-mail tab) so you can never lose your account"
 	if !g.Cutoff.IsZero() {
-		t += ": from " + g.Cutoff.Format("January 2, 2006") + " an account without one cannot enter the world"
+		t += ": from " + g.Cutoff.Format("January 2, 2006") + " an account without one cannot log in"
 	}
 	return t + "."
 }

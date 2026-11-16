@@ -233,6 +233,18 @@ type AuthServer struct {
 
 	// STATION's e-mail forms (stationemail.go, SetAccountMail)
 	stationMailState
+
+	// emailRefused, when set, is whether an account may not play now for want
+	// of a verified e-mail (SetEmailRefusal).
+	emailRefused func(accountID int) bool
+}
+
+// SetEmailRefusal has the Station login refuse an account f names (the
+// requirement of a verified e-mail past mail.require_after, accountmail.Gate):
+// after its password checks out it is answered as STATION shows the reason
+// (buildEmailRefusedResponse) and given no ticket.
+func (s *AuthServer) SetEmailRefusal(f func(accountID int) bool) {
+	s.emailRefused = f
 }
 
 // SetAccountRefresh has CheckUDPPassword bring the account up to date first
@@ -587,6 +599,13 @@ func (s *AuthServer) handleLoginVia(payload []byte, ip net.IP, relayed bool) []b
 		}
 	}
 
+	// A verified e-mail required (SetEmailRefusal): after the password, so
+	// it says nothing of an account to someone who does not hold it.
+	if s.emailRefused != nil && s.emailRefused(accountID) {
+		log.Printf("Auth: refused '%s' (ID: %d) from %v: no verified e-mail (STATION shows EmailRefusalPage)", username, accountID, ip)
+		return s.buildEmailRefusedResponse(uint32(accountID))
+	}
+
 	// One login at a time (SetOneLogin): the window already in the game
 	// keeps it. Checked after the password, so a refusal says nothing about
 	// an account to someone who does not hold it.
@@ -854,6 +873,31 @@ func (s *AuthServer) buildLoginFailResponse(accountID uint32) []byte {
 	copy(response[96:112], []byte("EQOA_SESSION_OK!"))
 	binary.BigEndian.PutUint32(response[160:164], 0xFFFFFFFF)
 	binary.BigEndian.PutUint32(response[164:168], 0xFFFFFFFF)
+	return response
+}
+
+// EmailRefusalStatus is the account status (STATION's accstat, wire 84) of a
+// login refused for want of a verified e-mail. STATION shows no refusal's
+// text: for a nonzero result (wire 12) it says word 1394, "Your login failed",
+// whatever the server wrote, and for result 0 it goes by the status
+// (VIWndGenericRenderer::OnValidateLogin, decomp/modules/station/src/
+// viwndgenericrenderer.cpp). Status 2 is SOE's "needs an account key": the
+// dialog closed and the page data/ui/EnterKey.xml loaded, the one way a
+// refusal reaches a page the server writes. No other path of ours opens
+// EnterKey.xml (status 0 and 10, and 3 with game features lacking bit 2, do,
+// and we send none of them), so the station.pak served with the requirement
+// on replaces it with the reason (stationpages.go's EmailRefusalPage).
+// Nothing else changes: the login stands on the Station page with no ticket,
+// Triangle goes back to the login page.
+const EmailRefusalStatus = 2
+
+// buildEmailRefusedResponse is the login reply for an account refused for want
+// of a verified e-mail: STATION's result 0 and status EmailRefusalStatus; the
+// error word at 8 set, which STATION never reads and a reader of the server's
+// own layout (vanilla's eqoa play) takes as a refusal.
+func (s *AuthServer) buildEmailRefusedResponse(accountID uint32) []byte {
+	response := s.buildLoginFailResponse(accountID)
+	binary.BigEndian.PutUint32(response[84:88], EmailRefusalStatus)
 	return response
 }
 

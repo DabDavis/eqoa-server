@@ -141,6 +141,12 @@ var snapshotRules = map[string]snapshotRule{
 		why: "the links mailed to the accounts (verify, password reset): each token's hash and the address it went to"},
 	"pwreset_meta": {clear: true, scan: []string{"value"},
 		why: "the salt the password reset form's senders' addresses are hashed with, as spellfx_meta's"},
+	"tokenshop": {allow: []string{"token"},
+		why: "the token shops' stock (handlers/tokenshop.go, the Toy Shoppe): a token is the item a ware is paid in, by " +
+			"its name (Holly Token), no secret"},
+	"tokenshop_purchases": {allow: []string{"token"},
+		why: "the token shops' purchases: who bought which item for how many of an item (token: its name, no secret), " +
+			"kept whole as heroes_purchases is"},
 	"campfix_reports": {clear: true,
 		why: "a player's camp report (handlers/campfix.go): the account and the character that sent it, its own note, " +
 			"and the GMs' review of it"},

@@ -898,6 +898,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureGMPortals(); err != nil { // gmportals.go: a GM's portals, /markportal
 		return err
 	}
+	if err := db.ensureTokenShop(); err != nil { // tokenshop.go: shops paid in an item (the Toy Shoppe), item outfits
+		return err
+	}
 	if err := db.ensureLoginAnnounce(); err != nil { // loginannounce.go: the GMs' announcement at login
 		return err
 	}

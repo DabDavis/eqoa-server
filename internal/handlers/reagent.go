@@ -112,17 +112,26 @@ func takeStacks(inv *database.InventoryStore, sess *session.Session, p *entity.P
 }
 
 // reagentWords is n of an item in words: "1 Unit of Blood", "2 Units of
-// Blood" (the first word made plural).
+// Blood" (the word before an "of" made plural), "18 Holly Tokens" (else the
+// last word: until 2026-11-16 the first, the Weapon Enchanter's "18 Hollys
+// Token").
 func reagentWords(name string, n int) string {
 	if n == 1 {
 		return "1 " + name
 	}
-	first, rest, _ := strings.Cut(name, " ")
-	if !strings.HasSuffix(strings.ToLower(first), "s") {
-		first += "s"
+	words := strings.Fields(name)
+	if len(words) == 0 {
+		return fmt.Sprintf("%d", n)
 	}
-	if rest != "" {
-		return fmt.Sprintf("%d %s %s", n, first, rest)
+	k := len(words) - 1
+	for i := 1; i < len(words); i++ {
+		if strings.EqualFold(words[i], "of") {
+			k = i - 1
+			break
+		}
 	}
-	return fmt.Sprintf("%d %s", n, first)
+	if !strings.HasSuffix(strings.ToLower(words[k]), "s") {
+		words[k] += "s"
+	}
+	return fmt.Sprintf("%d %s", n, strings.Join(words, " "))
 }

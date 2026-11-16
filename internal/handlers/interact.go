@@ -43,6 +43,8 @@ type InteractHandler struct {
 	dyer *Dyer
 	// enchanter answers the Weapon Enchanters (enchanter.go); nil: none
 	enchanter *Enchanter
+	// tokenShop answers the shops paid in an item, the Toy Shoppe's (tokenshop.go); nil: none
+	tokenShop *TokenShop
 	// groomer answers the Pet Groomers (petgroomer.go); nil: no groomer
 	groomer *Groomer
 	// genie is the lamps' genies (genie.go)
@@ -446,6 +448,10 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.enchanter.Talk(sess, player, npc) {
 		return nil
 	}
+	// a shop paid in an item, the Toy Shoppe (tokenshop.go)
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.tokenShop.Talk(sess, player, npc) {
+		return nil
+	}
 	// a Pet Groomer (petgroomer.go)
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.groomer.Talk(sess, player, npc) {
 		return nil
@@ -680,6 +686,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// a Weapon Enchanter's (enchanter.go)
 	if h.enchanter.Answer(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// a token shop's (tokenshop.go); an old one does nothing
+	if h.tokenShop.Answer(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// a groomer's (petgroomer.go); an old one does nothing

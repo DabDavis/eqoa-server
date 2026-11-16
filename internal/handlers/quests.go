@@ -260,6 +260,9 @@ type questChar struct {
 	// stranded is when it was first seen on an encounter's kill with no run of
 	// the encounter, by link (questencounter.go)
 	stranded map[encounterKey]time.Time
+	// busyTold is when a reach step whose doing fires a trigger of a lock held
+	// last said so, by quest (checkReach): once a laterSayGap
+	busyTold map[int]time.Time
 }
 
 // say is a text with %p the player's name (left as it is while the name is
@@ -1547,6 +1550,12 @@ func (q *QuestEngine) laterStepKillLocked(c *questChar, kp entity.KillPlayer, qu
 const laterSayGap = time.Minute
 
 // checkReach does the reach steps of the players standing in their places.
+// A step whose doing fires a trigger of a lock held (triggerBusyLocked: the
+// Kratas quest's last step at the whale bones raises Kratas, one at a time)
+// is not done while it is held, as a talk step's is not: the player is told,
+// once a laterSayGap, and the step is done when the lock is free and the
+// player still there. Before, it was done and the trigger did not fire: the
+// quest finished with no Kratas.
 func (q *QuestEngine) checkReach() {
 	if q.sessionOf == nil || q.playerOf == nil || q.gw == nil {
 		return
@@ -1576,11 +1585,31 @@ func (q *QuestEngine) checkReach() {
 			if r <= 0 {
 				r = 15
 			}
-			if dx, dz := x-st.X, z-st.Z; dx*dx+dz*dz <= r*r && !q.waitsForRoomLocked(sess, p, c, qu, cq, st) {
+			if dx, dz := x-st.X, z-st.Z; dx*dx+dz*dz > r*r {
+				continue
+			}
+			if line := q.triggerBusyLocked(st); line != "" {
+				q.reachBusyLocked(sess, c, qu, line, time.Now())
+				continue
+			}
+			if !q.waitsForRoomLocked(sess, p, c, qu, cq, st) {
 				q.completeStepLocked(sess, p, c, qu, cq, st, nil, nil)
 			}
 		}
 	}
+}
+
+// reachBusyLocked tells a player at a reach step whose trigger's lock is held
+// what the step's event says (triggerBusyLocked), once a laterSayGap a quest.
+func (q *QuestEngine) reachBusyLocked(sess *session.Session, c *questChar, qu *database.Quest, line string, now time.Time) {
+	if t, ok := c.busyTold[qu.ID]; ok && now.Sub(t) < laterSayGap {
+		return
+	}
+	if c.busyTold == nil {
+		c.busyTold = map[int]time.Time{}
+	}
+	c.busyTold[qu.ID] = now
+	q.tellLocked(c, sess, "", line)
 }
 
 // withinHeight is whether a player at height y is on a reach step's floor:

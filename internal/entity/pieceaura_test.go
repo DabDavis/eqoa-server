@@ -550,3 +550,79 @@ func TestAnItemThatIsACirclet(t *testing.T) {
 		t.Fatalf("the character's own circlet wins: %+v", a)
 	}
 }
+
+// A hat another body has built in (kind 10 on the helm's charaura slot,
+// 2026-11-16: Hoofbite's kappa straw hat): sent whether a helm is worn or
+// not, hidden or not (the client draws it in place of the helm); valid on the
+// helm's charaura slot alone (and itemaura: TestAnItemThatIsAHat), never in
+// npctint, and it always shows, with no colour too.
+func TestAHatOnTheHead(t *testing.T) {
+	hat := database.ItemAura{Kind: database.AuraHat, Source: database.KappaHat}
+	if !hat.Shows() || !database.ValidCharAuraKind(database.CharAuraHelm, database.AuraHat) || !database.ValidCharAuraNodes(database.CharAuraHelm, database.AuraHat, 0) {
+		t.Fatal("a hat with no colour draws nothing, or the helm's slot refuses it")
+	}
+	for slot := int64(0); slot < database.CharAuraSlots; slot++ {
+		if slot != database.CharAuraHelm && database.ValidCharAuraKind(slot, database.AuraHat) {
+			t.Fatalf("a hat on slot %d", slot)
+		}
+	}
+	if database.ValidAuraKind(database.AuraHat) {
+		t.Fatal("a hat in npctint")
+	}
+	w := NewWorld()
+	p := ornatePlayer()
+	p.CharServerID = 213
+	var own [database.CharAuraSlots]database.ItemAura
+	own[AuraHelm] = hat
+	w.SetCharAuras(map[database.CharAuraKey][database.CharAuraSlots]database.ItemAura{{CharID: 213}: own})
+	p.WornMask &^= 1 << AuraHelm
+	if a := w.PieceAurasOf(p); a == nil || a[AuraHelmHat] != hat || a[AuraHelm] != (database.ItemAura{}) {
+		t.Fatalf("no helm worn: %+v", a)
+	}
+	p.SetWornPiece(AuraHelm, 990058)
+	if a := w.PieceAurasOf(p); a == nil || a[AuraHelmHat] != hat {
+		t.Fatalf("a helm worn: %+v", a)
+	}
+	p.HiddenParts = HideHelm
+	if a := w.PieceAurasOf(p); a == nil || a[AuraHelmHat] != hat {
+		t.Fatalf("a hidden helm: %+v", a)
+	}
+}
+
+// An item that is a hat (itemaura kind 10 on a helm-slot record, 2026-11-16:
+// Dust's Turban of Twisted Virtue): worn in the helm's slot it shows; hidden,
+// none; worn on any other piece, none; a character's own hat (charaura) still
+// wins over it. Kind 10 is valid in itemaura, never in npctint.
+func TestAnItemThatIsAHat(t *testing.T) {
+	turban := database.ItemAura{PatternID: 714388, Kind: database.AuraHat, Source: 0xAA489CBB}
+	if !database.ValidItemAura(database.AuraHat, 0) || database.ValidAuraKind(database.AuraHat) {
+		t.Fatal("itemaura refuses a hat, or npctint takes one")
+	}
+	w := NewWorld()
+	w.SetItemAuras(map[int]database.ItemAura{714388: turban})
+	p := ornatePlayer()
+	p.CharServerID = 197
+	p.WornMask, p.WornPieces = 0, [AuraSlots]int{}
+	p.SetWornPiece(AuraHelm, 714388)
+	if a := w.PieceAurasOf(p); a == nil || a[AuraHelmHat] != turban || a[AuraHelm] != (database.ItemAura{}) {
+		t.Fatalf("the turban worn: %+v", a)
+	}
+	p.HiddenParts = HideHelm
+	if a := w.PieceAurasOf(p); a != nil {
+		t.Fatalf("a hidden turban: %+v", a)
+	}
+	p.HiddenParts = 0
+	p.WornMask, p.WornPieces = 0, [AuraSlots]int{}
+	p.SetWornPiece(AuraChest, 714388)
+	if a := w.PieceAurasOf(p); a != nil {
+		t.Fatalf("a hat record on the chest: %+v", a)
+	}
+	var own [database.CharAuraSlots]database.ItemAura
+	own[AuraHelm] = database.ItemAura{Kind: database.AuraHat, Source: database.KappaHat}
+	w.SetCharAuras(map[database.CharAuraKey][database.CharAuraSlots]database.ItemAura{{CharID: 197}: own})
+	p.WornMask, p.WornPieces = 0, [AuraSlots]int{}
+	p.SetWornPiece(AuraHelm, 714388)
+	if a := w.PieceAurasOf(p); a == nil || a[AuraHelmHat] != own[AuraHelm] {
+		t.Fatalf("the character's own hat wins: %+v", a)
+	}
+}

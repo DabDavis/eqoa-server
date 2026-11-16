@@ -447,6 +447,9 @@ func (h *TradeHandler) completeLocked(t *trade) {
 			log.Printf("Trade: giving to %s: %v", m.to.player.Name, err)
 			continue
 		}
+		if m.n == rec.qty {
+			h.items.carryInstanceAura(m.row.ItemID, out.ItemID) // the copy's own aura goes with it
+		}
 		queueReliable(m.to.sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, key, readsCapes(m.to.sess)))
 		log.Printf("Trade: %d %q from %s to %s", m.n, m.row.Pattern.ItemName, m.from.player.Name, m.to.player.Name)
 	}

@@ -19,6 +19,7 @@ import (
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
+	"github.com/eqoa/server/internal/weather"
 )
 
 // A GM's triggers: scripted events (the user: "lets build it as gm scripted
@@ -555,6 +556,11 @@ func (e *TriggerEngine) stopLocked(which func(*triggerRun) bool) (runs, spawns i
 		runs++
 		r.stopped = true
 		spawns += e.despawnLocked(r, "")
+		if e.gw != nil {
+			if n := e.gw.EndWeatherRun(r.id); n > 0 { // its weather steps' GM weather (weatherStepLocked)
+				log.Printf("Triggers: %s's run %d: its weather ended on %d zones", r.trig.Title(), r.id, n)
+			}
+		}
 		log.Printf("Triggers: %s's run %d stopped at step %d of %d", r.trig.Title(), r.id, r.next+1, len(r.steps))
 	}
 	for i := len(keep); i < len(e.runs); i++ {
@@ -845,6 +851,8 @@ func (e *TriggerEngine) stepLocked(r *triggerRun, s database.TriggerStep) string
 		return fmt.Sprintf("visual 0x%08X on %s", fx, players(n))
 	case database.TriggerTeleport:
 		return e.teleportLocked(r, s)
+	case database.TriggerWeather:
+		return e.weatherStepLocked(r, s)
 	case database.TriggerSpawn:
 		return e.spawnLocked(r, s)
 	case database.TriggerDespawn:
@@ -1952,4 +1960,40 @@ func (e *TriggerEngine) seasonLocked(r *triggerRun, s database.TriggerStep) stri
 	}
 	log.Printf("Triggers: %s by %s: %s", r.trig.Title(), r.by, line)
 	return line
+}
+
+// weatherStepLocked is a weather step: a GM's weather (entity.World.CallWeather)
+// at the step's place (its world/x/z when it names a world, else the run's),
+// called by "trigger <slot> <name>" for the run, which ends it when it stops.
+// Must be called with e.mu held.
+func (e *TriggerEngine) weatherStepLocked(r *triggerRun, s database.TriggerStep) string {
+	if e.gw == nil {
+		return "no world: no weather"
+	}
+	kind, ok := weather.ParseKind(s.Weather)
+	if !ok {
+		return fmt.Sprintf("weather %q is no kind", s.Weather)
+	}
+	strength := weather.Heavy
+	if st, ok := weather.ParseStrength(s.Strength); ok {
+		strength = st
+	}
+	minutes := int(s.Minutes)
+	if minutes == 0 {
+		minutes = 10
+	}
+	where, err := weather.ParseWhere(s.Where, s.Near)
+	if err != nil {
+		return "weather: " + err.Error()
+	}
+	world, x, z := int(r.world), r.x, r.z
+	if s.World != nil {
+		world, x, z = *s.World, s.X, s.Z
+	}
+	by := fmt.Sprintf("trigger %d %s", r.trig.Slot, r.trig.Name)
+	zones, _, _, err := e.gw.CallWeather(world, x, z, where, kind, strength, minutes, s.Text, by, r.id)
+	if err != nil {
+		return "weather: " + err.Error()
+	}
+	return fmt.Sprintf("weather %s %s on %d zones for %d min", kind, weather.StrengthName(strength), len(zones), minutes)
 }

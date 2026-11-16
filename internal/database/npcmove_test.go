@@ -81,3 +81,60 @@ func TestNPCMoveNewTableIsAsItsKind(t *testing.T) {
 		t.Fatalf("roam's default %q, %v", d, err)
 	}
 }
+
+// speed (petition 5189): a table made before it gets the column, every row
+// 0 (the server's walk); a row's speed is read, one out of bounds as 0; and
+// CheckNPCMoveSpeed holds a GM's to 0 or 0.5-9.9.
+func TestNPCMoveSpeedIsAddedAndRead(t *testing.T) {
+	path := t.TempDir() + "/npcmove.db"
+	raw, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, q := range []string{
+		`CREATE TABLE npcmove (name TEXT PRIMARY KEY, roam INTEGER NOT NULL DEFAULT -1, radius REAL NOT NULL DEFAULT 0,
+			water TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm')`,
+		`INSERT INTO npcmove (name, roam, water) VALUES ('crocodile', 1, 'both')`,
+	} {
+		if _, err := raw.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	raw.Close()
+	db, err := NewSQLite(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	if d, err := columnDefault(db, "npcmove", "speed"); err != nil || d != "0" {
+		t.Fatalf("speed's default %q, %v: want 0", d, err)
+	}
+	if _, err := db.Exec(`INSERT INTO npcmove (name, speed) VALUES ('gharial', 3), ('caiman', 40)`); err != nil {
+		t.Fatal(err)
+	}
+	got, err := db.NPCMoveRules()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r := got["crocodile"]; r.Speed != 0 || !r.Roam || r.Water != "both" {
+		t.Errorf("an old row: %+v, want speed 0 and its own columns kept", r)
+	}
+	if r := got["gharial"]; r.Speed != 3 || !r.ByKind {
+		t.Errorf("gharial: %+v, want speed 3, as its kind", r)
+	}
+	if r := got["caiman"]; r.Speed != 0 {
+		t.Errorf("an out-of-bounds speed read as %v, want 0", r.Speed)
+	}
+	for v, ok := range map[float64]bool{0: true, 0.5: true, 3: true, 9.9: true, 0.4: false, -1: false, 10: false} {
+		if (CheckNPCMoveSpeed(v) == nil) != ok {
+			t.Errorf("CheckNPCMoveSpeed(%v): %v", v, CheckNPCMoveSpeed(v))
+		}
+	}
+	// opened again, the column is not added twice
+	db.Close()
+	db2, err := NewSQLite(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	db2.Close()
+}

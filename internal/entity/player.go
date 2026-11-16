@@ -63,8 +63,12 @@ type Player struct {
 	// WornPieces are the item records (itempattern.patternid) worn on the
 	// pieces an aura can be on (AuraChest ... AuraRobe), WornMask which are
 	// worn: each piece's aura is its item's (pieceaura.go, table itemaura)
-	WornPieces    [AuraSlots]int
-	WornMask      uint16
+	WornPieces [AuraSlots]int
+	WornMask   uint16
+	// WornItems are the item COPIES held in the hands (charinventory.itemid
+	// at AuraMainHand and AuraOffHand; 0 none): each copy's own aura
+	// (pieceaura.go, table instanceaura)
+	WornItems     [AuraSlots]int
 	Primary       uint32
 	Secondary     uint32
 	Shield        uint32
@@ -79,6 +83,9 @@ type Player struct {
 	// Dyes: a colour per armour slot, held item and the robe (livelook.go,
 	// table chardyes), drawn by a client of the live game's look; 0 none.
 	Dyes Dyes
+	// PetDyes: its pets' dyes by body, [area 1, area 2] each 0xRRGGBBAA (0
+	// none; petdyes.go, table petdyes), drawn by a client that asked for them
+	PetDyes map[uint32]PetDye
 	// CapeStyle is the worn cape's style (its record's model, 1-255; 0 none
 	// worn) and CapeColor its colour (0xRRGGBBAA, 0 the art's own): an equip
 	// slot of this server's own, told only to the clients that draw capes
@@ -166,6 +173,9 @@ type Player struct {
 	// WereOwnBody is whether a rank it owns keeps it in its own body under a
 	// were form (NoWereIllusion, wereownbody.go), summed with CMEffects
 	WereOwnBody bool
+	// GracefulKick is whether a rank it owns plays its Graceful Strike as a
+	// kick (gracefulkick.go), summed with CMEffects
+	GracefulKick bool
 	// CMBreathPct is how much longer its breath lasts under water, in percent,
 	// from the ranks it owns (CMRank.BreathPct: Hold Breath)
 	CMBreathPct int
@@ -279,6 +289,15 @@ type Player struct {
 	PowerBars     bool
 	powerBarsSent string
 	powerBarsDue  bool
+	// WeatherDraws: the player's client draws the weather's timelines and
+	// asked for them (weather.go, opcode 0x7E93); weatherSent whether its
+	// retail byte went since the last WeatherResend (else the next goes as
+	// 0x00C7, at once: the spec's weatherByte -1), weatherByte the byte last
+	// sent, weatherKey the zones and revisions of the last 0x7E94
+	WeatherDraws bool
+	weatherSent  bool
+	weatherByte  byte
+	weatherKey   string
 
 	// RaidRoster: the player's client shows a whole raid group and asked for it
 	// (raidroster.go, opcodes 0x7E18-0x7E1A); raidRosterSent is what it was last

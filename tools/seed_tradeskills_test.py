@@ -59,7 +59,12 @@ class SeedTradeskills(unittest.TestCase):
         for key in M.PIECES:
             os.makedirs(os.path.dirname(os.path.join(grid, key)), exist_ok=True)
             rows = {M.MUNDANE: {1: "15 AC", 4: "85 AC", 10: "290 AC"}, "Sinhalite": {4: "85 AC, 10 Str"},
-                    "Heartsblood Alloy": {10: "290 AC, 10 HoT"}}
+                    "Heartsblood Alloy": {10: "290 AC, 10 HoT"}, "Rhodizite": {10: "290 AC, 20 Sta"},
+                    "Achroite": {10: "290 AC, 20 AR"}, "Titan Alloy": {10: "290 AC, 75 Hp"},
+                    "Mindflow Crystals": {10: "290 AC, 10 PoT"}, "Apatite": {10: "290 AC, 20 Wis"},
+                    "Mana Infused Alloy": {10: "290 AC, 75 Pow"}, "Enstatite": {4: "85 AC, 6 Str, 6 Int"},
+                    "Takish Ivory": {4: "85 AC, 6 Dex, 6 Cha"}, "Marr Blessed Alloy": {4: "85 AC, 6 Sta, 6 Cha"},
+                    "Lazulite": {4: "85 AC, 6 Agi, 6 Wis"}}
             if key == "Plate/BP.htm":
                 self.bp = rows
             with open(os.path.join(grid, key), "w") as f:
@@ -165,6 +170,23 @@ class SeedTradeskills(unittest.TestCase):
         made = self.q("SELECT p.rent, count(*) FROM itempattern p JOIN tradeskill_seed s ON s.tbl = 'itempattern' "
                       "AND s.action = 'inserted' AND CAST(s.key AS INTEGER) = p.patternid GROUP BY p.rent")
         self.assertEqual([r for r, _ in made], [1], made)
+        # Heartsblood gives its Rhodizite, Achroite and Titan Alloy twins' Sta, AR and HP beside the grid's HoT (petition 5196)
+        self.assertEqual(self.q("SELECT AC, sta, AR, HPMAX, HoT FROM itempattern WHERE itemname = 'heartsblood seralite helm'"),
+                         [(290, 20, 20, 75, 10)])
+        # Mindflow its Apatite, Mana Infused and Achroite twins' Wis, Power and AR beside the grid's PoT (petition 5197)
+        self.assertEqual(self.q("SELECT AC, wis, POWMAX, AR, PoT FROM itempattern WHERE itemname = 'mindflow seralite helm'"),
+                         [(290, 20, 75, 20, 10)])
+        # Enstatite its Int as Sta (petition 5198), Takish Ivory its Cha as Agi (5199)
+        self.assertEqual(self.q("SELECT str, intelligence, sta FROM itempattern WHERE itemname = 'enstatite brass breastplate'"),
+                         [(6, None, 6)])
+        self.assertEqual(self.q("SELECT dex, cha, agi FROM itempattern WHERE itemname = 'takish ivory brass breastplate'"),
+                         [(6, None, 6)])
+        # Marr Blessed Alloy its Cha as Wis (5201)
+        self.assertEqual(self.q("SELECT sta, cha, wis FROM itempattern WHERE itemname = 'marr blessed brass breastplate'"),
+                         [(6, None, 6)])
+        # Lazulite its Wis as Sta (5202)
+        self.assertEqual(self.q("SELECT agi, wis, sta FROM itempattern WHERE itemname = 'lazulite brass breastplate'"),
+                         [(6, None, 6)])
         # the live record is the product
         self.assertEqual(self.q("SELECT product, rarity FROM craftrecipes WHERE name = 'heartsblood seralite breastplate'"), [(1042, 3)])
         # the targe and tear by Prima's AC rows; a tear has none below trade level 5
@@ -618,6 +640,7 @@ def tailor_prima_text():
     for i in range(0, len(mods), 2):
         cells = []
         for name, (rarity, _, cols, word) in mods[i:i + 2]:
+            cols = M.TAILOR_PRIMA_COLS.get(name, cols)  # Prima's own words
             prop = M.TAILOR_PROPERTY[cols[0] if len(cols) == 1 else cols]
             pw = "Sinahlite" if word == "Sinhalite" else word
             cells.append(f"{name:<22} {rar[rarity]:<14} {prop:<26} {pw}*")
@@ -737,6 +760,10 @@ class SeedTailoring(unittest.TestCase):
                          [(6, 8, 32656, 0)])
         self.assertEqual(self.q("SELECT count(*) FROM itempattern WHERE itemname = 'Leucite Wool Tunic'"), [(0,)])
         self.assertEqual(self.q("SELECT sta, cha FROM itempattern WHERE itemname = 'Blessed Silk Tunic'"), [(9, 9)])
+        # Rallosian Studs give Sta and Dex, not Prima's Str and Int (petition 5200)
+        self.assertEqual(self.q("SELECT str, intelligence, sta, dex FROM itempattern WHERE itemname = 'Rallosian Silk Tunic'"),
+                         [(None, None, 9, 9)])
+        self.assertIn("stamina and dexterity", self.q("SELECT itemdesc FROM itempattern WHERE itemname = 'Rallosian Studs'")[0][0])
         # the gem is kept on a failure; leather starts at trade level 3 (tattered hide, tab 3)
         ing = json.loads(self.q("SELECT ingredients FROM craftrecipes WHERE name = 'Treant Leather Tunic'")[0][0])
         self.assertEqual(ing[-1]["keep"], True)

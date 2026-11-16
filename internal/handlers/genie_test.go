@@ -200,11 +200,14 @@ func (f *genieFixture) where(pattern int) (location, hp int) {
 // bank (0x124D; a move carrying CLIENT's target, any id), its wares (0x00B7
 // under its window id: the outfitter selling the warriors' alone, bought from
 // at its price, 0; another id refused), the forge (0x0061 under its id: a
-// repair at a blacksmith's price; the forge's close ends it); each answer
-// sends the genie out of the world. The controls: talked to, it asks its
-// master again and tells anyone else it is not theirs; a box CLIENT declined
-// at once leaves it standing, one the player closed sends it away, as does
-// "Nothing, thank you"; a class no outfitter sells to gets no wares.
+// repair at a blacksmith's price; the forge's close ends it); the genie
+// stays standing by each (the owner, 2026-11-16: "let him linger"), and,
+// talked to, swaps the bank for its shop with no second rub of the lamp. The
+// controls: talked to, it asks its master again and tells anyone else it is
+// not theirs; a box CLIENT declined at once, one the player closed and
+// "Nothing, thank you" all leave it standing, lingering GenieLinger after the
+// answer (genieSystem then takes it); a class no outfitter sells to gets no
+// wares, the genie lingering.
 func TestTheGenie(t *testing.T) {
 	f := newGenieFixture(t)
 
@@ -215,8 +218,8 @@ func TestTheGenie(t *testing.T) {
 		t.Fatalf("the genie: %+v (want the warriors' own outfitter, 5002)", g)
 	}
 	msgs := f.answer(box, genieBank)
-	if len(msgs) == 0 || opOf(msgs[0]) != protocol.OpcodeBankUI || f.genieNPC() != nil {
-		t.Fatalf("Bank: sent %s, genie %v", ops(msgs), f.genieNPC())
+	if len(msgs) == 0 || opOf(msgs[0]) != protocol.OpcodeBankUI || f.genieNPC() != g {
+		t.Fatalf("Bank: sent %s, genie %v (it lingers by its window)", ops(msgs), f.genieNPC())
 	}
 	sent := f.send(protocol.OpcodeBankItem, func(w *buffer.Writer) {
 		w.WriteUint32(0xFFFFFFFF) // CLIENT's target: nothing
@@ -238,12 +241,27 @@ func TestTheGenie(t *testing.T) {
 		t.Fatalf("the sword out of the genie's bank: sent %s, location %d", ops(sent), loc)
 	}
 	f.loadLists()
+	// the bank swapped for its shop: the lingering genie talked to again
+	f.sess.Queue().GetPending()
+	if !f.g.Talk(f.sess, f.p, g) {
+		t.Fatal("the lingering genie not talked to")
+	}
+	box = boxID(questMsgs(f.sess))
+	if msgs := f.answer(box, genieShop); len(msgs) != 1 || opOf(msgs[0]) != protocol.OpcodeMerchantBox || f.genieNPC() != g {
+		t.Fatalf("the bank swapped for the shop: sent %s", ops(msgs))
+	}
+	if _, ok := f.g.windowNPC(f.sess, 4242, npcFlagBank); ok {
+		t.Error("the bank's move taken once the shop was open")
+	}
+	if _, ok := f.g.windowNPC(f.sess, entity.GenieWindowID(g.ServerID), npcFlagMerchant); !ok {
+		t.Error("the swapped-in shop refused")
+	}
 
 	// its wares
 	box = f.summon()
 	gid := entity.GenieWindowID(f.genieNPC().ServerID)
 	msgs = f.answer(box, genieShop)
-	if len(msgs) != 1 || opOf(msgs[0]) != protocol.OpcodeMerchantBox || f.genieNPC() != nil {
+	if len(msgs) != 1 || opOf(msgs[0]) != protocol.OpcodeMerchantBox || f.genieNPC() == nil {
 		t.Fatalf("Shop: sent %s", ops(msgs))
 	}
 	r := buffer.NewReader(msgs[0][2:])
@@ -298,6 +316,9 @@ func TestTheGenie(t *testing.T) {
 	if _, ok := f.g.windowNPC(f.sess, gid, npcFlagBlacksmith); ok {
 		t.Error("the forge held past its close")
 	}
+	if f.genieNPC() == nil {
+		t.Error("the genie left at once when its forge closed")
+	}
 
 	// talked to: its master asked again, another told
 	f.summon()
@@ -316,7 +337,19 @@ func TestTheGenie(t *testing.T) {
 		t.Error("an NPC named Genie taken for one")
 	}
 
-	// a box CLIENT declined at once: the genie stays; one closed later: gone
+	// a box CLIENT declined at once: the genie stays; one closed later, and
+	// Nothing, thank you: it lingers GenieLinger, then goes
+	linger := func(when string) {
+		t.Helper()
+		f.w.Tick(f.now.Add(entity.GenieLinger - time.Second))
+		if f.genieNPC() == nil {
+			t.Fatalf("%s: the genie gone before its linger", when)
+		}
+		f.w.Tick(f.now.Add(entity.GenieLinger + time.Second))
+		if f.genieNPC() != nil {
+			t.Fatalf("%s: the genie outlived its linger", when)
+		}
+	}
 	box = f.summon()
 	f.answer(box, 255)
 	if f.genieNPC() == nil {
@@ -327,13 +360,15 @@ func TestTheGenie(t *testing.T) {
 	box = boxID(questMsgs(f.sess))
 	f.now = f.now.Add(3 * time.Second)
 	f.answer(box, 255)
-	if f.genieNPC() != nil {
-		t.Fatal("the genie stayed on a box closed")
+	if f.genieNPC() == nil {
+		t.Fatal("the genie left at once on a box closed")
 	}
+	linger("the box closed")
 	box = f.summon()
-	if msgs := f.answer(box, genieNothing); f.genieNPC() != nil || len(msgs) == 0 {
-		t.Fatal("Nothing, thank you: the genie stayed")
+	if msgs := f.answer(box, genieNothing); f.genieNPC() == nil || len(msgs) == 0 {
+		t.Fatal("Nothing, thank you: the genie left at once, or said nothing")
 	}
+	linger("Nothing, thank you")
 
 	// no outfitter sells a cleric's heirlooms here
 	f.p.Class = 9
@@ -341,8 +376,11 @@ func TestTheGenie(t *testing.T) {
 	box = f.summon()
 	f.sess.Queue().GetPending()
 	f.g.Answer(f.sess, f.p, box, genieShop)
-	if !hasMsg(questMsgs(f.sess), "box:Genie: I have no wares for one of your calling.") || f.genieNPC() != nil {
-		t.Fatal("a class with no outfitter: wares offered or the genie kept")
+	if !hasMsg(questMsgs(f.sess), "box:Genie: I have no wares for one of your calling.") || f.genieNPC() == nil {
+		t.Fatal("a class with no outfitter: wares offered or the genie gone")
+	}
+	if _, ok := f.g.windowNPC(f.sess, entity.GenieWindowID(f.genieNPC().ServerID), npcFlagMerchant); ok {
+		t.Error("a shop with no wares held")
 	}
 }
 
@@ -441,8 +479,8 @@ func TestUsingTheLampBringsTheGenie(t *testing.T) {
 	}
 }
 
-// The genie dyes armour (the user, 2026-11-08: "add an armor dyer near dabrish too and on genie"): the answer sends it
-// away and asks what to dye under the dyers' mark, in its name, and the dyer's next question follows with no genie by.
+// The genie dyes armour (the user, 2026-11-08: "add an armor dyer near dabrish too and on genie"): the genie lingers
+// by (2026-11-16) and the answer asks what to dye under the dyers' mark, in its name, and the dyer's next question follows with no genie by.
 // With no dyer (a server with no character store) it only says farewell.
 func TestTheGenieOffersDyeing(t *testing.T) {
 	f := newGenieFixture(t)
@@ -451,15 +489,15 @@ func TestTheGenieOffersDyeing(t *testing.T) {
 		t.Fatal("a fixture's genie has a dyer of its own")
 	}
 	msgs := f.answer(box, genieDye)
-	if f.genieNPC() != nil || len(msgs) == 0 || opOf(msgs[0]) == protocol.OpcodeQuestPopupMulti {
+	if f.genieNPC() == nil || len(msgs) == 0 || opOf(msgs[0]) == protocol.OpcodeQuestPopupMulti {
 		t.Fatalf("no dyer: sent %s, genie %v", ops(msgs), f.genieNPC())
 	}
 
 	f.g.dyer = NewDyer(f.w, f.db)
 	box = f.summon()
 	msgs = f.answer(box, genieDye)
-	if f.genieNPC() != nil {
-		t.Fatal("the genie stayed")
+	if f.genieNPC() == nil {
+		t.Fatal("the genie left at once")
 	}
 	id := func(msgs [][]byte) uint32 {
 		var id uint32
@@ -478,7 +516,7 @@ func TestTheGenieOffersDyeing(t *testing.T) {
 	if !strings.Contains(string(joinBytes(msgs)), "G\x00e\x00n\x00i\x00e") {
 		t.Error("it does not speak as the genie")
 	}
-	// "All my armor": the colours' families come next, the genie gone
+	// "All my armor": the colours' families come next, the genie by
 	f.sess.Queue().GetPending()
 	f.g.dyer.Answer(f.sess, f.p, first, 0)
 	var after [][]byte
@@ -490,7 +528,7 @@ func TestTheGenieOffersDyeing(t *testing.T) {
 	}
 }
 
-// The genie offers a rehabilitator's menu (the user, 2026-11-07): the answer sends it away and asks what to undo under
+// The genie offers a rehabilitator's menu (the user, 2026-11-07): the genie lingers by (2026-11-16), and the answer asks what to undo under
 // the rehabilitators' mark, in its name, and the menu's answers go on with no genie by. With no rehabilitators (a server
 // with no character store) it only says farewell.
 func TestTheGenieOffersRehabilitation(t *testing.T) {
@@ -500,15 +538,15 @@ func TestTheGenieOffersRehabilitation(t *testing.T) {
 		t.Fatal("a fixture's genie has rehabilitators of its own")
 	}
 	msgs := f.answer(box, genieRehab)
-	if f.genieNPC() != nil || len(msgs) == 0 || opOf(msgs[0]) == protocol.OpcodeQuestPopupMulti {
+	if f.genieNPC() == nil || len(msgs) == 0 || opOf(msgs[0]) == protocol.OpcodeQuestPopupMulti {
 		t.Fatalf("no rehabilitators: sent %s, genie %v", ops(msgs), f.genieNPC())
 	}
 
 	f.g.rehab = NewRehab(f.db, f.w, f.inv, database.NewSpellbookStore(f.db), nil, database.NewSQLiteCharacterStore(f.db))
 	box = f.summon()
 	msgs = f.answer(box, genieRehab)
-	if f.genieNPC() != nil {
-		t.Fatal("the genie stayed")
+	if f.genieNPC() == nil {
+		t.Fatal("the genie left at once")
 	}
 	var id uint32
 	for _, m := range msgs {
@@ -523,7 +561,7 @@ func TestTheGenieOffersRehabilitation(t *testing.T) {
 	if !strings.Contains(string(joinBytes(msgs)), "G\x00e\x00n\x00i\x00e") {
 		t.Error("it does not speak as the genie")
 	}
-	// the menu's first answer goes on, the genie gone: the resets' menu
+	// the menu's first answer goes on, the genie by: the resets' menu
 	f.sess.Queue().GetPending()
 	f.g.rehab.Answer(f.sess, f.p, id, 0)
 	var next uint32

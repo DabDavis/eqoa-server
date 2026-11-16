@@ -583,6 +583,38 @@ const (
 	// but what the server may send it: only #fly turns flight on.
 	OpcodeFly GameOpcode = 0x7E1B
 
+	// The Pet Groomer's dyes on pets (entity/petdyes.go, handlers/petgroomer.go,
+	// tables petdyes and petdyeareas; the owner, 2026-11-16: the drachnid pet
+	// should "have 2 different color areas that can be changed like armor dye
+	// (will be a template for pet color dye)"). 0x7E90-0x7E92, past the
+	// decorations' 0x7E80-0x7E82, are this lane's.
+
+	// OpcodePetDyesOffer is not retail: the server's offer of its pets' dyes,
+	// server to client once the player is in the world: a u8, the layout (1).
+	// A PS2 ignores it (CLIENT's dispatcher has no case above 0x1402 and no
+	// default) and never answers, so it draws every pet in its body's own
+	// colours.
+	OpcodePetDyesOffer GameOpcode = 0x7E90
+
+	// OpcodePetDyesAnswer is a client's answer to OpcodePetDyesOffer, client to
+	// server: a u8, the layout it reads (1), 0 to stop (a wider answer is read
+	// by its first byte). From a 1 on it is sent OpcodePetDyes.
+	OpcodePetDyesAnswer GameOpcode = 0x7E91
+
+	// OpcodePetDyes is the dyed pets in a client's view, server to a client
+	// that answered 1, in the world, when the set changes and again at each
+	// MemoryDump and world change: a u8 count, then for each pet a u32 id (as
+	// that client knows the entity: the visibility channel's object id), a
+	// u32 body (the model DictID the dyes are for: the client draws them only
+	// on that body), a u32 colour of area 1 and a u32 of area 2 (0xRRGGBBAA,
+	// red first; 0 that area's own colours), and a u64 mask of area 2's
+	// materials (bit n the body's palette material n; 0: area 1 is the whole
+	// body and area 2 nothing), little-endian. A colour multiplies the
+	// area's layer colours' red, green and blue as an NPC's body tint does
+	// (OpcodeNPCTints), as much of it as its alpha says. Each one is the
+	// whole set: an id it leaves out is drawn in its own colours.
+	OpcodePetDyes GameOpcode = 0x7E92
+
 	// OpcodeNoclip is not retail: a GM's /noclip (handlers/noclip.go,
 	// entity/noclip.go; the GM Jibrish's petition 1904), server to a client that
 	// flies (OpcodeFly's): a u32, 1 on and 0 off. On, the client's walk passes
@@ -1178,6 +1210,27 @@ const (
 	OpcodeMercSpellsState GameOpcode = 0x7E77
 )
 
+// The regional weather (#1549, entity/weather.go, internal/weather), not
+// retail, away from 0x7E2C-0x7E2F and the 0x7E6F-0x7E7A frontier. A PS2 has
+// its rain and snow from the retail 0x00C5/0x00C7 alone and ignores these.
+const (
+	// OpcodeWeather is the offer, both ways, as OpcodePowerBars: the server
+	// offers it (a u32, 1) once the player is in the world; a client that
+	// draws the weather itself (vanilla, #1550) answers a u32, 1 to be sent
+	// OpcodeWeatherData, 0 to stop.
+	OpcodeWeather GameOpcode = 0x7E93
+
+	// OpcodeWeatherData is the weather's timelines round the player, server
+	// to client, little-endian (weather.EncodeData): u8 zones (<= 4: the
+	// player's, then any other within 100 units), each: u8 world, u16 col,
+	// u16 row, u8 timelines (0-3), each: u16 squares (bit (sz%4)*4 + (sx%4);
+	// 0xFFFF a GM's), u32 revision, u32 seed, f32 wind_x, f32 wind_z, u8 n
+	// (2-12), n phases of {i32 at_ms relative to this message, u8 kind (0
+	// clear 1 rain 2 snow 3 sand 4 whiteout), u8 strength (s*255)}. Sent on
+	// entry, a change of zone and a change of revision.
+	OpcodeWeatherData GameOpcode = 0x7E94
+)
+
 // Item links in chat, EQ1's: a player puts a link to one of its own items in a
 // line, and whoever clicks it sees the item as the linker held it then
 // (handlers/itemlinks.go; the GM Jibrish's petition 1463, 2026-11-10). A PS2,
@@ -1580,6 +1633,10 @@ func (op GameOpcode) String() string {
 		return "MercSpellsAsk"
 	case OpcodeMercSpellsState:
 		return "MercSpellsState"
+	case OpcodeWeather:
+		return "Weather"
+	case OpcodeWeatherData:
+		return "WeatherData"
 	case OpcodeGroupRegOffer:
 		return "GroupRegOffer"
 	case OpcodeGroupRegState:
@@ -1693,6 +1750,12 @@ func (op GameOpcode) String() string {
 		return "DecorLightsAnswer"
 	case OpcodeDecorLights:
 		return "DecorLights"
+	case OpcodePetDyesOffer:
+		return "PetDyesOffer"
+	case OpcodePetDyesAnswer:
+		return "PetDyesAnswer"
+	case OpcodePetDyes:
+		return "PetDyes"
 	case OpcodeItemLinksOffer:
 		return "ItemLinksOffer"
 	case OpcodeItemLinkSay:

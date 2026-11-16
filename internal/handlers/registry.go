@@ -556,7 +556,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// Register the world-load handler (0x0049). This is what re-describes the
 	// scene after a teleport; without it a world change lands the player in an
 	// empty world. See worldload.go.
-	NewWorldLoadHandler().RegisterHandlers(r)
+	NewWorldLoadHandler(gameWorld).RegisterHandlers(r)
 
 	// Register the client's entity view (0x7E00; entityslots.go): a client
 	// that keeps more than CLIENT's 24 says how many, and how far
@@ -602,6 +602,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// Register others' power (0x7E01; powerbars.go): a client that draws
 	// power bars under its group's, its target's and their target's health
 	NewPowerBarsHandler(gameWorld).RegisterHandlers(r)
+	// The regional weather's timelines (0x7E93; weather.go): a client that
+	// draws the server's sandstorms and whiteouts
+	NewWeatherHandler(gameWorld).RegisterHandlers(r)
 	// The pet's effects (0x7E32; peteffects.go): a client that draws them
 	// under its pet's bar
 	NewPetEffectsHandler(gameWorld).RegisterHandlers(r)
@@ -612,6 +615,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// The NPCs' body tints (0x7E3F; npctint.go): a client that draws them
 	NewNPCTintsHandler(gameWorld).RegisterHandlers(r)
 	NewDecorLightsHandler(gameWorld).RegisterHandlers(r)
+	(&PetDyesHandler{}).RegisterHandlers(r) // the pets' dyes (petgroomer.go)
 	// A damage meter (0x7E3B, 0x7E3D; dpsmeter.go): a client that draws one
 	NewDPSMeterHandler(gameWorld).RegisterHandlers(r)
 	// The worn looks a character hides (0x7E6D; hidelook.go)
@@ -661,6 +665,10 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		chatHandler.SetDyeStore(charStore.DB())
 		// the Armor Dyers (dyer.go) dye as #dye does
 		interactHandler.dyer = NewDyer(gameWorld, charStore.DB())
+		// the Weapon Enchanters (enchanter.go): a held copy's own auras
+		interactHandler.enchanter = NewEnchanter(gameWorld, charStore.DB())
+		// the Pet Groomers (petgroomer.go) dye a pet's two areas as the dyers dye armour
+		interactHandler.groomer = NewGroomer(gameWorld, charStore.DB())
 		// the lamps' genies (genie.go): the bank, an outfitter's wares, the forge
 		genie := NewGenie(gameWorld, charStore.DB(), npcWindowHandler)
 		interactHandler.genie, equipHandler.genie = genie, genie

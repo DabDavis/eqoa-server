@@ -1,6 +1,8 @@
 package session
 
 import (
+	"bytes"
+	"encoding/binary"
 	"testing"
 	"time"
 )
@@ -101,5 +103,102 @@ func TestASessionsHourIsItsClients(t *testing.T) {
 	}
 	if h3, _ := s.GameHour(later.Add(62 * time.Second)); h3 < 6.60 || h3 > 6.61 {
 		t.Errorf("62 s after the new reading: %v, want 6.606", h3)
+	}
+}
+
+// The owner's report (2026-11-16, "the sun is not all in the same spot"),
+// measured: two players, one in the world an hour before the other, each
+// sent the server's clock only as it entered (the server before the resync).
+// An hour on, the first's sun is 0.407 game hours (24.4 game minutes, 6.1
+// degrees) behind the second's, a minute of the clock an hour; three hours
+// on 1.22 game hours. The resync (a 0x0013 every ClockResync) keeps every
+// session within 0.0136 game hours (2.04 s of the clock) of the server's.
+func TestEveryPlayersSunIsTheWorlds(t *testing.T) {
+	t0 := time.Unix(1_700_000_000, 0)
+	reading := func(at time.Time) int64 { return at.UnixMilli() + ClockOffset }
+	// the hours apart, wrapped round the day
+	apart := func(a, b float32) float32 {
+		d := a - b
+		for d > 12 {
+			d -= 24
+		}
+		for d < -12 {
+			d += 24
+		}
+		return max(d, -d)
+	}
+
+	// before: set once at entry
+	early, late := &Session{}, &Session{}
+	early.SetGameClock(reading(t0), t0)
+	t1 := t0.Add(time.Hour)
+	late.SetGameClock(reading(t1), t1)
+	a, _ := early.GameHour(t1)
+	b, _ := late.GameHour(t1)
+	if d := apart(a, b); d < 0.40 || d > 0.41 {
+		t.Errorf("an hour apart: the suns %v and %v, %v hours apart, want 0.407", a, b, d)
+	}
+	t3 := t0.Add(3 * time.Hour)
+	a, _ = early.GameHour(t3)
+	if d := apart(a, ServerHour(t3)); d < 1.21 || d > 1.23 {
+		t.Errorf("three hours on: %v behind the server's, want 1.22", d)
+	}
+
+	// after: the resync, as the listener sends it
+	early, late = &Session{}, &Session{}
+	early.SetGameClock(reading(t0), t0)
+	worst := float32(0)
+	for at := t0; at.Before(t0.Add(3 * time.Hour)); at = at.Add(time.Second) {
+		if at.Equal(t1) {
+			late.SetGameClock(reading(t1), t1)
+		}
+		for _, s := range []*Session{early, late} {
+			if s.clock.ready && s.GameTimeDue(at) {
+				s.SetGameClock(reading(at), at)
+			}
+		}
+		h, _ := early.GameHour(at)
+		worst = max(worst, apart(h, ServerHour(at)))
+		if !at.Before(t1) {
+			h2, _ := late.GameHour(at)
+			worst = max(worst, apart(h, h2))
+		}
+	}
+	if worst > 0.014 {
+		t.Errorf("with the resync the suns came %v hours apart, want under 0.014", worst)
+	}
+}
+
+// QueueGameTime's 0x0013 is CLIENT's: the opcode, then two u64 LE readings,
+// the second the first plus ClockOffset; the session's clock is set by it
+// and not due again until ClockResync on.
+func TestQueueGameTimeIsCLIENTs0x0013(t *testing.T) {
+	s := NewSession(nil, 1, 2, 3, 4, true)
+	at := time.UnixMilli(1793329394412)
+	if !s.GameTimeDue(at) {
+		t.Fatal("never sent, not due")
+	}
+	if got := s.QueueGameTime(at); got != 1793329394412 {
+		t.Fatalf("first reading %d", got)
+	}
+	msgs := s.Queue().PeekPending()
+	if len(msgs) != 1 {
+		t.Fatalf("%d messages queued", len(msgs))
+	}
+	d := msgs[0].Data()
+	want := []byte{0x13, 0x00}
+	want = binary.LittleEndian.AppendUint64(want, 1793329394412)
+	want = binary.LittleEndian.AppendUint64(want, 1793329394412+ClockOffset)
+	if !bytes.Equal(d, want) {
+		t.Fatalf("0x0013 % x, want % x", d, want)
+	}
+	if h, ok := s.GameHour(at); !ok || h != ServerHour(at) {
+		t.Errorf("the session's hour %v %v, want the server's %v", h, ok, ServerHour(at))
+	}
+	if s.GameTimeDue(at.Add(ClockResync - time.Millisecond)) {
+		t.Error("due again before ClockResync")
+	}
+	if !s.GameTimeDue(at.Add(ClockResync)) {
+		t.Error("not due at ClockResync")
 	}
 }

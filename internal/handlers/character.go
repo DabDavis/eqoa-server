@@ -859,6 +859,8 @@ func (h *CharacterHandler) enterFromRecord(sess *session.Session, record *databa
 	}
 	// and its dyes, drawn by a client of the live game's look (livelook.go)
 	h.loadDyes(player, record.ServerID)
+	// and its pets' dyes, the Pet Groomers' (petgroomer.go)
+	h.loadPetDyes(record.ServerID)
 	// and the hit points and power it left the world with, and what its HoT
 	// and PoT gave back while it was away, within the maxima its gear gives
 	// it now (entity/linkdead.go): until 2026-10-31 every login filled them
@@ -928,6 +930,11 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 					conn.ResendAll(), sess.RemoteAddr())
 			}
 		}
+		// The weather's byte again, at once (0x00C7), and its timelines:
+		// the MemoryDump this answers reset the client's atmosphere
+		if h.gameWorld != nil {
+			h.gameWorld.WeatherResend(sess)
+		}
 		// Client keeps sending this while waiting - just ACK
 		sess.Queue().SetBodyFlags(protocol.BodyFlagGuaranteedAck)
 		return nil
@@ -969,6 +976,11 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// Offer others' power (powerbars.go): a client that draws power bars
 	// asks for it, a PS2 ignores it
 	SendPowerBarsOffer(sess)
+	// and the weather's timelines (weather.go): a client that draws the
+	// server's sandstorms and whiteouts asks, a PS2 ignores it
+	if h.gameWorld != nil && h.gameWorld.Weather != nil {
+		SendWeatherOffer(sess)
+	}
 	// and the pet's effects (peteffects.go): a client that draws them under
 	// its pet's bar asks for them, a PS2 ignores it
 	SendPetEffectsOffer(sess)
@@ -984,6 +996,9 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// and the decoration lights (decorlights.go): a client that draws them
 	// asks, a PS2 ignores it
 	SendDecorLightsOffer(sess)
+	// and the pets' dyes (petgroomer.go): a client that draws them asks, a
+	// PS2 ignores it
+	SendPetDyesOffer(sess)
 	// and a damage meter (dpsmeter.go): a client that draws one asks, a PS2
 	// ignores it
 	SendDPSMeterOffer(sess)
@@ -1421,6 +1436,7 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 	player.ArmorColors = [len(player.ArmorColors)]uint32{}
 	player.HeldColors = [len(player.HeldColors)]uint32{}
 	player.WornPieces, player.WornMask = [entity.AuraSlots]int{}, 0
+	player.WornItems = [entity.AuraSlots]int{}
 	player.PrimaryType, player.SecondaryType = 0, 0
 	player.CapeStyle, player.CapeColor = 0, 0
 	// the worn looks the character hides (entity/hidelook.go): a part is
@@ -1496,12 +1512,14 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 	}
 	if item := first(16, 14, 19); item != nil {
 		player.SetWornPiece(entity.AuraMainHand, item.Pattern.PatternID) // its own aura's (entity/pieceaura.go)
+		player.WornItems[entity.AuraMainHand] = item.ItemID              // and the copy's (instanceaura)
 		player.Primary, player.PrimaryType = uint32(item.Pattern.Model), byte(item.Pattern.AttackType)
 		player.HeldColors[0] = entity.ArmorColor(item.Pattern.Color)
 		hide(entity.HidePrimary, item)
 	}
 	if item := first(15, 20, 18); item != nil {
 		player.SetWornPiece(entity.AuraOffHand, item.Pattern.PatternID)
+		player.WornItems[entity.AuraOffHand] = item.ItemID
 		player.Secondary, player.SecondaryType = uint32(item.Pattern.Model), byte(item.Pattern.AttackType)
 		player.HeldColors[1] = entity.ArmorColor(item.Pattern.Color)
 		hide(entity.HideSecondary, item)
@@ -1509,6 +1527,7 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 	if item := first(17); item != nil {
 		if player.WornMask&(1<<entity.AuraOffHand) == 0 {
 			player.SetWornPiece(entity.AuraOffHand, item.Pattern.PatternID) // the off hand's: a shield there
+			player.WornItems[entity.AuraOffHand] = item.ItemID
 		}
 		player.Shield = uint32(item.Pattern.Model)
 		player.HeldColors[2] = entity.ArmorColor(item.Pattern.Color)
@@ -1553,6 +1572,17 @@ func characterGearHiding(items []database.CharInventoryEntry, hidden uint32) []b
 		g[26+i] = entity.ArmorTint(p.ArmorColors[i])
 	}
 	entity.HideCharacterParts(g, p.HiddenParts)
+	return g
+}
+
+// characterGearOn is characterGearHiding of a character shown in body model:
+// a body with a helm of its own (the fire giant reaver's) shows no worn helm
+// (entity/ownhelm.go).
+func characterGearOn(model uint32, items []database.CharInventoryEntry, hidden uint32) []byte {
+	g := characterGearHiding(items, hidden)
+	if entity.BodyWearsHelm(model) {
+		entity.HideCharacterParts(g, entity.HideHelm)
+	}
 	return g
 }
 
@@ -1917,7 +1947,7 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 		// the live game's record to a client of its look, with the dyes
 		// (livelook.go); the disc's 32 bytes to every other
 		hidden := h.hiddenLooks(uint32(c.ServerID))
-		gear := characterGearHiding(items, hidden)
+		gear := characterGearOn(uint32(c.ModelID), items, hidden)
 		if entity.IsWispRace(int(c.Race)) {
 			// a Wisp at select is in its own form: nothing worn shows but its
 			// cape (entity/wispform.go)
@@ -2141,6 +2171,10 @@ func (h *CharacterHandler) queueMemoryDumpAt(sess *session.Session, player *enti
 	// capes again whatever it was told before (capes.go)
 	if readsCapes(sess) {
 		defer entity.GetOrCreateVisibility(sess).ResendCapes()
+	}
+	// and its pets' dyes (entity/petdyes.go)
+	if sess.PetDyes() {
+		defer entity.GetOrCreateVisibility(sess).ResendPetDyes()
 	}
 	// The bank as one piece (bank.go's bankMu): its tunar, its list and the
 	// auction's lots and bids read and the dump queued with nothing of the
@@ -2559,7 +2593,9 @@ func writeItemPattern(w *buffer.Writer, e *database.CharInventoryEntry, capes bo
 
 	// Item name + description (WriteStringUnicode = int32 charCount + UTF-16LE)
 	w.WriteStringUnicode(itemNameShown(p))
-	w.WriteStringUnicode(p.ItemDesc)
+	// a copy's own tag ("Aura: Virtuous", database/instanceaura.go) heads
+	// its description, a line of its own: every client's item info shows it
+	w.WriteStringUnicode(database.InstanceTagged(p.ItemDesc, e.AuraTag, itemDescMax))
 
 	// Stats: collect non-zero stats as index/value pairs
 	// Index mapping: 0=str 1=sta 2=agi 3=dex 4=wis 5=int 6=cha
@@ -2811,22 +2847,10 @@ func (h *CharacterHandler) SendBuddyList(sess *session.Session) {
 // sendTimeOnly sends just the Time message (opcode 0x13) without Ping.
 // Used in MemoryDump sequence where C# only sends Time, not Ping.
 func (h *CharacterHandler) sendTimeOnly(sess *session.Session) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeTime)
-	writer := buffer.NewWriter(msg.Span())
-
-	// Write opcode in data
-	writer.WriteUint16(uint16(protocol.OpcodeTime))
-	// Write time data - two uint64 LE epoch-millisecond timestamps; the
-	// client's time of day is the second's, and the session keeps the clock
-	// the client sets by it (session/gameclock.go: a vampire's daylight)
-	at := time.Now()
-	now := uint64(at.UnixMilli())
-	writer.WriteUint64(now)
-	writer.WriteUint64(now + session.ClockOffset)
-	msg.SetSize(writer.Position())
-
-	sess.Queue().AddWithSequence(msg)
-	sess.SetGameClock(int64(now+session.ClockOffset), at)
+	// two u64 LE epoch-millisecond readings; the client's time of day is the
+	// second's, and the session keeps the clock the client sets by it
+	// (session/gameclock.go: a vampire's daylight, the resync)
+	now := sess.QueueGameTime(time.Now())
 	log.Printf("sendTimeOnly: sent Time message to %s (epoch=%d)", sess.RemoteAddr(), now)
 }
 

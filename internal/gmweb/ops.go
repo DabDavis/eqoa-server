@@ -133,8 +133,9 @@ func (s *Server) registerOps() {
 	s.registerQuestOps()
 	s.registerPathOps()
 	s.registerVisualOps()
-	s.registerLookOps() // looks.go: what wears each body, model, icon and visual, for the pickers
-	s.registerItemOps() // ops_items.go: item_reading, an item record in words
+	s.registerLookOps()         // looks.go: what wears each body, model, icon and visual, for the pickers
+	s.registerItemOps()         // ops_items.go: item_reading, an item record in words
+	s.registerInstanceAuraOps() // ops_instanceaura.go: one held item copy's own aura and tag
 	s.registerSuggestionOps()
 	s.registerMapLayerOps()
 	s.registerMapMarkOps()
@@ -145,6 +146,7 @@ func (s *Server) registerOps() {
 	s.registerEmailOps()    // ops_email.go: the accounts' e-mail, masked; resend, a GM's override
 	s.registerEconomyOps()  // ops_economy.go: the tunar ledger
 	s.registerFormulaOps()  // ops_formula.go: the damage formula's mode, its switch, the shadow summary
+	s.registerWeatherOps()  // ops_weather.go: the regional weather, a GM's weather
 	if !s.d.NoTransfers {
 		s.registerTransferOps() // ops_transfers.go
 	}

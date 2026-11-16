@@ -669,8 +669,8 @@ func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 	}
 	l.Primary, l.Secondary, l.Shield = p.Primary, p.Secondary, p.Shield
 	l.PrimaryType, l.SecondaryType = p.PrimaryType, p.SecondaryType
-	l.WornPieces, l.WornMask = p.WornPieces, p.WornMask // its pieces' auras (entity/pieceaura.go)
-	if row.Class == mercAlchemist && !ownHand {         // its own in its hands shown as a player's
+	l.WornPieces, l.WornMask, l.WornItems = p.WornPieces, p.WornMask, p.WornItems // its pieces' auras (entity/pieceaura.go)
+	if row.Class == mercAlchemist && !ownHand {                                   // its own in its hands shown as a player's
 		if bottle := m.potionBottle(); bottle != 0 {
 			// in its second hand, as a player's potion worn in the ranged slot
 			// is shown (character.go's wornLook: slot 18 in the second hand),

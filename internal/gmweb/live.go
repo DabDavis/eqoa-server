@@ -43,6 +43,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveAggro()
 	case "npcrespawn":
 		return s.liveRespawn()
+	case "weatherprofiles", "weatherzones", "weatherclimates":
+		return s.liveWeather() // ops_weather.go
 	case "npcundead":
 		return s.liveUndead()
 	case "npccharm":
@@ -59,7 +61,7 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return "at once: earned so while its season is on"
 	case "npctint":
 		return s.liveTints()
-	case "itemaura", "charaura":
+	case "itemaura", "charaura", "instanceaura":
 		return s.liveItemAuras()
 	case "npctitle":
 		return s.liveTitles()
@@ -110,6 +112,10 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return msg
 	case "chardyes":
 		return s.liveDyes(before, after) // live_dyes.go
+	case "petdyes":
+		return s.livePetDyes(before, after) // live_dyes.go
+	case "petdyeareas":
+		return s.livePetDyeAreas() // live_dyes.go
 	case "charlook":
 		return s.liveLooks() // live_racesize.go
 	case "charvampire":
@@ -365,6 +371,22 @@ func checkCharAuraRow(row map[string]any) error {
 		if kind == database.AuraCirclet {
 			return badRequest("kind 8 (circlet) is the helm's slot alone: slot 5")
 		}
+		if kind == database.AuraHat {
+			return badRequest("kind 10 (hat) is the helm's slot alone: slot 5")
+		}
+	}
+	// a hat on the helm's slot (kind 10, its source a body with a hat built
+	// in): its nodes unused (ValidCharAuraNodes, 0-32), past checkAuraCols' kinds
+	if kind, kok := asFloat(row["kind"]); sok && kok && !hand && kind == database.AuraHat {
+		if slot != database.CharAuraHelm {
+			return badRequest("kind 10 (hat) is the helm's slot alone: slot 5")
+		}
+		cols = make(map[string]any, len(row))
+		for k, v := range row {
+			if k != "kind" {
+				cols[k] = v
+			}
+		}
 	}
 	// a circlet on the helm's slot (kind 8): checked here, past checkAuraCols' kinds
 	if kind, kok := asFloat(row["kind"]); sok && kok && !hand && kind == database.AuraCirclet {
@@ -403,6 +425,35 @@ func checkCharAuraRow(row map[string]any) error {
 			return badRequest("merc is 0 the character itself, else its mercenary's hire slot")
 		}
 	}
+	// a hand's second aura (color2 ... nodes2): a held item's kinds, on slot
+	// 9 or 10 alone
+	for _, col := range []string{"color2", "source2"} {
+		if v, has := row[col]; has {
+			if f, fok := asFloat(v); !fok || f != math.Trunc(f) || !database.ValidNPCTint(int64(f)) {
+				return badRequest("%s is a 32-bit value (0xRRGGBBAA for the colour, a DictID for the source), 0 none", col)
+			}
+		}
+	}
+	k2, hasK2 := asFloat(row["kind2"])
+	n2, hasN2 := asFloat(row["nodes2"])
+	if _, has := row["kind2"]; has && (!hasK2 || k2 != math.Trunc(k2)) {
+		return badRequest("kind2 is 0 none, 3 the particles, 7 an epic's look or 9 an energy skin")
+	}
+	if _, has := row["nodes2"]; has && (!hasN2 || n2 != math.Trunc(n2)) {
+		return badRequest("nodes2 is where along the held item, 0-%d", database.AuraAlongMost)
+	}
+	if hasK2 && k2 != 0 || hasN2 && n2 != 0 {
+		if !sok || !hand {
+			return badRequest("a second aura (kind2 ... nodes2) is a held item's: slot 9 the main hand, 10 the off hand")
+		}
+		kk := int64(k2)
+		if !hasK2 || kk == 0 {
+			kk = database.AuraParticles // nodes2 alone: held to a hand's along
+		}
+		if !database.ValidItemAuraSecond(kk, int64(n2)) {
+			return badRequest("the second aura is a held item's: kind2 0 none, 3 the particles, 7 an epic's look or 9 an energy skin; nodes2 where along it 0-%d", database.AuraAlongMost)
+		}
+	}
 	if v, ok := row["color"]; ok {
 		f, fok := asFloat(v)
 		if !fok || f != math.Trunc(f) || !database.ValidNPCTint(int64(f)) {
@@ -413,10 +464,29 @@ func checkCharAuraRow(row map[string]any) error {
 }
 
 // checkItemAuraRow holds an itemaura row to an item, a 32-bit colour and an
-// aura the client reads.
+// aura the client reads, and its second aura (color2 ... nodes2) to a held
+// item's.
 func checkItemAuraRow(row map[string]any) error {
 	if f, ok := asFloat(row["patternid"]); !ok || f != math.Trunc(f) || f < 0 {
 		return badRequest("patternid is the item's record (Items)")
+	}
+	whole := func(col string) (int64, bool, bool) {
+		v, has := row[col]
+		if !has {
+			return 0, false, true
+		}
+		f, fok := asFloat(v)
+		return int64(f), true, fok && f == math.Trunc(f)
+	}
+	for _, col := range []string{"color2", "source2"} {
+		if v, has, ok := whole(col); has && (!ok || !database.ValidNPCTint(v)) {
+			return badRequest("%s is a 32-bit value (0xRRGGBBAA for the colour, a DictID for the source), 0 none", col)
+		}
+	}
+	k2, hasK2, okK2 := whole("kind2")
+	n2, _, okN2 := whole("nodes2")
+	if !okK2 || !okN2 || hasK2 && !database.ValidItemAuraSecond(k2, n2) || !hasK2 && n2 != 0 && !database.ValidItemAuraSecond(database.AuraParticles, n2) {
+		return badRequest("the second aura is a held item's: kind2 0 none, 3 the particles, 7 an epic's look or 9 an energy skin; nodes2 where along it 0-%d (0 with kind2 0)", database.AuraAlongMost)
 	}
 	if v, ok := row["color"]; ok {
 		f, fok := asFloat(v)
@@ -426,8 +496,9 @@ func checkItemAuraRow(row map[string]any) error {
 	}
 	// a circlet (kind 8): an item worn on the head that is one (nodes its height
 	// 0-100); an epic look or an energy skin (7, 9): a held item's own (nodes
-	// where along it 0-100)
-	if kind, kok := asFloat(row["kind"]); kok && (kind == database.AuraCirclet || kind == database.AuraEpic || kind == database.AuraEnergy) {
+	// where along it 0-100); a hat (10): an item worn on the head that is one
+	// (its source a body with a hat built in, nodes 0-32 unused)
+	if kind, kok := asFloat(row["kind"]); kok && (kind == database.AuraCirclet || kind == database.AuraEpic || kind == database.AuraEnergy || kind == database.AuraHat) {
 		if v, has := row["nodes"]; has {
 			if f, fok := asFloat(v); !fok || f != math.Trunc(f) || !database.ValidItemAura(int64(kind), int64(f)) {
 				return badRequest("a circlet's Nodes is how high on the head it sits, a held item's where along it: 1-%d percent, 0 the default", database.AuraAlongMost)
@@ -508,6 +579,24 @@ func (s *Server) liveMove() string {
 		return "not applied to the world: " + err.Error()
 	}
 	return "at once: the next step of every creature of that name uses it"
+}
+
+// checkNPCMoveRow holds an npcmove row's speed to what a wander can walk
+// (database.CheckNPCMoveSpeed): 0, the server's walk, or 0.5 to 9.9 units a
+// second; a row that leaves it out takes the default 0.
+func checkNPCMoveRow(row map[string]any) error {
+	v, ok := row["speed"]
+	if !ok || v == nil {
+		return nil
+	}
+	f, fok := asFloat(v)
+	if !fok || math.IsInf(f, 0) {
+		return badRequest("speed is a number of units a second (0: the server's walk, 5.0)")
+	}
+	if err := database.CheckNPCMoveSpeed(f); err != nil {
+		return badRequest("%v", err)
+	}
+	return nil
 }
 
 // liveCMCatalog reads the class masteries again (entity/cmbuy.go; the change

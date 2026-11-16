@@ -36,6 +36,10 @@ type VisibilityState struct {
 	// capesDue sends the next one whatever it is (ResendCapes).
 	capesSent string
 	capesDue  atomic.Bool
+	// petDyesSent, petDyesDue: the pet dyes in view as capesSent and
+	// capesDue are the capes (petdyes.go: OpcodePetDyes's body; ResendPetDyes)
+	petDyesSent string
+	petDyesDue  atomic.Bool
 }
 
 // GetOrCreateVisibility retrieves or creates a VisibilityState from a session.

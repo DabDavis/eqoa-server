@@ -1,6 +1,9 @@
 package database
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 // npcmove: how the creatures of a name move (F3 20261026-021730, jib:
 // "hexbones in zentaurs keep do NOT roam, they are static spawn until agrod";
@@ -16,9 +19,13 @@ import "fmt"
 // (world.roam_radius). water: 'land' it keeps out of the water as it wanders;
 // 'both' it goes in and out of it (crocodiles, caiman, crabs); 'water' it
 // keeps to the water, wandering and fighting; empty, by its spawn (water when
-// it spawned in the water, else land). The key is the name as npcclass keys
-// it (NPCClassKey). source: gm, or seed for tools/seed_npc_move.py's rows (its
-// --undo deletes those).
+// it spawned in the water, else land). speed: its walking pace as it
+// wanders (and walks home off a path), units a second, 0 the server's
+// (entity.NPCWalkSpeed, 5.0): a body whose walk covers less ground a cycle
+// than a man's walks slower (petition 5189, Innoruuk, 2026-11-16: "Gharial
+// conned runs too fast when roaming"); never its chase. The key is the name
+// as npcclass keys it (NPCClassKey). source: gm, or seed for
+// tools/seed_npc_move.py's rows (its --undo deletes those).
 const npcMoveSchema = `
 	CREATE TABLE IF NOT EXISTS npcmove (
 		name   TEXT PRIMARY KEY,
@@ -26,8 +33,28 @@ const npcMoveSchema = `
 		radius REAL NOT NULL DEFAULT 0,
 		water  TEXT NOT NULL DEFAULT '',
 		note   TEXT NOT NULL DEFAULT '',
-		source TEXT NOT NULL DEFAULT 'gm'
+		source TEXT NOT NULL DEFAULT 'gm',
+		speed  REAL NOT NULL DEFAULT 0
 	);`
+
+// The bounds of npcmove.speed other than 0 (the server's walk): slow enough to
+// see it move, and no faster than a chase.
+const (
+	MinNPCMoveSpeed = 0.5
+	MaxNPCMoveSpeed = 9.9
+)
+
+// CheckNPCMoveSpeed refuses a speed npcmove cannot hold: 0 (the server's
+// walk) or MinNPCMoveSpeed to MaxNPCMoveSpeed units a second.
+func CheckNPCMoveSpeed(v float64) error {
+	if v == 0 {
+		return nil
+	}
+	if math.IsNaN(v) || v < MinNPCMoveSpeed || v > MaxNPCMoveSpeed {
+		return fmt.Errorf("speed is 0 (the server's walk, 5.0) or %g to %g units a second", float64(MinNPCMoveSpeed), float64(MaxNPCMoveSpeed))
+	}
+	return nil
+}
 
 // RoamByKind is npcmove's roam for "as its kind": wildlife wanders, the rest
 // stands.
@@ -44,9 +71,27 @@ func (db *SQLiteDB) ensureNPCMove() error {
 	if err != nil {
 		return fmt.Errorf("npcmove: %w", err)
 	}
-	if dflt != "1" {
-		return nil
+	if dflt == "1" {
+		if err := db.npcMoveRoamByKind(); err != nil {
+			return err
+		}
 	}
+	// speed (petition 5189): a table made before it gets it, every row 0
+	has, err := hasColumn(db.DB, "npcmove", "speed")
+	if err != nil {
+		return fmt.Errorf("npcmove: %w", err)
+	}
+	if !has {
+		if _, err := db.Exec(`ALTER TABLE npcmove ADD COLUMN speed REAL NOT NULL DEFAULT 0`); err != nil {
+			return fmt.Errorf("npcmove: speed: %w", err)
+		}
+	}
+	return nil
+}
+
+// npcMoveRoamByKind remakes a table whose roam defaulted to 1 with the
+// default -1 (ensureNPCMove), its rows kept.
+func (db *SQLiteDB) npcMoveRoamByKind() error {
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("npcmove: %w", err)
@@ -103,12 +148,15 @@ type NPCMoveRule struct {
 	Roam   bool
 	Radius float32
 	Water  string // "" (by its spawn), "land", "both" or "water"
+	// Speed is its wandering walk, units a second; 0 the server's
+	// (entity.NPCWalkSpeed). One out of CheckNPCMoveSpeed's bounds reads 0.
+	Speed float32
 }
 
 // NPCMoveRules is every row of npcmove, by NPCClassKey of the name. A water
 // word it does not know counts as empty (by its spawn).
 func (db *SQLiteDB) NPCMoveRules() (map[string]NPCMoveRule, error) {
-	rows, err := db.Query(`SELECT name, roam, radius, water FROM npcmove`)
+	rows, err := db.Query(`SELECT name, roam, radius, water, speed FROM npcmove`)
 	if err != nil {
 		return nil, err
 	}
@@ -117,8 +165,8 @@ func (db *SQLiteDB) NPCMoveRules() (map[string]NPCMoveRule, error) {
 	for rows.Next() {
 		var name, water string
 		var roam int
-		var radius float64
-		if err := rows.Scan(&name, &roam, &radius, &water); err != nil {
+		var radius, speed float64
+		if err := rows.Scan(&name, &roam, &radius, &water, &speed); err != nil {
 			return nil, err
 		}
 		switch water {
@@ -126,7 +174,10 @@ func (db *SQLiteDB) NPCMoveRules() (map[string]NPCMoveRule, error) {
 		default:
 			water = ""
 		}
-		out[NPCClassKey(name)] = NPCMoveRule{ByKind: roam < 0, Roam: roam > 0, Radius: float32(max(radius, 0)), Water: water}
+		if CheckNPCMoveSpeed(speed) != nil {
+			speed = 0
+		}
+		out[NPCClassKey(name)] = NPCMoveRule{ByKind: roam < 0, Roam: roam > 0, Radius: float32(max(radius, 0)), Water: water, Speed: float32(speed)}
 	}
 	return out, rows.Err()
 }

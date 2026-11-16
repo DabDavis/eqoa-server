@@ -327,6 +327,39 @@ var catalog = map[string]tableNote{
 			"source":   {Label: "Source", Help: "gm"},
 		},
 	},
+	"petdyes": {
+		Label: "Pet dyes", Group: "Players", Sort: "serverid",
+		Help: "A character's dyes on a pet body (entity/petdyes.go; the Pet Groomers put them on): two colours, one on each of " +
+			"the body's areas (Pet dye areas names them; a body with no row there is one area, its whole body, and area 2 is " +
+			"drawn nowhere). Kept by the body, so each look of a pet keeps its own. Drawn only by eqoa-rust-client-vanilla, " +
+			"which asks for pet dyes; a PS2 draws the pet in its own colours. Colours are 0xRRGGBBAA, red in the high byte, " +
+			"each multiplying its area's colours (0xD10000FF red, 0xFFFFFFFF white); 0 that area undyed; alpha 0 is refused.",
+		Live:   "At once where the character stands (its pet redrawn by every client that asks, from the next tick), else at its next login.",
+		Search: []string{"note"},
+		Cols: map[string]colNote{
+			"serverid": {Label: "Character", Ref: "characters"},
+			"look":     {Label: "Pet body", Format: hex32, Look: lookChar, Store: storeUint32, Help: "CHAR.ESF DictID of the pet's body (its npcs.modelid)"},
+			"area1":    {Label: "Area 1", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA, 0 none: the colour of the body's first area (its whole body when it has one)"},
+			"area2":    {Label: "Area 2", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA, 0 none: the colour of the body's second area"},
+			"note":     {Label: "Note", Help: "why"},
+		},
+	},
+	"petdyeareas": {
+		Label: "Pet dye areas", Group: "World", Title: "look", Sort: "look",
+		Help: "A pet body's two areas for the Pet Groomers (entity/petdyes.go): materials are area 2's, the indices of the body's " +
+			"palette materials (\"0,2,5\", 0-63; eqoa-rust-client-vanilla's `eqoa dress <body> out.png petareas=1` prints them); " +
+			"every other material is area 1. Area 1 and area 2 are the words the groomer asks with (\"Torso\", \"Spider body\"). " +
+			"A body with no row is one area: the groomer dyes its whole body in one colour. A template: a row makes any pet body two areas.",
+		Live:   "At once: every client that asks for pet dyes is told its view's pets again.",
+		Search: []string{"area1", "area2", "note"},
+		Cols: map[string]colNote{
+			"look":      {Label: "Pet body (key)", Format: hex32, Look: lookChar, Store: storeUint32, Help: "CHAR.ESF DictID of the body"},
+			"area1":     {Label: "Area 1", Help: "its name as the groomer asks it (Body)"},
+			"area2":     {Label: "Area 2", Help: "its name as the groomer asks it; empty: one area"},
+			"materials": {Label: "Area 2 materials", Help: "the body's palette materials that are area 2, 0-63, apart by commas"},
+			"note":      {Label: "Note", Help: "why"},
+		},
+	},
 	"charlook": {
 		Label: "Race looks", Group: "Players", Sort: "serverid",
 		Help: "A part of a custom race's body as its character chose it at creation (entity/raceoptions.go: the race's options, " +
@@ -1032,6 +1065,64 @@ var catalog = map[string]tableNote{
 			"source":  {Label: "Source", Help: "gm, or the tool that wrote it"},
 		},
 	},
+	"weatherprofiles": {
+		Label: "Weather profiles", Group: "World", Title: "profile", Sort: "profile",
+		Help: "The regional weather's climate of each of the disc's 22 terrain profiles (VIWorld::SetProfiles), the ground under each " +
+			"500x500 square (<world>.profiles, cmd/groundbake -only-profiles): temperate rains, arctic snows (a heavy snow sometimes a " +
+			"whiteout), desert has sandstorms, none has nothing. A square takes its zone's Weather zones row first, then its profile's row " +
+			"here; a profile with no row is none. Empty (and no Weather zones): no automatic weather, a GM's #weather still works. " +
+			"tools/seed_weather.py's rows: 2 and 10 arctic (the icy fog tint), 3 and 11 desert (the sand tint), 19 none (the Lavastorm's).",
+		Live:   "At once: the next weather tick uses it.",
+		Search: []string{"climate", "note"},
+		Cols: map[string]colNote{
+			"profile": {Label: "Profile", Help: "the terrain profile's number, 0-255 (the disc has 0-21)"},
+			"climate": {Label: "Climate", Help: "temperate, arctic, desert or none"},
+			"note":    {Label: "Note"},
+			"source":  {Label: "Source", Help: "gm, or seed for tools/seed_weather.py's rows (its --undo deletes those no GM changed)"},
+		},
+	},
+	"weatherzones": {
+		Label: "Weather zones", Group: "World", Title: "climate", Sort: "world",
+		Help: "A GM's word on a whole zone's climate (all 16 of its squares), above the Weather profiles: a 2000x2000 cell, col = " +
+			"floor(x/2000), row = floor(z/2000), its id w<world>-c<col>-r<row> (#weather names the one a GM stands in). none keeps the " +
+			"automatic weather off it (the Lavastorm world, Zaoran Plateau's islands in lava); a GM's #weather still reaches it.",
+		Live:   "At once: the next weather tick uses it.",
+		Search: []string{"climate", "note"},
+		Cols: map[string]colNote{
+			"world":   {Label: "World", Help: "0-29 (0 Tunaria, 1 the Rathe, 2 Odus, 3 Lavastorm, 4 the Plane of Sky, 5 Secrets)"},
+			"col":     {Label: "Col", Help: "floor(x/2000)"},
+			"row":     {Label: "Row", Help: "floor(z/2000)"},
+			"climate": {Label: "Climate", Help: "temperate, arctic, desert or none"},
+			"note":    {Label: "Note"},
+			"source":  {Label: "Source", Help: "gm, or seed for tools/seed_weather.py's rows"},
+		},
+	},
+	"weatherclimates": {
+		Label: "Weather climates", Group: "World", Title: "climate", Sort: "climate",
+		Help: "How each climate's automatic weather comes. Each area (a climate's squares in a 3x3 block of zones) has a cycle of " +
+			"cycle_minutes; each cycle has an event with event_chance, event_min to event_max minutes long, starting at least 5 minutes in, " +
+			"of a strength by the weights (light 0.15, moderate 0.5, heavy 1), fading in and out over fade_seconds; a heavy snow has a " +
+			"whiteout in its middle with whiteout_chance, held whiteout_min to whiteout_max seconds. Nothing is saved: the same clock gives " +
+			"the same weather on both shards. A climate with no row has no automatic weather.",
+		Live:   "At once: the next weather tick uses it (an event under way may change).",
+		Search: []string{"note"},
+		Cols: map[string]colNote{
+			"climate":         {Label: "Climate", Help: "temperate, arctic or desert"},
+			"kind":            {Label: "Kind", Help: "rain for temperate, snow for arctic, sand for desert"},
+			"cycle_minutes":   {Label: "Cycle", Help: "minutes, 10-240; at most one event a cycle"},
+			"event_chance":    {Label: "Event chance", Help: "0-1, of an event in a cycle"},
+			"event_min":       {Label: "Event min", Help: "minutes, 1-120"},
+			"event_max":       {Label: "Event max", Help: "minutes, 1-120; event_max*60 + 720 <= cycle*60 (12 minutes clear at least)"},
+			"weight_light":    {Label: "Light weight", Help: "0-10000, not all three 0"},
+			"weight_moderate": {Label: "Moderate weight"},
+			"weight_heavy":    {Label: "Heavy weight"},
+			"whiteout_chance": {Label: "Whiteout chance", Help: "0-1, of a whiteout in a heavy snow (arctic)"},
+			"whiteout_min":    {Label: "Whiteout min", Help: "seconds it holds, 1-600"},
+			"whiteout_max":    {Label: "Whiteout max", Help: "seconds, 1-600"},
+			"fade_seconds":    {Label: "Fade", Help: "seconds, 1-60: how long it takes to come in and to go"},
+			"note":            {Label: "Note"},
+		},
+	},
 	"npcrare": {
 		Label: "Rare spawns", Group: "World", Title: "npc_row", Sort: "npc_row",
 		Help: "A rare spawn on a placeholder, by the placeholder's row in NPCs: each time it comes back from a death it " +
@@ -1121,9 +1212,12 @@ var catalog = map[string]tableNote{
 			"record's colour (Items), not this. A hidden piece shows none. /aura item <id> ... in the game sets a row. " +
 			"Kind 8 (circlet) on a helm-slot item makes the item a circlet: the source's glowing ring round the wearer's head " +
 			"(Particles 1D875ECD the monk staff's, Nodes its height 1-100 percent of the head, 72 the temples), drawn while no " +
-			"helm is (give the item model 0: the Crown of Twisted Virtue); on any other piece it shows nothing. A held item (weapon " +
+			"helm is (give the item model 0: the Crown of Twisted Virtue); on any other piece it shows nothing. Kind 10 (hat) on a " +
+			"helm-slot item makes the item a hat another body has built in (Particles the body: F0FAB933 the kappa's straw hat, " +
+			"AA489CBB the efreeti lord's turban), drawn in place of the helm (the record's model is the helm a PS2 shows). A held item (weapon " +
 			"or shield) takes 3 particles, 7 an epic's look or 9 an energy skin (the source's additive layers over the item: the " +
-			"Heirloom Shield of Twisted Virtue wears 2EC56029's), shown on the hand that holds it unless the character has its own (Character auras 9/10).",
+			"Heirloom Shield of Twisted Virtue wears 2EC56029's), shown on the hand that holds it unless the character has its own (Character auras 9/10). " +
+			"A held item may carry a SECOND aura too (Second aura ... Second along: 3, 7 or 9), drawn beside the first; /aura item <id> second ... in the game.",
 		Live:   "At once: every wearer's channel carries it at the next tick.",
 		Search: []string{"note"},
 		Cols: map[string]colNote{
@@ -1132,9 +1226,13 @@ var catalog = map[string]tableNote{
 			"kind": {Label: "Aura", Help: "0 the default (the shell while the colour lights), 1 none, 2 the shell (a glow fitted round the piece), 3 the particles, 4 both, " +
 				"5 the trim (sets 4 and 9's gold trim lit in the colour, a soft halo off it; nothing on a piece with no trim), 6 the trim and the shell. " +
 				"A black or near-black colour (every channel at most 30, 000000FF too) with 2, 4, 5 or 6 is a DARK aura: a smoky shadow, the trim darkened"},
-			"source": {Label: "Particles", Format: hex32, Look: lookItem, Store: storeUint32, Help: "the DictID of the item (an ITEM.ESF hand model) or model whose particle sprite the particles are; 0 the Sword of Virtue's (0x88EC092D)"},
-			"nodes":  {Label: "Nodes", Help: "on how many of the piece's nodes the particles go; 0 the default, 32 at most"},
-			"note":   {Label: "Note", Help: "why"},
+			"source":  {Label: "Particles", Format: hex32, Look: lookItem, Store: storeUint32, Help: "the DictID of the item (an ITEM.ESF hand model) or model whose particle sprite the particles are; 0 the Sword of Virtue's (0x88EC092D)"},
+			"nodes":   {Label: "Nodes", Help: "on how many of the piece's nodes the particles go; 0 the default, 32 at most"},
+			"note":    {Label: "Note", Help: "why"},
+			"color2":  {Label: "Second colour", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "a held item's SECOND aura (drawn beside the first on the hand that holds it; Icingdeath: the Sword of Virtue's look and the freezing): its colour 0xRRGGBBAA, 0 the source's own colours"},
+			"kind2":   {Label: "Second aura", Help: "the second aura's kind, a held item's: 0 none, 3 the particles, 7 an epic's look, 9 an energy skin; drawn by a vanilla that asks for second auras"},
+			"source2": {Label: "Second particles", Format: hex32, Look: lookItem, Store: storeUint32, Help: "the second aura's source DictID (an epic's model, a spell visual, a model with particles); 0 the Sword of Virtue's"},
+			"nodes2":  {Label: "Second along", Help: "where along the held item the second aura's particles sit: 1-100 percent of its length from the hand, 0 the source's own place (a spell visual's: the tip)"},
 		},
 	},
 	"charaura": {
@@ -1150,14 +1248,44 @@ var catalog = map[string]tableNote{
 		Live:   "At once: the character's channel carries it at the next tick.",
 		Search: []string{"note"},
 		Cols: map[string]colNote{
-			"charid": {Label: "Character", Ref: "characters"},
-			"merc":   {Label: "Merc", Help: "0 the character itself, else its mercenary of that hire slot"},
-			"slot":   {Label: "Slot", Help: "0 chest, 1 bracers, 2 gloves, 3 legs, 4 boots, 5 helm, 6 robe, 7 the body and underclothes (under the armour), 8 the cape, 9 the main hand's held item, 10 the off hand's"},
-			"color":  {Label: "Colour", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA; black 000000FF with a shell or trim a dark aura"},
-			"kind":   {Label: "Aura", Help: "0 default, 1 none, 2 shell, 3 particles, 4 both, 5 trim, 6 trim and shell; 7 epic (slots 9 and 10 alone: the source epic's own look on the held item); a hand takes 3 or 7; 8 circlet (slot 5 alone: the source's glowing ring worn round the head, shown while no helm is drawn; monk circlet: Particles 1D875ECD)"},
-			"source": {Label: "Particles", Format: hex32, Look: lookItem, Store: storeUint32, Help: "the particles' DictID; 0 the Sword of Virtue's; with kind 7 the epic whose look it is (the Sickle of Avhi Escron 5FD4AE7C)"},
-			"nodes":  {Label: "Nodes", Help: "0 the default, 32 at most; on a held item (slots 9, 10) where along it the particles sit: 1-100 percent of its length from the hand, 0 where the epic has them (druid staff glow: 45)"},
-			"note":   {Label: "Note", Help: "why"},
+			"charid":  {Label: "Character", Ref: "characters"},
+			"merc":    {Label: "Merc", Help: "0 the character itself, else its mercenary of that hire slot"},
+			"slot":    {Label: "Slot", Help: "0 chest, 1 bracers, 2 gloves, 3 legs, 4 boots, 5 helm, 6 robe, 7 the body and underclothes (under the armour), 8 the cape, 9 the main hand's held item, 10 the off hand's"},
+			"color":   {Label: "Colour", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA; black 000000FF with a shell or trim a dark aura"},
+			"kind":    {Label: "Aura", Help: "0 default, 1 none, 2 shell, 3 particles, 4 both, 5 trim, 6 trim and shell; 7 epic (slots 9 and 10 alone: the source epic's own look on the held item); a hand takes 3 or 7; 8 circlet (slot 5 alone: the source's glowing ring worn round the head, shown while no helm is drawn; monk circlet: Particles 1D875ECD); 10 hat (slot 5 alone: the hat a body has built in, its Particles the body's DictID, worn in place of the helm; kappa straw hat: F0FAB933)"},
+			"source":  {Label: "Particles", Format: hex32, Look: lookItem, Store: storeUint32, Help: "the particles' DictID; 0 the Sword of Virtue's; with kind 7 the epic whose look it is (the Sickle of Avhi Escron 5FD4AE7C)"},
+			"nodes":   {Label: "Nodes", Help: "0 the default, 32 at most; on a held item (slots 9, 10) where along it the particles sit: 1-100 percent of its length from the hand, 0 where the epic has them (druid staff glow: 45)"},
+			"note":    {Label: "Note", Help: "why"},
+			"color2":  {Label: "Second colour", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "slots 9 and 10 alone: the hand's SECOND aura, drawn beside the first on whatever it holds (Dust's sword: its red aura and the star flare's twinkle at the tip): its colour 0xRRGGBBAA, 0 the source's own colours"},
+			"kind2":   {Label: "Second aura", Help: "slots 9 and 10 alone: the second aura's kind, 0 none, 3 the particles, 7 an epic's look, 9 an energy skin; drawn by a vanilla that asks for second auras. A hand's row takes the held item's place whole: both of its auras"},
+			"source2": {Label: "Second particles", Format: hex32, Look: lookItem, Store: storeUint32, Help: "the second aura's source DictID (an epic's model: the Ascendant staff's star flare 1D875ECD; a spell visual; a model with particles); 0 the Sword of Virtue's"},
+			"nodes2":  {Label: "Second along", Help: "where along the held item the second aura's particles sit: 1-100 percent of its length from the hand (100 the tip), 0 the source's own place"},
+		},
+	},
+	"instanceaura": {
+		Label: "Item copy auras", Group: "Items & spells", Title: "itemid", Sort: "itemid",
+		Help: "An aura on ONE copy of a held item, not on its record (database/instanceaura.go; the owner, 2026-11-16: \"they can be marked " +
+			"for an aura though they are the same weapon as other players, it will have a tag 'Aura: Virtuous'\"). itemid is the copy: a Character " +
+			"items row (its Item row), or a mercenary's record negated (-charmercitem.id). It shows on whoever holds that copy, in the hand " +
+			"that holds it, and goes with it through a trade, the bank, the account bank, the auction house and a mercenary. The Tag shows on " +
+			"every client, a PS2 too, as \"Aura: <Tag>\" at the head of the item's description. A hand's order: the character's own " +
+			"(Character auras 9/10), then this, then the record's (Item auras); a row with a Tag and no aura is a tag alone (the record's aura " +
+			"shows). Set one by character and hand with the set_instance_aura operation, or /aura weapon <mainhand|offhand|weapons> <Tag> ... in the game.",
+		Live:   "At once: the holder's channel carries it at the next tick; the tag on the item's next record (its holder's next login or move of it).",
+		Search: []string{"tag", "note", "source_tool"},
+		Cols: map[string]colNote{
+			"itemid":      {Label: "Item copy", Ref: "charinventory", Help: "Character items' Item row; negative: a mercenary's record (charmercitem.id)"},
+			"tag":         {Label: "Tag", Help: "shown as \"Aura: <Tag>\" with the item, on every client; 24 letters, digits, spaces, ' or - at most; empty none"},
+			"color":       {Label: "Colour", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "0xRRGGBBAA, 0 the source's own colours; black 000000FF a dark aura"},
+			"kind":        {Label: "Aura", Help: "a held item's: 0 none, 3 the particles, 7 an epic's look, 9 an energy skin"},
+			"source":      {Label: "Particles", Format: hex32, Look: lookItem, Store: storeUint32, Help: "the source DictID (an epic's model: Sickle of Avhi Escron 5FD4AE7C; a spell visual: the freezing 6C151A60); 0 the Sword of Virtue's"},
+			"nodes":       {Label: "Along", Help: "where along the held item the particles sit: 1-100 percent of its length from the hand, 0 the source's own place"},
+			"color2":      {Label: "Second colour", Format: hex32, Look: lookRGBA, Store: storeUint32, Help: "the second aura's colour, 0 its source's own"},
+			"kind2":       {Label: "Second aura", Help: "0 none, 3 the particles, 7 an epic's look, 9 an energy skin"},
+			"source2":     {Label: "Second particles", Format: hex32, Look: lookItem, Store: storeUint32, Help: "the second aura's source DictID (the star flare's twinkle 1D875ECD)"},
+			"nodes2":      {Label: "Second along", Help: "where along it the second aura sits, 1-100 (100 the tip), 0 the source's own place"},
+			"note":        {Label: "Note", Help: "why"},
+			"source_tool": {Label: "Source", Help: "gm, or the tool that wrote it (tools/instance_aura_migrate_20261116.py: its --undo takes out exactly what it wrote)"},
 		},
 	},
 	"npctitle": {
@@ -1607,6 +1735,10 @@ var catalog = map[string]tableNote{
 			"roam":   {Label: "Wanders", Enum: "roam", Help: "-1 as its kind (wildlife wanders, the rest stands), 1 wanders, 0 stands until pulled"},
 			"radius": {Label: "Radius", Help: "how far from its spawn it wanders; 0 the server's (75)"},
 			"water":  {Label: "Water", Help: "land, both, water, or empty: by where it spawned (in the water: water)"},
+			"speed": {Label: "Walk speed", Unit: "units/s", Help: "its pace as it wanders (and walks home off a path), " +
+				"0 the server's (5.0, a man's walk); 0.5 to 9.9. Not its chase (9.9). CLIENT plays the walk at the body's own rate " +
+				"whatever the speed, so a body whose walk covers less ground than a man's (crocodiles, gharials, caiman) " +
+				"slides at 5.0: give it its own (petition 5189). From 7 the run is played"},
 			"note":   {Label: "Note", Help: "why"},
 			"source": {Label: "Source", Help: "gm, or seed for tools/seed_npc_move.py's rows (its --undo deletes those)"},
 		},

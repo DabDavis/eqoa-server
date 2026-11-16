@@ -55,6 +55,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -597,19 +598,84 @@ func ActorBits(v float32) uint32 {
 	return math.Float32bits(v)
 }
 
+// ActorTail is an extra's ZoneActor record's body, as the world file and the
+// server-worlds list both carry it: the sprite's DictID, where it stands, its
+// heading, pitch and roll and its scale (ActorBits), its static light.
+func ActorTail(e Extra) []byte {
+	b := binary.LittleEndian.AppendUint32(make([]byte, 0, actorTailSize), uint32(e.Sprite))
+	for _, v := range [7]float32{e.At[0], e.At[1], e.At[2], e.HPR[0], e.HPR[1], e.HPR[2], e.ActorScale()} {
+		b = binary.LittleEndian.AppendUint32(b, ActorBits(v))
+	}
+	l := e.ActorLight()
+	return append(b, l[:]...)
+}
+
+// actorTailSize is ActorTail's length.
+const actorTailSize = 4 + 7*4 + 4
+
 // actorNode is an extra's ZoneActor record.
 func actorNode(e Extra) *node {
-	b := binary.LittleEndian.AppendUint32(nil, uint32(e.Sprite))
-	for _, v := range e.At {
-		b = binary.LittleEndian.AppendUint32(b, ActorBits(v))
+	return &node{ty: typeActor, version: actorVersion, tail: ActorTail(e), old: -1}
+}
+
+// hasNegativeZero says whether one of an extra's numbers is -0, which a world
+// built before ActorBits (2026-11-14) wrote as -0 and the list now sends as 0.
+func (e Extra) hasNegativeZero() bool {
+	for _, v := range [7]float32{e.At[0], e.At[1], e.At[2], e.HPR[0], e.HPR[1], e.HPR[2], e.ActorScale()} {
+		if v == 0 && math.Signbit(float64(v)) {
+			return true
+		}
 	}
-	for _, v := range e.HPR {
-		b = binary.LittleEndian.AppendUint32(b, ActorBits(v))
+	return false
+}
+
+// StaleNegativeZeros counts the extras of b with a -0 whose ZoneActor, as the
+// list sends it (ActorTail: -0 as 0), the world file at path does not hold:
+// a file built before ActorBits, which no client builds the same (its -0s
+// are 0s there, the CRC another). Worlds 10 and 13, built 2026-11-12 and
+// never rebuilt, failed every client's CRC that way until 2026-11-16 (the
+// Homelands and the Homesteads held only by clients that had built them
+// before 11-14). The file is read once, only when b has such an extra.
+func StaleNegativeZeros(path string, b Built) (int, error) {
+	var want [][]byte
+	for _, z := range b.Zones {
+		for _, e := range z.Extras {
+			if e.hasNegativeZero() {
+				want = append(want, ActorTail(e))
+			}
+		}
 	}
-	b = binary.LittleEndian.AppendUint32(b, ActorBits(e.ActorScale()))
-	l := e.ActorLight()
-	b = append(b, l[:]...)
-	return &node{ty: typeActor, version: actorVersion, tail: b, old: -1}
+	if len(want) == 0 {
+		return 0, nil
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		return 0, err
+	}
+	defer f.Close()
+	const chunk = 8 << 20
+	buf := make([]byte, chunk+actorTailSize)
+	keep := 0
+	for len(want) > 0 {
+		n, err := io.ReadFull(f, buf[keep:])
+		have := buf[:keep+n]
+		left := want[:0]
+		for _, t := range want {
+			if !bytes.Contains(have, t) {
+				left = append(left, t)
+			}
+		}
+		want = left
+		if err == io.EOF || err == io.ErrUnexpectedEOF {
+			break
+		}
+		if err != nil {
+			return 0, err
+		}
+		// the last bytes again at the next chunk's head: a record across the seam
+		keep = copy(buf, have[len(have)-(actorTailSize-1):])
+	}
+	return len(want), nil
 }
 
 // zoneWithExtras is a zone record written with its extras: the record,

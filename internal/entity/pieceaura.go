@@ -64,6 +64,35 @@ const (
 	AuraSlots    = AuraPieces + 4
 )
 
+// AuraMainHand2 and AuraOffHand2 are the held items' second auras (the
+// owner, 2026-11-16: "also give icing death the sword of virtue aura blue and
+// also the freezing so we can have 2 auras now"): the held item's itemaura
+// row's second (color2, kind2, source2, nodes2), of a hand's kinds, after the
+// hands' first auras on the channel to a client that asked for them
+// (session.SecondAura, the live look's answer bit 7). A character's own hand
+// aura (charaura 9/10) takes the hand's place whole: no second then. AuraWire
+// counts every aura the channel can carry. A character's hand row may carry a
+// second aura of its own (charaura's color2 ... nodes2, 2026-11-16: Dust's
+// sword "will keep the red aura it has and stack the twinkle"), sent here as
+// the item's second would be.
+const (
+	AuraMainHand2 = AuraSlots
+	AuraOffHand2  = AuraSlots + 1
+	AuraHelmHat   = AuraSlots + 2
+	AuraWire      = AuraSlots + 3
+)
+
+// AuraHelmHat is the helm's hat (database.AuraHat: the character's own,
+// charaura slot 5, or else the worn helm record's itemaura) when it stacks
+// with another aura on the helm (the owner, 2026-11-16: "when i put /aura on
+// dusts turban turns it into a cloth cap"): the hat here, the helm's other
+// aura (a shell, particles, a trim, a circlet) in AuraHelm, which the client
+// draws on the hat. Sent after the hands' seconds to a client that asked for
+// it (session.HatAura, the live look's answer bit 8, HatAuraChannel); every
+// channel before it carries the hat in the helm's place instead
+// (foldHelmHat), so an older client draws the hat, never its fallback helm.
+// A hat alone goes here too (the helm's place empty).
+
 // PieceAuraSize is one piece's aura on the channel: r, g, b, a, a u8 kind, a
 // u32 source DictID little-endian, a u8 node count; all zero none.
 const PieceAuraSize = 10
@@ -91,10 +120,24 @@ const CapeAuraStateSize = BodyAuraStateSize + PieceAuraSize
 // before.
 const HandAuraStateSize = CapeAuraStateSize + 2*PieceAuraSize
 
+// SecondAuraStateSize is the channel to a client that draws the held items'
+// second auras too (session.SecondAura, the live look's answer bit 7): the
+// hands' channel, then the main hand's second aura and the off hand's (355
+// bytes). A client that asked for the hands' alone is sent
+// HandAuraStateSize, as before.
+const SecondAuraStateSize = HandAuraStateSize + 2*PieceAuraSize
+
+// HatAuraStateSize is the channel to a client that draws the helm's hat apart
+// from the helm's aura (session.HatAura, the live look's answer bit 8): the
+// seconds' channel, then the helm's hat (AuraHelmHat; 365 bytes). A client
+// that asked for the seconds alone is sent SecondAuraStateSize, the hat in the
+// helm's place.
+const HatAuraStateSize = SecondAuraStateSize + PieceAuraSize
+
 // PieceAuras is a wearer's auras by piece, then its body's (AuraBody), its
-// cape's (AuraCape) and its hands' (AuraMainHand, AuraOffHand); the zero
-// value is none.
-type PieceAuras [AuraSlots]database.ItemAura
+// cape's (AuraCape), its hands' (AuraMainHand, AuraOffHand) and its hands'
+// second (AuraMainHand2, AuraOffHand2); the zero value is none.
+type PieceAuras [AuraWire]database.ItemAura
 
 // putPieceAuras appends n of the auras (the seven pieces', the body's with n
 // AuraBody+1, the cape's with n AuraCape+1, the hands' with n AuraSlots; a
@@ -116,31 +159,64 @@ func putPieceAuras(out []byte, a *PieceAuras, n int) []byte {
 // AuraChannel is ArmorChannel with the pieces' auras after it: a client that
 // draws them's.
 func AuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
-	return putPieceAuras(ArmorChannel(disc, d), a, AuraPieces)
+	return putPieceAuras(ArmorChannel(disc, d), foldHelmHat(a), AuraPieces)
 }
 
 // BodyAuraChannel is AuraChannel with the body's aura after the pieces': a
 // client that draws it's.
 func BodyAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
-	return putPieceAuras(ArmorChannel(disc, d), a, AuraBody+1)
+	return putPieceAuras(ArmorChannel(disc, d), foldHelmHat(a), AuraBody+1)
 }
 
 // CapeAuraChannel is BodyAuraChannel with the cape's aura after the body's:
 // a client that draws it's.
 func CapeAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
-	return putPieceAuras(ArmorChannel(disc, d), a, AuraCape+1)
+	return putPieceAuras(ArmorChannel(disc, d), foldHelmHat(a), AuraCape+1)
 }
 
 // HandAuraChannel is CapeAuraChannel with the hands' auras after the cape's
 // (the main hand's, then the off hand's): a client that draws them's.
 func HandAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
-	return putPieceAuras(ArmorChannel(disc, d), a, AuraSlots)
+	return putPieceAuras(ArmorChannel(disc, d), foldHelmHat(a), AuraSlots)
+}
+
+// SecondAuraChannel is HandAuraChannel with the hands' second auras after
+// the hands' (the main hand's, then the off hand's): a client that draws
+// them's.
+func SecondAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
+	return putPieceAuras(ArmorChannel(disc, d), foldHelmHat(a), AuraHelmHat)
+}
+
+// HatAuraChannel is SecondAuraChannel with the helm's hat after the seconds
+// (AuraHelmHat), the helm's other aura in its place: a client that draws a
+// hat with an aura on it's.
+func HatAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
+	return putPieceAuras(ArmorChannel(disc, d), a, AuraWire)
+}
+
+// foldHelmHat is a for a channel with no place for the helm's hat
+// (AuraHelmHat): the hat in the helm's place, over the helm's other aura (the
+// hat drawn, not the helm's fallback look; the other aura not). Nil, or no
+// hat: a as it is.
+func foldHelmHat(a *PieceAuras) *PieceAuras {
+	if a == nil || a[AuraHelmHat].Kind != database.AuraHat {
+		return a
+	}
+	f := *a
+	f[AuraHelm], f[AuraHelmHat] = f[AuraHelmHat], database.ItemAura{}
+	return &f
 }
 
 // ForViewerAuras is ForViewer with the wearer's pieces' auras (nil: none),
 // which go after the trims to a client that asked for them.
 func ForViewerAuras(sess *session.Session, disc []byte, d *Dyes, a *PieceAuras) []byte {
 	if sess != nil && sess.PieceAuras() && len(disc) == EntityStateSize {
+		if sess.HatAura() {
+			return HatAuraChannel(disc, d, a)
+		}
+		if sess.SecondAura() {
+			return SecondAuraChannel(disc, d, a)
+		}
 		if sess.HandAura() {
 			return HandAuraChannel(disc, d, a)
 		}
@@ -158,8 +234,51 @@ func ForViewerAuras(sess *session.Session, disc []byte, d *Dyes, a *PieceAuras) 
 // itemAuraState is the world's itemaura rows, by patternid; swapped whole.
 type itemAuraState struct {
 	by atomic.Pointer[map[int]database.ItemAura]
+	// second is the rows' second auras (a held item's), by patternid
+	second atomic.Pointer[map[int]database.ItemAura]
 	// chars is charaura's rows, by whose (database.CharAuraKey)
 	chars atomic.Pointer[map[database.CharAuraKey][database.CharAuraSlots]database.ItemAura]
+	// chars2 is charaura's hand rows' second auras, by whose ([0] the main
+	// hand's, [1] the off hand's)
+	chars2 atomic.Pointer[map[database.CharAuraKey][2]database.ItemAura]
+}
+
+// SetInstanceAuras sets the item copies' own auras and tags (table
+// instanceaura, as database.InstanceAuras reads it): each aura shows at the
+// next tick, each tag on the next record sent. The rows live in the
+// database package's cache (database.SetInstanceAuraCache), which a copy's
+// carry to a new row moves at once.
+func (w *World) SetInstanceAuras(by map[int]database.InstanceAura) {
+	database.SetInstanceAuraCache(by)
+}
+
+// instanceAura is a held copy's own aura row (false none, or one that draws
+// no aura: a tag alone).
+func (w *World) instanceAura(itemID int) (database.InstanceAura, bool) {
+	a, ok := database.InstanceAuraHeld(itemID)
+	return a, ok && a.Shows()
+}
+
+// SetCharSecondAuras sets the characters' own hands' second auras
+// (database.CharSecondAuras): each shows at the next tick.
+func (w *World) SetCharSecondAuras(by map[database.CharAuraKey][2]database.ItemAura) {
+	m := make(map[database.CharAuraKey][2]database.ItemAura, len(by))
+	for k, v := range by {
+		m[k] = v
+	}
+	w.itemAuras.chars2.Store(&m)
+}
+
+// charSecondAuras is whose own hands' second auras, nil none.
+func (w *World) charSecondAuras(k database.CharAuraKey) *[2]database.ItemAura {
+	m := w.itemAuras.chars2.Load()
+	if m == nil || k.CharID == 0 {
+		return nil
+	}
+	if a, ok := (*m)[k]; ok {
+		return &a
+	}
+	return nil
 }
 
 // SetCharAuras sets the characters' own auras (table charaura, as
@@ -170,6 +289,14 @@ func (w *World) SetCharAuras(by map[database.CharAuraKey][database.CharAuraSlots
 		m[k] = v
 	}
 	w.itemAuras.chars.Store(&m)
+}
+
+// CharAuraOf is whose own aura on charaura slot (zero none).
+func (w *World) CharAuraOf(k database.CharAuraKey, slot int) database.ItemAura {
+	if a := w.charAuras(k); a != nil && slot >= 0 && slot < database.CharAuraSlots {
+		return a[slot]
+	}
+	return database.ItemAura{}
 }
 
 // charAuras is whose own auras, nil none.
@@ -195,6 +322,16 @@ func (w *World) SetItemAuras(by map[int]database.ItemAura) {
 	w.itemAuras.by.Store(&m)
 }
 
+// SetItemSecondAuras sets the held items' second auras (database.
+// ItemSecondAuras): each shows at the next tick.
+func (w *World) SetItemSecondAuras(by map[int]database.ItemAura) {
+	m := make(map[int]database.ItemAura, len(by))
+	for k, v := range by {
+		m[k] = v
+	}
+	w.itemAuras.second.Store(&m)
+}
+
 // LoadItemAuras reads table itemaura into the world: at the start and after a
 // GM's edit. It reports how many items have an aura.
 func (w *World) LoadItemAuras(db *database.SQLiteDB) (int, error) {
@@ -203,12 +340,30 @@ func (w *World) LoadItemAuras(db *database.SQLiteDB) (int, error) {
 		return 0, fmt.Errorf("itemaura: %w", err)
 	}
 	w.SetItemAuras(by)
+	// and the held items' second auras (itemaura's color2 ... nodes2)
+	second, err := db.ItemSecondAuras()
+	if err != nil {
+		return len(by), fmt.Errorf("itemaura's second auras: %w", err)
+	}
+	w.SetItemSecondAuras(second)
 	// and the characters' own (charaura.go), which the same edits reload
 	chars, err := db.CharAuras()
 	if err != nil {
 		return len(by), fmt.Errorf("charaura: %w", err)
 	}
 	w.SetCharAuras(chars)
+	// and their hands' second auras (charaura's color2 ... nodes2)
+	chars2, err := db.CharSecondAuras()
+	if err != nil {
+		return len(by), fmt.Errorf("charaura's second auras: %w", err)
+	}
+	w.SetCharSecondAuras(chars2)
+	// and the item copies' own (instanceaura.go), the same edits reload
+	inst, err := db.InstanceAuras()
+	if err != nil {
+		return len(by), fmt.Errorf("instanceaura: %w", err)
+	}
+	w.SetInstanceAuras(inst)
 	return len(by), nil
 }
 
@@ -221,12 +376,14 @@ func (w *World) ItemAuraCount() int {
 }
 
 // PieceAurasOf is the auras a player's worn pieces show (nil when none
-// does): each worn piece's item's (Player.WornPieces), a hidden piece's none.
+// does): each worn piece's item's (Player.WornPieces), a hidden piece's none
+// (a helm on a body with its own, ownhelm.go, too).
 func (w *World) PieceAurasOf(p *Player) *PieceAuras {
 	if p == nil {
 		return nil
 	}
-	return w.pieceAuras(&p.WornPieces, p.WornMask, p.HiddenParts, w.charAuras(database.CharAuraKey{CharID: p.CharServerID}))
+	k := database.CharAuraKey{CharID: p.CharServerID}
+	return w.pieceAuras(&p.WornPieces, &p.WornItems, p.WornMask, p.ShownHiddenParts(), w.charAuras(k), w.charSecondAuras(k))
 }
 
 // NPCPieceAurasOf is the auras an NPC dressed in item records shows (a
@@ -236,10 +393,11 @@ func (w *World) NPCPieceAurasOf(n *NPC) *PieceAuras {
 		return nil
 	}
 	var own *[database.CharAuraSlots]database.ItemAura
+	var own2 *[2]database.ItemAura
 	if k, ok := n.MercAuraKey(); ok {
-		own = w.charAuras(k)
+		own, own2 = w.charAuras(k), w.charSecondAuras(k)
 	}
-	return w.pieceAuras(&n.WornPieces, n.WornMask, 0, own)
+	return w.pieceAuras(&n.WornPieces, &n.WornItems, n.WornMask, 0, own, own2)
 }
 
 // MercAuraKey is a mercenary's key in charaura: its owner's character and its
@@ -257,12 +415,21 @@ func (n *NPC) MercAuraKey() (database.CharAuraKey, bool) {
 // (the client hides it under the pieces), and its hands' own (charaura
 // alone) whatever they hold: the client draws a hand's on the item held
 // there, nothing on an empty hand (or one whose look is hidden, which the
-// channel sends empty).
-func (w *World) pieceAuras(pieces *[AuraSlots]int, mask uint16, hidden uint16, own *[database.CharAuraSlots]database.ItemAura) *PieceAuras {
+// channel sends empty). A hand's own row (its first aura or its second,
+// own2: [0] the main hand's, [1] the off hand's) takes the held item's
+// place whole: both of the item's auras give way to both of the row's.
+//
+// A hand's precedence: the character's own row (charaura 9/10), then the
+// held COPY's own (instanceaura, by items: the copy's itemid in each hand),
+// then the held item's record's (itemaura). Each takes the hand's place
+// whole, its first and its second: a copy's aura shows on whoever holds that
+// copy, and on no other copy of the item.
+func (w *World) pieceAuras(pieces *[AuraSlots]int, items *[AuraSlots]int, mask uint16, hidden uint16, own *[database.CharAuraSlots]database.ItemAura, own2 *[2]database.ItemAura) *PieceAuras {
 	if w == nil {
 		return nil
 	}
 	m := w.itemAuras.by.Load()
+	m2 := w.itemAuras.second.Load()
 	var out PieceAuras
 	any := false
 	for i := 0; i < AuraSlots; i++ {
@@ -277,16 +444,37 @@ func (w *World) pieceAuras(pieces *[AuraSlots]int, mask uint16, hidden uint16, o
 			continue
 		}
 		if a, ok := (*m)[pieces[i]]; ok {
-			if a.Kind == database.AuraCirclet && i != AuraHelm || a.Kind == database.AuraEpic || a.Kind == database.AuraEnergy {
-				continue // a circlet is a helm's alone, epic and energy a held item's (database.ValidItemAura)
+			if (a.Kind == database.AuraCirclet || a.Kind == database.AuraHat) && i != AuraHelm || a.Kind == database.AuraEpic || a.Kind == database.AuraEnergy {
+				continue // a circlet or a hat is a helm's alone, epic and energy a held item's (database.ValidItemAura)
 			}
 			out[i], any = a, true
 		}
 	}
 	for _, i := range [...]int{AuraBody, AuraMainHand, AuraOffHand} {
+		if i != AuraBody && own2 != nil && own2[i-AuraMainHand].SecondShows() {
+			// the character's own second on this hand: its row whole
+			out[i-AuraMainHand+AuraMainHand2], any = own2[i-AuraMainHand], true
+			if own != nil && own[i].Shows() {
+				out[i] = own[i]
+			}
+			continue
+		}
 		if own != nil && own[i].Shows() {
 			out[i], any = own[i], true
 			continue
+		}
+		// the held copy's own (instanceaura): its row whole
+		if i != AuraBody && items != nil && mask&(1<<i) != 0 {
+			if ia, ok := w.instanceAura(items[i]); ok {
+				if ia.First.SecondShows() {
+					out[i] = ia.First
+				}
+				if ia.Second.SecondShows() {
+					out[i-AuraMainHand+AuraMainHand2] = ia.Second
+				}
+				any = true
+				continue
+			}
 		}
 		// a held item's own aura (itemaura on its record: the Heirloom Shield
 		// of Twisted Virtue's energy skin), of a hand's kinds alone
@@ -295,11 +483,37 @@ func (w *World) pieceAuras(pieces *[AuraSlots]int, mask uint16, hidden uint16, o
 				out[i], any = a, true
 			}
 		}
+		// and its second (a held item's alone: AuraMainHand2, AuraOffHand2)
+		if i != AuraBody && m2 != nil && mask&(1<<i) != 0 {
+			if a, ok := (*m2)[pieces[i]]; ok && a.SecondShows() {
+				out[i-AuraMainHand+AuraMainHand2], any = a, true
+			}
+		}
 	}
 	// a circlet on the head (database.AuraCirclet) whatever is worn there or
 	// hidden: the client draws it while no helm is drawn
 	if own != nil && own[AuraHelm].Kind == database.AuraCirclet {
 		out[AuraHelm], any = own[AuraHelm], true
+	}
+	// a hat another body has built in (database.AuraHat): the character's own
+	// (charaura 5) whatever is worn there or hidden, else the worn helm
+	// record's (itemaura, not hidden); it goes in AuraHelmHat and the helm's
+	// other aura (a GM's shell on it, say) stays in AuraHelm: they stack, the
+	// other drawn on the hat (the owner, 2026-11-16: "when i put /aura on dusts
+	// turban turns it into a cloth cap")
+	var hat database.ItemAura
+	if own != nil && own[AuraHelm].Kind == database.AuraHat {
+		hat = own[AuraHelm]
+	} else if m != nil && mask&(1<<AuraHelm) != 0 && hidden&auraHides(AuraHelm) == 0 {
+		if a, ok := (*m)[pieces[AuraHelm]]; ok && a.Kind == database.AuraHat {
+			hat = a
+		}
+	}
+	if hat.Kind == database.AuraHat {
+		if out[AuraHelm].Kind == database.AuraHat {
+			out[AuraHelm] = database.ItemAura{}
+		}
+		out[AuraHelmHat], any = hat, true
 	}
 	if !any {
 		return nil

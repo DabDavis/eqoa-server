@@ -29,12 +29,16 @@ import (
 // Its Use (the item menu's or a quick slot's 0x003E, equip.go) is never
 // spent: it brings the player's genie (entity/genie.go), which asks at once,
 // in a box under mark genieBoxMark, what its master wishes: the bank, its
-// wares or the forge, or nothing. Talking to it asks again; anyone else is
-// answered one line. Any answer, or the box closed, sends the genie away (a
-// box CLIENT declines at once, because a menu was up when it came, does not:
-// the genie waits to be talked to, GenieWait). Rehabilitation is a rehabilitator's
+// wares or the forge, or nothing. Talking to it asks again (a window may be
+// swapped for another: the bank for the shop, with no second rub of the
+// lamp); anyone else is answered one line. It lingers (the owner, 2026-11-16:
+// "the genie disappears too quick let him linger heirloom genie lamp"; it had
+// gone at any answer): while a window it opened holds, and GenieLinger after
+// any answer or the box closed (a box CLIENT declines at once, because a menu
+// was up when it came, leaves its GenieWait as it was: the genie waits to be
+// talked to). Rehabilitation is a rehabilitator's
 // menu under the genie's name (rehab.go), its boxes the same and owing nothing to
-// the genie, gone by then; "Dye my armor" is an Armor Dyer's questions so
+// the genie, which lingers by; "Dye my armor" is an Armor Dyer's questions so
 // (Dyer.Offer, dyer.go), the sixth answer filling CLIENT's box. The windows are
 // CLIENT's own:
 //   - the bank: 0x124D, empty (the dispatcher's case opens it from the game
@@ -60,7 +64,8 @@ import (
 // window (World.GenieWindowNPC: GenieReach from where the genie stood, in its
 // world, alive, used within GenieWindowIdle). CLIENT sends nothing when the
 // bank or the merchant window closes, so the window ends by those limits; the
-// forge's close (0x0063) ends it at once.
+// forge's close (0x0063) ends it at once. The genie stands while its window
+// holds and leaves when it ends (the forge's close: GenieLinger after).
 
 // GenieLampName is the lamp's record's name.
 const GenieLampName = "Genie's Lamp"
@@ -199,17 +204,17 @@ func (g *Genie) sellsCapes(sess *session.Session) bool {
 }
 
 // openShop opens the genie's shop on the npcitem list catalog, greeting with
-// greets; the genie leaves.
+// greets (its record's NPCID set to it: the shop's requests are served from
+// it, and a genie lingering may be asked for its gear after its capes). With
+// no catalog it has no wares and lingers.
 func (g *Genie) openShop(sess *session.Session, p *entity.Player, catalog int, greets string, now time.Time) {
 	npc, id, ok := g.window(sess, entity.GenieShop, now)
 	if !ok {
 		return
 	}
-	if catalog != 0 {
-		g.gw.SetGenieCatalog(sess, catalog)
-	}
+	g.gw.SetGenieCatalog(sess, catalog)
 	if npc.NPCID == 0 || g.windows == nil {
-		g.gw.DismissGenie(sess)
+		g.gw.EndGenieWindow(sess, entity.GenieShop, now)
 		g.say(sess, genieNoWares)
 		return
 	}
@@ -247,6 +252,7 @@ func (g *Genie) Talk(sess *session.Session, p *entity.Player, npc *entity.NPC) b
 		g.say(sess, genieNotYours)
 		return true
 	}
+	g.gw.GenieLingers(sess, entity.GenieWait, g.now()) // its time to be answered
 	g.ask(sess, p)
 	return true
 }
@@ -272,8 +278,8 @@ func (g *Genie) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 	now := g.now()
 	if a.stage == genieAskWares {
 		switch int(option) {
-		case 0: // Heirloom gear: the outfitter's catalog it was summoned with
-			g.openShop(sess, p, 0, genieShopGreets, now)
+		case 0: // Heirloom gear: its class's outfitter's catalog
+			g.openShop(sess, p, g.shopOf(int(p.Class)), genieShopGreets, now)
 		case 1: // Heirloom capes (capes.go)
 			g.openShop(sess, p, capeStock, genieCapesGreets, now)
 		case 255:
@@ -281,9 +287,9 @@ func (g *Genie) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 				log.Printf("Genie: %s's client declined the box at once: the genie waits", p.Name)
 				return true
 			}
-			g.gw.DismissGenie(sess)
+			g.gw.GenieLingers(sess, entity.GenieLinger, now)
 		default:
-			g.gw.DismissGenie(sess)
+			g.gw.GenieLingers(sess, entity.GenieLinger, now)
 			g.say(sess, genieFarewell)
 		}
 		return true
@@ -305,21 +311,21 @@ func (g *Genie) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 			g.askStage(sess, p, genieAskWares, genieWaresQuestion, genieWares)
 			return true
 		}
-		g.openShop(sess, p, 0, genieShopGreets, now)
+		g.openShop(sess, p, g.shopOf(int(p.Class)), genieShopGreets, now)
 	case genieSmith:
 		if _, id, ok := g.window(sess, entity.GenieSmith, now); ok {
 			queueReliable(sess, protocol.OpcodeBlackSmithMenu, blacksmithPayload(id))
 			log.Printf("Genie: %s opened the forge", p.Name)
 		}
 	case genieRehab:
-		g.gw.DismissGenie(sess)
+		g.gw.GenieLingers(sess, entity.GenieLinger, now)
 		if g.rehab == nil {
 			g.say(sess, genieFarewell)
 			return true
 		}
 		g.rehab.Offer(sess, p, entity.GenieName)
 	case genieDye:
-		g.gw.DismissGenie(sess)
+		g.gw.GenieLingers(sess, entity.GenieLinger, now)
 		if g.dyer == nil {
 			g.say(sess, genieFarewell)
 			return true
@@ -332,16 +338,16 @@ func (g *Genie) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 			log.Printf("Genie: %s's client declined the box at once: the genie waits", p.Name)
 			return true
 		}
-		g.gw.DismissGenie(sess)
+		g.gw.GenieLingers(sess, entity.GenieLinger, now)
 	default: // nothing, thank you
-		g.gw.DismissGenie(sess)
+		g.gw.GenieLingers(sess, entity.GenieLinger, now)
 		g.say(sess, genieFarewell)
 	}
 	return true
 }
 
-// window opens the genie's window of the kind: the genie leaves and the
-// window's id is its GenieWindowID.
+// window opens the genie's window of the kind, the genie standing while it
+// holds; the window's id is its GenieWindowID.
 func (g *Genie) window(sess *session.Session, kind entity.GenieWindow, now time.Time) (*entity.NPC, uint32, bool) {
 	npc, ok := g.gw.GenieNPC(sess)
 	if !ok {

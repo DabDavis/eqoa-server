@@ -483,6 +483,18 @@ func (h *NPCWindowHandler) giveItem(player *entity.Player, l *invList, rec datab
 	return &out, key, nil
 }
 
+// carryInstanceAura moves a copy's own aura (database/instanceaura.go) from
+// the row it left to the row it became, when a whole record crossed as a new
+// row (a trade, the bank's part path); logged, never refusing the move.
+func (h *NPCWindowHandler) carryInstanceAura(from, to int) {
+	if h.inv == nil || from == to {
+		return
+	}
+	if err := h.inv.CarryInstanceAura(from, to); err != nil {
+		log.Printf("instanceaura: carrying item %d's aura to %d: %v", from, to, err)
+	}
+}
+
 // wireRecord is a row as a record the server sends outside the MemoryDump:
 // not equipped and on no quick slot — the record's fifth field is the quick
 // slot (VINetItem +0x10; QuickSlot in the client's parser), not the database's

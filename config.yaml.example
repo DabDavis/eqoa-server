@@ -91,6 +91,13 @@ world:
   # every wall, floor and ceiling (handlers/noclip.go). Empty: nobody.
   # noclip_accounts: [someaccount]
 
+  # The regional weather (internal/weather, #1549): rain, snow and sandstorms
+  # by the ground under each 500x500 square (<worlds_dir>/ground/<world>.profiles,
+  # cmd/groundbake -only-profiles; tables weatherprofiles, weatherzones,
+  # weatherclimates, tools/seed_weather.py), on a clock, and GMs' #weather.
+  # Unset: on. false: no weather at all, nothing sent, #weather says it is off.
+  # weather: false
+
   # What an NPC says when talked to, by name, in place of the debug box
   # (ServerID, HP, position...) every other NPC opens.
   npc_text:

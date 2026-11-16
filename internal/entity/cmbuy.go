@@ -156,10 +156,24 @@ type CMRank struct {
 	// NoWereIllusion keeps its owner in its own body under a were form
 	// (effects "NoWereIllusion:1", no slot of the window's: wereownbody.go)
 	NoWereIllusion bool
+	// GracefulKick plays its owner's Graceful Strike as a kick (effects
+	// "GracefulKick:1", no slot of the window's: gracefulkick.go)
+	GracefulKick bool
 	// BreathPct makes its owner's breath last longer under water: each 6 s
 	// step of it taken BreathPct% later (effects "Breath:N", no slot of the
 	// window's: the Hold Breath line, the owner 2026-11-11)
-	BreathPct     int
+	BreathPct int
+	// PetLook is the body its owner's pets take (a model DictID; effects
+	// "PetLook:N", no slot of the window's: cmpetlook.go): of the pets its
+	// Requires' spells summon (any of them, a require_spells "a|b|c"'s
+	// alternatives too), every pet of its owner's where it requires none;
+	// 0 none. Only the look: the pet's numbers and abilities are its spell's
+	// (the owner, 2026-11-16: Zerkziee's construct as Jarek's Creation)
+	PetLook uint32
+	// OnlyFor is the one character (its CharServerID) the rank is offered to
+	// (effects "OnlyFor:N": "cm only for him", the owner 2026-11-16); 0
+	// every character of its classes and races
+	OnlyFor       uint32
 	Adds, Removes []CMAbility
 	Description   string
 	Enabled       bool
@@ -253,8 +267,17 @@ func ParseCMRank(r database.CMRankRow) *CMRank {
 		if k == cmNoWereIllusion && v > 0 {
 			c.NoWereIllusion = true
 		}
+		if k == cmGracefulKick && v > 0 {
+			c.GracefulKick = true
+		}
 		if k == "breath" && v > 0 {
 			c.BreathPct += v
+		}
+		if k == cmPetLook && v > 0 && v <= 0xFFFFFFFF {
+			c.PetLook = uint32(v)
+		}
+		if k == cmOnlyFor && v > 0 && v <= 0xFFFFFFFF {
+			c.OnlyFor = uint32(v)
 		}
 	}
 	c.Requires = parseAbilities(r.Requires, r.RequireSpells)
@@ -384,19 +407,31 @@ func (w *World) CMSummary() string {
 // offered is whether the rank is listed for the player: enabled, and for its
 // class and race.
 func (r *CMRank) offered(p *Player) bool {
+	if r.OnlyFor != 0 {
+		// one character's alone (OnlyFor), and of its classes and races
+		return p != nil && p.CharServerID == r.OnlyFor && r.classRaceOffered(p.Class, p.Race)
+	}
 	return r.OfferedTo(p.Class, p.Race)
 }
 
 // OfferedTo is whether the rank is listed for a character of the class and
 // race: enabled, and for both (the Spell Archivist's, handlers/archivistmastery.go).
 func (r *CMRank) OfferedTo(class, race int) bool {
+	return r.OnlyFor == 0 && r.classRaceOffered(class, race)
+}
+
+// classRaceOffered is OfferedTo whoever the rank is for: enabled, and for the
+// class and race. A rank for one character alone (OnlyFor) is OfferedTo no
+// class and race, so no list made by class and race (the Spell Archivist's,
+// the mercs') shows it; offered shows it to its one character.
+func (r *CMRank) classRaceOffered(class, race int) bool {
 	return r.Enabled && class >= 0 && r.Classes&(1<<uint(class)) != 0 && raceInMask(r.Races, race)
 }
 
 // refreshCMLocked sums the player's ranks' effects again.
 func (p *Player) refreshCMLocked(cat *cmCatalog) {
 	var s [CMSlots]int
-	ownBody := false
+	ownBody, kick := false, false
 	breath, offRanks, defRanks := 0, 0, 0
 	if cat != nil {
 		for id := range p.CMs {
@@ -411,6 +446,7 @@ func (p *Player) refreshCMLocked(cat *cmCatalog) {
 					defRanks++
 				}
 				ownBody = ownBody || r.NoWereIllusion
+				kick = kick || r.GracefulKick
 				breath += r.BreathPct
 			}
 		}
@@ -420,6 +456,7 @@ func (p *Player) refreshCMLocked(cat *cmCatalog) {
 	p.CMOffRanks, p.CMDefRanks = offRanks, defRanks
 	p.MoveRateBonus = s[cmSlotMoveRate]
 	p.WereOwnBody = ownBody
+	p.GracefulKick = kick
 }
 
 // RestoreCMs puts the ranks a character bought on its session's player at
@@ -819,7 +856,51 @@ func (w *World) CMNodeOf(sess *session.Session, id int, k CMKnows) (CMNode, bool
 			}
 		}
 	}
+	if !owned {
+		n.Masteries = append(n.Masteries, w.cmUnshownBlocksLocked(p, r, k)...)
+	}
 	return n, true
+}
+
+// cmUnshownBlocksLocked is what bars the rank that CLIENT's Requirements
+// window has no page for, said as lines of its Required Masteries page (the
+// one list of free text it shows). A rank not known is listed "???" and
+// opens that window, not the inspector, so the description's refusal is
+// never read; its pages show the level, the masteries, the abilities and
+// the minimum stats and points spent. Moose (Hill Giant shadow knight, 2026-11-16)
+// held Titan and saw Slayer, Death Knight and Soldier "???" with every
+// requirement those pages showed met: the one Master Class rule (its own
+// class's other ranks are not barred, cmBlockLocked) and the quests a rank
+// needs are said here.
+func (w *World) cmUnshownBlocksLocked(p *Player, r *CMRank, k CMKnows) []string {
+	var out []string
+	if r.Category == CMCategoryMaster {
+		held := ""
+		for id := range p.CMs {
+			if o := w.cms.byID[id]; o != nil && o.Category == CMCategoryMaster && o.Mastery != r.Mastery {
+				if held = o.Mastery; held == "" {
+					held = o.Name
+				}
+				if o.Parent == 0 {
+					break // the class itself, not one of its abilities
+				}
+			}
+		}
+		if held != "" {
+			out = append(out, "Only one Master Class: you hold "+held)
+		}
+	}
+	switch names := r.unmetQuests(k); len(names) {
+	case 0:
+	case 1:
+		out = append(out, "Quest: "+names[0])
+	default:
+		out = append(out, "One of these quests:")
+		for _, name := range names {
+			out = append(out, "  "+name)
+		}
+	}
+	return out
 }
 
 // CMResult is what a purchase or a removal did: the refusal when it did

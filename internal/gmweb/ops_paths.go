@@ -72,11 +72,17 @@ func checkRow(table string, row map[string]any) error {
 	if table == "orbs" && row != nil {
 		return checkOrbRow(row) // live_orbs.go
 	}
+	if (table == "weatherprofiles" || table == "weatherzones" || table == "weatherclimates") && row != nil {
+		return checkWeatherRow(table, row) // ops_weather.go
+	}
 	if table == "hazards" && row != nil {
 		return checkHazardRow(row) // live_hazards.go
 	}
 	if table == "noroam" && row != nil {
 		return checkNoRoamRow(row) // live_hazards.go
+	}
+	if table == "npcmove" && row != nil {
+		return checkNPCMoveRow(row) // live.go
 	}
 	if table == "racesize" && row != nil {
 		return checkRaceSizeRow(row) // live_racesize.go
@@ -86,6 +92,12 @@ func checkRow(table string, row map[string]any) error {
 	}
 	if table == "chardyes" && row != nil {
 		return checkDyeRow(row) // live_dyes.go
+	}
+	if table == "petdyes" && row != nil {
+		return checkPetDyeRow(row) // live_dyes.go
+	}
+	if table == "petdyeareas" && row != nil {
+		return checkPetDyeAreaRow(row) // live_dyes.go
 	}
 	if table == "charcoaches" && row != nil {
 		return checkCoachRow(row) // live_coaches.go
@@ -146,6 +158,9 @@ func checkRow(table string, row map[string]any) error {
 	}
 	if table == "charaura" && row != nil {
 		return checkCharAuraRow(row) // live.go
+	}
+	if table == "instanceaura" && row != nil {
+		return checkInstanceAuraRow(row) // ops_instanceaura.go
 	}
 	if table == "signtext" && row != nil {
 		return checkSignTextRow(row) // live_signs.go

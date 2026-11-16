@@ -57,9 +57,12 @@ type Kept struct {
 	BodyAura           bool   `json:"body_aura,omitempty"`
 	CapeAura           bool   `json:"cape_aura,omitempty"`
 	HandAura           bool   `json:"hand_aura,omitempty"`
+	SecondAura         bool   `json:"second_aura,omitempty"`
+	HatAura            bool   `json:"hat_aura,omitempty"`
 	CreationOffered    bool   `json:"creation_offered,omitempty"`
 	Capes              bool   `json:"capes,omitempty"`
 	CapesOffered       bool   `json:"capes_offered,omitempty"`
+	PetDyes            bool   `json:"pet_dyes,omitempty"`
 	ItemListsPack      int    `json:"item_lists_pack,omitempty"`
 	ItemListsBank      int    `json:"item_lists_bank,omitempty"`
 	ItemListsOffered   bool   `json:"item_lists_offered,omitempty"`
@@ -221,9 +224,12 @@ func (s *Session) Keep() Kept {
 		BodyAura:           s.bodyAura,
 		CapeAura:           s.capeAura,
 		HandAura:           s.handAura,
+		SecondAura:         s.secondAura,
+		HatAura:            s.hatAura,
 		CreationOffered:    s.creationOffered,
 		Capes:              s.capes,
 		CapesOffered:       s.capesOffered,
+		PetDyes:            s.petDyes,
 		ItemListsPack:      s.itemListsPack,
 		ItemListsBank:      s.itemListsBank,
 		ItemListsOffered:   s.itemListsOffered,
@@ -390,6 +396,8 @@ func (s *Session) restore(k Kept, now time.Time) {
 	s.bodyAura = k.BodyAura
 	s.capeAura = k.CapeAura
 	s.handAura = k.HandAura
+	s.secondAura = k.SecondAura
+	s.hatAura = k.HatAura
 	s.creationOffered = k.CreationOffered
 	s.serverWorldsOffered = k.ServerWorldsOffered
 	s.serverWorldsTaken = k.ServerWorldsTaken
@@ -397,6 +405,7 @@ func (s *Session) restore(k Kept, now time.Time) {
 
 	s.capes = k.Capes
 	s.capesOffered = k.CapesOffered
+	s.petDyes = k.PetDyes
 	s.itemListsPack, s.itemListsBank, s.itemListsOffered = k.ItemListsPack, k.ItemListsBank, k.ItemListsOffered
 	// the client keeps its lists; a data step in the hold may have changed the
 	// looks, so the next refresh sends them again (handlers/keep.go)
@@ -441,6 +450,7 @@ func (s *Session) restore(k Kept, now time.Time) {
 	}
 	if c := k.Clock; c != nil {
 		s.clock = gameClock{ready: true, remote: c.Remote, local: timerAt(time.UnixMilli(c.LocalUnix)), blend: c.Blend}
+		s.clockSentAt = time.UnixMilli(c.LocalUnix)
 	}
 	s.lastActivity = now
 	s.resumed = true

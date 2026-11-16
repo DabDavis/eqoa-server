@@ -243,8 +243,9 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 	if p.WispForm() {
 		hideWornGear(buf)
 	}
-	// and the worn looks the character hides (hidelook.go)
-	hideLookParts(buf, p.HiddenParts)
+	// and the worn looks the character hides (hidelook.go), and a worn helm on
+	// a body with a helm of its own (ownhelm.go)
+	hideLookParts(buf, p.ShownHiddenParts())
 
 	// Offset 111: eqoa.live constant = 6 across ALL entities
 	buf[111] = 6
@@ -604,6 +605,11 @@ func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
 	// NOTHING IS WRITTEN PAST 161 — same rule as SerializePlayerUpdate, and
 	// the capture shows it holds for NPCs too: retail's three NPC channels are
 	// all zero above 161.
+
+	// a Barrel of Monkeys' monkey is never a target (monkeys.go)
+	if n.isMonkey() {
+		monkeyChannel(buf)
+	}
 
 	return buf
 }

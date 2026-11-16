@@ -18,11 +18,17 @@
 // creature's wander does not walk through (F3 pass 24); -only-walls writes
 // those alone.
 //
+// And the terrain profile under each 500x500 square (<out>/<world>.profiles,
+// weather/profiles.go): the world base's grid (0x8220 header, 0x8240 bytes),
+// which says where the snow, the sand and the lava are for the regional
+// weather (#1549); -only-profiles writes those alone (the world file is still
+// indexed whole, but no zone is parsed).
+//
 // A world the server composed of the disc's own zones (cmd/worldbuild:
 // worlds/worldN.ESF) is baked the same way, from its file, with -world N=path
 // (as many as there are; with any, the disc's six are not baked again).
 //
-//	groundbake -iso /path/to/frontiers.iso [-out worlds/ground] [-only-env | -only-walls]
+//	groundbake -iso /path/to/frontiers.iso [-out worlds/ground] [-only-env | -only-walls | -only-profiles]
 //	groundbake -world 10=worlds/world10.ESF [-out worlds/ground]
 package main
 
@@ -41,6 +47,7 @@ import (
 
 	"github.com/eqoa/pkg/pkg/esf"
 	"github.com/eqoa/server/internal/ground"
+	"github.com/eqoa/server/internal/weather"
 )
 
 // worldFiles are the disc's worlds by the server's world numbers
@@ -52,17 +59,19 @@ func main() {
 	out := flag.String("out", "worlds/ground", "the folder the ground files go to")
 	onlyEnv := flag.Bool("only-env", false, "write the environment files (<world>.env) alone")
 	onlyWalls := flag.Bool("only-walls", false, "write the walls files (<world>.walls) alone")
+	onlyProfiles := flag.Bool("only-profiles", false, "write the terrain-profile files (<world>.profiles, the regional weather's ground) alone")
 	var extra extraWorlds
 	flag.Var(&extra, "world", "N=path: a world file of the server's own (cmd/worldbuild) baked as world N, instead of the disc's six")
 	flag.Parse()
-	if *iso == "" && len(extra) == 0 || *onlyEnv && *onlyWalls {
+	if *iso == "" && len(extra) == 0 || btoi(*onlyEnv)+btoi(*onlyWalls)+btoi(*onlyProfiles) > 1 {
 		flag.Usage()
 		os.Exit(2)
 	}
 	if err := os.MkdirAll(*out, 0o755); err != nil {
 		log.Fatal(err)
 	}
-	want := what{terrain: !*onlyEnv && !*onlyWalls, walls: !*onlyEnv, env: !*onlyWalls}
+	only := *onlyEnv || *onlyWalls || *onlyProfiles
+	want := what{terrain: !only, walls: !only || *onlyWalls, env: !only || *onlyEnv, profiles: !only || *onlyProfiles}
 	jobs := make([]job, 0, len(worldFiles))
 	if len(extra) > 0 {
 		jobs = extra
@@ -114,12 +123,32 @@ func main() {
 			}
 			log.Printf("world %d (%s): environment of %d zones (%d world nodes, %d water leaves), %d KB", n, name, len(b.env.Zones), len(b.env.Tree.Nodes), water, st.Size()>>10)
 		}
+		if want.profiles {
+			path := filepath.Join(*out, fmt.Sprintf("%d%s", n, weather.ProfilesExt))
+			switch {
+			case b.profiles == nil:
+				log.Printf("world %d (%s): no terrain-profile grid (no 0x8240): no profiles file, its squares have no climate but a weatherzones row's", n, name)
+			default:
+				if err := write(path, func(f *os.File) error { return weather.WriteProfiles(f, b.profiles) }); err != nil {
+					log.Fatalf("%s: %v", path, err)
+				}
+				log.Printf("world %d (%s): terrain profiles, a %dx%d grid of subdiv %d (%d squares): %s", n, name,
+					b.profiles.Rows, b.profiles.Cols, b.profiles.Subdiv, len(b.profiles.Data), profileCounts(b.profiles))
+			}
+		}
 		runtime.GC() // the world file's bytes go before the next is read
 	}
 }
 
 // what is what a bake writes.
-type what struct{ terrain, walls, env bool }
+type what struct{ terrain, walls, env, profiles bool }
+
+func btoi(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}
 
 // job is a world to bake: its number, its name for the log, and its file.
 type job struct {
@@ -152,6 +181,7 @@ type baked struct {
 	bufs      []ground.Buffer
 	wallZones []ground.WallZone
 	env       *ground.WorldEnv
+	profiles  *weather.Profiles
 }
 
 // bake is a world baked: each zone's room placements' collision strips,
@@ -175,6 +205,11 @@ func bake(open func() (*esf.ObjFile, error), want what) (*baked, error) {
 		return nil, fmt.Errorf("no world in it")
 	}
 	b := &baked{}
+	if want.profiles {
+		if b.profiles, err = bakeProfiles(f, root); err != nil {
+			return nil, err
+		}
+	}
 	if want.env {
 		if b.env, err = bakeEnv(f, root, w.ChildrenOfType(esf.TypeZone)); err != nil {
 			return nil, err
@@ -316,6 +351,75 @@ func bakeEnv(f *esf.ObjFile, root *esf.ObjInfo, zones []*esf.ObjInfo) (*ground.W
 		}
 	}
 	return env, nil
+}
+
+// bakeProfiles is a world's terrain-profile grid: its base record's (0x8200)
+// header (0x8220: a version past 0 has a word first; the bbox's 6 floats;
+// rows, cols; subdiv when the version is past 0, else 4; the cell; the
+// origin's 3 floats; VIESFParse::ParseWorldBaseHeader) and bytes (0x8240,
+// rows*cols*subdiv^2 of them; ParseWorldRegions). Nil when the world has no
+// such grid.
+func bakeProfiles(f *esf.ObjFile, root *esf.ObjInfo) (*weather.Profiles, error) {
+	base := root.Child(esf.TypeWorldBase)
+	if base == nil {
+		return nil, fmt.Errorf("no world base")
+	}
+	hi, ri := base.Child(esf.TypeWorldBaseHeader), base.Child(esf.TypeWorldRegions)
+	if hi == nil || ri == nil {
+		return nil, nil
+	}
+	return readProfiles(hi.Version, f.RawBytes(hi.Offset, int(hi.Size)), f.RawBytes(ri.Offset, int(ri.Size)))
+}
+
+// readProfiles reads a 0x8220 body of a version and a 0x8240 body.
+func readProfiles(version int16, hdr, regions []byte) (*weather.Profiles, error) {
+	le := binary.LittleEndian
+	p := 0
+	if version != 0 {
+		p = 4
+	}
+	need := p + 24 + 8 + 4 + 12
+	if version != 0 {
+		need += 4
+	}
+	if len(hdr) < need {
+		return nil, fmt.Errorf("world base header: %d bytes, want %d", len(hdr), need)
+	}
+	fl := func(o int) float32 { return math.Float32frombits(le.Uint32(hdr[o:])) }
+	in := func(o int) int { return int(int32(le.Uint32(hdr[o:]))) }
+	p += 24 // the bbox
+	pr := &weather.Profiles{Rows: in(p), Cols: in(p + 4), Subdiv: 4}
+	p += 8
+	if version != 0 {
+		pr.Subdiv = in(p)
+		p += 4
+	}
+	pr.Cell = fl(p)
+	pr.OriginX, pr.OriginZ = fl(p+4), fl(p+12)
+	n := pr.Rows * pr.Cols * pr.Subdiv * pr.Subdiv
+	if pr.Rows <= 0 || pr.Cols <= 0 || pr.Subdiv <= 0 || n > len(regions) {
+		return nil, fmt.Errorf("world regions: a %dx%d grid of subdiv %d in %d bytes", pr.Rows, pr.Cols, pr.Subdiv, len(regions))
+	}
+	pr.Data = append([]byte(nil), regions[:n]...)
+	if err := pr.Check(); err != nil {
+		return nil, err
+	}
+	return pr, nil
+}
+
+// profileCounts says how many squares are of each profile, for the log.
+func profileCounts(p *weather.Profiles) string {
+	var c [256]int
+	for _, v := range p.Data {
+		c[v]++
+	}
+	var parts []string
+	for i, n := range c {
+		if n > 0 {
+			parts = append(parts, fmt.Sprintf("%d:%d", i, n))
+		}
+	}
+	return strings.Join(parts, " ")
 }
 
 // readTree reads a tree record's body as CLIENT does (vanilla's read_tree):

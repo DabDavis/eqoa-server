@@ -162,6 +162,12 @@ type Session struct {
 	// handAura: it also draws the held items' auras after the cape's (bit 6,
 	// 64: entity.HandAuraChannel, 335 bytes)
 	handAura bool
+	// secondAura: it also draws the held items' second auras after the
+	// hands' (bit 7, 128: entity.SecondAuraChannel, 355 bytes)
+	secondAura bool
+	// hatAura: it also draws the helm's hat apart from the helm's aura, after
+	// the hands' seconds (bit 8, 256: entity.HatAuraChannel, 365 bytes)
+	hatAura bool
 	// creationOffered: the creation offer went out (protocol.OpcodeCreationOffer,
 	// handlers/creation.go), once a session as the live look's.
 	creationOffered bool
@@ -182,6 +188,10 @@ type Session struct {
 	// capesOffered: the offer went out, once a session as the live look's.
 	capes        bool
 	capesOffered bool
+	// petDyes: the client answered the pet dyes' offer 1
+	// (protocol.OpcodePetDyesOffer, handlers/petgroomer.go): it draws a pet's
+	// two dyed areas, so it is told the dyed pets in its view (entity/petdyes.go).
+	petDyes bool
 	// selectInfo: the client answered the select info's offer 1
 	// (protocol.OpcodeSelectInfo, handlers/selectinfo.go); selectInfoOffered:
 	// the offer went out, once a session.
@@ -220,6 +230,8 @@ type Session struct {
 	// clock is the game clock the session's client keeps, set by each 0x0013
 	// it was sent: its time of day (gameclock.go).
 	clock gameClock
+	// clockSentAt is when the last 0x0013 was sent (GameTimeDue).
+	clockSentAt time.Time
 
 	// bugReports is the client's answer to the bug report offer
 	// (protocol.OpcodeBugReportOffer, handlers/bugreport.go): it opens
@@ -796,6 +808,38 @@ func (s *Session) HandAura() bool {
 	return s.handAura && s.capeAura && s.bodyAura && s.pieceAuras && s.armorLook && s.liveLook
 }
 
+// SetSecondAura records whether the session's client draws the held items'
+// second auras after the hands' (entity.SecondAuraChannel).
+func (s *Session) SetSecondAura(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.secondAura = on
+}
+
+// SecondAura is whether the session's client is sent the held items' second
+// auras: it asked, with the hands' (HandAura).
+func (s *Session) SecondAura() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.secondAura && s.handAura && s.capeAura && s.bodyAura && s.pieceAuras && s.armorLook && s.liveLook
+}
+
+// SetHatAura records whether the session's client draws the helm's hat apart
+// from the helm's aura (entity.HatAuraChannel).
+func (s *Session) SetHatAura(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.hatAura = on
+}
+
+// HatAura is whether the session's client is sent the helm's hat apart from
+// the helm's aura: it asked, with the seconds' (SecondAura).
+func (s *Session) HatAura() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.hatAura && s.secondAura && s.handAura && s.capeAura && s.bodyAura && s.pieceAuras && s.armorLook && s.liveLook
+}
+
 // OfferLiveLookOnce reports whether the live look's offer is still to be
 // made on this session, and marks it made.
 func (s *Session) OfferLiveLookOnce() bool {
@@ -985,6 +1029,21 @@ func (s *Session) ServerWorlds() []uint8 {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return append([]uint8(nil), s.serverWorlds...)
+}
+
+// SetPetDyes records the client's answer to the pet dyes' offer.
+func (s *Session) SetPetDyes(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.petDyes = on
+}
+
+// PetDyes is whether the client said it draws pets' dyes. A client that
+// never answered (a PS2) did not.
+func (s *Session) PetDyes() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.petDyes
 }
 
 // SetCapes records the client's answer to the cape offer: it draws capes.

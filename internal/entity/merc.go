@@ -193,6 +193,9 @@ type MercLook struct {
 	// on (Player.WornPieces; pieceaura.go)
 	WornPieces [AuraSlots]int
 	WornMask   uint16 `json:",omitempty"`
+	// WornItems: the copies held in the hands (Player.WornItems): its own
+	// records' (-charmercitem.id), 0 an heirloom it is lent
+	WornItems [AuraSlots]int `json:",omitempty"`
 }
 
 // mercState is one merc, kept by its owner's id and its slot.
@@ -606,7 +609,7 @@ func (w *World) dressMercLocked(n *NPC, k *MercKit, owner *Player) {
 	}
 	n.PrimaryWeapon, n.SecondaryWeapon, n.Shield = int(l.Primary), int(l.Secondary), int(l.Shield)
 	n.PrimaryType, n.SecondaryType = l.PrimaryType, l.SecondaryType
-	n.WornPieces, n.WornMask = l.WornPieces, l.WornMask
+	n.WornPieces, n.WornMask, n.WornItems = l.WornPieces, l.WornMask, l.WornItems
 	n.Class = k.Class
 }
 

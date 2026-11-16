@@ -453,6 +453,9 @@ func (w *World) makePetLocked(spell *CastSpell, caster, owner *Player, ms *mercS
 	if sheet != nil {
 		applyPetSheet(pet, sheet) // its body, weapons and numbers (petstats.go)
 	}
+	if ms == nil {
+		w.putCMPetLookLocked(pet, caster, spell.SpellID) // a rank's look on it (cmpetlook.go)
+	}
 	pet.racialPet = w.racialSpellLocked(spell.SpellID) // racialpet.go
 	w.applyBalanceLocked(pet)                          // a pet's hit points of its level (balance.go)
 	petPowerLocked(pet)                                // and its power (npcregen.go)

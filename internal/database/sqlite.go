@@ -643,6 +643,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureNPCRespawn(); err != nil { // npcrespawn.go
 		return err
 	}
+	if err := db.ensureWeather(); err != nil { // weather.go: the regional weather's three tables
+		return err
+	}
 	if err := db.ensureNPCRare(); err != nil { // npcrare.go
 		return err
 	}
@@ -695,6 +698,9 @@ func (db *SQLiteDB) initSchema() error {
 		return err
 	}
 	if err := db.ensureCharAura(); err != nil { // charaura.go
+		return err
+	}
+	if err := db.ensureInstanceAura(); err != nil { // instanceaura.go
 		return err
 	}
 	if err := db.ensureEconomy(); err != nil { // economy.go
@@ -821,6 +827,9 @@ func (db *SQLiteDB) initSchema() error {
 		return err
 	}
 	if err := db.ensureCharDyes(); err != nil { // chardyes.go
+		return err
+	}
+	if err := db.ensurePetDyes(); err != nil { // petdyes.go: the Pet Groomer's dyes
 		return err
 	}
 	if err := db.ensureCharHiddenLooks(); err != nil { // charhiddenlooks.go: worn looks a character hides

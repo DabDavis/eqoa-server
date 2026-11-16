@@ -320,6 +320,11 @@ type WorldConfig struct {
 	// unset, it does; false, every NPC by the rules of no faction.
 	FactionAggro *bool `yaml:"faction_aggro"`
 
+	// Weather is whether the regional weather runs (entity/weather.go,
+	// internal/weather): unset, it does; false, no engine, nothing is sent
+	// and #weather says it is off.
+	Weather *bool `yaml:"weather"`
+
 	// ThrowPowerPct is what a thrown potion costs its thrower, a percent of
 	// its most power (entity/potion.go, petitions 1489, 1581): unset, 10; 0, none.
 	ThrowPowerPct *int `yaml:"throw_power_pct"`
@@ -548,6 +553,15 @@ type WorldConfig struct {
 	// for nothing. Unset or false: it says its portals are closed. The
 	// Heirloom Test Server sets it.
 	Teleporter bool `yaml:"teleporter"`
+
+	// EnchanterPrice is what a Weapon Enchanter (handlers/enchanter.go) takes
+	// for one aura put on a held weapon: that many of EnchanterToken (an item
+	// record by name; EnchanterTokenID the record when no record has the
+	// name) from the pack. Unset: 1; 0: free. EnchanterToken unset: "Holly
+	// Token", the Christmas event's.
+	EnchanterPrice   *int   `yaml:"enchanter_price"`
+	EnchanterToken   string `yaml:"enchanter_token"`
+	EnchanterTokenID int    `yaml:"enchanter_token_id"`
 
 	// Mercs turns on the mercenaries (handlers/merc.go, entity/merc.go): a
 	// Mercenary Liaison (tools/place_merc_liaisons.py stands one beside each

@@ -20,11 +20,16 @@ import (
 // of petSystem), one a player at a time, GenieAhead in front of its owner and
 // facing it, in the magician's Djinn's body, with only the NPC bit among its
 // flags, so CLIENT's InteractWithTarget talks to it (0x0004) rather than
-// asking for a window. It leaves the world as soon as its box is answered or
-// closed ("disappears after the prompt is gone"), or GenieWait after it came
-// when no box was answered (a box CLIENT declined at once because a menu was
-// up: the genie waits to be talked to). A window it opened (the bank, its
-// shop, its forge) is the player's to use while it is: CLIENT sends nothing
+// asking for a window. It stays standing (the owner, 2026-11-16: "the genie
+// disappears too quick let him linger heirloom genie lamp"; it had left as
+// soon as its box was answered or closed): GenieWait after it came when no
+// box was answered (a box CLIENT declined at once because a menu was up: the
+// genie waits to be talked to), GenieLinger after a box answered without a
+// window (declined, nothing, rehabilitation, dyeing) or after the forge's
+// close, and while a window it opened holds, leaving when the window ends.
+// Talked to while it stands it asks again (a window may be swapped for
+// another), and has GenieWait more to be answered. A window it opened (the
+// bank, its shop, its forge) is the player's to use while it is: CLIENT sends nothing
 // when the bank or the merchant window closes (VIWndMercMenu, ClosePanel6AC)
 // and asks for the bank's moves with its own target's id (VIBankControl reads
 // m_target), so the server keeps the grant on the player, not on an entity
@@ -52,6 +57,9 @@ const (
 	GenieAhead float32 = 2.5
 	// GenieWait is how long it waits to be talked to after it came
 	GenieWait = 2 * time.Minute
+	// GenieLinger is how long it stays after a box answered without a
+	// window, or after its forge closed
+	GenieLinger = 2 * time.Minute
 	// GenieWindowIdle is how long a window it opened stays the player's
 	// with no request made of it
 	GenieWindowIdle = 5 * time.Minute
@@ -75,7 +83,8 @@ var ErrGenieNoPlayer = errors.New("no living player to summon a genie for")
 // genieState is a player's genie: the NPC while it stands (0 once it left),
 // where it stood, when it came, and the window it opened with the id its
 // requests carry (the shop's and the forge's: 0x00B7's merchant, 0x0061's
-// blacksmith) and when a request was last made of it.
+// blacksmith) and when a request was last made of it, and until when it
+// stands when no window holds it.
 type genieState struct {
 	npc    EntityID
 	rec    *NPC // the genie's record, a window's stand-in once it left
@@ -85,6 +94,7 @@ type genieState struct {
 	window GenieWindow
 	id     uint32
 	used   time.Time
+	until  time.Time
 }
 
 // GenieWindowID is the id a genie's shop and forge go by on the wire (0x00B7,
@@ -128,7 +138,7 @@ func (w *World) SummonGenie(sess *session.Session, catalog int, now time.Time) (
 		w.genies = map[EntityID]EntityID{}
 	}
 	w.genies[g.ServerID] = p.ServerID
-	p.genie = &genieState{npc: g.ServerID, rec: g, world: p.World, x: x, z: z, since: now}
+	p.genie = &genieState{npc: g.ServerID, rec: g, world: p.World, x: x, z: z, since: now, until: now.Add(GenieWait)}
 	log.Printf("Genie: %s's genie %d at (%.1f, %.1f)", p.Name, g.ServerID, x, z)
 	return g.ServerID, nil
 }
@@ -172,30 +182,59 @@ func (w *World) GenieNPC(sess *session.Session) (*NPC, bool) {
 }
 
 // EndGenieWindow ends the session's genie's window when it is of the kind
-// (the forge's close, 0x0063: the one window CLIENT says it closed).
-func (w *World) EndGenieWindow(sess *session.Session, window GenieWindow) {
+// (the forge's close, 0x0063: the one window CLIENT says it closed; a shop
+// with no wares): the genie lingers GenieLinger from now.
+func (w *World) EndGenieWindow(sess *session.Session, window GenieWindow, now time.Time) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	if p := w.sessionPlayerLocked(sess); p != nil && p.genie != nil && p.genie.window == window {
-		w.dropGenieLocked(p)
+		p.genie.window, p.genie.id = GenieNoWindow, 0
+		p.genie.lingerLocked(now.Add(GenieLinger))
 	}
 }
 
-// GenieOpened is the session's genie's box answered with a window: the genie
-// leaves the world and the window is the player's (GenieWindowNPC), its
-// requests carrying id (the shop's, the forge's; the bank's carry anything).
-// False when the player has no genie.
+// GenieOpened is the session's genie's box answered with a window: the
+// window is the player's (GenieWindowNPC), its requests carrying id (the
+// shop's, the forge's; the bank's carry anything), in place of any it held,
+// and the genie stands while it holds (and GenieLinger at least). False when
+// the player has no genie.
 func (w *World) GenieOpened(sess *session.Session, window GenieWindow, id uint32, now time.Time) bool {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
-	if p == nil || p.genie == nil {
+	if p == nil || p.genie == nil || p.genie.npc == 0 {
 		return false
 	}
-	w.genieLeavesLocked(p)
 	p.genie.window, p.genie.id, p.genie.used = window, id, now
+	p.genie.lingerLocked(now.Add(GenieLinger))
 	log.Printf("Genie: %s's genie opens window %d (%#x)", p.Name, window, id)
 	return true
+}
+
+// GenieLingers keeps the session's genie standing d from now at least (a box
+// answered without a window: GenieLinger; talked to again: GenieWait to be
+// answered), any window it holds kept. False when the player has no genie.
+func (w *World) GenieLingers(sess *session.Session, d time.Duration, now time.Time) bool {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil || p.genie == nil || p.genie.npc == 0 {
+		return false
+	}
+	p.genie.lingerLocked(now.Add(d))
+	return true
+}
+
+// lingerLocked makes the genie stand until t at least.
+func (g *genieState) lingerLocked(t time.Time) {
+	if t.After(g.until) {
+		g.until = t
+	}
+}
+
+// windowHolds is whether the genie's window is still in use at now.
+func (g *genieState) windowHolds(now time.Time) bool {
+	return g.window != GenieNoWindow && now.Sub(g.used) <= GenieWindowIdle
 }
 
 // DismissGenie sends the session's player's genie away, with its window.
@@ -226,22 +265,27 @@ func (w *World) GenieWindowNPC(sess *session.Session, window GenieWindow, id uin
 		w.dropGenieLocked(p)
 		return nil, false
 	}
+	if !p.genie.windowHolds(now) { // idle past its time, the genie lingering on
+		p.genie.window, p.genie.id = GenieNoWindow, 0
+		return nil, false
+	}
 	p.genie.used = now
 	return p.genie.rec, true
 }
 
-// genieGoneLocked is whether the player's genie (or its window) is no longer
-// its: dead, another world, away from where it stood, or idle past its time.
-// Must be called with the lock held.
+// genieGoneLocked is whether the player's genie (and its window) is no
+// longer its: dead, another world, away from where it stood, or neither a
+// window in use (idle GenieWindowIdle) nor its time to stand (until) holding
+// it. Must be called with the lock held.
 func (w *World) genieGoneLocked(p *Player, now time.Time) bool {
 	g := p.genie
 	if p.IsDead() || p.World != g.world || math.Hypot(float64(p.X-g.x), float64(p.Z-g.z)) > float64(GenieReach) {
 		return true
 	}
-	if g.window == GenieNoWindow {
-		return now.Sub(g.since) > GenieWait
+	if g.windowHolds(now) {
+		return false
 	}
-	return now.Sub(g.used) > GenieWindowIdle
+	return now.After(g.until)
 }
 
 // genieLeavesLocked takes the player's genie NPC out of the world (its

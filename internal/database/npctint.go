@@ -124,9 +124,30 @@ const (
 	// hand's alone (charaura 9/10, or the held item's own itemaura); a client
 	// before it draws nothing of it.
 	AuraEnergy = 9
+	// AuraHat is a hat another body has built in, worn on the head (the
+	// owner, 2026-11-16, of Hoofbite: "for his monk hat lets use the kappas
+	// built in hat that is wide brimmed for his model"): the source is the
+	// body (a CHAR.ESF CSprite: the kappa's straw hat, 0xF0FAB933, KappaHat)
+	// whose hat vanilla cuts out (the triangles its head carries above the
+	// brow) and seats on the wearer's head, sized to it, in place of the helm
+	// (vanilla's hat::hat_on). On the helm's charaura slot (CharAuraHelm),
+	// shown whether a helm is worn or not; or an item that IS a hat (the
+	// owner, 2026-11-16: "cut the turban from the efreeti lord as a turban for
+	// dust in his inventory, turban of twisted virtue"): itemaura kind 10 on a
+	// helm-slot record, shown while it is worn there and not hidden (on any
+	// other piece none). Never in npctint. A colour that lights recolours it; none keeps the
+	// source's own. A client before it reads the default (a shell on a worn
+	// helm while the colour lights: nothing with no colour); a PS2 draws the
+	// helm worn, as ever.
+	AuraHat = 10
 )
 
-// CharAuraHelm is the helm's charaura slot (entity.AuraHelm): a circlet's.
+// KappaHat is the kappa body whose wide-brimmed straw hat AuraHat's named
+// look ("kappa hat") wears: CHAR.ESF 0xF0FAB933 (giant-own-helm-20261116).
+const KappaHat = 0xF0FAB933
+
+// CharAuraHelm is the helm's charaura slot (entity.AuraHelm): a circlet's
+// and a hat's.
 const CharAuraHelm = 5
 
 // AuraDarkMost is the brightest an aura's colour (its RGB, before its alpha)
@@ -161,7 +182,7 @@ func AuraParticlesShow(kind uint8) bool { return kind == AuraParticles || kind =
 // anything: particles, or the shell (or trim) while the glow lights, or a
 // shell or trim named outright in a dark colour (AuraDark: black too).
 func AuraShows(glow uint32, kind uint8) bool {
-	if kind == AuraEpic || kind == AuraCirclet || kind == AuraEnergy {
+	if kind == AuraEpic || kind == AuraCirclet || kind == AuraEnergy || kind == AuraHat {
 		return true // the source's own look, coloured or not
 	}
 	if kind > AuraKindMost {
@@ -205,6 +226,9 @@ func ValidItemAura(kind, nodes int64) bool {
 	if kind == AuraCirclet || kind == AuraEpic || kind == AuraEnergy {
 		return nodes >= 0 && nodes <= AuraAlongMost // a circlet's height, a held item's along
 	}
+	if kind == AuraHat {
+		return ValidAuraNodes(nodes) // an item that is a hat (its nodes unused)
+	}
 	return ValidAuraKind(kind) && ValidAuraNodes(nodes)
 }
 
@@ -224,8 +248,8 @@ func ValidCharAuraKind(slot, k int64) bool {
 	if slot == CharAuraMainHand || slot == CharAuraOffHand {
 		return HandAuraKind(k) || k == AuraNone
 	}
-	if slot == CharAuraHelm && k == AuraCirclet {
-		return true // the helm's slot: a circlet too
+	if slot == CharAuraHelm && (k == AuraCirclet || k == AuraHat) {
+		return true // the helm's slot: a circlet or a hat too
 	}
 	return ValidAuraKind(k)
 }

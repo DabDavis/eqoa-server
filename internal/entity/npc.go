@@ -58,6 +58,8 @@ type NPC struct {
 	// pieces an aura can be on (MercLook's; pieceaura.go), none for others
 	WornPieces [AuraSlots]int
 	WornMask   uint16
+	// WornItems: the copies a mercenary holds (MercLook's), none for others
+	WornItems [AuraSlots]int
 
 	// Health
 	HP, MaxHP      int
@@ -347,6 +349,8 @@ type NPC struct {
 	// familiar's (familiar.go: never owned); nil for every other NPC
 	merc     *mercState
 	familiar *familiarState
+	// monkey is a Barrel of Monkeys' monkey's (monkeys.go: never owned)
+	monkey *monkeyState
 	// mercPet is the merc whose pet this is (mercpet.go: Owner its merc's
 	// hirer's), nil for every other NPC
 	mercPet *mercState

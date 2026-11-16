@@ -2,6 +2,7 @@ package entity
 
 import (
 	"log"
+	"slices"
 	"time"
 )
 
@@ -38,6 +39,10 @@ import (
 //     brews nothing. Meals are not brewed (no alchemist's book makes one; a
 //     merc with none eats a ration's figures). world.merc_brew_cap, when set
 //     above 0, is a ceiling on the whole stock besides (0: none brewed).
+//   - Its Master Class's keepsakes (mercKeepsLocked): the Transmuter's
+//     Transformative Pill and Transmutive Potion, the Metabolist's
+//     Miraculous Draught, one at a time for its owner, brewed only when none
+//     is held.
 //
 // The stock is its owner's, not the merc's: the handlers keep it in table
 // charmercstock and hand the World its counts at each login, keep restart and
@@ -312,7 +317,8 @@ type mercBrewWant struct {
 
 // mercBrewWantsLocked is what the merc keeps a full stack of (the file's
 // doc), its throws' own kind (/merc aoe or single) first, then the other
-// kind, then its draught. Must be called with the lock held.
+// kind, then its draught, then its keepsakes (one each). Must be called with
+// the lock held.
 func (w *World) mercBrewWantsLocked(ms *mercState) []mercBrewWant {
 	st := w.mercSupply.stockOf(ms.owner)
 	var out []mercBrewWant
@@ -341,7 +347,59 @@ func (w *World) mercBrewWantsLocked(ms *mercState) []mercBrewWant {
 	if d := w.mercBookDraughtsLocked(ms); len(d) > 0 {
 		add(d[0].pe.PatternID)
 	}
+	// its Master Class's keepsakes: one each, for its owner (mercKeepsLocked)
+	for _, pe := range w.mercKeepsLocked(ms) {
+		if slices.ContainsFunc(out, func(o mercBrewWant) bool { return o.pe.PatternID == pe.PatternID }) {
+			continue
+		}
+		have := st[pe.PatternID]
+		for _, c := range ms.kit.Carried {
+			if c.PatternID == pe.PatternID && c.Count > 0 {
+				have += c.Count
+			}
+		}
+		out = append(out, mercBrewWant{pe: pe, most: mercKeepOne, have: have})
+	}
 	return out
+}
+
+// mercKeepOne is how many of a keepsake the merc holds for its owner (the
+// owner, 2026-11-16: "and they will only make if they dont have one so player
+// can take it from their inventory").
+const mercKeepOne = 1
+
+// mercKeepsLocked is what its Master Class's mixtures make, which the merc
+// brews for its owner one at a time (the owner, 2026-11-16: "alchemist mercs
+// should also make the transformative ogre pills if they are the right
+// level", "and they will only make if they dont have one so player can take
+// it from their inventory", then "make the transmutive potion and miraculous
+// draught one at a time too"): each potion a mixture its own Master Class's
+// ranks give makes (mercRankPotionsLocked: a spell its ranks add, in its
+// book, not turned off; the ranks its level's, as the handlers give them, and
+// none above its level here either). So a Transmuter of 60 keeps a
+// Transformative Pill (Creative Transmutation, cmcatalog 7402: Create
+// Transformative) and a Transmutive Potion (Transmutative Mixture, 7403), a
+// Metabolist of 60 a Miraculous Draught (Miraculous Mix, 7412): the gate a
+// player alchemist's is, who has those spells only by buying the rank, where
+// classspells' level-60 rows hand them to any alchemist. A keepsake's stack is
+// one (mercKeepOne): it brews one when its owner's stock and what it carries
+// hold none, at ease and at its rate as its other potions, and none while one
+// waits there; its owner takes it from the Stock tab, and it brews the next.
+// A stock copy is its owner's: the merc never throws or drinks one (no
+// damage throw: throwWorth; no power: draughtOf); its own uses of them are
+// conjured, never from the stock (mercselfpotion.go). Must be called with the
+// lock held.
+func (w *World) mercKeepsLocked(ms *mercState) []*PotionEffect {
+	if !ms.mercThrowsPotions() {
+		return nil
+	}
+	var ranks []*CMRank
+	for _, r := range ms.kit.MasterRanks {
+		if r != nil && r.Level <= ms.kit.Level {
+			ranks = append(ranks, r)
+		}
+	}
+	return w.mercRankPotionsLocked(ms, ranks)
 }
 
 // mercBrewPickLocked is the potion the merc brews next and how many may go

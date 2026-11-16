@@ -8,12 +8,14 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
+	"github.com/eqoa/server/internal/weather"
 )
 
 // EntityEnterCallback is called when a new entity enters a player's visibility.
@@ -111,6 +113,9 @@ type World struct {
 	regenAt time.Time
 	// How the sun treats vampires (vampire.go)
 	vampireSun VampireSun
+	// Weather is the regional weather (weather.go, internal/weather); nil
+	// when world.weather is false: nothing sent
+	Weather *weather.Engine
 	// What the towns' boards' boon gives and for how long (boon.go)
 	boon Boon
 
@@ -194,6 +199,14 @@ type World struct {
 	groupInvitesShut map[uint32]bool
 	// Familiars by their owners' ids (familiar.go)
 	familiars map[EntityID]*familiarState
+	// Barrels of Monkeys' monkeys by their owners' ids (monkeys.go)
+	monkeys map[EntityID][]*monkeyState
+	// monkeyThrown is when each player was last hit by a snowball of each
+	// owner's monkeys, by owner (monkeythrow.go)
+	monkeyThrown map[EntityID]map[EntityID]time.Time
+	// Automatic Snowball Launchers switched on, by their owners' ids
+	// (snowlauncher.go)
+	launchers map[EntityID]*launcherState
 
 	// Duels, asked and on (duel.go), and their wagers' writes (duelpurse.go)
 	duels     duelTable
@@ -280,6 +293,9 @@ type World struct {
 	// The decoration lights of the seasons that are on, as the clients that
 	// draw them are told (decorlights.go)
 	decorLights decorLightState
+	// petDyeAreas is table petdyeareas, by body (petdyes.go): read at the
+	// start and at a GM's edit, read by the pet dyes' sync without the lock
+	petDyeAreas atomic.Pointer[map[uint32]database.PetDyeArea]
 	// The worn pieces' auras by item, table itemaura (pieceaura.go)
 	itemAuras itemAuraState
 	// The masteries a character may buy, table cmcatalog (cmbuy.go)
@@ -589,6 +605,8 @@ func (w *World) leavingLocked(p *Player) []func(*Player) {
 
 	w.mercLeavingLocked(p)     // its merc goes, its hire kept (merc.go)
 	w.familiarLeavingLocked(p) // its familiar goes (familiar.go)
+	w.monkeysLeavingLocked(p)  // its monkeys go back into the barrel (monkeys.go)
+	w.launcherLeavingLocked(p) // its snowball launcher stops (snowlauncher.go)
 	w.castsLeavingLocked(p)    // its casts on their way go unlanded (cast.go)
 	fns := make([]func(*Player), len(w.leaving))
 	copy(fns, w.leaving)

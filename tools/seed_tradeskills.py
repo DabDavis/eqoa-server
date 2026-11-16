@@ -320,7 +320,63 @@ def read_grids(folder):
                 problems.append(f"{key} trade level {lvl} {mod}: AC {s.get('AC')} is not the mundane one's")
             if bonus.setdefault((lvl, mod), extra) != extra:
                 problems.append(f"{key} trade level {lvl} {mod}: {extra} where another piece has {bonus[(lvl, mod)]}")
+    ultra_stats(grids, bonus, problems)
+    moved_stats(grids, bonus)
     return grids, bonus, problems
+
+
+# The ultra-rare modifiers give three stats beside the grid's HoT / PoT (Innoruuk's petitions, 2026-11-16: 5196
+# "Heartsblood Alloy is supposed to give Stamina, AR and HP in stats for plate armor. Currently only giving HoT."; 5197
+# "mindflow crystals supposed to give wisdom, power and AR to armor when crafted. Only giving PoT."; the live records'
+# heartsblood seralite plate and scale give Sta, AR and HP): each at least the single-stat modifier's at the trade
+# level. tools/heartsblood_mindflow_5196_20261116.py made the live records so.
+ULTRA_PLUS = {
+    "Heartsblood Alloy": {"sta": "Rhodizite", "AR": "Achroite", "HPMAX": "Titan Alloy"},
+    "Mindflow Crystals": {"wis": "Apatite", "POWMAX": "Mana Infused Alloy", "AR": "Achroite"},
+}
+
+
+# a modifier's stat given as another, the same figure (Innoruuk's petitions, 2026-11-16: 5198 "Enstatite gem should give
+# strength and stamina to armor when crafted, not strength and intelligence."; 5199 "Takish ivory should give dex and
+# agility when crafted, not charisma."; 5201 "Marr Blessed Alloy should give Stamina and Wisdom, not Stamina and
+# Charisma"; 5202 "Lazulite is supposed to give crafted armor Agility and Stamina."; the grid and Prima give Str and Int,
+# Dex and Cha, Sta and Cha, Agi and Wis). tools/two_stat_mods_5198_20261116.py and
+# tools/rallosian_marr_5200_20261116.py made the live records so.
+MOVED = {"Enstatite": {"intelligence": "sta"}, "Takish Ivory": {"cha": "agi"}, "Marr Blessed Alloy": {"cha": "wis"},
+         "Lazulite": {"wis": "sta"}}
+
+
+def moved_stats(grids, bonus):
+    def move(stats, mod):
+        out = dict(stats)
+        for old, new in MOVED[mod].items():
+            if old in out:
+                out[new] = out.pop(old)
+        return out
+    for (lvl, mod), extra in list(bonus.items()):
+        if mod in MOVED:
+            bonus[(lvl, mod)] = move(extra, mod)
+    for cells in grids.values():
+        for (lvl, mod), stats in list(cells.items()):
+            if mod in MOVED:
+                cells[(lvl, mod)] = move(stats, mod)
+
+
+def ultra_stats(grids, bonus, problems):
+    for (lvl, mod), extra in list(bonus.items()):
+        if mod not in ULTRA_PLUS:
+            continue
+        add = {}
+        for col, src in ULTRA_PLUS[mod].items():
+            least = bonus.get((lvl, src), {}).get(col)
+            if least is None:
+                problems.append(f"trade level {lvl} {mod}: no {src} {col} to give it")
+                continue
+            add[col] = max(least, extra.get(col, 0))
+        bonus[(lvl, mod)] = dict(extra, **add)
+        for cells in grids.values():
+            if (lvl, mod) in cells:
+                cells[(lvl, mod)] = dict(cells[(lvl, mod)], **add)
 
 
 VENDOR_PAGES = {
@@ -1765,7 +1821,7 @@ TAILOR_MODS = {
     "Idocrase": (0, "one", ("cha",), "Idocrase"),
     "Titan Alloy Studs": (1, "max", ("HPMAX",), "Titan"), "Mana Infused Thread": (1, "max", ("POWMAX",), "Infused"),
     "Marr Blessed Studs": (1, "two", ("sta", "cha"), "Blessed"), "Tunare Hair Thread": (1, "two", ("agi", "wis"), "Tunare"),
-    "Rallosian Studs": (1, "two", ("str", "intelligence"), "Rallosian"),
+    "Rallosian Studs": (1, "two", ("sta", "dex"), "Rallosian"),  # Prima: Str and Int (TAILOR_PRIMA_COLS)
     "Takish Ivory Studs": (1, "two", ("dex", "cha"), "Takish"),
     "Ancient Treant Sap": (2, "both", ("HPMAX", "POWMAX"), "Treant"),
     "Heartsblood Alloy Studs": (3, "over", ("HoT",), "Heartsblood"), "Mindflow Thread": (3, "over", ("PoT",), "Mindflow"),
@@ -1785,6 +1841,10 @@ TAILOR_PROPERTY = {
     ("HPMAX", "POWMAX"): "Hit Point and Power Max", "HoT": "Hit Point Regen", "PoT": "Power Regen",
 }
 TAILOR_PRIMA_WORD = {"Sinahlite": "Sinhalite"}  # Prima's naming column's misprint
+# a modifier made to give other stats than Prima's (Innoruuk's petition 5200, 2026-11-16: "Rallosian Studs ... Stamina
+# and Dexterity I believe should be the stats."; tools/rallosian_studs_5200_20261116.py made the live records so): what
+# Prima says, for the check against its table
+TAILOR_PRIMA_COLS = {"Rallosian Studs": ("str", "intelligence")}
 # The trainers and suppliers, Prima's city tables ("Teaches Tailoring", "Patterns/Tailoring Kits Level 1-46",
 # "Material"; eqoatrade has no tailoring pages): Halas p. 70, Fayspires (its table names no trainer: this server's
 # Seamster Bliss stands beside its two merchants, ours), Klick'Anon, Rivervale, Freeport, Qeynos, Surefall Glade,
@@ -1898,6 +1958,7 @@ def read_prima_tailor(folder, problems):
                 continue
             found.add(mod)
             rarity, _, cols, _ = TAILOR_MODS[mod]
+            cols = TAILOR_PRIMA_COLS.get(mod, cols)
             prop = TAILOR_PROPERTY[cols[0] if len(cols) == 1 else cols]
             checked += 2
             if rarity_of[m.group(1).lower()] != rarity or m.group(2).strip() != prop:

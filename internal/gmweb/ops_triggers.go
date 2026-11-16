@@ -44,9 +44,13 @@ const triggerStepsHelp = `the steps in order, each {"do", ...}: broadcast {text}
 	`(a lock's text is said to a talker while it is busy); fail {text} on an awaitdead, awaitkill or awaitnear with seconds: its time out with what ` +
 	`it waits on undone fails the run (a window, its spawns taken); walk also takes points [[x,y,z],...] a route before x/y/z and pace (under 7 walked); spawn also takes spots [[x,y,z],...] ` +
 	`(the one nearest the run's place), untouchable (its copies carry the NPC bit: no one hurts them, they attack no one) and noloot (their ` +
-	`corpses are of nothing). season {season, turn (on, off or toggle; none: toggle), text, offtext} turns a season (Seasons): its ` +
+	`corpses are of nothing). weather {weather: rain|snow|sand|whiteout|clear, strength: light|moderate|heavy (heavy), ` +
+	`minutes (2 to 120; 0: 10), where: here|near|world (here), near (1 to 5 zones, for near), text (said to the players in those zones), ` +
+	`world/x/z optional (none: the run's place)} a GM's weather on the zones round the place, ended when the run stops. ` +
+	`season {season, turn (on, off or toggle; none: toggle), text, offtext} turns a season (Seasons): its ` +
 	`NPCs (NPC seasons) into the world or out, its strings of lights (Light strings) lit or out, kept over restarts; text said as it ` +
-	`turns on, offtext as it turns off. text may hold %p, each ` +
+	`turns on, offtext as it turns off. ` +
+	`text may hold %p, each ` +
 	`player's name. The players a step reaches are looked at as it runs`
 
 func (s *Server) registerTriggerOps() {

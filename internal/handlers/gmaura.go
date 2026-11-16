@@ -22,6 +22,17 @@ import (
 //	/aura off                                   its name's glow and aura gone (its tint kept)
 //	/aura item <id> <kind> <RRGGBBAA> [source] [nodes]
 //	/aura item <id> off
+//	/aura item <id> second <kind> <RRGGBBAA> [source] [nodes]
+//	/aura item <id> second off
+//	/aura weapon <mainhand|offhand|weapons> [Tag] <aura words>
+//	                                one COPY of the held weapon (instanceaura, gmauraweapon.go)
+//
+// second: a held item's second aura (itemaura's color2 ... nodes2; the owner,
+// 2026-11-16: "also give icing death the sword of virtue aura blue and also
+// the freezing so we can have 2 auras now"), drawn beside its first on the
+// hand that holds it: kind particles, epic or energy (3, 7, 9), nodes where
+// along the weapon (0-100, 0 the source's own place: a spell visual's at the
+// tip).
 //
 // The easier words (the owner, 2026-11-13: "make /aura command easier for gms
 // to use like /aura blue particles chest, /aura yellow shell wholebody (the
@@ -36,6 +47,10 @@ import (
 //	                                the item held in each hand drawn with the epic's own glow, sheen and
 //	                                particles (charaura slots 9 and 10; the owner, 2026-11-14: "give zaeires
 //	                                equipped weapons the necro's tainted aura from the epic sickle")
+//	/aura second particles mainhand source=1D875ECD along=100
+//	                                a SECOND aura on the hand (charaura's color2 ... nodes2), beside its first,
+//	                                the target's alone (2026-11-16: Dust's sword "will keep the red aura it has
+//	                                and stack the twinkle"); /aura second off mainhand clears it
 //
 // colour: a name (auraColors) or RRGGBB / RRGGBBAA hex, black a dark aura;
 // kind: shell, particles (sparkles), both, trim, trimshell, off (none); where:
@@ -57,7 +72,7 @@ import (
 // Sword of Virtue's); nodes 0-32.
 
 const auraUsage = "Usage: /aura <kind> <RRGGBBAA> [source] [nodes] on your target NPC's name, /aura off; " +
-	"/aura item <id> <kind> <RRGGBBAA> [source] [nodes], /aura item <id> off. kind: default, none, shell, particles, both, " +
+	"/aura item <id> <kind> <RRGGBBAA> [source] [nodes], /aura item <id> off; a held item's second: /aura item <id> second <particles|epic|energy> <RRGGBBAA> [source] [along 0-100], /aura item <id> second off. kind: default, none, shell, particles, both, " +
 	"trim, trimshell (0-6); a colour of every channel at most 30 (000000FF black) is a dark aura; source: a DictID in hex (0 the Sword of Virtue's); nodes 0-32 (0 the default)"
 
 // auraKinds are the kinds by name (database.AuraDefault ...).
@@ -65,7 +80,7 @@ var auraKinds = map[string]uint8{"default": database.AuraDefault, "none": databa
 	"particles": database.AuraParticles, "both": database.AuraBoth, "trim": database.AuraTrim, "trimshell": database.AuraTrimShell}
 
 // auraKindNames are the kinds' names by number.
-var auraKindNames = [...]string{"default", "none", "shell", "particles", "both", "trim", "trimshell", "epic", "circlet", "energy"}
+var auraKindNames = [...]string{"default", "none", "shell", "particles", "both", "trim", "trimshell", "epic", "circlet", "energy", "hat"}
 
 // parseHex32 reads a 32-bit hex value, with or without 0x.
 func parseHex32(s string) (uint32, bool) {
@@ -109,6 +124,44 @@ func parseAura(args []string) (a database.ItemAura, ok bool) {
 	return a, true
 }
 
+// parseSecondAura reads a held item's second aura: <kind> <RRGGBBAA>
+// [source] [nodes] with kind particles, epic or energy (3, 7, 9) and nodes
+// where along the weapon (0-100), or "off" (all zero).
+func parseSecondAura(args []string) (a database.ItemAura, ok bool) {
+	if len(args) == 1 && strings.EqualFold(args[0], "off") {
+		return a, true
+	}
+	if len(args) < 2 || len(args) > 4 {
+		return a, false
+	}
+	k, named := map[string]uint8{"particles": database.AuraParticles, "sparkles": database.AuraParticles,
+		"epic": database.AuraEpic, "energy": database.AuraEnergy}[strings.ToLower(args[0])]
+	if !named {
+		n, err := strconv.Atoi(args[0])
+		if err != nil || !database.HandAuraKind(int64(n)) {
+			return a, false
+		}
+		k = uint8(n)
+	}
+	a.Kind = k
+	if a.Color, ok = parseHex32(args[1]); !ok {
+		return a, false
+	}
+	if len(args) > 2 {
+		if a.Source, ok = parseHex32(args[2]); !ok {
+			return a, false
+		}
+	}
+	if len(args) > 3 {
+		n, err := strconv.Atoi(strings.TrimSuffix(args[3], "%"))
+		if err != nil || !database.ValidItemAuraSecond(int64(a.Kind), int64(n)) {
+			return a, false
+		}
+		a.Nodes = uint8(n)
+	}
+	return a, true
+}
+
 // auraWords says an aura in words.
 func auraWords(a database.ItemAura) string {
 	if !a.Shows() {
@@ -132,6 +185,13 @@ func auraWords(a database.ItemAura) string {
 			at = fmt.Sprintf(", %d%% up the head", a.Nodes)
 		}
 		return fmt.Sprintf("aura circlet: %s glowing ring worn round the head (while no helm is drawn), %s%s", src, color, at)
+	}
+	if a.Kind == database.AuraHat {
+		color := "its own colours"
+		if database.NPCGlowShows(a.Color) {
+			color = fmt.Sprintf("in %08X", a.Color)
+		}
+		return fmt.Sprintf("aura hat: the hat %08X has built in, worn on the head in place of the helm, %s", a.Source, color)
 	}
 	if a.Kind == database.AuraEpic {
 		color := "its own colours"
@@ -197,7 +257,7 @@ var auraPieceNames = [entity.AuraSlots]string{"chest", "bracers", "gloves", "leg
 // auraEasyKinds are the easy words' kinds (off is apart).
 var auraEasyKinds = map[string]uint8{"shell": database.AuraShell, "particles": database.AuraParticles,
 	"sparkles": database.AuraParticles, "both": database.AuraBoth, "trim": database.AuraTrim, "trimshell": database.AuraTrimShell,
-	"default": database.AuraDefault, "epic": database.AuraEpic, "circlet": database.AuraCirclet, "energy": database.AuraEnergy}
+	"default": database.AuraDefault, "epic": database.AuraEpic, "circlet": database.AuraCirclet, "energy": database.AuraEnergy, "hat": database.AuraHat}
 
 // auraSpec is the easy words read.
 type auraSpec struct {
@@ -206,6 +266,9 @@ type auraSpec struct {
 	Where      int // a piece, auraWholeBody, or -1 none named
 	SourceName string
 	Look       string // a named look's name (auraLooks), "" none
+	// Second: the hand's second aura (charaura's color2 ... nodes2), the
+	// word "second" named: /aura second particles mainhand source=1D875ECD along=100
+	Second bool
 }
 
 // auraLook is a named aura a GM gives by its name (the owner, 2026-11-14:
@@ -244,6 +307,17 @@ var auraLooks = []auraLook{
 	// circlet is sitting too low on dust"; the client's own 62% crossed the eyes)
 	{[]string{"monk", "circlet"}, database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: CircletHeightMonk},
 		"the monk's level 49 epic staff, Ascendant staff (1D875ECD): its glowing ring with the criss-cross worn round the head at the temples (while no helm is drawn; height=N moves it)", false},
+	// the paladin's level 60 epic, the Sword of Virtue: its glow, its sheen
+	// and its sparkles on a held weapon (the owner, 2026-11-16: "also give
+	// icing death the sword of virtue aura blue"; a colour recolours it)
+	{[]string{"sword", "of", "virtue"}, database.ItemAura{Kind: database.AuraEpic, Source: 0x88EC092D},
+		"the paladin's level 60 epic, the Sword of Virtue (88EC092D): its glow, its sheen and its sparkles (a colour recolours them: /aura blue sword of virtue weapons)", false},
+	// the kappa's wide-brimmed straw hat (CHAR.ESF 0xF0FAB933, part of its
+	// body) worn on the head in place of the helm (the owner, 2026-11-16, of
+	// Hoofbite: "for his monk hat lets use the kappas built in hat that is
+	// wide brimmed for his model")
+	{[]string{"kappa", "hat"}, database.ItemAura{Kind: database.AuraHat, Source: database.KappaHat},
+		"the kappa's wide-brimmed straw hat (F0FAB933, built into its body) worn on the head in place of the helm (a colour recolours it)", false},
 	{[]string{"sickle", "taint"}, database.ItemAura{Kind: database.AuraEpic, Source: 0x5FD4AE7C},
 		"the necromancer's epic, Sickle of Avhi Escron (5FD4AE7C): an olive glow and its green mist (Zaeire's)", false},
 	// a spell visual's hand emitters on a held weapon (the owner, 2026-11-14:
@@ -353,6 +427,10 @@ func parseAuraEasy(args []string) (sp auraSpec, err error) {
 			continue
 		}
 		naming = false
+		if w == "second" {
+			sp.Second = true
+			continue
+		}
 		if w == "off" || w == "none" {
 			sp.Off = true
 			continue
@@ -405,8 +483,8 @@ func parseAuraEasy(args []string) (sp auraSpec, err error) {
 		if sp.Where == -1 && (look.A.Kind == database.AuraEpic || look.Hands) {
 			sp.Where = auraBothHands
 		}
-		if sp.Where == -1 && look.A.Kind == database.AuraCirclet {
-			sp.Where = entity.AuraHelm // a circlet goes round the head
+		if sp.Where == -1 && (look.A.Kind == database.AuraCirclet || look.A.Kind == database.AuraHat) {
+			sp.Where = entity.AuraHelm // a circlet goes round the head, a hat on it
 		}
 	}
 	if height {
@@ -454,7 +532,7 @@ func parseAuraEasy(args []string) (sp auraSpec, err error) {
 		}
 		sp.A.Kind = database.AuraShell
 	}
-	if !color && sp.A.Kind != database.AuraParticles && sp.A.Kind != database.AuraEpic && sp.A.Kind != database.AuraCirclet && sp.A.Kind != database.AuraEnergy {
+	if !color && sp.A.Kind != database.AuraParticles && sp.A.Kind != database.AuraEpic && sp.A.Kind != database.AuraCirclet && sp.A.Kind != database.AuraEnergy && sp.A.Kind != database.AuraHat {
 		return sp, fmt.Errorf("name a colour (only particles and epic need none: they keep the source's own)")
 	}
 	return sp, nil
@@ -485,12 +563,25 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 		h.gmReply(sess, auraUsageShort)
 		return
 	}
+	if strings.EqualFold(args[0], "weapon") && h.auraWeaponCommand(sess, player, args[1:]) {
+		return // one copy of a held weapon's (gmauraweapon.go)
+	}
 	if strings.EqualFold(args[0], "item") {
 		if len(args) < 3 {
 			h.gmReply(sess, auraUsage)
 			return
 		}
 		id, err := strconv.Atoi(args[1])
+		if strings.EqualFold(args[2], "second") {
+			a, ok := parseSecondAura(args[3:])
+			if err != nil || id < 0 || !ok {
+				h.gmReply(sess, auraUsage)
+				return
+			}
+			a.PatternID = id
+			h.setItemSecondAura(sess, player, a, fmt.Sprintf("Item %d", id))
+			return
+		}
 		a, ok := parseAura(args[2:])
 		if err != nil || id < 0 || !ok {
 			h.gmReply(sess, auraUsage)
@@ -549,12 +640,20 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 		return
 	}
 	if isNPC && !isMerc {
+		if sp.Second {
+			h.gmReply(sess, "/aura: a second aura is a held weapon's: on a player (or a mercenary): /aura second particles mainhand source=<DictID>")
+			return
+		}
 		if sp.A.Kind == database.AuraEpic && !sp.Off {
 			h.gmReply(sess, "/aura: epic is a held weapon's look: on a player (or a mercenary): /aura epic weapons source=<epic's name>")
 			return
 		}
 		if sp.A.Kind == database.AuraCirclet && !sp.Off {
 			h.gmReply(sess, "/aura: a circlet is a player's (or a mercenary's) head's: /aura monk circlet")
+			return
+		}
+		if sp.A.Kind == database.AuraHat && !sp.Off {
+			h.gmReply(sess, "/aura: a hat is a player's (or a mercenary's) head's: /aura kappa hat")
 			return
 		}
 		if database.NPCClassKey(npc.Name) == "" {
@@ -572,14 +671,18 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 	// a character's own (charaura): the target player, yourself, or a mercenary
 	var key database.CharAuraKey
 	var mask uint16
+	var shown func() *entity.PieceAuras // what the wearer shows now
 	who, whose := "You", "your"
 	switch t := target.(type) {
 	case nil:
 		key, mask = database.CharAuraKey{CharID: player.CharServerID}, player.WornMask
+		shown = func() *entity.PieceAuras { return h.gameWorld.PieceAurasOf(player) }
 	case *entity.Player:
 		key, mask, who, whose = database.CharAuraKey{CharID: t.CharServerID}, t.WornMask, t.Name, t.Name+"'s"
+		shown = func() *entity.PieceAuras { return h.gameWorld.PieceAurasOf(t) }
 	case *entity.NPC:
 		key, mask, who, whose = mercKey, t.WornMask, t.Name, t.Name+"'s"
+		shown = func() *entity.PieceAuras { return h.gameWorld.NPCPieceAurasOf(t) }
 	default:
 		h.gmReply(sess, "/aura: target a player, a mercenary or nothing (yourself)")
 		return
@@ -596,6 +699,10 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 	default:
 		slots, place = []int{sp.Where}, auraPieceNames[sp.Where]
 	}
+	if sp.Second {
+		h.setCharSecondAura(sess, player, key, slots, place, whose, isMerc, sp)
+		return
+	}
 	// a hand's kinds: epic or particles; epic a hand's alone
 	if sp.A.Shows() {
 		for _, slot := range slots {
@@ -606,11 +713,22 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 				h.gmReply(sess, "/aura: a held weapon takes epic, energy or particles: /aura epic weapons source=Sickle_of_Avhi_Escron, /aura energy offhand source=<item>")
 			} else if sp.A.Kind == database.AuraCirclet {
 				h.gmReply(sess, "/aura: a circlet goes round the head: /aura monk circlet (or helm/head)")
+			} else if sp.A.Kind == database.AuraHat {
+				h.gmReply(sess, "/aura: a hat goes on the head: /aura kappa hat (or helm/head)")
 			} else {
 				h.gmReply(sess, "/aura: epic is a held weapon's look: mainhand, offhand or weapons")
 			}
 			return
 		}
+	}
+	// a character's own hat (charaura's helm row, kind hat) is that row: another
+	// aura there would take its place, so it is refused; a hat ITEM worn there
+	// keeps its hat whatever the row says (they stack: entity.AuraHelmHat)
+	if sp.A.Shows() && sp.A.Kind != database.AuraHat && len(slots) == 1 && slots[0] == database.CharAuraHelm &&
+		h.gameWorld.CharAuraOf(key, database.CharAuraHelm).Kind == database.AuraHat {
+		h.gmReply(sess, "/aura: "+whose+" helm row is a hat of its own (charaura): another aura there would replace it. "+
+			"Give the hat as an item (itemaura kind 10 on a helm record) and the aura stacks round it; or /aura off helm first")
+		return
 	}
 	detail := fmt.Sprintf("/aura in the game: %s %s: %s", whose, place, auraWords(sp.A))
 	if sp.Look != "" {
@@ -636,12 +754,61 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 		note += " (on whatever that hand holds, from a client that draws held items' auras)"
 	case sp.A.Kind == database.AuraCirclet:
 		note += " (round the head while no helm is drawn, from a client that draws circlets)"
+	case sp.A.Kind == database.AuraHat:
+		note += " (on the head in place of the helm, from a client that draws hats; a PS2 shows the helm)"
+	case slot == database.CharAuraHelm && sp.A.Shows() && wearsHat(shown()):
+		note += " (round the hat worn there, from a client that draws a hat's aura; an older client shows the hat alone)"
 	case slot != database.CharAuraBody && mask&(1<<slot) == 0 && sp.A.Shows():
 		note += " (nothing worn there now: it shows when a piece is)"
 	}
 	h.gmReply(sess, fmt.Sprintf("%s %s: now %s (%s), %s alone%s.", strings.ToUpper(whose[:1])+whose[1:], place, auraNow(sp.A), auraWords(sp.A),
 		map[bool]string{true: "this mercenary", false: "this character"}[isMerc], note))
 	log.Printf("GM: %s aura %s %s: %s", player.Name, whose, place, auraWords(sp.A))
+}
+
+// setCharSecondAura keeps a character's (or a mercenary's) hand's second
+// aura (charaura's color2 ... nodes2, audited), beside its first on whatever
+// that hand holds (the owner, 2026-11-16, of Dust's sword: "it will keep the
+// red aura it has and stack the twinkle"): /aura second <kind> <hand> ...
+func (h *ChatHandler) setCharSecondAura(sess *session.Session, player *entity.Player, key database.CharAuraKey, slots []int, place, whose string, isMerc bool, sp auraSpec) {
+	db := h.camps.db
+	for _, slot := range slots {
+		if !database.CharHandSlot(int64(slot)) {
+			h.gmReply(sess, "/aura: a second aura is a held weapon's: /aura second particles mainhand source=1D875ECD along=100 (or offhand, weapons)")
+			return
+		}
+	}
+	if !sp.Off && !database.ValidItemAuraSecond(int64(sp.A.Kind), int64(sp.A.Nodes)) || !sp.Off && !database.HandAuraKind(int64(sp.A.Kind)) {
+		h.gmReply(sess, "/aura: a second aura is particles, epic or energy: /aura second particles mainhand source=1D875ECD along=100, /aura second off mainhand")
+		return
+	}
+	a := sp.A
+	if sp.Off {
+		a = database.ItemAura{}
+	}
+	detail := fmt.Sprintf("/aura in the game: %s %s's second aura: %s", whose, place, auraWords(a))
+	if sp.Look != "" {
+		detail += " (the named look " + sp.Look + ")"
+	}
+	for _, slot := range slots {
+		if err := db.SetCharAuraSecondAudited(key, slot, a, gmEditOf(sess), detail); err != nil {
+			h.gmReply(sess, "/aura: not kept: "+err.Error())
+			return
+		}
+	}
+	if _, err := h.gameWorld.LoadItemAuras(db); err != nil {
+		h.gmReply(sess, "/aura: kept, not yet in the world: "+err.Error())
+		return
+	}
+	h.gmReply(sess, fmt.Sprintf("%s %s's second aura: now %s (%s), beside its first on whatever that hand holds, %s alone (from a client that draws second auras).",
+		strings.ToUpper(whose[:1])+whose[1:], place, auraNow(a), auraWords(a), map[bool]string{true: "this mercenary", false: "this character"}[isMerc]))
+	log.Printf("GM: %s second aura %s %s: %s", player.Name, whose, place, auraWords(a))
+}
+
+// wearsHat reports whether a wearer's auras (PieceAurasOf) carry a hat on
+// the head (entity.AuraHelmHat).
+func wearsHat(a *entity.PieceAuras) bool {
+	return a != nil && a[entity.AuraHelmHat].Kind == database.AuraHat
 }
 
 // auraNow says an aura in the easy words: "a blue particles aura", "no aura".
@@ -661,6 +828,9 @@ func auraNow(a database.ItemAura) string {
 	}
 	if a.Kind == database.AuraCirclet && !database.NPCGlowShows(a.Color) {
 		return fmt.Sprintf("a circlet of %08X", a.Source)
+	}
+	if a.Kind == database.AuraHat && !database.NPCGlowShows(a.Color) {
+		return fmt.Sprintf("the hat of %08X", a.Source)
 	}
 	if a.Kind == database.AuraEpic && !database.NPCGlowShows(a.Color) {
 		return fmt.Sprintf("the epic look of %08X", a.Source)
@@ -691,6 +861,27 @@ func (h *ChatHandler) setItemAura(sess *session.Session, player *entity.Player, 
 	}
 	h.gmReply(sess, fmt.Sprintf("%s now has %s (%s); everyone wearing it shows it, at once (%d items with an aura).", what, auraNow(a), auraWords(a), n))
 	log.Printf("GM: %s aura %s: %s", player.Name, what, auraWords(a))
+}
+
+// setItemSecondAura keeps item a.PatternID's second aura (audited) and puts it
+// in the world; what names the item in the reply.
+func (h *ChatHandler) setItemSecondAura(sess *session.Session, player *entity.Player, a database.ItemAura, what string) {
+	db := h.camps.db
+	found, err := db.SetItemAuraSecondAudited(a, gmEditOf(sess), fmt.Sprintf("/aura in the game: %s's second aura %s", what, auraWords(a)))
+	switch {
+	case err != nil:
+		h.gmReply(sess, "/aura: not kept: "+err.Error())
+		return
+	case !found:
+		h.gmReply(sess, fmt.Sprintf("/aura: no item %d", a.PatternID))
+		return
+	}
+	if _, err := h.gameWorld.LoadItemAuras(db); err != nil {
+		h.gmReply(sess, "/aura: kept, not yet in the world: "+err.Error())
+		return
+	}
+	h.gmReply(sess, fmt.Sprintf("%s's second aura: now %s (%s), beside its first on the hand that holds it, at once (from a client that draws second auras).", what, auraNow(a), auraWords(a)))
+	log.Printf("GM: %s second aura %s: %s", player.Name, what, auraWords(a))
 }
 
 // setNPCAura keeps the target NPC's name's aura (npctint, audited) and sends it.

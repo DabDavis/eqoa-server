@@ -176,7 +176,20 @@ func (db *SQLiteDB) GiveMercItem(serverID uint32, slot, itemID, n, maxStack int)
 		return 0, false, err
 	}
 	id, _ := res.LastInsertId()
-	return int(id), n == stack, tx.Commit()
+	carried := false
+	if n == stack {
+		// the copy's own aura with it (instanceaura.go: a merc's record is -id)
+		if carried, err = carryInstanceAuraTx(tx, itemID, -int(id)); err != nil {
+			return 0, false, err
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return 0, false, err
+	}
+	if carried {
+		moveInstanceCache(itemID, -int(id))
+	}
+	return int(id), n == stack, nil
 }
 
 // MercEquipChange is one merc record's equip slot changing (-1 carried).
@@ -251,15 +264,25 @@ func (db *SQLiteDB) MercItemToPack(serverID uint32, id, n, onto int) (int, error
 	if err != nil {
 		return 0, err
 	}
+	carried := false
 	if n == stack {
 		_, err = tx.Exec(`DELETE FROM charmercitem WHERE id = ?`, id)
+		if err == nil && onto <= 0 {
+			carried, err = carryInstanceAuraTx(tx, -id, itemID) // the copy's own aura with it (instanceaura.go)
+		}
 	} else {
 		_, err = tx.Exec(`UPDATE charmercitem SET stack = ? WHERE id = ?`, stack-n, id)
 	}
 	if err != nil {
 		return 0, err
 	}
-	return itemID, tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+	if carried {
+		moveInstanceCache(-id, itemID)
+	}
+	return itemID, nil
 }
 
 // packIn puts n of the item into the character's pack within tx: onto the

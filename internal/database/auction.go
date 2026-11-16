@@ -1050,6 +1050,15 @@ func deliverTx(tx sqlRunner, l *AuctionLot, now time.Time) (*AuctionDelivery, er
 	if err != nil || !ok {
 		return nil, err
 	}
+	if !merged && !l.Perpetual && !l.PerItem {
+		// the lot's copy, the row it was listed from (item_from), keeps its
+		// own aura on the row it arrives as (instanceaura.go)
+		if carried, err := carryInstanceAuraTx(tx, l.Item.ItemID, itemID); err != nil {
+			return nil, err
+		} else if carried {
+			moveInstanceCache(l.Item.ItemID, itemID) // a failed commit after: the next reload sets it right
+		}
+	}
 	d := &AuctionDelivery{Lot: l.ID, Holder: l.Holder, Item: l.Item, Merged: merged}
 	d.Item.StackLeft, d.Item.EquipLoc, d.Item.Location, d.Item.ItemID = n, -1, -1, itemID
 	if err := execOneTx(tx, `UPDATE auction_lots SET delivered = 1, item_to = ? WHERE lot = ? AND delivered = 0`,

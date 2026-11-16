@@ -34,6 +34,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 	"github.com/eqoa/server/internal/spellfx"
 	"github.com/eqoa/server/internal/transfers"
+	"github.com/eqoa/server/internal/weather"
 	"github.com/eqoa/server/internal/worlds"
 )
 
@@ -309,6 +310,26 @@ func main() {
 	if cfg.World.FactionAggro != nil && !*cfg.World.FactionAggro {
 		gameWorld.SetFactionAggro(false)
 	}
+	// The regional weather (entity/weather.go, internal/weather): the ground
+	// under each square from <worlds>/ground/<world>.profiles (cmd/groundbake
+	// -only-profiles, read once), the GMs' tables (weatherprofiles,
+	// weatherzones, weatherclimates)
+	if cfg.World.Weather != nil && !*cfg.World.Weather {
+		log.Printf("Weather: off (world.weather: false)")
+	} else {
+		gameWorld.Weather = weather.NewEngine()
+		grids, err := weather.ReadProfilesDir(filepath.Join(worlds.Dir(cfg.Patch.WorldsDir), "ground"))
+		if err != nil {
+			log.Printf("WARNING: the weather's profile files: %v; no square has a climate but a weatherzones row's", err)
+		}
+		gameWorld.Weather.SetGrids(grids)
+		if pr, zn, cl, err := gameWorld.LoadWeather(db); err != nil {
+			log.Printf("WARNING: the weather's tables: %v; GM weather only", err)
+		} else {
+			log.Printf("Weather: the ground of %d worlds; %d profiles, %d zones, %d climates in the tables%s", len(grids), pr, zn, cl,
+				map[bool]string{true: " (empty: no automatic weather, GM weather only)", false: ""}[pr == 0 && zn == 0])
+		}
+	}
 	{ // an alchemist merc's stock and draughts (entity/mercbrew.go)
 		every, most, floor := time.Duration(0), -1, -1
 		if v := cfg.World.MercBrewSeconds; v != nil && *v > 0 {
@@ -442,6 +463,13 @@ func main() {
 		}
 	}
 	log.Printf("Creatures: %s", gameWorld.DecorLightSummary())
+	// The pet bodies' dye areas, the Pet Groomers' (entity/petdyes.go, table
+	// petdyeareas)
+	if n, err := gameWorld.LoadPetDyeAreas(db); err != nil {
+		log.Printf("WARNING: %v; every pet is dyed in one area", err)
+	} else if n > 0 {
+		log.Printf("Pets: %d bodies dyed in two areas (petdyeareas), drawn by the clients that ask", n)
+	}
 	// The worn pieces' auras, by item (entity/pieceaura.go, table itemaura)
 	if n, err := gameWorld.LoadItemAuras(db); err != nil {
 		log.Printf("WARNING: %v; no worn piece shows an aura", err)
@@ -669,6 +697,11 @@ func main() {
 	// whose NPC row edits are written to the other shard's database too (handlers/npcmirror.go)
 	handlers.SetNPCMirror(cfg.World.MirrorNPCEditsAccounts, cfg.World.MirrorNPCDB)
 	handlers.SetTeleporter(cfg.World.Teleporter) // handlers/teleporter.go
+	enchantPrice := -1                           // the default, 1 (handlers/enchanter.go)
+	if cfg.World.EnchanterPrice != nil {
+		enchantPrice = *cfg.World.EnchanterPrice
+	}
+	handlers.SetEnchanterPrice(enchantPrice, cfg.World.EnchanterToken, cfg.World.EnchanterTokenID)
 	handlers.SetMercs(cfg.World.Mercs)           // the mercenaries (handlers/merc.go)
 	handlers.SetQuestXPPct(cfg.World.QuestXPPct) // a one-time quest's experience (handlers/questxp.go)
 	handlers.SetFamiliars(cfg.World.Familiars)   // the familiars (handlers/familiar.go)

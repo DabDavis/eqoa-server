@@ -536,3 +536,45 @@ func TestActorBitsNegativeZero(t *testing.T) {
 		t.Fatal("a number other than zero is kept")
 	}
 }
+
+// A world file built before ActorBits holds an extra's -0 as -0: found stale,
+// and a file holding it as the list sends it is not, across a read's seam too
+// (worlds 10 and 13, 2026-11-16).
+func TestStaleNegativeZeros(t *testing.T) {
+	negz := float32(math.Copysign(0, -1))
+	e := Extra{Sprite: 0x1234ABCD, At: [3]float32{1, 2, 3}, HPR: [3]float32{0.5, negz, 0}}
+	b := Built{Recipe: Recipe{Zones: []RecipeZone{{Extras: []Extra{e}}}}}
+	tail := ActorTail(e)
+	old := append([]byte(nil), tail...)
+	binary.LittleEndian.PutUint32(old[4+4*4:], math.Float32bits(negz))
+	if bytes.Equal(old, tail) {
+		t.Fatal("the control: -0 and 0 are the same bytes")
+	}
+	dir := t.TempDir()
+	for _, c := range []struct {
+		name string
+		at   int
+		rec  []byte
+		want int
+	}{
+		{"as sent", 100, tail, 0},
+		{"built before", 100, old, 1},
+		{"across the seam", 8<<20 + 25, tail, 0},
+		{"before, across the seam", 8<<20 + 25, old, 1},
+	} {
+		f := make([]byte, 9<<20)
+		copy(f[c.at:], c.rec)
+		path := filepath.Join(dir, "w.ESF")
+		if err := os.WriteFile(path, f, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if n, err := StaleNegativeZeros(path, b); err != nil || n != c.want {
+			t.Errorf("%s: %d stale (%v), want %d", c.name, n, err, c.want)
+		}
+	}
+	// an extra with no -0 is never looked for: no file needed
+	plain := Built{Recipe: Recipe{Zones: []RecipeZone{{Extras: []Extra{{Sprite: 1}}}}}}
+	if n, err := StaleNegativeZeros(filepath.Join(dir, "none.ESF"), plain); n != 0 || err != nil {
+		t.Errorf("no -0: %d, %v", n, err)
+	}
+}

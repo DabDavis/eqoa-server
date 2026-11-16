@@ -144,6 +144,10 @@ func TestAuraEasyWords(t *testing.T) {
 		{"monk circlet height=82", auraSpec{A: database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: 82}, Where: entity.AuraHelm, Look: "monk circlet"}},
 		{"red circlet head source=1D875ECD height=70%", auraSpec{A: database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: 70}, Where: entity.AuraHelm}},
 		{"circlet helm source=1D875ECD", auraSpec{A: database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD}, Where: entity.AuraHelm}},
+		// a hat another body has built in (2026-11-16, Hoofbite's): on the head by default
+		{"kappa hat", auraSpec{A: database.ItemAura{Kind: database.AuraHat, Source: database.KappaHat}, Where: entity.AuraHelm, Look: "kappa hat"}},
+		{"green Kappa_Hat head", auraSpec{A: database.ItemAura{Color: 0x30FF40FF, Kind: database.AuraHat, Source: database.KappaHat}, Where: entity.AuraHelm, Look: "kappa hat"}},
+		{"hat helm source=F0FAB933", auraSpec{A: database.ItemAura{Kind: database.AuraHat, Source: database.KappaHat}, Where: entity.AuraHelm}},
 		{"sickle taint epic weapons", auraSpec{A: database.ItemAura{Kind: database.AuraEpic, Source: 0x5FD4AE7C}, Where: auraBothHands, Look: "sickle taint"}},
 	} {
 		got, err := parseAuraEasy(strings.Fields(c.in))
@@ -489,5 +493,91 @@ func TestGMLookColours(t *testing.T) {
 	c.say(gs, "/aura white hair")
 	if l := gmReplies(t, gs); !hasLine(l, "a player's") {
 		t.Fatalf("an NPC's hair: %q", l)
+	}
+}
+
+// /aura item <id> second (2026-11-16): a held item's second aura kept beside
+// its first, audited, in the world at once; a shell refused; off clears it;
+// the named look "sword of virtue" is the paladin's epic's.
+func TestGMAuraItemSecond(t *testing.T) {
+	c, db, _, gs, _, _ := campWorld(t)
+	res, err := db.Exec(`INSERT INTO itempattern (itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent, unk4, attacktype,
+		weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, lore, unk6, craft, itemname, itemdesc, model, color)
+		VALUES (0, 0, 1, 0, 14, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 32767, 32767, 0, 0, 0, 0, 'Icingdeath', '', 4, 0)`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pid64, _ := res.LastInsertId()
+	pid := strconv.Itoa(int(pid64))
+	c.say(gs, "/aura item "+pid+" second shell 3060FFFF")
+	if l := gmReplies(t, gs); !hasLine(l, "Usage") {
+		t.Fatalf("a shell as a second: %q", l)
+	}
+	c.say(gs, "/aura item "+pid+" second particles 3060FFFF 6C151A60 0")
+	if l := gmReplies(t, gs); !hasLine(l, "second aura: now") {
+		t.Fatalf("/aura item second: %q", l)
+	}
+	c.say(gs, "/aura item "+pid+" second epic 3060FFFF 88EC092D 101")
+	if l := gmReplies(t, gs); !hasLine(l, "Usage") {
+		t.Fatalf("along 101: %q", l)
+	}
+	second, _ := db.ItemSecondAuras()
+	if a := second[int(pid64)]; a != (database.ItemAura{PatternID: int(pid64), Color: 0x3060FFFF, Kind: database.AuraParticles, Source: 0x6C151A60}) {
+		t.Fatalf("the second: %+v", a)
+	}
+	p := &entity.Player{}
+	p.CharServerID = 9
+	p.SetWornPiece(entity.AuraMainHand, int(pid64))
+	if a := c.gw.PieceAurasOf(p); a == nil || a[entity.AuraMainHand2].Source != 0x6C151A60 {
+		t.Fatalf("not in the world: %+v", a)
+	}
+	c.say(gs, "/aura item "+pid+" second off")
+	if second, _ := db.ItemSecondAuras(); len(second) != 0 || auditLines(t, db, "itemaura", "insert") != 1 || auditLines(t, db, "itemaura", "delete") != 1 {
+		t.Fatal("/aura item second off: not deleted, or not audited")
+	}
+	sp, err := parseAuraEasy([]string{"blue", "sword", "of", "virtue", "mainhand"})
+	if err != nil || sp.A != (database.ItemAura{Color: 0x3060FFFF, Kind: database.AuraEpic, Source: 0x88EC092D}) || sp.Where != entity.AuraMainHand || sp.Look != "sword of virtue" {
+		t.Fatalf("sword of virtue: %+v %v", sp, err)
+	}
+}
+
+// /aura second ... on a player (2026-11-16, Dust's sword: "it will keep the
+// red aura it has and stack the twinkle"): the hand's second kept beside its
+// own first (charaura's color2 ... nodes2), audited, in the world at once; a
+// piece's slot and a shell refused; second off clears it, the first kept.
+func TestGMAuraCharSecond(t *testing.T) {
+	c, db, _, gs, gp, ps, pp := campWorldWithPlayer(t)
+	_ = ps
+	gp.CharServerID, pp.CharServerID = 9001, 197
+	targetAs(gp, pp.ServerID, 200202, gs)
+	c.say(gs, "/aura black particles mainhand")
+	gmReplies(t, gs)
+	c.say(gs, "/aura second particles mainhand source=1D875ECD along=100")
+	if l := gmReplies(t, gs); !hasLine(l, "main hand's second aura: now") {
+		t.Fatalf("/aura second: %q", l)
+	}
+	red := database.ItemAura{Color: 0x000000FF, Kind: database.AuraParticles}
+	twinkle := database.ItemAura{Kind: database.AuraParticles, Source: 0x1D875ECD, Nodes: 100}
+	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraMainHand] != red || a[entity.AuraMainHand2] != twinkle {
+		t.Fatalf("not in the world: %+v", a)
+	}
+	if a := c.gw.PieceAurasOf(gp); a != nil {
+		t.Fatalf("the GM's own: %+v", a)
+	}
+	c.say(gs, "/aura second particles chest source=1D875ECD")
+	if l := gmReplies(t, gs); !hasLine(l, "held weapon's") {
+		t.Fatalf("a second on the chest: %q", l)
+	}
+	c.say(gs, "/aura second red shell mainhand")
+	if l := gmReplies(t, gs); !hasLine(l, "particles, epic or energy") {
+		t.Fatalf("a shell second: %q", l)
+	}
+	c.say(gs, "/aura second off mainhand")
+	gmReplies(t, gs)
+	if a := c.gw.PieceAurasOf(pp); a == nil || a[entity.AuraMainHand] != red || a[entity.AuraMainHand2] != (database.ItemAura{}) {
+		t.Fatalf("second off: %+v", a)
+	}
+	if auditLines(t, db, "charaura", "insert") != 1 || auditLines(t, db, "charaura", "update") != 2 {
+		t.Fatal("not audited")
 	}
 }

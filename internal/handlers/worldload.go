@@ -62,6 +62,7 @@ func clearVisibilityChannels(sess *session.Session) {
 
 	// the new scene's capes, whatever its client was told of the old one's (capes.go)
 	vis.ResendCapes()
+	vis.ResendPetDyes() // and its pets' dyes (petdyes.go)
 
 	log.Printf("World change: cleared %d occupied visibility channels for %s", cleared, sess.RemoteAddr())
 }
@@ -85,11 +86,15 @@ func clearVisibilityChannels(sess *session.Session) {
 // The payload byte is not decoded. Retail sends 0x00; our own PS2 sends 0x00 and
 // sometimes 0x09 for the same destination world, so it is not the world index
 // and nothing here depends on it.
-type WorldLoadHandler struct{}
+//
+// A world loaded has its weather sent again (entity.World.WeatherResend).
+type WorldLoadHandler struct {
+	world *entity.World
+}
 
 // NewWorldLoadHandler creates a world-load handler.
-func NewWorldLoadHandler() *WorldLoadHandler {
-	return &WorldLoadHandler{}
+func NewWorldLoadHandler(w *entity.World) *WorldLoadHandler {
+	return &WorldLoadHandler{world: w}
 }
 
 // RegisterHandlers registers the world-load handlers.
@@ -102,6 +107,10 @@ func (h *WorldLoadHandler) HandleEnableChannel(sess *session.Session, msg *proto
 	// Lift the hold first: a client that is asking for its scene back has
 	// finished loading, whatever the hold deadline says.
 	sess.ReleaseStateChannels()
+	// and the weather goes again, at once (0x00C7), into the loaded world
+	if h.world != nil {
+		h.world.WeatherResend(sess)
+	}
 
 	conn := sess.Connection()
 	if conn == nil {

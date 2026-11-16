@@ -71,6 +71,8 @@ type mercThrowable struct {
 	carried int
 	stock   bool
 	worth   float64
+	// debuff: its Master Class's thrown debuff (mercselfpotion.go)
+	debuff bool
 }
 
 // mercThrowing is a throw on its way: its target and when it lands.
@@ -236,6 +238,12 @@ func containsInt(list []int, v int) bool {
 // creature fighting its team; a spell for undead alone only at undead. Must
 // be called with the lock held.
 func (w *World) mercThrowPickLocked(ms *mercState, t *NPC) (mercThrowable, bool) {
+	return w.mercThrowPickAtLocked(ms, t, time.Time{})
+}
+
+// mercThrowPickAtLocked is mercThrowPickLocked at now: a debuff thrown a
+// moment before is not thrown again (mercselfpotion.go).
+func (w *World) mercThrowPickAtLocked(ms *mercState, t *NPC, now time.Time) (mercThrowable, bool) {
 	aoe := ms.mercAoE()
 	engaged := t != nil && w.mercTeamIDsLocked(ms)[t.CurrentEnemy]
 	may := func(c *mercThrowable) bool {
@@ -252,6 +260,19 @@ func (w *World) mercThrowPickLocked(ms *mercState, t *NPC) (mercThrowable, bool)
 			}
 		}
 		return mercThrowable{}, false
+	}
+	// its Master Class's thrown debuff first, at a creature fighting its team
+	// with none of it on (a Transmuter's Transmutive Potion: mercselfpotion.go)
+	if engaged {
+		for _, c := range w.mercBookDebuffsLocked(ms) {
+			id := PotionEffectID(c.pe.PatternID)
+			if until, ok := ms.ready[id]; ok && now.Before(until) {
+				continue // thrown a moment ago (a creature it did not take on)
+			}
+			if !npcHasEffect(t, id) && may(&c) {
+				return c, true
+			}
+		}
 	}
 	own := func(c *mercThrowable) bool { return (c.pe.Area > 0) == aoe }
 	carried, stock := w.mercCarriedThrowsLocked(ms)
@@ -312,7 +333,7 @@ func (w *World) mercThrowTurnLocked(ms *mercState, t *NPC, now time.Time) bool {
 	if dist3(m.X, m.Y, m.Z, t.X, t.Y, t.Z) > s.Reach+npcReachExtra(t) || !w.inSightLocked(m.World, m.X, m.Y, m.Z, t.X, t.Y, t.Z) {
 		return false
 	}
-	what, ok := w.mercThrowPickLocked(ms, t)
+	what, ok := w.mercThrowPickAtLocked(ms, t, now)
 	if !ok {
 		return false
 	}
@@ -324,6 +345,12 @@ func (w *World) mercThrowTurnLocked(ms *mercState, t *NPC, now time.Time) bool {
 	m.stopMoving()
 	m.Facing = headingTo(t.X-m.X, t.Z-m.Z)
 	w.mercUsedLocked(ms, what.carried, what.stock, what.pe.PatternID)
+	if what.debuff {
+		if ms.ready == nil {
+			ms.ready = map[int]time.Time{}
+		}
+		ms.ready[PotionEffectID(what.pe.PatternID)] = now.Add(max(what.pe.duration()/2, mercSelfPotionAgain/5))
+	}
 	ms.throwReady = now.Add(s.Delay)
 	ms.throwing = &mercThrowing{target: t.ServerID, lands: now.Add(mercThrowLand), what: what}
 	ms.busy = now.Add(mercThrowLand) // it stands for its throw

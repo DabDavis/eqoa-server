@@ -76,7 +76,7 @@ func addPetitions(t *testing.T, db *database.SQLiteDB, petitions [][3]int) {
 			status = "deleted" // a deleted report counts, as on the page
 		}
 		if _, err := db.Exec(`INSERT INTO petitions (serverid, charname, accountid, category, subcategory, filed, status)
-			VALUES (?, 'c', ?, ?, ?, '2026-11-14T00:00:00Z', ?)`, 1000+p[0], p[0], p[1], p[2], status); err != nil {
+			VALUES (?, ?, ?, ?, ?, '2026-11-14T00:00:00Z', ?)`, 1000+p[0], bugPlayer(p[0]), p[0], p[1], p[2], status); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -140,7 +140,7 @@ func TestBugBoardTalk(t *testing.T) {
 		}
 		return []string{"box:" + strings.Join(m, "\n")}
 	}
-	want := "box:" + bugBoardHeadBoth + "\n1. forestwood: 6 bugs\n2. Zaeire: 5 (4 bugs, 1 crash)\n3. Blorck17 (Live): 2 crashes\n4. Blorck17: 1 bug\n" + bugBoardFootText
+	want := "box:" + bugBoardHeadBoth + "\n1. Forestwood: 6 bugs\n2. Zaeirechar: 5 (4 bugs, 1 crash)\n3. Blorck (Live): 2 crashes\n4. Blorck: 1 bug\n" + bugBoardFootText
 	m := boxes(board)
 	if strings.Join(m, "|") != want {
 		t.Errorf("the board said\n%q\nwant\n%q", m, want)
@@ -152,14 +152,14 @@ func TestBugBoardTalk(t *testing.T) {
 		t.Errorf("recounted within the minute: %q", m)
 	}
 	now = now.Add(bugBoardFresh)
-	if m := boxes(board); len(m) == 0 || !strings.Contains(m[0], "\n1. forestwood: 6 bugs\n2. Zaeire: 5 (4 bugs, 1 crash)\n3. Blorck17: 4 bugs\n4. Blorck17 (Live): 2 crashes\n") {
+	if m := boxes(board); len(m) == 0 || !strings.Contains(m[0], "\n1. Forestwood: 6 bugs\n2. Zaeirechar: 5 (4 bugs, 1 crash)\n3. Blorck: 4 bugs\n4. Blorck (Live): 2 crashes\n") {
 		t.Errorf("after the minute: %q", m)
 	}
 
 	// the other shard unreadable: this shard's alone, told as one shard's
 	b.open = func(string) (*sql.DB, error) { return nil, errors.New("gone") }
 	now = now.Add(bugBoardFresh)
-	if m := boxes(board); len(m) == 0 || !strings.HasPrefix(m[0], "box:"+bugBoardHeadOne+"\n1. forestwood") || strings.Contains(m[0], "Live") {
+	if m := boxes(board); len(m) == 0 || !strings.HasPrefix(m[0], "box:"+bugBoardHeadOne+"\n1. Forestwood") || strings.Contains(m[0], "Live") {
 		t.Errorf("with the other shard gone: %q", m)
 	}
 
@@ -213,4 +213,9 @@ func TestBugBoardSettings(t *testing.T) {
 	if !IsBugBoard(" bug finder leaderboard ") || IsBugBoard("Bug Finder") {
 		t.Error("IsBugBoard")
 	}
+}
+
+// bugPlayer is the character an account's test reports are filed under: the board shows it, not the account.
+func bugPlayer(account int) string {
+	return map[int]string{1: "Dust", 8: "Funyunchar", 10: "Jibrish", 20: "Zaeirechar", 21: "Forestwood", 22: "Blorck", 23: "Quietone"}[account]
 }

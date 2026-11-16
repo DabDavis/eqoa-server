@@ -100,6 +100,7 @@ func IsBugBoard(name string) bool {
 // bugRow is one account's line: on one shard, marked with the shard's mark.
 type bugRow struct {
 	Name, Mark    string
+	Account       string // the account's name, which world.bug_board.exclude names (Name is its player's)
 	Bugs, Crashes int
 }
 
@@ -134,11 +135,14 @@ func bugTallies(q database.Queryer, mark string) ([]bugRow, error) {
 	}
 	out := make([]bugRow, 0, len(ts))
 	for _, t := range ts {
-		name := t.Username
+		name := t.Player
+		if name == "" {
+			name = t.Username
+		}
 		if name == "" {
 			name = fmt.Sprintf("account %d", t.AccountID)
 		}
-		out = append(out, bugRow{Name: name, Mark: mark, Bugs: t.Bugs, Crashes: t.Crashes})
+		out = append(out, bugRow{Name: name, Account: t.Username, Mark: mark, Bugs: t.Bugs, Crashes: t.Crashes})
 	}
 	return out, nil
 }
@@ -185,7 +189,11 @@ func (b *BugBoard) count(s bugBoardSettings) (rows []bugRow, other bool, err err
 func bugBoardRank(rows []bugRow, exclude map[string]bool) []bugRow {
 	out := make([]bugRow, 0, len(rows))
 	for _, r := range rows {
-		if r.total() > 0 && !exclude[strings.ToLower(strings.TrimSpace(r.Name))] {
+		acct := r.Account
+		if acct == "" {
+			acct = r.Name
+		}
+		if r.total() > 0 && !exclude[strings.ToLower(strings.TrimSpace(acct))] {
 			out = append(out, r)
 		}
 	}

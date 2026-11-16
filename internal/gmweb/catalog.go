@@ -1473,7 +1473,9 @@ var catalog = map[string]tableNote{
 			"(none: always). Shapes and their params (JSON): spiral {base:[x,y,z], r0, y0, r1, y1, turns, top} a garland " +
 			"round a cone (a tree; top RRGGBB a star); rings {base, r0, y0, r1, y1, rings, top}; line {from:[x,y,z], " +
 			"to:[x,y,z], sag, posts} (a fence's rail sagging between posts); box {min:[x,y,z], max:[x,y,z], edges: top, " +
-			"bottom or all} (a building's roof line); points {points:[[x,y,z], ...]}. Any shape may take spacing, its own.",
+			"bottom or all} (a building's roof line); points {points:[[x,y,z], ...]}; path {points, star} the points in order on a cord " +
+			"(a garland fitted to a model); presents {boxes:[{at:[x,y,z], size:[w,h,d], yaw, color, ribbon, bow}]} gift boxes, no " +
+			"bulbs or template. Any shape may take spacing, its own; star [x,y,z] with top places the star.",
 		Live:   "At once: laid again and sent to every client that draws them.",
 		Search: []string{"template", "npc", "season", "note", "source"},
 		Cols: map[string]colNote{

@@ -89,12 +89,15 @@ func TestEncodeDecorLights(t *testing.T) {
 	if r[0] != 0 || r[1] != 3 || r[2] != 3 {
 		t.Fatalf("the world's string's head: % X", r[:3])
 	}
-	if len(r) != 3+12+12+1+4+2+2*14+2+11 {
+	if len(r) != 3+12+12+1+4+2+2*14+2+11+2 {
 		t.Fatalf("the world's string and the art: %d bytes left", len(r))
 	}
 	r = r[3+12+12+1+4+2+2*14:]
 	if binary.LittleEndian.Uint16(r) != 1 || binary.LittleEndian.Uint32(r[2:]) != 0x0E318233 || r[6] != 0 || binary.LittleEndian.Uint16(r[7:]) != 32 || math.Float32frombits(binary.LittleEndian.Uint32(r[9:])) != 9.5 {
 		t.Errorf("the art: % X", r)
+	}
+	if r = r[13:]; binary.LittleEndian.Uint16(r) != 0 {
+		t.Errorf("the presents: % X, want none", r)
 	}
 }
 
@@ -120,5 +123,44 @@ func TestADecorationsArtGoesOnlyToTheClientsThatDrawIt(t *testing.T) {
 	}
 	if m := binary.LittleEndian.Uint32(beetle[28:]); m != creationBody || beetle[26]&1 != 1 {
 		t.Errorf("the control: model %08X, byte 26 %d", m, beetle[26])
+	}
+}
+
+// A presents string carries its boxes after the art, needs no template, lays no
+// bulbs; a box with no ribbon sends 0.
+func TestDecorPresents(t *testing.T) {
+	rows := []database.LightString{{ID: 7, NPC: "Christmas Tree", Shape: database.ShapePresents,
+		Params: `{"boxes":[{"at":[1,0,2],"size":[1,0.8,1],"yaw":90,"color":"C02020","ribbon":"FFD040","bow":true},{"at":[0,0,0],"size":[0.5,0.5,0.5],"color":"2050C0"}]}`}}
+	strs := BuildDecorStrings(nil, rows, nil)
+	if len(strs) != 1 || strs[0].Problem != "" || len(strs[0].Gifts) != 2 || len(strs[0].Bulbs) != 0 {
+		t.Fatalf("built: %+v", strs)
+	}
+	g := strs[0].Gifts[0]
+	if g.Color != 0xC02020 || !g.RibbonOn || g.Ribbon != 0xFFD040 || !g.Bow || math.Abs(float64(g.Yaw)-math.Pi/2) > 1e-6 {
+		t.Errorf("box 1: %+v", g)
+	}
+	b, sent, _ := EncodeDecorLights(strs, nil)
+	if sent != 0 || binary.LittleEndian.Uint16(b) != 0 || binary.LittleEndian.Uint16(b[2:]) != 0 {
+		t.Fatalf("no string, no art: % X", b[:4])
+	}
+	r := b[4:]
+	if binary.LittleEndian.Uint16(r) != 1 || r[2] != 1 || string(r[4:4+int(r[3])]) != "christmas tree" {
+		t.Fatalf("the set's head: % X", r[:20])
+	}
+	r = r[4+int(r[3]):]
+	if binary.LittleEndian.Uint16(r) != 2 || len(r) != 2+2*(7*4+4+4+1) {
+		t.Fatalf("the boxes: %d bytes", len(r))
+	}
+	r = r[2:]
+	if binary.LittleEndian.Uint32(r[28:]) != 0xC02020FF || binary.LittleEndian.Uint32(r[32:]) != 0xFFD040FF || r[36] != 1 {
+		t.Errorf("box 1's colours: % X", r[28:37])
+	}
+	if binary.LittleEndian.Uint32(r[37+32:]) != 0 || r[37+36] != 0 {
+		t.Errorf("box 2: no ribbon, no bow: % X", r[37+28:37+37])
+	}
+	for _, bad := range []string{`{"boxes":[]}`, `{"boxes":[{"at":[0,0,0],"size":[0,1,1],"color":"FF0000"}]}`, `{"boxes":[{"at":[0,0,0],"size":[1,1,1],"color":"red"}]}`} {
+		if s := BuildDecorStrings(nil, []database.LightString{{Shape: "presents", Params: bad}}, nil); s[0].Problem == "" {
+			t.Errorf("%s: no problem said", bad)
+		}
 	}
 }

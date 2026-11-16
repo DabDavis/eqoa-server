@@ -121,6 +121,14 @@ func TestDecorBulbsLayTheShapes(t *testing.T) {
 	if breaks != 5 {
 		t.Errorf("box, all edges: %d breaks, want 5 (the top ring and four uprights)", breaks)
 	}
+	// a path: its points in order, the star where it says
+	b, err = DecorBulbs(tmpl, LightString{ID: 7, Shape: ShapePath, Params: `{"points": [[1,2,3],[4,5,6]], "top": "FFE070", "star": [0, 9, 0]}`})
+	if err != nil || len(b) != 2 || b[1].X != 4 {
+		t.Errorf("path: %+v, %v", b, err)
+	}
+	if c, at, ok := DecorTopColor(LightString{Shape: ShapePath, Params: `{"points": [[1,2,3]], "top": "FFE070", "star": [0, 9, 0]}`}); !ok || c != 0xFFE070 || at != [3]float32{0, 9, 0} {
+		t.Errorf("path's star: %06X at %v, %v", c, at, ok)
+	}
 	// alternate: odd and even half a cycle apart
 	tmpl.Effect = LightAlternate
 	b, _ = DecorBulbs(tmpl, LightString{ID: 4, Shape: ShapePoints, Params: `{"points": [[0,0,0],[1,0,0],[2,0,0]]}`})

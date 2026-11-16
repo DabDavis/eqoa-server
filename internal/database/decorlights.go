@@ -114,10 +114,19 @@ const (
 	ShapeBox = "box"
 	// points [[x,y,z], ...], a bulb at each
 	ShapePoints = "points"
+	// points [[x,y,z], ...] in order, a bulb at each and the cord through them: a garland laid
+	// by hand, or fitted to a model's surface (the owner, 2026-11-16: the lights "not quite lined
+	// on the tree perfectly": tools fit each bulb to the fir's boughs)
+	ShapePath = "path"
+	// presents under a tree: boxes [{at: [x,y,z] (its bottom's middle), size: [w,h,d], yaw
+	// (degrees), color: RRGGBB, ribbon: RRGGBB (blank none), bow: true}], drawn as wrapped gift
+	// boxes (the owner: "we need some different color presents under the tree"); no bulbs, no
+	// template needed
+	ShapePresents = "presents"
 )
 
 // LightShapes is every shape, in the order the panel offers them.
-var LightShapes = []string{ShapeSpiral, ShapeRings, ShapeLine, ShapeBox, ShapePoints}
+var LightShapes = []string{ShapeSpiral, ShapeRings, ShapeLine, ShapeBox, ShapePoints, ShapePath, ShapePresents}
 
 // The bounds of the lights: bulbs on one string, in a message, colours a template.
 const (
@@ -177,6 +186,11 @@ type LightParams struct {
 	Max    *[3]float64  `json:"max,omitempty"`
 	Edges  string       `json:"edges,omitempty"`
 	Points [][3]float64 `json:"points,omitempty"`
+	// Star, when set with Top, is where the star stands (any shape; a spiral's or rings' is
+	// over its top without it)
+	Star *[3]float64 `json:"star,omitempty"`
+	// Boxes are a presents string's gift boxes
+	Boxes []GiftBox `json:"boxes,omitempty"`
 	// Spacing, when set, is this string's own in place of its template's
 	Spacing float64 `json:"spacing,omitempty"`
 	// Top, when set, is a bulb of this colour (0xRRGGBB, as a hex string) at the
@@ -418,7 +432,7 @@ func DecorBulbs(t LightTemplate, s LightString) ([]Bulb, error) {
 			l := line(e[0], e[1], spacing, 0, 0)
 			pts = append(pts, l[:len(l)-1]...) // each corner once
 		}
-	case ShapePoints:
+	case ShapePoints, ShapePath:
 		pts = p.Points
 	default:
 		return nil, fmt.Errorf("shape %q: one of %s", s.Shape, strings.Join(LightShapes, ", "))
@@ -473,12 +487,15 @@ func DecorBulbs(t LightTemplate, s LightString) ([]Bulb, error) {
 // DecorTopColor is a string's top bulb's colour (Params.Top), if it names one.
 func DecorTopColor(s LightString) (uint32, [3]float32, bool) {
 	p, err := ReadLightParams(s.Params)
-	if err != nil || strings.TrimSpace(p.Top) == "" || p.Y1 <= p.Y0 {
+	if err != nil || strings.TrimSpace(p.Top) == "" || (p.Star == nil && p.Y1 <= p.Y0) {
 		return 0, [3]float32{}, false
 	}
 	c, err := ParseLightColors(p.Top)
 	if err != nil || len(c) != 1 {
 		return 0, [3]float32{}, false
+	}
+	if p.Star != nil {
+		return c[0], [3]float32{float32(p.Star[0]), float32(p.Star[1]), float32(p.Star[2])}, true
 	}
 	base := [3]float64{}
 	if p.Base != nil {
@@ -606,4 +623,65 @@ func (db *SQLiteDB) ensureDecorArtSink() error {
 	}
 	_, err := db.Exec(`ALTER TABLE decorart ADD COLUMN sink REAL NOT NULL DEFAULT 0`)
 	return err
+}
+
+// GiftBox is one present of a presents string.
+type GiftBox struct {
+	At     [3]float64 `json:"at"`
+	Size   [3]float64 `json:"size"`
+	Yaw    float64    `json:"yaw,omitempty"`
+	Color  string     `json:"color"`
+	Ribbon string     `json:"ribbon,omitempty"`
+	Bow    bool       `json:"bow,omitempty"`
+}
+
+// Gift is a present as the world sends it: colours 0xRRGGBB (Ribbon 0 and
+// RibbonOn false: none), the yaw in radians.
+type Gift struct {
+	At, Size [3]float32
+	Yaw      float32
+	Color    uint32
+	Ribbon   uint32
+	RibbonOn bool
+	Bow      bool
+}
+
+// DecorMaxGifts is the most presents a string carries.
+const DecorMaxGifts = 64
+
+// DecorGifts reads a presents string's boxes, or says what is wrong.
+func DecorGifts(s LightString) ([]Gift, error) {
+	p, err := ReadLightParams(s.Params)
+	if err != nil {
+		return nil, err
+	}
+	if len(p.Boxes) == 0 {
+		return nil, fmt.Errorf("presents: no boxes")
+	}
+	if len(p.Boxes) > DecorMaxGifts {
+		return nil, fmt.Errorf("presents: %d boxes, %d at most", len(p.Boxes), DecorMaxGifts)
+	}
+	out := make([]Gift, 0, len(p.Boxes))
+	for i, b := range p.Boxes {
+		c, err := ParseLightColors(b.Color)
+		if err != nil || len(c) != 1 {
+			return nil, fmt.Errorf("presents: box %d's color %q: one RRGGBB", i+1, b.Color)
+		}
+		g := Gift{Color: c[0], Bow: b.Bow, Yaw: float32(b.Yaw * math.Pi / 180)}
+		if r := strings.TrimSpace(b.Ribbon); r != "" && !strings.EqualFold(r, "none") {
+			rc, err := ParseLightColors(r)
+			if err != nil || len(rc) != 1 {
+				return nil, fmt.Errorf("presents: box %d's ribbon %q: one RRGGBB, or blank", i+1, b.Ribbon)
+			}
+			g.Ribbon, g.RibbonOn = rc[0], true
+		}
+		for k := 0; k < 3; k++ {
+			if b.Size[k] <= 0 || b.Size[k] > 10 {
+				return nil, fmt.Errorf("presents: box %d's size %v: each more than 0, at most 10", i+1, b.Size)
+			}
+			g.At[k], g.Size[k] = float32(b.At[k]), float32(b.Size[k])
+		}
+		out = append(out, g)
+	}
+	return out, nil
 }

@@ -96,7 +96,11 @@ func checkLightTemplateRow(row map[string]any) error {
 // checkLightStringRow holds a lightstrings row to a template, a shape and
 // params that read.
 func checkLightStringRow(row map[string]any) error {
-	if v, ok := row["template"]; ok {
+	presents := false
+	if v, ok := row["shape"].(string); ok && strings.EqualFold(strings.TrimSpace(v), database.ShapePresents) {
+		presents = true // its boxes need no template
+	}
+	if v, ok := row["template"]; ok && !presents {
 		if t, _ := v.(string); strings.TrimSpace(t) == "" {
 			return badRequest("template is a light template's name (Christmas lights)")
 		}

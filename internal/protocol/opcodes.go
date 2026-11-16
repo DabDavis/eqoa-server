@@ -1022,7 +1022,10 @@ const (
 	// this client in their bodies' place: a u16 count, each a u32 sprite
 	// DictID, a u8 world, a u16 zone (its index in the world's file), the zone
 	// that holds it, which the client reads to have the sprite, and an f32
-	// sink: the art drawn that much lower, in its own units.
+	// sink: the art drawn that much lower, in its own units. Then the presents
+	// (a u16 count of sets, each its anchor as a string's, a u16 count of
+	// boxes, each f32 x, y, z, w, h, d, yaw, u32 colour, u32 ribbon (0 none),
+	// u8 bow): a client before them stops reading at the art.
 	OpcodeDecorLights GameOpcode = 0x7E82
 )
 

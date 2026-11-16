@@ -73,9 +73,11 @@ type DecorString struct {
 	CordOn    bool
 	CordWidth float32
 	CordSag   float32
-	ID        int64
-	Season    string
-	Problem   string // why it lays nothing ("" none)
+	// Gifts are a presents string's boxes (no bulbs)
+	Gifts   []database.Gift
+	ID      int64
+	Season  string
+	Problem string // why it lays nothing ("" none)
 }
 
 // BuildDecorStrings lays the bulbs of every string of a season in active (by
@@ -91,6 +93,15 @@ func BuildDecorStrings(templates map[string]database.LightTemplate, rows []datab
 		d := DecorString{ID: r.ID, Season: r.Season, World: uint8(max(0, min(r.World, 255)))}
 		if n := strings.TrimSpace(r.NPC); n != "" {
 			d.NPC = TintWireName(database.NPCClassKey(n))
+		}
+		if strings.EqualFold(strings.TrimSpace(r.Shape), database.ShapePresents) {
+			gifts, err := database.DecorGifts(r)
+			if err != nil {
+				d.Problem = err.Error()
+			}
+			d.Gifts = gifts
+			out = append(out, d)
+			continue
 		}
 		t, ok := templates[database.SeasonKey(r.Template)]
 		if !ok {
@@ -183,6 +194,42 @@ func EncodeDecorLights(strs []DecorString, art []database.DecorArt) (body []byte
 		b = append(b, byte(max(0, min(a.World, 255))))
 		b = binary.LittleEndian.AppendUint16(b, uint16(max(0, min(a.Zone, 0xFFFF))))
 		b = binary.LittleEndian.AppendUint32(b, math.Float32bits(a.Sink))
+	}
+	// then the presents (a u16 count of sets, each its anchor as a string's, a
+	// u16 count of boxes and each: f32 x, y, z (its bottom's middle), w, h, d,
+	// yaw (radians), u32 colour 0xRRGGBBFF, u32 ribbon (0 none), u8 bow); a
+	// client before them reads none
+	var sets []DecorString
+	for _, d := range strs {
+		if len(d.Gifts) > 0 {
+			sets = append(sets, d)
+		}
+	}
+	b = binary.LittleEndian.AppendUint16(b, uint16(len(sets)))
+	for _, d := range sets {
+		if d.NPC != "" {
+			b = append(b, 1, byte(len(d.NPC)))
+			b = append(b, d.NPC...)
+		} else {
+			b = append(b, 0, d.World)
+		}
+		b = binary.LittleEndian.AppendUint16(b, uint16(len(d.Gifts)))
+		for _, g := range d.Gifts {
+			for _, v := range []float32{g.At[0], g.At[1], g.At[2], g.Size[0], g.Size[1], g.Size[2], g.Yaw} {
+				b = binary.LittleEndian.AppendUint32(b, math.Float32bits(v))
+			}
+			b = binary.LittleEndian.AppendUint32(b, g.Color<<8|0xFF)
+			rib := uint32(0)
+			if g.RibbonOn {
+				rib = g.Ribbon<<8 | 0xFF
+			}
+			b = binary.LittleEndian.AppendUint32(b, rib)
+			bow := byte(0)
+			if g.Bow {
+				bow = 1
+			}
+			b = append(b, bow)
+		}
 	}
 	return b, sent, bulbs
 }

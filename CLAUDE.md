@@ -3286,6 +3286,7 @@ case *entity.NPC:
 | `playerRespawnSystem` | Every tick | A dead player (`respawn.go`: 0x005E once, off every threat list, no regen) is restored 15 s after its death (Sandstorm's 15.6 s in `pcaps/breath_capture.pcap`) and sent a MemoryDump at its bind point (`charbind`, a spiritmaster's; never bound, the login spawn: `homeOf`): the dump, not 0x00B2, is what clears CLIENT's dead flag (Msg000D's ClearPC1B0). **A death leaves the live game's experience debt** (`deathdebt.go`; the user: "add xp debt on death like live"): its level's unrezzed debt (eqoa.fandom.com's Formulas chart, levels 6-54; SOE's Corsten state holds exactly five level 49 deaths of it), added to what is owed, told by 0x00D9 (the debt icon on the player's own target bar) and a line (ours); none below level 6, the chart's blanks (51, 53, 55-60) on its curve, ours; half of every award pays it (`mastery.go` splitXP); `#debt [amount]` shows or sets a GM's own (and what a rez may still give back). A resurrection gives back its printed share of what the latest death added (`resurrect.go`, below) |
 | `regenSystem` | Every 6 s | Health and power over time as the live game's (`regen.go`; eqoa.fandom.com's Formulas and HoT pages, F3 pass 14): HoT = max HP / 50 and PoT = max power / 50 (at least 1), plus worn items' HoT/PoT, the best in full, the second at `SecondItemShare` (40%, the Formulas page; the HoT page says 50%), each further one 1, plus a meal's HoT and a drink's PoT (`consumable.go`); every 6 s, in a fight or out of it (Sandstorm's capture: power ticked every 6.0-6.2 s through a fight); a HoT below nothing (the Lich form's -196, the workbook's) takes its hit points at full health too (the user, 2026-11-01: until then a full necromancer paid nothing), and one a spell makes can kill (the owner, 2026-11-10, for the GM Jibrish's ruling in jib's PR #1: "You could definitely kill yourself with lich form"; until then it stopped at 1, as a worn item's below nothing still does); the stat channel carries PoT and HoT |
 | `vampireSunSystem` | Every 6 s | **The sun burns a vampire by day** (`entity/vampire.go`; the user, 2026-10-30, Sandstorm's Afkqq "loses 50 HP about every 6 seconds while it is daylight", then "shade protecting vampire from dot would be good"): a vampire (table `charvampire`, a row a character, read at its login; `#vampire [on\|off]` and the panel's Vampires table set one live, source gm; the vampire quest's bats make one, source quest: its kill step's `vampire` event, below) that is alive, in the world and not loading one takes `world.vampire_sun_damage` (50) every `vampire_sun_interval` (6 s: the regeneration's tick, after it), told as Sandstorm tells it (0x00DB from 0xFFFFFFFF, zigzag -50, to the player: a figure over the player as a creature's hit), while its own client shows the sun up (after 6:00, before 18:00: the sky's sun and light, `VIAtmosphere::Update`, `InitTimeOfDay`); the hour is the session's own clock (`session/gameclock.go`: each 0x0013's second reading, carried at the client's 983.04 ticks a second and blended as VISyncTime blends, so a 61.04-minute day that drifts a minute an hour from the server's), and unless something is over it (`vampire_sun_shade`, on: `ground.Roof`, the terrain and the walls files from 1 over its feet to 1000 up, either face: a roof, a floor above, a cave's or a cavern's rock (Neriak's streets), a big tree's crown; S2's world 7 is world 5's files). It dies of it as of anything (`playerDiedLocked`). A GM's vampire burns too unless `vampire_sun_gms` is false (the GM flag read at its login). The four settings are the GM panel's live settings (an admin's), kept in config.yaml. Clouds are no shade: a stormy profile's sky shows no sun by day (sky type 2, the Plane of Sky's profile 20), but it is day |
+| `weatherSystem` | Every 10 ticks | **The regional weather** (`entity/weather.go`, below): each in-world player not loading is sent the retail byte of its square's weather when it changes (0x00C7 at once after entry, a MemoryDump or 0x0049; else 0x00C5, faded) and, to a client that answered 0x7E93, the timelines round it (0x7E94) when its zones or their revisions change |
 | `silentAirSystem` | Every 10 ticks | `world.movecheck: enforce` only (`movecheck.go`): a player whose last report was in the air and that has sent none for 3 s is put down on the floor under it (a falling client reports every step; one hanging in the air in silence is held up by nothing) |
 | `stateSyncSystem` | Every tick | Serialize player state to channel 0 |
 | `statChannelSyncSystem` | Every 20 ticks | Serialize stats to channel 0x42 |
@@ -3294,6 +3295,29 @@ case *entity.NPC:
 | `raidStateSystem` | Every 10 ticks | **The raid's state** (0x7E44) to a client that answered 0x7E42 when it changed (its leader, helper and main assist as that client knows them, the loot rule, in combat), and the kicked members' claims whose fight is over swept (`raidrules.go`); the loot's rolls and holds end on `handlers/raidloot.go`'s own worker, once a second |
 | `petEffectsSystem` | Every 5 ticks | **The pet's effects** (0x7E33) to a client that asked with 0x7E32 (vanilla's row under the pet's bar, Extended > UI's Pet Effects; the user, 2026-11-09: "jibcro is showing pets buffs as if on him, put the buff icons under the pet name plate"): each effect on the player's pet with a name that has not run out (its own buffs, its owner's, its drain's share), its icon, time left and name, in the order they went on, when the set changed and at once after the ask; an empty set as the pet goes (`peteffects.go`). A PS2 never asks and is sent none. **The player's own effects window (0x43) is its own effects alone**: from petition 1041 (2026-11-06, Eatma: "Pet buffs for necro aren't showing up on buff display") until this, `buffChannelSyncSystem` sent the pet's after them, so every client, a PS2's too, showed them as the player's own |
 | `dpsMeterSystem` | Every 5 ticks | **The damage meters** (0x7E3C) to each client that asked with 0x7E3B (vanilla's DPS Meter, Extended > Combat; the owner, 2026-11-10: "lets add dps meters, will work solo, group, raid"): its group's fight as it stands, at most once a second while it changes, and once more as it ends, `DPSMeterIdle` (10 s) after the group's last damage (`dpsmeter.go`). A PS2 never asks and is sent none |
+
+### Regional weather (`internal/weather`, `entity/weather.go`, `handlers/weather.go`; board #1549, jibrish's rule)
+
+Sandstorms only on sand ground, snow only on snow, rain elsewhere, nothing on lava, unless a GM calls it.
+**The ground** is the game's own terrain profile under each 500x500 square: the world base's grid (0x8220
+header, 0x8240 bytes; CLIENT `VIWorld::CalcProfileBlend`), written by `cmd/groundbake -only-profiles` as
+`<worlds>/ground/<world>.profiles` (game data, never committed; read once at the start; a world without one
+has no climate but a `weatherzones` row's). **Tables** (`database/weather.go`; GM panel group World, an edit
+reloads at once): `weatherprofiles` (a profile's climate: temperate, arctic, desert, none), `weatherzones` (a
+GM's word for a whole 2000x2000 zone, `w<world>-c<col>-r<row>`, above the profiles), `weatherclimates` (each
+climate's schedule); `tools/seed_weather.py` seeds them (2/10 arctic, 3/11 desert, 19 none; the Lavastorm world
+and Zaoran Plateau none; rain 6-12 min, snow 6-12 with a whiteout in half the heavy ones, sand 3-6, a 40-minute
+cycle). **The schedule** is a pure function of the clock (nothing saved, both shards agree): an area (one
+climate's squares in a 3x3 block of zones) draws one event a cycle from `hash(20261024, area, k)`; each zone
+meets the front 0-120 s late along the wind. **A GM's weather** (`#weather <kind> [strength] [minutes]
+[here|near N|world] [say ...]`, `#weather status|list|auto|end <id>|reload`; the trigger step `weather`, ended
+with its run; the panel's `weather_status`/`weather_set`/`weather_end`, audited) is an override in memory (256
+at most, a restart drops it) over every square of its zones, lava too, fading in from what shows; after it the
+automatic weather comes back with its first event that starts after its end + fade. **What is sent**: the retail
+byte, the target of the phase being faded to or held (rain 1/2/3 at strength >= 0.01/0.325/0.75, snow and
+whiteout 4/5/6, sand 0): CLIENT's 0x00C5 is `SetWeather(w, 0)`, FADED, 0x00C7 `SetWeather(w, 1)`, at once;
+`VIAtmosphere`'s lv table {0, .15, .5, 1, .15, .5, 1} makes 1-3 rain and 4-6 snow whatever the decomp's WXTYPE
+names say. An instance (homes, dungeons) is clear. `world.weather: false`: no engine, nothing sent.
 
 ### The game's balance (`entity/balance.go`, tables `balance*`)
 
@@ -4066,6 +4090,16 @@ datagram more for each 24 slots (`TickSession`, `statePacketsPerTick`), each wit
 `MaxStateUpdatesPerTick` entity channels further round the round robin. A session that
 never asks (every PS2) is exactly as before: 24 slots within 300, one datagram a tick
 (`TestPS2TickIsOneDatagram`).
+
+**The regional weather's timelines** (2026-11-16; `entity/weather.go`, `internal/weather/wire.go`). When
+the weather is on, beside 0x7E01's offer, the server offers opcode **0x7E93** (`OpcodeWeather`, a u32 1; not
+retail, ignored by a PS2; 0x7E90-0x7E92 are the pet dyes'). A client that draws the server's sandstorms and
+whiteouts (vanilla, board #1550) answers 1 (0 to stop) and is sent **0x7E94** (`OpcodeWeatherData`) on entry, a
+zone change and a revision change: u8 zones (<= 4: its own, then any within 100 units), each u8 world, u16 col,
+u16 row, u8 timelines (0-3), each u16 squares (bit (sz%4)*4 + (sx%4); a GM's 0xFFFF), u32 revision, u32 seed,
+f32 wind_x, f32 wind_z, u8 n (2-12), n phases of {i32 at_ms relative to the message, u8 kind (0 clear 1 rain 2
+snow 3 sand 4 whiteout), u8 strength of 255}; a square in no timeline is clear. Every client gets the retail
+byte (0x00C5/0x00C7) as well.
 
 **Others' power for a client's bars** (2026-10-25; `entity/powerbars.go`,
 `handlers/powerbars.go`, `claude-notes/mana-bars-20261025.md`). The game shows no one's

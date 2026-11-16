@@ -165,6 +165,8 @@ func TestRealMercAlchemistMasterClassesBrew(t *testing.T) {
 				if k.Master != mc.Name {
 					t.Errorf("%s: master %q", mc.Name, k.Master)
 				}
+				want := want
+				want = append(slices.Clone(want), realKeepsakes[mc.Name]...) // its keepsakes, after them (mercpill_test.go)
 				if got := gw.MercBrewsFor(k); !slices.Equal(got, want) {
 					t.Errorf("race %d path %d %s with its slots set keeps %v, want %v", race, path, mc.Name, got, want)
 				}

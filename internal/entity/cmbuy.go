@@ -827,7 +827,51 @@ func (w *World) CMNodeOf(sess *session.Session, id int, k CMKnows) (CMNode, bool
 			}
 		}
 	}
+	if !owned {
+		n.Masteries = append(n.Masteries, w.cmUnshownBlocksLocked(p, r, k)...)
+	}
 	return n, true
+}
+
+// cmUnshownBlocksLocked is what bars the rank that CLIENT's Requirements
+// window has no page for, said as lines of its Required Masteries page (the
+// one list of free text it shows). A rank not known is listed "???" and
+// opens that window, not the inspector, so the description's refusal is
+// never read; its pages show the level, the masteries, the abilities and
+// the minimum stats and points spent. Moose (Hill Giant shadow knight, 2026-11-16)
+// held Titan and saw Slayer, Death Knight and Soldier "???" with every
+// requirement those pages showed met: the one Master Class rule (its own
+// class's other ranks are not barred, cmBlockLocked) and the quests a rank
+// needs are said here.
+func (w *World) cmUnshownBlocksLocked(p *Player, r *CMRank, k CMKnows) []string {
+	var out []string
+	if r.Category == CMCategoryMaster {
+		held := ""
+		for id := range p.CMs {
+			if o := w.cms.byID[id]; o != nil && o.Category == CMCategoryMaster && o.Mastery != r.Mastery {
+				if held = o.Mastery; held == "" {
+					held = o.Name
+				}
+				if o.Parent == 0 {
+					break // the class itself, not one of its abilities
+				}
+			}
+		}
+		if held != "" {
+			out = append(out, "Only one Master Class: you hold "+held)
+		}
+	}
+	switch names := r.unmetQuests(k); len(names) {
+	case 0:
+	case 1:
+		out = append(out, "Quest: "+names[0])
+	default:
+		out = append(out, "One of these quests:")
+		for _, name := range names {
+			out = append(out, "  "+name)
+		}
+	}
+	return out
 }
 
 // CMResult is what a purchase or a removal did: the refusal when it did

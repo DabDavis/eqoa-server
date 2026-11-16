@@ -288,3 +288,21 @@ func TestTheCharacterListCarriesArmoursTints(t *testing.T) {
 		}
 	}
 }
+
+// At character select a character in a body with a helm of its own (the fire
+// giant reaver's, entity/ownhelm.go) shows no worn helm, its chest as worn; the
+// control, the hill giant's own body, shows the helm.
+func TestTheCharacterListLeavesOutAHelmOnABodyWithItsOwn(t *testing.T) {
+	item := func(slot, loc int) database.CharInventoryEntry {
+		var e database.CharInventoryEntry
+		e.EquipLoc, e.Pattern.EquipSlot, e.Pattern.Model = loc, slot, 4
+		return e
+	}
+	items := []database.CharInventoryEntry{item(1, 0), item(5, 5)}
+	if g := characterGearOn(0x2D686972, items, 0); g[25] != 0xFF || g[20] != 4 {
+		t.Errorf("the reaver's body: helm %#x chest %d, want none and 4", g[25], g[20])
+	}
+	if g := characterGearOn(0xFFB1EA2C, items, 0); g[25] != 4 || g[20] != 4 {
+		t.Errorf("the control, the hill giant's: helm %#x chest %d", g[25], g[20])
+	}
+}

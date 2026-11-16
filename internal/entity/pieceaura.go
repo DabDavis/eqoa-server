@@ -221,12 +221,13 @@ func (w *World) ItemAuraCount() int {
 }
 
 // PieceAurasOf is the auras a player's worn pieces show (nil when none
-// does): each worn piece's item's (Player.WornPieces), a hidden piece's none.
+// does): each worn piece's item's (Player.WornPieces), a hidden piece's none
+// (a helm on a body with its own, ownhelm.go, too).
 func (w *World) PieceAurasOf(p *Player) *PieceAuras {
 	if p == nil {
 		return nil
 	}
-	return w.pieceAuras(&p.WornPieces, p.WornMask, p.HiddenParts, w.charAuras(database.CharAuraKey{CharID: p.CharServerID}))
+	return w.pieceAuras(&p.WornPieces, p.WornMask, p.ShownHiddenParts(), w.charAuras(database.CharAuraKey{CharID: p.CharServerID}))
 }
 
 // NPCPieceAurasOf is the auras an NPC dressed in item records shows (a

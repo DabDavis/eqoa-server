@@ -1997,6 +1997,11 @@ existing total up to 1000. It wont remove CM's."; petition 1461 took it to 1250)
 counted together, never taken down (`ChatHandler.giveMastery`). Boxes under mark 0x5C000000. He stands on the Heirloom
 Test Server alone, beside the Freeport Announcements board (`~/charmigrate/dabrish_20261108.py` on the box: the body
 of Scribe of Marr, a robed gnome).
+His sixth answer, **Exchange my epic weapon** (`handlers/dabrishepic.go`, `database/epicexchange.go`), swaps a level 49 path
+epic for the other path's, and (2026-11-16, Heirloom petition 2203) a level 60 epic for another of its reward quest's pick
+(`60/<group>/reward-<class>`'s step options as bases; the union of every pick holding it, asked which): same version,
+in the pack and unworn (a worn level 60 epic's line names what it would get), no copy of the target owned anywhere,
+heirlooms refused, one transaction; only a level 49 swap moves the quest's kept pick. `TestDabrish*`, `TestRealDabrishLevel60Sets`.
 **Mr. Moogie's challenge: Metal Moogie** (`entity/metalmoogie.go`, `handlers/metalmoogie.go`; the GM Jibrish's petitions 1379
 and 1380, by Jibcro: "add the reply option specifically to say "I'd like to prove my worth" ... It locks the player into a
 duel with metal moogie. No other players can hit it except the player who challenged, like a duel. If they defeat it they

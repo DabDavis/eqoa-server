@@ -130,9 +130,12 @@ const (
 	// body (a CHAR.ESF CSprite: the kappa's straw hat, 0xF0FAB933, KappaHat)
 	// whose hat vanilla cuts out (the triangles its head carries above the
 	// brow) and seats on the wearer's head, sized to it, in place of the helm
-	// (vanilla's hat::hat_on). On the helm's charaura slot alone
-	// (CharAuraHelm), shown whether a helm is worn or not, never in npctint
-	// or itemaura. A colour that lights recolours it; none keeps the
+	// (vanilla's hat::hat_on). On the helm's charaura slot (CharAuraHelm),
+	// shown whether a helm is worn or not; or an item that IS a hat (the
+	// owner, 2026-11-16: "cut the turban from the efreeti lord as a turban for
+	// dust in his inventory, turban of twisted virtue"): itemaura kind 10 on a
+	// helm-slot record, shown while it is worn there and not hidden (on any
+	// other piece none). Never in npctint. A colour that lights recolours it; none keeps the
 	// source's own. A client before it reads the default (a shell on a worn
 	// helm while the colour lights: nothing with no colour); a PS2 draws the
 	// helm worn, as ever.
@@ -222,6 +225,9 @@ func ValidCharAuraNodes(slot, kind, n int64) bool {
 func ValidItemAura(kind, nodes int64) bool {
 	if kind == AuraCirclet || kind == AuraEpic || kind == AuraEnergy {
 		return nodes >= 0 && nodes <= AuraAlongMost // a circlet's height, a held item's along
+	}
+	if kind == AuraHat {
+		return ValidAuraNodes(nodes) // an item that is a hat (its nodes unused)
 	}
 	return ValidAuraKind(kind) && ValidAuraNodes(nodes)
 }

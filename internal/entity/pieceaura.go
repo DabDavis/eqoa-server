@@ -328,8 +328,8 @@ func (w *World) pieceAuras(pieces *[AuraSlots]int, mask uint16, hidden uint16, o
 			continue
 		}
 		if a, ok := (*m)[pieces[i]]; ok {
-			if a.Kind == database.AuraCirclet && i != AuraHelm || a.Kind == database.AuraEpic || a.Kind == database.AuraEnergy || a.Kind == database.AuraHat {
-				continue // a circlet is a helm's alone, epic and energy a held item's (database.ValidItemAura)
+			if (a.Kind == database.AuraCirclet || a.Kind == database.AuraHat) && i != AuraHelm || a.Kind == database.AuraEpic || a.Kind == database.AuraEnergy {
+				continue // a circlet or a hat is a helm's alone, epic and energy a held item's (database.ValidItemAura)
 			}
 			out[i], any = a, true
 		}

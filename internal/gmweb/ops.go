@@ -133,8 +133,9 @@ func (s *Server) registerOps() {
 	s.registerQuestOps()
 	s.registerPathOps()
 	s.registerVisualOps()
-	s.registerLookOps() // looks.go: what wears each body, model, icon and visual, for the pickers
-	s.registerItemOps() // ops_items.go: item_reading, an item record in words
+	s.registerLookOps()         // looks.go: what wears each body, model, icon and visual, for the pickers
+	s.registerItemOps()         // ops_items.go: item_reading, an item record in words
+	s.registerInstanceAuraOps() // ops_instanceaura.go: one held item copy's own aura and tag
 	s.registerSuggestionOps()
 	s.registerMapLayerOps()
 	s.registerMapMarkOps()

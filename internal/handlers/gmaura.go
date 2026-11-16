@@ -24,6 +24,8 @@ import (
 //	/aura item <id> off
 //	/aura item <id> second <kind> <RRGGBBAA> [source] [nodes]
 //	/aura item <id> second off
+//	/aura weapon <mainhand|offhand|weapons> [Tag] <aura words>
+//	                                one COPY of the held weapon (instanceaura, gmauraweapon.go)
 //
 // second: a held item's second aura (itemaura's color2 ... nodes2; the owner,
 // 2026-11-16: "also give icing death the sword of virtue aura blue and also
@@ -547,6 +549,9 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 	if len(args) == 0 {
 		h.gmReply(sess, auraUsageShort)
 		return
+	}
+	if strings.EqualFold(args[0], "weapon") && h.auraWeaponCommand(sess, player, args[1:]) {
+		return // one copy of a held weapon's (gmauraweapon.go)
 	}
 	if strings.EqualFold(args[0], "item") {
 		if len(args) < 3 {

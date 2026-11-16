@@ -176,7 +176,10 @@ func (h *NPCWindowHandler) bankItem(sess *session.Session, id uint32, fromBank b
 			log.Printf("BankItem: %s: %v", player.Name, err)
 			return false
 		}
-		if out, dstKey, err = h.giveItem(player, dst, row, took, dstLoc); err != nil {
+		if out, dstKey, err = h.giveItem(player, dst, row, took, dstLoc); err == nil && took == rec.qty {
+			h.carryInstanceAura(rec.itemID, out.ItemID) // the copy's own aura goes with it
+		}
+		if err != nil {
 			log.Printf("BankItem: %s: %v (%d %q left the list and arrived nowhere)", player.Name, err, took, p.ItemName)
 			return false
 		}

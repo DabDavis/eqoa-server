@@ -91,6 +91,7 @@ func (s *InventoryStore) GetCharItem(serverID uint32, itemID int) (CharInventory
 	}
 	if err == nil {
 		s.db.ViewPattern(serverID, &e.Pattern) // heirlooms.go: the character's own view
+		e.AuraTag = InstanceTag(e.ItemID)      // the copy's own tag (instanceaura.go)
 	}
 	return e, err
 }

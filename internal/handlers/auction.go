@@ -322,6 +322,10 @@ func writeLot(w *buffer.Writer, l *database.AuctionLot, thin bool, v lotView) {
 			LevelReq: e.Pattern.LevelReq, MaxStack: e.Pattern.MaxStack, MaxHP: e.Pattern.MaxHP,
 			ClassUse: e.Pattern.ClassUse, RaceUse: e.Pattern.RaceUse, ItemName: e.Pattern.ItemName,
 		}
+	} else if !l.Perpetual && !l.PerItem {
+		// the lot's copy keeps its own tag (instanceaura): still on the row it
+		// was listed from (item_from) until it is delivered
+		e.AuraTag = database.InstanceTag(e.ItemID)
 	}
 	writeItemPattern(w, &e, v.capes)
 }

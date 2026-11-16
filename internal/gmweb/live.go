@@ -53,7 +53,7 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveSpawnOnly()
 	case "npctint":
 		return s.liveTints()
-	case "itemaura", "charaura":
+	case "itemaura", "charaura", "instanceaura":
 		return s.liveItemAuras()
 	case "npctitle":
 		return s.liveTitles()

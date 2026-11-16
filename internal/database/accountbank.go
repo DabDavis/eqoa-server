@@ -306,6 +306,7 @@ func (s *InventoryStore) GetBankItems(serverID uint32) ([]CharInventoryEntry, er
 	for i := range out {
 		s.db.ViewPattern(serverID, &out[i].Pattern) // heirlooms.go: the character's own view
 	}
+	tagRows(out) // each copy's own tag (instanceaura.go)
 	return out, nil
 }
 

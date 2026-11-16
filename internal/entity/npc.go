@@ -58,6 +58,8 @@ type NPC struct {
 	// pieces an aura can be on (MercLook's; pieceaura.go), none for others
 	WornPieces [AuraSlots]int
 	WornMask   uint16
+	// WornItems: the copies a mercenary holds (MercLook's), none for others
+	WornItems [AuraSlots]int
 
 	// Health
 	HP, MaxHP      int

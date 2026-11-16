@@ -658,6 +658,11 @@ func main() {
 	// whose NPC row edits are written to the other shard's database too (handlers/npcmirror.go)
 	handlers.SetNPCMirror(cfg.World.MirrorNPCEditsAccounts, cfg.World.MirrorNPCDB)
 	handlers.SetTeleporter(cfg.World.Teleporter) // handlers/teleporter.go
+	enchantPrice := -1                           // the default, 1 (handlers/enchanter.go)
+	if cfg.World.EnchanterPrice != nil {
+		enchantPrice = *cfg.World.EnchanterPrice
+	}
+	handlers.SetEnchanterPrice(enchantPrice, cfg.World.EnchanterToken, cfg.World.EnchanterTokenID)
 	handlers.SetMercs(cfg.World.Mercs)           // the mercenaries (handlers/merc.go)
 	handlers.SetQuestXPPct(cfg.World.QuestXPPct) // a one-time quest's experience (handlers/questxp.go)
 	handlers.SetFamiliars(cfg.World.Familiars)   // the familiars (handlers/familiar.go)

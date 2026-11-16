@@ -975,10 +975,11 @@ const (
 	// UTF-8, keyed as OpcodeNPCTints keys one), the bulbs in the NPC's own frame
 	// at its size 1 (x right, y up, z ahead), for 0 a u8 world, the bulbs in
 	// world coordinates; u8 effect (0 steady, 1 twinkle, 2 alternate, 3 chase),
-	// f32 period (s), f32 size (a bulb's glow across), f32 brightness, u8 colour
+	// f32 period (s), f32 size (a bulb's glow across), f32 brightness, the cord
+	// (u32 0xRRGGBBFF, 0 none; f32 width; f32 sag, of a span), u8 colour
 	// count and each u32 0xRRGGBBFF, u16 bulb count and each: f32 x, y, z, u8
-	// colour index (bit 7: the string's top, a tree's star), u8 phase (of 256
-	// in its effect's cycle). Then the art the decorations' NPCs wear, sent to
+	// colour index (bit 7: the string's top, a tree's star; bit 6: the cord
+	// breaks before it), u8 phase (of 256 in its effect's cycle). Then the art the decorations' NPCs wear, sent to
 	// this client in their bodies' place: a u16 count, each a u32 sprite
 	// DictID, a u8 world, a u16 zone (its index in the world's file), the zone
 	// that holds it, which the client reads to have the sprite, and an f32

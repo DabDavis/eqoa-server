@@ -137,6 +137,8 @@ CREATE TABLE lighttemplates (
 		spacing REAL NOT NULL DEFAULT 1,
 		size    REAL NOT NULL DEFAULT 0.3,
 		bright  REAL NOT NULL DEFAULT 1,
+		cord    TEXT NOT NULL DEFAULT '1E3F1E',
+		cord_width REAL NOT NULL DEFAULT 0.06,
 		note    TEXT NOT NULL DEFAULT '',
 		source  TEXT NOT NULL DEFAULT 'gm'
 	);

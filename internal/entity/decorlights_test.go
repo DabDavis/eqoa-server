@@ -63,7 +63,7 @@ func TestASeasonsTreeAndLightsComeAndGoWithIt(t *testing.T) {
 func TestEncodeDecorLights(t *testing.T) {
 	strs := []DecorString{
 		{NPC: "christmas tree", Effect: 1, Period: 1.5, Size: 0.3, Bright: 1, Colors: []uint32{0xFF2020, 0x20D040},
-			Bulbs: []database.Bulb{{X: 1, Y: 2, Z: 3, Color: 1, Phase: 7}}},
+			Bulbs: []database.Bulb{{X: 1, Y: 2, Z: 3, Color: 1, Phase: 7, Break: true}}, Cord: 0x1E3F1E, CordOn: true, CordWidth: 0.06, CordSag: 0.06},
 		{Problem: "lays nothing"},
 		{World: 3, Effect: 3, Period: 2, Size: 0.5, Bright: 2, Colors: []uint32{0xFFFFFF}, Bulbs: []database.Bulb{{}, {X: 1}}},
 	}
@@ -77,21 +77,22 @@ func TestEncodeDecorLights(t *testing.T) {
 	}
 	r = r[17:]
 	f32 := func(o int) float32 { return math.Float32frombits(binary.LittleEndian.Uint32(r[o:])) }
-	if f32(0) != 1.5 || f32(4) != 0.3 || f32(8) != 1 || r[12] != 2 || binary.LittleEndian.Uint32(r[13:]) != 0xFF2020FF {
-		t.Fatalf("the tree's look: % X", r[:21])
+	if f32(0) != 1.5 || f32(4) != 0.3 || f32(8) != 1 || binary.LittleEndian.Uint32(r[12:]) != 0x1E3F1EFF || f32(16) != 0.06 || f32(20) != 0.06 ||
+		r[24] != 2 || binary.LittleEndian.Uint32(r[25:]) != 0xFF2020FF {
+		t.Fatalf("the tree's look: % X", r[:33])
 	}
-	r = r[21:]
-	if binary.LittleEndian.Uint16(r) != 1 || f32(2) != 1 || f32(6) != 2 || f32(10) != 3 || r[14] != 1 || r[15] != 7 {
+	r = r[33:]
+	if binary.LittleEndian.Uint16(r) != 1 || f32(2) != 1 || f32(6) != 2 || f32(10) != 3 || r[14] != 1|DecorCordBreak || r[15] != 7 {
 		t.Fatalf("the tree's bulb: % X", r[:16])
 	}
 	r = r[16:]
 	if r[0] != 0 || r[1] != 3 || r[2] != 3 {
 		t.Fatalf("the world's string's head: % X", r[:3])
 	}
-	if len(r) != 3+12+1+4+2+2*14+2+11 {
+	if len(r) != 3+12+12+1+4+2+2*14+2+11 {
 		t.Fatalf("the world's string and the art: %d bytes left", len(r))
 	}
-	r = r[3+12+1+4+2+2*14:]
+	r = r[3+12+12+1+4+2+2*14:]
 	if binary.LittleEndian.Uint16(r) != 1 || binary.LittleEndian.Uint32(r[2:]) != 0x0E318233 || r[6] != 0 || binary.LittleEndian.Uint16(r[7:]) != 32 || math.Float32frombits(binary.LittleEndian.Uint32(r[9:])) != 9.5 {
 		t.Errorf("the art: % X", r)
 	}

@@ -35,6 +35,8 @@ const decorLightsSchema = `
 		spacing REAL NOT NULL DEFAULT 1,
 		size    REAL NOT NULL DEFAULT 0.3,
 		bright  REAL NOT NULL DEFAULT 1,
+		cord    TEXT NOT NULL DEFAULT '1E3F1E',
+		cord_width REAL NOT NULL DEFAULT 0.06,
 		note    TEXT NOT NULL DEFAULT '',
 		source  TEXT NOT NULL DEFAULT 'gm'
 	);
@@ -75,7 +77,10 @@ func (db *SQLiteDB) ensureDecorLights() error {
 	if _, err := db.Exec(decorLightsSchema); err != nil {
 		return fmt.Errorf("lighttemplates: %w", err)
 	}
-	return db.ensureDecorArtSink()
+	if err := db.ensureDecorArtSink(); err != nil {
+		return err
+	}
+	return db.ensureLightTemplateCord()
 }
 
 // How a template's bulbs light (lighttemplates.effect), as the wire's u8.
@@ -135,7 +140,12 @@ type LightTemplate struct {
 	Spacing float64
 	Size    float64
 	Bright  float64
-	Note    string
+	// Cord is the wire the bulbs hang on, 0xRRGGBB (CordOn false: none: the
+	// column blank or "none"), CordWidth how thick, in the string's units
+	Cord      uint32
+	CordOn    bool
+	CordWidth float64
+	Note      string
 }
 
 // LightString is a row of lightstrings.
@@ -181,6 +191,9 @@ type Bulb struct {
 	X, Y, Z float32
 	Color   uint8
 	Phase   uint8
+	// Break: the cord does not run to this bulb from the one before (a ring's
+	// first after the one below it, a box's edge apart from the last)
+	Break bool
 }
 
 // ParseLightColors reads a comma (or space) list of RRGGBB colours, with or
@@ -210,7 +223,10 @@ func ParseLightColors(s string) ([]uint32, error) {
 // LightTemplates is every row of lighttemplates, by name. A row whose colours
 // do not read is left out (DecorProblems says why).
 func (db *SQLiteDB) LightTemplates() (map[string]LightTemplate, error) {
-	rows, err := db.Query(`SELECT name, colors, pattern, effect, period, spacing, size, bright, note FROM lighttemplates`)
+	if err := db.ensureLightTemplateCord(); err != nil {
+		return nil, err
+	}
+	rows, err := db.Query(`SELECT name, colors, pattern, effect, period, spacing, size, bright, cord, cord_width, note FROM lighttemplates`)
 	if err != nil {
 		return nil, err
 	}
@@ -218,9 +234,12 @@ func (db *SQLiteDB) LightTemplates() (map[string]LightTemplate, error) {
 	out := map[string]LightTemplate{}
 	for rows.Next() {
 		var t LightTemplate
-		var colors string
-		if err := rows.Scan(&t.Name, &colors, &t.Pattern, &t.Effect, &t.Period, &t.Spacing, &t.Size, &t.Bright, &t.Note); err != nil {
+		var colors, cord string
+		if err := rows.Scan(&t.Name, &colors, &t.Pattern, &t.Effect, &t.Period, &t.Spacing, &t.Size, &t.Bright, &cord, &t.CordWidth, &t.Note); err != nil {
 			return nil, err
+		}
+		if c, err := ParseLightColors(cord); err == nil && len(c) == 1 {
+			t.Cord, t.CordOn = c[0], true
 		}
 		c, err := ParseLightColors(colors)
 		if err != nil {
@@ -251,8 +270,16 @@ func (db *SQLiteDB) LightStrings() ([]LightString, error) {
 }
 
 // LightTemplateProblems is what is wrong with a template row's values.
-func LightTemplateProblems(colors, pattern, effect string, period, spacing, size, bright float64) []string {
+func LightTemplateProblems(colors, pattern, effect string, period, spacing, size, bright float64, cord string, cordWidth float64) []string {
 	var out []string
+	if c := strings.TrimSpace(cord); c != "" && !strings.EqualFold(c, "none") {
+		if v, err := ParseLightColors(c); err != nil || len(v) != 1 {
+			out = append(out, fmt.Sprintf("cord %q: one RRGGBB, or blank (none)", cord))
+		}
+	}
+	if cordWidth < 0 || cordWidth > 2 {
+		out = append(out, fmt.Sprintf("cord_width %.2f: 0 to 2", cordWidth))
+	}
 	if _, err := ParseLightColors(colors); err != nil {
 		out = append(out, "colors: "+err.Error())
 	}
@@ -316,6 +343,7 @@ func DecorBulbs(t LightTemplate, s LightString) ([]Bulb, error) {
 		spacing = DecorMinSpacing
 	}
 	var pts [][3]float64
+	breaks := map[int]bool{} // the points the cord does not run to from the one before
 	base := [3]float64{}
 	if p.Base != nil {
 		base = *p.Base
@@ -338,6 +366,9 @@ func DecorBulbs(t LightTemplate, s LightString) ([]Bulb, error) {
 			r := p.R0 + (p.R1-p.R0)*f
 			y := p.Y0 + (p.Y1-p.Y0)*f
 			n := max(3, int(math.Round(2*math.Pi*r/spacing)))
+			if i > 0 {
+				breaks[len(pts)] = true
+			}
 			for k := 0; k < n; k++ {
 				a := 2 * math.Pi * (float64(k) + 0.5*float64(i%2)) / float64(n)
 				pts = append(pts, [3]float64{base[0] + r*math.Cos(a), base[1] + y, base[2] + r*math.Sin(a)})
@@ -376,7 +407,14 @@ func DecorBulbs(t LightTemplate, s LightString) ([]Bulb, error) {
 		default:
 			return nil, fmt.Errorf("box: edges %q: top, bottom or all", p.Edges)
 		}
-		for _, e := range edges {
+		for i, e := range edges {
+			if i > 0 && e[0] != edges[i-1][1] {
+				// an edge apart from the last: its own end too, the cord broken before it
+				breaks[len(pts)] = true
+				l := line(e[0], e[1], spacing, 0, 0)
+				pts = append(pts, l...)
+				continue
+			}
 			l := line(e[0], e[1], spacing, 0, 0)
 			pts = append(pts, l[:len(l)-1]...) // each corner once
 		}
@@ -414,7 +452,7 @@ func DecorBulbs(t LightTemplate, s LightString) ([]Bulb, error) {
 			}
 		}
 		last = ci
-		out = append(out, Bulb{X: float32(q[0]), Y: float32(q[1]), Z: float32(q[2]), Color: uint8(ci), Phase: uint8(next() >> 24)})
+		out = append(out, Bulb{X: float32(q[0]), Y: float32(q[1]), Z: float32(q[2]), Color: uint8(ci), Phase: uint8(next() >> 24), Break: breaks[i]})
 	}
 	// a chase runs along the string: each bulb an eighth of a cycle behind the
 	// one before, so a lit run every eight bulbs travels along it
@@ -540,6 +578,24 @@ func (db *SQLiteDB) DecorArts() (map[string]DecorArt, error) {
 		}
 	}
 	return out, rows.Err()
+}
+
+// ensureLightTemplateCord gives a lighttemplates table made before its cord
+// columns them (the owner: "for the lights let there look like a cord connecting
+// them").
+func (db *SQLiteDB) ensureLightTemplateCord() error {
+	for _, c := range []struct{ name, def string }{{"cord", "TEXT NOT NULL DEFAULT '1E3F1E'"}, {"cord_width", "REAL NOT NULL DEFAULT 0.06"}} {
+		var n int
+		if err := db.QueryRow(`SELECT count(*) FROM pragma_table_info('lighttemplates') WHERE name = ?`, c.name).Scan(&n); err != nil {
+			return err
+		}
+		if n == 0 {
+			if _, err := db.Exec(`ALTER TABLE lighttemplates ADD COLUMN ` + c.name + ` ` + c.def); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // ensureDecorArtSink gives a decorart table made before its sink column one.

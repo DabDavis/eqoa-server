@@ -44,23 +44,38 @@ type decorLightState struct {
 // DecorLightsLayout is the newest layout of OpcodeDecorLights: 1.
 const DecorLightsLayout = 1
 
+// DecorCordBreak is the bit of a bulb's colour byte that breaks the cord
+// before it (a ring's first bulb after the ring below, a box's edge apart from
+// the last): the colour index is below both.
+const DecorCordBreak = 0x40
+
+// DecorCordSag is how far a cord hangs between two bulbs, of their distance.
+const DecorCordSag = 0.06
+
 // DecorTopBulb is the bit of a bulb's colour byte that marks a string's top
 // (a tree's star, the string's params' top): the colour index is the rest.
 const DecorTopBulb = 0x80
 
 // DecorString is a string of lights as the world sends it.
 type DecorString struct {
-	NPC     string // the key of the NPC name it hangs on ("": in World)
-	World   uint8
-	Effect  uint8
-	Period  float32
-	Size    float32
-	Bright  float32
-	Colors  []uint32 // 0xRRGGBB
-	Bulbs   []database.Bulb
-	ID      int64
-	Season  string
-	Problem string // why it lays nothing ("" none)
+	NPC    string // the key of the NPC name it hangs on ("": in World)
+	World  uint8
+	Effect uint8
+	Period float32
+	Size   float32
+	Bright float32
+	Colors []uint32 // 0xRRGGBB
+	Bulbs  []database.Bulb
+	// Cord is the wire from bulb to bulb (0xRRGGBB; CordOn false: none, a
+	// points string's never), CordWidth its thickness, CordSag how far it
+	// hangs between two bulbs (of their distance)
+	Cord      uint32
+	CordOn    bool
+	CordWidth float32
+	CordSag   float32
+	ID        int64
+	Season    string
+	Problem   string // why it lays nothing ("" none)
 }
 
 // BuildDecorStrings lays the bulbs of every string of a season in active (by
@@ -95,6 +110,9 @@ func BuildDecorStrings(templates map[string]database.LightTemplate, rows []datab
 			d.Period = database.DecorDefaultPeriod
 		}
 		d.Size, d.Bright = float32(t.Size), float32(t.Bright)
+		if t.CordOn && t.CordWidth > 0 && !strings.EqualFold(strings.TrimSpace(r.Shape), database.ShapePoints) {
+			d.Cord, d.CordOn, d.CordWidth, d.CordSag = t.Cord, true, float32(t.CordWidth), DecorCordSag
+		}
 		d.Colors = append([]uint32(nil), t.Colors...)
 		d.Bulbs = bulbs
 		// a tree's star: a colour of its own, its colour byte's top bit set
@@ -133,6 +151,13 @@ func EncodeDecorLights(strs []DecorString, art []database.DecorArt) (body []byte
 		b = binary.LittleEndian.AppendUint32(b, math.Float32bits(d.Period))
 		b = binary.LittleEndian.AppendUint32(b, math.Float32bits(d.Size))
 		b = binary.LittleEndian.AppendUint32(b, math.Float32bits(d.Bright))
+		cord := uint32(0)
+		if d.CordOn {
+			cord = d.Cord<<8 | 0xFF
+		}
+		b = binary.LittleEndian.AppendUint32(b, cord)
+		b = binary.LittleEndian.AppendUint32(b, math.Float32bits(d.CordWidth))
+		b = binary.LittleEndian.AppendUint32(b, math.Float32bits(d.CordSag))
 		b = append(b, byte(len(d.Colors)))
 		for _, c := range d.Colors {
 			b = binary.LittleEndian.AppendUint32(b, c<<8|0xFF)
@@ -142,7 +167,11 @@ func EncodeDecorLights(strs []DecorString, art []database.DecorArt) (body []byte
 			b = binary.LittleEndian.AppendUint32(b, math.Float32bits(u.X))
 			b = binary.LittleEndian.AppendUint32(b, math.Float32bits(u.Y))
 			b = binary.LittleEndian.AppendUint32(b, math.Float32bits(u.Z))
-			b = append(b, u.Color, u.Phase)
+			c := u.Color
+			if u.Break {
+				c |= DecorCordBreak
+			}
+			b = append(b, c, u.Phase)
 		}
 		sent++
 		bulbs += len(d.Bulbs)

@@ -97,6 +97,30 @@ func TestDecorBulbsLayTheShapes(t *testing.T) {
 			t.Fatalf("box top: a bulb at y %.1f", u.Y)
 		}
 	}
+	// the cord breaks between rings, and between the box's edges apart
+	b, _ = DecorBulbs(tmpl, LightString{ID: 5, Shape: ShapeRings, Params: `{"r0": 3, "y0": 1, "r1": 1, "y1": 5, "rings": 3}`})
+	breaks := 0
+	for i, u := range b {
+		if u.Break {
+			breaks++
+			if i == 0 || u.Y == b[i-1].Y {
+				t.Errorf("rings: a break at bulb %d, not a ring's first", i)
+			}
+		}
+	}
+	if breaks != 2 {
+		t.Errorf("rings: %d breaks, want 2 (three rings)", breaks)
+	}
+	b, _ = DecorBulbs(tmpl, LightString{ID: 6, Shape: ShapeBox, Params: `{"min": [0, 0, 0], "max": [2, 2, 2], "edges": "all"}`})
+	breaks = 0
+	for _, u := range b {
+		if u.Break {
+			breaks++
+		}
+	}
+	if breaks != 5 {
+		t.Errorf("box, all edges: %d breaks, want 5 (the top ring and four uprights)", breaks)
+	}
 	// alternate: odd and even half a cycle apart
 	tmpl.Effect = LightAlternate
 	b, _ = DecorBulbs(tmpl, LightString{ID: 4, Shape: ShapePoints, Params: `{"points": [[0,0,0],[1,0,0],[2,0,0]]}`})
@@ -121,10 +145,10 @@ func TestDecorBulbsLayTheShapes(t *testing.T) {
 }
 
 func TestLightTemplateProblems(t *testing.T) {
-	if p := LightTemplateProblems("FF2020, 20D040,#3070FF", LightCycle, LightTwinkle, 1.5, 0.8, 0.3, 1); len(p) != 0 {
+	if p := LightTemplateProblems("FF2020, 20D040,#3070FF", LightCycle, LightTwinkle, 1.5, 0.8, 0.3, 1, "1E3F1E", 0.06); len(p) != 0 {
 		t.Errorf("a good template: %v", p)
 	}
-	if p := LightTemplateProblems("red", "spiral", "blink", -1, 0, 0, 9); len(p) != 7 {
+	if p := LightTemplateProblems("red", "spiral", "blink", -1, 0, 0, 9, "green", 5); len(p) != 9 {
 		t.Errorf("a bad template: %d problems %v, want 7", len(p), p)
 	}
 }

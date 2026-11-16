@@ -1297,21 +1297,23 @@ var catalog = map[string]tableNote{
 		Help: "How a string of decoration lights looks (database/decorlights.go; the owner, 2026-11-16: lights \"in different " +
 			"colors\", \"a template so we can put christmas lights on fences buildings etc\"): its bulbs' colours, laid in " +
 			"turn (cycle) or at random, how they light (steady; twinkle, each on its own; alternate, odd and even in turn; " +
-			"chase, a run of light along the string), how fast, how far apart along the string, how big a bulb's glow is " +
-			"and how bright. Vanilla draws them (a glow a bulb, and their light with Dynamic Lighting); a PS2 draws none.",
+			"chase, a run of light along the string), how fast, how far apart along the string, how big a bulb's glow is, " +
+			"how bright, and the cord they hang on (its colour and width: a dark green wire bulb to bulb, sagging a little). Vanilla draws them (a glow a bulb, and their light with Dynamic Lighting); a PS2 draws none.",
 		Live:   "At once: every string of the template is laid again and sent to every client that draws them.",
 		Search: []string{"name", "colors", "note", "source"},
 		Cols: map[string]colNote{
-			"name":    {Label: "Template (key)", Help: "any case: Christmas lights"},
-			"colors":  {Label: "Colours", Help: "RRGGBB, comma separated, up to 16: FF2020, 20D040, 3070FF, FFC030, FFFFFF"},
-			"pattern": {Label: "Pattern", Help: "cycle: the colours in turn; random: at random (never the same twice in a row)"},
-			"effect":  {Label: "Effect", Help: "steady, twinkle, alternate or chase"},
-			"period":  {Label: "Period", Unit: "s", Help: "one twinkle, alternation or chase step's cycle (0: 1.5)"},
-			"spacing": {Label: "Spacing", Help: "between bulbs along a string, in the units of where it hangs (an NPC's at its size 1)"},
-			"size":    {Label: "Bulb size", Help: "a bulb's glow across"},
-			"bright":  {Label: "Brightness", Help: "1 full, up to 4"},
-			"note":    {Label: "Note"},
-			"source":  {Label: "Source", Help: "gm, or the tool that wrote the row"},
+			"name":       {Label: "Template (key)", Help: "any case: Christmas lights"},
+			"colors":     {Label: "Colours", Help: "RRGGBB, comma separated, up to 16: FF2020, 20D040, 3070FF, FFC030, FFFFFF"},
+			"pattern":    {Label: "Pattern", Help: "cycle: the colours in turn; random: at random (never the same twice in a row)"},
+			"effect":     {Label: "Effect", Help: "steady, twinkle, alternate or chase"},
+			"period":     {Label: "Period", Unit: "s", Help: "one twinkle, alternation or chase step's cycle (0: 1.5)"},
+			"spacing":    {Label: "Spacing", Help: "between bulbs along a string, in the units of where it hangs (an NPC's at its size 1)"},
+			"size":       {Label: "Bulb size", Help: "a bulb's glow across"},
+			"bright":     {Label: "Brightness", Help: "1 full, up to 4"},
+			"cord":       {Label: "Cord", Help: "the wire the bulbs hang on, RRGGBB (1E3F1E dark green); blank or none: no cord"},
+			"cord_width": {Label: "Cord width", Help: "the wire's thickness, in the string's units (0.06)"},
+			"note":       {Label: "Note"},
+			"source":     {Label: "Source", Help: "gm, or the tool that wrote the row"},
 		},
 	},
 	"decorart": {

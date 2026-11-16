@@ -87,7 +87,7 @@ func checkLightTemplateRow(row map[string]any) error {
 		}
 	}
 	if p := database.LightTemplateProblems(str("colors", "FFFFFF"), str("pattern", database.LightCycle), str("effect", database.LightTwinkle),
-		num("period", 1.5), num("spacing", 1), num("size", 0.3), num("bright", 1)); len(p) > 0 {
+		num("period", 1.5), num("spacing", 1), num("size", 0.3), num("bright", 1), str("cord", ""), num("cord_width", 0.06)); len(p) > 0 {
 		return badRequest("%s", strings.Join(p, "; "))
 	}
 	return nil

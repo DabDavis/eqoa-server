@@ -10,7 +10,7 @@ ground and takes up a big area like a town tree").
     draws decorations (vanilla) is sent the fir (decorart: TUNARIA.ESF's 0x0E318233, a LOD sprite of zone 32 that the client
     reads off its own disc). Not selectable by anyone. It stands only while the Christmas season is on (npcseason).
   - The lights, as templates (christmas_lights_20261116.json -> lighttemplates, lightstrings): multi-coloured twinkling bulbs
-    wound round the tree, a gold star on top, lit while the season is on. Vanilla draws them; a PS2 draws none.
+    wound round the tree on a thin dark green cord, a gold star on top, lit while the season is on. Vanilla draws them; a PS2 draws none.
   - GM trigger "Christmas Season" (the next free slot: #trigger <slot> or by name, the panel, vanilla's TRIGGER menu): its one
     step turns the season over (season toggle): fired once the tree and its lights come, fired again they go. The season is
     kept in gmseasons, so it outlasts restarts. A broadcast to the world each way.
@@ -190,8 +190,10 @@ audit("insert", "npcseason", {"name": TREE}, None, {"season": SEASON})
 audit("insert", "decorart", {"name": TREE}, None, {"model": FIR, "world": FIR_WORLD, "zone": FIR_ZONE, "sink": SINK})
 # the lights
 for tp in lights["templates"]:
-    db.execute("INSERT INTO lighttemplates (name, colors, pattern, effect, period, spacing, size, bright, note, source) VALUES (?,?,?,?,?,?,?,?,?,?)",
-               (tp["name"], tp["colors"], tp["pattern"], tp["effect"], tp["period"], tp["spacing"], tp["size"], tp["bright"], tp.get("note", ""), SRC))
+    db.execute("INSERT INTO lighttemplates (name, colors, pattern, effect, period, spacing, size, bright, cord, cord_width, note, source) "
+               "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+               (tp["name"], tp["colors"], tp["pattern"], tp["effect"], tp["period"], tp["spacing"], tp["size"], tp["bright"],
+                tp.get("cord", "1E3F1E"), tp.get("cord_width", 0.06), tp.get("note", ""), SRC))
     audit("insert", "lighttemplates", {"name": tp["name"]}, None, tp)
 for st in lights["strings"]:
     sid = db.execute("INSERT INTO lightstrings (template, npc, world, shape, params, season, note, source) VALUES (?,?,?,?,?,?,?,?)",

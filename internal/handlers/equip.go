@@ -553,6 +553,11 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 			h.useMonkeyBarrel(sess, player, &row.Pattern)
 			return nil
 		}
+		// the Automatic Snowball Launcher, never spent: automatic fire on or off (snowlauncher.go)
+		if row.EquipLoc < 0 && IsSnowLauncher(&row.Pattern) {
+			h.useSnowLauncher(sess, player, &row.Pattern)
+			return nil
+		}
 		// an item that calls a familiar, never spent: its cast (familiar.go)
 		if row.EquipLoc < 0 && h.familiars.IsItem(row.Pattern.PatternID) {
 			h.familiars.Use(sess, player, &row.Pattern)

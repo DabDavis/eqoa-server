@@ -199,6 +199,9 @@ type World struct {
 	// monkeyThrown is when each player was last hit by a snowball of each
 	// owner's monkeys, by owner (monkeythrow.go)
 	monkeyThrown map[EntityID]map[EntityID]time.Time
+	// Automatic Snowball Launchers switched on, by their owners' ids
+	// (snowlauncher.go)
+	launchers map[EntityID]*launcherState
 
 	// Duels, asked and on (duel.go), and their wagers' writes (duelpurse.go)
 	duels     duelTable
@@ -592,6 +595,7 @@ func (w *World) leavingLocked(p *Player) []func(*Player) {
 	w.mercLeavingLocked(p)     // its merc goes, its hire kept (merc.go)
 	w.familiarLeavingLocked(p) // its familiar goes (familiar.go)
 	w.monkeysLeavingLocked(p)  // its monkeys go back into the barrel (monkeys.go)
+	w.launcherLeavingLocked(p) // its snowball launcher stops (snowlauncher.go)
 	w.castsLeavingLocked(p)    // its casts on their way go unlanded (cast.go)
 	fns := make([]func(*Player), len(w.leaving))
 	copy(fns, w.leaving)

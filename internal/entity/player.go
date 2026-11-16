@@ -435,6 +435,9 @@ type Player struct {
 	// heldToldAt is when a press with a held item and no weapon was last
 	// refused aloud (heldRefusalLocked).
 	heldToldAt time.Time
+	// snowballToldAt is when a worn snowball's throw at a creature was last
+	// refused aloud (moogieitems.go snowballAtNPCLocked).
+	snowballToldAt time.Time
 
 	// StatsDirty sends the stat and effect channels on the next tick, not
 	// at the next 2 s round: a cast's cost goes out with its start.

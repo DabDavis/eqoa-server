@@ -734,6 +734,9 @@ func (w *World) thrownPotionAtFoeLocked(p *Player, t *Player, now time.Time) boo
 		p.disengage()
 		return true
 	}
+	if pe.Special == PotionSnowball {
+		return w.thrownSnowballAtFoeLocked(p, t, pe, now) // a snowball's hit alone (moogieitems.go)
+	}
 	sess := w.findSessionByEntityIDLocked(p.ServerID)
 	if !w.throwPowerLocked(sess, p, pe) {
 		return true // not enough power: the fight let go (the doc above)
@@ -760,6 +763,11 @@ func (w *World) thrownPotionAtFoeLocked(p *Player, t *Player, now time.Time) boo
 func (w *World) thrownPotionHitLocked(sess *session.Session, p *Player, npc *NPC, objectID uint32) bool {
 	pe := w.potions.byPattern[p.Swing.Potion]
 	if pe == nil || !pe.Thrown() {
+		p.disengage()
+		return true
+	}
+	if pe.Special == PotionSnowball { // for players alone (moogieitems.go)
+		w.snowballAtNPCLocked(sess, p, time.Now())
 		p.disengage()
 		return true
 	}

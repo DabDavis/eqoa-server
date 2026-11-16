@@ -21,6 +21,20 @@ import (
 //     to the target, cast 0, the line's visual (Frost Shot's projectile unless a GM writes another), then 1 off
 //     the target's hit points, told in its 0x00DB, never below 1. No PvP act: no flag, no hate, no duel and no
 //     Mr. Moogie lock; it breaks no invisibility and works in towns. Each told a line.
+//     It is a thrown weapon too (petition 2204, Hoofbite, Heirloom: "Moogie snowballs showing as stackable
+//     trash item and cant be equipped to throw at other players"; tools/snowball_throw_20261116.py): its
+//     record is CLIENT's usable type 2 (procanim; at 0 with no wear slot VIInfoText::IsMisc filed it with the
+//     loot, no Use in any menu, and CLIENT never sent one: no line of it in the log), wear 16 (the throwing
+//     knives' ranged slot), attack type 10 and reach SnowballRange. So the Start menu lists it twice: under
+//     Equipment (Equip) and under the usable items (Use, Prepare onto quick slot 1 or 2). CLIENT sends both
+//     as the same 0x003E with its target (UseItem(i, 0)); a quick slot's is UseItem(i, 1). The handler
+//     (handlers/potion.go usesPotion) throws one at another player targeted from either, and from a
+//     quick slot at anything (refused here when it is no player); from the menu with no other player
+//     targeted it is worn or taken off. Worn, CLIENT's ranged auto-attack throws it only where
+//     CLIENT swings at a player at all (TargetInRange refuses player against player, channel byte 142 2
+//     or 3): a duel's opponent and a PvP foe, each round a snowball's hit (thrownSnowballAtFoeLocked),
+//     no duel or PvP harm, one off the worn stack. At a creature it is refused in red and the fight let
+//     go (snowballAtNPCLocked): the snowball is for players.
 //   - "Self, Moogie's Insight": an effect of its own (InsightEffectID, the Boon's icon, named InsightName) for
 //     InsightLasts of play, kept as the Boon is (a logout, a death, Mr. Moogie's clear and a strip leave it;
 //     a GM's #clearbuffs ends it); a second drunk puts it back to its whole hour. Every experience award (a
@@ -128,7 +142,14 @@ func (w *World) throwSnowballLocked(sess *session.Session, p *Player, pe *Potion
 		return SnowballRefusal
 	}
 	w.potionUsedLocked(p, pe, now)
-	w.broadcastCastLocked(p, t.ServerID, 0, pe.SpecialFX)
+	w.snowballHitLocked(sess, p, t, pe.SpecialFX)
+	return ""
+}
+
+// snowballHitLocked is a snowball from p landing on t (the file's doc): its visual, 1 off t's hit points
+// (never below 1), each told. Must be called with the lock held.
+func (w *World) snowballHitLocked(sess *session.Session, p, t *Player, fx uint32) {
+	w.broadcastCastLocked(p, t.ServerID, 0, fx)
 	took := 0
 	if t.HP > 1 {
 		took = 1
@@ -149,7 +170,63 @@ func (w *World) throwSnowballLocked(sess *session.Session, p *Player, pe *Potion
 		w.sendChatToSession(sess, fmt.Sprintf(snowballThrowLine, t.Name))
 	}
 	log.Printf("Snowball: %s hits %s (HP %d/%d, %d taken)", p.Name, t.Name, t.HP, t.MaxHPNow(), took)
-	return ""
+}
+
+// snowballToldGap is how often a worn snowball's refusal at a creature is said.
+const snowballToldGap = 2 * time.Second
+
+// wornSnowballLocked is the snowball a swing throws (Swing.Potion a snowball's record), nil for any other
+// swing. Must be called with the lock held.
+func (w *World) wornSnowballLocked(s Swing) *PotionEffect {
+	if s.Potion == 0 {
+		return nil
+	}
+	if pe := w.potions.byPattern[s.Potion]; pe != nil && pe.Special == PotionSnowball {
+		return pe
+	}
+	return nil
+}
+
+// snowballAtNPCLocked refuses a worn snowball's throw at a creature (the file's doc): said in red, at most
+// every snowballToldGap. Must be called with the lock held.
+func (w *World) snowballAtNPCLocked(sess *session.Session, p *Player, now time.Time) {
+	if sess == nil || !p.snowballToldAt.IsZero() && now.Sub(p.snowballToldAt) < snowballToldGap {
+		return
+	}
+	p.snowballToldAt = now
+	w.sendColoredLocked(sess, SnowballRefusal, castRefusalRGB)
+	log.Printf("Snowball: %s's worn snowball at a creature: refused", p.Name)
+}
+
+// thrownSnowballAtFoeLocked is a duel's or a PvP fight's round with a worn snowball (the file's doc): a
+// snowball's hit on t and nothing of the fight's harm, one off the worn stack, the fight let go with the
+// last. It reports whether the fight ended. Must be called with the lock held.
+func (w *World) thrownSnowballAtFoeLocked(p, t *Player, pe *PotionEffect, now time.Time) bool {
+	sess := w.findSessionByEntityIDLocked(p.ServerID)
+	if t.IsDead() || !playersShare(p, t) {
+		return true
+	}
+	w.snowballHitLocked(sess, p, t, pe.SpecialFX)
+	p.Swing.PotionLeft--
+	if fn := w.potions.onThrown; fn != nil && sess != nil {
+		go fn(sess, p.CharServerID, pe.PatternID)
+	}
+	if p.Swing.PotionLeft <= 0 {
+		log.Printf("Snowball: %s threw the last %q", p.Name, pe.ItemName)
+		p.Swing.Potion = 0
+		return true
+	}
+	return false
+}
+
+// TargetsOtherPlayer is whether the object the session names is another player (a snowball's mark:
+// handlers/potion.go usesPotion).
+func (w *World) TargetsOtherPlayer(sess *session.Session, objectID uint32) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	p := w.sessionPlayerLocked(sess)
+	t, ok := w.entitySeenByLocked(sess, objectID).(*Player)
+	return ok && t != nil && p != nil && t != p
 }
 
 // playersShare reports two players in one world and, in an instanced one, one instance.

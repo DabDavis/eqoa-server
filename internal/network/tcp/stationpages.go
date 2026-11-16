@@ -24,6 +24,10 @@ import (
 // draws in the order the page lists). Nothing the server keeps comes of them:
 // handleCreateAccount reads the name, the password and the e-mail alone.
 //
+// The help panel on the right holds about ten short lines and breaks the
+// website's address mid-word, so the address goes under the page's button
+// (stationNote), on a line of its own.
+//
 // What a player sees:
 //   - IDCreate: User Name, Password, Re-enter Password, Continue.
 //   - IDCreat2: E-mail Address (required: the server refuses an account
@@ -103,6 +107,23 @@ func stationHelp(title, text string) string {
 		"\t\t<TextColor r=\"220\" g=\"220\" b=\"220\"/>\n\t\t<Wrap mode=\"true\"/>\n\t</Text>\n", title, text)
 }
 
+// stationNote is a line under a page's button and the website on a line of its
+// own below it (the note one line: 36 characters at most, a PS2's line under
+// the button holding about 40): the help panel is too narrow for the address, which it breaks
+// mid-word, and holds about ten short lines.
+func stationNote(text, page string) string {
+	if len(text) > stationNoteMax {
+		panic("stationNote: " + text)
+	}
+	return fmt.Sprintf("\t<Text val=%q>\n\t\t<Position x=\"30\" y=\"306\"/>\n\t\t<Size width=\"400\" height=\"36\"/>\n"+
+		"\t\t<TextColor r=\"220\" g=\"220\" b=\"220\"/>\n\t\t<Wrap mode=\"true\"/>\n\t</Text>\n"+
+		"\t<Text val=%q>\n\t\t<Position x=\"30\" y=\"340\"/>\n\t\t<TextColor r=\"255\" g=\"255\" b=\"255\"/>\n\t</Text>\n",
+		text, page)
+}
+
+// stationNoteMax is the longest note on its one line.
+const stationNoteMax = 36
+
 // stationFooter is the selector and the Back / Select hints.
 func stationFooter(selectorX int) string {
 	return fmt.Sprintf(`	<Selector>
@@ -133,11 +154,50 @@ func stationPage(width, height int, body ...string) []byte {
 	return []byte(fmt.Sprintf("<PS2GUIPage gridWidth=\"%d\" gridHeight=\"%d\">\n%s</PS2GUIPage>\n", width, height, strings.Join(body, "")))
 }
 
+// EmailRefusalPage is the page STATION opens for a login refused for want of a
+// verified e-mail (EmailRefusalStatus): SOE's account key page, which no
+// other path of ours opens, served in its place with the reason. It has no
+// field and no button: Triangle goes back to the login (VIGUIPage::OnKeyDown,
+// PageBack), and with nothing in the grid no selector is drawn.
+const EmailRefusalPage = "data/ui/EnterKey.xml"
+
+// emailRefusalPage is EmailRefusalPage's page naming the website page.
+func emailRefusalPage(page string) []byte {
+	text := func(val string, y, height int, r, g, b int) string {
+		size := ""
+		if height > 0 {
+			size = fmt.Sprintf("\t\t<Size width=\"390\" height=\"%d\"/>\n\t\t<Wrap mode=\"true\"/>\n", height)
+		}
+		return fmt.Sprintf("\t<Text val=%q>\n\t\t<Position x=\"40\" y=\"%d\"/>\n%s\t\t<TextColor r=\"%d\" g=\"%d\" b=\"%d\"/>\n\t</Text>\n",
+			val, y, size, r, g, b)
+	}
+	return stationPage(1, 1,
+		stationBackdrop,
+		// the reason in the station's yellow, the page on a line of its own
+		// (a wrapped line breaks only at a space, and the page has none)
+		text("Your account needs a verified e-mail. Verify it at", 118, 64, 255, 226, 97),
+		text(page+".", 168, 0, 255, 255, 255),
+		text("Open the link we e-mailed you. No e-mail from us? On that page, log in, give your address on the "+
+			"E-mail tab and open the link it sends. Then log in here again.", 220, 130, 220, 220, 220),
+		`	<Object>
+		<Position x="237" y="380"/>
+		<Image imageType="StationTri"/>
+	</Object>
+	<Text val="Back">
+		<Position x="265" y="378"/>
+		<TextColor r="255" g="226" b="97"/>
+	</Text>
+`,
+		stationHelp("Verify Your E-mail", "Every account needs a verified e-mail address: with it you can never lose your "+
+			"account, and a forgotten password is reset by e-mail."))
+}
+
 // stationEmailPages are the pages served with mail.accounts on, by their pak
-// names; page is the account website as a player types it.
-func stationEmailPages(page string) map[string][]byte {
+// names; page is the account website as a player types it. With refusal (the
+// requirement on: mail.require_verified) EmailRefusalPage is served too.
+func stationEmailPages(page string, refusal bool) map[string][]byte {
 	pwMax := 32 // auth.MaxPasswordLen and its NUL (raisePasswordFields)
-	return map[string][]byte{
+	pages := map[string][]byte{
 		"data/ui/IDCreate.xml": stationPage(3, 4,
 			stationHidden("FirstName", "x"), stationHidden("MiddleName", "x"), stationHidden("LastName", "x"),
 			stationBackdrop,
@@ -155,24 +215,25 @@ func stationEmailPages(page string) map[string][]byte {
 			stationLabel("EmailAddressLabel", "E-mail Address", 30, 177), stationField("EmailAddress", "E-mail Address", 0, 176, 100, false),
 			stationButton("Create Account", "SubmitAcctCreate", 1, 140, 270, 162),
 			stationFooter(10),
-			stationHelp("Your E-mail", "Your e-mail address is required. Once the account is made, check your e-mail: open the "+
-				"link we send to verify your account. With it verified you can reset a forgotten password by e-mail. "+
-				"An address with a - or + in it: make the account at "+page+" instead.")),
+			stationNote("With a - or a + in it, sign up at", page),
+			stationHelp("Your E-mail", "Required. We e-mail a link to it: open it to verify your account. With it "+
+				"verified, a forgotten password is reset by e-mail.")),
 		"data/ui/AcctMgmt.xml": stationPage(1, 2,
 			stationBackdrop,
 			stationButton("Change Password", "data/ui/PassChng.xml", 0, 40, 170, 370),
 			stationButton("Change E-mail", "data/ui/UpAcct.xml", 1, 40, 215, 370),
 			stationFooter(10),
-			stationHelp("Manage Account", "Change your password, or the e-mail address on your account. A password can also "+
-				"be changed, and your e-mail checked, at "+page+".")),
+			stationNote("Both are on the web too, at", page),
+			stationHelp("Manage Account", "Change your password, or the e-mail address on your account.")),
 		"data/ui/UpAcct.xml": stationPage(3, 2,
 			stationHidden("Country", "x"), stationHidden("PostalCode", "x"),
 			stationBackdrop,
 			stationLabel("EmailAddressLabel", "E-mail Address", 30, 177), stationField("EmailAddress", "E-mail Address", 0, 176, 100, false),
 			stationButton("Update", "SubmitAcctUpdate", 1, 140, 270, 162),
 			stationFooter(10),
-			stationHelp("Change E-mail", "Enter your new e-mail address. We send a link to it: your account is verified again "+
-				"once you open it. An account with an authenticator changes it at "+page+".")),
+			stationNote("With an authenticator, change it at", page),
+			stationHelp("Change E-mail", "Enter your new e-mail address. We e-mail a link to it: open it to verify your "+
+				"account again.")),
 		"data/ui/FrgtPass.xml": stationPage(3, 3,
 			stationHidden("BirthMonth", "Jan"), stationHidden("BirthDay", "1"), stationHidden("BirthYear", "1977"),
 			stationBackdrop,
@@ -180,7 +241,12 @@ func stationEmailPages(page string) map[string][]byte {
 			stationLabel("EmailAddressLabel", "E-mail Address", 30, 177), stationField("EmailAddress", "E-mail Address", 1, 176, 100, false),
 			stationButton("Submit", "SubmitForgotPassword", 2, 140, 270, 162),
 			stationFooter(10),
-			stationHelp("Forgot Password", "Enter your user name and your account's e-mail address. If it is verified, we "+
-				"e-mail you a link to choose a new password. No verified e-mail? Ask a GM at "+page+".")),
+			stationNote("No verified e-mail? Ask a GM at", page),
+			stationHelp("Forgot Password", "Enter your user name and your account's verified e-mail address: we e-mail you "+
+				"a link to choose a new password.")),
 	}
+	if refusal {
+		pages[EmailRefusalPage] = emailRefusalPage(page)
+	}
+	return pages
 }

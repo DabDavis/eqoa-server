@@ -25,7 +25,8 @@ func chatLines(sess *session.Session, op protocol.GameOpcode) []string {
 
 // Before the cutoff an unverified account is reminded at world entry and
 // every interval while it plays; a verified one is told nothing. From the
-// cutoff it is told why in red and ejected a moment later.
+// cutoff the login refuses it (tcp.EmailRefusalStatus, the handshake's
+// SetEmailRefusal) and the world says nothing.
 func TestTheEmailGateInTheWorld(t *testing.T) {
 	c := newChatWorld(t)
 	cut := time.Date(2026, 12, 1, 0, 0, 0, 0, time.UTC)
@@ -33,10 +34,6 @@ func TestTheEmailGateInTheWorld(t *testing.T) {
 	g := NewEmailGate(gate, c.sm)
 	clock := cut.Add(-48 * time.Hour)
 	g.Now = func() time.Time { return clock }
-	var ejected []*session.Session
-	var waited []time.Duration
-	g.eject = func(s *session.Session) { ejected = append(ejected, s) }
-	g.after = func(d time.Duration, f func()) { waited = append(waited, d); f() }
 	c.gw.OnPlayerEntered(g.Entered)
 
 	as, _ := c.join(1, "Ann", 100, 100, 0)
@@ -56,9 +53,6 @@ func TestTheEmailGateInTheWorld(t *testing.T) {
 	if b := chatLines(bs, protocol.OpcodeColoredChat); len(b) != 0 {
 		t.Fatalf("Bob (verified) was told %q", b)
 	}
-	if len(ejected) != 0 {
-		t.Fatal("ejected before the cutoff")
-	}
 	// within the interval: nothing; past it: again
 	as.Queue().GetPending()
 	clock = clock.Add(10 * time.Minute)
@@ -69,24 +63,18 @@ func TestTheEmailGateInTheWorld(t *testing.T) {
 	if n := g.Remind(); n != 1 || len(chatLines(as, protocol.OpcodeColoredChat)) != 1 {
 		t.Fatalf("reminded %d past the interval", n)
 	}
-	// from the cutoff: told in red at world entry, then ejected
+	// from the cutoff: no reminder, nothing at world entry (the login refuses)
 	clock = cut.Add(time.Minute)
 	if n := g.Remind(); n != 0 {
 		t.Fatalf("reminded %d past the cutoff", n)
 	}
 	as.Queue().GetPending()
 	c.gw.PlayerEntered(as)
-	red := chatLines(as, protocol.OpcodeErrorMessage)
-	if len(red) != 1 || !strings.Contains(red[0], "verified e-mail") || !strings.Contains(red[0], "eqoaclassic.com/eqoa/password") {
-		t.Fatalf("Ann was told %q", red)
+	if len(chatLines(as, protocol.OpcodeErrorMessage)) != 0 || len(chatLines(as, protocol.OpcodeColoredChat)) != 0 {
+		t.Fatal("the world spoke past the cutoff")
 	}
-	if len(ejected) != 1 || ejected[0] != as || len(waited) != 1 || waited[0] != EmailGateEject {
-		t.Fatalf("ejected %v after %v", ejected, waited)
-	}
-	bs.Queue().GetPending()
-	c.gw.PlayerEntered(bs)
-	if len(ejected) != 1 || len(chatLines(bs, protocol.OpcodeErrorMessage)) != 0 {
-		t.Fatal("a verified account was refused")
+	if gate.Refusal(1, clock) == "" || gate.Refusal(2, clock) != "" {
+		t.Fatal("the gate's refusal")
 	}
 	if NewEmailGate(nil, c.sm) != nil {
 		t.Fatal("a gate with no requirement")

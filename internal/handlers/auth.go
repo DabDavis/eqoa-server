@@ -39,6 +39,17 @@ type AuthHandler struct {
 	// passwords, when set, checks the password a handshake's token carries
 	// for a username with no ticket (SetPasswordChecker).
 	passwords PasswordChecker
+	// emailRefused, when set, refuses an account that may not play for want
+	// of a verified e-mail (SetEmailRefusal).
+	emailRefused func(accountID int) bool
+}
+
+// SetEmailRefusal has the handshake refuse an account f names, by ticket or
+// by password alike (a ticket from a Station login made before
+// mail.require_after, a shard's sign-in by password), as a bad login: CLIENT's
+// server list then offers STATION's login, which shows the reason.
+func (h *AuthHandler) SetEmailRefusal(f func(accountID int) bool) {
+	h.emailRefused = f
 }
 
 // PasswordChecker checks a password the UDP handshake's token carried as the
@@ -103,6 +114,18 @@ func (h *AuthHandler) resolveAccount(username string, ticketID int) (*database.A
 // account playing from the address; it used to be told nothing, and the
 // client waited on "Connecting..." for good.
 func (h *AuthHandler) authorizeUsername(sess *session.Session, stage, username string, token []byte) (int, bool) {
+	accountID, ok := h.authorizeLogin(sess, stage, username, token)
+	if ok && accountID > 0 && h.emailRefused != nil && h.emailRefused(accountID) {
+		log.Printf("%s: REJECTED username %q (ID %d) -- no verified e-mail; told the client (0x%04X)",
+			stage, username, accountID, uint16(protocol.OpcodeBadLoginPassword))
+		SendDisconnect(sess, protocol.OpcodeBadLoginPassword)
+		return 0, false
+	}
+	return accountID, ok
+}
+
+// authorizeLogin is authorizeUsername before the e-mail requirement.
+func (h *AuthHandler) authorizeLogin(sess *session.Session, stage, username string, token []byte) (int, bool) {
 	if h.loginTickets == nil {
 		return 0, true // check disabled
 	}

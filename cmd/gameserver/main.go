@@ -855,6 +855,20 @@ func main() {
 	// for the GM panel's Economy page
 	stopEconomy := economy.Run(db, time.Minute, max(cfg.GM.MinLevel, 1))
 	defer stopEconomy()
+	// A verified e-mail required (mail.require_verified, accountmail.Gate): past
+	// mail.require_after an account without one is refused at the Station
+	// login, with STATION's page saying why (tcp.EmailRefusalStatus), and at the
+	// UDP handshake, by ticket or password, as a bad login. Every process holds
+	// its players to it by its own accounts (a shard by its copy).
+	emailGate, err := accountmail.NewGate(db, cfg.Mail)
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
+	if emailGate != nil {
+		refused := func(accountID int) bool { return emailGate.Refusal(accountID, time.Now()) != "" }
+		authHandler.SetEmailRefusal(refused)
+		handlerRegistry.SetEmailRefusal(refused)
+	}
 	if cfg.Server.AuthPort != 0 {
 		authListener := tcp.NewListener(cfg, authHandler)
 		if err := authListener.Start(); err != nil {
@@ -924,10 +938,6 @@ func main() {
 			log.Printf("Accounts: e-mail on, LOGGED ONLY (mail.enabled false); links to %s", accountMail.PageURL())
 		}
 	}
-	emailGate, err := accountmail.NewGate(db, cfg.Mail)
-	if err != nil {
-		log.Fatalf("%v", err)
-	}
 	if g := handlers.NewEmailGate(emailGate, sessionMgr); g != nil {
 		gameWorld.OnPlayerEntered(g.Entered)
 		stopRemind := g.Run()
@@ -935,7 +945,7 @@ func main() {
 		if emailGate.Cutoff.IsZero() {
 			log.Printf("Accounts: a verified e-mail is required: reminded every %v, never refused", emailGate.Every)
 		} else {
-			log.Printf("Accounts: a verified e-mail is required: reminded every %v until %s, refused the world from then",
+			log.Printf("Accounts: a verified e-mail is required: reminded every %v until %s, refused at the login from then",
 				emailGate.Every, emailGate.Cutoff.Format(time.RFC3339))
 		}
 	} else if cfg.Mail.RequireVerified {

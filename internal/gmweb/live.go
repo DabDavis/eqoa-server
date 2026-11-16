@@ -397,6 +397,35 @@ func checkCharAuraRow(row map[string]any) error {
 			return badRequest("merc is 0 the character itself, else its mercenary's hire slot")
 		}
 	}
+	// a hand's second aura (color2 ... nodes2): a held item's kinds, on slot
+	// 9 or 10 alone
+	for _, col := range []string{"color2", "source2"} {
+		if v, has := row[col]; has {
+			if f, fok := asFloat(v); !fok || f != math.Trunc(f) || !database.ValidNPCTint(int64(f)) {
+				return badRequest("%s is a 32-bit value (0xRRGGBBAA for the colour, a DictID for the source), 0 none", col)
+			}
+		}
+	}
+	k2, hasK2 := asFloat(row["kind2"])
+	n2, hasN2 := asFloat(row["nodes2"])
+	if _, has := row["kind2"]; has && (!hasK2 || k2 != math.Trunc(k2)) {
+		return badRequest("kind2 is 0 none, 3 the particles, 7 an epic's look or 9 an energy skin")
+	}
+	if _, has := row["nodes2"]; has && (!hasN2 || n2 != math.Trunc(n2)) {
+		return badRequest("nodes2 is where along the held item, 0-%d", database.AuraAlongMost)
+	}
+	if hasK2 && k2 != 0 || hasN2 && n2 != 0 {
+		if !sok || !hand {
+			return badRequest("a second aura (kind2 ... nodes2) is a held item's: slot 9 the main hand, 10 the off hand")
+		}
+		kk := int64(k2)
+		if !hasK2 || kk == 0 {
+			kk = database.AuraParticles // nodes2 alone: held to a hand's along
+		}
+		if !database.ValidItemAuraSecond(kk, int64(n2)) {
+			return badRequest("the second aura is a held item's: kind2 0 none, 3 the particles, 7 an epic's look or 9 an energy skin; nodes2 where along it 0-%d", database.AuraAlongMost)
+		}
+	}
 	if v, ok := row["color"]; ok {
 		f, fok := asFloat(v)
 		if !fok || f != math.Trunc(f) || !database.ValidNPCTint(int64(f)) {

@@ -2,6 +2,7 @@ package entity
 
 import (
 	"log"
+	"slices"
 	"time"
 )
 
@@ -38,6 +39,9 @@ import (
 //     brews nothing. Meals are not brewed (no alchemist's book makes one; a
 //     merc with none eats a ration's figures). world.merc_brew_cap, when set
 //     above 0, is a ceiling on the whole stock besides (0: none brewed).
+//   - Its Master Class's keepsakes (mercKeepsLocked): the Transmuter's
+//     Transformative Pill, one at a time for its owner, brewed only when none
+//     is held.
 //
 // The stock is its owner's, not the merc's: the handlers keep it in table
 // charmercstock and hand the World its counts at each login, keep restart and
@@ -312,7 +316,8 @@ type mercBrewWant struct {
 
 // mercBrewWantsLocked is what the merc keeps a full stack of (the file's
 // doc), its throws' own kind (/merc aoe or single) first, then the other
-// kind, then its draught. Must be called with the lock held.
+// kind, then its draught, then its keepsakes (one each). Must be called with
+// the lock held.
 func (w *World) mercBrewWantsLocked(ms *mercState) []mercBrewWant {
 	st := w.mercSupply.stockOf(ms.owner)
 	var out []mercBrewWant
@@ -341,7 +346,96 @@ func (w *World) mercBrewWantsLocked(ms *mercState) []mercBrewWant {
 	if d := w.mercBookDraughtsLocked(ms); len(d) > 0 {
 		add(d[0].pe.PatternID)
 	}
+	// its Master Class's keepsakes: one each, for its owner (mercKeepsLocked)
+	for _, pe := range w.mercKeepsLocked(ms) {
+		if slices.ContainsFunc(out, func(o mercBrewWant) bool { return o.pe.PatternID == pe.PatternID }) {
+			continue
+		}
+		have := st[pe.PatternID]
+		for _, c := range ms.kit.Carried {
+			if c.PatternID == pe.PatternID && c.Count > 0 {
+				have += c.Count
+			}
+		}
+		out = append(out, mercBrewWant{pe: pe, most: mercKeepOne, have: have})
+	}
 	return out
+}
+
+// mercKeepOne is how many of a keepsake the merc holds for its owner (the
+// owner, 2026-11-16: "and they will only make if they dont have one so player
+// can take it from their inventory").
+const mercKeepOne = 1
+
+// mercKeepsLocked is what its Master Class's mixtures make that the merc never
+// uses itself but brews for its owner, one at a time (the owner, 2026-11-16:
+// "alchemist mercs should also make the transformative ogre pills if they are
+// the right level"): a drunk potion that shows its drinker in another body
+// (an illusion or form on its drinker, no power draught), made by a spell a
+// rank of its Master Class gives (CMRank.BookChange) at its level or below,
+// in its book and not turned off. So the Transformative Pill (an ogre's body
+// for 30 minutes) of Create Transformative, the Transmuter's second rank, at
+// 60: the gate a player alchemist's is, who has the spell only by buying that
+// rank (cmcatalog 7402), where classspells' level-60 row would hand it to any
+// alchemist. A keepsake's stack is one (mercKeepOne): it brews one when its
+// owner's stock and what it carries hold none, at ease and at its rate as its
+// other potions, and none while one waits there; its owner takes it from the
+// Stock tab, and it brews the next. It never throws one (no Target use:
+// throwWorth) nor drinks one (no power: draughtOf). Must be called with the
+// lock held.
+func (w *World) mercKeepsLocked(ms *mercState) []*PotionEffect {
+	if !ms.mercThrowsPotions() || len(ms.kit.MasterRanks) == 0 {
+		return nil
+	}
+	given := map[int]bool{}
+	for _, r := range ms.kit.MasterRanks {
+		if r == nil || r.Level > ms.kit.Level {
+			continue
+		}
+		gives, _ := r.BookChange()
+		for _, a := range gives {
+			if a.SpellID > 0 {
+				given[a.SpellID] = true
+			}
+		}
+	}
+	if len(given) == 0 {
+		return nil
+	}
+	var byName map[string]*PotionEffect
+	seen := map[int]bool{}
+	var out []*PotionEffect
+	for i := range ms.kit.Spells {
+		s := &ms.kit.Spells[i]
+		if !given[s.SpellID] || containsInt(ms.kit.SpellsOff, s.SpellID) || s.Def.Summons() || mercPotionSpell(s) {
+			continue
+		}
+		if byName == nil {
+			byName = make(map[string]*PotionEffect, len(w.potions.byPattern))
+			for _, pe := range w.potions.byPattern {
+				byName[lowerTrim(pe.ItemName)] = pe
+			}
+		}
+		for _, it := range append(append([]SpellItem(nil), s.Def.Items...), unreadSummons(&s.Def)...) {
+			pe := byName[lowerTrim(it.Name)]
+			if pe == nil || seen[pe.PatternID] || !mercKeepsake(ms, pe) {
+				continue
+			}
+			seen[pe.PatternID] = true
+			out = append(out, pe)
+		}
+	}
+	return out
+}
+
+// mercKeepsake is whether pe is a keepsake (mercKeepsLocked): drunk, a body
+// shown on its drinker, no power draught.
+func mercKeepsake(ms *mercState, pe *PotionEffect) bool {
+	if pe.Thrown() || pe.Def.FormKind != FormSelf || pe.Def.Form == "" && pe.Def.FormModel == 0 {
+		return false
+	}
+	_, _, draught := ms.draughtOf(pe)
+	return !draught
 }
 
 // mercBrewPickLocked is the potion the merc brews next and how many may go

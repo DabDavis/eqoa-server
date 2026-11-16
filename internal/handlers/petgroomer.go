@@ -17,8 +17,9 @@ import (
 // drachnid pet should "have 2 different color areas that can be changed like
 // armor dye(will be a template for pet color dye). then add Pet Groomer near
 // Equipment Dyer also"). Talked to with a pet out, a groomer asks what to dye
-// of it (each of its body's two areas, both, or every dye off: table
-// petdyeareas names them; a body with no row is one area, its whole body),
+// of it (its clothing, its body, both, or every dye off, as the client tells
+// clothing from body: a body that wears none is dyed whole; a petdyeareas
+// row names a body's areas in place of the rule),
 // then a family of the dyers' colours and a colour of it (database.DyeFamilies,
 // the Equipment Dyer's own, dyer.go), and dyes it at once, for nothing, as the
 // dyer does: table petdyes (database.SetPetDye, a row edit with its gm_audit
@@ -60,6 +61,17 @@ type groomChoice struct {
 // groomChoices is what a groomer asks of a pet: each area, both and every dye
 // off for a body of two areas; its whole body and its dye off for one of one.
 func groomChoices(pet entity.PetLook) []groomChoice {
+	if pet.Rule {
+		// the client's rule (the owner, 2026-11-16: "the pets need their
+		// clothes as one dye and the rest another like we two tone
+		// equipment"): area 1 its clothing, area 2 the rest; a body that
+		// wears none is all area 2
+		if !pet.Clothed {
+			return []groomChoice{{label: "Its whole body", areas: []int{1}}, {label: "Remove its dye"}}
+		}
+		return []groomChoice{{label: "Clothing", areas: []int{0}}, {label: "Body", areas: []int{1}},
+			{label: "Both", areas: []int{0, 1}}, {label: "Remove all dyes"}}
+	}
 	if !pet.Area.TwoAreas() {
 		return []groomChoice{{label: "Its whole body", areas: []int{0}}, {label: "Remove its dye"}}
 	}
@@ -147,7 +159,14 @@ func (g *Groomer) Offer(sess *session.Session, p *entity.Player, speaker string)
 		g.say(sess, speaker, "I groom and dye pets, free of charge. Call yours to your side and I will color its coat. Only those who see the live game's colors see a dye.")
 		return
 	}
-	g.say(sess, speaker, fmt.Sprintf("What a fine %s! I dye pets any color you like, free of charge, and it keeps its colors for this form. Only those who see the live game's colors see a dye.", pet.Name))
+	line := fmt.Sprintf("What a fine %s! I dye pets any color you like, free of charge, and it keeps its colors for this form. Only those who see the live game's colors see a dye.", pet.Name)
+	if pet.Rule {
+		line = fmt.Sprintf("What a fine %s! I dye a pet's clothing one color and its body another, as the dyers two-tone armor, free of charge, and it keeps its colors for this form. Only those who see the live game's colors see a dye.", pet.Name)
+		if !pet.Clothed {
+			line = fmt.Sprintf("What a fine %s! It wears no clothing, so I dye its whole body, any color you like, free of charge, and it keeps its colors for this form. Only those who see the live game's colors see a dye.", pet.Name)
+		}
+	}
+	g.say(sess, speaker, line)
 	choices := groomChoices(pet)
 	labels := make([]string, len(choices))
 	for i, c := range choices {
@@ -262,8 +281,9 @@ func (h *CharacterHandler) loadPetDyes(serverID uint32) {
 	h.gameWorld.SetPetDyes(serverID, got)
 }
 
-// petDyesLayout is the layout of OpcodePetDyes the offer names.
-const petDyesLayout = 1
+// petDyesLayout is the layout of OpcodePetDyes the offer names: 2, a rule
+// byte per pet (entity.PetDyesLayoutMost).
+const petDyesLayout = entity.PetDyesLayoutMost
 
 // buildPetDyesOffer is OpcodePetDyesOffer from the server: a u8, the layout.
 func buildPetDyesOffer() []byte {
@@ -294,9 +314,10 @@ func (h *PetDyesHandler) HandlePetDyes(sess *session.Session, msg *protocol.Mess
 		log.Printf("PetDyes: short (%d bytes) from %s", len(data), sess.RemoteAddr())
 		return nil
 	}
-	on := data[0] != 0
-	sess.SetPetDyes(on)
-	log.Printf("PetDyes: %s %s", sess.RemoteAddr(), map[bool]string{true: "draws them", false: "stopped"}[on])
+	layout := min(data[0], petDyesLayout)
+	on := layout != 0
+	sess.SetPetDyesLayout(layout)
+	log.Printf("PetDyes: %s %s (layout %d)", sess.RemoteAddr(), map[bool]string{true: "draws them", false: "stopped"}[on], layout)
 	if on {
 		entity.GetOrCreateVisibility(sess).ResendPetDyes()
 	}

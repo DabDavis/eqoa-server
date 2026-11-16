@@ -192,6 +192,9 @@ type Session struct {
 	// (protocol.OpcodePetDyesOffer, handlers/petgroomer.go): it draws a pet's
 	// two dyed areas, so it is told the dyed pets in its view (entity/petdyes.go).
 	petDyes bool
+	// petDyesLayout is the layout of OpcodePetDyes it answered (1 the mask
+	// alone; 2 a rule byte per pet: entity/petdyes.go), 0 with petDyes off
+	petDyesLayout uint8
 	// selectInfo: the client answered the select info's offer 1
 	// (protocol.OpcodeSelectInfo, handlers/selectinfo.go); selectInfoOffered:
 	// the offer went out, once a session.
@@ -1031,11 +1034,17 @@ func (s *Session) ServerWorlds() []uint8 {
 	return append([]uint8(nil), s.serverWorlds...)
 }
 
-// SetPetDyes records the client's answer to the pet dyes' offer.
+// SetPetDyes records the client's answer to the pet dyes' offer: on, layout 1.
 func (s *Session) SetPetDyes(on bool) {
+	s.SetPetDyesLayout(map[bool]uint8{false: 0, true: 1}[on])
+}
+
+// SetPetDyesLayout records the layout the client answered the pet dyes' offer
+// with: 0 off.
+func (s *Session) SetPetDyesLayout(layout uint8) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.petDyes = on
+	s.petDyes, s.petDyesLayout = layout > 0, layout
 }
 
 // PetDyes is whether the client said it draws pets' dyes. A client that
@@ -1044,6 +1053,13 @@ func (s *Session) PetDyes() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.petDyes
+}
+
+// PetDyesLayout is the layout of the pet dyes the client is sent (0 none).
+func (s *Session) PetDyesLayout() uint8 {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.petDyesLayout
 }
 
 // SetCapes records the client's answer to the cape offer: it draws capes.

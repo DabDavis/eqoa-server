@@ -63,6 +63,7 @@ type Kept struct {
 	Capes              bool   `json:"capes,omitempty"`
 	CapesOffered       bool   `json:"capes_offered,omitempty"`
 	PetDyes            bool   `json:"pet_dyes,omitempty"`
+	PetDyesLayout      uint8  `json:"pet_dyes_layout,omitempty"`
 	ItemListsPack      int    `json:"item_lists_pack,omitempty"`
 	ItemListsBank      int    `json:"item_lists_bank,omitempty"`
 	ItemListsOffered   bool   `json:"item_lists_offered,omitempty"`
@@ -230,6 +231,7 @@ func (s *Session) Keep() Kept {
 		Capes:              s.capes,
 		CapesOffered:       s.capesOffered,
 		PetDyes:            s.petDyes,
+		PetDyesLayout:      s.petDyesLayout,
 		ItemListsPack:      s.itemListsPack,
 		ItemListsBank:      s.itemListsBank,
 		ItemListsOffered:   s.itemListsOffered,
@@ -405,7 +407,10 @@ func (s *Session) restore(k Kept, now time.Time) {
 
 	s.capes = k.Capes
 	s.capesOffered = k.CapesOffered
-	s.petDyes = k.PetDyes
+	s.petDyes, s.petDyesLayout = k.PetDyes, k.PetDyesLayout
+	if s.petDyes && s.petDyesLayout == 0 {
+		s.petDyesLayout = 1 // a kept file from before the layout
+	}
 	s.itemListsPack, s.itemListsBank, s.itemListsOffered = k.ItemListsPack, k.ItemListsBank, k.ItemListsOffered
 	// the client keeps its lists; a data step in the hold may have changed the
 	// looks, so the next refresh sends them again (handlers/keep.go)

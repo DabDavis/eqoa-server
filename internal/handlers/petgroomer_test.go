@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -63,22 +64,24 @@ func TestThePetGroomer(t *testing.T) {
 		t.Fatalf("no pet: %v", got)
 	}
 	got := talk()
-	if !strings.HasSuffix(got[len(got)-1], ":What shall I dye on your fire elemental?|Its whole body|Remove its dye") {
-		t.Fatalf("one area: %q", got)
+	if !strings.HasSuffix(got[len(got)-1], ":What shall I dye on your fire elemental?|Its whole body|Remove its dye") ||
+		!hasMsg(got, "box:Pet Groomer: What a fine Fire Elemental! It wears no clothing*") {
+		t.Fatalf("a body of no clothing by the rule: %q", got)
 	}
 	got = pick(pick(got, 0), 1) // its whole body; reds and pinks
 	got = pick(got, 0)          // red
-	if d := dyes(); d != [2]uint32{0xD10000FF, 0} {
-		t.Fatalf("whole body red: %08X", d)
+	if d := dyes(); d != [2]uint32{0, 0xD10000FF} {
+		t.Fatalf("whole body red, the rule's body: %08X", d)
 	}
 	if !hasMsg(got, "box:Pet Groomer: There: red.") {
 		t.Errorf("said: %q", got)
 	}
-	if pet, ok := f.w.PetLookOf(f.sess); !ok || pet.Dye != (entity.PetDye{0xD10000FF, 0}) || pet.Look != look {
+	if pet, ok := f.w.PetLookOf(f.sess); !ok || pet.Dye != (entity.PetDye{0, 0xD10000FF}) || pet.Look != look || !pet.Rule || pet.Clothed {
 		t.Errorf("on the character: %+v %v", pet, ok)
 	}
 
 	f.w.SetPetDyeAreas(map[uint32]database.PetDyeArea{look: {Look: look, Area1: "Flames", Area2: "Core", Mask: 0b10}})
+	pick(talk(), 3) // a row's: remove all dyes, from the rule's
 	got = talk()
 	if !strings.HasSuffix(got[len(got)-1], ":What shall I dye on your fire elemental?|Flames|Core|Both areas|Remove all dyes") {
 		t.Fatalf("two areas: %q", got)
@@ -86,10 +89,10 @@ func TestThePetGroomer(t *testing.T) {
 	colours := pick(pick(got, 1), 4) // Core; blues and teals
 	pick(colours, 5)                 // navy
 	navy := database.RGBA(database.DiscTints[4])
-	if d := dyes(); d != [2]uint32{0xD10000FF, navy} {
+	if d := dyes(); d != [2]uint32{0, navy} {
 		t.Fatalf("the core navy: %08X", d)
 	}
-	if !g.Answer(f.sess, f.p, boxID(colours), 0) || dyes() != [2]uint32{0xD10000FF, navy} {
+	if !g.Answer(f.sess, f.p, boxID(colours), 0) || dyes() != [2]uint32{0, navy} {
 		t.Errorf("an answered box changed the dyes to %08X", dyes())
 	}
 	pick(pick(pick(talk(), 2), 5), 1) // both; purples; violet
@@ -105,5 +108,32 @@ func TestThePetGroomer(t *testing.T) {
 	}
 	if g.Talk(f.sess, f.p, &entity.NPC{ServerID: 3103, Name: EquipmentDyerName}) {
 		t.Error("the Equipment Dyer answered as a groomer")
+	}
+}
+
+// A clothed body by the rule (the owner, 2026-11-16: "the pets need their
+// clothes as one dye and the rest another like we two tone equipment"): its
+// clothing area 1, its body area 2, both, or every dye off; one of no
+// clothing is dyed whole as its body (area 2); a petdyeareas row's names win
+// over the rule (the control).
+func TestGroomerChoicesByTheRule(t *testing.T) {
+	labels := func(cs []groomChoice) string {
+		var out []string
+		for _, c := range cs {
+			out = append(out, fmt.Sprintf("%s%v", c.label, c.areas))
+		}
+		return strings.Join(out, "|")
+	}
+	clothed := entity.PetLook{Look: 0x15764DA8, Rule: true, Clothed: entity.PetBodyClothed(0x15764DA8)}
+	if got := labels(groomChoices(clothed)); got != "Clothing[0]|Body[1]|Both[0 1]|Remove all dyes[]" {
+		t.Errorf("the drachnid: %s", got)
+	}
+	bare := entity.PetLook{Look: 0x8A416241, Rule: true, Clothed: entity.PetBodyClothed(0x8A416241)}
+	if got := labels(groomChoices(bare)); got != "Its whole body[1]|Remove its dye[]" {
+		t.Errorf("the fire elemental: %s", got)
+	}
+	row := entity.PetLook{Look: 0x15764DA8, Area: database.PetDyeArea{Area1: "Torso", Area2: "Spider body", Mask: 1}}
+	if got := labels(groomChoices(row)); got != "Torso[0]|Spider body[1]|Both areas[0 1]|Remove all dyes[]" {
+		t.Errorf("a row: %s", got)
 	}
 }

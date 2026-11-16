@@ -20,13 +20,15 @@ import (
 // area2, 0xRRGGBBAA as chardyes holds a colour (red in the high byte, alpha
 // never 0; 0: that area undyed). A row with both 0 is no row.
 //
-// petdyeareas: a body's two areas, by its palette's materials: look, the body;
-// area1 and area2, the areas' names as the Groomer asks them ("Torso",
-// "Spider body"); materials, area 2's material indices ("0,2,5", 0-63: the
-// palette entries a body's batches name, esf's Batch.material), every other
-// material area 1. A body with no row is one area, its whole body (area 1);
-// the Groomer then dyes it in one colour. A GM adds a row to make any pet body
-// two areas.
+// petdyeareas: a body's two areas, by its palette's materials, in place of the
+// client's rule: look, the body; area1 and area2, the areas' names as the
+// Groomer asks them ("Torso", "Spider body"); materials, area 2's material
+// indices ("0,2,5", 0-63: the palette entries a body's batches name, esf's
+// Batch.material), every other material area 1 (none: one area, its whole
+// body). A body with no row (2026-11-16, the owner: "the pets need their
+// clothes as one dye and the rest another like we two tone equipment") is the
+// rule's: area 1 its clothing, area 2 the rest of it, as the client tells them
+// apart (entity.PetBodyClothed: a body that wears none is dyed whole, area 2).
 const petDyesSchema = `
 	CREATE TABLE IF NOT EXISTS petdyes (
 		serverid INTEGER NOT NULL,

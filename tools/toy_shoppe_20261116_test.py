@@ -142,7 +142,7 @@ class ToyShoppe(unittest.TestCase):
         outfit = dict((s, (look, c)) for s, look, c in self.q("SELECT slot, look, color FROM itemoutfit WHERE patternid = 716912"))
         self.assertEqual(outfit, toy.ELF_OUTFIT)
         (npc,) = self.q("SELECT npc_name, modelid, race, npc_type, x_coord, z_coord, facing, world, npc_id = id FROM npcs WHERE npc_name = ?", toy.SHOP)
-        self.assertEqual(npc, (toy.SHOP, 0xA99C6B15, "3", 128, 25282.2, 15744.8, 220, 0, 1))
+        self.assertEqual(npc, (toy.SHOP, 0xA99C6B15, "3", 128, 25282.2, 15744.8, 96, 0, 1))
         self.assertEqual(self.q("SELECT season FROM npcseason WHERE name = ?", toy.SHOP), [("Christmas",)])
         self.assertEqual(self.q("SELECT roam FROM npcmove WHERE name = ?", toy.SHOP.lower()), [(0,)])
         self.assertEqual(self.q("SELECT aggressive FROM npcaggro WHERE npc_name = ?", toy.SHOP), [(0,)])

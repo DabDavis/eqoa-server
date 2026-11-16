@@ -52,8 +52,9 @@ SHOP = "Toymaker Tinsel"
 TEMPLATE = (405, "Captain Scilond")
 TREE = "Christmas Tree"
 # east of the tree (25270, 15754.7), 15.7 from its middle; 4.1 north-west of its Weapon Enchanter (Heirloom 190637 at
-# 25284.76, 15747.96), 5.2 north of the nearest present spilling east (25280.5, 15749.7); facing byte 220, the tree
-SHOP_AT = (25282.2, 54.13, 15744.8, 220)
+# 25284.76, 15747.96), 5.2 north of the nearest present spilling east (25280.5, 15749.7); facing byte 96, north-east,
+# out to the square (the tree at his back)
+SHOP_AT = (25282.2, 54.13, 15744.8, 96)
 ROOM, TREE_CLEAR = 2.5, 11.0
 GNOME_MALE = 0xA99C6B15
 SHOP_LOOK = {"modelid": GNOME_MALE, "race": "3", "torso": 2, "forearm": 2, "gloves": 2, "legs": 2, "feet": 2, "head": 0,

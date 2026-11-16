@@ -22,6 +22,15 @@ import (
 //	/aura off                                   its name's glow and aura gone (its tint kept)
 //	/aura item <id> <kind> <RRGGBBAA> [source] [nodes]
 //	/aura item <id> off
+//	/aura item <id> second <kind> <RRGGBBAA> [source] [nodes]
+//	/aura item <id> second off
+//
+// second: a held item's second aura (itemaura's color2 ... nodes2; the owner,
+// 2026-11-16: "also give icing death the sword of virtue aura blue and also
+// the freezing so we can have 2 auras now"), drawn beside its first on the
+// hand that holds it: kind particles, epic or energy (3, 7, 9), nodes where
+// along the weapon (0-100, 0 the source's own place: a spell visual's at the
+// tip).
 //
 // The easier words (the owner, 2026-11-13: "make /aura command easier for gms
 // to use like /aura blue particles chest, /aura yellow shell wholebody (the
@@ -57,7 +66,7 @@ import (
 // Sword of Virtue's); nodes 0-32.
 
 const auraUsage = "Usage: /aura <kind> <RRGGBBAA> [source] [nodes] on your target NPC's name, /aura off; " +
-	"/aura item <id> <kind> <RRGGBBAA> [source] [nodes], /aura item <id> off. kind: default, none, shell, particles, both, " +
+	"/aura item <id> <kind> <RRGGBBAA> [source] [nodes], /aura item <id> off; a held item's second: /aura item <id> second <particles|epic|energy> <RRGGBBAA> [source] [along 0-100], /aura item <id> second off. kind: default, none, shell, particles, both, " +
 	"trim, trimshell (0-6); a colour of every channel at most 30 (000000FF black) is a dark aura; source: a DictID in hex (0 the Sword of Virtue's); nodes 0-32 (0 the default)"
 
 // auraKinds are the kinds by name (database.AuraDefault ...).
@@ -102,6 +111,44 @@ func parseAura(args []string) (a database.ItemAura, ok bool) {
 	if len(args) > 3 {
 		n, err := strconv.Atoi(args[3])
 		if err != nil || !database.ValidAuraNodes(int64(n)) {
+			return a, false
+		}
+		a.Nodes = uint8(n)
+	}
+	return a, true
+}
+
+// parseSecondAura reads a held item's second aura: <kind> <RRGGBBAA>
+// [source] [nodes] with kind particles, epic or energy (3, 7, 9) and nodes
+// where along the weapon (0-100), or "off" (all zero).
+func parseSecondAura(args []string) (a database.ItemAura, ok bool) {
+	if len(args) == 1 && strings.EqualFold(args[0], "off") {
+		return a, true
+	}
+	if len(args) < 2 || len(args) > 4 {
+		return a, false
+	}
+	k, named := map[string]uint8{"particles": database.AuraParticles, "sparkles": database.AuraParticles,
+		"epic": database.AuraEpic, "energy": database.AuraEnergy}[strings.ToLower(args[0])]
+	if !named {
+		n, err := strconv.Atoi(args[0])
+		if err != nil || !database.HandAuraKind(int64(n)) {
+			return a, false
+		}
+		k = uint8(n)
+	}
+	a.Kind = k
+	if a.Color, ok = parseHex32(args[1]); !ok {
+		return a, false
+	}
+	if len(args) > 2 {
+		if a.Source, ok = parseHex32(args[2]); !ok {
+			return a, false
+		}
+	}
+	if len(args) > 3 {
+		n, err := strconv.Atoi(strings.TrimSuffix(args[3], "%"))
+		if err != nil || !database.ValidItemAuraSecond(int64(a.Kind), int64(n)) {
 			return a, false
 		}
 		a.Nodes = uint8(n)
@@ -244,6 +291,11 @@ var auraLooks = []auraLook{
 	// circlet is sitting too low on dust"; the client's own 62% crossed the eyes)
 	{[]string{"monk", "circlet"}, database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: CircletHeightMonk},
 		"the monk's level 49 epic staff, Ascendant staff (1D875ECD): its glowing ring with the criss-cross worn round the head at the temples (while no helm is drawn; height=N moves it)", false},
+	// the paladin's level 60 epic, the Sword of Virtue: its glow, its sheen
+	// and its sparkles on a held weapon (the owner, 2026-11-16: "also give
+	// icing death the sword of virtue aura blue"; a colour recolours it)
+	{[]string{"sword", "of", "virtue"}, database.ItemAura{Kind: database.AuraEpic, Source: 0x88EC092D},
+		"the paladin's level 60 epic, the Sword of Virtue (88EC092D): its glow, its sheen and its sparkles (a colour recolours them: /aura blue sword of virtue weapons)", false},
 	{[]string{"sickle", "taint"}, database.ItemAura{Kind: database.AuraEpic, Source: 0x5FD4AE7C},
 		"the necromancer's epic, Sickle of Avhi Escron (5FD4AE7C): an olive glow and its green mist (Zaeire's)", false},
 	// a spell visual's hand emitters on a held weapon (the owner, 2026-11-14:
@@ -491,6 +543,16 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 			return
 		}
 		id, err := strconv.Atoi(args[1])
+		if strings.EqualFold(args[2], "second") {
+			a, ok := parseSecondAura(args[3:])
+			if err != nil || id < 0 || !ok {
+				h.gmReply(sess, auraUsage)
+				return
+			}
+			a.PatternID = id
+			h.setItemSecondAura(sess, player, a, fmt.Sprintf("Item %d", id))
+			return
+		}
 		a, ok := parseAura(args[2:])
 		if err != nil || id < 0 || !ok {
 			h.gmReply(sess, auraUsage)
@@ -691,6 +753,27 @@ func (h *ChatHandler) setItemAura(sess *session.Session, player *entity.Player, 
 	}
 	h.gmReply(sess, fmt.Sprintf("%s now has %s (%s); everyone wearing it shows it, at once (%d items with an aura).", what, auraNow(a), auraWords(a), n))
 	log.Printf("GM: %s aura %s: %s", player.Name, what, auraWords(a))
+}
+
+// setItemSecondAura keeps item a.PatternID's second aura (audited) and puts it
+// in the world; what names the item in the reply.
+func (h *ChatHandler) setItemSecondAura(sess *session.Session, player *entity.Player, a database.ItemAura, what string) {
+	db := h.camps.db
+	found, err := db.SetItemAuraSecondAudited(a, gmEditOf(sess), fmt.Sprintf("/aura in the game: %s's second aura %s", what, auraWords(a)))
+	switch {
+	case err != nil:
+		h.gmReply(sess, "/aura: not kept: "+err.Error())
+		return
+	case !found:
+		h.gmReply(sess, fmt.Sprintf("/aura: no item %d", a.PatternID))
+		return
+	}
+	if _, err := h.gameWorld.LoadItemAuras(db); err != nil {
+		h.gmReply(sess, "/aura: kept, not yet in the world: "+err.Error())
+		return
+	}
+	h.gmReply(sess, fmt.Sprintf("%s's second aura: now %s (%s), beside its first on the hand that holds it, at once (from a client that draws second auras).", what, auraNow(a), auraWords(a)))
+	log.Printf("GM: %s second aura %s: %s", player.Name, what, auraWords(a))
 }
 
 // setNPCAura keeps the target NPC's name's aura (npctint, audited) and sends it.

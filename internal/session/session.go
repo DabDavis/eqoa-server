@@ -162,6 +162,9 @@ type Session struct {
 	// handAura: it also draws the held items' auras after the cape's (bit 6,
 	// 64: entity.HandAuraChannel, 335 bytes)
 	handAura bool
+	// secondAura: it also draws the held items' second auras after the
+	// hands' (bit 7, 128: entity.SecondAuraChannel, 355 bytes)
+	secondAura bool
 	// creationOffered: the creation offer went out (protocol.OpcodeCreationOffer,
 	// handlers/creation.go), once a session as the live look's.
 	creationOffered bool
@@ -756,6 +759,22 @@ func (s *Session) HandAura() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.handAura && s.capeAura && s.bodyAura && s.pieceAuras && s.armorLook && s.liveLook
+}
+
+// SetSecondAura records whether the session's client draws the held items'
+// second auras after the hands' (entity.SecondAuraChannel).
+func (s *Session) SetSecondAura(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.secondAura = on
+}
+
+// SecondAura is whether the session's client is sent the held items' second
+// auras: it asked, with the hands' (HandAura).
+func (s *Session) SecondAura() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.secondAura && s.handAura && s.capeAura && s.bodyAura && s.pieceAuras && s.armorLook && s.liveLook
 }
 
 // OfferLiveLookOnce reports whether the live look's offer is still to be

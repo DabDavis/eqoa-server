@@ -407,10 +407,29 @@ func checkCharAuraRow(row map[string]any) error {
 }
 
 // checkItemAuraRow holds an itemaura row to an item, a 32-bit colour and an
-// aura the client reads.
+// aura the client reads, and its second aura (color2 ... nodes2) to a held
+// item's.
 func checkItemAuraRow(row map[string]any) error {
 	if f, ok := asFloat(row["patternid"]); !ok || f != math.Trunc(f) || f < 0 {
 		return badRequest("patternid is the item's record (Items)")
+	}
+	whole := func(col string) (int64, bool, bool) {
+		v, has := row[col]
+		if !has {
+			return 0, false, true
+		}
+		f, fok := asFloat(v)
+		return int64(f), true, fok && f == math.Trunc(f)
+	}
+	for _, col := range []string{"color2", "source2"} {
+		if v, has, ok := whole(col); has && (!ok || !database.ValidNPCTint(v)) {
+			return badRequest("%s is a 32-bit value (0xRRGGBBAA for the colour, a DictID for the source), 0 none", col)
+		}
+	}
+	k2, hasK2, okK2 := whole("kind2")
+	n2, _, okN2 := whole("nodes2")
+	if !okK2 || !okN2 || hasK2 && !database.ValidItemAuraSecond(k2, n2) || !hasK2 && n2 != 0 && !database.ValidItemAuraSecond(database.AuraParticles, n2) {
+		return badRequest("the second aura is a held item's: kind2 0 none, 3 the particles, 7 an epic's look or 9 an energy skin; nodes2 where along it 0-%d (0 with kind2 0)", database.AuraAlongMost)
 	}
 	if v, ok := row["color"]; ok {
 		f, fok := asFloat(v)

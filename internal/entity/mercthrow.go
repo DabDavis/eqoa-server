@@ -39,7 +39,13 @@ import (
 // its book's own potion spells ("Freeport Fire Potion", which it no longer
 // casts: mercPotionSpell), each by what it is worth on its body (mercWorth).
 // A spell its hirer turned off is not thrown. Its other spells (the sprays,
-// roots, buffs) are cast as before, between its throws.
+// roots, buffs) are cast as before, between its throws, and a throw that
+// comes due while one is cast goes on through the cast on its round's beat
+// (mercfight.go), as a player's auto-attack throws through its casts
+// (CLIENT's AutoAttackTick runs every frame, a cast or not). Until 2026-11-17
+// a due throw waited for the cast's end, and the next round was counted from
+// that late throw: the Heirloom mercs threw every 5.3 s on average (median 5
+// to 6 s over 2,270 throws, 2026-11-14..17), not Range1's 3.5.
 //
 // A Cocktail alchemist's throws are its hirer's choice (the owner: "if
 // player chooses cocktail path should have a toggle for aoe cocktail thrown
@@ -351,13 +357,30 @@ func (w *World) mercThrowTurnLocked(ms *mercState, t *NPC, now time.Time) bool {
 		}
 		ms.ready[PotionEffectID(what.pe.PatternID)] = now.Add(max(what.pe.duration()/2, mercSelfPotionAgain/5))
 	}
-	ms.throwReady = now.Add(s.Delay)
+	ms.throwReady = mercNextThrow(ms.throwReady, s.Delay, now)
 	ms.throwing = &mercThrowing{target: t.ServerID, lands: now.Add(mercThrowLand), what: what}
-	ms.busy = now.Add(mercThrowLand) // it stands for its throw
+	if land := now.Add(mercThrowLand); ms.busy.Before(land) {
+		ms.busy = land // it stands for its throw (a cast's own time kept)
+	}
 	breakNPCInvis(m)
 	w.broadcastNPCSwingLocked(m, t.ServerID, uint32(s.Delay/time.Millisecond), HashResourceID(SwingEffectName(s.Kind)))
 	log.Printf("Merc: %s's %q throws %q at %s (%d power left)", ms.owner.Name, m.Name, what.pe.ItemName, t.Name, m.Power)
 	return true
+}
+
+// mercThrowOnBeat is how late a throw may come and keep its round's beat: the
+// next throw is then due a round after the last one was, not a round after
+// this tick, so the tick's lateness does not add up round after round.
+const mercThrowOnBeat = 300 * time.Millisecond
+
+// mercNextThrow is when the merc's next throw is due after one thrown now, the
+// last one due at was (zero: none): a round on from the last one's due time
+// while the throw came on its beat, else a round from now.
+func mercNextThrow(was time.Time, delay time.Duration, now time.Time) time.Time {
+	if !was.IsZero() && !now.Before(was) && now.Sub(was) <= mercThrowOnBeat {
+		return was.Add(delay)
+	}
+	return now.Add(delay)
 }
 
 // mercThrowLandLocked lands the merc's potion whose time has come, as

@@ -187,3 +187,70 @@ func TestMercAlchemistCocktailToggle(t *testing.T) {
 		t.Error("the splash hit another's pet")
 	}
 }
+
+// An alchemist merc's throws keep Range1's 3.5 s round through its casts, as a
+// player's ranged auto-attack throws through its own (mercthrow.go). Until
+// 2026-11-17 a throw due during a cast waited for the cast's end, and the next
+// round counted from it: on Heirloom the mercs threw every 5.3 s.
+func TestMercAlchemistThrowsThroughItsCasts(t *testing.T) {
+	r := newMercRig(t)
+	alcPotions(r.w)
+	mix := bookSpell(700085, "Volatile Mixture", 0, 2*time.Second, 3*time.Second, 20, "Self, Summon Volatile Potion x3")
+	// a long cast it may begin again soon after: one always comes due across a throw
+	spray := bookSpell(700033, "Fire Spray", 1, 3*time.Second, 500*time.Millisecond, 1, "Target, Decrease Hitpoints by 66")
+	k := r.kit(14, 0, 0, mix, spray)
+	k.Look.Primary, k.Look.PrimaryType, k.Look.Secondary, k.Look.SecondaryType = 0, 0, 0x45700E37, 10
+	ms := r.hire(k, MercAssist)
+	m := ms.npc
+	crab := r.creature("Desert Crab", 28, 10)
+	crab.HP, crab.MaxHP = 9000000, 9000000
+	r.seeRig(m.ServerID, crab.ServerID)
+	r.run(0, time.Second)
+	r.sess.Queue().GetPending()
+	ms.ordered = crab.ServerID
+	var throws []time.Duration
+	sprays := 0
+	for d := 1100 * time.Millisecond; d <= 31*time.Second; d += 100 * time.Millisecond {
+		r.w.mu.Lock()
+		m.Power = 100000 // its power is not what this measures
+		r.w.mu.Unlock()
+		r.tick(d)
+		for _, c := range r.castsSeen() {
+			if c.caster != 0x01010000+uint32(m.ServerID) || c.target != 0x01010000+uint32(crab.ServerID) {
+				continue
+			}
+			if c.fx == HashResourceID("Range1") {
+				throws = append(throws, d)
+			} else {
+				sprays++
+			}
+		}
+	}
+	if sprays < 3 {
+		t.Fatalf("%d casts in 30 s: the rig casts too little to test the throws through them", sprays)
+	}
+	if len(throws) < 8 {
+		t.Fatalf("%d throws in 30 s, want a 3.5 s round's (8 or 9): %v", len(throws), throws)
+	}
+	for i := 1; i < len(throws); i++ {
+		if gap := throws[i] - throws[i-1]; gap < 3500*time.Millisecond || gap > 3600*time.Millisecond {
+			t.Errorf("throws %d and %d %v apart, want Range1's 3.5 s (all: %v)", i-1, i, gap, throws)
+		}
+	}
+}
+
+func TestMercNextThrowKeepsTheBeat(t *testing.T) {
+	t0 := time.Unix(1000, 0)
+	const round = 3500 * time.Millisecond
+	if got := mercNextThrow(time.Time{}, round, t0); !got.Equal(t0.Add(round)) {
+		t.Errorf("first throw: next %v, want a round from now", got.Sub(t0))
+	}
+	// a tick late: the beat kept
+	if got := mercNextThrow(t0, round, t0.Add(90*time.Millisecond)); !got.Equal(t0.Add(round)) {
+		t.Errorf("a tick late: next %v after the due time, want %v", got.Sub(t0), round)
+	}
+	// long after it was due (out of reach, no sight): a round from now
+	if got := mercNextThrow(t0, round, t0.Add(2*time.Second)); !got.Equal(t0.Add(2*time.Second + round)) {
+		t.Errorf("2 s late: next %v after the due time, want %v", got.Sub(t0), 2*time.Second+round)
+	}
+}

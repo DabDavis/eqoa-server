@@ -187,6 +187,13 @@ func mercUseOf(s *CastSpell) mercUse {
 		case EffectHP:
 			hit = hit || e.Amount < 0
 			heal = heal || e.Amount > 0 && e.Drain == DrainNone
+		case EffectPower:
+			// a foe's power drained to the caster's group (the necromancer's
+			// Power path: Power Gale to Power Vortex), cast at a foe as the
+			// Blood path's hit points are (Heirloom petition 2302, Gonzo,
+			// 2026-11-17: "I picked power path and they have no power path
+			// spells")
+			hit = hit || e.Amount < 0 && e.Drain == DrainGroup
 		case EffectHPTick:
 			tick = tick || e.Amount < 0
 			hot = hot || e.Amount > 0
@@ -390,6 +397,10 @@ func mercWorth(s *CastSpell, u mercUse, b *Player) float64 {
 		switch e.Kind {
 		case EffectHP:
 			v += n
+		case EffectPower:
+			if e.Drain == DrainGroup {
+				v += n // the group's power, worth its hit points' figure (mercUseOf)
+			}
 		case EffectHPTick:
 			v += n * ticks
 		case EffectHate:

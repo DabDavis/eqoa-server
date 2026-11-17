@@ -622,6 +622,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	NewNPCTintsHandler(gameWorld).RegisterHandlers(r)
 	NewDecorLightsHandler(gameWorld).RegisterHandlers(r)
 	(&PetDyesHandler{}).RegisterHandlers(r) // the pets' dyes (petgroomer.go)
+	NewDyePickerHandler(gameWorld).RegisterHandlers(r) // the dyers' colour picker (dyepicker.go)
 	// A damage meter (0x7E3B, 0x7E3D; dpsmeter.go): a client that draws one
 	NewDPSMeterHandler(gameWorld).RegisterHandlers(r)
 	// The worn looks a character hides (0x7E6D; hidelook.go)

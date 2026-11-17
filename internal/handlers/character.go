@@ -999,6 +999,9 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// and the pets' dyes (petgroomer.go): a client that draws them asks, a
 	// PS2 ignores it
 	SendPetDyesOffer(sess)
+	// and the dyers' colour picker (dyepicker.go): a client with a picker
+	// window answers, a PS2 ignores it and keeps the dyers' palettes
+	SendDyePickerOffer(sess)
 	// and a damage meter (dpsmeter.go): a client that draws one asks, a PS2
 	// ignores it
 	SendDPSMeterOffer(sess)

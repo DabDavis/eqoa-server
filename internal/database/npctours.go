@@ -77,6 +77,9 @@ type TourPoint struct {
 	Say   string      `json:"say,omitempty"`
 	Pause float32     `json:"pause,omitempty"`
 	View  *[3]float32 `json:"view,omitempty"`
+	// Face is the heading a rider set down at View faces (radians, CLIENT's
+	// HPR: atan2(x, z)); nil: toward the point.
+	Face *float32 `json:"face,omitempty"`
 }
 
 // TourLines is what a tour's host and others say, each overriding the code's

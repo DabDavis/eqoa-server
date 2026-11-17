@@ -870,6 +870,9 @@ func (w *World) tourStepLocked(r *tourRun, t float64, now time.Time) {
 			continue
 		}
 		face := headingTo(d.Route[i].X-v[0], d.Route[i].Z-v[2])
+		if f := d.Route[i].Face; f != nil {
+			face = *f
+		}
 		for id, rd := range r.riders {
 			if rd.rides || rd.viewed >= i {
 				continue

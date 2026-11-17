@@ -85,6 +85,44 @@ func TestPetitionQuery(t *testing.T) {
 	}
 }
 
+// Feature requests (Bug Report / Feature Request, petition 1841) listed apart
+// from the rest: feature alone, other all but them, all (and "") every one.
+// The controls: another category's subcategory 100 and Bug Report's other
+// topics are not feature requests; an unknown kind is refused.
+func TestPetitionKindFilter(t *testing.T) {
+	db := petitionDB(t)
+	now := time.Now()
+	for _, p := range []Petition{
+		{ServerID: 1, CharName: "Ann", Category: FeatureRequestCategory, Subcategory: FeatureRequestSubcategory, Text: "a /lfg window"},
+		{ServerID: 1, CharName: "Ann", Category: FeatureRequestCategory, Subcategory: 12, Text: "a quest bug"},
+		{ServerID: 2, CharName: "Bob", Category: 2, Subcategory: FeatureRequestSubcategory, Text: "stuck"},
+		{ServerID: 2, CharName: "Bob", Category: FeatureRequestCategory, Subcategory: FeatureRequestSubcategory, Text: "ability quests coloured"},
+	} {
+		if _, err := db.FilePetition(p, now); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for kind, want := range map[string]string{"feature": "[1004 1001]", "other": "[1003 1002]", "all": "[1004 1003 1002 1001]", "": "[1004 1003 1002 1001]"} {
+		l, err := db.Petitions(PetitionQuery{Kind: kind})
+		if err != nil {
+			t.Fatal(err)
+		}
+		var got []int64
+		for _, p := range l.Petitions {
+			got = append(got, p.ID)
+		}
+		if fmt.Sprint(got) != want || l.Matching != len(got) {
+			t.Errorf("kind %q: %v (matching %d), want %s", kind, got, l.Matching, want)
+		}
+	}
+	if l, _ := db.Petitions(PetitionQuery{Kind: "feature", Search: "lfg"}); len(l.Petitions) != 1 {
+		t.Errorf("feature and a search: %d", len(l.Petitions))
+	}
+	if _, err := db.Petitions(PetitionQuery{Kind: "bugs"}); err == nil {
+		t.Error("an unknown kind taken")
+	}
+}
+
 // The bounds and the refusals: a player's request on another character's
 // petition or a deleted one is ErrPetitionNotFound, on a closed one
 // ErrPetitionClosed; a reply past PetitionMaxText is ErrPetitionTooLong; a GM's

@@ -123,6 +123,9 @@ type markQuest struct {
 	min, max int
 	line     string
 	detail   string
+	// ability: the quest gives the player's class an ability (abilityFor),
+	// flagged after the set for a client to mark it apart (petition 2285)
+	ability bool
 }
 
 // questText is a quest's words for the marks, made when the quests are read
@@ -134,6 +137,26 @@ type questText struct {
 	rewards string
 	byClass map[int]string
 	needs   map[int]string
+	// ability is whether it gives every class an ability (a spell, by a
+	// step's rewards or one of a choice's options), abilityBy a class's
+	// where its steps reward that class besides (abilityFor)
+	ability   bool
+	abilityBy map[int]bool
+}
+
+// abilityFor is whether the quest gives a player of a class an ability: a
+// spell among its steps' rewards for the class or among a step's choice's
+// options (petition 2285, Zerkziee: "highlights the ability quest
+// differently compared to other quest ... most people only do the ability
+// quest anyway").
+func (t *questText) abilityFor(class int) bool {
+	if t == nil {
+		return false
+	}
+	if a, ok := t.abilityBy[class]; ok {
+		return a
+	}
+	return t.ability
 }
 
 // rewardsFor is the quest's rewards for a player of a class.
@@ -364,7 +387,7 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 		}
 		// its step, or each of its group's not yet done (questanyorder.go)
 		for _, st := range openSteps(qu, cq) {
-			mq := markQuest{name: qu.Name, min: qu.MinLevel, max: qu.MaxLevel, line: st.Journal}
+			mq := markQuest{name: qu.Name, min: qu.MinLevel, max: qu.MaxLevel, line: st.Journal, ability: q.texts[qu.ID].abilityFor(p.Class)}
 			switch {
 			case database.AtNPC(st.Kind):
 				mq.detail = q.texts[qu.ID].needs[st.Step]
@@ -458,7 +481,7 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 		sort.SliceStable(takes, func(i, j int) bool { return c.timesDone(takes[i].ID) < c.timesDone(takes[j].ID) })
 		for _, qu := range takes {
 			t := q.texts[qu.ID]
-			addGiver(qu.Giver, markQuest{name: qu.Name, min: qu.MinLevel, max: qu.MaxLevel, line: t.offer, detail: t.rewardsFor(p.Class)})
+			addGiver(qu.Giver, markQuest{name: qu.Name, min: qu.MinLevel, max: qu.MaxLevel, line: t.offer, detail: t.rewardsFor(p.Class), ability: t.abilityFor(p.Class)})
 		}
 	}
 	sort.SliceStable(marks, func(i, j int) bool {
@@ -500,14 +523,28 @@ func putText(b []byte, s string) []byte {
 	return append(append(b, byte(len(s))), s...)
 }
 
+// Quest flags, one u8 a quest after a set of marks or a tracker (petition
+// 2285): a client that reads them marks an ability quest apart; one that
+// does not stops reading at the set's end, as vanilla before them did.
+const questFlagAbility byte = 1
+
+// questFlags is a quest's flags byte.
+func questFlags(ability bool) byte {
+	if ability {
+		return questFlagAbility
+	}
+	return 0
+}
+
 // encodeQuestMarks is OpcodeQuestMarkersData's body: a u8 count, then each
 // mark's u8 kind, u8 world, f32 x and z, the NPC's name and a u8 count of
 // quests, each its name, u8 lowest and highest levels, its line and its
-// detail (a text: a u8 byte count, then UTF-8). Marks past maxMarksBytes are
-// left out.
+// detail (a text: a u8 byte count, then UTF-8); then, after the whole set,
+// each of its marks' quests' u8 flags in the same order (questFlagAbility).
+// Marks past maxMarksBytes (the flags in it) are left out.
 func encodeQuestMarks(marks []questMark) []byte {
 	out := []byte{0}
-	n := 0
+	n, flags := 0, 0
 	for _, m := range marks {
 		var b []byte
 		b = append(b, m.kind, m.world)
@@ -521,13 +558,19 @@ func encodeQuestMarks(marks []questMark) []byte {
 			b = putText(b, mq.line)
 			b = putText(b, mq.detail)
 		}
-		if len(out)+len(b) > maxMarksBytes || n == 255 {
+		if len(out)+len(b)+flags+len(m.quests) > maxMarksBytes || n == 255 {
 			break
 		}
 		out = append(out, b...)
 		n++
+		flags += len(m.quests)
 	}
 	out[0] = byte(n)
+	for _, m := range marks[:n] {
+		for _, mq := range m.quests {
+			out = append(out, questFlags(mq.ability))
+		}
+	}
 	return out
 }
 
@@ -622,14 +665,32 @@ func (q *QuestEngine) questTexts(all []*database.Quest) (map[int]*questText, map
 			}
 			return strings.Join(append(reward, got...), ", ")
 		}
+		// an ability for a class (-1: the steps' own): a spell a step gives
+		// it, or one a step's choice offers
+		abilityOf := func(class int) bool {
+			for i := range qu.Steps {
+				if len(qu.Steps[i].RewardFor(class).Spells) > 0 {
+					return true
+				}
+				for _, o := range qu.Steps[i].Choices.Options {
+					if len(o.Reward.Spells) > 0 && !o.Stay {
+						return true
+					}
+				}
+			}
+			return false
+		}
 		t.rewards = rewardsOf(-1)
+		t.ability = abilityOf(-1)
 		for _, st := range qu.Steps {
 			for class := range st.ByClass {
 				if _, done := t.byClass[class]; !done {
 					if t.byClass == nil {
 						t.byClass = map[int]string{}
+						t.abilityBy = map[int]bool{}
 					}
 					t.byClass[class] = rewardsOf(class)
+					t.abilityBy[class] = abilityOf(class)
 				}
 			}
 		}

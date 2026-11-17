@@ -43,6 +43,8 @@ const (
 type questProgress struct {
 	name  string
 	goals []progressGoal
+	// ability: the quest gives the player's class an ability (petition 2285)
+	ability bool
 }
 
 // progressGoal is one objective: its words and its count (need 0: nothing
@@ -167,7 +169,7 @@ func (q *QuestEngine) progressLocked(l *invList, p *entity.Player, c *questChar)
 		if qu == nil {
 			continue
 		}
-		qp := questProgress{name: qu.Name}
+		qp := questProgress{name: qu.Name, ability: q.texts[qu.ID].abilityFor(p.Class)}
 		if strings.TrimSpace(qp.name) == "" {
 			qp.name = fmt.Sprintf("Quest %d", qu.ID)
 		}
@@ -238,7 +240,8 @@ func putProgressText(b []byte, s string) []byte {
 
 // encodeQuestProgress is OpcodeQuestProgressData's body: a u8 count, then
 // each quest's name and a u8 count of objectives, each its text, u16 had and
-// u16 needed (a count past 65535 shown as that). Quests past
+// u16 needed (a count past 65535 shown as that); then, after the whole
+// tracker, each of its quests' u8 flags in its order (questFlags). Quests past
 // maxProgressBytes are left out.
 func encodeQuestProgress(qs []questProgress) []byte {
 	out := []byte{0}
@@ -252,12 +255,15 @@ func encodeQuestProgress(qs []questProgress) []byte {
 			b = binary.LittleEndian.AppendUint16(b, u16(g.have))
 			b = binary.LittleEndian.AppendUint16(b, u16(g.need))
 		}
-		if len(out)+len(b) > maxProgressBytes || n == 255 {
+		if len(out)+len(b)+n+1 > maxProgressBytes || n == 255 {
 			break
 		}
 		out = append(out, b...)
 		n++
 	}
 	out[0] = byte(n)
+	for _, qp := range qs[:n] {
+		out = append(out, questFlags(qp.ability))
+	}
 	return out
 }

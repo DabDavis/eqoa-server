@@ -53,6 +53,14 @@ func decodeProgress(t *testing.T, b []byte) []questProgress {
 			out[i].goals = append(out[i].goals, g)
 		}
 	}
+	// each quest's flags after the tracker, in its order
+	for i := range out {
+		if len(b) == 0 {
+			t.Fatalf("no flags for quest %d", i)
+		}
+		out[i].ability = b[0]&questFlagAbility != 0
+		b = b[1:]
+	}
 	if len(b) != 0 {
 		t.Fatalf("%d bytes past the tracker", len(b))
 	}

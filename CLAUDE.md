@@ -1472,8 +1472,9 @@ topic Sent from chat), `/feature <what you would like>` or `#feature` (**Feature
 `featureSubcategory`: petition 1841, the owner's "add feature req", players' asks kept apart from the bugs; Bug
 Report's 10-19 were all taken and CLIENT has no table of its own, its lists being ours, so a PS2's form offers it too;
 vanilla's `/feature` opens the form on it by that id: never renumber it; the panel's Petitions page shows it as "Bug
-Report / Feature Request" and has no kind filter, but its search finds the words, the ticket's text starting "Your
-request (Bug Report / Feature Request)"), and vanilla's F3, which opens the form on Bug Report from a client that answered the offer
+Report / Feature Request", and lists the feature requests alone or all but them by its kind filter (2026-11-17,
+`petition_list`'s `kind`: feature, other or all; `database.FeatureRequestCategory`/`Subcategory`, which
+`featureSubcategory` is), the ticket's text starting "Your request (Bug Report / Feature Request)"), and vanilla's F3, which opens the form on Bug Report from a client that answered the offer
 (**0x7E0E**, not retail, a u32 both ways, sent with the other offers; the server's is followed by a second, the most
 characters of a petition's text it takes, `CSTextMost`, which vanilla's form then holds). Each is filed with **the server's view**
 (`petitions.server_view`, JSON, the GMs' alone, never sent to the player, left out of every list): the moment and
@@ -4263,6 +4264,12 @@ is in the player's world a "?" at the nearest travel NPC of `wayRoutes` (waysend
 where nothing else leads) whose trips lead there in the fewest, "Travel with X to Y". `TestRealQuestMarks`
 (EQOA_REAL_DB, EQOA_QUESTMARKS_OUT) holds every step of both shards to its real targets: 248 stray marks and 263 steps
 with no way before, 0 and 43 after (no travel NPC leads out of Lavastorm, the Plane of Sky or world 14).
+**Ability quests flagged** (petition 2285, Zerkziee, approved by the owner 2026-11-17: "highlights the ability quest
+differently compared to other quest"): after the whole set, 0x7E04 carries one u8 of flags for each of its marks' quests in
+order (bit 0, `questFlagAbility`: the quest gives the player's class an ability, a spell among its steps' rewards for
+that class, `byclass` included, or on a choice's option that does not stay: `questText.abilityFor`, made at `Reload`), and
+0x7E06 one for each of its quests; a client before them reads the set and leaves the rest. Vanilla draws such a mark,
+card line and tracker name in its own colour. `TestQuestMarksFlagAbilityQuests`.
 
 **The quest tracker for a client's HUD** (F3 pass 18; `handlers/questprogress.go`; the user's "add
 quest progress hud item similar to WoW ... if quest says obtain 3 bat eyes, have 0/3"). Beside

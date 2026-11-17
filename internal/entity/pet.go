@@ -1624,30 +1624,41 @@ func (w *World) npcFightPetLocked(npc, pet *NPC, now time.Time) {
 	}
 	for npc.RoundHits < len(hits) && !now.Before(npc.RoundStart.Add(hits[npc.RoundHits])) {
 		npc.RoundHits++
-		src := npc.figures()                                                                                        // an add's are its creature's (summon.go)
-		n := npc.shared(w.npcHitLocked(src, w.balanceLevelOf(pet), src.meleeOut(npcHitOnPet(src, pet, meleeIntn)))) // balance.go, then its class template
-		n = w.petTakenLocked(pet, n)                                                                                // the pet's template's taken_pct (pettemplate.go)
-		if fixed := npc.meleeFixed(); fixed > 0 {
-			n = fixed // its template's fixed melee (melee_fixed), through any armour
-		}
-		pet.HP = max(pet.HP-n, 0)
-		pet.LastCombatTime = now
-		log.Printf("Pet: %s hit the pet %q for %d (HP %d/%d)", npc.Name, pet.Name, n, pet.HP, pet.MaxHP)
-		npc.meleeLanded(n, now)                    // unreached.go
-		w.rampageLocked(npc, pet.ServerID, n, now) // an enraged creature's share on the second of its list (enrage.go)
-		if pet.HP == 0 {
-			w.killNPC(pet)
-			w.dropAggroLocked(pet.ServerID)
-			log.Printf("Pet: %q killed by %s", pet.Name, npc.Name)
-			return
-		}
-		if w.creatureProcOnPetLocked(npc, pet, now) { // a template's melee proc (creatureshield.go)
-			return
-		}
-		if w.petShieldsLocked(pet, npc, now) { // its damage shield and defensive procs (dshield.go)
+		if w.npcMeleeOnPetLocked(npc, pet, 100, false, now) {
 			return
 		}
 	}
+}
+
+// npcMeleeOnPetLocked is one melee hit of the creature's on a pet or a mercenary, at pct percent of
+// its figure (100: as it is); ramp marks an area rampage's hit (arearampage.go), which rampages no
+// further. It reports the fight with the pet over for this round: the pet dead, or a proc's or a
+// shield's answer having ended it. Must be called with the lock held.
+func (w *World) npcMeleeOnPetLocked(npc, pet *NPC, pct int, ramp bool, now time.Time) bool {
+	src := npc.figures()                                                                                        // an add's are its creature's (summon.go)
+	n := npc.shared(w.npcHitLocked(src, w.balanceLevelOf(pet), src.meleeOut(npcHitOnPet(src, pet, meleeIntn)))) // balance.go, then its class template
+	n = w.petTakenLocked(pet, n)                                                                                // the pet's template's taken_pct (pettemplate.go)
+	if fixed := npc.meleeFixed(); fixed > 0 {
+		n = fixed // its template's fixed melee (melee_fixed), through any armour
+	}
+	n = rampagePct(n, pct) // an area rampage's share (arearampage.go)
+	pet.HP = max(pet.HP-n, 0)
+	pet.LastCombatTime = now
+	log.Printf("Pet: %s hit the pet %q for %d (HP %d/%d)", npc.Name, pet.Name, n, pet.HP, pet.MaxHP)
+	npc.meleeLanded(n, now) // unreached.go
+	if !ramp {
+		w.rampageLocked(npc, pet.ServerID, n, now) // an enraged creature's share on the second of its list (enrage.go)
+	}
+	if pet.HP == 0 {
+		w.killNPC(pet)
+		w.dropAggroLocked(pet.ServerID)
+		log.Printf("Pet: %q killed by %s", pet.Name, npc.Name)
+		return true
+	}
+	if w.creatureProcOnPetLocked(npc, pet, now) { // a template's melee proc (creatureshield.go)
+		return true
+	}
+	return w.petShieldsLocked(pet, npc, now) // its damage shield and defensive procs (dshield.go)
 }
 
 // retargetLocked turns a creature to its highest threat left, or to none.

@@ -148,6 +148,8 @@ type ClassTemplate struct {
 	killSays  []templateKillSay
 	// kickZones are its zones that kick who steps in (AbilityKickZone: kickzone.go)
 	kickZones []database.TemplateAbility
+	// areaRampage is its melee on everyone round it (AbilityRampage: arearampage.go; one at most)
+	areaRampage *database.TemplateAbility
 	// farCasts: one of its abilities is cast only out of its reach (OutOfReach)
 	farCasts bool
 	// problems is what of it the world cannot use, for the log and the panel
@@ -252,6 +254,12 @@ type templateFight struct {
 	// it: an unreached moment's (unreached.go)
 	landedAt time.Time
 	listedAt map[EntityID]time.Time
+	// rampRound is the round its area rampage's chance was rolled for, rampAt when that rampage
+	// lands (zero: none owed), rampNext when its clock's next one is due (zero: not begun:
+	// arearampage.go)
+	rampRound time.Time
+	rampAt    time.Time
+	rampNext  time.Time
 }
 
 // templateContactGap is the longest gap between two of a templated NPC's
@@ -715,6 +723,14 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 				continue
 			case database.AbilityKickZone:
 				t.kickZones = append(t.kickZones, ra) // kickzone.go
+				continue
+			case database.AbilityRampage:
+				if t.areaRampage == nil {
+					ar := ra
+					t.areaRampage = &ar // arearampage.go
+				} else {
+					t.problems = append(t.problems, fmt.Sprintf("ability %d: a second rampage (the first is its own)", i+1))
+				}
 				continue
 			}
 			t.farCasts = t.farCasts || ra.OutOfReach
@@ -1732,7 +1748,11 @@ func (w *World) tellNPCHealLocked(sess *session.Session, npc *NPC, n int) {
 // 1593), its specials wait as they did. Must be called with the lock held.
 func (w *World) templateSpecialLocked(npc *NPC, target EntityID, now time.Time) {
 	t := npc.tmpl
-	if t == nil || npc.castHeld(now) {
+	if t == nil {
+		return
+	}
+	w.areaRampageTurnLocked(npc, target, now) // its melee on everyone round it (arearampage.go)
+	if npc.castHeld(now) {
 		return
 	}
 	w.templateKickLocked(npc, target, now)
@@ -2020,6 +2040,9 @@ func (w *World) templateLineLocked(npc *NPC, now time.Time) string {
 		}
 		if w := deathHoldWords(npc); w != "" {
 			parts = append(parts, w) // deathhold.go
+		}
+		if w := areaRampageWords(npc, now); w != "" {
+			parts = append(parts, w) // arearampage.go
 		}
 	}
 	parts = append(parts, procsWords(npc)...) // creatureproc.go

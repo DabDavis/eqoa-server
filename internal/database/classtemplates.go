@@ -275,6 +275,22 @@ const (
 	// no resist, no mitigation, with the special's visual (FX for another),
 	// told as Name's (DefaultKickZoneName for none).
 	AbilityKickZone = "kickzone"
+	// AbilityRampage: a creature's melee on everyone round it (entity/arearampage.go; the owner,
+	// 2026-11-17: "lets introduce rampage the area of effect melee damage ability with 10m"): a full
+	// melee hit, rolled on each as its own (its defence, its armour, no resist), on every player, pet
+	// and mercenary within Radius (0: DefaultAreaRampageRadius) of it that it has a clear line to,
+	// and on the one it fights; by Chance percent of its melee rounds, or with Every on a clock of its
+	// fight (First the first, Chance then the share of its due times that go off); its hits DamagePct
+	// percent of its melee's (0: 100); Name its lines' (DefaultRampageName), FX its swing's look
+	// (0: its own round's), Say its line in /say as it goes.
+	AbilityRampage = "rampage"
+)
+
+// An area rampage's radius with none of its own (the owner's 10 m: a unit is a metre, a man 1.83
+// tall) and the widest one.
+const (
+	DefaultAreaRampageRadius = 10
+	MostAreaRampageRadius    = 50
 )
 
 // The kick zone's bounds: its radius, damage and every; DefaultKickZoneName is
@@ -304,7 +320,7 @@ const MostSetHPRadius = 200
 var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff, AbilityRoot, AbilityDebuff,
 	AbilityStrip, AbilityHealShield, AbilityMeleeKind, AbilityDoT, AbilityHitHeal, AbilityPrefer, AbilitySummon, AbilityEnrage,
 	AbilityProc, AbilityVeil, AbilityKillSay, AbilityLastStand, AbilityWard, AbilityDeathHold, AbilitySelfDoT, AbilityRaidHeal,
-	AbilityPowerZero, AbilitySetHP, AbilityUnreached, AbilityDeathTouch, AbilityPortNear, AbilityKickZone}
+	AbilityPowerZero, AbilitySetHP, AbilityUnreached, AbilityDeathTouch, AbilityPortNear, AbilityKickZone, AbilityRampage}
 
 // passiveKind is whether an ability of the kind casts nothing on a clock of its
 // own: what it does is a rule its creature keeps (a heal shield, a melee kind,
@@ -313,7 +329,7 @@ var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal
 func passiveKind(k string) bool {
 	switch k {
 	case AbilityHealShield, AbilityMeleeKind, AbilityHitHeal, AbilityPrefer, AbilitySummon, AbilityEnrage, AbilityProc, AbilityVeil,
-		AbilityKillSay, AbilityLastStand, AbilityWard, AbilityDeathHold, AbilityKickZone:
+		AbilityKillSay, AbilityLastStand, AbilityWard, AbilityDeathHold, AbilityKickZone, AbilityRampage:
 		return true
 	}
 	return false
@@ -786,6 +802,12 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 			}
 			continue
 		}
+		if a.Kind == AbilityRampage {
+			if err := checkAreaRampage(n, a); err != nil {
+				return err
+			}
+			continue
+		}
 		if BossMomentKind(a.Kind) {
 			if err := checkBossMoment(n, a); err != nil {
 				return err
@@ -880,6 +902,47 @@ func checkKickZone(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: a kickzone takes radius, damage, every, name, fx and say alone", n)
 	}
 	return nil
+}
+
+// checkAreaRampage holds an area rampage (AbilityRampage) to its fields: a radius of 0 (10) or 1 to
+// MostAreaRampageRadius; a chance of its rounds (1 to 100) with no clock, or a clock (every 2 to 3600
+// seconds, first 0 to 3600 into the fight) and a chance of its due times (0: every one); a damage_pct
+// of 0 (100) to 1000; a name, a visual and a say as any; nothing else.
+func checkAreaRampage(n int, a TemplateAbility) error {
+	finite := func(v float64) bool { return !math.IsNaN(v) && !math.IsInf(v, 0) }
+	k := a
+	k.Kind, k.Radius, k.Chance, k.Every, k.First, k.DamagePct, k.Name, k.FX, k.Say = "", 0, 0, 0, 0, 0, "", 0, ""
+	switch {
+	case !finite(a.Radius) || !finite(a.Every) || !finite(a.First):
+		return fmt.Errorf("ability %d: a number that is not one", n)
+	case a.Radius != 0 && (a.Radius < 1 || a.Radius > MostAreaRampageRadius):
+		return fmt.Errorf("ability %d: a rampage's radius %.1f: 0 (%d) or 1 to %d", n, a.Radius, DefaultAreaRampageRadius, MostAreaRampageRadius)
+	case a.Every != 0 && (a.Every < 2 || a.Every > 3600):
+		return fmt.Errorf("ability %d: a rampage's every %.1f: 0 (by its rounds' chance) or 2 to 3600 seconds", n, a.Every)
+	case a.First < 0 || a.First > 3600 || a.First != 0 && a.Every == 0:
+		return fmt.Errorf("ability %d: a rampage's first %.1f: 0 to 3600 seconds into a fight, with an every", n, a.First)
+	case a.Chance < 0 || a.Chance > 100:
+		return fmt.Errorf("ability %d: a rampage's chance %d: 1 to 100 percent", n, a.Chance)
+	case a.Every == 0 && a.Chance == 0:
+		return fmt.Errorf("ability %d: a rampage goes by a chance of its rounds (1 to 100) or on a clock (every)", n)
+	case a.DamagePct < 0 || a.DamagePct > 1000:
+		return fmt.Errorf("ability %d: a rampage's damage_pct %d: 0 (100) to 1000 percent of its melee", n, a.DamagePct)
+	case len(a.Name) > StripNameMost:
+		return fmt.Errorf("ability %d: a name of more than %d characters", n, StripNameMost)
+	case len(a.Say) > SayMost || strings.ContainsAny(a.Say, "|\n\r"):
+		return fmt.Errorf("ability %d: a say of more than %d characters, or with a | or a line break", n, SayMost)
+	case !reflect.DeepEqual(k, TemplateAbility{}):
+		return fmt.Errorf("ability %d: a rampage takes radius, chance, every, first, damage_pct, name, fx and say alone", n)
+	}
+	return nil
+}
+
+// RadiusOr is an area rampage's radius: its own, else DefaultAreaRampageRadius.
+func (a TemplateAbility) RadiusOr() float64 {
+	if a.Radius <= 0 {
+		return DefaultAreaRampageRadius
+	}
+	return a.Radius
 }
 
 // checkCreatureAbility holds a creature's fields of an ability (its cooldown, its

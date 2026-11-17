@@ -57,7 +57,7 @@ STEP_OLD = {"kind": "loot", "target": "spectral rallosian", "items": str(RUBY), 
             "journal": "Take the Tal'Thex ruby from the rallosian spectres of Geomancer's Citadel."}
 STEP_NEW = {"target": "rallosian spectre", "chance": 0.10,
             "journal": "Take the Tal'Thex ruby from the rallosian spectres and warlords of Geomancer's Citadel."}
-ALSO = "rallosian warlord"
+ALSO = ["rallosian warlord", "spectral rallosian"]  # the Pass's spectral rallosians keep dropping it (the owner, 2026-11-17)
 
 # name-keyed tables: table -> (name column, key columns other than the name, or None for an autoincrement id)
 KEYED = {"npcclass": ("name", ()), "npcundead": ("name", ()), "npcloot": ("npc_name", ("tablename",)),
@@ -158,8 +158,9 @@ def apply(db):
                     done(tbl, {col: new, **{k: r[k] for k in keys}}, None)
 
     update("queststeps", {"questid": QUEST, "step": STEP}, STEP_NEW)
-    db.execute("INSERT INTO queststeptargets (questid, step, target) VALUES (?, ?, ?)", (QUEST, STEP, ALSO))
-    done("queststeptargets", {"questid": QUEST, "step": STEP, "target": ALSO}, None)
+    for also in ALSO:
+        db.execute("INSERT INTO queststeptargets (questid, step, target) VALUES (?, ?, ?)", (QUEST, STEP, also))
+        done("queststeptargets", {"questid": QUEST, "step": STEP, "target": also}, None)
 
 
 def undo(db):

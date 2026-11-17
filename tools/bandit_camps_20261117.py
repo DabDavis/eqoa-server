@@ -84,7 +84,7 @@ SOURCE_WILD = "tools/bandit_camps_20261117.py: wildlife"
 
 BANDIT = re.compile(r"bandit|brigand|cutthroat|highwayman|highway|outlaw", re.I)
 CHAIN = 60.0          # tents and fires this near one another are one camp
-NEAR = 60.0           # a camp's rows: this near one of its tents or fires
+NEAR = 75.0           # a camp's rows: this near one of its tents or fires
 DY = 25.0
 MIN_KIND = 4          # a kind copied has this many rows in the world at least
 WANT_TENT = 2         # "in tents 2-3 spawns": two in a tent (three already there are left), three round a fire
@@ -97,6 +97,7 @@ ROOF_OVER = 3.5       # head room: the tent's own triangles this high over the f
 RING_OUT = 3.0        # a fire's ring: its collision's half-width + this
 RING_SLACK = 3.0      # a bandit this far past the ring is still at the fire
 GRID = 0.75           # a tent's floor sampled this fine
+TENT_ROOM = 4.0       # in a tent, bodies this far apart are as good as farther: then the nearer its middle the better
 
 ZONE = dict(name="Bandit Hills", x=(14000.0, 16000.0), z=(14000.0, 16000.0))
 GROWTH = 0.20
@@ -529,9 +530,10 @@ def plan_camps(info, place):
             if want and not templates:
                 entry["why"] = "no common bandit-named row in the camp to copy"
                 continue
-            chosen = pick_spots(spots, want, taken, entry["have"], s)
+            center = ((lo[0] + hi[0]) / 2, (lo[2] + hi[2]) / 2) if s["kind"] == "tent" else None
+            chosen = pick_spots(spots, want, taken, center)
             if len(entry["have"]) + len(chosen) < 2 and want:
-                entry["why"] = f"room for {len(chosen)} only"
+                entry["why"] = f"room for {len(chosen)} more only"
             for (x, y, z) in chosen:
                 t = min(templates, key=lambda n: (math.hypot(n["x"] - x, n["z"] - z), n["id"]))
                 row = new_row(t, x, y, z, look(x, z))
@@ -577,16 +579,24 @@ def fire_spots(place, s, ring, tents):
     return spots
 
 
-def pick_spots(spots, want, taken, have, s):
-    """Up to `want` spots, each the one farthest from every body near and every spot picked, SPACING apart at least."""
+def pick_spots(spots, want, taken, center=None):
+    """Up to `want` spots SPACING apart from every body near and every spot picked. Round a fire (center None) each is
+    the spot farthest from the rest, so they spread round it; in a tent, the spot nearest the tent's middle among
+    those TENT_ROOM or more from the rest (a tent's edge is under its eaves, its middle where people sit)."""
     chosen = []
     for _ in range(want):
-        best, bd = None, -1.0
+        best, bk = None, None
         for (x, y, z) in spots:
             d = min([math.hypot(px - x, pz - z) for px, py, pz, _ in taken.near(x, z, 12.0) if abs(py - y) < 8] +
                     [math.hypot(cx - x, cz - z) for cx, _, cz in chosen] + [99.0])
-            if d >= SPACING and (d > bd + 1e-9 or (abs(d - bd) <= 1e-9 and (x, z) < (best[0], best[2]))):
-                best, bd = (x, y, z), d
+            if d < SPACING:
+                continue
+            if center is None:
+                k = (-d, x, z)
+            else:
+                k = (-min(d, TENT_ROOM), math.hypot(x - center[0], z - center[1]), x, z)
+            if bk is None or k < bk:
+                best, bk = (x, y, z), k
         if best is None:
             break
         chosen.append(best)

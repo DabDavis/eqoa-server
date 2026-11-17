@@ -544,6 +544,10 @@ func (q *QuestEngine) lineLocked(cq *database.CharQuest) string {
 	if qu == nil {
 		return fmt.Sprintf("Quest %d", cq.QuestID)
 	}
+	// steps done in any order: who is left (questanyorder.go)
+	if line := anyOrderLine(qu, cq); line != "" {
+		return clipRunes(line, questLineChars)
+	}
 	if st := qu.Step(cq.Step); st != nil && strings.TrimSpace(st.Journal) != "" {
 		return clipRunes(strings.TrimSpace(st.Journal), questLineChars)
 	}
@@ -791,23 +795,25 @@ func (q *QuestEngine) stepAtLocked(sess *session.Session, p *entity.Player, c *q
 		if qu == nil {
 			continue
 		}
-		st := qu.Step(cq.Step)
-		if st == nil || !database.AtNPC(st.Kind) || !stepNPC(st, name, spawn) {
-			continue
-		}
-		// a giver the player's standing keeps from its steps: another
-		// quest's step here first, else the line that says why
-		if line := giverWontDeal(look, qu, st); line != "" {
-			if wontDeal == "" {
-				wontDeal = line
+		// its step, or any of its group's not yet done (questanyorder.go)
+		for _, st := range openSteps(qu, cq) {
+			if !database.AtNPC(st.Kind) || !stepNPC(st, name, spawn) {
+				continue
 			}
-			continue
+			// a giver the player's standing keeps from its steps: another
+			// quest's step here first, else the line that says why
+			if line := giverWontDeal(look, qu, st); line != "" {
+				if wontDeal == "" {
+					wontDeal = line
+				}
+				continue
+			}
+			if ready && (st.Kind == database.StepGive || st.Kind == database.StepShow) && q.lackingLocked(p, st) != "" {
+				continue
+			}
+			q.atNPCLocked(sess, p, c, qu, cq, st, false, -1)
+			return true
 		}
-		if ready && (st.Kind == database.StepGive || st.Kind == database.StepShow) && q.lackingLocked(p, st) != "" {
-			continue
-		}
-		q.atNPCLocked(sess, p, c, qu, cq, st, false, -1)
-		return true
 	}
 	if wontDeal != "" && !ready {
 		q.tellLocked(c, sess, "", wontDeal)
@@ -1397,7 +1403,7 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 	case choiceStep, choicePick:
 		cq := c.quests[qu.ID]
 		st := qu.Step(ch.step)
-		if cq == nil || cq.Step != ch.step || st == nil {
+		if cq == nil || !isOpen(qu, cq, ch.step) || st == nil {
 			return true
 		}
 		pick := -1
@@ -1665,6 +1671,12 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 	delete(c.packTold, [2]int{qu.ID, st.Step})
 	idx := c.index(qu.ID)
 	next := qu.Next(st.Step)
+	// a step of a group done in any order (questanyorder.go): the quest stays
+	// on the group until all of it is done, then goes on past its last step
+	stay, oldLine := false, q.lineLocked(cq)
+	if all, last, ok := anyOrderDone(qu, cq, st); ok {
+		next, stay = qu.Next(last.Step), !all
+	}
 	speaker := ""
 	if database.AtNPC(st.Kind) {
 		speaker = st.Target
@@ -1675,7 +1687,16 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 		who = p.Name
 	}
 	var lines []string
-	if next == nil {
+	switch {
+	case stay:
+		// anyOrderDone set the row; the journal's line says who is left
+		if text := q.lineLocked(cq); text != oldLine || idx < 0 {
+			q.dropLineLocked(sess, c, idx)
+			cq.Slot = c.nextSlot()
+			q.addLineLocked(sess, c, text)
+		}
+		log.Printf("Quests: %s did step %d of %q; %d of its group left", who, st.Step, qu.Name, len(openSteps(qu, cq)))
+	case next == nil:
 		cq.Step, cq.Count = 0, 0
 		cq.Done++
 		q.turnedLocked(c, qu) // a were line's third quest: its infection ends (wereinfect.go)
@@ -1685,7 +1706,7 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 		q.dropLineLocked(sess, c, idx)
 		lines = append(lines, questFinished)
 		log.Printf("Quests: %s finished %q", who, qu.Name)
-	} else {
+	default:
 		old := q.lineLocked(cq)
 		cq.Step, cq.Count = next.Step, 0
 		if text := q.lineLocked(cq); text != old || idx < 0 {
@@ -1719,7 +1740,7 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 	}
 	rw.XP = questXPShare(qu, rw.XP) // world.quest_xp_pct (questxp.go)
 	lines = append(lines, q.rewardLocked(sess, p, rw, economy.QuestReward)...)
-	if next == nil && sess != nil {
+	if next == nil && !stay && sess != nil {
 		// a mastery rank the quest opens (cmcatalog.require_quests: each
 		// stat-boost trial its line's next rank), in the guide's words:
 		// "Congratulations, Bulging Muscles 1 (5cm cost, 10str) is now
@@ -1746,10 +1767,13 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 	// or the next step's on its start
 	q.clearSpawnsLocked(c.serverID, qu.ID, st.Step)
 	spawnStep := st.Step
-	if next != nil {
+	if next != nil && !stay {
 		spawnStep = next.Step
 	}
 	q.stepEventsLocked(sess, p, c, qu, st, database.EventDone, spawnStep)
+	if stay {
+		return
+	}
 	if next == nil {
 		q.questEventsLocked(sess, p, c, qu, database.EventFinish)
 		q.clearSpawnsLocked(c.serverID, qu.ID, 0)

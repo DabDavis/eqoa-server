@@ -70,8 +70,10 @@ func (q *QuestEngine) notYetLocked(look *factionLook, p *entity.Player, c *quest
 		if qu == nil {
 			continue
 		}
-		if st := qu.Step(cq.Step); st != nil && database.AtNPC(st.Kind) && stepNPC(st, npc.Name, npc.ServerID) {
-			return nil // a step to do here, which Talk (or the window) does or says waits
+		for _, st := range openSteps(qu, cq) {
+			if database.AtNPC(st.Kind) && stepNPC(st, npc.Name, npc.ServerID) {
+				return nil // a step to do here, which Talk (or the window) does or says waits
+			}
 		}
 	}
 	var best *database.Quest

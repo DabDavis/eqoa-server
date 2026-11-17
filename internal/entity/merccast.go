@@ -641,6 +641,9 @@ func (w *World) mercHealTurnLocked(ms *mercState, now time.Time) bool {
 			if !mercReaches(m, sp.s, x, y, z, 0) {
 				continue
 			}
+			if low.mm.id() == m.ServerID && selfPriced(sp.s) {
+				continue // a heal its caster pays for is for another (Sacrifice)
+			}
 			if use == useHoT && buffOn(low.mm.effects(), sp.s) {
 				continue // its heal over time on it already
 			}
@@ -660,6 +663,22 @@ func (w *World) mercHealTurnLocked(ms *mercState, now time.Time) bool {
 			continue
 		}
 		if pick(low, useHoT) || pick(low, useHeal) || pick(low, useGroupHeal) {
+			return true
+		}
+	}
+	return false
+}
+
+// selfPriced reports a heal its caster pays hit points for (the Doomseeker's
+// Sacrifice: "Target, Increase Hitpoints by 20000, Decrease Hitpoints by
+// 20000 to Self"): a merc never casts it on itself (Heirloom petition 2277,
+// Hammy: "my merc doomseeker is not using his sacrifice mca, the doomseeker
+// let another merc die without sacrificing himself"). Cast at itself, the
+// worst off of its team as its own hit points ran low, it spent the
+// ability's hour-long recast healing itself, and a mate dying after had none.
+func selfPriced(s *CastSpell) bool {
+	for _, e := range s.Def.Effects {
+		if e.Self && e.Kind == EffectHP && e.Amount < 0 {
 			return true
 		}
 	}

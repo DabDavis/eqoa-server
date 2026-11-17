@@ -163,3 +163,47 @@ func TestCourageHealsWhatItRaises(t *testing.T) {
 		t.Fatalf("effects %+v", e)
 	}
 }
+
+// The regen tick late (Heirloom petition 2221, Marr's Blessing: "double tick
+// a lot ... stop ticking a while before it wears off"): it falls every 60th
+// world tick, here 6.3 s apart as when world ticks run long, and a heal
+// over time's tick due just before it was set from the regenAt before it.
+// Every tick at least half a tick after the last, all of them landed, the
+// last within a tick of the end. The control: the old rule (next from the
+// late regenAt alone) ticks twice within a second.
+func TestHoTNoDoubleTickWhenTheRegenTickIsLate(t *testing.T) {
+	c := newCaster(t)
+	c.p.HP, c.p.MaxHP = 100, 100000
+	sp := hotSpell(904, 30, "Blessing")
+	sp.Def = ParseSpellText("Target, Increase HP per tic by 30, 2min")
+	land := 2*time.Second + castLand
+	c.w.regenAt = c.at(land - 2*time.Second)
+	if !c.w.StartCast(c.sess, sp, c.me, c.at(0)) {
+		t.Fatal("not begun")
+	}
+	last := c.p.HP
+	var heals []time.Duration
+	nextRegen := land + 4*time.Second + 300*time.Millisecond // 6.3 s after the last
+	for at := 100 * time.Millisecond; at <= land+130*time.Second; at += 100 * time.Millisecond {
+		if got := c.healed(at, &last); got > 0 {
+			for ; got > 0; got -= 30 {
+				heals = append(heals, at)
+			}
+		}
+		if at >= nextRegen { // regenSystem runs after effectSystem
+			c.w.regenAt = c.at(at)
+			nextRegen = at + 6300*time.Millisecond
+		}
+	}
+	if len(heals) != 20 {
+		t.Errorf("%d ticks, want 20: %v", len(heals), heals)
+	}
+	for i := 1; i < len(heals); i++ {
+		if gap := heals[i] - heals[i-1]; gap < 3*time.Second {
+			t.Fatalf("ticks %d and %d %v apart: %v", i-1, i, gap, heals)
+		}
+	}
+	if end := land + 2*time.Minute; len(heals) > 0 && heals[len(heals)-1] < end-RegenInterval-time.Second {
+		t.Errorf("the last tick at %v, the heal ends at %v", heals[len(heals)-1], end)
+	}
+}

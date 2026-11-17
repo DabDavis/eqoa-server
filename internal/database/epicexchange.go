@@ -45,7 +45,12 @@ func (s *InventoryStore) OwnsAnyOf(serverID uint32, patterns []int) (bool, error
 // ItemExchange is one row of a character's pack given up for a record.
 type ItemExchange struct {
 	ItemID int // the row given up: in the pack, not worn, one of a record that does not stack
-	From   int // the record the row must still be of
+	// More is more rows given up with it, each as ItemID is (a pair's other,
+	// Heirloom petition 2236: the rogue's epic daggers are given two at once)
+	More []int
+	// Count is how many copies of the record are given (0: one)
+	Count int
+	From  int // the record the row must still be of
 	// To is the record given for it; with ImportedOf set instead, ImportedOf's
 	// imported copy, made in the same transaction when it has none
 	// (ImportedCopyTx: the transfer's damper follows the item)
@@ -61,6 +66,7 @@ var ErrExchangeGone = errors.New("the item is no longer in the pack as it was")
 // condition and charges.
 type ItemExchanged struct {
 	ItemID, To, RemainHP, Charges int
+	More                          []int // the other copies' rows (ItemExchange.Count)
 }
 
 // ExchangeCharItem gives the character the record x names for the row x
@@ -87,6 +93,18 @@ func (s *InventoryStore) ExchangeCharItem(serverID uint32, x ItemExchange, now t
 	}
 	if err != nil {
 		return out, err
+	}
+	for _, id := range x.More {
+		var n int
+		err := tx.QueryRow(`SELECT stackleft FROM charinventory
+			WHERE itemid = ? AND serverid = ? AND patternid = ? AND location = ? AND equiploc < 0`,
+			id, serverID, x.From, LocPack).Scan(&n)
+		if errors.Is(err, sql.ErrNoRows) || (err == nil && (n != 1 || id == x.ItemID)) {
+			return out, ErrExchangeGone
+		}
+		if err != nil {
+			return out, err
+		}
 	}
 	to := x.To
 	if x.ImportedOf > 0 {
@@ -119,26 +137,34 @@ func (s *InventoryStore) ExchangeCharItem(serverID uint32, x ItemExchange, now t
 	if full > 0 && charges > 0 {
 		out.Charges = min(charges, full)
 	}
-	if _, err := tx.Exec(`DELETE FROM charinventory WHERE itemid = ? AND serverid = ?`, x.ItemID, serverID); err != nil {
-		return out, err
+	for _, gone := range append([]int{x.ItemID}, x.More...) {
+		if _, err := tx.Exec(`DELETE FROM charinventory WHERE itemid = ? AND serverid = ?`, gone, serverID); err != nil {
+			return out, err
+		}
+		if _, err := tx.Exec(`DELETE FROM quickslots WHERE serverid = ? AND itemid = ?`, serverID, gone); err != nil &&
+			!isNoSuchTable(err) {
+			return out, err
+		}
 	}
-	if _, err := tx.Exec(`DELETE FROM quickslots WHERE serverid = ? AND itemid = ?`, serverID, x.ItemID); err != nil &&
-		!isNoSuchTable(err) {
-		return out, err
+	for i := 0; i < max(1, x.Count); i++ {
+		res, err := tx.Exec(`
+			INSERT INTO charinventory (serverid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber)
+			VALUES (?, 1, ?, ?, ?, -1, ?,
+				(SELECT COALESCE(MAX(listnumber), -1) + 1 FROM charinventory WHERE serverid = ? AND location = ?))
+		`, serverID, out.RemainHP, out.Charges, to, LocPack, serverID, LocPack)
+		if err != nil {
+			return out, err
+		}
+		id, err := res.LastInsertId()
+		if err != nil {
+			return out, err
+		}
+		if i == 0 {
+			out.ItemID = int(id)
+		} else {
+			out.More = append(out.More, int(id))
+		}
 	}
-	res, err := tx.Exec(`
-		INSERT INTO charinventory (serverid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber)
-		VALUES (?, 1, ?, ?, ?, -1, ?,
-			(SELECT COALESCE(MAX(listnumber), -1) + 1 FROM charinventory WHERE serverid = ? AND location = ?))
-	`, serverID, out.RemainHP, out.Charges, to, LocPack, serverID, LocPack)
-	if err != nil {
-		return out, err
-	}
-	id, err := res.LastInsertId()
-	if err != nil {
-		return out, err
-	}
-	out.ItemID = int(id)
 	return out, tx.Commit()
 }
 

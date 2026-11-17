@@ -346,6 +346,17 @@ type WorldConfig struct {
 	VampireSunShade    *bool         `yaml:"vampire_sun_shade"`
 	VampireSunGMs      *bool         `yaml:"vampire_sun_gms"`
 
+	// The lava (entity/lava.go; the GM Jibrish's petition 2281, owner-approved: "Enable lava
+	// damage per tick"): a player with its feet in the lava (the zone leaves' lava flag) loses
+	// LavaPctMaxHP percent of its most hit points plus LavaDamage, at least 1, at once and
+	// every LavaInterval (unset or 0: 3s) it stays; LavaFireResist lets its fire resistance
+	// take its share as a fire spell's. No figure of the live game is known: both unset or 0,
+	// the lava burns no one (the default). The dead, GMs and a GM flying are never burnt.
+	LavaPctMaxHP   float64       `yaml:"lava_pct_max_hp"`
+	LavaDamage     int           `yaml:"lava_damage"`
+	LavaInterval   time.Duration `yaml:"lava_interval"`
+	LavaFireResist bool          `yaml:"lava_fire_resist"`
+
 	// The towns' boon (entity/boon.go): talking to a town's announcement
 	// board gives the player BoonXPPct percent of every experience award
 	// (unset 200: double; 100, the boards give none) for BoonDuration of

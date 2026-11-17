@@ -362,6 +362,9 @@ func main() {
 	}
 	// The sun on vampires (entity/vampire.go, table charvampire)
 	gameWorld.SetVampireSun(vampireSunOf(cfg.World))
+	gameWorld.SetLava(entity.LavaRule{PctMaxHP: max(0, cfg.World.LavaPctMaxHP), Flat: max(0, cfg.World.LavaDamage),
+		Every: cfg.World.LavaInterval, FireResist: cfg.World.LavaFireResist})
+	log.Print(gameWorld.Lava())
 	if n, err := db.Vampires(); err != nil {
 		log.Printf("WARNING: the vampires: %v", err)
 	} else {

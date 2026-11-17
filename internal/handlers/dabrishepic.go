@@ -102,6 +102,9 @@ const (
 	dabrishEpicShow60     = "You hold the %s. For it I give you the %s, another of your calling's level 60 epics, free of charge."
 	dabrishEpicShowFor    = "You hold the %s. For it I give you %s, whichever you choose, free of charge."
 	dabrishEpicAskFor     = "Dabrish: 'Which shall I give for your %s?'"
+
+	// a pair's (classEpicCopies), one of it worn
+	dabrishEpicWornPair = "Take both of your %s off and carry them in your pack first, then ask me again: for the pair I can give you %s."
 )
 
 // reEpic60Key is a level 60 epic reward quest's import key: its class's slug.
@@ -118,7 +121,9 @@ type epicSwap struct {
 	to         int    // the record given; 0 with importedOf
 	importedOf int    // toBase, whose imported copy is given (made when none)
 	toName     string
-	sixty      bool // a level 60 epic's, not a path's
+	sixty      bool  // a level 60 epic's, not a path's
+	more       []int // the pair's other rows given up with itemID (classEpicCopies)
+	give       int   // copies of the record given (0: one)
 }
 
 // dabrishEpics is what the exchange reads and writes. Nil: no exchange.
@@ -186,6 +191,40 @@ func (q *QuestEngine) classEpicItems(class int) (pair, sixty []int, picks [][]in
 		}
 	}
 	return pair, sixty, picks
+}
+
+// classEpicCopies is how many of each record the class's level 60 epic
+// reward picks give at once, where an option gives more than one (the rogue's
+// "The Ascended Rogue's Epic Daggers", 980148*2): a pair is exchanged as a
+// pair, both taken and both given (Heirloom petition 2236, Poppapump: "I
+// exchanged my 60 epic weps for tunic but it only took the unequipped wep. It
+// should take both").
+func (q *QuestEngine) classEpicCopies(class int) map[int]int {
+	if q == nil || class < 0 || class >= len(database.TransferClassSlugs) {
+		return nil
+	}
+	slug := database.TransferClassSlugs[class]
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	out := map[int]int{}
+	for _, qu := range q.cat.all {
+		if !qu.Enabled {
+			continue
+		}
+		if m := reEpic60Key.FindStringSubmatch(importKey(qu.Source)); m == nil || m[1] != slug {
+			continue
+		}
+		for i := range qu.Steps {
+			for _, o := range qu.Steps[i].Choices.Options {
+				for _, it := range o.Reward.Items {
+					if it.Count > 1 && it.Count > out[it.PatternID] {
+						out[it.PatternID] = it.Count
+					}
+				}
+			}
+		}
+	}
+	return out
 }
 
 // epicSets is the level 60 picks as their bases, each base once a set, a
@@ -328,6 +367,11 @@ func (e *dabrishEpics) plan(p *entity.Player) ([]epicSwap, string, error) {
 		b, _ := v.base(id)
 		sixty[b] = !slices.Contains(pair, b)
 	}
+	copies := map[int]int{} // a base's copies given at once, a pair's 2
+	for id, n := range e.quests().classEpicCopies(p.Class) {
+		b, _ := v.base(id)
+		copies[b] = max(copies[b], n)
+	}
 	heirlooms, err := e.inv.Heirlooms()
 	if err != nil {
 		return nil, "", err
@@ -335,6 +379,19 @@ func (e *dabrishEpics) plan(p *entity.Player) ([]epicSwap, string, error) {
 	rows, err := e.inv.GetCharacterItems(p.CharServerID)
 	if err != nil {
 		return nil, "", err
+	}
+	// a pair's rows carried or worn, by record, the pack's first: the pair
+	// exchanged as one, from its first row
+	mates := map[int][]database.CharInventoryEntry{}
+	for _, row := range rows {
+		if b, _ := v.base(row.Pattern.PatternID); copies[b] > 1 && row.Location != database.LocBank {
+			mates[row.Pattern.PatternID] = append(mates[row.Pattern.PatternID], row)
+		}
+	}
+	for id, m := range mates {
+		sort.SliceStable(m, func(i, j int) bool { return m[i].EquipLoc < 0 && m[j].EquipLoc >= 0 })
+		b, _ := v.base(id)
+		mates[id] = m[:min(len(m), copies[b])]
 	}
 	var swaps []epicSwap
 	var refusals, worn, banked, noPair, heirloom []string
@@ -348,6 +405,16 @@ func (e *dabrishEpics) plan(p *entity.Player) ([]epicSwap, string, error) {
 			others = epicOthers(sets, b)
 		}
 		is60 := !slices.Contains(pair, b)
+		pairRows := mates[row.Pattern.PatternID]
+		wornAny := row.EquipLoc >= 0
+		if len(pairRows) > 0 {
+			if row.Location == database.LocBank || pairRows[0].ItemID != row.ItemID {
+				continue // the pair's, from its first row
+			}
+			for _, m := range pairRows {
+				wornAny = wornAny || m.EquipLoc >= 0
+			}
+		}
 		switch {
 		case len(others) == 0 && gear && sixty[b]:
 			noPair = append(noPair, row.Pattern.ItemName)
@@ -367,7 +434,7 @@ func (e *dabrishEpics) plan(p *entity.Player) ([]epicSwap, string, error) {
 		case row.Location == database.LocBank:
 			banked = append(banked, row.Pattern.ItemName)
 			continue
-		case row.EquipLoc >= 0 && !is60:
+		case wornAny && !is60:
 			worn = append(worn, fmt.Sprintf(dabrishEpicWorn, row.Pattern.ItemName))
 			continue
 		}
@@ -382,7 +449,10 @@ func (e *dabrishEpics) plan(p *entity.Player) ([]epicSwap, string, error) {
 				continue
 			}
 			s := epicSwap{itemID: row.ItemID, from: row.Pattern.PatternID, fromName: row.Pattern.ItemName, fromBase: b,
-				toBase: other, sixty: is60}
+				toBase: other, sixty: is60, give: copies[other]}
+			for _, m := range pairRows[min(1, len(pairRows)):] {
+				s.more = append(s.more, m.ItemID)
+			}
 			to, ok := v.copyOf(other, version)
 			switch {
 			case ok:
@@ -398,12 +468,16 @@ func (e *dabrishEpics) plan(p *entity.Player) ([]epicSwap, string, error) {
 		switch {
 		case len(got) == 0:
 			refusals = append(refusals, no...)
-		case row.EquipLoc >= 0: // a level 60 epic worn: what it would get said
+		case wornAny: // a level 60 epic worn: what it would get said
 			names := make([]string, len(got))
 			for i, s := range got {
 				names[i] = s.toName
 			}
-			worn = append(worn, fmt.Sprintf(dabrishEpicWorn60, row.Pattern.ItemName, theNames(names)))
+			if len(pairRows) > 1 {
+				worn = append(worn, fmt.Sprintf(dabrishEpicWornPair, row.Pattern.ItemName, theNames(names)))
+			} else {
+				worn = append(worn, fmt.Sprintf(dabrishEpicWorn60, row.Pattern.ItemName, theNames(names)))
+			}
 		default:
 			swaps = append(swaps, got...)
 		}
@@ -559,8 +633,8 @@ func (h *InteractHandler) dabrishEpicDo(sess *session.Session, p *entity.Player,
 		return
 	}
 	s := swaps[i]
-	done, err := e.inv.ExchangeCharItem(p.CharServerID, database.ItemExchange{ItemID: s.itemID, From: s.from, To: s.to,
-		ImportedOf: s.importedOf, Source: "Dabrish's epic exchange"}, e.now())
+	done, err := e.inv.ExchangeCharItem(p.CharServerID, database.ItemExchange{ItemID: s.itemID, More: s.more, From: s.from,
+		To: s.to, Count: s.give, ImportedOf: s.importedOf, Source: "Dabrish's epic exchange"}, e.now())
 	if errors.Is(err, database.ErrExchangeGone) {
 		dabrishSay(sess, fmt.Sprintf(dabrishEpicMoved, s.fromName))
 		return
@@ -575,14 +649,18 @@ func (h *InteractHandler) dabrishEpicDo(sess *session.Session, p *entity.Player,
 		log.Printf("Dabrish: %s's new record %d: %v", p.Name, done.To, err)
 	}
 	if l := sessionInvList(sess); l != nil {
-		if at := l.indexOfItem(s.itemID); at >= 0 && l.took(at, 1) {
-			queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(at, 0, 1))
+		for _, id := range append([]int{s.itemID}, s.more...) {
+			if at := l.indexOfItem(id); at >= 0 && l.took(at, 1) {
+				queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(at, 0, 1))
+			}
 		}
 		if ok {
-			rec := wireRecord(database.CharInventoryEntry{ItemID: done.ItemID, StackLeft: 1, RemainHP: done.RemainHP,
-				Charges: done.Charges, Pattern: pat})
-			if key, took := l.add(done.ItemID, done.To, 1, pat.MaxStack); took > 0 {
-				queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(&rec, key, readsCapes(sess)))
+			for _, id := range append([]int{done.ItemID}, done.More...) {
+				rec := wireRecord(database.CharInventoryEntry{ItemID: id, StackLeft: 1, RemainHP: done.RemainHP,
+					Charges: done.Charges, Pattern: pat})
+				if key, took := l.add(id, done.To, 1, pat.MaxStack); took > 0 {
+					queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(&rec, key, readsCapes(sess)))
+				}
 			}
 		}
 	}

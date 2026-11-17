@@ -297,6 +297,7 @@ func sameLine(a, b string) bool {
 	if !oka || !okb || !lineFamily(pa, pb) {
 		return false
 	}
+	pa.keys, pb.keys = categoryKeys(pa.keys, pb.keys)
 	if pa.stack > 0 && pb.stack > 0 {
 		for _, k := range pa.keys {
 			if slices.Contains(pb.keys, k) {
@@ -313,10 +314,72 @@ func sameLine(a, b string) bool {
 func nestedLines(a, b string) bool {
 	pa, oka := parseLine(a)
 	pb, okb := parseLine(b)
-	if !oka || !okb || !lineFamily(pa, pb) || slices.Equal(pa.keys, pb.keys) {
+	if !oka || !okb || !lineFamily(pa, pb) {
+		return false
+	}
+	pa.keys, pb.keys = categoryKeys(pa.keys, pb.keys)
+	if len(pa.keys) == 0 || len(pb.keys) == 0 || slices.Equal(pa.keys, pb.keys) {
 		return false
 	}
 	return keysWithin(pa.keys, pb.keys) || keysWithin(pb.keys, pa.keys)
+}
+
+// A resist buff and a buff of another kind are not one line (the owner, 2026-11-17: "druid's damage shields like
+// 1000 needles isnt stacking with bruce buffers mega ward. mega ward is resist buff, 1000 needles is damage shield
+// not same category"). A line's stats were all it was weighed by, and a workbook line of one stack type that shares
+// any stat with another is one line (sameLine): the druid's Shield of 1000 Needles ("stack1 player +AR shield", its
+// +50 AR a side gift of the damage shield) shared +AR with every cleric all-resist ward of stack type 1 (Elemental
+// Ward to Mega's Clutch Ward, Ward of Blessings) and the enchanter's Endure Arcane, so the stronger AR refused the
+// other and the later took the earlier off whole: never both. The paladin's group Defenders (Ardent, Fervent,
+// Zealous: +AC +PR +DR, "Buff AC,PR,DR") took the cleric's group resist buffs off the same way (Mega's Mighty
+// Carapace's FR, CR, LR and AR gone with its PR and DR).
+//
+// Since then a resist buff (a line of resists alone: FR CR PR DR LR AR) and a line of any other kind (a stat that
+// is not a resist, a damage shield, a proc, speed) are weighed by what they share apart from the resists: a resist
+// on the other kind's buff is its side gift, not its category. So a damage shield replaces a damage shield
+// ("shield" is shared), a resist ward a resist ward (the 2026-11-14 tool's SOE note, "+65 AR/PR/DR doesn't stack
+// w/ other resists buffs", and the cleric's nested PR/DR line within its all-resist line: both are resist lines),
+// and a line of another kind with a resist in it still goes by its other stats (the monk's stances, Steel Stance
+// under Diamond Stance's +AC +AGI). Across the two kinds each resist counts in full.
+
+// resistKeys are the line keys of the resists.
+var resistKeys = []string{"+FR", "+CR", "+PR", "+DR", "+LR", "+AR", "-FR", "-CR", "-PR", "-DR", "-LR", "-AR"}
+
+// isResistKey reports a line key of a resist ("+AR", "+AR@self").
+func isResistKey(k string) bool {
+	return slices.Contains(resistKeys, strings.TrimSuffix(k, "@self"))
+}
+
+// resistLine reports a line of resists alone (the doc above).
+func resistLine(keys []string) bool {
+	for _, k := range keys {
+		if !isResistKey(k) {
+			return false
+		}
+	}
+	return len(keys) > 0
+}
+
+// categoryKeys is two lines' keys as they are weighed against each other (the doc above): as they are when both
+// are resist lines or neither is, else the other kind's without its resists.
+func categoryKeys(a, b []string) ([]string, []string) {
+	ra, rb := resistLine(a), resistLine(b)
+	if ra == rb {
+		return a, b
+	}
+	strip := func(keys []string) []string {
+		out := make([]string, 0, len(keys))
+		for _, k := range keys {
+			if !isResistKey(k) {
+				out = append(out, k)
+			}
+		}
+		return out
+	}
+	if ra {
+		return a, strip(b)
+	}
+	return strip(a), b
 }
 
 // keysWithin reports every key of a among b's.
@@ -570,6 +633,7 @@ func lineStrength(a, b *ActiveEffect) int {
 	if !oka || !okb {
 		return 0
 	}
+	pa.keys, pb.keys = categoryKeys(pa.keys, pb.keys)
 	n := 0
 	for st := Stat(1); int(st) < len(statLineNames)-1; st++ {
 		k := "+" + statLineNames[st]

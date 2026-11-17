@@ -309,7 +309,7 @@ func TestTheStorytellersAllowlistIsTheOneMeant(t *testing.T) {
 	// the words, and the text columns that are not: what a quest is, and the
 	// importer's key
 	notWords := map[string][]string{
-		"quests":     {"classes", "events", "excludes", "factionreq", "giver", "races", "requires", "source"},
+		"quests":     {"asks", "classes", "daygroup", "events", "excludes", "factionreq", "giver", "races", "requires", "source"},
 		"queststeps": {"byclass", "choices", "events", "factions", "items", "kind", "rewarditems", "spells", "target"},
 	}
 	wantWords := map[string][]string{

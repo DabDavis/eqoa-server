@@ -202,6 +202,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	r.authHandler = authHandler
 	r.mu.Unlock()
 	chatHandler := NewChatHandler(sessionMgr)
+	keepChat.Store(chatHandler) // what a restart carries of its GM channel (keepgm.go)
 	if gameWorld != nil {
 		chatHandler.SetGameWorld(gameWorld)
 	}
@@ -689,6 +690,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		// /hide mercs, kept (hidemercs.go)
 		chatHandler.SetMercsHiddenStore(charStore.DB())
 		chatHandler.SetGMTagHiddenStore(charStore.DB())
+		chatHandler.SetGMNoAggroStore(charStore.DB()) // a GM's Safe Mode, kept (gmnoaggro.go)
 
 		// the mercenaries (merc.go): the liaisons, /merc, the hires kept; and
 		// the familiars (familiar.go): their items' Use, /familiar

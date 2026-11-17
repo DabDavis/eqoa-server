@@ -131,7 +131,8 @@ type AggroRule struct {
 // (SetFactionAggro), the GMs' rules by name, their generation (a creature's
 // kept nature is looked at again when it changes), the farthest any creature
 // looks, and the characters a GM's #aggro off leaves alone (by character id,
-// until #aggro on or a restart).
+// until #aggro on: the handlers keep it over restarts, gmnoaggro.go, and a
+// restart that keeps the players carries it, keepgm.go).
 //
 // A rule is for its name as npcclass keys one (database.NPCClassKey: any case,
 // trimmed, no trailing $), so one row covers every spelling the imports gave
@@ -599,8 +600,9 @@ func (w *World) AggroIgnored(sess *session.Session) (ignored bool, name string, 
 }
 
 // SetAggroIgnored is a GM's #aggro: ignored, no creature attacks the session's
-// character on sight until it is set back (or the server restarts); a fight
-// already on goes on. It reports false out of the world.
+// character on sight until it is set back (the handlers keep it over
+// restarts: gmnoaggro.go); a fight already on goes on. It reports false out
+// of the world.
 func (w *World) SetAggroIgnored(sess *session.Session, ignored bool) bool {
 	w.mu.Lock()
 	defer w.mu.Unlock()

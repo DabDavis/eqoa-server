@@ -58,6 +58,8 @@ type KeptExtras struct {
 	// side's cancel does (0x0056 1, which CLIENT takes whatever its id), and
 	// says why.
 	Trading bool `json:"trading,omitempty"`
+	// Silenced: a GM silenced its character (Silence; keepgm.go)
+	Silenced bool `json:"silenced,omitempty"`
 }
 
 // ResumeTradeLine is what a player whose trade the restart ended is told.
@@ -140,6 +142,9 @@ func KeepExtras(sess *session.Session, p *entity.Player) KeptExtras {
 		h.mu.Lock()
 		k.Trading = h.trades[sess] != nil
 		h.mu.Unlock()
+	}
+	if c := keepChat.Load(); c != nil && p != nil {
+		k.Silenced = c.silencedChar(p.CharServerID) // keepgm.go
 	}
 	return k
 }
@@ -396,6 +401,9 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 		}
 	}
 	resumeWindows(sess, ex)
+	if c := keepChat.Load(); c != nil && ex.Silenced {
+		c.silenceChar(player.CharServerID) // keepgm.go
+	}
 	return player, nil
 }
 

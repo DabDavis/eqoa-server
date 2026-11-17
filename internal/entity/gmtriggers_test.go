@@ -3,6 +3,8 @@ package entity
 import (
 	"math"
 	"testing"
+
+	"github.com/eqoa/server/internal/database"
 )
 
 // A GM trigger's hostile spawn (gmtriggers.go): a copy of a townsperson put
@@ -50,5 +52,35 @@ func TestATriggersSpawnFacesTheMiddle(t *testing.T) {
 	}
 	if _, _, ok := f.w.SpawnEventNPC("nobody here", 0, 1000, 42, 1000, 1000, 990, false); ok {
 		t.Error("the control: a name no NPC has spawned something")
+	}
+}
+
+// A spawn step's face (Heirloom petition 2253: Bertoxxulous "facing south") turns
+// the copy that way whatever middle it was spawned round: south is +z, east +x;
+// the control, a copy given no face, faces the middle.
+func TestATriggersSpawnFacesItsCompassPoint(t *testing.T) {
+	f := newAggroFix(t, 10)
+	f.npc(2001, "Brown Bear", 5, bearBody, 500, 500)
+	for _, c := range []struct {
+		face   string
+		dx, dz float64
+	}{{"south", 0, 1}, {"east", 1, 0}, {"North", 0, -1}, {"west", -1, 0}, {"", 0, -1}} {
+		h, ok := database.TriggerFaceHeading(c.face)
+		if !ok {
+			t.Fatalf("face %q refused", c.face)
+		}
+		// the middle is north of the copy (smaller z): a copy given no face looks north
+		id, _, ok := f.w.SpawnEventNPCFacing("brown bear", 0, 1000, 42, 990, 1000, 1000, h, false)
+		if !ok {
+			t.Fatal("no copy")
+		}
+		n := f.w.NPCs[id]
+		dx, dz := math.Sin(float64(n.Facing)), math.Cos(float64(n.Facing))
+		if math.Abs(dx-c.dx) > 1e-6 || math.Abs(dz-c.dz) > 1e-6 {
+			t.Errorf("face %q: facing (%.3f, %.3f), want (%.0f, %.0f)", c.face, dx, dz, c.dx, c.dz)
+		}
+	}
+	if _, ok := database.TriggerFaceHeading("up"); ok {
+		t.Error("a face that is no compass point was taken")
 	}
 }

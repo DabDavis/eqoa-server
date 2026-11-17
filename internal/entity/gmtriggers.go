@@ -23,12 +23,21 @@ const triggerFloorReach float32 = 20
 // 0x80 cleared) and attacks any player on sight (EventAggro). It returns the
 // copy's id and the name as the NPC spells it.
 func (w *World) SpawnEventNPC(name string, world uint8, cx, cy, cz, x, z float32, hostile bool) (EntityID, string, bool) {
+	return w.SpawnEventNPCFacing(name, world, cx, cy, cz, x, z, -1, hostile)
+}
+
+// SpawnEventNPCFacing is SpawnEventNPC with the copy's facing given (a heading:
+// radians, 0 south, pi/2 east, as headingTo's); a negative one faces (cx, cz) as
+// SpawnEventNPC's (a trigger spawn step's face: Heirloom petition 2253).
+func (w *World) SpawnEventNPCFacing(name string, world uint8, cx, cy, cz, x, z, face float32, hostile bool) (EntityID, string, bool) {
 	y := cy
 	if fy, ok := w.GroundFloor(world, x, cy+3, z); ok && fy-cy <= triggerFloorReach && cy-fy <= triggerFloorReach {
 		y = fy
 	}
 	facing := float32(0)
-	if dx, dz := cx-x, cz-z; dx != 0 || dz != 0 {
+	if face >= 0 {
+		facing = face
+	} else if dx, dz := cx-x, cz-z; dx != 0 || dz != 0 {
 		facing = headingTo(dx, dz)
 	}
 	id, spelled, ok := w.SpawnNPCCopy(name, x, y, z, facing, world)

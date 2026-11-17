@@ -1482,6 +1482,7 @@ func (e *TriggerEngine) spawnLocked(r *triggerRun, s database.TriggerStep) strin
 	name := strings.TrimSpace(s.NPC)
 	placed, spelled := 0, name
 	turn := e.rand() * 2 * math.Pi
+	face, _ := database.TriggerFaceHeading(s.Face) // -1: each faces the ring's middle
 	for i := 0; i < n; i++ {
 		// evenly round the ring, each a little off its share, between
 		// two fifths of the spread and the whole of it from the middle
@@ -1489,7 +1490,7 @@ func (e *TriggerEngine) spawnLocked(r *triggerRun, s database.TriggerStep) strin
 		d := float64(spread) * (0.4 + 0.6*e.rand())
 		x := cx + float32(d*math.Sin(a))
 		z := cz + float32(d*math.Cos(a))
-		id, sp, ok := e.gw.SpawnEventNPC(name, world, cx, cy, cz, x, z, s.Hostile)
+		id, sp, ok := e.gw.SpawnEventNPCFacing(name, world, cx, cy, cz, x, z, face, s.Hostile)
 		if !ok {
 			return fmt.Sprintf("no NPC named %q to spawn", name)
 		}

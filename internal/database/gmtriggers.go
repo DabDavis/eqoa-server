@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/eqoa/server/internal/weather"
@@ -215,6 +216,10 @@ type TriggerStep struct {
 	// of nothing (the Arbiter's first two lives)
 	Untouchable bool `json:"untouchable,omitempty"`
 	NoLoot      bool `json:"noloot,omitempty"`
+	// Face (spawn): the way its copies face, a compass word (north, northeast, east, ...,
+	// northwest; +z is south); none: each faces the middle of its ring (Heirloom petition
+	// 2253: Bertoxxulous "facing south")
+	Face string `json:"face,omitempty"`
 	// Season (season): the season it turns (gmseasons, database/seasons.go), Turn on, off
 	// or toggle ("" toggle: the trigger fired again turns it back), Text said to its
 	// players (a broadcast) as it turns on, OffText as it turns off (none: nothing said)
@@ -495,6 +500,9 @@ func StepProblems(steps []TriggerStep) []string {
 			if s.Untouchable && (s.Hostile || s.Attackable) {
 				add(i, "spawn untouchable is neither hostile nor attackable")
 			}
+			if _, ok := TriggerFaceHeading(s.Face); !ok {
+				add(i, "spawn's face %q: north, northeast, east, southeast, south, southwest, west, northwest or none", s.Face)
+			}
 			if s.World != nil {
 				if *s.World < 0 || *s.World > 29 {
 					add(i, "spawn's world %d: 0 to 29", *s.World)
@@ -689,4 +697,26 @@ func TriggerLockName(steps []TriggerStep) string {
 		}
 	}
 	return ""
+}
+
+// triggerFaces is each compass word's heading, as an NPC's facing is kept: radians
+// from +z (south, 0) toward +x (east, pi/2), as entity's headingTo.
+var triggerFaces = map[string]float64{
+	"south": 0, "southeast": 1, "east": 2, "northeast": 3,
+	"north": 4, "northwest": 5, "west": 6, "southwest": 7,
+}
+
+// TriggerFaceHeading is a spawn step's face as a heading (radians, 0 south, pi/2
+// east); ok false for a word that is no compass point. An empty face is ok with
+// a heading of -1: none given.
+func TriggerFaceHeading(face string) (float32, bool) {
+	face = strings.ToLower(strings.TrimSpace(face))
+	if face == "" {
+		return -1, true
+	}
+	eighth, ok := triggerFaces[face]
+	if !ok {
+		return -1, false
+	}
+	return float32(eighth * math.Pi / 4), true
 }

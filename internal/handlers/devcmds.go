@@ -123,7 +123,7 @@ var gmCommands = map[string]bool{
 	"#guildhall": true, "#effect": true, "#faction": true, "#template": true, "#help": true,
 	"#grantcm": true, "#npcinfo": true, "#fx": true, "#spellfx": true,
 	"#aggro": true, "#weather": true, "#fly": true, "#movecheck": true, "#ticks": true, "#net": true, "#packetlog": true, "#stats": true, "#cm": true, "#cmreset": true, "#debt": true,
-	"#trigger": true, "#craftskill": true, "#craftlearn": true,
+	"#trigger": true, "#tour": true, "#craftskill": true, "#craftlearn": true,
 	"#clearbuffs": true, "#nukebuffs": true, "#reward": true, "#dye": true, "#vampire": true,
 	"#rst_mastr": true, "#rst_both": true, "#rem_abil": true, "#banktunar": true, "#servdown": true,
 	"#giveitem": true, "#size": true, "#mark": true, "#marks": true, "#camp": true, "#path": true,

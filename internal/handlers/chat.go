@@ -1515,6 +1515,18 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 	case "#aggro":
 		// #aggro [on|off]: whether creatures attack you on sight (aggrocmd.go)
 		h.aggroCommand(sess, parts[1:])
+	case "#tour":
+		// #tour [name]: a tour started as its host's talk starts it, the GM
+		// aboard (npctour.go); out or resting, how long
+		name := strings.Join(parts[1:], " ")
+		if name == "" {
+			name = h.gameWorld.FirstTour()
+		}
+		if host := h.gameWorld.TourHost(name); host == "" {
+			h.gmReply(sess, "#tour: no tour "+strconv.Quote(name)+" (npctours of a season that is on)")
+		} else if line := h.gameWorld.AnswerTour(sess, player, name, true, time.Now()); line != "" {
+			h.gmReply(sess, host+": "+line)
+		}
 	case "#fly":
 		// #fly [on|off]: a GM's flight, alone it turns over (fly.go)
 		h.flyCommand(sess, parts[1:])

@@ -1106,3 +1106,16 @@ func (w *World) TourHost(tour string) string {
 	}
 	return ""
 }
+
+// FirstTour is the name of a tour in force, the first by name ("" none).
+func (w *World) FirstTour() string {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	first := ""
+	for _, d := range w.tours.defs {
+		if first == "" || d.Name < first {
+			first = d.Name
+		}
+	}
+	return first
+}

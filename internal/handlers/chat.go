@@ -89,6 +89,8 @@ type ChatHandler struct {
 	hideMercs mercsHiddenStore
 	// hideGMTag is where /hide gmtag is kept (hidegmtag.go)
 	hideGMTag gmTagHiddenStore
+	// noAggro is where a GM's Safe Mode / #aggro off is kept (gmnoaggro.go)
+	noAggro gmNoAggroStore
 	// welcome is /tutorial's box (welcome.go); nil: no guide
 	welcome *WelcomeGuide
 

@@ -80,6 +80,8 @@ type KeptPlayer struct {
 	Mercs    []KeptMerc    `json:"mercs,omitempty"`
 	Merc     *KeptMerc     `json:"merc,omitempty"`
 	Familiar *KeptFamiliar `json:"familiar,omitempty"`
+	// GMModes: its GM modes, Safe Mode and the rest (keepgm.go), nil none
+	GMModes *KeptGMModes `json:"gm_modes,omitempty"`
 }
 
 // KeptLockout is a spell's lockout and what is left of it.
@@ -168,6 +170,7 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 	k.Mercs = w.keptMercsLocked(p, now)     // keepmerc.go
 	k.Familiar = w.keptFamiliarLocked(p)
 	w.ctfKeptAwayLocked(p, &k) // what waits outside the arena, carried as if out (ctfaway.go)
+	k.GMModes = w.keptGMModesLocked(p)
 	return k, true
 }
 
@@ -208,6 +211,7 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 	}
 	p.Jumps = k.Jumps && w.jumpsAllowed // and its jumps (its client is told: handlers/keep.go)
 	w.restoreFlyingLocked(p, k)
+	w.restoreGMModesLocked(p, k.GMModes) // keepgm.go
 	return true
 }
 

@@ -9,7 +9,8 @@ import (
 
 // The world's half of the GM's TEST menu (handlers/gmchannel.go): what a
 // GM's 0x0701 changes in the game. Each takes the World's lock; none is
-// kept past the server's run but the rename, which the handler writes.
+// kept past the server's run but the rename, which the handler writes, though
+// a restart that keeps the players carries them (keepgm.go).
 
 // ToggleGMHidden turns the player's GM invisibility over (Toggle Invis) and
 // reports it now, and whether there is such a player. It is no effect, so

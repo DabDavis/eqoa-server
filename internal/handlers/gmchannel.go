@@ -340,6 +340,7 @@ func (h *ChatHandler) SendGMChannel(sess *session.Session) {
 	if h.gameWorld != nil {
 		h.gameWorld.SetPlayerGM(sess, true)
 		h.restoreGMTagHidden(sess) // and the [GM] tag it hid, /hide gmtag (hidegmtag.go)
+		h.restoreGMNoAggro(sess)   // and its Safe Mode, #aggro off (gmnoaggro.go)
 	}
 	queueReliable(sess, protocol.OpcodeAdminCode, buildGMEnabled(1))
 	queueReliable(sess, protocol.OpcodeGMTriggers, buildTriggerNamesOffer())
@@ -450,7 +451,7 @@ func (h *ChatHandler) gmCommand(sess *session.Session, gm *entity.Player, req gm
 		h.gmReply(sess, "Sub-op 14: no TEST entry sends it, and this server has nothing for it")
 	case gmSubSafeMode:
 		ignored, _, ok := h.gameWorld.AggroIgnored(sess)
-		if ok && h.gameWorld.SetAggroIgnored(sess, !ignored) {
+		if ok && h.setGMNoAggro(sess, !ignored) {
 			if !ignored {
 				h.gmReply(sess, "Safe Mode on: creatures leave you alone (as #aggro off); a fight already on goes on")
 			} else {

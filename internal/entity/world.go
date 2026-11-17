@@ -201,6 +201,8 @@ type World struct {
 	familiars map[EntityID]*familiarState
 	// Barrels of Monkeys' monkeys by their owners' ids (monkeys.go)
 	monkeys map[EntityID][]*monkeyState
+	// Pegasus Plushies' winged horses by their owners' ids (plushie.go)
+	plushies map[EntityID]*monkeyState
 	// monkeyThrown is when each player was last hit by a snowball of each
 	// owner's monkeys, by owner (monkeythrow.go)
 	monkeyThrown map[EntityID]map[EntityID]time.Time
@@ -606,6 +608,7 @@ func (w *World) leavingLocked(p *Player) []func(*Player) {
 	w.mercLeavingLocked(p)     // its merc goes, its hire kept (merc.go)
 	w.familiarLeavingLocked(p) // its familiar goes (familiar.go)
 	w.monkeysLeavingLocked(p)  // its monkeys go back into the barrel (monkeys.go)
+	w.plushieLeavingLocked(p)  // its plushie goes home (plushie.go)
 	w.launcherLeavingLocked(p) // its snowball launcher stops (snowlauncher.go)
 	w.castsLeavingLocked(p)    // its casts on their way go unlanded (cast.go)
 	fns := make([]func(*Player), len(w.leaving))

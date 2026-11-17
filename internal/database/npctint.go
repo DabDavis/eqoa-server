@@ -151,6 +151,35 @@ const (
 	// helm while the colour lights: nothing with no colour); a PS2 draws the
 	// helm worn, as ever.
 	AuraHat = 10
+	// AuraLights is a string of twinkling Christmas lights hung along a worn
+	// cape's edges, over the shoulders and down its sides (the owner,
+	// 2026-11-17: "lets add string of lights"; the String of Lights, a cape
+	// item, tools/christmas_toys_20261117.py): vanilla's toys::cape_lights
+	// lays the bulbs on the cape fitted to the wearer, skinned to its bones,
+	// in the decorations' "Christmas lights" colours and twinkle. On the cape's
+	// aura alone (itemaura on a cape record, entity.pieceAuras: on any other
+	// piece none); nodes is the string's style (0 the multicoloured), colour
+	// and source unused (0: a client before it reads the default with no
+	// glow, nothing, and draws the cape alone).
+	AuraLights = 11
+	// AuraStripes is a held item striped red and white along its length, a
+	// candy cane's (the owner, 2026-11-17: "candy cane staff"; vanilla's
+	// toys::stripe): a hand's kind (HandAuraKind), the Candy Cane Staff's
+	// first aura (its second the twinkle at its tip, whose along of 100 a
+	// first's nodes cannot carry); colour the stripes' (0 candy red), nodes
+	// how many stripes along it (0 vanilla's own). A client before it draws
+	// nothing of it (the record's own colour and its second).
+	AuraStripes = 12
+	// AuraIcing is a gingerbread man's white icing drawn on the body (the
+	// owner, 2026-11-17: "add gingerbread illusion too, its clay golem with
+	// white eyes, smile, like the cookie"; vanilla's toys::ice): two round
+	// eyes, a smile, three buttons down the chest and wavy icing at the wrists
+	// and ankles, the body baked gingerbread brown. The body's aura alone,
+	// put there while the illusion of an item whose itemaura is of this kind
+	// is the body shown (entity.PieceAurasOf). Colour 0 (an older client then
+	// reads the default with no glow: nothing; the body as the disc has it),
+	// nodes the style (0 the gingerbread man).
+	AuraIcing = 13
 )
 
 // KappaHat is the kappa body whose wide-brimmed straw hat AuraHat's named
@@ -213,7 +242,7 @@ func AuraParticlesShow(kind uint8) bool { return kind == AuraParticles || kind =
 // anything: particles, or the shell (or trim) while the glow lights, or a
 // shell or trim named outright in a dark colour (AuraDark: black too).
 func AuraShows(glow uint32, kind uint8) bool {
-	if kind == AuraEpic || kind == AuraCirclet || kind == AuraEnergy || kind == AuraHat {
+	if kind == AuraEpic || kind == AuraCirclet || kind == AuraEnergy || kind == AuraHat || kind == AuraLights || kind == AuraStripes || kind == AuraIcing {
 		return true // the source's own look, coloured or not
 	}
 	if kind > AuraKindMost {
@@ -257,8 +286,11 @@ func ValidItemAura(kind, nodes int64) bool {
 	if kind == AuraCirclet || kind == AuraEpic || kind == AuraEnergy {
 		return nodes >= 0 && nodes <= AuraAlongMost // a circlet's height, a held item's along
 	}
-	if kind == AuraHat {
-		return ValidAuraNodes(nodes) // an item that is a hat (its nodes unused)
+	if kind == AuraHat || kind == AuraLights || kind == AuraIcing {
+		return ValidAuraNodes(nodes) // an item that is a hat, a cape's lights, an illusion's icing (nodes their style)
+	}
+	if kind == AuraStripes {
+		return nodes >= 0 && nodes <= AuraAlongMost // a held item's stripes (nodes how many)
 	}
 	return ValidAuraKind(kind) && ValidAuraNodes(nodes)
 }
@@ -268,7 +300,7 @@ func ValidItemAura(kind, nodes int64) bool {
 // record shows on whatever hand holds it (entity.pieceAuras); of epic or
 // energy on a worn piece, none.
 func HandAuraKind(k int64) bool {
-	return k == AuraParticles || k == AuraEpic || k == AuraEnergy
+	return k == AuraParticles || k == AuraEpic || k == AuraEnergy || k == AuraStripes
 }
 
 // ValidCharAuraKind holds a charaura row's kind to what its slot draws: a

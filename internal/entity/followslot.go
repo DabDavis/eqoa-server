@@ -63,6 +63,7 @@ const (
 	slotMonkey3
 	slotMonkey4
 	slotMonkey5
+	slotPlushie // the Pegasus Plushie's winged horse (plushie.go): behind its left, plushieRadius off
 )
 
 // mercFollowSlot is the follow slot of the merc of a hire's slot (1 to
@@ -92,6 +93,7 @@ var followSlotAngle = [...]float32{
 	slotMonkey3:  monkeySlotAngle[2],
 	slotMonkey4:  monkeySlotAngle[3],
 	slotMonkey5:  monkeySlotAngle[4],
+	slotPlushie:  -0.85 * math.Pi,
 }
 
 // isMonkeySlot reports one of the monkeys' slots.
@@ -102,6 +104,9 @@ func isMonkeySlot(s followSlot) bool { return s >= slotMonkey1 && s <= slotMonke
 func followSlotRadius(n *NPC, s followSlot) float32 {
 	if isMonkeySlot(s) {
 		return monkeyRadius
+	}
+	if s == slotPlushie {
+		return plushieRadius
 	}
 	return followRadiusOf(n)
 }
@@ -236,6 +241,8 @@ func (w *World) followPlaceLocked(n *NPC, p *Player, s followSlot) (x, y, z floa
 		r := followRadius
 		if isMonkeySlot(s) {
 			r = monkeyRadius
+		} else if s == slotPlushie {
+			r = plushieRadius
 		}
 		x, z := followSpotAt(p.X, p.Z, p.Facing, followSlotAngle[s]+t.turn, r*t.share)
 		if w.followSpotWalkableLocked(n, p, x, z) {
@@ -267,6 +274,9 @@ func (w *World) followSiblingsLocked(a *Player, n *NPC) []*NPC {
 		if ms.npc != nil && ms.npc != n {
 			out = append(out, ms.npc) // monkeys.go
 		}
+	}
+	if ps := w.plushies[a.ServerID]; ps != nil && ps.npc != nil && ps.npc != n {
+		out = append(out, ps.npc) // plushie.go
 	}
 	return out
 }

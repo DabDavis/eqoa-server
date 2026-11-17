@@ -74,18 +74,27 @@ func ItemOutfitOf(patternID int) *Outfit {
 // shownOutfit is the outfit of the item whose illusion is the body shown, or
 // nil (ownBody's order: a GM's sprite first, then the newest form).
 func (p *Player) shownOutfit() *Outfit {
+	if pid, ok := p.shownOutfitItem(); ok {
+		return ItemOutfitOf(pid)
+	}
+	return nil
+}
+
+// shownOutfitItem is the item (its patternid) whose toy illusion is the body
+// shown, false for none: a GM's sprite, no form, or a form of no outfit's item.
+func (p *Player) shownOutfitItem() (int, bool) {
 	if p.GMForm != 0 {
-		return nil
+		return 0, false
 	}
 	for i := len(p.Effects) - 1; i >= 0; i-- {
 		if e := p.Effects[i]; p.shownForm(e) {
-			if pid, ok := potionOfEffect(e.SpellID); ok {
-				return ItemOutfitOf(pid)
+			if pid, ok := potionOfEffect(e.SpellID); ok && ItemOutfitOf(pid) != nil {
+				return pid, true
 			}
-			return nil
+			return 0, false
 		}
 	}
-	return nil
+	return 0, false
 }
 
 // putOutfit dresses a player's channel buffer (the disc's 162 bytes) in o.

@@ -567,6 +567,30 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 			log.Printf("Potion: %s throws %q at %s", p.Name, pe.ItemName, t.Name)
 			return "", nil, nil
 		}
+		// a helping use at a friend (work board 693 step 1, 1572: "Pronouns: In/Vis"):
+		// castTargetsLocked has refused it at a creature ("Target is not friendly."),
+		// at nothing, out of PotionRange and out of sight, none of which spends a
+		// charge. It lands as a friendly cast on a player (the user included) or a
+		// player's pet. The user's own invisibility is left on, so he can hide his
+		// boxes and himself in any order.
+		if !spell.Def.Harmful {
+			cs := &castState{spell: spell, caster: p.ServerID, targets: targets[:1]}
+			var on string
+			if t := w.Players[targets[0]]; t != nil {
+				w.broadcastCastLocked(p, t.ServerID, 0, spell.visual())
+				w.landOnPlayerLocked(cs, p, sess, t, now)
+				on = t.Name
+			} else if npc := w.NPCs[targets[0]]; npc != nil && npc.Owner != 0 {
+				w.broadcastCastLocked(p, npc.ServerID, 0, spell.visual())
+				w.landOnPetLocked(cs, p, sess, npc, now)
+				on = npc.Name
+			} else {
+				return castNoTarget, nil, nil
+			}
+			w.potionUsedLocked(p, &pe, now)
+			log.Printf("Potion: %s uses %q on %s", p.Name, pe.ItemName, on)
+			return "", nil, nil
+		}
 		npc := w.NPCs[targets[0]]
 		if npc == nil {
 			return castNoTarget, nil, nil

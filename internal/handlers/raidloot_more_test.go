@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/binary"
+	"sort"
 	"strings"
 	"testing"
 
@@ -109,5 +110,65 @@ func TestAClaimIsOnTheMasterLootersList(t *testing.T) {
 	r.f.h.MasterAssign(r.sess[0], 0, 0, "Rd")
 	if r.owns(3, "Fine Steel Sword") != 1 || !raidSaid(r.lines(3), "Ann assigns Fine Steel Sword to Rd.") {
 		t.Fatal("the claim was not given to, or not told")
+	}
+}
+
+// Two of a Lore item off one kill (the GM Jibrish's petition 2248): a seat that wins the
+// first does not win the second; the next highest does, and with no one else rolling it
+// lies on the corpse as though every one passed. The control: an item that is not Lore
+// goes to the same winner twice.
+func TestALoreItemsSecondCopyGoesToTheNextRoller(t *testing.T) {
+	for _, c := range []struct {
+		name               string
+		lore               bool
+		rbChoice           rollChoice
+		ann, rb, freeAfter int
+	}{
+		{"Lore, a second roller", true, rollGreed, 1, 1, 0},
+		{"Lore, no second roller", true, rollPass, 1, 0, 1},
+		{"the control, not Lore", false, rollGreed, 2, 0, 0},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			r := newRaidLootRig(t, 3)
+			id := r.item("Ring of Vox", 1, 7, 1, 0, 0, 1)
+			if c.lore {
+				if _, err := r.f.db.Exec(`UPDATE itempattern SET lore = 1 WHERE patternid = ?`, id); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if _, err := r.f.db.Exec(`INSERT INTO npcitem (npcid, stackleft, remainHP, patternid, listnumber) VALUES (?, 1, 100, ?, 9)`, corpseNPCID, id); err != nil {
+				t.Fatal(err)
+			}
+			r.kill(entity.LootNeedGreed)
+			ls := r.f.h.loots()
+			ls.mu.Lock()
+			var rolls []*lootRoll
+			for _, x := range ls.rolls {
+				rolls = append(rolls, x)
+			}
+			ls.mu.Unlock()
+			if len(rolls) != 2 {
+				t.Fatalf("%d rolls, want 2", len(rolls))
+			}
+			sort.Slice(rolls, func(i, j int) bool { return rolls[i].id < rolls[j].id })
+			for _, roll := range rolls {
+				r.dice = []int{90}
+				r.f.h.RaidRollChoice(r.sess[0], roll.id, rollNeed)
+				if c.rbChoice == rollGreed {
+					r.dice = []int{20}
+				}
+				r.f.h.RaidRollChoice(r.sess[1], roll.id, c.rbChoice)
+				r.f.h.RaidRollChoice(r.sess[2], roll.id, rollPass)
+			}
+			if a, b := r.owns(0, "Ring of Vox"), r.owns(1, "Ring of Vox"); a != c.ann || b != c.rb {
+				t.Errorf("Ann holds %d, Rb %d; want %d, %d", a, b, c.ann, c.rb)
+			}
+			if n := len(r.freeNames()); n != c.freeAfter {
+				t.Errorf("%d free on the corpse, want %d", n, c.freeAfter)
+			}
+			if r.corpse() != nil && len(r.corpse().raid.held) != 0 {
+				t.Errorf("%d held for a winner", len(r.corpse().raid.held))
+			}
+		})
 	}
 }

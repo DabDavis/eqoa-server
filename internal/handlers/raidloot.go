@@ -740,6 +740,9 @@ func (h *NPCWindowHandler) decideLocked(r *lootRoll, rc *raidCorpse) *rollSeat {
 		for _, s := range r.seats {
 			switch {
 			case s.choice != tier:
+			case h.loreHasLocked(r.item, rc, s.ServerID):
+				// a Lore item it holds or has won off this corpse already: the next
+				// highest's (the GM Jibrish's petition 2248)
 			case s.roll > best:
 				best, top = s.roll, []*rollSeat{s}
 			case s.roll == best:
@@ -772,6 +775,30 @@ func (h *NPCWindowHandler) decideLocked(r *lootRoll, rc *raidCorpse) *rollSeat {
 		}
 	}
 	return nil
+}
+
+// loreHasLocked reports a Lore item's seat that holds one already (worn, carried or
+// banked, its client's lists) or has won another of it off the corpse, waiting for it
+// there: it wins no second (the GM Jibrish's petition 2248, 2026-11-17: "If 2 duplicate
+// items, lore, drop off a mob and a player rolls on both and wins both, they should only
+// get one of them off the corpse, the second one should go to the second highest roller.
+// If no second highest roller, leave it on the corpse and treat it as if everyone
+// passed"). Until then the second went to the same winner and waited on the corpse for
+// it ("you hold one already (Lore)"), and was no one's. Must be called with ls.mu held.
+func (h *NPCWindowHandler) loreHasLocked(hi *heldItem, rc *raidCorpse, char uint32) bool {
+	if hi == nil || hi.rec.Pattern.Lore == 0 {
+		return false
+	}
+	id := hi.rec.Pattern.PatternID
+	if rc != nil {
+		for _, x := range rc.held {
+			if x != hi && x.winner == char && x.rec.Pattern.PatternID == id {
+				return true
+			}
+		}
+	}
+	sess, _ := h.raidSeatOf(char)
+	return sess != nil && sessionInvList(sess).loreHeld(id)
 }
 
 // endRollLocked decides a roll and gives its item (the file's doc). Must be called with

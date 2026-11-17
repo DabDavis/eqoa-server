@@ -1461,6 +1461,7 @@ var catalog = map[string]tableNote{
 			"bulb_scale":   {Label: "Bulb model size", Help: "the model's size across, in the string's units (0.35)"},
 			"cord_texture": {Label: "Cord texture", Help: "the cord drawn with a texture, tinted the cord's colour, a span between bulbs one repeat (a rope, tinsel), one of Decoration assets' ids; blank: a plain wire. With size 0 (no glow) a string is a garland"},
 			"cord_repeat":  {Label: "Cord repeat", Help: "kept for a texture's repeat along the cord (1)"},
+			"cord_style":   {Label: "Cord style", Help: "how a textured cord is drawn: band (one smooth strip: a ribbon) or tinsel (short pieces along it, each at a twist of its own, crossed: bushy from any side)"},
 			"cord_sag":     {Label: "Cord sag", Help: "how far the cord hangs between two bulbs, of their distance (0: 0.06); a garland's, deeper (0.2)"},
 			"note":         {Label: "Note"},
 			"source":       {Label: "Source", Help: "gm, or the tool that wrote the row"},

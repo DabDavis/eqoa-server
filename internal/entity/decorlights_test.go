@@ -90,7 +90,8 @@ func TestEncodeDecorLights(t *testing.T) {
 		t.Fatalf("the world's string's head: % X", r[:3])
 	}
 	// ... then the presents' count and the looks' three counts (none of each)
-	if len(r) != 3+12+12+1+4+2+2*14+2+11+2+2+2+2 {
+	// ... and the cords' styles' count (none)
+	if len(r) != 3+12+12+1+4+2+2*14+2+11+2+2+2+2+2 {
 		t.Fatalf("the world's string and the art: %d bytes left", len(r))
 	}
 	r = r[3+12+12+1+4+2+2*14:]
@@ -150,7 +151,7 @@ func TestDecorPresents(t *testing.T) {
 	}
 	r = r[4+int(r[3]):]
 	// the boxes, then the looks: no asset, no string's look, the set's two papers (none, gain 1)
-	if binary.LittleEndian.Uint16(r) != 2 || len(r) != 2+2*(7*4+4+4+1)+2+2+2+2+2*8 {
+	if binary.LittleEndian.Uint16(r) != 2 || len(r) != 2+2*(7*4+4+4+1)+2+2+2+2+2*8+2 {
 		t.Fatalf("the boxes: %d bytes", len(r))
 	}
 	r = r[2:]
@@ -200,7 +201,7 @@ func TestDecorLooks(t *testing.T) {
 	}
 	// the tail: assets (3 named: globe, tent, plaid), one look, one set of two papers
 	tail := 2 + (3 + 1 + 4) + (3 + 1 + 8) + (3 + 1 + 4) + 2 + (2 + 16) + 2 + 2 + 2*8
-	r := b[len(b)-tail:]
+	r := b[len(b)-tail-2:]
 	if binary.LittleEndian.Uint16(r) != 3 || r[2] != 0 || binary.LittleEndian.Uint16(r[3:]) != 108 || r[5] != 1 || binary.LittleEndian.Uint32(r[6:]) != 0xF8E6C045 {
 		t.Fatalf("the assets: % X", r[:12])
 	}
@@ -217,5 +218,27 @@ func TestDecorLooks(t *testing.T) {
 	bad := []database.LightString{{Shape: "presents", Params: `{"boxes":[{"at":[0,0,0],"size":[1,1,1],"color":"FF0000","paper":"tent"}]}`}}
 	if s := BuildDecorStrings(nil, bad, nil); s[0].Problem == "" {
 		t.Error("a paper that is no DictID: no problem said")
+	}
+}
+
+// A template's cord_style tinsel is sent after the looks: the string's index
+// among those sent and 1; a band (or none) is not sent.
+func TestDecorCordStyles(t *testing.T) {
+	templates := map[string]database.LightTemplate{
+		"band":   {Name: "Band", Colors: []uint32{0xFF0000}, Pattern: database.LightCycle, Effect: "steady", Spacing: 1, Size: 0, Bright: 1, Cord: 0xC02020, CordOn: true, CordWidth: 1, CordTexture: 0x6A41D388},
+		"tinsel": {Name: "Tinsel", Colors: []uint32{0xFFD040}, Pattern: database.LightCycle, Effect: "steady", Spacing: 1, Size: 0, Bright: 1, Cord: 0xE0B040, CordOn: true, CordWidth: 1, CordTexture: 0x9196DAC4, CordStyle: "Tinsel"},
+	}
+	rows := []database.LightString{
+		{ID: 1, Template: "Band", Shape: "line", Params: `{"from":[0,0,0],"to":[3,0,0]}`},
+		{ID: 2, Template: "Tinsel", Shape: "line", Params: `{"from":[0,0,0],"to":[3,0,0]}`},
+	}
+	strs := BuildDecorStrings(templates, rows, nil)
+	if strs[0].Tinsel || !strs[1].Tinsel {
+		t.Fatalf("tinsel: %v %v", strs[0].Tinsel, strs[1].Tinsel)
+	}
+	b, _, _ := EncodeDecorLights(strs, nil)
+	r := b[len(b)-5:]
+	if binary.LittleEndian.Uint16(r) != 1 || binary.LittleEndian.Uint16(r[2:]) != 1 || r[4] != 1 {
+		t.Fatalf("the styles: % X", r)
 	}
 }

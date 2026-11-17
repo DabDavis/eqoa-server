@@ -269,3 +269,30 @@ func TestAFeralSpiritIsItsShamansPet(t *testing.T) {
 		t.Errorf("a lone spirit paired with %d", o)
 	}
 }
+
+// Heirloom petition 2291 (Waldorf, 2026-11-17): Guk's elder spirits are its
+// shamans' pets, the one beside a fungal priest too (the shaman 1.7 off), while
+// the Tower of Phantoms' elder spirits, among spirits with no shaman near, are
+// no one's.
+func TestAnElderSpiritIsItsShamansPet(t *testing.T) {
+	w, _, _, _, _ := companionWorld(t)
+	add := func(n *NPC) *NPC {
+		n.SpawnX, n.SpawnY, n.SpawnZ = n.X, n.Y, n.Z
+		w.NPCs[n.ServerID] = n
+		return n
+	}
+	sh := add(&NPC{ServerID: 4401, Name: "froglok yun shaman", X: 1001.7, Z: 1000})
+	add(&NPC{ServerID: 4402, Name: "fungal priest", X: 1000, Z: 1001.5})
+	es := add(&NPC{ServerID: 4403, Name: "elder spirit", X: 1000, Z: 1000})
+	add(&NPC{ServerID: 4404, Name: "spirit", X: 1203.4, Z: 1200})
+	tower := add(&NPC{ServerID: 4405, Name: "elder spirit", X: 1200, Z: 1200})
+	w.mu.Lock()
+	w.linkCompanionsLocked()
+	w.mu.Unlock()
+	if w.companionOf[es.ServerID] != sh.ServerID {
+		t.Errorf("Guk's elder spirit is %d's, want the shaman's %d", w.companionOf[es.ServerID], sh.ServerID)
+	}
+	if o, ok := w.companionOf[tower.ServerID]; ok {
+		t.Errorf("the tower's elder spirit paired with %d", o)
+	}
+}

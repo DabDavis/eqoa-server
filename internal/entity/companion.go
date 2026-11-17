@@ -103,6 +103,18 @@ var companionOwnerName = regexp.MustCompile(`(?i)^(?:(.+)'s (?:pet|minion|famili
 // off one, so they find their owner as a named pet does, companionNamedReach).
 var companionKinds = map[string]string{
 	"mummified guardian": "necromancer",
+	"elder spirit":       "shaman",
+}
+
+// companionOwnerOnly are the companionKinds whose creature is a pet only beside
+// an owner its kind's word names (no nearest creature in its stead): Guk's elder
+// spirits are its shamans' (Heirloom petition 2291, Waldorf, 2026-11-17, "Elder
+// Spirits in Guk Instance are lootable and should not be since they are pets":
+// each of the four stands 1.5 to 1.8 off a froglok yun or guk shaman, or within
+// 16 of one), while the Tower of Phantoms' two elder spirits stand among its
+// spirits with no shaman near, creatures of their own (their robe, 1599).
+var companionOwnerOnly = map[string]bool{
+	"elder spirit": true,
 }
 
 // companionPetKinds are the kinds whose every creature is a pet though no word of its name says so, with no owner's
@@ -218,7 +230,7 @@ func (w *World) linkCompanionsLocked() {
 		grid[at(n)] = append(grid[at(n)], n)
 	}
 	for _, pet := range pets {
-		named := ""
+		named, ownerOnly := "", companionOwnerOnly[database.NPCClassKey(pet.Name)]
 		if m := companionOwnerName.FindStringSubmatch(strings.TrimSpace(pet.Name)); m != nil {
 			named = strings.TrimSpace(m[1] + m[2])
 		} else if k := companionKinds[database.NPCClassKey(pet.Name)]; k != "" {
@@ -235,7 +247,7 @@ func (w *World) linkCompanionsLocked() {
 					switch {
 					case named != "" && d <= companionNamedReach && companionNamesOwner(named, o.Name):
 						score = d - companionNamedReach - companionReach // the owner its name names, before any other
-					case d <= companionReach:
+					case d <= companionReach && !ownerOnly:
 					default:
 						continue
 					}

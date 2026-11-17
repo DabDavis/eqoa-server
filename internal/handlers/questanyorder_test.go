@@ -135,3 +135,43 @@ func TestAnyOrderGroup(t *testing.T) {
 		t.Error("no group for a plain step, a lone one, or a kill")
 	}
 }
+
+// A merchant of a group done in any order (Bowyer Koll keeps a shop) answers
+// its step at its window whichever of the group was done first; the shop
+// opens as ever once its step is done (petitions 2262, 2275: after Tailor
+// Bariston, Koll's window opened his shop). Both orders.
+func TestAnyOrderStepsAtAMerchantsWindow(t *testing.T) {
+	for _, bowyerFirst := range []bool{false, true} {
+		f, elf, tailor, _ := anyOrderFixture(t)
+		koll := &entity.NPC{ServerID: 913, Name: "Bowyer Koll", SpawnX: 25404.5, SpawnY: 54.1, SpawnZ: 15725}
+		f.tw.add(14, koll)
+		f.tw.talk(elf)
+		f.tw.pick(boxID(f.msgs()), 0)
+		f.msgs()
+		atWindow := func() bool {
+			ok := f.qe.AtWindow(f.tw.s, f.tw.p, koll)
+			if m := f.msgs(); ok && strings.Contains(strings.Join(m, "\n"), "ask#") {
+				f.tw.pick(boxID(m), 0)
+				f.msgs()
+			}
+			return ok
+		}
+		if bowyerFirst {
+			if !atWindow() {
+				t.Fatal("Koll first: his window did not answer the step")
+			}
+			f.visit(tailor)
+		} else {
+			f.visit(tailor)
+			if !atWindow() {
+				t.Fatal("after Bariston: Koll's window opened his shop, not the step")
+			}
+		}
+		if s, _ := f.progress(102901); s != 3 {
+			t.Fatalf("bowyer first %v: step %d, want 3", bowyerFirst, s)
+		}
+		if f.qe.AtWindow(f.tw.s, f.tw.p, koll) {
+			t.Fatalf("bowyer first %v: Koll's step done, his window still answered", bowyerFirst)
+		}
+	}
+}

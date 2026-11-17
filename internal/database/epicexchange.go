@@ -50,7 +50,7 @@ type ItemExchange struct {
 	More []int
 	// Count is how many copies of the record are given (0: one)
 	Count int
-	From   int // the record the row must still be of
+	From  int // the record the row must still be of
 	// To is the record given for it; with ImportedOf set instead, ImportedOf's
 	// imported copy, made in the same transaction when it has none
 	// (ImportedCopyTx: the transfer's damper follows the item)

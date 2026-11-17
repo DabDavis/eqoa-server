@@ -492,13 +492,14 @@ func TestAccountBankHolds2000(t *testing.T) {
 		t.Fatalf("page 1 after Birch's withdrawal: %d records, the withdrawn one on it %v", len(ids), containsInt(ids, first))
 	}
 
-	// the control: no account bank, a PS2's full bank refuses the deposit
+	// the control: no account bank, a PS2's full bank refuses the deposit, and says so
+	// (petition 5267)
 	g := newAcctFixture(t, false, 0)
 	g.own("Ash", g.sword, 40, 1, database.LocBank)
 	s := g.own("Ash", g.sword, 1, 1, 0)[0]
 	g.login("Ash", 40)
 	g.bankItem("Ash", false, g.keyOf("Ash", false, s), 1)
-	mustOps(t, g.sent("Ash"), protocol.OpcodeCancelPending)
+	mustOps(t, g.sent("Ash"), protocol.OpcodeErrorMessage, protocol.OpcodeCancelPending)
 	if database.BankSlotsOf(g.sid["Ash"]) != database.AuctionBankSlots {
 		t.Errorf("off, the auction files into %d", database.BankSlotsOf(g.sid["Ash"]))
 	}
@@ -633,4 +634,28 @@ func TestAccountBankDumpIsAPage(t *testing.T) {
 			t.Error("a Lore item in the account bank off the page is not held")
 		}
 	}
+}
+
+// A deposit into a full bank, and a withdrawal into a full pack, are refused and said (Live
+// petition 5267: "When depositing items in the bank, there is no message indicating your
+// bank inventory is full"). The control: one with room moves, with no line.
+func TestBankFullIsSaid(t *testing.T) {
+	f := newAcctFixture(t, false, 0)
+	swords := f.own("Ash", f.sword, 2, 1, 0)
+	f.own("Ash", f.sword, 1, 1, database.LocBank)
+	f.login("Ash", 1) // a bank of one record, full
+	f.bankItem("Ash", false, f.keyOf("Ash", false, swords[0]), 1)
+	msgs := f.sent("Ash")
+	mustOps(t, msgs, protocol.OpcodeErrorMessage, protocol.OpcodeCancelPending)
+	if line, _ := readWideLine(msgs[0][2:]); line != bankFull {
+		t.Errorf("said %q, want %q", line, bankFull)
+	}
+	if _, loc := f.rowAt(swords[0]); loc != 0 {
+		t.Errorf("the sword went to location %d", loc)
+	}
+	g := newAcctFixture(t, false, 0)
+	s := g.own("Ash", g.sword, 1, 1, 0)[0]
+	g.login("Ash", 40)
+	g.bankItem("Ash", false, g.keyOf("Ash", false, s), 1)
+	mustOps(t, g.sent("Ash"), protocol.OpcodeRemoveInvItem, protocol.OpcodeAddBankItem)
 }

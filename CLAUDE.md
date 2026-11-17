@@ -4072,6 +4072,17 @@ Heroes Vendor, the Teleporter's level folds, the homes' friends, a merc's spells
 Dabrish's epics, the rehabilitators' paths; the Equipment Dyer's first question takes its categories' own answers in
 place while they fit (`dyerMenuIn`: in twelve, the six pieces and the robe and shield).
 
+**The dyers' colour picker, for a client that has one** (2026-11-17; `handlers/dyepicker.go`, `session/dyepicker.go`;
+the owner: "lets upgrade the dyer NPCs to show a RGB color picker"). At world entry the server offers **0x7E95**
+(`OpcodeDyePicker` kind 0, u8 version 1); vanilla answers **0x7E96** kind 0 with its version (kept over a keep
+restart). From then on the Equipment Dyer's, the Pet Groomer's and the Weapon Enchanter's colour questions end with
+"Pick any colour..." (`DyePickLabel`, only while the box has room); chosen, 0x7E95 kind 1 opens the client's picker
+(token, target 0 dye slots / 1 pet areas / 2 a hand's aura, the colour now, the slots, the pet or aura to preview on,
+the palette) and the client answers 0x7E96 kind 1 (token, RGBA) or 2 (cancelled). The colour is applied by the same
+path as a palette choice (audited, saved, put on the character; the enchanter's price), only for the open token, within
+10 minutes, in the same world and within 30 units of whoever asked (`dyePickReach`); alpha is forced FF except a pet's
+(its dye's strength). A new question closes an open picker (kind 2). A PS2 never answers, so its boxes are the palette's.
+
 **More than 24 NPCs and players in view, and farther, for a client that keeps them**
 (2026-10-24; `session/entityslots.go`, `handlers/entityslots.go`). CLIENT keeps 24 entity
 slots, the state channels 0x00-0x17; DRDP has 248 (0x00-0xF7), and CLIENT reads 0x40

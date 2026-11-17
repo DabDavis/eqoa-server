@@ -127,6 +127,8 @@ type enchanterAsk struct {
 	page    int
 	family  int
 	speaker string
+	npc     *entity.NPC // the enchanter asked: the colour picker's anchor (dyepicker.go)
+	picker  bool        // its colours' question ended with "Pick any colour..."
 }
 
 // Enchanter keeps each character's question in hand.
@@ -184,6 +186,7 @@ func (e *Enchanter) Talk(sess *session.Session, p *entity.Player, npc *entity.NP
 	}
 	speaker := strings.TrimSpace(npc.Name)
 	forgetDialogs(p)
+	closeDyePicker(sess, p)
 	if e.db == nil {
 		e.say(sess, speaker, "My runes are cold today.")
 		return true
@@ -191,7 +194,7 @@ func (e *Enchanter) Talk(sess *session.Session, p *entity.Player, npc *entity.NP
 	price := e.priceWords()
 	e.say(sess, speaker, "I lay up to two auras on a weapon you hold, and the weapon carries their names wherever it goes. "+
 		price+" Only the newest game client draws an aura (the second needs the very newest); a PlayStation 2 shows the names alone.")
-	e.askHand(sess, p, speaker)
+	e.askHand(sess, p, speaker, npc)
 	return true
 }
 
@@ -225,21 +228,21 @@ func (e *Enchanter) itemName(p *entity.Player, id int) string {
 	return r.Pattern.ItemName
 }
 
-func (e *Enchanter) askHand(sess *session.Session, p *entity.Player, speaker string) {
+func (e *Enchanter) askHand(sess *session.Session, p *entity.Player, speaker string, npc *entity.NPC) {
 	hands, ids := heldCopies(p)
 	switch len(hands) {
 	case 0:
 		e.say(sess, speaker, "Hold the weapon you want enchanted, in either hand, and speak to me again.")
 		return
 	case 1:
-		e.askWhich(sess, p, enchanterAsk{speaker: speaker, hand: hands[0], itemID: ids[0]})
+		e.askWhich(sess, p, enchanterAsk{speaker: speaker, hand: hands[0], itemID: ids[0], npc: npc})
 		return
 	}
 	answers := make([]string, len(hands))
 	for i, h := range hands {
 		answers[i] = clipRunes(map[int]string{entity.AuraMainHand: "Main hand: ", entity.AuraOffHand: "Off hand: "}[h]+e.itemName(p, ids[i]), 40)
 	}
-	e.ask(sess, p, enchanterAsk{speaker: speaker, stage: encHand}, "Which weapon shall I enchant?", answers)
+	e.ask(sess, p, enchanterAsk{speaker: speaker, stage: encHand, npc: npc}, "Which weapon shall I enchant?", answers)
 }
 
 // auraName is a copy's aura by its catalog name, "none", or "an aura" (a GM's).
@@ -284,10 +287,16 @@ func auraAnswers() []string {
 	return append(out, enchanterNoAura)
 }
 
-func colourAnswers() []string {
+// colourAnswers is the colours' question's answers: its own, the dyers'
+// families, and "Pick any colour..." last for a client with the picker
+// (dyepicker.go).
+func colourAnswers(picker bool) []string {
 	out := []string{"Its own colours"}
 	for _, f := range database.DyeFamilies {
 		out = append(out, f.Label)
+	}
+	if picker {
+		out = append(out, DyePickLabel)
 	}
 	return out
 }
@@ -316,7 +325,7 @@ func (e *Enchanter) Answer(sess *session.Session, p *entity.Player, box uint32, 
 	case encHand:
 		hands, ids := heldCopies(p)
 		if n < len(hands) {
-			e.askWhich(sess, p, enchanterAsk{speaker: a.speaker, hand: hands[n], itemID: ids[n]})
+			e.askWhich(sess, p, enchanterAsk{speaker: a.speaker, hand: hands[n], itemID: ids[n], npc: a.npc})
 		}
 	case encWhich:
 		switch n {
@@ -345,11 +354,12 @@ func (e *Enchanter) Answer(sess *session.Session, p *entity.Player, box uint32, 
 			e.enchant(sess, p, a, i, enchanterAuras[i].A.Color, false)
 		default:
 			a.aura, a.stage, a.page = i, encFamily, 0
-			shown, _, _ := enchantPage(colourAnswers(), 0, room)
+			a.picker = sess.DyePicker() >= 1
+			shown, _, _ := enchantPage(colourAnswers(a.picker), 0, room)
 			e.ask(sess, p, a, fmt.Sprintf("Which colour for %s?", enchanterAuras[i].Tag), shown)
 		}
 	case encFamily:
-		all := colourAnswers()
+		all := colourAnswers(a.picker)
 		shown, first, paged := enchantPage(all, a.page, room)
 		if paged && n == len(shown)-1 {
 			a.page++
@@ -362,6 +372,8 @@ func (e *Enchanter) Answer(sess *session.Session, p *entity.Player, box uint32, 
 		case n >= len(shown) || i >= len(all):
 		case i == 0:
 			e.enchant(sess, p, a, a.aura, 0, false) // its own colours
+		case a.picker && i == len(all)-1:
+			e.openPicker(sess, p, a)
 		default:
 			a.family, a.stage = i-1, encShade
 			cs := database.DyeFamilies[a.family].Colours
@@ -498,4 +510,34 @@ func (e *Enchanter) enchant(sess *session.Session, p *entity.Player, a enchanter
 		e.say(sess, a.speaker, fmt.Sprintf("There: %s, %s. Its name shows with it from your next login.", enchanterAuras[aura].Tag, enchanterAuras[aura].Line))
 	}
 	log.Printf("Enchanter: %s's %s (item %d): %s", p.Name, auraPieceNames[a.hand], a.itemID, instanceAuraWords(row))
+}
+
+// openPicker opens the client's colour picker (dyepicker.go) for the aura
+// chosen: its colour now where the copy wears that aura, previewed on the
+// hand; a colour picked is enchanted as a palette's colour is (the price
+// paid, the weapon still held).
+func (e *Enchanter) openPicker(sess *session.Session, p *entity.Player, a enchanterAsk) {
+	c := enchanterAuras[a.aura]
+	place := uint8(auraPlaceMainHand)
+	if a.hand != entity.AuraMainHand {
+		place = auraPlaceOffHand
+	}
+	if a.second {
+		place += auraPlaceMainHand2 - auraPlaceMainHand
+	}
+	o := dyePickerOpen{target: DyePickAura, title: "Colour of " + c.Tag, slots: []uint8{place},
+		aura: dyeAuraPreview{kind: c.A.Kind, source: c.A.Source, nodes: c.A.Nodes}}
+	if row, _, err := e.db.InstanceAuraOf(a.itemID); err == nil {
+		was := row.First
+		if a.second {
+			was = row.Second
+		}
+		if enchanterAuraOf(was) == a.aura {
+			o.current = was.Color
+		}
+	}
+	what := fmt.Sprintf("%s's %s (item %d) %s", p.Name, auraPieceNames[a.hand], a.itemID, c.Tag)
+	openDyePicker(sess, p, a.npc, a.speaker, what, o, func(sess *session.Session, p *entity.Player, rgba uint32) {
+		e.enchant(sess, p, a, a.aura, rgba, false)
+	})
 }

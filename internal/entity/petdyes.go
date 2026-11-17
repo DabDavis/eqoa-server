@@ -266,3 +266,34 @@ func (w *World) petDyesSyncSystem() {
 // petclothes` from the disc's CHAR.ESF (petclothes.go). A body that wears none
 // is dyed whole, its one area the rule's area 2.
 func PetBodyClothed(look uint32) bool { return petClothedBodies[look] }
+
+// PetDyePreview is the player's pet as OpcodePetDyes would carry it to sess's
+// client, for the dyers' colour picker (handlers/dyepicker.go) to preview its
+// dyes on: the id the client knows it by (0 when it is not in its view), its
+// body, its dyes now, area 2's materials and whether the client's rule tells
+// the areas apart. False when the player has no pet.
+func (w *World) PetDyePreview(sess *session.Session) (id, look uint32, dye PetDye, mask uint64, rule, ok bool) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	p := w.sessionPlayerLocked(sess)
+	pet := w.petOfLocked(p)
+	if pet == nil {
+		return 0, 0, PetDye{}, 0, false, false
+	}
+	look = uint32(pet.ModelID)
+	dye = p.PetDyes[look]
+	if a, row := w.PetDyeArea(look); !row {
+		rule = true
+	} else if a.TwoAreas() {
+		mask = a.Mask
+	}
+	if vs, _ := sess.VisibilityState().(*VisibilityState); vs != nil {
+		for i, e := range vs.ChannelEntity {
+			if e == pet.ServerID && i < len(vs.ChannelObjectID) {
+				id = vs.ChannelObjectID[i]
+				break
+			}
+		}
+	}
+	return id, look, dye, mask, rule, true
+}

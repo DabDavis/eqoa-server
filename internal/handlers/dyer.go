@@ -195,6 +195,8 @@ type dyerAsk struct {
 	family  int
 	room    int // the answers its client's box holds (dialogRoom): which first question it was asked
 	speaker string
+	npc     *entity.NPC // the dyer asked (nil: the genie's): the colour picker's anchor (dyepicker.go)
+	picker  bool        // its families' question ended with "Pick any colour..." (dyepicker.go)
 }
 
 // NewDyer makes the dyers over a dye store.
@@ -222,7 +224,7 @@ func (d *Dyer) Talk(sess *session.Session, p *entity.Player, npc *entity.NPC) bo
 	if d == nil || p == nil || npc == nil || npc.Dead || !IsArmorDyer(npc.Name) {
 		return false
 	}
-	d.Offer(sess, p, strings.TrimSpace(npc.Name))
+	d.offer(sess, p, strings.TrimSpace(npc.Name), npc)
 	return true
 }
 
@@ -230,10 +232,16 @@ func (d *Dyer) Talk(sess *session.Session, p *entity.Player, npc *entity.NPC) bo
 // genie's "Dye my armor" (genie.go; the user, 2026-11-08: "add an armor dyer
 // near dabrish too and on genie").
 func (d *Dyer) Offer(sess *session.Session, p *entity.Player, speaker string) {
+	d.offer(sess, p, speaker, nil)
+}
+
+// offer is Offer asked by npc (nil: the genie's).
+func (d *Dyer) offer(sess *session.Session, p *entity.Player, speaker string, npc *entity.NPC) {
 	if d == nil || p == nil {
 		return
 	}
 	forgetDialogs(p)
+	closeDyePicker(sess, p)
 	if d.dyes == nil {
 		d.say(sess, speaker, "My vats are dry today.")
 		return
@@ -244,7 +252,7 @@ func (d *Dyer) Offer(sess *session.Session, p *entity.Player, speaker string) {
 	}
 	d.say(sess, speaker, greeting)
 	room := dialogRoom(sess)
-	d.ask(sess, p, dyerAsk{speaker: speaker, stage: askWhat, room: room}, "What shall I dye?", choiceLabels(dyerMenuIn(room)))
+	d.ask(sess, p, dyerAsk{speaker: speaker, stage: askWhat, room: room, npc: npc}, "What shall I dye?", choiceLabels(dyerMenuIn(room)))
 }
 
 func choiceLabels(cs []dyerChoice) []string {
@@ -258,19 +266,20 @@ func choiceLabels(cs []dyerChoice) []string {
 // chosen goes on from a choice of what to dye: its own question, every dye
 // off, or the colours' families. parent is its index in dyerMenuIn(room), the
 // first question as it was asked.
-func (d *Dyer) chosen(sess *session.Session, p *entity.Player, speaker string, c dyerChoice, parent, room int) {
+func (d *Dyer) chosen(sess *session.Session, p *entity.Player, speaker string, npc *entity.NPC, c dyerChoice, parent, room int) {
 	switch {
 	case c.sub != nil:
-		d.ask(sess, p, dyerAsk{speaker: speaker, stage: askWhich, parent: parent, room: room}, "Which one?", choiceLabels(c.sub))
+		d.ask(sess, p, dyerAsk{speaker: speaker, stage: askWhich, parent: parent, room: room, npc: npc}, "Which one?", choiceLabels(c.sub))
 	case c.slots == nil:
 		d.dye(sess, p, speaker, allDyeSlots(), 0, "Every dye is off.")
 	default:
 		what := strings.ToLower(c.label)
-		families := make([]string, len(database.DyeFamilies))
-		for i, f := range database.DyeFamilies {
-			families[i] = f.Label
+		families := familyLabels()
+		picker := pickerOffered(sess, len(families))
+		if picker {
+			families = append(families, DyePickLabel)
 		}
-		d.ask(sess, p, dyerAsk{speaker: speaker, stage: askFamily, slots: c.slots, what: what},
+		d.ask(sess, p, dyerAsk{speaker: speaker, stage: askFamily, slots: c.slots, what: what, npc: npc, picker: picker},
 			fmt.Sprintf("Which colors for %s?", what), families)
 	}
 }
@@ -297,15 +306,19 @@ func (d *Dyer) Answer(sess *session.Session, p *entity.Player, box uint32, optio
 	switch a.stage {
 	case askWhat:
 		if menu := dyerMenuIn(a.room); n < len(menu) {
-			d.chosen(sess, p, a.speaker, menu[n], n, a.room)
+			d.chosen(sess, p, a.speaker, a.npc, menu[n], n, a.room)
 		}
 	case askWhich:
 		if menu := dyerMenuIn(a.room); a.parent < len(menu) {
 			if sub := menu[a.parent].sub; n < len(sub) {
-				d.chosen(sess, p, a.speaker, sub[n], a.parent, a.room)
+				d.chosen(sess, p, a.speaker, a.npc, sub[n], a.parent, a.room)
 			}
 		}
 	case askFamily:
+		if a.picker && n == len(database.DyeFamilies) {
+			d.openPicker(sess, p, a)
+			return true
+		}
 		if n < len(database.DyeFamilies) {
 			shades := dyerShades(n)
 			answers := make([]string, len(shades))
@@ -383,4 +396,37 @@ func (d *Dyer) dye(sess *session.Session, p *entity.Player, speaker string, slot
 		names[i] = database.DyeSlotNames[s]
 	}
 	log.Printf("Dyer: %s's %s: %s", p.Name, strings.Join(names, ", "), database.FormatDye(rgba))
+}
+
+// familyLabels is the dyers' families' words, a box's answers.
+func familyLabels() []string {
+	out := make([]string, len(database.DyeFamilies))
+	for i, f := range database.DyeFamilies {
+		out[i] = f.Label
+	}
+	return out
+}
+
+// openPicker opens the client's colour picker (dyepicker.go) for the slots
+// asked: the colour of the first of them now, previewed on the character; a
+// colour picked dyes them all as a palette's colour does.
+func (d *Dyer) openPicker(sess *session.Session, p *entity.Player, a dyerAsk) {
+	cur, err := d.dyes.CharDyes(p.CharServerID)
+	if err != nil {
+		log.Printf("Dyer: %s's dyes: %v", p.Name, err)
+		d.say(sess, a.speaker, "Something went wrong with my vats. Try again.")
+		return
+	}
+	slots := make([]uint8, len(a.slots))
+	for i, s := range a.slots {
+		slots[i] = uint8(s)
+	}
+	var now uint32
+	if len(a.slots) > 0 {
+		now = cur[a.slots[0]]
+	}
+	o := dyePickerOpen{target: DyePickChar, current: now, title: "Dye " + a.what, slots: slots}
+	openDyePicker(sess, p, a.npc, a.speaker, a.what, o, func(sess *session.Session, p *entity.Player, rgba uint32) {
+		d.dye(sess, p, a.speaker, a.slots, rgba, fmt.Sprintf("There: %s.", colourWords(rgba)))
+	})
 }

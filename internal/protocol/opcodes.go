@@ -1241,6 +1241,41 @@ const (
 	OpcodeWeatherData GameOpcode = 0x7E94
 )
 
+// The dyers' colour picker (handlers/dyepicker.go; the owner, 2026-11-17:
+// "lets upgrade the dyer NPCs to show a RGB color picker, add to client if
+// needed. then we have any rgb combo"). A client that has a picker window
+// (vanilla) is offered "Pick any colour..." beside the palette at the Equipment
+// Dyer's, the Pet Groomer's and the Weapon Enchanter's colour questions; a PS2
+// and an older client are never offered it and keep the palette. All
+// little-endian; each message's first byte is its kind.
+const (
+	// OpcodeDyePicker is not retail, server to client. Kind 0
+	// (DyePickerOffer), once the player is in the world: a u8, the newest
+	// version the server speaks (1). Kind 1 (DyePickerOpen), a picker opened
+	// for the player's choice of "Pick any colour...": u32 token (the answer's),
+	// u8 target (0 the character's dye slots, 1 its pet's areas, 2 a held
+	// weapon's aura), u8 flags (bit 0: the alpha may be chosen; else it is
+	// FF), u32 the colour now (0xRRGGBBAA, red first; 0 none), u8 title length
+	// and its UTF-8 bytes, u8 n and n u8 slots (target 0: chardyes' slots,
+	// database.DyeChest...; 1: the pet's areas, 0 and 1; 2: the aura's place
+	// in the live channel's auras, 9 the main hand's ... 12 the off hand's
+	// second), for target 1 the pet as OpcodePetDyes has it (u32 id as the
+	// client knows it, 0 not in view; u32 body; u32 area 1's and u32 area 2's
+	// colours; u64 mask; u8 rule), then u8 n and n u32 palette colours (the
+	// dyer's own). The client previews the colour on what the slots are and
+	// sends OpcodeDyePickerAnswer. Kind 2 (DyePickerClose): u32 token, the
+	// picker of that token closed by the server (a new question asked).
+	OpcodeDyePicker GameOpcode = 0x7E95
+
+	// OpcodeDyePickerAnswer is not retail, client to server. Kind 0: u8, the
+	// version the client speaks (1; 0 stop): its answer to the offer, from
+	// which it is offered the picker. Kind 1: u32 token, u32 colour
+	// (0xRRGGBBAA): the colour chosen, applied as a palette choice is (the
+	// player still near whoever asked, the slots as asked, the price paid).
+	// Kind 2: u32 token, the picker cancelled.
+	OpcodeDyePickerAnswer GameOpcode = 0x7E96
+)
+
 // Item links in chat, EQ1's: a player puts a link to one of its own items in a
 // line, and whoever clicks it sees the item as the linker held it then
 // (handlers/itemlinks.go; the GM Jibrish's petition 1463, 2026-11-10). A PS2,

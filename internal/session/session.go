@@ -261,6 +261,11 @@ type Session struct {
 	// build) is sent none.
 	flyClient bool
 
+	// dyePicker is the dyers' colour picker's version the client answered
+	// (protocol.OpcodeDyePickerAnswer, handlers/dyepicker.go): 0, a client
+	// that never said (a PS2), is offered none.
+	dyePicker uint8
+
 	// dialogRoom is the answers the client said it shows in one 0x0034 box
 	// (protocol.OpcodeDialogRoom, dialogroom.go): 0, a client that never said
 	// (a PS2), is RetailDialogRoom.

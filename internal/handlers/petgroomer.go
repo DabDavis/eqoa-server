@@ -112,6 +112,8 @@ type groomAsk struct {
 	what    string
 	family  int
 	speaker string
+	npc     *entity.NPC // the groomer asked: the colour picker's anchor (dyepicker.go)
+	picker  bool        // its families' question ended with "Pick any colour..."
 }
 
 // NewGroomer makes the groomers over a pet dye store.
@@ -140,16 +142,22 @@ func (g *Groomer) Talk(sess *session.Session, p *entity.Player, npc *entity.NPC)
 	if g == nil || p == nil || npc == nil || npc.Dead || !IsPetGroomer(npc.Name) {
 		return false
 	}
-	g.Offer(sess, p, strings.TrimSpace(npc.Name))
+	g.offer(sess, p, strings.TrimSpace(npc.Name), npc)
 	return true
 }
 
 // Offer is a groomer's questions under speaker's name.
 func (g *Groomer) Offer(sess *session.Session, p *entity.Player, speaker string) {
+	g.offer(sess, p, speaker, nil)
+}
+
+// offer is Offer asked by npc (nil: none, where the player stands).
+func (g *Groomer) offer(sess *session.Session, p *entity.Player, speaker string, npc *entity.NPC) {
 	if g == nil || p == nil {
 		return
 	}
 	forgetDialogs(p)
+	closeDyePicker(sess, p)
 	if g.dyes == nil || g.gw == nil {
 		g.say(sess, speaker, "My brushes are packed away today.")
 		return
@@ -172,7 +180,7 @@ func (g *Groomer) Offer(sess *session.Session, p *entity.Player, speaker string)
 	for i, c := range choices {
 		labels[i] = c.label
 	}
-	g.ask(sess, p, groomAsk{speaker: speaker, stage: groomWhat, look: pet.Look, pet: pet.Name, choices: choices},
+	g.ask(sess, p, groomAsk{speaker: speaker, stage: groomWhat, look: pet.Look, pet: pet.Name, choices: choices, npc: npc},
 		fmt.Sprintf("What shall I dye on your %s?", strings.ToLower(pet.Name)), labels)
 }
 
@@ -206,13 +214,18 @@ func (g *Groomer) Answer(sess *session.Session, p *entity.Player, box uint32, op
 			return true
 		}
 		what := strings.ToLower(c.label)
-		families := make([]string, len(database.DyeFamilies))
-		for i, f := range database.DyeFamilies {
-			families[i] = f.Label
+		families := familyLabels()
+		picker := pickerOffered(sess, len(families))
+		if picker {
+			families = append(families, DyePickLabel)
 		}
-		g.ask(sess, p, groomAsk{speaker: a.speaker, stage: groomFamily, look: a.look, pet: a.pet, areas: c.areas, what: what},
+		g.ask(sess, p, groomAsk{speaker: a.speaker, stage: groomFamily, look: a.look, pet: a.pet, areas: c.areas, what: what, npc: a.npc, picker: picker},
 			fmt.Sprintf("Which colors for %s?", what), families)
 	case groomFamily:
+		if a.picker && n == len(database.DyeFamilies) {
+			g.openPicker(sess, p, a)
+			return true
+		}
 		if n < len(database.DyeFamilies) {
 			shades := dyerShades(n)
 			answers := make([]string, len(shades))
@@ -322,4 +335,28 @@ func (h *PetDyesHandler) HandlePetDyes(sess *session.Session, msg *protocol.Mess
 		entity.GetOrCreateVisibility(sess).ResendPetDyes()
 	}
 	return nil
+}
+
+// openPicker opens the client's colour picker (dyepicker.go) for the areas
+// asked: the first area's colour now, previewed on the pet; a colour picked
+// dyes them as a palette's colour does. A pet's dye's alpha is how much of it
+// shows (OpcodePetDyes), so the picker offers the alpha too.
+func (g *Groomer) openPicker(sess *session.Session, p *entity.Player, a groomAsk) {
+	o := dyePickerOpen{target: DyePickPet, alpha: true, title: fmt.Sprintf("Dye your %s's %s", strings.ToLower(a.pet), a.what)}
+	for _, ar := range a.areas {
+		o.slots = append(o.slots, uint8(ar))
+	}
+	if g.gw != nil {
+		if id, look, dye, mask, rule, ok := g.gw.PetDyePreview(sess); ok && look == a.look {
+			o.pet = dyePetPreview{id: id, look: look, dye: dye, mask: mask, rule: rule}
+			if len(a.areas) > 0 && a.areas[0] < len(dye) {
+				o.current = dye[a.areas[0]]
+			}
+		} else {
+			o.pet = dyePetPreview{look: a.look, rule: true}
+		}
+	}
+	openDyePicker(sess, p, a.npc, a.speaker, fmt.Sprintf("%s's %s", a.pet, a.what), o, func(sess *session.Session, p *entity.Player, rgba uint32) {
+		g.dye(sess, p, a, a.areas, rgba, fmt.Sprintf("There: %s.", colourWords(rgba)))
+	})
 }

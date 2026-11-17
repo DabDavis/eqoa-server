@@ -254,12 +254,16 @@ func TestTranscriptReadsBack(t *testing.T) {
 	SendErrorMessage(as, "You cannot do that.")
 	SendDamageIndication(as, as.PlayerObjectID(), -42, 7)
 	queueReliable(as, protocol.OpcodeBugReportOffer, buildBugReportOffer()) // not a line
+	// a line with links (a raid's loot line to a client that takes them): its words
+	// (Heirloom petition 2247: Lord Nagafen's need before greed line was not in the view)
+	queueReliable(as, protocol.OpcodeItemLinkLine, buildItemLinkLine([]wireSpan{{at: 0, n: 3, id: 9}, {at: 8, n: 4, id: 10}},
+		coloredChatPayload("Bow and Mace dropped.", raidR, raidG, raidB)))
 	lines := h.transcriptLines(as, as.Transcript(time.Now()), time.Now())
 	var got []string
 	for _, l := range lines {
 		got = append(got, l.Kind+": "+l.Text)
 	}
-	want := "red line: You cannot do that.|damage: you hit object 7 for 42"
+	want := "red line: You cannot do that.|damage: you hit object 7 for 42|line #ff8c00: Bow and Mace dropped."
 	if strings.Join(got, "|") != want {
 		t.Fatalf("got %q\nwant %q", strings.Join(got, "|"), want)
 	}

@@ -29,7 +29,8 @@ func inTranscript(op protocol.GameOpcode) bool {
 		protocol.OpcodeDialogueBox,      // 0x0046, a dialog box
 		protocol.OpcodeQuestPopupMulti,  // 0x0034, a question and its answers
 		protocol.OpcodeDamageIndication, // 0x00DB, a damage or heal figure
-		protocol.OpcodeCharacterDied:    // 0x005E
+		protocol.OpcodeCharacterDied,    // 0x005E
+		protocol.OpcodeItemLinkLine:     // 0x7E51, a line with item links (a loot or raid roll line among them)
 		return true
 	}
 	return false

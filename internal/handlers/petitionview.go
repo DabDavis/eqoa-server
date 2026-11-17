@@ -204,6 +204,9 @@ func (h *SupportHandler) transcriptLines(sess *session.Session, shown []session.
 	}
 	out := make([]viewLine, 0, len(shown))
 	for _, e := range shown {
+		if e.Opcode == protocol.OpcodeItemLinkLine {
+			e = unlinkedShown(e) // the line inside, its links left out (Heirloom petition 2247)
+		}
 		if len(e.Data) < 2 {
 			continue
 		}
@@ -263,4 +266,22 @@ func (h *SupportHandler) transcriptLines(sess *session.Session, shown []session.
 		out = append(out, l)
 	}
 	return out
+}
+
+// unlinkedShown is the line an OpcodeItemLinkLine carries (buildItemLinkLine: a u8
+// count, 8 bytes a link, then the inner message, its opcode first) as the transcript
+// would have kept it sent plain; nothing (no data) when it is short. A loot or raid
+// roll line goes to a client that takes links so, and a petition's view showed none
+// of them (Heirloom petition 2247: Lord Nagafen's need before greed line).
+func unlinkedShown(e session.Shown) session.Shown {
+	d := e.Data
+	if len(d) < 3 {
+		return session.Shown{At: e.At}
+	}
+	inner := 3 + 8*int(d[2])
+	if len(d) < inner+2 {
+		return session.Shown{At: e.At}
+	}
+	d = d[inner:]
+	return session.Shown{At: e.At, Opcode: protocol.GameOpcode(uint16(d[0]) | uint16(d[1])<<8), Data: d}
 }

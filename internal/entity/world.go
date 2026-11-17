@@ -1559,6 +1559,26 @@ func (w *World) GetCoachDestinationsEveryWorld(excludeName string) []CoachDest {
 // instead of in front of them").
 const coachLandOut float32 = 5
 
+// coachLandDrop is the most a coach's rider is set down above the floor
+// under it.
+const coachLandDrop float32 = 3
+
+// coachFloorLocked reports a floor at (x, z) within coachLandDrop under y, or
+// above it within a step: where a rider set down at y stands. With no ground
+// it is taken that there is. Heirloom petition 2229 (Mightyeagle: "hit 'guk'
+// on fp coach and fell through the floor while loading"): Coachman Inkcap
+// stands in the Homelands' Guk at y -2 on a floor that ends within
+// coachLandOut of him, the ground above at 59; set down in front of him, the
+// rider had nothing under him and fell to the bottom of the world (-1000).
+// Must be called with the lock held.
+func (w *World) coachFloorLocked(world uint8, x, y, z float32) bool {
+	if w.ground == nil {
+		return true
+	}
+	h, ok := w.ground.Floor(world, x, y, z)
+	return ok && y-h <= coachLandDrop
+}
+
 func (w *World) coachDestinations(excludeName string, keep func(*NPC) bool) []CoachDest {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
@@ -1573,11 +1593,15 @@ func (w *World) coachDestinations(excludeName string, keep func(*NPC) bool) []Co
 		}
 		label, _ := coachLabel(npc)
 		f := float64(npc.SpawnFacing)
+		x, z := npc.SpawnX+coachLandOut*float32(math.Sin(f)), npc.SpawnZ+coachLandOut*float32(math.Cos(f))
+		if !w.coachFloorLocked(npc.World, x, npc.SpawnY, z) && w.coachFloorLocked(npc.World, npc.SpawnX, npc.SpawnY, npc.SpawnZ) {
+			x, z = npc.SpawnX, npc.SpawnZ // no floor in front of him: his own spot
+		}
 		dests = append(dests, CoachDest{
 			Name:   label,
-			X:      npc.SpawnX + coachLandOut*float32(math.Sin(f)),
+			X:      x,
 			Y:      npc.SpawnY,
-			Z:      npc.SpawnZ + coachLandOut*float32(math.Cos(f)),
+			Z:      z,
 			Facing: npc.SpawnFacing,
 			World:  npc.World,
 		})

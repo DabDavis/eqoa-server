@@ -152,8 +152,14 @@ func TestMercStrollsRoundItsStandingOwner(t *testing.T) {
 	r.w.roamRnd = nil
 	r.w.roamRand().Seed(7)
 	at := 14 * time.Second
-	r.w.UpdatePosition(r.p.ServerID, r.p.X+2, r.p.Y, r.p.Z, headingTo(1, 0)) // a step: the stand counts from here
-	followTick(r.w, r.t0, at)
+	// a run of 8.8 east, the stand counting from its last step: past the
+	// followers' hold (followHolds), so each comes on to its slot, where an
+	// owner's short step leaves them standing where they are
+	for i := 0; i < 10; i++ {
+		at += 100 * time.Millisecond
+		r.w.UpdatePosition(r.p.ServerID, r.p.X+0.88, r.p.Y, r.p.Z, headingTo(1, 0))
+		followTick(r.w, r.t0, at)
+	}
 	stood := at
 	petAt, famAt := [2]float32{}, [2]float32{}
 	var firstStroll time.Duration

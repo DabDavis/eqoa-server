@@ -339,7 +339,10 @@ func (w *World) followLocked(npc *NPC, owner *Player, s followSlot, dt float32, 
 	// over or under its owner on another floor while the ground has a way
 	// to it (petwalk.go): it goes round, wherever it stands
 	stacked := d <= petFollowStart && w.petStackedLocked(npc, owner.X, owner.Y, owner.Z, now)
-	if !stacked && (ds <= followArrive && !moving || !npc.moving() && ds <= followSlack && !w.followCrowdedLocked(npc, owner)) {
+	// standing with its owner near it, it holds its place: its owner may walk
+	// up to it (followHolds)
+	held := !stacked && followHolds(npc, s, d)
+	if held || !stacked && (ds <= followArrive && !moving || !npc.moving() && ds <= followSlack && !w.followCrowdedLocked(npc, owner)) {
 		if npc.moving() {
 			npc.fslot.align = true // arrived
 		}
@@ -387,6 +390,25 @@ func (w *World) followLocked(npc *NPC, owner *Player, s followSlot, dt float32, 
 	if !moving && distXZ(npc.X, npc.Z, sx, sz) <= followArrive {
 		npc.fslot.align = true
 	}
+}
+
+// followHolds reports a follower n of slot s standing, its owner d off it,
+// as holding its place (the owner, 2026-11-17: "drizzt cant pet his own cat
+// guenhwyvar if he gets close it movese"). Its slot is a place round its
+// owner, so as its owner walked up to it the slot went along with him and it
+// walked off to keep it: its owner moving moved the formation (followFrame)
+// and the slot with it, past followSlack of where it stood; and within
+// followCrowd of him it went on to its slot (followCrowdedLocked) however
+// still he stood. Now one standing stays where it is while its owner is within
+// its slot's distance and followSlack more (5 for a body of a man's size), its
+// owner coming to it, standing beside it or going round it; it follows again
+// once he is farther (the old start, petFollowStart, the same 5), and once
+// moving goes to its slot as before. Its owner walks through it (the
+// non-collide list, 0x1003: pet.go), so beside it is right beside it. A
+// moving one is not held, so it still comes back to its owner from a fight
+// or a teleport to its slot.
+func followHolds(n *NPC, s followSlot, d float32) bool {
+	return followSlots && !n.moving() && d <= followSlotRadius(n, s)+followSlack
 }
 
 // followCrowdedLocked reports n standing within followCrowd of whom it

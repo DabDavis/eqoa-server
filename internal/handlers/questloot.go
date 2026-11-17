@@ -20,8 +20,21 @@ import (
 // soldiers by Klick lay on, empty to him, holding Ant Chitin his other
 // characters could have the quest for: "could have a lot of dead wildlife
 // just waiting to despawn holding up other people").
+//
+// A shared drop (AddSharedDrop: a season's token, seasonrewards.go) is no one
+// character's: it lies on every view of the corpse, after the corpse's own
+// items and before the viewer's own drops, and whoever may open the corpse
+// (lootrights.go: its kill group, then anyone once it unlocks) takes it. The
+// tokens of every credited character's roll stack there together (jibrish,
+// 2026-11-16: "lootable by anyone with kill credit, not a specific player. This
+// is crushing multiboxers": each window had to open the corpse for its own).
 
-// questDrops is one death's drops, each character's own.
+// sharedDrops is the key of a death's shared drops in questDrops.items: no
+// character's serverid is 0.
+const sharedDrops uint32 = 0
+
+// questDrops is one death's drops, each character's own, and the shared ones
+// under sharedDrops.
 type questDrops struct {
 	died  time.Time
 	items map[uint32][]database.CharInventoryEntry // by characters.serverid
@@ -33,7 +46,16 @@ type questDrops struct {
 // AddQuestDrop puts rec on character serverID's view of the corpse of the
 // death died of NPC id (a loot step's drop): a stack of the same item grows.
 func (h *NPCWindowHandler) AddQuestDrop(id entity.EntityID, died time.Time, serverID uint32, rec database.CharInventoryEntry) {
+	if serverID == sharedDrops {
+		return // no character: not everyone's by mistake
+	}
 	h.addQuestDrop(id, died, serverID, rec, false)
+}
+
+// AddSharedDrop puts rec on the corpse of the death died of NPC id for whoever
+// may loot it (the file's doc): a stack of the same item grows.
+func (h *NPCWindowHandler) AddSharedDrop(id entity.EntityID, died time.Time, rec database.CharInventoryEntry) {
+	h.addQuestDrop(id, died, sharedDrops, rec, false)
 }
 
 // AddQuestDropAhead is AddQuestDrop for an item dropped ahead of its step
@@ -71,18 +93,31 @@ func (h *NPCWindowHandler) addQuestDrop(id entity.EntityID, died time.Time, serv
 	d.items[serverID] = append(mine, rec)
 }
 
-// dropsLocked is character serverID's drops on the corpse of NPC id (the
-// death c is the loot of), or nil. Must be called with ls.mu held.
+// dropsLocked is the drops character serverID sees on the corpse of NPC id
+// (the death c is the loot of): the shared ones, then its own; or nil. Must be
+// called with ls.mu held.
 func (ls *lootState) dropsLocked(id entity.EntityID, c *corpse, serverID uint32) []database.CharInventoryEntry {
 	d := ls.drops[id]
 	if d == nil || c == nil || !d.died.Equal(c.died) {
 		return nil
 	}
-	return d.items[serverID]
+	shared := d.items[sharedDrops]
+	if serverID == sharedDrops {
+		return shared
+	}
+	mine := d.items[serverID]
+	if len(shared) == 0 {
+		return mine
+	}
+	if len(mine) == 0 {
+		return shared
+	}
+	out := make([]database.CharInventoryEntry, 0, len(shared)+len(mine))
+	return append(append(out, shared...), mine...)
 }
 
 // viewLocked is the corpse as character serverID's window lists it: its own
-// items, then that character's drops.
+// items, then the shared drops, then that character's own.
 func (ls *lootState) viewLocked(id entity.EntityID, c *corpse, serverID uint32) []database.CharInventoryEntry {
 	mine := ls.dropsLocked(id, c, serverID)
 	if len(mine) == 0 {
@@ -93,7 +128,8 @@ func (ls *lootState) viewLocked(id entity.EntityID, c *corpse, serverID uint32) 
 }
 
 // tookLocked takes n of the record at position i of character serverID's
-// view of the corpse (its own items first, then the drops).
+// view of the corpse (its own items first, then the shared drops, then the
+// character's own).
 func (ls *lootState) tookLocked(id entity.EntityID, c *corpse, serverID uint32, i, n int) {
 	if i < len(c.items) {
 		c.items[i].StackLeft -= n
@@ -107,7 +143,18 @@ func (ls *lootState) tookLocked(id entity.EntityID, c *corpse, serverID uint32, 
 		return
 	}
 	j := i - len(c.items)
-	mine := d.items[serverID]
+	shared := len(d.items[sharedDrops])
+	switch {
+	case j < shared:
+		d.takeLocked(sharedDrops, j, n)
+	case serverID != sharedDrops:
+		d.takeLocked(serverID, j-shared, n)
+	}
+}
+
+// takeLocked takes n of the record at position j of key's drops.
+func (d *questDrops) takeLocked(key uint32, j, n int) {
+	mine := d.items[key]
 	if j < 0 || j >= len(mine) {
 		return
 	}
@@ -116,9 +163,9 @@ func (ls *lootState) tookLocked(id entity.EntityID, c *corpse, serverID uint32, 
 		mine = append(mine[:j], mine[j+1:]...)
 	}
 	if len(mine) == 0 {
-		delete(d.items, serverID)
+		delete(d.items, key)
 	} else {
-		d.items[serverID] = mine
+		d.items[key] = mine
 	}
 }
 

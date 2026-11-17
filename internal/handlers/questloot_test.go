@@ -88,6 +88,92 @@ func TestAQuestDropIsOneDeaths(t *testing.T) {
 	}
 }
 
+// A shared drop (a season's token) is the kill group's, not one character's
+// (jibrish, 2026-11-16: "lootable by anyone with kill credit, not a specific
+// player. This is crushing multiboxers"): two credited characters' tokens are
+// one stack on the corpse, listed after its own items and before a character's
+// own drop; one character takes the whole stack, the other sees it gone; one
+// outside the kill group still may not open the corpse; and the corpse goes
+// with the last of its items, the shared and the own drops taken.
+func TestASharedDropIsTheKillGroups(t *testing.T) {
+	r := newRightsRig(t, 1)
+	first := r.player.CharServerID
+	second := first + 100 // the same player's other window
+	r.h.heardKillRight(entity.KillCredit{NPCID: r.npc.ServerID, Died: r.npc.DeathTime,
+		Players: []entity.KillPlayer{{ServerID: first, Name: "First"}, {ServerID: second, Name: "Second"}}})
+	r.h.AddSharedDrop(r.npc.ServerID, r.npc.DeathTime, r.dropOf(r.bait)) // the first's roll
+	r.h.AddSharedDrop(r.npc.ServerID, r.npc.DeathTime, r.dropOf(r.bait)) // the second's
+	r.h.AddQuestDrop(r.npc.ServerID, r.npc.DeathTime, first, r.dropOf(r.sword))
+
+	r.h.OpenCorpse(r.other, r.npc)
+	if got := why(r.other); got != lootAnotherOwner {
+		t.Fatalf("an outsider's opening: 0x0085 %d, want %d", got, lootAnotherOwner)
+	}
+
+	// the second character takes both tokens: they are the second record, one stack
+	r.player.CharServerID = second
+	r.h.OpenCorpse(r.sess, r.npc)
+	if n := lootCount(t, r.sent()[0]); n != 2 {
+		t.Fatalf("the second character sees %d records, want the corpse's 1 and the tokens", n)
+	}
+	r.send(protocol.OpcodeClientLoot, func(w *buffer.Writer) { w.WriteUint32(1); w.WriteUint32(2) })
+	r.sent()
+	if r.heldOf(r.bait) != 2 {
+		t.Fatalf("the second character holds %d tokens, want both", r.heldOf(r.bait))
+	}
+	r.h.HandleLootClose(r.sess, nil)
+	r.sent()
+
+	// the first sees no token left, and its own drop is still its own, after
+	// the corpse's item
+	r.player.CharServerID = first
+	r.sess.SetInventoryList(newInvList(nil))
+	r.h.OpenCorpse(r.sess, r.npc)
+	if n := lootCount(t, r.sent()[0]); n != 2 {
+		t.Fatalf("the first character sees %d records, want the corpse's 1 and its own drop", n)
+	}
+	r.send(protocol.OpcodeClientLoot, func(w *buffer.Writer) { w.WriteUint32(1); w.WriteUint32(1) })
+	r.sent()
+	if r.heldOf(r.bait) != 0 || r.heldOf(r.sword) != 1 {
+		t.Fatalf("the first character holds bait %d sword %d, want its own drop alone", r.heldOf(r.bait), r.heldOf(r.sword))
+	}
+	if len(r.cleared) != 0 {
+		t.Fatal("the corpse went with its own item on it")
+	}
+	r.send(protocol.OpcodeLootTakeAll, nil)
+	r.sent()
+	if len(r.cleared) != 1 {
+		t.Fatalf("everything taken, the corpse did not go: cleared %v", r.cleared)
+	}
+}
+
+// The control: a shared drop left on the corpse keeps it, and the take of a
+// character's own drop after a shared stack takes that one (the positions:
+// the corpse's items, the shared drops, its own).
+func TestASharedDropKeepsTheCorpse(t *testing.T) {
+	f := newCorpseFixture(t, 0)
+	f.h.AddSharedDrop(f.npc.ServerID, f.npc.DeathTime, f.dropOf(f.bait))
+	f.h.AddQuestDrop(f.npc.ServerID, f.npc.DeathTime, f.charSID, f.dropOf(f.sword))
+	f.h.AddQuestDrop(f.npc.ServerID, f.npc.DeathTime, sharedDrops, f.dropOf(f.sword)) // no character: refused
+	f.h.OpenCorpse(f.sess, f.npc)
+	if n := lootCount(t, f.sent()[0]); n != 2 {
+		t.Fatalf("the looter sees %d records, want the token and its own drop", n)
+	}
+	f.send(protocol.OpcodeClientLoot, func(w *buffer.Writer) { w.WriteUint32(1); w.WriteUint32(1) })
+	got := f.sent()
+	if f.heldOf(f.sword) != 1 || f.heldOf(f.bait) != 0 {
+		t.Fatalf("the second record taken: sword %d bait %d, want its own drop", f.heldOf(f.sword), f.heldOf(f.bait))
+	}
+	if lootCount(t, lastOp(t, got, protocol.OpcodeLoot)) != 1 {
+		t.Fatalf("after its own drop: %s, want the token left", ops(got))
+	}
+	f.send(protocol.OpcodeClientCloseLoot, nil)
+	f.sent()
+	if len(f.cleared) != 0 {
+		t.Fatal("the corpse went with a token on it")
+	}
+}
+
 // heldOf is how many of a pattern the fixture's character holds.
 func (f *corpseFixture) heldOf(pattern int) int {
 	f.t.Helper()

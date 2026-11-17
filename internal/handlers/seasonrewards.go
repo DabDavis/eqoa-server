@@ -23,8 +23,12 @@ import (
 //
 //   - a kill's drop: drop_pct of the kills of a creature the player does not see
 //     green, named_pct of a named one's (a name SOE wrote capitalised: a
-//     generic creature's is lower case), on the killer's own view of the corpse
-//     (questloot.go), as a quest's drop;
+//     generic creature's is lower case), each credited player rolling its own,
+//     on the corpse for anyone who may loot it (questloot.go's shared drops:
+//     the kill group, then anyone once it unlocks), every roll's tokens one
+//     stack (jibrish, 2026-11-16: "lootable by anyone with kill credit, not a
+//     specific player. This is crushing multiboxers"; each character's view
+//     held its own until then);
 //   - a gift once a day (UTC) for each character, gift_count of them, on talking
 //     to its gift NPC (the Holiday Elf by the tree): the talk goes on to the
 //     elf's quests (the holiday quests, daily: quests.repeatable 2);
@@ -49,8 +53,9 @@ type SeasonRewards struct {
 	sm    *session.Manager
 	inv   *database.InventoryStore
 	items *database.ItemPatternStore
-	// drop puts an item on a character's view of a corpse (questloot.go)
-	drop func(id entity.EntityID, died time.Time, serverID uint32, rec database.CharInventoryEntry)
+	// drop puts an item on a corpse for whoever may loot it (questloot.go's
+	// AddSharedDrop)
+	drop func(id entity.EntityID, died time.Time, rec database.CharInventoryEntry)
 
 	mu     sync.Mutex
 	active []database.SeasonReward // the rows of the seasons that are on
@@ -173,8 +178,8 @@ func (r *SeasonRewards) Killed(k entity.KillCredit) {
 			if pat == nil {
 				continue
 			}
-			r.drop(k.NPCID, k.Died, kp.ServerID, database.CharInventoryEntry{StackLeft: 1, EquipLoc: -1, Pattern: *pat})
-			log.Printf("SeasonRewards: %s: %q dropped %q for %s", row.Season, k.NPCName, pat.ItemName, kp.Name)
+			r.drop(k.NPCID, k.Died, database.CharInventoryEntry{StackLeft: 1, EquipLoc: -1, Pattern: *pat})
+			log.Printf("SeasonRewards: %s: %q dropped %q on %s's roll, for its kill group", row.Season, k.NPCName, pat.ItemName, kp.Name)
 		}
 	}
 }

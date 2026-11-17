@@ -205,6 +205,27 @@ func TestAQuestDropComesThrough(t *testing.T) {
 	}
 }
 
+// A shared drop (a season's token) comes through a restart on every view of the
+// corpse.
+func TestASharedDropComesThrough(t *testing.T) {
+	f := newCorpseFixture(t, 1)
+	f.h.AddSharedDrop(f.npc.ServerID, f.npc.DeathTime, f.dropOf(f.bait))
+
+	g, n := nextCorpses(t, f, true)
+	if n != 1 {
+		t.Fatalf("%d back", n)
+	}
+	for _, char := range []uint32{f.charSID, f.charSID + 100} {
+		g.player.CharServerID = char
+		g.h.OpenCorpse(g.sess, g.npc)
+		if got := g.sent(); lootCount(t, lastOp(t, got, protocol.OpcodeLoot)) != 2 {
+			t.Fatalf("character %d's view: %d records, want its own 1 and the token", char, lootCount(t, lastOp(t, got, protocol.OpcodeLoot)))
+		}
+		g.send(protocol.OpcodeClientCloseLoot, nil)
+		g.sent()
+	}
+}
+
 // What the World does not have dead of the same death (its row gone, or made another
 // creature by a data step; or a corpse decayed in the hold) is passed over.
 func TestACorpseWhoseCreatureIsNotDeadIsPassedOver(t *testing.T) {

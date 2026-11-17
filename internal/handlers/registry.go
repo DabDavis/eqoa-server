@@ -601,7 +601,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// the playtime's tokens while its season is on
 	if charStore != nil && gameWorld != nil {
 		sr := NewSeasonRewards(charStore.DB(), gameWorld, sessionMgr, invStore)
-		sr.drop = npcWindowHandler.AddQuestDrop
+		sr.drop = npcWindowHandler.AddSharedDrop // anyone who may loot the corpse (questloot.go)
 		sr.Start()
 	}
 

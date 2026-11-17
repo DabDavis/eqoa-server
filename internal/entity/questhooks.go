@@ -28,7 +28,9 @@ type KillCredit struct {
 	Died     time.Time
 	Level    int
 	World    uint8
-	Players  []KillPlayer
+	// X and Z are where it died (an AnyCreature step's area: database.QuestStep.TakesKillAt)
+	X, Z    float32
+	Players []KillPlayer
 	// Group is the killer's group (Player.GroupID, a raid's too) at the death,
 	// 0 for none: the loot's kill group (handlers/lootrights.go)
 	Group uint32
@@ -91,7 +93,7 @@ func (w *World) creditKillLocked(sess *session.Session, p *Player, npc *NPC) {
 	if npc.Temporary {
 		spawn = 0
 	}
-	c := KillCredit{NPCName: npc.Name, NPCSpawn: spawn, NPCID: npc.ServerID, Died: npc.DeathTime, Level: npc.Level, World: npc.World, Raid: raid,
+	c := KillCredit{NPCName: npc.Name, NPCSpawn: spawn, NPCID: npc.ServerID, Died: npc.DeathTime, Level: npc.Level, World: npc.World, X: npc.X, Z: npc.Z, Raid: raid,
 		Group: p.GroupID, OpenAt: openAt}
 	c.Players = append(c.Players, KillPlayer{Session: sess, ServerID: p.CharServerID, Name: p.Name})
 	if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil {

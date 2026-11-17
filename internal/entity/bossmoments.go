@@ -317,7 +317,7 @@ func (w *World) setHPReachLocked(npc *NPC, m *database.TemplateAbility, now time
 		return nil, nil
 	}
 	r := float32(m.Radius)
-	place := areaPlace{world: npc.World, caster: [3]float32{npc.X, npc.Y, npc.Z}, centre: [3]float32{npc.X, npc.Y, npc.Z}}
+	place := npcAreaPlace(npc, npc.X, npc.Y, npc.Z, false) // its line from its own heights too (sight.go)
 	for _, id := range w.SpatialIndex.QueryRadius(npc.X, npc.Z, r) {
 		if p := w.Players[id]; p != nil {
 			if p.IsDead() || !w.npcSharesLocked(npc, p) || !w.noticeableByLocked(npc, p) ||

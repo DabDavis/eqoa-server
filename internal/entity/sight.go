@@ -25,7 +25,9 @@ import (
 //     target: "some were behind trees and rocks and got hit": they were hidden
 //     from the boss and in plain sight of whoever it was hitting. A group's
 //     spell is no area here: it finds its members wherever they stand in its
-//     radius.
+//     radius. A creature's line is looked at from its own heights too, a man's
+//     times its body (clearFromBodyLocked), so a big boss's feet low in its
+//     body do not hide everyone round it (the owner, 2026-11-17).
 //
 //   - a heal or a buff (any spell that is not harmful) on another player or a
 //     pet: its caster must see the body, as it begins and again as it lands
@@ -183,13 +185,48 @@ type areaPlace struct {
 	caster  [3]float32
 	centre  [3]float32
 	onOther bool // the centre is not the caster
+	// casterBody is a creature caster's body against a man's (bodyScale): its
+	// line to a body is looked at from its own heights too (clearFromBodyLocked).
+	// 0 or 1: a man's, a player's cast.
+	casterBody float32
+}
+
+// npcAreaPlace is where a creature's area spell round centre stands: its feet,
+// the centre, and its body (casterBody).
+func npcAreaPlace(npc *NPC, cx, cy, cz float32, onOther bool) areaPlace {
+	return areaPlace{world: npc.World, caster: [3]float32{npc.X, npc.Y, npc.Z}, centre: [3]float32{cx, cy, cz},
+		onOther: onOther, casterBody: bodyScale(npc)}
+}
+
+// clearFromBodyLocked is an area spell's line from a caster's body k times a
+// man's (bodyScale) at its feet (x0, y0, z0) to a body at (x1, y1, z1): either
+// of a man's lines clear (clearLineLocked), or for a body bigger than a man's
+// either from its own heights, a man's times k, to the other's (the owner,
+// 2026-11-17: "the raid bosses aoes should be able to hit all targets within
+// range"). A dragon's or a shark's feet sit low in its body, under the ledge
+// or the sand round it (the megaladon's at 50.8 under the beach's 54.1,
+// seesCreatureLocked's doc), so a man's head over them was under the ground
+// everyone round it stood on and its breath reached no one there. What hides
+// a man from it still hides him: a wall or a boulder as high as its eyes.
+// Must be called with the lock held.
+func (w *World) clearFromBodyLocked(world uint8, k, x0, y0, z0, x1, y1, z1 float32) bool {
+	if w.clearLineLocked(world, x0, y0, z0, x1, y1, z1) {
+		return true
+	}
+	s, ok := w.ground.(Sight)
+	if !ok || k <= 1 {
+		return false
+	}
+	return s.Sees(world, x0, y0+sightHead*k, z0, x1, y1+sightHead, z1) ||
+		s.Sees(world, x0, y0+sightWaist*k, z0, x1, y1+sightWaist, z1)
 }
 
 // reachesLocked reports the area reaching a body at (x, y, z): a clear line from
-// its caster, and from its centre when that is another's (the file's doc). Must
-// be called with the lock held.
+// its caster (from a creature's own heights too, clearFromBodyLocked), and from
+// its centre when that is another's (the file's doc). Must be called with the
+// lock held.
 func (w *World) reachesLocked(a areaPlace, x, y, z float32) bool {
-	if !w.clearLineLocked(a.world, a.caster[0], a.caster[1], a.caster[2], x, y, z) {
+	if !w.clearFromBodyLocked(a.world, a.casterBody, a.caster[0], a.caster[1], a.caster[2], x, y, z) {
 		return false
 	}
 	return !a.onOther || w.clearLineLocked(a.world, a.centre[0], a.centre[1], a.centre[2], x, y, z)

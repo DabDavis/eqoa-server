@@ -272,12 +272,19 @@ func (s *Server) giveItem(a *actor, who, what any, count int, location string) (
 			stacks = append(stacks, min(left, item.MaxStack))
 		}
 	}
+	// a record of charges (itemeffect.charges, one that does not stack: the
+	// Puppet Strings) holds them all, as one bought or given online does;
+	// until 2026-11-17 an offline give held none, so its first use took it
+	charges := 0
+	if item.MaxStack < 2 {
+		charges = database.NewInventoryStore(s.d.DB).ItemCharges(item.PatternID)
+	}
 	var changes []*change
 	for _, n := range stacks {
 		var next int64
 		s.d.DB.QueryRow(`SELECT COALESCE(MAX(listnumber), -1) + 1 FROM charinventory WHERE serverid = ? AND location = ?`, id, loc).Scan(&next)
 		ch, err := s.insertRow(a, t, map[string]any{
-			"serverid": id, "stackleft": int64(n), "remainHP": int64(item.MaxHP), "remaincharge": int64(0),
+			"serverid": id, "stackleft": int64(n), "remainHP": int64(item.MaxHP), "remaincharge": int64(charges),
 			"patternid": int64(item.PatternID), "equiploc": int64(-1), "location": int64(loc), "listnumber": next,
 		}, writeOpts{})
 		if err != nil {

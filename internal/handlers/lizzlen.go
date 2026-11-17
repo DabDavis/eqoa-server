@@ -17,7 +17,8 @@ import (
 //
 // A talk to him restores, free, the charges of every item with a use of charges (itemeffect.charges,
 // a record that stacks no more than one: InventoryStore.ItemCharges) that the player carries in its
-// pack, not worn, short of its full count: its remaincharge set to the full count, and the client
+// pack, not worn, short of its full count (but one whose line says "No Recharge", the Toy
+// Shoppe's Puppet Strings: neverRecharged): its remaincharge set to the full count, and the client
 // told by the item taken off its list and given again with them (0x003C, 0x003B: CLIENT has no
 // message that sets an item's charges; the item comes back at the end of the pack, as an exchange
 // at Dabrish's does). A worn one is named and left: taken off, it is recharged at the next talk.
@@ -38,6 +39,19 @@ type rechargeStore interface {
 	GetCharacterItems(serverID uint32) ([]database.CharInventoryEntry, error)
 	ItemCharges(patternID int) int
 	SetItemCharges(serverID uint32, itemID, charges int) error
+	ItemEffect(patternID int) (database.ItemEffectRow, bool, error)
+}
+
+// neverRecharged reports an item whose use's line says "No Recharge" (the Toy Shoppe's
+// Puppet Strings: the owner, 2026-11-17, "the charm has 10 charges then disappears"):
+// Lizzlen leaves it, unsaid, so its last charge takes it for good.
+func neverRecharged(inv rechargeStore, patternID int) bool {
+	r, ok, err := inv.ItemEffect(patternID)
+	if err != nil || !ok {
+		return false
+	}
+	d := entity.ParseSpell(r.Line, "")
+	return d.NoRecharge
 }
 
 // lizzlenTalk is a talk to npc: the recharge when npc is Master Lizzlen, else false.
@@ -80,7 +94,7 @@ func rechargeItems(sess *session.Session, p *entity.Player, inv rechargeStore) (
 			continue
 		}
 		full := inv.ItemCharges(r.Pattern.PatternID)
-		if full <= 0 || r.Charges >= full {
+		if full <= 0 || r.Charges >= full || neverRecharged(inv, r.Pattern.PatternID) {
 			continue
 		}
 		name := r.Pattern.ItemName

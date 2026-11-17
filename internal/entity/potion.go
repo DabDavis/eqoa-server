@@ -543,6 +543,18 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 			if npc == nil {
 				return charmCannot, nil, nil
 			}
+			if spell.Def.CharmByCon {
+				// a charm by consider colour (charmcon.go): the Toy Shoppe's
+				// Puppet Strings, always taken when it may be
+				if r := w.conCharmRefusalLocked(p, npc, &spell); r != "" {
+					return r, nil, nil
+				}
+				w.conCharmLocked(p, sess, npc, &spell, now)
+				w.potionUsedLocked(p, &pe, now)
+				log.Printf("Potion: %s uses %q on %s (level %d, con %d): a charm by colour", p.Name, pe.ItemName, npc.Name,
+					npc.Level, ConColor(p.Level, npc.Level))
+				return "", nil, nil
+			}
 			if r := w.charmPetRefusalLocked(p, &spell); r != "" {
 				return r, nil, nil
 			}

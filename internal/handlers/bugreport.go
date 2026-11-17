@@ -82,7 +82,7 @@ const bugSubcategory = 19
 // Player Issue, 90s Internal), and CLIENT keeps no table of its own (its
 // lists are the server's, VICSClient::RecvCategories). Vanilla's /feature
 // opens the form on it by this id (cs::FEATURE_REQUEST): never renumber it.
-const featureSubcategory = 100
+const featureSubcategory = database.FeatureRequestSubcategory
 
 // reportLimiter counts each account's filings (off: none refused, for tests
 // that file many).

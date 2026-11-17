@@ -345,12 +345,26 @@ type PetitionQuery struct {
 	Status   string
 	ServerID uint32 // one character's alone (0: anyone's)
 	Search   string // in the character's name or the text, any case
-	Limit    int    // 100 at most (and the default)
-	Offset   int
+	// Kind is feature (Bug Report / Feature Request alone), other (every
+	// petition but those: the bugs and the rest) or all ("" too).
+	Kind   string
+	Limit  int // 100 at most (and the default)
+	Offset int
 }
 
 // PetitionStatusFilters is what PetitionQuery.Status takes.
 var PetitionStatusFilters = []string{"open", "waiting", PetitionClosed, PetitionDeleted, "all"}
+
+// The Bug Report category and its Feature Request topic (petition 1841):
+// handlers' featureSubcategory is this, filed under FeatureRequestCategory.
+const (
+	FeatureRequestCategory    = 1
+	FeatureRequestSubcategory = 100
+)
+
+// PetitionKindFilters is what PetitionQuery.Kind takes: all, feature (the
+// feature requests alone, players' asks kept apart from the bugs) or other.
+var PetitionKindFilters = []string{"all", "feature", "other"}
 
 // PetitionList is a page of petitions, the number matching, and how many there
 // are of each status (and waiting).
@@ -379,6 +393,17 @@ func (db *SQLiteDB) Petitions(q PetitionQuery) (PetitionList, error) {
 	if q.ServerID != 0 {
 		where = append(where, "serverid = ?")
 		args = append(args, q.ServerID)
+	}
+	switch q.Kind {
+	case "", "all":
+	case "feature":
+		where = append(where, "(category = ? AND subcategory = ?)")
+		args = append(args, FeatureRequestCategory, FeatureRequestSubcategory)
+	case "other":
+		where = append(where, "NOT (category = ? AND subcategory = ?)")
+		args = append(args, FeatureRequestCategory, FeatureRequestSubcategory)
+	default:
+		return PetitionList{}, fmt.Errorf("kind %q is not one of %s", q.Kind, strings.Join(PetitionKindFilters, ", "))
 	}
 	if s := strings.TrimSpace(q.Search); s != "" {
 		where = append(where, "(LOWER(charname) LIKE ? ESCAPE '\\' OR LOWER(text) LIKE ? ESCAPE '\\')")

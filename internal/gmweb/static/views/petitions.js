@@ -31,9 +31,19 @@ const FILTERS = [
   ['all', 'All'],
 ];
 
+// Feature requests (Bug Report / Feature Request, petition 1841) apart from
+// the bugs, or together.
+const KINDS = [
+  ['all', 'Bugs and feature requests'],
+  ['other', 'Not feature requests'],
+  ['feature', 'Feature requests only'],
+];
+
 export async function render(box) {
   const status = h('select', { 'aria-label': 'Which petitions' },
     ...FILTERS.map(([v, label]) => h('option', { value: v }, label)));
+  const kind = h('select', { 'aria-label': 'Which kind' },
+    ...KINDS.map(([v, label]) => h('option', { value: v }, label)));
   const search = h('input', { type: 'search', placeholder: 'Name or text', 'aria-label': 'Search' });
   const countLine = h('span', { class: 'faint small' });
   const listBox = h('div', { class: 'stack' });
@@ -197,7 +207,7 @@ export async function render(box) {
   }
 
   async function load() {
-    const args = { status: status.value, limit: per, offset: page * per, full: true };
+    const args = { status: status.value, kind: kind.value, limit: per, offset: page * per, full: true };
     if (search.value.trim()) args.search = search.value.trim();
     mount(listBox, h('p', { class: 'faint' }, 'Loading…'));
     try {
@@ -215,12 +225,13 @@ export async function render(box) {
     }
   }
   status.addEventListener('change', () => { page = 0; load(); });
+  kind.addEventListener('change', () => { page = 0; load(); });
   search.addEventListener('change', () => { page = 0; load(); });
 
   mount(box,
     pageHead('Petitions', "Players' requests to customer service, to answer and close."),
     card('Show', h('div', { class: 'stack' },
-      h('div', { class: 'row' }, status, search),
+      h('div', { class: 'row' }, status, kind, search),
       countLine,
       h('p', { class: 'muted small' }, "No message of the game answers a petition: Answer writes yours into the ticket and marks it unread, and the player reads it in Support's inbox after getting new headers (told in chat when in the world, else at the next login). Close it once they have read it: from then they are told it has been addressed, and it leaves their inbox in a week. Both are in the Audit log, revertible. What players write is shown as text."))),
     listBox,

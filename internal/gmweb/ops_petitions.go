@@ -98,6 +98,8 @@ func (s *Server) registerPetitionOps() {
 			"closed, deleted (by the player) or all", database.PetitionStatusFilters...),
 		"character": str("only this character's (its name)"),
 		"search":    str("only petitions holding this text (the name or the text, any case)"),
+		"kind": strEnum("feature: only feature requests (Bug Report / Feature Request: /feature, or the form's topic); "+
+			"other: every petition but those; all (the default)", database.PetitionKindFilters...),
 		"full":      boolean(fmt.Sprintf("each petition's text whole (cut at %d characters otherwise)", petitionCut)),
 		"limit":     integer("at most this many (default and most 100)"),
 		"offset":    integer("petitions to skip, for the next page"),
@@ -119,6 +121,7 @@ func (s *Server) registerPetitionOps() {
 				Status    string
 				Character string
 				Search    string
+				Kind      string
 				Full      bool
 				Limit     int
 				Offset    int
@@ -126,7 +129,7 @@ func (s *Server) registerPetitionOps() {
 			if err := c.decode(&req); err != nil {
 				return nil, err
 			}
-			q := database.PetitionQuery{Status: req.Status, Search: req.Search, Limit: req.Limit, Offset: req.Offset}
+			q := database.PetitionQuery{Status: req.Status, Search: req.Search, Kind: req.Kind, Limit: req.Limit, Offset: req.Offset}
 			if name := strings.TrimSpace(req.Character); name != "" {
 				rec, err := database.NewSQLiteCharacterStore(c.s.d.DB).GetByName(name)
 				if err != nil {
@@ -143,7 +146,7 @@ func (s *Server) registerPetitionOps() {
 				out = append(out, c.s.petitionJSON(p, req.Full))
 			}
 			return map[string]any{"petitions": out, "matching": l.Matching, "counts": l.Counts,
-				"statuses": database.PetitionStatusFilters, "note": petitionDataNote}, nil
+				"statuses": database.PetitionStatusFilters, "kinds": database.PetitionKindFilters, "note": petitionDataNote}, nil
 		},
 	})
 	s.addOp(&Op{

@@ -577,9 +577,10 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		if qe, err := NewQuestEngine(charStore.DB(), gameWorld, sessionMgr, invStore, spellStore); err != nil {
 			log.Printf("Quests: not running: %v", err)
 		} else {
-			qe.drop = npcWindowHandler.AddQuestDrop // a loot step's drops (questloot.go)
+			qe.drop = npcWindowHandler.AddQuestDrop           // a loot step's drops (questloot.go)
 			qe.dropAhead = npcWindowHandler.AddQuestDropAhead // those ahead of the step (questpreloot.go)
-			supportHandler.SetQuests(qe)            // a petition's quests (petitionview.go)
+			supportHandler.SetQuests(qe)                      // a petition's quests (petitionview.go)
+			tradeHandler.received = qe.Received               // a traded item on a loot step (petition 5248)
 			qe.Start()
 			r.Register(protocol.OpcodeDeleteQuest, qe.HandleDrop)
 		}
@@ -621,7 +622,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// The NPCs' body tints (0x7E3F; npctint.go): a client that draws them
 	NewNPCTintsHandler(gameWorld).RegisterHandlers(r)
 	NewDecorLightsHandler(gameWorld).RegisterHandlers(r)
-	(&PetDyesHandler{}).RegisterHandlers(r) // the pets' dyes (petgroomer.go)
+	(&PetDyesHandler{}).RegisterHandlers(r)            // the pets' dyes (petgroomer.go)
 	NewDyePickerHandler(gameWorld).RegisterHandlers(r) // the dyers' colour picker (dyepicker.go)
 	// A damage meter (0x7E3B, 0x7E3D; dpsmeter.go): a client that draws one
 	NewDPSMeterHandler(gameWorld).RegisterHandlers(r)

@@ -4,8 +4,9 @@
 Heirloom only (the Christmas event is Heirloom's). Needs a server of branch toys-lights-cane (aura kinds 11-13, the
 plushie's Use); vanilla of the same branch draws the lights, the stripes and the icing.
 
-1. String of Lights (CAPE_ID): a cape (wear slot 28, the cape slot), a copy of the Heirloom Dreadlord's Cape 717004's
-   shape: style STYLE (Dread's maroon cape), its colour CAPE_COLOR; every class and race, level 1, tradeable, not lore,
+1. String of Lights (CAPE_ID): a cape (wear slot 28, the cape slot), a copy of the Heirloom Azure Knight's Cape 717001's
+   shape: style STYLE (the knight's long cape; Dread's high collar and Magnus Jaeger's arm corners zigzag the string),
+   its colour CAPE_COLOR (a wine red); every class and race, level 1, tradeable, not lore,
    no stats. itemaura kind 11 (lights, database.AuraLights; colour, source and nodes 0): vanilla hangs a string of
    twinkling multicoloured bulbs on a green cord along the cape as fitted to the wearer (up one side, over the
    shoulders, down the other), skinned to its bones. A PS2 never sees a cape (the slot is the server's); an older
@@ -53,9 +54,9 @@ SHOP = "Toymaker Tinsel"
 DESC_MAX = 200
 
 CAPE_ID, STAFF_ID, PLUSHIE_ID, GINGER_ID = 716914, 716915, 716916, 716917
-CAPE_BASE, STAFF_BASE, TOY_BASE = 717004, 5489, 716910  # Heirloom Dreadlord's Cape, Apprentice Staff, Barrel of Monkeys
-STYLE = 4  # cape style: Dread's maroon cape (vanilla cape::STYLES)
-CAPE_COLOR = 0xE04040FF  # a warm red over the maroon (0xRRGGBBAA; vanilla multiplies the cape's layers by it)
+CAPE_BASE, STAFF_BASE, TOY_BASE = 717001, 5489, 716910  # Heirloom Azure Knight's Cape, Apprentice Staff, Barrel of Monkeys
+STYLE = 1  # cape style: the silver knight's long cape (vanilla cape::STYLES), whose plain outline carries the lights best
+CAPE_COLOR = 0xE04040FF  # its blue silk made a deep wine red (0xRRGGBBAA; vanilla multiplies the cape's layers by it)
 CAPE_ICON = 1414103605  # the Heirloom Dreadlord's Cape's (a red cloak)
 STAFF_COLOR = 0xC81E1EFF
 PLUSHIE_ICON = 824019198  # Illusion: Pegasus

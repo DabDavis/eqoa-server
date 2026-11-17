@@ -33,7 +33,7 @@ CREATE TABLE charinventory (itemid INTEGER PRIMARY KEY AUTOINCREMENT, serverid I
 CREATE TABLE gm_audit (id INTEGER PRIMARY KEY AUTOINCREMENT, at TEXT NOT NULL, accountid INTEGER NOT NULL,
     username TEXT NOT NULL, via TEXT NOT NULL, ip TEXT NOT NULL, action TEXT NOT NULL, tbl TEXT NOT NULL DEFAULT '',
     rowkey TEXT NOT NULL DEFAULT '', before TEXT, after TEXT, detail TEXT NOT NULL DEFAULT '', reverted_by INTEGER);
-INSERT INTO itempattern VALUES (717004, 0, 1414103605, 28, 1, 0, 0, 1, 0, 32767, 32767, 0, 0, 'Heirloom Dreadlord''s Cape', 'c', 4, 0);
+INSERT INTO itempattern VALUES (717001, 0, 1188988948, 28, 1, 0, 0, 1, 0, 32767, 32767, 0, 0, 'Heirloom Azure Knight''s Cape', 'c', 1, 0);
 INSERT INTO itempattern VALUES (5489, 0, -597854559, 15, 1, 4, 12, 1, 100, 31744, 783, 0, 0, 'Apprentice Staff', 's', 40739020, 4294967295);
 INSERT INTO itempattern VALUES (716910, 0, -1324486342, -1, 1, 0, 0, 1, 80, 32767, 32767, 2, 1, 'Barrel of Monkeys', 'b', 0, 4294967295);
 INSERT INTO tokenshop (shop, patternid, price, sort) VALUES ('Toymaker Tinsel', 716910, 108, 2);
@@ -83,7 +83,7 @@ class ChristmasToys(unittest.TestCase):
                                               "weapondamage, procanim, itemicon FROM itempattern WHERE patternid BETWEEN 716914 AND 716917")}
         self.assertEqual(sorted(recs), [716914, 716915, 716916, 716917])
         cape, staff, plush, ginger = (recs[i] for i in (716914, 716915, 716916, 716917))
-        self.assertEqual(cape[1:9], ("String of Lights", 28, 0, 0, 32767, 32767, 4, 0xE04040FF))
+        self.assertEqual(cape[1:9], ("String of Lights", 28, 0, 0, 32767, 32767, 1, 0xE04040FF))
         self.assertEqual(staff[1:10], ("Candy Cane Staff", 15, 0, 0, 32767, 32767, 40739020, 0xC81E1EFF, 12))
         self.assertEqual((plush[1], plush[2], plush[3], plush[4], plush[10], plush[11]), ("Pegasus Plushie", -1, 0, 0, 2, 824019198))
         self.assertEqual((ginger[1], ginger[2], ginger[3], ginger[10]), ("Gingerbread Man", -1, 0, 2))

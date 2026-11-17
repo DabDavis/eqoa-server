@@ -154,8 +154,8 @@ func TestAuraEditsAreLive(t *testing.T) {
 	if live, _ := out["live"].(string); !strings.Contains(live, "at once") {
 		t.Errorf("live: %v", out["live"])
 	}
-	if code, out := c.op("insert_row", map[string]any{"table": "itemaura", "values": map[string]any{"patternid": 424243, "kind": 11}}); code != 400 {
-		t.Errorf("a kind of 11: %d %v, want refused", code, out)
+	if code, out := c.op("insert_row", map[string]any{"table": "itemaura", "values": map[string]any{"patternid": 424243, "kind": 14}}); code != 400 {
+		t.Errorf("a kind of 14: %d %v, want refused", code, out)
 	}
 	if code, out := c.op("delete_row", map[string]any{"table": "itemaura", "key": map[string]any{"patternid": 424242}}); code != 200 || f.world.ItemAuraCount() != 0 {
 		t.Fatalf("itemaura delete: %d %v", code, out)

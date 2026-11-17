@@ -30,7 +30,10 @@ plushie's Use); vanilla of the same branch draws the lights, the stripes and the
 5. tokenshop: Toymaker Tinsel sells them, in Holly Tokens: String of Lights 81, Candy Cane Staff 108, Pegasus Plushie
    54, Gingerbread Man 54.
 
-Ids fixed (free on Heirloom's 2026-11-17 copy) so a re-run agrees; an id taken by another record refuses everything.
+Ids fixed (716915-716918: the next free on the LIVE Heirloom database's .backup of 2026-11-17 08:14 UTC, after
+build328's Toymaker's Puppet Strings took 716914) so a re-run agrees. Any target id taken refuses everything: a record
+there that this tool did not write (whatever its name), or an itemaura, itemeffect, itemoutfit or tokenshop row for it
+with no record of this tool's.
 Report by default; --apply in one transaction, each row audited (gm_audit, as the panel's) and logged in
 christmas_toys_1117_log; a second --apply finds nothing to do; --undo puts back exactly what it wrote, all or nothing:
 refused while any character, bank, merc or auction holds one of the toys, or a row written has changed since.
@@ -53,7 +56,7 @@ WHO, VIA = "dab", "tool"
 SHOP = "Toymaker Tinsel"
 DESC_MAX = 200
 
-CAPE_ID, STAFF_ID, PLUSHIE_ID, GINGER_ID = 716914, 716915, 716916, 716917
+CAPE_ID, STAFF_ID, PLUSHIE_ID, GINGER_ID = 716915, 716916, 716917, 716918
 CAPE_BASE, STAFF_BASE, TOY_BASE = 717001, 5489, 716910  # Heirloom Azure Knight's Cape, Apprentice Staff, Barrel of Monkeys
 STYLE = 1  # cape style: the silver knight's long cape (vanilla cape::STYLES), whose plain outline carries the lights best
 CAPE_COLOR = 0xE04040FF  # its blue silk made a deep wine red (0xRRGGBBAA; vanilla multiplies the cape's layers by it)
@@ -68,7 +71,7 @@ TWINKLE = 0x1D875ECD
 AURA_PARTICLES, AURA_LIGHTS, AURA_STRIPES, AURA_ICING = 3, 11, 12, 13
 
 TOYS = [
-    {"id": CAPE_ID, "name": "String of Lights", "base": CAPE_BASE, "price": 81, "sort": 5,
+    {"id": CAPE_ID, "name": "String of Lights", "base": CAPE_BASE, "price": 81, "sort": 6,
      "desc": "A string of tiny twinkling lights sewn along a warm red cape, red, green, blue and gold. Wear it in your "
              "cape slot and twinkle all the way home.",
      "says": "Tiny twinkling lights all along a warm red cape, to wear in your cape slot. The whole of Freeport will see "
@@ -76,7 +79,7 @@ TOYS = [
      "set": {"equipslot": 28, "model": STYLE, "color": CAPE_COLOR, "itemicon": CAPE_ICON},
      "aura": {"color": 0, "kind": AURA_LIGHTS, "source": 0, "nodes": 0,
               "note": "The String of Lights: twinkling bulbs along the worn cape (vanilla toys::cape_lights), the owner 2026-11-17"}},
-    {"id": STAFF_ID, "name": "Candy Cane Staff", "base": STAFF_BASE, "price": 108, "sort": 6,
+    {"id": STAFF_ID, "name": "Candy Cane Staff", "base": STAFF_BASE, "price": 108, "sort": 7,
      "desc": "A staff of peppermint candy, striped red and white, with a twinkle at its tip. Sweet to look at; no sharper "
              "than an apprentice's staff.",
      "says": "Peppermint through and through, striped red and white, and it twinkles at the tip. Not much of a weapon, "
@@ -85,13 +88,13 @@ TOYS = [
      "aura": {"color": 0, "kind": AURA_STRIPES, "source": 0, "nodes": 0,
               "color2": 0, "kind2": AURA_PARTICLES, "source2": TWINKLE, "nodes2": 100,
               "note": "The Candy Cane Staff: the monk staff's twinkle at its tip, striped red and white (vanilla toys::stripe), the owner 2026-11-17"}},
-    {"id": PLUSHIE_ID, "name": "Pegasus Plushie", "base": TOY_BASE, "price": 54, "sort": 7,
+    {"id": PLUSHIE_ID, "name": "Pegasus Plushie", "base": TOY_BASE, "price": 54, "sort": 8,
      "desc": "A soft white winged horse with button eyes. Use it and a tiny pegasus trots after you; use it again and it "
              "flutters home.",
      "says": "A tiny pegasus of your own! Use the plushie and it trots after you wherever you go. Use it again when it is "
              "time for a nap.",
      "set": {"itemicon": PLUSHIE_ICON, "lore": 0}},
-    {"id": GINGER_ID, "name": "Gingerbread Man", "base": TOY_BASE, "price": 54, "sort": 8,
+    {"id": GINGER_ID, "name": "Gingerbread Man", "base": TOY_BASE, "price": 54, "sort": 9,
      "desc": "A gingerbread man with icing eyes and a big smile. Use it to become one for 30 minutes; use it again to be "
              "yourself. Run, run, as fast as you can!",
      "says": "Run, run, as fast as you can! Become a gingerbread man, iced eyes and all, for half an hour. Use it again "
@@ -193,6 +196,9 @@ def plan(db):
         refusals.append(f"no tokenshop rows for {SHOP} here: the Toy Shoppe first (and the Christmas event is Heirloom's)")
     if refusals:
         return [], lines, refusals
+    refusals += taken_ids(db)
+    if refusals:
+        return [], lines, refusals
     for t in TOYS:
         if len(t["desc"]) > DESC_MAX or "|" in t["desc"] or not t["desc"].isascii():
             refusals.append(f"{t['name']}'s description is {len(t['desc'])} characters (at most {DESC_MAX}, ASCII, no '|')")
@@ -247,6 +253,28 @@ def plan(db):
                                                "says": t["says"], "sort": t["sort"], "source": SRC}))
             lines.append(f"tokenshop: {SHOP} sells {t['name']} for {t['price']} Holly Tokens")
     return writes, lines, refusals
+
+
+def ours(db, tbl, key):
+    """Whether this tool's log holds a write of tbl's row of key (a re-run's own)."""
+    return table(db, LOG) and db.execute(f"SELECT 1 FROM {LOG} WHERE tbl = ? AND rowkey = ?", (tbl, go_json(key))).fetchone() is not None
+
+
+def taken_ids(db):
+    """Refusals for each toy's id another has taken: a record this tool did not write, or rows of its tables for an id
+    with no record of this tool's."""
+    out = []
+    for t in TOYS:
+        pid = t["id"]
+        rec = row(db, "itempattern", {"patternid": pid})
+        if rec is not None and not ours(db, "itempattern", {"patternid": pid}):
+            out.append(f"itempattern {pid} is taken ({rec['itemname']!r}), not free for {t['name']}")
+            continue
+        if rec is None:
+            for tbl in ("itemaura", "itemeffect", "itemoutfit", "tokenshop"):
+                if db.execute(f"SELECT 1 FROM {tbl} WHERE patternid = ?", (pid,)).fetchone():
+                    out.append(f"{tbl} has a row for {pid} with no record: the id is not free for {t['name']}")
+    return out
 
 
 def held(db, pid):

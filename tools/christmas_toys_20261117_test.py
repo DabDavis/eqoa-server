@@ -37,6 +37,7 @@ INSERT INTO itempattern VALUES (717001, 0, 1188988948, 28, 1, 0, 0, 1, 0, 32767,
 INSERT INTO itempattern VALUES (5489, 0, -597854559, 15, 1, 4, 12, 1, 100, 31744, 783, 0, 0, 'Apprentice Staff', 's', 40739020, 4294967295);
 INSERT INTO itempattern VALUES (716910, 0, -1324486342, -1, 1, 0, 0, 1, 80, 32767, 32767, 2, 1, 'Barrel of Monkeys', 'b', 0, 4294967295);
 INSERT INTO tokenshop (shop, patternid, price, sort) VALUES ('Toymaker Tinsel', 716910, 108, 2);
+INSERT INTO itempattern (patternid, itemname) VALUES (716914, 'Toymaker''s Puppet Strings');
 """
 TABLES = ("itempattern", "itemaura", "itemeffect", "itemoutfit", "tokenshop")
 
@@ -80,21 +81,21 @@ class ChristmasToys(unittest.TestCase):
         r = self.run_tool("--apply")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         recs = {row[0]: row for row in self.q("SELECT patternid, itemname, equipslot, trade, lore, classuse, raceuse, model, color, "
-                                              "weapondamage, procanim, itemicon FROM itempattern WHERE patternid BETWEEN 716914 AND 716917")}
-        self.assertEqual(sorted(recs), [716914, 716915, 716916, 716917])
-        cape, staff, plush, ginger = (recs[i] for i in (716914, 716915, 716916, 716917))
+                                              "weapondamage, procanim, itemicon FROM itempattern WHERE patternid BETWEEN 716915 AND 716918")}
+        self.assertEqual(sorted(recs), [716915, 716916, 716917, 716918])
+        cape, staff, plush, ginger = (recs[i] for i in (716915, 716916, 716917, 716918))
         self.assertEqual(cape[1:9], ("String of Lights", 28, 0, 0, 32767, 32767, 1, 0xE04040FF))
         self.assertEqual(staff[1:10], ("Candy Cane Staff", 15, 0, 0, 32767, 32767, 40739020, 0xC81E1EFF, 12))
         self.assertEqual((plush[1], plush[2], plush[3], plush[4], plush[10], plush[11]), ("Pegasus Plushie", -1, 0, 0, 2, 824019198))
         self.assertEqual((ginger[1], ginger[2], ginger[3], ginger[10]), ("Gingerbread Man", -1, 0, 2))
         auras = {a[0]: a[1:] for a in self.q("SELECT patternid, color, kind, source, nodes, color2, kind2, source2, nodes2 FROM itemaura")}
-        self.assertEqual(auras, {716914: (0, 11, 0, 0, 0, 0, 0, 0), 716915: (0, 12, 0, 0, 0, 3, 0x1D875ECD, 100),
-                                 716917: (0, 13, 0, 0, 0, 0, 0, 0)})
+        self.assertEqual(auras, {716915: (0, 11, 0, 0, 0, 0, 0, 0), 716916: (0, 12, 0, 0, 0, 3, 0x1D875ECD, 100),
+                                 716918: (0, 13, 0, 0, 0, 0, 0, 0)})
         self.assertEqual(self.q("SELECT patternid, line, body, cooldown, source FROM itemeffect"),
-                         [(716917, "Self, Unlimited Uses, 30min", 0xEC6A0604, 60.0, "christmas-toys")])
-        self.assertEqual(self.q("SELECT patternid, slot, look, color FROM itemoutfit"), [(716917, 0, 0, 0)])
+                         [(716918, "Self, Unlimited Uses, 30min", 0xEC6A0604, 60.0, "christmas-toys")])
+        self.assertEqual(self.q("SELECT patternid, slot, look, color FROM itemoutfit"), [(716918, 0, 0, 0)])
         self.assertEqual(self.q("SELECT patternid, price FROM tokenshop WHERE source = 'christmas-toys' ORDER BY sort"),
-                         [(716914, 81), (716915, 108), (716916, 54), (716917, 54)])
+                         [(716915, 81), (716916, 108), (716917, 54), (716918, 54)])
         self.assertEqual(self.q("SELECT count(*) FROM gm_audit")[0][0], 13)
         applied = state(self.path)
         r = self.run_tool("--apply")
@@ -102,7 +103,7 @@ class ChristmasToys(unittest.TestCase):
         self.assertEqual(state(self.path), applied)
         # held: refused
         db = sqlite3.connect(self.path)
-        db.execute("INSERT INTO charinventory (serverid, patternid) VALUES (1, 716916)")
+        db.execute("INSERT INTO charinventory (serverid, patternid) VALUES (1, 716917)")
         db.commit()
         db.close()
         r = self.run_tool("--undo")
@@ -129,13 +130,25 @@ class ChristmasToys(unittest.TestCase):
         self.assertEqual(state(self.path), before)
         db = sqlite3.connect(self.path)
         db.execute("INSERT INTO tokenshop (shop, patternid, price, sort) VALUES ('Toymaker Tinsel', 716910, 108, 2)")
-        db.execute("INSERT INTO itempattern (patternid, itemname) VALUES (716916, 'Something Else')")
+        db.execute("INSERT INTO itempattern (patternid, itemname) VALUES (716917, 'Something Else')")
         db.commit()
         db.close()
         before = state(self.path)
         r = self.run_tool("--apply")
         self.assertNotEqual(r.returncode, 0)
-        self.assertIn("not free", r.stdout)
+        self.assertIn("is taken ('Something Else')", r.stdout)
+        self.assertEqual(state(self.path), before)
+        # the build328 clash: another lane's record at a target id, even of the toy's own name; a stray shop row
+        db = sqlite3.connect(self.path)
+        db.execute("UPDATE itempattern SET itemname = 'Pegasus Plushie' WHERE patternid = 716917")
+        db.execute("INSERT INTO tokenshop (shop, patternid, price) VALUES ('Toymaker Tinsel', 716918, 5)")
+        db.commit()
+        db.close()
+        before = state(self.path)
+        r = self.run_tool("--apply")
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("itempattern 716917 is taken ('Pegasus Plushie')", r.stdout)
+        self.assertIn("tokenshop has a row for 716918 with no record", r.stdout)
         self.assertEqual(state(self.path), before)
 
 

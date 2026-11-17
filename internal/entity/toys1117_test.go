@@ -16,7 +16,7 @@ import (
 // chest piece the same row is none. The Candy Cane Staff's first (stripes)
 // goes with its second (the twinkle) on the hand holding it, and on a worn piece never.
 func TestTheLightsOnTheCapeAndTheStripesInTheHand(t *testing.T) {
-	const cape, staff, chest = 716914, 716915, 716999
+	const cape, staff, chest = 716915, 716916, 716999
 	w := NewWorld()
 	lights := database.ItemAura{PatternID: cape, Kind: database.AuraLights}
 	stripes := database.ItemAura{PatternID: staff, Kind: database.AuraStripes}

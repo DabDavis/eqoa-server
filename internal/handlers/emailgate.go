@@ -74,6 +74,14 @@ func (e *EmailGate) Entered(sess *session.Session, _ *entity.Player) {
 	}
 	now := e.now()
 	id := sess.AccountID()
+	// once a login (Jibrish, petition 2282, the owner's choice 2026-11-17: "no more
+	// than once per login"): a later world entry of the same session says nothing
+	e.mu.Lock()
+	_, told := e.last[sess]
+	e.mu.Unlock()
+	if told {
+		return
+	}
 	if line := e.gate.Reminder(id, now); line != "" {
 		sendEmailReminder(sess, line)
 		e.mu.Lock()

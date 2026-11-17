@@ -56,7 +56,11 @@ func (w *World) LoadNPCTitles(db *database.SQLiteDB) (int, error) {
 	}
 	m := make(map[EntityID]string, len(rows))
 	c := make(map[EntityID]uint8)
+	ns := make(map[EntityID]bool)
 	for id, r := range rows {
+		if r.NoSelect {
+			ns[EntityID(id)] = true
+		}
 		if t := cleanTitle(r.Title); t != "" {
 			m[EntityID(id)] = t
 			if k := TitleColor(r.Color); k != 0 {
@@ -65,6 +69,7 @@ func (w *World) LoadNPCTitles(db *database.SQLiteDB) (int, error) {
 		}
 	}
 	w.SetNPCTitleColors(c)
+	w.SetNPCNoSelect(ns)
 	w.SetNPCTitles(m)
 	return len(m), nil
 }
@@ -86,6 +91,14 @@ func (w *World) SetNPCTitleColors(m map[EntityID]uint8) {
 	w.npcTitleColors = m
 }
 
+// SetNPCNoSelect sets the NPC rows no client may select (npctitle's
+// noselect). SetNPCTitles after it gives them.
+func (w *World) SetNPCNoSelect(m map[EntityID]bool) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.npcNoSelect = m
+}
+
 // SetNPCTitles sets the titles by NPC row and gives every NPC its own.
 func (w *World) SetNPCTitles(m map[EntityID]string) {
 	w.mu.Lock()
@@ -97,6 +110,7 @@ func (w *World) SetNPCTitles(m map[EntityID]string) {
 		}
 		n.Title = m[id]
 		n.TitleColor = w.npcTitleColors[id]
+		n.NoSelect = w.npcNoSelect[id]
 	}
 }
 

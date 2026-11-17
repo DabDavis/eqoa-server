@@ -240,6 +240,9 @@ type NPC struct {
 	// TitleColor is its title plate's colour, CLIENT's NameColors index: 0
 	// an NPC's gold, 1 blue, 2 green (npctitle.go).
 	TitleColor uint8
+	// NoSelect: no client may select it (npctitle's noselect, npctitle.go):
+	// its channel's byte 26 bit 0 clear, as a decoration's.
+	NoSelect bool
 	// CopyOf is the npcs row a copy (Temporary: a spawn's, SpawnNPCCopy) was
 	// made from, 0 for any other NPC (npcrow.go): a table's row key ("#n")
 	// holds for the copies of that row too.

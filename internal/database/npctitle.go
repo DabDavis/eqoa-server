@@ -11,11 +11,15 @@ import "fmt"
 // deletes its own). color: the plate's colour by name, one of CLIENT's three
 // name colours (entity/npctitle.go's titleColors): ” as an NPC's own name
 // (gold), 'blue', 'green' (the GM Jibrish's petitions 1790 and 1791).
+// noselect: 1 makes the NPC not selectable to any client, as a decoration is
+// (no Tab, no click, no target box: the GM Jibrish's Heirloom petition 2288,
+// 2026-11-17, Santa's reindeer other than Rudolph), with or without a title.
 const npcTitleSchema = `
 	CREATE TABLE IF NOT EXISTS npctitle (
 		npcid  INTEGER PRIMARY KEY,
 		title  TEXT NOT NULL DEFAULT '',
 		color  TEXT NOT NULL DEFAULT '',
+		noselect INTEGER NOT NULL DEFAULT 0,
 		note   TEXT NOT NULL DEFAULT '',
 		source TEXT NOT NULL DEFAULT 'gm'
 	);`
@@ -34,18 +38,28 @@ func (db *SQLiteDB) ensureNPCTitle() error {
 			return fmt.Errorf("npctitle: color: %w", err)
 		}
 	}
+	if err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('npctitle') WHERE name = 'noselect'`).Scan(&has); err != nil {
+		return fmt.Errorf("npctitle: %w", err)
+	}
+	if has == 0 {
+		if _, err := db.Exec(`ALTER TABLE npctitle ADD COLUMN noselect INTEGER NOT NULL DEFAULT 0`); err != nil {
+			return fmt.Errorf("npctitle: noselect: %w", err)
+		}
+	}
 	return nil
 }
 
 // NPCTitle is a row of npctitle as shown: its line and its colour's name.
 type NPCTitle struct {
 	Title, Color string
+	// NoSelect: the NPC is not selectable to any client (noselect).
+	NoSelect bool
 }
 
-// NPCTitleRows is every row of npctitle with a title: the line and its colour
-// by the npcs row's id.
+// NPCTitleRows is every row of npctitle with a title or noselect: the line,
+// its colour and noselect by the npcs row's id.
 func (db *SQLiteDB) NPCTitleRows() (map[int64]NPCTitle, error) {
-	rows, err := db.Query(`SELECT npcid, title, color FROM npctitle WHERE title != ''`)
+	rows, err := db.Query(`SELECT npcid, title, color, noselect != 0 FROM npctitle WHERE title != '' OR noselect != 0`)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +68,7 @@ func (db *SQLiteDB) NPCTitleRows() (map[int64]NPCTitle, error) {
 	for rows.Next() {
 		var id int64
 		var t NPCTitle
-		if err := rows.Scan(&id, &t.Title, &t.Color); err != nil {
+		if err := rows.Scan(&id, &t.Title, &t.Color, &t.NoSelect); err != nil {
 			return nil, err
 		}
 		out[id] = t

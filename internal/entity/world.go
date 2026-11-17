@@ -323,6 +323,7 @@ type World struct {
 	rowWander      map[EntityID]float32   // npcwander: a row's own wander, its radius (movement.go)
 	npcTitles      map[EntityID]string    // npctitle: a line over an NPC's name, by its row (npctitle.go)
 	npcTitleColors map[EntityID]uint8     // npctitle's color: its NameColors index, by its row (npctitle.go)
+	npcNoSelect    map[EntityID]bool      // npctitle's noselect: rows no client may select (npctitle.go)
 	apartToldAt    map[EntityID]time.Time // when a player was last told its melee crossed the water's edge
 	// Whether each NPC name is wildlife's (wildlife.go), worked out once a
 	// name; its own lock, as the GM panel reads under the World's read lock

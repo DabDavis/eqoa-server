@@ -222,3 +222,41 @@ func TestLoadNPCTitleColors(t *testing.T) {
 		t.Errorf("loaded %d (%v): Dabrish's colour %d, the vendor's %d", got, err, dab.TitleColor, vendor.TitleColor)
 	}
 }
+
+// Heirloom petition 2288 (the GM Jibrish, 2026-11-17): Santa's reindeer other
+// than Rudolph not targetable. npctitle's noselect, with no title, clears the
+// NPC's byte 26 bit 0 (CLIENT's IsSelectable) for every viewer; the others
+// keep theirs, and a row made again keeps it.
+func TestNPCNoSelect(t *testing.T) {
+	db, err := database.NewSQLite(filepath.Join(t.TempDir(), "t.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if _, err := db.Exec(`INSERT INTO npctitle (npcid, noselect) VALUES (190718, 1)`); err != nil {
+		t.Fatal(err)
+	}
+	w, sess := slotsFixture(t, 0)
+	dasher := &NPC{ServerID: 190718, Name: "Dasher", X: 1005, Y: 54, Z: 1000, ModelID: int64(bodyHumanMale), Size: 1, NPCType: 0x80, Level: 50, HP: 10, MaxHP: 10}
+	rudolph := &NPC{ServerID: 190717, Name: "Rudolph", X: 1006, Y: 54, Z: 1000, ModelID: int64(bodyHumanMale), Size: 1, NPCType: 0x80, Level: 50, HP: 10, MaxHP: 10}
+	for _, n := range []*NPC{dasher, rudolph} {
+		w.NPCs[n.ServerID] = n
+		w.SpatialIndex.Insert(n.ServerID, n.X, n.Z)
+	}
+	if got, err := w.LoadNPCTitles(db); err != nil || got != 0 || !dasher.NoSelect || rudolph.NoSelect || dasher.Title != "" {
+		t.Fatalf("loaded %d (%v): Dasher %v %q, Rudolph %v", got, err, dasher.NoSelect, dasher.Title, rudolph.NoSelect)
+	}
+	if b := w.serializeEntityForChannel(sess, dasher.ServerID, 1); b[26]&1 != 0 {
+		t.Errorf("Dasher's byte 26 %#x, want bit 0 clear", b[26])
+	}
+	if b := w.serializeEntityForChannel(sess, rudolph.ServerID, 2); b[26]&1 == 0 {
+		t.Errorf("Rudolph's byte 26 %#x, want selectable", b[26])
+	}
+	again := &NPC{ServerID: 190718, Name: "Dasher"}
+	w.mu.Lock()
+	w.applyNPCSettingsLocked(again)
+	w.mu.Unlock()
+	if !again.NoSelect {
+		t.Error("Dasher made again from its row is selectable")
+	}
+}

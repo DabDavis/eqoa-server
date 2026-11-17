@@ -155,6 +155,9 @@ type colNote struct {
 	Unit                                           string // Column.Unit
 	Look, Store                                    string // Column.Look, Column.Store
 	Secret, ReadOnly                               bool
+	// Affinity overrides the column's declared one (an INTEGER column the
+	// server reads as a float: npcloot.chance, work board 1310 item 2)
+	Affinity string
 }
 
 type tableNote struct {
@@ -865,7 +868,7 @@ var catalog = map[string]tableNote{
 		Cols: map[string]colNote{
 			"npc_name":  {Label: "NPC name (key)", Help: "lower case, as in NPCs without a trailing space or $"},
 			"tablename": {Label: "Table", Help: "a Loot tables name"},
-			"chance":    {Label: "Chance %", Help: "a roll's chance to give an item, 0-100"},
+			"chance":    {Label: "Chance %", Help: "a roll's chance to give an item, 0-100; a fraction is kept (0.1: one roll in a thousand)", Affinity: "REAL"},
 			"rolls":     {Label: "Rolls", Help: "how many rolls a kill makes"},
 			"note":      {Label: "Note", Help: "why"},
 			"source":    {Label: "Source", Help: "gm, or camp-seed for tools/seed_camp_loot.py's rows (its --undo deletes those no GM changed)"},
@@ -2957,6 +2960,9 @@ func applyCatalog(t *Table) {
 		}
 		c.Label, c.Help, c.Enum, c.Flags, c.Ref, c.Format, c.Section = cn.Label, cn.Help, cn.Enum, cn.Flags, cn.Ref, cn.Format, cn.Section
 		c.Look, c.Store, c.Unit = cn.Look, cn.Store, cn.Unit
+		if cn.Affinity != "" {
+			c.Affinity = cn.Affinity
+		}
 		c.Secret, c.ReadOnly = cn.Secret, cn.ReadOnly
 	}
 	// the default search: every text column

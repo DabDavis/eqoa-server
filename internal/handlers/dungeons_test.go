@@ -87,7 +87,7 @@ func TestReadDungeonsRecipe(t *testing.T) {
 }
 
 // TestDungeonCreatureRollsItsRowsLoot: a creature of the dungeons' world rolls its row's tables ("#n") and every
-// creature's, never its namesakes' in the open world.
+// creature's, never its namesakes' in the open world (one of which rolls its name's and its own row's: 1554).
 func TestDungeonCreatureRollsItsRowsLoot(t *testing.T) {
 	gw := entity.NewWorld()
 	gw.SetDungeons(true, 14, nil, entity.DungeonSettings{})
@@ -98,8 +98,8 @@ func TestDungeonCreatureRollsItsRowsLoot(t *testing.T) {
 	for _, c := range []struct {
 		n    *entity.NPC
 		want []string
-	}{{tmpl, []string{"#777001", "*"}}, {copyOf, []string{"#777001", "*"}}, {out, []string{"gnoll scout", "*"}}} {
-		if got := lootNames(c.n); len(got) != len(c.want) || got[0] != c.want[0] || got[1] != c.want[1] {
+	}{{tmpl, []string{"#777001", "*"}}, {copyOf, []string{"#777001", "*"}}, {out, []string{"gnoll scout", "#6", "*"}}} {
+		if got := lootNames(c.n); len(got) != len(c.want) || got[0] != c.want[0] || got[1] != c.want[1] || got[len(got)-1] != "*" {
 			t.Fatalf("%+v rolls %v, want %v", c.n, got, c.want)
 		}
 	}

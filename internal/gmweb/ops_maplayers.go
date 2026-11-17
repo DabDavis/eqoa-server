@@ -209,10 +209,11 @@ func campJSON(m handlers.CampMarker) map[string]any {
 // the creatures it is bound to and a few of its items at level.
 func (s *Server) campLoot(creatures []string, level int) ([]map[string]any, error) {
 	type table struct {
-		chance, rolls int
-		creatures     []string
-		items         []string
-		count         int
+		chance    float64
+		rolls     int
+		creatures []string
+		items     []string
+		count     int
 	}
 	inv := database.NewInventoryStore(s.d.DB)
 	byName := map[string]*table{}

@@ -16,7 +16,7 @@ import (
 type rewardsFix struct {
 	*trigWorld
 	r       *SeasonRewards
-	dropped []uint32 // characters a token dropped for
+	dropped []entity.EntityID // the corpses a token dropped on, for anyone of the kill
 }
 
 func newRewardsFix(t *testing.T) *rewardsFix {
@@ -33,9 +33,9 @@ func newRewardsFix(t *testing.T) *rewardsFix {
 	}
 	f := &rewardsFix{trigWorld: w}
 	f.r = NewSeasonRewards(w.db, w.gw, w.sm, nil)
-	f.r.drop = func(_ entity.EntityID, _ time.Time, serverID uint32, rec database.CharInventoryEntry) {
+	f.r.drop = func(id entity.EntityID, _ time.Time, rec database.CharInventoryEntry) {
 		if rec.Pattern.PatternID == 716900 {
-			f.dropped = append(f.dropped, serverID)
+			f.dropped = append(f.dropped, id)
 		}
 	}
 	f.r.now = func() time.Time { return w.now }

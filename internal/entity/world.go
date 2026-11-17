@@ -104,6 +104,7 @@ type World struct {
 	orbs orbState
 	// hazards are the places that hurt a player standing in them (hazards.go)
 	hazards hazardState
+	lava    LavaRule // lava.go: what the lava does (zero: nothing)
 	// noRoam is the ground no wandering creature walks into (noroam.go)
 	noRoam noRoamState
 	// kickZones are the creatures whose template guards the ground round them (kickzone.go)

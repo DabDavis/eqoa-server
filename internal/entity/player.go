@@ -399,6 +399,7 @@ type Player struct {
 	// hazardNext is when a hazard may hit it again (hazards.go); hazardX/hazardZ where its last
 	// hit took it, while hazardHit (an on_move hazard's still player is not hit again)
 	hazardNext       time.Time
+	lavaNext         time.Time // when the lava may burn it again (lava.go); zero out of it
 	hazardX, hazardZ float32
 	hazardHit        bool
 	// hazardStrikes are its warnings of each hazard of strikes (hazards.go), by row id

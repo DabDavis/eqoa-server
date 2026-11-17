@@ -156,7 +156,11 @@ func TestLightTemplateProblems(t *testing.T) {
 	if p := LightTemplateProblems("FF2020, 20D040,#3070FF", LightCycle, LightTwinkle, 1.5, 0.8, 0.3, 1, "1E3F1E", 0.06); len(p) != 0 {
 		t.Errorf("a good template: %v", p)
 	}
-	if p := LightTemplateProblems("red", "spiral", "blink", -1, 0, 0, 9, "green", 5); len(p) != 9 {
-		t.Errorf("a bad template: %d problems %v, want 7", len(p), p)
+	if p := LightTemplateProblems("red", "spiral", "blink", -1, 0, -1, 9, "green", 5); len(p) != 9 {
+		t.Errorf("a bad template: %d problems %v, want 9", len(p), p)
+	}
+	// a size of 0 is a garland's: no glow, its cord alone
+	if p := LightTemplateProblems("FFD040", LightCycle, LightSteady, 1.5, 1.6, 0, 1, "E0B040", 0.55); len(p) != 0 {
+		t.Errorf("a garland: %v", p)
 	}
 }

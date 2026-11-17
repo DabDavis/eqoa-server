@@ -153,6 +153,9 @@ func checkRow(table string, row map[string]any) error {
 	if table == "lightstrings" && row != nil {
 		return checkLightStringRow(row) // live_seasons.go
 	}
+	if table == "decorassets" && row != nil {
+		return checkDecorAssetRow(row) // live_seasons.go
+	}
 	if table == "npctint" && row != nil {
 		return checkTintRow(row) // live.go
 	}

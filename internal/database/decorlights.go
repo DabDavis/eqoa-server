@@ -80,6 +80,9 @@ func (db *SQLiteDB) ensureDecorLights() error {
 	if err := db.ensureDecorArtSink(); err != nil {
 		return err
 	}
+	if _, err := db.Exec(decorAssetsSchema); err != nil {
+		return fmt.Errorf("decorassets: %w", err)
+	}
 	return db.ensureLightTemplateCord()
 }
 
@@ -154,7 +157,19 @@ type LightTemplate struct {
 	Cord      uint32
 	CordOn    bool
 	CordWidth float64
-	Note      string
+	// The look past the glows (christmas5; the owner: "the magic globe can be
+	// used for bulbs and made different colors", "the rope hanging also can be
+	// used to decorate the tree"): Bulb a model drawn at each bulb (a DictID,
+	// one of decorassets'; 0 none), BulbScale its size across; CordTexture the
+	// cord drawn with a texture (a decorassets DictID; 0 a plain wire), a span
+	// between bulbs one repeat of it; CordSag how far the cord hangs between
+	// two bulbs, of their distance (0: the default)
+	Bulb        uint32
+	BulbScale   float64
+	CordTexture uint32
+	CordRepeat  float64
+	CordSag     float64
+	Note        string
 }
 
 // LightString is a row of lightstrings.
@@ -240,7 +255,7 @@ func (db *SQLiteDB) LightTemplates() (map[string]LightTemplate, error) {
 	if err := db.ensureLightTemplateCord(); err != nil {
 		return nil, err
 	}
-	rows, err := db.Query(`SELECT name, colors, pattern, effect, period, spacing, size, bright, cord, cord_width, note FROM lighttemplates`)
+	rows, err := db.Query(`SELECT name, colors, pattern, effect, period, spacing, size, bright, cord, cord_width, bulb, bulb_scale, cord_texture, cord_repeat, cord_sag, note FROM lighttemplates`)
 	if err != nil {
 		return nil, err
 	}
@@ -248,10 +263,12 @@ func (db *SQLiteDB) LightTemplates() (map[string]LightTemplate, error) {
 	out := map[string]LightTemplate{}
 	for rows.Next() {
 		var t LightTemplate
-		var colors, cord string
-		if err := rows.Scan(&t.Name, &colors, &t.Pattern, &t.Effect, &t.Period, &t.Spacing, &t.Size, &t.Bright, &cord, &t.CordWidth, &t.Note); err != nil {
+		var colors, cord, bulb, cordTex string
+		if err := rows.Scan(&t.Name, &colors, &t.Pattern, &t.Effect, &t.Period, &t.Spacing, &t.Size, &t.Bright, &cord, &t.CordWidth, &bulb, &t.BulbScale, &cordTex, &t.CordRepeat, &t.CordSag, &t.Note); err != nil {
 			return nil, err
 		}
+		t.Bulb, _ = ParseDictID(bulb)
+		t.CordTexture, _ = ParseDictID(cordTex)
 		if c, err := ParseLightColors(cord); err == nil && len(c) == 1 {
 			t.Cord, t.CordOn = c[0], true
 		}
@@ -309,8 +326,8 @@ func LightTemplateProblems(colors, pattern, effect string, period, spacing, size
 	if spacing < DecorMinSpacing {
 		out = append(out, fmt.Sprintf("spacing %.2f: at least %.2f", spacing, DecorMinSpacing))
 	}
-	if size <= 0 || size > DecorMaxSize {
-		out = append(out, fmt.Sprintf("size %.2f: more than 0, at most %d", size, DecorMaxSize))
+	if size < 0 || size > DecorMaxSize {
+		out = append(out, fmt.Sprintf("size %.2f: 0 (no glow: a garland's) to %d", size, DecorMaxSize))
 	}
 	if bright <= 0 || bright > 4 {
 		out = append(out, fmt.Sprintf("bright %.2f: more than 0, at most 4", bright))
@@ -601,7 +618,9 @@ func (db *SQLiteDB) DecorArts() (map[string]DecorArt, error) {
 // columns them (the owner: "for the lights let there look like a cord connecting
 // them").
 func (db *SQLiteDB) ensureLightTemplateCord() error {
-	for _, c := range []struct{ name, def string }{{"cord", "TEXT NOT NULL DEFAULT '1E3F1E'"}, {"cord_width", "REAL NOT NULL DEFAULT 0.06"}} {
+	for _, c := range []struct{ name, def string }{{"cord", "TEXT NOT NULL DEFAULT '1E3F1E'"}, {"cord_width", "REAL NOT NULL DEFAULT 0.06"},
+		{"bulb", "TEXT NOT NULL DEFAULT ''"}, {"bulb_scale", "REAL NOT NULL DEFAULT 0.35"}, {"cord_texture", "TEXT NOT NULL DEFAULT ''"},
+		{"cord_repeat", "REAL NOT NULL DEFAULT 1"}, {"cord_sag", "REAL NOT NULL DEFAULT 0"}} {
 		var n int
 		if err := db.QueryRow(`SELECT count(*) FROM pragma_table_info('lighttemplates') WHERE name = ?`, c.name).Scan(&n); err != nil {
 			return err
@@ -633,6 +652,11 @@ type GiftBox struct {
 	Color  string     `json:"color"`
 	Ribbon string     `json:"ribbon,omitempty"`
 	Bow    bool       `json:"bow,omitempty"`
+	// Paper, when set, is a texture (a decorassets DictID, 0xXXXXXXXX) the box
+	// is wrapped in, tinted its colour times Gain (0: 1): a tent's cloth (the
+	// owner: "we can use these tents as wrapping paper for presents")
+	Paper string  `json:"paper,omitempty"`
+	Gain  float64 `json:"gain,omitempty"`
 }
 
 // Gift is a present as the world sends it: colours 0xRRGGBB (Ribbon 0 and
@@ -644,6 +668,8 @@ type Gift struct {
 	Ribbon   uint32
 	RibbonOn bool
 	Bow      bool
+	Paper    uint32
+	Gain     float32
 }
 
 // DecorMaxGifts is the most presents a string carries.
@@ -667,7 +693,20 @@ func DecorGifts(s LightString) ([]Gift, error) {
 		if err != nil || len(c) != 1 {
 			return nil, fmt.Errorf("presents: box %d's color %q: one RRGGBB", i+1, b.Color)
 		}
-		g := Gift{Color: c[0], Bow: b.Bow, Yaw: float32(b.Yaw * math.Pi / 180)}
+		g := Gift{Color: c[0], Bow: b.Bow, Yaw: float32(b.Yaw * math.Pi / 180), Gain: 1}
+		if p := strings.TrimSpace(b.Paper); p != "" {
+			id, err := ParseDictID(p)
+			if err != nil || id == 0 {
+				return nil, fmt.Errorf("presents: box %d's paper %q: a texture's DictID, 0xXXXXXXXX", i+1, b.Paper)
+			}
+			g.Paper = id
+			if b.Gain < 0 || b.Gain > 8 {
+				return nil, fmt.Errorf("presents: box %d's gain %.2f: 0 (1) to 8", i+1, b.Gain)
+			}
+			if b.Gain > 0 {
+				g.Gain = float32(b.Gain)
+			}
+		}
 		if r := strings.TrimSpace(b.Ribbon); r != "" && !strings.EqualFold(r, "none") {
 			rc, err := ParseLightColors(r)
 			if err != nil || len(rc) != 1 {
@@ -684,4 +723,86 @@ func DecorGifts(s LightString) ([]Gift, error) {
 		out = append(out, g)
 	}
 	return out, nil
+}
+
+// ParseDictID reads a DictID written 0xXXXXXXXX (or bare hex, or blank: 0).
+func ParseDictID(s string) (uint32, error) {
+	s = strings.TrimSpace(s)
+	if s == "" || s == "0" {
+		return 0, nil
+	}
+	s = strings.TrimPrefix(strings.TrimPrefix(s, "0x"), "0X")
+	v, err := strconv.ParseUint(s, 16, 32)
+	if err != nil {
+		return 0, fmt.Errorf("DictID %q: 0xXXXXXXXX", s)
+	}
+	return uint32(v), nil
+}
+
+// decorassets: art a decoration's look draws that a client need not have
+// loaded (christmas5): the textures and models ids (DictIDs, space or comma
+// separated) of zone zone (its index in the world's file) of world world,
+// which a client drawing decorations reads off its own disc once, whatever
+// world it is in (Odus's tents as a present's paper in Freeport). Sent only
+// while a string's look or a present names one of its ids.
+const decorAssetsSchema = `
+	CREATE TABLE IF NOT EXISTS decorassets (
+		name   TEXT PRIMARY KEY COLLATE NOCASE,
+		world  INTEGER NOT NULL DEFAULT 0,
+		zone   INTEGER NOT NULL DEFAULT 0,
+		ids    TEXT NOT NULL DEFAULT '',
+		note   TEXT NOT NULL DEFAULT '',
+		source TEXT NOT NULL DEFAULT 'gm'
+	);`
+
+// DecorAsset is a row of decorassets.
+type DecorAsset struct {
+	Name  string
+	World int
+	Zone  int
+	IDs   []uint32
+}
+
+// DecorAssetIDs reads a decorassets row's ids, or says what is wrong.
+func DecorAssetIDs(s string) ([]uint32, error) {
+	var out []uint32
+	for _, f := range strings.FieldsFunc(s, func(r rune) bool { return r == ',' || r == ' ' || r == '\t' || r == ';' }) {
+		id, err := ParseDictID(f)
+		if err != nil || id == 0 {
+			return nil, fmt.Errorf("ids: %q is not a DictID (0xXXXXXXXX)", f)
+		}
+		out = append(out, id)
+	}
+	if len(out) == 0 {
+		return nil, fmt.Errorf("ids: none (0xXXXXXXXX, space separated)")
+	}
+	if len(out) > 255 {
+		return nil, fmt.Errorf("ids: %d, 255 at most", len(out))
+	}
+	return out, nil
+}
+
+// DecorAssets is every row of decorassets whose ids read, by name.
+func (db *SQLiteDB) DecorAssets() ([]DecorAsset, error) {
+	if _, err := db.Exec(decorAssetsSchema); err != nil {
+		return nil, fmt.Errorf("decorassets: %w", err)
+	}
+	rows, err := db.Query(`SELECT name, world, zone, ids FROM decorassets ORDER BY name`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []DecorAsset
+	for rows.Next() {
+		var a DecorAsset
+		var ids string
+		if err := rows.Scan(&a.Name, &a.World, &a.Zone, &ids); err != nil {
+			return nil, err
+		}
+		if a.IDs, err = DecorAssetIDs(ids); err != nil || a.World < 0 || a.World > 255 || a.Zone < 0 || a.Zone > 0xFFFF {
+			continue
+		}
+		out = append(out, a)
+	}
+	return out, rows.Err()
 }

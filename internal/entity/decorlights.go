@@ -73,6 +73,13 @@ type DecorString struct {
 	CordOn    bool
 	CordWidth float32
 	CordSag   float32
+	// the look past the glows (database.LightTemplate's): a model at each
+	// bulb (0 none) BulbScale across, the cord's texture (0 a plain wire), a
+	// span one repeat
+	BulbModel   uint32
+	BulbScale   float32
+	CordTexture uint32
+	CordRepeat  float32
 	// Gifts are a presents string's boxes (no bulbs)
 	Gifts   []database.Gift
 	ID      int64
@@ -123,7 +130,12 @@ func BuildDecorStrings(templates map[string]database.LightTemplate, rows []datab
 		d.Size, d.Bright = float32(t.Size), float32(t.Bright)
 		if t.CordOn && t.CordWidth > 0 && !strings.EqualFold(strings.TrimSpace(r.Shape), database.ShapePoints) {
 			d.Cord, d.CordOn, d.CordWidth, d.CordSag = t.Cord, true, float32(t.CordWidth), DecorCordSag
+			if t.CordSag > 0 {
+				d.CordSag = float32(min(t.CordSag, 1))
+			}
+			d.CordTexture, d.CordRepeat = t.CordTexture, float32(max(t.CordRepeat, 0))
 		}
+		d.BulbModel, d.BulbScale = t.Bulb, float32(t.BulbScale)
 		d.Colors = append([]uint32(nil), t.Colors...)
 		d.Bulbs = bulbs
 		// a tree's star: a colour of its own, its colour byte's top bit set
@@ -143,8 +155,9 @@ func BuildDecorStrings(templates map[string]database.LightTemplate, rows []datab
 // a u16 zone index: the zone of the world's file that holds the sprite, which
 // the client reads to have it, and an f32 sink: drawn that much lower, in the
 // art's own units), by model.
-func EncodeDecorLights(strs []DecorString, art []database.DecorArt) (body []byte, sent, bulbs int) {
+func EncodeDecorLights(strs []DecorString, art []database.DecorArt, assets ...database.DecorAsset) (body []byte, sent, bulbs int) {
 	b := make([]byte, 2, 64)
+	var looks []int // each string sent with a look: its index among those sent
 	for _, d := range strs {
 		if len(d.Bulbs) == 0 {
 			continue
@@ -183,6 +196,9 @@ func EncodeDecorLights(strs []DecorString, art []database.DecorArt) (body []byte
 				c |= DecorCordBreak
 			}
 			b = append(b, c, u.Phase)
+		}
+		if d.BulbModel != 0 || d.CordTexture != 0 {
+			looks = append(looks, sent)
 		}
 		sent++
 		bulbs += len(d.Bulbs)
@@ -231,6 +247,72 @@ func EncodeDecorLights(strs []DecorString, art []database.DecorArt) (body []byte
 			b = append(b, bow)
 		}
 	}
+	// then the looks (a client before them reads none): the assets a look
+	// names (a u16 count, each u8 world, u16 zone, u8 count of u32 DictIDs),
+	// the strings' looks (a u16 count, each the u16 index of the string among
+	// those sent, u32 bulb model, f32 its scale, u32 cord texture, f32 its
+	// repeat) and the presents' papers (a u16 count of sets, as above, each a
+	// u16 count of boxes, each u32 paper, f32 its gain)
+	used := map[uint32]bool{}
+	k := 0
+	for _, d := range strs {
+		if len(d.Bulbs) == 0 || k >= sent {
+			continue
+		}
+		k++
+		used[d.BulbModel], used[d.CordTexture] = true, true
+	}
+	for _, d := range sets {
+		for _, g := range d.Gifts {
+			used[g.Paper] = true
+		}
+	}
+	var named []database.DecorAsset
+	for _, a := range assets {
+		for _, id := range a.IDs {
+			if id != 0 && used[id] {
+				named = append(named, a)
+				break
+			}
+		}
+	}
+	b = binary.LittleEndian.AppendUint16(b, uint16(len(named)))
+	for _, a := range named {
+		b = append(b, byte(a.World))
+		b = binary.LittleEndian.AppendUint16(b, uint16(a.Zone))
+		ids := a.IDs[:min(len(a.IDs), 255)]
+		b = append(b, byte(len(ids)))
+		for _, id := range ids {
+			b = binary.LittleEndian.AppendUint32(b, id)
+		}
+	}
+	b = binary.LittleEndian.AppendUint16(b, uint16(len(looks)))
+	k = 0
+	for _, d := range strs {
+		if len(d.Bulbs) == 0 || k >= sent {
+			continue
+		}
+		if d.BulbModel != 0 || d.CordTexture != 0 {
+			b = binary.LittleEndian.AppendUint16(b, uint16(k))
+			b = binary.LittleEndian.AppendUint32(b, d.BulbModel)
+			b = binary.LittleEndian.AppendUint32(b, math.Float32bits(d.BulbScale))
+			b = binary.LittleEndian.AppendUint32(b, d.CordTexture)
+			b = binary.LittleEndian.AppendUint32(b, math.Float32bits(d.CordRepeat))
+		}
+		k++
+	}
+	b = binary.LittleEndian.AppendUint16(b, uint16(len(sets)))
+	for _, d := range sets {
+		b = binary.LittleEndian.AppendUint16(b, uint16(len(d.Gifts)))
+		for _, g := range d.Gifts {
+			b = binary.LittleEndian.AppendUint32(b, g.Paper)
+			gain := g.Gain
+			if gain <= 0 {
+				gain = 1
+			}
+			b = binary.LittleEndian.AppendUint32(b, math.Float32bits(gain))
+		}
+	}
 	return b, sent, bulbs
 }
 
@@ -246,12 +328,12 @@ func DecorLightsMessage(body []byte) *protocol.Message {
 // sent; shown, the rows whose zones it is told to read: those of NPCs in the
 // world), and sends them to every client that draws them; it reports how many
 // it told.
-func (w *World) SetDecorLights(strs []DecorString, art map[string]database.DecorArt, shown []database.DecorArt) int {
+func (w *World) SetDecorLights(strs []DecorString, art map[string]database.DecorArt, shown []database.DecorArt, assets ...database.DecorAsset) int {
 	if art == nil {
 		art = map[string]database.DecorArt{}
 	}
 	w.decorLights.art.Store(&art)
-	body, sent, bulbs := EncodeDecorLights(strs, shown)
+	body, sent, bulbs := EncodeDecorLights(strs, shown, assets...)
 	w.decorLights.mu.Lock()
 	w.decorLights.body, w.decorLights.strings, w.decorLights.bulbs = body, sent, bulbs
 	w.decorLights.mu.Unlock()
@@ -304,7 +386,11 @@ func (w *World) LoadDecorLights(db *database.SQLiteDB) (strs, bulbs, told int, p
 			shown = append(shown, a)
 		}
 	}
-	told = w.SetDecorLights(all, art, shown)
+	assets, err := db.DecorAssets()
+	if err != nil {
+		return 0, 0, 0, nil, fmt.Errorf("decorassets: %w", err)
+	}
+	told = w.SetDecorLights(all, art, shown, assets...)
 	w.decorLights.mu.Lock()
 	strs, bulbs = w.decorLights.strings, w.decorLights.bulbs
 	w.decorLights.mu.Unlock()

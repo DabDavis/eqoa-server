@@ -679,6 +679,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureSeasonRewards(); err != nil { // seasonrewards.go
 		return err
 	}
+	if err := db.ensureNPCDyes(); err != nil { // npcdyes.go
+		return err
+	}
 	if err := db.ensureNPCOverseer(); err != nil { // npcoverseer.go
 		return err
 	}

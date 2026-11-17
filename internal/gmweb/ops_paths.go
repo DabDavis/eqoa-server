@@ -138,6 +138,9 @@ func checkRow(table string, row map[string]any) error {
 	if table == "npcspawnonly" && row != nil {
 		return checkSpawnOnlyRow(row) // live.go
 	}
+	if table == "npcdyes" && row != nil {
+		return checkNPCDyeRow(row) // live_seasons.go
+	}
 	if table == "gmseasons" && row != nil {
 		return checkSeasonRow(row) // live_seasons.go
 	}

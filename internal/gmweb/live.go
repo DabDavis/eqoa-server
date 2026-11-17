@@ -59,6 +59,15 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 	case "seasonrewards":
 		handlers.Rewards().Refresh()
 		return "at once: earned so while its season is on"
+	case "npcdyes":
+		if s.d.World == nil || s.d.DB == nil {
+			return "no world is running: at the next start"
+		}
+		if n, err := s.d.World.LoadNPCDyes(s.d.DB); err != nil {
+			return "not applied to the world: " + err.Error()
+		} else {
+			return fmt.Sprintf("at once: %d NPC name(s) dyed; each client sees it when the NPC's channel is next sent", n)
+		}
 	case "npctint":
 		return s.liveTints()
 	case "itemoutfit":

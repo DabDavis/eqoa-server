@@ -37,10 +37,15 @@ import (
 //     for the races to have their own dialogue");
 //   - away: 1 for a race's line said only away from its own towns (a guest
 //     homesick, or of the town it is in: "%t");
+//   - class: the listener's class, -1 any;
+//   - not_race: a listener of this race never hears it, -1 none (the user,
+//     2026-11-17: Qeynos's welcome to the monks of other races than the
+//     humans, "flavor text towards the other races monks in a welcoming
+//     manner": class 4, not_race 0; tools/monk_start.py);
 //   - weight: how often against the other lines that fit.
 //
-// In a line, %p is the listener's name, %r its race, %c its class, %t the
-// town and %n the speaker's name.
+// In a line, %p is the listener's name, %r its race, %c its class, %b
+// "brother" or "sister" by its sex, %t the town and %n the speaker's name.
 const npcDialogSchema = `
 CREATE TABLE IF NOT EXISTS npcdialog (
 	id     INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -54,7 +59,9 @@ CREATE TABLE IF NOT EXISTS npcdialog (
 	weight INTEGER NOT NULL DEFAULT 1,
 	source TEXT NOT NULL DEFAULT 'gm',
 	speaker_race INTEGER NOT NULL DEFAULT -1,
-	away   INTEGER NOT NULL DEFAULT 0
+	away   INTEGER NOT NULL DEFAULT 0,
+	class  INTEGER NOT NULL DEFAULT -1,
+	not_race INTEGER NOT NULL DEFAULT -1
 );`
 
 func (db *SQLiteDB) ensureNPCDialog() error {
@@ -66,6 +73,8 @@ func (db *SQLiteDB) ensureNPCDialog() error {
 		{"sex", "TEXT NOT NULL DEFAULT ''"},
 		{"speaker_race", "INTEGER NOT NULL DEFAULT -1"},
 		{"away", "INTEGER NOT NULL DEFAULT 0"},
+		{"class", "INTEGER NOT NULL DEFAULT -1"},
+		{"not_race", "INTEGER NOT NULL DEFAULT -1"},
 	} {
 		has, err := hasColumn(db.DB, "npcdialog", c.name)
 		if err != nil {
@@ -91,6 +100,10 @@ type NPCDialogLine struct {
 	Voiced                 bool // a race's own voice: said only by a speaker of SpeakerRace (speaker_race >= 0)
 	SpeakerRace            int  // that race, by the speaker's body (speaker_race; -1 any)
 	Away                   bool // a race's line said only away from its own towns (a guest's)
+	ForClass               bool // said only to a listener of Class (class >= 0)
+	Class                  int  // that class (class; -1 any)
+	Unheard                bool // never said to a listener of NotRace (not_race >= 0)
+	NotRace                int  // that race (not_race; -1 none)
 }
 
 // npcDialogFor is how long a read of npcdialog is kept: a row a tool writes
@@ -120,7 +133,7 @@ func (db *SQLiteDB) NPCDialog() ([]NPCDialogLine, error) {
 	if npcDialogCache.db == db && time.Since(npcDialogCache.at) < npcDialogFor {
 		return npcDialogCache.lines, nil
 	}
-	rows, err := db.Query(`SELECT id, town, role, name, mood, race, sex, line, weight, speaker_race, away FROM npcdialog ORDER BY id`)
+	rows, err := db.Query(`SELECT id, town, role, name, mood, race, sex, line, weight, speaker_race, away, class, not_race FROM npcdialog ORDER BY id`)
 	if err != nil {
 		return nil, err
 	}
@@ -128,10 +141,11 @@ func (db *SQLiteDB) NPCDialog() ([]NPCDialogLine, error) {
 	var out []NPCDialogLine
 	for rows.Next() {
 		var l NPCDialogLine
-		if err := rows.Scan(&l.ID, &l.Town, &l.Role, &l.Name, &l.Mood, &l.Race, &l.Sex, &l.Line, &l.Weight, &l.SpeakerRace, &l.Away); err != nil {
+		if err := rows.Scan(&l.ID, &l.Town, &l.Role, &l.Name, &l.Mood, &l.Race, &l.Sex, &l.Line, &l.Weight, &l.SpeakerRace, &l.Away, &l.Class, &l.NotRace); err != nil {
 			return nil, err
 		}
 		l.Voiced = l.SpeakerRace >= 0
+		l.ForClass, l.Unheard = l.Class >= 0, l.NotRace >= 0
 		out = append(out, l)
 	}
 	if err := rows.Err(); err != nil {

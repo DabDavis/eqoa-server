@@ -41,9 +41,12 @@ import (
 // What it says (TownLine): a line of npcdialog whose selectors fit (an empty
 // one fits anyone): the speaker's town, its role by its name (NPCRole), its
 // name, the mood (DialogMood: the listener's standing with its faction, as
-// the target box's face shows it) and the listener's race. Each fitting line
-// counts its weight, times 3 for its town, 2 for its role, 6 for its name, 2
-// for its race and 2 for its mood, so a town's own words are heard more than
+// the target box's face shows it), the listener's race and class, and a race
+// the line is not for (npcdialog.not_race: Qeynos's welcome to the monks of
+// other races, tools/monk_start.py). Each fitting line counts its weight,
+// times 3 for its town, 2 for its role, 6 for its name, 2 for its race, 2 for
+// its class, 2 for a race it is not for and 2 for its mood, so a town's own
+// words are heard more than
 // the generic ones; one at random, never the one this speaker said to this
 // listener last when there is another.
 
@@ -368,8 +371,15 @@ const (
 
 // DialogCandidates are the lines that fit a speaker of the town, role and
 // name speaking in the mood to a listener of the race, in the speaker's
-// voice, each with its weight (the file's comment).
+// voice, each with its weight (the file's comment); a line for a class is not
+// among them (DialogCandidatesFor names the listener's).
 func DialogCandidates(lines []database.NPCDialogLine, town, role, name, mood, sex string, race int, voice DialogVoice) []DialogPick {
+	return DialogCandidatesFor(lines, town, role, name, mood, sex, race, -1, voice)
+}
+
+// DialogCandidatesFor is DialogCandidates to a listener of the race and
+// class (-1 none: no line for a class fits).
+func DialogCandidatesFor(lines []database.NPCDialogLine, town, role, name, mood, sex string, race, class int, voice DialogVoice) []DialogPick {
 	key := database.NPCClassKey(name)
 	own := ownLines(lines, name)
 	var out []DialogPick
@@ -405,6 +415,12 @@ func DialogCandidates(lines []database.NPCDialogLine, town, role, name, mood, se
 		if l.Race >= 0 && l.Race != race {
 			continue
 		}
+		if l.ForClass && l.Class != class {
+			continue
+		}
+		if l.Unheard && l.NotRace == race {
+			continue
+		}
 		if l.Sex != "" && !strings.EqualFold(l.Sex, sex) {
 			continue // a line of a husband or a wife, said by the one it fits (a speaker of no known sex says none)
 		}
@@ -422,6 +438,12 @@ func DialogCandidates(lines []database.NPCDialogLine, town, role, name, mood, se
 			wt *= 6
 		}
 		if l.Race >= 0 {
+			wt *= 2
+		}
+		if l.ForClass {
+			wt *= 2
+		}
+		if l.Unheard {
 			wt *= 2
 		}
 		if l.Sex != "" {
@@ -454,7 +476,7 @@ func (w *World) TownLine(p *Player, npc *NPC, lines []database.NPCDialogLine, la
 		town, role = DialogTown(w.npcFactionLocked(npc)), NPCRole(npc.Name)
 	}
 	mood := w.dialogMoodLocked(p, npc)
-	picks := DialogCandidates(lines, town, role, npc.Name, mood, w.dialogSexLocked(npc), p.Race, w.dialogVoiceLocked(npc, town))
+	picks := DialogCandidatesFor(lines, town, role, npc.Name, mood, w.dialogSexLocked(npc), p.Race, p.Class, w.dialogVoiceLocked(npc, town))
 	if len(picks) > 1 && last != 0 {
 		kept := picks[:0:0]
 		for _, c := range picks {
@@ -487,7 +509,8 @@ func (w *World) TownLine(p *Player, npc *NPC, lines []database.NPCDialogLine, la
 }
 
 // DialogSay fills a line's words in: %p the listener's name, %r its race,
-// %c its class, %t the town, %n the speaker.
+// %c its class, %b "brother" or "sister" by its sex, %t the town, %n the
+// speaker.
 func DialogSay(line string, p *Player, speaker, town string) string {
 	shown := town
 	if t, ok := townNames[town]; ok {
@@ -497,7 +520,16 @@ func DialogSay(line string, p *Player, speaker, town string) string {
 		"%p", p.Name,
 		"%r", strings.ToLower(RaceName(p.Race)),
 		"%c", strings.ToLower(ClassName(p.Class)),
+		"%b", kinWord(p.Sex),
 		"%t", shown,
 		"%n", speaker,
 	).Replace(line)
+}
+
+// kinWord is what a line's %b calls a listener of the sex (0 male, 1 female).
+func kinWord(sex int) string {
+	if sex == 1 {
+		return "sister"
+	}
+	return "brother"
 }

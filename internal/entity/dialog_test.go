@@ -340,3 +340,48 @@ func TestDialogVoices(t *testing.T) {
 		t.Errorf("Neriak's own races %v, want the dark elves alone (one ogre of ten)", own)
 	}
 }
+
+// A line for a class is said only to a listener of it, and a line not for a
+// race never to one of it (Qeynos's welcome to the monks of other races than
+// the humans, tools/monk_start.py); DialogCandidates (no listener's class)
+// says none for a class; %b is brother or sister by the listener's sex.
+func TestDialogByListenerClass(t *testing.T) {
+	lines := []database.NPCDialogLine{
+		{ID: 1, Town: "Qeynos", Line: "Qeynos.", Race: -1, Weight: 1},
+		{ID: 2, Town: "Qeynos", Line: "Welcome, %b.", Race: -1, ForClass: true, Class: 4, Unheard: true, NotRace: 0, Weight: 1},
+	}
+	v := DialogVoice{Race: -1, Resident: true}
+	ids := func(picks []DialogPick) map[int]int {
+		m := map[int]int{}
+		for _, p := range picks {
+			m[p.Line.ID] = p.Weight
+		}
+		return m
+	}
+	for _, c := range []struct {
+		race, class int
+		welcome     bool
+	}{{2, 4, true}, {11, 4, true}, {10, 4, true}, {0, 4, false}, {2, 0, false}, {2, -1, false}} {
+		got := ids(DialogCandidatesFor(lines, "Qeynos", RoleCitizen, "Mu Nan", MoodNeutral, "male", c.race, c.class, v))
+		if _, ok := got[2]; ok != c.welcome {
+			t.Errorf("race %d class %d: the welcome %v, want %v", c.race, c.class, ok, c.welcome)
+		}
+		if got[1] != 3 {
+			t.Errorf("race %d class %d: the town's line weighs %d, want 3", c.race, c.class, got[1])
+		}
+		if c.welcome && got[2] != 3*2*2 {
+			t.Errorf("race %d class %d: the welcome weighs %d, want 12 (town, class, not a race)", c.race, c.class, got[2])
+		}
+	}
+	if got := ids(DialogCandidates(lines, "Qeynos", RoleCitizen, "Mu Nan", MoodNeutral, "male", 2, v)); len(got) != 1 {
+		t.Errorf("no listener's class: %v, want the town's line alone", got)
+	}
+	p := &Player{Name: "Ix", Race: 2, Class: 4}
+	if s := DialogSay("Welcome, %b %p.", p, "Mu Nan", "Qeynos"); s != "Welcome, brother Ix." {
+		t.Errorf("male: %q", s)
+	}
+	p.Sex = 1
+	if s := DialogSay("Welcome, %b.", p, "Mu Nan", "Qeynos"); s != "Welcome, sister." {
+		t.Errorf("female: %q", s)
+	}
+}

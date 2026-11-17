@@ -32,7 +32,7 @@ log under the storyteller you act for, with the row before and after.
 
 | Table | What a storyteller does with it | Key |
 |---|---|---|
-| `npcdialog` | what a town's people and the guards say when talked to and nothing else answers, a row a line: changed whole, rows added (`insert_row`, `clone_row`) and deleted (`delete_row`). `line` the words; who says it to whom, an empty one any: `town` (as its faction names it: `Freeport`, ``Klick`Anon``), `role` (guard, trader, priest, scholar, worker, noble, citizen, by the speaker's name), `name` (one NPC: an NPC with lines of its own name says those alone, wherever it stands), `mood` (empty: neutral, friendly or warm; else a comma list of neutral, friendly, warm, wary, hostile, by the listener's standing), `race` (the listener's, -1 any), `sex` (the speaker's: male or female), `speaker_race` (a people's own voice), `away` (1: said only by a guest, away from its own towns), `weight` (how often against the others that fit) | `id` |
+| `npcdialog` | what a town's people and the guards say when talked to and nothing else answers, a row a line: changed whole, rows added (`insert_row`, `clone_row`) and deleted (`delete_row`). `line` the words; who says it to whom, an empty one any: `town` (as its faction names it: `Freeport`, ``Klick`Anon``), `role` (guard, trader, priest, scholar, worker, noble, citizen, by the speaker's name), `name` (one NPC: an NPC with lines of its own name says those alone, wherever it stands), `mood` (empty: neutral, friendly or warm; else a comma list of neutral, friendly, warm, wary, hostile, by the listener's standing), `race` (the listener's, -1 any), `sex` (the speaker's: male or female), `speaker_race` (a people's own voice), `away` (1: said only by a guest, away from its own towns), `class` (the listener's, -1 any), `not_race` (a listener of this race never hears it, -1 none: Qeynos's welcome to the monks of other races, class 4 not_race 0), `weight` (how often against the others that fit) | `id` |
 | `quests` | its words alone (`update_row`): `name` (the journal's line when a step has none), `offer`, `accept`, `decline`, `declined`, `started`, `notes` (for GMs) | `questid` |
 | `queststeps` | its words alone (`update_row`): `journal`, `answer`, `waiting`, `notyet`, `reminder`, `says` | `questid`+`step` |
 | `questunlocks`, `queststeptargets` | read: the trips a quest unlocks, a kill or loot step's other creatures | |
@@ -55,7 +55,7 @@ anyone else's what changed and when.
   answers that change nothing ("Farewell").
 - **A journal line shows 127 characters** (`journal`, and the quest's `name` when a step has none).
 - **What a word becomes**: in a quest's words `%p` is the player's name. In a dialog line `%p` is the listener's name,
-  `%r` its race, `%c` its class, `%t` the town, `%n` the speaker's name.
+  `%r` its race, `%c` its class, `%b` brother or sister by its sex, `%t` the town, `%n` the speaker's name.
 - `quest_get`'s `problems` says when an answer or a journal line is longer than the client shows.
 
 ## What takes effect when

@@ -1561,7 +1561,9 @@ var catalog = map[string]tableNote{
 			"people's voice: a guest (its race under a fifth of its town's speakers: Neriak's ogre bouncer) says its race's " +
 			"lines, never its host town's; trolls and ogres never say the common lines (no town, no race). An NPC with lines " +
 			"of its own name says those alone. A line of its town counts three times, of its role twice, of its " +
-			"name six times, of its people three times, of its race or sex twice. In a line %p is the listener's name, %r its race, %c its class, %t the town, %n " +
+			"name six times, of its people three times, of its race, class, a race it is not for or sex twice; class (the listener's) and not race (a listener of it never hears the line: " +
+			"Qeynos's welcome to the monks of other races than the humans, tools/monk_start.py) narrow it further. In a line %p is the " +
+			"listener's name, %r its race, %c its class, %b brother or sister by its sex, %t the town, %n " +
 			"the speaker. tools/seed_town_dialog.py's rows are source ours (its --undo deletes those no GM changed); " +
 			"tools/seed_npc_lines.py's (a name's or a race's own lines) too.",
 		Live:   "At once: the next talk.",
@@ -1575,7 +1577,9 @@ var catalog = map[string]tableNote{
 			"sex":          {Label: "Speaker's sex", Help: "male or female, the speaker's by its body; empty any"},
 			"speaker_race": {Label: "Speaker's race", Enum: "race", Help: "a people's own voice: only a speaker of this race (by its body) says it; -1 any"},
 			"away":         {Label: "Away", Help: "1: a race's line said only by a guest, away from its own towns"},
-			"line":         {Label: "Line", Help: "%p name, %r race, %c class, %t town, %n speaker; said after the speaker's name and \": \", a box shows 217 characters (a longer line goes in several)"},
+			"class":        {Label: "Listener's class", Enum: "class", Help: "-1 any"},
+			"not_race":     {Label: "Not to race", Enum: "race", Help: "a listener of this race never hears it; -1 none"},
+			"line":         {Label: "Line", Help: "%p name, %r race, %c class, %b brother/sister, %t town, %n speaker; said after the speaker's name and \": \", a box shows 217 characters (a longer line goes in several)"},
 			"weight":       {Label: "Weight", Help: "how often against the others that fit"},
 			"source":       {Label: "Source", Help: "gm, or ours for tools/seed_town_dialog.py's rows"},
 		},

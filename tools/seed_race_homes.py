@@ -6,7 +6,7 @@ too). For each zone of the recipe with a `home`:
 
 - its race's flavour (racedefs.description, the create page's words) is the
   home's `flavor`;
-- its race's start rows (defaultcharacter, every class) stand at the home's
+- its race's start rows (defaultcharacter, every class but the monk's) stand at the home's
   `start` in the recipe's world, facing `toward` (a point, x and z) or
   `facing` (radians): a new character of the race starts there and is bound
   there (database.CreateNew), and a login of one from a client that does not
@@ -71,6 +71,7 @@ LOG_DDL = f"""CREATE TABLE IF NOT EXISTS {LOG} (
     note  TEXT NOT NULL DEFAULT ''
 )"""
 TALKER, FOE = 128, 0
+MONK = 4  # a monk's start rows are tools/monk_start.py's: the western monastery, every race
 MERCHANT = 0x01  # the npc flag CLIENT opens a merchant's window by (handlers/merchant.go)
 # npcdialog as the server makes it (database/npcdialog.go), for a database it has not run on
 NPCDIALOG_DDL = """CREATE TABLE IF NOT EXISTS npcdialog (
@@ -174,6 +175,8 @@ def plan(db, recipe):
             raise SystemExit(f"race {race} ({rd['name']}) has no defaultcharacter rows to move")
         for (rid,) in rows:
             old = row_dict(db, "defaultcharacter", "defaultCharacterID = ?", (rid,))
+            if old["tclass"] == MONK:
+                continue  # every race's monks start at the western monastery (tools/monk_start.py)
             new = {"x": s["x"], "y": s["y"], "z": s["z"], "facing": round(facing, 6), "world": world}
             out.append(("start", rid, old, new, f"{rd['name']} class {old['tclass']}: {z['name']}"))
         out += people(db, world, z, home)
@@ -333,6 +336,16 @@ def apply(db, steps):
         raise
 
 
+def at_monastery(db, rid):
+    """Whether defaultcharacter row rid is a monk's standing where the western human monk's does: tools/monk_start.py's,
+    which an undo here leaves."""
+    r = db.execute("SELECT tclass, world, x, z FROM defaultcharacter WHERE defaultCharacterID = ?", (rid,)).fetchone()
+    if r is None or r[0] != MONK:
+        return False
+    m = db.execute("SELECT world, x, z FROM defaultcharacter WHERE race = 0 AND humType = 2 AND tclass = ?", (MONK,)).fetchone()
+    return m is not None and tuple(r[1:]) == tuple(m)
+
+
 def undo(db):
     if not has_table(db, LOG):
         raise SystemExit("nothing to undo")
@@ -343,6 +356,9 @@ def undo(db):
             if what == "racedef":
                 db.execute("UPDATE racedefs SET description = ? WHERE id = ?", (old["description"], int(key)))
             elif what == "start":
+                if at_monastery(db, int(key)):
+                    print(f"kept: start row {key}, a monk's at the western monastery (tools/monk_start.py)")
+                    continue
                 db.execute("UPDATE defaultcharacter SET x = ?, y = ?, z = ?, facing = ?, world = ? WHERE defaultCharacterID = ?",
                            (old["x"], old["y"], old["z"], old["facing"], old["world"], int(key)))
             elif what == "npcitem":

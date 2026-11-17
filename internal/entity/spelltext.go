@@ -263,6 +263,17 @@ type SpellDef struct {
 	// says ("Charm from level 41 up to level 52": the Puppet Strings, petition
 	// 1426 and transfer 97: "Charms mobs from 41+ but oor at 53"); 0: none.
 	CharmMin int
+	// CharmByCon: a charm that takes a creature by its consider colour to the
+	// user, not by level ("Charm up to light blue": the Toy Shoppe's Puppet
+	// Strings, the owner 2026-11-17: "charms the target if light blue or
+	// lower"; charmcon.go): one that cons CharmCon or lower (ConLightBlue: light
+	// blue or green) and no resist roll; false for every other charm.
+	CharmByCon bool
+	CharmCon   byte
+	// NoRecharge: an item's use whose line says "No Recharge": its charges are
+	// never restored (Master Lizzlen leaves it: handlers/lizzlen.go), so the
+	// last one takes the item for good.
+	NoRecharge bool
 	// Form is the body an illusion shows its bearer in, as the spell's name
 	// gives it ("troll", "clay golem"), and FormKind whom it lands on
 	// (illusion.go); "" and FormNone for every other spell.
@@ -359,6 +370,17 @@ var reCharmMax = regexp.MustCompile(`up to level (\d+)`)
 
 // reCharmMin is a charm's lowest level in its words.
 var reCharmMin = regexp.MustCompile(`from level (\d+)`)
+
+// reCharmCon is a charm's highest consider colour in its words ("up to light
+// blue": charmcon.go).
+var reCharmCon = regexp.MustCompile(`up to (light blue|dark blue|green|white|yellow)\b`)
+
+// charmConWords are reCharmCon's colours.
+var charmConWords = map[string]byte{"green": ConGreen, "light blue": ConLightBlue, "dark blue": ConDarkBlue,
+	"white": ConWhite, "yellow": ConYellow}
+
+// reNoRecharge is an item's use whose charges are never restored.
+var reNoRecharge = regexp.MustCompile(`^no\s+recharg(?:e|ing)$`)
 
 // Summons reports whether the spell makes a pet.
 func (d *SpellDef) Summons() bool {
@@ -746,6 +768,10 @@ func (d *SpellDef) parsePart(part, verb string) string {
 		d.Unlimited = true
 		return verb
 	}
+	if reNoRecharge.MatchString(part) { // an item's charges never restored (handlers/lizzlen.go)
+		d.NoRecharge = true
+		return verb
+	}
 	if n, ok := hpCapPart(part); ok { // hpcap.go
 		d.Effects = append(d.Effects, SpellEffect{Kind: EffectHPCap, Amount: n, AmountMax: n})
 		return verb
@@ -813,6 +839,9 @@ func (d *SpellDef) parsePart(part, verb string) string {
 		}
 		if m := reCharmMin.FindStringSubmatch(part); m != nil {
 			d.CharmMin = atoi(m[1])
+		}
+		if m := reCharmCon.FindStringSubmatch(part); m != nil {
+			d.CharmByCon, d.CharmCon = true, charmConWords[m[1]]
 		}
 		return verb
 	case part == "sow" || part == "spirit of the wolf":

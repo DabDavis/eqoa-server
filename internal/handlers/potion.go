@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -165,6 +166,12 @@ func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, i
 			log.Printf("Potion: %s, %q: a charge: %v", player.Name, row.Pattern.ItemName, err)
 			return false
 		}
+		if row.Charges <= 1 && pe.Def.Charms() {
+			// a charm item's last charge takes it (the Puppet Strings: the
+			// owner, 2026-11-17, "the charm has 10 charges then disappears")
+			SendClientMessage(sess, fmt.Sprintf(charmItemSnaps, strings.TrimSpace(row.Pattern.ItemName)))
+			log.Printf("Potion: %s's %q: its last charge, the item gone", player.Name, row.Pattern.ItemName)
+		}
 	default:
 		if err := h.takeOne(sess, player, idx, row); err != nil {
 			log.Printf("Potion: %s, %q: taking one: %v", player.Name, row.Pattern.ItemName, err)
@@ -197,6 +204,9 @@ func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, i
 	}
 	return true
 }
+
+// charmItemSnaps is said as a charm item's last charge takes it.
+const charmItemSnaps = "Your %s snap."
 
 // trainingKeeper keeps a character's training points with those an item gave
 // it (database.SQLiteCharacterStore).

@@ -16,10 +16,16 @@ type rechargeFake struct {
 	rows []database.CharInventoryEntry
 	full map[int]int
 	set  map[int]int
+	// lines are the records' itemeffect lines (none: no row)
+	lines map[int]string
 }
 
 func (f *rechargeFake) GetCharacterItems(uint32) ([]database.CharInventoryEntry, error) { return f.rows, nil }
 func (f *rechargeFake) ItemCharges(p int) int                                          { return f.full[p] }
+func (f *rechargeFake) ItemEffect(p int) (database.ItemEffectRow, bool, error) {
+	line, ok := f.lines[p]
+	return database.ItemEffectRow{PatternID: p, Line: line}, ok, nil
+}
 func (f *rechargeFake) SetItemCharges(_ uint32, itemID, n int) error {
 	f.set[itemID] = n
 	return nil
@@ -27,7 +33,8 @@ func (f *rechargeFake) SetItemCharges(_ uint32, itemID, n int) error {
 
 // Petition 1985: Master Lizzlen restores a pack item's charges to its full count, the client told
 // by the item taken off its list and given again; a worn one is named and left; an item at its
-// full count, one with no charges (a sword) and a stack (potions) are left alone.
+// full count, one with no charges (a sword), a stack (potions) and one whose line says No Recharge
+// (the Toy Shoppe's Puppet Strings, the owner 2026-11-17) are left alone.
 func TestLizzlenRechargesClickies(t *testing.T) {
 	mgr := session.NewManager()
 	sess := mgr.CreateSession(&net.UDPAddr{IP: net.IPv4(10, 0, 0, 9), Port: 7000}, 1, 1, 1, 2, true)
@@ -42,8 +49,10 @@ func TestLizzlenRechargesClickies(t *testing.T) {
 		item(12, 960151, "Full Clicky", 50, -1, 1, 1),
 		item(13, 500, "Sword", 0, -1, 1, 1),
 		item(14, 600, "Potion", 0, -1, 5, 20),
+		item(15, 716914, "Puppet Strings", 3, -1, 1, 1), // the Toy Shoppe's: No Recharge
 	}
-	f := &rechargeFake{rows: rows, full: map[int]int{960149: 100, 960150: 20, 960151: 50, 600: 3}, set: map[int]int{}}
+	f := &rechargeFake{rows: rows, full: map[int]int{960149: 100, 960150: 20, 960151: 50, 600: 3, 716914: 10}, set: map[int]int{},
+		lines: map[int]string{716914: "Target, Charm up to light blue, No Recharge, 10min"}}
 	sess.SetInventoryList(newInvList(rows))
 	done, worn, err := rechargeItems(sess, p, f)
 	if err != nil {
@@ -60,7 +69,7 @@ func TestLizzlenRechargesClickies(t *testing.T) {
 		t.Fatalf("the client told %v", ops)
 	}
 	l := sessionInvList(sess)
-	if at := l.indexOfItem(10); at != 4 {
-		t.Fatalf("the ring at list index %d, want the end (4)", at)
+	if at := l.indexOfItem(10); at != 5 {
+		t.Fatalf("the ring at list index %d, want the end (5)", at)
 	}
 }

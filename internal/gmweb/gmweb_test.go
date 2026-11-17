@@ -1022,3 +1022,41 @@ func TestGrantSpellAllSkipsWhatNoLevelGives(t *testing.T) {
 		})
 	}
 }
+
+// An offline give of a record of charges (itemeffect.charges, one that does not
+// stack: the Puppet Strings' 10) holds them all, as one bought does; until
+// 2026-11-17 it held none, so its first use took it. The control: Bread, no charges.
+func TestAnOfflineGiveHoldsTheItemsCharges(t *testing.T) {
+	f := newFixture(t)
+	c := f.browser()
+	c.login("gm")
+	mustExec(t, f.db, `INSERT INTO itempattern (patternid, itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent,
+		unk4, attacktype, weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, lore,
+		unk6, craft, itemname, itemdesc, model, color)
+		VALUES (12, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 32767, 32767, 7, 0, 0, 0, 'Puppet Strings', '', 0, 0)`)
+	mustExec(t, f.db, `INSERT INTO itemeffect (patternid, line, charges, cooldown) VALUES (12, 'Target, Charm up to light blue, No Recharge, 10min', 10, 60)`)
+	for _, item := range []string{"Puppet Strings", "Bread"} {
+		if code, out := c.op("give_item", map[string]any{"character": "Hero", "item": item, "count": 2}); code != 200 {
+			t.Fatalf("give %s: %d %v", item, code, out)
+		}
+	}
+	for pid, want := range map[int]int{12: 10, 11: 0} {
+		rows, err := f.db.Query(`SELECT remaincharge FROM charinventory WHERE serverid = 7 AND patternid = ?`, pid)
+		if err != nil {
+			t.Fatal(err)
+		}
+		n := 0
+		for rows.Next() {
+			var ch int
+			rows.Scan(&ch)
+			n++
+			if ch != want {
+				t.Errorf("record %d given with %d charges, want %d", pid, ch, want)
+			}
+		}
+		rows.Close()
+		if n == 0 {
+			t.Errorf("record %d: none given", pid)
+		}
+	}
+}

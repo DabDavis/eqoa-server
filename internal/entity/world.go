@@ -296,6 +296,7 @@ type World struct {
 	// The decoration lights of the seasons that are on, as the clients that
 	// draw them are told (decorlights.go)
 	decorLights decorLightState
+	tours       tourState // the NPCs' tours and walk-ons (npctour.go)
 	// petDyeAreas is table petdyeareas, by body (petdyes.go): read at the
 	// start and at a GM's edit, read by the pet dyes' sync without the lock
 	petDyeAreas atomic.Pointer[map[uint32]database.PetDyeArea]
@@ -612,6 +613,7 @@ func (w *World) leavingLocked(p *Player) []func(*Player) {
 	w.plushieLeavingLocked(p)  // its plushie goes home (plushie.go)
 	w.launcherLeavingLocked(p) // its snowball launcher stops (snowlauncher.go)
 	w.castsLeavingLocked(p)    // its casts on their way go unlanded (cast.go)
+	w.tourLeavingLocked(p)     // off its tour, set down beside the vehicle's home (npctour.go)
 	fns := make([]func(*Player), len(w.leaving))
 	copy(fns, w.leaving)
 	return fns

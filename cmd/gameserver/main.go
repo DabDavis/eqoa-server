@@ -473,6 +473,7 @@ func main() {
 		}
 	}
 	log.Printf("Creatures: %s", gameWorld.DecorLightSummary())
+	log.Printf("Creatures: %s", gameWorld.TourSummary()) // the NPCs' tours (entity/npctour.go)
 	// The NPCs' dyes, by name (entity/npcdyes.go, table npcdyes)
 	if n, err := gameWorld.LoadNPCDyes(db); err != nil {
 		log.Printf("WARNING: %v; no NPC is dyed", err)

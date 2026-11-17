@@ -540,6 +540,8 @@ func (w *World) heldLocked(world uint8, x, y, z float32) (held, wet, judged bool
 	}
 	if f, ok := mg.Support(world, x, y, z, mcFloorAbove, mcFloorDepth); ok && y-f <= mcStandTol {
 		held = true
+	} else if w.onDeckLocked(world, x, y, z) {
+		held = true // a vehicle's deck walked onto (npcwalkon, npctour.go)
 	}
 	// in a liquid: the leaf at its middle, a little over and under it (the
 	// walk's surface test asks 0.1 either side)

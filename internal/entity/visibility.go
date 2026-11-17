@@ -187,6 +187,8 @@ func (w *World) visibilitySystem() {
 
 		// The player's pet first, wherever it is (pet.go)
 		candidates = w.pinPetLocked(player, candidates)
+		// a tour's vehicle, its team and its other riders to a rider (npctour.go)
+		candidates = w.pinTourLocked(player, candidates)
 
 		// Sort by distance (closest first), a quest's wall near the player
 		// before everything (questwalls.go): a crowd never pushes it out

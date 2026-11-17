@@ -47,6 +47,7 @@ var boxMarks = map[string]uint32{
 	"dungeonsBoxMark":   dungeonsBoxMark,
 	"enchanterBoxMark":  enchanterBoxMark,
 	"groomerBoxMark":    groomerBoxMark,
+	"tourBoxMark":       tourBoxMark,
 	"tokenShopBoxMark":  tokenShopBoxMark,
 }
 

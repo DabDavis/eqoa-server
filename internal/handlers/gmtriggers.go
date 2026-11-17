@@ -1941,6 +1941,10 @@ func (e *TriggerEngine) seasonLocked(r *triggerRun, s database.TriggerStep) stri
 		for _, p := range problems {
 			log.Printf("Triggers: season %s: decoration lights: %s", name, p)
 		}
+		// its looks: the NPC tints and dyes that hold only in a season
+		if _, _, _, err := e.gw.LoadSeasonLooks(e.db); err != nil {
+			log.Printf("Triggers: season %s: NPC looks: %v", name, err)
+		}
 		n, _ := e.db.NPCSeasonCount(name)
 		line += fmt.Sprintf(": its %d NPC name(s) %s (%d NPCs changed, %d held out in all); %d strings of lights lit (%d bulbs), sent to %d client(s)",
 			n, map[bool]string{true: "in the world", false: "out of it"}[on], changed, held, strs, bulbs, told)

@@ -148,8 +148,8 @@ func (q *QuestEngine) runEventsLocked(sess *session.Session, p *entity.Player, c
 			}
 		case database.EventDoStep:
 			if cq := c.quests[qu.ID]; cq != nil && cq.Active() {
-				if st := qu.Step(cq.Step); st != nil && database.AtNPC(st.Kind) {
-					q.atNPCLocked(sess, p, c, qu, cq, st, false, -1)
+				if open := openSteps(qu, cq); len(open) > 0 && database.AtNPC(open[0].Kind) {
+					q.atNPCLocked(sess, p, c, qu, cq, open[0], false, -1)
 				}
 			}
 		case database.EventClassQuest:
@@ -796,22 +796,27 @@ func (q *QuestEngine) AtWindow(sess *session.Session, p *entity.Player, npc *ent
 		if qu == nil {
 			continue
 		}
-		st := qu.Step(cq.Step)
-		if st == nil || !database.AtNPC(st.Kind) || !stepNPC(st, npc.Name, npc.ServerID) {
-			continue
+		// its step, or any of its group's not yet done (questanyorder.go): a
+		// merchant of a group done in any order answered its step at its
+		// window too, not only when it was the group's first (petitions 2262,
+		// 2275: Bowyer Koll opened his shop after Tailor Bariston's visit)
+		for _, st := range openSteps(qu, cq) {
+			if !database.AtNPC(st.Kind) || !stepNPC(st, npc.Name, npc.ServerID) {
+				continue
+			}
+			if (st.Kind == database.StepGive || st.Kind == database.StepShow) && q.lackingLocked(p, st) != "" {
+				continue
+			}
+			// a giver the player's standing keeps from its steps: as items that
+			// lack, the window opens as ever
+			if giverWontDeal(look, qu, st) != "" {
+				continue
+			}
+			c.box = nil
+			q.atNPCLocked(sess, p, c, qu, cq, st, false, -1)
+			log.Printf("Quests: %s's window answered for %q step %d", npc.Name, qu.Name, st.Step)
+			return true
 		}
-		if (st.Kind == database.StepGive || st.Kind == database.StepShow) && q.lackingLocked(p, st) != "" {
-			continue
-		}
-		// a giver the player's standing keeps from its steps: as items that
-		// lack, the window opens as ever
-		if giverWontDeal(look, qu, st) != "" {
-			continue
-		}
-		c.box = nil
-		q.atNPCLocked(sess, p, c, qu, cq, st, false, -1)
-		log.Printf("Quests: %s's window answered for %q step %d", npc.Name, qu.Name, st.Step)
-		return true
 	}
 	if qu := q.nextOfferLocked(look, p, c, npc.Name, c.windowOffered); qu != nil {
 		if c.windowOffered == nil {

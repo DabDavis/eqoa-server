@@ -297,6 +297,7 @@ func (h *EquipHandler) HandleUseWeaponSet(sess *session.Session, msg *protocol.M
 		return nil
 	}
 	set := int(data[0])
+	back := len(data) > 1 && data[1]&gearSwapBack != 0
 	player := h.player(sess)
 	if player == nil {
 		return nil
@@ -306,34 +307,58 @@ func (h *EquipHandler) HandleUseWeaponSet(sess *session.Session, msg *protocol.M
 		log.Printf("UseWeaponSet: serverID=%d set %d out of range", serverID, set)
 		return nil
 	}
+	// one press of a character's at a time, the hands read under it (gearswap.go)
+	mem := h.gearSwapOf(serverID)
+	mem.mu.Lock()
+	defer mem.mu.Unlock()
 	items, err := h.inventoryStore.GetCharacterItems(serverID)
 	if err != nil {
 		log.Printf("UseWeaponSet: loading items for serverID=%d: %v", serverID, err)
 		return nil
 	}
+	before := wornHands(inventoryRows(items))
+	if back && mem.set == set && sameHands(before, mem.after) {
+		was := mem.before
+		mem.forget()
+		h.restoreHands(sess, player, serverID, items, set, was)
+		return nil
+	}
+	h.takeUpSet(sess, player, serverID, items, set)
+	if items, err = h.inventoryStore.GetCharacterItems(serverID); err != nil {
+		log.Printf("UseWeaponSet: loading items for serverID=%d: %v", serverID, err)
+		return nil
+	}
+	if after := wornHands(inventoryRows(items)); !sameHands(before, after) {
+		mem.remember(set, before, after)
+	}
+	return nil
+}
+
+// takeUpSet puts set (bareHands: none) in the hands, as UseGearSet asks.
+func (h *EquipHandler) takeUpSet(sess *session.Session, player *entity.Player, serverID uint32, items []database.CharInventoryEntry, set int) {
 	if set == bareHands {
 		h.takeOff(sess, serverID, items, handSlots)
 		h.wornChanged(sess, player, serverID) // a fight swings with them from its next round
-		return nil
+		return
 	}
 	sets, err := h.inventoryStore.GearSetsOf(serverID)
 	if err != nil {
 		log.Printf("UseWeaponSet: serverID=%d: %v", serverID, err)
-		return nil
+		return
 	}
 	g := sets[set]
 	main := findSetItem(inventoryRows(items), g.MainItem, g.MainPattern, -1)
 	if main == nil {
 		log.Printf("UseWeaponSet: serverID=%d set %d %q: its main hand (item %d) is not in the inventory", serverID, set, g.Name, g.MainItem)
-		return nil
+		return
 	}
 	if !h.equipInto(sess, serverID, items, main, mainSlotFor(main)) {
-		return nil
+		return
 	}
 	// what the main hand displaced is off now: read the hands again
 	if items, err = h.inventoryStore.GetCharacterItems(serverID); err != nil {
 		log.Printf("UseWeaponSet: loading items for serverID=%d: %v", serverID, err)
-		return nil
+		return
 	}
 	if g.OffItem < 0 {
 		h.takeOff(sess, serverID, items, offHandSlots)
@@ -354,7 +379,6 @@ func (h *EquipHandler) HandleUseWeaponSet(sess *session.Session, msg *protocol.M
 	if main.Pattern.EquipSlot == wearFishingPole && h.fishing != nil {
 		h.fishing.StartFishing(sess)
 	}
-	return nil
 }
 
 // equipInto puts an inventory row into an equip slot (planEquipInto).

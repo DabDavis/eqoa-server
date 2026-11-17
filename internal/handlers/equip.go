@@ -56,6 +56,9 @@ type EquipHandler struct {
 	// stoneUsed is when each character last called Guenhwyvar (guenhwyvar.go)
 	stoneMu   sync.Mutex
 	stoneUsed map[uint32]time.Time
+	// swaps is each character's last weapon set taken up and the hands before it (gearswap.go)
+	swapMu sync.Mutex
+	swaps  map[uint32]*gearSwap
 	// dice rolls the Rolling Dice (ChatHandler.RollTheDice, roll.go)
 	dice func(*session.Session, *entity.Player, time.Time)
 

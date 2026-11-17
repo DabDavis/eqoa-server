@@ -56,7 +56,7 @@ const (
 	// 0x002X - Character/Toon Opcodes
 	OpcodeGrantXP          GameOpcode = 0x0020 // Receive XP
 	OpcodePrepareWeapon    GameOpcode = 0x0021 // a weapon set (SOE's live client, not the disc): client u8 set + name, server u8 set + name + u32 main + u32 off (gearsets.go)
-	OpcodeUseWeaponSet     GameOpcode = 0x0022 // the client takes up weapon set u8 (0-3, 4 bare hands; SOE's live client)
+	OpcodeUseWeaponSet     GameOpcode = 0x0022 // the client takes up weapon set u8 (0-3, 4 bare hands; SOE's live client), then vanilla's u8 swap-back bits (handlers/gearswap.go)
 	OpcodeSelectedChar     GameOpcode = 0x002A // Character Select (client selects char)
 	OpcodeCreateCharacter  GameOpcode = 0x002B // Character Create (client creates char)
 	OpcodeCharacterSelect  GameOpcode = 0x002C // Character View (server sends char list)

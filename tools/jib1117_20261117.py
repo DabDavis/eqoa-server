@@ -25,6 +25,12 @@ elder (1599, Heirloom): the robe from the two Tower of Phantoms elder spirits al
     A shard where the name still holds robes5117's binding (npcloot elder spirit -> rare spirit makers robe, 10: Live)
     has that row taken out in 3-4's place. Each removal only as 1598/robes5117 wrote it, else REFUSED.
 
+spectre (the owner, 2026-11-17: "spectre robe should be a 0.1 % drop"; both shards): every npcloot row of the loot
+    table "rare spectre robe" (5123: spectre, wandering spectre, spectral guardian/minion/servant, rallosian spectre at
+    3, spectral slayer at 1; robes5117, valkanith-ruby1117) to chance 0.1. Needs the fractional chance (jib-1117): an
+    older server's int scan fails on 0.1 and drops ALL of that name's tables. REFUSED if a row's chance is other than
+    1 or 3 (someone changed it since: look first).
+
 Each: a report by default; --apply writes in one transaction, a gm_audit line a row and a log row; a second run finds
 nothing to do; --undo puts back exactly what was there (only rows as written; a row changed since is left and said).
 Data only, no restart: the records reach a client at its login; uses and loot tables are read at each use and kill.
@@ -32,6 +38,7 @@ Data only, no restart: the records reach a client at its login; uses and loot ta
     python3 -E -s tools/jib1117_20261117.py robe    --db eqoa.db [--apply | --undo]
     python3 -E -s tools/jib1117_20261117.py testers --db eqoa.db [--apply | --give | --undo]
     python3 -E -s tools/jib1117_20261117.py elder   --db eqoa.db [--apply | --undo]
+    python3 -E -s tools/jib1117_20261117.py spectre --db eqoa.db [--apply | --undo]
 """
 import argparse
 import datetime
@@ -375,6 +382,42 @@ def elder(db, a):
                   lambda: [log.write(action, tbl, key, row=row) for action, tbl, key, row in steps])
 
 
+# --- spectre --------------------------------------------------------------------------------------------------------
+
+SPECTRE_TABLE = "rare spectre robe"
+SPECTRE_ROBE = 5123
+SPECTRE_WAS = (1, 3)
+SPECTRE_CHANCE = 0.1
+
+
+def spectre_plan(db):
+    if one(db, "SELECT 1 AS x FROM loottables WHERE tablename = ? AND patternid = ?", (SPECTRE_TABLE, SPECTRE_ROBE)) is None:
+        return [], [f"loot table {SPECTRE_TABLE!r} does not give {SPECTRE_ROBE}"], False
+    rows = db.execute("SELECT npc_name, chance FROM npcloot WHERE tablename = ? ORDER BY npc_name", (SPECTRE_TABLE,)).fetchall()
+    if not rows:
+        return [], [f"nothing is bound to {SPECTRE_TABLE!r}"], False
+    todo, refusals = [], []
+    for name, chance in rows:
+        if chance == SPECTRE_CHANCE:
+            continue
+        if chance not in SPECTRE_WAS:
+            refusals.append(f"npcloot ({name!r}, {SPECTRE_TABLE!r}) is at {chance}, not 1 or 3: look first")
+        todo.append((name, chance))
+    return todo, refusals, not todo
+
+
+def spectre(db, a):
+    log = Log(db, "jib1117_spectre_log", DETAIL.format("spectre robe, the owner", "spectre"))
+    if a.undo:
+        return undo(db, log)
+    todo, refusals, applied = spectre_plan(db)
+    for name, chance in todo:
+        print(f"npcloot ({name!r}, {SPECTRE_TABLE!r}): chance {chance} -> {SPECTRE_CHANCE}")
+    return finish(db, a, log, applied, refusals, len(todo),
+                  lambda: [log.write("update", "npcloot", {"npc_name": name, "tablename": SPECTRE_TABLE},
+                                     {"chance": SPECTRE_CHANCE}) for name, _ in todo])
+
+
 # --- common -----------------------------------------------------------------------------------------------------------
 
 def undo(db, log):
@@ -418,7 +461,7 @@ def finish(db, a, log, applied, refusals, n, write):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("part", choices=["robe", "testers", "elder"])
+    ap.add_argument("part", choices=["robe", "testers", "elder", "spectre"])
     ap.add_argument("--db", required=True)
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--apply", action="store_true")
@@ -429,7 +472,7 @@ def main():
         ap.error("--give is the testers'")
     db = sqlite3.connect(a.db, isolation_level=None, timeout=30)
     try:
-        return {"robe": robe, "testers": testers, "elder": elder}[a.part](db, a)
+        return {"robe": robe, "testers": testers, "elder": elder, "spectre": spectre}[a.part](db, a)
     finally:
         db.close()
 

@@ -47,7 +47,8 @@ LOG = "puppet_strings_1117_log"
 DETAIL = ("The Toy Shoppe's Puppet Strings: charms a light blue or lower creature, 10 charges (the owner, 2026-11-17); "
           "tools/puppet_strings_20261117.py")
 WHO, VIA = "dab", "tool"
-NAME = "Puppet Strings"
+BASE_NAME = "Puppet Strings"  # the Cazic Thule record copied for its icon and type
+NAME = "Toymaker's Puppet Strings"  # the toy (owner 2026-11-17: "rename the toy to toymaker's puppet strings")
 BASE = 713085  # the Cazic Thule strings: their icon and item type
 IDS = (716914, 716999)
 DESC_MAX = 200
@@ -161,7 +162,7 @@ def plan(db, give, pack_slots):
     if not {"charges", "cooldown"} <= cols(db, "itemeffect"):
         return [], [], ["itemeffect has no charges/cooldown columns: run a newer server once first"]
     base = row(db, "itempattern", {"patternid": BASE})
-    if base is None or base["itemname"] != NAME or base["procanim"] != 7 or base["equipslot"] != -1:
+    if base is None or base["itemname"] != BASE_NAME or base["procanim"] != 7 or base["equipslot"] != -1:
         return [], [], [f"itempattern {BASE} is not the Cazic Thule Puppet Strings ({base and base['itemname']})"]
     if not db.execute("SELECT 1 FROM tokenshop WHERE shop = ?", (SHOP,)).fetchone():
         return [], [], [f"no tokenshop rows for {SHOP} here: the Christmas data first"]

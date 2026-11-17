@@ -84,7 +84,7 @@ class PuppetStrings(unittest.TestCase):
         db = self.db()
         p = db.execute("SELECT itemname, itemicon, procanim, trade, lore, levelreq, maxstack, itemcost, maxhp, classuse, raceuse, "
                        "wis, cha, POWMAX, equipslot, weaponproc FROM itempattern WHERE patternid = 716914").fetchone()
-        self.assertEqual(p, ("Puppet Strings", -611086336, 7, 0, 0, 1, 1, 0, 0, 32767, 32767, 0, 0, 0, -1, 0))
+        self.assertEqual(p, ("Toymaker's Puppet Strings", -611086336, 7, 0, 0, 1, 1, 0, 0, 32767, 32767, 0, 0, 0, -1, 0))
         e = db.execute("SELECT line, charges, cooldown FROM itemeffect WHERE patternid = 716914").fetchone()
         self.assertEqual(e, ("Target, Charm up to light blue, No Recharge, 10min", 10, 60.0))
         self.assertEqual(db.execute("SELECT price, sort FROM tokenshop WHERE patternid = 716914").fetchone(), (108, 5))

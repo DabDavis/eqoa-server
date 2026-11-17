@@ -90,9 +90,9 @@ func (e *EmailGate) Entered(sess *session.Session, _ *entity.Player) {
 	}
 }
 
-// Remind tells each player in the world whose account has no verified
-// address, once every gate.Every, until the cutoff (from it on the next world
-// entry is refused). It returns how many it told.
+// Remind no longer repeats the reminder (once a login, petition 5281): it
+// keeps the told set to the sessions in the world and returns how many it
+// told, now always 0. The cutoff still refuses the login from then.
 func (e *EmailGate) Remind() int {
 	if e == nil || e.sm == nil {
 		return 0
@@ -113,22 +113,18 @@ func (e *EmailGate) Remind() int {
 		}
 		seen[sess] = true
 		e.mu.Lock()
-		last, ok := e.last[sess]
+		_, ok := e.last[sess]
 		e.mu.Unlock()
-		if ok && now.Sub(last) < e.gate.Every {
-			return true
-		}
 		if !ok {
 			// in the world before the gate saw it (a restart's kept session):
-			// its first line comes a whole interval on
+			// it was told at its own login, so it is only remembered
 			e.mu.Lock()
 			e.last[sess] = now
 			e.mu.Unlock()
-			return true
 		}
-		if line := e.gate.Reminder(sess.AccountID(), now); line != "" {
-			told = append(told, due{sess, line})
-		}
+		// once a login, never on a timer (Jibrish, petition 5281: "This should
+		// ONLY happen on character login, once per login"): a session told at
+		// its world entry is not told again
 		return true
 	})
 	e.mu.Lock()

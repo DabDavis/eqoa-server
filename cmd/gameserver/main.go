@@ -1036,10 +1036,10 @@ func main() {
 		stopRemind := g.Run()
 		defer stopRemind()
 		if emailGate.Cutoff.IsZero() {
-			log.Printf("Accounts: a verified e-mail is required: reminded every %v, never refused", emailGate.Every)
+			log.Printf("Accounts: a verified e-mail is required: reminded once a login, never refused")
 		} else {
-			log.Printf("Accounts: a verified e-mail is required: reminded every %v until %s, refused at the login from then",
-				emailGate.Every, emailGate.Cutoff.Format(time.RFC3339))
+			log.Printf("Accounts: a verified e-mail is required: reminded once a login until %s, refused at the login from then",
+				emailGate.Cutoff.Format(time.RFC3339))
 		}
 	} else if cfg.Mail.RequireVerified {
 		log.Printf("WARNING: mail.require_verified is set but mail.accounts is not: nothing is required")

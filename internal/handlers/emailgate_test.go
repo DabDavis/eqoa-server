@@ -23,8 +23,8 @@ func chatLines(sess *session.Session, op protocol.GameOpcode) []string {
 	return out
 }
 
-// Before the cutoff an unverified account is reminded at world entry and
-// every interval while it plays; a verified one is told nothing. From the
+// Before the cutoff an unverified account is reminded once, at its login's
+// world entry; a verified one is told nothing. From the
 // cutoff the login refuses it (tcp.EmailRefusalStatus, the handshake's
 // SetEmailRefusal) and the world says nothing.
 func TestTheEmailGateInTheWorld(t *testing.T) {
@@ -53,15 +53,20 @@ func TestTheEmailGateInTheWorld(t *testing.T) {
 	if b := chatLines(bs, protocol.OpcodeColoredChat); len(b) != 0 {
 		t.Fatalf("Bob (verified) was told %q", b)
 	}
-	// within the interval: nothing; past it: again
+	// once a login (petition 5281): nothing on the timer, nothing at a
+	// later world entry of the same session
 	as.Queue().GetPending()
 	clock = clock.Add(10 * time.Minute)
 	if n := g.Remind(); n != 0 {
 		t.Fatalf("reminded %d within the interval", n)
 	}
 	clock = clock.Add(21 * time.Minute)
-	if n := g.Remind(); n != 1 || len(chatLines(as, protocol.OpcodeColoredChat)) != 1 {
+	if n := g.Remind(); n != 0 || len(chatLines(as, protocol.OpcodeColoredChat)) != 0 {
 		t.Fatalf("reminded %d past the interval", n)
+	}
+	c.gw.PlayerEntered(as)
+	if len(chatLines(as, protocol.OpcodeColoredChat)) != 0 {
+		t.Fatal("told again at a later world entry")
 	}
 	// from the cutoff: no reminder, nothing at world entry (the login refuses)
 	clock = cut.Add(time.Minute)

@@ -89,7 +89,8 @@ func TestEncodeDecorLights(t *testing.T) {
 	if r[0] != 0 || r[1] != 3 || r[2] != 3 {
 		t.Fatalf("the world's string's head: % X", r[:3])
 	}
-	if len(r) != 3+12+12+1+4+2+2*14+2+11+2 {
+	// ... then the presents' count and the looks' three counts (none of each)
+	if len(r) != 3+12+12+1+4+2+2*14+2+11+2+2+2+2 {
 		t.Fatalf("the world's string and the art: %d bytes left", len(r))
 	}
 	r = r[3+12+12+1+4+2+2*14:]
@@ -148,7 +149,8 @@ func TestDecorPresents(t *testing.T) {
 		t.Fatalf("the set's head: % X", r[:20])
 	}
 	r = r[4+int(r[3]):]
-	if binary.LittleEndian.Uint16(r) != 2 || len(r) != 2+2*(7*4+4+4+1) {
+	// the boxes, then the looks: no asset, no string's look, the set's two papers (none, gain 1)
+	if binary.LittleEndian.Uint16(r) != 2 || len(r) != 2+2*(7*4+4+4+1)+2+2+2+2+2*8 {
 		t.Fatalf("the boxes: %d bytes", len(r))
 	}
 	r = r[2:]
@@ -162,5 +164,58 @@ func TestDecorPresents(t *testing.T) {
 		if s := BuildDecorStrings(nil, []database.LightString{{Shape: "presents", Params: bad}}, nil); s[0].Problem == "" {
 			t.Errorf("%s: no problem said", bad)
 		}
+	}
+}
+
+// A template's look and a box's paper go after the presents: the assets a look
+// names (and none it does not), each string's look by its index among those
+// sent, each box's paper and gain; a paper that is no DictID is a problem.
+func TestDecorLooks(t *testing.T) {
+	templates := map[string]database.LightTemplate{
+		"globes": {Name: "Globes", Colors: []uint32{0xFF2020}, Pattern: database.LightCycle, Effect: "steady", Spacing: 1, Size: 0.2, Bright: 1,
+			Cord: 0xC0A040, CordOn: true, CordWidth: 0.3, Bulb: 0xF8E6C045, BulbScale: 0.4, CordTexture: 0x7B3D8677, CordRepeat: 1, CordSag: 0.2},
+		"plain": {Name: "Plain", Colors: []uint32{0xFFFFFF}, Pattern: database.LightCycle, Effect: "steady", Spacing: 1, Size: 0.3, Bright: 1},
+	}
+	rows := []database.LightString{
+		{ID: 1, Template: "Plain", World: 0, Shape: "line", Params: `{"from":[0,0,0],"to":[3,0,0]}`},
+		{ID: 2, Template: "Globes", World: 0, Shape: "line", Params: `{"from":[0,0,0],"to":[3,0,0]}`},
+		{ID: 3, NPC: "Christmas Tree", Shape: database.ShapePresents, Params: `{"boxes":[{"at":[1,0,2],"size":[1,1,1],"color":"C02020","paper":"0x58B41D37","gain":2.5},{"at":[0,0,0],"size":[1,1,1],"color":"2050C0"}]}`},
+	}
+	strs := BuildDecorStrings(templates, rows, nil)
+	if strs[1].BulbModel != 0xF8E6C045 || strs[1].CordTexture != 0x7B3D8677 || math.Abs(float64(strs[1].CordSag)-0.2) > 1e-6 {
+		t.Fatalf("the globes' look: %+v", strs[1])
+	}
+	if g := strs[2].Gifts; g[0].Paper != 0x58B41D37 || g[0].Gain != 2.5 || g[1].Paper != 0 || g[1].Gain != 1 {
+		t.Fatalf("papers: %+v", g)
+	}
+	assets := []database.DecorAsset{
+		{Name: "globe", World: 0, Zone: 108, IDs: []uint32{0xF8E6C045}},
+		{Name: "tent", World: 2, Zone: 15, IDs: []uint32{0x4BC0D7FA, 0x7B3D8677}},
+		{Name: "plaid", World: 0, Zone: 28, IDs: []uint32{0x58B41D37}},
+		{Name: "unused", World: 2, Zone: 34, IDs: []uint32{0x9196DAC4}},
+	}
+	b, sent, _ := EncodeDecorLights(strs, nil, assets...)
+	if sent != 2 {
+		t.Fatalf("sent %d strings", sent)
+	}
+	// the tail: assets (3 named: globe, tent, plaid), one look, one set of two papers
+	tail := 2 + (3 + 1 + 4) + (3 + 1 + 8) + (3 + 1 + 4) + 2 + (2 + 16) + 2 + 2 + 2*8
+	r := b[len(b)-tail:]
+	if binary.LittleEndian.Uint16(r) != 3 || r[2] != 0 || binary.LittleEndian.Uint16(r[3:]) != 108 || r[5] != 1 || binary.LittleEndian.Uint32(r[6:]) != 0xF8E6C045 {
+		t.Fatalf("the assets: % X", r[:12])
+	}
+	r = r[2+8+12+8:]
+	if binary.LittleEndian.Uint16(r) != 1 || binary.LittleEndian.Uint16(r[2:]) != 1 || binary.LittleEndian.Uint32(r[4:]) != 0xF8E6C045 ||
+		binary.LittleEndian.Uint32(r[12:]) != 0x7B3D8677 {
+		t.Fatalf("the look: the second string sent's: % X", r[:20])
+	}
+	r = r[2+18:]
+	if binary.LittleEndian.Uint16(r) != 1 || binary.LittleEndian.Uint16(r[2:]) != 2 || binary.LittleEndian.Uint32(r[4:]) != 0x58B41D37 ||
+		math.Float32frombits(binary.LittleEndian.Uint32(r[8:])) != 2.5 || binary.LittleEndian.Uint32(r[12:]) != 0 {
+		t.Fatalf("the papers: % X", r)
+	}
+	bad := []database.LightString{{Shape: "presents", Params: `{"boxes":[{"at":[0,0,0],"size":[1,1,1],"color":"FF0000","paper":"tent"}]}`}}
+	if s := BuildDecorStrings(nil, bad, nil); s[0].Problem == "" {
+		t.Error("a paper that is no DictID: no problem said")
 	}
 }

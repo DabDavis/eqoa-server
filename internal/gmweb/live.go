@@ -53,7 +53,7 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveSocial()
 	case "npcspawnonly", "npcstands":
 		return s.liveSpawnOnly()
-	case "gmseasons", "npcseason", "lighttemplates", "lightstrings", "decorart":
+	case "gmseasons", "npcseason", "lighttemplates", "lightstrings", "decorart", "decorassets":
 		handlers.Rewards().Refresh() // a season turned: its currency (seasonrewards.go)
 		return s.liveSeasons()       // live_seasons.go
 	case "seasonrewards":

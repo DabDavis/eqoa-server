@@ -90,6 +90,44 @@ func checkLightTemplateRow(row map[string]any) error {
 		num("period", 1.5), num("spacing", 1), num("size", 0.3), num("bright", 1), str("cord", ""), num("cord_width", 0.06)); len(p) > 0 {
 		return badRequest("%s", strings.Join(p, "; "))
 	}
+	for _, k := range []string{"bulb", "cord_texture"} {
+		if _, err := database.ParseDictID(str(k, "")); err != nil {
+			return badRequest("%s: a DictID (0xXXXXXXXX) of Decoration assets, or blank", k)
+		}
+	}
+	if v := num("bulb_scale", 0.35); v < 0 || v > 4 {
+		return badRequest("bulb_scale: 0 to 4")
+	}
+	if v := num("cord_repeat", 1); v < 0 || v > 20 {
+		return badRequest("cord_repeat: 0 to 20")
+	}
+	if v := num("cord_sag", 0); v < 0 || v > 1 {
+		return badRequest("cord_sag: 0 (the default) to 1")
+	}
+	return nil
+}
+
+// checkDecorAssetRow holds a decorassets row to a world, a zone and ids that
+// read.
+func checkDecorAssetRow(row map[string]any) error {
+	if v, ok := row["name"]; ok {
+		if name, _ := v.(string); strings.TrimSpace(name) == "" {
+			return badRequest("name is the asset's (Freeport tent cloth)")
+		}
+	}
+	for k, top := range map[string]float64{"world": 255, "zone": 65535} {
+		if v, ok := row[k]; ok {
+			if f, fok := asFloat(v); !fok || f < 0 || f > top {
+				return badRequest("%s: 0 to %.0f", k, top)
+			}
+		}
+	}
+	if v, ok := row["ids"]; ok {
+		ids, _ := v.(string)
+		if _, err := database.DecorAssetIDs(ids); err != nil {
+			return badRequest("%s", err.Error())
+		}
+	}
 	return nil
 }
 

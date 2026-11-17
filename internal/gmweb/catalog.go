@@ -1447,18 +1447,23 @@ var catalog = map[string]tableNote{
 		Live:   "At once: every string of the template is laid again and sent to every client that draws them.",
 		Search: []string{"name", "colors", "note", "source"},
 		Cols: map[string]colNote{
-			"name":       {Label: "Template (key)", Help: "any case: Christmas lights"},
-			"colors":     {Label: "Colours", Help: "RRGGBB, comma separated, up to 16: FF2020, 20D040, 3070FF, FFC030, FFFFFF"},
-			"pattern":    {Label: "Pattern", Help: "cycle: the colours in turn; random: at random (never the same twice in a row)"},
-			"effect":     {Label: "Effect", Help: "steady, twinkle, alternate or chase"},
-			"period":     {Label: "Period", Unit: "s", Help: "one twinkle, alternation or chase step's cycle (0: 1.5)"},
-			"spacing":    {Label: "Spacing", Help: "between bulbs along a string, in the units of where it hangs (an NPC's at its size 1)"},
-			"size":       {Label: "Bulb size", Help: "a bulb's glow across"},
-			"bright":     {Label: "Brightness", Help: "1 full, up to 4"},
-			"cord":       {Label: "Cord", Help: "the wire the bulbs hang on, RRGGBB (1E3F1E dark green); blank or none: no cord"},
-			"cord_width": {Label: "Cord width", Help: "the wire's thickness, in the string's units (0.06)"},
-			"note":       {Label: "Note"},
-			"source":     {Label: "Source", Help: "gm, or the tool that wrote the row"},
+			"name":         {Label: "Template (key)", Help: "any case: Christmas lights"},
+			"colors":       {Label: "Colours", Help: "RRGGBB, comma separated, up to 16: FF2020, 20D040, 3070FF, FFC030, FFFFFF"},
+			"pattern":      {Label: "Pattern", Help: "cycle: the colours in turn; random: at random (never the same twice in a row)"},
+			"effect":       {Label: "Effect", Help: "steady, twinkle, alternate or chase"},
+			"period":       {Label: "Period", Unit: "s", Help: "one twinkle, alternation or chase step's cycle (0: 1.5)"},
+			"spacing":      {Label: "Spacing", Help: "between bulbs along a string, in the units of where it hangs (an NPC's at its size 1)"},
+			"size":         {Label: "Bulb size", Help: "a bulb's glow across"},
+			"bright":       {Label: "Brightness", Help: "1 full, up to 4"},
+			"cord":         {Label: "Cord", Help: "the wire the bulbs hang on, RRGGBB (1E3F1E dark green); blank or none: no cord"},
+			"cord_width":   {Label: "Cord width", Help: "the wire's thickness, in the string's units (0.06); a garland's, wider (0.4)"},
+			"bulb":         {Label: "Bulb model", Help: "a model drawn at each bulb, tinted its colour (0xF8E6C045 the magic globe), one of Decoration assets' ids; blank: the glow alone"},
+			"bulb_scale":   {Label: "Bulb model size", Help: "the model's size across, in the string's units (0.35)"},
+			"cord_texture": {Label: "Cord texture", Help: "the cord drawn with a texture, tinted the cord's colour, a span between bulbs one repeat (a rope, tinsel), one of Decoration assets' ids; blank: a plain wire. With size 0 (no glow) a string is a garland"},
+			"cord_repeat":  {Label: "Cord repeat", Help: "kept for a texture's repeat along the cord (1)"},
+			"cord_sag":     {Label: "Cord sag", Help: "how far the cord hangs between two bulbs, of their distance (0: 0.06); a garland's, deeper (0.2)"},
+			"note":         {Label: "Note"},
+			"source":       {Label: "Source", Help: "gm, or the tool that wrote the row"},
 		},
 	},
 	"decorart": {
@@ -1481,6 +1486,24 @@ var catalog = map[string]tableNote{
 			"source": {Label: "Source", Help: "gm, or the tool that wrote the row"},
 		},
 	},
+	"decorassets": {
+		Label: "Decoration assets", Group: "World", Title: "name", Sort: "name",
+		Help: "Art a decoration's look draws that a player need not have loaded (database/decorlights.go; the owner, 2026-11-16: " +
+			"\"the magic globe can be used for bulbs\", \"these tents as wrapping paper for presents\"): the textures and models " +
+			"(ids, DictIDs) of one zone of a world's file, which vanilla reads off the player's own disc once, whatever world the " +
+			"player is in. Named by Light templates (bulb, cord_texture) and presents' boxes (paper); sent only while one names it. " +
+			"A PS2 draws none.",
+		Live:   "At once: sent to every client that draws decorations.",
+		Search: []string{"name", "ids", "note", "source"},
+		Cols: map[string]colNote{
+			"name":   {Label: "Asset (key)", Help: "any name: Odus tent cloth"},
+			"world":  {Label: "World", Help: "0 Tunaria, 1 Rathe, 2 Odus, 3 Lavastorm, 4 Plane of Sky, 5 Secrets"},
+			"zone":   {Label: "Zone", Help: "the zone of the world's file that holds them (its index: eqoa actormesh prints it)"},
+			"ids":    {Label: "DictIDs", Help: "the textures and models, 0xXXXXXXXX, space separated (a model brings its own textures)"},
+			"note":   {Label: "Note"},
+			"source": {Label: "Source", Help: "gm, or the tool that wrote the row"},
+		},
+	},
 	"lightstrings": {
 		Label: "Light strings", Group: "World", Title: "id", Sort: "id",
 		Help: "Where decoration lights hang (database/decorlights.go): on every NPC of a name (npc: in its own frame, x " +
@@ -1490,7 +1513,7 @@ var catalog = map[string]tableNote{
 			"round a cone (a tree; top RRGGBB a star); rings {base, r0, y0, r1, y1, rings, top}; line {from:[x,y,z], " +
 			"to:[x,y,z], sag, posts} (a fence's rail sagging between posts); box {min:[x,y,z], max:[x,y,z], edges: top, " +
 			"bottom or all} (a building's roof line); points {points:[[x,y,z], ...]}; path {points, star} the points in order on a cord " +
-			"(a garland fitted to a model); presents {boxes:[{at:[x,y,z], size:[w,h,d], yaw, color, ribbon, bow}]} gift boxes, no " +
+			"(a garland fitted to a model); presents {boxes:[{at:[x,y,z], size:[w,h,d], yaw, color, ribbon, bow, paper, gain}]} gift boxes (paper a texture of Decoration assets, tinted color times gain), no " +
 			"bulbs or template. Any shape may take spacing, its own; star [x,y,z] with top places the star.",
 		Live:   "At once: laid again and sent to every client that draws them.",
 		Search: []string{"template", "npc", "season", "note", "source"},

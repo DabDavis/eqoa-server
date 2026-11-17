@@ -176,6 +176,20 @@ func (q *QuestEngine) progressLocked(l *invList, p *entity.Player, c *questChar)
 		if st != nil {
 			target = strings.TrimSpace(c.say(st.Target))
 		}
+		// a group done in any order: a goal each of those left (questanyorder.go)
+		if g, _ := anyOrderState(qu, cq); g != nil {
+			for _, s := range openSteps(qu, cq) {
+				verb := "Speak with "
+				switch s.Kind {
+				case database.StepGive:
+					verb = "Give to "
+				case database.StepShow:
+					verb = "Show to "
+				}
+				qp.goals = append(qp.goals, progressGoal{text: verb + strings.TrimSpace(c.say(s.Target))})
+			}
+			st = nil
+		}
 		switch {
 		case st == nil:
 		case st.Kind == database.StepTalk:

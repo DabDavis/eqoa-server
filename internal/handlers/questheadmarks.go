@@ -294,20 +294,22 @@ func (q *QuestEngine) headMarksLocked(look *factionLook, p *entity.Player, c *qu
 		if !q.headShows(qu) {
 			continue
 		}
-		st := qu.Step(cq.Step)
-		if st == nil || !database.AtNPC(st.Kind) || strings.TrimSpace(st.Target) == "" {
-			continue
-		}
-		if giverWontDeal(look, qu, st) != "" {
-			continue
-		}
-		if (st.Kind == database.StepGive || st.Kind == database.StepShow) && q.lackingLocked(p, st) != "" {
-			continue
-		}
-		if st.NPCID != 0 {
-			m.Spawns[entity.EntityID(st.NPCID)] = entity.QuestMarkStep
-		} else {
-			put(st.Target, entity.QuestMarkStep)
+		// its step, or each of its group's not yet done (questanyorder.go)
+		for _, st := range openSteps(qu, cq) {
+			if !database.AtNPC(st.Kind) || strings.TrimSpace(st.Target) == "" {
+				continue
+			}
+			if giverWontDeal(look, qu, st) != "" {
+				continue
+			}
+			if (st.Kind == database.StepGive || st.Kind == database.StepShow) && q.lackingLocked(p, st) != "" {
+				continue
+			}
+			if st.NPCID != 0 {
+				m.Spawns[entity.EntityID(st.NPCID)] = entity.QuestMarkStep
+			} else {
+				put(st.Target, entity.QuestMarkStep)
+			}
 		}
 	}
 	// "!": a quest to take; "?" in its place for a hand-in held now

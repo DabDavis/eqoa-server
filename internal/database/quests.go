@@ -134,6 +134,7 @@ func (db *SQLiteDB) initQuests() error {
 		{"queststeps", "height", `REAL NOT NULL DEFAULT 0`},
 		{"charquests", "picks", `TEXT NOT NULL DEFAULT ''`},
 		{"quests", "excludes", `TEXT NOT NULL DEFAULT ''`},
+		{"queststeps", "anyorder", `INTEGER NOT NULL DEFAULT 0`},
 	} {
 		has, err := hasColumn(db.DB, c.table, c.col)
 		if err != nil {
@@ -685,6 +686,46 @@ type QuestStep struct {
 	// Choices is the pick a talk, show or give step asks for when it is done
 	// (the choices column; a guide's "choose your epic weapon").
 	Choices StepChoices
+	// AnyOrder (the anyorder column) puts a step at an NPC in a group with the
+	// steps next to it that have it too: the group's steps are done in any
+	// order, the quest going on past the group once all are (the owner,
+	// 2026-11-17: "players can speak with bowyer koll or tailor bariston in
+	// any order"; AnyOrderGroup)
+	AnyOrder bool
+}
+
+// AnyOrderGroup is the steps done in any order that step n is one of, in
+// step order: the run of steps at an NPC, each AnyOrder, next to one another
+// (by Next) that holds n; nil when n is not such a step or stands alone.
+func (q *Quest) AnyOrderGroup(n int) []*QuestStep {
+	in := func(s *QuestStep) bool { return s != nil && s.AnyOrder && AtNPC(s.Kind) }
+	st := q.Step(n)
+	if !in(st) {
+		return nil
+	}
+	// back to the run's first step, then forward to its last
+	first := st
+	for {
+		var prev *QuestStep
+		for i := range q.Steps {
+			s := &q.Steps[i]
+			if s.Step < first.Step && (prev == nil || s.Step > prev.Step) {
+				prev = s
+			}
+		}
+		if !in(prev) {
+			break
+		}
+		first = prev
+	}
+	var out []*QuestStep
+	for s := first; in(s); s = q.Next(s.Step) {
+		out = append(out, s)
+	}
+	if len(out) < 2 || len(out) > 30 {
+		return nil
+	}
+	return out
 }
 
 // StepChoices is a step's question and the options the player picks among
@@ -1151,7 +1192,7 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 	}
 	srs, err := s.db.Query(`SELECT questid, step, kind, target, npcid, items, tunar, count, world, x, y, z, radius,
 		journal, answer, says, waiting, notyet, reminder, xp, rewardtunar, rewarditems, factions, spells, chance, events, byclass,
-		choices, height FROM queststeps ORDER BY questid, step`)
+		choices, height, anyorder FROM queststeps ORDER BY questid, step`)
 	if err != nil {
 		return nil, err
 	}
@@ -1161,7 +1202,7 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 		if err := srs.Scan(&st.Quest, &st.Step, &st.Kind, &st.Target, &st.NPCID, &items, &st.Tunar, &st.Count, &st.World,
 			&st.X, &st.Y, &st.Z, &st.Radius, &st.Journal, &st.Answer, &st.Says, &st.Waiting, &st.NotYet, &st.Reminder,
 			&st.XP, &st.RewardTunar,
-			&rewardItems, &factions, &spells, &st.Chance, &events, &byClass, &choices, &st.Height); err != nil {
+			&rewardItems, &factions, &spells, &st.Chance, &events, &byClass, &choices, &st.Height, &st.AnyOrder); err != nil {
 			srs.Close()
 			return nil, err
 		}

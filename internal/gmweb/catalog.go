@@ -2787,6 +2787,7 @@ var catalog = map[string]tableNote{
 			"world":       {Label: "World", Enum: "world"},
 			"radius":      {Label: "Within"},
 			"height":      {Label: "Within up or down", Help: "a reach step's: the player within this of y too (one floor of a building); 0 any height"},
+			"anyorder":    {Label: "Any order", Help: "1: this step and the steps next to it with 1 (talk, show or give) are done in any order, the quest going on past them once all are; the journal lists who is left"},
 			"journal":     {Label: "Journal line", Help: "at most 127 characters"},
 			"answer":      {Label: "Player's answer", Format: "multiline", Help: "the first line does it, any others change nothing; empty: done on talking"},
 			"notyet":      {Label: "Answer while items lack", Format: "multiline", Help: "show/give: offered instead of the answer until the items are held"},

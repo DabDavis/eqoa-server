@@ -362,35 +362,34 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 		if qu == nil {
 			continue
 		}
-		st := qu.Step(cq.Step)
-		if st == nil {
-			continue
-		}
-		mq := markQuest{name: qu.Name, min: qu.MinLevel, max: qu.MaxLevel, line: st.Journal}
-		switch {
-		case database.AtNPC(st.Kind):
-			mq.detail = q.texts[qu.ID].needs[st.Step]
-		case st.Kind == database.StepKill:
-			mq.detail = fmt.Sprintf("%s: %d of %d killed", st.TargetWords(), cq.Count, max(st.Count, 1))
-		case st.Kind == database.StepLoot:
-			_, need, _ := st.LootItem()
-			mq.detail = fmt.Sprintf("%s: %d of %d", q.texts[qu.ID].needs[st.Step], cq.Count, need)
-		case st.Kind == database.StepReach:
-			// the place's name is the journal line, so the quest's own line
-			// would only say it again
-			mq.line = ""
-		}
-		kind, at := q.stepSpotsLocked(spots, st, c.serverID, world, x, z)
-		for _, s := range at {
-			addAt(kind, s, mq)
-		}
-		// none in the player's world: the way there (questmarkspots.go)
-		if len(at) > 0 && at[0].World != world {
-			if h, ok := q.wayToLocked(spots, world, at[0].World, x, z); ok {
-				wq := mq
-				wq.line = st.Journal
-				wq.detail = wayLine(h, "")
-				addAt(markStep, h.from, wq)
+		// its step, or each of its group's not yet done (questanyorder.go)
+		for _, st := range openSteps(qu, cq) {
+			mq := markQuest{name: qu.Name, min: qu.MinLevel, max: qu.MaxLevel, line: st.Journal}
+			switch {
+			case database.AtNPC(st.Kind):
+				mq.detail = q.texts[qu.ID].needs[st.Step]
+			case st.Kind == database.StepKill:
+				mq.detail = fmt.Sprintf("%s: %d of %d killed", st.TargetWords(), cq.Count, max(st.Count, 1))
+			case st.Kind == database.StepLoot:
+				_, need, _ := st.LootItem()
+				mq.detail = fmt.Sprintf("%s: %d of %d", q.texts[qu.ID].needs[st.Step], cq.Count, need)
+			case st.Kind == database.StepReach:
+				// the place's name is the journal line, so the quest's own line
+				// would only say it again
+				mq.line = ""
+			}
+			kind, at := q.stepSpotsLocked(spots, st, c.serverID, world, x, z)
+			for _, s := range at {
+				addAt(kind, s, mq)
+			}
+			// none in the player's world: the way there (questmarkspots.go)
+			if len(at) > 0 && at[0].World != world {
+				if h, ok := q.wayToLocked(spots, world, at[0].World, x, z); ok {
+					wq := mq
+					wq.line = st.Journal
+					wq.detail = wayLine(h, "")
+					addAt(markStep, h.from, wq)
+				}
 			}
 		}
 	}

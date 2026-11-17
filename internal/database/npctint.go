@@ -39,6 +39,12 @@ import (
 // of the body's nodes (0 the default 8; the client takes 32 at most). Told
 // only to a client that answers the offer with layout 3; particles need no
 // glow (drawn in the source's own colours).
+//
+// season (2026-11-17, the owner: "make the toymaker tinsel, holiday elf weapon
+// enchanter wear santa hats and santas robe"): blank always, else a season of
+// gmseasons (any case) the row holds only while it is on (seasons.go): off, the
+// name's bodies are drawn as with no row. A season's turn reloads the tints
+// (World.LoadSeasonLooks).
 const npcTintSchema = `
 	CREATE TABLE IF NOT EXISTS npctint (
 		name   TEXT PRIMARY KEY,
@@ -47,6 +53,7 @@ const npcTintSchema = `
 		aura_kind   INTEGER NOT NULL DEFAULT 0,
 		aura_source INTEGER NOT NULL DEFAULT 0,
 		aura_nodes  INTEGER NOT NULL DEFAULT 0,
+		season TEXT NOT NULL DEFAULT '',
 		note   TEXT NOT NULL DEFAULT '',
 		source TEXT NOT NULL DEFAULT 'gm'
 	);`
@@ -65,6 +72,10 @@ func (db *SQLiteDB) ensureNPCTint() error {
 		if _, err := db.Exec(`ALTER TABLE npctint ADD COLUMN glow INTEGER NOT NULL DEFAULT 0`); err != nil {
 			return fmt.Errorf("npctint: glow: %w", err)
 		}
+	}
+	// and one made before the season (2026-11-17) its
+	if err := addTextColumn(db, "npctint", "season"); err != nil {
+		return err
 	}
 	// and one made before the auras (2026-11-13) theirs
 	for _, col := range []string{"aura_kind", "aura_source", "aura_nodes"} {
@@ -329,19 +340,26 @@ func ValidNPCTint(c int64) bool {
 // NPCTints is every row of npctint that tints or lights something, by
 // NPCClassKey of the name (a blank one, and one whose colour and glow change
 // nothing, left out), in the keys' order. Two rows of one key: the later name
-// in the table's order wins.
+// in the table's order wins. A row of a season that is off is left out.
 func (db *SQLiteDB) NPCTints() ([]NPCTint, error) {
-	rows, err := db.Query(`SELECT name, color, glow, aura_kind, aura_source, aura_nodes FROM npctint ORDER BY name`)
+	on, err := db.ActiveSeasons()
+	if err != nil {
+		return nil, err
+	}
+	rows, err := db.Query(`SELECT name, color, glow, aura_kind, aura_source, aura_nodes, season FROM npctint ORDER BY name`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	by := make(map[string]NPCTint)
 	for rows.Next() {
-		var name string
+		var name, season string
 		var color, glow, kind, source, nodes int64
-		if err := rows.Scan(&name, &color, &glow, &kind, &source, &nodes); err != nil {
+		if err := rows.Scan(&name, &color, &glow, &kind, &source, &nodes, &season); err != nil {
 			return nil, err
+		}
+		if !SeasonHolds(season, on) {
+			continue
 		}
 		k := NPCClassKey(name)
 		c, ok := tint32(color)

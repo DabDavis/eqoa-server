@@ -90,6 +90,14 @@ func (db *SQLiteDB) ActiveSeasons() (map[string]bool, error) {
 	return out, nil
 }
 
+// SeasonHolds reports whether a row of a season holds while the seasons on
+// (ActiveSeasons) are: a row of no season (blank) always, one of a season while
+// it is on (npctint.season, npcdyes.season).
+func SeasonHolds(season string, on map[string]bool) bool {
+	k := SeasonKey(season)
+	return k == "" || on[k]
+}
+
 // SeasonActive reports whether the season is on (no row: off).
 func (db *SQLiteDB) SeasonActive(name string) (bool, error) {
 	var on int

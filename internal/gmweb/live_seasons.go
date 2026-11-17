@@ -28,6 +28,12 @@ func (s *Server) liveSeasons() string {
 	}
 	line := fmt.Sprintf("at once: %d NPC(s) changed, %d out of the world in all; %d strings of lights lit (%d bulbs), sent to %d client(s) that draw them (a PS2 draws none)",
 		changed, held, strs, bulbs, told)
+	// the season's looks: tints and dyes that hold only in their season
+	if tinted, toldT, dyed, err := s.d.World.LoadSeasonLooks(s.d.DB); err != nil {
+		line += "; the NPCs' seasonal looks not: " + err.Error()
+	} else {
+		line += fmt.Sprintf("; NPC looks: %d tinted (sent to %d client(s)), %d dyed", tinted, toldT, dyed)
+	}
 	if len(problems) > 0 {
 		line += "; laying nothing: " + strings.Join(problems, "; ")
 	}

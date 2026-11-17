@@ -306,6 +306,15 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	if !ok {
 		return
 	}
+	w.npcMeleeOnPlayerLocked(npc, player, 100, false, now)
+}
+
+// npcMeleeOnPlayerLocked is one melee hit of the NPC's on the player (npcAttackPlayer's), at pct
+// percent of its figure (100: as it is); ramp marks an area rampage's hit (arearampage.go), which
+// rampages no further (an enrage's share on the second of its list is its round's alone). Must be
+// called with the lock held.
+func (w *World) npcMeleeOnPlayerLocked(npc *NPC, player *Player, pct int, ramp bool, now time.Time) {
+	playerID := player.ServerID
 	// Never attack a corpse — see the aggro guard in aiSystem. Repeated here
 	// so any future caller inherits it rather than re-opening the loop.
 	if player.IsDead() {
@@ -335,6 +344,7 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	if fixed := npc.meleeFixed(); fixed > 0 {
 		damage = fixed // its template's fixed melee (melee_fixed): that figure, through any armour, not rolled
 	}
+	damage = rampagePct(damage, pct) // an area rampage's share (arearampage.go)
 	player.HP -= damage
 	w.contactPlayerLocked(player)       // what ends at a hit (workbook.go)
 	w.breakInvisLocked(player, "a hit") // invis.go: every invisibility, whatever gave it
@@ -342,8 +352,10 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 		player.HP = 0
 	}
 	player.LastCombatTime = now
-	npc.meleeLanded(damage, now)                // unreached.go
-	w.rampageLocked(npc, playerID, damage, now) // an enraged creature's share on the second of its list (enrage.go)
+	npc.meleeLanded(damage, now) // unreached.go
+	if !ramp {
+		w.rampageLocked(npc, playerID, damage, now) // an enraged creature's share on the second of its list (enrage.go)
+	}
 
 	// Find player session to send feedback
 	sess := w.findSessionByEntityIDLocked(playerID)

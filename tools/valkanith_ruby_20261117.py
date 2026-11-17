@@ -20,7 +20,7 @@ WHAT CHANGES:
   - The 18 "spectral rallosian" rows (L58-60, z 5090-5247, standing at 65-75: Geomancer's Pass, the seeder's "spectral
     rallosian cave", below and south of the citadel) are NOT in the citadel and keep their name.
   - Quest 101269 step 2 (the Tal'Thex Ruby 701384) loots "rallosian spectre" and, through queststeptargets, "rallosian
-    warlord", in place of "spectral rallosian"; its chance stays 0.25 (the owner set 10% for the emerald alone).
+    warlord", in place of "spectral rallosian"; its chance 0.25 -> 0.10 (the owner, 2026-11-17: "make the ruby 10% too").
 
 Report only by default; --apply in one transaction with gm_audit lines and the log valkanith_ruby_1117_log (every row
 before and after); a second --apply does nothing; --undo puts back exactly what it wrote and drops the log. Refused
@@ -55,7 +55,7 @@ QUEST, STEP = 101269, 2
 RUBY = 701384
 STEP_OLD = {"kind": "loot", "target": "spectral rallosian", "items": str(RUBY), "chance": 0.25,
             "journal": "Take the Tal'Thex ruby from the rallosian spectres of Geomancer's Citadel."}
-STEP_NEW = {"target": "rallosian spectre",
+STEP_NEW = {"target": "rallosian spectre", "chance": 0.10,
             "journal": "Take the Tal'Thex ruby from the rallosian spectres and warlords of Geomancer's Citadel."}
 ALSO = "rallosian warlord"
 

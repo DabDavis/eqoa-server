@@ -1025,8 +1025,23 @@ const (
 	// sink: the art drawn that much lower, in its own units. Then the presents
 	// (a u16 count of sets, each its anchor as a string's, a u16 count of
 	// boxes, each f32 x, y, z, w, h, d, yaw, u32 colour, u32 ribbon (0 none),
-	// u8 bow): a client before them stops reading at the art.
+	// u8 bow): a client before them stops reading at the art. Then the looks
+	// (entity.EncodeDecorLights), then, for layout 2, the walk-ons (an NPC's
+	// body walked onto or through: entity.AppendWalkOns, npctour.go).
 	OpcodeDecorLights GameOpcode = 0x7E82
+
+	// OpcodeRide is not retail: the server's word that the player rides an NPC's
+	// vehicle (entity/npctour.go: Santa's sleigh tour of Freeport), sent only to a
+	// client that answered OpcodeDecorLightsOffer with layout 2 or more (vanilla);
+	// a PS2 is moved by teleports instead. Little-endian: a u8, 1 on, 0 off. On:
+	// the vehicle NPC's name (u8 byte count and UTF-8, keyed as OpcodeNPCTints
+	// keys one) and the rider's place on it, f32 x, y, z in its frame (x right, y
+	// up, z ahead, as a light string's): the client keeps its walker there, the
+	// vehicle as it draws it, every frame, with no fall and no walk of its own
+	// (the server sends a run speed of 0 too), until off. Off: f32 x, y, z and
+	// facing, where the client sets its walker down (the server has put the
+	// player there).
+	OpcodeRide GameOpcode = 0x7E83
 )
 
 // A monster's name and level when the player talks to it (□, Q on vanilla's
@@ -1760,6 +1775,8 @@ func (op GameOpcode) String() string {
 		return "DecorLightsAnswer"
 	case OpcodeDecorLights:
 		return "DecorLights"
+	case OpcodeRide:
+		return "Ride"
 	case OpcodePetDyesOffer:
 		return "PetDyesOffer"
 	case OpcodePetDyesAnswer:

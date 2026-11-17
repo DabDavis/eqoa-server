@@ -141,6 +141,7 @@ type KeptNPC struct {
 func (w *World) StandNPCs() int {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	w.endToursLocked("restart") // every tour home, its riders set down (npctour.go)
 	n := 0
 	for _, npc := range w.NPCs {
 		if npc.moving() {

@@ -94,6 +94,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.roamSystem(now)
 	t.mark(tsRoam)
 	w.pathSystem(now)
+	w.tourSystem(now) // the NPCs' tours (npctour.go)
 	t.mark(tsPaths)
 	due := w.playerRespawnSystem(now)
 	t.mark(tsRespawns)

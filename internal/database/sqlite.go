@@ -676,6 +676,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureDecorLights(); err != nil { // decorlights.go
 		return err
 	}
+	if err := db.ensureNPCTours(); err != nil { // npctours.go
+		return err
+	}
 	if err := db.ensureSeasonRewards(); err != nil { // seasonrewards.go
 		return err
 	}

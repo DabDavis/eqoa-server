@@ -271,6 +271,17 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 
+	// A tour's stand-in says where its host is while he is out (npctour.go):
+	// the Holiday Elf's "Santa's out on his sleigh", before its own talk.
+	if npc, ok := targetEntity.(*entity.NPC); ok {
+		h.tourStandLine(sess, npc)
+	}
+
+	// A tour's host (npctour.go): Santa Claus's sleigh ride over Freeport.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.tourTalk(sess, player, npc) {
+		return nil
+	}
+
 	// A corpse: its loot (loot.go).
 	if npc, ok := targetEntity.(*entity.NPC); ok && npc.Dead && h.corpse != nil && h.corpse(sess, npc) {
 		return nil
@@ -722,6 +733,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// the Teleporter's (teleporter.go); an old one does nothing
 	if h.answerTeleporter(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// a tour's host's (npctour.go); an old one does nothing
+	if h.answerTour(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// a Mercenary Liaison's (merc.go); an old one does nothing

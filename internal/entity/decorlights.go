@@ -41,8 +41,9 @@ type decorLightState struct {
 	art atomic.Pointer[map[string]database.DecorArt]
 }
 
-// DecorLightsLayout is the newest layout of OpcodeDecorLights: 1.
-const DecorLightsLayout = 1
+// DecorLightsLayout is the newest layout of OpcodeDecorLights: 2 (the walk-ons
+// after the papers, and OpcodeRide: npctour.go).
+const DecorLightsLayout = 2
 
 // DecorCordBreak is the bit of a bulb's colour byte that breaks the cord
 // before it (a ring's first bulb after the ring below, a box's edge apart from
@@ -334,6 +335,7 @@ func (w *World) SetDecorLights(strs []DecorString, art map[string]database.Decor
 	}
 	w.decorLights.art.Store(&art)
 	body, sent, bulbs := EncodeDecorLights(strs, shown, assets...)
+	body = AppendWalkOns(body, w.WalkOns())
 	w.decorLights.mu.Lock()
 	w.decorLights.body, w.decorLights.strings, w.decorLights.bulbs = body, sent, bulbs
 	w.decorLights.mu.Unlock()
@@ -390,6 +392,18 @@ func (w *World) LoadDecorLights(db *database.SQLiteDB) (strs, bulbs, told int, p
 	if err != nil {
 		return 0, 0, 0, nil, fmt.Errorf("decorassets: %w", err)
 	}
+	// the NPCs' tours and walk-ons of the seasons that are on (npctour.go),
+	// the walk-ons sent with the decorations
+	tours, tourProblems, err := db.NPCTours()
+	if err != nil {
+		return 0, 0, 0, nil, fmt.Errorf("npctours: %w", err)
+	}
+	problems = append(problems, tourProblems...)
+	walkOns, err := db.NPCWalkOns()
+	if err != nil {
+		return 0, 0, 0, nil, fmt.Errorf("npcwalkon: %w", err)
+	}
+	w.SetNPCTours(tours, walkOns, active)
 	told = w.SetDecorLights(all, art, shown, assets...)
 	w.decorLights.mu.Lock()
 	strs, bulbs = w.decorLights.strings, w.decorLights.bulbs
@@ -467,4 +481,26 @@ func (w *World) decorArtViewLocked(sess *session.Session, npc *NPC, buf []byte) 
 	if sess != nil && sess.DecorLightsLayout() != 0 {
 		binary.LittleEndian.PutUint32(buf[28:32], a.Model)
 	}
+}
+
+// AppendWalkOns is the walk-ons after the papers (layout 2; a client before
+// reads none): a u16 count, each the NPC's name (u8 byte count and UTF-8, keyed
+// as OpcodeNPCTints keys one), u8 mode (1 a deck: walked into and stood on, 2
+// passed through), f32 radius and f32 height (a deck's, across and over its
+// feet).
+func AppendWalkOns(b []byte, walkOns []database.NPCWalkOn) []byte {
+	b = binary.LittleEndian.AppendUint16(b, uint16(len(walkOns)))
+	for _, wo := range walkOns {
+		name := wo.Name[:min(len(wo.Name), 255)]
+		b = append(b, byte(len(name)))
+		b = append(b, name...)
+		mode := byte(1)
+		if wo.Mode == database.WalkOnPass {
+			mode = 2
+		}
+		b = append(b, mode)
+		b = binary.LittleEndian.AppendUint32(b, math.Float32bits(wo.Radius))
+		b = binary.LittleEndian.AppendUint32(b, math.Float32bits(wo.Height))
+	}
+	return b
 }

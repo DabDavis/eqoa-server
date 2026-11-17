@@ -493,6 +493,10 @@ type Player struct {
 	// and ceiling, until /noclip again, #fly off or the next login
 	Noclip bool
 
+	// tourRide: the player rides an NPC's tour (npctour.go): its place is the
+	// tour's, not its client's; nil when it rides none.
+	tourRide *tourRider
+
 	// Jumps: the player's client jumps and answered the jump offer (jump.go,
 	// opcode 0x7E28, world.jump): the movement check takes a jump's arc from it.
 	// A new client's answer says again (a takeover clears it).

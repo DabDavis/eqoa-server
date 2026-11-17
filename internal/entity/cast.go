@@ -746,6 +746,9 @@ func (p *Player) SpeedNow() float32 {
 	if p.Frozen {
 		return 0 // a GM's freeze (gmchannel.go)
 	}
+	if p.tourRide != nil {
+		return 0 // aboard a tour (npctour.go): it walks nowhere
+	}
 	slow := float32(1)
 	for _, e := range p.Effects {
 		// a hold: a duel opponent's (duelfight.go), or one of the player's

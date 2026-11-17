@@ -68,6 +68,10 @@ func (p *Player) noteStood() {
 // server: a session quit half a second in saved 56.7 over a floor at 54.1,
 // and the next login arrived at 59.7).
 func (p *Player) SavePlace() (x, y, z float32, back bool) {
+	if rd := p.tourRide; rd != nil && rd.world == p.World {
+		// aboard a tour (npctour.go): where it sets its riders down
+		return rd.drop[0], rd.drop[1], rd.drop[2], true
+	}
 	if p.inAir() && p.HasStood && p.StoodWorld == p.World {
 		return p.StoodX, p.StoodY, p.StoodZ, true
 	}
@@ -165,6 +169,10 @@ func (w *World) ApplyClientUpdate(id EntityID, u ClientUpdate) {
 	now := u.At
 	if now.IsZero() {
 		now = time.Now()
+	}
+	if p.tourRide != nil {
+		// aboard a tour (npctour.go): the tour's place, not the client's
+		return
 	}
 	before := [3]float32{p.X, p.Y, p.Z}
 	take, at := w.judgeMoveLocked(p, &u, now)

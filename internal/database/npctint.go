@@ -146,6 +146,26 @@ const (
 // look ("kappa hat") wears: CHAR.ESF 0xF0FAB933 (giant-own-helm-20261116).
 const KappaHat = 0xF0FAB933
 
+// GnomeCap is the dressed gnome man (CHAR.ESF #139, unused as a body) whose
+// red pointed cap the Santa Hat is (the owner, 2026-11-17: "for santa clause
+// lets cut the gnome cap to be usuable for all and make it red and white with
+// a white ball on the end"). With HatSanta in the aura's nodes byte vanilla
+// draws it Santa's: a white band round its base and a white ball at its tip.
+const GnomeCap = 0xA20590E3
+
+// HatSanta is a hat aura's nodes byte (unused by a hat before: 0, the hat as
+// cut) that dresses it as Santa's: a white band and a white ball, the rest
+// taking the dye (vanilla's hat::santa). A client before it draws the cap as
+// cut.
+const HatSanta = 1
+
+// ValidNPCAuraKind holds an npctint row's aura kind: a body's (ValidAuraKind)
+// or a hat (AuraHat: Santa Claus's Santa Hat, by name), which a layout 3
+// client draws on the head; a layout 2 client is told the row only as a tint
+// or glow (ShowsGlow), an older layout 3 client reads it as the default
+// (nothing with no glow).
+func ValidNPCAuraKind(k int64) bool { return ValidAuraKind(k) || k == AuraHat }
+
 // CharAuraHelm is the helm's charaura slot (entity.AuraHelm): a circlet's
 // and a hat's.
 const CharAuraHelm = 5
@@ -277,7 +297,7 @@ func NPCGlowShows(glow uint32) bool {
 // aura's particles (which need no glow) or a dark aura (a black glow lights
 // nothing): drawn at layout 3 alone.
 func (t NPCTint) Shows() bool {
-	return t.ShowsGlow() || AuraParticlesShow(t.AuraKind) || (AuraNamed(t.AuraKind) && AuraDark(t.Glow))
+	return t.ShowsGlow() || AuraParticlesShow(t.AuraKind) || (AuraNamed(t.AuraKind) && AuraDark(t.Glow)) || t.AuraKind == AuraHat
 }
 
 // ShowsGlow reports whether the row draws anything by its tint or its glow:
@@ -333,7 +353,7 @@ func (db *SQLiteDB) NPCTints() ([]NPCTint, error) {
 			g = 0
 		}
 		t := NPCTint{Name: k, Color: c, Glow: g}
-		if ValidAuraKind(kind) && ValidAuraNodes(nodes) {
+		if ValidNPCAuraKind(kind) && ValidAuraNodes(nodes) {
 			if src, ok := tint32(source); ok {
 				t.AuraKind, t.AuraSource, t.AuraNodes = uint8(kind), src, uint8(nodes)
 			}

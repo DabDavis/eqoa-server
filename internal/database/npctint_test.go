@@ -85,3 +85,33 @@ func TestNPCTintGlows(t *testing.T) {
 		t.Fatalf("tints %+v, %v; want %+v", got, err, want)
 	}
 }
+
+// A hat on an NPC by name (2026-11-17: Santa Claus's Santa Hat): an npctint
+// row of aura kind 10 is read (layout 3 sends it: Shows), with no tint or
+// glow, its source and its style (HatSanta in nodes) as written; a layout 2
+// client is told nothing of it (ShowsGlow). The control: a kind past 10 is
+// dropped on read (the row, tinting nothing, left out).
+func TestNPCHat(t *testing.T) {
+	db, err := NewSQLite(t.TempDir() + "/npchat.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if _, err := db.Exec(`INSERT INTO npctint (name, color, glow, aura_kind, aura_source, aura_nodes) VALUES
+		('Santa Claus', 0, 0, 10, ?, 1), ('Toymaker Tinsel', 0, 0, 11, ?, 1)`, int64(GnomeCap), int64(GnomeCap)); err != nil {
+		t.Fatal(err)
+	}
+	got, err := db.NPCTints()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 1 || got[0].Name != NPCClassKey("Santa Claus") || got[0].AuraKind != AuraHat || got[0].AuraSource != GnomeCap || got[0].AuraNodes != HatSanta {
+		t.Fatalf("read: %+v", got)
+	}
+	if !got[0].Shows() || got[0].ShowsGlow() {
+		t.Fatal("a hat shows at layout 3 alone")
+	}
+	if !ValidNPCAuraKind(AuraHat) || ValidNPCAuraKind(11) || ValidAuraKind(AuraHat) {
+		t.Fatal("kinds")
+	}
+}

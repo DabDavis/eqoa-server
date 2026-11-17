@@ -318,6 +318,11 @@ var auraLooks = []auraLook{
 	// wide brimmed for his model")
 	{[]string{"kappa", "hat"}, database.ItemAura{Kind: database.AuraHat, Source: database.KappaHat},
 		"the kappa's wide-brimmed straw hat (F0FAB933, built into its body) worn on the head in place of the helm (a colour recolours it)", false},
+	// the gnome's red pointed cap as Santa's: a white band and ball (the
+	// owner, 2026-11-17: "for santa clause lets cut the gnome cap to be usuable
+	// for all and make it red and white with a white ball on the end")
+	{[]string{"santa", "hat"}, database.ItemAura{Kind: database.AuraHat, Source: database.GnomeCap, Nodes: database.HatSanta},
+		"Santa's hat: the gnome's red pointed cap (A20590E3) with a white band and a white ball at its tip, in place of the helm (a dye colours the red)", false},
 	{[]string{"sickle", "taint"}, database.ItemAura{Kind: database.AuraEpic, Source: 0x5FD4AE7C},
 		"the necromancer's epic, Sickle of Avhi Escron (5FD4AE7C): an olive glow and its green mist (Zaeire's)", false},
 	// a spell visual's hand emitters on a held weapon (the owner, 2026-11-14:
@@ -635,7 +640,8 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 		mercKey, isMerc = npc.MercAuraKey()
 	}
 	// an NPC's whole body (not a mercenary's): its name's, npctint
-	if isNPC && !isMerc && sp.Where != -1 && sp.Where != auraWholeBody {
+	// (a hat on its head is its name's too: npctint's aura, kind hat)
+	if isNPC && !isMerc && sp.Where != -1 && sp.Where != auraWholeBody && !(sp.A.Kind == database.AuraHat && sp.Where == entity.AuraHelm) {
 		h.gmReply(sess, fmt.Sprintf("/aura: %s wears no items of its own (its armour is its sets): /aura <colour> <kind> wholebody", npc.Name))
 		return
 	}
@@ -650,10 +656,6 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 		}
 		if sp.A.Kind == database.AuraCirclet && !sp.Off {
 			h.gmReply(sess, "/aura: a circlet is a player's (or a mercenary's) head's: /aura monk circlet")
-			return
-		}
-		if sp.A.Kind == database.AuraHat && !sp.Off {
-			h.gmReply(sess, "/aura: a hat is a player's (or a mercenary's) head's: /aura kappa hat")
 			return
 		}
 		if database.NPCClassKey(npc.Name) == "" {

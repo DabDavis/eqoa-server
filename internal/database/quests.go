@@ -134,6 +134,7 @@ func (db *SQLiteDB) initQuests() error {
 		{"queststeps", "height", `REAL NOT NULL DEFAULT 0`},
 		{"charquests", "picks", `TEXT NOT NULL DEFAULT ''`},
 		{"quests", "excludes", `TEXT NOT NULL DEFAULT ''`},
+		{"quests", "asks", `TEXT NOT NULL DEFAULT ''`}, {"quests", "daygroup", `TEXT NOT NULL DEFAULT ''`},
 		{"queststeps", "anyorder", `INTEGER NOT NULL DEFAULT 0`},
 	} {
 		has, err := hasColumn(db.DB, c.table, c.col)
@@ -551,6 +552,14 @@ type Quest struct {
 	// Runed Clay Tablet, 100868, and Argot's own The Al'Karad Tablet, 100770,
 	// the same story and the same reward; tools/quest_twins_20261115.py).
 	Excludes []int
+	// Asks are the questions the player may ask at its offer, besides taking
+	// or refusing it (the asks column, JSON: QuestAsk; work entry 1597): each
+	// answered by the giver, the offer's question asked again after.
+	Asks []QuestAsk
+	// DayGroup (the daygroup column) makes the quests of one name one a day: a
+	// quest of the group is not offered or taken while another is under way or
+	// was finished today (work entry 1597's Christmas gift runs).
+	DayGroup string
 	// Offer is the giver's words offering it, a paragraph (lines between
 	// blank lines) a question: its lines a box each, its last line the
 	// question the paragraph's answer (Accept's line of that number) answers.
@@ -1156,7 +1165,7 @@ func (s *QuestStore) MarkVampire(serverID uint32, quest string) (bool, error) {
 // LoadQuests reads every quest, drafts too, with its steps in order.
 func (s *QuestStore) LoadQuests() ([]Quest, error) {
 	rs, err := s.db.Query(`SELECT questid, name, enabled, giver, minlevel, maxlevel, classes, races, requires,
-		repeatable, offer, accept, decline, declined, started, source, notes, events, factionreq, excludes FROM quests ORDER BY questid`)
+		repeatable, offer, accept, decline, declined, started, source, notes, events, factionreq, excludes, asks, daygroup FROM quests ORDER BY questid`)
 	if err != nil {
 		return nil, err
 	}
@@ -1165,9 +1174,10 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 	for rs.Next() {
 		var q Quest
 		var enabled, repeatable int
-		var classes, races, requires, events, factionReq, excludes string
+		var classes, races, requires, events, factionReq, excludes, asks string
 		if err := rs.Scan(&q.ID, &q.Name, &enabled, &q.Giver, &q.MinLevel, &q.MaxLevel, &classes, &races, &requires,
-			&repeatable, &q.Offer, &q.Accept, &q.Decline, &q.Declined, &q.Started, &q.Source, &q.Notes, &events, &factionReq, &excludes); err != nil {
+			&repeatable, &q.Offer, &q.Accept, &q.Decline, &q.Declined, &q.Started, &q.Source, &q.Notes, &events, &factionReq, &excludes,
+			&asks, &q.DayGroup); err != nil {
 			rs.Close()
 			return nil, err
 		}
@@ -1175,6 +1185,10 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 		q.Classes, q.Races, q.Requires = ParseIntList(classes), ParseIntList(races), ParseIntList(requires)
 		q.RequireGroups = ParseRequires(requires)
 		q.Excludes = ParseIntList(excludes)
+		q.DayGroup = strings.TrimSpace(q.DayGroup)
+		if q.Asks, err = ParseQuestAsks(asks); err != nil {
+			log.Printf("Quests: quest %d's asks are not read: %v", q.ID, err)
+		}
 		if q.Events, err = ParseQuestEvents(events); err != nil {
 			log.Printf("Quests: quest %d's events are not read: %v", q.ID, err)
 		}
@@ -1487,4 +1501,90 @@ func FormatFactionDeltas(v []FactionDelta) string {
 		parts[i] = fmt.Sprintf("%s:%+d", d.Faction, d.Delta)
 	}
 	return strings.Join(parts, ", ")
+}
+
+// QuestAsk is a question the player may ask at a quest's offer (Quest.Asks):
+// the player's line (63 characters), the giver's reply (a box a line, 217
+// characters a line) and the questions it opens.
+type QuestAsk struct {
+	Answer string     `json:"answer"`
+	Says   string     `json:"says"`
+	Asks   []QuestAsk `json:"asks,omitempty"`
+}
+
+// The client's limits an ask is held to.
+const (
+	AskAnswerChars = 63
+	AskSaysChars   = 217
+	AskMostAtOnce  = 6
+)
+
+// ParseQuestAsks reads a quest's asks column ("" none).
+func ParseQuestAsks(s string) ([]QuestAsk, error) {
+	if strings.TrimSpace(s) == "" {
+		return nil, nil
+	}
+	var out []QuestAsk
+	if err := json.Unmarshal([]byte(s), &out); err != nil {
+		return nil, fmt.Errorf("asks: %w", err)
+	}
+	return out, nil
+}
+
+// QuestAskProblems is what is wrong with an asks column: JSON that does not
+// read, an answer over AskAnswerChars, a line of what is said over
+// AskSaysChars (%p counted as 15), more than AskMostAtOnce answers in one box
+// (the accept, the decline and the asks open at once).
+func QuestAskProblems(s string, hasDecline bool) []string {
+	asks, err := ParseQuestAsks(s)
+	if err != nil {
+		return []string{err.Error()}
+	}
+	var out []string
+	runes := func(t string) int { return len([]rune(strings.ReplaceAll(t, "%p", strings.Repeat("x", 15)))) }
+	var walk func(as []QuestAsk, path string)
+	walk = func(as []QuestAsk, path string) {
+		for i, a := range as {
+			p := fmt.Sprintf("%s%d", path, i)
+			if strings.TrimSpace(a.Answer) == "" {
+				out = append(out, "ask "+p+": no answer")
+			}
+			if n := runes(a.Answer); n > AskAnswerChars {
+				out = append(out, fmt.Sprintf("ask %s: its answer is %d characters, %d at most", p, n, AskAnswerChars))
+			}
+			for _, l := range strings.Split(a.Says, "\n") {
+				if n := runes(l); n > AskSaysChars {
+					out = append(out, fmt.Sprintf("ask %s: a line of its reply is %d characters, %d at most", p, n, AskSaysChars))
+				}
+			}
+			walk(a.Asks, p+".")
+		}
+	}
+	walk(asks, "")
+	// the most open at once: the top level's, then each picked one's follow-ups in its place
+	most := func() int {
+		best := 0
+		var rec func(open []QuestAsk)
+		rec = func(open []QuestAsk) {
+			if len(open) > best {
+				best = len(open)
+			}
+			for i, a := range open {
+				next := append(append(append([]QuestAsk{}, open[:i]...), open[i+1:]...), a.Asks...)
+				if len(next) > 0 {
+					rec(next)
+				}
+			}
+		}
+		rec(asks)
+		return best
+	}()
+	fixed := 1
+	if hasDecline {
+		fixed = 2
+	}
+	if most+fixed > AskMostAtOnce {
+		out = append(out, fmt.Sprintf("asks: %d answers may be open at once with the accept and decline, %d at most", most+fixed, AskMostAtOnce))
+	}
+	return out
 }

@@ -54,22 +54,11 @@ TOKEN_DESC = ("A token of holly, its berries bright as the lights on Freeport's 
 #   kills 117 x 4% = 4.7, named 3 x 25% = 0.75, gift 3, quests 2 x 3 = 6, playtime 3 x 1 = 3: 17.5, so X = 18
 DROP_PCT, NAMED_PCT, GIFT, HOURLY, QUEST_TOKENS = 4.0, 25.0, 3, 1, 3
 CALIBRATION = 18
-QUESTS = [  # (id, name, offer, accept, started, [(target, journal, answer, says)], finish says)
-    (102901, "Gifts for Freeport", "The tree is up, %p, and the gifts must go out! Will you carry a few for me?", "I will carry them.",
-     "Wonderful! A gift for Tailor Bariston, and one for Bowyer Koll. Then come back to me.",
-     [("Tailor Bariston", "Bring a Christmas gift to Tailor Bariston in Freeport.", "A gift from the Holiday Elf, for you.",
-       "For me? Wrapped in holly, too. Thank the elf for me, %p."),
-      ("Bowyer Koll", "Bring a Christmas gift to Bowyer Koll in Freeport.", "A gift from the Holiday Elf, for you.",
-       "A gift! I have not had one since I was a boy. Merry Christmas, %p.")],
-     "Every gift delivered! Here, a few Holly Tokens for your trouble. Come back tomorrow: there are always more gifts."),
-    (102902, "Carols for the Guard", "The guards stand their posts all season, %p. Will you sing them a carol from me?", "I will sing.",
-     "Splendid! Sing for Captain Scilond, then for Gylod Ungrim. Then come back to me.",
-     [("Captain Scilond", "Sing a carol for Captain Scilond in Freeport.", "The Holiday Elf asked me to sing you a carol.",
-       "*The captain listens, and almost smiles.* Not bad, %p. Not bad at all."),
-      ("Gylod Ungrim", "Sing a carol for Gylod Ungrim in Freeport.", "The Holiday Elf asked me to sing you a carol.",
-       "*Gylod hums along.* That takes me back. Merry Christmas, %p.")],
-     "The whole plaza heard you! Holly Tokens, for a voice like that. Come back tomorrow and sing again."),
-]
+# the holiday quests as work entry 1597 rewrote them (christmas_elf_quests_20261117.json: the lost fourteen years; 102901
+# once only, 102902 daily, three daily gift runs 102904-102906 after 102901, one a day by day group; questions at the
+# offer of 102901 and 102902)
+ELF_QUESTS = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "christmas_elf_quests_20261117.json")))
+QUEST_IDS = [q["questid"] for q in ELF_QUESTS["quests"]]
 LINES = [  # (town, role, name, line)
     ("Freeport", "", "", "Have you seen the tree in the north plaza, %p? Lit up like the Tribunal's own lanterns."),
     ("Freeport", "", "", "A fir all the way from the northern woods, standing in Freeport. Whoever hauled it here earned their ale."),
@@ -77,9 +66,9 @@ LINES = [  # (town, role, name, line)
     ("Freeport", "", "", "Winter comes even to Freeport, %p. Come warm yourself by the tree's lights."),
     ("Freeport", "guard", "", "No climbing the plaza tree, %p. That goes for halflings too."),
     ("Freeport", "guard", "", "The Militia stands watch over the plaza tree. Orders from the top."),
-    ("", "", ELF, "Merry Christmas, %p! Have you had today's gift? Speak to me each day of the season."),
+    ("", "", ELF, "Merry Christmas, %p! Fourteen years went missing, but the gifts did not. Speak to me each day of the season."),
     ("", "", ELF, "Holly Tokens buy wonders at the Weapon Enchanter. Earn them while the season lasts!"),
-]
+] + [(d["town"], d["role"], d["name"], d["line"]) for d in ELF_QUESTS["dialog_insert"]]
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--db", required=True)
@@ -125,7 +114,7 @@ if a.undo:
         if r is not None:
             db.execute("DELETE FROM lightstrings WHERE id = ?", (sid,))
             audit("delete", "lightstrings", {"id": sid}, r, None)
-    for qid in [q[0] for q in QUESTS]:
+    for qid in QUEST_IDS:
         for tbl in ("queststeps", "quests"):
             n = db.execute(f"DELETE FROM {tbl} WHERE questid = ?", (qid,)).rowcount
             audit("delete", tbl, {"questid": qid}, {"rows": n}, None)
@@ -148,7 +137,7 @@ lights = json.load(open(a.lights))
 for q, args, what in [("SELECT count(*) FROM npcs WHERE npc_name IN (?, ?)", (TREE, ELF), "a Christmas Tree or Holiday Elf NPC"),
                       ("SELECT count(*) FROM itempattern WHERE patternid = ?", (TOKEN,), f"item {TOKEN}"),
                       ("SELECT count(*) FROM seasonrewards WHERE season = ? COLLATE NOCASE", (SEASON,), "the season's rewards"),
-                      (f"SELECT count(*) FROM quests WHERE questid IN ({','.join(str(q[0]) for q in QUESTS)})", (), "a holiday quest's id"),
+                      (f"SELECT count(*) FROM quests WHERE questid IN ({','.join(str(q) for q in QUEST_IDS)})", (), "a holiday quest's id"),
                       ("SELECT count(*) FROM gmtriggers WHERE name = ?", (TRIGGER,), "the Christmas Season trigger"),
                       ("SELECT count(*) FROM gmseasons WHERE name = ? COLLATE NOCASE", (SEASON,), "the Christmas season"),
                       ("SELECT count(*) FROM npcseason WHERE source = ?", (SRC,), "a Christmas NPC season"),
@@ -221,17 +210,30 @@ db.execute("INSERT INTO seasonrewards (season, item, drop_pct, named_pct, gift_n
            (SEASON, TOKEN, DROP_PCT, NAMED_PCT, ELF, GIFT, HOURLY,
             f"an evening (3 h) earns about {CALIBRATION}: one weapon aura at the Weapon Enchanter", SRC))
 audit("insert", "seasonrewards", {"season": SEASON}, None, {"item": TOKEN, "drop_pct": DROP_PCT, "named_pct": NAMED_PCT, "gift": GIFT, "hourly": HOURLY})
-# the holiday quests: daily (repeatable 2), from the Holiday Elf
-for qid, name, offer, accept, started, stops, finish in QUESTS:
-    db.execute("INSERT INTO quests (questid, name, enabled, giver, minlevel, maxlevel, repeatable, offer, accept, started, source, notes) "
-               "VALUES (?, ?, 1, ?, 1, 60, 2, ?, ?, ?, ?, ?)", (qid, name, ELF, offer, accept, started, SRC,
-                                                                   "The Christmas season's daily quest (tools/christmas_season_20261116.py)"))
-    for i, (target, journal, answer, says) in enumerate(stops, 1):
-        db.execute("INSERT INTO queststeps (questid, step, kind, target, journal, answer, says) VALUES (?, ?, 'talk', ?, ?, ?, ?)",
-                   (qid, i, target, journal, answer, says))
-    db.execute("INSERT INTO queststeps (questid, step, kind, target, journal, says, rewarditems) VALUES (?, ?, 'talk', ?, ?, ?, ?)",
-               (qid, len(stops) + 1, ELF, f"Return to the {ELF} by Freeport's Christmas tree.", finish, f"{TOKEN}*{QUEST_TOKENS}"))
-    audit("insert", "quests", {"questid": qid}, None, {"name": name, "steps": len(stops) + 1, "reward": f"{TOKEN}*{QUEST_TOKENS}"})
+# the holiday quests (work entry 1597's rows): the columns they use made if the server has not yet
+for tbl, col, decl in (("quests", "asks", "TEXT NOT NULL DEFAULT ''"), ("quests", "daygroup", "TEXT NOT NULL DEFAULT ''"),
+                       ("queststeps", "anyorder", "INTEGER NOT NULL DEFAULT 0")):
+    if col not in {r[1] for r in db.execute(f"PRAGMA table_info({tbl})")}:
+        db.execute(f"ALTER TABLE {tbl} ADD COLUMN {col} {decl}")
+QCOLS = {r[1] for r in db.execute("PRAGMA table_info(quests)")}
+SCOLS = {r[1] for r in db.execute("PRAGMA table_info(queststeps)")}
+ASKS = json.dumps(ELF_QUESTS["asks"], ensure_ascii=False, separators=(",", ":"))
+for q in ELF_QUESTS["quests"]:
+    qr = dict(q["quest"], questid=q["questid"])
+    qr.setdefault("name", {102901: "Gifts for Freeport", 102902: "Carols for the Guard"}.get(q["questid"], ""))
+    for k, v in (("enabled", 1), ("giver", ELF), ("minlevel", 1), ("maxlevel", 60), ("repeatable", 2), ("source", SRC),
+                 ("notes", "The Christmas season's quest (tools/christmas_season_20261116.py; work entry 1597)")):
+        qr.setdefault(k, v)
+    if q["questid"] in (102901, 102902):
+        qr.setdefault("accept", {102901: "I will carry them.", 102902: "I will sing."}[q["questid"]])
+        qr["asks"] = ASKS
+    keys = [k for k in qr if k in QCOLS]
+    db.execute(f"INSERT INTO quests ({', '.join(keys)}) VALUES ({', '.join('?' * len(keys))})", [qr[k] for k in keys])
+    for st in q["steps"]:
+        sr = dict(st, questid=q["questid"])
+        keys = [k for k in sr if k in SCOLS]
+        db.execute(f"INSERT INTO queststeps ({', '.join(keys)}) VALUES ({', '.join('?' * len(keys))})", [sr[k] for k in keys])
+    audit("insert", "quests", {"questid": q["questid"]}, None, {"name": qr["name"], "steps": len(q["steps"])})
 # the talk
 for town, role, name, line in LINES:
     db.execute("INSERT INTO npcdialog (town, role, name, line, weight, source) VALUES (?, ?, ?, ?, 2, ?)", (town, role, name, line, SRC))
@@ -249,7 +251,7 @@ db.execute("INSERT INTO gmtriggers (slot, name, enabled, scope, radius, world, x
             "again to take them down. tools/christmas_season_20261116.py"))
 audit("insert", "gmtriggers", {"slot": slot}, None, {"name": TRIGGER})
 print(f"{ELF} npcs {eid}, {TOKEN_NAME} {TOKEN} (drops {DROP_PCT}%/{NAMED_PCT}% named, gift {GIFT}/day, {HOURLY}/hour, "
-      f"quests {[q[0] for q in QUESTS]} {QUEST_TOKENS} each, daily): an evening about {CALIBRATION}")
+      f"quests {QUEST_IDS} {QUEST_TOKENS} each): an evening about {CALIBRATION}")
 print(f"{TREE} npcs {nid} at ({x}, {y:.3f}, {z}) size {SIZE}, art sunk {SINK} (season {SEASON}, off), art {FIR:#010x} zone {FIR_ZONE}, "
       f"{len(lights['templates'])} light template(s), strings {j['strings']}, {len(LINES)} dialog lines, trigger {slot} '{TRIGGER}'")
 if a.apply:

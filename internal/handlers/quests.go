@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -296,6 +297,10 @@ type questChoice struct {
 	step   int
 	option int // a step's choice: the option picked
 	label  string
+	// an ask of the offer (choiceAsk): its path ("0", "0.1") and the paths
+	// picked before it in this conversation
+	ask    string
+	picked []string
 }
 
 const (
@@ -305,6 +310,7 @@ const (
 	choiceNotYet  // a show or give step's answer while its items lack: the reminder
 	choiceNothing // a dead end (Sandstorm's "Farewell")
 	choicePick    // an option of a step's choice (database.StepChoices)
+	choiceAsk     // a question asked at the offer (database.QuestAsk)
 )
 
 // NewQuestEngine reads the quests out of db. Start sets it running.
@@ -1044,6 +1050,24 @@ func (q *QuestEngine) mayTakeAtLocked(look *factionLook, p *entity.Player, c *qu
 			return fmt.Sprintf("quest %d, which excludes it, is under way", id)
 		}
 	}
+	// a day group (database.Quest.DayGroup, work entry 1597): its quests one a
+	// day, one under way at a time
+	if qu.DayGroup != "" {
+		today := time.Now().UTC().Format("2006-01-02")
+		for id, g := range q.cat.byID {
+			if id == qu.ID || !strings.EqualFold(g.DayGroup, qu.DayGroup) {
+				continue
+			}
+			if cq := c.quests[id]; cq != nil {
+				if cq.Active() {
+					return fmt.Sprintf("quest %d of its day group is under way", id)
+				}
+				if cq.Done > 0 && strings.HasPrefix(cq.Updated, today) {
+					return fmt.Sprintf("quest %d of its day group was finished today: again tomorrow", id)
+				}
+			}
+		}
+	}
 	if cq := c.quests[qu.ID]; cq != nil {
 		if cq.Active() {
 			return "under way"
@@ -1156,11 +1180,73 @@ func (q *QuestEngine) askStageLocked(sess *session.Session, c *questChar, qu *da
 	case k < len(paras):
 		words = paras[k]
 	}
+	q.askLocked(sess, c, qu.Giver, words, questAskOffer, offerChoices(qu, k, nil))
+}
+
+// offerChoices is the answers of an offer's stage k: the accept, the decline
+// and, at the last stage, the asks open after those picked (openAsks), six
+// answers at most.
+func offerChoices(qu *database.Quest, k int, picked []string) []questChoice {
+	answers := sayLines(qu.Accept)
 	choices := []questChoice{{kind: choiceAccept, quest: qu.ID, step: k, label: answers[k]}}
 	if d := strings.TrimSpace(qu.Decline); d != "" {
 		choices = append(choices, questChoice{kind: choiceDecline, quest: qu.ID, label: d})
 	}
-	q.askLocked(sess, c, qu.Giver, words, questAskOffer, choices)
+	if k != len(answers)-1 {
+		return choices
+	}
+	for _, o := range openAsks(qu.Asks, picked) {
+		if len(choices) >= database.AskMostAtOnce {
+			break
+		}
+		choices = append(choices, questChoice{kind: choiceAsk, quest: qu.ID, step: k, label: o.ask.Answer, ask: o.path, picked: picked})
+	}
+	return choices
+}
+
+// openAsk is an ask that may be asked now and its path.
+type openAsk struct {
+	path string
+	ask  database.QuestAsk
+}
+
+// openAsks is the asks open once those of picked are asked: each top-level
+// ask not picked, then the follow-ups of each picked one not picked, in list
+// order (work entry 1597).
+func openAsks(asks []database.QuestAsk, picked []string) []openAsk {
+	was := map[string]bool{}
+	for _, p := range picked {
+		was[p] = true
+	}
+	var out []openAsk
+	var walk func(as []database.QuestAsk, prefix string, open bool)
+	walk = func(as []database.QuestAsk, prefix string, open bool) {
+		for i, a := range as {
+			path := prefix + strconv.Itoa(i)
+			if open && !was[path] {
+				out = append(out, openAsk{path: path, ask: a})
+			}
+			if was[path] {
+				walk(a.Asks, path+".", true)
+			}
+		}
+	}
+	walk(asks, "", true)
+	return out
+}
+
+// askAt is the ask at path, or nil.
+func askAt(asks []database.QuestAsk, path string) *database.QuestAsk {
+	var at *database.QuestAsk
+	for _, part := range strings.Split(path, ".") {
+		i, err := strconv.Atoi(part)
+		if err != nil || i < 0 || i >= len(asks) {
+			return nil
+		}
+		at = &asks[i]
+		asks = at.Asks
+	}
+	return at
 }
 
 // paragraphs is a text's paragraphs: its lines between blank lines.
@@ -1396,6 +1482,22 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 		c.declined[qu.ID] = true
 		q.antidoteLocked(c, qu) // a were line's third quest: its antidote (wereinfect.go)
 		log.Printf("Quests: %s refused %q", p.Name, qu.Name)
+	case choiceAsk:
+		// the giver's reply, then the offer's question again: the ask
+		// picked drops out, its follow-ups come in; nothing is kept
+		a := askAt(qu.Asks, ch.ask)
+		if a == nil || q.mayTakeLocked(q.lookAt(sess), p, c, qu) != "" {
+			return true
+		}
+		picked := append(append([]string{}, ch.picked...), ch.ask)
+		paras := paragraphs(qu.Offer)
+		question := ""
+		if n := len(paras); n > 0 {
+			if ls := sayLines(paras[n-1]); len(ls) > 0 {
+				question = ls[len(ls)-1]
+			}
+		}
+		q.askLocked(sess, c, qu.Giver, strings.TrimSpace(a.Says+"\n"+question), questAskOffer, offerChoices(qu, ch.step, picked))
 	case choiceNotYet:
 		if st := qu.Step(ch.step); st != nil {
 			q.tellLocked(c, sess, st.Target, sayLines(orText(st.Reminder, questNotYet))...)

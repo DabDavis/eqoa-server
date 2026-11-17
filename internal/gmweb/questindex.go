@@ -56,6 +56,7 @@ type questRow struct {
 	UnderWay int      `json:"underway"`
 	Finished int      `json:"finished"`
 	Requires []int64  `json:"requires,omitempty"`
+	DayGroup string   `json:"daygroup,omitempty"`
 	Why      []string `json:"why,omitempty"`
 
 	groups  [][]int64   // what it requires by group (database.ParseRequires): any one of a group, every group
@@ -253,7 +254,7 @@ func (s *Server) loadQuestIndex() (*questIndex, error) {
 		return nil, err
 	}
 	quests, err := s.everyRow(`SELECT questid, name, enabled, giver, minlevel, maxlevel, classes, races, requires, source, notes,
-		factionreq FROM quests ORDER BY questid`)
+		factionreq, daygroup FROM quests ORDER BY questid`)
 	if err != nil {
 		return nil, err
 	}
@@ -291,7 +292,7 @@ func (s *Server) loadQuestIndex() (*questIndex, error) {
 		r := &questRow{ID: num(q, "questid"), Name: text(q, "name"), Enabled: num(q, "enabled") != 0,
 			Giver: text(q, "giver"), MinLevel: int(num(q, "minlevel")), MaxLevel: int(num(q, "maxlevel")),
 			Classes: database.ParseIntList(text(q, "classes")), Races: database.ParseIntList(text(q, "races")),
-			Source: text(q, "source"), notes: text(q, "notes")}
+			Source: text(q, "source"), notes: text(q, "notes"), DayGroup: text(q, "daygroup")}
 		for _, id := range database.ParseIntList(text(q, "requires")) {
 			r.Requires = append(r.Requires, int64(id))
 		}

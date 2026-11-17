@@ -339,9 +339,13 @@ class ChristmasSeasonTest(unittest.TestCase):
         self.assertEqual(tok, ("Holly Token", 999, 0, 140265582), "stackable, tradeable")
         self.assertEqual(db.execute("SELECT item, drop_pct, named_pct, gift_npc, gift_count, hourly FROM seasonrewards").fetchall(),
                          [(716900, 4.0, 25.0, "Holiday Elf", 3, 1)])
+        # work entry 1597's quests: 102901 once, 102902 daily, three daily runs after 102901 (one a day by day group)
         self.assertEqual(db.execute("SELECT questid, repeatable, giver FROM quests ORDER BY 1").fetchall(),
-                         [(102901, 2, "Holiday Elf"), (102902, 2, "Holiday Elf")])
-        self.assertEqual(db.execute("SELECT rewarditems FROM queststeps WHERE rewarditems != ''").fetchall(), [("716900*3",), ("716900*3",)])
+                         [(102901, 0, "Holiday Elf"), (102902, 2, "Holiday Elf"), (102904, 2, "Holiday Elf"), (102905, 2, "Holiday Elf"), (102906, 2, "Holiday Elf")])
+        self.assertEqual(db.execute("SELECT questid, daygroup, requires FROM quests WHERE daygroup != '' ORDER BY 1").fetchall(),
+                         [(102901, "christmas-gifts", ""), (102904, "christmas-gifts", "102901"), (102905, "christmas-gifts", "102901"), (102906, "christmas-gifts", "102901")])
+        self.assertGreater(db.execute("SELECT length(asks) FROM quests WHERE questid = 102901").fetchone()[0], 100)
+        self.assertEqual(db.execute("SELECT count(*) FROM queststeps WHERE rewarditems = '716900*3'").fetchone()[0], 5)
         self.assertEqual(db.execute("SELECT name, season FROM npcseason ORDER BY 1").fetchall(), [("Christmas Tree", "Christmas"), ("Holiday Elf", "Christmas")])
         db.close()
         r = self.run_tool("--apply")

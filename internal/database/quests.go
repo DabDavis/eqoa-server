@@ -521,6 +521,29 @@ func AtNPC(kind string) bool { return kind == StepTalk || kind == StepShow || ki
 // the kinds that count several (QuestStep.Also).
 func Hunts(kind string) bool { return kind == StepKill || kind == StepLoot }
 
+// AnyCreature is a kill or loot step's target that takes any creature killed
+// within the step's area (World, X and Z, Radius) in place of creatures of a
+// name (the owner, 2026-11-17, Lord Valkanith's emerald: "10% chance to drop in
+// this city only"): a creature of any name counts there, none counts outside it.
+// A step with it and no Radius takes nothing.
+const AnyCreature = "*"
+
+// AnyInArea reports a kill or loot step that takes any creature killed within
+// its area (AnyCreature).
+func (s *QuestStep) AnyInArea() bool {
+	return Hunts(s.Kind) && strings.TrimSpace(s.Target) == AnyCreature && s.Radius > 0
+}
+
+// TakesKillAt reports an AnyInArea step taking a creature that died at (x, z)
+// in world: within its Radius of its X and Z, in its World.
+func (s *QuestStep) TakesKillAt(world int, x, z float32) bool {
+	if !s.AnyInArea() || world != s.World {
+		return false
+	}
+	dx, dz := x-s.X, z-s.Z
+	return dx*dx+dz*dz <= s.Radius*s.Radius
+}
+
 // Quest is one quest and its steps, in order.
 type Quest struct {
 	ID         int
@@ -1071,7 +1094,7 @@ func (s *QuestStep) Targets() []string {
 	add := func(n string) {
 		n = strings.TrimSpace(n)
 		k := strings.ToLower(n)
-		if n == "" || seen[k] {
+		if n == "" || n == AnyCreature || seen[k] { // AnyCreature names no creature
 			return
 		}
 		seen[k] = true
@@ -1092,6 +1115,9 @@ func (s *QuestStep) TargetWords() string {
 	t := s.Targets()
 	switch len(t) {
 	case 0:
+		if s.AnyInArea() {
+			return "creatures"
+		}
 		return ""
 	case 1:
 		return t[0]

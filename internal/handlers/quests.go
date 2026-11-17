@@ -910,6 +910,12 @@ func (q *QuestEngine) offerAtLocked(look *factionLook, p *entity.Player, c *ques
 // target, a kill or loot step by its target or one of its others (Also). A
 // step pinned to one spawn (NPCID) takes its target at that spawn only; its
 // others count at any of theirs.
+// stepKill reports a kill a kill or loot step takes: its creature by name
+// (stepNPC), or any creature that died within its area (AnyCreature).
+func stepKill(st *database.QuestStep, k entity.KillCredit) bool {
+	return stepNPC(st, k.NPCName, k.NPCSpawn) || st.TakesKillAt(int(k.World), k.X, k.Z)
+}
+
 func stepNPC(st *database.QuestStep, name string, spawn entity.EntityID) bool {
 	name = strings.TrimSpace(name)
 	if strings.EqualFold(strings.TrimSpace(st.Target), name) {
@@ -1485,14 +1491,14 @@ func (q *QuestEngine) killed(k entity.KillCredit) {
 				continue
 			}
 			st := qu.Step(cq.Step)
-			if st != nil && st.Kind == database.StepLoot && stepNPC(st, k.NPCName, k.NPCSpawn) {
+			if st != nil && st.Kind == database.StepLoot && stepKill(st, k) {
 				if pid, _, ok := st.LootItem(); ok {
 					rolled[pid] = true
 				}
 				q.lootKillLocked(k, kp, c, qu, cq, st) // questevents.go
 				continue
 			}
-			if st == nil || st.Kind != database.StepKill || !stepNPC(st, k.NPCName, k.NPCSpawn) {
+			if st == nil || st.Kind != database.StepKill || !stepKill(st, k) {
 				q.laterStepKillLocked(c, kp, qu, st, k)
 				continue
 			}
@@ -1538,7 +1544,7 @@ func (q *QuestEngine) laterStepKillLocked(c *questChar, kp entity.KillPlayer, qu
 	}
 	for i := range qu.Steps {
 		later := &qu.Steps[i]
-		if later.Step <= st.Step || !database.Hunts(later.Kind) || !stepNPC(later, k.NPCName, k.NPCSpawn) {
+		if later.Step <= st.Step || !database.Hunts(later.Kind) || !stepKill(later, k) {
 			continue
 		}
 		first := strings.TrimSpace(st.Journal)

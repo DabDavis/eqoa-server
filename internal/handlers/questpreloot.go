@@ -37,8 +37,9 @@ type lootRef struct {
 	st *database.QuestStep
 }
 
-// lootStepsFor is every enabled quest's loot step a creature's kill matches.
-func (q *QuestEngine) lootStepsForLocked(name string, spawn entity.EntityID) []lootRef {
+// lootStepsFor is every enabled quest's loot step a creature's kill matches
+// (stepKill: an AnyCreature step's area too).
+func (q *QuestEngine) lootStepsForLocked(k entity.KillCredit) []lootRef {
 	var out []lootRef
 	for _, qu := range q.cat.all {
 		if !qu.Enabled {
@@ -46,7 +47,7 @@ func (q *QuestEngine) lootStepsForLocked(name string, spawn entity.EntityID) []l
 		}
 		for i := range qu.Steps {
 			st := &qu.Steps[i]
-			if st.Kind == database.StepLoot && stepNPC(st, name, spawn) {
+			if st.Kind == database.StepLoot && stepKill(st, k) {
 				out = append(out, lootRef{qu, st})
 			}
 		}
@@ -65,11 +66,18 @@ func (q *QuestEngine) preLootLocked(k entity.KillCredit, kp entity.KillPlayer, c
 	if p == nil {
 		return
 	}
-	for _, ref := range q.lootStepsForLocked(k.NPCName, k.NPCSpawn) {
+	for _, ref := range q.lootStepsForLocked(k) {
 		qu, st := ref.qu, ref.st
 		pid, need, ok := st.LootItem()
 		if !ok || rolled[pid] {
 			continue
+		}
+		if st.AnyInArea() {
+			// an area's any creature drops it for its quest's players alone: every kill
+			// there is one, and one who has not taken the quest is not hunting for it
+			if cq := c.quests[qu.ID]; cq == nil || !cq.Active() {
+				continue
+			}
 		}
 		if cq := c.quests[qu.ID]; cq != nil {
 			if cq.Active() && cq.Step >= st.Step {

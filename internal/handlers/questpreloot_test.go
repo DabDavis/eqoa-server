@@ -156,3 +156,29 @@ func TestALaterLootStepOfTheSameItemWantsItsOwn(t *testing.T) {
 		t.Fatalf("a half held at a loot step after the hand-in: step %d, want 4 (counted at once)", s)
 	}
 }
+
+// Live petition 5248 (Waldorf): an item a loot step wants, handed over in a trade while the
+// step is under way, counts as one taken off a corpse does. One belt in: 1 of 2, the step
+// stays; the second in: the step is done.
+func TestATradedItemCountsOnItsLootStep(t *testing.T) {
+	f := newQuestFixture(t)
+	belt := f.pattern("slashed belt", 20)
+	lootQuest(f, belt)
+	if _, err := f.qe.SetCharacterQuest(f.sid, 60, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.own(belt, 1)
+	f.qe.Received(f.tw.s, f.tw.p)
+	if s, _ := f.progress(60); s != 1 {
+		t.Fatalf("one belt traded in: step %d, want 1 (one of two)", s)
+	}
+	f.qe.Received(f.tw.s, f.tw.p) // told again with nothing new: still one of two
+	if s, _ := f.progress(60); s != 1 {
+		t.Fatalf("told again: step %d, want 1", s)
+	}
+	f.own(belt, 1)
+	f.qe.Received(f.tw.s, f.tw.p)
+	if s, _ := f.progress(60); s != 2 {
+		t.Fatalf("both belts traded in: step %d, want 2", s)
+	}
+}

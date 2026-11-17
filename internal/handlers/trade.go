@@ -86,6 +86,9 @@ type TradeHandler struct {
 	sessionManager *session.Manager
 	gameWorld      *entity.World
 	items          *NPCWindowHandler // giveItem, takeItem, saveTunar
+	// received is told of each side that took items in (QuestEngine.Received:
+	// a loot step counts an item handed over; Live petition 5248)
+	received func(sess *session.Session, p *entity.Player)
 
 	mu     sync.Mutex
 	trades map[*session.Session]*trade
@@ -467,6 +470,11 @@ func (h *TradeHandler) completeLocked(t *trade) {
 	h.send(t.a, 16, h.seen(t.a, t.b.player), nil)
 	h.send(t.b, 16, h.seen(t.b, t.a.player), nil)
 	h.endLocked(t)
+	if h.received != nil {
+		for side := range gives {
+			h.received(side.sess, side.player)
+		}
+	}
 }
 
 // refuseLocked is 17 to both: the trade stays, the accepts cleared.

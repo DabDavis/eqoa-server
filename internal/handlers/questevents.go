@@ -748,6 +748,29 @@ func (q *QuestEngine) Looted(sess *session.Session, p *entity.Player, pattern, n
 	}
 }
 
+// Received is items a player took in other than off a corpse (a trade): each
+// loot step under way counts what the pack now holds of its item, as a step
+// become the step to do counts it (lootStepHeldLocked), and is done when they
+// are enough. Live petition 5248 (Waldorf): a snake fang handed over in a
+// trade left the step where it was, and the player had to hunt their own.
+func (q *QuestEngine) Received(sess *session.Session, p *entity.Player) {
+	if q == nil || sess == nil || p == nil {
+		return
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	c := q.namedLocked(p.CharServerID, p.Name)
+	for _, cq := range c.active() {
+		qu := q.cat.byID[cq.QuestID]
+		if qu == nil {
+			continue
+		}
+		if st := qu.Step(cq.Step); st != nil && st.Kind == database.StepLoot {
+			q.lootStepHeldLocked(sess, p, c, qu, cq, st)
+		}
+	}
+}
+
 // countLootLocked counts n of a loot step's item taken: the step done at its
 // count (once the pack has room for what doing it gives), else the count said.
 func (q *QuestEngine) countLootLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep, n int) {

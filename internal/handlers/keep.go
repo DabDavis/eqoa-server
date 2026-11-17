@@ -174,6 +174,8 @@ type KeptCorpse struct {
 	Drops  map[uint32][]database.CharInventoryEntry `json:"drops,omitempty"`
 	// Raid is its raid's hold (raidloot.go: keepRaid), nil for none
 	Raid *KeptRaidCorpse `json:"raid,omitempty"`
+	// Shares are its No Trade stacks shared one to a character (lootshare.go)
+	Shares []KeptShare `json:"shares,omitempty"`
 	// Right is its kill group (lootrights.go), nil for none: the corpse anyone's.
 	// Without it every corpse lay open to all after a restart, a stranger's
 	// first opening taking the coins and the items (the owner, 2026-11-12).
@@ -242,6 +244,7 @@ func KeepCorpses() []KeptCorpse {
 		if c := ls.corpses[id]; c != nil && c.died.Equal(died) {
 			k.Opened, k.Items = true, c.items
 			k.Raid = keepRaid(ls, c, h.raidClock())
+			k.Shares = keepShares(c.shares)
 		}
 		if d := ls.drops[id]; d != nil && d.died.Equal(died) {
 			k.Drops = d.items
@@ -283,7 +286,7 @@ func RestoreCorpsesAs(kept []KeptCorpse, ids map[entity.EntityID]entity.EntityID
 			continue
 		}
 		if k.Opened {
-			c := &corpse{died: died, items: k.Items}
+			c := &corpse{died: died, items: k.Items, shares: restoreShares(k.Shares)}
 			ls.corpses[id] = c
 			if restoreRaid(ls, id, c, k.Raid, h.raidClock()) {
 				h.startRaidWorker() // its rolls and holds end on time

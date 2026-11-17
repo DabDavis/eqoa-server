@@ -397,6 +397,11 @@ func (h *NPCWindowHandler) startRaidLootLocked(ls *lootState, npc *entity.NPC, k
 	}
 	c := h.rollCorpse(npc, k.Died, level)
 	ls.corpses[npc.ServerID] = c
+	seats := make([]uint32, 0, len(r.Seats))
+	for _, st := range r.Seats {
+		seats = append(seats, st.ServerID)
+	}
+	owe(c.shares, seats) // every seat its own copy of a No Trade stack (lootshare.go)
 	boss := h.raidBoss(npc.Name, r.TemplateHPPct)
 	var covered []linkedItem
 	for i := range c.items {
@@ -906,7 +911,7 @@ func (h *NPCWindowHandler) raidOpenLocked(sess *session.Session, ls *lootState, 
 			rc.from, rc.masterName, spanWords(rc.until.Sub(now))), 255, 63, 63)
 		return true, nil
 	}
-	if len(c.items) == 0 && len(ls.dropsLocked(npc.ServerID, c, char)) == 0 && len(rc.held) > 0 {
+	if len(ls.viewLocked(npc.ServerID, c, char)) == 0 && len(rc.held) > 0 {
 		queueReliable(sess, protocol.OpcodeLootOptions, buildLootOption(lootAnotherOwner))
 		SendColoredChat(sess, fmt.Sprintf("%s's loot is being rolled on, or waits for its winners.", rc.from), 255, 63, 63)
 		return true, nil

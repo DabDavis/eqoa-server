@@ -82,18 +82,20 @@ func (ls *lootState) dropsLocked(id entity.EntityID, c *corpse, serverID uint32)
 }
 
 // viewLocked is the corpse as character serverID's window lists it: its own
-// items, then that character's drops.
+// items, then its shares that character may take (lootshare.go), then that
+// character's drops.
 func (ls *lootState) viewLocked(id entity.EntityID, c *corpse, serverID uint32) []database.CharInventoryEntry {
 	mine := ls.dropsLocked(id, c, serverID)
-	if len(mine) == 0 {
+	shared := c.sharesViewLocked(serverID)
+	if len(mine) == 0 && len(shared) == 0 {
 		return c.items
 	}
-	out := make([]database.CharInventoryEntry, 0, len(c.items)+len(mine))
-	return append(append(out, c.items...), mine...)
+	out := make([]database.CharInventoryEntry, 0, len(c.items)+len(shared)+len(mine))
+	return append(append(append(out, c.items...), shared...), mine...)
 }
 
 // tookLocked takes n of the record at position i of character serverID's
-// view of the corpse (its own items first, then the drops).
+// view of the corpse (its own items first, then its shares, then the drops).
 func (ls *lootState) tookLocked(id entity.EntityID, c *corpse, serverID uint32, i, n int) {
 	if i < len(c.items) {
 		c.items[i].StackLeft -= n
@@ -102,11 +104,14 @@ func (ls *lootState) tookLocked(id entity.EntityID, c *corpse, serverID uint32, 
 		}
 		return
 	}
+	j := i - len(c.items)
+	if c.tookShareLocked(serverID, &j, n) {
+		return
+	}
 	d := ls.drops[id]
 	if d == nil || !d.died.Equal(c.died) {
 		return
 	}
-	j := i - len(c.items)
 	mine := d.items[serverID]
 	if j < 0 || j >= len(mine) {
 		return
@@ -126,6 +131,9 @@ func (ls *lootState) tookLocked(id entity.EntityID, c *corpse, serverID uint32, 
 // items and every character's drops, but those dropped ahead of their step.
 func (ls *lootState) emptyLocked(id entity.EntityID, c *corpse) bool {
 	if len(c.items) > 0 || c.raid != nil && len(c.raid.held) > 0 { // a raid's rolled and won items (raidloot.go)
+		return false
+	}
+	if c.owedLocked() { // a share's copy a character of the kill waits for (lootshare.go)
 		return false
 	}
 	d := ls.drops[id]

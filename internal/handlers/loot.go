@@ -59,6 +59,8 @@ type corpse struct {
 	// raid is its raid's hold on it: rolls, winners, a master looter (raidloot.go);
 	// nil for every other corpse
 	raid *raidCorpse
+	// shares are its No Trade stacks, one to a character (lootshare.go)
+	shares []*lootShare
 }
 
 // lootState is the corpses and who has which one open.
@@ -135,6 +137,7 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 		c = h.rollCorpse(npc, died, h.openerLevel(sess))
 		ls.corpses[npc.ServerID] = c
 	}
+	h.servedHoldersLocked(c, sess, h.charOf(sess), sessionInvList(sess)) // one held already: the next one's (lootshare.go)
 	answered := false
 	if answered, won = h.raidOpenLocked(sess, ls, npc, c); answered { // its raid's rules first (raidloot.go)
 		return true
@@ -210,7 +213,11 @@ func (h *NPCWindowHandler) rollCorpse(npc *entity.NPC, died time.Time, level int
 	for i := range items {
 		items[i] = catalogRecord(items[i])
 	}
-	return &corpse{died: died, items: items, tunar: corpseCoins(npc, h.coinRoll)}
+	// No Trade stacks shared, one to each character of the kill (lootshare.go)
+	items, shares := splitShares(items)
+	c := &corpse{died: died, items: items, tunar: corpseCoins(npc, h.coinRoll), shares: shares}
+	owe(shares, h.killCharsOf(npc.ServerID, c))
+	return c
 }
 
 // lootEveryCreature is the npcloot name whose tables every creature's corpse
@@ -392,6 +399,7 @@ func sessName(h *NPCWindowHandler, sess *session.Session) string {
 func (h *NPCWindowHandler) resendCorpse(sess *session.Session, ls *lootState, c *corpse) {
 	queueReliable(sess, protocol.OpcodeClientCloseLoot, closeLootPayload())
 	id, open := ls.open[sess]
+	h.servedHoldersLocked(c, sess, h.charOf(sess), sessionInvList(sess))
 	view := ls.viewLocked(id, c, h.charOf(sess))
 	if len(view) == 0 {
 		delete(ls.open, sess)
@@ -448,8 +456,11 @@ func (h *NPCWindowHandler) HandleLootClose(sess *session.Session, msg *protocol.
 	delete(ls.open, sess)
 	delete(ls.since, sess)
 	queueReliable(sess, protocol.OpcodeClientCloseLoot, closeLootPayload())
-	if c := ls.corpses[id]; open && c != nil && ls.emptyLocked(id, c) {
-		h.emptiedLocked(ls, id, c)
+	if c := ls.corpses[id]; open && c != nil {
+		h.servedHoldersLocked(c, nil, 0, nil) // the kill's characters that need no copy (lootshare.go)
+		if ls.emptyLocked(id, c) {
+			h.emptiedLocked(ls, id, c)
+		}
 	}
 	ls.mu.Unlock()
 	return nil

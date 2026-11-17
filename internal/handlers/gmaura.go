@@ -80,7 +80,7 @@ var auraKinds = map[string]uint8{"default": database.AuraDefault, "none": databa
 	"particles": database.AuraParticles, "both": database.AuraBoth, "trim": database.AuraTrim, "trimshell": database.AuraTrimShell}
 
 // auraKindNames are the kinds' names by number.
-var auraKindNames = [...]string{"default", "none", "shell", "particles", "both", "trim", "trimshell", "epic", "circlet", "energy", "hat"}
+var auraKindNames = [...]string{"default", "none", "shell", "particles", "both", "trim", "trimshell", "epic", "circlet", "energy", "hat", "lights", "stripes", "icing"}
 
 // parseHex32 reads a 32-bit hex value, with or without 0x.
 func parseHex32(s string) (uint32, bool) {

@@ -113,7 +113,7 @@ func FamiliarCast(d FamiliarDef) CastSpell {
 // (monkeys.go), neither of which draws hate (addThreatLocked's refusal).
 // Must be called with the lock held.
 func (w *World) isFamiliarIDLocked(id EntityID) bool {
-	if len(w.familiars) == 0 && len(w.monkeys) == 0 {
+	if len(w.familiars) == 0 && len(w.monkeys) == 0 && len(w.plushies) == 0 {
 		return false
 	}
 	n := w.NPCs[id]

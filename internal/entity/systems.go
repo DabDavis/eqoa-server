@@ -68,6 +68,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.mercSystem(now)         // the mercenaries (merc.go)
 	w.familiarSystem(now)     // the familiars (familiar.go)
 	w.monkeySystem(now)       // the Barrel of Monkeys' monkeys (monkeys.go)
+	w.plushieSystem(now)      // the Pegasus Plushies' winged horses (plushie.go)
 	w.snowLauncherSystem(now) // the Automatic Snowball Launchers (snowlauncher.go)
 	w.uiToldSystem(now)       // the mercs and the group search's standing told (uitold.go)
 	t.mark(tsPets)

@@ -383,7 +383,34 @@ func (w *World) PieceAurasOf(p *Player) *PieceAuras {
 		return nil
 	}
 	k := database.CharAuraKey{CharID: p.CharServerID}
-	return w.pieceAuras(&p.WornPieces, &p.WornItems, p.WornMask, p.ShownHiddenParts(), w.charAuras(k), w.charSecondAuras(k))
+	out := w.pieceAuras(&p.WornPieces, &p.WornItems, p.WornMask, p.ShownHiddenParts(), w.charAuras(k), w.charSecondAuras(k))
+	return w.illusionIcing(p, out)
+}
+
+// illusionIcing is a's auras with the body's in an icing (database.AuraIcing)
+// while p's body shown is the toy illusion of an item whose itemaura is one
+// (the Gingerbread Man: its white eyes, smile and buttons on the clay golem),
+// in place of whatever body aura p has: the icing belongs to the illusion's
+// body, and goes with it. a itself otherwise (nil stays nil).
+func (w *World) illusionIcing(p *Player, a *PieceAuras) *PieceAuras {
+	pid, ok := p.shownOutfitItem()
+	if !ok {
+		return a
+	}
+	m := w.itemAuras.by.Load()
+	if m == nil {
+		return a
+	}
+	ice, ok := (*m)[pid]
+	if !ok || ice.Kind != database.AuraIcing {
+		return a
+	}
+	var out PieceAuras
+	if a != nil {
+		out = *a
+	}
+	out[AuraBody] = ice
+	return &out
 }
 
 // NPCPieceAurasOf is the auras an NPC dressed in item records shows (a
@@ -444,8 +471,9 @@ func (w *World) pieceAuras(pieces *[AuraSlots]int, items *[AuraSlots]int, mask u
 			continue
 		}
 		if a, ok := (*m)[pieces[i]]; ok {
-			if (a.Kind == database.AuraCirclet || a.Kind == database.AuraHat) && i != AuraHelm || a.Kind == database.AuraEpic || a.Kind == database.AuraEnergy {
-				continue // a circlet or a hat is a helm's alone, epic and energy a held item's (database.ValidItemAura)
+			if (a.Kind == database.AuraCirclet || a.Kind == database.AuraHat) && i != AuraHelm || a.Kind == database.AuraEpic || a.Kind == database.AuraEnergy ||
+				a.Kind == database.AuraStripes || a.Kind == database.AuraLights && i != AuraCape || a.Kind == database.AuraIcing {
+				continue // a circlet or a hat is a helm's alone, epic, energy and stripes a held item's, lights a cape's, icing an illusion's body's (database.ValidItemAura)
 			}
 			out[i], any = a, true
 		}

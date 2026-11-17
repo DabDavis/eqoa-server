@@ -553,6 +553,11 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 			h.useMonkeyBarrel(sess, player, &row.Pattern)
 			return nil
 		}
+		// the Pegasus Plushie, never spent: its winged horse out or home (plushie.go)
+		if row.EquipLoc < 0 && IsPegasusPlushie(&row.Pattern) {
+			h.usePegasusPlushie(sess, player)
+			return nil
+		}
 		// the Automatic Snowball Launcher, never spent: automatic fire on or off (snowlauncher.go)
 		if row.EquipLoc < 0 && IsSnowLauncher(&row.Pattern) {
 			h.useSnowLauncher(sess, player, &row.Pattern)

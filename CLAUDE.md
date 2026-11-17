@@ -4263,6 +4263,12 @@ is in the player's world a "?" at the nearest travel NPC of `wayRoutes` (waysend
 where nothing else leads) whose trips lead there in the fewest, "Travel with X to Y". `TestRealQuestMarks`
 (EQOA_REAL_DB, EQOA_QUESTMARKS_OUT) holds every step of both shards to its real targets: 248 stray marks and 263 steps
 with no way before, 0 and 43 after (no travel NPC leads out of Lavastorm, the Plane of Sky or world 14).
+**Ability quests flagged** (petition 2285, Zerkziee, approved by the owner 2026-11-17: "highlights the ability quest
+differently compared to other quest"): after the whole set, 0x7E04 carries one u8 of flags for each of its marks' quests in
+order (bit 0, `questFlagAbility`: the quest gives the player's class an ability, a spell among its steps' rewards for
+that class, `byclass` included, or on a choice's option that does not stay: `questText.abilityFor`, made at `Reload`), and
+0x7E06 one for each of its quests; a client before them reads the set and leaves the rest. Vanilla draws such a mark,
+card line and tracker name in its own colour. `TestQuestMarksFlagAbilityQuests`.
 
 **The quest tracker for a client's HUD** (F3 pass 18; `handlers/questprogress.go`; the user's "add
 quest progress hud item similar to WoW ... if quest says obtain 3 bat eyes, have 0/3"). Beside

@@ -61,6 +61,16 @@ func decodeMarks(t *testing.T, b []byte) []questMark {
 			m.quests = append(m.quests, mq)
 		}
 	}
+	// each quest's flags after the set, in its order
+	for i := range out {
+		for k := range out[i].quests {
+			if len(b) == 0 {
+				t.Fatalf("no flags for mark %d's quest %d", i, k)
+			}
+			out[i].quests[k].ability = b[0]&questFlagAbility != 0
+			b = b[1:]
+		}
+	}
 	if len(b) != 0 {
 		t.Fatalf("%d bytes past the marks", len(b))
 	}
@@ -377,5 +387,106 @@ func TestQuestMarksAReachStepsPlace(t *testing.T) {
 	f.msgs()
 	if got, want := strings.Join(f.takeMarksBy(), "|"), "?Kellina"; got != want {
 		t.Fatalf("the reach step done: marks %q, want %q", got, want)
+	}
+}
+
+// An ability quest is flagged apart (petition 2285, Zerkziee: "highlights the
+// ability quest differently compared to other quest"): one whose step gives a
+// spell, one whose step gives the player's class a spell (byclass), one whose
+// choice offers a spell, each flagged on its giver's "!", and once taken on its
+// step's "?" and on the tracker. The controls: the pincers (an item and XP), a
+// quest giving another class alone a spell, and a choice's spell on an option
+// that stays (a wrong answer), none flagged.
+func TestQuestMarksFlagAbilityQuests(t *testing.T) {
+	f := newQuestFixture(t)
+	f.tw.p.HP = 100
+	f.tw.add(1, &entity.NPC{ServerID: 701, Name: "Malsis", SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5})
+	// four quests a mark at most (maxMarkQuests): Kellina gives three, a
+	// few steps off (a mark is a spot to the unit)
+	f.tw.add(2, &entity.NPC{ServerID: 702, Name: "Kellina", SpawnX: 25410, SpawnY: 54.1, SpawnZ: 15726})
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, minlevel, maxlevel) VALUES
+		(20001, 'Spell step', 1, 'Malsis', 1, 10), (20002, 'Mine by class', 1, 'Malsis', 1, 10),
+		(20003, 'Another class', 1, 'Kellina', 1, 10), (20004, 'A choice', 1, 'Kellina', 1, 10),
+		(20005, 'A wrong answer', 1, 'Kellina', 1, 10)`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal, spells, byclass, choices) VALUES
+		(20001, 1, 'talk', 'Kellina', 'a', '236', '', ''),
+		(20002, 1, 'talk', 'Kellina', 'b', '', '{"10":{"spells":"301"}}', ''),
+		(20003, 1, 'talk', 'Kellina', 'c', '', '{"13":{"spells":"301"}}', ''),
+		(20004, 1, 'talk', 'Kellina', 'd', '', '', '{"ask":"Which?","options":[{"answer":"This","items":"1"},{"answer":"That","spells":"302"}]}'),
+		(20005, 1, 'talk', 'Kellina', 'e', '', '', '{"ask":"Which?","options":[{"answer":"Wrong","stay":true,"spells":"303"},{"answer":"Right","xp":5}]}')`)
+	if err := f.qe.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	f.msgs()
+	f.qe.SetMarkers(f.tw.s, f.tw.p, true)
+	marks, _ := sentMarks(t, f.tw.s)
+	got := map[string]bool{}
+	for _, m := range marks {
+		for _, q := range m.quests {
+			got[q.name] = q.ability
+		}
+	}
+	want := map[string]bool{"The pincers": false, "Spell step": true, "Mine by class": true, "Another class": false, "A choice": true, "A wrong answer": false}
+	for name, ability := range want {
+		if a, ok := got[name]; !ok || a != ability {
+			t.Errorf("%s: flagged %v (marked %v), want %v", name, a, ok, ability)
+		}
+	}
+	f.qe.SetMarkers(f.tw.s, f.tw.p, false)
+
+	// taken: its step's "?" and the tracker flag it, the pincers' not
+	for _, id := range []int{20001, 10010} {
+		if _, err := f.qe.SetCharacterQuest(f.sid, id, QuestGive, 0); err != nil {
+			t.Fatal(err)
+		}
+	}
+	f.msgs()
+	f.qe.SetMarkers(f.tw.s, f.tw.p, true)
+	marks, _ = sentMarks(t, f.tw.s)
+	steps := map[string]bool{}
+	for _, m := range marks {
+		if m.kind == markStep {
+			for _, q := range m.quests {
+				steps[q.name] = q.ability
+			}
+		}
+	}
+	if a, ok := steps["Spell step"]; !ok || !a {
+		t.Errorf("the ability quest's step: %v (marked %v), want flagged", a, ok)
+	}
+	if a, ok := steps["The pincers"]; !ok || a {
+		t.Errorf("the pincers' step: %v (marked %v), want not flagged", a, ok)
+	}
+	f.qe.SetProgress(f.tw.s, f.tw.p, true)
+	qs, _ := sentProgress(t, f.tw.s)
+	tracked := map[string]bool{}
+	for _, qp := range qs {
+		tracked[qp.name] = qp.ability
+	}
+	if !tracked["Spell step"] || tracked["The pincers"] || len(tracked) != 2 {
+		t.Errorf("the tracker's flags %v, want Spell step's alone", tracked)
+	}
+}
+
+// The flags ride after the set: a reader of the set alone (a client before
+// them) reads it whole and leaves them, one byte a quest; the bound holds
+// with them in it.
+func TestQuestMarksFlagsAfterTheSet(t *testing.T) {
+	marks := []questMark{
+		{kind: markTake, npc: "A", quests: []markQuest{{name: "x", ability: true}, {name: "y"}}},
+		{kind: markStep, npc: "B", quests: []markQuest{{name: "z", ability: true}}},
+	}
+	body := encodeQuestMarks(marks)
+	if tail := body[len(body)-3:]; tail[0] != questFlagAbility || tail[1] != 0 || tail[2] != questFlagAbility {
+		t.Fatalf("the flags %v, want 1 0 1", tail)
+	}
+	got := decodeMarks(t, body)
+	if !got[0].quests[0].ability || got[0].quests[1].ability || !got[1].quests[0].ability {
+		t.Fatalf("decoded %+v", got)
+	}
+	qs := []questProgress{{name: "x", ability: true}, {name: "y"}}
+	pb := encodeQuestProgress(qs)
+	if tail := pb[len(pb)-2:]; tail[0] != questFlagAbility || tail[1] != 0 {
+		t.Fatalf("the tracker's flags %v, want 1 0", tail)
 	}
 }

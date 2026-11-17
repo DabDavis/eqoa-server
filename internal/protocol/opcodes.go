@@ -399,7 +399,9 @@ const (
 	// and a u8 count of quests, each its name, u8 lowest and highest levels,
 	// its line (the offer's start, the step's journal line) and its detail
 	// (the rewards, what the step needs); a text is a u8 byte count and
-	// UTF-8. Each one is the whole set (handlers/questmarks.go).
+	// UTF-8; after the set, each of its marks' quests' u8 flags in order
+	// (bit 0: an ability quest for the player's class, petition 2285). Each
+	// one is the whole set (handlers/questmarks.go).
 	OpcodeQuestMarkersData GameOpcode = 0x7E04
 
 	// OpcodeQuestProgress is not retail either: the quest tracker for a
@@ -411,8 +413,9 @@ const (
 	// OpcodeQuestProgressData is the tracker, server to a client that asked:
 	// a u8 count of quests (the journal's, in its order), each its name and a
 	// u8 count of objectives, each its text, u16 had and u16 needed (needed
-	// 0: nothing to count); a text is a u8 byte count and UTF-8. Each one is
-	// the whole tracker.
+	// 0: nothing to count); a text is a u8 byte count and UTF-8; after them,
+	// each quest's u8 flags (bit 0: an ability quest). Each one is the whole
+	// tracker.
 	OpcodeQuestProgressData GameOpcode = 0x7E06
 
 	// OpcodeGMTriggers is not retail either: the names of a GM's triggers for

@@ -1305,6 +1305,8 @@ var catalog = map[string]tableNote{
 			"title": {Label: "Title", Help: "the line over the name, 24 letters at most"},
 			"color": {Label: "Colour", Help: "the title's colour, the same for every player: empty (or gold) as an NPC's name, blue (a player's), " +
 				"green (90,255,80); the client has only these three name colours"},
+			"noselect": {Label: "Not selectable", Help: "1: no player can select the NPC (no Tab, no click, no target box), as a decoration; " +
+				"with or without a title (Santa's reindeer other than Rudolph)"},
 			"note":   {Label: "Note", Help: "why"},
 			"source": {Label: "Source", Help: "gm, or the tool that wrote it (its --undo takes out exactly what it wrote)"},
 		},

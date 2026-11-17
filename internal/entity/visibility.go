@@ -376,6 +376,9 @@ func (w *World) serializeEntityDiscLocked(sess *session.Session, id EntityID, ob
 		putNPCDyeTints(npcDyesOf(npc.Name), buf) // its dyes' nearest tints (npcdyes.go)
 		putNPCDyeRobe(npc.Name, buf)             // and the robe its dyes put on
 		w.putChannelTargetLocked(sess, npc, buf)
+		if npc.NoSelect && !npc.Dead {
+			buf[26] &^= 1 // not selectable: no Tab, no click, no target box (npctitle.go's noselect)
+		}
 		return buf, nil
 	}
 

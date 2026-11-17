@@ -121,6 +121,7 @@ func (w *World) applyNPCSettingsLocked(npc *NPC) {
 	npc.SpawnOnly = w.npcSpawnOnlyLocked(npc)
 	npc.Title = w.npcTitles[npc.ServerID] // a line over its name (npctitle.go)
 	npc.TitleColor = w.npcTitleColors[npc.ServerID]
+	npc.NoSelect = w.npcNoSelect[npc.ServerID]
 }
 
 // corpseLies reports a dead NPC whose corpse is still where it fell at now:

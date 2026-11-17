@@ -99,5 +99,19 @@ func (w *World) advanceTickLocked(ae *ActiveEffect, now time.Time) {
 		ae.NextTick = time.Time{}
 		return
 	}
-	ae.NextTick = w.nextRegularTick(ae.NextTick, now)
+	prev := ae.NextTick
+	next := w.nextRegularTick(prev, now)
+	// never a second tick within half a tick of the last (Heirloom petition
+	// 2221, Mightyeagle, Marr's Blessing: "it will double tick a lot, have
+	// ticks go in between the tick, and then stop ticking a while before it
+	// wears off"). The regen tick falls every 60th world tick
+	// (regenSystem), later than six seconds whenever a world tick runs long,
+	// and regenAt is when it last fell: a tick due just before a late regen
+	// tick was set from the regenAt before it, and the next from the late
+	// one, a moment after it, so the counted ticks ran out early, two at a
+	// time.
+	for next.Sub(prev) < RegenInterval/2 {
+		next = next.Add(RegenInterval)
+	}
+	ae.NextTick = next
 }

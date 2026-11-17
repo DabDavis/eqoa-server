@@ -262,3 +262,55 @@ func TestDabrishEpic60WordsFit(t *testing.T) {
 		}
 	}
 }
+
+// A pick's option giving a pair (the rogue's "The Ascended Rogue's Epic
+// Daggers", 980148*2; Heirloom petition 2236, Poppapump: "I exchanged my 60
+// epic weps for tunic but it only took the unequipped wep. It should take
+// both even if 1 is equp"): the pair is exchanged as one. One of it worn is
+// refused with both named and nothing changed; both carried are both taken
+// for the one given; the one given back for the pair gives both.
+func TestDabrishExchangesAPairAsOne(t *testing.T) {
+	pairFixture := func(t *testing.T) *epicFixture {
+		f := newEpic60Fixture(t)
+		f.exec(`UPDATE queststeps SET choices = ? WHERE questid = ? AND step = 2`, choice(
+			fmt.Sprintf("The Ascended Warrior's Epic Greatsword=:%d", epGreatsword),
+			fmt.Sprintf("The Ascended Warrior's Epic Blades=:%d*2", epAscBlade)), qEpicExchange60)
+		f.exec(`DELETE FROM quests WHERE questid = ?`, qEpic60Good)
+		f.exec(`DELETE FROM queststeps WHERE questid = ?`, qEpic60Good)
+		if msg := f.qe.ReloadQuests(); !strings.HasPrefix(msg, "at once") {
+			t.Fatalf("reload: %s", msg)
+		}
+		return f
+	}
+
+	f := pairFixture(t)
+	f.own(epAscBlade, 1, 14, 0) // worn
+	f.own(epAscBlade, 1, -1, 0)
+	m := f.exchange()
+	if !rehabSays(m, "Dabrish: Take both of your Ascended Warrior's Epic Blade off and carry them in your pack first, then ask me again: for the pair I can give you the Ascended Warrior's Epic Greatsword.") ||
+		boxID(m) != 0 {
+		t.Fatalf("one of the pair worn: %q", m)
+	}
+	if f.held(epAscBlade) != 2 || f.held(epGreatsword) != 0 {
+		t.Fatalf("something changed: blades %d greatsword %d", f.held(epAscBlade), f.held(epGreatsword))
+	}
+
+	// both carried: both taken for the greatsword
+	f.exec(`UPDATE charinventory SET equiploc = -1 WHERE serverid = ? AND patternid = ?`, f.sid, epAscBlade)
+	f.lists()
+	if q, _ := asked(f.exchange()); q != "Dabrish: 'Exchange the Ascended Warrior's Epic Blade for the Ascended Warrior's Epic Greatsword?'" {
+		t.Fatalf("his question: %q", q)
+	}
+	f.pick(0)
+	if f.held(epAscBlade) != 0 || f.held(epGreatsword) != 1 || f.listHeld(epAscBlade) != 0 || f.listHeld(epGreatsword) != 1 {
+		t.Fatalf("after Yes: blades %d (list %d) greatsword %d (list %d)", f.held(epAscBlade), f.listHeld(epAscBlade),
+			f.held(epGreatsword), f.listHeld(epGreatsword))
+	}
+
+	// the greatsword back: the pair given
+	f.exchange()
+	f.pick(0)
+	if f.held(epAscBlade) != 2 || f.held(epGreatsword) != 0 || f.listHeld(epAscBlade) != 2 {
+		t.Fatalf("back: blades %d (list %d) greatsword %d", f.held(epAscBlade), f.listHeld(epAscBlade), f.held(epGreatsword))
+	}
+}

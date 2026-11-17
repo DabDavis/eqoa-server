@@ -53,10 +53,15 @@ sequence back and drops the logs: the npcs, npcrespawn and npcwander tables come
 their digests). A row changed since the apply is still taken out, and said so.
 
 NPC rows are read at the server's start: apply with the server stopped (a swap's before.sh), on each shard's database
-(ids differ between shards; the tool works by names and places alone).
+(ids differ between shards; the tool works by names and places alone). Planning takes minutes (Tunaria's walls), and a
+before.sh holds the server 12 s at most: so plan ahead on a fresh copy of the shard's database (--write-plan, never on
+the live database: it reads every NPC in one transaction), then --apply --plan in the before.sh: it makes each add
+again from its template row as it is then (by id, else the nearest row of its name and body), leaves out one whose
+spot an NPC has taken since, and needs no ground files. A part already applied (its log has rows) adds nothing.
 
     python3 -E -s tools/bandit_camps_20261117.py --db eqoa.db --ground worlds/ground [--part camps|wildlife|both]
-        [--map DIR] [--apply | --undo | --hash]
+        [--map DIR] [--write-plan PLAN.json] [--apply | --undo | --hash]
+    python3 -E -s tools/bandit_camps_20261117.py --db eqoa.db --plan PLAN.json [--part ...] [--apply]
 """
 import argparse
 import collections
@@ -743,8 +748,6 @@ def write(db, rows, log, meta, cols, info, wander):
     if db.execute(f"SELECT count(*) FROM {meta} WHERE key = 'seq_before'").fetchone()[0] == 0:
         before = npc_seq(db)
         db.execute(f"INSERT INTO {meta} VALUES ('seq_before', ?)", (json.dumps(before),))
-        for t in TABLES:
-            db.execute(f"INSERT INTO {meta} VALUES (?, ?)", (f"digest_{t}", digest(db, t)))
     has_wander = table_exists(db, "npcwander")
     for a in rows:
         row = {k: v for k, v in a["row"].items() if k in cols}
@@ -902,6 +905,74 @@ def draw(p, w, place, out):
         im.save(os.path.join(out, "bandit_hills_wildlife.png"))
 
 
+# ---- a plan made ahead, applied fast ------------------------------------------------------------
+
+def plan_doc(cp, wp, db_path):
+    """The adds as a plan file: each its template row (id, name, body) and where it stands."""
+    def entry(a):
+        r, t = a["row"], a["template"]
+        return dict(template=t["id"], name=t["name"], model=t["model"], kind=a["kind"], place=a["place"],
+                    x=r["x_coord"], y=r["y_coord"], z=r["z_coord"], facing=r["facing"])
+    parts = {"camps": [entry(a) for a in cp["rows"]]}
+    if wp is not None:
+        parts["wildlife"] = [entry(a) for a in wp["rows"]]
+    return dict(tool=TOOL, made_from=os.path.abspath(db_path), parts=parts)
+
+
+def load_lean(db, doc):
+    """What a plan's apply needs, quickly: every world row's id, name, body and place; the full rows of the plan's
+    names alone; the respawn rows."""
+    names = sorted({e["name"].strip().lower() for p in doc["parts"].values() for e in p})
+    npcs = []
+    for i, name, x, y, z, model in db.execute("SELECT id, npc_name, x_coord, y_coord, z_coord, modelid FROM npcs "
+                                              "WHERE world = ?", (WORLD,)):
+        npcs.append(dict(id=i, name=(name or "").strip(), key=(name or "").strip().lower(), x=x or 0.0, y=y or 0.0,
+                         z=z or 0.0, model=(model or 0) & 0xFFFFFFFF))
+    full = {}
+    db.row_factory = sqlite3.Row
+    for k in range(0, len(names), 200):
+        chunk = names[k:k + 200]
+        q = ("SELECT * FROM npcs WHERE world = ? AND lower(trim(npc_name)) IN (%s)" % ",".join("?" * len(chunk)))
+        for r in db.execute(q, [WORLD] + chunk):
+            full[r["id"]] = dict(r)
+    db.row_factory = None
+    for n in npcs:
+        if n["id"] in full:
+            n["row"] = full[n["id"]]
+    return dict(cols=[r[1] for r in db.execute("PRAGMA table_info(npcs)")], npcs=npcs,
+                respawn={r[0]: r for r in db.execute("SELECT npc_row, seconds, note, source FROM npcrespawn")})
+
+
+def rows_from_plan(db, info, doc, part):
+    """The planned adds of a part made rows again from their templates as they are now: a template gone, renamed or
+    given another body is replaced by the nearest row of its name and body in the world (else the add is left out);
+    an add whose spot an NPC has taken since (within 1.5) is left out. Returns (rows, left)."""
+    by_id = {n["id"]: n for n in info["npcs"]}
+    by_name = collections.defaultdict(list)
+    for n in info["npcs"]:
+        if "row" in n:
+            by_name[(n["key"], n["model"])].append(n)
+    taken = Grid(16.0)
+    for n in info["npcs"]:
+        taken.add(n["x"], n["y"], n["z"], n["id"])
+    rows, left = [], []
+    for e in doc["parts"].get(part, []):
+        t = by_id.get(e["template"])
+        if t is None or t["key"] != e["name"].strip().lower() or t["model"] != e["model"]:
+            pool = by_name.get((e["name"].strip().lower(), e["model"]), [])
+            t = min(pool, key=lambda n: (math.hypot(n["x"] - e["x"], n["z"] - e["z"]), n["id"])) if pool else None
+        if t is None:
+            left.append((e["place"], e["name"], "no row of its name and body left to copy"))
+            continue
+        if any(abs(py - e["y"]) < 8 for _, py, _, _ in taken.near(e["x"], e["z"], 1.5)):
+            left.append((e["place"], e["name"], "its spot taken since the plan"))
+            continue
+        rows.append(dict(row=new_row(t, e["x"], e["y"], e["z"], e["facing"]), template=t, kind=e["kind"],
+                         place=e["place"]))
+        taken.add(e["x"], e["y"], e["z"], None)
+    return rows, left
+
+
 # ---- main ---------------------------------------------------------------------------------------
 
 def main(argv=None):
@@ -911,6 +982,10 @@ def main(argv=None):
     ap.add_argument("--part", choices=("camps", "wildlife", "both"), default="both")
     ap.add_argument("--map", help="draw each camp and the zone into this folder")
     ap.add_argument("--verbose", action="store_true")
+    ap.add_argument("--write-plan", help="write the adds planned to this file (for a later --apply --plan)")
+    ap.add_argument("--plan", help="apply (or show) the adds of this plan file instead of planning now: seconds, "
+                                   "not minutes (a before.sh's hold is 12 s); make it with --write-plan on a fresh "
+                                   "copy of this shard's database")
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--apply", action="store_true")
     g.add_argument("--undo", action="store_true")
@@ -936,6 +1011,36 @@ def main(argv=None):
             print(t, digest(db, t))
         return 0
     db.execute("BEGIN IMMEDIATE" if a.apply else "BEGIN")
+    if a.plan:
+        with open(a.plan) as f:
+            doc = json.load(f)
+        if doc.get("tool") != TOOL:
+            sys.exit(f"{a.plan}: not a plan of {TOOL}")
+        info = load_lean(db, doc)
+        todo = {}
+        for part in parts:
+            log = CAMPS_LOG if part == "camps" else WILD_LOG
+            if logged(db, log):
+                print(f"{part}: applied already ({len(logged(db, log))} rows logged): nothing more")
+                todo[part] = []
+                continue
+            rows, left = rows_from_plan(db, info, doc, part)
+            todo[part] = rows
+            print(f"{part}: {len(rows)} adds from {a.plan} (planned {len(doc['parts'].get(part, []))})")
+            for place_, name, why in left:
+                print(f"   left: {name} at {place_}: {why}")
+            for (k, n), c in collections.Counter((r["kind"], r["row"]["npc_name"]) for r in rows).most_common():
+                print(f"   {k:8} {n:<24} +{c}")
+        if not a.apply:
+            db.execute("ROLLBACK")
+            print("dry run: nothing written (--apply to write)")
+            return 0
+        for part in parts:
+            log, meta = (CAMPS_LOG, CAMPS_META) if part == "camps" else (WILD_LOG, WILD_META)
+            write(db, todo[part], log, meta, info["cols"], info, wander=(part == "camps"))
+            print(f"applied {part}: {len(todo[part])} rows")
+        db.execute("COMMIT")
+        return 0
     info = load(db)
     info["templates_wisp"] = {(r[0] or "").strip().lower() for r in
                               db.execute("SELECT name FROM npctemplate WHERE template = 'wisp'")} \
@@ -951,6 +1056,10 @@ def main(argv=None):
         report_wild(wp)
     if a.map:
         draw(cp, wp, place, a.map)
+    if a.write_plan:
+        with open(a.write_plan, "w") as f:
+            json.dump(plan_doc(cp, wp, a.db), f, indent=1)
+        print(f"plan written: {a.write_plan}")
     if not a.apply:
         db.execute("ROLLBACK")
         print("dry run: nothing written (--apply to write)")

@@ -290,6 +290,37 @@ class Test(unittest.TestCase):
         self.run_tool("--undo", "--part", "camps")
         self.assertEqual(digests(self.db), before)
 
+    def test_plan_file(self):
+        before = digests(self.db)
+        plan = os.path.join(self.tmp.name, "plan.json")
+        self.run_tool("--write-plan", plan)
+        self.assertEqual(digests(self.db), before, "planning writes nothing")
+        with open(plan) as f:
+            doc = json.load(f)
+        self.assertEqual(len(doc["parts"]["camps"]), bc.WANT_TENT + bc.WANT_FIRE - 1)
+        # a template gone since the plan: its add copies the nearest row of its name and body instead
+        db = sqlite3.connect(self.db, isolation_level=None)
+        gone = doc["parts"]["camps"][0]["template"]
+        db.execute("DELETE FROM npcrespawn WHERE npc_row = ?", (gone,))
+        db.execute("DELETE FROM npcs WHERE id = ?", (gone,))
+        db.close()
+        cut = digests(self.db)
+        self.assertEqual(bc.main(["--db", self.db, "--plan", plan, "--apply"]), 0)
+        db = sqlite3.connect(self.db)
+        n = db.execute(f"SELECT count(*) FROM {bc.CAMPS_LOG}").fetchone()[0]
+        w = db.execute(f"SELECT count(*) FROM {bc.WILD_LOG}").fetchone()[0]
+        rows = db.execute(f"SELECT x_coord, z_coord, facing FROM npcs WHERE id IN (SELECT npc_row FROM {bc.CAMPS_LOG})"
+                          " ORDER BY id").fetchall()
+        db.close()
+        self.assertEqual((n, w), (len(doc["parts"]["camps"]), len(doc["parts"]["wildlife"])))
+        self.assertEqual([(round(x, 3), round(z, 3), f) for x, z, f in rows],
+                         [(round(e["x"], 3), round(e["z"], 3), e["facing"]) for e in doc["parts"]["camps"]])
+        mid = digests(self.db)
+        bc.main(["--db", self.db, "--plan", plan, "--apply"])
+        self.assertEqual(digests(self.db), mid, "a second apply of the plan writes nothing")
+        self.run_tool("--undo")
+        self.assertEqual(digests(self.db), cut)
+
 
 if __name__ == "__main__":
     unittest.main()

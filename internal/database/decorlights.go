@@ -49,6 +49,7 @@ const decorLightsSchema = `
 		kind   TEXT NOT NULL DEFAULT '',
 		shot   INTEGER NOT NULL DEFAULT 0,
 		shot_scale REAL NOT NULL DEFAULT 0,
+		scale  REAL NOT NULL DEFAULT 0,
 		note   TEXT NOT NULL DEFAULT '',
 		source TEXT NOT NULL DEFAULT 'gm'
 	);
@@ -608,6 +609,9 @@ type DecorArt struct {
 	// DictID; 0 none: it only rams), drawn ShotScale its own size
 	Shot      uint32
 	ShotScale float32
+	// Scale is a pet's art drawn at this times the pet's size (the catapult,
+	// 16 long at 1, at a third), 0 as 1
+	Scale float32
 }
 
 // DecorArtPet is decorart.kind for a pet's look: a prop worn by a pet (the
@@ -621,7 +625,7 @@ func (db *SQLiteDB) DecorArts() (map[string]DecorArt, error) {
 	if err := db.ensureDecorArtSink(); err != nil {
 		return nil, err
 	}
-	rows, err := db.Query(`SELECT name, model, world, zone, sink, kind, shot, shot_scale FROM decorart`)
+	rows, err := db.Query(`SELECT name, model, world, zone, sink, kind, shot, shot_scale, scale FROM decorart`)
 	if err != nil {
 		return nil, err
 	}
@@ -630,7 +634,7 @@ func (db *SQLiteDB) DecorArts() (map[string]DecorArt, error) {
 	for rows.Next() {
 		var a DecorArt
 		var model, shot int64
-		if err := rows.Scan(&a.Name, &model, &a.World, &a.Zone, &a.Sink, &a.Kind, &shot, &a.ShotScale); err != nil {
+		if err := rows.Scan(&a.Name, &model, &a.World, &a.Zone, &a.Sink, &a.Kind, &shot, &a.ShotScale, &a.Scale); err != nil {
 			return nil, err
 		}
 		a.Name = NPCClassKey(a.Name)
@@ -664,10 +668,10 @@ func (db *SQLiteDB) ensureLightTemplateCord() error {
 }
 
 // ensureDecorArtSink gives a decorart table made before its sink column one,
-// and one made before its pets' columns (kind, shot, shot_scale) those.
+// and one made before its pets' columns (kind, shot, shot_scale, scale) those.
 func (db *SQLiteDB) ensureDecorArtSink() error {
 	for _, c := range []struct{ name, def string }{{"sink", "REAL NOT NULL DEFAULT 0"}, {"kind", "TEXT NOT NULL DEFAULT ''"},
-		{"shot", "INTEGER NOT NULL DEFAULT 0"}, {"shot_scale", "REAL NOT NULL DEFAULT 0"}} {
+		{"shot", "INTEGER NOT NULL DEFAULT 0"}, {"shot_scale", "REAL NOT NULL DEFAULT 0"}, {"scale", "REAL NOT NULL DEFAULT 0"}} {
 		var n int
 		if err := db.QueryRow(`SELECT count(*) FROM pragma_table_info('decorart') WHERE name = ?`, c.name).Scan(&n); err != nil {
 			return err

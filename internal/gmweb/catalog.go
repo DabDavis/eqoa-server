@@ -1492,6 +1492,7 @@ var catalog = map[string]tableNote{
 			"kind":       {Label: "Kind", Help: "blank: a decoration (the NPC of this name wears the art); pet: a pet's look, worn by the pets of a mastery rank whose effects say PetArt:<this model> (the name is only a label), drawn in this world where vanilla reads this zone; a PS2 sees the pet's own body. One row per world it may be drawn in (Zerkziee's catapult: Tunaria zone 108, Rathe zone 13)"},
 			"shot":       {Label: "Shot", Help: "a pet look's: what it fires at its casts (a sprite of the same zone, a DictID as a number; 0 none: it only rams at its swings)"},
 			"shot_scale": {Label: "Shot size", Help: "a pet look's shot drawn this times its own size"},
+			"scale":      {Label: "Size", Help: "a pet look's art drawn this times the pet's size (0 as 1): the catapult is 16 long at 1"},
 			"note":       {Label: "Note"},
 			"source":     {Label: "Source", Help: "gm, or the tool that wrote the row"},
 		},

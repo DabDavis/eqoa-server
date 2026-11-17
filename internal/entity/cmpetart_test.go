@@ -104,15 +104,16 @@ func TestAPetArtRankDressesThePetForTheClientsThatDrawIt(t *testing.T) {
 }
 
 // The pets' looks follow the walk-ons: a u16 count, each model once (two
-// worlds' rows of one art one entry), u8 kind 1, u32 shot, f32 its size; a
+// worlds' rows of one art one entry), u8 kind 1, u32 shot, f32 its size, f32
+// the art's; a
 // decoration's art is not among them.
 func TestAppendPetArts(t *testing.T) {
 	b := AppendPetArts([]byte{9}, []database.DecorArt{
 		{Model: 0x0E318233, Zone: 32},
-		{Model: catapultArt, World: 0, Zone: 108, Kind: database.DecorArtPet, Shot: 0xBFEE4CCD, ShotScale: 0.25},
+		{Model: catapultArt, World: 0, Zone: 108, Kind: database.DecorArtPet, Shot: 0xBFEE4CCD, ShotScale: 0.25, Scale: 0.35},
 		{Model: catapultArt, World: 1, Zone: 13, Kind: database.DecorArtPet, Shot: 0xBFEE4CCD, ShotScale: 0.25},
 	})
-	if len(b) != 1+2+13 || b[0] != 9 || binary.LittleEndian.Uint16(b[1:]) != 1 || binary.LittleEndian.Uint32(b[3:]) != catapultArt || b[7] != 1 ||
+	if len(b) != 1+2+17 || math.Float32frombits(binary.LittleEndian.Uint32(b[16:])) != 0.35 || b[0] != 9 || binary.LittleEndian.Uint16(b[1:]) != 1 || binary.LittleEndian.Uint32(b[3:]) != catapultArt || b[7] != 1 ||
 		binary.LittleEndian.Uint32(b[8:]) != 0xBFEE4CCD || math.Float32frombits(binary.LittleEndian.Uint32(b[12:])) != 0.25 {
 		t.Errorf("% X", b)
 	}

@@ -573,7 +573,8 @@ func (w *World) petArtViewLocked(sess *session.Session, npc *NPC, buf []byte) {
 // before reads none): a u16 count, each a model drawn as a pet (once, of the
 // art's rows of kind pet), u8 kind (1 a pet: it walks the ground as a
 // creature, and rams at its swings), u32 what it fires at its other casts
-// (a DictID of its zone's, 0 none) and f32 that shot's size.
+// (a DictID of its zone's, 0 none), f32 that shot's size and f32 the art's
+// own (times the pet's; 0 as 1).
 func AppendPetArts(b []byte, art []database.DecorArt) []byte {
 	var pets []database.DecorArt
 	seen := map[uint32]bool{}
@@ -589,6 +590,7 @@ func AppendPetArts(b []byte, art []database.DecorArt) []byte {
 		b = append(b, 1)
 		b = binary.LittleEndian.AppendUint32(b, a.Shot)
 		b = binary.LittleEndian.AppendUint32(b, math.Float32bits(a.ShotScale))
+		b = binary.LittleEndian.AppendUint32(b, math.Float32bits(a.Scale))
 	}
 	return b
 }

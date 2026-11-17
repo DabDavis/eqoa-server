@@ -80,6 +80,7 @@ type DecorString struct {
 	BulbScale   float32
 	CordTexture uint32
 	CordRepeat  float32
+	Tinsel      bool // the cord drawn as twisted pieces (cord_style tinsel)
 	// Gifts are a presents string's boxes (no bulbs)
 	Gifts   []database.Gift
 	ID      int64
@@ -134,6 +135,7 @@ func BuildDecorStrings(templates map[string]database.LightTemplate, rows []datab
 				d.CordSag = float32(min(t.CordSag, 1))
 			}
 			d.CordTexture, d.CordRepeat = t.CordTexture, float32(max(t.CordRepeat, 0))
+			d.Tinsel = strings.EqualFold(strings.TrimSpace(t.CordStyle), database.CordTinsel)
 		}
 		d.BulbModel, d.BulbScale = t.Bulb, float32(t.BulbScale)
 		d.Colors = append([]uint32(nil), t.Colors...)
@@ -313,6 +315,25 @@ func EncodeDecorLights(strs []DecorString, art []database.DecorArt, assets ...da
 			b = binary.LittleEndian.AppendUint32(b, math.Float32bits(gain))
 		}
 	}
+	// then the cords' styles (a client before them reads none): a u16 count,
+	// each the u16 index of a string among those sent and a u8 style (1
+	// tinsel: short pieces each at a twist of its own)
+	var tinsel []int
+	k = 0
+	for _, d := range strs {
+		if len(d.Bulbs) == 0 || k >= sent {
+			continue
+		}
+		if d.Tinsel {
+			tinsel = append(tinsel, k)
+		}
+		k++
+	}
+	b = binary.LittleEndian.AppendUint16(b, uint16(len(tinsel)))
+	for _, i := range tinsel {
+		b = binary.LittleEndian.AppendUint16(b, uint16(i))
+		b = append(b, 1)
+	}
 	return b, sent, bulbs
 }
 
@@ -434,6 +455,23 @@ func (w *World) RefreshDecorLights(only ...*session.Session) int {
 		log.Printf("DecorLights: %d strings, %d bulbs to %d clients", w.decorLights.strings, w.decorLights.bulbs, sent)
 	}
 	return sent
+}
+
+// DecorLightsDrawers is how many clients in the game draw the decoration
+// lights (answered the offer): those a change reaches; the ones a reload sends
+// nothing are those that hold the set already.
+func (w *World) DecorLightsDrawers() int {
+	if w == nil || w.SessionManager == nil {
+		return 0
+	}
+	n := 0
+	w.SessionManager.ForEach(func(s *session.Session) bool {
+		if s != nil && s.DecorLightsLayout() != 0 {
+			n++
+		}
+		return true
+	})
+	return n
 }
 
 // DecorLightSummary says what the lights hold, for the log at the start.

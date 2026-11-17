@@ -169,8 +169,19 @@ type LightTemplate struct {
 	CordTexture uint32
 	CordRepeat  float64
 	CordSag     float64
-	Note        string
+	// CordStyle is how a textured cord is drawn (cord_style): band, one strip
+	// turned to the eye (a ribbon); tinsel, short pieces along it each at a
+	// twist of its own (the owner, 2026-11-17: "the tinsel should be rotated
+	// per piece")
+	CordStyle string
+	Note      string
 }
+
+// The cord styles (lighttemplates.cord_style).
+const (
+	CordBand   = "band"
+	CordTinsel = "tinsel"
+)
 
 // LightString is a row of lightstrings.
 type LightString struct {
@@ -255,7 +266,7 @@ func (db *SQLiteDB) LightTemplates() (map[string]LightTemplate, error) {
 	if err := db.ensureLightTemplateCord(); err != nil {
 		return nil, err
 	}
-	rows, err := db.Query(`SELECT name, colors, pattern, effect, period, spacing, size, bright, cord, cord_width, bulb, bulb_scale, cord_texture, cord_repeat, cord_sag, note FROM lighttemplates`)
+	rows, err := db.Query(`SELECT name, colors, pattern, effect, period, spacing, size, bright, cord, cord_width, bulb, bulb_scale, cord_texture, cord_repeat, cord_sag, cord_style, note FROM lighttemplates`)
 	if err != nil {
 		return nil, err
 	}
@@ -264,7 +275,7 @@ func (db *SQLiteDB) LightTemplates() (map[string]LightTemplate, error) {
 	for rows.Next() {
 		var t LightTemplate
 		var colors, cord, bulb, cordTex string
-		if err := rows.Scan(&t.Name, &colors, &t.Pattern, &t.Effect, &t.Period, &t.Spacing, &t.Size, &t.Bright, &cord, &t.CordWidth, &bulb, &t.BulbScale, &cordTex, &t.CordRepeat, &t.CordSag, &t.Note); err != nil {
+		if err := rows.Scan(&t.Name, &colors, &t.Pattern, &t.Effect, &t.Period, &t.Spacing, &t.Size, &t.Bright, &cord, &t.CordWidth, &bulb, &t.BulbScale, &cordTex, &t.CordRepeat, &t.CordSag, &t.CordStyle, &t.Note); err != nil {
 			return nil, err
 		}
 		t.Bulb, _ = ParseDictID(bulb)
@@ -620,7 +631,7 @@ func (db *SQLiteDB) DecorArts() (map[string]DecorArt, error) {
 func (db *SQLiteDB) ensureLightTemplateCord() error {
 	for _, c := range []struct{ name, def string }{{"cord", "TEXT NOT NULL DEFAULT '1E3F1E'"}, {"cord_width", "REAL NOT NULL DEFAULT 0.06"},
 		{"bulb", "TEXT NOT NULL DEFAULT ''"}, {"bulb_scale", "REAL NOT NULL DEFAULT 0.35"}, {"cord_texture", "TEXT NOT NULL DEFAULT ''"},
-		{"cord_repeat", "REAL NOT NULL DEFAULT 1"}, {"cord_sag", "REAL NOT NULL DEFAULT 0"}} {
+		{"cord_repeat", "REAL NOT NULL DEFAULT 1"}, {"cord_sag", "REAL NOT NULL DEFAULT 0"}, {"cord_style", "TEXT NOT NULL DEFAULT 'band'"}} {
 		var n int
 		if err := db.QueryRow(`SELECT count(*) FROM pragma_table_info('lighttemplates') WHERE name = ?`, c.name).Scan(&n); err != nil {
 			return err

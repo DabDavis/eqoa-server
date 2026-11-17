@@ -26,8 +26,16 @@ func (s *Server) liveSeasons() string {
 	if err != nil {
 		return "NPCs applied; the lights not: " + err.Error()
 	}
-	line := fmt.Sprintf("at once: %d NPC(s) changed, %d out of the world in all; %d strings of lights lit (%d bulbs), sent to %d client(s) that draw them (a PS2 draws none)",
-		changed, held, strs, bulbs, told)
+	// a reload that changes nothing sends nothing: each client that draws
+	// them holds this set already (the panel said "sent to 0 client(s)" with 18
+	// drawing them, which read as lost; 2026-11-17)
+	drawers := s.d.World.DecorLightsDrawers()
+	sentTo := fmt.Sprintf("sent to %d client(s) that draw them", told)
+	if told < drawers {
+		sentTo = fmt.Sprintf("sent to %d of the %d client(s) that draw them (the other %d hold this set already: unchanged for them)", told, drawers, drawers-told)
+	}
+	line := fmt.Sprintf("at once: %d NPC(s) changed, %d out of the world in all; %d strings of lights lit (%d bulbs), %s (a PS2 draws none)",
+		changed, held, strs, bulbs, sentTo)
 	// the season's looks: tints and dyes that hold only in their season
 	if tinted, toldT, dyed, err := s.d.World.LoadSeasonLooks(s.d.DB); err != nil {
 		line += "; the NPCs' seasonal looks not: " + err.Error()
@@ -109,6 +117,9 @@ func checkLightTemplateRow(row map[string]any) error {
 	}
 	if v := num("cord_sag", 0); v < 0 || v > 1 {
 		return badRequest("cord_sag: 0 (the default) to 1")
+	}
+	if v := strings.ToLower(strings.TrimSpace(str("cord_style", database.CordBand))); v != database.CordBand && v != database.CordTinsel {
+		return badRequest("cord_style: %s or %s", database.CordBand, database.CordTinsel)
 	}
 	return nil
 }

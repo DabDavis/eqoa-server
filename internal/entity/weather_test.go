@@ -260,3 +260,61 @@ func TestWeatherOff(t *testing.T) {
 		t.Fatal("CallWeather with the weather off")
 	}
 }
+
+// A keep restart (handlers/keep.go, network/udp/keep.go): the GM's weather put
+// back on a new engine, a resumed vanilla's draw flag kept, and once its dump
+// asks it again (WeatherResend) it is sent the byte at once (0x00C7) and the
+// timelines (0x7E94) with the GM's weather in them.
+func TestWeatherKeptOverKeepRestart(t *testing.T) {
+	ww := newWeatherWorld(t, 600, 2600) // lava: clear but for a GM's
+	if !ww.w.SetWeatherDraws(ww.ps2, true) {
+		t.Fatal("no player")
+	}
+	_, until, id, err := ww.w.CallWeather(0, 600, 2600, weather.Where{Kind: "here"}, weather.Snow, weather.Heavy, 5, "", "Jibrish", 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	now := time.Now()
+	ww.pass(now)
+	weatherSent(ww.ps2)
+	kp, ok := ww.w.KeepPlayer(ww.ps2, now)
+	if !ok || !kp.WeatherDraws {
+		t.Fatalf("kept player: %v, draws %v", ok, kp.WeatherDraws)
+	}
+	kept := ww.w.Weather.Keep(now)
+
+	// the new process: a new engine and the player built anew from its row
+	nw := newWeatherWorld(t, 600, 2600)
+	if n, bad := nw.w.Weather.Restore(kept, now); n != 1 || len(bad) != 0 {
+		t.Fatalf("restored %d, %v", n, bad)
+	}
+	if !nw.w.RestoreKeptPlayer(nw.ps2, kp, now) || !nw.p.WeatherDraws {
+		t.Fatal("RestoreKeptPlayer: no draw flag")
+	}
+	nw.pass(now.Add(time.Second))
+	weatherSent(nw.ps2)        // what went before its dump
+	nw.w.WeatherResend(nw.ps2) // the resume dump's (handlers.ResumeDump)
+	nw.pass(now.Add(2 * time.Second))
+	got := weatherSent(nw.ps2)
+	var instant, data bool
+	for _, m := range got {
+		switch m.op {
+		case protocol.OpcodeSkyboxWeather:
+			instant = true
+			if m.body[0] != 6 {
+				t.Fatalf("0x00C7 %d, want 6 (heavy snow)", m.body[0])
+			}
+		case protocol.OpcodeWeatherData:
+			data = true
+		case protocol.OpcodeWeatherControl:
+			t.Fatalf("a faded 0x00C5 after the resend: %+v", got)
+		}
+	}
+	if !instant || !data {
+		t.Fatalf("after the resume dump: %+v, want 0x00C7 6 and 0x7E94", got)
+	}
+	os := nw.w.Weather.Overrides(now)
+	if len(os) != 1 || os[0].ID != id || !os[0].Until.Equal(until) {
+		t.Fatalf("overrides %+v, want #%d until %v", os, id, until)
+	}
+}

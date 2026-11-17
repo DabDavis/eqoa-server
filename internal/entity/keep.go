@@ -50,6 +50,9 @@ type KeptPlayer struct {
 	Place           [3]float32 `json:"place"`
 	World           uint8      `json:"world"`
 	RaceLabels      bool       `json:"race_labels,omitempty"`
+	// WeatherDraws: its client draws the weather's timelines (weather.go,
+	// 0x7E93): without it a resumed vanilla was sent no 0x7E94 again
+	WeatherDraws bool `json:"weather_draws,omitempty"`
 	// RecordWindow: its client has the combat record window (combatrecord.go)
 	RecordWindow bool `json:"record_window,omitempty"`
 	// PvP: its flag (pvp.go), and how long it must yet stay on
@@ -150,6 +153,7 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 		Place: [3]float32{p.X, p.Y, p.Z}, World: p.World, PetEffects: p.PetEffects}
 	k.BuffWindow = p.BuffWindow
 	k.RaceLabels = p.RaceLabels
+	k.WeatherDraws = p.WeatherDraws
 	k.RecordWindow = p.RecordWindow
 	k.Jumps = p.Jumps
 	k.DPSMeter = p.dps != nil
@@ -190,6 +194,9 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 	}
 	p.RaceLabels, p.raceLabelsSent = k.RaceLabels, "" // the client keeps its list; a data step may have changed it
 	p.PowerBars, p.powerBarsSent, p.powerBarsDue = k.PowerBars, "", k.PowerBars
+	// the weather in full again, the byte at once (0x00C7) and the timelines
+	// (0x7E94): its client's last may be from before a GM's weather came back
+	p.WeatherDraws, p.weatherSent, p.weatherKey = k.WeatherDraws, false, ""
 	p.ProfanityFilterOff, p.ProfanityFilterMedium = k.ProfanityOff, k.ProfanityMedium
 	p.LFG, p.GroupChatHidden = k.LFG, k.GroupChatHidden
 	p.PetEffects, p.petEffectsSent, p.petEffectsDue = k.PetEffects, "", k.PetEffects // its pet's set again once the pet is back

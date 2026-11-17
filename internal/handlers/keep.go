@@ -442,6 +442,10 @@ func ResumeDump(sess *session.Session, dead bool) bool {
 		h.queueMemoryDump(sess, &snap)
 	}
 	h.SendPlayerSpeed(sess, gw.PlayerSpeed(sess, entity.RunSpeed))
+	// the weather again in full, after the dump that reset the client's
+	// atmosphere: its byte at once (0x00C7) and, to a client that draws them,
+	// the timelines (0x7E94), a GM's weather put back by the restart among them
+	gw.WeatherResend(sess)
 	// its client may swing on through the restart with no 0x000F: the hands'
 	// swing for that (entity/attack.go pressUnsentLocked)
 	handsChanged(gw, h.inventoryStore, sess, p)

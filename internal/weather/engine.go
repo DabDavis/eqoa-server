@@ -22,7 +22,8 @@ import (
 // D > 8*fade and D > 2*hold + 4*fade. A zone meets the front late by its place
 // along the wind: 60 s * clamp(round(1 + dot(zone - block centre, wind)), 0, 2).
 //
-// Nothing is saved: the same clock gives the same weather on any server.
+// Nothing is saved: the same clock gives the same weather on any server. A
+// GM's weather is carried over a restart that keeps the players in (keep.go).
 
 const scheduleSeed = 20261024
 
@@ -166,7 +167,8 @@ func (o *override) info() Override {
 		From: o.from, Until: o.last(), By: o.by, Run: o.run, Ended: o.ended}
 }
 
-// MaxOverrides is how many GM weathers are kept at once (a restart drops them).
+// MaxOverrides is how many GM weathers are kept at once (a restart that keeps
+// the players in carries them: keep.go).
 const MaxOverrides = 256
 
 // Engine is the weather: the grids, the GMs' rules and their overrides.

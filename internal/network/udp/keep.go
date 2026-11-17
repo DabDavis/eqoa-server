@@ -43,6 +43,7 @@ import (
 	"github.com/eqoa/server/internal/handlers"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
+	"github.com/eqoa/server/internal/weather"
 )
 
 // KeepVersion is the snapshot's format: a process reads only its own.
@@ -102,6 +103,10 @@ type Snapshot struct {
 	// so each still opens after the restart. A file without them leaves the
 	// links empty.
 	ItemLinks []handlers.KeptItemLink `json:"item_links,omitempty"`
+	// Weather are the GMs' weathers (weather/keep.go), each with the time it
+	// had left and its own id; a file without them (a binary's before
+	// 2026-11-16) leaves none, as every restart did.
+	Weather []weather.KeptOverride `json:"weather,omitempty"`
 
 	// live are the sessions written, in Sessions' order: the old image beats
 	// them through the hold (keepbeat.go).
@@ -219,6 +224,9 @@ func (l *Listener) Snapshot(now time.Time) *Snapshot {
 		snap.Dungeons = l.gameWorld.KeepDungeons(now)
 		snap.Triggers = handlers.KeepTriggers(now)
 		snap.Corpses = handlers.KeepCorpses()
+		if l.gameWorld.Weather != nil {
+			snap.Weather = l.gameWorld.Weather.Keep(now)
+		}
 	}
 	snap.ItemLinks = handlers.KeepItemLinks()
 	return snap
@@ -336,8 +344,8 @@ func (l *Listener) KeepRestart(o KeepOptions) error {
 	if fi, err := os.Stat(o.File); err == nil {
 		size = fi.Size()
 	}
-	log.Printf("Keep: %d sessions (%d in the world, %d groups), %d NPCs off their rows' state, %d copies' corpses, %d corpses' contents or kill groups and %d item links written to %s (%d KB), %v after the signal",
-		len(snap.Sessions), in, len(snap.Groups), len(snap.NPCs), len(snap.Copies), len(snap.Corpses), len(snap.ItemLinks), o.File, size/1024, time.Since(start).Round(time.Millisecond))
+	log.Printf("Keep: %d sessions (%d in the world, %d groups), %d NPCs off their rows' state, %d copies' corpses, %d corpses' contents or kill groups, %d GM weathers and %d item links written to %s (%d KB), %v after the signal",
+		len(snap.Sessions), in, len(snap.Groups), len(snap.NPCs), len(snap.Copies), len(snap.Corpses), len(snap.Weather), len(snap.ItemLinks), o.File, size/1024, time.Since(start).Round(time.Millisecond))
 	if o.Hold != "" {
 		if _, err := os.Stat(o.Hold); err == nil {
 			if o.Saved != "" {
@@ -483,6 +491,14 @@ func (l *Listener) ResumeKept(snap *Snapshot, now time.Time) (resumed, told int)
 		log.Printf("Keep: of %d NPCs written, %s; %d of %d copies' corpses made again (%d not); dungeons: %d instances made again (%d not), %d creatures alive and %d corpses (%d not made), %d characters to put back in them; triggers: %d runs made again (%d not), %d spawns alive and %d lying dead (%d not made); %d of %d corpses' contents and kill groups as they were; in %v",
 			len(snap.NPCs), r, copies, len(snap.Copies), lost, dr.Insts, dr.InstsLost, dr.Alive, dr.Dead, dr.NPCsLost, dr.Players,
 			tr.Runs, tr.RunsLost, tr.Alive, tr.Corpses, tr.Lost, corpses, len(snap.Corpses), time.Since(start).Round(time.Millisecond))
+	}
+	// the GMs' weathers, before any client is sent its weather
+	if l.gameWorld != nil && l.gameWorld.Weather != nil && len(snap.Weather) > 0 {
+		n, bad := l.gameWorld.Weather.Restore(snap.Weather, now)
+		for _, err := range bad {
+			log.Printf("Keep: %v", err)
+		}
+		log.Printf("Keep: %d of %d GM weathers as they were", n, len(snap.Weather))
 	}
 	// the links in players' chat lines, which still open
 	if len(snap.ItemLinks) > 0 {

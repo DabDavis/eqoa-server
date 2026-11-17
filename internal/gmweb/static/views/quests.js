@@ -761,7 +761,7 @@ async function wordsEditor(box, id) {
 async function editor(box, id) {
   let data = {
     quest: { name: '', enabled: 0, giver: '', minlevel: 1, maxlevel: 60, classes: '', races: '', requires: '', repeatable: 0,
-      offer: '', accept: '', decline: '', declined: '', started: '', source: 'gm', notes: '', events: '', factionreq: '' },
+      offer: '', accept: '', decline: '', declined: '', started: '', source: 'gm', notes: '', events: '', factionreq: '', asks: '', daygroup: '' },
     steps: [], unlocks: [], routes: [], problems: [], characters: [],
   };
   if (id) {
@@ -932,13 +932,15 @@ async function editor(box, id) {
           field('Classes', idSet(q, 'classes', CLASSES), 'none ticked: any', true),
           field('Races', idSet(q, 'races', RACES), 'none ticked: any', true),
           field('Quests finished first', text(q, 'requires', { placeholder: 'quest ids, comma separated; 11|12 for either', class: 'mono' }), null, true),
-          field('Standings asked', factionReqs(q, 'factionreq'), 'offered, marked and done at its giver only while each is met (-2000 to 2000)', true))),
+          field('Standings asked', factionReqs(q, 'factionreq'), 'offered, marked and done at its giver only while each is met (-2000 to 2000)', true),
+          field('Day group', text(q, 'daygroup', { placeholder: 'a name, e.g. christmas-gifts' }), 'quests of one name are one a day: none while another is under way or was finished today', true))),
         card('What the giver says', h('div', { class: 'fields' },
           field('Offer', area(q, 'offer', 6), 'a paragraph a question: its lines a box each, its last line the question (no name before it)', true),
           field('Answers taking it', area(q, 'accept', 2), 'a line a question; empty: taken as soon as the giver is talked to', true),
           field('Answer refusing it', counted(q, 'decline', 63), 'offered with each answer; empty: none', true),
           field('Reply to a refusal', area(q, 'declined', 2), 'said as written, no name put before it', true),
           field('Once taken', area(q, 'started', 3), 'a line a box', true),
+          field('Questions at the offer', area(q, 'asks', 4), 'JSON: [{"answer", "says", "asks": [...]}]: the player may ask each, the giver answers, then asks the offer again; nothing is kept', true),
           h('p', { class: 'muted small field wide' }, "An NPC's lines are shown with its name before them, as Sandstorm's are, unless they begin with it."))),
         card('Events', h('div', { class: 'fields' },
           field('', eventsEditor(q, 'events', QUEST_WHENS, worlds), "run in order after the giver's words when it is taken, and after the last step's when it is finished", true))),

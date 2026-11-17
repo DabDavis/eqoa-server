@@ -1,0 +1,333 @@
+{
+ "asks": [
+  {
+   "answer": "Timeskipped? What do you mean?",
+   "says": "Just that! One night was like any other. By morning every child in Freeport was grown, every beard had gone grey, and the saplings by the gates stood taller than the walls.\nGardens had run wild, roads were lost under the grass, and every shop's stock had gone to dust. Fourteen years, %p, and not a soul remembers living them.\nNo one knows why. All we know is that one day there was a loud cry, and the entirety of Tunaria went dark.",
+   "asks": [
+    {
+     "answer": "So why am I only giving presents once per day?",
+     "says": "*The elf glances over at Santa and lowers his voice.* I asked the big fellow that myself. He stroked his beard and mumbled, \"FOMO is good for engagement metrics.\"\nThen he mumbled something about server population. I do not know what any of that means, %p. I just work here."
+    }
+   ]
+  }
+ ],
+ "quests": [
+  {
+   "questid": 102901,
+   "change": "update",
+   "quest": {
+    "offer": "Time skipped, %p. Fourteen winters, gone between one night and the next, and no one knows why. Not the priests, not the wizards, not even Santa.\nThe townsfolk are frightened. They lost years they cannot remember, and they jump at their own shadows. But the season keeps its own calendar. Lost years or no, Christmas has come, and Christmas must go on.\nA gift will not bring the years back, but it may remind them they are not forgotten. Will you carry a few for me?",
+    "accept": "I will carry them. Christmas goes on.",
+    "started": "Bless you! One for Tailor Bariston, one for Bowyer Koll. Both keep shop by the tree, and neither has slept a full night since the years went missing.\nHand them over gently. Then come back to me.",
+    "repeatable": 0,
+    "daygroup": "christmas-gifts"
+   },
+   "steps": [
+    {
+     "step": 1,
+     "kind": "talk",
+     "target": "Tailor Bariston",
+     "journal": "Bring the Holiday Elf's gift to Tailor Bariston, at House Tilsteran just east of the Christmas tree.",
+     "waiting": "Fourteen years, they tell me. My silks faded and my needles rusted in a single night. What... what do you want?",
+     "answer": "A gift from the Holiday Elf, for you.",
+     "says": "A gift? For me? *Bariston turns the little parcel over in shaking hands.* Wrapped in holly, just as it always was. Before... whatever happened.\nThe years went somewhere, but Christmas did not go with them. Thank the elf for me, %p. I think I will open my shop today.",
+     "anyorder": 1
+    },
+    {
+     "step": 2,
+     "kind": "talk",
+     "target": "Bowyer Koll",
+     "journal": "Bring the Holiday Elf's gift to Bowyer Koll, beside Tailor Bariston at House Tilsteran, east of the tree.",
+     "waiting": "Easy, stranger. Every string in my shop went slack overnight, and my apprentice woke with a grey beard. What is it?",
+     "answer": "A gift from the Holiday Elf, for you.",
+     "says": "*Koll stares at the gift for a long moment.* I have not had one since I was a boy. Fourteen years gone, and here is the elf, same as ever.\nIf Christmas can find its way through all that, so can I. Merry Christmas, %p. I will restring the bows tonight.",
+     "anyorder": 1
+    },
+    {
+     "step": 3,
+     "kind": "talk",
+     "target": "Holiday Elf",
+     "journal": "Return to the Holiday Elf by the Christmas tree, west of Freeport's harbor.",
+     "says": "Both delivered? Then two more hearts in Freeport are a little lighter tonight.\nHere, a few Holly Tokens for your trouble. Come back tomorrow. Whatever became of the years, there are always more gifts.",
+     "anyorder": 0,
+     "rewarditems": "716900*3"
+    }
+   ]
+  },
+  {
+   "questid": 102902,
+   "change": "update",
+   "quest": {
+    "offer": "The guards fell asleep on watch, %p, and when time skipped they woke fourteen years later, still on watch. Not one of them remembers the years between.\nThey keep the peace, but they are as frightened as anyone. A guard cannot leave a post to go looking for lost time. So we bring the season to them.\nWill you sing them a carol from me?",
+    "started": "Splendid! Sing for Captain Scilond, then for Gylod Ungrim. And sing it loud: fear has never stood up to a good carol.\nThen come back and tell me how it went."
+   },
+   "steps": [
+    {
+     "step": 1,
+     "kind": "talk",
+     "target": "Captain Scilond",
+     "journal": "Sing a carol for Captain Scilond, by Santa's sleigh just south of the Christmas tree.",
+     "waiting": "Fourteen years, and not one report explains it. My scouts swear they only blinked. State your business.",
+     "answer": "The Holiday Elf asked me to sing you a carol.",
+     "says": "*You sing. The captain listens, arms folded, and slowly the frown softens.*\nNot bad, %p. Not bad at all. Whatever took those years, it did not take that. Carry on.",
+     "anyorder": 1
+    },
+    {
+     "step": 2,
+     "kind": "talk",
+     "target": "Gylod Ungrim",
+     "journal": "Sing a carol for Gylod Ungrim, beside Captain Scilond by Santa's sleigh, south of the tree.",
+     "waiting": "They say I have stood here fourteen years. I remember one night. Just the one. What do you want?",
+     "answer": "The Holiday Elf asked me to sing you a carol.",
+     "says": "*Gylod hums along, then joins in on the last verse, off key and loud.*\nMy mother sang that one. Fourteen years or forty, the words have not changed. Merry Christmas, %p.",
+     "anyorder": 1
+    },
+    {
+     "step": 3,
+     "kind": "talk",
+     "target": "Holiday Elf",
+     "journal": "Return to the Holiday Elf by the Christmas tree, west of Freeport's harbor.",
+     "says": "The whole plaza heard you! Folk came out of their doors to listen, and for a moment nobody was counting lost years.\nHolly Tokens, for a voice like that. Come back tomorrow and sing again.",
+     "anyorder": 0,
+     "rewarditems": "716900*3"
+    }
+   ]
+  },
+  {
+   "questid": 102904,
+   "change": "insert",
+   "quest": {
+    "name": "More Gifts for Freeport",
+    "enabled": 1,
+    "giver": "Holiday Elf",
+    "minlevel": 1,
+    "maxlevel": 60,
+    "repeatable": 2,
+    "requires": "102901",
+    "daygroup": "christmas-gifts",
+    "offer": "Back for more, %p? Good. The town is still jumpy and the sack is still full. Will you carry today's gifts?",
+    "accept": "I will carry them.",
+    "started": "Today's go to Slagbreath, the Angry Patron and Kilgar Twotoes. And be polite to Slagbreath. Nobody is quite sure whose side he is on.",
+    "source": "christmas-2026",
+    "notes": "The Christmas season's short gift run, after Gifts for Freeport (jibrish 2026-11-16)"
+   },
+   "steps": [
+    {
+     "step": 1,
+     "kind": "talk",
+     "target": "Slagbreath",
+     "journal": "Bring the Holiday Elf's gift to Slagbreath, by the Academy of Arcane Science north of the Christmas tree.",
+     "waiting": "*Slagbreath flaps ominously. The cries of a thousand young adventurers must have heard this before the end.*",
+     "answer": "Give Slagbreath the gift.",
+     "says": "*Slagbreath nods his head at you. I think he appreciated it.*",
+     "anyorder": 1
+    },
+    {
+     "step": 2,
+     "kind": "talk",
+     "target": "Angry Patron",
+     "journal": "Bring the Holiday Elf's gift to the Angry Patron, inside House Tilsteran east of the Christmas tree.",
+     "waiting": "Fourteen years. FOURTEEN. I ordered an ale before the dark, and I am still waiting on it. What do you want?",
+     "answer": "A gift from the Holiday Elf, for you.",
+     "says": "A gift? Is it an ale? *The patron shakes the parcel.* It is not an ale.\nFine. FINE. Merry Christmas. And if you see the barkeep, say fourteen years is long enough.",
+     "anyorder": 1
+    },
+    {
+     "step": 3,
+     "kind": "talk",
+     "target": "Kilgar Twotoes",
+     "journal": "Bring the Holiday Elf's gift to Kilgar Twotoes, in the Smiling Serpent Inn north-east of the Christmas tree.",
+     "waiting": "Stay back! First the years went, then the sky goes, then the sea. I have it all written down. It is the end, I tell you!",
+     "answer": "A gift from the Holiday Elf, for you.",
+     "says": "A gift? At the end of the world? *Kilgar clutches the parcel.*\nWell. If the world is ending, it may as well end with presents. Thank you, %p. I will open it before the sky falls.",
+     "anyorder": 1
+    },
+    {
+     "step": 4,
+     "kind": "talk",
+     "target": "Holiday Elf",
+     "journal": "Return to the Holiday Elf by the Christmas tree, west of Freeport's harbor.",
+     "says": "Slagbreath did not eat you? Splendid! Holly Tokens for your trouble. Come back tomorrow.",
+     "anyorder": 0,
+     "rewarditems": "716900*3"
+    }
+   ]
+  },
+  {
+   "questid": 102905,
+   "change": "insert",
+   "quest": {
+    "name": "Still More Gifts",
+    "enabled": 1,
+    "giver": "Holiday Elf",
+    "minlevel": 1,
+    "maxlevel": 60,
+    "repeatable": 2,
+    "requires": "102901",
+    "daygroup": "christmas-gifts",
+    "offer": "You again! Wonderful. Freeport has fourteen years of Christmases to catch up on. Will you carry today's gifts?",
+    "accept": "I will carry them.",
+    "started": "Merchant Zuk, Blixin Kaboom, and the priest of Bertoxxulous. Yes, that one. Everyone gets a gift.",
+    "source": "christmas-2026",
+    "notes": "The Christmas season's short gift run, after Gifts for Freeport (jibrish 2026-11-16)"
+   },
+   "steps": [
+    {
+     "step": 1,
+     "kind": "talk",
+     "target": "Merchant Zuk",
+     "journal": "Bring the Holiday Elf's gift to Merchant Zuk, just south of the Christmas tree, past the Recruiter.",
+     "waiting": "Fourteen years of interest on every debt in Freeport, all due at once. Best morning of my life. Buying or selling?",
+     "answer": "A gift from the Holiday Elf, for you.",
+     "says": "A gift? Free? *Zuk turns the parcel over, looking for a price, and finds none.*\nHm. Well. Merry Christmas, %p. Do not tell anyone I said that. It is bad for business.",
+     "anyorder": 1
+    },
+    {
+     "step": 2,
+     "kind": "talk",
+     "target": "Blixin Kaboom",
+     "journal": "Bring the Holiday Elf's gift to Blixin Kaboom, just south of the Christmas tree beside the Recruiter.",
+     "waiting": "It was not me! Probably. Almost certainly. Nobody can prove the big dark was my fault. Why, what have you heard?",
+     "answer": "A gift from the Holiday Elf, for you.",
+     "says": "Oh! A gift. Not a summons from the Militia. *Blixin lets out a long breath.*\nBetween us, %p, I have taken apart every invention I own. Not one of them can skip fourteen years. Most of them cannot even skip breakfast.",
+     "anyorder": 1
+    },
+    {
+     "step": 3,
+     "kind": "talk",
+     "target": "Priest of Bertoxxulous",
+     "journal": "Bring the Holiday Elf's gift to the Priest of Bertoxxulous, in the Shining Shield Mercenaries' hall, north-east.",
+     "waiting": "The years rotted away in a single night! The end draws near, and the Plaguebringer is pleased. Have you come to rejoice?",
+     "answer": "A gift from the Holiday Elf, for you.",
+     "says": "A gift. How... festive. *The priest sniffs the parcel suspiciously.*\nAll things decay, %p, even the years. But I suppose I can open it before the world ends. Merry Christmas.",
+     "anyorder": 1
+    },
+    {
+     "step": 4,
+     "kind": "talk",
+     "target": "Holiday Elf",
+     "journal": "Return to the Holiday Elf by the Christmas tree, west of Freeport's harbor.",
+     "says": "All three? Even the priest? You are braver than I am. Holly Tokens, and come back tomorrow.",
+     "anyorder": 0,
+     "rewarditems": "716900*3"
+    }
+   ]
+  },
+  {
+   "questid": 102906,
+   "change": "insert",
+   "quest": {
+    "name": "The Bottomless Sack",
+    "enabled": 1,
+    "giver": "Holiday Elf",
+    "minlevel": 1,
+    "maxlevel": 60,
+    "repeatable": 2,
+    "requires": "102901",
+    "daygroup": "christmas-gifts",
+    "offer": "Ah, %p! The sack is full again. Do not ask me how. Will you carry today's gifts?",
+    "accept": "I will carry them.",
+    "started": "Peltam the fish farmer, Necorik the Ghost and Chemist Carla. Necorik cannot hold a parcel, so just set it down nearby.",
+    "source": "christmas-2026",
+    "notes": "The Christmas season's short gift run, after Gifts for Freeport (jibrish 2026-11-16)"
+   },
+   "steps": [
+    {
+     "step": 1,
+     "kind": "talk",
+     "target": "Peltam The Fish Farmer",
+     "journal": "Bring the Holiday Elf's gift to Peltam The Fish Farmer, by the bowyers' shop north of the Christmas tree.",
+     "waiting": "Fourteen years, eh? The fish did not notice and neither did I. They still want feeding twice a day. You need something?",
+     "answer": "A gift from the Holiday Elf, for you.",
+     "says": "For me? Thank you kindly. *Peltam tucks the gift under one arm and goes straight back to work.*\nFolk keep asking where the years went. I ask where the feed went. Only one of those questions has an answer.",
+     "anyorder": 1
+    },
+    {
+     "step": 2,
+     "kind": "talk",
+     "target": "Necorik the Ghost",
+     "journal": "Bring the Holiday Elf's gift to Necorik the Ghost, in the Shining Shield Mercenaries' hall, north-east.",
+     "waiting": "*Necorik drifts closer.* Fourteen years, they all wail. I have been dead for centuries. Fourteen years is a nap.",
+     "answer": "A gift from the Holiday Elf, for you.",
+     "says": "A gift, for the dead? Nobody has thought of me in a very long time, %p.\n*Necorik flickers a little warmer.* Tell the elf the ghost says Merry Christmas.",
+     "anyorder": 1
+    },
+    {
+     "step": 3,
+     "kind": "talk",
+     "target": "Chemist Carla",
+     "journal": "Bring the Holiday Elf's gift to Chemist Carla, in the Academy of Arcane Science north of the Christmas tree.",
+     "waiting": "Mind the smoke! I am brewing a draught to bring back the lost years. Attempt forty-one. *Something bubbles ominously.*",
+     "answer": "A gift from the Holiday Elf, for you.",
+     "says": "A gift! Oh, how lovely. Attempt forty-one can wait.\nAttempt forty did give me back my eyebrows, at least. Well, one of them. Merry Christmas, %p!",
+     "anyorder": 1
+    },
+    {
+     "step": 4,
+     "kind": "talk",
+     "target": "Holiday Elf",
+     "journal": "Return to the Holiday Elf by the Christmas tree, west of Freeport's harbor.",
+     "says": "Did Necorik say anything? Necorik never says anything to me. Holly Tokens, and back tomorrow!",
+     "anyorder": 0,
+     "rewarditems": "716900*3"
+    }
+   ]
+  }
+ ],
+ "dialog_update": [
+  {
+   "id": 2982,
+   "line": "Merry Christmas, %p! Fourteen years went missing, but the gifts did not. Speak to me each day of the season."
+  }
+ ],
+ "dialog_insert": [
+  {
+   "town": "",
+   "role": "",
+   "name": "Holiday Elf",
+   "line": "Nobody knows where the years went, %p. But I know where Christmas is: right here, by the tree."
+  },
+  {
+   "town": "",
+   "role": "",
+   "name": "Holiday Elf",
+   "line": "Santa has never lost a year before, let alone fourteen. He is checking his list twice, then twice more."
+  },
+  {
+   "town": "",
+   "role": "",
+   "name": "Holiday Elf",
+   "line": "The children of Freeport grew up overnight. Now every present has to be bigger. Do you know how much wrapping that is?"
+  },
+  {
+   "town": "Freeport",
+   "role": "",
+   "name": "",
+   "line": "Fourteen years, %p. I went to sleep with dark hair. Look at it now."
+  },
+  {
+   "town": "Freeport",
+   "role": "",
+   "name": "",
+   "line": "The priests will not say where the years went, and the wizards cannot. At least the tree is lit."
+  },
+  {
+   "town": "Freeport",
+   "role": "",
+   "name": "",
+   "line": "The children I knew are grown, and still they ran to the tree. Some things the years cannot take."
+  },
+  {
+   "town": "Freeport",
+   "role": "guard",
+   "name": "",
+   "line": "Fourteen years on watch and I do not remember a single shift. Move along, %p."
+  },
+  {
+   "town": "",
+   "role": "",
+   "name": "Santa Claus",
+   "line": "Fourteen years! Ho ho... ho. Even I do not know what happened, %p. But the sleigh flies on."
+  }
+ ]
+}

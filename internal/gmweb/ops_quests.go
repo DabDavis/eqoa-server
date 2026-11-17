@@ -20,12 +20,12 @@ import (
 
 // questCols are a quest row's columns the editor sends, in the table's order.
 var questCols = []string{"name", "enabled", "giver", "minlevel", "maxlevel", "classes", "races", "requires",
-	"repeatable", "offer", "accept", "decline", "declined", "started", "source", "notes", "events", "factionreq", "excludes"}
+	"repeatable", "offer", "accept", "decline", "declined", "started", "source", "notes", "events", "factionreq", "excludes", "asks", "daygroup"}
 
 // stepCols are a step row's columns the editor sends.
 var stepCols = []string{"kind", "target", "npcid", "items", "tunar", "count", "world", "x", "y", "z", "radius",
 	"journal", "answer", "says", "waiting", "notyet", "reminder", "xp", "rewardtunar", "rewarditems", "factions", "spells",
-	"chance", "events", "byclass", "choices"}
+	"chance", "events", "byclass", "choices", "anyorder"}
 
 // questUnlock is one trip a quest unlocks as the editor sends it (a
 // questunlocks row: handlers/questtrips.go).
@@ -43,15 +43,20 @@ const eventsHelp = `a JSON list of events, each {"on", "do", ...}: popup {text, 
 
 func (s *Server) registerQuestOps() {
 	questSchema := obj(map[string]any{
-		"questid":    integer("its id; none or 0 makes a new quest"),
-		"name":       str("what GMs call it (players see the journal lines)"),
-		"enabled":    integer("1: offered in the game; 0: a draft"),
-		"giver":      str("the NPC who offers it, by its name as the game shows it"),
-		"minlevel":   integer("the lowest level that may take it"),
-		"maxlevel":   integer("the highest (0: any)"),
-		"classes":    str("class ids that may take it, comma separated; empty: any (0 Warrior ... 14 Alchemist)"),
-		"races":      str("race ids, comma separated; empty: any"),
-		"requires":   str("quest ids finished first, comma separated; ids joined by | are one requirement any of them meets (\"10, 11|12\": 10, and 11 or 12)"),
+		"questid":  integer("its id; none or 0 makes a new quest"),
+		"name":     str("what GMs call it (players see the journal lines)"),
+		"enabled":  integer("1: offered in the game; 0: a draft"),
+		"giver":    str("the NPC who offers it, by its name as the game shows it"),
+		"minlevel": integer("the lowest level that may take it"),
+		"maxlevel": integer("the highest (0: any)"),
+		"classes":  str("class ids that may take it, comma separated; empty: any (0 Warrior ... 14 Alchemist)"),
+		"races":    str("race ids, comma separated; empty: any"),
+		"requires": str("quest ids finished first, comma separated; ids joined by | are one requirement any of them meets (\"10, 11|12\": 10, and 11 or 12)"),
+		"asks": str(`questions the player may ask at its offer besides taking or refusing it: a JSON list of ` +
+			`{"answer": the player's line (63 characters), "says": the giver's reply (a box a line, 217 characters a line), ` +
+			`"asks": follow-ups of the same shape, opened once it is asked}; the giver replies, then asks the offer's question ` +
+			`again; nothing is kept. Six answers at most in one box with the accept and decline. Empty: none`),
+		"daygroup":   str("a name the quests of one a day share: one of the group is not offered or taken while another is under way or was finished today (the giver's rotation, fewest finished first, takes turns); empty: none"),
 		"excludes":   str("quest ids whose doing keeps it from a character, comma separated: not offered nor taken by one who finished any of them or has one under way (two tellings of one errand); empty: none"),
 		"repeatable": integer("1: may be taken again once finished"),
 		"offer":      str("the giver's words offering it: a paragraph (lines between blank lines) a question, a line a box, each paragraph's last line the question"),
@@ -96,6 +101,7 @@ func (s *Server) registerQuestOps() {
 		"events":      str("what happens when it becomes the step to do (on start) and when it is done (on done): " + eventsHelp),
 		"byclass": str(`rewards for a player of one class besides the above: a JSON object by class id (0 Warrior ... 14 ` +
 			`Alchemist), each {"xp", "tunar", "items": "patternid*count, ...", "spells": "spell ids, comma separated"}; empty: none`),
+		"anyorder": integer("talk/show/give: 1: this step and the steps next to it with 1 are done in any order, the quest going on past them once all are; the journal lists who is left"),
 		"choices": str(`talk/show/give: a pick asked when the step is done at its NPC (a guide's "choose your epic weapon"): ` +
 			`{"ask": "the question", "options": [{"answer", "says", "stay", "xp", "tunar", "items": "patternid*count, ...", ` +
 			`"spells": "spell ids"}]}, at most six options; the picked one's rewards are given besides the step's own, and one ` +
@@ -668,6 +674,9 @@ func (s *Server) questProblems(q map[string]any, steps []map[string]any, unlocks
 		add("it has no steps: it cannot be taken")
 	}
 	s.eventProblems(text(q, "events"), false, "the quest's", add)
+	for _, p := range database.QuestAskProblems(text(q, "asks"), strings.TrimSpace(text(q, "decline")) != "") {
+		add("the quest's %s", p)
+	}
 	for _, p := range database.FactionReqProblems(text(q, "factionreq")) {
 		add("%s", p)
 	}

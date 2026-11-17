@@ -53,11 +53,12 @@ type LootChoice struct {
 	Weight int
 }
 
-// LootRoll is one table bound to a creature: its chance a roll (percent),
-// its rolls a kill, and its items for the creature's level.
+// LootRoll is one table bound to a creature: its chance a roll (percent; a
+// fraction may be written, npcloot.chance 0.1 for one in a thousand: work board
+// 1310 item 2, 1599), its rolls a kill, and its items for the creature's level.
 type LootRoll struct {
 	Table   string
-	Chance  int
+	Chance  float64
 	Rolls   int
 	Choices []LootChoice
 }

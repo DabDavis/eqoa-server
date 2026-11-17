@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"log"
+	"math"
 	"math/rand"
 	"sync"
 	"time"
@@ -232,7 +233,15 @@ func lootNames(npc *entity.NPC) []string {
 			return []string{entity.RowKey(r), lootEveryCreature}
 		}
 	}
-	return []string{npc.Name, lootEveryCreature}
+	// an open-world creature rolls its name's tables and its own row's too (work board 1554: Solusek's Eye's
+	// kobold slayers, augurs, Primal Spirits and stone spiders share their names with Odus's and Tunaria's;
+	// 1599: the Tower of Phantoms' two elder spirits alone drop the Spirit Maker's Robe); a copy (#spawn, a
+	// trigger's) rolls its source row's, as npctemplate gives it
+	names := []string{npc.Name}
+	if r := npc.Row(); r != 0 {
+		names = append(names, entity.RowKey(r))
+	}
+	return append(names, lootEveryCreature)
 }
 
 // lootLevelReach is how far above its opener's level a piece of equipment a
@@ -316,7 +325,7 @@ func rollLoot(rolls []database.LootRoll, intn func(int) int) []database.CharInve
 			continue
 		}
 		for n := 0; n < r.Rolls; n++ {
-			if intn(100) >= r.Chance {
+			if !lootChanceHits(r.Chance, intn) {
 				continue
 			}
 			pick := intn(total)
@@ -329,6 +338,20 @@ func rollLoot(rolls []database.LootRoll, intn func(int) int) []database.CharInve
 		}
 	}
 	return out
+}
+
+// lootChancePer is the finer die a fractional chance rolls on: thousandths of
+// a percent.
+const lootChancePer = 1000
+
+// lootChanceHits is a roll at chance percent: a whole chance on intn(100), as
+// it always rolled; a fractional one (npcloot.chance 0.1: work board 1310 item
+// 2, 1599) on a float in [0, 100) to a thousandth of a percent.
+func lootChanceHits(chance float64, intn func(int) int) bool {
+	if chance == math.Trunc(chance) {
+		return float64(intn(100)) < chance
+	}
+	return float64(intn(100*lootChancePer))/lootChancePer < chance
 }
 
 // corpseOf is whether the NPC's corpse lies to be looted, and the death it

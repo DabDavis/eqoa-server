@@ -138,7 +138,7 @@ const balanceNewPlayersNote = "levels 1-12 balanced apart for new players (tools
 var (
 	BalanceSeedLevels = []BalanceLevel{
 		{Level: 1, HPPct: 225, DamagePct: 79, ConPct: 100, PetHPPct: 100, PetDamagePct: 100, ArtCooldownMS: 1500, RegenPct: 5, PlayerMeleePct: 75, Note: balanceNewPlayersNote},
-		{Level: 2, HPPct: 209.0625, DamagePct: 133, ConPct: 100, PetHPPct: 100, PetDamagePct: 100, ArtCooldownMS: 1500, RegenPct: 5, PlayerMeleePct: 75, Note: balanceNewPlayersNote},
+		{Level: 2, HPPct: 209.0625, DamagePct: 79, ConPct: 100, PetHPPct: 100, PetDamagePct: 100, ArtCooldownMS: 1500, RegenPct: 5, PlayerMeleePct: 75, Note: balanceNewPlayersNote},
 		{Level: 3, HPPct: 193.125, DamagePct: 61, ConPct: 100, PetHPPct: 100, PetDamagePct: 100, ArtCooldownMS: 1500, RegenPct: 5, PlayerMeleePct: 75, Note: balanceNewPlayersNote},
 		{Level: 4, HPPct: 177.1875, DamagePct: 112, ConPct: 100, PetHPPct: 100, PetDamagePct: 100, ArtCooldownMS: 1500, RegenPct: 5, PlayerMeleePct: 75, Note: balanceNewPlayersNote},
 		{Level: 5, HPPct: 161.25, DamagePct: 102, ConPct: 100, PetHPPct: 100, PetDamagePct: 100, ArtCooldownMS: 1500, RegenPct: 5, PlayerMeleePct: 75, Note: balanceNewPlayersNote},

@@ -618,7 +618,8 @@ func TestRealBalanceYellowsAndReds(t *testing.T) {
 // even one, a creature of level 1: no creature is under it). Until the new
 // players' curve (2026-11-04) one cell was short of it, an enchanter of 2 by
 // hand at 92% (the NPC of 2 hit 317%: its first blows killed a
-// 25-hit-point caster); its creature hits at 133% now. The control: an
+// 25-hit-point caster); its creature hits at 79% now (133% until petition
+// 5287, tools/refit_level2_creatures.py). The control: an
 // alchemist of 2 by hand under the share fit alone (no dealt), under the
 // tables as they were before the curve, wins under half of its even fights.
 func TestRealLowLevelsEvenAndBelow(t *testing.T) {

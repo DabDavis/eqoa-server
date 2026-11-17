@@ -1216,7 +1216,7 @@ func (w *World) templateConeLocked(npc *NPC, spell *CastSpell, target EntityID) 
 // (sight.go). Must be called with the lock held.
 func (w *World) templateAreaPlaceLocked(npc *NPC, spell *CastSpell, target EntityID) areaPlace {
 	x, y, z := w.templateAreaCentreLocked(npc, spell, target)
-	return areaPlace{world: npc.World, caster: [3]float32{npc.X, npc.Y, npc.Z}, centre: [3]float32{x, y, z}, onOther: spell.Area.Centre == AreaOnTarget}
+	return npcAreaPlace(npc, x, y, z, spell.Area.Centre == AreaOnTarget) // its line from its own heights too
 }
 
 // templateSparedLocked reports one a templated NPC's area spell does not reach
@@ -1244,11 +1244,21 @@ func (w *World) templateSparedLocked(c *npcCast, place areaPlace, id EntityID, s
 
 // templateAreaLocked is a templated NPC's area spell's others as its cast
 // begins, as a player's are chosen (area.go): round its target (or itself,
-// a caster's area), within its radius and reached by it (sight.go), the
-// nearest first, its cap with the target counted; the players a creature may
-// notice (aggro.go: not hidden, not a GM who turned aggro off, not loading a
-// world; one in safe mode only when it is part of npc's fight), not across
-// the water's edge from it, and players' pets.
+// a caster's area), within its radius and reached by it (sight.go: from the
+// creature's own heights too, clearFromBodyLocked), the nearest first; the
+// players a creature may notice (aggro.go: not hidden, not a GM who turned
+// aggro off, not loading a world; one in safe mode only when it is part of
+// npc's fight), not across the water's edge from it, and players' pets and
+// mercenaries. Everyone of them, whatever their group or raid or none, on its
+// hate list or not: no cap, neither AreaMaxTargets nor a GM's spellarea row's
+// (that row's Max still bounds a player's cast of the spell). The owner,
+// 2026-11-17: "the raid bosses aoes should be able to hit all targets within
+// range"; AreaMaxTargets (the target and seven) had left every raid past its
+// eighth body untouched by Talon's Breath, Pestilent Breath, Shadow Burst and
+// the rest, a GM's row's 64 every one past its 64th. Any templated creature's
+// area spell is chosen here, a wizard's Fire Storm as a dragon's breath:
+// range is the rule. The 0x00B1 names the nearest seven (areaSeenLocked);
+// the others take it unnamed, as a raid group's do.
 func (w *World) templateAreaLocked(npc *NPC, spell *CastSpell, target EntityID) []EntityID {
 	if w.SpatialIndex == nil {
 		return nil
@@ -1288,10 +1298,7 @@ func (w *World) templateAreaLocked(npc *NPC, spell *CastSpell, target EntityID) 
 			}
 		}
 	}
-	sort.SliceStable(near, func(i, j int) bool { return near[i].dist < near[j].dist })
-	if room := max(a.most()-1, 0); len(near) > room {
-		near = near[:room]
-	}
+	sort.SliceStable(near, func(i, j int) bool { return near[i].dist < near[j].dist }) // the nearest named in its 0x00B1
 	out := make([]EntityID, 0, len(near))
 	for _, n := range near {
 		out = append(out, n.id)

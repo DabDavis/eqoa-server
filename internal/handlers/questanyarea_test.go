@@ -50,6 +50,17 @@ func TestAnAnyCreatureLootStepDropsInItsAreaAlone(t *testing.T) {
 		t.Fatalf("inside the area: drops %v, want the emerald on 904", drops)
 	}
 
+	// another creature the step names (queststeptargets) counts wherever it dies
+	f.exec(`INSERT INTO queststeptargets (questid, step, target) VALUES (70, 1, 'Teir''Dal knight')`)
+	f.qe.Reload()
+	f.own(gem, 0)
+	drops = nil
+	f.killAt("chaos hound", 905, 0, 5000, 5000) // far outside: none
+	f.killAt("Teir'Dal knight", 906, 0, 5000, 5000)
+	if len(drops) != 1 || drops[0] != (lootDrop{906, f.sid, gem}) {
+		t.Fatalf("the step's other creature outside the area: drops %v, want the gem on 906", drops)
+	}
+
 	st := database.QuestStep{Kind: database.StepLoot, Target: database.AnyCreature, Radius: 0}
 	if st.TakesKillAt(0, 0, 0) || st.AnyInArea() {
 		t.Error("an AnyCreature step with no radius takes a kill")

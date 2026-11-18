@@ -39,11 +39,26 @@ type decorLightState struct {
 	// art is table decorart by NPC name (keyed): the bodies a client that
 	// draws decorations is sent in place of the rows' own
 	art atomic.Pointer[map[string]database.DecorArt]
+	// petArt is table decorart's pets' looks (kind pet: cmpetlook.go's
+	// PetArt) by model and world: where a client that draws them can have
+	// the art (its zone of that world's file)
+	petArt atomic.Pointer[map[PetArtKey]database.DecorArt]
 }
 
-// DecorLightsLayout is the newest layout of OpcodeDecorLights: 2 (the walk-ons
-// after the papers, and OpcodeRide: npctour.go).
-const DecorLightsLayout = 2
+// PetArtKey is a pet's look's art in one world.
+type PetArtKey struct {
+	Model uint32
+	World uint8
+}
+
+// DecorLightsLayout is the newest layout of OpcodeDecorLights: 3 (the pets'
+// looks after the walk-ons, and pets sent in them: cmpetlook.go's PetArt); 2
+// the walk-ons after the papers, and OpcodeRide (npctour.go).
+const DecorLightsLayout = 3
+
+// DecorPetArtLayout is the layout from which a client is sent a pet in its
+// art (petArtViewLocked).
+const DecorPetArtLayout = 3
 
 // DecorCordBreak is the bit of a bulb's colour byte that breaks the cord
 // before it (a ring's first bulb after the ring below, a box's edge apart from
@@ -351,12 +366,19 @@ func DecorLightsMessage(body []byte) *protocol.Message {
 // world), and sends them to every client that draws them; it reports how many
 // it told.
 func (w *World) SetDecorLights(strs []DecorString, art map[string]database.DecorArt, shown []database.DecorArt, assets ...database.DecorAsset) int {
-	if art == nil {
-		art = map[string]database.DecorArt{}
+	byName, pets := map[string]database.DecorArt{}, map[PetArtKey]database.DecorArt{}
+	for k, a := range art {
+		if a.Kind == database.DecorArtPet {
+			pets[PetArtKey{a.Model, uint8(a.World)}] = a
+		} else {
+			byName[k] = a
+		}
 	}
-	w.decorLights.art.Store(&art)
+	w.decorLights.art.Store(&byName)
+	w.decorLights.petArt.Store(&pets)
 	body, sent, bulbs := EncodeDecorLights(strs, shown, assets...)
 	body = AppendWalkOns(body, w.WalkOns())
+	body = AppendPetArts(body, shown)
 	w.decorLights.mu.Lock()
 	w.decorLights.body, w.decorLights.strings, w.decorLights.bulbs = body, sent, bulbs
 	w.decorLights.mu.Unlock()
@@ -396,16 +418,22 @@ func (w *World) LoadDecorLights(db *database.SQLiteDB) (strs, bulbs, told int, p
 	if err != nil {
 		return 0, 0, 0, nil, fmt.Errorf("npcseason: %w", err)
 	}
+	// (a pet's look once a world it is in: Tunaria's catapult, Rathe's)
 	var shown []database.DecorArt
-	seen := map[uint32]bool{}
+	seen := map[PetArtKey]bool{}
 	keys := make([]string, 0, len(art))
 	for k := range art {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		if a := art[k]; !held[k] && !seen[a.Model] {
-			seen[a.Model] = true
+		a := art[k]
+		at := PetArtKey{Model: a.Model}
+		if a.Kind == database.DecorArtPet {
+			at.World = uint8(a.World)
+		}
+		if !held[k] && !seen[at] {
+			seen[at] = true
 			shown = append(shown, a)
 		}
 	}
@@ -519,6 +547,52 @@ func (w *World) decorArtViewLocked(sess *session.Session, npc *NPC, buf []byte) 
 	if sess != nil && sess.DecorLightsLayout() != 0 {
 		binary.LittleEndian.PutUint32(buf[28:32], a.Model)
 	}
+}
+
+// petArtViewLocked shows a player's pet in its rank's art (npc.Art: a
+// mastery rank's PetArt, cmpetlook.go) to a client that draws it (layout
+// DecorPetArtLayout) where a decorart row of kind pet has that art in the
+// pet's world (the zone that client reads to have it); every other client (a
+// PS2, an older vanilla, a world with no such row) is sent its body as it
+// is (its spell's, or a PetLook rank's). It stays a creature: selectable,
+// targeted, named. Must be called with the lock held.
+func (w *World) petArtViewLocked(sess *session.Session, npc *NPC, buf []byte) {
+	if len(buf) < 32 || npc.Art == 0 || sess == nil || sess.DecorLightsLayout() < DecorPetArtLayout {
+		return
+	}
+	pets := w.decorLights.petArt.Load()
+	if pets == nil {
+		return
+	}
+	if _, ok := (*pets)[PetArtKey{npc.Art, npc.World}]; ok {
+		binary.LittleEndian.PutUint32(buf[28:32], npc.Art)
+	}
+}
+
+// AppendPetArts is the pets' looks after the walk-ons (layout 3; a client
+// before reads none): a u16 count, each a model drawn as a pet (once, of the
+// art's rows of kind pet), u8 kind (1 a pet: it walks the ground as a
+// creature, and rams at its swings), u32 what it fires at its other casts
+// (a DictID of its zone's, 0 none), f32 that shot's size and f32 the art's
+// own (times the pet's; 0 as 1).
+func AppendPetArts(b []byte, art []database.DecorArt) []byte {
+	var pets []database.DecorArt
+	seen := map[uint32]bool{}
+	for _, a := range art {
+		if a.Kind == database.DecorArtPet && !seen[a.Model] {
+			seen[a.Model] = true
+			pets = append(pets, a)
+		}
+	}
+	b = binary.LittleEndian.AppendUint16(b, uint16(len(pets)))
+	for _, a := range pets {
+		b = binary.LittleEndian.AppendUint32(b, a.Model)
+		b = append(b, 1)
+		b = binary.LittleEndian.AppendUint32(b, a.Shot)
+		b = binary.LittleEndian.AppendUint32(b, math.Float32bits(a.ShotScale))
+		b = binary.LittleEndian.AppendUint32(b, math.Float32bits(a.Scale))
+	}
+	return b
 }
 
 // AppendWalkOns is the walk-ons after the papers (layout 2; a client before

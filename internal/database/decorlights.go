@@ -46,6 +46,10 @@ const decorLightsSchema = `
 		world  INTEGER NOT NULL DEFAULT 0,
 		zone   INTEGER NOT NULL DEFAULT 0,
 		sink   REAL NOT NULL DEFAULT 0,
+		kind   TEXT NOT NULL DEFAULT '',
+		shot   INTEGER NOT NULL DEFAULT 0,
+		shot_scale REAL NOT NULL DEFAULT 0,
+		scale  REAL NOT NULL DEFAULT 0,
 		note   TEXT NOT NULL DEFAULT '',
 		source TEXT NOT NULL DEFAULT 'gm'
 	);
@@ -597,14 +601,31 @@ type DecorArt struct {
 	World int
 	Zone  int
 	Sink  float32 // drawn this far lower, in the art's own units
+	// Kind is DecorArtPet for a pet's look (a mastery rank's PetArt:
+	// entity/cmpetlook.go), "" for a decoration's art. A pet's row is keyed by
+	// its model and world, never by an NPC's name: its name is a label.
+	Kind string
+	// Shot is what a pet in the art fires (a sprite of the same zone, a
+	// DictID; 0 none: it only rams), drawn ShotScale its own size
+	Shot      uint32
+	ShotScale float32
+	// Scale is a pet's art drawn at this times the pet's size (the catapult,
+	// 16 long at 1, at a third), 0 as 1
+	Scale float32
 }
+
+// DecorArtPet is decorart.kind for a pet's look: a prop worn by a pet (the
+// owner, 2026-11-17: "where dust is is a catapult prop. we have templates for
+// props as mobs now. lets give it to zerkziee. it can ram for attack and we
+// can make the catapult fire").
+const DecorArtPet = "pet"
 
 // DecorArts is every row of decorart with a model, by NPCClassKey of its name.
 func (db *SQLiteDB) DecorArts() (map[string]DecorArt, error) {
 	if err := db.ensureDecorArtSink(); err != nil {
 		return nil, err
 	}
-	rows, err := db.Query(`SELECT name, model, world, zone, sink FROM decorart`)
+	rows, err := db.Query(`SELECT name, model, world, zone, sink, kind, shot, shot_scale, scale FROM decorart`)
 	if err != nil {
 		return nil, err
 	}
@@ -612,12 +633,13 @@ func (db *SQLiteDB) DecorArts() (map[string]DecorArt, error) {
 	out := map[string]DecorArt{}
 	for rows.Next() {
 		var a DecorArt
-		var model int64
-		if err := rows.Scan(&a.Name, &model, &a.World, &a.Zone, &a.Sink); err != nil {
+		var model, shot int64
+		if err := rows.Scan(&a.Name, &model, &a.World, &a.Zone, &a.Sink, &a.Kind, &shot, &a.ShotScale, &a.Scale); err != nil {
 			return nil, err
 		}
 		a.Name = NPCClassKey(a.Name)
-		a.Model = uint32(model)
+		a.Model, a.Shot = uint32(model), uint32(shot)
+		a.Kind = strings.ToLower(strings.TrimSpace(a.Kind))
 		if a.Name != "" && a.Model != 0 {
 			out[a.Name] = a
 		}
@@ -645,14 +667,22 @@ func (db *SQLiteDB) ensureLightTemplateCord() error {
 	return nil
 }
 
-// ensureDecorArtSink gives a decorart table made before its sink column one.
+// ensureDecorArtSink gives a decorart table made before its sink column one,
+// and one made before its pets' columns (kind, shot, shot_scale, scale) those.
 func (db *SQLiteDB) ensureDecorArtSink() error {
-	var n int
-	if err := db.QueryRow(`SELECT count(*) FROM pragma_table_info('decorart') WHERE name = 'sink'`).Scan(&n); err != nil || n > 0 {
-		return err
+	for _, c := range []struct{ name, def string }{{"sink", "REAL NOT NULL DEFAULT 0"}, {"kind", "TEXT NOT NULL DEFAULT ''"},
+		{"shot", "INTEGER NOT NULL DEFAULT 0"}, {"shot_scale", "REAL NOT NULL DEFAULT 0"}, {"scale", "REAL NOT NULL DEFAULT 0"}} {
+		var n int
+		if err := db.QueryRow(`SELECT count(*) FROM pragma_table_info('decorart') WHERE name = ?`, c.name).Scan(&n); err != nil {
+			return err
+		}
+		if n == 0 {
+			if _, err := db.Exec(`ALTER TABLE decorart ADD COLUMN ` + c.name + ` ` + c.def); err != nil {
+				return err
+			}
+		}
 	}
-	_, err := db.Exec(`ALTER TABLE decorart ADD COLUMN sink REAL NOT NULL DEFAULT 0`)
-	return err
+	return nil
 }
 
 // GiftBox is one present of a presents string.

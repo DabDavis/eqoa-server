@@ -170,6 +170,11 @@ type CMRank struct {
 	// 0 none. Only the look: the pet's numbers and abilities are its spell's
 	// (the owner, 2026-11-16: Zerkziee's construct as Jarek's Creation)
 	PetLook uint32
+	// PetArt is the art its owner's pets wear to a client that draws it
+	// (effects "PetArt:N", a zone prop's DictID: cmpetlook.go), of the pets
+	// PetLook's rule picks; a PS2 sees their body as it is (their spell's, or
+	// a PetLook rank's). 0 none
+	PetArt uint32
 	// OnlyFor is the one character (its CharServerID) the rank is offered to
 	// (effects "OnlyFor:N": "cm only for him", the owner 2026-11-16); 0
 	// every character of its classes and races
@@ -275,6 +280,9 @@ func ParseCMRank(r database.CMRankRow) *CMRank {
 		}
 		if k == cmPetLook && v > 0 && v <= 0xFFFFFFFF {
 			c.PetLook = uint32(v)
+		}
+		if k == cmPetArt && v > 0 && v <= 0xFFFFFFFF {
+			c.PetArt = uint32(v)
 		}
 		if k == cmOnlyFor && v > 0 && v <= 0xFFFFFFFF {
 			c.OnlyFor = uint32(v)

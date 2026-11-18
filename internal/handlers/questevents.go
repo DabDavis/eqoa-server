@@ -71,8 +71,9 @@ import (
 // taken fewer than the step wants, drops one with the step's chance onto that
 // player's own view of the corpse (questloot.go); the step counts what the
 // player takes off corpses while it is the step to do (the character's
-// quest count, as a kill step counts kills: an item held from before is not
-// counted, as the content's chains want), and is done at its count.
+// quest count, as a kill step counts kills; what the pack holds when the step
+// starts counts at once, and the item drops ahead of the step by
+// questpreloot.go's rules), and is done at its count.
 
 // questSpawnLife is how long a quest's spawn stays at most.
 const questSpawnLife = 10 * time.Minute

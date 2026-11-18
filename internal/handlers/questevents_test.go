@@ -437,9 +437,10 @@ func TestAnAttackTurnsTheNPCTalkedTo(t *testing.T) {
 }
 
 // A kill of a later step's creature, before the step to do (petition 1874:
-// Quil'Eyne killed while Raldarith's blood was still to get), drops nothing and
-// counts for nothing, and the player is told so and what to do first, once a
-// minute a quest; a kill no later step names says nothing.
+// Quil'Eyne killed while Raldarith's blood was still to get) counts for nothing
+// yet (its item drops ahead: questpreloot.go), and the player is told so and
+// what to do first, once a minute a quest; a kill no later step names says
+// nothing.
 func TestAKillOfALaterStepSaysWhatComesFirst(t *testing.T) {
 	f := newQuestFixture(t)
 	blood := f.pattern("Raldithar's blood", 20)
@@ -468,7 +469,8 @@ func TestAKillOfALaterStepSaysWhatComesFirst(t *testing.T) {
 		t.Fatalf("Quil'Eyne dropped %v before Raldarith's step was done, want his journal ahead", drops)
 	}
 	drops = nil
-	f.want(f.msgs(), "chat:Quil'Eyne's Journal: Quil'Eyne counts later in the quest. First: Kill Raldarith for his blood.")
+	// told that it drops ahead and counts at its step (2026-11-18, "allow pre farming of quest items")
+	f.want(f.msgs(), "chat:Quil'Eyne's Journal: Quil'Eyne may drop quil`eyne's journal ahead; it counts when you reach that step. First: Kill Raldarith for his blood.")
 	f.killFor("Quil'Eyne", 902) // a moment later: not said again
 	if m := f.msgs(); len(m) != 0 {
 		t.Errorf("said again at once: %q", m)

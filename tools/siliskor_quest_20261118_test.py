@@ -19,7 +19,7 @@ import siliskor_quest_20261118 as sq  # noqa: E402
 
 SCHEMA = """
 CREATE TABLE quests (questid INTEGER PRIMARY KEY, name TEXT NOT NULL DEFAULT '', enabled INTEGER NOT NULL DEFAULT 0,
-  giver TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '', offer TEXT NOT NULL DEFAULT '');
+  giver TEXT NOT NULL DEFAULT '', repeatable INTEGER NOT NULL DEFAULT 0, notes TEXT NOT NULL DEFAULT '', offer TEXT NOT NULL DEFAULT '');
 CREATE TABLE queststeps (questid INTEGER NOT NULL, step INTEGER NOT NULL, kind TEXT NOT NULL DEFAULT 'talk',
   target TEXT NOT NULL DEFAULT '', world INTEGER NOT NULL DEFAULT 0, x REAL NOT NULL DEFAULT 0, y REAL NOT NULL DEFAULT 0,
   z REAL NOT NULL DEFAULT 0, radius REAL NOT NULL DEFAULT 15, journal TEXT NOT NULL DEFAULT '',
@@ -156,6 +156,7 @@ class SiliskorTool(unittest.TestCase):
         self.assertEqual(json.loads(ab), [sq.BLIGHT, sq.VENOM])
         self.assertEqual(self.q("SELECT hp_pct FROM classtemplates WHERE name = 'pomus magemell'"), [(328,)])
         self.assertEqual(self.q("SELECT trade FROM itempattern WHERE patternid = 6125"), [(1,)])
+        self.assertEqual(self.q("SELECT repeatable FROM quests WHERE questid = ?", QID), [(1,)])
         self.assertEqual(sorted(r[0] for r in self.q("SELECT patternid FROM loottables WHERE tablename = ?", sq.DROP_TABLE)),
                          [4986, 5363, 5812, 6124])
         self.assertEqual(self.q("SELECT npc_row, up_minutes, gone_min, gone_max FROM npcrarecycle"), [(101355, 30, 60, 180)])

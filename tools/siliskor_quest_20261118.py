@@ -42,6 +42,11 @@ WHAT DIFFERED (quest "Siliskor" by Zaryn Boome, 101266 on both shards):
     it); his own drops, which no table held: one roll among the dragonhide shield, Lythrial's Robe, Rycoin's
     Scimitar and Siliskor's Horn, every kill (table "boss siliskor drops"). Their Ascended versions are NOT made
     here (board 708's code ask 3 first; tools/ascend_boss_loot.py --boss Siliskor after it).
+  - Not repeatable. The owner, 2026-11-18: "siliskor quest should be repeatable" (repeatable 1, as Chef Lukkif's Hunt
+    and Gather quests): Siliskor rises only on it, and every Plane of Sky quester (101299 step 8) needs his kill.
+    Characters who finished it are offered it again by Zaryn Boome; nothing it hands out blocks a second run (the
+    Scepter of Reflection is NO TRADE, not Lore, and step 7 takes it back; the shield of king jorat is not Lore
+    either, so a second shield drops for a second Plane of Sky run or a friend's).
   Left as they were: the offer (a GM's words), steps 1, 4, 7 and 10 (Corliss Magemell: the cursed one is out of the
   world since petition 2187, the steps sent to the plain one), no reward (petition 2215: the prize is his drop),
   the Sphere of Annihilation's roamers, quest 101028's own Siliskor (not ruled on, board 708).
@@ -158,6 +163,8 @@ class Plan:
         if self.quest is None:
             self.bad.append(f"{len(q)} quests named {QUEST_NAME!r} by {GIVER!r}, want one")
             return
+        if q[0]["repeatable"] != 0:
+            self.bad.append(f"quest {self.quest} is repeatable already ({q[0]['repeatable']})")
         self.steps = {r["step"]: r for r in rows(db, "queststeps", "questid = ?", (self.quest,))}
         got = {s: r["kind"] for s, r in self.steps.items()}
         if got != KINDS:
@@ -267,7 +274,8 @@ QUEST_NOTE = ("From " + POST + " (= EQOA-Data Quests/Misc/siliskor.json, github.
               "pit with Pomus Magemell and two dragon worshippers. Every spawn is a group's: one set a group, another "
               "group raises its own (the walkthrough's second-group glitch left out). His prize is his drop (the "
               "shield of king jorat, the Plane of Sky's; board 708's four drops), no quest reward (petition 2215); "
-              "Corliss Magemell plays the cursed one (petition 2187). tools/siliskor_quest_20261118.py.")
+              "Corliss Magemell plays the cursed one (petition 2187). Repeatable (the owner, 2026-11-18). "
+              "tools/siliskor_quest_20261118.py.")
 
 
 def report(db):
@@ -317,7 +325,7 @@ def apply(db, p):
         done(tbl, key, before)
 
     # the quest
-    update("quests", {"questid": p.quest}, {"notes": QUEST_NOTE})
+    update("quests", {"questid": p.quest}, {"notes": QUEST_NOTE, "repeatable": 1})
     for step, cols in p.step_edits().items():
         update("queststeps", {"questid": p.quest, "step": step}, cols)
 

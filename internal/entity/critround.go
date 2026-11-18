@@ -40,7 +40,7 @@ import "time"
 // on a creature of no owner.
 func (n *NPC) critRounds() bool {
 	t := n.tmpl
-	return t != nil && n.Owner == 0 && t.SpecialEvery > 0 && t.SpecialDamage > 0 && n.Level >= t.SpecialFrom
+	return t != nil && n.Owner == 0 && t.SpecialEvery > 0 && hasSpecial(t) && n.Level >= t.SpecialFrom
 }
 
 // critClock counts the creature's time at its enemy on its crit's clock

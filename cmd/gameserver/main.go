@@ -228,6 +228,12 @@ func main() {
 	if _, _, err := gameWorld.LoadBalance(db); err != nil {
 		log.Printf("WARNING: the balance: %v; every NPC as the formulas alone make it", err)
 	}
+	// when an animated combat art's hit lands, by its visual (entity/fxland.go, table fxland)
+	if n, err := gameWorld.LoadFXLand(db); err != nil {
+		log.Printf("Entity world: %v (every cast lands half a second after its cast time)", err)
+	} else {
+		log.Printf("Entity world: %d animated arts' hit times (fxland)", n)
+	}
 	// The ground creatures stand on (internal/ground), baked from the game's
 	// disc into <worlds>/ground by cmd/groundbake; without it they keep the
 	// heights they have. What stands on it (<world>.walls, the same bake since

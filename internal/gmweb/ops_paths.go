@@ -87,6 +87,9 @@ func checkRow(table string, row map[string]any) error {
 	if table == "racesize" && row != nil {
 		return checkRaceSizeRow(row) // live_racesize.go
 	}
+	if table == "fxland" && row != nil {
+		return checkFXLandRow(row) // live_fxland.go
+	}
 	if table == "racedefs" && row != nil {
 		return checkRaceDefRow(row) // live_racesize.go
 	}

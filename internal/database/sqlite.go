@@ -832,6 +832,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureRaceSize(); err != nil { // racesize.go
 		return err
 	}
+	if err := db.ensureFXLand(); err != nil { // fxland.go: when an animated art's hit lands
+		return err
+	}
 	if err := db.ensureRaceDefs(); err != nil { // racedefs.go: the races the game does not have
 		return err
 	}

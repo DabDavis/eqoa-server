@@ -520,7 +520,7 @@ func petCastCost(pet *NPC, a *templateAbility, spell *CastSpell) int {
 // template's clock of time at its foe as a creature's timed special is
 // (templateSpecialLocked: special_every, its first special_first into the
 // fight, each special_jitter either way, from special_from of its own level),
-// its level times special_damage as one of its hits (the balance's pet damage
+// its level times special_damage (or special_fixed: specialFigure) as one of its hits (the balance's pet damage
 // and con), cast 0 with its visual. It reports a kill. Must be called with
 // the lock held.
 func (w *World) petTemplateSpecialLocked(ps *petState, t *NPC, now time.Time) bool {
@@ -528,7 +528,7 @@ func (w *World) petTemplateSpecialLocked(ps *petState, t *NPC, now time.Time) bo
 		return false
 	}
 	tm, pet := ps.tmpl.tmpl, ps.npc
-	if tm.SpecialDamage <= 0 || tm.SpecialEvery <= 0 || pet.Level < tm.SpecialFrom {
+	if !hasSpecial(tm) || tm.SpecialEvery <= 0 || pet.Level < tm.SpecialFrom {
 		return false
 	}
 	f := pet.fight()
@@ -543,7 +543,7 @@ func (w *World) petTemplateSpecialLocked(ps *petState, t *NPC, now time.Time) bo
 		return false
 	}
 	f.timedLeft = templateJitter(tm.SpecialEvery, tm.SpecialJitter)
-	n := max(int(math.Round(float64(pet.Level)*tm.SpecialDamage)), 1)
+	n := specialFigure(tm, pet.Level)
 	fx := tm.SpecialFX
 	if fx == 0 {
 		fx = templateSpecialFX

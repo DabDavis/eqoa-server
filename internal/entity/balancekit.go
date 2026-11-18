@@ -79,6 +79,11 @@ func SimKitFromDB(db *database.SQLiteDB, class, race, level int, tier float64) (
 		simPetsCache.Store(db, pets)
 		pl.Pets = pets
 	}
+	fx, err := simFXLandOf(db) // an animated art's hit, as the server's (fxland.go)
+	if err != nil {
+		return pl, err
+	}
+	pl.FXLand = fx
 	inv := database.NewInventoryStore(db)
 	items, err := inv.WearablePatterns(class, race, level, []int{1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19})
 	if err != nil {
@@ -472,6 +477,11 @@ func (h simHands) weapons(items []database.ItemPatternRecord) []database.ItemPat
 func SimStartKitFromDB(db *database.SQLiteDB, class, race, level int) (SimPlayer, error) {
 	pl := SimPlayer{Class: class, Race: race, Level: level, Base: SimBaseStats(class, race, level),
 		Play: SimPlay{Melee: true, Buffs: true, Spells: true}}
+	fx, err := simFXLandOf(db) // an animated art's hit, as the server's (fxland.go)
+	if err != nil {
+		return pl, err
+	}
+	pl.FXLand = fx
 	items, err := simStartItems(db, class, race)
 	if err != nil {
 		return pl, err

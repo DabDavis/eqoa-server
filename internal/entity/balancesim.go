@@ -66,6 +66,9 @@ type SimPlayer struct {
 	// as the server's are (pettemplate.go; SimKitFromDB's); nil, a pet as
 	// pet.go has one with no template, and no tap
 	Pets *SimPets
+	// FXLand is table fxland's hits by visual (fxland.go; SimKitFromDB's): an animated art's cast lands
+	// and frees the next as the server's does. Nil: every cast lands castLand after its cast time
+	FXLand map[uint32]time.Duration
 }
 
 // SimPets is what a simulated pet fights by: the server's pet templates by
@@ -298,7 +301,8 @@ type simFight struct {
 func newSimFight(pl SimPlayer, foe SimNPC, b *Balance) *simFight {
 	w := NewWorld()
 	w.balance = b
-	if pl.Pets != nil { // the server's pets (pettemplate.go, pettap.go)
+	w.fxLand = pl.FXLand // an animated art's hit (fxland.go)
+	if pl.Pets != nil {  // the server's pets (pettemplate.go, pettap.go)
 		w.templates.pets, w.templates.weapon, w.petTaps = pl.Pets.pets, pl.Pets.weapon, pl.Pets.taps
 		w.templates.sheets = pl.Pets.sheets
 	}
@@ -634,31 +638,42 @@ func SimulateReset(pl SimPlayer, foe SimNPC, b *Balance, seed int64, after, limi
 	return r
 }
 
+// castLands is how long from its start the player's cast of the spell takes to land: its cast time and
+// castLand, or its visual's fxland hit (fxland.go) as the server's StartCast times it.
+func (f *simFight) castLands(s *CastSpell) time.Duration {
+	f.w.mu.RLock()
+	defer f.w.mu.RUnlock()
+	return s.CastTime + f.w.landAfterLocked(f.p, s)
+}
+
+// castSpan is how long the simulator waits on a cast it began: its landing (castLands) and castBusy.
+func (f *simFight) castSpan(s *CastSpell) time.Duration { return f.castLands(s) + castBusy }
+
 // prepTime is how long the buffs and the pet take to cast before the fight.
 func (f *simFight) prepTime() time.Duration {
 	var d time.Duration
 	if f.pl.Play.Buffs {
 		for _, s := range f.buffs() {
-			d += s.CastTime + castLand + castBusy + simTick
+			d += f.castSpan(&s) + simTick
 		}
 	}
 	if f.pl.Play.Pet {
 		var pet time.Duration
 		for i := range f.pl.Spells {
 			if s := &f.pl.Spells[i]; simRole(s) == roleSummon {
-				pet = max(pet, s.CastTime+castLand+castBusy+simTick)
+				pet = max(pet, f.castSpan(s)+simTick)
 			}
 		}
 		d += pet
 		if f.pl.Play.Buffs {
 			for _, s := range f.petMarks() {
-				d += s.CastTime + castLand + castBusy + simTick
+				d += f.castSpan(&s) + simTick
 			}
 		}
 	}
 	if f.pl.Play.Charm {
 		if s := f.charmSpell(); s != nil {
-			d += s.CastTime + castLand + castBusy + simTick
+			d += f.castSpan(s) + simTick
 		}
 	}
 	return d
@@ -716,7 +731,7 @@ func (f *simFight) charm() *NPC {
 		if !w.StartCast(f.sess, *best, simCharmID+uint32(try), f.now) {
 			return nil
 		}
-		for range int((best.CastTime + castLand + castBusy) / simTick) {
+		for range int(f.castSpan(best) / simTick) {
 			f.tick()
 		}
 		w.mu.Lock()
@@ -1018,7 +1033,7 @@ func (f *simFight) castBuffs() {
 		}
 		f.handsFor(&s, target)
 		if f.w.StartCast(f.sess, s, target, f.now) {
-			for range int((s.CastTime + castLand + castBusy) / simTick) {
+			for range int(f.castSpan(&s) / simTick) {
 				f.tick()
 			}
 		}
@@ -1083,7 +1098,7 @@ func (f *simFight) buffPet(pet *NPC) {
 		f.p.Power = f.p.MaxPowerNow()
 		f.w.mu.Unlock()
 		if f.w.StartCast(f.sess, s, simPetID, f.now) {
-			for range int((s.CastTime + castLand + castBusy) / simTick) {
+			for range int(f.castSpan(&s) / simTick) {
 				f.tick()
 			}
 		}
@@ -1115,7 +1130,7 @@ func (f *simFight) buffCharmed() {
 			target = 0xFFFFFFFF
 		}
 		if f.w.StartCast(f.sess, s, target, f.now) {
-			for range int((s.CastTime + castLand + castBusy) / simTick) {
+			for range int(f.castSpan(&s) / simTick) {
 				f.tick()
 			}
 		}
@@ -1154,7 +1169,7 @@ func (f *simFight) summon() *NPC {
 	if !f.w.StartCast(f.sess, *best, 0xFFFFFFFF, f.now) {
 		return nil
 	}
-	for range int((best.CastTime + castLand + castBusy) / simTick) {
+	for range int(f.castSpan(best) / simTick) {
 		f.tick()
 	}
 	f.w.mu.RLock()
@@ -1461,7 +1476,7 @@ func (f *simFight) rootPlay(cast func(CastSpell, uint32) bool) bool {
 			ok := f.ready(&s, 0)
 			w.mu.RUnlock()
 			if ok && cast(s, simFoeID) {
-				f.rootLands = f.now.Add(s.CastTime + castLand)
+				f.rootLands = f.now.Add(f.castLands(&s))
 				return true
 			}
 		}

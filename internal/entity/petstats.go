@@ -393,7 +393,7 @@ func petSheetTemplate(s *petSheet, spell *CastSpell, base *petTemplate) *petTemp
 		// the timed special (a pet's crit), not special_chance: the kick by
 		// chance in a round is a creature's alone
 		b := &base.tmpl.ClassTemplate
-		ct.Special, ct.SpecialFX, ct.SpecialDamage = b.Special, b.SpecialFX, b.SpecialDamage
+		ct.Special, ct.SpecialFX, ct.SpecialDamage, ct.SpecialFixed = b.Special, b.SpecialFX, b.SpecialDamage, b.SpecialFixed
 		ct.SpecialEvery, ct.SpecialFirst, ct.SpecialJitter, ct.SpecialFrom = b.SpecialEvery, b.SpecialFirst, b.SpecialJitter,
 			b.SpecialFrom
 		ct.Name = base.tmpl.Name + " (workbook pet " + s.SheetPetID + ")"

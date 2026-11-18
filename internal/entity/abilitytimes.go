@@ -27,8 +27,9 @@ import (
 //     no cast time and the heal's stand-in visual;
 //   - at its landing, its line in /say (Say: "Mr. Moogie: text", to every player within a say's reach of
 //     the creature), and a melee proc for the rest of that fight (ProcChance, ProcDamage, ProcName),
-//     rolled at each of its melee hits that lands on a player or a pet, fixed and unresisted, told as a
-//     template's own proc is (creatureshield.go). The proc is the fight's (templateFight.proc): the
+//     rolled at each of its melee hits that lands on a player or a pet, fixed, cut by its Resist when it
+//     names one (work board #1637) as a template's own proc of that resist is, told as a template's own
+//     proc is (creatureshield.go). The proc is the fight's (templateFight.proc): the
 //     fight's end (no one left on its hate list, a leash home), its death, a restart and a GM's edit of
 //     its template take it, and the next fight has none until the ability lands again. No client shows a
 //     creature's buffs, so it is no effect on the creature: #stats says it is on.
@@ -39,6 +40,7 @@ import (
 type fightProc struct {
 	chance, damage int
 	name           string
+	resist         string // FR, CR, LR, AR, PR or DR that cuts it (its ability's Resist); "" none
 }
 
 // abilityKey is an ability as its creature's cooldown knows it: its kind and what it casts, so a GM's
@@ -146,9 +148,13 @@ func (w *World) templateLandedLocked(c *npcCast) {
 		if name == "" {
 			name = database.DefaultFightProcName
 		}
-		f.proc = &fightProc{chance: a.ProcChance, damage: npc.shared(a.ProcDamage), name: name} // an add's at its share (summon.go)
-		log.Printf("Template: %s's %q gives it %s for the rest of its fight: %d%% of its melee hits %d more",
-			npc.Name, c.spell.Name, name, a.ProcChance, a.ProcDamage)
+		f.proc = &fightProc{chance: a.ProcChance, damage: npc.shared(a.ProcDamage), name: name, resist: a.Resist} // an add's at its share (summon.go)
+		cut := ""
+		if a.Resist != "" {
+			cut = ", cut by " + a.Resist
+		}
+		log.Printf("Template: %s's %q gives it %s for the rest of its fight: %d%% of its melee hits %d more%s",
+			npc.Name, c.spell.Name, name, a.ProcChance, a.ProcDamage, cut)
 	}
 }
 
@@ -191,6 +197,9 @@ func abilityTimesWords(npc *NPC, a *templateAbility, now time.Time) string {
 			name = database.DefaultFightProcName
 		}
 		fmt.Fprintf(&b, ", then %s for the fight: %d%% of its melee hits %d more", name, a.ProcChance, a.ProcDamage)
+		if a.Resist != "" {
+			fmt.Fprintf(&b, ", cut by %s", a.Resist)
+		}
 	}
 	return b.String()
 }

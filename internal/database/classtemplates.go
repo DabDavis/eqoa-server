@@ -33,7 +33,8 @@ import (
 //   - its special melee (a kick): special its name ("" none), special_chance
 //     the percent of its rounds it comes in, special_damage its damage a
 //     level, fixed and through any armour as Sandstorm's creatures' specials
-//     are, special_fx its 0x00B1 visual (0: Sandstorm's creature special,
+//     are (special_fixed, when above 0, a flat figure at any level in its
+//     place: work board #1632), special_fx its 0x00B1 visual (0: Sandstorm's creature special,
 //     0x66CD778E); and on a clock as well (the user, 2026-10-30: SOE's
 //     roamers were warriors "stripped down to just a 'crit' attack once
 //     every 30 secs or so"): special_every seconds from one to the next (0
@@ -80,6 +81,7 @@ const classTemplatesSchema = `
 		run_speed      REAL NOT NULL DEFAULT 0,
 		taken_resist   TEXT NOT NULL DEFAULT '',
 		melee_fixed    INTEGER NOT NULL DEFAULT 0,
+		special_fixed  INTEGER NOT NULL DEFAULT 0,
 		abilities      TEXT NOT NULL DEFAULT '[]',
 		note           TEXT NOT NULL DEFAULT '',
 		source         TEXT NOT NULL DEFAULT 'gm'
@@ -522,7 +524,8 @@ type TemplateAbility struct {
 	// ProcChance and ProcDamage are a melee proc its landing gives its creature
 	// for the rest of that fight (its end or the creature's death takes it):
 	// ProcChance percent of its melee hits that land deal ProcDamage more,
-	// fixed, told by ProcName (DefaultFightProcName for none).
+	// fixed, cut by Resist when it names one, told by ProcName
+	// (DefaultFightProcName for none).
 	ProcChance int    `json:"proc_chance,omitempty"`
 	ProcDamage int    `json:"proc_damage,omitempty"`
 	ProcName   string `json:"proc_name,omitempty"`
@@ -537,7 +540,8 @@ type TemplateAbility struct {
 	// spell, or Name and FX, is its look.
 	Damage int `json:"damage,omitempty"`
 	// Resist is the resist that cuts a fixed figure (Damage, a veil's tap, a
-	// proc of its own figures): FR, CR, LR, AR, PR or DR; empty: none.
+	// proc of its own figures, and the proc its landing gives: ProcChance,
+	// ProcDamage; work board #1637): FR, CR, LR, AR, PR or DR; empty: none.
 	Resist string `json:"resist,omitempty"`
 	// FX is the 0x00B1 visual of an ability that pins no spell (a named strip,
 	// heal of its share, fixed hit, proc or veil) in place of its kind's
@@ -669,7 +673,10 @@ type ClassTemplate struct {
 	Special       string
 	SpecialChance int
 	SpecialDamage float64
-	SpecialFX     uint32 // 0: Sandstorm's creature special
+	// SpecialFixed is each special landing as this figure, through any armour, at any level (0:
+	// special_damage × its level): work board #1632, jibrish's "crits just do that amount"
+	SpecialFixed int
+	SpecialFX    uint32 // 0: Sandstorm's creature special
 	// SpecialEvery, SpecialFirst and SpecialJitter are the timed special's
 	// clock in seconds: one every SpecialEvery (0: none), the first
 	// SpecialFirst into the fight, each SpecialJitter either way
@@ -1026,8 +1033,8 @@ func checkKindFields(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: resist %q: FR, CR, LR, AR, PR, DR or none", n, a.Resist)
 	case a.Resist != "" && k == AbilityWard:
 		return fmt.Errorf("ability %d: a ward's damage is pure: no resist", n)
-	case a.Resist != "" && a.Damage == 0 && k != AbilityVeil && !(k == AbilityProc && !pinned):
-		return fmt.Errorf("ability %d: a resist is a fixed damage's, a veil's or a proc's of its own figures (a spell's is its own)", n)
+	case a.Resist != "" && a.Damage == 0 && k != AbilityVeil && !(k == AbilityProc && !pinned) && a.ProcChance <= 0:
+		return fmt.Errorf("ability %d: a resist is a fixed damage's, a veil's, a proc's of its own figures or the proc its landing gives (proc_chance) (a spell's is its own)", n)
 	case a.FX != 0 && pinned && k != AbilityProc && k != AbilityVeil:
 		return fmt.Errorf("ability %d: a visual (fx) is an ability's that pins no spell (its spell's is its look), or a proc's or a veil's hit's", n)
 	case a.FX != 0 && k != AbilityStrip && !(k == AbilityHeal && a.HealPct > 0) && (a.Damage == 0 || k == AbilityWard) && k != AbilityProc && k != AbilityVeil:
@@ -1449,8 +1456,10 @@ func CheckClassTemplate(t ClassTemplate) error {
 		return fmt.Errorf("special_chance %d: 0 to 100 percent of its rounds", t.SpecialChance)
 	case math.IsNaN(t.SpecialDamage) || t.SpecialDamage < 0 || t.SpecialDamage > 200:
 		return fmt.Errorf("special_damage %.2f: 0 to 200 a level", t.SpecialDamage)
-	case t.SpecialChance > 0 && t.SpecialDamage <= 0:
-		return fmt.Errorf("a special in %d%% of its rounds needs a special_damage above 0", t.SpecialChance)
+	case t.SpecialFixed < 0 || t.SpecialFixed > MaxTemplateShield:
+		return fmt.Errorf("special_fixed %d: 0 (special_damage a level) to %d a special", t.SpecialFixed, MaxTemplateShield)
+	case t.SpecialChance > 0 && t.SpecialDamage <= 0 && t.SpecialFixed <= 0:
+		return fmt.Errorf("a special in %d%% of its rounds needs a special_damage or special_fixed above 0", t.SpecialChance)
 	case math.IsNaN(t.SpecialEvery) || t.SpecialEvery < 0 || t.SpecialEvery > 3600 || (t.SpecialEvery > 0 && t.SpecialEvery < 5):
 		return fmt.Errorf("special_every %.1f: 0 (none) or 5 to 3600 seconds from one special to the next", t.SpecialEvery)
 	case math.IsNaN(t.SpecialFirst) || t.SpecialFirst < 0 || t.SpecialFirst > 3600:
@@ -1467,8 +1476,8 @@ func CheckClassTemplate(t ClassTemplate) error {
 		return fmt.Errorf("run_speed %.2f: 0 (the creatures' 9.9) or 1 to 60 units a second", t.RunSpeed)
 	case math.IsNaN(t.SpecialJitter) || t.SpecialJitter < 0 || (t.SpecialJitter > 0 && 2*t.SpecialJitter >= t.SpecialEvery):
 		return fmt.Errorf("special_jitter %.1f: 0 to under half of special_every (%.1f) seconds either way", t.SpecialJitter, t.SpecialEvery)
-	case t.SpecialEvery > 0 && t.SpecialDamage <= 0:
-		return fmt.Errorf("a special every %.1f s needs a special_damage above 0", t.SpecialEvery)
+	case t.SpecialEvery > 0 && t.SpecialDamage <= 0 && t.SpecialFixed <= 0:
+		return fmt.Errorf("a special every %.1f s needs a special_damage or special_fixed above 0", t.SpecialEvery)
 	case t.SpecialFrom < 0 || t.SpecialFrom > 100:
 		return fmt.Errorf("special_from %d: 0 (any level) to 100", t.SpecialFrom)
 	case len(t.Special) > 32:
@@ -1543,6 +1552,7 @@ var classTemplateColumns = []struct{ col, decl string }{
 	{"run_speed", "REAL NOT NULL DEFAULT 0"},
 	{"taken_resist", "TEXT NOT NULL DEFAULT ''"},
 	{"melee_fixed", "INTEGER NOT NULL DEFAULT 0"},
+	{"special_fixed", "INTEGER NOT NULL DEFAULT 0"},
 }
 
 // ensureClassTemplates makes tables classtemplates and npctemplate
@@ -1576,9 +1586,9 @@ func (db *SQLiteDB) ensureClassTemplates() error {
 	}
 	for _, t := range SeedClassTemplates {
 		if _, err := db.Exec(`INSERT OR IGNORE INTO classtemplates (name, class, hp_pct, taken_pct, melee_pct, special,
-			special_chance, special_damage, special_fx, special_every, special_first, special_jitter, special_from, abilities,
-			note, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'seed')`,
-			t.Name, t.Class, t.HPPct, t.TakenPct, t.MeleePct, t.Special, t.SpecialChance, t.SpecialDamage, int64(t.SpecialFX),
+			special_chance, special_damage, special_fixed, special_fx, special_every, special_first, special_jitter, special_from, abilities,
+			note, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'seed')`,
+			t.Name, t.Class, t.HPPct, t.TakenPct, t.MeleePct, t.Special, t.SpecialChance, t.SpecialDamage, t.SpecialFixed, int64(t.SpecialFX),
 			t.SpecialEvery, t.SpecialFirst, t.SpecialJitter, t.SpecialFrom, TemplateAbilitiesJSON(t.Abilities), t.Note); err != nil {
 			return fmt.Errorf("classtemplates: the seed %q: %w", t.Name, err)
 		}
@@ -1591,7 +1601,7 @@ func (db *SQLiteDB) ensureClassTemplates() error {
 // JSON) is left out and named in bad.
 func (db *SQLiteDB) ClassTemplates() (templates map[string]ClassTemplate, bad []string, err error) {
 	rows, err := db.Query(`SELECT name, class, hp_pct, taken_pct, melee_pct, special, special_chance, special_damage,
-		special_fx, special_every, special_first, special_jitter, special_from, shield_damage, shield_resist, proc_chance, proc_damage, proc_name, proc_resist, resist_fail, resist_kind, resist_pct, kick_damage, kick_every, kick_first, fight_regen, run_speed, taken_resist, melee_fixed, abilities, note FROM classtemplates
+		special_fx, special_every, special_first, special_jitter, special_from, shield_damage, shield_resist, proc_chance, proc_damage, proc_name, proc_resist, resist_fail, resist_kind, resist_pct, kick_damage, kick_every, kick_first, fight_regen, run_speed, taken_resist, melee_fixed, special_fixed, abilities, note FROM classtemplates
 		WHERE name IS NOT NULL`)
 	if err != nil {
 		return nil, nil, err
@@ -1603,7 +1613,7 @@ func (db *SQLiteDB) ClassTemplates() (templates map[string]ClassTemplate, bad []
 		var fx int64
 		var abilities sql.NullString
 		if err := rows.Scan(&t.Name, &t.Class, &t.HPPct, &t.TakenPct, &t.MeleePct, &t.Special, &t.SpecialChance,
-			&t.SpecialDamage, &fx, &t.SpecialEvery, &t.SpecialFirst, &t.SpecialJitter, &t.SpecialFrom, &t.ShieldDamage, &t.ShieldResist, &t.ProcChance, &t.ProcDamage, &t.ProcName, &t.ProcResist, &t.ResistFail, &t.ResistKind, &t.ResistPct, &t.KickDamage, &t.KickEvery, &t.KickFirst, &t.FightRegen, &t.RunSpeed, &t.TakenResist, &t.MeleeFixed, &abilities, &t.Note); err != nil {
+			&t.SpecialDamage, &fx, &t.SpecialEvery, &t.SpecialFirst, &t.SpecialJitter, &t.SpecialFrom, &t.ShieldDamage, &t.ShieldResist, &t.ProcChance, &t.ProcDamage, &t.ProcName, &t.ProcResist, &t.ResistFail, &t.ResistKind, &t.ResistPct, &t.KickDamage, &t.KickEvery, &t.KickFirst, &t.FightRegen, &t.RunSpeed, &t.TakenResist, &t.MeleeFixed, &t.SpecialFixed, &abilities, &t.Note); err != nil {
 			return nil, nil, err
 		}
 		t.Name = TemplateKey(t.Name)

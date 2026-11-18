@@ -75,6 +75,10 @@ type KeptList struct {
 	Kept []int `json:"kept,omitempty"`
 	// Page: a bank list's page of the account bank (invList.page, accountbank.go)
 	Page int `json:"page,omitempty"`
+	// Most, KeptN: a grandfathered list's limit and the rows kept beside it
+	// (invList.most, keptN, itemlists.go)
+	Most  int `json:"most,omitempty"`
+	KeptN int `json:"keptn,omitempty"`
 }
 
 // KeptListRec is one of a KeptList's records.
@@ -91,7 +95,7 @@ func keptList(l *invList) *KeptList {
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	k := &KeptList{Next: l.next, Recs: make([]KeptListRec, 0, len(l.recs)), Cap: l.cap, Page: l.page}
+	k := &KeptList{Next: l.next, Recs: make([]KeptListRec, 0, len(l.recs)), Cap: l.cap, Page: l.page, Most: l.most, KeptN: l.keptN}
 	for _, r := range l.recs {
 		k.Recs = append(k.Recs, KeptListRec{Key: r.key, Item: r.itemID, Pattern: r.patternID, Qty: r.qty})
 	}
@@ -106,7 +110,7 @@ func (k *KeptList) list() *invList {
 	if k == nil {
 		return nil
 	}
-	l := &invList{next: k.Next, recs: make([]invRec, 0, len(k.Recs)), cap: k.Cap, page: k.Page}
+	l := &invList{next: k.Next, recs: make([]invRec, 0, len(k.Recs)), cap: k.Cap, page: k.Page, most: k.Most, keptN: k.KeptN}
 	for _, r := range k.Recs {
 		l.recs = append(l.recs, invRec{key: r.Key, itemID: r.Item, patternID: r.Pattern, qty: r.Qty})
 	}
@@ -389,6 +393,22 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 	h.gameWorld.RefreshDecorLights(sess)
 	// the lists the client has, until its dump sends them anew
 	pack, bank := ex.Inventory.list(), ex.Bank.list()
+	// a file from before the lists were grandfathered (the restart that turns
+	// it on, world.grandfather_pack_slots): they hold to it from now
+	if (pack != nil && pack.most == 0) || (bank != nil && bank.most == 0) {
+		if gPack, gBank := entity.ItemSlotsGrandfathered(); (gPack > 0 || gBank > 0) && h.inventoryStore != nil {
+			if kp, kb, err := h.inventoryStore.KeptItemRows(player.CharServerID); err == nil {
+				if pack != nil && pack.most == 0 {
+					grandfatherList(pack, false, kp)
+				}
+				if bank != nil && bank.most == 0 {
+					grandfatherList(bank, true, kb)
+				}
+			} else {
+				log.Printf("Keep: character %d's kept rows: %v", player.CharServerID, err)
+			}
+		}
+	}
 	if pack != nil {
 		pack.bank = bank // a Lore item in the bank is one held (itemlist.go's loreRoom)
 	}

@@ -2239,7 +2239,10 @@ func (h *CharacterHandler) queueMemoryDumpAt(sess *session.Session, player *enti
 	// where there is room. Read before the buffer is made, which their size
 	// sets.
 	packCap, bankCap := listCaps(sess)
-	invItems, bankItems, keptPack, bankHidden := h.fitItemLists(player.CharServerID, packCap, bankCap, login)
+	invItems, bankItems, keptPack, bankHidden, fitted := h.fitItemLists(player.CharServerID, packCap, bankCap, login)
+	// a grandfathered list (entity/itemslots.go) holds what the character
+	// holds, past the limit: its own sizes
+	packCap, bankCap = fitted.pack, fitted.bank
 
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeMemoryDump)
 	// MemoryDump can be 30KB+ with items/spells/hotkeys; write to a large
@@ -2345,6 +2348,7 @@ func (h *CharacterHandler) queueMemoryDumpAt(sess *session.Session, player *enti
 	// carries the position in THIS list.
 	packList := newInvListCap(invItems, packCap)
 	packList.kept = keptPack // a Lore item kept for it is one held (itemlist.go's loreRoom)
+	grandfatherList(packList, false, fitted.keptPack)
 	sess.SetInventoryList(packList)
 	// Dump the list the client will index into, so any disagreement about
 	// order shows up here.
@@ -2368,7 +2372,8 @@ func (h *CharacterHandler) queueMemoryDumpAt(sess *session.Session, player *enti
 	// The bank list keeps keys of its own, numbered the same way.
 	bankList := newInvListCap(bankItems, bankCap)
 	bankList.kept = bankHidden // the account bank's rows not on its first page (accountbank.go)
-	packList.bank = bankList   // a Lore item in the bank is one held (itemlist.go's loreRoom)
+	grandfatherList(bankList, true, fitted.keptBank)
+	packList.bank = bankList // a Lore item in the bank is one held (itemlist.go's loreRoom)
 	sess.SetBankList(bankList)
 	// the account's other characters in the world see what this dump's reading
 	// changed of their bank (kept rows back, the auction's deliveries: accountbank.go)

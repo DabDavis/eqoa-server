@@ -52,6 +52,12 @@ type invList struct {
 	// bank its page starts at (accountbank.go); its kept the items of the rows
 	// not on the page
 	page int
+	// most is, for a grandfathered list (world.grandfather_pack_slots,
+	// entity/itemslots.go), the limit a new record may fill it to, its rows
+	// and keptN (the rows kept beside it, which its client was never sent)
+	// together: a character holding the limit or more takes no new record, so
+	// the room it frees above it is gone. 0: the list's capacity alone.
+	most, keptN int
 }
 
 // keptHas is whether a row kept beside the list is of the item.
@@ -70,6 +76,17 @@ func (l *invList) capacity() int {
 		return invListCap
 	}
 	return l.cap
+}
+
+// roomBound is the records a new record may fill the list to: its capacity,
+// and for a grandfathered list (most) at most the limit less the rows kept
+// beside it. A list at or past it takes nothing new (a stack still tops up).
+func (l *invList) roomBound() int {
+	n := l.capacity()
+	if l.most > 0 {
+		n = min(n, l.most-l.keptN)
+	}
+	return n
 }
 
 // invRec is one record of an invList.
@@ -208,7 +225,7 @@ func (l *invList) add(itemID, patternID, qty, maxStack int) (key uint32, took in
 			return l.recs[i].key, took
 		}
 	}
-	if len(l.recs) >= l.capacity() {
+	if len(l.recs) >= l.roomBound() {
 		return 0, 0
 	}
 	took = 1
@@ -266,7 +283,7 @@ func (l *invList) wouldAdd(patternID, qty, maxStack int) int {
 			return qty
 		}
 	}
-	if len(l.recs) >= l.capacity() {
+	if len(l.recs) >= l.roomBound() {
 		return 0
 	}
 	if maxStack >= 2 {
@@ -353,7 +370,7 @@ type invGive struct {
 func (l *invList) roomFor(takes []invTake, gives []invGive) []invGive {
 	l.mu.Lock()
 	recs := append([]invRec(nil), l.recs...)
-	most := l.capacity()
+	most := l.roomBound()
 	l.mu.Unlock()
 	for _, t := range takes {
 		for i := range recs {

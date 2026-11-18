@@ -3123,6 +3123,13 @@ with no check, so a 41st overruns the VIClient fields after the list. So **a PS2
   overran.
 - The keep restart carries the sizes (the session's answer, each list's cap and its kept items). The dump's buffer is
   sized by its records (a record is at most ~900 bytes).
+- **Grandfathered lists** (`world.grandfather_pack_slots`/`grandfather_bank_slots`; the owner, 2026-11-18, of Vanilla
+  Test: "limit bank and inventory slots back to 40 each", those past it keeping what they hold): set above the limit
+  (the old size), vanilla is offered it, and a character's dump holds max(limit, what it holds: list + kept rows), at
+  most the client's (`characterListSizes`); no NEW record comes while list + kept is the limit or more
+  (`invList.most`/`keptN`, `roomBound`: `add`, `wouldAdd`, `roomFor`, `packCapOf`/`bankCapOf`; the login's gifts and a
+  transfer fill to `roomCaps`), so a slot freed above the limit is gone (a stack still tops up; a swap at the limit is
+  refused). Nothing stored: what it holds IS the allowance, so no data step, and restarts keep it. Unset: off.
 
 ### The account bank (`world.account_bank`; `database/accountbank.go`, `handlers/accountbank.go`, `tools/account_bank_20261114.py`)
 

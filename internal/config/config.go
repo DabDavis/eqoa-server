@@ -490,6 +490,19 @@ type WorldConfig struct {
 	PackSlots int `yaml:"pack_slots"`
 	BankSlots int `yaml:"bank_slots"`
 
+	// GrandfatherPackSlots and GrandfatherBankSlots keep what characters hold
+	// when pack_slots or bank_slots comes down (the server owner, 2026-11-18,
+	// of Vanilla Test: "limit bank and inventory slots back to 40 each", the
+	// characters already past it grandfathered; entity/itemslots.go): set above
+	// the limit (the old size), a character holding more than the limit keeps
+	// every item and is sent them all (a client that holds them: max(limit,
+	// what it holds), at most this), but no item comes to it as a new record
+	// while it holds the limit or more, so a slot it frees above the limit is
+	// gone for good. Nothing is stored: what it holds is its allowance. Unset or
+	// not above the limit: off, the lists exactly as without it.
+	GrandfatherPackSlots int `yaml:"grandfather_pack_slots"`
+	GrandfatherBankSlots int `yaml:"grandfather_bank_slots"`
+
 	// AccountBank makes the bank the account's (the server owner, 2026-11-14:
 	// "make the heirloom server bank for players be account wide and increase
 	// capacity to 2000"; database/accountbank.go, handlers/accountbank.go):

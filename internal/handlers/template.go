@@ -119,7 +119,7 @@ func (h *CharacterHandler) templateHeirlooms(sid uint32, class, packCap int) (li
 		}
 	}
 	inv := inventoryRows(items)
-	room := max(packCap, invListCap) - len(inv)
+	room := packCap - len(inv) // packCapOf: a grandfathered pack's limit (itemlists.go)
 	taken := map[int]bool{}
 	for _, e := range inv {
 		if e.EquipLoc >= 0 {

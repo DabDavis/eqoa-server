@@ -1144,6 +1144,23 @@ var catalog = map[string]tableNote{
 			"source":  {Label: "Source", Help: "gm, or the tool that wrote it"},
 		},
 	},
+	"npcrarecycle": {
+		Label: "Rare NPCs (on a clock)", Group: "World", Title: "npc_row", Sort: "npc_row",
+		Help: "An NPC only sometimes there, by its row in NPCs (one that never dies: a rare quest giver; a creature " +
+			"rare on a placeholder is Rare spawns): it stands up_minutes, then is gone (in no view) for a time drawn " +
+			"between gone_min and gone_max minutes, then stands again. At a start, or an edit here, each is gone for a " +
+			"time drawn up to its gone_max. Zaryn Boome in Blackwater, the Siliskor quest's giver (the owner, 2026-11-18).",
+		Live:   "At once: each is gone now for a time drawn up to its gone_max, then on its clock.",
+		Search: []string{"note"},
+		Cols: map[string]colNote{
+			"npc_row":    {Label: "Row", Ref: "npcs", Help: "its id in NPCs"},
+			"up_minutes": {Label: "Up", Help: "minutes it stands each time, above 0"},
+			"gone_min":   {Label: "Gone min", Help: "minutes, 0 or more"},
+			"gone_max":   {Label: "Gone max", Help: "minutes, at least gone_min and above 0"},
+			"note":       {Label: "Note"},
+			"source":     {Label: "Source", Help: "gm, or the tool that wrote it"},
+		},
+	},
 	"npcundead": {
 		Label: "Undead creatures", Group: "World", Title: "name", Sort: "name",
 		Help: "Which creatures are undead, by NPC NAME (lower case, no trailing $): the spells for undead alone (a " +

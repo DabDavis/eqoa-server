@@ -330,6 +330,9 @@ func (w *World) setHPReachLocked(npc *NPC, m *database.TemplateAbility, now time
 			continue
 		}
 		if n := w.NPCs[id]; creature(n) {
+			if m.PlayersOnly && n.Owner == 0 && n.Charm == nil && !n.isMerc() {
+				continue // the players' side alone: its own kind spared
+			}
 			if dist3(n.X, n.Y, n.Z, npc.X, npc.Y, npc.Z) <= r && w.reachesLocked(place, n.X, n.Y, n.Z) {
 				ns = append(ns, n)
 			}

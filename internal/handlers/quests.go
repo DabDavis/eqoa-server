@@ -158,6 +158,9 @@ type QuestEngine struct {
 	// in-world session (tests stand in for them)
 	playerOf  func(*session.Session) *entity.Player
 	sessionOf func(serverID uint32) *session.Session
+	// mates is a player's group's members (a raid's too): World.GroupMembers
+	// unless a test's own (a group spawn's one set for a group, questevents.go)
+	mates func(p *entity.Player) []*entity.Player
 
 	// the quest marks' (questmarks.go): each quest's words, made at Reload,
 	// and where the quests' NPCs stand, read from the World now and then;

@@ -649,6 +649,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureNPCRare(); err != nil { // npcrare.go
 		return err
 	}
+	if err := db.ensureNPCRareCycle(); err != nil { // npcrarecycle.go
+		return err
+	}
 	if err := db.ensureCharRez(); err != nil { // resurrect.go
 		return err
 	}

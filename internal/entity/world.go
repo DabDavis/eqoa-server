@@ -162,6 +162,8 @@ type World struct {
 	rares map[EntityID]*rareRule
 	// What a monster carries of its row's weapons and shield at a spawn (heldgear.go)
 	held heldGearState
+	// rareCycles: the NPCs only sometimes there, by row (npcrarecycle.go)
+	rareCycles map[EntityID]*rareCycle
 
 	// Each player race's two bodies by race and sex (charactermodel), the
 	// bodies a race's illusion shows (illusion.go)

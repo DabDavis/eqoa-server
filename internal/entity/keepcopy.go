@@ -19,7 +19,8 @@ package entity
 // (corpseSystem). What it holds (rolled or not, its kill group's right to it, a
 // raid's hold, a loot step's drops) is the handlers' and goes by the same id.
 //
-// Not carried: a LIVING copy. Each belongs to something a restart does not carry
+// Not carried here: a LIVING copy (a GM's living spawn is keepgmspawn.go's). Each
+// other belongs to something a restart does not carry
 // (a quest's spawn list, which makes a kill or loot step's lost spawn again when
 // its player comes near: handlers/questevents.go's respawnLost; a creature's
 // fight, whose adds go with it; a GM trigger's living spawn is its run's, carried

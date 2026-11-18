@@ -190,7 +190,8 @@ func (w *World) spawnCopyAsLocked(t *NPC, x, y, z, facing float32, world uint8, 
 	// a spell landed on: cast.go's affected)
 	c.Effects = nil
 	c.Temporary = true
-	c.SpawnOnly, c.HiddenUntil = false, time.Time{} // in every view near it
+	c.GMSpawn, c.gmCompanionOf, c.keptEvent = false, 0, false // a GM's spawn says so itself (gmcompanions.go)
+	c.SpawnOnly, c.HiddenUntil = false, time.Time{}           // in every view near it
 	c.endDummyFight()
 	c.tfight = nil                        // its template's fight is its own (classtemplate.go)
 	c.challenge = nil                     // a duel's is its own (metalmoogie.go)
@@ -204,7 +205,8 @@ func (w *World) spawnCopyAsLocked(t *NPC, x, y, z, facing float32, world uint8, 
 	return &c
 }
 
-// DespawnNPC takes a GM's spawned NPC out of the world at once. An NPC with a
+// DespawnNPC takes a GM's spawned NPC out of the world at once, and the
+// companions its spawning brought with it (gmcompanions.go). An NPC with a
 // database row is refused: it would only come back at the next start.
 func (w *World) DespawnNPC(id EntityID) (string, bool) {
 	w.mu.Lock()
@@ -212,6 +214,9 @@ func (w *World) DespawnNPC(id EntityID) (string, bool) {
 	npc, ok := w.NPCs[id]
 	if !ok || !npc.Temporary {
 		return "", false
+	}
+	for _, p := range w.gmCompanionsLocked(npc) {
+		w.removeNPCLocked(p)
 	}
 	w.removeNPCLocked(npc)
 	return npc.Name, true

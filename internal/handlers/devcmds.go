@@ -385,8 +385,10 @@ func (h *ChatHandler) summonCommand(sess *session.Session, player *entity.Player
 }
 
 // spawnCommand is #spawn <name>: a copy of that NPC a few units in front of
-// the GM (entity.World.SpawnNPCCopy), gone after its corpse time once killed
-// or at #despawn. Without a name, the NPCs nearby (#nearby).
+// the GM (entity.World.SpawnGMCopy), with copies of its companions beside it
+// (entity/gmcompanions.go), gone after its corpse time once killed or at
+// #despawn; a keep restart carries it (entity/keepgmspawn.go). Without a name,
+// the NPCs nearby (#nearby).
 func (h *ChatHandler) spawnCommand(sess *session.Session, player *entity.Player, args []string) {
 	if len(args) == 0 {
 		h.nearbyCommand(sess, player)
@@ -401,14 +403,18 @@ func (h *ChatHandler) spawnCommand(sess *session.Session, player *entity.Player,
 	}
 	x, z := player.X+3*float32(math.Sin(float64(player.Facing))), player.Z+3*float32(math.Cos(float64(player.Facing)))
 	facing := player.Facing + math.Pi
-	id, spelled, ok := h.gameWorld.SpawnNPCCopy(name, x, player.Y, z, facing, player.World)
+	id, spelled, pets, ok := h.gameWorld.SpawnGMCopy(name, x, player.Y, z, facing, player.World)
 	if !ok {
 		h.gmReply(sess, fmt.Sprintf("No NPC called %q.", name))
 		return
 	}
-	h.gmReply(sess, fmt.Sprintf("Spawned %s. Target it and #despawn to take it away.", spelled))
-	log.Printf("GM: %s spawned %s (entity ID=%d) at (%.1f, %.1f, %.1f) world=%d",
-		player.Name, spelled, id, x, player.Y, z, player.World)
+	with := ""
+	if len(pets) > 0 {
+		with = fmt.Sprintf(" with its %d companion(s) beside it", len(pets)) // entity/gmcompanions.go
+	}
+	h.gmReply(sess, fmt.Sprintf("Spawned %s%s. Target it and #despawn to take it away.", spelled, with))
+	log.Printf("GM: %s spawned %s (entity ID=%d, companions %v) at (%.1f, %.1f, %.1f) world=%d",
+		player.Name, spelled, id, pets, x, player.Y, z, player.World)
 }
 
 // despawnCommand is #despawn: the targeted NPC taken away, when a #spawn

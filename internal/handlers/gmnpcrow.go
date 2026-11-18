@@ -42,6 +42,11 @@ import (
 //     /place filth squid in the Plane of Disease), which /delete takes with
 //     it, /delete undo puts back and /clone copies; every other row and spawn
 //     of the name is as before.
+//   - /place and /clone of a creature with companions (a caster's pet,
+//     Tunare's Wrath and Grace of the Mother: entity/gmcompanions.go; the
+//     owner, 2026-11-18) make a row of each beside the new one too, as the
+//     originals stand off the original, standing as the new one does, each
+//     with its gm_audit line; /delete takes each alone.
 //   - /move (the owner, 2026-11-12: "they target a mob and it moves the mob
 //     there and sets spawn point there also"): the target's row's spawn point,
 //     facing and world set to the GM's, in the world at once; /move undo puts
@@ -399,6 +404,7 @@ func (h *ChatHandler) cloneCommand(sess *session.Session, player *entity.Player,
 	line += standsWords(copied)
 	line += h.mirrorNPC(sess, database.MirrorCreate, nid, int64(id), nil,
 		fmt.Sprintf("/clone in the game: %s, a copy of NPC %d", what, id)) // npcmirror.go
+	line += h.placeCompanionRows(sess, player, int64(id), nid, "/clone")
 	if player.Flying {
 		line += " (you fly: it stands in the air)"
 	}
@@ -496,12 +502,62 @@ func (h *ChatHandler) placeCommand(sess *session.Session, player *entity.Player,
 	line += standsWords(copied)
 	line += h.mirrorNPC(sess, database.MirrorCreate, nid, src, nil,
 		fmt.Sprintf("/place in the game: %s (row %d), a copy of NPC %d", name, src, src)) // npcmirror.go
+	line += h.placeCompanionRows(sess, player, src, nid, "/place")
 	if player.Flying {
 		line += " (you fly: it stands in the air)"
 	}
 	h.gmReply(sess, line+" /delete on it takes it away.")
 	log.Printf("GM: %s placed %s as %d (a copy of %d) at (%.1f, %.1f, %.1f) world %d facing %d", player.Name, name, nid, src,
 		at.X, at.Y, at.Z, at.World, at.Facing)
+}
+
+// placeCompanionRows makes rows of the companions of row src (entity/gmcompanions.go:
+// a caster's pet, Tunare's Wrath and Grace of the Mother) beside its copy nid, new
+// where the GM stands facing as the GM faces: each a copy of its original's row
+// (every column, as /clone's), standing off nid as the original stands off src,
+// turned with it, standing in the world when its name is spawn-only (npcstands),
+// each with its gm_audit line and in the world at once. The rows pair as any row's
+// (entity/companion.go), at every start too. It returns what to tell the GM ("" for
+// none). verb is /place or /clone.
+func (h *ChatHandler) placeCompanionRows(sess *session.Session, player *entity.Player, src, nid int64, verb string) string {
+	spots := h.gameWorld.CompanionSpots(entity.EntityID(src), player.X, player.Y, player.Z, player.Facing, player.World)
+	if len(spots) == 0 {
+		return ""
+	}
+	var made, failed []string
+	mirror := ""
+	for _, s := range spots {
+		stands := ""
+		if h.gameWorld.SpawnOnlyNamed(s.Name) {
+			stands = fmt.Sprintf("a GM's %s of %s's companion %s, a quest's or trigger's spawn (npcspawnonly): this row stands", verb, player.Name, s.Name)
+		}
+		at := database.NPCClone{World: int(player.World), X: float64(s.X), Y: float64(s.Y), Z: float64(s.Z),
+			Facing: facingByte(float64(s.Facing))}
+		what := fmt.Sprintf("%s (row %d), companion of row %d", s.Name, s.Row, nid)
+		pid, copied, err := h.camps.db.PlaceNPCRowAudited(int64(s.Row), at, gmEditOf(sess), what, stands)
+		if err != nil {
+			failed = append(failed, fmt.Sprintf("%s (%v)", s.Name, err))
+			continue
+		}
+		h.reloadNPCExtras(copied)
+		if _, err := h.upsertRowNPC(pid); err != nil {
+			failed = append(failed, fmt.Sprintf("%s as row %d, not in the world yet (%v)", s.Name, pid, err))
+			continue
+		}
+		mirror += h.mirrorNPC(sess, database.MirrorCreate, pid, int64(s.Row), nil,
+			fmt.Sprintf("%s in the game: %s, a copy of NPC %d (a companion of row %d)", verb, s.Name, s.Row, nid)) // npcmirror.go
+		made = append(made, fmt.Sprintf("%s as row %d", s.Name, pid))
+		log.Printf("GM: %s's %s of row %d brought its companion %s (row %d) as row %d at (%.1f, %.1f, %.1f) world %d",
+			player.Name, verb, src, s.Name, s.Row, pid, at.X, at.Y, at.Z, at.World)
+	}
+	line := ""
+	if len(made) > 0 {
+		line += " Its companions beside it: " + strings.Join(made, ", ") + " (/delete each to take it away)."
+	}
+	if len(failed) > 0 {
+		line += " Not made: " + strings.Join(failed, "; ") + "."
+	}
+	return line + mirror
 }
 
 // placeArgs reads /place's words: the name, in quotes or not, and a wander

@@ -275,12 +275,39 @@ func (e *TriggerEngine) Reload() error {
 	if err != nil {
 		return err
 	}
+	if e.gw != nil {
+		e.gw.SetTriggerCompanions(triggerCompanions(all)) // entity/gmcompanions.go
+	}
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	e.cat, e.starts = all, nil
 	e.deaths = deaths
 	e.syncNamesLocked()
 	return nil
+}
+
+// triggerCompanions is every trigger's resummons (enabled or not) as pairs: the
+// NPC called back to the name of the spawn that calls it (trigger 141: Wrath and
+// Grace of the Mother to Tunare). A GM's copy of the caller brings copies of them
+// (entity/gmcompanions.go). A name two triggers give two callers keeps the first's
+// by slot.
+func triggerCompanions(all []database.GMTrigger) map[string]string {
+	pets := map[string]string{}
+	for _, t := range all {
+		steps, err := database.ParseTriggerSteps(t.Steps)
+		if err != nil {
+			continue
+		}
+		for _, s := range steps {
+			if s.Do != database.TriggerResummon || s.NPC == "" || s.By == "" {
+				continue
+			}
+			if _, ok := pets[database.NPCClassKey(s.NPC)]; !ok {
+				pets[database.NPCClassKey(s.NPC)] = s.By
+			}
+		}
+	}
+	return pets
 }
 
 // heardKill takes a kill from the World (its lock held: never wait here).

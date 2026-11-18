@@ -184,7 +184,7 @@ func (s *InventoryStore) SetPurse(serverID uint32, tunar int) error {
 
 // SetTunar stores a character's purse and bank tunar.
 func (s *InventoryStore) SetTunar(serverID uint32, tunar, bankTunar int) error {
-	if AccountBankOn() {
+	if !personalBank(s.db, serverID) {
 		// the bank is the account's (accountbank.go)
 		if err := s.SetPurse(serverID, tunar); err != nil {
 			return err

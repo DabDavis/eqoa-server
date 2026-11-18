@@ -391,7 +391,7 @@ func auctionBidTx(q sqlRunner, lot int, bidder uint32) (AuctionBid, bool, error)
 // bankTunarTx is a character's bank tunar, and whether the character is
 // there at all.
 func bankTunarTx(q sqlRunner, serverID uint32) (int, bool, error) {
-	if AccountBankOn() {
+	if !personalBank(q, serverID) {
 		// the account's (accountbank.go)
 		acct, there, err := accountOfChar(q, serverID)
 		if err != nil || !there {

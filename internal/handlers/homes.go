@@ -221,6 +221,10 @@ func (h *InteractHandler) homesTalk(sess *session.Session, p *entity.Player, npc
 		return false
 	}
 	forgetDialogs(p)
+	if p.HardcoreBound() { // hcrules.go
+		teleSay(sess, hcHomesWords)
+		return true
+	}
 	hs := homesH.Load()
 	gw := h.gameWorld
 	on, world := false, uint8(0)
@@ -351,6 +355,10 @@ func (h *InteractHandler) answerHomes(sess *session.Session, p *entity.Player, b
 
 // goHome sends the session's player into host's home, its stay kept.
 func (hs *Homes) goHome(sess *session.Session, p *entity.Player, host uint32) {
+	if p.HardcoreBound() { // hcrules.go
+		homesTell(sess, hcHomesWords)
+		return
+	}
 	on, world := hs.gw.HomesOn()
 	switch {
 	case !on:

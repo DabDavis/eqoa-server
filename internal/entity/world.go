@@ -1138,6 +1138,7 @@ func (w *World) addThreatLocked(npc *NPC, attackerID EntityID, damage int) {
 	}
 	w.wakeNPCLocked(npc)                  // a fight, and its regeneration's count after it (npcsets.go)
 	npc.calmTicks, npc.healing = 0, false // in a fight: no regeneration after it for a while (npcregen.go)
+	w.noteHateLocked(npc, attackerID)     // who held its hate, for a Hardcore character's kill (hcrules.go)
 	if npc.Threats == nil {
 		npc.Threats = make(map[EntityID]int64)
 	}

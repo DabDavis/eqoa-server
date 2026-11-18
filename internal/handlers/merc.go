@@ -288,6 +288,10 @@ func (m *Mercs) Talk(sess *session.Session, p *entity.Player, npc *entity.NPC) b
 	if m == nil || npc == nil || npc.Dead || !isMercLiaison(npc.Name) || !MercsOn() {
 		return false
 	}
+	if p.HardcoreBound() { // hcrules.go
+		mercSay(sess, hcMercLiaisonWords)
+		return true
+	}
 	answers := make([]string, len(mercRoles))
 	for i, r := range mercRoles {
 		answers[i] = r.label
@@ -854,6 +858,9 @@ func (m *Mercs) heirlooms(class, race, level int) ([]database.CharInventoryEntry
 func (m *Mercs) comeBack(sess *session.Session, p *entity.Player) {
 	if !MercsOn() || m.db == nil {
 		return
+	}
+	if p.HardcoreBound() {
+		return // a Hardcore character's hires never come back (hcrules.go); entity.HireMercAt refuses any
 	}
 	rows, err := m.db.Mercs(p.CharServerID)
 	if err != nil {

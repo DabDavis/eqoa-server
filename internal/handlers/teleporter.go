@@ -684,6 +684,10 @@ func (h *InteractHandler) teleporterTalk(sess *session.Session, p *entity.Player
 		return false
 	}
 	forgetDialogs(p)
+	if p.HardcoreBound() { // hcrules.go
+		teleSay(sess, hcTeleporterWords)
+		return true
+	}
 	if !TeleporterOn() || h.gameWorld == nil {
 		teleSay(sess, teleClosed)
 		return true

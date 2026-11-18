@@ -118,9 +118,12 @@ func groupExp(mob, level int, levels []int) int {
 // group's members in npc's world within KillShareRange of it, alive (the
 // quest kills' rule, questhooks.go). Must be called with the lock held.
 func (w *World) killSharersLocked(killer *Player, npc *NPC) []*Player {
-	out := []*Player{killer}
+	var out []*Player
+	if !w.hcBarredLocked(npc, killer) { // a Hardcore character helped earns nothing (hcrules.go)
+		out = append(out, killer)
+	}
 	for _, m := range w.groupMembersLocked(killer) {
-		if m == killer || !w.npcSharesLocked(npc, m) || m.IsDead() {
+		if m == killer || !w.npcSharesLocked(npc, m) || m.IsDead() || w.hcBarredLocked(npc, m) {
 			continue
 		}
 		dx, dz := m.X-npc.X, m.Z-npc.Z
@@ -154,6 +157,9 @@ func (w *World) awardKillXPLocked(killerSess *session.Session, killer *Player, n
 		return // a siege's King or gate: no experience (siege.go)
 	}
 	sharers := w.killSharersLocked(killer, npc)
+	if len(sharers) == 0 {
+		return // a Hardcore group helped (hcrules.go)
+	}
 	levels := make([]int, len(sharers))
 	for i, m := range sharers {
 		levels[i] = m.Level

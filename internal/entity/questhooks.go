@@ -41,6 +41,11 @@ type KillCredit struct {
 	// OpenAt is when the corpse is anyone's to loot, its kill group's or not: six
 	// minutes after the death, a raid's too; zero never (corpseopen.go)
 	OpenAt time.Time
+	// Hardcore: the killer is a Hardcore character (on a shard with
+	// world.hardcore), its group all Hardcore; HCEarned, that the group earned
+	// the kill alone (hcrules.go). A Hardcore character opens only a corpse of a
+	// kill its group earned (handlers/lootrights.go)
+	Hardcore, HCEarned bool
 }
 
 // KillPlayer is one player a kill counts for.
@@ -97,11 +102,16 @@ func (w *World) creditKillLocked(sess *session.Session, p *Player, npc *NPC) {
 	}
 	c := KillCredit{NPCName: npc.Name, NPCSpawn: spawn, NPCID: npc.ServerID, Died: npc.DeathTime, Level: npc.Level, World: npc.World, X: npc.X, Z: npc.Z, Raid: raid,
 		Group: p.GroupID, OpenAt: openAt}
-	c.Players = append(c.Players, KillPlayer{Session: sess, ServerID: p.CharServerID, Name: p.Name})
+	// a Hardcore character helped gets no credit, no loot right (hcrules.go)
+	c.Hardcore = p.HardcoreBound()
+	c.HCEarned = c.Hardcore && !w.hcBarredLocked(npc, p)
+	if !c.Hardcore || c.HCEarned {
+		c.Players = append(c.Players, KillPlayer{Session: sess, ServerID: p.CharServerID, Name: p.Name})
+	}
 	if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil {
 		for _, id := range g.Members {
 			m := w.Players[id]
-			if m == nil || m == p {
+			if m == nil || m == p || w.hcBarredLocked(npc, m) {
 				continue
 			}
 			// one who died in the fight counts wherever it is (fallen.go); else in the

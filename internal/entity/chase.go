@@ -423,6 +423,7 @@ func (w *World) waterEdgeLocked(npc *NPC, x, y, z, d, reach float32, held, now t
 func (w *World) giveUpLocked(npc *NPC) {
 	npc.Threats = nil
 	npc.damageBy = nil // its fight over: a new one's damage counts anew (killcredit.go)
+	forgetHate(npc)    // and its hate's holders (hcrules.go)
 	npc.CurrentEnemy = 0
 	npc.endRound()
 	w.goHomeLocked(npc)

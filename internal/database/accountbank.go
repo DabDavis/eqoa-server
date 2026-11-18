@@ -77,12 +77,68 @@ const accountBankSchema = `
 const bankOwnersSQL = `(SELECT o.serverid FROM characters o WHERE o.accountid = (SELECT a.accountid FROM characters a WHERE a.serverid = ?)
 	UNION ALL SELECT h.serverid FROM accountbank_holders h WHERE h.accountid = (SELECT a.accountid FROM characters a WHERE a.serverid = ?))`
 
+// A Hardcore character never shares the account bank (the owner, 2026-11-18:
+// Hardcore characters "cannot use the shared account bank (their personal bank
+// stays)"): where world.hardcore is on (SetHardcoreBankCheck), a Hardcore
+// character's bank is its own rows and its own characters.bankTunar, as without
+// the account bank, and the account's bank is its other characters' alone
+// (bankOwnersNonHCSQL); a Hardcore character deleted leaves nothing to it
+// (keepBankRowsTx).
+var hcBankCheck atomic.Pointer[func() bool]
+
+// SetHardcoreBankCheck sets what says world.hardcore is on (handlers).
+func SetHardcoreBankCheck(f func() bool) {
+	if f == nil {
+		hcBankCheck.Store(nil)
+		return
+	}
+	hcBankCheck.Store(&f)
+}
+
+// hcBankSplit reports the account bank kept from Hardcore characters.
+func hcBankSplit() bool {
+	if !AccountBankOn() {
+		return false
+	}
+	f := hcBankCheck.Load()
+	return f != nil && (*f)()
+}
+
+// hcCharSQL is true for the Hardcore character its ? names.
+const hcCharSQL = `EXISTS (SELECT 1 FROM characters hc WHERE hc.serverid = ? AND COALESCE(hc.hardcore, 0) = 1)`
+
+// bankOwnersNonHCSQL is bankOwnersSQL without the account's Hardcore characters.
+const bankOwnersNonHCSQL = `(SELECT o.serverid FROM characters o WHERE o.accountid = (SELECT a.accountid FROM characters a WHERE a.serverid = ?)
+		AND COALESCE(o.hardcore, 0) = 0
+	UNION ALL SELECT h.serverid FROM accountbank_holders h WHERE h.accountid = (SELECT a.accountid FROM characters a WHERE a.serverid = ?))`
+
+// personalBank reports a character whose bank is its own: every character
+// without the account bank, a Hardcore one with it (hcBankSplit).
+func personalBank(q sqlRunner, serverID uint32) bool {
+	if !AccountBankOn() {
+		return true
+	}
+	if !hcBankSplit() {
+		return false
+	}
+	var hc int
+	if err := q.QueryRow(`SELECT COALESCE(hardcore, 0) FROM characters WHERE serverid = ?`, serverID).Scan(&hc); err != nil {
+		return false
+	}
+	return hc == 1
+}
+
 // bankCond is the SQL condition on a charinventory row (its columns prefixed
 // p, "c." or "") being in the character's bank, and its arguments: its own
-// rows at location 1, or with the account bank its account's.
+// rows at location 1, or with the account bank its account's (a Hardcore
+// character's own: hcBankSplit).
 func bankCond(p string, serverID uint32) (string, []any) {
 	if !AccountBankOn() {
 		return p + "serverid = ? AND " + p + "location = 1", []any{serverID}
+	}
+	if hcBankSplit() {
+		return p + "location = 1 AND (CASE WHEN " + hcCharSQL + " THEN " + p + "serverid = ? ELSE " + p + "serverid IN " +
+			bankOwnersNonHCSQL + " END)", []any{serverID, serverID, serverID, serverID}
 	}
 	return p + "location = 1 AND " + p + "serverid IN " + bankOwnersSQL, []any{serverID, serverID}
 }
@@ -150,7 +206,7 @@ func accountTunarTx(q sqlRunner, accountID int) (int, error) {
 // at least -n. ok false: the character is not there, or (floor) the bank holds
 // too little, and nothing changed.
 func addBankTunarTx(q sqlRunner, serverID uint32, n int, floor bool) (bool, error) {
-	if !AccountBankOn() {
+	if personalBank(q, serverID) {
 		query := `UPDATE characters SET bankTunar = bankTunar + ? WHERE serverid = ?`
 		args := []any{n, serverID}
 		if floor {
@@ -188,7 +244,7 @@ func addBankTunarTx(q sqlRunner, serverID uint32, n int, floor bool) (bool, erro
 // setBankTunarTx sets the character's bank tunar (its account's with the
 // account bank). ok false: the character is not there.
 func setBankTunarTx(q sqlRunner, serverID uint32, bank int) (bool, error) {
-	if !AccountBankOn() {
+	if personalBank(q, serverID) {
 		res, err := q.Exec(`UPDATE characters SET bankTunar = ? WHERE serverid = ?`, bank, serverID)
 		if err != nil {
 			return false, err
@@ -231,7 +287,7 @@ func (s *SQLiteCharacterStore) fixBankTunar(cs ...*CharacterRecord) {
 	}
 	byAcct := map[int]int{}
 	for _, c := range cs {
-		if c == nil {
+		if c == nil || personalBank(s.db, uint32(c.ServerID)) { // a Hardcore character's own (hcBankSplit)
 			continue
 		}
 		c.OwnBankTunar = c.BankTunar
@@ -253,6 +309,9 @@ func (s *SQLiteCharacterStore) fixBankTunar(cs ...*CharacterRecord) {
 func keepBankRowsTx(q sqlRunner, serverID uint32, now int64) error {
 	if !AccountBankOn() {
 		return nil
+	}
+	if personalBank(q, serverID) {
+		return nil // a Hardcore character's bank was never the account's (hcBankSplit)
 	}
 	_, err := q.Exec(`INSERT OR IGNORE INTO accountbank_holders (serverid, accountid, deleted_at)
 		SELECT c.serverid, c.accountid, ? FROM characters c WHERE c.serverid = ?

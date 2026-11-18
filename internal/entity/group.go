@@ -267,6 +267,9 @@ func (w *World) groupInviteLocked(sess *session.Session, inviter, target *Player
 	if w.groupInviteRefusedLocked(sess, inviter) {
 		return
 	}
+	if w.hcInviteRefusedLocked(sess, inviter, target) { // hcrules.go: Hardcore with Hardcore alone
+		return
+	}
 	if target.GroupID != 0 && !w.mercOnlyGroupLocked(target) { // its and its merc's alone gives way (mercgroup.go)
 		w.sendGroupNotice(sess, 2, target.Name)
 		return
@@ -386,6 +389,10 @@ func (w *World) GroupAccept(sess *session.Session, inviterID uint32) {
 	g := w.groups[inviter.GroupID]
 	if g == nil {
 		log.Printf("Group: %s's yes to %s not taken: %s is in no group now", p.Name, inviter.Name, inviter.Name)
+		w.sendGroupRemoved(p, 3)
+		return
+	}
+	if w.hcGroupRefusedLocked(sess, p, g) { // hcrules.go: Hardcore with Hardcore alone
 		w.sendGroupRemoved(p, 3)
 		return
 	}

@@ -174,6 +174,9 @@ func (w *World) raidInviteLocked(sess *session.Session, inviter *Player, g *Grou
 		w.refuseLocked(sess, fmt.Sprintf("%s has not answered your invitation yet.", t.Name))
 		return
 	}
+	if w.hcInviteRefusedLocked(sess, inviter, t) { // hcrules.go: Hardcore with Hardcore alone
+		return
+	}
 	w.mercGivesWayLocked(t) // its merc comes with its yes, past four as a flag's (mercgroup.go)
 	g.flagged = true
 	w.raidBoxLocked(t, inviter, ts, fmt.Sprintf("%s invites you to %s's raid.", inviter.Name, w.raidNameLocked(inviter)))

@@ -200,6 +200,10 @@ func (h *EquipHandler) useRockOfFreeport(sess *session.Session, player *entity.P
 	if h.gameWorld == nil || player == nil {
 		return
 	}
+	if player.HardcoreBound() { // hcrules.go
+		hcSay(sess, hcRockWords)
+		return
+	}
 	now := time.Now()
 	if h.gameWorld.TravelBusy(sess, now) {
 		return

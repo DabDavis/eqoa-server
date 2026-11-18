@@ -221,6 +221,12 @@ func (w *World) joinAddLocked(add, by *NPC) {
 			add.Threats[id] = th
 		}
 	}
+	for id, h := range by.hcHate { // who held its creature's hate holds the add's (hcrules.go)
+		if add.hcHate == nil {
+			add.hcHate = map[EntityID]hcHolder{}
+		}
+		add.hcHate[id] = h
+	}
 	if id := w.pickEnemyLocked(add); id != 0 {
 		add.CurrentEnemy = id
 	}

@@ -290,6 +290,7 @@ func (w *World) respawnNPCLocked(npc *NPC) {
 	npc.corpseHeld = time.Time{}
 	npc.Threats = nil
 	npc.damageBy = nil // a new life (killcredit.go)
+	forgetHate(npc)    // and its hate's holders (hcrules.go)
 	npc.CurrentEnemy = 0
 	npc.guardHit = false   // a new life (guards.go)
 	npc.withMaster = false // and its own (masterdeath.go)

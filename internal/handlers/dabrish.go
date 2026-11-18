@@ -98,6 +98,10 @@ func (h *InteractHandler) dabrishTalk(sess *session.Session, p *entity.Player, n
 	if npc == nil || npc.Dead || !strings.EqualFold(strings.TrimSpace(npc.Name), DabrishName) {
 		return false
 	}
+	if p.HardcoreBound() { // hcrules.go: no level or mastery handed out
+		dabrishSay(sess, hcDabrishWords)
+		return true
+	}
 	if h.dabrishLevel == nil || h.dabrishMastery == nil || h.gameWorld == nil {
 		dabrishSay(sess, "My ledger is closed today.")
 		return true

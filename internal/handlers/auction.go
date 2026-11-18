@@ -467,6 +467,11 @@ func (a *AuctionHouse) Handle(sess *session.Session, msg *protocol.Message) erro
 	if player == nil {
 		return nil
 	}
+	// a Hardcore character's: no auction house at all (hcitems.go)
+	if hardcoreNoAuction(sess, player) {
+		refuse(sess)
+		return nil
+	}
 	switch sub {
 	case 5:
 		banker, key := r.u32(), r.u32()

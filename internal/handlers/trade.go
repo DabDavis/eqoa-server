@@ -143,6 +143,10 @@ func (h *TradeHandler) HandleTradeRequest(sess *session.Session, msg *protocol.M
 	if me == nil || them == nil || them == me {
 		return nil
 	}
+	// a Hardcore character trades with no one, Hardcore or not (hcitems.go)
+	if hardcoreNoTrade(sess, me, them) {
+		return nil
+	}
 	theirSess := h.gameWorld.FindSessionByEntityID(them.ServerID)
 	if theirSess == nil {
 		return nil

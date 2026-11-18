@@ -1637,6 +1637,9 @@ func lastingParts(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 // landOnPlayerLocked is a beneficial spell on a player: its instant part,
 // then what lasts, on the effects channel.
 func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *session.Session, t *Player, now time.Time) {
+	if w.hcAidRefusedLocked(caster, t, len(cs.targets) <= 1) { // hcrules.go: no aid to or from a Hardcore character outside its group
+		return
+	}
 	if w.tooLowLocked(caster, casterSess, t, &cs.spell) { // workbook.go: below its lowest level
 		return
 	}

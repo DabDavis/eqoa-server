@@ -173,6 +173,9 @@ type NPC struct {
 	Threats map[EntityID]int64
 	// damageBy is the damage each player made on it this life, its pets' and mercs' counted to it (killcredit.go)
 	damageBy     map[EntityID]int64
+	// hcHate is every holder of its hate this life, as a Hardcore character's
+	// kill reads it (hcrules.go)
+	hcHate map[EntityID]hcHolder
 	CurrentEnemy EntityID
 	LastCombat   time.Time
 

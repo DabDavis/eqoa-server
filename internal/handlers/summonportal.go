@@ -236,6 +236,10 @@ func (g *Portal) Open(sess *session.Session, p *entity.Player) {
 	if g == nil || g.gw == nil || p == nil {
 		return
 	}
+	if p.HardcoreBound() { // hcrules.go
+		portalRefuse(sess, hcPortalWords)
+		return
+	}
 	if _, err := g.gw.OpenPortal(sess, g.now()); err != nil {
 		return
 	}
@@ -249,6 +253,10 @@ func (g *Portal) Talk(sess *session.Session, p *entity.Player, npc *entity.NPC) 
 		return false
 	}
 	forgetDialogs(p)
+	if p.HardcoreBound() { // hcrules.go: neither its calls nor its trip to Freeport
+		portalRefuse(sess, hcPortalWords)
+		return true
+	}
 	now := g.now()
 	g.mu.Lock()
 	a := g.waits[p.ServerID]
@@ -348,6 +356,10 @@ func (g *Portal) TakeName(sess *session.Session, p *entity.Player, line string) 
 // call is the name taken: the refusals, then the call.
 func (g *Portal) call(sess *session.Session, caller *entity.Player, portal entity.EntityID, name string, now time.Time) {
 	t := g.gw.PlayerByName(name)
+	if t != nil && t.HardcoreBound() { // hcrules.go: a Hardcore character is never called
+		portalRefuse(sess, fmt.Sprintf(hcPortalTargetWords, t.Name))
+		return
+	}
 	var ts *session.Session
 	if t != nil {
 		ts = g.inWorld(t.ServerID)

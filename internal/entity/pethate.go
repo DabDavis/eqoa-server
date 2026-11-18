@@ -71,6 +71,7 @@ func (w *World) petHateToMasterLocked(id EntityID) {
 		if npc.World != world || distXZ(npc.X, npc.Z, mx, mz) > npcGiveUp || challengeBars(npc, master) {
 			continue
 		}
+		w.noteHateLocked(npc, master) // hcrules.go
 		npc.Threats[master] += max(th, 1)
 		log.Printf("Pet: %q's hate on %s (%d) falls to its master %d (now %d)", pet.Name, npc.Name, th, master, npc.Threats[master])
 	}

@@ -265,6 +265,9 @@ func seatOf(w *World, p *Player, claim bool) RaidSeat {
 // with the lock held.
 func (w *World) raidKillLocked(killer *Player, npc *NPC, fallen map[EntityID]uint32) *RaidKill {
 	claims := w.takeRaidClaimsLocked(npc)
+	if w.hcBarredLocked(npc, killer) {
+		return nil // a Hardcore group helped: no rolls, its corpse not its (hcrules.go)
+	}
 	g := w.raidOfLocked(killer)
 	if g == nil {
 		g = w.plainGroupNeedGreedLocked(killer) // a group's own need before greed (grouploot.go)

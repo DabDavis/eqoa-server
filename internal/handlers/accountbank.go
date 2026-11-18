@@ -82,6 +82,10 @@ func (h *NPCWindowHandler) syncAccountBank(serverID uint32) {
 		if l == nil {
 			return true
 		}
+		tunar := tunar
+		if t, _, err := h.inv.BankTunarOf(s.CharacterServerID()); err == nil {
+			tunar = t // its own bank's: a Hardcore character's is its own (database/accountbank.go hcBankSplit)
+		}
 		if h.playerOf != nil {
 			if p := h.playerOf(s); p != nil && p.CharServerID == s.CharacterServerID() && p.BankTunar != tunar {
 				p.BankTunar = tunar

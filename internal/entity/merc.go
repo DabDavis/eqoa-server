@@ -680,6 +680,9 @@ func (w *World) HireMercAt(sess *session.Session, slot int, kit MercKit, stance 
 	if p.IsDead() || p.respawnPending() {
 		return "", "The dead hire no one.", false
 	}
+	if p.HardcoreBound() {
+		return "", hcMercWords, false // hcrules.go
+	}
 	if w.ctfKeepsOutLocked(p) {
 		// a match is its players' alone: it waits outside the arena and comes
 		// when its owner leaves it (ctfaway.go)

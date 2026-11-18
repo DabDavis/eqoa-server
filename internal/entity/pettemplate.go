@@ -1190,6 +1190,7 @@ func (w *World) petTopHateLocked(pet, t *NPC) {
 			top = v
 		}
 	}
+	w.noteHateLocked(t, pet.ServerID) // hcrules.go
 	if t.Threats == nil {
 		t.Threats = make(map[EntityID]int64)
 	}

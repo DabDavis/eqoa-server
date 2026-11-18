@@ -145,6 +145,9 @@ func (w *World) LFGSearch(sess *session.Session, q LFGQuery) []LFGRow {
 		if me.GroupID != 0 && p.GroupID == me.GroupID {
 			continue
 		}
+		if HardcoreMismatch(me, p) { // Hardcore finds Hardcore alone (hcrules.go)
+			continue
+		}
 		if q.Type != 0 && q.Type != 1 { // the window sends no other
 			continue
 		}

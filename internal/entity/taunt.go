@@ -115,6 +115,7 @@ func (w *World) tauntHateLocked(npc *NPC, by EntityID, hate, pct, level int) {
 				top = v
 			}
 		}
+		w.noteHateLocked(npc, by) // hcrules.go
 		if npc.Threats == nil {
 			npc.Threats = make(map[EntityID]int64)
 		}

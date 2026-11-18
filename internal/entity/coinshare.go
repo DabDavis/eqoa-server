@@ -12,6 +12,9 @@ func (w *World) CoinSharers(opener *Player, npc *NPC) ([]*Player, []*session.Ses
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	ps := w.killSharersLocked(opener, npc)
+	if len(ps) == 0 || ps[0] != opener {
+		ps = append([]*Player{opener}, ps...) // the opener first, whatever a Hardcore rule says (hcrules.go)
+	}
 	ss := make([]*session.Session, len(ps))
 	for i, p := range ps {
 		ss[i] = w.sessionOfLocked(p)

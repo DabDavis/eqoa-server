@@ -51,15 +51,18 @@ type lootRight struct {
 	group uint32
 	// openAt is when it is anyone's (KillCredit.OpenAt), zero never
 	openAt time.Time
+	// hcEarned: a Hardcore group's kill it earned alone (KillCredit.HCEarned,
+	// entity/hcrules.go), which its members farther off may open too
+	hcEarned bool
 }
 
 // heardKillRight takes a kill from the World (its lock held: never wait here)
 // and keeps its kill group for the corpse.
 func (h *NPCWindowHandler) heardKillRight(k entity.KillCredit) {
-	if len(k.Players) == 0 {
+	if len(k.Players) == 0 && !k.Hardcore {
 		return
 	}
-	r := lootRight{died: k.Died, chars: map[uint32]bool{}, group: k.Group, openAt: k.OpenAt}
+	r := lootRight{died: k.Died, chars: map[uint32]bool{}, group: k.Group, openAt: k.OpenAt, hcEarned: k.HCEarned}
 	for _, p := range k.Players {
 		r.chars[p.ServerID] = true
 	}
@@ -70,6 +73,9 @@ func (h *NPCWindowHandler) heardKillRight(k entity.KillCredit) {
 // file's doc).
 func (h *NPCWindowHandler) mayLoot(player *entity.Player, id entity.EntityID, died time.Time) bool {
 	v, ok := h.killRights.Load(id)
+	if player != nil && player.HardcoreBound() {
+		return h.hardcoreMayLoot(player, v, ok, died)
+	}
 	if !ok {
 		return true
 	}
@@ -85,6 +91,23 @@ func (h *NPCWindowHandler) mayLoot(player *entity.Player, id entity.EntityID, di
 		return true
 	}
 	return false
+}
+
+// hardcoreMayLoot is mayLoot for a Hardcore character (entity/hcrules.go): only
+// a corpse of a kill it, or its Hardcore group, earned alone, never once it is
+// anyone's, never one no one was credited with.
+func (h *NPCWindowHandler) hardcoreMayLoot(player *entity.Player, v any, ok bool, died time.Time) bool {
+	if !ok {
+		return false
+	}
+	r := v.(lootRight)
+	if !r.died.Equal(died) {
+		return false
+	}
+	if r.chars[player.CharServerID] {
+		return true
+	}
+	return r.hcEarned && r.group != 0 && h.groupIDOf != nil && h.groupIDOf(player) == r.group
 }
 
 // heldByOtherLocked reports whether another player's window holds the corpse

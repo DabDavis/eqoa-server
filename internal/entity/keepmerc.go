@@ -125,8 +125,8 @@ func (w *World) RestoreMerc(sess *session.Session, kit MercKit, k KeptMerc, now 
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
 	slot := min(max(k.Slot, 1), MercSlots)
-	if p == nil || p.IsDead() || p.respawnPending() || w.mercAtLocked(p, slot) != nil {
-		return false
+	if p == nil || p.IsDead() || p.respawnPending() || w.mercAtLocked(p, slot) != nil || p.HardcoreBound() {
+		return false // a Hardcore character's never (hcrules.go)
 	}
 	if w.ctfKeepsOutLocked(p) {
 		w.ctfMercWaitsLocked(p, sess, slot, kit.Name) // its owner in the arena's world: it waits outside (ctfaway.go)

@@ -275,7 +275,10 @@ func (w *World) removeLocked(g *Guild, id uint32) (ended bool, lead *GuildMember
 		return true, nil
 	}
 	if m != nil && m.Rank == GuildRankLeader && w.leaderLocked(g) == nil {
-		lead = highest(g)
+		// a member still playing, not a fallen Hardcore one (guildfall.go)
+		if lead = w.highestPlayingLocked(g, 0); lead == nil {
+			lead = highest(g)
+		}
 		lead.Rank = GuildRankLeader
 		if p := w.memberPlayerLocked(lead.ID); p != nil {
 			p.GuildRank = GuildRankLeader

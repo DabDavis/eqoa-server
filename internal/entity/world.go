@@ -51,6 +51,7 @@ type World struct {
 	guilds      map[uint32]*Guild // guild.go
 	nextGuildID uint32
 	guildStore  GuildStore                        // guild.go: where every change is kept; nil: memory alone
+	guildFallen map[uint32]bool                   // guildfall.go: fallen Hardcore characters, never handed a guild's lead
 	genies      map[EntityID]EntityID             // the lamps' genies standing, by their owners (genie.go)
 	portals     map[EntityID]*portalState         // the Summoning Portals standing, by their NPCs (summonportal.go)
 	metal       *metalDuel                        // the Metal Moogie standing and his duel (metalmoogie.go), nil none

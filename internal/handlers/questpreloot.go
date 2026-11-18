@@ -26,6 +26,11 @@ import (
 //   - never: past the step, a finished quest that does not repeat, a draft, holding as many as
 //     the step wants already (its Ascended records counted, as a quest counts them, less what
 //     the quest's earlier loot steps keep: keptForEarlier), one of a Lore item, a full stack.
+//   - a REPEATABLE quest farms ahead (the owner, 2026-11-18, petition 2383, Wanuven: the SK
+//     exemplar's Screaming Souls stopped at the ten one round wants, though the souls stack to
+//     999): its item drops past the count, up to a full stack, and past the step too (the quest
+//     under way at a later step: its next round's); each give step takes only its own count,
+//     and the next round's loot step counts what is held and is done at once.
 // One kill drops one of an item for a player at most: a second quest's step on the same creature
 // and item rolls nothing more, nor does the step the player is on.
 //
@@ -102,8 +107,8 @@ func (q *QuestEngine) preLootLocked(k entity.KillCredit, kp entity.KillPlayer, c
 			continue
 		}
 		held := sessionInvList(kp.Session).heldStandingFor(pid)
-		if held-keptForEarlier(qu, st, pid) >= need {
-			continue
+		if !qu.Repeatable && held-keptForEarlier(qu, st, pid) >= need {
+			continue // a repeatable quest's farms on to a full stack (fullStack below)
 		}
 		pat, err := q.items.GetItemPattern(pid)
 		if err != nil || pat == nil {
@@ -140,8 +145,13 @@ func (q *QuestEngine) aheadRefusalLocked(c *questChar, qu *database.Quest, st *d
 	underWay := cq != nil && cq.Active()
 	from := 0 // the step the player stands at: every step from it to st is still to do
 	if underWay {
-		if cq.Step >= st.Step {
+		if cq.Step == st.Step || cq.Step > st.Step && !qu.Repeatable {
 			return "on the step or past it"
+		}
+		if cq.Step > st.Step {
+			// a repeatable quest past its loot step farms ahead for its next round (the
+			// owner, 2026-11-18, petition 2383): its later steps take what they need
+			return ""
 		}
 		from = cq.Step
 	} else if cq != nil && cq.Done > 0 && !qu.Repeatable {

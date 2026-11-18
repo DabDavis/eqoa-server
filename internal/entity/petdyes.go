@@ -136,7 +136,7 @@ func (w *World) PetLookOf(sess *session.Session) (PetLook, bool) {
 	if pet == nil {
 		return PetLook{}, false
 	}
-	look := uint32(pet.ModelID)
+	look := w.petDrawnLook(sess, pet) // the catapult's art, to a client that draws it (decorlights.go)
 	area, ok := w.PetDyeArea(look)
 	if !ok {
 		area = database.PetDyeArea{Look: look, Area1: "Clothing", Area2: "Body"}
@@ -175,7 +175,7 @@ func (w *World) petDyesInViewLocked(sess *session.Session, layout uint8) []petDy
 		if owner == nil || len(owner.PetDyes) == 0 {
 			continue
 		}
-		look := uint32(n.ModelID)
+		look := w.petDrawnLook(sess, n) // in the art this client draws it in (decorlights.go)
 		d, ok := owner.PetDyes[look]
 		if !ok || d == (PetDye{}) {
 			continue
@@ -280,7 +280,7 @@ func (w *World) PetDyePreview(sess *session.Session) (id, look uint32, dye PetDy
 	if pet == nil {
 		return 0, 0, PetDye{}, 0, false, false
 	}
-	look = uint32(pet.ModelID)
+	look = w.petDrawnLook(sess, pet)
 	dye = p.PetDyes[look]
 	if a, row := w.PetDyeArea(look); !row {
 		rule = true

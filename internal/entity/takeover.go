@@ -185,6 +185,7 @@ func (w *World) handedOverLocked(p *Player) {
 	if g := w.groups[p.GroupID]; g != nil && p.GroupID != 0 {
 		delete(g.lastRoster, p.ServerID) // and its group's roster
 		p.raidReminder = g.isRaid()      // and that it is a raid group (raid.go)
+		w.markGroupRejoinLocked(p, g)    // and asked to show it (grouprejoin.go)
 	}
 	if ps := w.petStateLocked(p); ps != nil {
 		ps.told = 0 // and its pet (0x007E), as after any dump

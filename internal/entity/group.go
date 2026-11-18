@@ -476,6 +476,7 @@ func (w *World) rejoinGroupLocked(p *Player) {
 				p.GroupID = g.ID
 				delete(g.lastRoster, p.ServerID)
 				p.raidReminder = g.isRaid()
+				w.markGroupRejoinLocked(p, g) // its new client holds no group (grouprejoin.go)
 				return
 			}
 		}
@@ -640,6 +641,7 @@ func (w *World) groupSyncSystem() {
 				continue
 			}
 			w.raidRemindLocked(g, m, sess)
+			w.groupRejoinAskLocked(g, m, sess) // grouprejoin.go
 			conn := sess.Connection()
 			if conn == nil {
 				continue

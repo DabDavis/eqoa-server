@@ -191,13 +191,15 @@ func (w *World) visibilitySystem() {
 		candidates = w.pinTourLocked(player, candidates)
 
 		// Sort by distance (closest first), a quest's wall near the player
-		// before everything (questwalls.go): a crowd never pushes it out
+		// before everything (questwalls.go), and any other invisible blocker
+		// (a trigger's door ward: Tallon's fortress while its sentry lives):
+		// a crowd never pushes it out, so CLIENT keeps it solid
 		pinWall := func(c entityDist) bool {
 			if c.DistSq > questWallPin*questWallPin {
 				return false
 			}
 			n, ok := w.NPCs[c.ID]
-			return ok && w.isQuestWallLocked(n)
+			return ok && (uint32(n.ModelID) == BlockerBody || w.isQuestWallLocked(n))
 		}
 		sort.Slice(candidates, func(i, j int) bool {
 			if pi, pj := pinWall(candidates[i]), pinWall(candidates[j]); pi != pj {

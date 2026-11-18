@@ -160,6 +160,11 @@ type TriggerStep struct {
 	Count   int     `json:"count,omitempty"`   // spawn: how many (0: one)
 	Spread  float32 `json:"spread,omitempty"`  // spawn: how far round its place (0: TriggerDefaultSpread)
 	Minutes float64 `json:"minutes,omitempty"` // spawn: how long they stay alive (0: TriggerDefaultStay)
+	// Engage (spawn): minutes a copy waits to be fought; fought, it is never taken away while
+	// it fights (its stay's end waits for the fight's), and a fight's end alive starts the
+	// wait again (0: none, the stay alone). Tallon Zek's window (eqoa.forumotion.com t218:
+	// "unattackable if not engaged in 5 minutes ... 5 minutes on him is not realistic")
+	Engage  float64 `json:"engage,omitempty"`
 	Hostile bool    `json:"hostile,omitempty"` // spawn: they may be attacked, and attack players on sight
 	World   *int    `json:"world,omitempty"`   // teleport: the world; spawn: a place of its own (none: the run's)
 	X       float32 `json:"x,omitempty"`
@@ -493,6 +498,9 @@ func StepProblems(steps []TriggerStep) []string {
 			}
 			if s.Minutes < 0 || s.Minutes > TriggerMaxMinutes {
 				add(i, "spawn's stay %.1f minutes: 0 (%d) to %d", s.Minutes, TriggerDefaultStay, TriggerMaxMinutes)
+			}
+			if s.Engage < 0 || s.Engage > TriggerMaxMinutes {
+				add(i, "spawn's engage %.1f minutes: 0 (none) to %d", s.Engage, TriggerMaxMinutes)
 			}
 			if len(s.Spots) > TriggerMaxSteps {
 				add(i, "spawn's spots: %d, %d at most", len(s.Spots), TriggerMaxSteps)

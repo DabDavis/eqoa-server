@@ -84,6 +84,9 @@ type KeptTriggerSpawn struct {
 	ID    uint32    `json:"id"`
 	Name  string    `json:"name"`
 	Until time.Time `json:"until"`
+	// Engage (seconds) and Idle are its engage window's (gmtriggers.go spawnLeavesLocked)
+	Engage float64   `json:"engage,omitempty"`
+	Idle   time.Time `json:"idle,omitempty"`
 }
 
 // KeptTrigPlace is where a run's last spawn died.
@@ -138,7 +141,7 @@ func (e *TriggerEngine) keep(now time.Time) *KeptTriggers {
 			kr.Dead = &KeptTrigPlace{World: r.dead.world, X: r.dead.x, Y: r.dead.y, Z: r.dead.z}
 		}
 		for _, s := range r.spawns {
-			kr.Spawns = append(kr.Spawns, KeptTriggerSpawn{ID: uint32(s.id), Name: s.name, Until: s.until})
+			kr.Spawns = append(kr.Spawns, KeptTriggerSpawn{ID: uint32(s.id), Name: s.name, Until: s.until, Engage: s.engage.Seconds(), Idle: s.idle})
 			ids = append(ids, s.id)
 		}
 		for _, rs := range r.resummons {
@@ -234,7 +237,11 @@ func (e *TriggerEngine) restore(k *KeptTriggers, copies map[entity.EntityID]enti
 			} else {
 				r.Corpses++
 			}
-			run.spawns = append(run.spawns, triggerSpawn{id: id, name: s.Name, until: later(s.Until)})
+			ts := triggerSpawn{id: id, name: s.Name, until: later(s.Until)}
+			if s.Engage > 0 {
+				ts.engage, ts.idle = time.Duration(s.Engage*float64(time.Second)), later(s.Idle)
+			}
+			run.spawns = append(run.spawns, ts)
 		}
 		for _, rs := range kr.Resummons {
 			run.resummons = append(run.resummons, &triggerResummon{step: rs.Step, fell: later(rs.Fell), callerSeen: rs.CallerSeen})

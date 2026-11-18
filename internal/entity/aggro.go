@@ -125,6 +125,9 @@ type AggroRule struct {
 	// SeeInvis: they notice an invisible player (npcaggro's see_invis, petition
 	// 1814): on sight, at its self-heal and in their area spells, as a seen one
 	SeeInvis bool
+	// Holds: in a fight they stand where they are, as a rooted creature (npcaggro's
+	// holds; chase.go)
+	Holds bool
 }
 
 // aggroState is the world's aggro: off (SetAggro), factions left out of it
@@ -145,6 +148,7 @@ type aggroState struct {
 	rules      map[string]AggroRule // by NPCClassKey
 	leash      map[string]float32   // by NPCClassKey: the rows' leashes, NoWord's too
 	seeInvis   map[string]bool      // by NPCClassKey: the rows' see_invis, NoWord's too
+	holds      map[string]bool      // by NPCClassKey: the rows' holds, NoWord's too
 	gen        uint32
 	reach      float32
 	ignored    map[uint32]bool
@@ -159,6 +163,7 @@ type aggroLookup struct {
 	ok       bool
 	leash    float32
 	seeInvis bool
+	holds    bool
 }
 
 // ruleFor is the GMs' rule for an NPC of this name, if any.
@@ -179,6 +184,15 @@ func (a *aggroState) leashFor(name string) float32 {
 	return a.lookup(name).leash
 }
 
+// holdsFor is whether NPCs of this name hold their post in a fight (npcaggro's
+// holds).
+func (a *aggroState) holdsFor(name string) bool {
+	if len(a.holds) == 0 {
+		return false
+	}
+	return a.lookup(name).holds
+}
+
 // lookup is a spelling's rule and leash, looked up once.
 func (a *aggroState) lookup(name string) aggroLookup {
 	a.cacheMu.Lock()
@@ -189,6 +203,7 @@ func (a *aggroState) lookup(name string) aggroLookup {
 		l.rule, l.ok = a.rules[k]
 		l.leash = a.leash[k]
 		l.seeInvis = a.seeInvis[k]
+		l.holds = a.holds[k]
 		if a.byName == nil {
 			a.byName = make(map[string]aggroLookup)
 		}
@@ -536,8 +551,15 @@ func (w *World) SetAggroRules(rules map[string]AggroRule) {
 	keyed := make(map[string]AggroRule, len(rules))
 	var leash map[string]float32
 	var seeInvis map[string]bool // any spelling's see_invis
+	var holds map[string]bool    // any spelling's holds
 	for name, r := range rules {
 		k := database.NPCClassKey(name)
+		if r.Holds {
+			if holds == nil {
+				holds = make(map[string]bool)
+			}
+			holds[k] = true
+		}
 		if r.SeeInvis {
 			if seeInvis == nil {
 				seeInvis = make(map[string]bool)
@@ -561,6 +583,7 @@ func (w *World) SetAggroRules(rules map[string]AggroRule) {
 	w.aggro.rules = keyed
 	w.aggro.leash = leash
 	w.aggro.seeInvis = seeInvis
+	w.aggro.holds = holds
 	w.aggro.cacheMu.Lock()
 	w.aggro.byName = nil
 	w.aggro.cacheMu.Unlock()
@@ -583,7 +606,7 @@ func (w *World) LoadAggroRules(db *database.SQLiteDB) (int, error) {
 	}
 	rules := make(map[string]AggroRule, len(rows))
 	for _, r := range rows {
-		rules[r.Name] = AggroRule{Aggressive: r.Aggressive, Radius: float32(r.Radius), Leash: float32(r.Leash), NoWord: r.NoWord, Holding: r.Holding, SeeInvis: r.SeeInvis}
+		rules[r.Name] = AggroRule{Aggressive: r.Aggressive, Radius: float32(r.Radius), Leash: float32(r.Leash), NoWord: r.NoWord, Holding: r.Holding, SeeInvis: r.SeeInvis, Holds: r.Holds}
 	}
 	w.SetAggroRules(rules)
 	return len(rules), nil

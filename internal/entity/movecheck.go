@@ -491,6 +491,10 @@ func (w *World) judgeLocked(p *Player, st *moveState, u *ClientUpdate, now time.
 				return j
 			}
 		}
+		if what, hit := w.blockerBetweenLocked(p, world, st.x, st.y+mcMiddle, st.z, u.X, u.Y+mcMiddle, u.Z, now); hit {
+			j.why, j.severe = "through "+what, true
+			return j
+		}
 		if j.in && !fast {
 			j.why = "in something placed"
 			return j
@@ -624,6 +628,77 @@ func (w *World) nearBlockerLocked(world uint8, x, y, z float32) bool {
 		}
 	}
 	return false
+}
+
+// blockerBetweenLocked is an invisible blocker's box (BlockerBody: CLIENT's
+// collision-only box, 5 a side times the entity's size about its place, faces out,
+// so a walk is stopped at it from outside and leaves it freely: claude-notes/
+// invisible-blockers-20261029.md) that the move from (x0, y0, z0) to (x1, y1, z1)
+// enters from outside: one standing in the player's view (alive, not held out of
+// the world, not a quest wall the player passes), so a client that walks through a
+// door's blocker (Tallon's fortress while its sentry lives) is put back. Its name.
+// Must be called with the lock held.
+func (w *World) blockerBetweenLocked(p *Player, world uint8, x0, y0, z0, x1, y1, z1 float32, now time.Time) (string, bool) {
+	if w.SpatialIndex == nil {
+		return "", false
+	}
+	mx, mz := (x0+x1)/2, (z0+z1)/2
+	half := float32(math.Hypot(float64(x1-x0), float64(z1-z0))) / 2
+	for _, id := range w.SpatialIndex.QueryRadius(mx, mz, half+blockerLook) {
+		n := w.NPCs[id]
+		if n == nil || n.World != world || uint32(n.ModelID) != BlockerBody || n.Dead || n.hiddenAt(now) || w.wallPassedLocked(n, p) {
+			continue
+		}
+		size := n.Size
+		if size <= 0 {
+			size = 1
+		}
+		if segmentEntersBox(n, size*blockerHalf, x0, y0, z0, x1, y1, z1) {
+			return fmt.Sprintf("the blocker %s (%d)", n.Name, n.ServerID), true
+		}
+	}
+	return "", false
+}
+
+// blockerHalf is a blocker's half side at size 1; blockerLook how far round a
+// move's middle blockers are looked for (a size-8 box's corner, and more).
+const (
+	blockerHalf float32 = 2.5
+	blockerLook float32 = 40
+)
+
+// segmentEntersBox is whether the segment from (x0, y0, z0) to (x1, y1, z1), its
+// start outside, meets the cube of half side h about n's place turned by n's
+// facing (radians, 0 facing +z).
+func segmentEntersBox(n *NPC, h, x0, y0, z0, x1, y1, z1 float32) bool {
+	c, sn := float32(math.Cos(float64(n.Facing))), float32(math.Sin(float64(n.Facing)))
+	local := func(x, y, z float32) [3]float32 {
+		dx, dz := x-n.X, z-n.Z
+		return [3]float32{dx*c - dz*sn, y - n.Y, dx*sn + dz*c}
+	}
+	a, b := local(x0, y0, z0), local(x1, y1, z1)
+	if absf(a[0]) <= h && absf(a[1]) <= h && absf(a[2]) <= h {
+		return false // from inside: it leaves freely
+	}
+	t0, t1 := float32(0), float32(1)
+	for i := 0; i < 3; i++ {
+		d := b[i] - a[i]
+		if absf(d) < 1e-6 {
+			if absf(a[i]) > h {
+				return false
+			}
+			continue
+		}
+		ta, tb := (-h-a[i])/d, (h-a[i])/d
+		if ta > tb {
+			ta, tb = tb, ta
+		}
+		t0, t1 = max(t0, ta), min(t1, tb)
+		if t0 > t1 {
+			return false
+		}
+	}
+	return true
 }
 
 // moveBackLocked moves the client back to the last place taken, or, when

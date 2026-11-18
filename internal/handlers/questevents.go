@@ -344,7 +344,47 @@ func (q *QuestEngine) spawnLocked(p *entity.Player, c *questChar, qu *database.Q
 		return
 	}
 	n := max(e.Count, 1)
+	if e.Group {
+		if mate := q.mateSpawnStandsLocked(p, c, qu.ID, step); mate != "" {
+			log.Printf("Quests: %q step %d: %s fights %s's spawns of the step (group)", qu.Name, step, p.Name, mate)
+			return
+		}
+	}
 	q.spawnSomeLocked(p, c, qu, step, e, 0, n, n)
+}
+
+// mateSpawnStandsLocked is the name of a group mate of p (a raid's too) other
+// than p whose spawns of the quest's step stand (alive, or a corpse lying),
+// "" for none: a group spawn event's (database.QuestEvent.Group) one set for
+// the group. Must be called with q.mu held.
+func (q *QuestEngine) mateSpawnStandsLocked(p *entity.Player, c *questChar, quest, step int) string {
+	if q.gw == nil || p == nil {
+		return ""
+	}
+	members := q.gw.GroupMembers
+	if q.mates != nil {
+		members = q.mates
+	}
+	for _, m := range members(p) {
+		if m == nil || m == p || c != nil && m.CharServerID == c.serverID {
+			continue
+		}
+		if q.spawnStandsLocked(m.CharServerID, quest, step) {
+			return m.Name
+		}
+	}
+	return ""
+}
+
+// groupSpawns reports whether a step's spawns are a group's (every one of
+// them a group spawn event): what respawnLost asks before making them again.
+func groupSpawns(evs []database.QuestEvent) bool {
+	for _, e := range evs {
+		if !e.Group {
+			return false
+		}
+	}
+	return len(evs) > 0
 }
 
 // spawnSomeLocked places copies from..upto-1 of a spawn event's n, round the
@@ -355,8 +395,21 @@ func (q *QuestEngine) spawnSomeLocked(p *entity.Player, c *questChar, qu *databa
 	if e.Minutes > 0 {
 		life = time.Duration(e.Minutes * float64(time.Minute))
 	}
+	world, _, _, _, inWorld := q.gw.PlayerPlace(p)
+	placed := (e.X != 0 || e.Z != 0) && inWorld && int(world) == e.World
 	for i := from; i < upto; i++ {
-		id, name, ok := q.gw.SpawnForQuestOf(strings.TrimSpace(e.NPC), p, e.Hostile, i, n)
+		var id entity.EntityID
+		var name string
+		var ok bool
+		if placed {
+			id, name, ok = q.gw.SpawnForQuestAt(strings.TrimSpace(e.NPC), p, entity.QuestSpawnPlace{World: uint8(e.World),
+				X: e.X, Y: e.Y, Z: e.Z, Hostile: e.Hostile, Untouchable: e.Untouchable}, i, n)
+		} else {
+			id, name, ok = q.gw.SpawnForQuestOf(strings.TrimSpace(e.NPC), p, e.Hostile && !e.Untouchable, i, n)
+			if ok && e.Untouchable {
+				q.gw.MarkSpawn(id, true, false)
+			}
+		}
 		if !ok {
 			log.Printf("Quests: %q step %d: no NPC %q to spawn", qu.Name, step, e.NPC)
 			return
@@ -532,6 +585,9 @@ func (q *QuestEngine) respawnLost() {
 				if p = q.playerOf(sess); p == nil {
 					break
 				}
+			}
+			if groupSpawns(evs) && q.mateSpawnStandsLocked(p, c, qu.ID, st.Step) != "" {
+				continue // its group's stand: the group fights those
 			}
 			world, x, _, z, ok := q.gw.PlayerPlace(p)
 			if !ok || !q.gw.SpawnOnlyNear(world, x, z, questRespawnReach, names) && !q.byStepNPC(qu, st, names, world, x, z) {

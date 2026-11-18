@@ -212,6 +212,99 @@ func (w *World) SpawnForQuestOf(name string, p *Player, hostile bool, i, n int) 
 	return id, spelled, true
 }
 
+// QuestSpawnPlace is where a quest step's spawn event puts its copies when it
+// names a place (database.QuestEvent's X, Y, Z in its World), and what it
+// makes of them: the Siliskor quest's (the owner, 2026-11-18, forumotion t177)
+// Mirrored Soul at the dragon altar, Siliskor in his pit by the crooked
+// elephant statue, and the dragon that watches from afar outside the cultists'
+// cave.
+type QuestSpawnPlace struct {
+	World   uint8
+	X, Y, Z float32
+	// Hostile: attackable (the NPC bit cleared) and set at the player at once;
+	// Untouchable: the NPC bit set, attacking no one and hurt by no one (a
+	// sight, not a fight). Neither: the copy as its original is.
+	Hostile, Untouchable bool
+}
+
+// questPlaceStep is how far apart the copies of a spawn of several at a place
+// stand, round the place.
+const questPlaceStep float32 = 3
+
+// SpawnForQuestAt is a quest spawn event's i-th copy of n of the NPC called
+// name at a place (QuestSpawnPlace), on the ground's floor there when one lies
+// within triggerFloorReach of its height, facing the player. The original is
+// the row of the name standing nearest the place in its world (so the
+// Graveyard's Siliskor, not the Brog Fens' one of a lower row), "#n" that row;
+// one of another world only when its own has none (npcByNameForLocked's pick).
+// It returns the copy's id and the name as the NPC spells it.
+func (w *World) SpawnForQuestAt(name string, p *Player, at QuestSpawnPlace, i, n int) (EntityID, string, bool) {
+	if p == nil {
+		return 0, "", false
+	}
+	x, z := at.X, at.Z
+	if n > 1 {
+		a := 2 * math.Pi * float64(i) / float64(n)
+		x += questPlaceStep * float32(math.Sin(a))
+		z += questPlaceStep * float32(math.Cos(a))
+	}
+	y := at.Y
+	if fy, ok := w.GroundFloor(at.World, x, at.Y+3, z); ok && fy-at.Y <= triggerFloorReach && at.Y-fy <= triggerFloorReach {
+		y = fy
+	}
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	t := w.npcNearestNamedLocked(name, at.World, at.X, at.Z)
+	if t == nil {
+		return 0, "", false
+	}
+	facing := float32(0)
+	if dx, dz := p.X-x, p.Z-z; p.World == at.World && (dx != 0 || dz != 0) {
+		facing = headingTo(dx, dz)
+	}
+	c := w.spawnCopyLocked(t, x, y, z, facing, at.World)
+	c.QuestSpawn = true
+	switch {
+	case at.Untouchable:
+		c.NPCType |= 0x80
+		c.EventAggro = false
+	case at.Hostile:
+		c.NPCType &^= 0x80
+		if cur, found := w.Players[p.ServerID]; found && cur == p && !p.IsDead() {
+			w.addThreatLocked(c, p.ServerID, 1)
+		}
+	}
+	return c.ServerID, t.Name, true
+}
+
+// npcNearestNamedLocked is the original a quest's spawn at a place copies: "#n"
+// that row; else of the rows named name (any case) in world, the nearest
+// (x, z), a living one before a dead one; else npcByNameForLocked's pick. Must
+// be called with the lock held.
+func (w *World) npcNearestNamedLocked(name string, world uint8, x, z float32) *NPC {
+	if _, ok := ParseRowKey(name); ok {
+		return w.npcByNameLocked(name)
+	}
+	var best *NPC
+	var bestD float32
+	for _, npc := range w.NPCs {
+		if npc.Temporary || npc.World != world || !strings.EqualFold(strings.TrimSpace(npc.Name), strings.TrimSpace(name)) {
+			continue
+		}
+		d := distXZ(npc.X, npc.Z, x, z)
+		switch {
+		case best == nil,
+			best.Dead && !npc.Dead,
+			best.Dead == npc.Dead && (d < bestD || d == bestD && npc.ServerID < best.ServerID):
+			best, bestD = npc, d
+		}
+	}
+	if best != nil {
+		return best
+	}
+	return w.npcByNameForLocked(name, world)
+}
+
 // QuestAttackReach is how near the player an attack event's NPC stands: the
 // one it has just talked to, or one in the same room.
 const QuestAttackReach float32 = 30

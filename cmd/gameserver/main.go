@@ -289,6 +289,12 @@ func main() {
 		log.Printf("WARNING: the rare spawns: %v; every placeholder comes back as itself", err)
 	}
 	log.Printf("Creatures: %s", gameWorld.RareSummary())
+	// The NPCs only sometimes there (entity/npcrarecycle.go, table npcrarecycle):
+	// the Siliskor quest's giver, Zaryn Boome
+	if _, err := gameWorld.LoadRareCycles(db); err != nil {
+		log.Printf("WARNING: the rare cycles: %v; every such NPC stands", err)
+	}
+	log.Printf("Creatures: %s", gameWorld.RareCycleSummary())
 	decay, respawn := gameWorld.CorpseTimes()
 	log.Printf("Creatures: a corpse lies %v unless emptied, the creature back %v after it goes; wandering within %.0f of its spawn",
 		decay, respawn, gameWorld.RoamRadius())

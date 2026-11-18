@@ -285,14 +285,30 @@ type QuestEvent struct {
 	Items   string `json:"items,omitempty"` // give: patternid*count, comma separated
 	// UnlessHeld (give): only what the player's inventory lacks of them, so a quest's
 	// kit handed out again when the quest is taken again tops up what was used
-	UnlessHeld bool    `json:"unless_held,omitempty"`
-	Hostile    bool    `json:"hostile,omitempty"` // spawn: it may be attacked, and attacks the player
-	FX         string  `json:"fx,omitempty"`      // visual: its DictID (0x1DAEB5B6)
-	Seconds    float64 `json:"seconds,omitempty"` // visual: its casting part (0 to 30)
-	World      int     `json:"world,omitempty"`   // teleport: the world
-	X          float32 `json:"x,omitempty"`       // teleport: the place
-	Y          float32 `json:"y,omitempty"`
-	Z          float32 `json:"z,omitempty"`
+	UnlessHeld bool `json:"unless_held,omitempty"`
+	Hostile    bool `json:"hostile,omitempty"` // spawn: it may be attacked, and attacks the player
+	// Untouchable (spawn): its copies carry the NPC bit, attack no one and no
+	// player hurts them: a sight (the Siliskor quest's dragon watching from
+	// afar), as a trigger's untouchable spawn. Not with hostile.
+	Untouchable bool `json:"untouchable,omitempty"`
+	// Group (spawn): one set for a group (a raid too). The spawn is not made for
+	// a player one of whose group mates on the same quest and step has that
+	// step's spawns standing (alive, or a corpse lying), and is not made again
+	// for it while any does (respawnLost): the group fights the one the first of
+	// it to come brought, the kill and a loot step's drop shared as any group
+	// kill's. Another group brings its own: two groups never wait on each other
+	// (the forum's Siliskor quest had a second group unable to raise him).
+	Group   bool    `json:"group,omitempty"`
+	FX      string  `json:"fx,omitempty"`      // visual: its DictID (0x1DAEB5B6)
+	Seconds float64 `json:"seconds,omitempty"` // visual: its casting part (0 to 30)
+	World   int     `json:"world,omitempty"`   // teleport: the world; spawn: the place's world
+	// X, Y, Z (teleport): the place. A spawn with a place (X or Z not 0) puts
+	// its copies there, on the ground's floor, when the player is in its world
+	// (else before the player as ever), copying the original of the name that
+	// stands nearest it (entity.World.SpawnForQuestAt).
+	X float32 `json:"x,omitempty"`
+	Y float32 `json:"y,omitempty"`
+	Z float32 `json:"z,omitempty"`
 	// Facing (teleport): the heading it lands with (radians, 0 facing +z, as a
 	// waysender's trip); none (0) keeps the player's own
 	Facing float32 `json:"facing,omitempty"`
@@ -432,6 +448,12 @@ func EventProblems(s string, step bool) []string {
 			}
 			if e.Minutes < 0 || e.Minutes > 120 {
 				add(i, "spawn's minutes %g is not 0 to 120", e.Minutes)
+			}
+			if e.Untouchable && e.Hostile {
+				add(i, "spawn untouchable is not hostile")
+			}
+			if e.World < 0 || e.World > 255 {
+				add(i, "spawn's world %d is not 0 to 255", e.World)
 			}
 		case EventAttack:
 			if !step {

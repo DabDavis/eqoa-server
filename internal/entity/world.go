@@ -160,6 +160,8 @@ type World struct {
 	// The rare spawns on placeholders: by the placeholder's row, its own row and
 	// the rare's, and the chance (npcrare.go)
 	rares map[EntityID]*rareRule
+	// rareCycles: the NPCs only sometimes there, by row (npcrarecycle.go)
+	rareCycles map[EntityID]*rareCycle
 
 	// Each player race's two bodies by race and sex (charactermodel), the
 	// bodies a race's illusion shows (illusion.go)

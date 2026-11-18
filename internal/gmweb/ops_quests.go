@@ -7,6 +7,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/handlers"
 	"github.com/eqoa/server/internal/session"
 )
@@ -910,7 +911,11 @@ func (s *Server) eventProblems(events string, step bool, what string, add func(s
 		switch e.Do {
 		case database.EventSpawn:
 			var n int
-			s.d.DB.QueryRow(`SELECT COUNT(*) FROM npcs WHERE LOWER(TRIM(npc_name)) = LOWER(TRIM(?))`, strings.TrimSpace(e.NPC)).Scan(&n)
+			if id, ok := entity.ParseRowKey(strings.TrimSpace(e.NPC)); ok {
+				s.d.DB.QueryRow(`SELECT COUNT(*) FROM npcs WHERE id = ?`, int64(id)).Scan(&n) // "#n": that row
+			} else {
+				s.d.DB.QueryRow(`SELECT COUNT(*) FROM npcs WHERE LOWER(TRIM(npc_name)) = LOWER(TRIM(?))`, strings.TrimSpace(e.NPC)).Scan(&n)
+			}
 			if n == 0 && strings.TrimSpace(e.NPC) != "" {
 				add("%s spawns %q, which this server has no NPC of", where, e.NPC)
 			}

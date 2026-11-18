@@ -565,6 +565,11 @@ type TemplateAbility struct {
 	// one it fights alone).
 	SetHP  int     `json:"set_hp,omitempty"`
 	Radius float64 `json:"radius,omitempty"`
+	// PlayersOnly is a sethp's with a Radius: it reaches the players round its
+	// creature and their side (pets, charmed creatures, mercenaries) alone, no
+	// other creature: Siliskor's poison round himself (work board 708), which
+	// would otherwise wear down Pomus Magemell and the worshippers beside him.
+	PlayersOnly bool `json:"players_only,omitempty"`
 	// Tick, TickAtCap and TickFor are a sethp's damage over time on everyone
 	// it reaches (the owner, 2026-11-13: the dreadnaught's "aoe that debuffs
 	// to 700hp also has a damage over time ticks 650 with no CR, with max CR
@@ -781,6 +786,9 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 	finite := func(v float64) bool { return !math.IsNaN(v) && !math.IsInf(v, 0) }
 	for i, a := range list {
 		n := i + 1
+		if a.PlayersOnly && (a.Kind != AbilitySetHP || a.Radius <= 0) {
+			return fmt.Errorf("ability %d: players_only is a sethp's with a radius", n)
+		}
 		if a.Kind == AbilityHealShield {
 			if a.Below < 1 || a.Below > 100 {
 				return fmt.Errorf("ability %d: a heal shield's below %d: 1 to 100 percent of its hit points", n, a.Below)

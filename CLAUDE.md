@@ -673,8 +673,10 @@ twenty Portal Shards of Zek (NO RENT, tradeable, a stack of 20); a shard's Use (
 are a single item's). Trigger "Vallon Zek" starts on anyone's talk (awaittalk start: his words, four seconds, a second line, then his
 copy and three guards, 90 minutes); won: 15 minutes' loot, the isle cleared, the trigger free 15 minutes later, and his death fires
 "Vallon Zek's Rest" (npcdeath), which hides his row two hours from 16 minutes after the kill; lost, timed out or the isle empty ten
-minutes: the trigger rests 15 minutes. His row in plate (4), no helm, Tallon's body; no sword in hand (held drops would give a Sword of
-Dreams). The Rage of Zek (Kekoo's bug: "quad for 150k") is a fair add, ours: his template's summon below 50%, two at a 15% share (150,000
+minutes: the trigger rests 15 minutes. His row in plate (4), no helm, Tallon's body, Sapphyra's Sword in hand (the owner: "put sword in hand if
+he will drop it"): **table `npcheld`** (npc_name, hand 0/1/2, patternid; `database/helddrops.go` `HeldDrops.Named`, read at the start)
+names the very record a creature of a name drops of what it holds in that hand, No Trade or Lore as it is (the look alone would give
+a Sword of Dreams), handed out by the raid's need before greed; the sword's row is out of his table, his other eleven at three rolls. The Rage of Zek (Kekoo's bug: "quad for 150k") is a fair add, ours: his template's summon below 50%, two at a 15% share (150,000
 hit points, ~530 a hit), dying with him. `internal/handlers/vallon_zek_test.go` plays it from the tool's `--dump`; `TestRealVallonZek`
 (`EQOA_REAL_DB`, `EQOA_GROUND_DIR`) applies, checks and undoes it on a copy.
 

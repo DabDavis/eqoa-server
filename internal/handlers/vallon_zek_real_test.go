@@ -193,13 +193,39 @@ func TestRealVallonZek(t *testing.T) {
 	if !ok || g.Kind != database.GateSelf || g.World != 5 {
 		t.Fatalf("Zek's Portal's gate: %+v %v", g, ok)
 	}
-	if hd, err := inv.HeldDrops(); err == nil {
-		var model int64
-		db.QueryRow(`SELECT model FROM itempattern WHERE itemname = 'Sapphyra''s Sword' ORDER BY patternid LIMIT 1`).Scan(&model)
-		if e, ok := hd.Pick(uint32(model), false, 68, "Vallon Zek"); ok {
-			t.Logf("Sapphyra's Sword in Vallon's hand would drop %q (%d) beside his loot (held drops)", e.Pattern.ItemName, e.Pattern.PatternID)
-		} else {
-			t.Logf("Sapphyra's Sword in Vallon's hand would drop nothing extra")
+	// Sapphyra's Sword: in his hand, his corpse's held drop (npcheld) the very record, out of his table
+	sword := id("Sapphyra's Sword")
+	var model, held int64
+	db.QueryRow(`SELECT model FROM itempattern WHERE patternid = ?`, sword).Scan(&model)
+	db.QueryRow(`SELECT primary_weapon FROM npcs WHERE npc_name = 'Vallon Zek' AND world = 5`).Scan(&held)
+	if held != model || model == 0 {
+		t.Errorf("Vallon holds %d, the sword's look is %d", held, model)
+	}
+	hd, err := inv.HeldDrops()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if e, ok := hd.Named("Vallon Zek", database.NPCHeldPrimary); !ok || e.Pattern.PatternID != sword {
+		t.Errorf("his held drop: %+v %v, want Sapphyra's Sword (%d)", e.Pattern.ItemName, ok, sword)
+	}
+	if e, ok := hd.Pick(uint32(model), false, 68, "Vallon Zek"); ok {
+		t.Logf("the look alone would drop %q (%d): npcheld names the sword", e.Pattern.ItemName, e.Pattern.PatternID)
+	}
+	vr, err := inv.NPCLootRolls("Vallon Zek", 68)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, r := range vr {
+		if r.Table != "vallon zek" {
+			continue
+		}
+		if len(r.Choices) != 11 || r.Rolls != 3 {
+			t.Errorf("his table: %d items, %d rolls; want 11 and 3", len(r.Choices), r.Rolls)
+		}
+		for _, c := range r.Choices {
+			if c.Item.Pattern.PatternID == sword {
+				t.Error("the sword is still in his table")
+			}
 		}
 	}
 

@@ -16,6 +16,9 @@ import (
 // spawn's roll gave it), the catalog's record of that look for its level
 // (database.HeldDrops: the model's, a hand's slot or a shield's, the nearest
 // levelreq at or below its level, the same for every creature of its name).
+// A name with a row of table npcheld for a hand drops that very record of
+// it, No Trade or Lore as it is (database.HeldDrops.Named; the owner,
+// 2026-11-18: Vallon Zek's Sapphyra's Sword, "put sword in hand if he will drop it").
 // A look no droppable record has, or none of its level, drops nothing extra,
 // said once a look in the log. Off (world.held_gear false): nothing extra.
 
@@ -35,11 +38,17 @@ func heldDropItems(npc *entity.NPC) []database.CharInventoryEntry {
 		return nil
 	}
 	var out []database.CharInventoryEntry
-	for _, p := range []struct {
+	for hand, p := range []struct {
 		model  uint32
 		shield bool
 	}{{uint32(npc.PrimaryWeapon), false}, {uint32(npc.SecondaryWeapon), false}, {uint32(npc.Shield), true}} {
 		if p.model == 0 {
+			continue
+		}
+		// a name's own record of that hand (table npcheld: Vallon Zek's Sapphyra's Sword, No Trade
+		// as it is), else the catalog's of its look
+		if e, ok := d.Named(npc.Name, hand); ok {
+			out = append(out, e)
 			continue
 		}
 		if e, ok := d.Pick(p.model, p.shield, npc.Level, npc.Name); ok {

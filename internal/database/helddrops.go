@@ -45,6 +45,9 @@ type HeldDrops struct {
 	// records were left out, by why
 	Records int
 	Left    map[string]int
+	// named is table npcheld's: the record a creature of a name drops of what it holds in a
+	// hand (NPCHeldPrimary, NPCHeldSecondary, NPCHeldShield), by NPCClassKey
+	named map[string][3]*CharInventoryEntry
 }
 
 // heldHand reports a hand's equip slot.
@@ -240,7 +243,103 @@ func (s *InventoryStore) HeldDrops() (*HeldDrops, error) {
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-	return BuildHeldDrops(recs, excluded), nil
+	d := BuildHeldDrops(recs, excluded)
+	if err := s.loadNamedHeld(d); err != nil {
+		return nil, err
+	}
+	return d, nil
+}
+
+// npcheld: the record a creature of a name drops of what it holds (the owner, 2026-11-18, of Vallon Zek
+// and Sapphyra's Sword: "put sword in hand if he will drop it"). The held drops go by the held MODEL
+// (Pick), which finds a record of that look, never a No Trade or Lore one; a row here names the very
+// record instead, for one hand of one name (hand 0 the primary, 1 the secondary, 2 the shield), whatever
+// its trade, rent or Lore: the creature drops it whenever it dies holding something in that hand
+// (handlers/helddrop.go). The row's npcs hand should hold the record's look (a tool sets both). npc_name
+// as npcclass keys a name. Read at the start, with the held drops (an edit counts at the next start).
+const npcHeldSchema = `
+	CREATE TABLE IF NOT EXISTS npcheld (
+		npc_name  TEXT NOT NULL,
+		hand      INTEGER NOT NULL,
+		patternid INTEGER NOT NULL,
+		note      TEXT NOT NULL DEFAULT '',
+		source    TEXT NOT NULL DEFAULT 'gm',
+		PRIMARY KEY (npc_name, hand)
+	);`
+
+// The hands of npcheld.hand.
+const (
+	NPCHeldPrimary   = 0
+	NPCHeldSecondary = 1
+	NPCHeldShield    = 2
+)
+
+// ensureNPCHeld makes table npcheld (initSchema).
+func (db *SQLiteDB) ensureNPCHeld() error {
+	if _, err := db.Exec(npcHeldSchema); err != nil {
+		return fmt.Errorf("npcheld: %w", err)
+	}
+	return nil
+}
+
+// loadNamedHeld reads table npcheld into d; a row whose record is gone, or of a hand past the
+// shield, is left out (logged by the caller's report: Left["npcheld"]).
+func (s *InventoryStore) loadNamedHeld(d *HeldDrops) error {
+	rows, err := s.db.Query(`SELECT npc_name, hand, patternid FROM npcheld ORDER BY npc_name, hand`)
+	if err != nil {
+		if strings.Contains(err.Error(), "no such table") {
+			return nil
+		}
+		return fmt.Errorf("npcheld: %w", err)
+	}
+	type held struct {
+		name      string
+		hand, pid int
+	}
+	var all []held
+	for rows.Next() {
+		var h held
+		if err := rows.Scan(&h.name, &h.hand, &h.pid); err != nil {
+			rows.Close()
+			return fmt.Errorf("npcheld: %w", err)
+		}
+		all = append(all, h)
+	}
+	rows.Close()
+	for _, h := range all {
+		if h.hand < NPCHeldPrimary || h.hand > NPCHeldShield {
+			d.Left["npcheld"]++
+			continue
+		}
+		e, err := scanItemRow(s.db.QueryRow(`SELECT 0, 1, p.maxhp, 0, -1, 0, 0, `+itemPatternColumns+`
+			FROM itempattern p WHERE p.patternid = ?`, h.pid).Scan)
+		if err != nil {
+			d.Left["npcheld"]++
+			continue
+		}
+		e.ItemID, e.StackLeft, e.Charges, e.EquipLoc, e.Location, e.ListNum = 0, 1, 0, -1, 0, 0
+		e.RemainHP = e.Pattern.MaxHP
+		if d.named == nil {
+			d.named = map[string][3]*CharInventoryEntry{}
+		}
+		k := NPCClassKey(h.name)
+		hands := d.named[k]
+		rec := e
+		hands[h.hand] = &rec
+		d.named[k] = hands
+	}
+	return nil
+}
+
+// Named is the record npcheld names for a creature of that name's hand (NPCHeldPrimary ...), if any.
+func (d *HeldDrops) Named(name string, hand int) (CharInventoryEntry, bool) {
+	if d == nil || hand < NPCHeldPrimary || hand > NPCHeldShield {
+		return CharInventoryEntry{}, false
+	}
+	if e := d.named[NPCClassKey(name)][hand]; e != nil {
+		return *e, true
+	}
+	return CharInventoryEntry{}, false
 }
 
 // barHeld bars the patternids q selects as why; a missing table bars nothing.

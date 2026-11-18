@@ -251,3 +251,45 @@ func TestPortalShardSendsItsUser(t *testing.T) {
 		t.Errorf("the shard's travel %+v", tr)
 	}
 }
+
+// A creature's held drop is its name's npcheld record for that hand (No Trade as it is) where it has one, the
+// catalog's of its look otherwise; nothing for a hand it holds nothing in.
+func TestNPCHeldNamesItsDrop(t *testing.T) {
+	f := newScribeFixture(t)
+	const look = 0x4B4F6A2A
+	plain := f.item("Sword of Dreams", false, 0x7FFF, 60, 1)
+	named := f.item("Sapphyra's Sword", false, 0x7FFF, 60, 1)
+	for _, id := range []int{plain, named} {
+		if _, err := f.db.Exec(`UPDATE itempattern SET model = ?, equipslot = 12 WHERE patternid = ?`, look, id); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := f.db.Exec(`UPDATE itempattern SET trade = 1 WHERE patternid = ?`, named); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.db.Exec(`INSERT INTO npcheld (npc_name, hand, patternid) VALUES ('vallon zek', 0, ?)`, named); err != nil {
+		t.Fatal(err)
+	}
+	d, err := f.inv.HeldDrops()
+	if err != nil {
+		t.Fatal(err)
+	}
+	SetHeldDrops(d)
+	t.Cleanup(func() { SetHeldDrops(nil) })
+	drops := func(name string, primary, shield int) []string {
+		var out []string
+		for _, e := range heldDropItems(&entity.NPC{Name: name, Level: 68, PrimaryWeapon: primary, Shield: shield}) {
+			out = append(out, e.Pattern.ItemName)
+		}
+		return out
+	}
+	if got := strings.Join(drops("Vallon Zek", look, 0), ","); got != "Sapphyra's Sword" {
+		t.Errorf("Vallon drops %q, want Sapphyra's Sword", got)
+	}
+	if got := strings.Join(drops("Zek trainer", look, 0), ","); got != "Sword of Dreams" {
+		t.Errorf("another of the look drops %q, want the catalog's tradeable record", got)
+	}
+	if got := drops("Vallon Zek", 0, 0); len(got) != 0 {
+		t.Errorf("empty-handed, Vallon drops %v", got)
+	}
+}

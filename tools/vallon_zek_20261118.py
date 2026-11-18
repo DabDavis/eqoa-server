@@ -36,9 +36,13 @@ THE POST, step by step, and what this makes of it:
    character at the quest's talk step could), his answer, four seconds, a second line, then as before: his own
    row hidden, a hostile copy and three Guards of Vallon. His row keeps Tallon Zek's body (the ogre body
    0x84807490 at 4.5, which both rows have: a body that wears armour) and no helm; his armour goes from chain (3)
-   to plate (4) on all five pieces. Sapphyra's Sword is NOT put in his hand: held drops (handlers/helddrop.go)
-   would add a sword of its look to his corpse, and the sword itself is NO TRADE, which held drops never give, so
-   another record of the look would drop: the owner's call (the report says which).
+   to plate (4) on all five pieces. SAPPHYRA'S SWORD IN HIS HAND (the owner, 2026-11-18: "put sword in hand if he
+   will drop it"): his row's primary hand holds its look, and a row of table npcheld ("vallon zek", hand 0, the
+   sword's record: this branch's server code) makes the held drop (handlers/helddrop.go) that very record, NO
+   TRADE as it is, where the look alone would give a Sword of Dreams; the raid's need before greed hands it out
+   as his table's items. He always holds it (his row is an NPC's, his copy a trigger's, his profile a boss's:
+   entity/heldgear.go keeps each whole). The sword's row comes out of his table "vallon zek", so the hand is its
+   one source; his other eleven stay at three rolls.
 6. "you have 90 minutes from spawn time": the run's clock, 5,400 s (10 minutes with no one on the isle ends it).
    Won: "You have won the battle, but not the war!", fifteen minutes to loot, the isle cleared, the raid sent to
    the plateau's port-in. THE COOLDOWN (ours): his death fires the new trigger "Vallon Zek's Rest", which hides
@@ -52,7 +56,7 @@ THE POST, step by step, and what this makes of it:
    corpses. A spawn-only row "Rage of Zek" (Tallon's Rage's look: the ogre body in plate, size 1.4, level 64) by
    his row is what they copy.
 
-Nothing of his loot is changed (the report lists the proposals).
+Nothing else of his loot is changed.
 
 Report only by default; --apply in one transaction, a gm_audit line a row and the log vallon_zek_1118_log (every row
 before and after); a second --apply does nothing; --undo puts back exactly what it wrote (a row changed since is
@@ -92,6 +96,8 @@ PORTAL = "Portal of Zek"
 VALLON = "Vallon Zek"
 GUARD = "Guard of Vallon"
 RAGE = "Rage of Zek"
+SWORD = "Sapphyra's Sword"
+BOSS_TABLE = "vallon zek"
 RAGE_FROM = "Tallon's Rage"
 RAGE_LEVEL = 64
 RAGE_AT = (4373.0, 253.5, 7120.0)
@@ -267,6 +273,17 @@ def check(db):
         raise Refused(f"{VALLON}'s row does not carry the NPC bit (white-faced until spoken to)")
     if [v[c] for c in ARMOR_COLS] != [3] * 5 or v["head"] != 0:
         raise Refused(f"{VALLON}'s armour is {[v[c] for c in ARMOR_COLS]} head {v['head']}, not chain and no helm")
+    if v["primary_weapon"] != 0:
+        raise Refused(f"{VALLON} holds {v['primary_weapon']} already")
+    sw = db.execute("SELECT l.id, l.patternid FROM loottables l JOIN itempattern p USING (patternid) "
+                    "WHERE l.tablename = ? AND p.itemname = ?", (BOSS_TABLE, SWORD)).fetchall()
+    if len(sw) != 1:
+        raise Refused(f"{len(sw)} rows of {SWORD!r} in table {BOSS_TABLE!r}, not one")
+    ids["sword_row"], ids["sword"] = sw[0]
+    if db.execute("SELECT count(*) FROM loottables WHERE tablename = ?", (BOSS_TABLE,)).fetchone()[0] != 12:
+        raise Refused(f"table {BOSS_TABLE!r} does not hold the guide's twelve")
+    if has(db, "npcheld") and db.execute("SELECT 1 FROM npcheld WHERE npc_name = ?", (VALLON.lower(),)).fetchone():
+        raise Refused(f"{VALLON} has an npcheld row already")
     rage = db.execute("SELECT id FROM npcs WHERE npc_name = ? AND world = 5 ORDER BY id", (RAGE_FROM,)).fetchall()
     if not rage:
         raise Refused(f"no {RAGE_FROM!r} row to copy")
@@ -352,14 +369,15 @@ def report(db, ids):
     print(f"  characters on it past step 1, set done: {stuck}")
     print(f"  {SHARD}: Use casts spell {GATE_SPELL} {GATE_NAME!r} (copy of {GATE_FROM} {ids['gate_from']}), a self gate "
           f"to {GATE_AT}")
-    print(f"  {VALLON} (row {ids['vallon']}): armour chain -> plate, no helm, Tallon's body kept")
+    print(f"  {VALLON} (row {ids['vallon']}): armour chain -> plate, no helm, Tallon's body kept; holds {SWORD} "
+          f"({ids['sword']}), which his corpse drops (npcheld), its row {ids['sword_row']} out of table {BOSS_TABLE!r}")
     print(f"  {RAGE}: a spawn-only row from {RAGE_FROM} ({ids['rage_from']}) at {RAGE_AT}, level {RAGE_LEVEL}; template "
           f"{TEMPLATE!r} gains {js(SUMMON)}")
     print(f"  trigger {TRIG_VALLON!r} ({ids['trig_vallon']}): starts on a talk, 90 minutes, rests 15 after a loss; "
           f"new triggers {TRIG_PORTAL!r} and {TRIG_REST!r} (his death: hidden {REST_MINUTES} minutes after the loot)")
     hd = held_drop_note(db, ids)
     if hd:
-        print(f"  not done: Sapphyra's Sword in his hand would also drop {hd} (held drops)")
+        print(f"  (the sword's look alone would drop {hd}: npcheld names the sword itself)")
 
 
 def held_drop_note(db, ids):
@@ -523,7 +541,21 @@ def apply(db, ids):
         update("charquests", {"serverid": sid, "questid": qid}, {"step": 0, "done": 1})
 
     # 5. Vallon: plate, no helm; his trigger starts on a talk; his rest
-    update("npcs", {"id": ids["vallon"]}, {c: PLATE for c in ARMOR_COLS})
+    sword_model = db.execute("SELECT model FROM itempattern WHERE patternid = ?", (ids["sword"],)).fetchone()[0]
+    update("npcs", {"id": ids["vallon"]}, dict({c: PLATE for c in ARMOR_COLS}, primary_weapon=sword_model))
+    db.execute("""CREATE TABLE IF NOT EXISTS npcheld (
+		npc_name  TEXT NOT NULL,
+		hand      INTEGER NOT NULL,
+		patternid INTEGER NOT NULL,
+		note      TEXT NOT NULL DEFAULT '',
+		source    TEXT NOT NULL DEFAULT 'gm',
+		PRIMARY KEY (npc_name, hand)
+	)""")
+    insert("npcheld", {"npc_name": VALLON.lower(), "hand": 0, "patternid": ids["sword"],
+                       "note": "t222 and the owner, 2026-11-18: 'He drops Sapphyra's Sword also and he will equip it'; "
+                               "'put sword in hand if he will drop it'", "source": SRC},
+           {"npc_name": VALLON.lower(), "hand": 0})
+    delete("loottables", {"id": ids["sword_row"]})
     v = row(db, "npcs", {"id": ids["vallon"]})
     update("gmtriggers", {"slot": ids["trig_vallon"]}, {"steps": js_steps(vallon_steps(ids["trig_guards"])),
                                                         "notes": VALLON_NOTE})

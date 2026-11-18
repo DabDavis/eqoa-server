@@ -3166,7 +3166,7 @@ leaves; up to four that is everyone in the same order as before. To a client a r
 ordinary players it may target (so the leader's Boot Member, which goes by target, reaches them), not on its bars, its group Tab, its
 Follow or its power bars. Everything else reads the whole group: group chat, what is looted (anyone may loot a corpse unless its raid's
 loot rule holds it, below), quest kills, pets defending a member, scope 2 spells, gates, and a group's area (`SpellArea.mostOfGroup`:
-no `AreaMaxTargets` for a group's, a GM's row's cap still holds; the 0x00B1 still names seven, `areaShown`, the rest land unnamed; a group's spell needs no line of sight, `areaOfGroup`).
+no `AreaMaxTargets` for a group's, a GM's row's cap still holds; the 0x00B1 still names seven, `areaShown`, the rest land unnamed; a group's spell needs its caster's line of sight to each member, no centre's, as it begins and lands, `areaOfGroup`, `groupNearLocked`: the owner, 2026-11-18, "healing shouldnt fire if there is no Line of sight"; every heal on another is held to its healer's sight, pets', familiars', bosses' raid heals, group drains and restoring procs too, `sight.go`).
 **The whole roster** goes to a client that asks (`raidroster.go`): 0x7E18 offers it once the player is in the world, as mana bars' 0x7E01, 0x7E19 {1} asks,
 {0} stops, and 0x7E1A (`protocol/opcodes.go` has the format) sends every member's id as that client knows it, name, class, level, HP and power of
 255, on a change and at most once a second (`raidRosterSystem`, the whole set compared), in as many messages as it takes, then 0 members once when

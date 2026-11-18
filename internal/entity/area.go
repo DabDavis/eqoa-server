@@ -56,7 +56,8 @@ import (
 // there, alive, with nothing between it and the caster or the centre (sight.go:
 // a rock, a tree's trunk, a wall and a floor all stop an area spell) and, a
 // creature, one anyone may attack (cast.go tests no range at the landing for the
-// target either). A group's spell needs no sight: it finds its own:
+// target either). A group's spell needs its caster's sight alone, no centre's
+// (the owner, 2026-11-18: no heal without a line of sight):
 //
 //   - a harmful spell's are creatures: never a player, nor a pet or a charmed
 //     creature, nor an NPC with the NPC bit (0x80: no one may attack it), nor
@@ -666,7 +667,8 @@ func (w *World) areaPlaceLocked(caster *Player, cs *castState) areaPlace {
 }
 
 // areaOfGroup reports a helping spell of a group's, whose others are the
-// caster's group wherever they stand in its radius (the file's doc).
+// caster's group in its radius and in its caster's sight, no centre's line
+// asked (sight.go).
 func (cs *castState) areaOfGroup() bool {
 	return !cs.spell.Def.Harmful && (cs.spell.Scope == 2 || cs.spell.Def.Target == TargetGroup)
 }
@@ -748,8 +750,8 @@ func (w *World) areaFriendsLocked(p *Player, cs *castState, cx, cy, cz, r float3
 }
 
 // groupNearLocked is a group's area beside its caster: each member alive in
-// its world within r of it, each member's pet (its own too) and the group's
-// mercs. Must be
+// its world within r of it and in its sight (sight.go), each member's pet (its
+// own too) and the group's mercs. Must be
 // called with the lock held.
 func (w *World) groupNearLocked(p *Player, r float32) []areaNear {
 	members := w.groupMembersLocked(p)
@@ -758,7 +760,10 @@ func (w *World) groupNearLocked(p *Player, r float32) []areaNear {
 	}
 	var out []areaNear
 	add := func(id EntityID, world uint8, x, y, z float32) {
-		if dd := dist3(x, y, z, p.X, p.Y, p.Z); world == p.World && dd <= r && w.instanceOfLocked(id) == p.instanceKey() {
+		// in its caster's sight too (sight.go: the owner, 2026-11-18, "healing
+		// shouldnt fire if there is no Line of sight")
+		if dd := dist3(x, y, z, p.X, p.Y, p.Z); world == p.World && dd <= r && w.instanceOfLocked(id) == p.instanceKey() &&
+			w.inSightLocked(world, p.X, p.Y, p.Z, x, y, z) {
 			out = append(out, areaNear{id, dd})
 		}
 	}
@@ -811,9 +816,15 @@ func (w *World) landOthersLocked(cs *castState, caster *Player, casterSess *sess
 	if !group {
 		defer func() { seen.write("lands", caster.Name, cs.spell.Name, place) }()
 	}
-	spared := func(name string, x, y, z float32) bool {
+	spared := func(name string, world uint8, x, y, z float32) bool {
 		if group {
-			return false
+			// a group's: its caster's line alone, no centre's (sight.go); one
+			// gone behind something since it began is spared
+			if w.helpSeenLocked(caster, &cs.spell.Def, world, x, y, z, false) {
+				return false
+			}
+			log.Printf("LoS: %s's %q spares %s at (%.1f, %.1f, %.1f), out of sight from (%.1f, %.1f, %.1f)", caster.Name, cs.spell.Name, name, x, y, z, caster.X, caster.Y, caster.Z)
+			return true
 		}
 		reached := w.reachesLocked(place, x, y, z)
 		seen.note(reached, name, x, y, z)
@@ -821,7 +832,7 @@ func (w *World) landOthersLocked(cs *castState, caster *Player, casterSess *sess
 	}
 	for _, id := range cs.others {
 		if t := w.Players[id]; t != nil {
-			if spared(t.Name, t.X, t.Y, t.Z) {
+			if spared(t.Name, t.World, t.X, t.Y, t.Z) {
 				continue
 			}
 			if harmful {
@@ -841,7 +852,7 @@ func (w *World) landOthersLocked(cs *castState, caster *Player, casterSess *sess
 			continue
 		}
 		npc := w.NPCs[id]
-		if npc == nil || npc.Dead || spared(npc.Name, npc.X, npc.Y, npc.Z) {
+		if npc == nil || npc.Dead || spared(npc.Name, npc.World, npc.X, npc.Y, npc.Z) {
 			continue
 		}
 		switch {

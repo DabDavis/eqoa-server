@@ -433,14 +433,16 @@ func (w *World) drainLocked(cs *castState, caster *Player, sess *session.Session
 }
 
 // drainersLocked is whom a take goes to: the caster, or the caster and each
-// of its group alive in its world within the spell's range of it.
+// of its group alive in its world within the spell's range of it and in its
+// sight (sight.go).
 func (w *World) drainersLocked(cs *castState, caster *Player, to DrainTo) []*Player {
 	if to != DrainGroup {
 		return []*Player{caster}
 	}
 	out := []*Player{caster}
 	for _, m := range w.groupMembersLocked(caster) {
-		if m != caster && !m.IsDead() && m.World == caster.World && !outOfRange(caster, m.X, m.Y, m.Z, cs.spell.Range) {
+		if m != caster && !m.IsDead() && m.World == caster.World && !outOfRange(caster, m.X, m.Y, m.Z, cs.spell.Range) &&
+			w.playerSeesLocked(caster, m) { // in its sight (sight.go)
 			out = append(out, m)
 		}
 	}
@@ -448,14 +450,16 @@ func (w *World) drainersLocked(cs *castState, caster *Player, to DrainTo) []*Pla
 }
 
 // tickDrainersLocked is drainersLocked's for a drain over time's tick: the
-// caster, or the caster and its group within the spell's range of it.
+// caster, or the caster and its group within the spell's range of it and in
+// its sight then.
 func (w *World) tickDrainersLocked(caster *Player, ae *ActiveEffect) []*Player {
 	if ae.TickDrain != DrainGroup {
 		return []*Player{caster}
 	}
 	out := []*Player{caster}
 	for _, m := range w.groupMembersLocked(caster) {
-		if m != caster && !m.IsDead() && m.World == caster.World && !outOfRange(caster, m.X, m.Y, m.Z, ae.TickRange) {
+		if m != caster && !m.IsDead() && m.World == caster.World && !outOfRange(caster, m.X, m.Y, m.Z, ae.TickRange) &&
+			w.playerSeesLocked(caster, m) { // in its sight at each tick (sight.go)
 			out = append(out, m)
 		}
 	}

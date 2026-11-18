@@ -843,7 +843,7 @@ func weaponProcWords(p *Player) string {
 
 // restoreProcLocked lands a restoring proc: n hit points and wp.Power power to
 // the wielder and to each living member of its group in its world within
-// procRestoreReach, each heal told as a spell's is (healLocked: 0x00DB to the
+// procRestoreReach and in its sight (sight.go), each heal told as a spell's is (healLocked: 0x00DB to the
 // wielder and the one healed), a buff's visual on the wielder. Must be called
 // with the lock held.
 func (w *World) restoreProcLocked(sess *session.Session, p *Player, wp *WeaponProc, n int) {
@@ -857,6 +857,9 @@ func (w *World) restoreProcLocked(sess *session.Session, p *Player, wp *WeaponPr
 			}
 			if dx, dz := m.X-p.X, m.Z-p.Z; dx*dx+dz*dz > procRestoreReach*procRestoreReach {
 				continue
+			}
+			if !w.playerSeesLocked(p, m) {
+				continue // out of the wielder's sight (sight.go)
 			}
 			to = append(to, m)
 		}

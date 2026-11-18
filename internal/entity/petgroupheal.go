@@ -86,16 +86,17 @@ func petGroupReach(ps *petState, a *templateAbility) float32 {
 }
 
 // petGroupHurtLocked is whether anyone of the pet's side in its group heal's
-// reach is below the heal's threshold. Must be called with the lock held.
+// reach and its sight (sight.go) is below the heal's threshold. Must be called with the lock held.
 func (w *World) petGroupHurtLocked(ps *petState, a *templateAbility) bool {
 	side := w.petSideLocked(ps, petGroupReach(ps, a))
+	pet := ps.npc
 	for _, p := range side.players {
-		if top := p.MaxHPNow(); top > 0 && p.HP*100 < top*a.BelowOr() {
+		if top := p.MaxHPNow(); top > 0 && p.HP*100 < top*a.BelowOr() && w.npcSeesLocked(pet, p.World, p.X, p.Y, p.Z) {
 			return true
 		}
 	}
 	for _, n := range side.pets {
-		if n.HP*100 < n.MaxHP*a.BelowOr() {
+		if n.HP*100 < n.MaxHP*a.BelowOr() && (n == pet || w.npcSeesLocked(pet, n.World, n.X, n.Y, n.Z)) {
 			return true
 		}
 	}
@@ -103,7 +104,7 @@ func (w *World) petGroupHurtLocked(ps *petState, a *templateAbility) bool {
 }
 
 // petGroupHealLocked lands a pet's group heal of n: each of its side in reach
-// healed n, at most what it is missing; a player told the figure from the pet
+// and in its sight as it lands (sight.go) healed n, at most what it is missing; a player told the figure from the pet
 // (a pet's heal: numbertags.go) when its client is shown the pet, the pet's
 // owner the figure on its own pet, and a mercenary's body kept in step. Must be
 // called with the lock held.
@@ -119,6 +120,9 @@ func (w *World) petGroupHealLocked(ps *petState, spell *CastSpell, n int) {
 	side := w.petSideLocked(ps, reach)
 	healed, total := 0, 0
 	for _, p := range side.players {
+		if !w.npcSeesLocked(pet, p.World, p.X, p.Y, p.Z) {
+			continue // out of its sight (sight.go)
+		}
 		top := p.MaxHPNow()
 		if h := min(n, top-p.HP); h > 0 {
 			p.HP += h
@@ -136,6 +140,8 @@ func (w *World) petGroupHealLocked(ps *petState, spell *CastSpell, n int) {
 	for _, t := range side.pets {
 		if t == pet {
 			w.tellPetHealLocked(ps, n) // whole, as a player's (above)
+		} else if !w.npcSeesLocked(pet, t.World, t.X, t.Y, t.Z) {
+			continue // out of its sight (sight.go)
 		}
 		h := min(n, t.MaxHP-t.HP)
 		if h <= 0 {

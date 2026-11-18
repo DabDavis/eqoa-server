@@ -44,10 +44,12 @@ shield doing 40 damage, 20 heal. Also +40 PR/DR. It looks similiar to the Deathk
    owner's figures; the rune's 3 held copies on Heirloom made before it had charges (remaincharge 0) are given 100.
 
 3. THE RUNE OF DEFILEMENT (L55, magician, necromancer, enchanter, wizard and alchemist, LORE, 100 charges): its Use
-   casts spell 760355 "Defilement" (itemspell, no power, no lockout, instant), "Target, Drain Power by 150, PB AE":
-   each creature round its user (the area's own rules, area.go: within 10, the 8 nearest, line of sight) loses 150
-   power and its user gains each 150 it took (lifetap.go drainLocked), so up to 1,200; resisted as any spell. Then the
-   rune rests 60 s. t299 gives no figure: 150 a creature and the 60 s are ours.
+   casts spell 760355 "Defilement" (itemspell, no power, no lockout, instant), "Target, Drain Power by 150, Increase
+   Hate by 10, PB AE": each creature round its user (the area's own rules, area.go: within 10, the 8 nearest, line of
+   sight) loses 150 power and its user gains each 150 it took (lifetap.go drainLocked), so up to 1,200; resisted as any
+   spell. The hate of 10 is what makes it a harmful spell (a power drain alone reads as a help, which would land on the
+   players round its user, not the creatures): it angers what it drains. Then the rune rests 60 s. t299 gives no
+   figure: 150 a creature, the hate and the 60 s are ours.
 
 4. THE WAVES' LOOT, "tal'thex armour", 10% x 1 on each of the three Tal'thex kinds (knight, soldier, sorcerer; no
    Ascended: wave trash): t299's thirteen Thexian pieces (737 says 14; t299 lists 13, the bracelet one of them), even
@@ -138,7 +140,7 @@ BUFF_EFFECTS = js({"v": 1, "scope": "target", "target_type": "Owner", "harmful":
                        {"id": "V006", "type": "Statistic Change", "kind": "stat", "stat": "dr", "amount": 45}]})
 BUFF_LINE = ("Target, Damage Shield Decrease Hitpoints by 40, Heal 20 when hit, Increase PR by 45, Increase DR by 45, "
              "while the bonewing is out")
-DEFILE_LINE = f"Target, Drain Power by {DEFILE_POWER}, PB AE"
+DEFILE_LINE = f"Target, Drain Power by {DEFILE_POWER}, Increase Hate by 10, PB AE"
 PET_ABILITIES = js([{"every": 30.0, "first": 1.0, "kind": "buff", "spell_id": BUFF, "target": "owner",
                      "while_out": True}])
 

@@ -45,7 +45,10 @@ func TestItemSpellRunes(t *testing.T) {
 	bonewing := f.item("Rune of the Bonewing", false, 0x7FFF, 55, 1)
 	defilement := f.item("Rune of Defilement", false, 0x7C00, 55, 1) // the casters and the alchemist
 	plain := f.item("Plain Rune", false, 0x7FFF, 1, 1)
-	for _, r := range []struct{ item, spell int; rest float64 }{{bonewing, summon, 0}, {defilement, defile, 60}} {
+	for _, r := range []struct {
+		item, spell int
+		rest        float64
+	}{{bonewing, summon, 0}, {defilement, defile, 60}} {
 		if _, err := f.db.Exec(`INSERT INTO itemeffect (patternid, line, name, charges, source) VALUES (?, 'Self, Increase PR by 1', 'x', 100, 'test')`, r.item); err != nil {
 			t.Fatal(err)
 		}
@@ -129,7 +132,8 @@ func TestItemSpellRunes(t *testing.T) {
 		t.Errorf("after it fell: pet %v, %d charges", pet(), charges(bonewing))
 	}
 
-	// the cast: no power asked (10 of its 300), a charge, then the rest
+	// the cast, by a necromancer: no power asked (10 of its 300), a charge, then the rest
+	f.player.Class = 11
 	if sent = f.use(key(defilement)); !used(sent) || charges(defilement) != 99 {
 		t.Fatalf("the Rune of Defilement: %s, %d charges", ops(sent), charges(defilement))
 	}

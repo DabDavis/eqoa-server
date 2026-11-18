@@ -6,7 +6,7 @@ import "testing"
 // begun with no target drains each creature round its user and gives the user each 150 it took; it sets no
 // lockout (no ability of the book); the creature beyond its reach gives nothing.
 func TestAnItemsAreaPowerTap(t *testing.T) {
-	for _, line := range []string{"Target, Drain Power by 150, PB AE"} {
+	for _, line := range []string{"Target, Drain Power by 150, Increase Hate by 10, PB AE"} {
 		r := newAreaRig(t)
 		r.p.Power = 100
 		a := r.creature(2001, "a decaying skeleton", 1004, 1000)

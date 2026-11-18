@@ -214,6 +214,11 @@ func (g *Groomer) Answer(sess *session.Session, p *entity.Player, box uint32, op
 			return true
 		}
 		what := strings.ToLower(c.label)
+		if pickerDirect(sess) {
+			// a client with the picker: no palette, the picker at once
+			g.openPicker(sess, p, groomAsk{speaker: a.speaker, stage: groomFamily, look: a.look, pet: a.pet, areas: c.areas, what: what, npc: a.npc, picker: true})
+			return true
+		}
 		families := familyLabels()
 		picker := pickerOffered(sess, len(families))
 		if picker {

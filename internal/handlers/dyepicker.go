@@ -19,10 +19,12 @@ import (
 // then we have any rgb combo"). Once the player is in the world the server
 // offers the picker (protocol.OpcodeDyePicker kind 0); a client with a picker
 // window (vanilla) answers its version (OpcodeDyePickerAnswer kind 0), and
-// from then on the Equipment Dyer's (dyer.go), the Pet Groomer's
-// (petgroomer.go) and the Weapon Enchanter's (enchanter.go) colour questions
-// carry one more answer after the palette's, "Pick any colour...". Chosen,
-// the server opens the client's picker (kind 1): the slots it dyes, the
+// from then on the Equipment Dyer's (dyer.go) and the Pet Groomer's
+// (petgroomer.go) piece chosen opens the picker at once, no palette asked
+// (the owner, 2026-11-18: "lets remove the color presets from the dyer
+// simplify with the rgb picker"), and the Weapon Enchanter's (enchanter.go)
+// colour question is "Its own colours" or "Pick any colour..." alone. The
+// server opens the client's picker (kind 1): the slots it dyes, the
 // colour now, the dyer's palette, and for a pet the dyes as OpcodePetDyes has
 // them, so the client previews the colour on the character or the pet while
 // it is picked. The client answers the colour (kind 1) or that it was
@@ -78,6 +80,14 @@ const (
 // has room for one more.
 func pickerOffered(sess *session.Session, n int) bool {
 	return sess.DyePicker() >= 1 && n < dialogRoom(sess)
+}
+
+// pickerDirect is whether sess's client goes from what to dye straight to its
+// picker, with no palette asked first (the owner, 2026-11-18: "lets remove the
+// color presets from the dyer simplify with the rgb picker"): any client that
+// answered the offer. A PS2 never does, and keeps the palette's boxes.
+func pickerDirect(sess *session.Session) bool {
+	return sess.DyePicker() >= 1
 }
 
 // dyePalette is the dyers' colours, every family's, in order: the picker's

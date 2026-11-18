@@ -272,6 +272,11 @@ func (d *Dyer) chosen(sess *session.Session, p *entity.Player, speaker string, n
 		d.ask(sess, p, dyerAsk{speaker: speaker, stage: askWhich, parent: parent, room: room, npc: npc}, "Which one?", choiceLabels(c.sub))
 	case c.slots == nil:
 		d.dye(sess, p, speaker, allDyeSlots(), 0, "Every dye is off.")
+	case pickerDirect(sess):
+		// a client with the picker: no palette, the picker at once (the
+		// owner, 2026-11-18: "lets remove the color presets from the dyer
+		// simplify with the rgb picker")
+		d.openPicker(sess, p, dyerAsk{speaker: speaker, stage: askFamily, slots: c.slots, what: strings.ToLower(c.label), npc: npc, picker: true})
 	default:
 		what := strings.ToLower(c.label)
 		families := familyLabels()

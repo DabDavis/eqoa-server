@@ -38,9 +38,6 @@ func TestAMarksPassReadsThePackOnce(t *testing.T) {
 	if n := len(qe.heldItems(f.p)); n != 1 {
 		t.Fatalf("a pass read its pack again: %d items, want the first read's 1", n)
 	}
-	if n := len(qe.shownItems(f.p)); n != 1 {
-		t.Fatalf("a pass's shown items: %d, want the first read's 1", n)
-	}
 	end()
 	if n := len(qe.heldItems(f.p)); n != 2 {
 		t.Fatalf("after the pass: %d items, want 2", n)

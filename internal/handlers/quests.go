@@ -154,6 +154,10 @@ type QuestEngine struct {
 		MainlandPlace(c *database.CharacterRecord) bool
 	}
 
+	// takeOff takes a worn item off before a give step takes it (the
+	// EquipHandler's TakeOff; nil: takeOffLocked's own)
+	takeOff func(*session.Session, *entity.Player, *database.CharInventoryEntry) bool
+
 	// playerOf and sessionOf find a session's player and a character's
 	// in-world session (tests stand in for them)
 	playerOf  func(*session.Session) *entity.Player
@@ -1989,54 +1993,47 @@ func (q *QuestEngine) teachLocked(sess *session.Session, p *entity.Player, spell
 	return "", false
 }
 
-// heldItems is the player's unworn inventory records, in the client's list
-// order (bank and worn items are not handed in).
+// heldItems is what the player has for a quest: its pack's records, the
+// ones it wears as well as the ones it carries (never the bank), the carried
+// ones first and each part in the client's list order. Every quest check that
+// asks what a player has reads it: a show step (which keeps its items), a give
+// step (which takes the carried copies first, and a worn one only when no
+// carried one is left: takeLocked takes it off first), a give event's
+// unless_held, the walls' items, a waysender's (Holds), the Plane of Sky's
+// keys (HeldNamed, TakeNamed: the carried copy first). Until
+// 2026-11-18 a give step counted only what was carried, and a player who put
+// on the robe a quest asked for was told it lacked until they took it off (the
+// owner: "for the level 1 quest where players get item from merchant if
+// player equips it the quest giver doesnt acknowledge until they unequipped";
+// Live, Nighthowler's "New Gear" four times on 2026-11-14 before the plain
+// robe came off). A show step had counted worn ones since 2026-11-10.
 func (q *QuestEngine) heldItems(p *entity.Player) []database.CharInventoryEntry {
-	return q.itemsOn(p, false)
-}
-
-// shownItems is what a show step looks at: the pack and what the player
-// wears (never the bank). A show step keeps its items, so one worn is shown
-// as well as one carried: every city's first class quest hands out a piece of
-// equipment to show its giver (Freeport's militia bracer, Halas's tunic; the
-// homelands' first gift), and a player who put it on, as one does, was told
-// to come back with it (the owner's homelands polish, 2026-11-10).
-func (q *QuestEngine) shownItems(p *entity.Player) []database.CharInventoryEntry {
-	return q.itemsOn(p, true)
-}
-
-// itemsOn is the player's pack records, in the client's list order, with the
-// ones it wears when worn is set.
-func (q *QuestEngine) itemsOn(p *entity.Player, worn bool) []database.CharInventoryEntry {
 	if q.inv == nil {
 		return nil
 	}
 	ps := q.passOf(p)
-	if ps != nil {
-		if worn && ps.shownOK {
-			return ps.shown
-		}
-		if !worn && ps.heldOK {
-			return ps.held
-		}
+	if ps != nil && ps.heldOK {
+		return ps.held
 	}
 	rows, err := q.packRowsLocked(p)
 	if err != nil {
 		log.Printf("Quests: %s's inventory: %v", p.Name, err)
 		return nil
 	}
-	var out []database.CharInventoryEntry
+	var out, worn []database.CharInventoryEntry
 	for _, r := range rows {
-		if r.Location == 0 && (worn || r.EquipLoc < 0) && r.StackLeft > 0 {
+		if r.Location != 0 || r.StackLeft <= 0 {
+			continue
+		}
+		if r.EquipLoc >= 0 {
+			worn = append(worn, r)
+		} else {
 			out = append(out, r)
 		}
 	}
+	out = append(out, worn...)
 	if ps != nil { // the same rows the rest of the pass (questpass.go)
-		if worn {
-			ps.shown, ps.shownOK = out, true
-		} else {
-			ps.held, ps.heldOK = out, true
-		}
+		ps.held, ps.heldOK = out, true
 	}
 	return out
 }
@@ -2069,6 +2066,14 @@ func (q *QuestEngine) takeLocked(sess *session.Session, p *entity.Player, st *da
 	plan := q.planHandInLocked(p, st)
 	if len(plan.lack) > 0 || q.inv == nil {
 		return nil, false
+	}
+	// a worn copy (taken only when no carried one is left: heldItems' order)
+	// comes off first, as Destroy takes one off: its slot emptied in the
+	// database, UnequipItem to the client, the look and the hands again
+	for _, t := range plan.takes {
+		if t.row.EquipLoc >= 0 && !q.takeOffLocked(sess, p, t.row) {
+			return nil, false
+		}
 	}
 	l := sessionInvList(sess)
 	given := &handedIn{ascended: plan.ascended}
@@ -2105,6 +2110,30 @@ func (q *QuestEngine) takeLocked(sess *session.Session, p *entity.Player, st *da
 	}
 	q.payStepTunarLocked(sess, p, st, given)
 	return given, true
+}
+
+// takeOffLocked takes a worn row off before a give step takes it: the
+// EquipHandler's TakeOff (takeoff.go: the slot written -1, UnequipItem, the
+// worn gear and look again) when the engine has it and the player a session,
+// else the slot written -1 and, with a session, UnequipItem. False (nothing
+// taken) when the database refused.
+func (q *QuestEngine) takeOffLocked(sess *session.Session, p *entity.Player, r database.CharInventoryEntry) bool {
+	slot := r.EquipLoc
+	if q.takeOff != nil && sess != nil {
+		if !q.takeOff(sess, p, &r) {
+			return false
+		}
+	} else {
+		if err := q.inv.SetEquipLoc(p.CharServerID, r.ItemID, -1); err != nil {
+			log.Printf("Quests: taking %s's item %d off slot %d: %v", p.Name, r.ItemID, slot, err)
+			return false
+		}
+		if sess != nil {
+			queueUnequip(sess, slot)
+		}
+	}
+	log.Printf("Quests: %s's item %d (record %d) taken off slot %d to be handed in", p.Name, r.ItemID, r.Pattern.PatternID, slot)
+	return true
 }
 
 // payStepTunarLocked takes a give or show step's tunar from the player (a

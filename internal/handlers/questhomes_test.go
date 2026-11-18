@@ -7,6 +7,7 @@ import (
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
+	"github.com/eqoa/server/internal/protocol"
 )
 
 // The races' homelands' starter quests (tools/quests/gen_homelands.py; the
@@ -266,8 +267,8 @@ func TestAQuestsRacesNameARaceOfRacedefsByItsOwnID(t *testing.T) {
 
 // A show step keeps its items, so one that is worn is shown as well as one
 // in the pack: the homeland's first gift (and every city's) put on before it
-// is shown. One in the bank is not shown; and a give step still takes only
-// what is carried.
+// is shown. One in the bank is not shown; and a give step takes the worn one
+// off and takes it.
 func TestAShowStepCountsWhatIsWorn(t *testing.T) {
 	f := newQuestFixture(t)
 	f.exec(`UPDATE quests SET enabled = 0 WHERE questid = 10010`)
@@ -314,21 +315,14 @@ func TestAShowStepCountsWhatIsWorn(t *testing.T) {
 		t.Errorf("a show step took the wingband: %d held", n)
 	}
 
-	// the give step after it: worn is not handed over; carried is
+	// the give step after it: the only copy worn is taken off and handed
+	// over (questworn_test.go: a carried copy goes first)
 	f.tw.talk(elder)
-	if step, _ := f.progress(20010); step != 2 {
-		t.Errorf("a give step took a worn item (step %d)", step)
-	}
-	f.msgs()
-	if err := f.inv.SetEquipLoc(f.sid, item, -1); err != nil {
-		t.Fatal(err)
-	}
-	rows, _ := f.inv.GetCharacterItems(f.sid)
-	f.tw.s.SetInventoryList(newInvList(rows))
-	f.tw.talk(elder)
+	msgs = f.msgs()
 	if _, done := f.progress(20010); done != 1 || f.held(band) != 0 {
-		t.Errorf("the wingband carried was not handed over: done %d, %d held, %q", done, f.held(band), f.msgs())
+		t.Errorf("the wingband worn was not handed over: done %d, %d held, %q", done, f.held(band), msgs)
 	}
+	f.want(msgs, fmt.Sprintf("op:%04X", uint16(protocol.OpcodeUnequipItem)))
 }
 
 // What a classquest event must be: a quest's, on its finish, with a level;

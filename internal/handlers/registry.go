@@ -579,6 +579,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		} else {
 			qe.drop = npcWindowHandler.AddQuestDrop           // a loot step's drops (questloot.go)
 			qe.dropAhead = npcWindowHandler.AddQuestDropAhead // those ahead of the step (questpreloot.go)
+			qe.takeOff = equipHandler.TakeOff                 // a worn item a give step takes comes off first
 			supportHandler.SetQuests(qe)                      // a petition's quests (petitionview.go)
 			tradeHandler.received = qe.Received               // a traded item on a loot step (petition 5248)
 			qe.Start()

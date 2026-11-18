@@ -22,7 +22,7 @@ import (
 // (the map's marks and the heads' alike), and a hand-in's count reads only a
 // row's record, units, place and slot: the pass reads those of the pack alone
 // (InventoryStore.HandInRows, not the bank and every record's fifty columns),
-// sorts the unworn and the shown rows out once, makes the set of records an
+// sorts the carried and the worn rows out once, makes the set of records an
 // Ascended record was made of once, and keeps each step's answer: the same
 // answers, as nothing they read changes in a pass.
 
@@ -36,9 +36,9 @@ type questPass struct {
 	asc  map[int]int
 	// hasAsc is the records an Ascended record of asc was made of
 	hasAsc map[int]bool
-	// held and shown are itemsOn's rows (unworn; and worn), once made
-	held, shown     []database.CharInventoryEntry
-	heldOK, shownOK bool
+	// held is heldItems' rows (carried, then worn), once made
+	held   []database.CharInventoryEntry
+	heldOK bool
 	// lack is lackingLocked's answer, by step
 	lack map[*database.QuestStep]string
 }

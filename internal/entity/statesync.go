@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"math"
 	"strconv"
+	"time"
 	"unicode/utf16"
 )
 
@@ -313,6 +314,18 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 		buf[154] = 1
 	}
 
+	// Offset 155: CLIENT's m_p263 (Byte263), in combat: VIClient::Process
+	// plays the battle music while the player's own is set (vanilla
+	// sound.rs battle_music, play.rs self_fighting), so with it never set no
+	// client had battle music (petition 2379, Bolgorf: none on android, the
+	// PC app or the page). Set while the player swings at a target or for
+	// CombatMusicHold after its last blow given or taken (LastCombatTime: its
+	// swing or harmful spell landing, a creature's on it). Zero in the
+	// capture, whose players were not fighting.
+	if p.inCombatForMusic(time.Now()) {
+		buf[155] = 1
+	}
+
 	// Offset 157: CLIENT's m_p299, whose bit 0 is ApplyLook's name colour 2,
 	// NameColors[2], green: a player flagged for PvP (pvp.go). Zero on every
 	// entity in every capture.
@@ -349,6 +362,22 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 // 1 to 6 of a crab's 1613, under 118 of a 30,000 raid creature's (petition 1125, the
 // GM Jibrish: "These 2 crabs were not dying to combat damage. I had to /kill both
 // with a GM command"; a player's "mobs rnt dying", both crabs left on 1).
+// CombatMusicHold is how long after its last blow given or taken a player's
+// channel still says it is in combat (byte 155: the battle music plays on).
+const CombatMusicHold = 8 * time.Second
+
+// inCombatForMusic reports a player in combat for byte 155: swinging at a
+// target, or a blow given or taken within CombatMusicHold of now.
+func (p *Player) inCombatForMusic(now time.Time) bool {
+	if p.IsDead() {
+		return false
+	}
+	if p.Attacking() {
+		return true
+	}
+	return !p.LastCombatTime.IsZero() && now.Sub(p.LastCombatTime) < CombatMusicHold
+}
+
 func healthBar(hp, top int) byte {
 	if hp <= 0 || top <= 0 {
 		return 0

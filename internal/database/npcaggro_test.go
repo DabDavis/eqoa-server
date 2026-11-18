@@ -76,3 +76,28 @@ func TestNPCAggroGainsSeeInvis(t *testing.T) {
 		}
 	}
 }
+
+// Ticket 2380: a seed row whose note names a player's pet reads PetName; a GM's
+// row, or a seed row of another kind, does not. Made-up names.
+func TestNPCAggroPetName(t *testing.T) {
+	db, err := NewSQLite(t.TempDir() + "/pet.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if _, err := db.Exec(`INSERT INTO npcaggro (npc_name, aggressive, note, source) VALUES
+		('test flesh ', 0, 'a summoned pet''s name (spellpattern: Test Flesh): a player''s pet recorded beside its owner, not wildlife', 'seed'),
+		('test warden', 0, 'talks only', 'gm'),
+		('test bandit', 1, 'bandits', 'seed')`); err != nil {
+		t.Fatal(err)
+	}
+	rows, err := db.NPCAggroRules()
+	if err != nil || len(rows) != 3 {
+		t.Fatalf("%d rows (%v)", len(rows), err)
+	}
+	for _, r := range rows {
+		if want := r.Name == "test flesh "; r.PetName != want {
+			t.Errorf("%q: PetName %v, want %v", r.Name, r.PetName, want)
+		}
+	}
+}

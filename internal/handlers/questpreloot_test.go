@@ -255,25 +255,18 @@ func TestPreFarmALaterStepsItemCountsWhenItsStepComes(t *testing.T) {
 	}
 }
 
-// A quest not taken drops ahead only while the player may take it, and only a loot step with
-// nothing but talks before it (the giver's own errand): quest 70's step 3 comes after a kill,
-// so not before it is taken; once taken it does. Quest 71 starts with its loot step but begins
-// at level 20: not at level 5; at 20 it does. A finished quest's (not repeatable) none.
-func TestPreFarmANotTakenQuestByItsRule(t *testing.T) {
+// The owner, 2026-11-18: "do not require quest at all, just drops". A quest not taken drops
+// its loot steps' items ahead as one under way does: quest 70's step 3, after a kill step, and
+// quest 71's tusk though the quest begins at level 20 and the player is level 5. Taken with the
+// tusk held, its step is done at once; finished (not repeatable), none drops again.
+func TestPreFarmANotTakenQuestDropsToo(t *testing.T) {
 	f := newQuestFixture(t)
 	belt := f.pattern("slashed belt", 20)
 	tusk := f.pattern("boar tusk", 20)
 	drops := prefarmQuest(f, belt, 0, 0, 0, 0, 0, 0)
 	f.killFor("Orc Pawn", 850)
-	if len(*drops) != 0 {
-		t.Fatalf("not taken, a loot step after a kill: dropped %v", *drops)
-	}
-	if _, err := f.qe.SetCharacterQuest(f.sid, 70, QuestGive, 0); err != nil {
-		t.Fatal(err)
-	}
-	f.killFor("Orc Pawn", 851)
-	if len(*drops) != 1 {
-		t.Fatalf("taken, on step 1: drops %v, want the belt ahead", *drops)
+	if len(*drops) != 1 || (*drops)[0] != (lootDrop{850, f.sid, belt}) {
+		t.Fatalf("not taken, a loot step after a kill: drops %v, want the belt", *drops)
 	}
 	f.exec(`INSERT INTO quests (questid, name, enabled, giver, minlevel) VALUES (71, 'Tusks', 1, 'Malsis', 20)`)
 	f.exec(`INSERT INTO queststeps (questid, step, kind, target, items, count, chance, journal)
@@ -282,15 +275,16 @@ func TestPreFarmANotTakenQuestByItsRule(t *testing.T) {
 	f.qe.Reload()
 	*drops = nil
 	f.killFor("a boar", 852)
-	if len(*drops) != 0 {
-		t.Fatalf("level 5, a quest from level 20: dropped %v", *drops)
-	}
-	f.tw.p.Level = 20
-	f.killFor("a boar", 853)
 	if len(*drops) != 1 || (*drops)[0].pattern != tusk {
-		t.Fatalf("level 20, its first step's item: drops %v, want the tusk", *drops)
+		t.Fatalf("level 5, a quest from level 20, not taken: drops %v, want the tusk", *drops)
 	}
 	f.own(tusk, 1)
+	*drops = nil
+	f.killFor("a boar", 853) // one held of one: none
+	if len(*drops) != 0 {
+		t.Fatalf("the tusk held: dropped %v", *drops)
+	}
+	f.tw.p.Level = 20
 	if _, err := f.qe.SetCharacterQuest(f.sid, 71, QuestGive, 0); err != nil {
 		t.Fatal(err)
 	}
@@ -302,7 +296,6 @@ func TestPreFarmANotTakenQuestByItsRule(t *testing.T) {
 	}
 	f.exec(`DELETE FROM charinventory WHERE serverid = ?`, f.sid)
 	f.tw.s.SetInventoryList(newInvList(nil))
-	*drops = nil
 	f.killFor("a boar", 854)
 	if len(*drops) != 0 {
 		t.Fatalf("finished, not repeatable: dropped %v", *drops)
@@ -378,10 +371,8 @@ func TestPreFarmExclusions(t *testing.T) {
 	}
 }
 
-// A kill shared by two players on the quest drops each its own belt, at its own draw (0.2 a
-// belt for the first, 0.7 none for the second, then 0.1 for the second's), on its own view of
-// the corpse; the second player, without the quest (its first step a talk, no loot step first:
-// not ahead), none.
+// A shared kill drops each player its own belt, at its own draw, on its own view of the corpse,
+// the quest not asked (the owner's "just drops"): the first on the quest, the second without it.
 func TestPreFarmASharedKillDropsEachQuesterItsOwn(t *testing.T) {
 	f := newQuestFixture(t)
 	belt := f.pattern("slashed belt", 20)
@@ -403,16 +394,26 @@ func TestPreFarmASharedKillDropsEachQuesterItsOwn(t *testing.T) {
 	if _, err := f.qe.SetCharacterQuest(f.sid, 70, QuestGive, 0); err != nil {
 		t.Fatal(err)
 	}
-	both(870)
+	both(870) // 0.2 for the first: its belt; 0.7 for the second: none
 	if len(*drops) != 1 || (*drops)[0] != (lootDrop{870, f.sid, belt}) {
-		t.Fatalf("the second without the quest: drops %v, want the first's belt alone", *drops)
-	}
-	if _, err := f.qe.SetCharacterQuest(rec.ServerID, 70, QuestGive, 0); err != nil {
-		t.Fatal(err)
+		t.Fatalf("drops %v, want the first's belt alone", *drops)
 	}
 	*drops = nil
-	both(871) // 0.7 for the first: none; 0.1 for the second: its belt
-	if len(*drops) != 1 || (*drops)[0] != (lootDrop{871, rec.ServerID, belt}) {
-		t.Fatalf("both on the quest: drops %v, want the second's own belt", *drops)
+	both(871) // 0.1 for the first: a belt; the second's draw the default 0.99: none
+	if len(*drops) != 1 || (*drops)[0] != (lootDrop{871, f.sid, belt}) {
+		t.Fatalf("drops %v, want the first's second belt", *drops)
+	}
+	f.qe.roll = func() float64 { return 0 }
+	*drops = nil
+	both(872) // every draw 0: a belt each, the second without the quest too
+	got := map[uint32]bool{}
+	for _, d := range *drops {
+		got[d.char] = true
+		if d.npc != 872 || d.pattern != belt {
+			t.Fatalf("drop %v", d)
+		}
+	}
+	if len(*drops) != 2 || !got[f.sid] || !got[rec.ServerID] {
+		t.Fatalf("drops %v, want one belt each", *drops)
 	}
 }

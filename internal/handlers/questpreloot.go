@@ -18,15 +18,11 @@ import (
 // A loot step's item drops for a character on that step (questevents.go lootKillLocked). A kill
 // of a loot step's creature (stepNPC: its target or its other creatures) also drops the step's
 // item, at the step's own chance, for each player the kill counts for who is not on that step
-// yet, each on its own view of the corpse (questloot.go), by these rules (aheadRefusalLocked):
-//   - the quest under way at an earlier step: any later loot step's item;
-//   - the quest not taken (or a repeatable one finished): only while the player may take it now
-//     (mayTakeLocked: its level, class, race, the quests it requires, its twins, its factions,
-//     its day group), and only a loot step that no step but talks and other loot steps comes
-//     before (the giver's own errand, what is asked at once: "kill bats, bring me four wings").
-//     A quest's later loot steps, past a hand-in, a kill or a place, wait for the quest: every
-//     creature of the world is some quest's later step, and their items would litter the bags
-//     of players who never take those quests (a Lore item one of each, never sold back);
+// yet, each on its own view of the corpse (questloot.go) (aheadRefusalLocked):
+//   - any player not past the step: the quest under way at an earlier step, or not taken at all
+//     (the owner, 2026-11-18: "do not require quest at all, just drops"): no level, class,
+//     race, required quest or faction asked. But an area's any-creature step (target '*': every
+//     kill in the area is one) drops ahead only for a player with its quest under way;
 //   - never: past the step, a finished quest that does not repeat, a draft, holding as many as
 //     the step wants already (its Ascended records counted, as a quest counts them, less what
 //     the quest's earlier loot steps keep: keptForEarlier), one of a Lore item, a full stack.
@@ -96,14 +92,13 @@ func (q *QuestEngine) preLootLocked(k entity.KillCredit, kp entity.KillPlayer, c
 	if p == nil {
 		return
 	}
-	look := q.lookAt(kp.Session)
 	for _, ref := range q.lootStepsForLocked(k) {
 		qu, st := ref.qu, ref.st
 		pid, need, ok := st.LootItem()
 		if !ok || rolled[pid] {
 			continue
 		}
-		if q.aheadRefusalLocked(look, p, c, qu, st, k.NPCName) != "" {
+		if q.aheadRefusalLocked(c, qu, st, k.NPCName) != "" {
 			continue
 		}
 		held := sessionInvList(kp.Session).heldStandingFor(pid)
@@ -136,7 +131,7 @@ func (q *QuestEngine) preLootLocked(k entity.KillCredit, kp entity.KillPlayer, c
 // aheadRefusalLocked is why a loot step's item does not drop ahead of its step for the player
 // on a kill of the creature named killed, or "" when it does (the file's doc: whose quest, and
 // which steps). Not the item's own tests (aheadExcludedLocked, the pack's holding).
-func (q *QuestEngine) aheadRefusalLocked(look *factionLook, p *entity.Player, c *questChar, qu *database.Quest, st *database.QuestStep, killed string) string {
+func (q *QuestEngine) aheadRefusalLocked(c *questChar, qu *database.Quest, st *database.QuestStep, killed string) string {
 	pid, _, ok := st.LootItem()
 	if !ok || st.Kind != database.StepLoot {
 		return "not a loot step"
@@ -149,20 +144,13 @@ func (q *QuestEngine) aheadRefusalLocked(look *factionLook, p *entity.Player, c 
 			return "on the step or past it"
 		}
 		from = cq.Step
-	} else {
-		if st.AnyInArea() {
-			// an area's any creature drops it for its quest's players alone: every kill
-			// there is one, and one who has not taken the quest is not hunting for it
-			return "an area's step, the quest not under way"
-		}
-		if why := q.mayTakeLocked(look, p, c, qu); why != "" {
-			return why
-		}
-		for i := range qu.Steps {
-			if s := &qu.Steps[i]; s.Step < st.Step && s.Kind != database.StepTalk && s.Kind != database.StepLoot {
-				return fmt.Sprintf("not taken, and step %d (%s) comes first", s.Step, s.Kind)
-			}
-		}
+	} else if cq != nil && cq.Done > 0 && !qu.Repeatable {
+		return "finished, and it does not repeat"
+	} else if st.AnyInArea() {
+		// an area's any creature (questanyarea_test.go, the owner 2026-11-17: Lord Valkanith's
+		// emerald "in this city only") drops for its quest's players alone: every kill there is
+		// one, and one who has not taken the quest is not hunting for it
+		return "an area's step, the quest not under way"
 	}
 	for i := range qu.Steps {
 		s := &qu.Steps[i]

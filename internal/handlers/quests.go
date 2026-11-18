@@ -1705,7 +1705,7 @@ func (q *QuestEngine) dropsAheadNameLocked(kp entity.KillPlayer, c *questChar, q
 		return "", false
 	}
 	p := q.playerOf(kp.Session)
-	if p == nil || q.aheadRefusalLocked(q.lookAt(kp.Session), p, c, qu, later, killed) != "" {
+	if p == nil || q.aheadRefusalLocked(c, qu, later, killed) != "" {
 		return "", false
 	}
 	pid, _, _ := later.LootItem()

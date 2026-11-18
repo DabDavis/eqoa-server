@@ -53,6 +53,9 @@ type EquipHandler struct {
 	// portal is the Summoning Portals' talk (summonportal.go): the item's Use
 	// opens one
 	portal *Portal
+	// itemSpellUsed is when each character last used each item that casts a spell (itemspell.go)
+	itemSpellMu   sync.Mutex
+	itemSpellUsed map[itemSpellKey]time.Time
 	// stoneUsed is when each character last called Guenhwyvar (guenhwyvar.go)
 	stoneMu   sync.Mutex
 	stoneUsed map[uint32]time.Time
@@ -564,6 +567,10 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 		// the Automatic Snowball Launcher, never spent: automatic fire on or off (snowlauncher.go)
 		if row.EquipLoc < 0 && IsSnowLauncher(&row.Pattern) {
 			h.useSnowLauncher(sess, player, &row.Pattern)
+			return nil
+		}
+		// an item whose Use casts a spell or calls a pet, a charge a use (itemspell.go)
+		if row.EquipLoc < 0 && h.useItemSpell(sess, player, idx, row, target) {
 			return nil
 		}
 		// an item that calls a familiar, never spent: its cast (familiar.go)

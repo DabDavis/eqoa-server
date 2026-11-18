@@ -179,7 +179,7 @@ func (wp WeaponProc) Explain() string {
 		}
 	}
 	if wp.Only != "" {
-		what += ", on " + wp.Only + "s alone"
+		what += onlyWords(wp.Only)
 	}
 	switch wp.Kind {
 	case ProcHit, ProcTap, ProcDoT, ProcCalm, ProcRoot, ProcSnare:

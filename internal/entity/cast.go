@@ -197,6 +197,10 @@ type CastSpell struct {
 	// nil for a spell: its caster's, and nothing else lands; no ability of the
 	// book, as Travel's
 	Familiar *FamiliarDef
+	// ItemCast: an item's Use casts it (handlers/itemspell.go: table itemspell, the
+	// Rune of Defilement's), its spell's own landing in every other way; no ability
+	// of the book, as Travel's: no lockout and no 0x00CD
+	ItemCast bool
 	// RecastGroup is the spell's recast group, "" for none, and GroupMates
 	// the spells of it with their places in the caster's book (recastgroup.go):
 	// the handlers' (handlers/cast.go), from table spellrecastgroup
@@ -849,7 +853,7 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	}
 	w.dispelOnCastLocked(p, spell.Def.Harmful) // workbook.go: what ends at a cast (a run speed only at a harmful one)
 	lockout := castLockoutOf(&spell, w.balance.ArtCooldown(p.Level))
-	if spell.Travel == nil && spell.Familiar == nil { // an item's travel or familiar is no ability: nothing to lock out
+	if spell.Travel == nil && spell.Familiar == nil && !spell.ItemCast { // an item's travel, familiar or cast is no ability: nothing to lock out
 		p.Lockouts = append(p.Lockouts, castLockout{spellID: spell.SpellID, displayIndex: spell.DisplayIndex, until: now.Add(lockout)})
 		w.lockRecastGroupLocked(sess, p, &spell, now, now.Add(lockout)) // recastgroup.go: its group's spells too
 	}
@@ -860,7 +864,7 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	w.endFoodOnCastLocked(p) // consumable.go: a meal or drink a cast ends
 	w.casts = append(w.casts, cs)
 
-	if spell.Travel == nil && spell.Familiar == nil {
+	if spell.Travel == nil && spell.Familiar == nil && !spell.ItemCast {
 		sendCooldown(sess, spell.DisplayIndex, lockout)
 	}
 	target := p.ServerID

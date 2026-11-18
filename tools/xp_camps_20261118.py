@@ -40,6 +40,9 @@ WHAT IS CHANGED (plan(); each change a unit of rows, its why written beside it)
            CANDIDATES random places within SPREAD of the camp's creatures from every NPC, SPACING apart at least
   fork     the owner's 11-15 database ("Database for Dab 11-15-26.db": "this has some updated camps but some is old
            from a fork", read-only, --fork): its own camp edits where it is the newer version (FORK_TAKE), each said
+  owner    the owner's answers of 2026-11-18 (owner_units, propagate_units): the fork's frost giant camp by the Artic
+           Spiritcaller on both shards, Heirloom's Xrag/bone hunter/Snowgrin/Quintashi rows at Live's levels, and the
+           Tendora-Buki villagers and toxic pollutive slime deleted on one shard deleted on the other
   A new row is a copy of the nearest row of its name in the camp (every npcs column but id and place: its body, gear,
   level, class, faction, template and loot, all by name or on the row), with that row's npcrespawn and npcwander rows.
   Never touched: a protected row (above), a spawn-only, seasonal (npcseason) or rare/named name (a proper noun, three
@@ -521,6 +524,9 @@ def plan_shard(name, info, other, camps, sv, sv_other, ground, fork_units, rnd):
                 parity_done.add(r["id"])
                 gone = [d for d in info["deleted"] if d[0] == c["world"] and d[1] == key
                         and math.hypot(d[2] - r["x"], d[3] - r["z"]) <= 30]
+                if gone and key in OWNER_PROPAGATE:
+                    PROPAGATE.append((other_name(name), k, gone[0], r))
+                    continue
                 if gone:
                     notes[k].append(f"{r['name']} at ({r['x']:.0f}, {r['z']:.0f}): the other shard has it, this one's "
                                     f"was deleted {gone[0][4][:16]} ({gone[0][5][:80]}): left for the owner")
@@ -634,6 +640,106 @@ def find_spots(info, c, mem, want, ground, rnd, extra):
 
 
 DBS = {}
+PROPAGATE = []  # (shard, camp, the deletion, the row there): the owner's answer 4
+
+
+def other_name(sh):
+    return "l" if sh == "h" else "h"
+
+
+# ---- the owner's answers (2026-11-18) ---------------------------------------------------------------------------
+#
+# 1. A guide camp's minimum stays MIN_CAMP (6).
+# 2. The tenacious frost giant camp round the Artic Spiritcaller (Snowblind Plains, about 7008, 5853): the fork's
+#    version on both shards: its 11 giants' spots at size 2.3 and the Spiritcaller at its spot at size 3.0, made from
+#    our own rows (names, bodies, levels, gear, loot, templates ours; the fork's spellings not taken): the 11 of our
+#    giants nearest the fork's spots move there, the rest go. FORK_TFG: the fork's rows (id there, x, y, z, facing).
+# 3. Heirloom's child/pariah of Xrag, bone hunters, Snowgrin and Quintashi at Live's levels (the same row: id, name
+#    and spot on both).
+# 4. A row deleted on one shard (gm_audit) that the other still has, for OWNER_PROPAGATE's names: deleted there too.
+TFG_CENTER, TFG_REACH = (7008.0, 5853.0), 80.0
+FORK_TFG = [(101490, 6969.7, 54.1, 5856.2, 191), (162682, 6976.0, 54.1, 5833.2, 174), (162683, 6992.2, 54.1, 5816.0, 151),
+            (162684, 7017.4, 54.0, 5811.4, 117), (162685, 7047.4, 54.1, 5845.5, 65), (162686, 7037.6, 53.7, 5820.6, 94),
+            (162687, 7043.4, 54.1, 5871.1, 55), (162688, 7029.2, 54.1, 5884.9, 19), (162689, 7008.0, 54.1, 5892.7, 4),
+            (162690, 6986.0, 54.1, 5887.8, 241), (162691, 6973.1, 54.1, 5873.3, 215)]
+TFG_SIZE = 2.3
+FORK_SPIRITCALLER = (101488, 7015.1, 54.1, 5869.6, 21, 3.0)
+LIVE_LEVEL_NAMES = {"child of xrag", "pariah of xrag", "bone hunter", "snowgrin", "quintashi"}
+OWNER_PROPAGATE = {"tendora-buki villager", "toxic pollutive slime"}
+OWNER = "the owner's answer, 2026-11-18"
+
+
+def side_rows(db, rid):
+    out = []
+    for tbl, col in (("npcrespawn", "npc_row"), ("npcwander", "npcid"), ("npcstands", "npc_row")):
+        cur = tr.get(db, tbl, {col: rid}) if tr.table(db, tbl) else None
+        if cur is not None:
+            out.append([tbl, {col: rid}, cur, None])
+    return out
+
+
+def owner_units(sh, db, info, other, camps):
+    units, notes = [], []
+    camp = min(camps, key=lambda c: (c["world"] != 0, math.hypot(c["x"] - TFG_CENTER[0], c["z"] - TFG_CENTER[1])))["key"]
+    giants = [r for r in info["rows"] if r["world"] == 0 and r["key"] == "tenacious frost giant"
+              and math.hypot(r["x"] - TFG_CENTER[0], r["z"] - TFG_CENTER[1]) <= TFG_REACH]
+    pairs = sorted(((math.hypot(r["x"] - f[1], r["z"] - f[3]), r["id"] in info["protected"], r["id"], f[0])
+                    for r in giants for f in FORK_TFG), key=lambda t: (not t[1], t[0], t[2], t[3]))
+    got, used = {}, set()
+    for d, _, rid, fid in pairs:
+        if rid in got or fid in used:
+            continue
+        got[rid], used = fid, used | {fid}
+    spot = {f[0]: f for f in FORK_TFG}
+    for r in sorted(giants, key=lambda r: r["id"]):
+        if r["id"] in got:
+            f = spot[got[r["id"]]]
+            after = dict(r["row"], x_coord=f[1], y_coord=f[2], z_coord=f[3], facing=f[4], size=TFG_SIZE)
+            units.append(unit(camp, "owner", f"#{r['id']} tenacious frost giant L{r['level']}: to the fork's #{f[0]} spot "
+                              f"({f[1]}, {f[2]}, {f[3]}) at size {TFG_SIZE} ({OWNER}: the fork's frost giant camp)",
+                              [["npcs", {"id": r["id"]}, jrow(r["row"]), jrow(after)]]))
+        elif r["id"] in info["protected"]:
+            notes.append((camp, f"#{r['id']} tenacious frost giant: protected, left (the fork's camp has 11)"))
+        else:
+            units.append(unit(camp, "owner", f"#{r['id']} tenacious frost giant L{r['level']} at ({r['x']:.0f}, {r['z']:.0f}): "
+                              f"removed ({OWNER}: the fork's camp has 11 giants, ours had {len(giants)})",
+                              [["npcs", {"id": r["id"]}, jrow(r["row"]), None]] + side_rows(db, r["id"])))
+    sc = info["byid"].get(FORK_SPIRITCALLER[0])
+    if sc and sc["key"] == "artic spiritcaller":
+        _, x, y, z, fa, size = FORK_SPIRITCALLER
+        after = dict(sc["row"], x_coord=x, y_coord=y, z_coord=z, facing=fa, size=size)
+        units.append(unit(camp, "owner", f"#{sc['id']} {sc['name']}: to the fork's spot ({x}, {y}, {z}) at size {size} ({OWNER})",
+                          [["npcs", {"id": sc["id"]}, jrow(sc["row"]), jrow(after)]]))
+    else:
+        notes.append((camp, f"#{FORK_SPIRITCALLER[0]} is no Artic Spiritcaller here: left"))
+    if sh == "h":
+        for r in info["rows"]:
+            if r["key"] not in LIVE_LEVEL_NAMES:
+                continue
+            o = other["byid"].get(r["id"])
+            if o is None or o["key"] != r["key"] or math.hypot(o["x"] - r["x"], o["z"] - r["z"]) > 1 or o["level"] == r["level"]:
+                continue
+            c = min((c for c in camps if c["world"] == r["world"]), key=lambda c: math.hypot(c["x"] - r["x"], c["z"] - r["z"]))
+            after = dict(r["row"], npc_level=o["level"])
+            units.append(unit(c["key"], "owner", f"#{r['id']} {r['name']} L{r['level']}: Live's L{o['level']} ({OWNER})",
+                              [["npcs", {"id": r["id"]}, jrow(r["row"]), jrow(after)]]))
+    return units, notes
+
+
+def propagate_units(db, info, asks):
+    """asks: (camp, the other shard's deletion, this shard's row): delete the row here too."""
+    units, notes, seen = [], [], set()
+    for camp, gone, r in asks:
+        if r["id"] in seen:
+            continue
+        seen.add(r["id"])
+        if r["id"] in info["protected"]:
+            notes.append((camp, f"#{r['id']} {r['name']}: deleted on the other shard, protected here: left"))
+            continue
+        units.append(unit(camp, "owner", f"#{r['id']} {r['name']} at ({r['x']:.0f}, {r['z']:.0f}): deleted, as the other shard's "
+                          f"was {gone[4][:16]} ({gone[5][:60]}) ({OWNER})",
+                          [["npcs", {"id": r["id"]}, jrow(r["row"]), None]] + side_rows(db, r["id"])))
+    return units, notes
 
 
 # ---- the owner's 11-15 database (a fork) ----------------------------------------------------------------------
@@ -964,6 +1070,16 @@ def make_plan(a):
         other = "l" if sh == "h" else "h"
         units, notes = plan_shard(sh, infos[sh], infos[other], camps, svs[sh], svs[other], a.ground, fork_units[sh], rnd)
         plans[sh] = (units, notes)
+    for sh in ("h", "l"):
+        other = other_name(sh)
+        ou, on = owner_units(sh, dbs[sh], infos[sh], infos[other], camps)
+        pu, pn = propagate_units(dbs[sh], infos[sh], [(k, g, r) for s2, k, g, r in PROPAGATE if s2 == sh])
+        units, notes = plans[sh]
+        owned = {op[1].get("id") for u in ou + pu for op in u["ops"] if op[0] == "npcs"}
+        units[:] = [u for u in units if not any(op[0] == "npcs" and op[1].get("id") in owned for op in u["ops"])]
+        units += ou + pu
+        for k, n in on + pn:
+            notes[k].append(n)
         doc["shards"][sh] = units
     for c in camps:
         e = dict(key=c["key"], name=c["name"], world=c["world"], x=round(c["x"], 1), z=round(c["z"], 1),
@@ -971,7 +1087,9 @@ def make_plan(a):
         for sh in ("h", "l"):
             s, info = svs[sh][c["key"]], infos[sh]
             units = [u for u in plans[sh][0] if u["camp"] == c["key"]]
-            gone = {u["ops"][0][1]["id"] for u in units if u["what"] == "remove"}
+            ids = {r["id"] for r in s["members"]}
+            gone = {u["ops"][0][1]["id"] for u in units if u["ops"][0][0] == "npcs" and u["ops"][0][3] is None
+                    and u["ops"][0][1]["id"] in ids}
             after = len(s["members"]) - len(gone) + sum(1 for u in units if u["what"] == "add")
             e["per_shard"][sh] = dict(before=len(s["members"]), after=after, now=counts(s["members"]),
                                       behaviour=behaviour(info, s["members"]),

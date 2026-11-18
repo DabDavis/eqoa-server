@@ -55,7 +55,7 @@ const page = `<!DOCTYPE html>
 <main>
   <h1>Bring a character over</h1>
   <div class="card">
-    <p>Played on another server, Sandstorm or elsewhere? Ask for your character here and a GM brings it across.</p>
+    <p>Played on another server? Ask for your character here and a GM brings it across.</p>
     <ol>
       <li>Make the character on this server first, in the game: the same class, and the race and looks you want.</li>
       <li>Sign in below with this server's account and tell us what the character was: its level, its combat mastery points
@@ -95,7 +95,7 @@ const page = `<!DOCTYPE html>
         <p class="small" id="noChars" hidden>You have no character on this server yet: make one in the game first (the same class as the
           one you are bringing), then come back.</p>
         <div class="row">
-          <div><label for="fromServer">From server</label><input id="fromServer" value="Sandstorm" maxlength="32" required></div>
+          <div><label for="fromServer">From server</label><input id="fromServer" placeholder="The server you played on" maxlength="32" required></div>
           <div><label for="fromName">Its name there</label><input id="fromName" maxlength="32" required></div>
         </div>
         <div class="row">

@@ -236,7 +236,7 @@ document.getElementById('f').addEventListener('load', async () => {
     if (!(await wait(() => !$('signedIn').classList.contains('hidden')))) throw new Error('not signed in');
     if (!$('char').textContent.includes('Hero')) throw new Error('no character: ' + $('char').textContent);
     $('fromName').value = '<i>Hero</i>'; $('fromLevel').value = '60'; $('fromCM').value = '1040';
-    $('fromClass').value = 'Shadow Knight';
+    $('fromClass').value = 'Shadow Knight'; $('fromServer').value = 'Another Server';
     $('items').value = 'Tower of Woe\n<b>Slayer Claw Earring</b> x2';
     if (!(await wait(() => !$('questsBox').classList.contains('hidden') && $('choice0')))) throw new Error('no quests offered');
     $('choice0').value = '1';

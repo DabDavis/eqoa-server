@@ -37,6 +37,9 @@ func buildNumberTagsOffer() []byte {
 
 // SendNumberTagsOffer offers the session's client its figures' tags.
 func SendNumberTagsOffer(sess *session.Session) {
+	if !QoLOn() { // world.vanilla_ui (vanillaui.go)
+		return
+	}
 	queueReliable(sess, protocol.OpcodeNumberTagsOffer, buildNumberTagsOffer())
 }
 
@@ -62,6 +65,9 @@ func (h *NumberTagsHandler) HandleNumberTags(sess *session.Session, msg *protoco
 		return nil
 	}
 	layout := min(data[0], numberTagsLayout)
+	if !QoLOn() { // world.vanilla_ui (vanillaui.go)
+		layout = 0
+	}
 	sess.SetNumberTagsLayout(layout)
 	if layout == 0 {
 		log.Printf("NumberTags: %s stopped", sess.RemoteAddr())

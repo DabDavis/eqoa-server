@@ -681,6 +681,18 @@ type WorldConfig struct {
 	// unknown command and the target box the game's, as before.
 	ConLevel bool `yaml:"con_level"`
 
+	// VanillaUI is the game's own UI (handlers/vanillaui.go; the owner,
+	// 2026-11-18, for the Vanilla Test shard: "disable all quality of life
+	// settings like map, minimap, level display, dps meter, custom colors, the
+	// character stats showing 350/500", "also no quest helper"): none of the
+	// server's quality-of-life offers go (others' power, the pet's effects,
+	// the buff window, the number tags, the DPS meter, the monster's details,
+	// the target box's level, the quest marks, tracker and head marks), and a
+	// vanilla client is told to turn off its own (protocol.OpcodeVanillaUI:
+	// the map and minimap, the quest helper, the stat caps, auto-cast...).
+	// Unset or false: everything as before.
+	VanillaUI bool `yaml:"vanilla_ui"`
+
 	// PerpetualAuctions shows and sells the auction house's standing lots
 	// (database/auction_perpetual.go, handlers/auction_perpetual.go): lots
 	// that never end and never run out, a buy at the price filing the items

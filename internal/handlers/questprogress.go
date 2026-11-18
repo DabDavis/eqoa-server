@@ -65,6 +65,9 @@ func buildQuestProgressOffer() []byte {
 
 // SendQuestProgressOffer offers the session's client the quest tracker.
 func SendQuestProgressOffer(sess *session.Session) {
+	if !QoLOn() { // world.vanilla_ui (vanillaui.go)
+		return
+	}
 	queueReliable(sess, protocol.OpcodeQuestProgress, buildQuestProgressOffer())
 }
 
@@ -92,7 +95,7 @@ func (h *QuestProgressHandler) HandleQuestProgress(sess *session.Session, msg *p
 		log.Printf("QuestProgress: short (%d bytes) from %s", len(data), sess.RemoteAddr())
 		return nil
 	}
-	on := binary.LittleEndian.Uint32(data[:4]) != 0
+	on := qolAnswer(binary.LittleEndian.Uint32(data[:4]) != 0)
 	p := h.world.SessionPlayer(sess)
 	q := Quests()
 	if p == nil || q == nil {

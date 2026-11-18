@@ -1072,6 +1072,21 @@ offer, **0x7E4D** answer, a u8 each, sent with the world entry's offers; kept ov
 talk named, the level, the name: `protocol/opcodes.go`) and vanilla shows the two lines in that details box while Q is held; anyone else
 (a PS2, an older vanilla) a dialogue box (0x0046) of the same two lines. The name is cleaned as `consoletext.go` cleans a relayed line.
 
+### The game's own UI on a shard (`handlers/vanillaui.go`, `world.vanilla_ui`)
+
+The owner, 2026-11-18, for the Vanilla Test shard (Live, 10071): "disable all quality of life settings like map, minimap, level display,
+dps meter, custom colors, the character stats showing 350/500", "also no quest helper", then /con, ability bars 3-4 and stacked bars off,
+and the map, minimap and item links "toggled off by default" rather than locked. Set, none of the server's quality-of-life offers go at
+world entry (power bars 0x7E01, pet effects 0x7E32, buff window 0x7E57, number tags 0x7E38, DPS meter 0x7E3A, mob info 0x7E4C (vanilla
+then gets a PS2's dialogue box), the target box's level 0x7E70, quest marks 0x7E03, tracker 0x7E05, head marks 0x7E61); an answer to any
+of them is taken as off (`qolAnswer`), and a keep restart's resume ends what a client had asked for (`stopKeptQoL`) and does not resume
+its quest marks. `/con` is an unknown command for every client whatever `con_level` says (`ConLevelOn`). Item links are still offered and
+relayed. A client that answers the bug report offer 1 (vanilla; never a PS2) is then sent **0x7EA0** (`OpcodeVanillaUI`: u8 version 1,
+u32 bits `QoL*`, twelve): locked off for the session are the quest helper, target level, DPS meter, number colours, stat caps, power
+bars, buff window, pet effects, auto-cast/target and ability bars 3-4/stacked bars; the map and minimap (`QoLMap`) and item links
+(`QoLItemLinks`) are off BY DEFAULT, the player's to turn on there (vanilla's `settings::qol`, kept apart from its other servers'
+choice). Unset (Heirloom), nothing changes and 0x7EA0 is never sent. Tests: `TestVanillaUI*`.
+
 ### The profanity filter from a client's setting (`handlers/profanity.go`)
 
 The GM Jibrish's petition 1490, 2026-11-11: "Under options then interface add an option to turn the profanity filter on or off." The

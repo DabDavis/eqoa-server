@@ -67,7 +67,7 @@ func buildMobInfoOffer() []byte {
 // SendMobInfoOffer offers the session's client a monster's name and level in
 // its own details box, where world.mob_info is on; elsewhere nothing goes.
 func SendMobInfoOffer(sess *session.Session) {
-	if !MobInfoOn() {
+	if !MobInfoOn() || !QoLOn() { // and world.vanilla_ui (vanillaui.go)
 		return
 	}
 	queueReliable(sess, protocol.OpcodeMobInfoOffer, buildMobInfoOffer())
@@ -160,7 +160,7 @@ func (h *MobInfoHandler) HandleMobInfoAnswer(sess *session.Session, msg *protoco
 		log.Printf("MobInfo: short answer (%d bytes) from %s", len(data), sess.RemoteAddr())
 		return nil
 	}
-	on := data[0] != 0
+	on := qolAnswer(data[0] != 0)
 	sess.SetMobInfo(on)
 	log.Printf("MobInfo: %s %s", sess.RemoteAddr(), map[bool]string{true: "shows a monster's in its details box", false: "takes the dialogue box"}[on])
 	return nil

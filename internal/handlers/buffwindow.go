@@ -21,6 +21,9 @@ func buildBuffWindowOffer() []byte {
 
 // SendBuffWindowOffer offers the session's client the buff window's set.
 func SendBuffWindowOffer(sess *session.Session) {
+	if !QoLOn() { // world.vanilla_ui (vanillaui.go)
+		return
+	}
 	queueReliable(sess, protocol.OpcodeBuffWindow, buildBuffWindowOffer())
 }
 
@@ -46,7 +49,7 @@ func (h *BuffWindowHandler) HandleBuffWindow(sess *session.Session, msg *protoco
 		log.Printf("BuffWindow: short (%d bytes) from %s", len(data), sess.RemoteAddr())
 		return nil
 	}
-	on := data[0] != 0
+	on := qolAnswer(data[0] != 0)
 	if !h.world.SetBuffWindow(sess, on) {
 		log.Printf("BuffWindow: %s has no player in the world", sess.RemoteAddr())
 	}

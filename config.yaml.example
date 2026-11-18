@@ -88,6 +88,15 @@ world:
   # target box beside the name. Off unless set: /con is then an unknown command.
   # con_level: true
 
+  # The game's own UI (handlers/vanillaui.go; the Vanilla Test shard, the owner
+  # 2026-11-18): none of the server's quality-of-life offers (others' power,
+  # the pet's effects, the buff window, number colours, the DPS meter, the
+  # monster's details, the target box's level, quest marks, tracker and head
+  # marks), /con an unknown command, and vanilla told (opcode 0x7EA0) to turn
+  # off its own (quest helper, stat caps, auto-cast, bars 3-4...) and to start
+  # the map, minimap and item links off. Off unless set.
+  # vanilla_ui: true
+
   # The auction house's standing lots (handlers/auction_perpetual.go): lots
   # that never end and never run out, a buy at the price putting the items in
   # the buyer's bank and leaving the lot up (tools/ah_materials_20261114.py

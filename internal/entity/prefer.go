@@ -21,6 +21,9 @@ func (w *World) pickEnemyLocked(npc *NPC) EntityID {
 	if id := w.preferredFoeLocked(npc); id != 0 {
 		return id
 	}
+	if id := w.tauntHolderLocked(npc); id != 0 {
+		return id // taunthold.go: a taunt's hold
+	}
 	var top int64
 	var out EntityID
 	for id, t := range npc.Threats {
@@ -28,7 +31,7 @@ func (w *World) pickEnemyLocked(npc *NPC) EntityID {
 			top, out = t, id
 		}
 	}
-	return out
+	return w.tauntStickLocked(npc, out, top) // taunthold.go: a taunter kept until another passes him by 10%
 }
 
 // preferredFoeLocked is the first of npc's template's preferred foes on its hate list that it can fight:

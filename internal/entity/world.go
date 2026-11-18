@@ -1071,6 +1071,7 @@ func (w *World) killNPC(npc *NPC) {
 	npc.CorpseGone = time.Time{}
 	npc.Threats = nil
 	npc.CurrentEnemy = 0
+	npc.taunt = tauntHold{} // taunthold.go
 	npc.stopMoving()
 	npc.roam = roamState{}
 	w.wakeNPCLocked(npc) // a corpse, and its fight to put away (npcsets.go)

@@ -26,6 +26,7 @@ import (
 	"github.com/eqoa/server/internal/formulamode"
 	"github.com/eqoa/server/internal/gmweb"
 	"github.com/eqoa/server/internal/ground"
+	"github.com/eqoa/server/internal/fallen"
 	"github.com/eqoa/server/internal/handlers"
 	"github.com/eqoa/server/internal/mapmarks"
 	"github.com/eqoa/server/internal/network/tcp"
@@ -1118,6 +1119,9 @@ func main() {
 		}
 		accountServer.SendOnly = handlers.IsSendOnlyWorld
 		accountServer.CanLoad = func(serverID uint32, world byte) error {
+			if err := handlers.HardcoreWebTeleport(db, serverID); err != nil {
+				return err // a Hardcore character is moved by no web page (handlers/hcrules.go)
+			}
 			sess := handlers.SessionOfCharacter(gameWorld, sessionMgr, serverID)
 			if handlers.CanLoadWorld(sess, world) {
 				return nil
@@ -1138,6 +1142,11 @@ func main() {
 		accountServer.SpellFX = spellfx.New(db)
 		// the community map marks every vanilla map draws, and their suggestions
 		accountServer.MapMarks = mapmarks.New(db)
+		// the fallen Hardcore heroes' page, this shard's and world.hardcore.other_db's
+		// (internal/fallen); a server with no Hardcore character shows none
+		if fp := fallen.New(db, cfg.World.Hardcore); fp != nil {
+			accountServer.Fallen = fp
+		}
 		// the character transfer page (internal/transfers): a player asks, a GM
 		// decides in the panel, the next login applies it (handlers/transfers.go)
 		charTransfers := transfers.New(db, accountServer.CheckLogin)

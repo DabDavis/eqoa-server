@@ -339,6 +339,16 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 	// a custom race's own options, chosen on a page of a client that was
 	// offered them (raceoptions.go): its body, and the looks its parts take
 	rest, _ := reader.ReadBytes(reader.Remaining())
+	// the Hardcore choice first, from a client that took its offer (hardcore.go)
+	hardcore, hcPresent, hcOK, rest := hardcoreBlock(rest)
+	if hcPresent && (!hcOK || !sess.HardcoreClient() || !HardcoreOn()) {
+		if !hcOK {
+			log.Printf("CreateCharacter: refused '%s': its Hardcore block (%d bytes)", name, len(rest))
+			h.sendCreateRefusal(sess, protocol.OpcodeCreateCharFailed)
+			return nil
+		}
+		hcPresent = false // not offered: a normal character, its choice asked as a PS2's
+	}
 	choices, present, ok := raceOptionsBlock(rest)
 	var chosenBody int64
 	var looks []database.CharLook
@@ -430,6 +440,10 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 	}
 	if err != nil {
 		log.Printf("CreateCharacter: %v", err)
+	}
+
+	if hcPresent && record.ServerID != 0 {
+		h.chooseAtCreation(uint32(record.ServerID), name, hardcore) // hardcore.go
 	}
 
 	count, _ := h.store.Count()
@@ -549,6 +563,11 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 		return nil
 	}
 
+	// A fallen Hardcore character never enters the world again (hardcore.go)
+	if h.hardcoreSelectRefused(sess, record) {
+		return nil
+	}
+
 	// One window a character: an account may have several in the game, each
 	// on its own character. A character still in the world in another
 	// session of this account (its client dropped, or another window has it)
@@ -633,7 +652,8 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	// elsewhere (0x07A4); the account's other windows play on.
 	if h.gameWorld != nil {
 		if player, took := h.gameWorld.TakeOverPlayer(sess, uint32(record.ServerID)); player != nil {
-			h.applyOG(sess, player) // the session's own, an [OG] account's (ogaccount.go)
+			h.applyOG(sess, player)       // the session's own, an [OG] account's (ogaccount.go)
+			h.applyHardcore(sess, player) // a Hardcore character's (hardcore.go)
 			h.gameWorld.SetPlayerLook(uint32(record.ServerID), record.FaceOption, record.HairStyle, record.HairLength, record.HairColor)
 			h.placeTakenOver(sess, player, record)
 			log.Printf("SelectedChar: '%s' (serverID=%d) TAKEN OVER by %s as it stands: %s",
@@ -794,6 +814,8 @@ func (h *CharacterHandler) enterFromRecord(sess *session.Session, record *databa
 		// an [OG] account's: the game's own UI, its name drawn with the tag
 		// (ogaccount.go), before anything is sent of it
 		h.applyOG(sess, player)
+		// a Hardcore character's: its tag and its final death (hardcore.go)
+		h.applyHardcore(sess, player)
 		if player != nil && bonus > 0 {
 			h.gameWorld.RestoreBonusTraining(sess, bonus) // a level it leaves tops up beside them
 		}
@@ -1919,12 +1941,19 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 	// makes the PS2 see half the characters.
 	writer.Write7BitEncodedInt64(int64(len(records)))
 
+	// the characters' Hardcore states (hardcore.go): a PS2's list carries them
+	// in the name, vanilla is sent them after it
+	// (read whether or not world.hardcore is on: a fallen character stays
+	// fallen, and marked, on a shard that turns it off)
+	hcStates := h.hardcoreStates(accountID)
+
 	var capes []listCape // the characters' capes, for a client that draws them (capes.go)
 	wantCapes := readsCapes(sess)
 	for _, c := range records {
 		// Name (int32 length prefix + UTF-8 string)
-		writer.WriteInt32(int32(len(c.CharName)))
-		writer.WriteStringUTF8Raw(c.CharName)
+		listName := listNameFor(sess, c, hcStates)
+		writer.WriteInt32(int32(len(listName)))
+		writer.WriteStringUTF8Raw(listName)
 
 		// Use zigzag encoding for character fields (matches C# Write7BitEncodedInt64)
 		// ModelID is int64 from C# bigint column, cast to int32 for zigzag encoding
@@ -2008,6 +2037,9 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 	// and to a client that took it the list's after every list
 	SendSelectInfoOffer(sess)
 	h.sendSelectInfo(sess, records)
+	// and Hardcore's (hardcore.go): the offer once, the states after every list
+	SendHardcoreOffer(sess)
+	h.sendHardcoreChars(sess, records, hcStates)
 }
 
 // worldPaths maps a world index to the esfPath the client loads it from.

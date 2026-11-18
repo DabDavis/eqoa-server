@@ -401,6 +401,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 			interactHandler.tokenShop.links = chatHandler.links
 		}
 		interactHandler.bugBoard = NewBugBoard(charStore.DB()) // the Bug Finder Leaderboard (bugboard.go)
+		memorialDB.Store(charStore.DB())                       // the Memorial of the Fallen, the Hardcore Leaderboard (memorial.go)
 		equipHandler.training = charStore
 		interactHandler.binds = charStore
 		// the stables' ledgers (coachledger.go)
@@ -544,6 +545,15 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		interactHandler.welcome, chatHandler.welcome = welcome, welcome
 		gameWorld.OnPlayerEntered(welcome.Entered)
 
+		// [HC] Hardcore (hardcore.go): a fall's record, announcement and
+		// logout; the time played; the choice a new character's first entry
+		// asks (hardcoreask.go) and its answers, /hardcore
+		gameWorld.OnHardcoreFall(charHandler.hardcoreFell)
+		gameWorld.OnPlayerLeaving(hardcoreLeft(charStore.DB()))
+		hcAsk := NewHardcoreAsk(gameWorld, charStore.DB())
+		hardcoreAsker.Store(hcAsk)
+		gameWorld.OnPlayerEntered(hcAsk.Entered)
+
 		// the GMs' announcement at login, the login's last line, and
 		// #announce (loginannounce.go; petition 2120)
 		announces := NewLoginAnnounces(charStore.DB())
@@ -660,6 +670,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	NewCapesHandler(charHandler).RegisterHandlers(r)
 	// more of each character at select (0x7E67; selectinfo.go): the answer to its offer
 	NewSelectInfoHandler(charHandler).RegisterHandlers(r)
+	// [HC] Hardcore (hardcore.go): the offer's answer
+	NewHardcoreHandler(charHandler).RegisterHandlers(r)
 	// a pack and a bank past CLIENT's 40 (0x7E29; itemlists.go): the answer to
 	// their offer, on a server with world.pack_slots or world.bank_slots
 	NewItemListsHandler().RegisterHandlers(r)

@@ -248,3 +248,57 @@ func fallenList(q *sql.DB, limit int) ([]FallRecord, error) {
 	}
 	return out, rows.Err()
 }
+
+// LivingHero is a living Hardcore character as the leaderboard ranks it.
+type LivingHero struct {
+	ServerID    uint32
+	Name        string
+	Level       int
+	Class, Race int
+	CMs         int
+	TotalXP     int64
+	Born        int64 // Unix seconds; 0 unknown
+	Played      int64 // seconds, at its last logout
+}
+
+// LivingHardcore is the shard's living Hardcore characters ranked: by level,
+// then Combat Mastery points earned (charmastery's points + spent), then total
+// experience, then the longest alive (the earliest made); at most limit (0: all).
+func (db *SQLiteDB) LivingHardcore(limit int) ([]LivingHero, error) {
+	return livingHardcore(db.DB, limit)
+}
+
+// LivingHardcoreOf is LivingHardcore on any database (another shard's).
+func LivingHardcoreOf(q *sql.DB, limit int) ([]LivingHero, error) {
+	if ok, err := hasColumn(q, "characters", "fallen_played"); err != nil || !ok {
+		return nil, err
+	}
+	return livingHardcore(q, limit)
+}
+
+func livingHardcore(q *sql.DB, limit int) ([]LivingHero, error) {
+	query := `SELECT c.serverid, c.charName, c.level, c.tclass, c.race, COALESCE(m.points, 0) + COALESCE(m.spent, 0),
+		COALESCE(c.totalXP, 0), COALESCE(c.hc_born, 0), COALESCE(c.hc_played, 0)
+		FROM characters c LEFT JOIN charmastery m ON m.serverid = c.serverid
+		WHERE c.hardcore = 1 AND COALESCE(c.fallen_at, 0) = 0
+		ORDER BY c.level DESC, 6 DESC, 7 DESC, CASE WHEN COALESCE(c.hc_born, 0) = 0 THEN 1 ELSE 0 END, c.hc_born ASC, c.serverid ASC`
+	var args []any
+	if limit > 0 {
+		query += ` LIMIT ?`
+		args = append(args, limit)
+	}
+	rows, err := q.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []LivingHero
+	for rows.Next() {
+		var h LivingHero
+		if err := rows.Scan(&h.ServerID, &h.Name, &h.Level, &h.Class, &h.Race, &h.CMs, &h.TotalXP, &h.Born, &h.Played); err != nil {
+			return nil, err
+		}
+		out = append(out, h)
+	}
+	return out, rows.Err()
+}

@@ -361,6 +361,9 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 	}
 
 	// The Bug Finder Leaderboard (bugboard.go): the players who reported the most bugs.
+	if npc, ok := targetEntity.(*entity.NPC); ok && (memorialTalk(sess, player, npc) || leaderboardTalk(sess, player, npc)) { // the Memorial of the Fallen, the Hardcore Leaderboard (memorial.go)
+		return nil
+	}
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.bugBoard.Talk(sess, player, npc) {
 		return nil
 	}
@@ -687,6 +690,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// the welcome guide's (welcome.go); an old one does nothing
 	if h.welcome.Answer(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// the Hardcore choice's (hardcoreask.go); an old one does nothing
+	if hardcoreAnswer(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// A rehabilitator's question (rehab.go); an old one does nothing.

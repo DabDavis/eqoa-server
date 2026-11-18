@@ -106,6 +106,11 @@ type AccountServer struct {
 	// and /api/transfer/... (internal/transfers); nil: none.
 	Transfers TransferRoutes
 
+	// Fallen serves the Hardcore heroes' page, /hardcore (/fallen sends its
+	// reader there) and /api/hardcore (internal/fallen): read-only, no account
+	// data; nil: none.
+	Fallen FallenPages
+
 	// SpellFX serves the community spell-visual page's two routes,
 	// /api/spellfx/spells and /api/spellfx/suggest (package spellfx), the
 	// suggestion handed the client's address as getClientIP reads it. Nil:
@@ -220,6 +225,12 @@ func (s *AccountServer) checkPassword(r *http.Request, account *database.Account
 		s.Limiter.Succeed(ip, username)
 	}
 	return true, ""
+}
+
+// FallenPages is the fallen Hardcore heroes' page (internal/fallen).
+type FallenPages interface {
+	ServePage(w http.ResponseWriter, r *http.Request)
+	ServeAPI(w http.ResponseWriter, r *http.Request)
 }
 
 // TransferRoutes is the character transfer page (internal/transfers).
@@ -346,6 +357,31 @@ func (s *AccountServer) Handler() http.Handler {
 		}
 		s.MapMarks.ServeSuggest(w, r, s.getClientIP(r))
 	})
+	// the Hardcore heroes (internal/fallen), anyone's to read: the page, its
+	// old name sent on to it, and its API
+	mux.HandleFunc("/hardcore", func(w http.ResponseWriter, r *http.Request) {
+		if s.Fallen == nil {
+			http.NotFound(w, r)
+			return
+		}
+		s.Fallen.ServePage(w, r)
+	})
+	mux.HandleFunc("/fallen", func(w http.ResponseWriter, r *http.Request) {
+		if s.Fallen == nil {
+			http.NotFound(w, r)
+			return
+		}
+		http.Redirect(w, r, "hardcore", http.StatusMovedPermanently)
+	})
+	for _, path := range []string{"/api/hardcore", "/api/fallen"} {
+		mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+			if s.Fallen == nil {
+				http.NotFound(w, r)
+				return
+			}
+			s.Fallen.ServeAPI(w, r)
+		})
+	}
 	// the character transfer page and its routes (internal/transfers)
 	mux.HandleFunc("/transfer", func(w http.ResponseWriter, r *http.Request) {
 		if s.Transfers == nil {

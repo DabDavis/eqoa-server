@@ -49,8 +49,9 @@ const PaperedBoardBody uint32 = 0x260EB42F
 var boardTops = map[uint32]float32{PaperedBoardBody: 3.0, SignpostBody: 3.766, 0x6DE5B2CC: 1.75}
 
 // boardNamed is a board by its name: "... Announcements" (and Surefall's
-// "Anouncements"), "... Board", "... Listings".
-var boardNamed = regexp.MustCompile(`(?i)(\bann?ouncements?|\bboard|\blistings?)\s*$`)
+// "Anouncements"), "... Board", "... Listings", and the Memorial of the Fallen
+// (the Hardcore characters' headstone in Freeport: handlers/memorial.go).
+var boardNamed = regexp.MustCompile(`(?i)((\bann?ouncements?|\bboard|\blistings?)\s*$|^\s*memorial of the fallen\s*$)`)
 
 // humanPlate is where the human's plate stands over its feet at size 1: its
 // name node at rest (1.499) and the plate 0.6 over it (vanilla's, scaled with

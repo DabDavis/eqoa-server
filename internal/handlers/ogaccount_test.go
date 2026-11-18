@@ -187,9 +187,9 @@ func TestApplyOGReadsTheAccount(t *testing.T) {
 	if plain.OG() || pp.OG || pp.ShownName() != "Bob" {
 		t.Fatalf("another account: session %v, drawn %q", plain.OG(), pp.ShownName())
 	}
-	// a GM's [OG] account: both tags, the GM's first
+	// a GM's [OG] account: both tags joined, the GM's first (entity/hardcore.go)
 	po.GM = true
-	if got := po.ShownName(); got != "[GM] [OG] Meshuggah" {
+	if got := po.ShownName(); got != "[GM][OG] Meshuggah" {
 		t.Fatalf("a GM's: %q", got)
 	}
 	po.GM = false
@@ -249,18 +249,19 @@ func TestOGTagKeepsNamesForTellsAndInvites(t *testing.T) {
 // The lists vanilla keys by the name it draws carry every form: the plain
 // name always, the tagged ones only where the tag is drawn.
 func TestShownNamesForTheLists(t *testing.T) {
-	if got := entity.ShownNames("Meshuggah", false, true); !slices.Equal(got, []string{"Meshuggah"}) {
+	if got := entity.ShownNames("Meshuggah", false, true, false); !slices.Equal(got, []string{"Meshuggah"}) {
 		t.Fatalf("switch off: %q", got)
 	}
 	ogSwitch(t)
-	if got := entity.ShownNames("Meshuggah", false, true); !slices.Equal(got, []string{"Meshuggah", "[OG] Meshuggah"}) {
+	if got := entity.ShownNames("Meshuggah", false, true, false); !slices.Equal(got, []string{"Meshuggah", "[OG] Meshuggah"}) {
 		t.Fatalf("[OG]: %q", got)
 	}
-	if got := entity.ShownNames("Abcdefghijklmno", true, true); !slices.Equal(got,
-		[]string{"Abcdefghijklmno", "[OG] Abcdefghijklmno", "[GM] Abcdefghijklmno", "[GM] [OG] Abcdefghijklm"}) {
+	// the tags joined, the space dropped for a full name (entity/hardcore.go's composeTags)
+	if got := entity.ShownNames("Abcdefghijklmno", true, true, false); !slices.Equal(got,
+		[]string{"Abcdefghijklmno", "[GM] Abcdefghijklmno", "[GM][OG]Abcdefghijklmno", "[OG] Abcdefghijklmno"}) {
 		t.Fatalf("a GM's [OG] with a full name: %q", got)
 	}
-	if got := entity.ShownNames("Bob", true, false); !slices.Equal(got, []string{"Bob", "[GM] Bob"}) {
+	if got := entity.ShownNames("Bob", true, false, false); !slices.Equal(got, []string{"Bob", "[GM] Bob"}) {
 		t.Fatalf("a GM's: %q", got)
 	}
 }

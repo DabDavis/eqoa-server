@@ -426,9 +426,7 @@ func (h *CharacterHandler) hardcoreFell(sess *session.Session, f entity.Hardcore
 	line := HardcoreFallLine(rec)
 	log.Printf("Hardcore: FALL %s (serverid %d, level %d %s, %d CMs, %ds played): %s [%s]", f.Name, f.CharServerID, f.Level,
 		entity.ClassName(f.Class), rec.CMs, rec.Played, line, f.Cause)
-	if h.gameWorld != nil {
-		h.gameWorld.AnnounceAll(line, hardcoreAnnounceRGB)
-	}
+	announceFall(h.gameWorld, line)
 	if sess == nil {
 		return
 	}
@@ -460,4 +458,26 @@ func buildHardcoreFall(f database.FallRecord, wait time.Duration) []byte {
 	b = appendStr8(b, f.Killer)
 	b = appendStr8(b, f.Place)
 	return binary.LittleEndian.AppendUint16(b, uint16(min(int(wait/time.Second), 65535)))
+}
+
+// announceFall tells the shard a fall: in the Hardcore channel to the living
+// Hardcore (hcchat.go), in dark red to everyone else in the world.
+func announceFall(gw *entity.World, line string) {
+	if gw == nil {
+		return
+	}
+	sessions := playerSessions(gw)
+	gw.ForEachPlayer(func(p *entity.Player) {
+		s := sessions[p.ServerID]
+		if s == nil || s.PendingTermination() {
+			return
+		}
+		text, rgb := line, hardcoreAnnounceRGB
+		if p.Hardcore && !p.Fallen {
+			text, rgb = entity.HCTag+line, hcChatRGB
+		}
+		msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeColoredChat)
+		msg.SetData(coloredChatPayload(text, rgb[0], rgb[1], rgb[2]))
+		s.Queue().AddWithSequence(msg)
+	})
 }

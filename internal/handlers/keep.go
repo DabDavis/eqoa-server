@@ -337,6 +337,13 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 	if acct := sess.AccountID(); acct == 0 || record.AccountID != acct {
 		return nil, fmt.Errorf("character %d ('%s') is account %d's, the session's is %d", record.ServerID, record.CharName, record.AccountID, acct)
 	}
+	if h.store.DB() != nil {
+		// a fallen Hardcore character is never put back (hardcore.go): its
+		// client is told the server went down, and its login refuses it
+		if st, err := h.store.DB().HardcoreOf(uint32(record.ServerID)); err == nil && st.Fallen() {
+			return nil, fmt.Errorf("character %d ('%s') is a fallen Hardcore character", record.ServerID, record.CharName)
+		}
+	}
 	if record.CharName != kp.Name && kp.Name != "" {
 		return nil, fmt.Errorf("character %d is '%s' now, it was '%s'", record.ServerID, record.CharName, kp.Name)
 	}

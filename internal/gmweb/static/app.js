@@ -19,6 +19,7 @@ const NAV = [
     ['petitions', 'Petitions', 'send'],
     ['transfers', 'Character transfers', 'users'],
     ['pwresets', 'Password resets', 'lock'],
+    ['fallen', 'Hardcore heroes', 'skull'],
     ['emails', 'E-mail', 'send'],
   ]],
   ['World', [
@@ -82,6 +83,7 @@ const VIEWS = {
   petitions: () => import('./views/petitions.js'),
   transfers: () => import('./views/transfers.js'),
   pwresets: () => import('./views/pwresets.js'),
+  fallen: () => import('./views/fallen.js'),
   emails: () => import('./views/emails.js'),
   npcs: () => import('./views/npcs.js'),
   merchants: () => import('./views/merchants.js'),

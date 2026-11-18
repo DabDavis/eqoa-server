@@ -424,6 +424,17 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		h.welcome.Show(sess, player)
 		return
 	}
+	// /hcchat and /hc (#hc from a PS2, or "/t hc ..."): the Hardcore channel (hcchat.go)
+	if text, ok := hcChatText(message); ok {
+		h.hcChat(sess, player, text)
+		return
+	}
+	// /hardcore (or #hardcore, a PS2's "/t hardcore"): the Hardcore choice's box
+	// while a character is new, else what it is (hardcoreask.go)
+	if hardcoreLine(message) {
+		hardcoreCommand(sess, player)
+		return
+	}
 
 	// GM commands start with #
 	if strings.HasPrefix(message, "#") {

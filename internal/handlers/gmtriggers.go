@@ -1117,6 +1117,15 @@ func (e *TriggerEngine) awaitMetLocked(r *triggerRun) bool {
 	case database.TriggerAwaitKill:
 		want := max(s.Count, 1)
 		names := database.SplitNames(s.NPC)
+		if s.Gone {
+			standing := 0
+			for _, n := range names {
+				standing += e.gw.CountNear(n, r.world, r.x, r.z, e.reachOf(r, *s))
+			}
+			if standing == 0 {
+				return true
+			}
+		}
 		got := map[string]int{}
 		total := 0
 		for _, d := range r.died {

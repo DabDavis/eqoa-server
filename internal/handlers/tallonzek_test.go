@@ -301,8 +301,9 @@ func TestTheZekSentrysDeathFlagsTheRaid(t *testing.T) {
 
 // The tool's rows walked on the triggers (EQOA_TZ_DB: a shard's copy the tool was
 // applied to): four troops' deaths stand the sergeant, his the portal at the camp, the
-// portal gone ends the run; the fortress stands its two wards with the sentry and
-// takes them at its death; Tallon spoken to leaves after 20 minutes unfought.
+// portal gone ends the run; the fortress spawns no sentry and waits on the standing
+// one's death (the Rages crumbling then), or goes on at once when none stands; Tallon
+// spoken to leaves after 20 minutes unfought.
 func TestTallonZekToolDataWalk(t *testing.T) {
 	src := os.Getenv("EQOA_TZ_DB")
 	if src == "" {
@@ -345,7 +346,7 @@ func TestTallonZekToolDataWalk(t *testing.T) {
 		if probs := database.TriggerProblems(database.GMTrigger{Slot: tr.slot, Name: tr.name, Scope: tr.scope, World: tr.world, Steps: tr.steps}); len(probs) > 0 {
 			t.Fatalf("trigger %q's problems: %v", tr.name, probs)
 		}
-		for _, n := range []string{"Zek Sergeant", "Portal of Tallon", "Zek sentry", "Tallon's ward", "Tallon's Rage", "Zek captain",
+		for _, n := range []string{"Zek Sergeant", "Portal of Tallon", "Tallon's Rage", "Zek captain",
 			"Zek hall guard", "fortress golem", "Zek archer"} {
 			if strings.Contains(tr.steps, `"npc":"`+n+`"`) && !names[n] {
 				names[n] = true
@@ -405,33 +406,59 @@ func TestTallonZekToolDataWalk(t *testing.T) {
 		t.Fatal("the sergeant's run outlived its portal")
 	}
 
-	// the fortress
+	// the fortress: the standing sentry at the door
+	if strings.Contains(trigs[0].steps+trigs[1].steps, `"npc":"Tallon's ward"`) ||
+		strings.Contains(trigs[0].steps+trigs[1].steps, `"do":"spawn","npc":"Zek sentry"`) {
+		t.Fatal("the fortress's run still spawns a sentry or wards")
+	}
+	sentry := &entity.NPC{ServerID: id, Name: "Zek sentry", HP: 1000, MaxHP: 1000, Level: 64,
+		X: 4737.8, Y: 218.3, Z: 7618.7, World: 5}
+	w.gw.NPCs[id] = sentry
+	id++
 	rs, rp := w.join(10, "Raider", 4730, 7600, 5)
 	if _, err := w.e.FireNamed("Tallon's Fortress", TriggerFirer{Name: rp.Name, Sess: rs, Player: rp, Quiet: true}); err != nil {
 		t.Fatal(err)
 	}
-	if w.alive("Zek sentry") != 1 || w.alive("Tallon's ward") != 2 {
-		t.Fatalf("woken: sentry %d, wards %d", w.alive("Zek sentry"), w.alive("Tallon's ward"))
+	if w.alive("Zek sentry") != 0 || w.alive("Tallon's Rage") != 5 {
+		t.Fatalf("woken: spawned sentries %d, Rages %d", w.alive("Zek sentry"), w.alive("Tallon's Rage"))
 	}
-	for _, s := range w.spawned() {
-		if s.Name == "Tallon's ward" && (s.X < 4730 || s.X > 4736 || s.Z < 7660 || s.Z > 7681) {
-			t.Errorf("a ward at (%.1f, %.1f), off the ramp", s.X, s.Z)
-		}
-	}
-	w.kill(w.first("Zek sentry"))
 	w.at(7 * time.Second)
-	if n := w.alive("Tallon's ward"); n != 0 {
-		t.Fatalf("%d wards outlive the sentry", n)
+	if w.alive("Tallon's Rage") != 5 {
+		t.Fatal("the Rages crumbled with the sentry alive")
+	}
+	w.kill(sentry)
+	w.e.Killed(entity.KillCredit{NPCName: sentry.Name, NPCID: sentry.ServerID})
+	w.at(8 * time.Second)
+	if n := w.alive("Tallon's Rage"); n != 0 {
+		t.Fatalf("%d Rages outlive the sentry", n)
 	}
 	if !w.e.Talk(rs, rp, tallon) {
 		t.Fatal("Tallon's run did not answer the talk")
 	}
-	w.at(7*time.Second + 19*time.Minute)
+	w.at(8*time.Second + 19*time.Minute)
 	if w.alive("Tallon Zek") != 1 {
 		t.Fatal("Tallon gone inside his window")
 	}
-	w.at(7*time.Second + 21*time.Minute)
+	w.at(8*time.Second + 21*time.Minute)
 	if w.alive("Tallon Zek") != 0 {
 		t.Fatal("Tallon unfought for 20 minutes: still there")
+	}
+}
+
+// An awaitkill with gone: met at once when no living NPC of its name stands in the
+// run's reach (the sentry dead before the fortress woke); the control without it waits.
+func TestTriggerAwaitKillGoneWhenNoneStands(t *testing.T) {
+	for _, gone := range []bool{true, false} {
+		w := newTrigWorld(t)
+		w.set(20, "Gone", "near", 50, fmt.Sprintf(`[{"do":"awaitkill","npc":"Zek sentry","any":true,"gone":%v},{"do":"broadcast","text":"open"}]`, gone))
+		if _, err := w.fire(20); err != nil {
+			t.Fatal(err)
+		}
+		w.clear()
+		w.at(time.Second)
+		heard := strings.Join(yellow(t, w.ps), "|")
+		if gone != strings.Contains(heard, "open") {
+			t.Errorf("gone %v: heard %q", gone, heard)
+		}
 	}
 }

@@ -89,3 +89,40 @@ func TestMoveCheckStopsAtADoorsBlockerWhileItStands(t *testing.T) {
 		t.Fatalf("with the ward gone: %d not taken (%s)", n, r.p.mv.why)
 	}
 }
+
+// A door's ward (doorwards.go) stands while its guardian lives within reach, is out of
+// the world (hiddenAt) while it is dead, and back at its respawn; a ward with no guardian
+// near is down.
+func TestADoorsWardStandsWhileItsGuardianLives(t *testing.T) {
+	w := NewWorld()
+	ward := &NPC{ServerID: 9100, Name: "Tallon's ward", ModelID: int64(BlockerBody), NPCType: 0x80, Size: 3,
+		X: 4733, Y: 221, Z: 7663, World: 5, HP: 1, MaxHP: 1}
+	far := &NPC{ServerID: 9102, Name: "Tallon's ward", ModelID: int64(BlockerBody), NPCType: 0x80, Size: 3,
+		X: 9000, Y: 0, Z: 9000, World: 5, HP: 1, MaxHP: 1}
+	sentry := &NPC{ServerID: 9101, Name: "Zek sentry", X: 4737.8, Y: 218.3, Z: 7618.7, World: 5, HP: 100, MaxHP: 100}
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	for _, n := range []*NPC{ward, far, sentry} {
+		w.putNPCLocked(n)
+		w.SpatialIndex.Insert(n.ServerID, n.X, n.Z)
+	}
+	now := time.Now()
+	tick := func() {
+		w.TickCount = (w.TickCount/doorWardEvery + 1) * doorWardEvery
+		w.doorWardSystem(now)
+	}
+	tick()
+	if ward.hiddenAt(now) || !far.hiddenAt(now) {
+		t.Fatalf("sentry alive: ward hidden %v, far ward hidden %v", ward.hiddenAt(now), far.hiddenAt(now))
+	}
+	sentry.Dead, sentry.HP = true, 0
+	tick()
+	if !ward.hiddenAt(now) {
+		t.Fatal("the ward stands with its sentry dead")
+	}
+	sentry.Dead, sentry.HP = false, 100
+	tick()
+	if ward.hiddenAt(now) {
+		t.Fatal("the ward is down with its sentry respawned")
+	}
+}

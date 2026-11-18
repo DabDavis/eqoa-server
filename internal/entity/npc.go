@@ -245,6 +245,9 @@ type NPC struct {
 	// the GM panel changed leaves each client's channels and comes back as
 	// a new entity, made from its new record.
 	HiddenUntil time.Time
+	// wardDown is a door's ward held out of the world while its guardian is dead
+	// (doorwards.go)
+	wardDown bool
 
 	// SpawnOnly keeps it out of the world for good (spawnonly.go, table
 	// npcspawnonly): the original a quest's spawn event copies, in no view,

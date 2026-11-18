@@ -43,6 +43,7 @@ type World struct {
 	Players        map[EntityID]*Player
 	NPCs           map[EntityID]*NPC
 	SpatialIndex   *QuadTree
+	wardIDs        map[EntityID]string // the door wards, by row, and their guardians (doorwards.go)
 	SessionManager *session.Manager
 	TickCount      uint64
 	nextEntityID   EntityID

@@ -204,6 +204,9 @@ type TriggerStep struct {
 	// quest, a death) passes it by. A talk start with no text lets the NPC answer as
 	// ever (its quests, its lines) after the firing; with text that is its answer
 	Start bool `json:"start,omitempty"`
+	// Gone (awaitkill): met at once, too, while no living NPC of its names stands within the
+	// run's reach (a standing guardian already dead when the run came: Tallon's Zek sentry)
+	Gone bool `json:"gone,omitempty"`
 	// Fail (awaitdead, awaitkill, awaitnear with seconds): its seconds run out with what
 	// it waits on not done, the run fails: this text in a window to its players, its
 	// spawns taken away, the rest left undone (Night 3's bishops, dead before the dukes

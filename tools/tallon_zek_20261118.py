@@ -26,20 +26,27 @@ that post describes"), on top of the guide-gaps set `tallon` (tools/guidegaps/ta
                 Tallon's Bent Key: "the person with the key will now get a popup that states you have given away the
                 key, and received 'Tallon's Bent Key' in exchange, and that the fortress is now attackable"; its events
                 as before (the fortress's and the post's triggers).
-  The sentry    npcaggro: see_invis 1 ("He's sees through invis"), holds 1 (this branch: "cannot be pulled out of
-                position"); its template a second breath, out of reach (range 80, in its sight: "he will not move nor
-                cast if you are out of sight"). The fortress's run (trigger "Tallon's Fortress") stands two "Tallon's
-                ward" blockers (CHAR.ESF 0x6F412342, size 3: a box 15 a side, collision only) on the fortress's one way
-                in, the narrow ramp up from the plateau (x 4730-4736, z 7660-7690, 218 -> 232; a walk of the ground
-                from the port-in reaches the first floor through it alone) with the sentry, and takes them away at its
-                death ("the zek sentry step should place a bbox in front of the castle door until defeated", the owner).
-                Its death puts every player of the kill on step 6 (raidportal.go's raidKillFlags).
+  The sentry    a STANDING creature at the fortress door (the owner, 2026-11-18: "make mine the permanent delete
+                other"): Heirloom's row as he /placed it at 03:36 UTC (4737.8, 218.3, 7618.7, facing 131; audit 106933),
+                on Live a copy of Live's sentry row made there (as /place makes one: npcstands too); the old spawn-only
+                row at the foot of the slope (4750, 175.7, 7480) deleted on both, its npcrespawn and the name's
+                npcspawnonly row with it. Its respawn 3 hours (npcrespawn 10800, ours: past the fortress run's 2 hours;
+                the rows' 90 s of a named would raise it under a raid). npcaggro: see_invis 1 ("He's sees through
+                invis"), holds 1 ("cannot be pulled out of position"); its template a second breath, out of reach
+                (range 80, in its sight: "he will not move nor cast if you are out of sight").
+                Two "Tallon's ward" rows (CHAR.ESF 0x6F412342, size 3: a box 15 a side, collision only) on the
+                fortress's one way in, the narrow ramp up from the plateau (x 4730-4736, z 7660-7690, 218 -> 232; a
+                walk of the ground from the port-in reaches the first floor through it alone): entity/doorwards.go
+                keeps them out of the world while no living Zek sentry stands within 120, so its death opens the door
+                and its respawn shuts it. The fortress's run no longer spawns a sentry: its "awaitdead" of the sentry is
+                an awaitkill of the standing one (gone: met at once when none stands, the Rages crumbling then).
+                Its death puts every player of the kill on step 6 (handlers/raidportal.go's raidKillFlags).
   Tallon        his spawn stays the run (120 minutes) with an engage window of 20 (this branch's spawn `engage`): not
                 fought for 20 minutes, or 20 after a fight ends alive, he leaves; never in a fight (the post's five).
 
 Report only by default; --apply in one transaction, a gm_audit line a row, log tallon_zek_1118_log; --undo exact (the
-npcaggro holds column it may add stays, as the server's start makes it). Characters on step 3 or 4 of 101327 at the
-apply are refused (step 3's give and step 4's key change under them): finish or move them first.
+npcaggro holds column it may add stays, as the server's start makes it). A character on step 4 of 101327 without
+Tallon's Key is refused (step 4 now takes it): move it first.
 
     python3 -E -s tools/tallon_zek_20261118.py --db eqoa.db [--apply | --undo]
 """
@@ -60,6 +67,10 @@ KEY_ICON = -441710123
 WARD = "Tallon's ward"
 WARD_SPOTS = [(4733.0, 221.0, 7663.0), (4733.0, 228.0, 7678.0)]
 WARD_SIZE = 3.0
+OLD_SENTRY = (4750.0, 175.7, 7480.0)
+SENTRY_AT = (4737.76416015625, 218.250946044922, 7618.66943359375)
+SENTRY_FACING = 131
+SENTRY_RESPAWN = 10800.0
 BLOCKER = 0x6F412342
 SERGEANT_SLOTS = range(290, 300)
 SERGEANT_TRIGGER = "Zek Sergeant"
@@ -85,26 +96,24 @@ def one(db, sql, args, what, refusals):
     return r[0]
 
 
-def fortress_steps(steps, ward_ok):
-    """Trigger 130's steps with the wards and Tallon's window, from the guide-gaps set's steps; None if not those."""
-    out, seen = [], {"sentry": 0, "dead": 0, "tallon": 0}
+def fortress_steps(steps):
+    """Trigger 130's steps for the standing sentry, from the guide-gaps set's or the first build's; None if neither."""
+    out, seen = [], {"dead": 0, "tallon": 0}
     for s in steps:
-        if s.get("do") == "spawn" and s.get("npc") == WARD:
-            return None  # ours already: the caller compares
-        out.append(dict(s))
-        if s.get("do") == "spawn" and s.get("npc") == "Zek sentry":
-            seen["sentry"] += 1
-            for x, y, z in WARD_SPOTS:
-                out.append({"do": "spawn", "npc": WARD, "spread": 0.01, "minutes": 120, "world": 5,
-                            "x": x, "y": y, "z": z, "face": "north"})
-        elif s.get("do") == "awaitdead" and s.get("npc") == "Zek sentry":
+        if s.get("npc") == WARD or (s.get("do") == "spawn" and s.get("npc") == "Zek sentry"):
+            continue  # no spawned sentry, no spawned wards: the standing ones
+        if s.get("do") == "awaitdead" and s.get("npc") == "Zek sentry":
             seen["dead"] += 1
-            out.append({"do": "despawn", "npc": WARD})
-        elif s.get("do") == "spawn" and s.get("npc") == "Tallon Zek":
+            out.append({"do": "awaitkill", "npc": "Zek sentry", "count": 1, "any": True, "gone": True})
+            continue
+        if s.get("do") == "awaitkill" and s.get("npc") == "Zek sentry":
+            seen["dead"] += 1
+        s = dict(s)
+        if s.get("do") == "spawn" and s.get("npc") == "Tallon Zek":
             seen["tallon"] += 1
-            out[-1]["minutes"] = 120
-            out[-1]["engage"] = 20
-    if seen != {"sentry": 1, "dead": 1, "tallon": 1}:
+            s["minutes"], s["engage"] = 120, 20
+        out.append(s)
+    if seen != {"dead": 1, "tallon": 1}:
         return None
     return out
 
@@ -123,7 +132,14 @@ def changes(db):
         refusals.append(f"Zek troops at the camp: {len(troops)}, not 4")
     sgt = one(db, "SELECT * FROM npcs WHERE npc_name = 'Zek Sergeant' AND world = 0", (), "the Zek Sergeant", refusals)
     portal = one(db, "SELECT * FROM npcs WHERE npc_name = 'Portal of Tallon' AND world = 0", (), "the Portal of Tallon", refusals)
-    sentry = one(db, "SELECT * FROM npcs WHERE npc_name = 'Zek sentry' AND world = 5", (), "the Zek sentry", refusals)
+    sentries = tr.rows(db, "SELECT * FROM npcs WHERE npc_name = 'Zek sentry' AND world = 5")
+    near = lambda r, p: abs(r["x_coord"] - p[0]) < 1 and abs(r["y_coord"] - p[1]) < 1 and abs(r["z_coord"] - p[2]) < 1
+    old_s = [r for r in sentries if near(r, OLD_SENTRY)]
+    mine = [r for r in sentries if near(r, SENTRY_AT)]
+    if len(old_s) + len(mine) != len(sentries) or len(mine) > 1 or len(old_s) > 1 or not sentries:
+        refusals.append("the Zek sentry rows are not the old spawn-only one and the owner's at the door: " +
+                        str([(r["id"], round(r["x_coord"], 1), round(r["z_coord"], 1)) for r in sentries]))
+    sentry = (mine or old_s or [None])[0]
     fort = one(db, "SELECT * FROM gmtriggers WHERE name = ?", (FORT,), f"trigger {FORT!r}", refusals)
     tmpl = one(db, "SELECT name, abilities FROM classtemplates WHERE name = 'zek sentry'", (), "template zek sentry", refusals)
     aggro = one(db, "SELECT * FROM npcaggro WHERE npc_name = 'zek sentry'", (), "npcaggro zek sentry", refusals)
@@ -135,11 +151,11 @@ def changes(db):
     if refusals:
         return out, lines, refusals, False
 
-    # characters a step's change would catch mid-way (the steps as found, not ours yet)
-    mine = steps[4]["items"] == str(key["patternid"])
-    if not mine:
-        for r in tr.rows(db, "SELECT serverid, step FROM charquests WHERE questid = ? AND step IN (3, 4)", (QUEST,)):
-            refusals.append(f"character {r['serverid']} is on step {r['step']} of {QUEST}: finish or move it first")
+    # a character on step 4 without the key would be held there (step 4 now takes it)
+    for r in tr.rows(db, "SELECT q.serverid FROM charquests q WHERE q.questid = ? AND q.step = 4 AND NOT EXISTS "
+                         "(SELECT 1 FROM charinventory i WHERE i.serverid = q.serverid AND i.patternid = ?)",
+                     (QUEST, key["patternid"])):
+        refusals.append(f"character {r['serverid']} is on step 4 of {QUEST} without Tallon's Key: move it first")
 
     # the items
     out.append(("itempattern", {"patternid": key["patternid"]}, {"trade": 1, "rent": 0, "lore": 1, "itemicon": KEY_ICON}))
@@ -150,19 +166,42 @@ def changes(db):
     out.append(("npcs", {"id": sgt["id"]}, {"npc_level": 64}))
     # held out: the sergeant, the portal, the ward
     for name, note in (("zek sergeant", "Spawned by trigger 'Zek Sergeant' at the fourth troop's death (t218)."),
-                       ("portal of tallon", "Spawned by trigger 'Zek Sergeant' at the sergeant's death, 15 minutes (t218)."),
-                       ("tallon's ward", "The fortress door's blocker, stood by trigger 'Tallon's Fortress' while the sentry lives.")):
+                       ("portal of tallon", "Spawned by trigger 'Zek Sergeant' at the sergeant's death, 15 minutes (t218).")):
         out.append(("npcspawnonly", {"name": name}, {"name": name, "note": note, "source": SRC}))
-    # the ward's row: an invisible wall's, on the fortress's ramp
-    ward = tr.rows(db, "SELECT * FROM npcs WHERE npc_name = ? AND world = 5", (WARD,))
-    if len(ward) > 1:
-        refusals.append(f"{len(ward)} rows of {WARD!r}")
-    wid = ward[0]["id"] if ward else db.execute("SELECT max(id) FROM npcs").fetchone()[0] + 1
-    w = dict(wall[0])
-    w.update({"id": wid, "npc_name": WARD, "world": 5, "zone": sentry["zone"], "x_coord": WARD_SPOTS[0][0],
-              "y_coord": WARD_SPOTS[0][1], "z_coord": WARD_SPOTS[0][2], "facing": 0, "size": WARD_SIZE,
-              "npc_level": 1, "npc_type": 128, "npc_id": 0})
-    out.append(("npcs", {"id": wid}, w))
+    out.append(("npcspawnonly", {"name": "zek sentry"}, None))  # it stands at the door now
+    next_id = [db.execute("SELECT max(id) FROM npcs").fetchone()[0] + 1]
+
+    def new_id():
+        next_id[0] += 1
+        return next_id[0] - 1
+
+    # the standing sentry: the owner's row (Heirloom), else a copy of the old row there (Live)
+    if mine:
+        sid = mine[0]["id"]
+    else:
+        sid = new_id()
+        r = dict(old_s[0])
+        r.update({"id": sid, "x_coord": SENTRY_AT[0], "y_coord": SENTRY_AT[1], "z_coord": SENTRY_AT[2],
+                  "facing": SENTRY_FACING})
+        out.append(("npcs", {"id": sid}, r))
+        out.append(("npcstands", {"npc_row": sid}, {"npc_row": sid, "note": "the Zek sentry at the fortress door, as "
+                    "Heirloom's /place (tallon zek 1118)", "source": SRC}))
+    out.append(("npcrespawn", {"npc_row": sid}, {"npc_row": sid, "seconds": SENTRY_RESPAWN,
+                "note": "Tallon's door guardian: 3 hours, past the fortress run's 2 (ours)", "source": SRC}))
+    if old_s:
+        out.append(("npcs", {"id": old_s[0]["id"]}, None))
+        if tr.get(db, "npcrespawn", {"npc_row": old_s[0]["id"]}):
+            out.append(("npcrespawn", {"npc_row": old_s[0]["id"]}, None))
+    # the wards' rows: an invisible wall's, on the fortress's ramp, one a spot
+    wards = {(round(r["x_coord"]), round(r["z_coord"])): r for r in
+             tr.rows(db, "SELECT * FROM npcs WHERE npc_name = ? AND world = 5", (WARD,))}
+    for x, y, z in WARD_SPOTS:
+        have = wards.get((round(x), round(z)))
+        wid = have["id"] if have else new_id()
+        w = dict(wall[0])
+        w.update({"id": wid, "npc_name": WARD, "world": 5, "zone": sentry["zone"], "x_coord": x, "y_coord": y,
+                  "z_coord": z, "facing": 0, "size": WARD_SIZE, "npc_level": 1, "npc_type": 128, "npc_id": 0})
+        out.append(("npcs", {"id": wid}, w))
     # the sergeant's one key
     lt = tr.rows(db, "SELECT * FROM loottables WHERE tablename = ?", (LOOT_TABLE,))
     if len(lt) > 1:
@@ -209,14 +248,11 @@ def changes(db):
                  "note": "each troop's death; the run counts four and holds its lock (t218)", "source": SRC}))
     # the fortress's run
     fsteps = json.loads(fort["steps"])
-    if any(s.get("npc") == WARD for s in fsteps):
+    new = fortress_steps(fsteps)
+    if new is None:
+        refusals.append(f"trigger {FORT!r}'s steps are not the guide-gaps set's (the sentry's awaitdead, one Tallon "
+                        "spawn)")
         new = fsteps
-    else:
-        new = fortress_steps(fsteps, True)
-        if new is None:
-            refusals.append(f"trigger {FORT!r}'s steps are not the guide-gaps set's (one sentry spawn, its awaitdead, "
-                            "one Tallon spawn)")
-            new = fsteps
     out.append(("gmtriggers", {"slot": fort["slot"]}, {"steps": cj(new)}))
     # the sentry
     abil = json.loads(tmpl["abilities"] or "[]")
@@ -254,6 +290,10 @@ def step4_events(raw):
 def is_applied(db, out):
     for tbl, key, after in out:
         have = tr.get(db, tbl, key) if tr.table(db, tbl) else None
+        if after is None:
+            if have is not None:
+                return False
+            continue
         if have is None:
             return False
         for c, v in after.items():
@@ -270,6 +310,10 @@ def all_changes(db):
         return out, lines, [], True
     for tbl, key, after in out:
         have = tr.get(db, tbl, key) if tr.table(db, tbl) else None
+        if after is None:
+            if have is not None:
+                lines.append(f"{tbl} {key}: delete")
+            continue
         what = "insert" if have is None else "update " + ", ".join(
             f"{c} {have.get(c)!r} -> {v!r}" for c, v in after.items() if have.get(c) != v and c not in ("steps",))
         lines.append(f"{tbl} {key}: {what[:300]}")

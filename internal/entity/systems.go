@@ -53,6 +53,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.aggroSystem(now) // a creature's first move (aggro.go)
 	t.mark(tsAggro)
 	w.guardWatchSystem(now) // the town guards on creatures hitting players before them (guards.go)
+	w.doorWardSystem(now)   // doors' wards up while their guardians live (doorwards.go)
 	t.mark(tsGuards)
 	w.aiSystem(now)
 	t.mark(tsAI)

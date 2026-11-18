@@ -11,7 +11,7 @@ import (
 
 // pvpCommand is /pvp from any client (entity/pvp.go has the rules): the flag turned over
 // when it may be (rest "on" or "off": that way only), and, when it was, its new face told to
-// everyone targeting that player.
+// everyone targeting that player or one of its pets.
 //
 // CLIENT reads a target's face only from a 0x0010, and asks for one only when its target
 // changes. Msg0010 takes any reply whose token matches the one it holds, so a reply nobody
@@ -35,5 +35,14 @@ func pvpCommand(gw *entity.World, sess *session.Session, rest string, now time.T
 		info.conColor = calcConColor(v.Viewer.Level, p.Level)
 		sendTargetInfo(v.Sess, &info)
 		log.Printf("PvP: %s told %s's face: %d", v.Viewer.Name, p.Name, info.faceColor)
+	}
+	// its pets' faces too: red to a foe while their owner is one (entity/pvp.go)
+	for _, v := range gw.PetTargetersOf(p) {
+		info := targetInfo{name: v.Pet.Name, level: v.Pet.Level, objectID: v.ObjectID, counter: v.Token}
+		info.faceColor = gw.TargetFace(v.Viewer, v.Pet)
+		info.title = gw.MercTitle(v.Pet)
+		info.conColor = calcConColor(v.Viewer.Level, v.Pet.Level)
+		sendTargetInfo(v.Sess, &info)
+		log.Printf("PvP: %s told %s's pet %q's face: %d", v.Viewer.Name, p.Name, v.Pet.Name, info.faceColor)
 	}
 }

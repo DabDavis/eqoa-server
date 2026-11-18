@@ -352,7 +352,7 @@ func (w *World) threatensLocked(npc *NPC, p *Player) bool {
 
 // TargetFace is the face p's target box shows for npc (0x0010's
 // disposition): the Aggressive red for a creature that attacks p on sight or
-// fights it, the players' for a pet, else for an NPC of a faction p's
+// fights it, the players' for a pet (the red for a PvP foe's: pvp.go), else for an NPC of a faction p's
 // standing's disposition (never Aggressive: it does not attack), else by its
 // kind: a merchant's blue, everyone else's white. p nil: as no player in
 // particular sees it.
@@ -364,6 +364,8 @@ func (w *World) TargetFace(p *Player, npc *NPC) byte {
 
 func (w *World) targetFaceLocked(p *Player, npc *NPC) byte {
 	switch {
+	case npc.Owner != 0 && p != nil && w.pvpFoePetLocked(p, npc) != nil:
+		return FaceHostile // a flagged foe's pet (pvp.go)
 	case npc.Owner != 0:
 		return FaceAlly
 	case p != nil && !npc.Dead && npc.CurrentEnemy == p.ServerID:

@@ -371,6 +371,7 @@ func (w *World) serializeEntityDiscLocked(sess *session.Session, id EntityID, ob
 			buf[27] = 0
 		}
 		w.duelViewPetLocked(sess, npc, buf)      // a duel opponent's pet as a creature (duel.go)
+		w.pvpViewPetLocked(sess, npc, buf)       // a foe's pet, to be swung at (pvp.go)
 		w.challengeViewLocked(sess, npc, buf)    // a Metal Moogie not one's own to fight (metalmoogie.go)
 		w.decorArtViewLocked(sess, npc, buf)     // a decoration's art, to a client that draws decorations (decorlights.go)
 		w.petArtViewLocked(sess, npc, buf)       // a pet's art (a rank's PetArt), to a client that draws it (decorlights.go)

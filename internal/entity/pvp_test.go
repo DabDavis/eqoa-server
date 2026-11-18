@@ -617,8 +617,8 @@ func TestPvPLogout(t *testing.T) {
 
 // A pet: told to, or by its stance (aggressive what its owner swings at, defensive what struck its
 // owner), it goes for a foe and every hit is its owner's PvP hit; passive it waits; never on one who
-// is no foe. It stays a pet to the foe (byte 142 3), and a shield's answer leaves it at a hit point,
-// yielding.
+// is no foe. To the foe it is a foe's pet (byte 142 pvpFoeByte), and a shield's answer it cannot take
+// kills it.
 func TestPvPPet(t *testing.T) {
 	d := newPvP(t)
 	d.flag(t, d.sa, 0)
@@ -632,8 +632,8 @@ func TestPvPPet(t *testing.T) {
 	d.w.pets[d.a.ServerID] = ps
 	d.w.mu.Lock()
 	defer d.w.mu.Unlock()
-	if b := d.w.serializeEntityForChannel(d.sb, pet.ServerID, 0x00018877)[142]; b != 3 {
-		t.Errorf("the foe sees the pet with byte 142 = %d, want a pet's 3", b)
+	if b := d.w.serializeEntityForChannel(d.sb, pet.ServerID, 0x00018877)[142]; b != pvpFoeByte {
+		t.Errorf("the foe sees the pet with byte 142 = %d, want a foe's pet's %d", b, pvpFoeByte)
 	}
 	if d.w.pvpPetLocked(ps, 0.1, d.at(2*time.Second)) || ps.pvpTarget != 0 {
 		t.Fatal("a defensive pet went before its owner was struck")
@@ -668,11 +668,11 @@ func TestPvPPet(t *testing.T) {
 	if d.w.pvpPetCommandLocked(ps, d.c) {
 		t.Fatal("told to go for an unflagged player")
 	}
-	// a shield's answer: a hit point, and it yields
+	// a shield's answer it cannot take kills it, a pet's death (pvpPetDeathLocked)
 	fight := d.w.pvpFightLocked(d.b, d.a)
 	d.w.duelHurtPetLocked(fight, d.b, pet, 5000, d.at(9*time.Second), numberMelee)
-	if pet.HP != 1 || pet.Dead || ps.pvpTarget != 0 || !ps.heldUntil.Equal(d.at(9*time.Second+pvpPetYields)) {
-		t.Fatalf("HP %d, dead %v, target %d, held %v", pet.HP, pet.Dead, ps.pvpTarget, ps.heldUntil)
+	if pet.HP != 0 || !pet.Dead || d.a.IsDead() {
+		t.Fatalf("HP %d, dead %v; its owner dead %v", pet.HP, pet.Dead, d.a.IsDead())
 	}
 }
 

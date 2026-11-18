@@ -799,6 +799,11 @@ func (w *World) landOthersLocked(cs *castState, caster *Player, casterSess *sess
 		case npc.Owner != 0:
 			if !harmful {
 				w.landOnPetLocked(share, caster, casterSess, npc, now) // pet.go
+			} else if w.pvpFoePetLocked(caster, npc) != nil {
+				// a flagged foe's pet in the splash (pvp.go's areaFoesLocked), as its owner
+				c := *share
+				c.spell.duel = true
+				w.duelLandPetLocked(&c, caster, npc, now)
 			}
 		case harmful && npc.NPCType&0x80 == 0:
 			w.landOnNPCLocked(share, caster, casterSess, npc, now)

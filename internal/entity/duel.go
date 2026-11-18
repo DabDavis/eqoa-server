@@ -262,7 +262,7 @@ func (w *World) duelFoeLocked(p *Player, target EntityID) bool {
 	if target == foe {
 		return true
 	}
-	if pet := w.NPCs[target]; pet != nil && pet.Owner == foe && !d.petOut[foe] && !pet.isMerc() && !w.isSidePetLocked(pet) || pet.isMercPet() { // a merc is no duel's (merc.go)
+	if pet := w.NPCs[target]; pet != nil && pet.Owner == foe && !d.petOut[foe] && !pet.isMerc() && !w.isSidePetLocked(pet) && !pet.isMercPet() { // a merc is no duel's (merc.go), nor its pet (mercpet.go)
 		return true
 	}
 	return false
@@ -1004,7 +1004,9 @@ func (w *World) duelHitterLocked(attacker *Player, src EntityID) string {
 // duelHurtPetLocked lands n of attacker's duel damage (before the halving)
 // on the opponent's pet: told to the attacker as kind (numbertags.go); a hit
 // it cannot take leaves it at one hit point, out of the duel (its owner
-// told), as nothing dies of a duel.
+// told), as nothing dies of a duel. In a PvP fight it is a foe's pet
+// (pvp.go): both flags held, and a hit it cannot take kills it
+// (pvpPetDeathLocked), out of the fight.
 func (w *World) duelHurtPetLocked(d *Duel, attacker *Player, pet *NPC, n int, now time.Time, kind numberKind) {
 	dmg := d.hit(n)
 	attacker.LastCombatTime = now
@@ -1015,27 +1017,31 @@ func (w *World) duelHurtPetLocked(d *Duel, attacker *Player, pet *NPC, n int, no
 	}
 	d.struck[pet.Owner] = true
 	d.petStruck[pet.Owner] = true
+	if d.pvp {
+		pet.LastCombatTime = now
+		pvpPetStruckLocked(attacker, w.Players[pet.Owner], now) // pvp.go: both flags held from now
+	}
 	if dmg < pet.HP {
 		pet.HP -= dmg
+		if d.pvp {
+			log.Printf("%s: %s hits %s's %q for %d (%d before the share; HP %d/%d)", d.tag(), attacker.Name, w.nameOfLocked(pet.Owner), pet.Name, dmg, n, pet.HP, pet.MaxHP)
+		}
+		return
+	}
+	d.petOut[pet.Owner] = true
+	d.pets[pet.Owner] = false
+	if d.pvp {
+		w.pvpPetDeathLocked(attacker, pet, now) // pvp.go: a pet's death
 		return
 	}
 	pet.HP = 1
-	d.petOut[pet.Owner] = true
-	d.pets[pet.Owner] = false
 	pet.endRound()
 	pet.stopMoving()
 	if ps := w.pets[pet.Owner]; ps != nil {
 		ps.target = 0
-		if d.pvp {
-			ps.pvpTarget, ps.heldUntil = 0, now.Add(pvpPetYields)
-		}
 	}
 	log.Printf("%s: %s's pet %q yields", d.tag(), w.nameOfLocked(pet.Owner), pet.Name)
-	if d.pvp {
-		w.duelSayLocked(w.Players[pet.Owner], "Your pet yields.", duelOrange)
-	} else {
-		w.duelSayLocked(w.Players[pet.Owner], "Your pet yields and leaves the duel.", duelOrange)
-	}
+	w.duelSayLocked(w.Players[pet.Owner], "Your pet yields and leaves the duel.", duelOrange)
 	if attacker.AttackTarget == pet.ServerID {
 		attacker.disengage()
 	}
@@ -1102,6 +1108,8 @@ func (w *World) duelRoundLocked(p *Player, now time.Time) bool {
 		d = nil
 		if t != nil {
 			d = w.pvpFightLocked(p, t) // two flagged players (pvp.go)
+		} else if o := w.pvpFoePetLocked(p, pet); o != nil {
+			d = w.pvpFightLocked(p, o) // a foe's pet (pvp.go)
 		}
 	}
 	if d == nil || p.IsDead() || (pet != nil && pet.Dead) {

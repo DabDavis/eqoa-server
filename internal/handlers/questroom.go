@@ -76,7 +76,7 @@ func startGains(qu *database.Quest, st *database.QuestStep) []database.ItemCount
 }
 
 // handInTakes is what a give step takes from the pack, record by record, as
-// takeLocked takes it (planHandInLocked: the unworn inventory rows in their
+// takeLocked takes it (planHandInLocked: the pack's rows, carried before worn, in their
 // order, an item's Ascended records standing for it).
 func (q *QuestEngine) handInTakes(p *entity.Player, st *database.QuestStep) []invTake {
 	if st.Kind != database.StepGive || p == nil {

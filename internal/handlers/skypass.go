@@ -403,7 +403,7 @@ func (q *QuestEngine) PassSteps(sess *session.Session, p *entity.Player, name st
 }
 
 // HeldNamed is how many of the item of that name (any case) the player
-// carries in its pack.
+// carries or wears (heldItems).
 func (q *QuestEngine) HeldNamed(p *entity.Player, name string) int {
 	if q == nil || p == nil {
 		return 0

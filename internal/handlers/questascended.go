@@ -34,7 +34,7 @@ import (
 // factions and spells are never Ascended. Worn items and the bank are not
 // handed in, as before.
 
-// handIn is how a show or give step is met from the unworn pack: each row a
+// handIn is how a show or give step is met from the pack (carried and worn): each row a
 // give step takes and how many of it, what still lacks (lackingLocked's
 // words), and whether the step comes Ascended.
 type handIn struct {
@@ -77,14 +77,12 @@ func (q *QuestEngine) ascendedMapLocked() map[int]int {
 	return m
 }
 
-// planHandInLocked is how the player's unworn pack meets a give step's items
-// and tunar, and its pack and what it wears a show step's (shownItems).
+// planHandInLocked is how the player's pack, carried and worn (heldItems),
+// meets a give or show step's items and tunar; a give step's takes are the
+// carried copies before the worn ones (heldItems' order).
 func (q *QuestEngine) planHandInLocked(p *entity.Player, st *database.QuestStep) handIn {
 	var plan handIn
 	held := q.heldItems(p)
-	if st.Kind == database.StepShow {
-		held = q.shownItems(p)
-	}
 	asc := q.ascendedMapLocked()
 	baseOf := func(id int) (int, bool) {
 		b, ok := asc[id]

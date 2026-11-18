@@ -108,38 +108,40 @@ func (w *World) petMembersLocked(ps *petState, reach float32) petSide {
 // heal's threshold (petitions 1819/1820,
 // the GM Jibrish: "They should always prioritize the mage for heals but
 // otherwise use them on other damaged group or raid members"), else the lowest
-// share of its hit points among the rest of petMembersLocked below it; 0 for
-// none. Must be called with the lock held.
+// share of its hit points among the rest of petMembersLocked below it; each
+// in its sight (sight.go); 0 for none. Must be called with the lock held.
 func (w *World) petMemberPickLocked(ps *petState, a *templateAbility) EntityID {
 	side := w.petMembersLocked(ps, petGroupReach(ps, a))
+	pet := ps.npc
 	if ms := ps.merc; ms != nil {
 		// a merc's pet: the merc is its mage, first when in reach
 		for _, n := range side.pets {
-			if n == ms.npc && n.MaxHP > 0 && n.HP*100 < n.MaxHP*a.BelowOr() {
+			if n == ms.npc && n.MaxHP > 0 && n.HP*100 < n.MaxHP*a.BelowOr() && w.npcSeesLocked(pet, n.World, n.X, n.Y, n.Z) {
 				return n.ServerID
 			}
 		}
 	} else if o := ps.owner; o != nil && len(side.players) > 0 && side.players[0] == o {
-		if top := o.MaxHPNow(); top > 0 && o.HP*100 < top*a.BelowOr() {
-			return o.ServerID // its owner first, however the rest stand
+		if top := o.MaxHPNow(); top > 0 && o.HP*100 < top*a.BelowOr() && w.npcSeesLocked(pet, o.World, o.X, o.Y, o.Z) {
+			return o.ServerID // its owner first, however the rest stand (in its sight)
 		}
 	}
 	var best EntityID
 	low := 2.0
-	try := func(id EntityID, hp, top int) {
+	// one in its sight (sight.go), looked at only for one that would be picked
+	try := func(id EntityID, hp, top int, seen func() bool) {
 		if top <= 0 || hp*100 >= top*a.BelowOr() {
 			return
 		}
-		if share := float64(hp) / float64(top); share < low {
+		if share := float64(hp) / float64(top); share < low && seen() {
 			best, low = id, share
 		}
 	}
 	// players first, then pets: the owner before itself on a tie
 	for _, p := range side.players {
-		try(p.ServerID, p.HP, p.MaxHPNow())
+		try(p.ServerID, p.HP, p.MaxHPNow(), func() bool { return w.npcSeesLocked(pet, p.World, p.X, p.Y, p.Z) })
 	}
 	for _, n := range side.pets {
-		try(n.ServerID, n.HP, n.MaxHP)
+		try(n.ServerID, n.HP, n.MaxHP, func() bool { return n == pet || w.npcSeesLocked(pet, n.World, n.X, n.Y, n.Z) })
 	}
 	return best
 }
@@ -156,6 +158,10 @@ func (w *World) petMemberHealLocked(ps *petState, c *petCast, n int) {
 	for _, p := range side.players {
 		if p.ServerID != c.target {
 			continue
+		}
+		if !w.npcSeesLocked(pet, p.World, p.X, p.Y, p.Z) {
+			log.Printf("LoS: %s's %q spares %s with %q, out of its sight", ps.owner.Name, pet.Name, p.Name, c.spell.Name)
+			return // gone out of its sight as it cast (sight.go)
 		}
 		top := p.MaxHPNow()
 		if c.a.HealPct > 0 {
@@ -178,6 +184,10 @@ func (w *World) petMemberHealLocked(ps *petState, c *petCast, n int) {
 	for _, t := range side.pets {
 		if t.ServerID != c.target {
 			continue
+		}
+		if t != pet && !w.npcSeesLocked(pet, t.World, t.X, t.Y, t.Z) {
+			log.Printf("LoS: %s's %q spares %s with %q, out of its sight", ps.owner.Name, pet.Name, t.Name, c.spell.Name)
+			return // gone out of its sight as it cast (sight.go)
 		}
 		if c.a.HealPct > 0 {
 			n = petShareAmount(t.MaxHP, c.a.HealPct)

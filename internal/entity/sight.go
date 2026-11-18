@@ -24,8 +24,7 @@ import (
 //     the same night, of Veeshan's Thunder and Fury, which lie round the boss's
 //     target: "some were behind trees and rocks and got hit": they were hidden
 //     from the boss and in plain sight of whoever it was hitting. A group's
-//     spell is no area here: it finds its members wherever they stand in its
-//     radius. A creature's line is looked at from its own heights too, a man's
+//     spell is no area here: no centre's line, its caster's alone (below). A creature's line is looked at from its own heights too, a man's
 //     times its body (clearFromBodyLocked), so a big boss's feet low in its
 //     body do not hide everyone round it (the owner, 2026-11-17).
 //
@@ -37,6 +36,23 @@ import (
 //     the members its caster cannot see; a body that gets behind something
 //     before it lands is spared. Either line clear is enough (a low wall hides
 //     no one from a healer). A resurrection is not held to it.
+//
+//   - every other heal on another (the owner, 2026-11-18: "also healing
+//     shouldnt fire if there is no Line of sight"): a group's spell with a
+//     radius (a group heal, groupNearLocked) leaves out a member, pet or merc
+//     its caster cannot see, as it begins and as it lands; a tap's take or a
+//     drain over time's tick shared with the group (drainersLocked) and a
+//     weapon's restoring proc (restoreProcLocked) go to the members their
+//     giver sees; a pet heals its owner, its group or a member only in its
+//     sight (npcSeesLocked: from its own heights too), else heals itself or
+//     another it sees, or waits; a familiar heals its owner only in its sight;
+//     a boss's raid heal (bossmoments.go) lands on those it sees. A merc's
+//     heals were held to it before (merccast.go). A heal over time already on
+//     a body keeps ticking out of its caster's sight: it is the bearer's now,
+//     as it keeps ticking out of range. A heal on oneself, a creature's on
+//     itself and a heal by a hit (a mark's, a worn item's, a proc's on its
+//     wielder) need no line. No creature heals another creature (a template's
+//     heal is its own), so none is held to it there.
 //
 //   - a ranged weapon's shot or a throw (a bow, a thrown weapon or potion: the
 //     ranged swings, kinds 8-11) at a creature: its shooter must see it as
@@ -144,6 +160,21 @@ func (w *World) helpSeenLocked(caster *Player, d *SpellDef, world uint8, x, y, z
 		return true
 	}
 	return caster.World == world && w.inSightLocked(world, caster.X, caster.Y, caster.Z, x, y, z)
+}
+
+// npcSeesLocked reports a creature's line of sight (a pet's, a familiar's, a
+// boss's) to a body at (x, y, z) in world it would heal: either of a man's
+// lines, or from its own heights when it is bigger (clearFromBodyLocked). Must
+// be called with the lock held.
+func (w *World) npcSeesLocked(n *NPC, world uint8, x, y, z float32) bool {
+	return n.World == world && w.clearFromBodyLocked(world, bodyScale(n), n.X, n.Y, n.Z, x, y, z)
+}
+
+// playerSeesLocked reports a player's line of sight to another (inSightLocked),
+// itself always: what a heal from p (a proc's, a drain's share) needs to reach
+// t. Must be called with the lock held.
+func (w *World) playerSeesLocked(p, t *Player) bool {
+	return p == t || p.World == t.World && w.inSightLocked(p.World, p.X, p.Y, p.Z, t.X, t.Y, t.Z)
 }
 
 // helpHiddenLocked spares a body a helpful spell lands on out of its caster's

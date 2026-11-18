@@ -1165,7 +1165,15 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 			ids = w.groupProcPetsLocked(p, ids, spell.Range) // enchanter.go
 		}
 		ids = w.groupMercsLocked(p, ids, spell.Range) // a merc is a member (mercgroup.go)
-		return ids, ""
+		// the pets and mercs its caster can see, as its players (sight.go)
+		seen := ids[:0]
+		for _, id := range ids {
+			if n := w.NPCs[id]; n != nil && !w.helpSeenLocked(p, d, n.World, n.X, n.Y, n.Z, false) {
+				continue
+			}
+			seen = append(seen, id)
+		}
+		return seen, ""
 	}
 	if targetObjectID == 0 || targetObjectID == 0xFFFFFFFF {
 		return nil, castNoTarget

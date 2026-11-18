@@ -305,6 +305,9 @@ func (w *World) familiarActLocked(fs *familiarState, sess *session.Session, now 
 	if n.World != o.World || dist3(n.X, n.Y, n.Z, o.X, o.Y, o.Z) > familiarReach {
 		return
 	}
+	if !w.npcSeesLocked(n, o.World, o.X, o.Y, o.Z) {
+		return // out of its sight: it waits, due (sight.go)
+	}
 	heal := min(d.Heal, top-o.HP)
 	o.HP += heal
 	o.StatsDirty = true

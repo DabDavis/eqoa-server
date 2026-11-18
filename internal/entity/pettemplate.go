@@ -352,7 +352,8 @@ func (w *World) petWantsLocked(ps *petState, a *templateAbility, now time.Time) 
 		owner := func() bool {
 			o := ps.owner
 			top := o.MaxHPNow()
-			return top > 0 && !o.IsDead() && o.HP*100 < top*a.BelowOr()
+			return top > 0 && !o.IsDead() && o.HP*100 < top*a.BelowOr() &&
+				w.npcSeesLocked(ps.npc, o.World, o.X, o.Y, o.Z) // in its sight (sight.go)
 		}
 		switch w.petHealTargetLocked(ps, a) {
 		case database.AbilityOnOwner:
@@ -474,12 +475,16 @@ func (w *World) petCastLocked(ps *petState, i int, t *NPC, now time.Time) bool {
 			return false
 		}
 	case on == database.AbilityOnOwner:
+		if o := ps.owner; !w.npcSeesLocked(pet, o.World, o.X, o.Y, o.Z) {
+			return false // its owner out of its sight: it waits (sight.go)
+		}
 		c.target = ps.owner.ServerID
 	case on == database.AbilityOnEither:
 		// its owner or itself, the lower share of its hit points
 		c.target = pet.ServerID
 		if o := ps.owner; !o.IsDead() && o.MaxHPNow() > 0 && pet.MaxHP > 0 &&
-			float64(o.HP)/float64(o.MaxHPNow()) < float64(pet.HP)/float64(pet.MaxHP) {
+			float64(o.HP)/float64(o.MaxHPNow()) < float64(pet.HP)/float64(pet.MaxHP) &&
+			w.npcSeesLocked(pet, o.World, o.X, o.Y, o.Z) { // its owner in its sight (sight.go)
 			c.target = o.ServerID
 		}
 	default:
@@ -1022,6 +1027,11 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 				n = petShareAmount(o.MaxHPNow(), a.HealPct)
 			}
 			if n <= 0 || o.IsDead() || o.HP >= o.MaxHPNow() {
+				return
+			}
+			if !w.npcSeesLocked(pet, o.World, o.X, o.Y, o.Z) {
+				// gone out of its sight as it cast: spared, as a player's heal (sight.go)
+				log.Printf("LoS: %s's %q spares its owner with %q, out of its sight", o.Name, pet.Name, c.spell.Name)
 				return
 			}
 			worth := n // told whole: what the heal was worth (cast.go's healLocked, petition 2016)

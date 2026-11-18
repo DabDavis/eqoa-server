@@ -251,26 +251,35 @@ func TestAnAreaLooksAgainAsItLands(t *testing.T) {
 	}
 }
 
-// A group's spell is no area here: it finds its members behind a wall. The
-// control: a helping area's others stop at it.
-func TestAGroupSpellFindsItsOwnBehindAWall(t *testing.T) {
-	land := func(scope int) int {
+// A group's spell with a radius (a group heal) spares a member behind a wall
+// from its caster, as it begins and as it lands (the owner, 2026-11-18: "also
+// healing shouldnt fire if there is no Line of sight"); until then it found
+// its members wherever they stood. The controls: with nothing in the way it
+// heals the member, and a helping area's others stop at the wall as ever.
+func TestAGroupSpellSparesItsOwnBehindAWall(t *testing.T) {
+	land := func(scope int, ground sightGround) (healed int, found []EntityID) {
 		r := newAreaRig(t)
 		friend := r.player(1002, "Ally", 1010, 1000)
 		r.w.groups = map[uint32]*Group{7: {ID: 7, Members: []EntityID{r.p.ServerID, friend.ServerID}}}
 		r.p.GroupID, friend.GroupID = 7, 7
-		r.w.SetGround(sightGround{wallAt(1005)})
+		r.w.SetGround(ground)
 		cs := &castState{spell: CastSpell{Scope: scope, Name: "Test Heal", Area: SpellArea{Centre: AreaOnCaster, Radius: 30},
 			Def: SpellDef{Effects: []SpellEffect{{Kind: EffectHP, Amount: 100}}}}, caster: r.p.ServerID, others: []EntityID{friend.ServerID}}
 		r.w.mu.Lock()
 		defer r.w.mu.Unlock()
+		for _, n := range r.w.groupNearLocked(r.p, 30) {
+			found = append(found, n.id)
+		}
 		r.w.landOthersLocked(cs, r.p, r.sess, r.t0)
-		return friend.HP - 500
+		return friend.HP - 500, found
 	}
-	if got := land(2); got <= 0 {
-		t.Errorf("a group's spell healed its member behind a wall by %d", got)
+	if got, found := land(2, sightGround{wallAt(1005)}); got != 0 || len(found) != 0 {
+		t.Errorf("a group's heal healed its member behind a wall by %d (found %v)", got, found)
 	}
-	if got := land(0); got != 0 {
+	if got, found := land(2, nil); got <= 0 || len(found) != 1 {
+		t.Errorf("the control, nothing in the way: healed %d, found %v", got, found)
+	}
+	if got, _ := land(0, sightGround{wallAt(1005)}); got != 0 {
 		t.Errorf("an area that helps healed one behind a wall by %d", got)
 	}
 }

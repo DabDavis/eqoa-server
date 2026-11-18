@@ -876,6 +876,19 @@ judged anyone (`cmd/movereplay` over eqoaclassic's live log of 2026-10-31, 58,42
 no report it would have refused; injected hovering, sinking, a 30-unit blink and double speed all
 caught; an honest scripted walk round Freeport in enforce mode untouched, and a scripted client's
 straight rise, walk under the ground and walk through a house each moved back.
+**A body in something placed is put out of it** (the owner, 2026-11-18: "lonewolf is in the rock by
+noroxus but the server should have him on top of the rock or outside the rock"; `ground/embed.go`):
+Lonewulf stood on the terrain under the edge of a rock in Secrets (LOD sprite 0x6630AE67, in `5.walls`
+all along: the terrain-only `Floor` reads a plain floor there), its underside 1.5 over the ground, so
+his middle crossed no face and stood over a floor. `Embedded` asks the walk's own rule: a ball of 0.45
+(CLIENT's 0.6 less a margin) round the middle meets a placed face from its front, or the middle is
+inside a placed thing (its nearest faces up and down met from behind); 0 of the 58,422 real reports
+(116 at 0.6, 1 at 0.5), 0.4 µs a report. Such a report is a fault ("in something placed"); where the
+player is put by a server move it is put out at once, and a player in for 1 s (log mode takes the
+places) is put out too, in log mode as well: `Free` takes the nearest of the floor on top of it within
+4 up or a floor beside it within 8 (16 directions every half unit, no terrain wall between), 0.75
+clear, a 0x00B2 there (`MOVECHECK put out` lines); a move back never lands in one either. Terrain is
+not asked (its crossings are).
 Without the ground files (or for a world without them) only the speed rule applies. **Its cost**
 (`movereplay -judge` timing every update; a 250-player simulation of honest walkers at real spawn
 places): 6 µs a report on average (p99 32 µs), so 250 players all running (2,000 reports a second)

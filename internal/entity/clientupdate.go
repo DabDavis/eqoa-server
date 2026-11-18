@@ -221,7 +221,7 @@ func (w *World) ApplyClientUpdate(id EntityID, u ClientUpdate) {
 	// a report standing (or one with no flags, which says nothing of it) is
 	// where it stood; where the judge enforces and knows the ground, its own
 	// word, not the walker's
-	if take && !p.inAir() {
+	if take && !p.inAir() && p.mv.inAt.IsZero() {
 		p.noteStood()
 	}
 	if u.HasAutoAttack {

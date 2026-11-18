@@ -42,7 +42,7 @@ WHAT IS CHANGED (plan(); each change a unit of rows, its why written beside it)
            from a fork", read-only, --fork): its own camp edits where it is the newer version (FORK_TAKE), each said
   owner    the owner's answers of 2026-11-18 (owner_units, propagate_units): the fork's frost giant camp by the Artic
            Spiritcaller on both shards, Heirloom's Xrag/bone hunter/Snowgrin/Quintashi rows at Live's levels, and the
-           Tendora-Buki villagers and toxic pollutive slime deleted on one shard deleted on the other
+           Tendora-Buki villagers, toxic pollutive slime and frost drake deleted on one shard deleted on the other
   A new row is a copy of the nearest row of its name in the camp (every npcs column but id and place: its body, gear,
   level, class, faction, template and loot, all by name or on the row), with that row's npcrespawn and npcwander rows.
   Never touched: a protected row (above), a spawn-only, seasonal (npcseason) or rare/named name (a proper noun, three
@@ -665,7 +665,7 @@ FORK_TFG = [(101490, 6969.7, 54.1, 5856.2, 191), (162682, 6976.0, 54.1, 5833.2, 
 TFG_SIZE = 2.3
 FORK_SPIRITCALLER = (101488, 7015.1, 54.1, 5869.6, 21, 3.0)
 LIVE_LEVEL_NAMES = {"child of xrag", "pariah of xrag", "bone hunter", "snowgrin", "quintashi"}
-OWNER_PROPAGATE = {"tendora-buki villager", "toxic pollutive slime"}
+OWNER_PROPAGATE = {"tendora-buki villager", "toxic pollutive slime", "frost drake"}
 OWNER = "the owner's answer, 2026-11-18"
 
 

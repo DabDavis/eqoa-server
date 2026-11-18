@@ -22,11 +22,19 @@ import (
 //     (buffwindow.go), the number tags (numbertags.go), the DPS meter
 //     (dpsmeter.go), a monster's name and level in the details box
 //     (mobinfo.go: a vanilla client is answered with the dialogue box a PS2
-//     gets), a target's level in the target box (conlevel.go; /con stays, a
-//     command any client types), the quest marks, the quest tracker and the
-//     marks over quest NPCs' heads (questmarks.go, questprogress.go,
-//     questheadmarks.go); an answer to any of them is taken as "off", and a
-//     keep restart into it stops what a client had asked for;
+//     gets), a target's level in the target box (conlevel.go), the quest
+//     marks, the quest tracker and the marks over quest NPCs' heads
+//     (questmarks.go, questprogress.go, questheadmarks.go); an answer to any of them is taken as "off", and a keep restart into it
+//     stops what a client had asked for;
+//   - answers /con (and a PS2's "/t con") as the game does, an unknown
+//     command, for every client, whatever world.con_level says (the owner,
+//     2026-11-18: "/con level" off on Vanilla Test);
+//   - keeps offering item links (itemlinks.go) and relaying them to a client
+//     that takes them: vanilla's Item Links, the map and the minimap are off
+//     by DEFAULT there (QoLItemLinks, QoLMap), the player's to turn on (the
+//     owner, 2026-11-18: "minimap and map can work but make it toggled off by
+//     default", "item links ... can be on in vanilla test but they are
+//     toggled off by default");
 //   - tells a vanilla client which of its own additions are off for the
 //     session (protocol.OpcodeVanillaUI, the QoL* bits), right after it
 //     answers the bug report offer (which a PS2 never does: a PS2 is never
@@ -54,21 +62,23 @@ func qolAnswer(on bool) bool { return on && QoLOn() }
 // The client's additions OpcodeVanillaUI turns off, a bit each (vanilla's
 // `settings::qol`, the same bits).
 const (
-	QoLMap         uint32 = 1 << 0 // the map (M), the minimap (N), waypoints, the community's markers
-	QoLQuestHelper uint32 = 1 << 1 // the quest guide, the quest tracker, the map's quest marks, the head marks
-	QoLTargetLevel uint32 = 1 << 2 // a target's level in the target box
-	QoLDPSMeter    uint32 = 1 << 3 // the DPS meter
-	QoLNumberColor uint32 = 1 << 4 // Number Colors and Merc Colors: every number the game's colour
-	QoLStatCaps    uint32 = 1 << 5 // Character > Summary's "346/435": the value alone, the game's
-	QoLPowerBars   uint32 = 1 << 6 // others' power under their health
-	QoLBuffWindow  uint32 = 1 << 7 // the buff window: the game's effects strip
-	QoLPetEffects  uint32 = 1 << 8 // the pet's effects under its bar
-	QoLAutoCast    uint32 = 1 << 9 // auto-cast on the quick bars and auto targeting
+	QoLMap         uint32 = 1 << 0  // off by default: the map (M) and minimap (N), the player's to turn on
+	QoLQuestHelper uint32 = 1 << 1  // the quest guide, the quest tracker, the map's quest marks, the head marks
+	QoLTargetLevel uint32 = 1 << 2  // a target's level in the target box
+	QoLDPSMeter    uint32 = 1 << 3  // the DPS meter
+	QoLNumberColor uint32 = 1 << 4  // Number Colors and Merc Colors: every number the game's colour
+	QoLStatCaps    uint32 = 1 << 5  // Character > Summary's "346/435": the value alone, the game's
+	QoLPowerBars   uint32 = 1 << 6  // others' power under their health
+	QoLBuffWindow  uint32 = 1 << 7  // the buff window: the game's effects strip
+	QoLPetEffects  uint32 = 1 << 8  // the pet's effects under its bar
+	QoLAutoCast    uint32 = 1 << 9  // auto-cast on the quick bars and auto targeting
+	QoLItemLinks   uint32 = 1 << 10 // off by default: item links in chat, the player's to turn on
+	QoLSpellBars   uint32 = 1 << 11 // Ability Bars 3 and 4 and Stacked Spell Bars: the game's two bars
 )
 
 // QoLAllOff is every bit above: what world.vanilla_ui turns off.
 const QoLAllOff = QoLMap | QoLQuestHelper | QoLTargetLevel | QoLDPSMeter | QoLNumberColor | QoLStatCaps |
-	QoLPowerBars | QoLBuffWindow | QoLPetEffects | QoLAutoCast
+	QoLPowerBars | QoLBuffWindow | QoLPetEffects | QoLAutoCast | QoLItemLinks | QoLSpellBars
 
 // vanillaUILayout is the message's version byte.
 const vanillaUILayout = 1

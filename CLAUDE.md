@@ -1040,15 +1040,17 @@ talk named, the level, the name: `protocol/opcodes.go`) and vanilla shows the tw
 ### The game's own UI on a shard (`handlers/vanillaui.go`, `world.vanilla_ui`)
 
 The owner, 2026-11-18, for the Vanilla Test shard (Live, 10071): "disable all quality of life settings like map, minimap, level display,
-dps meter, custom colors, the character stats showing 350/500", then "also no quest helper". Set, none of the server's quality-of-life
-offers go at world entry (power bars 0x7E01, pet effects 0x7E32, buff window 0x7E57, number tags 0x7E38, DPS meter 0x7E3A, mob info
-0x7E4C (vanilla then gets a PS2's dialogue box), the target box's level 0x7E70 (`/con` stays), quest marks 0x7E03, tracker 0x7E05,
-head marks 0x7E61); an answer to any of them is taken as off (`qolAnswer`), and a keep restart's resume ends what a client had asked for
-(`stopKeptQoL`) and does not resume its quest marks. A client that answers the bug report offer 1 (vanilla; never a PS2) is then sent
-**0x7EA0** (`OpcodeVanillaUI`: u8 version 1, u32 bits, `QoL*`, all ten: map/minimap, quest helper, target level, DPS meter, number
-colours, stat caps, power bars, buff window, pet effects, auto-cast/target), at every world entry and at a resume; vanilla turns those
-off for the session (`settings::qol`), its Extended rows saying "Off on this server", the player's choices kept. Unset (Heirloom), nothing
-changes and 0x7EA0 is never sent. Tests: `TestVanillaUI*`.
+dps meter, custom colors, the character stats showing 350/500", "also no quest helper", then /con, ability bars 3-4 and stacked bars off,
+and the map, minimap and item links "toggled off by default" rather than locked. Set, none of the server's quality-of-life offers go at
+world entry (power bars 0x7E01, pet effects 0x7E32, buff window 0x7E57, number tags 0x7E38, DPS meter 0x7E3A, mob info 0x7E4C (vanilla
+then gets a PS2's dialogue box), the target box's level 0x7E70, quest marks 0x7E03, tracker 0x7E05, head marks 0x7E61); an answer to any
+of them is taken as off (`qolAnswer`), and a keep restart's resume ends what a client had asked for (`stopKeptQoL`) and does not resume
+its quest marks. `/con` is an unknown command for every client whatever `con_level` says (`ConLevelOn`). Item links are still offered and
+relayed. A client that answers the bug report offer 1 (vanilla; never a PS2) is then sent **0x7EA0** (`OpcodeVanillaUI`: u8 version 1,
+u32 bits `QoL*`, twelve): locked off for the session are the quest helper, target level, DPS meter, number colours, stat caps, power
+bars, buff window, pet effects, auto-cast/target and ability bars 3-4/stacked bars; the map and minimap (`QoLMap`) and item links
+(`QoLItemLinks`) are off BY DEFAULT, the player's to turn on there (vanilla's `settings::qol`, kept apart from its other servers'
+choice). Unset (Heirloom), nothing changes and 0x7EA0 is never sent. Tests: `TestVanillaUI*`.
 
 ### The profanity filter from a client's setting (`handlers/profanity.go`)
 

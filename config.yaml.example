@@ -92,9 +92,9 @@ world:
   # 2026-11-18): none of the server's quality-of-life offers (others' power,
   # the pet's effects, the buff window, number colours, the DPS meter, the
   # monster's details, the target box's level, quest marks, tracker and head
-  # marks), and vanilla told (opcode 0x7EA0) to turn off its own: the map and
-  # minimap, the quest helper, the stat caps, auto-cast. /con stays. Off
-  # unless set.
+  # marks), /con an unknown command, and vanilla told (opcode 0x7EA0) to turn
+  # off its own (quest helper, stat caps, auto-cast, bars 3-4...) and to start
+  # the map, minimap and item links off. Off unless set.
   # vanilla_ui: true
 
   # The auction house's standing lots (handlers/auction_perpetual.go): lots

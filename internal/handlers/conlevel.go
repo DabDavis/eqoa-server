@@ -39,8 +39,9 @@ var conLevelOn atomic.Bool
 // SetConLevel turns a target's level on or off (world.con_level).
 func SetConLevel(on bool) { conLevelOn.Store(on) }
 
-// ConLevelOn reports world.con_level.
-func ConLevelOn() bool { return conLevelOn.Load() }
+// ConLevelOn reports world.con_level, which world.vanilla_ui overrides
+// (vanillaui.go): there /con is an unknown command, as the game's.
+func ConLevelOn() bool { return conLevelOn.Load() && QoLOn() }
 
 // conLevelLayout is the layout the offer names.
 const conLevelLayout = 1
@@ -58,7 +59,7 @@ func buildConLevelOffer() []byte {
 // SendConLevelOffer offers the session's client its target's level in its
 // target box, where world.con_level is on; elsewhere nothing goes.
 func SendConLevelOffer(sess *session.Session) {
-	if !ConLevelOn() || !QoLOn() { // the target box's, not /con (vanillaui.go)
+	if !ConLevelOn() {
 		return
 	}
 	queueReliable(sess, protocol.OpcodeConLevelOffer, buildConLevelOffer())

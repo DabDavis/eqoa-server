@@ -68,7 +68,7 @@ func TestVanillaUIStopsTheWorldEntrysOffers(t *testing.T) {
 			t.Errorf("switch on: %v still offered", op)
 		}
 	}
-	for _, op := range []protocol.GameOpcode{protocol.OpcodeEntityView, protocol.OpcodeBugReportOffer, protocol.OpcodeItemLinksOffer} {
+	for _, op := range []protocol.GameOpcode{protocol.OpcodeEntityView, protocol.OpcodeBugReportOffer, protocol.OpcodeProfanityChoice, protocol.OpcodeItemLinksOffer} {
 		if !slices.Contains(after, op) {
 			t.Errorf("switch on: %v, not a quality-of-life offer, gone", op)
 		}
@@ -119,8 +119,8 @@ func TestVanillaUIToAClientThatAnswered(t *testing.T) {
 	if got := vanillaUISent(as); len(got) != 1 || !bytes.Equal(got[0], want) {
 		t.Fatalf("sent % x, want one % x", got, want)
 	}
-	if QoLAllOff != 0x3FF {
-		t.Fatalf("bits %#x: vanilla's settings::qol reads ten", QoLAllOff)
+	if QoLAllOff != 0xFFF {
+		t.Fatalf("bits %#x: vanilla's settings::qol reads twelve", QoLAllOff)
 	}
 
 	ps2 := entitySlotsSession()
@@ -132,7 +132,8 @@ func TestVanillaUIToAClientThatAnswered(t *testing.T) {
 
 // With the switch, a client's yes to an offer it was never sent (one asking
 // from before, a keep restart's) is taken as no: no power, no meter, no tags,
-// no monster's details; without it, as before.
+// no monster's details; item links still taken (off by default in the
+// client, not here); without it, as before.
 func TestVanillaUITakesAnAnswerAsOff(t *testing.T) {
 	w := entity.NewWorld()
 	mgr := session.NewManager()
@@ -142,7 +143,7 @@ func TestVanillaUITakesAnAnswerAsOff(t *testing.T) {
 	w.Players[p.ServerID] = p
 	sess.SetECSEntity(p)
 	sess.SetCharacterInWorld(true)
-	power, tags, mob, meter := NewPowerBarsHandler(w), NewNumberTagsHandler(), &MobInfoHandler{}, NewDPSMeterHandler(w)
+	power, tags, mob, meter, chat := NewPowerBarsHandler(w), NewNumberTagsHandler(), &MobInfoHandler{}, NewDPSMeterHandler(w), &ChatHandler{}
 	answerAll := func() {
 		t.Helper()
 		for _, err := range []error{
@@ -150,6 +151,7 @@ func TestVanillaUITakesAnAnswerAsOff(t *testing.T) {
 			tags.HandleNumberTags(sess, incoming(protocol.OpcodeNumberTagsAnswer, []byte{2})),
 			mob.HandleMobInfoAnswer(sess, incoming(protocol.OpcodeMobInfoAnswer, []byte{1})),
 			meter.HandleDPSMeter(sess, incoming(protocol.OpcodeDPSMeterAnswer, []byte{1})),
+			chat.HandleItemLinksAnswer(sess, incoming(protocol.OpcodeItemLinksOffer, []byte{1})),
 		} {
 			if err != nil {
 				t.Fatal(err)
@@ -157,12 +159,12 @@ func TestVanillaUITakesAnAnswerAsOff(t *testing.T) {
 		}
 	}
 	answerAll()
-	if !p.PowerBars || sess.NumberTagsLayout() != 2 || !sess.MobInfo() {
+	if !p.PowerBars || sess.NumberTagsLayout() != 2 || !sess.MobInfo() || !sess.ItemLinks() {
 		t.Fatalf("switch off: power %v, tags %d, mob info %v", p.PowerBars, sess.NumberTagsLayout(), sess.MobInfo())
 	}
 	vanillaUISwitch(t)
 	answerAll()
-	if p.PowerBars || sess.NumberTagsLayout() != 0 || sess.MobInfo() {
+	if p.PowerBars || sess.NumberTagsLayout() != 0 || sess.MobInfo() || !sess.ItemLinks() {
 		t.Fatalf("switch on: power %v, tags %d, mob info %v", p.PowerBars, sess.NumberTagsLayout(), sess.MobInfo())
 	}
 
@@ -171,7 +173,43 @@ func TestVanillaUITakesAnAnswerAsOff(t *testing.T) {
 	answerAll()
 	SetVanillaUI(true)
 	stopKeptQoL(w, sess)
-	if p.PowerBars || sess.NumberTagsLayout() != 0 || sess.MobInfo() {
+	if p.PowerBars || sess.NumberTagsLayout() != 0 || sess.MobInfo() || !sess.ItemLinks() {
 		t.Fatalf("resumed: power %v, tags %d, mob info %v", p.PowerBars, sess.NumberTagsLayout(), sess.MobInfo())
+	}
+}
+
+// The owner's "/con level" off on Vanilla Test: with world.vanilla_ui, /con
+// and a PS2's "/t con" tell no level even with world.con_level set (as the
+// game, an unknown command; "/t con" a tell), and no target box offer goes.
+// The control: the same world without it tells the level.
+func TestVanillaUIConIsTheGames(t *testing.T) {
+	conLevelSwitch(t)
+	c := newChatWorld(t)
+	s, p := c.join(5, "Indulgence", 100, 100, 0)
+	c.gw.SetTarget(p.ServerID, conNPC(c, s, 1, &entity.NPC{ServerID: 701, Name: "a moss snake", Level: 22, MaxHP: 40, HP: 40}))
+	told := func() bool {
+		defer s.Queue().GetPending()
+		for _, l := range heard(t, s) {
+			if l.text == "a moss snake is level 22." {
+				return true
+			}
+		}
+		return false
+	}
+	s.Queue().GetPending()
+	c.say(s, "/con")
+	if !told() {
+		t.Fatal("control: no level told without vanilla_ui")
+	}
+	vanillaUISwitch(t)
+	for _, typed := range []string{"/con", "#con", "/t con"} {
+		c.say(s, typed)
+		if told() {
+			t.Fatalf("%s told a level with vanilla_ui", typed)
+		}
+	}
+	SendConLevelOffer(s)
+	if got := s.Queue().GetPending(); len(got) != 0 {
+		t.Fatalf("a target box offer went with vanilla_ui: %d messages", len(got))
 	}
 }

@@ -165,6 +165,11 @@ type SpellEffect struct {
 	// its caster (or the caster's group), a drained stat or power is the
 	// caster's (lifetap.go)
 	Drain DrainTo
+	// DrainPct is the percent of a drained effect's take that reaches the
+	// caster (or the group); 0 is all of it (the workbook's "give_pct": the
+	// owner, 2026-11-18, petition 2377: Vampiric Strike heals half the
+	// damage it deals)
+	DrainPct int
 	// ScaleBearer: the scale is its bearer's stat, taken each time it is
 	// used ("; Increase 20% based on bearer's STR"): a proc's, the stat of
 	// the one whose hits proc it, not its caster's at its landing (proc.go)

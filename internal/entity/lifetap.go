@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"log"
+	"math"
 	"regexp"
 	"sort"
 	"strings"
@@ -414,6 +415,10 @@ func (w *World) drainLocked(cs *castState, caster *Player, sess *session.Session
 	if e.Drain == DrainNone || n <= 0 || caster.IsDead() {
 		return
 	}
+	n = drainShare(e, n)
+	if n <= 0 {
+		return
+	}
 	switch e.Kind {
 	case EffectHP:
 		for _, p := range w.drainersLocked(cs, caster, e.Drain) {
@@ -432,6 +437,16 @@ func (w *World) drainLocked(cs *castState, caster *Player, sess *session.Session
 			w.casterShareLocked(cs, caster, m, now)
 		}
 	}
+}
+
+// drainShare is the part of a take of n its caster gets: DrainPct percent of
+// it, rounded, where the effect gives only a share (Vampiric Strike's half),
+// else all of it.
+func drainShare(e SpellEffect, n int) int {
+	if e.DrainPct <= 0 || e.DrainPct >= 100 {
+		return n
+	}
+	return int(math.Round(float64(n) * float64(e.DrainPct) / 100))
 }
 
 // drainersLocked is whom a take goes to: the caster, or the caster and each

@@ -134,6 +134,7 @@ type effectJSON struct {
 	Amount          float64       `json:"amount"`
 	Scale           string        `json:"scale"`
 	ScalePct        float64       `json:"scale_pct"`
+	GivePct         float64       `json:"give_pct"` // a drain's share of its take for the caster, percent (0: all)
 	LevelPct        float64       `json:"level_pct"`
 	Resist          string        `json:"resist"`
 	Hate            *float64      `json:"hate"`
@@ -771,6 +772,9 @@ func (d *SpellDef) readEffectJSON(name, desc string, e effectJSON, aoe bool, are
 		}
 		if se.Amount != 0 {
 			se.Drain = to
+			if g := round(e.GivePct); g > 0 && g < 100 {
+				se.DrainPct = g
+			}
 			add(se)
 		}
 	case "proc", "def_proc":

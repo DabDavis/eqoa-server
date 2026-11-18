@@ -63,6 +63,9 @@ type meleeRoll struct {
 	Top     float64
 	Width   int
 	ACSlope float64
+	// Level is the creature's level the roll is of (creatureRoll's; 0 for a
+	// dummy's measured roll and any other: its archetype offset whole).
+	Level int
 }
 
 // hitOn is one hit of the roll on the player, intn the random source
@@ -77,7 +80,23 @@ func (r meleeRoll) hitOn(p *Player, intn func(int) int) int {
 func (r meleeRoll) topOn(p *Player) int {
 	a := archetypeOf(p.Class)
 	return int(math.Round(r.Top - r.ACSlope*float64(p.StatNow(StatAC)) -
-		agiSlope[a]*float64(p.StatNow(StatAgi)) + archOffset[a]))
+		agiSlope[a]*float64(p.StatNow(StatAgi)) + archOffset[a]*r.offsetShare(p.Level)))
+}
+
+// offsetShare is the share of its archetype's offset a roll adds on a player
+// of the level: all of it but from a creature that cons green to the player,
+// whose share is its top's growth (level^1.52, creatureRoll) from its level
+// to the player's. The offsets were measured on Lv45 and Lv55 dummies and do
+// not grow with the creature's level, so whole they were most of a far
+// lower creature's hit (2026-11-18, Jibrish, level 60 enchanter: a level 2
+// bat and a hatchling hit him for 13-22, a top of 1.6 plus the caster's
+// 31.7, where a tank took 1). Even, blue and red fights keep it whole (the
+// balance's fits were made on them).
+func (r meleeRoll) offsetShare(playerLevel int) float64 {
+	if r.Level <= 0 || playerLevel <= r.Level || ConColor(playerLevel, r.Level) != ConGreen {
+		return 1
+	}
+	return math.Pow(float64(r.Level)/float64(playerLevel), 1.52)
 }
 
 // softFloorLeast is the share of its floor a boosted creature's hit falls
@@ -154,6 +173,7 @@ func creatureRoll(level int) meleeRoll {
 		Top:     182.6 * math.Pow(l/45, 1.52),
 		Width:   int(math.Round(138 * math.Pow(l/45, 0.81))),
 		ACSlope: min(max(0.1256-0.00119*(l-45), 0.08), 0.2),
+		Level:   level,
 	}
 }
 

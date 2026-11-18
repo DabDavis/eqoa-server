@@ -602,7 +602,9 @@ func (p *Player) disguised(now time.Time) bool {
 // its level less the player's DEF mods (the file's doc), a dummy's measured.
 func npcMeleeRollFor(npc *NPC, p *Player) meleeRoll {
 	if p.Mods.DefMod != 0 && npc.Dummy == NotDummy {
-		return creatureRoll(max(npc.Level-p.Mods.DefMod, 1)).withMods(npc.creatureMods()) // its effects' STR and DEX (pet.go)
+		r := creatureRoll(max(npc.Level-p.Mods.DefMod, 1)).withMods(npc.creatureMods()) // its effects' STR and DEX (pet.go)
+		r.Level = npc.Level // its con on the player is its own level's (offsetShare)
+		return r
 	}
 	return npcMeleeRoll(npc)
 }

@@ -407,6 +407,7 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 		w.pets = make(map[EntityID]*petState)
 	}
 	w.pets[caster.ServerID] = ps
+	w.duelNewPetLocked(caster.ServerID) // in its duel again, if the old one yielded (duel.go)
 	if sess != nil {
 		w.announcePetLocked(ps, sess)
 	}

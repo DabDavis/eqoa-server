@@ -349,6 +349,7 @@ func (w *World) holdCharmLocked(caster *Player, sess *session.Session, npc *NPC,
 	ps := &petState{owner: caster, npc: npc, stance: petDefensive, last: now}
 	ps.tmpl = w.charmTemplateLocked(npc)
 	w.pets[caster.ServerID] = ps
+	w.duelNewPetLocked(caster.ServerID) // in its duel again, if the old one yielded (duel.go)
 	if sess != nil {
 		w.announcePetLocked(ps, sess)
 	}

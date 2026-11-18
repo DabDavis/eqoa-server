@@ -648,7 +648,7 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 				t.hitHeal += ra.Heal // hitheal.go
 				continue
 			case database.AbilitySelfDoT, database.AbilityRaidHeal, database.AbilityPowerZero, database.AbilitySetHP, database.AbilityUnreached,
-				database.AbilityDeathTouch, database.AbilityPortNear:
+				database.AbilityDeathTouch, database.AbilityPortNear, database.AbilityPortFoe:
 				t.moments = append(t.moments, ra) // bossmoments.go
 				continue
 			case database.AbilityPrefer:

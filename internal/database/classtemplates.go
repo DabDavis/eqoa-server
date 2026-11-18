@@ -266,6 +266,15 @@ const (
 	// to the mobs in the chamber so they get attacked by them", "make the port
 	// once every 3 mins").
 	AbilityPortNear = "portnear"
+	// AbilityPortFoe: the one it fights, when a player (a pet never: the
+	// fight goes on), sent off: to its own bind point (Return Home's place), or
+	// to To ([world, x, y, z]) when it has one; its hate for that player
+	// forgotten, so it turns to the next on its list (entity/portfoe.go; the
+	// owner's Evil Melee epic, 2026-11-18, eqoa.forumotion.com t155: Ahriaana
+	// the Ultimate "ports those with aggro off the island", "not all the
+	// time"; the GM Jibrish's board 615, code ask 1: "the player with her
+	// aggro is sent off the plane, to its bind point ... pets never").
+	AbilityPortFoe = "portfoe"
 	// AbilityKickZone: a zone round its creature it guards in or out of a fight
 	// (entity/kickzone.go; the GM Jibwiz's petition 1956, the Anvil of Sarek:
 	// "If a player hits the distance my character is currently at from him he
@@ -310,7 +319,7 @@ const DefaultUnhitSeconds = 60
 // BossMomentKind is whether an ability is one of a boss's moments.
 func BossMomentKind(k string) bool {
 	return k == AbilitySelfDoT || k == AbilityRaidHeal || k == AbilityPowerZero || k == AbilitySetHP || k == AbilityUnreached ||
-		k == AbilityDeathTouch || k == AbilityPortNear
+		k == AbilityDeathTouch || k == AbilityPortNear || k == AbilityPortFoe
 }
 
 // MostSetHPRadius is the widest a sethp's area reaches.
@@ -320,7 +329,7 @@ const MostSetHPRadius = 200
 var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff, AbilityRoot, AbilityDebuff,
 	AbilityStrip, AbilityHealShield, AbilityMeleeKind, AbilityDoT, AbilityHitHeal, AbilityPrefer, AbilitySummon, AbilityEnrage,
 	AbilityProc, AbilityVeil, AbilityKillSay, AbilityLastStand, AbilityWard, AbilityDeathHold, AbilitySelfDoT, AbilityRaidHeal,
-	AbilityPowerZero, AbilitySetHP, AbilityUnreached, AbilityDeathTouch, AbilityPortNear, AbilityKickZone, AbilityRampage}
+	AbilityPowerZero, AbilitySetHP, AbilityUnreached, AbilityDeathTouch, AbilityPortNear, AbilityPortFoe, AbilityKickZone, AbilityRampage}
 
 // passiveKind is whether an ability of the kind casts nothing on a clock of its
 // own: what it does is a rule its creature keeps (a heal shield, a melee kind,
@@ -587,6 +596,9 @@ type TemplateAbility struct {
 	// its hate list, before it strikes (AbilityUnreached; 0:
 	// DefaultUnhitSeconds).
 	Unhit float64 `json:"unhit,omitempty"`
+	// To is a portfoe's landing, [world, x, y, z]; none: the player's own bind
+	// point (AbilityPortFoe).
+	To []float64 `json:"to,omitempty"`
 }
 
 // UnhitOr is an unreached moment's wait: its own, else DefaultUnhitSeconds.
@@ -788,6 +800,9 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 		n := i + 1
 		if a.PlayersOnly && (a.Kind != AbilitySetHP || a.Radius <= 0) {
 			return fmt.Errorf("ability %d: players_only is a sethp's with a radius", n)
+		}
+		if len(a.To) > 0 && a.Kind != AbilityPortFoe {
+			return fmt.Errorf("ability %d: to is a portfoe's", n)
 		}
 		if a.Kind == AbilityHealShield {
 			if a.Below < 1 || a.Below > 100 {
@@ -1057,6 +1072,9 @@ func checkBossMoment(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: foes are a portnear's (of the moments)", n)
 	case len(a.Foes) > MostFoes:
 		return fmt.Errorf("ability %d: a portnear's foes: up to %d names", n, MostFoes)
+	case len(a.To) != 0 && (len(a.To) != 4 || a.To[0] < 0 || a.To[0] > 255 || a.To[0] != math.Trunc(a.To[0]) ||
+		!finite(a.To[1]) || !finite(a.To[2]) || !finite(a.To[3])):
+		return fmt.Errorf("ability %d: a portfoe's to: [world, x, y, z] (none: the player's bind point)", n)
 	case a.Kind == AbilitySetHP && (a.SetHP < 1 || a.SetHP > 1000000):
 		return fmt.Errorf("ability %d: a sethp's set_hp %d: 1 to 1000000 hit points (it never kills)", n, a.SetHP)
 	case a.Kind == AbilitySetHP && (a.Radius < 0 || a.Radius > MostSetHPRadius):

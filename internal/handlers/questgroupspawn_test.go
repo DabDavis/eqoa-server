@@ -117,3 +117,41 @@ func liveSiliskors(f *questFixture) int {
 	}
 	return n
 }
+
+// The good casters' and the evil melees' epics raise the same Boldunder (the
+// owner's Evil Melee epic, 2026-11-18): a group mate's group spawn of the NPC
+// on ANOTHER quest stands for the player too, so a mixed raid fights one; a
+// mate's spawn of another NPC, or one not made by a group event, does not.
+func TestAGroupSpawnOfTheSameNPCOnAnotherQuestStands(t *testing.T) {
+	for _, c := range []struct {
+		name  string
+		npc   string
+		group bool
+		want  int
+	}{
+		{"the same NPC, a group's", "Siliskor", true, 1},
+		{"the same NPC, not a group's", "Siliskor", false, 2},
+		{"another NPC", "Pomus Magemell", true, 2},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			f, _ := siliskorFixture(t)
+			mate := &entity.Player{ServerID: 2009, CharServerID: f.sid + 1000, Name: "Mate"}
+			f.qe.mates = func(*entity.Player) []*entity.Player { return []*entity.Player{f.tw.p, mate} }
+			theirs, _, ok := f.tw.w.SpawnNPCCopy("Siliskor", 25416, 54, 15742, 0, 0)
+			if !ok {
+				t.Fatal("no copy for the mate")
+			}
+			f.qe.mu.Lock()
+			f.qe.spawns = map[uint32][]questSpawn{mate.CharServerID: {{id: theirs, quest: 131, step: 4,
+				until: time.Now().Add(time.Minute), npc: c.npc, group: c.group}}}
+			f.qe.mu.Unlock()
+			f.qe.checkReach()
+			if s, _ := f.progress(130); s != 2 {
+				t.Fatalf("at the statue, the quest is at step %d, want 2", s)
+			}
+			if n := liveSiliskors(f); n != c.want {
+				t.Fatalf("%d Siliskors, want %d", n, c.want)
+			}
+		})
+	}
+}

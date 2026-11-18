@@ -1093,10 +1093,16 @@ The owner, 2026-11-18, for the Vanilla Test server: "make a tag for accounts to 
 example. this [OG] tag shows players you opt-out of the QoL changes to EQOA and only use the most basic upgrades like FPS, widescreen,
 no touchscreen, no mouse"; opt-in per account, chosen once when the account is made, permanent.
 - **The choice** is `accountinfo.og` (0 for every account made before it; a column, so a shard's `AccountMirror` copy has it). With
-  `auth.og_choice` on the shard that owns the accounts it is offered at creation: the account pages' Register (a checkbox and a
-  confirm, `/api/register`'s `og`) and STATION's Create Account as served with `mail.accounts` (`stationCreate2`: a "Vanilla Test" row,
+  `auth.og_choice` on the shard that owns the accounts it is offered at creation, **its limits said before it is made** (jibrish,
+  2026-11-18: "make sure players have a clear choice and explanation when creating an OG account, especially about the
+  limitations"): the account pages' Register (Standard or [OG], Standard chosen until OG is; choosing OG opens what it gives up on
+  Vanilla Test, what stays, and that it is permanent, and it is sent only with a tick that it is understood and a confirm;
+  `/api/register`'s `og`) and STATION's Create Account as served with `mail.accounts` (`stationCreate2`: an "Account Type" row,
   Standard or OG, riding in the form's **Gender**, the only free field: a ComboBox the disc's page had, CheckName'd, sent as is at the
-  payload's 324; the disc's own page sends Male/Female, never OG). Auto-registration and the panel's `create_account` make plain
+  payload's 324; the disc's own page sends Male/Female, never OG; the help saying what OG costs, and a "What is OG?" button opening
+  `StationOGAboutPage`, the limits served in SOE's rental code page `RentSet.xml`, which only the billing pages reach, Triangle back).
+  The pages say most additions are off on Vanilla Test for every account (`world.vanilla_ui` there): change their words if that
+  ever stops. Auto-registration and the panel's `create_account` make plain
   accounts. A player never changes it after; a GM does with **`set_account_og`** (audited with a reason, revertible, not an account
   at or above the GM's, refused on a shard's copy); the editor cannot write the column.
 - **On a shard with `world.og_accounts`** (Live alone), at each character's entry (`applyOG`, also a takeover's and a keep restart's

@@ -26,12 +26,12 @@ func ogOf(t *testing.T, db *database.SQLiteDB, name string) bool {
 	return og
 }
 
-// The page with auth.og_choice has the "Vanilla Test" row: Gender as a
+// The page with auth.og_choice has the "Account Type" row: Gender as a
 // ComboBox (its value Standard, then OG), its label GenderLabel (CheckName's),
-// on the grid's middle row with the e-mail above and the button below; every
-// field the form's code reads is there, the hidden ones still passing its
-// checks; its help fits. Without the choice the page is as before, Gender a
-// hidden "x".
+// under the e-mail, then "What is OG?" (StationOGAboutPage) and the button;
+// every field the form's code reads is there, the hidden ones still passing
+// its checks; its help fits. Without the choice the page is as before, Gender
+// a hidden "x".
 func TestStationCreatePageOffersOG(t *testing.T) {
 	page := "eqoaclassic.com/eqoa/password"
 	plain := string(stationCreate2(page, false))
@@ -43,12 +43,13 @@ func TestStationCreatePageOffersOG(t *testing.T) {
 	}
 	og := string(stationCreate2(page, true))
 	for _, want := range []string{
-		`<PS2GUIPage gridWidth="3" gridHeight="3">`,
+		`<PS2GUIPage gridWidth="3" gridHeight="4">`,
 		`<ComboBox name="Gender" val="Standard">`, `<Option name="Standard"/>`, `<Option name="OG"/>`,
-		`<Text name="GenderLabel" val="Vanilla Test">`,
+		`<Text name="GenderLabel" val="Account Type">`,
 		`name="EmailAddress" val="">` + "\n\t\t<ButtonPos x=\"0\" y=\"0\"/>",
 		`<ComboBox name="Gender" val="Standard">` + "\n\t\t<ButtonPos x=\"0\" y=\"1\"/>",
-		`action="SubmitAcctCreate">` + "\n\t\t<ButtonPos x=\"0\" y=\"2\"/>",
+		`<Button val="What is OG?" alignment="center" nextPage="` + StationOGAboutPage + `">` + "\n\t\t<ButtonPos x=\"0\" y=\"2\"/>",
+		`action="SubmitAcctCreate">` + "\n\t\t<ButtonPos x=\"0\" y=\"3\"/>",
 	} {
 		if !strings.Contains(og, want) {
 			t.Errorf("the [OG] page lacks %q", want)
@@ -62,8 +63,31 @@ func TestStationCreatePageOffersOG(t *testing.T) {
 	if strings.Count(og, `name="Gender"`) != 1 {
 		t.Fatal("Gender twice")
 	}
-	if m := regexp.MustCompile(`<Text val="([^"]*)">\s*<Position x="450" y="118"/>`).FindStringSubmatch(og); m == nil || len(m[1]) > 150 {
+	reHelp := regexp.MustCompile(`<Text val="([^"]*)">\s*<Position x="450" y="118"/>`)
+	if m := reHelp.FindStringSubmatch(og); m == nil || len(m[1]) > 150 || !strings.Contains(m[1], "Permanent") {
 		t.Fatalf("the help: %q", m)
+	}
+
+	// "What is OG?": the limits, what stays and that it is permanent, the
+	// rest of the additions in its help; nothing to select (Triangle goes
+	// back), so no grid position; SOE's page of that name is not one ours open
+	about := string(stationOGAbout())
+	for _, want := range []string{"Vanilla Test", "Map, minimap and item links locked off", "No mouse or touch",
+		"[OG] Name", "Kept: frame rate", "Permanent", "quest helper", "/con", `<Text val="Back">`} {
+		if !strings.Contains(about, want) {
+			t.Errorf("What is OG? lacks %q", want)
+		}
+	}
+	if strings.Contains(about, "ButtonPos") || strings.Contains(about, "<Button") {
+		t.Error("What is OG? has something to select")
+	}
+	if m := reHelp.FindStringSubmatch(about); m == nil || len(m[1]) > 150 {
+		t.Fatalf("What is OG?'s help: %q", m)
+	}
+	for name, p := range stationEmailPages(page, true) {
+		if name == StationOGAboutPage || strings.Contains(string(p), `nextPage="`+StationOGAboutPage+`"`) {
+			t.Errorf("%s: the e-mail pages use %s", name, StationOGAboutPage)
+		}
 	}
 	reHidden := regexp.MustCompile(`<Text name="([A-Za-z0-9]+)" val="([^"]*)">\s*<Position x="0" y="0"/>`)
 	for _, m := range reHidden.FindAllStringSubmatch(og, -1) {
@@ -82,8 +106,9 @@ func TestStationCreatePageOffersOG(t *testing.T) {
 	pak := bytes.Join([][]byte{
 		pakEntry("stationdata/servers/stationLiveHosts.txt", "x\r\n"),
 		pakEntry("data/ui/IDCreat2.xml", "<PS2GUIPage><Text name=\"PostalCode\"/></PS2GUIPage>"),
+		pakEntry(StationOGAboutPage, "<PS2GUIPage><Text name=\"RentalNumber\"/></PS2GUIPage>"),
 	}, nil)
-	served := func(choice bool) string {
+	served := func(choice bool, page string) string {
 		cfg := config.DefaultConfig()
 		cfg.Server.ServerIP = "203.0.113.10"
 		cfg.Mail.Accounts = true
@@ -93,18 +118,24 @@ func TestStationCreatePageOffersOG(t *testing.T) {
 			n := int(binary.BigEndian.Uint32(got[off:]))
 			name := string(got[off+4 : off+4+n])
 			l := int(binary.BigEndian.Uint32(got[off+4+n:]))
-			if name == "data/ui/IDCreat2.xml" {
+			if name == page {
 				return string(got[off+8+n : off+8+n+l])
 			}
 			off += 8 + n + l
 		}
 		return ""
 	}
-	if !strings.Contains(served(true), `<ComboBox name="Gender"`) {
+	if !strings.Contains(served(true, "data/ui/IDCreat2.xml"), `<ComboBox name="Gender"`) {
 		t.Fatal("og_choice: the row not served")
 	}
-	if strings.Contains(served(false), `ComboBox`) {
+	if strings.Contains(served(false, "data/ui/IDCreat2.xml"), `ComboBox`) {
 		t.Fatal("no og_choice: the row served")
+	}
+	if served(true, StationOGAboutPage) != about {
+		t.Fatal("og_choice: What is OG? not served")
+	}
+	if !strings.Contains(served(false, StationOGAboutPage), "RentalNumber") {
+		t.Fatal("no og_choice: SOE's page replaced")
 	}
 }
 
@@ -134,8 +165,10 @@ func TestStationCreatesAnOGAccount(t *testing.T) {
 	}
 }
 
-// The account pages' Register: the checkbox shown only with auth.og_choice;
-// an account asked [OG] is made one only there.
+// The account pages' Register: the choice shown only with auth.og_choice,
+// Standard chosen until OG is, OG's limits listed and a tick that it is
+// permanent asked before it is sent; an account asked [OG] is made one only
+// there.
 func TestRegisterOffersOG(t *testing.T) {
 	r := newPwRig(t)
 	page := func() string {
@@ -152,6 +185,16 @@ func TestRegisterOffersOG(t *testing.T) {
 	r.s.OGChoice = true
 	if !strings.Contains(page(), `<div class="form-group" id="ogGroup">`) || !strings.Contains(page(), "Permanent") {
 		t.Fatal("og_choice: the box not shown")
+	}
+	for _, want := range []string{
+		`id="acctStandard" name="accttype" value="standard" checked`, `id="og" name="accttype" value="og">`,
+		"map and minimap are locked off", "Item links are locked off", "mouse and touch screen do nothing in the world",
+		"[OG] Name", "What stays:", "cannot be switched back", `<input type="checkbox" id="ogAck">`,
+		`og && !document.getElementById('ogAck').checked`,
+	} {
+		if !strings.Contains(page(), want) {
+			t.Errorf("og_choice: the page lacks %q", want)
+		}
 	}
 	if _, out, _ := r.post("/api/register", "203.0.113.32", false, map[string]any{"username": "Meshuggah", "password": "pass1234", "og": true}); out["success"] != true {
 		t.Fatalf("register: %v", out)

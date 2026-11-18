@@ -815,7 +815,11 @@ func TestAReplacedLoginStaysInTheRaidGroup(t *testing.T) {
 			ns.SetCharacterInWorld(true)
 			r.sync()
 			r.sync()
-			lines := linesOf(drain(ns))
+			msgs = drain(ns)
+			if n := rejoinBoxes(msgs); n != 1 {
+				t.Errorf("in the world it was asked %d times to show its group (grouprejoin.go)", n)
+			}
+			lines := withoutRejoinLine(linesOf(msgs))
 			if tc.hear && (len(lines) != 1 || lines[0] != raidStillLine) {
 				t.Errorf("in the world it heard %q", lines)
 			}
@@ -846,7 +850,7 @@ func TestAReplacedLoginStaysInTheRaidGroup(t *testing.T) {
 	if rosters := rostersIn(t, msgs); len(rosters) != 1 || len(rosters[0]) != 4 {
 		t.Errorf("a takeover's roster: %v", rosters)
 	}
-	if lines := linesOf(msgs); len(lines) != 1 || lines[0] != raidStillLine {
+	if lines := withoutRejoinLine(linesOf(msgs)); len(lines) != 1 || lines[0] != raidStillLine {
 		t.Errorf("a takeover heard %q", lines)
 	}
 

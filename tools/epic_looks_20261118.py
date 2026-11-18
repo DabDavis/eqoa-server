@@ -241,7 +241,9 @@ KEEP_NAMES = {"twinkle", "icingdeath",   # Drizzt's weapons, their look the owne
               # looks chosen on purpose, kept (the owner, 2026-11-18): petitions 1559, 1310, 1316, jibrish,
               # Zaeire, transfer 10
               "vanquishers blade", "world splitter", "sapphyras sword", "sword of power",
-              "sword of protection", "malefactors edge", "bo of the drunken fist", "white obliterator"}
+              "sword of protection", "malefactors edge", "bo of the drunken fist", "white obliterator",
+              # their epic looks put back (the owner, 2026-11-18: "Keep both epic looks", petitions 2355/2356)
+              "fang of the downfall", "legacy maxillioan staff"}
 KEEP_NPC = set()
 
 # epics by name: both shards' epic quest rewards, Ascended copies and heirlooms' epics (2026-11-18), the 49s of

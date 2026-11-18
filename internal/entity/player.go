@@ -417,6 +417,8 @@ type Player struct {
 	GroupID uint32
 	// raidReminder: its new client is to be told its group is a raid group (raid.go)
 	raidReminder bool
+	// groupRejoin: its new client is to be asked to show its group (grouprejoin.go)
+	groupRejoin bool
 	// LFG: registered in the live group search (lfg.go: 0x0801 sub 2, /lfg
 	// on), as a character looking for a group or, leading one, as a group
 	// looking for members; it lasts until unregistered or the logout.

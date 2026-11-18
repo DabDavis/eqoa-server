@@ -54,7 +54,9 @@ type groupAsk struct {
 	merc bool
 	// rejoin: a merc's own box to an owner already in a group with it
 	// (mercgroup.go's mercRejoinAskLocked): its client's yes, or its answer
-	// 2 for itself (it holds the group), shows the group; a no dismisses it
+	// 2 for itself (it holds the group), shows the group; a no dismisses it.
+	// Without merc, a new client's own box to show its group of other players
+	// (grouprejoin.go): a no leaves the group
 	rejoin   bool
 	declined time.Time
 	// invite is, on a caller's own box, whom its yes invites (raidcmds.go's /raidinvite and
@@ -98,6 +100,10 @@ func (w *World) RaidCall(sess *session.Session) {
 // invite of ask.invite (raidcmds.go), a raid's when ask.raid. Must be called with the
 // lock held.
 func (w *World) ownBoxYesLocked(sess *session.Session, p *Player, ask groupAsk) {
+	if ask.rejoin { // a new client's box to show its group (grouprejoin.go)
+		w.groupRejoinYesLocked(p)
+		return
+	}
 	if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil { // a group since: its roster, its client in it now
 		w.sendRosterLocked(g, true)
 		return
@@ -119,6 +125,10 @@ func (w *World) ownBoxYesLocked(sess *session.Session, p *Player, ask groupAsk) 
 // none: it needs no box then, so what the box was for goes on. Must be called with the
 // lock held.
 func (w *World) ownBoxNoLocked(sess *session.Session, p *Player, why byte, ask groupAsk) {
+	if ask.rejoin { // grouprejoin.go
+		w.groupRejoinNoLocked(p, why)
+		return
+	}
 	if why == 2 && p.GroupID == 0 {
 		w.ownBoxYesLocked(sess, p, ask)
 	}

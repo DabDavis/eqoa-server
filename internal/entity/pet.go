@@ -1868,6 +1868,21 @@ const (
 	ItemPetResting // not before notBefore
 )
 
+// PetName is the name of the session's player's pet out, false for none (handlers/itemspell.go's lines).
+func (w *World) PetName(sess *session.Session) (string, bool) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil {
+		return "", false
+	}
+	ps := w.pets[p.ServerID]
+	if ps == nil || ps.npc == nil || ps.npc.Dead {
+		return "", false
+	}
+	return petName(ps.npc.Name), true
+}
+
 // SummonByItem brings a summoning spell's pet as an item's use, with no cast
 // (handlers/guenhwyvar.go): as the spell's landing does (summonPetLocked), a
 // pet of another kind replaced. The item's own pet out, or the time before

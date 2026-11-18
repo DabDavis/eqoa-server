@@ -74,7 +74,9 @@ import (
 //     root broken by later hits as any root; 12 s, a snare 50% for 18 s, when
 //     the words give no time or slow (ours). A duel holds none (duelprocs.go);
 //   - a proc for a kind of creature alone (Gorereaver's goblins) fires on a
-//     creature whose name names it, and not otherwise.
+//     creature whose name names it, and not otherwise; one for the undead
+//     ("works only on undead": the Positronian Mace's, work board 737) on an
+//     undead creature by undead.go's rule (procOnLocked), never in a duel.
 //   - a form (the Staff of Faykind's; the user, 2026-11-07: "lets add staff
 //     of faykind. it procs a pixie form, that lasts 10 min, the pixie form can
 //     proc up to 800 per round, the proc percentage was around 30% for the
@@ -549,9 +551,35 @@ func (wp WeaponProc) String() string {
 		s += fmt.Sprintf(" at %d%% a hit", wp.Chance)
 	}
 	if wp.Only != "" {
-		s += ", on " + wp.Only + "s alone"
+		s += onlyWords(wp.Only)
 	}
 	return s
+}
+
+// procOnUndead is a proc's Only for the undead (its words' "works only on undead": the
+// Positronian Mace's, t299 "500dmg undead proc"; work board 737's code ask 4): undead by
+// undead.go's rule (npcundead, else the name), not by a word of the creature's name.
+const procOnUndead = "undead"
+
+// procOnLocked reports whether the proc fires on npc at all: any creature, else one
+// whose name names its Only, or for procOnUndead an undead one. Must be called with
+// the lock held.
+func (w *World) procOnLocked(wp *WeaponProc, npc *NPC) bool {
+	switch wp.Only {
+	case "":
+		return true
+	case procOnUndead:
+		return w.undeadLocked(npc)
+	}
+	return strings.Contains(strings.ToLower(npc.Name), wp.Only)
+}
+
+// onlyWords is a proc's Only for a line: "on goblins alone", "on undead alone".
+func onlyWords(only string) string {
+	if only == procOnUndead {
+		return ", on undead alone"
+	}
+	return ", on " + only + "s alone"
 }
 
 // weaponProcSpellID is the id a weapon's damage over time goes by on the
@@ -578,7 +606,7 @@ func (w *World) weaponProcLocked(sess *session.Session, p *Player, npc *NPC, now
 	if wp == nil || npc.Dead || p.IsDead() {
 		return false
 	}
-	if wp.Only != "" && !strings.Contains(strings.ToLower(npc.Name), wp.Only) {
+	if !w.procOnLocked(wp, npc) {
 		return false
 	}
 	if wp.Kind == ProcForm {

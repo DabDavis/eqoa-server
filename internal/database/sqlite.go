@@ -874,6 +874,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureMercs(); err != nil { // mercs.go: the mercenaries hired and the familiars
 		return err
 	}
+	if err := db.ensureItemSpells(); err != nil { // itemspell.go: items whose Use casts a spell (the Valkanith runes)
+		return err
+	}
 	if err := db.ensureGroupInvites(); err != nil { // groupinvites.go: "Allow anyone in my group to invite"
 		return err
 	}

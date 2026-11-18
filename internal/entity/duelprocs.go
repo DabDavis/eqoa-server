@@ -148,8 +148,8 @@ func (w *World) duelWeaponProcLocked(d *Duel, p *Player, sess *session.Session, 
 	if wp == nil || p.IsDead() {
 		return false
 	}
-	if wp.Only != "" && !strings.Contains(strings.ToLower(m.name()), wp.Only) {
-		return false
+	if wp.Only == procOnUndead || wp.Only != "" && !strings.Contains(strings.ToLower(m.name()), wp.Only) {
+		return false // a proc for the undead alone: no duellist is one
 	}
 	if wp.Kind == ProcForm {
 		w.formProcLocked(sess, p, wp, now)

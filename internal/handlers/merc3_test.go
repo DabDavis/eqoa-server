@@ -3,8 +3,10 @@ package handlers
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/entity"
 )
 
 // Three mercs a character (the owner, 2026-11-12): the liaison hires into the
@@ -124,5 +126,88 @@ func TestMercLoginBringsEveryHire(t *testing.T) {
 	r.say(r.anna, "/merc")
 	if got := r.msgs(r.anna); !hasMsg(got, "chat:3. Your mercenary Mirra, a Human Warrior, is on standby*") {
 		t.Errorf("/merc: %q", got)
+	}
+}
+
+// The owner, 2026-11-18: "/merc will only add 2 mercs back and not the
+// third". Gonzo's three died over a minute, he died after them, and the
+// third's rest ended while he was dead: HireMercAt refused its return ("The
+// dead hire no one.") and nothing asked again, so two came back and the third
+// never did. A rested merc's return now waits for its owner to stand; and
+// /merc brings every rested one, three of three. The controls: none comes to
+// an owner still dead, and none past the group's place (standby).
+func TestThreeMercsComeBackAfterTheirOwnersDeath(t *testing.T) {
+	r, m, db := newMercFixture(t)
+	now := time.Unix(1_800_000_000, 0)
+	m.now = func() time.Time { return now }
+	var due []func()
+	var waits []time.Duration
+	m.after = func(d time.Duration, f func()) { waits, due = append(waits, d), append(due, f) }
+	for i, name := range []string{"Peldor", "Wilanus", "Yordor"} {
+		if err := db.SetMerc(database.MercRow{ServerID: r.pa.CharServerID, Slot: i + 1, Name: name, Class: 0, Race: 0, Stance: 2}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	m.comeBack(r.anna, r.pa)
+	if got := r.gw.MercInfosOf(r.anna); len(got) != 3 {
+		t.Fatalf("%d out at the login, want 3", len(got))
+	}
+	// all three die, ten seconds apart
+	for slot := 1; slot <= 3; slot++ {
+		name := []string{"", "Peldor", "Wilanus", "Yordor"}[slot]
+		m.note(entity.MercNote{Kind: entity.MercNoteDied, Owner: r.pa, Slot: slot, Sess: r.anna, Name: name, Until: now.Add(entity.MercRest)})
+		r.gw.DismissMerc(r.anna, slot, now)
+		now = now.Add(10 * time.Second)
+	}
+	r.drain()
+	if len(due) != 3 {
+		t.Fatalf("%d returns asked, want 3", len(due))
+	}
+	// the first back before its owner dies
+	now = now.Add(entity.MercRest - 20*time.Second + mercRestSlack)
+	due[0]()
+	if got := r.gw.MercInfosOf(r.anna); len(got) != 1 {
+		t.Fatalf("%d out after the first rest, want 1", len(got))
+	}
+	// the owner dies; the second's and third's rests end while he is dead
+	r.pa.HP, r.pa.DiedAt = 0, now
+	now = now.Add(20 * time.Second)
+	due[1]()
+	due[2]()
+	if got := r.gw.MercInfosOf(r.anna); len(got) != 1 {
+		t.Fatalf("the control: %d out to a dead owner, want 1", len(got))
+	}
+	if len(due) != 5 || waits[3] != mercDeadOwnerRetry || waits[4] != mercDeadOwnerRetry {
+		t.Fatalf("the returns refused by the death not asked again: %d asked, waits %v", len(due), waits)
+	}
+	// still dead at the retry: asked again, none out
+	now = now.Add(mercDeadOwnerRetry)
+	due[3]()
+	if len(due) != 6 || len(r.gw.MercInfosOf(r.anna)) != 1 {
+		t.Fatalf("a retry while dead: %d asked, %d out", len(due), len(r.gw.MercInfosOf(r.anna)))
+	}
+	// he stands at his bind point: the next retries bring both
+	r.pa.HP, r.pa.DiedAt = r.pa.MaxHP, time.Time{}
+	if r.pa.HP <= 0 {
+		r.pa.HP = 100
+	}
+	now = now.Add(mercDeadOwnerRetry)
+	due[4]()
+	due[5]()
+	if got := r.gw.MercInfosOf(r.anna); len(got) != 3 {
+		t.Fatalf("%d out after the owner stood, want 3: %+v", len(got), got)
+	}
+	if len(due) != 6 {
+		t.Errorf("returns asked again once he stood: %d", len(due))
+	}
+
+	// /merc brings all three rested ones at once
+	for slot := 1; slot <= 3; slot++ {
+		r.gw.DismissMerc(r.anna, slot, now)
+	}
+	r.drain()
+	r.say(r.anna, "/merc")
+	if got := r.gw.MercInfosOf(r.anna); len(got) != 3 {
+		t.Fatalf("/merc brought %d of 3: %q", len(got), r.msgs(r.anna))
 	}
 }

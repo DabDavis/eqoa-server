@@ -103,7 +103,8 @@ What it writes, and from what:
 
   spellarea: a spell whose effects give an AoERadius, or whose scope is an
       area one, is an area spell (area.go): centre 1 (round its target) for
-      Target and TB AoE, 2 (round its caster) for Self, PB AoE and Group;
+      Target and TB AoE, 2 (round its caster) for Self, PB AoE and Group, and
+      for a Target spell with an effect of scope PB AoE (the shouts);
       radius its AoERadius (0: the server's own); maxtargets 0 (the server's
       8). A proc's radius is its proc's, not the spell's.
 
@@ -1925,6 +1926,12 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None, b
 
         # its area
         centre = AREA_CENTRE.get(sheet_scope)
+        # a spell for a target whose area is its caster's (an effect of scope
+        # PB AoE: the warrior's shouts, "AoERadius 10 (Target)"): round its
+        # caster, as spelljson.go reads it (area.go's isAreaTaunt; the owner,
+        # 2026-11-17: "aoe taunt for wars should ... taunt all mobs within 10m")
+        if centre == 1 and any(o.get("scope") == "player_aoe" for o in j["effects"]):
+            centre = 2
         own = {o["kind"] for o in j["effects"]} & OWN_TARGETS
         if centre is not None and (j.get("radius") or sheet_scope in ("TB AoE", "PB AoE")) and own:
             counts["areas left out (" + ", ".join(sorted(own)) + ": its own code picks whom)"] += 1

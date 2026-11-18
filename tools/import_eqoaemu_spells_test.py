@@ -67,6 +67,8 @@ EFFECTS = [
     eff("0010", "Teleport", Location="Tunaria,100.5,50,200.25", AoERadius=30, Scope="Group", Target_Type="Friendly"),
     eff("0011", "Teleport", Location="Odus,7,8,9", Scope="Group", Target_Type="Friendly"),
     eff("0012", "Teleport", Location="Odus,7,8,9", Scope="Group", Target_Type="Friendly"),
+    eff("0014", "Modify Hate", Hate=90, Modifier="STR", Percentage=16, AoERadius=10, Scope="PB AoE"),  # a shout's area
+    eff("0015", "Modify Hate", Hate=450, Modifier="STR", Percentage=16, AoERadius=10),           # its target's
 ]
 SPELLS = [
     spell("0100", "Ember bolt", EffectID1="0001", Level=12, CastTime=3),                        # ours: 101, renamed
@@ -97,13 +99,15 @@ SPELLS = [
     spell("0112", "Moon Portal", EffectID1="0011", Scope="Group", Target_Type="Friendly", ScrollSource="Quest"),
     spell("0113", "Sun Escape", EffectID1="0012", Scope="Group", Target_Type="Friendly", ScrollSource="Quest"),
     spell("0114", "Pour Cider", EffectID1="0013", Scope="Self", Target_Type="Self", CLASS="MAG", ScrollSource="Quest"),
+    spell("0115", "Rallying Shout", EffectID1="0014", EffectID2="0015", CLASS="WAR", Learn_Method="CM",
+          ScrollSource=""),                                                                     # new, a warrior's shout
 ]
 MAP = {"0100": (101, "name"), "0101": (102, "name"), "0102": (103, "name"), "0103": (900259, "split", 103),
        "0111": (900273, "new"), "0112": (900274, "new"), "0113": (900275, "new"), "0114": (900276, "new"),
        "0104": (900260, "new"), "0105": (900261, "new"), "0106": (900262, "new"), "0107": (900263, "new"),
        "0108": (900264, "new"), "0109": (900265, "new"), "010A": (900266, "new"), "010B": (104, "name"),
        "010C": (105, "name"), "010D": (900269, "new"), "010E": (900270, "new"), "010F": (900271, "new"),
-       "0110": (106, "name")}
+       "0110": (106, "name"), "0115": (900277, "new")}
 def item(i, name, item_id, level, *effects):
     r = {"SpellID": i, "Name": name, "ItemID": str(item_id), "Level": str(level), "Scope": "Self", "Target Type": "Self"}
     for k, e in enumerate(effects, 1):
@@ -446,6 +450,8 @@ class ImportTest(unittest.TestCase):
         self.assertEqual((areas[900266]["centre"], areas[900266]["radius"]), (1, 15.0))
         self.assertEqual((areas[104]["centre"], areas[104]["radius"]), (2, 30.0))
         self.assertNotIn(105, areas, "a rez picks its own")
+        self.assertEqual((areas[900277]["centre"], areas[900277]["radius"]), (2, 10.0),
+                         "a target's spell whose area is its caster's (PB AoE): round its caster (the shouts)")
         links = {(x["cls"], x["spellid"]): x["source"] for x in p["links"]}
         self.assertEqual(links[(13, 900260)], "eqoaemu")
         self.assertEqual(links[(12, 900262)], "cm (eqoaemu)")

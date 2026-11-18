@@ -535,6 +535,9 @@ func (w *World) areaStartLocked(p *Player, cs *castState, now time.Time) {
 	if a.Centre == AreaNone || w.SpatialIndex == nil {
 		return
 	}
+	if isAreaTaunt(&cs.spell) {
+		*a = a.asTaunt() // round its caster, every creature in it (the doc below)
+	}
 	d := &cs.spell.Def
 	r := a.radiusFor(d.Harmful)
 	var near []areaNear
@@ -592,6 +595,52 @@ func (w *World) areaStartLocked(p *Player, cs *castState, now time.Time) {
 	}
 	log.Printf("Cast: %s's %q is an area spell (%s) round its %s within %.0f: %d more of %d found, %d at most in all",
 		p.Name, cs.spell.Name, a.Why, centre, r, len(cs.others), found, most)
+}
+
+// An AoE taunt (the warrior's shouts: Taunting, Provoking, Baiting, Inciting
+// and Goading Shout) takes every creature within ShoutRadius (10) of its
+// caster (the owner, 2026-11-17: "aoe taunt for wars should area of effect
+// taunt all mobs within 10m"). Until then a spellarea row the EQOAEmu import
+// made from the workbook's sheet scope ("AoERadius 10 (Target)", centre 1)
+// laid the shouts round their target: on Heirloom on 2026-11-17 Zerkx's shouts
+// centred up to 17.6 off him, took creatures 22.6 off him and spared one 6.2
+// beside him (out of sight of the target, which the area also needed), and
+// the cap of AreaMaxTargets left the rest of a crowd untaunted. Now an area
+// taunt lies round its caster whatever a row's centre (its radius and cap are
+// still a GM's to set), needs sight of the caster alone, as every area round
+// its caster does (sight.go), and with no row's cap takes every creature in it
+// (areaMaxMost, the most a row may give): each takes its share as a taunt
+// (taunt.go: the top of its hate), its own target its full taunt.
+
+// isAreaTaunt reports an area spell whose every effect is positive hate: a
+// taunt round its caster (areaCentre's hateAlone), a cone not among them.
+func isAreaTaunt(s *CastSpell) bool {
+	a := &s.Area
+	if !s.Def.Harmful || a.Centre == AreaNone || a.Centre == AreaCone || !hateAlone(s.Def) {
+		return false
+	}
+	for _, e := range s.Def.Effects {
+		if e.Amount <= 0 {
+			return false
+		}
+	}
+	for _, e := range a.Effects {
+		if e.Kind != EffectHate || e.Amount <= 0 {
+			return false
+		}
+	}
+	return true
+}
+
+// asTaunt is an area taunt's area (isAreaTaunt): round its caster, a row's
+// radius (else ShoutRadius, radiusFor) and a row's cap, else every creature
+// in it.
+func (a SpellArea) asTaunt() SpellArea {
+	a.Centre = AreaOnCaster
+	if a.Max <= 0 {
+		a.Max = areaMaxMost
+	}
+	return a
 }
 
 // areaCentreLocked is where a cast's area lies now: on its first target for an

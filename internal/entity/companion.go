@@ -39,6 +39,10 @@ import (
 // that is a pet itself, has the NPC bit (0x80: a merchant or a quest giver,
 // who fights no one), is a training dummy, a spawn-only original or a GM's
 // copy; and no kind a pet's word names that is no one's pet (companionNotPets).
+// A GM trigger's resummon names a pair too ("Tunare calls Wrath of the Mother
+// back": gmcompanions.go's SetTriggerCompanions), as a pet's name names its
+// owner. A GM's copy of a creature brings copies of its companions, paired with
+// it alone (gmcompanions.go).
 // The live game's caster fought with its pet beside it, and now:
 //   - the pet walks with its owner as it wanders (companionsFollowLocked,
 //     2026-11-11), and does not wander of itself (movement.go's whyCompanion);
@@ -194,9 +198,47 @@ func companionNamesOwner(named, owner string) bool {
 // instance's copy of one (dungeons.go: Waldorf's petition 1832, 2026-11-12,
 // "shamans aren't tied to their pets" in Guk's instance; a copy pairs with the
 // copies of its own instance alone, linkCompanionsLocked's cell).
+//
+// A GM's spawn (SpawnGMCopy) takes part too, but only in the pair its spawning
+// made (gmCompanionOf: gmcompanions.go), never one read off the spawns.
 func companionFighter(n *NPC) bool {
 	return n != nil && n.Owner == 0 && n.Charm == nil && n.NPCType&0x80 == 0 && n.Dummy == NotDummy &&
-		(!n.Temporary || n.Instance != 0) && !n.SpawnOnly
+		(!n.Temporary || n.Instance != 0 || n.GMSpawn) && !n.SpawnOnly
+}
+
+// companionPetRuleLocked is whether a creature called name is a pet by its name
+// (companionName, or a GM trigger's resummon: gmcompanions.go), the owner's name
+// its name (or the trigger) names ("" none), and whether it is a pet only beside
+// that owner (companionOwnerOnly; a trigger's always). Must be called with the
+// lock held.
+func (w *World) companionPetRuleLocked(name string) (pet bool, named string, ownerOnly bool) {
+	key := database.NPCClassKey(name)
+	if by := w.triggerPets[key]; by != "" {
+		return true, by, true
+	}
+	if !companionName(name) {
+		return false, "", false
+	}
+	if m := companionOwnerName.FindStringSubmatch(strings.TrimSpace(name)); m != nil {
+		named = strings.TrimSpace(m[1] + m[2])
+	} else if k := companionKinds[key]; k != "" {
+		named = k
+	}
+	return true, named, companionOwnerOnly[key]
+}
+
+// companionScore is how good an owner o is for pet (lower better), false when it
+// is none: the owner its name names within companionNamedReach before any other,
+// else (unless ownerOnly) the nearest within companionReach.
+func companionScore(pet, o *NPC, named string, ownerOnly bool) (float32, bool) {
+	d := distXZ(pet.SpawnX, pet.SpawnZ, o.SpawnX, o.SpawnZ)
+	switch {
+	case named != "" && d <= companionNamedReach && companionNamesOwner(named, o.Name):
+		return d - companionNamedReach - companionReach, true
+	case d <= companionReach && !ownerOnly:
+		return d, true
+	}
+	return 0, false
 }
 
 // linkCompanionsLocked reads the pairs off the NPCs' spawns (the file's doc),
@@ -223,35 +265,30 @@ func (w *World) linkCompanionsLocked() {
 		if !companionFighter(n) {
 			continue
 		}
-		if companionName(n.Name) {
+		if n.GMSpawn {
+			// a GM's spawn: the pair its spawning made, no other (gmcompanions.go)
+			if o := w.NPCs[n.gmCompanionOf]; n.gmCompanionOf != 0 && o != nil && o.GMSpawn && companionFighter(o) {
+				w.companionOf[n.ServerID] = o.ServerID
+				w.companions[o.ServerID] = append(w.companions[o.ServerID], n.ServerID)
+			}
+			continue
+		}
+		if pet, _, _ := w.companionPetRuleLocked(n.Name); pet {
 			pets = append(pets, n)
 			continue
 		}
 		grid[at(n)] = append(grid[at(n)], n)
 	}
 	for _, pet := range pets {
-		named, ownerOnly := "", companionOwnerOnly[database.NPCClassKey(pet.Name)]
-		if m := companionOwnerName.FindStringSubmatch(strings.TrimSpace(pet.Name)); m != nil {
-			named = strings.TrimSpace(m[1] + m[2])
-		} else if k := companionKinds[database.NPCClassKey(pet.Name)]; k != "" {
-			named = k
-		}
+		_, named, ownerOnly := w.companionPetRuleLocked(pet.Name)
 		var owner *NPC
 		best := float32(math.MaxFloat32)
 		c := at(pet)
 		for dx := -1; dx <= 1; dx++ {
 			for dz := -1; dz <= 1; dz++ {
 				for _, o := range grid[cell{c.world, c.inst, c.x + dx, c.z + dz}] {
-					d := distXZ(pet.SpawnX, pet.SpawnZ, o.SpawnX, o.SpawnZ)
-					score := d
-					switch {
-					case named != "" && d <= companionNamedReach && companionNamesOwner(named, o.Name):
-						score = d - companionNamedReach - companionReach // the owner its name names, before any other
-					case d <= companionReach && !ownerOnly:
-					default:
-						continue
-					}
-					if score < best {
+					score, ok := companionScore(pet, o, named, ownerOnly)
+					if ok && score < best {
 						owner, best = o, score
 					}
 				}

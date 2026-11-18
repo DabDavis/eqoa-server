@@ -91,6 +91,10 @@ type Snapshot struct {
 	// row makes them again) that lie (entity/keepcopy.go); a file without them
 	// (a binary's before 2026-11-12) leaves them gone, as every restart did.
 	Copies []entity.KeptCopy `json:"copies,omitempty"`
+	// GMSpawns are the GMs' living spawns (#spawn, the panel's spawn_npc) and the
+	// companions they brought (entity/keepgmspawn.go); a file without them (a
+	// binary's before 2026-11-18) leaves them gone, as every restart did.
+	GMSpawns []entity.KeptGMSpawn `json:"gm_spawns,omitempty"`
 	// Dungeons are the dungeons' open instances, their creatures (alive and
 	// corpses that lie) and who stands in them (entity/keepdungeon.go); a file
 	// without them (a binary's before 2026-11-13) leaves every instance closed.
@@ -221,6 +225,7 @@ func (l *Listener) Snapshot(now time.Time) *Snapshot {
 		snap.Groups = l.gameWorld.KeepGroups()
 		snap.NPCs = l.gameWorld.KeepNPCs()
 		snap.Copies = l.gameWorld.KeepCopies()
+		snap.GMSpawns = l.gameWorld.KeepGMSpawns(now)
 		snap.Dungeons = l.gameWorld.KeepDungeons(now)
 		snap.Triggers = handlers.KeepTriggers(now)
 		snap.Corpses = handlers.KeepCorpses()
@@ -471,12 +476,17 @@ func (l *Listener) ResumeKept(snap *Snapshot, now time.Time) (resumed, told int)
 	}
 	var in []back
 	// the creatures first: each client's slots go on describing them (RestoreView)
-	if l.gameWorld != nil && (len(snap.NPCs) > 0 || len(snap.Corpses) > 0 || len(snap.Copies) > 0 || snap.Dungeons != nil || snap.Triggers != nil) {
+	if l.gameWorld != nil && (len(snap.NPCs) > 0 || len(snap.Corpses) > 0 || len(snap.Copies) > 0 || len(snap.GMSpawns) > 0 || snap.Dungeons != nil || snap.Triggers != nil) {
 		start := time.Now()
 		r := l.gameWorld.RestoreNPCs(snap.NPCs)
 		// the copies' corpses before anything else takes an id (a pet, a merc)
 		ids, lost := l.gameWorld.RestoreCopies(snap.Copies)
 		copies := len(ids)
+		// the GMs' living spawns, as early: their ids too
+		gids, glost := l.gameWorld.RestoreGMSpawns(snap.GMSpawns)
+		for from, to := range gids {
+			ids[from] = to
+		}
 		// the dungeons' instances and their creatures, before the players who stand in them
 		dids, dr := l.gameWorld.RestoreDungeons(snap.Dungeons)
 		for from, to := range dids {
@@ -488,8 +498,8 @@ func (l *Listener) ResumeKept(snap *Snapshot, now time.Time) (resumed, told int)
 			ids[from] = to
 		}
 		corpses := handlers.RestoreCorpsesAs(snap.Corpses, ids)
-		log.Printf("Keep: of %d NPCs written, %s; %d of %d copies' corpses made again (%d not); dungeons: %d instances made again (%d not), %d creatures alive and %d corpses (%d not made), %d characters to put back in them; triggers: %d runs made again (%d not), %d spawns alive and %d lying dead (%d not made); %d of %d corpses' contents and kill groups as they were; in %v",
-			len(snap.NPCs), r, copies, len(snap.Copies), lost, dr.Insts, dr.InstsLost, dr.Alive, dr.Dead, dr.NPCsLost, dr.Players,
+		log.Printf("Keep: of %d NPCs written, %s; %d of %d copies' corpses made again (%d not); %d of %d GMs' spawns alive again (%d not); dungeons: %d instances made again (%d not), %d creatures alive and %d corpses (%d not made), %d characters to put back in them; triggers: %d runs made again (%d not), %d spawns alive and %d lying dead (%d not made); %d of %d corpses' contents and kill groups as they were; in %v",
+			len(snap.NPCs), r, copies, len(snap.Copies), lost, len(gids), len(snap.GMSpawns), glost, dr.Insts, dr.InstsLost, dr.Alive, dr.Dead, dr.NPCsLost, dr.Players,
 			tr.Runs, tr.RunsLost, tr.Alive, tr.Corpses, tr.Lost, corpses, len(snap.Corpses), time.Since(start).Round(time.Millisecond))
 	}
 	// the GMs' weathers, before any client is sent its weather

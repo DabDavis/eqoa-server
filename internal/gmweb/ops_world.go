@@ -296,7 +296,9 @@ func (s *Server) registerWorldOps() {
 		Name: "spawn_npc", Title: "Spawn a temporary NPC", Scope: scopeWrite,
 		Description: "Put a temporary copy of an NPC (by name, as #spawn does) somewhere: at coordinates, or beside " +
 			"an online player. It has no row: it is gone after its corpse time once killed, or at despawn, or at a " +
-			"restart. To add an NPC for good, clone_row its npcs row instead.",
+			"cold restart (a rolling restart that keeps the players keeps it, alive where it stands). A creature with " +
+			"companions (a caster's pet, Tunare's Wrath and Grace of the Mother) brings copies of them beside it, " +
+			"fighting with it. To add an NPC for good, clone_row its npcs row instead.",
 		Input: obj(map[string]any{
 			"template": str("the NPC name to copy"),
 			"x":        number(""), "y": number(""), "z": number(""),
@@ -337,13 +339,16 @@ func (s *Server) registerWorldOps() {
 			default:
 				return nil, badRequest("give x, y, z (and world), or beside")
 			}
-			id, spelled, ok := w.SpawnNPCCopy(req.Template, x, y, z, facing, world)
+			id, spelled, pets, ok := w.SpawnGMCopy(req.Template, x, y, z, facing, world)
 			if !ok {
 				return nil, notFound("no NPC called %q in the world", req.Template)
 			}
 			msg := fmt.Sprintf("spawned a temporary %s (id %d) at (%.0f, %.0f, %.0f) in %s", spelled, id, x, y, z, placeName(int(world), x, y, z))
+			if len(pets) > 0 {
+				msg += fmt.Sprintf(", with its %d companion(s) beside it (ids %v)", len(pets), pets)
+			}
 			c.s.audit(c.a, "live", "", nil, nil, nil, msg)
-			return map[string]any{"id": id, "name": spelled, "message": msg}, nil
+			return map[string]any{"id": id, "name": spelled, "companions": pets, "message": msg}, nil
 		},
 	})
 	s.addOp(&Op{

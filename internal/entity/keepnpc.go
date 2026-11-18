@@ -60,7 +60,8 @@ package entity
 //   - a training dummy, which never dies and fights no one once its player is
 //     gone; a spawn-only original, which never leaves its spawn.
 //   - what no row made (Temporary): a player's pet (made again by its spell
-//     beside its master who comes back: keeppet.go), a GM's /spawn, a quest's or
+//     beside its master who comes back: keeppet.go), a GM's #spawn (a living one
+//     is carried by keepgmspawn.go, with its companions), a quest's or
 //     a trigger's copy (a run's living spawn is carried with its run:
 //     keeptrigger.go), a genie, a portal. Nothing makes the rest again: they
 //     are gone, but for a copy's corpse that lies, which keepcopy.go carries

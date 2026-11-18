@@ -199,9 +199,16 @@ type NPC struct {
 	// template (SetNPCOn's casts, classtemplate.go): its casts and specials land
 	// on that NPC too, where a fight between two NPCs is their melee alone. 0 none.
 	castsAt EntityID
-	// keptEvent is a trigger's spawn a keep restart made again under its id
-	// (keeptrigger.go): the clients' slots go on describing it (keep.go's RestoreView)
+	// keptEvent is a trigger's spawn or a GM's (keeptrigger.go, keepgmspawn.go) a
+	// keep restart made again under its id: the clients' slots go on describing it
+	// (keep.go's RestoreView)
 	keptEvent bool
+	// GMSpawn is a GM's spawn (#spawn, the panel's spawn_npc: SpawnGMCopy) or one
+	// of the companions it brought: a keep restart carries it alive
+	// (keepgmspawn.go). gmCompanionOf is the GM's spawn whose companion it is
+	// (gmcompanions.go), 0 none.
+	GMSpawn       bool
+	gmCompanionOf EntityID
 	// corpseLeft is a corpse a row's creature left where it fell (corpselinger.go)
 	// whose loot the handlers have not taken over yet: no one's to open until then
 	corpseLeft bool

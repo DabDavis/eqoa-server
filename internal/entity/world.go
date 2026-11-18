@@ -312,6 +312,9 @@ type World struct {
 	companions   map[EntityID][]EntityID
 	companionOf  map[EntityID]EntityID
 	companionsAt int
+	// triggerPets are the GM triggers' resummons as pairs (gmcompanions.go):
+	// a pet's name (NPCClassKey) to the name of the spawn that calls it back
+	triggerPets map[string]string
 	// Every item's use, and the hooks that give and take potions (potion.go)
 	potions potionTable
 	// A ranged weapon's shot's power (rangedpower.go)

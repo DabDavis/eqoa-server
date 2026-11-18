@@ -144,11 +144,16 @@ type triggerRun struct {
 }
 
 // triggerProtect is the NPC a run guards: its death fails the run, text said to its
-// players in a window (the file's protect step).
+// players in a window (the file's protect step); with minutes, the NPCs of its name
+// within reach of the run's place (an escort's row, hidden while a copy walks) stay
+// out of view that long from its death (t212: "If she dies, you fail, and must wait
+// one hour for the npc to respawn").
 type triggerProtect struct {
-	id   entity.EntityID
-	name string
-	text string
+	id      entity.EntityID
+	name    string
+	text    string
+	minutes float64
+	reach   float32
 }
 
 // triggerResummon is one resummon step a run keeps: the step, when its NPC's last
@@ -471,8 +476,8 @@ func (e *TriggerEngine) RunningNamed(name string) bool {
 }
 
 // SpawnsNPC reports the trigger called name (as last read) spawns npc (any case):
-// a spawn or resummon step of it. What a quest's kill step waits on
-// (questencounter.go).
+// a spawn or resummon step of it, a row key's ("#119634") as its row's name. What a
+// quest's kill step waits on (questencounter.go).
 func (e *TriggerEngine) SpawnsNPC(name, npc string) bool {
 	if e == nil {
 		return false
@@ -489,7 +494,15 @@ func (e *TriggerEngine) SpawnsNPC(name, npc string) bool {
 			continue
 		}
 		for _, s := range steps {
-			if (s.Do == database.TriggerSpawn || s.Do == database.TriggerResummon) && strings.EqualFold(strings.TrimSpace(s.NPC), npc) {
+			if s.Do != database.TriggerSpawn && s.Do != database.TriggerResummon {
+				continue
+			}
+			who := strings.TrimSpace(s.NPC)
+			// a row key's spawn ("#119634", a spawn-only original) is a copy of that row's name
+			if _, ok := entity.ParseRowKey(who); ok && e.gw != nil {
+				who = e.gw.SpawnName(who, 0)
+			}
+			if strings.EqualFold(who, npc) {
 				return true
 			}
 		}
@@ -988,7 +1001,7 @@ func (e *TriggerEngine) stepLocked(r *triggerRun, s database.TriggerStep) string
 		if !ok {
 			return fmt.Sprintf("no %s within reach to protect", strings.TrimSpace(s.NPC))
 		}
-		r.protect = &triggerProtect{id: id, name: strings.TrimSpace(s.NPC), text: s.Text}
+		r.protect = &triggerProtect{id: id, name: strings.TrimSpace(s.NPC), text: s.Text, minutes: s.Minutes, reach: e.reachOf(r, s)}
 		return fmt.Sprintf("%s (%d) protected to the run's end", strings.TrimSpace(s.NPC), id)
 	case database.TriggerQuestStep:
 		qe := Quests()
@@ -1007,6 +1020,22 @@ func (e *TriggerEngine) stepLocked(r *triggerRun, s database.TriggerStep) string
 			log.Printf("Triggers: %s: step %d of quest %d done for %s", title, step, quest, players(n))
 		}()
 		return fmt.Sprintf("step %d of quest %d for those of %s on it", step, quest, players(len(members)))
+	case database.TriggerQuestSet:
+		qe := Quests()
+		if qe == nil {
+			return "no quests on this server"
+		}
+		var members []heldMember
+		for _, m := range e.audience(r) {
+			members = append(members, heldMember{sess: m.sess, p: m.p})
+		}
+		title, quest, from, to := r.trig.Title(), s.Quest, s.From, s.QuestStep
+		// on its own goroutine, as queststep's: the quest engine's lock comes first
+		go func() {
+			n := qe.SetHeldSteps(members, quest, from, to)
+			log.Printf("Triggers: %s: quest %d set to step %d from %d-%d for %s", title, quest, to, from, to-1, players(n))
+		}()
+		return fmt.Sprintf("quest %d set to step %d for those of %s on steps %d-%d", quest, to, players(len(members)), from, to-1)
 	case database.TriggerSeason:
 		return e.seasonLocked(r, s)
 	case database.TriggerHide:
@@ -1030,6 +1059,10 @@ func (e *TriggerEngine) protectFailedLocked(r *triggerRun) {
 		}
 	}
 	log.Printf("Triggers: %s's run %d failed: %s (%d) fell (%s told)", r.trig.Title(), r.id, r.protect.name, r.protect.id, players(len(who)))
+	if m := r.protect.minutes; m > 0 && e.gw != nil {
+		n := e.gw.HideNPCs(r.protect.name, r.world, r.x, r.z, r.protect.reach, e.now().Add(time.Duration(m*float64(time.Minute))))
+		log.Printf("Triggers: %s's run %d: %d of %s out of view for %s", r.trig.Title(), r.id, n, r.protect.name, seconds(m*60))
+	}
 	e.stopLocked(func(o *triggerRun) bool { return o == r })
 }
 

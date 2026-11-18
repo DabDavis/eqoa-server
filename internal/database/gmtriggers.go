@@ -110,6 +110,13 @@ const (
 	// Hold) left undone ("Since the popups have an Area of Effect, your quest will still be
 	// advanced if you have the necessary items")
 	TriggerQuestStep = "queststep"
+	// A quest's step set (quest, step) for each player the scope takes who is on that quest
+	// at a step from `from` up to before it, as a GM's set-step: nothing handed in, no
+	// reward. The kill group's flag of the Plane of Sky's chains (t212, Enraged Aeyinar:
+	// "Questor should be in the kill group in order to finish quest ... If you are in the
+	// kill group, you will be flagged for Desolation Chain"): the questor alone brought the
+	// stew; the raid with it is set on past the kill
+	TriggerQuestSet = "questset"
 	// The rest waits for credited kills of the creatures named npc (a comma list) within
 	// the run's reach, its spawns or any other of the name (the Plane of Sky's bishops
 	// standing in their towers): count of each name (0: one), or with any count of them
@@ -145,7 +152,7 @@ const TriggerNearHeight float32 = 40
 var TriggerActions = []string{TriggerBroadcast, TriggerPopup, TriggerSay, TriggerGive, TriggerVisual,
 	TriggerTeleport, TriggerSpawn, TriggerDespawn, TriggerStop, TriggerWait,
 	TriggerLock, TriggerPlace, TriggerClock, TriggerEnd, TriggerAwaitTalk, TriggerAwaitDead, TriggerWalk, TriggerHome, TriggerHide, TriggerRouse, TriggerSic,
-	TriggerResummon, TriggerProtect, TriggerQuestStep, TriggerAwaitKill, TriggerAwaitNear, TriggerWeather, TriggerSeason}
+	TriggerResummon, TriggerProtect, TriggerQuestStep, TriggerQuestSet, TriggerAwaitKill, TriggerAwaitNear, TriggerWeather, TriggerSeason}
 
 // TriggerStep is one step of a trigger, kept in the steps column's array.
 type TriggerStep struct {
@@ -159,7 +166,7 @@ type TriggerStep struct {
 	Upto    float64 `json:"upto,omitempty"`    // wait: the longest it may be, a random time from seconds to upto (0: seconds)
 	Count   int     `json:"count,omitempty"`   // spawn: how many (0: one)
 	Spread  float32 `json:"spread,omitempty"`  // spawn: how far round its place (0: TriggerDefaultSpread)
-	Minutes float64 `json:"minutes,omitempty"` // spawn: how long they stay alive (0: TriggerDefaultStay)
+	Minutes float64 `json:"minutes,omitempty"` // spawn: how long they stay alive (0: TriggerDefaultStay); protect: how long its NPC stays out of view after its death (0: none)
 	// Engage (spawn): minutes a copy waits to be fought; fought, it is never taken away while
 	// it fights (its stay's end waits for the fight's), and a fight's end alive starts the
 	// wait again (0: none, the stay alone). Tallon Zek's window (eqoa.forumotion.com t218:
@@ -195,9 +202,11 @@ type TriggerStep struct {
 	// time after npc's last one fell, target, radius and casts the sic it is given, attackable,
 	// hostile and minutes its spawn's, text a line in its players' chat as it comes
 	By string `json:"by,omitempty"`
-	// Quest and QuestStep (queststep): the quest's id and the step done
+	// Quest and QuestStep (queststep): the quest's id and the step done; (questset) the
+	// step set, From the first step it is set from
 	Quest     int `json:"quest,omitempty"`
 	QuestStep int `json:"step,omitempty"`
+	From      int `json:"from,omitempty"`
 	// Start (awaittalk, awaitnear: the trigger's first step but its locks): the trigger
 	// fires itself when it happens, a talk to npc or a player come near its own place,
 	// whenever no run of it lives and its lock is free; a run fired otherwise (a GM, a
@@ -579,6 +588,15 @@ func StepProblems(steps []TriggerStep) []string {
 			if strings.TrimSpace(s.NPC) == "" {
 				add(i, "protect names no NPC")
 			}
+			if s.Minutes < 0 || s.Minutes > TriggerMaxMinutes {
+				add(i, "protect's %.1f minutes out of view after a death: 0 (none) to %d", s.Minutes, TriggerMaxMinutes)
+			}
+		case TriggerQuestSet:
+			if s.Quest <= 0 || s.QuestStep <= 0 || s.From <= 0 {
+				add(i, "questset names no quest, step and from (quest, step, from)")
+			} else if s.From >= s.QuestStep {
+				add(i, "questset's from %d is not before its step %d", s.From, s.QuestStep)
+			}
 		case TriggerQuestStep:
 			if s.Quest <= 0 || s.QuestStep <= 0 {
 				add(i, "queststep names no quest and step (quest, step)")
@@ -640,7 +658,7 @@ func StepProblems(steps []TriggerStep) []string {
 		case TriggerBroadcast, TriggerPopup, TriggerSay, TriggerGive, TriggerVisual, TriggerTeleport, TriggerSpawn,
 			TriggerDespawn, TriggerStop, TriggerWait, TriggerLock, TriggerPlace, TriggerClock, TriggerEnd,
 			TriggerWalk, TriggerHome, TriggerHide, TriggerRouse, TriggerSic, TriggerResummon, TriggerProtect, TriggerQuestStep,
-			TriggerWeather, TriggerSeason:
+			TriggerQuestSet, TriggerWeather, TriggerSeason:
 		default:
 			add(i, "do %q is not one of %s", s.Do, strings.Join(TriggerActions, ", "))
 		}

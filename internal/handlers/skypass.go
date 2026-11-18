@@ -140,7 +140,7 @@ var skyPasses = []skyPass{
 	{NPC: "essence of snow", X: 5906.3, Z: 7570.5, Key: "Snow Key 3", To: "the fourth isle of snow",
 		At: wayPlace{World: 4, X: 5527.8, Y: 95.00, Z: 7704.7, Facing: 3.69}, Steps: [][2]int{{101307, 11}}},
 	{NPC: "essence of snow", X: 5525.1, Z: 7708.0, Key: "Snow Key 4", To: "the Isle of Wonder",
-		At: skyIsleOfWonder, Steps: [][2]int{{101307, 17}}},
+		At: skyIsleOfWonder, Steps: [][2]int{{101307, 18}}}, // 17 before the herb's step (tools/snow_chain_20261118.py)
 
 	// the chain of desolation (the Mark of Desolation's trip to its first
 	// isle: waysender.go)

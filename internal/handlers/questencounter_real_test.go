@@ -47,7 +47,7 @@ func TestRealEncounterLinks(t *testing.T) {
 	rallos := false
 	n := 0
 	for _, l := range qe.cat.encounters {
-		if !e.spawnsAny(l.trigger, l.targets) {
+		if !e.spawnsAny(l.trigger, l.targets) || !e.spawnsEach(l.trigger, l.between) {
 			continue
 		}
 		n++

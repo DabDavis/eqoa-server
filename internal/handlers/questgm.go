@@ -155,17 +155,7 @@ func (q *QuestEngine) SetCharacterQuest(serverID uint32, questID int, action str
 			}
 			return fmt.Sprintf("%q given at step %d, %s", qu.Name, step, where), nil
 		}
-		idx := c.index(questID)
-		old := q.lineLocked(cq)
-		q.clearSpawnsLocked(serverID, questID, cq.Step)
-		cq.Step, cq.Count = st.Step, 0
-		if text := q.lineLocked(cq); text != old {
-			q.dropLineLocked(sess, c, idx)
-			cq.Slot = c.nextSlot()
-			q.addLineLocked(sess, c, text)
-		}
-		q.saveLocked(cq)
-		q.stepStartedLocked(sess, p, c, qu, cq, st)
+		q.setStepLocked(sess, p, c, qu, cq, st)
 		return fmt.Sprintf("%q is at step %d, %s", qu.Name, step, where), nil
 	case QuestComplete:
 		if cq == nil {
@@ -204,6 +194,24 @@ func (q *QuestEngine) SetCharacterQuest(serverID uint32, questID int, action str
 		return fmt.Sprintf("quest %d forgotten: it may be taken again", questID), nil
 	}
 	return "", fmt.Errorf("no change %q (%s)", action, strings.Join(QuestActions, ", "))
+}
+
+// setStepLocked puts an active quest at step st, as a GM's set-step: its spawns of the
+// step it was on taken, its journal line redrawn when it reads otherwise, the step
+// started (its start events). Nothing is handed in or rewarded. Must be called with
+// q.mu held.
+func (q *QuestEngine) setStepLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep) {
+	idx := c.index(qu.ID)
+	old := q.lineLocked(cq)
+	q.clearSpawnsLocked(c.serverID, qu.ID, cq.Step)
+	cq.Step, cq.Count = st.Step, 0
+	if text := q.lineLocked(cq); text != old {
+		q.dropLineLocked(sess, c, idx)
+		cq.Slot = c.nextSlot()
+		q.addLineLocked(sess, c, text)
+	}
+	q.saveLocked(cq)
+	q.stepStartedLocked(sess, p, c, qu, cq, st)
 }
 
 // ReloadCharacter reads a character's quests again (its rows were changed

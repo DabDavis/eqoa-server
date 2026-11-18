@@ -16,7 +16,10 @@ package handlers
 // So a quest is linked to its encounter (encounterLink, read at Reload): a step F
 // whose done fires trigger T (or the quest's accept, F = 0), and a later kill or
 // loot step K whose creature T spawns (a spawn or resummon step of it, as the
-// triggers are now). A character whose quest stands after F and at or before K
+// triggers are now; a row key's spawn as its row's name), every kill or loot step
+// between them one of T's creatures too (the encounter's own kills: the Snow
+// chain's herb step, off any creature of the isles, Ryini's walk's gargoyles among
+// them, is reached past the Whirlwind and the behemoths, and is not her walk's). A character whose quest stands after F and at or before K
 // while no run of T lives, and no copy of K's creature stands (a living spawn of
 // the name, a trigger's, a quest's or a GM's; for a loot step a corpse of one still
 // lying too, since the run ends at its creature's death and the looting comes
@@ -35,6 +38,7 @@ package handlers
 import (
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
@@ -56,6 +60,12 @@ type encounterLink struct {
 	trigger           string
 	targets           []string
 	loot              bool // the kill step is a loot step: its corpses are looted after the kill
+	// between is the creatures (targets) of each kill or loot step after from and before
+	// kill: the link holds only while the trigger spawns every one of them too, so a kill
+	// step reached past kills of the world's own standing creatures is not the encounter's
+	// (the Snow chain's herb off any creature of the isles, the walk's gargoyles among
+	// them, behind the Whirlwind, the behemoths and the drakes: not Ryini's walk's)
+	between [][]string
 }
 
 // encounterKey tells one link from another (a character's strandings are kept by it).
@@ -79,14 +89,15 @@ func encounterLinks(all []*database.Quest) []encounterLink {
 				if e.Do != database.EventTrigger || strings.TrimSpace(e.Trigger) == "" {
 					continue
 				}
-				for i := range qu.Steps {
-					st := &qu.Steps[i]
+				var between [][]string
+				for _, st := range stepsInOrder(qu) {
 					if st.Step <= from || st.Kind != database.StepKill && st.Kind != database.StepLoot {
 						continue
 					}
 					targets := append([]string{st.Target}, st.Also...)
 					out = append(out, encounterLink{quest: qu.ID, from: from, kill: st.Step, trigger: e.Trigger, targets: targets,
-						loot: st.Kind == database.StepLoot})
+						loot: st.Kind == database.StepLoot, between: append([][]string(nil), between...)})
+					between = append(between, targets)
 				}
 			}
 		}
@@ -115,7 +126,7 @@ func (q *QuestEngine) checkStranded(now time.Time) {
 			key := l.key()
 			cq := c.quests[l.quest]
 			onKill := cq != nil && cq.Active() && cq.Step > l.from && cq.Step <= l.kill
-			if !onKill || !e.spawnsAny(l.trigger, l.targets) || e.RunningNamed(l.trigger) ||
+			if !onKill || !e.spawnsAny(l.trigger, l.targets) || !e.spawnsEach(l.trigger, l.between) || e.RunningNamed(l.trigger) ||
 				q.gw != nil && q.gw.CopyStands(l.targets, l.loot) {
 				delete(c.stranded, key)
 				continue
@@ -143,6 +154,26 @@ func (q *QuestEngine) checkStranded(now time.Time) {
 			q.putBackLocked(sess, p, c, cq, l)
 		}
 	}
+}
+
+// spawnsEach reports the trigger called name spawns one of each list of npcs.
+func (e *TriggerEngine) spawnsEach(name string, each [][]string) bool {
+	for _, npcs := range each {
+		if !e.spawnsAny(name, npcs) {
+			return false
+		}
+	}
+	return true
+}
+
+// stepsInOrder is a quest's steps by their numbers.
+func stepsInOrder(qu *database.Quest) []*database.QuestStep {
+	out := make([]*database.QuestStep, 0, len(qu.Steps))
+	for i := range qu.Steps {
+		out = append(out, &qu.Steps[i])
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Step < out[j].Step })
+	return out
 }
 
 // spawnsAny reports the trigger called name spawns any of npcs.

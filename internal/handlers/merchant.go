@@ -87,6 +87,9 @@ type NPCWindowHandler struct {
 	coinRoll  func(int) int
 	lootIntn  func(int) int
 	lootFloat func() float64
+	// lootSeed is a creature's loot seed for its spawn (entity/spawnloot.go): the
+	// corpse's dice where the hooks above are nil; nil: unseeded dice
+	lootSeed func(*entity.NPC) uint64
 
 	// auction is the auction house (auction.go): 0x1205, and what it holds
 	// for a player filed as its bank opens
@@ -140,6 +143,7 @@ func (h *NPCWindowHandler) SetGameWorld(gw *entity.World) {
 	h.clearCorpse = gw.ClearCorpse
 	h.guardsKill = gw.GuardsKill
 	h.duelLoot = gw.ChallengeLooter // a Metal Moogie's corpse is his challenger's (entity/metalmoogie.go)
+	h.lootSeed = gw.NPCLootSeed     // loot determined at the spawn (entity/spawnloot.go)
 	gw.OnCorpseGone(h.CorpsesGone)
 	gw.OnCorpseLeft(h.moveCorpse) // a corpse left to lie 20 minutes (corpseleft.go)
 	h.corpseMoved = gw.CorpseMoved

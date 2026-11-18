@@ -18,41 +18,47 @@ func TestSkyTwinsCountDistribution(t *testing.T) {
 	}
 }
 
+// The Sky twins' own category gives its level 60 gear whatever the level judged
+// against; another category's level 60 gear is judged against the creature's own
+// level (loot determined at the spawn, ticket 2366: never the opener's, a level 1
+// here): kept on a level 70, past the reach of a level 40.
 func TestSkyTwinsGuaranteedGearForAnyOpener(t *testing.T) {
-	for _, category := range []string{"sky twins ascended", "uncommon"} {
-		for _, roll := range []float64{0, 0.299999, 0.3, 0.999999} {
-			f := newCorpseFixture(t, 0)
-			f.npc.Name, f.npc.Level, f.player.Level = "Talon's Veeshan", 70, 1
-			for _, q := range []struct {
-				sql  string
-				args []any
-			}{
-				{`UPDATE itempattern SET levelreq = 60 WHERE patternid = ?`, []any{f.sword}},
-				{`INSERT INTO lootpreset (name, active) VALUES ('jib', 1)`, nil},
-				{`INSERT INTO lootcreature (npc_name, region, profile) VALUES ('talon''s veeshan', 'plane of sky', 'sky twins ascended')`, nil},
-				{`INSERT INTO lootrate (preset, profile, category, counts) VALUES ('jib', 'sky twins ascended', ?, '0,30,70')`, []any{category}},
-				{`INSERT INTO lootpool (category, region, patternid, minlevel, maxlevel) VALUES (?, 'plane of sky', ?, 1, 100)`, []any{category, f.sword}},
-			} {
-				if _, err := f.db.Exec(q.sql, q.args...); err != nil {
-					t.Fatal(err)
+	for _, npcLevel := range []int{70, 40} {
+		for _, category := range []string{"sky twins ascended", "uncommon"} {
+			for _, roll := range []float64{0, 0.299999, 0.3, 0.999999} {
+				f := newCorpseFixture(t, 0)
+				f.npc.Name, f.npc.Level, f.player.Level = "Talon's Veeshan", npcLevel, 1
+				for _, q := range []struct {
+					sql  string
+					args []any
+				}{
+					{`UPDATE itempattern SET levelreq = 60 WHERE patternid = ?`, []any{f.sword}},
+					{`INSERT INTO lootpreset (name, active) VALUES ('jib', 1)`, nil},
+					{`INSERT INTO lootcreature (npc_name, region, profile) VALUES ('talon''s veeshan', 'plane of sky', 'sky twins ascended')`, nil},
+					{`INSERT INTO lootrate (preset, profile, category, counts) VALUES ('jib', 'sky twins ascended', ?, '0,30,70')`, []any{category}},
+					{`INSERT INTO lootpool (category, region, patternid, minlevel, maxlevel) VALUES (?, 'plane of sky', ?, 1, 100)`, []any{category, f.sword}},
+				} {
+					if _, err := f.db.Exec(q.sql, q.args...); err != nil {
+						t.Fatal(err)
+					}
 				}
-			}
-			f.h.lootFloat = func() float64 { return roll }
-			f.h.lootIntn = func(int) int { return 0 }
-			want := int64(1)
-			if roll >= 0.3 {
-				want = 2
-			}
-			if category != "sky twins ascended" {
-				want = 0
-			}
-			for opening := 0; opening < 2; opening++ {
-				f.h.OpenCorpse(f.sess, f.npc)
-				sent := f.sent()
-				if got := lootCount(t, sent[len(sent)-1]); got != want {
-					t.Fatalf("category %s roll %v opening %d got %d want %d", category, roll, opening, got, want)
+				f.h.lootFloat = func() float64 { return roll }
+				f.h.lootIntn = func(int) int { return 0 }
+				want := int64(1)
+				if roll >= 0.3 {
+					want = 2
 				}
-				f.h.lootFloat = func() float64 { t.Fatal("corpse rerolled on reopen"); return 0 }
+				if category != "sky twins ascended" && npcLevel+lootLevelReach < 60 {
+					want = 0
+				}
+				for opening := 0; opening < 2; opening++ {
+					f.h.OpenCorpse(f.sess, f.npc)
+					sent := f.sent()
+					if got := lootCount(t, sent[len(sent)-1]); got != want {
+						t.Fatalf("level %d category %s roll %v opening %d got %d want %d", npcLevel, category, roll, opening, got, want)
+					}
+					f.h.lootFloat = func() float64 { t.Fatal("corpse rerolled on reopen"); return 0 }
+				}
 			}
 		}
 	}

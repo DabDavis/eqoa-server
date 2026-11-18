@@ -135,7 +135,7 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 	h.takeRaidKillLocked(ls, npc, died) // a raid's kill, rolled at its death (raidloot.go)
 	c := ls.corpses[npc.ServerID]
 	if c == nil || !c.died.Equal(died) {
-		c = h.rollCorpse(npc, died, h.openerLevel(sess))
+		c = h.rollCorpse(npc, died, npc.Level) // the spawn's, whoever opens it (entity/spawnloot.go)
 		ls.corpses[npc.ServerID] = c
 	}
 	h.servedHoldersLocked(c, sess, h.charOf(sess), sessionInvList(sess)) // one held already: the next one's (lootshare.go)
@@ -160,9 +160,14 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 	return true
 }
 
-// rollCorpse is a corpse's loot at the death died, rolled for an opener of level (0:
-// anyone): its NPC's own items, its loot tables, its categories, and its coins.
+// rollCorpse is a corpse's loot at the death died: its NPC's own items, its loot
+// tables, its categories, and its coins, its gear judged against level (0: none
+// left out; OpenCorpse and a raid's kill give the creature's own). Its dice are
+// its spawn's (corpseDice, entity/spawnloot.go): the same corpse whoever kills it
+// and whoever opens it first (the owner, 2026-11-18: "loot drops should be
+// determined at spawn not death").
 func (h *NPCWindowHandler) rollCorpse(npc *entity.NPC, died time.Time, level int) *corpse {
+	intn, float, coins := h.corpseDice(npc)
 	items, err := h.inv.GetNPCItems(npc.NPCID)
 	if err != nil {
 		log.Printf("Loot: %q (npc %d): %v", npc.Name, npc.NPCID, err)
@@ -184,7 +189,7 @@ func (h *NPCWindowHandler) rollCorpse(npc *entity.NPC, died time.Time, level int
 				rolls[i].Choices, n = fitChoices(rolls[i].Choices, level)
 				cut += n
 			}
-			got := rollLoot(rolls, h.lootIntn)
+			got := rollLoot(rolls, intn)
 			items = append(items, got...)
 			log.Printf("Loot: %q (level %d) rolled %d of %q's tables' items", npc.Name, npc.Level, len(got), name)
 		}
@@ -206,7 +211,7 @@ func (h *NPCWindowHandler) rollCorpse(npc *entity.NPC, died time.Time, level int
 				rolls[i].Choices, n = fitChoices(rolls[i].Choices, choiceLevel)
 				cut += n
 			}
-			got := rollCategories(rolls, h.lootFloat, h.lootIntn)
+			got := rollCategories(rolls, float, intn)
 			items = append(items, got...)
 			log.Printf("Loot: %q (level %d) rolled %d items of its categories", npc.Name, npc.Level, len(got))
 		}
@@ -221,9 +226,30 @@ func (h *NPCWindowHandler) rollCorpse(npc *entity.NPC, died time.Time, level int
 	h.fireDropTriggers(npc, items) // lootdroptrigger.go: Vallon Zek's portal at its rune
 	// No Trade stacks shared, one to each character of the kill (lootshare.go)
 	items, shares := splitShares(items)
-	c := &corpse{died: died, items: items, tunar: corpseCoins(npc, h.coinRoll), shares: shares}
+	c := &corpse{died: died, items: items, tunar: corpseCoins(npc, coins), shares: shares}
 	owe(shares, h.killCharsOf(npc.ServerID, c))
 	return c
+}
+
+// corpseDice is the dice npc's corpse rolls with: the handler's own where set (a
+// test's), else one source seeded by the creature's spawn (lootSeed), else
+// unseeded (nil: the package's).
+func (h *NPCWindowHandler) corpseDice(npc *entity.NPC) (intn func(int) int, float func() float64, coins func(int) int) {
+	intn, float, coins = h.lootIntn, h.lootFloat, h.coinRoll
+	if h.lootSeed == nil {
+		return intn, float, coins
+	}
+	r := rand.New(rand.NewSource(int64(h.lootSeed(npc))))
+	if intn == nil {
+		intn = r.Intn
+	}
+	if float == nil {
+		float = r.Float64
+	}
+	if coins == nil {
+		coins = r.Intn
+	}
+	return intn, float, coins
 }
 
 // lootEveryCreature is the npcloot name whose tables every creature's corpse
@@ -262,8 +288,10 @@ func lootNames(npc *entity.NPC) []string {
 // higher/lower"). Gear of any level below the opener's stays (jib, 2026-11-08,
 // of Cazic-Thule's Rubicite armour, levels 47-48, which no level 59 or 60 could
 // find: "level 60 players should absolutely be able to farm the gear", and the
-// choice of no lower bound anywhere). A corpse is rolled when it is first
-// opened (OpenCorpse), so by that player's level. Equipment is what is worn in the gear's slots, 1 to
+// choice of no lower bound anywhere). Since loot is determined at the spawn (the
+// owner, 2026-11-18, ticket 2366: entity/spawnloot.go), the reach is judged against
+// the CREATURE's level, not its opener's: what a corpse holds is the same whoever
+// opens it. Equipment is what is worn in the gear's slots, 1 to
 // lootGearSlots (armour, jewellery, weapons, bows, held items, gloves) but a
 // thrown potion; the fishing pole, bait, the Book of Power and the tradeskill
 // tools (slots 20-25) are not, nor is anything else (potions, materials,
@@ -306,17 +334,6 @@ func fitItems(items []database.CharInventoryEntry, level int) ([]database.CharIn
 		}
 	}
 	return out, len(items) - len(out)
-}
-
-// openerLevel is the level of the player sess plays, or 0.
-func (h *NPCWindowHandler) openerLevel(sess *session.Session) int {
-	if h.playerOf == nil {
-		return 0
-	}
-	if p := h.playerOf(sess); p != nil {
-		return p.Level
-	}
-	return 0
 }
 
 // rollLoot is what a creature's loot tables give its corpse at a death: each

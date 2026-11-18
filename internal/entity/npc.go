@@ -339,6 +339,9 @@ type NPC struct {
 	// (keepnpc.go)
 	wereReady time.Time
 	spawnGen  uint32
+	// lootSeed is a copy's or a temporary's own loot seed (spawnloot.go), 0 until
+	// asked: a row's comes of the world's salt, its id and spawnGen
+	lootSeed uint64
 
 	// sheet is a workbook pet's petstats row (petstats.go), nil for every
 	// other NPC

@@ -54,11 +54,12 @@ func TestLootFitsTheOpenersLevels(t *testing.T) {
 	}
 }
 
-// A corpse rolled for its opener: a level 60 keeps its tables' level 1 sword,
-// a level 30 loses it when the sword is level 45 and the roll lands on what is
-// left; the control, the same corpse for an opener of no known level, holds
-// the sword.
-func TestACorpseRollsGearBelowItsOpenerButNoneFarAbove(t *testing.T) {
+// A corpse is judged against its creature's level, not its opener's (loot
+// determined at the spawn: the owner, 2026-11-18, ticket 2366): a level 12
+// creature's level 20 sword is on its corpse whoever opens it, level 1 or 60; a
+// level 45 sword is past its reach (12 + lootLevelReach) for every opener; the
+// control, a level 1 sword, always.
+func TestACorpseIsJudgedByItsCreaturesLevelNotItsOpeners(t *testing.T) {
 	open := func(swordLevel, level int) int64 {
 		f := newCorpseFixture(t, 1) // an npcitem row: the Rusty Sword
 		if _, err := f.db.Exec(`UPDATE itempattern SET levelreq = ? WHERE patternid = ?`, swordLevel, f.sword); err != nil {
@@ -72,15 +73,15 @@ func TestACorpseRollsGearBelowItsOpenerButNoneFarAbove(t *testing.T) {
 		got := f.sent()
 		return lootCount(t, got[len(got)-1])
 	}
-	if n := open(1, 0); n != 3 {
-		t.Fatalf("the control: %d records, want the npcitem sword and two rolled", n)
-	}
-	// level 60: a level 1 sword is kept, on the corpse and in both rolls
-	if n := open(1, 60); n != 3 {
-		t.Fatalf("a level 60 opener, a level 1 sword: %d records, want the npcitem sword and two rolled", n)
-	}
-	// level 30: a level 45 sword is gone, both rolls land on the bait (not gear)
-	if n := open(45, 30); n != 2 {
-		t.Fatalf("a level 30 opener, a level 45 sword: %d records, want the two rolls' bait alone", n)
+	for _, level := range []int{1, 30, 60} {
+		if n := open(1, level); n != 3 {
+			t.Fatalf("a level %d opener, a level 1 sword: %d records, want the npcitem sword and two rolled", level, n)
+		}
+		if n := open(20, level); n != 3 {
+			t.Fatalf("a level %d opener, a level 20 sword on a level 12: %d records, want the sword and two rolled", level, n)
+		}
+		if n := open(45, level); n != 2 {
+			t.Fatalf("a level %d opener, a level 45 sword on a level 12: %d records, want the two rolls' bait alone", level, n)
+		}
 	}
 }

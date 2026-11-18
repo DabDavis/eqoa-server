@@ -391,11 +391,7 @@ func (h *NPCWindowHandler) startRaidLootLocked(ls *lootState, npc *entity.NPC, k
 		return // no one's to loot, or nothing to (loot.go)
 	}
 	r := k.Raid
-	level := 0
-	for _, s := range r.Seats {
-		level = max(level, s.Level)
-	}
-	c := h.rollCorpse(npc, k.Died, level)
+	c := h.rollCorpse(npc, k.Died, npc.Level) // the spawn's, as every corpse (loot.go)
 	ls.corpses[npc.ServerID] = c
 	seats := make([]uint32, 0, len(r.Seats))
 	for _, st := range r.Seats {

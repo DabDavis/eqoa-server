@@ -2,8 +2,6 @@ package database
 
 import (
 	"fmt"
-	"hash/fnv"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -17,16 +15,14 @@ import (
 // an itempattern record whose model is the held model, worn in a hand's slot
 // (HeldHandSlots) for a weapon, the shield's (HeldShieldSlot) for a shield,
 // and of the creature's level: the nearest levelreq at or below it. Several
-// records of that level: one of them by the creature's name (a hash), so a
-// camp drops the same thing every kill. None at or below its level, or none of
-// the model at all: nothing extra drops.
+// records of that level: the lowest patternid, so every kill of a kind drops
+// the same thing. None at or below its level, or none of the model at all:
+// nothing extra drops.
 //
-// Never a record a player could not have found on a monster: NO TRADE (trade
-// != 0), LORE (lore != 0), NO RENT (rent == 0), an heirloom (heirlooms), an
-// Ascended copy (itemascended, or its name's prefix), an item a player owns
-// alone (itemowner), a hidden quest object (itemhide), an item a quest step
-// asks for or gives (queststeps: items, rewarditems and the items of its
-// choices and byclass), and a name saying epic, artifact, heirloom or test.
+// Any record of the look may drop (the owner, 2026-11-18, ticket 2366: "they
+// can drop these also"): No Trade, Lore, No Rent, an heirloom, an Ascended
+// copy, an epic, a quest's item. Only an item a player owns alone (itemowner)
+// and a GM's test record (a name saying test) never do.
 
 // HeldHandSlots is the itempattern equip slots of an item held in a hand:
 // 12 either hand, 14 the primary, 15 a two-hander, 16 a ranged weapon, 18 a
@@ -61,7 +57,7 @@ func heldHand(slot int) bool {
 }
 
 // heldWordsBarred is a name's words that keep a record off a held drop.
-var heldWordsBarred = []string{"epic", "artifact", "heirloom", "test"}
+var heldWordsBarred = []string{"test"} // a GM's test record; epics, artifacts and heirlooms drop (the owner, 2026-11-18)
 
 // heldDropWhyNot is why a hand or shield record is no held drop ("" it is
 // one), excluded the ids that are barred by table (an heirloom, an Ascended
@@ -76,14 +72,6 @@ func heldDropWhyNot(p *ItemPatternRecord, excluded map[int]string) string {
 		return "no name"
 	case p.Model == 0:
 		return "no model"
-	case p.Trade != 0:
-		return "no trade"
-	case p.Lore != 0:
-		return "lore"
-	case p.Rent == 0:
-		return "no rent"
-	case strings.HasPrefix(name, strings.ToLower(AscendedPrefix)):
-		return "ascended"
 	}
 	for _, w := range heldWordsBarred {
 		if strings.Contains(name, w) {
@@ -169,44 +157,16 @@ func (d *HeldDrops) Pick(model uint32, shield bool, level int, name string) (Cha
 		first--
 	}
 	n := top - first + 1
-	h := fnv.New32a()
-	h.Write([]byte(NPCClassKey(name)))
-	return l[first+int(h.Sum32()%uint32(n))], true
+	_ = n
+	return l[first], true // of several of that levelreq the lowest patternid (the list's order)
 }
 
 // heldBarredTables is each table whose patternid column bars a record, and why.
+// The owner, 2026-11-18 (ticket 2366): "they can drop these also": an heirloom,
+// an Ascended copy, a quest's item or object, Lore, No Trade, epic all drop as
+// held; only an item a player owns alone (a GM's gift of one of a kind) stays off.
 var heldBarredTables = []struct{ table, why string }{
-	{"heirlooms", "heirloom"},
-	{"itemascended", "ascended"},
 	{"itemowner", "owned"},
-	{"itemhide", "quest object"},
-}
-
-// questItemNumbers reads a queststeps item column's ids: a list ("700719, 700720")
-// or, in a JSON column (choices, byclass), each "items" field's list.
-var (
-	questItemsField = regexp.MustCompile(`"items"\s*:\s*"([^"]*)"`)
-	questItemID     = regexp.MustCompile(`\d+`)
-)
-
-func questItemIDs(col string, json bool) []int {
-	var lists []string
-	if json {
-		for _, m := range questItemsField.FindAllStringSubmatch(col, -1) {
-			lists = append(lists, m[1])
-		}
-	} else {
-		lists = []string{col}
-	}
-	var out []int
-	for _, l := range lists {
-		for _, s := range questItemID.FindAllString(l, -1) {
-			if id, err := strconv.Atoi(s); err == nil && id > 0 {
-				out = append(out, id)
-			}
-		}
-	}
-	return out
 }
 
 // HeldDrops reads the catalog's hand and shield records into the model map
@@ -218,9 +178,6 @@ func (s *InventoryStore) HeldDrops() (*HeldDrops, error) {
 		if err := s.barHeld(excluded, `SELECT patternid FROM `+t.table, t.why); err != nil {
 			return nil, err
 		}
-	}
-	if err := s.barQuestItems(excluded); err != nil {
-		return nil, err
 	}
 	slots := make([]string, 0, len(HeldHandSlots)+1)
 	for _, sl := range append(append([]int{}, HeldHandSlots...), HeldShieldSlot) {
@@ -359,31 +316,6 @@ func (s *InventoryStore) barHeld(excluded map[int]string, q, why string) error {
 		}
 		if _, ok := excluded[id]; !ok {
 			excluded[id] = why
-		}
-	}
-	return rows.Err()
-}
-
-// barQuestItems bars every item a quest step asks for or gives.
-func (s *InventoryStore) barQuestItems(excluded map[int]string) error {
-	rows, err := s.db.Query(`SELECT items, rewarditems, choices, byclass FROM queststeps`)
-	if err != nil {
-		if strings.Contains(err.Error(), "no such table") || strings.Contains(err.Error(), "no such column") {
-			return nil
-		}
-		return fmt.Errorf("queststeps: %w", err)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var items, rewards, choices, byclass string
-		if err := rows.Scan(&items, &rewards, &choices, &byclass); err != nil {
-			return err
-		}
-		for _, id := range append(append(append(questItemIDs(items, false), questItemIDs(rewards, false)...),
-			questItemIDs(choices, true)...), questItemIDs(byclass, true)...) {
-			if _, ok := excluded[id]; !ok {
-				excluded[id] = "quest"
-			}
 		}
 	}
 	return rows.Err()

@@ -87,6 +87,12 @@ type Snapshot struct {
 	// rolled back to read each other's) leaves every NPC as its row makes it.
 	NPCs    []entity.KeptNPC      `json:"npcs,omitempty"`
 	Corpses []handlers.KeptCorpse `json:"corpses,omitempty"`
+	// LootSalt and SpawnGens make each spawn's loot the same over a restart
+	// (entity/spawnloot.go: loot determined at the spawn): the world's salt and every
+	// row's spawn generation past 0. A file without them (a binary's before
+	// 2026-11-18) draws a new salt: an unopened corpse rolls anew.
+	LootSalt  uint64            `json:"loot_salt,omitempty"`
+	SpawnGens map[uint32]uint32 `json:"spawn_gens,omitempty"`
 	// Copies are the corpses of copies (a quest's, a trigger's, a GM's spawn: no
 	// row makes them again) that lie (entity/keepcopy.go); a file without them
 	// (a binary's before 2026-11-12) leaves them gone, as every restart did.
@@ -224,6 +230,7 @@ func (l *Listener) Snapshot(now time.Time) *Snapshot {
 	if l.gameWorld != nil {
 		snap.Groups = l.gameWorld.KeepGroups()
 		snap.NPCs = l.gameWorld.KeepNPCs()
+		snap.LootSalt, snap.SpawnGens = l.gameWorld.LootSeeds()
 		snap.Copies = l.gameWorld.KeepCopies()
 		snap.GMSpawns = l.gameWorld.KeepGMSpawns(now)
 		snap.Dungeons = l.gameWorld.KeepDungeons(now)
@@ -476,9 +483,12 @@ func (l *Listener) ResumeKept(snap *Snapshot, now time.Time) (resumed, told int)
 	}
 	var in []back
 	// the creatures first: each client's slots go on describing them (RestoreView)
-	if l.gameWorld != nil && (len(snap.NPCs) > 0 || len(snap.Corpses) > 0 || len(snap.Copies) > 0 || len(snap.GMSpawns) > 0 || snap.Dungeons != nil || snap.Triggers != nil) {
+	if l.gameWorld != nil && (len(snap.NPCs) > 0 || snap.LootSalt != 0 || len(snap.Corpses) > 0 || len(snap.Copies) > 0 || len(snap.GMSpawns) > 0 || snap.Dungeons != nil || snap.Triggers != nil) {
 		start := time.Now()
 		r := l.gameWorld.RestoreNPCs(snap.NPCs)
+		if n := l.gameWorld.RestoreLootSeeds(snap.LootSalt, snap.SpawnGens); n > 0 || snap.LootSalt != 0 {
+			log.Printf("Keep: loot seeds back: the salt and %d spawns' generations", n)
+		}
 		// the copies' corpses before anything else takes an id (a pet, a merc)
 		ids, lost := l.gameWorld.RestoreCopies(snap.Copies)
 		copies := len(ids)

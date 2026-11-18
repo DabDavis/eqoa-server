@@ -165,6 +165,8 @@ type World struct {
 	rares map[EntityID]*rareRule
 	// What a monster carries of its row's weapons and shield at a spawn (heldgear.go)
 	held heldGearState
+	// lootSalt makes each spawn's loot seed (spawnloot.go), kept over a keep restart
+	lootSalt uint64
 	// rareCycles: the NPCs only sometimes there, by row (npcrarecycle.go)
 	rareCycles map[EntityID]*rareCycle
 

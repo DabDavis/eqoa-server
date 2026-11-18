@@ -10,9 +10,11 @@ import (
 )
 
 // A creature killed holding a weapon or a shield drops it (helddrop.go): the
-// catalog's record of its look for its level, the same for its name, never a
-// record barred; nothing for a look no record has, for a pet, or with held
-// drops off (the control).
+// catalog's record of its look for its level, of several the lowest patternid,
+// any record of the look (No Trade, Lore, No Rent, an heirloom, an Ascended copy,
+// an epic, a quest's: the owner, 2026-11-18, ticket 2366) but an item a player
+// owns alone and a GM's test record; nothing for a look no record has, for a pet,
+// or with held drops off (the control).
 
 const (
 	heldSwordLook  = 0xC0000001 // a model past 2^31, written signed in itempattern
@@ -48,7 +50,8 @@ func heldDB(t *testing.T) (*database.InventoryStore, *database.HeldDrops) {
 		{8007, "family short sword", 14, 26, 0, 1, 0, sword}, // an heirloom
 		{8008, "reward short sword", 14, 27, 0, 1, 0, sword}, // a quest's reward
 		{8011, "rented short sword", 14, 28, 0, 0, 0, sword}, // NO RENT
-		{8012, "Sword of the Epic Test", 14, 29, 0, 1, 0, sword},
+		{8012, "Sword of the Epic Test", 14, 29, 0, 1, 0, sword}, // a GM's test record
+		{8013, "owned short sword", 14, 21, 0, 1, 0, sword},      // a player's alone (itemowner)
 		{8009, "wooden shield", 13, 10, 0, 1, 0, heldShieldLook},
 		{8010, "short sword breastplate", 1, 1, 0, 1, 0, sword}, // worn on the chest: no hand's
 	} {
@@ -65,6 +68,8 @@ func heldDB(t *testing.T) (*database.InventoryStore, *database.HeldDrops) {
 		`CREATE TABLE IF NOT EXISTS queststeps (questid INTEGER NOT NULL, step INTEGER NOT NULL, items TEXT NOT NULL DEFAULT '',
 			rewarditems TEXT NOT NULL DEFAULT '', choices TEXT NOT NULL DEFAULT '', byclass TEXT NOT NULL DEFAULT '', PRIMARY KEY (questid, step))`,
 		`INSERT INTO queststeps (questid, step, rewarditems) VALUES (900001, 1, '8008')`,
+		`CREATE TABLE IF NOT EXISTS itemowner (patternid INTEGER PRIMARY KEY, serverid INTEGER NOT NULL, note TEXT NOT NULL DEFAULT '')`,
+		`INSERT INTO itemowner (patternid, serverid) VALUES (8013, 5)`,
 	} {
 		if _, err := db.Exec(q); err != nil {
 			t.Fatalf("%v\n%s", err, q)
@@ -80,13 +85,16 @@ func heldDB(t *testing.T) (*database.InventoryStore, *database.HeldDrops) {
 
 func TestHeldDropsMapALookToItsLevelsRecord(t *testing.T) {
 	_, d := heldDB(t)
-	if d.Records != 4 {
-		t.Errorf("%d records by look, want the three swords and the shield (left out: %v)", d.Records, d.Left)
+	if d.Records != 10 {
+		t.Errorf("%d records by look, want the nine swords and the shield (left out: %v)", d.Records, d.Left)
 	}
-	for _, why := range []string{"no trade", "lore", "ascended", "heirloom", "quest", "no rent", "epic"} {
+	for _, why := range []string{"test", "owned"} {
 		if d.Left[why] != 1 {
 			t.Errorf("left out as %q: %d, want 1 (%v)", why, d.Left[why], d.Left)
 		}
+	}
+	if len(d.Left) != 2 {
+		t.Errorf("left out %v, want the test record and the owned one alone", d.Left)
 	}
 	name := func(model uint32, shield bool, level int, who string) string {
 		e, ok := d.Pick(model, shield, level, who)
@@ -101,21 +109,18 @@ func TestHeldDropsMapALookToItsLevelsRecord(t *testing.T) {
 	if got := name(heldSwordLook, false, 3, "gnoll scout"); got != "" || !d.Has(heldSwordLook, false) {
 		t.Errorf("level 3: %q, want nothing (none at or below), the look known", got)
 	}
-	picks := map[string]bool{}
-	for _, who := range []string{"gnoll scout", "orc pawn", "kobold runt", "dire rat", "Ice goblin warrior", "bandit", "skeleton", "ghoul"} {
-		first := name(heldSwordLook, false, 60, who)
-		if first != "fine short sword" && first != "gleaming short sword" {
-			t.Fatalf("%s at 60: %q, want a level 20 record (the barred ones never)", who, first)
-		}
-		for i := 0; i < 5; i++ {
-			if again := name(heldSwordLook, false, 60, who); again != first {
-				t.Fatalf("%s: %q then %q", who, first, again)
+	// of several of a levelreq, the lowest patternid, whatever the name; the owned
+	// level 21 record never
+	for _, c := range []struct {
+		level int
+		want  string
+	}{{20, "fine short sword"}, {21, "fine short sword"}, {25, "bound short sword"}, {26, "family short sword"},
+		{27, "reward short sword"}, {60, "rented short sword"}} {
+		for _, who := range []string{"gnoll scout", "orc pawn", "Ice goblin warrior"} {
+			if got := name(heldSwordLook, false, c.level, who); got != c.want {
+				t.Errorf("%s at %d: %q, want %q", who, c.level, got, c.want)
 			}
 		}
-		picks[first] = true
-	}
-	if len(picks) != 2 {
-		t.Errorf("eight names took %v of the two level 20 records: want both taken", picks)
 	}
 	if got := name(heldShieldLook, true, 30, "gnoll scout"); got != "wooden shield" {
 		t.Errorf("the shield: %q", got)
@@ -171,9 +176,9 @@ func TestACorpseDropsWhatItsCreatureHeld(t *testing.T) {
 	if got := names(h.rollCorpse(bare, time.Now(), 30)); len(got) != 1 || got["wooden shield"] != 1 {
 		t.Errorf("a kobold with the shield alone left %v", got)
 	}
-	// an opener of level 5: the level 20 sword is past its reach (fitItems), the shield not
+	// judged against level 5: the level 20 sword is past its reach (fitItems), the shield not
 	if got := names(h.rollCorpse(scout(), time.Now(), 5)); len(got) != 1 || got["wooden shield"] != 1 {
-		t.Errorf("for a level 5 opener: %v, want the shield alone", got)
+		t.Errorf("judged at level 5: %v, want the shield alone", got)
 	}
 	// a look no record has: nothing extra
 	odd := scout()

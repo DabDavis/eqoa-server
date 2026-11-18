@@ -5,8 +5,8 @@ package session
 // never offered "Pick any colour..." and keeps the palette.
 
 // DyePickerVersion is the newest version of the picker's messages the server
-// speaks.
-const DyePickerVersion = 1
+// speaks: 2 adds the client's "No dye" answer (handlers.DyePickerNoDye).
+const DyePickerVersion = 2
 
 // SetDyePicker records the client's answer to the picker's offer: its
 // version (at most DyePickerVersion), 0 none.

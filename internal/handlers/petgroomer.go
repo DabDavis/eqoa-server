@@ -362,6 +362,6 @@ func (g *Groomer) openPicker(sess *session.Session, p *entity.Player, a groomAsk
 		}
 	}
 	openDyePicker(sess, p, a.npc, a.speaker, fmt.Sprintf("%s's %s", a.pet, a.what), o, func(sess *session.Session, p *entity.Player, rgba uint32) {
-		g.dye(sess, p, a, a.areas, rgba, fmt.Sprintf("There: %s.", colourWords(rgba)))
+		g.dye(sess, p, a, a.areas, rgba, pickedSaid(rgba))
 	})
 }

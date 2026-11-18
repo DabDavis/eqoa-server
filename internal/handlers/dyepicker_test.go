@@ -293,6 +293,23 @@ func TestTheDyerPicker(t *testing.T) {
 			t.Errorf("all armor white: %s %08X", database.DyeSlotNames[s], c[s])
 		}
 	}
+
+	// No dye (version 2; the owner, 2026-11-18): the chest's dye off, the
+	// rest of the armour white as it was
+	o = open(families())
+	answerPicker(t, h, tw.s, DyePickerNoDye, o.token)
+	c, _ = db.CharDyes(rec.ServerID)
+	if got := questMsgs(tw.s); c[database.DyeChest] != 0 || !hasMsg(got, "box:"+EquipmentDyerName+": The dye is off.") {
+		t.Fatalf("No dye: the chest %08X, said %q", c[database.DyeChest], got)
+	}
+	for _, s := range o.slots {
+		if s != database.DyeChest && c[s] != 0xFFFFFFFF {
+			t.Errorf("No dye on the chest took %s's: %08X", database.DyeSlotNames[s], c[s])
+		}
+	}
+	if _, _, on, ok := tw.w.DyeTarget(tw.s); !ok || on[database.DyeChest] != 0 {
+		t.Errorf("on the character: %08X", on[database.DyeChest])
+	}
 }
 
 // The Pet Groomer's picker: a picker's client is asked no families, the
@@ -342,6 +359,26 @@ func TestTheGroomerPicker(t *testing.T) {
 	}
 	if pet, ok := f.w.PetLookOf(f.sess); !ok || pet.Dye != (entity.PetDye{0, 0x3FA7D680}) {
 		t.Errorf("on the pet: %+v", pet)
+	}
+
+	// No dye on its whole body (its second area): that dye off, the other
+	// area's kept
+	if _, _, err := f.db.SetPetDye(f.p.CharServerID, look, 0, 0x101010FF, database.GMEdit{}, "test"); err != nil {
+		t.Fatal(err)
+	}
+	g.Talk(f.sess, f.p, groomer)
+	got = questMsgs(f.sess)
+	g.Answer(f.sess, f.p, boxID(got), 0)
+	msgs = pickerMsgs(f.sess)
+	said := questMsgs(f.sess)
+	o, ok = readPickerOpen(msgs[len(msgs)-1])
+	if !ok || len(o.slots) != 1 || o.slots[0] != 1 {
+		t.Fatalf("the body's open: %v %+v", ok, o)
+	}
+	answerPicker(t, h, f.sess, DyePickerNoDye, o.token)
+	d, _ = f.db.PetDyesOf(f.p.CharServerID)
+	if got := questMsgs(f.sess); d[look] != [2]uint32{0x101010FF, 0} || !hasMsg(got, "box:Pet Groomer: The dye is off.") {
+		t.Fatalf("No dye on the body: %08X, said %q (before %q)", d[look], got, said)
 	}
 }
 
@@ -404,6 +441,20 @@ func TestTheEnchanterPicker(t *testing.T) {
 		o.aura != (dyeAuraPreview{kind: database.AuraEpic, source: 0x88EC092D}) || o.title != "Colour of Virtuous" {
 		t.Fatalf("the open: %v %+v", ok, o)
 	}
+	// an aura's picker has no "No dye": refused, and its picker answered
+	answerPicker(t, h, tw.s, DyePickerNoDye, o.token)
+	if r, _, _ := db.InstanceAuraOf(sword); r.Second.Source != 0 {
+		t.Fatalf("No dye on an aura did something: %+v", r)
+	}
+	e.Talk(tw.s, tw.p, enchanter)
+	got = pick(pick(questMsgs(tw.s), 1), 0)
+	e.Answer(tw.s, tw.p, boxID(got), 1)
+	msgs = pickerMsgs(tw.s)
+	questMsgs(tw.s)
+	if len(msgs) == 0 {
+		t.Fatal("the picker not opened again")
+	}
+	o, _ = readPickerOpen(msgs[len(msgs)-1])
 	answerPicker(t, h, tw.s, DyePickerPicked, o.token, 0x3FA7D6FF)
 	r, _, _ := db.InstanceAuraOf(sword)
 	if r.Second.Color != 0x3FA7D6FF || r.Second.Source != 0x88EC092D || r.Tag != "Virtuous" {

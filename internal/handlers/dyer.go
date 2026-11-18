@@ -432,6 +432,6 @@ func (d *Dyer) openPicker(sess *session.Session, p *entity.Player, a dyerAsk) {
 	}
 	o := dyePickerOpen{target: DyePickChar, current: now, title: "Dye " + a.what, slots: slots}
 	openDyePicker(sess, p, a.npc, a.speaker, a.what, o, func(sess *session.Session, p *entity.Player, rgba uint32) {
-		d.dye(sess, p, a.speaker, a.slots, rgba, fmt.Sprintf("There: %s.", colourWords(rgba)))
+		d.dye(sess, p, a.speaker, a.slots, rgba, pickedSaid(rgba))
 	})
 }

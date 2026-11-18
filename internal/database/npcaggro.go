@@ -83,11 +83,16 @@ type NPCAggroRule struct {
 	SeeInvis bool
 	// Holds (column holds): in a fight they stand where they are, as rooted
 	Holds bool
+	// PetName: a tools/seed_npc_aggro.py row for a player's pet's name (source
+	// seed, its note "a player's pet recorded beside its owner"): it keeps the
+	// pets the census recorded peaceful, not a dungeon's creatures of that name
+	// (entity.aggroRuleLocked; ticket 2380)
+	PetName bool
 }
 
 // NPCAggroRules is every row of npcaggro.
 func (db *SQLiteDB) NPCAggroRules() ([]NPCAggroRule, error) {
-	rows, err := db.Query(`SELECT npc_name, aggressive, radius, leash, holding, see_invis, holds FROM npcaggro`)
+	rows, err := db.Query(`SELECT npc_name, aggressive, radius, leash, holding, see_invis, holds, (source = 'seed' AND instr(note, 'a player''s pet') > 0) FROM npcaggro`)
 	if err != nil {
 		return nil, err
 	}
@@ -95,14 +100,15 @@ func (db *SQLiteDB) NPCAggroRules() ([]NPCAggroRule, error) {
 	var out []NPCAggroRule
 	for rows.Next() {
 		var r NPCAggroRule
-		var aggressive, seeInvis, holds int
-		if err := rows.Scan(&r.Name, &aggressive, &r.Radius, &r.Leash, &r.Holding, &seeInvis, &holds); err != nil {
+		var aggressive, seeInvis, holds, petName int
+		if err := rows.Scan(&r.Name, &aggressive, &r.Radius, &r.Leash, &r.Holding, &seeInvis, &holds, &petName); err != nil {
 			return nil, err
 		}
 		r.Aggressive = aggressive > 0
 		r.NoWord = aggressive < 0
 		r.SeeInvis = seeInvis != 0
 		r.Holds = holds != 0
+		r.PetName = petName != 0
 		out = append(out, r)
 	}
 	return out, rows.Err()

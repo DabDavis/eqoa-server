@@ -128,6 +128,9 @@ type AggroRule struct {
 	// Holds: in a fight they stand where they are, as a rooted creature (npcaggro's
 	// holds; chase.go)
 	Holds bool
+	// PetName: the seed's row for a player's pet's name (database.NPCAggroRule's
+	// PetName), which a dungeon's creature of that name is not (aggroRuleLocked)
+	PetName bool
 }
 
 // aggroState is the world's aggro: off (SetAggro), factions left out of it
@@ -173,6 +176,20 @@ func (a *aggroState) ruleFor(name string) (AggroRule, bool) {
 	}
 	l := a.lookup(name)
 	return l.rule, l.ok
+}
+
+// aggroRuleLocked is ruleFor for npc: the GMs' rule for its name, but not a
+// peaceful seed rule for a player's pet's name on an instanced dungeon's
+// creature, which is a raid's foe as the dungeon's others are (ticket 2380,
+// Waldorf: Collonridge's basement Decaying Flesh, L64, stood neutral; 77 of
+// world 14's creatures share a pet's name: Companion and Kindred Spirits,
+// Decaying and Wilting Flesh, Fire Elemental, Howling Death, Swarming Bones).
+func (w *World) aggroRuleLocked(npc *NPC) (AggroRule, bool) {
+	r, ok := w.aggro.ruleFor(npc.Name)
+	if ok && r.PetName && !r.Aggressive && IsDungeonWorld(npc.World) {
+		return AggroRule{}, false
+	}
+	return r, ok
 }
 
 // leashFor is the GMs' leash for an NPC of this name, 0 none (npcaggro's
@@ -242,7 +259,7 @@ func (w *World) hostileNatureLocked(npc *NPC) bool {
 			return w.hostileNatureLocked(m)
 		}
 	}
-	if r, ok := w.aggro.ruleFor(npc.Name); ok {
+	if r, ok := w.aggroRuleLocked(npc); ok {
 		return r.Aggressive
 	}
 	if IsDungeonWorld(npc.World) {
@@ -296,7 +313,7 @@ func (w *World) factionAggroLocked(npc *NPC) (string, bool) {
 	if w.aggro.factionOff || npc.NPCType&0x80 != 0 {
 		return "", false
 	}
-	if _, ok := w.aggro.ruleFor(npc.Name); ok {
+	if _, ok := w.aggroRuleLocked(npc); ok {
 		return "", false
 	}
 	f := w.npcFactionLocked(npc)
@@ -342,13 +359,13 @@ func (w *World) threatensLocked(npc *NPC, p *Player) bool {
 	if npc.EventAggro {
 		return true
 	}
-	if r, ok := w.aggro.ruleFor(npc.Name); ok && r.Holding > 0 {
+	if r, ok := w.aggroRuleLocked(npc); ok && r.Holding > 0 {
 		// for the holders of an item alone (questwalls.go): "will become KoS
 		// and attack you if you have Cazic's Scent on you" (t196)
 		return r.Aggressive && w.holdsLocked(p, r.Holding)
 	}
 	if npc.Level <= NeutralWildlifeLevel {
-		if r, ruled := w.aggro.ruleFor(npc.Name); ruled {
+		if r, ruled := w.aggroRuleLocked(npc); ruled {
 			if !r.Aggressive {
 				return false
 			}
@@ -383,6 +400,8 @@ func (w *World) targetFaceLocked(p *Player, npc *NPC) byte {
 		return FaceHostile // a flagged foe's pet (pvp.go)
 	case npc.Owner != 0:
 		return FaceAlly
+	case npc.isFamiliar():
+		return FaceAlly // a player's familiar (Healbot) is a pet to see, not a creature (petition 2378)
 	case p != nil && !npc.Dead && npc.CurrentEnemy == p.ServerID:
 		return FaceHostile
 	case p != nil && w.threatensLocked(npc, p):
@@ -406,7 +425,7 @@ func (w *World) targetFaceLocked(p *Player, npc *NPC) byte {
 // GM's radius for its name, else its own, else DefaultAggroRadius. Must be
 // called with the lock held.
 func (w *World) aggroRadiusLocked(npc *NPC) float32 {
-	if r, ok := w.aggro.ruleFor(npc.Name); ok && r.Radius > 0 {
+	if r, ok := w.aggroRuleLocked(npc); ok && r.Radius > 0 {
 		return r.Radius
 	}
 	if npc.AggroRadius > 0 {
@@ -577,6 +596,8 @@ func (w *World) SetAggroRules(rules map[string]AggroRule) {
 		}
 		if o, dup := keyed[k]; dup && !o.Aggressive && r.Aggressive {
 			continue
+		} else if dup && !o.Aggressive && !r.Aggressive {
+			r.PetName = r.PetName && o.PetName // a pet's name only when every peaceful spelling is
 		}
 		keyed[k] = r
 	}
@@ -606,7 +627,7 @@ func (w *World) LoadAggroRules(db *database.SQLiteDB) (int, error) {
 	}
 	rules := make(map[string]AggroRule, len(rows))
 	for _, r := range rows {
-		rules[r.Name] = AggroRule{Aggressive: r.Aggressive, Radius: float32(r.Radius), Leash: float32(r.Leash), NoWord: r.NoWord, Holding: r.Holding, SeeInvis: r.SeeInvis, Holds: r.Holds}
+		rules[r.Name] = AggroRule{Aggressive: r.Aggressive, Radius: float32(r.Radius), Leash: float32(r.Leash), NoWord: r.NoWord, Holding: r.Holding, SeeInvis: r.SeeInvis, Holds: r.Holds, PetName: r.PetName}
 	}
 	w.SetAggroRules(rules)
 	return len(rules), nil

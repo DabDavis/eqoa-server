@@ -1107,13 +1107,33 @@ no touchscreen, no mouse"; opt-in per account, chosen once when the account is m
   vanilla drops the mouse and fingers in the world; frame rate, widescreen, graphics, keyboard and controllers stay). A PS2 has none
   of it and is sent nothing. `world.vanilla_ui` is apart (every session's) and may stay unset.
 - **The tag** is the [GM] tag's way: `ShownName` puts `OGTag` "[OG] " before the name in the entity channel's 24 bytes at 116 (over
-  the head and in a target's window, every client), a GM's "[GM] [OG] Name", cut to 23 bytes (`ShownNameMost`; names are 15 at most,
-  so only a GM's full name loses a letter). Nowhere else: the 0x002C list, chat and tells, /r's 0x07A3, group/raid/guild lists, mail,
+  the head and in a target's window, every client), a GM's "[GM][OG] Name", fitted to 23 bytes (`ShownNameMost`, `composeTags` in
+  `entity/hardcore.go`: the tags joined, the name never cut). Nowhere else: the 0x002C list, chat and tells, /r's 0x07A3, group/raid/guild lists, mail,
   the auction, trade, quests, GM tools and the database keep the plain name. A name sent back with tags ("/t [OG] Name ...",
   "/invite [OG] Name", a gram to "[OG] Name", /target, a duel) finds the character (`entity.PlainName`, `IsNameTag`); the lists vanilla
   keys by the drawn name (race labels, race looks) carry every form (`ShownNames`). Unset, nothing is read and nothing drawn.
   Tests: `TestOG*`, `TestApplyOGReadsTheAccount`, `TestShownNamesForTheLists`, `TestStationCreate*OG*`, `TestRegisterOffersOG`,
   `TestSetAccountOG`, `TestTheMirrorCarriesTheOGChoice`.
+
+### [HC] Hardcore characters (`handlers/hardcore.go`, `hardcoreask.go`, `hcchat.go`, `hcrules.go`, `memorial.go`, `entity/hardcore.go`, `entity/hcrules.go`, `database/hardcore.go`, `internal/fallen`; `world.hardcore`)
+
+The owner, 2026-11-18: "lets add [HC] tag for characters. Hardcore mode chars stay dead and cannot respawn"; both shards, chosen at
+creation, permanent; the long form is `claude-notes/hardcore-20261118.md`.
+- **Stored** on the character (`characters.hardcore`, `hc_chosen`, `hc_born`(+`_level`), `hc_played`, `fallen_*`: at, cause, killer,
+  place, world/x/y/z, level, class, race, CMs, played). **Chosen**: vanilla's create page (offer 0x7EB0, an 'H', 1, choice block before
+  the 'R' block); anything else (a PS2, the account pages) is asked in CLIENT's question box at the first world entry while new, two
+  steps (`hardcoreask.go`; `/hardcore`, a PS2's `/t hardcore`). Drawn "[HC] Name"; tags join "[GM][OG][HC] Name", fitted (space, then
+  [OG], then [HC] go; never the name).
+- **A death** (`playerDownLocked`) of a `HardcoreBound` character: fallen, no debt/rez/respawn; the hook writes the fall once, announces
+  it, tells vanilla (0x7EB2) and sends 0x0777 after `fall_logout_seconds`. A fallen character is refused at select (word 676) whatever
+  world.hardcore says, never resumed by a keep restart; a PS2's list marks it "Name RIP 11/18 08:45"; vanilla gets 0x7EB1. GM:
+  `unfall_character` (reason, audited). Duels never kill.
+- **Isolation** (`hcrules.go`): no XP, CMs, faction, quest credit, loot or rolls from a creature anyone outside the all-HC group (or a
+  merc) hated; groups/raids/LFG HC-with-HC; no aid across it either way; no trade, auction, merc, Teleporter, Summoning Portal, Rock of
+  Freeport, homes, Dabrish or web teleport; own bank only. **/hc** (`#hc`, `/t hc`): the living Hardcore's channel.
+- **Pages**: the Memorial of the Fallen and the Hardcore Leaderboard in Freeport (`tools/memorial_fallen_20261118.py`); `/hardcore`
+  (`/fallen` redirects, `/api/hardcore`), both shards with `other_db`; the panel's Hardcore heroes. Tests: `TestHardcore*`,
+  `TestTheTagsFit`, `TestPS2ListNameFits`, `TestMemorialLines`, `TestThePage`, `hcrules_test.go`, `hcbank_test.go`.
 
 ### The profanity filter from a client's setting (`handlers/profanity.go`)
 

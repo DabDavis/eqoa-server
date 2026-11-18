@@ -107,7 +107,7 @@ func (s *Server) registerHardcoreOps() {
 				return nil, err
 			}
 			if !st.Fallen() {
-				return nil, badRequest(fmt.Sprintf("%s has not fallen", name))
+				return nil, badRequest("%s has not fallen", name)
 			}
 			t, err := c.s.table("characters")
 			if err != nil {

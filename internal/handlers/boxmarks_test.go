@@ -25,6 +25,7 @@ import (
 // boxMarks is every feature's mark by its const's name.
 var boxMarks = map[string]uint32{
 	"questBoxMark":      questBoxMark,
+	"hardcoreBoxMark":   hardcoreBoxMark, // hardcoreask.go
 	"triggerBoxMark":    triggerBoxMark,
 	"duelBoxMark":       entity.DuelBoxID(0), // entity/duelwire.go's, unexported there
 	"rehabBoxMark":      rehabBoxMark,

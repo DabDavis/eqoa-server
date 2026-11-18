@@ -196,6 +196,9 @@ func (w *World) spawnCopyAsLocked(t *NPC, x, y, z, facing float32, world uint8, 
 	c.challenge = nil                     // a duel's is its own (metalmoogie.go)
 	c.noHeal, c.selfHealed = false, false // its own life's (metalv5.go)
 	c.path = pathState{}
+	if c.carriesOfKit() {
+		c.carryKit(0) // its row's whole kit, whatever the original's spawn rolled (heldgear.go)
+	}
 	w.putNPCLocked(&c)
 	w.SpatialIndex.Insert(c.ServerID, x, z)
 	return &c

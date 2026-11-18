@@ -313,9 +313,8 @@ func (w *World) ReloadNPCs(store *database.NPCStore) (loaded, removed int, err e
 func npcSameRecord(a, b *NPC) bool {
 	return a.Name == b.Name && a.SpawnX == b.SpawnX && a.SpawnY == b.SpawnY && a.SpawnZ == b.SpawnZ &&
 		a.SpawnFacing == b.SpawnFacing && a.World == b.World && a.ModelID == b.ModelID && a.Size == b.Size &&
-		a.NPCID == b.NPCID && a.NPCType == b.NPCType && a.PrimaryWeapon == b.PrimaryWeapon &&
-		a.SecondaryWeapon == b.SecondaryWeapon && a.PrimaryType == b.PrimaryType &&
-		a.SecondaryType == b.SecondaryType && a.Shield == b.Shield && a.Torso == b.Torso && a.Tint == b.Tint &&
+		a.NPCID == b.NPCID && a.NPCType == b.NPCType &&
+		a.kit == b.kit && a.Torso == b.Torso && a.Tint == b.Tint &&
 		a.Forearm == b.Forearm && a.NPCGloves == b.NPCGloves && a.NPCLegs == b.NPCLegs && a.Feet == b.Feet &&
 		a.Head == b.Head && a.HairColor == b.HairColor && a.HairLength == b.HairLength &&
 		a.HairStyle == b.HairStyle && a.Face == b.Face && a.RobeStyle == b.RobeStyle && a.Race == b.Race &&

@@ -60,6 +60,10 @@ type NPC struct {
 	WornMask   uint16
 	// WornItems: the copies a mercenary holds (MercLook's), none for others
 	WornItems [AuraSlots]int
+	// kit is what its row holds in the hands and on the arm, of which
+	// PrimaryWeapon, SecondaryWeapon and Shield carry what this spawn's roll
+	// gave it (heldgear.go)
+	kit npcKit
 
 	// Health
 	HP, MaxHP      int

@@ -1285,7 +1285,8 @@ func (w *World) mercHarmLocked(ms *mercState, s *CastSpell, t *NPC, now time.Tim
 	}
 	ae.merc, ae.Caster = m.ServerID, m.ServerID
 	ae.HPTick = min(ae.HPTick, 0) // a heal over time on a creature is no merc's
-	ae.Line, ae.Rank = BuffLine(&rest), lineRank(&rest)
+	// a debuff's line is its class's (buffline.go)
+	ae.Line, ae.Rank = creatureLine(&rest, m.Class), lineRank(&rest)
 	keep := t.Effects[:0]
 	for _, e := range t.Effects {
 		if e.SpellID != s.SpellID || e.merc != m.ServerID {

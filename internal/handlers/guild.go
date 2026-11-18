@@ -494,3 +494,35 @@ func buildGuildInviteResult(code byte, name string) []byte {
 		writeString8(w, name, 24)
 	})
 }
+
+// guildFallHandover is a Hardcore fall's guild: when the fallen was its
+// guild's master, the lead passes to the highest member still playing
+// (entity/guildfall.go, petition 2384) and the guild's members online are
+// shown both new ranks, as a leave's lead is (announceLead); the new master
+// is told its rank changed.
+func guildFallHandover(w *entity.World, id uint32) {
+	if w == nil {
+		return
+	}
+	c, ok := w.GuildFall(id)
+	if !ok {
+		return
+	}
+	lead := w.GuildMemberPlayer(c.NewLead.ID)
+	msgs := [][]byte{
+		entity.BuildGuildMember(c.Fallen, w.GuildMemberPlayer(c.Fallen.ID) != nil),
+		entity.BuildGuildMember(c.NewLead, lead != nil),
+	}
+	for _, m := range w.GuildMembers(c.Guild.ID) {
+		if sess := w.FindSessionByEntityID(m.ServerID); sess != nil {
+			for _, msg := range msgs {
+				queueReliable(sess, protocol.OpcodeGuildInfo, msg)
+			}
+		}
+	}
+	if lead != nil {
+		if sess := w.FindSessionByEntityID(lead.ServerID); sess != nil {
+			queueReliable(sess, protocol.OpcodeGuildInfo, entity.BuildGuildWord(entity.GuildWordRank))
+		}
+	}
+}

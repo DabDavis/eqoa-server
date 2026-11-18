@@ -211,6 +211,25 @@ func (db *SQLiteDB) Fall(f FallRecord) (fell bool, err error) {
 	return n > 0, nil
 }
 
+// FallenIDs is every fallen Hardcore character's serverid (fallen_at set): a
+// guild never hands its lead to one (entity/guildfall.go).
+func (db *SQLiteDB) FallenIDs() ([]uint32, error) {
+	rows, err := db.Query(`SELECT serverid FROM characters WHERE COALESCE(fallen_at, 0) > 0`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var ids []uint32
+	for rows.Next() {
+		var id uint32
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, rows.Err()
+}
+
 // FallenList is the shard's fallen characters, the newest fall first, at most
 // limit (0: all).
 func (db *SQLiteDB) FallenList(limit int) ([]FallRecord, error) {

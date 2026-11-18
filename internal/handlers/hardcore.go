@@ -423,6 +423,7 @@ func (h *CharacterHandler) hardcoreFell(sess *session.Session, f entity.Hardcore
 			log.Printf("Hardcore: %s's fall: the row is not a living Hardcore character's (written before?)", f.Name)
 		}
 	}
+	guildFallHandover(h.gameWorld, f.CharServerID)
 	line := HardcoreFallLine(rec)
 	log.Printf("Hardcore: FALL %s (serverid %d, level %d %s, %d CMs, %ds played): %s [%s]", f.Name, f.CharServerID, f.Level,
 		entity.ClassName(f.Class), rec.CMs, rec.Played, line, f.Cause)

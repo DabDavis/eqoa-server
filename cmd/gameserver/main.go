@@ -152,6 +152,13 @@ func main() {
 		log.Printf("Guilds: %d kept", gameWorld.LoadGuilds(rows))
 	}
 	gameWorld.SetGuildStore(db)
+	// a guild whose master is a fallen Hardcore character hands the lead on;
+	// no fallen member ever takes it (entity/guildfall.go, petition 2384)
+	if ids, err := db.FallenIDs(); err != nil {
+		log.Printf("Guilds: the fallen not read: %v", err)
+	} else if n := gameWorld.FallenGuildLeads(ids); n > 0 {
+		log.Printf("Guilds: %d led by a fallen Hardcore master handed to a member still playing", n)
+	}
 
 	// A creature's corpse, its return and its wander (entity/corpse.go,
 	// entity/roam.go), set before the NPCs are loaded so each takes them.

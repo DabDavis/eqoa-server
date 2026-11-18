@@ -43,6 +43,8 @@ type decorLightState struct {
 	// PetArt) by model and world: where a client that draws them can have
 	// the art (its zone of that world's file)
 	petArt atomic.Pointer[map[PetArtKey]database.DecorArt]
+	// petArtModels is every pet art's model (any world's row)
+	petArtModels atomic.Pointer[map[uint32]bool]
 }
 
 // PetArtKey is a pet's look's art in one world.
@@ -54,11 +56,19 @@ type PetArtKey struct {
 // DecorLightsLayout is the newest layout of OpcodeDecorLights: 3 (the pets'
 // looks after the walk-ons, and pets sent in them: cmpetlook.go's PetArt); 2
 // the walk-ons after the papers, and OpcodeRide (npctour.go).
-const DecorLightsLayout = 3
+const DecorLightsLayout = 4
 
 // DecorPetArtLayout is the layout from which a client is sent a pet in its
-// art (petArtViewLocked).
+// art (petArtViewLocked), in a world whose zones hold it.
 const DecorPetArtLayout = 3
+
+// DecorPetArtAnywhereLayout is the layout from which a client is sent a pet
+// in its art in every world (the owner, 2026-11-18: "zerkziee construct is
+// turning back into a spider and not a catapult": Zerkziee took the Teleporter
+// to Odus, whose zones hold no catapult): the art's zone is among the assets
+// (petArtAssets), which such a client reads off its own disc whatever world
+// it is in and draws the pet from.
+const DecorPetArtAnywhereLayout = 4
 
 // DecorCordBreak is the bit of a bulb's colour byte that breaks the cord
 // before it (a ring's first bulb after the ring below, a box's edge apart from
@@ -285,6 +295,12 @@ func EncodeDecorLights(strs []DecorString, art []database.DecorArt, assets ...da
 			used[g.Paper] = true
 		}
 	}
+	// and the pets' looks and their shots (PetArtAssets): drawn in any world
+	for _, a := range art {
+		if a.Kind == database.DecorArtPet {
+			used[a.Model], used[a.Shot] = true, true
+		}
+	}
 	var named []database.DecorAsset
 	for _, a := range assets {
 		for _, id := range a.IDs {
@@ -366,16 +382,18 @@ func DecorLightsMessage(body []byte) *protocol.Message {
 // world), and sends them to every client that draws them; it reports how many
 // it told.
 func (w *World) SetDecorLights(strs []DecorString, art map[string]database.DecorArt, shown []database.DecorArt, assets ...database.DecorAsset) int {
-	byName, pets := map[string]database.DecorArt{}, map[PetArtKey]database.DecorArt{}
+	byName, pets, models := map[string]database.DecorArt{}, map[PetArtKey]database.DecorArt{}, map[uint32]bool{}
 	for k, a := range art {
 		if a.Kind == database.DecorArtPet {
 			pets[PetArtKey{a.Model, uint8(a.World)}] = a
+			models[a.Model] = true
 		} else {
 			byName[k] = a
 		}
 	}
 	w.decorLights.art.Store(&byName)
 	w.decorLights.petArt.Store(&pets)
+	w.decorLights.petArtModels.Store(&models)
 	body, sent, bulbs := EncodeDecorLights(strs, shown, assets...)
 	body = AppendWalkOns(body, w.WalkOns())
 	body = AppendPetArts(body, shown)
@@ -441,6 +459,7 @@ func (w *World) LoadDecorLights(db *database.SQLiteDB) (strs, bulbs, told int, p
 	if err != nil {
 		return 0, 0, 0, nil, fmt.Errorf("decorassets: %w", err)
 	}
+	assets = append(assets, PetArtAssets(shown)...)
 	// the NPCs' tours and walk-ons of the seasons that are on (npctour.go),
 	// the walk-ons sent with the decorations
 	tours, tourProblems, err := db.NPCTours()
@@ -557,16 +576,77 @@ func (w *World) decorArtViewLocked(sess *session.Session, npc *NPC, buf []byte) 
 // is (its spell's, or a PetLook rank's). It stays a creature: selectable,
 // targeted, named. Must be called with the lock held.
 func (w *World) petArtViewLocked(sess *session.Session, npc *NPC, buf []byte) {
-	if len(buf) < 32 || npc.Art == 0 || sess == nil || sess.DecorLightsLayout() < DecorPetArtLayout {
-		return
+	if len(buf) >= 32 && w.petArtShown(sess, npc) {
+		binary.LittleEndian.PutUint32(buf[28:32], npc.Art)
+	}
+}
+
+// petArtShown is whether sess's client is sent the pet in its art
+// (petArtViewLocked): one of layout DecorPetArtLayout in a world where a pet
+// row has it, or of DecorPetArtAnywhereLayout in any world (the art among its
+// assets: PetArtAssets).
+func (w *World) petArtShown(sess *session.Session, npc *NPC) bool {
+	if npc == nil || npc.Art == 0 || sess == nil {
+		return false
+	}
+	layout := sess.DecorLightsLayout()
+	if layout >= DecorPetArtAnywhereLayout {
+		if m := w.decorLights.petArtModels.Load(); m != nil && (*m)[npc.Art] {
+			return true
+		}
+	}
+	if layout < DecorPetArtLayout {
+		return false
 	}
 	pets := w.decorLights.petArt.Load()
 	if pets == nil {
-		return
+		return false
 	}
-	if _, ok := (*pets)[PetArtKey{npc.Art, npc.World}]; ok {
-		binary.LittleEndian.PutUint32(buf[28:32], npc.Art)
+	_, ok := (*pets)[PetArtKey{npc.Art, npc.World}]
+	return ok
+}
+
+// PetArtAssets is the assets the pets' looks draw from in any world: each
+// art's first row's zone (by world, then zone), its model and its shot, which
+// a client of DecorPetArtAnywhereLayout reads off its own disc once.
+func PetArtAssets(art []database.DecorArt) []database.DecorAsset {
+	var pets []database.DecorArt
+	for _, a := range art {
+		if a.Kind == database.DecorArtPet {
+			pets = append(pets, a)
+		}
 	}
+	sort.SliceStable(pets, func(i, j int) bool {
+		if pets[i].World != pets[j].World {
+			return pets[i].World < pets[j].World
+		}
+		return pets[i].Zone < pets[j].Zone
+	})
+	var out []database.DecorAsset
+	seen := map[uint32]bool{}
+	for _, a := range pets {
+		if seen[a.Model] {
+			continue
+		}
+		seen[a.Model] = true
+		ids := []uint32{a.Model}
+		if a.Shot != 0 {
+			ids = append(ids, a.Shot)
+		}
+		out = append(out, database.DecorAsset{Name: "pet art " + a.Name, World: a.World, Zone: a.Zone, IDs: ids})
+	}
+	return out
+}
+
+// petDrawnLook is the body sess's client draws the pet in: its art where it
+// is sent it (petArtShown), its model else; what its dyes are kept by and
+// sent for (petdyes.go: the owner, 2026-11-18, "the catapult pet needs two
+// tone color regions for pet groomer").
+func (w *World) petDrawnLook(sess *session.Session, npc *NPC) uint32 {
+	if w.petArtShown(sess, npc) {
+		return npc.Art
+	}
+	return uint32(npc.ModelID)
 }
 
 // AppendPetArts is the pets' looks after the walk-ons (layout 3; a client

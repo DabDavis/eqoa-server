@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"bytes"
 	"encoding/binary"
 	"math"
 	"testing"
@@ -76,6 +77,21 @@ func TestAPetArtRankDressesThePetForTheClientsThatDrawIt(t *testing.T) {
 	if b := view(3, other.ServerID); binary.LittleEndian.Uint32(b[28:]) != 0x15BDF1BD || b[26]&1 == 0 {
 		t.Errorf("an NPC named as the pet row's label: model %08X byte 26 %d, want its own and selectable", binary.LittleEndian.Uint32(b[28:]), b[26])
 	}
+	// the Pet Groomer dyes the art its owner's client draws (the owner,
+	// 2026-11-18: "the catapult pet needs two tone color regions for pet
+	// groomer"): the catapult to a layout 3 client, the body to a PS2
+	for _, c := range []struct {
+		layout uint8
+		want   uint32
+	}{{3, catapultArt}, {0, uint32(body)}} {
+		r.sess.SetDecorLights(c.layout)
+		if l, ok := r.w.PetLookOf(r.sess); !ok || l.Look != c.want {
+			t.Errorf("layout %d: the groomer's look %#x, want %#x", c.layout, l.Look, c.want)
+		}
+		if _, look, _, _, _, ok := r.w.PetDyePreview(r.sess); !ok || look != c.want {
+			t.Errorf("layout %d: the preview's look %#x, want %#x", c.layout, look, c.want)
+		}
+	}
 	// another world's row only
 	moved := map[string]database.DecorArt{"catapult": art["catapult"]}
 	a := moved["catapult"]
@@ -83,7 +99,16 @@ func TestAPetArtRankDressesThePetForTheClientsThatDrawIt(t *testing.T) {
 	moved["catapult"] = a
 	r.w.SetDecorLights(nil, moved, nil)
 	if b := view(3, pet.ServerID); binary.LittleEndian.Uint32(b[28:]) != uint32(body) {
-		t.Errorf("a world with no row: model %08X, want the body", binary.LittleEndian.Uint32(b[28:]))
+		t.Errorf("a world with no row, layout 3: model %08X, want the body", binary.LittleEndian.Uint32(b[28:]))
+	}
+	// at layout 4 the art is everywhere (its zone among the assets): the
+	// owner, 2026-11-18, "zerkziee construct is turning back into a spider"
+	// (the Teleporter to Odus)
+	if b := view(4, pet.ServerID); binary.LittleEndian.Uint32(b[28:]) != catapultArt {
+		t.Errorf("a world with no row, layout 4: model %08X, want the catapult", binary.LittleEndian.Uint32(b[28:]))
+	}
+	if b := view(2, pet.ServerID); binary.LittleEndian.Uint32(b[28:]) != uint32(body) {
+		t.Errorf("layout 2: model %08X, want the body", binary.LittleEndian.Uint32(b[28:]))
 	}
 	// with a PetLook rank too: the PS2's body is that rank's, the art stays
 	r.w.mu.Lock()
@@ -116,5 +141,34 @@ func TestAppendPetArts(t *testing.T) {
 	if len(b) != 1+2+17 || math.Float32frombits(binary.LittleEndian.Uint32(b[16:])) != 0.35 || b[0] != 9 || binary.LittleEndian.Uint16(b[1:]) != 1 || binary.LittleEndian.Uint32(b[3:]) != catapultArt || b[7] != 1 ||
 		binary.LittleEndian.Uint32(b[8:]) != 0xBFEE4CCD || math.Float32frombits(binary.LittleEndian.Uint32(b[12:])) != 0.25 {
 		t.Errorf("% X", b)
+	}
+}
+
+// The pets' looks' assets: each art once, its first row's zone by world then
+// zone, its model and its shot; a decoration's art none.
+func TestPetArtAssets(t *testing.T) {
+	got := PetArtAssets([]database.DecorArt{
+		{Name: "tree", Model: 0x0E318233, Zone: 32},
+		{Name: "rathe", Model: catapultArt, World: 1, Zone: 13, Kind: database.DecorArtPet, Shot: 0xBFEE4CCD},
+		{Name: "tunaria", Model: catapultArt, World: 0, Zone: 108, Kind: database.DecorArtPet, Shot: 0xBFEE4CCD},
+		{Name: "plain", Model: 0x1234, World: 2, Zone: 5, Kind: database.DecorArtPet},
+	})
+	if len(got) != 2 || got[0].World != 0 || got[0].Zone != 108 || len(got[0].IDs) != 2 || got[0].IDs[0] != catapultArt || got[0].IDs[1] != 0xBFEE4CCD ||
+		got[1].Zone != 5 || len(got[1].IDs) != 1 {
+		t.Errorf("%+v", got)
+	}
+}
+
+// The pets' looks' assets are sent with the decorations though no string
+// draws them (EncodeDecorLights sends only the assets something uses).
+func TestPetArtAssetsAreSent(t *testing.T) {
+	art := []database.DecorArt{{Name: "tunaria", Model: catapultArt, World: 0, Zone: 108, Kind: database.DecorArtPet, Shot: 0xBFEE4CCD}}
+	with, _, _ := EncodeDecorLights(nil, art, PetArtAssets(art)...)
+	without, _, _ := EncodeDecorLights(nil, nil, PetArtAssets(art)...)
+	if len(with) != len(without)+11+(1+2+1+8) {
+		t.Errorf("with the pet art %d bytes, without %d: want the art (11) and its asset (12) more", len(with), len(without))
+	}
+	if !bytes.Contains(with, []byte{0, 108, 0, 2, 0x78, 0x8D, 0x4B, 0xE6, 0xCD, 0x4C, 0xEE, 0xBF}) {
+		t.Errorf("no asset of zone 108 with the catapult and the boulder: % X", with)
 	}
 }

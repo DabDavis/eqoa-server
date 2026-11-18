@@ -191,6 +191,7 @@ func (q *QuestEngine) syncHeadMarks(now time.Time) {
 	}
 	q.mu.Lock()
 	defer q.mu.Unlock()
+	defer q.beginSyncLocked()()
 	for id, c := range q.chars {
 		sess := q.sessionOf(id)
 		var p *entity.Player

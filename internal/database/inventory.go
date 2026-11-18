@@ -89,6 +89,38 @@ func (s *InventoryStore) GetCharacterItems(serverID uint32) ([]CharInventoryEntr
 	return items, nil
 }
 
+// HandInRows is the character's pack rows (LocPack) in GetCharacterItems's
+// order, with only what a hand-in's count reads: ItemID, StackLeft, EquipLoc,
+// Location, ListNum and Pattern.PatternID (no record's other columns, no
+// heirloom view, no copy's tag: neither changes a record or a count). The
+// quest marks' passes read it for each player every second
+// (handlers/questpass.go).
+func (s *InventoryStore) HandInRows(serverID uint32) ([]CharInventoryEntry, error) {
+	order := `c.listnumber`
+	if AccountBankOn() {
+		order += `, c.itemid`
+	}
+	rows, err := s.db.Query(`
+		SELECT c.itemid, c.stackleft, c.equiploc, c.location, c.listnumber, p.patternid
+		FROM charinventory c
+		JOIN itempattern p ON c.patternid = p.patternid
+		WHERE c.serverid = ? AND c.location = 0
+		ORDER BY `+order, serverID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CharInventoryEntry
+	for rows.Next() {
+		var e CharInventoryEntry
+		if err := rows.Scan(&e.ItemID, &e.StackLeft, &e.EquipLoc, &e.Location, &e.ListNum, &e.Pattern.PatternID); err != nil {
+			return nil, err
+		}
+		items = append(items, e)
+	}
+	return items, rows.Err()
+}
+
 // SetEquipLoc moves an item to an equipment slot, or to -1 to unequip it.
 // SetInventoryOrder keeps the order of a character's pack (location 0) as the
 // client's list holds it after the item menu's Arrange (0x003D): the rows of

@@ -90,10 +90,7 @@ func (q *QuestEngine) planHandInLocked(p *entity.Player, st *database.QuestStep)
 		b, ok := asc[id]
 		return b, ok
 	}
-	hasAscended := map[int]bool{} // records an Ascended record was made of
-	for _, b := range asc {
-		hasAscended[b] = true
-	}
+	hasAscended := q.hasAscendedLocked(asc) // records an Ascended record was made of
 	need, order := map[int]int{}, []int{}
 	for _, it := range st.Items {
 		if need[it.PatternID] == 0 {

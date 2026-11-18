@@ -241,6 +241,7 @@ func (q *QuestEngine) syncMarks(now time.Time) {
 	}
 	q.mu.Lock()
 	defer q.mu.Unlock()
+	defer q.beginSyncLocked()()
 	for id, c := range q.chars {
 		if !c.marksOn {
 			continue
@@ -423,12 +424,12 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 	taken := map[string]bool{}
 	for _, cq := range c.quests {
 		if qu := q.cat.byID[cq.QuestID]; qu != nil && (cq.Active() || cq.Done > 0 && !qu.Repeatable) {
-			taken[foldName(qu.Name)] = true
+			taken[q.cat.foldedName(qu)] = true
 		}
 	}
 	giverDist := func(giver string) float32 {
 		best := float32(math.MaxFloat32)
-		for _, s := range spots[foldName(giver)] {
+		for _, s := range spots[giver] {
 			if d := dist(s); d >= 0 && d < best {
 				best = d
 			} else if d < 0 && best == math.MaxFloat32 {
@@ -437,11 +438,14 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 		}
 		return best
 	}
-	givers := make([]string, 0, len(q.cat.givers))
-	for g := range q.cat.givers {
-		givers = append(givers, g)
+	givers := q.cat.giverOrder // sorted (Reload)
+	if len(givers) != len(q.cat.givers) {
+		givers = make([]string, 0, len(q.cat.givers))
+		for g := range q.cat.givers {
+			givers = append(givers, g)
+		}
+		sort.Strings(givers)
 	}
-	sort.Strings(givers)
 	type takeAt struct {
 		qu   *database.Quest
 		dist float32
@@ -450,12 +454,12 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 	for _, g := range givers {
 		d := float32(-1)
 		for _, qu := range q.cat.givers[g] {
-			k := foldName(qu.Name)
+			k := q.cat.foldedName(qu)
 			if taken[k] || !markLevelNear(p.Level, qu.MinLevel) {
 				continue
 			}
 			if d < 0 {
-				d = giverDist(qu.Giver)
+				d = giverDist(g) // qu.Giver folded is g (Reload)
 			}
 			if b, seen := byName[k]; seen && b.dist <= d {
 				continue

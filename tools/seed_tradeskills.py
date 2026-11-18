@@ -132,7 +132,7 @@ import sqlite3
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from import_sandstorm_harvest import item_row  # noqa: E402
+from item_rows import item_row  # noqa: E402
 
 DEFAULT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "eqoa.db")
 SOURCE = "tradeskill-seed"

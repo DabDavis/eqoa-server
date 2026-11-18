@@ -18,7 +18,7 @@ import unittest
 HERE = os.path.dirname(os.path.abspath(__file__))
 TOOL = os.path.join(HERE, "fix_quest_items.py")
 sys.path.insert(0, HERE)
-import import_sandstorm_harvest as harvest  # noqa: E402
+import item_rows as harvest  # noqa: E402
 
 COLS = [c for _, c in harvest.ITEM_FIELDS] + list(harvest.STAT_COLUMNS.values()) + ["model", "color"]
 

@@ -20,7 +20,7 @@ by this database's records of them, and those were not Sandstorm's:
 The faction survey (--measured: a new character of every combo on Sandstorm,
 with its inventory) holds Sandstorm's record of each. Each item a new
 character carries there takes it where ours differs: every column a ware
-fills (tools/import_sandstorm_harvest.py's item_row) and its stats. Its id,
+fills (tools/item_rows.py's item_row) and its stats. Its id,
 model and colour are kept (no ware carries the last two). An item is ours by
 Sandstorm's id where our record of that id has its name, else by its name,
 as seed_start_items.py finds it. One a GM changed (gm_audit) is left and
@@ -41,7 +41,7 @@ import sqlite3
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import import_sandstorm_harvest as harvest  # noqa: E402
+import item_rows as harvest  # noqa: E402
 import seed_start_items as seed  # noqa: E402
 
 DEFAULT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "eqoa.db")

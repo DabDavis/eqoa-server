@@ -13,7 +13,7 @@ CreateNew gives, carried.
 
 An item is ours by Sandstorm's id where our record of that id has its name,
 else by its name; one this database lacks is made from Sandstorm's record
-(tools/import_sandstorm_harvest.py's item_row), as its id where that is free
+(tools/item_rows.py's item_row), as its id where that is free
 (the froglok's toad snacks). Rows are written with source "sandstorm" and
 logged in startitems_seed, with the items made; --undo deletes the rows and
 the items no character holds (said), and drops the log; --apply is refused
@@ -33,7 +33,7 @@ import sqlite3
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import import_sandstorm_harvest as harvest  # noqa: E402
+import item_rows as harvest  # noqa: E402
 
 DEFAULT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "eqoa.db")
 SOURCE = "sandstorm"

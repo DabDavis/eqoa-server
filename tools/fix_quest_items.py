@@ -14,7 +14,7 @@ name: mostly starting-quest gear of one race and class at level 1 (Bone
 Bracers: a shadow knight's and a dark elf's, level 1, +3 STR, free from a
 Neriak merchant), tradeskill parts and handouts. Each of those takes
 Sandstorm's record: every column a ware fills
-(tools/import_sandstorm_harvest.py's item_row: value, icons, slot, trade,
+(tools/item_rows.py's item_row: value, icons, slot, trade,
 attack type, damage, range, level, stack, condition, classes, races and the
 rest) and its stats, its id and name kept (the quests name it by id) and its
 model and colour too (no ware carries them). An item Sandstorm gives two
@@ -37,7 +37,7 @@ import sqlite3
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import import_sandstorm_harvest as harvest  # noqa: E402
+import item_rows as harvest  # noqa: E402
 
 DEFAULT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "eqoa.db")
 KEEP = ("patternid", "itemname")

@@ -1012,7 +1012,7 @@ type CharacterRecord struct {
 
 	// OwnBankTunar is the row's own bankTunar column: with the account bank
 	// BankTunar is the account's (database/accountbank.go) and this is read
-	// only by entity.StartingTunar's never-held test
+	// by nothing now (entity.StartingTunar's never-held test, removed 2026-11-18)
 	OwnBankTunar int
 }
 

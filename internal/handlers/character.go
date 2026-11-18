@@ -14,6 +14,7 @@ import (
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/economy"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
@@ -423,6 +424,9 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 		log.Printf("CreateCharacter: failed to save character: %v", err)
 		h.sendCreateRefusal(sess, protocol.OpcodeCreateCharFailed)
 		return nil
+	}
+	if record.ServerID != 0 && record.Tunar > 0 {
+		economy.StartedPurse(record.ServerID, record.CharName, record.Tunar) // counted as made
 	}
 	if err != nil {
 		log.Printf("CreateCharacter: %v", err)

@@ -276,6 +276,9 @@ type WorldConfig struct {
 	// (classspells, tools/import_class_spells.py). Both are for testing.
 	StartLevel     int  `yaml:"start_level"`
 	StartAllSpells bool `yaml:"start_all_spells"`
+	// StartTunar is the purse a new character is created with, stored in its
+	// row (database/newchar.go): unset, DefaultStartTunar (5000); 0, none.
+	StartTunar *int `yaml:"start_tunar"`
 
 	// MaxEntitySlots is the most NPCs and players (the player's own among
 	// them) a client that keeps more than CLIENT's 24 may have in view
@@ -1044,4 +1047,15 @@ func (c *Config) Save(path string) error {
 type HeldChanceConfig struct {
 	Weapon *float64 `yaml:"weapon"`
 	Shield *float64 `yaml:"shield"`
+}
+
+// DefaultStartTunar is a new character's purse when world.start_tunar is unset.
+const DefaultStartTunar = 5000
+
+// StartingTunar is world.start_tunar, DefaultStartTunar when unset; never below 0.
+func (w WorldConfig) StartingTunar() int {
+	if w.StartTunar == nil {
+		return DefaultStartTunar
+	}
+	return max(0, *w.StartTunar)
 }

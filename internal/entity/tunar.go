@@ -2,27 +2,15 @@ package entity
 
 import (
 	"github.com/eqoa/server/internal/database"
-	"github.com/eqoa/server/internal/economy"
 )
 
-// DefaultTunar is the purse a character starts with when its row has never
-// held one. Every login used to set it, whatever the row said; the merchant,
-// bank and blacksmith now store the purse (characters.tunar / bankTunar).
-const DefaultTunar = 5000
-
 // StartingTunar is the purse a login takes from the character's row: what it
-// stores, or DefaultTunar for a row that has never stored any (both columns
-// still at the schema's 0), counted as made (internal/economy, once a process).
+// stores, always. A new character's purse is stored when it is made
+// (world.start_tunar, database/newchar.go); a login used to give 5000 to a row
+// at 0 tunar and 0 banked, which refilled anyone who spent and banked down to
+// exactly 0 (and, with the account bank, anyone who deposited it all).
 func StartingTunar(record *database.CharacterRecord) int {
-	bank := record.BankTunar
-	if database.AccountBankOn() {
-		bank = record.OwnBankTunar // the row's own, not the account's (database/accountbank.go)
-	}
-	if record.Tunar != 0 || bank != 0 {
-		return record.Tunar
-	}
-	economy.StartedPurse(record.ServerID, record.CharName, DefaultTunar)
-	return DefaultTunar
+	return record.Tunar
 }
 
 // TakeTunar takes n tunar from the purse of a character in the world, when

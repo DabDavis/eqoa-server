@@ -16,6 +16,7 @@ import (
 	"github.com/eqoa/server/internal/accountmail"
 	"github.com/eqoa/server/internal/auth"
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/economy"
 	"github.com/eqoa/server/internal/mailer"
 	"github.com/eqoa/server/internal/skyisles"
 )
@@ -1401,6 +1402,9 @@ func (s *AccountServer) handleAPICreateCharacter(w http.ResponseWriter, r *http.
 		log.Printf("AccountServer: failed to create character: %v", err)
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Failed to create character"})
 		return
+	}
+	if record.ServerID != 0 && record.Tunar > 0 {
+		economy.StartedPurse(record.ServerID, record.CharName, record.Tunar) // counted as made
 	}
 	if err != nil {
 		log.Printf("AccountServer: %v", err)

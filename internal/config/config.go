@@ -503,6 +503,17 @@ type WorldConfig struct {
 	GrandfatherPackSlots int `yaml:"grandfather_pack_slots"`
 	GrandfatherBankSlots int `yaml:"grandfather_bank_slots"`
 
+	// OGPackSlots and OGBankSlots are the pack and the bank of an [OG]
+	// account's sessions (world.og_accounts; the server owner, 2026-11-18, of
+	// Vanilla Test: "lets make 100 inventory space in bank and pack for vanilla
+	// test, but [OG] gets 40/40"; entity/itemslots.go): at most these, every
+	// other session pack_slots and bank_slots. Below pack_slots (bank_slots) an
+	// [OG] list is grandfathered to it: an [OG] character holding more keeps
+	// every item and is sent them all, but takes no new record while it holds
+	// the [OG] size or more. Unset (0): an [OG] account's lists are everyone's.
+	OGPackSlots int `yaml:"og_pack_slots"`
+	OGBankSlots int `yaml:"og_bank_slots"`
+
 	// AccountBank makes the bank the account's (the server owner, 2026-11-14:
 	// "make the heirloom server bank for players be account wide and increase
 	// capacity to 2000"; database/accountbank.go, handlers/accountbank.go):

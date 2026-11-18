@@ -393,20 +393,35 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 	h.gameWorld.RefreshDecorLights(sess)
 	// the lists the client has, until its dump sends them anew
 	pack, bank := ex.Inventory.list(), ex.Bank.list()
-	// a file from before the lists were grandfathered (the restart that turns
-	// it on, world.grandfather_pack_slots): they hold to it from now
-	if (pack != nil && pack.most == 0) || (bank != nil && bank.most == 0) {
-		if gPack, gBank := entity.ItemSlotsGrandfathered(); (gPack > 0 || gBank > 0) && h.inventoryStore != nil {
-			if kp, kb, err := h.inventoryStore.KeptItemRows(player.CharServerID); err == nil {
-				if pack != nil && pack.most == 0 {
-					grandfatherList(pack, false, kp)
-				}
-				if bank != nil && bank.most == 0 {
-					grandfatherList(bank, true, kb)
-				}
-			} else {
-				log.Printf("Keep: character %d's kept rows: %v", player.CharServerID, err)
+	// held to the limits as this server has them for the session now (its
+	// dump, ResumeDump, makes the lists anew): a file from before the lists
+	// were grandfathered (the restart that turns world.grandfather_pack_slots
+	// on), or from a server whose limits differ (world.og_pack_slots: an [OG]
+	// account's are its own, entity/itemslots.go), holds to it from now, and a
+	// list no longer grandfathered holds to its size alone
+	og := sessionOG(sess)
+	regrand := func(l *invList, isBank bool) bool {
+		if l == nil {
+			return false
+		}
+		on, lim := listGrandfathered(isBank, og)
+		if !on {
+			l.most, l.keptN = 0, 0
+			return false
+		}
+		return l.most != lim
+	}
+	needPack, needBank := regrand(pack, false), regrand(bank, true)
+	if (needPack || needBank) && h.inventoryStore != nil {
+		if kp, kb, err := h.inventoryStore.KeptItemRows(player.CharServerID); err == nil {
+			if needPack {
+				grandfatherList(pack, false, kp, og)
 			}
+			if needBank {
+				grandfatherList(bank, true, kb, og)
+			}
+		} else {
+			log.Printf("Keep: character %d's kept rows: %v", player.CharServerID, err)
 		}
 	}
 	if pack != nil {

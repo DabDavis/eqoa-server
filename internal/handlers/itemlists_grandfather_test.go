@@ -205,12 +205,12 @@ func TestItemListsGrandfatherOff(t *testing.T) {
 			t.Errorf("%v: offered %d %d", g, p, b)
 		}
 		l := newInvListCap(nil, 100)
-		grandfatherList(l, false, 3)
+		grandfatherList(l, false, 3, false)
 		if l.most != 0 || l.roomBound() != 100 {
 			t.Errorf("%v: a list grandfathered: %d", g, l.most)
 		}
 		rows := []database.ItemListRow{{Location: database.LocPack}}
-		if p, b := characterListSizes(rows, 100, 100); p != 100 || b != 100 {
+		if p, b := characterListSizes(rows, 100, 100, false); p != 100 || b != 100 {
 			t.Errorf("%v: sizes %d %d", g, p, b)
 		}
 	}

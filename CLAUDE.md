@@ -3150,6 +3150,12 @@ with no check, so a 41st overruns the VIClient fields after the list. So **a PS2
   (`invList.most`/`keptN`, `roomBound`: `add`, `wouldAdd`, `roomFor`, `packCapOf`/`bankCapOf`; the login's gifts and a
   transfer fill to `roomCaps`), so a slot freed above the limit is gone (a stack still tops up; a swap at the limit is
   refused). Nothing stored: what it holds IS the allowance, so no data step, and restarts keep it. Unset: off.
+- **[OG] accounts' lists** (`world.og_pack_slots`/`og_bank_slots`; the owner, 2026-11-18, of Vanilla Test: "100
+  inventory space in bank and pack for vanilla test, but [OG] gets 40/40"): an [OG] session (`sess.OG()`, read by
+  `readOG` at SelectedChar BEFORE the gifts and transfer, again by `applyOG`) holds at most these, everyone else
+  `pack_slots`/`bank_slots`; below the shard's size an [OG] list is grandfathered to it, exactly as above
+  (`entity.ItemSlotsFor`/`ItemSlotsGrandfatheredFor`/`ItemListsMostFor(og)`; every rule in `itemlists.go` takes the
+  session's). A keep resume re-holds restored lists to the session's limits now (`listGrandfathered`). Unset: off.
 
 ### The account bank (`world.account_bank`; `database/accountbank.go`, `handlers/accountbank.go`, `tools/account_bank_20261114.py`)
 

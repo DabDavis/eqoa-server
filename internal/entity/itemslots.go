@@ -84,21 +84,77 @@ func SetItemSlotsGrandfathered(pack, bank int) {
 
 // ItemSlotsGrandfathered is the grandfathered size of the pack and the bank,
 // 0 for a list that is not (unset, or not above its limit, ItemSlots).
-func ItemSlotsGrandfathered() (pack, bank int) {
-	limPack, limBank := ItemSlots()
-	if g := int(grandPack.Load()); g > limPack {
-		pack = g
+func ItemSlotsGrandfathered() (pack, bank int) { return ItemSlotsGrandfatheredFor(false) }
+
+// ItemListsMost is the most records a client is offered of each list: the
+// grandfathered size where there is one, else ItemSlots.
+func ItemListsMost() (pack, bank int) { return ItemListsMostFor(false) }
+
+// [OG] accounts' lists (world.og_pack_slots, world.og_bank_slots; the server
+// owner, 2026-11-18, of Vanilla Test: "lets make 100 inventory space in bank and
+// pack for vanilla test, but [OG] gets 40/40"). An [OG] account's session
+// (handlers/ogaccount.go, world.og_accounts) holds at most these, every other
+// session pack_slots and bank_slots. Below the shard's own size an [OG] list is
+// grandfathered to it (as world.grandfather_pack_slots does for everyone): an
+// [OG] character that holds more keeps every item and is sent them all, but no
+// new record comes while it holds the [OG] size or more. Unset (0): an [OG]
+// session's lists are everyone's.
+var ogPack, ogBank atomic.Int32
+
+// SetOGItemSlots sets the [OG] sizes (0: off, else clamped as ClampItemSlots):
+// at the start, from config.
+func SetOGItemSlots(pack, bank int) {
+	clamp := func(n int) int32 {
+		if n <= 0 {
+			return 0
+		}
+		return int32(ClampItemSlots(n))
 	}
-	if g := int(grandBank.Load()); g > limBank {
-		bank = g
+	ogPack.Store(clamp(pack))
+	ogBank.Store(clamp(bank))
+}
+
+// OGItemSlots is the [OG] sizes as set (0: off).
+func OGItemSlots() (pack, bank int) { return int(ogPack.Load()), int(ogBank.Load()) }
+
+// ItemSlotsFor is ItemSlots for a session of an [OG] account (og) or another:
+// an [OG] one's at most its [OG] size.
+func ItemSlotsFor(og bool) (pack, bank int) {
+	pack, bank = ItemSlots()
+	if og {
+		if p := int(ogPack.Load()); p > 0 {
+			pack = min(pack, p)
+		}
+		if b := int(ogBank.Load()); b > 0 {
+			bank = min(bank, b)
+		}
 	}
 	return pack, bank
 }
 
-// ItemListsMost is the most records a client is offered of each list: the
-// grandfathered size where there is one, else ItemSlots.
-func ItemListsMost() (pack, bank int) {
-	pack, bank = ItemSlots()
-	gPack, gBank := ItemSlotsGrandfathered()
+// ItemSlotsGrandfatheredFor is ItemSlotsGrandfathered for an [OG] account's
+// session (og) or another: an [OG] list below the shard's size is grandfathered
+// to the larger of that size and the shard's grandfathered one.
+func ItemSlotsGrandfatheredFor(og bool) (pack, bank int) {
+	basePack, baseBank := ItemSlots()
+	limPack, limBank := ItemSlotsFor(og)
+	g := func(raw int32, base, lim int) int {
+		n := int(raw)
+		if lim < base {
+			n = max(n, base)
+		}
+		if n > lim {
+			return n
+		}
+		return 0
+	}
+	return g(grandPack.Load(), basePack, limPack), g(grandBank.Load(), baseBank, limBank)
+}
+
+// ItemListsMostFor is ItemListsMost for an [OG] account's session (og) or
+// another; never more than ItemListsMost (what the offer named).
+func ItemListsMostFor(og bool) (pack, bank int) {
+	pack, bank = ItemSlotsFor(og)
+	gPack, gBank := ItemSlotsGrandfatheredFor(og)
 	return max(pack, gPack), max(bank, gBank)
 }

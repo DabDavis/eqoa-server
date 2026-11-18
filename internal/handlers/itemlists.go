@@ -46,14 +46,15 @@ import (
 // listCaps is the records the session's client holds in its pack and its bank,
 // for its next MemoryDump: what it answered the offer, between CLIENT's 40 and
 // this server's (its grandfathered size, where a list has one: a character's
-// dump then holds max(limit, what it holds) of it, characterListSizes); 40 each
-// for a client that never answered (a PS2).
+// dump then holds max(limit, what it holds) of it, characterListSizes), an [OG]
+// account's session's by its [OG] sizes (world.og_pack_slots, sessionOG); 40
+// each for a client that never answered (a PS2).
 func listCaps(sess *session.Session) (pack, bank int) {
 	pack, bank = entity.ClientItemSlots, entity.ClientItemSlots
 	if sess == nil {
 		return pack, bank
 	}
-	most, mostBank := entity.ItemListsMost()
+	most, mostBank := entity.ItemListsMostFor(sess.OG()) // an [OG] account's its own (entity/itemslots.go)
 	if a, b := sess.ItemLists(); a > 0 || b > 0 {
 		pack = max(entity.ClientItemSlots, min(a, most))
 		bank = max(entity.ClientItemSlots, min(b, mostBank))
@@ -87,8 +88,9 @@ func (l listSizes) bankOf() int {
 // character held already). Without one, listCaps.
 func roomCaps(sess *session.Session) (pack, bank int) {
 	pack, bank = listCaps(sess)
-	limPack, limBank := entity.ItemSlots()
-	gPack, gBank := entity.ItemSlotsGrandfathered()
+	og := sessionOG(sess)
+	limPack, limBank := entity.ItemSlotsFor(og)
+	gPack, gBank := entity.ItemSlotsGrandfatheredFor(og)
 	if gPack > 0 {
 		pack = min(pack, limPack)
 	}
@@ -110,9 +112,10 @@ func sessionListSizes(sess *session.Session) listSizes {
 // max(limit, what the character holds on that side, its rows kept beside it
 // among them), at most the client's: one past the limit is sent all it holds,
 // one under it the limit. rows: every row in its four places. With the account
-// bank the bank is not the character's: as it was.
-func characterListSizes(rows []database.ItemListRow, pack, bank int) (int, int) {
-	gPack, gBank := entity.ItemSlotsGrandfathered()
+// bank the bank is not the character's: as it was. og: an [OG] account's
+// session's (sessionOG), whose lists are grandfathered to its [OG] sizes.
+func characterListSizes(rows []database.ItemListRow, pack, bank int, og bool) (int, int) {
+	gPack, gBank := entity.ItemSlotsGrandfatheredFor(og)
 	if gPack == 0 && gBank == 0 {
 		return pack, bank
 	}
@@ -125,7 +128,7 @@ func characterListSizes(rows []database.ItemListRow, pack, bank int) (int, int) 
 			heldBank++
 		}
 	}
-	limPack, limBank := entity.ItemSlots()
+	limPack, limBank := entity.ItemSlotsFor(og)
 	if gPack > 0 {
 		pack = min(pack, max(limPack, heldPack))
 	}
@@ -335,7 +338,7 @@ func planItemLists(rows []database.ItemListRow, pack, bank int, restore bool) it
 // character's own are fitted to (characterListSizes, from the first look's
 // rows), and returned as fitted.pack and fitted.bank, with the rows kept
 // after it (fitted.keptPack, keptBank: a grandfathered list's room counts them).
-func (h *CharacterHandler) fitItemLists(serverID uint32, pack, bank int, login bool) (inv, bnk []database.CharInventoryEntry, kept, bankHidden map[int]bool, fitted fittedLists) {
+func (h *CharacterHandler) fitItemLists(serverID uint32, pack, bank int, login, og bool) (inv, bnk []database.CharInventoryEntry, kept, bankHidden map[int]bool, fitted fittedLists) {
 	fitted = fittedLists{pack: pack, bank: bank}
 	if h.inventoryStore == nil {
 		return nil, nil, nil, nil, fitted
@@ -355,7 +358,7 @@ func (h *CharacterHandler) fitItemLists(serverID uint32, pack, bank int, login b
 		}
 		if look == 0 && rows != nil {
 			// a grandfathered list: as many as the character holds, past the limit
-			pack, bank = characterListSizes(rows, pack, bank)
+			pack, bank = characterListSizes(rows, pack, bank, og)
 			if !acct {
 				planBank = bank
 			}
@@ -427,7 +430,7 @@ func (h *CharacterHandler) fitItemLists(serverID uint32, pack, bank int, login b
 	}
 	if login && (note.keptPack > 0 || note.keptBank > 0 || note.backPack > 0 || note.backBank > 0) {
 		note.pack, note.bank = pack, bank
-		note.mostPack, note.mostBank = entity.ItemListsMost()
+		note.mostPack, note.mostBank = entity.ItemListsMostFor(og)
 		keptNotesMu.Lock()
 		keptNotes[serverID] = note
 		keptNotesMu.Unlock()
@@ -445,13 +448,14 @@ type fittedLists struct {
 // grandfatherList makes a dump's list hold to its grandfathered limit
 // (entity/itemslots.go): no new record while the list's rows and the kept
 // beside it (kept) are the limit or more. Nothing for a list that is not
-// grandfathered, or a bank that is the account's.
-func grandfatherList(l *invList, bank bool, kept int) {
+// grandfathered, or a bank that is the account's. og: an [OG] account's
+// session's (sessionOG): its limit is its [OG] size.
+func grandfatherList(l *invList, bank bool, kept int, og bool) {
 	if l == nil {
 		return
 	}
-	gPack, gBank := entity.ItemSlotsGrandfathered()
-	limPack, limBank := entity.ItemSlots()
+	gPack, gBank := entity.ItemSlotsGrandfatheredFor(og)
+	limPack, limBank := entity.ItemSlotsFor(og)
 	switch {
 	case !bank && gPack > 0:
 		l.most, l.keptN = limPack, kept
@@ -459,6 +463,21 @@ func grandfatherList(l *invList, bank bool, kept int) {
 		l.most, l.keptN = limBank, kept
 	}
 }
+
+// listGrandfathered is whether grandfatherList holds the list to a limit for
+// the session (og), and that limit.
+func listGrandfathered(bank, og bool) (bool, int) {
+	gPack, gBank := entity.ItemSlotsGrandfatheredFor(og)
+	limPack, limBank := entity.ItemSlotsFor(og)
+	if bank {
+		return gBank > 0 && !database.AccountBankOn(), limBank
+	}
+	return gPack > 0, limPack
+}
+
+// sessionOG is whether the session is an [OG] account's on this shard
+// (ogaccount.go): its lists are its [OG] sizes.
+func sessionOG(sess *session.Session) bool { return sess != nil && sess.OG() }
 
 // capEntries is a list's rows as a list of most holds them (heldOf), the last
 // guard of a dump: CLIENT reads a list's count with no check.

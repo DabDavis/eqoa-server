@@ -658,6 +658,13 @@ func main() {
 		log.Printf("Item lists: grandfathered, pack %d (up to %d) and bank %d (up to %d): a character past the limit keeps what it holds, and takes no new record (world.grandfather_pack_slots, world.grandfather_bank_slots)",
 			pack, gPack, bank, gBank)
 	}
+	entity.SetOGItemSlots(cfg.World.OGPackSlots, cfg.World.OGBankSlots) // entity/itemslots.go: an [OG] account's lists
+	if p, b := entity.OGItemSlots(); p > 0 || b > 0 {
+		pack, bank := entity.ItemSlotsFor(true)
+		gPack, gBank := entity.ItemSlotsGrandfatheredFor(true)
+		log.Printf("Item lists: an [OG] account's pack holds %d (up to %d held) and its bank %d (up to %d held); og_accounts %v (world.og_pack_slots, world.og_bank_slots)",
+			pack, max(pack, gPack), bank, max(bank, gBank), cfg.World.OGAccounts)
+	}
 	database.SetAccountBank(cfg.World.AccountBank, cfg.World.AccountBankSlots) // database/accountbank.go
 	if database.AccountBankOn() {
 		log.Printf("Bank: the account's, shared by its characters, %d records, shown a page at a time (world.account_bank)",

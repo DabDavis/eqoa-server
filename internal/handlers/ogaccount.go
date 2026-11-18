@@ -71,6 +71,19 @@ func accountIsOG(st ogStore, sess *session.Session) bool {
 	return og
 }
 
+// readOG reads the session's account's choice into the session alone, before
+// a character's entry fills its lists (its gifts and transfer, by its [OG]
+// sizes: itemlists.go's roomCaps); applyOG reads it again with the player.
+func (h *CharacterHandler) readOG(sess *session.Session) {
+	var st ogStore
+	if h.store != nil {
+		if db := h.store.DB(); db != nil {
+			st = db
+		}
+	}
+	sess.SetOG(accountIsOG(st, sess))
+}
+
 // applyOG reads the session's account's choice at a character's entry and
 // gives it to the session (the game's own UI) and its player (the tag).
 func (h *CharacterHandler) applyOG(sess *session.Session, player *entity.Player) {

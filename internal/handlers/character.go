@@ -598,6 +598,9 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 
 	// A GM's approved character transfer applies now, before this login reads
 	// the character (transfers.go): no logout save can write over it here.
+	// An [OG] account's lists are its own sizes (entity/itemslots.go): the
+	// session knows it before the gifts below fill them (applyOG says it again)
+	h.readOG(sess)
 	if h.applyTransfer(uint32(record.ServerID), sessionListSizes(sess)) {
 		if again, err := h.store.GetByServerID(charID); err == nil {
 			record = again
@@ -2239,7 +2242,7 @@ func (h *CharacterHandler) queueMemoryDumpAt(sess *session.Session, player *enti
 	// where there is room. Read before the buffer is made, which their size
 	// sets.
 	packCap, bankCap := listCaps(sess)
-	invItems, bankItems, keptPack, bankHidden, fitted := h.fitItemLists(player.CharServerID, packCap, bankCap, login)
+	invItems, bankItems, keptPack, bankHidden, fitted := h.fitItemLists(player.CharServerID, packCap, bankCap, login, sessionOG(sess))
 	// a grandfathered list (entity/itemslots.go) holds what the character
 	// holds, past the limit: its own sizes
 	packCap, bankCap = fitted.pack, fitted.bank
@@ -2348,7 +2351,7 @@ func (h *CharacterHandler) queueMemoryDumpAt(sess *session.Session, player *enti
 	// carries the position in THIS list.
 	packList := newInvListCap(invItems, packCap)
 	packList.kept = keptPack // a Lore item kept for it is one held (itemlist.go's loreRoom)
-	grandfatherList(packList, false, fitted.keptPack)
+	grandfatherList(packList, false, fitted.keptPack, sessionOG(sess))
 	sess.SetInventoryList(packList)
 	// Dump the list the client will index into, so any disagreement about
 	// order shows up here.
@@ -2372,7 +2375,7 @@ func (h *CharacterHandler) queueMemoryDumpAt(sess *session.Session, player *enti
 	// The bank list keeps keys of its own, numbered the same way.
 	bankList := newInvListCap(bankItems, bankCap)
 	bankList.kept = bankHidden // the account bank's rows not on its first page (accountbank.go)
-	grandfatherList(bankList, true, fitted.keptBank)
+	grandfatherList(bankList, true, fitted.keptBank, sessionOG(sess))
 	packList.bank = bankList // a Lore item in the bank is one held (itemlist.go's loreRoom)
 	sess.SetBankList(bankList)
 	// the account's other characters in the world see what this dump's reading

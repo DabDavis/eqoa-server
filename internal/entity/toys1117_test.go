@@ -206,3 +206,28 @@ func TestThePlushieLeavesWithItsOwner(t *testing.T) {
 		t.Error("left the world: the plushie stayed")
 	}
 }
+
+// The String of Lights on the worn cape shows over the character's own cape
+// aura (charaura 8: Dust's red shell hid his lights, the owner 2026-11-18),
+// and the own aura comes back with any other cape. The control: the own cape
+// aura with a cape of no aura of its own is the own.
+func TestTheLightsShowOverTheOwnCapeAura(t *testing.T) {
+	const lightsCape, plainCape = 716915, 716998
+	w := NewWorld()
+	lights := database.ItemAura{PatternID: lightsCape, Kind: database.AuraLights}
+	w.SetItemAuras(map[int]database.ItemAura{lightsCape: lights})
+	var own [database.CharAuraSlots]database.ItemAura
+	red := database.ItemAura{Color: 0xFF2121FF, Kind: 5}
+	own[AuraCape] = red
+	w.SetCharAuras(map[database.CharAuraKey][database.CharAuraSlots]database.ItemAura{{CharID: 197}: own})
+	p := ornatePlayer()
+	p.CharServerID = 197
+	p.SetWornPiece(AuraCape, lightsCape)
+	if a := w.PieceAurasOf(p); a == nil || a[AuraCape] != lights {
+		t.Fatalf("the lights over the own cape aura: %+v", a)
+	}
+	p.SetWornPiece(AuraCape, plainCape)
+	if a := w.PieceAurasOf(p); a == nil || a[AuraCape] != red {
+		t.Fatalf("the control: the own cape aura on a plain cape: %+v", a)
+	}
+}

@@ -463,6 +463,17 @@ func (w *World) pieceAuras(pieces *[AuraSlots]int, items *[AuraSlots]int, mask u
 		if ownOnly(i) || mask&(1<<i) == 0 || hidden&auraHides(i) != 0 {
 			continue
 		}
+		// the String of Lights (database.AuraLights) on the worn cape is the
+		// toy itself: it shows over the character's own cape aura (charaura
+		// 8), which would hide it (the owner, 2026-11-18: "for dust the string
+		// of lights does not look like the christmas lights": Dust's own red
+		// cape aura took the slot, so his client was never told of the lights)
+		if i == AuraCape && m != nil {
+			if a, ok := (*m)[pieces[i]]; ok && a.Kind == database.AuraLights {
+				out[i], any = a, true
+				continue
+			}
+		}
 		if own != nil && own[i].Shows() {
 			out[i], any = own[i], true
 			continue

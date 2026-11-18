@@ -97,6 +97,14 @@ world:
   # the map, minimap and item links off. Off unless set.
   # vanilla_ui: true
 
+  # [OG] accounts (handlers/ogaccount.go; the Vanilla Test shard, the owner
+  # 2026-11-18): an account made [OG] (auth.og_choice, accountinfo.og) plays
+  # here with the game's own UI, for its sessions alone: none of the server's
+  # quality-of-life offers, /con unknown, no item links, and vanilla told
+  # (0x7EA0) every addition off, the map and links locked, no mouse, no touch;
+  # its characters are drawn "[OG] Name" to everyone. Off unless set.
+  # og_accounts: true
+
   # The auction house's standing lots (handlers/auction_perpetual.go): lots
   # that never end and never run out, a buy at the price putting the items in
   # the buyer's bank and leaving the lot up (tools/ah_materials_20261114.py
@@ -438,6 +446,14 @@ auth:
   # accounts already in the database -- then add players via auth.accounts below
   # or the signup page on account_port.
   allow_auto_register: true
+
+  # The choice of an [OG] account for the Vanilla Test server where accounts
+  # are made: the account pages' Register (a checkbox) and STATION's Create
+  # Account as this server serves it with mail.accounts (a "Vanilla Test" row,
+  # Standard or OG). Chosen once, a GM's to change after (set_account_og). On
+  # the shard that owns the accounts; the shard it is for sets
+  # world.og_accounts. Off unless set.
+  # og_choice: true
 
   # Require a completed TCP login before the UDP handshake will accept a
   # username. Leave this on: the UDP handlers take the username straight out of

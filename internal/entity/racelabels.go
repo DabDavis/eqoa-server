@@ -44,10 +44,8 @@ func encodeRaceLabels(defs []RaceDef, chars []database.RaceCharacter) []byte {
 		var names []string
 		for _, c := range chars {
 			if c.Race == d.ID {
-				names = append(names, c.Name)
-				if c.GM { // its channel name carries its tag (statesync.go)
-					names = append(names, GMTag+c.Name)
-				}
+				// its channel name may carry its tags (statesync.go, ogtag.go)
+				names = append(names, ShownNames(c.Name, c.GM, c.OG)...)
 			}
 		}
 		if len(names) == 0 || body[0] == 255 {

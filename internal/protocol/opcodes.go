@@ -1419,7 +1419,9 @@ const (
 	// meter, the number colours, the stat caps, others' power bars, the buff
 	// window, the pet's effects, auto-cast and auto target). Sent at every
 	// world entry where world.vanilla_ui is set; a server without it never
-	// sends one, and the client keeps everything.
+	// sends one, and the client keeps everything. An [OG] account's session
+	// (world.og_accounts, handlers/ogaccount.go) is sent QoLOGOff: bits 12
+	// to 14 too (the map and links locked, no mouse, no touch).
 	OpcodeVanillaUI GameOpcode = 0x7EA0
 )
 

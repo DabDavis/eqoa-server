@@ -470,7 +470,7 @@ func gramRecipients(to []string) []string {
 	var out []string
 	seen := map[string]bool{}
 	for _, n := range to {
-		n = strings.TrimSpace(n)
+		n = entity.PlainName(n) // a drawn name's tags (entity/ogtag.go)
 		k := strings.ToLower(n)
 		if n == "" || seen[k] {
 			continue

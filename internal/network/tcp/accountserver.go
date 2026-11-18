@@ -44,6 +44,10 @@ type AccountServer struct {
 	// reason not). Nil: the game's ten races alone, as before.
 	extraRaces func(race, class, sex int) (int64, string)
 
+	// OGChoice, wired by main.go (auth.og_choice): Register offers an [OG]
+	// account for the Vanilla Test server (accountinfo.og, ogaccount.go).
+	OGChoice bool
+
 	// MaxCharacters, wired by main.go (world.max_characters, entity/charslots.go):
 	// the characters an account may hold. 0: CLIENT's 8.
 	MaxCharacters int
@@ -687,6 +691,14 @@ func (s *AccountServer) handleRegisterPage(w http.ResponseWriter, r *http.Reques
                 <label for="email">E-mail address (required: we send a link to it to verify your account)</label>
                 <input type="email" id="email" name="email" maxlength="127" autocomplete="email">
             </div>
+            <!--og--><div class="form-group" id="ogGroup" style="display:none">
+                <label for="og" style="display:flex; gap:8px; align-items:flex-start; cursor:pointer">
+                    <input type="checkbox" id="og" name="og" style="width:auto; margin-top:3px">
+                    <span><b>[OG] account</b> for the Vanilla Test server: the game as it was, no quality-of-life
+                    additions, no mouse or touch (the frame rate, widescreen, graphics, keyboard and controllers
+                    stay). Your characters show as [OG] Name there. <b>Permanent:</b> it cannot be changed later.</span>
+                </label>
+            </div>
             <button type="submit" style="width:100%">Create Account</button>
         </form>
     </div>
@@ -710,11 +722,15 @@ func (s *AccountServer) handleRegisterPage(w http.ResponseWriter, r *http.Reques
                 msg.textContent = 'Passwords do not match';
                 return;
             }
+            const og = document.getElementById('og').checked;
+            if (og && !window.confirm('Make this an [OG] account? On the Vanilla Test server it plays the game as it was, with no mouse or touch. This is permanent.')) {
+                return;
+            }
             try {
                 const response = await fetch('/api/register', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({username, password, email})
+                    body: JSON.stringify({username, password, email, og})
                 });
                 const data = await response.json();
                 if (data.success && data.message) {
@@ -740,6 +756,10 @@ func (s *AccountServer) handleRegisterPage(w http.ResponseWriter, r *http.Reques
 		html = strings.Replace(html, `<!--email--><div class="form-group" id="emailGroup" style="display:none">`,
 			`<div class="form-group" id="emailGroup">`, 1)
 		html = strings.Replace(html, `id="email" name="email" maxlength`, `id="email" name="email" required maxlength`, 1)
+	}
+	if s.OGChoice { // an [OG] account's choice (ogaccount.go)
+		html = strings.Replace(html, `<!--og--><div class="form-group" id="ogGroup" style="display:none">`,
+			`<div class="form-group" id="ogGroup">`, 1)
 	}
 	w.Header().Set("Content-Type", "text/html")
 	w.Write([]byte(html))
@@ -1103,6 +1123,7 @@ func (s *AccountServer) handleAPIRegister(w http.ResponseWriter, r *http.Request
 		Username string `json:"username"`
 		Password string `json:"password"`
 		Email    string `json:"email"`
+		OG       bool   `json:"og"` // an [OG] account, where auth.og_choice offers it
 	}
 	if err := json.NewDecoder(io.LimitReader(r.Body, 4096)).Decode(&req); err != nil {
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Invalid request"})
@@ -1118,7 +1139,7 @@ func (s *AccountServer) handleAPIRegister(w http.ResponseWriter, r *http.Request
 		}
 	}
 	clientIP := s.getClientIP(r)
-	err := s.createAccount(clientIP, req.Username, req.Password)
+	err := s.createAccount(clientIP, req.Username, req.Password, req.OG && s.OGChoice)
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": err.Error()})
 		return
@@ -1459,7 +1480,7 @@ func (s *AccountServer) handleAPIDeleteCharacter(w http.ResponseWriter, r *http.
 }
 
 // createAccount creates a new account with validation.
-func (s *AccountServer) createAccount(clientIP, username, password string) error {
+func (s *AccountServer) createAccount(clientIP, username, password string, og bool) error {
 	username = strings.TrimSpace(username)
 	if len(username) < 3 || len(username) > 16 {
 		return fmt.Errorf("username must be 3-16 characters")
@@ -1494,10 +1515,18 @@ func (s *AccountServer) createAccount(clientIP, username, password string) error
 		return fmt.Errorf("failed to create account")
 	}
 
-	_, err = s.accountStore.Create(username, hash)
+	acc, err := s.accountStore.Create(username, hash)
 	if err != nil {
 		log.Printf("AccountServer: failed to create account '%s': %v", username, err)
 		return fmt.Errorf("failed to create account")
+	}
+	// the [OG] choice, made here once (database/ogaccount.go)
+	if og {
+		if err := s.accountStore.SetAccountOG(acc.ID, true); err != nil {
+			log.Printf("AccountServer: account '%s' (ID %d) made, its [OG] choice NOT kept: %v", username, acc.ID, err)
+		} else {
+			log.Printf("AccountServer: account '%s' (ID %d) made an [OG] account", username, acc.ID)
+		}
 	}
 
 	s.createdIPsMu.Lock()

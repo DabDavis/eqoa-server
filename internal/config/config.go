@@ -690,6 +690,15 @@ type WorldConfig struct {
 	// Unset or false: everything as before.
 	VanillaUI bool `yaml:"vanilla_ui"`
 
+	// OGAccounts gives an [OG] account's sessions the game's own UI and its
+	// characters the [OG] tag (handlers/ogaccount.go; the owner, 2026-11-18,
+	// for the Vanilla Test server: "[OG] tag shows players you opt-out of the
+	// QoL changes to EQOA and only use the most basic upgrades like FPS,
+	// widescreen, no touchscreen, no mouse"). What an account is is
+	// accountinfo.og, chosen at its creation (auth.og_choice on the shard that
+	// owns the accounts). Unset or false: an [OG] account is any other here.
+	OGAccounts bool `yaml:"og_accounts"`
+
 	// PerpetualAuctions shows and sells the auction house's standing lots
 	// (database/auction_perpetual.go, handlers/auction_perpetual.go): lots
 	// that never end and never run out, a buy at the price filing the items
@@ -899,6 +908,14 @@ type AuthConfig struct {
 	// were created by the UDP path before password checking existed, and are
 	// adopted the same way by the next login that supplies one.
 	AllowAutoRegister bool `yaml:"allow_auto_register"`
+
+	// OGChoice offers, where accounts are made (the account pages' Register,
+	// STATION's Create Account as this server serves it with mail.accounts),
+	// the choice of an [OG] account for the Vanilla Test server
+	// (accountinfo.og, database/ogaccount.go; the owner, 2026-11-18): chosen
+	// once, never the player's to change after. What it does is a shard's
+	// world.og_accounts. Unset or false: no choice, every account made plain.
+	OGChoice bool `yaml:"og_choice"`
 
 	// RequireTCPLogin makes the UDP handlers refuse a username that has not
 	// completed a TCP login recently. Without it, password checking is

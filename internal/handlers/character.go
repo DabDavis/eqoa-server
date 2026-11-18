@@ -629,6 +629,7 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	// elsewhere (0x07A4); the account's other windows play on.
 	if h.gameWorld != nil {
 		if player, took := h.gameWorld.TakeOverPlayer(sess, uint32(record.ServerID)); player != nil {
+			h.applyOG(sess, player) // the session's own, an [OG] account's (ogaccount.go)
 			h.gameWorld.SetPlayerLook(uint32(record.ServerID), record.FaceOption, record.HairStyle, record.HairLength, record.HairColor)
 			h.placeTakenOver(sess, player, record)
 			log.Printf("SelectedChar: '%s' (serverID=%d) TAKEN OVER by %s as it stands: %s",
@@ -786,6 +787,9 @@ func (h *CharacterHandler) enterFromRecord(sess *session.Session, record *databa
 	var player *entity.Player
 	if h.gameWorld != nil {
 		player = h.gameWorld.CreatePlayer(sess, record)
+		// an [OG] account's: the game's own UI, its name drawn with the tag
+		// (ogaccount.go), before anything is sent of it
+		h.applyOG(sess, player)
 		if player != nil && bonus > 0 {
 			h.gameWorld.RestoreBonusTraining(sess, bonus) // a level it leaves tops up beside them
 		}

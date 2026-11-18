@@ -55,9 +55,13 @@ func VanillaUI() bool { return vanillaUI.Load() }
 // world.vanilla_ui.
 func QoLOn() bool { return !vanillaUI.Load() }
 
-// qolAnswer is a client's answer to one of the quality-of-life offers as
-// taken: on only where the server gives them.
-func qolAnswer(on bool) bool { return on && QoLOn() }
+// QoLOnFor is QoLOn for the session: off too for an [OG] account's on a
+// shard with world.og_accounts (ogaccount.go).
+func QoLOnFor(sess *session.Session) bool { return QoLOn() && (sess == nil || !sess.OG()) }
+
+// qolAnswerFor is a client's answer to one of the quality-of-life offers as
+// taken: on only where the server gives them to its session.
+func qolAnswerFor(sess *session.Session, on bool) bool { return on && QoLOnFor(sess) }
 
 // The client's additions OpcodeVanillaUI turns off, a bit each (vanilla's
 // `settings::qol`, the same bits).
@@ -74,7 +78,15 @@ const (
 	QoLAutoCast    uint32 = 1 << 9  // auto-cast on the quick bars and auto targeting
 	QoLItemLinks   uint32 = 1 << 10 // off by default: item links in chat, the player's to turn on
 	QoLSpellBars   uint32 = 1 << 11 // Ability Bars 3 and 4 and Stacked Spell Bars: the game's two bars
+	// An [OG] account's (ogaccount.go), never world.vanilla_ui's:
+	QoLLocked  uint32 = 1 << 12 // QoLMap and QoLItemLinks LOCKED off, not off by default: no row turns them on
+	QoLNoMouse uint32 = 1 << 13 // the mouse does nothing in the world (keyboard and controllers)
+	QoLNoTouch uint32 = 1 << 14 // no touch pad, the touch screen does nothing in the world
 )
+
+// QoLOGOff is what an [OG] account's session is sent: every addition off, the
+// map and links locked, no mouse, no touch.
+const QoLOGOff = QoLAllOff | QoLLocked | QoLNoMouse | QoLNoTouch
 
 // QoLAllOff is every bit above: what world.vanilla_ui turns off.
 const QoLAllOff = QoLMap | QoLQuestHelper | QoLTargetLevel | QoLDPSMeter | QoLNumberColor | QoLStatCaps |
@@ -95,10 +107,24 @@ func buildVanillaUI(off uint32) []byte {
 // offer) what is off on this server, where world.vanilla_ui is set; elsewhere,
 // and to any other client, nothing goes.
 func SendVanillaUI(sess *session.Session) {
-	if !VanillaUI() || !sess.BugReports() {
+	off := vanillaUIBits(sess)
+	if off == 0 || !sess.BugReports() {
 		return
 	}
-	queueReliable(sess, protocol.OpcodeVanillaUI, buildVanillaUI(QoLAllOff))
+	queueReliable(sess, protocol.OpcodeVanillaUI, buildVanillaUI(off))
+}
+
+// vanillaUIBits is what the session's client is told is off: an [OG]
+// account's QoLOGOff (ogaccount.go), else world.vanilla_ui's QoLAllOff, else
+// nothing.
+func vanillaUIBits(sess *session.Session) uint32 {
+	switch {
+	case sess.OG():
+		return QoLOGOff
+	case VanillaUI():
+		return QoLAllOff
+	}
+	return 0
 }
 
 // stopKeptQoL ends, at a keep restart's resume into world.vanilla_ui, what the
@@ -106,7 +132,7 @@ func SendVanillaUI(sess *session.Session) {
 // window, the meter, the number tags and the monster's details. (The quest
 // marks, tracker and head marks are not resumed: keep.go.)
 func stopKeptQoL(w *entity.World, sess *session.Session) {
-	if QoLOn() {
+	if QoLOnFor(sess) {
 		return
 	}
 	if w != nil {
@@ -117,5 +143,8 @@ func stopKeptQoL(w *entity.World, sess *session.Session) {
 	}
 	sess.SetNumberTagsLayout(0)
 	sess.SetMobInfo(false)
+	if sess.OG() {
+		sess.SetItemLinks(false) // an [OG] account's lines plain (ogaccount.go)
+	}
 	log.Printf("VanillaUI: %s resumed with the game's own UI", sess.RemoteAddr())
 }

@@ -1179,6 +1179,10 @@ func (s *PatchServer) repointStationPak(data []byte) []byte {
 	var pages map[string][]byte
 	if s.cfg.Mail.Accounts {
 		pages = stationEmailPages(accountmail.Short(s.cfg.Mail), s.cfg.Mail.RequireVerified)
+		// and Create Account's [OG] row (auth.og_choice, ogaccount.go)
+		if s.cfg.Auth.OGChoice {
+			pages["data/ui/IDCreat2.xml"] = stationCreate2(accountmail.Short(s.cfg.Mail), true)
+		}
 	}
 
 	var out bytes.Buffer

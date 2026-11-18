@@ -61,7 +61,7 @@ func (w *World) raidLineLocked(sess *session.Session, line string) {
 // inWorldPlayerLocked is the player of that name in the world (any case), not a GM
 // hidden from players, or nil. Must be called with the lock held.
 func (w *World) inWorldPlayerLocked(name string) *Player {
-	name = strings.TrimSpace(name)
+	name = PlainName(name) // a drawn name's tags (ogtag.go)
 	if name == "" {
 		return nil
 	}
@@ -562,7 +562,7 @@ func (w *World) TargetNear(sess *session.Session, name string) (uint32, bool) {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	p := w.sessionPlayerLocked(sess)
-	want := strings.ToLower(strings.TrimSpace(name))
+	want := strings.ToLower(PlainName(name)) // a drawn name's tags (ogtag.go)
 	if p == nil || want == "" {
 		return 0, false
 	}

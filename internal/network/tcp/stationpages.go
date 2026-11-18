@@ -201,6 +201,62 @@ func emailRefusalPage(page string) []byte {
 			"account, and a forgotten password is reset by e-mail."))
 }
 
+// stationCreate2 is IDCreat2, the e-mail and Create Account; with og (the
+// shard's auth.og_choice) a row more, "Vanilla Test", Standard or OG: the
+// [OG] account's choice (database/ogaccount.go), made here once.
+//
+// The choice rides in the form's Gender (STATION's only free field: a ComboBox
+// the disc's page had, read by name, its value checked by CheckName and sent
+// as it is in VIStationRequest56's 16 bytes at +0x14C, the payload's 324;
+// handleCreateAccountMail reads it). The disc's own page sends Male or Female
+// there, never OG, so a client that has not patched makes a plain account.
+// PushPage fills an empty m_account from the page's own value first, so the
+// row starts at Standard and keeps what was chosen over Back.
+func stationCreate2(page string, og bool) []byte {
+	hidden := []string{stationHidden("Country", "US - USA"), stationHidden("PostalCode", stationZip), stationHidden("BirthMonth", "Jan"),
+		stationHidden("BirthDay", "1"), stationHidden("BirthYear", "1977")}
+	if !og {
+		return stationPage(3, 2, append(hidden, stationHidden("Gender", "x"),
+			stationBackdrop,
+			stationLabel("EmailAddressLabel", "E-mail Address", 30, 177), stationField("EmailAddress", "E-mail Address", 0, 176, 100, false),
+			stationButton("Create Account", "SubmitAcctCreate", 1, 140, 270, 162),
+			stationFooter(10),
+			stationNote("With a - or a + in it, sign up at", page),
+			stationHelp("Your E-mail", "Required. We e-mail a link to it: open it to verify your account. With it "+
+				"verified, a forgotten password is reset by e-mail."))...)
+	}
+	return stationPage(3, 3, append(hidden,
+		stationBackdrop,
+		stationLabel("EmailAddressLabel", "E-mail Address", 30, 140), stationField("EmailAddress", "E-mail Address", 0, 139, 100, false),
+		stationLabel("GenderLabel", "Vanilla Test", 30, 177), stationCombo("Gender", 1, 176, StationOGStandard, StationOGChoice),
+		stationButton("Create Account", "SubmitAcctCreate", 2, 140, 270, 162),
+		stationFooter(10),
+		stationNote("With a - or a + in it, sign up at", page),
+		stationHelp("New Account", "E-mail: required, to verify your account. Vanilla Test: OG is the game as "+
+			"it was, no QoL additions, no mouse or touch, shown [OG]. Permanent."))...)
+}
+
+// The [OG] row's two values (Gender's: at most 15 characters, a letter in
+// each for CheckName).
+const (
+	StationOGStandard = "Standard"
+	StationOGChoice   = "OG"
+)
+
+// stationCombo is a ComboBox at grid row row and y, its value the first of
+// options (as the disc's own IDCreat2 draws its Gender).
+func stationCombo(name string, row, y int, options ...string) string {
+	var opts strings.Builder
+	for _, o := range options {
+		fmt.Fprintf(&opts, "\t\t<Option name=%q/>\n", o)
+	}
+	return fmt.Sprintf("\t<ComboBox name=%q val=%q>\n\t\t<ButtonPos x=\"0\" y=\"%d\"/>\n\t\t<Position x=\"230\" y=\"%d\"/>\n"+
+		"\t\t<Size width=\"162\" height=\"25\"/>\n\t\t<TextColor r=\"0\" g=\"0\" b=\"0\"/>\n\t\t<RollColor r=\"20\" g=\"20\" b=\"200\"/>\n"+
+		"\t\t<Image tile=\"horiz\" capTexture=\"TextCapL\" imageType=\"TextTile\"/>\n\t\t<ImageOffset x=\"-10\"/>\n"+
+		"\t\t<SelectEffect type=\"scrollleft\" xtarget=\"216\"/>\n\t\t<Shadow active=\"false\"/>\n\t\t<Depth index=\"2\"/>\n%s\t</ComboBox>\n",
+		name, options[0], row, y, opts.String())
+}
+
 // stationEmailPages are the pages served with mail.accounts on, by their pak
 // names; page is the account website as a player types it. With refusal (the
 // requirement on: mail.require_verified) EmailRefusalPage is served too.
@@ -217,16 +273,7 @@ func stationEmailPages(page string, refusal bool) map[string][]byte {
 			stationFooter(10),
 			stationHelp("Create Account", "Choose a user name and a password, and enter the password twice. Next you give your "+
 				"e-mail address: we send a link to it to verify your account.")),
-		"data/ui/IDCreat2.xml": stationPage(3, 2,
-			stationHidden("Country", "US - USA"), stationHidden("PostalCode", stationZip), stationHidden("BirthMonth", "Jan"),
-			stationHidden("BirthDay", "1"), stationHidden("BirthYear", "1977"), stationHidden("Gender", "x"),
-			stationBackdrop,
-			stationLabel("EmailAddressLabel", "E-mail Address", 30, 177), stationField("EmailAddress", "E-mail Address", 0, 176, 100, false),
-			stationButton("Create Account", "SubmitAcctCreate", 1, 140, 270, 162),
-			stationFooter(10),
-			stationNote("With a - or a + in it, sign up at", page),
-			stationHelp("Your E-mail", "Required. We e-mail a link to it: open it to verify your account. With it "+
-				"verified, a forgotten password is reset by e-mail.")),
+		"data/ui/IDCreat2.xml": stationCreate2(page, false),
 		"data/ui/AcctMgmt.xml": stationPage(1, 2,
 			stationBackdrop,
 			stationButton("Change Password", "data/ui/PassChng.xml", 0, 40, 170, 370),

@@ -28,7 +28,7 @@ func buildPowerBarsOffer() []byte {
 
 // SendPowerBarsOffer offers the session's client others' power.
 func SendPowerBarsOffer(sess *session.Session) {
-	if !QoLOn() { // world.vanilla_ui (vanillaui.go)
+	if !QoLOnFor(sess) { // world.vanilla_ui, an [OG] account (vanillaui.go, ogaccount.go)
 		return
 	}
 	queueReliable(sess, protocol.OpcodePowerBars, buildPowerBarsOffer())
@@ -56,7 +56,7 @@ func (h *PowerBarsHandler) HandlePowerBars(sess *session.Session, msg *protocol.
 		log.Printf("PowerBars: short (%d bytes) from %s", len(data), sess.RemoteAddr())
 		return nil
 	}
-	on := qolAnswer(binary.LittleEndian.Uint32(data[:4]) != 0)
+	on := qolAnswerFor(sess, binary.LittleEndian.Uint32(data[:4]) != 0)
 	if !h.world.SetPowerBars(sess, on) {
 		log.Printf("PowerBars: %s has no player in the world", sess.RemoteAddr())
 		return nil

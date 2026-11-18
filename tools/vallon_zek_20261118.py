@@ -275,10 +275,12 @@ def check(db):
         raise Refused(f"{VALLON}'s armour is {[v[c] for c in ARMOR_COLS]} head {v['head']}, not chain and no helm")
     if v["primary_weapon"] != 0:
         raise Refused(f"{VALLON} holds {v['primary_weapon']} already")
+    # whichever Sapphyra's Sword his table holds on this shard: its base (Live) or its Ascended record
+    # (Heirloom, tools/ascend_boss_loot.py): the hand, its drop and the row out of the table are that one
     sw = db.execute("SELECT l.id, l.patternid FROM loottables l JOIN itempattern p USING (patternid) "
-                    "WHERE l.tablename = ? AND p.itemname = ?", (BOSS_TABLE, SWORD)).fetchall()
+                    "WHERE l.tablename = ? AND p.itemname IN (?, ?)", (BOSS_TABLE, SWORD, "Ascended " + SWORD)).fetchall()
     if len(sw) != 1:
-        raise Refused(f"{len(sw)} rows of {SWORD!r} in table {BOSS_TABLE!r}, not one")
+        raise Refused(f"{len(sw)} rows of {SWORD!r} (or its Ascended record) in table {BOSS_TABLE!r}, not one")
     ids["sword_row"], ids["sword"] = sw[0]
     if db.execute("SELECT count(*) FROM loottables WHERE tablename = ?", (BOSS_TABLE,)).fetchone()[0] != 12:
         raise Refused(f"table {BOSS_TABLE!r} does not hold the guide's twelve")
@@ -369,8 +371,8 @@ def report(db, ids):
     print(f"  characters on it past step 1, set done: {stuck}")
     print(f"  {SHARD}: Use casts spell {GATE_SPELL} {GATE_NAME!r} (copy of {GATE_FROM} {ids['gate_from']}), a self gate "
           f"to {GATE_AT}")
-    print(f"  {VALLON} (row {ids['vallon']}): armour chain -> plate, no helm, Tallon's body kept; holds {SWORD} "
-          f"({ids['sword']}), which his corpse drops (npcheld), its row {ids['sword_row']} out of table {BOSS_TABLE!r}")
+    print(f"  {VALLON} (row {ids['vallon']}): armour chain -> plate, no helm, Tallon's body kept; holds "
+          f"{db.execute('SELECT itemname FROM itempattern WHERE patternid = ?', (ids['sword'],)).fetchone()[0]} ({ids['sword']}), which his corpse drops (npcheld), its row {ids['sword_row']} out of table {BOSS_TABLE!r}")
     print(f"  {RAGE}: a spawn-only row from {RAGE_FROM} ({ids['rage_from']}) at {RAGE_AT}, level {RAGE_LEVEL}; template "
           f"{TEMPLATE!r} gains {js(SUMMON)}")
     print(f"  trigger {TRIG_VALLON!r} ({ids['trig_vallon']}): starts on a talk, 90 minutes, rests 15 after a loss; "

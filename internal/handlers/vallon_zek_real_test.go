@@ -194,7 +194,15 @@ func TestRealVallonZek(t *testing.T) {
 		t.Fatalf("Zek's Portal's gate: %+v %v", g, ok)
 	}
 	// Sapphyra's Sword: in his hand, his corpse's held drop (npcheld) the very record, out of his table
-	sword := id("Sapphyra's Sword")
+	var sword int // the one his table held: the npcheld row's
+	if err := db.QueryRow(`SELECT patternid FROM npcheld WHERE npc_name = 'vallon zek' AND hand = 0`).Scan(&sword); err != nil {
+		t.Fatal(err)
+	}
+	var swordName string
+	db.QueryRow(`SELECT itemname FROM itempattern WHERE patternid = ?`, sword).Scan(&swordName)
+	if !strings.HasSuffix(swordName, "Sapphyra's Sword") {
+		t.Errorf("his npcheld record is %q", swordName)
+	}
 	var model, held int64
 	db.QueryRow(`SELECT model FROM itempattern WHERE patternid = ?`, sword).Scan(&model)
 	db.QueryRow(`SELECT primary_weapon FROM npcs WHERE npc_name = 'Vallon Zek' AND world = 5`).Scan(&held)

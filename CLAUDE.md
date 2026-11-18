@@ -441,6 +441,20 @@ tier's own sash and 12 pickclaw and 15 were-part hand-ins (loot tables of their 
 the characters on them. Tests: `questreachheight_test.go`, `TestRealFAQQuestFixes` and `TestRealQuestChainsWalk` with
 `EQOA_WALK_QUESTS`.
 
+**The Snow Chain as t212 has it** (the owner, 2026-11-18: "make it work as that post describes"; `tools/snow_chain_20261118.py
+--db <db> [--apply|--applied|--undo]`, log `snow_chain_1118_log`, by names on either shard, on top of sky-events/-2): Ryini
+hidden an hour from her DEATH (protect's `minutes`), the walk does steps 2 and 3 for everyone near on them (queststep), a failed
+walk or Enraged Aeyinar's run out puts the questor back (`SpawnsNPC` reads a row key "#id" as its row's name, so the encounter
+put-back sees a row-keyed spawn; a link from the firing step reaches a later kill or loot step only through kill or loot
+steps the same trigger spawns, so the herb's step, the walk's gargoyles among its creatures, is not the walk's), the herb (`frostbloom herb` 716980, a loot step 13 off the isles' eight kinds at 15%: steps
+13-18 became 14-19, `skypass.go`'s Snow Key 4 passage does 18), Enraged Aeyinar's 15 minutes (awaitdead 900 with a fail) and
+the kill group's flag (**questset** {quest, step, from}: every player the scope takes on the quest at from..step-1 set to step,
+as a GM's set-step, `QuestEngine.SetHeldSteps`; here from 5, Tamis, so a rez-in bypass is not), her template (hp_pct 500,
+melee_pct 250, every melee kind 5% taken, two Lay Hands, Aeyinar's Frostbite 905590 -200 STA -100 AGI, Frost Burst 67%) and the
+ordinary Aeyinar's own (one Lay Hands, the Frostbite, Frost Burst 50%), and the Storyteller's "Tales of the Snow" (+250
+Denizens of the Plane of Sky). Tests: `snowchain_test.go`, `TestRealSnowChainAsWritten` / `TestRealSnowChainEvents`
+(`EQOA_REAL_DB`). An older server reads questset and protect's minutes as problems: the data goes in with the code.
+
 **The Sun, Snow and Desolation chains finished** (the owner, 2026-11-14, with t213, t212, t208; `tools/sky_events2_20261114.py
 --db <db> [--apply|--undo]`, set `sky-events-2`, on top of `sky-events`, whose triggers 212 and 213 it rewrites: undo it first;
 imports seed_guide_gaps and sky_events_20261114, so the box needs the whole tools folder): Sun 2's invisible wall (an invisible

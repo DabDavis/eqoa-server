@@ -138,6 +138,10 @@ func (w *World) roamLegScaleLocked(r float32) float32 {
 // farthest any client can be shown it (handlers/entityslots.go's 1000).
 const roamActiveRange float32 = 1000
 
+// roamRestSkip is roamStepLocked's way past a creature resting and standing
+// (on; its tests turn it off to hold the two ways the same).
+var roamRestSkip = true
+
 // roamRefreshTicks is how often the creatures near players are found again.
 const roamRefreshTicks = 10
 
@@ -351,6 +355,14 @@ func (w *World) roamStepLocked(npc *NPC, now time.Time) {
 	npc.roam.last = now
 	if dt > 0.5 {
 		dt = 0.5 // a stalled tick does not jump it
+	}
+	if roamRestSkip && !npc.roam.walking && now.Before(npc.roam.restUntil) && !npc.moving() {
+		// resting and standing still: nothing below changes it (a fight's,
+		// a root's and a rest's ends stop only one moving or walking, and
+		// put a rest off only one that has ended), so the rules are not
+		// asked of it every tick (a profile, 2026-11-18: most of the
+		// roamers rest at any time)
+		return
 	}
 	if npc.CurrentEnemy != 0 || npc.chase.returning {
 		// a fight, or the way home after one: its movement theirs once the

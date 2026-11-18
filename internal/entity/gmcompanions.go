@@ -55,7 +55,8 @@ func (w *World) SetTriggerCompanions(pets map[string]string) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	w.triggerPets = m
-	w.companionOf = nil // read again (linkCompanionsLocked)
+	w.companionRules = nil // the names' answers with them (companionPetRuleLocked)
+	w.companionOf = nil    // read again (linkCompanionsLocked)
 }
 
 // companionOriginal is whether n takes part in an original's pairs

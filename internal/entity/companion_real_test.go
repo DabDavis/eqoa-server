@@ -15,7 +15,7 @@ import (
 // copied), loaded as cmd/gameserver loads it for what the pairs need: the
 // NPCs, the paths, the camps, the movement rules, the spawn-only names, and
 // the ground when EQOA_GROUND_DIR names it.
-func realCompanionWorld(t *testing.T) *World {
+func realCompanionWorld(t testing.TB) *World {
 	t.Helper()
 	db := simRealDB(t)
 	store := database.NewNPCStore(db)

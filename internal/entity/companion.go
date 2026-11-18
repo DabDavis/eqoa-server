@@ -212,6 +212,29 @@ func companionFighter(n *NPC) bool {
 // that owner (companionOwnerOnly; a trigger's always). Must be called with the
 // lock held.
 func (w *World) companionPetRuleLocked(name string) (pet bool, named string, ownerOnly bool) {
+	// a name's answer once (companionRules; dropped when the triggers' pets
+	// change): its expressions over every creature's name were most of a
+	// relink, Live's roam turns of 300-600 ms on each (2026-11-18)
+	if r, ok := w.companionRules[name]; ok {
+		return r.pet, r.named, r.ownerOnly
+	}
+	pet, named, ownerOnly = w.companionPetRuleUncachedLocked(name)
+	if w.companionRules == nil {
+		w.companionRules = map[string]companionRule{}
+	}
+	w.companionRules[name] = companionRule{pet, named, ownerOnly}
+	return pet, named, ownerOnly
+}
+
+// companionRule is companionPetRuleLocked's answer for a name.
+type companionRule struct {
+	pet       bool
+	named     string
+	ownerOnly bool
+}
+
+// companionPetRuleUncachedLocked is companionPetRuleLocked's answer, worked out.
+func (w *World) companionPetRuleUncachedLocked(name string) (pet bool, named string, ownerOnly bool) {
 	key := database.NPCClassKey(name)
 	if by := w.triggerPets[key]; by != "" {
 		return true, by, true
@@ -261,6 +284,7 @@ func (w *World) linkCompanionsLocked() {
 		return cell{n.World, n.Instance, int(math.Floor(float64(n.SpawnX / companionNamedReach))), int(math.Floor(float64(n.SpawnZ / companionNamedReach)))}
 	}
 	var pets []*NPC
+	others := w.companionScratch[:0] // the other fighters, in the map's order
 	for _, n := range w.NPCs {
 		if !companionFighter(n) {
 			continue
@@ -277,8 +301,26 @@ func (w *World) linkCompanionsLocked() {
 			pets = append(pets, n)
 			continue
 		}
-		grid[at(n)] = append(grid[at(n)], n)
+		others = append(others, n)
 	}
+	// only the cells a pet looks in (its own and the eight round it) are
+	// gridded: the rest of the world's fighters are never asked
+	near := make(map[cell]bool, 9*len(pets))
+	for _, pet := range pets {
+		c := at(pet)
+		for dx := -1; dx <= 1; dx++ {
+			for dz := -1; dz <= 1; dz++ {
+				near[cell{c.world, c.inst, c.x + dx, c.z + dz}] = true
+			}
+		}
+	}
+	for _, n := range others {
+		if c := at(n); near[c] {
+			grid[c] = append(grid[c], n)
+		}
+	}
+	clear(others) // no NPC kept alive by the scratch
+	w.companionScratch = others[:0]
 	for _, pet := range pets {
 		_, named, ownerOnly := w.companionPetRuleLocked(pet.Name)
 		var owner *NPC

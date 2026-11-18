@@ -14,7 +14,7 @@ import (
 
 // simRealDB opens a copy of the server database EQOA_REAL_DB names, or
 // skips.
-func simRealDB(t *testing.T) *database.SQLiteDB {
+func simRealDB(t testing.TB) *database.SQLiteDB {
 	t.Helper()
 	src := os.Getenv("EQOA_REAL_DB")
 	if src == "" {

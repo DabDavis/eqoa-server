@@ -396,7 +396,7 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 	// and it is told what is off (vanillaui.go)
 	stopKeptQoL(h.gameWorld, sess)
 	SendVanillaUI(sess)
-	if q := Quests(); q != nil && QoLOn() {
+	if q := Quests(); q != nil && QoLOnFor(sess) {
 		if ex.QuestMarks {
 			q.SetMarkers(sess, player, true)
 		}

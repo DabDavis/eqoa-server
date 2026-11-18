@@ -638,7 +638,7 @@ func (w *World) leavingLocked(p *Player) []func(*Player) {
 // PlayerByName is the online player of that name, compared without case, or
 // nil.
 func (w *World) PlayerByName(name string) *Player {
-	name = strings.TrimSpace(name)
+	name = PlainName(name) // a drawn name's tags (ogtag.go)
 	if name == "" {
 		return nil
 	}

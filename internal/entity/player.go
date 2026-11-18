@@ -512,6 +512,10 @@ type Player struct {
 	// HideGMTag: a GM that hid its [GM] tag (/hide gmtag, handlers/hidegmtag.go):
 	// its name is drawn bare, as a player's; it is a GM as before
 	HideGMTag bool
+	// OG: its account is an [OG] one (database/ogaccount.go), read at its
+	// login: on a shard with world.og_accounts its name is drawn with OGTag
+	// (ogtag.go) and its session has the game's own UI (handlers/ogaccount.go)
+	OG bool
 	// ArmorBody is its race's body for the armour on its chest, 0 its own (armorbody.go)
 	ArmorBody uint32
 	// stuckNext is when /stuck may be used again (stuck.go)

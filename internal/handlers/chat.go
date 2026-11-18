@@ -374,7 +374,7 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 
 	// /con (or #con; a PS2's is "/t con", below): the target's level, everyone's,
 	// where world.con_level is on (conlevel.go)
-	if word, rest, _ := strings.Cut(message, " "); ConLevelOn() && conLine(word, rest) {
+	if word, rest, _ := strings.Cut(message, " "); ConLevelOnFor(sess) && conLine(word, rest) {
 		conCommand(h.gameWorld, sess, player)
 		return
 	}
@@ -494,7 +494,7 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		}
 		// and /con, the target's level (conlevel.go): "/t con" alone, where
 		// world.con_level is on; "/t con hello" is a tell
-		if ConLevelOn() && strings.TrimSpace(body) == "" && strings.EqualFold(name, "con") {
+		if ConLevelOnFor(sess) && strings.TrimSpace(body) == "" && strings.EqualFold(name, "con") {
 			conCommand(h.gameWorld, sess, player)
 			return
 		}
@@ -845,7 +845,9 @@ func parseTell(line string) (name, text string, ok bool) {
 	}
 	rest = strings.TrimLeft(rest, " ")
 	name, text, _ = strings.Cut(rest, " ")
-	if strings.EqualFold(name, strings.TrimSpace(entity.GMTag)) { // a GM's name as it is drawn
+	// a GM's or an [OG] account's name as it is drawn ("/t [GM] [OG] Name ...";
+	// entity/ogtag.go)
+	for entity.IsNameTag(name) {
 		name, text, _ = strings.Cut(strings.TrimLeft(text, " "), " ")
 	}
 	return name, strings.TrimLeft(text, " "), true
@@ -853,6 +855,7 @@ func parseTell(line string) (name, text string, ok bool) {
 
 // findPlayerByName is the in-world player named name (case-insensitive).
 func findPlayerByName(gw *entity.World, name string) *entity.Player {
+	name = entity.PlainName(name) // a drawn name's tags (entity/ogtag.go)
 	var found *entity.Player
 	gw.ForEachPlayer(func(p *entity.Player) {
 		if found == nil && strings.EqualFold(p.Name, name) {

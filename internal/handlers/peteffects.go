@@ -28,7 +28,7 @@ func buildPetEffectsOffer() []byte {
 
 // SendPetEffectsOffer offers the session's client its pet's effects.
 func SendPetEffectsOffer(sess *session.Session) {
-	if !QoLOn() { // world.vanilla_ui (vanillaui.go)
+	if !QoLOnFor(sess) { // world.vanilla_ui, an [OG] account (vanillaui.go, ogaccount.go)
 		return
 	}
 	queueReliable(sess, protocol.OpcodePetEffects, buildPetEffectsOffer())
@@ -56,7 +56,7 @@ func (h *PetEffectsHandler) HandlePetEffects(sess *session.Session, msg *protoco
 		log.Printf("PetEffects: short (%d bytes) from %s", len(data), sess.RemoteAddr())
 		return nil
 	}
-	on := qolAnswer(binary.LittleEndian.Uint32(data[:4]) != 0)
+	on := qolAnswerFor(sess, binary.LittleEndian.Uint32(data[:4]) != 0)
 	if !h.world.SetPetEffects(sess, on) {
 		log.Printf("PetEffects: %s has no player in the world", sess.RemoteAddr())
 		return nil

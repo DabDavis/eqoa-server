@@ -200,6 +200,8 @@ var catalog = map[string]tableNote{
 			"acctcreation": {Label: "Created", Format: "stamp"},
 			"lastlogin":    {Label: "Last login", Format: "stamp"},
 			"ipaddress":    {Label: "Address"},
+			"og": {Label: "[OG]", ReadOnly: true, Help: "1: an [OG] account (chosen at its creation): on the Vanilla Test " +
+				"server the game's own UI and the [OG] tag; changed with set_account_og"},
 			"pwtemp": {Label: "Temporary password", ReadOnly: true,
 				Help: "1 while the password is a temporary one a GM set (a password reset): the account pages ask its owner for their own first"},
 			// the address is its owner's alone to see: the panel shows it

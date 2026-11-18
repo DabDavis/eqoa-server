@@ -1087,6 +1087,34 @@ bars, buff window, pet effects, auto-cast/target and ability bars 3-4/stacked ba
 (`QoLItemLinks`) are off BY DEFAULT, the player's to turn on there (vanilla's `settings::qol`, kept apart from its other servers'
 choice). Unset (Heirloom), nothing changes and 0x7EA0 is never sent. Tests: `TestVanillaUI*`.
 
+### [OG] accounts (`handlers/ogaccount.go`, `entity/ogtag.go`, `database/ogaccount.go`; `world.og_accounts`, `auth.og_choice`)
+
+The owner, 2026-11-18, for the Vanilla Test server: "make a tag for accounts to be [OG] Accounts. characters [OG] Meshuggah for
+example. this [OG] tag shows players you opt-out of the QoL changes to EQOA and only use the most basic upgrades like FPS, widescreen,
+no touchscreen, no mouse"; opt-in per account, chosen once when the account is made, permanent.
+- **The choice** is `accountinfo.og` (0 for every account made before it; a column, so a shard's `AccountMirror` copy has it). With
+  `auth.og_choice` on the shard that owns the accounts it is offered at creation: the account pages' Register (a checkbox and a
+  confirm, `/api/register`'s `og`) and STATION's Create Account as served with `mail.accounts` (`stationCreate2`: a "Vanilla Test" row,
+  Standard or OG, riding in the form's **Gender**, the only free field: a ComboBox the disc's page had, CheckName'd, sent as is at the
+  payload's 324; the disc's own page sends Male/Female, never OG). Auto-registration and the panel's `create_account` make plain
+  accounts. A player never changes it after; a GM does with **`set_account_og`** (audited with a reason, revertible, not an account
+  at or above the GM's, refused on a shard's copy); the editor cannot write the column.
+- **On a shard with `world.og_accounts`** (Live alone), at each character's entry (`applyOG`, also a takeover's and a keep restart's
+  resume) the session of an [OG] account (`Session.OG`) gets `vanilla_ui`'s treatment for itself alone (`QoLOnFor`, `qolAnswerFor`,
+  `ConLevelOnFor`: no QoL offers, answers taken as off, /con unknown, a resume's kept ones ended), is never offered item links
+  (its lines and those it hears are plain), and a vanilla client is sent 0x7EA0 with **`QoLOGOff` = 0x7FFF**: the twelve bits plus
+  `QoLLocked` (bit 12: the map, minimap and item links LOCKED off, not off by default), `QoLNoMouse` (13) and `QoLNoTouch` (14:
+  vanilla drops the mouse and fingers in the world; frame rate, widescreen, graphics, keyboard and controllers stay). A PS2 has none
+  of it and is sent nothing. `world.vanilla_ui` is apart (every session's) and may stay unset.
+- **The tag** is the [GM] tag's way: `ShownName` puts `OGTag` "[OG] " before the name in the entity channel's 24 bytes at 116 (over
+  the head and in a target's window, every client), a GM's "[GM] [OG] Name", cut to 23 bytes (`ShownNameMost`; names are 15 at most,
+  so only a GM's full name loses a letter). Nowhere else: the 0x002C list, chat and tells, /r's 0x07A3, group/raid/guild lists, mail,
+  the auction, trade, quests, GM tools and the database keep the plain name. A name sent back with tags ("/t [OG] Name ...",
+  "/invite [OG] Name", a gram to "[OG] Name", /target, a duel) finds the character (`entity.PlainName`, `IsNameTag`); the lists vanilla
+  keys by the drawn name (race labels, race looks) carry every form (`ShownNames`). Unset, nothing is read and nothing drawn.
+  Tests: `TestOG*`, `TestApplyOGReadsTheAccount`, `TestShownNamesForTheLists`, `TestStationCreate*OG*`, `TestRegisterOffersOG`,
+  `TestSetAccountOG`, `TestTheMirrorCarriesTheOGChoice`.
+
 ### The profanity filter from a client's setting (`handlers/profanity.go`)
 
 The GM Jibrish's petition 1490, 2026-11-11: "Under options then interface add an option to turn the profanity filter on or off." The

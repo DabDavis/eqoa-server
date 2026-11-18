@@ -54,6 +54,7 @@ func (w *World) socialInit() {
 
 // playerNamedLocked finds an online player by name, any case.
 func (w *World) playerNamedLocked(name string) *Player {
+	name = PlainName(name) // a drawn name's tags (ogtag.go)
 	for _, p := range w.Players {
 		if strings.EqualFold(p.Name, name) {
 			return p

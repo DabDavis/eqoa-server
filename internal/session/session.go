@@ -244,6 +244,9 @@ type Session struct {
 	// how to report a bug went out. boonNotice: the line on where the towns'
 	// boon is went out (handlers/boon.go).
 	bugReports bool
+	// og: the session's account is an [OG] one on a shard with
+	// world.og_accounts (handlers/ogaccount.go): the game's own UI for it
+	og bool
 	// ackMasks: the client answered the bug report offer (any answer: a PS2
 	// never does), so our acks carry their mask (network/udp/rdp.go); never
 	// cleared, as CLIENT refuses a mask taken back (SetAckMasks)
@@ -378,6 +381,21 @@ func (s *Session) BugReports() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.bugReports
+}
+
+// SetOG marks the session's account as an [OG] one where world.og_accounts is
+// on (handlers/ogaccount.go), read at each character's entry.
+func (s *Session) SetOG(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.og = on
+}
+
+// OG reports whether the session has the game's own UI as an [OG] account's.
+func (s *Session) OG() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.og
 }
 
 // SetFlyClient records that the client said it flies.

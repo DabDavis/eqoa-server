@@ -43,6 +43,10 @@ func SetConLevel(on bool) { conLevelOn.Store(on) }
 // (vanillaui.go): there /con is an unknown command, as the game's.
 func ConLevelOn() bool { return conLevelOn.Load() && QoLOn() }
 
+// ConLevelOnFor is ConLevelOn for the session: off for an [OG] account's
+// (ogaccount.go), whose /con is the game's unknown command.
+func ConLevelOnFor(sess *session.Session) bool { return ConLevelOn() && QoLOnFor(sess) }
+
 // conLevelLayout is the layout the offer names.
 const conLevelLayout = 1
 
@@ -59,7 +63,7 @@ func buildConLevelOffer() []byte {
 // SendConLevelOffer offers the session's client its target's level in its
 // target box, where world.con_level is on; elsewhere nothing goes.
 func SendConLevelOffer(sess *session.Session) {
-	if !ConLevelOn() {
+	if !ConLevelOnFor(sess) {
 		return
 	}
 	queueReliable(sess, protocol.OpcodeConLevelOffer, buildConLevelOffer())

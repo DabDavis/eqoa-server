@@ -404,3 +404,26 @@ func TestTheMirrorCarriesTheRoles(t *testing.T) {
 		t.Fatalf("an unchanged pull: %d %d %v", ch, gone, err)
 	}
 }
+
+// An [OG] account's choice (accountinfo.og, ogaccount.go) is made at the
+// owner and reaches the shard's copy, where world.og_accounts reads it.
+func TestTheMirrorCarriesTheOGChoice(t *testing.T) {
+	owner, shard, m, _ := twoShards(t)
+	store := NewSQLiteAccountStore(owner)
+	og, _ := store.Create("meshuggah", "h")
+	plain, _ := store.Create("plain", "h")
+	if err := store.SetAccountOG(og.ID, true); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, _, err := m.Pull(); err != nil {
+		t.Fatal(err)
+	}
+	for id, want := range map[int]bool{og.ID: true, plain.ID: false} {
+		if got, err := shard.AccountOG(id); err != nil || got != want {
+			t.Fatalf("account %d on the shard: %v %v, want %v", id, got, err, want)
+		}
+	}
+	if _, err := shard.AccountOG(9999); err != ErrAccountNotFound {
+		t.Fatalf("no such account: %v", err)
+	}
+}

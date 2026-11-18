@@ -784,6 +784,12 @@ func main() {
 	if cfg.World.VanillaUI {
 		log.Printf("Vanilla UI: no quality-of-life additions (world.vanilla_ui)")
 	}
+	// [OG] accounts: the game's own UI for their sessions, their characters
+	// drawn "[OG] Name" (handlers/ogaccount.go)
+	handlers.SetOGAccounts(cfg.World.OGAccounts)
+	if cfg.World.OGAccounts {
+		log.Printf("OG accounts: an [OG] account plays with the game's own UI, drawn [OG] (world.og_accounts)")
+	}
 	// a monster's name and level on the talk button (handlers/mobinfo.go)
 	handlers.SetMobInfo(cfg.World.MobInfo)
 	if cfg.World.MobInfo {
@@ -1071,6 +1077,7 @@ func main() {
 	if cfg.Server.AccountPort != 0 {
 		accountServer = tcp.NewAccountServer(db, cfg.Server.AccountPort, cfg.Auth.BCryptCost)
 		accountServer.Mail = accountMail
+		accountServer.OGChoice = cfg.Auth.OGChoice // the [OG] account's choice (database/ogaccount.go)
 		accountServer.SetNewCharacterRules(newRules)
 		accountServer.MaxCharacters = entity.CharSlots()
 		// races past the game's, where creation takes them (entity/creation.go)

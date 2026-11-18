@@ -31,7 +31,7 @@ func buildDPSMeterOffer() []byte {
 
 // SendDPSMeterOffer offers the session's client a damage meter.
 func SendDPSMeterOffer(sess *session.Session) {
-	if !QoLOn() { // world.vanilla_ui (vanillaui.go)
+	if !QoLOnFor(sess) { // world.vanilla_ui, an [OG] account (vanillaui.go, ogaccount.go)
 		return
 	}
 	queueReliable(sess, protocol.OpcodeDPSMeterOffer, buildDPSMeterOffer())
@@ -60,7 +60,7 @@ func (h *DPSMeterHandler) HandleDPSMeter(sess *session.Session, msg *protocol.Me
 		log.Printf("DPSMeter: short (%d bytes) from %s", len(data), sess.RemoteAddr())
 		return nil
 	}
-	on := qolAnswer(data[0] != 0)
+	on := qolAnswerFor(sess, data[0] != 0)
 	if !h.world.SetDPSMeter(sess, on) {
 		log.Printf("DPSMeter: %s has no player in the world", sess.RemoteAddr())
 		return nil

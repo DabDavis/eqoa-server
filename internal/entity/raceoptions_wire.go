@@ -204,9 +204,10 @@ func encodeRaceLooks(chars []database.LookCharacter, mortal map[string]bool) []b
 		if len(p) == 0 {
 			continue
 		}
-		list = append(list, entry{c.Name, body, k, v, p})
-		if c.GM { // its channel name carries the tag (statesync.go)
-			list = append(list, entry{GMTag + c.Name, body, k, v, p})
+		// and each name its channel may draw it by, its tags before it
+		// (statesync.go, ogtag.go)
+		for _, n := range ShownNames(c.Name, c.GM, c.OG) {
+			list = append(list, entry{n, body, k, v, p})
 		}
 	}
 	if len(list) > 65535 {

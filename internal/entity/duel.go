@@ -302,7 +302,7 @@ func (w *World) DuelChallenge(sess *session.Session, objectID uint32, name strin
 		return
 	}
 	var t *Player
-	if name = strings.TrimSpace(name); name != "" {
+	if name = PlainName(name); name != "" { // a drawn name's tags (ogtag.go)
 		for _, q := range w.Players {
 			if strings.EqualFold(q.Name, name) {
 				t = q

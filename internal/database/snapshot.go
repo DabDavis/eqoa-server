@@ -84,7 +84,7 @@ var snapshotRules = map[string]snapshotRule{
 	// Credentials and the people behind the accounts.
 	"accountinfo": {
 		keep: []string{"accountid", "username", "acctstatus", "acctlevel", "acctcreation",
-			"result", "subtime", "partime", "subfeatures", "gamefeatures", "pwtemp"},
+			"result", "subtime", "partime", "subfeatures", "gamefeatures", "pwtemp", "og"},
 		scan:   []string{"pwhash", "email", "ipaddress"},
 		also:   renamePlayerAccounts,
 		verify: playersRenamed,

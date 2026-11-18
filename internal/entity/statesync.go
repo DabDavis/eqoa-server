@@ -749,14 +749,18 @@ func SerializeBuffUpdate(p *Player) []byte {
 // (Player.HideGMTag, /hide gmtag: the owner, 2026-11-13).
 const GMTag = "[GM] "
 
-// ShownName is the name the entity channel carries: a GM's with GMTag.
+// ShownName is the name the entity channel carries: a GM's with GMTag, an
+// [OG] account's with OGTag (ogaccount.go), cut to ShownNameMost.
 func (p *Player) ShownName() string {
 	name := p.Name
+	if p.OG && OGTagsOn() {
+		name = OGTag + name // an [OG] account's, on a shard with world.og_accounts
+	}
 	if p.ctf.carries {
 		name = CTFCarrierTag + name // the arena's banner carrier (ctfflag.go)
 	}
 	if p.GM && !p.HideGMTag {
-		return GMTag + name
+		name = GMTag + name
 	}
-	return name
+	return cutShownName(name)
 }

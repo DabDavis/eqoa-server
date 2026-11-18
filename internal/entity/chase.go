@@ -263,8 +263,9 @@ func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (i
 	npc.chase.heldSince = time.Time{}
 	dt := npc.chaseStepDT(now)
 	// held where it stands: by a root, or by its own cast (castHeld: petition
-	// 1593, a creature stops moving while it casts)
-	still := npc.rooted(now) || npc.castHeld(now)
+	// 1593, a creature stops moving while it casts), or holding its post (npcaggro's
+	// holds: Tallon Zek's sentry "cannot be pulled out of position", t218)
+	still := npc.rooted(now) || npc.castHeld(now) || w.aggro.holdsFor(npc.Name)
 	d := distXZ(npc.X, npc.Z, x, z)
 	leash := w.leashLocked(npc)
 	if d > npcGiveUp || distXZ(npc.X, npc.Z, npc.chase.fromX, npc.chase.fromZ) > leash {

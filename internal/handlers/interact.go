@@ -297,6 +297,12 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 
+	// A raid's portal the last one through closes (raidportal.go), before its
+	// quest's step, which the portal does.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.raidPortalTalk(sess, player, npc) {
+		return nil
+	}
+
 	// Mr. Moogie (moogie.go): buffs cleared or a full heal, out of PvP and duels; his metal twin's
 	// duel and his favor (metalmoogie.go).
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.moogieTalk(sess, player, npc) {
@@ -709,6 +715,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// a genie's (genie.go); an old one does nothing
 	if h.genie.Answer(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// a raid portal's (raidportal.go); an old one does nothing
+	if h.answerRaidPortal(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// a Summoning Portal's (summonportal.go); an old one does nothing

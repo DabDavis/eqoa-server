@@ -430,6 +430,7 @@ func (q *QuestEngine) run() {
 			return
 		case k := <-q.kills:
 			q.killed(k)
+			q.killFlags(k) // raidportal.go: a raid's flag at a kill
 		case h := <-q.infections:
 			q.infect(h) // wereinfect.go
 		case <-q.wake:

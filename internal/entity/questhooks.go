@@ -274,6 +274,15 @@ func (w *World) PlayVisualOn(sess *session.Session, fx uint32, castTime time.Dur
 	return true
 }
 
+// NPCFighting is whether the NPC of that id is alive and in a fight: someone on
+// its hate list, or an enemy it is on (a trigger spawn's engage window, gmtriggers.go).
+func (w *World) NPCFighting(id EntityID) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	n, ok := w.NPCs[id]
+	return ok && !n.Dead && (len(n.Threats) > 0 || n.CurrentEnemy != 0)
+}
+
 // NPCAlive is whether the NPC of that id is in the world and not dead.
 func (w *World) NPCAlive(id EntityID) bool {
 	w.mu.RLock()

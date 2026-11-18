@@ -172,6 +172,35 @@ type triggerSpawn struct {
 	name  string
 	until time.Time
 	pet   bool // marked its resummon's caller's pet (resummonLocked)
+	// engage is its step's engage window (0: none) and idle when it was last
+	// seen out of a fight (zero while it fights): out of one for engage, or past
+	// until out of one, it is taken away; never while it fights
+	engage time.Duration
+	idle   time.Time
+}
+
+// spawnLeavesLocked is whether a run's living spawn has stayed its time: past
+// its stay, or (one with an engage window) out of a fight for the whole window,
+// and never one in a fight. It moves the spawn's idle clock. Must be called with
+// e.mu held.
+func (e *TriggerEngine) spawnLeavesLocked(s *triggerSpawn, now time.Time) (bool, string) {
+	if s.engage <= 0 {
+		return now.After(s.until), "stayed its time"
+	}
+	if e.gw.NPCFighting(s.id) {
+		s.idle = time.Time{}
+		return false, ""
+	}
+	if s.idle.IsZero() {
+		s.idle = now // its fight just ended: the window again
+	}
+	switch {
+	case now.After(s.until):
+		return true, "stayed its time"
+	case now.Sub(s.idle) >= s.engage:
+		return true, "was not engaged in its window"
+	}
+	return false, ""
 }
 
 // TriggerFirer is who fires a trigger: a GM in the world (its session and
@@ -628,10 +657,12 @@ func (e *TriggerEngine) Tick() {
 				if world, x, y, z, ok := e.gw.NPCSpot(s.id); ok {
 					r.dead = &triggerPlaceAt{world: world, x: x, y: y, z: z}
 				}
-			case now.After(s.until):
-				e.gw.DespawnNPC(s.id)
-				log.Printf("Triggers: %s's %s (%d) stayed its time: taken away", r.trig.Title(), s.name, s.id)
 			default:
+				if gone, why := e.spawnLeavesLocked(&s, now); gone {
+					e.gw.DespawnNPC(s.id)
+					log.Printf("Triggers: %s's %s (%d) %s: taken away", r.trig.Title(), s.name, s.id, why)
+					continue
+				}
 				alive = append(alive, s)
 			}
 		}
@@ -1501,12 +1532,19 @@ func (e *TriggerEngine) spawnLocked(r *triggerRun, s database.TriggerStep) strin
 			e.gw.MarkSpawn(id, s.Untouchable, s.NoLoot)
 		}
 		spelled = sp
-		r.spawns = append(r.spawns, triggerSpawn{id: id, name: sp, until: until})
+		ts := triggerSpawn{id: id, name: sp, until: until}
+		if s.Engage > 0 {
+			ts.engage, ts.idle = time.Duration(s.Engage*float64(time.Minute)), e.now()
+		}
+		r.spawns = append(r.spawns, ts)
 		placed++
 	}
 	how := ""
 	if s.Hostile {
 		how = " hostile"
+	}
+	if s.Engage > 0 {
+		how += fmt.Sprintf(" (to be engaged within %s)", seconds(s.Engage*60))
 	}
 	return fmt.Sprintf("spawned %d%s %s within %.0f of (%.0f, %.0f) for %s", placed, how, spelled, spread, cx, cz, seconds(stay*60))
 }

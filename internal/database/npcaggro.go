@@ -11,7 +11,11 @@ import "fmt"
 // 0 the world's (entity.DefaultLeash, 300; petition 1535: the West Plateau's
 // phantoms went home too soon). see_invis 1: they notice an invisible player
 // (petition 1814, Skywalker: the moth larvae), attacking it on sight as any
-// other; being seen does not end the invisibility, a hit does (invis.go). By NAME, as factionhits is: a GM's #spawn
+// other; being seen does not end the invisibility, a hit does (invis.go). holds 1:
+// in a fight they stand where they are, as a rooted creature, so no pull moves
+// them off their post (Tallon Zek's Zek Sentry, eqoa.forumotion.com t218: "cannot
+// be pulled out of position"); their out-of-reach abilities still reach what they
+// see (entity/chase.go). By NAME, as factionhits is: a GM's #spawn
 // copy shares it. source: gm, or seed for tools/seed_npc_aggro.py's rows (its
 // --undo deletes those).
 const npcAggroSchema = `
@@ -49,6 +53,15 @@ func (db *SQLiteDB) ensureNPCAggro() error {
 			return fmt.Errorf("npcaggro see_invis: %w", err)
 		}
 	}
+	has, err = hasColumn(db.DB, "npcaggro", "holds")
+	if err != nil {
+		return fmt.Errorf("npcaggro: %w", err)
+	}
+	if !has {
+		if _, err := db.Exec(`ALTER TABLE npcaggro ADD COLUMN holds INTEGER NOT NULL DEFAULT 0`); err != nil {
+			return fmt.Errorf("npcaggro holds: %w", err)
+		}
+	}
 	return nil
 }
 
@@ -68,11 +81,13 @@ type NPCAggroRule struct {
 	Holding int
 	// SeeInvis (column see_invis): they notice an invisible player (petition 1814)
 	SeeInvis bool
+	// Holds (column holds): in a fight they stand where they are, as rooted
+	Holds bool
 }
 
 // NPCAggroRules is every row of npcaggro.
 func (db *SQLiteDB) NPCAggroRules() ([]NPCAggroRule, error) {
-	rows, err := db.Query(`SELECT npc_name, aggressive, radius, leash, holding, see_invis FROM npcaggro`)
+	rows, err := db.Query(`SELECT npc_name, aggressive, radius, leash, holding, see_invis, holds FROM npcaggro`)
 	if err != nil {
 		return nil, err
 	}
@@ -80,13 +95,14 @@ func (db *SQLiteDB) NPCAggroRules() ([]NPCAggroRule, error) {
 	var out []NPCAggroRule
 	for rows.Next() {
 		var r NPCAggroRule
-		var aggressive, seeInvis int
-		if err := rows.Scan(&r.Name, &aggressive, &r.Radius, &r.Leash, &r.Holding, &seeInvis); err != nil {
+		var aggressive, seeInvis, holds int
+		if err := rows.Scan(&r.Name, &aggressive, &r.Radius, &r.Leash, &r.Holding, &seeInvis, &holds); err != nil {
 			return nil, err
 		}
 		r.Aggressive = aggressive > 0
 		r.NoWord = aggressive < 0
 		r.SeeInvis = seeInvis != 0
+		r.Holds = holds != 0
 		out = append(out, r)
 	}
 	return out, rows.Err()

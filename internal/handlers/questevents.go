@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 	"time"
 
@@ -92,6 +93,9 @@ type questSpawn struct {
 	// npc is the event's NPC as written (a survive step's kept spawns are
 	// counted by it: questsurvive.go)
 	npc string
+	// group: made by a group spawn event (database.QuestEvent.Group), one a
+	// group mate on another quest that spawns the same NPC fights too
+	group bool
 }
 
 // questEventsLocked does a quest's own events of one time.
@@ -345,7 +349,7 @@ func (q *QuestEngine) spawnLocked(p *entity.Player, c *questChar, qu *database.Q
 	}
 	n := max(e.Count, 1)
 	if e.Group {
-		if mate := q.mateSpawnStandsLocked(p, c, qu.ID, step); mate != "" {
+		if mate := q.mateSpawnStandsLocked(p, c, qu.ID, step, strings.TrimSpace(e.NPC)); mate != "" {
 			log.Printf("Quests: %q step %d: %s fights %s's spawns of the step (group)", qu.Name, step, p.Name, mate)
 			return
 		}
@@ -354,10 +358,13 @@ func (q *QuestEngine) spawnLocked(p *entity.Player, c *questChar, qu *database.Q
 }
 
 // mateSpawnStandsLocked is the name of a group mate of p (a raid's too) other
-// than p whose spawns of the quest's step stand (alive, or a corpse lying),
-// "" for none: a group spawn event's (database.QuestEvent.Group) one set for
-// the group. Must be called with q.mu held.
-func (q *QuestEngine) mateSpawnStandsLocked(p *entity.Player, c *questChar, quest, step int) string {
+// than p whose spawns of the quest's step stand (alive, or a corpse lying), or
+// whose group spawn of an NPC of one of npcs' names does (another quest's: the
+// good casters' and the evil melees' epics raise the same Boldunder, the owner's
+// Evil Melee epic, 2026-11-18), "" for none: a group spawn event's
+// (database.QuestEvent.Group) one set for the group. Must be called with q.mu
+// held.
+func (q *QuestEngine) mateSpawnStandsLocked(p *entity.Player, c *questChar, quest, step int, npcs ...string) string {
 	if q.gw == nil || p == nil {
 		return ""
 	}
@@ -369,11 +376,38 @@ func (q *QuestEngine) mateSpawnStandsLocked(p *entity.Player, c *questChar, ques
 		if m == nil || m == p || c != nil && m.CharServerID == c.serverID {
 			continue
 		}
-		if q.spawnStandsLocked(m.CharServerID, quest, step) {
+		if q.spawnStandsLocked(m.CharServerID, quest, step) || q.groupSpawnOfStandsLocked(m.CharServerID, npcs) {
 			return m.Name
 		}
 	}
 	return ""
+}
+
+// groupSpawnOfStandsLocked is whether a character's group spawn of an NPC of
+// one of the names (any quest's, any step's) stands: alive, or a corpse lying.
+// Must be called with q.mu held.
+func (q *QuestEngine) groupSpawnOfStandsLocked(serverID uint32, npcs []string) bool {
+	for _, s := range q.spawns[serverID] {
+		if !s.group || !slices.ContainsFunc(npcs, func(n string) bool { return n != "" && strings.EqualFold(n, s.npc) }) {
+			continue
+		}
+		if q.gw.NPCAlive(s.id) {
+			return true
+		}
+		if _, lies := q.gw.CorpseLies(s.id); lies {
+			return true
+		}
+	}
+	return false
+}
+
+// eventNPCs is the NPCs spawn events name.
+func eventNPCs(evs []database.QuestEvent) []string {
+	out := make([]string, 0, len(evs))
+	for _, e := range evs {
+		out = append(out, strings.TrimSpace(e.NPC))
+	}
+	return out
 }
 
 // groupSpawns reports whether a step's spawns are a group's (every one of
@@ -418,7 +452,7 @@ func (q *QuestEngine) spawnSomeLocked(p *entity.Player, c *questChar, qu *databa
 			q.spawns = map[uint32][]questSpawn{}
 		}
 		q.spawns[c.serverID] = append(q.spawns[c.serverID], questSpawn{id: id, quest: qu.ID, step: step,
-			until: time.Now().Add(life), npc: strings.TrimSpace(e.NPC)})
+			until: time.Now().Add(life), npc: strings.TrimSpace(e.NPC), group: e.Group})
 		log.Printf("Quests: %q step %d spawned %q (%d) for %s", qu.Name, step, name, id, p.Name)
 	}
 }
@@ -586,7 +620,7 @@ func (q *QuestEngine) respawnLost() {
 					break
 				}
 			}
-			if groupSpawns(evs) && q.mateSpawnStandsLocked(p, c, qu.ID, st.Step) != "" {
+			if groupSpawns(evs) && q.mateSpawnStandsLocked(p, c, qu.ID, st.Step, eventNPCs(evs)...) != "" {
 				continue // its group's stand: the group fights those
 			}
 			world, x, _, z, ok := q.gw.PlayerPlace(p)

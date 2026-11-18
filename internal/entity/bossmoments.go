@@ -98,6 +98,8 @@ func momentName(m *database.TemplateAbility) string {
 		return "Touch of Death"
 	case database.AbilityPortNear:
 		return "Riptide"
+	case database.AbilityPortFoe:
+		return "Banishment"
 	}
 	return "Mind Drain"
 }
@@ -154,6 +156,8 @@ func (w *World) bossMomentLocked(npc *NPC, m *database.TemplateAbility, now time
 		w.deathTouchLocked(npc, m, now) // portnear.go
 	case database.AbilityPortNear:
 		w.portNearLocked(npc, m, now) // portnear.go
+	case database.AbilityPortFoe:
+		w.portFoeLocked(npc, m) // portfoe.go
 	}
 }
 

@@ -124,6 +124,7 @@ func (w *World) tauntHateLocked(npc *NPC, by EntityID, hate, pct, level int) {
 		if level > 0 {
 			hate = int(playerTauntFloor(hate, level, top)) // pettaunttank.go
 		}
+		npc.taunt = tauntHold{by: by, until: holdNow().Add(tauntHoldFor)} // taunthold.go
 	}
 	w.updateAggro(npc, by, int(pctOf(int64(hate), pct)))
 }

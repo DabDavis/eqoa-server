@@ -39,7 +39,8 @@ func tauntRig(t *testing.T) (*areaRig, *NPC, EntityID) {
 }
 
 // A taunt after big damage makes the taunter the enemy, at the top threat and its hate; a second
-// taunt, already on top, adds its hate alone and keeps it; damage past top + hate takes it back.
+// taunt, already on top, adds its hate alone and keeps it; damage past top + hate takes it back only
+// after the taunt's hold and past 110% of the taunter's (taunthold.go).
 func TestATauntTakesTheTop(t *testing.T) {
 	r, boss, dps := tauntRig(t)
 	me := r.p.ServerID
@@ -59,14 +60,23 @@ func TestATauntTakesTheTop(t *testing.T) {
 		t.Errorf("a second Goad on top: threat %d (want %d), enemy %d", got, want, boss.CurrentEnemy)
 	}
 
+	// in the taunt's hold (taunthold.go) damage past the taunter does not take it; after the hold,
+	// damage within a tenth past him does not, damage past that does
 	r.w.mu.Lock()
-	r.w.updateAggro(boss, dps, int(boss.Threats[me]-boss.Threats[dps])-1) // one short of the taunter
+	r.w.updateAggro(boss, dps, int(boss.Threats[me]-boss.Threats[dps])+1) // one past the taunter
 	held := boss.CurrentEnemy
-	r.w.updateAggro(boss, dps, 2)
+	r.w.mu.Unlock()
+	defer func(f func() time.Time) { holdNow = f }(holdNow)
+	holdNow = func() time.Time { return time.Now().Add(tauntHoldFor) }
+	r.w.mu.Lock()
+	r.w.updateAggro(boss, dps, int(boss.Threats[me]*tauntStickPct/100-boss.Threats[dps])) // at 110%
+	stuck := boss.CurrentEnemy
+	r.w.updateAggro(boss, dps, 1)
 	took := boss.CurrentEnemy
 	r.w.mu.Unlock()
-	if held != me || took != dps {
-		t.Errorf("damage one short of the taunter: enemy %d (want %d); past it: %d (want %d)", held, me, took, dps)
+	if held != me || stuck != me || took != dps {
+		t.Errorf("damage past the taunter in the hold: enemy %d (want %d); after it at 110%%: %d (want %d); past: %d (want %d)",
+			held, me, stuck, me, took, dps)
 	}
 }
 

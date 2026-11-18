@@ -326,6 +326,9 @@ type NPC struct {
 	// the one player it fights and the one alone who may hurt it, and whose its
 	// corpse's loot is; nil for every other NPC. Its corpse keeps it.
 	challenge *npcChallenge
+	// taunt is the last taunt that took it, a player's or a merc's (taunthold.go): who, and until when
+	// it fights the taunter whatever the others' hate
+	taunt tauntHold
 	// noHeal: nothing heals it (Metal Moogie V5 after his malfunction: metalv5.go); selfHealed: a heal of
 	// its template's own has landed on it this life (V5's Self Repair, his script's)
 	noHeal, selfHealed bool

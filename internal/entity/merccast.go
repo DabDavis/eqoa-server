@@ -1257,6 +1257,9 @@ func (w *World) mercHarmLocked(ms *mercState, s *CastSpell, t *NPC, now time.Tim
 			// 2026-11-11 (taunt.go); a hit's hate (Hero's Blow) is added alone
 			if isTaunt(s) {
 				w.petTopHateLocked(m, t)
+				if t.Dummy == NotDummy && t.challenge == nil {
+					t.taunt = tauntHold{by: m.ServerID, until: holdNow().Add(tauntHoldFor)} // taunthold.go
+				}
 				w.updateAggro(t, m.ServerID, max(spellAmount(e, b), 1))
 			} else {
 				w.updateAggro(t, m.ServerID, spellAmount(e, b))

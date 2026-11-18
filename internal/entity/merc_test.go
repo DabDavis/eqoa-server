@@ -775,3 +775,38 @@ func TestMercBesideTheClassPet(t *testing.T) {
 		t.Errorf("pinned in its owner's view: %v, want the pet and the merc", cands)
 	}
 }
+
+// An attack pressed on a creature out of its owner's reach is no fight yet
+// (Zerkziee, 2026-11-17): the owner's mercs stay until he is in reach of it,
+// or it comes at him; then they go.
+func TestMercWaitsForItsOwnersReach(t *testing.T) {
+	r := newMercRig(t)
+	ms := r.hire(r.kit(0, 0, 0), MercAssist)
+	r.p.Swing.Reach = 4.5
+	crab := r.creature("Desert Crab", 28, 60)
+	r.p.AttackTarget, r.p.AutoAttack = crab.ServerID, true
+	r.run(0, 3*time.Second)
+	if ms.target != 0 {
+		t.Fatalf("the merc ran at %d, 60 off, before its owner could swing", ms.target)
+	}
+	// the owner closes in: now the merc fights it
+	r.w.mu.Lock()
+	crab.X = r.p.X + 3
+	r.w.mu.Unlock()
+	r.run(3*time.Second+100*time.Millisecond, 6*time.Second)
+	if ms.target != crab.ServerID {
+		t.Fatalf("the merc fights %d once its owner is in reach, not the crab", ms.target)
+	}
+	// a second one, far off, that comes at the owner: the merc takes it on too
+	far := r.creature("Desert Crab", 28, 50)
+	r.w.mu.Lock()
+	crab.Dead = true
+	ms.target = 0
+	r.p.AttackTarget = far.ServerID
+	far.RoundTarget = r.p.ServerID
+	r.w.mu.Unlock()
+	r.run(6*time.Second+100*time.Millisecond, 8*time.Second)
+	if ms.target != far.ServerID {
+		t.Fatalf("the merc fights %d, not the creature fighting its owner", ms.target)
+	}
+}

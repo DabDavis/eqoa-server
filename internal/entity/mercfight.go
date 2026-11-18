@@ -80,9 +80,10 @@ func (w *World) mercChooseTargetLocked(ms *mercState) {
 		}
 		return
 	}
-	// its owner's own fight first: an assist follows its owner's switch
+	// its owner's own fight first: an assist follows its owner's switch, once
+	// he is in that fight (attackEngagedLocked)
 	if owner.Attacking() {
-		if t := valid(owner.AttackTarget); t != nil {
+		if t := valid(owner.AttackTarget); t != nil && w.attackEngagedLocked(owner, t) {
 			w.mercCallLocked(owner, t) // his auto-attack calls it (merccall.go)
 			ms.target = t.ServerID
 			return
@@ -362,4 +363,21 @@ func (w *World) mercTickLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
 func mercHitOn(npc, m *NPC, intn func(int) int) int {
 	b := m.merc.body
 	return npcMeleeRollFor(npc, b).hitOn(b, intn)
+}
+
+// attackEngagedLocked reports a player's auto-attack on npc as a fight his
+// mercs join: npc within his weapon's reach (inReach), or npc fighting him.
+// An attack pressed on a creature out of reach sets the switch with no fight
+// (Zerkziee, 2026-11-17: "if you target a mob far and you press X to attack,
+// but cant because of range, the mercs will still go attack"); they wait
+// until he closes in or it comes at him. Must be called with the lock held.
+func (w *World) attackEngagedLocked(p *Player, npc *NPC) bool {
+	if p == nil || npc == nil || npc.Dead {
+		return false
+	}
+	// a reach not known yet (no swing told: no press) is no reason to hold
+	if p.Swing.Reach <= 0 && !p.Swing.Never {
+		return true
+	}
+	return inReach(p, npc) || npc.RoundTarget == p.ServerID
 }

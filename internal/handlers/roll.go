@@ -143,15 +143,40 @@ func (h *ChatHandler) roll(sess *session.Session, player *entity.Player, args []
 	h.rollIn(sess, player, lo, hi, rollRGB)
 }
 
-// rollIn rolls lo to hi and tells everyone in say range, the roller too, in rgb.
+// rollIn rolls lo to hi and tells everyone in say range, the roller too, in rgb, and in a
+// raid every member of it wherever it is, dead or alive (rollHearers).
 func (h *ChatHandler) rollIn(sess *session.Session, player *entity.Player, lo, hi int, rgb [3]uint8) {
 	n := lo + rollDice(hi-lo+1)
 	line := fmt.Sprintf("%s rolls %d (%d to %d).", player.Name, n, lo, hi)
-	hear := h.inSayRange(sess, player)
+	hear := h.rollHearers(sess, player)
 	for _, l := range hear {
 		msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeColoredChat)
 		msg.SetData(coloredChatPayload(lineFor(l.p, line), rgb[0], rgb[1], rgb[2]))
 		l.s.Queue().AddWithSequence(msg)
 	}
 	log.Printf("Roll: %q to %d players", line, len(hear))
+}
+
+// rollHearers is who hears player's roll: everyone in say range, the roller too, and in a
+// raid every member of it in the world, wherever it stands, dead or alive (the owner,
+// 2026-11-18: "rolls from players are not showing for the whole raid"; Ronin's /random at
+// 02:10:24 UTC reached 8 players while the rest of his raid stood at their binds). A
+// plain group's roll stays its say range's.
+func (h *ChatHandler) rollHearers(sess *session.Session, player *entity.Player) []hearer {
+	hear := h.inSayRange(sess, player)
+	if h.gameWorld == nil || !h.gameWorld.GroupIsRaid(player) {
+		return hear
+	}
+	told := make(map[entity.EntityID]bool, len(hear))
+	for _, l := range hear {
+		told[l.p.ServerID] = true
+	}
+	sessions := playerSessions(h.gameWorld)
+	for _, m := range h.gameWorld.GroupMembers(player) {
+		if s := sessions[m.ServerID]; s != nil && !told[m.ServerID] {
+			told[m.ServerID] = true
+			hear = append(hear, hearer{s, m})
+		}
+	}
+	return hear
 }

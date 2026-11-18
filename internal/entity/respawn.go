@@ -91,6 +91,7 @@ func (w *World) playerDownLocked(sess *session.Session, p *Player, now time.Time
 	p.DiedAt = now
 	w.ctfDownLocked(p, now) // ctfflag.go: a carrier's banner drops where it fell
 	p.AutoAttack = false
+	w.markFallenLocked(p) // its share of its group's fights kept (fallen.go), before the hate lists drop it
 	p.disengage()
 	w.clearSpellsLocked(p)
 	w.dropAggroLocked(p.ServerID)

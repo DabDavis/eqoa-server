@@ -80,6 +80,9 @@ type raidRules struct {
 // the creature they claim the loot of.
 type raidWorld struct {
 	claims map[EntityID][]raidClaim
+	// fallen are the marks of members who died fighting a creature, by the creature
+	// (fallen.go)
+	fallen map[EntityID][]raidClaim
 }
 
 // raidClaim is one kicked member's claim on a creature's loot, made while it fought the
@@ -214,13 +217,18 @@ func (w *World) sweepRaidClaimsLocked() {
 			delete(w.raids.claims, id)
 		}
 	}
+	for id := range w.raids.fallen {
+		if npc := w.NPCs[id]; npc == nil || npc.Dead || len(npc.Threats) == 0 {
+			delete(w.raids.fallen, id) // its fight over: fallen.go
+		}
+	}
 }
 
 // RaidKill is what a raid's kill tells the loot (KillCredit.Raid): the rule its group
 // had at the kill (never free for all: such a kill carries none), its leader (the master
 // looter), whom the rolls are offered (Seats: its members in the creature's world within
-// KillShareRange of it, alive or dead, and those it kicked in that fight wherever they
-// are), and everyone the master looter may give to (Members: every member and the same
+// KillShareRange of it, alive or dead, those who died in its fight wherever they are now
+// (fallen.go), and those it kicked in that fight wherever they are), and everyone the master looter may give to (Members: every member and the same
 // kicked ones). Each seat as the kill found it.
 type RaidKill struct {
 	Group   uint32
@@ -252,9 +260,10 @@ func seatOf(w *World, p *Player, claim bool) RaidSeat {
 }
 
 // raidKillLocked is killer's kill of npc as a raid's (RaidKill), or nil: no raid, or its
-// rule free for all. It takes the creature's claims either way. Must be called with the
-// lock held.
-func (w *World) raidKillLocked(killer *Player, npc *NPC) *RaidKill {
+// rule free for all. It takes the creature's claims either way. fallen are the creature's
+// marks of members who died in its fight (fallen.go's takeFallenLocked). Must be called
+// with the lock held.
+func (w *World) raidKillLocked(killer *Player, npc *NPC, fallen map[EntityID]uint32) *RaidKill {
 	claims := w.takeRaidClaimsLocked(npc)
 	g := w.raidOfLocked(killer)
 	if g == nil {
@@ -278,6 +287,10 @@ func (w *World) raidKillLocked(killer *Player, npc *NPC) *RaidKill {
 		}
 		s := seatOf(w, m, false)
 		k.Members = append(k.Members, s)
+		if w.fellInFightLocked(fallen, g.ID, m, npc) {
+			k.Seats = append(k.Seats, s) // died in the fight: a seat dead or released (fallen.go)
+			continue
+		}
 		if m.World != npc.World || w.dungeonTookOutLocked(npc.Instance, m.CharServerID) {
 			continue // a member its instance took out has no seat from then on (instancemembers.go)
 		}

@@ -20,7 +20,8 @@ const KillShareRange float32 = 200
 // KillCredit is a creature's death a player is credited with (a melee kill, a
 // spell's, a pet's, a GM's #kill): the creature, and the players it counts for,
 // the killer first, then the members of its group in the same world within
-// KillShareRange.
+// KillShareRange (alive or lying dead), and those of them who died in its fight
+// wherever they are now (fallen.go).
 type KillCredit struct {
 	NPCName  string
 	NPCSpawn EntityID // its spawn row (npcs.id); 0 for a GM's #spawn copy (no row, its original's name)
@@ -78,7 +79,8 @@ func (w *World) creditKillLocked(sess *session.Session, p *Player, npc *NPC) {
 	if p == nil || npc == nil {
 		return
 	}
-	raid := w.raidKillLocked(p, npc) // the kicked members' claims taken either way (raidrules.go)
+	fallen := w.takeFallenLocked(npc)        // the members who died in its fight (fallen.go)
+	raid := w.raidKillLocked(p, npc, fallen) // the kicked members' claims taken either way (raidrules.go)
 	if npc.challenge != nil || IsMetalMoogieName(npc.Name) {
 		// a Metal Moogie's corpse is his challenger's alone (metalmoogie.go's
 		// ChallengeLooter), never a raid's to roll (the owner, 2026-11-13: "moogie
@@ -99,12 +101,18 @@ func (w *World) creditKillLocked(sess *session.Session, p *Player, npc *NPC) {
 	if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil {
 		for _, id := range g.Members {
 			m := w.Players[id]
-			if m == nil || m == p || m.World != npc.World || m.IsDead() {
+			if m == nil || m == p {
 				continue
 			}
-			dx, dz := m.X-npc.X, m.Z-npc.Z
-			if dx*dx+dz*dz > KillShareRange*KillShareRange {
-				continue
+			// one who died in the fight counts wherever it is (fallen.go); else in the
+			// creature's world within reach, alive or lying dead
+			if !w.fellInFightLocked(fallen, g.ID, m, npc) {
+				if m.World != npc.World {
+					continue
+				}
+				if dx, dz := m.X-npc.X, m.Z-npc.Z; dx*dx+dz*dz > KillShareRange*KillShareRange {
+					continue
+				}
 			}
 			c.Players = append(c.Players, KillPlayer{Session: w.sessionOfLocked(m), ServerID: m.CharServerID, Name: m.Name})
 		}

@@ -102,3 +102,48 @@ func TestTheMenusRollIsZeroToAHundred(t *testing.T) {
 		t.Error("0x00C8 is not registered: the menu's roll reaches no handler")
 	}
 }
+
+// The owner, 2026-11-18: "rolls from players are not showing for the whole raid". A /roll in
+// a raid is heard by every member of it wherever it is, dead or alive, another of its groups
+// (raidsubgroups) or another world; the room hears it as before, and a plain group's far
+// member does not (the control: a group's roll is its say range's).
+func TestARaidHearsItsMembersRolls(t *testing.T) {
+	old := rollDice
+	rollDice = func(n int) int { return n - 1 }
+	defer func() { rollDice = old }()
+	r := newRaidGroup(t, "Ann", "Bob", "Cal", "Dee", "Eve", "Fay")
+	far, _ := r.c.join(91, "Stranger", 26000, 16000, 0)
+	r.p[4].World = 1               // Eve: at her bind in another world
+	r.p[5].X, r.p[5].HP = 27000, 0 // Fay: far off, dead
+	r.p[1].X = 26500               // Bob: far off in the same world
+	for _, s := range append(append([]*session.Session{}, r.sess...), r.out, far) {
+		s.Queue().GetPending()
+	}
+	r.c.say(r.sess[0], "/roll")
+	want := "Ann rolls 100 (0 to 100)."
+	for i, s := range r.sess {
+		got := heard(t, s)
+		if len(got) != 1 || got[0].text != want {
+			t.Errorf("%s heard %+v", r.p[i].Name, got)
+		}
+	}
+	if got := heard(t, r.out); len(got) != 1 || got[0].text != want {
+		t.Errorf("the room's bystander heard %+v", got)
+	}
+	if got := heard(t, far); len(got) != 0 {
+		t.Errorf("a stranger far off heard %+v", got)
+	}
+
+	// the control: a plain group
+	c := newChatWorld(t)
+	sa, pa := c.join(1, "Ann", 25000, 16000, 0)
+	sb, pb := c.join(2, "Bob", 25000, 16000, 0)
+	c.group(t, sa, pa, sb, pb)
+	pb.X = 26500
+	sa.Queue().GetPending()
+	sb.Queue().GetPending()
+	c.say(sa, "/roll")
+	if got := heard(t, sb); len(got) != 0 {
+		t.Errorf("a plain group's far member heard %+v", got)
+	}
+}

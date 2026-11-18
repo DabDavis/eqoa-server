@@ -172,3 +172,21 @@ func TestALoreItemsSecondCopyGoesToTheNextRoller(t *testing.T) {
 		})
 	}
 }
+
+// The owner, 2026-11-18: "rolls from players are not showing for the whole raid". A raid's
+// loot rolls and their winner are said to every member of the raid (the World's
+// RaidSessions: Group.Members, all its groups, wherever each is), a member with no seat on
+// the kill included, not only to the roll's seats.
+func TestARaidsLootRollsAreSaidToEveryMember(t *testing.T) {
+	r := newRaidLootRig(t, 3)
+	r.item("Fine Steel Sword", 1, 12, 0, 5, 0, 1)
+	r.kill(entity.LootNeedGreed, 2) // Rc: no seat (left out of the kill)
+	roll := r.rollOf("Fine Steel Sword")
+	r.drain()
+	r.dice = []int{40}
+	r.f.h.RaidRollChoice(r.sess[0], roll.id, rollNeed)
+	r.f.h.RaidRollChoice(r.sess[1], roll.id, rollPass)
+	if l := r.lines(2); !raidSaid(l, "Ann rolls Need on Fine Steel Sword: 40.") || !raidSaid(l, "Ann wins Fine Steel Sword with Need 40.") {
+		t.Fatalf("a member with no seat heard %q", l)
+	}
+}

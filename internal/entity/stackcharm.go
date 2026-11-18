@@ -205,6 +205,7 @@ func (w *World) sidePromoteLocked(ps *petState, sess *session.Session) {
 		w.pets = make(map[EntityID]*petState)
 	}
 	w.pets[id] = ps
+	w.duelNewPetLocked(id) // in its duel again, if the old one yielded (duel.go)
 	if sess != nil {
 		w.announcePetLocked(ps, sess)
 	}

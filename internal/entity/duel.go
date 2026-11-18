@@ -141,7 +141,8 @@ type Duel struct {
 	// window was last told (0x1502 sub 7), [0] the challenger's
 	sent [2][2]uint32
 	// pets: a side's pet fights in the duel; petOut: its pet was left at a
-	// hit point and is out of it; petTarget: what it fights (the opponent
+	// hit point and is out of it (that pet: a new one is in again,
+	// duelNewPetLocked); petTarget: what it fights (the opponent
 	// or the opponent's pet)
 	pets      map[EntityID]bool
 	petOut    map[EntityID]bool
@@ -1045,6 +1046,32 @@ func (w *World) duelHurtPetLocked(d *Duel, attacker *Player, pet *NPC, n int, no
 	if attacker.AttackTarget == pet.ServerID {
 		attacker.disengage()
 	}
+}
+
+// duelNewPetLocked is a new pet of owner's (a summoning, a charm, the animal
+// beside it made its pet) while its duel is on: the yield was its old pet's,
+// so the new one is a fresh pet of the duel, joining by its stance as the
+// first did (duelPetLocked). Until 2026-11-18 the yield was kept by the owner,
+// so every pet it summoned after was out of the duel for the rest of it: it
+// would not join, an attack command at the opponent was refused ("Your pet
+// cannot attack that.") and the opponent could not fight it (the owner, on
+// Heirloom: "pets if killed in a duel cant be resummoned": Zerkziee's
+// Construct yielded to Dust at 03:15:25 and the two he summoned after stood
+// by until he forfeited). Must be called with the lock held.
+func (w *World) duelNewPetLocked(owner EntityID) {
+	d := w.duelOnLocked(owner)
+	if d == nil || !d.petOut[owner] {
+		return
+	}
+	delete(d.petOut, owner)
+	delete(d.petTarget, owner)
+	d.pets[owner] = false
+	d.petStruck[owner] = false
+	name := ""
+	if ps := w.pets[owner]; ps != nil {
+		name = ps.npc.Name
+	}
+	log.Printf("%s: %s's new pet %q is the duel's", d.tag(), w.nameOfLocked(owner), name)
 }
 
 // nameOfLocked is a player's name, or "".

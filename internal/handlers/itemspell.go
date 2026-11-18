@@ -29,7 +29,8 @@ import (
 // Each Use that summons or begins its cast spends one of the item's charges (itemeffect.charges, the
 // copy's remaincharge; spendCharge: the last takes it); a record of no charges is never spent; a copy of a
 // charged record that holds none (one made before the record had charges) is taken whole, as a potion's
-// last is. After a Use the item rests for its row's rest_s (one character, one item record; ours, kept
+// last is. A record that stacks (maxstack 2 or more, which holds no charges: ItemCharges)
+// gives one off its stack a Use instead (the Portal Shards of Zek, twenty a rune). After a Use the item rests for its row's rest_s (one character, one item record; ours, kept
 // in memory: a restart forgets it).
 
 // The lines an item's spell says.
@@ -115,7 +116,17 @@ func (h *EquipHandler) useItemSpell(sess *session.Session, player *entity.Player
 	h.itemSpellMu.Unlock()
 	log.Printf("ItemSpell: %s uses %q: spell %d %q (%d charges left before)", player.Name, item, is.SpellID, spell.Name, row.Charges)
 	switch {
-	case neverSpent(&row.Pattern) || h.inventoryStore.ItemCharges(row.Pattern.PatternID) <= 0:
+	case neverSpent(&row.Pattern):
+		// a kept heirloom: never spent
+	case row.Pattern.MaxStack >= 2:
+		// a stack (charges are a single item's: ItemCharges): one off it a Use, as a potion's (the Portal
+		// Shards of Zek: tools/vallon_zek_20261118.py)
+		if err := h.takeOne(sess, player, idx, row); err != nil {
+			log.Printf("ItemSpell: %s, %q: taking one: %v", player.Name, item, err)
+			return true
+		}
+		queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(idx, 0, 1))
+	case h.inventoryStore.ItemCharges(row.Pattern.PatternID) <= 0:
 		// a record of no charges: never spent
 	case row.Charges > 0:
 		if err := h.spendCharge(sess, player, idx, row); err != nil {

@@ -880,6 +880,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureItemSpells(); err != nil { // itemspell.go: items whose Use casts a spell (the Valkanith runes)
 		return err
 	}
+	if err := db.ensureLootDropTriggers(); err != nil { // lootdroptrigger.go: an item a corpse rolls fires a trigger (Vallon Zek's rune)
+		return err
+	}
 	if err := db.ensureGroupInvites(); err != nil { // groupinvites.go: "Allow anyone in my group to invite"
 		return err
 	}

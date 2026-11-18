@@ -644,7 +644,7 @@ row hidden, a copy (1.0M: 2.1-2.9M effective in three filmed kills; 3,520 quads,
 three Guards of Vallon, each back 15 s after its death (trigger "Guards of Vallon" by `npcdeath`, `max` 3: "as soon as you
 kill them, another spawns"), for ninety minutes; his death says "You have won the battle, but not the war!" (filmed three
 times), then the isle is cleared and the raid sent to the plateau's port-in. The Rage of Zek ("quad for 150k", Kekoo's bug)
-is not built. Loot, three rolls of his twelve (Sapphyra's Sword, the four archetype breastplates, the chokers and earrings,
+is not built (t222's rework below makes it a fair add). Loot, three rolls of his twelve (Sapphyra's Sword, the four archetype breastplates, the chokers and earrings,
 Influencer's Necklace, the Deflection Bracelet and Vallon's Blade made) and one of the plateau's eleven ability scrolls
 ("ZP Spells"; Rage of Zek on a 2009 corpse). **`zp-armour`**: the 18 glowing
 gems (two a piece) and the 45 class sets (15 classes × Akessan, Honor Guard, Zek): 250 records made from t294's figures,
@@ -660,6 +660,23 @@ transfer's stand-in) given the guide's figures, Trueshot Pendant's AGI and Honor
 them, and Chosen's Staff, Rapier, Baton and Victor's Blade secondary ("Raid weapons now secondary", SOE 2007-07-12).
 Every HP, hit, timer, count, chance and spot is ours where no figure exists; `internal/handlers/zp_raids_test.go` plays
 both raids from the JSON, and `TestRealGuideBosses` holds the three new bosses to their figures.
+
+**Vallon Zek as Ronson's t222** (the owner, 2026-11-18: eqoa.forumotion.com/t222-vallon-zek, "make the Vallon Zek raid work as
+that post describes"; `tools/vallon_zek_20261118.py --db <db> [--apply|--undo|--dump]`, log `vallon_zek_1118_log`, on top of the
+guide-gaps set `vallon`: undo this first): the six Zek scouts at the campfire east of Siloth Mines level 60 and
+white-faced (npcaggro 0); the Portal Rune of Zek NO RENT, 10% x 1 off every scout (table "zek portal rune", anyone's); **a corpse that
+rolls an item of table `lootdroptrigger`** (patternid, trigger by name; `database/lootdroptrigger.go`, `handlers/lootdroptrigger.go`,
+fired at the corpse's first opening, quietly, once a corpse) fires that trigger where it lies: the rune's raises the Portal of Zek
+(spawn-only now) for 60 minutes (trigger "Portal of Zek", locked while it stands); quest "Vallon Zek" is the rune's hand-in alone,
+twenty Portal Shards of Zek (NO RENT, tradeable, a stack of 20); a shard's Use (itemspell) casts Zek's Portal (760380), a self gate
+(spellgates) to the isle's near side, one off the stack (**an itemspell record that stacks spends one off its stack a Use**: charges
+are a single item's). Trigger "Vallon Zek" starts on anyone's talk (awaittalk start: his words, four seconds, a second line, then his
+copy and three guards, 90 minutes); won: 15 minutes' loot, the isle cleared, the trigger free 15 minutes later, and his death fires
+"Vallon Zek's Rest" (npcdeath), which hides his row two hours from 16 minutes after the kill; lost, timed out or the isle empty ten
+minutes: the trigger rests 15 minutes. His row in plate (4), no helm, Tallon's body; no sword in hand (held drops would give a Sword of
+Dreams). The Rage of Zek (Kekoo's bug: "quad for 150k") is a fair add, ours: his template's summon below 50%, two at a 15% share (150,000
+hit points, ~530 a hit), dying with him. `internal/handlers/vallon_zek_test.go` plays it from the tool's `--dump`; `TestRealVallonZek`
+(`EQOA_REAL_DB`, `EQOA_GROUND_DIR`) applies, checks and undoes it on a copy.
 
 **Zaoran Plateau's factions as questmasters1.com has them** (the owner, 2026-11-11, pointing to its archived ZP pages of
 2006-07; beside the sets above, whose figures win where both give one; set `zp-factions`, `tools/zp_guides_20261111.py

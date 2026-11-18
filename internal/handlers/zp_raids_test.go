@@ -47,6 +47,13 @@ func zpSet(w *trigWorld, set string) {
 	if err != nil {
 		w.t.Fatal(err)
 	}
+	zpSetData(w, data)
+}
+
+// zpSetData is zpSet of a set's JSON: its triggers and deaths, and the creatures its spawns
+// copy, each in the world of the first step naming it (world 5 when the step names none).
+func zpSetData(w *trigWorld, data []byte) {
+	w.t.Helper()
 	var f zpSetFile
 	if err := json.Unmarshal(data, &f); err != nil {
 		w.t.Fatal(err)
@@ -57,7 +64,10 @@ func zpSet(w *trigWorld, set string) {
 	}
 	// each NPC a step names stands where its first spawn is placed (a boss's own row is
 	// where its copy comes), else at its trigger's place (a post talked to)
-	type spot struct{ x, y, z float32 }
+	type spot struct {
+		x, y, z float32
+		world   uint8
+	}
 	at, order := map[string]spot{}, []string{}
 	for _, tr := range f.Triggers {
 		w.setAt(tr.Slot, tr.Name, tr.Scope, tr.Radius, tr.World, tr.X, tr.Y, tr.Z, string(tr.Steps), true)
@@ -69,16 +79,16 @@ func zpSet(w *trigWorld, set string) {
 			k := strings.ToLower(s.NPC)
 			switch {
 			case s.Do == database.TriggerSpawn && s.World != nil:
-				if old, ok := at[k]; !ok || (old == spot{tr.X, tr.Y, tr.Z}) {
+				if old, ok := at[k]; !ok || (old == spot{tr.X, tr.Y, tr.Z, uint8(tr.World)}) {
 					if !ok {
 						order = append(order, s.NPC)
 					}
-					at[k] = spot{s.X, s.Y, s.Z}
+					at[k] = spot{s.X, s.Y, s.Z, uint8(*s.World)}
 				}
 			case s.Do == database.TriggerAwaitTalk:
 				if _, ok := at[k]; !ok {
 					order = append(order, s.NPC)
-					at[k] = spot{tr.X, tr.Y, tr.Z}
+					at[k] = spot{tr.X, tr.Y, tr.Z, uint8(tr.World)}
 				}
 			}
 		}
@@ -94,7 +104,7 @@ func zpSet(w *trigWorld, set string) {
 	for _, name := range order {
 		p := at[strings.ToLower(name)]
 		w.gw.NPCs[id] = &entity.NPC{ServerID: id, Name: name, HP: 1000, MaxHP: 1000, Level: 60, NPCType: 0x80,
-			X: p.x, Y: p.y, Z: p.z, World: 5, SpawnOnly: only[strings.ToLower(name)]}
+			X: p.x, Y: p.y, Z: p.z, SpawnX: p.x, SpawnY: p.y, SpawnZ: p.z, World: p.world, SpawnOnly: only[strings.ToLower(name)]}
 		id++
 	}
 	for _, d := range f.Deaths {

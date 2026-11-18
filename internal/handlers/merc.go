@@ -942,14 +942,31 @@ func (m *Mercs) backWhenRested(sess *session.Session, owner *entity.Player, slot
 		return
 	}
 	char := owner.CharServerID
-	m.after(max(until.Sub(m.now()), 0)+mercRestSlack, func() {
-		p := m.gw.SessionPlayer(sess)
-		if p == nil || p.CharServerID != char {
-			return // its owner logged out (its next login brings it)
-		}
-		m.comeBackSlot(sess, p, slot)
-	})
+	var try func(wait time.Duration)
+	try = func(wait time.Duration) {
+		m.after(wait, func() {
+			p := m.gw.SessionPlayer(sess)
+			if p == nil || p.CharServerID != char {
+				return // its owner logged out (its next login brings it)
+			}
+			if m.gw.MercOwnerDead(sess) {
+				// its owner dead or on its way to its bind point (the owner,
+				// 2026-11-18: "/merc will only add 2 mercs back and not the
+				// third": Gonzo's third's rest ended a second after his death,
+				// HireMercAt refused it, and nothing asked again): asked again
+				// until its owner stands
+				try(mercDeadOwnerRetry)
+				return
+			}
+			m.comeBackSlot(sess, p, slot)
+		})
+	}
+	try(max(until.Sub(m.now()), 0) + mercRestSlack)
 }
+
+// mercDeadOwnerRetry is how often a rested merc's return is asked again while
+// its owner is dead (backWhenRested).
+const mercDeadOwnerRetry = 2 * time.Second
 
 // bring puts the row's merc beside the player (or on standby: said by the
 // World), made at its level, its rest ended in the row. It reports whether it

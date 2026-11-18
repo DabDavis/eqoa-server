@@ -709,6 +709,16 @@ func (w *World) HireMercAt(sess *session.Session, slot int, kit MercKit, stance 
 	return ms.npc.Name, "", false
 }
 
+// MercOwnerDead reports the session's player dead or on its way to its
+// respawn: HireMercAt's "The dead hire no one." (a rested merc's return waits
+// for it, handlers' backWhenRested).
+func (w *World) MercOwnerDead(sess *session.Session) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	p := w.sessionPlayerLocked(sess)
+	return p != nil && (p.IsDead() || p.respawnPending())
+}
+
 // mercGoesLocked takes the merc out of the world at once, out of its group,
 // off its owner's non-collide list (sess, the owner's, or nil), and out of
 // every fight. Must be called with the lock held.

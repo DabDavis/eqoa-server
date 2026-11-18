@@ -202,8 +202,9 @@ func emailRefusalPage(page string) []byte {
 }
 
 // stationCreate2 is IDCreat2, the e-mail and Create Account; with og (the
-// shard's auth.og_choice) a row more, "Vanilla Test", Standard or OG: the
-// [OG] account's choice (database/ogaccount.go), made here once.
+// shard's auth.og_choice) two rows more: "Account Type", Standard or OG, the
+// [OG] account's choice (database/ogaccount.go), made here once, and "What is
+// OG?", the page of its limits (StationOGAboutPage).
 //
 // The choice rides in the form's Gender (STATION's only free field: a ComboBox
 // the disc's page had, read by name, its value checked by CheckName and sent
@@ -225,16 +226,66 @@ func stationCreate2(page string, og bool) []byte {
 			stationHelp("Your E-mail", "Required. We e-mail a link to it: open it to verify your account. With it "+
 				"verified, a forgotten password is reset by e-mail."))...)
 	}
-	return stationPage(3, 3, append(hidden,
+	// the choice says what OG costs where it is made (the help) and, a row
+	// below it, opens the whole of it (StationOGAboutPage)
+	return stationPage(3, 4, append(hidden,
 		stationBackdrop,
 		stationLabel("EmailAddressLabel", "E-mail Address", 30, 140), stationField("EmailAddress", "E-mail Address", 0, 139, 100, false),
-		stationLabel("GenderLabel", "Vanilla Test", 30, 177), stationCombo("Gender", 1, 176, StationOGStandard, StationOGChoice),
-		stationButton("Create Account", "SubmitAcctCreate", 2, 140, 270, 162),
+		stationLabel("GenderLabel", "Account Type", 30, 177), stationCombo("Gender", 1, 176, StationOGStandard, StationOGChoice),
+		stationButton("What is OG?", StationOGAboutPage, 2, 230, 212, 162),
+		stationButton("Create Account", "SubmitAcctCreate", 3, 140, 270, 162),
 		stationFooter(10),
 		stationNote("With a - or a + in it, sign up at", page),
-		stationHelp("New Account", "E-mail: required, to verify your account. Vanilla Test: OG is the game as "+
-			"it was, no QoL additions, no mouse or touch, shown [OG]. Permanent."))...)
+		stationHelp("Standard or OG?", "OG: Vanilla Test with no map, minimap, item links, mouse, touch or other "+
+			"extras, and [OG] on your names. Permanent. Unsure? Choose Standard."))...)
 }
+
+// StationOGAboutPage is what Create Account's "What is OG?" opens
+// (stationCreate2 with the choice): SOE's rental code page, which only the
+// billing pages' AcctCrt opens and no page of ours reaches, served in its
+// place with what an [OG] account gives up (stationOGAbout).
+const StationOGAboutPage = "data/ui/RentSet.xml"
+
+// stationOGAbout is StationOGAboutPage: an [OG] account's limits on the
+// Vanilla Test server (handlers/ogaccount.go, vanilla's QoLOGOff), what it
+// keeps, and that it is permanent; the additions it can never turn on in
+// the help panel. No field and no button: Triangle goes back to Create
+// Account, which keeps what was typed and chosen (a page's way back, as from
+// PassChng to AcctMgmt).
+func stationOGAbout() []byte {
+	return stationPage(1, 1,
+		stationBackdrop,
+		stationPara("OG: the game as it was, on Vanilla Test", 100, 40, true),
+		stationPara("Map, minimap and item links locked off. No mouse or touch in the world: keyboard or "+
+			"controller only. Your names show as [OG] Name.", 140, 110, false),
+		stationPara("Kept: frame rate, widescreen and graphics. On other servers it plays like any account.", 254, 64, false),
+		stationPara("Permanent: it can never be switched back.", 322, 44, true),
+		stationBackOnly,
+		stationHelp("What is OG?", "Also off, with no way to turn them on: quest helper, target level and /con, "+
+			"DPS meter, power bars, buff window, pet effects, auto-cast, bars 3-4."))
+}
+
+// stationPara is a wrapped paragraph on a page's left at y, height high, in
+// the station's yellow or its grey.
+func stationPara(val string, y, height int, yellow bool) string {
+	r, g, b := 220, 220, 220
+	if yellow {
+		r, g, b = 255, 226, 97
+	}
+	return fmt.Sprintf("\t<Text val=%q>\n\t\t<Position x=\"40\" y=\"%d\"/>\n\t\t<Size width=\"390\" height=\"%d\"/>\n"+
+		"\t\t<Wrap mode=\"true\"/>\n\t\t<TextColor r=\"%d\" g=\"%d\" b=\"%d\"/>\n\t</Text>\n", val, y, height, r, g, b)
+}
+
+// stationBackOnly is the Back hint alone, for a page with nothing to select.
+const stationBackOnly = `	<Object>
+		<Position x="237" y="380"/>
+		<Image imageType="StationTri"/>
+	</Object>
+	<Text val="Back">
+		<Position x="265" y="378"/>
+		<TextColor r="255" g="226" b="97"/>
+	</Text>
+`
 
 // The [OG] row's two values (Gender's: at most 15 characters, a letter in
 // each for CheckName).

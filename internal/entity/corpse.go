@@ -274,6 +274,8 @@ func (w *World) respawnNPCLocked(npc *NPC) {
 		w.campRekindLocked(npc, time.Now())
 		// a placeholder pops its rare, or is itself again (npcrare.go)
 		w.rareRekindLocked(npc, time.Now())
+		// and what it carries of its row's weapons and shield this life (heldgear.go)
+		w.armSpawnLocked(npc)
 	}
 	npc.X = npc.SpawnX
 	npc.Y = npc.SpawnY

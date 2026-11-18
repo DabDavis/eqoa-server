@@ -315,6 +315,21 @@ type WorldConfig struct {
 	// unset, they do; false, none attacks first.
 	Aggro *bool `yaml:"aggro"`
 
+	// HeldGear is whether a monster spawns carrying each weapon and the shield
+	// its row holds only at a chance, and a creature killed holding one drops
+	// it (entity/heldgear.go, handlers/helddrop.go; the owner, 2026-11-17):
+	// unset, on; false, every NPC carries its row's and no corpse drops one.
+	// HeldWeaponChance and HeldShieldChance are the chances in percent (unset:
+	// 50 and 40); HeldNamedRows how many rows a capitalised name may stand on
+	// and be a named creature's, which carries its whole kit (unset: 3);
+	// HeldChances a name's own chances ("gnoll scout": {weapon: 80, shield: 0}),
+	// the named and the loot profiles' creatures among them.
+	HeldGear         *bool                       `yaml:"held_gear"`
+	HeldWeaponChance *float64                    `yaml:"held_weapon_chance"`
+	HeldShieldChance *float64                    `yaml:"held_shield_chance"`
+	HeldNamedRows    *int                        `yaml:"held_named_rows"`
+	HeldChances      map[string]HeldChanceConfig `yaml:"held_chances"`
+
 	// FactionAggro is whether an NPC of a faction (table npcfaction) attacks
 	// and shows its face by a player's standing with it (entity/aggro.go):
 	// unset, it does; false, every NPC by the rules of no faction.
@@ -1022,4 +1037,11 @@ func (c *Config) Save(path string) error {
 	}
 
 	return nil
+}
+
+// HeldChanceConfig is a name's own held gear chances (world.held_chances), in
+// percent; one left out is the world's.
+type HeldChanceConfig struct {
+	Weapon *float64 `yaml:"weapon"`
+	Shield *float64 `yaml:"shield"`
 }

@@ -128,6 +128,10 @@ type KeptNPC struct {
 	// (werecrit.go), zero for ready; SpawnGen its spawn's generation
 	WereReady time.Time `json:"were_ready,omitzero"`
 	SpawnGen  uint32    `json:"spawn_gen,omitempty"`
+	// Unarmed is the pieces of its row's weapons and shield its spawn's roll left
+	// it without (heldgear.go: 1 the primary, 2 the secondary, 4 the shield),
+	// alive or dead (its corpse drops what it held)
+	Unarmed uint8 `json:"unarmed,omitempty"`
 }
 
 // StandNPCs stops every creature where it stands, its channel on each client's
@@ -189,7 +193,7 @@ func (w *World) keptNPCLocked(npc *NPC, now time.Time) (KeptNPC, bool) {
 func (w *World) keptStateLocked(npc *NPC, now time.Time, all bool) (KeptNPC, bool) {
 	k := KeptNPC{ID: uint32(npc.ServerID), Name: npc.Name, World: npc.World,
 		Spawn:     [4]float32{npc.SpawnX, npc.SpawnY, npc.SpawnZ, npc.SpawnFacing},
-		Cooldowns: npc.pendingCooldowns(now)}
+		Cooldowns: npc.pendingCooldowns(now), Unarmed: npc.unarmed()}
 	away := npc.X != npc.SpawnX || npc.Y != npc.SpawnY || npc.Z != npc.SpawnZ || npc.Facing != npc.SpawnFacing
 	if away {
 		k.Place = &[4]float32{npc.X, npc.Y, npc.Z, npc.Facing}
@@ -224,7 +228,7 @@ func (w *World) keptStateLocked(npc *NPC, now time.Time, all bool) (KeptNPC, boo
 	// a camp's spawn standing as another of its kinds than its row's: its name
 	// says which (campspawn.go)
 	kind := w.campKindChangedLocked(npc) || w.rareKindChangedLocked(npc) // or a placeholder as its rare (npcrare.go)
-	if !all && !away && !k.Dead && k.MaxHP == 0 && k.Home == nil && k.PathDir == 0 && !k.ToSpawn && !kind && len(k.Cooldowns) == 0 && k.WereReady.IsZero() {
+	if !all && !away && !k.Dead && k.MaxHP == 0 && k.Home == nil && k.PathDir == 0 && !k.ToSpawn && !kind && len(k.Cooldowns) == 0 && k.WereReady.IsZero() && k.Unarmed == 0 {
 		return KeptNPC{}, false
 	}
 	if !k.finite() {
@@ -282,6 +286,7 @@ type NPCsRestored struct {
 	Kind     int // camps' spawns made again as the kinds they stood as (campspawn.go)
 	Cooldown int // with an ability's cooldown running on (abilitytimes.go)
 	Were     int // weres with their infection spent (werecrit.go)
+	Unarmed  int // short of a piece of their rows' weapons and shield (heldgear.go)
 
 	RowGone int // not used: the row is gone
 	NewNPC  int // not used: another creature on the id (a new spawn and another name)
@@ -289,8 +294,8 @@ type NPCsRestored struct {
 }
 
 func (r NPCsRestored) String() string {
-	return fmt.Sprintf("%d back (%d dead, %d hurt, %d where they stood, %d going back to where a fight began, %d taking up their paths, %d walking to their spawns, %d on a row's new place, %d camp spawns as the kinds they stood as, %d with a cooldown running, %d weres with their infection spent); not used: %d rows gone, %d other creatures on the id, %d of a kind not kept",
-		r.Back, r.Dead, r.Hurt, r.Placed, r.Fight, r.Path, r.ToSpawn, r.RowMoved, r.Kind, r.Cooldown, r.Were, r.RowGone, r.NewNPC, r.NotKept)
+	return fmt.Sprintf("%d back (%d dead, %d hurt, %d where they stood, %d going back to where a fight began, %d taking up their paths, %d walking to their spawns, %d on a row's new place, %d camp spawns as the kinds they stood as, %d with a cooldown running, %d weres with their infection spent, %d short of a held piece); not used: %d rows gone, %d other creatures on the id, %d of a kind not kept",
+		r.Back, r.Dead, r.Hurt, r.Placed, r.Fight, r.Path, r.ToSpawn, r.RowMoved, r.Kind, r.Cooldown, r.Were, r.Unarmed, r.RowGone, r.NewNPC, r.NotKept)
 }
 
 // RestoreNPCs gives the NPCs a restart's file names what was kept of them (the
@@ -301,6 +306,14 @@ func (w *World) RestoreNPCs(kept []KeptNPC) NPCsRestored {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	var r NPCsRestored
+	// what each carries is what it carried (heldgear.go): its whole kit unless
+	// the file says otherwise, as the server that wrote it had it, not the roll
+	// this start's ArmNPCs gave it
+	for _, npc := range w.NPCs {
+		if !npc.Temporary && !keepsNoNPC(npc) && npc.carriesOfKit() {
+			npc.carryKit(0)
+		}
+	}
 	for i := range kept {
 		k := &kept[i]
 		npc := w.NPCs[EntityID(k.ID)]
@@ -319,6 +332,10 @@ func (w *World) RestoreNPCs(kept []KeptNPC) NPCsRestored {
 		}
 		if w.campKeptKindLocked(npc, k.Name) || w.rareKeptKindLocked(npc, k.Name) {
 			r.Kind++ // a camp's spawn, as the kind it stood as (campspawn.go), or a placeholder as its rare (npcrare.go)
+		}
+		if k.Unarmed != 0 && npc.carriesOfKit() {
+			npc.carryKit(k.Unarmed & npc.kitPieces())
+			r.Unarmed++
 		}
 		w.restoreNPCLocked(npc, k, onRow, &r)
 	}

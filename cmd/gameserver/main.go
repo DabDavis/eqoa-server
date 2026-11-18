@@ -1216,6 +1216,12 @@ func main() {
 	// NPCs are loaded (their rows there are the dungeons' templates) and before the kept sessions
 	handlers.SetupDungeons(gameWorld, cfg.World.Dungeons, db)
 
+	// What each monster carries of its row's weapons and shield at this spawn, and what
+	// a corpse drops of them (world.held_gear: entity/heldgear.go, handlers/helddrop.go),
+	// once the templates, guards and rares are read and before a kept file says what
+	// each carried
+	setupHeldGear(cfg.World, gameWorld, inventoryStore)
+
 	// The sessions a restart kept (udp/keep.go), put back before a datagram
 	// is read: the clients' packets wait in the socket meanwhile
 	if keptConn != nil {
@@ -1428,4 +1434,61 @@ func vampireSunOf(w config.WorldConfig) entity.VampireSun {
 		r.GMs = *w.VampireSunGMs
 	}
 	return r
+}
+
+// setupHeldGear sets the world's held gear rules from cfg (entity/heldgear.go),
+// rolls every monster's spawn, and turns the held drops on with the catalog's
+// model map (handlers/helddrop.go), logging the looks held that map to nothing.
+func setupHeldGear(cfg config.WorldConfig, w *entity.World, inv *database.InventoryStore) {
+	r := entity.DefaultHeldGear
+	if cfg.HeldGear != nil {
+		r.On = *cfg.HeldGear
+	}
+	if cfg.HeldWeaponChance != nil {
+		r.Default.Weapon = *cfg.HeldWeaponChance
+	}
+	if cfg.HeldShieldChance != nil {
+		r.Default.Shield = *cfg.HeldShieldChance
+	}
+	if cfg.HeldNamedRows != nil {
+		r.NamedRows = *cfg.HeldNamedRows
+	}
+	r.Names = map[string]entity.HeldChance{}
+	for name, c := range cfg.HeldChances {
+		hc := r.Default
+		if c.Weapon != nil {
+			hc.Weapon = *c.Weapon
+		}
+		if c.Shield != nil {
+			hc.Shield = *c.Shield
+		}
+		r.Names[database.NPCClassKey(name)] = hc
+	}
+	if inv != nil {
+		if p, err := inv.OwnLootProfiles(); err != nil {
+			log.Printf("Held gear: the loot profiles: %v (no creature kept whole by its profile)", err)
+		} else {
+			r.Profiles = p
+		}
+	}
+	w.SetHeldGear(r)
+	w.ArmNPCs()
+	if !r.On || inv == nil {
+		handlers.SetHeldDrops(nil)
+		log.Printf("Held gear: off (world.held_gear): every NPC carries its row's weapons and shield, no corpse drops one")
+		return
+	}
+	d, err := inv.HeldDrops()
+	if err != nil {
+		log.Printf("WARNING: held drops: %v; no corpse drops what it held", err)
+		handlers.SetHeldDrops(nil)
+		return
+	}
+	handlers.SetHeldDrops(d)
+	rep := handlers.HeldDropsReport(d, w.HeldKits())
+	log.Printf("Held drops: %d records by look (left out: %v); the rows' held looks: %d of %d have a record (%d of %d pieces held)",
+		d.Records, d.Left, rep.Mapped, rep.Models, rep.RowsMapped, rep.Rows)
+	for look, n := range rep.Unmapped {
+		log.Printf("Held drops: no record looks like %08X (shield %v), held %d times: nothing extra drops", look[0], look[1] != 0, n)
+	}
 }

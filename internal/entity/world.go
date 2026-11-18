@@ -160,6 +160,8 @@ type World struct {
 	// The rare spawns on placeholders: by the placeholder's row, its own row and
 	// the rare's, and the chance (npcrare.go)
 	rares map[EntityID]*rareRule
+	// What a monster carries of its row's weapons and shield at a spawn (heldgear.go)
+	held heldGearState
 
 	// Each player race's two bodies by race and sex (charactermodel), the
 	// bodies a race's illusion shows (illusion.go)
@@ -917,6 +919,9 @@ func (n *NPC) fromRecord(rec *database.NPCRecord, class int, ranged map[uint32]b
 		Dummy: dummy,
 		Class: class,
 	}
+	// what its row holds, which it carries all of until a spawn's roll (heldgear.go)
+	n.kit = npcKit{Primary: rec.PrimaryWeapon, Secondary: rec.SecondaryWeapon, PrimaryType: primaryType,
+		SecondaryType: secondaryType, Shield: rec.Shield}
 	if dummy == SparringDummy {
 		// it quads at any level (sparring.go), as hard as its name says
 		n.SwingFixed, n.SwingKind = true, sparSwing

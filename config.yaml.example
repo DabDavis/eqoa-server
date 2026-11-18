@@ -61,6 +61,19 @@ world:
   # 5114). Ledgers already signed stay signed either way.
   # coach_sign_all: true
 
+  # A monster spawns carrying each weapon and the shield its row holds only at
+  # a chance, rolled at every spawn, and a creature killed holding one drops
+  # the catalog's record of that look for its level (entity/heldgear.go,
+  # handlers/helddrop.go). Named creatures (a capitalised name on at most
+  # held_named_rows rows), bosses' and other loot profiles', guards, NPCs,
+  # pets and mercenaries always carry their whole kit. On unless set false.
+  # held_gear: true
+  # held_weapon_chance: 50
+  # held_shield_chance: 40
+  # held_named_rows: 3
+  # held_chances:
+  #   "gnoll scout": {weapon: 80, shield: 0}
+
   # A monster's name and level, and nothing else, when a player presses the
   # talk button on it (square; Q on vanilla's keyboard) and it has nothing to
   # say, or stands out of the talk's reach (handlers/mobinfo.go). Vanilla

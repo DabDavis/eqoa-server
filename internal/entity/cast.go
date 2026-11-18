@@ -1928,7 +1928,7 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 				break
 			}
 		}
-		ae.Line, ae.Rank = BuffLine(&cs.spell), lineRank(&cs.spell) // only the best of a line counts (pet.go's creatureMods)
+		ae.Line, ae.Rank = creatureLine(&cs.spell, caster.Class), lineRank(&cs.spell) // only the best of a line counts (pet.go's creatureMods; a debuff's line: buffline.go)
 		npc.Effects = append(npc.Effects, ae)
 		npc.syncEffectMaxHP() // a maximum's debuff (pet.go's creatureMods)
 		if w.affected == nil {

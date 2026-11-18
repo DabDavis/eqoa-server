@@ -1516,7 +1516,8 @@ func (n *NPC) creatureMods() StatMods {
 }
 
 // bestOfLine is whether the NPC's i-th effect is the best of its line on it
-// (the highest rank, the first of equals), as only the best of a line counts
+// (the highest rank; of one rank the stronger, its stat changes' negatives
+// the larger; then the first of equals), as only the best of a line counts
 // on a player (buffline.go): two ranks of a debuff's line on a creature count
 // as the higher. An effect of no line always counts.
 func (n *NPC) bestOfLine(i int) bool {
@@ -1528,11 +1529,36 @@ func (n *NPC) bestOfLine(i int) bool {
 		if j == i || !sameLine(o.Line, e.Line) {
 			continue
 		}
-		if o.Rank > e.Rank || o.Rank == e.Rank && j < i {
+		if o.Rank != e.Rank {
+			if o.Rank > e.Rank {
+				return false
+			}
+			continue
+		}
+		if so, se := debuffWeight(o.Mods), debuffWeight(e.Mods); so != se {
+			if so > se {
+				return false
+			}
+			continue
+		}
+		if j < i {
 			return false
 		}
 	}
 	return true
+}
+
+// debuffWeight is how much m takes off: the sum of its negative stat changes,
+// as a positive figure.
+func debuffWeight(m StatMods) int {
+	n := 0
+	for st := Stat(1); int(st) < len(statLineNames)-1; st++ {
+		if st == StatRanged {
+			continue // Pierce's (get): counted as itself
+		}
+		n += max(-m.get(st), 0)
+	}
+	return n
 }
 
 // creatureDefence is what a creature's AC and AGI effects take off an

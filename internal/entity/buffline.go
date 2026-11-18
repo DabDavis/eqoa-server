@@ -49,7 +49,8 @@ import (
 // stat changes, shields, procs, speed, invisibility and power ceilings, so a
 // spell that only ticks has none. A pet keeps only the best of a line too
 // (pet.go's putOnPetLocked, since 2026-10-30: its AC, AGI, STR and DEX count
-// in its fights), untold when it is its own cast; a creature keeps every one. An effect kept over a logout keeps its line (buffsave.go); one kept
+// in its fights), untold when it is its own cast; a creature counts only the best
+// of a line too (pet.go's bestOfLine; a debuff's line: DebuffLine). An effect kept over a logout keeps its line (buffsave.go); one kept
 // before 2026-10-29 has none and stacks until it ends. `balancesim -lines`
 // prints every class's lines off a database.
 
@@ -114,6 +115,26 @@ func BuffLine(s *CastSpell) string {
 	if d.FormKind != FormNone || d.AltersLook || d.Summons() || d.Charms() {
 		return "" // a form's buff (AltersLook) is a form's: no line (petition 1529)
 	}
+	keys := lineKeys(d)
+	if len(keys) == 0 {
+		return ""
+	}
+	bearer := "player"
+	if s.Scope == 3 {
+		bearer = "pet"
+	}
+	if d.Workbook {
+		if d.Stack <= 0 {
+			return "" // no stack type: no line (the file's doc)
+		}
+		return fmt.Sprintf("%s%d %s %s", stackLinePrefix, d.Stack, bearer, strings.Join(keys, " "))
+	}
+	return bearer + " " + strings.Join(keys, " ")
+}
+
+// lineKeys is the sorted keys of a spell's line (BuffLine): each lasting
+// effect's kind, a stat's with its sign and stat, "@self" for a self share.
+func lineKeys(d *SpellDef) []string {
 	seen := map[string]bool{}
 	var keys []string
 	for _, e := range d.Effects {
@@ -141,21 +162,52 @@ func BuffLine(s *CastSpell) string {
 			keys = append(keys, k)
 		}
 	}
-	if len(keys) == 0 {
+	sort.Strings(keys)
+	return keys
+}
+
+// A creature counts only the best rank of each class's debuff (2026-11-18).
+// A workbook debuff has no stack type, so BuffLine gives it no line, and a
+// creature counted every one of them (bestOfLine): every rank of a class's
+// STR, DEX, AC, AGI, resist or maximum hit points debuff added up on it, and
+// a raid's lower ranks on top of its best took off several times what one
+// caster's best does. Since then such a debuff lands on a creature with a
+// line of its caster's class and its stats (DebuffLine): of two of one line
+// only the higher rank counts, of two of one rank the stronger (bestOfLine).
+// Two classes' debuffs of the same stats, or one class's of different stats,
+// are lines apart and both count. A line decides only which effects' stat
+// changes count: every effect's ticks, root, snare and hate go on.
+
+// debuffLinePrefix begins a creature debuff's line; the class follows it in
+// the bearer's field, so no two classes' lines are one (lineFamily).
+const debuffLinePrefix = "debuff"
+
+// DebuffLine is the line of a spell landing on a creature that BuffLine gives
+// none (the doc above): "debuff<class> " and its line's keys, "" when BuffLine
+// gives it a line or it changes no stat. class is the caster's (a merc's own).
+func DebuffLine(s *CastSpell, class int) string {
+	d := &s.Def
+	if BuffLine(s) != "" || d.FormKind != FormNone || d.AltersLook || d.Summons() || d.Charms() {
 		return ""
 	}
-	sort.Strings(keys)
-	bearer := "player"
-	if s.Scope == 3 {
-		bearer = "pet"
+	keys := lineKeys(d)
+	stat := false
+	for _, e := range d.Effects {
+		stat = stat || e.Kind == EffectStat
 	}
-	if d.Workbook {
-		if d.Stack <= 0 {
-			return "" // no stack type: no line (the file's doc)
-		}
-		return fmt.Sprintf("%s%d %s %s", stackLinePrefix, d.Stack, bearer, strings.Join(keys, " "))
+	if !stat || len(keys) == 0 {
+		return ""
 	}
-	return bearer + " " + strings.Join(keys, " ")
+	return fmt.Sprintf("%s%d %s", debuffLinePrefix, class, strings.Join(keys, " "))
+}
+
+// creatureLine is the line of an effect of the spell landing on a creature:
+// BuffLine, else DebuffLine of the caster's class.
+func creatureLine(s *CastSpell, class int) string {
+	if l := BuffLine(s); l != "" {
+		return l
+	}
+	return DebuffLine(s, class)
 }
 
 // stackLinePrefix begins a workbook stack type's line.

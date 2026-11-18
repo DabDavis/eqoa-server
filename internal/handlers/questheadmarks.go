@@ -105,7 +105,7 @@ func buildQuestHeadMarksOffer() []byte {
 // SendQuestHeadMarksOffer offers the session's client the marks over the
 // NPCs' heads, unless quests.markers is off. A PS2 ignores it.
 func SendQuestHeadMarksOffer(sess *session.Session) {
-	if questHeadMode.Load() == headOff {
+	if questHeadMode.Load() == headOff || !QoLOn() { // and world.vanilla_ui (vanillaui.go)
 		return
 	}
 	queueReliable(sess, protocol.OpcodeQuestHeadMarksOffer, buildQuestHeadMarksOffer())
@@ -138,7 +138,7 @@ func (h *QuestHeadMarksHandler) HandleAnswer(sess *session.Session, msg *protoco
 	if questHeadMode.Load() == headOff {
 		return nil
 	}
-	on := data[0] != 0
+	on := qolAnswer(data[0] != 0)
 	p := h.world.SetQuestHeadMarksWanted(sess, on)
 	if p == nil {
 		log.Printf("QuestHeadMarks: %s has no player in the world", sess.RemoteAddr())

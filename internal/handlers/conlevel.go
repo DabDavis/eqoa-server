@@ -58,7 +58,7 @@ func buildConLevelOffer() []byte {
 // SendConLevelOffer offers the session's client its target's level in its
 // target box, where world.con_level is on; elsewhere nothing goes.
 func SendConLevelOffer(sess *session.Session) {
-	if !ConLevelOn() {
+	if !ConLevelOn() || !QoLOn() { // the target box's, not /con (vanillaui.go)
 		return
 	}
 	queueReliable(sess, protocol.OpcodeConLevelOffer, buildConLevelOffer())

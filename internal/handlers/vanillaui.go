@@ -1,0 +1,111 @@
+package handlers
+
+import (
+	"log"
+	"sync/atomic"
+
+	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/entity"
+	"github.com/eqoa/server/internal/protocol"
+	"github.com/eqoa/server/internal/session"
+)
+
+// vanillaui.go — the game's own UI on a shard (world.vanilla_ui; the owner,
+// 2026-11-18: "in vanilla test shard lets disable all quality of life settings
+// like map, minimap, level display, dps meter, custom colors, the character
+// stats showing 350/500", and "also no quest helper").
+//
+// Set, the server:
+//
+//   - offers none of its quality-of-life data at world entry: others' power
+//     (powerbars.go), the pet's effects (peteffects.go), the buff window
+//     (buffwindow.go), the number tags (numbertags.go), the DPS meter
+//     (dpsmeter.go), a monster's name and level in the details box
+//     (mobinfo.go: a vanilla client is answered with the dialogue box a PS2
+//     gets), a target's level in the target box (conlevel.go; /con stays, a
+//     command any client types), the quest marks, the quest tracker and the
+//     marks over quest NPCs' heads (questmarks.go, questprogress.go,
+//     questheadmarks.go); an answer to any of them is taken as "off", and a
+//     keep restart into it stops what a client had asked for;
+//   - tells a vanilla client which of its own additions are off for the
+//     session (protocol.OpcodeVanillaUI, the QoL* bits), right after it
+//     answers the bug report offer (which a PS2 never does: a PS2 is never
+//     sent it), at every world entry and at a keep restart's resume.
+//
+// Unset (the default, Heirloom's), nothing changes and nothing is sent.
+
+// vanillaUI is world.vanilla_ui: off unless set.
+var vanillaUI atomic.Bool
+
+// SetVanillaUI turns the game's own UI on or off (world.vanilla_ui).
+func SetVanillaUI(on bool) { vanillaUI.Store(on) }
+
+// VanillaUI reports world.vanilla_ui.
+func VanillaUI() bool { return vanillaUI.Load() }
+
+// QoLOn is whether this server gives its quality-of-life additions: not
+// world.vanilla_ui.
+func QoLOn() bool { return !vanillaUI.Load() }
+
+// qolAnswer is a client's answer to one of the quality-of-life offers as
+// taken: on only where the server gives them.
+func qolAnswer(on bool) bool { return on && QoLOn() }
+
+// The client's additions OpcodeVanillaUI turns off, a bit each (vanilla's
+// `settings::qol`, the same bits).
+const (
+	QoLMap         uint32 = 1 << 0 // the map (M), the minimap (N), waypoints, the community's markers
+	QoLQuestHelper uint32 = 1 << 1 // the quest guide, the quest tracker, the map's quest marks, the head marks
+	QoLTargetLevel uint32 = 1 << 2 // a target's level in the target box
+	QoLDPSMeter    uint32 = 1 << 3 // the DPS meter
+	QoLNumberColor uint32 = 1 << 4 // Number Colors and Merc Colors: every number the game's colour
+	QoLStatCaps    uint32 = 1 << 5 // Character > Summary's "346/435": the value alone, the game's
+	QoLPowerBars   uint32 = 1 << 6 // others' power under their health
+	QoLBuffWindow  uint32 = 1 << 7 // the buff window: the game's effects strip
+	QoLPetEffects  uint32 = 1 << 8 // the pet's effects under its bar
+	QoLAutoCast    uint32 = 1 << 9 // auto-cast on the quick bars and auto targeting
+)
+
+// QoLAllOff is every bit above: what world.vanilla_ui turns off.
+const QoLAllOff = QoLMap | QoLQuestHelper | QoLTargetLevel | QoLDPSMeter | QoLNumberColor | QoLStatCaps |
+	QoLPowerBars | QoLBuffWindow | QoLPetEffects | QoLAutoCast
+
+// vanillaUILayout is the message's version byte.
+const vanillaUILayout = 1
+
+// buildVanillaUI is OpcodeVanillaUI: a u8 version, a u32 of the bits off.
+func buildVanillaUI(off uint32) []byte {
+	return build(protocol.OpcodeVanillaUI, 7, func(w *buffer.Writer) {
+		w.WriteByte(vanillaUILayout)
+		w.WriteUint32(off)
+	})
+}
+
+// SendVanillaUI tells a vanilla client (one that answered the bug report
+// offer) what is off on this server, where world.vanilla_ui is set; elsewhere,
+// and to any other client, nothing goes.
+func SendVanillaUI(sess *session.Session) {
+	if !VanillaUI() || !sess.BugReports() {
+		return
+	}
+	queueReliable(sess, protocol.OpcodeVanillaUI, buildVanillaUI(QoLAllOff))
+}
+
+// stopKeptQoL ends, at a keep restart's resume into world.vanilla_ui, what the
+// client had asked for before it: others' power, the pet's effects, the buff
+// window, the meter, the number tags and the monster's details. (The quest
+// marks, tracker and head marks are not resumed: keep.go.)
+func stopKeptQoL(w *entity.World, sess *session.Session) {
+	if QoLOn() {
+		return
+	}
+	if w != nil {
+		w.SetPowerBars(sess, false)
+		w.SetPetEffects(sess, false)
+		w.SetBuffWindow(sess, false)
+		w.SetDPSMeter(sess, false)
+	}
+	sess.SetNumberTagsLayout(0)
+	sess.SetMobInfo(false)
+	log.Printf("VanillaUI: %s resumed with the game's own UI", sess.RemoteAddr())
+}

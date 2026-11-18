@@ -1406,6 +1406,23 @@ const (
 	OpcodeSelectInfoData GameOpcode = 0x7E68
 )
 
+// The game's own UI on a shard (world.vanilla_ui, handlers/vanillaui.go; the
+// owner 2026-11-18: "in vanilla test shard lets disable all quality of life
+// settings"). Not retail, away from every lane's range (0x7E97-0x7E9F left to
+// the weather's and the dyes' neighbours).
+const (
+	// OpcodeVanillaUI is server to client only, and only to a client that
+	// answered OpcodeBugReportOffer 1 (vanilla; a PS2 never does, so it is
+	// never sent one): a u8 version (1), then a u32 of the client's own
+	// additions this server turns off for the session (handlers.QoL* bits:
+	// the map and minimap, the quest helper, a target's level, the DPS
+	// meter, the number colours, the stat caps, others' power bars, the buff
+	// window, the pet's effects, auto-cast and auto target). Sent at every
+	// world entry where world.vanilla_ui is set; a server without it never
+	// sends one, and the client keeps everything.
+	OpcodeVanillaUI GameOpcode = 0x7EA0
+)
+
 // =============================================================================
 // Game Version Constants
 // =============================================================================
@@ -1787,6 +1804,8 @@ func (op GameOpcode) String() string {
 		return "ReadyCheckReply"
 	case OpcodeDPSMeterOffer:
 		return "DPSMeterOffer"
+	case OpcodeVanillaUI:
+		return "VanillaUI"
 	case OpcodeConLevelOffer:
 		return "ConLevelOffer"
 	case OpcodeDialogRoom:

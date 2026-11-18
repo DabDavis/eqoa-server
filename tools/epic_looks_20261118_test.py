@@ -102,6 +102,11 @@ class EpicLooks(unittest.TestCase):
     def tearDown(self):
         self.dir.cleanup()
 
+    def test_kept_names_petitions_2355_2356(self):
+        # the owner, 2026-11-18: Fang of the Downfall and the Legacy Maxillioan Staff keep their epic looks
+        for name in ("Fang of the Downfall", "Legacy Maxillioan Staff", "Twinkle"):
+            self.assertIn(T.norm(name), T.KEEP_NAMES, name)
+
     def test_report_writes_nothing(self):
         before = snapshot(self.db)
         code, out = run(self.db)

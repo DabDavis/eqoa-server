@@ -237,7 +237,11 @@ NPC_LOOK = {
     "ShadowKnight_Polearm": "partizan", "Shaman_Club": "club", "Shaman_Spear": "partizan", "Warrior_Greataxe": "greataxe",
     "Warrior_Greatsword": "broadsword", "Warrior_Longsword": "scimitar", "Wizard_Rod": "moonwand", "Wizard_Staff": "crook",
 }
-KEEP_NAMES = {"twinkle", "icingdeath"}   # Drizzt's weapons, their look the owner's (2026-11-16)
+KEEP_NAMES = {"twinkle", "icingdeath",   # Drizzt's weapons, their look the owner's (2026-11-16)
+              # looks chosen on purpose, kept (the owner, 2026-11-18): petitions 1559, 1310, 1316, jibrish,
+              # Zaeire, transfer 10
+              "vanquishers blade", "world splitter", "sapphyras sword", "sword of power",
+              "sword of protection", "malefactors edge", "bo of the drunken fist", "white obliterator"}
 KEEP_NPC = set()
 
 # epics by name: both shards' epic quest rewards, Ascended copies and heirlooms' epics (2026-11-18), the 49s of

@@ -102,13 +102,16 @@ type QuestEngine struct {
 	mu sync.Mutex
 	// pass holds one player's pack and the Ascended table for a marks pass
 	// (questpass.go), nil outside one
-	pass   *questPass
-	store  *database.QuestStore
-	inv    *database.InventoryStore
-	items  *database.ItemPatternStore
-	spells *database.SpellbookStore
-	gw     *entity.World
-	sm     *session.Manager
+	pass *questPass
+	// syncAsc is the Ascended records a sync of the marks reads once for
+	// every character's pass (questpass.go)
+	syncAsc *syncAscended
+	store   *database.QuestStore
+	inv     *database.InventoryStore
+	items   *database.ItemPatternStore
+	spells  *database.SpellbookStore
+	gw      *entity.World
+	sm      *session.Manager
 
 	cat    questCatalog
 	chars  map[uint32]*questChar
@@ -199,6 +202,19 @@ type questCatalog struct {
 	// encounters are the quests whose kills wait on a trigger's spawns
 	// (questencounter.go)
 	encounters []encounterLink
+	// folded is each quest's name folded (foldName), by id, and giverOrder
+	// the givers' keys sorted: what the marks ask of every quest for every
+	// player each second (questmarks.go), made once
+	folded     map[int]string
+	giverOrder []string
+}
+
+// foldedName is the quest's name folded, as foldName.
+func (cat *questCatalog) foldedName(qu *database.Quest) string {
+	if k, ok := cat.folded[qu.ID]; ok && cat.byID[qu.ID] == qu {
+		return k
+	}
+	return foldName(qu.Name)
 }
 
 // questChar is one character's quests.
@@ -446,10 +462,11 @@ func (q *QuestEngine) Reload() error {
 		return err
 	}
 	cat := questCatalog{byID: map[int]*database.Quest{}, givers: map[string][]*database.Quest{}, gates: map[string][]*database.Quest{},
-		unlockers: map[string][]*database.Quest{}, inGame: map[int]string{}}
+		unlockers: map[string][]*database.Quest{}, inGame: map[int]string{}, folded: map[int]string{}}
 	for i := range all {
 		qu := &all[i]
 		cat.byID[qu.ID] = qu
+		cat.folded[qu.ID] = foldName(qu.Name)
 		cat.all = append(cat.all, qu)
 		if qu.Enabled {
 			cat.inGame[qu.ID] = qu.Name
@@ -466,6 +483,10 @@ func (q *QuestEngine) Reload() error {
 			}
 		}
 	}
+	for g := range cat.givers {
+		cat.giverOrder = append(cat.giverOrder, g)
+	}
+	sort.Strings(cat.giverOrder)
 	cat.successors = successorsOf(cat.all)
 	cat.encounters = encounterLinks(cat.all)
 	texts, names := q.questTexts(cat.all)
@@ -1987,6 +2008,15 @@ func (q *QuestEngine) itemsOn(p *entity.Player, worn bool) []database.CharInvent
 	if q.inv == nil {
 		return nil
 	}
+	ps := q.passOf(p)
+	if ps != nil {
+		if worn && ps.shownOK {
+			return ps.shown
+		}
+		if !worn && ps.heldOK {
+			return ps.held
+		}
+	}
 	rows, err := q.packRowsLocked(p)
 	if err != nil {
 		log.Printf("Quests: %s's inventory: %v", p.Name, err)
@@ -1998,13 +2028,33 @@ func (q *QuestEngine) itemsOn(p *entity.Player, worn bool) []database.CharInvent
 			out = append(out, r)
 		}
 	}
+	if ps != nil { // the same rows the rest of the pass (questpass.go)
+		if worn {
+			ps.shown, ps.shownOK = out, true
+		} else {
+			ps.held, ps.heldOK = out, true
+		}
+	}
 	return out
 }
 
 // lackingLocked is what the player still lacks for a give step, or "": an
 // item's Ascended record held counts for it (questascended.go).
 func (q *QuestEngine) lackingLocked(p *entity.Player, st *database.QuestStep) string {
-	return strings.Join(q.planHandInLocked(p, st).lack, ", ")
+	ps := q.passOf(p)
+	if ps != nil {
+		if s, ok := ps.lack[st]; ok {
+			return s // asked before in the pass (questpass.go)
+		}
+	}
+	s := strings.Join(q.planHandInLocked(p, st).lack, ", ")
+	if ps != nil {
+		if ps.lack == nil {
+			ps.lack = map[*database.QuestStep]string{}
+		}
+		ps.lack[st] = s
+	}
+	return s
 }
 
 // takeLocked takes a give step's items and tunar from the player, in the

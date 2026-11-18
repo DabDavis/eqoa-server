@@ -119,7 +119,7 @@ func TestRealQuestChainsWalk(t *testing.T) {
 // questWalker is the engine on a real database and a character for each
 // class and race, each walking its quests in order as jib's walk did.
 type questWalker struct {
-	t       *testing.T
+	t       testing.TB
 	db      *database.SQLiteDB
 	gw      *entity.World
 	mgr     *session.Manager
@@ -146,7 +146,7 @@ type walkChar struct {
 	p    *entity.Player
 }
 
-func newQuestWalker(t *testing.T, src string) *questWalker {
+func newQuestWalker(t testing.TB, src string) *questWalker {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "walk.db")
 	in, err := os.Open(src)

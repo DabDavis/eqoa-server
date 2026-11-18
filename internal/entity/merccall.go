@@ -139,13 +139,13 @@ func (w *World) mercForgetCallsLocked(id EntityID) {
 func (w *World) mercFightCalledLocked(ms *mercState) bool {
 	o := ms.owner
 	if o.Attacking() {
-		if t := w.NPCs[o.AttackTarget]; t != nil && !t.Dead {
+		if t := w.NPCs[o.AttackTarget]; t != nil && w.attackEngagedLocked(o, t) {
 			return true
 		}
 	}
 	for _, p := range append([]*Player{o}, w.mercGroupMatesLocked(ms)...) {
 		if p != o && p.Attacking() {
-			if t := w.NPCs[p.AttackTarget]; t != nil && !t.Dead {
+			if t := w.NPCs[p.AttackTarget]; t != nil && w.attackEngagedLocked(p, t) {
 				return true
 			}
 		}
@@ -195,7 +195,7 @@ func (w *World) mercCalledForLocked(ms *mercState, mates []*Player, npc *NPC) bo
 		return true
 	}
 	for _, p := range mates {
-		if p.Attacking() && p.AttackTarget == npc.ServerID || w.mercCalledLocked(p, npc) {
+		if p.Attacking() && p.AttackTarget == npc.ServerID && w.attackEngagedLocked(p, npc) || w.mercCalledLocked(p, npc) {
 			return true
 		}
 	}

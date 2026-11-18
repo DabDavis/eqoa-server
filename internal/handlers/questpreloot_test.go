@@ -1,8 +1,14 @@
 package handlers
 
 import (
+	"net"
 	"strconv"
+	"strings"
 	"testing"
+	"time"
+
+	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/entity"
 )
 
 // The owner, 2026-11-14: "allow pre-looting for all quests" (questpreloot.go). Before the
@@ -180,5 +186,233 @@ func TestATradedItemCountsOnItsLootStep(t *testing.T) {
 	f.qe.Received(f.tw.s, f.tw.p)
 	if s, _ := f.progress(60); s != 2 {
 		t.Fatalf("both belts traded in: step %d, want 2", s)
+	}
+}
+
+// The owner, 2026-11-18: "allow pre farming of quest items". prefarmQuest is quest 70: a talk
+// to Malsis, a kill of a bat, a loot step of two belts off orc pawns at half a chance, a talk;
+// the engine's drops recorded (as lootQuest's) and its draws taken from rolls.
+func prefarmQuest(f *questFixture, belt int, rolls ...float64) *[]lootDrop {
+	f.t.Helper()
+	drops := lootQuest(f, f.pattern("unused", 1), rolls...) // quest 60 off "Orc Pawn" too: take it out of the game
+	f.exec(`UPDATE quests SET enabled = 0 WHERE questid = 60`)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver) VALUES (70, 'Belts Ahead', 1, 'Malsis')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (70, 1, 'talk', 'Malsis', 'See Malsis.')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (70, 2, 'kill', 'a bat', 'Kill a bat.')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, items, count, chance, journal)
+		VALUES (70, 3, 'loot', 'Orc Pawn', '` + strconv.Itoa(belt) + `', 2, 0.5, 'Two belts.')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (70, 4, 'talk', 'Malsis', 'Back.')`)
+	f.qe.Reload()
+	return drops
+}
+
+// On step 1, a kill of step 3's creature drops its item at the step's chance (0.7 none, 0.2 a
+// belt), up to the two the step wants (two held: no draw at all); the tracker shows them
+// "(ahead)"; reaching step 3 (the bat killed) counts the two at once and moves on to step 4.
+func TestPreFarmALaterStepsItemCountsWhenItsStepComes(t *testing.T) {
+	f := newQuestFixture(t)
+	belt := f.pattern("slashed belt", 20)
+	drops := prefarmQuest(f, belt, 0.7, 0.2, 0.2)
+	if _, err := f.qe.SetCharacterQuest(f.sid, 70, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.killFor("Orc Pawn", 840) // 0.7: none
+	f.killFor("Orc Pawn", 841) // 0.2: a belt
+	if len(*drops) != 1 || (*drops)[0] != (lootDrop{841, f.sid, belt}) {
+		t.Fatalf("on step 1 the drops are %v, want a belt ahead of step 3 on 841", *drops)
+	}
+	f.own(belt, 1)
+	f.killFor("Orc Pawn", 842) // 0.2: the second
+	f.own(belt, 1)
+	f.killFor("Orc Pawn", 843) // two held of two: no draw, none
+	if len(*drops) != 2 {
+		t.Fatalf("drops %v, want two: no more than the step will take", *drops)
+	}
+	f.qe.mu.Lock()
+	tracker := show(f.qe.progressLocked(sessionInvList(f.tw.s), f.tw.p, f.qe.namedLocked(f.sid, "Talker")))
+	f.qe.mu.Unlock()
+	if !strings.Contains(tracker, "slashed belt (ahead) 2/2") {
+		t.Errorf("the tracker %q shows no belts ahead", tracker)
+	}
+	if s, _ := f.progress(70); s != 1 {
+		t.Fatalf("the step is %d, want 1 (held items count only at their step)", s)
+	}
+	if _, err := f.qe.SetCharacterQuest(f.sid, 70, QuestSetStep, 2); err != nil {
+		t.Fatal(err)
+	}
+	f.killFor("a bat", 844)
+	if s, _ := f.progress(70); s != 4 {
+		t.Fatalf("the bat killed with the two belts held: step %d, want 4 (step 3 counted at once)", s)
+	}
+	// the control: one belt held of two counts one, the step waits for the other
+	f.exec(`DELETE FROM charinventory WHERE serverid = ?`, f.sid)
+	f.own(belt, 1)
+	if _, err := f.qe.SetCharacterQuest(f.sid, 70, QuestSetStep, 3); err != nil {
+		t.Fatal(err)
+	}
+	if s, _ := f.progress(70); s != 3 {
+		t.Fatalf("one of two held at step 3: step %d, want 3", s)
+	}
+}
+
+// A quest not taken drops ahead only while the player may take it, and only a loot step with
+// nothing but talks before it (the giver's own errand): quest 70's step 3 comes after a kill,
+// so not before it is taken; once taken it does. Quest 71 starts with its loot step but begins
+// at level 20: not at level 5; at 20 it does. A finished quest's (not repeatable) none.
+func TestPreFarmANotTakenQuestByItsRule(t *testing.T) {
+	f := newQuestFixture(t)
+	belt := f.pattern("slashed belt", 20)
+	tusk := f.pattern("boar tusk", 20)
+	drops := prefarmQuest(f, belt, 0, 0, 0, 0, 0, 0)
+	f.killFor("Orc Pawn", 850)
+	if len(*drops) != 0 {
+		t.Fatalf("not taken, a loot step after a kill: dropped %v", *drops)
+	}
+	if _, err := f.qe.SetCharacterQuest(f.sid, 70, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.killFor("Orc Pawn", 851)
+	if len(*drops) != 1 {
+		t.Fatalf("taken, on step 1: drops %v, want the belt ahead", *drops)
+	}
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, minlevel) VALUES (71, 'Tusks', 1, 'Malsis', 20)`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, items, count, chance, journal)
+		VALUES (71, 1, 'loot', 'a boar', '` + strconv.Itoa(tusk) + `', 1, 1.0, 'A tusk.')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (71, 2, 'talk', 'Malsis', 'Back.')`)
+	f.qe.Reload()
+	*drops = nil
+	f.killFor("a boar", 852)
+	if len(*drops) != 0 {
+		t.Fatalf("level 5, a quest from level 20: dropped %v", *drops)
+	}
+	f.tw.p.Level = 20
+	f.killFor("a boar", 853)
+	if len(*drops) != 1 || (*drops)[0].pattern != tusk {
+		t.Fatalf("level 20, its first step's item: drops %v, want the tusk", *drops)
+	}
+	f.own(tusk, 1)
+	if _, err := f.qe.SetCharacterQuest(f.sid, 71, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	if s, _ := f.progress(71); s != 2 {
+		t.Fatalf("taken with the tusk held: step %d, want 2", s)
+	}
+	if _, err := f.qe.SetCharacterQuest(f.sid, 71, QuestComplete, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.exec(`DELETE FROM charinventory WHERE serverid = ?`, f.sid)
+	f.tw.s.SetInventoryList(newInvList(nil))
+	*drops = nil
+	f.killFor("a boar", 854)
+	if len(*drops) != 0 {
+		t.Fatalf("finished, not repeatable: dropped %v", *drops)
+	}
+}
+
+// The exclusions (questpreloot.go's doc), each against a control that drops: a loot step whose
+// doing fires a trigger; a key an event reads (Tallon's Key); a creature the quest brings (the
+// mirrored soul, spawned by step 3: none on step 1, its item on step 3's own kill for step 4);
+// an item an earlier loot step still to do wants too (the Spider Queen's shards).
+func TestPreFarmExclusions(t *testing.T) {
+	f := newQuestFixture(t)
+	belt := f.pattern("slashed belt", 20)
+	key := f.pattern("Tallon's Key", 1)
+	scepter, orb := f.pattern("Scepter of Reflection", 1), f.pattern("mirror orb", 1)
+	shard := f.pattern("Crystal Spider Shard", 20)
+	ember := f.pattern("ember", 20)
+	drops := prefarmQuest(f, belt, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver) VALUES (72, 'Ahead Or Not', 1, 'Malsis')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (72, 1, 'talk', 'Malsis', 'See Malsis.')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (72, 2, 'kill', 'a bat', 'A bat.')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, items, count, chance, journal, events)
+		VALUES (72, 3, 'loot', 'mirrored soul', '` + strconv.Itoa(orb) + `', 1, 1.0, 'The orb.',
+		'[{"on":"start","do":"spawn","npc":"mirrored soul","hostile":true}]')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, items, count, chance, journal)
+		VALUES (72, 4, 'loot', 'mirrored soul', '` + strconv.Itoa(scepter) + `', 1, 1.0, 'The scepter.')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, items, count, chance, journal, events)
+		VALUES (72, 5, 'loot', 'fire beetle', '` + strconv.Itoa(ember) + `', 1, 1.0, 'An ember.',
+		'[{"on":"done","do":"trigger","trigger":"Fire Lord"}]')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, items, count, chance, journal)
+		VALUES (72, 6, 'loot', 'Zek Sergeant', '` + strconv.Itoa(key) + `', 1, 1.0, 'The key.')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, items, count, chance, journal)
+		VALUES (72, 7, 'loot', 'Grosp', '` + strconv.Itoa(shard) + `', 1, 1.0, 'Grosp''s shard.')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, items, count, chance, journal)
+		VALUES (72, 8, 'loot', 'Fengzel', '` + strconv.Itoa(shard) + `', 1, 1.0, 'Fengzel''s shard.')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (72, 9, 'talk', 'Malsis', 'Back.')`)
+	f.qe.Reload()
+	if _, err := f.qe.SetCharacterQuest(f.sid, 72, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	for i, name := range []string{"mirrored soul", "fire beetle", "Zek Sergeant", "Fengzel"} {
+		f.killFor(name, entity.EntityID(860+i))
+		if len(*drops) != 0 {
+			t.Fatalf("on step 1, %s dropped %v ahead: excluded", name, *drops)
+		}
+	}
+	f.killFor("Grosp", 865) // the control: the first of the shards' steps drops ahead
+	if len(*drops) != 1 || (*drops)[0].pattern != shard {
+		t.Fatalf("on step 1, Grosp dropped %v, want his shard ahead", *drops)
+	}
+	// on the step that brings the mirrored soul: its own kill drops the next step's scepter too
+	*drops = nil
+	if _, err := f.qe.SetCharacterQuest(f.sid, 72, QuestSetStep, 3); err != nil {
+		t.Fatal(err)
+	}
+	f.killFor("mirrored soul", 866)
+	if len(*drops) != 2 || (*drops)[0].pattern != orb || (*drops)[1].pattern != scepter {
+		t.Fatalf("on step 3, the mirrored soul dropped %v, want the orb and the scepter", *drops)
+	}
+	// past Grosp's step, Fengzel's shard drops ahead (Grosp's held, kept for his step)
+	*drops = nil
+	f.exec(`DELETE FROM charinventory WHERE serverid = ?`, f.sid)
+	f.own(shard, 1)
+	if _, err := f.qe.SetCharacterQuest(f.sid, 72, QuestSetStep, 7); err != nil {
+		t.Fatal(err)
+	}
+	if s, _ := f.progress(72); s != 8 {
+		t.Fatalf("Grosp's shard held at step 7: step %d, want 8", s)
+	}
+	f.killFor("Fengzel", 867)
+	if len(*drops) != 1 || (*drops)[0].pattern != shard {
+		t.Fatalf("on step 8, Fengzel dropped %v, want his shard", *drops)
+	}
+}
+
+// A kill shared by two players on the quest drops each its own belt, at its own draw (0.2 a
+// belt for the first, 0.7 none for the second, then 0.1 for the second's), on its own view of
+// the corpse; the second player, without the quest (its first step a talk, no loot step first:
+// not ahead), none.
+func TestPreFarmASharedKillDropsEachQuesterItsOwn(t *testing.T) {
+	f := newQuestFixture(t)
+	belt := f.pattern("slashed belt", 20)
+	drops := prefarmQuest(f, belt, 0.2, 0.7, 0.1)
+	rec := &database.CharacterRecord{CharName: "Second", AccountID: 2}
+	if err := database.NewSQLiteCharacterStore(f.db).Create(rec); err != nil {
+		t.Fatal(err)
+	}
+	s2 := f.tw.mgr.CreateSession(&net.UDPAddr{IP: net.IPv4(10, 0, 0, 10), Port: 7010}, 10, 2, 3, 4, true)
+	p2 := &entity.Player{ServerID: 1010, Name: "Second", Level: 5, Class: 10, CharServerID: rec.ServerID}
+	f.tw.w.Players[p2.ServerID] = p2
+	s2.SetECSEntity(p2)
+	s2.SetCharacterInWorld(true)
+	s2.SetInventoryList(newInvList(nil))
+	both := func(npc entity.EntityID) {
+		f.qe.killed(entity.KillCredit{NPCName: "Orc Pawn", NPCSpawn: npc, NPCID: npc, Died: time.Now(),
+			Players: []entity.KillPlayer{{Session: f.tw.s, ServerID: f.sid, Name: "Talker"}, {Session: s2, ServerID: rec.ServerID, Name: "Second"}}})
+	}
+	if _, err := f.qe.SetCharacterQuest(f.sid, 70, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	both(870)
+	if len(*drops) != 1 || (*drops)[0] != (lootDrop{870, f.sid, belt}) {
+		t.Fatalf("the second without the quest: drops %v, want the first's belt alone", *drops)
+	}
+	if _, err := f.qe.SetCharacterQuest(rec.ServerID, 70, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	*drops = nil
+	both(871) // 0.7 for the first: none; 0.1 for the second: its belt
+	if len(*drops) != 1 || (*drops)[0] != (lootDrop{871, rec.ServerID, belt}) {
+		t.Fatalf("both on the quest: drops %v, want the second's own belt", *drops)
 	}
 }

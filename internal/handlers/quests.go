@@ -1686,10 +1686,34 @@ func (q *QuestEngine) laterStepKillLocked(c *questChar, kp entity.KillPlayer, qu
 			c.laterSaid = map[int]time.Time{}
 		}
 		c.laterSaid[qu.ID] = now
+		if item, ok := q.dropsAheadNameLocked(kp, c, qu, later, k.NPCName); ok {
+			// its item drops ahead of the step (questpreloot.go): kept for it, counted there
+			SendClientMessage(kp.Session, fmt.Sprintf("%s: %s may drop %s ahead; it counts when you reach that step. First: %s", qu.Name, k.NPCName, item, first))
+			log.Printf("Quests: %s killed %q for step %d of %q, at step %d: told its item drops ahead", kp.Name, k.NPCName, later.Step, qu.Name, st.Step)
+			return
+		}
 		SendClientMessage(kp.Session, fmt.Sprintf("%s: %s counts later in the quest. First: %s", qu.Name, k.NPCName, first))
 		log.Printf("Quests: %s killed %q for step %d of %q, at step %d: told what comes first", kp.Name, k.NPCName, later.Step, qu.Name, st.Step)
 		return
 	}
+}
+
+// dropsAheadNameLocked is a later loot step's item's name, and whether it drops ahead of its
+// step for the kill's player (questpreloot.go's rules; the pack's holding aside).
+func (q *QuestEngine) dropsAheadNameLocked(kp entity.KillPlayer, c *questChar, qu *database.Quest, later *database.QuestStep, killed string) (string, bool) {
+	if later.Kind != database.StepLoot || kp.Session == nil || q.playerOf == nil || q.items == nil {
+		return "", false
+	}
+	p := q.playerOf(kp.Session)
+	if p == nil || q.aheadRefusalLocked(q.lookAt(kp.Session), p, c, qu, later, killed) != "" {
+		return "", false
+	}
+	pid, _, _ := later.LootItem()
+	pat, err := q.items.GetItemPattern(pid)
+	if err != nil || pat == nil || q.aheadExcludedLocked(qu, later, pat) != "" {
+		return "", false
+	}
+	return pat.ItemName, true
 }
 
 // laterSayGap is how long after saying a quest's later kill counts later it is

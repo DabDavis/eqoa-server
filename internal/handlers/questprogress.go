@@ -26,7 +26,9 @@ import (
 //     the NPC to bring them to;
 //   - a kill step: the kills done of those needed (its creatures named, "raven
 //     or magpie"); a loot step: the drops taken of those needed;
-//   - a talk step: the NPC to speak with; a reach step: the journal's line.
+//   - a talk step: the NPC to speak with; a reach step: the journal's line;
+//   - after those, a later loot step's item held ahead of it (questpreloot.go),
+//     "<item> (ahead)", what is held of those the step will want.
 //
 // Worked out from the engine's state each second for the clients that asked,
 // and at once when a quest is taken, counted, advanced, finished or given up
@@ -222,6 +224,10 @@ func (q *QuestEngine) progressLocked(l *invList, p *entity.Player, c *questChar)
 			if line := strings.TrimSpace(c.say(st.Journal)); line != "" {
 				qp.goals = append(qp.goals, progressGoal{text: line})
 			}
+		}
+		// a later loot step's items held already (questpreloot.go): they count at its start
+		for _, a := range aheadHeld(l, qu, cq) {
+			qp.goals = append(qp.goals, progressGoal{text: name(a.pattern) + " (ahead)", have: a.have, need: a.need})
 		}
 		if len(qp.goals) > maxProgressGoals {
 			qp.goals = qp.goals[:maxProgressGoals]

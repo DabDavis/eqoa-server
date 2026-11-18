@@ -279,6 +279,10 @@ type SpellDef struct {
 	// (illusion.go); "" and FormNone for every other spell.
 	Form     string
 	FormKind FormKind
+	// IllusionNamed: the spell is named "Illusion: <form>" (illusion.go). With
+	// a target scope (1) it lands on the chosen player, not only its caster
+	// (the owner, 2026-11-18, Live petition 5253: "Make them targetable").
+	IllusionNamed bool
 	// UndeadOnly: the spell works on undead alone (undead.go), a "Target
 	// undead" line or a charm its name or description says is for undead.
 	UndeadOnly bool

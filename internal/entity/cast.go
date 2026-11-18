@@ -1127,7 +1127,12 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 	d := &spell.Def
 	// an illusion goes by its name, whatever its record's scope (illusion.go)
 	switch d.FormKind {
-	case FormSelf, FormEnd:
+	case FormSelf:
+		if d.IllusionNamed && spell.Scope == 1 {
+			return w.illusionTargetsLocked(sess, p, spell, targetObjectID)
+		}
+		return []EntityID{p.ServerID}, ""
+	case FormEnd:
 		return []EntityID{p.ServerID}, ""
 	case FormGroup:
 		return w.glamourTargetsLocked(sess, p, spell, targetObjectID)

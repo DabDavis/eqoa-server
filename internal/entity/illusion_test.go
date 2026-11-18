@@ -283,3 +283,77 @@ func TestTrueFormKeepsAFormsBuff(t *testing.T) {
 		}
 	}
 }
+
+// An "Illusion: <race>" of target scope lands on the player chosen, any
+// living one in reach, not only in the caster's group, in that player's own
+// sex's body; at no one or at a creature it is the caster's own; one of self
+// scope stays the caster's (the owner, 2026-11-18, Live petition 5253:
+// "Make them targetable").
+func TestIllusionLandsOnTheChosenPlayer(t *testing.T) {
+	c := illusionRig(t)
+	sess2 := c.w.SessionManager.CreateSession(&net.UDPAddr{IP: net.IPv4(10, 0, 0, 12), Port: 7000}, 2, 2, 2, 3, true)
+	friend := &Player{ServerID: 1002, Name: "Friend", Race: 0, Sex: 1, ModelID: 223572789, Size: 1, HP: 100, MaxHP: 100, X: 104, Y: 10, Z: 100}
+	c.w.Players[friend.ServerID] = friend
+	sess2.SetECSEntity(friend)
+	sess2.SetCharacterInWorld(true)
+	sess2.SetPlayerObjectID(0x22220001)
+	vs := GetOrCreateVisibility(c.sess)
+	vs.ChannelEntity[1] = friend.ServerID
+	vs.ChannelObjectID[1] = 0x01312E99
+
+	// a player outside the caster's group: the friend becomes the troll woman
+	c.land(t, troll(), 0x01312E99, 0)
+	if m, _ := channelBody(friend); m != trollFemale {
+		t.Fatalf("the friend: model %d, want the troll woman's %d", m, trollFemale)
+	}
+	if m, _ := channelBody(c.p); m != gnomeMale {
+		t.Errorf("the caster became model %d", m)
+	}
+	if len(friend.Buffs) != 1 || friend.Buffs[0].Name != "Illusion: Troll" {
+		t.Errorf("the friend's effects: %+v", friend.Buffs)
+	}
+
+	// at no one: the caster's own
+	c.land(t, troll(), 0xFFFFFFFF, 20*time.Second)
+	if m, _ := channelBody(c.p); m != trollMale {
+		t.Errorf("at no one: the caster is model %d, want the troll man's", m)
+	}
+
+	// at a creature: the caster's own, nothing on the creature
+	d := illusionRig(t)
+	d.land(t, troll(), d.npcO, 0)
+	if m, _ := channelBody(d.p); m != trollMale || d.npc.Effects != nil {
+		t.Errorf("at a creature: caster model %d, creature effects %+v", m, d.npc.Effects)
+	}
+
+	// out of reach: refused, nothing changes
+	friend.X = 100 + 500
+	elfIll := illusionSpell(700035, "Illusion: Elf", "Elf form, Faction Change, 10min", "")
+	if c.w.StartCast(c.sess, elfIll, 0x01312E99, c.at(40*time.Second)) {
+		t.Fatal("an illusion at a player out of reach began")
+	}
+	c.sent()
+	friend.X = 104
+
+	// self scope: the caster's, whoever is chosen
+	self := troll()
+	self.Scope = 0
+	e := illusionRig(t)
+	sess3 := e.w.SessionManager.CreateSession(&net.UDPAddr{IP: net.IPv4(10, 0, 0, 13), Port: 7000}, 3, 3, 3, 4, true)
+	f2 := &Player{ServerID: 1003, Name: "Other", Race: 0, Sex: 1, ModelID: 223572789, Size: 1, HP: 100, MaxHP: 100, X: 104, Y: 10, Z: 100}
+	e.w.Players[f2.ServerID] = f2
+	sess3.SetECSEntity(f2)
+	sess3.SetCharacterInWorld(true)
+	sess3.SetPlayerObjectID(0x22220002)
+	ev := GetOrCreateVisibility(e.sess)
+	ev.ChannelEntity[1] = f2.ServerID
+	ev.ChannelObjectID[1] = 0x01312E9A
+	e.land(t, self, 0x01312E9A, 0)
+	if m, _ := channelBody(f2); m == trollFemale {
+		t.Error("a self-scope illusion landed on the chosen player")
+	}
+	if m, _ := channelBody(e.p); m != trollMale {
+		t.Errorf("self scope: the caster is model %d, want the troll man's", m)
+	}
+
+}

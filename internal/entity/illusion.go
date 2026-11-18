@@ -40,7 +40,7 @@ type FormKind int
 
 const (
 	FormNone  FormKind = iota
-	FormSelf           // "Illusion: X", "X Form": the caster, whatever is targeted
+	FormSelf           // "Illusion: X", "X Form": the caster, whatever is targeted (an "Illusion: X" of target scope: illusionTargetsLocked)
 	FormGroup          // "Glamour: X": the caster or a member of its group
 	FormEnd            // "Remove Illusion", "True Form": the caster's own body back
 )
@@ -75,6 +75,7 @@ func (d *SpellDef) readIllusion(name, desc string) {
 	switch {
 	case strings.HasPrefix(n, "illusion:"):
 		d.Form, d.FormKind = strings.TrimSpace(strings.TrimPrefix(n, "illusion:")), FormSelf
+		d.IllusionNamed = true
 	case strings.HasPrefix(n, "glamour:"):
 		d.Form, d.FormKind = strings.TrimSpace(strings.TrimPrefix(n, "glamour:")), FormGroup
 	case n == "remove illusion" || n == "true form":
@@ -445,6 +446,36 @@ func (w *World) glamourTargetsLocked(sess *session.Session, p *Player, spell *Ca
 	}
 	if t.World != p.World || outOfRange(p, t.X, t.Y, t.Z, spell.Range) {
 		return nil, castOutOfRange
+	}
+	return []EntityID{t.ServerID}, ""
+}
+
+// illusionTargetsLocked is whom an "Illusion: <form>" spell of target scope
+// (1, the spell window's "Cast: Target") lands on: the chosen player, any
+// living one the caster can reach and see, its body by that player's own sex;
+// the caster when nothing, itself, a creature or a dead player is targeted, as
+// a helpful spell needs a friend (the owner, 2026-11-18, Live petition 5253:
+// "Make them targetable"; until then every illusion was its caster's, jib's F3
+// 20261025-173245). A Hardcore character's aid rule still applies at the
+// landing (hcrules.go). "X Form" spells and illusions of self scope stay the
+// caster's.
+func (w *World) illusionTargetsLocked(sess *session.Session, p *Player, spell *CastSpell, targetObjectID uint32) ([]EntityID, string) {
+	if targetObjectID == 0 || targetObjectID == 0xFFFFFFFF || targetObjectID == sess.PlayerObjectID() {
+		return []EntityID{p.ServerID}, ""
+	}
+	ent, ok := w.findEntityByObjectIDLocked(sess, targetObjectID)
+	if !ok {
+		return []EntityID{p.ServerID}, ""
+	}
+	t, isPlayer := ent.(*Player)
+	if !isPlayer || t == p || t.IsDead() {
+		return []EntityID{p.ServerID}, ""
+	}
+	if t.World != p.World || outOfRange(p, t.X, t.Y, t.Z, spell.Range) {
+		return nil, refuseOutOfRange(p, spell, t.Name, t.X, t.Y, t.Z, spell.Range)
+	}
+	if !w.helpSeenLocked(p, &spell.Def, t.World, t.X, t.Y, t.Z, false) { // sight.go
+		return nil, castNotSeen
 	}
 	return []EntityID{t.ServerID}, ""
 }

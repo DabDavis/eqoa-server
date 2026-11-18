@@ -115,9 +115,9 @@ func TestTheDyePickerOffer(t *testing.T) {
 }
 
 // The Equipment Dyer's picker: a client that never answered the offer (a PS2,
-// an old vanilla) is asked the six families alone and sent no picker; one
-// that did is asked them and "Pick any colour...", which opens its picker
-// (the slots, the colour now, the palette) and the colour it answers dyes the
+// an old vanilla) is asked the families alone, as it always was, and sent no
+// picker; one that did is asked no families at all: the piece chosen opens its
+// picker (the slots, the colour now, the palette) and the colour it answers dyes the
 // slots as a palette colour does, alpha FF. The controls: an answered picker
 // answered again, a cancelled one, one answered from too far or too late, and
 // a token never opened dye nothing.
@@ -182,29 +182,34 @@ func TestTheDyerPicker(t *testing.T) {
 	if _, _, err := db.SetCharDye(rec.ServerID, database.DyeChest, 0xD10000FF, database.GMEdit{}, "test"); err != nil {
 		t.Fatal(err)
 	}
-	// a box of twelve: the first question holds the pieces themselves
-	families = func() []string { return pick(talk(), 1) }
-	got = families()
-	if last := got[len(got)-1]; !strings.HasSuffix(last, "|Purples|"+DyePickLabel) {
-		t.Fatalf("a picker's client's families: %q", got)
-	}
-	open := func(got []string) pickerOpened {
+	// a box of twelve: the first question holds the pieces themselves; a
+	// piece chosen opens the picker at once, no palette asked (the owner,
+	// 2026-11-18)
+	// to the piece: its box answered, the picker's messages read before the
+	// box's drain them
+	toPicker := func(msgs []string, n byte) pickerOpened {
 		t.Helper()
-		id := boxID(got)
-		if !d.Answer(tw.s, tw.p, id, byte(len(database.DyeFamilies))) {
-			t.Fatal("not the dyer's")
+		id := boxID(msgs)
+		if id == 0 || !d.Answer(tw.s, tw.p, id, n) {
+			t.Fatalf("no dyer's box in %q", msgs)
 		}
-		msgs := pickerMsgs(tw.s)
-		questMsgs(tw.s)
-		if len(msgs) != 1 {
-			t.Fatalf("picker messages: %d", len(msgs))
+		opens := pickerMsgs(tw.s)
+		said := strings.Join(questMsgs(tw.s), "\n")
+		if strings.Contains(said, "Purples") || strings.Contains(said, DyePickLabel) {
+			t.Fatalf("a picker's client was asked the palette: %q", said)
 		}
-		o, ok := readPickerOpen(msgs[0])
+		if len(opens) != 1 {
+			t.Fatalf("picker messages: %d (said %q)", len(opens), said)
+		}
+		o, ok := readPickerOpen(opens[0])
 		if !ok {
-			t.Fatalf("not an open: % X", msgs[0])
+			t.Fatalf("not an open: % X", opens[0])
 		}
 		return o
 	}
+	families = func() []string { return talk() }
+	open := func(got []string) pickerOpened { return toPicker(got, 1) }
+	got = families()
 	o := open(got)
 	if o.target != DyePickChar || o.alpha || o.current != 0xD10000FF || len(o.slots) != 1 || o.slots[0] != database.DyeChest ||
 		o.title != "Dye chest" || len(o.palette) != len(dyePalette()) || o.palette[0] != 0xFFFFFFFF {
@@ -277,12 +282,7 @@ func TestTheDyerPicker(t *testing.T) {
 	}
 
 	// several slots: All armor, every one of them, each in the colour
-	got = pick(talk(), 0)
-	id := boxID(got)
-	d.Answer(tw.s, tw.p, id, byte(len(database.DyeFamilies)))
-	msgs := pickerMsgs(tw.s)
-	questMsgs(tw.s)
-	o, _ = readPickerOpen(msgs[len(msgs)-1])
+	o = toPicker(talk(), 0)
 	if len(o.slots) != 7 {
 		t.Fatalf("all armor's slots: %v", o.slots)
 	}
@@ -293,10 +293,27 @@ func TestTheDyerPicker(t *testing.T) {
 			t.Errorf("all armor white: %s %08X", database.DyeSlotNames[s], c[s])
 		}
 	}
+
+	// No dye (version 2; the owner, 2026-11-18): the chest's dye off, the
+	// rest of the armour white as it was
+	o = open(families())
+	answerPicker(t, h, tw.s, DyePickerNoDye, o.token)
+	c, _ = db.CharDyes(rec.ServerID)
+	if got := questMsgs(tw.s); c[database.DyeChest] != 0 || !hasMsg(got, "box:"+EquipmentDyerName+": The dye is off.") {
+		t.Fatalf("No dye: the chest %08X, said %q", c[database.DyeChest], got)
+	}
+	for _, s := range o.slots {
+		if s != database.DyeChest && c[s] != 0xFFFFFFFF {
+			t.Errorf("No dye on the chest took %s's: %08X", database.DyeSlotNames[s], c[s])
+		}
+	}
+	if _, _, on, ok := tw.w.DyeTarget(tw.s); !ok || on[database.DyeChest] != 0 {
+		t.Errorf("on the character: %08X", on[database.DyeChest])
+	}
 }
 
-// The Pet Groomer's picker: its families end with "Pick any colour...", the
-// open names the pet as OpcodePetDyes would (its id in the client's view, its
+// The Pet Groomer's picker: a picker's client is asked no families, the
+// piece chosen opens it; the open names the pet as OpcodePetDyes would (its id in the client's view, its
 // body, its dyes, its rule) and offers the alpha, which the colour keeps.
 func TestTheGroomerPicker(t *testing.T) {
 	f := newGenieFixture(t)
@@ -322,12 +339,11 @@ func TestTheGroomerPicker(t *testing.T) {
 	if !g.Answer(f.sess, f.p, boxID(got), 0) { // its whole body
 		t.Fatal("not the groomer's")
 	}
-	got = questMsgs(f.sess)
-	if last := got[len(got)-1]; !strings.HasSuffix(last, "|"+DyePickLabel) {
-		t.Fatalf("the families: %q", got)
-	}
-	g.Answer(f.sess, f.p, boxID(got), byte(len(database.DyeFamilies)))
+	// the picker at once, no palette asked (the owner, 2026-11-18)
 	msgs := pickerMsgs(f.sess)
+	if got := questMsgs(f.sess); strings.Contains(strings.Join(got, "\n"), "Purples") {
+		t.Fatalf("a picker's client was asked the palette: %q", got)
+	}
 	questMsgs(f.sess)
 	if len(msgs) != 1 {
 		t.Fatalf("picker messages: %d", len(msgs))
@@ -344,10 +360,30 @@ func TestTheGroomerPicker(t *testing.T) {
 	if pet, ok := f.w.PetLookOf(f.sess); !ok || pet.Dye != (entity.PetDye{0, 0x3FA7D680}) {
 		t.Errorf("on the pet: %+v", pet)
 	}
+
+	// No dye on its whole body (its second area): that dye off, the other
+	// area's kept
+	if _, _, err := f.db.SetPetDye(f.p.CharServerID, look, 0, 0x101010FF, database.GMEdit{}, "test"); err != nil {
+		t.Fatal(err)
+	}
+	g.Talk(f.sess, f.p, groomer)
+	got = questMsgs(f.sess)
+	g.Answer(f.sess, f.p, boxID(got), 0)
+	msgs = pickerMsgs(f.sess)
+	said := questMsgs(f.sess)
+	o, ok = readPickerOpen(msgs[len(msgs)-1])
+	if !ok || len(o.slots) != 1 || o.slots[0] != 1 {
+		t.Fatalf("the body's open: %v %+v", ok, o)
+	}
+	answerPicker(t, h, f.sess, DyePickerNoDye, o.token)
+	d, _ = f.db.PetDyesOf(f.p.CharServerID)
+	if got := questMsgs(f.sess); d[look] != [2]uint32{0x101010FF, 0} || !hasMsg(got, "box:Pet Groomer: The dye is off.") {
+		t.Fatalf("No dye on the body: %08X, said %q (before %q)", d[look], got, said)
+	}
 }
 
-// The Weapon Enchanter's colours end with "Pick any colour..." for a client
-// with the picker; the open previews the aura on the hand's place, and the
+// The Weapon Enchanter's colours are its own or "Pick any colour..." alone for
+// a client with the picker; the open previews the aura on the hand's place, and the
 // colour picked is enchanted as a palette's (the price paid).
 func TestTheEnchanterPicker(t *testing.T) {
 	t.Cleanup(func() { database.SetInstanceAuraCache(nil); SetEnchanterPrice(-1, "", 0) })
@@ -390,10 +426,11 @@ func TestTheEnchanterPicker(t *testing.T) {
 	}
 	e.Talk(tw.s, tw.p, enchanter)
 	got := pick(pick(questMsgs(tw.s), 1), 0) // the second aura; Virtuous
-	if last := got[len(got)-1]; !strings.HasSuffix(last, "|Purples|"+DyePickLabel) {
+	// its own colours or the picker, no palette (the owner, 2026-11-18)
+	if last := got[len(got)-1]; !strings.HasSuffix(last, "|Its own colours|"+DyePickLabel) {
 		t.Fatalf("the colours: %q", got)
 	}
-	e.Answer(tw.s, tw.p, boxID(got), byte(len(database.DyeFamilies)+1))
+	e.Answer(tw.s, tw.p, boxID(got), 1)
 	msgs := pickerMsgs(tw.s)
 	questMsgs(tw.s)
 	if len(msgs) != 1 {
@@ -404,6 +441,20 @@ func TestTheEnchanterPicker(t *testing.T) {
 		o.aura != (dyeAuraPreview{kind: database.AuraEpic, source: 0x88EC092D}) || o.title != "Colour of Virtuous" {
 		t.Fatalf("the open: %v %+v", ok, o)
 	}
+	// an aura's picker has no "No dye": refused, and its picker answered
+	answerPicker(t, h, tw.s, DyePickerNoDye, o.token)
+	if r, _, _ := db.InstanceAuraOf(sword); r.Second.Source != 0 {
+		t.Fatalf("No dye on an aura did something: %+v", r)
+	}
+	e.Talk(tw.s, tw.p, enchanter)
+	got = pick(pick(questMsgs(tw.s), 1), 0)
+	e.Answer(tw.s, tw.p, boxID(got), 1)
+	msgs = pickerMsgs(tw.s)
+	questMsgs(tw.s)
+	if len(msgs) == 0 {
+		t.Fatal("the picker not opened again")
+	}
+	o, _ = readPickerOpen(msgs[len(msgs)-1])
 	answerPicker(t, h, tw.s, DyePickerPicked, o.token, 0x3FA7D6FF)
 	r, _, _ := db.InstanceAuraOf(sword)
 	if r.Second.Color != 0x3FA7D6FF || r.Second.Source != 0x88EC092D || r.Tag != "Virtuous" {

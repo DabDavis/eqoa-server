@@ -19,10 +19,12 @@ import (
 // then we have any rgb combo"). Once the player is in the world the server
 // offers the picker (protocol.OpcodeDyePicker kind 0); a client with a picker
 // window (vanilla) answers its version (OpcodeDyePickerAnswer kind 0), and
-// from then on the Equipment Dyer's (dyer.go), the Pet Groomer's
-// (petgroomer.go) and the Weapon Enchanter's (enchanter.go) colour questions
-// carry one more answer after the palette's, "Pick any colour...". Chosen,
-// the server opens the client's picker (kind 1): the slots it dyes, the
+// from then on the Equipment Dyer's (dyer.go) and the Pet Groomer's
+// (petgroomer.go) piece chosen opens the picker at once, no palette asked
+// (the owner, 2026-11-18: "lets remove the color presets from the dyer
+// simplify with the rgb picker"), and the Weapon Enchanter's (enchanter.go)
+// colour question is "Its own colours" or "Pick any colour..." alone. The
+// server opens the client's picker (kind 1): the slots it dyes, the
 // colour now, the dyer's palette, and for a pet the dyes as OpcodePetDyes has
 // them, so the client previews the colour on the character or the pet while
 // it is picked. The client answers the colour (kind 1) or that it was
@@ -34,7 +36,11 @@ import (
 // and the alpha FF where the slots take none (a pet's dye's alpha is how
 // much of it shows; an armour piece of alpha below FF would be see-through).
 // The price is the palette's: the dyers and groomers are free, an aura costs
-// the enchanter's tokens. A PS2 never answers the offer, so it is never
+// the enchanter's tokens. A client of version 2 shows "No dye" in a
+// character's or a pet's picker (the owner, 2026-11-18, with the palette gone:
+// one piece's dye taken off in one press): its answer (kind 3) takes the dye
+// off the picker's slots, as the palette's "No dye" did; an aura's picker has
+// none (the enchanter asks "Its own colours" instead). A PS2 never answers the offer, so it is never
 // offered the answer and its boxes are the palette's, as they were.
 
 // The picker's message kinds (protocol.OpcodeDyePicker, OpcodeDyePickerAnswer).
@@ -44,6 +50,7 @@ const (
 	DyePickerClose  = 2 // server: a picker closed
 	DyePickerPicked = 1 // client: the colour chosen
 	DyePickerCancel = 2 // client: the picker cancelled
+	DyePickerNoDye  = 3 // client (version 2): the dye taken off what the picker dyes
 )
 
 // What a picker dyes (the open's target byte).
@@ -78,6 +85,14 @@ const (
 // has room for one more.
 func pickerOffered(sess *session.Session, n int) bool {
 	return sess.DyePicker() >= 1 && n < dialogRoom(sess)
+}
+
+// pickerDirect is whether sess's client goes from what to dye straight to its
+// picker, with no palette asked first (the owner, 2026-11-18: "lets remove the
+// color presets from the dyer simplify with the rgb picker"): any client that
+// answered the offer. A PS2 never does, and keeps the palette's boxes.
+func pickerDirect(sess *session.Session) bool {
+	return sess.DyePicker() >= 1
 }
 
 // dyePalette is the dyers' colours, every family's, in order: the picker's
@@ -184,6 +199,7 @@ type dyePick struct {
 	world   uint8
 	at      time.Time
 	alpha   bool
+	noDye   bool // "No dye" may be answered: a character's or a pet's picker
 	speaker string
 	what    string
 	apply   func(sess *session.Session, p *entity.Player, rgba uint32)
@@ -215,7 +231,7 @@ func openDyePicker(sess *session.Session, p *entity.Player, npc *entity.NPC, spe
 	token := 0x7E950000 | (picks.seq & 0xFFFF)
 	old := picks.open[p.CharServerID]
 	picks.open[p.CharServerID] = &dyePick{token: token, npc: npc, x: p.X, y: p.Y, z: p.Z, world: p.World, at: picks.now(),
-		alpha: o.alpha, speaker: speaker, what: what, apply: apply}
+		alpha: o.alpha, noDye: o.target != DyePickAura, speaker: speaker, what: what, apply: apply}
 	picks.mu.Unlock()
 	if old != nil {
 		sendDyePickerClose(sess, old.token)
@@ -308,7 +324,7 @@ func (h *DyePickerHandler) HandleDyePicker(sess *session.Session, msg *protocol.
 		sess.SetDyePicker(data[1])
 		log.Printf("DyePicker: %s speaks version %d (asked %d)", sess.RemoteAddr(), sess.DyePicker(), data[1])
 		return nil
-	case DyePickerPicked, DyePickerCancel:
+	case DyePickerPicked, DyePickerCancel, DyePickerNoDye:
 	default:
 		return nil
 	}
@@ -333,7 +349,14 @@ func (h *DyePickerHandler) HandleDyePicker(sess *session.Session, msg *protocol.
 		log.Printf("DyePicker: %s cancelled the picker for %s", p.Name, k.what)
 		return nil
 	}
-	rgba := pickColour(binary.LittleEndian.Uint32(data[5:9]), k.alpha)
+	if data[0] == DyePickerNoDye && !k.noDye {
+		log.Printf("DyePicker: %s answered No dye to the picker for %s, which has none", p.Name, k.what)
+		return nil
+	}
+	var rgba uint32 // No dye: 0, the palette's "No dye"
+	if data[0] == DyePickerPicked {
+		rgba = pickColour(binary.LittleEndian.Uint32(data[5:9]), k.alpha)
+	}
 	say := func(line string) {
 		for _, part := range splitSay(k.speaker+": "+line, questBoxChars) {
 			SendDialogueBox(sess, 0, part)
@@ -350,8 +373,18 @@ func (h *DyePickerHandler) HandleDyePicker(sess *session.Session, msg *protocol.
 		return nil
 	}
 	log.Printf("DyePicker: %s picked %s for %s", p.Name, database.FormatDye(rgba), k.what)
+	// apply takes 0 as the dye off (the palette's "No dye")
 	k.apply(sess, p, rgba)
 	return nil
+}
+
+// pickedSaid is what a dyer says of a picker's answer: the dye off (0), or
+// the colour.
+func pickedSaid(rgba uint32) string {
+	if rgba == 0 {
+		return "The dye is off."
+	}
+	return fmt.Sprintf("There: %s.", colourWords(rgba))
 }
 
 // colourWords is a picked colour as a dyer says it: its palette name if it

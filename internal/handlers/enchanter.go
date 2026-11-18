@@ -287,11 +287,15 @@ func auraAnswers() []string {
 	return append(out, enchanterNoAura)
 }
 
-// colourAnswers is the colours' question's answers: its own, the dyers'
-// families, and "Pick any colour..." last for a client with the picker
-// (dyepicker.go).
+// colourAnswers is the colours' question's answers: its own and the dyers'
+// families; for a client with the picker (dyepicker.go) its own and "Pick any
+// colour..." alone, the palette left to the picker (the owner, 2026-11-18:
+// "lets remove the color presets from the dyer simplify with the rgb picker").
 func colourAnswers(picker bool) []string {
 	out := []string{"Its own colours"}
+	if picker {
+		return append(out, DyePickLabel)
+	}
 	for _, f := range database.DyeFamilies {
 		out = append(out, f.Label)
 	}

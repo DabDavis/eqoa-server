@@ -277,7 +277,12 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		h.tourStandLine(sess, npc)
 	}
 
-	// A tour's host (npctour.go): Santa Claus's sleigh ride over Freeport.
+	// A tour's host (npctour.go): Santa Claus's sleigh ride over Freeport;
+	// a quest step or hand-in the player can do with him now comes first
+	// (petition 2368: he only ever offered the ride, never took the Grinch's Face).
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.gameWorld.IsTourHost(npc) && Quests().ReadyTalk(sess, player, npc) {
+		return nil
+	}
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.tourTalk(sess, player, npc) {
 		return nil
 	}

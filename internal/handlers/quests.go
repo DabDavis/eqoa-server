@@ -801,6 +801,31 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 	return false
 }
 
+// ReadyTalk is Talk's first half alone: a quest step at this NPC the player
+// can do now (a give or show step's items held), or a hand-in of its quests
+// the player holds the items for. HandleInteract asks it before a host's own
+// business that would otherwise take every talk (a tour's sleigh ride:
+// petition 2368, Santa Claus never took the Grinch's Face). It reports
+// whether the quests answered.
+func (q *QuestEngine) ReadyTalk(sess *session.Session, p *entity.Player, npc *entity.NPC) bool {
+	if q == nil || p == nil || npc == nil || npc.Dead {
+		return false
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	c := q.namedLocked(p.CharServerID, p.Name)
+	c.box = nil
+	look := q.lookAt(sess)
+	if q.stepAtLocked(sess, p, c, look, npc.Name, npc.ServerID, true) {
+		return true
+	}
+	if qu := q.readyHandInLocked(look, p, c, npc.Name); qu != nil {
+		q.offerLocked(sess, p, c, qu)
+		return true
+	}
+	return false
+}
+
 // TalkStep is Talk without the offers: a quest step done at the NPC called
 // name (spawn, its spawn), as a spiritmaster's bind does its step at once
 // (answerBind). It reports whether a step answered.

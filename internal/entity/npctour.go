@@ -500,6 +500,17 @@ type TourTalk struct {
 	Say     string
 }
 
+// IsTourHost reports whether npc hosts a tour now (TalkTour would answer).
+func (w *World) IsTourHost(npc *NPC) bool {
+	if npc == nil {
+		return false
+	}
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	d, _ := w.tourOfHostLocked(npc)
+	return d != nil
+}
+
 // TalkTour is the talk of p to npc, a tour's host.
 func (w *World) TalkTour(p *Player, npc *NPC, now time.Time) (TourTalk, bool) {
 	w.mu.Lock()

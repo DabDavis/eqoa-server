@@ -125,6 +125,15 @@ type MoveGround interface {
 	Knows(world uint8) bool
 }
 
+// embedGround is a MoveGround that knows what is placed on the terrain
+// (internal/ground's Embedded and Free): a body in it, and the nearest place
+// it stands free. A ground that is not one leaves a body in something
+// placed where it is, as before.
+type embedGround interface {
+	Embedded(world uint8, x, y, z, mid, r float32) bool
+	Free(world uint8, x, y, z, mid, r float32) (fx, fy, fz float32, top, ok bool)
+}
+
 // envKnows is an Env that says which worlds it has (ground.Env's Knows):
 // where the water is unknown, a body off every floor may be swimming, and
 // the rules of the air are not applied.
@@ -162,6 +171,17 @@ const (
 	mcFixesWindow         = 5 * time.Minute
 	mcFixesNoted          = 5 // moves back in the window that are logged as a pattern
 	mcLogEvery            = 2 * time.Second
+
+	// A body in something placed (the owner, 2026-11-18: Lonewulf in the
+	// rock by Noroxus; ground/embed.go): the walk keeps a 0.6 ball round the
+	// middle off every face, and no report of the 58,422 real ones of
+	// 2026-10-31 had a ball of mcBall in one (116 at 0.6: the walk's ball
+	// touching, 1 at 0.5). One in something that long is put out, on top of
+	// it or beside it, with mcClear clear; at once when it is where a
+	// server move put it.
+	mcBall     float32 = 0.45
+	mcClear    float32 = 0.75
+	mcStuckFor         = time.Second
 )
 
 // gravity and the air's damping (VIWalkControl::Gravity, m_parm44)
@@ -213,6 +233,8 @@ type moveState struct {
 	why      string
 
 	breathLogged uint64 // the tick the breath's disagreement was last logged
+
+	inAt time.Time // since when the places taken have been in something placed; zero, not
 }
 
 // serverMovedLocked: the player stands where the server put it, and the
@@ -227,6 +249,7 @@ func (st *moveState) serverMoved(p *Player, now time.Time, ours bool) {
 	st.pending, st.pendWorld, st.pendX, st.pendY, st.pendZ = true, p.World, p.X, p.Y, p.Z
 	st.pendAt, st.pendFixAt, st.pendFix = now, now, ours
 	st.bad = 0
+	st.inAt = time.Time{}
 }
 
 // arrived reports a report from where a server move put the player.
@@ -257,6 +280,7 @@ type judgement struct {
 	sx, sy, sz        float32
 	ahead             float32 // how far the report is past it
 	held, wet, judged bool    // the place stands, swims, and the server knows
+	in                bool    // and is in something placed (inPlacedLocked)
 	credit, cost      float32
 	jump              jumpState // the jump it is a report of (jump.go), none
 }
@@ -297,10 +321,19 @@ func (w *World) judgeMoveLocked(p *Player, u *ClientUpdate, now time.Time) (take
 			if !st.pendFix {
 				st.credit = st.speed(p, now)*mcSlack + mcBurst // the server's own move: a second's worth
 			}
+			st.inAt = time.Time{}
+			if judged && w.inPlacedLocked(world, u.X, u.Y, u.Z) {
+				// put in something placed (a login where it logged out
+				// in it, a teleport, a summons onto it): out at once
+				if w.putOutLocked(p, now, u.X, u.Y, u.Z, "where it was put") {
+					return false, nil
+				}
+			}
 			return true, nil
 		}
-		// from before the client heard of the move: not a place it is
-		if mode == MoveCheckEnforce && now.Sub(st.pendFixAt) >= mcResend {
+		// from before the client heard of the move: not a place it is (a
+		// put out of something placed is sent again in log mode too)
+		if (mode == MoveCheckEnforce || st.pendFix) && now.Sub(st.pendFixAt) >= mcResend {
 			st.pendFixAt = now
 			w.sendMoveBackLocked(p, st.pendWorld, st.pendX, st.pendY, st.pendZ)
 			w.moveLogLocked(p, now, fmt.Sprintf("no report from where it was put (%.1f, %.1f, %.1f) in %.0f s",
@@ -313,14 +346,14 @@ func (w *World) judgeMoveLocked(p *Player, u *ClientUpdate, now time.Time) (take
 	if j.why == "" {
 		st.take(u.Y, now, j)
 		st.bad = 0
-		return true, nil
+		return w.stuckLocked(p, st, u, now, j), nil
 	}
 	st.why = j.why
 	if mode == MoveCheckLog {
 		w.moveLogLocked(p, now, j.why, u, "taken (log mode)", false)
 		st.take(u.Y, now, j)
 		st.bad = 0
-		return true, nil
+		return w.stuckLocked(p, st, u, now, j), nil
 	}
 	if j.slow {
 		// too fast and nothing else: the place it may have reached on its
@@ -382,6 +415,7 @@ func (w *World) judgeLocked(p *Player, st *moveState, u *ClientUpdate, now time.
 	dx, dz, dy := u.X-st.x, u.Z-st.z, u.Y-st.y
 	dh := float32(math.Hypot(float64(dx), float64(dz)))
 	j.held, j.wet, j.judged = w.heldLocked(world, u.X, u.Y, u.Z)
+	j.in = j.judged && w.inPlacedLocked(world, u.X, u.Y, u.Z)
 
 	// the speed: a distance in hand that the speed fills, a few seconds'
 	// worth (the reports' timing as they reach the server)
@@ -456,6 +490,10 @@ func (w *World) judgeLocked(p *Player, st *moveState, u *ClientUpdate, now time.
 				j.why, j.severe = "through "+what, true
 				return j
 			}
+		}
+		if j.in && !fast {
+			j.why = "in something placed"
+			return j
 		}
 	}
 	if fast {
@@ -610,6 +648,21 @@ func (w *World) moveBackLocked(p *Player, now time.Time) {
 		}
 		st.air = false
 	}
+	if w.inPlacedLocked(st.world, st.x, st.y, st.z) {
+		// back to a place in something placed (taken in log mode, or a
+		// floor under the air that is a rock's inside): out of it instead
+		if eg, ok := w.ground.(embedGround); ok {
+			if fx, fy, fz, _, ok := eg.Free(st.world, st.x, st.y, st.z, mcMiddle, mcClear); ok {
+				st.x, st.y, st.z = fx, fy, fz
+				if p.World == st.world {
+					oldX, oldZ := p.X, p.Z
+					p.X, p.Y, p.Z = fx, fy, fz
+					w.SpatialIndex.Update(p.ServerID, oldX, oldZ, fx, fz)
+				}
+			}
+		}
+	}
+	st.inAt = time.Time{}
 	p.VelX, p.VelY, p.VelZ = 0, 0, 0
 	st.bad = 0
 	st.jump = jumpState{}
@@ -717,4 +770,65 @@ func (w *World) MoveCheckSummary(now time.Time) []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+// inPlacedLocked reports a body with its feet at (x, y, z) in something
+// placed on the terrain (ground's Embedded, the walk's ball less a margin):
+// false where the ground does not know what is placed. Must be called with
+// the lock held.
+func (w *World) inPlacedLocked(world uint8, x, y, z float32) bool {
+	eg, ok := w.ground.(embedGround)
+	return ok && eg.Embedded(world, x, y, z, mcMiddle, mcBall)
+}
+
+// stuckLocked follows a report taken: one in something placed for
+// mcStuckFor (log mode takes it, and a client may stay there) is put out of
+// it. Whether the report's place stays taken. Must be called with the lock
+// held.
+func (w *World) stuckLocked(p *Player, st *moveState, u *ClientUpdate, now time.Time, j judgement) bool {
+	if !j.in {
+		st.inAt = time.Time{}
+		return true
+	}
+	if st.inAt.IsZero() {
+		st.inAt = now
+	}
+	if now.Sub(st.inAt) < mcStuckFor {
+		return true
+	}
+	return !w.putOutLocked(p, now, u.X, u.Y, u.Z, fmt.Sprintf("%.1f s", now.Sub(st.inAt).Seconds()))
+}
+
+// putOutLocked puts a player in something placed at (x, y, z) out of it, on
+// top of it or beside it (ground's Free), or where it last stood when
+// neither is near, and sends its client there; false where it cannot
+// (no such ground, nowhere free). Must be called with the lock held.
+func (w *World) putOutLocked(p *Player, now time.Time, x, y, z float32, how string) bool {
+	eg, ok := w.ground.(embedGround)
+	if !ok {
+		return false
+	}
+	st := &p.mv
+	world := p.World
+	fx, fy, fz, top, ok := eg.Free(world, x, y, z, mcMiddle, mcClear)
+	where := "beside it"
+	switch {
+	case ok && top:
+		where = "on top of it"
+	case !ok && p.HasStood && p.StoodWorld == world && !w.inPlacedLocked(world, p.StoodX, p.StoodY, p.StoodZ):
+		fx, fy, fz, where = p.StoodX, p.StoodY, p.StoodZ, "where it last stood"
+	case !ok:
+		log.Printf("MOVECHECK in something placed: %s at (%.1f, %.1f, %.1f) world %d (%s), nowhere free near", p.Name, x, y, z, world, how)
+		return false
+	}
+	log.Printf("MOVECHECK put out: %s in something placed at (%.1f, %.1f, %.1f) world %d (%s), to (%.1f, %.1f, %.1f) %s",
+		p.Name, x, y, z, world, how, fx, fy, fz, where)
+	st.why = "in something placed"
+	st.world, st.x, st.y, st.z, st.at = world, fx, fy, fz, now
+	st.judged, st.air, st.wet = true, false, false
+	oldX, oldZ := p.X, p.Z
+	p.X, p.Y, p.Z = fx, fy, fz
+	w.SpatialIndex.Update(p.ServerID, oldX, oldZ, fx, fz)
+	w.moveBackLocked(p, now)
+	return true
 }

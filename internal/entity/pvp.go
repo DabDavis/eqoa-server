@@ -49,8 +49,20 @@ import (
 //     InviteEntity refuse it (word 1015), as a duel opponent's are. A foe can still be invited from
 //     the Who list (InviteToGroup, by its record), or by /raid.
 //
+// A foe's pets are fought as the foe is (the owner, 2026-11-18, on Heirloom with Zerkziee: "zerkziee
+// and I are Pvp flagged but pets dont get flagged so i cant attack"): everything a player owns that
+// fights for it (its pet, a charmed one, the animal beside it, its mercs, their pets: pvpFoePetLocked)
+// is a foe's pet to that player while their owners are foes, and nothing to anyone else. Its melee,
+// spells, procs and area splash land on it through the duel's pet paths (duelRoundLocked,
+// duelLandPetLocked, duelHurtPetLocked) at PvPDamageShare, every hit holding both flags; a hit it cannot
+// take kills it, a pet's death (pvpPetDeathLocked: no debt, no experience, no threat, faction or
+// guard). To that foe alone its channel's byte 142 is pvpFoeByte and its npc flags' 0x80 (a charmed
+// creature's: ToggleAutoAttack's refusal) cleared (pvpViewPetLocked), its target face the red one
+// (targetFaceLocked); the channel is made anew each tick, so the flag down, a group or a logout puts
+// it back at once (and handlers/pvp.go tells those targeting it its face at a flag's change).
+//
 // Numbers and choices, one place each: PvPHoldTime, PvPDamageShare, pvpDeathDebt, pvpFoeByte,
-// pvpAreaAtTarget, pvpSayEvery, pvpPetAnswers, pvpPetYields.
+// pvpAreaAtTarget, pvpSayEvery, pvpPetAnswers.
 
 const (
 	// PvPHoldTime is how long the flag stays on after it went on and after the player's last PvP
@@ -70,9 +82,6 @@ const (
 	pvpSayEvery = 5 * time.Second
 	// pvpPetAnswers is how long after a foe's hit a defensive or aggressive pet still goes for it.
 	pvpPetAnswers = 10 * time.Second
-	// pvpPetYields is how long a pet left at a hit point by a foe's damage shield leaves foes alone
-	// (a duel's yields for the duel; nothing kills a pet in either).
-	pvpPetYields = 15 * time.Second
 )
 
 // pvpAreaAtTarget says whether an area spell may be aimed at a foe and splash its caster's foes:
@@ -264,8 +273,19 @@ func pvpAttackedLocked(attacker, t *Player, now time.Time) {
 // engaged, the attacker's flag held from the press. It reports whether it took the press; a press
 // on a player who is no foe is told why (at most every pvpSayEvery).
 func (w *World) pvpEngageLocked(p *Player, ent Entity, objectID uint32, swing Swing, now time.Time) bool {
+	if !w.pvpAllowed && p.ctf.match == 0 {
+		return false
+	}
+	if pet, isNPC := ent.(*NPC); isNPC {
+		// a foe's pet, engaged as its owner is; anyone else's stays a pet (attack.go)
+		if w.pvpFoePetLocked(p, pet) == nil {
+			return false
+		}
+		w.pvpEngageOnLocked(p, pet.ServerID, pet.Name, objectID, swing, now)
+		return true
+	}
 	t, ok := ent.(*Player)
-	if !ok || t == p || (!w.pvpAllowed && p.ctf.match == 0) {
+	if !ok || t == p {
 		return false
 	}
 	if !p.pvpFoe(t) {
@@ -277,18 +297,94 @@ func (w *World) pvpEngageLocked(p *Player, ent Entity, objectID uint32, swing Sw
 		}
 		return false
 	}
+	w.pvpEngageOnLocked(p, t.ServerID, t.Name, objectID, swing, now)
+	return true
+}
+
+// pvpEngageOnLocked is a press taken on a foe or a foe's pet: p engages it, its flag held from the press.
+func (w *World) pvpEngageOnLocked(p *Player, id EntityID, name string, objectID uint32, swing Swing, now time.Time) {
 	p.pvp.hold = now.Add(PvPHoldTime)
 	p.Swing, p.swingNew = swing, false
-	if p.AttackTarget == t.ServerID && p.AttackObjectID == objectID {
+	if p.AttackTarget == id && p.AttackObjectID == objectID {
 		p.pressed(now)
-		return true
+		return
 	}
-	p.AttackTarget, p.AttackObjectID = t.ServerID, objectID
+	p.AttackTarget, p.AttackObjectID = id, objectID
 	p.pressed(now)
 	w.breakInvisLocked(p, "an attack")
 	w.breakBoardWolfLocked(p, "an attack")
-	log.Printf("PvP: %s engages %s (swing %d, %v, reach %.1f)", p.Name, t.Name, swing.Kind, swing.Delay, swing.Reach)
-	return true
+	log.Printf("PvP: %s engages %s (swing %d, %v, reach %.1f)", p.Name, name, swing.Kind, swing.Delay, swing.Reach)
+}
+
+// pvpFoePetLocked is the owner of npc when npc is a foe's pet to p (the file's doc): an NPC alive in
+// p's world that a player owns and that fights for it (its pet, charmed or summoned, the animal
+// beside it, a merc, a merc's pet; not a familiar, nor a pet that takes no fight), whose owner is p's
+// foe (pvpFoe); nil otherwise. Must be called with the lock held.
+func (w *World) pvpFoePetLocked(p *Player, npc *NPC) *Player {
+	if p == nil || npc == nil || npc.Owner == 0 || npc.Owner == p.ServerID || npc.Dead || npc.World != p.World ||
+		npc.isFamiliar() || !npc.petFights() || w.NPCs[npc.ServerID] != npc {
+		return nil
+	}
+	if !npc.isMerc() && w.petStateOfNPCLocked(npc) == nil {
+		return nil // owned by nothing that fights for a player (no pet state of its own)
+	}
+	if o := w.Players[npc.Owner]; p.pvpFoe(o) {
+		return o
+	}
+	return nil
+}
+
+// pvpFoeOfLocked is the foe of p's that id is or owns (a foe, or a foe's pet), else nil.
+func (w *World) pvpFoeOfLocked(p *Player, id EntityID) *Player {
+	if t := w.Players[id]; t != nil {
+		if p.pvpFoe(t) {
+			return t
+		}
+		return nil
+	}
+	return w.pvpFoePetLocked(p, w.NPCs[id])
+}
+
+// pvpPetStruckLocked is an attack of attacker's landing on a pet of owner's, a foe: both flags held
+// from now, and owner's own pet told who (its stance), as at a hit on owner (pvpAttackedLocked) but
+// for its death's assists, which are owner's own hurts alone.
+func pvpPetStruckLocked(attacker, owner *Player, now time.Time) {
+	attacker.pvp.hold = now.Add(PvPHoldTime)
+	if owner == nil {
+		return
+	}
+	owner.pvp.hold = now.Add(PvPHoldTime)
+	owner.pvp.struckBy, owner.pvp.struckAt = attacker.ServerID, now
+}
+
+// pvpPetDeathLocked is a foe's pet killed by killer's hand (its hit, its pet's, a spell's, a proc's,
+// a shield's answer): a pet's death, as a creature's kill of it is (npcMeleeOnPetLocked), its owner
+// told by its pet's or its merc's own passing (petSystem, mercSystem); no debt, no experience, no
+// threat, faction or guard. Must be called with the lock held.
+func (w *World) pvpPetDeathLocked(killer *Player, pet *NPC, now time.Time) {
+	pet.HP = 0
+	pet.endRound()
+	w.killNPC(pet)
+	w.dropAggroLocked(pet.ServerID)
+	log.Printf("PvP: %s kills %s's %q", killer.Name, w.nameOfLocked(pet.Owner), pet.Name)
+	w.duelSayLocked(killer, fmt.Sprintf("You have slain %s.", pet.Name), duelOrange)
+	if killer.AttackTarget == pet.ServerID {
+		killer.disengage()
+	}
+}
+
+// pvpViewPetLocked is a foe's pet's channel as sess sees it: to its owner's foe its byte 142 is
+// pvpFoeByte (as the foe's own: TargetInRange lets the swing go; ApplyLook's name colour stays a
+// pet's), and its npc flags' 0x80 (byte 146: a charmed creature's, which ToggleAutoAttack and
+// vanilla's attack_press refuse) cleared. Must be called with the lock held.
+func (w *World) pvpViewPetLocked(sess *session.Session, npc *NPC, buf []byte) {
+	if npc.Owner == 0 || len(buf) <= 146 {
+		return
+	}
+	if w.pvpFoePetLocked(w.sessionPlayerLocked(sess), npc) != nil {
+		buf[142] = pvpFoeByte
+		buf[146] &^= 0x80
+	}
 }
 
 // pvpRefusal is why p may not attack t, for the line; "" when it may or when nothing need be said
@@ -315,6 +411,23 @@ func pvpRefusal(p, t *Player) string {
 // when target is none of its business.
 func (w *World) pvpSpellTargetLocked(p *Player, spell *CastSpell, target Entity) (ids []EntityID, refusal string, ok bool) {
 	d := &spell.Def
+	if pet, isNPC := target.(*NPC); isNPC && d.Harmful && (w.pvpAllowed || p.ctf.match != 0) {
+		// a foe's pet, as a duel opponent's (duelSpellTargetLocked); anyone else's stays a pet (cast.go)
+		if w.pvpFoePetLocked(p, pet) == nil {
+			return nil, "", false
+		}
+		switch {
+		case d.Charms():
+			return nil, castFriendly, true
+		case spell.Area.Centre != AreaNone && !pvpAreaAtTarget:
+			return nil, pvpLineArea, true
+		}
+		if outOfRange(p, pet.X, pet.Y, pet.Z, spell.Range+npcReachExtra(pet)) {
+			return nil, refuseOutOfRange(p, spell, pet.Name, pet.X, pet.Y, pet.Z, spell.Range+npcReachExtra(pet)), true
+		}
+		spell.duel = true
+		return []EntityID{pet.ServerID}, "", true
+	}
 	t, isPlayer := target.(*Player)
 	if (!w.pvpAllowed && p.ctf.match == 0) || !d.Harmful || !isPlayer || t == p {
 		return nil, "", false
@@ -365,6 +478,16 @@ func (w *World) areaFoesLocked(p *Player, cs *castState, cx, cy, cz, r float32) 
 			out = append(out, areaNear{id, dd})
 		}
 	}
+	// and their pets (pvpFoePetLocked), as the creatures are found (areaCreaturesLocked)
+	for _, id := range w.SpatialIndex.QueryRadius(cx, cz, queryRadius(cone, r)) {
+		pet := w.NPCs[id]
+		if pet == nil || pet.Owner == 0 || areaHas(cs.targets, id) || w.pvpFoePetLocked(p, pet) == nil {
+			continue
+		}
+		if in, dd := inArea(cone, cx, cy, cz, r, pet.X, pet.Y, pet.Z, npcReachExtra(pet)); in && w.reachesLocked(place, pet.X, pet.Y, pet.Z) {
+			out = append(out, areaNear{id, dd})
+		}
+	}
 	return out
 }
 
@@ -374,7 +497,7 @@ func (w *World) pvpCastBegunLocked(p *Player, spell *CastSpell, targets []Entity
 		return
 	}
 	for _, id := range targets {
-		if p.pvpFoe(w.Players[id]) {
+		if w.pvpFoeOfLocked(p, id) != nil { // a foe, or a foe's pet
 			p.pvp.hold = now.Add(PvPHoldTime)
 		}
 	}
@@ -511,6 +634,48 @@ func (w *World) TargetersOf(t *Player) []Targeter {
 	return out
 }
 
+// PetTargeter is a session whose client has one of a player's pets as its target.
+type PetTargeter struct {
+	Targeter
+	Pet *NPC
+}
+
+// PetTargetersOf is everyone whose client has one of t's pets (anything t owns: pvpFoePetLocked's
+// kinds) targeted: a flag's change turns that pet's face for its owner's foes, read only from 0x0010.
+func (w *World) PetTargetersOf(t *Player) []PetTargeter {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	if w.SessionManager == nil {
+		return nil
+	}
+	var pets []*NPC
+	for _, n := range w.NPCs {
+		if n.Owner == t.ServerID && !n.Dead {
+			pets = append(pets, n)
+		}
+	}
+	if len(pets) == 0 {
+		return nil
+	}
+	var out []PetTargeter
+	w.SessionManager.ForEach(func(s *session.Session) bool {
+		if !s.CharacterInWorld() {
+			return true
+		}
+		v := w.sessionPlayerLocked(s)
+		if v == nil || v.TargetObjectID == 0 || v.TargetObjectID == noTargetObject {
+			return true
+		}
+		for _, n := range pets {
+			if id := w.objectIDSeenByLocked(s, n.ServerID); id != 0 && id == v.TargetObjectID {
+				out = append(out, PetTargeter{Targeter: Targeter{Sess: s, Viewer: v, ObjectID: id, Token: v.targetToken}, Pet: n})
+			}
+		}
+		return true
+	})
+	return out
+}
+
 // SetTargetToken keeps the token of a player's last 0x0010.
 func (w *World) SetTargetToken(id EntityID, token uint32) {
 	w.mu.Lock()
@@ -520,11 +685,11 @@ func (w *World) SetTargetToken(id EntityID, token uint32) {
 	}
 }
 
-// pvpPetLocked is petSystem's PvP half: a flagged owner's pet goes for a foe told to (0x0041 8:
-// pvpPetCommandLocked) or by its stance as in a duel: aggressive what its owner swings at or what
-// struck its owner, defensive what struck its owner; every hit is its owner's PvP hit. It is never
-// hit in return but by a damage shield: to a foe a pet stays a pet, as to anyone (byte 142 3). It
-// reports whether the pet fought this tick (its other fights and its following wait).
+// pvpPetLocked is petSystem's PvP half: a flagged owner's pet goes for a foe or a foe's pet told to
+// (0x0041 8: pvpPetCommandLocked) or by its stance as in a duel: aggressive what its owner swings at
+// or what struck its owner (or its pet), defensive what struck its owner; every hit is its owner's
+// PvP hit. To its owner's foes it is a foe's pet (pvpFoePetLocked), fought as they are. It reports
+// whether the pet fought this tick (its other fights and its following wait).
 func (w *World) pvpPetLocked(ps *petState, dt float32, now time.Time) bool {
 	owner, pet := ps.owner, ps.npc
 	if !owner.pvpLive() || pet.Charm != nil || !pet.petFights() {
@@ -535,9 +700,9 @@ func (w *World) pvpPetLocked(ps *petState, dt float32, now time.Time) bool {
 		}
 		return false
 	}
-	t := w.Players[ps.pvpTarget]
-	if ps.pvpTarget != 0 && !owner.pvpFoe(t) {
-		ps.pvpTarget, t = 0, nil
+	foe := w.pvpFoeOfLocked(owner, ps.pvpTarget)
+	if ps.pvpTarget != 0 && foe == nil {
+		ps.pvpTarget = 0
 		pet.endRound()
 		pet.stopMoving()
 	}
@@ -546,36 +711,45 @@ func (w *World) pvpPetLocked(ps *petState, dt float32, now time.Time) bool {
 			return false
 		}
 		if ps.stance == petAggressive && owner.Attacking() {
-			if q := w.Players[owner.AttackTarget]; owner.pvpFoe(q) {
-				t = q
+			if q := w.pvpFoeOfLocked(owner, owner.AttackTarget); q != nil {
+				ps.pvpTarget, foe = owner.AttackTarget, q
 			}
 		}
-		if t == nil && (ps.stance == petAggressive || ps.stance == petDefensive) && now.Sub(owner.pvp.struckAt) < pvpPetAnswers {
+		if foe == nil && (ps.stance == petAggressive || ps.stance == petDefensive) && now.Sub(owner.pvp.struckAt) < pvpPetAnswers {
 			if q := w.Players[owner.pvp.struckBy]; owner.pvpFoe(q) {
-				t = q
+				ps.pvpTarget, foe = q.ServerID, q
 			}
 		}
-		if t == nil {
+		if foe == nil {
 			return false
 		}
-		ps.pvpTarget = t.ServerID
-		log.Printf("PvP: %s's pet %q goes for %s", owner.Name, pet.Name, t.Name)
+		log.Printf("PvP: %s's pet %q goes for %s", owner.Name, pet.Name, w.nameOfEntityLocked(ps.pvpTarget))
 	}
-	if !w.duelPetRoundLocked(ps, w.pvpFightLocked(owner, t), t.ServerID, dt, now) {
+	if !w.duelPetRoundLocked(ps, w.pvpFightLocked(owner, foe), ps.pvpTarget, dt, now) {
 		ps.pvpTarget = 0 // past its leash: it follows its owner
 		return false
 	}
 	return true
 }
 
-// pvpPetCommandLocked is PetCommand's attack (0x0041 8) at a foe of the owner's: the pet goes for
-// it. It reports whether the target was one.
+// nameOfEntityLocked is a player's or an NPC's name, for the log.
+func (w *World) nameOfEntityLocked(id EntityID) string {
+	if p := w.Players[id]; p != nil {
+		return p.Name
+	}
+	if n := w.NPCs[id]; n != nil {
+		return n.Name
+	}
+	return "?"
+}
+
+// pvpPetCommandLocked is PetCommand's attack (0x0041 8) at a foe of the owner's or a foe's pet: the
+// pet goes for it. It reports whether the target was one.
 func (w *World) pvpPetCommandLocked(ps *petState, target Entity) bool {
-	t, ok := target.(*Player)
-	if !ok || !ps.owner.pvpFoe(t) || ps.npc.Charm != nil || !ps.npc.petFights() {
+	if target == nil || ps.npc.Charm != nil || !ps.npc.petFights() || w.pvpFoeOfLocked(ps.owner, target.GetEntityID()) == nil {
 		return false
 	}
-	ps.pvpTarget, ps.target = t.ServerID, 0
+	ps.pvpTarget, ps.target = target.GetEntityID(), 0
 	ps.heldUntil = time.Time{}
 	return true
 }

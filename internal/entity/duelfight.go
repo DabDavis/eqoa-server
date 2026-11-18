@@ -111,7 +111,13 @@ func (w *World) duelLandPetLocked(cs *castState, caster *Player, pet *NPC, now t
 	}
 	d := w.duelOnLocked(caster.ServerID)
 	if d == nil || pet.Owner != d.other(caster.ServerID) || d.petOut[pet.Owner] {
-		log.Printf("Duel: %s's %q on %s lands on nothing: no duel with its owner", caster.Name, cs.spell.Name, pet.Name)
+		d = nil
+		if o := w.pvpFoePetLocked(caster, pet); o != nil {
+			d = w.pvpFightLocked(caster, o) // a foe's pet (pvp.go)
+		}
+	}
+	if d == nil {
+		log.Printf("Duel: %s's %q on %s lands on nothing: no duel or PvP fight with its owner", caster.Name, cs.spell.Name, pet.Name)
 		return true
 	}
 	caster.LastCombatTime = now

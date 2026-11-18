@@ -122,7 +122,7 @@ func (w *World) duelProcsLocked(d *Duel, p *Player, m duelMark, now time.Time) b
 func (w *World) duelOverForLocked(d *Duel, p *Player, m duelMark) bool {
 	if d.pvp {
 		// in no table: over when either side is down, or no longer foes
-		return !d.who[0].pvpFoe(d.who[1]) || (m.pet != nil && d.petOut[m.pet.Owner])
+		return !d.who[0].pvpFoe(d.who[1]) || (m.pet != nil && (d.petOut[m.pet.Owner] || m.pet.Dead))
 	}
 	return w.duelOnLocked(p.ServerID) != d || (m.pet != nil && d.petOut[m.pet.Owner])
 }

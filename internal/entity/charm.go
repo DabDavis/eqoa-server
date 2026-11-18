@@ -560,6 +560,11 @@ func (w *World) unCharmLocked(npc *NPC) uint8 {
 	npc.Power, npc.MaxPower = 0, 0 // a creature again: no power (npcregen.go)
 	npc.endTemplateFight()         // the pet template's clocks (pettemplate.go)
 	w.applyTemplateLocked(npc)
+	// its hit points as they stand, never over its own maximum (its
+	// template's and its kept effects': applyTemplateLocked, syncEffectMaxHP)
+	if npc.MaxHP > 0 && npc.HP > npc.MaxHP {
+		npc.HP = npc.MaxHP
+	}
 	return h.world
 }
 

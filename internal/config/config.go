@@ -702,6 +702,11 @@ type WorldConfig struct {
 	// owns the accounts). Unset or false: an [OG] account is any other here.
 	OGAccounts bool `yaml:"og_accounts"`
 
+	// Hardcore is [HC] Hardcore characters (handlers/hardcore.go; the owner,
+	// 2026-11-18: "lets add [HC] tag for characters. Hardcore mode chars stay
+	// dead and cannot respawn"). Off unless enabled.
+	Hardcore HardcoreConfig `yaml:"hardcore"`
+
 	// PerpetualAuctions shows and sells the auction house's standing lots
 	// (database/auction_perpetual.go, handlers/auction_perpetual.go): lots
 	// that never end and never run out, a buy at the price filing the items
@@ -757,6 +762,27 @@ type DungeonsConfig struct {
 	// own (unset: 4, the heroic dungeons'); RaidCap a raid's instance's (unset: 50)
 	Cap     int `yaml:"cap"`
 	RaidCap int `yaml:"raid_cap"`
+}
+
+// HardcoreConfig is world.hardcore (handlers/hardcore.go).
+type HardcoreConfig struct {
+	// Enabled offers the choice at creation (vanilla's create page; a PS2's
+	// first world entry asks), draws a Hardcore character "[HC] Name" and makes
+	// its first real death final. Unset or false: a Hardcore character's death
+	// is any other's, its tag not drawn (the rows are kept as they are).
+	Enabled bool `yaml:"enabled"`
+	// Shard names this shard on the fallen heroes' page and the memorial
+	// ("Heirloom", "Live"); unset: none.
+	Shard string `yaml:"shard"`
+	// FallLogoutSeconds is how long after its fall a Hardcore character's
+	// client is sent to its login (unset or 0: 15, the respawn's wait; the
+	// death camera and fade take its first 8 s).
+	FallLogoutSeconds int `yaml:"fall_logout_seconds"`
+	// OtherDB and OtherMark are the other shard's database (opened read-only)
+	// and name, whose fallen the page at /fallen lists beside this shard's;
+	// unset: this shard's alone.
+	OtherDB   string `yaml:"other_db"`
+	OtherMark string `yaml:"other_mark"`
 }
 
 // BugBoardConfig is world.bug_board (handlers/bugboard.go).

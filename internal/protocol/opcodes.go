@@ -1425,6 +1425,32 @@ const (
 	OpcodeVanillaUI GameOpcode = 0x7EA0
 )
 
+// [HC] Hardcore characters (world.hardcore, handlers/hardcore.go; the owner
+// 2026-11-18: "lets add [HC] tag for characters. Hardcore mode chars stay dead
+// and cannot respawn"). Not retail.
+const (
+	// OpcodeHardcore is offered once a session after its first character list
+	// on a shard with world.hardcore: a u32, 1, both ways. A client that answers
+	// 1 (vanilla) offers the choice on its create page, writes it after
+	// 0x002B's fields (before the race options' block: 'H', a u8 version 1, a
+	// u8 choice, 1 Hardcore), and is sent OpcodeHardcoreChars. A PS2 ignores
+	// the offer; its characters are asked in the game (a question box).
+	OpcodeHardcore GameOpcode = 0x7EB0
+	// OpcodeHardcoreChars is each listed character's Hardcore state, after
+	// every list and at the answer, to a client that took OpcodeHardcore: a u8
+	// version (1), a u16 count, then each character's u32 ServerID, its plain
+	// name (u8-counted UTF-8; the list's may carry a PS2's marks), a u8 of flags
+	// (1 Hardcore, 2 fallen, 4 its choice is still to be asked in the game) and,
+	// fallen, a u32 Unix time of the fall, a u8 level and a u16 of Combat
+	// Mastery points then, and u8-counted killer and place.
+	OpcodeHardcoreChars GameOpcode = 0x7EB1
+	// OpcodeHardcoreFall is a client's own Hardcore character fallen, to a
+	// client that took OpcodeHardcore: a u32 Unix time, u8-counted killer and
+	// place, and a u16 of seconds until the server sends it to its login
+	// (0x0777).
+	OpcodeHardcoreFall GameOpcode = 0x7EB2
+)
+
 // =============================================================================
 // Game Version Constants
 // =============================================================================
@@ -1806,6 +1832,12 @@ func (op GameOpcode) String() string {
 		return "ReadyCheckReply"
 	case OpcodeDPSMeterOffer:
 		return "DPSMeterOffer"
+	case OpcodeHardcore:
+		return "Hardcore"
+	case OpcodeHardcoreChars:
+		return "HardcoreChars"
+	case OpcodeHardcoreFall:
+		return "HardcoreFall"
 	case OpcodeVanillaUI:
 		return "VanillaUI"
 	case OpcodeConLevelOffer:

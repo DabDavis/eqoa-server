@@ -75,7 +75,7 @@ func (w *World) playerDiedLocked(sess *session.Session, p *Player, now time.Time
 // playerDownLocked is playerDiedLocked with the death's experience debt given:
 // deathdebt.go's for any death but a PvP one (pvp.go).
 func (w *World) playerDownLocked(sess *session.Session, p *Player, now time.Time, debt int) {
-	if p.respawnPending() {
+	if p.respawnPending() || p.Fallen {
 		return
 	}
 	if w.challengeDefeatLocked(sess, p, now) { // a duel with Metal Moogie lost: 1 HP left (metalmoogie.go)
@@ -87,6 +87,12 @@ func (w *World) playerDownLocked(sess *session.Session, p *Player, now time.Time
 		log.Printf("Death: %s would have died (GM test mode): 1 HP left", p.Name)
 		return
 	}
+	var fall *HardcoreFall
+	if p.HardcoreBound() && !p.Fallen {
+		f := w.hardcoreFallLocked(p, now) // hardcore.go: its last death, read before the hate lists drop it
+		fall = &f
+	}
+	p.deathCause, p.deathBy = "", ""
 	p.HP = 0
 	p.DiedAt = now
 	w.ctfDownLocked(p, now) // ctfflag.go: a carrier's banner drops where it fell
@@ -95,6 +101,15 @@ func (w *World) playerDownLocked(sess *session.Session, p *Player, now time.Time
 	p.disengage()
 	w.clearSpellsLocked(p)
 	w.dropAggroLocked(p.ServerID)
+	if fall != nil {
+		// a Hardcore character's: no debt, no chance of a rez, no respawn; the
+		// hook writes it down, announces it and sends the client to its login
+		if sess != nil {
+			w.sendPlayerDied(sess)
+		}
+		handHardcoreFall(sess, *fall)
+		return
+	}
 	debt = min(debt, MaxDebt-capDebt(p.Debt)) // deathdebt.go: no more past the cap
 	p.Debt = capDebt(p.Debt + debt)
 	p.noteRezChance(debt, now) // resurrect.go: what a rez may give back of it
@@ -133,7 +148,7 @@ func (w *World) dropAggroLocked(id EntityID) {
 func (w *World) playerRespawnSystem(now time.Time) []respawnDue {
 	var due []respawnDue
 	for _, p := range w.Players {
-		if !p.respawnPending() {
+		if !p.respawnPending() || p.Fallen { // a fallen Hardcore character never respawns (hardcore.go)
 			continue
 		}
 		if due, arena := w.ctfRespawnDueLocked(p, now); arena { // ctf.go: the arena's waves

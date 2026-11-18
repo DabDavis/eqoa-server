@@ -516,6 +516,14 @@ type Player struct {
 	// login: on a shard with world.og_accounts its name is drawn with OGTag
 	// (ogtag.go) and its session has the game's own UI (handlers/ogaccount.go)
 	OG bool
+	// Hardcore: a Hardcore character (database/hardcore.go), read at its login:
+	// on a shard with world.hardcore its name is drawn with HCTag and its first
+	// real death is final (hardcore.go). Fallen: that death has come; it never
+	// respawns, no rez lands on it, and it never enters the world again.
+	Hardcore, Fallen bool
+	// deathCause and deathBy name the cause of the death about to be dealt by a
+	// hazard with no creature behind it (setDeathCause; hardcore.go)
+	deathCause, deathBy string
 	// ArmorBody is its race's body for the armour on its chest, 0 its own (armorbody.go)
 	ArmorBody uint32
 	// stuckNext is when /stuck may be used again (stuck.go)

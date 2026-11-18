@@ -197,6 +197,7 @@ func (w *World) hazardSystem(now time.Time) {
 			w.sendColoredLocked(sess, line, castRefusalRGB)
 		}
 		if p.HP <= 0 {
+			p.setDeathCause(CauseHazard, orName(h.Name)) // hardcore.go
 			w.playerDiedLocked(sess, p, now)
 		}
 	}

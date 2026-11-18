@@ -518,6 +518,7 @@ func (w *World) pvpDeathLocked(killer, t *Player, now time.Time) {
 		w.ctfKillLocked(killer, t)         // ctf.go: the match's count
 	}
 	sess := w.findSessionByEntityIDLocked(t.ServerID)
+	t.setDeathCause(CausePvP, killer.Name) // a Hardcore character's fall names its foe (hardcore.go)
 	w.playerDownLocked(sess, t, now, pvpDeathDebt)
 	if killer.AttackTarget == t.ServerID {
 		killer.disengage()

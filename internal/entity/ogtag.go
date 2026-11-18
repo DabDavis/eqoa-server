@@ -26,8 +26,8 @@ import (
 const OGTag = "[OG] "
 
 // ShownNameMost is the most bytes of a drawn name: the channel's 24 less a
-// NUL. A character's own name is 15 at most (isValidName), so only a GM's
-// [GM] [OG] with a full one is cut.
+// NUL. A character's own name is 15 at most (isValidName); tags that would not
+// fit with it are fitted by composeTags (hardcore.go), never the name.
 const ShownNameMost = 23
 
 // ogTags is world.og_accounts: the [OG] tag drawn (handlers.SetOGAccounts).
@@ -48,10 +48,10 @@ func cutShownName(name string) string {
 }
 
 // nameTags are the tags a drawn name may begin with.
-var nameTags = []string{GMTag, OGTag, CTFCarrierTag}
+var nameTags = []string{GMTag, OGTag, HCTag, CTFCarrierTag}
 
 // PlainName is a name as typed or sent back, without the tags a drawn name
-// carries before it ("[GM] [OG] Name" is "Name"), and trimmed.
+// carries before it ("[GM] [OG] Name", "[OG][HC]Name" are "Name"), and trimmed.
 func PlainName(name string) string {
 	name = strings.TrimSpace(name)
 	for again := true; again; {
@@ -67,32 +67,47 @@ func PlainName(name string) string {
 	return name
 }
 
-// IsNameTag reports whether word is one of the tags alone ("[OG]"): a tell's
-// line "/t [OG] Name text" splits on it.
+// IsNameTag reports whether word is the tags alone ("[OG]", "[OG][HC]"): a
+// tell's line "/t [OG][HC] Name text" splits on it.
 func IsNameTag(word string) bool {
-	for _, t := range nameTags {
-		if strings.EqualFold(word, strings.TrimSpace(t)) {
-			return true
+	word = strings.TrimSpace(word)
+	if word == "" {
+		return false
+	}
+	for word != "" {
+		found := false
+		for _, t := range nameTags {
+			tag := strings.TrimSpace(t)
+			if len(word) >= len(tag) && strings.EqualFold(word[:len(tag)], tag) {
+				word = strings.TrimSpace(word[len(tag):])
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
 		}
 	}
-	return false
+	return true
 }
 
-// ShownNames is every name a character of an account (gm, og) may be drawn by
-// on this shard, its own first: the lists vanilla keys by the drawn name.
-func ShownNames(name string, gm, og bool) []string {
-	out := []string{name}
+// ShownNames is every name a character of an account (gm, og) that is or is
+// not Hardcore (hc) may be drawn by on this shard, its own first: the lists
+// vanilla keys by the drawn name. A GM may hide its tag, so both forms.
+func ShownNames(name string, gm, og, hc bool) []string {
 	og = og && OGTagsOn()
-	if og {
-		out = append(out, cutShownName(OGTag+name))
-	}
-	if gm {
-		out = append(out, cutShownName(GMTag+name))
-		if og {
-			out = append(out, cutShownName(GMTag+OGTag+name))
+	hc = hc && HardcoreOn()
+	var more []string
+	for _, g := range []bool{false, gm} {
+		for _, o := range []bool{false, og} {
+			for _, h := range []bool{false, hc} {
+				if s := shownWith(name, g, false, o, h); s != name {
+					more = append(more, s)
+				}
+			}
 		}
 	}
-	return out
+	return append([]string{name}, uniqueStrings(more)...)
 }
 
 // SetPlayerOG records whether the session's character's account is an [OG]

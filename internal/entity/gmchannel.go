@@ -118,6 +118,7 @@ func (w *World) KillPlayerNow(sess *session.Session, id EntityID) bool {
 	if p == nil || p.IsDead() {
 		return false
 	}
+	p.setDeathCause(CauseGM, "a GM") // hardcore.go: a GM's KILL counts; an unfall in the panel undoes a mistake
 	w.playerDiedLocked(sess, p, time.Now())
 	p.StatsDirty = true
 	return true

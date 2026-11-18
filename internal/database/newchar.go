@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"time"
 )
 
 // NewCharacterRules is what a new character starts with: world.start_level
@@ -53,6 +54,11 @@ func (s *SQLiteCharacterStore) CreateNew(c *CharacterRecord) (int, error) {
 	}
 	if err := s.Create(c); err != nil {
 		return 0, err
+	}
+	// its birth, for the Hardcore choice its first world entry may ask
+	// (hardcore.go); a fall's age
+	if err := s.db.StampBorn(uint32(c.ServerID), c.Level, time.Now()); err != nil {
+		return 0, fmt.Errorf("character %q made, its birth not: %w", c.CharName, err)
 	}
 	if placed {
 		// a new character is bound where it starts until a spiritmaster

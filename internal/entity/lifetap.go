@@ -307,6 +307,7 @@ func (w *World) payPriceLocked(cs *castState, caster *Player, sess *session.Sess
 	caster.StatsDirty = true
 	w.tellAmountLocked(caster, sess, caster.ServerID, -taken, 0) // a price on the caster: untagged (numbertags.go)
 	if caster.HP <= 0 {
+		caster.setDeathCause(CauseSelf, "their own spell") // hardcore.go
 		w.playerDiedLocked(sess, caster, now)
 	}
 }
@@ -341,6 +342,7 @@ func (w *World) selfCostLocked(name string, p *Player, sess *session.Session, n 
 	if p.HP > 0 {
 		return false
 	}
+	p.setDeathCause(CauseSelf, "their own spell") // hardcore.go
 	w.playerDiedLocked(sess, p, now)
 	return true
 }

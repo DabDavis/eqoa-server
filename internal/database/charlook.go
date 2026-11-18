@@ -125,6 +125,7 @@ type LookCharacter struct {
 	Name    string
 	GM      bool
 	OG      bool // an [OG] account's (ogaccount.go): its channel name may carry the tag
+	HC      bool // a Hardcore character (hardcore.go): its channel name may carry the tag
 	Race    int
 	Sex     int
 	ModelID int64
@@ -134,7 +135,7 @@ type LookCharacter struct {
 // LookCharacters is every character with a charlook row, by name; with
 // serverIDs, only those.
 func (db *SQLiteDB) LookCharacters(serverIDs ...uint32) ([]LookCharacter, error) {
-	q := `SELECT c.charName, COALESCE(a.acctlevel, 0) >= 1, COALESCE(a.og, 0) != 0, c.race, c.sex, c.modelid, l.part, l.kind, l.value
+	q := `SELECT c.charName, COALESCE(a.acctlevel, 0) >= 1, COALESCE(a.og, 0) != 0, COALESCE(c.hardcore, 0) != 0, c.race, c.sex, c.modelid, l.part, l.kind, l.value
 		FROM charlook l JOIN characters c ON c.serverid = l.serverid
 		LEFT JOIN accountinfo a ON a.accountid = c.accountid`
 	var args []any
@@ -159,7 +160,7 @@ func (db *SQLiteDB) LookCharacters(serverIDs ...uint32) ([]LookCharacter, error)
 		var c LookCharacter
 		var l CharLook
 		var v int64
-		if err := rows.Scan(&c.Name, &c.GM, &c.OG, &c.Race, &c.Sex, &c.ModelID, &l.Part, &l.Kind, &v); err != nil {
+		if err := rows.Scan(&c.Name, &c.GM, &c.OG, &c.HC, &c.Race, &c.Sex, &c.ModelID, &l.Part, &l.Kind, &v); err != nil {
 			return nil, err
 		}
 		l.Value = uint32(v)

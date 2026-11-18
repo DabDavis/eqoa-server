@@ -134,6 +134,7 @@ func (w *World) lavaSystem(now time.Time) {
 			w.sendColoredLocked(sess, fmt.Sprintf(lavaWords, n), castRefusalRGB)
 		}
 		if p.HP <= 0 {
+			p.setDeathCause(CauseLava, "lava") // hardcore.go
 			w.playerDiedLocked(sess, p, now)
 		}
 	}

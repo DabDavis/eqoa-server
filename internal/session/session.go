@@ -200,6 +200,11 @@ type Session struct {
 	// the offer went out, once a session.
 	selectInfo        bool
 	selectInfoOffered bool
+	// hardcoreClient: the client answered the Hardcore offer 1
+	// (protocol.OpcodeHardcore, handlers/hardcore.go); hardcoreOffered: the
+	// offer went out, once a session.
+	hardcoreClient  bool
+	hardcoreOffered bool
 	// itemListsPack, itemListsBank: the client's answer to the item lists'
 	// offer (protocol.OpcodeItemLists, handlers/itemlists.go), the records it
 	// holds of the pack and the bank; 0 for a client that never answered (a
@@ -1148,6 +1153,38 @@ func (s *Session) OfferSelectInfoOnce() bool {
 	defer s.mu.Unlock()
 	first := !s.selectInfoOffered
 	s.selectInfoOffered = true
+	return first
+}
+
+// SetHardcoreClient records the client's answer to the Hardcore offer.
+func (s *Session) SetHardcoreClient(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.hardcoreClient = on
+}
+
+// HardcoreClient is whether the client took the Hardcore offer (vanilla); a
+// PS2 never does.
+func (s *Session) HardcoreClient() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.hardcoreClient
+}
+
+// HardcoreOffered is whether the Hardcore offer went out on this session.
+func (s *Session) HardcoreOffered() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.hardcoreOffered
+}
+
+// OfferHardcoreOnce reports whether the Hardcore offer is still to be made to
+// this session, and marks it made.
+func (s *Session) OfferHardcoreOnce() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	first := !s.hardcoreOffered
+	s.hardcoreOffered = true
 	return first
 }
 

@@ -750,17 +750,11 @@ func SerializeBuffUpdate(p *Player) []byte {
 const GMTag = "[GM] "
 
 // ShownName is the name the entity channel carries: a GM's with GMTag, an
-// [OG] account's with OGTag (ogaccount.go), cut to ShownNameMost.
+// [OG] account's with OGTag (ogaccount.go), a Hardcore character's with HCTag
+// (hardcore.go), the tags joined and fitted to ShownNameMost (composeTags).
 func (p *Player) ShownName() string {
-	name := p.Name
-	if p.OG && OGTagsOn() {
-		name = OGTag + name // an [OG] account's, on a shard with world.og_accounts
-	}
-	if p.ctf.carries {
-		name = CTFCarrierTag + name // the arena's banner carrier (ctfflag.go)
-	}
-	if p.GM && !p.HideGMTag {
-		name = GMTag + name
-	}
-	return cutShownName(name)
+	og := p.OG && OGTagsOn()                            // an [OG] account's, on a shard with world.og_accounts
+	hc := p.Hardcore && HardcoreOn()                    // a Hardcore character's, on a shard with world.hardcore (hardcore.go)
+	gm := p.GM && !p.HideGMTag                          // a GM's, unless hidden
+	return shownWith(p.Name, gm, p.ctf.carries, og, hc) // the arena's banner carrier (ctfflag.go) too
 }

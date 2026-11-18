@@ -140,6 +140,9 @@ type RaceCharacter struct {
 	// OG: its account is an [OG] one (ogaccount.go), whose name a shard with
 	// world.og_accounts draws with its tag (entity.OGTag)
 	OG bool
+	// HC: a Hardcore character (hardcore.go), whose name a shard with
+	// world.hardcore draws with its tag (entity.HCTag)
+	HC bool
 }
 
 // CharactersOfRaces is every character of those races, offline ones too, by race
@@ -157,7 +160,7 @@ func (db *SQLiteDB) CharactersOfRaces(races []int) ([]RaceCharacter, error) {
 		in = append(in, '?')
 		args[i] = r
 	}
-	rows, err := db.Query(`SELECT c.charName, c.race, c.sex, c.modelid, COALESCE(a.acctlevel, 0) >= 1, COALESCE(a.og, 0) != 0 FROM characters c
+	rows, err := db.Query(`SELECT c.charName, c.race, c.sex, c.modelid, COALESCE(a.acctlevel, 0) >= 1, COALESCE(a.og, 0) != 0, COALESCE(c.hardcore, 0) != 0 FROM characters c
 		LEFT JOIN accountinfo a ON a.accountid = c.accountid WHERE c.race IN (`+string(in)+`) ORDER BY c.race, c.charName`, args...)
 	if err != nil {
 		return nil, err
@@ -166,7 +169,7 @@ func (db *SQLiteDB) CharactersOfRaces(races []int) ([]RaceCharacter, error) {
 	var out []RaceCharacter
 	for rows.Next() {
 		var c RaceCharacter
-		if err := rows.Scan(&c.Name, &c.Race, &c.Sex, &c.ModelID, &c.GM, &c.OG); err != nil {
+		if err := rows.Scan(&c.Name, &c.Race, &c.Sex, &c.ModelID, &c.GM, &c.OG, &c.HC); err != nil {
 			return nil, err
 		}
 		out = append(out, c)

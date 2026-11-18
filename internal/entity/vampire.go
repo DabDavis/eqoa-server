@@ -200,6 +200,7 @@ func (w *World) sunBurnLocked(sess *session.Session, p *Player, n int, now time.
 	}
 	log.Printf("Sun: %s, a vampire in daylight, took %d (HP %d/%d)", p.Name, n, p.HP, p.MaxHPNow())
 	if p.HP <= 0 {
+		p.setDeathCause(CauseSun, "the sun") // hardcore.go
 		w.playerDiedLocked(sess, p, now)
 		log.Printf("Sun: %s burned to death", p.Name)
 	}

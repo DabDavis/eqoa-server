@@ -931,6 +931,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureLoginAnnounce(); err != nil { // loginannounce.go: the GMs' announcement at login
 		return err
 	}
+	if err := db.ensureHardcore(); err != nil { // hardcore.go: [HC] Hardcore characters and their falls
+		return err
+	}
 
 	log.Printf("SQLite schema initialized")
 	return nil

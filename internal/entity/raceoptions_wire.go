@@ -206,7 +206,7 @@ func encodeRaceLooks(chars []database.LookCharacter, mortal map[string]bool) []b
 		}
 		// and each name its channel may draw it by, its tags before it
 		// (statesync.go, ogtag.go)
-		for _, n := range ShownNames(c.Name, c.GM, c.OG) {
+		for _, n := range ShownNames(c.Name, c.GM, c.OG, c.HC) {
 			list = append(list, entry{n, body, k, v, p})
 		}
 	}

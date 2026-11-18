@@ -80,6 +80,10 @@ const RezWindow = 30 * time.Minute
 // (ours), and what the caster is told when a rez lands on nothing.
 const castNoRez = "%s has no experience to recover."
 
+// castNoRezFallen is the refusal of a rez at a fallen Hardcore character
+// (hardcore.go; ours).
+const castNoRezFallen = "%s was a Hardcore character and has fallen for good: no resurrection can bring them back."
+
 // RezChance is what a resurrection may still give back: the debt the
 // character's latest death added, until when. The zero RezChance is none.
 type RezChance struct {
@@ -242,6 +246,9 @@ func (w *World) rezStartLocked(p *Player, spell *CastSpell, targets []EntityID, 
 	name := ""
 	for _, id := range targets {
 		if t := w.Players[id]; t != nil {
+			if t.Fallen { // a fallen Hardcore character (hardcore.go)
+				return fmt.Sprintf(castNoRezFallen, t.Name), true
+			}
 			if rezAmount(t, pct, now) > 0 || t.Rez.returns(now) {
 				return "", false
 			}
@@ -264,6 +271,13 @@ func (w *World) rezStartLocked(p *Player, spell *CastSpell, targets []EntityID, 
 func (w *World) rezLandLocked(cs *castState, caster *Player, casterSess *session.Session, t *Player, now time.Time) {
 	pct := cs.spell.Def.Resurrects()
 	if pct <= 0 {
+		return
+	}
+	if t.Fallen { // a fallen Hardcore character: nothing brings it back (hardcore.go)
+		t.Rez, t.RezReturn = RezChance{}, RezReturn{}
+		if casterSess != nil {
+			w.sendColoredLocked(casterSess, fmt.Sprintf(castNoRezFallen, t.Name), castRefusalRGB)
+		}
 		return
 	}
 	n := rezAmount(t, pct, now)
@@ -390,7 +404,7 @@ func (w *World) TakeDeathPlace(sess *session.Session, now time.Time) (world uint
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
-	if p == nil || p.IsDead() || p.respawnPending() || !p.Rez.returns(now) {
+	if p == nil || p.IsDead() || p.respawnPending() || p.Fallen || !p.Rez.returns(now) {
 		return 0, 0, 0, 0, false
 	}
 	c := p.Rez
@@ -413,6 +427,9 @@ func (w *World) TakeRezReturn(sess *session.Session, yes bool, now time.Time) (w
 	}
 	r := p.RezReturn
 	p.RezReturn = RezReturn{}
+	if p.Fallen { // a fallen Hardcore character (hardcore.go)
+		return 0, 0, 0, 0, false
+	}
 	if !yes || r.Until.IsZero() || !now.Before(r.Until) {
 		return 0, 0, 0, 0, false
 	}

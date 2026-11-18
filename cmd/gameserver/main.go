@@ -790,6 +790,12 @@ func main() {
 	if cfg.World.OGAccounts {
 		log.Printf("OG accounts: an [OG] account plays with the game's own UI, drawn [OG] (world.og_accounts)")
 	}
+	// [HC] Hardcore characters: the choice, the tag, a final death
+	// (handlers/hardcore.go)
+	handlers.SetHardcore(cfg.World.Hardcore)
+	if cfg.World.Hardcore.Enabled {
+		log.Printf("Hardcore: a Hardcore character is drawn [HC] and its first death is final (world.hardcore)")
+	}
 	// a monster's name and level on the talk button (handlers/mobinfo.go)
 	handlers.SetMobInfo(cfg.World.MobInfo)
 	if cfg.World.MobInfo {

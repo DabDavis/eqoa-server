@@ -105,6 +105,20 @@ world:
   # its characters are drawn "[OG] Name" to everyone. Off unless set.
   # og_accounts: true
 
+  # [HC] Hardcore characters (handlers/hardcore.go; the owner, 2026-11-18):
+  # chosen for a character when it is made (vanilla's create page; a PS2's first
+  # world entry asks in a question box, or /t hardcore), for good; drawn
+  # "[HC] Name"; its first real death is final (no respawn, no rez), the
+  # character then a locked memorial on its player's list, on the Memorial of
+  # the Fallen in Freeport (tools/memorial_fallen_20261118.py) and on the page
+  # at /fallen (this shard's and other_db's). Off unless enabled.
+  # hardcore:
+  #   enabled: true
+  #   shard: "Heirloom"            # its name on the page and the memorial
+  #   fall_logout_seconds: 15      # the fall to the client's login
+  #   other_db: "/path/to/the/live/eqoa.db"
+  #   other_mark: "Live"
+
   # The auction house's standing lots (handlers/auction_perpetual.go): lots
   # that never end and never run out, a buy at the price putting the items in
   # the buyer's bank and leaving the lot up (tools/ah_materials_20261114.py

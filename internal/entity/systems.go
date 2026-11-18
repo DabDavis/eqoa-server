@@ -607,6 +607,7 @@ func (w *World) breathSystem(now time.Time) {
 					sess := w.findSessionByEntityIDLocked(p.ServerID)
 					if sess == nil {
 						if p.HP <= 0 {
+							p.setDeathCause(CauseDrowning, "drowning") // hardcore.go
 							w.playerDiedLocked(nil, p, now)
 						}
 						continue
@@ -620,6 +621,7 @@ func (w *World) breathSystem(now time.Time) {
 						p.Name, damage, p.HP, p.MaxHPNow(), p.Breath)
 
 					if p.HP <= 0 {
+						p.setDeathCause(CauseDrowning, "drowning") // hardcore.go
 						w.playerDiedLocked(sess, p, now)
 						log.Printf("Drowning: %s has drowned!", p.Name)
 					}

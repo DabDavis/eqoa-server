@@ -126,12 +126,15 @@ func main() {
 	// Create database stores
 	charStore := database.NewSQLiteCharacterStore(db)
 	// What a new character starts with (for testing: world.start_level and
-	// world.start_all_spells); the account page's store is given the same
-	newRules := database.NewCharacterRules{Level: cfg.World.StartLevel, AllSpells: cfg.World.StartAllSpells}
+	// world.start_all_spells) and its purse (world.start_tunar: unset 5000);
+	// the account page's store is given the same
+	newRules := database.NewCharacterRules{Level: cfg.World.StartLevel, AllSpells: cfg.World.StartAllSpells,
+		Tunar: cfg.World.StartingTunar()}
 	charStore.SetNewCharacterRules(newRules)
 	if cfg.World.StartLevel > 1 || cfg.World.StartAllSpells {
 		log.Printf("New characters: level %d, all their class's spells: %v", max(1, min(60, cfg.World.StartLevel)), cfg.World.StartAllSpells)
 	}
+	log.Printf("New characters start with %d tunar (world.start_tunar)", newRules.Tunar)
 	accountStore := database.NewSQLiteAccountStore(db)
 	inventoryStore := database.NewInventoryStore(db)
 	spellbookStore := database.NewSpellbookStore(db)

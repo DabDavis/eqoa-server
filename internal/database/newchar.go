@@ -7,10 +7,12 @@ import (
 )
 
 // NewCharacterRules is what a new character starts with: world.start_level
-// and world.start_all_spells, set once at startup. Both are for testing.
+// and world.start_all_spells, set once at startup, both for testing; and
+// world.start_tunar, the purse it is created with.
 type NewCharacterRules struct {
 	Level     int  // 1 when unset; at most 60
 	AllSpells bool // every spell its class has (classspells)
+	Tunar     int  // stored in the new row; 0 for none (the shard's config decides)
 }
 
 // SetNewCharacterRules sets what CreateNew gives; the GM panel changes it
@@ -37,11 +39,14 @@ func (r NewCharacterRules) startLevel() int {
 // made (the game's 0x002B or the account page): at the rules' level, whatever
 // the record says, in its home city (startPlace), bound there, carrying its
 // race and class's starting items (startitems.go: Sandstorm's starting weapon
-// and rations), and with its class's first abilities, or all its class's
-// spells when the rules say so. It returns how many spells it was given.
+// and rations), with the rules' purse stored in its row from the start (a
+// login no longer fills an empty purse: entity/tunar.go), and with its class's
+// first abilities, or all its class's spells when the rules say so. It returns
+// how many spells it was given.
 func (s *SQLiteCharacterStore) CreateNew(c *CharacterRecord) (int, error) {
 	rules := s.NewCharacterRules()
 	c.Level = rules.startLevel()
+	c.Tunar, c.BankTunar = max(0, rules.Tunar), 0
 	city, placed := "", false
 	if c.X == 0 && c.Y == 0 && c.Z == 0 {
 		city, placed = s.startPlace(c)

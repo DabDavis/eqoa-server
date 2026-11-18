@@ -52,3 +52,21 @@ shards:
 		t.Errorf("the defaults moved: %+v", c)
 	}
 }
+
+// world.start_tunar: unset, 5000 (Heirloom as ever); 0, none (Live, the owner 2026-11-18).
+func TestStartTunar(t *testing.T) {
+	for _, c := range []struct {
+		yaml string
+		want int
+	}{{"world:\n  start_level: 1\n", 5000}, {"world:\n  start_tunar: 0\n", 0}, {"world:\n  start_tunar: 250\n", 250}} {
+		path := filepath.Join(t.TempDir(), "config.yaml")
+		os.WriteFile(path, []byte(c.yaml), 0o644)
+		cfg, err := Load(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := cfg.World.StartingTunar(); got != c.want {
+			t.Errorf("%q: %d, want %d", c.yaml, got, c.want)
+		}
+	}
+}

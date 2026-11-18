@@ -325,3 +325,27 @@ func TestCreateNewCarriesTheStartingItems(t *testing.T) {
 		}
 	}
 }
+
+// The rules' purse is stored in the new row: 5000 on a shard that gives it,
+// 0 on one that gives none (world.start_tunar 0), whatever the record asked.
+func TestCreateNewStoresThePurse(t *testing.T) {
+	_, s := newCharDB(t)
+	for _, c := range []struct {
+		name string
+		rule int
+		want int
+	}{{"Rich", 5000, 5000}, {"Poor", 0, 0}, {"Odd", -5, 0}} {
+		s.SetNewCharacterRules(NewCharacterRules{Tunar: c.rule})
+		r := &CharacterRecord{CharName: c.name, AccountID: 1, Tunar: 777, BankTunar: 9}
+		if _, err := s.CreateNew(r); err != nil {
+			t.Fatal(err)
+		}
+		got, err := s.GetByServerID(r.ServerID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got.Tunar != c.want || got.BankTunar != 0 {
+			t.Errorf("%s: tunar %d bank %d, want %d and 0", c.name, got.Tunar, got.BankTunar, c.want)
+		}
+	}
+}

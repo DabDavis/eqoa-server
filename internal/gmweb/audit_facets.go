@@ -142,7 +142,7 @@ var (
 		"chartransfers": "transfers", "petitions": "petitions",
 		"accountinfo": "accounts", "gm_testers": "accounts", "gm_storytellers": "accounts", "gm_totp": "accounts",
 		"gmtriggers": "triggers", "orbs": "world", "hazards": "world", "noroam": "world", "mapmarks": "world", "racedefs": "world",
-		"racesize": "world", "racearmorbody": "world", "guide_set_log": "world",
+		"racesize": "world", "fxland": "spells", "racearmorbody": "world", "guide_set_log": "world",
 		"gmcamps": "camps", "campspawns": "camps", "gmmarks": "camps", "campfix_reports": "camps",
 	}
 	groupPrefix = []struct{ prefix, group string }{

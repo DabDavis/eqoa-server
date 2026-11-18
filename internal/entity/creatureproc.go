@@ -296,7 +296,7 @@ func (w *World) creatureProcOnNPCLocked(npc, foe *NPC, n int, now time.Time) boo
 		land(procName(t), npc.shared(t.ProcDamage), shieldResistStat(t.ProcResist), templateSpecialFX) {
 		return true
 	}
-	if fp := npc.fightProcNow(); fp != nil && templateIntn(100) < fp.chance && land(fp.name, fp.damage, StatNone, templateSpecialFX) {
+	if fp := npc.fightProcNow(); fp != nil && templateIntn(100) < fp.chance && land(fp.name, fp.damage, shieldResistStat(fp.resist), templateSpecialFX) {
 		return true
 	}
 	for i := range t.procs {

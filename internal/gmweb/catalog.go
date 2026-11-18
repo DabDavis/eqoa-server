@@ -1865,6 +1865,7 @@ var catalog = map[string]tableNote{
 			"taken_pct":      {Label: "Melee taken %", Help: "of a player's or a pet's melee hit on it that lands (1-1000): its armour", Section: "Stat profile"},
 			"melee_pct":      {Label: "Its melee %", Help: "of its own melee hits (10-1000)", Section: "Stat profile"},
 			"melee_fixed":    {Label: "Fixed melee", Help: "each of its melee hits that lands is this figure, through any armour, not rolled (0 its roll; 0-100000): the Moogie Gearling's 25", Section: "Stat profile"},
+			"special_fixed":  {Label: "Fixed special", Help: "each special (its Critical Hit or kick) lands as this figure, through any armour, at any level (0: special_damage × its level; 0-100000)", Section: "Stat profile"},
 			"special":        {Label: "Special", Help: "its special melee's name (Kick); empty none", Section: "Special melee"},
 			"special_chance": {Label: "Special %", Help: "of its rounds it comes in, a second after the round's last hit (0-100)", Section: "Special melee"},
 			"special_damage": {Label: "Special damage", Help: "a level (0-200), fixed and through any armour: Sandstorm's crab's 251 at 34 is 7.4", Section: "Special melee"},
@@ -2705,6 +2706,23 @@ var catalog = map[string]tableNote{
 			"size":   {Label: "Size", Help: "0.25 to 4; 1.0 the race's own body, 0.9 a tenth smaller"},
 			"note":   {Label: "Note", Help: "why"},
 			"source": {Label: "Source", Help: "gm, or seed for the row the table was made with"},
+		},
+	},
+	"fxland": {
+		Label: "Ability hit timing", Group: "Items & spells", Title: "note", Sort: "fxdict",
+		Help: "When an animated combat art's hit lands, by the visual its cast plays (spelleffect.fxdict, 0x00B1's): " +
+			"land_ms from the cast time's end, in place of the half second every other spell lands after. Until it lands " +
+			"the player casts nothing else (a press is not answered), and an art's global cooldown runs to the hit " +
+			"(or the level's art_cooldown_ms when longer): after a 0 s art with a 2000 ms row any ability may start at 2.0 s. " +
+			"Its own lockout is as every cast's. A visual with no row lands as ever; creatures' casts are not timed by it. " +
+			"Made with the ranger Blades, the warrior Critical/Furious and the monk combos (work board #1643).",
+		Live:   "At once: the next cast of the visual.",
+		Search: []string{"note", "source"},
+		Cols: map[string]colNote{
+			"fxdict":  {Label: "Visual", Format: hex32, Look: lookVisual, Store: storeUint32, Help: "the DictID of the visual a player's cast plays (spelleffect.fxdict)"},
+			"land_ms": {Label: "Hit at ms", Help: "milliseconds from the cast time's end to the hit (0-10000)"},
+			"note":    {Label: "Note", Help: "which arts play it"},
+			"source":  {Label: "Source", Help: "gm, or seed for the rows the table was made with"},
 		},
 	},
 	"racedefs": {

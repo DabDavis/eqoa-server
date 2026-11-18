@@ -130,7 +130,7 @@ func (w *World) creatureProcLocked(sess *session.Session, p *Player, npc *NPC, n
 		return true
 	}
 	if fp := npc.fightProcNow(); fp != nil && !p.IsDead() && templateIntn(100) < fp.chance &&
-		w.creatureProcHitLocked(sess, p, npc, fp.name, fp.damage, "", now) { // fixed, unresisted
+		w.creatureProcHitLocked(sess, p, npc, fp.name, fp.damage, fp.resist, now) { // fixed, cut by its resist (abilitytimes.go)
 		return true
 	}
 	return !p.IsDead() && w.abilityProcsOnPlayerLocked(sess, p, npc, now) // its own procs and veils (creatureproc.go)
@@ -166,7 +166,7 @@ func (w *World) creatureProcHitLocked(sess *session.Session, p *Player, npc *NPC
 }
 
 // creatureProcOnPetLocked is creatureProcLocked on a pet: a workbook pet's resists cut the template's (petstats.go),
-// any other takes it whole, and the fight's proc lands whole. It reports whether the pet died of one.
+// any other takes it whole, and the fight's proc as the template's of its resist. It reports whether the pet died of one.
 func (w *World) creatureProcOnPetLocked(npc, pet *NPC, now time.Time) bool {
 	t := npc.tmpl
 	if t == nil || pet.Dead {
@@ -177,7 +177,7 @@ func (w *World) creatureProcOnPetLocked(npc, pet *NPC, now time.Time) bool {
 		return true
 	}
 	if fp := npc.fightProcNow(); fp != nil && !pet.Dead && templateIntn(100) < fp.chance &&
-		w.creatureProcPetHitLocked(npc, pet, fp.name, fp.damage, "", now) {
+		w.creatureProcPetHitLocked(npc, pet, fp.name, fp.damage, fp.resist, now) {
 		return true
 	}
 	return !pet.Dead && w.abilityProcsOnPetLocked(npc, pet, now) // its own procs and veils (creatureproc.go)

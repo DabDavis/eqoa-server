@@ -119,6 +119,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveNoRoam() // live_hazards.go
 	case "racesize":
 		return s.liveRaceSizes() // live_racesize.go
+	case "fxland":
+		return s.liveFXLand() // live_fxland.go
 	case "racedefs":
 		msg := s.liveRaceDefs() // live_racesize.go
 		if s.d.World != nil && s.d.DB != nil {

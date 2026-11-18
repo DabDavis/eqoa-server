@@ -37,7 +37,7 @@ const classTemplateAbilitiesHelp = `a JSON list, each {"kind": nuke | aoe | life
 	`a creature's: "heal_pct" on a heal: that % of its most hit points (100 whole) in place of its spell's figure, its spell (or "name") its look, ` +
 	`"cooldown": the least seconds from one cast to the next across its fights, its deaths and a restart that keeps the sessions (0 none), ` +
 	`"say": its line in /say as it lands, "proc_chance" / "proc_damage" / "proc_name": a melee proc its landing gives it for the rest of that fight ` +
-	`(that % of its melee hits that land do that much more, fixed), "damage": a nuke's or a lifetap's fixed figure in place of its spell's (a lifetap's all back on it), ` +
+	`(that % of its melee hits that land do that much more, fixed, cut by its "resist" (FR, CR, LR, AR, PR or DR) when it names one), "damage": a nuke's or a lifetap's fixed figure in place of its spell's (a lifetap's all back on it), ` +
 	`"resist": FR CR LR AR PR or DR, the resist that cuts a fixed figure (none: it lands as it is), "fx": the visual of one that pins no spell, ` +
 	`"out_of_reach": true to cast it only while what it fights stands beyond its melee reach (rooted, snared, kiting), within "range" (100) and in its sight; ` +
 	`"classes": [0-14, ...], the classes that cast it on a template of the creature's own class (-1; none: every class); ` +
@@ -129,7 +129,7 @@ func checkClassTemplateRow(row map[string]any) error {
 	}
 	t := database.ClassTemplate{Name: fmt.Sprint(name), Class: -1, HPPct: 100, TakenPct: 100, MeleePct: 100}
 	ints := map[string]*int{"class": &t.Class, "hp_pct": &t.HPPct, "taken_pct": &t.TakenPct, "melee_pct": &t.MeleePct,
-		"special_chance": &t.SpecialChance, "special_from": &t.SpecialFrom, "kick_damage": &t.KickDamage, "fight_regen": &t.FightRegen, "shield_damage": &t.ShieldDamage, "proc_chance": &t.ProcChance, "proc_damage": &t.ProcDamage, "resist_pct": &t.ResistPct, "melee_fixed": &t.MeleeFixed}
+		"special_chance": &t.SpecialChance, "special_from": &t.SpecialFrom, "kick_damage": &t.KickDamage, "fight_regen": &t.FightRegen, "shield_damage": &t.ShieldDamage, "proc_chance": &t.ProcChance, "proc_damage": &t.ProcDamage, "resist_pct": &t.ResistPct, "melee_fixed": &t.MeleeFixed, "special_fixed": &t.SpecialFixed}
 	for col, dst := range ints {
 		v, ok := row[col]
 		if !ok || v == nil {

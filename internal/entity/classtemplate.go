@@ -335,6 +335,18 @@ func (n *NPC) meleeFixed() int {
 	return n.shared(n.tmpl.MeleeFixed)
 }
 
+// specialFigure is a special's damage before an add's share: special_fixed when set, else level ×
+// special_damage, at least 1 (work board #1632).
+func specialFigure(t *ClassTemplate, level int) int {
+	if t.SpecialFixed > 0 {
+		return t.SpecialFixed
+	}
+	return max(int(math.Round(float64(level)*t.SpecialDamage)), 1)
+}
+
+// hasSpecial is whether a template's special has a figure: special_damage a level or special_fixed.
+func hasSpecial(t *ClassTemplate) bool { return t.SpecialDamage > 0 || t.SpecialFixed > 0 }
+
 // meleeTaken is a player's or a pet's melee hit on the NPC as its template
 // takes it (taken_pct), at least 1.
 func (n *NPC) meleeTaken(hit int) int {
@@ -1756,7 +1768,7 @@ func (w *World) templateSpecialLocked(npc *NPC, target EntityID, now time.Time) 
 		return
 	}
 	w.templateKickLocked(npc, target, now)
-	if t.SpecialDamage <= 0 || npc.Level < t.SpecialFrom {
+	if !hasSpecial(t) || npc.Level < t.SpecialFrom {
 		return // a creature below its template's special_from fights with its melee alone
 	}
 	f := npc.fight()
@@ -1808,13 +1820,13 @@ func templateJitter(base, jitter float64) time.Duration {
 
 // templateSpecialHitLocked lands a templated NPC's special on target (a
 // player, or a player's pet): its 0x00B1 of cast 0 with its visual, the level
-// times special_damage, fixed and through any armour, a death, and the
+// times special_damage (or special_fixed: specialFigure), fixed and through any armour, a death, and the
 // target's damage shields' answer as to a melee hit. Must be called with the
 // lock held.
 func (w *World) templateSpecialHitLocked(npc *NPC, target EntityID, now time.Time) {
 	t := npc.tmpl
 	// an add's is its creature's of its level, at its share (summon.go)
-	w.templateStrikeLocked(npc, target, now, npc.shared(max(int(math.Round(float64(npc.figureLevel())*t.SpecialDamage)), 1)), specialName(t))
+	w.templateStrikeLocked(npc, target, now, npc.shared(specialFigure(t, npc.figureLevel())), specialName(t))
 }
 
 // templateKickLocked is its template's kick on its own clock (KickEvery): the first KickFirst
@@ -1960,14 +1972,14 @@ func (w *World) templateLineLocked(npc *NPC, now time.Time) string {
 	if npc.healBarred() {
 		parts = append(parts, "nothing heals it (Metal Moogie V5's malfunction)")
 	}
-	specials := t.SpecialDamage > 0 && (t.SpecialChance > 0 || t.SpecialEvery > 0)
+	specials := hasSpecial(t) && (t.SpecialChance > 0 || t.SpecialEvery > 0)
 	if specials && t.SpecialFrom > npc.Level {
 		parts = append(parts, fmt.Sprintf("no %s below level %d", specialName(t), t.SpecialFrom))
 		specials = false
 	}
 	if specials && t.SpecialChance > 0 {
 		parts = append(parts, fmt.Sprintf("%s in %d%% of its rounds for %d", specialName(t), t.SpecialChance,
-			max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1)))
+			specialFigure(t, npc.Level)))
 	}
 	if specials && t.SpecialEvery > 0 && npc.Owner == 0 {
 		// its crit is a round of its own (critround.go)
@@ -1976,10 +1988,10 @@ func (w *World) templateLineLocked(npc *NPC, now time.Time) string {
 			every = fmt.Sprintf("%g-%g", t.SpecialEvery-t.SpecialJitter, t.SpecialEvery+t.SpecialJitter)
 		}
 		parts = append(parts, fmt.Sprintf("%s for %d in place of a round: the first of every fight, then ready every %s s at its enemy",
-			specialName(t), max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1), every))
+			specialName(t), specialFigure(t, npc.Level), every))
 	} else if specials && t.SpecialEvery > 0 {
 		parts = append(parts, fmt.Sprintf("%s every %g-%g s at its enemy for %d, the first %g-%g s in", specialName(t),
-			t.SpecialEvery-t.SpecialJitter, t.SpecialEvery+t.SpecialJitter, max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1),
+			t.SpecialEvery-t.SpecialJitter, t.SpecialEvery+t.SpecialJitter, specialFigure(t, npc.Level),
 			math.Max(t.SpecialFirst-t.SpecialJitter, 0), t.SpecialFirst+t.SpecialJitter))
 	}
 	if w := wereWords(npc, now); w != "" {

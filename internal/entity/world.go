@@ -96,6 +96,8 @@ type World struct {
 	onHandsBack HandsBackFunc
 	// The game's balance (balance.go): nil, none
 	balance *Balance
+	// When an animated art's hit lands, by its visual: table fxland (fxland.go); nil, none
+	fxLand map[uint32]time.Duration
 	// The spells that send players to a named place, table spellgates, and
 	// those on their way (gates.go)
 	gates gateState

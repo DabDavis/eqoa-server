@@ -3,7 +3,6 @@ package entity
 import (
 	"fmt"
 	"log"
-	"math"
 	"time"
 
 	"github.com/eqoa/server/internal/database"
@@ -78,7 +77,7 @@ func wereTemplateOf(t *ClassTemplate) *ClassTemplate {
 	} else {
 		d.ClassTemplate = database.ClassTemplate{Name: wereTemplateName, Class: -1, HPPct: 100, TakenPct: 100, MeleePct: 100}
 	}
-	if d.SpecialDamage <= 0 {
+	if !hasSpecial(&d) {
 		d.SpecialDamage = WereCritDamage
 	}
 	if d.Special == "" {
@@ -108,7 +107,7 @@ func (w *World) wereCritLocked(npc *NPC, target EntityID, now time.Time) bool {
 	}
 	npc.wereReady = now.Add(WereInfectCooldown)
 	t := npc.tmpl
-	damage := npc.shared(max(int(math.Round(float64(npc.figureLevel())*t.SpecialDamage)), 1))
+	damage := npc.shared(specialFigure(t, npc.figureLevel()))
 	struck := false
 	w.templateStrikeFXLocked(npc, target, now, damage, specialName(t), WereInfectFX, func(sess *session.Session, p *Player) {
 		struck = true

@@ -833,16 +833,23 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	p.Power -= spell.PowerCost
 	p.StatsDirty = true
 	// a taunt lands at once, then holds every ability tauntLockout (taunt.go); else the arts' cooldown
-	// after an art, the cast's busy time and its landing (castLand)
+	// after an art, the cast's busy time and its landing (castLand); an animated art's visual with a
+	// fxland row lands at its hit, nothing else cast before it, an art's cooldown run to it (fxland.go)
 	taunt := isTaunt(&spell)
 	busy, land := castBusy, castLand
+	hit, animated := w.fxLandFor(p, &spell)
 	if taunt {
 		busy, land = tauntLockout, 0
+	} else if animated {
+		busy, land = max(castBusy, hit), hit
 	}
 	if isArt(&spell) {
-		if taunt {
+		switch {
+		case taunt:
 			p.artReady = now.Add(tauntLockout)
-		} else {
+		case animated:
+			p.artReady = now.Add(max(w.balance.ArtCooldown(p.Level), spell.CastTime+hit))
+		default:
 			p.artReady = now.Add(w.balance.ArtCooldown(p.Level))
 		}
 	}

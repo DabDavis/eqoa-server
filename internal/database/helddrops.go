@@ -44,6 +44,28 @@ type HeldDrops struct {
 	// named is table npcheld's: the record a creature of a name drops of what it holds in a
 	// hand (NPCHeldPrimary, NPCHeldSecondary, NPCHeldShield), by NPCClassKey
 	named map[string][3]*CharInventoryEntry
+	// only is a named creature's own loot (a record of a loot table npcloot binds to names, or of
+	// a lootpool row naming one): the names (NPCClassKey) that alone may drop it as held. The
+	// owner, 2026-11-19: "waraxe of noroxxus dropped" from a fire goblin, "noroxxus is only off
+	// noroxxus".
+	only map[int]map[string]bool
+}
+
+// OnlyFor makes record id a held drop of the named creature name alone (its own loot).
+func (d *HeldDrops) OnlyFor(id int, name string) {
+	if d.only == nil {
+		d.only = map[int]map[string]bool{}
+	}
+	if d.only[id] == nil {
+		d.only[id] = map[string]bool{}
+	}
+	d.only[id][NPCClassKey(name)] = true
+}
+
+// heldFor reports whether record id may drop as held from a creature whose NPCClassKey is key.
+func (d *HeldDrops) heldFor(id int, key string) bool {
+	names, ok := d.only[id]
+	return !ok || names[key]
 }
 
 // heldHand reports a hand's equip slot.
@@ -142,32 +164,52 @@ func (d *HeldDrops) Pick(model uint32, shield bool, level int, name string) (Cha
 	if shield {
 		l = d.shields[model]
 	}
-	top := -1
+	// the highest levelreq at or below level among the records this creature may drop (another
+	// named creature's own loot is skipped: the next record of the look below it, else nothing);
+	// of several of that levelreq the lowest patternid (the list's order: the first met)
+	key := NPCClassKey(name)
+	best, bestReq := -1, -1
 	for i := range l {
-		if max(l[i].Pattern.LevelReq, 0) <= level {
-			top = i
+		req := max(l[i].Pattern.LevelReq, 0)
+		if req > level || !d.heldFor(l[i].Pattern.PatternID, key) {
+			continue
+		}
+		if req > bestReq {
+			best, bestReq = i, req
 		}
 	}
-	if top < 0 {
+	if best < 0 {
 		return CharInventoryEntry{}, false
 	}
-	req := max(l[top].Pattern.LevelReq, 0)
-	first := top
-	for first > 0 && max(l[first-1].Pattern.LevelReq, 0) == req {
-		first--
-	}
-	n := top - first + 1
-	_ = n
-	return l[first], true // of several of that levelreq the lowest patternid (the list's order)
+	return l[best], true
 }
 
 // heldBarredTables is each table whose patternid column bars a record, and why.
 // The owner, 2026-11-18 (ticket 2366): "they can drop these also": an heirloom,
 // an Ascended copy, a quest's item or object, Lore, No Trade, epic all drop as
 // held; only an item a player owns alone (a GM's gift of one of a kind) stays off.
+// The owner, 2026-11-19 ("those ultra rare items should drop less"): a boss's
+// or a raid's loot (table heldbarred: tools/held_barred_20261119.py, from the
+// guides) and the rare-or-rarer loot pools' items (heldRarePools) stay off too.
 var heldBarredTables = []struct{ table, why string }{
 	{"itemowner", "owned"},
+	{"heldbarred", "boss loot"},
 }
+
+// heldRarePools are the lootpool categories whose items never drop as held: a world
+// drop of 1 in 240 kills or rarer (lootrate), a sky set's or a named's parts. "uncommon"
+// (1 in 30) and the trash and gems pools stay held drops.
+var heldRarePools = []string{"rare", "super rare", "ultra rare", "legendary", "global", "sky named", "sky parts", "sky twins ascended"}
+
+// heldBarredSchema: a boss's or a raid's own loot that no creature drops as what it holds
+// (the owner, 2026-11-19: "staff of jade forest keeps dropping for players too much ... those
+// ultra rare items should drop less"). Read at the start with the held drops.
+const heldBarredSchema = `
+	CREATE TABLE IF NOT EXISTS heldbarred (
+		patternid INTEGER PRIMARY KEY,
+		note      TEXT NOT NULL DEFAULT '',
+		source    TEXT NOT NULL DEFAULT 'gm'
+	);`
 
 // HeldDrops reads the catalog's hand and shield records into the model map
 // (BuildHeldDrops), barred what the tables bar (a table a database lacks bars
@@ -178,6 +220,11 @@ func (s *InventoryStore) HeldDrops() (*HeldDrops, error) {
 		if err := s.barHeld(excluded, `SELECT patternid FROM `+t.table, t.why); err != nil {
 			return nil, err
 		}
+	}
+	rare := "'" + strings.Join(heldRarePools, "','") + "'"
+	if err := s.barHeld(excluded, `SELECT patternid FROM lootpool WHERE category IN (`+rare+`)
+		AND (npc_name IS NULL OR npc_name = '')`, "rare pool"); err != nil {
+		return nil, err
 	}
 	slots := make([]string, 0, len(HeldHandSlots)+1)
 	for _, sl := range append(append([]int{}, HeldHandSlots...), HeldShieldSlot) {
@@ -204,7 +251,42 @@ func (s *InventoryStore) HeldDrops() (*HeldDrops, error) {
 	if err := s.loadNamedHeld(d); err != nil {
 		return nil, err
 	}
+	if err := s.loadNamedLoot(d); err != nil {
+		return nil, err
+	}
 	return d, nil
+}
+
+// loadNamedLoot marks each named creature's own loot as its alone (HeldDrops.OnlyFor): the
+// records of the loot tables npcloot binds to names, and a lootpool row's that names one.
+// A table a database lacks marks nothing.
+func (s *InventoryStore) loadNamedLoot(d *HeldDrops) error {
+	for _, q := range []string{
+		`SELECT t.patternid, n.npc_name FROM loottables t JOIN npcloot n ON n.tablename = t.tablename`,
+		`SELECT patternid, npc_name FROM lootpool WHERE npc_name IS NOT NULL AND npc_name <> ''`,
+	} {
+		rows, err := s.db.Query(q)
+		if err != nil {
+			if strings.Contains(err.Error(), "no such table") {
+				continue
+			}
+			return fmt.Errorf("named loot: %w", err)
+		}
+		for rows.Next() {
+			var id int
+			var name string
+			if err := rows.Scan(&id, &name); err != nil {
+				rows.Close()
+				return err
+			}
+			d.OnlyFor(id, name)
+		}
+		rows.Close()
+		if err := rows.Err(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // npcheld: the record a creature of a name drops of what it holds (the owner, 2026-11-18, of Vallon Zek
@@ -231,10 +313,13 @@ const (
 	NPCHeldShield    = 2
 )
 
-// ensureNPCHeld makes table npcheld (initSchema).
+// ensureNPCHeld makes tables npcheld and heldbarred (initSchema).
 func (db *SQLiteDB) ensureNPCHeld() error {
 	if _, err := db.Exec(npcHeldSchema); err != nil {
 		return fmt.Errorf("npcheld: %w", err)
+	}
+	if _, err := db.Exec(heldBarredSchema); err != nil {
+		return fmt.Errorf("heldbarred: %w", err)
 	}
 	return nil
 }

@@ -70,7 +70,9 @@ func TestTriggerSpawnEngageWindow(t *testing.T) {
 	if len(w.spawned()) != 0 {
 		t.Fatal("its fight over past its stay: it stayed")
 	}
-	// the control: a spawn with no window is taken at its stay, fight or none
+	// a spawn with no window is not taken mid-fight at its stay either (Live
+	// ticket 5308, 2026-11-19: it was, fight or none); its fight over, it goes
+	// spawnFightGrace later
 	w.set(21, "Plain", "near", 50, `[{"do":"spawn","npc":"Orc Pawn","minutes":10}]`)
 	if _, err := w.fire(21); err != nil {
 		t.Fatal(err)
@@ -78,8 +80,27 @@ func TestTriggerSpawnEngageWindow(t *testing.T) {
 	w.at(176 * time.Minute)
 	w.spawned()[0].Threats = map[entity.EntityID]int64{1: 5}
 	w.at(187 * time.Minute)
+	if len(w.spawned()) != 1 {
+		t.Fatal("a spawn with no window was taken mid-fight at its ten minutes")
+	}
+	w.spawned()[0].Threats = nil
+	w.at(187*time.Minute + spawnFightGrace/2)
+	if len(w.spawned()) != 1 {
+		t.Fatal("a spawn with no window went before the grace after its fight")
+	}
+	w.at(187*time.Minute + spawnFightGrace + time.Second)
 	if len(w.spawned()) != 0 {
-		t.Fatal("a spawn with no window outstayed its ten minutes in a fight")
+		t.Fatal("a spawn with no window stayed past its fight and the grace")
+	}
+	// the control: one past its stay that never fought goes at once
+	w.set(22, "Plain2", "near", 50, `[{"do":"spawn","npc":"Orc Pawn","minutes":10}]`)
+	if _, err := w.fire(22); err != nil {
+		t.Fatal(err)
+	}
+	w.at(200 * time.Minute)
+	w.at(211 * time.Minute)
+	if len(w.spawned()) != 0 {
+		t.Fatal("a spawn with no window outstayed its ten minutes out of any fight")
 	}
 }
 

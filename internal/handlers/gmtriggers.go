@@ -182,6 +182,9 @@ type triggerSpawn struct {
 	// until out of one, it is taken away; never while it fights
 	engage time.Duration
 	idle   time.Time
+	// fought: past its stay, when it was last seen in a fight
+	// (timedSpawnHolds, questevents.go)
+	fought time.Time
 }
 
 // spawnLeavesLocked is whether a run's living spawn has stayed its time: past
@@ -190,7 +193,12 @@ type triggerSpawn struct {
 // e.mu held.
 func (e *TriggerEngine) spawnLeavesLocked(s *triggerSpawn, now time.Time) (bool, string) {
 	if s.engage <= 0 {
-		return now.After(s.until), "stayed its time"
+		// past its stay it still never leaves mid-fight (Live ticket 5308):
+		// it goes spawnFightGrace after its fight ends
+		if !now.After(s.until) || timedSpawnHolds(e.gw.NPCFighting(s.id), &s.fought, now) {
+			return false, ""
+		}
+		return true, "stayed its time"
 	}
 	if e.gw.NPCFighting(s.id) {
 		s.idle = time.Time{}

@@ -373,8 +373,9 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 
-	// A sign post or an announcement board (signs.go): its words, and never a
-	// quest, the town dialog, a shop or a route.
+	// A sign post or an announcement board (signs.go): its words (a sign of
+	// kind quest: a quest at it first), and never the town dialog, a shop or
+	// a route.
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.signSay(sess, player, npc) {
 		return nil
 	}

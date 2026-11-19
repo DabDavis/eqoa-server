@@ -42,6 +42,9 @@ const (
 	SignKindBoard    = "board"
 	SignKindNews     = "news"
 	SignKindGM       = "gm"
+	// SignKindQuest: a GM's sign whose quests answer before its words (a sign
+	// gives none otherwise): petition 2418, the Wage Cage's question
+	SignKindQuest = "quest"
 )
 
 // SignNewsID is the npcid of the news row.

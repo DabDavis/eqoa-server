@@ -279,13 +279,44 @@ func TestAnEssencesOtherBusiness(t *testing.T) {
 	}
 }
 
+// Petition 2434 (Itamin) and the GM Jibrish's board entry 1758: Madam
+// Watrya's isle, where the sun key lands, has an essence of day of its own
+// that takes anyone, keyless, and the group by it, to the brightstar fairies'
+// isle (Day Chain 1); a stray essence of day is still dim.
+func TestWatryasEssenceOfDayTakesAnyoneOn(t *testing.T) {
+	r := newSkyRig(t)
+	r.group()
+	r.essence("watrya", "essence of day", 5656.6, 280.9, 5107.4)
+	r.by("watrya")
+	r.talk(r.anna, r.npcs["watrya"])
+	got := r.msgs(r.anna)
+	if !hasMsg(got, "chat:essence of day: the light takes you to the first isle of day.") || !hasMsg(got, "teleport") {
+		t.Fatalf("no key needed: %q", got)
+	}
+	if r.pa.World != 4 || r.pa.X != 5597.0 || r.pa.Y != 235.06 || r.pa.Z != 5330.0 {
+		t.Errorf("Anna landed at world %d (%.2f, %.2f, %.2f)", r.pa.World, r.pa.X, r.pa.Y, r.pa.Z)
+	}
+	cora := r.msgs(r.cora)
+	if !hasMsg(cora, "teleport") || r.pc.X != r.pa.X || r.pc.Z != r.pa.Z {
+		t.Errorf("Cora was not taken along: %q at (%.1f, %.1f)", cora, r.pc.X, r.pc.Z)
+	}
+	if eventKey("") {
+		t.Errorf("an item with no name counts as an event key")
+	}
+	r.by("stray")
+	r.talk(r.anna, r.npcs["stray"])
+	if got := r.msgs(r.anna); !hasMsg(got, "box:The essence of day is dim: it takes no one from here.") {
+		t.Errorf("a stray essence: %q", got)
+	}
+}
+
 // Every passage lands in world 4 on a spot a passage of the same chain does
 // not stand on, takes a key with a name, and each essence spot is one of a
 // kind; the steps they do are each one passage's or the portal's twin.
 func TestThePassagesTable(t *testing.T) {
 	seen := map[string]bool{}
 	for _, p := range skyPasses {
-		if p.At.World != 4 || p.Key == "" || p.To == "" {
+		if p.At.World != 4 || p.Key == "" && len(p.Steps) > 0 || p.To == "" {
 			t.Errorf("%s at (%.0f, %.0f): %+v", p.NPC, p.X, p.Z, p)
 		}
 		k := fmt.Sprintf("%s@%.0f,%.0f", strings.ToLower(p.NPC), p.X, p.Z)

@@ -260,7 +260,7 @@ func eventKey(name string) bool {
 		}
 	}
 	for _, sp := range skyPasses {
-		if strings.EqualFold(sp.Key, name) {
+		if sp.Key != "" && strings.EqualFold(sp.Key, name) {
 			return true
 		}
 	}

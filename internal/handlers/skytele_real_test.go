@@ -296,7 +296,7 @@ func TestRealSkyTeleporters(t *testing.T) {
 		if _, ok := spawnOf(p.NPC, p.X, p.Z); !ok {
 			t.Errorf("pass %s (%.0f, %.0f): no such NPC in world 4", p.NPC, p.X, p.Z)
 		}
-		if carried(p.Key) == 0 {
+		if p.Key != "" && carried(p.Key) == 0 {
 			t.Errorf("pass %s (%.0f, %.0f): no creature carries a %s and no quest gives one", p.NPC, p.X, p.Z, p.Key)
 		}
 	}
@@ -325,7 +325,19 @@ func TestRealSkyTeleporters(t *testing.T) {
 		if j, ok := skyJumps[p.To]; ok {
 			drop = j
 		}
-		if !skyWalk(g, [3]float32{p.At.X, p.At.Y, p.At.Z}, at, 12, drop, 400000) {
+		walks := skyWalk(g, [3]float32{p.At.X, p.At.Y, p.At.Z}, at, 12, drop, 400000)
+		for j := range skyPasses {
+			// or by a keyless way on (Watrya's isle's essence of day, petition 2434)
+			k := &skyPasses[j]
+			if walks || k.Key != "" {
+				continue
+			}
+			if kat, ok := spawnOf(k.NPC, k.X, k.Z); ok && skyWalk(g, [3]float32{p.At.X, p.At.Y, p.At.Z}, kat, 12, drop, 400000) &&
+				skyWalk(g, [3]float32{k.At.X, k.At.Y, k.At.Z}, at, 12, 6, 400000) {
+				walks = true
+			}
+		}
+		if !walks {
 			t.Errorf("%s: its landing does not walk to its %s at (%.0f, %.0f)", p.To, next.NPC, next.X, next.Z)
 		}
 	}

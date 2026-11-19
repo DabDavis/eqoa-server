@@ -25,7 +25,9 @@ belongs to WHICH city, and it takes that from data, not from this file:
   cities, or out of town too, is left to the GM and listed.
 
 Rows are written with source "town-seed" and never over a GM's row for the
-same name and faction. --undo deletes every town-seed row. Both take a copy
+same name and faction; a name with any factionhits row already is left alone
+(a re-run cannot add to the rows Prima's figures replaced, petfix 581-587).
+--undo deletes every row whose source is exactly town-seed. Both take a copy
 of the database first (<db>.bak-<when>-pre-factionseed). Report only by
 default.
 
@@ -34,7 +36,7 @@ factions): start it once first. Restart it after --apply or --undo, or edit
 any faction hit in the GM panel, for the running world to read the rows.
 
     tools/seed_faction_hits.py --eqoa-data ../external/EQOA-Data [--db eqoa.db]
-        [--apply | --undo] [--link 100] [--reach 400] [--citizen -25] [--guard -50]
+        [--apply | --undo] [--link 100] [--reach 400] [--citizen -10] [--guard -10]
 """
 import argparse
 import collections
@@ -49,6 +51,23 @@ import sys
 
 DEFAULT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "eqoa.db")
 SOURCE = "town-seed"
+# Prima's Frontiers guide, Table 1 (pp. 383-387): the kill penalty of every
+# town's Citizens and guard faction is 10. The first run (2026-10-29) wrote
+# -25 / -50, our own numbers; petfix 581-587 (2026-11-19, board #1801) replaced
+# them on both shards with Prima's 10 and its Table 2 shares, which this tool
+# does not write (claude-notes/factions-prima-20261119.md).
+PRIMA_PENALTY = -10
+
+
+def new_rows(db, rows):
+    """The rows of plan() to write: none for a name that already has any
+    factionhits row (compared as the server keys a name: trimmed, any case),
+    so a re-run never adds to, or undercuts, the rows a GM, a board entry or
+    a petfix gave a name. Returns (rows to write, names left alone)."""
+    have = {r[0].strip().lower() for r in db.execute("SELECT npc_name FROM factionhits")}
+    new = [r for r in rows if r[0].strip().lower() not in have]
+    kept = sorted({r[0] for r in rows if r[0].strip().lower() in have})
+    return new, kept
 GUARD_WORDS = {"guard", "guards", "watch", "militia", "defenders", "warden", "wardens"}
 
 
@@ -230,8 +249,8 @@ def main():
     ap.add_argument("--no-backup", action="store_true", help="write without a copy first")
     ap.add_argument("--link", type=float, default=100, help="townsfolk this near one another are one town")
     ap.add_argument("--reach", type=float, default=400, help="a town's NPCs: a chain within this of its map point")
-    ap.add_argument("--citizen", type=int, default=-25, help="a townsperson's kill on its Citizens faction")
-    ap.add_argument("--guard", type=int, default=-50, help="a guard's kill on each of its town's guard factions")
+    ap.add_argument("--citizen", type=int, default=PRIMA_PENALTY, help="a townsperson's kill on its Citizens faction")
+    ap.add_argument("--guard", type=int, default=PRIMA_PENALTY, help="a guard's kill on each of its town's guard factions")
     a = ap.parse_args()
     db = sqlite3.connect(a.db, isolation_level=None)
     db.execute("PRAGMA busy_timeout = 5000")
@@ -260,15 +279,16 @@ def main():
     if not a.apply:
         print("(report only: --apply writes them)")
         return
-    have = {(r[0], r[1]) for r in db.execute("SELECT npc_name, faction FROM factionhits")}
-    new = [r for r in rows if (r[0], r[1]) not in have]
+    new, kept = new_rows(db, rows)
+    if kept:
+        print(f"left alone: {len(kept)} names that already have a factionhits row (any faction, any source)")
     if not a.no_backup:
         print("backup:", backup(db, a.db))
     db.execute("BEGIN")
     db.executemany("INSERT OR IGNORE INTO factionhits (npc_name, faction, delta, source) VALUES (?, ?, ?, ?)",
                    [(n, f, d, SOURCE) for n, f, d in new])
     db.execute("COMMIT")
-    print(f"wrote {len(new)} rows ({len(rows) - len(new)} were there already); restart the server to read them")
+    print(f"wrote {len(new)} rows ({len(rows) - len(new)} left alone); restart the server to read them")
 
 
 if __name__ == "__main__":

@@ -25,7 +25,8 @@ import (
 // the town's boon (entity/boon.go: the user, 2026-11-05, "players want the
 // boon at the Freeport Announcement, and other city announcements"). Nothing
 // else answers a sign: never a quest (it gives none, and no step is done at
-// it), the town dialog, a shop or a route.
+// it), unless its row is of kind quest (SignKindQuest: petition 2418, the Wage
+// Cage's question), the town dialog, a shop or a route.
 
 // SignBody is the body every sign post and announcement board stands on
 // (CHAR.ESF's 0x6A82352C).
@@ -106,6 +107,13 @@ func (h *InteractHandler) signSay(sess *session.Session, player *entity.Player, 
 	}
 	if !IsSign(npc, rows) {
 		return false
+	}
+	// a sign whose row is of kind quest lets a quest given or done at it answer
+	// first (petition 2418, jibrish 2026-11-19: the Wage Cage's "Is the GM
+	// working hard enough?"); with none there it says its words. Every other
+	// sign gives no quest.
+	if row, ok := signRow(npc, rows); ok && row.Kind == database.SignKindQuest && Quests().Talk(sess, player, npc) {
+		return true
 	}
 	forgetDialogs(player)
 	if text := SignWords(npc, rows); text == "" {

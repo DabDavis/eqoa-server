@@ -38,9 +38,11 @@ type bindStore interface {
 	SaveBind(serverID uint32, b database.BindRow) error
 }
 
-// IsSpiritmaster is whether the NPC of that name binds.
+// IsSpiritmaster is whether the NPC of that name binds: a "Spiritmaster ",
+// or a "Spiritbinder " (petition 2389, jibrish 2026-11-19: Spiritbinder Pluto
+// in Freeport, a spiritmaster in all but his name).
 func IsSpiritmaster(name string) bool {
-	return strings.HasPrefix(name, "Spiritmaster ")
+	return strings.HasPrefix(name, "Spiritmaster ") || strings.HasPrefix(name, "Spiritbinder ")
 }
 
 // bindSpot is the spot right in front of a spiritmaster (inFrontOf).

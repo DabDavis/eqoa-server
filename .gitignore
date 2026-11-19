@@ -33,7 +33,7 @@
 !/config.yaml.example
 
 # Runtime: the patch payloads, the world ESFs and their archives (game data;
-# Sandstorm's S2 among the payloads)
+# the reference server's S2 among the payloads)
 /patches/
 /worlds/
 /patches-attic-*.tar.gz
@@ -53,3 +53,6 @@ __pycache__/
 # server's machine, never in the repository
 /private/
 *.formula
+
+# Private operator notes for Claude Code (loaded beside CLAUDE.md, never committed)
+/CLAUDE.local.md

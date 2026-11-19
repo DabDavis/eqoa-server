@@ -256,8 +256,8 @@ who is changing what: entries naming the tables and files they touch, with notes
 ### Tuning
 
 `cmd/balancesim` fights simulated fights on the server's own systems against a copy of the
-database, to see what a balance table change does before it goes in. The balance tables,
-their targets and the tunings so far are in `CLAUDE.md`.
+database, to see what a balance table change does before it goes in. The balance tables are
+described in `CLAUDE.md`.
 
 ## Layout
 
@@ -280,8 +280,8 @@ internal/gmweb/      the GM panel (web page, MCP + OAuth + OpenAPI for AI agents
 tools/               data tools (imports, seeds, fixes; each --apply/--undo, logged)
 ```
 
-`CLAUDE.md` is the working notes: the design, the protocol details and why each odd-looking
-rule is there.
+`CLAUDE.md` is the developer guide: the design, where things live, the protocol details and
+the rules new code has to keep.
 
 ## Sharing back
 

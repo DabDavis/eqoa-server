@@ -5,10 +5,9 @@ client needs both: DRDP over UDP to the game server, TCP to the login server
 (9735) and the patch server's HTTP (7000). `wsrelay` holds the real sockets;
 each of the page's sockets is one WebSocket to it.
 
-The wire protocol is eqoa-port's `tools/wsrelay.py`, unchanged, so eqoa-port's
-web build (`platform/webnet.c`, `web/page.js`) and eqoa-rs's web build both
-speak it. This is the one to run on a public host; the Python one is a
-development tool.
+The wire protocol is that of an earlier Python relay (`wsrelay.py`), unchanged,
+so every browser build that spoke it, the vanilla client's web page included,
+speaks this one. This is the one to run on a public host.
 
 ## Protocol
 

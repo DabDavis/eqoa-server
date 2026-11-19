@@ -245,6 +245,11 @@ const (
 	EventVampire  = "vampire"  // the player made a vampire (charvampire, entity/vampire.go): the bats' infection
 	EventTrigger  = "trigger"  // a GM trigger (table gmtriggers) fired by its name, the player its firer
 	EventDoStep   = "dostep"   // the step to do now tried at once, its NPC being the one just talked to
+	// EventCast: a spell (Spell, by id) landed on the player as a gift, as a board's or Bruce Buffer's is
+	// (entity.World.LandOnSelf): its effects as any landing's, an illusion's body and its faction change among
+	// them (petition 2411, the owner 2026-11-19: "Build the cast event": Tilmiraen's port to the fairy village
+	// makes the player a brownie, Illusion: Brownie 700789)
+	EventCast = "cast"
 	// EventClassQuest: the player's own city class quests of a level (Level) finished too, silently: a
 	// homeland's starter quest stands for its city's (handlers/questevents.go). A quest's, on its finish.
 	EventClassQuest = "classquest"
@@ -259,7 +264,7 @@ const TeleportMainland = "mainland"
 var (
 	QuestEventWhens   = []string{EventAccept, EventFinish}
 	StepEventWhens    = []string{EventStart, EventDone}
-	QuestEventActions = []string{EventPopup, EventSay, EventGive, EventSpawn, EventAttack, EventVisual, EventTeleport, EventVampire, EventTrigger, EventDoStep, EventClassQuest}
+	QuestEventActions = []string{EventPopup, EventSay, EventGive, EventSpawn, EventAttack, EventVisual, EventTeleport, EventVampire, EventTrigger, EventDoStep, EventClassQuest, EventCast}
 )
 
 // DoesStep reports a step tried at once when it starts (EventDoStep).
@@ -282,7 +287,9 @@ type QuestEvent struct {
 	NPC    string `json:"npc,omitempty"`    // say: who says it (nobody: no name before it); spawn: whom; attack: who (none: the step's target)
 	// Trigger (trigger): the name of the row of gmtriggers it fires
 	Trigger string `json:"trigger,omitempty"`
-	Items   string `json:"items,omitempty"` // give: patternid*count, comma separated
+	// Spell (cast): the spell's id (spellpattern; its effects its spelleffect row's)
+	Spell int    `json:"spell,omitempty"`
+	Items string `json:"items,omitempty"` // give: patternid*count, comma separated
 	// UnlessHeld (give): only what the player's inventory lacks of them, so a quest's
 	// kit handed out again when the quest is taken again tops up what was used
 	UnlessHeld bool `json:"unless_held,omitempty"`
@@ -474,6 +481,10 @@ func EventProblems(s string, step bool) []string {
 				add(i, "teleport's to %q is not %q", e.To, TeleportMainland)
 			}
 		case EventVampire:
+		case EventCast:
+			if e.Spell <= 0 {
+				add(i, "cast names no spell (spell: its id)")
+			}
 		case EventTrigger:
 			if strings.TrimSpace(e.Trigger) == "" {
 				add(i, "trigger names no trigger")

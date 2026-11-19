@@ -53,7 +53,7 @@ data, not code. Two ways to get it:
   binary:
 
   ```bash
-  gunzip -c eqoa-open-20261119.db.gz > eqoa.db
+  gunzip -c eqoa-open-20261119b.db.gz > eqoa.db
   sha256sum eqoa.db    # against the release notes
   ```
 

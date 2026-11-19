@@ -202,6 +202,10 @@ func (a *Archivist) Ask(sess *session.Session, p *entity.Player, npc *entity.NPC
 	if a == nil || a.spells == nil || p == nil || !isSpellArchivist(npc) || npc.Dead {
 		return false
 	}
+	if p.HardcoreBound() { // petition 2399 (jibrish 2026-11-19): no scrolls for a Hardcore character
+		a.say(sess, hcArchivistWords)
+		return true
+	}
 	forgetDialogs(p)
 	a.ask(sess, p, archivistAskMenu, id, archivistQuestion, archivistAnswers)
 	log.Printf("Archivist: %s asked what %s wishes", npc.Name, p.Name)
@@ -226,6 +230,10 @@ func (a *Archivist) Answer(sess *session.Session, p *entity.Player, box uint32, 
 	}
 	a.mu.Unlock()
 	if !ok || ask.id != box {
+		return true
+	}
+	if p.HardcoreBound() { // a box asked before the character was bound to Hardcore (petition 2399)
+		a.say(sess, hcArchivistWords)
 		return true
 	}
 	n := int(option)

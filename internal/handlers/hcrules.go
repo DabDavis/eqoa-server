@@ -52,6 +52,7 @@ const (
 	hcRockWords          = "The Rock of Freeport will not carry a Hardcore adventurer."
 	hcHomesWords         = "A Hardcore adventurer makes no home here: the road is their home."
 	hcDabrishWords       = "I keep no ledger for a Hardcore adventurer. Every level you earn yourself."
+	hcArchivistWords     = "I copy no scrolls for a Hardcore adventurer: every spell you learn, you find yourself."
 	hcMercLiaisonWords   = "I hire no one out to a Hardcore adventurer: you fight without mercenaries."
 	hcWebTeleportRefusal = "a Hardcore character cannot be teleported from here"
 )

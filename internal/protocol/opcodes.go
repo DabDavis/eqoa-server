@@ -1424,6 +1424,25 @@ const (
 	// (world.og_accounts, handlers/ogaccount.go) is sent QoLOGOff: bits 12
 	// to 14 too (the map and links locked, no mouse, no touch).
 	OpcodeVanillaUI GameOpcode = 0x7EA0
+
+	// OpcodeMailAttach is not retail: what a tell-gram carries, tunar and an
+	// item (handlers/mailattach.go; the owner, 2026-11-19: "the mail system
+	// should let players mail each other armor, tunar, etc."). Both ways, a
+	// sub-op byte first. Server to client: 0 the offer (u8 version 1, u8 the
+	// items a gram may carry, u32 the postage), sent with the mail forms'
+	// offer when this server keeps grams; 2 what a gram carries (u32 its id,
+	// u32 tunar, a zigzag count of records, each as 0x003B writes one, its
+	// key its index, then u8 1 when it came back to its sender), after the
+	// gram's 0x0D41 sub-op 3; 3 the inbox's marks (a zigzag count, each u32
+	// a gram's id, u32 its tunar, u8 its records), after its sub-op 2; 4 a
+	// take's answer (u32 the gram, u8 1 taken, 0 refused); 5 why a send was
+	// refused (a wide line), before its 0x0D41 sub-op 1 (status 12). Client
+	// to server: 0 the answer (u8 1: it shows and takes them); 1 a live send
+	// with attachments (the live 0x0D01 sub-op 1's fields, then u32 tunar, a
+	// zigzag count, each u32 a pack record's key and a zigzag count of it);
+	// 4 take (u32 the gram). A client that never answered (a PS2) is told in
+	// the gram's text that something is attached.
+	OpcodeMailAttach GameOpcode = 0x7EA1
 )
 
 // [HC] Hardcore characters (world.hardcore, handlers/hardcore.go; the owner
@@ -1670,6 +1689,8 @@ func (op GameOpcode) String() string {
 		return "DuelWindow"
 	case OpcodeMailForm:
 		return "MailForm"
+	case OpcodeMailAttach:
+		return "MailAttach"
 	case OpcodeAuctionForm:
 		return "AuctionForm"
 	case OpcodeLFG:

@@ -783,6 +783,43 @@ var catalog = map[string]tableNote{
 	},
 	// the password reset form's senders' salt, hidden as spellfx_meta
 	"pwreset_meta": {Hidden: true},
+	// the players' tell-grams to each other: their own words, not the panel's
+	// (handlers/mail.go); what they carry is shown below
+	"mail_grams": {Hidden: true},
+	"mail_attachments": {
+		Label: "Mail attachments", Group: "Players", Sort: "id", Write: writeNone,
+		Help: "What the tell-grams carry, held by the server from the send to the take (handlers/mailattach.go): tunar, or a " +
+			"stack of an item record with its condition and charges, from one character to another. Taken, a row is gone " +
+			"(the item in the pack, the tunar in the purse); a gram deleted with one returns it to its sender. Read only: " +
+			"the Mail attachments log says what each did.",
+		Live:   "The game holds its own copy: read only here.",
+		Show:   []string{"id", "gramid", "from_name", "to_name", "tunar", "itemname", "stack", "sent"},
+		Search: []string{"from_name", "to_name", "itemname"},
+		Cols: map[string]colNote{
+			"id":        {Label: "Attachment", ReadOnly: true},
+			"gramid":    {Label: "Gram"},
+			"from_id":   {Label: "From", Ref: "characters"},
+			"to_id":     {Label: "To", Ref: "characters"},
+			"patternid": {Label: "Item", Ref: "itempattern"},
+			"stack":     {Label: "Stack"},
+			"remainhp":  {Label: "Condition"},
+			"sent":      {Label: "Sent", Format: "stamp"},
+		},
+	},
+	"mail_attachment_log": {
+		Label: "Mail attachments log", Group: "Players", Sort: "id", Write: writeNone,
+		Help: "Every item and every tunar a gram carried (handlers/mailattach.go): sent (taken from the sender), taken (given " +
+			"to the recipient), returned (a gram deleted with it: back to its sender, from_ the one who deleted it), dropped " +
+			"(its sender gone), postage (the post's fee, gone).",
+		Show:   []string{"id", "at", "event", "gramid", "from_name", "to_name", "tunar", "itemname", "stack"},
+		Search: []string{"event", "from_name", "to_name", "itemname"},
+		Cols: map[string]colNote{
+			"at":        {Label: "When", Format: "stamp"},
+			"from_id":   {Label: "From", Ref: "characters"},
+			"to_id":     {Label: "To", Ref: "characters"},
+			"patternid": {Label: "Item", Ref: "itempattern"},
+		},
+	},
 	"email_tokens": {Hidden: true},
 	"campfix_reports": {
 		Label: "Camp fix reports", Group: "World", Title: "charname", Sort: "id",

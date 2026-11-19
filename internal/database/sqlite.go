@@ -937,6 +937,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCharOG(); err != nil { // ogchar.go: [OG] characters, chosen when new
 		return err
 	}
+	if err := db.ensureMail(); err != nil { // mail.go: the tell-grams and what they carry
+		return err
+	}
 
 	log.Printf("SQLite schema initialized")
 	return nil

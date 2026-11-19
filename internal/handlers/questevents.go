@@ -159,6 +159,8 @@ func (q *QuestEngine) runEventsLocked(sess *session.Session, p *entity.Player, c
 			}
 		case database.EventClassQuest:
 			q.classQuestLocked(p, c, qu, e.Level)
+		case database.EventCast:
+			q.castLocked(sess, p, qu, step, e.Spell)
 		default:
 			log.Printf("Quests: %q step %d: no event %q", qu.Name, step, e.Do)
 		}
@@ -991,4 +993,29 @@ func questsAtWindow(sess *session.Session, p *entity.Player, npc *entity.NPC) bo
 	}
 	refuse(sess)
 	return true
+}
+
+// castLocked is a cast event: the spell of the id landed on the player as a gift
+// (entity.World.LandOnSelf, as a board's or Bruce Buffer's): its record and its
+// effects row read at each cast, nothing landed (and said in the log) when
+// either is missing or the player is dead.
+func (q *QuestEngine) castLocked(sess *session.Session, p *entity.Player, qu *database.Quest, step, spellID int) {
+	if q.spells == nil || q.gw == nil {
+		return
+	}
+	sp, err := q.spells.SpellPattern(spellID)
+	if err != nil || sp == nil {
+		log.Printf("Quests: %q step %d: cast %d: no spell record (%v)", qu.Name, step, spellID, err)
+		return
+	}
+	row, found, err := q.spells.SpellEffectRow(spellID)
+	if err != nil || !found || strings.TrimSpace(row.Effects) == "" {
+		log.Printf("Quests: %q step %d: cast %d (%s): no effects (%v)", qu.Name, step, spellID, sp.SpellName, err)
+		return
+	}
+	if !q.gw.LandOnSelf(sess, entity.SpellOfRow(sp, 0, row.Line, row.Effects, row.FX), time.Now()) {
+		log.Printf("Quests: %q step %d: cast %q on %s: nothing landed (dead or gone)", qu.Name, step, sp.SpellName, p.Name)
+		return
+	}
+	log.Printf("Quests: %q step %d cast %q on %s", qu.Name, step, sp.SpellName, p.Name)
 }

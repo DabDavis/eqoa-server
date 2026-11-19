@@ -68,7 +68,7 @@ func (w *World) petHateToMasterLocked(id EntityID) {
 		if !ok || npc == pet || npc.ServerID == master || npc.Dead || npc.Dummy != NotDummy {
 			continue
 		}
-		if npc.World != world || distXZ(npc.X, npc.Z, mx, mz) > npcGiveUp || challengeBars(npc, master) {
+		if npc.World != world || distXZ(npc.X, npc.Z, mx, mz) > npcGiveUp || challengeBars(npc, master) || isMoogie(npc) {
 			continue
 		}
 		w.noteHateLocked(npc, master) // hcrules.go

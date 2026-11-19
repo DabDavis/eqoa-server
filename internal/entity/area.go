@@ -699,7 +699,8 @@ func (w *World) areaCreaturesLocked(p *Player, cs *castState, cx, cy, cz, r floa
 	for _, id := range w.SpatialIndex.QueryRadius(cx, cz, queryRadius(cone, r)) {
 		npc := w.NPCs[id]
 		if npc == nil || areaHas(cs.targets, id) || npc.Dead || npc.Owner != 0 || npc.NPCType&0x80 != 0 ||
-			!w.npcSharesLocked(npc, p) || npc.hiddenAt(now) || challengeBars(npc, p.ServerID) || w.metalSparesLocked(npc, p.ServerID) {
+			!w.npcSharesLocked(npc, p) || npc.hiddenAt(now) || challengeBars(npc, p.ServerID) || w.metalSparesLocked(npc, p.ServerID) ||
+			isMoogie(npc) { // no player's area touches Mr. Moogie (moogie.go)
 			continue
 		}
 		if w.apartLocked(p, npc) || undead && !w.undeadLocked(npc) { // water.go, undead.go

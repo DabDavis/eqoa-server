@@ -634,9 +634,10 @@ func equalInts(a, b []int) bool {
 func TestAnAreaPullsNoIdleRaidBoss(t *testing.T) {
 	r := newAreaRig(t)
 	target := r.creature(2001, "Deathfist Pawn", 1020, 1000)
-	boss := r.creature(2002, "Mr. Moogie", 1022, 1000)
+	// (the raid boss here is not Mr. Moogie: since 2026-11-19 nothing hurts him at all, moogie.go)
+	boss := r.creature(2002, "Lord Nagafen", 1022, 1000)
 	boss.HP, boss.MaxHP = 2000000, 2000000
-	r.w.SetRaidBossNames([]string{"Mr. Moogie"})
+	r.w.SetRaidBossNames([]string{"Lord Nagafen"})
 	r.cast(t, fireStorm(), target.ServerID)
 	if boss.HP != boss.MaxHP || len(boss.Threats) != 0 {
 		t.Fatalf("the idle raid boss was pulled: HP %d, threats %v", boss.HP, boss.Threats)

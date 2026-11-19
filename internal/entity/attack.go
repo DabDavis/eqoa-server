@@ -351,6 +351,13 @@ func (w *World) engageLocked(sess *session.Session, p *Player, objectID uint32, 
 		w.snowballAtNPCLocked(sess, p, now) // a snowball is for players (moogieitems.go)
 		return false
 	}
+	if isMoogie(npc) {
+		// Mr. Moogie: CLIENT's own "You are outmatched" (0x077A), which also stops its auto-attack
+		// (the owner, 2026-11-19: "if players accidently attack mr. moogie lets use it")
+		w.sendOutMatchedLocked(sess)
+		log.Printf("Combat: %s swung at %s: outmatched (0x077A), nothing lands", p.Name, npc.Name)
+		return false
+	}
 	if line := challengeRefusal(npc, p.ServerID); line != "" {
 		w.tellChallengeLocked(sess, p, line, now) // another's duel (metalmoogie.go)
 		return false

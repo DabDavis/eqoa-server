@@ -1889,8 +1889,8 @@ func (w *World) runTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 // what lasts (a damage tick; a hold, a slow or a stat change is kept, though
 // no creature moves or uses its stats yet).
 func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *session.Session, npc *NPC, now time.Time) {
-	if challengeBars(npc, caster.ServerID) {
-		return // another's duel: nothing of the spell lands (metalmoogie.go)
+	if challengeBars(npc, caster.ServerID) || isMoogie(npc) {
+		return // another's duel: nothing of the spell lands (metalmoogie.go); Mr. Moogie, no player's (moogie.go)
 	}
 	caster.LastCombatTime = now
 	// a taunt (taunt.go), as its record is, before a resist takes a part; a proc's hate (an offensive

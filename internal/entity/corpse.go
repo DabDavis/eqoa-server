@@ -271,6 +271,7 @@ func (w *World) respawnNPCLocked(npc *NPC) {
 		// a new spawn: a were's infection ready again (werecrit.go)
 		npc.wereReady, npc.spawnGen = time.Time{}, npc.spawnGen+1
 		npc.lootSeed = 0 // a new spawn's loot (spawnloot.go)
+		npc.pickedAt = time.Time{} // a new spawn's pockets full again (workbookmore.go; petition 2447)
 		// a camp's spawn back from a death pops one of its kinds (campspawn.go)
 		w.campRekindLocked(npc, time.Now())
 		// a placeholder pops its rare, or is itself again (npcrare.go)

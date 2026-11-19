@@ -135,6 +135,28 @@ func TestWorkbookPickpocket(t *testing.T) {
 	}
 }
 
+// Petition 2447: a creature's pockets are full again at a new spawn. The
+// pick's wait (pickAgain) was kept over the creature's death, so a fresh
+// spawn said it had nothing left to take before anyone picked it. The
+// control: alive, the wait holds.
+func TestPickpocketWaitEndsAtRespawn(t *testing.T) {
+	w := NewWorld()
+	npc := &NPC{ServerID: 3, Name: "Test Nasehir", Level: 30, HP: 100, MaxHP: 100}
+	w.NPCs[npc.ServerID] = npc
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	npc.pickedAt = time.Now()
+	w.respawnNPCLocked(npc)
+	if npc.pickedAt.IsZero() {
+		t.Fatal("the control: alive, the wait was dropped")
+	}
+	npc.Dead, npc.HP = true, 0
+	w.respawnNPCLocked(npc)
+	if !npc.pickedAt.IsZero() {
+		t.Errorf("a new spawn keeps the last life's pick: %v", npc.pickedAt)
+	}
+}
+
 // A disguise keeps a faction's NPC from attacking on sight; the control, the
 // same player without it, is attacked.
 func TestWorkbookDisguise(t *testing.T) {

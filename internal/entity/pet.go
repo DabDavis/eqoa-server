@@ -837,7 +837,8 @@ var petStanceWords = map[petStance]string{
 // attackable (not npc flags 0x80, as CLIENT's own test) and nobody's pet.
 func petMayFight(pet, npc *NPC) bool {
 	return npc != nil && npc != pet && !npc.Dead && npc.World == pet.World && npc.NPCType&0x80 == 0 && npc.Owner == 0 &&
-		!challengeBars(npc, pet.Owner) // another's duel (metalmoogie.go)
+		!challengeBars(npc, pet.Owner) && // another's duel (metalmoogie.go)
+		!isMoogie(npc) // no player's pet or merc fights Mr. Moogie (moogie.go)
 }
 
 func distXZ(ax, az, bx, bz float32) float32 {

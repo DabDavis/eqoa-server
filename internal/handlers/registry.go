@@ -191,6 +191,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		// a rez's offer of the way back to the body, and its answer (petition 1051)
 		gameWorld.OnRezOffer(func(sess *session.Session, caster string) { SendSummonPrompt(sess, caster, true) })
 		r.Register(protocol.OpcodeSummonAnswer, charHandler.handleRezAnswer)
+		// CLIENT's answer to 0x077A, the "outmatched" refusal (Mr. Moogie's: entity/moogie.go): nothing
+		// to do, only kept off the "Unhandled opcode" lines
+		r.Register(protocol.OpcodeOutMatchedAck, func(*session.Session, *protocol.Message) error { return nil })
 		// Return Home's landing: a teleport there (cast.go)
 		gameWorld.OnGate(charHandler.gatePlayer)
 		// the gates, portals, circles and evacuations (gates.go)

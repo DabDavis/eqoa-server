@@ -726,7 +726,7 @@ func (w *World) throwLocked(sess *session.Session, p *Player, pe *PotionEffect, 
 		for _, id := range w.SpatialIndex.QueryRadius(npc.X, npc.Z, pe.Area) {
 			o := w.NPCs[id]
 			if o == nil || o == npc || o.Dead || o.World != npc.World || o.Owner != 0 || o.NPCType&0x80 != 0 || o.hiddenAt(now) ||
-				challengeBars(o, p.ServerID) {
+				challengeBars(o, p.ServerID) || isMoogie(o) {
 				continue
 			}
 			if dist3(o.X, o.Y, o.Z, npc.X, npc.Y, npc.Z) > pe.Area || !w.reachesLocked(place, o.X, o.Y, o.Z) {

@@ -223,6 +223,7 @@ const (
 	OpcodeEntityAction                  GameOpcode = 0x0775 // u32 entity id + u8 VICSprite action; for the player only 34 plays
 	OpcodeDisconnectNoError             GameOpcode = 0x0777 // Disconnect No Error
 	OpcodeOutMatched                    GameOpcode = 0x077A // Outmatched warning
+	OpcodeOutMatchedAck                 GameOpcode = 0x077B // CLIENT's answer to 0x077A (SendOpcode(1915)), no payload
 	OpcodeFactionPage                   GameOpcode = 0x07E2 // Server Faction Page Response
 	OpcodeZoneUnavailableDC             GameOpcode = 0x07A1 // Msg07A1: 8 bytes, then Disconnect(13): word 677 (the area is temporarily unavailable)
 	OpcodeAdminEjectDC                  GameOpcode = 0x07A2 // Disconnect(14): word 716 "You have been ejected by a server administrator."

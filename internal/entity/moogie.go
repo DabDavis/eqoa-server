@@ -2,8 +2,11 @@ package entity
 
 import (
 	"log"
+	"strings"
 	"time"
 
+	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
 
@@ -130,4 +133,33 @@ func (w *World) MoogieHeal(sess *session.Session) (name string, ok bool) {
 	p.StatsDirty = true
 	log.Printf("Moogie: %s healed whole (%d HP, %d power)", p.Name, p.HP, p.Power)
 	return p.Name, true
+}
+
+// MoogieOutmatched is CLIENT's word 1196, the line its 0x077A case adds in red ("You are outmatched.
+// Attacking again is not advised.", VIClient's receive loop at 0x00BD280C): a harmful spell at Mr.
+// Moogie is refused with these words, as a swing at him is refused with 0x077A itself (the owner,
+// 2026-11-19: "if players accidently attack mr. moogie lets use it").
+const MoogieOutmatched = "You are outmatched. Attacking again is not advised."
+
+// isMoogie reports whether npc is Mr. Moogie, whom no player may hurt (a swing, a spell, an area, a
+// thrown potion, a pet or merc): he clears buffs and heals (handlers/moogie.go). Creatures still may:
+// the GM triggers' raids on him ("Nagafen Attacks Mr. Moogie" ...) set gods on him, so this is asked
+// at the players' paths, not in challengeBars (which guards creatures' threat too). His metal twins
+// are duelled (metalmoogie.go) and are not him.
+func isMoogie(npc *NPC) bool {
+	return npc != nil && strings.EqualFold(strings.TrimSpace(npc.Name), MoogieName)
+}
+
+// sendOutMatchedLocked sends 0x077A (no payload): CLIENT adds word 1196 in red, stops auto-attack
+// and answers 0x077B (handlers.SendOutMatched's message, from here). Must be called with the lock
+// held.
+func (w *World) sendOutMatchedLocked(sess *session.Session) {
+	if sess == nil {
+		return
+	}
+	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeOutMatched)
+	wr := buffer.NewWriter(msg.Span())
+	wr.WriteUint16(uint16(protocol.OpcodeOutMatched))
+	msg.SetSize(wr.Position())
+	sess.Queue().AddWithSequence(msg)
 }

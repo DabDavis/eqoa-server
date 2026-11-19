@@ -121,8 +121,10 @@ func swingOf(gw *entity.World, inv *database.InventoryStore, sess *session.Sessi
 	var attackType, itemRange int
 	potion, potionLeft := 0, 0 // a potion worn as the thrown weapon (potion.go)
 	held := ""                 // the first held item worn, in the client's list order
+	var rows []database.CharInventoryEntry
 	if inv != nil {
-		rows, err := inv.GetCharacterItems(p.CharServerID)
+		var err error
+		rows, err = inv.GetCharacterItems(p.CharServerID)
 		if err != nil {
 			log.Printf("Attack: inventory for %s: %v", p.Name, err)
 		}
@@ -146,6 +148,12 @@ func swingOf(gw *entity.World, inv *database.InventoryStore, sess *session.Sessi
 	}
 	s := entity.SwingFor(p.Class, p.Level, worn, hasItem, attackType, itemRange)
 	s.Potion, s.PotionLeft = potion, potionLeft
+	if hasItem && inv != nil {
+		// a bow's arrows or a crossbow's bolts in the pack (entity/ammo.go)
+		if kind := entity.AmmoKind(attackType); kind != 0 {
+			s.Ammo, s.AmmoLeft = kind, ammoHeld(sessionInvList(sess), rows, kind)
+		}
+	}
 	if !hasItem && held != "" {
 		s.Never, s.Held = true, held
 	}

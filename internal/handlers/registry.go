@@ -257,6 +257,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		equipHandler.LoadPotions()
 		gameWorld.OnSummonItem(equipHandler.summonItem)
 		gameWorld.OnPotionThrown(equipHandler.potionThrown)
+		gameWorld.OnAmmoSpent(equipHandler.ammoSpent) // a bow's arrow, a crossbow's bolt (ammo.go)
 	}
 	interactHandler := NewInteractHandler(sessionMgr)
 	if gameWorld != nil {

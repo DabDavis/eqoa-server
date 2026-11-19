@@ -334,6 +334,7 @@ type World struct {
 	potions potionTable
 	// A ranged weapon's shot's power (rangedpower.go)
 	rangedPower rangedPower
+	onAmmoSpent AmmoSpentFunc // takes a shot's ammunition off its stack (ammo.go)
 	// Where the water is (water.go), and how the creatures of a name move,
 	// table npcmove (movement.go)
 	env            Env

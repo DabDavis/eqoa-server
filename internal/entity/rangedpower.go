@@ -63,15 +63,20 @@ func (w *World) shotPowerCost(p *Player) int {
 	return (most*pct + 50) / 100
 }
 
-// shotPowerLocked takes a ranged shot's power from p and reports true (any
-// other swing: true, nothing taken), or tells p it has not enough (sess nil:
-// untold) and reports false, nothing taken. Must be called with the lock held.
+// shotPowerLocked takes a ranged shot's power and its ammunition (ammo.go)
+// from p and reports true (any other swing: true, nothing taken), or reports
+// false with nothing taken: no ammunition left (CLIENT has said so), or not
+// enough power (told; sess nil: untold). Must be called with the lock held.
 func (w *World) shotPowerLocked(sess *session.Session, p *Player) bool {
 	if !rangedShot(p) {
 		return true
 	}
+	if !w.shotAmmoLocked(p) { // HasAmmoFor after CheckPower in CLIENT; nothing taken either way (ammo.go)
+		return false
+	}
 	cost := w.shotPowerCost(p)
 	if cost <= 0 {
+		w.spendAmmoLocked(sess, p)
 		return true
 	}
 	if p.Power < cost {
@@ -83,5 +88,6 @@ func (w *World) shotPowerLocked(sess *session.Session, p *Player) bool {
 	}
 	p.Power -= cost
 	p.StatsDirty = true
+	w.spendAmmoLocked(sess, p)
 	return true
 }

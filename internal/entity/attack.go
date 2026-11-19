@@ -250,6 +250,11 @@ type Swing struct {
 	// Potion is the item id of a potion worn as the thrown weapon, 0 for
 	// none, and PotionLeft how many of it are on the stack (potion.go)
 	Potion, PotionLeft int
+	// Ammo is the ammunition the swinging bow or crossbow uses (ammo.go:
+	// AmmoArrows, AmmoBolts; 0 none) and AmmoLeft how many of it the pack
+	// holds, set by the handlers' swingOf alone (a merc's or the simulator's
+	// swing needs none)
+	Ammo, AmmoLeft int
 	// Held is the name of the held item the hands hold when they hold no
 	// weapon (equip slot 19 or 20 worn, none of 14, 16 or 18; Never is set
 	// with it): such hands never swing, and a press is refused with

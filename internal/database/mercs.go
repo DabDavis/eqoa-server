@@ -187,6 +187,50 @@ func scanMerc(sc interface{ Scan(...any) error }) (MercRow, error) {
 	return r, nil
 }
 
+// MercNamesElsewhere is the names (in lower case) of every other
+// character's hires, each with its earliest hire time (zero where unknown),
+// and of every character: a new hire's name is none of them, and a hire
+// whose name an earlier hire of another character's has is named again at
+// its owner's login (handlers/merc.go: petition 2409, two "Arthas" in the
+// world, and vanilla's merc list, OpcodeMercsData, names its mercs by name).
+func (db *SQLiteDB) MercNamesElsewhere(serverID uint32) (map[string]time.Time, error) {
+	out := map[string]time.Time{}
+	rows, err := db.Query(`SELECT lower(name), hired FROM charmerc WHERE serverid != ?`, serverID)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var name, hired string
+		if err := rows.Scan(&name, &hired); err != nil {
+			rows.Close()
+			return nil, err
+		}
+		t, _ := time.Parse(time.RFC3339, hired)
+		if was, ok := out[name]; !ok || (!t.IsZero() && (was.IsZero() || t.Before(was))) {
+			out[name] = t
+		}
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	chars, err := db.Query(`SELECT lower(charName) FROM characters WHERE serverid != ?`, serverID)
+	if err != nil {
+		return nil, err
+	}
+	defer chars.Close()
+	for chars.Next() {
+		var name string
+		if err := chars.Scan(&name); err != nil {
+			return nil, err
+		}
+		if _, ok := out[name]; !ok {
+			out[name] = time.Time{}
+		}
+	}
+	return out, chars.Err()
+}
+
 // Merc is the character's hire of the slot, false for none.
 func (db *SQLiteDB) Merc(serverID uint32, slot int) (MercRow, bool, error) {
 	r, err := scanMerc(db.QueryRow(`SELECT `+mercCols+` FROM charmerc WHERE serverid = ? AND slot = ?`, serverID, max(slot, 1)))

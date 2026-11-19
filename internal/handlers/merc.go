@@ -462,6 +462,9 @@ func (m *Mercs) askRaces(sess *session.Session, p *entity.Player, a mercAsk) {
 // "Jorador", so /merc Jorador named one of three).
 func mercName(serverID uint32, class, race int, at time.Time, taken ...string) string {
 	name := ""
+	free := func(n string) bool {
+		return !slices.ContainsFunc(taken, func(t string) bool { return strings.EqualFold(t, n) })
+	}
 	for salt := 0; salt < 64; salt++ {
 		h := fnv.New32a()
 		if salt == 0 {
@@ -471,12 +474,28 @@ func mercName(serverID uint32, class, race int, at time.Time, taken ...string) s
 		}
 		v := h.Sum32()
 		name = namePrefixes[v%uint32(len(namePrefixes))] + nameSuffixes[(v/uint32(len(namePrefixes)))%uint32(len(nameSuffixes))]
-		if !slices.ContainsFunc(taken, func(t string) bool { return strings.EqualFold(t, name) }) {
+		if free(name) {
+			return name
+		}
+	}
+	// the 540 two-part names run out across the server's hires (petition 2409:
+	// names are the world's, not only their owner's): a third part
+	for salt := 64; salt < 512; salt++ {
+		h := fnv.New32a()
+		fmt.Fprintf(h, "%d/%d/%d/%d/%d", serverID, class, race, at.Unix()/3600, salt)
+		v := h.Sum32()
+		n := uint32(len(namePrefixes))
+		m := uint32(len(nameSuffixes))
+		name = namePrefixes[v%n] + nameSuffixes[(v/n)%m] + mercNameEndings[(v/n/m)%uint32(len(mercNameEndings))]
+		if free(name) {
 			return name
 		}
 	}
 	return name
 }
+
+// mercNameEndings is mercName's third part, once two parts are all taken.
+var mercNameEndings = []string{"a", "an", "ar", "el", "en", "is", "on", "or", "us", "yn"}
 
 // mercNamesTaken is the names a new hire of the player's may not take: its
 // rows' and the player's own.
@@ -484,6 +503,26 @@ func mercNamesTaken(p *entity.Player, rows []database.MercRow) []string {
 	out := []string{p.Name}
 	for _, r := range rows {
 		out = append(out, r.Name)
+	}
+	return out
+}
+
+// namesTaken is mercNamesTaken and every name held elsewhere: other
+// characters' hires and the characters themselves (petition 2409: two
+// players' "Arthas" in one world, and vanilla's merc list names its mercs by
+// name, so one showed as the other's).
+func (m *Mercs) namesTaken(p *entity.Player, rows []database.MercRow) []string {
+	out := mercNamesTaken(p, rows)
+	if m.db == nil {
+		return out
+	}
+	elsewhere, err := m.db.MercNamesElsewhere(p.CharServerID)
+	if err != nil {
+		log.Printf("Merc: the names held besides %s's: %v", p.Name, err)
+		return out
+	}
+	for n := range elsewhere {
+		out = append(out, n)
 	}
 	return out
 }
@@ -524,7 +563,7 @@ func (m *Mercs) hireWith(sess *session.Session, p *entity.Player, class, race, s
 	taken := []string{p.Name}
 	if m.db != nil {
 		rows, _ := m.db.Mercs(p.CharServerID)
-		taken = mercNamesTaken(p, rows)
+		taken = m.namesTaken(p, rows)
 	}
 	row := database.MercRow{ServerID: p.CharServerID, Slot: slot, Name: mercName(p.CharServerID, class, race, now, taken...), Class: class, Race: race,
 		Sex: min(max(sex, 0), 1), Stance: int(entity.MercAssist), Hired: now, Path: path}
@@ -883,16 +922,32 @@ func (m *Mercs) comeBack(sess *session.Session, p *entity.Player) {
 // name) is named again (mercName, its row kept; its "back at your side"
 // line says the new name). Its face and hair stay as they were.
 func (m *Mercs) distinctNames(p *entity.Player, rows []database.MercRow) []database.MercRow {
+	var elsewhere map[string]time.Time
+	if m.db != nil {
+		var err error
+		if elsewhere, err = m.db.MercNamesElsewhere(p.CharServerID); err != nil {
+			log.Printf("Merc: the names held besides %s's: %v", p.Name, err)
+		}
+	}
 	for i := range rows {
 		dup := false
 		for _, r := range rows[:i] {
 			dup = dup || strings.EqualFold(r.Name, rows[i].Name)
 		}
+		// a name another's hire took first, or a character's (petition 2409):
+		// the later hire gives way; the earlier keeps its name
+		if t, ok := elsewhere[strings.ToLower(rows[i].Name)]; ok && (t.IsZero() || rows[i].Hired.IsZero() || t.Before(rows[i].Hired)) {
+			dup = true
+		}
 		if !dup {
 			continue
 		}
 		old := rows[i].Name
-		rows[i].Name = mercName(p.CharServerID, rows[i].Class, rows[i].Race, rows[i].Hired, mercNamesTaken(p, rows)...)
+		taken := mercNamesTaken(p, rows)
+		for n := range elsewhere {
+			taken = append(taken, n)
+		}
+		rows[i].Name = mercName(p.CharServerID, rows[i].Class, rows[i].Race, rows[i].Hired, taken...)
 		if err := m.db.SetMerc(rows[i]); err != nil {
 			log.Printf("Merc: %s's %q (slot %d) not renamed: %v", p.Name, old, rows[i].Slot, err)
 			rows[i].Name = old

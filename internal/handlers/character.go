@@ -2351,7 +2351,7 @@ func (h *CharacterHandler) queueMemoryDumpAt(sess *session.Session, player *enti
 	// carries the position in THIS list.
 	packList := newInvListCap(invItems, packCap)
 	packList.kept = keptPack // a Lore item kept for it is one held (itemlist.go's loreRoom)
-	grandfatherList(packList, false, fitted.keptPack, sessionOG(sess))
+	grandfatherList(packList, false, fitted.keptPack, sessionOG(sess), sharedBank(player))
 	sess.SetInventoryList(packList)
 	// Dump the list the client will index into, so any disagreement about
 	// order shows up here.
@@ -2375,7 +2375,7 @@ func (h *CharacterHandler) queueMemoryDumpAt(sess *session.Session, player *enti
 	// The bank list keeps keys of its own, numbered the same way.
 	bankList := newInvListCap(bankItems, bankCap)
 	bankList.kept = bankHidden // the account bank's rows not on its first page (accountbank.go)
-	grandfatherList(bankList, true, fitted.keptBank, sessionOG(sess))
+	grandfatherList(bankList, true, fitted.keptBank, sessionOG(sess), sharedBank(player))
 	packList.bank = bankList // a Lore item in the bank is one held (itemlist.go's loreRoom)
 	sess.SetBankList(bankList)
 	// the account's other characters in the world see what this dump's reading

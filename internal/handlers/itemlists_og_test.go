@@ -161,20 +161,20 @@ func TestOGItemSlotsLists(t *testing.T) {
 func TestOGItemSlotsListGrandfathered(t *testing.T) {
 	ogSlots(t)
 	for _, bank := range []bool{false, true} {
-		if on, _ := listGrandfathered(bank, false); on {
+		if on, _ := listGrandfathered(bank, false, false); on {
 			t.Errorf("bank %v: everyone's grandfathered", bank)
 		}
-		if on, lim := listGrandfathered(bank, true); !on || lim != 40 {
+		if on, lim := listGrandfathered(bank, true, false); !on || lim != 40 {
 			t.Errorf("bank %v: an [OG] account's: %v %d", bank, on, lim)
 		}
 	}
 	l := &invList{cap: 100}
-	grandfatherList(l, false, 2, true)
+	grandfatherList(l, false, 2, true, false)
 	if l.most != 40 || l.keptN != 2 {
 		t.Errorf("an [OG] pack: most %d kept %d", l.most, l.keptN)
 	}
 	l = &invList{cap: 100}
-	grandfatherList(l, false, 2, false)
+	grandfatherList(l, false, 2, false, false)
 	if l.most != 0 {
 		t.Errorf("everyone's pack: most %d", l.most)
 	}

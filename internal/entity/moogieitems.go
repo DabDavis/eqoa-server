@@ -147,11 +147,11 @@ func (w *World) throwSnowballLocked(sess *session.Session, p *Player, pe *Potion
 }
 
 // snowballHitLocked is a snowball from p landing on t (the file's doc): its visual, 1 off t's hit points
-// (never below 1), each told. Must be called with the lock held.
+// (never below 1; none off a Hardcore character's), each told. Must be called with the lock held.
 func (w *World) snowballHitLocked(sess *session.Session, p, t *Player, fx uint32) {
 	w.broadcastCastLocked(p, t.ServerID, 0, fx)
 	took := 0
-	if t.HP > 1 {
+	if t.HP > 1 && !t.HardcoreBound() { // a Hardcore character takes no harm of a snowball (petition 2401)
 		took = 1
 		t.HP--
 		t.StatsDirty = true

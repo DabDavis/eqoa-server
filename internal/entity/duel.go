@@ -65,6 +65,9 @@ const (
 	DuelArenaRadius float32 = 60
 	// DuelLoserHP is what a hit the loser could not take leaves it.
 	DuelLoserHP = 1
+	// HardcoreDuelHP is what a Hardcore duelist is healed to at a duel's end
+	// when it has less (petition 2401).
+	HardcoreDuelHP = 50
 	// DuelMaxTime ends a duel that long with no winner.
 	DuelMaxTime = 10 * time.Minute
 	// DuelAskAgain is how soon a player may challenge again (a box at a time).
@@ -724,6 +727,14 @@ func (w *World) endDuelLocked(d *Duel, loser EntityID, how duelEnd, now time.Tim
 		}
 		if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil && p.DuelWindow {
 			w.sendDuelEndLocked(sess, d)
+		}
+		// a Hardcore duelist leaves the fight at HardcoreDuelHP at the least, so
+		// the 1 HP a duel leaves can't be finished by a stray point of damage
+		// (petition 2401, jibrish 2026-11-19: "snowballs that deal one damage")
+		if p.HardcoreBound() && p.HP > 0 && p.HP < HardcoreDuelHP {
+			p.HP = min(HardcoreDuelHP, p.MaxHPNow())
+			p.StatsDirty = true
+			log.Printf("Duel %d: Hardcore %s healed to %d at the duel's end", d.ID, p.Name, p.HP)
 		}
 	}
 	// the names as they were asked: a player that left is named all the same

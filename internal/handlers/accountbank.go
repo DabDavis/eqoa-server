@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
@@ -49,6 +50,25 @@ import (
 // (its sessions, world and store), set as the registry is made.
 var acctBankWindows atomic.Pointer[NPCWindowHandler]
 
+// sharedBank is whether the player's bank is its account's: the account bank
+// on and the player not bound to Hardcore (petition 2400: a Hardcore character
+// has its own bank, as database/accountbank.go's personalBank keeps it).
+func sharedBank(p *entity.Player) bool {
+	return database.AccountBankOn() && (p == nil || !p.HardcoreBound())
+}
+
+// sharesAccountBank is sharedBank for a character by its server id, as the
+// database holds it (a Hardcore character's bank is its own).
+func sharesAccountBank(serverID uint32) bool {
+	if !database.AccountBankOn() {
+		return false
+	}
+	if h := acctBankWindows.Load(); h != nil && h.inv != nil {
+		return h.inv.SharesAccountBank(serverID)
+	}
+	return true
+}
+
 // syncAccountBankOf is syncAccountBank on the registry's handler: nothing
 // without the account bank. With bankMu held.
 func syncAccountBankOf(serverID uint32) {
@@ -65,6 +85,9 @@ func (h *NPCWindowHandler) syncAccountBank(serverID uint32) {
 	if !database.AccountBankOn() || h == nil || h.inv == nil || h.sessionManager == nil || serverID == 0 {
 		return
 	}
+	if !h.inv.SharesAccountBank(serverID) {
+		return // a Hardcore character's bank is its own: no one else's page moved (petition 2400)
+	}
 	acct, ok, err := h.inv.AccountOf(serverID)
 	if err != nil || !ok {
 		return
@@ -77,6 +100,9 @@ func (h *NPCWindowHandler) syncAccountBank(serverID uint32) {
 	h.sessionManager.ForEach(func(s *session.Session) bool {
 		if s.AccountID() != acct || !s.CharacterInWorld() || s.PendingTermination() {
 			return true
+		}
+		if !h.inv.SharesAccountBank(s.CharacterServerID()) {
+			return true // a Hardcore character of the account: its own bank, not the account's
 		}
 		l := sessionBankList(s)
 		if l == nil {
@@ -294,6 +320,10 @@ func (h *NPCWindowHandler) bankPageCommand(sess *session.Session, arg string) {
 	if p == nil || l == nil {
 		return
 	}
+	if !sharedBank(p) { // a Hardcore character's bank is its own, all of it shown (petition 2400)
+		SendErrorMessage(sess, "Your bank holds what you see at the banker.")
+		return
+	}
 	bankMu.Lock()
 	defer bankMu.Unlock()
 	rows, err := h.inv.GetBankItems(p.CharServerID)
@@ -382,7 +412,7 @@ func SetAccountBankTunar(serverID uint32, v int) (int, error) {
 // the account bank (another of its characters may have moved it); else, or
 // when it cannot be read, cached (the Player's). With bankMu held.
 func accountBankTunarNow(serverID uint32, cached int) int {
-	if !database.AccountBankOn() {
+	if !sharesAccountBank(serverID) {
 		return cached
 	}
 	if h := acctBankWindows.Load(); h != nil && h.inv != nil {

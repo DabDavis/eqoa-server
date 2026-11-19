@@ -404,7 +404,7 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 		if l == nil {
 			return false
 		}
-		on, lim := listGrandfathered(isBank, og)
+		on, lim := listGrandfathered(isBank, og, sharedBank(player))
 		if !on {
 			l.most, l.keptN = 0, 0
 			return false
@@ -415,10 +415,10 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 	if (needPack || needBank) && h.inventoryStore != nil {
 		if kp, kb, err := h.inventoryStore.KeptItemRows(player.CharServerID); err == nil {
 			if needPack {
-				grandfatherList(pack, false, kp, og)
+				grandfatherList(pack, false, kp, og, sharedBank(player))
 			}
 			if needBank {
-				grandfatherList(bank, true, kb, og)
+				grandfatherList(bank, true, kb, og, sharedBank(player))
 			}
 		} else {
 			log.Printf("Keep: character %d's kept rows: %v", player.CharServerID, err)

@@ -1016,7 +1016,7 @@ func (a *AuctionHouse) showLotLocked(serverID uint32, lot *database.AuctionLot) 
 // bank list and on its client (0x1251), as the client's AddItem keeps it.
 // With bankMu held.
 func (a *AuctionHouse) fileLocked(sess *session.Session, d database.AuctionDelivery) {
-	if database.AccountBankOn() {
+	if sharesAccountBank(d.Holder) {
 		// the account's bank: each of its sessions' pages brought to it (accountbank.go)
 		syncAccountBankOf(d.Holder)
 		return

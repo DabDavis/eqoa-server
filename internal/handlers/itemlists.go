@@ -114,7 +114,8 @@ func sessionListSizes(sess *session.Session) listSizes {
 // one under it the limit. rows: every row in its four places. With the account
 // bank the bank is not the character's: as it was. og: an [OG] account's
 // session's (sessionOG), whose lists are grandfathered to its [OG] sizes.
-func characterListSizes(rows []database.ItemListRow, pack, bank int, og bool) (int, int) {
+// shared: the character's bank is the account's (a Hardcore one's is its own).
+func characterListSizes(rows []database.ItemListRow, pack, bank int, og, shared bool) (int, int) {
 	gPack, gBank := entity.ItemSlotsGrandfatheredFor(og)
 	if gPack == 0 && gBank == 0 {
 		return pack, bank
@@ -132,7 +133,7 @@ func characterListSizes(rows []database.ItemListRow, pack, bank int, og bool) (i
 	if gPack > 0 {
 		pack = min(pack, max(limPack, heldPack))
 	}
-	if gBank > 0 && !database.AccountBankOn() {
+	if gBank > 0 && !shared {
 		bank = min(bank, max(limBank, heldBank))
 	}
 	return pack, bank
@@ -343,7 +344,7 @@ func (h *CharacterHandler) fitItemLists(serverID uint32, pack, bank int, login, 
 	if h.inventoryStore == nil {
 		return nil, nil, nil, nil, fitted
 	}
-	acct := database.AccountBankOn()
+	acct := database.AccountBankOn() && h.inventoryStore.SharesAccountBank(serverID) // a Hardcore character's bank is its own (petition 2400)
 	planBank := bank
 	if acct {
 		planBank = database.AccountBankSlots()
@@ -358,7 +359,7 @@ func (h *CharacterHandler) fitItemLists(serverID uint32, pack, bank int, login, 
 		}
 		if look == 0 && rows != nil {
 			// a grandfathered list: as many as the character holds, past the limit
-			pack, bank = characterListSizes(rows, pack, bank, og)
+			pack, bank = characterListSizes(rows, pack, bank, og, acct)
 			if !acct {
 				planBank = bank
 			}
@@ -450,7 +451,7 @@ type fittedLists struct {
 // beside it (kept) are the limit or more. Nothing for a list that is not
 // grandfathered, or a bank that is the account's. og: an [OG] account's
 // session's (sessionOG): its limit is its [OG] size.
-func grandfatherList(l *invList, bank bool, kept int, og bool) {
+func grandfatherList(l *invList, bank bool, kept int, og, shared bool) {
 	if l == nil {
 		return
 	}
@@ -459,18 +460,18 @@ func grandfatherList(l *invList, bank bool, kept int, og bool) {
 	switch {
 	case !bank && gPack > 0:
 		l.most, l.keptN = limPack, kept
-	case bank && gBank > 0 && !database.AccountBankOn():
+	case bank && gBank > 0 && !shared:
 		l.most, l.keptN = limBank, kept
 	}
 }
 
 // listGrandfathered is whether grandfatherList holds the list to a limit for
 // the session (og), and that limit.
-func listGrandfathered(bank, og bool) (bool, int) {
+func listGrandfathered(bank, og, shared bool) (bool, int) {
 	gPack, gBank := entity.ItemSlotsGrandfatheredFor(og)
 	limPack, limBank := entity.ItemSlotsFor(og)
 	if bank {
-		return gBank > 0 && !database.AccountBankOn(), limBank
+		return gBank > 0 && !shared, limBank
 	}
 	return gPack > 0, limPack
 }

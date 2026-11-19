@@ -150,7 +150,7 @@ func (h *NPCWindowHandler) bankItem(sess *session.Session, id uint32, fromBank b
 	}
 	p := &row.Pattern
 	took := dst.wouldAdd(p.PatternID, n, p.MaxStack)
-	if !fromBank && database.AccountBankOn() {
+	if !fromBank && sharedBank(player) {
 		// the account's bank (accountbank.go): never a record past its size,
 		// and one past the page goes in unshown
 		have, err := h.inv.BankRowCount(player.CharServerID)
@@ -274,7 +274,7 @@ func (h *NPCWindowHandler) HandleBankTunar(sess *session.Session, msg *protocol.
 	}
 	bankMu.Lock()
 	defer bankMu.Unlock()
-	if database.AccountBankOn() && h.inv != nil {
+	if sharedBank(player) && h.inv != nil {
 		// the account's, as kept (another of its characters may have moved it: accountbank.go)
 		if bank, ok, err := h.inv.BankTunarOf(player.CharServerID); err == nil && ok {
 			player.BankTunar = bank

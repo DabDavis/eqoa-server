@@ -97,6 +97,27 @@ type questSpawn struct {
 	// group: made by a group spawn event (database.QuestEvent.Group), one a
 	// group mate on another quest that spawns the same NPC fights too
 	group bool
+	// fought is when it was last seen in a fight past its time (zero: not
+	// seen so): a fight is never cut off (spawnFightGrace)
+	fought time.Time
+}
+
+// spawnFightGrace is how long a timed spawn past its time stays after its
+// fight ends (Live ticket 5308, 2026-11-19: a quest's 900k "An Ancient Corpse"
+// went at its 30 minutes with a fifth of its health left, mid-fight): it is
+// never taken while it fights (someone on its hate list, or an enemy it is
+// on: World.NPCFighting), and once out of one this long it goes. Ours.
+const spawnFightGrace = 30 * time.Second
+
+// timedSpawnHolds is whether a timed spawn whose time is up stays for now: in
+// a fight (its fought clock set to now), or within spawnFightGrace of its last
+// one. fought is the spawn's clock, moved here.
+func timedSpawnHolds(fighting bool, fought *time.Time, now time.Time) bool {
+	if fighting {
+		*fought = now
+		return true
+	}
+	return !fought.IsZero() && now.Sub(*fought) < spawnFightGrace
 }
 
 // questEventsLocked does a quest's own events of one time.
@@ -504,7 +525,9 @@ func (q *QuestEngine) despawn(s questSpawn) {
 }
 
 // expireSpawns takes away the spawns past their life and those of
-// characters no longer in the world (once a second).
+// characters no longer in the world (once a second); one past its time is
+// never taken mid-fight (timedSpawnHolds: it goes spawnFightGrace after its
+// fight ends), but its character's leaving takes it at once, as before.
 func (q *QuestEngine) expireSpawns() {
 	q.mu.Lock()
 	defer q.mu.Unlock()
@@ -513,7 +536,9 @@ func (q *QuestEngine) expireSpawns() {
 		away := q.sessionOf == nil || q.sessionOf(id) == nil
 		keep := list[:0]
 		for _, s := range list {
-			if away || now.After(s.until) {
+			// its character gone, it goes (its fight was theirs); its time up
+			// with them here, never mid-fight
+			if away || (now.After(s.until) && !timedSpawnHolds(q.gw != nil && q.gw.NPCFighting(s.id), &s.fought, now)) {
 				q.despawn(s)
 				continue
 			}

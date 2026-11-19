@@ -198,9 +198,9 @@ func (s *AuthServer) handleCreateAccountMail(payload []byte, ip net.IP) []byte {
 		return buildCreateReply(false, "The password could not be read. Use letters and numbers.")
 	}
 	raw := extractString(payload[340:468])
-	// the [OG] row (stationCreate2): Gender's 16 bytes, where auth.og_choice
-	// offers it; the disc's page sends Male or Female there
-	og := s.cfg.Auth.OGChoice && strings.EqualFold(strings.TrimSpace(extractString(payload[324:340])), StationOGChoice)
+	// (Gender's 16 bytes at 324 carried an [OG] account's choice from
+	// 2026-11-18 to 11-19, a card's older page may still send "OG": ignored,
+	// [OG] is a character's now, database/ogchar.go)
 	if err := validNewAccount(username, password); err != nil {
 		return buildCreateReply(false, err.Error())
 	}
@@ -236,13 +236,6 @@ func (s *AuthServer) handleCreateAccountMail(payload []byte, ip net.IP) []byte {
 			return buildCreateReply(false, "User Name already exists.")
 		}
 		return buildCreateReply(false, "The server could not make the account now. Try again later.")
-	}
-	if og { // made here once (database/ogaccount.go)
-		if err := s.store.SetAccountOG(acc.ID, true); err != nil {
-			log.Printf("Auth: account '%s' (ID: %d) made by STATION, its [OG] choice NOT kept: %v", username, acc.ID, err)
-		} else {
-			log.Printf("Auth: account '%s' (ID: %d) made by STATION an [OG] account", username, acc.ID)
-		}
 	}
 	ipText := ""
 	if ip != nil {

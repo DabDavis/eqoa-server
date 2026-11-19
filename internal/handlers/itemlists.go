@@ -54,7 +54,7 @@ func listCaps(sess *session.Session) (pack, bank int) {
 	if sess == nil {
 		return pack, bank
 	}
-	most, mostBank := entity.ItemListsMostFor(sess.OG()) // an [OG] account's its own (entity/itemslots.go)
+	most, mostBank := entity.ItemListsMostFor(sess.OG()) // an [OG] character's its own (entity/itemslots.go)
 	if a, b := sess.ItemLists(); a > 0 || b > 0 {
 		pack = max(entity.ClientItemSlots, min(a, most))
 		bank = max(entity.ClientItemSlots, min(b, mostBank))
@@ -112,7 +112,7 @@ func sessionListSizes(sess *session.Session) listSizes {
 // max(limit, what the character holds on that side, its rows kept beside it
 // among them), at most the client's: one past the limit is sent all it holds,
 // one under it the limit. rows: every row in its four places. With the account
-// bank the bank is not the character's: as it was. og: an [OG] account's
+// bank the bank is not the character's: as it was. og: an [OG] character's
 // session's (sessionOG), whose lists are grandfathered to its [OG] sizes.
 // shared: the character's bank is the account's (a Hardcore one's is its own).
 func characterListSizes(rows []database.ItemListRow, pack, bank int, og, shared bool) (int, int) {
@@ -449,7 +449,7 @@ type fittedLists struct {
 // grandfatherList makes a dump's list hold to its grandfathered limit
 // (entity/itemslots.go): no new record while the list's rows and the kept
 // beside it (kept) are the limit or more. Nothing for a list that is not
-// grandfathered, or a bank that is the account's. og: an [OG] account's
+// grandfathered, or a bank that is the account's. og: an [OG] character's
 // session's (sessionOG): its limit is its [OG] size.
 func grandfatherList(l *invList, bank bool, kept int, og, shared bool) {
 	if l == nil {
@@ -476,7 +476,7 @@ func listGrandfathered(bank, og, shared bool) (bool, int) {
 	return gPack > 0, limPack
 }
 
-// sessionOG is whether the session is an [OG] account's on this shard
+// sessionOG is whether the session is an [OG] character's on this shard
 // (ogaccount.go): its lists are its [OG] sizes.
 func sessionOG(sess *session.Session) bool { return sess != nil && sess.OG() }
 

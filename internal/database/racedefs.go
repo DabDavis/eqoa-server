@@ -137,7 +137,7 @@ type RaceCharacter struct {
 	// GM: its account's acctlevel is 1 or more, so its name is drawn with a tag
 	// (entity.GMTag)
 	GM bool
-	// OG: its account is an [OG] one (ogaccount.go), whose name a shard with
+	// OG: an [OG] character (ogchar.go), whose name a shard with
 	// world.og_accounts draws with its tag (entity.OGTag)
 	OG bool
 	// HC: a Hardcore character (hardcore.go), whose name a shard with
@@ -160,7 +160,7 @@ func (db *SQLiteDB) CharactersOfRaces(races []int) ([]RaceCharacter, error) {
 		in = append(in, '?')
 		args[i] = r
 	}
-	rows, err := db.Query(`SELECT c.charName, c.race, c.sex, c.modelid, COALESCE(a.acctlevel, 0) >= 1, COALESCE(a.og, 0) != 0, COALESCE(c.hardcore, 0) != 0 FROM characters c
+	rows, err := db.Query(`SELECT c.charName, c.race, c.sex, c.modelid, COALESCE(a.acctlevel, 0) >= 1, COALESCE(c.og, 0) != 0, COALESCE(c.hardcore, 0) != 0 FROM characters c
 		LEFT JOIN accountinfo a ON a.accountid = c.accountid WHERE c.race IN (`+string(in)+`) ORDER BY c.race, c.charName`, args...)
 	if err != nil {
 		return nil, err

@@ -435,6 +435,12 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		hardcoreCommand(sess, player)
 		return
 	}
+	// /og (or #og, a PS2's "/t og"): the [OG] choice's box while a character
+	// is new, else what it is (hardcoreask.go)
+	if ogLine(message) {
+		ogCommand(sess, player)
+		return
+	}
 
 	// GM commands start with #
 	if strings.HasPrefix(message, "#") {
@@ -856,7 +862,7 @@ func parseTell(line string) (name, text string, ok bool) {
 	}
 	rest = strings.TrimLeft(rest, " ")
 	name, text, _ = strings.Cut(rest, " ")
-	// a GM's or an [OG] account's name as it is drawn ("/t [GM] [OG] Name ...";
+	// a GM's or an [OG] character's name as it is drawn ("/t [GM] [OG] Name ...";
 	// entity/ogtag.go)
 	for entity.IsNameTag(name) {
 		name, text, _ = strings.Cut(strings.TrimLeft(text, " "), " ")

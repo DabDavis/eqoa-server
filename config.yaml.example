@@ -97,12 +97,15 @@ world:
   # the map, minimap and item links off. Off unless set.
   # vanilla_ui: true
 
-  # [OG] accounts (handlers/ogaccount.go; the Vanilla Test shard, the owner
-  # 2026-11-18): an account made [OG] (auth.og_choice, accountinfo.og) plays
-  # here with the game's own UI, for its sessions alone: none of the server's
-  # quality-of-life offers, /con unknown, no item links, and vanilla told
-  # (0x7EA0) every addition off, the map and links locked, no mouse, no touch;
-  # its characters are drawn "[OG] Name" to everyone. Off unless set.
+  # [OG] characters (handlers/ogaccount.go, database/ogchar.go; the Vanilla
+  # Test shard, the owner 2026-11-18, a character's since 2026-11-19): a new
+  # character chooses [OG] (vanilla's create page, else the game's question box
+  # after Hardcore's); an [OG] character plays here with the game's own UI:
+  # none of the server's quality-of-life offers, /con unknown, no item links,
+  # and vanilla told (0x7EA0) every addition off, the map and links locked, no
+  # mouse, no touch; drawn "[OG] Name" to everyone. At the first start with it,
+  # the characters of the old [OG] accounts (accountinfo.og) become [OG]
+  # characters, once. Off unless set.
   # og_accounts: true
 
   # [HC] Hardcore characters (handlers/hardcore.go; the owner, 2026-11-18):
@@ -461,13 +464,9 @@ auth:
   # or the signup page on account_port.
   allow_auto_register: true
 
-  # The choice of an [OG] account for the Vanilla Test server where accounts
-  # are made: the account pages' Register (a checkbox) and STATION's Create
-  # Account as this server serves it with mail.accounts (a "Vanilla Test" row,
-  # Standard or OG). Chosen once, a GM's to change after (set_account_og). On
-  # the shard that owns the accounts; the shard it is for sets
-  # world.og_accounts. Off unless set.
-  # og_choice: true
+  # og_choice is RETIRED (2026-11-19): [OG] is a character's now
+  # (world.og_accounts); no account page offers it. A config that still sets
+  # it loads, and the server logs that it is ignored.
 
   # Require a completed TCP login before the UDP handshake will accept a
   # username. Leave this on: the UDP handlers take the username straight out of

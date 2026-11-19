@@ -180,29 +180,28 @@ func TestOGItemSlotsListGrandfathered(t *testing.T) {
 	}
 }
 
-// readOG gives the session its account's choice before a character's entry
-// fills its lists (the gifts and a transfer at SelectedChar, by its [OG]
-// sizes), with no player yet; off where world.og_accounts is unset.
+// readOG gives the session its character's choice before its entry fills its
+// lists (the gifts and a transfer at SelectedChar, by its [OG] sizes), with no
+// player yet; off where world.og_accounts is unset.
 func TestReadOGBeforeTheGifts(t *testing.T) {
 	ogSlots(t)
 	db, store := newSafeDB(t)
-	accs := database.NewSQLiteAccountStore(db)
-	acc, err := accs.Create("ogpack", "x")
-	if err != nil {
+	rec := database.CharacterRecord{CharName: "Ogpack", AccountID: 1, Level: 1}
+	if err := store.Create(&rec); err != nil {
 		t.Fatal(err)
 	}
-	if err := accs.SetAccountOG(acc.ID, true); err != nil {
+	if _, err := db.ChooseOG(uint32(rec.ServerID), true); err != nil {
 		t.Fatal(err)
 	}
 	h := &CharacterHandler{store: store}
 	sess := entitySlotsSession()
-	sess.SetAccountID(acc.ID)
-	h.readOG(sess)
+	sess.SetAccountID(1)
+	h.readOG(sess, uint32(rec.ServerID))
 	if sess.OG() {
 		t.Fatal("og_accounts unset: the session is [OG]")
 	}
 	ogSwitch(t)
-	h.readOG(sess)
+	h.readOG(sess, uint32(rec.ServerID))
 	if !sess.OG() {
 		t.Fatal("og_accounts set: the session is not [OG]")
 	}

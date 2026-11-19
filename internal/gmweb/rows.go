@@ -637,7 +637,9 @@ func readOnlyHint(table, col string) string {
 	case "pwresets.status":
 		return " (pwreset_approve or pwreset_decline decides it: the Password resets page)"
 	case "accountinfo.og":
-		return " (chosen at the account's creation; set_account_og changes it)"
+		return " (the old [OG] account flag: [OG] is a character's now, characters.og)"
+	case "characters.og", "characters.og_chosen":
+		return " (chosen while the character is new; set_character_og changes it)"
 	case "accountinfo.pwtemp":
 		return " (set by a password reset, cleared when its owner sets their own)"
 	case "campfix_reports.status":

@@ -105,7 +105,7 @@ func buildQuestHeadMarksOffer() []byte {
 // SendQuestHeadMarksOffer offers the session's client the marks over the
 // NPCs' heads, unless quests.markers is off. A PS2 ignores it.
 func SendQuestHeadMarksOffer(sess *session.Session) {
-	if questHeadMode.Load() == headOff || !QoLOnFor(sess) { // and world.vanilla_ui, an [OG] account (vanillaui.go, ogaccount.go)
+	if questHeadMode.Load() == headOff || !QoLOnFor(sess) { // and world.vanilla_ui, an [OG] character (vanillaui.go, ogaccount.go)
 		return
 	}
 	queueReliable(sess, protocol.OpcodeQuestHeadMarksOffer, buildQuestHeadMarksOffer())

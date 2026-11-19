@@ -21,7 +21,7 @@ func buildBuffWindowOffer() []byte {
 
 // SendBuffWindowOffer offers the session's client the buff window's set.
 func SendBuffWindowOffer(sess *session.Session) {
-	if !QoLOnFor(sess) { // world.vanilla_ui, an [OG] account (vanillaui.go, ogaccount.go)
+	if !QoLOnFor(sess) { // world.vanilla_ui, an [OG] character (vanillaui.go, ogaccount.go)
 		return
 	}
 	queueReliable(sess, protocol.OpcodeBuffWindow, buildBuffWindowOffer())

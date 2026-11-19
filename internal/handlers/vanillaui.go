@@ -55,7 +55,7 @@ func VanillaUI() bool { return vanillaUI.Load() }
 // world.vanilla_ui.
 func QoLOn() bool { return !vanillaUI.Load() }
 
-// QoLOnFor is QoLOn for the session: off too for an [OG] account's on a
+// QoLOnFor is QoLOn for the session: off too for an [OG] character's on a
 // shard with world.og_accounts (ogaccount.go).
 func QoLOnFor(sess *session.Session) bool { return QoLOn() && (sess == nil || !sess.OG()) }
 
@@ -78,13 +78,13 @@ const (
 	QoLAutoCast    uint32 = 1 << 9  // auto-cast on the quick bars and auto targeting
 	QoLItemLinks   uint32 = 1 << 10 // off by default: item links in chat, the player's to turn on
 	QoLSpellBars   uint32 = 1 << 11 // Ability Bars 3 and 4 and Stacked Spell Bars: the game's two bars
-	// An [OG] account's (ogaccount.go), never world.vanilla_ui's:
+	// An [OG] character's (ogaccount.go), never world.vanilla_ui's:
 	QoLLocked  uint32 = 1 << 12 // QoLMap and QoLItemLinks LOCKED off, not off by default: no row turns them on
 	QoLNoMouse uint32 = 1 << 13 // the mouse does nothing in the world (keyboard and controllers)
 	QoLNoTouch uint32 = 1 << 14 // no touch pad, the touch screen does nothing in the world
 )
 
-// QoLOGOff is what an [OG] account's session is sent: every addition off, the
+// QoLOGOff is what an [OG] character's session is sent: every addition off, the
 // map and links locked, no mouse, no touch.
 const QoLOGOff = QoLAllOff | QoLLocked | QoLNoMouse | QoLNoTouch
 
@@ -115,7 +115,7 @@ func SendVanillaUI(sess *session.Session) {
 }
 
 // vanillaUIBits is what the session's client is told is off: an [OG]
-// account's QoLOGOff (ogaccount.go), else world.vanilla_ui's QoLAllOff, else
+// character's QoLOGOff (ogaccount.go), else world.vanilla_ui's QoLAllOff, else
 // nothing.
 func vanillaUIBits(sess *session.Session) uint32 {
 	switch {
@@ -144,7 +144,7 @@ func stopKeptQoL(w *entity.World, sess *session.Session) {
 	sess.SetNumberTagsLayout(0)
 	sess.SetMobInfo(false)
 	if sess.OG() {
-		sess.SetItemLinks(false) // an [OG] account's lines plain (ogaccount.go)
+		sess.SetItemLinks(false) // an [OG] character's lines plain (ogaccount.go)
 	}
 	log.Printf("VanillaUI: %s resumed with the game's own UI", sess.RemoteAddr())
 }

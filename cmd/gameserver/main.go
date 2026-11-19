@@ -805,11 +805,22 @@ func main() {
 	if cfg.World.VanillaUI {
 		log.Printf("Vanilla UI: no quality-of-life additions (world.vanilla_ui)")
 	}
-	// [OG] accounts: the game's own UI for their sessions, their characters
-	// drawn "[OG] Name" (handlers/ogaccount.go)
+	// [OG] characters: chosen when new, the game's own UI for their sessions,
+	// drawn "[OG] Name" (handlers/ogaccount.go, database/ogchar.go)
 	handlers.SetOGAccounts(cfg.World.OGAccounts)
 	if cfg.World.OGAccounts {
-		log.Printf("OG accounts: an [OG] account plays with the game's own UI, drawn [OG] (world.og_accounts)")
+		log.Printf("OG characters: a new character may choose [OG]; an [OG] character plays with the game's own UI, drawn [OG] (world.og_accounts)")
+	}
+	// the old [OG] accounts' characters made [OG] characters, once per
+	// database, only where [OG] means something (world.og_accounts); recorded
+	// either way, so the account flag is never applied again
+	if m, err := db.MigrateAccountOG(cfg.World.OGAccounts, time.Now()); err != nil {
+		log.Printf("OG characters: the [OG] accounts' characters NOT migrated: %v", err)
+	} else if m.Ran {
+		log.Printf("OG characters: the [OG] accounts' characters migrated (applied %v): %d made [OG] characters", m.Applied, m.Characters)
+	}
+	if cfg.Auth.OGChoice {
+		log.Printf("OG characters: auth.og_choice is retired and ignored: no account page offers [OG]; a character chooses it when new")
 	}
 	// [HC] Hardcore characters: the choice, the tag, a final death
 	// (handlers/hardcore.go)
@@ -1104,7 +1115,6 @@ func main() {
 	if cfg.Server.AccountPort != 0 {
 		accountServer = tcp.NewAccountServer(db, cfg.Server.AccountPort, cfg.Auth.BCryptCost)
 		accountServer.Mail = accountMail
-		accountServer.OGChoice = cfg.Auth.OGChoice // the [OG] account's choice (database/ogaccount.go)
 		accountServer.SetNewCharacterRules(newRules)
 		accountServer.MaxCharacters = entity.CharSlots()
 		// races past the game's, where creation takes them (entity/creation.go)

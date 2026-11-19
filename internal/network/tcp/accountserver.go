@@ -45,10 +45,6 @@ type AccountServer struct {
 	// reason not). Nil: the game's ten races alone, as before.
 	extraRaces func(race, class, sex int) (int64, string)
 
-	// OGChoice, wired by main.go (auth.og_choice): Register offers an [OG]
-	// account for the Vanilla Test server (accountinfo.og, ogaccount.go).
-	OGChoice bool
-
 	// MaxCharacters, wired by main.go (world.max_characters, entity/charslots.go):
 	// the characters an account may hold. 0: CLIENT's 8.
 	MaxCharacters int
@@ -694,31 +690,15 @@ func (s *AccountServer) handleIndex(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(html))
 }
 
-// handleRegisterPage serves the registration form. With OGChoice it offers
-// Standard or [OG] and, OG chosen, says what an [OG] account gives up on the
-// Vanilla Test server before it is made (handlers/ogaccount.go's QoLOGOff),
-// asking a tick that it is permanent. Its words take most additions as off
-// there for every account (world.vanilla_ui on that shard).
+// handleRegisterPage serves the registration form. (It offered an [OG]
+// account from 2026-11-18 to 11-19; [OG] is now a character's, chosen when the
+// character is new: database/ogchar.go.)
 func (s *AccountServer) handleRegisterPage(w http.ResponseWriter, r *http.Request) {
 	html := `<!DOCTYPE html>
 <html>
 <head>
     <title>Register - EQOA</title>
     ` + cssStyles + `
-    <style>
-        .og-head { color: #eee; font-weight: bold; margin-bottom: 4px; }
-        .og-note { color: #aaa; font-size: 14px; margin: 4px 0 8px; }
-        .og-option { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; color: #eee;
-            background: #0f3460; border: 1px solid #0f3460; border-radius: 6px; padding: 10px; margin-bottom: 8px; }
-        .og-option:has(input:checked) { border-color: #e94560; }
-        .og-option input { width: auto; margin-top: 4px; flex: none; }
-        .og-option .og-note { margin: 2px 0 0; }
-        .og-details { background: #1a1a2e; border: 1px solid #e94560; border-radius: 6px; padding: 12px 14px; margin-top: 4px; }
-        .og-details ul { margin: 6px 0 8px; padding-left: 20px; color: #ddd; font-size: 14px; }
-        .og-details li { margin-bottom: 4px; }
-        .og-warn { color: #ffb3bd; font-size: 14px; margin: 8px 0 10px; }
-        .og-details .og-option { background: #16213e; margin: 0; }
-    </style>
 </head>
 <body>
     <h1>Create Account</h1>
@@ -746,48 +726,6 @@ func (s *AccountServer) handleRegisterPage(w http.ResponseWriter, r *http.Reques
                 <label for="email">E-mail address (required: we send a link to it to verify your account)</label>
                 <input type="email" id="email" name="email" maxlength="127" autocomplete="email">
             </div>
-            <!--og--><div class="form-group" id="ogGroup" style="display:none">
-                <div class="og-head">Account type</div>
-                <p class="og-note">Choose once. It only makes a difference on the <b>Vanilla Test</b> server.</p>
-                <label class="og-option" for="acctStandard">
-                    <input type="radio" id="acctStandard" name="accttype" value="standard" checked>
-                    <span><b>Standard</b><br><span class="og-note">Play every server as it is set up for everyone.
-                    On Vanilla Test you keep the mouse and touch screen, and you can turn the map, minimap and item
-                    links on.</span></span>
-                </label>
-                <label class="og-option" for="og">
-                    <input type="radio" id="og" name="accttype" value="og">
-                    <span><b>[OG]</b>: the game as it was<br><span class="og-note">For Vanilla Test with none of the
-                    additions, and everyone there sees it on your name.</span></span>
-                </label>
-                <div id="ogDetails" class="og-details" style="display:none">
-                    <b>What an [OG] account gives up on the Vanilla Test server</b>
-                    <p class="og-note">Most of the client's additions are already off there for every account. An [OG]
-                    account goes further:</p>
-                    <ul>
-                        <li>The <b>map and minimap are locked off</b>: they cannot be turned on.</li>
-                        <li><b>Item links are locked off</b>: links in chat show as plain names.</li>
-                        <li>The <b>mouse and touch screen do nothing in the world</b>: you play with the keyboard
-                        or a controller.</li>
-                        <li>None of the other additions can be turned on: the quest helper (its tracker, the
-                        quest marks on the map and the ! and ? over quest givers), a target's level and /con, the
-                        DPS meter, the group's power bars, the buff window, pet effects, auto-cast and auto
-                        target, ability bars 3 and 4, Number Colors and the stat caps.</li>
-                        <li>Your characters' names show as <b>[OG] Name</b> to everyone there.</li>
-                    </ul>
-                    <p class="og-note"><b>What stays:</b> your frame rate, widescreen and graphics settings, the
-                    keyboard and controllers, and the mouse in the menus before you enter the world. On every other
-                    server an [OG] account plays like any other. On a PS2, which never had these additions, the
-                    [OG] tag is the main change.</p>
-                    <p class="og-warn"><b>Permanent:</b> an [OG] account cannot be switched back to Standard later.
-                    Not sure? Choose Standard.</p>
-                    <label class="og-option" for="ogAck">
-                        <input type="checkbox" id="ogAck">
-                        <span>I understand: my account will be [OG] for good, with the limits above.</span>
-                    </label>
-                    <p id="ogAckMsg" class="og-warn" style="display:none"></p>
-                </div>
-            </div>
             <button type="submit" style="width:100%">Create Account</button>
         </form>
     </div>
@@ -811,36 +749,19 @@ func (s *AccountServer) handleRegisterPage(w http.ResponseWriter, r *http.Reques
                 msg.textContent = 'Passwords do not match';
                 return;
             }
-            // the [OG] choice: its box ticked first, then a last word
-            const og = document.getElementById('og').checked;
-            const ackMsg = document.getElementById('ogAckMsg');
-            ackMsg.style.display = 'none';
-            if (og && !document.getElementById('ogAck').checked) {
-                // said beside the box, where the player is looking
-                msg.className = '';
-                msg.textContent = '';
-                ackMsg.textContent = 'An [OG] account is permanent: tick the box above to confirm, or choose Standard.';
-                ackMsg.style.display = '';
-                document.getElementById('ogAck').focus();
-                return;
-            }
-            if (og && !window.confirm('Create an [OG] account? On the Vanilla Test server: no map, minimap or item links, no mouse or touch in the world, and "[OG]" on your names. This cannot be undone.')) {
-                return;
-            }
             try {
                 const response = await fetch('/api/register', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({username, password, email, og})
+                    body: JSON.stringify({username, password, email})
                 });
                 const data = await response.json();
-                const made = og ? '[OG] account created. ' : '';
                 if (data.success && data.message) {
                     msg.className = 'message success';
-                    msg.textContent = made + data.message;
+                    msg.textContent = data.message;
                 } else if (data.success) {
                     msg.className = 'message success';
-                    msg.textContent = (made || 'Account created! ') + 'Redirecting to login...';
+                    msg.textContent = 'Account created! Redirecting to login...';
                     setTimeout(() => window.location.href = '/login', 1500);
                 } else {
                     msg.className = 'message error';
@@ -851,17 +772,6 @@ func (s *AccountServer) handleRegisterPage(w http.ResponseWriter, r *http.Reques
                 msg.textContent = 'Connection error';
             }
         });
-        // the [OG] account's limits shown while it is chosen; Standard clears the tick
-        function showOG() {
-            const og = document.getElementById('og').checked;
-            document.getElementById('ogDetails').style.display = og ? '' : 'none';
-            if (!og) {
-                document.getElementById('ogAck').checked = false;
-                document.getElementById('ogAckMsg').style.display = 'none';
-            }
-        }
-        document.querySelectorAll('input[name="accttype"]').forEach(r => r.addEventListener('change', showOG));
-        showOG();
     </script>
 </body>
 </html>`
@@ -869,10 +779,6 @@ func (s *AccountServer) handleRegisterPage(w http.ResponseWriter, r *http.Reques
 		html = strings.Replace(html, `<!--email--><div class="form-group" id="emailGroup" style="display:none">`,
 			`<div class="form-group" id="emailGroup">`, 1)
 		html = strings.Replace(html, `id="email" name="email" maxlength`, `id="email" name="email" required maxlength`, 1)
-	}
-	if s.OGChoice { // an [OG] account's choice (ogaccount.go)
-		html = strings.Replace(html, `<!--og--><div class="form-group" id="ogGroup" style="display:none">`,
-			`<div class="form-group" id="ogGroup">`, 1)
 	}
 	w.Header().Set("Content-Type", "text/html")
 	w.Write([]byte(html))
@@ -1236,7 +1142,6 @@ func (s *AccountServer) handleAPIRegister(w http.ResponseWriter, r *http.Request
 		Username string `json:"username"`
 		Password string `json:"password"`
 		Email    string `json:"email"`
-		OG       bool   `json:"og"` // an [OG] account, where auth.og_choice offers it
 	}
 	if err := json.NewDecoder(io.LimitReader(r.Body, 4096)).Decode(&req); err != nil {
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Invalid request"})
@@ -1252,7 +1157,7 @@ func (s *AccountServer) handleAPIRegister(w http.ResponseWriter, r *http.Request
 		}
 	}
 	clientIP := s.getClientIP(r)
-	err := s.createAccount(clientIP, req.Username, req.Password, req.OG && s.OGChoice)
+	err := s.createAccount(clientIP, req.Username, req.Password)
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": err.Error()})
 		return
@@ -1596,7 +1501,7 @@ func (s *AccountServer) handleAPIDeleteCharacter(w http.ResponseWriter, r *http.
 }
 
 // createAccount creates a new account with validation.
-func (s *AccountServer) createAccount(clientIP, username, password string, og bool) error {
+func (s *AccountServer) createAccount(clientIP, username, password string) error {
 	username = strings.TrimSpace(username)
 	if len(username) < 3 || len(username) > 16 {
 		return fmt.Errorf("username must be 3-16 characters")
@@ -1631,20 +1536,11 @@ func (s *AccountServer) createAccount(clientIP, username, password string, og bo
 		return fmt.Errorf("failed to create account")
 	}
 
-	acc, err := s.accountStore.Create(username, hash)
+	_, err = s.accountStore.Create(username, hash)
 	if err != nil {
 		log.Printf("AccountServer: failed to create account '%s': %v", username, err)
 		return fmt.Errorf("failed to create account")
 	}
-	// the [OG] choice, made here once (database/ogaccount.go)
-	if og {
-		if err := s.accountStore.SetAccountOG(acc.ID, true); err != nil {
-			log.Printf("AccountServer: account '%s' (ID %d) made, its [OG] choice NOT kept: %v", username, acc.ID, err)
-		} else {
-			log.Printf("AccountServer: account '%s' (ID %d) made an [OG] account", username, acc.ID)
-		}
-	}
-
 	s.createdIPsMu.Lock()
 	s.createdIPs[clientIP] = true
 	s.createdIPsMu.Unlock()

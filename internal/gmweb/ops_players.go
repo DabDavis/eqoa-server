@@ -636,51 +636,6 @@ func (s *Server) registerAccountOps() {
 		},
 	})
 	s.addOp(&Op{
-		Name: "set_account_og", Title: "Make an account [OG] or not", Scope: scopeWrite, Destructive: true,
-		Description: "Set whether an account is an [OG] one (accountinfo.og): on a shard with world.og_accounts (the " +
-			"Vanilla Test server) its sessions have the game's own UI (no quality-of-life additions, no mouse or " +
-			"touch in vanilla) and its characters are drawn \"[OG] Name\". A player chooses it once, when the account " +
-			"is made, and cannot change it: this is the GM's way. The reason goes in the audit log; it counts at the " +
-			"account's next world entry. An account at or above your level cannot be changed by you.",
-		Input: obj(map[string]any{
-			"account": idOrName("the account, by name or accountid"),
-			"og":      boolean("true for an [OG] account, false for a plain one"),
-			"reason":  str("why (kept in the audit log)"),
-		}, "account", "og"),
-		Handler: func(c *opCtx) (any, error) {
-			var req struct {
-				Account any
-				OG      bool
-				Reason  string
-			}
-			if err := c.decode(&req); err != nil {
-				return nil, err
-			}
-			acc, err := c.s.accountRef(req.Account)
-			if err != nil {
-				return nil, err
-			}
-			t, err := c.s.table("accountinfo")
-			if err != nil {
-				return nil, err
-			}
-			v := int64(0)
-			if req.OG {
-				v = 1
-			}
-			// updateRow holds it to guardAccountRow (no account at or above
-			// the GM's but their own) and audits it, revertible
-			ch, err := c.s.updateRow(c.a, t, map[string]any{"accountid": acc.ID}, map[string]any{"og": v}, nil, writeOpts{Raw: true})
-			if err != nil {
-				return nil, err
-			}
-			if req.Reason != "" && ch.Audit != 0 {
-				c.s.d.DB.Exec(`UPDATE gm_audit SET detail = ? WHERE id = ?`, "reason: "+req.Reason, ch.Audit)
-			}
-			return map[string]any{"account": acc.Username, "og": req.OG, "change": ch}, nil
-		},
-	})
-	s.addOp(&Op{
 		Name: "set_account_level", Title: "Set an account's GM level", Scope: scopeAdmin, Destructive: true,
 		Description: "Set an account's acctlevel: 0 a player, gm level (1) a GM, admin level (2) an admin. An admin " +
 			"only; never your own, never above your own level, never an account at or above it.",

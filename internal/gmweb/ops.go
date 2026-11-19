@@ -127,6 +127,7 @@ func (s *Server) registerOps() {
 	s.registerWorldOps()
 	s.registerAnnounceOps() // ops_announce.go: the login announcement
 	s.registerHardcoreOps() // ops_hardcore.go: the fallen Hardcore heroes, a GM's unfall
+	s.registerOGCharOps()   // ops_ogchar.go: a GM's [OG] for a character
 	s.registerPlayerOps()
 	s.registerAccountOps()
 	s.registerAdminOps()

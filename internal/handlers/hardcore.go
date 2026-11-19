@@ -61,17 +61,41 @@ func HardcoreOn() bool { return hardcoreCfg.Load().on }
 // shortened to fit) for a fallen one. Vanilla takes the offer and is sent each
 // character's state with its plain name, which it shows in place of the list's.
 
-// buildHardcoreOffer is OpcodeHardcore from the server: a u32, 1.
+// The offer's bits (its u32): what this shard's creation takes. A vanilla of
+// before [OG] characters takes any nonzero offer as Hardcore's and answers 1;
+// one since answers the bits it takes of the offer's.
+const (
+	offerHardcore = 1 // world.hardcore: the 'H' block
+	offerOG       = 2 // world.og_accounts: the 'O' block ([OG] characters)
+)
+
+// offerBits is the offer's u32 on this shard (0: no offer).
+func offerBits() uint32 {
+	var v uint32
+	if HardcoreOn() {
+		v |= offerHardcore
+	}
+	if OGAccounts() {
+		v |= offerOG
+	}
+	return v
+}
+
+// creationChoices reports a shard whose creation takes a choice of
+// OpcodeHardcore's (Hardcore, [OG]): the offer and the list's states go out.
+func creationChoices() bool { return offerBits() != 0 }
+
+// buildHardcoreOffer is OpcodeHardcore from the server: a u32 of offerBits.
 func buildHardcoreOffer() []byte {
 	return build(protocol.OpcodeHardcore, 6, func(w *buffer.Writer) {
-		w.WriteUint32(1)
+		w.WriteUint32(offerBits())
 	})
 }
 
-// SendHardcoreOffer offers the session's client Hardcore, once a session,
-// where world.hardcore is on.
+// SendHardcoreOffer offers the session's client Hardcore and [OG], once a
+// session, where world.hardcore or world.og_accounts is on.
 func SendHardcoreOffer(sess *session.Session) {
-	if HardcoreOn() && sess.OfferHardcoreOnce() {
+	if creationChoices() && sess.OfferHardcoreOnce() {
 		queueReliable(sess, protocol.OpcodeHardcore, buildHardcoreOffer())
 	}
 }
@@ -84,6 +108,8 @@ const (
 	hcFlagHardcore   = 1
 	hcFlagFallen     = 2
 	hcFlagChoiceOpen = 4
+	hcFlagOG         = 8  // an [OG] character (world.og_accounts)
+	hcFlagOGOpen     = 16 // its [OG] choice still to be asked in the game
 )
 
 // encodeHardcoreChars is OpcodeHardcoreChars' body for records (the list's
@@ -104,8 +130,14 @@ func encodeHardcoreChars(records []*database.CharacterRecord, states map[uint32]
 		if st.Fallen() {
 			flags |= hcFlagFallen
 		}
-		if st.ChoiceOpen() {
+		if st.ChoiceOpen() && HardcoreOn() {
 			flags |= hcFlagChoiceOpen
+		}
+		if st.OG && OGAccounts() {
+			flags |= hcFlagOG
+		}
+		if st.OGChoiceOpen() && OGAccounts() {
+			flags |= hcFlagOGOpen
 		}
 		b = append(b, flags)
 		if st.Fallen() {
@@ -135,7 +167,7 @@ func (h *CharacterHandler) hardcoreStates(accountID int) map[uint32]database.Har
 
 // sendHardcoreChars sends a client that took the offer its list's states.
 func (h *CharacterHandler) sendHardcoreChars(sess *session.Session, records []*database.CharacterRecord, states map[uint32]database.HardcoreState) {
-	if !HardcoreOn() || !sess.HardcoreClient() {
+	if !creationChoices() || !sess.HardcoreClient() {
 		return
 	}
 	body := encodeHardcoreChars(records, states)
@@ -145,10 +177,12 @@ func (h *CharacterHandler) sendHardcoreChars(sess *session.Session, records []*d
 }
 
 // ps2ListName is the name a character is listed by on a client that did not
-// take the offer (a PS2): a living Hardcore character's "[HC] Name", a fallen
-// one's "Name RIP" and when it fell (UTC), as much of "11/18/26 08:45" as fits
-// CLIENT's 23 bytes with the name whole: the time goes first, then the year,
-// then the spaces ("NamelyFifteennnRIP11/18"). Any other's its own.
+// take the offer (a PS2): a living Hardcore character's "[HC] Name", an [OG]
+// character's "[OG] Name" (both "[OG][HC] Name", fitted as the channel's name
+// is: entity.ListName), a fallen one's "Name RIP" and when it fell (UTC), as
+// much of "11/18/26 08:45" as fits CLIENT's 23 bytes with the name whole: the
+// time goes first, then the year, then the spaces ("NamelyFifteennnRIP11/18").
+// Any other's its own.
 func ps2ListName(name string, st database.HardcoreState) string {
 	if st.Fallen() {
 		t := time.Unix(st.Fall.At, 0).UTC()
@@ -167,10 +201,7 @@ func ps2ListName(name string, st database.HardcoreState) string {
 		}
 		return name
 	}
-	if st.Hardcore && HardcoreOn() && len(entity.HCTag)+len(name) <= entity.ShownNameMost {
-		return entity.HCTag + name
-	}
-	return name
+	return entity.ListName(name, st.OG && OGAccounts(), st.Hardcore && HardcoreOn())
 }
 
 // listNameFor is the name the session's list carries for c.
@@ -205,12 +236,16 @@ func (h *HardcoreHandler) HandleHardcore(sess *session.Session, msg *protocol.Me
 	if len(data) < 4 {
 		return nil
 	}
-	on := binary.LittleEndian.Uint32(data[:4]) != 0
+	v := binary.LittleEndian.Uint32(data[:4])
+	on := v != 0
 	if on && !sess.HardcoreOffered() {
 		log.Printf("Hardcore: %s asked for it, which was not offered", sess.RemoteAddr())
 		return nil
 	}
 	sess.SetHardcoreClient(on)
+	// its [OG] bit: a vanilla that offers [OG] on its create page (an older
+	// one answers 1: its [OG] choice is asked in the game, as a PS2's)
+	sess.SetOGClient(v&offerOG != 0 && OGAccounts())
 	if !on || h.chars == nil || h.chars.store == nil || sess.AccountID() <= 0 {
 		return nil
 	}
@@ -247,6 +282,38 @@ func hardcoreBlock(rest []byte) (hardcore, present, ok bool, after []byte) {
 		return false, true, false, rest
 	}
 	return rest[2] == 1, true, true, rest[3:]
+}
+
+// The [OG] choice at creation: a client that took the offer's [OG] bit writes
+// 'O', a u8 version (1) and a u8 choice (1 [OG]) after the Hardcore block (or
+// 0x002B's fields), before the race options' block.
+const (
+	ogMark    = 'O'
+	ogVersion = 1
+)
+
+// ogBlock reads the [OG] choice off the front of rest, as hardcoreBlock.
+func ogBlock(rest []byte) (og, present, ok bool, after []byte) {
+	if len(rest) == 0 || rest[0] != ogMark {
+		return false, false, true, rest
+	}
+	if len(rest) < 3 || rest[1] != ogVersion || rest[2] > 1 {
+		return false, true, false, rest
+	}
+	return rest[2] == 1, true, true, rest[3:]
+}
+
+// chooseOGAtCreation keeps a creation's [OG] choice (a client that took the
+// offer's [OG] bit): made, so its first world entry asks nothing.
+func (h *CharacterHandler) chooseOGAtCreation(serverID uint32, name string, on bool) {
+	if h.store == nil || h.store.DB() == nil {
+		return
+	}
+	if _, err := h.store.DB().ChooseOG(serverID, on); err != nil {
+		log.Printf("OG: '%s' made, its choice (%v) not kept: %v", name, on, err)
+		return
+	}
+	log.Printf("OG: '%s' made %s", name, map[bool]string{true: "an [OG] character", false: "a standard character"}[on])
 }
 
 // chooseAtCreation keeps a creation's choice (a client that took the offer):

@@ -28,7 +28,7 @@ func buildPetEffectsOffer() []byte {
 
 // SendPetEffectsOffer offers the session's client its pet's effects.
 func SendPetEffectsOffer(sess *session.Session) {
-	if !QoLOnFor(sess) { // world.vanilla_ui, an [OG] account (vanillaui.go, ogaccount.go)
+	if !QoLOnFor(sess) { // world.vanilla_ui, an [OG] character (vanillaui.go, ogaccount.go)
 		return
 	}
 	queueReliable(sess, protocol.OpcodePetEffects, buildPetEffectsOffer())

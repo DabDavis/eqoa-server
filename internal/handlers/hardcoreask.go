@@ -32,10 +32,26 @@ import (
 // still at the level it was made at, no experience): it is a choice made at
 // creation, not a badge to put on a character played up. Words ours; nothing
 // a PS2's font lacks, no '%' or '|'.
+//
+// The [OG] choice (database/ogchar.go; the owner, 2026-11-19: "lets make [OG]
+// status a char tag like [HC]") is asked the same way, in its own two boxes
+// (ogBoxMark), where world.og_accounts is on and the character's [OG] choice
+// is open (HardcoreState.OGChoiceOpen): never at the same moment as
+// Hardcore's. A character with both open is asked Hardcore first and [OG]
+// ogAfterHardcore after Hardcore's last box is answered or closed; one with
+// only [OG] open is asked it hardcoreAskAfter on. "/og" (a PS2's "/t og") asks
+// it again while it is open.
 
 // hardcoreBoxMark marks the Hardcore boxes' ids (beside the welcome guide's
 // 0x61, the call's 0x63 and the others).
 const hardcoreBoxMark = 0x72000000
+
+// ogBoxMark marks the [OG] boxes' ids.
+const ogBoxMark = 0x73000000
+
+// ogAfterHardcore is how long after Hardcore's boxes the [OG] box is asked,
+// so the two never stand together.
+const ogAfterHardcore = 6 * time.Second
 
 // The boxes' times.
 const (
@@ -65,6 +81,28 @@ const (
 	hardcoreLaterLn  = "You can still make %s Hardcore while it is new: type %s."
 )
 
+// The [OG] boxes' words (127 characters a question, 63 an answer): what [OG]
+// gives up said at the choice (the basic upgrades only).
+const (
+	ogQ1       = "Make %s an [OG] character? Basic upgrades only: no map, minimap or item links, no mouse or touch. Permanent."
+	ogQ1Anon   = "Make this an [OG] character? Basic upgrades only: no map, minimap or item links, no mouse or touch. Permanent."
+	ogQ2       = "Are you sure? %s will be [OG] for good, drawn [OG] %s: the game as it was, with no way back."
+	ogQ2Anon   = "Are you sure? This character will be [OG] for good, drawn [OG]: the game as it was, with no way back."
+	ogYes1     = "Yes, make me [OG]"
+	ogNo1      = "No, keep the additions"
+	ogYes2     = "Yes, [OG] for good"
+	ogNo2      = "No, keep me standard"
+	ogMadeLine = "%s is now an [OG] character: the game as it was."
+	ogNormal   = "%s is a standard character."
+	ogIsLine   = "%s is an [OG] character."
+	ogClosed   = "%s is a standard character: the [OG] choice is made when a character is new."
+	ogOffLine  = "There are no [OG] characters on this server."
+	ogLaterLn  = "You can still make %s [OG] while it is new: type %s."
+)
+
+// ogWord is /og's word: "/og", "#og", a PS2's "/t og" (no name is 2 letters).
+const ogWord = "og"
+
 // hardcoreWord is /hardcore's word: "/hardcore", "#hardcore", a PS2's "/t hardcore".
 const hardcoreWord = "hardcore"
 
@@ -75,6 +113,7 @@ var hardcoreAsker atomic.Pointer[HardcoreAsk]
 type hardcoreAskStore interface {
 	HardcoreOf(serverID uint32) (database.HardcoreState, error)
 	ChooseHardcore(serverID uint32, on bool) (bool, error)
+	ChooseOG(serverID uint32, on bool) (bool, error)
 }
 
 // HardcoreAsk runs the boxes.
@@ -96,6 +135,7 @@ type hardcoreAskBox struct {
 	sess    *session.Session
 	box     uint32
 	second  bool // the "Are you sure?" box
+	og      bool // an [OG] box (else Hardcore's)
 	sent    time.Time
 	asked   time.Time
 	until   time.Time
@@ -112,9 +152,9 @@ func NewHardcoreAsk(gw *entity.World, db *database.SQLiteDB) *HardcoreAsk {
 	return a
 }
 
-// open reads whether p's choice is still open.
-func (a *HardcoreAsk) open(p *entity.Player) (database.HardcoreState, bool) {
-	if a == nil || a.store == nil || p == nil || !HardcoreOn() {
+// state reads p's Hardcore and [OG] columns.
+func (a *HardcoreAsk) state(p *entity.Player) (database.HardcoreState, bool) {
+	if a == nil || a.store == nil || p == nil {
 		return database.HardcoreState{}, false
 	}
 	st, err := a.store.HardcoreOf(p.CharServerID)
@@ -122,17 +162,64 @@ func (a *HardcoreAsk) open(p *entity.Player) (database.HardcoreState, bool) {
 		log.Printf("Hardcore: %s's choice: %v", p.Name, err)
 		return st, false
 	}
-	return st, st.ChoiceOpen()
+	return st, true
+}
+
+// open reads whether p's Hardcore choice is still open.
+func (a *HardcoreAsk) open(p *entity.Player) (database.HardcoreState, bool) {
+	if !HardcoreOn() {
+		return database.HardcoreState{}, false
+	}
+	st, ok := a.state(p)
+	return st, ok && st.ChoiceOpen()
+}
+
+// openOG reads whether p's [OG] choice is still open (world.og_accounts).
+func (a *HardcoreAsk) openOG(p *entity.Player) (database.HardcoreState, bool) {
+	if !OGAccounts() {
+		return database.HardcoreState{}, false
+	}
+	st, ok := a.state(p)
+	return st, ok && st.OGChoiceOpen()
 }
 
 // Entered is OnPlayerEntered: the first box, hardcoreAskAfter on, for a
-// character whose choice is open.
+// character whose choice is open: Hardcore's first, else [OG]'s (Hardcore's
+// last answer asks [OG]'s: askOGNext).
 func (a *HardcoreAsk) Entered(sess *session.Session, p *entity.Player) {
-	if _, open := a.open(p); !open {
+	if _, open := a.open(p); open {
+		a.tryIn(a.newBox(sess, p, false, false), hardcoreAskAfter)
 		return
 	}
-	b := a.newBox(sess, p, false)
-	a.tryIn(b, hardcoreAskAfter)
+	if _, open := a.openOG(p); open {
+		a.tryIn(a.newBox(sess, p, false, true), hardcoreAskAfter)
+	}
+}
+
+// askOGNext asks p's [OG] choice ogAfterHardcore on when it is open, after
+// Hardcore's boxes.
+func (a *HardcoreAsk) askOGNext(sess *session.Session, p *entity.Player) {
+	if _, open := a.openOG(p); open {
+		a.tryIn(a.newBox(sess, p, false, true), ogAfterHardcore)
+	}
+}
+
+// ShowOG is /og: the first [OG] box now when the choice is open, else what the
+// character is.
+func (a *HardcoreAsk) ShowOG(sess *session.Session, p *entity.Player) {
+	if !OGAccounts() || p == nil {
+		SendErrorMessage(sess, ogOffLine)
+		return
+	}
+	st, open := a.openOG(p)
+	switch {
+	case open:
+		a.try(a.newBox(sess, p, false, true))
+	case st.OG:
+		SendClientMessage(sess, fmt.Sprintf(ogIsLine, p.Name))
+	default:
+		SendClientMessage(sess, fmt.Sprintf(ogClosed, p.Name))
+	}
 }
 
 // Show is /hardcore: the first box now when the choice is open, else what the
@@ -145,7 +232,7 @@ func (a *HardcoreAsk) Show(sess *session.Session, p *entity.Player) {
 	st, open := a.open(p)
 	switch {
 	case open:
-		a.try(a.newBox(sess, p, false))
+		a.try(a.newBox(sess, p, false, false))
 	case st.Hardcore:
 		SendClientMessage(sess, fmt.Sprintf(hardcoreIsLine, p.Name))
 	default:
@@ -153,7 +240,7 @@ func (a *HardcoreAsk) Show(sess *session.Session, p *entity.Player) {
 	}
 }
 
-func (a *HardcoreAsk) newBox(sess *session.Session, p *entity.Player, second bool) *hardcoreAskBox {
+func (a *HardcoreAsk) newBox(sess *session.Session, p *entity.Player, second, og bool) *hardcoreAskBox {
 	now := a.now()
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -163,7 +250,11 @@ func (a *HardcoreAsk) newBox(sess *session.Session, p *entity.Player, second boo
 		}
 	}
 	a.seq++
-	b := &hardcoreAskBox{char: p.CharServerID, sess: sess, box: hardcoreBoxMark | (a.seq & 0xFFFFFF), second: second,
+	mark := uint32(hardcoreBoxMark)
+	if og {
+		mark = ogBoxMark
+	}
+	b := &hardcoreAskBox{char: p.CharServerID, sess: sess, box: mark | (a.seq & 0xFFFFFF), second: second, og: og,
 		asked: now, until: now.Add(hardcoreAskGiveUp)}
 	a.asked[b.char] = b
 	return b
@@ -205,13 +296,16 @@ func (a *HardcoreAsk) try(b *hardcoreAskBox) {
 		return
 	}
 	b.sent = now
-	sess, box, second := b.sess, b.box, b.second
+	sess, box, second, og := b.sess, b.box, b.second, b.og
 	a.mu.Unlock()
 	name := ""
 	if p := a.gw.SessionPlayer(sess); p != nil {
 		name = p.Name
 	}
 	q, answers := hardcoreQuestion(name, second)
+	if og {
+		q, answers = ogQuestion(name, second)
+	}
 	SendQuestPopupMulti(sess, box, q, answers)
 }
 
@@ -234,6 +328,27 @@ func hardcoreQuestion(name string, second bool) (string, []string) {
 		}
 	}
 	return q, []string{hardcoreYes1, hardcoreNo1}
+}
+
+// ogQuestion is an [OG] box's question and answers for a character name.
+func ogQuestion(name string, second bool) (string, []string) {
+	plain := name != "" && !strings.ContainsAny(name, "%|")
+	if second {
+		q := ogQ2Anon
+		if plain {
+			if s := fmt.Sprintf(ogQ2, name, name); len([]rune(s)) <= questAskChars {
+				q = s
+			}
+		}
+		return q, []string{ogYes2, ogNo2}
+	}
+	q := ogQ1Anon
+	if plain {
+		if s := fmt.Sprintf(ogQ1, name); len([]rune(s)) <= questAskChars {
+			q = s
+		}
+	}
+	return q, []string{ogYes1, ogNo1}
 }
 
 // free is welcome.go's: the session still its character's in the world, alive,
@@ -263,8 +378,10 @@ func (a *HardcoreAsk) free(b *hardcoreAskBox) (free, gone bool) {
 	return true, false
 }
 
-// IsHardcoreBox reports a Hardcore box's id.
-func IsHardcoreBox(id uint32) bool { return id&0xFF000000 == hardcoreBoxMark }
+// IsHardcoreBox reports a Hardcore box's id, or an [OG] box's.
+func IsHardcoreBox(id uint32) bool {
+	return id&0xFF000000 == hardcoreBoxMark || id&0xFF000000 == ogBoxMark
+}
 
 // Answer is HandleDialogueOption's for a Hardcore box; it reports whether the
 // box was one.
@@ -284,29 +401,102 @@ func (a *HardcoreAsk) Answer(sess *session.Session, p *entity.Player, box uint32
 	}
 	if option == 255 {
 		declined := !b.sent.IsZero() && now.Sub(b.sent) < hardcoreAskDecline
+		og := b.og
+		if !declined {
+			delete(a.asked, p.CharServerID) // closed: left open, the next asked
+		}
 		a.mu.Unlock()
-		if declined {
+		switch {
+		case declined:
 			a.tryIn(b, hardcoreAskRetry) // CLIENT's own decline (a menu up)
-		} else {
+		case og:
+			SendClientMessage(sess, fmt.Sprintf(ogLaterLn, p.Name, ogSpelling(sess.AckMasks())))
+		default:
 			SendClientMessage(sess, fmt.Sprintf(hardcoreLaterLn, p.Name, hardcoreSpelling(sess.AckMasks())))
+			a.askOGNext(sess, p)
 		}
 		return true
 	}
 	delete(a.asked, p.CharServerID)
-	second := b.second
+	second, og := b.second, b.og
 	a.mu.Unlock()
+	if og {
+		if _, open := a.openOG(p); !open {
+			return true // played on meanwhile, or chosen in another window
+		}
+		switch {
+		case option == 0 && !second:
+			a.try(a.newBox(sess, p, true, true))
+		case option == 0 && second:
+			a.chooseOG(sess, p, true)
+		case option == 1:
+			a.chooseOG(sess, p, false)
+		}
+		return true
+	}
 	if _, open := a.open(p); !open {
 		return true // played on meanwhile, or chosen in another window
 	}
 	switch {
 	case option == 0 && !second:
-		a.try(a.newBox(sess, p, true))
+		a.try(a.newBox(sess, p, true, false))
 	case option == 0 && second:
 		a.choose(sess, p, true)
+		a.askOGNext(sess, p)
 	case option == 1:
 		a.choose(sess, p, false)
+		a.askOGNext(sess, p)
 	}
 	return true
+}
+
+// chooseOG keeps the [OG] choice and tells the player; made [OG], its session
+// and client are told at once (madeOG).
+func (a *HardcoreAsk) chooseOG(sess *session.Session, p *entity.Player, on bool) {
+	changed, err := a.store.ChooseOG(p.CharServerID, on)
+	if err != nil || !changed {
+		if err != nil {
+			log.Printf("OG: %s's choice (%v) not kept: %v", p.Name, on, err)
+		}
+		SendErrorMessage(sess, fmt.Sprintf(hardcoreFailLine, ogSpelling(sess.AckMasks())))
+		return
+	}
+	if on {
+		madeOG(a.gw, sess)
+		SendClientMessage(sess, fmt.Sprintf(ogMadeLine, p.Name))
+	} else {
+		SendClientMessage(sess, fmt.Sprintf(ogNormal, p.Name))
+	}
+	log.Printf("OG: %s chose %s in the game", p.Name, map[bool]string{true: "[OG]", false: "a standard character"}[on])
+}
+
+// ogSpelling is /og as the player's client can send it.
+func ogSpelling(ours bool) string {
+	if ours {
+		return "/" + ogWord
+	}
+	return "/t " + ogWord
+}
+
+// ogLine is whether a typed line is /og ("/og", "#og", or "/t og" with
+// nothing after it).
+func ogLine(line string) bool {
+	line = strings.TrimSpace(line)
+	if word, rest, _ := strings.Cut(line, " "); (strings.EqualFold(word, "/"+ogWord) || strings.EqualFold(word, "#"+ogWord)) &&
+		strings.TrimSpace(rest) == "" {
+		return true
+	}
+	name, body, ok := parseTell(line)
+	return ok && strings.EqualFold(name, ogWord) && strings.TrimSpace(body) == ""
+}
+
+// ogCommand is /og's way in.
+func ogCommand(sess *session.Session, p *entity.Player) {
+	if a := hardcoreAsker.Load(); a != nil {
+		a.ShowOG(sess, p)
+		return
+	}
+	SendErrorMessage(sess, ogOffLine)
 }
 
 // choose keeps the choice and tells the player.

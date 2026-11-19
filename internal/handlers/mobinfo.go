@@ -67,7 +67,7 @@ func buildMobInfoOffer() []byte {
 // SendMobInfoOffer offers the session's client a monster's name and level in
 // its own details box, where world.mob_info is on; elsewhere nothing goes.
 func SendMobInfoOffer(sess *session.Session) {
-	if !MobInfoOn() || !QoLOnFor(sess) { // and world.vanilla_ui, an [OG] account (vanillaui.go, ogaccount.go)
+	if !MobInfoOn() || !QoLOnFor(sess) { // and world.vanilla_ui, an [OG] character (vanillaui.go, ogaccount.go)
 		return
 	}
 	queueReliable(sess, protocol.OpcodeMobInfoOffer, buildMobInfoOffer())

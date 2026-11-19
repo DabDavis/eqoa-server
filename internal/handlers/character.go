@@ -349,6 +349,17 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 		}
 		hcPresent = false // not offered: a normal character, its choice asked as a PS2's
 	}
+	// then the [OG] choice, from a client that took the offer's [OG] bit
+	// (hardcore.go; database/ogchar.go)
+	ogChosen, ogPresent, ogOK, rest := ogBlock(rest)
+	if ogPresent && (!ogOK || !sess.OGClient() || !OGAccounts()) {
+		if !ogOK {
+			log.Printf("CreateCharacter: refused '%s': its [OG] block (%d bytes)", name, len(rest))
+			h.sendCreateRefusal(sess, protocol.OpcodeCreateCharFailed)
+			return nil
+		}
+		ogPresent = false // not offered: a standard character, its choice asked as a PS2's
+	}
 	choices, present, ok := raceOptionsBlock(rest)
 	var chosenBody int64
 	var looks []database.CharLook
@@ -444,6 +455,9 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 
 	if hcPresent && record.ServerID != 0 {
 		h.chooseAtCreation(uint32(record.ServerID), name, hardcore) // hardcore.go
+	}
+	if ogPresent && record.ServerID != 0 {
+		h.chooseOGAtCreation(uint32(record.ServerID), name, ogChosen) // hardcore.go
 	}
 
 	count, _ := h.store.Count()
@@ -598,9 +612,9 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 
 	// A GM's approved character transfer applies now, before this login reads
 	// the character (transfers.go): no logout save can write over it here.
-	// An [OG] account's lists are its own sizes (entity/itemslots.go): the
+	// An [OG] character's lists are its own sizes (entity/itemslots.go): the
 	// session knows it before the gifts below fill them (applyOG says it again)
-	h.readOG(sess)
+	h.readOG(sess, uint32(record.ServerID))
 	if h.applyTransfer(uint32(record.ServerID), sessionListSizes(sess)) {
 		if again, err := h.store.GetByServerID(charID); err == nil {
 			record = again
@@ -655,7 +669,7 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	// elsewhere (0x07A4); the account's other windows play on.
 	if h.gameWorld != nil {
 		if player, took := h.gameWorld.TakeOverPlayer(sess, uint32(record.ServerID)); player != nil {
-			h.applyOG(sess, player)       // the session's own, an [OG] account's (ogaccount.go)
+			h.applyOG(sess, player)       // the session's own, an [OG] character's (ogaccount.go)
 			h.applyHardcore(sess, player) // a Hardcore character's (hardcore.go)
 			h.gameWorld.SetPlayerLook(uint32(record.ServerID), record.FaceOption, record.HairStyle, record.HairLength, record.HairColor)
 			h.placeTakenOver(sess, player, record)
@@ -814,7 +828,7 @@ func (h *CharacterHandler) enterFromRecord(sess *session.Session, record *databa
 	var player *entity.Player
 	if h.gameWorld != nil {
 		player = h.gameWorld.CreatePlayer(sess, record)
-		// an [OG] account's: the game's own UI, its name drawn with the tag
+		// an [OG] character's: the game's own UI, its name drawn with the tag
 		// (ogaccount.go), before anything is sent of it
 		h.applyOG(sess, player)
 		// a Hardcore character's: its tag and its final death (hardcore.go)

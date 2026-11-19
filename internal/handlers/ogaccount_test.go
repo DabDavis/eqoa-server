@@ -149,30 +149,37 @@ func TestOGSessionsAnswersAndCon(t *testing.T) {
 	}
 }
 
-// The choice is read from the account at a character's entry, only where
-// world.og_accounts is set; the session and the player both get it, and the
-// player is drawn "[OG] Name". The control: the switch off, nothing read,
-// nothing drawn.
-func TestApplyOGReadsTheAccount(t *testing.T) {
+// The choice is read from the CHARACTER at its entry (characters.og), only
+// where world.og_accounts is set; the session and the player both get it, and
+// the player is drawn "[OG] Name". A character of an account that was [OG]
+// (accountinfo.og) is not [OG] unless its own column says so. The control: the
+// switch off, nothing read, nothing drawn.
+func TestApplyOGReadsTheCharacter(t *testing.T) {
 	db, store := newSafeDB(t)
 	accs := database.NewSQLiteAccountStore(db)
-	ogAcc, err := accs.Create("ogplayer", "x")
+	acc, err := accs.Create("ogplayer", "x")
 	if err != nil {
 		t.Fatal(err)
 	}
-	plainAcc, err := accs.Create("plainplayer", "x")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := accs.SetAccountOG(ogAcc.ID, true); err != nil {
+	if err := accs.SetAccountOG(acc.ID, true); err != nil { // the old account flag: read by nothing here
 		t.Fatal(err)
 	}
 	c := newChatWorld(t)
 	h := &CharacterHandler{store: store, gameWorld: c.gw}
 	og, po := c.join(1, "Meshuggah", 25000, 16000, 0)
 	plain, pp := c.join(2, "Bob", 25010, 16000, 0)
-	og.SetAccountID(ogAcc.ID)
-	plain.SetAccountID(plainAcc.ID)
+	for _, p := range []*entity.Player{po, pp} {
+		rec := database.CharacterRecord{CharName: p.Name, AccountID: acc.ID, Level: 1}
+		if err := store.Create(&rec); err != nil {
+			t.Fatal(err)
+		}
+		p.CharServerID = uint32(rec.ServerID)
+	}
+	og.SetAccountID(acc.ID)
+	plain.SetAccountID(acc.ID)
+	if _, err := db.ChooseOG(po.CharServerID, true); err != nil {
+		t.Fatal(err)
+	}
 
 	h.applyOG(og, po)
 	if og.OG() || po.OG || po.ShownName() != "Meshuggah" {
@@ -181,18 +188,23 @@ func TestApplyOGReadsTheAccount(t *testing.T) {
 	ogSwitch(t)
 	h.applyOG(og, po)
 	h.applyOG(plain, pp)
-	if !og.OG() || !po.OG || po.ShownName() != "[OG] Meshuggah" {
+	if !og.OG() || !po.OG || po.ShownName() != "[OG] Meshuggah" || QoLOnFor(og) {
 		t.Fatalf("switch on: session %v, player %v, drawn %q", og.OG(), po.OG, po.ShownName())
 	}
-	if plain.OG() || pp.OG || pp.ShownName() != "Bob" {
-		t.Fatalf("another account: session %v, drawn %q", plain.OG(), pp.ShownName())
+	if plain.OG() || pp.OG || pp.ShownName() != "Bob" || !QoLOnFor(plain) {
+		t.Fatalf("the account's other character: session %v, drawn %q", plain.OG(), pp.ShownName())
 	}
-	// a GM's [OG] account: both tags joined, the GM's first (entity/hardcore.go)
+	// a GM's [OG] character: both tags joined, the GM's first (entity/hardcore.go)
 	po.GM = true
 	if got := po.ShownName(); got != "[GM][OG] Meshuggah" {
 		t.Fatalf("a GM's: %q", got)
 	}
 	po.GM = false
+	// the same session entering the account's other character: not [OG] then
+	h.applyOG(og, pp)
+	if og.OG() {
+		t.Fatal("the session kept the [OG] of the character before")
+	}
 }
 
 // The name stays the character's own for everything keyed by it: a tell by

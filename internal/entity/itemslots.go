@@ -90,9 +90,9 @@ func ItemSlotsGrandfathered() (pack, bank int) { return ItemSlotsGrandfatheredFo
 // grandfathered size where there is one, else ItemSlots.
 func ItemListsMost() (pack, bank int) { return ItemListsMostFor(false) }
 
-// [OG] accounts' lists (world.og_pack_slots, world.og_bank_slots; the server
+// [OG] characters' lists (world.og_pack_slots, world.og_bank_slots; the server
 // owner, 2026-11-18, of Vanilla Test: "lets make 100 inventory space in bank and
-// pack for vanilla test, but [OG] gets 40/40"). An [OG] account's session
+// pack for vanilla test, but [OG] gets 40/40"). An [OG] character's session
 // (handlers/ogaccount.go, world.og_accounts) holds at most these, every other
 // session pack_slots and bank_slots. Below the shard's own size an [OG] list is
 // grandfathered to it (as world.grandfather_pack_slots does for everyone): an
@@ -117,7 +117,7 @@ func SetOGItemSlots(pack, bank int) {
 // OGItemSlots is the [OG] sizes as set (0: off).
 func OGItemSlots() (pack, bank int) { return int(ogPack.Load()), int(ogBank.Load()) }
 
-// ItemSlotsFor is ItemSlots for a session of an [OG] account (og) or another:
+// ItemSlotsFor is ItemSlots for a session of an [OG] character (og) or another:
 // an [OG] one's at most its [OG] size.
 func ItemSlotsFor(og bool) (pack, bank int) {
 	pack, bank = ItemSlots()
@@ -132,7 +132,7 @@ func ItemSlotsFor(og bool) (pack, bank int) {
 	return pack, bank
 }
 
-// ItemSlotsGrandfatheredFor is ItemSlotsGrandfathered for an [OG] account's
+// ItemSlotsGrandfatheredFor is ItemSlotsGrandfathered for an [OG] character's
 // session (og) or another: an [OG] list below the shard's size is grandfathered
 // to the larger of that size and the shard's grandfathered one.
 func ItemSlotsGrandfatheredFor(og bool) (pack, bank int) {
@@ -151,7 +151,7 @@ func ItemSlotsGrandfatheredFor(og bool) (pack, bank int) {
 	return g(grandPack.Load(), basePack, limPack), g(grandBank.Load(), baseBank, limBank)
 }
 
-// ItemListsMostFor is ItemListsMost for an [OG] account's session (og) or
+// ItemListsMostFor is ItemListsMost for an [OG] character's session (og) or
 // another; never more than ItemListsMost (what the offer named).
 func ItemListsMostFor(og bool) (pack, bank int) {
 	pack, bank = ItemSlotsFor(og)

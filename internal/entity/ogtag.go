@@ -7,7 +7,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// ogtag.go — an [OG] account's characters drawn "[OG] Name" (the owner,
+// ogtag.go — an [OG] character drawn "[OG] Name" (the owner,
 // 2026-11-18, for the Vanilla Test server: "characters [OG] Meshuggah for
 // example. this [OG] tag shows players you opt-out of the QoL changes").
 //
@@ -22,7 +22,7 @@ import (
 // the character all the same (PlainName). The lists vanilla keys by the name
 // it draws (race labels, race looks) carry both forms (ShownNames).
 
-// OGTag goes before an [OG] account's character's name where it is drawn.
+// OGTag goes before an [OG] character's name where it is drawn.
 const OGTag = "[OG] "
 
 // ShownNameMost is the most bytes of a drawn name: the channel's 24 less a
@@ -110,7 +110,7 @@ func ShownNames(name string, gm, og, hc bool) []string {
 	return append([]string{name}, uniqueStrings(more)...)
 }
 
-// SetPlayerOG records whether the session's character's account is an [OG]
+// SetPlayerOG records whether the session's character is an [OG]
 // one (read at its entry, handlers/ogaccount.go): its name drawn with OGTag
 // where world.og_accounts is on.
 func (w *World) SetPlayerOG(sess *session.Session, og bool) {

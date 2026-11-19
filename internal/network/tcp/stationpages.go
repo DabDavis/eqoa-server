@@ -201,111 +201,23 @@ func emailRefusalPage(page string) []byte {
 			"account, and a forgotten password is reset by e-mail."))
 }
 
-// stationCreate2 is IDCreat2, the e-mail and Create Account; with og (the
-// shard's auth.og_choice) two rows more: "Account Type", Standard or OG, the
-// [OG] account's choice (database/ogaccount.go), made here once, and "What is
-// OG?", the page of its limits (StationOGAboutPage).
-//
-// The choice rides in the form's Gender (STATION's only free field: a ComboBox
-// the disc's page had, read by name, its value checked by CheckName and sent
-// as it is in VIStationRequest56's 16 bytes at +0x14C, the payload's 324;
-// handleCreateAccountMail reads it). The disc's own page sends Male or Female
-// there, never OG, so a client that has not patched makes a plain account.
-// PushPage fills an empty m_account from the page's own value first, so the
-// row starts at Standard and keeps what was chosen over Back.
-func stationCreate2(page string, og bool) []byte {
+// stationCreate2 is IDCreat2, the e-mail and Create Account. (From 2026-11-18
+// to 11-19 it had an "Account Type" row, Standard or OG, in the form's Gender
+// field, and a "What is OG?" page in RentSet.xml's place: an [OG] account's
+// choice. [OG] is a character's now, chosen when the character is new
+// (database/ogchar.go), so the page is the plain one again, Gender hidden as
+// "x", and RentSet.xml the disc's.)
+func stationCreate2(page string) []byte {
 	hidden := []string{stationHidden("Country", "US - USA"), stationHidden("PostalCode", stationZip), stationHidden("BirthMonth", "Jan"),
 		stationHidden("BirthDay", "1"), stationHidden("BirthYear", "1977")}
-	if !og {
-		return stationPage(3, 2, append(hidden, stationHidden("Gender", "x"),
-			stationBackdrop,
-			stationLabel("EmailAddressLabel", "E-mail Address", 30, 177), stationField("EmailAddress", "E-mail Address", 0, 176, 100, false),
-			stationButton("Create Account", "SubmitAcctCreate", 1, 140, 270, 162),
-			stationFooter(10),
-			stationNote("With a - or a + in it, sign up at", page),
-			stationHelp("Your E-mail", "Required. We e-mail a link to it: open it to verify your account. With it "+
-				"verified, a forgotten password is reset by e-mail."))...)
-	}
-	// the choice says what OG costs where it is made (the help) and, a row
-	// below it, opens the whole of it (StationOGAboutPage)
-	return stationPage(3, 4, append(hidden,
+	return stationPage(3, 2, append(hidden, stationHidden("Gender", "x"),
 		stationBackdrop,
-		stationLabel("EmailAddressLabel", "E-mail Address", 30, 140), stationField("EmailAddress", "E-mail Address", 0, 139, 100, false),
-		stationLabel("GenderLabel", "Account Type", 30, 177), stationCombo("Gender", 1, 176, StationOGStandard, StationOGChoice),
-		stationButton("What is OG?", StationOGAboutPage, 2, 230, 212, 162),
-		stationButton("Create Account", "SubmitAcctCreate", 3, 140, 270, 162),
+		stationLabel("EmailAddressLabel", "E-mail Address", 30, 177), stationField("EmailAddress", "E-mail Address", 0, 176, 100, false),
+		stationButton("Create Account", "SubmitAcctCreate", 1, 140, 270, 162),
 		stationFooter(10),
 		stationNote("With a - or a + in it, sign up at", page),
-		stationHelp("Standard or OG?", "OG: Vanilla Test with no map, minimap, item links, mouse, touch or other "+
-			"extras, and [OG] on your names. Permanent. Unsure? Choose Standard."))...)
-}
-
-// StationOGAboutPage is what Create Account's "What is OG?" opens
-// (stationCreate2 with the choice): SOE's rental code page, which only the
-// billing pages' AcctCrt opens and no page of ours reaches, served in its
-// place with what an [OG] account gives up (stationOGAbout).
-const StationOGAboutPage = "data/ui/RentSet.xml"
-
-// stationOGAbout is StationOGAboutPage: an [OG] account's limits on the
-// Vanilla Test server (handlers/ogaccount.go, vanilla's QoLOGOff), what it
-// keeps, and that it is permanent; the additions it can never turn on in
-// the help panel. No field and no button: Triangle goes back to Create
-// Account, which keeps what was typed and chosen (a page's way back, as from
-// PassChng to AcctMgmt).
-func stationOGAbout() []byte {
-	return stationPage(1, 1,
-		stationBackdrop,
-		stationPara("OG: the game as it was, on Vanilla Test", 100, 40, true),
-		stationPara("Map, minimap and item links locked off. No mouse or touch in the world: keyboard or "+
-			"controller only. Your names show as [OG] Name.", 140, 110, false),
-		stationPara("Kept: frame rate, widescreen and graphics. On other servers it plays like any account.", 254, 64, false),
-		stationPara("Permanent: it can never be switched back.", 322, 44, true),
-		stationBackOnly,
-		stationHelp("What is OG?", "Also off, with no way to turn them on: quest helper, target level and /con, "+
-			"DPS meter, power bars, buff window, pet effects, auto-cast, bars 3-4."))
-}
-
-// stationPara is a wrapped paragraph on a page's left at y, height high, in
-// the station's yellow or its grey.
-func stationPara(val string, y, height int, yellow bool) string {
-	r, g, b := 220, 220, 220
-	if yellow {
-		r, g, b = 255, 226, 97
-	}
-	return fmt.Sprintf("\t<Text val=%q>\n\t\t<Position x=\"40\" y=\"%d\"/>\n\t\t<Size width=\"390\" height=\"%d\"/>\n"+
-		"\t\t<Wrap mode=\"true\"/>\n\t\t<TextColor r=\"%d\" g=\"%d\" b=\"%d\"/>\n\t</Text>\n", val, y, height, r, g, b)
-}
-
-// stationBackOnly is the Back hint alone, for a page with nothing to select.
-const stationBackOnly = `	<Object>
-		<Position x="237" y="380"/>
-		<Image imageType="StationTri"/>
-	</Object>
-	<Text val="Back">
-		<Position x="265" y="378"/>
-		<TextColor r="255" g="226" b="97"/>
-	</Text>
-`
-
-// The [OG] row's two values (Gender's: at most 15 characters, a letter in
-// each for CheckName).
-const (
-	StationOGStandard = "Standard"
-	StationOGChoice   = "OG"
-)
-
-// stationCombo is a ComboBox at grid row row and y, its value the first of
-// options (as the disc's own IDCreat2 draws its Gender).
-func stationCombo(name string, row, y int, options ...string) string {
-	var opts strings.Builder
-	for _, o := range options {
-		fmt.Fprintf(&opts, "\t\t<Option name=%q/>\n", o)
-	}
-	return fmt.Sprintf("\t<ComboBox name=%q val=%q>\n\t\t<ButtonPos x=\"0\" y=\"%d\"/>\n\t\t<Position x=\"230\" y=\"%d\"/>\n"+
-		"\t\t<Size width=\"162\" height=\"25\"/>\n\t\t<TextColor r=\"0\" g=\"0\" b=\"0\"/>\n\t\t<RollColor r=\"20\" g=\"20\" b=\"200\"/>\n"+
-		"\t\t<Image tile=\"horiz\" capTexture=\"TextCapL\" imageType=\"TextTile\"/>\n\t\t<ImageOffset x=\"-10\"/>\n"+
-		"\t\t<SelectEffect type=\"scrollleft\" xtarget=\"216\"/>\n\t\t<Shadow active=\"false\"/>\n\t\t<Depth index=\"2\"/>\n%s\t</ComboBox>\n",
-		name, options[0], row, y, opts.String())
+		stationHelp("Your E-mail", "Required. We e-mail a link to it: open it to verify your account. With it "+
+			"verified, a forgotten password is reset by e-mail."))...)
 }
 
 // stationEmailPages are the pages served with mail.accounts on, by their pak
@@ -324,7 +236,7 @@ func stationEmailPages(page string, refusal bool) map[string][]byte {
 			stationFooter(10),
 			stationHelp("Create Account", "Choose a user name and a password, and enter the password twice. Next you give your "+
 				"e-mail address: we send a link to it to verify your account.")),
-		"data/ui/IDCreat2.xml": stationCreate2(page, false),
+		"data/ui/IDCreat2.xml": stationCreate2(page),
 		"data/ui/AcctMgmt.xml": stationPage(1, 2,
 			stationBackdrop,
 			stationButton("Change Password", "data/ui/PassChng.xml", 0, 40, 170, 370),

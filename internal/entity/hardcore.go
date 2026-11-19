@@ -275,8 +275,8 @@ func composeTags(name string, tags []string, drop []string) string {
 }
 
 // tagDropOrder is the order tags go in when a name does not fit: the [OG]
-// account's first (it is the account's, the least of what a glance needs),
-// then the [HC]; the [GM] and a carried banner are never dropped.
+// first (the least of what a glance needs), then the [HC]; the [GM] and a
+// carried banner are never dropped.
 var tagDropOrder = []string{OGTag, HCTag}
 
 // shownWith is name drawn with the tags gm, banner, og and hc set (in that
@@ -296,6 +296,13 @@ func shownWith(name string, gm, banner, og, hc bool) string {
 		tags = append(tags, HCTag)
 	}
 	return composeTags(name, tags, tagDropOrder)
+}
+
+// ListName is a character's name in a PS2's character list (0x002C): with
+// its [OG] and [HC] tags (handlers.ps2ListName), fitted to CLIENT's 23 bytes
+// as the channel's name is (composeTags), the name never cut.
+func ListName(name string, og, hc bool) string {
+	return shownWith(name, false, false, og, hc)
 }
 
 // sortStrings is s sorted, without repeats.

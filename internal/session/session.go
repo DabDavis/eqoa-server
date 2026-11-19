@@ -205,6 +205,9 @@ type Session struct {
 	// offer went out, once a session.
 	hardcoreClient  bool
 	hardcoreOffered bool
+	// ogClient: the client's answer to the Hardcore offer took its [OG] bit
+	// (vanilla's create page offers the [OG] choice: handlers/hardcore.go)
+	ogClient bool
 	// itemListsPack, itemListsBank: the client's answer to the item lists'
 	// offer (protocol.OpcodeItemLists, handlers/itemlists.go), the records it
 	// holds of the pack and the bank; 0 for a client that never answered (a
@@ -249,7 +252,7 @@ type Session struct {
 	// how to report a bug went out. boonNotice: the line on where the towns'
 	// boon is went out (handlers/boon.go).
 	bugReports bool
-	// og: the session's account is an [OG] one on a shard with
+	// og: the session's character is an [OG] one on a shard with
 	// world.og_accounts (handlers/ogaccount.go): the game's own UI for it
 	og bool
 	// ackMasks: the client answered the bug report offer (any answer: a PS2
@@ -388,7 +391,7 @@ func (s *Session) BugReports() bool {
 	return s.bugReports
 }
 
-// SetOG marks the session's account as an [OG] one where world.og_accounts is
+// SetOG marks the session's character as an [OG] one where world.og_accounts is
 // on (handlers/ogaccount.go), read at each character's entry.
 func (s *Session) SetOG(on bool) {
 	s.mu.Lock()
@@ -396,7 +399,7 @@ func (s *Session) SetOG(on bool) {
 	s.og = on
 }
 
-// OG reports whether the session has the game's own UI as an [OG] account's.
+// OG reports whether the session has the game's own UI as an [OG] character's.
 func (s *Session) OG() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -1169,6 +1172,22 @@ func (s *Session) HardcoreClient() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.hardcoreClient
+}
+
+// SetOGClient records whether the client's answer to the Hardcore offer took
+// its [OG] bit.
+func (s *Session) SetOGClient(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.ogClient = on
+}
+
+// OGClient is whether the client offers the [OG] choice on its create page
+// (vanilla, answering the offer's [OG] bit); a PS2 and an older vanilla do not.
+func (s *Session) OGClient() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.ogClient
 }
 
 // HardcoreOffered is whether the Hardcore offer went out on this session.

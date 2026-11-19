@@ -200,8 +200,8 @@ var catalog = map[string]tableNote{
 			"acctcreation": {Label: "Created", Format: "stamp"},
 			"lastlogin":    {Label: "Last login", Format: "stamp"},
 			"ipaddress":    {Label: "Address"},
-			"og": {Label: "[OG]", ReadOnly: true, Help: "1: an [OG] account (chosen at its creation): on the Vanilla Test " +
-				"server the game's own UI and the [OG] tag; changed with set_account_og"},
+			"og": {Label: "[OG] (old)", ReadOnly: true, Help: "1: was an [OG] account (2026-11-18/19). [OG] is a character's " +
+				"now (characters.og): at the first start after, every character of such an account was made [OG]; nothing reads this for play"},
 			"pwtemp": {Label: "Temporary password", ReadOnly: true,
 				Help: "1 while the password is a temporary one a GM set (a password reset): the account pages ask its owner for their own first"},
 			// the address is its owner's alone to see: the panel shows it
@@ -269,6 +269,10 @@ var catalog = map[string]tableNote{
 			"tpintel":      {Label: "TP in INT", Section: "Stats"},
 			"tpcharisma":   {Label: "TP in CHA", Section: "Stats"},
 			"breath":       {Section: "Stats", Help: "0-255, 255 full"},
+			"og": {Label: "[OG]", ReadOnly: true, Section: "Identity", Help: "1: an [OG] character (chosen while new): on the " +
+				"Vanilla Test server the game's own UI and the [OG] tag; changed with set_character_og"},
+			"og_chosen": {Label: "[OG] chosen", ReadOnly: true, Section: "Identity",
+				Help: "1: its [OG] choice is made (no question asked in the game)"},
 		},
 	},
 	"charinventory": {

@@ -7,16 +7,15 @@ import (
 	"strings"
 )
 
-// ogaccount.go — accountinfo.og: an [OG] account (the owner, 2026-11-18, for
-// the Vanilla Test server: "make a tag for accounts to be [OG] Accounts ...
-// this [OG] tag shows players you opt-out of the QoL changes to EQOA and only
-// use the most basic upgrades like FPS, widescreen, no touchscreen, no
-// mouse"). Chosen once, when the account is made (the account pages'
-// Register, STATION's Create Account), and never the player's to change after:
-// a GM may, on the owner's panel (set_account_og, audited and revertible).
-// Every account made before it is 0. A column of accountinfo, so a shard's
-// mirrored copy (AccountMirror) has it within seconds; what it does is the
-// shard's (world.og_accounts, handlers/ogaccount.go).
+// ogaccount.go — accountinfo.og: an [OG] account, as [OG] was from
+// 2026-11-18 (the owner, for the Vanilla Test server: "make a tag for accounts
+// to be [OG] Accounts"), chosen when the account was made. Since 2026-11-19
+// [OG] is a CHARACTER's (ogchar.go: "lets make [OG] status a char tag like [HC]
+// the account status is confusing new players"): no page offers the account's
+// choice any more, and nothing reads this column for play. It stays, for the
+// panel and for MigrateAccountOG, which made every character of an [OG]
+// account an [OG] character once. A column of accountinfo, so a shard's
+// mirrored copy (AccountMirror) has it.
 
 // ensureAccountOG adds accountinfo.og (initSchema).
 func (db *SQLiteDB) ensureAccountOG() error {
@@ -47,8 +46,7 @@ func (db *SQLiteDB) AccountOG(accountID int) (bool, error) {
 	return og != 0, nil
 }
 
-// SetAccountOG sets the account's choice. Only account creation calls it with
-// on; a GM's change goes through the panel's audited row write.
+// SetAccountOG sets the account's flag (tests; no page sets it any more).
 func (db *SQLiteDB) SetAccountOG(accountID int, on bool) error {
 	v := 0
 	if on {
@@ -64,7 +62,7 @@ func (db *SQLiteDB) SetAccountOG(accountID int, on bool) error {
 	return nil
 }
 
-// SetAccountOG on the account store (the account pages', STATION's).
+// SetAccountOG on the account store.
 func (s *SQLiteAccountStore) SetAccountOG(accountID int, on bool) error {
 	return s.db.SetAccountOG(accountID, on)
 }

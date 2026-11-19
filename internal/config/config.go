@@ -717,13 +717,17 @@ type WorldConfig struct {
 	// Unset or false: everything as before.
 	VanillaUI bool `yaml:"vanilla_ui"`
 
-	// OGAccounts gives an [OG] account's sessions the game's own UI and its
-	// characters the [OG] tag (handlers/ogaccount.go; the owner, 2026-11-18,
-	// for the Vanilla Test server: "[OG] tag shows players you opt-out of the
-	// QoL changes to EQOA and only use the most basic upgrades like FPS,
-	// widescreen, no touchscreen, no mouse"). What an account is is
-	// accountinfo.og, chosen at its creation (auth.og_choice on the shard that
-	// owns the accounts). Unset or false: an [OG] account is any other here.
+	// OGAccounts turns [OG] characters on (handlers/ogaccount.go; the owner,
+	// 2026-11-18, for the Vanilla Test server: "[OG] tag shows players you
+	// opt-out of the QoL changes to EQOA and only use the most basic upgrades
+	// like FPS, widescreen, no touchscreen, no mouse"): a new character is
+	// offered the choice (characters.og, database/ogchar.go; since 2026-11-19 a
+	// character's, as [HC] is, no longer an account's), and an [OG]
+	// character's session has the game's own UI and its name the [OG] tag. The
+	// key keeps its old name. At the first start with it, every character of
+	// an account with the old accountinfo.og is made an [OG] character, once
+	// (database.MigrateAccountOG). Unset or false: no choice, and an [OG]
+	// character is any other here.
 	OGAccounts bool `yaml:"og_accounts"`
 
 	// Hardcore is [HC] Hardcore characters (handlers/hardcore.go; the owner,
@@ -962,12 +966,12 @@ type AuthConfig struct {
 	// adopted the same way by the next login that supplies one.
 	AllowAutoRegister bool `yaml:"allow_auto_register"`
 
-	// OGChoice offers, where accounts are made (the account pages' Register,
-	// STATION's Create Account as this server serves it with mail.accounts),
-	// the choice of an [OG] account for the Vanilla Test server
-	// (accountinfo.og, database/ogaccount.go; the owner, 2026-11-18): chosen
-	// once, never the player's to change after. What it does is a shard's
-	// world.og_accounts. Unset or false: no choice, every account made plain.
+	// OGChoice is RETIRED (2026-11-19): it offered an [OG] ACCOUNT where
+	// accounts are made (the account pages' Register, STATION's Create
+	// Account). [OG] is now a character's, chosen when the character is new
+	// (world.og_accounts, database/ogchar.go), so no account page offers it
+	// whatever this says. Still read, so a config that sets it loads; the
+	// server logs that it is ignored.
 	OGChoice bool `yaml:"og_choice"`
 
 	// RequireTCPLogin makes the UDP handlers refuse a username that has not

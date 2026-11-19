@@ -87,6 +87,9 @@ type HardcoreState struct {
 	Level     int   // its level now
 	TotalXP   int
 	Fall      FallRecord // At 0: not fallen
+	// OG and OGChosen are its [OG] columns (ogchar.go): an [OG] character,
+	// and its choice made
+	OG, OGChosen bool
 }
 
 // Fallen reports a fallen character.
@@ -119,15 +122,16 @@ const hardcoreSelect = `SELECT serverid, charName, COALESCE(hardcore, 0), COALES
 	COALESCE(fallen_at, 0), COALESCE(fallen_cause, ''), COALESCE(fallen_killer, ''), COALESCE(fallen_place, ''),
 	COALESCE(fallen_world, 0), COALESCE(fallen_x, 0), COALESCE(fallen_y, 0), COALESCE(fallen_z, 0),
 	COALESCE(fallen_level, 0), COALESCE(fallen_class, 0), COALESCE(fallen_race, 0), COALESCE(fallen_cms, 0),
-	COALESCE(fallen_played, 0) FROM characters`
+	COALESCE(fallen_played, 0), COALESCE(og, 0), COALESCE(og_chosen, 0) FROM characters`
 
 func scanHardcore(sc interface{ Scan(...any) error }) (HardcoreState, error) {
 	var h HardcoreState
-	var hc, chosen int
+	var hc, chosen, og, ogChosen int
 	f := &h.Fall
 	err := sc.Scan(&h.ServerID, &h.Name, &hc, &chosen, &h.Born, &h.BornLevel, &h.Played, &h.Level, &h.TotalXP, &f.AccountID,
-		&f.At, &f.Cause, &f.Killer, &f.Place, &f.World, &f.X, &f.Y, &f.Z, &f.Level, &f.Class, &f.Race, &f.CMs, &f.Played)
-	h.Hardcore, h.Chosen = hc != 0, chosen != 0
+		&f.At, &f.Cause, &f.Killer, &f.Place, &f.World, &f.X, &f.Y, &f.Z, &f.Level, &f.Class, &f.Race, &f.CMs, &f.Played,
+		&og, &ogChosen)
+	h.Hardcore, h.Chosen, h.OG, h.OGChosen = hc != 0, chosen != 0, og != 0, ogChosen != 0
 	f.ServerID, f.Name, f.Born = h.ServerID, h.Name, h.Born
 	return h, err
 }

@@ -65,7 +65,7 @@ func buildQuestProgressOffer() []byte {
 
 // SendQuestProgressOffer offers the session's client the quest tracker.
 func SendQuestProgressOffer(sess *session.Session) {
-	if !QoLOnFor(sess) { // world.vanilla_ui, an [OG] account (vanillaui.go, ogaccount.go)
+	if !QoLOnFor(sess) { // world.vanilla_ui, an [OG] character (vanillaui.go, ogaccount.go)
 		return
 	}
 	queueReliable(sess, protocol.OpcodeQuestProgress, buildQuestProgressOffer())

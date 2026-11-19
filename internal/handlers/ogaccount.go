@@ -8,19 +8,21 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// ogaccount.go — [OG] accounts on a shard (world.og_accounts; the owner,
-// 2026-11-18, for the Vanilla Test server: "make a tag for accounts to be
-// [OG] Accounts. characters [OG] Meshuggah for example. this [OG] tag shows
-// players you opt-out of the QoL changes to EQOA and only use the most basic
-// upgrades like FPS, widescreen, no touchscreen, no mouse"; opt-in per
-// account, chosen once when the account is made, permanent).
+// ogaccount.go — [OG] characters on a shard (world.og_accounts; the owner,
+// 2026-11-18, for the Vanilla Test server: "this [OG] tag shows players you
+// opt-out of the QoL changes to EQOA and only use the most basic upgrades like
+// FPS, widescreen, no touchscreen, no mouse"; then 2026-11-19: "lets make [OG]
+// status a char tag like [HC] the account status is confusing new players").
 //
-// The choice is accountinfo.og (database/ogaccount.go), set at creation on
-// the account pages' Register and STATION's Create Account
-// (tcp.AuthServer/AccountServer with auth.og_choice), changed only by a GM
-// (the panel's set_account_og). Where world.og_accounts is set, at each
-// character's entry (and a keep restart's resume) the session of an [OG]
-// account:
+// The choice is the CHARACTER's, characters.og (database/ogchar.go), made once
+// while it is new, permanent, as Hardcore's is: on vanilla's create page (the
+// 0x7EB0 offer's bit 2, its 'O' block: hardcore.go), else in CLIENT's question
+// box at its first world entry (hardcoreask.go, after Hardcore's), changed only
+// by a GM (the panel's set_character_og). The account's flag (accountinfo.og)
+// was moved onto its characters once (database.MigrateAccountOG, at startup)
+// and is not read here. The config key keeps its name, world.og_accounts.
+// Where it is set, at each character's entry (and a takeover's, and a keep
+// restart's resume) the session of an [OG] character:
 //
 //   - gets world.vanilla_ui's treatment for itself alone: none of the
 //     server's quality-of-life offers (QoLOnFor), an answer to any taken as
@@ -34,16 +36,16 @@ import (
 //     world.vanilla_ui's are off by default), no mouse (QoLNoMouse) and no
 //     touch (QoLNoTouch) in the world. What stays is the client's own frame
 //     rate, its window's shape, its graphics and its keyboard and controllers;
-//   - has its characters drawn "[OG] Name" to everyone on the shard
-//     (entity.OGTag, Player.ShownName), its name its own everywhere else.
+//   - is drawn "[OG] Name" to everyone on the shard (entity.OGTag,
+//     Player.ShownName), its name its own everywhere else.
 //
-// Unset (Heirloom's), an [OG] account is any other: nothing read, nothing
-// drawn. world.vanilla_ui (every session's) is apart from it and may stay unset.
+// Unset (Heirloom's), an [OG] character is any other: nothing read, nothing
+// drawn, nothing asked. world.vanilla_ui (every session's) is apart from it.
 
 // ogAccounts is world.og_accounts: off unless set.
 var ogAccounts atomic.Bool
 
-// SetOGAccounts turns [OG] accounts on or off for this shard (world.og_accounts).
+// SetOGAccounts turns [OG] characters on or off for this shard (world.og_accounts).
 func SetOGAccounts(on bool) {
 	ogAccounts.Store(on)
 	entity.SetOGTags(on)
@@ -52,56 +54,69 @@ func SetOGAccounts(on bool) {
 // OGAccounts reports world.og_accounts.
 func OGAccounts() bool { return ogAccounts.Load() }
 
-// ogStore is where an account's choice is read (database.SQLiteDB).
+// ogStore is where a character's choice is read (database.SQLiteDB).
 type ogStore interface {
-	AccountOG(accountID int) (bool, error)
+	CharacterOG(serverID uint32) (bool, error)
 }
 
-// accountIsOG is whether the session's account is an [OG] one on this shard:
-// false where world.og_accounts is unset, with no account or no store.
-func accountIsOG(st ogStore, sess *session.Session) bool {
-	if !OGAccounts() || st == nil || sess.AccountID() <= 0 {
+// characterIsOG is whether the character is an [OG] one on this shard: false
+// where world.og_accounts is unset, with no character or no store.
+func characterIsOG(st ogStore, serverID uint32) bool {
+	if !OGAccounts() || st == nil || serverID == 0 {
 		return false
 	}
-	og, err := st.AccountOG(sess.AccountID())
+	og, err := st.CharacterOG(serverID)
 	if err != nil {
-		log.Printf("OG: account %d: %v", sess.AccountID(), err)
+		log.Printf("OG: character %d: %v", serverID, err)
 		return false
 	}
 	return og
 }
 
-// readOG reads the session's account's choice into the session alone, before
-// a character's entry fills its lists (its gifts and transfer, by its [OG]
-// sizes: itemlists.go's roomCaps); applyOG reads it again with the player.
-func (h *CharacterHandler) readOG(sess *session.Session) {
-	var st ogStore
+func (h *CharacterHandler) ogStore() ogStore {
 	if h.store != nil {
 		if db := h.store.DB(); db != nil {
-			st = db
+			return db
 		}
 	}
-	sess.SetOG(accountIsOG(st, sess))
+	return nil
 }
 
-// applyOG reads the session's account's choice at a character's entry and
-// gives it to the session (the game's own UI) and its player (the tag).
+// readOG reads the entering character's choice into the session alone, before
+// its entry fills its lists (its gifts and transfer, by its [OG] sizes:
+// itemlists.go's roomCaps); applyOG reads it again with the player.
+func (h *CharacterHandler) readOG(sess *session.Session, serverID uint32) {
+	sess.SetOG(characterIsOG(h.ogStore(), serverID))
+}
+
+// applyOG reads the session's character's choice at its entry and gives it to
+// the session (the game's own UI) and its player (the tag).
 func (h *CharacterHandler) applyOG(sess *session.Session, player *entity.Player) {
-	var st ogStore
-	if h.store != nil {
-		if db := h.store.DB(); db != nil {
-			st = db
-		}
+	var id uint32
+	if player != nil {
+		id = player.CharServerID
 	}
-	og := accountIsOG(st, sess)
+	og := characterIsOG(h.ogStore(), id)
 	sess.SetOG(og)
 	if player != nil && h.gameWorld != nil {
 		h.gameWorld.SetPlayerOG(sess, og)
 	}
 	if og {
-		log.Printf("OG: account %d's '%s' enters with the game's own UI, drawn %q", sess.AccountID(),
-			playerName(player), entity.OGTag+playerName(player))
+		log.Printf("OG: '%s' (account %d) enters with the game's own UI, drawn %q", playerName(player),
+			sess.AccountID(), entity.OGTag+playerName(player))
 	}
+}
+
+// madeOG is a character just made [OG] in the game (the question box): its
+// session, its player and its client told at once, as an entry would, and what
+// the client had asked for before it ended (stopKeptQoL).
+func madeOG(w *entity.World, sess *session.Session) {
+	sess.SetOG(OGAccounts())
+	if w != nil {
+		w.SetPlayerOG(sess, OGAccounts())
+	}
+	stopKeptQoL(w, sess)
+	SendVanillaUI(sess)
 }
 
 func playerName(p *entity.Player) string {

@@ -548,7 +548,7 @@ func buildItemLinksOffer() []byte {
 // SendItemLinksOffer offers the session's client links in chat, at every
 // world entry: a client that takes them answers, a PS2 ignores it.
 func SendItemLinksOffer(sess *session.Session) {
-	if sess.OG() { // an [OG] account's: plain names, locked (ogaccount.go)
+	if sess.OG() { // an [OG] character's: plain names, locked (ogaccount.go)
 		return
 	}
 	queueReliable(sess, protocol.OpcodeItemLinksOffer, buildItemLinksOffer())
@@ -666,7 +666,7 @@ func (h *ChatHandler) HandleItemLinksAnswer(sess *session.Session, msg *protocol
 		log.Printf("ItemLinks: short answer (%d bytes) from %s", len(data), sess.RemoteAddr())
 		return nil
 	}
-	on := data[0] != 0 && !sess.OG() // an [OG] account's: plain lines (ogaccount.go)
+	on := data[0] != 0 && !sess.OG() // an [OG] character's: plain lines (ogaccount.go)
 	sess.SetItemLinks(on)
 	log.Printf("ItemLinks: %s %s", sess.RemoteAddr(), map[bool]string{true: "takes links", false: "takes plain lines"}[on])
 	return nil
@@ -692,7 +692,7 @@ func (h *ChatHandler) HandleItemLinkSay(sess *session.Session, msg *protocol.Mes
 	}
 	units := say.units
 	if sess.OG() {
-		say.links = nil // an [OG] account's line: its text alone (ogaccount.go)
+		say.links = nil // an [OG] character's line: its text alone (ogaccount.go)
 	}
 	if say.route == itemLinkRouteGuild {
 		// as the guild's 0x0578 sub 12 reads its text (clientReader.str16)

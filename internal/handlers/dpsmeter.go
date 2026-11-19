@@ -31,7 +31,7 @@ func buildDPSMeterOffer() []byte {
 
 // SendDPSMeterOffer offers the session's client a damage meter.
 func SendDPSMeterOffer(sess *session.Session) {
-	if !QoLOnFor(sess) { // world.vanilla_ui, an [OG] account (vanillaui.go, ogaccount.go)
+	if !QoLOnFor(sess) { // world.vanilla_ui, an [OG] character (vanillaui.go, ogaccount.go)
 		return
 	}
 	queueReliable(sess, protocol.OpcodeDPSMeterOffer, buildDPSMeterOffer())

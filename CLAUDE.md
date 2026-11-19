@@ -1087,39 +1087,40 @@ bars, buff window, pet effects, auto-cast/target and ability bars 3-4/stacked ba
 (`QoLItemLinks`) are off BY DEFAULT, the player's to turn on there (vanilla's `settings::qol`, kept apart from its other servers'
 choice). Unset (Heirloom), nothing changes and 0x7EA0 is never sent. Tests: `TestVanillaUI*`.
 
-### [OG] accounts (`handlers/ogaccount.go`, `entity/ogtag.go`, `database/ogaccount.go`; `world.og_accounts`, `auth.og_choice`)
+### [OG] characters (`handlers/ogaccount.go`, `hardcoreask.go`, `entity/ogtag.go`, `database/ogchar.go`; `world.og_accounts`)
 
 The owner, 2026-11-18, for the Vanilla Test server: "make a tag for accounts to be [OG] Accounts. characters [OG] Meshuggah for
 example. this [OG] tag shows players you opt-out of the QoL changes to EQOA and only use the most basic upgrades like FPS, widescreen,
-no touchscreen, no mouse"; opt-in per account, chosen once when the account is made, permanent.
-- **The choice** is `accountinfo.og` (0 for every account made before it; a column, so a shard's `AccountMirror` copy has it). With
-  `auth.og_choice` on the shard that owns the accounts it is offered at creation, **its limits said before it is made** (jibrish,
-  2026-11-18: "make sure players have a clear choice and explanation when creating an OG account, especially about the
-  limitations"): the account pages' Register (Standard or [OG], Standard chosen until OG is; choosing OG opens what it gives up on
-  Vanilla Test, what stays, and that it is permanent, and it is sent only with a tick that it is understood and a confirm;
-  `/api/register`'s `og`) and STATION's Create Account as served with `mail.accounts` (`stationCreate2`: an "Account Type" row,
-  Standard or OG, riding in the form's **Gender**, the only free field: a ComboBox the disc's page had, CheckName'd, sent as is at the
-  payload's 324; the disc's own page sends Male/Female, never OG; the help saying what OG costs, and a "What is OG?" button opening
-  `StationOGAboutPage`, the limits served in SOE's rental code page `RentSet.xml`, which only the billing pages reach, Triangle back).
-  The pages say most additions are off on Vanilla Test for every account (`world.vanilla_ui` there): change their words if that
-  ever stops. Auto-registration and the panel's `create_account` make plain
-  accounts. A player never changes it after; a GM does with **`set_account_og`** (audited with a reason, revertible, not an account
-  at or above the GM's, refused on a shard's copy); the editor cannot write the column.
-- **On a shard with `world.og_accounts`** (Live alone), at each character's entry (`applyOG`, also a takeover's and a keep restart's
-  resume) the session of an [OG] account (`Session.OG`) gets `vanilla_ui`'s treatment for itself alone (`QoLOnFor`, `qolAnswerFor`,
-  `ConLevelOnFor`: no QoL offers, answers taken as off, /con unknown, a resume's kept ones ended), is never offered item links
-  (its lines and those it hears are plain), and a vanilla client is sent 0x7EA0 with **`QoLOGOff` = 0x7FFF**: the twelve bits plus
-  `QoLLocked` (bit 12: the map, minimap and item links LOCKED off, not off by default), `QoLNoMouse` (13) and `QoLNoTouch` (14:
-  vanilla drops the mouse and fingers in the world; frame rate, widescreen, graphics, keyboard and controllers stay). A PS2 has none
-  of it and is sent nothing. `world.vanilla_ui` is apart (every session's) and may stay unset.
-- **The tag** is the [GM] tag's way: `ShownName` puts `OGTag` "[OG] " before the name in the entity channel's 24 bytes at 116 (over
-  the head and in a target's window, every client), a GM's "[GM][OG] Name", fitted to 23 bytes (`ShownNameMost`, `composeTags` in
-  `entity/hardcore.go`: the tags joined, the name never cut). Nowhere else: the 0x002C list, chat and tells, /r's 0x07A3, group/raid/guild lists, mail,
-  the auction, trade, quests, GM tools and the database keep the plain name. A name sent back with tags ("/t [OG] Name ...",
-  "/invite [OG] Name", a gram to "[OG] Name", /target, a duel) finds the character (`entity.PlainName`, `IsNameTag`); the lists vanilla
-  keys by the drawn name (race labels, race looks) carry every form (`ShownNames`). Unset, nothing is read and nothing drawn.
-  Tests: `TestOG*`, `TestApplyOGReadsTheAccount`, `TestShownNamesForTheLists`, `TestStationCreate*OG*`, `TestRegisterOffersOG`,
-  `TestSetAccountOG`, `TestTheMirrorCarriesTheOGChoice`.
+no touchscreen, no mouse"; then 2026-11-19: "lets make [OG] status a char tag like [HC] the account status is confusing new players".
+A CHARACTER's since then, chosen once while it is new, permanent, exactly as [HC] is; the long form is
+`claude-notes/og-characters-20261119.md`.
+- **Stored** on the character: `characters.og`, `og_chosen` (0 for every character made before). Open while new
+  (`HardcoreState.OGChoiceOpen`: Hardcore's newness, `hc_born` set, at its born level, no XP). **Chosen**: vanilla's create page (the
+  0x7EB0 offer is now a u32 of bits, 1 Hardcore, 2 [OG]; a vanilla since answers the bits it takes, an older one 1, `Session.OGClient`;
+  its 0x002B carries 'O', 1, choice after the 'H' block, before 'R'; 0x7EB1's flags add 8 [OG] and 16 [OG] open); anything else (a
+  PS2, an older vanilla) is asked in CLIENT's question box, two steps (`ogBoxMark` 0x73), **after Hardcore's**: Hardcore's box first
+  and [OG]'s `ogAfterHardcore` (6 s) after its last answer or Close, or at `hardcoreAskAfter` when Hardcore's is not open; the box says
+  what [OG] gives up ("Basic upgrades only: no map, minimap or item links, no mouse or touch"); `/og` (a PS2's `/t og`) asks again.
+  Chosen [OG] in the game, the session is told at once (`madeOG`). A PS2's list carries "[OG] Name" (`entity.ListName`). A GM changes
+  it with **`set_character_og`** (reason required, audited, revertible; `set_account_og` is gone); the editor cannot write the columns.
+- **The account's flag** (`accountinfo.og`, 2026-11-18/19) is kept as a column and read by nothing for play. **Migration**
+  (`database.MigrateAccountOG`, main.go at every start): once per database, recorded in `og_char_migration` (and each character in
+  `og_char_migrated`); with `world.og_accounts` (Live) every character of an account with the flag is made [OG] (og and og_chosen 1);
+  without (Heirloom) nothing changes. Never runs again, so the flag is never re-applied: a character made since on such an account
+  chooses for itself. Characters are each shard's own (AccountMirror copies accounts only), so Live's runs on Live's database.
+- **No account page offers it**: Register and STATION's Create Account are the plain pages again (`stationCreate2(page)`; RentSet.xml
+  the disc's); `auth.og_choice` is retired, still parsed, logged as ignored; an older card's page sending "OG" in Gender makes a plain
+  account. The served station.pak changes (its CRC; the size stays the 96 KB floor): `UseCRC` fetches it.
+- **On a shard with `world.og_accounts`** (Live alone), at each character's entry (`readOG(sess, serverID)` before the gifts,
+  `applyOG`, also a takeover's and a keep restart's resume) the session of an [OG] character (`Session.OG`) gets `vanilla_ui`'s
+  treatment for itself alone (`QoLOnFor`, `qolAnswerFor`, `ConLevelOnFor`: no QoL offers, answers taken as off, /con unknown, a resume's
+  kept ones ended), is never offered item links, and a vanilla client is sent 0x7EA0 with **`QoLOGOff` = 0x7FFF**: the twelve bits plus
+  `QoLLocked` (bit 12), `QoLNoMouse` (13) and `QoLNoTouch` (14). A PS2 has none of it and is sent nothing.
+- **The tag** is the [GM] tag's way: `ShownName` puts `OGTag` "[OG] " before the name in the entity channel's 24 bytes at 116,
+  "[GM][OG][HC] Name", fitted to 23 bytes (`composeTags`: the space, then [OG], then [HC] go; never the name). Nowhere else: names
+  keyed anywhere stay plain; a name sent back with tags finds the character (`entity.PlainName`, `IsNameTag`); the lists vanilla keys
+  by the drawn name carry every form (`ShownNames`). Tests: `TestOG*`, `TestApplyOGReadsTheCharacter`, `TestMigrateAccountOG*`,
+  `TestSetCharacterOG`, `TestStationCreate*OG*`, `TestRegisterOffersNoOG`, `TestShownNamesForTheLists`.
 
 ### [HC] Hardcore characters (`handlers/hardcore.go`, `hardcoreask.go`, `hcchat.go`, `hcrules.go`, `memorial.go`, `entity/hardcore.go`, `entity/hcrules.go`, `database/hardcore.go`, `internal/fallen`; `world.hardcore`)
 
@@ -1127,8 +1128,8 @@ The owner, 2026-11-18: "lets add [HC] tag for characters. Hardcore mode chars st
 creation, permanent; the long form is `claude-notes/hardcore-20261118.md`.
 - **Stored** on the character (`characters.hardcore`, `hc_chosen`, `hc_born`(+`_level`), `hc_played`, `fallen_*`: at, cause, killer,
   place, world/x/y/z, level, class, race, CMs, played). **Chosen**: vanilla's create page (offer 0x7EB0, an 'H', 1, choice block before
-  the 'R' block); anything else (a PS2, the account pages) is asked in CLIENT's question box at the first world entry while new, two
-  steps (`hardcoreask.go`; `/hardcore`, a PS2's `/t hardcore`). Drawn "[HC] Name"; tags join "[GM][OG][HC] Name", fitted (space, then
+  the 'R' block; the offer's bit 1); anything else (a PS2, the account pages) is asked in CLIENT's question box at the first world
+  entry while new, two steps (`hardcoreask.go`; `/hardcore`, a PS2's `/t hardcore`), before [OG]'s. Drawn "[HC] Name"; tags join "[GM][OG][HC] Name", fitted (space, then
   [OG], then [HC] go; never the name).
 - **A death** (`playerDownLocked`) of a `HardcoreBound` character: fallen, no debt/rez/respawn; the hook writes the fall once, announces
   it, tells vanilla (0x7EB2) and sends 0x0777 after `fall_logout_seconds`. A fallen character is refused at select (word 676) whatever
@@ -3160,7 +3161,7 @@ with no check, so a 41st overruns the VIClient fields after the list. So **a PS2
   (`invList.most`/`keptN`, `roomBound`: `add`, `wouldAdd`, `roomFor`, `packCapOf`/`bankCapOf`; the login's gifts and a
   transfer fill to `roomCaps`), so a slot freed above the limit is gone (a stack still tops up; a swap at the limit is
   refused). Nothing stored: what it holds IS the allowance, so no data step, and restarts keep it. Unset: off.
-- **[OG] accounts' lists** (`world.og_pack_slots`/`og_bank_slots`; the owner, 2026-11-18, of Vanilla Test: "100
+- **[OG] characters' lists** (`world.og_pack_slots`/`og_bank_slots`; the owner, 2026-11-18, of Vanilla Test: "100
   inventory space in bank and pack for vanilla test, but [OG] gets 40/40"): an [OG] session (`sess.OG()`, read by
   `readOG` at SelectedChar BEFORE the gifts and transfer, again by `applyOG`) holds at most these, everyone else
   `pack_slots`/`bank_slots`; below the shard's size an [OG] list is grandfathered to it, exactly as above

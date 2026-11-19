@@ -43,7 +43,7 @@ func SetConLevel(on bool) { conLevelOn.Store(on) }
 // (vanillaui.go): there /con is an unknown command, as the game's.
 func ConLevelOn() bool { return conLevelOn.Load() && QoLOn() }
 
-// ConLevelOnFor is ConLevelOn for the session: off for an [OG] account's
+// ConLevelOnFor is ConLevelOn for the session: off for an [OG] character's
 // (ogaccount.go), whose /con is the game's unknown command.
 func ConLevelOnFor(sess *session.Session) bool { return ConLevelOn() && QoLOnFor(sess) }
 

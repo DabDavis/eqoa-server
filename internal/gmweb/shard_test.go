@@ -37,7 +37,6 @@ func TestASharedAccountsPanel(t *testing.T) {
 		"set_account_password": {"account": "owned", "password": "longenough"},
 		"ban_account":          {"account": "owned", "banned": true},
 		"set_account_level":    {"account": "owned", "level": 1},
-		"set_account_og":       {"account": "owned", "og": true},
 		"set_account_tester":   {"account": "owned", "tester": true, "note": "no"},
 	} {
 		code, out := gm.op(name, args)

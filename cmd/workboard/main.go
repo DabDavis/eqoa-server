@@ -39,8 +39,8 @@ import (
 
 const usage = `workboard: the work board (the GM panel's Work board page) on the box.
 
-Who is working on what on this server: the GMs, their AI agents and dab's
-sessions. Read it before you change anything on eqoaclassic, post what you
+Who is working on what on this server: the GMs, their AI agents and the
+owner's sessions. Read it before you change anything on the server, post what you
 are about to do with the tables and files it touches, keep its status
 current, and mark it done with a one-line result. Never change what another
 entry has in progress without asking the person.

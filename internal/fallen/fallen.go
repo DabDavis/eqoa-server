@@ -51,6 +51,7 @@ type Hero struct {
 type Page struct {
 	db                        *database.SQLiteDB
 	shard, otherDB, otherMark string
+	site                      string // world.hardcore.site_name; "" none
 	open                      func(string) (*sql.DB, error)
 	now                       func() time.Time
 
@@ -84,7 +85,7 @@ func New(db *database.SQLiteDB, c config.HardcoreConfig) *Page {
 		return nil
 	}
 	return &Page{db: db, shard: strings.TrimSpace(c.Shard), otherDB: strings.TrimSpace(c.OtherDB),
-		otherMark: strings.TrimSpace(c.OtherMark), open: database.OpenReadOnly, now: time.Now}
+		otherMark: strings.TrimSpace(c.OtherMark), site: strings.TrimSpace(c.SiteName), open: database.OpenReadOnly, now: time.Now}
 }
 
 // HeroOf is a fall as the page shows it.
@@ -237,7 +238,7 @@ func (p *Page) ServePage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "public, max-age=60")
 	var b strings.Builder
-	b.WriteString(pageHead)
+	b.WriteString(p.head())
 	shards := p.shards(heroes, living)
 	b.WriteString(`<section id="living"><div class="section-head"><h2>Living Hardcore Leaderboard</h2>
 <p>Ranked by level, then Combat Mastery, then experience. In Freeport, the Hardcore Leaderboard beside the memorial shows the same.</p><div class="rule"></div></div>`)
@@ -296,7 +297,7 @@ func (p *Page) ServePage(w http.ResponseWriter, r *http.Request) {
 	}
 	b.WriteString(`</section>`)
 	fmt.Fprintf(&b, `<p class="note">Updated %s UTC, every minute.</p></main>`, p.now().UTC().Format("2006-01-02 15:04"))
-	b.WriteString(pageFoot)
+	b.WriteString(p.foot())
 	w.Write([]byte(b.String()))
 }
 
@@ -323,6 +324,26 @@ func (p *Page) shards(heroes []Hero, living []Living) []string {
 	return out
 }
 
+// head is pageHead with the site's name (world.hardcore.site_name) in the
+// title and description; none named, the server's own words.
+func (p *Page) head() string {
+	title, desc := "", "this server"
+	if p.site != "" {
+		title, desc = " - "+html.EscapeString(p.site), html.EscapeString(p.site)+"'s EQOA servers"
+	}
+	return strings.NewReplacer("{{SITE_TITLE}}", title, "{{SITE_DESC}}", desc).Replace(pageHead)
+}
+
+// foot is pageFoot with the site's line: its name, a fan-run preservation
+// project's words; none named, the disclaimer alone.
+func (p *Page) foot() string {
+	line := "A fan-run EQOA server, not affiliated with Daybreak Game Company or Sony. EQOA belongs to its owners; this server distributes none of the game."
+	if p.site != "" {
+		line = html.EscapeString(p.site) + ": a fan-run EQOA preservation project. Free, no monetization, and not affiliated with Daybreak Game Company or Sony. EQOA belongs to its owners; we distribute none of the game."
+	}
+	return strings.Replace(pageFoot, "{{SITE_FOOT}}", line, 1)
+}
+
 func shardTitle(s string) string {
 	if s == "" {
 		return "This server"
@@ -335,8 +356,8 @@ const pageHead = `<!DOCTYPE html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hardcore Heroes - eqoaclassic</title>
-  <meta name="description" content="The living Hardcore leaderboard and the Memorial of the Fallen on eqoaclassic's EQOA servers.">
+  <title>Hardcore Heroes{{SITE_TITLE}}</title>
+  <meta name="description" content="The living Hardcore leaderboard and the Memorial of the Fallen on {{SITE_DESC}}.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -427,7 +448,7 @@ const pageHead = `<!DOCTYPE html>
 const pageFoot = `
   <footer>
     <div class="wrap">
-      <p>eqoaclassic.com: a fan-run EQOA preservation project. Free, no monetization, and not affiliated with Daybreak Game Company or Sony. EQOA belongs to its owners; we distribute none of the game.</p>
+      <p>{{SITE_FOOT}}</p>
       <p style="margin-top:10px"><a href="/eqoa/play/">Play</a><a href="/#realms">Servers</a><a href="/commands.html">Commands</a><a href="/contributors.html">Thanks</a><a href="/eqoa/hardcore">Hardcore</a></p>
     </div>
   </footer>

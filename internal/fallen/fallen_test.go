@@ -52,3 +52,17 @@ func TestThePage(t *testing.T) {
 		t.Errorf("api %s", b)
 	}
 }
+
+// The page names no site unless world.hardcore.site_name does.
+func TestPageSiteName(t *testing.T) {
+	p := &Page{}
+	if h, f := p.head(), p.foot(); strings.Contains(h, "{{") || strings.Contains(f, "{{") ||
+		!strings.Contains(h, "<title>Hardcore Heroes</title>") || !strings.Contains(f, "A fan-run EQOA server") {
+		t.Fatalf("no site:\n%s\n%s", h[:300], f)
+	}
+	p.site = "example.com"
+	if h, f := p.head(), p.foot(); !strings.Contains(h, "<title>Hardcore Heroes - example.com</title>") ||
+		!strings.Contains(h, "example.com's EQOA servers") || !strings.Contains(f, "example.com: a fan-run") {
+		t.Fatalf("site:\n%s\n%s", h[:300], f)
+	}
+}

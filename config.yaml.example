@@ -125,6 +125,7 @@ world:
   #   fall_logout_seconds: 15      # the fall to the client's login
   #   other_db: "/srv/eqoa-second/eqoa.db"   # another shard's database, read-only (unset: none)
   #   other_mark: "Second Shard"
+  #   site_name: "example.com"     # the page's title and footer name it (unset: "this server")
 
   # The auction house's standing lots (handlers/auction_perpetual.go): lots
   # that never end and never run out, a buy at the price putting the items in

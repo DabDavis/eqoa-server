@@ -315,7 +315,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--db", required=True)
     ap.add_argument("--give", action="store_true", help="one of each into his pack (only while he is offline)")
-    ap.add_argument("--pack-slots", type=int, default=100, help="world.pack_slots (eqoaclassic: 100)")
+    ap.add_argument("--pack-slots", type=int, default=100, help="world.pack_slots (the production servers: 100)")
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--apply", action="store_true")
     g.add_argument("--undo", action="store_true")

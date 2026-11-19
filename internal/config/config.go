@@ -819,6 +819,9 @@ type HardcoreConfig struct {
 	// unset: this shard's alone.
 	OtherDB   string `yaml:"other_db"`
 	OtherMark string `yaml:"other_mark"`
+	// SiteName is the site the fallen heroes' page names in its title and
+	// footer ("example.com"); unset: none, the page speaks of "this server".
+	SiteName string `yaml:"site_name"`
 }
 
 // BugBoardConfig is world.bug_board (handlers/bugboard.go).

@@ -621,6 +621,12 @@ auth:
   # cover a player sitting on the server-select and character-select screens.
   ticket_ttl: 15m
 
+  # The address the account server (server.account_port: the account pages,
+  # register, password, e-mail) listens on. Empty or unset: every address, as
+  # before. "127.0.0.1" when only a reverse proxy on this machine should reach
+  # it. server.bind_address does not apply to it.
+  # bind_address: "127.0.0.1"
+
   # One login at a time: a login is refused while the same account, or a
   # session from the same address, is already in the game (the first window
   # keeps playing; no multiboxing). Off (false), an account and an address may
@@ -763,9 +769,11 @@ gm:
 # reminds an account with no verified address at each world entry and every
 # remind_every, and from require_after (a date, UTC) refuses its login.
 #
-# Set smtp, from and base_url whenever accounts is on: their built-in
-# fallbacks (127.0.0.1:25, and a sender and site that are not yours) are the
-# original deployment's. page_path is the password page on base_url (unset:
+# base_url (the site every link names) and, with enabled, from (the sender)
+# have no default: with accounts on and either missing, the server logs a
+# warning at startup and turns the e-mail (and require_verified) off rather
+# than mail links to a site that is not yours. smtp defaults to 127.0.0.1:25.
+# page_path is the password page on base_url (unset:
 # /eqoa/password; with the account pages on a host of their own, as in
 # docs/hosting.md, "/password").
 # mail:

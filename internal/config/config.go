@@ -46,12 +46,15 @@ type MailConfig struct {
 	// links included: a developer's box only).
 	Enabled   bool `yaml:"enabled"`
 	LogBodies bool `yaml:"log_bodies"`
-	// SMTP is the relay's address (unset: 127.0.0.1:25, the box's own
-	// send-only Postfix), From the sender (unset: no-reply@eqoaclassic.com).
+	// SMTP is the relay's address (unset: 127.0.0.1:25, a local send-only
+	// relay), From the sender: no default, and with Enabled the server
+	// refuses to turn the e-mail on without it.
 	SMTP string `yaml:"smtp"`
 	From string `yaml:"from"`
-	// BaseURL is the site the links name (unset: https://eqoaclassic.com),
-	// PagePath the account page on it (unset: /eqoa/password, which nginx
+	// BaseURL is the site the links name ("https://example.com"): no
+	// default, and with Accounts the server turns the e-mail (and the
+	// requirement) off without it, with a warning at startup. PagePath is the
+	// account page on it (unset: /eqoa/password, which the web server
 	// passes to the account server's /password).
 	BaseURL  string `yaml:"base_url"`
 	PagePath string `yaml:"page_path"`
@@ -1032,11 +1035,18 @@ type AuthConfig struct {
 	SharedRefresh time.Duration `yaml:"shared_refresh"`
 
 	// PasswordURL is the account pages' password page as players reach it
-	// (eqoaclassic: "eqoaclassic.com/eqoa/password"), named by the line the
+	// ("example.com/eqoa/password"), named by the line the
 	// world says to an account whose password is a temporary one a GM set
 	// (handlers.PasswordTempNotice); empty: "the account website's Change
 	// password page".
 	PasswordURL string `yaml:"password_url"`
+
+	// BindAddress is the address the account server (server.account_port:
+	// the account pages, register, password and e-mail) listens on, e.g.
+	// "127.0.0.1" when only a reverse proxy on the same machine reaches it.
+	// Empty: every address, as before (server.bind_address is not used here,
+	// so that setting it for the game ports changes nothing for the pages).
+	BindAddress string `yaml:"bind_address"`
 }
 
 // AccountSeed is a pre-registered account.

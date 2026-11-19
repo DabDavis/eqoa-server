@@ -72,6 +72,7 @@ func TestStationPakServesTheEmailRefusalPage(t *testing.T) {
 	cfg := config.DefaultConfig()
 	cfg.Server.ServerIP = "203.0.113.10"
 	cfg.Mail.Accounts = true
+	cfg.Mail.BaseURL = "https://example.com"
 	got := (&PatchServer{cfg: cfg}).repointStationPak(pak)
 	if read(got)[EmailRefusalPage] != "<PS2GUIPage>Account Key</PS2GUIPage>" {
 		t.Fatal("EnterKey.xml changed without the requirement")
@@ -82,7 +83,7 @@ func TestStationPakServesTheEmailRefusalPage(t *testing.T) {
 	cfg.Mail.RequireVerified = true
 	got = (&PatchServer{cfg: cfg}).repointStationPak(pak)
 	p := read(got)[EmailRefusalPage]
-	for _, want := range []string{"Your account needs a verified e-mail. Verify it at", `val="eqoaclassic.com/eqoa/password."`, "StationTri", "stbk00.tga"} {
+	for _, want := range []string{"Your account needs a verified e-mail. Verify it at", `val="example.com/eqoa/password."`, "StationTri", "stbk00.tga"} {
 		if !strings.Contains(p, want) {
 			t.Errorf("the refusal page lacks %q:\n%s", want, p)
 		}

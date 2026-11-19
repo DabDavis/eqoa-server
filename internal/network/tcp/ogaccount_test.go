@@ -33,7 +33,7 @@ func ogOf(t *testing.T, db *database.SQLiteDB, name string) bool {
 // button), and SOE's RentSet.xml goes out as it is. The control: the e-mail
 // pages are served (the plain page replaces the disc's).
 func TestStationCreatePageHasNoOGRow(t *testing.T) {
-	page := "eqoaclassic.com/eqoa/password"
+	page := "example.com/eqoa/password"
 	plain := string(stationCreate2(page))
 	if !strings.Contains(plain, `<Text name="Gender" val="x">`) || strings.Contains(plain, "ComboBox") ||
 		strings.Contains(plain, "OG") || strings.Contains(plain, "RentSet") {
@@ -48,6 +48,7 @@ func TestStationCreatePageHasNoOGRow(t *testing.T) {
 		cfg := config.DefaultConfig()
 		cfg.Server.ServerIP = "203.0.113.10"
 		cfg.Mail.Accounts = true
+		cfg.Mail.BaseURL = "https://example.com"
 		cfg.Auth.OGChoice = choice
 		got := (&PatchServer{cfg: cfg}).repointStationPak(pak)
 		for off := 0; off+4 <= len(got); {

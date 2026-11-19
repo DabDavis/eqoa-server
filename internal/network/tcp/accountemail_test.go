@@ -31,7 +31,7 @@ type mailRig struct {
 func newMailRig(t *testing.T) *mailRig {
 	t.Helper()
 	r := &mailRig{pwRig: newPwRig(t), sent: &mailer.Memory{}, totp: map[int]string{}}
-	r.mail = accountmail.NewWithQueue(r.db, config.MailConfig{Accounts: true}, mailer.NewQueue(r.sent, 0, []time.Duration{time.Millisecond}))
+	r.mail = accountmail.NewWithQueue(r.db, config.MailConfig{Accounts: true, BaseURL: "https://example.com"}, mailer.NewQueue(r.sent, 0, []time.Duration{time.Millisecond}))
 	r.mail.Now = func() time.Time { return r.clock }
 	t.Cleanup(r.mail.Close)
 	r.s.Mail = r.mail
@@ -411,6 +411,10 @@ func TestStationPakServesTheEmailPages(t *testing.T) {
 		t.Fatal("the pages changed with e-mail off")
 	}
 	cfg.Mail.Accounts = true
+	if nob := (&PatchServer{cfg: cfg}).repointStationPak(pak); !bytes.Equal(nob, off) {
+		t.Fatal("the e-mail pages were served without mail.base_url")
+	}
+	cfg.Mail.BaseURL = "https://example.com"
 	got := (&PatchServer{cfg: cfg}).repointStationPak(pak)
 	pages := map[string]string{}
 	for off := 0; off+4 <= len(got); {
@@ -471,7 +475,7 @@ func TestStationPakServesTheEmailPages(t *testing.T) {
 		}
 		_ = reShown
 	}
-	if !strings.Contains(pages["data/ui/IDCreat2.xml"], "eqoaclassic.com/eqoa/password") {
+	if !strings.Contains(pages["data/ui/IDCreat2.xml"], "example.com/eqoa/password") {
 		t.Error("IDCreat2 names no website")
 	}
 	if strings.Contains(pages["data/ui/AcctMgmt.xml"], "UpdateBilling") || strings.Contains(pages["data/ui/AcctMgmt.xml"], "CancelAccountLink") {

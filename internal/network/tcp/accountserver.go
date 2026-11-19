@@ -9,6 +9,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -122,6 +123,10 @@ type AccountServer struct {
 	// the page's E-mail tab, e-mailed resets, an address required at
 	// registration. Nil (mail.accounts off): none of it, as before.
 	Mail *accountmail.Service
+
+	// BindAddress is the address Start listens on (auth.bind_address);
+	// empty: every address.
+	BindAddress string
 	// TOTP checks code against the account's authenticator (the GM panel's,
 	// gmweb.Server.AccountTOTP): enrolled false for an account with none.
 	// Changing an address asks for it. Nil: never asked.
@@ -283,15 +288,21 @@ func (s *AccountServer) cleanupSessions() {
 	}
 }
 
+// ListenAddr is the address Start listens on: BindAddress (auth.bind_address)
+// and the port; every address when BindAddress is empty.
+func (s *AccountServer) ListenAddr() string {
+	return net.JoinHostPort(strings.TrimSpace(s.BindAddress), strconv.Itoa(s.port))
+}
+
 // Start starts the account registration server.
 func (s *AccountServer) Start() error {
 	s.server = &http.Server{
-		Addr:    fmt.Sprintf(":%d", s.port),
+		Addr:    s.ListenAddr(),
 		Handler: s.Handler(),
 	}
 
 	go func() {
-		log.Printf("Account registration server starting on port %d", s.port)
+		log.Printf("Account registration server starting on %s", s.server.Addr)
 		if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Printf("Account server error: %v", err)
 		}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -1021,6 +1022,10 @@ func main() {
 	// UDP handshake, by ticket or password, as a bad login. Every process holds
 	// its players to it by its own accounts (a shard by its copy).
 	emailGate, err := accountmail.NewGate(db, cfg.Mail)
+	if errors.Is(err, accountmail.ErrNoBaseURL) {
+		log.Printf("WARNING: mail.require_verified is set but %v: nothing is required until it is", err)
+		emailGate, err = nil, nil
+	}
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
@@ -1088,7 +1093,13 @@ func main() {
 	// by its own copy of the accounts.
 	var accountMail *accountmail.Service
 	if cfg.Mail.Accounts && !sharedAccounts {
-		accountMail = accountmail.New(db, cfg.Mail, nil)
+		if err := accountmail.Check(cfg.Mail, true); err != nil {
+			log.Printf("WARNING: account e-mail NOT turned on (mail.accounts is set but %v): no link is mailed", err)
+		} else {
+			accountMail = accountmail.New(db, cfg.Mail, nil)
+		}
+	}
+	if accountMail != nil {
 		defer accountMail.Close()
 		authHandler.SetAccountMail(accountMail, db)
 		if cfg.Mail.Enabled {
@@ -1116,6 +1127,7 @@ func main() {
 	var accountServer *tcp.AccountServer
 	if cfg.Server.AccountPort != 0 {
 		accountServer = tcp.NewAccountServer(db, cfg.Server.AccountPort, cfg.Auth.BCryptCost)
+		accountServer.BindAddress = cfg.Auth.BindAddress
 		accountServer.Mail = accountMail
 		accountServer.SetNewCharacterRules(newRules)
 		accountServer.MaxCharacters = entity.CharSlots()

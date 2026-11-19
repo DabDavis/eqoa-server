@@ -48,14 +48,37 @@ const (
 	PerHourFromAddr = 10
 )
 
-// Defaults of the mail block.
+// Defaults of the mail block. The sender (mail.from) and the site the links
+// name (mail.base_url) have none: they are the operator's own, and a server
+// that guessed them would mail its players links to someone else's site.
 const (
 	DefaultSMTP     = "127.0.0.1:25"
-	DefaultFrom     = "no-reply@eqoaclassic.com"
-	DefaultBaseURL  = "https://eqoaclassic.com"
 	DefaultPagePath = "/eqoa/password"
 	DefaultRemind   = 30 * time.Minute
 )
+
+// ErrNoBaseURL and ErrNoFrom are the settings the e-mail cannot go without.
+var (
+	ErrNoBaseURL = errors.New("mail.base_url is not set: the links would name no site")
+	ErrNoFrom    = errors.New("mail.from is not set: the mail would have no sender")
+)
+
+// Check says what in cfg stops the accounts' e-mail: with mail.accounts on,
+// mail.base_url must be set (every link and page names it), and when this
+// process sends (sends, with mail.enabled) mail.from too. nil: nothing does,
+// or mail.accounts is off.
+func Check(cfg config.MailConfig, sends bool) error {
+	if !cfg.Accounts {
+		return nil
+	}
+	if strings.TrimSpace(cfg.BaseURL) == "" {
+		return ErrNoBaseURL
+	}
+	if sends && cfg.Enabled && strings.TrimSpace(cfg.From) == "" {
+		return ErrNoFrom
+	}
+	return nil
+}
 
 // LimitError is a send refused by a limit: the player is told to wait.
 type LimitError struct{ Msg string }
@@ -81,13 +104,8 @@ func Filled(cfg config.MailConfig) config.MailConfig {
 	if cfg.SMTP == "" {
 		cfg.SMTP = DefaultSMTP
 	}
-	if cfg.From == "" {
-		cfg.From = DefaultFrom
-	}
-	if cfg.BaseURL == "" {
-		cfg.BaseURL = DefaultBaseURL
-	}
-	cfg.BaseURL = strings.TrimRight(cfg.BaseURL, "/")
+	cfg.From = strings.TrimSpace(cfg.From)
+	cfg.BaseURL = strings.TrimRight(strings.TrimSpace(cfg.BaseURL), "/")
 	if cfg.PagePath == "" {
 		cfg.PagePath = DefaultPagePath
 	}
@@ -101,9 +119,13 @@ func Filled(cfg config.MailConfig) config.MailConfig {
 }
 
 // Short is the page as a player types it: the site's host and the page's
-// path, no scheme ("eqoaclassic.com/eqoa/password").
+// path, no scheme ("example.com/eqoa/password"); "" when mail.base_url is
+// not set.
 func Short(cfg config.MailConfig) string {
 	cfg = Filled(cfg)
+	if cfg.BaseURL == "" {
+		return ""
+	}
 	host := cfg.BaseURL
 	if u, err := url.Parse(cfg.BaseURL); err == nil && u.Host != "" {
 		host = u.Host
@@ -125,7 +147,8 @@ type Service struct {
 }
 
 // New is the service over db with cfg's settings, sending through sender
-// (nil: SMTP to cfg.smtp when cfg.enabled, else the log).
+// (nil: SMTP to cfg.smtp when cfg.enabled, else the log). Check(cfg, true)
+// first: a service without mail.base_url sends no link at all.
 func New(db *database.SQLiteDB, cfg config.MailConfig, sender mailer.Sender) *Service {
 	cfg = Filled(cfg)
 	if sender == nil {
@@ -157,8 +180,26 @@ func (s *Service) now() time.Time {
 	return time.Now()
 }
 
-// PageURL is the account page's address, whole.
-func (s *Service) PageURL() string { return s.cfg.BaseURL + s.cfg.PagePath }
+// PageURL is the account page's address, whole; "" when mail.base_url is not
+// set (no link is mailed then).
+func (s *Service) PageURL() string {
+	if s.cfg.BaseURL == "" {
+		return ""
+	}
+	return s.cfg.BaseURL + s.cfg.PagePath
+}
+
+// unset is a link refused because the settings name no site, or no
+// sender for SMTP (logged at startup by the caller of Check).
+func (s *Service) unset() error {
+	if s.cfg.BaseURL == "" {
+		return ErrNoBaseURL
+	}
+	if s.cfg.Enabled && s.cfg.From == "" {
+		return ErrNoFrom
+	}
+	return nil
+}
 
 // PageShort is Short of the service's settings.
 func (s *Service) PageShort() string { return Short(s.cfg) }
@@ -249,6 +290,9 @@ func (s *Service) SendVerify(accountID int, ip string, byGM bool) (string, error
 	if e.Email == "" {
 		return "", ErrNoEmail
 	}
+	if err := s.unset(); err != nil {
+		return "", err
+	}
 	if e.Verified() && e.VerifiedBy == "link" {
 		return mailer.Mask(e.Email), &LimitError{"That address is verified already"}
 	}
@@ -305,6 +349,10 @@ func HasVerifiedEmail(e database.EmailState) bool {
 // address the player gave, which must be the account's.
 func (s *Service) SendReset(e database.EmailState, typed, ip string) bool {
 	if !HasVerifiedEmail(e) || e.Banned {
+		return false
+	}
+	if err := s.unset(); err != nil {
+		log.Printf("Accounts: a reset for account %d not sent: %v", e.AccountID, err)
 		return false
 	}
 	if typed != "" {
@@ -382,7 +430,8 @@ func ParseCutoff(s string) (time.Time, error) {
 }
 
 // NewGate is the requirement as cfg sets it, or nil when it sets none
-// (mail.accounts or mail.require_verified off).
+// (mail.accounts or mail.require_verified off). It is an error without
+// mail.base_url: a player refused would be told no page to go to.
 func NewGate(db interface {
 	EmailVerified(accountID int) (bool, error)
 }, cfg config.MailConfig) (*Gate, error) {
@@ -391,6 +440,9 @@ func NewGate(db interface {
 	}
 	cut, err := ParseCutoff(cfg.RequireAfter)
 	if err != nil {
+		return nil, err
+	}
+	if err := Check(cfg, false); err != nil {
 		return nil, err
 	}
 	cfg = Filled(cfg)

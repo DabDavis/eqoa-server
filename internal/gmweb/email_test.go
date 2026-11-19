@@ -17,7 +17,7 @@ import (
 func TestEmailOnThePanelIsMasked(t *testing.T) {
 	f := newFixture(t)
 	sent := &mailer.Memory{}
-	svc := accountmail.NewWithQueue(f.db, config.MailConfig{Accounts: true}, mailer.NewQueue(sent, 0, []time.Duration{time.Millisecond}))
+	svc := accountmail.NewWithQueue(f.db, config.MailConfig{Accounts: true, BaseURL: "https://example.com"}, mailer.NewQueue(sent, 0, []time.Duration{time.Millisecond}))
 	defer svc.Close()
 	f.s.d.AccountMail = svc
 	if _, err := svc.SetEmail(3, "player.one@example.com", ""); err != nil {

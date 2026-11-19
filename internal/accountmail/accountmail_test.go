@@ -32,7 +32,7 @@ func newRig(t *testing.T) *rig {
 	t.Cleanup(func() { db.Close() })
 	r := &rig{t: t, db: db, sent: &mailer.Memory{}, clock: time.Date(2026, 11, 15, 12, 0, 0, 0, time.UTC), ids: map[string]int{}}
 	q := mailer.NewQueue(r.sent, 0, []time.Duration{time.Millisecond})
-	r.svc = NewWithQueue(db, config.MailConfig{Accounts: true}, q)
+	r.svc = NewWithQueue(db, config.MailConfig{Accounts: true, BaseURL: "https://example.com"}, q)
 	r.svc.Now = func() time.Time { return r.clock }
 	t.Cleanup(r.svc.Close)
 	store := database.NewSQLiteAccountStore(db)
@@ -80,7 +80,7 @@ func TestVerifyTokenLifecycle(t *testing.T) {
 		t.Fatalf("SetEmail: %q %v", masked, err)
 	}
 	m := r.mails(1)[0]
-	if m.To != "alice@example.com" || !strings.Contains(m.Text, "https://eqoaclassic.com/eqoa/password#verify=") {
+	if m.To != "alice@example.com" || !strings.Contains(m.Text, "https://example.com/eqoa/password#verify=") {
 		t.Fatalf("the mail: %+v", m)
 	}
 	tok := tokenOf(t, m, "verify")
@@ -295,11 +295,11 @@ func TestGateBeforeAndAfterTheDate(t *testing.T) {
 	if g, err := NewGate(r.db, config.MailConfig{Accounts: true}); g != nil || err != nil {
 		t.Fatalf("a gate with the requirement off: %v %v", g, err)
 	}
-	if _, err := NewGate(r.db, config.MailConfig{Accounts: true, RequireVerified: true, RequireAfter: "next week"}); err == nil {
+	if _, err := NewGate(r.db, config.MailConfig{Accounts: true, BaseURL: "https://example.com", RequireVerified: true, RequireAfter: "next week"}); err == nil {
 		t.Fatal("a bad date taken")
 	}
-	g, err := NewGate(r.db, config.MailConfig{Accounts: true, RequireVerified: true, RequireAfter: "2026-12-01"})
-	if err != nil || g == nil || g.Every != DefaultRemind || g.Page != "eqoaclassic.com/eqoa/password" {
+	g, err := NewGate(r.db, config.MailConfig{Accounts: true, BaseURL: "https://example.com", RequireVerified: true, RequireAfter: "2026-12-01"})
+	if err != nil || g == nil || g.Every != DefaultRemind || g.Page != "example.com/eqoa/password" {
 		t.Fatalf("gate: %+v %v", g, err)
 	}
 	before := time.Date(2026, 11, 30, 23, 59, 0, 0, time.UTC)
@@ -307,14 +307,14 @@ func TestGateBeforeAndAfterTheDate(t *testing.T) {
 	if g.Refusal(r.ids["bob"], before) != "" {
 		t.Fatal("refused before the date")
 	}
-	if line := g.Reminder(r.ids["bob"], before); !strings.Contains(line, "eqoaclassic.com/eqoa/password") || !strings.Contains(line, "December 1, 2026") {
+	if line := g.Reminder(r.ids["bob"], before); !strings.Contains(line, "example.com/eqoa/password") || !strings.Contains(line, "December 1, 2026") {
 		t.Fatalf("the reminder: %q", line)
 	}
 	if g.Reminder(r.ids["alice"], before) != "" {
 		t.Fatal("a verified account reminded")
 	}
 	why := g.Refusal(r.ids["bob"], after)
-	if why == "" || len(why) > MaxRefusal || !strings.Contains(why, "eqoaclassic.com/eqoa/password") {
+	if why == "" || len(why) > MaxRefusal || !strings.Contains(why, "example.com/eqoa/password") {
 		t.Fatalf("the refusal: %q", why)
 	}
 	if g.Reminder(r.ids["bob"], after) != "" {
@@ -329,7 +329,7 @@ func TestGateBeforeAndAfterTheDate(t *testing.T) {
 		t.Fatal("refused after a GM's override")
 	}
 	// with no date: reminders, never a refusal
-	g2, _ := NewGate(r.db, config.MailConfig{Accounts: true, RequireVerified: true})
+	g2, _ := NewGate(r.db, config.MailConfig{Accounts: true, BaseURL: "https://example.com", RequireVerified: true})
 	if g2.Refusal(r.ids["carol"], after.AddDate(5, 0, 0)) != "" || g2.Reminder(r.ids["carol"], after) == "" {
 		t.Fatal("a gate with no date")
 	}
@@ -363,7 +363,7 @@ func TestMirrorCarriesEmailState(t *testing.T) {
 	if err != nil || !st.Verified() || st.VerifiedBy != "link" || st.Email != "alice@example.com" {
 		t.Fatalf("the shard's copy: %+v %v", st, err)
 	}
-	g, _ := NewGate(shard, config.MailConfig{Accounts: true, RequireVerified: true, RequireAfter: "2026-11-01"})
+	g, _ := NewGate(shard, config.MailConfig{Accounts: true, BaseURL: "https://example.com", RequireVerified: true, RequireAfter: "2026-11-01"})
 	now := time.Date(2026, 11, 15, 0, 0, 0, 0, time.UTC)
 	if g.Refusal(owner.ids["alice"], now) != "" || g.Refusal(owner.ids["bob"], now) == "" {
 		t.Fatal("the shard's gate")
@@ -378,5 +378,52 @@ func TestMirrorCarriesEmailState(t *testing.T) {
 	}
 	if g.Refusal(owner.ids["bob"], now) != "" {
 		t.Fatal("bob's verification did not reach the shard")
+	}
+}
+
+// No site and no sender are guessed: a server with e-mail on that names
+// neither mails no link (to someone else's site) and has no gate to name a
+// page, and Check says which setting is missing.
+func TestNoDefaultSiteOrSender(t *testing.T) {
+	if Filled(config.MailConfig{}).BaseURL != "" || Filled(config.MailConfig{}).From != "" {
+		t.Fatal("Filled made up a site or a sender")
+	}
+	if Short(config.MailConfig{}) != "" {
+		t.Fatal("Short named a page with no site")
+	}
+	if err := Check(config.MailConfig{}, true); err != nil {
+		t.Fatalf("e-mail off refused: %v", err)
+	}
+	if err := Check(config.MailConfig{Accounts: true}, false); !errors.Is(err, ErrNoBaseURL) {
+		t.Fatalf("no base_url: %v", err)
+	}
+	on := config.MailConfig{Accounts: true, Enabled: true, BaseURL: "https://example.com"}
+	if err := Check(on, true); !errors.Is(err, ErrNoFrom) {
+		t.Fatalf("SMTP with no from: %v", err)
+	}
+	if err := Check(on, false); err != nil {
+		t.Fatalf("a process that does not send needs no from: %v", err)
+	}
+	on.From = "no-reply@example.com"
+	if err := Check(on, true); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := NewGate(nil, config.MailConfig{Accounts: true, RequireVerified: true}); !errors.Is(err, ErrNoBaseURL) {
+		t.Fatalf("a gate with no page: %v", err)
+	}
+
+	r := newRig(t)
+	q := mailer.NewQueue(r.sent, 0, []time.Duration{time.Millisecond})
+	bare := NewWithQueue(r.db, config.MailConfig{Accounts: true}, q)
+	defer bare.Close()
+	if bare.PageURL() != "" {
+		t.Fatalf("PageURL %q with no site", bare.PageURL())
+	}
+	if _, err := bare.SetEmail(r.ids["alice"], "alice@example.com", ""); !errors.Is(err, ErrNoBaseURL) {
+		t.Fatalf("a verify link with no site: %v", err)
+	}
+	time.Sleep(20 * time.Millisecond)
+	if n := len(r.sent.All()); n != 0 {
+		t.Fatalf("%d mails sent with no site", n)
 	}
 }

@@ -1175,9 +1175,9 @@ func (s *PatchServer) repointStationPak(data []byte) []byte {
 	}
 
 	// with e-mail on, STATION's account pages trimmed to what is needed
-	// (stationpages.go)
+	// (stationpages.go); not without mail.base_url, which the pages name
 	var pages map[string][]byte
-	if s.cfg.Mail.Accounts {
+	if s.cfg.Mail.Accounts && accountmail.Check(s.cfg.Mail, false) == nil {
 		pages = stationEmailPages(accountmail.Short(s.cfg.Mail), s.cfg.Mail.RequireVerified)
 	}
 

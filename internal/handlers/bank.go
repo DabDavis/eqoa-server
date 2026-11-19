@@ -108,6 +108,15 @@ func (h *NPCWindowHandler) HandleBankItem(sess *session.Session, msg *protocol.M
 	}
 	if !h.bankItem(sess, id, fromBank != 0, key, int(n)) {
 		refuse(sess)
+		return nil
+	}
+	// an item taken out of the bank counts on a loot step under way, as one
+	// handed over in a trade does (QuestEngine.Received; petition 2396: a
+	// Tunneler's Ore farmed ahead and banked never counted once its step came)
+	if fromBank != 0 && h.gameWorld != nil {
+		if p := h.gameWorld.SessionPlayer(sess); p != nil {
+			Quests().Received(sess, p)
+		}
 	}
 	return nil
 }

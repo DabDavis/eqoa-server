@@ -787,15 +787,21 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 		q.offerLocked(sess, p, c, qu)
 		return true
 	}
-	if line := q.handInRefusalLocked(look, p, c, npc.Name); line != "" {
-		q.tellLocked(c, sess, npc.Name, line)
-		return true
-	}
+	// a refusal of a hand-in the player holds but may not do yet is said only
+	// when the giver has nothing else for it: a step of a quest under way or a
+	// quest to offer comes first (petition 2395: Poppapump's 20 Honor Guard's
+	// blades, 101674's hand-in at the Akessan Agent, kept the Agent refusing
+	// and never offering 101665, the quest before them in his line)
+	refusal := q.handInRefusalLocked(look, p, c, npc.Name)
 	if q.stepAtLocked(sess, p, c, look, npc.Name, npc.ServerID, false) {
 		return true
 	}
 	if qu := q.offerAtLocked(look, p, c, npc.Name); qu != nil {
 		q.offerLocked(sess, p, c, qu)
+		return true
+	}
+	if refusal != "" {
+		q.tellLocked(c, sess, npc.Name, refusal)
 		return true
 	}
 	return false

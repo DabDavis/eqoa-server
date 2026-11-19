@@ -69,3 +69,33 @@ func TestAHandInRefusesAnotherSide(t *testing.T) {
 		t.Fatalf("its side's: %q", m)
 	}
 }
+
+// A refusal of a held hand-in waits on the giver's other business (petition
+// 2395): a player holding a later hand-in's items (Poppapump's Honor Guard's
+// blades, 101674 at the Akessan Agent) is offered the quest before it that the
+// giver has for it, not refused; with nothing to offer, refused as before.
+func TestAHandInRefusalWaitsOnAnOffer(t *testing.T) {
+	f := newQuestFixture(t)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, offer, accept) VALUES (50, 'Parchments', 1, 'Agent Test', 'Take them?', 'I will.')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (50, 1, 'talk', 'Agent Test', 'x')`)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, requires, repeatable, offer, accept, factionreq)
+		VALUES (51, 'Blades', 1, 'Agent Test', '50', 1, 'Blades?', 'Here.', 'Citizens of Freeport:-2000')`)
+	f.exec(fmt.Sprintf(`INSERT INTO queststeps (questid, step, kind, target, items, journal, says)
+		VALUES (51, 1, 'give', 'Agent Test', '%d*2', 'Two pincers.', 'Done.')`, f.pincer))
+	f.qe.Reload()
+	ag := f.tw.add(3, &entity.NPC{ServerID: 706, Name: "Agent Test", SpawnX: 25403, SpawnY: 54.1, SpawnZ: 15726})
+	f.own(f.pincer, 2)
+	f.tw.talk(ag)
+	if m := f.msgs(); len(m) == 0 || !strings.Contains(m[len(m)-1], "Take them?") {
+		t.Fatalf("held blades, quest 50 to take: %q, want its offer", m)
+	}
+	// 50 under way at a step elsewhere: nothing to offer, the refusal
+	f.exec(`UPDATE queststeps SET target = 'Nobody Here' WHERE questid = 50`)
+	f.qe.Reload()
+	if _, err := f.qe.SetCharacterQuest(f.sid, 50, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.msgs()
+	f.tw.talk(ag)
+	f.want(f.msgs(), "box:Agent Test: "+fmt.Sprintf(handInNotYours, "Citizens of Freeport"))
+}

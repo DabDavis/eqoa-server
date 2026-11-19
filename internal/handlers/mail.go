@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"encoding/binary"
+	"fmt"
 	"log"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -50,8 +52,16 @@ import (
 // day, hour, minute, second) and a read byte.
 //
 // Each recipient gets a copy of its own (its own id and read flag), and every
-// copy keeps the whole list of names the gram went to. The mail lives in
-// memory, keyed by the recipient's name; it is gone on a restart.
+// copy keeps the whole list of names the gram went to. The boxes live in
+// memory, keyed by the recipient's name, and (with a database) every gram is a
+// row of mail_grams too (database/mail.go), read back at the start: a gram
+// survives a restart and a keep restart (it was gone at either until
+// 2026-11-19, when grams began to carry items and tunar: mailattach.go).
+//
+// A Hardcore character (world.hardcore) uses no mail at all (the owner,
+// 2026-11-19: "[HC] can't use mail"): it sends nothing, and a gram to one is
+// refused at the send, the sender told why. A gram it holds from before stays
+// readable, and can be deleted; nothing attached to one can be taken.
 
 const (
 	opcodeGramRequest protocol.GameOpcode = 0x0D01
@@ -85,6 +95,12 @@ type gram struct {
 	text    string
 	date    time.Time
 	read    bool
+
+	ownerID  uint32 // the character it was sent to, 0 not known
+	fromID   uint32 // the character that sent it, 0 not known
+	returned bool   // its attachments came back to their sender
+	// atts is what it carries (mailattach.go), as the database holds it
+	atts []database.GramAttachment
 }
 
 // gramNames says whether a character of a name exists
@@ -97,6 +113,15 @@ type gramNames interface {
 type MailHandler struct {
 	gameWorld *entity.World
 	names     gramNames // nil: every name is someone's
+	// db keeps the grams and what they carry (database/mail.go); nil (a
+	// test's handler): the boxes are memory alone and nothing is attached
+	db *database.SQLiteDB
+	// items is the windows' handler an attachment moves through (its
+	// inventory store and the sessions' item lists); nil: none attached
+	items *NPCWindowHandler
+	// hardcore is whether the character of a name is a Hardcore character
+	// world.hardcore binds (no mail to it); nil: hardcoreNamed
+	hardcore func(name string) bool
 
 	mu     sync.Mutex
 	boxes  map[string][]*gram
@@ -107,13 +132,124 @@ func NewMailHandler(gw *entity.World, cs *database.SQLiteCharacterStore) *MailHa
 	h := &MailHandler{gameWorld: gw, boxes: map[string][]*gram{}, nextID: 1}
 	if cs != nil {
 		h.names = cs
+		h.db = cs.DB()
+		h.load()
 	}
 	return h
 }
 
+// SetItems is the windows' handler attachments move through (registry.go).
+func (h *MailHandler) SetItems(items *NPCWindowHandler) { h.items = items }
+
+// load fills the boxes from the database: every gram and what it carries.
+func (h *MailHandler) load() {
+	if h.db == nil {
+		return
+	}
+	grams, err := h.db.Grams()
+	if err != nil {
+		log.Printf("Mail: reading the grams: %v", err)
+		return
+	}
+	atts, err := h.db.AllGramAttachments()
+	if err != nil {
+		log.Printf("Mail: reading what the grams carry: %v", err)
+	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	for _, r := range grams {
+		g := gramOf(r)
+		g.atts = atts[g.id]
+		h.boxes[r.Owner] = append(h.boxes[r.Owner], g)
+		if g.id >= h.nextID {
+			h.nextID = g.id + 1
+		}
+	}
+	if len(grams) > 0 {
+		log.Printf("Mail: %d grams in %d boxes, %d carrying something", len(grams), len(h.boxes), len(atts))
+	}
+}
+
+// gramOf is a kept row as the boxes hold it.
+func gramOf(r database.Gram) *gram {
+	return &gram{id: r.ID, from: r.From, to: r.To, subject: r.Subject, text: r.Text, date: r.Sent.In(mailNow().Location()),
+		read: r.Read, ownerID: r.OwnerID, fromID: r.FromID, returned: r.Returned}
+}
+
+// row is the gram as a kept row, in owner's box.
+func (g *gram) row(owner string) database.Gram {
+	return database.Gram{ID: g.id, Owner: strings.ToLower(owner), OwnerID: g.ownerID, From: g.from, FromID: g.fromID,
+		To: g.to, Subject: g.subject, Text: g.text, Sent: g.date, Read: g.read, Returned: g.returned}
+}
+
+// file puts a new gram in owner's box: kept first (its id the row's), else
+// numbered here. With mu held. False when it could not be kept.
+func (h *MailHandler) fileLocked(owner string, g *gram) bool {
+	key := strings.ToLower(owner)
+	if h.db != nil {
+		r := g.row(key)
+		if err := h.db.AddGram(&r); err != nil {
+			log.Printf("Mail: keeping a gram from %s to %s: %v", g.from, owner, err)
+			return false
+		}
+		g.id = r.ID
+	} else {
+		g.id = h.nextID
+		h.nextID++
+	}
+	h.boxes[key] = append(h.boxes[key], g)
+	return true
+}
+
+// hardcoreNamed is whether the character of a name is bound by Hardcore:
+// one in the world by its player, else by its row.
+func (h *MailHandler) hardcoreNamed(name string) bool {
+	if h.hardcore != nil {
+		return h.hardcore(name)
+	}
+	if !entity.HardcoreOn() {
+		return false
+	}
+	if p := h.playerNamed(name); p != nil {
+		return p.HardcoreBound()
+	}
+	if h.db != nil {
+		r, ok, err := h.db.GramRecipientNamed(name)
+		if err != nil {
+			log.Printf("Mail: is %s Hardcore: %v", name, err)
+		}
+		return ok && r.Hardcore
+	}
+	return false
+}
+
+// playerNamed is the player in the world of a name (any case), or nil.
+func (h *MailHandler) playerNamed(name string) *entity.Player {
+	if h.gameWorld == nil {
+		return nil
+	}
+	var target *entity.Player
+	h.gameWorld.ForEachPlayer(func(p *entity.Player) {
+		if strings.EqualFold(p.Name, name) {
+			target = p
+		}
+	})
+	return target
+}
+
+// The Hardcore refusals (ours).
+const (
+	hcNoMailWords     = "Mail is not available to Hardcore characters."
+	hcNoMailThemWords = "%s is a Hardcore character and cannot receive mail."
+)
+
 func (h *MailHandler) RegisterHandlers(r *Registry) {
 	r.Register(opcodeGramRequest, h.handleRequest)
 	r.Register(protocol.OpcodeMailForm, h.HandleMailForm)
+	r.Register(protocol.OpcodeMailAttach, h.HandleMailAttach)
+	if h.db != nil && h.items != nil && h.items.inv != nil {
+		mailAttachOn.Store(true) // the offer goes out (mailattach.go)
+	}
 	if h.gameWorld != nil {
 		h.gameWorld.OnPlayerEntered(h.announceUnread)
 	}
@@ -140,6 +276,7 @@ func buildMailFormOffer() []byte {
 // ignores it.
 func SendMailOffer(sess *session.Session) {
 	queueReliable(sess, protocol.OpcodeMailForm, buildMailFormOffer())
+	sendMailAttachOffer(sess) // what a gram carries, when this server's mail carries anything
 }
 
 // HandleMailForm keeps the client's answer to the offer on its session: a
@@ -320,6 +457,13 @@ func (h *MailHandler) handleRequest(sess *session.Session, msg *protocol.Message
 	mine := strings.ToLower(me.Name)
 	switch sub {
 	case 1:
+		if me.HardcoreBound() {
+			SendErrorMessage(sess, hcNoMailWords)
+			log.Printf("Hardcore: %s's gram refused", me.Name)
+			// 12, "busy", in both forms: the compose stays
+			gramReply(sess, 1, func(w *buffer.Writer) { w.WriteByte(12) })
+			return nil
+		}
 		var req gramSend
 		var ok bool
 		if disc {
@@ -331,7 +475,7 @@ func (h *MailHandler) handleRequest(sess *session.Session, msg *protocol.Message
 			gramReply(sess, 1, func(w *buffer.Writer) { w.WriteByte(0) })
 			return nil
 		}
-		out := h.deliver(me.Name, req.to, consoleLine(req.subject, gramSubjectMost), consoleBlock(req.text, gramTextMost))
+		out := h.deliverFrom(me.Name, me.CharServerID, req.to, consoleLine(req.subject, gramSubjectMost), consoleBlock(req.text, gramTextMost), sess)
 		gramReply(sess, 1, func(w *buffer.Writer) {
 			if disc {
 				w.WriteByte(out.discStatus())
@@ -340,6 +484,10 @@ func (h *MailHandler) handleRequest(sess *session.Session, msg *protocol.Message
 			}
 		})
 	case 2:
+		if me.HardcoreBound() {
+			// what it held from before stays readable
+			SendErrorMessage(sess, hcNoMailWords)
+		}
 		h.mu.Lock()
 		box := append([]*gram(nil), h.boxes[mine]...)
 		h.mu.Unlock()
@@ -350,6 +498,7 @@ func (h *MailHandler) handleRequest(sess *session.Session, msg *protocol.Message
 				writeGramHeader(w, g)
 			}
 		})
+		h.sendMarks(sess, box)
 	case 3:
 		id, err := r.Read7BitEncodedInt64()
 		if err != nil {
@@ -359,16 +508,26 @@ func (h *MailHandler) handleRequest(sess *session.Session, msg *protocol.Message
 		var found *gram
 		for _, g := range h.boxes[mine] {
 			if g.id == uint32(id) {
+				if !g.read && h.db != nil {
+					if err := h.db.SetGramRead(g.id); err != nil {
+						log.Printf("Mail: gram %d read: %v", g.id, err)
+					}
+				}
 				g.read = true
 				found = g
 			}
 		}
 		var to []string
 		var text string
+		var atts []database.GramAttachment
 		if found != nil {
-			to, text = found.to, found.text
+			to, text, atts = found.to, found.text, append([]database.GramAttachment(nil), found.atts...)
 		}
 		h.mu.Unlock()
+		if len(atts) > 0 && !sess.MailAttach() {
+			// a client that cannot take them is told they are there
+			text = withAttachNote(text, atts)
+		}
 		gramReply(sess, 3, func(w *buffer.Writer) {
 			if found == nil {
 				w.WriteByte(0)
@@ -382,23 +541,22 @@ func (h *MailHandler) handleRequest(sess *session.Session, msg *protocol.Message
 			}
 			writeWideString(w, text, 1024)
 		})
+		if found != nil {
+			h.sendAttachments(sess, found.id, atts)
+		}
 	case 4:
 		id, err := r.Read7BitEncodedInt64()
 		if err != nil {
 			return nil
 		}
-		h.mu.Lock()
-		status := byte(0)
-		box := h.boxes[mine]
-		for i, g := range box {
-			if g.id == uint32(id) {
-				h.boxes[mine] = append(box[:i:i], box[i+1:]...)
-				status = 13
-				break
-			}
-		}
-		h.mu.Unlock()
+		status, said, back := h.remove(me, uint32(id))
 		gramReply(sess, 4, func(w *buffer.Writer) { w.WriteByte(status) })
+		if said != "" {
+			SendColoredChat(sess, said, 255, 255, 0)
+		}
+		if back != "" {
+			h.tellArrived(back)
+		}
 	}
 	return nil
 }
@@ -463,6 +621,11 @@ func (h *MailHandler) send(from, to, subject, text string) byte {
 	return h.deliver(from, []string{to}, subject, text).discStatus()
 }
 
+// deliver is deliverFrom with no sender's id and no session to tell.
+func (h *MailHandler) deliver(from string, to []string, subject, text string) gramOutcome {
+	return h.deliverFrom(from, 0, to, subject, text, nil)
+}
+
 // gramRecipients is the names a send is for, trimmed, the empty ones
 // dropped and each name once (the first spelling kept; the client neither
 // drops repeats nor counts them).
@@ -481,14 +644,16 @@ func gramRecipients(to []string) []string {
 	return out
 }
 
-// deliver files a gram in the box of each name it is for, and tells each
+// deliverFrom files a gram in the box of each name it is for, and tells each
 // recipient who is on line (sub-op 5 and newMailText). The names past
 // gramRecipientsMax get none (gramFailOther) and are not looked up. Of the
 // others, a name no character has stops the whole send: nothing goes, and
 // the unknown names are said. Else each name gets a copy unless its box is
-// full (10) or holds unreadPerSender unread grams from this sender (11).
-// Every copy keeps the names the gram was for (up to the cap).
-func (h *MailHandler) deliver(from string, to []string, subject, text string) gramOutcome {
+// full (10) or holds unreadPerSender unread grams from this sender (11), or
+// it is a Hardcore character's (gramFailOther, and the sender's session, when
+// given, told why). Every copy keeps the names the gram was for (up to the
+// cap).
+func (h *MailHandler) deliverFrom(from string, fromID uint32, to []string, subject, text string, sess *session.Session) gramOutcome {
 	names := gramRecipients(to)
 	if len(names) == 0 {
 		return gramOutcome{noNames: true}
@@ -510,9 +675,28 @@ func (h *MailHandler) deliver(from string, to []string, subject, text string) gr
 	}
 	now := mailNow()
 	var got []string
+	ownerIDs := map[string]uint32{}
+	for _, n := range addressed {
+		if h.hardcoreNamed(n) {
+			out.failed, out.reasons = append(out.failed, n), append(out.reasons, gramFailOther)
+			if sess != nil {
+				SendErrorMessage(sess, fmt.Sprintf(hcNoMailThemWords, n))
+			}
+			log.Printf("Hardcore: a gram from %s to %s refused", from, n)
+			continue
+		}
+		if h.db != nil {
+			if r, ok, err := h.db.GramRecipientNamed(n); err == nil && ok {
+				ownerIDs[strings.ToLower(n)] = r.ServerID
+			}
+		}
+	}
 	h.mu.Lock()
 	for _, n := range addressed {
 		key := strings.ToLower(n)
+		if slices.Contains(out.failed, n) {
+			continue
+		}
 		box := h.boxes[key]
 		if len(box) >= mailboxMax {
 			out.failed, out.reasons = append(out.failed, n), append(out.reasons, gramBoxFull)
@@ -528,9 +712,11 @@ func (h *MailHandler) deliver(from string, to []string, subject, text string) gr
 			out.failed, out.reasons = append(out.failed, n), append(out.reasons, gramTooMany)
 			continue
 		}
-		g := &gram{id: h.nextID, from: from, to: append([]string(nil), addressed...), subject: subject, text: text, date: now}
-		h.nextID++
-		h.boxes[key] = append(box, g)
+		g := &gram{from: from, fromID: fromID, ownerID: ownerIDs[key], to: append([]string(nil), addressed...), subject: subject, text: text, date: now}
+		if !h.fileLocked(n, g) {
+			out.failed, out.reasons = append(out.failed, n), append(out.reasons, gramFailOther)
+			continue
+		}
 		got = append(got, n)
 	}
 	h.mu.Unlock()
@@ -555,13 +741,7 @@ func (h *MailHandler) tellArrived(name string) {
 	if h.gameWorld == nil {
 		return
 	}
-	var target *entity.Player
-	h.gameWorld.ForEachPlayer(func(p *entity.Player) {
-		if strings.EqualFold(p.Name, name) {
-			target = p
-		}
-	})
-	if target != nil {
+	if target := h.playerNamed(name); target != nil {
 		if s := h.gameWorld.FindSessionByEntityID(target.ServerID); s != nil {
 			notifyNewMail(s)
 		}

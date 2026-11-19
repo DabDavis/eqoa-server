@@ -49,6 +49,7 @@ type Kept struct {
 	FactionMessagesOff bool   `json:"faction_messages_off,omitempty"`
 	LootMessagesOff    bool   `json:"loot_messages_off,omitempty"`
 	MailLiveForms      bool   `json:"mail_live_forms,omitempty"`
+	MailAttach         bool   `json:"mail_attach,omitempty"`
 	LiveLook           bool   `json:"live_look,omitempty"`
 	LiveLookOffered    bool   `json:"live_look_offered,omitempty"`
 	ManyChars          bool   `json:"many_chars,omitempty"`
@@ -218,6 +219,7 @@ func (s *Session) Keep() Kept {
 		FactionMessagesOff: s.factionMessagesOff,
 		LootMessagesOff:    s.lootMessagesOff,
 		MailLiveForms:      s.mailLiveForms,
+		MailAttach:         s.mailAttach,
 		LiveLook:           s.liveLook,
 		LiveLookOffered:    s.liveLookOffered,
 		ManyChars:          s.manyChars,
@@ -392,6 +394,7 @@ func (s *Session) restore(k Kept, now time.Time) {
 	s.factionMessagesOff = k.FactionMessagesOff
 	s.lootMessagesOff = k.LootMessagesOff
 	s.mailLiveForms = k.MailLiveForms
+	s.mailAttach = k.MailAttach
 	s.liveLook = k.LiveLook
 	s.liveLookOffered = k.LiveLookOffered
 	s.manyChars = k.ManyChars

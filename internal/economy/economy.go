@@ -56,6 +56,8 @@ const (
 	Trade         Source = "trade"          // tunar in a trade window
 	AuctionSale   Source = "auction_sale"   // an auction won: the price, the winner's to the seller's bank
 	DuelWager     Source = "duel_wager"     // a duel's wager: the loser's stake to the winner
+	Mail          Source = "mail"           // tunar a gram carried, sender to recipient (handlers/mailattach.go), or back
+	Postage       Source = "postage"        // the post's fee for a gram that carries something (world.mail_postage)
 )
 
 // Info says what a source is.
@@ -85,11 +87,13 @@ var Sources = []Info{
 	{Travel, Sink, "Waysender fares", "a waysender's fee for a trip", "waysender fares"},
 	{Cure, Sink, "Fever cures", "a were fever drawn out at the campfire", "fever cures"},
 	{AuctionFee, Sink, "Auction listing fees", "the auction house's fee for putting a lot up", "auction listing fees"},
+	{Postage, Sink, "Postage", "the post's fee for a gram carrying an item or tunar (world.mail_postage)", "postage"},
 	{AuctionHouse, Sink, "Auction house's own lots", "buys from the house's standing lots, which have no seller", "the auction house's own lots"},
 	{GMTake, Sink, "GM removals", "#tunar, #banktunar and the panel's edits lowering a purse or a bank", "GM removals"},
 	{Trade, Transfer, "Trades", "tunar given in a trade window", "trades"},
 	{AuctionSale, Transfer, "Auction sales", "an auction won between players: its price, from the winner to the seller", "auction sales"},
 	{DuelWager, Transfer, "Duel wagers", "a duel's lost stake, paid to its winner", "duel wagers"},
+	{Mail, Transfer, "Mail", "tunar a gram carried from its sender to its recipient (or returned)", "mail"},
 }
 
 var kinds = func() map[Source]Kind {

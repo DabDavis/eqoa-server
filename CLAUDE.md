@@ -1528,8 +1528,25 @@ Frontiers disc keeps working. Addresses below are Corsten's live CLIENT; word id
   non-retail **0x7E0A** (`OpcodeMailForm`), a u32 both ways, sent {1} with the other offers at the world
   entry; its answer is kept on the session (`MailLiveForms`) and changes nothing (every request is still
   answered by its own form; one the client did not announce is logged); a PS2 never answers; the server
-  never offers 0, which would put vanilla back on the disc's forms. The mail is still in memory, gone at a
-  restart.
+  never offers 0, which would put vanilla back on the disc's forms. **The grams are kept** (`database/mail.go`,
+  `mail_grams`; since 2026-11-19, in memory before): read back at every start, so a gram outlives a restart and a keep
+  restart. **A Hardcore character uses no mail** (the owner, 2026-11-19: "[HC] can't use mail"): its send is refused
+  (status 12, "Mail is not available to Hardcore characters."), a gram to one is refused at the send ("Name is a
+  Hardcore character and cannot receive mail.": a live send 4, the name's reason other; the disc's 12); grams it held
+  stay readable.
+- **Mail carries tunar and an item** (`handlers/mailattach.go`; the owner, 2026-11-19: "the mail system should let
+  players mail each other armor, tunar, etc."; `claude-notes/mail-attachments-20261119.md`). Non-retail **0x7EA1**
+  (`OpcodeMailAttach`, sub-ops in `protocol/opcodes.go`), offered with 0x7E0A when the server keeps grams; vanilla
+  answers and gets an Attach row (one pack record or part of a stack) and a Tunar row, a Take option and a "+" mark;
+  any other client is told in the gram's text what it carries (no '|'). One name only, not the sender; no No Trade,
+  No Rent (or `norentvanish`), worn, own-aura, `itemowner`-bound or heirloom record; a Lore one only to one who holds
+  none and has none coming (and checked again at the take). The send and the take are one transaction each
+  (`SendGramAttached`, `TakeGramAttachments`: a second take is `ErrGramTaken`); a pack without room refuses the take
+  and it stays. **Deleting a gram that carries something returns it** to its sender as "Returned: ..." (a returned
+  one is kept until taken; its sender gone, dropped). `world.mail_postage` (unset 0) is taken from the sender of a
+  gram that carries something. Logged: `mail_attachment_log` (sent, taken, returned, dropped, postage), the panel's
+  Mail attachments pages (read only; `mail_grams`, the players' words, hidden), `economy.Mail` (transfer) and
+  `economy.Postage` (sink). Snapshots clear all three tables.
 - **The live client's GM commands** (`handlers/gmresets.go`, `database/resets.go`): in its ChatLine, each
   doing anything only with the GM channel on; # commands here for every client (a disc's PS2 has no such
   slash commands; vanilla forwards /name). The text after the command names a character (inferred: the

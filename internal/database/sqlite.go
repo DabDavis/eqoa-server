@@ -934,6 +934,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureHardcore(); err != nil { // hardcore.go: [HC] Hardcore characters and their falls
 		return err
 	}
+	if err := db.ensureMail(); err != nil { // mail.go: the tell-grams and what they carry
+		return err
+	}
 
 	log.Printf("SQLite schema initialized")
 	return nil

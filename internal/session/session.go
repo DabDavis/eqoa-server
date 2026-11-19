@@ -134,6 +134,10 @@ type Session struct {
 	// mailLiveForms is the client's answer to the mail form offer
 	// (OpcodeMailForm, handlers/mail.go): it sends SOE's live mail forms.
 	mailLiveForms bool
+	// mailAttach is the client's answer to the mail attachments' offer
+	// (OpcodeMailAttach, handlers/mailattach.go): it shows and takes what a
+	// gram carries.
+	mailAttach bool
 	// liveLook: the client asked for SOE's live game's look
 	// (protocol.OpcodeLiveLook) and was told it is in force: its entity
 	// channels are the live 201 bytes and its character lists the live
@@ -353,6 +357,21 @@ func (s *Session) SetMailLiveForms(on bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.mailLiveForms = on
+}
+
+// SetMailAttach records the client's answer to the mail attachments' offer.
+func (s *Session) SetMailAttach(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.mailAttach = on
+}
+
+// MailAttach is whether the client said it shows and takes what a gram
+// carries. A client that never answered (a PS2, an older vanilla) did not.
+func (s *Session) MailAttach() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.mailAttach
 }
 
 // SetBugReports records the client's answer to the bug report offer.

@@ -22,8 +22,10 @@ import (
 //   - uses no part of the auction house: no listing, bid, buy or search
 //     (auction.go's Handle refuses every request);
 //   - never shares the account bank: its bank is its own, rows and tunar
-//     (database/accountbank.go's hcBankSplit, turned on here); mail carries
-//     no items or tunar on this server (grams are text), so nothing to refuse;
+//     (database/accountbank.go's hcBankSplit, turned on here);
+//   - uses no mail (the owner, 2026-11-19: "[HC] can't use mail"; mail.go,
+//     mailattach.go): it sends no gram, text or parcel, a gram to it is
+//     refused at the send, and it takes nothing from one it held from before;
 //   - is not carried by the server's own conveniences: the Teleporter, the
 //     Summoning Portal (opening one, being called through one, a portal's trip
 //     to Freeport), the Rock of Freeport, the players' homes (the Real Estate

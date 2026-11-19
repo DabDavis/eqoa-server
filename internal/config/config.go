@@ -526,6 +526,11 @@ type WorldConfig struct {
 	AccountBank      bool `yaml:"account_bank"`
 	AccountBankSlots int  `yaml:"account_bank_slots"`
 
+	// MailPostage is the tunar the post takes for a gram that carries an item
+	// or tunar (handlers/mailattach.go), on top of what it carries; a gram of
+	// text alone is free. Unset or 0: none.
+	MailPostage int `yaml:"mail_postage"`
+
 	// MaxCharacters is how many characters an account may hold (the server
 	// owner, 2026-11-11: "lets make max 20 for now"; entity/charslots.go,
 	// handlers/charslots.go). A client whose select page lists them all and

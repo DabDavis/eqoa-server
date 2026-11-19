@@ -112,6 +112,12 @@ type Heirlooms struct {
 	// level as the World last said them (login, level up); others are read
 	// off their rows
 	known map[uint32]heirloomWho
+	// pool is every record worn in a role's slot (database.WearablePool), read
+	// at most once a heirloomTTL: a choice sifts it (FilterWearable) where it
+	// read the whole item table each time (2026-11-19: a keep restart's 40-odd
+	// characters made hundreds of those reads, most of the restart's pause)
+	pool   []database.ItemPatternRecord
+	poolAt time.Time
 }
 
 type heirloomKey struct {
@@ -330,7 +336,7 @@ func (h *Heirlooms) bestOf(class, race, level int, role string) (database.ItemPa
 	}
 	// an item's mask is asked about the race the character passes as (race.go), as
 	// the equip rule asks it: 1023, every race of the game's, has no custom race's bit
-	items, err := h.inv.WearablePatterns(class, entity.WireRace(race), key.level, r.wear)
+	items, err := h.wearable(class, entity.WireRace(race), key.level, r.wear)
 	if err != nil {
 		log.Printf("Heirlooms: the items of %s for class %d at %d: %v", role, class, key.level, err)
 		return database.ItemPatternRecord{}, false
@@ -404,4 +410,37 @@ func heirloomFigures(p, best *database.ItemPatternRecord) {
 func heirloomEpicFigures(p, epic *database.ItemPatternRecord) {
 	heirloomFigures(p, epic)
 	p.ProcName, p.ProcDesc = epic.ItemName, epic.ItemDesc
+}
+
+// heirloomSlots are every role's wear slots: the pool's.
+func heirloomSlots() []int {
+	var out []int
+	for _, r := range heirloomRoles {
+		for _, w := range r.wear {
+			if !slices.Contains(out, w) {
+				out = append(out, w)
+			}
+		}
+	}
+	slices.Sort(out)
+	return out
+}
+
+// wearable is InventoryStore.WearablePatterns(class, race, level, wear) of the
+// pool, read again once it is a heirloomTTL old.
+func (h *Heirlooms) wearable(class, race, level int, wear []int) ([]database.ItemPatternRecord, error) {
+	h.mu.Lock()
+	pool, at := h.pool, h.poolAt
+	h.mu.Unlock()
+	if at.IsZero() || h.now().Sub(at) > heirloomTTL {
+		p, err := h.inv.WearablePool(heirloomSlots())
+		if err != nil {
+			return nil, err
+		}
+		h.mu.Lock()
+		h.pool, h.poolAt = p, h.now()
+		h.mu.Unlock()
+		pool = p
+	}
+	return database.FilterWearable(pool, class, race, level, wear), nil
 }

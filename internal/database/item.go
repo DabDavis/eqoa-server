@@ -1,6 +1,10 @@
 package database
 
-import "strings"
+import (
+	"database/sql"
+	"slices"
+	"strings"
+)
 
 // ItemPatternRecord represents a row from the itempattern table.
 // All 44+2 columns from the schema (patternid through fish).
@@ -220,6 +224,11 @@ func (s *InventoryStore) WearablePatterns(class, race, level int, wear []int) ([
 		return nil, err
 	}
 	defer rows.Close()
+	return scanWearable(rows)
+}
+
+// scanWearable reads WearablePatterns' and WearablePool's columns.
+func scanWearable(rows *sql.Rows) ([]ItemPatternRecord, error) {
 	var out []ItemPatternRecord
 	for rows.Next() {
 		var i ItemPatternRecord
@@ -240,4 +249,61 @@ func (s *InventoryStore) WearablePatterns(class, race, level int, wear []int) ([
 		out = append(out, i)
 	}
 	return out, rows.Err()
+}
+
+// WearablePool is every record worn in one of the wear slots, the Ascended
+// records left out, in patternid order: WearablePatterns' rows for every class,
+// race and level at once, for a caller that asks many of them (the heirlooms'
+// choices: a keep restart's 40-odd characters each asked a dozen, and each ask
+// read the whole table, 2026-11-19: most of the restart's pause), to be sifted
+// by FilterWearable.
+func (s *InventoryStore) WearablePool(wear []int) ([]ItemPatternRecord, error) {
+	if len(wear) == 0 {
+		return nil, nil
+	}
+	in := "?" + strings.Repeat(", ?", len(wear)-1)
+	args := make([]any, 0, len(wear))
+	for _, w := range wear {
+		args = append(args, w)
+	}
+	rows, err := s.db.Query(`
+		SELECT patternid, itemcost, unk1, itemicon, unk2, equipslot, unk3,
+			trade, rent, unk4, attacktype, weapondamage, unk5,
+			levelreq, maxstack, maxhp, duration, classuse, raceuse,
+			procanim, lore, unk6, craft, itemname, itemdesc, model, color,
+			str, sta, agi, wis, dex, cha, intelligence,
+			HPMAX, POWMAX, PoT, HoT, AC, PR, DR, FR, CR, LR, AR,
+			weaponproc, fish
+		FROM itempattern
+		WHERE equipslot IN (`+in+`)
+			AND patternid NOT IN (SELECT patternid FROM itemascended)
+		ORDER BY patternid`, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return scanWearable(rows)
+}
+
+// FilterWearable is WearablePatterns(class, race, level, wear) of a pool
+// WearablePool made of a set of slots holding wear: the same rules (the class's
+// bit, the race's bit or every game race's mask for a race past the game's, the
+// level, the slots), the same order.
+func FilterWearable(pool []ItemPatternRecord, class, race, level int, wear []int) []ItemPatternRecord {
+	if len(wear) == 0 || class < 0 || class > 30 || race < 0 || race > 30 {
+		return nil
+	}
+	cm, rm := int64(1)<<class, int64(1)<<race
+	var out []ItemPatternRecord
+	for _, it := range pool {
+		if int64(it.ClassUse)&cm == 0 || it.LevelReq > level || !slices.Contains(wear, it.EquipSlot) {
+			continue
+		}
+		ru := int64(it.RaceUse)
+		if ru&rm == 0 && !(race >= allGameRaces && ru&1023 == 1023) {
+			continue
+		}
+		out = append(out, it)
+	}
+	return out
 }

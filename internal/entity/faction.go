@@ -842,14 +842,39 @@ const startThreatReach float32 = 60
 func (w *World) StartThreats(spots []database.StartSpot) []StartThreat {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	// the NPCs in a grid of startThreatReach squares, by world, once: a spot looks
+	// in its square and the eight round it, not at every NPC (415 spots by 65,000
+	// NPCs were 27 million looks, five seconds of a 2-core box's start, 2026-11-19)
+	type cell struct {
+		world uint8
+		x, z  int32
+	}
+	cellOf := func(world uint8, x, z float32) cell {
+		return cell{world, int32(math.Floor(float64(x / startThreatReach))), int32(math.Floor(float64(z / startThreatReach)))}
+	}
+	grid := map[cell][]*NPC{}
+	for _, npc := range w.NPCs {
+		if npc.Temporary || npc.SpawnOnly { // out of the world: it attacks no one (spawnonly.go)
+			continue
+		}
+		c := cellOf(npc.World, npc.SpawnX, npc.SpawnZ)
+		grid[c] = append(grid[c], npc)
+	}
 	var out []StartThreat
 	for _, s := range spots {
 		p := &Player{Name: "a new character", Level: 1, Race: s.Race, Class: s.Class, HumType: s.HumType,
 			X: s.X, Y: s.Y, Z: s.Z, World: uint8(s.World)}
-		for _, npc := range w.NPCs {
-			if int(npc.World) != s.World || npc.Temporary || npc.SpawnOnly { // out of the world: it attacks no one (spawnonly.go)
-				continue
+		if s.World < 0 || s.World > 255 {
+			continue
+		}
+		at := cellOf(uint8(s.World), s.X, s.Z)
+		var near []*NPC
+		for dx := int32(-1); dx <= 1; dx++ {
+			for dz := int32(-1); dz <= 1; dz++ {
+				near = append(near, grid[cell{at.world, at.x + dx, at.z + dz}]...)
 			}
+		}
+		for _, npc := range near {
 			d := dist3(npc.SpawnX, npc.SpawnY, npc.SpawnZ, s.X, s.Y, s.Z)
 			if d > startThreatReach || !w.threatensLocked(npc, p) || !npc.EventAggro && greenTo(npc, p) {
 				continue

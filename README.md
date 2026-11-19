@@ -21,7 +21,7 @@ One binary, `cmd/gameserver`:
 | 9735 | TCP | Auth: the login request, DES-encrypted password, bcrypt-checked accounts |
 | 10070 | UDP | The game: DRDP (reliable messages, state channels, XOR deltas), world entry, movement, combat, NPCs, quests, equipment, chat, groups, guilds, factions, masteries, tradeskills, duels |
 | 7000 | HTTP | The patch server: the VerantPatcher manifest the PS2 downloads its patches from |
-| 8080 | HTTP | Optional account page (and the community pages' routes) |
+| 8080 | HTTP | The account pages (and the community pages' routes); `account_port: 0` turns them off. They listen on every address: keep 8080 behind the firewall and a proxy |
 | 7003 | UDP | Optional: the PS2 hard-disk setup's world delivery |
 | (gm.port) | HTTP | Optional GM panel, behind a TLS proxy: a web page and MCP/OAuth/OpenAPI for AI agents |
 
@@ -53,7 +53,7 @@ data, not code. Two ways to get it:
   binary:
 
   ```bash
-  gunzip -c eqoa-open-20261119b.db.gz > eqoa.db
+  gunzip -c eqoa-open-<date>.db.gz > eqoa.db     # the latest release's file
   sha256sum eqoa.db    # against the release notes
   ```
 
@@ -102,7 +102,9 @@ The settings that matter first:
 - `auth.accounts`: accounts made at start if missing (change the example's password).
 - `auth.one_login`: `false` allows several windows on an account (one character a window).
 
-Every other setting is explained in the comments of `config.yaml.example`.
+Every other setting is explained in the comments of `config.yaml.example`, which names every key
+the server reads (a test, `internal/config/example_test.go`, keeps it so): the ones a fresh server
+does not need are there commented out, at their defaults.
 
 ### 5. Run it
 
@@ -110,7 +112,10 @@ Every other setting is explained in the comments of `config.yaml.example`.
 ./gameserver          # from its own folder: it finds eqoa.db, patches/ and worlds/ there
 ```
 
-Open the ports above in your firewall (9735/tcp and 10070/udp at least). As a service
+Open the ports above in your firewall: 10070/udp, 9735/tcp and 7000/tcp (7003/udp too for PS2
+hard-disk players), never 8080 or the GM panel's port. **For a public server on a VPS** (sizes,
+firewall, the web relay, nginx or Apache with TLS, backups, updates), see
+[docs/hosting.md](docs/hosting.md). As a service
 (`/etc/systemd/system/eqoa-game.service`):
 
 ```ini
@@ -138,7 +143,8 @@ journalctl -u eqoa-game     # or tail gameserver.log
 ```
 
 A stop (`systemctl stop`, a restart) saves every character in the world; set
-`world.restart_notice` to warn them first.
+`world.restart_notice` to warn them first. Back the database up with `sqlite3 eqoa.db ".backup
+<file>"` or the GM panel, never by copying the live file (it is in WAL mode).
 
 ### 6. Connecting
 
@@ -219,6 +225,10 @@ first. An admin can hand an agent a sanitised copy of the database for testing (
 download snapshot; accounts' secrets and personal fields taken out).
 
 ### Deploying without kicking players
+
+`tools/swap_keep.sh` swaps a staged binary in while players stay in the world (the server saves,
+re-execs into the new binary and puts every session back; a pause of several seconds); its header
+has the details. Otherwise:
 
 A data change needs no restart (the server reads its tables as it goes; the balance at once on
 a save of a Balance page). A new binary does, and a restart ends every session, so

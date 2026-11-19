@@ -17,7 +17,8 @@ server:
   # list stays empty.
   server_ip: "192.168.1.100"
 
-  # SQLite database file. Copy eqoa.seed.db here to start.
+  # SQLite database file. Start from the open database (README, "A database":
+  # eqoa-open-<date>.db.gz from the Releases page, unpacked as eqoa.db).
   db_path: "eqoa.db"
 
   # Applied to the patch server's HTTP listener.
@@ -36,6 +37,10 @@ server:
   # huge pages, which on "always" fill back what the runtime gives up.
   # gc_percent: 25
   # no_huge_pages: true
+
+  # Go's profiler (net/http/pprof) at this address, for finding what a slow
+  # tick spends its time on. Loopback only: it is no one else's. Unset: off.
+  # pprof_addr: "127.0.0.1:6061"
 
 world:
   tick_rate: 100ms
@@ -79,11 +84,10 @@ world:
   # say, or stands out of the talk's reach (handlers/mobinfo.go). Vanilla
   # (offered it with opcode 0x7E4C) shows them in the target's details box, as
   # a player's, while the button is held; a PS2 in a dialogue box. Off unless
-  # set (the Heirloom Test Server sets it).
+  # set.
   # mob_info: true
 
-  # A target's level, for every player (handlers/conlevel.go, Live petition
-  # 5130): /con (a PS2's "/t con") says "<name> is level N." of the player's
+  # A target's level, for every player (handlers/conlevel.go): /con (a PS2's "/t con") says "<name> is level N." of the player's
   # target, and vanilla (offered it with opcode 0x7E70) shows the level in its
   # target box beside the name. Off unless set: /con is then an unknown command.
   # con_level: true
@@ -117,10 +121,10 @@ world:
   # at /fallen (this shard's and other_db's). Off unless enabled.
   # hardcore:
   #   enabled: true
-  #   shard: "Heirloom"            # its name on the page and the memorial
+  #   shard: "First Shard"         # its name on the page and the memorial (unset: none)
   #   fall_logout_seconds: 15      # the fall to the client's login
-  #   other_db: "/path/to/the/live/eqoa.db"
-  #   other_mark: "Live"
+  #   other_db: "/srv/eqoa-second/eqoa.db"   # another shard's database, read-only (unset: none)
+  #   other_mark: "Second Shard"
 
   # The auction house's standing lots (handlers/auction_perpetual.go): lots
   # that never end and never run out, a buy at the price putting the items in
@@ -131,7 +135,6 @@ world:
   # A GM's #reward (/reward) as the reward of experience: 10% more experience
   # for 30 minutes of play on the GM's target, a player (handlers/rewardxp.go,
   # petition 5033). Unset: #reward is GM's Reward, the buff (handlers/reward.go).
-  # The Live shard sets it, the Heirloom Test Server does not.
   # gm_reward_xp: true
 
   # The accounts (accountinfo.username) whose GMs may /noclip: a flight through
@@ -264,6 +267,8 @@ world:
   #   world: 14
   #   close_after: 30m
   #   max_instances: 30
+  #   cap: 4              # players in a dungeon's instance (a dungeon's own cap wins)
+  #   raid_cap: 50        # players in a raid's instance
 
   # How many records the pack (worn items among them, as CLIENT's 40 counts
   # them) and the bank hold for a client that holds more (vanilla, offered them
@@ -290,7 +295,7 @@ world:
   # The Rock of Freeport (handlers/rockfreeport.go): the server makes its record
   # at its start, every character holding none is given one at its login, and
   # its Use is a 2 s cast in Return Home's visual to a few steps in front of
-  # Dabrish. Off unless set (the Heirloom Test Server sets it).
+  # Dabrish. Off unless set.
   # rock_of_freeport: true
 
   # The Testing Heroes (entity/heroes.go, handlers/heroes.go): every kill that
@@ -298,28 +303,30 @@ world:
   # Heroes, a raid boss's 5; the faction starts at the floor, -2000, and the
   # Testing Heroes Vendor sells for the standing above it. The faction, the
   # vendor (by the well behind Dabrish), his stock and its items are
-  # tools/seed_testing_heroes.py's. Off unless set (the Heirloom Test Server
-  # sets it): no credit, no faction in the window, no vendor.
+  # tools/seed_testing_heroes.py's. Off unless set: no credit, no faction in
+  # the window, no vendor.
   # testing_heroes: true
 
   # The Bug Finder Leaderboard (handlers/bugboard.go; tools/bugboard_20261115.py
   # stands it against Freeport's well): its list counts this shard's bug and
   # crash reports and, with other_db, the other shard's too (opened read-only,
-  # at most once a minute), its players marked other_mark. exclude names the
-  # accounts never listed (unset: the owner's and the GM Jib's); top how many
-  # are listed (unset: 15). On the Heirloom server:
+  # at most once a minute), its players marked other_mark; mark is what this
+  # shard's own players are marked with (unset: none). exclude names the
+  # accounts never listed (unset: a built-in list; set it to your own staff's
+  # accounts); top how many are listed (unset or 0: 15, at most 50).
   # bug_board:
-  #   other_db: "/path/to/the/live/eqoa.db"
-  #   other_mark: "Live"
-  # and on the Live server: mark "Live", other_db the Heirloom server's.
+  #   mark: ""
+  #   other_db: "/srv/eqoa-second/eqoa.db"
+  #   other_mark: "Second Shard"
+  #   exclude: [youradmin]
+  #   top: 15
 
   # A magician's water pet heals the worst off of its side, not only its owner
   # or itself (entity/petmemberheal.go): its single-target heals land on the
   # lowest share of hit points below the heal's threshold among its owner,
   # itself, the owner's group or raid group's players within the heal's reach
   # (not one in a fight of its own: a duel, PvP) and their pets and
-  # mercenaries. Off unless set (the Heirloom Test Server sets it): its owner
-  # or itself, as before.
+  # mercenaries. Off unless set: its owner or itself, as before.
   # pet_heal_group: true
 
   # The quest marks on a client's map (handlers/questmarks.go, vanilla's Quest
@@ -340,7 +347,7 @@ world:
   # max_view_distance: 600
 
   # The sun on a vampire (table charvampire: #vampire and the GM panel make
-  # one): vampire_sun_damage (50, Sandstorm's; 0 none) every
+  # one): vampire_sun_damage (unset 50; 0 none) every
   # vampire_sun_interval (6s) while its client shows the sun up (6:00 to
   # 18:00); vampire_sun_shade false burns it under a roof too (true: shade,
   # anything over it, shelters it); vampire_sun_gms false spares a GM's
@@ -385,6 +392,141 @@ world:
   # reading zones again when players spread over more than it holds.
   # ground_zones: 0
 
+  # --- New characters and accounts ---
+
+  # The purse a new character is created with (database/newchar.go). Unset:
+  # 5000; 0: none.
+  # start_tunar: 5000
+
+  # How many characters an account may hold (entity/charslots.go). A client
+  # whose select page scrolls (vanilla) may make that many; a PS2, whose page
+  # holds 8, is sent the 8 most recently played and may make none past 8.
+  # Unset or 0: 20; at most 64.
+  # max_characters: 20
+
+  # --- Creatures, corpses and loot ---
+
+  # Creatures attack a player on sight (entity/aggro.go). Unset: they do; set
+  # false, none attacks first.
+  # aggro: true
+  # An NPC of a faction (table npcfaction) attacks, and shows its con face, by
+  # the player's standing with it. Unset: it does; false: no faction counts.
+  # faction_aggro: true
+
+  # How long a creature's corpse lies when nothing empties it (unset or 0: 3m),
+  # and how long after its corpse goes the creature comes back (unset or 0:
+  # 60s). roam_radius is how far from its spawn a creature wanders (unset or
+  # 0: 70; below 0, none wander). entity/corpse.go, entity/roam.go.
+  # corpse_decay: 3m
+  # respawn_after: 60s
+  # roam_radius: 70
+  # How long after its death a kill's corpse is its kill group's alone, then
+  # anyone's (unset or 0: 6m; below 0, always its group's: entity/corpseopen.go),
+  # and how long a lootable corpse lies from its death (unset or 0: 20m; at or
+  # below corpse_decay, none lingers: entity/corpselinger.go).
+  # corpse_open_after: 6m
+  # corpse_decay_after: 20m
+
+  # What a thrown potion and a ranged weapon's shot cost the thrower or
+  # shooter, a percent of its most power (entity/potion.go,
+  # entity/rangedpower.go). Unset: 10; 0: none.
+  # throw_power_pct: 10
+  # ranged_power_pct: 10
+
+  # Lava (entity/lava.go): a player with its feet in lava loses
+  # lava_pct_max_hp percent of its most hit points plus lava_damage (at least
+  # 1) at once and every lava_interval (unset or 0: 3s) it stays;
+  # lava_fire_resist lets its fire resistance take its share. Both amounts
+  # unset or 0: lava burns no one (the default). The dead and GMs never burn.
+  # lava_pct_max_hp: 0
+  # lava_damage: 0
+  # lava_interval: 3s
+  # lava_fire_resist: false
+
+  # The percent of its experience a one-time quest's step gives (not a
+  # repeatable or hunt-and-gather quest: handlers/questxp.go). Unset, 0 or
+  # 100: as the quest rows say; 400: four times.
+  # quest_xp_pct: 100
+
+  # --- Items and the post ---
+
+  # The kept items given at login to a character holding none, while their
+  # records exist in the database (handlers/genie.go, wolffang.go,
+  # summonportal.go, jarofbreath.go). Unset: given; false: none.
+  # heirlooms: true
+
+  # Gear a character transfer brought in: its copy keeps imported_share of its
+  # base record's stats, procs and worn hit effects (unset: 0.85), and
+  # imported_tag shows "(Imported)" after its name (unset: off).
+  # imported_share: 0.85
+  # imported_tag: false
+
+  # The tunar the post takes for a gram that carries an item or tunar
+  # (handlers/mailattach.go), on top of what it carries; text alone is free.
+  # Unset or 0: none.
+  # mail_postage: 0
+
+  # When pack_slots or bank_slots is lowered: set these to the old size and a
+  # character already holding more keeps (and is sent) every item, but takes
+  # no new record until it is under the new limit (entity/itemslots.go).
+  # Unset or not above the limit: off.
+  # grandfather_pack_slots: 0
+  # grandfather_bank_slots: 0
+
+  # The pack and bank of an [OG] character's session (world.og_accounts), at
+  # most these; every other session pack_slots and bank_slots. Unset (0): the
+  # same as everyone's.
+  # og_pack_slots: 40
+  # og_bank_slots: 40
+
+  # The Weapon Enchanter's price for one aura on a held weapon
+  # (handlers/enchanter.go): enchanter_price of the item record named
+  # enchanter_token (enchanter_token_id: the record's id, when no record has
+  # the name) from the pack. Unset: 1 "Holly Token"; a price of 0: free.
+  # enchanter_price: 1
+  # enchanter_token: "Holly Token"
+  # enchanter_token_id: 0
+
+  # --- Optional extras (each off unless set; most need their NPC or items
+  # placed by the tool named) ---
+
+  # The Teleporter (handlers/teleporter.go; tools/place_teleporter.py): an NPC
+  # that sends a player to every raid's way in and beside every XP camp, free.
+  # teleporter: true
+
+  # /testinvis, every player's safe mode (handlers/safemode.go): typed, no
+  # creature attacks the character on sight until it is typed again.
+  # testinvis: true
+
+  # The familiars (handlers/familiar.go; tools/seed_familiars.py): an item of
+  # table familiars calls its familiar; /familiar dismiss sends it away.
+  # familiars: true
+
+  # The mercenaries (handlers/merc.go; tools/place_merc_liaisons.py): a
+  # Mercenary Liaison hires one free, a member of its owner's group,
+  # commanded by /merc. An alchemist merc at ease brews merc_brew_batch
+  # potions (unset or 0: 20) every merc_brew_seconds (unset or 0: 5) once it
+  # and its owner have stood still merc_brew_settle_seconds (unset or 0: 3),
+  # to a full stack of each potion; merc_brew_stack above 0 holds each stack
+  # to that, merc_brew_cap above 0 caps the whole stock (unset: no cap; 0:
+  # none brewed). merc_draught_hp_floor_pct is the share of its health it
+  # keeps when it drinks for power (unset: 50).
+  # mercs: true
+  # merc_brew_seconds: 5
+  # merc_brew_batch: 20
+  # merc_brew_settle_seconds: 3
+  # merc_brew_stack: 0
+  # merc_brew_cap: 0
+  # merc_draught_hp_floor_pct: 50
+
+  # Two shards only: the accounts whose GM edits of NPC rows here (/place,
+  # /clone, /copy, then /move, /roamer, /size, /delete of such a row) are
+  # written to the other shard's database mirror_npc_db too, which that
+  # server reads in within seconds (handlers/npcmirror.go). Unset: nothing
+  # is mirrored.
+  # mirror_npc_edits_accounts: [youradmin]
+  # mirror_npc_db: "/srv/eqoa-second/eqoa.db"
+
 patch:
   # Directory holding the client patch payloads. A relative path resolves
   # against the working directory first, then against the executable's
@@ -409,7 +551,7 @@ patch:
   # rollback or a single-variable bisect, and EQOA_SS_FILE / EQOA_S2_FILE /
   # EQOA_SD_FILE do the same without a config edit, so a bisect is a restart.
   #
-  #   ss_file: "ss-s2boot.dat"      Sandstorm's own bootstrap
+  #   ss_file: "ss-s2boot.dat"      an older bootstrap, for a bisect
   #   s2_file: "S2-race10-nohelm"   the sharpest single-variable control
   #   sd_file: "SD-hddnpc"          the assembly SD payload, console-proved
   #   sd_file: "SD-hdd-mc0"         the HDD chain with NO world fetcher
@@ -433,7 +575,7 @@ patch:
   #
   # Delivery of both this address and the payload is sequenced per console:
   # the patcher compares by SIZE, and eqahosts.txt is fifteen bytes for almost
-  # every operator ("5.161.217.188" and "192.168.40.87" are the same length),
+  # every operator ("203.0.113.100" and "198.51.100.17" are the same length),
   # so without that a card patched by another server keeps its address forever.
   # EQOA_REFRESH_FILES="SD" narrows it back, "none" turns it off.
   #
@@ -466,7 +608,8 @@ auth:
 
   # og_choice is RETIRED (2026-11-19): [OG] is a character's now
   # (world.og_accounts); no account page offers it. A config that still sets
-  # it loads, and the server logs that it is ignored.
+  # it loads, and the server logs that it is ignored. Leave it out.
+  # og_choice: false
 
   # Require a completed TCP login before the UDP handshake will accept a
   # username. Leave this on: the UDP handlers take the username straight out of
@@ -495,6 +638,21 @@ auth:
   # player has the relay's (server_ip, exempt above).
   # relay_lookup: "http://127.0.0.1:8792"
   # relay_addrs: []   # the relay's source addresses besides server_ip
+  # The most of an account's characters in the game through the web relay at
+  # once (0: no limit; native clients are not counted). Needs relay_lookup.
+  # browser_characters: 0
+
+  # The account pages' password page as players reach it, named in the line a
+  # player with a GM-set temporary password is told. Unset: "the account
+  # website's Change password page".
+  # password_url: "account.example.com/password"
+
+  # Two shards only, on the shard that does NOT own the accounts: the owning
+  # shard's database, whose accountinfo is copied here (read-only, never
+  # written back) at each sign-in and every shared_refresh (unset or 0: 10s).
+  # Unset on the shard that owns them.
+  # shared_db: "/srv/eqoa-first/eqoa.db"
+  # shared_refresh: 10s
 
   # Accounts created at startup if they do not already exist, with the password
   # hashed. An account that already exists is left untouched, so changing a
@@ -503,43 +661,31 @@ auth:
     - username: "test"
       password: "changeme"
 
-# Damage formulas the operator keeps on this machine, outside the repository
-# (docs/damage-formulas.md): each formula named in the file replaces the
-# built-in damage of its path (player_melee, npc_spell, ...). Read at start,
-# again within a second of the file changing, and by the GM panel's
-# reload_formulas; a file with a mistake is refused whole (the formulas in use
-# stay), a formula that fails at a hit gives that hit its built-in figure. The
-# formulas' text is never logged or shown. Keep the file mode 600. Unset or "":
-# the built-in damage everywhere.
+# combat: off by default; every key below is shown at its default.
 #
-# formula_mode is what a loaded formula does: "" or "off" the built-in damage,
-# "live" the formulas applied, "shadow" the built-in applied and each formula's
-# figure recorded beside it in formula_shadow_log (a private file, one JSON
-# line a hit, mode 600 in a directory of mode 700, rotated to <file>.1 at
-# formula_shadow_max_mb; formula_shadow_sample the share of hits recorded). The
-# mode only seeds the shard's database: GMs switch it with /formula and the
-# panel, kept over restarts. formula_shard is this shard's name in /formula and
-# formula_peers the other shards' databases, which a GM here may switch too.
+# formula_file names an operator's own damage formula file, kept on the server's
+# machine and never in the repository (docs/damage-formulas.md has the format).
+# Unset or "", and formula_mode "off" (or ""): the built-in damage everywhere,
+# which is what a new server should run. The formula_shadow_* and formula_*
+# keys only matter with a formula file loaded; see docs/damage-formulas.md.
 #
-# What a resist takes off elemental (FR/CR/LR/AR/PR/DR) spell and effect damage
-# (internal/entity/elemental.go): "elemental-2026-11-14" (unset: it) lands
-# D0 x (350-R)/350 on a player (R 0..315) and D0 x (100-R)/100 on a creature
-# (R its template's 0..100; 100 takes nothing); "legacy" is the model before it,
-# for a rollback. resist_mode (the player's): magnitude_only (unset),
-# fixed_full_chance (resist_full_chance of the hits land whole) or
-# resistance_scaled. The model in force is logged at the start ("Resists: model").
+# resist_model is what a resist takes off elemental (FR/CR/LR/AR/PR/DR) spell
+# and effect damage (internal/entity/elemental.go): "elemental-2026-11-14"
+# (unset: it), or "legacy", the model before it, for a rollback. resist_mode
+# is the player's: magnitude_only (unset), fixed_full_chance
+# (resist_full_chance of the hits land whole) or resistance_scaled. The model
+# in force is logged at the start ("Resists: model").
 # combat:
-#   formula_file: "/home/sdg/eqoa-server/private/damage.formula"
-#   formula_mode: "shadow"
-#   formula_shadow_log: "/home/sdg/eqoa-server/private/formula-shadow.jsonl"
-#   formula_shadow_sample: 1
+#   formula_file: ""
+#   formula_mode: "off"
+#   formula_shadow_log: ""
+#   formula_shadow_sample: 0      # 0: every hit, when shadowing
 #   formula_shadow_max_mb: 64
-#   formula_shard: "heirloom"
-#   formula_peers:
-#     live: "/home/sdg/eqoa-live/eqoa.db"
+#   formula_shard: ""
+#   formula_peers: {}
 #   resist_model: "elemental-2026-11-14"
 #   resist_mode: "magnitude_only"
-#   resist_full_chance: 0.10
+#   resist_full_chance: 0
 
 gm:
   # The GM panel (internal/gmweb): a web page for GMs, and the same tools for
@@ -556,8 +702,8 @@ gm:
   # public_url: "https://gm.example.org"
 
   # acctlevel to sign in (the in-game # commands' 1), and to use the admin
-  # tools: raw SQL, these settings, backups, a restart, other accounts' levels
-  # (which also need a sign-in with an authenticator code).
+  # tools (raw SQL, these settings, backups, a restart, other accounts' levels,
+  # which also need a sign-in with an authenticator code).
   # min_level: 1
   # admin_level: 2
 
@@ -584,14 +730,55 @@ gm:
   # preview_url: "https://example.org/eqoa/play/fxview.html"
 
   # Personal boards: a private thread between one GM (and that GM's AI
-  # agents, signed in as the account) and dab's sessions (cmd/workboard on the
-  # box: workboard board jib, workboard post jib "..."). A board's name (a-z,
+  # agents, signed in as the account) and the operator's sessions on the box
+  # (cmd/workboard: workboard board alice, workboard post alice "..."). A board's name (a-z,
   # 0-9, - and _) to the panel accounts that may read and post it; the
   # admins (admin_level) read and post every board, no other GM reads one.
   # The panel's ops: my_boards, board_messages, post_board_message. Read at
   # the panel's start. Unset: no boards.
-  # personal_boards:
-  #   jib: ["jibrish"]
+  # Two shards only: another shard's database, opened read-only by the
+  # Economy page so it shows that shard's ledger beside this one's, under
+  # economy_other_name. Unset: this shard's alone.
+  # economy_other_db: "/srv/eqoa-second/eqoa.db"
+  # economy_other_name: "Second Shard"
+
+  # personal_boards: {alice: [alicegm]}
+
+# The quest engine (handlers/quests.go).
+# quests:
+#   # The journal's pointer to a finished quest's next quest at another giver
+#   # (handlers/questpointers.go). Unset: on.
+#   next_giver_pointer: true
+#   # Which quests show a "!" and "?" over their NPCs' heads, on a client that
+#   # draws them (handlers/questheadmarks.go): "flagged" (unset) the quests of
+#   # table questmarks, "all" every quest, "off" none.
+#   markers: "flagged"
+
+# Account e-mail (internal/accountmail): verification and e-mailed password
+# resets. Everything is off unless set; a fresh server does not need it.
+# accounts turns the features on (the account page's E-mail tab, the forgot
+# password link, an address asked for where an account is made). enabled
+# sends through the SMTP relay; false only logs each message (log_bodies the
+# whole text, links included: a developer's box only). require_verified
+# reminds an account with no verified address at each world entry and every
+# remind_every, and from require_after (a date, UTC) refuses its login.
+#
+# Set smtp, from and base_url whenever accounts is on: their built-in
+# fallbacks (127.0.0.1:25, and a sender and site that are not yours) are the
+# original deployment's. page_path is the password page on base_url (unset:
+# /eqoa/password; with the account pages on a host of their own, as in
+# docs/hosting.md, "/password").
+# mail:
+#   accounts: false
+#   enabled: false
+#   log_bodies: false
+#   smtp: "127.0.0.1:25"            # a local MTA relaying for you; no credentials here
+#   from: "no-reply@example.com"
+#   base_url: "https://account.example.com"
+#   page_path: "/password"
+#   require_verified: false
+#   require_after: ""               # e.g. "2027-01-31"
+#   remind_every: 30m
 
 # The server list, the same in every process (unset: this server alone, as
 # "Marr's Fist"). A name is 31 characters at most; the list shows sorted by name;
@@ -605,3 +792,4 @@ gm:
 #   - name: "Second Shard"
 #     port: 10071
 #     recommended: true
+#     ip: "203.0.113.20"   # unset: server.server_ip

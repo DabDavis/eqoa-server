@@ -412,8 +412,9 @@ func TestMercCasterCastsOnCooldown(t *testing.T) {
 		}
 	}
 	lock := nuke.CastTime + nuke.Recast + castLockoutExtra
-	if len(begun) < 2 || begun[0] != 0 || begun[1] < lock || begun[1] > lock+200*time.Millisecond {
-		t.Fatalf("the nuke began at %v, want at 0 and again at %v (its lockout), not before", begun, lock)
+	next := mercCombatWait + lock
+	if len(begun) < 2 || begun[0] != mercCombatWait || begun[1] < next || begun[1] > next+200*time.Millisecond {
+		t.Fatalf("the nuke began at %v, want at %v and again at %v", begun, mercCombatWait, next)
 	}
 	if crab.HP >= 900000 {
 		t.Error("the nuke never landed")

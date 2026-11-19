@@ -154,7 +154,7 @@ func TestMercPetAssistsItsHirer(t *testing.T) {
 	r.w.mu.Lock()
 	r.p.AttackTarget, r.p.AutoAttack = a.ServerID, true
 	r.w.mu.Unlock()
-	r.run(10100*time.Millisecond, 11*time.Second)
+	r.run(10*time.Second, 11*time.Second)
 	if ps.target != a.ServerID {
 		t.Fatalf("the hirer attacks crab a: the pet's target %d, want %d", ps.target, a.ServerID)
 	}

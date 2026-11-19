@@ -28,10 +28,11 @@ package handlers
 // strandGrace (a firing that is a moment from starting its run, a login, the
 // sessions coming back from a restart) its quest is put back to step F (F = 0:
 // forgotten, to be taken again): its journal line again, and what the steps from
-// F on took handed back (each give step's items and each give or show step's
-// tunar: The Mark of Rallos comes back), so it can do F and fire the encounter
-// again. One that got the kill is past K and is left alone; a run of T living
-// (its own, or another raid's) leaves everyone as they are. The players looked at
+// F on took handed back (each give or reach step's items and each give or show
+// step's tunar: The Mark of Rallos comes back, and The Thulite Anvil's golem
+// parts), so it can do F and fire the encounter again. One that got the kill
+// is past K and is left alone; a run of T living (its own, or another raid's)
+// leaves everyone as they are. The players looked at
 // are those in the world, once a second: a character offline when its run ended is
 // put back at its next login.
 
@@ -195,14 +196,15 @@ func (q *QuestEngine) putBackLocked(sess *session.Session, p *entity.Player, c *
 		return
 	}
 	at := cq.Step
-	// what the steps from the firing one on took: a give step's items, a give or show step's tunar
+	// what the steps from the firing one on took: a give step's items, a reach step's (set down there:
+	// The Thulite Anvil's golem parts, the primal stew; petition 2446), a give or show step's tunar
 	var back database.ClassReward
 	for i := range qu.Steps {
 		st := &qu.Steps[i]
 		if st.Step < max(l.from, 1) || st.Step >= at {
 			continue
 		}
-		if st.Kind == database.StepGive {
+		if st.Kind == database.StepGive || st.Kind == database.StepReach {
 			back.Items = append(back.Items, st.Items...)
 		}
 		if st.Kind == database.StepGive || st.Kind == database.StepShow {

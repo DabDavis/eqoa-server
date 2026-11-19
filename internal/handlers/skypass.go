@@ -50,7 +50,8 @@ type skyPass struct {
 	// it: the essence within skyPassReach of the spot); 0, 0 any of the name
 	NPC  string
 	X, Z float32
-	// Key is the item it takes, by name (records' ids differ by shard)
+	// Key is the item it takes, by name (records' ids differ by shard); ""
+	// none: it takes anyone who asks (Watrya's isle's essence of day)
 	Key string
 	// To is the place, At where it lands
 	To string
@@ -92,6 +93,15 @@ var skyPasses = []skyPass{
 	// lands where Thorinoak stood, by the first isle's essence and Madam Watrya (petition 2048)
 	{NPC: "essence of sun", X: 5137.3, Z: 5188.3, Key: "sun key", To: "the first isle of day",
 		At: wayPlace{World: 4, X: 5773.76, Y: 280.0, Z: 5114.38, Facing: 4.639}, Steps: [][2]int{{101304, 2}}},
+	// Watrya's isle's own essence of day, no key: the way on to the brightstar
+	// fairies' isle, Day Chain 1, where the chain's princess and Day Key 1's
+	// essence are (petition 2434, Itamin: "key takes you to Watrya island
+	// instead of Sun Chain 1, no way that i see to get to sun chain 1"; the GM
+	// Jibrish's board entry 1758: live's "pop up" off the safe island). Its
+	// landing is 13 south of Day Key 1's essence, facing the princess, 60 from
+	// the nearest fairy (the old Sun 1 spot is 28.9 from one: in its aggro)
+	{NPC: "essence of day", X: 5656.6, Z: 5107.4, To: "the first isle of day",
+		At: wayPlace{World: 4, X: 5597.0, Y: 235.06, Z: 5330.0, Facing: 0.42}},
 	{NPC: "essence of day", X: 5597.3, Z: 5343.1, Key: "Day Key 1", To: "the second isle of day",
 		At: wayPlace{World: 4, X: 5608.0, Y: 374.06, Z: 4715.0, Facing: 3.66}, Steps: [][2]int{{101304, 4}}},
 	{NPC: "essence of day", X: 5380.8, Z: 4755.9, Key: "Day Key 2", To: "the third isle of day",
@@ -157,6 +167,7 @@ var skyPasses = []skyPass{
 // The essence's words.
 const (
 	skyPassGo     = "%s: your %s turns in the light, and it takes you to %s."
+	skyPassFree   = "%s: the light takes you to %s."
 	skyPassWants  = "The %s wants %s before it will take you on."
 	skyPassDim    = "The %s is dim: it takes no one from here."
 	skyGroupWords = "%s takes the group to %s."
@@ -218,7 +229,7 @@ func (h *InteractHandler) skyPassTalk(sess *session.Session, p *entity.Player, n
 	if q.StepHereBesides(p, npc.Name, npc.ServerID, skyPassSteps()) {
 		return false
 	}
-	if pass != nil && q.HeldNamed(p, pass.Key) > 0 {
+	if pass != nil && (pass.Key == "" || q.HeldNamed(p, pass.Key) > 0) {
 		h.skyPass(sess, p, npc, pass)
 		return true
 	}
@@ -260,15 +271,21 @@ func (h *InteractHandler) skyPass(sess *session.Session, p *entity.Player, npc *
 	if pass.StepsAs != "" {
 		stepsAs = pass.StepsAs
 	}
-	held := q.HeldNamed(p, pass.Key)
-	q.StartPassSteps(sess, p, stepsAs, npc.ServerID, pass.Steps)
-	q.PassSteps(sess, p, stepsAs, npc.ServerID, pass.Steps)
-	if q.HeldNamed(p, pass.Key) >= held && !q.TakeNamed(sess, p, pass.Key) {
-		h.sendDialogueBox(sess, fmt.Sprintf(skyPassWants, npc.Name, withArticle(pass.Key)))
-		return
+	if pass.Key == "" {
+		// no key: no steps either, the light alone
+		SendClientMessage(sess, fmt.Sprintf(skyPassFree, npc.Name, pass.To))
+		log.Printf("SkyPass: %s took %s's keyless way: to %s", p.Name, npc.Name, pass.To)
+	} else {
+		held := q.HeldNamed(p, pass.Key)
+		q.StartPassSteps(sess, p, stepsAs, npc.ServerID, pass.Steps)
+		q.PassSteps(sess, p, stepsAs, npc.ServerID, pass.Steps)
+		if q.HeldNamed(p, pass.Key) >= held && !q.TakeNamed(sess, p, pass.Key) {
+			h.sendDialogueBox(sess, fmt.Sprintf(skyPassWants, npc.Name, withArticle(pass.Key)))
+			return
+		}
+		SendClientMessage(sess, fmt.Sprintf(skyPassGo, npc.Name, pass.Key, pass.To))
+		log.Printf("SkyPass: %s gave %s a %s: to %s", p.Name, npc.Name, pass.Key, pass.To)
 	}
-	SendClientMessage(sess, fmt.Sprintf(skyPassGo, npc.Name, pass.Key, pass.To))
-	log.Printf("SkyPass: %s gave %s a %s: to %s", p.Name, npc.Name, pass.Key, pass.To)
 	h.warp(sess, p, dest)
 	h.moveGroup(p, npc.ServerID, dest, fmt.Sprintf(skyGroupWords, npc.Name, pass.To), "SkyPass",
 		func(ms *session.Session, m *entity.Player) {

@@ -290,19 +290,35 @@ func SyncAscendedCopies(db *sql.DB, now time.Time) (int, error) {
 	}
 	rows.Close()
 	changed := 0
+	// the two statements parsed once for the 751 pairs, not twice a pair (most of
+	// this step's time at a start, 2026-11-19)
+	upd, err := tx.Prepare(fmt.Sprintf(`UPDATE itempattern SET (%s) = (SELECT %s FROM itempattern WHERE patternid = ?)
+			WHERE patternid = ? AND (%s) IS NOT (SELECT %s FROM itempattern WHERE patternid = ?)`,
+		set, from, set, from))
+	if err != nil {
+		return 0, err
+	}
+	defer upd.Close()
+	del, delErr := tx.Prepare(`DELETE FROM itemeffect WHERE patternid = ?`)
+	if delErr != nil && !strings.Contains(delErr.Error(), "no such table") {
+		return 0, delErr
+	}
+	if del != nil {
+		defer del.Close()
+	}
 	for _, p := range pairs {
 		// only a record that differs from what its base makes is written
-		res, err := tx.Exec(fmt.Sprintf(`UPDATE itempattern SET (%s) = (SELECT %s FROM itempattern WHERE patternid = ?)
-			WHERE patternid = ? AND (%s) IS NOT (SELECT %s FROM itempattern WHERE patternid = ?)`,
-			set, from, set, from), p[1], p[0], p[1])
+		res, err := upd.Exec(p[1], p[0], p[1])
 		if err != nil {
 			return 0, fmt.Errorf("Ascended record %d of record %d: %w", p[0], p[1], err)
 		}
 		if n, _ := res.RowsAffected(); n > 0 {
 			changed++
 		}
-		if _, err := tx.Exec(`DELETE FROM itemeffect WHERE patternid = ?`, p[0]); err != nil && !strings.Contains(err.Error(), "no such table") {
-			return 0, err
+		if del != nil {
+			if _, err := del.Exec(p[0]); err != nil && !strings.Contains(err.Error(), "no such table") {
+				return 0, err
+			}
 		}
 		if err := copyItemEffects(tx, p[1], p[0], ascendedLine); err != nil {
 			return 0, err

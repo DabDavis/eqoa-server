@@ -48,7 +48,7 @@ func pets1110Rig(t *testing.T) *petRig {
 	return r
 }
 
-// Petition 1478 (the magician Lifeispain): "Efreeti Lord doesn't cast a buff on
+// Petition 1478 (a magician): "Efreeti Lord doesn't cast a buff on
 // the caster. He casts one only himself". With the tool's row the Efreeti Lord
 // following its owner casts Efreeti's Fire on itself and then on its owner: both
 // carry it, and neither is cast again while they do.
@@ -77,7 +77,7 @@ func TestTheEfreetiLordsFireIsOnItsOwnerToo(t *testing.T) {
 	}
 }
 
-// Petition 1495 (the magician Waldorf): the Ghilan Noble's third heal, "an AOE
+// Petition 1495 (a magician): the Ghilan Noble's third heal, "an AOE
 // heal for 150 that heals players and pets in range". Its tide lands 150 (never
 // more than is missing) on each hurt one of its side within 30 of it: itself,
 // its owner, a group mate and the mate's pet; not on a group mate 40 off, a

@@ -261,7 +261,7 @@ func TestTheHeroesVendorSellsEachWare(t *testing.T) {
 	}
 }
 
-// Petition 1515 (the GM Jibrish: "should accept anything above -2000, not just
+// Petition 1515 ("should accept anything above -2000, not just
 // above 0 ... 0 means you have 2000 to spend"): a standing below 0 buys with
 // what it holds above -2000. At -1500, 500 to spend: the greeting says so, the
 // Weakened (250) is bought to -1750, the Elixir (25) to -1775, and the
@@ -588,7 +588,7 @@ func TestTheHeroesVendorLeavesOutARowOfNoItem(t *testing.T) {
 	}
 }
 
-// The GM Jibrish's petition 1876: "if they click an item, it should show them the stats before purchase". A pick from
+// a GM's petition 1876: "if they click an item, it should show them the stats before purchase". A pick from
 // his list shows the ware first, whether or not it can be bought yet: to a client that takes links, a line naming it as
 // an item link (0x7E51) whose record is the ware's, with its stats, worn nowhere; to a client that takes none (a PS2)
 // its stats in words. The control: with nothing to spend the refusal still follows, and the ware's stats show all the

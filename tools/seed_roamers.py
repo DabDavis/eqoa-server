@@ -7,10 +7,10 @@ Writes a class template and the npctemplate rows that give it (entity/classtempl
   roamer    classtemplates' row (if none is there): a warrior (class 0) at 100% hit points, 100% of a melee hit
             taken and 100% of its own melee, whose one special is a Critical Hit every 25-35 s (special_every 30,
             special_jitter 5), the first 10-20 s into a fight (special_first 15), for 7.4 a level, fixed and through
-            any armour, with Sandstorm's creature special's visual (special_fx 0: 0x66CD778E), from level 10 on
+            any armour, with the reference server's creature special's visual (special_fx 0: 0x66CD778E), from level 10 on
             (special_from 10, the creature's own level at each fight: the user's "they get it around level 10
             starting, but before only auto attack"; below it a roamer fights with its melee alone). The 7.4 is
-            Sandstorm's one measured creature special (a level 34 Desert Crab's 251 and a level 35 Gharial's 252,
+            the reference server's one measured creature special (a level 34 Desert Crab's 251 and a level 35 Gharial's 252,
             through a tank's 1,763 AC and an enchanter's 167 alike: claude-notes/training-dummies-20261021.md);
             the 30 s or so is the user's. Named as the melee template's Kick is ("Critical Hit"), for #stats.
   roamer    in npctemplate for every hostile creature's name whose class (npcclass) is a warrior's or which has
@@ -19,12 +19,12 @@ Writes a class template and the npctemplate rows that give it (entity/classtempl
             Named creatures and bosses alike: the template changes no hit points and no melee, and adds nothing a
             boss's loot table (npcloot) reads; a boss in a player race's body (Bertoxxulous the Plaguebringer) is
             left out with the townsfolk, and said.
-  wisp      classtemplates' row (if none is there): a copy of jib's wizard as the table has it (class 13, 85% hit
+  wisp      classtemplates' row (if none is there): a copy of a GM's wizard as the table has it (class 13, 85% hit
             points, an area spell of the wizard's every 15 s and a single target's after it) with both abilities'
             figures at 28% of a player's where his are 35%: the user's "28%" of 2026-10-30, after the simulator
             found a rogue of 35-45 and a cleric of 35 lost every wisp yellow at 35% and every class won them at 28%
             (a rogue of 35 taken down to 12%). The wizard row itself is left as he made it.
-  wisp      in npctemplate for every wisp (the user's word, "other than wisps were wizards", over Sandstorm's crag
+  wisp      in npctemplate for every wisp (the user's word, "other than wisps were wizards", over the reference server's crag
             wisp of class 10): a name whose last word is lower case and ends in "wisp" (crag wisp, malign wisp,
             darkwisp, will o'wisp, ...; not Thal Twisp or Overseer Golwisp), hostile by the same test.
 

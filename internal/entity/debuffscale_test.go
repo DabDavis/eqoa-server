@@ -48,7 +48,7 @@ func TestAHitGrowsWithItsTargetsResistDebuff(t *testing.T) {
 	}
 }
 
-// An arcane resist debuff on a creature (petition 1176, Jibrish) hits harder with arcane spells alone: one percent
+// An arcane resist debuff on a creature (petition 1176) hits harder with arcane spells alone: one percent
 // more for each arcaneDebuffPer points of the strongest one on, and it takes the resist off besides.
 func TestAnArcaneDebuffRaisesArcaneDamage(t *testing.T) {
 	now := time.Unix(1_800_000_000, 0)
@@ -134,7 +134,7 @@ func TestAnArcaneDebuffLandsHarder(t *testing.T) {
 	}
 }
 
-// A template's resist_kind (petition 1178, Jibrish): spell damage of that kind comes to what resist_pct leaves, through
+// A template's resist_kind (petition 1178): spell damage of that kind comes to what resist_pct leaves, through
 // a hit, a tick, a proc and a damage shield; another kind's and a creature of no template's come whole; a debuff of the
 // kind takes some off, and something always lands.
 func TestACreatureStrongInAResist(t *testing.T) {

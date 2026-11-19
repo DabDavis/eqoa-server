@@ -16,7 +16,7 @@ func infusion(line string) CastSpell {
 // its caster its hit points at the landing and gives its power every tick
 // for 18 seconds; the control: as the importer worded it, "SELF Decrease HP
 // by N" is a self line's own price, paid once and in full (lifetap.go
-// selfCostLocked; jib's PR #1, his go-ahead of 2026-10-30: it was never paid
+// selfCostLocked; a GM's PR #1, his go-ahead of 2026-10-30: it was never paid
 // before, a heal of a negative amount healing nothing), and Virulent's "Buff
 // HP by 1000" heals 1,000.
 func TestAnInfusionPaysItsPrice(t *testing.T) {

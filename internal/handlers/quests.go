@@ -44,7 +44,7 @@ import (
 //   - A step done: the NPC's words, "You have finished a quest!" after the last
 //     step, a line for each thing handed in and each item given, then the
 //     rewards (experience as a kill's, tunar, items as a sale's 0x003B, faction
-//     standings in Sandstorm's chat lines, spells as a scribe's 0x00B3). Those lines
+//     standings in the reference server's chat lines, spells as a scribe's 0x00B3). Those lines
 //     are boxes after the NPC's, as Return Home's scripts wrote them.
 //
 // A quest that is not enabled is offered to no one; one a character has under
@@ -240,7 +240,7 @@ type questChar struct {
 	// shown is the journal as the client has it: the MemoryDump's lines, each
 	// 0x007C and 0x007D since (redrawLocked)
 	shown []string
-	// name is its player's, for %p in what is said (Sandstorm's Nothard puts
+	// name is its player's, for %p in what is said (the reference server's Nothard puts
 	// it in an answer: "My name is <the player's name>.")
 	name string
 	// marksOn is whether its client draws the quest marks, marksSent the
@@ -331,7 +331,7 @@ const (
 	choiceDecline
 	choiceStep
 	choiceNotYet  // a show or give step's answer while its items lack: the reminder
-	choiceNothing // a dead end (Sandstorm's "Farewell")
+	choiceNothing // a dead end (the reference server's "Farewell")
 	choicePick    // an option of a step's choice (database.StepChoices)
 	choiceAsk     // a question asked at the offer (database.QuestAsk)
 )
@@ -789,7 +789,7 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 	}
 	// a refusal of a hand-in the player holds but may not do yet is said only
 	// when the giver has nothing else for it: a step of a quest under way or a
-	// quest to offer comes first (petition 2395: Poppapump's 20 Honor Guard's
+	// quest to offer comes first (petition 2395: a player's 20 Honor Guard's
 	// blades, 101674's hand-in at the Akessan Agent, kept the Agent refusing
 	// and never offering 101665, the quest before them in his line)
 	refusal := q.handInRefusalLocked(look, p, c, npc.Name)
@@ -1229,7 +1229,7 @@ func (q *QuestEngine) offerLocked(sess *session.Session, p *entity.Player, c *qu
 	log.Printf("Quests: %s offered %q", p.Name, qu.Name)
 }
 
-// askStageLocked asks the offer's question k, as Sandstorm's Commander Nothard
+// askStageLocked asks the offer's question k, as the reference server's Commander Nothard
 // asks two: the offer's paragraph k (its lines a box each, its last line the
 // question; any paragraphs past the answers said before the last question),
 // answered by Accept's line k, or Decline.
@@ -1371,7 +1371,7 @@ func (q *QuestEngine) startLocked(sess *session.Session, p *entity.Player, c *qu
 	// a run of its own: a finished run's picks are not this one's
 	cq.Step, cq.Count, cq.Slot, cq.Picks = st.Step, 0, c.nextSlot(), ""
 	q.saveLocked(cq)
-	// Sandstorm's order: the journal's line, "You have received a quest!",
+	// the reference server's order: the journal's line, "You have received a quest!",
 	// then the giver's words
 	q.addLineLocked(sess, c, q.lineLocked(cq))
 	q.tellLocked(c, sess, "", questReceived)
@@ -1405,7 +1405,7 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 	if st.Kind == database.StepGive || st.Kind == database.StepShow {
 		if lack := q.lackingLocked(p, st); lack != "" {
 			log.Printf("Quests: %s at %q step %d still lacks %s", p.Name, qu.Name, st.Step, lack)
-			// Sandstorm's Norgam asks his question with only the not-yet
+			// the reference server's Norgam asks his question with only the not-yet
 			// answer while the belts lack; the completing one comes once
 			// they are held
 			if notyet := sayLines(st.NotYet); len(notyet) > 0 && !answered && pick < 0 {
@@ -1421,7 +1421,7 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 		}
 	}
 	// the answer's first line does the step; any more are dead ends
-	// (Sandstorm's Zole: "Commander Nothard sent me", "Farewell")
+	// (the reference server's Zole: "Commander Nothard sent me", "Farewell")
 	answers := sayLines(st.Answer)
 	if len(answers) > 0 && !answered && pick < 0 {
 		choices := []questChoice{{kind: choiceStep, quest: qu.ID, step: st.Step, label: answers[0]}}
@@ -1520,7 +1520,7 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 	}
 	ch := b.choices[option]
 	if ch.kind == choiceNothing {
-		return true // a dead end (Sandstorm's "Farewell"): nothing changes
+		return true // a dead end (the reference server's "Farewell"): nothing changes
 	}
 	qu := q.cat.byID[ch.quest]
 	if qu == nil {
@@ -1539,7 +1539,7 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 		c.declined = nil
 		q.startLocked(sess, p, c, qu, 0, false)
 	case choiceDecline:
-		// the giver's reply, said as written (Sandstorm's Norgam's has no
+		// the giver's reply, said as written (the reference server's Norgam's has no
 		// name before it)
 		q.tellLocked(c, sess, "", sayLines(qu.Declined)...)
 		if c.declined == nil {
@@ -1689,8 +1689,8 @@ func (q *QuestEngine) killed(k entity.KillCredit) {
 
 // laterStepKillLocked tells a player whose kill is a later step's of a quest
 // (a kill or loot step after the one to do) that it counts for nothing yet, and
-// what to do first (petition 1874, Wanuven, 2026-11-13: "Quil'Eyne's Journal"
-// asks Randarith's blood, then Raldarith's, then Quil'Eyne's journal; Wanuven
+// what to do first (petition 1874, 2026-11-13: "Quil'Eyne's Journal"
+// asks Randarith's blood, then Raldarith's, then Quil'Eyne's journal; a player
 // took the first blood, went on to Quil'Eyne with Raldarith's still to get, and
 // Quil'Eyne dropped nothing and the journal said nothing). A kill only ever
 // counted on the step to do; it now says so. Nothing is said for a kill no
@@ -1853,7 +1853,7 @@ func withinHeight(st *database.QuestStep, y float32) bool {
 	return d <= st.Height && -d <= st.Height
 }
 
-// completeStepLocked does a step in Sandstorm's order (its first warrior
+// completeStepLocked does a step in the reference server's order (its first warrior
 // quest, recorded): the NPC's words, the journal's line taken (and the next
 // step's added), "You have finished a quest!" after the last step, a line for
 // what was handed in and each item given, then the experience and the
@@ -1905,7 +1905,7 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 			q.dropLineLocked(sess, c, idx)
 			cq.Slot = c.nextSlot()
 			q.addLineLocked(sess, c, text)
-			// each step is its own journal line, both announced (Sandstorm's
+			// each step is its own journal line, both announced (the reference server's
 			// Zole and Ronks, recorded)
 			lines = append(lines, questFinished, questReceived)
 		}
@@ -2061,7 +2061,7 @@ func (q *QuestEngine) teachLocked(sess *session.Session, p *entity.Player, spell
 // on the robe a quest asked for was told it lacked until they took it off (the
 // owner: "for the level 1 quest where players get item from merchant if
 // player equips it the quest giver doesnt acknowledge until they unequipped";
-// Live, Nighthowler's "New Gear" four times on 2026-11-14 before the plain
+// Live, a player's "New Gear" four times on 2026-11-14 before the plain
 // robe came off). A show step had counted worn ones since 2026-11-10.
 func (q *QuestEngine) heldItems(p *entity.Player) []database.CharInventoryEntry {
 	if q.inv == nil {
@@ -2238,7 +2238,7 @@ func countOf(n int, name string) string {
 
 // tellLocked says each line in a box of its own (0x0046), the client showing
 // them one after another; an NPC's (speaker not "") begin with its name, as
-// Sandstorm's do ("Commander Nothard: ..."), unless the line names it already.
+// the reference server's do ("Commander Nothard: ..."), unless the line names it already.
 func (q *QuestEngine) tellLocked(c *questChar, sess *session.Session, speaker string, lines ...string) {
 	if sess == nil {
 		return
@@ -2257,7 +2257,7 @@ func (q *QuestEngine) tellLocked(c *questChar, sess *session.Session, speaker st
 
 // askLocked says words, the speaker's (all lines but the last, which asks;
 // def when there is no line short enough to ask; the question carries no
-// name, as Sandstorm's do not) and opens the answers' box (0x0034).
+// name, as the reference server's do not) and opens the answers' box (0x0034).
 func (q *QuestEngine) askLocked(sess *session.Session, c *questChar, speaker, words, def string, choices []questChoice) {
 	lines := sayLines(words)
 	ask := def

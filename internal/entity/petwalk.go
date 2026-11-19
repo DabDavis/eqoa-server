@@ -5,7 +5,7 @@ import (
 )
 
 // petwalk.go — a pet's way round what stands between it and where it goes (the
-// magician Waldorf's petition 1496, in Permafrost: "pets in general don't
+// magician a player's petition 1496, in Permafrost: "pets in general don't
 // respect walls/barriers/floors/ceilings etc. They just take the quickest line
 // to target").
 //

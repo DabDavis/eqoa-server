@@ -36,8 +36,8 @@ again, so a run that stops is resumed by running it again.
 **Which pages:**
 - With --db, those the lists name of the database's weapons of no attack
   type (a slot 0, 12, 14, 15 or 16 item with damage and attack type 0; 13 is a shield's).
-- With --controls, also those of the melee and ranged weapons Sandstorm's
-  records hold (eqoa harvest JSON). Sandstorm's types are the measure
+- With --controls, also those of the melee and ranged weapons the reference server's
+  records hold (eqoa harvest JSON). The reference server's types are the measure
   fix_weapon_types.py holds Allakhazam's to.
 - With --ids FILE, exactly the pages of those Allakhazam ids (one a line,
   `#` a comment), in the file's order, whether a list names them or not
@@ -193,7 +193,7 @@ def zone_captures(out, delay):
 
 def wanted_names(db_path, controls):
     """The names to fetch: the database's weapons of no attack type, and
-    Sandstorm's weapons' names (--controls). None: every listed item."""
+    the reference server's weapons' names (--controls). None: every listed item."""
     if not db_path and not controls:
         return None
     names = set()

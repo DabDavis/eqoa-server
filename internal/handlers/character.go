@@ -149,7 +149,7 @@ type CharacterHandler struct {
 	// (ChatHandler.SendGMChannel, gmchannel.go)
 	gmChannel func(*session.Session)
 	// craftSlots is a character's six tradeskill slots for the dump
-	// (CraftHandler.DumpSlots, craft.go); nil: Sandstorm's defaults
+	// (CraftHandler.DumpSlots, craft.go); nil: the reference server's defaults
 	craftSlots func(charID uint32) [database.CraftSkills][4]uint32
 	// auction is the auction house (auction.go): a login's bank made right
 	// before its dump, and the dump's lots and bids; nil: none, two empty
@@ -639,7 +639,7 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	h.stampPlayed(uint32(record.ServerID))
 
 	// Promote to a master session HERE, not when the character list was sent.
-	// Sandstorm's order (pcaps/ps2_sandstorm.pcap): character list at t=1.14s on
+	// The reference server's order (pcaps/ps2_sandstorm.pcap): character list at t=1.14s on
 	// the still-ClientInit session, then ServerInit|NewInstance + sessionID at
 	// t=4.61s — after a character is chosen — immediately followed by Camera1,
 	// Time, and the MemoryDump fragments.
@@ -664,7 +664,7 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	// or another window of the account plays it): this login TAKES IT OVER
 	// as it stands, the live Player handed to this session with its hit
 	// points, power, effects and their times, lockouts, fights, group and
-	// pet, nothing saved or read back (entity/takeover.go; jib's F3
+	// pet, nothing saved or read back (entity/takeover.go; a GM's F3
 	// 20261029-212855). The session that had it is told it logged in
 	// elsewhere (0x07A4); the account's other windows play on.
 	if h.gameWorld != nil {
@@ -689,7 +689,7 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	// the takeover that last had it (saveTakenOver), saved.
 	h.enterFromRecord(sess, record)
 
-	// NOT sent: WorldEntry (0x002E). Sandstorm never sends it — zero
+	// NOT sent: WorldEntry (0x002E). The reference server never sends it — zero
 	// occurrences across all three PS2 captures. Its promoted session goes
 	// straight from Camera1 + Time into the MemoryDump fragments.
 
@@ -839,7 +839,7 @@ func (h *CharacterHandler) enterFromRecord(sess *session.Session, record *databa
 	}
 
 	// The spell effects it logged out with, their time running again
-	// (Sandstorm keeps them over a logout; entity/buffsave.go)
+	// (the reference server keeps them over a logout; entity/buffsave.go)
 	if player != nil && h.store != nil {
 		if rows, err := h.store.LoadBuffs(record.ServerID); err != nil {
 			log.Printf("SelectedChar: '%s' kept effects: %v", record.CharName, err)
@@ -1001,7 +1001,7 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	h.SendTime(sess)
 
 	// Send player speed (needed for movement): a speed effect kept over the
-	// logout makes it more (Sandstorm's dump carried the plain speed and its
+	// logout makes it more (the reference server's dump carried the plain speed and its
 	// 0x00F8 the buffed one)
 	speed := entity.RunSpeed
 	if h.gameWorld != nil {
@@ -1009,7 +1009,7 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	}
 	h.SendPlayerSpeed(sess, speed)
 
-	// Send server ready signal (Sandstorm sends this after world entry)
+	// Send server ready signal (the reference server sends this after world entry)
 	SendServerReady(sess)
 
 	// Offer more entity slots than CLIENT's 24, and farther (entityslots.go):
@@ -1467,7 +1467,7 @@ func (h *CharacterHandler) applyEquipmentFromDB(player *entity.Player, serverID 
 // fields are set nowhere else, and an unequipped weapon or armour piece kept
 // showing in every client until the next login.
 //
-// The hands go by the equip slot an item is worn in, as Sandstorm's channel
+// The hands go by the equip slot an item is worn in, as the reference server's channel
 // and character list carry them (every player in the PS2 captures): item 0
 // is the main hand, a weapon (14), a two-hander (16) or an item held in it
 // (19); item 1 the off hand, a second weapon (15) or an item held in it
@@ -1589,7 +1589,7 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 // func_00BD2E80 reads them, and character select dresses its figure with
 // them): the robe, its tint, the three items and their attack types, the six
 // armour sets and their tints, from the same worn items as the channel's
-// look. Nothing worn is a robe of -1 and armour 0xFF, as Sandstorm's lists
+// look. Nothing worn is a robe of -1 and armour 0xFF, as the reference server's lists
 // have it; the robe's tint is its record's (entity.RobeLook), an armour
 // slot's the tint nearest the worn piece's own colour, else 0 (entity.ArmorTint).
 // Until 2026-10-22 every entry was blank, so character select showed every
@@ -1772,7 +1772,7 @@ func (h *CharacterHandler) isValidName(name string) bool {
 
 // HandleDelCharacter handles character deletion requests (opcode 0x2D).
 // The client sends the character's ServerID as a zigzag varint.
-// On success we send back a fresh 0x2C character list (same as Sandstorm).
+// On success we send back a fresh 0x2C character list (same as the reference server).
 func (h *CharacterHandler) HandleDelCharacter(sess *session.Session, msg *protocol.Message) error {
 	reader := buffer.NewReader(msg.Data())
 	serverIDRaw, err := reader.Read7BitEncodedInt64()
@@ -1952,7 +1952,7 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 	}
 
 	// Character count is ZIGZAG, like every field below it. Verified against a
-	// real Sandstorm capture (pcaps/ps2_sandstorm.pcap): 7 characters are sent
+	// real capture of the reference server (pcaps/ps2_sandstorm.pcap): 7 characters are sent
 	// with a count byte of 0x0E = zigzag(7). NOTE: CLAUDE.md and MEMORY.md both
 	// claim this field is UNSIGNED — that is wrong, and "fixing" it to unsigned
 	// makes the PS2 see half the characters.
@@ -2062,7 +2062,7 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 // worldPaths maps a world index to the esfPath the client loads it from.
 //
 // Indices and the first eight paths match the client's own world table, which
-// Sandstorm's S2 relocated and our SD rebuilds at WorldCount entries; keeping
+// the reference server's S2 relocated and our SD rebuilds at WorldCount entries; keeping
 // the two in step matters because a Teleport reaches a world through its table
 // entry while a login reaches it through this string. "hdd:" is the prefix the
 // SD's VIFile hooks claim, routing that entry to pfs0: on the PS2 hard disk;
@@ -2163,7 +2163,7 @@ func (h *CharacterHandler) SendMemoryDump(sess *session.Session) {
 	sess.Queue().AddWithSequence(camMsg)
 	log.Printf("SendMemoryDump: sent Camera1 with value -1 (world entry signal)")
 
-	// Time only — no Ping. Sandstorm's first promoted packet is exactly
+	// Time only — no Ping. The reference server's first promoted packet is exactly
 	// Camera1 at seq 1 and Time at seq 2; a Ping in between consumes a
 	// sequence number and shifts the MemoryDump fragments by one.
 	h.sendTimeOnly(sess)
@@ -2213,7 +2213,7 @@ func (h *CharacterHandler) SendMemoryDump(sess *session.Session) {
 // queueMemoryDump builds the MemoryDump (0x000D) out of the Player struct
 // and the character's stored items and spells, and queues it. A login sends
 // it after Camera1 and Time (SendMemoryDump); a respawn sends it alone
-// (respawnPlayer), as Sandstorm does.
+// (respawnPlayer), as the reference server does.
 func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity.Player) {
 	h.queueMemoryDumpAt(sess, player, false)
 }
@@ -2376,7 +2376,7 @@ func (h *CharacterHandler) queueMemoryDumpAt(sess *session.Session, player *enti
 			invItems[i].Pattern.ItemName)
 	}
 
-	// NOTE: Sandstorm format has NO weapon hotbar section between inventory
+	// NOTE: the reference server format has NO weapon hotbar section between inventory
 	// and bank. Bank immediately follows inventory.
 
 	// Bank (zigzag count + uint32 count + items)
@@ -2452,7 +2452,7 @@ const memoryDumpTrailerLen = 39
 
 // writeMemoryDumpTail writes everything the client reads after the bank/equipment
 // container, in the order func_00BD0630 reads it; craft is the character's
-// six tradeskill slots (craft.go: a character with no rows has Sandstorm's,
+// six tradeskill slots (craft.go: a character with no rows has the reference server's,
 // {99, 1, 0, 98} four times and {99, 99, 99, 98} twice, which every capture
 // carries and which were sent to everyone, misnamed a weapon hotbar, until
 // 2026-10-29):
@@ -2463,7 +2463,7 @@ const memoryDumpTrailerLen = 39
 //	raw1    HaveCorpse            (set: the corpse's item list follows)
 //	zigzag  ability count + rows  func_00BDCDC0 (VIAbility records)
 //	raw4    run speed             (0x410D5555 = 8.833 in every capture)
-//	raw4    the tradeskill token  (VIClientPart3834C +0x78C0; Sandstorm's 0)
+//	raw4    the tradeskill token  (VIClientPart3834C +0x78C0; the reference server's 0)
 //	6x4     raw4 tradeskill slots ReadSlots 0x00BFD178: {x00, level, rank, x0C}
 //	raw4 + 4x zigzag + raw4       func_00BF71A0 CM header
 //	29x zigzag, 7x zigzag         CM stat arrays
@@ -2480,7 +2480,7 @@ const memoryDumpTrailerLen = 39
 // HaveCorpse byte (a set one is followed by the corpse's item list), and the
 // ability list (ReadAbilities 0x00BDCDC0: a zigzag count of VIAbility
 // records). The ability list is where retail carries every song and spell
-// (Sandstorm's bard sends 42); the character's spellbook goes here, each row as
+// (the reference server's bard sends 42); the character's spellbook goes here, each row as
 // writeAbilityRecord (ps2opcodes.go) writes it.
 func writeMemoryDumpTail(w *buffer.Writer, player *entity.Player, spells []database.CharSpellEntry, craft [database.CraftSkills][4]uint32) {
 	writeMemoryDumpTailWith(w, player, spells, craft, nil)
@@ -2576,7 +2576,7 @@ func writeMasteryState(w *buffer.Writer, player *entity.Player) {
 }
 
 // dumpQuickSlot is a dumped item's fifth field, its QUICK SLOT (VINetItem
-// +0x10), not where the database keeps it: Sandstorm's MemoryDump in
+// +0x10), not where the database keeps it: the reference server's MemoryDump in
 // ps2_sandstorm.pcap sends -1 for all 31 inventory items and 0 for all 39 bank
 // items. Writing charinventory.location here put every inventory item on
 // quick slot 0.
@@ -2684,7 +2684,7 @@ func writeItemPattern(w *buffer.Writer, e *database.CharInventoryEntry, capes bo
 // by CLIENT's stat ids (FindStatWord's table, decomp vikeyflash.cpp: 12 is
 // word 240 "HoT", 13 word 241 "PoT"). Until 2026-11-06 the HoT column went out
 // as 13 and the PoT column as 12, so every item's tooltip showed one for the
-// other (petition 1091, Koolade: the Flawless Rejuvenative Belt's HoT 25 read
+// other (petition 1091: the Flawless Rejuvenative Belt's HoT 25 read
 // "PoT 25"; claude-notes/fishing-server-20261028.md had seen the table).
 func itemPatternStats(p *database.ItemPatternRecord) map[int]int {
 	stats := make(map[int]int)
@@ -2815,7 +2815,7 @@ func (h *CharacterHandler) initPlayerStatChannel(sess *session.Session, player *
 
 // initPlayerBuffChannel builds the effects channel (0x43) from the Player
 // struct, at its own length (4 bytes with none, which sends nothing until an
-// effect starts, as Sandstorm's first 0x43 is the first effect).
+// effect starts, as the reference server's first 0x43 is the first effect).
 func (h *CharacterHandler) initPlayerBuffChannel(sess *session.Session, player *entity.Player) {
 	conn := sess.Connection()
 	if conn == nil {
@@ -2847,7 +2847,7 @@ func (h *CharacterHandler) SendDelCharacter(sess *session.Session, charID int) {
 // SendExpansionFlags sends opcode 0x07D1 (once called Camera1): a u32 into
 // VIClient+0x50304, which CLIENT ANDs with the disc's own expansion flags for
 // the race camera and the frame rate. Retail sends -1, every bit, on every
-// session, and Sandstorm sends it first on a freshly promoted session, before
+// session, and the reference server sends it first on a freshly promoted session, before
 // Time and the MemoryDump fragments; see the note in AuthHandler where the
 // same message is built. 0x07F5 (once Camera2) has no case in CLIENT.
 func (h *CharacterHandler) SendExpansionFlags(sess *session.Session) {

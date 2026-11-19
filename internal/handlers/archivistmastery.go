@@ -7,7 +7,7 @@ import (
 )
 
 // archivistmastery.go — what the Spell Archivist leaves to the masteries
-// (petition 1381, Statler, 2026-11-09: "spell archivist gives necs cm version
+// (petition 1381, 2026-11-09: "spell archivist gives necs cm version
 // of mastery spells instead or regular. this prevents buying cm upgrade to
 // get mc"). A mastery rank's purchase gives spells (entity.CMRank.BookChange:
 // its adds, less those it improves in place). Since petition 1361 his basic
@@ -41,12 +41,12 @@ import (
 // takenByOwned is the spells the ranks a character owns took out of its book
 // (entity.CMRank.BookChange's takes: Gloom Pact for Gloom Covenant, Life Draw
 // for Life Draw +): his basic grant puts none of them back, which undid the
-// purchase's change (Statler's book held Life Draw beside Chardith's Boon 1's
+// purchase's change (a player's book held Life Draw beside Chardith's Boon 1's
 // Life Draw +). But a wizard's familiar (isFamiliar) is never one: the
 // Guardian Familiar ranks 1-5 take Lesser, plain, Greater, Elder and Arch
 // Familiar out for the Guardians, and Gargoyle Familiar 1 Arch Familiar for
 // the gargoyle, each another pet beside it, not the familiar improved; so a
-// wizard owning them was granted Minor Familiar alone (petition 1592, Kapow,
+// wizard owning them was granted Minor Familiar alone (petition 1592,
 // 2026-11-11: "no familiars on wizy when requesting spells from spell dude").
 // He grants the familiars of the wizard's level as every other spell.
 func takenByOwned(arch *spellArchive, owned map[int]bool) map[int]bool {

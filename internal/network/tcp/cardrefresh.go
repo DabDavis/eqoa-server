@@ -48,10 +48,10 @@ import (
 //
 //   - eqahosts.txt WAS managed here for the same reason, and is NOT any more.
 //     It is the server's address and it was fifteen bytes for almost every
-//     operator on earth — "5.161.217.188\n\n" and "192.168.40.87\n\n" are the
+//     operator on earth — "203.0.113.188\n\n" and "192.168.1.100\n\n" are the
 //     same length — so a card patched by a different server kept pointing there
 //     forever while this operator's log showed a healthy fetch. Measured on
-//     this project's own dev card 2026-08-13: it had held Sandstorm's address
+//     this project's own dev card 2026-08-13: it had held the reference server's address
 //     for weeks.
 //
 //     But the cure was worse than the disease, which took a console to find

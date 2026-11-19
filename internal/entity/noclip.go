@@ -1,7 +1,7 @@
 package entity
 
-// noclip.go — a GM's /noclip (the GM Jibrish's petition 1904, 2026-11-13: "Add a
-// high level GM only command (Just for jibrish and dabs account) that is /noclip -
+// noclip.go — a GM's /noclip (a GM's petition 1904, 2026-11-13: "Add a
+// high level GM only command (Just for a GM and dabs account) that is /noclip -
 // this lets the player move through walls vertical or horizontal and default turns
 // on /fly. Make it a toggle, hitting it again turns it off").
 //

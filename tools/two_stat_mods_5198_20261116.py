@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Enstatite armour gives Strength and Stamina, Takish Ivory armour Dexterity and Agility (Innoruuk's petitions,
+"""Enstatite armour gives Strength and Stamina, Takish Ivory armour Dexterity and Agility (a player's petitions,
 2026-11-16: 5198 "Enstatite gem should give strength and stamina to armor when crafted, not strength and
 intelligence."; 5199 "Takish ivory should give dex and agility when crafted, not charisma."; a player's claim about an
 item's stats is taken as the truth).

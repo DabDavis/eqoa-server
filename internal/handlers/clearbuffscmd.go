@@ -12,7 +12,7 @@ import (
 // running out ends it (entity.World.ClearBuffs: off the effects channel, the
 // stats summed again, the run speed told, an illusion's body and
 // invisibility gone with theirs), the harmful with the rest, and the slots
-// #effect put on; answered with what went. F3 20261029-011146, jib: "Add a
+// #effect put on; answered with what went. F3 20261029-011146, a GM: "Add a
 // GM Test command to clear all buffs on the character issuing it". It takes
 // no word after it: it is the GM's own buffs, never a target's.
 func (h *ChatHandler) clearBuffsCommand(sess *session.Session) {

@@ -8,7 +8,7 @@ import (
 )
 
 // markhit.go — the cleric's damage marks and brands: a curse on a creature
-// that answers the hits landed on it (jib's PR #1, the GM Jibrish's ruling of
+// that answers the hits landed on it (a GM's PR #1, a GM's ruling of
 // 2026-10-29: "cleric marks and brands were reverse damage shields or heals.
 // Eg; put it on a mob, if you attack the mob the effect happens (heals you) or
 // the mob takes damage."). The heal mark, Mark of Faith, is markheal.go's.

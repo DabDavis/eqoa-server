@@ -6,8 +6,7 @@ drakes  "im seeing emerald drake in Isle of dread but should not be": every emer
         else of ours there) is deleted, with any npcrespawn / npcwander / npcpaths / npcstands / npcrare /
         campspawns / npcitem row of it (none today: wildspread 2026-11-01 added them as plain rows; its own
         wildspread_adds* history rows are left, as a GM's in-game /delete leaves them). Their loot is by name
-        (npcloot), shared with the drakes elsewhere in Tunaria: untouched. Live: 31 rows; Heirloom: 1 left (the GM
-        forestwood /deleted 30 drakes and 36 dire worgs there in the game, 01:59-07:08 UTC). Then "remove the dire
+        (npcloot), shared with the drakes elsewhere in Tunaria: untouched. Live: 31 rows; Heirloom: 1 left (a GM /deleted 30 drakes and 36 dire worgs there in the game, 01:59-07:08 UTC). Then "remove the dire
         worgs from IoD too": every dire worg row there likewise (Live 36, Heirloom none left), their loot by name
         (shared with the worgs elsewhere) untouched.
 
@@ -34,15 +33,15 @@ earthpets "lets make mag earth pets tank better than necro pet of the same tier"
         at 8-15 its sheet would need ~13x its hit points, which at owner levels 1-7 makes it 2-12x the
         necromancer's (the magician's class row is fit to its water, fire and air pets there).
 
-heirloom "lets make the scimitar that zerkziee has a heirloom weapon for rangers" (Heirloom shard only; Live has no
+heirloom "lets make the scimitar that [a player] has a heirloom weapon for rangers" (Heirloom shard only; Live has no
         heirlooms): a new record, Heirloom Ykesha, copied from the ranger's Heirloom Scimitar of Fury (714027: no
-        trade, worth nothing, level 1, ranger only, its slot) with the look Zerkziee's scimitar has (714385: the
+        trade, worth nothing, level 1, ranger only, its slot) with the look a player's scimitar has (714385: the
         Triad Scimitar's model 0xD03942DE and icon), its heirlooms row (ranger, main) with epic 996023, Heroic
         Ykesha: from level 60 the wearer's view is Heroic Ykesha's figures and its proc (an heirloom's proc is its
         epic's, by the epic's name and description: "Procs 160 damage"), below it the best ranger main hand of the
-        wearer's level as every heirloom. The name keeps Zerkziee's Ykesha's identity; its own description names
+        wearer's level as every heirloom. The name keeps a player's Ykesha's identity; its own description names
         no proc, so below 60 it procs nothing (as every heirloom). Sold by every Heirloom Outfitter who sells
-        714027 (76), at the end of its list. Zerkziee keeps his 714385.
+        714027 (76), at the end of its list. A player keeps his 714385.
 
 Read at the server's start (npcs, petstats, itempattern, heirlooms, npcitem): a restart. A pet out at the time keeps
 its numbers until summoned again. Report by default; --apply in one transaction, a gm_audit line a row, logged in

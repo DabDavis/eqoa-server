@@ -28,7 +28,7 @@ func TestARewardOfExperienceIsTenPercentMore(t *testing.T) {
 	k := newKillWorld(t, 30, 30)
 	with, without := k.players[0], k.players[1]
 	t0 := time.Now()
-	name, renewed, _, ok := k.w.GiveRewardXP(k.sess[0], "Jibrish", t0)
+	name, renewed, _, ok := k.w.GiveRewardXP(k.sess[0], "Jinkles", t0)
 	if !ok || renewed || name != with.Name {
 		t.Fatalf("given: %q %v %v", name, renewed, ok)
 	}
@@ -71,8 +71,8 @@ func TestARewardOfExperienceRenewsAndDoesNotStack(t *testing.T) {
 	k := newKillWorld(t, 20)
 	p := k.players[0]
 	t0 := time.Now()
-	k.w.GiveRewardXP(k.sess[0], "Jibrish", t0)
-	_, renewed, left, ok := k.w.GiveRewardXP(k.sess[0], "Jibrish", t0.Add(20*time.Minute))
+	k.w.GiveRewardXP(k.sess[0], "Jinkles", t0)
+	_, renewed, left, ok := k.w.GiveRewardXP(k.sess[0], "Jinkles", t0.Add(20*time.Minute))
 	if !ok || !renewed || left != 10*time.Minute {
 		t.Fatalf("again: renewed %v, left %v, %v", renewed, left, ok)
 	}
@@ -91,7 +91,7 @@ func TestARewardOfExperienceEndsAtThirtyMinutes(t *testing.T) {
 	k := newKillWorld(t, 20)
 	p := k.players[0]
 	t0 := time.Now()
-	k.w.GiveRewardXP(k.sess[0], "Jibrish", t0)
+	k.w.GiveRewardXP(k.sess[0], "Jinkles", t0)
 	k.w.mu.Lock()
 	k.w.clearSpellsLocked(p) // a death
 	k.w.effectSystem(t0.Add(30*time.Minute - time.Second))
@@ -121,7 +121,7 @@ func TestARewardOfExperienceEndsAtThirtyMinutes(t *testing.T) {
 func TestARewardOfExperienceIsKeptOverALogout(t *testing.T) {
 	k := newKillWorld(t, 20)
 	t0 := time.Now()
-	k.w.GiveRewardXP(k.sess[0], "Jibrish", t0)
+	k.w.GiveRewardXP(k.sess[0], "Jinkles", t0)
 	rows, ok := k.w.SavedEffects(k.players[0].ServerID, t0.Add(10*time.Minute))
 	if !ok || len(rows) != 1 || rows[0].SpellID != RewardXPEffectID || rows[0].LeftMS != (20*time.Minute).Milliseconds() ||
 		rows[0].Name != RewardXPName || rows[0].Icon != RewardXPIcon {

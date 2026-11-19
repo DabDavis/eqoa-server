@@ -10,9 +10,9 @@ import (
 )
 
 // Personal boards: a private thread between one GM (with that GM's AI agents)
-// and dab's sessions (Claude Code on dab's own machine, reaching the box by
-// ssh), so the owner can say "post to jib's personal board" and the GM can
-// tell their agent to check it (the GM Jib's ask, 2026-11-15). The work board
+// and the owner's sessions (Claude Code on the owner's own machine, reaching the box by
+// ssh), so the owner can say "post to a GM's personal board" and the GM can
+// tell their agent to check it (a GM's ask, 2026-11-15). The work board
 // (workboard.go) is everyone's; a personal board is read by its members
 // alone: the panel accounts config.yaml's gm.personal_boards names for it,
 // the panel's admins, and cmd/workboard on the box. Which board is whose is
@@ -31,7 +31,7 @@ import (
 //
 // gmboard_read is how far each reader has read a board: the id of the newest
 // message they were shown. A reader is a panel account's name in lower case,
-// or the name cmd/workboard posts as ("dab's sessions"); a message's author
+// or the name cmd/workboard posts as ("the owner's sessions"); a message's author
 // key is the same, so a reader's own posts never count as unread to them.
 const gmBoardSchema = `
 	CREATE TABLE IF NOT EXISTS gmboard (
@@ -56,7 +56,7 @@ const gmBoardSchema = `
 // Where a message was posted from.
 const (
 	BoardViaPanel = "panel" // the GM panel: the page, a token or an OAuth agent
-	BoardViaCLI   = "cli"   // cmd/workboard on the box: dab's sessions
+	BoardViaCLI   = "cli"   // cmd/workboard on the box: the owner's sessions
 )
 
 // The bounds of a message, in characters, and of a read.
@@ -70,7 +70,7 @@ const (
 var boardNameRE = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]*$`)
 
 // NormalizeBoardName is a board's name as it is kept: trimmed, in lower case,
-// letters, digits, - and _ (jib, jib-agents); false for a name that is not.
+// letters, digits, - and _ (a GM, jib-agents); false for a name that is not.
 func NormalizeBoardName(s string) (string, bool) {
 	k := strings.ToLower(strings.TrimSpace(s))
 	if k == "" || len(k) > BoardMaxName || !boardNameRE.MatchString(k) {
@@ -95,7 +95,7 @@ type BoardMessage struct {
 	ID      int64  `json:"id"`
 	Board   string `json:"board"`
 	At      string `json:"at"`
-	Author  string `json:"author"` // as workBy names them: "jibrish (oauth:Claude)", "dab's sessions"
+	Author  string `json:"author"` // as workBy names them: "a GM (oauth:Claude)", "the owner's sessions"
 	Via     string `json:"via"`    // panel or cli
 	Text    string `json:"text"`   // markdown
 	ReplyTo int64  `json:"reply_to,omitempty"`

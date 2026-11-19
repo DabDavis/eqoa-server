@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The regional weather's seed rows (#1549, internal/weather, database/weather.go): which climate each of
 the disc's 22 terrain profiles is, the zones kept off the automatic weather, and how each climate's weather
-comes (jibrish's numbers; no record of the live game's schedule exists).
+comes (a GM's numbers; no record of the live game's schedule exists).
 
 - weatherprofiles, 22 rows: 2 and 10 arctic (the icy fog tint 227,247,247), 3 and 11 desert (the sand fog
   tint 233,218,166), 19 none (the Lavastorm weight, where CLIENT drops its fireballs: lava), the rest

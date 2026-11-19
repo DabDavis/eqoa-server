@@ -8,7 +8,7 @@ import (
 
 // Heirloom petition 2202 on the real ground (EQOA_GROUND_DIR, EQOA_REAL_DB;
 // EQOA_MODELS for every body's edge, else the Megaladon's 8.332 alone): the
-// Megaladon (size 4) where it fought Zerkziee, its feet at 50.8 in the channel
+// Megaladon (size 4) where it fought a player, its feet at 50.8 in the channel
 // along the Isle of Dread's beach, looked at from the dry sand 20 off round
 // it. Five places on the beach had no sight of it at a man's heights (the
 // sand over its head) and see its body now; the one behind the rise of the
@@ -31,7 +31,7 @@ func TestRealMegaladonSeenFromTheBeach(t *testing.T) {
 	meg := &NPC{Name: "Megaladon", ModelID: int64(shark), Size: 4, World: 0, X: 24272.2, Y: 50.8, Z: 3046.0}
 	for a, want := range map[int]bool{0: true, 1: true, 3: true, 4: true, 5: true, 2: false} {
 		s, c := math.Sincos(float64(a) * math.Pi / 8)
-		p := &Player{Name: "Zerkziee", World: 0, X: meg.X + 20*float32(c), Z: meg.Z + 20*float32(s)}
+		p := &Player{Name: "Zorbaxes", World: 0, X: meg.X + 20*float32(c), Z: meg.Z + 20*float32(s)}
 		y, ok := w.ground.Floor(0, p.X, 200, p.Z)
 		if !ok {
 			t.Fatalf("no floor at (%.1f, %.1f)", p.X, p.Z)

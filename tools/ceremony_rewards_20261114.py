@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Neriak's level 17 side quest gives its class reward (petition 5028, Trulyblind, Live, 2026-11-14: "NO quest reward
+"""Neriak's level 17 side quest gives its class reward (petition 5028, Live, 2026-11-14: "NO quest reward
 For the 17s? From Denouncer G`Efia?").
 
 "The Ceremony" (quest 100756, Tanadril N`Thael; EQOA-Data Quests/17/neriak-nektulos.json) ends at Denouncer G`Efia,
@@ -15,7 +15,7 @@ one. Every other city's level 17 quest gives each class an item of its own on it
     class wear it (checked). The quest's notes say the rewards are ours.
   The characters of a class that finished it (charquests done) and lack their class's item are given it the way a
     quest gives one (tools/fill_class_quest_rewards.py: remainHP the record's maxhp, the pack's next place); a full
-    pack (40) is reported, not given. Live 2026-11-14: Trulyblind (shadow knight: Gloves of Malice) and Groceries
+    pack (40) is reported, not given. Live 2026-11-14: a player (shadow knight: Gloves of Malice) and a player
     (magician: Chromatic Dagger).
 
 The quests load at the server's start, and the server holds a player's pack while they play: run it in a keep

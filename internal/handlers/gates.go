@@ -11,7 +11,7 @@ import (
 // game cannot load (entity/gates.go); ours, as the casters' refusal is.
 const gateLeftBehind = "Your game cannot load %s: you stay behind."
 
-// travelPlayer is the World's travel hook (entity/gates.go; jib's review, F3
+// travelPlayer is the World's travel hook (entity/gates.go; a GM's review, F3
 // pass 19): a player a gate spell sends, landed as Return Home lands one
 // (gatePlayer): the teleport (0x07F6) there, the world loaded when it
 // changed, the player alive, so no dump. An evacuation's traveller goes to

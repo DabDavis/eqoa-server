@@ -8,10 +8,10 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 )
 
-// Ticket 2008 (Waldorf, 2026-11-13, the world-14 dungeons): "If you kill the pet first you can loot it. If you
+// Ticket 2008 (2026-11-13, the world-14 dungeons): "If you kill the pet first you can loot it. If you
 // kill the caster first, you get a message stating 'you can't loot that entity'. Should be consistent
 // regardless of order." The ruling: a creature's pet carries nothing either way. A ghoul urd necromancer and
-// its Mummified Guardian 1.9 off it (as Waldorf's view had them), the guardian's NPC row holding an item:
+// its Mummified Guardian 1.9 off it (as a player's view had them), the guardian's NPC row holding an item:
 // killed first or after its necromancer, its corpse answers "not lootable"; the control, the necromancer
 // itself on the same row, opens with the item.
 func TestACreaturesPetIsNotLootableInEitherOrder(t *testing.T) {

@@ -20,7 +20,7 @@ import (
 )
 
 // A real server's quests walked through the engine (EQOA_REAL_DB names its
-// database, a copy of which is walked), as jib's quest walk of 2026-10-30 did
+// database, a copy of which is walked), as a GM's quest walk of 2026-10-30 did
 // with the headless client: each quest by a character of a class and race it
 // is for, the quests it requires walked first by the same character (of a
 // group, the first its class and race may take), every step done as a player
@@ -29,7 +29,7 @@ import (
 // kills credited, a loot step's drops taken off the corpse, a reach step's
 // place stood on. Its hand-ins are only what the walk itself was given. Which
 // quests: EQOA_WALK_QUESTS (ids, comma separated), else every quest
-// tools/fix_quest_chains.py changed (quest_chain_fix_log) and the six of jib's
+// tools/fix_quest_chains.py changed (quest_chain_fix_log) and the six of a GM's
 // give-then-give quests it left as they were; skipped on a database it has not
 // been applied to and without EQOA_WALK_QUESTS. None is in this repository.
 //
@@ -69,7 +69,7 @@ func TestRealQuestChainsWalk(t *testing.T) {
 			}
 		}
 		rows.Close()
-		// jib's give-then-give quests the tool left: their items come back, or enough were given
+		// a GM's give-then-give quests the tool left: their items come back, or enough were given
 		for _, id := range []int{100312, 100392, 100545, 100583, 100602, 101225} {
 			if !seen[id] {
 				ids = append(ids, id)
@@ -78,7 +78,7 @@ func TestRealQuestChainsWalk(t *testing.T) {
 		sort.Ints(ids)
 	}
 	// a hand-in's item a merchant sells is bought, one a creature carries or rolls looted
-	// (Heirloom's first class quests since Jibrish's edits of 2026-11-11: "purchase a
+	// (Heirloom's first class quests since a GM's edits of 2026-11-11: "purchase a
 	// thick blue uniform from him"; its hand-ins of trash drops, a loot step no more)
 	w.obtain = func(qu *database.Quest, st *database.QuestStep) string {
 		for _, it := range st.Items {
@@ -117,7 +117,7 @@ func TestRealQuestChainsWalk(t *testing.T) {
 }
 
 // questWalker is the engine on a real database and a character for each
-// class and race, each walking its quests in order as jib's walk did.
+// class and race, each walking its quests in order as a GM's walk did.
 type questWalker struct {
 	t       testing.TB
 	db      *database.SQLiteDB
@@ -447,7 +447,7 @@ func (w *questWalker) doStep(qu *database.Quest, st *database.QuestStep) string 
 	questMsgs(w.sess) // what was said before is not this step's
 	switch st.Kind {
 	case database.StepTalk, database.StepShow, database.StepGive:
-		// tunar is had (a step's price: Sandstorm's coachmen, Osbit's dynamite)
+		// tunar is had (a step's price: the reference server's coachmen, Osbit's dynamite)
 		w.p.Tunar += st.Tunar
 		if st.Kind != database.StepTalk {
 			w.qe.mu.Lock()

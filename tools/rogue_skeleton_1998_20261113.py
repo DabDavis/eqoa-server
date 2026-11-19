@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""A rogue's skeleton disguise (ticket 1998, Hoofbite, a level 60 halfling rogue, 2026-11-13: "Request to add
+"""A rogue's skeleton disguise (ticket 1998, a level 60 halfling rogue, 2026-11-13: "Request to add
 skeleton diguise spell for rogue. :)"; the owner approved it).
 
 The spell: "Skeletal Mask", the last of the rogue's masks (Mortal Mask 3, Deceiver's Mask 37, Scholar's Mask 47,

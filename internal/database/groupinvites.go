@@ -3,7 +3,7 @@ package database
 import "fmt"
 
 // chargroupinvites: each character's "Allow anyone in my group to invite"
-// (the GM Jibrish's petition 1476, 2026-11-11; entity/groupinvites.go), a row
+// (a GM's petition 1476, 2026-11-11; entity/groupinvites.go), a row
 // a character that set it: open 1 yes, 0 no. A character with no row has it
 // on (any member invites, as since 2026-11-06).
 const charGroupInvitesSchema = `

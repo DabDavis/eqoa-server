@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-// powercap.go — a spell that holds its bearer's maximum power down (jib's
+// powercap.go — a spell that holds its bearer's maximum power down (a GM's
 // bug report of 2026-10-27, RNG-4 and RNG-6).
 //
 // The ranger's Eye line says it in so many words: "Self, Increase WIS by

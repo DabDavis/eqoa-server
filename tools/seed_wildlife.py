@@ -2,7 +2,7 @@
 """Wildlife for the zones that have none: FrontiersForge's sightings there,
 made into spawns of the creatures this server already knows.
 
-F3 20261025-172939 and 20261025-173551 (eqoaclassic): Klick'Anon's newbie
+F3 20261025-172939 and 20261025-173551 (the production server): Klick'Anon's newbie
 yard and the Rogue Clockworks had no wildlife (Klick'Anon held three
 creatures of level 6 or less within 2500 of the town, where every other
 city has 90 to 340). No capture or import covers them; FrontiersForge's

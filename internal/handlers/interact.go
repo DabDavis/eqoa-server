@@ -413,7 +413,7 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 
-	// A spiritmaster not yet bound to offers its bind first (Sandstorm's Zole,
+	// A spiritmaster not yet bound to offers its bind first (the reference server's Zole,
 	// recorded by questrec16); Yes does its quest's step too (answerBind).
 	if npc, ok := targetEntity.(*entity.NPC); ok && IsSpiritmaster(npc.Name) {
 		if b, bound := h.gameWorld.BindOf(player.ServerID); !bound || b.By != npc.Name {
@@ -655,7 +655,7 @@ func (h *InteractHandler) sendCoachPage(sess *session.Session, player *entity.Pl
 
 	greeting := "Greetings, traveler! Where would you like to go?"
 	if len(dests) > 0 && dests[0].Via != "" {
-		greeting = wayAskMany // a waysender's, as Sandstorm's dockmasters ask
+		greeting = wayAskMany // a waysender's, as the reference server's dockmasters ask
 	} else if len(dests) == 1 && dests[0].Ledgers {
 		greeting = everyLedgerAlone // a coachman's offer alone (coachledger.go)
 	}
@@ -912,7 +912,7 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 }
 
 // travel sends the player on a picked trip: a waysender's level and fee
-// first (its words: Sandstorm's "Very well."), then the teleport.
+// first (its words: the reference server's "Very well."), then the teleport.
 func (h *InteractHandler) travel(sess *session.Session, player *entity.Player, dest entity.CoachDest) {
 	if dest.MinLevel > 0 && player.Level < dest.MinLevel {
 		h.sendDialogueBox(sess, tooWeak(dest.Name))

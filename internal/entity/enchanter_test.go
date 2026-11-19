@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// The enchanter's lines (enchanter.go), as eqoaclassic's records have them:
+// The enchanter's lines (enchanter.go), as the production server's records have them:
 // the imported ones carry their line as their description, so nothing but
 // their names says they are procs.
 

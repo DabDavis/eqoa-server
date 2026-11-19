@@ -3,7 +3,7 @@
 
 What a spell does is its line in spelleffect, which the server reads at each
 cast (internal/entity/spelltext.go); a class spell with no row there, or an
-empty line, does nothing when cast. On eqoaclassic (jib's review, F3 pass 19)
+empty line, does nothing when cast. On the production server (a GM's review, F3 pass 19)
 that was 84 shaman spells, whose class list in EQOA-Data words 18 of its 125
 abilities, so tools/import_eqoadata_spells.py made their records with no
 line, and 20 other class links (magician 8, shadow knight 4, wizard 3,
@@ -24,7 +24,7 @@ name and level, each with its source and the page it was read off:
     rating is left out (a landing angers its target already, cast.go);
   - EQOA-Data's per-class lists where they word a spell under another name
     than its record's (the wizard's "O'Keils Radiation", "Arcane Bindings");
-  - Sandstorm's harvest (harvests/sandstorm-spells-20261021): its scrolls'
+  - The reference server's harvest (harvests/sandstorm-spells-20261021): its scrolls'
     words name the creature a pet is ("Summons a wolf to aid you.") and say
     what a spell is where no page has it.
 internal/entity/missinglines_test.go reads every line as the server does and
@@ -43,7 +43,7 @@ wrote it. Held, with why:
   - a line cast at an enemy ("Target" or "Group", and harmful) on a record of
     scope 0 (self): the server lands a cast by its record's scope
     (entity/cast.go, castTargetsLocked), so it would land on its own caster.
-    eqoaclassic's imported shaman records all have scope 0 (the importer's,
+    the production server's imported shaman records all have scope 0 (the importer's,
     not a source's; each entry's "page" has the source's scope); run this
     again once a record says whom it is cast at;
   - a spell whose record's description names a proc (PROC_DESC, the reader's

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""The wizard's lightning nova line, Static Destruction, beside Icy Destruction (petition 1583, Wisp, 2026-11-11:
+"""The wizard's lightning nova line, Static Destruction, beside Icy Destruction (petition 1583, 2026-11-11:
 "Wizard lightning Nova CM line is missing").
 
 The line is in cmcatalog (Static Destruction 1-4, EQOA-Data cms/wizard.json and EQOAEmu's workbook: "Alters the nova
 spell line, making it a lightning spell", cost 25 a rank, levels 20/35/50/60, as Icy Destruction's). It was locked to
 a wizard who owned Icy Destruction: each rank of either line needs the plain spell (Explode and Detonate, Annihilate,
 Nova, Supernova) and trades it away for its own element's and the Fiery one, so once one line had traded them the
-other's ranks could never be bought (Wisp: Icy Destruction 1-4 owned, Static Destruction "???").
+other's ranks could never be bought (the wizard: Icy Destruction 1-4 owned, Static Destruction "???").
 
 With the server's require_spells stand-ins (entity/cmbuy.go, CMAbility.Alts: "a|b"), each rank of both lines accepts
 the Fiery spell in the plain one's place; both lines give it, so whichever line came first opens the other:

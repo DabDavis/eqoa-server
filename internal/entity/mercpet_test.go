@@ -316,7 +316,7 @@ func TestMercPetPick(t *testing.T) {
 	}
 }
 
-// Ticket 2020 (Kyro: "Magician merc still using lvl 1 pet at lvl 13"): a
+// Ticket 2020 ("Magician merc still using lvl 1 pet at lvl 13"): a
 // class's usual kind (a magician's earth line, MercKit.PetUsual) is taken only
 // while it keeps up with the book's best (mercPetUsualKeep), a hirer's own
 // pick whatever its rank; and a pet out when its merc's new level's book casts

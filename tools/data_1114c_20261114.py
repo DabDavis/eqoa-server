@@ -16,7 +16,7 @@ canyon -- "box canyon needs wildlife spread out". Box Canyons (Tunaria's zone 12
   npcs are read at the server's start: restart (a keep restart carries the creatures to their new spawns: keepnpc.go,
   a moved row).
 
-wounds -- "rogue wounds aren't strong enough they are supposed to be stronger they are modded by strength, zaeire is
+wounds -- "rogue wounds aren't strong enough they are supposed to be stronger they are modded by strength, [a player] is
   testing them. make wounds 75% stronger also they apply snare". The rogue's wound line (classspells, class 6, found
   by name: the ascended ones' ids differ by shard): each hit's base amount x 1.75 (its STR scale kept: every one has
   it, 30% of STR, 33% the ascended), the Mortal Wounds' damage a tic x 1.75 too, and the slow each already had

@@ -11,7 +11,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// reward.go — #reward and /reward, a GM's buff on a player (petition 1501, the GM Jibrish: "create a GM only
+// reward.go — #reward and /reward, a GM's buff on a player (petition 1501: "create a GM only
 // command /reward — this puts a buff on the target that gives them a 25 heal damage shield aka they heal for 25
 // whenever hit, and it deals 25 to who hits them. They also gain 100ac, 50 str, 50 dex, 50 wis, 50 int, 50 cha, 50
 // sta. Lasts 1 hour.").
@@ -28,7 +28,7 @@ import (
 // use, checked by its name (a record renamed or missing is said and nothing given). Each reward is a "live" line in
 // gm_audit (database.AuditGMLive), as the panel's kicks and messages are; the GM and the player are both told.
 //
-// Petition 1740 (Jibrish, 2026-11-12: "the /reward ability needs to HEAL the player and damage the attacking monster
+// Petition 1740 (2026-11-12: "the /reward ability needs to HEAL the player and damage the attacking monster
 // when hit"): 25 was under a level 60 creature's 48 a hit, so it showed nothing; tools/misc1112_20261112.py makes
 // both 200.
 

@@ -158,7 +158,7 @@ func masterCatalog() []database.CMRankRow {
 		mc(62, 3, 60, 75, "Hero", "Blow"))
 }
 
-// A master class's abilities need only the class (jib, F3 20261026-222613:
+// A master class's abilities need only the class (a GM, F3 20261026-222613:
 // "Tag *unlocks* the 2"), and CLIENT's window, which sorts a category into
 // chains by the parent keys the list gives (Recv08, at its opening) and keeps
 // them through a purchase (Recv05 brings flags alone), shows it so: locked,

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""dust_circlet_red_20261114.py on a small database: the report writes nothing; --apply sets Dust's circlet row to
+"""dust_circlet_red_20261114.py on a small database: the report writes nothing; --apply sets a GM's circlet row to
 nodes 72 and colour 0xE01818FF (a gm_audit line), his other rows untouched; a second apply finds nothing to do; --undo
-puts back exactly what was there. The controls: no circlet row, refused, nothing written; no Dust, nothing (exit 0)."""
+puts back exactly what was there. The controls: no circlet row, refused, nothing written; no such character, nothing (exit 0)."""
 import os
 import sqlite3
 import subprocess

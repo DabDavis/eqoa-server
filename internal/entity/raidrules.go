@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// raidrules.go — a raid's own rules beyond a group's (the GM Jibrish's petitions 1448 and
+// raidrules.go — a raid's own rules beyond a group's (a GM's petitions 1448 and
 // 1451, 2026-11-10): its loot rule, its helper and its main assist, whether it is in a
 // fight, the loot claims of those kicked from it during one, and what a raid's kill tells
 // the loot (handlers/raidloot.go). The commands are raidcmds.go's.

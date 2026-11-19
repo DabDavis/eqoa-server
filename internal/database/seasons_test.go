@@ -21,7 +21,7 @@ func TestASeasonTurnsAndHoldsItsNPCsWhileOff(t *testing.T) {
 	if err != nil || !held["christmas tree"] || !held["harvest scarecrow"] {
 		t.Fatalf("no season on: held %v (%v); want both", held, err)
 	}
-	if changed, err := db.SetSeason("christmas", true, "dab"); err != nil || !changed {
+	if changed, err := db.SetSeason("christmas", true, "dax"); err != nil || !changed {
 		t.Fatalf("SetSeason on: changed %v, %v", changed, err)
 	}
 	if on, _ := db.SeasonActive("CHRISTMAS"); !on {
@@ -31,7 +31,7 @@ func TestASeasonTurnsAndHoldsItsNPCsWhileOff(t *testing.T) {
 	if held["christmas tree"] || !held["harvest scarecrow"] {
 		t.Fatalf("Christmas on: held %v; want the scarecrow alone", held)
 	}
-	if changed, _ := db.SetSeason("Christmas", true, "dab"); changed {
+	if changed, _ := db.SetSeason("Christmas", true, "dax"); changed {
 		t.Errorf("turned on twice: changed")
 	}
 	if n, _ := db.NPCSeasonCount("christmas"); n != 1 {

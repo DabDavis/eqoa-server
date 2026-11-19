@@ -5,7 +5,7 @@ its own level.
 tools/import_spell_effects.py gives a line to every spellpattern row of its
 spell's NAME, the line most of EQOA-Data's class lists give winning (ties:
 the first in class order). Where two classes, or two levels of one class,
-share a name, a row can carry another's line: on eqoaclassic the
+share a name, a row can carry another's line: on the production server the
 necromancer's level 16 Siphon Life had the level 1 one's ("Target, Decrease
 Drain HP by 5 ; Increase 8% based on STA", for "Target, Drain HP by 29 and
 gives to self"), and its level 4 Siphon Strength the shadow knight's level 24
@@ -15,7 +15,7 @@ that takes for its caster or costs it), this gives each row the line its own
 class's list gives the spell at its level, the class being the classspells
 row that gives the spell; the row's source says so.
 
-Two lines are corrected on top (F3 20261025-214751, jib: "Look up the values
+Two lines are corrected on top (F3 20261025-214751, a GM: "Look up the values
 and correct this"):
   - Infernal Pact: every pact in the lists costs twice its heal and every
     covenant three times (Gloom 25/50, Dark 45/90, Shadow 90/180, Tenebrous

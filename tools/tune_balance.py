@@ -5,8 +5,8 @@
   usually won; "Red (+3 and up): needs a group" (a lone player mostly loses, a fitting group of 2-3 of
   the level wins).
 
-Found with the fight simulator (cmd/balancesim on eqoaclassic's own items, spells and pets), which
-reproduces the live log the user called "too easy" (Dust, a level 5 shadow knight of 170 HP, killed a
+Found with the fight simulator (cmd/balancesim on the production server's own items, spells and pets), which
+reproduces the live log the user called "too easy" (a level 5 shadow knight of 170 HP, killed a
 level 6 fire bat of 786 HP hitting 8 every 3 s in 24 s and kept 65% of his hit points: the simulator's
 same fight under the 01:30 tables, 786 HP, 8 a hit, the shield's 2, about 30 s and 65%; under these it
 lasts 46 s and ends at 15%, entity/balancesim_real_test.go's TestRealDustAndTheFireBat).
@@ -51,7 +51,7 @@ What it writes (every value is a GM's to change later in the panel's World group
                   play (a root holds or breaks, so their low point in a yellow won stays high: two up's 65% won
                   is what bounds them).
 
-A row is changed only while it holds what this expects (the tables as eqoaclassic had them at 01:30 UTC
+A row is changed only while it holds what this expects (the tables as the production server had them at 01:30 UTC
 2026-10-30: the seeds of 2026-10-29); a row a GM changed is left, and said. A row it adds is only added
 where none is. Every change is logged in balance_tune_log (the table, the row's place, the whole row
 before and after, why); --undo puts back each row still as this left it (one changed since is left, and
@@ -103,7 +103,7 @@ PLACES = {"balancelevel": ("level",), "balancecon": ("diff",), "balanceclass": (
 MADE = '{"made":"table"}'  # a log row's place when the tool made the table itself
 WHY = "the tuning of 2026-10-30 (tools/tune_balance.py; claude-notes/balance-20261029.md)"
 
-# balancelevel as eqoaclassic had it at 01:30 UTC 2026-10-30 (the seeds of 2026-10-29): level -> its columns
+# balancelevel as the production server had it at 01:30 UTC 2026-10-30 (the seeds of 2026-10-29): level -> its columns
 LEVEL_COLS = ("hp_pct", "damage_pct", "con_pct", "pet_hp_pct", "pet_damage_pct", "art_cooldown_ms", "regen_pct")
 LEVELS_0130 = {
     1: (300, 250, 0, 300, 250, 1500, 5), 5: (215, 265, 0, 215, 265, 1500, 5), 8: (225, 260, 0, 225, 260, 1500, 5),

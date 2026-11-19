@@ -8,7 +8,7 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 )
 
-// Petition 1351 (Jibrish, a GM's rule): "All charm lines and pet lines need to
+// Petition 1351 (a GM's rule): "All charm lines and pet lines need to
 // be able to be out and not lose the pet while they summon the genie in their
 // inventory. This is an example where dual pets are allowed but only for that
 // sort of thing. Dont make it so they can summon their spell pet and charm at

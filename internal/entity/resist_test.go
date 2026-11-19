@@ -7,7 +7,7 @@ import (
 )
 
 // A resist takes its share in proportion up to 90% at the cap of 315, and
-// no more past it (the owner's 90%, 2026-11-11; jib's 75% before); none below 0.
+// no more past it (the owner's 90%, 2026-11-11; a GM's 75% before); none below 0.
 func TestResistShare(t *testing.T) {
 	for _, tt := range []struct {
 		resist int
@@ -23,7 +23,7 @@ func TestResistShare(t *testing.T) {
 
 // Below the cap a resist never fails (no dice are thrown); at it, a throw
 // under 2.5% fails it altogether, the next 5% in part (a second throw
-// picks the share in 54-88.8%, jib's 45-74% of 75% in proportion to 90%),
+// picks the share in 54-88.8%, a GM's 45-74% of 75% in proportion to 90%),
 // and anything else keeps its 90%.
 func TestRollResistAtTheCap(t *testing.T) {
 	defer func(f func() float64) { resistRand = f }(resistRand)

@@ -4,7 +4,7 @@ import "fmt"
 
 // npcrespawn: a GM's word on how long one NPC takes to come back after its corpse goes,
 // where the world's one figure (world.respawn_after, 60 s) is wrong for it (petition 1133,
-// Jibmage: "Crocs on crocodile island are repopping way too fast"). By the npcs row, not its
+// a GM: "Crocs on crocodile island are repopping way too fast"). By the npcs row, not its
 // name, since a name may stand in many places. seconds above 0; a row whose seconds are 0
 // or less counts as none.
 const npcRespawnSchema = `

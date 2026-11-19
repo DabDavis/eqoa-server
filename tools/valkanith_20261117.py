@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The Lord Valkanith quest made as the owner's source has it: Ronson's "Envar Island Quest-Lord Valkanith" on the EQOA
-forum (eqoa.forumotion.com/t171-lord-valkanith-quest, 2010-07-26), sent by the owner on 2026-11-17; jibrish's work
+forum (eqoa.forumotion.com/t171-lord-valkanith-quest, 2010-07-26), sent by the owner on 2026-11-17; a GM's work
 board entry 737 (forum t171, t281, t299; his rules and estimates) where Ronson gives no figure.
 
 THE POST: level 50+, all classes. The Spirit of Tellainain, on a small island off the south-west corner of Envar, asks
@@ -34,18 +34,18 @@ WHAT DIFFERED (quest 101269 "Envar Island: Lord Valkanith", giver Spirit of Tell
     (~250 a hit, entry 737), the roamer's Critical Hit kept, and Valkanith's Bloodtap (new spell 760352): a life tap of
     500 on every player and pet within 30 of him he can see (line of sight: the post's rocks hide), disease (DR, the
     post's resist cleric; t281's "DR or PR"), every 12 s from 8 s, all that lands healing him (the post's "his AoE
-    bloodtap will take your life and heal him"; 500 jibrish's rule, radius, timer and school entry 737's).
+    bloodtap will take your life and heal him"; 500 a GM's rule, radius, timer and school entry 737's).
   - His drop: table "boss lord valkanith" (a boss table: need before greed), 1 roll at 100%: the Bone Wing Sentinel
     (the shard's record of that name: Heirloom 991104, Live 1000036). With --t299 the table also holds the phylactery
     of valkanith (7982) and the positronian energy shield (6067), entry 737's t299 records that exist (the shield's
-    classuse 32766 to 32767 on Live too, as jibrish set it on Heirloom on 2026-11-12). No new item.
+    classuse 32766 to 32767 on Live too, as a GM set it on Heirloom on 2026-11-12). No new item.
   - The Bone Wing Sentinel had no use. Now (itemeffect) 100 charges, the post's familiar as a buff on its bearer,
     "Thexian Bonewing": a damage shield of 40 and +40 PR and DR, for 30 minutes (the time ours). Not carried: the
     shield's 20 heal (an item use's line has no words for a heal when hit: ParseSpellText leaves "Heal 20 when hit"
     unread; the workbook's def_proc is a spell's alone) and the familiar's body (no pet).
   - The Tal'thex waves: knights 56 to 58, soldiers and sorcerers 55 to 57 (the post's con; entry 737's levels), their
     rows' HP as they are. Undead (npcundead) as the post's "undead": the three kinds, and Lord Valkanith on Live (on
-    Heirloom since jibrish's 2026-11-12 row).
+    Heirloom since a GM's 2026-11-12 row).
   Left as they were: the gem steps (1-3), their drop chance (0.25) and the creatures they name; the offer; Lord
     Valkanith's level (60); the seeded wave and boss rows' places (spawn-only; the trigger places their copies).
 

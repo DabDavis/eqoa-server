@@ -17,7 +17,7 @@ import (
 // The dump, not a 0x00B2 teleport, because it is the only thing that ends a
 // death on the client: CLIENT clears its dead flag (m_pC1B0) in Msg000D and
 // nowhere a teleport reaches, so a PS2 that was only warped would stay black
-// and deaf to its pad. Sandstorm respawns the same way (pcaps/breath_capture.pcap:
+// and deaf to its pad. The reference server respawns the same way (pcaps/breath_capture.pcap:
 // the stat channel with HP back at its maximum, then the dump at the bind
 // point). The dump goes alone, without the Camera1 and Time a login sends
 // before it, and the client answers it with 0x0014 as it answers a login's.

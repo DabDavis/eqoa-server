@@ -18,7 +18,7 @@ import (
 // with a row in itemeffect is used, not worn. The item menu's Use
 // (UseItem(i, 0)) or an item quick slot's (UseItem(i, 1)) drinks one; one
 // leaves the stack by 0x003C as a used scroll does. A thrown potion is a
-// ranged weapon (F3 20261026-014336, jib: "equips in the range attack slot,
+// ranged weapon (F3 20261026-014336, a GM: "equips in the range attack slot,
 // like a bow, and fires as a range auto attack. Currently its a useable
 // potion"): wear 16, a bow's (and the rusty throwing knife's), so every Use
 // wears it in the ranged slot and takes the hands off as a bow does, and the
@@ -28,7 +28,7 @@ import (
 //
 // An alchemist's spell gives potions at its landing (summonItem), as a
 // merchant's sale gives an item (GiveItemNow, 0x003B), three of a potion
-// (jib: "stacks of 3"); an auto-attack's throw takes one off the worn stack
+// (a GM: "stacks of 3"); an auto-attack's throw takes one off the worn stack
 // (potionThrown).
 //
 // A potion's line may cost an item and give one (entity's PotionEffect
@@ -336,7 +336,7 @@ func (h *EquipHandler) summonItem(sess *session.Session, charServerID uint32, it
 }
 
 // summonCount is how many of an item a spell summons when its words say no
-// number: three of a potion (an item with a use: jib, "a stack of 3" of a
+// number: three of a potion (an item with a use: a GM, "a stack of 3" of a
 // draught, a quickening or a sublimation, and of the thrown mixtures, "It
 // also should come in stacks of 3, not one", F3 20261026-014336) or of
 // anything else that stacks to three, one of anything else (the magician's

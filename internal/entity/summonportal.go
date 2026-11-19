@@ -27,7 +27,7 @@ import (
 // on the exact spot its owner stood on as it opened the portal (a travel:
 // gates.go, ring 0), a place a body stood on: not at the NPC's own feet, which
 // may be behind a wall the owner was facing, and whose body is solid, nor
-// round the spot (the GM Jibwiz's petition 1922: until 2026-11-13 arrivals
+// round the spot (a GM's petition 1922: until 2026-11-13 arrivals
 // landed a ring 3 out, as a Call of the Hero's, and next to a wall a ring's
 // place out under the sky was past it, outside the map).
 //
@@ -37,7 +37,7 @@ import (
 const (
 	PortalName = "Summoning Portal"
 	// PortalModel is the dark portal: npcs.modelid of Fuming Portal and 22
-	// other rows on eqoaclassic (2026-11-07), its edge (models.txt) 1.14, a
+	// other rows on the production server (2026-11-07), its edge (models.txt) 1.14, a
 	// man's 1.40
 	PortalModel int64 = 2012826467
 	// PortalAhead is how far in front of its owner it stands: the two bodies'

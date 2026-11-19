@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The shadow knight's Cursed Hand at level 4 (Smoke's Live petition 5005, 2026-11-13: "ok so Veil of death is level 4 and
+"""The shadow knight's Cursed Hand at level 4 (a player's Live petition 5005, 2026-11-13: "ok so Veil of death is level 4 and
 cursed hand is level 12!").
 
 Every source puts the two at 4 and 12: EQOA-Data's shadowknight.json (Cursed Hand 4, Veil of Death 12), questmasters'

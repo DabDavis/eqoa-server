@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The Toxxulia cave's thorns as the GM Jibwiz asked in petition 1960 (2026-11-13): "apply them to within 1 feet or
+"""The Toxxulia cave's thorns as a GM asked in petition 1960 (2026-11-13): "apply them to within 1 feet or
 inside of the thorns. Have them do 500 damage on a 6 second cool down per individual player. If 5 people walk into the
 thorn, all of them should take 500 damage and if they remain in it for 6 seconds THEN MOVE they take 500 again. However
 if they stay still it should not continuously damage them."

@@ -9,7 +9,7 @@ import (
 )
 
 // proc.go — a weapon proc: an effect that, while it lasts, gives its
-// bearer's melee hits a chance to do more (F3 20261025-165245, jib: the
+// bearer's melee hits a chance to do more (F3 20261025-165245, a GM: the
 // enchanter's line from Chaotic Flux "should add a buff that when meleeing
 // has a chance to proc damage. Proc rate is determined by a users
 // intelligence. Damage has no mod, but is AR resisted. This was castable on
@@ -34,7 +34,7 @@ import (
 // whole); a pet, which has no INT, as three a level (a level 60 pet's 180:
 // 43%). Until then ours, unmeasured: 3% and one more each 20 INT, at most 25%,
 // which a weapon's proc keeps, by DEX (weaponproc.go, petition 1360). A proc
-// that states its own chance keeps it. The rest not measured (Sandstorm's
+// that states its own chance keeps it. The rest not measured (the reference server's
 // recordings have no proc in them), so chosen:
 //   - a creature's resist (a proc's arcane, and every spell's, workbook.go):
 //     5% against a bearer of its own level, 1 more for each of the first 10
@@ -185,7 +185,7 @@ func (w *World) procTapLocked(p *Player, sess *session.Session, ae *ActiveEffect
 // procDebuffedMore is the percent more ae's proc does, its hit and its heal, at a hit on
 // npc: its ProcDebuffedPct when npc carries a lasting harmful spell of the bearer's (bearer:
 // its id), a debuff, a snare or a damage over time it put there; else none. Petition 1805
-// (Skywalker): the Undead Servant's lifetap, "a 80 lifetap proc that after the mob is
+// (a player): the Undead Servant's lifetap, "a 80 lifetap proc that after the mob is
 // debuffed, will often proc 160 instead".
 func procDebuffedMore(ae *ActiveEffect, npc *NPC, bearer EntityID, now time.Time) int {
 	if ae == nil || ae.Rules.ProcDebuffedPct <= 0 || npc == nil {
@@ -202,7 +202,7 @@ func procDebuffedMore(ae *ActiveEffect, npc *NPC, bearer EntityID, now time.Time
 // procHealLocked is a proc's heal of t (a life steal's, a heal proc's, a weapon's, a
 // spell proc's share for its bearer, a duel's): healLocked's, and when t is at its most
 // already the figure alone, green, so a proc's heal is always seen (the user, 2026-11-08:
-// "the heal proc should show green numbers for player": a healer kept Larrybird full, and
+// "the heal proc should show green numbers for player": a healer kept a player full, and
 // his Shroud of Death's heals showed nothing). A spell's heal on a full target still shows
 // none (healLocked). Must be called with the lock held.
 func (w *World) procHealLocked(caster *Player, casterSess *session.Session, t *Player, n int) {

@@ -66,7 +66,7 @@ def secret_like():
 
 class TuneBalance(unittest.TestCase):
     def setUp(self):
-        """The balance tables as eqoaclassic had them at 01:30 UTC 2026-10-30, the seeds of 2026-10-29."""
+        """The balance tables as the production server had them at 01:30 UTC 2026-10-30, the seeds of 2026-10-29."""
         self.dir = tempfile.TemporaryDirectory()
         self.db = os.path.join(self.dir.name, "t.db")
         db = sqlite3.connect(self.db)

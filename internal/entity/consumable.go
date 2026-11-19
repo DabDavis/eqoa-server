@@ -15,22 +15,22 @@ var (
 	ErrConsumeFighting = errors.New("in a fight")
 )
 
-// consumable.go — food and drink (F3 20261025-172627, jib's account of the
+// consumable.go — food and drink (F3 20261025-172627, a GM's account of the
 // live game): a grocer's food gives health over time and its drink power over
 // time, for about a minute, more for higher-level food and drink, and either
 // ends once its eater takes an aggressive action or is hit.
 //
-// Nothing here is measured but what Sandstorm showed of a use (lane-spellfx24,
+// Nothing here is measured but what the reference server showed of a use (lane-spellfx24,
 // 2026-10-30: Elven Wine, Spiced Jerky, mine rations): the item taken, the
 // player's own 0x00B1 of the eating-and-drinking visual (Consumed), the
 // effect on 0x43 with the heal-over-time icon, and a drink drunk mid-fight
 // (its owner's pet and a training dummy at it) giving its power on, +196 a
 // tick, through the 13 s recorded. So a drink is taken in a fight and a
-// fight does not end it; a meal keeps jib's rule (refused in a fight, ended
+// fight does not end it; a meal keeps a GM's rule (refused in a fight, ended
 // by one). The amount is the item's own HoT or PoT (itempattern, so a GM can
 // change it; tools/stock_grocers.py sets each to the item's level), added to
 // the six-second regen (regen.go) and so to the stat channel's HoT and PoT;
-// the time is jib's minute.
+// the time is a GM's minute.
 //
 // An item with a foodeffect row (database/foodeffect.go; EQOAEmu's workbook,
 // the import of 2026-11-01: "yes add the food too") lasts its row's time and
@@ -50,7 +50,7 @@ const (
 	DrinkEffectID = -1002
 )
 
-// ConsumableDuration is how long a meal or a drink lasts (jib: "about 1
+// ConsumableDuration is how long a meal or a drink lasts (a GM: "about 1
 // minute").
 const ConsumableDuration = time.Minute
 
@@ -119,7 +119,7 @@ func (c Consumable) effectID() int {
 // no player or a dead one (ErrConsumeNoPlayer) and a meal in a fight
 // (ErrConsumeFighting): auto-attack on, or a creature fighting it (its threat
 // on it, or it its enemy: linkdead.go's fightingLocked); a drink is taken in
-// a fight, as Sandstorm took one.
+// a fight, as the reference server took one.
 func (w *World) Consume(sess *session.Session, c Consumable, now time.Time) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -130,7 +130,7 @@ func (w *World) Consume(sess *session.Session, c Consumable, now time.Time) erro
 	// a meal or a drink is taken in a fight (the owner, 2026-11-13; petition
 	// 1919 had refused a meal in one), its first tick at once, and the fight
 	// ends a meal's heal over time at its next hit or aggressive act
-	// (consumableSystem: the GM Jibwiz's petition 1942, "you can eat food and
+	// (consumableSystem: a GM's petition 1942, "you can eat food and
 	// get the first tick instantly but the Heal over time would remove")
 	d := c.Duration
 	if d <= 0 {
@@ -172,16 +172,16 @@ func (w *World) endFoodOnCastLocked(p *Player) {
 	}
 }
 
-// foodRunsThroughFights keeps meals through a fight. False (the GM Jibwiz's
+// foodRunsThroughFights keeps meals through a fight. False (a GM's
 // petition 1942, 2026-11-13, which the owner took: "lets tackle jibs request
 // first"): a meal eaten in a fight or out of one ends at its eater's next hit
-// taken or aggressive act, a drink runs on, as Sandstorm's did.
+// taken or aggressive act, a drink runs on, as the reference server's did.
 var foodRunsThroughFights = false
 
 // consumableSystem ends a player's meal once it takes an aggressive action
 // or is hit after eating: auto-attack engaged, or a fight marked since
 // (LastCombatTime: its swing or harmful spell landing, a creature's or a
-// dummy's hit on it). A drink runs on through a fight (Sandstorm's did); a
+// dummy's hit on it). A drink runs on through a fight (the reference server's did); a
 // meal or a drink with a rule (FoodRule) ends so as its rule says. Every
 // tick; must be called with the lock held.
 func (w *World) consumableSystem(now time.Time) {
@@ -204,7 +204,7 @@ func (w *World) consumableSystem(now time.Time) {
 	}
 }
 
-// fxConsumed is the visual Sandstorm played on whoever ate or drank (Elven
+// fxConsumed is the visual the reference server played on whoever ate or drank (Elven
 // Wine, Spiced Jerky, mine rations): the player's own 0x00B1 at itself, cast
 // 0, in the moment the item was taken, to it and to those around, as a cast
 // is. The effect's own events (SPELLFX.CSF) play the cheer (SetAction 61,

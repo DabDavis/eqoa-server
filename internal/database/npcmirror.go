@@ -11,7 +11,7 @@ import (
 )
 
 // npcmirror.go — a GM's NPC row edits on one shard written to another shard's
-// database as well (the owner, 2026-11-14: "./copy should work for jib also on
+// database as well (the owner, 2026-11-14: "./copy should work for a GM also on
 // live server, also his placements and copies should show on heirloom also";
 // handlers/npcmirror.go says whose and which commands). Both shards' servers run
 // on one machine, so the shard that mirrors (the Live Server) opens the other's

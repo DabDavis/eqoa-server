@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// Area spells (area.go; jib's review, F3 pass 19), each rule beside its
+// Area spells (area.go; a GM's review, F3 pass 19), each rule beside its
 // control: the lines' reading, the radius, the centre on the target or on the
 // caster, the cap and the cast's 0x00B1, no player or pet hit, undead alone,
 // the water's edge, a GM's row, a group's heal, and each hit the caster's.
@@ -628,7 +628,7 @@ func equalInts(a, b []int) bool {
 	return true
 }
 
-// An area never pulls an idle raid boss: Hige's Goading Shout on the Metal
+// An area never pulls an idle raid boss: a player's Goading Shout on the Metal
 // Moogie beside Mr. Moogie took him in (the owner, 2026-11-13). Once he is
 // fighting, an area reaches him as any creature.
 func TestAnAreaPullsNoIdleRaidBoss(t *testing.T) {

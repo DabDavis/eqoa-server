@@ -78,7 +78,7 @@ func sentDump(t *testing.T, s *session.Session) []byte {
 	return d
 }
 
-// jib's F3 20261029-212855: a character whose client dropped lingers in the
+// A GM's F3 20261029-212855: a character whose client dropped lingers in the
 // world, and choosing it again from a new window of the account takes it
 // over at once, as it stands: the same Player with its hit points and power,
 // its effect and the time left of it, the creature fighting it and its
@@ -90,7 +90,7 @@ func sentDump(t *testing.T, s *session.Session) []byte {
 // one does here once the holder's session has ended and taken it out. The
 // takeover writes the row too (saveTakenOver), reading nothing back.
 func TestATakeoverKeepsTheCharacterAsItStands(t *testing.T) {
-	jib := &database.CharacterRecord{CharName: "Jibrish", AccountID: 7, Level: 60, Race: 3, TClass: 12,
+	jib := &database.CharacterRecord{CharName: "Jinkles", AccountID: 7, Level: 60, Race: 3, TClass: 12,
 		X: 15180.75, Y: 54.13, Z: 22745.81}
 	r := newTakeoverRig(t, jib)
 	first := r.window(7)

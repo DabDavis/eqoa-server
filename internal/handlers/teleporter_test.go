@@ -239,7 +239,7 @@ func TestTeleporterTrips(t *testing.T) {
 			r.pa.X, r.pa.Y, r.pa.Z, r.pa.Facing, tunar, r.pa.Tunar)
 	}
 
-	// the Plane of Sky (petition 1605, Jibrish): where he stood, for nothing
+	// the Plane of Sky (petition 1605): where he stood, for nothing
 	back()
 	got = pickPath(t, r, tp, "Plane of Sky")
 	if !hasMsg(got, "teleport") || r.pa.World != 4 || r.pa.X != 5000.09 || r.pa.Z != 4998.23 ||
@@ -447,7 +447,7 @@ func TestTeleporterWordsFit(t *testing.T) {
 	}
 }
 
-// A grouped player's trip is theirs alone (petition 1938, the GM Jibwiz: "it is individual"; petition
+// A grouped player's trip is theirs alone (petition 1938: "it is individual"; petition
 // 1408's group trip undone): a member standing by the Teleporter stays where they are, told nothing.
 func TestTeleporterTakesThePickerAlone(t *testing.T) {
 	r, _, tp := teleRig(t)

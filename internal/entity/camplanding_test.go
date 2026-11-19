@@ -147,7 +147,7 @@ func (lavaLake) Flags(world uint8, x, y, z float32) (uint32, bool) {
 	return 0, true
 }
 
-// A camp's landing is never in the lava nor over it (petition 1895, Itachi:
+// A camp's landing is never in the lava nor over it (petition 1895:
 // "Moots port should put you at base of stairs, not over lava"): with a lava
 // lake 40 under the terrain east of the camp, the side away from its middle,
 // it lands west of the lake. The control: with no lake it lands east.

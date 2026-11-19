@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// The buff window (buffwindow.go, the GM Jibrish's petition 1761).
+// The buff window (buffwindow.go, a GM's petition 1761).
 
 // bwLine is one line of a set as a client reads it.
 type bwLine struct {

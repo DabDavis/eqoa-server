@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Barks and roots that are vendor trash listed with the consumables (petition 1991, Zerkziee, 2026-11-13: "is kolbok
+"""Barks and roots that are vendor trash listed with the consumables (petition 1991, 2026-11-13: "is kolbok
 root and kolbok bark supposed to stack in consumables? Its not consumable this is from the kobold instance").
 
 What lists an item with the usable items is its record's item type (itempattern.procanim, CLIENT's VIItem +0x4C):

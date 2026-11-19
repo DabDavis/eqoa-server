@@ -16,7 +16,7 @@ import (
 // charm.go — the charms: the enchanter's (the Entrancing lines and their
 // short versions, Binding Grasp), the bard's Entrancing Song, the druid's
 // animal charms and the necromancer's undead ones: a creature made the
-// caster's pet (F3 20261025-164922, jib: "It should check if you currently
+// caster's pet (F3 20261025-164922, a GM: "It should check if you currently
 // have a pet. If you do, it should block your spellcast and do the fizzle
 // spell animation briefly. If you do not, it should check the mobs level
 // against the charms maximum level ... When charm hits, it should roll a
@@ -25,7 +25,7 @@ import (
 // existing stats. All pet stances should work as normal, pet attack ... When
 // the charm pet dies, it should not drop its loot.").
 //
-// What Sandstorm sent (harvests/sandstorm-spells-20261021/pets/, an
+// What the reference server sent (harvests/sandstorm-spells-20261021/pets/, an
 // enchanter of 49's Entrancing Captivation; claude-notes/pets-charm-client-
 // 20261021.md): on a charm, 0x007E with the creature's OWN id and 0x1003
 // putting its name on the non-collide list, as a summoned pet's; the
@@ -39,18 +39,18 @@ import (
 //
 //   - refused at its start, no power taken, no lockout: with a charmed
 //     creature out, before its target is looked at, "You already have a
-//     pet." in red and nothing else, as Sandstorm refuses any cast (one red
+//     pet." in red and nothing else, as the reference server refuses any cast (one red
 //     line: claude-notes/casting-sandstorm-20261021.md), the words the game's
 //     own "You do not have a pet." (WORDS.TXT 1021) turned round (until F3
-//     20261029-082049, jib: "Charm line should not be castable while you
+//     20261029-082049, a GM: "Charm line should not be castable while you
 //     currently have a pet", it also showed a brief cast). A summoned pet out
-//     is no refusal since petition 1348 (Battaryhog: "when tring to charm a
+//     is no refusal since petition 1348 ("when tring to charm a
 //     pet with binding grasp, if i alrdy got swarming blades out tanking it
 //     to charm, i get red message saying already got a pet"): the charm is
 //     cast while the summoned pet holds the creature, and when it takes hold
 //     the summoned pet goes (charmLandLocked: 0x007F, its non-collide entry
 //     off, charmPetLeaves), so there is never a spell pet and a charmed one at
-//     once (petition 1351, Jibrish: "Dont make it so they can summon their
+//     once (petition 1351: "Dont make it so they can summon their
 //     spell pet and charm at the same time"); a charm resisted leaves it
 //     there. Refused too at a
 //     creature of a name npccharm makes uncharmable, "Your target cannot be
@@ -75,7 +75,7 @@ import (
 //     it is 100. Undead are charmed as anything else (the Charmable Mobs
 //     page's enchanters charm spectres, spirits, lost souls, ghouls and dead
 //     riders; until 2026-11-02 every charm but the necromancer's failed on
-//     them, from one charm Sandstorm saw resisted on a Rotting Flesh). The
+//     them, from one charm the reference server saw resisted on a Rotting Flesh). The
 //     necromancer's undead charms (Charm, Command, Control, Coerce and
 //     Dominate Undead) are still refused at anything not undead (undead.go),
 //     the druid's at anything not an animal (workbookmore.go). Resisted, it
@@ -106,7 +106,7 @@ import (
 //     zone-name grid, the ground files' zones). The grace decides only where
 //     a released creature ends up; it breaks no charm. One that dies as a pet
 //     leaves a corpse no one may loot (OpenCorpse) and comes back itself.
-//   - the check (charmOutOfReach; jibrish, 2026-11-16, petition 2233: "its
+//   - the check (charmOutOfReach; a GM, 2026-11-16, petition 2233: "its
 //     an absolute distance check from player location to pet"): every tick,
 //     whatever it is doing, a charmed creature farther than charmRunRange
 //     (4,920: the Isle of Dread's middle to Klik'Anon's, plus 10%) from its
@@ -114,7 +114,7 @@ import (
 //     charm spell has worn off." (petSystem; the Kerran's side animal and a
 //     merc's charmed pet the same, measured from the player). On foot it
 //     follows, so the check never trips.
-//   - the run (jibrish: "It should run to the enchanter at max sow speed in
+//   - the run (a GM: "It should run to the enchanter at max sow speed in
 //     a straight line and then when it hits a zone wall run through it"):
 //     no trip breaks or carries a charm, a coach, a harbor's boat, a
 //     waysender, Return Home, a gate or a rez alike. Inside charmRunRange,
@@ -136,7 +136,7 @@ type charmHold struct {
 }
 
 const (
-	// charmNPCType is a charmed creature's npc flags: Sandstorm's charmed
+	// charmNPCType is a charmed creature's npc flags: the reference server's charmed
 	// ant's 0x80 (0x8000 on the wire, statesync's swap).
 	charmNPCType = 0x80
 	// charmFizzle is the brief cast a refusal that fizzles shows: an
@@ -144,7 +144,7 @@ const (
 	// back (resurrect.go). A charm refused shows none.
 	charmFizzle = 600 * time.Millisecond
 	// charmResistBase is a creature's chance in percent to resist a charm
-	// (ours: jib's "Generally charm has a high success rate"; the Charming
+	// (ours: a GM's "Generally charm has a high success rate"; the Charming
 	// page's 46/47 rhinos "ALWAYS ... on the first try ... Even with base
 	// cha"), charmResistFloor the least the arcane debuffs take it to.
 	charmResistBase  = 10
@@ -158,7 +158,7 @@ const (
 	// charmRunRange is the farthest a charmed creature may be from its master
 	// (the player) and keep its charm, checked every tick: the Isle of Dread
 	// zone's middle (25000, 3000) to Klik'Anon's (23000, 7000), 4472.1, plus
-	// 10% (jibrish, 2026-11-16), rounded up.
+	// 10% (2026-11-16), rounded up.
 	charmRunRange float32 = 4920
 )
 
@@ -177,7 +177,7 @@ const (
 	charmCannot   = "Your target cannot be charmed." // ours: the live game's pop-up is not recorded
 	charmTooHigh  = "Your target is too high a level to charm."
 	charmTooLow   = "Your target is too low a level for this charm." // ours: a charm with a lowest level (CharmMin)
-	charmResisted = "Attempt resisted!"                              // Sandstorm's
+	charmResisted = "Attempt resisted!"                              // the reference server's
 	charmWornOff  = "Your charm spell has worn off."
 	// charmPetLeaves follows a summoned pet's name when it goes as a charm
 	// takes hold (petition 1348; ours)
@@ -301,7 +301,7 @@ func (w *World) charmLandLocked(cs *castState, caster *Player, sess *session.Ses
 		}
 		caster.LastCombatTime = now
 		// hate enough to make the caster its enemy (none counts as none),
-		// as Sandstorm's resisting Rotting Flesh came at its caster
+		// as the reference server's resisting Rotting Flesh came at its caster
 		w.updateAggro(npc, caster.ServerID, 1)
 		log.Printf("Charm: %s's %q resisted by %s (%d%%)", caster.Name, cs.spell.Name, npc.Name, resist)
 		return
@@ -445,7 +445,7 @@ func (w *World) releaseCharmLocked(ps *petState, sess *session.Session, text str
 		}
 	}
 	if npc.Dead {
-		// its death ends the charm at once (the owner, 2026-11-14: "jib has
+		// its death ends the charm at once (the owner, 2026-11-14: "a GM has
 		// charmed 2 dead crocodiles and they stayed charmed"): until then a
 		// dead one kept its hold, its owner and the charmed flags until it came
 		// back, so its corpse lay as its master's charmed pet on every client.

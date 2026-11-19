@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""The quests jib's quest walk of 2026-10-30 could not finish, put right in the data (the walk: every
-quest in the game taken, walked and handed in by the headless client on a copy of eqoaclassic, 1,335
+"""The quests a GM's quest walk of 2026-10-30 could not finish, put right in the data (the walk: every
+quest in the game taken, walked and handed in by the headless client on a copy of the production server, 1,335
 of 1,386 passing for some character).
 
 **Hand-ins only another quest gives** (REQUIRES). A give or show step's item that neither the quest
@@ -32,7 +32,7 @@ no one into a city that attacks it.
 
 **A quest's NPC a GM deleted** (NPCS). A step's or a giver's NPC no npcs row names, which the GM
 panel's delete took (gm_audit, not reverted), is put back as it stood (its id, every column of the
-audit's before) with an audit line of its own marking the delete reverted, as the user had funyun's
+audit's before) with an audit line of its own marking the delete reverted, as the user had [a GM]'s
 three Neriak quest NPCs restored on 2026-10-30: the Stranger (quest 101230's step 3, placed by
 tools/seed_quest_npcs.py's set qd at the top of the ramp into Neriak).
 

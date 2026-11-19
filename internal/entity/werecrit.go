@@ -10,7 +10,7 @@ import (
 )
 
 // werecrit.go — the weres' critical hit and its infection (work 1461, the GM
-// Jibrish's of 2026-11-14 after checking the live game's rates).
+// a GM's of 2026-11-14 after checking the live game's rates).
 //
 // Every hostile were of the five lines (WereLine: wolfwere or werewolf, bearwere
 // or werebear, wererat or ratwere, lionwere or werelion, gatorwere or weregator,
@@ -31,7 +31,7 @@ import (
 // a leash, another target, a player zoning or logging out leave it; only a death
 // and a new spawn (respawnNPCLocked) make it ready again at once. A restart
 // that keeps the sessions carries it with the creature (keepnpc.go). The crit it
-// rides plays Disease Cloud's visual (spell 875's, Sandstorm's recorded cast,
+// rides plays Disease Cloud's visual (spell 875's, the reference server's recorded cast,
 // 0x052EF90F: a green cloud) in place of the special's, roll or none, and hits
 // for the crit's damage; on a player that stands after it, one roll in ten
 // thousand against wereInfectPer10000 of the con the were shows that player at

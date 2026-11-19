@@ -49,7 +49,7 @@ import (
 //   - abilities, a JSON list of TemplateAbility as classtemplates has them,
 //     its spells pinned by spell_id: what it casts, in place of its pet
 //     template's abilities (keep_template 1: those as well);
-//   - size: its scale (0: its body's wearers', within a person's; Waldorf's
+//   - size: its scale (0: its body's wearers', within a person's; a player's
 //     petition 1283, 2026-11-08: "Ghilan Noble MCA for hydromancer is about a
 //     third of the size she should be", a body no NPC wears, so 1);
 //   - note; source eqoaemu (the tool's rows) or gm.
@@ -122,7 +122,7 @@ var PetStances = []string{"passive", "defensive", "neutral", "aggressive"}
 
 // PetWeaponTypes are a pet weapon's kinds, and the one-handed attack type
 // each is to CLIENT (the hands' attack types on the channel: 1 a one-handed
-// slash, 3 a blunt, 5 a pierce; Sandstorm's recorded Fire Elemental's hands
+// slash, 3 a blunt, 5 a pierce; the reference server's recorded Fire Elemental's hands
 // were 1 and 5, the workbook's slash and pierce).
 var PetWeaponTypes = map[string]byte{"slash": 1, "blunt": 3, "pierce": 5,
 	// two-handed (CLIENT's attack types 2, 4, 6: its swing the two-handed one;

@@ -11,7 +11,7 @@ import "time"
 // ~1,050, 105% for a tank) and a pet's margin at his level (pettauntmargin.go: 1,200 at 60, or 10%
 // of the top). Early in a fight, or on anything that is not a raid boss with 100k of hate on it,
 // that margin is one to three seconds of a damage dealer's hate: on Heirloom on 2026-11-17 Lord
-// Nagafen's fight had Potsgoboom's spells at ~1,100 a second and the tank Cardile's damage at
+// Nagafen's fight had Potsgoboom's spells at ~1,100 a second and a tank's damage at
 // ~500 a second, Goad every 6 s (its recast 5 s); a heal is its whole figure's hate on every
 // creature fighting the one healed (aggro.go healHateLocked). So the creature turned to the
 // damage dealer or the healer a moment after each taunt and back at the next.

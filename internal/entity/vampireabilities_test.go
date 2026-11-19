@@ -381,7 +381,7 @@ func (g sanctuaryRock) Floor(_ uint8, x, y, z float32) (float32, bool) {
 	return g.outside, y+2 >= g.outside
 }
 
-// Sanctuary's gate lands where Sandstorm's spell does, at its place under
+// Sanctuary's gate lands where the reference server's spell does, at its place under
 // the rock: a gate's search looks for open sky round its place within 12 of
 // its floor and, finding none (open ground 20 below the chamber's floor, as
 // round the rock where the Sanctuary's NPCs stood), lands on the place

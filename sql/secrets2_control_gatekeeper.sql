@@ -10,7 +10,7 @@
 --                           exonerated without shipping anything
 --   world 7 is fine      -> the mc: path or index 8 specifically is implicated
 --
--- Why 7 is the right index to borrow. Sandstorm's own table entry 7 (`secrets2`)
+-- Why 7 is the right index to borrow. The reference server's own table entry 7 (`secrets2`)
 -- is a VERBATIM duplicate of entry 5 (`secrets`) — same path, same id 0x06F8,
 -- same extents — so it is a disc world at a high index that needs no patch of
 -- ours, and it sits inside the bound our SD already raised from 6 to 9.

@@ -152,7 +152,7 @@ func TestAPetsCorpseIsNotLootable(t *testing.T) {
 }
 
 // The attack button on a corpse (CLIENT's ToggleAutoAttack, 0x0015 with its
-// id) opens it, as Sandstorm answers it (F3 20261026-042112: a creature shown
+// id) opens it, as the reference server answers it (F3 20261026-042112: a creature shown
 // as attackable could not be looted at all); a creature alive is no corpse
 // (0x0085 2), and one out of reach is refused in red, nothing opened.
 func TestTheAttackButtonOpensACorpse(t *testing.T) {
@@ -188,7 +188,7 @@ func TestTheAttackButtonOpensACorpse(t *testing.T) {
 	mustOps(t, f.sent(), protocol.OpcodeLoot)
 }
 
-// A corpse's coins go to its first opener at once, as Sandstorm's did (a
+// A corpse's coins go to its first opener at once, as the reference server's did (a
 // level 2 Orc Pawn's 2: 0x0052 with the purse, "You receive 2 tunar from the
 // corpse.", then its items), kept; opened again it holds only its items. The
 // roll is the creature's level to twice it; a pet's corpse carries none.

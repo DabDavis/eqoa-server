@@ -93,7 +93,7 @@ import (
 // session is consulted.
 
 const (
-	auctionPageSize   = 20 // a page of lots: Sandstorm's (15 pages of 20, newest first)
+	auctionPageSize   = 20 // a page of lots: the reference server's (15 pages of 20, newest first)
 	auctionDumpLots   = 20 // the MemoryDump's m_lots, newest first
 	auctionDumpBids   = 40 // and m_bids
 	auctionIDsAsked   = 100
@@ -771,7 +771,7 @@ func (q *auctionQuery) matches(l *database.AuctionLot) bool {
 		// a search by class is for what the class can use: an item nothing
 		// wears and every class may hold (a gem, a crafting material) is
 		// left out of it; a class's own spell scroll still shows (petition
-		// 2136, Zerkziee: "it lists gems as well")
+		// 2136, a player: "it lists gems as well")
 		return false
 	}
 	races := uint32(raceUseForWire(p.RaceUse))

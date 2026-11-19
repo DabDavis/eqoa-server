@@ -16,7 +16,7 @@ import (
 // corpse goes when its window closes with its own items AND every
 // character's drops gone, else when it decays. A drop ahead of its step
 // (questpreloot.go) keeps no corpse: it is there to take while the corpse
-// lies, and goes with it (Live petition 5118, Waldorf, 2026-11-14: ant
+// lies, and goes with it (Live petition 5118, 2026-11-14: ant
 // soldiers by Klick lay on, empty to him, holding Ant Chitin his other
 // characters could have the quest for: "could have a lot of dead wildlife
 // just waiting to despawn holding up other people").
@@ -25,7 +25,7 @@ import (
 // character's: it lies on every view of the corpse, after the corpse's own
 // items and before the viewer's own drops, and whoever may open the corpse
 // (lootrights.go: its kill group, then anyone once it unlocks) takes it. The
-// tokens of every credited character's roll stack there together (jibrish,
+// tokens of every credited character's roll stack there together (a GM,
 // 2026-11-16: "lootable by anyone with kill credit, not a specific player. This
 // is crushing multiboxers": each window had to open the corpse for its own).
 

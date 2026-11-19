@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Petition 1623 (the GM Jibrish): from his rising Metal Moogie is held for MetalCountdown seconds, the
+// Petition 1623: from his rising Metal Moogie is held for MetalCountdown seconds, the
 // challenger told "Fight starts in 5", "4", "3", "2", "1" a second apart on the world's tick, then
 // "FIGHT!", at which he goes for the challenger. During the count no one hurts him: the challenger's
 // swing is not engaged (told to wait), her hit, nuke, area and pet land nothing, Bert is refused as

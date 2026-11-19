@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// metalmoogie.go — Metal Moogie, Mr. Moogie's challenge (the GM Jibrish's petition 1379, by Jibcro:
+// metalmoogie.go — Metal Moogie, Mr. Moogie's challenge (a GM's petition 1379, by a GM:
 // "Add another dialogue option to mr. moogie ... "I'd like to prove my worth" / If someone clicks
 // this it summons a metallic version of mr. moogie called Metal Moogie ... Moogie will only spawn one
 // of these at a time. It locks the player into a duel with metal moogie. No other players can hit it
@@ -27,7 +27,7 @@ import (
 // Mr. Moogie asked (the data puts it beside him), else MetalRiseOut from Mr. Moogie toward the
 // challenger, on the ground's floor there, facing the challenger.
 //
-// The fight starts after a countdown (the GM Jibrish's petition 1623: "when moogie spawns, he should be
+// The fight starts after a countdown (a GM's petition 1623: "when moogie spawns, he should be
 // immune for 5 seconds. A count down should start in the chat saying "Fight starts in 5" "4" etc. On
 // "FIGHT" metal moogie should attack the challenger with the same duel mechanics"): for MetalCountdown
 // seconds from his rising he is held (npcChallenge.held): no one, the challenger and its pet included,
@@ -63,7 +63,7 @@ import (
 //     (halfway between where he rose and where the challenger stood); after MetalMaxTime; at the
 //     challenger's logout or a new login: he leaves the world, the challenger told why.
 //
-// Metal Moogie V2 (the GM Jibrish's petition 1441: "if a player has a token from defeating metal moogie
+// Metal Moogie V2 (a GM's petition 1441: "if a player has a token from defeating metal moogie
 // that can instead choose to use it to summon Metal Moogie V2 who is 20% bigger and has all his stats
 // and damaged tuned upward by 10%") is the same challenge of another original, the spawn-only NPC of his
 // name, asked of Mr. Moogie with a Moogie Tribute (handlers' moogie.go takes it once he stands): every
@@ -73,7 +73,7 @@ import (
 // does (the data's: one Moogie Tribute, as his).
 
 // MetalMoogieName is his name: the spawn-only NPC of it is the original copied; MetalMoogieV2Name his
-// remade twin's (petition 1441); V3 to V5 the chain past him (work board #688, the GM Jibrish's: each a
+// remade twin's (petition 1441); V3 to V5 the chain past him (work board #688, a GM's: each a
 // duel of V2's rules, risen for the last one's part), and MoogieGearlingName the adds V4 and V5 call.
 const (
 	MetalMoogieName    = "Metal Moogie"
@@ -159,7 +159,7 @@ const (
 	MetalLineFled    = "You fled the duel. Metal Moogie returns to Mr. Moogie's side."
 	MetalLineTime    = "The duel has gone on too long. Metal Moogie returns to Mr. Moogie's side."
 	MetalLineLoot    = "Metal Moogie's tribute is %s's alone."
-	// the countdown (petition 1623, Jibrish's words): the first line, each second after it, the start
+	// the countdown (petition 1623, a GM's words): the first line, each second after it, the start
 	MetalLineCount  = "Fight starts in %d"
 	MetalLineCountN = "%d"
 	MetalLineFight  = "FIGHT!"
@@ -369,7 +369,7 @@ func (w *World) metalDuelOfLocked(id EntityID) bool {
 }
 
 // metalSparesLocked reports whether an area of player id's (or its pet's) must leave npc out: Mr.
-// Moogie, while id duels his Metal Moogie (the GM Jibrish's petition 1619: a challenger's pet splashed
+// Moogie, while id duels his Metal Moogie (a GM's petition 1619: a challenger's pet splashed
 // Mr. Moogie, standing beside his twin, and he killed it). Must be called with the lock held.
 func (w *World) metalSparesLocked(npc *NPC, id EntityID) bool {
 	return npc != nil && w.metalDuelOfLocked(id) && strings.EqualFold(strings.TrimSpace(npc.Name), MoogieName)
@@ -625,7 +625,7 @@ const (
 
 // GiveDuelistsFavor lands spell, Mr. Moogie's favor, on the session's player as LandOnSelf does (its
 // visual to those round it, its effect for its time), kept (Rules.Kept: it ends only at its time or a
-// death, as Jibcro's "lasts for 1 hour or until death"). False with no living player, or when the spell
+// death, as a GM's "lasts for 1 hour or until death"). False with no living player, or when the spell
 // leaves nothing lasting on it.
 func (w *World) GiveDuelistsFavor(sess *session.Session, spell CastSpell, now time.Time) bool {
 	w.mu.Lock()

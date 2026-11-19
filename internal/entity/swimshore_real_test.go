@@ -63,7 +63,7 @@ func underGround(w *World, npc *NPC) bool {
 	return over
 }
 
-// Petition 1500 (Jibrish): "Players are able to run monsters into the water,
+// Petition 1500: "Players are able to run monsters into the water,
 // swim down, then run quickly on land and the mobs can end up underneath the
 // world floor, unable to hit the player." On the real ground and water of
 // Tunaria about Freeport's harbour: a creature of the land swimming in deep

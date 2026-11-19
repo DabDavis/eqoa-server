@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// Petition 2213 (Drizzt, 2026-11-16): "mercenaries drop group after a reset.
+// Petition 2213 (2026-11-16): "mercenaries drop group after a reset.
 // seemingly still with me but dont help." The keep restart at 01:52:45 put
 // his cleric Talanus back (grouped true) and formed a new group of the two of
 // them (86, it had been 84) after the players' groups; his client froze
@@ -159,7 +159,7 @@ func TestMercKeepRestartKeepsItsGroupPlace(t *testing.T) {
 }
 
 // A group of its owner and its merc alone is kept under its id (it was formed
-// anew under the next until 2026-11-16: Drizzt's 80, 84, 86), and again
+// anew under the next until 2026-11-16: a player's 80, 84, 86), and again
 // through a second restart.
 func TestMercKeepRestartKeepsTheOwnersGroupOfMercs(t *testing.T) {
 	r := newMercRig(t)

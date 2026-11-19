@@ -7,7 +7,7 @@ import (
 )
 
 // creatureroot.go — a creature's root on the player it fights (database.AbilityRoot on a class template:
-// work board #688, the GM Jibrish's Moogie Gearling, "a root ... pinned to spell 460 "Root" for its look").
+// work board #688, a GM's Moogie Gearling, "a root ... pinned to spell 460 "Root" for its look").
 // Until then a template's root was a pet's alone (pettemplate.go's petOnly).
 //
 // It is cast as the creature's other harmful casts are (classtemplate.go's templateTurnLocked: on its own
@@ -19,7 +19,7 @@ import (
 // harmful effect), and the end of a metal duel ends a duel's creature's (metalv5.go); a logout drops it, a
 // strip leaves it on (it is harm), and a second one lands in its place (a recast, whole again).
 
-// CreatureRootHold is how long a creature's root holds a player (the GM Jibrish's 6 s).
+// CreatureRootHold is how long a creature's root holds a player (a GM's 6 s).
 const CreatureRootHold = 6 * time.Second
 
 // creatureRootLine is the player's line as it lands (ours).

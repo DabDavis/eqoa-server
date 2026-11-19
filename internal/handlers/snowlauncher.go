@@ -11,7 +11,7 @@ import (
 )
 
 // snowlauncher.go — the Automatic Snowball Launcher (the owner, 2026-11-16:
-// "lets give zerkziee an automatic snowball launcher, infinite ammo"; what it
+// "lets give [a player] an automatic snowball launcher, infinite ammo"; what it
 // does is entity/snowlauncher.go's).
 //
 // The launcher is an item record of this name (tools/snowball_launcher_20261116.py:

@@ -84,7 +84,7 @@ func TestConsumeAddsToTheRegen(t *testing.T) {
 	if p.HoTNow() != 20+49 || len(p.Effects) != 2 {
 		t.Errorf("after the refusals: HoT %d, %d effects", p.HoTNow(), len(p.Effects))
 	}
-	// but a drink in a fight, as Sandstorm took Elven Wine mid-fight
+	// but a drink in a fight, as the reference server took Elven Wine mid-fight
 	p.AttackTarget, p.HP = 2002, 500
 	if err := w.Consume(sess, Consumable{Drink: true, Name: "Elven Wine", Amount: 5}, now); err != nil {
 		t.Errorf("a drink in a fight: %v, want it drunk", err)
@@ -94,9 +94,9 @@ func TestConsumeAddsToTheRegen(t *testing.T) {
 	}
 }
 
-// Eating or drinking plays Sandstorm's visual on the player: its own 0x00B1
+// Eating or drinking plays the reference server's visual on the player: its own 0x00B1
 // at itself, cast 0, 0xCF84F260 (the cheer, its sound and particles), in
-// Sandstorm's bytes with this player's id. The control: a dead player's
+// the reference server's bytes with this player's id. The control: a dead player's
 // plays nothing.
 func TestConsumedPlaysTheCheer(t *testing.T) {
 	w, sess, p, _ := newEater(t)
@@ -136,7 +136,7 @@ func TestConsumableLastsAMinute(t *testing.T) {
 
 // A meal ends once its eater engages, lands a blow or a harmful spell, or is
 // hit, after eating (LastCombatTime moves past the meal); a drink runs on
-// through it (Sandstorm's Elven Wine gave its power through its owner's
+// through it (the reference server's Elven Wine gave its power through its owner's
 // fight). The control: a fight that ended before the meal leaves it on.
 func TestConsumableEndsInAFight(t *testing.T) {
 	// the fight-ending rule, switched off since 2026-11-13 (foodRunsThroughFights)
@@ -374,7 +374,7 @@ func TestConsumeMealTakenWhileFought(t *testing.T) {
 }
 
 // A meal eaten in a fight gives its first tick at once and ends at its
-// eater's next hit taken or aggressive act (the GM Jibwiz's petition 1942).
+// eater's next hit taken or aggressive act (a GM's petition 1942).
 func TestAMealInAFightTicksOnceThenEnds(t *testing.T) {
 	w, sess, p, now := newEater(t)
 	p.AttackTarget = 2002

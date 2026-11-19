@@ -19,7 +19,7 @@ package handlers
 // quick-chat set 91, its line "|23": quick command 23, DoAction 0x0B0E0003) is
 // no chat line: CLIENT sends the bare opcode 0x00C8 (the user, 2026-10-30: "the
 // L2 menu roll is not working but the /roll is"). Both roll 0 to 100 (petition
-// 1107, the GM Jibrish, 2026-11-06: "/roll should work the same as
+// 1107, a GM, 2026-11-06: "/roll should work the same as
 // community/group/roll in the menu. Minimum roll 0, max roll 100"; until then
 // /roll was 1 to 100 and the menu's 0 to 99).
 
@@ -50,7 +50,7 @@ const (
 // shouts (green) and the server's red.
 var rollRGB = [3]uint8{0xFF, 0xD7, 0x40}
 
-// The Rolling Dice (petition 1104, Koolade: "rolling dice should be in the
+// The Rolling Dice (petition 1104: "rolling dice should be in the
 // first/magic column and be able to be preppared to the hotbar. when doing so and
 // targeting yourself, it rolls in orange text in the say chat channel for public
 // rollings for all nearby players to see, outside of the normal group only roll
@@ -159,7 +159,7 @@ func (h *ChatHandler) rollIn(sess *session.Session, player *entity.Player, lo, h
 
 // rollHearers is who hears player's roll: everyone in say range, the roller too, and in a
 // raid every member of it in the world, wherever it stands, dead or alive (the owner,
-// 2026-11-18: "rolls from players are not showing for the whole raid"; Ronin's /random at
+// 2026-11-18: "rolls from players are not showing for the whole raid"; a player's /random at
 // 02:10:24 UTC reached 8 players while the rest of his raid stood at their binds). A
 // plain group's roll stays its say range's.
 func (h *ChatHandler) rollHearers(sess *session.Session, player *entity.Player) []hearer {

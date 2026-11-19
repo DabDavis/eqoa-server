@@ -13,7 +13,7 @@ func TestPetDyes(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { db.Close() })
-	who := GMEdit{Username: "zerkziee", Via: "game"}
+	who := GMEdit{Username: "zorbaxes", Via: "game"}
 	const look, other = 0x15764DA8, 0x9CF72381
 	if _, a, err := db.SetPetDye(747, look, 0, 0xD10000FF, who, "the Pet Groomer"); err != nil || a == 0 {
 		t.Fatalf("area 1: audit %d, %v", a, err)

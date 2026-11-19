@@ -8,7 +8,7 @@ import (
 )
 
 // itemowner.go — records one character alone may wear (database/itemowner.go;
-// the owner, 2026-11-16, Drizzt's scale mail: "that he alone can wear drizzt
+// the owner, 2026-11-16, a player's scale mail: "that he alone can wear [a player]
 // only"). cannotWear asks itemOwnerOf before the class, race and level gates.
 
 // itemNotYours is the refusal, in the gates' red (mayWear).

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """tools/refit_eqoaemu_followup.py against tools/tune_pets_test.py's made-up database at the state the 10:20 re-fit
-leaves (the four tunings, then tools/refit_eqoaemu_balance.py, as eqoaclassic had them when the follow-up went in):
+leaves (the four tunings, then tools/refit_eqoaemu_balance.py, as the production server had them when the follow-up went in):
 each span's rows become the follow-up's exactly (rows changed, added and taken out), every row outside the spans and
 every other table as they were; a second --apply changes nothing; --undo gives back every table exactly and drops the
 log; a GM's row is left (and said); nothing is done before the 10:20 re-fit; a table made new (the seeds) is left as

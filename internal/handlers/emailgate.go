@@ -74,7 +74,7 @@ func (e *EmailGate) Entered(sess *session.Session, _ *entity.Player) {
 	}
 	now := e.now()
 	id := sess.AccountID()
-	// once a login (Jibrish, petition 2282, the owner's choice 2026-11-17: "no more
+	// once a login (petition 2282, the owner's choice 2026-11-17: "no more
 	// than once per login"): a later world entry of the same session says nothing
 	e.mu.Lock()
 	_, told := e.last[sess]
@@ -122,7 +122,7 @@ func (e *EmailGate) Remind() int {
 			e.last[sess] = now
 			e.mu.Unlock()
 		}
-		// once a login, never on a timer (Jibrish, petition 5281: "This should
+		// once a login, never on a timer (petition 5281: "This should
 		// ONLY happen on character login, once per login"): a session told at
 		// its world entry is not told again
 		return true

@@ -29,8 +29,8 @@ const (
 	// end and failed its CRC, and so did every copy the client sent again: a bug
 	// report long enough to go over it with its note was never filed, and the
 	// next message's acknowledgment told the client it had been, so Support said
-	// "Sending message" for good (jib, 2026-11-06; 54 "invalid packet CRC" lines
-	// in four seconds on Jibmage's connection at 23:33 UTC).
+	// "Sending message" for good (a GM, 2026-11-06; 54 "invalid packet CRC" lines
+	// in four seconds on a GM's connection at 23:33 UTC).
 	MaxReceiveSize = 2048
 	// ReadBufferSize is the UDP socket read buffer size.
 	ReadBufferSize = 1024 * 1024
@@ -439,7 +439,7 @@ func (l *Listener) handlePacket(data []byte, addr *net.UDPAddr, turn *packetTurn
 
 			// The character pick promotes the session, which clears the queue and
 			// restarts the sequence space. Acknowledge the pick on the LOBBY
-			// connection first, as Sandstorm does (pcaps/ps2_sandstorm.pcap: the
+			// connection first, as the reference server does (pcaps/ps2_sandstorm.pcap: the
 			// PS2 answers the promotion with a reset of its lobby connection
 			// 15 ms later). Unacknowledged, the client's lobby connection never
 			// gets in sync, so CLIENT's connection_close leaves it alive, and it
@@ -1018,7 +1018,7 @@ func (l *Listener) processClientUpdate(sess *session.Session, msg *protocol.Mess
 	// Session.ConsumeWorldLoadPending.
 	// A report of the world it left, sent before the client had the teleport
 	// (it sends none while it loads), is not its arrival (petition 1748: the
-	// GM Jibrish's #goto from Odus to Freeport, taken as a restart's session
+	// GM a GM's #goto from Odus to Freeport, taken as a restart's session
 	// came back, took the stale report from Odus as the load done, lifted the
 	// hold and sent Freeport's scene into the load, and stood him at Odus's
 	// spot in Tunaria): while the hold lasts it neither ends the load nor

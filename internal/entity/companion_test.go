@@ -7,7 +7,7 @@ import (
 
 // The owner's report of 2026-11-09 ("the mobs that have pets dont protect them
 // or attack they are treated as not pets"), against a dshinn necromancer and its
-// spectral minion 1.4 off it, as eqoaclassic's rows stand: a griffawn 2.5 off,
+// spectral minion 1.4 off it, as the production server's rows stand: a griffawn 2.5 off,
 // no pet, is the control in every part, and a merchant (the NPC bit) at 0.5
 // is never an owner.
 func companionWorld(t *testing.T) (w *World, owner, pet, other *NPC, p *Player) {
@@ -133,7 +133,7 @@ func TestWhoIsACreaturesPet(t *testing.T) {
 
 // The owner, 2026-11-11: "there are many pets not connected to their master".
 // A creature that wanders takes its pet with it (a hobgoblin oracle and its
-// Companion Spirit 1.5 off it, as Sandstorm's census saw the oracles walk):
+// Companion Spirit 1.5 off it, as the reference server's census saw the oracles walk):
 // the pet does not wander of itself, keeps within reach of its owner the
 // whole walk, and stands beside it at each rest; a pet in a fight stays in it.
 func TestACreaturesPetWalksWithIt(t *testing.T) {
@@ -173,7 +173,7 @@ func TestACreaturesPetWalksWithIt(t *testing.T) {
 	}
 }
 
-// The pets the log counted with no owner (2026-11-11, eqoaclassic's rows):
+// The pets the log counted with no owner (2026-11-11, the production server's rows):
 // a servant names its owner by a word of its name, punctuation aside ("Servant
 // of Vorin" by High Priest Vorin 31.8 off, "Servant of Tal Thir" by Tal'Thir
 // 36.2 off, "maiden's servant" by the Dawn Maiden 5.8 off), and a kind a pet's
@@ -216,7 +216,7 @@ func TestAPetsNameFindsItsOwner(t *testing.T) {
 	}
 }
 
-// Petition 1832 (Waldorf, 2026-11-12): "Same with the Necs and their pets". Guk's Mummified Guardian is a
+// Petition 1832 (2026-11-12): "Same with the Necs and their pets". Guk's Mummified Guardian is a
 // necromancer's though its name says no pet: it finds the necromancer 6.8 off (the rows' 166145) over a wizard
 // 3.5 off, and one at 1.5 off a "necromaner" (the rows' misspelt kind) still finds that one, the nearest.
 func TestAMummifiedGuardianIsANecromancersPet(t *testing.T) {
@@ -248,7 +248,7 @@ func TestAMummifiedGuardianIsANecromancersPet(t *testing.T) {
 	}
 }
 
-// Petition 1846 (Waldorf, 2026-11-12): a Feral Spirit 1.5 off a gnoll shaman is its pet; one alone is no one's.
+// Petition 1846 (2026-11-12): a Feral Spirit 1.5 off a gnoll shaman is its pet; one alone is no one's.
 func TestAFeralSpiritIsItsShamansPet(t *testing.T) {
 	w, _, _, _, _ := companionWorld(t)
 	add := func(n *NPC) *NPC {
@@ -270,7 +270,7 @@ func TestAFeralSpiritIsItsShamansPet(t *testing.T) {
 	}
 }
 
-// Heirloom petition 2291 (Waldorf, 2026-11-17): Guk's elder spirits are its
+// Heirloom petition 2291 (2026-11-17): Guk's elder spirits are its
 // shamans' pets, the one beside a fungal priest too (the shaman 1.7 off), while
 // the Tower of Phantoms' elder spirits, among spirits with no shaman near, are
 // no one's.

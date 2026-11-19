@@ -2,7 +2,7 @@ package entity
 
 import "github.com/eqoa/server/internal/session"
 
-// hitheal.go — a creature's heal at every hit on it (database.AbilityHitHeal; the GM Jibrish's petition
+// hitheal.go — a creature's heal at every hit on it (database.AbilityHitHeal; a GM's petition
 // 1439: "Give mr moogie a heal damage shield that heals mr moogie for 150 every single time he is hit").
 //
 // Every hit that lands on it, taking hit points, and leaves it standing heals it its hit heal's figure

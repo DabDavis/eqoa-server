@@ -12,7 +12,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// A monster's name and level when talked to (world.mob_info; the GM Jibrish's
+// A monster's name and level when talked to (world.mob_info; a GM's
 // petition 1459, 2026-11-10: "For the Heirloom server: Add the ability to press
 // the mob information button on monster (Q by default on keyboard). This should
 // ONLY show the monsters name and level, nothing else.").

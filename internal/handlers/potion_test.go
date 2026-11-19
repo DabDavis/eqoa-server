@@ -274,7 +274,7 @@ func TestPotionRowCarriesItsBodyAndTargetShare(t *testing.T) {
 }
 
 // A ranger's Forage spell summons its food as the game's records name it
-// (Allakhazam's archived AK 209: "Summon Item: foraged berries"; jib's bug
+// (Allakhazam's archived AK 209: "Summon Item: foraged berries"; a GM's bug
 // report of 2026-10-27, RNG-1; tools/fix_archived_spells.py makes the
 // items): one of it, a meal eaten as a grocer's is, its own HoT. The
 // control: the line's old words ("creates food") name no item, and nothing
@@ -299,7 +299,7 @@ func TestForagedFoodArrivesAsAMeal(t *testing.T) {
 	}
 }
 
-// Petition 5166 (Trulyblind, Live): the magician's Lava Stone is a Magic tab
+// Petition 5166 (Live): the magician's Lava Stone is a Magic tab
 // item, worn nowhere and no thrown weapon (attack type 0), so Use throws it at
 // the target and takes no power, even from a thrower with none; a thrown
 // potion worn nowhere (attack type 10, a GM's) still costs its 10%.

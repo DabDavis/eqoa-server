@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The first isle of snow's essences, its gargoyles and Croc Island's Croc (2026-11-14, batch tix5, lane snow1).
 
-  2077-2079, 2085 (the GM Jibcrotwo; Hoofbite): "We need a snow essence right where im standing like the other islands, it is
+  2077-2079, 2085 (a GM; a player): "We need a snow essence right where im standing like the other islands, it is
        used to interact with and port to another spot" (the main isle, (4888.59, 273.81, 5858.41), facing 1.399), "The
        snow essence from the previous ticket exits right where im standing, with another snow essence being here" (the
        first isle of snow, (5682.72, 553.55, 6418.1), facing -3.093). The guide (forum t212, step 1): "Speak to the
@@ -9,7 +9,7 @@
        Essence Portal."
          - itempattern "snow key", a copy of Liztin's rain key (icon -441710123, craft 0, stacks of 999) under its own
            name and words;
-         - npcs "essence of snow" at Jibcrotwo's main-isle spot (a copy of the main isle's essence of night, 119511),
+         - npcs "essence of snow" at a GM's main-isle spot (a copy of the main isle's essence of night, 119511),
            on the placed floor there (274.32: he stood half a step into it), facing his way (byte 57); its passage
            (handlers/skypass.go) takes a snow key to his spot on the first isle;
          - npcs "essence of snow" on the first isle beside that landing, six ahead of it the way he faced, facing back
@@ -18,14 +18,14 @@
          - quest 101307 (The Chain of Snow, the Mark of the Majestic's, for those who finished the chain of night): its
            accept gives the snow key (one, unless one is held) where it sent the player to the first isle, and its
            words say so; it is repeatable, as the main isle's other chains are, so one who lost a key, or finished
-           the chain already (petition 2085, Hoofbite: 101306 and 101307 both done on Heirloom), takes it again for
+           the chain already (petition 2085: 101306 and 101307 both done on Heirloom), takes it again for
            another (a finish counts on: its unlocks stay open). The Mark's own trip to the first isle (questunlocks: for those who FINISHED the chain) stays,
            as each chain's way back does.
-  2080 (Jibcrotwo, on the first isle of snow): "Double the size of all the icebound gargoyles on this island". Every
+  2080 (on the first isle of snow): "Double the size of all the icebound gargoyles on this island". Every
        npcs row named icebound gargoyle (all 34 stand in world 4 on the first isle of snow, skyisles' outline; none
        anywhere else) size x2 (1.0 -> 2.0, the largest 1.375 -> 2.75). The two Ryini's walk (gmtriggers 206) spawns
        are copies of a standing row (entity npcByNameForLocked): doubled with it, no trigger edit.
-  2081 (Jibcrotwo): "Remove the one im targeting, he should not be spawning here. Dont remove the others unless
+  2081 (a GM): "Remove the one im targeting, he should not be spawning here. Dont remove the others unless
        explicitly told": npcs 119611, the icebound gargoyle at (5511.73, 494.90, 6442.68), the target's spot; no other
        table holds a row of it (respawn, wander, paths, loot by row: none). Deleted, the row kept in the log.
   5026 (Innoruuk, Live; Heirloom the same): "Crocs in building on croc island by freeport are messed up. There is only
@@ -207,7 +207,7 @@ def plan(db, only):
         p.column(2079, "quests", "questid", QUEST, "accept", (OLD_ACCEPT,), NEW_ACCEPT, "The Chain of Snow")
         p.column(2079, "quests", "questid", QUEST, "started", (OLD_STARTED,), NEW_STARTED, "The Chain of Snow")
         # taken again for another key, as the main isle's other chains are (101301, 101304, 101306 repeatable):
-        # one who finished it (petition 2085, Hoofbite) keeps its unlocks (a finish counts) and gets a key
+        # one who finished it (petition 2085) keeps its unlocks (a finish counts) and gets a key
         p.column(2079, "quests", "questid", QUEST, "repeatable", (0,), 1, "The Chain of Snow")
     if 2081 in only:
         def target(r):

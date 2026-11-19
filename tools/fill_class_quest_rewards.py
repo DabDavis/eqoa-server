@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """The city class quests' missing rewards, filled from the same class's quest of the same level in
-the other cities (the user, 2026-10-30: Dust finished Neriak's shadow knight "The Fire Bats" and got
+the other cities (the user, 2026-10-30: a GM finished Neriak's shadow knight "The Fire Bats" and got
 no reward, "should be harm touch scroll"; then, of every class quest: "Fill all class quests").
 
 EQOA-Data's guides (tools/quests/data/, the 1-20 city files) name no reward but the experience for
 many class quests in some cities, where the same class's quest of the same level in the other cities
 names a spell (Malice at 3, Harm Touch at 5 for a shadow knight) or an item. Those spells are QUEST
 spells (levels 3, 5, 7, 13, 15 and the level-20 quest's two paths: EQOA-Data's class lists, and no
-Sandstorm vendor sells them), so a city whose quest names none leaves its players without the spell
+the reference server vendor sells them), so a city whose quest names none leaves its players without the spell
 (the user: "3, 5 etc. are quest spells not purchasable"). A quest whose steps give no spell and whose
 last step gives no item is given, on its last step:
 
@@ -30,7 +30,7 @@ last step gives no item is given, on its last step:
     item was made for another city's quest (its line names that city's smith), or when the quest's
     title names another kind ("Ghelwin's Staff" is not given a robe). --no-items leaves items out.
 
-A quest with a reward of its own is left as it is (Dust's Fire Bats: the Harm Touch scroll since
+A quest with a reward of its own is left as it is (a GM's Fire Bats: the Harm Touch scroll since
 2026-10-30). Each filled quest's notes say the reward is ours and where from. A character of the
 quest's class who finished it (charquests done) is given the scroll or item the way a quest gives one
 (remainHP the record's maxhp, the inventory's next place) unless it holds the item or, for a scroll,
@@ -62,7 +62,7 @@ CLASSES = ["warrior", "ranger", "paladin", "shadowknight", "monk", "bard", "rogu
            "cleric", "magician", "necromancer", "enchanter", "wizard", "alchemist"]
 SCROLL_ICON = -607649328              # handlers/scribe.go's scrollIcon
 INV_CAP = 40                          # handlers/itemlist.go's invListCap
-VENDOR_LEVELS = {1, 4, 8, 12, 16, 20, 24, 29, 34, 39, 44, 49}  # Sandstorm's spell vendors, every class
+VENDOR_LEVELS = {1, 4, 8, 12, 16, 20, 24, 29, 34, 39, 44, 49}  # the reference server's spell vendors, every class
 QUEST_SPELL_LEVELS = {3, 5, 7, 13, 15, 20}                     # the city class quests' spells
 KEY = re.compile(r"^1-20/([^/]+)/([^/]+)/L(\d+)$")
 CLASS_TAG = re.compile(r"\s*\((?:[A-Za-z]{2,3}(?:\s*[,/]\s*)?)+\)\s*$")
@@ -77,7 +77,7 @@ DECISIONS = {
 # the level-20 quest's two paths, by class: every city's guide offers a choice of two spells (each
 # with a weapon of its own city's), e.g. Freeport's warrior "Choose between: Bellow ... Pillar of
 # Might"; tools/import_quests.py kept one path where it kept any. Both are quest spells (EQOA-Data's
-# class lists; no Sandstorm vendor sells any of the thirty), so a level-20 quest with no reward is
+# class lists; no reference-server vendor sells any of the thirty), so a level-20 quest with no reward is
 # given the choice of the two scrolls (the weapons differ by city and are left out).
 # The shaman's pet path is Spiritual Guide (Oggok's guide; Grobb's names Feral Spirit, which vendors sell).
 L20_PATHS = {
@@ -216,7 +216,7 @@ class Records:
             own_levels = {self.spell[sid][1] for sid, _ in self.own[c].get(key, [])}
             if teaches is None or self.spell[teaches][1] not in own_levels:
                 # scribe.go takes the first record of the name at the scroll's level: one of the
-                # class's own, or its twin (one spell numbered twice, Return Home's and Sandstorm's)
+                # class's own, or its twin (one spell numbered twice, Return Home's and the reference server's)
                 why.append("scribes a spell not the class's")
             if it["level"] > level:
                 why.append(f"level {it['level']}")
@@ -713,7 +713,7 @@ CITY_LEVELS = {3, 5, 7, 13, 15, 20}  # the city class quests'
 
 def quest_spells(eqd, vendors):
     """class -> [(name, level, how)]: EQOA-Data's class lists' Quest spells; a list with no Quest
-    source (the shaman's) its spells at a quest level that Sandstorm's vendors do not sell and no
+    source (the shaman's) its spells at a quest level that the reference server's vendors do not sell and no
     mastery adds."""
     out = collections.defaultdict(list)
     cm = collections.defaultdict(set)

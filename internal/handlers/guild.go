@@ -423,7 +423,7 @@ func (h *GuildHandler) takeInvite(invitee entity.EntityID) (guildInvite, bool) {
 	return inv, ok
 }
 
-// sendFullGuild sends 0x0468/1 and a 0x0468/3 per member, as Sandstorm's
+// sendFullGuild sends 0x0468/1 and a 0x0468/3 per member, as the reference server's
 // world entry does.
 func (h *GuildHandler) sendFullGuild(sess *session.Session, g *entity.Guild) {
 	queueReliable(sess, protocol.OpcodeGuildInfo, entity.BuildGuildInfo(g))

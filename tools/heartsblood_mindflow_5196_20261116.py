@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Heartsblood armour gives Stamina, Arcane Resist and Hit Points, Mindflow armour Wisdom, Power and Arcane Resist
-(Innoruuk's petitions, 2026-11-16: 5196 "Heartsblood Alloy is supposed to give Stamina, AR and HP in stats for plate
+(a player's petitions, 2026-11-16: 5196 "Heartsblood Alloy is supposed to give Stamina, AR and HP in stats for plate
 armor. Currently only giving HoT."; 5197 "mindflow crystals supposed to give wisdom, power and AR to armor when crafted.
 Only giving PoT."; a player's claim about an item's stats is taken as the truth).
 

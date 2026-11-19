@@ -208,7 +208,7 @@ func TestApplyOGReadsTheCharacter(t *testing.T) {
 }
 
 // The name stays the character's own for everything keyed by it: a tell by
-// the plain name, by the name as drawn ("/t [OG] Meshuggah ..."), /r's name
+// the plain name, by the name as drawn ("/t [OG] a player ..."), /r's name
 // (0x07A3) and the line the hearer reads are the plain name; a group invite by
 // either name finds the character.
 func TestOGTagKeepsNamesForTellsAndInvites(t *testing.T) {
@@ -247,7 +247,7 @@ func TestOGTagKeepsNamesForTellsAndInvites(t *testing.T) {
 			t.Fatalf("findPlayerByName(%q) = %v", name, p)
 		}
 	}
-	// /invite by the drawn name: Bob's box to form the group names Meshuggah,
+	// /invite by the drawn name: Bob's box to form the group names a player,
 	// as by the plain one
 	for _, name := range []string{"[OG] Meshuggah", "Meshuggah"} {
 		flushQueue(bob)

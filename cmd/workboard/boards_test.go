@@ -22,7 +22,7 @@ func TestTheBoxPostsAndReadsAPersonalBoard(t *testing.T) {
 	if code, _, errs := wb(t, "", "-config", cfg, "post", "jibs", "hello"); code != exitUsage || !strings.Contains(errs, "it has jib") {
 		t.Fatalf("a typo's board: %d %q", code, errs)
 	}
-	// jib's agent answers through the panel's call
+	// a GM's agent answers through the panel's call
 	sq, err := database.OpenWorkBoard(db)
 	if err != nil {
 		t.Fatal(err)

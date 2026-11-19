@@ -7,7 +7,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// A GM's #testmode (the GM Jibrish's petition 1272): a creature hitting it to
+// A GM's #testmode (a GM's petition 1272): a creature hitting it to
 // death leaves it at 1 HP every time, no death, no debt, the creature still on
 // it; the control: with it off the same blows kill.
 func TestAGMInTestModeTakesTheHitsAndLives(t *testing.T) {

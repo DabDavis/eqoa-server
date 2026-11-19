@@ -16,7 +16,7 @@ import (
 )
 
 // potion.go — what using an item does: the alchemists' potions (F3
-// 20261025-223151, -223841 and -223959, jib's account of the live game; pass
+// 20261025-223151, -223841 and -223959, a GM's account of the live game; pass
 // 5's 61b2f4e2: their summoning spells did nothing).
 //
 // An alchemist's spell summons the potions ("SELF Summon Watery Draught",
@@ -55,7 +55,7 @@ import (
 //     and also the radius from the target, including target a second time",
 //     2026-11-01), so the target takes both and the rest of the splash the
 //     line, what lasts of it on each once. A thrown potion is a ranged weapon
-//     (F3 20261026-014336, jib: "equips in the range attack slot, like a bow,
+//     (F3 20261026-014336, a GM: "equips in the range attack slot, like a bow,
 //     and fires as a range auto attack"): wear 16, a bow's, attack type 10,
 //     worn in the ranged slot by Use, and each throw of the ranged
 //     auto-attack is one of them, gone from the stack
@@ -79,7 +79,7 @@ import (
 // refused, nothing used, where the drinker's stats could not take them
 // (TrainingRoom: the cap on unspent points).
 //
-// What ends one early is its row's: "attack" (jib: a quickening "break[s] on
+// What ends one early is its row's: "attack" (a GM: a quickening "break[s] on
 // any aggressive action done by the character": its auto-attack, a harmful
 // cast or a throw), "damage" (a sublimation "drops on aggressive action ... or
 // upon taking any damage": LastCombatTime, a hit taken or dealt, past its
@@ -148,12 +148,12 @@ type PotionEffect struct {
 	Grant         *CastSpell
 	// Magic is an item used from the Magic tab, no thrown weapon (its record's
 	// attack type not 10: the handlers set it, usePotion): its throw by Use
-	// costs no power (petition 5166, Trulyblind, Live: the magician's Lava
+	// costs no power (petition 5166, Live: the magician's Lava
 	// Stone "should not cost mana to use"). The power of a throw is the
 	// alchemists' potions' (DefaultThrowPowerPct), every one a thrown weapon.
 	Magic bool
 	// FX is the visual its use plays (its line's "Visual 0x..." clause, readVisual; 0 none: a thrown one's
-	// kind's stand-in, a drunk one nothing): Live petition 5173, Groceries, of the magician's Lava Stone,
+	// kind's stand-in, a drunk one nothing): Live petition 5173, of the magician's Lava Stone,
 	// "should be a fire ball coming out of hand when thrown". Its stand-in, the damage one, is Fire Bolt's
 	// (0xE78024D9: a cast and a hit at the target, no projectile, SPELLFX.CSF's caster list ending in a
 	// PlayTargetInstant); Fingers of Flame's (0x889D7E79) casts from the hand and flies a fire projectile
@@ -307,7 +307,7 @@ type potionTable struct {
 	throwPctSet bool
 }
 
-// A throw's power (petition 1489, Fullmetal's alchemist notes: "No mana drain
+// A throw's power (petition 1489, a player's alchemist notes: "No mana drain
 // on pot throws", then "Can do 3 tests of 15% 20% or 25% of Total Power of
 // Player per thrown Pot"): every potion thrown, by Use or as the ranged
 // auto-attack's, at a creature or a foe, costs DefaultThrowPowerPct of its
@@ -316,11 +316,11 @@ type potionTable struct {
 // (ThrowNoPower), nothing thrown and nothing used; an auto-attack's throw lets
 // the fight go. Until then a throw cost none. An item whose use charms (the
 // Puppet Strings) is no potion thrown: it costs none. 20% until petition 1581
-// (the GM Jibrish: "should take exactly 10% of the players maximum mana", as a
+// (a GM: "should take exactly 10% of the players maximum mana", as a
 // ranged weapon's shot does now: rangedpower.go).
 const DefaultThrowPowerPct = 10
 
-// A draught's health and poison resist (petition 1489, Fullmetal: "PR
+// A draught's health and poison resist (petition 1489: "PR
 // Resistance - 315 should negate full strength 54 Draught damage upwards of 65%
 // of the time. Anything lower should raise the chance it does full damage"):
 // a drink's health cost (the draughts', the infusions of every level) is taken
@@ -743,7 +743,7 @@ func (w *World) throwLocked(sess *session.Session, p *Player, pe *PotionEffect, 
 
 // throwAtFoeLocked lands a thrown potion on t, a duel's or a PvP fight's foe: its own share and
 // its line through the fight's landing (duelfight.go's duelLandLocked), each hit at the fight's
-// share, as a spell's harm on a foe lands (petition 1248, the GM Jibrish: "Alchemist potions are
+// share, as a spell's harm on a foe lands (petition 1248: "Alchemist potions are
 // only hitting for one on pvp characters, they should be hitting for 50% of their full damage like
 // everything else": a throw at a foe was refused, and a worn one thrown in a round was the melee's
 // 1). Its splash reaches creatures alone, as before. It reports whether the fight is over.
@@ -829,7 +829,7 @@ func (w *World) thrownPotionHitLocked(sess *session.Session, p *Player, npc *NPC
 // reSummonItem is a summoning of an item in a line's unread words: "summon
 // watery draught", "summons unstable potion x3" (after any "(sow)" is cut),
 // and the game's own record's words as Allakhazam's archived pages give them,
-// "Summon Item: foraged berries" (a ranger's Forage Berries, AK 209; jib's
+// "Summon Item: foraged berries" (a ranger's Forage Berries, AK 209; a GM's
 // bug report of 2026-10-27, RNG-1).
 var (
 	reSummonItem = regexp.MustCompile(`^summ[ou]ns?\s+(?:item\s*:?\s*)?(?:an?\s+|the\s+)?(.+?)(?:\s+x\s*(\d+))?$`)

@@ -9,7 +9,7 @@ import (
 )
 
 // undead.go — which creatures are undead, and the spells that work on nothing
-// else (F3 20261025-215937, jib: "Necromancers undead nuke line should only
+// else (F3 20261025-215937, a GM: "Necromancers undead nuke line should only
 // work on monsters tagged Undead. For example; Ward Death should only work on
 // undead creatures, such as skeletons, zombies, ghouls and so on. Otherwise it
 // should give the error that the creature is not undead, fizzle, and not fire
@@ -34,12 +34,12 @@ import (
 // (Annihilate Undead). Cast at a creature that is not undead it is
 // refused at its start with castNotUndead in red (EverQuest's words: no
 // recording of the live game's refusal exists), a brief cast (charmFizzle:
-// jib's "fizzle, and not fire off") and no power taken, no lockout. A charm
+// a GM's "fizzle, and not fire off") and no power taken, no lockout. A charm
 // cast with a pet out is refused before this (charm.go). An undead-only charm
 // takes undead with the charm's own roll (charm.go), as every other charm
 // does since 2026-11-02 (the wiki's Charmable Mobs page: enchanters charmed
 // spectres, spirits, lost souls, ghouls and dead riders); until then they
-// failed on them ("Attempt resisted!", as Sandstorm's did on Rotting Flesh).
+// failed on them ("Attempt resisted!", as the reference server's did on Rotting Flesh).
 
 // castNotUndead is the refusal of an undead-only spell at anything else.
 const castNotUndead = "This spell only works on the undead."
@@ -109,7 +109,7 @@ func (d *SpellDef) readUndead(name, desc string) {
 	}
 	// a harmful spell named for the undead: Annihilate Undead, the last rank of
 	// the cleric's Undead line (area.go), whose line in EQOA-Data's list says
-	// "Target," where its ranks' say "Target undead" (jib's review, F3 pass 19)
+	// "Target," where its ranks' say "Target undead" (a GM's review, F3 pass 19)
 	if d.Harmful && strings.HasSuffix(strings.ToLower(strings.TrimSpace(name)), " undead") {
 		d.UndeadOnly = true
 	}

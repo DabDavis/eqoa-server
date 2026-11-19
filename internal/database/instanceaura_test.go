@@ -40,7 +40,7 @@ func TestInstanceAura(t *testing.T) {
 	shadow := ItemAura{Color: 0x000000FF, Kind: AuraParticles}
 	twinkle := ItemAura{Kind: AuraParticles, Source: 0x1D875ECD, Nodes: 100}
 	row := InstanceAura{ItemID: sword, Tag: "Shadowed, Twinkling", First: shadow, Second: twinkle, Note: "test"}
-	if err := db.SetInstanceAuraAudited(row, GMEdit{Username: "dab", Via: "test"}, "test"); err != nil {
+	if err := db.SetInstanceAuraAudited(row, GMEdit{Username: "dax", Via: "test"}, "test"); err != nil {
 		t.Fatal(err)
 	}
 	got, ok := InstanceAuraHeld(sword)

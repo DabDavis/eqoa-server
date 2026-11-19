@@ -11,7 +11,7 @@ import (
 )
 
 // hazards.go — places that hurt a player standing in them (table hazards, database/hazards.go; the
-// GM Hoofbite's petition 1937, 2026-11-13: "spikey vines in toxxulia cave should damage player for
+// GM a player's petition 1937, 2026-11-13: "spikey vines in toxxulia cave should damage player for
 // 1000 dmg when walking through them. player must navigate around vines").
 //
 // An area is a capsule a row gives (database.HazardHolds: its feet within radius across of a
@@ -23,7 +23,7 @@ import (
 // loading a world. The Toxxulia cave's vines are tools/seed_hazards.py's rows, read off the disc's
 // zone actors (cmd/hazardscan).
 //
-// An on_move area (the GM Jibwiz's petition 1960, the thorns: "500 damage on a 6 second cool down
+// An on_move area (a GM's petition 1960, the thorns: "500 damage on a 6 second cool down
 // per individual player. If 5 people walk into the thorn, all of them should take 500 damage and if
 // they remain in it for 6 seconds THEN MOVE they take 500 again. However if they stay still it
 // should not continuously damage them") hits a player at once on stepping in, and after every_ms

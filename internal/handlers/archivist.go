@@ -13,7 +13,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// archivist.go — the Spell Archivist's questions (the GM Jibrish's petition
+// archivist.go — the Spell Archivist's questions (a GM's petition
 // 1279, 2026-11-08: "Add a dialogue option to the Spell Archivist. This should
 // be "Grant basic spells". This should grant all the spells of the player's
 // class that are vendor bought, from level 1 to their current level (cap 60),
@@ -202,7 +202,7 @@ func (a *Archivist) Ask(sess *session.Session, p *entity.Player, npc *entity.NPC
 	if a == nil || a.spells == nil || p == nil || !isSpellArchivist(npc) || npc.Dead {
 		return false
 	}
-	if p.HardcoreBound() { // petition 2399 (jibrish 2026-11-19): no scrolls for a Hardcore character
+	if p.HardcoreBound() { // petition 2399 (a GM 2026-11-19): no scrolls for a Hardcore character
 		a.say(sess, hcArchivistWords)
 		return true
 	}

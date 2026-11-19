@@ -10,7 +10,7 @@ import (
 
 // buffsave.go — a player's spell effects kept over a logout.
 //
-// Sandstorm keeps them, and their time runs only while the character is in
+// The reference server keeps them, and their time runs only while the character is in
 // the world (2026-10-21, claude-notes/casting-sandstorm-20261021.md §6):
 // Rockskin and Nature's Wisdom, 30 minutes each, were still on a druid 54
 // minutes after they were cast, about 5 of them spent online, and came back

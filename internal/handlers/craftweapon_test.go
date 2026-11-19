@@ -10,7 +10,7 @@ import (
 )
 
 // Weaponsmithing through the wire (0x1101 in, 0x1102 out), on records shaped
-// as tools/seed_tradeskills.py --craft weapon writes them: Sandstorm's
+// as tools/seed_tradeskills.py --craft weapon writes them: the reference server's
 // Assistant Weaponsmith Hammer (wear 22, the Weapon skill's tool; level 11,
 // tier 3), Bronze Ore, the Axe Head Mold and a Magnesium Alloy; the recipe a
 // fiery bronze hatchet (skill 0, the Bronze tab, trade level 3, uncommon:

@@ -13,13 +13,13 @@ import (
 )
 
 // The work board (database/workboard.go, views/work.js): who is working on
-// what on this server, so that the GMs, their AI agents and dab's sessions do
+// what on this server, so that the GMs, their AI agents and the owner's sessions do
 // not change the same tables at once. work_board reads it, post_work makes or
 // changes an entry, update_work_overview edits the overview with the version
 // it was read at. Every change is the database's PostWork or SetWorkOverview,
 // which write it and its gm_audit line in one transaction: the audit log
 // lists it under the GM and revert_change undoes it. cmd/workboard writes the
-// same tables on the box, as dab's sessions.
+// same tables on the box, as the owner's sessions.
 
 func init() {
 	catalog["workboard"] = tableNote{

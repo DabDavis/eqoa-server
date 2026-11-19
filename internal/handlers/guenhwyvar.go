@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// guenhwyvar.go — the Stone of Guenhwyvar (the user, 2026-11-07: "give drizzt a
+// guenhwyvar.go — the Stone of Guenhwyvar (the user, 2026-11-07: "give [a player] a
 // stone of guenhwyvar summons level 60 panther pet named Guenhwyvar, mean pet").
 //
 // The stone is an item record of this name, CLIENT's gem type as the fang is

@@ -44,7 +44,7 @@ import (
 //     caster, which at every hit taken would pull every one in reach into a
 //     tank's fight), and only the Breastplate of the Anointed's is hate, on
 //     the creature whose hit called it, its figure whether the wearer was
-//     short of health or not (petition 1215, the GM Jibrish: "breastplate of
+//     short of health or not (petition 1215: "breastplate of
 //     the annointed is generating agro. It should be": a cleric in it holding
 //     a level 4 wizard's area spells, whose damage had been all the hate);
 //   - a heal by a stat's percent (the Anointed's 15 + 10% of CHA, at most 75)
@@ -147,7 +147,7 @@ var wornShieldsByPattern = map[int]WornShield{
 var anointed = WornShield{Heal: 15, HealPct: 10, HealMax: 75, Scale: StatCha, Hate: true}
 
 // WeakenedPrefix is what a weakened record's name is its base's after: the Testing
-// Heroes Vendor's copies (petition 1471, the GM Jibrish: "a nerfed version of
+// Heroes Vendor's copies (petition 1471: "a nerfed version of
 // breastplate of the annointed regular ... call it weakened BPOA"; 1516, the
 // Seraphic Planar Breastplate's "weakened -50% stats including proc"), each a record
 // of its own (tools/seed_testing_heroes.py, tools/heroes_more_20261111.py), whose
@@ -156,7 +156,7 @@ var anointed = WornShield{Heal: 15, HealPct: 10, HealMax: 75, Scale: StatCha, Ha
 const WeakenedPrefix = "Weakened "
 
 // WeakenedPercent is what a weakened record's hit effect is of its base's: half
-// (petition 1520, the GM Jibrish: "they need to be 50% as effective now on proc and
+// (petition 1520: "they need to be 50% as effective now on proc and
 // stats"; 70, "30% less", from petition 1471 until then).
 const WeakenedPercent = 50
 

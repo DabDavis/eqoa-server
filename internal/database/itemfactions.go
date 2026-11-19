@@ -6,7 +6,7 @@ import (
 )
 
 // itemfactions: an item whose Use raises the user's standing with factions
-// (handlers/itemfactions.go). Petition 5089 (Live, Trulyblind, 2026-11-15:
+// (handlers/itemfactions.go). Petition 5089 (Live, a player, 2026-11-15:
 // "would it be possible to get some kind of item or something, so I can test
 // the other 17s?"); the owner: "give them faction stone that increases
 // factions with all lvl 17 q givers". A row is one faction the item raises:

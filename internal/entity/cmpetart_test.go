@@ -9,9 +9,9 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// Zerkziee's catapult (cmpetlook.go's PetArt, decorlights.go's
-// petArtViewLocked; the owner, 2026-11-17: "where dust is is a catapult prop
-// ... lets give it to zerkziee").
+// A player's catapult (cmpetlook.go's PetArt, decorlights.go's
+// petArtViewLocked; the owner, 2026-11-17: "where [a GM] is is a catapult prop
+// ... lets give it to [a player]").
 
 // catapultArt is Tunaria's catapult prop (zone 108), 0xE64B8D78, as
 // cmcatalog's effects write it ("PetArt:3863711096").
@@ -102,7 +102,7 @@ func TestAPetArtRankDressesThePetForTheClientsThatDrawIt(t *testing.T) {
 		t.Errorf("a world with no row, layout 3: model %08X, want the body", binary.LittleEndian.Uint32(b[28:]))
 	}
 	// at layout 4 the art is everywhere (its zone among the assets): the
-	// owner, 2026-11-18, "zerkziee construct is turning back into a spider"
+	// owner, 2026-11-18, "[a player] construct is turning back into a spider"
 	// (the Teleporter to Odus)
 	if b := view(4, pet.ServerID); binary.LittleEndian.Uint32(b[28:]) != catapultArt {
 		t.Errorf("a world with no row, layout 4: model %08X, want the catapult", binary.LittleEndian.Uint32(b[28:]))

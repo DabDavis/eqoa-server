@@ -12,7 +12,7 @@ import (
 )
 
 // gates.go — the spells that send players to a named place: the wizard's
-// gates, portals and evacuations and the druid's circles (jib's review, F3
+// gates, portals and evacuations and the druid's circles (a GM's review, F3
 // pass 19: 27 spells, wizard 20, druid 7, took their power and did nothing).
 // Their lines say where ("Self, Teleports the caster to the Kara Village
 // (s)", "Group, Set Maximum Power to 0, Teleport to SBC"), and table
@@ -36,8 +36,8 @@ import (
 // do not say whose). An evacuation (its row's kind, or "Evacuation" in its
 // name: the wizard's three) takes the whole power of everyone it sends, its
 // caster among them, as it lands, whatever its line or its workbook record
-// says (the owner, 2026-11-10, for the GM Jibrish's ruling of 2026-10-29 in
-// jib's PR #1: "the group pays for evacuations (as well as the caster), the
+// says (the owner, 2026-11-10, for a GM's ruling of 2026-10-29 in
+// a GM's PR #1: "the group pays for evacuations (as well as the caster), the
 // caster just pays for circles"); a circle's, a portal's or a gate's price
 // stays its caster's. What else the line says lands as any spell's (Commons
 // Escape's "Increase Maximum Power by 10 for 12 seconds").

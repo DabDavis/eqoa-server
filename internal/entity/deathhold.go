@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// deathhold.go — a creature's hold at 1 hit point (database.AbilityDeathHold; the GM Jibrish's petition 1894:
+// deathhold.go — a creature's hold at 1 hit point (database.AbilityDeathHold; a GM's petition 1894:
 // "If mr moogie hits 1 hp, he freezes and is immune to damage, unable to take damage or die for 30 seconds.
 // When this happens he should /say ...").
 //

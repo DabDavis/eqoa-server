@@ -160,7 +160,7 @@ func (s *SpellbookStore) ClassSpellIDs(class int) (map[int]bool, error) {
 }
 
 // AddSpell puts a spell in a character's book at display index order, off
-// the bar, with no lockout and -1 at VIAbility+0x14: the record Sandstorm
+// the bar, with no lockout and -1 at VIAbility+0x14: the record the reference server
 // sends for a scroll just scribed.
 func (s *SpellbookStore) AddSpell(serverID uint32, spellID, order int) error {
 	_, err := s.db.Exec(`INSERT INTO spells (serverid, spellid, addedorder, onHotBar, whereonBar, unk1, showhide)
@@ -245,7 +245,7 @@ func (s *SpellbookStore) SetSpellVisual(spellID int, fx uint32, who GMEdit, deta
 }
 
 // SpellEffect is a spell's spelleffect row: the line saying what it does
-// and the visual Sandstorm names for it (0 when none was recorded). ok is
+// and the visual the reference server names for it (0 when none was recorded). ok is
 // false for a spell with no row. SpellEffectRow has its effects too.
 func (s *SpellbookStore) SpellEffect(spellID int) (line string, fx uint32, ok bool, err error) {
 	r, ok, err := s.SpellEffectRow(spellID)

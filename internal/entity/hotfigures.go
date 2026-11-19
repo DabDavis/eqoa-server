@@ -1,6 +1,6 @@
 package entity
 
-// Heal over time figures (petition 2142, Lonesnecro, owner-approved
+// Heal over time figures (petition 2142, owner-approved
 // 2026-11-15: "does soul mastery have a HoT component to it? can we get the
 // heal tick to be visable?"). A buff's heal over time shows each tick as a
 // green 0x00DB, whole (what it was worth, at full health too: healLocked's

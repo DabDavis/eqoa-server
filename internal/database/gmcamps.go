@@ -10,7 +10,7 @@ import (
 )
 
 // A GM's marks, camps and paths from the game (handlers/gmcamps.go; the GM
-// Jibrish, 2026-11-08: "maybe a command to capture multiple points? so i can
+// a GM, 2026-11-08: "maybe a command to capture multiple points? so i can
 // go HERE, HERE and HERE", "or at least static spawns", and petition 1293's
 // rock, whose four static spawns popped a child or a pariah of Xrag): a GM
 // stands at a spot and marks it (/mark), and the marks become a camp's static

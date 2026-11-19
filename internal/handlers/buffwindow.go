@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// buffwindow.go — the buff window's messages (the GM Jibrish's petition 1761; the rules are
+// buffwindow.go — the buff window's messages (a GM's petition 1761; the rules are
 // the World's, entity/buffwindow.go): the offer and the client's answer
 // (protocol.OpcodeBuffWindow) and a removal (OpcodeBuffRemove). A PS2 ignores the offer.
 

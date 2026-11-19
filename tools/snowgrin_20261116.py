@@ -9,7 +9,7 @@ says that we had otherwise:
     awhile to get all three spawns, they spawn about once a day"): he spawns "right in front of this ramp". Ours had a
     reach step at his spot (step 3) whose being reached spawned a hostile COPY of him for the player (step 4's start):
     a key on demand, with no wait for his spawn. He stands in the world already, attackable (npc_type 8) and back
-    every 86,400 s (npcrespawn, jibrish's entry 668), so the reach step goes and step 4 loses its spawn; the steps
+    every 86,400 s (npcrespawn, a GM's entry 668), so the reach step goes and step 4 loses its spawn; the steps
     after move down one (4-7 -> 3-6), and a character on one of them with it.
   - "First will spawn Grilmash Frostcackle ... who speaks rhyming incantation and then spawns Snowgrim": ours spawned
     both at the kill step's start, after a popup that narrated the rhyme. Now the kill step's start spawns Grilmesh,

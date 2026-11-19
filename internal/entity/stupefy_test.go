@@ -5,11 +5,11 @@ import (
 	"time"
 )
 
-// Petition 1949 (the GM Jibwiz): the wizard's hate-lowering line, Stupefy its top, "should
+// Petition 1949: the wizard's hate-lowering line, Stupefy its top, "should
 // be about equal to removing 1 sorcerer MCA nuke of threat". The Sorcerer's nuke is the
 // Fury (Icy, Flaming, Thunderous: 1455 + 21.39 a level + 40% DEX, and its second hit on
 // the same target 856 + 31.37 a level + 40% DEX). Measured with the records as they are on
-// the live server, cast by a level 60 wizard of DEX 620 (Jibwiz's) on a level 60 creature: the
+// the live server, cast by a level 60 wizard of DEX 620 (a GM's) on a level 60 creature: the
 // Fury put on 5,797, the old Stupefy (400) took off 399. tools/stupefy_1949_20261113.py gives it
 // the Fury's own figures, both hits as one (2311 + 52.76 a level + 80% DEX): within a tenth of it.
 func TestStupefyMeasured(t *testing.T) {

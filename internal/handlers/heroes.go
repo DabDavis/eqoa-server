@@ -14,7 +14,7 @@ import (
 )
 
 // heroes.go — the Testing Heroes Vendor (entity/heroes.go is the faction's
-// half; petition 1471, the GM Jibrish, 2026-11-10: "Add a vendor in freeport
+// half; petition 1471, 2026-11-10: "Add a vendor in freeport
 // near the well and dabrish that allows you to buy items from him with that
 // faction. The items should cost 25, 100, 250, 500 and 1000 faction and reduce
 // their faction by that amount. If it would take the player below max
@@ -73,7 +73,7 @@ func IsHeroesBox(id uint32) bool { return id&0xFF000000 == heroesBoxMark }
 // His words. A question is 127 characters at most (questAskChars), an answer
 // 63 (questAnswerChars), a box 217 (questBoxChars: say cuts a longer one).
 const (
-	// the greeting says the floor (petition 1515, the GM Jibrish: ""-2000" is actually "you have no
+	// the greeting says the floor (petition 1515: ""-2000" is actually "you have no
 	// currency". 0 means you have 2000 to spend"): what is spent is the standing above it, never above 0
 	heroesGreeting = "Well met, %s. Every kill that gives you experience earns 1 faction with the Testing Heroes, a raid boss 5. You stand at %d. All of it above %d is yours to spend: %d."
 	heroesAskList  = "Testing Heroes Vendor: 'You have %d to spend. What will you have?'"
@@ -345,7 +345,7 @@ func (h *Heroes) offer(sess *session.Session, p *entity.Player, w heroesWare, np
 }
 
 // show is a ware picked from his list, before anything is asked or refused, so
-// its stats are seen before a purchase (the GM Jibrish's petition 1876: "they
+// its stats are seen before a purchase (a GM's petition 1876: "they
 // need a means to be able to see the stats on the item via item linking. So if
 // they click an item, it should show them the stats before purchase"): a line
 // naming it as an item link (itemlinks.go: a click opens its figures, as a

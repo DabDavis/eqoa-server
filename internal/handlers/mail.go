@@ -262,7 +262,7 @@ func (h *MailHandler) RegisterHandlers(r *Registry) {
 // from then sends them, 0 to go back to the disc's. Every request is still
 // answered by its own form (gramEnvelope), so the answer is kept on the
 // session (MailLiveForms) only to tell a form the client did not announce in
-// the log; a client that never answers (a PS2, a Sandstorm-era client) is
+// the log; a client that never answers (a PS2, an S2-era client) is
 // answered as ever.
 
 // buildMailFormOffer is OpcodeMailForm from the server: a u32, 1.

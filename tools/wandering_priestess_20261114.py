@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The Wandering Priestess casts (petition 5027, Trulyblind, Live, 2026-11-14: "the 17 quest Wandering Priestess Does
+"""The Wandering Priestess casts (petition 5027, Live, 2026-11-14: "the 17 quest Wandering Priestess Does
 Not have right spells. She just Duel Hits, but doesnt do spells or AoE attack").
 
 The Wandering Priestess (npcs 122506, Blakedown, level 21: FrontiersForge's sighting, tools/seed_quest_npcs) is the

@@ -8,7 +8,7 @@ import (
 )
 
 // charinfection: a character's animal-were infection, the one flag of it (work
-// 1463, the GM Jibrish's of 2026-11-14: "that debuff must be the infection
+// 1463, a GM's of 2026-11-14: "that debuff must be the infection
 // flag"). A row a character: its line (wolfwere, bearwere, ratwere, lionwere,
 // gatorwere), when it was caught and when it ends, in unix seconds of real time
 // (seven days from its catching: an absolute end, so a logout, a zoning, a death

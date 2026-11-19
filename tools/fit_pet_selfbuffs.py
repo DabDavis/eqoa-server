@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""The pets' fit again, for their buffs on themselves (2026-10-30; the user: "the earth pet for eqoaclassic is
+"""The pets' fit again, for their buffs on themselves (2026-10-30; the user: "the earth pet for the production server is
 casting the ac buff on the player instead of itself, if fire does the same should also be on itself", and, shown what
 that did to the balance, "Re-fit to the old targets").
 
 A pet's buff lands on the pet now and counts in its fights (entity/pettemplate.go, pet.go): the earth pets' skin (AC)
 and AGI lines take off a creature's hits on them, the fire pets' STR and DEX lines raise their own. On the pets' fit
-of the same day (tools/tune_pets.py) that made them stronger (balancesim against the roamer on eqoaclassic's data of
+of the same day (tools/tune_pets.py) that made them stronger (balancesim against the roamer on the production server's data of
 22:25, the pet's low point averaged over one and two up): Summon Badi and Badi Elder kept 77-82% of their hit points
 through a yellow and won every red alone (Natureskin's 625 AC at 49), the Earth Elemental 40-47% at 34-45, the fire
 pets 22-47%. This puts them back on the old fit's numbers, each where that fit was made:

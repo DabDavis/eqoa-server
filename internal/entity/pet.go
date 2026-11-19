@@ -27,7 +27,7 @@ import (
 // pet bar latches the name once off the pet's channel (bytes 116-139) and
 // shows its hit points (byte 27).
 //
-// What Sandstorm did (harvests/sandstorm-spells-20261021/pets/
+// What the reference server did (harvests/sandstorm-spells-20261021/pets/
 // kimura-summon-fire-elemental.json): a level 45 magician's Fire Elemental,
 // a spell of level 44, came 1.5 s after its 8 s cast as a new creature
 // named as the spell, level 44, model 0x8A416241, scale 1.2; 0x007E with its
@@ -79,7 +79,7 @@ const (
 )
 
 // petNoCollideID is the id of a pet's entry on its owner's non-collide
-// list: Sandstorm's, where an ignored player's entry counts up from 1.
+// list: the reference server's, where an ignored player's entry counts up from 1.
 const petNoCollideID uint32 = 0x60000000
 
 const (
@@ -89,19 +89,19 @@ const (
 	petLost        float32 = 100 // farther (a teleport), it is put beside its owner
 	petLeash       float32 = 60  // a target farther than this from its owner is let go
 	petReach       float32 = 4   // how near its target it fights from
-	petAssist      float32 = 30  // how far round its owner it looks for a fight (petition 1134, Jibmage: "approximately 30 meters")
+	petAssist      float32 = 30  // how far round its owner it looks for a fight (petition 1134: "approximately 30 meters")
 	petRunSpeed    float32 = 8.833333
 	petCorpseTime          = 10 * time.Second
 	petBackOffHold         = 6 * time.Second // after a back off it takes no fight of its own
 )
 
 // An enchanter's pet taunts its target every third round it fights it (F3
-// 20261025-174403, jib: "Enchanter pets would taunt periodically. Maybe
+// 20261025-174403, a GM: "Enchanter pets would taunt periodically. Maybe
 // every 3 combat round. That taunt also did a small amount of damage, like
 // a single melee hit relative to the pets level"): the target turns on the
 // pet and takes one more of the pet's hits; Grand Animation's does 500
 // (EQOA-Data's Animator: "Has 500 dmg taunt and dual hits"). The cadence is
-// jib's recollection, not a recording.
+// a GM's recollection, not a recording.
 const (
 	petTauntEvery       = 3
 	grandAnimationTaunt = 500
@@ -135,7 +135,7 @@ type petState struct {
 	// taking no target, until it is petCatchUp off (charm.go's run)
 	running bool
 	// kind is what it fights as (petrotation.go): ours, or one of the
-	// necromancer's pets Sandstorm's were recorded as; tapIn the swings to
+	// necromancer's pets the reference server's were recorded as; tapIn the swings to
 	// its next tap, specialIn to a spectre's next instant, specialAt when
 	// the one lined up is due, fightStart when its fight's first swing came
 	kind       petKind
@@ -144,7 +144,7 @@ type petState struct {
 	specialAt  time.Time
 	fightStart time.Time
 	// hitScale is what each melee hit of its is multiplied by (0 or 1:
-	// nothing): a recorded kind's, so that Sandstorm's slower round deals
+	// nothing): a recorded kind's, so that the reference server's slower round deals
 	// the damage a second its own round did (petrotation.go)
 	hitScale float64
 	// tmpl is the pettemplate row it fights by, nil for none; foe what its
@@ -191,7 +191,7 @@ func (w *World) PetOf(p *Player) EntityID {
 }
 
 // petLevel is a summoned pet's level: the spell's, never above the caster's
-// (Sandstorm's one pet, a level 44 spell's from a caster of 45, was 44).
+// (the reference server's one pet, a level 44 spell's from a caster of 45, was 44).
 func petLevel(spellLevel, casterLevel int) int {
 	l := spellLevel
 	if l <= 0 || l > casterLevel {
@@ -247,7 +247,7 @@ const (
 // petSwing is a summoned pet's own swing (npcSwingKind), when it has one:
 // an enchanter's pet swings once a round whatever its level, as a caster
 // does (Attack1), and Grand Animation twice (Attack2), as live EQOA's did
-// (F3 20261025-164209, jib: "enchanter pets should only single hit
+// (F3 20261025-164209, a GM: "enchanter pets should only single hit
 // regardless of level with grand animation dual hitting"). Any other
 // class's pet swings as a warrior of its level (newPet), four hits a round
 // from level 35 with no shield (F3 pass 18, the user: "at level 35 and
@@ -351,7 +351,7 @@ func newPet(t *NPC, id EntityID, owner *Player, name string, level int) *NPC {
 	pet.ServerID = id
 	pet.Name = strings.TrimSpace(name)
 	pet.NPCID = 0   // no merchant's wares, no corpse loot
-	pet.NPCType = 0 // npc flags 0, as Sandstorm's summoned pet's
+	pet.NPCType = 0 // npc flags 0, as the reference server's summoned pet's
 	pet.Faction = FactionFriendly
 	pet.Level = level
 	pet.Class = classWarrior // its swing a warrior's (petSwing has the enchanter's)
@@ -360,7 +360,7 @@ func newPet(t *NPC, id EntityID, owner *Player, name string, level int) *NPC {
 	pet.effMaxHP = 0
 	pet.OffMod, pet.DefMod, pet.WeaponDamage = NPCOffMod(level), NPCDefMod(level), NPCWeaponDamage(level)
 	if pet.PrimaryWeapon == 0 && pet.SecondaryWeapon == 0 {
-		pet.PrimaryType, pet.SecondaryType = 1, 5 // Sandstorm's pet's hands
+		pet.PrimaryType, pet.SecondaryType = 1, 5 // the reference server's pet's hands
 	}
 	pet.World = owner.World
 	pet.X, pet.Z = followSpotAt(owner.X, owner.Z, owner.Facing, followSlotAngle[slotPet], followRadius)
@@ -485,7 +485,7 @@ func (w *World) makePetLocked(spell *CastSpell, caster, owner *Player, ms *mercS
 		}
 	case ok:
 		was := petHitRate(pet)
-		pet.SwingFixed, pet.SwingKind, pet.SwingRound = true, k, round // Sandstorm's (petrotation.go)
+		pet.SwingFixed, pet.SwingKind, pet.SwingRound = true, k, round // the reference server's (petrotation.go)
 		hitScale = was / petHitRate(pet)                               // its damage a second kept
 	}
 	ps := &petState{owner: owner, npc: pet, stance: petSheetStance(sheet), last: now,
@@ -789,7 +789,7 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 // petStandsDownLocked ends whatever the pet fights as it is made passive: its
 // target let go, its round ended, out of its owner's duel or PvP fight until
 // told to attack again, so that petSystem's next turn takes it back to its
-// owner, where it stands (the magician Lifeispain's petition 1483: "Pet Passive
+// owner, where it stands (a magician's petition 1483: "Pet Passive
 // doesn't stop the pet from fighting. It should stop fighting and run back to
 // the owner and stand there until it's told to fight"). Until then the stance
 // only kept a pet from taking a fight up: the one it had went on to the death.
@@ -807,10 +807,10 @@ func (w *World) petStandsDownLocked(ps *petState) {
 // The attack command's refusals: a target the pet may not fight at all (none,
 // a player, an unattackable creature, another's pet or duel, a pet that fights
 // nothing), and one it may but too far from its owner to go for (petLeash). The
-// magician Waldorf's petition 1399 had the second say the first's line ("Should
+// magician a player's petition 1399 had the second say the first's line ("Should
 // read "Target is out of range." Or something like that"). Ours: CLIENT has no
 // line for a pet's (its word 723 "Out of range." is a ranged weapon's, and
-// Sandstorm's red "Out of range." a cast's, castOutOfRange), nor does a recording.
+// the reference server's red "Out of range." a cast's, castOutOfRange), nor does a recording.
 const (
 	petCannotAttack = "Your pet cannot attack that."
 	// guardianOnlyDefends answers an attack command to a wizard's guardian (petition 1952)
@@ -960,7 +960,7 @@ func (w *World) petStepLocked(pet *NPC, x, z, toward, speed, dt float32) {
 	// put it on the terrain under it); one summoned in the water keeps the
 	// water's rule
 	// (a charmed creature of the water keeps its own; a player's pet, summoned in the water or not, swims as below:
-	// petition 1842, Waldorf, 2026-11-12, "Pets don't swim, they either walk on the surface or walk on the bottom")
+	// petition 1842, 2026-11-12, "Pets don't swim, they either walk on the surface or walk on the bottom")
 	if w.ground == nil || (pet.Charm != nil && !w.spawnOnGroundLocked(pet) && w.spawnInWaterLocked(pet)) {
 		return
 	}
@@ -993,7 +993,7 @@ func (w *World) petStepLocked(pet *NPC, x, z, toward, speed, dt float32) {
 
 // petSwimLocked is swimLocked for a pet just set on its floor: in water deeper than it can wade it swims, not at the
 // surface alone but at the height it heads for (its owner's or its target's, toward), as deep as that and no deeper
-// than its floor, its feet at most swimDepth under the surface (petition 1842, Waldorf, 2026-11-12: "Pets don't swim,
+// than its floor, its feet at most swimDepth under the surface (petition 1842, 2026-11-12: "Pets don't swim,
 // they either walk on the surface or walk on the bottom"). A charmed creature swims as swimLocked has it. Must be
 // called with the lock held.
 func (w *World) petSwimLocked(pet *NPC, toward float32) bool {
@@ -1155,7 +1155,7 @@ func (w *World) guardianChooseLocked(ps *petState) {
 }
 
 // fightsGroupMate reports a creature fighting a player of the owner's group
-// (petition 1132, Jibmage: "When a pets stance is set to aggressive if any players
+// (petition 1132: "When a pets stance is set to aggressive if any players
 // in the players group take damage, the pet should attack the mob hitting them"; a
 // defensive pet's too since 2026-11-07). The creature must be within petAssist of
 // the owner, as any the pet looks for. Must be called with the lock held.
@@ -1168,7 +1168,7 @@ func fightsGroupMate(w *World, owner *Player, npc *NPC) bool {
 }
 
 // groupPetsFight reports a creature fighting another pet of the owner's group, or one
-// such a pet fights (petition 1227, Waldorf: "pets should attack when other pets in the
+// such a pet fights (petition 1227: "pets should attack when other pets in the
 // group attack/get hit. Pets in a group should be treated the same way as players in the
 // group"): an aggressive or defensive pet's, as fightsGroupMate is for the group's
 // players. Must be called with the lock held.
@@ -1261,7 +1261,7 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 		}
 		pet.RoundStart, pet.RoundHits = next, 0
 		breakNPCInvis(pet) // a pet that fights is seen (invis.go)
-		// a recorded kind's spell of the round goes first, as Sandstorm's
+		// a recorded kind's spell of the round goes first, as the reference server's
 		// did, in the swing's moment (petrotation.go)
 		if ps.kind != petKindOurs && w.petRoundSpellLocked(ps, t, ps.rounds+1, now) {
 			return
@@ -1380,7 +1380,7 @@ func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, bal
 	sess := w.findSessionByEntityIDLocked(owner.ServerID)
 	tell := func() {
 		if sess == nil || ps.kind != petKindOurs {
-			// Sandstorm told its necromancer's zombie's, mummy's and
+			// the reference server told its necromancer's zombie's, mummy's and
 			// spectre's owner no hit of theirs (petrotation.go); the damage
 			// meters count them where the figure would be (dpsmeter.go)
 			if sess != nil && w.objectIDForEntityLocked(sess, t.ServerID) != 0 {
@@ -1601,7 +1601,7 @@ func (w *World) petEnemyLocked(npc *NPC) *NPC {
 // (npcRoundLocked): its swing to everyone who sees it, then its hits; the
 // pet dies at 0 (petSystem takes it away). Out of its reach it runs at the
 // pet as at a player (chaseLocked), so a pet backed off to its owner brings
-// the creature along to the group (Threnody's petition 1280, 2026-11-08:
+// the creature along to the group (a player's petition 1280, 2026-11-08:
 // "pets are dropping agro when you use pet back off command to bring mob to
 // group": a pet more than 10 off was dropped at once); past its leash, or
 // with the pet in another world, it gives up and goes home as from a player.

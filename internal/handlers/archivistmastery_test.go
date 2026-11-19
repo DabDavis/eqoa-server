@@ -160,7 +160,7 @@ func TestTheArchivistLeavesTheMasteriesSpells(t *testing.T) {
 }
 
 // A wizard's familiars are granted whatever masteries the wizard owns
-// (petition 1592, Kapow: "no familiars on wizy when requesting spells from
+// (petition 1592: "no familiars on wizy when requesting spells from
 // spell dude"): the live server's Guardian Familiar 1 takes Lesser Familiar
 // out for Lesser Guardian, another pet beside it, and a grant after its
 // purchase put Lesser Familiar back no more; it does now, beside the

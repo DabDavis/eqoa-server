@@ -59,7 +59,7 @@ func newGuardFight(t *testing.T) *fight {
 }
 
 // A melee kill moves the killer's standings by the NPC's rows, from the
-// starting standing (1 for both in the capture), and says so in Sandstorm's
+// starting standing (1 for both in the capture), and says so in the reference server's
 // white lines, the standing after the change and the change; the XP line is
 // still there.
 func TestAKillChangesTheKillersFactions(t *testing.T) {
@@ -131,7 +131,7 @@ func TestFactionLinesHonourTheOption(t *testing.T) {
 }
 
 // A standing stops at -2000: the step that reaches it says -2000 and the
-// change asked; the next changes nothing and says the same, as Sandstorm's
+// change asked; the next changes nothing and says the same, as the reference server's
 // gnoll kills at the floor did (F3 20261024-200725: "-2000 faction with
 // Blackburrow Gnolls (-10)" nine times running); and at 2000 the same the
 // other way.
@@ -255,7 +255,7 @@ func TestStandingsKeptAndEditedOnline(t *testing.T) {
 	}
 }
 
-// Sandstorm's faction lines, word for word as its client showed them: the
+// The reference server's faction lines, word for word as its client showed them: the
 // standing after the change, the faction, the change asked with its sign;
 // at the floor the standing held and the change as asked.
 func TestFactionLinesAreSandstorms(t *testing.T) {
@@ -281,8 +281,8 @@ func TestFactionLinesAreSandstorms(t *testing.T) {
 	}
 }
 
-// A quest's faction rewards (World.ApplyFactionHits) say Sandstorm's lines
-// too, as white chat (0x0A7A, as Sandstorm sent its quest's), one a faction in
+// A quest's faction rewards (World.ApplyFactionHits) say the reference server's lines
+// too, as white chat (0x0A7A, as the reference server sent its quest's), one a faction in
 // the step's order; with Faction Messages off they still move and say nothing.
 func TestQuestFactionRewardsSaySandstormsLines(t *testing.T) {
 	f := newFight(t)
@@ -329,7 +329,7 @@ func TestFactionHitsTakeTheNameInAnyCase(t *testing.T) {
 }
 
 // A kill moves the standings of every member who shares it, as its
-// experience is shared (petition 5078, Horizon: only the killer's moved):
+// experience is shared (petition 5078: only the killer's moved):
 // the killer and a member beside it take the hits; a member out of range and
 // a dead one do not.
 func TestAGroupsKillMovesEverySharersFactions(t *testing.T) {

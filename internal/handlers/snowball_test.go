@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// The Snowball (entity/moogieitems.go; petition 2204, Hoofbite: "Moogie snowballs showing as stackable trash
+// The Snowball (entity/moogieitems.go; petition 2204: "Moogie snowballs showing as stackable trash
 // item and cant be equipped to throw at other players"), as tools/snowball_throw_20261116.py makes its record:
 // wear 16 (the ranged slot), so CLIENT lists it under Equipment and, its type 2, under the usable items. Each
 // list's choice is the same 0x003E: at another player targeted it is thrown (worn or not, from the menu or a

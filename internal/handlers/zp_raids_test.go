@@ -93,7 +93,7 @@ func zpSetData(w *trigWorld, data []byte) {
 			}
 		}
 	}
-	// the rows the set makes spawn-only, and two already so on live: dab's Zek captain, and the sentry
+	// the rows the set makes spawn-only, and two already so on live: the owner's Zek captain, and the sentry
 	// (tallon.json's sql)
 	only := map[string]bool{"zek captain": true, "zek sentry": true}
 	for _, n := range f.NPCs {

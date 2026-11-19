@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Where the teleport spells send: table spellgates (entity/gates.go).
 
-The wizard's gates, portals and evacuations and the druid's circles (jib's
+The wizard's gates, portals and evacuations and the druid's circles (a GM's
 review, F3 pass 19: 27 spells, wizard 20, druid 7, took their power and did
 nothing). Each one's line names its place (EQOA-Data's spell lists, which
 spelleffect holds: "Self, Teleports the caster to the Kara Village (s)",
@@ -96,7 +96,7 @@ of Sycamore Joy's Rest and Stonebrunt Mountains (the nearest level, open,
 dry spot clear of creatures to each).
 
 Whom each sends: Allakhazam's April 2004 records (archived): every Gate and
-Commons Escape "Self Only" (Sandstorm's scrolls too, "Level 39 - Self
+Commons Escape "Self Only" (the reference server's scrolls too, "Level 39 - Self
 Teleport to Nothern Ro"), every Portal "Group" within 15 (the 60-second
 ones) or 20 (Barren Coast, Rathe Mountains, Stonebrunt), every circle and
 evacuation "Group" within 20 (the server's default); the evacuations are

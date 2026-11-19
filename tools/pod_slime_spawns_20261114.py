@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The Plane of Disease's creatures of the water set on the slime's pools (the owner, 2026-11-14: "the Fish seem to
-get out of the water very easy here like the environment boundaries didn't work very good over here"; Skywalker took
+get out of the water very easy here like the environment boundaries didn't work very good over here"; a player took
 75 out by hand on 2026-11-13).
 
 The Plane's slime is a floor: its pools' top is the terrain, flat at -49.94 (the river's at -34.06), and the zone

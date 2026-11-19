@@ -12,7 +12,7 @@ package entity
 // larger of petTauntMarginPct of the top threat and petTauntMarginPerLevel a level of the pet's.
 // A player tank's taunt still takes the creature back (it sets the tank to the top, the pet's
 // threat included, plus its hate). An enchanter's pet's taunt is still cut to 70% of the threat
-// it adds (pettaunthate.go, the GM Jibwiz's petition 1928), the margin with it.
+// it adds (pettaunthate.go, a GM's petition 1928), the margin with it.
 const (
 	petTauntMarginPct      = 10
 	petTauntMarginPerLevel = 20

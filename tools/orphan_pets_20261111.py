@@ -9,7 +9,7 @@ of 2026-11-11 06:22 UTC):
 
   ATTACH (5, --apply): a Companion Spirit whose caster stands near with no pet of its own, put on its spawn 1.5 off
     the caster (toward where it stood; the caster's height and zone), so the companion rule pairs them and it walks
-    with it. Sandstorm's census and Return Home's rows caught these spirits where they had followed a wandering
+    with it. The reference server's census and Return Home's rows caught these spirits where they had followed a wandering
     caster: hobgoblin oracle 6.2 off, gnoll mystic 21.9, merkan shamans 41-79 (the shamans wander, census).
 
   REMOVE (30, --apply --remove: the owner's yes first): pets with no caster to belong to anywhere near (every caster

@@ -615,7 +615,7 @@ func (s *StateUpdateData) DescribesNoEntity() bool {
 }
 
 // MarkRemoved tells the client the entity on this object channel is gone, the
-// way Sandstorm does and CLIENT's ChannelEntity (0x00BD41B8) reads it: the
+// way the reference server does and CLIENT's ChannelEntity (0x00BD41B8) reads it: the
 // same id and type with the flag byte (byte 0) cleared. A slot whose entity
 // has that id and type is then deleted and NOT replaced. The rest of the last
 // state stays as it was. An all-zero buffer, the old way, carries type 0,

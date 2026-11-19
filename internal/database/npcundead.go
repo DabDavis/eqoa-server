@@ -3,7 +3,7 @@ package database
 import "fmt"
 
 // npcundead: which creatures are undead, by NPC name (F3 20261025-215937,
-// jib: "should only work on monsters tagged Undead"), for the spells that
+// a GM: "should only work on monsters tagged Undead"), for the spells that
 // work on nothing else (entity/undead.go).
 // undead 1: every NPC of the name is undead; 0: none is, whatever its name
 // says. The key is the name as npcclass keys it (NPCClassKey: lower case,

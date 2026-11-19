@@ -15,7 +15,7 @@ import (
 // opened): every class's sets off its level 60 epic reward quests' picks,
 // logged as the GM reads them; each set's records are gear of two or more,
 // none a path epic; the shadowknight's is petition 2203's three. Then
-// petition 2203 itself where its character is in the data (Wanuven, serverid
+// petition 2203 itself where its character is in the data (serverid
 // 126, the Ascended Epic Greataxe worn): told to take it off, naming what he
 // would get; taken off (in the copy), exchanged for the Epic Lance.
 func TestRealDabrishLevel60Sets(t *testing.T) {

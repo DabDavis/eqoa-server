@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Rallosian Studs give Stamina and Dexterity, Marr Blessed Alloy Stamina and Wisdom, Lazulite Agility and Stamina
-(Innoruuk's petitions, 2026-11-16: 5200 "Rallosian Studs not in the game (gem/crafting item) Stamina and Dexterity I
+(a player's petitions, 2026-11-16: 5200 "Rallosian Studs not in the game (gem/crafting item) Stamina and Dexterity I
 believe should be the stats."; 5201 "Marr Blessed Alloy should give Stamina and Wisdom, not Stamina and Charisma";
 5202 "Lazulite is supposed to give crafted armor Agility and Stamina."; a player's claim about an item's stats is
 taken as the truth).

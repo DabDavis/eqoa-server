@@ -208,7 +208,7 @@ func TestAuraEditsAreLive(t *testing.T) {
 	if code, out := c.op("insert_row", map[string]any{"table": "charaura", "values": map[string]any{"charid": 9001, "merc": 0, "slot": 5, "color": float64(0xE01818FF), "kind": 8, "source": float64(0x1D875ECD), "nodes": 75}}); code != 200 {
 		t.Fatalf("charaura circlet insert: %d %v", code, out)
 	}
-	// a hand's second aura (color2 ... nodes2, 2026-11-16: Dust's twinkle)
+	// a hand's second aura (color2 ... nodes2, 2026-11-16: a GM's twinkle)
 	if code, out := c.op("insert_row", map[string]any{"table": "charaura", "values": map[string]any{"charid": 9002, "merc": 0, "slot": 9, "color": float64(0x000000FF), "kind": 3, "kind2": 3, "source2": float64(0x1D875ECD), "nodes2": 100}}); code != 200 {
 		t.Fatalf("charaura second insert: %d %v", code, out)
 	}

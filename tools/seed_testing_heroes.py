@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The Testing Heroes' data (entity/heroes.go, handlers/heroes.go; petition 1471, the GM Jibrish, 2026-11-10: "For all
+"""The Testing Heroes' data (entity/heroes.go, handlers/heroes.go; petition 1471, 2026-11-10: "For all
 mobs that give the player XP, add a new faction "Testing Heroes". This starts at max negative for all players ... Add
 a vendor in freeport near the well and dabrish that allows you to buy items from him with that faction. The items
 should cost 25, 100, 250, 500 and 1000 faction"), for a server whose config sets world.testing_heroes:

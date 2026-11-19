@@ -11,7 +11,7 @@ import (
 
 // A buff and a heal over time kept over a logout: what was left of each,
 // and of the heal's next tick, comes back at the next login however long
-// after, its time running again from there (Sandstorm's druid kept 30-minute
+// after, its time running again from there (the reference server's druid kept 30-minute
 // buffs over 50 minutes offline), with the buff's stats and its place on the
 // effects channel.
 func TestEffectsKeptOverALogout(t *testing.T) {

@@ -25,7 +25,7 @@ TestRealQuestTriggers, internal/handlers/questcheck_real_test.go, run on fresh c
              ghostly mage, The Hatestone / Hatestone Dust / The Mindbend Robe (100345, 100435, 100445, 100495) step 2,
              a level 30 creature at the Crest of the Duelists: Heirloom has its npcaggro row (aggressive 0, "white face
              on live", video-audit), the Live Server none -> the same row there.
-  scroll   Heirloom: Jibrish renamed spell 700049 "Shadowstrike" -> "Shadow Strike" (2026-11-11), and the rogues'
+  scroll   Heirloom: a GM renamed spell 700049 "Shadowstrike" -> "Shadow Strike" (2026-11-11), and the rogues'
            reward scroll 8541 "Shadowstrike" (A Stunned Mindwhipper 100351, The Fire Bats 100471, Elddar Seeds 100741
            step 2) scribed nothing (scribe.go reads the spell by the scroll's name) -> the scroll's name and words
            "Shadow Strike", where the spell is so named (Live keeps both "Shadowstrike": skipped).

@@ -912,7 +912,7 @@ func (w *World) rekitMercLocked(ms *mercState, kit MercKit) {
 	ms.kit = kit
 	ms.bowOut, ms.shot = false, nil // its hands the new kit's (mercshoot.go)
 	// a new pick of its pet's kind (/merc pet), or a new level's book (ticket
-	// 2020, Kyro: "Magician merc still using lvl 1 pet at lvl 13"): a pet out
+	// 2020, a player: "Magician merc still using lvl 1 pet at lvl 13"): a pet out
 	// of another summoning than the one the kit now casts goes, and that one
 	// is summoned at the merc's next turn (mercpet.go's mercSummonTurnLocked);
 	// a charmed creature is let go only for a new pick

@@ -6,7 +6,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// The owner, 2026-11-18 (petition 2384, Anzu): a Hardcore guild master's fall hands the lead to
+// The owner, 2026-11-18 (petition 2384): a Hardcore guild master's fall hands the lead to
 // the highest member still playing (an officer first), never to another fallen member; the
 // fallen stays on the roster as a member, and the change is kept. An officer's fall changes no
 // ranks. A guild kept with a fallen master hands it on at the start; one of fallen members alone

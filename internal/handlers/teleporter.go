@@ -124,7 +124,7 @@ var teleRaidGroups = []string{
 // 2026-11-11: "lets add isle of dread free to teleporter npc freeport"),
 // landing as Norach's trip does, on the fishing raft in the cove south of
 // Graumord's pier, facing the pier; and the Plane of Sky (petition 1605, the GM
-// Jibrish: "a teleport option on the main page of the teleporter that goes to
+// a GM: "a teleport option on the main page of the teleporter that goes to
 // plane of sky and lands exactly where im standing"), where he stood.
 var telePlaces = []struct {
 	label string
@@ -747,9 +747,9 @@ func (h *InteractHandler) answerTeleporter(sess *session.Session, p *entity.Play
 		return true
 	}
 	log.Printf("Teleporter: %s to %s", p.Name, kid.spot.label)
-	// the picker alone: the GM Jibwiz's petition 1938, 2026-11-13 ("The teleporter NPC in freeport
+	// the picker alone: a GM's petition 1938, 2026-11-13 ("The teleporter NPC in freeport
 	// when used will take everyone in your entire group or raid with you. This should not be the
-	// case, it is individual"), undoing petition 1408's group trip (Waldorf, 2026-11-09). The Sky
+	// case, it is individual"), undoing petition 1408's group trip (2026-11-09). The Sky
 	// essences' and the dungeons' trips still take the group (moveGroup).
 	h.travel(sess, p, dest)
 	return true

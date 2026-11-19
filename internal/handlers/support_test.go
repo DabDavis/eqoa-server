@@ -242,7 +242,7 @@ func TestPetitionsThroughTheGame(t *testing.T) {
 // A character with database.PetitionsKept petitions listed is refused a new
 // one (status 2); one deleted makes room. Its inbox lists
 // database.PetitionsListed of them, fewer than the 100 rows with which CLIENT
-// refuses to file by itself (CheckFull, word 874): the GM Jibrish had 100 open
+// refuses to file by itself (CheckFull, word 874): a GM had 100 open
 // and could file none (2026-11-10). The control: another character files.
 func TestPetitionsKeptCap(t *testing.T) {
 	_, h, db, as, bs := csWorld(t)

@@ -66,7 +66,7 @@ const (
 	dungeonsDoReset
 )
 
-// dungeonsRules are the instances' ground rules, the board's "How instances work" (petition 1840, Waldorf,
+// dungeonsRules are the instances' ground rules, the board's "How instances work" (petition 1840,
 // 2026-11-12: "Might be worth it to put an "instance ground rules" selection on the board for specific differences
 // like that"): each a chat line in the dungeons' colour.
 var dungeonsRules = []string{
@@ -374,7 +374,7 @@ func (ds *Dungeons) enter(sess *session.Session, p *entity.Player, key string) {
 const dungeonsGroupWords = "%s takes the group into the instance."
 
 // takeGroup sends along the members of p's group standing near p (teleReach, as the Teleporter takes a group: petition
-// 1834, Waldorf, 2026-11-12, "selecting a raid instance from the board should transport the group all at once if
+// 1834, a player, 2026-11-12, "selecting a raid instance from the board should transport the group all at once if
 // within range. Similar to the way the Portal was fixed"), alive, in the world and able to load the dungeons' world,
 // each into the same instance as though they had picked it. A member farther off, or whose entry is refused, stays.
 func (ds *Dungeons) takeGroup(p *entity.Player, key string, world uint8) {

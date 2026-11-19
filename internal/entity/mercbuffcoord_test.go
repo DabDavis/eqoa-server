@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Three cleric mercs of one owner (the GM Jibrish's, 2026-11-12) put each
+// Three cleric mercs of one owner (a GM's, 2026-11-12) put each
 // buff on him once: the first merc's cast on its way stands for the others
 // (mercBuffComingLocked), a group buff's for the whole team. Until then all
 // three began Order on him within a second, and Group Resist Affliction

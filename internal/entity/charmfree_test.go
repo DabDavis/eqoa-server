@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// 2026-11-18, Jibrish (level 60 enchanter, Live): a level 2 bat he had
+// 2026-11-18, a GM (level 60 enchanter, Live): a level 2 bat he had
 // charmed went free and hit him for 13-22 every 3 s; a hatchling of the same
 // levels hit him for 15-21 uncharmed. The charm changed nothing that stayed
 // (charm.go's unCharmLocked): the hits came from the caster's archetype

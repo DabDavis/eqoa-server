@@ -8,7 +8,7 @@ import (
 )
 
 // boardwolf.go — the towns' boards' Spirit of the Wolf (petition 1042, the GM
-// Jibrish: "Add a 1 hour duration buff people can get from the announcements
+// a GM: "Add a 1 hour duration buff people can get from the announcements
 // boards in towns, the same one that currently gives the XP bonus. This buff
 // should be spirit of the wolf, and give the according run speed. It should
 // drop if the player takes a hostile action."). A town's announcement board

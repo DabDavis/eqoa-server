@@ -29,7 +29,7 @@ func report(seq uint16, world byte, x, y, z float32) *protocol.Message {
 	return m
 }
 
-// Petition 1748 (the GM Jibrish: "extremely slow zoning load time"): his #goto
+// Petition 1748 ("extremely slow zoning load time"): his #goto
 // from Odus to Freeport, taken just as a restart's session came back, met a
 // report from Odus the client had sent before it had the teleport. That report
 // was taken as the arrival: the hold on his state channels lifted, Freeport's
@@ -43,7 +43,7 @@ func TestAReportFromTheWorldLeftIsNotTheArrival(t *testing.T) {
 	l := &Listener{gameWorld: w}
 	sess := session.NewSession(&net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 9}, 1, 1, 1, 2, false)
 	sess.SetCharacterInWorld(true)
-	p := w.CreatePlayer(sess, &database.CharacterRecord{CharName: "Jibrish", ServerID: 44, Level: 60, World: 0, X: 25274, Y: 54, Z: 15719})
+	p := w.CreatePlayer(sess, &database.CharacterRecord{CharName: "Jinkles", ServerID: 44, Level: 60, World: 0, X: 25274, Y: 54, Z: 15719})
 	if p == nil {
 		t.Fatal("no player")
 	}

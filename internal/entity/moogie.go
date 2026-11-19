@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// moogie.go — Mr. Moogie (petition 1246, Dwarfrish; the user: build it): an NPC who clears a
+// moogie.go — Mr. Moogie (petition 1246; the user: build it): an NPC who clears a
 // player's buffs or heals it whole, for anyone not flagged for PvP and not in a duel (handlers'
 // moogie.go asks; this does). "Clear my buffs" ends every effect on the player as a GM's
 // #clearbuffs ends them (ClearBuffs), but the town's Boon (boon.go): a blessing for playing, not a
@@ -28,7 +28,7 @@ const (
 )
 
 // MoogieBusy is why sess's player may not have Mr. Moogie's help now ("" when it may): he, moogie,
-// will not help one he fights (the GM Jibrish's petition 1251 made him attackable), one flagged for
+// will not help one he fights (a GM's petition 1251 made him attackable), one flagged for
 // PvP or one in a duel.
 func (w *World) MoogieBusy(sess *session.Session, moogie EntityID) string {
 	w.mu.RLock()
@@ -73,7 +73,7 @@ func (w *World) MoogieClear(sess *session.Session) (name string, n int, ok bool)
 	return p.Name, n, true
 }
 
-// MoogieResetID is the lockout of Mr. Moogie's reset itself (the GM Jibrish's petition 1444: "allow the
+// MoogieResetID is the lockout of Mr. Moogie's reset itself (a GM's petition 1444: "allow the
 // player to reset all of their ability cool downs ... can only be used on a player once every 10
 // minutes"): a lockout of no spell (an id no ability has), shown on no ability, so it is kept as every
 // lockout is over a logout (charlockouts: lockoutsave.go) and a restart that keeps the sessions (keep.go),

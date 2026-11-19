@@ -59,7 +59,7 @@ UNDEAD_NAME = re.compile(
 NOT_BY_BODY = re.compile(r"\bconstructs?\b")
 
 # The bodies undead wear (npcs.modelid as an unsigned DictID): what it is, and
-# what wears it on eqoaclassic (2026-10-25: the share of its spawns with undead
+# what wears it on the production server (2026-10-25: the share of its spawns with undead
 # names, then the other names it was seen on).
 UNDEAD_BODIES = {
     0x6AF98A81: ("skeletons", "skeletons (skeleton, decaying skeleton, skeletal guard, undead soldier; 75%), and the haunted "

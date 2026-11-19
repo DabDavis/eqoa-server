@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Overseer Yurgulch says which of the Plane of Disease's bosses are up (petition 1699, Skywalker, 2026-11-12:
+"""Overseer Yurgulch says which of the Plane of Disease's bosses are up (petition 1699, 2026-11-12:
 "Overseer Yurgulch can be used to check whether Bertoxxulous, Uzrathixius, or Poxathixius spawns are up and available
 to kill"; the wiki's Plane of Disease: Bertoxxulous Quest names him).
 

@@ -1,38 +1,38 @@
 #!/usr/bin/env python3
 """Five petitions' data fixes of 2026-11-14 (batch tix5, lane t2067), each a column of a row, both shards.
 
-  2057 (Felthious, Heirloom): "lvl 60 primal spirit should be the big wolf animation"; the owner: "big wolf is the dire
+  2057 (a player, Heirloom): "lvl 60 primal spirit should be the big wolf animation"; the owner: "big wolf is the dire
        wolf". petstats 700807 (Primal Spirit) model -> 2925832803 (0xAE64AA63), the spiked big wolf: 1614 vertices, half
        again as broad as the plain wolf, the body the NPCs named "Primal Spirit" wear in the spirit world (world 3). The
        body given on 2026-11-14 (2925832801, 0xAE64AA61, "black wolf"/"dire wolf") is the timber wolf's mesh
        (821616987, 0x30F8E15B, 1092 vertices, same bounds) in a dark skin: "wolf is same just.. lower credit score".
        From either of those two bodies (the Live shard still has 821616987).
-  2067 (Lonewulf): "call to line wont stack other buffs". The warrior's Call to line (Call to Action 100184, Arms 358,
+  2067 (a player): "call to line wont stack other buffs". The warrior's Call to line (Call to Action 100184, Arms 358,
        Combat 671, Battle 1552, War 1563, Victory 2776: group +STA +AGI +max HP, workbook stack type 3) shared a stat
        with every other class's group stack-3 buff (Group Tribal Thew +STA, Group Acumen +AGI, Pure Heart +max HP: one
        line, entity/buffline.go sameLine), so the higher rank took the other off. Their stack type -> 2776, one of
        their own, shared by the six so that the ranks stay one line among themselves (Living Stone's way, 2026-11-11).
-  2068 (Lonewulf): "leadership wisdom wont stack sha buffs". Leadership (1791, the bard's and magician's group +STA
+  2068 (a player): "leadership wisdom wont stack sha buffs". Leadership (1791, the bard's and magician's group +STA
        +WIS, level 6, stack 3) was one line with Group Tribal Thew (+STA, level 51) and was refused under it. Its stack
        type -> 1791, its own.
-  2071 (Lonewulf, Heirloom): "queen saersalias circlet meant to be a head piece?" itempattern 995043 (Queen
+  2071 (a player, Heirloom): "queen saersalias circlet meant to be a head piece?" itempattern 995043 (Queen
        Saersalia's Circlet, raid gear of the Tomb of Kings, tools/dungeons_more_20261112.py) was made from Sacred Peach
        (715015), a held item: slot 18 (held), its hand model 786059401 and the peach's icon. -> slot 1 (head), model 0,
        icon 864498561 (the level-60 circlets' own: Circlet of Loathing, Circlet of Spun Ether). Stats unchanged. A
        circlet worn in a hand (charinventory equiploc 19/20; Heirloom 2026-11-14: two) is taken off (-1) so that it is
        put on the head: run it with the wearers out of the world or in a keep restart's before.sh (the server holds a
        player's inventory while they play).
-  2072 (Fullmetal, Heirloom): "Robe of Frozen Throne: Alc Tunic that is mislabled as robe". itempattern 995075 is the
+  2072 (a player, Heirloom): "Robe of Frozen Throne: Alc Tunic that is mislabled as robe". itempattern 995075 is the
        alchemist's chest piece (slot 5, a tunic: made from Tunic of the Chemist 6475, leather, its icon) named a robe
        (robes are slot 2). itemname -> "Tunic of the Frozen Throne". Its stats are the owner's call: not changed.
-  2073 (Fullmetal, Heirloom): "Harbringers of Khalimet ... couldnt continue passed 1st part as its labled on map at
+  2073 (a player, Heirloom): "Harbringers of Khalimet ... couldnt continue passed 1st part as its labled on map at
        location that players cannot get to". Step 2 (reach Gaulin's abandoned camp in Box Canyon) was at (20937, 20722),
        radius 40: the top of a mesa (146 high) between two arms of the canyon, whose floor (6) comes no nearer than
        ~125 (a walk over world 0's ground and walls files from the canyon floor never reaches it). -> (20957, 5.3,
        20935), the canyon's floor 215 south of it, reached from the canyon (step 3's Armis is spawned beside the
        player; his standing row on the mesa is left). quests are read at the server's start: a restart (a keep
        restart's before.sh).
-  5023 (Trulyblind, Live): "the Spirit OF Rolyat Haley and Ghostly Mage are in the wrong spot, and there is 2 Ghostly
+  5023 (a player, Live): "the Spirit OF Rolyat Haley and Ghostly Mage are in the wrong spot, and there is 2 Ghostly
        Mages". Dueler's Crest (Collonridge; the plateau at 70 with the duelers' platform at 86, the skeletal dogs,
        lost thoughts and the maundering soul) holds the ghostly mage (npcs 1346, on the plateau), the Spirit of Rolyat
        Haley (2473, on the platform) and a second Spirit of Rolyat Haley (2977) 29 from the mage: FrontiersForge's

@@ -247,7 +247,7 @@ func (q *QuestEngine) stepSpotsLocked(spots map[string][]entity.NPCSpot, st *dat
 		// a step with a place of its own ("the giant widows of central
 		// Collonridge Cemetery": queststeps x, z, world): the camps of any
 		// size within huntPlaceReach of it, before the camps elsewhere
-		// (petition 5099/5104, Lostinpot: the mark went to Sslathis's six
+		// (petition 5099/5104: the mark went to Sslathis's six
 		// widows, 20,000 off, for the cemetery's scattered ones)
 		if st.X != 0 || st.Z != 0 {
 			var at []entity.NPCSpot

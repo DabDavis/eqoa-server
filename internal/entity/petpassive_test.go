@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Petition 1483 (the magician Lifeispain): "Pet Passive doesn't stop the pet
+// Petition 1483 (a magician): "Pet Passive doesn't stop the pet
 // from fighting. It should stop fighting and run back to the owner and stand
 // there until it's told to fight". A pet in a fight made passive lets its
 // target go at once, lands no more hits, walks back to its owner and stands;

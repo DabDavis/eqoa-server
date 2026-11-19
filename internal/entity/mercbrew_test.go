@@ -573,7 +573,7 @@ func TestMercAlchemistDrinksAgainAsPowerDrops(t *testing.T) {
 	}
 }
 
-// Petition 2195 (Lonewulff: "when you use a alc merc and change its class MC
+// Petition 2195 ("when you use a alc merc and change its class MC
 // they dont make any of thore potions"): with its ten spell slots set (the
 // window's, which never lists a refinement) an alchemist still brews its
 // refinements' potions and throws them; a potion spell is still thrown only

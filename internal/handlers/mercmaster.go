@@ -16,7 +16,7 @@ import (
 // a bigger udpate to mercs, if 55+ choose the merc's master class tag (which
 // comes with the master class abilities)", then "tinker is racial master
 // class, so account for archetype master class, racial, etc. magician mercs
-// can be aero, pyro, hydro, geo mancers also"; Hogknight's ask: "is it
+// can be aero, pyro, hydro, geo mancers also"; a player's ask: "is it
 // possible to give the gnome mercs a tinker pet option?"). The rules are
 // entity/mercmaster.go's.
 //

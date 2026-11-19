@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Star crabs and Grobb crabs all along the beach round Grobb (the user, 2026-10-30: Dust, on the
+"""Star crabs and Grobb crabs all along the beach round Grobb (the user, 2026-10-30: a GM, on the
 level 7 "Frog Legs for Grobb", found one of each: "should be all along beach around grobb including
-the grobb crab also"; "Sandstorm also does it, but we dont need an oracle").
+the grobb crab also"; "the reference server also does it, but we dont need an oracle").
 
 Every source we hold saw one of each (FrontiersForge's journal, then the import): a Grobb Crab and a
 star crab 28 apart on the east beach, the two the quests send players to ("Frog Legs for Grobb": a

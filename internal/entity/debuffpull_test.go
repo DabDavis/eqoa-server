@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Live petition 5045 (Innoruuk): a debuff pulls whatever the caster wears. A tap of STR (Tap
+// Live petition 5045: a debuff pulls whatever the caster wears. A tap of STR (Tap
 // Strength: the creature's STR taken, given to the caster) cast at a creature that is not angry,
 // by a caster who wears a stronger effect of the tap's own line, so that the caster's share is
 // refused (lifetap.go shareTakesLocked), still lands on the creature and angers it: the caster its

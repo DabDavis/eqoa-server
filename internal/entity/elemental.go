@@ -11,7 +11,7 @@ import (
 
 // elemental.go — the one owner of what a resist takes off elemental (FR, CR,
 // LR, AR, PR, DR) spell and effect damage at the hit-point boundary: the
-// research package of 2026-11-14 (EQOA-Elemental-Resistance-for-Dab, a GM
+// research package of 2026-11-14 (a GM
 // collaborator's through the owner; its reference is internal/elemental),
 // the model "elemental-2026-11-14":
 //
@@ -19,7 +19,7 @@ import (
 //	a creature takes D0 x (100 - R) / 100, R its template's, 0..100; 100 none
 //
 // combat.resist_model "legacy" keeps the model before it, for a rollback:
-// resist.go's RollResist (jib's dice at the cap, a template's resist_fail
+// resist.go's RollResist (a GM's dice at the cap, a template's resist_fail
 // anywhere) and enchanter.go's creatureStrongIn (at least 1 at 100).
 //
 // The adapter's decisions (the package leaves them to the server):

@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// weaponhold_test.go: petition 1821 (the GM Jibrish: "Enable code for weapons to
+// weaponhold_test.go: petition 1821 ("Enable code for weapons to
 // have working root or snare procs"): any record whose words name a root or a
 // snare proc holds or slows, alone or beside its damage.
 

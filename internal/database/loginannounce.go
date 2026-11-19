@@ -8,7 +8,7 @@ import (
 )
 
 // loginannounce: the GMs' announcement at login, one a shard (petition 2120,
-// the GM Jibwiz, 2026-11-14: "GM's need to be able to set an announce that
+// a GM, 2026-11-14: "GM's need to be able to set an announce that
 // displays at login for all players. This needs to load as the newest message
 // in chat upon login, after all the other tickets closure entries and so on").
 // One row or none: id is always 1, text the line every player entering the

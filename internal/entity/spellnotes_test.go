@@ -17,7 +17,7 @@ func TestSpellNotesAndDefaults(t *testing.T) {
 		name, line string
 		want       SpellDef
 	}{
-		// jib's Courage: no time in its line, so it lasted nothing; now 30
+		// a GM's Courage: no time in its line, so it lasted nothing; now 30
 		// minutes, and it heals what it raises the maximum by
 		{"Courage", "Target, Increase Maximum HP by 40, Increase AC by 40",
 			SpellDef{Target: TargetSingle, Duration: 30 * time.Minute, Effects: []SpellEffect{

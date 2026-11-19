@@ -11,7 +11,7 @@ import (
 )
 
 // groupreg.go — the group search's registration as vanilla shows it, and
-// "Allow anyone in my group to invite" (the GM Jibrish's petition 1476,
+// "Allow anyone in my group to invite" (a GM's petition 1476,
 // 2026-11-11: "Enable the group register window / service. Players can
 // register for group, allowing them to show up in other players searches
 // through that window. They can toggle register on or off. ... A setting box

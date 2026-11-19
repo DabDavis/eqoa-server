@@ -21,7 +21,7 @@ func wardDeath() CastSpell {
 }
 
 func coerceUndead() CastSpell {
-	// its line as eqoaclassic keeps it: no target word, and nothing in it but
+	// its line as the production server keeps it: no target word, and nothing in it but
 	// its name and description says undead
 	return CastSpell{SpellID: 974, DisplayIndex: 10, Level: 50, Scope: 1, Name: "Coerce Undead", CastTime: 5 * time.Second,
 		Recast: time.Second, PowerCost: 100, Range: 30,
@@ -171,7 +171,7 @@ func TestTheUndeadCharmTakesOnlyUndead(t *testing.T) {
 }
 
 // The Turn Undead mastery as the workbook has it once its second share is an
-// area (ticket 1193, Dock: "undead CM aoe spells do not AOE and only hit single
+// area (ticket 1193: "undead CM aoe spells do not AOE and only hit single
 // target"): the target takes both shares, as every storm's does, the undead
 // beside it the second, and a living creature beside it nothing. The control is
 // the record as it stood, scope "target": both shares on the target alone.

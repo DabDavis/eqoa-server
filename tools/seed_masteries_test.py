@@ -151,7 +151,7 @@ class SeedTest(unittest.TestCase):
                          "a first rank named otherwise is left as the list writes it")
 
     def test_a_master_classs_abilities_need_only_the_class(self):
-        # F3 20261026-222613, jib: "Tag *unlocks* the 2, but isn't a singular
+        # F3 20261026-222613, a GM: "Tag *unlocks* the 2, but isn't a singular
         # master class purchase chain": each rank after the first has the
         # master class itself as its parent, but one improving an earlier
         # rank's ability (it needs or replaces it, or MASTER_UPGRADES says so)
@@ -171,7 +171,7 @@ class SeedTest(unittest.TestCase):
                 self.rows()
 
     def test_a_master_classs_abilities_named_for_what_they_give(self):
-        # jib: "named what they are ... and not "Transmuter 2"": the one
+        # a GM: "named what they are ... and not "Transmuter 2"": the one
         # ability a rank adds, as the server's spell is named, as the list
         # names it when no spell is found, else MASTER_ABILITY_NAMES; a rank
         # adding several and in no table keeps its name (the control)

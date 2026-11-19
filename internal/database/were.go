@@ -14,7 +14,7 @@ var wereAbility = regexp.MustCompile(`(?i)\bwere(rat|wolf|bear|lion|gator)|(rat|
 // form or a were's ability. Those come from a were quest, which any class may
 // do ("Class: ALL" in EQOA-Data's guides), and the forms past the first are
 // bought as masteries; they sit in classspells only because characters of
-// those classes on Sandstorm had them (F3 20261025-220040: #template gave a
+// those classes on the reference server had them (F3 20261025-220040: #template gave a
 // necromancer the lion forms). No class grant gives one.
 func IsWereAbility(name, desc string) bool {
 	return wereAbility.MatchString(name) || wereAbility.MatchString(desc)

@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// laststand.go — a creature's last stand (database.AbilityLastStand; the GM Jibrish's petition 1522:
+// laststand.go — a creature's last stand (database.AbilityLastStand; a GM's petition 1522:
 // "Add a new ability to Mr. Moogie. If he reaches 2% hp he completely heals to full and doubles his
 // damage if a non player character is hitting him").
 //

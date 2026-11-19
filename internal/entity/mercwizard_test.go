@@ -2,7 +2,7 @@ package entity
 
 import "testing"
 
-// A wizard merc's spells do 50% of their damage (the GM Jibwiz's petition
+// A wizard merc's spells do 50% of their damage (a GM's petition
 // 1907: "Nerf the damage per cast on the mercenary wizard by 35%", and 1954:
 // "an additional 15% across the board"), its melee and shots 85%; a
 // magician merc's, the control, whole.

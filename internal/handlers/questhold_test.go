@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/entity"
 )
 
-// Petition 1617 (Lickinfrogs, "collected items for froglok herbalist, turned in and
+// Petition 1617 ("collected items for froglok herbalist, turned in and
 // no mobs spawned"): a held trigger (questhold.go). The herbalist talked to with the
 // ingredients fires the brew and takes nothing; a second talk while it runs says so;
 // the brew's queststep, at its end, takes the ingredients and gives the potion to the

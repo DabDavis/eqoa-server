@@ -9,7 +9,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// mercui.go — the mercs as vanilla shows them (the GM Jibrish's petitions,
+// mercui.go — the mercs as vanilla shows them (a GM's petitions,
 // 2026-11-11): 1475, "Mercenary's need a way for players to dismiss them. Put
 // the option under the group options in main menu", and 1488, "Change
 // mercenary name colors to match that of pets, with a slight reddish tint".

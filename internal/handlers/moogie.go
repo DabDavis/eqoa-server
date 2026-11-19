@@ -9,7 +9,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// moogie.go — Mr. Moogie's talk (petition 1246, Dwarfrish: "Mr. Moogie should have several options
+// moogie.go — Mr. Moogie's talk (petition 1246: "Mr. Moogie should have several options
 // for player sto choose from / "Clear my buffs" - the NPC will strip ALL buffs on the player and say
 // in chat that X targets buffs are clear / "Fully heal me" - heals the players Hp and mana to full
 // ... The NPC should not be interactable when pvp flagged, or in a duel"; the user: build it). A
@@ -21,7 +21,7 @@ const moogieBoxMark = 0x5B000000
 
 // His question and its answers, in the box's order, and what he says.
 const (
-	// the GM Jibrish's petition 1258: "flavor text mentioning how he is the king of this jungle,
+	// a GM's petition 1258: "flavor text mentioning how he is the king of this jungle,
 	// and you need to prove your worth to him"
 	moogieQuestion = "Mr. Moogie: 'I am king of this jungle, and you have yet to prove your worth to me. Still, I can clear your buffs or heal you.'" // a box's question: 127 at most (questAskChars)
 	moogieClearOpt = "Clear my buffs"
@@ -29,7 +29,7 @@ const (
 	moogieNoOpt    = "Nothing, thank you"
 	moogieCleared  = "Mr. Moogie says, '%s's buffs are clear.'"
 	moogieHealed   = "Mr. Moogie says, 'There you are, %s, whole again.'"
-	// the GM Jibrish's petition 1444: "Give a dialogue option to Mr. Moogie that will allow the player to
+	// a GM's petition 1444: "Give a dialogue option to Mr. Moogie that will allow the player to
 	// reset all of their ability cool downs. This cannot be used on players in PvP, in duels and can only
 	// be used on a player once every 10 minutes" (entity's MoogieReset)
 	moogieResetOpt    = "Reset my ability cooldowns"
@@ -51,7 +51,7 @@ type moogieAsk struct {
 }
 
 // What an answer in his box does: the buffs cleared, a full heal, the abilities' lockouts reset (petition
-// 1444), his metal twin's duel (the GM Jibrish's petition 1379: metalmoogie.go), a Moogie Tribute handed
+// 1444), his metal twin's duel (a GM's petition 1379: metalmoogie.go), a Moogie Tribute handed
 // in (for his favor, or, while Metal Moogie V2 is on the server, a second question: the favor or V2's
 // duel, petition 1441), nothing.
 type moogieDo int

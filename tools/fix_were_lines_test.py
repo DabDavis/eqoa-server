@@ -49,7 +49,7 @@ class FixWereLines(unittest.TestCase):
             (122735, "gatorwere", ALLIGATOR, 1.0),
             (122736, "gatorwere", ALLIGATOR, 1.0),
             (130000, "gatorwere", ALLIGATOR, 1.0),        # a GM's: no seed wrote it
-            (130001, "elder weregator", WEREGATOR, 1.1),  # Sandstorm's, as it is
+            (130001, "elder weregator", WEREGATOR, 1.1),  # the reference server's, as it is
             (130002, "raging alligator", ALLIGATOR, 1.0),  # the body's own creature
         ])
         db.executemany("INSERT INTO npcs (id, npc_name, modelid, size, npc_level, npc_type) VALUES (?, ?, 1, 1.0, ?, ?)", [

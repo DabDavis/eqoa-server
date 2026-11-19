@@ -18,7 +18,7 @@ import (
 // must be melee attacked by the were animal to be infected. the oasis NPCs
 // around the campfire offer cures for a price").
 //
-// Since work 1463 (the GM Jibrish's of 2026-11-14: "A successful animal-were
+// Since work 1463 (a GM's of 2026-11-14: "A successful animal-were
 // infection must appear on the player as a debuff icon for seven days, and that
 // debuff must be the infection flag") a character's infection is its
 // charinfection row (database/wereinfection.go): its line, caught at the crit's

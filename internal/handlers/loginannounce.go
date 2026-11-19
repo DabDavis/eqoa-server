@@ -11,7 +11,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// loginannounce.go — the GMs' announcement at login (petition 2120, the GM Jibwiz, 2026-11-14: "GM's need to be
+// loginannounce.go — the GMs' announcement at login (petition 2120, 2026-11-14: "GM's need to be
 // able to set an announce that displays at login for all players. This needs to load as the newest message in chat
 // upon login, after all the other tickets closure entries and so on").
 //

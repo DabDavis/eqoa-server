@@ -20,7 +20,7 @@ import (
 // a camp's kinds), no class template summons (templateKindTakes refuses a
 // summoning, and the Charmable Mobs page's "these minions" are summoned by
 // nothing here), and an NPC's Owner is only ever a player. What the rows hold
-// (eqoaclassic's of 2026-11-09, 61,254 NPCs): 229 rows of 23 names a pet goes
+// (the production server's of 2026-11-09, 61,254 NPCs): 229 rows of 23 names a pet goes
 // by (Companion Spirit 172, decaying minion 15, undead minion 10, spectral
 // minion 5, Familiar 3, "Goran's pet", "Minion of Krrgar", "Servant of
 // Vorin", ...), the captures and dumps they came from having caught a
@@ -102,7 +102,7 @@ var companionOwnerName = regexp.MustCompile(`(?i)^(?:(.+)'s (?:pet|minion|famili
 // companionKinds are the kinds whose every creature is a caster's pet though
 // no word of its name says so, by the word its owners' names end in
 // (database.NPCClassKey's keys): Guk's Mummified Guardians, the necromancers'
-// (Waldorf's petition 1832, 2026-11-12, "same with the Necs and their pets":
+// (a player's petition 1832, 2026-11-12, "same with the Necs and their pets":
 // 47 rows, most within 2 of a froglok or ghoul necromancer, a few 6 to 7.4
 // off one, so they find their owner as a named pet does, companionNamedReach).
 var companionKinds = map[string]string{
@@ -112,7 +112,7 @@ var companionKinds = map[string]string{
 
 // companionOwnerOnly are the companionKinds whose creature is a pet only beside
 // an owner its kind's word names (no nearest creature in its stead): Guk's elder
-// spirits are its shamans' (Heirloom petition 2291, Waldorf, 2026-11-17, "Elder
+// spirits are its shamans' (Heirloom petition 2291, 2026-11-17, "Elder
 // Spirits in Guk Instance are lootable and should not be since they are pets":
 // each of the four stands 1.5 to 1.8 off a froglok yun or guk shaman, or within
 // 16 of one), while the Tower of Phantoms' two elder spirits stand among its
@@ -123,11 +123,11 @@ var companionOwnerOnly = map[string]bool{
 
 // companionPetKinds are the kinds whose every creature is a pet though no word of its name says so, with no owner's
 // word: each the pet of the creature beside it (companionReach), as an unnamed pet's. Feral Spirits are the creature
-// shamans' (petition 1846, Waldorf, 2026-11-12, "All feral spirits in Runneye instance our neutral and not
+// shamans' (petition 1846, 2026-11-12, "All feral spirits in Runneye instance our neutral and not
 // aggressive": npcaggro had them as players' pets; of 157 rows, 100 stand within 5 of a gnoll, goblin or Tae Ew
 // shaman, an oracle, a seer, a mystic or a spiritmaster, the rest alone).
 //
-// Howling Death is a necromancer's (ticket 2009, Waldorf, 2026-11-13, "Guk instance - Howling Death isn't tethered to
+// Howling Death is a necromancer's (ticket 2009, 2026-11-13, "Guk instance - Howling Death isn't tethered to
 // Rubik and is neutral faced"): all six rows stand 0.7 to 2.05 off their owner (Rubbip in Guk and his instance copy,
 // Lothaxe, Amandon, two ambassadors).
 //
@@ -195,7 +195,7 @@ func companionNamesOwner(named, owner string) bool {
 // companionFighter is whether an NPC takes part in a pair at all: a creature
 // of its own (no player's pet, no charm), that fights (no NPC bit, no dummy),
 // and is of a row (no GM's copy, no spawn-only original) or a dungeon
-// instance's copy of one (dungeons.go: Waldorf's petition 1832, 2026-11-12,
+// instance's copy of one (dungeons.go: a player's petition 1832, 2026-11-12,
 // "shamans aren't tied to their pets" in Guk's instance; a copy pairs with the
 // copies of its own instance alone, linkCompanionsLocked's cell).
 //

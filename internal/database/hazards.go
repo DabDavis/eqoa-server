@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// hazards: places that hurt a player standing in them (entity/hazards.go; the GM Hoofbite's
+// hazards: places that hurt a player standing in them (entity/hazards.go; a GM's
 // petition 1937, 2026-11-13: "spikey vines in toxxulia cave should damage player for 1000 dmg when
 // walking through them. player must navigate around vines"). One row an area: a capsule, the
 // segment from (x1, y1, z1) to (x2, y2, z2) (the two ends the same for a round area) and radius
@@ -16,7 +16,7 @@ import (
 // server's, HazardDefaultEvery). words is what the player is told at each hit (%d its damage; empty:
 // "<name> hurts you for <n>."). name is the area as a GM reads it, note where it came from. source:
 // gm, or a tool's (tools/seed_hazards.py: its --undo deletes those no GM changed). on_move 1 (the GM
-// Jibwiz's petition 1960: the thorns, "if they remain in it for 6 seconds THEN MOVE they take 500
+// a GM's petition 1960: the thorns, "if they remain in it for 6 seconds THEN MOVE they take 500
 // again. However if they stay still it should not continuously damage them") hits a player again
 // only once it has moved since its last hit; 0 hits it every every_ms while it stays in, still or
 // not. A GM places a round one where it stands with /hazard add (handlers/gmhazard.go).

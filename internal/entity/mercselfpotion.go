@@ -6,7 +6,7 @@ import (
 )
 
 // mercselfpotion.go — an alchemist merc's Master Class mixtures (petition
-// 2216, Felthious: "alc merc missing master class abilitys"). The alchemist's
+// 2216, a player: "alc merc missing master class abilitys"). The alchemist's
 // three Master Class abilities that are not stats are mixtures: a spell that
 // summons a potion, which a merc never casts (mercSkips: a summoning of
 // items) and whose potion until then none of its turns used, so a Transmuter

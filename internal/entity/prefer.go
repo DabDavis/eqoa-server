@@ -2,7 +2,7 @@ package entity
 
 import "strings"
 
-// prefer.go — the foes a creature fights first (database.AbilityPrefer; the GM Jibrish's petition 1438: "If
+// prefer.go — the foes a creature fights first (database.AbilityPrefer; a GM's petition 1438: "If
 // the monster Tunare is attacking Mr. Moogie / on his aggro list, he should prioritize her over all other
 // mobs first").
 //

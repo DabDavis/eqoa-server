@@ -117,7 +117,7 @@ func TestLoaderFilesAreServed(t *testing.T) {
 }
 
 // TestSSCarriesTheDualStageStub checks the served SS actually installs our
-// loader rather than Sandstorm's: same hook word, and the stub body must
+// loader rather than the reference server's: same hook word, and the stub body must
 // contain both stage names. Serving the wrong bootstrap looks identical from
 // the manifest.
 func TestSSCarriesTheDualStageStub(t *testing.T) {

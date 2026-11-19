@@ -131,7 +131,7 @@ class FillClassQuestRewards(unittest.TestCase):
         db.executemany("INSERT INTO characters VALUES (?, ?, ?)",
                        [(103, "Dust", 3), (104, "Knows", 3), (105, "Busy", 3), (106, "Tester", 0), (107, "Warry", 0)])
         db.executemany("INSERT INTO charquests (serverid, questid, step, done) VALUES (?, ?, ?, ?)", [
-            (103, 100479, 0, 1),   # Dust finished Neriak's "Proving Yourself": owed the Malice scroll
+            (103, 100479, 0, 1),   # a GM finished Neriak's "Proving Yourself": owed the Malice scroll
             (104, 100163, 0, 1),   # finished Grobb's, and has Malice in his book: owed nothing
             (105, 100521, 1, 0),   # under way: owed nothing
             (106, 100479, 0, 1),   # a warrior a GM marked done on a shadow knight's quest: not given
@@ -168,7 +168,7 @@ class FillClassQuestRewards(unittest.TestCase):
         out = self.run_tool("--apply")
         self.assertIn("wrote 6 rewards, 1 given", out)
         rw = lambda qid: self.q("SELECT rewarditems FROM queststeps WHERE questid = ? ORDER BY step DESC LIMIT 1", qid)[0][0]
-        # Dust's check case: Neriak's "Proving Yourself" gives the Malice scroll, and Dust has his
+        # a GM's check case: Neriak's "Proving Yourself" gives the Malice scroll, and a GM has his
         self.assertEqual(rw(100479), "8553")
         self.assertEqual(self.q("SELECT stackleft, remainHP, location, listnumber, equiploc FROM charinventory "
                                 "WHERE serverid = 103 AND patternid = 8553"), [(1, 0, 0, 16, -1)],

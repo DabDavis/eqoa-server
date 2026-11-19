@@ -12,8 +12,8 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// /copy is /clone (the owner, 2026-11-14: "./copy should work for jib also on
-// live server"): a GM of Jibrish's level (acctlevel 2, as on the Live Server)
+// /copy is /clone (the owner, 2026-11-14: "./copy should work for a GM also on
+// live server"): a GM of a GM's level (acctlevel 2, as on the Live Server)
 // copies its target with /copy, #copy and a PS2's "/t copy"; a sub GM may as it
 // may /clone; a player's /copy is an unknown command and its "/t copy" a tell.
 func TestCopyIsClone(t *testing.T) {
@@ -67,9 +67,9 @@ func npcRowTellOK(name, body string) bool {
 }
 
 // mirrorWorlds is the Live Server (live: its world, database and GM, account
-// 1 "jibrish", and a player, account 2) and the Heirloom Test Server (hl: its
+// 1 "a GM", and a player, account 2) and the Heirloom Test Server (hl: its
 // world and database, whose wolf near is level 99 where Live's is 12), Live's
-// NPC edits by jibrish mirrored to Heirloom's database.
+// NPC edits by a GM mirrored to Heirloom's database.
 type mirrorWorlds struct {
 	live, hl     *chatWorld
 	gs, ps       *session.Session
@@ -86,8 +86,8 @@ func newMirrorWorlds(t *testing.T) mirrorWorlds {
 		db *database.SQLiteDB
 		q  string
 	}{
-		{liveDB, `INSERT INTO accountinfo (accountid, username) VALUES (1, 'jibrish'), (2, 'someone')`},
-		{hlDB, `INSERT INTO accountinfo (accountid, username) VALUES (1, 'jibrish'), (2, 'someone')`},
+		{liveDB, `INSERT INTO accountinfo (accountid, username) VALUES (1, 'jinkles'), (2, 'someone')`},
+		{hlDB, `INSERT INTO accountinfo (accountid, username) VALUES (1, 'jinkles'), (2, 'someone')`},
 		{hlDB, fmt.Sprintf(`UPDATE npcs SET npc_level = 99 WHERE id = %d`, campWolfNear)},
 		{hlDB, fmt.Sprintf(`DELETE FROM npcs WHERE id = %d`, campPariah)},
 		// Heirloom's own rows past Live's: its new ids are its own
@@ -101,7 +101,7 @@ func newMirrorWorlds(t *testing.T) mirrorWorlds {
 		}
 	}
 	hl.gw.LoadNPCs(database.NewNPCStore(hlDB))
-	SetNPCMirror([]string{" JibRish "}, hlPath)
+	SetNPCMirror([]string{" Jinkles "}, hlPath)
 	t.Cleanup(func() { SetNPCMirror(nil, "") })
 	return mirrorWorlds{live: live, hl: hl, gs: gs, gp: gp, ps: ps, pp: pp, liveDB: liveDB, hlDB: hlDB, hlPath: hlPath}
 }
@@ -117,13 +117,13 @@ func (m mirrorWorlds) mirrorOf(t *testing.T, id int64) int64 {
 }
 
 // The owner, 2026-11-14: "his placements and copies should show on heirloom
-// also". jibrish's /clone on Live makes a row on Heirloom too, a copy of
+// also". A GM's /clone on Live makes a row on Heirloom too, a copy of
 // Heirloom's own row of the source (its level 99, its respawn) on the GM's spot,
 // audited there "mirrored from Live: ...", in Heirloom's running world at its
 // next inbox read; his /roamer, /move, /size and /delete of that row change its
 // copy, each in Heirloom's world too. A source Heirloom does not have
 // (pariah): Live's row's values. The controls: another GM's /clone is not
-// mirrored; jibrish's /move of a row never mirrored (one both shards have) is
+// mirrored; a GM's /move of a row never mirrored (one both shards have) is
 // not mirrored; nothing of Live's changes for the mirror.
 func TestNPCEditsMirrorToHeirloom(t *testing.T) {
 	m := newMirrorWorlds(t)
@@ -153,7 +153,7 @@ func TestNPCEditsMirrorToHeirloom(t *testing.T) {
 	if n := count(t, m.hlDB, `SELECT COUNT(*) FROM npcrespawn WHERE npc_row = ? AND seconds = 100`, hid); n != 1 {
 		t.Fatal("the respawn is not Live's row's")
 	}
-	if n := count(t, m.hlDB, `SELECT COUNT(*) FROM gm_audit WHERE tbl = 'npcs' AND action = 'insert' AND username = 'jibrish'
+	if n := count(t, m.hlDB, `SELECT COUNT(*) FROM gm_audit WHERE tbl = 'npcs' AND action = 'insert' AND username = 'jinkles'
 		AND detail LIKE 'mirrored from Live: /clone in the game: wolf%'`); n != 1 {
 		t.Fatalf("%d Heirloom audit lines", n)
 	}
@@ -204,7 +204,7 @@ func TestNPCEditsMirrorToHeirloom(t *testing.T) {
 	if l := gmReplies(t, ps); !hasLine(l, "Cloned wolf") || hasLine(l, "Heirloom") || hlRows() != before {
 		t.Fatalf("another GM's /clone: %q (%d Heirloom rows, %d before)", l, hlRows(), before)
 	}
-	// a row both shards have: jibrish's /move is not mirrored
+	// a row both shards have: a GM's /move is not mirrored
 	hfar := npcRowMap(t, m.hlDB, campWolfFar)
 	targetAs(gp, campWolfFar, 100300, gs)
 	c.say(gs, "/move")
@@ -242,11 +242,11 @@ func TestNPCEditsMirrorToHeirloom(t *testing.T) {
 	}
 }
 
-// Heirloom's database unavailable (a wrong path, the file gone): jibrish's
+// Heirloom's database unavailable (a wrong path, the file gone): a GM's
 // /place on Live is made all the same, and he is told it is not mirrored.
 func TestNPCMirrorFailureNeverFailsTheCommand(t *testing.T) {
 	m := newMirrorWorlds(t)
-	SetNPCMirror([]string{"jibrish"}, filepath.Join(t.TempDir(), "no-such.db"))
+	SetNPCMirror([]string{"jinkles"}, filepath.Join(t.TempDir(), "no-such.db"))
 	gs, gp := m.gs, m.gp
 	stand(m.live, gp, 25500, 51, 15500, 0)
 	before := count(t, m.liveDB, `SELECT COUNT(*) FROM npcs`)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The Plane of Sky's isles, by name, for every place a location is shown (the owner, 2026-11-14: "for the location of
-plane of sky islands, for example dust is on night 1 lets make that the Location like Plane of Sky (Night Chain 1)").
+plane of sky islands, for example [a GM] is on night 1 lets make that the Location like Plane of Sky (Night Chain 1)").
 
 World 4's terrain (the ground file the server bakes from the operator's disc, worlds/ground/4.ground: no game data is
 kept here, only what this writes) is cut into its pieces (triangles sharing corners), and each piece goes to an isle:

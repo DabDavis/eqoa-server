@@ -39,7 +39,7 @@ func (r NewCharacterRules) startLevel() int {
 // CreateNew creates a character as a new one starts, whichever way it was
 // made (the game's 0x002B or the account page): at the rules' level, whatever
 // the record says, in its home city (startPlace), bound there, carrying its
-// race and class's starting items (startitems.go: Sandstorm's starting weapon
+// race and class's starting items (startitems.go: the reference server's starting weapon
 // and rations), with the rules' purse stored in its row from the start (a
 // login no longer fills an empty purse: entity/tunar.go), and with its class's
 // first abilities, or all its class's spells when the rules say so. It returns
@@ -91,7 +91,7 @@ const raceFroglok = 10
 // startPlace puts a new character on its home city's spot, defaultcharacter's
 // row for its race, class and city (humType: a human's east 1 or west 2, 0
 // for the others), and names the city. defaultcharacter holds the live game's
-// spots: Sandstorm's new characters stand exactly on them (F3 pass 17: a new
+// spots: the reference server's new characters stand exactly on them (F3 pass 17: a new
 // Freeport warrior on the human-east warrior's row, a new Surefall ranger on
 // its row), each a few steps from the class's first quest giver. A class the
 // table lacks takes a row of its race, a human's of its own city first (a class
@@ -203,7 +203,7 @@ func HomeCity(race, humType, class int) string {
 	return "its home city"
 }
 
-// returnHome is Return Home as Sandstorm numbers it, every fresh character's
+// returnHome is Return Home as the reference server numbers it, every fresh character's
 // second ability.
 const returnHome = 1623
 
@@ -212,7 +212,7 @@ const returnHome = 1623
 const ReturnHomeSpell = returnHome
 
 // startingAbilities are what a fresh character of each class has on
-// Sandstorm, besides Return Home: one ability. Measured on its fresh
+// the reference server, besides Return Home: one ability. Measured on its fresh
 // characters (eqoa harvest dumps and questrec16's warrior, F3 pass 17):
 // WAR Quick Strike, RAN Thistlecoat, PAL Divine Strike, SK Chilling Aura,
 // MNK Mend (a level 5's book), RGE Hide, DRD and CL Minor Healing, ENC Lull,

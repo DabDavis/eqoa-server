@@ -120,7 +120,7 @@ func (r *doorRig) atOutside() bool {
 	return r.p.X == gdOutX && r.p.Y == gdOutY && r.p.Z == gdOutZ
 }
 
-// Hoofbite's relog: logged out in the Guardian's body (25705.8, 55.0,
+// A player's relog: logged out in the Guardian's body (25705.8, 55.0,
 // 3231.9), logged in there, walked on in to Kithgrin. Turned back to the
 // porch, told, and every report from inside before the client heard of it
 // refused; a second try is turned back again. In both movecheck modes a

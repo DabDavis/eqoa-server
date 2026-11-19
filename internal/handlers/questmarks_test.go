@@ -390,7 +390,7 @@ func TestQuestMarksAReachStepsPlace(t *testing.T) {
 	}
 }
 
-// An ability quest is flagged apart (petition 2285, Zerkziee: "highlights the
+// An ability quest is flagged apart (petition 2285: "highlights the
 // ability quest differently compared to other quest"): one whose step gives a
 // spell, one whose step gives the player's class a spell (byclass), one whose
 // choice offers a spell, each flagged on its giver's "!", and once taken on its

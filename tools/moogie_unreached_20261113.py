@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Mr. Moogie strikes those he cannot reach (the GM Jibwiz's petition 1916, 2026-11-13: "Give mr moogie an ability that if
+"""Mr. Moogie strikes those he cannot reach (a GM's petition 1916, 2026-11-13: "Give mr moogie an ability that if
 someone is on his hate list for more than 60 seconds, and he has not been able to hit any target on his hate list for more
 than 60 seconds, he nukes them unresistable for 20,000 every 6 seconds. Essentially if he's fighting 10 people, hitting
 one, then this does not go off"), on the server's code of the same branch (entity/unreached.go: the "unreached" boss

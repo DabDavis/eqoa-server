@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The wizard's Sorcerer master class: Flame Mastery gives Flaming Fury and Icy Mastery Icy Fury (petition 1990,
-Kyros, 2026-11-13: "Sorc MCA - purchased Fire and Thunder but got Ice and Thunder MCA AOE's").
+a player, 2026-11-13: "Sorc MCA - purchased Fire and Thunder but got Ice and Thunder MCA AOE's").
 
 The cause is the catalog's rows, not cmbuy: entity/cmbuy.go grants a rank's own add_spells. The import
 (tools/seed_masteries.py, "eqoa-data cms; eqoaemu workbook") took the abilities from EQOA-Data's ranks in their order
@@ -14,8 +14,8 @@ Lightning Mastery gives Thunderous Fury, as named, and is left. A character that
 and is left. A character that owns ONE of them has the other's spell: its book row (spells) takes the spell it paid
 for in place, its book place and hot bar spot kept, so a later reset (respec.go: it takes back a rank's add_spells)
 finds it. A book not as expected (the paid-for spell there already, or the crossed one missing) is left and said, as
-are the rows a deleted character left behind (no characters row: Kyros, serverid 819, the petition's, was deleted
-on the Heirloom Test Server between his petition at 19:01 and the 19:46 UTC snapshot; his account holds Kytank).
+are the rows a deleted character left behind (no characters row: a player, serverid 819, the petition's, was deleted
+on the Heirloom Test Server between his petition at 19:01 and the 19:46 UTC snapshot; his account holds a player).
 
 Rows are looked up by name (the ranks under the Sorcerer master class of the wizard's mask, the spells by
 spellpattern.spellname): refused, nothing written, unless there is one of each and the ranks are as the import wrote

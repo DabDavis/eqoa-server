@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""jibrish's work board entries 1632 and 1637 (2026-11-18), the data half: owner-approved as submitted. Each part its
+"""a GM's work board entries 1632 and 1637 (2026-11-18), the data half: owner-approved as submitted. Each part its
 own subcommand, log and --undo. Entry 1643's table (fxland) is made and seeded by the server itself
 (internal/database/fxland.go), so it has no part here.
 
@@ -17,11 +17,11 @@ croc (1632 §5-6; both shards): Crocosaurus's crit as a flat 850 at any level, a
       - npcs Crocosaurus (world 0, level 55): size 12.15 (§6; Live 1.0);
       - loottables "named crocosaurus": patternid 1183 (Ring of Garthis), weight 1, levels 1-70 (§6);
       - npcloot crocosaurus -> "named crocosaurus", 100%, 1 roll (Heirloom's binding: without it the table drops nothing).
-    The note of classtemplates crocosaurus still says "15.4545 x level 55" (the figure it was); left as jibrish wrote it.
+    The note of classtemplates crocosaurus still says "15.4545 x level 55" (the figure it was); left as a GM wrote it.
 
 nagafen (1637 §2; HEIRLOOM only): Lord Nagafen's Lay Hands gives Dragonfire 10% x 6,080 FR for the fight. REFUSED unless
     his abilities are exactly the entry's "now" (set 2026-11-17, entry 1636): "If the row differs from 'now', stop and
-    ask jibrish". His template's own proc (proc_chance 5, proc_damage 6080, proc_resist FR) is left as it is; REFUSED if
+    ask a GM". His template's own proc (proc_chance 5, proc_damage 6080, proc_resist FR) is left as it is; REFUSED if
     it is not that. Check after: #stats on Lord Nagafen lists Lay Hands "then Dragonfire for the fight: 10% of its melee
     hits 6080 more, cut by FR".
 

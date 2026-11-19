@@ -1,5 +1,5 @@
 // Command artbuild builds the patch's art file (internal/worlds' AddArt):
-// a base art file (Sandstorm's ss-art.csf, patches/ss-art.csf) with the
+// a base art file (the reference server's ss-art.csf, patches/ss-art.csf) with the
 // disc's sprites a recipe names (tools/art/*.json) added, read off the
 // operator's copy of the game's disc, so nothing of the disc is in this
 // repository. The file it writes is what patches/serve/ serves to every

@@ -296,7 +296,7 @@ func TestTallonsPortalGivesTheBearerTheQuest(t *testing.T) {
 // earlier one, or without the quest, each is on step 6 after; one past it is left.
 func TestTheZekSentrysDeathFlagsTheRaid(t *testing.T) {
 	r := newTZRig(t)
-	r.on(r.pa, 5) // as Dust, moved there by hand
+	r.on(r.pa, 5) // as a GM, moved there by hand
 	r.on(r.pc, 2)
 	kp := func(s *session.Session, p *entity.Player) entity.KillPlayer {
 		return entity.KillPlayer{Session: s, ServerID: p.CharServerID, Name: p.Name}

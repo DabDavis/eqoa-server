@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""zaeire_taint_20261114.py on a small database: the report writes nothing; --apply writes Zaeire's two hands' rows
+"""zaeire_taint_20261114.py on a small database: the report writes nothing; --apply writes a player's two hands' rows
 (kind 7, the sickle's model), one changing a GM's row, each with its gm_audit line; a second apply finds nothing to do;
 --undo puts back exactly what was there (the GM's row its values, the made row gone). The controls: another character's
 row untouched; two Zaeires, or no sickle record, refuse the whole, writing nothing; a row changed after --apply is left

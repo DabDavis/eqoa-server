@@ -60,8 +60,8 @@ ITEMS = [
     (1012, "Fine Shield", {}),                                                                  # a gem's recipe product
     (1013, "Heirloom Blade", {}),
     (1014, "Bound Gloves", {}),                                                                 # itemowner
-    (1015, "Boarded Robe", {}),                                                                 # jib's item-record entry, by id
-    (1016, "Named Sash", {}),                                                                   # jib's other entry, by name
+    (1015, "Boarded Robe", {}),                                                                 # a GM's item-record entry, by id
+    (1016, "Named Sash", {}),                                                                   # a GM's other entry, by name
     (1017, "Counted Cloak", {}),                                                                # its id in a non-item entry: filled
     (714500, "Old Ancestor Ring", {}),                                                          # heirloom range
     (700123, "Quest Reward Cape", {}),                                                          # custom id

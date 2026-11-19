@@ -11,7 +11,7 @@ import (
 // away (database.AbilityPortFoe; the owner's Evil Melee epic, 2026-11-18, the
 // forum's t155 and t152: Ahriaana the Ultimate "ports those with aggro off the
 // island", "not all the time", and the ported "get another gem to go back";
-// the GM Jibrish's board 615, code ask 1: "the player with her aggro is sent
+// a GM's board 615, code ask 1: "the player with her aggro is sent
 // off the plane, to its bind point ... pets never").
 //
 // When it is due, the one its creature fights now is looked at: a player

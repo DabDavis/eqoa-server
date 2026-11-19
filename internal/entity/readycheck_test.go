@@ -9,7 +9,7 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 )
 
-// The ready check (readycheck.go; the GM Jibrish's petition 1711): who may ask, who is
+// The ready check (readycheck.go; a GM's petition 1711): who may ask, who is
 // asked and how, and what the asker is told. Each rule beside its control.
 
 // readyWindows is each OpcodeReadyCheck session i was queued, drained: (id, seconds, name).

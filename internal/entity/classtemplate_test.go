@@ -316,7 +316,7 @@ func TestNoAssignmentChangesNothing(t *testing.T) {
 		t.Errorf("the summary: %q", sum)
 	}
 	for _, name := range []string{"melee", "necromancer", "shadowknight", "tank", "wizard", "pet animation"} {
-		if !strings.Contains(sum[0], name) { // jib's five, and the pets' (pettemplate.go)
+		if !strings.Contains(sum[0], name) { // a GM's five, and the pets' (pettemplate.go)
 			t.Errorf("the summary lacks %q: %q", name, sum[0])
 		}
 	}
@@ -405,7 +405,7 @@ func TestTheWizardChainCastsAnAreaThenASingleTarget(t *testing.T) {
 
 // The melee's template kicks in its share of rounds (the dice here always
 // say yes), a second after the round's last hit (Attack2's at 1.5 s): a
-// 0x00B1 of cast 0 with Sandstorm's creature special's visual and the level
+// 0x00B1 of cast 0 with the reference server's creature special's visual and the level
 // times 7.4, whatever the player's armour; its melee hits are 115% of its
 // roll. The tank's takes 85% of a player's melee and has 130% of its level's
 // hit points.
@@ -639,7 +639,7 @@ func TestStatsSayATemplate(t *testing.T) {
 // A template's special on a clock (special_every): the first special_first
 // into the fight (from its first turn in reach), then one every
 // special_every, each special_jitter either way, for the level times
-// special_damage, fixed and through any armour, with Sandstorm's creature
+// special_damage, fixed and through any armour, with the reference server's creature
 // special's visual; the templates' dice at their low end and their high end
 // put each where the jitter says. The control fights beside it: the same
 // template with no clock (special_every 0) and no chance never specials.
@@ -814,7 +814,7 @@ func TestARoamerCritsFromLevelTen(t *testing.T) {
 }
 
 // A timed special's clock counts only its creature's time AT its enemy, as
-// Sandstorm's specials come with its rounds: a level 34 roamer fights a
+// the reference server's specials come with its rounds: a level 34 roamer fights a
 // player 5 s (of its first 10: its turns from 0 to 4.9 s count 4.9), is
 // rooted with the player stepped 15 off for 30 s, and crits 5.1 s after it is
 // back at the player (40.1 s: the turn it is back on starts its clock again),
@@ -1053,7 +1053,7 @@ func TestATemplatesDebuffForms(t *testing.T) {
 	}
 }
 
-// A creature fighting an enemy in its reach turns to it at its rate (petition 1177, Jibrish): a rogue that jumps
+// A creature fighting an enemy in its reach turns to it at its rate (petition 1177): a rogue that jumps
 // behind stays behind for a moment, one circling it gets behind it and one standing before it does not, a swing does
 // not snap it round, a larger creature turns the slower, and past its reach it faces the way it chases at once.
 func TestACreatureTurnsAtItsRate(t *testing.T) {
@@ -1184,7 +1184,7 @@ func TestATemplatesUnresistableSpell(t *testing.T) {
 	}
 }
 
-// A template's kick on its own clock beside the special (the GM Jibrish's petition 1249: Mr.
+// A template's kick on its own clock beside the special (a GM's petition 1249: Mr.
 // Moogie's "kick every 5 seconds for 4k"): its first kick_first into the fight, then one every
 // kick_every, each kick_damage, fixed and through any armour, with the special's visual. The
 // control fights beside it: the same template with no kick never kicks.
@@ -1230,7 +1230,7 @@ func TestATemplatesKickComesOnItsClock(t *testing.T) {
 }
 
 // A template's fight_regen heals it each regeneration tick (six seconds) while
-// it fights, to its maximum and no further (the GM Jibrish's petition 1254: Mr.
+// it fights, to its maximum and no further (a GM's petition 1254: Mr.
 // Moogie's "2000 HP per tick regeneration in combat"); the control, a template
 // without it, heals nothing in its fight, as every creature did.
 func TestATemplateHealsInItsFight(t *testing.T) {
@@ -1339,7 +1339,7 @@ func TestAnNPCSetOnAnotherFightsAndIsFoughtBack(t *testing.T) {
 }
 
 // A template's debuff whose spell has a damage tick puts a damage over time on
-// the player it fights (the GM Jibrish's petition 1259: the Ebony Recluse's
+// the player it fights (a GM's petition 1259: the Ebony Recluse's
 // "poison dot that lasts 30 seconds ... that ticks for 300"): the effect lands
 // with its tick, each tick takes the figure less the player's resist to its
 // element (its tick's resist, poison) and says it, every six seconds; a

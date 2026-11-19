@@ -14,9 +14,9 @@ creature's top of 1.6 is nearly the whole hit, so for them the share is the hit:
 the same step (0.25 of 317, level 1's figure), keeps the median the fit aimed at (TestRealNewPlayersCurve) and takes a
 level 2 creature's hit on them to 5.7-6.4 and 16-19.
 
---low-shares (the owner's and Jibrish's call, not the default): balanceclasslevel melee_taken_pct of the druid, shaman,
+--low-shares (the owner's and a GM's call, not the default): balanceclasslevel melee_taken_pct of the druid, shaman,
 cleric, magician, necromancer, enchanter, wizard and alchemist at levels 1-12, each the LESSER of its archetype share
-(95 a priest, 115 a caster: Jibrish's panel edit of 2026-11-13 04:40 UTC on Heirloom, synced to Live 2026-11-15) and its
+(95 a priest, 115 a caster: a GM's panel edit of 2026-11-13 04:40 UTC on Heirloom, synced to Live 2026-11-15) and its
 new players' fit of 2026-11-04 (the row before that edit, gm_audit): a priest of 1-3 took 16-63%, a caster of 1-10
 15-40%, and since the edit 95% and 115%, under which a caster of 1-10 by hand loses most of its even fights
 (TestRealLowLevelsEvenAndBelow). Never more than the archetype share, so nothing is made harder; 13-60 untouched.

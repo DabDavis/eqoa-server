@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""GM's Reward, the record #reward and /reward give (petition 1501, the GM Jibrish, 2026-11-10: "create a GM only
+"""GM's Reward, the record #reward and /reward give (petition 1501, 2026-11-10: "create a GM only
 command /reward — this puts a buff on the target that gives them a 25 heal damage shield aka they heal for 25 whenever
 hit, and it deals 25 to who hits them. They also gain 100ac, 50 str, 50 dex, 50 wis, 50 int, 50 cha, 50 sta. Lasts 1
 hour."), on the server's code of the same branch (handlers/reward.go reads the record by its id and name at each use).

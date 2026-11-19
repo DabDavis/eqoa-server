@@ -26,7 +26,7 @@ import (
 //     generic creature's is lower case), each credited player rolling its own,
 //     on the corpse for anyone who may loot it (questloot.go's shared drops:
 //     the kill group, then anyone once it unlocks), every roll's tokens one
-//     stack (jibrish, 2026-11-16: "lootable by anyone with kill credit, not a
+//     stack (2026-11-16: "lootable by anyone with kill credit, not a
 //     specific player. This is crushing multiboxers"; each character's view
 //     held its own until then);
 //   - a gift once a day (UTC) for each character, gift_count of them, on talking

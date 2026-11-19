@@ -16,7 +16,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// Quest marks over the NPCs' heads (the GM Jibrish's petition 1813,
+// Quest marks over the NPCs' heads (a GM's petition 1813,
 // 2026-11-12: "Add the ability for us to add yellow ! and ? over NPCs in
 // game, visible to the player, if they toggle it on or we turn it on by
 // default. The exclamation point over their head should only happen if
@@ -238,7 +238,7 @@ func (q *QuestEngine) headKeyLocked(sess *session.Session, p *entity.Player) str
 
 // markedWithFollowUps is table questmarks' quests and every quest that follows
 // one, however far down its chain (successors: the enabled quests with a giver
-// that require each). The GM Jibrish's petition 1875 (2026-11-13): "After
+// that require each). a GM's petition 1875 (2026-11-13): "After
 // turning in a quest, if the quest NPC has a follow up it is not showing a new
 // yellow ! for the newbie quests, make sure this works for all the new player
 // 1-10 quests": the table flags each race's and class's first quest

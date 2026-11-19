@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The familiars' first: Healbot (the GM Jibrish's petition 1445, 2026-11-10: "On the genie heirloom vendor add a familiar
+"""The familiars' first: Healbot (a GM's petition 1445, 2026-11-10: "On the genie heirloom vendor add a familiar
 pet people can buy. They can resummon the pet as much as they want, its a 2 second cast time on item use, however they
 can only have 1 familiar at a time ... This particular one should share a model with the gnome tinker pet. He should be
 called "Healbot". He is immune to all resists, regens 2k health a tick ... when the player who summoned him falls below

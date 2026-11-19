@@ -5,7 +5,7 @@ import (
 )
 
 // corpseopen.go — a kill's corpse is its owners' for six minutes, then anyone's (the GM
-// Jibrish's Live petition 5035, the owner's "use jibrish rule", 2026-11-14: "All NPC's should
+// a GM's Live petition 5035, the owner's "use a GM rule", 2026-11-14: "All NPC's should
 // lock non members of the kill (solo), group or raid from looting a corpse for 6 minutes ...
 // After 8 minutes, the corpse can be looted by anyone until minute 20, where it decays"; read as
 // locked to 6:00, anyone's from 6:00 to 20:00, the "8" taken for the 6). It replaced the

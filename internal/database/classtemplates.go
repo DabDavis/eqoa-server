@@ -14,7 +14,7 @@ import (
 )
 
 // classtemplates and npctemplate: the NPCs' class templates
-// (entity/classtemplate.go; jib's F3 20261029-025234-7430ece1: "Monsters need
+// (entity/classtemplate.go; a GM's F3 20261029-025234-7430ece1: "Monsters need
 // classes. Classes should determine stat profile ... These are example
 // templates. We need templates ready so we can apply them to mobs in the
 // future, do not apply them yet").
@@ -32,9 +32,9 @@ import (
 //     melee hits;
 //   - its special melee (a kick): special its name ("" none), special_chance
 //     the percent of its rounds it comes in, special_damage its damage a
-//     level, fixed and through any armour as Sandstorm's creatures' specials
+//     level, fixed and through any armour as the reference server's creatures' specials
 //     are (special_fixed, when above 0, a flat figure at any level in its
-//     place: work board #1632), special_fx its 0x00B1 visual (0: Sandstorm's creature special,
+//     place: work board #1632), special_fx its 0x00B1 visual (0: the reference server's creature special,
 //     0x66CD778E); and on a clock as well (the user, 2026-10-30: SOE's
 //     roamers were warriors "stripped down to just a 'crit' attack once
 //     every 30 secs or so"): special_every seconds from one to the next (0
@@ -120,7 +120,7 @@ const (
 	// it fights, a player or a pet (its buffs, damage shields, heals over time,
 	// invulnerabilities and mitigations, speeds, forms), the harmful left on,
 	// and a GM's #testmode (the server's god mode) off (entity/strip.go; the GM
-	// Jibrish's petition 1368: Mr. Moogie's "caster debuff on his target every
+	// a GM's petition 1368: Mr. Moogie's "caster debuff on his target every
 	// 30 seconds that strips any and all buffs, including immunity to damage /
 	// god mode"). It casts no spell of a book: Name is what its lines call it
 	// (DefaultStripName for none), or it pins a spell (Spell or SpellID) whose
@@ -138,7 +138,7 @@ const (
 	// AbilityDoT is a pet's damage over time on what it fights, kept up: cast
 	// again as the one on its target runs out, so the new one lands as the old
 	// ends, never two of its owner's on one creature (entity/pettemplate.go; the
-	// GM Jibrish's petition 1388: the Swarming Deaths' "300 a tick dot (.5
+	// GM a GM's petition 1388: the Swarming Deaths' "300 a tick dot (.5
 	// second cast) it keeps up that lasts for 24 seconds"). A creature's is the
 	// same on what it fights, a player or a creature, kept up as a pet's is
 	// (entity/creaturedot.go; the owner, 2026-11-10: Innoruuk's of the Red
@@ -146,7 +146,7 @@ const (
 	AbilityDoT = "dot"
 	// AbilityHitHeal casts nothing: every hit that lands on its creature heals
 	// it Heal hit points, the hit landing as ever (entity/hitheal.go; the GM
-	// Jibrish's petition 1439: Mr. Moogie's "heal damage shield that heals mr
+	// a GM's petition 1439: Mr. Moogie's "heal damage shield that heals mr
 	// moogie for 150 every single time he is hit").
 	AbilityHitHeal = "hitheal"
 	// AbilityPrefer casts nothing: the foes (Foes, by name) its creature fights
@@ -181,7 +181,7 @@ const (
 	// names it and is a buff cast on itself, as a proc's.
 	AbilityVeil = "veil"
 	// AbilityKillSay casts nothing: its creature's line in /say (Say) when one of
-	// its hits kills one of Foes (by name: the GM Jibrish's petition 1458, Mr.
+	// its hits kills one of Foes (by name: a GM's petition 1458, Mr.
 	// Moogie at Innoruuk's death, "Dab got dunked again").
 	AbilityKillSay = "killsay"
 	// AbilityLastStand casts nothing: once a fight, when its creature's hit
@@ -189,7 +189,7 @@ const (
 	// NPC alive on its hate list: a pet, a mercenary, a creature a trigger set on
 	// it), it heals to its full and its damage is DamagePct percent (200:
 	// doubled) for the rest of that fight; its line in /say (Say)
-	// (entity/laststand.go; the GM Jibrish's petition 1522: Mr. Moogie "If he
+	// (entity/laststand.go; a GM's petition 1522: Mr. Moogie "If he
 	// reaches 2% hp he completely heals to full and doubles his damage if a non
 	// player character is hitting him").
 	AbilityLastStand = "laststand"
@@ -199,7 +199,7 @@ const (
 	// answers whoever landed it (a player, a pet, a mercenary, an NPC) with
 	// Damage, pure: no resist, armour or mitigation cuts it, told by Name
 	// (DefaultWardName for none); its line in /say (Say) as it comes up
-	// (entity/ward.go; the GM Jibrish's petition 1892: Mr. Moogie at 15%, "a
+	// (entity/ward.go; a GM's petition 1892: Mr. Moogie at 15%, "a
 	// 500 a hit heal DS ... and ... a 5000 damage a hit additional damage
 	// shield that damages everyone with pure damage when hes hit").
 	AbilityWard = "ward"
@@ -208,7 +208,7 @@ const (
 	// DefaultHoldSeconds) it stands frozen, no hit landing on it and nothing
 	// of its own done (no chase, round, cast or regeneration); then its fight
 	// goes on at 1 and the next killing hit kills it. Its line in /say (Say)
-	// as it holds (entity/deathhold.go; the GM Jibrish's petition 1894: "If mr
+	// as it holds (entity/deathhold.go; a GM's petition 1894: "If mr
 	// moogie hits 1 hp, he freezes and is immune to damage, unable to take
 	// damage or die for 30 seconds").
 	AbilityDeathHold = "deathhold"
@@ -248,7 +248,7 @@ const (
 	// seconds (0: DefaultUnhitSeconds) of a fight, each time Damage pure
 	// (unresisted) on every player that has been on its hate list for Unhit
 	// seconds or more, until it lands a hit again (entity/unreached.go; the GM
-	// Jibwiz's petition 1916: Mr. Moogie "if someone is on his hate list for
+	// a GM's petition 1916: Mr. Moogie "if someone is on his hate list for
 	// more than 60 seconds, and he has not been able to hit any target on his
 	// hate list for more than 60 seconds, he nukes them unresistable for
 	// 20,000 every 6 seconds")
@@ -274,11 +274,11 @@ const (
 	// forgotten, so it turns to the next on its list (entity/portfoe.go; the
 	// owner's Evil Melee epic, 2026-11-18, eqoa.forumotion.com t155: Ahriaana
 	// the Ultimate "ports those with aggro off the island", "not all the
-	// time"; the GM Jibrish's board 615, code ask 1: "the player with her
+	// time"; a GM's board 615, code ask 1: "the player with her
 	// aggro is sent off the plane, to its bind point ... pets never").
 	AbilityPortFoe = "portfoe"
 	// AbilityKickZone: a zone round its creature it guards in or out of a fight
-	// (entity/kickzone.go; the GM Jibwiz's petition 1956, the Anvil of Sarek:
+	// (entity/kickzone.go; a GM's petition 1956, the Anvil of Sarek:
 	// "If a player hits the distance my character is currently at from him he
 	// should do a kick animation and hit them for 10,000 unresistable damage
 	// every second"): every Every seconds (0: 1) each living player within
@@ -487,7 +487,7 @@ type TemplateAbility struct {
 	Free bool `json:"free,omitempty"`
 	// WhileOut is a buff on its owner that lasts only while the pet is out: it
 	// comes off its owner when the pet goes (dismissed, dead, replaced; entity/
-	// pet.go dismissPetLocked). The Undead Servant's (petition 1805, Skywalker:
+	// pet.go dismissPetLocked). The Undead Servant's (petition 1805:
 	// "The pet Buffs 300 Hp and 300 Power along with a 80 lifetap proc").
 	WhileOut bool `json:"while_out,omitempty"`
 	// Hits is a taunt's damage by the pet's level: points [level, least,
@@ -509,7 +509,7 @@ type TemplateAbility struct {
 	Name string `json:"name,omitempty"`
 
 	// The fields below are a creature's (entity/abilitytimes.go; the GM
-	// Jibrish's petition 1394: Mr. Moogie's "1 hour cool down complete heal at
+	// a GM's petition 1394: Mr. Moogie's "1 hour cool down complete heal at
 	// 50% health, and if he uses it he says ... After Lh he also gets a proc
 	// buff on melee attacks"); a pet's turn uses none of them.
 
@@ -530,7 +530,7 @@ type TemplateAbility struct {
 	ProcDamage int    `json:"proc_damage,omitempty"`
 	ProcName   string `json:"proc_name,omitempty"`
 
-	// The fields below are a creature's of 2026-11-10 (the GM Jibrish's
+	// The fields below are a creature's of 2026-11-10 (a GM's
 	// petitions 1439-1443 and the owner's Innoruuk).
 
 	// Damage is a nuke's or a lifetap's hit as a fixed figure in place of its
@@ -674,9 +674,9 @@ type ClassTemplate struct {
 	SpecialChance int
 	SpecialDamage float64
 	// SpecialFixed is each special landing as this figure, through any armour, at any level (0:
-	// special_damage × its level): work board #1632, jibrish's "crits just do that amount"
+	// special_damage × its level): work board #1632, a GM's "crits just do that amount"
 	SpecialFixed int
-	SpecialFX    uint32 // 0: Sandstorm's creature special
+	SpecialFX    uint32 // 0: the reference server's creature special
 	// SpecialEvery, SpecialFirst and SpecialJitter are the timed special's
 	// clock in seconds: one every SpecialEvery (0: none), the first
 	// SpecialFirst into the fight, each SpecialJitter either way
@@ -709,12 +709,12 @@ type ClassTemplate struct {
 	ResistPct  int
 	// KickDamage is a second timed melee beside the special: a Kick of this figure (fixed, not by
 	// level, through any armour) every KickEvery seconds at its enemy, the first KickFirst into
-	// the fight (0: none; the GM Jibrish's petition 1249: Mr. Moogie's "kick every 5 seconds for 4k")
+	// the fight (0: none; a GM's petition 1249: Mr. Moogie's "kick every 5 seconds for 4k")
 	KickDamage           int
 	KickEvery, KickFirst float64
 	// FightRegen is the hit points it heals each regeneration tick (six seconds) while it
 	// fights: a creature out of one heals by its level's balance row, one in a fight not at
-	// all but by this (0; the GM Jibrish's petition 1254: Mr. Moogie's "2000 HP per tick
+	// all but by this (0; a GM's petition 1254: Mr. Moogie's "2000 HP per tick
 	// regeneration in combat")
 	FightRegen int
 	// RunSpeed is its pace in a chase and on its way home, in units a second (0: the
@@ -723,7 +723,7 @@ type ClassTemplate struct {
 	RunSpeed float64
 	// TakenResist is the resists it is weak (or strong) in by the damage it takes of them, each
 	// with the percent of a hit or tick of that resist it takes, several with commas ("LR:115";
-	// empty: every one at 100%): the GM Jibwiz's petition 1944, 2026-11-13, of the Plane of
+	// empty: every one at 100%): a GM's petition 1944, 2026-11-13, of the Plane of
 	// Disease's raid bosses: "should take 15% more damage from lightning resistance based damage,
 	// procs and nukes" (entity/enchanter.go creatureResists, after resist_kind's cut)
 	TakenResist string
@@ -1486,9 +1486,9 @@ func CheckClassTemplate(t ClassTemplate) error {
 	return CheckTemplateAbilities(t.Abilities)
 }
 
-// SeedClassTemplates are jib's five examples and the user's wisp (his wizard
+// SeedClassTemplates are a GM's five examples and the user's wisp (his wizard
 // at 28%) and roamer, the rows classtemplates is made with (source seed). Their numbers are ours: no recording has a creature
-// casting, and Sandstorm's creatures' specials are the one measured thing
+// casting, and the reference server's creatures' specials are the one measured thing
 // (the melee's kick: 251 from a level 34 Desert Crab, 252 from a level 35
 // Gharial, fixed and through 1,763 AC alike, in about one round of five:
 // claude-notes/training-dummies-20261021.md, defence-sandstorm-20261022.md).

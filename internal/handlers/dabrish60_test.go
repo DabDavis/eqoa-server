@@ -264,7 +264,7 @@ func TestDabrishEpic60WordsFit(t *testing.T) {
 }
 
 // A pick's option giving a pair (the rogue's "The Ascended Rogue's Epic
-// Daggers", 980148*2; Heirloom petition 2236, Poppapump: "I exchanged my 60
+// Daggers", 980148*2; Heirloom petition 2236: "I exchanged my 60
 // epic weps for tunic but it only took the unequipped wep. It should take
 // both even if 1 is equp"): the pair is exchanged as one. One of it worn is
 // refused with both named and nothing changed; both carried are both taken

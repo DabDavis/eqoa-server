@@ -11,7 +11,7 @@ import (
 // CLIENT carries the live server's experience model compiled in and never
 // called (decomp modules/client/src/viexperience.cpp, 0x00CC6A70 ..
 // 0x00CC6E88: GroupExp, LevelExp, LevelDiffScale, GroupScale, KillExp) beside
-// ExpForLevel, the level table its experience bar divides by. Sandstorm gives
+// ExpForLevel, the level table its experience bar divides by. The reference server gives
 // exactly it: a level 2 warrior's solo kill of a level 2 Orc Pawn moved its
 // 0x0020 from 6 to 380 experience into the level, 374 = LevelExp(2)
 // (claude-notes/quests-sandstorm-20261025.md). Until F3 20261026-031118 this

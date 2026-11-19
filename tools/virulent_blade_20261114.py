@@ -19,7 +19,7 @@ on this database, nothing of the blade's own):
     spread by farthest-point choice: N (24680, 54.125, 2310), NW (24700, 63.116, 2830), W (24300, 58.5, 3130),
     E (25220, 54.125, 2870), SE (25500, 54.125, 3310), S (25080, 54.125, 3610).
   npcmove "virulent blade": roam 1, radius 0 (the server's 70), water land: as the island's walkers (wicker man,
-    breath stealer: roam 1, Sandstorm's census), kept out of the sea.
+    breath stealer: roam 1, the reference server's census), kept out of the sea.
   npcclass 0 (Warrior); npctemplate "virulent blade" -> the wicker man's template here (Heirloom "iod native", the
     natives' board 430 fit; Live "roamer"); refused if the wicker man and the breath stealer disagree.
   npcaggro: aggressive, sees invisible (A, S(I)); npcfaction: Denizens of Dread; factionhits: Citizens of Graumord +5

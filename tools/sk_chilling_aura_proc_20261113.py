@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""The shadow knight's Chilling Aura an offensive proc (Smoke's Live petition 5006, 2026-11-13: "chilling aura is acting as
+"""The shadow knight's Chilling Aura an offensive proc (a player's Live petition 5006, 2026-11-13: "chilling aura is acting as
 a damage shield not a proc at the moment!").
 
 Its own words are a weapon's ("Summons an aura that surrounds your weapon, inflicting unholy damage."), and the shadow
 knight's patch notes (questmasters id273/id281: "The four procs (Chilling Aura, Cursed Hand, Veil of Death, Shroud of
 Death) now use the same mechanic") make it one of the four procs; Cursed Hand and Veil of Death are offensive procs here.
 Its record (1420, the old dump's, with EQOAEmu's workbook effects) is a Defensive Proc (def_proc, "on": "defense"), which
-the server lands as a damage shield's answer at each hit taken ("Shield: Smoke's \"Chilling Aura\" answers bandit for 2").
+the server lands as a damage shield's answer at each hit taken ("Shield: Name's \"Chilling Aura\" answers bandit for 2").
 This makes it an Offensive Proc with the same figure, resist (CR) and time (5 min):
 
 - spelleffect 1420's effects: sheet_type and the effect's type "Offensive Proc", its kind "proc", its proc's "on"

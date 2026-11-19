@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""A rank 6 of each primary stat's mastery line (the GM Jibwiz's petition 1918, 2026-11-13: "Each main stat has a CM line
+"""A rank 6 of each primary stat's mastery line (a GM's petition 1918, 2026-11-13: "Each main stat has a CM line
 to increase its cap, example Balance 1, 2, 3, 4, 5 and they increase the amount of CM's they cost, and the amount they
 increase the maximum stat by. For every primary stat: cha, wis, int, str, dex, agi, sta add an additional version 6 of it,
 scaling the cost, base stat increase, and ...").

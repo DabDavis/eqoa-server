@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The Toy Shoppe's Puppet Strings (the owner, 2026-11-17: "charms the target if light blue or lower", then "the charm
-has 10 charges then disappears"; for Zaeire, and sold by Toymaker Tinsel).
+has 10 charges then disappears"; for a player, and sold by Toymaker Tinsel).
 
 NOT the Cazic Thule drop of the same name (713085, petition 1426: a charm of levels 41-52, 50 charges, rechargeable at
 Master Lizzlen), which this leaves alone: the server knows this one by its itemeffect line, never by its name.
@@ -23,7 +23,7 @@ puppet_strings_1117_log:
 2. itemeffect on it: LINE (a Target charm "up to light blue", "No Recharge", 10 minutes), charges 10, cooldown 60:
    every copy made from it (Tinsel's sale, a GM's give, --give) holds 10.
 3. tokenshop: Toymaker Tinsel sells it for 108 Holly Tokens (the Barrel of Monkeys' price), sort 5.
-4. --give: one into Zaeire's pack (serverid 193, account 107 on Heirloom; refused if the name or account differ),
+4. --give: one into a player's pack (serverid 193, account 107 on Heirloom; refused if the name or account differ),
    10 charges, at the end of the list, unless he holds one already. Only while he is OFFLINE (the row reaches him at
    his next login); while he is online, give it by the GM panel's give (the new patternid), which sends it at once.
 

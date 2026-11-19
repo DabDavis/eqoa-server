@@ -77,7 +77,7 @@ func TestAQuestsItemDropsOnAnEarlierStep(t *testing.T) {
 	}
 }
 
-// Petition 2098 (Fullmetal, Heirloom), Harbingers of Khalimet: two loot steps in a row off one
+// Petition 2098 (Heirloom), Harbingers of Khalimet: two loot steps in a row off one
 // creature (Armis's tome, then his wand), the creature spawned by the first step's start and
 // gone once looted. On the first step one kill drops both: its own item, and the next step's
 // ahead of it. Taken in either order, the tome does step 1 and the wand held does step 2 at once.
@@ -163,7 +163,7 @@ func TestALaterLootStepOfTheSameItemWantsItsOwn(t *testing.T) {
 	}
 }
 
-// Live petition 5248 (Waldorf): an item a loot step wants, handed over in a trade while the
+// Live petition 5248: an item a loot step wants, handed over in a trade while the
 // step is under way, counts as one taken off a corpse does. One belt in: 1 of 2, the step
 // stays; the second in: the step is done.
 func TestATradedItemCountsOnItsLootStep(t *testing.T) {

@@ -17,7 +17,7 @@ func TestStationHiddenFieldsPassTheFormsChecks(t *testing.T) {
 	reHidden := regexp.MustCompile(`<Text name="([A-Za-z0-9]+)" val="([^"]*)">\s*<Position x="0" y="0"/>`)
 	isZip := regexp.MustCompile(`^[0-9]{5}$`)
 	checksZip := map[string]bool{"data/ui/IDCreat2.xml": true, "data/ui/UpAcct.xml": true}
-	for name, p := range stationEmailPages("eqoaclassic.com/eqoa/password", true) {
+	for name, p := range stationEmailPages("example.com/eqoa/password", true) {
 		hidden := map[string]string{}
 		for _, m := range reHidden.FindAllStringSubmatch(string(p), -1) {
 			hidden[m[1]] = m[2]

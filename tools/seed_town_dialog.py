@@ -8,7 +8,7 @@ eqoa lore (remember this is before EQ1 lorewise)").
 What a town's people and the guards say when talked to and nothing else
 answers is table npcdialog (database/npcdialog.go; who speaks and which line,
 entity/dialog.go). No record of the live game's lines for them exists, and
-Sandstorm's own were guesses, so these are ours, in sets, a file and a log
+the reference server's own were guesses, so these are ours, in sets, a file and a log
 of its own each (--set):
 
     town   tools/dialog/town_lines.json   npcdialog_seed        source "ours"
@@ -91,7 +91,7 @@ SEXES = {"", "male", "female"}
 RACES = {"human": 0, "elf": 1, "dark elf": 2, "darkelf": 2, "gnome": 3, "dwarf": 4, "troll": 5, "barbarian": 6,
          "halfling": 7, "erudite": 8, "ogre": 9}
 # a 0x0046 box's characters (handlers' questBoxChars) hold the speaker's name, ": " and the line; the longest
-# speaker's name on eqoaclassic is 23 characters, so a line past this would go in two boxes
+# speaker's name on the production server is 23 characters, so a line past this would go in two boxes
 BOX, NAME = 217, 25
 LINE_MAX = BOX - NAME - 2
 # what a line's words may be filled with (entity.DialogSay)

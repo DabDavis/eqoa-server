@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Mr. Moogie's, Tunare's, Innoruuk's and Metal Moogie V2's data of 2026-11-10: the GM Jibrish's petitions 1437-1443
+"""Mr. Moogie's, Tunare's, Innoruuk's and Metal Moogie V2's data of 2026-11-10: a GM's petitions 1437-1443
 and the owner's asks of the day, on the server's code of the same branch (the template ability kinds and fields it
 writes are that code's: an older server reads these templates as unreadable and leaves them out).
 
@@ -9,7 +9,7 @@ writes are that code's: an older server reads these templates as unreadable and 
       Lay Hands every and cooldown 900 s (from 3600), its proc after landing 100% for 350 (from 25% for 1500), Royal
         Fury still, its line "Thats a fifteen minute cool down, you'll pay for that" (petition 1437);
       Royal Siphon, a lifetap of a fixed 4,000 every 30 s (cooldown 30), the necromancer's Spirit Tap's look
-        (0xAF72B894, Sandstorm's: tools/sandstorm_spell_visuals.tsv), all of it back on him (petition 1439);
+        (0xAF72B894, the reference server's: tools/sandstorm_spell_visuals.tsv), all of it back on him (petition 1439);
       a heal of 150 at every hit that lands on him (hitheal, petition 1439);
       Tunare his preferred foe (prefer, petition 1438);
       three Servants of Moogie below 25%, at half his figures (summon, petition 1440), a line of his;
@@ -17,7 +17,7 @@ writes are that code's: an older server reads these templates as unreadable and 
         half of each of his hits on the one he fights on the second of his hate list (enrage, petition 1443), a line;
   classtemplates "tunare" (the owner: "a full heal with a 30 min recast timer", "she cast it at 20% hp"): Tunare's
     Renewal first in her list, 100% of her hit points below 20%, every and cooldown 1800 s, the druid's Healing's
-    look (0xC2B700FA, Sandstorm's); her four abilities after it as they are;
+    look (0xC2B700FA, the reference server's); her four abilities after it as they are;
   classtemplates "innoruuk" (the owner: "lets make innoruuk have same abilities as red swarming death with Largesse of
     Plague", then "give innoruuk similar to veil of death, but scale it to innoruuks hp"): his four casts (905145-905148)
     out, the Red Swarming Death's kit in (its petstats row's abilities, spell 700823: its damage over time, nuke and
@@ -32,7 +32,7 @@ writes are that code's: an older server reads these templates as unreadable and 
     Moogie's at 1.1 times every figure (hit points, melee, special, kick, proc, damage shield, regeneration in a fight,
     each ability's figure: a spell's damage_pct, a fixed damage or heal, a fight's proc), and Gear Barrage, a fixed
     2,000 every 10 s cast only out of his reach within 100 (petition 1442: the bard's Melodic Blades' look, 0xD92D4042,
-    Sandstorm's); npctemplate gives it his name.
+    the reference server's); npctemplate gives it his name.
 
 It finds every row by its name (Mr. Moogie by name and level 80) and refuses, writing nothing, when one is not as these
 asks found it: Mr. Moogie's and Tunare's abilities other than the brief's, Innoruuk's other than his two meleekind lines

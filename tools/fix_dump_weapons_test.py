@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """tools/fix_dump_weapons.py against a made-up database, harvest and
-Allakhazam folder: a weapon of no attack type takes Sandstorm's record, else
+Allakhazam folder: a weapon of no attack type takes the reference server's record, else
 its Allakhazam page's type and slot (a two-hander moved to slot 15), else
 what its name or description says, else its icon's commonest type (never the
 stand-in's); one with no model takes its kind's; a bow its description's
-range; the stand-in icon (on most weapons of no type, on no Sandstorm item)
-gives way to the item's Sandstorm icon, else one of its kind, on a typed
+range; the stand-in icon (on most weapons of no type, on no reference-server item)
+gives way to the item's the reference server icon, else one of its kind, on a typed
 weapon too; a potion is left; a second --apply is refused; --undo gives back
 the table as it was. No game data.
 
@@ -36,7 +36,7 @@ class Words(unittest.TestCase):
 
 class StandIns(unittest.TestCase):
     """A stand-in is an icon on 20 weapons or more of three kinds or more that
-    no Sandstorm item carries; one kind's icon, or one Sandstorm carries, is not."""
+    no reference-server item carries; one kind's icon, or one the reference server carries, is not."""
 
     def test_found(self):
         db = sqlite3.connect(":memory:")
@@ -46,7 +46,7 @@ class StandIns(unittest.TestCase):
             + [(f"Dagger {i}", 1, 5, 10, 0) for i in range(8)]           # 24 of three kinds: a stand-in
         rows += [(f"Sword {i}", 2, 1, 10, 12) for i in range(30)]          # one kind's icon
         rows += [(f"Axe {i}", 3, 1, 10, 12) for i in range(10)] + [(f"Club {i}", 3, 3, 10, 12) for i in range(10)] \
-            + [(f"Spear {i}", 3, 5, 10, 12) for i in range(10)]          # three kinds, but Sandstorm carries it
+            + [(f"Spear {i}", 3, 5, 10, 12) for i in range(10)]          # three kinds, but the reference server carries it
         db.executemany("INSERT INTO itempattern VALUES (?, ?, ?, ?, ?)", rows)
         self.assertEqual(fwt.placeholder_icons(db, {3}), {1})
         db.close()
@@ -68,7 +68,7 @@ class FixWeaponTypes(unittest.TestCase):
             (2, "Oaken Staff", "", 60, 15, 4, 30, 400, 0),
             (3, "Long Sword", "", 70, 12, 1, 25, 500, 0),
             # of no attack type
-            (10, "Sold Club", "", 50, 12, 0, 20, 0, 0),            # Sandstorm sells it
+            (10, "Sold Club", "", 50, 12, 0, 20, 0, 0),            # the reference server sells it
             (11, "Ahlspiess of Virtue", "", 99, 12, 0, 262, 0, 0),  # Allakhazam: Two Hand Piercing
             (12, "Goblin Stave", "", 99, 12, 0, 40, 0, 0),          # its name: a two-hand staff
             (13, "Bamboozler", "This tiny dagger packs a big punch.", 99, 12, 0, 40, 0, 0),
@@ -128,15 +128,15 @@ class FixWeaponTypes(unittest.TestCase):
         self.assertIn("Ransacker's Thing: no damage and nothing says it is a weapon", out)
         self.run_tool("--apply")
         got = {r[0]: (r[4], r[5], r[7], r[8], r[3]) for r in self.rows()}   # slot, type, model, range, icon
-        self.assertEqual(got[10], (14, 3, 300, 0, 50))   # Sandstorm's record; the blunt weapons' model
+        self.assertEqual(got[10], (14, 3, 300, 0, 50))   # the reference server's record; the blunt weapons' model
         self.assertEqual(got[11], (15, 6, 0, 0, 99))     # Allakhazam's two-hander; nothing of its type here
         self.assertEqual(got[12], (15, 4, 400, 0, 60))   # a stave: a two-hand staff, the staves' model and icon
         self.assertEqual(got[13][:2], (12, 5))           # the description's dagger
         self.assertEqual(got[14], (12, 1, 500, 0, 70))   # its icon's: a sword's
         self.assertEqual(got[15][:2], (16, 7))           # a bow, slot 16
-        self.assertEqual(got[15][3:], (45, 444))         # its description's range; Sandstorm's bows' icon
+        self.assertEqual(got[15][3:], (45, 444))         # its description's range; the reference server's bows' icon
         self.assertEqual(got[16], (12, 0, 0, 0, 50))     # a potion: left
-        self.assertEqual(got[17], (16, 7, 0, 25, 444))   # typed: its own Sandstorm icon
+        self.assertEqual(got[17], (16, 7, 0, 25, 444))   # typed: its own the reference server icon
         self.assertEqual(got[18], (12, 1, 500, 0, 71))   # a sword: the swords' model and icon
         dmg = {r[0]: r[6] for r in self.rows()}
         self.assertEqual(dmg[18], 110)                   # the median of the swords within 2 levels

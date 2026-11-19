@@ -22,7 +22,7 @@ func lastLootCount(t *testing.T, s *session.Session) int64 {
 	return n
 }
 
-// The GM Jibrish's Live petition 5035: a kill's corpse is its owners' for six minutes. A
+// a GM's Live petition 5035: a kill's corpse is its owners' for six minutes. A
 // group's kill (KillCredit.OpenAt six minutes after the death, as the World gives every kill): an outsider is refused until then (word 675), the
 // killer takes one of its two items, and at six minutes after the death (from the
 // death, not the take) the outsider opens what is left. A kill with no open time (the rule off)

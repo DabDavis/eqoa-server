@@ -8,7 +8,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// recastgroup.go — spells that share one recast (ticket 2011, Brother, 2026-11-13:
+// recastgroup.go — spells that share one recast (ticket 2011, 2026-11-13:
 // "should Not be able to cast Hunter Form or Wolf form while one or the other is on
 // Cooldown"). The ranger's Wolf's Instinct and its no-form upgrade Hunter's Instinct
 // both stay in the book (ticket 1241 asked the upgrade to keep the old ability), each

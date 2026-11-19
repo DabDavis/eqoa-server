@@ -8,7 +8,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// A line whose ranks each replace the one before (Fallenangel's petition
+// A line whose ranks each replace the one before (a player's petition
 // 1994: the necromancer's pet looks, as tools/pet_looks_20261113.py writes
 // them): bought rank by rank the book holds one pet; a reset (every rank at
 // once, in any order) gives back the first spell alone and takes every look

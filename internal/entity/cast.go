@@ -16,10 +16,10 @@ import (
 //
 // The client's request is Send0032 (0x0032): the ability stamp, the bar slot,
 // the target (handlers/spellbook.go resolves the slot's spell and its line).
-// What the server does with one, its wire as Sandstorm's (recorded with eqoa
+// What the server does with one, its wire as the reference server's (recorded with eqoa
 // harvest on 2026-10-21, a druid of 23: claude-notes/casting-sandstorm-20261021.md)
 // but for its timings, which are the original game's as players remember them
-// (petition 2184, 2026-11-15; Sandstorm's 1.4 s landing and 300 ms lockout
+// (petition 2184, 2026-11-15; the reference server's 1.4 s landing and 300 ms lockout
 // extra before):
 //
 //   - started, in one datagram: 0x00CD (the ability's display index, stamp 0,
@@ -52,7 +52,7 @@ import (
 const castLand = 500 * time.Millisecond
 
 // castBusy is how long past its cast time a cast keeps another from
-// starting: Sandstorm dropped one 0.37 s after a 2 s cast and took one 0.55 s
+// starting: the reference server dropped one 0.37 s after a 2 s cast and took one 0.55 s
 // after.
 const castBusy = 400 * time.Millisecond
 
@@ -65,7 +65,7 @@ const castLockoutExtra = 0
 // busy time (castBusy), in which no other cast starts anyway. A spell of no
 // cast time and no recast (the rogue's Agony, Halting Strike, Wounding) was
 // told a lockout of 0 from petition 2184's castLockoutExtra of 0, and CLIENT
-// greys no button for that (petition 2197, Hoofbite: "Agony rogue spell no
+// greys no button for that (petition 2197: "Agony rogue spell no
 // longer darkens spell icon to indicate it being cast. should darken"); 300 ms
 // before, the extra.
 const castLockoutLeast = castBusy
@@ -92,20 +92,20 @@ const effectTick = 6 * time.Second
 // guess for the lines that leave it out.
 const tickDuration = 24 * time.Second
 
-// speedBuff is what a movement buff makes of the run speed: Sandstorm's 8.83
+// speedBuff is what a movement buff makes of the run speed: the reference server's 8.83
 // became 11.48 under Spirit of the Wolf.
 const speedBuff = 1.3
 
-// RunSpeed is a player's run speed with nothing on it: what Sandstorm's dump
+// RunSpeed is a player's run speed with nothing on it: what the reference server's dump
 // and its 0x00F8 carry in every capture (0x410D5555, 8.833333), and CLIENT's
 // own m_speed before a dump. 1.3 times it is 0x4137BBBB, Spirit of the Wolf's
 // 0x00F8 there to the bit. It was 20 until 2026-10-23 (since the first
-// import), so a PS2 here ran 2.3 times Sandstorm's speed; the Rust client
+// import), so a PS2 here ran 2.3 times the reference server's speed; the Rust client
 // kept its own 8.83 and took no speed from a server, which is why a speed
 // buff did nothing in it. It takes them now.
 var RunSpeed = math.Float32frombits(0x410D5555)
 
-// The refusals' words, as Sandstorm's.
+// The refusals' words, as the reference server's.
 const (
 	castNoTarget    = "No target."
 	castFriendly    = "Target is friendly."
@@ -119,13 +119,13 @@ const (
 
 var castRefusalRGB = [3]byte{255, 63, 63}
 
-// A cast into its own recovery, as Sandstorm answered four spells spammed
+// A cast into its own recovery, as the reference server answered four spells spammed
 // (lane-spellfx24, 2026-10-30: Rockskin, Minor Healing, Roar and Focus): its
 // red line, the lockout left to a tenth ("(300.2 s)"), and the player's own
 // CastingCombat at itself, cast 0, the lockout cloud (SPELLFX.CSF's effect
 // 216: a puff of dust at the feet with a sound), sent as a cast is, so those
 // around see it too (an alchemist spamming beside the recorder was seen so).
-// A send in the cast time itself got nothing; after it, Sandstorm answered at
+// A send in the cast time itself got nothing; after it, the reference server answered at
 // most one about every 1.25 s (1.03-1.40 s apart, mostly 1.25, to sends 0.25 s
 // apart) and dropped the rest: recoveryAnswerGap.
 const (
@@ -149,7 +149,7 @@ func (w *World) recoveryAnswerLocked(sess *session.Session, p *Player, spell *Ca
 	w.broadcastCastLocked(p, p.ServerID, 0, fxLockoutCloud)
 }
 
-// The visuals Sandstorm's recorded casts named, as the stand-ins for spells
+// The visuals the reference server's recorded casts named, as the stand-ins for spells
 // with none recorded: a heal's (Minor Healing's and Healing's), a strike's
 // (Fiery Burst's) and a buff's (Rockskin's).
 const (
@@ -702,7 +702,7 @@ func (p *Player) MaxPowerNow() int {
 }
 
 // Invisible is whether an effect hides the player (entity state byte 154,
-// which Sandstorm's Camouflage set on the caster's own channel).
+// which the reference server's Camouflage set on the caster's own channel).
 func (p *Player) Invisible() bool {
 	if p.GMHidden {
 		return true
@@ -720,7 +720,7 @@ func (p *Player) Invisible() bool {
 // rate of 20, Spirit of the Wolf = movement rate of 100 ... various movement
 // cms will increase the basic movement rate of 20, but only SoW gives 100.
 // 100 is the maximum the move-rate can be." It names no speed, so 20 is the
-// run speed (Sandstorm's 8.833333) and 100 Sandstorm's measured Spirit of the
+// run speed (the reference server's 8.833333) and 100 the reference server's measured Spirit of the
 // Wolf, speedBuff times it, linear between (the user's choice, 2026-10-25;
 // read literally, 100 would run five times as fast).
 const (
@@ -792,7 +792,7 @@ func (w *World) OnGate(fn GateFunc) {
 }
 
 // StartCast is the server's half of a 0x0032: the cast checked, then begun
-// as Sandstorm begins one, or refused with its line, or let go unanswered
+// as the reference server begins one, or refused with its line, or let go unanswered
 // (another cast on, the ability locked out). It reports whether it began.
 func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID uint32, now time.Time) bool {
 	w.mu.Lock()
@@ -929,7 +929,7 @@ func (p *Player) castWaitFor(spell *CastSpell, now time.Time) (castWait, time.Ti
 	if p.Casting != nil && now.Before(p.Casting.ends) {
 		// the same spell past its cast time is its recovery's to answer
 		// (below); within the cast time, or another spell in the 0.4 s
-		// after it: nothing, as on Sandstorm
+		// after it: nothing, as on the reference server
 		if p.Casting.spell.SpellID != spell.SpellID || now.Before(p.Casting.castEnds) {
 			return castDuring, time.Time{}
 		}
@@ -1120,7 +1120,7 @@ func (w *World) runHandsBack() {
 
 // castTargetsLocked is whom a cast will land on, or the line refusing it.
 // The ability's scope decides, as CLIENT words it (VITargetWord): a self
-// spell lands on the caster whatever is targeted (Sandstorm answered one
+// spell lands on the caster whatever is targeted (the reference server answered one
 // sent with no target, and one sent at a creature, on the caster), a group
 // one on the caster's group within its range, anything else on the target.
 func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastSpell, targetObjectID uint32) ([]EntityID, string) {
@@ -1289,7 +1289,7 @@ func outOfRange(p *Player, x, y, z, r float32) bool {
 
 // refuseOutOfRange is castOutOfRange, the distance logged as it was measured
 // (across and up or down), so a refusal at a target that looked near is told
-// from the log (jib's quest walk of 2026-10-30: Rapid Strike refused at a
+// from the log (a GM's quest walk of 2026-10-30: Rapid Strike refused at a
 // dummy #spawn had put 3 ahead).
 func refuseOutOfRange(p *Player, spell *CastSpell, target string, x, y, z, r float32) string {
 	dx, dy, dz := float64(p.X-x), float64(p.Y-y), float64(p.Z-z)
@@ -1349,7 +1349,7 @@ func (w *World) objectIDSeenByLocked(s *session.Session, id EntityID) uint32 {
 
 // castsLeavingLocked drops the casts of a player leaving the world, unlanded:
 // a logout ends a cast as it did on the live game (Live petition 5125,
-// Indulgence, 2026-11-15: "Return Home used to be able to be cancelled if you
+// a player, 2026-11-15: "Return Home used to be able to be cancelled if you
 // logged out before it went off"; her Return Home began, she logged out and
 // in 26 s later, and it landed on the new login, its caster found by the same
 // ServerID). Must be called with the lock held.
@@ -1599,7 +1599,7 @@ func lastingParts(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 		case EffectInvis:
 			ae.Invis = true
 		case EffectProc:
-			// the line's damage as it is (jib: "Damage has no mod"), and a
+			// the line's damage as it is (a GM: "Damage has no mod"), and a
 			// line's own scale: its caster's (enchanter.go: Stormlord's Rune),
 			// or its bearer's at each proc (proc.go)
 			if e.ScaleBearer {
@@ -1633,7 +1633,7 @@ func lastingParts(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 	}
 	if !any {
 		// a duration over nothing that lasts (a hit with "30sec"): shown,
-		// as Sandstorm shows Minor Healing's, and gone at its end
+		// as the reference server shows Minor Healing's, and gone at its end
 		ae.NextTick = time.Time{}
 	}
 	return ae
@@ -1726,9 +1726,9 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 }
 
 // healLocked restores n hit points to t; the amount is told (0x00DB, whole,
-// as Sandstorm tells it, kind to the caster: tellAmountLocked) whatever t
+// as the reference server tells it, kind to the caster: tellAmountLocked) whatever t
 // was short of: what the heal was worth, not what it filled (petition 2016,
-// Lonewullf, owner-approved 2026-11-15: "can we see the green healing numbers
+// a player, owner-approved 2026-11-15: "can we see the green healing numbers
 // when full hp? hard to test healing abilities when you dont know what they
 // do"; until then a full target was told nothing). Its hate still takes what
 // it restored (healHateLocked).
@@ -1780,7 +1780,7 @@ func (w *World) tellAmountLocked(caster *Player, casterSess *session.Session, ta
 }
 
 // addEffectLocked puts an effect on a player: a recast replaces its old one
-// and goes to the end of the list, as on Sandstorm. The run speed compared is
+// and goes to the end of the list, as on the reference server. The run speed compared is
 // the one after the old one comes off, as that told the client it: taken before,
 // a recast of a run speed still on told the client the slower speed and never
 // the faster again (petition 1111: "SoW when cast on self does not seem to
@@ -1864,7 +1864,7 @@ func (w *World) runTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 	}
 	if ae.HPTick > 0 && !w.helperTickHeldLocked(t, ae) { // a merc's heal over time waits out its bearer's own fight (ownfight.go)
 		// the caster may be gone (logged out, or the effect kept over a
-		// logout): the figure is then the target's own, as Sandstorm's first
+		// logout): the figure is then the target's own, as the reference server's first
 		// tick after a login was, and none of its making (numbertags.go: a
 		// player's own effect has the player for its caster, there while it
 		// ticks)

@@ -7,7 +7,7 @@ import (
 )
 
 // hpcap.go — three clauses a line may hold for a buff that trades its
-// bearer's strength for speed: the GM Jibrish's petition 1725, the Tester Pro
+// bearer's strength for speed: a GM's petition 1725, the Tester Pro
 // ("When the player uses it, it gives them a run speed buff that is x2 SoW
 // speed. However, also make it reduce their max HP to 1, and set all of their
 // stats to 1 while the buff is up"; tools/tester_pro_20261112.py writes the

@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// questdoors: a door an NPC keeps (petition 2212, Hoofbite, Heirloom
+// questdoors: a door an NPC keeps (petition 2212, Heirloom
 // 2026-11-16: "The Guardian in IOD blocking entrance to cazic thule house is
 // able to be bypassed via logging and then running forward while
 // relogging"). The NPC's body is what CLIENT stops a walk at, and only

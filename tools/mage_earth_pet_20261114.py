@@ -5,7 +5,7 @@ for magicians is weaker than the necro level 16 pet by a lot").
 A summoned pet's hit points are its petstats row's times its owner's class and level's balanceclasslevel.pet_hp_pct
 (entity/balance.go PetHPPctAt; between two rows, a straight line). The magician's row at 16 was 63% (at 15: 284%, at
 19: 126%), so the Earth Elementalkin (spell 657, level 16, 837 on its sheet, a tank) stood with 527 at 16 (the Live
-log: Groceries' 527/527 at 05:29 UTC), 703 at 17 and 879 at 18 against the necromancer's Hulking Bones' 642, 719 and
+log: a player' 527/527 at 05:29 UTC), 703 at 17 and 879 at 18 against the necromancer's Hulking Bones' 642, 719 and
 1,001, and 737-870 at 20-23 against Wilting Flesh's 879-1,312; its weapon 135 against their 156 and 192 (and their
 lifetaps). From 24 the magician's pets are ahead (Earth Elementalkin 21: 1,177 against Decaying Flesh's 822), and at
 4-15 its best (the Fire and Air Elementalings) are within reach of the necromancer's: left as they are.

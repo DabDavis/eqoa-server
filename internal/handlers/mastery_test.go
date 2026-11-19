@@ -24,7 +24,7 @@ func masteryPoints(s *session.Session) (unspent, spent int, ok bool) {
 	return
 }
 
-// #grantcm is a GM's, gives what jib asked (never past 1500 spent and
+// #grantcm is a GM's, gives what a GM asked (never past 1500 spent and
 // unspent together), keeps it and tells the client as a gain is told. The
 // control: a player's #grantcm gives nothing.
 func TestGrantCMIsAGMsAndCapped(t *testing.T) {

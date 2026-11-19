@@ -296,7 +296,7 @@ func TestEveryHeirloomCarriesTheSameStats(t *testing.T) {
 }
 
 // An epic heirloom deals no less than the best weapon of its kind at its
-// wearer's level (the user, 2026-11-06, of Tmac's 759 bow out-shooting the
+// wearer's level (the user, 2026-11-06, of a player's 759 bow out-shooting the
 // heirloom bow's 754: "lets at least match it"): with a 700 blade of level 45
 // in reach, the rapier heirloom at 49 deals 700 with the rapier's stats and
 // proc. The control: with nothing better, the epic's own 561.

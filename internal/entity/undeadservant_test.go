@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Petition 1805 (Skywalker, an Erudite shadow knight): "Summon Undead Servant
+// Petition 1805 (an Erudite shadow knight): "Summon Undead Servant
 // (Familiar) ... The pet Buffs 300 Hp and 300 Power along with a 80 lifetap
 // proc that after the mob is debuffed, will often proc 160 instead". The rows
 // as tools/undead_servant_20261112.py writes them.

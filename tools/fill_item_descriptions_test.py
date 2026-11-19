@@ -20,7 +20,7 @@ def dump(path):
 
 class FillItemDescriptions(unittest.TestCase):
     """tools/fill_item_descriptions.py on a made-up database: the placeholder gives way to the decided text, else
-    Sandstorm's record, else EQOA-Data's (not a contributor's note, not a name it describes twice), else
+    the reference server's record, else EQOA-Data's (not a contributor's note, not a name it describes twice), else
     Allakhazam's page without its "Dropped by"; a real description, a GM's record and an undescribed one are
     left; an undo puts every row back. No game data."""
 
@@ -33,7 +33,7 @@ class FillItemDescriptions(unittest.TestCase):
         db.execute("CREATE TABLE gm_audit (id INTEGER PRIMARY KEY, tbl TEXT, rowkey TEXT)")
         db.executemany("INSERT INTO itempattern VALUES (?, ?, ?, ?)", [
             (1, "Basher Shirt", 5, PH),               # decided
-            (2, "Steel Mace", 12, PH),                # Sandstorm's, before EQOA-Data's
+            (2, "Steel Mace", 12, PH),                # the reference server's, before EQOA-Data's
             (3, "Aged Club", 12, PH),                 # EQOA-Data's
             (4, "Good Robe", 2, PH),                  # EQOA-Data's is a note: kept
             (5, "Twice Told", 12, PH),                # EQOA-Data describes it twice: kept

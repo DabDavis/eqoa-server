@@ -8,7 +8,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// NPCs coming to the help of their own (F3 20261025-215440, jib: "When a mob
+// NPCs coming to the help of their own (F3 20261025-215440, a GM: "When a mob
 // is attacked and it is on the same faction as another mob, IF it is social,
 // it should assist the attacked monster. All guards of a town qualify for
 // this, but not all mobs are social so we will have to specify as we go. The

@@ -14,7 +14,7 @@ import (
 	"github.com/eqoa/server/internal/ground"
 )
 
-// Pets in Permafrost on the real ground (petition 1496, the magician Waldorf's:
+// Pets in Permafrost on the real ground (petition 1496, a magician's:
 // "pets in general don't respect walls/barriers/floors/ceilings"): a pet 10 to
 // 70 off its owner across the ground, each standing where one of the caves'
 // creatures spawns (so both on a floor), is told to follow, pair after pair. A

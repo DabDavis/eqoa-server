@@ -11,8 +11,8 @@ import (
 )
 
 // A record bound to one character (itemowner) is put on by that character
-// alone (the owner, 2026-11-16: Drizzt's scale mail, "that he alone can wear
-// drizzt only"): another character of the same class, race and level holding
+// alone (the owner, 2026-11-16: a player's scale mail, "that he alone can wear
+// [a player] only"): another character of the same class, race and level holding
 // a copy (as from the account bank) is refused it in the gates' red, and so
 // is a merc (no character) and another raid seat's Need (the owner's may); the control: the owner
 // puts it on, and an unbound record of the same masks goes on for anyone.

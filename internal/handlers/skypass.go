@@ -11,7 +11,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// The Plane of Sky's passages (petition 1608, the GM Jibrish, at the second
+// The Plane of Sky's passages (petition 1608, at the second
 // isle of rain's essence: "This needs to ask for a key from the boss and then
 // teleport people to the next island"; petition 1612, at Granavik: "after
 // granavik dies he needs to drop 20 keys, and open a portal to the next island
@@ -23,7 +23,7 @@ import (
 // the Majestic gives (petitions 2077-2079); every other
 // isle's is its boss's, twenty on its corpse (tools/sky_keys_20261111.py, the
 // set sky-keys: the isle's boss is the one whose shard the guide's chain has
-// it drop, Granavik for the third isle of rain as Jibrish named him, the Arch
+// it drop, Granavik for the third isle of rain as a GM named him, the Arch
 // Bishop Lancel for the third of night, which has none). The order of the
 // isles is EQOA-Data's Portal/plane-of-sky guide's (Rain 1-5, Day 1-4, Night
 // 1-5, Snow 1 from the main isle, Snow 2-4 after Snow 1's jump, Desolation
@@ -73,10 +73,10 @@ var skyPasses = []skyPass{
 	// the chain of rain: the main isle's essence, over the bridge north-west
 	{NPC: "essence of rain", X: 4482.5, Z: 5293.2, Key: "rain key", To: "the first isle of rain",
 		At: wayPlace{World: 4, X: 4236.2, Y: 233.05, Z: 5727.7, Facing: 3.38}, Steps: [][2]int{{101301, 2}}},
-	// Hoofbite's spot (petition 2049) was on Day Chain 2: back on its isle (the owner, 2026-11-14)
+	// a player's spot (petition 2049) was on Day Chain 2: back on its isle (the owner, 2026-11-14)
 	{NPC: "essence of rain", X: 4222.7, Z: 5714.6, Key: "Rain Key 1", To: "the second isle of rain",
 		At: wayPlace{World: 4, X: 4177.0, Y: 180.06, Z: 5210.0, Facing: 3.98}, Steps: [][2]int{{101301, 4}}},
-	// lands where the GM Kobe stood (petition 2042); Hoofbite's spot (2053) was on Day Chain 3 (the owner, 2026-11-14: back on the rain isles)
+	// lands where a GM stood (petition 2042); a player's spot (2053) was on Day Chain 3 (the owner, 2026-11-14: back on the rain isles)
 	{NPC: "essence of rain", X: 4158.6, Z: 5122.5, Key: "Rain Key 2", To: "the third isle of rain",
 		At: wayPlace{World: 4, X: 4397.54, Y: 110.80, Z: 4559.93, Facing: 1.10}, Steps: [][2]int{{101302, 4}}},
 	{NPC: "essence of rain", X: 4638.6, Z: 4655.2, Key: "Rain Key 3", To: "the fourth isle of rain",
@@ -90,14 +90,14 @@ var skyPasses = []skyPass{
 		At: skyIsleOfWonder, Steps: [][2]int{{101303, 11}}},
 
 	// the chain of the sun
-	// lands where Thorinoak stood, by the first isle's essence and Madam Watrya (petition 2048)
+	// lands where a player stood, by the first isle's essence and Madam Watrya (petition 2048)
 	{NPC: "essence of sun", X: 5137.3, Z: 5188.3, Key: "sun key", To: "the first isle of day",
 		At: wayPlace{World: 4, X: 5773.76, Y: 280.0, Z: 5114.38, Facing: 4.639}, Steps: [][2]int{{101304, 2}}},
 	// Watrya's isle's own essence of day, no key: the way on to the brightstar
 	// fairies' isle, Day Chain 1, where the chain's princess and Day Key 1's
-	// essence are (petition 2434, Itamin: "key takes you to Watrya island
+	// essence are (petition 2434: "key takes you to Watrya island
 	// instead of Sun Chain 1, no way that i see to get to sun chain 1"; the GM
-	// Jibrish's board entry 1758: live's "pop up" off the safe island). Its
+	// a GM's board entry 1758: live's "pop up" off the safe island). Its
 	// landing is 13 south of Day Key 1's essence, facing the princess, 60 from
 	// the nearest fairy (the old Sun 1 spot is 28.9 from one: in its aggro)
 	{NPC: "essence of day", X: 5656.6, Z: 5107.4, To: "the first isle of day",
@@ -106,23 +106,23 @@ var skyPasses = []skyPass{
 		At: wayPlace{World: 4, X: 5608.0, Y: 374.06, Z: 4715.0, Facing: 3.66}, Steps: [][2]int{{101304, 4}}},
 	{NPC: "essence of day", X: 5380.8, Z: 4755.9, Key: "Day Key 2", To: "the third isle of day",
 		At: wayPlace{World: 4, X: 5463.3, Y: 380.19, Z: 4231.8, Facing: 1.76}, Steps: [][2]int{{101305, 4}}},
-	// lands where Hoofbite stood (petition 2054)
+	// lands where a player stood (petition 2054)
 	{NPC: "essence of day", X: 5459.6, Z: 4237.5, Key: "Day Key 3", To: "the fourth isle of day",
 		At: wayPlace{World: 4, X: 5215.63, Y: 430.88, Z: 4216.92, Facing: 4.786}, Steps: [][2]int{{101305, 7}}},
 	{NPC: "essence of day", X: 5054.4, Z: 4243.1, Key: "Day Key 4", To: "the Isle of Wonder",
 		At: skyIsleOfWonder, Steps: [][2]int{{101305, 10}}},
 
 	// the chain of night: the main isle's essence, south of Liztin's hut
-	// lands where Hoofbite stood (petition 2055)
+	// lands where a player stood (petition 2055)
 	{NPC: "essence of night", X: 4621.4, Z: 5729.6, Key: "key of the ancients", To: "the first isle of night",
 		At: wayPlace{World: 4, X: 4160.69, Y: 612.38, Z: 6064.46, Facing: 0.025}, Steps: [][2]int{{101306, 2}}},
-	// lands where Hoofbite stood (petition 2062)
+	// lands where a player stood (petition 2062)
 	{NPC: "essence of night", X: 4160.7, Z: 6404.1, Key: "Night Key 1", To: "the second isle of night",
 		At: wayPlace{World: 4, X: 4441.49, Y: 448.69, Z: 6229.33, Facing: 3.093}, Steps: [][2]int{{101306, 8}}},
-	// lands where Hoofbite stood (petition 2064, his "rain chain 3": the spot is on this isle)
+	// lands where a player stood (petition 2064, his "rain chain 3": the spot is on this isle)
 	{NPC: "essence of night", X: 4441.2, Z: 6436.7, Key: "Night Key 2", To: "the third isle of night",
 		At: wayPlace{World: 4, X: 4250.22, Y: 569.56, Z: 6556.09, Facing: 6.258}, Steps: [][2]int{{101306, 10}}},
-	// lands where Hoofbite stood (petition 2066)
+	// lands where a player stood (petition 2066)
 	{NPC: "essence of night", X: 4250.0, Z: 6806.4, Key: "Night Key 3", To: "the fourth isle of night",
 		At: wayPlace{World: 4, X: 4129.56, Y: 353.09, Z: 7583.49, Facing: 1.571}},
 	{NPC: "essence of night", X: 4322.6, Z: 7754.4, Key: "Night Key 4", To: "the fifth isle of night",
@@ -131,7 +131,7 @@ var skyPasses = []skyPass{
 		At: skyIsleOfWonder, Steps: [][2]int{{101306, 17}}},
 
 	// the chain of snow: the main isle's essence, south-east of Liztin's hut,
-	// where the GM Jibcrotwo stood (petitions 2077-2079: "We need a snow
+	// where a GM stood (petitions 2077-2079: "We need a snow
 	// essence right where im standing like the other islands"), to where he
 	// stood on the first isle, beside its own essence (which has no passage:
 	// the guide has the first isle left by the waterfall, Ryini's walk, and no

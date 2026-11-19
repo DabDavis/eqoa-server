@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The Lord Valkanith quest's ruby from the rallosian spectres and warlords of Geomancer's Citadel (the owner,
-2026-11-17, at Dust's place in the citadel, world 1 (4703.7, 4474.8): "these mobs are named wrong should be the
+2026-11-17, at a GM's place in the citadel, world 1 (4703.7, 4474.8): "these mobs are named wrong should be the
 rallosian spectres and warlords that drop tal thex ruby for lord valkanith quest"; Ronson's post, forum t171: the ruby
 "from rallosian specters and warlords in Geomancers Citadel").
 

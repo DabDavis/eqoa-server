@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The Cazic-Thule trials on the Isle of Dread, end to end (2026-11-11; the owner's pointer to the forumotion t196
-walkthrough, the GM Jibrish's work board entries 430, 616, 627, 637, 640, 656), on the server's code of the same branch:
+walkthrough, a GM's work board entries 430, 616, 627, 637, 640, 656), on the server's code of the same branch:
 quest walls (questwalls), aggro on an item held (npcaggro.holding), an item that hides an NPC (itemhide), a survive
 step, spawn events with count/minutes/keep, NPC row keys ("#118877"), copies that walk their row's path, and the
 boss moments (selfdot, raidheal, powerzero). It makes what that server's start would make if it is not there (tables questwalls and itemhide, column
@@ -14,7 +14,7 @@ What it writes (every row in gm_audit and its log, ct_trials_1111_log; --undo ex
     holder of Cazic's Scent (npcaggro "The Guardian", holding 1231: t196 "will become KoS and attack you if you have
     Cazic's Scent on you"); the scent, used within 25 of the door by one past the heart's step, takes the Guardian
     out of the world 10 minutes (itemhide 1231: "uses Cazic's Scent to remove the Guardian blocking the doorway").
-    The second Guardian row (118860) held out of the world (656's "one at the door": its question 1 for jibrish).
+    The second Guardian row (118860) held out of the world (656's "one at the door": its question 1 for a GM).
   The Trials of Cazic Thule (101312), its steps rewritten in the walkthrough's order:
      1 reach the long hallway (a popup)            2 survive 30 minutes: 6 thoughtbleeders on the questor, each made
      3 talk to the second Kithgrin (new, at the     again as its corpse goes (one lying holds its place), all killed,

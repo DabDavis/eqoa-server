@@ -11,14 +11,14 @@ eight helms, VICSpriteCust $Helm, and style 0 draws none). Three kinds of record
    piece): the woolen set is the tailors' cloth of level 15, worn by every class, and its tunic, bracers, legs
    and boots are style 1 (cloth) with the cloth icons, as the burlap, padded, silk and gossamer sets are whole;
    the helm and the gloves were style 2 (leather) with the leather icons. They take style 1 and the icon the
-   style 1 pieces of their slot carry most. (Sandstorm's records give these two the leather icons too.)
-2. **An icon Sandstorm's record of the same item gives otherwise** (the harvests: a gear record of the same
+   style 1 pieces of their slot carry most. (the reference server's records give these two the leather icons too.)
+2. **An icon the reference server's record of the same item gives otherwise** (the harvests: a gear record of the same
    name, the only one of it): its icon. An armour piece of style 0 whose new icon is a style's (below) takes
    that style too, so it is drawn as its icon shows. An armour piece of a style whose icon is that style's,
-   where Sandstorm's icon is another style's, is listed and left: the look and the icon would disagree, and
+   where the reference server's icon is another style's, is listed and left: the look and the icon would disagree, and
    neither record says which is right.
 3. Nothing else: the armour pieces of style 0 on their slot's plain cloth icon (the old dump's records, about
-   1,450 on eqoaclassic, of which Sandstorm gives a different icon to 13 of the 18 it holds) are counted, not
+   1,450 on the production server, of which the reference server gives a different icon to 13 of the 18 it holds) are counted, not
    changed: no record says what they are drawn as.
 
 A style's icon: an icon at least three records of a slot carry, nine in ten of those with a style carrying

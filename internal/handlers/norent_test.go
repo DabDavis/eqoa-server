@@ -85,8 +85,8 @@ func TestNoRentVanishesAtTheLogin(t *testing.T) {
 	}
 }
 
-// A login within NoRentAway of the character's last logout keeps its No Rent items (jib's PR #1, the GM
-// Jibrish's ruling of 2026-10-29: No Rent "means it vanishes if the player logs out for more than 5 minutes"),
+// A login within NoRentAway of the character's last logout keeps its No Rent items (a GM's PR #1, the GM
+// a GM's ruling of 2026-10-29: No Rent "means it vanishes if the player logs out for more than 5 minutes"),
 // and the logout row is read once. The controls: a login six minutes after it, and one with no row at all (a
 // crash, the first login after this came), take them as before.
 func TestNoRentStaysWithinFiveMinutesAway(t *testing.T) {

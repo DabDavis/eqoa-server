@@ -3,7 +3,7 @@
 
 tools/seed_masteries.py wrote every rank as EQOA-Data's lists name it, so the
 Class Mastery window offered "Spellbinder 1" for the enchanter's master class
-(F3 20261026-135728, jib: "should just be called Spellbinder and not
+(F3 20261026-135728, a GM: "should just be called Spellbinder and not
 Spellbinder 1"). The seed names that rank bare now; this renames the rows a
 database seeded before it: a row of category 4 (Master Class) and rank 1
 whose name is exactly its mastery's and " 1" is named its mastery's. The

@@ -10,7 +10,7 @@ import (
 )
 
 // hidemercs.go — /hide mercs and /show mercs, everyone's (petition 1858, the
-// GM Jibrish, 2026-11-12: "add the command /hide mercs and /show mercs — this
+// GM a GM, 2026-11-12: "add the command /hide mercs and /show mercs — this
 // hide the character model and nameplate for mercenaries, or restore them";
 // entity/hidemercs.go has the rule). Hidden, other players' mercenaries are
 // sent to the player's own client no more, so it draws neither their bodies

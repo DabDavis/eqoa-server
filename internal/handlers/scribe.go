@@ -15,7 +15,7 @@ import (
 // equip.go takes for everything else) puts the scroll's spell in the
 // character's book, and the scroll is gone.
 //
-// What Sandstorm does, recorded with eqoa harvest on 2026-10-21 (a druid of
+// What the reference server does, recorded with eqoa harvest on 2026-10-21 (a druid of
 // level 23 buying at two of Freeport's spell vendors, then using each scroll):
 //
 //   - learned: 0x003C with the scroll's list index, sound 0 and one, then
@@ -29,20 +29,20 @@ import (
 //
 // The checks run in VIPlayer::CanUse's order (class, race, level), so what
 // the server refuses is what the client already shows as unusable. Two
-// lines are not Sandstorm's: the race one (Sandstorm's scroll masks name the
+// lines are not the reference server's: the race one (the reference server's scroll masks name the
 // races that can be the class, so no character of the class is refused by
-// race), and the one for a scroll whose spell has no record here (Sandstorm
+// race), and the one for a scroll whose spell has no record here (the reference server
 // has one for every scroll it sells). The level is the scroll's and its
 // spell's both: a scroll of a lower level than its spell is refused in the
-// level's words too (ours: Sandstorm's scrolls ask for their spells' levels).
+// level's words too (ours: the reference server's scrolls ask for their spells' levels).
 
 // scrollIcon is the art every spell scroll carries (itempattern.itemicon):
-// all 508 of Sandstorm's vendor scrolls show it, and Return Home's. A scroll
+// all 508 of the reference server's vendor scrolls show it, and Return Home's. A scroll
 // names its spell only by its own name, so the icon is what keeps a potion
 // of a spell's name ("Invisibility") from being scribed.
 const scrollIcon = -607649328
 
-// The refusals, in Sandstorm's colour.
+// The refusals, in the reference server's colour.
 const (
 	scribeWrongClass = "This item can't be used by your class."
 	scribeWrongRace  = "This item can't be used by your race."
@@ -98,7 +98,7 @@ func scrollSpell(spells []database.SpellName, scroll string, level int) (databas
 // (exactKey), else of its name as spellKey reads it, the first its class has
 // at the scroll's level, else the first its class has, else the first at the
 // scroll's level, else the first. One name twice is mostly one spell numbered
-// twice, Return Home's and Sandstorm's (Provoke is 674 and 1607, the same
+// twice, Return Home's and the reference server's (Provoke is 674 and 1607, the same
 // record); two classes' spells of one name are two records since the workbook
 // import split them (Camouflage, the druid's and the ranger's), and the class
 // tells them apart. has nil counts no class.
@@ -159,7 +159,7 @@ func scrollRefusal(classUse, raceUse, levelReq, class, race, level int) string {
 		return scribeWrongClass
 	case !entity.Creation().AllClasses && raceUseForWire(raceUse)&(1<<uint(entity.WireRace(race))) == 0:
 		// a scroll's races are the ones SOE let be its classes; with every class open to
-		// every race (world.all_classes) they no longer decide (petition 1237, Smolsk: "new
+		// every race (world.all_classes) they no longer decide (petition 1237: "new
 		// race/classes need to be updated for spells": a gnome shadow knight was refused
 		// every shadow knight's scroll)
 		return scribeWrongRace

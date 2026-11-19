@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The Siliskor quest as the owner's source has it: Ronson's walkthrough on the EQOA forum (eqoa.forumotion.com/t177,
 "lets add this", the owner 2026-11-18; the same text as EQOA-Data's Misc/siliskor guide the quest was imported from),
-with Siliskor's fight as the GM Jibrish decided it (work board 708, "quest-raised, L57, ~250k, sets his tank's HP to
+with Siliskor's fight as a GM decided it (work board 708, "quest-raised, L57, ~250k, sets his tank's HP to
 700, a 600 poison DoT AoE, no crit"; his asks are the owner's approved). By NAMES and places, never by ids: the two
 shards' rows are read where they stand.
 

@@ -10,13 +10,13 @@ import (
 )
 
 // keeppet.go — a player's pet through a restart that keeps the sessions
-// (petition 1363, Battaryhog: "i noticed if my mag or enc sets still to long
+// (petition 1363: "i noticed if my mag or enc sets still to long
 // the pets despawn, and the charmed ones attack"). A keep restart (keep.go)
 // freezes the world a few seconds, and until now ended every pet in it: a
 // summoned pet was simply gone, and a charmed creature came back as its row
 // makes it, free and whole on its spawn, where its master usually hunts, so it
 // attacked him on sight (2026-11-09 05:07, a charmed wicker man on
-// eqoaclassic). Ten restarts in four hours made it look like standing still.
+// the production server). Ten restarts in four hours made it look like standing still.
 //
 // Now KeepPlayer writes the pet down beside its owner (KeptPet), and the new
 // process gives it back (RestorePet, from handlers/keep.go's ResumeCharacter):

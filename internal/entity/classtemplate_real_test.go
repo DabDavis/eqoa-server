@@ -10,11 +10,11 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// jib's five templates over a real server's spells (EQOA_REAL_DB names its
+// A GM's five templates over a real server's spells (EQOA_REAL_DB names its
 // database; a copy is read): the database made at a start with this code has
 // the five and gives a template to no NPC its npctemplate rows do not name
 // (a GM's, or tools/seed_roamers.py's: the roamer and the wisp, 26,813 NPCs
-// of 2,234 names on eqoaclassic since 2026-10-30), every ability finds a
+// of 2,234 names on the production server since 2026-10-30), every ability finds a
 // spell of its kind from the level its class first has one, and what each
 // picks is the level's: the wizard's area spell never Phoenix Glory (its 15 s cast) and
 // its nuke never a 180 s nova, the necromancer's tap the line's rank of its

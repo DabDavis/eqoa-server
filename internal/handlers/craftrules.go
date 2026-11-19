@@ -37,11 +37,11 @@ func craftSkillName(skill int) string {
 
 // craftLiveSkills is how many skills a character has with no row: 0-3.
 // Carpentry and Alchemy were never live: with no row they are sent as
-// Sandstorm sends them ({99, 99, 99, 98}) and refuse every craft; a row a GM
+// the reference server sends them ({99, 99, 99, 98}) and refuse every craft; a row a GM
 // writes (#craftskill) makes one live for that character.
 const craftLiveSkills = 4
 
-// Sandstorm's words of a slot that no CLIENT code reads (x00, x0C), and its
+// The reference server's words of a slot that no CLIENT code reads (x00, x0C), and its
 // level and rank of a skill that is not live.
 const (
 	craftSlotX00     uint32 = 99
@@ -116,7 +116,7 @@ func craftSkillOf(rows [database.CraftSkills]database.CraftSkill, skill int) cra
 }
 
 // slot is the skill as CLIENT's VICraftSlot holds it: {x00, level, rank,
-// x0C}, Sandstorm's 99 and 98 in the two words nothing reads.
+// x0C}, the reference server's 99 and 98 in the two words nothing reads.
 func (s craftSkill) slot() [4]uint32 {
 	return [4]uint32{craftSlotX00, uint32(s.level), uint32(s.rank), craftSlotX0C}
 }
@@ -202,7 +202,7 @@ func craftChance(points, difficulty, statSum int) float64 {
 }
 
 // craftToolTier is a tool's tier by its level: levelreq / 5 + 1, so
-// Sandstorm's ten hammers (levels 1, 6, ..., 46, the Novice's for crude
+// the reference server's ten hammers (levels 1, 6, ..., 46, the Novice's for crude
 // iron to the Grandmaster's for seralite) are tiers 1 to 10.
 func craftToolTier(levelReq int) int {
 	return max(levelReq, 0)/5 + 1

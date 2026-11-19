@@ -81,7 +81,7 @@ func throughAFloor(g surfacer, world uint8, at [][3]float32) (int, string) {
 }
 
 // Collonridge Cemetery's floors over floors (the owner, 2026-11-13: "mobs are
-// going through the floor in the collinridge cemetary instance that zerkziee is
+// going through the floor in the collinridge cemetary instance that [a player] is
 // in"): its mausoleum, a placed slab at 56.4 over the terrain's 54.1 with a step
 // round it; its crypt, terrain at 42.1 under the terrain's 54.1; its tower, placed
 // floors at 56.4, 62.7, 68.7 and 74.8. Each chase is a creature at a spawn of the

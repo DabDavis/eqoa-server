@@ -56,7 +56,7 @@ func TestARoofIsWhatIsOverAPlace(t *testing.T) {
 // roofed where Grindal stands (his spawn, on the inn's floor 3 over the
 // street) and the street 12 north of him is open; Neriak's street is under the
 // cavern's roof (terrain, 27 up) and its tavern under its upper floor (6.5
-// up); Afkqq stood in the open when Sandstorm burned it; Sandstorm's
+// up); Afkqq stood in the open when the reference server burned it; the reference server's
 // Sanctuary landing (S2's world 7 at (4322, 274, 6180), the Frontiers
 // world 5 file) is under 48 of rock, where this server's Sanctuary NPCs
 // stand on open ground. Skipped without a bake: none is in this repository.

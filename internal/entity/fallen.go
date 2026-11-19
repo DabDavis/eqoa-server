@@ -7,9 +7,9 @@ import "log"
 // loot").
 //
 // What happened (Heirloom, 02:09:46 UTC 2026-11-18, group 154's kill of Veeshan's Talon:
-// "7 seats, 11 members"): Dust, Hoofbite, Ronin and Lonewulf died to the Talon in the
+// "7 seats, 11 members"): four players died to the Talon in the
 // fight and, PlayerRespawnDelay later (respawn.go), were set down at their binds in
-// another world before it died, Lonewulf in the very second of the kill. A kill's share
+// another world before it died, a player in the very second of the kill. A kill's share
 // went by where a member stood at the kill (raidKillLocked: in its world within
 // KillShareRange; creditKillLocked: the same, and alive), so the four had no roll, no No
 // Trade share, no quest credit and no quest drop. And a member lying dead in reach had a

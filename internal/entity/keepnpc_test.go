@@ -1155,7 +1155,7 @@ func TestAClientsSlotsShowTheCreaturesAsTheyWere(t *testing.T) {
 	c.mu.Unlock()
 }
 
-// keepCostWorld is 61,136 NPCs (eqoaclassic's count on 2026-11-07), n of them away
+// keepCostWorld is 61,136 NPCs (the production server's count on 2026-11-07), n of them away
 // from their spawns, on the rows' own spread of names.
 func keepCostWorld(n int) *World {
 	w := NewWorld()

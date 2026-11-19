@@ -14,7 +14,7 @@ import (
 
 // resurrect.go — the resurrection spells: a rez gives back its printed share
 // of the experience debt its target's latest death added, once per death
-// (jib's review, F3 pass 19).
+// (a GM's review, F3 pass 19).
 //
 // The lines are EQOA-Data's (Information/databases/spells), as spelleffect
 // holds them: "Target, Ressurect Player: restore 20% experience debt" (the
@@ -40,7 +40,7 @@ import (
 //     to the debt, and where it happened, as the character's chance of a rez
 //     (Player.Rez). A later death takes its place and ends any offer of the
 //     earlier's way back, so the earlier one's debt and place are past recovering
-//     (petition 1130, the GM Jibrish: "One rez per death, if they die again they
+//     (petition 1130: "One rez per death, if they die again they
 //     lose the ability to get rez'd from the previous death. Only the latest rez
 //     death location is saved");
 //   - a rez at a player, dead (the 15 s before its respawn) or released,
@@ -92,7 +92,7 @@ type RezChance struct {
 	// Placed and the place are where the death was (petition 1051): a rez in
 	// the chance's time offers its target the way back there, debt or none.
 	// Kept with the chance over a logout and a restart (table charrez; petition
-	// 1130, the GM Jibrish: "Only the latest rez death location is saved").
+	// 1130, a GM: "Only the latest rez death location is saved").
 	Placed  bool
 	World   uint8
 	X, Y, Z float32
@@ -369,7 +369,7 @@ func (w *World) RezOf(id EntityID, now time.Time) (debt int, left time.Duration,
 }
 
 // offerRezReturnLocked offers a rez's target the way back to where it died
-// (petition 1051, Jibheals: "Even if the character has no debt to clear, they
+// (petition 1051: "Even if the character has no debt to clear, they
 // should still get the popup to get back to where they last died IF eligible
 // to rez"): CLIENT's resurrect prompt (OnRezOffer's hook), its answer waited
 // for RezOfferFor. Must be called with the lock held.
@@ -394,7 +394,7 @@ func (w *World) DeathPlaceLive(sess *session.Session, now time.Time) bool {
 }
 
 // TakeDeathPlace is the way back a town's board or sign gives (petition 1218,
-// the GM Jibrish: "a 0% XP resurrect that sends them back to the point they
+// a GM: "a 0% XP resurrect that sends them back to the point they
 // died at", "so if you die and ... no clerics on you can still get back"; the
 // words handlers/boardinvis.go's): where the player died, one trip, the place
 // spent as a rez's offer spends it. No experience comes back and the debt is

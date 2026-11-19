@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""jibrish's requests of 2026-11-16/17 (work board 1567, 1571, 1572, 1599; jib board 137, 140, 141, 148): owner-approved
+"""a GM's requests of 2026-11-16/17 (work board 1567, 1571, 1572, 1599; a GM board 137, 140, 141, 148): owner-approved
 as submitted. Three parts, each its own subcommand, log and --undo:
 
 robe (1567, Live): warriors may wear the Spirit Maker's Robe on the Live shard too, as Heirloom already has it.
     itempattern 5209 and every copy whose itemimported.base is 5209: classuse | 1 (Warrior). REFUSED unless 5209's
-    classuse is 1006 (jibrish: "If 5209's classuse on Live is not 1006, stop and tell me before writing"). Only widens.
+    classuse is 1006 (a GM: "If 5209's classuse on Live is not 1006, stop and tell me before writing"). Only widens.
 
 testers (1571, 1572, Live: the character Innoruuk plays there alone): two GM charms, Tester Pro (965007) cloned with a
     new name and description (gem type, NO TRADE, LORE, worth 0, the Ring of Speed's icon, 80 DUR, every class/race):
@@ -20,7 +20,7 @@ elder (1599, Heirloom): the robe from the two Tower of Phantoms elder spirits al
     0.1% a kill, not the four Tunaria desert elder spirits. NEEDS the server with work board 1554 (open-world "#row"
     npcloot) and the fractional npcloot chance (1310 item 2): jib-1117. In 1599's order:
       1-2. npcloot (#190044 / #190045, rare spirit makers robe, chance 0.1, rolls 1);
-      3. lootrate (jib, xp, spirit makers robe) out: 1598's stopgap (rate 0.001, source workboard 1598);
+      3. lootrate (a GM, xp, spirit makers robe) out: 1598's stopgap (rate 0.001, source workboard 1598);
       4. lootpool 12158 out (spirit makers robe, elder spirit, 5209, source workboard 1598).
     A shard where the name still holds robes5117's binding (npcloot elder spirit -> rare spirit makers robe, 10: Live)
     has that row taken out in 3-4's place. Each removal only as 1598/robes5117 wrote it, else REFUSED.

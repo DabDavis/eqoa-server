@@ -38,7 +38,7 @@ func TestTargetInfoNamesTheMasterClass(t *testing.T) {
 		return s
 	}
 	asker := player(8, &entity.Player{ServerID: 1001, Name: "Asker", Level: 60}, 0x1424A1D0)
-	player(9, &entity.Player{ServerID: 1002, Name: "Jibrish", Level: 60, Class: 12, Race: 3,
+	player(9, &entity.Player{ServerID: 1002, Name: "Jinkles", Level: 60, Class: 12, Race: 3,
 		CMs: map[int]int{6634: 50, 6801: 200, 6802: 75}, GuildName: "Anarchy"}, 0x14330D1E)
 	player(10, &entity.Player{ServerID: 1003, Name: "Plain", Level: 60, Class: 12, Race: 3,
 		CMs: map[int]int{6634: 50}}, 0x14330D1F)

@@ -1,6 +1,6 @@
 // Package transfers is the player's half of character transfers: the page a
 // player fills in to bring a character over from another server (the user,
-// 2026-11-05: "players from sandstorm want to keep their characters", "build
+// 2026-11-05: "players from [another server] want to keep their characters", "build
 // the form"), and its routes, served by the account server (GET /transfer,
 // /api/transfer/...; nginx gives them as /eqoa/transfer and
 // /eqoa/account/api/transfer/...). The player signs in with this server's

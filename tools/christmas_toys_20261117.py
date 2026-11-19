@@ -14,8 +14,8 @@ plushie's Use); vanilla of the same branch draws the lights, the stripes and the
 2. Candy Cane Staff (STAFF_ID): the Apprentice Staff 5489 copied (level 1, the same damage and delay: no better than
    a level-1 staff), every class and race, tradeable, not lore, red (0xC81E1EFF: an older vanilla dyes the plain staff
    red). itemaura first kind 12 (stripes, database.AuraStripes: vanilla paints the staff red and white in a spiral, 9
-   stripes), second kind 3 (particles) of 0x1D875ECD along 100 (the monk staff's twinkle at its tip, as Dust's sword
-   and Drizzt's Twinkle; a first aura's nodes stop at 32, so the along is the second's). The Weapon Enchanter's aura on a copy takes the hand whole (instanceaura): stripes and
+   stripes), second kind 3 (particles) of 0x1D875ECD along 100 (the monk staff's twinkle at its tip, as a GM's sword
+   and a player's Twinkle; a first aura's nodes stop at 32, so the along is the second's). The Weapon Enchanter's aura on a copy takes the hand whole (instanceaura): stripes and
    twinkle give way to it.
 3. Pegasus Plushie (PLUSHIE_ID): worn nowhere, CLIENT's usable type (procanim 2: the item menu offers Use), never
    spent, tradeable, not lore, bound to no one, the Illusion: Pegasus scroll's icon. A Use brings out a tiny white

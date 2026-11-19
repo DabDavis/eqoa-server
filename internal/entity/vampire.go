@@ -9,11 +9,11 @@ import (
 )
 
 // vampire.go — the sun burns a vampire by day. The user, 2026-10-30: on
-// Sandstorm "a vampire character (Afkqq) loses 50 HP about every 6 seconds
-// while it is daylight", and "yes please" to eqoaclassic's vampires doing the
+// the reference server "a vampire character (Afkqq) loses 50 HP about every 6 seconds
+// while it is daylight", and "yes please" to the production server's vampires doing the
 // same; then "shade protecting vampire from dot would be good".
 //
-// What Sandstorm sends (spellfx24's afkqq-1 session, 2026-10-30 03:03 UTC, a
+// What the reference server sends (spellfx24's afkqq-1 session, 2026-10-30 03:03 UTC, a
 // level 43 dwarf cleric standing in the open at Tunaria (15290, 54, 9249) at
 // the client's 10:18): 0x00DB {u32 0xFFFFFFFF, zigzag -50, u32 the player},
 // from no one, from the login on, with no line, on the regeneration's tick
@@ -25,11 +25,11 @@ import (
 // during daylight".
 //
 // Here: every VampireSun.Interval (the regeneration's tick when it is 6 s,
-// after the regeneration, as Sandstorm's), each vampire in the world (table
+// after the regeneration, as the reference server's), each vampire in the world (table
 // charvampire, database/vampire.go: the vampire quest's bats, #vampire and the
 // GM panel make one) that is alive, not loading a world, under the open sky
 // and in daylight as its own client shows it takes VampireSun.Damage, told as
-// Sandstorm tells it. It can kill: a death as any other (respawn.go: its debt,
+// the reference server tells it. It can kill: a death as any other (respawn.go: its debt,
 // the respawn at its bind).
 //
 // Daylight is the client's own: the hour its clock shows (session/gameclock.go:
@@ -48,7 +48,7 @@ import (
 // a trunk and a crown (Tunaria's big trees: a trunk a few units across to
 // about 8 up, a crown 20 to 40 across from about 13 up to 26-37), so a
 // vampire standing under one is in its shade; a plant has no collision and is
-// none. Measured over eqoaclassic's 23,922 spawns: of Tunaria's 19,711, 33.7%
+// none. Measured over the production server's 23,922 spawns: of Tunaria's 19,711, 33.7%
 // have something over them (the dungeons, the cities' houses, the caves); the
 // open country's creatures almost never (grass snakes 5 of 119, rats 2 of
 // 135, boars 0 of 50, each of them under a big tree's crown). The look up
@@ -65,7 +65,7 @@ type VampireSun struct {
 	GMs      bool
 }
 
-// DefaultVampireSun is Sandstorm's 50 every 6 s, shade sheltering (the user's
+// DefaultVampireSun is the reference server's 50 every 6 s, shade sheltering (the user's
 // word) and a GM's vampire burning as anyone's (so a GM who makes one sees
 // what a player sees).
 var DefaultVampireSun = VampireSun{Damage: 50, Interval: RegenInterval, Shade: true, GMs: true}
@@ -118,7 +118,7 @@ func ClientHour(sess *session.Session, now time.Time) float32 {
 }
 
 // sunSource is who the sun's damage is from: no one, 0xFFFFFFFF, as
-// Sandstorm sends it. CLIENT shows a 0x00DB whose attacker is not the player
+// the reference server sends it. CLIENT shows a 0x00DB whose attacker is not the player
 // as damage taken, over the player (VIClient::DamageFromOther), as a
 // creature's hit is.
 const sunSource uint32 = 0xFFFFFFFF
@@ -126,14 +126,14 @@ const sunSource uint32 = 0xFFFFFFFF
 // The look up for a roof: from shadeFrom over the vampire's feet (past the
 // floor it stands on, under the lowest ceiling it could stand beneath; a
 // player's place is its feet, Afkqq's 0.03 over the floor) to shadeReach.
-// Over eqoaclassic's spawns nothing covered was covered only further up than
+// Over the production server's spawns nothing covered was covered only further up than
 // 273.
 const (
 	shadeFrom  float32 = 1
 	shadeReach float32 = 1000
 )
 
-// S2's world 7 ("secrets2", the vampires' Sanctuary on Sandstorm) is the
+// S2's world 7 ("secrets2", the vampires' Sanctuary on the reference server) is the
 // Frontiers disc's world 5 file again (data3\Secrets.esf), whose ground the
 // bake writes as world 5's.
 const (
@@ -294,7 +294,7 @@ func (w *World) SunOn(sess *session.Session, now time.Time) (s SunState, ok bool
 
 // The vampires' abilities (tools/seed_vampires.py makes their records, their
 // lines and the blood they cost; EQOA-Data's vampire guide gives the
-// figures, Sandstorm's own records Feed's and Sanctuary's exactly). What
+// figures, the reference server's own records Feed's and Sanctuary's exactly). What
 // they need of the World beyond any spell's:
 //   - Units of Blood: a line's "Reagent Unit of Blood xN" (spelltext.go) is
 //     taken from the caster's inventory as the cast begins, and the cast is

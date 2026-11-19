@@ -13,7 +13,7 @@ import (
 // in the world takes the new size where it stands and the human beside it
 // does not; a row the game cannot use (a size of 0 or 40, a race past
 // Froglok, none named) is refused and the world keeps what it had. The
-// control: the table as made (jib's gnomes at 0.9) is not the world's until
+// control: the table as made (a GM's gnomes at 0.9) is not the world's until
 // it is read, which the server does at its start and a GM's edit does here.
 func TestRaceSizeEditsAreLive(t *testing.T) {
 	f := newFixture(t)

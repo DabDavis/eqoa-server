@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Dust's armour trim a BLACK aura (the owner, 2026-11-13: "lets also let armor trim glow also. and make dusts armor
+"""a GM's armour trim a BLACK aura (the owner, 2026-11-13: "lets also let armor trim glow also. and make dusts armor
 trim glow a black aura").
 
-Dust alone wears the Ornate Breastplate, Vambraces, Gauntlets, Greaves and Sabatons, itempattern 711000-711004 (set 9,
+A GM alone wears the Ornate Breastplate, Vambraces, Gauntlets, Greaves and Sabatons, itempattern 711000-711004 (set 9,
 the ornate plate whose gold trim vanilla recolours). This gives each an itemaura row: kind 5 (AuraTrim: the trim lit, a
 soft halo off it) in 0x000000FF, black, which vanilla draws as a DARK aura (database.AuraDark: every channel at most
 0x30): the trim darkened toward black under a dark sheen, a smoky halo off it. Source and nodes 0 (no particles).

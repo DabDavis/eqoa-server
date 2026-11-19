@@ -14,33 +14,33 @@ import (
 )
 
 // The board ranks as the contributors page does: the most reports first, a tie by the name in any case (the page's
-// Apocalypce 9+1 before Lickinfrogs 10, aeonik before Meghan1989 before stanton), the other shard's line apart and
-// marked; the owner's accounts and Jib's, in any case, are never listed; the top N alone.
+// Aardvark 9+1 before Lilypad 10, acorn before Maple1989 before stoat), the other shard's line apart and
+// marked; the excluded accounts, in any case, are never listed; the top N alone.
 func TestBugBoardRanksAsThePage(t *testing.T) {
 	rows := []bugRow{
-		{Name: "Lickinfrogs", Bugs: 10}, {Name: "jibrish", Bugs: 267}, {Name: "forestwood", Bugs: 196},
-		{Name: "Apocalypce", Bugs: 9, Crashes: 1}, {Name: "stanton", Bugs: 5}, {Name: "aeonik", Bugs: 5},
-		{Name: "Meghan1989", Bugs: 5}, {Name: "Funyun", Bugs: 40}, {Name: "DAB", Crashes: 2},
-		{Name: "Blorck17", Bugs: 3, Crashes: 1}, {Name: "Blorck17", Mark: "Live", Crashes: 1}, {Name: "cow", Bugs: 1},
+		{Name: "Lilypad", Bugs: 10}, {Name: "gmone", Bugs: 267}, {Name: "fernwood", Bugs: 196},
+		{Name: "Aardvark", Bugs: 9, Crashes: 1}, {Name: "stoat", Bugs: 5}, {Name: "acorn", Bugs: 5},
+		{Name: "Maple1989", Bugs: 5}, {Name: "Gmtwo", Bugs: 40}, {Name: "OWNER", Crashes: 2},
+		{Name: "Brick17", Bugs: 3, Crashes: 1}, {Name: "Brick17", Mark: "Live", Crashes: 1}, {Name: "cow", Bugs: 1},
 		{Name: "nobody"},
 	}
-	ex := map[string]bool{"dab": true, "funyun": true, "jibrish": true}
+	ex := map[string]bool{"owner": true, "gmtwo": true, "gmone": true}
 	got := bugBoardRank(rows, ex)
 	var names []string
 	for _, r := range got {
 		names = append(names, r.Name+"/"+r.Mark)
 	}
-	want := "forestwood/ Apocalypce/ Lickinfrogs/ aeonik/ Meghan1989/ stanton/ Blorck17/ Blorck17/Live cow/"
+	want := "fernwood/ Aardvark/ Lilypad/ acorn/ Maple1989/ stoat/ Brick17/ Brick17/Live cow/"
 	if strings.Join(names, " ") != want {
 		t.Errorf("ranked %q, want %q", strings.Join(names, " "), want)
 	}
 	lines := bugBoardLines(got, 4, true, true)
-	wantLines := []string{bugBoardHeadBoth, "1. forestwood: 196 bugs", "2. Apocalypce: 10 (9 bugs, 1 crash)",
-		"3. Lickinfrogs: 10 bugs", "4. aeonik: 5 bugs", bugBoardFootF3}
+	wantLines := []string{bugBoardHeadBoth, "1. fernwood: 196 bugs", "2. Aardvark: 10 (9 bugs, 1 crash)",
+		"3. Lilypad: 10 bugs", "4. acorn: 5 bugs", bugBoardFootF3}
 	if strings.Join(lines, "|") != strings.Join(wantLines, "|") {
 		t.Errorf("lines\n%q\nwant\n%q", lines, wantLines)
 	}
-	if l := bugBoardLine(8, got[7]); l != "8. Blorck17 (Live): 1 crash" {
+	if l := bugBoardLine(8, got[7]); l != "8. Brick17 (Live): 1 crash" {
 		t.Errorf("a Live line: %q", l)
 	}
 	if l := bugBoardLine(3, bugRow{Name: "x", Bugs: 1, Crashes: 3}); l != "3. x: 4 (1 bug, 3 crashes)" {
@@ -99,21 +99,21 @@ func repeat(n, account, cat, sub int) [][3]int {
 // body is not the board; with no database the board says it cannot be read.
 func TestBugBoardTalk(t *testing.T) {
 	dir := t.TempDir()
-	accounts := map[int]string{1: "dab", 8: "funyun", 10: "jibrish", 20: "Zaeire", 21: "forestwood", 22: "Blorck17", 23: "quiet"}
+	accounts := map[int]string{1: "owner", 8: "gmtwo", 10: "gmone", 20: "Zephyr", 21: "fernwood", 22: "Brick17", 23: "quiet"}
 	var here [][3]int
-	here = append(here, repeat(6, 21, 1, 13)...)  // forestwood: 6 bugs
+	here = append(here, repeat(6, 21, 1, 13)...)  // fernwood: 6 bugs
 	here = append(here, repeat(2, 21, 1, 100)...) // and 2 feature requests, no bugs
-	here = append(here, repeat(4, 20, 1, 15)...)  // Zaeire: 4 bugs
+	here = append(here, repeat(4, 20, 1, 15)...)  // Zephyr: 4 bugs
 	here = append(here, repeat(1, 20, 1, 10)...)  // and a crash
-	here = append(here, repeat(9, 10, 1, 13)...)  // jibrish: excluded
-	here = append(here, repeat(3, 8, 1, 17)...)   // funyun: excluded
-	here = append(here, repeat(2, 1, 1, 10)...)   // dab: excluded
-	here = append(here, repeat(1, 22, 1, 19)...)  // Blorck17: a chat report
+	here = append(here, repeat(9, 10, 1, 13)...)  // gmone: excluded
+	here = append(here, repeat(3, 8, 1, 17)...)   // gmtwo: excluded
+	here = append(here, repeat(2, 1, 1, 10)...)   // owner: excluded
+	here = append(here, repeat(1, 22, 1, 19)...)  // Brick17: a chat report
 	here = append(here, repeat(5, 23, 3, 30)...)  // quiet: a Player Issue, no bug
 	db := bugDB(t, dir+"/heirloom.db", accounts, here)
 	_ = bugDB(t, dir+"/live.db", accounts, append(repeat(2, 22, 1, 10), repeat(7, 10, 1, 12)...))
 
-	SetBugBoard(config.BugBoardConfig{OtherDB: dir + "/live.db", OtherMark: "Live"})
+	SetBugBoard(config.BugBoardConfig{OtherDB: dir + "/live.db", OtherMark: "Live", Exclude: []string{"owner", "gmtwo", "gmone"}})
 	t.Cleanup(func() { SetBugBoard(config.BugBoardConfig{}) })
 	tw := newTalkWorld(t, 25301, 15754)
 	b := NewBugBoard(db)
@@ -140,7 +140,7 @@ func TestBugBoardTalk(t *testing.T) {
 		}
 		return []string{"box:" + strings.Join(m, "\n")}
 	}
-	want := "box:" + bugBoardHeadBoth + "\n1. Forestwood: 6 bugs\n2. Zaeirechar: 5 (4 bugs, 1 crash)\n3. Blorck (Live): 2 crashes\n4. Blorck: 1 bug\n" + bugBoardFootText
+	want := "box:" + bugBoardHeadBoth + "\n1. Fernmeadow: 6 bugs\n2. Zaeirechar: 5 (4 bugs, 1 crash)\n3. Blorck (Live): 2 crashes\n4. Blorck: 1 bug\n" + bugBoardFootText
 	m := boxes(board)
 	if strings.Join(m, "|") != want {
 		t.Errorf("the board said\n%q\nwant\n%q", m, want)
@@ -152,14 +152,14 @@ func TestBugBoardTalk(t *testing.T) {
 		t.Errorf("recounted within the minute: %q", m)
 	}
 	now = now.Add(bugBoardFresh)
-	if m := boxes(board); len(m) == 0 || !strings.Contains(m[0], "\n1. Forestwood: 6 bugs\n2. Zaeirechar: 5 (4 bugs, 1 crash)\n3. Blorck: 4 bugs\n4. Blorck (Live): 2 crashes\n") {
+	if m := boxes(board); len(m) == 0 || !strings.Contains(m[0], "\n1. Fernmeadow: 6 bugs\n2. Zaeirechar: 5 (4 bugs, 1 crash)\n3. Blorck: 4 bugs\n4. Blorck (Live): 2 crashes\n") {
 		t.Errorf("after the minute: %q", m)
 	}
 
 	// the other shard unreadable: this shard's alone, told as one shard's
 	b.open = func(string) (*sql.DB, error) { return nil, errors.New("gone") }
 	now = now.Add(bugBoardFresh)
-	if m := boxes(board); len(m) == 0 || !strings.HasPrefix(m[0], "box:"+bugBoardHeadOne+"\n1. Forestwood") || strings.Contains(m[0], "Live") {
+	if m := boxes(board); len(m) == 0 || !strings.HasPrefix(m[0], "box:"+bugBoardHeadOne+"\n1. Fernmeadow") || strings.Contains(m[0], "Live") {
 		t.Errorf("with the other shard gone: %q", m)
 	}
 
@@ -197,17 +197,17 @@ func TestBugBoardTalk(t *testing.T) {
 	}
 }
 
-// world.bug_board's exclusions: unset, the owner's and Jib's; set, its own, in any case; Top clamped.
+// world.bug_board's exclusions: unset, none; set, its own, in any case; Top clamped.
 func TestBugBoardSettings(t *testing.T) {
 	t.Cleanup(func() { SetBugBoard(config.BugBoardConfig{}) })
 	SetBugBoard(config.BugBoardConfig{})
 	s := bugBoardCfg.Load()
-	if !s.exclude["dab"] || !s.exclude["funyun"] || !s.exclude["jibrish"] || len(s.exclude) != 3 || s.top != bugBoardTop {
+	if len(s.exclude) != 0 || s.top != bugBoardTop {
 		t.Errorf("the defaults: %+v", s)
 	}
 	SetBugBoard(config.BugBoardConfig{Exclude: []string{" Somebody "}, Top: 500})
 	s = bugBoardCfg.Load()
-	if !s.exclude["somebody"] || s.exclude["jibrish"] || s.top != bugBoardTopMax {
+	if !s.exclude["somebody"] || s.exclude["gmone"] || s.top != bugBoardTopMax {
 		t.Errorf("set: %+v", s)
 	}
 	if !IsBugBoard(" bug finder leaderboard ") || IsBugBoard("Bug Finder") {
@@ -217,5 +217,5 @@ func TestBugBoardSettings(t *testing.T) {
 
 // bugPlayer is the character an account's test reports are filed under: the board shows it, not the account.
 func bugPlayer(account int) string {
-	return map[int]string{1: "Dust", 8: "Funyunchar", 10: "Jibrish", 20: "Zaeirechar", 21: "Forestwood", 22: "Blorck", 23: "Quietone"}[account]
+	return map[int]string{1: "Dust", 8: "Funyunchar", 10: "Jinkles", 20: "Zaeirechar", 21: "Fernmeadow", 22: "Blorck", 23: "Quietone"}[account]
 }

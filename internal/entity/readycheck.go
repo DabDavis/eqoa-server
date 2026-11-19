@@ -11,7 +11,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// readycheck.go — /readycheck (the GM Jibrish's petition 1711, 2026-11-12): "Add
+// readycheck.go — /readycheck (a GM's petition 1711, 2026-11-12): "Add
 // /readycheck that only raid leaders or co raid leaders can use, or anyone in a regular 4
 // man non raid group. This pops up a window on their screen with "Are you ready?" and Yes
 // or No. It does not stop them from moving while the pop up is up. It expires after 30

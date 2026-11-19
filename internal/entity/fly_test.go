@@ -309,7 +309,7 @@ func containsEntity(ids []EntityID, id EntityID) bool {
 	return false
 }
 
-// The GM Jibrish's petition 1904: /noclip is a flight through walls. On, it flies (the movement check judges none
+// a GM's petition 1904: /noclip is a flight through walls. On, it flies (the movement check judges none
 // of its moves, as a flyer's); a flight's end (#fly off, a takeover's new login) ends it; a keep restart keeps it
 // with the flight, and a kept noclip without a flight (none can be) is none. The control: a flight alone is no noclip.
 func TestNoclipRidesOnTheFlight(t *testing.T) {

@@ -176,7 +176,7 @@ func BankRowCount(q sqlRunner, serverID uint32) (int, error) {
 
 // SharesAccountBank is whether the character's bank is its account's: the
 // account bank on and the character not a Hardcore one (personalBank; petition
-// 2400, jibrish 2026-11-19: "Shut off the shared bank for hardcore mode").
+// 2400, a GM 2026-11-19: "Shut off the shared bank for hardcore mode").
 func (s *InventoryStore) SharesAccountBank(serverID uint32) bool {
 	return AccountBankOn() && !personalBank(s.db, serverID)
 }

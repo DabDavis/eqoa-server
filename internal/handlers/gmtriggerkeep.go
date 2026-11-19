@@ -1,7 +1,7 @@
 package handlers
 
 // gmtriggerkeep.go — the GM triggers' runs through a restart that keeps the
-// sessions (the owner, 2026-11-13, after Lonewulf lost two Rallos Zek fights to
+// sessions (the owner, 2026-11-13, after a player lost two Rallos Zek fights to
 // server updates; the dungeons' instances are kept the same way since da0857d7,
 // entity/keepdungeon.go).
 //

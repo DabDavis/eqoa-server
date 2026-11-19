@@ -109,7 +109,7 @@ func (h *InteractHandler) signSay(sess *session.Session, player *entity.Player, 
 		return false
 	}
 	// a sign whose row is of kind quest lets a quest given or done at it answer
-	// first (petition 2418, jibrish 2026-11-19: the Wage Cage's "Is the GM
+	// first (petition 2418, 2026-11-19: the Wage Cage's "Is the GM
 	// working hard enough?"); with none there it says its words. Every other
 	// sign gives no quest.
 	if row, ok := signRow(npc, rows); ok && row.Kind == database.SignKindQuest && Quests().Talk(sess, player, npc) {

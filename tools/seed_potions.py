@@ -6,21 +6,21 @@ row of itemeffect (entity/potion.go, handlers/potion.go).
 The potions are the ones EQOA-Data's alchemist list (Information/databases/
 spells/alchemist.json) says the spells summon, named exactly as it names
 them, so a spell's words find their item: "SELF Summon Watery Draught",
-"Summons Unstable Potion X3". A spell summons three of a potion (jib: "stacks
+"Summons Unstable Potion X3". A spell summons three of a potion (a GM: "stacks
 of 3", F3 20261026-014336) unless its words say how many.
 
 - Thrown potions (the Mixtures, the cocktails): the list's own "Mix Potion"
   and "Fire Potion" lines are their hits; a ranged weapon (F3 20261026-014336,
-  jib: "equips in the range attack slot, like a bow, and fires as a range auto
+  a GM: "equips in the range attack slot, like a bow, and fires as a range auto
   attack"): worn where a bow is (wear 16, as the rusty throwing knife; attack
   type 10, range 20) and no potion on the client's quick slots (item type 0),
   stacking to 999, an alchemist's (class bit 14), usable from the spell's
   level. The cocktails splash everything within 10 of their target (ours).
-- Draughts (Crude Refinement and the rest of the Refinement line, jib: "convert
+- Draughts (Crude Refinement and the rest of the Refinement line, a GM: "convert
   HP into Mana, at a high amount of mana gain"): 4 health a level taken at once
   and 15 power a level given over 18 s (ours: no record gives a draught's
   numbers), stacking to 3, usable from the spell's level.
-- Speed (the Quickening line) and invisibility (the Sublimation line), jib's
+- Speed (the Quickening line) and invisibility (the Sublimation line), a GM's
   design: Spirit of the Wolf's own line ("sow, 30min"), on the effects list by
   the spell's name, ended by the drinker's attack; invisibility 4 minutes, a 1%
   chance each tick to wear off, ended by an attack or a hit. The crude ones
@@ -32,7 +32,7 @@ of 3", F3 20261026-014336) unless its words say how many.
 - The returning potion (Summon Returning Potion): back to the bind point.
 
 A "crude" or "faulty" spell's potions are NO TRADE (itempattern.trade 1, the
-client's m_noTrade), the rest tradeable (jib: "The non crude versions ... give
+client's m_noTrade), the rest tradeable (a GM: "The non crude versions ... give
 tradeable versions"). An item of a potion's name already there that is no
 spell scroll (the scroll's art, worn nowhere: the Klik'Anon Cocktail of
 itempattern is its spell's scroll, as are tools/import_eqoadata_spells.py's
@@ -136,7 +136,7 @@ POTIONS = [
     # the cocktails: the "<town> Fire Potion" lines, a splash of 10 (ours).
     # Neriak Cocktail summons a Grobb Cocktail, as its line says and the
     # game's own record has it (Allakhazam's archived AK 3902, "Summon Item:
-    # Grobb Cocktail"; jib's bug report of 2026-10-27, ALC-3)
+    # Grobb Cocktail"; a GM's bug report of 2026-10-27, ALC-3)
     ("Klik'Anon Cocktail", "Klik'Anon Cocktail", 20, "cocktail", "Target, Decrease Hitpoints by 214", "", 10),
     ("Moradhim Cocktail", "Moradhim Cocktail", 30, "cocktail", "Target, Decrease Hitpoints by 338", "", 10),
     ("Grobb Cocktail", "Neriak Cocktail", 40, "cocktail", "Target, Decrease Hitpoints by 626", "", 10),

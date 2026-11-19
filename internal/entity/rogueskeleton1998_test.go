@@ -8,7 +8,7 @@ import (
 )
 
 // Skeletal Mask as tools/rogue_skeleton_1998_20261113.py writes it (the
-// halfling rogue Hoofbite's ticket 1998: "Request to add skeleton diguise
+// halfling rogue a player's ticket 1998: "Request to add skeleton diguise
 // spell for rogue"): its record in Brute's Mask's frame (a 5 s cast, self,
 // scope 0) and its effects, the illusion of the workbook's sprite 0x818AF96A,
 // the skeleton NPCs' CSprite 0x6AF98A81 read the other way round.

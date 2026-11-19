@@ -24,7 +24,7 @@ func (countedGround) Placed(_ uint8, _, _, _, _, _, _ float32) bool { return fal
 // A creature of the land on the ground wanders an hour: its first legs are
 // picked as before and each end becomes a spot, until it has
 // wanderSpotsMax; from then on every leg ends on one of them, its legs are
-// still Sandstorm's lengths and it is still on its feet about half the time,
+// still the reference server's lengths and it is still on its feet about half the time,
 // and a leg it walked before is not checked whole again: in the last twenty
 // minutes few legs were. The control: every leg before its spots were all
 // made was checked whole.
@@ -84,7 +84,7 @@ func TestAWandererWalksBetweenItsSpots(t *testing.T) {
 	if late < 100 || lateWhole*5 > late {
 		t.Errorf("in its last twenty minutes %d of %d legs were checked whole: want a few", lateWhole, late)
 	}
-	// Sandstorm's legs: median 19, 90% under 40.4 (roam.go), as
+	// the reference server's legs: median 19, 90% under 40.4 (roam.go), as
 	// TestACreatureWandersWithinItsRadiusAtAWalkAndRests holds a creature
 	// that keeps no spots to
 	sort.Float64s(legs)

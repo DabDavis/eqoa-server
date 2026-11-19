@@ -4,7 +4,7 @@ the compression (a start every combo shares is no row, a race's one row, a
 human city's and a class's where they differ), every measured combo coming
 out at its standing by the server's rule, each faction's own standing made
 its commonest start (but a GM's, and none with --keep-defaults), a faction
-Sandstorm lists added and its junk left out, a GM's row left and said, the
+the reference server lists added and its junk left out, a GM's row left and said, the
 names taken without their ends' spaces, a dry run that writes nothing, a
 second --apply and a partial measurement's refused, --undo exact but for a
 row a GM changed since, and the table the same as the server's. No game

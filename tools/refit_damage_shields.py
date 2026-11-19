@@ -17,7 +17,7 @@ the low point averaged over the fights won), 1.12-1.4 at 26 levels: its yellows 
 average (the old 29%), its reds at most 36% (its 45, 51% under the old server, too); the magician's pet_hp_pct its
 yellows back to the old server's, 0.67-0.93 of what it was at 28 cells: its yellows' low point about 25% on average as before,
 its reds at most 32% (where the shields raised them 18-34 points, at 20, 30, 47 and 50, 0-14%). Rows are added where a class has none at a level whose line the changes would move. Fitted with
-cmd/balancesim (-try-classlevel; the roamer, the kits at 0.5, 160 fights a cell) on eqoaclassic's copy of 2026-11-04
+cmd/balancesim (-try-classlevel; the roamer, the kits at 0.5, 160 fights a cell) on a copy of the production server's database of 2026-11-04
 05:42 UTC. Levels 1-12 are tools/refit_new_players.py's, fitted with the shields in.
 
 Each row is written only while it holds the values it had (a GM's change is left, and said); a row the fit needed at a

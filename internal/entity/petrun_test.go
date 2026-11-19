@@ -61,7 +61,7 @@ func TestACreatureThatTurnsOnThePetStandsToFightIt(t *testing.T) {
 }
 
 // A creature on a pet that backs off 25 off runs after it, the pet still its
-// enemy (Threnody's petition 1280: "pets are dropping agro when you use pet
+// enemy (a player's petition 1280: "pets are dropping agro when you use pet
 // back off command to bring mob to group": a pet past 10 was dropped at once);
 // the control: one sent far past its leash is given up, the creature going
 // home.

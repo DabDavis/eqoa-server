@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// A sparring dummy (F3 20261025-174503, the user's ask after jib's shout: "a
+// A sparring dummy (F3 20261025-174503, the user's ask after a GM's shout: "a
 // training dummy that you can set its level, and it just quads you and nukes
 // you for an element you can pick"). Talked to, it asks a level (SparLevels)
 // and an element (SparElements); struck, it fights the player as the other
@@ -56,7 +56,7 @@ const (
 	// (±20%) and the resist's share: a level 60's 600, a level 10's 100.
 	sparStrikePerLevel = 10
 	// sparFX is the strike's visual: the damage spells' stand-in (Fiery
-	// Burst's, the one Sandstorm showed us; cast.go's fxDamage).
+	// Burst's, the one the reference server showed us; cast.go's fxDamage).
 	sparFX = fxDamage
 )
 

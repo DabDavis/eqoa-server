@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Drizzt's weapons with two auras each, and Guenhwyvar with a dark blue aura (the owner, 2026-11-16: "also give icing
+"""a player's weapons with two auras each, and Guenhwyvar with a dark blue aura (the owner, 2026-11-16: "also give icing
 death the sword of virtue aura blue and also the freezing so we can have 2 auras now. for twinkle sword of virtue aura
-with monk staff twinkle at end." and "give drizzt' cat guen an aura like moogie but darker blue").
+with monk staff twinkle at end." and "give [a player]'s cat guen an aura like moogie but darker blue").
 
 1. Icingdeath (found by name): its itemaura row's first aura the Sword of Virtue's look (kind 7 epic, source 0x88EC092D,
    the paladin's level 60 epic: its glow, its sheen and its sparkles, the named look "sword of virtue") in blue

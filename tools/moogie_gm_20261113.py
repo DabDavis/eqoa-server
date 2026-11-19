@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Mr. Moogie's GM tickets of 2026-11-13 (the GM Jibrish, playing Jibwiz: petitions 1892, 1894 and 1896), on the server's
+"""Mr. Moogie's GM tickets of 2026-11-13 (a GM, playing a GM: petitions 1892, 1894 and 1896), on the server's
 code of the same branch (entity/ward.go and entity/deathhold.go: the "ward" and "deathhold" ability kinds; an older
 server reads this template as unreadable):
 

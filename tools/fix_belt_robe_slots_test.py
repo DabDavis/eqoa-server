@@ -46,7 +46,7 @@ class FixBeltRobeSlots(unittest.TestCase):
             (9, "Shiny Trinket", 2, BAR_ICON, "Something to wear."),
             # a GM's belt in the robe slot: left
             (10, "Guarded Belt", 2, BELT_ICON, ""),
-            # a robe-icon item in the belt slot that a Sandstorm record calls a belt: left
+            # a robe-icon item in the belt slot that a reference-server record calls a belt: left
             (11, "Odd Sash", 9, ROBE_ICON, ""),
             # a belt in the chest slot: moves only on Allakhazam's Waist list
             (12, "Chest Belt", 5, BELT_ICON, ""),

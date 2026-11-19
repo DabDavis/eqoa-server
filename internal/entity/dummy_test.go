@@ -8,7 +8,7 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 )
 
-// The training dummies held to what Sandstorm's did (2026-10-21): the
+// The training dummies held to what the reference server's did (2026-10-21): the
 // round's swing and hit times, the hit with its heal, a hit taken off
 // nothing, one player at a time, and the fight over when the player stops.
 // What a hit is, is defence.go's (defence_test.go).
@@ -89,7 +89,7 @@ func TestTrainingDummyFightsInRounds(t *testing.T) {
 	if got := c.dummyTick(6 * time.Second); len(got) != 1 || opOfMsg(got[0]) != protocol.OpcodeCastingCombat {
 		t.Fatalf("the second round's swing: %x", got)
 	}
-	// The player lets go: the dummy fights on, as Sandstorm's did, until
+	// The player lets go: the dummy fights on, as the reference server's did, until
 	// the player walks out of its reach.
 	c.p.disengage()
 	if got := c.dummyTick(8400 * time.Millisecond); len(got) != 8 {
@@ -150,7 +150,7 @@ func TestDummySpellHit(t *testing.T) {
 	}
 }
 
-// Petition 1484 (the magician Lifeispain): "Sparing/Training dummy's in FP
+// Petition 1484 (a magician): "Sparing/Training dummy's in FP
 // won't attack a pet, even if the caster is well out of striking distance.
 // They just stand there. They should attack whichever has the most hate".
 // A pet's hits on a dummy make the dummy's hate the pet's: with its owner 25

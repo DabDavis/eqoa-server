@@ -7,7 +7,7 @@ import (
 
 // A balancelevel table made before a column (2026-10-29's first tables) gets
 // it at the next open: the rows still the seed's take the seed's value of it,
-// a GM's row the column's default (regen_pct's is jib's 15); a new table has
+// a GM's row the column's default (regen_pct's is a GM's 15); a new table has
 // it with its seed rows.
 func TestBalanceColumnsAddedToAnOlderTable(t *testing.T) {
 	path := t.TempDir() + "/old.db"
@@ -124,7 +124,7 @@ func TestBalanceSeedRevisionsReachAnOlderTable(t *testing.T) {
 }
 
 // balanceclasslevel is seeded only with a fresh balance: a database whose
-// balance tables were made before (eqoaclassic's of 2026-10-29) gets it
+// balance tables were made before (the production server's of 2026-10-29) gets it
 // empty at the next open, its rows tools/tune_balance.py's to write with the
 // rest of the tuning; the control: a new database gets the seed rows.
 func TestBalanceClassLevelsSeedOnlyAFreshBalance(t *testing.T) {
@@ -196,7 +196,7 @@ func TestBalanceClassLevelPetColumnAddedToAnOlderTable(t *testing.T) {
 }
 
 // A balanceclasslevel made with its pet column but before its dealt column
-// (eqoaclassic's of 2026-10-30 00:27) gets it at the next open, every row
+// (the production server's of 2026-10-30 00:27) gets it at the next open, every row
 // 100 (all of a player's damage); the control: the rows' other columns kept.
 // A new database's seed rows carry theirs (balanceseed.go; 100 where unset).
 func TestBalanceClassLevelDealtColumnAddedToAnOlderTable(t *testing.T) {

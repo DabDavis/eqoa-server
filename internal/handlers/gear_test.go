@@ -121,7 +121,7 @@ func worn(e, wear, attack int, model uint32) database.CharInventoryEntry {
 	return database.CharInventoryEntry{EquipLoc: e, Pattern: database.ItemPatternRecord{EquipSlot: wear, AttackType: attack, Model: int64(int32(model))}}
 }
 
-// The hands as Sandstorm's channel carries them (the players in the PS2
+// The hands as the reference server's channel carries them (the players in the PS2
 // captures): item 0 the main hand, item 1 the off hand or the ranged weapon,
 // item 2 the shield, each hand's attack type with it. The control: the rule
 // before (wear slots 14 and 13 alone) shows none of the two-hander, the
@@ -187,7 +187,7 @@ func TestWornLookHands(t *testing.T) {
 	}
 }
 
-// A character list entry's gear against Sandstorm's own for the same worn
+// A character list entry's gear against the reference server's own for the same worn
 // items (Zaknafein in pcaps/ps2_sandstorm.pcap: robe 3, a sword and a
 // shield, type 1, armour set 4 in every slot), byte for byte but the robe's
 // and the armour's tints, which are not kept. Nothing worn is Louiexiii's

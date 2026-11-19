@@ -8,7 +8,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// Petition 2390 (Mightyeagle): a bow's shot spends an arrow. With two arrows
+// Petition 2390: a bow's shot spends an arrow. With two arrows
 // held, two shots land and two are taken through the hook; the third finds
 // none and is not made, nothing taken (CLIENT's HasAmmoFor says so itself).
 // A swing that needs no ammunition (a melee weapon, Ammo 0) takes none.

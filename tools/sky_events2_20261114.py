@@ -13,7 +13,7 @@ before sky-events'):
           The spot: the one cell of the ground's heightfield whose loss cuts the landing's level from Imerzan's and
           leaves Fiharaz's tower reached (a heightfield search, ~/.cache/skyevents/scripts/nav.py), where sycophant
           120174 stands. The bridges' edges are rails2051's hazards already.
-  Sun 4   the rapacious drakes the rancorous drake's placeholders (npcrare, 10%: jib's held figure), its row held out of
+  Sun 4   the rapacious drakes the rancorous drake's placeholders (npcrare, 10%: a GM's held figure), its row held out of
           the world, so its death (sky-events' trigger 211) brings Randarin only after the farm.
   Snow 2  the Whirlwind "whirls around on the outskirts of the little igloo village": a loop of nine points round the
           village on its floor (each leg joined by the ground); "Beware being near the ice, as it can nuke you for 6k":
@@ -21,9 +21,9 @@ before sky-events'):
           slab's radius and 2 more), 6,000 every 10 s (the interval ours).
   Snow 3  "the apes (glacial behemoths) will spawn almost directly on top of your party as you port in ... they tend to
           spawn in pairs": trigger 222, a player at the landing brings two, then rests ten minutes (ours).
-  Snow 4  the ordinary Aeyinar ("a random spawn ... every 8 hours she is up"; jib's held placement): a row of her own at
+  Snow 4  the ordinary Aeyinar ("a random spawn ... every 8 hours she is up"; a GM's held placement): a row of her own at
           the spot the Enraged one comes to, Enraged Aeyinar's body, back eight hours after her death, the plane's named
-          loot. Her template is jib's held one, by her name, when it lands.
+          loot. Her template is a GM's held one, by her name, when it lands.
   Deso 1  a patroller comes "in the sw quad of the druid ring" for a placeholder of the sw quad: trigger 212's spawn at
           the patroller row nearest the death (four rows, five at most standing); the Arbiter's first two lives a corpse
           of nothing, the keys and shard on the last ("the last spawn having the Shard"); "she is unconnable" until

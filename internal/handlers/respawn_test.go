@@ -32,7 +32,7 @@ func newRespawnFixture(t *testing.T, world uint8, x, y, z float32) *respawnFixtu
 	sess.SetPlayerObjectID(500000001)
 	sess.SetCharacterInWorld(true)
 	t0 := time.Unix(1_700_000_000, 0)
-	p := &entity.Player{ServerID: 9001, CharServerID: 42, Name: "Funyun", Class: 6, Race: 6, Level: 1,
+	p := &entity.Player{ServerID: 9001, CharServerID: 42, Name: "Fumble", Class: 6, Race: 6, Level: 1,
 		HP: 0, MaxHP: 49, Power: 0, MaxPower: 88, Breath: 0, Speed: 8.8333,
 		World: world, X: x, Y: y, Z: z, Facing: 1.5, DiedAt: t0}
 	w.Players[p.ServerID] = p
@@ -126,7 +126,7 @@ func TestRespawnSendsTheDumpAtTheLoginSpawn(t *testing.T) {
 	dest := teleDests[loginSpawnDest]
 	want := [3]float32{dest.X + loginSpawnOffset, dest.Y, dest.Z + loginSpawnOffset}
 	path, world, pos, name := dumpPlace(t, dumps[0])
-	if path != worldPathFor(0) || world != 0 || pos != want || name != "Funyun" {
+	if path != worldPathFor(0) || world != 0 || pos != want || name != "Fumble" {
 		t.Errorf("dump: %q world %d at %v (%s), want %q world 0 at %v", path, world, pos, name, worldPathFor(0), want)
 	}
 	if f.p.World != 0 || [3]float32{f.p.X, f.p.Y, f.p.Z} != want {
@@ -177,7 +177,7 @@ func TestRespawnInTheSameWorldKeepsTheScene(t *testing.T) {
 	}
 }
 
-// Petition 1312 (Hoofbite, 2026-11-09): "when you have buffs on cooldown,
+// Petition 1312 (2026-11-09): "when you have buffs on cooldown,
 // when you die, they no longer are shaded out indicating that they are still
 // on CD". The respawn's dump builds the client's ability bar anew with none
 // locked out; each lockout still running is told after it (0x00CD: the

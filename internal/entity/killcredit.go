@@ -7,7 +7,7 @@ import (
 )
 
 // killcredit.go — a kill is the group's that did the most damage (the owner, 2026-11-12, "yes most damaage", on the
-// GM Jibrish's petition 1859: "Figure out why the queen qy'tha im targeting wasnt lootable by the raid").
+// GM a GM's petition 1859: "Figure out why the queen qy'tha im targeting wasnt lootable by the raid").
 //
 // A kill went to whoever landed its last blow, with that one's group: the Queen Qy'tha a raid had brought down from
 // 400,056 to 309 died to the Primal Spirit of a player not yet in the raid, so its loot rights, its XP and its quest

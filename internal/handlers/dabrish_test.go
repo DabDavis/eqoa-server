@@ -7,7 +7,7 @@ import (
 	"github.com/eqoa/server/internal/entity"
 )
 
-// Dabrish (the GM Jibrish's petition 1266): his box offers two ranges of
+// Dabrish (a GM's petition 1266): his box offers two ranges of
 // levels and two of mastery totals, each the next box's six or five; a level
 // is set up or down as the player picks it (kept, sent as 0x0020), and a
 // mastery total is made up to with unspent points, never taken down: 500 in

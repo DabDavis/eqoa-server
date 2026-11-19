@@ -12,7 +12,7 @@ import (
 )
 
 // A creature's own row (npcwander) makes it wander where its name's row, or
-// its kind, stands it (petitions 1734-1736, the GM Jibrish: "Spread out the
+// its kind, stands it (petitions 1734-1736: "Spread out the
 // wolfwere's here, make them roam"): a non-wildlife name, a name npcmove
 // stands, a players' race's body. The controls: the same names, no row,
 // stand; and a row never walks what never wanders (a pet, a dummy, a path's).
@@ -80,9 +80,9 @@ func TestNPCWanderRowsAreRead(t *testing.T) {
 
 // A far roamer (the owner, 2026-11-12: "skeletal giant and others are not
 // roaming correctly, they only move a small distance"): given a radius of 280,
-// four times the server's, its legs are drawn four times Sandstorm's and it
+// four times the server's, its legs are drawn four times the reference server's and it
 // crosses its ground, going past 150 from its spawn within an hour; the
-// control, the same creature at the server's radius, walks Sandstorm's legs
+// control, the same creature at the server's radius, walks the reference server's legs
 // (median 14-25) and never past 70.
 func TestAFarRoamerCrossesItsGround(t *testing.T) {
 	far := func(radius float32) (legMed, reach float64) {
@@ -121,7 +121,7 @@ func TestAFarRoamerCrossesItsGround(t *testing.T) {
 }
 
 // A row of its own with a negative radius stands its creature (petitions
-// 2088-2089, the GM Jibcrotwo: "He does not roam"), though its name wanders
+// 2088-2089, a GM: "He does not roam"), though its name wanders
 // (crocodiles: wildlife, npcmove's roam); the control, the same name with no
 // row, wanders.
 func TestARowsOwnNoRoamStandsItsCreature(t *testing.T) {
@@ -145,7 +145,7 @@ func TestARowsOwnNoRoamStandsItsCreature(t *testing.T) {
 	}
 }
 
-// A name's npcmove speed is its wander's pace (petition 5189, Innoruuk:
+// A name's npcmove speed is its wander's pace (petition 5189:
 // "Gharial conned runs too fast when roaming"): a gharial at 3 units a
 // second, walking (byte 58's 1), its velocity 3; the control, a name with
 // no speed, at NPCWalkSpeed. And the chase keeps its run.

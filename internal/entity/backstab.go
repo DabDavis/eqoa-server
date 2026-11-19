@@ -39,7 +39,7 @@ func (w *World) faceLocked(npc *NPC, target EntityID) {
 }
 
 // backstabArc is how much wider than a half turn a creature's rear is for a
-// backstab (petition 2196, Hoofbite: "Assassinate or Backstab spells need a
+// backstab (petition 2196: "Assassinate or Backstab spells need a
 // slightly larger 'behind enemy' radius 3 percent more to start"): its rear's
 // half-angle a quarter turn's (90 degrees) times this, 92.7 degrees, so a
 // caster more than 87.3 degrees from its facing is behind it.

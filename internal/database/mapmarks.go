@@ -18,7 +18,7 @@ import (
 // server, internal/mapmarks's two open routes). mapmark_suggestions holds what
 // players send from the in-game map with no sign-in, mapmarks what a GM accepted
 // (or placed): the list every map shows. A mark's place is the map's own: world
-// is the game's world index (gWorldInfo's, 0 Tunaria .. 5 Secrets; Sandstorm's S2
+// is the game's world index (gWorldInfo's, 0 Tunaria .. 5 Secrets; the reference server's S2
 // adds 6 and 7), x and z the world's units. name and note are what the player
 // typed, kept as given and never acted on; sender_hash is the sender's address
 // salted and hashed (mapmark_meta's salt, its own), never the address. A

@@ -849,7 +849,7 @@ func TestABackstabNeedsItsCasterBehind(t *testing.T) {
 
 // Above level 50 a player below a spell's lowest level is not affected, and one at
 // it is (the control). Up to level 50 there is no lowest level (petition 1130, the GM
-// Jibrish: "All level 50 or below buffs should work on all players below level 50,
+// a GM: "All level 50 or below buffs should work on all players below level 50,
 // including level 1").
 func TestWorkbookLowestLevel(t *testing.T) {
 	c := newCaster(t)

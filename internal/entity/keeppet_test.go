@@ -8,7 +8,7 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 )
 
-// Petition 1363 (Battaryhog: "if my mag or enc sets still to long the pets
+// Petition 1363 ("if my mag or enc sets still to long the pets
 // despawn, and the charmed ones attack"): a keep restart carries the pet. The
 // charmed crab is written beside its master (through JSON, as the file), and
 // in the new process the crab its row made, whole on its spawn, is its
@@ -16,7 +16,7 @@ import (
 // for the time it had left, and goes free at that time, not before; a summoned
 // Fire Elemental is made again by its spell with its share and stance, and its
 // owner told after the dump. The controls: with nothing restored the crab is
-// its own on its spawn (what attacked Battaryhog), and a pet that died is not
+// its own on its spawn (what attacked a player), and a pet that died is not
 // carried.
 func TestAPetComesThroughARestart(t *testing.T) {
 	defer func(f func(int) int) { charmIntn = f }(charmIntn)

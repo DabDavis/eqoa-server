@@ -9,7 +9,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// stuck.go — /stuck (the user, 2026-11-08: "zaeire is stuck, and we can add /stuck also"): a player
+// stuck.go — /stuck (the user, 2026-11-08: "[a player] is stuck, and we can add /stuck also"): a player
 // sends itself home as a gate sends its caster (the gate hook: where a spiritmaster bound it, else
 // where every login starts), once every StuckEvery. Refused, saying why: dead or about to rise, a
 // creature fighting it, its PvP flag held from a fight (pvp.go's hold), or too soon since the last.

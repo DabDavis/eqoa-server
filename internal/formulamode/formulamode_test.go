@@ -37,7 +37,7 @@ func newShard(t *testing.T, dir, name, peer, peerPath string, seed entity.Formul
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { db.Close() })
-	db.Exec(`INSERT OR IGNORE INTO accountinfo (accountid, username, acctlevel) VALUES (7, 'dab', 2)`)
+	db.Exec(`INSERT OR IGNORE INTO accountinfo (accountid, username, acctlevel) VALUES (7, 'dax', 2)`)
 	s.db = db
 	s.c, err = New(db, s.w, name, map[string]string{peer: peerPath}, seed)
 	if err != nil {

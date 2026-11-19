@@ -231,7 +231,7 @@ func heirloomShop(npc *entity.NPC) bool {
 
 // SpellArchivistName is the Spell Archivists' name: a merchant whose stock is
 // every class's spell scrolls past the class vendors' level 49, its list the
-// buyer's class's alone (the Heirloom Test Server's; Destiny's petition 1273,
+// buyer's class's alone (the Heirloom Test Server's; a player's petition 1273,
 // 2026-11-08: "55+ spell vendors not in game. this is issue for us wanting to
 // test various stuff").
 const SpellArchivistName = "Spell Archivist"

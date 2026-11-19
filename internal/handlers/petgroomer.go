@@ -13,7 +13,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// petgroomer.go — the Pet Groomers (the owner, 2026-11-16: Zerkziee's
+// petgroomer.go — the Pet Groomers (the owner, 2026-11-16: a player's
 // drachnid pet should "have 2 different color areas that can be changed like
 // armor dye(will be a template for pet color dye). then add Pet Groomer near
 // Equipment Dyer also"). Talked to with a pet out, a groomer asks what to dye

@@ -6,7 +6,7 @@ import (
 )
 
 // spellgates: where the spells that teleport send, and whom (entity/gates.go;
-// jib's review, F3 pass 19: the wizard's gates, portals and evacuations and
+// a GM's review, F3 pass 19: the wizard's gates, portals and evacuations and
 // the druid's circles, 27 spells, took their power and did nothing). One row
 // a spell, keyed by its name in lower case (SpellGateKey: every spellpattern
 // record of that name). kind is whom it sends: self the caster, group the

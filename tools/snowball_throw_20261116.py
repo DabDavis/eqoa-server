@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Petition 2204 (Hoofbite, L60 rogue, Heirloom, 2026-11-16): "Moogie snowballs showing as stackable trash item and
+"""Petition 2204 (L60 rogue, Heirloom, 2026-11-16): "Moogie snowballs showing as stackable trash item and
 cant be equipped to throw at other players". The Metal Moogie chain's three used items (tools/
 moogie_chain_688_20261115.py) copied the Moogie Tribute's record, item type (procanim) 0: with no wear slot and no
 charge CLIENT's VIInfoText::IsMisc files such an item with the loot, and no menu offers Use (IsUsable is types 2, 5, 7

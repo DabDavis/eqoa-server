@@ -282,7 +282,7 @@ func TestTheOfferSaysHowLongAPetitionMayBe(t *testing.T) {
 	}
 }
 
-// A GM's reports are not counted against the limit (the GM Jibrish files many
+// A GM's reports are not counted against the limit (a GM files many
 // while testing, 2026-11-10): Bob, a GM, sends reportsPerHour+3 at once and
 // each is filed. The control: Ann, a player, is refused her second at once.
 func TestAGMIsNotHeldToTheReportLimit(t *testing.T) {

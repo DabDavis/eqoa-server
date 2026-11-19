@@ -14,7 +14,7 @@ import (
 
 // A 0x0032 resolved through the database to the World's cast: the spell on
 // the bar slot (not the display index), its record's cast time, recast and
-// range, its line and its recorded visual. Answered with Sandstorm's own
+// range, its line and its recorded visual. Answered with the reference server's own
 // bytes for Fiery Burst (display index 12, cast 2 s, recast 3 s; its ids).
 func TestUseSkillCastsTheSlotsSpell(t *testing.T) {
 	db, err := database.NewSQLite(t.TempDir() + "/cast.db")

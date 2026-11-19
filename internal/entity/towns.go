@@ -9,7 +9,7 @@ import "math"
 // townsfolk are the NPCs with a body of a players' race (charactermodel,
 // the ones that stand and do not wander), and a town is a chain of at least
 // townMinFolk of them each within townLink of the next, in one world. On
-// eqoaclassic's NPCs that is 134 towns, Freeport's 228 people the largest;
+// the production server's NPCs that is 134 towns, Freeport's 228 people the largest;
 // a camp of human bandits counts as one too (a settlement either way).
 //
 // A point is in a town within townMargin of one of its people: the town's

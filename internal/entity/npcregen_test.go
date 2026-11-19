@@ -127,7 +127,7 @@ func TestOnlyTheRegensTicksCount(t *testing.T) {
 
 // Under the seed rows a creature heals its level's regen_pct, 5% a tick, from
 // its third tick (the user: "Mobs regen slower"); the control is
-// TestACreatureOutOfAFightHealsFromItsThirdTick: with no rows, jib's 15%.
+// TestACreatureOutOfAFightHealsFromItsThirdTick: with no rows, a GM's 15%.
 func TestACreatureHealsAtItsLevelsRate(t *testing.T) {
 	f := newAggroFix(t, 10)
 	f.w.balance = SeedBalance()

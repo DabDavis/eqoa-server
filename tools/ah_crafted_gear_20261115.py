@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Crafted gear perpetually on sale at the auction house, the Live shard only (petition 5010, Horizon: "Loot seems a
+"""Crafted gear perpetually on sale at the auction house, the Live shard only (petition 5010: "Loot seems a
 little few and far between ... maybe a possible vender until more crafters start playing"; the owner, 2026-11-15:
 "crafted-gear in the auction house for melee, tank, caster, healer and jeweleries for not too expensive").
 

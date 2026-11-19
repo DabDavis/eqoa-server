@@ -448,7 +448,7 @@ func fallPlace(world uint8, x, y, z float32) string {
 // fallWorldNames are the disc's worlds by the names players know them by.
 var fallWorldNames = map[uint8]string{1: "the Rathe Mountains", 2: "Odus", 3: "Lavastorm", 5: "the Plane of Disease", 7: "the Plane of Disease"}
 
-// HardcoreFallLine is the shard's announcement of a fall: "Meshuggah the level
+// HardcoreFallLine is the shard's announcement of a fall: "a player the level
 // 52 Shadow Knight has fallen in Freeport, slain by a Zek sentry."
 func HardcoreFallLine(f database.FallRecord) string {
 	return fmt.Sprintf("%s the level %d %s has fallen in %s, %s.", f.Name, f.Level, entity.ClassName(f.Class), f.Place, fallVerb(f.Cause, f.Killer))

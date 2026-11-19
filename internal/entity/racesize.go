@@ -9,11 +9,11 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// racesize.go — a player's body size by its race (table racesize; jib's F3
+// racesize.go — a player's body size by its race (table racesize; a GM's F3
 // 20261029-212125-e7ff987a: "Shrink player gnome size by about 10%"). It is
 // the state channel's ModelSize (bytes 36-39, Player.Body), so every client
 // draws it: the player's own (channel 0) and everyone who sees it. 1.0 is the
-// race's own body as CHAR.ESF authors it, which Sandstorm sends for every
+// race's own body as CHAR.ESF authors it, which the reference server sends for every
 // player (PlayerSize); a race with no row is that. A race's illusion takes
 // that race's size, so a glamoured human is a gnome player's height. NPCs
 // keep their own rows' sizes (NPCSize).

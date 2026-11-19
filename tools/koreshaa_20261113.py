@@ -11,7 +11,7 @@ What it writes (every row in gm_audit and its log, koreshaa_1113_log; --undo exa
 
   npcs: "Lord Koreshaa" again: Return Home's own row (119831, level 62, race 6, body 0x5D40C8AB: the maned Kerran
     lion in pauldrons, which only Khonza Meysla wears besides) at (5156.75, 63.8, 7012.12) world 2, Kerran Isle, which
-    the Sandstorm census of world 2 took out on 2026-10-31 (its log, sandstorm_census_seed_w2, keeps the row): a new
+    the reference-server census of world 2 took out on 2026-10-31 (its log, sandstorm_census_seed_w2, keeps the row): a new
     row, its size 1.3 (was 1.0; the myrmidons 1.1) so he stands out.
   npcspawnonly "#<his row>": his own row out of the world, there to be copied: he stands only on his placeholder.
   npcrare: the Welahi-nai myrmidon on his spot (132354, at (5156.6, 63.8, 7012.4)) comes back as Lord Koreshaa CHANCE
@@ -49,7 +49,7 @@ NAME = "Lord Koreshaa"
 KEY = "lord koreshaa"
 PH_NAME = "welahi-nai myrmidon"
 PH_ROW = 132354  # the myrmidon on his spot (5156.6, 63.8, 7012.4), Kerran Isle
-OLD_ROW = 119831  # Return Home's Lord Koreshaa, which the Sandstorm census of world 2 took out (its log keeps the row)
+OLD_ROW = 119831  # Return Home's Lord Koreshaa, which the reference-server census of world 2 took out (its log keeps the row)
 BODY = 0x5D40C8AB  # his record's: the maned Kerran in pauldrons (Khonza Meysla wears it too)
 SIZE = 1.3
 LEVEL = 62

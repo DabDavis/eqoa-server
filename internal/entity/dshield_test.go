@@ -11,9 +11,9 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// Damage shields and defensive procs (dshield.go; jib's review, F3 pass
+// Damage shields and defensive procs (dshield.go; a GM's review, F3 pass
 // 19): the lines as EQOA-Data and spelleffect word them, a shield answering
-// a creature's hit as Sandstorm's Shroud of Hate answered the training
+// a creature's hit as the reference server's Shroud of Hate answered the training
 // dummies', and what is ours (the defaults, the chance, the strongest one).
 
 // castMsg is 0x00B1 as the client reads it: caster, target, no others, the
@@ -153,7 +153,7 @@ func barbshield() CastSpell {
 }
 
 // The druid's Barbshield on itself: on its effects channel, and the crab's
-// hit on it answered as Sandstorm's Shroud of Hate answered a dummy's, a
+// hit on it answered as the reference server's Shroud of Hate answered a dummy's, a
 // 0x00B1 of the druid's (cast 0) and its 0x00DB, the crab's hate for the
 // druid up by as much; a shield's kill is the druid's, its XP too.
 func TestAShieldHurtsTheAttacker(t *testing.T) {
@@ -463,7 +463,7 @@ func TestAPetsShieldAnswersForItsOwner(t *testing.T) {
 }
 
 // A training dummy's hits are answered as a creature's: the figure told
-// between the hit and the dummy's heal, taken off nothing (Sandstorm's
+// between the hit and the dummy's heal, taken off nothing (the reference server's
 // dummies under Shroud of Hate's). A sparring dummy's melee is answered; its
 // element strike, a spell, is not.
 func TestADummysHitsAreAnswered(t *testing.T) {
@@ -526,7 +526,7 @@ func TestAShieldForUndeadAlone(t *testing.T) {
 
 // A shield's damage when its line names none, at the landing: half its
 // level, at least 2 (ours); Shroud of Hate its bearer's level plus 2 to 3
-// (Sandstorm's 52-53 on a level 50); a number in the line comes first.
+// (the reference server's 52-53 on a level 50); a number in the line comes first.
 func TestAShieldsDamageWhenItsLineNamesNone(t *testing.T) {
 	now := time.Unix(1_800_000_000, 0)
 	land := func(name, line string, spellLevel, casterLevel int) Shield {

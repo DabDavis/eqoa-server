@@ -8,7 +8,7 @@ import (
 	"github.com/eqoa/server/internal/handlers"
 )
 
-// The login announcement (petition 2120, the GM Jibwiz, 2026-11-14: "GM's need to be able to set an announce that
+// The login announcement (petition 2120, 2026-11-14: "GM's need to be able to set an announce that
 // displays at login for all players. This needs to load as the newest message in chat upon login, after all the
 // other tickets closure entries and so on"): one a shard, table loginannounce, the line every player entering the
 // world is sent last (handlers/loginannounce.go). The game's #announce sets the same row; each change is an audited

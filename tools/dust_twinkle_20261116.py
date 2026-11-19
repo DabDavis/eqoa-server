@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
-"""Dust's sword keeps its red aura and gains Drizzt's Twinkle's twinkle at the blade's end (the owner, 2026-11-16: "the
-twinkle at the end of his sword like drizzt twinkle", "it will keep the red aura it has and stack the twinkle").
+"""a GM's sword keeps its red aura and gains a player's Twinkle's twinkle at the blade's end (the owner, 2026-11-16: "the
+twinkle at the end of his sword like [a player] twinkle", "it will keep the red aura it has and stack the twinkle").
 
-The twinkle is a SECOND aura on Dust's own main-hand row (charaura slot 9, database.CharAuraMainHand): charaura's color2,
-kind2, source2, nodes2 (go-eqoa-server branch charaura-two), set as Drizzt's Twinkle's (itemaura 715040) second aura is:
+The twinkle is a SECOND aura on a GM's own main-hand row (charaura slot 9, database.CharAuraMainHand): charaura's color2,
+kind2, source2, nodes2 (go-eqoa-server branch charaura-two), set as a player's Twinkle's (itemaura 715040) second aura is:
 kind 3 (particles), source 0x1D875ECD (the monk's Ascendant staff's star flare), along 100 (the blade's tip), colour 0
 (its own colours). His row's first aura (colour 0x000000FF, kind 3, source 0, nodes 0 as found) is left exactly as it
 is. Character-only: the Heirloom Sword of Twisted Virtue (714382) is held by others, so no itemaura.
 
-Checked as found, else REFUSED and nothing written: exactly one character named Dust, of serverid 197; table charaura
+Checked as found, else REFUSED and nothing written: exactly one character named a GM, of serverid 197; table charaura
 WITH the second-aura columns (a server of charaura-two adds them at its start: run this after it has started once);
-gm_audit there; Dust's slot 9 row there. A second already there (a GM's) is changed and its old values kept in the log.
+gm_audit there; a GM's slot 9 row there. A second already there (a GM's) is changed and its old values kept in the log.
 Report by default; --apply in one transaction, a gm_audit line (as the panel's: update, the whole row before and
 after), logged in dust_twinkle_1116_log; a second --apply finds nothing to do; --undo puts back exactly what was there,
 a gm_audit line, a row changed since left and listed.
 
 The server reads charaura at its start and on the GM panel's "Reload every NPC" (reload_npcs): after --apply (or --undo)
-press that; Dust's channel carries it at the next tick, to a client that asked for second auras (vanilla's).
+press that; a GM's channel carries it at the next tick, to a client that asked for second auras (vanilla's).
 
     python3 -E -s tools/dust_twinkle_20261116.py --db eqoa.db [--apply | --undo]
 """

@@ -1,5 +1,5 @@
 // Command playerreach surveys where a PLAYER can walk to in one stretch of a
-// world, for tools/boxcanyon_reach_20261115.py (petition 2139, Zerkx,
+// world, for tools/boxcanyon_reach_20261115.py (petition 2139,
 // 2026-11-15: "box canyon instance there are a bunch of mobs on the hills
 // that cant be get too"). cmd/canyonspread asks where a creature walks
 // (ground.Floor, the highest terrain, a rise of -rise a step either way);

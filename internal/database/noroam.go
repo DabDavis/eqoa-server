@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// noroam: ground no wandering creature walks into or through (entity/noroam.go; the GM Jibwiz's
+// noroam: ground no wandering creature walks into or through (entity/noroam.go; a GM's
 // petitions 1963-1965, 2026-11-13, three kobold camps in Odus: "This kobold camp beneath me needs to
 // not have wildlife in this area pathing into it. It can get close, but never through the tented
 // camp"). One row a circle: its middle (x, z) in world and its radius across. A creature whose

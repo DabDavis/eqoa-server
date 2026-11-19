@@ -20,13 +20,13 @@ import (
 // (writeGuilds, deferred before the lock is taken so it runs after the
 // unlock), and the guilds are read back at the start. A member is a
 // character, by its database id (Player.CharServerID): 0x0468/3's member id
-// is that id on Sandstorm too (Mcgregor's 25175 in pcaps/ps2_sandstorm.pcap,
+// is that id on the reference server too (Mcgregor's 25175 in pcaps/ps2_sandstorm.pcap,
 // the MemoryDump's serverID). The members' Players carry GuildID and
 // GuildName so that other code (chat routing) can tell who is in which.
 
 // Guild ranks, as 0x0468/3 carries them (VIGuildMember's zigzag rank): 0 is a
 // member, the lowest ("\"Member\" is the lowest rank and cannot be demoted",
-// word 745), up to 3, the leader. Sandstorm's 250-member roster in the
+// word 745), up to 3, the leader. The reference server's 250-member roster in the
 // captures has 221 at 0, 21 at 1, 5 at 2 and 3 at 3.
 const (
 	GuildRankMember = 0
@@ -567,7 +567,7 @@ func (w *World) memberPlayerLocked(id uint32) *Player {
 //	13/14  guild chat shown / hidden (647/648)
 //	15  two str8 names: "%s has added %s to the guild." (717)
 //
-// Sandstorm's world entry (pcaps/ps2_sandstorm.pcap [C]) is one sub 1 and a
+// The reference server's world entry (pcaps/ps2_sandstorm.pcap [C]) is one sub 1 and a
 // sub 3 per member, 250 of them, the player's own among them.
 
 // Guild word sub-types of 0x0468.

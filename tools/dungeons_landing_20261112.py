@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Move Blackburrow's Dungeon Warden twin to the dungeon's new landing (petition 1808, Poppapump, 2026-11-12: "Think
+"""Move Blackburrow's Dungeon Warden twin to the dungeon's new landing (petition 1808, 2026-11-12: "Think
 port isnt putting party inside invis wall, got stuck", filed from world 14 at (13115, 12106)).
 
 Blackburrow's landing was before the burrow's north-east mouth at (13115, 56.8, 12095), 95 inside Tunaria cell (6, 6)'s

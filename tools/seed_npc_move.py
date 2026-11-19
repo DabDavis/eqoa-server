@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The seed rows of npcmove: how the creatures of a name move (entity/movement.go,
-wildlife.go, water.go; F3 20261026-021730, -020316, -042712, jib's asks).
+wildlife.go, water.go; F3 20261026-021730, -020316, -042712, a GM's asks).
 
 No record of the live game says which creatures stood, roamed or swam, so the seed
 goes by whole words of the creatures' names, the bodies they wear and EQOA-Data's
@@ -8,13 +8,13 @@ camp notes, and only for creatures (NPCs without the NPC bit 0x80 whose bodies a
 not the players' races, charactermodel: those are the townsfolk, who never wander),
 but for the camps below:
 
-- roam 0, standing on their spawns until pulled: the Hexbones (jib: "hexbones in
+- roam 0, standing on their spawns until pulled: the Hexbones (a GM: "hexbones in
   zentaurs keep do NOT roam, they are static spawn until agrod"; they stand in
   camps of four to eight, Zentar's Keep among them), every creature named a guard,
   guardian, bodyguard, lookout, watchman, sentry, sentinel, warden or gatekeeper
   (a camp's or a keep's guard: "Lionguard brigand" is not one), and the chests.
   Since F3 20261026-042712 anything that is not wildlife stands without a row too
-  (jib: "Not all mobs are wild life. Fire Giants are roaming currently when they
+  (a GM: "Not all mobs are wild life. Fire Giants are roaming currently when they
   should not be unless otherwise specified / designated as a roamer with a path"):
   these rows say so to GMs.
 - roam 1, wandering though the server's words would stand them:
@@ -31,7 +31,7 @@ but for the camps below:
     guard's, and with no more spawns elsewhere than there (a name is a key: the
     row moves every one of its name).
 - water "both", in and out of the water: caiman, crocodiles, alligators, crabs,
-  turtles, tortoises, frogs, toads, water rats and water moccasins (jib: "Caiman,
+  turtles, tortoises, frogs, toads, water rats and water moccasins (a GM: "Caiman,
   crocodiles, crabs can roam both").
 - water "water", keeping to it: sharks, eels, piranhas, fish, anglers, barracudas,
   squid, octopi, jellyfish, minnows, rays, krakens, sea snakes, water wolves and

@@ -405,7 +405,7 @@ func TestInteractionOneIsTheQuickSlotsUse(t *testing.T) {
 }
 
 // An item is put on only by a player CLIENT's CanUse lets wear it (the class
-// mask, the race mask, the level), refused in Sandstorm's red lines (the
+// mask, the race mask, the level), refused in the reference server's red lines (the
 // user, 2026-10-29: a level 2 shadow knight wore level 42 bracers): a level 2
 // shadow knight is refused a level 42 bracer, an item another class's mask
 // names and one another race's does; the control: a level 1 one of its own

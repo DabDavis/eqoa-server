@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """christmas_season_20261116.py on a small database with the server's own tables: the report writes nothing; --apply
-makes the tree (the treant's row copied, at Dust's spot, friendly, its art the sunk fir), the season (off), the lights'
+makes the tree (the treant's row copied, at a GM's spot, friendly, its art the sunk fir), the season (off), the lights'
 template and its four strings, the dialog, the trigger at the next free slot past the menu's eight, and gm_audit lines;
 a second --apply refuses; --undo takes every row away again, the tables as they were."""
 import json

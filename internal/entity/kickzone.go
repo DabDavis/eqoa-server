@@ -9,7 +9,7 @@ import (
 )
 
 // kickzone.go — a creature guarding the ground round it (database.AbilityKickZone; the GM
-// Jibwiz's petition 1956, 2026-11-13, the Anvil of Sarek: "non agro (white face), non attackable,
+// a GM's petition 1956, 2026-11-13, the Anvil of Sarek: "non agro (white face), non attackable,
 // permanently in that spot. If a player hits the distance my character is currently at from him he
 // should do a kick animation and hit them for 10,000 unresistable damage every second. That's all
 // he does.").

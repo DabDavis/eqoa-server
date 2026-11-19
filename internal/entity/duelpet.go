@@ -8,8 +8,8 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// duelpet.go — a duelist's pet fights a duel as it fights a creature (2026-11-13, Ruggid: "lol pet
-// didnt swing?" in a duel with Hoofbite, and the owner: "the pet is not procing or using abilities
+// duelpet.go — a duelist's pet fights a duel as it fights a creature (2026-11-13, a player: "lol pet
+// didnt swing?" in a duel with a player, and the owner: "the pet is not procing or using abilities
 // also"). Its melee landed (duelPetRoundLocked), told to its owner as the owner's own figures, but
 // that was all it did: its template's abilities (the Swarming Death's damage over time, its life
 // tap), its template's melee proc (Swarming Sting) and the procs of the effects on it (its owner's

@@ -9,7 +9,7 @@ import (
 
 // saveLogout keeps when the player left the world (table charlogout, database/norent.go), for
 // its No Rent items: a login within handlers.NoRentAway of it keeps them (handlers/norent.go;
-// jib's PR #1). Saved at a session's end and at a shutdown's save; as saveEffects, an old
+// a GM's PR #1). Saved at a session's end and at a shutdown's save; as saveEffects, an old
 // session's Player is not saved (the character is in the world still, taken over by its new
 // login).
 func (l *Listener) saveLogout(sess *session.Session, at time.Time) {

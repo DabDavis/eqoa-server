@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Zerkziee's weapons the druid's epic staff glow, and his scimitar the druid's epic scimitar's look (the owner,
-2026-11-14: "give zerkziee hachet and ranger level 60 epics the level 49 druid staff glow (also make a template like
+"""a player's weapons the druid's epic staff glow, and his scimitar the druid's epic scimitar's look (the owner,
+2026-11-14: "give [a player] hachet and ranger level 60 epics the level 49 druid staff glow (also make a template like
 other auras) and make his scimitar the epic druid scimitar with same aura").
 
 1. The glow: the hands' charaura slots (9 the main hand, 10 the off hand) kind 7 (database.AuraEpic) with source
@@ -14,10 +14,10 @@ other auras) and make his scimitar the epic druid scimitar with same aura").
    its icon 2051918763): a new itempattern row copied from 996023 whole (name, description and its proc, every stat)
    with the Triad's model and icon, at the next free id after 714384 in the heirloom range; his charinventory row of
    it moved onto the copy, and his gear sets that name that row. Every other Heroic Ykesha is as it was (the precedent:
-   the Heirloom Sword of Twisted Virtue 714382, a copy of its own). Where he has no Heroic Ykesha (Live: Zerkziee is
+   the Heirloom Sword of Twisted Virtue 714382, a copy of its own). Where he has no Heroic Ykesha (Live: a player is
    level 7 with an Apprentice Sword) the glow alone.
 
-Checked as found, else REFUSED and nothing written: exactly one character named Zerkziee; the staff and the Triad
+Checked as found, else REFUSED and nothing written: exactly one character named a player; the staff and the Triad
 Scimitar as itempattern rows of those models; tables charaura and gm_audit. Report by default; --apply in one
 transaction, a gm_audit line a row (as the panel's), logged in zerkziee_glow_1114_log; a second --apply finds nothing
 to do; --undo puts back exactly what was there (the copy deleted when nothing holds it any more), each a gm_audit line,

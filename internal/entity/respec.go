@@ -8,7 +8,7 @@ import (
 )
 
 // A rehabilitator's template used (handlers/rehabtemplates.go; petition 1322,
-// jibrish: "save 2 different rehab state and CM templates ... If they come
+// a GM: "save 2 different rehab state and CM templates ... If they come
 // back with 705 cm's and pick that template, it still only spends the 500 and
 // just unassigns the other points for them to spend as they wish"): every
 // training point and Combat Mastery a character holds given back, then spent

@@ -9,7 +9,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// strip.go — a templated creature's strip (database.AbilityStrip; the GM Jibrish's petition
+// strip.go — a templated creature's strip (database.AbilityStrip; a GM's petition
 // 1368: "Give mr moogie a caster debuff on his target every 30 seconds that strips any and all
 // buffs, including immunity to damage / god mode"). It is cast as a template's other abilities
 // are (classtemplate.go): on its clock, at what the creature fights in its reach (a player, or a

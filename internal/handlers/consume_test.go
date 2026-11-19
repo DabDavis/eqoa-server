@@ -66,7 +66,7 @@ func (f *scribeFixture) stackOf(name string) int {
 // PoT. The last of a stack leaves the list. Each is shown by its item's name
 // and a buff's 32x32 icon, never the item's own (the wares here carry the
 // 128x64 inventory tile's DictID 1511586099, which a meal must not show):
-// the health-over-time icon for a drink too, as Sandstorm showed Elven
+// the health-over-time icon for a drink too, as the reference server showed Elven
 // Wine's.
 func TestUseMealEatsOne(t *testing.T) {
 	f := newScribeFixture(t)
@@ -106,7 +106,7 @@ func TestUseMealEatsOne(t *testing.T) {
 }
 
 // With the item taken, and after its 0x003C, the eating-and-drinking visual
-// is played (the World's Consumed: Sandstorm's 0x00B1 of 0xCF84F260 came in
+// is played (the World's Consumed: the reference server's 0x00B1 of 0xCF84F260 came in
 // the same moment, after the 0x003C). The control: a use refused plays
 // nothing.
 func TestUseMealPlaysTheCheerAfterTheTake(t *testing.T) {
@@ -133,7 +133,7 @@ func TestUseMealPlaysTheCheerAfterTheTake(t *testing.T) {
 	}
 }
 
-// Refused and kept: a meal above the player's level (Sandstorm's line for
+// Refused and kept: a meal above the player's level (the reference server's line for
 // an item used too low) and one in a fight (ours); nothing is taken.
 func TestUseMealRefusals(t *testing.T) {
 	f := newScribeFixture(t)
@@ -180,7 +180,7 @@ func TestUseNotAMeal(t *testing.T) {
 	}
 }
 
-// A new character's rations (Sandstorm's records: CLIENT's usable type 2,
+// A new character's rations (the reference server's records: CLIENT's usable type 2,
 // described as the food they are, no stat) are eaten as meals of their level;
 // one of type 0, which CLIENT files under Misc and offers no use of, is not
 // taken for one, nor is an item of type 2 that is no ration.

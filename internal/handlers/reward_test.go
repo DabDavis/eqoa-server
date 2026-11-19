@@ -62,7 +62,7 @@ func rewarded(p *entity.Player) (bool, int) {
 	return false, 0
 }
 
-// Petition 1501 (the GM Jibrish): #reward is a GM's; on the GM's target, a player, it lands GM's Reward (its shield
+// Petition 1501: #reward is a GM's; on the GM's target, a player, it lands GM's Reward (its shield
 // of 25), writes a gm_audit line and tells the GM and the player; /reward is the same. A creature targeted, no
 // target, and a record renamed are refused with a line, nothing landed. The control: a player's #reward is an
 // unknown command.

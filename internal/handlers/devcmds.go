@@ -14,7 +14,7 @@ import (
 
 // The GM commands as a dev console (F3 20261021-003556 and -005232): typed
 // in the chat line as #name, or /name from a client that forwards the
-// /commands it does not know itself (eqoa-rs does, as Sandstorm's S2 does; a
+// /commands it does not know itself (eqoa-rs does, as the reference server's S2 does; a
 // retail PS2 keeps an unknown /command to itself, so there it is #name).
 //
 // A GM is an account whose accountinfo.acctlevel is 1 or more, read on each
@@ -69,7 +69,7 @@ type subGMs interface {
 // GM is a tester in the panel and in the game a player but for these.
 // The owner, 2026-11-12: "players with the /fly /speed can use also" /delete,
 // /clone and /place (gmnpcrow.go).
-// The owner, 2026-11-14: "lets give the account for kobe, skywalker access to use
+// The owner, 2026-11-14: "lets give the account for [a GM], [a player] access to use
 // ./size in addition to the rest he has": a sub GM's /size is on a creature alone
 // (chat.go), and kept in its row as any GM's (gmnpcrow.go's keepNPCSize).
 var subGMCommands = map[string]bool{"#fly": true, "#speed": true, "#delete": true, "#clone": true, "#place": true, "#move": true, "#roamer": true,
@@ -93,7 +93,7 @@ func (h *ChatHandler) granted(sess *session.Session, cmd string) bool {
 }
 
 // gmAliases are GM commands' other names (spelled "#copy"): the same command,
-// whoever may use it. The owner, 2026-11-14: "./copy should work for jib also
+// whoever may use it. The owner, 2026-11-14: "./copy should work for a GM also
 // on live server": /copy is /clone.
 var gmAliases = map[string]string{"#copy": "#clone"}
 
@@ -480,7 +480,7 @@ func (h *ChatHandler) nearbyCommand(sess *session.Session, player *entity.Player
 	}
 }
 
-// setLevelCommand is #setlevel [name] <level> (Jibrish, petition 1265:
+// setLevelCommand is #setlevel [name] <level> (petition 1265:
 // "/setlevel Nuke 60 should set the character nuke to 60 if im targeting them,
 // but not add or remove spells or change anything beyond level"): the
 // character a name names, in the world or not, else the GM's target player,
@@ -566,7 +566,7 @@ func (h *ChatHandler) setRowLevel(sess *session.Session, gm *entity.Player, s gm
 // panel tells it), and kept with no experience into it. What the level itself
 // gives goes with it (its stats, the training points it is due, the
 // heirlooms' figures); nothing else changes. The level was the live Player's
-// alone once, so a level set was gone at the next login (Jibrish 60 in the
+// alone once, so a level set was gone at the next login (a GM 60 in the
 // game and 1 in the database, F3 pass 13). A player whose level a GM set is
 // told.
 func (h *ChatHandler) setLevelFor(gm, sess *session.Session, player *entity.Player, level int) {
@@ -696,7 +696,7 @@ func (h *ChatHandler) npcInfoCommand(sess *session.Session, player *entity.Playe
 const giveItemMax = 1000
 
 // giveItemCommand is #giveitem <item id> <player> [count] (petition 1046, the
-// GM Jibrish: "Add a gm only command to give a player an item. /giveitem
+// GM a GM: "Add a gm only command to give a player an item. /giveitem
 // ITEMIDHERE PLAYERNAME should be the syntax"): count of the item (1 when not
 // given), new and at full condition, into the inventory of the player online
 // of that name, as the TEST menu's Give Item gives (gmGivePattern: stacked as

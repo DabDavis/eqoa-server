@@ -7,7 +7,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// npctitle.go — a line over an NPC's name (the GM Jibrish's petitions 1765
+// npctitle.go — a line over an NPC's name (a GM's petitions 1765
 // and 1766, 2026-11-12: "Give the testing heroes vendor a title like
 // mercenary's have. Make it say "XP Grinding Rewards"", "Give dabrish a
 // title "XP/CM's"").
@@ -21,7 +21,7 @@ import (
 // title. CLIENT's name plate is at the body's name node, wherever that is, so
 // the same body is the one whose node is known to stand over the NPC's.
 //
-// A title's colour (the GM Jibrish's petitions 1790 and 1791, 2026-11-12:
+// A title's colour (a GM's petitions 1790 and 1791, 2026-11-12:
 // "Color the XP/CM title on Dabrish green, semi bright green so it shows but
 // not too green as to be unreadable", and the Testing Heroes Vendor's) is one
 // of CLIENT's three name colours, the same for every viewer: a name plate's

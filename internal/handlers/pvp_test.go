@@ -76,7 +76,7 @@ func TestPvPCommandWords(t *testing.T) {
 }
 
 // "/t pvp off" and "/t pvp on" (a PS2's "/pvp off" and "/pvp on") turn the flag one way alone:
-// off never puts it up, as "/pvp" alone did after a relog took it down (Larrybird, 2026-11-08),
+// off never puts it up, as "/pvp" alone did after a relog took it down (2026-11-08),
 // and it takes it down once the flag's minute is over; on never takes it down.
 func TestPvPTellOffAndOnGoOneWay(t *testing.T) {
 	c := newChatWorld(t)

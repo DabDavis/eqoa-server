@@ -14,7 +14,7 @@ import (
 
 // lifetap.go — what a spell takes for its caster, and what it costs it.
 //
-// A life tap's damage heals its caster (F3 20261025-215541, jib: the
+// A life tap's damage heals its caster (F3 20261025-215541, a GM: the
 // necromancer's tap line "is supposed to heal you as well for the damage it
 // deals"; -215810: "bloodleech and other lifetaps not draining hp"). The
 // lines say so in several ways, all EQOA-Data's: "Decrease Drain HP by 156"
@@ -27,7 +27,7 @@ import (
 // Until now the words after the hit were cut off and the tap was a plain
 // nuke.
 //
-// A pact heals its target and costs its caster (F3 20261025-214751, jib:
+// A pact heals its target and costs its caster (F3 20261025-214751, a GM:
 // "damaging the necromancer, and healing the target. The damage is Arcane
 // Resistance on the player and can be resisted with higher AR ... pacts
 // should do more damage than the heal if unresisted ... the necro should be
@@ -315,7 +315,7 @@ func (w *World) payPriceLocked(cs *castState, caster *Player, sess *session.Sess
 
 // selfCostLocked takes a self spell's own price of n hit points off its
 // bearer, in full, where the spell's line or its workbook effects put the loss
-// on the caster alone (jib's PR #1, the GM Jibrish's ruling of 2026-10-29: "You
+// on the caster alone (a GM's PR #1, a GM's ruling of 2026-10-29: "You
 // could definitely kill yourself with lich form, pacts and so on. That was a
 // drawback people had to actively manage with remove illusion."): the
 // shaman's five Cannibalize ranks' "Decrease Hitpoints by N" at the landing

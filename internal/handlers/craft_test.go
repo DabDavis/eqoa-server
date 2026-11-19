@@ -295,7 +295,7 @@ func hpMsg(key uint32, hp int) []byte {
 	return (&wire{}).u16(uint16(protocol.OpcodeAdjustItemHP)).u32(key).zz(int64(hp)).b
 }
 
-// redLine is 0x0A7B: a line in Sandstorm's red.
+// redLine is 0x0A7B: a line in the reference server's red.
 func redLine(text string) []byte {
 	return (&wire{}).u16(uint16(protocol.OpcodeColoredChat)).wstr(text).u8(255).u8(63).u8(63).b
 }

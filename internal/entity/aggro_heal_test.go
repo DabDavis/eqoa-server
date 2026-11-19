@@ -2,7 +2,7 @@ package entity
 
 import "testing"
 
-// Petitions 1225, 1962 and 1967 (the GM Jibwiz): a heal that put back at least 1 point is
+// Petitions 1225, 1962 and 1967: a heal that put back at least 1 point is
 // hate on its healer of its WHOLE figure, as that much damage would be, on every creature
 // fighting the one it healed, each whole; a heal on a full target is a fifth of it; a
 // creature fighting someone else, or no one, hears nothing.

@@ -7,7 +7,7 @@ import (
 )
 
 // startItemsSchema is what a new character carries (the user, 2026-10-29: "we
-// need starting weapons, sandstorm has it correct"): Sandstorm's new
+// need starting weapons, [the reference server] has it correct"): the reference server's new
 // characters each carry a starting weapon (an Apprentice Sword, Club, Dagger
 // or Staff) and twenty of their race's rations, by race and class (and, for
 // a human, its city: humtype 1 the east, 2 the west), none worn; recorded by
@@ -137,8 +137,8 @@ func (db *SQLiteDB) startItemsFallback(race, class, humType int) ([]StartItem, e
 }
 
 // giveStartItems puts a new character's starting items in its inventory,
-// carried as Sandstorm's are (none worn), each at its record's full condition
-// with no charges (Sandstorm's Apprentice Sword: 200 of 200); an item the
+// carried as the reference server's are (none worn), each at its record's full condition
+// with no charges (the reference server's Apprentice Sword: 200 of 200); an item the
 // database lacks is said and left out.
 func (s *SQLiteCharacterStore) giveStartItems(c *CharacterRecord) (int, error) {
 	items, err := s.db.StartItems(c.Race, c.TClass, c.HumType)

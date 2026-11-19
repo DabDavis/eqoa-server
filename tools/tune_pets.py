@@ -2,12 +2,12 @@
 """The pets' fit of 2026-10-30: the pet classes' pets, each by its own class template (the pet lane's
 entity/pettemplate.go), fitted against SOE's roamer from the state tools/retune_balance.py leaves.
 
-With the pets on their templates (balancesim against a roamer, eqoaclassic's data of 07:10 with the roamers and
+With the pets on their templates (balancesim against a roamer, the production server's data of 07:10 with the roamers and
 the re-fit in it, the pet's own low point: the fewest hit points it had in a fight won, as a pet that heals ends
 higher than it was taken down to) three things were out of line: an enchanter's animation, with 50% more hit points
 and 30% less of a melee hit landing on top of its four self heals, kept 95-98% of its hit points through every
 yellow and won every red alone, at any pet_hp_pct (the fit's floor of 20 left it at 50-84%); the necromancer's
-weapon pets hit 20% harder than their base pets on top of Sandstorm's recorded rounds, and won reds alone at 25-40;
+weapon pets hit 20% harder than their base pets on top of the reference server's recorded rounds, and won reds alone at 25-40;
 the spectre's instant landed three of its melee hits in one blow, over twice a shadow knight's Harm Touch at 44, where
 the user had asked for "the harm touch like move, not as much damage but sizable"; and the magician's mastery pets
 (Summon Badi, Efreet and Djinn at 49, Badi Elder, Efreeti Lord and Ghilan Noble at 55), on their kinds' templates,

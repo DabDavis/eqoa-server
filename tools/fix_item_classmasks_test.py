@@ -26,7 +26,7 @@ def page(name, slot, level, classes):
 
 
 class FixItemClassmasks(unittest.TestCase):
-    """tools/fix_item_classmasks.py on a made-up database: a Sandstorm record of the same name and slot (its
+    """tools/fix_item_classmasks.py on a made-up database: a reference-server record of the same name and slot (its
     level where two differ, none where neither is of it), an Allakhazam page of the same name and slot (its
     classes line first, which fetch_item_pages.read_page drops; the pre-alchemist leather list as the leather
     wearers of today; an empty class line as nothing), the same item
@@ -54,7 +54,7 @@ class FixItemClassmasks(unittest.TestCase):
             # the same item here
             (1, "Wobble Band", 8, 10, 32767, 1023, 0, 0, ""), (2, "Wobble Band", 8, 12, 0, 1023, 0, 0, ""),
             (3, "Glimmer Bauble (copy)", 3, 5, 0, 1023, 0, 0, ""), (4, "Glimmer Bauble", 3, 5, 2048, 1023, 0, 0, ""),
-            # Sandstorm's records: same id; another slot (then Allakhazam); two levels; neither level
+            # the reference server's records: same id; another slot (then Allakhazam); two levels; neither level
             (10, "Quibble Visor", 1, 20, 0, 1023, 4, 0, ""), (11, "Zephyr Cuffs", 7, 15, 0, 1023, 2, 0, ""),
             (12, "Pickle Charm", 4, 30, 0, 1023, 0, 0, ""), (13, "Muddle Charm", 4, 35, 0, 1023, 0, 0, ""),
             # Allakhazam's pages: leather before the alchemist, all classes, an empty line, casters
@@ -131,9 +131,9 @@ class FixItemClassmasks(unittest.TestCase):
         got = self.masks()
         want = {
             2: 32767, 3: 2048,                      # the same item here, a copy's name aside
-            10: 13,                                 # Sandstorm's record before Allakhazam's page (Warrior)
-            11: 16,                                 # Sandstorm's is a bracelet: Allakhazam's Arms page
-            12: 896,                                # Sandstorm's two records: the one of its level
+            10: 13,                                 # the reference server's record before Allakhazam's page (Warrior)
+            11: 16,                                 # the reference server's is a bracelet: Allakhazam's Arms page
+            12: 896,                                # the reference server's two records: the one of its level
             13: 32767,                              # neither of its level: the rule (jewellery)
             20: 17407,                              # the leather wearers before the alchemist: with it
             21: 32767, 22: 32767,                   # all classes; an empty line: the rule

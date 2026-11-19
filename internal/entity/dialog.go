@@ -294,7 +294,7 @@ func (w *World) dialogSpeakerLocked(npc *NPC) (town, role string, ok bool) {
 // guardTitle is a guard's title before a name of its own ("Guard Miller",
 // "Deputy Brady"): a guard of no town speaks only so named or of a militia,
 // as the hostile camps' generic spawns on human bodies are named for their
-// kind (54 "Siloth knight", 49 "Jextalan guard" on eqoaclassic) and some
+// kind (54 "Siloth knight", 49 "Jextalan guard" on the production server) and some
 // carry the NPC bit (a "hobgoblin scout").
 var guardTitle = regexp.MustCompile(`^(?:Guard|Guardsman|Deputy|Captain|Sergeant|Lieutenant|Sentry|Sentinel|Watchman|` +
 	`Warden|Marshal|Marshall|Commander|Corporal|Trooper|Footman|Protector|Defender|Soldier)\s+[A-Z]`)

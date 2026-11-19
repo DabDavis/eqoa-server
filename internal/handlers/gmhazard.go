@@ -13,7 +13,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// gmhazard.go — a GM's /hazard (the GM Jibwiz's petition 1960, 2026-11-13: "We need a system to
+// gmhazard.go — a GM's /hazard (a GM's petition 1960, 2026-11-13: "We need a system to
 // apply effects to the world itself without placing a monster ... Build out a system for us to
 // replicate this in the world ... Build this in a way we can use the system for other similar
 // effects elsewhere in the world"): table hazards' rows (database/hazards.go, entity/hazards.go)

@@ -6,7 +6,7 @@ import "sort"
 // coach ledger lets any player coach anywhere, lets make it unlocked by
 // talking to the coachman and also only coach to connecting"). In the live
 // game a coach ran only between neighbouring stables, and a stable sold a
-// ride only to a town whose ledger the traveller had signed, as Sandstorm's
+// ride only to a town whose ledger the traveller had signed, as the reference server's
 // Coachman Ronks tells a new character (questrec16): "if you find yourself in
 // a nearby city, you can visit the stable there and pay for a ride to
 // Freeport. Without that record, they cannot offer you passage." Every

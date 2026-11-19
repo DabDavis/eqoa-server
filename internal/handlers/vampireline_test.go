@@ -240,7 +240,7 @@ func TestTheBatsMakeAVampire(t *testing.T) {
 }
 
 // A coffin opens for a vampire alone: Freeport's takes it to the Sanctuary,
-// where Sandstorm's spell lands, exactly; the Sanctuary's lists the coffins
+// where the reference server's spell lands, exactly; the Sanctuary's lists the coffins
 // back. To a mortal a coffin is a coffin: no trip, no word of one.
 func TestACoffinOpensForVampiresAlone(t *testing.T) {
 	tw := newTalkWorld(t, 25516.8, 15532)

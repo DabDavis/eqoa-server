@@ -17,12 +17,12 @@ name is renamed with it.
   "Mummified Guardian" (SOE_RETAIL, which wins over all below). Return Home's
   names are SOE's in kind: 12,431 of its 19,877 rows lowercase, a proper word
   capitalized inside them ("Tae Ew crusader").
-- Sandstorm's recordings are no evidence of casing: of the 2,103 NPC names the
+- The reference server's recordings are no evidence of casing: of the 2,103 NPC names the
   harvester saw there (eqoa.live, --harvests) 2,094 are capitalized throughout
   ("Grass Viper"; "Sign Post" where the retail memory has "sign post"), and
-  FrontiersForge's journal (npcs_ff_import), read off Sandstorm, is too. Their
+  FrontiersForge's journal (npcs_ff_import), read off the reference server, is too. Their
   spellings count only where they are lowercase; --out lists every name whose
-  Sandstorm spelling differs from the one chosen.
+  the reference server spelling differs from the one chosen.
 - So a name spelled with a lowercase word anywhere (our rows, Return Home's,
   the retail memory) takes that spelling: "Grass Viper" (26 rows) becomes
   "grass viper" as Return Home's 84 are. Of two such spellings the one whose
@@ -236,7 +236,7 @@ def lowered(name, proper):
 
 class Evidence:
     """What says how a name is cased: every spelling of it (our rows, Return
-    Home's, Sandstorm's, the retail memory), the words those spellings case,
+    Home's, the reference server's, the retail memory), the words those spellings case,
     the dictionary's words and the pets' names."""
 
     def __init__(self, sources, dict_words=(), pets=(), soe=SOE_RETAIL):
@@ -463,8 +463,8 @@ def read_dict(path):
 
 
 def harvest_names(paths):
-    """NPC names as Sandstorm's own entity records spell them, by distinct
-    entity: the harvester's recordings whose "server" is Sandstorm's (their
+    """NPC names as the reference server's own entity records spell them, by distinct
+    entity: the harvester's recordings whose "server" is the reference server's (their
     "seen" and "merchants", and the patrol tracks beside them), players (ids of
     100 million and more) aside."""
     files = []

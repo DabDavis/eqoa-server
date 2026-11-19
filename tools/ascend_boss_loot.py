@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Ascended loot for the tuned raid bosses (petition 1446, the GM Jibrish, 2026-11-10: "For all tuned raid bosses,
+"""Ascended loot for the tuned raid bosses (petition 1446, 2026-11-10: "For all tuned raid bosses,
 and also when we tune new ones going forward, they should drop "Ascended" versions of their regular gear in place of
 their normal loot table. These should be the regular items except with a flat +10% to all of their stats. The tuned
 raid bosses should no longer drop their regular drops outside of spells, only the Ascended versions. These are NOT

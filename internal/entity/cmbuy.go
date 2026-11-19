@@ -33,7 +33,7 @@ import (
 // the live game's rules exists: the base stats a requirement is checked
 // against (the trainer's base, before items and spells, plus the masteries'
 // own), and one Master Class at a time held by refusing a second until the
-// first is removed (the live client's word 1840, OneMasterClass). A removal gives nothing back, as jib has the live game's
+// first is removed (the live client's word 1840, OneMasterClass). A removal gives nothing back, as a GM has the live game's
 // (F3 20261026-043542: "permanent unless you delete them, which lowers your
 // total cm's as you do that have to be re-earned"): the rank's points are
 // gone, so under the 1500 the character may hold they are earned again (the
@@ -109,7 +109,7 @@ type CMAbility struct {
 	// lines that each trade the same spell away can both be owned: Icy and
 	// Static Destruction each replace Explode, Detonate, Annihilate, Nova
 	// and Supernova and each give the Fiery one, which the other then
-	// accepts (petition 1583, Wisp, 2026-11-11: "Wizard lightning Nova CM
+	// accepts (petition 1583, 2026-11-11: "Wizard lightning Nova CM
 	// line is missing")
 	Alts []int
 }
@@ -168,7 +168,7 @@ type CMRank struct {
 	// Requires' spells summon (any of them, a require_spells "a|b|c"'s
 	// alternatives too), every pet of its owner's where it requires none;
 	// 0 none. Only the look: the pet's numbers and abilities are its spell's
-	// (the owner, 2026-11-16: Zerkziee's construct as Jarek's Creation)
+	// (the owner, 2026-11-16: a player's construct as Jarek's Creation)
 	PetLook uint32
 	// PetArt is the art its owner's pets wear to a client that draws it
 	// (effects "PetArt:N", a zone prop's DictID: cmpetlook.go), of the pets
@@ -190,7 +190,7 @@ type CMRank struct {
 // lists write a rank that improves a spell in place so (Quick Blade 1 adds
 // and removes Dancing Blades, Hydromancy 1 Water Elementalkin), the live
 // game swapping in an improved record of the same name, and this server has
-// the one record, which the book keeps (jib's review, F3 pass 19). Until
+// the one record, which the book keeps (a GM's review, F3 pass 19). Until
 // then a purchase gave such a spell and then took it out, so Hydromancy 1
 // cost a magician the Water Elementalkin that Hydromancy 2 needs.
 func (r *CMRank) BookChange() (gives, takes []CMAbility) {
@@ -875,7 +875,7 @@ func (w *World) CMNodeOf(sess *session.Session, id int, k CMKnows) (CMNode, bool
 // one list of free text it shows). A rank not known is listed "???" and
 // opens that window, not the inspector, so the description's refusal is
 // never read; its pages show the level, the masteries, the abilities and
-// the minimum stats and points spent. Moose (Hill Giant shadow knight, 2026-11-16)
+// the minimum stats and points spent. A player (Hill Giant shadow knight, 2026-11-16)
 // held Titan and saw Slayer, Death Knight and Soldier "???" with every
 // requirement those pages showed met: the one Master Class rule (its own
 // class's other ranks are not barred, cmBlockLocked) and the quests a rank

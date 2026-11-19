@@ -9,7 +9,7 @@ import (
 )
 
 // A camp report's view of the world (handlers/campfix.go; board entry 513, the
-// GM Jibrish's ask of 2026-11-09): the NPCs of rows a player may name, where
+// GM a GM's ask of 2026-11-09): the NPCs of rows a player may name, where
 // they spawn and how they face, and what the report's flags ask of a creature
 // and a place. Nothing here changes an NPC: a report is a suggestion, applied
 // (or not) by a GM's approval on the GM panel's Camp reports page.

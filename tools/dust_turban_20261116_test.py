@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """dust_turban_20261116.py on a small database: the report writes nothing; --give is refused before --apply; --apply
 makes the turban (a copy of the Heirloom Helm: lore, model 1, its own name, icon and colour, every other column the
-helm's), its heirlooms row, its itemaura hat (kind 10 of the efreeti lord) and its itemowner row (Dust); a second
---apply finds nothing to do; --give puts one in Dust's pack, a second finds he holds it; --undo puts back exactly what
-was there, all or nothing: refused while he wears it. The controls: no Dust, nothing (exit 0); no Heirloom Helm, refused,
+helm's), its heirlooms row, its itemaura hat (kind 10 of the efreeti lord) and its itemowner row (a GM); a second
+--apply finds nothing to do; --give puts one in a GM's pack, a second finds he holds it; --undo puts back exactly what
+was there, all or nothing: refused while he wears it. The controls: no such character, nothing (exit 0); no Heirloom Helm, refused,
 nothing written; the free id's itemowner already someone's, refused."""
 import os
 import sqlite3

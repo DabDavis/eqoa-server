@@ -68,7 +68,7 @@ var PetitionStatuses = []string{PetitionOpen, PetitionClosed, PetitionDeleted}
 // PetitionsListed is how many petitions a player's inbox lists: one fewer than
 // the 100 rows CLIENT keeps, since it refuses to file a request with 100 held
 // (VIWndCSRequest::CheckFull, word 874 "You have too many open tickets."), so a
-// character with more always has room to file another (the GM Jibrish had 100
+// character with more always has room to file another (a GM had 100
 // open, 2026-11-10).
 const PetitionsListed = 99
 

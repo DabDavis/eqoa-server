@@ -3,7 +3,7 @@ package entity
 import "github.com/eqoa/server/internal/session"
 
 // safemode.go — a player's safe mode, /testinvis (petition 1424, the GM
-// Jibrish, 2026-11-10: "Add a safe mode command to everyone on the server.
+// a GM, 2026-11-10: "Add a safe mode command to everyone on the server.
 // This should turn on gm safe mode where no mobs agro though while its
 // toggled. The toggle is /testinvis. If they willfully engage in combat that
 // still works as normal, and they can be killed. It should make it so nothing

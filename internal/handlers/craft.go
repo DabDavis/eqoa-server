@@ -21,7 +21,7 @@ import (
 // viclientpart3834c.cpp; claude-notes/tradeskill-protocol-20261029.md):
 // requests on 0x1101 {u8 sub-op, u32 token, args}, replies on 0x1102 {u8
 // sub-op, ...}. The token is the server's and the client only echoes it;
-// Sandstorm's is 0 in the dump and in its replies, and so is this server's.
+// the reference server's is 0 in the dump and in its replies, and so is this server's.
 //
 //	1 {u32 id}          remove a recipe     -> 2 {u32 id, u32 token}
 //	2 {u32 id, u32 0}   create from a book  -> 9 made, 10 failed, 11 the tool broke,
@@ -83,7 +83,7 @@ const (
 	craftExpDiscovered byte = 7 // the same, x2C the recipe: "Would you like to add this to your recipe book?"
 )
 
-// craftToken is the token every reply carries (Sandstorm's 0).
+// craftToken is the token every reply carries (the reference server's 0).
 const craftToken uint32 = 0
 
 // craftCombineMax is what an Experiment's combine holds at most
@@ -101,7 +101,7 @@ const craftCombineMax = 4
 // craftBookMax recipes in its order are sent.
 const craftBookMax = 1000
 
-// The lines the server says beside a refusal, in Sandstorm's red. The level
+// The lines the server says beside a refusal, in the reference server's red. The level
 // one is CLIENT's own word 1598; the rest are ours.
 const (
 	craftSayTooLow     = "Your tradeskill level is not high enough to create that item."
@@ -834,7 +834,7 @@ func (h *CraftHandler) attempt(c *craftCtx, a *craftAttempt, discovery bool, out
 	if err := h.db.SetCharCraftSkill(c.char(), rec.Skill, a.skill.row()); err != nil {
 		log.Printf("Craft: %s's %s: %v", c.view.Name, craftSkillName(rec.Skill), err)
 	}
-	// petition 5073 (Innoruuk): say when a recipe is too easy to teach
+	// petition 5073: say when a recipe is too easy to teach
 	// anything, and when the skill rises a rank or a level
 	switch {
 	case gain == 0 && !wasCapped && rec.XP > 0 && beforeLevel-rec.Level > 1:
@@ -1091,7 +1091,7 @@ func craftSlotsOf(rows [database.CraftSkills]database.CraftSkill) [database.Craf
 	return out
 }
 
-// craftSlotsDefault is the slots of a character with no rows: Sandstorm's,
+// craftSlotsDefault is the slots of a character with no rows: the reference server's,
 // in every dump it sent ({99, 1, 0, 98} four times, {99, 99, 99, 98} twice).
 func craftSlotsDefault() [database.CraftSkills][4]uint32 {
 	return craftSlotsOf([database.CraftSkills]database.CraftSkill{})

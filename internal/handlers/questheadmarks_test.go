@@ -187,7 +187,7 @@ func TestQuestHeadMarksModes(t *testing.T) {
 	}
 }
 
-// The GM Jibrish's petition 1875: "After turning in a quest, if the quest NPC has a follow up it is not showing a new
+// a GM's petition 1875: "After turning in a quest, if the quest NPC has a follow up it is not showing a new
 // yellow ! for the newbie quests". The fixture's The pincers flagged (as each race's and class's first quest is), its
 // follow-up (Malsis's, requiring it) and that one's own (Kellina's) flagged by no one: before the turn-in the
 // follow-up shows nothing (it may not be taken yet); at the turn-in that finishes The pincers, "!" over Malsis at

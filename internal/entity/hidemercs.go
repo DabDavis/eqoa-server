@@ -2,7 +2,7 @@ package entity
 
 import "github.com/eqoa/server/internal/session"
 
-// hidemercs.go — /hide mercs and /show mercs (petition 1858, the GM Jibrish,
+// hidemercs.go — /hide mercs and /show mercs (petition 1858,
 // 2026-11-12: "add the command /hide mercs and /show mercs — this hide the
 // character model and nameplate for mercenaries, or restore them";
 // handlers/hidemercs.go has the commands).
@@ -15,7 +15,7 @@ import "github.com/eqoa/server/internal/session"
 // pass after /show mercs. Its own mercs stay in view: it commands them through
 // the merc menu (□ on its own merc), which needs the merc on a slot. Its
 // group's (a raid's too) stay in view as well: a mate's merc fights beside it
-// and is healed and buffed by it (petition 2138, Hogknight, 2026-11-15: "i
+// and is healed and buffed by it (petition 2138, 2026-11-15: "i
 // cant see my raid grp mercs and pets").
 //
 // It is the viewer's view alone. Nothing of the game looks here: a hidden merc

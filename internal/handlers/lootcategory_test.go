@@ -72,7 +72,7 @@ func TestACategorysRateHoldsWhateverItsPool(t *testing.T) {
 	}
 }
 
-// The trash's counts: jib's chances of 0 to 6 items a kill, each item drawn
+// The trash's counts: a GM's chances of 0 to 6 items a kill, each item drawn
 // from the creature's two on its own and gathered into stacks; 1.475 a
 // kill. Every count comes at its chance within five standard deviations.
 func TestTrashCountsComeAtTheirChances(t *testing.T) {
@@ -155,7 +155,7 @@ func TestWhoRollsCategories(t *testing.T) {
 	}
 }
 
-// seedCategories writes a preset, its rates and the pools: "jib" active with
+// seedCategories writes a preset, its rates and the pools: "a GM" active with
 // an uncommon at 1 in 2 and the trash counts; "user" with an uncommon at 1;
 // the sword in the plains' uncommon pool for levels 10-20, the bait in every
 // region's, and the bait the beetle's own trash.

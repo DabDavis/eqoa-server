@@ -42,7 +42,7 @@ import (
 //     server's ticks do;
 //   - hate_pct (ours, not the workbook's): the share of a hit's damage that
 //     is its hate on the creature, all of it when absent (petition 1372:
-//     Vylinnuza's Merciless Blizzard and Inferno, "little to no aggro
+//     a player's Merciless Blizzard and Inferno, "little to no aggro
 //     generated", hate_pct 0);
 //   - dispel_on_cast, dispel_on_contact, cure, mitigation, invulnerable,
 //     lull, breath, hide and the lowest level that may receive it

@@ -11,7 +11,7 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 )
 
-// The necromancer's zombie, mummy and spectre as Sandstorm's (petrotation.go),
+// The necromancer's zombie, mummy and spectre as the reference server's (petrotation.go),
 // in the pet rig: its owner a necromancer of 51, the crab given hit points
 // to last and only the pets' system run, so it never fights back and the
 // pet's hit points move by its taps alone. Each kind is run on the dice's
@@ -19,7 +19,7 @@ import (
 // swings (all the long one) or every 5, a spectre's instant after every
 // swing or every sixth, 0.5 s after it or 0.7.
 
-// The swings' visuals as Sandstorm sent them.
+// The swings' visuals as the reference server sent them.
 const (
 	fxAttack2 uint32 = 0xDA9BEA12
 	fxAttack3 uint32 = 0xDA9BEA13
@@ -469,8 +469,8 @@ func TestASpectresLateInstantIsDropped(t *testing.T) {
 // the mummy of 35 and the spectre of 44 take off what the same pet fighting
 // as ours (the same summoning under a name not recorded: the same body,
 // level and round) takes off, within 5%. Each hit is scaled by our round's
-// hits a second over Sandstorm's: x1 for the zombie (our round at 25 is
-// Sandstorm's), x4/3 for the mummy (four hits in 6 s against two in 4) and
+// hits a second over the reference server's: x1 for the zombie (our round at 25 is
+// the reference server's), x4/3 for the mummy (four hits in 6 s against two in 4) and
 // x1.73 for the spectre (two in 5.2 s).
 func TestARecordedPetKeepsItsDamageASecond(t *testing.T) {
 	old := meleeIntn

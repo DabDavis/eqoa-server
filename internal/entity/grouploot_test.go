@@ -7,7 +7,7 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 )
 
-// The GM Jibrish's petition 1878: "Create an option under the group menu to allow players to turn on need before
+// a GM's petition 1878: "Create an option under the group menu to allow players to turn on need before
 // green loot system that raids has". A group of three (no raid): its kill carries no loot rule while it loots free
 // for all (the control); a member's /grouploot is refused, the leader's sets need before greed, said to the group;
 // then its kill is a raid's kill to the loot, under need before greed, its seats its members in reach; master

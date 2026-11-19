@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// lava.go — the lava burns a player in it (the GM Jibrish's petition 2281, 2026-11-17,
+// lava.go — the lava burns a player in it (a GM's petition 2281, 2026-11-17,
 // owner-approved: "Enable lava damage per tick").
 //
 // The lava is the game's own: the zone leaves' lava flag (4) in each world's environment bake

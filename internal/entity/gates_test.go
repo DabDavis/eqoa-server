@@ -13,7 +13,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// The spells that send players to a named place (gates.go; jib's review, F3
+// The spells that send players to a named place (gates.go; a GM's review, F3
 // pass 19). The lines are EQOA-Data's; the places, ids and people made up.
 
 type gateFixture struct {
@@ -601,7 +601,7 @@ func TestAGateInARoomWithAHoleLandsOnItsFloor(t *testing.T) {
 }
 
 // An evacuation takes the whole power of everyone it sends, its caster among
-// them, whatever its line says (the owner, 2026-11-10, for jib's ruling: "the
+// them, whatever its line says (the owner, 2026-11-10, for a GM's ruling: "the
 // group pays for evacuations (as well as the caster), the caster just pays for
 // circles"): the wizard's three are group gates named "... Evacuation", their
 // workbook records read no "Set Maximum Power to 0". A member it does not send
@@ -641,7 +641,7 @@ func TestAnEvacuationTakesEveryTravellersPower(t *testing.T) {
 	}
 }
 
-// A logout ends a cast on its way (Live petition 5125, Indulgence: "Return
+// A logout ends a cast on its way (Live petition 5125: "Return
 // Home used to be able to be cancelled if you logged out before it went
 // off"): the caster leaves, logs in again under the same ServerID, and the
 // cast never lands on the new login. The control: a caster that stays has it

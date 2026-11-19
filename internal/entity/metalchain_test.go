@@ -9,7 +9,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// The Metal Moogie chain (work board #688, the GM Jibrish's): V3 to V5 on the metal rig, their originals
+// The Metal Moogie chain (work board #688, a GM's): V3 to V5 on the metal rig, their originals
 // spawn-only beside Metal Moogie's, their templates as the spec has them (V2's, then Arcane Siphon, then the
 // gearlings at 25%, then Self Repair at 50%), the Moogie Gearling at size 4.5 on a template of a fixed 25 a
 // hit and the root pinned to a stand-in of spell 460.

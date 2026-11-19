@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""mirror_jib_live_20261114.py on two small databases: the report writes nothing; --apply makes Jibrish's placement
+"""mirror_jib_live_20261114.py on two small databases: the report writes nothing; --apply makes a GM's placement
 on Heirloom as a copy of Heirloom's own source row (its model) with what differs on Live from Live's source (spot,
 level 24), its wander, npc_mirror and an inbox line, each row a gm_audit line; his deleted placement and another GM's
 are left; a second apply finds nothing to do; --undo deletes exactly what was made; Live is never written."""

@@ -9,7 +9,7 @@ import "math"
 // 1.5 above or below the height it was sent (ExtrapolateMove,
 // ExtrapolateGround), and its sprite plays byte 58 as a VICSpriteAnimID
 // (UpdateCreatures' SetLocomotion): 0 standing, 1 walking, 3 running, 14
-// dead. Sandstorm's wandering creatures walk at 5.0 units a second with 1
+// dead. The reference server's wandering creatures walk at 5.0 units a second with 1
 // and stand with 0, the velocity zero
 // (pcaps/ps2_sandstorm_1min10secs.pcap: bears, a lioness, a lavacrawler).
 
@@ -26,7 +26,7 @@ const (
 	LocoTread byte = 13
 )
 
-// NPCWalkSpeed is a creature's walking pace, Sandstorm's (5.0 to 5.2 units a
+// NPCWalkSpeed is a creature's walking pace, the reference server's (5.0 to 5.2 units a
 // second on every wandering creature recorded). NPCRunFrom is the speed from
 // which a move plays the run instead.
 const (

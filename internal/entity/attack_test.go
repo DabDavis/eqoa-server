@@ -26,7 +26,7 @@ func TestSwingTableAgainstTheCaptures(t *testing.T) {
 	if k := GetSwing(0, 10, bare); k != 0 || SwingDelay(k) != 3*time.Second {
 		t.Errorf("warrior 10 bare-handed: kind %d %v", k, SwingDelay(k))
 	}
-	// The effect ids Sandstorm sends in an NPC's 0x00B1: Attack1 live on
+	// The effect ids the reference server sends in an NPC's 0x00B1: Attack1 live on
 	// 2026-10-16, Attack3 in ps2_main_capture.
 	if got := HashResourceID("Attack1"); got != 0xDA9BEA11 {
 		t.Errorf("Attack1 = %08X", got)
@@ -144,7 +144,7 @@ func (r *vims) signed() int32 {
 var swing6s = Swing{Kind: 5, Delay: 6 * time.Second, Reach: 4.5}
 
 // A tap: byte 36 is back at 0 before the first round begins, so nothing
-// lands (Sandstorm, live: a Crab at 255/255 for 25 s).
+// lands (the reference server, live: a Crab at 255/255 for 25 s).
 func TestAutoAttackTapStartsNothing(t *testing.T) {
 	f := newFight(t)
 	if !f.w.EngageAttack(f.sess, f.npcID, swing6s, f.t0) {
@@ -168,7 +168,7 @@ func TestAutoAttackTapStartsNothing(t *testing.T) {
 // round every 6 s), the first round the press's (its hits from the 0x000F,
 // as the client's swing, its button read 0.25 s in), each hit a 0x00DB from
 // me to the NPC; let go, the round in hand lands whole and no other begins,
-// though the NPC fights on (Sandstorm: a bard's hits went on 1.15 s past the
+// though the NPC fights on (the reference server: a bard's hits went on 1.15 s past the
 // release, and no further); pressed again, with no 0x000F, the next round
 // begins (F3 20261026-020605).
 func TestAutoAttackRounds(t *testing.T) {
@@ -211,7 +211,7 @@ func TestAutoAttackRounds(t *testing.T) {
 
 // The round is the class's swing (GetSwing): an enchanter's Attack1 is one
 // hit every 3 s, an SK's with a shield Attack3, two hits at 0.5 and 1 s
-// every 4 s (Sandstorm's, measured on both).
+// every 4 s (the reference server's, measured on both).
 func TestAutoAttackRoundsByClass(t *testing.T) {
 	var primaryShield [21]bool
 	primaryShield[14], primaryShield[17] = true, true
@@ -340,7 +340,7 @@ func TestAutoAttackKillEndsTheFight(t *testing.T) {
 	}
 }
 
-// The NPC's swing as Sandstorm sends it at a round's start: 0x00B1, its
+// The NPC's swing as the reference server sends it at a round's start: 0x00B1, its
 // delay and Attack1 for a creature below Lv20 (rounds.go).
 func TestNPCSwingCarriesSandstormsEffect(t *testing.T) {
 	f := newFight(t)

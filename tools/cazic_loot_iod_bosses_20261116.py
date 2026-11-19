@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Cazic Thule's loot built from the records, and the Isle of Dread's Impale and Contagion made tougher (Heirloom
-petitions 2218, 2205 and 2207, Hoofbite, 2026-11-16; the owner's choices: "Build from records" and "+50% HP, +25% AC").
+petitions 2218, 2205 and 2207, 2026-11-16; the owner's choices: "Build from records" and "+50% HP, +25% AC").
 
 1. CAZIC THULE (npcloot "cazicthule", the IoD raid boss, L65, both of his rows). Petition 2218: "Cazic Thule only drops
    Bracelet of Doubt. Mob needs appropriate loot table." He rolled one table, "wiki cazicthule": one item a kill, at
    100%, of eleven at even weights (ten class items and Puppet Strings), so a kill gave one piece and one class in
    thirteen saw nothing of its own. The records (eqoa.forumotion.com t287, Ronson 2010-07, "Cazic Thule Loot Table";
-   work board 630, jibrish's IoD loot research from it, t198 and Allakhazam 2003-04) give him a class item for every
+   work board 630, a GM's IoD loot research from it, t198 and Allakhazam 2003-04) give him a class item for every
    class ("of Doubt" / "of Horror", sixteen in all), six misc drops and Puppet Strings. No era source gives a rate:
    the rates are ours (board 630's proposal, with two class rolls for one):
 
@@ -20,7 +20,7 @@ petitions 2218, 2205 and 2207, Hoofbite, 2026-11-16; the owner's choices: "Build
 
    "wiki cazicthule" is unbound from him (its npcloot row deleted; its loottables rows are left as they are). The
    class items are taken from that table AS IT STANDS: each of its eleven rows is the base record or that record's
-   Ascended copy (itemascended), and the new tables use whichever it holds, so work board 1536 (jibrish, in progress:
+   Ascended copy (itemascended), and the new tables use whichever it holds, so work board 1536 (in progress:
    Ascended copies 981200-981210 in place of the eleven, Heirloom) carries over when it is applied first. Applied
    after this tool, 1536 would change an unbound table: apply this one after it, or re-point 1536 at the new tables.
 
@@ -33,7 +33,7 @@ petitions 2218, 2205 and 2207, Hoofbite, 2026-11-16; the owner's choices: "Build
             lists DawnFire twice, WIS 20 CHA 10 and WIS 10 CHA 20; 5385 is the second, Collector Stacy's).
    Left out, no era source printing them (board 630 question 2): the Necromancer's Gloves of Horror and the
    Shadowknight's Breastplate of Doubt (960222 "Breastplate of Doubt" is Rallos Zek's mage piece, t287, not his).
-   Not changed here (board 630's record fixes, jibrish's open questions): the ten wiki records' stats (t287's differ in
+   Not changed here (board 630's record fixes, a GM's open questions): the ten wiki records' stats (t287's differ in
    every one), 7746's STR +63 for t287's -50 and its all-class mask (t287: Enchanter), the misc records' stats.
 
    Cazic Thule is a raid boss already (his template's hp_pct 8050), so the "boss " names change no raid rule.

@@ -3,7 +3,7 @@ package entity
 import "time"
 
 // critround.go — a creature's critical hit in place of a round (work 1340, the
-// GM Jibrish's instruction of 2026-11-13: "all NPC crits replace a normal quad
+// GM a GM's instruction of 2026-11-13: "all NPC crits replace a normal quad
 // round and open every engagement").
 //
 // A creature with a timed special (its class template's special_every, the

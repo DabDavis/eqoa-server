@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """instance_aura_migrate_20261116.py on a small database: refused without instanceaura; the report writes nothing;
 --apply moves each hand row onto the copy held there (a merc's too, its key -id), tags it, deletes the charaura row,
-keeps a hand that holds nothing and a copy with a row already, carries a charaura-two second, stacks Dust's twinkle
+keeps a hand that holds nothing and a copy with a row already, carries a charaura-two second, stacks a GM's twinkle
 where his row has none, tags a single holder's record-aura copies and lists a shared record; a second apply finds
 nothing; --undo puts every row back exactly; a row changed since is left by --undo and listed."""
 import os
@@ -49,7 +49,7 @@ def make(path, second_cols=False, instance=True):
     """)
     if instance:
         db.execute(tool.INSTANCE_DDL)
-        db.execute("INSERT INTO instanceaura (itemid, tag) VALUES (7, 'GM tag')")  # Jibwiz's staff: a row already
+        db.execute("INSERT INTO instanceaura (itemid, tag) VALUES (7, 'GM tag')")  # a GM's staff: a row already
     if second_cols:
         db.execute("UPDATE charaura SET kind2 = 3, source2 = 1, nodes2 = 50 WHERE charid = 193 AND slot = 9")
     db.commit()
@@ -106,9 +106,9 @@ class Migrate(unittest.TestCase):
         aura = {(r[0], r[1], r[2]) for r in db.execute("SELECT charid, merc, slot FROM charaura")}
         audits = db.execute("SELECT COUNT(*) FROM gm_audit").fetchone()[0]
         db.close()
-        self.assertEqual(inst[1][1:10], ("Shadowed, Twinkling", 255, 3, 0, 0, 0, 3, 0x1D875ECD, 100))  # Dust's twinkle stacked
+        self.assertEqual(inst[1][1:10], ("Shadowed, Twinkling", 255, 3, 0, 0, 0, 3, 0x1D875ECD, 100))  # a GM's twinkle stacked
         self.assertEqual(inst[2][1:5], ("Tainted", 0, 7, 1607773820))
-        self.assertEqual(inst[-11][1:5], ("Freezing", 0, 3, 1813322336))  # Dust's merc's copy
+        self.assertEqual(inst[-11][1:5], ("Freezing", 0, 3, 1813322336))  # a GM's merc's copy
         self.assertEqual(inst[3][1:4], ("Virtuous, Twinkling", 0, 0))  # Twinkle: a tag alone
         self.assertEqual(inst[7][1], "GM tag")  # untouched
         self.assertNotIn(4, inst)  # the shared record: nothing

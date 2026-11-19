@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The Plane of Sky's keys and passages (petition 1608, the GM Jibrish, at the second isle of rain's essence: "This needs
+"""The Plane of Sky's keys and passages (petition 1608, at the second isle of rain's essence: "This needs
 to ask for a key from the boss and then teleport people to the next island"; petition 1612, at Granavik: "after granavik
 dies he needs to drop 20 keys, and open a portal to the next island called Rain Key 3").
 
@@ -7,10 +7,10 @@ One guide-gaps set, `sky-keys` (tools/guidegaps/sky-keys.json), written by tools
 row it changes logged in guide_set_log so the undo is exact:
 
   - 21 keys, each a copy of Liztin Misseliania's rain key under its own name and words: Rain Key 1-5, Day Key 1-4, Night
-    Key 1-5, Snow Key 2-4, Desolation Key 1-4 (the names follow Jibrish's "Rain Key 3": the key of the isle it is used
+    Key 1-5, Snow Key 2-4, Desolation Key 1-4 (the names follow a GM's "Rain Key 3": the key of the isle it is used
     on); the main isle's three essences keep taking the keys Liztin sells;
   - twenty of each on its isle's boss's corpse, every kill (npcitem: one stack of 20; the bosses are those whose shard
-    the sky-twins set has the isle drop, Granavik for the third isle of rain as Jibrish named him, the Arch Bishop
+    the sky-twins set has the isle drop, Granavik for the third isle of rain as a GM named him, the Arch Bishop
     Lancel for the third of night, which has none): Artiokanis, Kaglanor, Granavik, the Spirit of Narciliisisin,
     Chimareon the Tyrant; the brightstar princess, Imerzan, the torrential wind, Randarin the Relentless; the Ancient
     Jester, the iron knight, the Arch Bishop Lancel, the dark baroness, King Ruthra; the Whirlwind, the glacial

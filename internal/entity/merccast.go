@@ -190,7 +190,7 @@ func mercUseOf(s *CastSpell) mercUse {
 		case EffectPower:
 			// a foe's power drained to the caster's group (the necromancer's
 			// Power path: Power Gale to Power Vortex), cast at a foe as the
-			// Blood path's hit points are (Heirloom petition 2302, Gonzo,
+			// Blood path's hit points are (Heirloom petition 2302,
 			// 2026-11-17: "I picked power path and they have no power path
 			// spells")
 			hit = hit || e.Amount < 0 && e.Drain == DrainGroup
@@ -279,7 +279,7 @@ func (ms *mercState) mercBook() []mercSpell {
 // mercBuffFloor: a merc keeps up no buff (not a song or a burst: short) of a
 // level under a mercBuffFloor-th of its own (ours, 2026-11-12: a level 60
 // cleric merc cast Divine Wisdom, +1 INT, and Minor Blessing, +1 CHA, both of
-// level 1 to 3, the owner: "buffs are stacking on Jibrish from mercs that
+// level 1 to 3, the owner: "buffs are stacking on a GM from mercs that
 // normally shouldn't").
 const mercBuffFloor = 3
 
@@ -346,7 +346,7 @@ func mercBestBuffs(book []mercSpell) []mercSpell {
 // mercSongFigure is what a short buff (a bard's song, an enchanter's burst)
 // gives a tick, its stats' figures summed: of two songs of one line the merc
 // keeps the bigger (mercBestBuffs). By rank alone a level 60 bard's power
-// path songs never sang (Kytank's petition 1993: "Bard merc doesn't seem to
+// path songs never sang (a player's petition 1993: "Bard merc doesn't seem to
 // be using power path spells (at 60)"): Power Vibe (the path's level 49
 // song, PoT 134 a tick for 24 s) and Harmony (level 55, PoT 30 a tick for
 // 150 s) are one workbook line (stack 3, +PoT), so Harmony's rank took Power
@@ -769,7 +769,7 @@ func (w *World) mercBuffTurnLocked(ms *mercState, now time.Time) bool {
 // the same owner (its team); its own cast too (a 5 s cast's landing comes
 // after its busy time ends). Three mercs of one owner each began
 // the same buff on him within a second, none landed yet to be seen
-// (2026-11-12, the GM Jibrish's three clerics: Group Resist Affliction landed
+// (2026-11-12, a GM's three clerics: Group Resist Affliction landed
 // on him three times over); since then the first cast stands for all.
 // Must be called with the lock held.
 func (w *World) mercBuffComingLocked(ms *mercState, s *CastSpell, id EntityID) bool {
@@ -1182,7 +1182,7 @@ func (w *World) mercHelpLocked(ms *mercState, s *CastSpell, id EntityID, now tim
 }
 
 // mercSpellPct is the share, in percent, of its spells' damage a merc of
-// the class deals: a wizard's 50 (the GM Jibwiz's petition 1907: "Nerf the
+// the class deals: a wizard's 50 (a GM's petition 1907: "Nerf the
 // damage per cast on the mercenary wizard by 35%", 65; then his petition 1954:
 // "The wizard mercenary is still too powerful. Reduce its damage by an
 // additional 15% across the board", 15 more off), every other class's whole.

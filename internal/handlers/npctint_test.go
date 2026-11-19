@@ -89,7 +89,7 @@ func TestNPCTintsAnswered(t *testing.T) {
 	}
 }
 
-// The GM Jibrish's petition 1893 (Mr. Moogie's whole body in a soft red glow): a client that answers 2 is sent
+// a GM's petition 1893 (Mr. Moogie's whole body in a soft red glow): a client that answers 2 is sent
 // layout 2, each name's colour then its glow, a name of a glow alone in it; one that answers 1 (a vanilla before
 // the glow, which answers 1 to any offer) the tints alone as before, the glow's name left out; an answer past
 // the newest is the newest (3 since the auras).

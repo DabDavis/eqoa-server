@@ -1,7 +1,7 @@
 package entity
 
 // cmpetlook.go — a mastery rank that changes the look of its owner's pet and
-// nothing else (the owner, 2026-11-16: "lets give zerkziee a custom construct
+// nothing else (the owner, 2026-11-16: "lets give [a player] a custom construct
 // for his tinker pet as another option cm only for him. the drachnid for jarek
 // n toxis lvl 10 delf quest model"). A rank whose effects carry PetLook
 // (cmcatalog's effects, "PetLook:360074664": Jarek's Creation's body,
@@ -17,8 +17,8 @@ package entity
 
 //
 // A rank whose effects carry PetArt ("PetArt:3863711096": the catapult prop
-// of Tunaria's zone 108, 0xE64B8D78, by where the GM Dust stood; the owner,
-// 2026-11-17: "where dust is is a catapult prop ... lets give it to zerkziee.
+// of Tunaria's zone 108, 0xE64B8D78, by where a GM stood; the owner,
+// 2026-11-17: "where [a GM] is is a catapult prop ... lets give it to [a player].
 // it can ram for attack and we can make the catapult fire") dresses the same
 // pets in a zone's prop, which no character file holds: npc.Art, sent only to
 // a client that draws it, in a world where a decorart row of kind pet names

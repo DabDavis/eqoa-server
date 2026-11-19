@@ -8,7 +8,7 @@ import (
 )
 
 // BookChange leaves out a spell a rank both adds and removes (an improvement
-// in place: jib's review, F3 pass 19) and keeps the rest in the list's order;
+// in place: a GM's review, F3 pass 19) and keeps the rest in the list's order;
 // an ability never found (spell 0) stays a name, given nothing. The control:
 // a rank adding one spell and removing another swaps them.
 func TestCMBookChangeKeepsASpellImprovedInPlace(t *testing.T) {

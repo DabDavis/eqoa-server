@@ -257,10 +257,10 @@ func TestGMSizeKeptInTheRow(t *testing.T) {
 	}
 }
 
-// The owner, 2026-11-14: "lets give the account for kobe, skywalker access to use
+// The owner, 2026-11-14: "lets give the account for [a GM], [a player] access to use
 // ./size ... will set that mobs size in the database so will stay that size and also
 // update it instantly". A player's /size is an unknown command (the control); made
-// a sub GM (forestwood's tester row, marked sub GM), its /size on a creature sizes it at once and
+// a sub GM (a GM's tester row, marked sub GM), its /size on a creature sizes it at once and
 // keeps it in the row, audited; with no creature targeted it is refused (a sub GM's
 // /size is a creature's), its own size left alone.
 func TestSubGMSizeKeptInTheRow(t *testing.T) {
@@ -299,7 +299,7 @@ func TestSubGMSizeKeptInTheRow(t *testing.T) {
 	}
 }
 
-// The owner, 2026-11-14: "/roamer off is not working for jib". /roamer off (and stop, none,
+// The owner, 2026-11-14: "/roamer off is not working for a GM". /roamer off (and stop, none,
 // no) on a creature whose NAME's rule roams writes the row's own stand (npcwander -1), audited,
 // read into the world at once: it stands. /roamer again roams it (300), replacing the stand.
 func TestGMRoamerOffStandsANameRuleRoamer(t *testing.T) {

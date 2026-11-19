@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// jib's quest walk of 2026-10-30 saw Rapid Strike (reach 4.5) refused "Out of
+// A GM's quest walk of 2026-10-30 saw Rapid Strike (reach 4.5) refused "Out of
 // range." at a Training Dummy #spawn had put 3 ahead of the warrior. The test
 // is CLIENT's TargetInRange, centre to centre in three dimensions, on the
 // server's places of both: a copy #spawn makes (SpawnNPCCopy 3 ahead, at the

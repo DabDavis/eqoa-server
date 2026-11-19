@@ -6,7 +6,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// sandstormNPCWeapons is every NPC weapon Sandstorm's state channels show in
+// sandstormNPCWeapons is every NPC weapon the reference server's state channels show in
 // the PS2 captures (pcaps/*sandstorm*, ps2_main_capture, breath_capture,
 // login_position_capture; re-tools/decode_entity_channels.py --raw): the
 // NPC, the hand, the model and its attack type (bytes 91 and 92).
@@ -51,9 +51,9 @@ var sandstormNPCWeapons = []struct {
 	{"enchanted armor", 0, 0xBE0B682B, 1},
 }
 
-// Every NPC weapon Sandstorm shows comes out with its type; a model the
-// catalog has only as a ranged weapon takes its type (a hand Sandstorm did
-// not show), and an empty hand is 0. The control: without Sandstorm's own
+// Every NPC weapon the reference server shows comes out with its type; a model the
+// catalog has only as a ranged weapon takes its type (a hand the reference server did
+// not show), and an empty hand is 0. The control: without the reference server's own
 // exceptions the rule alone misses six, so the test can tell.
 func TestNPCHandTypes(t *testing.T) {
 	ranged := map[uint32]byte{0x0DA9879A: 7, 0x891F30E3: 9, 0xB0A9CBD2: 10}
@@ -81,7 +81,7 @@ func TestNPCHandTypes(t *testing.T) {
 		{"Archer Kelikor", 0, 0x0DA9879A, 0, 7},     // a bow, in the off hand
 		{"crossbowman", 0x891F30E3, 0, 9, 0},        // a crossbow in the main hand
 		{"Gal`Saris dragoon", 0xB0A9CBD2, 0, 10, 0}, // a throwing knife
-		{"Guard Fitsroy", 0x704B395B, 0, 1, 0},      // another weapon than Sandstorm showed him with
+		{"Guard Fitsroy", 0x704B395B, 0, 1, 0},      // another weapon than the reference server showed him with
 		{"a gnoll", 0, 0, 0, 0},                     // nothing held
 	} {
 		if p, s := npcHandTypes(c.name, c.primary, c.secondary, ranged); p != c.wantP || s != c.wantS {

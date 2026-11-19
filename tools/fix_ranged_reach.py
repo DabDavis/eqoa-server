@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The bows', crossbows' and thrown weapons' range (the user, 2026-10-29: "im
-on funyun and cant throw throwing knife").
+on [a GM] and cant throw throwing knife").
 
 An item's range is the item record's field after its weapon damage
 (itempattern.unk5), which CLIENT's TargetInRange (0x00BDC4B8) and the
@@ -10,21 +10,21 @@ Every one of this server's (60 bows, 10 crossbows, 2 throwing knives) had 0,
 so none could be fired; only the thrown potions, which tools/seed_potions.py
 gave 20, could.
 
-Sandstorm's own records give each one (every `eqoa harvest` JSON with
+The reference server's own records give each one (every `eqoa harvest` JSON with
 merchants' wares: --prices, as tools/stock_merchants.py reads them): every
 thrown weapon and crossbow 25, every bow 25 but the crafted and weak
 composite longbows, 30. And they show more of its ranged weapons wrong here:
 six of its bows and crossbows were no ranged weapon at all (slot 12, attack
 type 0: Simple Light, Medium and War Crossbow, Crafted Shortbow and
-Composite Longbow, Weak Longbow), the crossbows' damage below Sandstorm's,
-the throwing knives stacking to 99 and 1 where Sandstorm's stack to 2000, the
+Composite Longbow, Weak Longbow), the crossbows' damage below the reference server's,
+the throwing knives stacking to 99 and 1 where the reference server's stack to 2000, the
 steel one worn in slot 17.
 
-So: a ranged weapon Sandstorm sells, by its name, takes Sandstorm's record
+So: a ranged weapon the reference server sells, by its name, takes the reference server's record
 (slot, stack, attack type, damage, level and range) where ours differs; an
 item with a potion's row (itemeffect: tools/seed_potions.py's, ours by
 design) is left as it is. Any other item of a ranged attack type with no
-range takes 25 (OURS: Sandstorm's every thrown weapon's and crossbow's, and
+range takes 25 (OURS: the reference server's every thrown weapon's and crossbow's, and
 155 of its 184 bows'). A range already set is never changed.
 
 Every change is logged in ranged_reach_fix_log (the pattern, its values before
@@ -46,7 +46,7 @@ DEFAULT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "eqo
 RANGED = (7, 9, 10)
 DEFAULT_RANGE = 25
 
-# Sandstorm's record's fields, as itempattern names them
+# The reference server's record's fields, as itempattern names them
 FIELDS = {"wear_slot": "equipslot", "max_stack": "maxstack", "attack_type": "attacktype", "damage": "weapondamage",
           "level_req": "levelreq", "range": "unk5"}
 LOG_SCHEMA = """CREATE TABLE ranged_reach_fix_log (
@@ -67,7 +67,7 @@ def key(name):
 
 
 def measured(paths):
-    """Sandstorm's ranged weapons' records by item name: {name: {column:
+    """the reference server's ranged weapons' records by item name: {name: {column:
     value}}, and the names it gives two records (none so far)."""
     files = []
     for p in paths:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The first quest everyone has, for every race and class, flagged for the marks over the NPCs' heads (the GM Jibrish's
+"""The first quest everyone has, for every race and class, flagged for the marks over the NPCs' heads (a GM's
 petition 1813, 2026-11-12: "Add the ability for us to add yellow ! and ? over NPCs in game ... Once done place these
 for the first quest everyone has for every race and class"; handlers/questheadmarks.go, table questmarks).
 

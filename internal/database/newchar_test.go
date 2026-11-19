@@ -196,7 +196,7 @@ func TestCreateNewStartsInTheHomeCity(t *testing.T) {
 }
 
 // Every class has a starting ability and Return Home; the measured ones are
-// Sandstorm's ids.
+// the reference server's ids.
 func TestStartingAbilities(t *testing.T) {
 	for class := 0; class < 15; class++ {
 		a := StartingAbilities(class)
@@ -276,7 +276,7 @@ func TestIsWereAbility(t *testing.T) {
 }
 
 // A new character carries its race and class's starting items (startitems:
-// Sandstorm's starting weapon and rations, by combo), none worn, each at its
+// the reference server's starting weapon and rations, by combo), none worn, each at its
 // record's full condition; a froglok an eastern human's; a combo with no rows
 // nothing; an item the database lacks is left out.
 func TestCreateNewCarriesTheStartingItems(t *testing.T) {

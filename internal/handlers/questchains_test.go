@@ -11,7 +11,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// What jib's quest walk of 2026-10-30 found in the engine: a quest asking one
+// What a GM's quest walk of 2026-10-30 found in the engine: a quest asking one
 // of several quests finished (a recruiter's token each class gets from its
 // own), a shop's offer once a session, a giver of repeatable quests going on
 // through them, and a loot step whose item the player holds a full stack of.

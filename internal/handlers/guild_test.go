@@ -293,7 +293,7 @@ func TestGuildJoinByTheInviteesIDAndChat(t *testing.T) {
 }
 
 // A yes to a guild's invitation counts though the invitee's view moved the inviter
-// since the invitation (the user, 2026-11-08: Larrybird's invitations in a crowd): it
+// since the invitation (the user, 2026-11-08: a player's invitations in a crowd): it
 // names the inviter by the id the invitation carried, which now names no one, and
 // joins; and a refusal is logged with its reason. The control: an id the invitation
 // did not carry joins nothing (TestGuildJoinByTheInviteesIDAndChat).

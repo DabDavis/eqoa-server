@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The hill giant, the orc and the satyr given their own female bodies in racedefs (the GM Jibrish's petition 1647,
+"""The hill giant, the orc and the satyr given their own female bodies in racedefs (a GM's petition 1647,
 2026-11-11: "when making a race as sylvan the male and female models both show the male but there should def be a
 female one - the model is in the game"; "sylvan" is the satyr: the disc's sylvan fauns and faun maidens wear her body).
 

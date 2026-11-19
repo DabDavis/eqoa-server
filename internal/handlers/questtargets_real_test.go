@@ -18,7 +18,7 @@ import (
 // is one of its creatures to the engine, and on each loot step a kill of every
 // one of them drops the step's item for a character on it (the draw fixed to
 // land), where a kill of a creature the step does not name drops nothing (the
-// control). Neriak's "New Gear" (the user, 2026-10-30: "dust was farming beaks
+// control). Neriak's "New Gear" (the user, 2026-10-30: "[a GM] was farming beaks
 // ... and it never drops") is checked by name when the database has it: a
 // magpie drops the beak, a crow does not. Skipped without a database, and on
 // one the tool has not been applied to: none is in this repository.

@@ -13,7 +13,7 @@ import (
 	"unicode/utf8"
 )
 
-// Character transfers (the user, 2026-11-05: "players from sandstorm want to
+// Character transfers (the user, 2026-11-05: "players from [another server] want to
 // keep their characters", then "build the form"): a player's request to bring
 // a character over from another server, filed on the transfer page
 // (internal/transfers) for a character the player has made here (its race,

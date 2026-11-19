@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// The GM Jibrish's petition 1522: Mr. Moogie "If he reaches 2% hp he completely heals to full and doubles his
+// a GM's petition 1522: Mr. Moogie "If he reaches 2% hp he completely heals to full and doubles his
 // damage if a non player character is hitting him". Over the template rig's creatures: the guard stands at
 // 2% or under once an NPC (the brute) is on its hate list, alive, and not before (players alone: the control);
 // whole again, its line in /say, its melee and its kick twice what they were, for the rest of that fight; once

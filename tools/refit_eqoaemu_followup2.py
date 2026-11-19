@@ -3,7 +3,7 @@
 tools/refit_eqoaemu_followup.py): the classes that round moved, fitted again by the same method to the same targets.
 
 What the second round moved, measured with the fight simulator (cmd/balancesim against SOE's roamer, every level 1-60, 40
-fights a cell, the player's low point averaged over the fights won one and two up) on eqoaclassic's database of 18:59
+fights a cell, the player's low point averaged over the fights won one and two up) on the production server's database of 18:59
 UTC with the round's data in it (tools/fix_eqoaemu_followup2.py, fix_eqoaemu_places.py, fix_broken_records.py,
 fix_scrolls.py, remove_leftover_spells.py, fix_eqoaemu_pet_abilities.py) and its server, under the 16:38 re-fit's rows,
 against the state live at 18:59 (that database before the round, the 18:50 server):
@@ -50,7 +50,7 @@ the ranger's 8-60, the shaman's 4-60 and its pet's (49-60 on the shaman's list w
 each a row and checked with the simulator: a ranger of 10 at 16 dealing 115 (the cut's 17 at 100 left it 14%: a level
 10 roamer's crits, the share alike at 15 and 16), a shadow knight of 24 at the yellow stage's own 322 and of 28 and 50
 a step of 0.9 lower (the cut's line left a yellow's win rate just under its bar), a druid of 60 at 135 (the cut's 131
-left its red won alone 42%, the red stage's 131.1 40%), a rogue of 35 dealing 115 (it won its wisps, jib's casters at
+left its red won alone 42%, the red stage's 131.1 40%), a rogue of 35 dealing 115 (it won its wisps, a GM's casters at
 28%, two up 38% at the cut's row; 94% dealing 115, its roamer's yellows at 26%), a bard of 60 and a monk of 60 a step of 0.9 lower (76 and 173:
 two up won 52% and 62%), and the enchanter's pet at 45 and at every level 49-60 its own row of 31-40 (the knife edge
 between its yellows and its reds alone: each the hit points that win the yellows and lose the red, under where the red
@@ -59,7 +59,7 @@ is won). Under them no cell of any class the 18:59 state had on the targets is o
 fights are as they were (the median class 67-86% left), and two of a level win their reds three up 75-100% of the time,
 three every one; the cells off the targets before are off them still (the level 1s, an alchemist of 2 and 3, the
 rooting wizard's and alchemist's low points, a rogue of 9 at 15%, a shadow knight of 5 at 41%, a magician's pet at 44
-and 46, a necromancer's pet at 1 and 2, an enchanter's pet at 1). 241 rows on eqoaclassic's copy of 18:59 with the
+and 46, a necromancer's pet at 1 and 2, an enchanter's pet at 1). 241 rows on a copy of the production server's database of 18:59 with the
 round's data in.
 
 It writes balanceclasslevel's rows of each class in SPAN (its spans of levels lo..hi) to FOLLOWUP's, each change only

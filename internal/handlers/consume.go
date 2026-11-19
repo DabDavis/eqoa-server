@@ -23,8 +23,8 @@ import (
 // surface of 128x64, the inventory's whole tile, and VIWndInfluence blits an
 // effect's icon whole at its own size into a cell 34 high, so a meal's tile
 // covered the effects beside it. What lasts of a spell goes on 0x43 as the
-// ability's own icon (Sandstorm's, claude-notes/casting-sandstorm-20261021.md),
-// a UI.CSF surface of 32x32. Sandstorm showed a meal and a drink alike with
+// ability's own icon (the reference server's, claude-notes/casting-sandstorm-20261021.md),
+// a UI.CSF surface of 32x32. The reference server showed a meal and a drink alike with
 // the health-over-time one (lane-spellfx24, 2026-10-30: Elven Wine, Spiced
 // Jerky and mine rations all 0x828563AF), and named a plain ration's effect
 // "Food" where a grocer's meal or drink kept its item's name ("Elven Wine",
@@ -39,7 +39,7 @@ import (
 // change it). None of it is measured.
 //
 // A new character's rations are meals too (the user, 2026-10-29: "should be
-// magic slot as usable"): Sandstorm's (tools/fix_start_item_records.py) are
+// magic slot as usable"): the reference server's (tools/fix_start_item_records.py) are
 // of CLIENT's usable type, 2 (the record's +0x4C: VIInfoText::IsUsable), and
 // described as the food they are ("A slice of toasted bread with mushroom
 // infused butter, ..."), with no stat and no words for what eating one does.
@@ -72,18 +72,18 @@ const usableType = database.ItemTypeUsable
 // consumableEffectIcon is a meal's and a drink's effect icon, spellpattern.icon
 // as it reaches the wire: Regenerative Aura's ("Increase HP per tic", the
 // whole healing line's icon: Minor Healing, Healing, the Celebrations), as
-// Sandstorm showed both (a drink here had Breeze's, 0xA2774C47, until
+// the reference server showed both (a drink here had Breeze's, 0xA2774C47, until
 // 2026-10-30).
 const consumableEffectIcon uint32 = 0x828563AF
 
-// rationEffectName is what a plain ration's effect is called, as Sandstorm
+// rationEffectName is what a plain ration's effect is called, as the reference server
 // called a mine ration's.
 const rationEffectName = "Food"
 
-// Refusals. The level one is the line Sandstorm gives an item used below its
+// Refusals. The level one is the line the reference server gives an item used below its
 // level (scribe.go); the fight one is ours, a meal's alone: a meal ends in a
 // fight (entity/consumable.go), so one taken in a fight would be gone at
-// once. A drink is taken mid-fight, as Sandstorm took one.
+// once. A drink is taken mid-fight, as the reference server took one.
 const (
 	consumeFighting = "You can't eat or drink that while you are fighting."
 	consumeTooLow   = scribeTooLow
@@ -164,7 +164,7 @@ func (h *EquipHandler) consume(sess *session.Session, player *entity.Player, idx
 		return
 	}
 	queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(idx, 0, 1))
-	// then, in the same moment, Sandstorm's eating-and-drinking visual: the
+	// then, in the same moment, the reference server's eating-and-drinking visual: the
 	// cheer, its sound and its particles (entity.Consumed)
 	if h.consumed != nil {
 		h.consumed(sess)

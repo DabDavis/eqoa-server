@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-// Table racesize is made with jib's gnomes at 0.9 (F3 20261029-212125), and
+// Table racesize is made with a GM's gnomes at 0.9 (F3 20261029-212125), and
 // only when it is made: a GM's delete of that row, or a change, stands at the
 // next start. The control: another race has no row, so it is drawn at its
 // own size.

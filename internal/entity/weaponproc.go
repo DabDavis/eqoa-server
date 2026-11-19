@@ -36,9 +36,9 @@ import (
 // thirteenth field there, the range (a bow's 25 to 50, a thrown knife's 25),
 // and nothing reads it.
 //
-// How often and how it lands is not recorded anywhere (Sandstorm's recordings
+// How often and how it lands is not recorded anywhere (the reference server's recordings
 // hold no weapon proc), so it is proc.go's figures for the enchanter's procs,
-// by DEX where theirs go by INT (petition 1360, Zaeire: "weapon proc chance
+// by DEX where theirs go by INT (petition 1360: "weapon proc chance
 // scales off dex while ability proc chance scales off int"): each landed hit
 // of the hand that holds the weapon procs at 3% and one more for each 20 DEX,
 // at most 25% (weaponProcChancePct), unless its words give its own chance
@@ -63,7 +63,7 @@ import (
 //     first at once, a proc on a creature already bearing it begun again;
 //   - Sunsilver's anti-aggro: the creature's hate for the wielder halved
 //     (ours: no figure is known), and a buff's visual on the wielder;
-//   - a root or a snare (petition 1821, the GM Jibrish: "Enable code for
+//   - a root or a snare (petition 1821: "Enable code for
 //     weapons to have working root or snare procs"): any record whose words
 //     name one in the sentence of a proc ("Procs a root.", "Procs: Snare",
 //     "Procs a 6 second root.", "Procs a 40% snare for 10 seconds.", "root
@@ -165,7 +165,7 @@ type WeaponProc struct {
 	// Root and Snare are a hold its proc lays as well as (or, for the kinds ProcRoot
 	// and ProcSnare, instead of) its damage: a root, a snare of SnarePct (0:
 	// procSnarePct); HoldFor its time (0: procRootFor, procSnareFor). Petition 1821
-	// (the GM Jibrish: "Enable code for weapons to have working root or snare
+	// (a GM: "Enable code for weapons to have working root or snare
 	// procs"): any record whose words name one (WeaponProcFromText's procHoldRe).
 	Root, Snare bool
 	SnarePct    int
@@ -255,8 +255,8 @@ const fxProcLifeTap uint32 = 0xAF72B893
 var weaponProcsByName = map[string]WeaponProc{
 	// EQOA-Data's "proc" figures of the level 49 epic weapons
 	"selo's jeweled rapier": {Kind: ProcHit, Damage: 140},
-	// petition 1048, the GM Jibrish: "Hammer of the paragon should be hp50 50
-	// power AoE proc" (and 1047, Etman: it never procced in 150 swings): 50
+	// petition 1048: "Hammer of the paragon should be hp50 50
+	// power AoE proc" (and 1047, a player: it never procced in 150 swings): 50
 	// hit points and 50 power to its wielder and the group round it
 	"hammer of the paragon": {Kind: ProcRestore, Damage: 50, Power: 50},
 	"scimitar of fury":      {Kind: ProcHit, Damage: 100},
@@ -268,7 +268,7 @@ var weaponProcsByName = map[string]WeaponProc{
 	"sunsilver blade": {Kind: ProcCalm},
 	// EQOA-Data's 5, and the records' "a chance to do additional poison damage"
 	"greater corrosive stick": {Kind: ProcHit, Damage: 5, Resist: StatPR},
-	// petition 2043, Deathcore: "was 900 on live" (EQOA-Data's 5 is likely its chance, not its damage)
+	// petition 2043: "was 900 on live" (EQOA-Data's 5 is likely its chance, not its damage)
 	"superior corrosive stick": {Kind: ProcHit, Damage: 900, Resist: StatPR},
 	// described with no figure (ours): the Flamberge of Horror's 25, the one
 	// lifetap with a figure; Blacktongue's 50, the other level 49 DoT; the
@@ -306,7 +306,7 @@ var weaponProcsByName = map[string]WeaponProc{
 }
 
 // weaponProcLooks are records made in another weapon's look, keeping that weapon's figures and its proc under a name of
-// their own: each takes its original's entry in weaponProcsByName (petition 1371, Uzii, 2026-11-13: "steelwind staff
+// their own: each takes its original's entry in weaponProcsByName (petition 1371, 2026-11-13: "steelwind staff
 // not proccing", the Staff of Faykind's figures in the Steelwind's look, made for transfer 93, kept its stats and lost
 // its pixie form, its proc being the name's).
 var weaponProcLooks = map[string]string{
@@ -453,9 +453,9 @@ var procElements = []struct {
 }{{regexp.MustCompile(`\bdisease`), StatDR}, {regexp.MustCompile(`\bpoison`), StatPR},
 	{regexp.MustCompile(`\bice\b`), StatCR}, {regexp.MustCompile(`\bfrost`), StatCR}, {regexp.MustCompile(`\bcold\b`), StatCR},
 	{regexp.MustCompile(`\bfire\b`), StatFR}, {regexp.MustCompile(`\bflame`), StatFR}, {regexp.MustCompile(`\blightning`), StatLR},
-	// petition 1053, Hoofbite: Davoh's Dirk "on hit, deals 100 piercing damage"
+	// petition 1053: Davoh's Dirk "on hit, deals 100 piercing damage"
 	{regexp.MustCompile(`\bpierc`), StatPierce},
-	// petition 1115, Hoofbite: Keelcleaver's "150 dmg slashing proc"
+	// petition 1115: Keelcleaver's "150 dmg slashing proc"
 	{regexp.MustCompile(`\bslash`), StatSlash}}
 
 // elementOf is the element a description's proc is of, by its words: AR

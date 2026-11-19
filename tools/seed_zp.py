@@ -9,7 +9,7 @@ our massive local EQOA DB for ZP data and work on a patch to populate it",
 2026-11-06). The merged research database (merged-content 20261020, every
 private server's NPC rows and the world research) holds no placement on the
 plateau but ZP1 and one unnamed Return Home marker; FrontiersForge's sightings
-and Sandstorm's census never went there. So every spot here is ours.
+and the reference server's census never went there. So every spot here is ours.
 
 Where things are, read off the disc: the Secrets world (world 5, DATA3/
 SECRETS.ESF), zone 5 (x 4000-6000, z 6000-8000), CLIENT's "Zaoran Plateau":

@@ -6,7 +6,7 @@ import (
 )
 
 // What the Spell Archivist's grant reads and his grant and clear write
-// (handlers/archivist.go; the GM Jibrish's petition 1279, 2026-11-08: "Grant
+// (handlers/archivist.go; a GM's petition 1279, 2026-11-08: "Grant
 // basic spells", the spells of a player's class a merchant sells, and a clear
 // book kept but for Return Home).
 
@@ -239,7 +239,7 @@ func (s *SpellbookStore) SwapSpells(serverID uint32, out, in []int, order int) (
 }
 
 // IsReturnHome is whether a spell of the name is Return Home: every record so
-// named, any case (1623 as Sandstorm numbers it, 1542, and the wizards' 2300).
+// named, any case (1623 as the reference server numbers it, 1542, and the wizards' 2300).
 func IsReturnHome(name string) bool {
 	return strings.EqualFold(strings.Join(strings.Fields(name), " "), "Return Home")
 }

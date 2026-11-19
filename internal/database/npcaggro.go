@@ -10,7 +10,7 @@ import "fmt"
 // (30). leash: how far from where a fight began they follow before going home,
 // 0 the world's (entity.DefaultLeash, 300; petition 1535: the West Plateau's
 // phantoms went home too soon). see_invis 1: they notice an invisible player
-// (petition 1814, Skywalker: the moth larvae), attacking it on sight as any
+// (petition 1814: the moth larvae), attacking it on sight as any
 // other; being seen does not end the invisibility, a hit does (invis.go). holds 1:
 // in a fight they stand where they are, as a rooted creature, so no pull moves
 // them off their post (Tallon Zek's Zek Sentry, eqoa.forumotion.com t218: "cannot

@@ -7,7 +7,7 @@ import (
 )
 
 // charrez: what a resurrection may still give back of a character's latest
-// death's experience debt (entity/resurrect.go; jib's review, F3 pass 19):
+// death's experience debt (entity/resurrect.go; a GM's review, F3 pass 19):
 // debt is what that death added, left_ms the time its chance still has,
 // counted while the character is in the world (as charbuffs' left_ms is); placed,
 // world, x, y, z where that death happened, the way back a rez offers (a row from

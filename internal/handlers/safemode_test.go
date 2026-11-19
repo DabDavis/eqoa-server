@@ -16,7 +16,7 @@ func newSafeDB(t *testing.T) (*database.SQLiteDB, *database.SQLiteCharacterStore
 	return db, database.NewSQLiteCharacterStore(db)
 }
 
-// Petition 1424 (the GM Jibrish): /testinvis is everyone's. A player with no GM
+// Petition 1424: /testinvis is everyone's. A player with no GM
 // or tester standing turns safe mode on and off with each spelling
 // ("/testinvis", "#testinvis", a PS2's "/t testinvis", any case), told so to
 // itself alone, the mode kept in charsafemode; "/t testinvis hello" is a tell.

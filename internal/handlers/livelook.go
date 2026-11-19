@@ -21,7 +21,7 @@ import (
 // server says what is in force (0x7E0D, a u32) and, while the client is
 // still choosing a character, sends its list again in that look. A PS2
 // ignores the offer (CLIENT's dispatcher has no default case), and a server
-// that never offers it (Sandstorm) is never asked. The offer goes after the
+// that never offers it (the reference server) is never asked. The offer goes after the
 // list so a PS2's list keeps its sequence number.
 
 // buildLiveLookOffer is OpcodeLiveLook from the server: a u32, 1.
@@ -75,7 +75,7 @@ const liveLookSecond = 128
 // liveLookHat is bit 8 of a client's answer (with liveLookSecond): it also
 // draws the helm's hat apart from the helm's aura, the hat after the hands'
 // seconds and the helm's other aura in its place (entity.HatAuraChannel, 365
-// bytes; the owner, 2026-11-16: "when i put /aura on dusts turban turns it
+// bytes; the owner, 2026-11-16: "when i put /aura on [a GM]'s turban turns it
 // into a cloth cap"). Granted, the look in force's third u32 carries it too.
 // A client before it is sent the 355 bytes, the hat in the helm's place.
 const liveLookHat = 256

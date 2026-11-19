@@ -1,6 +1,6 @@
 package protocol
 
-// A group's or a raid's ready check (the GM Jibrish's petition 1711, 2026-11-12;
+// A group's or a raid's ready check (a GM's petition 1711, 2026-11-12;
 // entity/readycheck.go, handlers/readycheck.go): /readycheck asks the group's other
 // players "Are you ready?" for 30 seconds and tells the asker who is not. A client
 // that shows the question in a window of its own (one that stops nothing: vanilla's)

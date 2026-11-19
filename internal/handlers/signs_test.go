@@ -292,7 +292,7 @@ func TestALoginIsToldWhereTheBoonIs(t *testing.T) {
 	}
 }
 
-// Petition 1140, Jibmage: "For alll announcement boards that currently give boon and sow, when players
+// Petition 1140: "For alll announcement boards that currently give boon and sow, when players
 // talk to them also give it a dialogue option so they can optionally get a 10 minute superior
 // invisibility cast on them". A board asks after its boon and Spirit of the Wolf; a yes makes the player
 // invisible, once for one asking; a no, or a road sign, gives nothing.
@@ -352,7 +352,7 @@ func TestABoardOffersInvisibility(t *testing.T) {
 	}
 }
 
-// Petition 1218, the GM Jibrish: a board, and a town's other signs, offer one who has a
+// Petition 1218: a board, and a town's other signs, offer one who has a
 // place to go back to the way there, once; no experience comes back and the debt stands
 // for a cleric's rez. A road's sign and one with no place offer nothing of it.
 func TestBoardsAndTownSignsOfferTheWayBack(t *testing.T) {

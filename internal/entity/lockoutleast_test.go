@@ -23,7 +23,7 @@ func cdLockout(t *testing.T, m []byte) time.Duration {
 	return time.Duration(int64(v>>1)^-int64(v&1)) * time.Millisecond
 }
 
-// Petition 2197 (Hoofbite: "Agony rogue spell no longer darkens spell icon to
+// Petition 2197 ("Agony rogue spell no longer darkens spell icon to
 // indicate it being cast. should darken"): the rogue's Agony has no cast time
 // and no recast, so from petition 2184's castLockoutExtra of 0 its 0x00CD told
 // a lockout of 0 and CLIENT greyed nothing. A cast's lockout is now at least

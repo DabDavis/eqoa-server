@@ -26,7 +26,7 @@ import (
 //
 // Confirmed identical in shape on pcaps/ps2_sandstorm.pcap (packet #115,
 // 512-byte payload) and on our own server, so this is retail behaviour and not
-// something the Sandstorm patch introduced.
+// something the reference-server patch introduced.
 type ConnStatsHandler struct {
 	// relay hands the counters to the GMs who asked for them (the GM's
 	// channel's Network Stats, gmchannel.go)

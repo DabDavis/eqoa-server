@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// abilitytimes.go — what a creature's template ability carries past one cast (the GM Jibrish's
+// abilitytimes.go — what a creature's template ability carries past one cast (a GM's
 // petition 1394: "Give Mr. Moogie a 1 hour cool down complete heal at 50% health, and if he uses it he
 // says "Thats an hour cool down, you'll pay for that". After Lh he also gets a proc buff on melee
 // attacks, 25% chance to proc additional melee damage that does 1500."):

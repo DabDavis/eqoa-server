@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The instanced dungeons' casters cast (petition 1900, Brother, 2026-11-13: "doing The Guk instance none of the NPC
+"""The instanced dungeons' casters cast (petition 1900, 2026-11-13: "doing The Guk instance none of the NPC
 like wiz, knights, sha..etc... do not do any spells").
 
 A creature casts only by its class template's abilities (entity/classtemplate.go), and every creature of world 14
@@ -9,14 +9,14 @@ the creature's own class (npcclass: the frogloks' wizards 13, shamans 8, necroma
 fought with its melee alone. (Its open world self casts nothing either: no template of its name has an ability.)
 
 Each tier is given three abilities that pick their spell from the creature's own class's book (classspells, as
-jib's class templates do: the "wizard", "necromancer" and "shadowknight" rows), at the highest level at or below its
+a GM's class templates do: the "wizard", "necromancer" and "shadowknight" rows), at the highest level at or below its
 own, each cast only by the classes it names (the abilities' "classes", the server's code of the same branch: a
 warrior's book has a "nuke", Hero's Blow, and the tiers' melee classes stay melee):
 
   a nuke (a harmful hit on one target) every 12 s from 4 s into the fight, at 35% of a player's figure, no spell of
-    a recast past 10 s or a cast past 5 s (jib's wizard's: no 180 s nova, no 15 s cast), by the druids, shamans,
+    a recast past 10 s or a cast past 5 s (a GM's wizard's: no 180 s nova, no 15 s cast), by the druids, shamans,
     clerics, magicians, necromancers, enchanters, wizards and alchemists;
-  a life tap every 15 s from 6 s, at 50%, no spell of a recast past 90 s (jib's shadow knight's and necromancer's),
+  a life tap every 15 s from 6 s, at 50%, no spell of a recast past 90 s (a GM's shadow knight's and necromancer's),
     by the shadow knights and necromancers;
   a heal on itself below half its hit points, every 20 s, no cast past 5 s, by the paladins, druids, shamans and
     clerics.

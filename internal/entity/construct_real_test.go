@@ -35,7 +35,7 @@ func TestRealConstructQuadKickAR(t *testing.T) {
 	now := time.Unix(1_800_000_000, 0)
 	for _, id := range []int{901835, 901836, 901837} {
 		for _, class := range []int{1, 9, 12} {
-			p := &Player{ServerID: EntityID(9000 + class), Name: "Zerkziee", Race: 3, Class: class, Level: 60, HP: 5000, MaxHP: 5000,
+			p := &Player{ServerID: EntityID(9000 + class), Name: "Zorbaxes", Race: 3, Class: class, Level: 60, HP: 5000, MaxHP: 5000,
 				X: 5000, Y: 50, Z: 5000}
 			w.Players[p.ServerID] = p
 			ts, ok, err := db.TemplateSpellByID(id)

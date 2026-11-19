@@ -375,7 +375,7 @@ func ownFlags(m meterMsg) (out []string) {
 }
 
 // The scope is the group at each figure and the fight is the group's (the owner,
-// 2026-11-11: "drunkenfist came in the raid late and the dps meter was not the
+// 2026-11-11: "[a player] came in the raid late and the dps meter was not the
 // same as other players"): a solo player's meter has its own fight; a group's
 // every member is shown one fight; one who joins mid-fight is shown it under way
 // at once, the same fight to the byte as the others but for its own line's flag

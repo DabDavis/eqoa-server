@@ -24,12 +24,12 @@ each database.
      - the Desolation chain (101308; faq L3090): a stone from each Mark of the Isle of Wonder (the Majestic, the
        Frigid) given to the Mark of Desolation, who then sends the player (the accept's teleport moved to that
        step). Steps 1-15 become 4-18.
-     - Live's Avatar of Fear: the stone guardian's passage (Heirloom's quest 102388, Jibrish's work 1335) made on a
+     - Live's Avatar of Fear: the stone guardian's passage (Heirloom's quest 102388, a GM's work 1335) made on a
        database that lacks it.
      Players mid-chain keep their place: each step they stand on moves with its step (charquests.step).
   3. Faction gates (quests.factionreq): 100763 Black Swan Inn 0 (the FAQ's "some faction": its start is -200),
      100764 Citizens of Wyndhaven 150, 100766 Saerk 150, 100782 and 100783 Tunaria Gypsies 150 (the FAQ's "Tunarian
-     Gypsies", L1268; Heirloom's name since Jibrish's 2026-11-11 rename). A gate needs a way to earn it: the FAQ's
+     Gypsies", L1268; Heirloom's name since a GM's 2026-11-11 rename). A gate needs a way to earn it: the FAQ's
      Blackburrow gnolls (Black Swan Inn +5), Bandit Hills' bandits and Jethro's Cast's gnolls (Wyndhaven +5) get
      factionhits; Saerk's goblins have theirs. On a database whose faction is still "Tunarian Gypsies" (Live) it is
      renamed and given Heirloom's Nasehir kill hits, as Heirloom has it.
@@ -125,7 +125,7 @@ GATE_HITS = [("Black Swan Inn", 5, ["gnoll soldier", "gnoll ruffian", "gnoll whi
              ("Citizens of Wyndhaven", 5, ["bandit", "gnoll hierophant", "gnoll ovate", "gnoll ranger", "gnoll warder",
                                            "gnoll spear fisher"])]
 GYPSIES, GYPSIES_OLD = "Tunaria Gypsies", "Tunarian Gypsies"
-# Heirloom's hits on the gypsies (Jibrish, 2026-11-11, source video-audit)
+# Heirloom's hits on the gypsies (2026-11-11, source video-audit)
 GYPSY_HITS = [(n, 5) for n in ("nasehir bandit", "nasehir bard", "nasehir cleric", "nasehir hunter", "nasehir kresni",
                                "nasehir lookout", "nasehir poisonkeeper", "nasehir ranger", "nasehir rogue",
                                "nasehir sandcaster", "nasehir scout", "nasehir warrior", "nasehir wizard", "nasehir yven",

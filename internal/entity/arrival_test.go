@@ -75,7 +75,7 @@ func (seaEnv) Flags(world uint8, x, y, z float32) (uint32, bool) {
 	return 0, true
 }
 
-// Petition 1770 (Hoofbite): "when taking dockmaster from Highbourne to
+// Petition 1770: "when taking dockmaster from Highbourne to
 // Freeport, you load into the water and not onto the dock". Freeport's Endol
 // stands on his pier's end over the sea bed (the terrain 32 under him), the
 // pier placed on the terrain: the trip lands behind him on its deck, not in

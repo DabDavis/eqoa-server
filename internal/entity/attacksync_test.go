@@ -154,7 +154,7 @@ func durs(ds []time.Duration) string {
 
 // The damage keeps the client's own swing, fight long (the user, 2026-10-30:
 // "the animation and damage don't sync well for auto attacks especially on
-// eqoaclassic"): every hit the server lands is one of a swing the client
+// the production server"): every hit the server lands is one of a swing the client
 // played, on that swing's times, a latency late, through a creature that
 // steps out of reach and back (the client's 0x00D8s, its 2 s retries) and a
 // release and two presses (one with its timer still running, which sends no

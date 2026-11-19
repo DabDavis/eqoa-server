@@ -18,15 +18,15 @@ import (
 func auditLines(t *testing.T, f *fixture) {
 	t.Helper()
 	mustExec(t, f.db, `INSERT INTO gm_audit (at, accountid, username, via, ip, action, tbl, rowkey, before, after, detail) VALUES
-		(?, 1, 'dab', 'tool', '', 'delete', 'npcrespawn', '{"npc_row": 502}', '{"npc_row": 502, "seconds": 600}', NULL,
-		 'petition 1446 (Jibrish): the skeleton goes; tools/skel_20261111.py'),
-		(?, 9, 'forestwood', 'game', '', 'insert', 'npcs', '{"id":600}', NULL, '{"id":600,"npc_name":"Guard Dahvel","world":1}',
+		(?, 1, 'dax', 'tool', '', 'delete', 'npcrespawn', '{"npc_row": 502}', '{"npc_row": 502, "seconds": 600}', NULL,
+		 'petition 1446 (Jinkles): the skeleton goes; tools/skel_20261111.py'),
+		(?, 9, 'fernmeadow', 'game', '', 'insert', 'npcs', '{"id":600}', NULL, '{"id":600,"npc_name":"Guard Dahvel","world":1}',
 		 '/clone in the game: Guard Dahvel (row 500), a copy of NPC 500'),
-		('2026-11-01T10:00:00Z', 1, 'jibrish', 'oauth:Claude', '', 'update', 'spellpattern', '{"spellid":101}',
+		('2026-11-01T10:00:00Z', 1, 'jinkles', 'oauth:Claude', '', 'update', 'spellpattern', '{"spellid":101}',
 		 '{"spellid":101,"spellname":"Root","power":5}', '{"spellid":101,"spellname":"Greater Root","power":5}', ''),
-		(?, 1, 'funyun', 'token:Claude Code (dab sessions)', '', 'insert', 'charinventory', '{"itemid":9001}', NULL,
+		(?, 1, 'fumble', 'token:Claude Code (dax sessions)', '', 'insert', 'charinventory', '{"itemid":9001}', NULL,
 		 '{"itemid":9001,"serverid":7,"patternid":10,"equiploc":-1}', 'camp report 122, mark 1: a reward'),
-		(?, 1, 'dab', 'web', '', 'login', '', '', NULL, NULL, 'signed in')`, now(), now(), now(), now())
+		(?, 1, 'dax', 'web', '', 'login', '', '', NULL, NULL, 'signed in')`, now(), now(), now(), now())
 }
 
 func auditTotal(t *testing.T, c *client, args map[string]any) (float64, []map[string]any) {
@@ -165,7 +165,7 @@ func TestTheAuditLogFindsWhatAGMAsksFor(t *testing.T) {
 	}
 	// a line a tool writes after is in at the next read
 	mustExec(t, f.db, `INSERT INTO gm_audit (at, accountid, username, via, ip, action, tbl, rowkey, before, after, detail)
-		VALUES (?, 1, 'dab', 'tool', '', 'insert', 'itempattern', '{"patternid": 12}', NULL, '{"patternid": 12, "itemname": "Sword of Tests"}', 'tools/x.py')`, now())
+		VALUES (?, 1, 'dax', 'tool', '', 'insert', 'itempattern', '{"patternid": 12}', NULL, '{"patternid": 12, "itemname": "Sword of Tests"}', 'tools/x.py')`, now())
 	if n, list := auditTotal(t, c, map[string]any{"preset": "items_added"}); n != 1 || list[0]["thing"] != "Sword of Tests" {
 		t.Errorf("a late line: %v %v", n, list)
 	}
@@ -260,13 +260,13 @@ func TestTheAuditLogOnARealServersLog(t *testing.T) {
 		{Name: "bat", Counts: true},
 		{Who: "claude", Counts: true},
 		{Source: "tool", Tool: "ct_trials", Counts: true},
-		{Username: "jibrish", Group: "loot", Action: "changed", Counts: true},
+		{Username: "jinkles", Group: "loot", Action: "changed", Counts: true},
 		{RowID: &npc, Counts: true},
 		{Petition: 1446, Counts: true},
 		{Since: "2026-11-01", Until: "2026-11-05", Group: "npcs", Counts: true},
 		{Action: "reverted"},
-		{Search: "Jibrish"},
-		{Search: "Jibrish", Counts: true},
+		{Search: "Jinkles"},
+		{Search: "Jinkles", Counts: true},
 		{Offset: 30000},
 	} {
 		f.hideSQL = true

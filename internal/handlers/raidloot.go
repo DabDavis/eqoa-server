@@ -17,7 +17,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// raidloot.go — a raid's loot rules (the GM Jibrish's petitions 1448 and 1451, 2026-11-10;
+// raidloot.go — a raid's loot rules (a GM's petitions 1448 and 1451, 2026-11-10;
 // entity/raidrules.go keeps a raid's rule and entity/raidcmds.go its commands).
 //
 // FREE FOR ALL, every group's way and a raid's until its leader picks another: anyone
@@ -63,7 +63,7 @@ import (
 
 const (
 	// raidRollFor is a roll's base time (petition 1448: "People have 120 seconds to choose";
-	// the GM Jibwiz's petition 1939, 2026-11-13: "The base time for the rolls is too short. Add
+	// a GM's petition 1939, 2026-11-13: "The base time for the rolls is too short. Add
 	// 5 seconds to it").
 	raidRollFor = 125 * time.Second
 	// raidRollEach is the time every open roll of a raid gains for each other one rolled at the
@@ -743,7 +743,7 @@ func (h *NPCWindowHandler) decideLocked(r *lootRoll, rc *raidCorpse) *rollSeat {
 			case s.choice != tier:
 			case h.loreHasLocked(r.item, rc, s.ServerID):
 				// a Lore item it holds or has won off this corpse already: the next
-				// highest's (the GM Jibrish's petition 2248)
+				// highest's (a GM's petition 2248)
 			case s.roll > best:
 				best, top = s.roll, []*rollSeat{s}
 			case s.roll == best:
@@ -780,7 +780,7 @@ func (h *NPCWindowHandler) decideLocked(r *lootRoll, rc *raidCorpse) *rollSeat {
 
 // loreHasLocked reports a Lore item's seat that holds one already (worn, carried or
 // banked, its client's lists) or has won another of it off the corpse, waiting for it
-// there: it wins no second (the GM Jibrish's petition 2248, 2026-11-17: "If 2 duplicate
+// there: it wins no second (a GM's petition 2248, 2026-11-17: "If 2 duplicate
 // items, lore, drop off a mob and a player rolls on both and wins both, they should only
 // get one of them off the corpse, the second one should go to the second highest roller.
 // If no second highest roller, leave it on the corpse and treat it as if everyone

@@ -12,7 +12,7 @@ spell early; and some scrolls sold or held name no spell at all.
      is one that would scribe another record at the new level (the match
      prefers its class's record at the scroll's level). Its description's
      "Level N -" follows; its price stays (the report gives the old and the
-     new level's on Sandstorm's scroll curve, import_eqoaemu_spells.py's
+     new level's on the reference server's scroll curve, import_eqoaemu_spells.py's
      scroll_curve). Every level is its spell's record's: the workbook's
      where the EQOAEmu import set it (the shadow knight's Veil of Death 12,
      its scroll 4).

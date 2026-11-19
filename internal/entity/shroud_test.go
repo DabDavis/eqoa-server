@@ -8,9 +8,9 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 )
 
-// Petition 1155, Larrybird: Shroud of Hate "was procing for 1 dmg", every one of its 390
+// Petition 1155: Shroud of Hate "was procing for 1 dmg", every one of its 390
 // answers in the log. Its record says 1 and the level's whole share; the shield read the 1
-// alone. It goes by its bearer's level, as measured on Sandstorm (52-53 at 50). The workbook's
+// alone. It goes by its bearer's level, as measured on the reference server (52-53 at 50). The workbook's
 // other level-scaled shields and procs take their share too; one with none is as it was.
 func TestShieldsAndProcsTakeTheirLevelShare(t *testing.T) {
 	cast := func(name string) *castState { return &castState{spell: CastSpell{Name: name, Level: 6}} }
@@ -36,7 +36,7 @@ func TestShieldsAndProcsTakeTheirLevelShare(t *testing.T) {
 	}
 }
 
-// Petition 1156, Jibrish: Shroud of Death + "does not proc": the log has it procing, and all
+// Petition 1156: Shroud of Death + "does not proc": the log has it procing, and all
 // it showed was one more figure among the swings'. A proc plays the shield's flash at the
 // creature. The control: a swing with no proc on plays none.
 func TestAProcIsSeen(t *testing.T) {
@@ -70,7 +70,7 @@ func TestAProcIsSeen(t *testing.T) {
 }
 
 // Veil of Death's and Shroud of Death's proc is a life steal: one roll, its damage and its heal on the same hit,
-// not two rolls that met by chance (petition 1156; Arcana's log: heal, then a hit 15 s on). The controls: a roll
+// not two rolls that met by chance (petition 1156; a player's log: heal, then a hit 15 s on). The controls: a roll
 // that misses does neither, a resisted one does neither, and a proc with no heal only hits.
 func TestALifeStealProcsAsOne(t *testing.T) {
 	r := newTemplateRig(t)
@@ -114,7 +114,7 @@ func TestALifeStealProcsAsOne(t *testing.T) {
 	}
 }
 
-// An instant strike is held to the arts' cooldown; one paid for with an item is not (petition 1036, Agony).
+// An instant strike is held to the arts' cooldown; one paid for with an item is not (petition 1036).
 func TestAnArtPaidForWithAnItemIsNotHeld(t *testing.T) {
 	strike := &CastSpell{CastTime: 0, Def: SpellDef{Harmful: true}}
 	if !isArt(strike) {
@@ -143,7 +143,7 @@ func figuresIn(msgs [][]byte) [][3]int64 {
 }
 
 // A proc's heal is seen at full health too (the user, 2026-11-08: "the heal proc should
-// show green numbers for player": a healer kept Larrybird full, and his Shroud of Death's
+// show green numbers for player": a healer kept a player full, and his Shroud of Death's
 // heals showed nothing): a life steal's figure, a defensive heal proc's and a mark's, each
 // green (positive) over the player with nothing healed. The controls: a spell's heal on a
 // full player shows none, and a hurt player's life steal heals as before.

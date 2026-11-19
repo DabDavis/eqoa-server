@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// creatureshield.go: a creature's own damage shield (petition 1154, Jibrish:
+// creatureshield.go: a creature's own damage shield (petition 1154:
 // "Add a 500 damage shield to lord nagafen, resisted by FR"). dshield.go is a
 // player's or a pet's answering a creature; this is the other way round: a
 // template's shield_damage answers each melee hit that lands on a creature of
@@ -103,9 +103,9 @@ func (w *World) creatureShieldOnPetLocked(ps *petState, npc *NPC, now time.Time)
 	return true
 }
 
-// A creature's melee proc (jibrish's agent's board entry 230: "Lord Nagafen ... should have a proc that
+// A creature's melee proc (a GM's agent's board entry 230: "Lord Nagafen ... should have a proc that
 // fires off 25% of the time on melee hits. It should do 2000 damage and be mitigated by fire resistance";
-// petition 1161, Jibrish: about 5 more on the rate, 3000 before FR). Not the template's special, which rolls a
+// petition 1161: about 5 more on the rate, 3000 before FR). Not the template's special, which rolls a
 // round or runs on a clock and goes through any armour: this rolls each melee hit that lands.
 
 // procName is what a template's proc is called to the one it hits.

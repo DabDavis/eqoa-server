@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Petition 1581 (the GM Jibrish): a ranged weapon's shot costs exactly 10% of
+// Petition 1581: a ranged weapon's shot costs exactly 10% of
 // its shooter's most power (1,025: 103), paid as it is loosed in reach; short
 // of it the shot is refused in red, nothing landed, the fight let go. A melee
 // swing costs none; world.ranged_power_pct sets the share, 0 none; a thrown

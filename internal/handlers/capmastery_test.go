@@ -79,7 +79,7 @@ func dumpCapsOf(t *testing.T, p *entity.Player) (int, [7]int) {
 	return p44, bonuses
 }
 
-// Petition 1375 (Beef: "CM line for warriors (maybe all classes) stat maxes
+// Petition 1375 ("CM line for warriors (maybe all classes) stat maxes
 // dont work, not extending maximums"): a level 60 warrior, STR trained to 400
 // and worn items adding 50 more, buys Brawn 1 (STRMax 15) and Godborn (every
 // stat's 25). Each raises STR's cap and the client is told so: 0x001C's m_p44

@@ -17,12 +17,12 @@ import (
 )
 
 // bugboard.go — the Bug Finder Leaderboard (the owner, 2026-11-15: "lets add a bulletin board in freeport by the
-// well like the others with Bug Finder Leaderboard. the same list from the website with out jib and I.").
+// well like the others with Bug Finder Leaderboard. the same list from the website with out a GM and I.").
 //
 // Any NPC named BugBoardName is the board (tools/bugboard_20261115.py stands one, the papered bulletin board with
 // its name plate, against Freeport's well on each shard). A talk to it is the list in dialogue boxes (0x0046, as
 // many lines a box as hold them: sayPacked), which every client reads: a heading, the top players ranked, and how to
-// report a bug. The counts are the website's contributors page's (eqoaclassic.com/contributors.html, made by hand
+// report a bug. The counts are the website's contributors page's (the website's /contributors.html, made by hand
 // on 2026-11-13 from both shards' databases): every report of Bug Report (petitions category 1) filed in the game,
 // a crash its hidden Crash topic (crashSubcategory), any other topic a bug, open, answered, closed or deleted alike,
 // counted by account and shard (one account on both shards is two lines, the other shard's marked, as the page's
@@ -30,15 +30,14 @@ import (
 // the total, then by the account's name in any case, each a rank of its own (the page's order). They are counted
 // live, from this shard's database and, with world.bug_board.other_db, the other's opened read-only, at most once
 // a bugBoardFresh. The accounts in world.bug_board.exclude (unset: BugBoardExcludeDefault) are never listed: the
-// GM Jib's and the owner's. The words are ours.
+// operator's own staff. The words are ours.
 
 // BugBoardName is the board's name: an NPC of it is the board.
 const BugBoardName = "Bug Finder Leaderboard"
 
-// BugBoardExcludeDefault are the accounts left off the board unless world.bug_board.exclude names others: the
-// owner's (dab, and funyun, the GM panel's account 8) and the GM Jib's (jibrish), as the owner asked ("with out
-// jib and I").
-var BugBoardExcludeDefault = []string{"dab", "funyun", "jibrish"}
+// BugBoardExcludeDefault are the accounts left off the board unless world.bug_board.exclude names some: none.
+// An operator lists its own staff's accounts there.
+var BugBoardExcludeDefault []string
 
 // bugBoardTop is how many are listed unless world.bug_board.top says; bugBoardTopMax the most it may say.
 const (
@@ -210,8 +209,8 @@ func bugBoardRank(rows []bugRow, exclude map[string]bool) []bugRow {
 	return out
 }
 
-// bugBoardLine is rank's line for r: "3. Zaeire: 50 bugs", "14. lonewulf0910: 14 (11 bugs, 3 crashes)",
-// "40. Blorck17 (Live): 1 crash".
+// bugBoardLine is rank's line for r: "3. Somebody: 50 bugs", "14. another0910: 14 (11 bugs, 3 crashes)",
+// "40. Someone (Live): 1 crash".
 func bugBoardLine(rank int, r bugRow) string {
 	name := r.Name
 	if r.Mark != "" {

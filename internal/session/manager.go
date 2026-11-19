@@ -283,7 +283,7 @@ func (m *Manager) PromoteSessionToMaster(sess *Session, playerObjectID uint32) u
 	sess.LockSend()
 	sess.PromoteToMaster(instanceID, playerObjectID)
 
-	// Reset connection counters for a clean master-session start. Sandstorm's
+	// Reset connection counters for a clean master-session start. The reference server's
 	// first promoted packet is arrival=1 carrying Camera1 at seq=1, so the
 	// sequence space really does restart here.
 	sess.Connection().ResetForMasterSession()
@@ -353,7 +353,7 @@ type softwareAddressed interface {
 // numbers start again at 1, refuses whole ("segment is acking a segment that
 // hasn't been sent yet", connection.cpp), so it never got going: its packets
 // stopped, our counters stayed on the lobby's, and the MemoryDump went again
-// and again to a client that threw every copy away (jibrish's logins at 04:13
+// and again to a client that threw every copy away (a GM's logins at 04:13
 // and 04:24 UTC, 492 KB in 30 s; the rig's net1109 j3). And the lobby's
 // guaranteed ack (its count of OUR lobby messages) retired the promoted
 // stream's messages of those numbers unsent.

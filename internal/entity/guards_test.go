@@ -7,7 +7,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// Town guards keep their posts clear of creatures (guards.go; jib's F3
+// Town guards keep their posts clear of creatures (guards.go; a GM's F3
 // 20261030-063534 and the user's rule of 2026-10-31).
 
 // newWatchFix is socialFix with the player far off and the militia's Guard

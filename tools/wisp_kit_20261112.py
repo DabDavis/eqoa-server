@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The Wisp's racial kit as its designer Zauz wrote it (the owner, 2026-11-12, the image wisp.webp; the owner: "With
+"""The Wisp's racial kit as its designer a player wrote it (the owner, 2026-11-12, the image wisp.webp; the owner: "With
 the -50 sta max and -875 hp max it gonna be pretty brutal lol"). Verbatim:
 
   Will-of-the-Wisp -- 10pot 5 cms

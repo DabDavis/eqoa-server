@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// uitold.go and groupinvites.go (the GM Jibrish's petitions 1475, 1476 and
+// uitold.go and groupinvites.go (a GM's petitions 1475, 1476 and
 // 1488, 2026-11-11), over the mercs' rig: what a client that asked is told of
 // the mercs and of its group search standing, once a second and only what
 // changed; a client that never asked (a PS2) is told nothing; and a group's

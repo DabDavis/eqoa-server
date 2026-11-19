@@ -7,7 +7,7 @@ slot with it), so the turban's series crimson (3238989567, 0xC10F0EFF) drew it c
 alone), and the helm slot's dye (chardyes slot 5: the Equipment Dyer, #dye) colours it. A PS2 draws the fallback helm
 (model 1) white undyed instead of the nearest tint to crimson.
 
-Dust's own helm dye (chardyes 197 slot 5, 0xD10000FF on the 2026-11-16 copy: he dyed his set crimson) still applies:
+A GM's own helm dye (chardyes 197 slot 5, 0xD10000FF on the 2026-11-16 copy: he dyed his set crimson) still applies:
 nothing here touches a character's dyes.
 
 Found by name in the heirloom range; checked as found (its colour the crimson, else nothing to do or REFUSED). Report

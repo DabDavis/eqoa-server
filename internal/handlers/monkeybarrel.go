@@ -11,7 +11,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// monkeybarrel.go — the Barrel of Monkeys (the owner, 2026-11-16: "give moose a
+// monkeybarrel.go — the Barrel of Monkeys (the owner, 2026-11-16: "give [a player] a
 // barrel of monkeys unique item. it spawns a monkey that follows him around, up
 // to 5"; the monkeys are entity/monkeys.go's).
 //

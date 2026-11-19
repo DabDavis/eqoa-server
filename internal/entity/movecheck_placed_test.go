@@ -10,7 +10,7 @@ import (
 )
 
 // mcRockGround is the made world with a rock on it (the owner's report of
-// 2026-11-18, Lonewulf in the rock by Noroxus): a block over x 300-306 and
+// 2026-11-18, a player in the rock by Noroxus): a block over x 300-306 and
 // z 0-6, its top at 3. A body is in it when its ball (r round the middle,
 // mid over the feet) meets the block; the free place is on its top from
 // its middle, else beside it, west of it.
@@ -36,7 +36,7 @@ func newRockRig(t *testing.T, mode MoveCheckMode, x, y, z float32) *mcRig {
 	w := NewWorld()
 	w.SetGround(mcRockGround{})
 	w.SetEnv(mcEnv{})
-	p := w.CreatePlayer(nil, &database.CharacterRecord{CharName: "Lonewulf", Level: 60, X: x, Y: y, Z: z})
+	p := w.CreatePlayer(nil, &database.CharacterRecord{CharName: "Loneowls", Level: 60, X: x, Y: y, Z: z})
 	if p == nil {
 		t.Fatal("no player")
 	}
@@ -117,7 +117,7 @@ func TestMoveCheckWalkPastTheRock(t *testing.T) {
 	}
 }
 
-// Lonewulf's place on the real ground (EQOA_GROUND_DIR): Secrets, under the
+// A player's place on the real ground (EQOA_GROUND_DIR): Secrets, under the
 // edge of the rock east of Noroxus (4238.5, -21.2, 2164), as a login there
 // and as a walk in from the open ground south of it; and a walk past it
 // along the open ground, judged right. Skipped without a baked ground.
@@ -150,7 +150,7 @@ func TestRealMoveCheckLonewulfInTheRock(t *testing.T) {
 			return f
 		}
 		y := floor(x, z)
-		p := w.CreatePlayer(nil, &database.CharacterRecord{CharName: "Lonewulf", Level: 60, World: 5, X: x, Y: y, Z: z})
+		p := w.CreatePlayer(nil, &database.CharacterRecord{CharName: "Loneowls", Level: 60, World: 5, X: x, Y: y, Z: z})
 		w.UpdatePosition(p.ServerID, x, y, z, 0)
 		p.World = 5
 		r := &mcRig{t: t, w: w, p: p, now: time.Date(2026, 11, 18, 2, 50, 0, 0, time.UTC)}

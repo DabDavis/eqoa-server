@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-// Petition 2196 (Hoofbite: "Assassinate or Backstab spells need a slightly
+// Petition 2196 ("Assassinate or Backstab spells need a slightly
 // larger 'behind enemy' radius 3 percent more to start"): a creature's rear
 // for a backstab is 3% wider than its half, its half-angle 92.7 degrees, so a
 // caster 88 degrees off its facing is behind it (until then not) and one 87

@@ -28,7 +28,7 @@ func newBuffRig(t *testing.T, port int) *buffRig {
 	mgr := session.NewManager()
 	w.SessionManager = mgr
 	sess := mgr.CreateSession(&net.UDPAddr{IP: net.IPv4(10, 0, 3, 1), Port: port}, uint32(port), 1, 1, 2, true)
-	p := &Player{ServerID: EntityID(port), Name: "Jibrish", Class: classEnchanter, Level: 50, HP: 900, MaxHP: 900,
+	p := &Player{ServerID: EntityID(port), Name: "Jinkles", Class: classEnchanter, Level: 50, HP: 900, MaxHP: 900,
 		Power: 800, MaxPower: 800, Speed: RunSpeed, ModelID: 0x6AB9C990, Size: 1, X: 100, Y: 50, Z: 100}
 	w.Players[p.ServerID] = p
 	sess.SetECSEntity(p)
@@ -66,7 +66,7 @@ func (r *buffRig) sent() [][]byte {
 	return out
 }
 
-// F3 20261029-011146 (jib: "a GM Test command to clear all buffs on the
+// F3 20261029-011146 (a GM: "a GM Test command to clear all buffs on the
 // character issuing it"): ClearBuffs ends every effect at once as its time
 // running out ends it: the same player and the same messages as effectSystem
 // past every effect's end (the run speed's 0x00F8, nothing else; the

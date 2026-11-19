@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Petition 1656 (Waldorf, magician 60, multiboxing petters): a pet's hate falls to its master when the pet
+// Petition 1656 (magician 60, multiboxing petters): a pet's hate falls to its master when the pet
 // dies or goes (pethate.go). The controls: a dead master gets none (the creature goes home as before), nor
 // one far off or in another world, nor a merc's hirer; a merc's pet's goes to its merc.
 

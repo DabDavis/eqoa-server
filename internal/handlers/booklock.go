@@ -9,7 +9,7 @@ import "sync"
 // the book's rows, a change to them and a write of the rows it changed: two
 // 0x0033s at once each read the book before the other's write, and each wrote
 // its own ability onto the slot without taking the other's off. Petition 2146:
-// Trulytwo's Bloodwraith (display index 63) and Shroud of Death + (74) both
+// a player's Bloodwraith (display index 63) and Shroud of Death + (74) both
 // went onto bar slot 5 in the same instant (02:31:23, after a session-keeping
 // restart resent them); the client, told 0x00B4 for each in order, had Shroud
 // of Death + on the slot, the book both, and a press of the slot (0x0032 names

@@ -123,7 +123,7 @@ class SeedVampires(unittest.TestCase):
         before = snapshot(self.path)
         said, written, kept, drafts = self.apply()
         self.assertEqual((said, written, kept, drafts), ([], 4, [], []))
-        # the abilities, Sandstorm's two by their own ids, and their lines
+        # the abilities, the reference server's two by their own ids, and their lines
         for sid, name, level, cast, recast, scope, rng, back, desc, line in sv.ABILITIES:
             got = self.one("SELECT spellname, abilitylvl, casttime, recast, scope, range, iconColor, icon, power FROM spellpattern "
                            "WHERE spellid = ?", sid)

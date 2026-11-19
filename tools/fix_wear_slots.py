@@ -4,18 +4,18 @@
 
 Slot 0 is no slot:
 - CLIENT's VIItem calls it "empty".
-- Sandstorm's records use none: -1 is not worn, 1 helm, 2 robe, 3 earring,
+- The reference server's records use none: -1 is not worn, 1 helm, 2 robe, 3 earring,
   4 neck, 5 chest, 6 bracelet, 7 bracers, 8 ring, 9 belt, 10 legs, 11 boots,
   12-16 the hands (13 the shield), 18 held, 19 gloves.
 - The server's wear table (handlers/equip.go itemSlotToEquipSlot) has no
   entry for it, so it refuses to put one on.
 
-The old dump left 511 items there (eqoaclassic), all on one stand-in icon
-(-570739083, which no Sandstorm item carries). The weapons among them go to
+The old dump left 511 items there (the production server), all on one stand-in icon
+(-570739083, which no reference-server item carries). The weapons among them go to
 their hand slots by tools/fix_dump_weapons.py. This takes the rest (no attack
 type and no damage, or named as armour: tools/fix_dump_weapons.py's
 ARMOUR_WORDS). Each takes the first of these that has its slot:
-1. **Sandstorm's record** (--prices: the harvests' wares), by name.
+1. **the reference server's record** (--prices: the harvests' wares), by name.
 2. **The Allakhazam list it is on** (--pages: tools/fetch_item_pages.py's
    lists by slot, its players' submissions). Head 1, Robe 2, Ear 3, Neck 4,
    Chest 5, Finger 8, Waist 9, Legs 10, Feet 11, Held 18, Hands 19,
@@ -28,8 +28,8 @@ ARMOUR_WORDS). Each takes the first of these that has its slot:
 Anything else is left and listed.
 
 Its icon, when it is the stand-in (the icon most slot 0 items carry, when no
-Sandstorm item has it), becomes its own Sandstorm record's, else the commonest
-icon of Sandstorm's items of its new slot, else this server's (OURS: a
+the reference server item has it), becomes its own the reference server record's, else the commonest
+icon of the reference server's items of its new slot, else this server's (OURS: a
 stand-in of the right kind).
 
 Every change is logged in wear_slots_fix_log (the pattern, its values before
@@ -79,7 +79,7 @@ def has_table(db, name):
 
 
 def sandstorm(paths):
-    """Sandstorm's items by name: {name: (wear slot, icon)}, a name of two
+    """the reference server's items by name: {name: (wear slot, icon)}, a name of two
     records left out; and every icon its items carry."""
     files = []
     for p in paths:

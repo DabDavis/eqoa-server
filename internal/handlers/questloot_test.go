@@ -89,7 +89,7 @@ func TestAQuestDropIsOneDeaths(t *testing.T) {
 }
 
 // A shared drop (a season's token) is the kill group's, not one character's
-// (jibrish, 2026-11-16: "lootable by anyone with kill credit, not a specific
+// (2026-11-16: "lootable by anyone with kill credit, not a specific
 // player. This is crushing multiboxers"): two credited characters' tokens are
 // one stack on the corpse, listed after its own items and before a character's
 // own drop; one character takes the whole stack, the other sees it gone; one
@@ -184,7 +184,7 @@ func (f *corpseFixture) heldOf(pattern int) int {
 }
 
 // A drop ahead of its step (questpreloot.go) keeps no corpse (Live petition
-// 5118, Waldorf: ant soldiers by Klick lay on, empty to him, holding Ant
+// 5118, a player: ant soldiers by Klick lay on, empty to him, holding Ant
 // Chitin dropped ahead for his other characters): the corpse's own item
 // taken, the corpse goes with another character's drop ahead still on it.
 func TestADropAheadKeepsNoCorpse(t *testing.T) {

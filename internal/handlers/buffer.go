@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// buffer.go — Buffer's talk (the GM Jibrish's petition 1390, Heirloom: "Add a vendor close but north of the
+// buffer.go — Buffer's talk (a GM's petition 1390, Heirloom: "Add a vendor close but north of the
 // announcement board in FP named "Buffer". When spoken to, buffer gives you avatar, order, pure heart, the cleric +
 // all resists buffs and a stackable GM AC that is +500ac buff. They last for 5 hours. It casts it after 1 second.").
 // Any NPC named Buffer is him (talked to before quests, as Dabrish and the Teleporter); a data step stands him on the

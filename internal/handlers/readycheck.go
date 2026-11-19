@@ -8,7 +8,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// readycheck.go — the ready check's messages (the GM Jibrish's petition 1711; the rules
+// readycheck.go — the ready check's messages (a GM's petition 1711; the rules
 // are the World's, entity/readycheck.go): the offer, the client's answer to it and its
 // window's reply (protocol.OpcodeReadyCheckOffer..OpcodeReadyCheckReply). The typed
 // /readycheck, /ready and /notready (and a PS2's "/t ..." spellings) are raidcmds.go's.

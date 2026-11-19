@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// The GM Jibrish's petition 1892: Mr. Moogie's ward at 15%: "a 500 a hit heal DS that heals him when hit, and ... a
+// a GM's petition 1892: Mr. Moogie's ward at 15%: "a 500 a hit heal DS that heals him when hit, and ... a
 // 5000 damage a hit additional damage shield that damages everyone with pure damage when hes hit". Over the
 // template rig: above its share (20%) a hit is answered by nothing (the control); below it (14%) the ward comes
 // up with its line, every hit that lands heals it 500 more than its hit heal (150) and is answered, at its next

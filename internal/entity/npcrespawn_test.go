@@ -7,7 +7,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// Petition 1133, Jibmage: "Crocs on crocodile island are repopping way too fast. Up their
+// Petition 1133: "Crocs on crocodile island are repopping way too fast. Up their
 // pop time buy double." A row of npcrespawn is that NPC's time and no other's; taking the row
 // away puts it back on the world's figure. The rule holds however the order of the start's
 // calls falls: rules first and NPC after, or the other way round.

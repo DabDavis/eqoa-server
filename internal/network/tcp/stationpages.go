@@ -46,7 +46,7 @@ import (
 // Country begins "US -", and PushPage sets a US console's Country to "US - USA"
 // whatever the page holds (the region's default, before the page's own value):
 // so a hidden "x" stopped every US player at Create Account (the owner,
-// 2026-11-16: "the hidden zip field is restricting moose from creating
+// 2026-11-16: "the hidden zip field is restricting [a player] from creating
 // account"). Five digits pass both checks in any country.
 const stationZip = "00000"
 

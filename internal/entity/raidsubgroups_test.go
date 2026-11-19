@@ -8,7 +8,7 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 )
 
-// A raid's groups inside it (raidsubgroups.go; the GM Jibrish's petition 1687): each
+// A raid's groups inside it (raidsubgroups.go; a GM's petition 1687): each
 // beside its control.
 
 // rosterGroups is the last 0x7E1A roster session i was queued (drained), each name's

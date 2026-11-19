@@ -1,5 +1,5 @@
 // Command wildspread spaces the open world's wildlife out and fills the
-// ground none of it reaches (jib's F3 20261029-024920: "Wildlife density
+// ground none of it reaches (a GM's F3 20261029-024920: "Wildlife density
 // throughout the world is concentrated in tiny parts. There will be maybe 10
 // mobs in a small spot, then huge swathes of empty spaces ... Fill in all very
 // empty spots with sporadic roaming wildlife spawns that attempt to stay
@@ -64,7 +64,7 @@
 // will do.
 //
 // -hold @file keeps those npcs rows where they are (2026-11-15: Halas's and
-// Qeynos's Sandstorm census, held since 2026-11-03). A GM's rows and edits
+// Qeynos's the reference server census, held since 2026-11-03). A GM's rows and edits
 // (gm_audit_facets) and a guide set's (guide_set_log) always stay.
 //
 // -ranks spreads the blocks of creatures Return Home's spawn table stood in
@@ -80,7 +80,7 @@
 // run to those circles (a creature outside them stays, nothing is placed
 // outside them), -no-spread moves nothing, -gap and -spacing set the fill's
 // two distances (the world's run filled land 250 from any creature with one
-// 260 from any other; Sandstorm's newbie ground holds about one creature of
+// 260 from any other; the reference server's newbie ground holds about one creature of
 // level 1-12 to every 10,000 square units within 500 of a town, as Halas
 // walked on the ground showed), and -quest-weight counts a kind a quest's
 // kill or loot step names that many times in a fill within questReach of
@@ -91,7 +91,7 @@
 // later run.
 //
 // -group size:weight,... makes a fill a group (the others within
-// -group-radius of the first, each kind drawn again: Sandstorm's newbie
+// -group-radius of the first, each kind drawn again: the reference server's newbie
 // creatures stand in twos and threes, a creature's nearest another a median
 // 22 off round Halas and Qeynos, where one creature every 100 read as bare
 // ground: the user, 2026-11-03, of Grobb's "the mobs are spread out too much

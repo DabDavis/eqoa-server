@@ -194,7 +194,7 @@ func TestEqahostsIsNeverDeleted(t *testing.T) {
 // The client does not see a same-size content change — measured twice on the
 // console, with the wrong address left in place both times — so two addresses
 // that are equally long must not produce equally long files. These two are the
-// pair this project actually runs: Sandstorm and the dev LAN, both thirteen
+// pair this project actually runs: the reference server and the dev LAN, both thirteen
 // characters.
 func TestEqahostsSizeCarriesItsAddress(t *testing.T) {
 	sand := eqahostsFile("5.161.217.188", hostsState{})

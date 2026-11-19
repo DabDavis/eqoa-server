@@ -11,7 +11,7 @@ import (
 )
 
 // The Automatic Snowball Launcher from the item menu (the owner, 2026-11-16:
-// "lets give zerkziee an automatic snowball launcher, infinite ammo"): a Use
+// "lets give [a player] an automatic snowball launcher, infinite ammo"): a Use
 // switches automatic fire on, told; a second off, told; the launcher is never
 // spent. Bound to its one character (itemowner), anyone else's copy is
 // refused in red and switches nothing. Dead, it will not start. The control:

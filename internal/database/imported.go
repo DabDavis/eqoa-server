@@ -14,11 +14,11 @@ import (
 
 // imported.go — imported gear's own records: gear a character brought in
 // through a character transfer is a copy of its record at ImportedShare of
-// its stats (85% since petition 1320, 70% before; petition 1314, jibrish, 2026-11-09: "Any gear that was imported
+// its stats (85% since petition 1320, 70% before; petition 1314, 2026-11-09: "Any gear that was imported
 // from the character transfer tool should be blanket reduced in stats by
 // 30%. The real world server drop equivelents should be the full thing. This
 // includes any special effects on the gear, like procs. Regular dropped items
-// in game should remain unchanged."; the user: "you can do what jib says for
+// in game should remain unchanged."; the user: "you can do what a GM says for
 // the 30% imported gear damper, add Imported Tag to gear that was imported").
 //
 // A copy is an itempattern row of its own (ids from importedFirst), so it
@@ -40,7 +40,7 @@ import (
 // each "by N" of their lines scaled the same way.
 
 // DefaultImportedShare is the share of its record's figures an imported copy
-// keeps, world.imported_share unset (petition 1320, jibrish, 2026-11-09: "The
+// keeps, world.imported_share unset (petition 1320, 2026-11-09: "The
 // -30% debuff on imported gear went a bit too hard, lets reduce that to -15%
 // and see how it goes"; 70% before it).
 const DefaultImportedShare = 0.85

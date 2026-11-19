@@ -103,7 +103,7 @@ func TestRealArchivistPathsAreTheQuests(t *testing.T) {
 // and agreed, the book after each holding Return Home, the path's spells and
 // the common ones, nothing of another path; the enchanter's (the petition's
 // example) by name, its level 20 picks with them (petition 1361) and the Boon
-// path's 49s (petition 1366: Fujiko's book too). Then a level 35 enchanter:
+// path's 49s (petition 1366: a player's book too). Then a level 35 enchanter:
 // its 20's and 30's alone; a 20: its 20's; a 19: nothing.
 func TestRealArchivistChangesEveryClassesPaths(t *testing.T) {
 	db := realRehabDB(t)
@@ -183,7 +183,7 @@ func TestRealArchivistChangesEveryClassesPaths(t *testing.T) {
 
 	// petition 1366, on a database petfix166_20261109.py has made right (the
 	// level 49 reward offering the Boon path's Power Stream and Power Flux):
-	// Fujiko's book, his path of Power Jet as he wrote it her before them,
+	// a player's book, his path of Power Jet as he wrote it her before them,
 	// Power Jet and Power Surge; at 60 the paths said to their 49s, and hers
 	// written in at once, what she lacks of it
 	reset(12, 60)

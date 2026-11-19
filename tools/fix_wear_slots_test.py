@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """tools/fix_wear_slots.py against a made-up database, harvest and Allakhazam
-lists: an item in slot 0 takes Sandstorm's slot, else its Allakhazam list's
+lists: an item in slot 0 takes the reference server's slot, else its Allakhazam list's
 (a shield on any list 13, Arms 7 or one wrist 6), else what its name says;
-the stand-in icon (on most slot 0 items, on no Sandstorm item) gives way to
-its Sandstorm icon, else the icon of Sandstorm's items of its slot; a weapon
+the stand-in icon (on most slot 0 items, on no reference-server item) gives way to
+its reference-server icon, else the icon of the reference server's items of its slot; a weapon
 is left to fix_dump_weapons.py and a name that says nothing is listed; a
 second --apply is refused; --undo gives back the table as it was. No game
 data.
@@ -30,7 +30,7 @@ class FixWearSlots(unittest.TestCase):
         db.execute("""CREATE TABLE itempattern (patternid INTEGER PRIMARY KEY, itemname TEXT, itemicon INTEGER,
             equipslot INTEGER, attacktype INTEGER, weapondamage INTEGER)""")
         db.executemany("INSERT INTO itempattern VALUES (?, ?, ?, ?, ?, ?)", [
-            (1, "Verdant Bracers", 9, 0, 0, 0),          # Sandstorm's: slot 7, its icon 70
+            (1, "Verdant Bracers", 9, 0, 0, 0),          # the reference server's: slot 7, its icon 70
             (2, "Iron Bracers", 9, 0, 0, 0),             # Allakhazam's Arms: 7
             (3, "Amber Bracelet", 9, 0, 0, 0),           # Arms, one wrist: 6
             (4, "Splintered Shield", 9, 0, 0, 0),        # on the Secondary list, a shield: 13
@@ -82,8 +82,8 @@ class FixWearSlots(unittest.TestCase):
         self.assertIn("left as it is: Daran's Sight (nothing says where it is worn)", out)
         self.run_tool("--apply")
         got = {r[0]: (r[3], r[2]) for r in self.rows()}   # slot, icon
-        self.assertEqual(got[1], (7, 70))     # Sandstorm's slot and its own icon
-        self.assertEqual(got[2], (7, 71))     # Arms; Sandstorm's bracers' commonest icon
+        self.assertEqual(got[1], (7, 70))     # the reference server's slot and its own icon
+        self.assertEqual(got[2], (7, 71))     # Arms; the reference server's bracers' commonest icon
         self.assertEqual(got[3], (6, 60))     # one wrist
         self.assertEqual(got[4], (13, 130))   # a shield, whatever the list
         self.assertEqual(got[5], (8, 80))     # its name

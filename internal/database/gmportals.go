@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// A GM's portals (handlers/gmportal.go, petition 1624: the GM Jibrish, "a GM
+// A GM's portals (handlers/gmportal.go, petition 1624, "a GM
 // command that allows me to mark the entry and exit points of teleporters"):
 // /markportal names an NPC of a row as a portal's entry, /markportal exit its
 // landing, and the pair is kept here, off, with the ticket that asks for it to

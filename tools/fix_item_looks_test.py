@@ -18,8 +18,8 @@ def dump(path):
 
 class FixItemLooks(unittest.TestCase):
     """tools/fix_item_looks.py on a made-up database: the woolen helm and gloves take the cloth style and its
-    icon; an icon Sandstorm's gear record gives otherwise is taken, and a style 0 armour piece takes the style
-    that icon is; a style whose icon agrees with it is not overturned by another style's icon; a Sandstorm
+    icon; an icon the reference server's gear record gives otherwise is taken, and a style 0 armour piece takes the style
+    that icon is; a style whose icon agrees with it is not overturned by another style's icon; the reference server
     record that is not gear, a GM's record and the plain style 0 pieces are left; an undo puts every row back.
     No game data."""
 
@@ -40,10 +40,10 @@ class FixItemLooks(unittest.TestCase):
                 pid += 1
         rows += [
             (100, "woolen helm", 1, 2, 12), (101, "Woolen Gloves", 19, 2, 22),
-            (102, "Antique Plate Helm", 1, 0, 11),      # Sandstorm: icon 14 (plate's): style 4
-            (103, "Fancy Ring", 8, 0, 81),              # Sandstorm: icon 82
-            (104, "Chain Coat", 5, 7, 57),              # Sandstorm: icon 53 (chain's): its style 7 and icon agree: left
-            (105, "Spell Thing", 8, 0, 1),              # Sandstorm's is a scroll (not gear): left
+            (102, "Antique Plate Helm", 1, 0, 11),      # the reference server: icon 14 (plate's): style 4
+            (103, "Fancy Ring", 8, 0, 81),              # the reference server: icon 82
+            (104, "Chain Coat", 5, 7, 57),              # the reference server: icon 53 (chain's): its style 7 and icon agree: left
+            (105, "Spell Thing", 8, 0, 1),              # the reference server's is a scroll (not gear): left
             (106, "GM Helm", 1, 0, 11),                 # a GM's: left
             (107, "Plain Hood", 1, 0, 11),              # style 0 on the cloth icon, nothing measured: counted only
         ]

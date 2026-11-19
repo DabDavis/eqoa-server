@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The Holiday Elf's quests rewritten (work entry 1597, jibrish, owner-approved): the lost fourteen years.
+"""The Holiday Elf's quests rewritten (work entry 1597, a GM, owner-approved): the lost fourteen years.
 
 Applies christmas_elf_quests_20261117.json (the entry's rows as written):
 - 102901 "Gifts for Freeport": its new words, once only now (repeatable 0), day group christmas-gifts; 102902 "Carols

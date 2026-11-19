@@ -7,7 +7,7 @@ import (
 
 // TestPlayerStateCarriesTheHands pins the three items, the three overrides
 // and the two hands' attack types at the offsets every player in the
-// Sandstorm captures has them (decoded with re-tools/decode_entity_channels.py:
+// the reference server captures has them (decoded with re-tools/decode_entity_channels.py:
 // two rapiers at 67 and 71 with types 5 and 5 at 91 and 92), here a
 // two-hander alone in item 0 with type 4 and a bow in item 1 with type 7.
 // The control: read one byte early, the types are not there.

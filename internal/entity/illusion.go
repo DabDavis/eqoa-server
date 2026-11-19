@@ -10,7 +10,7 @@ import (
 
 // illusion.go — illusions: a spell that shows its bearer in another body.
 //
-// jib's F3 20261025-173245: "Illusion: <race>" turns the caster into that
+// A GM's F3 20261025-173245: "Illusion: <race>" turns the caster into that
 // race's player body, whatever is targeted, its own features carried over
 // (hair style 3 in pink stays hair style 3 in pink on the troll);
 // "Glamour: <race>" does the same and adds its line's stats, cast on the
@@ -51,7 +51,7 @@ const (
 const illusionDuration = 10 * time.Minute
 
 // castNotInGroup refuses a glamour at someone outside the caster's group, in
-// the red of Sandstorm's other refusals. The words are ours: no recording
+// the red of the reference server's other refusals. The words are ours: no recording
 // has one.
 const castNotInGroup = "Target is not in your group."
 
@@ -207,7 +207,7 @@ func (w *World) endIllusionsLocked(t *Player, keep int) bool {
 // endFormsLocked is Remove Illusion and True Form: every illusion off, but a
 // buff that carries more than its body (Leopard's Elegance: DEX, WIS and CHA
 // with a leopard's look) loses only the body and keeps the rest to its time,
-// so the look is the bearer's choice (petition 2106, Felthious, 2026-11-14).
+// so the look is the bearer's choice (petition 2106, 2026-11-14).
 // A were form and a Wisp's Raiment still go whole.
 func (w *World) endFormsLocked(t *Player) bool {
 	return w.endIllusionsKeepingLocked(t, 0, true)
@@ -455,7 +455,7 @@ func (w *World) glamourTargetsLocked(sess *session.Session, p *Player, spell *Ca
 // living one the caster can reach and see, its body by that player's own sex;
 // the caster when nothing, itself, a creature or a dead player is targeted, as
 // a helpful spell needs a friend (the owner, 2026-11-18, Live petition 5253:
-// "Make them targetable"; until then every illusion was its caster's, jib's F3
+// "Make them targetable"; until then every illusion was its caster's, a GM's F3
 // 20261025-173245). A Hardcore character's aid rule still applies at the
 // landing (hcrules.go). "X Form" spells and illusions of self scope stay the
 // caster's.

@@ -137,7 +137,7 @@ func TestEquipFishingBaitTools(t *testing.T) {
 }
 
 // An item held goes in the off hand (20), so a weapon in the primary hand
-// stays (petition 1019: Etmabattery's Wand of Entrancement and Mithril Eagle
+// stays (petition 1019: a player's Wand of Entrancement and Mithril Eagle
 // Rod, each equipped taking the other off, 04:50 UTC 2026-11-06); with the
 // off hand full it takes 19 while the main hand is free (a second held item),
 // else the off hand's place again, never the weapon's.

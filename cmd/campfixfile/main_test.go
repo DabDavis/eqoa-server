@@ -63,7 +63,7 @@ func reports(t *testing.T, path string) []database.CampfixReport {
 
 // A session on the box files a petition's request as a waiting camp report:
 // the marks where the petition's character stood, facing its way, the report
-// the petition's player's, its board entry posted as dab's sessions; nothing
+// the petition's player's, its board entry posted as the owner's sessions; nothing
 // spawns. A dry run files nothing; a usage error or a refusal files nothing
 // either and says why (the controls).
 func TestCampfixfileFilesAWaitingReport(t *testing.T) {

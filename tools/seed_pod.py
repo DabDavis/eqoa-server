@@ -5,7 +5,7 @@ portal quest, the spell quest's nine rare spawns, the weapon quest; Quests/60/
 evil-healer.json and Quests/Misc/stat-boost-quests.json for the Dead Hills;
 Quests/HuntAndGather/hunt-and-gather.json for the Patrons of Bertoxxulous)
 put on this server, where no one's data had PoD at all (F3 pass 17, the
-user's "unable to travel to PoD eqoaclassic"). The trips themselves are
+user's "unable to travel to PoD the production server"). The trips themselves are
 handlers/waysender.go's (Necrologist Zizclank's, the portals').
 
 Where PoD is, read off the disc: the Secrets world (world 5, DATA3/
@@ -32,7 +32,7 @@ tree next to banker", "end of valley just before nox pools"; the anchors
 follow them over the ground), every level (the guides give cons to a level
 60: "db and lb", "1/2 red"), every body (copied from a namesake's or kin's
 row on this server: no model id is guessed; a name with several bodies is
-pinned to one; the three bosses jib named theirs, F3 pass 21: Noroxus the
+pinned to one; the three bosses a GM named theirs, F3 pass 21: Noroxus the
 green three-headed hydra of eqoa.live's wiki picture, Bertoxxulous his own
 body, the Twins the green dragon), every size, the banker's name, the
 jellies', piranhas' and wasps' names, the portals' names and that they need
@@ -231,7 +231,7 @@ PLAN = [
     # has them, facing the pad, 130 apart and 103 from it; the patrons (on no
     # map) on Bert's island, three each side of him, 59-63 off, past his
     # reach on sight (30) and their wander (20). Always up (no spawn by event
-    # here). Bert wears his own body (jib: "He has his own dedicated unique
+    # here). Bert wears his own body (a GM: "He has his own dedicated unique
     # player model"; hooded, red-faced, a round belly in a tattered black
     # vest; no row has it), at 1.3 (3.85 tall, a little over twice a man, as
     # a screenshot of him in a fight shows him); the ghoul reaver's row gives
@@ -286,7 +286,7 @@ PLAN = [
     dict(name="plague wasp", body="giant wasp", level=58, kind=HOSTILE, world=5,
          at=(5770, 3770), y=-19.9, count=4, roam=0, role="the Queen's (the name is ours)"),
 
-    # ---- Noroxus's way in (F3 pass 21, jib: "Noroxus is currently spawning at
+    # ---- Noroxus's way in (F3 pass 21, a GM: "Noroxus is currently spawning at
     # his portal entrance, not his arena"): the Fuming Portal where he stood,
     # at the cauldron's east side, facing away from it ("the big cauldron in
     # the middle of all 3 pools ... Once the portal is open, all people with a

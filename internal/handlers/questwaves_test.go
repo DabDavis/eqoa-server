@@ -14,7 +14,7 @@ import (
 // pardonFixture is the fixture with the good melees' Pages of Pardon as
 // tools/quests/data/60.json has it (quest 130), its items made by name; the
 // high shaman in view beside the player, and the bloodletters' original out of
-// the world 380 off, as on eqoaclassic (petition 1539). It returns the items
+// the world 380 off, as on the production server (petition 1539). It returns the items
 // by name and the object id the shaman is known by.
 func pardonFixture(t *testing.T) (*questFixture, map[string]int, uint32) {
 	t.Helper()
@@ -69,7 +69,7 @@ func (f *questFixture) liveBloodletters() []*entity.NPC {
 	return out
 }
 
-// Petition 1539 (Froglegs: "gave High Shaman 3 pages then 2 bloodletters spawn,
+// Petition 1539 ("gave High Shaman 3 pages then 2 bloodletters spawn,
 // killed them and no more spawn"): the step wants six, and its spawns come in
 // waves of two, the next when the last of a wave dies, until six are killed;
 // the sixth's kill does the step and no seventh comes. A kill of one of a wave
@@ -110,7 +110,7 @@ func TestPagesOfPardonsBloodlettersComeInWaves(t *testing.T) {
 	}
 }
 
-// A player who lost the step's bloodletters (Froglegs after a restart: two
+// A player who lost the step's bloodletters (a player after a restart: two
 // killed, none standing, the high shaman beside her) gets a wave again by the
 // high shaman, where the step brought them, not only by their original 380
 // off. The control: 40 off the shaman, none.

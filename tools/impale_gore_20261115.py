@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""Impale's Impaling Gore (spell 760163) from AC -2,500 to AC -1,500 (Heirloom petition 2189, Zerkziee, and the owner,
+"""Impale's Impaling Gore (spell 760163) from AC -2,500 to AC -1,500 (Heirloom petition 2189, and the owner,
 2026-11-15: "Impale is killing players in 1 hit").
 
 Impale (the Isle of Dread, L55; class template "iod impale", melee_pct 928) casts Impaling Gore at what it fights every
 30 s from 3 s in: "Target, Decrease AC by 2500, 1min", the guide's "0 AC debuff". Its melee_pct was fitted where AC 2-3k
-puts every roll of a L55 creature under its floor (softHit's window, entity/defence.go: 175-199 a hit on Zerkziee, a L60
+puts every roll of a L55 creature under its floor (softHit's window, entity/defence.go: 175-199 a hit on a player, a L60
 ranger of AC 2,520 and AGI 520, before the level's balance of 175%), and the Gore took him to AC 20, where the roll lands
 over the floor: 246-1,578 a hit, a quad round up to 6,312, 11,046 after the balance, against his 7,960 hit points. A
 player of less AC went under 0 (a wizard of 1,000 at -1,500: 5,668 a hit after the balance); since this branch a
 creature's AC debuff takes a player to AC 0 at most (entity/classtemplate.go templateDebuffLocked), so that case is the
 AC 0 one.
 
-At AC -1,500 on Zerkziee: 248-520 a hit, mean 254, a quad round at most 2,080 (3,640 after the balance); without it
+At AC -1,500 on a player: 248-520 a hit, mean 254, a quad round at most 2,080 (3,640 after the balance); without it
 175-199, as before. A tank of AC 2,000 under it: at most 1,067 a hit before the balance. Hard, not a one-shot.
 entity/impale_test.go holds the figures.
 

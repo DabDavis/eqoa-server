@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """tools/fix_start_item_records.py against a made-up database and survey: a
-ration of item type 0 takes Sandstorm's type 2, masks and level, and a sword
-Sandstorm's class mask, each keeping its model; an item a GM changed is left;
+ration of item type 0 takes the reference server's type 2, masks and level, and a sword
+the reference server's class mask, each keeping its model; an item a GM changed is left;
 a second --apply is refused; --undo gives back the table as it was. No game
 data.
 

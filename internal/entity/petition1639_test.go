@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Petition 1639 (the magician Waldorf, 2026-11-11): "Ghilan Noble doesn't seem
+// Petition 1639 (a magician, 2026-11-11): "Ghilan Noble doesn't seem
 // to be casting her giant heal anymore. If she is, it's frequency was greatly
 // reduced." Her tide (target group, below 100) is wanted whenever anyone of her
 // side is a little hurt; her Lay Hands and Mending (either, below 50 and 60)

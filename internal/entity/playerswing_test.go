@@ -9,7 +9,7 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 )
 
-// The GM Jibrish, watching two players fight: "im not seeing their auto attack
+// a GM, watching two players fight: "im not seeing their auto attack
 // animations fire off reliably". Everyone who sees a player is shown each round's swing
 // (0x00B1, its effect at its target, as a creature's), the player itself none: its client
 // plays its own. The control: one who does not see the player is sent nothing.

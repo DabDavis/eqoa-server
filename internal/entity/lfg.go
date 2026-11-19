@@ -15,7 +15,7 @@ import (
 // the flag is the Player's, so a logout ends it (the next login is a new
 // Player).
 //
-// What a search returns (the GM Jibrish's petition 1582, 2026-11-11: "When
+// What a search returns (a GM's petition 1582, 2026-11-11: "When
 // players register with group by hitting community > group > register, the
 // search menu should display them on the list"): every registered character
 // the query's classes, races and levels take, of either type (the window's

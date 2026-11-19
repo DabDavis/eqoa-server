@@ -1,7 +1,7 @@
 package entity
 
 // ownfight.go — the fights a player wins or loses alone (the shard's GM
-// Jibrish's petition 1491: "Correct it so mercenarys and healbot did not
+// a GM's petition 1491: "Correct it so mercenarys and healbot did not
 // assist you in duels, pvp, or for mr moogies challenge").
 //
 // A mercenary (merc*.go) and a familiar (familiar.go: Healbot) already kept out
@@ -27,7 +27,7 @@ package entity
 // him) and other players' heals are as they were.
 
 //
-// The GM Jibrish's petition 1901 (2026-11-13): "Mercenaries should not assist
+// a GM's petition 1901 (2026-11-13): "Mercenaries should not assist
 // you in duels, or attack your target while in a duel." A duel is its two's own
 // from its accept: its countdown (DuelCountdown, when each side readies itself)
 // as well as its fight, so no merc's or familiar's heal or buff lands on a

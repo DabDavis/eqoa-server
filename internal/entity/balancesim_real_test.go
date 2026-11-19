@@ -338,7 +338,7 @@ func TestRealCharmProbe(t *testing.T) {
 	}
 }
 
-// balanceAt0130 is the balance as eqoaclassic had it at 01:30 UTC on
+// balanceAt0130 is the balance as the production server had it at 01:30 UTC on
 // 2026-10-30 (the tuning of 2026-10-29 with pets' hit points at seven
 // tenths), which the user played and called too easy.
 func balanceAt0130() *Balance {
@@ -359,10 +359,10 @@ func balanceAt0130() *Balance {
 }
 
 // The calibration (EQOA_REAL_DB): the live log the user called "too easy",
-// Dust, a level 5 shadow knight of 170 hit points, against a level 6 fire
+// a GM, a level 5 shadow knight of 170 hit points, against a level 6 fire
 // bat (786 hit points, hits of 8 every 3 s): he killed it in 24 s and kept
 // 65%. The simulator's level 5 shadow knight, its book only Chilling Aura
-// (Dust cast no nuke: 786 in 24 s of ~85 a swing), under the 01:30 tables
+// (a GM cast no nuke: 786 in 24 s of ~85 a swing), under the 01:30 tables
 // fights the same fight (the bat's 786, its 8 a hit) to the same end; under
 // the seed of 2026-10-30 the yellow ended under 40% of its hit points, and
 // was still won as a rule. Since the new players' curve (2026-11-04, the
@@ -609,7 +609,7 @@ func TestRealBalanceYellowsAndReds(t *testing.T) {
 	}
 }
 
-// The coordinator's low-level check of 2026-10-30 (jib: "jibrush got beat up
+// The coordinator's low-level check of 2026-10-30 (a GM: "[a character] got beat up
 // by a level 1 while he was level 3 alc"): at levels 1-10 every class wins
 // its even fights about 95% of the time and its blue and green ones about
 // all of it (97% of 40), by hand AND in its own play (a wizard's root from 3,
@@ -858,10 +858,10 @@ func balanceBeforeNewPlayersMeleeOnly(b *Balance) *Balance {
 
 // A wisp is a yellow like any other (the user's "28%" of 2026-10-30): a
 // crag wisp fights by the template the database gives it (tools/
-// seed_roamers.py: the wisp, jib's wizard at 28% of a player's figures), and
+// seed_roamers.py: the wisp, a GM's wizard at 28% of a player's figures), and
 // a warrior, a rogue and a cleric by hand and a wizard and an alchemist
 // rooting win one up at least 70% of the time and two up half of it, at 25,
-// 35 and 45. The control: under jib's wizard as he made it (35%) the same
+// 35 and 45. The control: under a GM's wizard as he made it (35%) the same
 // check fails somewhere (2026-11-02: a rogue of 45 one up, an alchemist of 25
 // and 35 two up). It was a rogue of 35 losing its one up until a creature's
 // effects counted in its fights (2026-11-01: its debuffs on the wizard win

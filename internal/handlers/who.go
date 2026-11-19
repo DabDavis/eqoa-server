@@ -101,7 +101,7 @@ type whoEntry struct {
 // zigzags, then per player a u8 race, class and level, the name (u32 length
 // and bytes, ReadString's) and a u32 the client does not use. It is built in
 // a buffer of its own size: the message's own span is 2,046 bytes, which a
-// list of a hundred-odd players overflows (Sandstorm's runs to 4 KB and comes
+// list of a hundred-odd players overflows (the reference server's runs to 4 KB and comes
 // fragmented, which AddWithSequence does).
 func whoListResponse(token int64, players []whoEntry) *protocol.Message {
 	size := 2 + 1 + 10 + 10

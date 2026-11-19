@@ -2,8 +2,8 @@
 """The dark elf quests of levels 1-20 walked against the players' guides (2026-11-14, batch tix5, lane crabs).
 
 The owner: "dark elf quests are messed up the live player is saying", with the fandom wiki's All Race/Class Starting
-Quests (Level 1-15) (Singz's walkthroughs); this week's Live dark elves (Innoruuk, Lanys, Valizrae, Trulyblind,
-Groceries) met The Hazinak Report's duplicate R`Noxt, the necromancer's D`Unarr / J`Narus handoff, vague starter
+Quests (Level 1-15) (Singz's walkthroughs); this week's Live dark elves (Innoruuk, three players,
+a player) met The Hazinak Report's duplicate R`Noxt, the necromancer's D`Unarr / J`Narus handoff, vague starter
 text, The Ceremony's reward and the spikeshell crabs (each fixed on its own). Every quest of the nine classes (Neriak,
 1-20, and The Ceremony at 17) walked step by step against the wiki and eqoa.forumotion.com's t53-t61 and t101, on both
 shards. Givers, chains (requires), merchants' wares and creatures agree with the guides; what did not:

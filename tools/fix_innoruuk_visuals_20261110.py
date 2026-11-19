@@ -2,7 +2,7 @@
 """Innoruuk's buffs his own, his procs' looks, and Mr. Moogie's line at Innoruuk's death (2026-11-10, after
 tools/fix_moogie_tunare_20261110.py; the owner, watching the fight: "innoruuk is casting veil of death on moogie and
 the buffs, should be on innoruuk", "innoruuk keeps casting veil of death also no reason since it is a longer cooldown",
-"largesse of plague should have a proc spellfx"; the GM Jibrish's petition 1458: "whenever he kills Innoruuk he says
+"largesse of plague should have a proc spellfx"; a GM's petition 1458: "whenever he kills Innoruuk he says
 "Dab got dunked again""), on the server's code of the same branch (selfbuff.go: a proc or a veil of a pinned spell is a
 buff its creature casts on itself; a killsay; an older server reads these templates as unreadable).
 

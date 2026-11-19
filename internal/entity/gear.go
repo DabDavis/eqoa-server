@@ -3,7 +3,7 @@ package entity
 // Gear is what the worn items add, by the stat ids an item's stat list
 // carries (handlers' itemPatternStats): the client's GetStatTotal sums them
 // the same way, over every item whose equip slot is not -1, onto the stat
-// channel's base half. On Sandstorm the stat channel's totals (bytes 0-27,
+// channel's base half. On the reference server the stat channel's totals (bytes 0-27,
 // 56, 88-111) are the base stats plus exactly these plus the spells', the
 // maximum hit points the base maximum plus the worn items' hit points
 // (stat 8), and the maximum power the power of all the stats plus the
@@ -157,7 +157,7 @@ func (p *Player) wisResistNow() int {
 }
 
 // BaseMaxHP is the stat channel's base maximum hit points (byte 148) as
-// Sandstorm sends it: what all the stamina gives, the worn and the spells'
+// the reference server sends it: what all the stamina gives, the worn and the spells'
 // included, without anything's own hit points.
 func (p *Player) BaseMaxHP() int {
 	return p.maxHPFor(p.StatNow(StatSta))
@@ -170,7 +170,7 @@ func (p *Player) maxHPFor(sta int) int {
 }
 
 // BaseMaxPower is the stat channel's base maximum power (byte 156) as
-// Sandstorm sends it: what the base stats alone give.
+// the reference server sends it: what the base stats alone give.
 func (p *Player) BaseMaxPower() int {
 	return CalculateMaxPower(p.Level, p.Class, p.BaseStr, p.BaseSta, p.BaseAgi, p.BaseDex, p.BaseWis, p.BaseInt, p.BaseCha)
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The Plane of Disease's raid bosses take 15% more lightning damage (the GM Jibwiz's petition 1944, 2026-11-13: "All
+"""The Plane of Disease's raid bosses take 15% more lightning damage (a GM's petition 1944, 2026-11-13: "All
 plane of disease raid bosses should take 15% more damage from lightning resistance based damage, procs and nukes").
 
 What it writes (a report by default; --apply writes, in one transaction with a gm_audit line a row; --undo takes it back):

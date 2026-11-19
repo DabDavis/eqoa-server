@@ -2,7 +2,7 @@ package entity
 
 import "testing"
 
-// Ticket 2008 (Waldorf, 2026-11-13, the world-14 dungeons): a creature's pet killed before its caster could
+// Ticket 2008 (2026-11-13, the world-14 dungeons): a creature's pet killed before its caster could
 // be looted for tunar and items, killed after it not ("you can't loot that entity"). The operator's ruling:
 // a creature's pet carries nothing, whichever dies first. Both orders, as companion_test.go's dshinn
 // necromancer and its spectral minion; the controls: the griffawn beside them (no one's pet), a player's pet
@@ -51,7 +51,7 @@ func TestACreaturesPetCarriesNothingWhicheverDiesFirst(t *testing.T) {
 	}
 }
 
-// Ticket 2009 (Waldorf, 2026-11-13): "Guk instance - Howling Death isn't tethered to Rubik and is neutral faced".
+// Ticket 2009 (2026-11-13): "Guk instance - Howling Death isn't tethered to Rubik and is neutral faced".
 // Rubbip and his Howling Death 2.05 off him, as the rows stand, with the seed's npcaggro row for the pet's name
 // (aggressive 0, "a player's pet recorded beside its owner"): in the instanced world 14 the Howling Death is
 // Rubbip's pet, hostile as he is, joins his fight, and carries nothing killed first; the control, the same pair in

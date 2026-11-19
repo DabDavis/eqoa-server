@@ -8,7 +8,7 @@ import (
 )
 
 // heroes.go — the Testing Heroes' tables (entity/heroes.go, handlers/heroes.go;
-// petition 1471, the GM Jibrish, 2026-11-10: "For all mobs that give the player
+// petition 1471, 2026-11-10: "For all mobs that give the player
 // XP, add a new faction "Testing Heroes" ... Add a vendor in freeport near the
 // well and dabrish that allows you to buy items from him with that faction").
 //

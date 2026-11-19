@@ -6,7 +6,7 @@ import (
 )
 
 // A level 60 bard merc of the power path sings its path's power songs
-// (Kytank's petition 1993: "Bard merc doesn't seem to be using power path
+// (a player's petition 1993: "Bard merc doesn't seem to be using power path
 // spells (at 60)"). Its book holds Power Jig and Power Vibe (the path's 40
 // and 49) and Harmony (55, of the Concerto line), all three the workbook's
 // stack 3 +PoT line as the database holds them: by rank Harmony took the

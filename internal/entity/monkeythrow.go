@@ -9,7 +9,7 @@ import (
 )
 
 // monkeythrow.go — the monkeys throw snowballs (the owner, 2026-11-16: "make
-// moose's monkeys throw snowballs at players").
+// [a player]'s monkeys throw snowballs at players").
 //
 // Each monkey (monkeys.go) throws now and then: at its own time, a random
 // monkeyThrowMin to monkeyThrowMax after it came out or last tried, it throws

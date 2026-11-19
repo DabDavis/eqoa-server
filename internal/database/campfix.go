@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// Camp fix reports (handlers/campfix.go; board entry 513, the GM Jibrish's ask
+// Camp fix reports (handlers/campfix.go; board entry 513, a GM's ask
 // of 2026-11-09: "a command players can use to report a camp's creatures
 // standing in the wrong spot or facing the wrong way, or one too many or too
 // few"): a player's marks, sent with /campfix, or a petition's spawn request

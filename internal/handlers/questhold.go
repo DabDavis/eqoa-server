@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// A held trigger (petition 1617, Lickinfrogs: "collected items for froglok
+// A held trigger (petition 1617: "collected items for froglok
 // herbalist, turned in and no mobs spawned"; EQOA-Data's Good Tank, Episode 1:
 // "Talking to the Herbalist with your ingredients will initiate an event in which
 // you must protect the herbalist ... If the herbman dies while you are making

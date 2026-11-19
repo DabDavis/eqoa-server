@@ -6,7 +6,7 @@ import (
 )
 
 // followslot.go — each of a player's followers keeps a place of its own round
-// it (the owner, 2026-11-12: "the mercenary and healbot are following jib
+// it (the owner, 2026-11-12: "the mercenary and healbot are following a GM
 // perfectly stacked on top of each other, lets have them spread out").
 //
 // Why they stacked: every follower (a class pet, a merc, a familiar, a merc's
@@ -403,7 +403,7 @@ func (w *World) followLocked(npc *NPC, owner *Player, s followSlot, dt float32, 
 }
 
 // followHolds reports a follower n of slot s standing, its owner d off it,
-// as holding its place (the owner, 2026-11-17: "drizzt cant pet his own cat
+// as holding its place (the owner, 2026-11-17: "[a player] cant pet his own cat
 // guenhwyvar if he gets close it movese"). Its slot is a place round its
 // owner, so as its owner walked up to it the slot went along with him and it
 // walked off to keep it: its owner moving moved the formation (followFrame)

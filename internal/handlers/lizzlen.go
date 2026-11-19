@@ -11,7 +11,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// lizzlen.go — Master Lizzlen, the Plane of Sky's recharger (the player Hoofbite's petition 1985,
+// lizzlen.go — Master Lizzlen, the Plane of Sky's recharger (a player's petition 1985,
 // 2026-11-13: "Master Lizzlen in plane of sky is supposed to be the npc that will allow you to
 // recharge clicky items such as the Ring of Speed and other clicky style POS drops").
 //

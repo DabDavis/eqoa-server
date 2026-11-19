@@ -2,7 +2,7 @@ package entity
 
 import "testing"
 
-// The GM Jibrish's petition 1859 (the owner: "yes most damaage"): a raid brought Queen Qy'tha down and a player outside
+// a GM's petition 1859 (the owner: "yes most damaage"): a raid brought Queen Qy'tha down and a player outside
 // it landed the last blow with its pet. The kill is the raid's, given to its member who made the most damage; the
 // control, the last blow's own group making the most, keeps the killer; a creature no player hurt keeps its killer too.
 func TestTheKillIsTheMostDamagesGroups(t *testing.T) {
@@ -12,7 +12,7 @@ func TestTheKillIsTheMostDamagesGroups(t *testing.T) {
 		w.Players[id] = p
 		return p
 	}
-	a, b, c, out := mk(1, "Durant"), mk(2, "Thorinoak"), mk(3, "Jibrish"), mk(4, "Violence")
+	a, b, c, out := mk(1, "Durant"), mk(2, "Thorinoak"), mk(3, "Jinkles"), mk(4, "Violence")
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	g := w.formGroupLocked(a)
@@ -30,7 +30,7 @@ func TestTheKillIsTheMostDamagesGroups(t *testing.T) {
 	}
 	// the control: the last blow's group made the most
 	if _, got := w.killCreditLocked(queen, nil, c); got != c {
-		t.Fatalf("the raid's own last blow: the kill went to %v, want Jibrish", got)
+		t.Fatalf("the raid's own last blow: the kill went to %v, want Jinkles", got)
 	}
 	// alone against alone: the most damage's own
 	solo := &NPC{ServerID: 9002, Name: "gnoll", World: 5, HP: 100, MaxHP: 100}

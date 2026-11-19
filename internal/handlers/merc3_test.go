@@ -130,7 +130,7 @@ func TestMercLoginBringsEveryHire(t *testing.T) {
 }
 
 // The owner, 2026-11-18: "/merc will only add 2 mercs back and not the
-// third". Gonzo's three died over a minute, he died after them, and the
+// third". A player's three died over a minute, he died after them, and the
 // third's rest ended while he was dead: HireMercAt refused its return ("The
 // dead hire no one.") and nothing asked again, so two came back and the third
 // never did. A rested merc's return now waits for its owner to stand; and

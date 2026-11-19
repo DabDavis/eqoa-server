@@ -24,7 +24,7 @@ import (
 // PS2, vanilla and the page show the same hour.
 //
 // The server writes the second reading as its clock plus ClockOffset
-// (handlers' sendTimeOnly, as the C# reference and Sandstorm do: Sandstorm's
+// (handlers' sendTimeOnly, as the C# reference and the reference server do: the reference server's
 // 0x0013 of 2026-10-30 03:03:14 UTC carried 1793329394412 and
 // 1793330744412), so at the moment of a 0x0013 a client's hour is
 // ((ms + 1,350,000) % 3,600,000) / 150,000: midnight at 37.5 minutes past

@@ -7,16 +7,16 @@ import (
 
 // PlayerSize is a player's ModelSize (state-channel offset 36-39) when table
 // racesize has no row for its race: 1.0. CHAR.ESF's race bodies are authored
-// at their race's own height, and Sandstorm sends 1.00 for every player in
+// at their race's own height, and the reference server sends 1.00 for every player in
 // its captures (human, elf, dark elf, troll, halfling and erudite; F3
 // 20261025-173632). A table of race factors (a gnome 0.45, an ogre 1.5) stood
 // here until then, a guess from the Go client's days, and drew every gnome
 // NPC at under half size. Since 2026-10-29 a GM's racesize row sizes a race's
-// players (racesize.go): gnomes 0.9, jib's ask; NPCs are never scaled by it.
+// players (racesize.go): gnomes 0.9, a GM's ask; NPCs are never scaled by it.
 const PlayerSize float32 = 1.0
 
 // NPCSize is the ModelSize an npcs row's size sends: the row's own, as
-// Sandstorm sends each NPC's (a gnome 1.00 or 1.20, a bat 0.50, the Tests
+// the reference server sends each NPC's (a gnome 1.00 or 1.20, a bat 0.50, the Tests
 // Program 2.00), never scaled by its race; 1.0 when the row's is not a size
 // (zero, negative, under 0.01 or not finite).
 func NPCSize(size float32) float32 {
@@ -73,7 +73,7 @@ var classBonus = [...][7]int{
 
 // LookupBaseStats is a new character's stats before the 20 points it
 // spends, as the create screen shows them: 60, plus the race's bonus, plus
-// the class's (viwndcharcreatereview.cpp). Sandstorm's level 1 characters
+// the class's (viwndcharcreatereview.cpp). The reference server's level 1 characters
 // have exactly these (2026-10-21: seven race/class pairs, the points spent
 // aside), where Return Home's defaultcharacter table, this server's source
 // until then, has its Barbarian Shaman's row for the Barbarian Warrior and a
@@ -98,7 +98,7 @@ func LookupBaseStats(race, class int) baseStats {
 
 // hpFactor is the class's hit points a level before stamina: Return Home's
 // HPFactor (Character.cs), 24 the warrior, paladin and shadow knight, 16 the
-// ranger, monk, bard and rogue, 13 the priests, 10 the casters. Sandstorm's
+// ranger, monk, bard and rogue, 13 the priests, 10 the casters. The reference server's
 // are the same.
 func hpFactor(class int) int {
 	switch class {
@@ -116,7 +116,7 @@ func hpFactor(class int) int {
 // formula (eqoa.fandom.com's Formulas, the user's choice of 2026-10-25):
 // (HP factor + STA/11) x level, STA/11 a real division and the whole
 // truncated, worked in integers so no rounding error can drop a point; all
-// of the stamina counted, worn and from spells, within its cap. Sandstorm
+// of the stamina counted, worn and from spells, within its cap. The reference server
 // rounds STA/11 to a whole number first (stat channel byte 148, 32
 // characters measured 2026-10-21): of the 25 with no hit point mastery, 11
 // come out the same and 14 from 23 below to 8 above. Worn items' and
@@ -133,7 +133,7 @@ func calculateMaxHPFactor(level, factor, stamina int) int {
 }
 
 // powerStats is the two stats a class's power is made of: the one its class
-// bonus raises 15, then the one it raises 10 (classBonus). Sandstorm's power
+// bonus raises 15, then the one it raises 10 (classBonus). The reference server's power
 // fits these pairs and no other for every class measured; Return Home's
 // table had the warrior's, paladin's and shadow knight's swapped, the bard's
 // and monk's on AGI and WIS, the ranger's and rogue's swapped.
@@ -158,11 +158,11 @@ func powerStats(class, str, sta, agi, dex, wis, intel, cha int) (primary, second
 // level, truncated, worked in integers as (560 + 2 primary + secondary) x
 // level / 20; the pair the class's own (powerStats). The wiki names a
 // primary by archetype (tanks STR, melee AGI, casters INT, healers WIS),
-// which CLIENT's class table and Sandstorm's measurements refute for tanks
+// which CLIENT's class table and the reference server's measurements refute for tanks
 // and most melee (a level 50 shadow knight: 2608 measured, 2607 by the
 // class's pair, 2285 by STR). The stat channel's base maximum (byte 156) is
 // this of the base stats; its maximum (byte 40), this of the stats worn and
-// from spells too, plus their power. Sandstorm rounds half up: of the 32
+// from spells too, plus their power. The reference server rounds half up: of the 32
 // characters measured, 15 come out the same, 16 one lower, and one bought
 // a mastery that costs power.
 func CalculateMaxPower(level, class, str, sta, agi, dex, wis, intel, cha int) int {

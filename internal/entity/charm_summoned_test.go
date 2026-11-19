@@ -8,14 +8,14 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 )
 
-// Petition 1348 (Battaryhog, an enchanter): "when tring to charm a pet with
+// Petition 1348 (an enchanter): "when tring to charm a pet with
 // binding grasp, if i alrdy got swarming blades out tanking it to charm, i get
 // red message saying already got a pet". With a summoned pet out the charm is
 // cast while the pet holds the creature; when it takes hold the summoned pet
 // goes first (0x007F, its non-collide entry off, its line), then the creature
 // is the pet (0x007E with its own id, its name on the list), so the bar takes
 // the new name and there is never a spell pet and a charmed one at once
-// (petition 1351, Jibrish: "Dont make it so they can summon their spell pet
+// (petition 1351: "Dont make it so they can summon their spell pet
 // and charm at the same time"). Resisted, the summoned pet stays, still the
 // creature's enemy. The controls: with no pet out no 0x007F goes; a charmed
 // pet out still refuses the charm (TestACharmIsNotCastWithAPetOut).

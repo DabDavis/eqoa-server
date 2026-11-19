@@ -7,7 +7,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// gmrewardxp.go — a GM's reward of experience (petition 5033, the GM Jibrish, on the Live shard: "Add a GM only
+// gmrewardxp.go — a GM's reward of experience (petition 5033, on the Live shard: "Add a GM only
 // ability /reward for LIVE ONLY NOT HEIRLOOM, this gives a 10% XP bonus for 30 minutes to the target").
 //
 // An effect on the effects channel, as the towns' boon is (boon.go): its own id, a name and the Divine Blessing

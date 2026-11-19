@@ -7,14 +7,14 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// skyfall.go — a fall off the Plane of Sky's islands ends at home (Hoofbite's
+// skyfall.go — a fall off the Plane of Sky's islands ends at home (a player's
 // petition 1995, 2026-11-13: "When jumping off plane of sky island, you do not
 // return home and continue to fall forever. Should return home after about 15
 // seconds of falling from a plane of sky island").
 //
 // The islands float over nothing. CLIENT's walk drops a body with no floor to
 // its world floor, -1000 (WorldFloorY), and leaves it standing there in the
-// air for good; vanilla's walk falls on past it (Hoofbite's own report: y
+// air for good; vanilla's walk falls on past it (a player's own report: y
 // -12,350). Nothing brought either back but /stuck.
 //
 // A player in the Plane of Sky is LOST while its place (its 0x40s, as the

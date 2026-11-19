@@ -14,7 +14,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// Pointers to a quest's next giver (petition 1692, Hige: "Ozmo Da Basher is
+// Pointers to a quest's next giver (petition 1692: "Ozmo Da Basher is
 // not updating quest log for epic part 2"). A quest Q ends at one NPC; the
 // quest that follows it, S (S's requires names Q), is offered by another,
 // somewhere else, and once Q leaves the journal nothing in it said so: Four

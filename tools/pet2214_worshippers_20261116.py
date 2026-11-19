@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Petition 2214 (Trulytwo, Heirloom, 2026-11-16): "Dragon worshippers keep spawning they should not be doing that".
+"""Petition 2214 (Heirloom, 2026-11-16): "Dragon worshippers keep spawning they should not be doing that".
 
 The two dragon worshippers that stand by Siliskor at the crooked elephant statue in the Elephant Graveyard (npcs 111882
 at 14541.7, 26791.2 and 111884 at 14550.8, 26762.6, beside Siliskor 111881 and Pamus Magemell 111883) had no npcrespawn

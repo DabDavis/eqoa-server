@@ -472,7 +472,7 @@ INSET = (4500.0, 8500.0, 9000.0, 12800.0)
 # only when the nearest place the sheet names (its zones and towns) is one of
 # the Rathe's (qa lane: Gerntar's Mine, Oggok Gate, Kelinar and the Mila's
 # Reef lighthouse were taken for the Rathe's). The fit still leaves the whole
-# box out, as the 1-20 seed (in on eqoaclassic) was planned: a fit with south
+# box out, as the 1-20 seed (in on the production server) was planned: a fit with south
 # Tunaria's points in moves every map placement a little.
 RATHE_PLACES = {"Geomancer's Citadel", "Cyclops' Fortress", "Urgulnt's Gate", "Sphinx Pyramid", "Lake Rathe",
                 "Geomancer's Pass", "Dead Hills", "Ogre Ruins", "West Feerrott", "Moggok's Gate", "Envar", "Oggok"}

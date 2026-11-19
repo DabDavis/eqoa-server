@@ -14,7 +14,7 @@ import (
 )
 
 // familiar.go — familiars, the handlers' half (entity/familiar.go is the
-// World's; the GM Jibrish's petition 1445: Healbot, sold by the Genie).
+// World's; a GM's petition 1445: Healbot, sold by the Genie).
 //
 // world.familiars (SetFamiliars: off unless set; the Heirloom Test Server sets
 // it) turns them on. Off, a familiar's item says it is quiet here, and

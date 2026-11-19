@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Spells whose records, lines or summoned items disagree with the game's own
-records of them, put right (jib's bug reports of 2026-10-27).
+records of them, put right (a GM's bug reports of 2026-10-27).
 
 The source is Allakhazam's EQOA spell database (eqoa.allakhazam.com, its
 import of the game's spells of 2004-04-28) as the Wayback Machine archived

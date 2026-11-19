@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The Ghilan Noble's blessing on herself too, and her debuff on what she fights (ticket 2001, the magician Waldorf,
+"""The Ghilan Noble's blessing on herself too, and her debuff on what she fights (ticket 2001, a magician,
 2026-11-13: "Ghilan Noble doesn't seem to cast her blessing on herself in addition to the caster. Efreeti Lord does
 cast Efreeti's fire on both so one must be incorrect. Also can you confirm that Ghilan Noble also casts a debuff on
 the mob. That was one of the first spells she would use which was great for pulling mobs on live").

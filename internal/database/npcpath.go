@@ -67,7 +67,7 @@ func PathMode(s string) (string, bool) {
 }
 
 // The pace a path may give in units a second, beside walk and run: a patrol
-// as Sandstorm's walks it (tools/seed_npc_patrols.py: its pikers pace at
+// as the reference server's walks it (tools/seed_npc_patrols.py: its pikers pace at
 // 3.12, under the walk's 5).
 const (
 	MinPathPace = 0.5

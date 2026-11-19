@@ -67,7 +67,7 @@ func TestZizclankSendsTheStrongToPoD(t *testing.T) {
 	tw.s.Queue().GetPending()
 	tw.pick(ziz, 0)
 	x, z, world, moved := teleported(tw.s)
-	// the owner's spot (podArrival, 2026-11-13: where Dust stood)
+	// the owner's spot (podArrival, 2026-11-13: where a GM stood)
 	if !moved || world != 5 || math.Abs(float64(x-podArrival.X)) > 0.01 || math.Abs(float64(z-podArrival.Z)) > 0.01 {
 		t.Errorf("Yes sent the player to (%.1f, %.1f) world %d (%v), want (%.1f, %.1f) in world 5",
 			x, z, world, moved, podArrival.X, podArrival.Z)
@@ -130,7 +130,7 @@ func TestPoDPortalsSendPlayersOn(t *testing.T) {
 
 // The Fuming Portal at the cauldron sends a level 60 to Noroxus's lair, in
 // front of the Portal to the Cauldron in the north-west lake's lobe, and that
-// portal sends anyone back in front of the Fuming Portal (F3 pass 21, jib:
+// portal sends anyone back in front of the Fuming Portal (F3 pass 21, a GM:
 // Noroxus stood "at his portal entrance, not his arena"). The control: a
 // level 59 is too weak for the lair and is sent nowhere.
 func TestFumingPortalSendsTheRaidToNoroxus(t *testing.T) {

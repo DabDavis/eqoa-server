@@ -25,7 +25,7 @@ func conjuredTool(t *testing.T, path string, args ...string) string {
 	return string(out)
 }
 
-// The owner's decision of 2026-11-10 on jib's PR #1, end to end: tools/norent_conjured_20261110.py gives the twenty
+// The owner's decision of 2026-11-10 on a GM's PR #1, end to end: tools/norent_conjured_20261110.py gives the twenty
 // conjured records a norentvanish row each (by name among the records of rent 0, at their old ids), and a login more
 // than five minutes after the logout takes a held copy; a second --apply writes nothing, and --undo takes out exactly
 // its own rows. The controls: the Unit of Blood stays, the game's own record of a conjured one's name (rent 1) stays,

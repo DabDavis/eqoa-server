@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Three kobold camps in Odus that wildlife never walks into or through, as the GM Jibwiz asked in petitions 1963-1965
+"""Three kobold camps in Odus that wildlife never walks into or through, as a GM asked in petitions 1963-1965
 (2026-11-13): "This kobold camp beneath me needs to not have wildlife in this area pathing into it. It can get close,
 but never through the tented camp" (1963), "... wildlife in this zone roam through the camp. They can get close, but
 never go through it" (1964), "This kobold slayer camp needs to not have wildlife path into it" (1965).
 
 Table noroam (entity/noroam.go): a wander leg that ends in one of its circles or passes through it is not taken, unless
 the creature spawned in it (the camp's kobolds) or stands in it. Each camp's circle is its tents' as the disc places
-them (ODUS.ESF's zone actors of the tent sprite 0x5C08C48E and the racks 0xDBBE83F2 near where Jibwiz stood: the
+them (ODUS.ESF's zone actors of the tent sprite 0x5C08C48E and the racks 0xDBBE83F2 near where a GM stood: the
 smallest circle round every point of their meshes) and 3 more:
 
-  petition  Jibwiz stood        tents' circle (middle, radius)   kept out
+  petition  a GM stood        tents' circle (middle, radius)   kept out
   1963      (5467.6, 10515.7)   (5454.3, 10520.8) 36.2           39
   1964      (5916.6, 10243.9)   (5915.7, 10259.0) 18.9           22
   1965      (5784.4, 11134.8)   (5775.4, 11137.9) 31.3           34

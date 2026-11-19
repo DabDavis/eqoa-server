@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The catapult's two dye areas (the owner, 2026-11-18: "the catapult pet needs two tone color regions for pet groomer").
 
-Zerkziee's construct as Tunaria's catapult prop (0xE64B8D78, tools/catapult_pet_20261117.py) is dyed by the Pet Groomer
+A player's construct as Tunaria's catapult prop (0xE64B8D78, tools/catapult_pet_20261117.py) is dyed by the Pet Groomer
 in the art his client draws it in (server branch catapult-pet: entity/decorlights.go petDrawnLook, petdyes.go). The prop
 has no clothing by the client's rule, so one petdyeareas row gives it two areas by its four materials (palette indices,
 read off the disc by vanilla's petart.rs disc test):

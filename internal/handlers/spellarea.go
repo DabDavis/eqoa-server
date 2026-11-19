@@ -8,7 +8,7 @@ import (
 )
 
 // spellarea.go — a GM's row of table spellarea over what an area spell's line
-// reads (entity/area.go; jib's review, F3 pass 19): read at every cast, as the
+// reads (entity/area.go; a GM's review, F3 pass 19): read at every cast, as the
 // spell's line is, so a GM's change counts at the next cast.
 
 // areaOf is spell with the GM's spellarea row over its area, if it has one.

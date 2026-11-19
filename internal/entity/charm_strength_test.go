@@ -7,7 +7,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// liveishBalance is the level and con tables as eqoaclassic held them on
+// liveishBalance is the level and con tables as the production server held them on
 // 2026-11-09 (balancelevel 50 and 60, balancecon 0..8 after the 11-07 cut).
 func liveishBalance() *Balance {
 	return NewBalance([]database.BalanceLevel{
@@ -19,7 +19,7 @@ func liveishBalance() *Balance {
 		{Diff: 8, DamagePct: 230, TakenPct: 45}})
 }
 
-// Petition 1353 (Fujiko): "level 52 Charging Rhino barely crit it down. Might
+// Petition 1353: "level 52 Charging Rhino barely crit it down. Might
 // be intended but Rhino was swinging for 12's against Kobolds". A charmed
 // creature hits at its own strength (charmedHitLocked: as a creature hits a
 // creature, the guards' npcHitNPCLocked): a level 52 on the camp's level 62

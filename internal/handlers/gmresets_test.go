@@ -320,7 +320,7 @@ func TestResetCommandsHaveTheSlashSpelling(t *testing.T) {
 // the last alone: CLIENT's ReadFlags sets only the entries it is given, so the
 // others' empty lists change nothing and the last's whole list leaves every
 // flag as each would have. Each list was the whole catalog's, 8 bytes an
-// entry (Jibrish's 58-rank reset: 116 fragments). The control: the last
+// entry (a GM's 58-rank reset: 116 fragments). The control: the last
 // carries the list.
 func TestAResetSendsTheKnownFlagsOnce(t *testing.T) {
 	w := newResetWorld(t)

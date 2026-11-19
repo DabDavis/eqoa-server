@@ -10,7 +10,7 @@ import (
 )
 
 // unreached.go — a boss that cannot reach anyone (database.AbilityUnreached, one of its moments:
-// bossmoments.go; the GM Jibwiz's petition 1916, Mr. Moogie: "if someone is on his hate list for more than
+// bossmoments.go; a GM's petition 1916, Mr. Moogie: "if someone is on his hate list for more than
 // 60 seconds, and he has not been able to hit any target on his hate list for more than 60 seconds, he
 // nukes them unresistable for 20,000 every 6 seconds. Essentially if he's fighting 10 people, hitting one,
 // then this does not go off").

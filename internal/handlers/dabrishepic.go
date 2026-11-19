@@ -196,7 +196,7 @@ func (q *QuestEngine) classEpicItems(class int) (pair, sixty []int, picks [][]in
 // classEpicCopies is how many of each record the class's level 60 epic
 // reward picks give at once, where an option gives more than one (the rogue's
 // "The Ascended Rogue's Epic Daggers", 980148*2): a pair is exchanged as a
-// pair, both taken and both given (Heirloom petition 2236, Poppapump: "I
+// pair, both taken and both given (Heirloom petition 2236: "I
 // exchanged my 60 epic weps for tunic but it only took the unequipped wep. It
 // should take both").
 func (q *QuestEngine) classEpicCopies(class int) map[int]int {

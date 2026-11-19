@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Newbie wildlife spread round a town whose creatures stand in one clump.
 
-F3 20261030-224311 (eqoaclassic): "Tethelin - nowhere near enough low-level
+F3 20261030-224311 (the production server): "Tethelin - nowhere near enough low-level
 wildlife, especially sparkflies." Round Tethelin the creatures of level 5 or
 less are not few (432 within 2500 of the town, Freeport 213) but packed:
 three 500-unit squares east of the town hold about a hundred each, and the

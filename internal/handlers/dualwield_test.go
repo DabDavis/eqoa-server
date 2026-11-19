@@ -11,7 +11,7 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 )
 
-// Petition 1376 (Zaeire's, a rogue of 60 holding a dagger in each hand):
+// Petition 1376 (a rogue of 60 holding a dagger in each hand):
 // "While dual wielding, if you swap say and equip a different secondary
 // weapon, its replacing the primary if its listed as a secondary weapon.
 // Weapon in the right hand is being swapped (primary) rather than the default

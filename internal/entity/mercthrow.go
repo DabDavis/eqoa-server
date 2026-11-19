@@ -157,7 +157,7 @@ func (w *World) mercThrowablesLocked(ms *mercState) []mercThrowable {
 			continue
 		}
 		// a refinement's potions whatever its ten slots hold (petition 2195,
-		// Lonewulff: "when you use a alc merc and change its class MC they
+		// a player: "when you use a alc merc and change its class MC they
 		// dont make any of thore potions"): a refinement is never cast, so its
 		// window never lists it and no slot can hold it (mercWindowBook); with
 		// its slots set it brewed none, threw none of its path's and kept its

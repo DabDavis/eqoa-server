@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The evil tank epic's lava dip (petition 1660, Wanuven, 2026-11-12: "the text says to go to where the land dips in
+"""The evil tank epic's lava dip (petition 1660, 2026-11-12: "the text says to go to where the land dips in
 the center of Lavastorm ... the trigger for the quest update was way out east. I think it may be in the wrong spot").
 
 Step 4 of the episode 1 quests (101068 and 101077, a reach step: "Drop the three ores into the lava where the land

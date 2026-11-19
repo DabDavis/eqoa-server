@@ -273,7 +273,7 @@ func TestOtherProcsHaveNoRoundLimit(t *testing.T) {
 	}
 }
 
-// Petition 1371 (Uzii): the Steelwind Staff, the Staff of Faykind's figures in the Steelwind's look, procs the
+// Petition 1371: the Steelwind Staff, the Staff of Faykind's figures in the Steelwind's look, procs the
 // Faykind's pixie form; the control, another name, does not.
 func TestSteelwindStaffProcsAsTheFaykind(t *testing.T) {
 	want, ok := WeaponProcOf(715031, "Staff of Faykind", "")

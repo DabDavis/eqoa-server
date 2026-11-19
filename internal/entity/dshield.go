@@ -9,12 +9,12 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// dshield.go — damage shields and defensive procs (jib's review, F3 pass
+// dshield.go — damage shields and defensive procs (a GM's review, F3 pass
 // 19): an effect on a player or a pet that answers a creature's melee hit on
 // its bearer. A damage shield takes its damage back off the creature at
 // every hit; a defensive proc does at some.
 //
-// What was recorded: Sandstorm's one shield, a level 50 shadow knight's
+// What was recorded: the reference server's one shield, a level 50 shadow knight's
 // Shroud of Hate fought by the training dummies
 // (claude-notes/training-dummies-20261021.md, offence-sandstorm-20261022.md).
 // At each of a dummy's hits on him, in the same millisecond, came a 0x00B1 of
@@ -94,14 +94,14 @@ import (
 //     (ours: the ranger's coats, 4 at level 1, 8 at 12, 12 at 24, 22 at 44
 //     and 30 at 55, are near it): a level 8 Thistleshield 4, a level 60
 //     Searing Aura 30. A GM's number in the line is taken instead;
-//   - Shroud of Hate does its bearer's level plus 2 to 3: Sandstorm's 52 and
+//   - Shroud of Hate does its bearer's level plus 2 to 3: the reference server's 52 and
 //     53 on a level 50, the level ours (one measurement fixes no scale), and
 //     lasts 5 minutes (ours: the other level 1 shields' time);
 //   - a shield whose record says it hurts undead answers undead alone
 //     (Divine Protection: "A protective aura injures all undead who come in
 //     contact with it"; undead.go says which creatures are);
 //   - a training dummy's hits are answered as a creature's, the figure told
-//     and taken off nothing (dummy.go), as Sandstorm's dummies were by Shroud
+//     and taken off nothing (dummy.go), as the reference server's dummies were by Shroud
 //     of Hate; a sparring dummy's melee too, not its element strike (a
 //     spell);
 //   - a group shield lands on the members, not their pets (ours: no source
@@ -119,7 +119,7 @@ const (
 )
 
 // fxShieldHit is the visual of a shield's 0x00B1: Shroud of Hate's on
-// Sandstorm, at each hit it answered.
+// the reference server, at each hit it answered.
 const fxShieldHit uint32 = 0x33FBB69A
 
 // Shield is what an effect does when a creature's melee hit lands on its
@@ -152,7 +152,7 @@ func init() {
 
 // levelShields are the shields whose damage goes with their bearer's level,
 // its least and most above it, when the line names none or scales by level: Shroud of Hate's
-// 52-53 on Sandstorm's level 50 (the level ours).
+// 52-53 on the reference server's level 50 (the level ours).
 var levelShields = map[string][2]int{
 	"shroud of hate": {2, 3},
 }

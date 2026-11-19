@@ -6,7 +6,7 @@ import (
 )
 
 // mercoffbeat.go — mercs off the beat of each other (the owner, 2026-11-12:
-// "Jibrish's mercs are nuking in unison, let's make them offbeat a bit
+// "a GM's mercs are nuking in unison, let's make them offbeat a bit
 // each"). Three mercs of one class at one level have one book, one cast time
 // and one lockout: hired together and turned on a foe on the same tick, they
 // began every spell on the same tick for the whole fight. Since then:

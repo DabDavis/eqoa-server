@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// The cleric's damage marks (markhit.go; jib's PR #1, the GM Jibrish's ruling of
+// The cleric's damage marks (markhit.go; a GM's PR #1, a GM's ruling of
 // 2026-10-29). The marks here are made up in the shape the workbook gives the
 // live ten: a harmful spell at an enemy, one offensive proc of hp -N, for a
 // minute, resisted by AR.

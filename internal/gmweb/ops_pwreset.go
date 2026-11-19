@@ -13,7 +13,7 @@ import (
 )
 
 // Password resets (the owner, 2026-11-11: "lets add forgot password? to
-// eqoaclassic", a GM-approved request: "A GM confirms it is them and sets a
+// the production server", a GM-approved request: "A GM confirms it is them and sets a
 // temporary password with one click; the player must change it at next
 // login."). A player's request comes from the account pages' Forgot password
 // form (tcp/accountpassword.go) as a row of pwresets with a work board entry;

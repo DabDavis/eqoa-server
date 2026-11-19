@@ -110,7 +110,7 @@ func TestWaterPetHealsTheWorstOffOfItsRaid(t *testing.T) {
 	}
 }
 
-// On: its owner comes first (petitions 1819/1820, the GM Jibrish: "They should
+// On: its owner comes first (petitions 1819/1820: "They should
 // always prioritize the mage for heals but otherwise use them on other damaged
 // group or raid members"): below 60% it is healed though Raider (25%) and the
 // rest are worse off; above it the rest are healed.

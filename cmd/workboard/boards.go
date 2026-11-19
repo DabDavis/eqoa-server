@@ -11,16 +11,16 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// Personal boards (database/gmboard.go): a GM's private thread with dab's
+// Personal boards (database/gmboard.go): a GM's private thread with the owner's
 // sessions. The panel's my_boards, board_messages and post_board_message are
-// the GM's side; these commands are ours, posting as -as (dab's sessions).
+// the GM's side; these commands are ours, posting as -as (the owner's sessions).
 // Which boards there are is config.yaml's gm.personal_boards: a name it does
 // not have is refused, so a typo ("jibs") does not start a board no one
 // reads. With no config.yaml to read (a -db alone), any well-formed name is
 // taken.
 
 // postsWork is whether post's arguments are the work board's (post -title
-// ..., add's old name) rather than a personal board's (post jib text).
+// ..., add's old name) rather than a personal board's (post a GM text).
 func postsWork(args []string) bool {
 	for _, a := range args {
 		a = strings.TrimLeft(a, "-")

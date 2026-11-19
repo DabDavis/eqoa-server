@@ -284,7 +284,7 @@ func TestMercWearsItsRacesArmourBody(t *testing.T) {
 	}
 }
 
-// A hill giantess merc (racedefs' female body her own, the GM Jibrish's petition
+// A hill giantess merc (racedefs' female body her own, a GM's petition
 // 1647) wears her own body in any armour: the race's armour bodies are the male's
 // (a male giant's each). The control: a hill giant man in the same robe takes the
 // sand giant's.
@@ -778,7 +778,7 @@ func TestMercBesideTheClassPet(t *testing.T) {
 }
 
 // An attack pressed on a creature out of its owner's reach is no fight yet
-// (Zerkziee, 2026-11-17): the owner's mercs stay until he is in reach of it,
+// (2026-11-17): the owner's mercs stay until he is in reach of it,
 // or it comes at him; then they go.
 func TestMercWaitsForItsOwnersReach(t *testing.T) {
 	r := newMercRig(t)

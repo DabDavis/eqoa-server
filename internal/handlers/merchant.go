@@ -39,7 +39,7 @@ const (
 )
 
 // merchantRate is the percentage 0x00B7 gives the client for selling
-// (+0x1B308) and for buying (+0x1B30C). Sandstorm sends 100 and 100
+// (+0x1B308) and for buying (+0x1B30C). The reference server sends 100 and 100
 // (ps2_main_capture), so an item sells and buys at its value.
 const merchantRate = 100
 
@@ -47,7 +47,7 @@ const merchantRate = 100
 const roseNotSold = "Merchants will not buy a Rose of Rehabilitation."
 
 // merchantGreeting is the line 0x00B7 ends with (m_merchantName, at most 127
-// UTF-16 characters). Sandstorm sends each merchant's own; npcs carries none.
+// UTF-16 characters). The reference server sends each merchant's own; npcs carries none.
 const merchantGreeting = "Have a look at my wares."
 
 // NPCWindowHandler runs the merchant, bank and blacksmith windows.
@@ -256,7 +256,7 @@ func addInvItemPayload(e *database.CharInventoryEntry, key uint32, capes bool) [
 
 // removeInvItemPayload is 0x003C: u8 list index, u8 sound, zigzag count →
 // Msg003C [V], VIItemList::Took. With the merchant open, a non-zero sound
-// plays and clears the merchant's pending flag; Sandstorm sends 1 for a sale.
+// plays and clears the merchant's pending flag; the reference server sends 1 for a sale.
 func removeInvItemPayload(index int, sound byte, n int) []byte {
 	return build(protocol.OpcodeRemoveInvItem, 16, func(w *buffer.Writer) {
 		w.WriteByte(byte(index))
@@ -369,7 +369,7 @@ func (h *NPCWindowHandler) openMerchant(sess *session.Session, player *entity.Pl
 const merchantNoRoom = "You have no room in your inventory for that item."
 
 // HandleMerchantBuy is 0x004A: zigzag catalog index, zigzag count, u32 the
-// merchant (MerchantRequest 0x00BCCA38 [V]). Sandstorm answers 0x003B with the
+// merchant (MerchantRequest 0x00BCCA38 [V]). The reference server answers 0x003B with the
 // item, then 0x0052 with the purse.
 func (h *NPCWindowHandler) HandleMerchantBuy(sess *session.Session, msg *protocol.Message) error {
 	r := buffer.NewReader(msg.Data())
@@ -422,7 +422,7 @@ func (h *NPCWindowHandler) buy(sess *session.Session, id uint32, index, count in
 				log.Printf("MerchantBuy: %s holds the Lore %q already", player.Name, p.ItemName)
 			case bought == 0:
 				// the list is full, or the stack is: said, where it was silent (the user,
-				// 2026-11-08: "cardile is having issues with buying staff of faykind and
+				// 2026-11-08: "[a player] is having issues with buying staff of faykind and
 				// heirloom weapon from vendor": a pack of 40, nothing told)
 				SendClientMessage(sess, merchantNoRoom)
 				log.Printf("MerchantBuy: %s has no room for %q", player.Name, p.ItemName)
@@ -434,7 +434,7 @@ func (h *NPCWindowHandler) buy(sess *session.Session, id uint32, index, count in
 			log.Printf("MerchantBuy: %s cannot afford %d %q (%d > %d)", player.Name, took, p.ItemName, cost, player.Tunar)
 			break
 		}
-		// A bought item comes new (Sandstorm's 0x003B carries the full
+		// A bought item comes new (the reference server's 0x003B carries the full
 		// condition where its catalog record does not).
 		fresh := item
 		fresh.RemainHP = p.MaxHP
@@ -502,7 +502,7 @@ func (h *NPCWindowHandler) carryInstanceAura(from, to int) {
 // wireRecord is a row as a record the server sends outside the MemoryDump:
 // not equipped and on no quick slot — the record's fifth field is the quick
 // slot (VINetItem +0x10; QuickSlot in the client's parser), not the database's
-// location, and Sandstorm sends -1 for both in 0x00B7 and 0x003B.
+// location, and the reference server sends -1 for both in 0x00B7 and 0x003B.
 func wireRecord(e database.CharInventoryEntry) database.CharInventoryEntry {
 	e.EquipLoc = -1
 	e.Location = -1
@@ -523,7 +523,7 @@ func catalogRecord(e database.CharInventoryEntry) database.CharInventoryEntry {
 }
 
 // HandleMerchantSell is 0x004B: u32 the item's key, zigzag count, u32 the
-// merchant (SellItem 0x00BCCA80 [V]). Sandstorm answers 0x003C (the list
+// merchant (SellItem 0x00BCCA80 [V]). The reference server answers 0x003C (the list
 // index, sound 1, the count) and 0x0052.
 func (h *NPCWindowHandler) HandleMerchantSell(sess *session.Session, msg *protocol.Message) error {
 	r := buffer.NewReader(msg.Data())

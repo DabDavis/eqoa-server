@@ -16,7 +16,7 @@ import (
 // 30min". tools/import_spell_effects.py copies each line into spelleffect by
 // the spell's name; this reads it.
 //
-// Sandstorm agrees with those lines where it was measured (a druid of 23,
+// The reference server agrees with those lines where it was measured (a druid of 23,
 // 2026-10-21, claude-notes/casting-sandstorm-20261021.md): Rockskin gave AC
 // +150, max power +60, max HP +30; Minor Healing's tick was 35 with CHA 60
 // ("20 ; Increase 25% based on CHA"), Healing's 140 ("125", the same 25%).
@@ -184,7 +184,7 @@ type SpellEffect struct {
 	// percent for every point its resist of DebuffStat is lowered by, the
 	// largest such debuff on it (npcResistDebuff): the rogue's Agony, each of
 	// its three hits half again as hard after Rakish Assault's 100 off pierce
-	// (petition 1036, Zaeire: "550ishx3 scaling to around 800ishx3 with
+	// (petition 1036: "550ishx3 scaling to around 800ishx3 with
 	// rakish"; the spelleffect row's debuff_scale)
 	DebuffStat Stat
 	DebuffPct  float64
@@ -195,7 +195,7 @@ type SpellEffect struct {
 	DebuffedPct int
 	// HateOff is the percent of a hit's damage that makes no hate on the
 	// creature it lands on (the workbook JSON's hate_pct, 100 less it): 0, all
-	// of it is hate, as every hit's is; 100, none (Vylinnuza's Merciless
+	// of it is hate, as every hit's is; 100, none (a player's Merciless
 	// Blizzard and Inferno, petition 1372). The hit still angers it: a fight
 	// begun, its kind called, a lull ended (cast.go's spellHitHateLocked)
 	HateOff int
@@ -477,7 +477,7 @@ var statWords = []struct {
 	{"resist arcane", StatAR}, {"resist fire", StatFR}, {"resist cold", StatCR},
 	{"resist poison", StatPR}, {"resist disease", StatDR}, {"resist lightning", StatLR},
 	// cold resist as Allakhazam's pages and the wizard's Element Guard word
-	// it ("Increase Resist Fire & Ice by 45"; jib's review, F3 pass 19)
+	// it ("Increase Resist Fire & Ice by 45"; a GM's review, F3 pass 19)
 	{"resist ice", StatCR},
 	// a bearer's every melee hit (Frenzy's "Increase Damage per Hit")
 	{"damage per hit", StatMelee},
@@ -495,7 +495,7 @@ func statWord(s string) (Stat, bool) {
 
 // defaultSpellLines are what a spell does when spelleffect holds no line
 // for it (a GM's row there comes first). Arcane Beckon (F3 20261025-180443,
-// jib: "supposed to buff charisma"): an enchanter's level 15 self spell,
+// a GM: "supposed to buff charisma"): an enchanter's level 15 self spell,
 // "Fills you with an arcane presence, increasing charisma." No list, wiki
 // or recording gives its numbers; CHA +15 for 30 minutes is ours.
 var defaultSpellLines = map[string]string{

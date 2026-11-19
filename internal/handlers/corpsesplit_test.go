@@ -7,7 +7,7 @@ import (
 )
 
 // A corpse's coins are shared with the opener's group (petition 1228,
-// Waldorf: "During live, the entire group shared a portion of it"): ten coins
+// a player: "During live, the entire group shared a portion of it"): ten coins
 // among three members near the kill are three each and the odd one the
 // opener's; a member out of the kill's reach takes none. The control: one in
 // no group takes them all.

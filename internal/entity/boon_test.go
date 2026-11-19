@@ -29,7 +29,7 @@ func boonsOn(p *Player) (int, *ActiveEffect) {
 // of a level kill a creature, and the one with the boon earns twice the
 // other's share (its own share doubled, the group's left alone), its line
 // saying so; a quest's award (AwardXP) is doubled the same. The control: the
-// member without it earns the kill's share, told in Sandstorm's line.
+// member without it earns the kill's share, told in the reference server's line.
 func TestABoonDoublesEveryAward(t *testing.T) {
 	k := newKillWorld(t, 30, 30)
 	with, without := k.players[0], k.players[1]

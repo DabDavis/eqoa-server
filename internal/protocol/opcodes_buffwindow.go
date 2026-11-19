@@ -1,6 +1,6 @@
 package protocol
 
-// The buff window (the GM Jibrish's petition 1761, 2026-11-12; entity/buffwindow.go,
+// The buff window (a GM's petition 1761, 2026-11-12; entity/buffwindow.go,
 // handlers/buffwindow.go): the player's effects in two rows and its pet's in a third, each
 // with its name and time left, a beneficial one taken off by a click or a controller's
 // press. A client that draws such a window answers the offer and is sent the set; a PS2

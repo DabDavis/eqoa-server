@@ -24,7 +24,7 @@ import (
 // says a line of the city its words are looked up by (a starting city's
 // quest: that city's own), or it has something else for the player (a quest
 // to take now) or the quest asks a standing the character's start does not
-// meet, and it says nothing; at the quest's level it never says it. Dust's "Frog Legs for
+// meet, and it says nothing; at the quest's level it never says it. A GM's "Frog Legs for
 // Grobb" (the user's case, 2026-10-30) is checked by name when the database
 // has it: Sythonis U`Dedne says one of Neriak's lines to a level 6 dark elf
 // shadow knight who has finished "The Fire Bats". The givers whose city is
@@ -239,7 +239,7 @@ func TestRealQuestNotYet(t *testing.T) {
 	}
 	t.Logf("%d quests checked; %d givers of no known city", checked, len(givers))
 
-	// Dust's case
+	// A GM's case
 	for _, qu := range qe.cat.all {
 		if qu.Name != "Frog Legs for Grobb" || foldName(qu.Giver) != foldName("Sythonis U`Dedne") || !qu.Enabled {
 			continue

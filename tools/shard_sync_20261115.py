@@ -2,7 +2,7 @@
 """Bring the Heirloom Test Server's and the Live Server's content up to date with each other (the owner, 2026-11-15:
 "make sure heirloom and live has the most up to date quests, items, etc.").
 
-Each shard got fixes of its own: GM work on Heirloom (jibrish, funyun, forestwood, the panel), Live-only petition fixes,
+Each shard got fixes of its own: GM work on Heirloom (the GMs' accounts, the panel), Live-only petition fixes,
 tools run on one database. This tool compares the two databases' CONTENT tables (items, quests, NPCs and their tables,
 loot, merchants, spells, masteries, triggers, balance) by natural keys, decides which side is newer, and copies the
 newer side over, one direction a run (--from -> --to).
@@ -39,7 +39,7 @@ either shard (listed for a person, never synced); and EXCLUDED, another lane's: 
 Liztin Misseliania's stock.
 
 The owner approved (2026-11-15) copying to Live these Heirloom-only changes as well: the melee balance, the camp
-spread and wandering, jibrish's one-shard calls (Lady Vox's 2 h, Bertoxxulous -30%, the Recruiter starts at L60, the
+spread and wandering, a GM's one-shard calls (Lady Vox's 2 h, Bertoxxulous -30%, the Recruiter starts at L60, the
 quests' race lists), the spell range pass, the GM-made items.
 
 Report by default (counts per table and the review list; --plan FILE writes every operation). --apply runs the
@@ -818,7 +818,7 @@ class Shards:
                 if qkey not in qdec:
                     eh, el = quest_level(qkey)
                     qdec[qkey] = decide("quests", r, eh, el, do_probe=False)
-        # quests decided on the quests row (the owner-approved jib calls) carry their steps with them
+        # quests decided on the quests row (the owner-approved a GM calls) carry their steps with them
         out = {}
         for t in ORDER:
             res = []

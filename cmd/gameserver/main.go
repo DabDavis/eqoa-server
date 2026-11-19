@@ -1504,7 +1504,7 @@ func boonOf(w config.WorldConfig) entity.Boon {
 }
 
 // vampireSunOf is world.vampire_sun_*, each unset one the default
-// (entity.DefaultVampireSun: Sandstorm's 50 every 6 s, shade sheltering, a
+// (entity.DefaultVampireSun: the reference server's 50 every 6 s, shade sheltering, a
 // GM's vampire burning).
 func vampireSunOf(w config.WorldConfig) entity.VampireSun {
 	r := entity.DefaultVampireSun

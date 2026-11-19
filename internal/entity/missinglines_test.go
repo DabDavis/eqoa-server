@@ -12,7 +12,7 @@ import (
 )
 
 // The lines tools/fix_missing_effect_lines.py gives the class spells that had
-// none (jib's review, F3 pass 19), out of tools/missing_effect_lines.json,
+// none (a GM's review, F3 pass 19), out of tools/missing_effect_lines.json,
 // read as the server reads them at a cast (ParseSpellNamed, with the spell's
 // name and its record's description) and held to what each line's words say:
 // whom it is cast at, every effect with its amount, how long it lasts, whether

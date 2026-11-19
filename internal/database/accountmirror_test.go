@@ -48,7 +48,7 @@ func accountOf(t *testing.T, db *SQLiteDB, name string) *AccountRecord {
 func TestTheMirrorFollowsTheOwner(t *testing.T) {
 	owner, shard, m, _ := twoShards(t)
 	store := NewSQLiteAccountStore(owner)
-	dab, err := store.Create("dab", "hash-1")
+	dab, err := store.Create("dax", "hash-1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,8 +60,8 @@ func TestTheMirrorFollowsTheOwner(t *testing.T) {
 	if err != nil || ch != 2 || gone != 0 || total != 2 {
 		t.Fatalf("the first pull: %d changed, %d gone, %d in all, %v", ch, gone, total, err)
 	}
-	if a := accountOf(t, shard, "DAB"); a.ID != dab.ID || a.PasswordHash != "hash-1" || a.AccessLevel != 0 {
-		t.Errorf("dab's copy: %+v", a)
+	if a := accountOf(t, shard, "DAX"); a.ID != dab.ID || a.PasswordHash != "hash-1" || a.AccessLevel != 0 {
+		t.Errorf("dax's copy: %+v", a)
 	}
 	if a := accountOf(t, shard, "jib"); a.ID != jib.ID || a.AccessLevel != 2 {
 		t.Errorf("jib's copy: %+v", a)
@@ -100,8 +100,8 @@ func TestTheMirrorFollowsTheOwner(t *testing.T) {
 	if ch, _, total, err := m.Pull(); err != nil || ch != 3 || total != 3 {
 		t.Fatalf("the next pull: %d changed, %d in all, %v", ch, total, err)
 	}
-	if a := accountOf(t, shard, "dab"); a.PasswordHash != "hash-3" {
-		t.Errorf("dab's new password: %+v", a)
+	if a := accountOf(t, shard, "dax"); a.PasswordHash != "hash-3" {
+		t.Errorf("dax's new password: %+v", a)
 	}
 	var loginAfter string
 	if err := shard.QueryRow(`SELECT lastlogin FROM accountinfo WHERE accountid = ?`, dab.ID).Scan(&loginAfter); err != nil {
@@ -123,10 +123,10 @@ func TestTheMirrorFollowsTheOwner(t *testing.T) {
 	if _, _, _, err := m.Pull(); err != nil {
 		t.Fatal(err)
 	}
-	if a := accountOf(t, shard, "dab"); a.PasswordHash != "hash-3" {
+	if a := accountOf(t, shard, "dax"); a.PasswordHash != "hash-3" {
 		t.Errorf("the copy kept a change of its own: %+v", a)
 	}
-	if a := accountOf(t, owner, "dab"); a.PasswordHash != "hash-3" {
+	if a := accountOf(t, owner, "dax"); a.PasswordHash != "hash-3" {
 		t.Errorf("the owner's row changed: %+v", a)
 	}
 
@@ -271,7 +271,7 @@ func TestAPullWillNotEmptyTheAccounts(t *testing.T) {
 // until the time limit says to look anyway. Hold stops every pull.
 func TestAnUnchangedFileIsNotRead(t *testing.T) {
 	owner, _, m, path := twoShards(t)
-	NewSQLiteAccountStore(owner).Create("dab", "h")
+	NewSQLiteAccountStore(owner).Create("dax", "h")
 	if _, _, total, err := m.Pull(); err != nil || total != 1 {
 		t.Fatalf("the first pull: %d, %v", total, err)
 	}
@@ -292,7 +292,7 @@ func TestAnUnchangedFileIsNotRead(t *testing.T) {
 	if _, _, total, err := m.Pull(); err != nil || total != 0 {
 		t.Errorf("held: total %d, %v", total, err)
 	}
-	if err := m.PullOne("dab"); err != nil {
+	if err := m.PullOne("dax"); err != nil {
 		t.Errorf("held: %v", err)
 	}
 	m.Hold(false)
@@ -307,7 +307,7 @@ func TestAnUnchangedFileIsNotRead(t *testing.T) {
 func TestTheMirrorAndTheOwnerTakeTurns(t *testing.T) {
 	owner, _, m, _ := twoShards(t)
 	store := NewSQLiteAccountStore(owner)
-	store.Create("dab", "h")
+	store.Create("dax", "h")
 	stop := make(chan struct{})
 	errs := make(chan error, 1)
 	go func() {
@@ -344,8 +344,8 @@ func TestTheMirrorAndTheOwnerTakeTurns(t *testing.T) {
 func TestTheMirrorCarriesTheRoles(t *testing.T) {
 	owner, shard, m, _ := twoShards(t)
 	store := NewSQLiteAccountStore(owner)
-	kobe, _ := store.Create("forestwood", "h")
-	tess, _ := store.Create("zaeire", "h")
+	kobe, _ := store.Create("fernmeadow", "h")
+	tess, _ := store.Create("zephyr", "h")
 	story, _ := store.Create("new1", "h")
 	ddl := `CREATE TABLE gm_testers (accountid INTEGER PRIMARY KEY, granted_by TEXT NOT NULL DEFAULT '',
 		granted_at TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '', subgm INTEGER NOT NULL DEFAULT 0);
@@ -354,10 +354,10 @@ func TestTheMirrorCarriesTheRoles(t *testing.T) {
 	if _, err := owner.Exec(ddl); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := owner.Exec(`INSERT INTO gm_testers (accountid, granted_by, subgm) VALUES (?, 'dab', 1), (?, 'dab', 0)`, kobe.ID, tess.ID); err != nil {
+	if _, err := owner.Exec(`INSERT INTO gm_testers (accountid, granted_by, subgm) VALUES (?, 'dax', 1), (?, 'dax', 0)`, kobe.ID, tess.ID); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := owner.Exec(`INSERT INTO gm_storytellers (accountid, granted_by) VALUES (?, 'dab')`, story.ID); err != nil {
+	if _, err := owner.Exec(`INSERT INTO gm_storytellers (accountid, granted_by) VALUES (?, 'dax')`, story.ID); err != nil {
 		t.Fatal(err)
 	}
 	// the shard's panel has not made its tables yet: accounts copied, roles passed over

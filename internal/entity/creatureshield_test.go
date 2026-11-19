@@ -219,7 +219,7 @@ func TestACreaturesResistFailure(t *testing.T) {
 	if share, how := nagafen.rollResist(0); share != 0 || how != ResistHeld {
 		t.Errorf("no resist: %v %v, nothing to fail", share, how)
 	}
-	// Jibrish's figures: 3,000 before FR, "around 1 - 1.5k" at 215 (1,464 on the
+	// a GM's figures: 3,000 before FR, "around 1 - 1.5k" at 215 (1,464 on the
 	// old 75% line, 1,157 on the 90% one)
 	dice(0.5)
 	if share, _ := nagafen.rollResist(215); int(math.Round(3000*(1-share))) != 1157 {

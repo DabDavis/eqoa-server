@@ -89,7 +89,7 @@ func TestLoreRoom(t *testing.T) {
 	}
 }
 
-// A Lore item held in the bank is held (jib's PR #1: a lore item comes to a character holding one
+// A Lore item held in the bank is held (a GM's PR #1: a lore item comes to a character holding one
 // anywhere, worn, in the inventory or in the bank, not at all): a summon gives none and says why; the
 // control, the bank empty, gives one. The lists are linked as a dump links them (SendMemoryDump).
 func TestALoreItemInTheBankIsHeld(t *testing.T) {

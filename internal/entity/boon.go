@@ -14,8 +14,8 @@ import (
 // the Freeport Announcement, and other city announcements. The boon is an xp
 // boost for an amount of time. Let's make it 2x Xp for 4 hours").
 //
-// Sandstorm's boon is an event of its own: "Server Message: A great wind
-// stirs across Freeport.", every player in Freeport "blessed by Sandstorm
+// The reference server's boon is an event of its own: "Server Message: A great wind
+// stirs across Freeport.", every player in Freeport "blessed by the reference server
 // Boon" and flung into the sky (claude-notes/f3-pass-20261031.md), and its
 // players shout to ask when the next is. Here a town's announcement board
 // gives one to whoever talks to it (handlers/signs.go): an effect named for

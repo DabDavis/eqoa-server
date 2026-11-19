@@ -64,7 +64,7 @@ type coachLedger interface {
 }
 
 // ledgerSigned is what a coachman says as he signs a new name into his ledger
-// (Sandstorm's Coachman Ronks: "All you need to do is talk to the coachman of
+// (the reference server's Coachman Ronks: "All you need to do is talk to the coachman of
 // the stable and he will add you to his ledger. I'll add you to mine now.").
 const ledgerSigned = "I'll add you to my ledger now."
 

@@ -5,7 +5,7 @@ import "fmt"
 // npcwander: how one creature wanders, by its npcs row, ahead of its name's
 // npcmove row and its kind (entity/movement.go). The owner, 2026-11-12: "there
 // are many zones with mobs not dispersed or patroling, lets fix that disperse
-// and patrol"; the GM Jibrish's petitions 1734-1736 ("Spread out the wolfwere's
+// and patrol"; a GM's petitions 1734-1736 ("Spread out the wolfwere's
 // here, make them roam"): a camp's few wanderers among its standing kind, or
 // one camp's creatures roaming where the rest of their name stands, need a rule
 // by the row, as a path is (npcpaths). A row is the whole rule: the creature
@@ -34,7 +34,7 @@ func (db *SQLiteDB) ensureNPCWander() error {
 // NPCWanderRows is every row of npcwander: the radius by the npcs row's id (0
 // for its name's or the server's; a negative one, read as -1, for none: the
 // creature stands on its spawn until pulled, whatever its name's or its kind,
-// the GM Jibcrotwo's petitions 2088-2089: "He does not roam").
+// a GM's petitions 2088-2089: "He does not roam").
 func (db *SQLiteDB) NPCWanderRows() (map[int64]float32, error) {
 	rows, err := db.Query(`SELECT npcid, radius FROM npcwander`)
 	if err != nil {

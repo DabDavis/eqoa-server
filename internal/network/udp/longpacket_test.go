@@ -40,7 +40,7 @@ func clientDatagram(t *testing.T, size int, instance uint32, opcode uint16) []by
 // A client's packet reaches its handler whole at any size up to the 1500 of
 // DRDP's route_flush. Cut at the old 1328-byte read buffer, those past it failed
 // their CRC, so a long bug report was never filed and Support said "Sending
-// message" for good (jib, 2026-11-06). The control: a packet whose CRC really is
+// message" for good (a GM, 2026-11-06). The control: a packet whose CRC really is
 // wrong, which stays dropped.
 func TestAClientsLargestPacketIsReadWhole(t *testing.T) {
 	const op = 0x0AA1

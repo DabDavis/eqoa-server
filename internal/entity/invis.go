@@ -2,7 +2,7 @@ package entity
 
 // invis.go — what ends invisibility, and invisibility on a pet.
 //
-// jib's F3 20261025-180117: "Casting a spell, or taking an action such as
+// A GM's F3 20261025-180117: "Casting a spell, or taking an action such as
 // auto attacking should remove the invisibility buff. Invis should also be
 // castable on friendly targets, such as pets or players." Invisibility at
 // another player already landed on it (cast.go); at a pet it landed on the
@@ -18,20 +18,20 @@ package entity
 // every round it swings. Nothing else of its bearer's ends it (the user,
 // 2026-11-02: "invisibility was dropping when emoting, pressing square, but
 // only should drop if casting a spell, or attacking a mob", then "potions
-// should still break it, hits too"): from F3 20261026-014527 (jib:
+// should still break it, hits too"): from F3 20261026-014527 (a GM:
 // "Effectively any action other than movement, targeting and chat should
 // break invis") until that day the handlers' every action message ended it
 // before it was handled (an item used, talking to someone, the emotes,
 // merchants, the bank, trades, looting, pet commands). A GM's Toggle Invis
 // (GMHidden) is no effect, and nothing ends it.
-// No recording says what Sandstorm or SOE sent when invisibility broke; the
+// No recording says what the reference server or SOE sent when invisibility broke; the
 // effect simply goes from the effects channel. An effect with more than its
 // invisibility (Spirit Walk's speed, Superior Invisibility's skeleton) loses
 // the invisibility alone, its invisible body with it, the rest staying to its
 // time (the user, 2026-11-01: "yes only end the marked part"; parts.go).
 
 // breakInvisLocked ends every invisibility on a player: casting a spell or
-// swinging at something shows it (F3 20261025-180117, jib: "Casting a
+// swinging at something shows it (F3 20261025-180117, a GM: "Casting a
 // spell, or taking an action such as auto attacking should remove the
 // invisibility buff"); an effect with more than its invisibility keeps the
 // rest (parts.go).

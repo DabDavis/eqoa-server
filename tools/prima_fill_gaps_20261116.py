@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Item records' missing stats filled from Prima's regional loot tables (the owner, 2026-11-16: "Fill the gaps: give
 our records Prima's values where ours are 0 or missing, and leave alone anything we've deliberately changed. These
-include the crafting gems from Innoruuk's petitions, the heirlooms and Jib's fixes. A data tool with undo, rehearsed
+include the crafting gems from a player's petitions, the heirlooms and a GM's fixes. A data tool with undo, rehearsed
 on copies, and both shards.").
 
 Source: EQOA_Prima_Items.sqlite (table prima_items: Prima's Frontiers guide, pp. 448-652, one row per printed entry;
@@ -18,7 +18,7 @@ catalog's "Weapon DMG"), and Prima's damage figure equals it on every record whe
 (claude-notes/weapondamage-is-a-refmap-20261021.md is about a VIRefMap in RAM, not this column).
 
 Left alone, the whole record (each listed with its reason):
-  - any itempattern change in gm_audit, by anyone (GMs, jibrish, dab's sessions, tools); rowkeys that name a tool's
+  - any itempattern change in gm_audit, by anyone (GMs, a GM, the owner's sessions, tools); rowkeys that name a tool's
     log table are read through it. Not this tool's own lines. Inserts before 2026-10-25 would be exempt (none exist).
   - any tool log (*_log, bak_*) row on the record that touched a compared field or maxhp, or whose columns are not
     known; logs proved to touch only other columns (value, description, look, class/race masks, slot, reach, stack,
@@ -26,7 +26,7 @@ Left alone, the whole record (each listed with its reason):
   - tonight's crafting fixes: heartsblood_5196_log, two_stat_5198_log, rallosian_5200_log, the gem items (Heartsblood,
     Mindflow, Enstatite, Takish Ivory, Marr Blessed, Lazulite, Rallosian, by name) and every recipe product of a gem.
   - heirlooms: a name starting "Heirloom", patternid 714000-714999, table heirlooms, any record bound in itemowner.
-  - jibrish's work-board entries: a record whose id (or an enumerated id range of at most 50) or name appears in one.
+  - A GM's work-board entries: a record whose id (or an enumerated id range of at most 50) or name appears in one.
   - custom records: patternid >= 700000, and the tables of made records (itemascended, itemimported, itemaura,
     quest_import_items, heroes_stock, familiars, potion_seed, itemhide).
   - a record whose stats do not sit where Prima prints them: a nonzero stat of ours in a field Prima leaves blank
@@ -341,7 +341,7 @@ def deliberate(db, names):
                     if pid in names:
                         ex.add(pid, f"made record ({t})")
 
-    # jibrish's work board
+    # A GM's work board
     if "workboard" in tables:
         by_words = collections.defaultdict(set)  # a name of 6 letters or more, as words
         for pid, n in names.items():

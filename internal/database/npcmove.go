@@ -5,7 +5,7 @@ import (
 	"math"
 )
 
-// npcmove: how the creatures of a name move (F3 20261026-021730, jib:
+// npcmove: how the creatures of a name move (F3 20261026-021730, a GM:
 // "hexbones in zentaurs keep do NOT roam, they are static spawn until agrod";
 // F3 20261026-020316: "Wildlife that is not aquatic should avoid naturally
 // roaming into the water ... Caiman, crocodiles, crabs can roam both"; F3
@@ -22,7 +22,7 @@ import (
 // it spawned in the water, else land). speed: its walking pace as it
 // wanders (and walks home off a path), units a second, 0 the server's
 // (entity.NPCWalkSpeed, 5.0): a body whose walk covers less ground a cycle
-// than a man's walks slower (petition 5189, Innoruuk, 2026-11-16: "Gharial
+// than a man's walks slower (petition 5189, 2026-11-16: "Gharial
 // conned runs too fast when roaming"); never its chase. The key is the name
 // as npcclass keys it (NPCClassKey). source: gm, or seed for
 // tools/seed_npc_move.py's rows (its --undo deletes those).

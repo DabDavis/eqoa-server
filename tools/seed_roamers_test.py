@@ -24,7 +24,7 @@ import seed_roamers as sr  # noqa: E402
 from tune_balance_test import secret_like  # noqa: E402
 
 HUMAN = 0x70D898C6
-# jib's wizard's abilities as the server writes them (database.TemplateAbilitiesJSON of the seed)
+# a GM's wizard's abilities as the server writes them (database.TemplateAbilitiesJSON of the seed)
 WIZARD_ABILITIES = ('[{"kind":"aoe","every":15,"first":2,"damage_pct":35,"max_recast":10,"max_cast":5},'
                     '{"kind":"nuke","chain":true,"damage_pct":35,"max_recast":10,"max_cast":5}]')
 CREATURE = 0x55432169
@@ -109,7 +109,7 @@ class SeedRoamers(unittest.TestCase):
         wisp = c.execute("SELECT class, hp_pct, taken_pct, melee_pct, abilities, source FROM classtemplates WHERE name = 'wisp'").fetchone()
         self.assertEqual(wisp, (13, 85, 100, 100, WIZARD_ABILITIES.replace('"damage_pct":35', '"damage_pct":28'), sr.SOURCE))
         self.assertEqual(c.execute("SELECT abilities, source FROM classtemplates WHERE name = 'wizard'").fetchone(),
-                         (WIZARD_ABILITIES, "seed"))  # jib's left as he made it
+                         (WIZARD_ABILITIES, "seed"))  # a GM's left as he made it
         notes = dict(c.execute("SELECT name, note FROM npctemplate WHERE source = ?", (sr.SOURCE,)))
         cols = [r[1] for r in c.execute(f"PRAGMA table_info({sr.LOG})")]
         c.close()

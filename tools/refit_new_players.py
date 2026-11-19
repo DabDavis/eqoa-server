@@ -26,7 +26,7 @@ balanceclasslevel, by the player's class and level:
 At every level 1-10 every class wins 95% of its even fights and 97% of its blue and green ones, by hand and in its own
 play (entity/balancesim_real_test.go TestRealLowLevelsEvenAndBelow).
 
-Fitted with cmd/balancesim (-try-level, -try-playermelee, -try-classlevel; the roamer, -start 5) on eqoaclassic's copy
+Fitted with cmd/balancesim (-try-level, -try-playermelee, -try-classlevel; the roamer, -start 5) on a copy of the production server's database
 of 2026-11-04 05:42 UTC, every hp damage shield answering each hit (tools/refit_damage_shields.py's server). The
 targets at 1-12 are these, not the 2026-10-30 ones (the user: "thats okay if its unbalanced 1-12").
 

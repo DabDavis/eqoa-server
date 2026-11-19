@@ -210,7 +210,7 @@ func (h *Heirlooms) figuresFor(def database.HeirloomDef, race, level int, p *dat
 			heirloomFigures(p, &best)
 		} else if best.WeaponDamage > p.WeaponDamage {
 			// an epic deals no less than the best of its kind at the level (the
-			// user, 2026-11-06: Tmac's Fistaglin's Bow, 759, out-shot the
+			// user, 2026-11-06: a player's Fistaglin's Bow, 759, out-shot the
 			// heirloom bow's Quicksilver, 754: "lets at least match it")
 			p.WeaponDamage = best.WeaponDamage
 			p.Unk5 = max(p.Unk5, best.Unk5)

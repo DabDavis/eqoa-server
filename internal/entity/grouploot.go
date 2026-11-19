@@ -9,7 +9,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// grouploot.go — a plain group's need before greed (the GM Jibrish's petition 1878,
+// grouploot.go — a plain group's need before greed (a GM's petition 1878,
 // 2026-11-13: "Create an option under the group menu to allow players to turn on need
 // before green loot system that raids has").
 //

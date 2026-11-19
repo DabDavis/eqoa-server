@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// The GM Jibrish's Live petition 5035 (the owner: "use jibrish rule"): every kill's corpse is
+// a GM's Live petition 5035 (the owner: "use a GM rule"): every kill's corpse is
 // its owners' for six minutes, then anyone's: a solo kill, a group of three's, and a raid's (six)
 // all carry OpenAt six minutes after the death; a pet's corpse (Owner) none; the rule off
 // (corpse_open_after below 0) none.

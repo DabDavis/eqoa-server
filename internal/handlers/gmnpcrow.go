@@ -692,7 +692,7 @@ func (h *ChatHandler) roamerCommand(sess *session.Session, player *entity.Player
 	opt := []string{"roamer"}
 	switch {
 	case len(args) == 1 && roamerOff[strings.ToLower(args[0])]:
-		// the owner, 2026-11-14: "/roamer off is not working for jib": it stands on
+		// the owner, 2026-11-14: "/roamer off is not working for a GM": it stands on
 		// its spawn, its name's rule notwithstanding (npcwander's negative radius)
 		id, rec, ok := h.npcRowTarget(sess, player, "roamer")
 		if !ok {

@@ -6,7 +6,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// The fifth field of a dumped item is its quick slot: Sandstorm's dump sends
+// The fifth field of a dumped item is its quick slot: the reference server's dump sends
 // -1 for an inventory item and 0 for a bank item.
 func TestDumpQuickSlotIsNotTheLocation(t *testing.T) {
 	if got := dumpQuickSlot(&database.CharInventoryEntry{Location: 0}); got != -1 {

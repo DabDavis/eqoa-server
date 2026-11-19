@@ -10,7 +10,7 @@ import (
 )
 
 // attack.go — a player's auto-attack, run on the server the way CLIENT and
-// Sandstorm run it.
+// the reference server run it.
 //
 // CLIENT's attack button is VIClient::ToggleAutoAttack (0x00BD59E8 [V]): the
 // press sends 0x000F (u32 target) — once, and only when its own swing is due
@@ -21,7 +21,7 @@ import (
 // out of reach it sends a bare 0x00D8 and tries again in 2 s. The hits are
 // the server's to deal.
 //
-// What Sandstorm does with that, measured live on 2026-10-16 [C]
+// What the reference server does with that, measured live on 2026-10-16 [C]
 // (claude-notes/go-client-egress-pass-20261016.md, "Live"):
 //   - the first hit comes about one swing delay after the 0x000F (7 s for a
 //     6 s swing), as bare 0x00DB damage — no 0x00B1 for the player's own
@@ -49,7 +49,7 @@ import (
 // beat of their own while the client's swings kept theirs, and the damage
 // came anywhere in the client's swing for the rest of the fight (the user,
 // 2026-10-30: "the animation and damage don't sync well for auto attacks
-// especially on eqoaclassic", whose creatures chase and step about; a press
+// especially on the production server", whose creatures chase and step about; a press
 // a little out of reach, the client swinging 2 s later, was enough).
 //
 // A press with the timer still running sends nothing: ToggleAutoAttack only
@@ -258,8 +258,8 @@ type Swing struct {
 	// Held is the name of the held item the hands hold when they hold no
 	// weapon (equip slot 19 or 20 worn, none of 14, 16 or 18; Never is set
 	// with it): such hands never swing, and a press is refused with
-	// heldNoFightWords. Petition 1435 (Afk, a wizard holding Swampstench,
-	// punched for 1), the GM Jibrish's rule: hitting with a held item is
+	// heldNoFightWords. Petition 1435 (a wizard holding Swampstench,
+	// punched for 1), a GM's rule: hitting with a held item is
 	// "supposed to be no". CLIENT's own AutoAttackTick swings bare hands so.
 	Held string
 }
@@ -591,8 +591,8 @@ func (p *Player) Attacking() bool {
 // broadcastPlayerSwingLocked shows everyone who sees the player, but the player,
 // its round's swing: 0x00B1 with the swing's effect at its target, as a creature's
 // (rounds.go). The swinger's own client plays its own (AutoAttackTick) and is sent
-// none, as Sandstorm's was; nothing told anyone else, so to them a player in a fight
-// stood still while its target's hit points fell (the GM Jibrish, watching two players
+// none, as the reference server's was; nothing told anyone else, so to them a player in a fight
+// stood still while its target's hit points fell (a GM, watching two players
 // fight: "im not seeing their auto attack animations fire off reliably"). Must be
 // called with the lock held.
 func (w *World) broadcastPlayerSwingLocked(p *Player, target EntityID) {
@@ -621,20 +621,20 @@ func (w *World) broadcastPlayerSwingLocked(p *Player, target EntityID) {
 // firstRound is how long after its 0x000F the first round's button is
 // read. The round itself is the press's: its hits on the press's clock, the
 // first 0.5 s after it (Attack1's), as the client's own swing, which plays
-// at the press (AutoAttackTick). Sandstorm's first hit came 0.56 to 0.76 s
+// at the press (AutoAttackTick). The reference server's first hit came 0.56 to 0.76 s
 // after the 0x000F in 17 of 20 fights, round trip included, and a tap, the
 // button up again 0.2 s later, started none: a round read 0.25 s in and
 // counted from the press is both (F3 20261026-015610: counted from the read,
 // as until then, every hit landed 0.25 s after the client's swing struck).
 const firstRound = 250 * time.Millisecond
 
-// attackSystem runs every engaged player's melee in rounds, as Sandstorm's
+// attackSystem runs every engaged player's melee in rounds, as the reference server's
 // (rounds.go): a round every swing delay on the client's beat (the file's
 // doc), its hits at the swing's times (swingHits), each in reach a hit
 // (playerHitLocked) and out of it lost. A round begins only with the attack
 // button held (0x40 byte 36), and waits for it with the fight kept
 // (roundStart); the round in hand lands whole, the button up or not, as
-// Sandstorm's did (a bard's hits went on 1.15 s past the release, and no
+// the reference server's did (a bard's hits went on 1.15 s past the release, and no
 // further, the training dummy still hitting him). The player's own swing is
 // played by its client: no 0x00B1 to it, one to those who see it
 // (broadcastPlayerSwingLocked). Every tick; must be called with the lock
@@ -703,18 +703,18 @@ func (w *World) playerRoundHitsLocked(p *Player, npc *NPC, now time.Time) bool {
 }
 
 // A bow's shot (the user, 2026-11-06: "at level 35 bow damage should double,
-// because 2 arrows are shot for one hit", then "tmac should hit 2000 on level
+// because 2 arrows are shot for one hit", then "[a player] should hit 2000 on level
 // 50 training dummy with bow"): every ranged swing's roll (CLIENT's Range1-4,
 // GetSwing's kinds 8-11) is rangedShare times the ranged roll on the bow
 // (offence.go's playerRangedRoll: DEX sets its top, WIS its bottom, the beta
 // stat sheet's, 2026-11-11), and Range4, the swing from level 35, looses two
 // arrows for its one hit, each its own roll. rangedShare is fitted to the
-// user's figure on Tmac as the Heirloom snapshot of 2026-11-11 has him (a level
+// user's figure on a player as the Heirloom snapshot of 2026-11-11 has him (a level
 // 60 elf ranger, DEX 453 (his masteries raise its cap), WIS 260, his level 60
 // heirloom bow's DMG 759): an arrow rolls 503-523 on a level 50 training dummy,
 // 513 on average, so 1.95 makes his shot 2,000 on average (1,962-2,040). Until 2026-11-11 a shot rolled
 // the melee roll (STR and DEX) times 2.11, fitted on a ranger of STR 227 and
-// DEX 366 with a bow of 754 (474 an arrow); on Tmac's own stats that shot was
+// DEX 366 with a bow of 754 (474 an arrow); on a player's own stats that shot was
 // 1,920. Ours: no record of the live game's bow damage exists.
 const (
 	swingRange1, swingRange4 = 8, 11
@@ -815,7 +815,7 @@ func (w *World) playerShotFormulaLocked(attacker *Player, npc *NPC, damage, raw 
 	return total
 }
 
-// playerHitLocked is one landed player swing: Sandstorm's roll on the worn
+// playerHitLocked is one landed player swing: the reference server's roll on the worn
 // weapon, STR, DEX and the target (offence.go), the damage figure to the
 // attacker (0x00DB, attacker → NPC, negative), the NPC's threat (so it
 // fights back), and on a kill the XP and the faction hits (faction.go). It

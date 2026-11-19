@@ -2,9 +2,9 @@
 """puppet_strings_20261117.py on a small database: the report writes nothing; --apply makes the Toy Shoppe's Puppet
 Strings (the Cazic Thule strings' icon and type, level 1, every class and race, tradeable, not lore, worth 0), its
 itemeffect (the charm by colour, No Recharge, 10 charges, 60 s) and Toymaker Tinsel's row, one gm_audit line each,
-leaving the Cazic Thule record alone; --give puts one of 10 charges in Zaeire's pack; a second --apply finds nothing to
+leaving the Cazic Thule record alone; --give puts one of 10 charges in a player's pack; a second --apply finds nothing to
 do; --undo puts back exactly what was there (the --give's copy with it), refused while anyone else holds one. The
-controls: no Tinsel's shop, refused; Zaeire of another account, refused; nothing written either way."""
+controls: no Tinsel's shop, refused; a player of another account, refused; nothing written either way."""
 import os
 import sqlite3
 import subprocess

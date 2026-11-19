@@ -219,7 +219,7 @@ func meleeDebuffed(p *Player, hit int, npc *NPC, n int, now time.Time) int {
 // hit's kind, the strongest debuff on. The kind is the hit's resist when it
 // is a melee one (pierce, slash, blunt; ranged is pierce); a backstab of no
 // resist (Rush, Mug) goes by the weapon it swings, as its swing would.
-// Petition 1738, Hoofbite: Rakish Assault's 100 off pierce doubled the
+// Petition 1738: Rakish Assault's 100 off pierce doubled the
 // rogue's swings but not Assassinate, a backstab resisted by pierce; now
 // every pierce, slash or blunt ability hit (the backstabs, Assassinate, the
 // Rakish strikes, the knights' and warriors' slashing and crushing arts)

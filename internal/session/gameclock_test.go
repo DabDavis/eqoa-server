@@ -44,7 +44,7 @@ func TestTheClientsClockBlendsANewReadingIn(t *testing.T) {
 }
 
 // UpdateTimeOfDay: the second reading modulo 3,600,000 as 24 hours, clamped
-// as SetTimeOfDay clamps. Sandstorm's 0x0013 of 2026-10-30 03:03:14.412 UTC
+// as SetTimeOfDay clamps. The reference server's 0x0013 of 2026-10-30 03:03:14.412 UTC
 // (spellfx24's afkqq-1 session) set its client to 10:17:45, when the sun
 // burned Afkqq.
 func TestTheTimeOfDayIsTheSecondReadingRoundAnHour(t *testing.T) {

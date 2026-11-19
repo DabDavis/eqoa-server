@@ -8,7 +8,7 @@ import (
 )
 
 // SOE's live game's look (protocol.OpcodeLiveLook, the user's "new state
-// channel for eqoaclassic, but also legacy support so sandstorm runs"). The
+// channel for the production server, but also legacy support so [the reference server's patch] runs"). The
 // live CLIENT (eqoa-live-1500, resident in the Corsten and Lostologist save
 // states) reads the entity state channel and the 0x002C character record with
 // a colour (VIColor32: r, g, b, a, one byte each) for every armour slot, held
@@ -212,12 +212,12 @@ func LiveChannel(disc []byte, d *Dyes) []byte {
 }
 
 // This server's armour (the owner, 2026-11-13: "lets also add armor plate type 9 the
-// sandstorm patch, but we dont need the patch the armor is on the ISO", and "for the
+// [reference server's] patch, but we dont need the patch the armor is on the ISO", and "for the
 // plate armor, there is gold trim, but currently is muted due to the colors, lets add
 // trim color dyeing also"; claude-notes/armor-set9-trim-20261113.md):
 //
 //   - set 9, the ornate gold-and-steel plate CHAR.ESF holds under the plain plate's
-//     five DictIDs (claude-notes/charesf-shadowed-armor.md), which Sandstorm's S2
+//     five DictIDs (claude-notes/charesf-shadowed-armor.md), which the reference server's S2
 //     registers under five of its own and draws as set 9 (wearing set 4's helm). An
 //     item record's model 9 on an armour slot is set 9 (handlers' wornLook), and so is
 //     the channel's byte. CLIENT clamps a set past 8 to none (SetArmorSlot: the bare

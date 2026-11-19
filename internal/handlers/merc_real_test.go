@@ -138,7 +138,7 @@ func TestRealMercPetsAtTheirLevel(t *testing.T) {
 		{10, 60, "fire", "Summon Efreeti Lord"}, {10, 60, "water", "Summon Ghilan Noble"}, {10, 60, "best", "Summon Efreeti Lord"},
 		{11, 60, "", "Swarming Death"}, {12, 60, "", "Storm of Blades"}, {8, 60, "", "Primal Spirit"}, {13, 60, "", "Arch Familiar"},
 		{7, 60, "", ""},
-		// ticket 2020 (Kyro's magician of 13 sent out the Earth Elementaling of
+		// ticket 2020 (a player's magician of 13 sent out the Earth Elementaling of
 		// 1): its usual earth line only once it keeps up with its book's best
 		{10, 1, "", "Earth Elementaling"}, {10, 5, "", "Water Elementaling"}, {10, 10, "", "Fire Elementaling"},
 		{10, 13, "", "Air Elementaling"}, {10, 16, "", "Earth Elementalkin"}, {10, 22, "", "Earth Elementalkin"},

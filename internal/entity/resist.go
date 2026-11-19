@@ -12,7 +12,7 @@ import (
 // (a debuff's points off a creature's chance: charm, procs, shields) is no
 // damage and holds in either model.
 //
-// As it was: what a player's resist takes off a spell's damage, as jib has
+// As it was: what a player's resist takes off a spell's damage, as a GM has
 // the live game's (F3 20261026-015346): "if you have 315 cap, it hits you
 // for 75%", and at that cap "a 2.5% chance to completely fail and hit for
 // full, and an additional 5% shot to roll a partial", the partial "between
@@ -28,16 +28,16 @@ import (
 // share was resist / (resist + 200), with no cap (200 took half, 600 took 75%).
 
 const (
-	// ResistCap is the most of a resist that counts (jib's "315 cap").
+	// ResistCap is the most of a resist that counts (a GM's "315 cap").
 	ResistCap = 315
 	// ResistCapShare is the share of a spell's damage of its element a resist
 	// at the cap takes: 90% (the owner, 2026-11-11: "if resist is 315+ it
-	// should stop 90% damage for its element"; jib's 75% before).
+	// should stop 90% damage for its element"; a GM's 75% before).
 	ResistCapShare = 0.90
 
 	resistFullFailure    = 0.025 // a resist at the cap fails altogether
 	resistPartialFailure = 0.05  // and, besides, in part
-	// a partial failure's share, from and to: jib's 45-74% of his 75% cap
+	// a partial failure's share, from and to: a GM's 45-74% of his 75% cap
 	// share, kept in that proportion to ResistCapShare (54-88.8% at 90%)
 	resistPartialLow  = 0.45 / 0.75 * ResistCapShare
 	resistPartialHigh = 0.74 / 0.75 * ResistCapShare
@@ -92,7 +92,7 @@ func RollResist(resist int) (float64, ResistOutcome) {
 }
 
 // A pact's price (lifetap.go payPriceLocked) has its own scale (petition
-// 1532, Mortician: "id say cut by 90%" at 350 arcane resist; the owner,
+// 1532, a player: "id say cut by 90%" at 350 arcane resist; the owner,
 // 2026-11-11: "max ar is 315 for 90%"): the caster's
 // arcane resist cuts it in proportion up to PactResistCap, where it takes
 // PactResistCapShare, no more past it. The shared scale above (75% at 315)

@@ -7,7 +7,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// /hide mercs (hidemercs.go), held to petition 1858 (the GM Jibrish: "this
+// /hide mercs (hidemercs.go), held to petition 1858 ("this
 // hide the character model and nameplate for mercenaries, or restore them"):
 // a player that hid them is sent no other player's merc, its own still; a
 // merc in view leaves the client as an entity leaving view does and comes back
@@ -107,7 +107,7 @@ func TestHideMercsTakesTheMercInViewAwayAndBack(t *testing.T) {
 }
 
 // A group mate that hid the mercs still sees its mates' mercs (petition 2138,
-// Hogknight: "i cant see my raid grp mercs and pets"), a stranger that hid
+// a player: "i cant see my raid grp mercs and pets"), a stranger that hid
 // them does not; hidden from the stranger the merc still plays: it shares the
 // stranger's place (npcSharesLocked), heals its owner (never the mate: a merc
 // helps its owner's own alone, merccast.go), and the mate's group buff reaches

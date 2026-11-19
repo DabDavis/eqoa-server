@@ -7,8 +7,8 @@ hand-in, The Medallion of the Faceless (101309, step 1, give: the medallion and 
 teleports; and, once it is finished, his waysender trip (handlers/waysender.go wayRoutes "Norach", 10,000 a trip),
 which lands on the fishing raft south of Graumord's pier, facing the pier (iodRaft, as the Teleporter's Isle of Dread
 does). The hand-in's teleport was the import's (tools/quests/data/portal.json): Graumord itself, (24500, 54.1, 3330),
-300 north of the raft. Seen on Heirloom 05:10:28 UTC: "Quests: Trulytwo finished "The Medallion of the Faceless"",
-then ""The Medallion of the Faceless" teleported Trulytwo to (24500.0, 54.1, 3330.0) world=0". Every player's first
+300 north of the raft. Seen on Heirloom 05:10:28 UTC: "Quests: a player finished "The Medallion of the Faceless"",
+then ""The Medallion of the Faceless" teleported a player to (24500.0, 54.1, 3330.0) world=0". Every player's first
 trip, the one paid with the quest, missed the raft.
 
 --apply: that step's events made the raft's, (24578, 52.6, 3626) facing 3.9, as iodRaft (a server with raft-port

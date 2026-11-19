@@ -43,8 +43,8 @@ func newSunFixture(t *testing.T, hour float32) *sunFixture {
 		s.SetPlayerObjectID(objectID)
 		return s
 	}
-	// Afkqq as Sandstorm had it: a level 43 cleric of 1849 hit points, its
-	// object id Sandstorm's
+	// Afkqq as the reference server had it: a level 43 cleric of 1849 hit points, its
+	// object id the reference server's
 	v := &Player{ServerID: 1001, CharServerID: 501, Name: "Afkqq", Class: 9, Level: 43, HP: 1849, MaxHP: 1849,
 		X: 15290.4, Y: 54.1, Z: 9248.6, Vampire: true}
 	m := &Player{ServerID: 1002, CharServerID: 502, Name: "Mortal", Class: 9, Level: 43, HP: 1849, MaxHP: 1849,
@@ -101,7 +101,7 @@ func countOp(s *session.Session, op protocol.GameOpcode) int {
 }
 
 // By day the sun takes 50 off a vampire every 6 s, on the regeneration's tick
-// and after it, told as Sandstorm told Afkqq at its 10:18 (afkqq-1, byte for
+// and after it, told as the reference server told Afkqq at its 10:18 (afkqq-1, byte for
 // byte: db00 ffffffff 63 d9ef4a28, from no one, zigzag -50, to the player);
 // the mortal beside it takes nothing. Nothing before the tick, nothing again
 // until the next.
@@ -394,7 +394,7 @@ func TestRealShadeInFreeportsInn(t *testing.T) {
 }
 
 // A real bake (EQOA_GROUND_DIR, with its walls files): the Sanctuary, where
-// Sandstorm's Sanctuary spell lands and tools/seed_vampires.py puts its
+// the reference server's Sanctuary spell lands and tools/seed_vampires.py puts its
 // people (Hinder, Creed, Weaver, Simmons, its coffin), is a floor at 273.62
 // under the rock: shade for each spot, its gate landing on its place, and by
 // day a vampire there does not burn. The control: on the open ground north

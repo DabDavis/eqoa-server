@@ -11,7 +11,7 @@ import (
 )
 
 // Password resets (the owner, 2026-11-11: "lets add forgot password? to
-// eqoaclassic"; no account has an e-mail and the box sends no mail, so: "The
+// the production server"; no account has an e-mail and the box sends no mail, so: "The
 // form takes the account name plus a contact (Discord name, or a character
 // name and level) and files a request into the GM panel/board. A GM confirms it
 // is them and sets a temporary password with one click; the player must change

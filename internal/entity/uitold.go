@@ -11,7 +11,7 @@ import (
 
 // uitold.go — what vanilla is told for two of its windows, to a client that
 // answered each offer (handlers/mercui.go, handlers/groupreg.go; the GM
-// Jibrish's petitions 1475, 1476 and 1488, 2026-11-11):
+// a GM's petitions 1475, 1476 and 1488, 2026-11-11):
 //
 //   - the mercs the player may see (protocol.OpcodeMercsData): every merc in
 //     its world by name (with its hirer's, to a client that asked for layout

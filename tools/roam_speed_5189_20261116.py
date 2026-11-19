@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Crocodilians' wandering walk (petition 5189, Innoruuk, 2026-11-16: "Gharial conned runs too fast when roaming").
+"""Crocodilians' wandering walk (petition 5189, 2026-11-16: "Gharial conned runs too fast when roaming").
 
 Every wandering creature walked at the server's 5.0 units a second (entity.NPCWalkSpeed, a man's walk), and CLIENT
 plays the walk (state channel byte 58 = 1) at the body's own rate whatever the velocity (VIClient::UpdateCreatures ->

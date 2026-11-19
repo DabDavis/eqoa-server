@@ -7,7 +7,7 @@ import (
 )
 
 // spellnotes.go — what EQOA-Data's lines say beside what a spell does, and
-// what some of them leave out (F3 20261025-222444: jib's Courage, which did
+// what some of them leave out (F3 20261025-222444: a GM's Courage, which did
 // nothing, and the cleric spells past level 20 that tools/import_eqoadata_spells.py
 // brings in with their lines as the lists word them).
 
@@ -50,7 +50,7 @@ func spellNote(part string) bool { return reNote.MatchString(part) }
 // 30min (Courage of the cleric's Courage, Center, Daring, Bravery, Valor;
 // Resolution and Order, which say none; Consume Affliction beside Resist and
 // Absorb Affliction; Ice and Lightning Ward beside Flame Ward). A stat
-// change lasting nothing did nothing at all (jib: Courage "currently doesnt
+// change lasting nothing did nothing at all (a GM: Courage "currently doesnt
 // buff max hp or AC").
 const buffDuration = 30 * time.Minute
 
@@ -69,7 +69,7 @@ func (d *SpellDef) lineDefaults() {
 }
 
 // clericHPLine is the cleric's hit point and armour line, by name: each rank
-// raises maximum hit points and AC, and jib (F3 20261025-222444) says it
+// raises maximum hit points and AC, and a GM (F3 20261025-222444) says it
 // "should also heal for the amount of max Hp it buffs". The lists never say
 // so for it, where every other line that heals says how much (Rockskin's
 // "MaxHP by 30, HP by 30", a warrior's shouts), so the rule goes by name: a

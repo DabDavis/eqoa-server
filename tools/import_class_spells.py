@@ -5,10 +5,10 @@ on (handlers/character.go).
 
 An ability record (spellpattern) names no class. Three sources do:
 
-- Sandstorm's dumps (`eqoa harvest` recordings): the abilities a character
+- The reference server's dumps (`eqoa harvest` recordings): the abilities a character
   of a class owns, by their own ids. These win: a class's spell of a name is
   the id its dump gives.
-- Sandstorm's spell vendors (the same recordings): each scroll's class mask,
+- The reference server's spell vendors (the same recordings): each scroll's class mask,
   and the scroll's name is its spell's.
 - The EQOA-Data project's per-class lists (Information/databases/spells/
   <class>.json), by name: merchant, quest, CM and other spells alike. A
@@ -27,7 +27,7 @@ is left out, by the server's own rule (database.IsWereAbility).
 A name is compared as the server's scribe compares it (no trailing class
 tag, no bard '+', any case). A name with several spellpattern rows gives the
 class one of them: the class's own dump's id, else an id any class's dump
-uses (Sandstorm's numbering: Return Home is 1623 for every class, not Return
+uses (the reference server's numbering: Return Home is 1623 for every class, not Return
 Home's 1542), else the lowest; so a class's book never holds one spell twice
 over.
 

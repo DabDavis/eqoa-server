@@ -20,7 +20,7 @@ import (
 // row. source: gm, or the tool that wrote it.
 //
 // A wall may open for an item instead (the Last House's ward, the owner
-// 2026-11-13: "where dust is standing is where something should block players
+// 2026-11-13: "where [a GM] is standing is where something should block players
 // until they possess the suit"): item, an itempattern a character carries in
 // its pack or wears, passes it (questid 0: no quest does); inner, a JSON list
 // of boxes [x0, y0, z0, x1, y1, z1] in the wall's world: a character standing

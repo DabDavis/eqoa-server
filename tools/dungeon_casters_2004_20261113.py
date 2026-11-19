@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The instanced dungeons' shamans and druids cast their class's spells (ticket 2004, Brother, 2026-11-13: "Just did the
+"""The instanced dungeons' shamans and druids cast their class's spells (ticket 2004, 2026-11-13: "Just did the
 BB Dungeon and the NPC are not doing thier class spells, the same as Guk was, like sha not using spells etc...").
 
 tools/petfix_dungeon_casters_20261113.py (petition 1900) gave the dungeons' three tiers a nuke, a life tap and a heal

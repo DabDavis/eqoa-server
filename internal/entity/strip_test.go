@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 )
 
-// A templated creature's strip (strip.go; the GM Jibrish's petition 1368, Mr. Moogie's "caster
+// A templated creature's strip (strip.go; a GM's petition 1368, Mr. Moogie's "caster
 // debuff on his target every 30 seconds that strips any and all buffs, including immunity to
 // damage / god mode").
 

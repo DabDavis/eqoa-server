@@ -9,7 +9,7 @@ import (
 
 // bookchange.go — the World's part in a change of a player's spell book that
 // takes spells out and puts others in at once: the Spell Archivist's path
-// change (handlers/archivistpaths.go; the GM Jibrish's petition 1325, "if
+// change (handlers/archivistpaths.go; a GM's petition 1325, "if
 // they pick the other swap it"). The book itself is the handler's (the spells
 // table and the client's 0x00B8 and 0x00B3); what the World holds of those
 // spells is here:

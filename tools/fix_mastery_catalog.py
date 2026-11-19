@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The class-mastery catalogue (cmcatalog) where tools/seed_masteries.py left
 out or filled in what EQOA-Data's lists say, without disabling anything
-(jib's review, F3 pass 19).
+(a GM's review, F3 pass 19).
 
 Two corrections, each from the lists (Information/databases/cms/*.json):
 
@@ -19,7 +19,7 @@ Two corrections, each from the lists (Information/databases/cms/*.json):
   for the others too (Soldier: the warrior's list names them, the paladin's
   and the shadow knight's do not): OURS, by it being the one master class.
   The other master classes' notes name nothing (the lists' silence; the two
-  eqoaclassic's catalogue was given by hand, Spellbinder and Animator, keep
+  the production server's catalogue was given by hand, Spellbinder and Animator, keep
   theirs).
 - A rank the list gives no level took the rank before it's, else 1 (the
   seed's, OURS): Nife Warding 1 and United Faith 1 were buyable at level 1.

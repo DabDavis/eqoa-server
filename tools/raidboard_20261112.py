@@ -11,7 +11,7 @@
    npcaggro rows for the new name, as the other boards have (it stands; it talks only). The server (IsDungeonWarden)
    opens the same dungeon menu from it and shows its name plate (boardplate.go); the entrance twins in world 14
    (166500-166502) stay Dungeon Wardens, rows untouched, and so do the "dungeon warden" npcmove/npcaggro rows they use.
-2. Petition 1814 (Skywalker): "make all moth larva npc in the game see through invisibility". npcaggro row 'moth larva'
+2. Petition 1814: "make all moth larva npc in the game see through invisibility". npcaggro row 'moth larva'
    (aggressive -1: no word on aggro, the world's rules decide) with see_invis 1 (the column added when missing, as the
    server's start does): the Plane of Disease's larvae (world 5, 3 rows) notice an invisible player.
 

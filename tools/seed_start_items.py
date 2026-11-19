@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""A new character's starting items as Sandstorm's (the user, 2026-10-29: "we
-need starting weapons, sandstorm has it correct").
+"""A new character's starting items as the reference server's (the user, 2026-10-29: "we
+need starting weapons, [the reference server] has it correct").
 
-Sandstorm's new characters each carry a starting weapon (an Apprentice
+The reference server's new characters each carry a starting weapon (an Apprentice
 Sword, Club, Dagger or Staff) and twenty of their race's rations, none
 worn; this server's started with nothing, so a new player bought a weapon
 (the Worn Club, which could not strike). eqoa-rust-headless's faction survey
-made a new character of each of defaultcharacter's combos on Sandstorm and
+made a new character of each of defaultcharacter's combos on the reference server and
 kept its inventory (--measured: its folder of <race>-<class>-<humtype>.json):
 each combo's items go into startitems (database/startitems.go), which
 CreateNew gives, carried.
 
-An item is ours by Sandstorm's id where our record of that id has its name,
-else by its name; one this database lacks is made from Sandstorm's record
+An item is ours by the reference server's id where our record of that id has its name,
+else by its name; one this database lacks is made from the reference server's record
 (tools/item_rows.py's item_row), as its id where that is free
 (the froglok's toad snacks). Rows are written with source "sandstorm" and
 logged in startitems_seed, with the items made; --undo deletes the rows and

@@ -1233,10 +1233,10 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 		SendTrainingPoints(sess, player.UnusedTP)
 	}
 	w.sendGrantXP(sess, player.Level, player.BarXP()) // mastery.go: the level's, or the next mastery point's
-	// Sandstorm's words: "You receive N XP." for a kill and a quest alike
+	// the reference server's words: "You receive N XP." for a kill and a quest alike
 	// (recorded by questrec16, claude-notes/quests-sandstorm-20261025.md),
 	// and for the masteries' share "You received N class mastery XP." alone
-	// when it is all of it (a level 60's Sandstorm session in a client
+	// when it is all of it (a level 60's the reference server session in a client
 	// report's chat, F3 20261025-225337); a boon's share named after them
 	// (ours)
 	if levelXP > 0 || (cmXP == 0 && shares.Debt == 0) {
@@ -1316,7 +1316,7 @@ func (w *World) sendDamageIndication(sess *session.Session, sourceObjectID uint3
 	sess.Queue().AddWithSequence(msg)
 }
 
-// actionDrowning is the action Sandstorm plays on a drowning player with
+// actionDrowning is the action the reference server plays on a drowning player with
 // 0x0775: pcaps/breath_capture.pcap carries fifteen (self, 34).
 const actionDrowning = 34
 
@@ -1467,7 +1467,7 @@ var warpLocationNames = map[string]string{
 	// "Odus (control)"; the path is settled and players use it, so it is Odus.
 	"Gatekeeper Sulon": "Odus",
 	// World 7 (`secrets2`) — a control that needs no patch deploy at all.
-	// Sandstorm's table entry 7 is a verbatim duplicate of entry 5 (`secrets`),
+	// The reference server's table entry 7 is a verbatim duplicate of entry 5 (`secrets`),
 	// i.e. a DISC world at a high index, already inside the bound our SD raised
 	// from 6 to 9. If world 7 crashes the same way world 8 does, the fault is in
 	// the world-change path rather than the memory-card loader, and we learn
@@ -1586,7 +1586,7 @@ func (w *World) GetCoachDestinationsEveryWorld(excludeName string) []CoachDest {
 
 // coachLandOut is how far in front of a coachman (along his facing) a coach
 // sets its rider down: on his own spot the rider stood in the coach beside him
-// (Live petition 5131, Innoruuk, 2026-11-15: "Spawning inside of coaches
+// (Live petition 5131, 2026-11-15: "Spawning inside of coaches
 // instead of in front of them").
 const coachLandOut float32 = 5
 
@@ -1596,7 +1596,7 @@ const coachLandDrop float32 = 3
 
 // coachFloorLocked reports a floor at (x, z) within coachLandDrop under y, or
 // above it within a step: where a rider set down at y stands. With no ground
-// it is taken that there is. Heirloom petition 2229 (Mightyeagle: "hit 'guk'
+// it is taken that there is. Heirloom petition 2229 ("hit 'guk'
 // on fp coach and fell through the floor while loading"): Coachman Inkcap
 // stands in the Homelands' Guk at y -2 on a floor that ends within
 // coachLandOut of him, the ground above at 59; set down in front of him, the

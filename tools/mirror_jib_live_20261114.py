@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Jibrish's NPC placements on the Live Server copied to the Heirloom Test Server (the owner, 2026-11-14: "./copy
-should work for jib also on live server, also his placements and copies should show on heirloom also").
+"""a GM's NPC placements on the Live Server copied to the Heirloom Test Server (the owner, 2026-11-14: "./copy
+should work for a GM also on live server, also his placements and copies should show on heirloom also").
 
 The game server mirrors his /place, /clone and /copy from now on (world.mirror_npc_edits_accounts,
 internal/handlers/npcmirror.go); this tool does the same for the ones he made before it: every npcs insert of the
@@ -109,7 +109,7 @@ def insert(db, tbl, values, have):
 
 
 def placements(live):
-    """Jibrish's placements on Live: [(audit id, live row id, source id or 0, detail, username)], and refusals."""
+    """a GM's placements on Live: [(audit id, live row id, source id or 0, detail, username)], and refusals."""
     accts = []
     for name in ACCOUNTS:
         r = live.execute("SELECT accountid, username FROM accountinfo WHERE username = ? COLLATE NOCASE", (name,)).fetchone()

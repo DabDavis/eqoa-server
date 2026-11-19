@@ -20,7 +20,7 @@ import (
 // the name as npcclass keys it (NPCClassKey: any case, trimmed, no trailing
 // '$'), so a GM's #spawn copy and every spawn of the name share it.
 //
-// glow (2026-11-13, the GM Jibrish's petition 1893: "Use the new glow mechanic
+// glow (2026-11-13, a GM's petition 1893: "Use the new glow mechanic
 // to make mr. moogies whole body glow a soft red"): 0xRRGGBBAA, a light of the
 // body's own, beside the tint: vanilla's held-item glow (its aura.rs: a
 // material's emissive colour) laid on every layer of the body, the colour at
@@ -117,7 +117,7 @@ const (
 	// AuraCirclet is an epic's effect worn as a circlet round the head (the
 	// owner, 2026-11-14: "the effect on the end of the monks epic yin yang
 	// staff the circle of light with the criss cross lets make that effect
-	// into a circlet on the head of dust"): the source's glowing additive
+	// into a circlet on the head of [a GM]"): the source's glowing additive
 	// part (the Ascendant staff's ring at its yin-yang end, 0x1D875ECD) laid
 	// flat round the head at the brow and sized to it, following the head.
 	// On the helm's charaura slot alone (CharAuraHelm), shown whether a helm
@@ -126,7 +126,7 @@ const (
 	// worn helm while the colour lights: nothing with no colour).
 	AuraCirclet = 8
 	// AuraEnergy is an energy skin on a held item (the owner, 2026-11-14, of
-	// Dust's Heirloom Shield of Twisted Virtue: "should look like the shield he
+	// a GM's Heirloom Shield of Twisted Virtue: "should look like the shield he
 	// had before but shaped like the current shield now with the same diamond
 	// and cross pattern but with the energy shield effect"): the held item keeps
 	// its own mesh and layers, and the source's additive layers (texture,
@@ -136,7 +136,7 @@ const (
 	// before it draws nothing of it.
 	AuraEnergy = 9
 	// AuraHat is a hat another body has built in, worn on the head (the
-	// owner, 2026-11-16, of Hoofbite: "for his monk hat lets use the kappas
+	// owner, 2026-11-16, of a player: "for his monk hat lets use the kappas
 	// built in hat that is wide brimmed for his model"): the source is the
 	// body (a CHAR.ESF CSprite: the kappa's straw hat, 0xF0FAB933, KappaHat)
 	// whose hat vanilla cuts out (the triangles its head carries above the
@@ -144,7 +144,7 @@ const (
 	// (vanilla's hat::hat_on). On the helm's charaura slot (CharAuraHelm),
 	// shown whether a helm is worn or not; or an item that IS a hat (the
 	// owner, 2026-11-16: "cut the turban from the efreeti lord as a turban for
-	// dust in his inventory, turban of twisted virtue"): itemaura kind 10 on a
+	// [a GM] in his inventory, turban of twisted virtue"): itemaura kind 10 on a
 	// helm-slot record, shown while it is worn there and not hidden (on any
 	// other piece none). Never in npctint. A colour that lights recolours it; none keeps the
 	// source's own. A client before it reads the default (a shell on a worn
@@ -259,7 +259,7 @@ func ValidAuraNodes(n int64) bool { return n >= 0 && n <= AuraNodesMost }
 // (CharAuraMainHand, CharAuraOffHand) it is no node count but where along
 // the held item the borrowed particles sit, 1-100 the share in percent of
 // its reach from the hand (vanilla's aura::along), 0 the source's own share
-// (the owner, 2026-11-14: "lets move the druid epic aura down zerkziee
+// (the owner, 2026-11-14: "lets move the druid epic aura down [a player]
 // scimitar down the blade more"). A client before it ignores it.
 const AuraAlongMost = 100
 
@@ -268,7 +268,7 @@ const AuraAlongMost = 100
 // AuraCirclet) 0-AuraAlongMost too (how high on the head it sits: 1-100 the
 // share in percent of the head's height from the chin, 0 the client's own
 // 62%, which crossed the eyes: the owner, 2026-11-14, "the circlet is sitting
-// too low on dust"), every other's ValidAuraNodes.
+// too low on [a GM]"), every other's ValidAuraNodes.
 func ValidCharAuraNodes(slot, kind, n int64) bool {
 	if slot == CharAuraMainHand || slot == CharAuraOffHand || kind == AuraCirclet {
 		return n >= 0 && n <= AuraAlongMost

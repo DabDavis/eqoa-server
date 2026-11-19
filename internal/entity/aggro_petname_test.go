@@ -2,7 +2,7 @@ package entity
 
 import "testing"
 
-// Ticket 2380 (Waldorf): Collonridge's instanced basement Decaying Flesh (L64)
+// Ticket 2380: Collonridge's instanced basement Decaying Flesh (L64)
 // stood neutral: the seed's npcaggro row for a player's pet's name ("Decaying
 // Flesh ", aggressive 0, "a player's pet recorded beside its owner") held it.
 // In an instanced dungeon that row is not the creature's; in the open world it
@@ -56,7 +56,7 @@ func TestPetNameNeedsEveryPeacefulSpelling(t *testing.T) {
 	}
 }
 
-// Petition 2378 (Waldorf): a familiar (Healbot) shows the ally face a pet
+// Petition 2378: a familiar (Healbot) shows the ally face a pet
 // does, not a creature's; the control: a creature of no faction beside it.
 func TestAFamiliarShowsTheAllyFace(t *testing.T) {
 	f := newAggroFix(t, 60)

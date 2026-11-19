@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Drizzt's scale mail and ornate plate: twelve records he alone may wear, given into his pack (the owner, 2026-11-16:
-"give drizzt a set of the plate 9 armor that he alone can wear drizzt only", "lets replace drizzt armoe with scale
-mail", then "give drizzt both scale mail and plate 9 for him only with lore from drizzt d urden").
+"""a player's scale mail and ornate plate: twelve records he alone may wear, given into his pack (the owner, 2026-11-16:
+"give [a player] a set of the plate 9 armor that he alone can wear [a player] only", "lets replace [a player] armoe with scale
+mail", then "give [a player] both scale mail and plate 9 for him only with lore from drizzt d urden").
 
 1. The records: two sets of a helm, chest, bracers, gloves, legs and boots. Scale mail, itempattern 715043-715048
    (beside his Twinkle, Icingdeath and Taulmaril, 715040-715042): model 7 (CHAR.ESF's scale mail, the helm too: helm
-   set 7), the crafted scale sets' icons. Ornate plate, 715051-715056: model 9 (CHAR.ESF's set 9, Dust's 711000-711004
+   set 7), the crafted scale sets' icons. Ornate plate, 715051-715056: model 9 (CHAR.ESF's set 9, a GM's 711000-711004
    look; set 9 has no helm of its own, so its helm is drawn as helm 4, plain steel, as every client draws set 9's),
    the Glacierplate set's icons. Both in the disc art's own colours (0xFFFFFFFF, untinted; a dyer still dyes them),
-   no aura. Each description is a line in Drizzt Do'Urden's own voice, written for these records (no novel's line),
+   no aura. Each description is a line in a player Do'Urden's own voice, written for these records (no novel's line),
    at most DESC_MAX characters (CLIENT's m_desc holds 255). Ranger only (classuse 2), level 60, NO TRADE (trade 1,
    the server's trade refuses it), kept over logout (rent 1), LORE (one each), worth nothing (no sale for profit).
    Both sets carry the same figures, which beat, field by field, what he wears in each slot now (the report prints
@@ -17,7 +17,7 @@ mail", then "give drizzt both scale mail and plate 9 for him only with lore from
    helm is worn (his bank's Glacierplate Helm: AC 100, HP 50, STA 15, WIS 15, FR 63, CR 15).
 2. Only he may wear them: table itemowner (database/itemowner.go, server branch drizzt-plate) binds each record to his
    serverid; the server refuses anyone else's equip of a copy ("This item can only be worn by the one it was made
-   for."), a merc's and another raid seat's Need. His account (98) has another level 60 ranger (Destiny) who shares
+   for."), a merc's and another raid seat's Need. His account (98) has another level 60 ranger who shares
    the account bank, so the class mask and NO TRADE alone would not do. A server WITHOUT that branch reads no
    itemowner: the class mask and NO TRADE still hold.
 3. --give: one of each into his pack (location 0, unequipped, at the end of the list, as the GM panel's give does
@@ -25,8 +25,8 @@ mail", then "give drizzt both scale mail and plate 9 for him only with lore from
    him at his next login); while he is online give the twelve by the GM panel's give (by patternid), which sends them
    at once.
 
-The character is found by name (Drizzt) and must be a level 60 dark elf ranger, else REFUSED and nothing written (the
-Live shard's Drizzt is a level 1 barbarian rogue: refused there). Checked too: the ids free (or already exactly
+The character is found by name (a player) and must be a level 60 dark elf ranger, else REFUSED and nothing written (the
+Live shard's player is a level 1 barbarian rogue: refused there). Checked too: the ids free (or already exactly
 these records), tables itempattern, characters, charinventory and gm_audit, and with --give his pack's room. Report by
 default; --apply in one transaction, a gm_audit line a row (as the panel's), logged in drizzt_armor_1116_log; a second
 --apply finds nothing to do; --undo puts back exactly what was there (a row changed since is left and listed; a
@@ -59,7 +59,7 @@ def stats(ac, hp, pw, s=15, st=15, ag=15, dx=15, wi=15, it=15, ch=15, pr=15, dr=
             "intelligence": it, "cha": ch, "PR": pr, "DR": dr, "FR": fr, "CR": cr, "LR": lr, "AR": ar}
 
 
-# Drizzt Do'Urden's own words on each piece (the owner, 2026-11-16: "with lore from drizzt d urden"), written for
+# A player Do'Urden's own words on each piece (the owner, 2026-11-16: "with lore from drizzt d urden"), written for
 # these records, not the novels' lines; each at most DESC_MAX (CLIENT's VIItem::m_desc holds 256 UTF-16 units with its
 # NUL, decomp game.h) and plain ASCII with no '|' (a PS2's TextBox overruns on a run of them)
 DESC_MAX = 200

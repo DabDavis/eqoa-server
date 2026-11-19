@@ -766,7 +766,7 @@ func TestPvPDeathIsSeen(t *testing.T) {
 	}
 }
 
-// An alchemist's thrown potion at a PvP foe lands at the PvP share (petition 1248, the GM Jibrish:
+// An alchemist's thrown potion at a PvP foe lands at the PvP share (petition 1248:
 // "Alchemist potions are only hitting for one on pvp characters, they should be hitting for 50% of
 // their full damage like everything else"): thrown from the pack, its 200 lands as 100; worn and
 // thrown in a round, the same, one potion used. The control: at a player not flagged, refused.

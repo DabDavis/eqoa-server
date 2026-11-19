@@ -8,7 +8,7 @@ import (
 )
 
 // A hat and an aura stack on the helm (2026-11-16: the owner, "when i put
-// /aura on dusts turban turns it into a cloth cap"): a GM's shell (charaura 5)
+// /aura on [a GM]'s turban turns it into a cloth cap"): a GM's shell (charaura 5)
 // on a character wearing a hat ITEM (itemaura kind 10 on the helm record)
 // leaves the hat in AuraHelmHat and the shell in AuraHelm. A client that
 // answered bit 8 is sent both (365 bytes: the shell in the helm's place, the

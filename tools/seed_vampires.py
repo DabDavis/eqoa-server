@@ -5,12 +5,12 @@ their Sanctuary and its coffins, and their quests made playable.
 The user, 2026-10-30: "Build the vampire line", "Move them under rock". The
 sources, best first:
 
-- SANDSTORM'S OWN RECORDS of Feed (spell 1807) and Sanctuary (1823), the
+- THE REFERENCE SERVER'S OWN RECORDS of Feed (spell 1807) and Sanctuary (1823), the
   0x00B3 records its login sent Afkqq, a vampire of the user's (2026-10-30):
   level 30, range 4.5, no power; Feed cast at a target, no cast time, recast
   5 s (the guide's 3 and 3 are not the game's); Sanctuary on its caster, 3 s,
   recast 3600 s (the guide's "usable once per day", a game day); their icons
-  and words. Sanctuary's landing is Sandstorm's (claude-notes/sanctuary-
+  and words. Sanctuary's landing is the reference server's (claude-notes/sanctuary-
   memcard-patch-20261025.md: S2's world 7 at 4322.19, 274.134, 6179.78, the
   Frontiers disc's world 5 file), on the floor there (273.62), under 48 of
   rock: a chamber in the Zaoran Plateau (world 5's zone 5), the guide's
@@ -31,7 +31,7 @@ sources, best first:
   gaze's recast (30 s) and reach (20); the other records' icons (Feed's and
   Sanctuary's own, by whether they are cast at a target); the item's icon
   (Randerith's blood's, "the blood of a vampire"); the descriptions of the
-  abilities Sandstorm's records do not give; the five NPCs' places in the
+  abilities the reference server's records do not give; the five NPCs' places in the
   chamber round the landing (each on its floor, under the rock, clear of the
   landing's walls: internal/ground's Roof and Wall on a bake), facing it;
   the ids 760001-760007 of the seven abilities with no record.
@@ -46,7 +46,7 @@ before, in one transaction:
   - the item Unit of Blood (itempattern, stacking to 30, no trade, no rent);
   - the Sanctuary spell's place (spellgates, self);
   - Hinder, Creed, Weaver and Simmons (world 5) moved from the open ground
-    north of the building to the chamber where Sandstorm's spell lands;
+    north of the building to the chamber where the reference server's spell lands;
   - the Sanctuary's coffin (an NPC named "Sanctuary coffin", the coffins'
     body), whose trips internal/handlers/waysender.go keeps, as it keeps
     those of the three coffins Return Home placed (Freeport, Collonridge
@@ -90,7 +90,7 @@ SOURCE = "seed_vampires"
 WERES = os.path.join(HERE, "quests", "data", "weres.json")
 QUEST_KEYS = ("Weres/vampire/p1", "Weres/vampire/L40", "Weres/vampire/L50", "Weres/vampire/L60")
 
-# Sandstorm's icons: every vampire ability's front, and the backs of a
+# The reference server's icons: every vampire ability's front, and the backs of a
 # target's (Feed's) and a self (Sanctuary's) ability, as spellpattern keeps
 # them (signed 32 bits: Sanctuary's back is 0x942B153A, every self spell's)
 FRONT = 2036326070
@@ -136,7 +136,7 @@ ABILITIES = [
      "Target, Set Aggro to 0, Reagent Unit of Blood x10"),
 ]
 
-# where Sandstorm's Sanctuary spell lands, on the floor (world 5)
+# where the reference server's Sanctuary spell lands, on the floor (world 5)
 LANDING = (5, 4322.19, 273.62, 6179.78)
 
 # the Sanctuary's people round the landing (x, y, z, facing byte toward it)

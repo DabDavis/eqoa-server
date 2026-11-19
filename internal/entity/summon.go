@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// summon.go — a creature's summon (database.AbilitySummon; the GM Jibrish's petition 1440: "at 25% hp mr
+// summon.go — a creature's summon (database.AbilitySummon; a GM's petition 1440: "at 25% hp mr
 // moogie should summon 3 adds to assist him. They are all level 65 "Servant of Moogie". They have mr
 // moogies damage and health and abilities minus a flat 50%. So if moogie crits for 6k, they'd crit for
 // 3k. etc.").

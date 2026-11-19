@@ -20,7 +20,7 @@ func rewardXPOnPlayer(p *entity.Player) int {
 	return n
 }
 
-// Petition 5033 (the GM Jibrish): on a server with world.gm_reward_xp (the Live shard) a GM's #reward on its target,
+// Petition 5033: on a server with world.gm_reward_xp (the Live shard) a GM's #reward on its target,
 // a player, gives the reward of experience: the player told who gave it, the GM told, a gm_audit line; a second one
 // renews it (one on, the GM told it does not stack); /reward <name> is the same. A creature targeted is refused. The
 // controls: a player's #reward is an unknown command; without world.gm_reward_xp (Heirloom) #reward is GM's Reward

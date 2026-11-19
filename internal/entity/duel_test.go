@@ -402,7 +402,7 @@ func TestDuelMeleeRounds(t *testing.T) {
 
 // A self stance with a price (Reckless Force's -AGI) cast in a duel is its
 // caster's own, as out of one: only a cast the duel aimed at the opponent is
-// the duel's (jib's #14).
+// the duel's (a GM's #14).
 func TestDuelSelfStanceIsTheCastersOwn(t *testing.T) {
 	d := newDuelists(t)
 	d.start(t)
@@ -969,7 +969,7 @@ func TestDuelHoldAndSlow(t *testing.T) {
 	}
 }
 
-// Petition 1135, Larrybird: "proc items dont work in duels, Bpoa or sbpb do not work in duels
+// Petition 1135: "proc items dont work in duels, Bpoa or sbpb do not work in duels
 // tested both multi times". A worn item answers a duel hit as it answers a creature's: its damage at
 // the striker, halved as every duel hit is, its heal whole on its wearer. The control: no worn item,
 // nothing answers.

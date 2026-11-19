@@ -6,7 +6,7 @@ import (
 )
 
 // corpselinger.go — a corpse lies 20 minutes from the death, the creature coming back as
-// before (the GM Jibrish's Live petition 5035, the owner's "use jibrish rule", 2026-11-14:
+// before (a GM's Live petition 5035, the owner's "use a GM rule", 2026-11-14:
 // "All NPC's should lock non members of the kill (solo), group or raid from looting a corpse
 // for 6 minutes ... the corpse can be looted by anyone until minute 20, where it decays").
 //

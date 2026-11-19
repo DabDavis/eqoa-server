@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """barrel_of_monkeys_20261116.py on a small database: the report writes nothing; --apply makes the record (usable,
 procanim 2, worn nowhere, LORE, NO TRADE, worth 0, a description of at most 200 plain characters), table itemowner and
-the row binding it to Moose, each write with a gm_audit line; --apply --give then puts one in his pack, unequipped at
+the row binding it to a player, each write with a gm_audit line; --apply --give then puts one in his pack, unequipped at
 the end of the list; a third apply finds nothing to do; --undo puts the database back as it was (gm_audit aside), and
-leaves the record and its binding while someone still holds a copy. The controls: a Moose of another account, a
+leaves the record and its binding while someone still holds a copy. The controls: a player of another account, a
 taken id, another record of the name, a binding to someone else or a full pack refuse the whole, writing nothing."""
 import os
 import sqlite3

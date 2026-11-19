@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Lines across the two kinds (buffline.go, 2026-11-12: the GM Jibrish's
+// Lines across the two kinds (buffline.go, 2026-11-12: a GM's
 // three cleric mercs). The cleric's wards are plain lines, each an element
 // more: a lower one under a higher one is refused (it adds nothing), a
 // higher one takes the lower one off. Blessing (plain, self, +CHA) and Minor

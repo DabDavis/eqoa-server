@@ -14,8 +14,8 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// Mr. Moogie's challenge and his favor through his talk (the GM Jibrish's petitions 1379 and 1380,
-// by Jibcro): a rig of a database holding the Moogie Tribute (no trade, lore) and the Duelist's Favor
+// Mr. Moogie's challenge and his favor through his talk (a GM's petitions 1379 and 1380,
+// by a GM): a rig of a database holding the Moogie Tribute (no trade, lore) and the Duelist's Favor
 // ("Self, Increase Size by 50%, 60min"), Mr. Moogie beside the players, his metal twin's spawn-only
 // original 30 off with the tribute as its npcitem row.
 
@@ -191,7 +191,7 @@ func metalMsgs(s *session.Session) []string {
 	return r.msgs(s)
 }
 
-// Mr. Moogie's box keeps his own answers and adds Jibcro's "I'd like to prove my worth" (while his
+// Mr. Moogie's box keeps his own answers and adds a GM's "I'd like to prove my worth" (while his
 // metal twin's original is on the server; the control: without it, no such answer). Picked, Mr.
 // Moogie says so and a Metal Moogie stands; Cora's ask while he stands is refused with whom he duels;
 // Anna may not have Mr. Moogie's help while she duels, and a talk to her Metal Moogie from Cora is

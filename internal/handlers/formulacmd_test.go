@@ -22,7 +22,7 @@ func TestFormulaCommand(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { db.Close() })
-	db.Exec(`INSERT OR IGNORE INTO accountinfo (accountid, username) VALUES (1, 'dab'), (3, 'othergm')`)
+	db.Exec(`INSERT OR IGNORE INTO accountinfo (accountid, username) VALUES (1, 'dax'), (3, 'othergm')`)
 	ctl, err := formulamode.New(db, c.gw, "heirloom", map[string]string{"live": ""}, entity.FormulaOff)
 	if err != nil {
 		t.Fatal(err)

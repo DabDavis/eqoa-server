@@ -2,7 +2,7 @@ package entity
 
 import "testing"
 
-// Petition 1424 (the GM Jibrish): /testinvis, a player's safe mode. Safe, a bear
+// Petition 1424: /testinvis, a player's safe mode. Safe, a bear
 // 10 off that attacks on sight leaves the player alone, and with the mode off
 // again it comes; the GMs' #aggro flag is no part of it.
 func TestSafeModeDrawsNoCreatureOnSight(t *testing.T) {
@@ -50,7 +50,7 @@ func TestSafeModeHealDrawsNone(t *testing.T) {
 
 // A creature's area spell leaves out a player in safe mode who is no part of
 // its fight, and takes one on its hate list, or the one it fights, as anyone
-// (Jibrish: "If they willfully engage in combat that still works as normal,
+// (a GM: "If they willfully engage in combat that still works as normal,
 // and they can be killed"). The control: the player with the mode off is taken.
 func TestSafeModeAreaTakesOnlyThoseInTheFight(t *testing.T) {
 	f := newAggroFix(t, 60)

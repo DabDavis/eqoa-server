@@ -7,7 +7,7 @@ import (
 
 // Ranks (-ranks; 2026-11-15, Kelinar: the owner, "kelinar needs its mobs
 // spread out like we have in the past", and a player's petition, "a bunch of
-// NPC lined up in Kelinar"). Return Home's spawn table (jib's export,
+// NPC lined up in Kelinar"). Return Home's spawn table (a GM's export,
 // tools/import_prh_content.py, 2026-10-21) put some places' creatures down
 // as a parade: each kind a straight row of three or four, 4-6 units apart,
 // every row facing one way, the kinds' rows side by side in one block

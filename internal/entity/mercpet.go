@@ -101,7 +101,7 @@ func (w *World) petMasterLocked(npc *NPC) *Player {
 // that kind's, and the best of all when its book has none of it yet. Its
 // class's usual kind (MercKit.PetUsual: a magician's earth line) is taken only
 // while that kind's best is of the book's best's rank, its level at least
-// mercPetUsualKeep of the best's (ticket 2020, Kyro: "Magician merc still
+// mercPetUsualKeep of the best's (ticket 2020: "Magician merc still
 // using lvl 1 pet at lvl 13": the earth line has Earth Elementaling at 1 and
 // nothing more until Earth Elementalkin at 16, so a magician of 4 to 15 sent
 // out a level 1 pet beside its book's water, fire and air Elementalings of 4,

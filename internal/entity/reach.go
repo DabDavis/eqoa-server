@@ -25,7 +25,7 @@ import (
 //
 // Which creatures carried the bits on live is not recorded anywhere we hold:
 // none of the 22,750 creatures of Return Home's data or ours has them, and
-// every creature in every capture (Sandstorm's, eqoa.live's) has a zero high
+// every creature in every capture (the reference server's, eqoa.live's) has a zero high
 // byte. So the server gives them by its own rule, the one CLIENT's three
 // choices suggest: the allowance (0, 3 or 5) that leaves the player the gap
 // to the creature's edge nearest the gap it leaves a man. The edge is the

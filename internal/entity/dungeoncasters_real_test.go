@@ -11,7 +11,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// The instanced dungeons' casters cast (petition 1900, Brother: "doing The Guk
+// The instanced dungeons' casters cast (petition 1900: "doing The Guk
 // instance none of the NPC like wiz, knights, sha..etc... do not do any
 // spells"), on a real server's database (EQOA_REAL_DB; a copy is read) with
 // tools/petfix_dungeon_casters_20261113.py applied: every creature of world 14
@@ -112,7 +112,7 @@ func TestRealDungeonCastersCast(t *testing.T) {
 		t.Errorf("%d warriors cast", b.casting)
 	}
 
-	// Blackburrow's and Runnyeye's casters too (ticket 2004, Brother: "Just did the BB Dungeon and the NPC are
+	// Blackburrow's and Runnyeye's casters too (ticket 2004: "Just did the BB Dungeon and the NPC are
 	// not doing thier class spells ... like sha not using spells"), and with
 	// tools/dungeon_casters_2004_20261113.py applied a shaman keeps up its damage over time and heals itself
 	// (its book's heals are over time: a heal of its share), and a cleric heals from its book
@@ -155,7 +155,7 @@ func TestRealDungeonCastersCast(t *testing.T) {
 			}
 		}
 	}
-	// and each attacks on sight (ticket 2005, Waldorf: Guk's Maerik N'Toxis, a dark elf's body, showed the
+	// and each attacks on sight (ticket 2005: Guk's Maerik N'Toxis, a dark elf's body, showed the
 	// white face): every creature of the dungeons' world but the wardens
 	if len(w.playerModels) > 0 {
 		calm := map[string]bool{}

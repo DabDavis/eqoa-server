@@ -43,7 +43,7 @@ func TestASeasonsTreeAndLightsComeAndGoWithIt(t *testing.T) {
 	if err != nil || strs != 1 || bulbs != 11 || len(problems) != 0 {
 		t.Fatalf("Christmas off: %d strings, %d bulbs, %v, %v; want the world's line alone (11 bulbs)", strs, bulbs, problems, err)
 	}
-	if _, err := db.SetSeason("Christmas", true, "dab"); err != nil {
+	if _, err := db.SetSeason("Christmas", true, "dax"); err != nil {
 		t.Fatal(err)
 	}
 	if _, _, err := f.w.LoadSpawnOnly(db); err != nil {

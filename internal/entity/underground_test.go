@@ -51,7 +51,7 @@ func bankWorld(t *testing.T, bank float32) (*World, *NPC) {
 	return w, npc
 }
 
-// Petition 1500 (Jibrish: "the mobs can end up underneath the world floor"): a
+// Petition 1500 ("the mobs can end up underneath the world floor"): a
 // swimmer chasing its enemy up a bank higher than it can climb out onto (3 over
 // the water) does not go on under it, as it did; it is held at the water's
 // edge, never in the ground, and gives up after chaseHeld as past its leash.

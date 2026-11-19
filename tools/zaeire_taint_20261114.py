@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Zaeire's held weapons the necromancer's tainted aura of the epic sickle (the owner, 2026-11-14: "give zaeires
+"""a player's held weapons the necromancer's tainted aura of the epic sickle (the owner, 2026-11-14: "give zaeires
 equipped weapons the necro's tainted aura from the epic sickle").
 
 The aura is the hands' charaura slots (entity/pieceaura.go: 9 the main hand, 10 the off hand), kind 7 (database.AuraEpic):
 the item held in that hand drawn with the Sickle of Avhi Escron's own look, its hand model 0x5FD4AE7C lending it its
 materials' olive emissive glow (60, 90, 0) and its green mist particle sprite; colour 0, the sickle's own colours.
-Per hand and per character, whatever the hand holds: on Heirloom Zaeire (serverid 193) holds two Heirloom Daggers of
+Per hand and per character, whatever the hand holds: on Heirloom a player (serverid 193) holds two Heirloom Daggers of
 Bloodletting (714100) in equiploc 14 and 15; on Live (serverid 20) nothing, and the aura shows when it holds something.
 A client before vanilla's weapon-taint (it never answers the live look's bit 6) and a PS2 draw nothing of it.
 
-Checked as found, else REFUSED and nothing written: exactly one character named Zaeire; an itempattern row named "Sickle
+Checked as found, else REFUSED and nothing written: exactly one character named a player; an itempattern row named "Sickle
 of Avhi Escron" of model 1607773820 (0x5FD4AE7C); table charaura and gm_audit there. A row on a hand already (a GM's) is
 changed and its old values kept in the log. Report by default; --apply in one transaction, a gm_audit line a row (as the
 panel's: insert or update, the whole row before and after), logged in zaeire_taint_1114_log; a second --apply finds
@@ -17,7 +17,7 @@ nothing to do; --undo puts back exactly what was there (a row this made deleted,
 back), each a gm_audit line, a row changed since left and listed. Run it on each shard.
 
 The server reads charaura at its start and on the GM panel's "Reload every NPC" (reload_npcs): after --apply (or --undo)
-on a server that has weapon-taint, press that; Zaeire's channel carries it at the next tick. A server before it skips
+on a server that has weapon-taint, press that; a player's channel carries it at the next tick. A server before it skips
 these rows (slot past 8), so applying first is harmless.
 
     python3 -E -s tools/zaeire_taint_20261114.py --db eqoa.db [--apply | --undo]

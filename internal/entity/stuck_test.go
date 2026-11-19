@@ -8,7 +8,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// /stuck sends its player home through the gate hook (the user, 2026-11-08: "zaeire is stuck, and we
+// /stuck sends its player home through the gate hook (the user, 2026-11-08: "[a player] is stuck, and we
 // can add /stuck also"), then not again for ten minutes, saying how long; a creature fighting it, a
 // PvP flag held from a fight and death each refuse it, the hook not called.
 func TestStuckSendsHomeOnceInAWhile(t *testing.T) {

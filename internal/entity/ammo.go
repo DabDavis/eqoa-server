@@ -6,7 +6,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// Ammunition (petition 2390, Mightyeagle 2026-11-18: "arrows not getting
+// Ammunition (petition 2390, 2026-11-18: "arrows not getting
 // used. have stack of 9999 and it just stays there"). CLIENT's HasAmmoFor
 // (0x00BDC8F8, decomp viclient.cpp), asked by TargetInRange before every
 // ranged swing: attack type 7 (a bow) wants an item of kind 1 in the pack that

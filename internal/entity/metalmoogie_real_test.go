@@ -16,7 +16,7 @@ import (
 // Mr. Moogie's challenge on a real server's database with its data step applied (EQOA_REAL_DB names
 // it; a copy is read; the step is the lane's metalmoogie_20261109.py, petitions 1379 and 1380): his
 // metal twin's row stands out of the world, his template reads with no problem, a challenge from
-// beside Mr. Moogie copies him with Jibcro's 50k hit points, and under the database's own balance his
+// beside Mr. Moogie copies him with a GM's 50k hit points, and under the database's own balance his
 // hits on a level 60 warrior of AC 2000 and AGI 400 land near 300, four a round; the Duelist's Favor
 // reads as half again as big for an hour, the Moogie Tribute is NO TRADE and LORE, and his corpse holds
 // one. Skipped without a database, or with one the step was not applied to.

@@ -59,7 +59,7 @@ func TestAnEnchantersTemplatedPetsTauntIsCut(t *testing.T) {
 	}
 }
 
-// Petition 5034 (the GM Jibrish): a magician's earth pet's taunt gives 95% of the threat it gave, the
+// Petition 5034: a magician's earth pet's taunt gives 95% of the threat it gave, the
 // raise over the top with its margin and the taunt's hit alike (pettaunthate.go); a pet of neither
 // mark is left whole, an enchanter's still 70%.
 func TestAnEarthPetsTauntGivesNinetyFivePercent(t *testing.T) {

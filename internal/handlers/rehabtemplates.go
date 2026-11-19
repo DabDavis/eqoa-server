@@ -15,7 +15,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// A rehabilitator's templates (petition 1322, jibrish: "Add a save rehab
+// A rehabilitator's templates (petition 1322: "Add a save rehab
 // template option to the rehabilitators. They should allow people to freely
 // respec, but also allow them to save 2 different rehab state and CM
 // templates. Note they will gain CM's as they go so the template should only
@@ -25,7 +25,7 @@ import (
 // cm's and pick that template, it still only spends the 500 and just
 // unassigns the other points for them to spend as they wish").
 //
-// Two answers of the menu (rehab.go; petition 1344, jibrish: "an explicit
+// Two answers of the menu (rehab.go; petition 1344: "an explicit
 // option to save your current build into one of the two template slots. So it
 // should be an option to save current build (TP and CM spend), and then pick a
 // slot, confirm. The other option should open up the option to choose one of

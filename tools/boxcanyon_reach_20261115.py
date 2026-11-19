@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Box Canyon's creatures a player cannot walk to (petition 2139, Zerkx, Heirloom, 2026-11-15: "box canyon instance
+"""Box Canyon's creatures a player cannot walk to (petition 2139, Heirloom, 2026-11-15: "box canyon instance
 there are a bunch of mobs on the hills that cant be get too"; he stood at world 14 (20736.0, 90.2, 20263.3), on a hill
 over the canyon, the griffons, drakes and spiders he could see on the mesa tops at 139-151 over him).
 
@@ -15,7 +15,7 @@ room over it; a climb no steeper than 1:1 plus a step of 1.3, mcRiseSlope/mcRise
         -within 1200 -apart 12 -keepoff 20480,21200,120 -npcs NPCS.json   (NPCS: {id, x, y, z, gone} a creature)
 
 163,048 floors are reached (the canyon's north half, its floor at ~6 and its slopes up to ~130); every place a player
-has stood in it (the log's MOVECHECK lines, Zerkx's hill at 90) is among them. 98 of its 296 rows (the warden's
+has stood in it (the log's MOVECHECK lines, a player's hill at 90) is among them. 98 of its 296 rows (the warden's
 twin among them) stand within 3 of one. The cut-off is not the climb's rule: at 2:1 (63 degrees) the same 198 are
 cut off; cliffs part them. The other 198 are of two kinds:
 

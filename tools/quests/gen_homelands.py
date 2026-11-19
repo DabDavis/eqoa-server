@@ -53,7 +53,7 @@ RACE_IDS = {"hillgiant": 11, "kerran": 12, "goblin": 13, "aviak": 14, "lizardman
             "fairy": 19, "gnoll": 20, "orc": 21, "kobold": 22, "minotaur": 23, "ratman": 24, "satyr": 25, "dryad": 26,
             "skeleton": 27, "fungusman": 28, "gargoyle": 29, "jalraeth": 30, "wisp": 31, "mermaid": 32}
 
-# The cities' figures (EQOA-Data's guides; Sandstorm gave 430 and 2,200 for the first two, questrec16; levels 7-20 the
+# The cities' figures (EQOA-Data's guides; the reference server gave 430 and 2,200 for the first two, questrec16; levels 7-20 the
 # figure 74 of the 75 city class quests of the level give on the Heirloom server).
 XP = {1: 430, 2: 2200, 3: 6900, 4: 17000, 5: 36500, 7: 157474, 10: 556753, 13: 550698, 15: 883791, 20: 2814929}
 LEVELS = (1, 2, 3, 4, 5)

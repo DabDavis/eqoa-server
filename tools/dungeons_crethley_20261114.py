@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Crethley Manor, a twelfth instanced raid in the dungeons' world (the owner, 2026-11-14: Crethley Manor to the
-instanced raids, as the Salt Mines were; "dust is there": its landing is where Dust stood).
+instanced raids, as the Salt Mines were; "[a GM] is there": its landing is where a GM stood).
 
 The Crethleys' manor south of Wyndhaven, north of its lake (Tunaria zone 75, cell (3, 7); tools/worlds/dungeons.json's
 "crethley"): the house (6660-6790, 14410-14500) with its upper floors (y 58-64: the servants, the maid, the manor

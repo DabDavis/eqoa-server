@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The Isle of Dread's Festering Jack, Contagion, breath stealers and virulent blades given abilities a fight notices
-(Heirloom petitions 2191 and 2192, Trulytwo, 2026-11-15: "in IoD festerjack and Contanion do not do the AoE ablitys,
+(Heirloom petitions 2191 and 2192, 2026-11-15: "in IoD festerjack and Contanion do not do the AoE ablitys,
 they still need work, as atm you are able to jsut face tank them"; "Breath stealer and The Blade thing in IoD do Not
 mana tap, the need ablitys reworked").
 

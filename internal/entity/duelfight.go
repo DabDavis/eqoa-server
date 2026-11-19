@@ -47,7 +47,7 @@ func (w *World) duelLandLocked(cs *castState, caster *Player, casterSess *sessio
 	// only a cast the duel aimed (duelSpellTargetLocked) is the duel's: a
 	// self or a group line the parser reads as harmful (a stat lowered beside
 	// one raised, a hit-point price, a taunt proc) lands as it did before the
-	// duels (jib's #14, 2026-10-29)
+	// duels (a GM's #14, 2026-10-29)
 	if !cs.spell.duel {
 		return false
 	}

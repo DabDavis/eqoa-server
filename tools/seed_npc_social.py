@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The seed rows of npcsocial: every town's guards come to the help of that
-town's guards (entity/socialaggro.go; F3 20261025-215440, jib: "All guards of
+town's guards (entity/socialaggro.go; F3 20261025-215440, a GM: "All guards of
 a town qualify for this, but not all mobs are social so we will have to
 specify as we go").
 

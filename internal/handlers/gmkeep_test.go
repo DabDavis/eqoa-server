@@ -43,7 +43,7 @@ func sentOp(s *session.Session, op protocol.GameOpcode) []byte {
 }
 
 // A GM's #setlevel and #tunar are kept: the row says so at once, so the next
-// login has them (they were the live Player's alone: Jibrish 60 in the game
+// login has them (they were the live Player's alone: a GM 60 in the game
 // and 1 in the database, F3 pass 13), and the client is told its level
 // (0x0020). The control: without the stores the change is the game's alone,
 // as it was.

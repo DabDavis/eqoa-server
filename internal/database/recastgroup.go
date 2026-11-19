@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// spellrecastgroup: spells that share one recast (ticket 2011, Brother, 2026-11-13:
+// spellrecastgroup: spells that share one recast (ticket 2011, 2026-11-13:
 // the ranger's Wolf's Instinct and Hunter's Instinct, its no-form upgrade, both kept
 // in the book by ticket 1241, each with its own 30 minute recast, so both were up at
 // once). A spell's group is grp; the spells of one group are alternatives of each

@@ -3,16 +3,16 @@ package database
 import "fmt"
 
 // npctitle: a line over an NPC's name, by its npcs row (entity/npctitle.go;
-// the GM Jibrish's petitions 1765 and 1766, 2026-11-12: "Give the testing
+// a GM's petitions 1765 and 1766, 2026-11-12: "Give the testing
 // heroes vendor a title like mercenary's have. Make it say "XP Grinding
 // Rewards"", "Give dabrish a title "XP/CM's""). title is the line (24
 // letters at most, as a name: the rest is cut); "" none. source: gm, or the
 // tool that wrote it (tools/misc1112_20261112.py: misc1112, its --undo
 // deletes its own). color: the plate's colour by name, one of CLIENT's three
 // name colours (entity/npctitle.go's titleColors): ” as an NPC's own name
-// (gold), 'blue', 'green' (the GM Jibrish's petitions 1790 and 1791).
+// (gold), 'blue', 'green' (a GM's petitions 1790 and 1791).
 // noselect: 1 makes the NPC not selectable to any client, as a decoration is
-// (no Tab, no click, no target box: the GM Jibrish's Heirloom petition 2288,
+// (no Tab, no click, no target box: a GM's Heirloom petition 2288,
 // 2026-11-17, Santa's reindeer other than Rudolph), with or without a title.
 const npcTitleSchema = `
 	CREATE TABLE IF NOT EXISTS npctitle (

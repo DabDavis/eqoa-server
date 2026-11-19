@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""tools/seed_loot_categories.py against a made-up world: the presets (jib
+"""tools/seed_loot_categories.py against a made-up world: the presets (a GM
 active with his trash counts, the user's with a legendary rate of five each
 in ten years), the gear pools by category and region (the generic table's
-every region's), the gems by jib's shares, each creature's own trash (a
+every region's), the gems by a GM's shares, each creature's own trash (a
 trophy whose whole creature its name holds), the global list's legendary
 weight, the creatures' regions and profiles, and the bindings taken away.
 The controls: a giant badger gets no giant's trophy, a quest trophy and a
@@ -136,7 +136,7 @@ class SeedLootCategories(unittest.TestCase):
         self.assertIn(("uncommon", "*", "", 24), pools, "the generic table's: every region's")
         self.assertIn(("legendary", "*", "", 23), pools)
         self.assertIn(("global", "*", "", 22), pools)
-        # the gems by jib's shares: two commons 44 each, the uncommon 10, the ultra rare 0.5
+        # the gems by a GM's shares: two commons 44 each, the uncommon 10, the ultra rare 0.5
         gw = {x[2]: x[3] for x in rows if x[0] == "gems"}
         self.assertEqual(gw, {30: 4400, 32: 4400, 33: 1000, 31: 50})
         # the trash: the rats' two (whiskers, fur; the quest's tail and the no-trade ear never), the frost giant's eye,

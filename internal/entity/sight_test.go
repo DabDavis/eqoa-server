@@ -410,7 +410,7 @@ func TestAWallStopsAThrownSplash(t *testing.T) {
 	}
 }
 
-// A heal or a buff needs its caster to see the body (sight.go; petition 1243, Dock:
+// A heal or a buff needs its caster to see the body (sight.go; petition 1243:
 // "healing allows LOS through obstructions. do not allow heals through obstructions or
 // buffs"): a heal on a friend behind a wall is refused before its power is spent, and
 // lands on one this side of it (the control); a group's buff leaves out the member behind

@@ -72,7 +72,7 @@ func EncodeNPCTints(tints []database.NPCTint) []byte {
 // EncodeNPCTintsLayout is OpcodeNPCTints's body in a layout: 1 as
 // EncodeNPCTints (the names whose colour tints, a glow alone left out); 2 the
 // names whose colour tints or whose glow lights, each its u32 colour then its
-// u32 glow (0xRRGGBBAA, 0 none; the GM Jibrish's petition 1893: Mr. Moogie's
+// u32 glow (0xRRGGBBAA, 0 none; a GM's petition 1893: Mr. Moogie's
 // body in a soft red glow); 3 as 2, the names whose aura's particles show with
 // no tint or glow too, each glow followed by its aura (NPCAuraSize: a u8 kind,
 // a u32 source DictID little-endian, a u8 node count). A glowing row of kind 0

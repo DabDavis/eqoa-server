@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The shadow knight's Undead Servant, a familiar (petition 1805, Skywalker, 2026-11-12: "this spell does not work
+"""The shadow knight's Undead Servant, a familiar (petition 1805, 2026-11-12: "this spell does not work
 this is what it should do: Summon Undead Servant (Familiar). Buying Undead servitude CM gives 65PR/PR/AR. The pet
 Buffs 300 Hp and 300 Power along with a 80 lifetap proc that after the mob is debuffed, will often proc 160 instead").
 

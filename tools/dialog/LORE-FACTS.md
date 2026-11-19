@@ -26,7 +26,7 @@ EQOA's form; nothing of EverQuest's present is spoken of (the test keeps the lis
 | EQOA-Data map: X | EQOA-Data's Map/zones.json: a camp or a point players marked on the world map |
 | quest data, file | this repository's quest data (tools/quests/data/<file>.json, written from EQOA-Data's guides) |
 | zone grid: B lies n zones (way) of A | the client's zone grid (the zones' names are WORDS.TXT 1041-1187; which lies beside which is the client's table of them, 2,000 units a zone) |
-| npcs: X | who stands in the town on this server (table npcs, by name; Return Home's records of the live game and Sandstorm's) |
+| npcs: X | who stands in the town on this server (table npcs, by name; Return Home's records of the live game and the reference server's) |
 
 The game's own text and SOE's own lore come first; Prima's guide was written with SOE's designers (its faction notes are theirs); players' guides and maps say where things stand and who asks for what; the zone grid and the server's own NPCs say who is whose neighbour.
 

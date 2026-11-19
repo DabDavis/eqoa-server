@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The hazards: table hazards (entity/hazards.go, database/hazards.go).
 
-The GM Hoofbite's petition 1937, 2026-11-13: "spikey vines in toxxulia cave should damage player for 1000 dmg when
+a GM's petition 1937, 2026-11-13: "spikey vines in toxxulia cave should damage player for 1000 dmg when
 walking through them. player must navigate around vines". tools/hazards/toxxulia_vines.json is cmd/hazardscan's
 reading of the disc: every zone actor of the thorny vine sprites (SimpleSprites B9F5C1A9, B9F5C1AA and B9F5C1AB,
 each a thorned stem 14 long; 144 actors, all of them in Odus's zone 20, the Toxxulia cave, rooms 205-268 and 617, x

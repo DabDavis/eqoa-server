@@ -113,7 +113,7 @@ func TestAClaimIsOnTheMasterLootersList(t *testing.T) {
 	}
 }
 
-// Two of a Lore item off one kill (the GM Jibrish's petition 2248): a seat that wins the
+// Two of a Lore item off one kill (a GM's petition 2248): a seat that wins the
 // first does not win the second; the next highest does, and with no one else rolling it
 // lies on the corpse as though every one passed. The control: an item that is not Lore
 // goes to the same winner twice.

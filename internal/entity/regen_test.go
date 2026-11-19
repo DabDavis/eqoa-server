@@ -30,7 +30,7 @@ func TestItemCreditIsTheFormulasPages(t *testing.T) {
 }
 
 // A tick every six seconds gives the HoT in hit points and the PoT in
-// power, in a fight as out of one: Sandstorm's bard of 4201 hit points
+// power, in a fight as out of one: the reference server's bard of 4201 hit points
 // rose 89 a tick (84 + its items' 5), and its power 127 at 4149 (82 + 45),
 // while being hit. Nothing between ticks. The controls: the old rule (1%
 // every 2 s, none within 10 s of a fight) gave nothing here.
@@ -77,7 +77,7 @@ func TestRegenTicksEverySixSecondsInAFight(t *testing.T) {
 
 // A HoT below nothing (the Lich form's -196 a tick) takes its hit points at
 // full health too, and one a spell makes can kill (the owner, 2026-11-10, for
-// jib's ruling: "You could definitely kill yourself with lich form"): the
+// a GM's ruling: "You could definitely kill yourself with lich form"): the
 // regen tick that leaves nothing is the bearer's death. The controls: a worn
 // item's HoT below nothing still stops at 1, and a HoT above nothing still
 // heals only what is missing.

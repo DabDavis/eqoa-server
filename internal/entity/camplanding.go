@@ -148,7 +148,7 @@ const (
 
 // lavaUnderLocked reports lava at a body on the floor fy at (x, z), or under
 // it within lavaUnder: a stair or a bridge over a lava lake (petition 1895,
-// Itachi: "Moots port should put you at base of stairs, not over lava"; the
+// a player: "Moots port should put you at base of stairs, not over lava"; the
 // moots' camp landed on the stairs 57 over Erud's Crossing's lava lake). Must
 // be called with the lock held.
 func (w *World) lavaUnderLocked(world uint8, x, fy, z float32) bool {

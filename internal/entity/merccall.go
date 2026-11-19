@@ -1,7 +1,7 @@
 package entity
 
 // merccall.go — what a merc may take on: only what its owner called it to
-// (GM ticket 1959, Jibwiz, approved by the owner 2026-11-13: "Mercenaries
+// (GM ticket 1959, approved by the owner 2026-11-13: "Mercenaries
 // should not attack unless the player does a hostile action, or performs a
 // heal on someone in combat (So healer mercs engage when the player heals
 // someone). Hostile behavior should be removed for mercenaries and mercenary
@@ -31,7 +31,7 @@ package entity
 // itself is fought; out of a fight it tops them up as before, which angers
 // no one.
 //
-// An aggressive merc (GM ticket 2025, Jibwiz, approved by the owner: "Mercenaries
+// An aggressive merc (GM ticket 2025, approved by the owner: "Mercenaries
 // should assist group members when they commit an action if on the right stance,
 // such as aggressive. If a group member needs heals, they should help heal them.
 // If they attack, they should to. Same with when the player does") answers its

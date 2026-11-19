@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Severupidus' Cocktail of Torment, the alchemist's level 60 AoE potion, beside the Knack 60 (petition 1577, Elas,
+"""Severupidus' Cocktail of Torment, the alchemist's level 60 AoE potion, beside the Knack 60 (petition 1577,
 2026-11-11: "Missing Alc 60 epic for AoE pot, Severupidus' Cocktail of Torment. The Knack 60 spell is there, just
 missing the AoE epic spell").
 
@@ -11,10 +11,10 @@ Torment is only the 60 epic reward's option (quests 101121 and 101133, Ediopolus
 summon and Severupidus' Fire Potion, the castable throw of petition 1181), its classspells row "eqoa-data epic", which
 no grant gives. So an alchemist with the Knack 60 and no epic pick of the Cocktail has no AoE 60.
 
-This gives what the epic's Cocktail option gives, the two spells, to Elas and to every level 60 alchemist whose book
-has the Knack 60 (Biddleby's Enduring Knack) and lacks either (--petitioner-only: Elas alone). Each spell goes into
+This gives what the epic's Cocktail option gives, the two spells, to a player and to every level 60 alchemist whose book
+has the Knack 60 (Biddleby's Enduring Knack) and lacks either (--petitioner-only: a player alone). Each spell goes into
 the book off the bar at its next display index, as the scribe and the Archivist write one (spells row: onHotBar 0,
-whereonBar -1, unk1 0, showhide -1). Characters by name and serverid (Elas: "Elas", 701; refused when that serverid is
+whereonBar -1, unk1 0, showhide -1). Characters by name and serverid (a player: "a player", 701; refused when that serverid is
 another character, skipped with a line where there is none, as on the Live shard), spells by name (refused when a name
 is not exactly one record). Report only by default; --apply in one transaction, a gm_audit line a row, log
 alc_cocktail_1111_log; --undo exact (a row moved since, put on the bar, is left and said). The book is read at login:

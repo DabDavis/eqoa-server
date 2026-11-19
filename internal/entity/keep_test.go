@@ -35,7 +35,7 @@ func newKeepRig(t *testing.T, npcName string, pet bool) *keepRig {
 	r.mate.SetPlayerObjectID(500000032)
 	r.p = r.w.CreatePlayer(r.sess, &database.CharacterRecord{ServerID: 61, CharName: "Jibcro", AccountID: 7, Level: 60,
 		Race: 3, TClass: 11, X: 25375, Y: 54.1, Z: 15721})
-	r.other = r.w.CreatePlayer(r.mate, &database.CharacterRecord{ServerID: 44, CharName: "Jibrish", AccountID: 8, Level: 60,
+	r.other = r.w.CreatePlayer(r.mate, &database.CharacterRecord{ServerID: 44, CharName: "Jinkles", AccountID: 8, Level: 60,
 		Race: 3, TClass: 12, X: 25380, Y: 54.1, Z: 15721})
 	r.w.NPCs[5001] = &NPC{ServerID: 5001, Name: npcName, HP: 100, MaxHP: 100, Level: 10, X: 25376, Z: 15722}
 	if pet {
@@ -92,7 +92,7 @@ func through(t *testing.T, old *keepRig, npcName string) (*keepRig, *session.Ses
 	r.p = r.w.CreatePlayer(sess, &database.CharacterRecord{ServerID: 61, CharName: "Jibcro", AccountID: 7, Level: 60,
 		Race: 3, TClass: 11, X: 25375, Y: 54.1, Z: 15721})
 	r.mate = r.sm.CreateSession(&net.UDPAddr{IP: net.IPv4(198, 51, 100, 9), Port: 6302}, 32, 32, 32, 2, true)
-	r.other = r.w.CreatePlayer(r.mate, &database.CharacterRecord{ServerID: 44, CharName: "Jibrish", AccountID: 8, Level: 60,
+	r.other = r.w.CreatePlayer(r.mate, &database.CharacterRecord{ServerID: 44, CharName: "Jinkles", AccountID: 8, Level: 60,
 		Race: 3, TClass: 12, X: 25380, Y: 54.1, Z: 15721})
 	r.w.NPCs[5001] = &NPC{ServerID: 5001, Name: npcName, HP: 100, MaxHP: 100, Level: 10, X: 25376, Z: 15722}
 	r.w.RestoreView(sess, back.V)

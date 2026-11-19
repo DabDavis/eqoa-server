@@ -214,7 +214,7 @@ func creatureLine(s *CastSpell, class int) string {
 const stackLinePrefix = "stack"
 
 // Lines across the two kinds (the owner, 2026-11-12, of three mercs' buffs on
-// the GM Jibrish: "buffs are stacking on Jibrish from mercs that normally
+// a GM: "buffs are stacking on a GM from mercs that normally
 // shouldn't"). A spell made from EQOA-Data's words (no workbook stack type)
 // has a plain line, and a plain line was only ever one with the same plain
 // line: so the cleric's Blessing (+CHA, self) stacked with Minor Blessing, the
@@ -480,7 +480,7 @@ func covers(a, b StatMods) bool {
 	return true
 }
 
-// A buff's gifts that are not stats (ticket 1984, Deathcore: "bards 54
+// A buff's gifts that are not stats (ticket 1984: "bards 54
 // sow+invis is not overwriting 35 sow"): its invisibility and its run speed.
 // Selo's Song of Travel (54: invis, speed) nests Selo's Accelerando's line
 // (35: speed) and neither raises a stat, so covers alone found the 35 on the
@@ -666,7 +666,7 @@ func lineVerdict(effects []*ActiveEffect, ae *ActiveEffect) *ActiveEffect {
 // The stronger of a line wins (the owner, 2026-11-14: "check the lines across
 // every class"; the user's rule of 2026-10-29 is "only the best of a line
 // counts"). Until then a line's rank alone said which of two was the better,
-// and on eqoaclassic's spells a higher rank is not always the stronger: the
+// and on the production server's spells a higher rank is not always the stronger: the
 // bard's Harmony (55, +30 PoT) refused Power Vibe (49, +134), Rhapsody (44,
 // +20) Power Dance (20, +51); the wizard's Aktrana's Tower of Will (60, +1100
 // power and PoT) Towering Mind (49, +1325); the shaman's Accuracy (24, +30

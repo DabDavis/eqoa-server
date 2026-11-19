@@ -12,7 +12,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// Scribing against a temporary database, held to what Sandstorm sent a druid
+// Scribing against a temporary database, held to what the reference server sent a druid
 // of level 23 (eqoa harvest, 2026-10-21): the scroll 39th in a full list, an
 // ability at display index 18 with id 458, level 4 and range 30. The spells'
 // names and other fields are made up.
@@ -160,8 +160,8 @@ func mustHex(t *testing.T, s string) []byte {
 }
 
 // A book of 18 (display indices 0..17) and a full list of 39 things before
-// the scroll, as Sandstorm's druid had: the scroll leaves by 0x003C at index
-// 39, and 0x00B3 starts with Sandstorm's bytes (stamp 0, flag 1, id 458,
+// the scroll, as the reference server's druid had: the scroll leaves by 0x003C at index
+// 39, and 0x00B3 starts with the reference server's bytes (stamp 0, flag 1, id 458,
 // display index 18, off the bar, lockout 0, +0x14 -1, level 4, range 30).
 func TestScribeIsSandstorms(t *testing.T) {
 	f := newScribeFixture(t)
@@ -225,7 +225,7 @@ func (f *scribeFixture) rowsOf() []database.CharInventoryEntry {
 	return rows
 }
 
-// Sandstorm's three refusals, byte for byte, each with the scroll kept and
+// The reference server's three refusals, byte for byte, each with the scroll kept and
 // the book as it was: a cleric's scroll, one of level 24, one known.
 func TestScribeRefusalsAreSandstorms(t *testing.T) {
 	f := newScribeFixture(t)
@@ -466,7 +466,7 @@ func TestScribeAsksForTheSpellsLevel(t *testing.T) {
 }
 
 // With every class open to every race (world.all_classes) a scroll's race list does
-// not refuse (petition 1237, Smolsk: "new race/classes need to be updated for spells":
+// not refuse (petition 1237: "new race/classes need to be updated for spells":
 // a gnome shadow knight was told "This item can't be used by your race." at every
 // shadow knight's scroll): a halfling druid scribes a druid's scroll that lists no
 // halfling. The control: with the classes as SOE had them, the same scroll is refused

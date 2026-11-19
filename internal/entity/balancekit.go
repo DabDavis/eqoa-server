@@ -467,7 +467,7 @@ func (h simHands) weapons(items []database.ItemPatternRecord) []database.ItemPat
 }
 
 // SimStartKitFromDB is a new character of the class and race at the level as
-// its creation outfits one (database.StartItems: Sandstorm's starting weapon,
+// its creation outfits one (database.StartItems: the reference server's starting weapon,
 // an Apprentice Sword, Dagger, Club or Staff, in hand; its rations carried;
 // no armour at all, a monk not even a weapon), its base stats and book as
 // SimKitFromDB's: what a player fights with at 1-5 before it buys or finds
@@ -613,7 +613,7 @@ func SimWithSpell(db *database.SQLiteDB, pl SimPlayer, id int) (SimPlayer, error
 }
 
 // simBroken is a record whose figures no item of the game's has: a PoT or
-// a resist past simBrokenOver. Of eqoaclassic's (2026-11-01) every PoT is
+// a resist past simBrokenOver. Of the production server's (2026-11-01) every PoT is
 // 200 or less and every resist 65 or less but fifteen of the old dump's,
 // each with PoT 987 and LR 927 (DMG 999 on the weapons: Sapphire's and the
 // Khal Sword, a Staff of Divinity), which the kits had given a ranger of

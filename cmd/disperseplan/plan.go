@@ -51,7 +51,7 @@ const (
 // farRoamers are the kinds that roam a canyon or a zone (the owner,
 // 2026-11-12: "skeletal giant and others are not roaming correctly, they only
 // move a small distance"), with the radius they roam: the giants and cyclopes
-// Sandstorm's census saw walking (npcmove roam 1), and the named roamers the
+// the reference server's census saw walking (npcmove roam 1), and the named roamers the
 // players' guides (EQOA-Data) say roam.
 var farRoamers = map[string]float32{
 	"skeletal giant": 300, "hill giant": 300, "cyclops": 300, "cyclops seer": 250, "mummified ogre": 250,
@@ -463,7 +463,7 @@ const loneReach = 40
 
 // keepsPost reports a kind that keeps its post: a guard's word in its name
 // (entity/wildlife.go's wildlifeGuards), or the fire giants (F3
-// 20261026-042712, jib: "Fire Giants are roaming currently when they should
+// 20261026-042712, a GM: "Fire Giants are roaming currently when they should
 // not be").
 func keepsPost(name string) bool {
 	n := strings.ToLower(name)

@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// instancemembers.go — who else an instance holds (the GM Jibrish's petition 1879, 2026-11-13: "Add the ability to
+// instancemembers.go — who else an instance holds (a GM's petition 1879, 2026-11-13: "Add the ability to
 // invite or remove people from your instance. Under group or raid give an option each. How this should work: We set
 // an instance player limit, the player instance control menu should allow you to add players up to that cap. For all
 // heroic dungeons, such as heroic guk, set this cap to 4. If a player is in an instanced dungeon and gets removed from

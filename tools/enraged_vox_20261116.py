@@ -3,7 +3,7 @@
 spawned normal like lady vox").
 
 WHAT DIFFERED (quest 101028 "The Scepter of the Ritualists"; Enraged Lady Vox npcs 122824, beside Lady Vox 103173):
-  - She stood in Permafrost for anyone, on a 2 h respawn (npcrespawn 122824, Jibrish's board #1093). Now spawn-only
+  - She stood in Permafrost for anyone, on a 2 h respawn (npcrespawn 122824, a GM's board #1093). Now spawn-only
     (npcspawnonly "#122824", her row alone: Lady Vox 103173 stands as she did). The respawn row is left: moot while
     she is spawn-only (and it comes back into force if this is undone).
   - Step 13 (Mistress Sanchez) gives the primal stew (701090) and step 14's journal says "Set the primal stew down in

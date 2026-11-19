@@ -114,7 +114,7 @@ func TestASparringDummyKeepsItsFight(t *testing.T) {
 	}
 }
 
-// Petition 1324 (jibrish, 2026-11-09): "Add a second sparring dummy that hits
+// Petition 1324 (2026-11-09): "Add a second sparring dummy that hits
 // twice as hard as the previous one but is otherwise the same". A "Sparring
 // Dummy x2" is a sparring dummy whose every hit and strike is twice what the
 // plain one's is: against a player whose AC holds each hit to the dummy's

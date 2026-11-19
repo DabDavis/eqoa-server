@@ -363,7 +363,7 @@ func (w *World) serializeEntityDiscLocked(sess *session.Session, id EntityID, ob
 		buf := SerializeNPCUpdate(objectID, npc)
 		if npc.Dead {
 			buf[58] = 0x0e // AnimationState.Die
-			// a corpse, as Sandstorm turns a kill's channel: byte 26 (CLIENT's
+			// a corpse, as the reference server turns a kill's channel: byte 26 (CLIENT's
 			// VIEntity +0x18: 1 selectable, 2 a corpse) 3, health 0. The corpse
 			// bit is what makes CLIENT's attack button ask for the loot
 			// (ToggleAutoAttack's 0x0015, handlers/loot.go); without it a
@@ -425,10 +425,10 @@ func (w *World) serializeEntityDiscLocked(sess *session.Session, id EntityID, ob
 // TargetObjectID is an id in ITS OWN session's table (object ids are per
 // session: visibility.go numbers each session's from 100001), so written
 // raw it named another entity, or none, to everyone else; an NPC's target
-// is its enemy (or the player a dummy fights), where Sandstorm sends 0.
+// is its enemy (or the player a dummy fights), where the reference server sends 0.
 // CLIENT reads the field into m_p74 and never looks at it; the vanilla
 // client's Target of Target shows it. None: 0xFFFFFFFF for a player (as
-// Sandstorm sends), 0 for an NPC. Must be called with the lock held.
+// the reference server sends), 0 for an NPC. Must be called with the lock held.
 func (w *World) putChannelTargetLocked(sess *session.Session, e Entity, buf []byte) {
 	id := uint32(0)
 	if _, ok := e.(*Player); ok {

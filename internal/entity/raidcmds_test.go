@@ -11,7 +11,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// The raid's own rules and commands (raidrules.go, raidcmds.go; the GM Jibrish's
+// The raid's own rules and commands (raidrules.go, raidcmds.go; a GM's
 // petitions 1448, 1451, 1452, 1453): each beside its control.
 
 // boxFrom is the name the last 0x0773 queued to session i's client named, drained; ""
@@ -494,7 +494,7 @@ func TestTargetNearByNameAndStart(t *testing.T) {
 		name string
 		want EntityID
 	}{
-		{"jib", 7002},       // the exact Jib is out of reach: the nearest start
+		{"jib", 7002},       // the exact a GM is out of reach: the nearest start
 		{"JIBRISH", 7001},   // exact, any case
 		{"moss", 7003},      // the article left off
 		{"a moss", 7003},    // or not

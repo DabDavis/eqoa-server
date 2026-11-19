@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The potions' rules of jib's second round (F3 20261026), on a database
+"""The potions' rules of a GM's second round (F3 20261026), on a database
 tools/seed_potions.py has already filled:
 
 - 20261026-014336 ("unstable mixture is a consumable that equips in the range

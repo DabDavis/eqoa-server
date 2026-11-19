@@ -44,7 +44,7 @@ func TestAnAoETauntTakesEveryCreatureWithinTenOfTheWarrior(t *testing.T) {
 		r.w.mu.Lock()
 		for _, n := range all {
 			n.HP, n.MaxHP = 500_000, 500_000
-			r.w.updateAggro(n, 1002, 40_000) // Tmac on top of each
+			r.w.updateAggro(n, 1002, 40_000) // a player on top of each
 		}
 		r.w.mu.Unlock()
 		r.cast(t, goading(c.row), target.ServerID)

@@ -9,7 +9,7 @@ import (
 
 // Followers keep a slot each round their owner (followslot.go) and a merc
 // takes its ease round a standing owner (mercidle.go): the owner, 2026-11-12,
-// "the mercenary and healbot are following jib perfectly stacked on top of
+// "the mercenary and healbot are following a GM perfectly stacked on top of
 // each other, lets have them spread out. also let merc after idle for 5 secs
 // walk around the player ever so often".
 

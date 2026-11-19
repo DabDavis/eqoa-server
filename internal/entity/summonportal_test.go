@@ -190,7 +190,7 @@ func TestAPortalHearsWhoIsByIt(t *testing.T) {
 }
 
 // A bring is a travel to the exact spot the owner stood on as it opened the
-// portal (the GM Jibwiz's petition 1922: ring 0, not a ring round it, and not
+// portal (a GM's petition 1922: ring 0, not a ring round it, and not
 // where the owner stands now), handed to the hook by the tick. A player from
 // another world goes the same. The controls: no portal, a dead player.
 func TestAPortalBringsPlayersWhereItsOwnerStood(t *testing.T) {

@@ -1,6 +1,6 @@
 package protocol
 
-// Quest marks over NPCs' heads (the GM Jibrish's petition 1813, 2026-11-12:
+// Quest marks over NPCs' heads (a GM's petition 1813, 2026-11-12:
 // "Add the ability for us to add yellow ! and ? over NPCs in game, visible to
 // the player, if they toggle it on or we turn it on by default";
 // handlers/questheadmarks.go, entity/questheadmarks.go). A "!" over an NPC

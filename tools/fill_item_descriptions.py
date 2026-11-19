@@ -2,14 +2,14 @@
 """Item records whose description is the placeholder "Add a real description." given a real one (the user,
 2026-11-03, on a troll warrior: "also the basher shirt says Add a real description.").
 
-2,043 of eqoaclassic's records carry the placeholder, the old dump's; Sandstorm's own records of the same items
+2,043 of the production server's records carry the placeholder, the old dump's; the reference server's own records of the same items
 carry it too (its Basher Shirt does), and so do 13 of EQOA-Data's, so some of SOE's live records had it. CLIENT
 shows the description in the item's info window. A placeholder is replaced by, in this order:
 
 1. **DECIDED**: the user's item, a description of ours where no record has one (the Basher Shirt: the Bashers
    are Grobb's warriors, whose guards are "Basher ..."; written as the other races' first shirts and tunics are,
    "A light tunic worn by a member of the Stormreapers.").
-2. **Sandstorm's record of the same name** (the harvests, `--prices`), when it is not the placeholder.
+2. **the reference server's record of the same name** (the harvests, `--prices`), when it is not the placeholder.
 3. **EQOA-Data's** (`--eqoa-data`, its Information/databases/items), one description for the name, unless it
    is a contributor's note rather than the game's text (NOTE: "Alignment: Good.", "Level 49 Epic - Rod.",
    "*Proc*", "Rediculously Rare Robe, most would kill to have it").

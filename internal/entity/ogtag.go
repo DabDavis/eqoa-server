@@ -8,7 +8,7 @@ import (
 )
 
 // ogtag.go — an [OG] character drawn "[OG] Name" (the owner,
-// 2026-11-18, for the Vanilla Test server: "characters [OG] Meshuggah for
+// 2026-11-18, for the Vanilla Test server: "characters [OG] a player for
 // example. this [OG] tag shows players you opt-out of the QoL changes").
 //
 // The tag is the GM tag's way (GMTag): it goes before the name where every

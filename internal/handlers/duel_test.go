@@ -62,7 +62,7 @@ func TestHandleDuelWindow(t *testing.T) {
 }
 
 // /duel at the target, /duel <name>, /duel accept, /duel cancel's box, and
-// Sandstorm's challenge "/tell <name> duel" (any client: a PS2 forwards
+// the reference server's challenge "/tell <name> duel" (any client: a PS2 forwards
 // /tell), which is a challenge and not a tell.
 func TestDuelChatCommands(t *testing.T) {
 	c := newChatWorld(t)
@@ -96,7 +96,7 @@ func TestDuelChatCommands(t *testing.T) {
 		t.Fatal("Yes on Cancel duel? kept the duel")
 	}
 
-	// Sandstorm's way, by name, from a PS2 that forwards only /tell
+	// The reference server's way, by name, from a PS2 that forwards only /tell
 	sa.Queue().GetPending()
 	c.send(sb, protocol.OpcodeClientSayChat, wide("/tell Alice duel", 0xFFFFFFFF))
 	if id, on := c.gw.DuelOf(pa); id == 0 || on {

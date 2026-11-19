@@ -9,7 +9,7 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 )
 
-// mercui.go and groupreg.go (the GM Jibrish's petitions 1475, 1476 and 1488,
+// mercui.go and groupreg.go (a GM's petitions 1475, 1476 and 1488,
 // 2026-11-11): the offers' bytes, the answers kept on the session, Dismiss
 // Mercenary as /merc dismiss, and "Allow anyone in my group to invite" kept
 // for the character and read back at the next start.

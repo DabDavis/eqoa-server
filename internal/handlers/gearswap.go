@@ -9,7 +9,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// Weapon Swap Back (work board 1581, jibrish 2026-11-16: "I have 2 swords
+// Weapon Swap Back (work board 1581, a GM 2026-11-16: "I have 2 swords
 // equipped / I hit button to switch to bow, I now have bow / I go and hit the
 // same button again, and now its those same 2 swords ... Be very careful to not
 // accidentally duplicate items."). Vanilla's Extended > Other > Combat >

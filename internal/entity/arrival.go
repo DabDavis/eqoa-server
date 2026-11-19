@@ -8,7 +8,7 @@ import "math"
 // have always landed, when that is dry ground near the NPC's own height; else
 // behind it, else to its left, else to its right. Each faces the NPC. The
 // dockmasters stand at the ends of their piers facing the sea, so in front of
-// Freeport's Dockmaster Endol was the harbour (petition 1349, Changeface:
+// Freeport's Dockmaster Endol was the harbour (petition 1349:
 // "Highbourne dockmaster drops players into water in Freeport"). A floor is
 // the terrain's or anything's placed on it (a pier's deck).
 //
@@ -26,7 +26,7 @@ func (w *World) ArrivalLanding(world uint8, x, y, z, h, reach float32) (lx, ly, 
 		px, pz := x+reach*float32(math.Sin(a)), z+reach*float32(math.Cos(a))
 		fy, found := w.ground.Floor(world, px, y+arrivalReach, pz)
 		// a pier is placed on the terrain, not of it (petition 1770,
-		// Hoofbite: "when taking dockmaster from Highbourne to Freeport, you
+		// a player: "when taking dockmaster from Highbourne to Freeport, you
 		// load into the water and not onto the dock"): Freeport's Endol and
 		// Bogman Village's Geben stand on their piers' ends over the sea
 		// bed, so the terrain alone found no dry spot by them, and the trip

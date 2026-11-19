@@ -8,7 +8,7 @@ import (
 )
 
 // corpseleft.go — a corpse left where its creature fell, as a copy, so it lies 20 minutes
-// while its creature comes back as before (entity/corpselinger.go: the GM Jibrish's Live
+// while its creature comes back as before (entity/corpselinger.go: a GM's Live
 // petition 5035). Everything the loot knows of the corpse goes to the copy's id: its rolled
 // items and coins, its kill group and open time, a loot step's drops, a raid's kill not yet
 // rolled, its rolls, winners and master looter (and the corpse a master looter was last

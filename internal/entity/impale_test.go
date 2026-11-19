@@ -8,20 +8,20 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// Heirloom petition 2189 (Zerkziee, a L60 gnome ranger of 7,960 HP) and the
+// Heirloom petition 2189 (a L60 gnome ranger of 7,960 HP) and the
 // owner, 2026-11-15: "Impale is killing players in 1 hit". Impale (L55, "iod
 // impale": melee_pct 928) casts Impaling Gore (760163) every 30 s from 3 s in,
 // "Decrease AC by 2500, 1min". Its 928% was fitted where AC 2-3k puts every
 // roll under the floor (softHit's window, ~20 a hit); the Gore took a 2.5k
 // tank to AC 0, where the roll lands over the floor, up to 7x the window's
-// top, each of it times 9.28: on Zerkziee 246-1,578 a hit, a quad round up to
+// top, each of it times 9.28: on a player 246-1,578 a hit, a quad round up to
 // 6,312 before the level's balance (175% at 55), 11,046 after. And an AC
 // past what was worn went under 0, which raised every roll further (a wizard
 // of 1,000 AC under it, at -1,500: 3,239 a hit before the balance, 5,668
 // after).
 //
 // Now the Gore is AC -1,500 (tools/impale_gore_20261115.py) and a creature's
-// AC debuff takes a player to AC 0 at most (templateDebuffLocked): on Zerkziee
+// AC debuff takes a player to AC 0 at most (templateDebuffLocked): on a player
 // a quad round under it is at most 2,080 before the balance (3,640 after),
 // against 6,312 (11,046) under the old Gore; without it, 796 (1,393), as
 // before.
@@ -39,7 +39,7 @@ func TestImpaleUnderItsGoreIsHardNotAOneShot(t *testing.T) {
 	mean := func(p *Player) float64 { _, _, m, _ := hitsOver(impale, p); return m }
 
 	plain, oldGore, newGore := zerk(0), zerk(-2500), zerk(-1500)
-	t.Logf("Zerkziee: a hit at most %d / mean %.0f plain, %d / %.0f under the old Gore, %d / %.0f under the new (before the balance's %.0f%%)",
+	t.Logf("Zorbaxes: a hit at most %d / mean %.0f plain, %d / %.0f under the old Gore, %d / %.0f under the new (before the balance's %.0f%%)",
 		most(plain), mean(plain), most(oldGore), mean(oldGore), most(newGore), mean(newGore), balance55*100)
 
 	if got := float64(quad*most(newGore)) * balance55; got >= 7960/2 {

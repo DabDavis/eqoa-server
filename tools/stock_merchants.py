@@ -5,20 +5,20 @@
 A merchant is an NPC with the merchant flag (npc_type & 1): CLIENT opens the
 merchant window on it (handlers/merchant.go), and the window shows npcitem's
 rows keyed by its npc_id (GetNPCItems). Only a merchant with no catalog is
-stocked; a catalog already there (a GM's, Sandstorm's, another tool's) stays.
+stocked; a catalog already there (a GM's, the reference server's, another tool's) stays.
 
 Who sells what, the first that gives one:
 
-0. Sandstorm's own catalog: a merchant a --prices harvest opened (the 10-21
+0. The reference server's own catalog: a merchant a --prices harvest opened (the 10-21
    harvest's, a faction survey's: every `eqoa harvest` JSON with a merchants
    list) is matched to the nearest NPC of ours of its name in its world within
    MATCH_RADIUS (else one whose name is a letter off, as
-   import_sandstorm_harvest.py matches them), and its wares, in Sandstorm's
+   import_sandstorm_harvest.py matches them), and its wares, in the reference server's
    order, to our patterns: the ware's own id under its name, else its name,
    else its id at its wear slot and level (a renamed item). A ware this
    database lacks is listed, never made: the catalog is what is here of it.
    One with none of its wares here goes on to the next tier.
-1. Return Home's catalog (--prh, jib's export): import_prh_content.py ran
+1. Return Home's catalog (--prh, a GM's export): import_prh_content.py ran
    --no-catalogs, as no price was known; its own map of Return Home's rows to
    ours (prh_import_npcs) and of its patterns (prh_import_ids) gives each of
    our merchants the catalog Return Home holds for it. Return Home's loot
@@ -31,14 +31,14 @@ Who sells what, the first that gives one:
    tacklemasters sell). The catalog is one a merchant of the trade sells here
    (after 1.; a catalog that is not the trade's goods, TRADE_KINDS, is none),
    chosen as a town's (merchants within TOWN_LINK of each other) merchants of
-   a trade sell its tiers between them: Sandstorm's Freeport tailors sell
+   a trade sell its tiers between them: the reference server's Freeport tailors sell
    cloth, rawhide, wool, studded and gossamer. So: of the catalogs within
    TIER_REACH levels of the region's (the median level of the creatures round
    the merchant), one the town sells the fewest of, then the nearest the
    region's level, then one held in the same world, then the nearest holder's;
    past them the rest by the same. A spell vendor's, a grocer's and a
    fisherman's take the one the town lacks whatever its level: a town's three
-   chemists sell the alchemist's three lists, as Sandstorm's do.
+   chemists sell the alchemist's three lists, as the reference server's do.
 3. A jeweler (no merchant anywhere sells jewelry): jewelry out of itempattern
    (ear, neck, wrist, finger, waist; tradeable, not lore, a metal's or a gem's
    name), the region's level and below, a few of each kind.
@@ -51,24 +51,24 @@ no shop by its name (LEFT_OUT: Keepers, which EQOA-Data has as quest givers
 and Return Home gives no merchant flag; master craftsmen; storytellers;
 citizens; guards; class and guild NPCs), a creature (a lowercase name with no
 shop word: a flag on a beast is a mistake), and one that a --prices harvest
-shows on Sandstorm without the merchant flag.
+shows on the reference server without the merchant flag.
 
 Prices, for every catalog item whose itemcost is 0 (a nonzero one is never
-changed, Sandstorm's, a GM's or another tool's, but for the two exceptions
+changed, the reference server's, a GM's or another tool's, but for the two exceptions
 below):
 
 - Measured: an item of the same name (case, a backtick and spacing aside)
-  that Sandstorm prices: a --prices file (an `eqoa harvest` JSON: its
+  that the reference server prices: a --prices file (an `eqoa harvest` JSON: its
   merchants' wares and its characters' inventories, each with the item's
   value; or a TSV/CSV with a name column and a price or value column), and
   the patterns import_sandstorm_harvest.py wrote (sandstorm_import_rows). A
   name with no measured price falls back to the same id when the harvest
-  holds that id at the same wear slot and level (a renamed item). Sandstorm
+  holds that id at the same wear slot and level (a renamed item). The reference server
   sells some items at 0 (a starting quest's handout): those stay 0, logged
   ('free').
 - Otherwise ours, by a rule fitted on the measured items, printed with its
   error (leave-one-out over the measured items):
-    - a weapon without stats: a x its damage (Sandstorm's vendor weapons are
+    - a weapon without stats: a x its damage (the reference server's vendor weapons are
       1.83 x damage within a tunar or two);
     - anything else: the median of the KNN nearest measured items of its
       kind (weapon, armor and shield, jewelry, ammunition, scroll, meal,
@@ -76,18 +76,18 @@ below):
       1 less the share of the names' words they have in common, plus the
       difference of log(1 + AC), log(1 + damage) and log(1 + stat points)
       over 0.35 each, plus 0.5 for another wear slot.
-    - a scroll: Sandstorm's scroll curve, the measured scrolls' price at its
+    - a scroll: the reference server's scroll curve, the measured scrolls' price at its
       level, the straight line between two levels measured, and above the
       highest the square of the level (as import_eqoadata_spells.py scales
       one; within a tunar of the curve's own quadratic).
   A new harvest refits it: --prices with the harvest's files, after --undo.
   The report also names the catalog items that keep a price of their own
-  (not Sandstorm's) ODD times or more off the rule's, for a GM to look at.
+  (not the reference server's) ODD times or more off the rule's, for a GM to look at.
 - The two exceptions (the coordinator's, 2026-10-29), each narrow and logged
   as any price is (undone with the rest), never on a pattern a GM edited or
   one import_sandstorm_harvest.py wrote:
     - a grocer's price stock_grocers.py set (grocer_stock: ours, 10 tunar a
-      level) for an item Sandstorm's merchants sell: Sandstorm's value;
+      level) for an item the reference server's merchants sell: the reference server's value;
     - a scroll import_eqoadata_spells.py made (eqoadata_spell_import_rows)
       at 1 tunar (it scaled a reference scroll's 0): the scroll curve's.
 
@@ -96,7 +96,7 @@ Every change is logged in merchant_stock (what it was and what it became) and
 named); the md5 of the touched tables' rows taken before --apply is checked
 after --undo. A second --apply is refused while merchant_stock is there, but
 for --more: a later run, for the merchants made since (2026-11-01: the 10-31
-census of Rathe and Odus brought 20 of Sandstorm's flagged merchants with no
+census of Rathe and Odus brought 20 of the reference server's flagged merchants with no
 catalog), which plans as the first run does for the merchants that sell
 nothing and that no run logged (left out or keyed), prices its own catalogs'
 items alone, and appends to merchant_stock, so --undo takes every run back,
@@ -105,7 +105,7 @@ take a copy of the database first (<db>.bak-<when>-pre-merchants). Report only
 by default. Restart the server after --apply or --undo: catalogs and prices
 are read as they are needed, but the NPCs' npc_id at its start.
 
-Sandstorm's catalogs come from this tool, not import_sandstorm_harvest.py
+The reference server's catalogs come from this tool, not import_sandstorm_harvest.py
 --all-merchants: that one makes the items a catalog lacks (and renumbers an
 id held by another name) and rewrites every price it meets with the
 harvest's, the grocers' too.
@@ -244,7 +244,7 @@ def norm(name):
 
 def loose(name):
     """A name compared a second time: norm()'s, its apostrophes dropped
-    (Sandstorm's "Dark One's Bracers" is Return Home's "Dark Ones Bracers")."""
+    (the reference server's "Dark One's Bracers" is Return Home's "Dark Ones Bracers")."""
     return norm(name).replace("'", "")
 
 
@@ -317,7 +317,7 @@ def ware_item(w):
 # ---- measured prices ----
 
 class Measured:
-    """What Sandstorm is known to charge: values by name, items with their
+    """What the reference server is known to charge: values by name, items with their
     fields (the rule's data), and what the harvests saw of the NPCs."""
 
     def __init__(self):
@@ -326,10 +326,10 @@ class Measured:
         self.by_id = {}            # harvest id -> item dict
         self.conflicts = collections.defaultdict(set)
         self.sources = collections.Counter()
-        self.seen = {}             # (world, norm name) -> npc flags, as Sandstorm shows them
-        self.opened = {}           # (world, norm name) -> wares Sandstorm sells there (count)
+        self.seen = {}             # (world, norm name) -> npc flags, as the reference server shows them
+        self.opened = {}           # (world, norm name) -> wares the reference server sells there (count)
         self.merchants = []        # the harvests' merchants: name, world, pos, wares, when
-        self.sold = set()          # norm names of what Sandstorm's merchants sell
+        self.sold = set()          # norm names of what the reference server's merchants sell
         self.by_loose = None       # loose name -> value, made when first asked
 
     def add(self, item, source):
@@ -406,7 +406,7 @@ class Measured:
                     self.sources["price list"] += 1
 
     def add_db(self, db, patterns):
-        """The patterns the Sandstorm harvest import wrote: Sandstorm's own
+        """The patterns the reference-server harvest import wrote: the reference server's own
         values and fields."""
         if not db.execute("SELECT 1 FROM sqlite_master WHERE name = 'sandstorm_import_rows'").fetchone():
             return
@@ -426,7 +426,7 @@ class Measured:
                 self.items[n] = dict(min(ours[n], key=lambda p: p["id"]), cost=v)
 
     def price_of(self, p):
-        """Sandstorm's value for our pattern p, and how it was matched."""
+        """the reference server's value for our pattern p, and how it was matched."""
         n = norm(p["name"])
         if n in self.by_name:
             return self.by_name[n], "measured"
@@ -445,7 +445,7 @@ class Measured:
 # ---- the rule ----
 
 class Rule:
-    """Ours: a price for an item Sandstorm's prices do not name, fitted on the
+    """Ours: a price for an item the reference server's prices do not name, fitted on the
     ones they do."""
 
     def __init__(self, measured):
@@ -463,7 +463,7 @@ class Rule:
 
     @staticmethod
     def scroll_curve(scrolls, exclude=None):
-        """Sandstorm's scroll prices by level: the median of the measured
+        """the reference server's scroll prices by level: the median of the measured
         scrolls of each level (every one of a level costs the same but for a
         stray), level by level."""
         by_level = collections.defaultdict(list)
@@ -669,12 +669,12 @@ def prh_catalogs(db, prh, patterns):
     return out, fate
 
 
-# ---- Sandstorm's own catalogs ----
+# ---- the reference server's own catalogs ----
 
 def one_letter_off(a, b):
     """Whether two names differ by one letter added, dropped or changed
     (import_sandstorm_harvest.py's: Return Home's "Merchant Liliac" is
-    Sandstorm's "Merchant Lilac")."""
+    the reference server's "Merchant Lilac")."""
     if a == b or abs(len(a) - len(b)) > 1:
         return False
     if len(a) > len(b):
@@ -722,7 +722,7 @@ def harvest_on_npcs(npcs, measured):
 
 
 def ware_pattern(w, patterns, by_name):
-    """Our pattern of a Sandstorm ware, and how it was matched: its own id
+    """Our pattern of a reference-server ware, and how it was matched: its own id
     under its name; else its name (the one at its wear slot and level first,
     then the lowest id); else its id at its wear slot and level (a renamed
     item, as prices are matched). None for an item this database lacks."""
@@ -762,18 +762,18 @@ class Plan:
         self.left_out = {}     # npcs row id -> reason
         self.keyed = []        # npcs rows whose npc_id is set to their id
         self.prices = {}       # pattern -> (price, how)
-        self.free = {}         # pattern -> how (Sandstorm sells it at 0)
+        self.free = {}         # pattern -> how (the reference server sells it at 0)
         self.unpriced = []
         self.gm_priced = []    # patterns a GM edited: their 0 left alone
         self.reprice = {}      # pattern -> (old, new, why): the two exceptions to "never a nonzero price"
-        self.sandstorm = {}    # npcs row -> (items, missing, renamed, by a near name) of Sandstorm's own
+        self.sandstorm = {}    # npcs row -> (items, missing, renamed, by a near name) of the reference server's own
         self.misses = []       # harvested merchants with wares on no NPC here
         self.prh_report = {}
 
 
 def trade_goods(t, items, patterns, measured):
     """Whether a catalog is its trade's goods: at least half its items of the
-    trade's kinds (TRADE_KINDS), and not half of them Sandstorm's free
+    trade's kinds (TRADE_KINDS), and not half of them the reference server's free
     handouts."""
     kinds = TRADE_KINDS.get(t)
     if kinds is None:
@@ -920,7 +920,7 @@ def plan(db, prh, measured, patterns, more=False):
             same = [h for h in holders if h["world"] == n["world"]]
             dist = min((math.hypot(h["x"] - n["x"], h["z"] - n["z"]) for h in same), default=math.inf)
             has = town_has[(town[n["id"]], t)][items]
-            # a town's merchants of a trade sell its tiers between them (Sandstorm's
+            # a town's merchants of a trade sell its tiers between them (the reference server's
             # Freeport tailors: cloth, rawhide, wool, studded, gossamer): one the
             # town lacks first, of those within TIER_REACH of the region's level;
             # a spell vendor's or a grocer's whatever the level
@@ -974,7 +974,7 @@ def plan(db, prh, measured, patterns, more=False):
     wanted |= {x for items, _ in p.stock.values() for x in items}
     if more:
         # a later run prices its own catalogs' items alone; an item a run
-        # logged as Sandstorm's 0 or a GM's stays as that run found it
+        # logged as the reference server's 0 or a GM's stays as that run found it
         wanted = {x for items, _ in p.stock.values() for x in items} - logged_prices
     p.odd = []
     ours_set = set_by(db)
@@ -1014,7 +1014,7 @@ def plan(db, prh, measured, patterns, more=False):
 
 def set_by(db):
     """Which tool set a pattern's price, of the two whose prices the
-    exceptions below may change, and of Sandstorm's import, whose never:
+    exceptions below may change, and of the reference server's import, whose never:
     pattern -> 'grocers' | 'eqoa-data' | 'sandstorm' (the last wins)."""
     out = {}
     tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
@@ -1035,12 +1035,12 @@ def exception(x, pat, ours_set, gm_patterns, measured, rule):
     (old, new, why), or None.
 
     - A grocer's price of stock_grocers.py's (ours: 10 tunar a level) for an
-      item Sandstorm's merchants sell: Sandstorm's value.
+      item the reference server's merchants sell: the reference server's value.
     - A scroll import_eqoadata_spells.py made at 1 tunar (its price is a
       reference scroll's scaled by the square of the level, and its reference
-      had 0): Sandstorm's scroll price at its level (the scroll curve).
+      had 0): the reference server's scroll price at its level (the scroll curve).
 
-    Never one a GM edited, nor one Sandstorm's import wrote."""
+    Never one a GM edited, nor one the reference server's import wrote."""
     if x in gm_patterns or pat["cost"] <= 0:
         return None
     src = ours_set.get(x)

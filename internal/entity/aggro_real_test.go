@@ -11,7 +11,7 @@ import (
 )
 
 // The aggro rule over a real server's NPCs (EQOA_REAL_DB names its database; a
-// copy is opened): the creatures Sandstorm's captures showed (aggro.go's doc)
+// copy is opened): the creatures the reference server's captures showed (aggro.go's doc)
 // take the side they took there, Tunaria's wildlife by Freeport hostile and
 // Neriak's town creatures not, and it says how many of each kind there are and
 // which named guards a rule would set on players. Skipped without a database:
@@ -72,7 +72,7 @@ func TestTheAggroRuleOverARealWorld(t *testing.T) {
 		len(w.NPCs), hostile, typed, townCreature, folk, bit)
 	t.Logf("named guards a rule would set on players (%d): %v", len(guards), guards)
 
-	// Sandstorm's: by Freeport (a level-51 player at (13612, 14935)) the
+	// The reference server's: by Freeport (a level-51 player at (13612, 14935)) the
 	// wildlife was hostile; in Neriak (a level-1 player at (25308, 8798)) the
 	// town's creatures attacked no one.
 	near := func(x, z float32, names ...string) (found []*NPC) {

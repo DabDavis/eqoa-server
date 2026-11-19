@@ -13,13 +13,13 @@ import (
 
 // The summons a real server holds (EQOA_REAL_DB): every spell whose line
 // summons an item names one the server has, as handlers' summonItem finds it
-// (by the words' name, else by the spell's own). jib's bug report of
+// (by the words' name, else by the spell's own). A GM's bug report of
 // 2026-10-27 found eight that gave nothing (the ranger's Forage spells, the
 // alchemist's master class potions), put right by tools/fix_archived_spells.py
 // from the game's own records; this holds a database to that. Skipped
 // without one: none is in this repository.
 //
-// summonGaps are the ones eqoaclassic's lines still leave with nothing, by
+// summonGaps are the ones the production server's lines still leave with nothing, by
 // spell, logged and not failed: what they make is not in this server yet.
 func TestRealSummonsNameTheirItems(t *testing.T) {
 	src := os.Getenv("EQOA_REAL_DB")

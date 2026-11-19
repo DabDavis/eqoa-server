@@ -36,7 +36,7 @@ import (
 // (GenieWindowNPC), until GenieWindowIdle passes without a request, the owner
 // is GenieReach from where the genie stood, changes world, dies or leaves.
 //
-// It never touches a pet (petition 1351, Jibrish, a GM's rule: "All charm
+// It never touches a pet (petition 1351, a GM's rule: "All charm
 // lines and pet lines need to be able to be out and not lose the pet while
 // they summon the genie in their inventory. This is an example where dual
 // pets are allowed but only for that sort of thing. Dont make it so they can

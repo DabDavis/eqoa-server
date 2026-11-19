@@ -23,7 +23,7 @@ shield doing 40 damage, 20 heal. Also +40 PR/DR. It looks similiar to the Deathk
    The Bone Wing Sentinel row was the same item as t299's Rune of the Bonewing (t171 names the drop "Bone Wing
    Sentinel (Rune of Bonewing ...)"): its record is kept, renamed and made LORE, so a copy anyone holds becomes the
    rune; the 6067 and 7982 rows are pointed at their Ascended records. The shield's classuse is 32767 on both shards
-   already (jibrish's 2026-11-12 fix and the 1117 tool): nothing to do. Their other fields stay as they are (t299's
+   already (a GM's 2026-11-12 fix and the 1117 tool): nothing to do. Their other fields stay as they are (t299's
    LORE for 6067/7982, their durability and the shield's description are left: not asked).
 
 2. THE RUNE OF THE BONEWING (L55, all/all, LORE, 100 charges, not rechargeable). Its Use (table itemspell,

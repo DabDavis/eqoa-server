@@ -2,7 +2,7 @@
 """The new characters' start spots (defaultcharacter) checked against each
 class's first quest giver, and the few that are wrong put right.
 
-defaultcharacter holds the live game's spots: Sandstorm's new characters stand
+defaultcharacter holds the live game's spots: the reference server's new characters stand
 exactly on them (F3 pass 17: a new Freeport warrior on the human-east warrior's
 row, a new Surefall ranger on its row), and all but a few stand within 17 of
 the NPC that gives the class its first quest, as EQOA-Data's 1-20 guides name

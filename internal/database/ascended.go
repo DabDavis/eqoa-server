@@ -11,7 +11,7 @@ import (
 )
 
 // ascended.go — Ascended gear: what a tuned raid boss drops in place of its
-// regular gear (petition 1446, the GM Jibrish, 2026-11-10: "For all tuned raid
+// regular gear (petition 1446, 2026-11-10: "For all tuned raid
 // bosses, and also when we tune new ones going forward, they should drop
 // "Ascended" versions of their regular gear in place of their normal loot
 // table. These should be the regular items except with a flat +10% to all of

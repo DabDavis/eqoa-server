@@ -13,7 +13,7 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 )
 
-// The Swarming Deaths' kit (the GM Jibrish's petition 1388: "The pet swarming
+// The Swarming Deaths' kit (a GM's petition 1388: "The pet swarming
 // death, in all its variants, needs a 300 a tick dot (.5 second cast) it keeps
 // up that lasts for 24 seconds. It needs a 1k damage lifetap that heals it. It
 // needs a 2k damage hard touch that it can use every 50 seconds. It also needs a

@@ -34,7 +34,7 @@ import (
 // one's to loot and it comes back itself (corpse.go), and the merc summons
 // its own pet again.
 
-// The lines of /merc charm (ours, but Sandstorm's "Attempt resisted!" and
+// The lines of /merc charm (ours, but the reference server's "Attempt resisted!" and
 // charm.go's refusals).
 const (
 	mercCharmNone    = "Your mercenary knows no charm."

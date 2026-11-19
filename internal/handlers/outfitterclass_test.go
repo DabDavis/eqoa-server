@@ -113,7 +113,7 @@ func TestABuyFromAnOutfitterIsTheRowItShowed(t *testing.T) {
 }
 
 // A buy with the pack full says so, the game's word 823, and gives nothing (the user,
-// 2026-11-08: "cardile is having issues with buying staff of faykind and heirloom weapon
+// 2026-11-08: "[a player] is having issues with buying staff of faykind and heirloom weapon
 // from vendor": 40 items held, and the refusal was silent). The control: with a place
 // free the same buy goes.
 func TestABuyWithAFullPackSaysSo(t *testing.T) {

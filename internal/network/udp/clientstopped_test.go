@@ -22,10 +22,10 @@ func TestAClientThatStopsInTheWorldIsSaid(t *testing.T) {
 	t.Cleanup(func() { log.SetOutput(os.Stderr) })
 	r, sess, _ := slotsTick(t, 4)
 	sess.SetInGame(true)
-	sess.SetCharacterName("Lonewulf")
+	sess.SetCharacterName("Loneowls")
 	sess.SetCharacterServerID(136)
 	said := func() int {
-		return strings.Count(out.String(), "'Lonewulf''s client stopped in the world with no logout")
+		return strings.Count(out.String(), "'Loneowls''s client stopped in the world with no logout")
 	}
 	sess.SetLastActivity(time.Now().Add(-session.ClientStoppedSilence + 5*time.Second))
 	r.TickSession(sess)
@@ -45,12 +45,12 @@ func TestAClientThatStopsInTheWorldIsSaid(t *testing.T) {
 	if said() != 1 {
 		t.Fatalf("said %d times:\n%s", said(), out.String())
 	}
-	if c, ok := session.ClientStopOf(136); !ok || c.Name != "Lonewulf" || c.How != "silent in the world" {
+	if c, ok := session.ClientStopOf(136); !ok || c.Name != "Loneowls" || c.How != "silent in the world" {
 		t.Fatalf("kept: %+v %v", c, ok)
 	}
 	sess.UpdateActivity()
 	r.TickSession(sess)
-	if !strings.Contains(out.String(), "'Lonewulf''s client is heard from again: it was hung") {
+	if !strings.Contains(out.String(), "'Loneowls''s client is heard from again: it was hung") {
 		t.Errorf("heard again, not said:\n%s", out.String())
 	}
 	if _, ok := session.ClientStopOf(136); ok {

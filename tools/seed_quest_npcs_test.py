@@ -257,7 +257,7 @@ class Specs(unittest.TestCase):
 
 
 
-# the pre-sets tool's log (verbatim), as eqoaclassic's 1-20 seed made it
+# the pre-sets tool's log (verbatim), as the production server's 1-20 seed made it
 OLD_LOG_DDL = [
     "CREATE TABLE quest_npc_seed_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)",
     "CREATE TABLE quest_npc_seed_rows (npc_row INTEGER PRIMARY KEY, name TEXT NOT NULL, "

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""tools/seed_npc_patrols.py against made-up tracks in Sandstorm's shape (a
+"""tools/seed_npc_patrols.py against made-up tracks in the reference server's shape (a
 walker's place sent at its stops and as it sets off, its velocity between):
 a square walked round twice is a loop of its four corners at its pace and
 pause; a pacer is two points back and forth; a walker seen for one leg goes
@@ -35,7 +35,7 @@ def walk(rows, sid, name, legs, t0=0, pace=4.0, pause=2.0):
     """Rows of a walker going through legs [(x, z)...]: at each point a stop
     (velocity 0) held `pause` s, then a leg at `pace`, sampled every 0.5 s,
     its place sent only at the stops, as it sets off and every 10 s on a leg
-    (Sandstorm's)."""
+    (the reference server's)."""
     t = t0
     sent = legs[0]
     for (ax, az), (bx, bz) in zip(legs, legs[1:]):
@@ -57,7 +57,7 @@ def walk_stops(rows, sid, name, stops, t0=0.0, pace=3.0):
     """Rows of a walker through stops [(x, z, pause)...]: a stop of pause s
     at each (0: a turn, no stop), then a leg at `pace` to the next, sampled
     every 0.5 s, its place sent only at the stops, as it sets off and every
-    10 s on a leg (Sandstorm's)."""
+    10 s on a leg (the reference server's)."""
     t = t0
     for (ax, az, pause), (bx, bz, _) in zip(stops, stops[1:]):
         for _ in range(int(pause / 0.5)):
@@ -108,7 +108,7 @@ class SeedNPCPatrols(unittest.TestCase):
                  for t in range(0, 20001, 500)]
         # seen walking a few steps only: too little to tell a route by
         rows += [{"t": t, "id": 20, "name": "Walker Brief", "x": 1250, "y": 10, "z": 1100, "v": [4, 0, 0]} for t in range(0, 5001, 500)]
-        # a wanderer: Sandstorm's wander pace, legs that never come round
+        # a wanderer: the reference server's wander pace, legs that never come round
         walk(rows, 19, "Lost Wisp", [(1700, 1000), (1720, 1010), (1705, 1030), (1690, 1015), (1712, 990)], pace=4.95, pause=6.0)
         walk(rows, 15, "Guard Kept", [(1300, 1000), (1330, 1000), (1300, 1000)])
         walk(rows, 16, "Giant Rat", [(1400, 1000), (1420, 1000), (1400, 1000)])
@@ -172,7 +172,7 @@ class SeedNPCPatrols(unittest.TestCase):
 
 
 class ReadingARoute(unittest.TestCase):
-    """route() itself, on walks in Sandstorm's shape."""
+    """route() itself, on walks in the reference server's shape."""
 
     def test_a_walk_out_of_view_is_never_bridged(self):
         rows = []

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The Plane of Disease's bosses on a database tools/seed_pod.py seeded before
-F3 pass 21, made what its plan gives now (jib's reports 20261026-154852,
+F3 pass 21, made what its plan gives now (a GM's reports 20261026-154852,
 -155140 and -155308, and eqoa.live's wiki map of the zone followed all the
 way, so a Noroxus raid has his lobe to itself):
 

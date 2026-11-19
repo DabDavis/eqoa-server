@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Hoofbite's look (the owner, 2026-11-16): "for hoofbites give his weapons sword of virtue aura matching his weapon
+"""A player's look (the owner, 2026-11-16): "for [a player] give his weapons sword of virtue aura matching his weapon
 color. for his monk hat lets use the kappas built in hat that is wide brimmed for his model", then, of the weapons:
 "for weapons with aura they can be marked for an aura though they are the same weapon as other players, it will have a
 tag 'Aura: Virtuous' for example. so it doesnt just stick to all his weps".
 
-Hoofbite is Heirloom's serverid 213 (a halfling rogue, level 60). Two steps, each checked and written on its own:
+A player is Heirloom's serverid 213 (a halfling rogue, level 60). Two steps, each checked and written on its own:
 
 1. THE HAT: his own helm aura, charaura (213, merc 0, slot 5 database.CharAuraHelm): kind 10 (database.AuraHat, server
    branch hoofbite-look), source 0xF0FAB933 (the kappa's body, whose wide-brimmed straw hat vanilla cuts out and seats on
@@ -25,7 +25,7 @@ Hoofbite is Heirloom's serverid 213 (a halfling rogue, level 60). Two steps, eac
    is not there (the instance-aura server has not started on this database yet), this step is SKIPPED and said so; the
    hat step goes on.
 
-Checked as found, else that step is REFUSED and nothing of it written: exactly one character named Hoofbite, serverid
+Checked as found, else that step is REFUSED and nothing of it written: exactly one character named a player, serverid
 213; for the hat, his charaura slot 5 empty (a row there is a GM's: refused, listed); for the weapons, each itemid his
 (serverid 213) and of its record, and no instanceaura row on it (a row there: refused, listed). Report by default;
 --apply writes both in one transaction, a gm_audit line per row (as the panel's insert), logged in
@@ -34,7 +34,7 @@ finds nothing to do; --undo deletes exactly what was written, a gm_audit line
 each, a row changed since left and listed.
 
 The server reads charaura and instanceaura at its start and on the GM panel's "Reload every NPC" (reload_npcs): after
---apply (or --undo) press that; Hoofbite's channel carries both at the next tick.
+--apply (or --undo) press that; a player's channel carries both at the next tick.
 
     python3 -E -s tools/hoofbite_look_20261116.py --db eqoa.db [--apply | --undo]
 """

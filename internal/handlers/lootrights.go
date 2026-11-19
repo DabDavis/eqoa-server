@@ -12,7 +12,7 @@ import (
 
 // lootrights.go — who may open a corpse, and how many at once (2026-11-11).
 //
-// The kill group's alone (petition 1537, Hoofbite: "Should not allow players from
+// The kill group's alone (petition 1537: "Should not allow players from
 // outside of kill group to loot mobs"): a corpse whose death a player was credited
 // with (entity's KillCredit: a melee kill, a spell's, a pet's, a GM's #kill) opens
 // only for those the kill counted for (the killer and its group's members near it,
@@ -22,12 +22,12 @@ import (
 // corpse no player was credited with (the town guards', a dummy's, one from before
 // a restart) is anyone's, as every corpse was.
 // From the kill's OpenAt (six minutes after the death, entity/corpseopen.go: the
-// GM Jibrish's Live petition 5035) a corpse is anyone's too, a raid's included,
+// GM a GM's Live petition 5035) a corpse is anyone's too, a raid's included,
 // whatever is left on it; it lies to 20 minutes after the death
 // (entity/corpselinger.go). Considering a corpse (0x0010 on it) says so in one line
 // (corpseConLine).
 //
-// One looter at a time (petition 1540, Hoofbite: "should only allow one person to
+// One looter at a time (petition 1540: "should only allow one person to
 // loot corpse at a time"): while a corpse's window is open for one player, another
 // opening it is told word 673, "That corpse is already being looted by another
 // player" (0x0085 1). The window is let go when its looter closes it (0x0016),

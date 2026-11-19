@@ -1,6 +1,6 @@
 // Package skyisles names the Plane of Sky's isles (world 4), for every place a
 // location is shown (the owner, 2026-11-14: "for the location of plane of sky
-// islands, for example dust is on night 1 lets make that the Location like
+// islands, for example [a GM] is on night 1 lets make that the Location like
 // Plane of Sky (Night Chain 1)"): "Plane of Sky (Night Chain 1)", "Plane of
 // Sky (Main Isle)", "Plane of Sky (Isle of Wonder)".
 //

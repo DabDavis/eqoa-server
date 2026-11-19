@@ -106,7 +106,7 @@ func (w *World) petMembersLocked(ps *petState, reach float32) petSide {
 // petMemberPickLocked is the one a member heal a of the pet goes to now: its
 // owner (a merc's pet: its merc, in reach) whenever that one is below the
 // heal's threshold (petitions 1819/1820,
-// the GM Jibrish: "They should always prioritize the mage for heals but
+// a GM: "They should always prioritize the mage for heals but
 // otherwise use them on other damaged group or raid members"), else the lowest
 // share of its hit points among the rest of petMembersLocked below it; each
 // in its sight (sight.go); 0 for none. Must be called with the lock held.

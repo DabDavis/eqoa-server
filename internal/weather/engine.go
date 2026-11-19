@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// The schedule (jibrish's numbers, #1549; no record of the live game's
+// The schedule (a GM's numbers, #1549; no record of the live game's
 // exists). A weather AREA is the squares of one climate in one 3x3 block of
 // zones: (world, climate, floor(col/3), floor(row/3)), one automatic timeline.
 // Its cycles are cycle_minutes long, offset by a hash of the area; cycle k's

@@ -15,7 +15,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// A raid's loot rules (raidloot.go; the GM Jibrish's petitions 1448 and 1451): each rule
+// A raid's loot rules (raidloot.go; a GM's petitions 1448 and 1451): each rule
 // beside its control, on a corpse fixture with a raid of players, each its own session,
 // pack and character row, the World's hooks stood in.
 

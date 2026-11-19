@@ -97,7 +97,7 @@ type CombatConfig struct {
 
 	// FormulaShard is this shard's name in /formula ("heirloom"), and
 	// FormulaPeers the other shards' databases by their names ({live:
-	// /home/sdg/eqoa-live/eqoa.db}), whose mode a GM here may switch too (the
+	// /srv/eqoa-second/eqoa.db}), whose mode a GM here may switch too (the
 	// other server takes it up within seconds). Unset: this shard alone.
 	FormulaShard string            `yaml:"formula_shard"`
 	FormulaPeers map[string]string `yaml:"formula_peers"`
@@ -125,7 +125,7 @@ type QuestsConfig struct {
 	NextGiverPointer *bool `yaml:"next_giver_pointer"`
 
 	// Markers is which quests show a "!" and a "?" over their NPCs' heads to
-	// a client that draws them (handlers/questheadmarks.go, the GM Jibrish's
+	// a client that draws them (handlers/questheadmarks.go, a GM's
 	// petition 1813): "flagged" (unset) the quests of table questmarks,
 	// "all" every quest (a "!" only near the player's level, as the map's),
 	// "off" none and no offer made.
@@ -204,8 +204,8 @@ type GMConfig struct {
 
 	// PersonalBoards are the personal boards (database/gmboard.go,
 	// gmweb/ops_boards.go): a board's name to the panel accounts that may
-	// read and post it ({jib: [jibrish]}), each a private thread between
-	// that GM (with the GM's AI agents, signed in as the account) and dab's
+	// read and post it ({a GM: [a GM]}), each a private thread between
+	// that GM (with the GM's AI agents, signed in as the account) and the owner's
 	// sessions (cmd/workboard on the box). The panel's admins (admin_level)
 	// read and post every board; no other GM reads one. Unset: no boards.
 	PersonalBoards map[string][]string `yaml:"personal_boards"`
@@ -296,7 +296,7 @@ type WorldConfig struct {
 	// it (unset or 0: 3m); RespawnAfter how long after its corpse goes, so
 	// decayed or emptied and closed, the creature comes back (unset or 0:
 	// 60s). RoamRadius is how far from its spawn a creature wanders (unset or
-	// 0: 70, Sandstorm's; below 0, none wander). entity/corpse.go, entity/roam.go.
+	// 0: 70, the reference server's; below 0, none wander). entity/corpse.go, entity/roam.go.
 	CorpseDecay  time.Duration `yaml:"corpse_decay"`
 	RespawnAfter time.Duration `yaml:"respawn_after"`
 	RoamRadius   float32       `yaml:"roam_radius"`
@@ -356,7 +356,7 @@ type WorldConfig struct {
 	RangedPowerPct *int `yaml:"ranged_power_pct"`
 
 	// The sun on a vampire (table charvampire, entity/vampire.go): it takes
-	// VampireSunDamage (unset 50, Sandstorm's; 0 none) every
+	// VampireSunDamage (unset 50, the reference server's; 0 none) every
 	// VampireSunInterval (unset or 0: 6s, the regeneration's tick) while its
 	// client shows the sun up (6:00 to 18:00). VampireSunShade false burns it
 	// under a roof too (unset: shade shelters it); VampireSunGMs false spares
@@ -367,7 +367,7 @@ type WorldConfig struct {
 	VampireSunShade    *bool         `yaml:"vampire_sun_shade"`
 	VampireSunGMs      *bool         `yaml:"vampire_sun_gms"`
 
-	// The lava (entity/lava.go; the GM Jibrish's petition 2281, owner-approved: "Enable lava
+	// The lava (entity/lava.go; a GM's petition 2281, owner-approved: "Enable lava
 	// damage per tick"): a player with its feet in the lava (the zone leaves' lava flag) loses
 	// LavaPctMaxHP percent of its most hit points plus LavaDamage, at least 1, at once and
 	// every LavaInterval (unset or 0: 3s) it stays; LavaFireResist lets its fire resistance
@@ -450,7 +450,7 @@ type WorldConfig struct {
 	Heirlooms *bool `yaml:"heirlooms"`
 
 	// GMRewardXP makes a GM's #reward (/reward) the reward of experience: 10% more experience for 30 minutes of
-	// play on the GM's target, a player (petition 5033, the GM Jibrish: "LIVE ONLY NOT HEIRLOOM";
+	// play on the GM's target, a player (petition 5033: "LIVE ONLY NOT HEIRLOOM";
 	// handlers/rewardxp.go). Set on the Live shard alone. Unset: #reward is GM's Reward, the buff of petition 1501
 	// (handlers/reward.go), as before.
 	GMRewardXP bool `yaml:"gm_reward_xp"`
@@ -588,8 +588,8 @@ type WorldConfig struct {
 	TestInvis bool `yaml:"testinvis"`
 
 	// NoclipAccounts are the accounts (accountinfo.username, any case) whose GMs
-	// may use /noclip (handlers/noclip.go; the GM Jibrish's petition 1904: "a
-	// high level GM only command (Just for jibrish and dabs account)"): flight
+	// may use /noclip (handlers/noclip.go; a GM's petition 1904: "a
+	// high level GM only command (Just for a GM and dabs account)"): flight
 	// through every wall. A GM of acctlevel 1 or more alone, and one of these.
 	// Unset or empty: nobody.
 	NoclipAccounts []string `yaml:"noclip_accounts"`
@@ -603,7 +603,7 @@ type WorldConfig struct {
 	MirrorNPCEditsAccounts []string `yaml:"mirror_npc_edits_accounts"`
 
 	// MirrorNPCDB is the other shard's database file for MirrorNPCEditsAccounts
-	// (the Live Server's: /home/sdg/eqoa-server/eqoa.db, Heirloom's). The other
+	// (the Live Server's: /srv/eqoa/eqoa.db, Heirloom's). The other
 	// shard's server reads the change into its world within seconds (its
 	// npc_mirror_inbox). Unset: nothing is mirrored.
 	MirrorNPCDB string `yaml:"mirror_npc_db"`
@@ -653,7 +653,7 @@ type WorldConfig struct {
 
 	// QuestXPPct is the percent of its experience a quest's step gives, for
 	// a quest that is neither repeatable nor a hunt and gather (EQOA-Data's
-	// HuntAndGather, all repeatable): 400 four times (the GM Jibwiz's petition
+	// HuntAndGather, all repeatable): 400 four times (a GM's petition
 	// 1915, for Heirloom: "increase NON hunt and gather or repeatable quest XP
 	// by 4x its current amount"). Unset, 0 or 100: as the rows say
 	// (handlers/questxp.go).
@@ -667,7 +667,7 @@ type WorldConfig struct {
 	Familiars bool `yaml:"familiars"`
 
 	// TestingHeroes turns on the Testing Heroes (entity/heroes.go,
-	// handlers/heroes.go; the GM Jibrish's petition 1471): every kill that gives
+	// handlers/heroes.go; a GM's petition 1471): every kill that gives
 	// a character experience gives it 1 standing with the faction Testing Heroes
 	// (20 for a raid boss), which starts at the floor, -2000, and the Testing
 	// Heroes Vendor (tools/seed_testing_heroes.py stands him by the well behind
@@ -698,7 +698,7 @@ type WorldConfig struct {
 	// MobInfo shows a monster's name and level, and nothing else, when a
 	// player talks to it (□, Q on vanilla's keyboard) and it has nothing to
 	// say, or stands out of the talk's reach (handlers/mobinfo.go; the GM
-	// Jibrish's petition 1459): a client that can (vanilla) is offered it
+	// a GM's petition 1459): a client that can (vanilla) is offered it
 	// (protocol.OpcodeMobInfoOffer) and shows them in the target's details
 	// box, a PS2 in a dialogue box. A monster is an NPC without the NPC bit,
 	// alive. Unset or false: such a talk answers nothing, as before. The
@@ -836,7 +836,7 @@ type BugBoardConfig struct {
 	OtherDB   string `yaml:"other_db"`
 	OtherMark string `yaml:"other_mark"`
 	// Exclude are the accounts (accountinfo.username, any case) never listed;
-	// unset: handlers.BugBoardExcludeDefault (the owner's and the GM Jib's).
+	// unset: none (handlers.BugBoardExcludeDefault).
 	Exclude []string `yaml:"exclude"`
 	// Top is how many are listed (unset or 0: 15; at most 50).
 	Top int `yaml:"top"`

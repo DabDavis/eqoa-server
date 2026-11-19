@@ -370,7 +370,7 @@ func (h *SupportHandler) handleRequest(sess *session.Session, msg *protocol.Mess
 		}
 		p, err := h.store.PlayerRead(me.CharServerID, id)
 		if errors.Is(err, database.ErrPetitionClosed) && p.Text != "" {
-			// A closed ticket is still read (petition 2175, Fallenangel: the disc says only
+			// A closed ticket is still read (petition 2175: the disc says only
 			// "System is temporarily unavailable. (Code: -8)" of status 8, so players could not
 			// read their old answers): its text with a last line saying it is closed. A reply
 			// to it or its deletion is still refused (status 8).

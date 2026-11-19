@@ -515,7 +515,7 @@ func TestTheMermaid(t *testing.T) {
 }
 
 // A body both lists of a body row offer stands at one size (OptionBodySize reads the first list
-// that has it), and the goblins', aviaks' and gnolls' women's lists (the GM Jibrish's petition 1647)
+// that has it), and the goblins', aviaks' and gnolls' women's lists (a GM's petition 1647)
 // open with a woman of their own and offer every body the men's list does, so a woman may still
 // choose any of them. (The goblins' and gnolls' women's lists are new: before, a woman had the
 // men's, so TestRaceOptionStepsKeepTheirNumbers holds no numbers of theirs.)

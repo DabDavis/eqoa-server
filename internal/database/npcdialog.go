@@ -11,7 +11,7 @@ import (
 // "add dialog to all town NPCs and Guards throughout Norrath, but not
 // wildlife of course", "we can improvise our own in eqoa flavor if needed",
 // "feel free to vary dialog to make the world interesting". No record of the
-// live game's lines for them exists here, and Sandstorm "guessed on theres":
+// live game's lines for them exists here, and the reference server "guessed on theres":
 // these are ours (tools/seed_town_dialog.py writes them, source "ours"), a
 // GM's to change in the panel. entity/dialog.go chooses who speaks and which
 // line.

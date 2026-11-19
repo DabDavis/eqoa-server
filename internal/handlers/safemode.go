@@ -10,7 +10,7 @@ import (
 )
 
 // safemode.go — /testinvis, a player's safe mode, everyone's (petition 1424,
-// the GM Jibrish; entity/safemode.go has the rules): typed, no creature
+// a GM; entity/safemode.go has the rules): typed, no creature
 // attacks the character on sight until it is typed again. A fight the player
 // starts works as any other, and it can die. The mode is kept in table
 // charsafemode, so it outlives a logout and every restart; a login in it is

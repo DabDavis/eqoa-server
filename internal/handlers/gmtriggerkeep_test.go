@@ -9,7 +9,7 @@ import (
 	"github.com/eqoa/server/internal/entity"
 )
 
-// The owner, 2026-11-13, after Lonewulf lost two Rallos Zek fights to server updates: a scripted encounter survives
+// The owner, 2026-11-13, after a player lost two Rallos Zek fights to server updates: a scripted encounter survives
 // a keep restart (gmtriggerkeep.go, entity/keeptrigger.go). A run with a lock, a clock (with its empty), a hostile
 // spawn set on Mr. Moogie and an attackable add, waiting on the boss's death: the boss fought down to 40 of 100 and
 // off its spawn, the add killed and lying. Written and read back as JSON, then made again in a fresh process (its own

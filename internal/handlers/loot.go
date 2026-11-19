@@ -20,8 +20,8 @@ import (
 //   - 0x0015 {u32 id}, the attack button on a target whose channel carries
 //     the corpse bit (ToggleAutoAttack: byte 26's 2, which a creature's
 //     channel takes at its death, entity/visibility.go), is the game's way,
-//     as Sandstorm answers it: the corpse opened (HandleLootCorpse). One out
-//     of reach is answered "Out of range." (ours: no record of Sandstorm's);
+//     as the reference server answers it: the corpse opened (HandleLootCorpse). One out
+//     of reach is answered "Out of range." (ours: no record of the reference server's);
 //     one that is no corpse, or gone, 0x0085 2.
 //   - 0x0004 (InteractWithTarget's default) on a dead NPC opens its corpse too
 //     (InteractWithTarget sends nothing for a creature the game shows as
@@ -102,13 +102,13 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 	}
 	died, lies := h.corpseOf(npc)
 	// a pet's corpse carries nothing and is no one's to loot (pet.go), nor
-	// is a creature's the town guards hit (entity/guards.go: jib's "no loot
+	// is a creature's the town guards hit (entity/guards.go: a GM's "no loot
 	// or xp should be given to the player if the guards hit it")
 	if !lies || npc.Owner != 0 || npc.CorpseOfNothing() || (h.guardsKill != nil && h.guardsKill(npc.ServerID)) { // an add's, one dead with its master (entity/masterdeath.go)
 		queueReliable(sess, protocol.OpcodeLootOptions, buildLootOption(lootNotLootable))
 		return true
 	}
-	// a Metal Moogie's is his challenger's alone (the GM Jibrish's petition 1379: "If they defeat
+	// a Metal Moogie's is his challenger's alone (a GM's petition 1379: "If they defeat
 	// it they can loot a single "Moogie Tribute""; entity/metalmoogie.go)
 	if h.duelLoot != nil {
 		if duel, mine, line := h.duelLoot(sess, npc); duel && !mine {
@@ -285,7 +285,7 @@ func lootNames(npc *entity.NPC) []string {
 // lootLevelReach is how far above its opener's level a piece of equipment a
 // corpse rolls may be (the user, 2026-11-07: "equipment drops from mobs for
 // players should be within the players level range, with in 10 levels
-// higher/lower"). Gear of any level below the opener's stays (jib, 2026-11-08,
+// higher/lower"). Gear of any level below the opener's stays (a GM, 2026-11-08,
 // of Cazic-Thule's Rubicite armour, levels 47-48, which no level 59 or 60 could
 // find: "level 60 players should absolutely be able to farm the gear", and the
 // choice of no lower bound anywhere). Since loot is determined at the spawn (the
@@ -637,7 +637,7 @@ func (h *NPCWindowHandler) HandleLootAll(sess *session.Session, msg *protocol.Me
 // the corpse. CLIENT's Msg001A knows no Lore (VIItemList::AddItem keeps every
 // record it has room for), so a 0x001A back would put the refused item in the
 // client's list, not the server's, and leave it on the corpse to be "taken"
-// again (petition 1498, Waldorf: "it still puts that item in your inventory
+// again (petition 1498: "it still puts that item in your inventory
 // and also leaves it on the corpse").
 func loreStopsTakeAll(inv *invList, view []database.CharInventoryEntry) bool {
 	seen := map[int]bool{}
@@ -705,7 +705,7 @@ func (h *NPCWindowHandler) lootAllByOne(sess *session.Session, ls *lootState, c 
 }
 
 // tellLooted says what a corpse gave, unless the client's Loot Messages option
-// is off (faction.go). The words are ours, after the coins' Sandstorm line
+// is off (faction.go). The words are ours, after the coins' the reference server line
 // (corpsecoins.go): no recording shows an item's.
 //
 // The item is a link to a client that takes links (lootlinks.go), the line otherwise as
@@ -717,7 +717,7 @@ func (h *NPCWindowHandler) tellLooted(sess *session.Session, who string, rec dat
 }
 
 // tellGroupLooted tells the looter's group what it took, each member by its own Loot
-// Messages option (petition 1145, Larrybird: "i cant see what my other grp is loooting
+// Messages option (petition 1145: "i cant see what my other grp is loooting
 // could be uber rare gear oooo no").
 func (h *NPCWindowHandler) tellGroupLooted(looter *entity.Player, rec database.CharInventoryEntry, n int) {
 	if h.groupOf == nil || looter == nil {

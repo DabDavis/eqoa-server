@@ -11,7 +11,7 @@ import (
 )
 
 // archivistunlock.go — the masteries the Spell Archivist opens (petition
-// 1391, Jibrish, a GM, 2026-11-09: "Spell archivist should unlock the follow
+// 1391, a GM, a GM, 2026-11-09: "Spell archivist should unlock the follow
 // CM's: Bulging muscles, intestinal fortitude, Superior intellect"). Each rank
 // of those General lines (STR, STA and INT, ranks 1-4 at 20, 30, 40 and 50)
 // needs its trial finished before it can be bought (cmcatalog.require_quests,

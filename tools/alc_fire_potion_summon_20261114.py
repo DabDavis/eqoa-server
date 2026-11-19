@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Ascended Severupidus' Fire Potion makes potions (Fullmetal's petition 2059, 2026-11-14: "Alc 60 epic ability gave
+"""Ascended Severupidus' Fire Potion makes potions (a player's petition 2059, 2026-11-14: "Alc 60 epic ability gave
 original plus ascended. Ascended needs to be fixed to create a potion, currently it is a nuke with pot making
 animation").
 

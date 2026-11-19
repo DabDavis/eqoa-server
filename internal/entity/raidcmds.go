@@ -8,7 +8,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// raidcmds.go — the raid's commands (the GM Jibrish's petitions 1448, 1451 and 1452,
+// raidcmds.go — the raid's commands (a GM's petitions 1448, 1451 and 1452,
 // 2026-11-10; handlers/raidcmds.go routes the typed lines and vanilla's menu here):
 //
 //   - /raidinvite [name]: the leader or its helper invites a player by name, else its
@@ -39,7 +39,7 @@ import (
 const TargetByNameRange float32 = 100
 
 // NoTargetInRange is /target's line when nothing of the name is within reach, the GM
-// Jibrish's words.
+// a GM's words.
 const NoTargetInRange = "No target in range"
 
 // raidOwnInviteWords is what a caller's own box is from for /invite in no group.
@@ -557,7 +557,7 @@ func (w *World) disbandRefusedLocked(sess *session.Session, g *Group, p *Player)
 // TargetNear is /target <name> (/tar): the nearest the sender's client shows within
 // TargetByNameRange whose name is name, any case (an NPC's with or without its "a",
 // "an" or "the"), else the nearest whose name starts with it (petition 1453: "if i
-// /target jib and the player name is jibrish ... it will target that"); an exact name
+// /target a GM and the player name is a GM ... it will target that"); an exact name
 // wins over a start, the nearer over the farther. Players, NPCs, creatures and corpses
 // alike; the sender itself by its whole name alone. Its id as the client knows it, or
 // false.

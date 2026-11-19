@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Dust's monk circlet raised to the temples, a little bigger and red (the owner, 2026-11-14: "the circlet is sitting
-too low on dust", "make the circlet slightly bigger too", "also make the circlet red").
+"""a GM's monk circlet raised to the temples, a little bigger and red (the owner, 2026-11-14: "the circlet is sitting
+too low on [a GM]", "make the circlet slightly bigger too", "also make the circlet red").
 
 His helm slot's charaura row (slot 5, kind 8, source 0x1D875ECD, the Ascendant staff: written by
 tools/dust_circlet_20261114.py) gets nodes 72 and colour 0xE01818FF. On a circlet the nodes byte is how high on the
@@ -10,7 +10,7 @@ the ring's glow red at its own brightness (aura::glow8, as a held item's colour 
 (aura::CIRCLET_OUT 1.5, +15%: no byte of the record is free for it). The named look "monk circlet" carries 72.
 --height N (1-100) and --color RRGGBBAA for others.
 
-Checked as found, else REFUSED and nothing written: at most one character named Dust (none: nothing, exit 0); his
+Checked as found, else REFUSED and nothing written: at most one character named a GM (none: nothing, exit 0); his
 row there and the monk circlet (kind 8, source 0x1D875ECD). Report by default; --apply in one transaction, a gm_audit
 line, logged in dust_circlet_red_1114_log; a second --apply finds nothing to do; --undo puts back exactly what was there.
 

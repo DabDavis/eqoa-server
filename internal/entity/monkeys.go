@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// monkeys.go — the Barrel of Monkeys (the owner, 2026-11-16: "give moose a
+// monkeys.go — the Barrel of Monkeys (the owner, 2026-11-16: "give [a player] a
 // barrel of monkeys unique item. it spawns a monkey that follows him around,
 // up to 5. they have no life bar and cannot be targeted. they do not take up
 // a pet slot, but are still owned by that player only", then "the gorillas
@@ -47,7 +47,7 @@ import (
 const MonkeysMax = 5
 
 // MonkeyBody is a monkey's body: the karba'nai brute's gorilla (CHAR.ESF
-// #73), MonkeySize its size, picked by a render beside Moose's hill giant
+// #73), MonkeySize its size, picked by a render beside a player's hill giant
 // (the owner's "the gorillas make small like monkeys", next to him knee to
 // waist high): at 1.2 they stood to his thigh, too big (the owner,
 // 2026-11-16: "make the monkeys smaller"); at 0.7 about a man's knee, his

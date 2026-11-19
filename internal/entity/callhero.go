@@ -10,8 +10,8 @@ import (
 )
 
 // callhero.go — Call of the Hero: a magician's call that brings a member of
-// its group to its side, from anywhere, if the member accepts (jib's PR #1,
-// 7b79650, re-made on main's workbook spell; the GM Jibrish's ruling of
+// its group to its side, from anywhere, if the member accepts (a GM's PR #1,
+// 7b79650, re-made on main's workbook spell; a GM's ruling of
 // 2026-10-29: "a critical mage spell, it had a long cast time and 1 hour cool
 // down. It would summon a player from anywhere in the world to the mages
 // current position, if the player accepted the call of the hero."; a test

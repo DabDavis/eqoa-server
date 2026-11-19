@@ -22,7 +22,7 @@ const (
 	nyPlain    = "Come back when you are stronger."
 )
 
-// Dust's chain (the user's own case, 2026-10-30: "dust is level 6 and cannot
+// A GM's chain (the user's own case, 2026-10-30: "[a GM] is level 6 and cannot
 // take level 7 q yet"): Neriak's shadow knight guide, "New Gear" at level 4
 // (here another giver's), then Sythonis U`Dedne's "The Fire Bats" at level 5
 // and "Frog Legs for Grobb" at level 7.
@@ -33,7 +33,7 @@ const (
 	nySythonis = "Sythonis U`Dedne"
 )
 
-// newNotYetFixture is the quest fixture's character made Dust: a level 6 dark
+// newNotYetFixture is the quest fixture's character made a GM: a level 6 dark
 // elf shadow knight who has finished "New Gear" and "The Fire Bats", with
 // Sythonis standing by and questnotyet holding the tests' lines. It returns
 // the object id the session knows Sythonis by.
@@ -106,7 +106,7 @@ func (f *questFixture) heardOnly(msgs []string, box string) {
 // A player who has done the quests before a giver's next one, of its class
 // and race, but a level short of it, hears the giver say to come back when
 // stronger in its city's words, its name before them, and nothing else (no
-// offer, no town's words). The city is the quest's import key's (Dust's
+// offer, no town's words). The city is the quest's import key's (a GM's
 // Neriak chain), else the giver's town by its faction, else by where it
 // stands; a giver of no town says the line of no city. A city's lines are
 // never said twice running when it has another.

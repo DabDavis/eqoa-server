@@ -74,7 +74,7 @@ class FillVisualsTest(unittest.TestCase):
         self.assertEqual(self.fx(2), (A, "eqoa-data; visual recorded; " + fv.SOURCE_NOTE))
         self.assertEqual(self.fx(4), (B, fv.SOURCE_NOTE + " (2020)"))
         self.assertEqual(self.fx(8)[0], C, "a GM's was left")
-        # the panel's audit lines: key, the rows before and after, as dab via tool
+        # the panel's audit lines: key, the rows before and after, as the owner via tool
         a = self.db.execute("SELECT username, via, action, rowkey, before, after FROM gm_audit WHERE rowkey = '{\"spellid\":2}'").fetchone()
         self.assertEqual(a[:4], ("dab", "tool", "update", '{"spellid":2}'))
         self.assertEqual(json.loads(a[4])["fxdict"], B)

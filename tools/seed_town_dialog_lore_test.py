@@ -48,7 +48,7 @@ BANNED = [
 ]
 # what a line's words are filled with, at their longest: a character's name is 12 at most (CLIENT's
 # name box), "barbarian", "shadowknight", "Muniel's Tea Garden", and a speaker's name (25 covers the
-# longest on eqoaclassic, 23)
+# longest on the production server, 23)
 FILLS = {"%p": "P" * 12, "%r": "R" * 9, "%c": "C" * 12, "%t": "T" * 19, "%n": "N" * 25}
 BOX, NAME = 217, 25
 # the characters the town lines are written in: letters, digits, the space and these marks

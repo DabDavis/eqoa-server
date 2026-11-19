@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Petition 5070 (Innoruuk, Live, 2026-11-14): "spikeshell crabs not on the coast where they should be east of neriak"
+"""Petition 5070 (Live, 2026-11-14): "spikeshell crabs not on the coast where they should be east of neriak"
 (he stood at world 0 (25620.42, 9219.1)). The necromancer guide (eqoa.forumotion.com t57, level 10, Jarek's
 Creation): "kill a Spikeshell Crab (cons white to yellow), located just on the other side of Neriak, southeast of the
 city ... You will find the crabs between a red spire and the shore. You need the SHELL". Three quests take a part of

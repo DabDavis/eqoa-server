@@ -300,7 +300,7 @@ func (archSupportOnly) Support(world uint8, x, y, z, up, down float32) (float32,
 	return archGround{}.Support(world, x, y, z, up, down)
 }
 
-// Petition 1842 (Waldorf, 2026-11-12): "Pets don't swim, they either walk on the surface or walk on the bottom". Its
+// Petition 1842 (2026-11-12): "Pets don't swim, they either walk on the surface or walk on the bottom". Its
 // owner swimming down in the river under the bridge (its bed 50, the surface 57) at 52, the pet swims there too (it
 // kept to the surface, 55.5), summoned on the bank or in the water itself (it walked the bed); the owner at the
 // surface, the pet there as before.

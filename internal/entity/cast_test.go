@@ -14,7 +14,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// Casting held to what Sandstorm sent a druid of 23 (eqoa harvest,
+// Casting held to what the reference server sent a druid of 23 (eqoa harvest,
 // 2026-10-21): the bytes of its starts, refusals, heal figures and lockout
 // ends, and the arithmetic of its lines (CHA 60, DEX 105). The spells here
 // are made up but for those numbers.
@@ -105,7 +105,7 @@ func strike() CastSpell {
 		Def: ParseSpellText("Target, Decrease Hitpoints by 26 ; Increase 8% based on DEX")}
 }
 
-// The start: 0x00CD then 0x00B1, in Sandstorm's bytes (its druid's ids) but
+// The start: 0x00CD then 0x00B1, in the reference server's bytes (its druid's ids) but
 // for the lockout's figure, the cost taken at once. Then the landing 0.5 s
 // after the cast time (castLand): 0x00DB of +35 (20 + 25% of CHA 60), byte for
 // byte, and the effect on the channel. Then the lockout's end, the cast time
@@ -155,7 +155,7 @@ func TestCastBeginsLandsAndLocksOut(t *testing.T) {
 	if msgs := c.sent(); len(msgs) != 1 || !bytes.Equal(msgs[0], unhex(t, "db00d0a1241446d0a12414")) || c.p.HP != 536 {
 		t.Errorf("second tick: %x, HP %d", msgs, c.p.HP)
 	}
-	// at full hit points a tick is told whole all the same (Sandstorm told
+	// at full hit points a tick is told whole all the same (the reference server told
 	// nothing; petition 2016, owner-approved 2026-11-15: cast.go's healLocked)
 	c.tick(14500 * time.Millisecond)
 	if msgs := c.sent(); len(msgs) != 1 || !bytes.Equal(msgs[0], unhex(t, "db00d0a1241446d0a12414")) || c.p.HP != 536 {
@@ -187,7 +187,7 @@ func TestCastLockoutEnds(t *testing.T) {
 	}
 }
 
-// Sandstorm's five refusals, byte for byte, none taking power or starting a
+// The reference server's five refusals, byte for byte, none taking power or starting a
 // lockout.
 func TestCastRefusalsAreSandstorms(t *testing.T) {
 	cases := []struct {
@@ -248,8 +248,8 @@ func TestCastDuringACastIsNotAnswered(t *testing.T) {
 }
 
 // A cast sent into its own recovery, its cast time over, is answered as
-// Sandstorm answered four spammed (lane-spellfx24): the red line with the
-// lockout left to a tenth, Sandstorm's line with this lockout's "(2.9 s)", and the
+// the reference server answered four spammed (lane-spellfx24): the red line with the
+// lockout left to a tenth, the reference server's line with this lockout's "(2.9 s)", and the
 // player's own 0x00B1 at itself, cast 0, the lockout cloud 0x9EC7854A, in
 // those bytes with this player's id; then nothing for 1.2 s, then answered
 // again; nothing taken, nothing begun, until the lockout is over. The
@@ -270,7 +270,7 @@ func TestCastIntoItsRecoveryIsAnswered(t *testing.T) {
 	if c.w.StartCast(c.sess, strike(), c.npcO, c.at(4100*time.Millisecond)) || len(c.sent()) != 0 {
 		t.Error("another spell 0.1 s after the cast was answered")
 	}
-	// 4.1 s in: 2.9 s of the 7 left (Sandstorm's line, 4.26 s into its Rockskin, said 3.2 of its 7.3)
+	// 4.1 s in: 2.9 s of the 7 left (the reference server's line, 4.26 s into its Rockskin, said 3.2 of its 7.3)
 	if c.w.StartCast(c.sess, rock, c.me, c.at(4100*time.Millisecond)) {
 		t.Fatal("begun inside its own lockout")
 	}
@@ -333,7 +333,7 @@ func TestCastStrikeKills(t *testing.T) {
 	}
 }
 
-// What a buff adds, as Rockskin's did on Sandstorm (AC +150, max power
+// What a buff adds, as Rockskin's did on the reference server (AC +150, max power
 // +60, max HP +30) and as the stat channel then carries it; all of it gone
 // when it wears off.
 func TestCastBuffStats(t *testing.T) {
@@ -351,7 +351,7 @@ func TestCastBuffStats(t *testing.T) {
 		t.Errorf("stat channel max HP, max power, AC: %v", g)
 	}
 	// the base maximum is what the stamina gives (gear.go): this druid's
-	// 514 by the live game's formula (Sandstorm, rounding STA/11 first,
+	// 514 by the live game's formula (the reference server, rounding STA/11 first,
 	// sent 506), the buff's own 30 not in it
 	if g := binary.LittleEndian.Uint32(b[148:]); g != 514 {
 		t.Errorf("base max HP %d, want 514: the buff's hit points are not the base's", g)
@@ -362,7 +362,7 @@ func TestCastBuffStats(t *testing.T) {
 	}
 }
 
-// A self spell lands on the caster whatever was targeted: Sandstorm
+// A self spell lands on the caster whatever was targeted: the reference server
 // answered one sent with no target and one sent at a creature so, and the
 // 0x00B1's target is the caster.
 func TestCastSelfScope(t *testing.T) {
@@ -385,7 +385,7 @@ func TestCastSelfScope(t *testing.T) {
 }
 
 // A movement buff makes the run speed 1.3 times (8.83 -> 11.48 on
-// Sandstorm) by 0x00F8, and back when it wears off.
+// the reference server) by 0x00F8, and back when it wears off.
 func TestCastSpeed(t *testing.T) {
 	c := newCaster(t)
 	sp := CastSpell{SpellID: 902, DisplayIndex: 3, Scope: 1, Name: "Wolf Spirit", CastTime: 2 * time.Second, Recast: time.Second,
@@ -411,8 +411,8 @@ func TestCastSpeed(t *testing.T) {
 	}
 }
 
-// A player is made at Sandstorm's run speed, which the dump and the world
-// entry's 0x00F8 carry, and Spirit of the Wolf makes it Sandstorm's
+// A player is made at the reference server's run speed, which the dump and the world
+// entry's 0x00F8 carry, and Spirit of the Wolf makes it the reference server's
 // 11.483333 to the bit (pcaps/ps2_sandstorm_cast_spells_and_autoattack.pcap:
 // 0x410D5555 and 0x4137BBBB). The control is the 20 every player was made
 // at until 2026-10-23.
@@ -432,7 +432,7 @@ func TestPlayerRunSpeedIsSandstorms(t *testing.T) {
 }
 
 // The movement rate (the forum's 20 for running, 100 for Spirit of the Wolf
-// and the most it can be): 20 is the run speed and 100 Sandstorm's Spirit of
+// and the most it can be): 20 is the run speed and 100 the reference server's Spirit of
 // the Wolf to the bit, masteries between, nothing past 100. The control: the
 // rate read as a speed, 100 five times 20, which this is not.
 func TestMovementRate(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Ticket 1984 (Deathcore, "bards 54 sow+invis is not overwriting 35 sow"):
+// Ticket 1984 ("bards 54 sow+invis is not overwriting 35 sow"):
 // Selo's Song of Travel (54: invis, speed) over Selo's Accelerando (35:
 // speed) lands and takes the 35 off, its bearer invisible; so does Lila's
 // Refrain (46). The reverse: the 35 over the 54 adds nothing and is refused,

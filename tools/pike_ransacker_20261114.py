@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pike by the Orc Ransackers' shack (Kyros's petition 2060, 2026-11-14: "Pikes for FP Bard 13 (I think?) are located
+"""Pike by the Orc Ransackers' shack (a player's petition 2060, 2026-11-14: "Pikes for FP Bard 13 (I think?) are located
 too far up river from what I remember. I believe (in live and in SS) they were located connable from the Orc Ransacker
 house and just barely upstream of the chichans").
 

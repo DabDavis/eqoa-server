@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""The Automatic Snowball Launcher: one record, Zerkziee's alone, given into his pack (the owner, 2026-11-16: "lets give
-zerkziee an automatic snowball launcher, infinite ammo").
+"""The Automatic Snowball Launcher: one record, a player's alone, given into his pack (the owner, 2026-11-16: "lets give
+[a player] an automatic snowball launcher, infinite ammo").
 
 1. The record: itempattern LAUNCHER (715090, beside the Barrel of Monkeys 715080), "Automatic Snowball Launcher": worn
    nowhere (equipslot -1), CLIENT's usable type (procanim 2, as the barrel: the item menu offers Use and Prepare onto a
@@ -16,8 +16,8 @@ zerkziee an automatic snowball launcher, infinite ammo").
    unless he holds one already. Run it only while he is OFFLINE (the row reaches him at his next login); while he is
    online give it by the GM panel's give (patternid 715090), which sends it at once.
 
-The character is found by name (Zerkziee) and must be account 220, else REFUSED and nothing written (Heirloom: serverid
-747, L60 gnome ranger; Live has a Zerkziee of the same account, serverid 93, L7, should the owner want it there too).
+The character is found by name (a player) and must be account 220, else REFUSED and nothing written (Heirloom: serverid
+747, L60 gnome ranger; Live has a player of the same account, serverid 93, L7, should the owner want it there too).
 Checked too: the id free (or already this record), the binding free (or already his), tables itempattern, characters,
 charinventory and gm_audit, and with --give his pack's room. Report by default; --apply in one transaction, a gm_audit
 line a row (as the panel's), logged in snowball_launcher_1116_log; a second --apply finds nothing to do; --undo puts

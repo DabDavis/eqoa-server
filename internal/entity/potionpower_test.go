@@ -104,7 +104,7 @@ func TestPoisonResistAgainstADraught(t *testing.T) {
 	}
 }
 
-// Petition 5166 (Trulyblind, Live): an item of the Magic tab, no thrown
+// Petition 5166 (Live): an item of the Magic tab, no thrown
 // weapon (the magician's Lava Stone, PotionEffect.Magic), thrown by Use costs
 // no power, and with none at all it is still thrown; the same line as a
 // potion costs its 10%.

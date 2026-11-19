@@ -2,7 +2,7 @@ package entity
 
 import "testing"
 
-// A creature's channel turns to a corpse at its death as Sandstorm's does:
+// A creature's channel turns to a corpse at its death as the reference server's does:
 // byte 26 (CLIENT's VIEntity +0x18) 3, the corpse bit that makes the attack
 // button ask for the loot, with its health 0; alive it is 1, selectable.
 func TestADeadCreaturesChannelIsACorpse(t *testing.T) {

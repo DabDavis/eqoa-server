@@ -469,7 +469,7 @@ func TestATriggerRunGoesAcrossTheExec(t *testing.T) {
 	place := [4]float32{4290, 183, 6705, 1}
 	file := filepath.Join(t.TempDir(), "keep-sessions.json")
 	snap := &Snapshot{Version: KeepVersion, PID: os.Getpid(), Written: now, Triggers: &handlers.KeptTriggers{Written: now, Seq: 3,
-		Runs: []handlers.KeptTriggerRun{{ID: 3, Trig: trig, By: "Lonewulf", Quiet: true, World: 5, X: 4280, Y: 183, Z: 6700, Next: 3,
+		Runs: []handlers.KeptTriggerRun{{ID: 3, Trig: trig, By: "Loneowls", Quiet: true, World: 5, X: 4280, Y: 183, Z: 6700, Next: 3,
 			Start: now.Add(-20 * time.Minute), Lock: "rallos zek", Deadline: now.Add(100 * time.Minute), EmptyAfter: 600 * time.Second, LastNear: now,
 			Await:  &database.TriggerStep{Do: database.TriggerAwaitDead, NPC: "Rallos Zek"},
 			Spawns: []handlers.KeptTriggerSpawn{{ID: 5555, Name: "Rallos Zek", Until: now.Add(100 * time.Minute)}}}},

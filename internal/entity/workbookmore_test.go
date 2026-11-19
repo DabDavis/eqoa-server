@@ -179,7 +179,7 @@ func TestWorkbookDisguise(t *testing.T) {
 	}
 }
 
-// Call of the Hero (callhero.go; jib's PR #1): cast on its caster whatever its
+// Call of the Hero (callhero.go; a GM's PR #1): cast on its caster whatever its
 // scope, it asks the far members of its group, in another world too, and lands
 // on no one: the member near it is neither asked nor moved, the one below the
 // spell's lowest level is not asked (its caster told), and nothing travels

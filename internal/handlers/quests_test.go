@@ -492,9 +492,9 @@ func TestABoxIsNoLongerThanCLIENTShows(t *testing.T) {
 	}
 }
 
-// Sandstorm's first warrior quest as questrec16 recorded it, in its shape (the
+// The reference server's first warrior quest as questrec16 recorded it, in its shape (the
 // words here are the test's own): two questions before the quest is given, a
-// step that wants an item shown and keeps it, and the messages in Sandstorm's
+// step that wants an item shown and keeps it, and the messages in the reference server's
 // order: taken, the journal's line, "You have received a quest!", then the
 // giver's words, each named for the giver; done, the giver's words, the line
 // taken, "You have finished a quest!", then the experience.
@@ -549,7 +549,7 @@ func TestSandstormsFirstQuestsShape(t *testing.T) {
 	}
 }
 
-// Sandstorm's second and third warrior quests in their shape (the test's own
+// The reference server's second and third warrior quests in their shape (the test's own
 // words): an answer naming the player (%p); a refusal answered with a line
 // that carries no name; a middle step announced as one quest finished and
 // another received; a dead-end answer that changes nothing; and, while the

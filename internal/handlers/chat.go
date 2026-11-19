@@ -469,7 +469,7 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 			return
 		}
 		// the PvP flag the same way (pvp.go), and "/t pvp off" or "/t pvp on" for one way
-		// alone (Larrybird, 2026-11-08: a relog took his flag down and the "/pvp" he typed to
+		// alone (2026-11-08: a relog took his flag down and the "/pvp" he typed to
 		// take it off put it back up)
 		if b := strings.ToLower(strings.TrimSpace(body)); strings.EqualFold(name, "pvp") && (b == "" || b == "off" || b == "on") {
 			pvpCommand(h.gameWorld, sess, b, time.Now())
@@ -547,7 +547,7 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 			return
 		}
 		if wager, ok := duelTell(body); ok {
-			// Sandstorm's challenge, "whisper "duel" to another player"
+			// the reference server's challenge, "whisper "duel" to another player"
 			// (duel.go): the challenge, not a tell
 			h.gameWorld.DuelChallenge(sess, 0, name, wager, time.Now())
 			return
@@ -567,7 +567,7 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 	}
 
 	// Any other /command reaches the server only from a client that forwards
-	// what it does not know (Sandstorm's S2 does): answer the sender alone,
+	// what it does not know (the reference server's S2 does): answer the sender alone,
 	// with retail's word 826, instead of saying it to the room.
 	if strings.HasPrefix(message, "/") {
 		word := message
@@ -685,7 +685,7 @@ func (h *ChatHandler) inSayRange(sess *session.Session, player *entity.Player) [
 	return append(hear, hearer{sess, player})
 }
 
-// say is mode 0: "Name: text", white (0x0A7A, as Sandstorm says NPC lines
+// say is mode 0: "Name: text", white (0x0A7A, as the reference server says NPC lines
 // [C]), to every player within sayRadius in the sender's world; with its links
 // to a client that takes them (relayTo).
 func (h *ChatHandler) say(sess *session.Session, player *entity.Player, message chatText) {
@@ -701,7 +701,7 @@ func (h *ChatHandler) say(sess *session.Session, player *entity.Player, message 
 	log.Printf("SayChat: %q to %d players", line.text, len(hear))
 }
 
-// shout is mode 3: "Name shouts: text" in (63, 255, 63), 0x0A7B, as Sandstorm
+// shout is mode 3: "Name shouts: text" in (63, 255, 63), 0x0A7B, as the reference server
 // sends it [C], to every player in the world; with its links to a client that
 // takes them (relayTo).
 func (h *ChatHandler) shout(sess *session.Session, player *entity.Player, message chatText) {
@@ -987,7 +987,7 @@ var worldNames = [WorldCount]string{
 
 // WorldCount is the length of the client's world table, which our SD builds and
 // whose two `sltiu` bounds it raises to this number. Slots 0-7 come from
-// Sandstorm's S2; 8 upward are ours, named worldN and loading hdd:worldN.ESF,
+// the reference server's S2; 8 upward are ours, named worldN and loading hdd:worldN.ESF,
 // so a new world is an ESF dropped into worlds/ rather than an SD rebuild.
 //
 // CHANGING THIS ALONE IS NOT ENOUGH — it must match
@@ -1001,7 +1001,7 @@ const WorldCount = 30
 // It was dead and always had been: named "Underfoot", loading
 // data3\Underfoot.esf, which is on no retail disc — an ISO 9660 walk finds
 // TUNARIA, RATHE, ODUS, LAVASTM, PLANESKY and SECRETS, no UNDERFOOT — and in no
-// patch set. Sandstorm's S2 ships the entry regardless. The note here used to
+// patch set. The reference server's S2 ships the entry regardless. The note here used to
 // say to claim it deliberately with `make_hdd_sd.py --world 6=` and rename it
 // in the same change; this is that change.
 //
@@ -1313,7 +1313,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 	case "#testmode":
 		// #testmode: a toggle: every hit taken and shown in full, never a death
 		// (1 HP left), to measure a raid boss's damage with no healer
-		// (entity/gmchannel.go; the GM Jibrish's petition 1272)
+		// (entity/gmchannel.go; a GM's petition 1272)
 		if on, ok := h.gameWorld.ToggleGMTestMode(player.ServerID); ok {
 			if on {
 				h.gmReply(sess, "Test mode on: you take every hit in full and cannot die (a killing hit leaves 1 HP). #testmode again to end it.")
@@ -1552,7 +1552,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.flyCommand(sess, parts[1:])
 	case "#raidboss":
 		// #raidboss: the raid bosses alive in the world now, where, and their
-		// hit points (the GM Jibwiz's petition 1947; entity/heroes.go)
+		// hit points (a GM's petition 1947; entity/heroes.go)
 		lines := h.gameWorld.RaidBossesUp()
 		if len(lines) == 0 {
 			h.gmReply(sess, "No raid boss is up.")

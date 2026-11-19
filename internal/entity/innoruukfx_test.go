@@ -8,7 +8,7 @@ import (
 
 // The owner's of 2026-11-10, watching Innoruuk fight Mr. Moogie: "innoruuk is casting veil of death on moogie
 // and the buffs, should be on innoruuk", "innoruuk keeps casting veil of death also no reason since it is a
-// longer cooldown"; and "largesse of plague should have a proc spellfx"; and the GM Jibrish's petition 1458, Mr.
+// longer cooldown"; and "largesse of plague should have a proc spellfx"; and a GM's petition 1458, Mr.
 // Moogie's line at Innoruuk's death (selfbuff.go).
 
 const (
@@ -178,7 +178,7 @@ func TestACreaturesBuffsAreItsOwnInAScriptedFight(t *testing.T) {
 // Moogie fights by his template, and an add says none of its creature's lines).
 func TestAKillSaysItsLine(t *testing.T) {
 	r := newTemplateRig(t)
-	r.godTemplate("dunker", ", class", ", 0", `[{"kind":"killsay","foes":["Gnoll Brute","Gnoll Pyro"],"say":"Dab got dunked again"}]`, "gnoll guard")
+	r.godTemplate("dunker", ", class", ", 0", `[{"kind":"killsay","foes":["Gnoll Brute","Gnoll Pyro"],"say":"Dax got dunked again"}]`, "gnoll guard")
 	guard, brute, pup, pyro, priest := r.npc("Gnoll Guard"), r.npc("Gnoll Brute"), r.npc("Gnoll Pup"), r.npc("Gnoll Pyro"), r.npc("Gnoll Priest")
 	_, sess := r.player("Listener", guard.X+20, guard.Z)
 	r.place(priest, guard.X+2, guard.Z) // heard where the guard is heard
@@ -186,18 +186,18 @@ func TestAKillSaysItsLine(t *testing.T) {
 	defer r.w.mu.Unlock()
 	pup.HP = 1
 	r.w.npcHitNPCLocked(guard, pup, r.at(0))
-	if !pup.Dead || countLines(linesOf(drain(sess)), "Dab got dunked again") != 0 {
+	if !pup.Dead || countLines(linesOf(drain(sess)), "Dax got dunked again") != 0 {
 		t.Fatalf("the control, the pup killed (dead %v): the line said", pup.Dead)
 	}
 	priest.tmpl, priest.add = guard.tmpl, &addTie{by: guard, pct: 50, level: guard.Level, class: guard.Class} // its add, as summon.go makes one
 	pyro.HP = 1
 	r.w.npcHitNPCLocked(priest, pyro, r.at(500*time.Millisecond))
-	if !pyro.Dead || countLines(linesOf(drain(sess)), "Dab got dunked again") != 0 {
+	if !pyro.Dead || countLines(linesOf(drain(sess)), "Dax got dunked again") != 0 {
 		t.Fatalf("the control, a foe of his killed by his add (dead %v): the line said", pyro.Dead)
 	}
 	brute.HP = 1
 	r.w.castFoeHitLocked(guard, brute, 10, "Kick", r.at(time.Second))
-	if lines := linesOf(drain(sess)); !brute.Dead || !hasLine(lines, "Gnoll Guard: Dab got dunked again") {
+	if lines := linesOf(drain(sess)); !brute.Dead || !hasLine(lines, "Gnoll Guard: Dax got dunked again") {
 		t.Errorf("the brute killed (dead %v): heard %q", brute.Dead, lines)
 	}
 }

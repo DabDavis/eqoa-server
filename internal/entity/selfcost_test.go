@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-// A self spell's own price (lifetap.go selfCostLocked; jib's PR #1, the GM
-// Jibrish's ruling of 2026-10-29: "You could definitely kill yourself with lich
+// A self spell's own price (lifetap.go selfCostLocked; a GM's PR #1, the GM
+// a GM's ruling of 2026-10-29: "You could definitely kill yourself with lich
 // form, pacts and so on."). The lines, the workbook objects and their figures
 // are made up; only their shapes are the live data's (EQOA-Data's line, the
 // import's workbook object).
@@ -71,7 +71,7 @@ func TestWorkbookSelfSpellPaysItsPrice(t *testing.T) {
 
 // A self spell's loss each tick (Cursed Flesh's) is paid at the landing and
 // every tick while it lasts, and the tick that leaves nothing kills its bearer
-// (the owner, 2026-11-10: a price over time can kill, as jib's ruling says),
+// (the owner, 2026-11-10: a price over time can kill, as a GM's ruling says),
 // the death taking the effect off: no tick after it. The controls: a bearer
 // with the hit points to pay lives on, and the same line's heal over time
 // heals.

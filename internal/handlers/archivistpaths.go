@@ -13,7 +13,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// archivistpaths.go — the Spell Archivist's paths (the GM Jibrish's petition
+// archivistpaths.go — the Spell Archivist's paths (a GM's petition
 // 1325, 2026-11-09: "The spell archivist should also give the path spells as
 // an option. Offer one path at a time to the class and if they pick the other
 // swap it. Essentially they only get 1 path at a time unless they do the
@@ -126,7 +126,7 @@ var archivistPathLines = map[int][][]string{
 	},
 	12: { // enchanter: self power, the Mind path; power for others, the Boon path
 		{"Expansive Mind", "Limitless Mind", "Boundless Mind", "Infinite Mind", "Spacious Mind"},
-		// its 49s the level 49 reward's options since petition 1366 (Fujiko: "Didnt
+		// its 49s the level 49 reward's options since petition 1366 ("Didnt
 		// receive 49 Boon spell (pwr to target)"): the import gave the level only
 		// the Mind path's two, EQOA-Data's list calling these a mastery's (CM),
 		// where EQOAEmu's workbook has them scrolls from a quest as Boundless and

@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Petition 1491 (the shard's GM Jibrish): "Correct it so mercenarys and healbot
+// Petition 1491 (the shard's GM a GM): "Correct it so mercenarys and healbot
 // did not assist you in duels, pvp, or for mr moogies challenge". Each fight
 // that is a player's own (ownFightLocked) by turns: in it Healbot heals
 // nothing, a healer merc begins no heal, a heal of its begun before lands
@@ -158,7 +158,7 @@ func TestAGroupMatesMercLeavesTheDuelistOut(t *testing.T) {
 	}
 }
 
-// The GM Jibrish's petition 1901: "Mercenaries should not assist you in duels, or attack your target while in a
+// a GM's petition 1901: "Mercenaries should not assist you in duels, or attack your target while in a
 // duel." From the duel's accept (its countdown) and through its fight, the owner's mercs stand down: a creature
 // fighting the owner is not taken on, the owner's own target (a creature it swings at) is not, what the merc fought
 // it lets go of, and /merc attack is refused with its line. An invitation is no duel yet: the merc takes on the

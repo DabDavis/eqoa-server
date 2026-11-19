@@ -16,7 +16,7 @@ import (
 // dice seeded. With no database the players are synthetic: a tank (a warrior,
 // sword and shield) and a melee class (a rogue, two weapons) of each level,
 // their training points spent, in the middling gear of their last ten levels
-// as eqoaclassic's items give it (AC about 20 and 14 a level, a weapon of 10
+// as the production server's items give it (AC about 20 and 14 a level, a weapon of 10
 // DMG a level, read off the kits of balancekit.go), fighting hand to hand and
 // nothing else. The same fights on a server's own kits, spells and pets, class
 // by class, are balancesim_real_test.go's (EQOA_REAL_DB).

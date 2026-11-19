@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Creatures poison and infect as Prima's bestiary says (petitions 5030, Trulyblind, and 5032, Groceries, Live,
+"""Creatures poison and infect as Prima's bestiary says (petitions 5030, and 5032, a player, Live,
 2026-11-14: "Ember Hornets, Ants, Snakes, the Things around the Mummys and even them, they do not poison you"; "the
 Grave Rats and Skellys along coast From FP W do not give any poison or disease").
 

@@ -10,7 +10,7 @@ import (
 )
 
 // The Automatic Snowball Launcher (snowlauncher.go; the owner, 2026-11-16:
-// "lets give zerkziee an automatic snowball launcher, infinite ammo").
+// "lets give [a player] an automatic snowball launcher, infinite ammo").
 
 // launcherTick runs the launcher's system at d, as the tick does.
 func (r *mercRig) launcherTick(d time.Duration) {

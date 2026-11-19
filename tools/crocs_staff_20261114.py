@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Croc Island's crocodiles moved as the GM Jibcrotwo stood (2026-11-14, batch tix5, lane crocs), and the Staff of the
-Jade Forest's stats (the GM Kobe). Both shards; Live's 5029 (Innoruuk: "Crocs at croc island by fp don't give space for
+"""Croc Island's crocodiles moved as a GM stood (2026-11-14, batch tix5, lane crocs), and the Staff of the
+Jade Forest's stats (a GM). Both shards; Live's 5029 (Innoruuk: "Crocs at croc island by fp don't give space for
 your characters to stand, constantly attacked") is the same ground, and these moves are its answer.
 
 A petition names its creature by the entity id the client was shown (a session's own), not its row: each is the row of
@@ -22,7 +22,7 @@ both standing, facing within 4 degrees: either way is the same on the ground). B
   2091: npcs 2539 spawn to (25470.02, 67.82, 17382.75); 2092: npcs 2535 to (25493.41, 68.25, 17286.81); 2093: npcs
         2534 to (25450.78, 67.39, 17289.53); 2094: npcs 105157 to (25417.38, 63.4, 17374.4); each its roam as it was,
         its facing kept.
-  2086 (Kobe): "item Staff of the Jade Forest should have stats WIS 15 CHA 50 Power 70": every itempattern record of
+  2086 (a GM): "item Staff of the Jade Forest should have stats WIS 15 CHA 50 Power 70": every itempattern record of
         that name (Heirloom 31006 and 990138, the Nagafen drop's copy; Live 31006): wis 0 -> 15, cha 0 -> 50, POWMAX
         0 -> 70. It had no other stat (every stat and resist column 0, no itemeffect, no weapon proc): nothing else.
 

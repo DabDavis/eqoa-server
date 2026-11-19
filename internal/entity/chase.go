@@ -27,14 +27,14 @@ import (
 //   - in reach, fights its rounds (rounds.go), turned to its enemy every
 //     tick, and once it has closed in, stands;
 //   - gives up past its leash (leashLocked from where the fight began, 300
-//     for every NPC loaded: F3 20261027-170731, jib's "at least 3 times the
+//     for every NPC loaded: F3 20261027-170731, a GM's "at least 3 times the
 //     range" of the 100 it was, which PoD's Twins left after about 30 m) or
 //     when its enemy is far off or gone to another world: its threats are
 //     dropped and it runs back to where the fight
 //     began, a creature that does not wander (a guard at its post) facing
 //     as it was spawned. Hit on the way, it fights again.
 //
-// Sandstorm's chase is recorded (pcaps/ps2_main_capture.pcap, the Lv49
+// The reference server's chase is recorded (pcaps/ps2_main_capture.pcap, the Lv49
 // guard Jasper Darvar after a bard who pulled him with a spell from 14 off,
 // claude-notes/attack-range-20261025.md): he ran at 9.9 a second (107 units
 // of path in 10.8 s, about a unit each tenth of a second; his channel said
@@ -46,11 +46,11 @@ import (
 // and the creature stood at 70% of its reach, 3.15 off: inside a big one's
 // body, as nothing gave a big one its reach (reach.go).
 
-// NPCRunSpeed is a creature's pace on its way home: Sandstorm's 9.9.
+// NPCRunSpeed is a creature's pace on its way home: the reference server's 9.9.
 const NPCRunSpeed float32 = 9.9
 
 // NPCChaseSpeed is a creature's pace in a chase: a player's base run
-// (RunSpeed, 8.83), below Sandstorm's 9.9 (the owner, 2026-11-14: "neo should
+// (RunSpeed, 8.83), below the reference server's 9.9 (the owner, 2026-11-14: "neo should
 // be able to outrun the mobs to kite. players cannot exceed spirit of wolf
 // speed"): a player at the base run is kept pace with, the movement masteries
 // (MoveRate) pull away, and Spirit of the Wolf (11.48) is gone. A template's
@@ -76,7 +76,7 @@ func (n *NPC) chaseSpeed() float32 {
 }
 
 // npcStopShort is how far inside its reach a chasing creature stands: half
-// of Sandstorm's last step (a unit), whose stops fell between 3.5 and 4.5
+// of the reference server's last step (a unit), whose stops fell between 3.5 and 4.5
 // off a still player.
 const npcStopShort float32 = 0.5
 
@@ -87,7 +87,7 @@ const chaseSlack float32 = 0.05
 // chaseGain is how fast a creature closes on where it would stop: its pace
 // over its enemy's has this many units a second for each unit left. At 8 it
 // runs at full pace to within a unit and a quarter of where it stops, as
-// Sandstorm's came on at full pace to its last step (it was 4, an easing
+// the reference server's came on at full pace to its last step (it was 4, an easing
 // over the last 2.5 units that held it out of reach 0.2 s longer).
 const chaseGain float32 = 8
 
@@ -163,7 +163,7 @@ func (c *chaseState) forRoute(id EntityID) {
 // npcReach is how near an NPC must be to hit: CLIENT's melee reach, the
 // player's own against it (attack.go's meleeReach, and a big creature's
 // allowance, reach.go), so the two stand within each other's reach. Its
-// hits land within it of where the server has the player, as Sandstorm's
+// hits land within it of where the server has the player, as the reference server's
 // did (its own view of the player, a channel behind the player's 0x40, put
 // every one of Jasper Darvar's 68 hits within 4.5 (4.44 the furthest),
 // though he hit a player kiting him 5.7 to 7.7 off by the player's own
@@ -190,7 +190,7 @@ func (n *NPC) chaseStepDT(now time.Time) float32 {
 }
 
 // npcTurnRate is how fast a creature turns to the enemy in its reach, in radians
-// a second, and npcTurnReach the reach that rate is for (petition 1177, Jibrish:
+// a second, and npcTurnReach the reach that rate is for (petition 1177:
 // "Mobs need to turn when in combat SLIGHTLY slower ... Rogue need to be able to
 // run around them in circles and get off backstabs ... Needs a very subtle delay
 // just enough for a rogue flipping around them on the sides"). Ours: a rogue at the

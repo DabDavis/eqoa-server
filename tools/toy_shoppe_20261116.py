@@ -7,8 +7,8 @@ the gnome with red/green clothing etc."). A server with handlers/tokenshop.go an
    Barrel and the Launcher by NAME: handlers/monkeybarrel.go, snowlauncher.go; a record of the name with no binding works
    for whoever holds it). Worn nowhere, CLIENT's usable type (procanim 2: the item menu offers Use, a potion quick slot
    takes it), LORE (one), NO TRADE (trade 1), kept over logout, worth nothing, never spent, any class, race and level:
-     - TOYS[0] Barrel of Monkeys (Moose's 715080 is bound to him): a monkey a Use, up to five, all home at the sixth;
-     - TOYS[1] Automatic Snowball Launcher (715090-715092 are Zerkziee's, Jibtank's and Dust's): automatic fire on/off;
+     - TOYS[0] Barrel of Monkeys (a player's 715080 is bound to him): a monkey a Use, up to five, all home at the sixth;
+     - TOYS[1] Automatic Snowball Launcher (715090-715092 are a player's, a GM's and a GM's): automatic fire on/off;
      - TOYS[2] Santa's Elf, an ILLUSION TOY: its use (table itemeffect: "Self, Unlimited Uses, 30min", body the gnome man
        0xA99C6B15, a woman gets the gnome woman, cooldown COOLDOWN seconds) shows its user as a gnome for 30 minutes, in
        its outfit (table itemoutfit, entity/outfit.go: the Holiday Elf's red and green, tools/christmas_elf_santa_20261116.py's

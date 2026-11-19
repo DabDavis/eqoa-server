@@ -46,7 +46,7 @@ func bindCasts(s *session.Session) [][4]uint32 {
 
 // A spiritmaster asks "Do you wish to set this as your bind point?", Yes
 // binds the player right in front of it, kept, with its cast of the bind's
-// visual onto the player as Sandstorm's Zole did, and Return Home takes it
+// visual onto the player as the reference server's Zole did, and Return Home takes it
 // there (F3 20261025-172313). The controls: No binds nothing, and before any
 // bind Return Home goes where every login starts.
 func TestASpiritmasterBinds(t *testing.T) {

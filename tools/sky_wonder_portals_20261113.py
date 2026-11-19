@@ -38,7 +38,7 @@ import sqlite3
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import fix_moogie_tunare_20261110 as fm  # noqa: E402  gm_audit's writer (dab, tool) and Go's JSON
+import fix_moogie_tunare_20261110 as fm  # noqa: E402  gm_audit's writer (the owner, tool) and Go's JSON
 
 LOG = "sky_wonder_portals_1113_log"
 DETAIL = "the Isle of Wonder's portals (the owner, 2026-11-13: Plane of Sky teleporters): tools/sky_wonder_portals_20261113.py"

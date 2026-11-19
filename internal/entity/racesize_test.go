@@ -12,7 +12,7 @@ import (
 
 func float32frombytes(b []byte) float32 { return math.Float32frombits(binary.LittleEndian.Uint32(b)) }
 
-// jib's F3 20261029-212125: gnome players a tenth smaller, by table
+// A GM's F3 20261029-212125: gnome players a tenth smaller, by table
 // racesize. A gnome logging in is sent at 0.9 on the state channel's scale
 // (bytes 36-39, every client's view of it, its own included); the control, a
 // human, stays at 1.0. An online gnome takes a GM's new size at once, and
@@ -22,7 +22,7 @@ func float32frombytes(b []byte) float32 { return math.Float32frombits(binary.Lit
 func TestAGnomePlayerIsATenthSmaller(t *testing.T) {
 	w := NewWorld()
 	w.SetRaceSizes(map[int]float64{3: 0.9})
-	gnome := w.CreatePlayer(nil, &database.CharacterRecord{ServerID: 44, CharName: "Jibrish", Race: 3, TClass: 12, Level: 60,
+	gnome := w.CreatePlayer(nil, &database.CharacterRecord{ServerID: 44, CharName: "Jinkles", Race: 3, TClass: 12, Level: 60,
 		ModelID: int64(gnomeMale), X: 25300, Y: 54, Z: 15700})
 	human := w.CreatePlayer(nil, &database.CharacterRecord{ServerID: 45, CharName: "Plainman", Race: 0, TClass: 0, Level: 60,
 		ModelID: 0x70D898C6, X: 25302, Y: 54, Z: 15700})

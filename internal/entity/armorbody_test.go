@@ -39,7 +39,7 @@ func TestAHillGiantWearsAGiantsArmouredBody(t *testing.T) {
 	}
 }
 
-// A hill giantess whose body is racedefs' female one (the GM Jibrish's petition 1647: the hill
+// A hill giantess whose body is racedefs' female one (a GM's petition 1647: the hill
 // giant, the orc and the satyr given their own female bodies) keeps it in any armour, as a female
 // giant chosen on the appearance page does: the armour bodies are a male giant's each. The
 // controls: a hill giant man takes them, and so does a woman made before, wearing the male's body.

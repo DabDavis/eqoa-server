@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-// Ticket 2010 (Waldorf, 2026-11-13): "Guk Instance - I've killed 306 of 307. Is the last npc the teleport? If so
+// Ticket 2010 (2026-11-13): "Guk Instance - I've killed 306 of 307. Is the last npc the teleport? If so
 // that shouldn't be counted." An instance counts the creatures a player can kill alone: a teleporter with the NPC
 // bit standing in Test Guk is copied in but is in neither the total nor the alive count; with the three others
 // killed it is "3 of 3". An instance kept before the rule (Killable unset, its count 4) is counted again as it is

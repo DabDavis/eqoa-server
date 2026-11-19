@@ -3,7 +3,7 @@
 line or the drink line, the meals and drinks have a price, and each its HoT
 or PoT (what a Use of one gives for a minute: handlers/consume.go).
 
-What a grocer sells is Return Home's (jib's export, --prh): there every
+What a grocer sells is Return Home's (a GM's export, --prh): there every
 grocer and some barkeeps sell either the whole food line (13 meals, levels 2
 to 49) or the whole drink line (14 drinks, 2 to 54), and grocers stand in
 pairs, one of each. A meal is an unworn item described as "A hearty meal that

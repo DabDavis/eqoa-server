@@ -21,7 +21,7 @@ import (
 )
 
 // Forgotten and changed passwords (the owner, 2026-11-11: "lets add forgot
-// password? to eqoaclassic"). No account has an e-mail and the box sends no
+// password? to the production server"). No account has an e-mail and the box sends no
 // mail, so a forgotten password is a GM's to reset, as the owner chose: "The
 // form takes the account name plus a contact (Discord name, or a character name
 // and level) and files a request into the GM panel/board. A GM confirms it is

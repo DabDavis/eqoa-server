@@ -165,7 +165,7 @@ func TestServedSDCarriesNoBakedAddress(t *testing.T) {
 
 // THE SERVED PAYLOAD OWNS EVERYTHING IT NAMES.
 //
-// The SD may address Sandstorm's S2 arena — the format has a whole relocation
+// The SD may address the reference server's S2 arena — the format has a whole relocation
 // section for it, so a hook of ours can chain into one of their cave routines.
 // But an S2 reference is a DEPENDENCY, and it fails by omission: with S2 absent
 // the loader stub SKIPS such a record rather than misapplying it, so the
@@ -193,7 +193,7 @@ func TestServedSDDependsOnNoS2Arena(t *testing.T) {
 	}
 }
 
-// sdS2References counts the payload's dependencies on Sandstorm's arena: RLC1
+// sdS2References counts the payload's dependencies on the reference server's arena: RLC1
 // relocation entries, and records addressed into the S2 window. Walked from the
 // format (re-tools/sd_patch.py) rather than from a payload, so it can disagree
 // with what the builder happens to emit.
@@ -313,7 +313,7 @@ func TestServedSDParsesAsTheStubWouldParseIt(t *testing.T) {
 		if end > len(data) {
 			t.Fatalf("a relocation section overruns %s", defaultSDFile)
 		}
-		// RLC1 is a dependency on Sandstorm's arena, and it fails by OMISSION:
+		// RLC1 is a dependency on the reference server's arena, and it fails by OMISSION:
 		// with no S2 the stub skips the record rather than misapplying it, so
 		// the payload comes up quietly missing a piece.
 		if sm == 0x31434C52 && count != 0 {

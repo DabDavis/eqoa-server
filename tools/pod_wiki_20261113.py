@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The Plane of Disease's flag quest as the wiki has it (the owner, 2026-11-13: "yes match it to the wiki", sending
-https://wiki.eqoa.live/index.php?title=Plane_of_Disease:_Portal_Quest; and "also where dust is standing is where something
+https://wiki.eqoa.live/index.php?title=Plane_of_Disease:_Portal_Quest; and "also where [a GM] is standing is where something
 should block players until they possess the suit").
 
 The quests are tools/quests/data/portal.json's, as now edited, written again through tools/import_quests.py for their keys
@@ -26,8 +26,8 @@ Beside the quests, as data:
     body) who drop a Stitched Zombie Skin 75% of kills. The surgeons attack on sight (npcaggro: their bodies are a
     human's, which would not); the last house orderlies see invisibility (npcaggro see_invis, a row of no aggro word).
     Respawns as the house's: the surgeons 90 s (its named), the rest the server's.
-  - the Last House Physician respawns every 10 minutes (Skywalker's ticket 1906; was 90 s).
-  - the ward: an invisible wall (CHAR.ESF 0x6F412342, size 2: a box 10 a side) across the lower hall where Dust stood,
+  - the Last House Physician respawns every 10 minutes (a player's ticket 1906; was 90 s).
+  - the ward: an invisible wall (CHAR.ESF 0x6F412342, size 2: a box 10 a side) across the lower hall where a GM stood,
     the one way from the Last House's lower halls up to the Oozing Portal; a questwalls row of the suit (item 1012):
     passed by whoever carries or wears it, by a GM, and by anyone on its far side (its inner boxes: the upper halls and
     the lower hall's west arm up to the wall's middle), so no one is shut in; one stopped is told its line once.
@@ -96,7 +96,7 @@ NAMED_RESPAWN = 90.0
 PHYSICIAN, PHYSICIAN_RESPAWN, PHYSICIAN_WAS = "Last House Physician", 600.0, 90.0
 SKIN_CHANCE, CORD_CHANCE = 75, 100
 
-# The ward, where Dust stood (4627.3, -11.9, 3604.5): the lower hall runs east-west there, 7.3 wide (walls at z 3600.48 and
+# The ward, where a GM stood (4627.3, -11.9, 3604.5): the lower hall runs east-west there, 7.3 wide (walls at z 3600.48 and
 # 3607.78 by rays from that spot), the only way between the east arm (the lower halls) and the west arm's ramp up (a
 # flood over the ground from Fatima reaches the Oozing Portal without the box and not with it). The box's middle on the
 # hall's middle, 2.5 over the floor (-11.94): 10 a side, so -14.4 to -4.4, the hall's whole width.

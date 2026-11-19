@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """tools/fix_ranged_reach.py against a made-up database and harvest: a
-throwing knife Sandstorm sells takes its record (range and stack), a crossbow
+throwing knife the reference server sells takes its record (range and stack), a crossbow
 that was no ranged weapon takes its slot, attack type and damage, a bow
-Sandstorm does not sell takes the range rule's 25, a range already set and a
+the reference server does not sell takes the range rule's 25, a range already set and a
 potion (an itemeffect row) are left, a second --apply is refused and --undo
 gives back the table as it was. No game data.
 
@@ -80,7 +80,7 @@ class FixRangedReach(unittest.TestCase):
         got = {r[0]: r for r in self.rows()}
         self.assertEqual(got[1], (1, "rusty throwing knife", 16, 2000, 10, 58, 1, 25))
         self.assertEqual(got[2], (2, "Simple War Crossbow", 16, 1, 9, 220, 19, 25))
-        self.assertEqual(got[3][7], 25)                 # not Sandstorm's: the rule's range
+        self.assertEqual(got[3][7], 25)                 # not the reference server's: the rule's range
         self.assertEqual(got[4], before[3])             # a range already set
         self.assertEqual(got[5], before[4])             # a potion: ours by design
         self.assertEqual(got[6], before[5])             # a sword: no ranged attack type

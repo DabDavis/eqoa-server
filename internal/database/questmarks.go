@@ -4,7 +4,7 @@ import "fmt"
 
 // questmarks: the quests whose NPCs show a "!" and a "?" over their heads
 // while the server's quests.markers is "flagged" (the default; the GM
-// Jibrish's petition 1813, 2026-11-12: "Add the ability for us to add yellow !
+// a GM's petition 1813, 2026-11-12: "Add the ability for us to add yellow !
 // and ? over NPCs in game ... Once done place these for the first quest
 // everyone has for every race and class"; handlers/questheadmarks.go). A row
 // a quest: its giver shows "!" while a player may take it, and each NPC of

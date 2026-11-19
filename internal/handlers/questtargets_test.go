@@ -11,7 +11,7 @@ import (
 )
 
 // A kill or loot step counts several creatures (queststeptargets: the user,
-// 2026-10-30, "dust was farming beaks for the weapon quest and it never
+// 2026-10-30, "[a GM] was farming beaks for the weapon quest and it never
 // drops": the step named the ravens, its journal the ravens and magpies).
 
 // otherCreatures gives a step of a quest more creatures, as the table holds

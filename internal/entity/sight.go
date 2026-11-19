@@ -30,7 +30,7 @@ import (
 //
 //   - a heal or a buff (any spell that is not harmful) on another player or a
 //     pet: its caster must see the body, as it begins and again as it lands
-//     (petition 1243, Dock: "healing allows LOS through obstructions. do not
+//     (petition 1243: "healing allows LOS through obstructions. do not
 //     allow heals through obstructions or buffs"). One aimed at a body out of
 //     sight is refused before its power is spent; a group's spell leaves out
 //     the members its caster cannot see; a body that gets behind something
@@ -56,7 +56,7 @@ import (
 //
 //   - a ranged weapon's shot or a throw (a bow, a thrown weapon or potion: the
 //     ranged swings, kinds 8-11) at a creature: its shooter must see it as
-//     each shot is loosed (Hoofbite's petition 1924: "Able to pull Tinael
+//     each shot is loosed (a player's petition 1924: "Able to pull Tinael
 //     Windstream through wall with ranged attack"); out of sight nothing
 //     lands, no hate, no power paid, castNotSeen in red, the fight let go,
 //     as a shot short of power is (rangedpower.go).
@@ -67,7 +67,7 @@ import (
 // A player's shot or harmful spell at a creature bigger than a man looks at
 // its body where it stands up (seesCreatureLocked): the target end's heights
 // are a man's times its body (bodyScale, at most bodyKneeMost), the shooter's
-// his own. Heirloom petition 2202 (Zerkziee, 2026-11-16, the Isle of Dread):
+// his own. Heirloom petition 2202 (2026-11-16, the Isle of Dread):
 // "Megaladon fight doesnt seem right with range in the water I had to get on
 // top of him to actually shoot him with a bow ability/attack". The shark (size
 // 4, its body's edge 33) swims in the channel along the beach with its feet at
@@ -81,7 +81,7 @@ import (
 // and at his waist, the same heights at both ends. Either clear is enough for a
 // creature to notice someone: the head sees over a low wall, and the waist is
 // there for a creature whose head is in a low ceiling. An area spell asks the
-// same (petition 1882, Brother, 2026-11-13: "Blade Dance for Bravo MC sometimes
+// same (petition 1882, 2026-11-13: "Blade Dance for Bravo MC sometimes
 // does not AoE attack"): it needed both until then, so anything over a man's
 // waist sheltered whoever stood behind it, and the knee-high stones of the
 // tenacious frost giants' camp in Tunaria (1.4 tall, the walls file's, 27 of
@@ -91,7 +91,7 @@ import (
 // the same heights, so a rock hides a player from a dragon as it would from a
 // man. Ours, not measured:
 // CLIENT has no such test (it never decides what attacks), and no capture
-// could show one, for a creature on Sandstorm attacks through a floor or does
+// could show one, for a creature on the reference server attacks through a floor or does
 // not by rules no one recorded.
 
 // Sight is what can be seen past (internal/ground's Sees): whether the straight

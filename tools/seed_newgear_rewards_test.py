@@ -41,7 +41,7 @@ class NewGear(unittest.TestCase):
         for q, *_ in ng.ITEMS:
             db.execute("INSERT INTO queststeps VALUES (?, 1, 'talk', '')", (q,))
             db.execute("INSERT INTO queststeps VALUES (?, 3, 'give', '')", (q,))
-        db.execute("INSERT INTO charquests VALUES (103, 100480, 0, 1)")  # Dust: finished, owed
+        db.execute("INSERT INTO charquests VALUES (103, 100480, 0, 1)")  # a GM: finished, owed
         db.execute("INSERT INTO charquests VALUES (104, 100430, 2, 0)")  # under way: owed nothing
         db.execute("INSERT INTO charinventory (serverid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber) "
                    "VALUES (103, 1, 200, 0, 6428, 0, 0, 13)")

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The Lord Valkanith quest's emerald from any creature of the city of Takish'Hiz, at 10% (the owner, 2026-11-17: "make
-sure tal thex emerald 10% chance to drop in this city only where dust is for lord valkanith"; then, Dust moved to the
+sure tal thex emerald 10% chance to drop in this city only where [a GM] is for lord valkanith"; then, a GM moved to the
 star knights: "this area should still drop the emerald also and also where he was").
 
 WHAT DIFFERED (quest 101269 step 1, loot of the Tal'Thex Emerald 701383): the star knights alone dropped it, at 25%.
@@ -10,7 +10,7 @@ area drops it for a player on the step at 10%, none outside. The star knights ar
 THE AREA, world 0, a circle of radius 550 round (19350, 27240), from the city's own geometry: worlds/ground/0.walls's
 zone 146 (the client's "Takish Hiz" tile, x 18032-19972, z 26017-27976) holds the city's 28 large placed structures
 (each over 60 across) within x 18998-19702, z 26820-27658, but one: the circle is centred on that box and reaches its
-farthest corner (547). The tile itself is 2,000 across and most of it open desert, so the tile is not the area. Dust's
+farthest corner (547). The tile itself is 2,000 across and most of it open desert, so the tile is not the area. A GM's
 first place (19650, 26945) is 421 from the centre and his second, the star knights (19508, 27521), 323; the star
 knights' camp (19498-19518, 27587-27670) is within 460. Left out: the one outlying structure (18751-18825, 27369-27484,
 about 570 off), Deathknight Endraval (18748, 26830), the Truearrow camp in the desert south (19814, 26192) and the open

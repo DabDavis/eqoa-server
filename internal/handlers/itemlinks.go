@@ -23,7 +23,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// Item links in chat, EQ1's (the GM Jibrish's petition 1463, 2026-11-10): a
+// Item links in chat, EQ1's (a GM's petition 1463, 2026-11-10): a
 // player puts a link to one of its own items in a chat line, and whoever clicks
 // it sees the item, its figures as the linker held it then, in a small window.
 //

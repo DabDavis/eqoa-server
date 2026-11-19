@@ -12,7 +12,7 @@ import (
 )
 
 // moogieitems.go — the Metal Moogie chain's rewards that do something when used (work board #688, the GM
-// Jibrish's): the Snowball, the Potion of Moogie's Insight and the Deputy's Draught. Each is an itemeffect row
+// a GM's): the Snowball, the Potion of Moogie's Insight and the Deputy's Draught. Each is an itemeffect row
 // whose line names it (NewPotionEffect reads the words, readMoogieUse): handlers/potion.go's Use takes it as
 // any potion's (its stack's 0x003C, a charge, its row's cooldown), and UsePotion does it here.
 //
@@ -21,7 +21,7 @@ import (
 //     to the target, cast 0, the line's visual (Frost Shot's projectile unless a GM writes another), then 1 off
 //     the target's hit points, told in its 0x00DB, never below 1. No PvP act: no flag, no hate, no duel and no
 //     Mr. Moogie lock; it breaks no invisibility and works in towns. Each told a line.
-//     It is a thrown weapon too (petition 2204, Hoofbite, Heirloom: "Moogie snowballs showing as stackable
+//     It is a thrown weapon too (petition 2204, Heirloom: "Moogie snowballs showing as stackable
 //     trash item and cant be equipped to throw at other players"; tools/snowball_throw_20261116.py): its
 //     record is CLIENT's usable type 2 (procanim; at 0 with no wear slot VIInfoText::IsMisc filed it with the
 //     loot, no Use in any menu, and CLIENT never sent one: no line of it in the log), wear 16 (the throwing
@@ -53,7 +53,7 @@ const (
 	PotionDeputy   = "deputy"
 )
 
-// The Snowball's numbers and words (the GM Jibrish's).
+// The Snowball's numbers and words (a GM's).
 const (
 	SnowballRange     float32 = 30
 	SnowballFX        uint32  = 0x15C66F59 // Frost Shot's projectile

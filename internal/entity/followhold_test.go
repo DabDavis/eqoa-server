@@ -7,7 +7,7 @@ import (
 )
 
 // A follower standing holds its place while its owner is near it
-// (followslot.go's followHolds): the owner, 2026-11-17, "drizzt cant pet his
+// (followslot.go's followHolds): the owner, 2026-11-17, "[a player] cant pet his
 // own cat guenhwyvar if he gets close it movese".
 
 // walkTo moves r's player at the run (0.88 a 100 ms tick) toward (x, z) until

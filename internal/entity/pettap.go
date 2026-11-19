@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// pettap.go — a necromancer's pet's life tap (F3 20261025-215804, jib:
+// pettap.go — a necromancer's pet's life tap (F3 20261025-215804, a GM:
 // "Necromancer pets starting at the level 20 pet and up should have a level
 // appropriate life tap that they do periodically, approximately a 30 second
 // recast. They should use it when its up while still meleeing. So if its a
@@ -31,8 +31,8 @@ import (
 // a pet has none.
 //
 // The 30 seconds and the first pet that taps (the level 20 one, Wilting
-// Flesh's zombie) are jib's; the rest is the server's own: no recording has a
-// pet casting (Sandstorm's one recorded pet, a Fire Elemental, cast
+// Flesh's zombie) are a GM's; the rest is the server's own: no recording has a
+// pet casting (the reference server's one recorded pet, a Fire Elemental, cast
 // nothing). A level 20 pet's tap is Siphon Life, the necromancer's tap of
 // level 16 (EQOA-Data's lists have none at 20).
 

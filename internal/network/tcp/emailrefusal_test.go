@@ -105,7 +105,7 @@ func TestStationPakServesTheEmailRefusalPage(t *testing.T) {
 // mid-word (seen on a PS2): every page's help is short and names no address,
 // which goes under the button on a line of its own.
 func TestStationHelpPanelsFit(t *testing.T) {
-	page := "eqoaclassic.com/eqoa/password"
+	page := "example.com/eqoa/password"
 	reHelp := regexp.MustCompile(`<Text val="([^"]*)">\s*<Position x="450" y="118"/>`)
 	for name, p := range stationEmailPages(page, true) {
 		m := reHelp.FindStringSubmatch(string(p))

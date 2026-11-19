@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The GM Jibrish's tour of Tunaria's north-west (2026-11-14, filed on the Live Server; the owner: Jib's Live changes
+"""a GM's tour of Tunaria's north-west (2026-11-14, filed on the Live Server; the owner: a GM's Live changes
 go on Heirloom too): creature sizes, the bearweres' roam, and the import's unmoving rows spread to roam their zone.
 
 A zone is CLIENT's (sZones0: a 2,000-unit cell, x/2000 and z/2000; its name WORDS.TXT's): Permafrost (2,2) x 4000-6000

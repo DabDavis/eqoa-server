@@ -9,7 +9,7 @@ import (
 
 // A creature's held drop skips another named creature's own loot, a rare
 // loot pool's item and a boss's loot (table heldbarred): the owner,
-// 2026-11-19, "hoofbite killed a soluseks eye fire goblin and waraxe of
+// 2026-11-19, "[a player] killed a soluseks eye fire goblin and waraxe of
 // noroxxus dropped ... those ultra rare items should drop less, but noroxxus
 // is only off noroxxus". It falls to the next record of the look below; a named
 // creature still drops its own.

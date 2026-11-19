@@ -18,7 +18,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// Camp fix reports (board entry 513, the GM Jibrish's ask of 2026-11-09: "a
+// Camp fix reports (board entry 513, a GM's ask of 2026-11-09: "a
 // command players can use to report a camp's creatures standing in the wrong
 // spot or facing the wrong way, or one too many or too few"; petition 1423:
 // "Verify everyone on the server can use the /campfix set of commands. No gm

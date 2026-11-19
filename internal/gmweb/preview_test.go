@@ -22,12 +22,12 @@ func TestSpellVisualPreviewFraming(t *testing.T) {
 		s.secure(ok).ServeHTTP(rec, httptest.NewRequest("GET", "/", nil))
 		return rec.Header().Get("Content-Security-Policy")
 	}
-	u, _ := url.Parse("https://eqoaclassic.com/eqoa/play/fxview.html")
+	u, _ := url.Parse("https://example.com/eqoa/play/fxview.html")
 	with := &Server{preview: u}
-	if got := csp(with); !strings.Contains(got, "frame-src https://eqoaclassic.com;") || !strings.Contains(got, "frame-ancestors 'none'") {
+	if got := csp(with); !strings.Contains(got, "frame-src https://example.com;") || !strings.Contains(got, "frame-ancestors 'none'") {
 		t.Errorf("with a preview: %s", got)
 	}
-	if got := csp(&Server{}); !strings.Contains(got, "frame-src 'none';") || strings.Contains(got, "eqoaclassic.com") {
+	if got := csp(&Server{}); !strings.Contains(got, "frame-src 'none';") || strings.Contains(got, "example.com") {
 		t.Errorf("without one: %s", got)
 	}
 
@@ -49,7 +49,7 @@ func TestSpellVisualPreviewFraming(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
-	for _, bad := range []string{"javascript:alert(1)", "eqoaclassic.com/fxview.html", "https://user:pw@eqoaclassic.com/x"} {
+	for _, bad := range []string{"javascript:alert(1)", "example.com/fxview.html", "https://user:pw@example.com/x"} {
 		cfg := config.DefaultConfig()
 		cfg.GM.PreviewURL = bad
 		if _, err := New(Deps{Config: cfg, DB: db}); err == nil || !strings.Contains(err.Error(), "preview_url") {

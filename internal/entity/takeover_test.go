@@ -44,7 +44,7 @@ func newTakeoverFixture(t *testing.T) *takeoverFixture {
 		Race: 3, TClass: 11, X: 25375, Y: 54.1, Z: 15721})
 	f.old.SetCharacterInWorld(true)
 	f.mateSess = window(6302, 32)
-	f.mate = f.w.CreatePlayer(f.mateSess, &database.CharacterRecord{ServerID: 44, CharName: "Jibrish", AccountID: 7, Level: 60,
+	f.mate = f.w.CreatePlayer(f.mateSess, &database.CharacterRecord{ServerID: 44, CharName: "Jinkles", AccountID: 7, Level: 60,
 		Race: 3, TClass: 12, X: 25380, Y: 54.1, Z: 15721})
 	f.mateSess.SetCharacterInWorld(true)
 

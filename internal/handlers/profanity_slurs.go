@@ -2,7 +2,7 @@ package handlers
 
 import "strings"
 
-// The slurs the Medium profanity filter masks (the GM Jibrish's petition
+// The slurs the Medium profanity filter masks (a GM's petition
 // 1625: "medium doesnt block swears, but blocks hard slurs (But not the word
 // 'retarded', think racial slurs only)"). High masks these too, with every
 // word of profanity.go. Only racial and ethnic slurs no clean word is: a

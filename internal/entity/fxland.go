@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// fxland.go — an animated combat art hits when its graphic ends (work board #1643, the GM Jibrish's
+// fxland.go — an animated combat art hits when its graphic ends (work board #1643, a GM's
 // rule of 2026-11-18, from a player's report that Dazzling Blades' damage showed long before its 2 s
 // sword spin ended: "for abilities with a delay, make it so the next ability is allowed as soon after
 // [the hit]"). Table fxland gives a visual's DictID (the one a player's cast plays in its 0x00B1,

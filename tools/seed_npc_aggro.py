@@ -2,18 +2,18 @@
 """The seed rows of npcaggro: names whose NPCs entity/aggro.go's rule would set
 on players but which are to be left peaceful (aggressive 0).
 
-- Players' pets among the NPC rows. Return Home's NPCs (jib's import,
+- Players' pets among the NPC rows. Return Home's NPCs (a GM's import,
   tools/import_prh_content.py) were recorded off the live game, where a
   player's summoned pet stood beside its owner like any NPC, so pets are in
   npcs as spawns of their own, wherever their owners stood (Companion Spirit
-  144 times, Kindred Spirit 138 on eqoaclassic). A pet is named as its spell
+  144 times, Kindred Spirit 138 on the production server). A pet is named as its spell
   (entity/pet.go), so a name in npcs that is a summoning spell's is a pet's:
   from the server's own spellpattern (a description "Summons ...") and from
   EQOA-Data's class spell lists (Information/databases/spells/*.json: the
   icon "Summoning" or a description "Summons ..."), which hold the shaman's
   spirits that spellpattern lacks. Each name is listed with its count, so a
   name that is also real wildlife can be left out (--keep).
-- Measured: Cave Minnow. Sandstorm showed a level-1 player in Neriak a level-2
+- Measured: Cave Minnow. The reference server showed a level-1 player in Neriak a level-2
   one with the white face (pcaps/breath_capture.pcap), which a creature that
   attacks on sight never shows a player in its level range.
 

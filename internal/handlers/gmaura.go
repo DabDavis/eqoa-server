@@ -49,7 +49,7 @@ import (
 //	                                equipped weapons the necro's tainted aura from the epic sickle")
 //	/aura second particles mainhand source=1D875ECD along=100
 //	                                a SECOND aura on the hand (charaura's color2 ... nodes2), beside its first,
-//	                                the target's alone (2026-11-16: Dust's sword "will keep the red aura it has
+//	                                the target's alone (2026-11-16: a GM's sword "will keep the red aura it has
 //	                                and stack the twinkle"); /aura second off mainhand clears it
 //
 // colour: a name (auraColors) or RRGGBB / RRGGBBAA hex, black a dark aura;
@@ -272,7 +272,7 @@ type auraSpec struct {
 }
 
 // auraLook is a named aura a GM gives by its name (the owner, 2026-11-14:
-// "give zerkziee hachet and ranger level 60 epics the level 49 druid staff
+// "give [a player] hachet and ranger level 60 epics the level 49 druid staff
 // glow (also make a template like other auras)"): its words, in order, in
 // /aura (any case; also run together or with underscores), and the aura they
 // stand for. An epic look goes on a held weapon (both hands when no place is
@@ -293,7 +293,7 @@ var auraLooks = []auraLook{
 	// Nodes on a hand is where along the weapon (database.AuraAlongMost): the
 	// staff's sparkles at 45% of the weapon's length, mid-blade on a
 	// scimitar (the owner, 2026-11-14: "lets move the druid epic aura down
-	// zerkziee scimitar down the blade more"; until then at the staff's own
+	// [a player] scimitar down the blade more"; until then at the staff's own
 	// share, 78%, near the tip)
 	{[]string{"druid", "staff", "glow"}, database.ItemAura{Kind: database.AuraEpic, Source: 0xCBF4135A, Nodes: 45},
 		"the druid's level 49 epic staff, Oak Staff of Eilerawdl (CBF4135A): an amber glow, a gold sheen and its sparkles mid-blade (along=N moves them)", false},
@@ -301,10 +301,10 @@ var auraLooks = []auraLook{
 	// criss-cross at its yin-yang end worn as a circlet (the owner,
 	// 2026-11-14: "the effect on the end of the monks epic yin yang staff the
 	// circle of light with the criss cross lets make that effect into a
-	// circlet on the head of dust")
+	// circlet on the head of [a GM]")
 	// Nodes on a circlet is how high on the head (database.AuraAlongMost): the
 	// upper forehead and temples, above the brows (the owner, 2026-11-14: "the
-	// circlet is sitting too low on dust"; the client's own 62% crossed the eyes)
+	// circlet is sitting too low on [a GM]"; the client's own 62% crossed the eyes)
 	{[]string{"monk", "circlet"}, database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: CircletHeightMonk},
 		"the monk's level 49 epic staff, Ascendant staff (1D875ECD): its glowing ring with the criss-cross worn round the head at the temples (while no helm is drawn; height=N moves it)", false},
 	// the paladin's level 60 epic, the Sword of Virtue: its glow, its sheen
@@ -314,7 +314,7 @@ var auraLooks = []auraLook{
 		"the paladin's level 60 epic, the Sword of Virtue (88EC092D): its glow, its sheen and its sparkles (a colour recolours them: /aura blue sword of virtue weapons)", false},
 	// the kappa's wide-brimmed straw hat (CHAR.ESF 0xF0FAB933, part of its
 	// body) worn on the head in place of the helm (the owner, 2026-11-16, of
-	// Hoofbite: "for his monk hat lets use the kappas built in hat that is
+	// a player: "for his monk hat lets use the kappas built in hat that is
 	// wide brimmed for his model")
 	{[]string{"kappa", "hat"}, database.ItemAura{Kind: database.AuraHat, Source: database.KappaHat},
 		"the kappa's wide-brimmed straw hat (F0FAB933, built into its body) worn on the head in place of the helm (a colour recolours it)", false},
@@ -770,7 +770,7 @@ func (h *ChatHandler) auraCommand(sess *session.Session, player *entity.Player, 
 
 // setCharSecondAura keeps a character's (or a mercenary's) hand's second
 // aura (charaura's color2 ... nodes2, audited), beside its first on whatever
-// that hand holds (the owner, 2026-11-16, of Dust's sword: "it will keep the
+// that hand holds (the owner, 2026-11-16, of a GM's sword: "it will keep the
 // red aura it has and stack the twinkle"): /aura second <kind> <hand> ...
 func (h *ChatHandler) setCharSecondAura(sess *session.Session, player *entity.Player, key database.CharAuraKey, slots []int, place, whose string, isMerc bool, sp auraSpec) {
 	db := h.camps.db

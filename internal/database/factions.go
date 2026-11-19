@@ -11,7 +11,7 @@ import "fmt"
 //     characters of a race, class and home city start with where it is not the
 //     faction's own (factions); -1 is any. The most specific row a character
 //     matches is its start (entity/faction.go). tools/seed_faction_starts.py
-//     writes Sandstorm's measured starts (source "seed").
+//     writes the reference server's measured starts (source "seed").
 //   - charfactions (serverid, faction, standing): a character's standing with a
 //     faction it has moved off the starting one, kept over a logout.
 //   - factionhits (npc_name, faction, delta, source): killing an NPC of that

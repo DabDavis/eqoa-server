@@ -207,7 +207,7 @@ func hasColumn(db *sql.DB, t, c string) (bool, error) {
 // The step kinds.
 const (
 	StepTalk  = "talk"  // talk to an NPC (target), answering it when the step has an answer
-	StepShow  = "show"  // talk to an NPC (target) holding items, which are kept (Sandstorm's first warrior quest: the bracer)
+	StepShow  = "show"  // talk to an NPC (target) holding items, which are kept (the reference server's first warrior quest: the bracer)
 	StepGive  = "give"  // hand an NPC (target) items and tunar
 	StepKill  = "kill"  // kill count creatures named target (or one of its others, Also)
 	StepLoot  = "loot"  // kill creatures named target (or Also) until count of the item (items) are taken off their corpses during the step
@@ -603,7 +603,7 @@ type Quest struct {
 	// excludes column, ids as ParseIntList reads them): it is not offered nor
 	// taken by one who has finished any of them or has one under way. Two
 	// guides' tellings of one errand exclude each other (petition 2199,
-	// Cardile: "argot bittersteel is asking for the runed tablet. i already
+	// a player: "argot bittersteel is asking for the runed tablet. i already
 	// retrieved it but hes sending me back to get it again": Crikston's The
 	// Runed Clay Tablet, 100868, and Argot's own The Al'Karad Tablet, 100770,
 	// the same story and the same reward; tools/quest_twins_20261115.py).
@@ -620,11 +620,11 @@ type Quest struct {
 	// blank lines) a question: its lines a box each, its last line the
 	// question the paragraph's answer (Accept's line of that number) answers.
 	Offer string
-	// Accept is the player's answers taking it, a line a question (Sandstorm's
+	// Accept is the player's answers taking it, a line a question (the reference server's
 	// first warrior quest asks two); "" takes it when the giver is talked to.
 	Accept  string
 	Decline string // the player's answer refusing it, offered with each answer; "" none
-	// Declined is the giver's reply to a refusal, said as written (Sandstorm's
+	// Declined is the giver's reply to a refusal, said as written (the reference server's
 	// Captain Norgam's carries no name before it).
 	Declined string
 	Started  string // the giver's words once it is taken
@@ -734,7 +734,7 @@ type QuestStep struct {
 	// (not yet) answers.
 	Waiting string
 	// NotYet is the player's answer when a show or give step's items are not
-	// held (Sandstorm's "No, I am lost."); "" asks nothing then.
+	// held (the reference server's "No, I am lost."); "" asks nothing then.
 	NotYet string
 	// Reminder is the NPC's words when the step's items are not held (after
 	// NotYet when there is one).

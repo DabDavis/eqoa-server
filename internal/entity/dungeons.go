@@ -333,7 +333,7 @@ func (w *World) dungeonAliveLocked(in *dungeonInst) int {
 
 // dungeonKillable is whether an instance's creature counts in its "%d of %d creatures killed" (/dungeon, the
 // opening line, the warden's choices): one a player can kill. Not one with the NPC bit (0x80: no one may attack
-// it, the attack refuses it), a training dummy's or a spawn-only original's (Waldorf's ticket 2010, 2026-11-13,
+// it, the attack refuses it), a training dummy's or a spawn-only original's (a player's ticket 2010, 2026-11-13,
 // "I've killed 306 of 307. Is the last npc the teleport? If so that shouldn't be counted").
 func dungeonKillable(c *NPC) bool {
 	return c != nil && c.NPCType&0x80 == 0 && c.Dummy == NotDummy && !c.SpawnOnly
@@ -707,7 +707,7 @@ func (w *World) DungeonStatus(sess *session.Session) string {
 	var parts []string
 	for i, d := range w.dungeons.defs {
 		if in := w.dungeonInstForLocked(i, p); in != nil {
-			// "xx of yy killed" (petition 1841, Waldorf: "a tracker to see how many of the total we killed")
+			// "xx of yy killed" (petition 1841: "a tracker to see how many of the total we killed")
 			parts = append(parts, fmt.Sprintf("%s (%s's): %d of %d creatures killed, %d inside", d.Name, in.ownerName,
 				in.creatures-w.dungeonAliveLocked(in), in.creatures, w.dungeonPeopleLocked(in)))
 		}

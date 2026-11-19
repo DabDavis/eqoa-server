@@ -11,7 +11,7 @@ package udp
 // an arrival (connection_record_segment sets time_last_arrival), an ack-only
 // one too. Until this file, nothing went to a client from the moment the old
 // process froze its sends (Snapshot written) to the end of ResumeKept in the new
-// one: on eqoaclassic that hold had grown with the player count (the new image
+// one: on the production server that hold had grown with the player count (the new image
 // loads the world ~8 s, then builds the characters one after another, ~0.65 s
 // each), 25.6 s with 27 players at 00:36, 33.0 s with 30 at 01:44, 31.6 s with
 // 33 at 02:18 and 35.2 s with 34 at 02:27 (2026-11-16). Past 30 s every client

@@ -6,7 +6,7 @@ import (
 )
 
 // fxland: when an animated combat art's hit lands, by the visual its cast plays (work board #1643,
-// the GM Jibrish's rule of 2026-11-18, from a player's report that the arts hit too early: "for
+// a GM's rule of 2026-11-18, from a player's report that the arts hit too early: "for
 // abilities with a delay, make it so the next ability is allowed as soon after [the hit]"). A row is a
 // visual's DictID (fxdict, as spelleffect.fxdict stores it: compared as uint32) and land_ms, the time
 // from the cast time's end to the hit, in place of the half second every other spell lands after

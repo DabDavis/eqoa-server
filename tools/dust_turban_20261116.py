@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""The Turban of Twisted Virtue: the efreeti lord's turban as an item for Dust (the owner, 2026-11-16: "lets also cut
-the turban from the efreeti lord as a turban for dust in his inventory, turban of twisted virtue").
+"""The Turban of Twisted Virtue: the efreeti lord's turban as an item for a GM (the owner, 2026-11-16: "lets also cut
+the turban from the efreeti lord as a turban for [a GM] in his inventory, turban of twisted virtue").
 
 The turban is part of the efreeti lord's body (CHAR.ESF 0xAA489CBB, Efreeti Lord Djarn's), cut out and worn on the head
-in place of the helm by vanilla's hat.rs (aura kind 10, hat). Named in the series of Dust's Heirloom Sword, Shield and
-Crown of Twisted Virtue (714382, 714383, 714387). Heirloom: Dust is on no other shard.
+in place of the helm by vanilla's hat.rs (aura kind 10, hat). Named in the series of a GM's Heirloom Sword, Shield and
+Crown of Twisted Virtue (714382, 714383, 714387). Heirloom: a GM is on no other shard.
 
 --apply, the record (each row audited, logged):
-1. itempattern, at the next free id after 714387 in the heirloom range: Dust's own Heirloom Helm (714043) copied whole
+1. itempattern, at the next free id after 714387 in the heirloom range: a GM's own Heirloom Helm (714043) copied whole
    (a helm, equipslot 1; no trade; its figures the heirlooms' rule: the best head piece his class wears at his level, as
    the Sword, Shield and Crown of Twisted Virtue are), with its own name and description, LORE (one a character), the
    game's dark turban icon (864498561, Starless Night Turban's), the series' crimson (3238989567) and model 1: the helm
@@ -16,9 +16,9 @@ Crown of Twisted Virtue (714382, 714383, 714387). Heirloom: Dust is on no other 
    lowest id, 714043, so neither hands out the turban.
 3. itemaura: kind 10 (hat: database.AuraHat, server branch dust-turban), source 0xAA489CBB, colour 0 (the turban's own
    colours): anyone wearing it in the helm's slot shows the turban (entity.pieceAuras); hidden, none.
-4. itemowner: Dust (serverid) alone may wear it.
+4. itemowner: a GM (serverid) alone may wear it.
 
---give: one into Dust's pack (location 0, the next list number); refused while he holds one or before --apply.
+--give: one into a GM's pack (location 0, the next list number); refused while he holds one or before --apply.
 
 Checked as found, else REFUSED and nothing written. Report by default; a second run finds nothing to do; --undo puts
 back exactly what was there, the last write first, all or nothing: refused, nothing changed, while any row written has
@@ -26,7 +26,7 @@ changed since (the turban worn or moved: take it off into his pack first) or ano
 
 Needs a server with dust-turban (itemaura kind 10; an older one drops the row: the turban shows its fallback helm) and a
 vanilla with the hat (hoofbite-look). After --apply: the panel's "Reload every NPC" (the item auras); after --give,
-Dust's next login (his pack).
+a GM's next login (his pack).
 
     python3 -E -s tools/dust_turban_20261116.py --db eqoa.db [--apply | --give | --undo]
 """

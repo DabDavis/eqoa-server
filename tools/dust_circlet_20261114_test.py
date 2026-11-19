@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""dust_circlet_20261114.py on a small database: the report writes nothing; --apply writes Dust's helm-slot row (kind 8,
+"""dust_circlet_20261114.py on a small database: the report writes nothing; --apply writes a GM's helm-slot row (kind 8,
 the Ascendant staff's model) with a gm_audit line, his trim auras untouched; a second apply finds nothing to do; --undo
-puts back exactly what was there. The controls: no Dust, nothing (exit 0); no staff record, refused, nothing written."""
+puts back exactly what was there. The controls: no such character, nothing (exit 0); no staff record, refused, nothing written."""
 import os
 import sqlite3
 import subprocess

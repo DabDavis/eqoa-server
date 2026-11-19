@@ -323,7 +323,7 @@ func (w *World) askLocked(target, inviter *Player, tsess *session.Session, ask g
 
 // answerInviterLocked is whom p's answer naming id answers: the player id names
 // now, when p has a box of that player's up; else the one whose box was sent
-// naming id (the user, 2026-11-08: "dwarfrish tried to /raid after we all
+// naming id (the user, 2026-11-08: "[a GM] tried to /raid after we all
 // accepted and folks couldnt join": a raid's crowd moved the inviter to another
 // slot of the answerer's view between the box and the yes, and the yes was
 // dropped, the box left waiting). Must be called with the lock held.

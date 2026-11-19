@@ -503,7 +503,7 @@ func TestCraftArrangeAndRemove(t *testing.T) {
 }
 
 // The MemoryDump's six slots are the character's: {99, level, rank, 98} a
-// skill with a row, Sandstorm's defaults without.
+// skill with a row, the reference server's defaults without.
 func TestCraftDumpSlotsAreTheCharacters(t *testing.T) {
 	f := newCraftFixture(t)
 	if got := f.h.DumpSlots(f.sid); got != craftSlotsDefault() {

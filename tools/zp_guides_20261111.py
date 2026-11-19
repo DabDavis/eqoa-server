@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Zaoran Plateau as questmasters1.com's guide has it (the owner, 2026-11-11, pointing to its archived Zaoran Plateau
-pages of 2006-07), beside #494 (the GM Jibrish's 2008-2012 plateau, which stands: its numbers win where both give one).
+pages of 2006-07), beside #494 (a GM's 2008-2012 plateau, which stands: its numbers win where both give one).
 
 One guide-gaps set, `zp-factions` (tools/guidegaps/zp-factions.json, its quests tools/quests/data/zp-factions.json),
 written by tools/seed_guide_gaps.py's machinery, every row it changes logged in guide_set_log so the undo is exact:

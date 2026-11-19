@@ -44,7 +44,7 @@ def page(title, rows):
 
 
 def ware(i, name, value, wear=-1, level=1, craft=1, stack=99):
-    # rent 1, as every one of Sandstorm's harvested records of these kinds is
+    # rent 1, as every one of the reference server's harvested records of these kinds is
     return {"id": i, "name": name, "value": value, "p08": 0, "icon": 555, "icon2": 0, "wear_slot": wear, "p18": 0, "no_trade": 0,
             "rent": 1, "p24": 0, "attack_type": 0, "damage": 0, "range": 0, "level_req": level, "max_stack": stack, "max_hp": 0,
             "durability": 0, "class_mask": 0, "race_mask": 0, "p4c": 0, "lore": 0, "p58": 0, "p54": craft, "desc": "", "stats": []}
@@ -89,7 +89,7 @@ class SeedTradeskills(unittest.TestCase):
         db = sqlite3.connect(self.db)
         db.execute(f"CREATE TABLE itempattern ({ITEM_COLS})")
         # a modifier here already; a live crafted record; a found item of a product's name and another level;
-        # Sandstorm's id of a hammer held here by another item
+        # the reference server's id of a hammer held here by another item
         rows = [(1116, "heartsblood alloy", 1, 0, -1, 0, 50, 0), (1042, "heartsblood seralite breastplate", 0, 48, 5, 378, 1, 525),
                 (1920, "Crude Iron Breastplate", 0, 30, 5, 99, 1, 525), (20400, "Forgehammer", 0, 1, 12, 0, 1, 0),
                 (500, "rusty smithing hammer", 0, 1, 18, 0, 1, 0)]
@@ -102,7 +102,7 @@ class SeedTradeskills(unittest.TestCase):
         db.execute("CREATE TABLE npcitem (itemid INTEGER PRIMARY KEY AUTOINCREMENT, npcid INTEGER, stackleft INTEGER, remainHP INTEGER, "
                    "remaincharge INTEGER, patternid INTEGER, equiploc INTEGER, location INTEGER, listnumber INTEGER)")
         db.execute("INSERT INTO npcitem VALUES (10, 2, 1, 0, 0, 500, -1, 1, 0)")   # a stand-in
-        db.execute("INSERT INTO npcitem VALUES (11, 4, 1, 0, 0, 20304, -1, 1, 0)")  # Sandstorm's: kept
+        db.execute("INSERT INTO npcitem VALUES (11, 4, 1, 0, 0, 20304, -1, 1, 0)")  # the reference server's: kept
         db.execute("CREATE TABLE merchant_stock (what TEXT, key INTEGER, old TEXT, new TEXT, note TEXT)")
         db.execute("INSERT INTO merchant_stock VALUES ('catalog', 10, NULL, '2,500,0', 'general goods')")
         db.execute("INSERT INTO merchant_stock VALUES ('catalog', 11, NULL, '4,20304,0', 'Sandstorm''s catalog')")
@@ -192,11 +192,11 @@ class SeedTradeskills(unittest.TestCase):
         # the targe and tear by Prima's AC rows; a tear has none below trade level 5
         self.assertEqual(self.q("SELECT AC FROM itempattern WHERE itemname = 'crude iron targe shield'"), [(10,)])
         self.assertEqual(self.q("SELECT count(*) FROM itempattern WHERE itemname = 'crude iron tear shield'"), [(0,)])
-        # Sandstorm's ids where free; the hammer whose id is taken here gets another
+        # the reference server's ids where free; the hammer whose id is taken here gets another
         self.assertEqual(self.q("SELECT itemname FROM itempattern WHERE patternid = 20313"), [("Seralite Ore",)])
         novice = self.q("SELECT patternid FROM itempattern WHERE itemname = 'Novice Armorsmith Hammer'")[0][0]
         self.assertNotEqual(novice, 20400)
-        # the stand-in goods gone, Sandstorm's kept, the craft's wares in: hammers, molds, ores
+        # the stand-in goods gone, the reference server's kept, the craft's wares in: hammers, molds, ores
         self.assertEqual(self.q("SELECT count(*) FROM npcitem WHERE itemid = 10"), [(0,)])
         self.assertEqual(self.q("SELECT count(*) FROM npcitem WHERE itemid = 11"), [(1,)])
         self.assertEqual(self.q("SELECT count(*) FROM npcitem WHERE npcid = 2"), [(10,)])
@@ -413,7 +413,7 @@ def weapon_grid(hands, tls, rows):
 
 class SeedWeapons(unittest.TestCase):
     """--craft weapon: Prima's tables (damage, stat and proc figures by trade level, a product a mold and trade level)
-    checked against eqoatrade's grids, Sandstorm's hammers and molds, looks from this server's own weapon records."""
+    checked against eqoatrade's grids, the reference server's hammers and molds, looks from this server's own weapon records."""
 
     def setUp(self):
         self.dir = tempfile.TemporaryDirectory()
@@ -544,7 +544,7 @@ class SeedWeapons(unittest.TestCase):
         self.assertEqual(self.q("SELECT itemdesc FROM itempattern WHERE itemname = 'siphoning seralite katana'"),
                          [("A weapon forged of seralite. Procs a 10 point mana tap, a 15% chance each hit.",)])
         self.assertEqual(self.q("SELECT count(*) FROM itempattern WHERE itemname LIKE 'vampiric mithril %'"), [(0,)])
-        # Sandstorm's hammers and molds under their ids; the stand-in out; the wares in
+        # the reference server's hammers and molds under their ids; the stand-in out; the wares in
         self.assertEqual(self.q("SELECT itemname, equipslot FROM itempattern WHERE patternid = 28507"), [("Novice Weaponsmith Hammer", 22)])
         self.assertEqual(self.q("SELECT count(*) FROM npcitem WHERE itemid = 10"), [(0,)])
         self.assertEqual(self.q("SELECT count(*) FROM npcitem WHERE npcid = 2"), [(10,)])
@@ -661,7 +661,7 @@ def tailor_prima_text():
 
 class SeedTailoring(unittest.TestCase):
     """--craft tailor: Prima's Tailoring tables (textiles, mundane AC, stat bonuses, modifiers) checked against its text,
-    Sandstorm's kits, patterns and textiles, Prima's city tables for the sellers (each NPC of a name stocked; a shard's
+    the reference server's kits, patterns and textiles, Prima's city tables for the sellers (each NPC of a name stocked; a shard's
     other spelling of an NPC set to Prima's, and put back by --undo)."""
 
     def setUp(self):
@@ -775,7 +775,7 @@ class SeedTailoring(unittest.TestCase):
         self.assertEqual((disc, comp), (0, M.TAILOR_SPECIAL))
         self.assertEqual(self.q("SELECT itemname FROM itempattern WHERE patternid = ?", (scroll,)), [("Patchwork Cap Recipe",)])
         self.assertEqual(self.q("SELECT discover FROM craftrecipes WHERE name = 'Patchwork Hide Gloves'"), [(1,)])
-        # Sandstorm's kits (wear 24, Tailoring's tool) under their ids; every Dirlen stocked, the stand-in out
+        # the reference server's kits (wear 24, Tailoring's tool) under their ids; every Dirlen stocked, the stand-in out
         self.assertEqual(self.q("SELECT itemname, equipslot FROM itempattern WHERE patternid = 28527"), [("Novice Tailor's Kit", 24)])
         self.assertEqual(self.q("SELECT count(*) FROM npcitem WHERE itemid = 10"), [(0,)])
         dirlen = [r[0] for r in self.q("SELECT id FROM npcs WHERE npc_name = 'Merchant Dirlen'")]

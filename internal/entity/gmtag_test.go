@@ -11,8 +11,8 @@ func TestAGMsNameCarriesTheTag(t *testing.T) {
 	for _, c := range []struct {
 		gm   bool
 		want string
-	}{{true, "[GM] Jibrish"}, {false, "Jibrish"}} {
-		p := &Player{Name: "Jibrish", GM: c.gm, Level: 60}
+	}{{true, "[GM] Jinkles"}, {false, "Jinkles"}} {
+		p := &Player{Name: "Jinkles", GM: c.gm, Level: 60}
 		buf := SerializePlayerUpdate(1, p)
 		if len(buf) < 140 {
 			t.Fatalf("channel %d bytes", len(buf))

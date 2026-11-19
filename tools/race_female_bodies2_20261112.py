@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The goblin and the gnoll given their own female bodies in racedefs (the GM Jibrish's petition 1647, second part,
+"""The goblin and the gnoll given their own female bodies in racedefs (a GM's petition 1647, second part,
 2026-11-12, the owner: "a lot of the new races have female variants that we have not implemented yet"), with the women's
 body lists of entity/raceoptions.go of the same branch, whose first step each is.
 

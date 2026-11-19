@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """A Master Class's abilities in cmcatalog: each needing only the master class
-itself, and named for what it gives (F3 20261026-222613, jib: "Master class
+itself, and named for what it gives (F3 20261026-222613, a GM: "Master class
 abilities should be named what they are eg "Ogre Pill" and not "Transmuter
 2" or "Transmuter 3" ... Tag *unlocks* the 2, but isn't a singular master
 class purchase chain").

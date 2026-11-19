@@ -7,7 +7,7 @@ example. so it doesnt just stick to all his weps"; then "do that for all that ha
    moved onto the copy that character (or merc) holds in that hand now, as the server reads it (handlers/character.go
    wornLook: the main hand equiploc 16, 14, 19; the off hand 15, 20, 18, then a shield 17; a merc's in charmercitem,
    its key -id): an instanceaura row with the row's first aura, its second (charaura's color2 ... nodes2 where the
-   table has them), and a tag named from the aura (TAGS). Then the charaura row is deleted. Dust (197): his twinkle
+   table has them), and a tag named from the aura (TAGS). Then the charaura row is deleted. A GM (197): his twinkle
    (kind 3, 1D875ECD, along 100) goes in as his copy's second where his row carries none (tools/dust_twinkle_20261116.py
    not yet applied).
 2. A hand that holds nothing of its own (empty, or a merc's lent heirloom) keeps its charaura row: listed.

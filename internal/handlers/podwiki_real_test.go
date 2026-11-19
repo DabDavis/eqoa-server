@@ -17,7 +17,7 @@ import (
 // Xeptip gives no suit; the quester walks in without one, and the Oozing
 // Portal does not let it through until it has one; six stitched zombie skins
 // and a sinew cord, handed to Fatima Ubel (two swatches, then the suit), make
-// it, and the portal then sends it on. The ward where Dust stood stops a
+// it, and the portal then sends it on. The ward where a GM stood stops a
 // player without the suit on the lower halls' side alone: not one with it,
 // not a GM, not one on its far side. With EQOA_GROUND_DIR (a worlds/ground
 // folder) every creature the tool placed stands on a floor and the ward spans

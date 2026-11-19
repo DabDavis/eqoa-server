@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""The wizard's hate-lowering line as the GM Jibwiz asked in petition 1949 (2026-11-13): "Verify the agro reducing spell
+"""The wizard's hate-lowering line as a GM asked in petition 1949 (2026-11-13): "Verify the agro reducing spell
 line for wizard, for example stupify, actually removes threat. It should be about equal to removing 1 sorcerer MCA nuke
 of threat".
 
-Measured (internal/entity/stupefy_test.go, the live records, a level 60 wizard of DEX 620, Jibwiz's, on a level 60
+Measured (internal/entity/stupefy_test.go, the live records, a level 60 wizard of DEX 620, a GM's, on a level 60
 creature): the line does take hate off, but Stupefy took 399 where one Sorcerer nuke (the Fury: Icy, Flaming or
 Thunderous, 1455 + 21.39 a level + 40% DEX and its second hit on the target 856 + 31.37 a level + 40% DEX) puts on
 5,797. So Stupefy (700735) and Stupefy + (901747) take off the Fury's own figures, both hits as one: 2311 + 52.76 a

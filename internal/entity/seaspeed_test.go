@@ -7,7 +7,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// A Mermaid (petition 1650, the GM Jibrish: "it should detect if its in water and
+// A Mermaid (petition 1650: "it should detect if its in water and
 // swim at SoW speed by default") in water moves at Spirit of the Wolf's speed, on
 // land at its own, by its client's walk flags (in a liquid, or at its surface);
 // with Spirit of the Wolf on it is SoW's speed either way, never past it; a

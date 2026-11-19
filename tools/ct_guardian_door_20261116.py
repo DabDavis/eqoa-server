@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The Estate's door kept by the server (petition 2212, Hoofbite, Heirloom 2026-11-16: "The Guardian in IOD blocking
+"""The Estate's door kept by the server (petition 2212, Heirloom 2026-11-16: "The Guardian in IOD blocking
 entrance to cazic thule house is able to be bypassed via logging and then running forward while relogging").
 
 The Guardian (npcs 118859, Isle of Dread, at 25706.2, 54.1, 3230.7) is the door into Cazic Thule's Estate: his body
@@ -12,7 +12,7 @@ Scent's ten minutes, itemhide 1231: "each and every time", t196) and a GM: the r
            room at 49 under it, the talisman's landing at 25712, 54.4, 3232 inside it). Measured on the ground file
            live uses (worlds/ground/0.ground): from his middle a walk at 55.3 meets a wall at every z off 3228-3234
            east of x 25707, the house's own surfaces (49 floor, 59 ceiling) run x 25708-25718.
-  outer    the porch, his body up to his middle: x 25690-25706.2, y 51-60, z 3215-3250 (Hoofbite's places at the door
+  outer    the porch, his body up to his middle: x 25690-25706.2, y 51-60, z 3215-3250 (a player's places at the door
            that night, 25702.1/3222.5 and 25705.8/3231.9 at 54.1-55.0, inside it).
   outside  (25700, 54.3, 3231): 6 west of him on the porch's floor (54.25 there), in the open from his middle.
 

@@ -185,9 +185,9 @@ func TestRealIsleOfDreadKits(t *testing.T) {
 			lowest = min(lowest, p.StatNow(StatAC))
 			w.mu.Unlock()
 		}
-		t.Logf("Impale: Zerkziee's AC at its lowest %d under Impaling Gore", lowest)
+		t.Logf("Impale: Zorbaxes's AC at its lowest %d under Impaling Gore", lowest)
 		if lowest != 1020 {
-			t.Errorf("under Impaling Gore Zerkziee's AC went to %d, want 1,020", lowest)
+			t.Errorf("under Impaling Gore Zorbaxes's AC went to %d, want 1,020", lowest)
 		}
 	}
 }

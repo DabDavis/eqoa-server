@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Petition 1738, Hoofbite: Rakish Assault's 100 off pierce on a creature
+// Petition 1738: Rakish Assault's 100 off pierce on a creature
 // doubles a rogue's piercing swings, and now its pierce abilities as well:
 // Assassinate and the backstabs (resisted by pierce), the Rakish strikes; a
 // slashing or crushing art by a slash or blunt debuff; a backstab of no

@@ -1,7 +1,7 @@
 package entity
 
 // pettaunttank.go — a player tank's taunt takes a creature from a pet, and a pet leaves a grouped
-// tank's creature to him (Live petition 5055, Innoruuk, a level 17 shadow knight, 2026-11-14: "Mage
+// tank's creature to him (Live petition 5055, a level 17 shadow knight, 2026-11-14: "Mage
 // earth pet either has way too much aggro or Delf sk taunt not strong enough/accumulating enough
 // aggro"; Live petition 5022's option (a)).
 //

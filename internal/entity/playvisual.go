@@ -44,7 +44,7 @@ func (w *World) PlayVisual(sess *session.Session, fx uint32, castTime time.Durat
 }
 
 // NPCVisual is an NPC's cast of a visual onto a target, as a spiritmaster's
-// bind is (Sandstorm's Zole: 0x00B1 from him onto the player, 3000 ms, visual
+// bind is (the reference server's Zole: 0x00B1 from him onto the player, 3000 ms, visual
 // 0x08F3B955): the 0x00B1 to everyone who sees the NPC, the target as each
 // knows it, and nothing else of a cast. It reports whether the NPC is there.
 func (w *World) NPCVisual(npc, target EntityID, castTime time.Duration, fx uint32) bool {

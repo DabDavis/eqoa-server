@@ -7,7 +7,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// Where the water is, and what keeps to it (F3 20261026-020316, jib:
+// Where the water is, and what keeps to it (F3 20261026-020316, a GM:
 // "Wildlife that is not aquatic should avoid naturally roaming into the
 // water, unless a player has agro or something and pulls it in. Caiman,
 // crocodiles, crabs can roam both ... You should not be able to nuke
@@ -74,7 +74,7 @@ func (w *World) SetEnv(e Env) {
 // waterAtLocked reports a point in the water, or in slime, which bodies swim
 // in as they do in water (the Plane of Disease's lake is all slime: its
 // piranhas, keeping to the water, stood still on its spawn as "off the
-// ground", 2026-11-13, Skywalker; fishing already took both:
+// ground", 2026-11-13, a player; fishing already took both:
 // fishing.go); false where the server knows none. Must be called with the
 // lock held.
 func (w *World) waterAtLocked(world uint8, x, y, z float32) bool {
@@ -267,7 +267,7 @@ func (w *World) wetAtLocked(world uint8, x, y, z float32) bool {
 // apartBodies is whether two bodies are on either side of the water's edge:
 // one in the water (at bodyAbove) and the other dry (no water at its feet).
 // A body wading in shallow water is apart from neither (Heirloom petition
-// 2145, Zerkx, 2026-11-15, Guk: "ill be fighting a mob and will get the error
+// 2145, a player, 2026-11-15, Guk: "ill be fighting a mob and will get the error
 // 'your target is in the water' even if im in the water or the water is very
 // low").
 func apartBodies(inA, wetA, inB, wetB bool) bool {

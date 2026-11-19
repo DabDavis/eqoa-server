@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// The GM Jibrish's petition 1879: an instance's leader adds players beyond its party, up to its cap (4 for a heroic
+// a GM's petition 1879: an instance's leader adds players beyond its party, up to its cap (4 for a heroic
 // dungeon, 50 for a raid's), and takes them out: one standing in it is warned and sent to Freeport after 60 s. Over
 // the dungeons rig: a group of two (Ann leads) in Test Guk; a member may add no one; Ann adds Cal (not in her group),
 // who may then enter it (he is a member of Fay's group, opening nothing of his own); Dee makes four; a fifth is refused at the cap (the control: a raid's instance holds 50, so

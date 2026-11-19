@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """The re-fit of 2026-10-30: Balance by class and level moved from the rows tools/tune_balance.py left (live on
-eqoaclassic since 00:27 UTC) to the rows the simulator fits on eqoaclassic's data of 04:20 with SOE's roamers in the
+the production server since 00:27 UTC) to the rows the simulator fits on the production server's data of 04:20 with SOE's roamers in the
 creatures (tools/seed_roamers.py; claude-notes/balance-20261029.md).
 
 Two things moved under the first tuning. The kits: by 04:20 fix_armor_class.py had moved 320 items' armour class out
 of a stat it had been written into, fix_reward_class_masks.py --all-rewards had given 187 quest rewards their quests'
-classes, and the trash items, the class quest scrolls and items and Sandstorm's spell visuals had gone in; a monk of
+classes, and the trash items, the class quest scrolls and items and the reference server's spell visuals had gone in; a monk of
 5 then won a yellow two up 31% of the time where the first tuning had it at 70% (its kit lost an item of +27 STR).
 And the creatures: the user's "SOE had most mobs as warrior class, but stripped down to just a 'crit' attack once
 every 30 secs or so ... they get it around level 10 starting": every hostile warrior or classless creature fights by
 the roamer template (a Critical Hit of 7.4 a level, fixed and through any armour, every 25-35 s of its time at its
-enemy from 10-20 s in, from level 10), and wisps by the wisp template (jib's wizard at 28% of a player's figures).
+enemy from 10-20 s in, from level 10), and wisps by the wisp template (a GM's wizard at 28% of a player's figures).
 
 The fit is the first tuning's (cmd/balancesim on that data, the foe a roamer: each class's share of an NPC's melee at
 every level 1-60, to both yellows at once: the player's low point averaged over the fights won one and two up near
@@ -29,7 +29,7 @@ against the roamer on the pet's play (the pet's hit points left near a quarter o
 two up 65%), the necromancer's with the spectre's instant (pet_special_hits): a pet's hit points dwarf a crit, so
 they moved little but for the necromancer's spectre levels (44-54: 15-20% fewer, as its instant kills sooner).
 
-Then levels 1-10 against the coordinator's low-level check (jib: "jibrush got beat up by a level 1 while he was
+Then levels 1-10 against the coordinator's low-level check (a GM: "[a character] got beat up by a level 1 while he was
 level 3 alc"; a new alchemist hit a 335-hit-point bat for 2 every 3.5 s): every class wins its even fights about 95%
 of the time and blue and green ones about all of it, BY HAND as well as in its own play, in a new character's
 starting gear at 1-5 (its start weapon, no armour). Melee classes and tanks already did. Where a class did not, its
@@ -40,7 +40,7 @@ melee share was 100: it fights with its pet, but a new one has none yet); their 
 (an owner whose nukes land four times pulls the creature off its pet: a magician of 1 at 15%). A wizard of 2 takes
 15%, a druid of 1 16% and of 3 40%. A pet class's level 11 keeps its old row, so nothing above 10 moves. One cell is
 short: an enchanter of 2 by hand wins 92% of its even fights at any dealt (the NPC of 2 hits 317% and its first
-blows kill a 25-hit-point caster). The yellows keep the tier's kit (the fire bat's calibration is Dust's own gear),
+blows kill a 25-hit-point caster). The yellows keep the tier's kit (the fire bat's calibration is a GM's own gear),
 and every class's own play still wins them, a priest of 1 and the casters before their root aside: RETUNED.
 
 It writes only balanceclasslevel: a row the first tuning left and the re-fit does not keep is taken out, a row the
@@ -70,7 +70,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-import tune_balance as first  # noqa: E402  the first tuning's rows (as eqoaclassic has them since 2026-10-30)
+import tune_balance as first  # noqa: E402  the first tuning's rows (as the production server has them since 2026-10-30)
 
 DEFAULT_DB = os.path.join(HERE, "..", "eqoa.db")
 LOG = "balance_retune_log"

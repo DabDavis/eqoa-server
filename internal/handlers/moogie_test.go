@@ -8,7 +8,7 @@ import (
 	"github.com/eqoa/server/internal/entity"
 )
 
-// Mr. Moogie (petition 1246, Dwarfrish; the user: build it): his box offers to clear buffs or heal;
+// Mr. Moogie (petition 1246; the user: build it): his box offers to clear buffs or heal;
 // clearing ends every effect but the town's Boon and says whose buffs are clear, healing brings hit
 // points and power to their most. Flagged for PvP, he will not help (the control: the same talk
 // unflagged asks).

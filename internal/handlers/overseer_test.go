@@ -9,7 +9,7 @@ import (
 	"github.com/eqoa/server/internal/entity"
 )
 
-// Petition 1699 (Skywalker): "Overseer Yurgulch can be used to check whether
+// Petition 1699: "Overseer Yurgulch can be used to check whether
 // Bertoxxulous, Uzrathixius, or Poxathixius spawns are up and available to kill".
 // The Plane of Disease as it stands since pod_quests_20261112: Bertoxxulous only by
 // his throne's trigger (a lock, an hour, then 3 days 16 hours of waits), the twins

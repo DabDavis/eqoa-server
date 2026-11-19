@@ -2,7 +2,7 @@ package entity
 
 import "log"
 
-// pethate.go — a pet's hate falls to its master (petition 1656, Waldorf, a magician 60 who multiboxes
+// pethate.go — a pet's hate falls to its master (petition 1656, a magician 60 who multiboxes
 // petters: "the hate doesn't transfer from the pet when it dies to the caster. my other boxes don't cast
 // now ... so when main box dies, and their pets die, the mob just runs away").
 //

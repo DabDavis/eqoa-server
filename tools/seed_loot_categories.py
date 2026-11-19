@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """The loot categories seeded (handlers/lootcategory.go): presets of rates,
 the pools each category draws from, every creature's region and profile, and
-each creature's own trash (the user and jib, a GM of SOE's game, 2026-10-30:
+each creature's own trash (the user and a GM, a GM of SOE's game, 2026-10-30:
 rates per tier per kill; "500 more items change nothing about how much
 drops").
 
 Presets (lootpreset, lootrate), each a set of rates by profile:
 
-  - **jib** (active): trash by jib's counts (0-6 items a kill at 25, 31, 25,
+  - **a GM** (active): trash by a GM's counts (0-6 items a kill at 25, 31, 25,
     12, 5, 1.5 and 0.5%: 1.475 a kill, each between the creature's two
     trash items), gems 20% (88% common, 10% uncommon, 2% rare: Prima's rare
     and ultra rare share the 2% three to one, ours), modifiers 3% (the old
@@ -34,7 +34,7 @@ no one, in no quest, recipe, catch or shop) whose whole creature its name
 holds ("fire ant": a fire ant, a deadly fire ant, not an ant soldier; a noun
 used as another's adjective, "giant badger", is no giant). A
 trophy with no price is given its creatures' median level times what
-Sandstorm's priced trophies fetch a level (PRICE_PER_LEVEL, fitted).
+the reference server's priced trophies fetch a level (PRICE_PER_LEVEL, fitted).
 
 The legendary weights: in the global list each legendary's weight gives it
 LEGENDARY_COUNT of the list's draws in YEARS (this server's kills times 1 in
@@ -280,7 +280,7 @@ def trash_plan(db, w):
             assign[k] = fit[:2]
             for p in fit[:2]:
                 used[p] += 1
-    # prices: what Sandstorm's priced trophies fetch a level of their creatures
+    # prices: what the reference server's priced trophies fetch a level of their creatures
     levels = collections.defaultdict(list)
     for k, ps in assign.items():
         for p in ps:
@@ -345,7 +345,7 @@ def global_rows(rows, kills, rate):
 
 
 def craft_rows(db):
-    """The gems' and the modifiers' pools off the craft tables: gems by jib's tier shares, modifiers by their weights."""
+    """The gems' and the modifiers' pools off the craft tables: gems by a GM's tier shares, modifiers by their weights."""
     out = []
     gems = db.execute("SELECT patternid, weight, minlevel, maxlevel FROM loottables WHERE tablename = 'craft gems'").fetchall()
     by = collections.Counter(lt.CRAFT_RARITY.get(wt, "common") for _, wt, _, _ in gems)
@@ -511,7 +511,7 @@ def undo(db):
 
 
 BANDS = [(1, 10), (11, 20), (21, 30), (31, 40), (41, 50), (51, 60), (61, 70)]
-PACES = (40, 60)  # kills an hour: tools/drop_rates.py's minute and a half a kill, and jib's 60
+PACES = (40, 60)  # kills an hour: tools/drop_rates.py's minute and a half a kill, and a GM's 60
 
 
 def report(db, path, rates, rows, prices, info):

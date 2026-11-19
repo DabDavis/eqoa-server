@@ -11,7 +11,7 @@ level, "removeAbilities: Howling Death 44, addAbilities: Howling Death 45";
 the game's own records hold two spells of each name, the one summoning the
 pet "with weapons" or "with a weapon" (spellpattern's description), a level
 on or none (Howling Death's two are both 44), at the rank's own level; and
-Sandstorm's necromancer of 51 (lane-spellfx24's Lagerbottoms) held those six
+the reference server's necromancer of 51 (lane-spellfx24's Lagerbottoms) held those six
 alone, 918 932 939 950 956 973, and none of the six it replaces.
 tools/seed_masteries.py found the abilities by name, the base spell each
 time, so every rank added and removed the one spell, which a purchase leaves

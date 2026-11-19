@@ -14,7 +14,7 @@ import (
 // questworn_test.go — a quest's item worn counts as had (2026-11-18, the
 // owner: "for the level 1 quest where players get item from merchant if
 // player equips it the quest giver doesnt acknowledge until they
-// unequipped"; Live's Nighthowler, "New Gear" step 4, told four times he
+// unequipped"; Live's player, "New Gear" step 4, told four times he
 // lacked the plain robe he wore). A show step keeps it; a give step takes a
 // carried copy first, else takes the worn one off and takes it.
 

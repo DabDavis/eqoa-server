@@ -36,12 +36,12 @@ import (
 // Destroy Contraption: friendlyFigureLocked), nor any figure another made (a
 // creature's, the sun's, a price paid: all untagged). One exception is counted
 // with no figure: the necromancer's zombie, mummy and spectre fight untold, as
-// Sandstorm's did (petrotation.go), and their hits are counted where the figure
+// the reference server's did (petrotation.go), and their hits are counted where the figure
 // would be told (petLandHitLocked), as the pet's share, or a necromancer's meter
 // would leave its pet out.
 //
 // The scope is the group as the server holds it at each figure, and the fight
-// is the group's (the owner, 2026-11-11: "drunkenfist came in the raid late and
+// is the group's (the owner, 2026-11-11: "[a player] came in the raid late and
 // the dps meter was not the same as other players. we should sync it up per
 // group and raid"): one fight per group, a raid group's too (Group.dps), and
 // alone the player's own (Player.dpsSolo). A figure counts on its maker's group's

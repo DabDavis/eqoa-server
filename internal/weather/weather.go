@@ -1,4 +1,4 @@
-// Package weather is the regional weather (board #1549, jibrish's rule):
+// Package weather is the regional weather (board #1549, a GM's rule):
 // sandstorms only on sand ground, snow only on snow ground, rain everywhere
 // else, nothing on lava, unless a GM calls it.
 //

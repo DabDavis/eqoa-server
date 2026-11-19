@@ -146,7 +146,7 @@ type questText struct {
 
 // abilityFor is whether the quest gives a player of a class an ability: a
 // spell among its steps' rewards for the class or among a step's choice's
-// options (petition 2285, Zerkziee: "highlights the ability quest
+// options (petition 2285: "highlights the ability quest
 // differently compared to other quest ... most people only do the ability
 // quest anyway").
 func (t *questText) abilityFor(class int) bool {

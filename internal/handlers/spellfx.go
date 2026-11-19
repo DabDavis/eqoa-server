@@ -18,7 +18,7 @@ import (
 // names: a 0xC200 record of SPELLFX.CSF on the player's own disc, by its
 // DictID (238 on the Frontiers disc). A spell's own is spelleffect.fxdict;
 // 0, or no row, plays the stand-in of its kind (entity.StandInVisual), and
-// most spells have no visual recorded off Sandstorm. #fx plays one in the
+// most spells have no visual recorded off the reference server. #fx plays one in the
 // game so it can be seen; #spellfx gives one to a spell, the change logged
 // in the GM panel's audit log as a panel edit is (database.SetSpellVisual),
 // so the panel lists it with the spell and can revert it. The panel does the

@@ -13,7 +13,7 @@ import (
 )
 
 // metalmoogie.go — Mr. Moogie's challenge and his favor, as his talk offers them (moogie.go; the GM
-// Jibrish's petitions 1379 and 1380, by Jibcro): "I'd like to prove my worth" stands a Metal Moogie up
+// a GM's petitions 1379 and 1380, by a GM): "I'd like to prove my worth" stands a Metal Moogie up
 // to duel the player (entity/metalmoogie.go), and a Moogie Tribute, the one item Metal Moogie's corpse
 // gives, handed back to Mr. Moogie lands his Duelist's Favor on its giver: half again as big for an hour
 // or until death (the spell's record, "Self, Increase Size by 50%, 60min": entity's EffectSize). The
@@ -23,12 +23,12 @@ import (
 
 // The turn-in's words: the answer in his box, and what he says.
 const (
-	moogieProveOpt   = "I'd like to prove my worth" // Jibcro's words
+	moogieProveOpt   = "I'd like to prove my worth" // a GM's words
 	moogieTributeOpt = "I bring you a Moogie Tribute"
 	moogieFavored    = "Mr. Moogie says, 'A worthy duelist at last! Wear my favor proudly, %s, and stand tall.'"
 	moogieNoFavor    = "Mr. Moogie says, 'I have no favor to give today. Keep your tribute.'"
 	moogieNoTribute  = "Mr. Moogie says, 'You carry no tribute of mine.'"
-	// the tribute's second question while Metal Moogie V2 is on the server (the GM Jibrish's petition
+	// the tribute's second question while Metal Moogie V2 is on the server (a GM's petition
 	// 1441: "if a player has a token from defeating metal moogie that can instead choose to use it to
 	// summon Metal Moogie V2"): its uses, and what he says when it cannot be taken
 	moogieTributeQuestion = "Mr. Moogie: 'A tribute! Shall I give you my favor for it, or will you spend it to face my metal twin remade?'"
@@ -211,13 +211,13 @@ func (h *InteractHandler) metalTalk(sess *session.Session, npc *entity.NPC) bool
 	return true
 }
 
-// The Metal Moogie chain's parts (work board #688, the GM Jibrish's): each version's corpse gives one, and
+// The Metal Moogie chain's parts (work board #688, a GM's): each version's corpse gives one, and
 // Mr. Moogie takes it for a reward or for the next version's duel. His box adds an answer for each part
 // held in the pack (moogieAnswers); its second question has the reward, the next duel (while that
 // version's original is on the server) and No; the head has no question, the reward at once. The reward
 // goes into the pack and the part is taken (0x003C, as the tribute is) after it; the next duel takes the part
 // only once he stands (refused, nothing taken), as V2's does the tribute. Each part allows one turn-in:
-// the part is the flag (lore, no trade), taken by either answer. The words are the GM Jibrish's.
+// the part is the flag (lore, no trade), taken by either answer. The words are a GM's.
 type moogiePart struct {
 	item      string // the part (entity.MetalLegsName ...)
 	answer    string // its answer in his box
@@ -248,7 +248,7 @@ var moogieParts = []moogiePart{
 		thanks: "Mr. Moogie says, 'You are worthy, %s. Truly worthy. Take this stone: my twin will follow you, small and loyal, for as long as you like.'"},
 }
 
-// The parts' other words: his thanks at a reward (the GM Jibrish's), the No of a part's question, and ours:
+// The parts' other words: his thanks at a reward (a GM's), the No of a part's question, and ours:
 // the one answer for every hand-in when they do not fit his box with the rest (CLIENT's box holds
 // maxDialogOptions), its question, a full pack, a reward the server has not, a part slipped away.
 const (

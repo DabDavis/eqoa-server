@@ -18,7 +18,7 @@ import (
 )
 
 // A GM's marks, made into a camp's static spawns or a creature's path, in the
-// game (the GM Jibrish setting up XP camps, 2026-11-08: "maybe a command to
+// game (a GM setting up XP camps, 2026-11-08: "maybe a command to
 // capture multiple points? so i can go HERE, HERE and HERE", "or at least
 // static spawns"; petition 1293: four static spawns on Xrag's rock, each
 // popping a child or a pariah of Xrag, where no roamer came). Each a GM's

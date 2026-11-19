@@ -281,10 +281,10 @@ func TestAPactAtTheResistCap(t *testing.T) {
 	}
 }
 
-// A pact's price is cut on its own scale (petition 1532, Mortician: "at 350
+// A pact's price is cut on its own scale (petition 1532: "at 350
 // AR the price should be cut by 90%"; the owner, 2026-11-11: "max ar is 315 for
 // 90%"): in proportion from none at 0 to 90% at 315, no more past it, no dice
-// below the cap. Mortician's 117 took 28% on the shared scale (then 75% at
+// below the cap. A player's 117 took 28% on the shared scale (then 75% at
 // 315), 30% on the 350 line; it takes 33% now. The shared scale is
 // 90% at 315 since 2026-11-11 (the owner), and a pact's partial failure stays
 // 54-88.8% of its price.
@@ -315,7 +315,7 @@ func TestAPactsResistScale(t *testing.T) {
 			t.Errorf("pact partial, dice %v: %v %v, want %v", tt.dice, share, how, tt.share)
 		}
 	}
-	// Mortician's own figure: Loathsome Pact's 1640, 1183 at 117 AR on the shared scale.
+	// a player's own figure: Loathsome Pact's 1640, 1183 at 117 AR on the shared scale.
 	if got := int(math.Round(1640 * (1 - PactResistShare(117)))); got != 1092 {
 		t.Errorf("1640 at 117 AR: %d", got)
 	}

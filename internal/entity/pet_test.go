@@ -13,7 +13,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// Pets held to Sandstorm's one recorded summon (harvests/sandstorm-spells-
+// Pets held to the reference server's one recorded summon (harvests/sandstorm-spells-
 // 20261021/pets/kimura-summon-fire-elemental.json): a level 45 magician's
 // Fire Elemental, a level 44 spell, and what came with it.
 
@@ -154,10 +154,10 @@ func TestASummoningLineMakesAPet(t *testing.T) {
 	}
 }
 
-// The landing makes Sandstorm's pet: named as the spell, level 44 of a
+// The landing makes the reference server's pet: named as the spell, level 44 of a
 // caster of 45, the body most of this server's Fire Elementals wear, and
 // 0x007E with its id then 0x1003 putting it on the non-collide list, in
-// Sandstorm's bytes but for the id. Its channel carries what Sandstorm's
+// the reference server's bytes but for the id. Its channel carries what the reference server's
 // did: 142 3, 143 1, npc flags 0, the hands' types 1 and 5, level 44.
 func TestThePetIsSandstormsFireElemental(t *testing.T) {
 	r := newPetRig(t)
@@ -415,7 +415,7 @@ func TestThePetsStance(t *testing.T) {
 	}
 }
 
-// Petition 1132, Jibmage: "When a pets stance is set to aggressive if any players in
+// Petition 1132: "When a pets stance is set to aggressive if any players in
 // the players group take damage, the pet should attack the mob hitting them"; a
 // defensive pet too since 2026-11-07 (the user). The controls: a neutral pet keeps to
 // itself, and a stranger's fight is not the pet's.
@@ -451,7 +451,7 @@ func TestAnAggressivePetDefendsItsGroup(t *testing.T) {
 	}
 }
 
-// A defensive or aggressive pet takes its group's fights (petition 1227, Waldorf; the user,
+// A defensive or aggressive pet takes its group's fights (petition 1227; the user,
 // 2026-11-07: "group members pets should attack if on defensive or offensive if a group
 // member(or their pets) attacks or is attacked"): a creature fighting another member's pet
 // or player, or one that pet or player fights; a neutral pet does not, nor one out of the
@@ -528,7 +528,7 @@ func TestAPetTakesItsGroupsFights(t *testing.T) {
 	}
 }
 
-// Petition 1134, Jibmage: "Pets on aggressive stance assist from too far away. It should be
+// Petition 1134: "Pets on aggressive stance assist from too far away. It should be
 // approximately 30 meters." A fight 25 from its owner the pet goes to; one 35 away it leaves.
 func TestAPetAssistsWithin30(t *testing.T) {
 	for _, c := range []struct {

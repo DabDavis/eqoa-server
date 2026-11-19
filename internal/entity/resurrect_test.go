@@ -12,7 +12,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// The resurrection spells (resurrect.go; jib's review, F3 pass 19): a rez
+// The resurrection spells (resurrect.go; a GM's review, F3 pass 19): a rez
 // gives back its printed share of the debt its target's latest death added,
 // once per death, to a target dead or released in range.
 
@@ -138,7 +138,7 @@ func hasLine(lines []string, want string) bool {
 	return false
 }
 
-// The rez spells as eqoaclassic's records have them (cast 5, recast 1, range
+// The rez spells as the production server's records have them (cast 5, recast 1, range
 // 30, the 16880 of their record; Renew's range 0, no limit), with
 // EQOA-Data's lines.
 func rezSpell(id int, name, line string, power int, rng float32) CastSpell {
@@ -301,7 +301,7 @@ func TestASecondDeathRetiresTheFirst(t *testing.T) {
 }
 
 // Below level 6 a death adds no debt, and a rez still offers its target the
-// way back to where it died (petition 1051, Jibheals: "Even if the character
+// way back to where it died (petition 1051: "Even if the character
 // has no debt to clear, they should still get the popup to get back to where
 // they last died IF eligible to rez"): the cast lands, CLIENT's prompt goes
 // (the hook), a Yes in its time leads back to the body (the target back to
@@ -417,7 +417,7 @@ func TestTheChanceIsKeptOverASaveAndLoad(t *testing.T) {
 	}
 }
 
-// Petition 1130, the GM Jibrish: "Resurrect spells should work on all levels, including
+// Petition 1130: "Resurrect spells should work on all levels, including
 // level 60 res on level 1." A rez the workbook gives a lowest level still lands on a
 // level 1, whose death left no debt: the way back is offered. The control: a buff of
 // that level and lowest level does not take on it.
@@ -493,7 +493,7 @@ func TestOnlyTheLatestDeathCounts(t *testing.T) {
 	}
 }
 
-// The lines read: every resurrection of EQOA-Data's lists as eqoaclassic
+// The lines read: every resurrection of EQOA-Data's lists as the production server
 // keeps them, with the target word each has, nothing left unread and nothing
 // harmful; and the other words a line may use. The controls: lines that are
 // no rez, the "Renewal" pet heal and "Restorative" among them, read none.

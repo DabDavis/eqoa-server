@@ -63,7 +63,7 @@ func toTheKill(t *testing.T, f *questFixture, e *TriggerEngine, mark int) {
 // changes, however long. Its run stopped (a clock, the isle empty, a GM, a restart that could not carry it), the
 // character is put back to the signpost's step after strandGrace, the Mark handed back and said; the signpost then
 // fires the encounter again. The control: one who got the kill is finished and left so (no Mark back) when the run
-// ends. And one on the kill step with no run at all (a cold start, Lonewullf's row today) is put back the same way.
+// ends. And one on the kill step with no run at all (a cold start, a player's row today) is put back the same way.
 func TestAnEncounterEndedWithoutItsKillPutsTheQuestBack(t *testing.T) {
 	f := newQuestFixture(t)
 	mark, e := rallosShapeQuest(f)
@@ -114,7 +114,7 @@ func TestAnEncounterEndedWithoutItsKillPutsTheQuestBack(t *testing.T) {
 		t.Fatalf("after the kill and its run's end: step %d done %d, %d Marks", step, done, f.held(mark))
 	}
 
-	// a cold start: on the kill step (taken again and set there, as Lonewullf's row stands), no run of it at all
+	// a cold start: on the kill step (taken again and set there, as a player's row stands), no run of it at all
 	f.msgs()
 	if _, err := f.qe.SetCharacterQuest(f.sid, 80, QuestGive, 3); err != nil {
 		t.Fatal(err)

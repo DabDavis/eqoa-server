@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The twenty records a spell conjures vanish five minutes after their holder logs out (the owner, 2026-11-10, deciding
-jib's PR #1: the GM Jibrish's ruling of 2026-10-29 has a spell's summoned items "No rent", which "means it vanishes if
+a GM's PR #1: a GM's ruling of 2026-10-29 has a spell's summoned items "No rent", which "means it vanishes if
 the player logs out for more than 5 minutes"); the Unit of Blood stays (the owner: it STAYS).
 
 A norentvanish row each (database/norent.go: a login takes the copies of the records it names, worn, packed or banked,
@@ -19,7 +19,7 @@ norent_conjured_1110_log; a second --apply finds nothing to add and writes nothi
 this wrote, each with its gm_audit line (a row changed since is left and said), and drops the log.
 
 No restart: a login reads norentvanish as it goes, so each holder loses them at its next login five minutes or more
-after its logout. The five minutes are the server's with charlogout (jib's PR #1 on main); on an older server they go
+after its logout. The five minutes are the server's with charlogout (a GM's PR #1 on main); on an older server they go
 at every login, and a character that left before that server came has no logout kept, so its next login takes them.
 
     tools/norent_conjured_20261110.py --db eqoa.db [--apply | --undo]

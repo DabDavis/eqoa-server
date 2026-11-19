@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Zerkziee's construct as Jarek's Creation, the drachnid's two dye areas, and a Pet Groomer beside every Equipment Dyer
-(the owner, 2026-11-16: "lets give zerkziee a custom construct for his tinker pet as another option cm only for him. the
+"""a player's construct as Jarek's Creation, the drachnid's two dye areas, and a Pet Groomer beside every Equipment Dyer
+(the owner, 2026-11-16: "lets give [a player] a custom construct for his tinker pet as another option cm only for him. the
 drachnid for jarek n toxis lvl 10 delf quest model. also make it have 2 different color areas that can be changed like
 armor dye(will be a template for pet color dye). then add Pet Groomer near Equipment Dyer also").
 
@@ -9,9 +9,9 @@ armor dye(will be a template for pet color dye). then add Pet Groomer near Equip
    (require_spells 901835|901836|901837, any of the three looks) and effects "PetLook:360074664,OnlyFor:<his serverid>":
    the body of Jarek's Creation (0x15764DA8, the dark elf torso on the Tiny Spiderbot's legs, the creature the dark elves'
    level 10 quest "Jarek's Creation" sends them to see) on the pet any of those spells summons, its numbers and abilities
-   the spell's (entity/cmpetlook.go); offered to Zerkziee alone. He buys it at the Master Class window (0 points), as the
-   other looks. Only where exactly one Zerkziee is a gnome (Heirloom: serverid 747, a level 60 ranger with Tinker and
-   Construct); elsewhere (Live: Zerkziee is an elf of level 7, who cannot be a Tinker) left out, and said.
+   the spell's (entity/cmpetlook.go); offered to a player alone. He buys it at the Master Class window (0 points), as the
+   other looks. Only where exactly one a player is a gnome (Heirloom: serverid 747, a level 60 ranger with Tinker and
+   Construct); elsewhere (Live: a player is an elf of level 7, who cannot be a Tinker) left out, and said.
 2. The drachnid's two areas (petdyeareas 0x15764DA8): area 1 "Torso" (the dark elf: skin, hair, face), area 2 "Spider
    body" (the abdomen and the legs), by the body's palette materials (MATERIALS below, read off the disc with vanilla's
    `eqoa dress 0x15764DA8 out.png petareas=1`). Every shard.

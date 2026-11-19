@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Each master class's elemental pet curses what it fights with a resist debuff of its element (the owner's spell
 sheet, "Known Issues Spell_CM sheet", Magician rows 46-47: "Ghilan Noble ... Debuffs mobs cr" and "-35 debuff ability
-for each *mancer pet of their element"; the owner approved them 2026-11-13, a follow-up to the magician Waldorf's
+for each *mancer pet of their element"; the owner approved them 2026-11-13, a follow-up to a magician's
 ticket 2001, whose fix gave the Ghilan Noble Ghilan's Frost Curse: tools/ghilan_noble_2001_20261113.py).
 
 The "*mancer pets": the four magician master classes' alliance pets, each the pet of its master class's Alliance

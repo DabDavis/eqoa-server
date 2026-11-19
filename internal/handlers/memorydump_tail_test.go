@@ -86,7 +86,7 @@ func TestMemoryDumpTailMatchesClientReadSequence(t *testing.T) {
 
 	// ReadSlots (0x00BFD178): the six tradeskill slots, 4 raw uint32 each,
 	// for a character with no rows exactly what every capture carries
-	// (Sandstorm's, sent to everyone until 2026-10-29 as a "weapon hotbar")
+	// (the reference server's, sent to everyone until 2026-10-29 as a "weapon hotbar")
 	sandstorm := [6][4]uint32{{99, 1, 0, 98}, {99, 1, 0, 98}, {99, 1, 0, 98}, {99, 1, 0, 98},
 		{99, 99, 99, 98}, {99, 99, 99, 98}}
 	for i, want := range sandstorm {

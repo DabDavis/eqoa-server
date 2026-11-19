@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """npcclass's Return Home rows given the class their names say (F3
-20261026-042344, jib: "Lord Nagafen should quad, he currently single hits";
+20261026-042344, a GM: "Lord Nagafen should quad, he currently single hits";
 the user: "at level 35 and above melee/war classes quad attack, and many
 pets/mobs are missing that").
 
 A creature's melee round is CLIENT's GetSwing for its npcclass class
 (entity/rounds.go): a warrior's four hits from level 35, a caster's always
 one. tools/import_npc_classes.py filled the table from two sources:
-Sandstorm's entity records (byte 145, what its creatures really were: a
+the reference server's entity records (byte 145, what its creatures really were: a
 nasehir ranger 1, a nasehir cleric 9, a deathfist mystic 8, a crag wisp 10)
 and Return Home's EQOA_Master.sql, whose npc_type column holds 0-14 like a
 class but is not one for its creatures: Lord Nagafen, a crag spider, a kappa
@@ -23,7 +23,7 @@ Each Return Home row takes the class its NAME says, else a warrior's:
   augur, witch doctor; cleric, priest, priestess, bishop, acolyte, healer,
   chaplain; druid; wizard, sorcerer, sorceress, magus, mage, arcanist,
   evoker, sandcaster; magician, conjurer, summoner, elementalist, and the
-  wisps and elementalkin Sandstorm's records class as magicians;
+  wisps and elementalkin the reference server's records class as magicians;
   necromancer, lich, warlock, witch, defiler; enchanter, illusionist;
   alchemist, chemist) or a paladin's or shadow knight's (paladin;
   shadowknight, deathknight), the one nearest the name's end deciding
@@ -33,9 +33,9 @@ Each Return Home row takes the class its NAME says, else a warrior's:
 - anything else a warrior: a bard's, a ranger's, a rogue's or a monk's round
   is a warrior's at every level that matters here, and merchants and
   townsfolk, whose class only shows when they are attacked, fight as
-  warriors as Sandstorm's do (641 of its 833 names).
+  warriors as the reference server's do (641 of its 833 names).
 
-Sandstorm's rows and any row a GM changed (gm_audit names it) are left as
+The reference server's rows and any row a GM changed (gm_audit names it) are left as
 they are; a name the table lacks whose words make it a caster gets a row
 (the warrior's default would quad it). Each row written is source "by name"
 and logged in npcclass_fix_log with what it held before; --undo puts back

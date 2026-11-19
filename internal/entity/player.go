@@ -479,7 +479,7 @@ type Player struct {
 	// GMTestMode is a GM's #testmode: every hit taken and shown in full, and no
 	// death (a would-be death leaves 1 HP); GMTankProfile its #tankprofile1-3
 	// (0: none): AGI 400 and AC 1000 x the profile, whatever it wears
-	// (gmchannel.go; the GM Jibrish's petition 1272). Neither is kept past the
+	// (gmchannel.go; a GM's petition 1272). Neither is kept past the
 	// session.
 	GMTestMode    bool
 	GMTankProfile int
@@ -543,7 +543,7 @@ type BuffSlot struct {
 }
 
 // Breath is a byte, as the client's gauge reads it (VIPlayer's m_p30 over
-// 255): full at BreathFull, BreathStep lost every 6 s under liquid (Sandstorm,
+// 255): full at BreathFull, BreathStep lost every 6 s under liquid (the reference server,
 // pcaps/breath_capture.pcap: 0xFF, 0xDF, ... 0x1F, 0).
 const (
 	BreathFull = 255

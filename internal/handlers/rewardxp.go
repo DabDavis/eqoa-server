@@ -12,7 +12,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// rewardxp.go — #reward and /reward on the Live shard: the reward of experience (petition 5033, the GM Jibrish: "Add
+// rewardxp.go — #reward and /reward on the Live shard: the reward of experience (petition 5033: "Add
 // a GM only ability /reward for LIVE ONLY NOT HEIRLOOM, this gives a 10% XP bonus for 30 minutes to the target").
 //
 // A server with world.gm_reward_xp (the Live shard's config alone; the two shards run one binary) answers a GM's

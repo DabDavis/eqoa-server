@@ -3,7 +3,7 @@ package entity
 import "testing"
 
 // A challenger's areas, and its pet's, leave Mr. Moogie out while it duels his Metal Moogie (the GM
-// Jibrish's petition 1619: a pet's splash landed on Mr. Moogie beside his twin, and he killed it);
+// a GM's petition 1619: a pet's splash landed on Mr. Moogie beside his twin, and he killed it);
 // before and after the duel, and for anyone else, he is a creature like any other.
 func TestMrMoogieIsSparedByAMetalDuelistsAreas(t *testing.T) {
 	w := &World{}

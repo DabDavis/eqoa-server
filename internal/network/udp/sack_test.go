@@ -66,7 +66,7 @@ func TestTheClientsMaskRetiresWhatItHolds(t *testing.T) {
 // again (at most four times, never past maxResendWait), and a packet's
 // resends fill at most ResendBudget bytes, the first whatever its size: a
 // client gone quiet costs a packet every few seconds, not four messages every
-// tick (eqoaclassic's dead sessions: 600 lines a minute each).
+// tick (the production server's dead sessions: 600 lines a minute each).
 func TestResendsBackOffAndKeepToTheirBudget(t *testing.T) {
 	sess := session.NewSession(nil, 9, 9, 1, 2, true)
 	q := sess.Queue()

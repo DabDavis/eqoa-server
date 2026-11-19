@@ -9,7 +9,7 @@ import (
 )
 
 // takeover.go — a character still in the world taken over by a new login of
-// its own account (jib's F3 20261029-212855-51f2bfaa: "if they get booted to
+// its own account (a GM's F3 20261029-212855-51f2bfaa: "if they get booted to
 // server select, pick the character it waits. They should be able to just
 // take over that existing character ... retaining any and all debuffs / buffs
 // / agro from session to session to avoid abuse").
@@ -241,7 +241,7 @@ func (w *World) SendTakenOver(sess *session.Session, now time.Time) int {
 // running, 0x00CD with what is left of it, after a MemoryDump: the dump builds
 // the client's ability bar anew with no lockout on, so until 2026-11-09 a
 // player who died with abilities locked out came back to them shown ready,
-// still refused (petition 1312, Hoofbite: "when you have buffs on cooldown,
+// still refused (petition 1312: "when you have buffs on cooldown,
 // when you die, they no longer are shaded out"). It returns how many it sent;
 // a lockout of a spell that left the book (no index, bookchange.go) is not.
 func (w *World) SendLockouts(sess *session.Session, now time.Time) int {

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Every city's level 20 class quest gives the guides' choice of two paths, each with its weapon (petitions 5071 and
-5072, Smoke, Live, 2026-11-14: "20 sk freeport quest only gave me bloodwasp but no weapon for quest", "20 epic quest sk
+5072, Live, 2026-11-14: "20 sk freeport quest only gave me bloodwasp but no weapon for quest", "20 epic quest sk
 and necro only gave bloodwasp and bloodgale for necro no choice of other path").
 
 The sweep (all 77 level 20 quests of the 13 cities, both shards): Freeport's ten, Grobb's three and Oggok's four gave
@@ -50,9 +50,9 @@ Who finished one already (charquests done), as a quest gives an item (the pack's
 maxhp; a full pack, 100 with what is worn (pack_slots), is reported for a GM, not given; an item held is not given
 twice): one who picked (charquests.picks) gets their path's weapon; one whose quest gave one path (Freeport, Grobb,
 Oggok, and Neriak's four that did until today: no pick recorded) gets that path's weapon when it gave none and the
-other path's scroll, so the pick is theirs to make. Live: Smoke (Freeport shadowknight: Bloodwasp) the magic partisan
-and the Shadow Tower scroll; Smokey (Freeport necromancer: Blood Gale and the magic sickle) the Power Gale scroll;
-Battery and Areo their picks' weapons (Fayspires: magic book, Mystical Tome).
+other path's scroll, so the pick is theirs to make. Live: a player (Freeport shadowknight: Bloodwasp) the magic partisan
+and the Shadow Tower scroll; a player (Freeport necromancer: Blood Gale and the magic sickle) the Power Gale scroll;
+two players their picks' weapons (Fayspires: magic book, Mystical Tome).
 
 The quests load at the server's start and the server holds a player's pack while they play: run it in a keep restart's
 before.sh. Refused, nothing written, when a step is not as the import left it. Report only by default; --apply in one

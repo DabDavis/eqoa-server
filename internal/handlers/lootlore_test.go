@@ -9,7 +9,7 @@ import (
 // A take-all over a Lore item the character holds already is not answered
 // 0x001A: CLIENT's Msg001A knows no Lore and would keep the item in its own
 // list while the server left it on the corpse, to be "taken" again and again
-// (petition 1498, Waldorf). The rest comes item by item (0x0016), the Lore one
+// (petition 1498). The rest comes item by item (0x0016), the Lore one
 // stays and is said, and the server's rows hold one. Held in the pack, held in
 // the bank (counted since 2026-11-10), and two of it on one corpse. The
 // control: a corpse with no Lore item held is answered 0x001A as before.

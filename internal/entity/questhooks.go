@@ -144,7 +144,7 @@ func (w *World) AwardXP(sess *session.Session, p *Player, xp int) {
 }
 
 // ApplyFactionHits moves a player's standings as a kill's hits do, each told in
-// Sandstorm's line (factionLine) unless Faction Messages are off.
+// the reference server's line (factionLine) unless Faction Messages are off.
 func (w *World) ApplyFactionHits(sess *session.Session, p *Player, hits []FactionHit) {
 	if p == nil || len(hits) == 0 {
 		return

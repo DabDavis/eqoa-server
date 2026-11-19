@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// ogRig is a database with an [OG] account (Meshuggah, Riffy) and a plain one
+// ogRig is a database with an [OG] account (two players) and a plain one
 // (Bob), every character made before [OG] characters (og 0, not chosen).
 func ogRig(t *testing.T) (*SQLiteDB, map[string]uint32, int) {
 	t.Helper()
@@ -68,7 +68,7 @@ func TestMigrateAccountOG(t *testing.T) {
 	if logged != 2 {
 		t.Errorf("og_char_migrated: %d rows", logged)
 	}
-	// a character made since on the [OG] account; a GM made Riffy standard
+	// a character made since on the [OG] account; a GM made a player standard
 	rec := CharacterRecord{CharName: "Newbie", AccountID: ogAcc, Level: 1}
 	if _, err := NewSQLiteCharacterStore(db).CreateNew(&rec); err != nil {
 		t.Fatal(err)

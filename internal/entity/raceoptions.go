@@ -204,7 +204,7 @@ const (
 	bodyHumanFemale = 0x0D537335
 	bodyWillOWisp   = 0x8143DC70
 
-	// the Mermaid (2026-11-11, petition 1620, Jibrish: "Add mermaid as a
+	// the Mermaid (2026-11-11, petition 1620: "Add mermaid as a
 	// playable race"): the merfolk's four bodies, one 24-node skeleton and one
 	// play list (a sea creature's: swimmerbody.go), the merman the male's, the
 	// mermaid the female's, the sirens of Odus her options
@@ -228,7 +228,7 @@ var (
 		{"Cyclops", 0xE30827CC, 1}}
 )
 
-// The women of the goblins and the gnolls (the GM Jibrish's petition 1647, 2026-11-12, the owner:
+// The women of the goblins and the gnolls (a GM's petition 1647, 2026-11-12, the owner:
 // "a lot of the new races have female variants that we have not implemented yet"), found by sight
 // on every CHAR.ESF body (front close-ups; their CSprite header's sex byte is 1, the men's 0): each
 // goblin tribe has a woman (a halter or a top over a bust, the men bare-chested), and four gnoll
@@ -397,7 +397,7 @@ var raceOptionRows = map[uint32][]OptionRow{
 			{"Owl", 0xB1EEB204, 0.91}, {"Owl (robed)", 0x8B332785, 0.91}, {"Raven (gown)", 0x246B5FED, 1},
 			{"Raven (black)", 0x5585143C, 1}, {"Hawk (green robe)", 0xF83BD167, 1}},
 		// the women's numbers kept (TestRaceOptionStepsKeepTheirNumbers): the hawk is hers, and the
-		// three bodies last are women too (the GM Jibrish's petition 1647, by sight: the ravens'
+		// three bodies last are women too (a GM's petition 1647, by sight: the ravens'
 		// breastplates, a bust under the green robe), the rest the men's
 		Female: []OptionStep{{"Hawk", bodyAviakF, 1}, {"Hawk (robed)", 0x262C572A, 1}, {"Raven", 0xDC641055, 1},
 			{"Raven (robed)", 0x41EFF500, 1}, {"Vulture", 0x3C3DE6CA, 0.91}, {"Vulture (robed)", 0xC04CEC07, 0.91},

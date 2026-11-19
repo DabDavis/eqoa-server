@@ -7,7 +7,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// groupinvites.go — "Allow anyone in my group to invite" (the GM Jibrish's
+// groupinvites.go — "Allow anyone in my group to invite" (a GM's
 // petition 1476, 2026-11-11: "A setting box bottom right 'Allow anyone in my
 // group to invite' yes/no, per character, persistent, applies to regular groups
 // only, live for the existing group when its leader toggles it").

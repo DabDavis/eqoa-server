@@ -49,7 +49,7 @@ import (
 //     InviteEntity refuse it (word 1015), as a duel opponent's are. A foe can still be invited from
 //     the Who list (InviteToGroup, by its record), or by /raid.
 //
-// A foe's pets are fought as the foe is (the owner, 2026-11-18, on Heirloom with Zerkziee: "zerkziee
+// A foe's pets are fought as the foe is (the owner, 2026-11-18, on Heirloom with a player: "[a player]
 // and I are Pvp flagged but pets dont get flagged so i cant attack"): everything a player owns that
 // fights for it (its pet, a charmed one, the animal beside it, its mercs, their pets: pvpFoePetLocked)
 // is a foe's pet to that player while their owners are foes, and nothing to anyone else. Its melee,

@@ -6,7 +6,7 @@ infection works and that the were creatures are in the correct zones with decent
   "the server has none") were given an alligator's body (1041154017, a raging alligator's). The
   Gatorwere form the gator line's infection teaches shows 740132644 (EQOAEmu's workbook sprite
   0x24871D2C read the other way round, entity/spelljson.go's spriteBody), and every gatorwere and
-  weregator Sandstorm shows wears that body at scale 1.1 (the Odus census tools/seed_sandstorm_census.py
+  weregator the reference server shows wears that body at scale 1.1 (the Odus census tools/seed_sandstorm_census.py
   seeded, census-odus.jsonl: Elder Gatorwere, Elder Weregator, Ancient Gatorwere, Ancient Weregator,
   every sighting).
   Each npcs row named gatorwere (any case) on the alligator's body that a seed wrote
@@ -49,8 +49,8 @@ import sqlite3
 import time
 
 ALLIGATOR = 1041154017   # a raging alligator's body: the qc seed's gatorweres
-WEREGATOR = 740132644    # the Gatorwere form's and Sandstorm's gatorweres' body
-WEREGATOR_SIZE = 1.1     # Sandstorm's scale for every one of them
+WEREGATOR = 740132644    # the Gatorwere form's and the reference server's gatorweres' body
+WEREGATOR_SIZE = 1.1     # the reference server's scale for every one of them
 WOLFWERE = 901824        # the Wolfwere form
 
 ZAREN_LEVEL = 35         # the user's choice: the line opens at 30

@@ -16,7 +16,7 @@ import (
 // 2004, pp. 653-673: "almost all of the creature NPC's found in Tunaria and
 // those that have been added with the release of EQOA: Frontiers ...
 // presented by region", each with its levels) and EQOA-Data's map (its
-// zones' biomes, a quarter of each zone apiece). jib's F3 asked for it:
+// zones' biomes, a quarter of each zone apiece). A GM's F3 asked for it:
 // "reference prima prefronts and frontiers strategy guides for wildlife
 // spawns". The guide is the operator's own copy, read as pdftotext -layout
 // writes it (tools/seed_signs.py's --prima).

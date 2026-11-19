@@ -20,7 +20,7 @@ import (
 // opcodes of their own, 0x1501 up and 0x1502 down (duelwire.go,
 // claude-notes/duel-20261029.md). The Frontiers disc every client of ours
 // follows has none of it, and its TargetInRange refuses a player against a
-// player or a pet, so a duel reaches a disc client the way Sandstorm's must
+// player or a pet, so a duel reaches a disc client the way the reference server's must
 // (claude-notes/f3-pass-20261026c.md): its opponent shown to it as a
 // creature (duelViewLocked). A client that took the duel offer (0x7E09:
 // vanilla with the live window ported) is told the live way instead and sees
@@ -50,7 +50,7 @@ const (
 	DuelInviteTime = 20 * time.Second
 	// DuelCountdown is the time between the accept (both wagers' accepts in
 	// the live window) and the fight, told to the two in chat as SOE's server
-	// told it (petition 1063, jibheals: "Duel starts in 15 seconds.", every
+	// told it (petition 1063: "Duel starts in 15 seconds.", every
 	// 5 seconds, then "3", "2", "1", "START"; the live client's words hold
 	// none of it, so its server sent them): no hit of the duel lands before
 	// it ends. Their dying, going or parting past DuelArenaRadius calls the
@@ -730,7 +730,7 @@ func (w *World) endDuelLocked(d *Duel, loser EntityID, how duelEnd, now time.Tim
 		}
 		// a Hardcore duelist leaves the fight at HardcoreDuelHP at the least, so
 		// the 1 HP a duel leaves can't be finished by a stray point of damage
-		// (petition 2401, jibrish 2026-11-19: "snowballs that deal one damage")
+		// (petition 2401, 2026-11-19: "snowballs that deal one damage")
 		if p.HardcoreBound() && p.HP > 0 && p.HP < HardcoreDuelHP {
 			p.HP = min(HardcoreDuelHP, p.MaxHPNow())
 			p.StatsDirty = true
@@ -893,7 +893,7 @@ func (w *World) duelOutLocked(d *Duel, p *Player) bool {
 // duelViewLocked shows a duelist its opponent as a creature: channel byte
 // 142 (CLIENT's m_p256) 0 in place of a player's 2, which is all the disc's
 // TargetInRange (and vanilla's, line for line) asks before a swing, and what
-// Sandstorm must send. id is the player on the channel. A client with the
+// the reference server must send. id is the player on the channel. A client with the
 // live window goes by 0x1502 sub 7 and keeps seeing players. Must be called
 // with the lock held.
 func (w *World) duelViewLocked(sess *session.Session, id EntityID, buf []byte) {
@@ -1001,8 +1001,8 @@ func (w *World) duelHurtAtLocked(d *Duel, attacker *Player, src EntityID, t *Pla
 	return true
 }
 
-// duelHitterLocked is who struck, for the log: the attacker, or its pet ("Ruggid's pet "Haunting
-// Death""), as a pet's hits went to the log as its owner's (2026-11-13: Ruggid's "pet didnt
+// duelHitterLocked is who struck, for the log: the attacker, or its pet ("a player's pet "Haunting
+// Death""), as a pet's hits went to the log as its owner's (2026-11-13: a player's "pet didnt
 // swing?" could not be read from them).
 func (w *World) duelHitterLocked(attacker *Player, src EntityID) string {
 	if src != attacker.ServerID {
@@ -1066,8 +1066,8 @@ func (w *World) duelHurtPetLocked(d *Duel, attacker *Player, pet *NPC, n int, no
 // so every pet it summoned after was out of the duel for the rest of it: it
 // would not join, an attack command at the opponent was refused ("Your pet
 // cannot attack that.") and the opponent could not fight it (the owner, on
-// Heirloom: "pets if killed in a duel cant be resummoned": Zerkziee's
-// Construct yielded to Dust at 03:15:25 and the two he summoned after stood
+// Heirloom: "pets if killed in a duel cant be resummoned": a player's
+// Construct yielded to a GM at 03:15:25 and the two he summoned after stood
 // by until he forfeited). Must be called with the lock held.
 func (w *World) duelNewPetLocked(owner EntityID) {
 	d := w.duelOnLocked(owner)

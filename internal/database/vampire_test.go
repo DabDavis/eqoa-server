@@ -14,7 +14,7 @@ func TestAVampireIsKeptAndAudited(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
-	who := GMEdit{AccountID: 1, Username: "dab", Via: "game"}
+	who := GMEdit{AccountID: 1, Username: "dax", Via: "game"}
 	if v, err := db.IsVampire(7); err != nil || v {
 		t.Fatalf("no row: %v (%v)", v, err)
 	}
@@ -31,7 +31,7 @@ func TestAVampireIsKeptAndAudited(t *testing.T) {
 	var action, tbl, key, after, note string
 	db.QueryRow(`SELECT action, tbl, rowkey, after FROM gm_audit WHERE id = ?`, audit).Scan(&action, &tbl, &key, &after)
 	db.QueryRow(`SELECT note FROM charvampire WHERE serverid = 7`).Scan(&note)
-	if action != "insert" || tbl != "charvampire" || key != `{"serverid":7}` || after == "" || note != "made a vampire by GM dab in the game" {
+	if action != "insert" || tbl != "charvampire" || key != `{"serverid":7}` || after == "" || note != "made a vampire by GM dax in the game" {
 		t.Errorf("the audit line: %s %s %s %s; note %q", action, tbl, key, after, note)
 	}
 	db.SetVampire(9, true, who, "")

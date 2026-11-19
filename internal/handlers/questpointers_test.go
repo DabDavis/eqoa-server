@@ -34,7 +34,7 @@ func pointerFixture(t *testing.T) (*questFixture, uint32, uint32) {
 
 const tilvyisLine = "The Breastplate and the Leggings: find Tilvyis S`Lynx in the south of Neriak west of the coachman"
 
-// Hige's case end to end: the quest finished at Ozmo, its line goes and the
+// A player's case end to end: the quest finished at Ozmo, its line goes and the
 // pointer to Tilvyis comes in its place; a login's dump carries it; taking
 // the quest at Tilvyis turns it into the quest's own line; finished, nothing.
 func TestAFinishedQuestPointsToTheNextGiver(t *testing.T) {

@@ -194,7 +194,7 @@ func TestBreathRunsOutUnderTheSurfaceNotOnIt(t *testing.T) {
 	}
 }
 
-// Sandstorm's breath (pcaps/breath_capture.pcap): full is 0xFF, eight steps
+// The reference server's breath (pcaps/breath_capture.pcap): full is 0xFF, eight steps
 // of 32 to nothing (48 s), then the HP goes; and the stat channel carries it
 // at byte 232, where it was a constant 0xFF (F3 20261021-011015: the gauge
 // stood full under water).
@@ -292,7 +292,7 @@ func TestHeadingRoundTripsThroughTheServer(t *testing.T) {
 	}
 }
 
-// Drowning takes a tenth of the maximum health every 6 s until dead (jib, F3
+// Drowning takes a tenth of the maximum health every 6 s until dead (a GM, F3
 // 20261026-020342): a 1,000 loses 100 a step and drowns on the tenth, from
 // full; a tiny maximum still loses 1 a step. The control: the step before
 // the tenth leaves it alive.

@@ -26,7 +26,7 @@ const boundLine = "You are now bound to this place."
 const bindReach = 3.0
 
 // bindVisual and bindCast are the bind's 0x00B1, the spiritmaster's onto the
-// player, as Sandstorm's Spiritmaster Zole cast it (questrec16, the user's
+// player, as the reference server's Spiritmaster Zole cast it (questrec16, the user's
 // "spiritmasters supposed to castingcombat 0x08F3B955 when binding players").
 const (
 	bindVisual uint32 = 0x08F3B955
@@ -39,7 +39,7 @@ type bindStore interface {
 }
 
 // IsSpiritmaster is whether the NPC of that name binds: a "Spiritmaster ",
-// or a "Spiritbinder " (petition 2389, jibrish 2026-11-19: Spiritbinder Pluto
+// or a "Spiritbinder " (petition 2389, 2026-11-19: Spiritbinder Pluto
 // in Freeport, a spiritmaster in all but his name).
 func IsSpiritmaster(name string) bool {
 	return strings.HasPrefix(name, "Spiritmaster ") || strings.HasPrefix(name, "Spiritbinder ")
@@ -107,7 +107,7 @@ func (h *InteractHandler) askBind(sess *session.Session, player *entity.Player, 
 // answerBind takes the answer to the open question: Yes (option 0) binds the
 // player there, kept, then does the player's quest step at that spiritmaster
 // (a "bind your spirit" step) in the same go; No or anything else closes it.
-// Sandstorm's Zole (questrec16) answered the step only at the next talk: two
+// The reference server's Zole (questrec16) answered the step only at the next talk: two
 // talks a new player did not know to make (F3 20261029-200655, 20261030-062009).
 func (h *InteractHandler) answerBind(sess *session.Session, player *entity.Player, option byte) {
 	b := player.PendingBind

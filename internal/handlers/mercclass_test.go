@@ -9,7 +9,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// The same class up to three times (petition 1920, Hoggieson: "2 or 3 of the
+// The same class up to three times (petition 1920: "2 or 3 of the
 // same class in our grp for merc requits, like 2 monks"): three clerics are
 // hired, each a name of its own, a fourth refused as any fourth hire; the
 // board's healers' box offers the class as ever, and choosing it again goes
@@ -56,13 +56,13 @@ func TestMercSameClassUpToThree(t *testing.T) {
 }
 
 // Each hire's name is its own: mercName passes over the names taken, and a
-// login names again a hire whose name an earlier slot's has (the GM Jibrish's
+// login names again a hire whose name an earlier slot's has (a GM's
 // three "Jorador"), its row kept.
 func TestMercNamesDistinct(t *testing.T) {
 	at := time.Date(2026, 11, 12, 9, 59, 25, 0, time.UTC)
 	first := mercName(44, 9, 3, at)
-	second := mercName(44, 9, 3, at, "Jibrish", first)
-	third := mercName(44, 9, 3, at, "Jibrish", first, second)
+	second := mercName(44, 9, 3, at, "Jinkles", first)
+	third := mercName(44, 9, 3, at, "Jinkles", first, second)
 	if first == second || second == third || first == third {
 		t.Fatalf("names %q %q %q", first, second, third)
 	}

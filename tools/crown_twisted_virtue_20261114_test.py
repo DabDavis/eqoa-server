@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """crown_twisted_virtue_20261114.py on a small database: the report writes nothing; --apply makes the crown (a copy of
 the Heirloom Helm: model 0, its own name, icon and colour, every other column the helm's), its heirlooms row, its
-itemaura circlet and one in Dust's pack, his own circlet row kept; a second apply finds nothing to do; --finish is
+itemaura circlet and one in a GM's pack, his own circlet row kept; a second apply finds nothing to do; --finish is
 refused until he wears it, then deletes his circlet row and shows his helm slot; --undo puts back exactly what was there.
-The controls: no Dust, nothing (exit 0); no Heirloom Helm, refused, nothing written."""
+The controls: no such character, nothing (exit 0); no Heirloom Helm, refused, nothing written."""
 import os
 import sqlite3
 import subprocess

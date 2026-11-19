@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Mr. Moogie's last stand (2026-11-11; the GM Jibrish's petition 1522: "Add a new ability to Mr. Moogie. If he reaches
+"""Mr. Moogie's last stand (2026-11-11; a GM's petition 1522: "Add a new ability to Mr. Moogie. If he reaches
 2% hp he completely heals to full and doubles his damage if a non player character is hitting him"), on the server's
 code of the same branch (entity/laststand.go: the "laststand" ability kind, and a ninth ability: an older server reads
 this template as unreadable).

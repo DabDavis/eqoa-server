@@ -17,7 +17,7 @@ type FactionRaise struct {
 // RaiseFactions brings the session's player's standing with each faction of
 // floors up to its Standing (clamped to the faction range), never down: a
 // standing already there stays and is not listed. Kept at the logout as a
-// kill's change is; each change is told in Sandstorm's faction line. A faction
+// kill's change is; each change is told in the reference server's faction line. A faction
 // the table does not know is passed by (logged). It reports the changes, and
 // false when the session has no player in the world. (handlers/itemfactions.go:
 // petition 5089's faction stone.)

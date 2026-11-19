@@ -6,12 +6,12 @@ itempattern.classuse is the classes that may use an item, a bit a class (1 << cl
 item no class may use: its item menu marks it, CLIENT sends the equip all the same, and the server puts it on
 (handlers/equip.go cannotWear does not check a mask of 0). A mask also decides what the balance simulator's kits and
 #template wear (database.WearablePatterns never picks a mask of 0) and, once it is not 0, whom the server lets put
-the item on. On eqoaclassic's copy of 2026-11-05 1,996 wearable records had one (five more had been set by hand),
+the item on. On the production server's copy of 2026-11-05 1,996 wearable records had one (five more had been set by hand),
 nearly all Return Home's dump's (tools/import_prh_content.py, patternids 5000-8999).
 
 A record counts when it is worn (equipslot above 0) and its mask is 0; one a GM edited in the panel (gm_audit) is
 listed and left. Each takes the first of these that gives it a mask:
-1. **Sandstorm's record** (--harvests: eqoa harvest JSON, its merchants' wares and its characters' items, SOE's
+1. **the reference server's record** (--harvests: eqoa harvest JSON, its merchants' wares and its characters' items, SOE's
    records): one of the same name (fix_dump_weapons.key) and wear slot; where its records of the name differ, the
    one of the record's level; where they still differ, none.
 2. **Allakhazam's item page** (--pages: tools/fetch_item_pages.py's folder, the live game's items as its players
@@ -19,12 +19,12 @@ listed and left. Each takes the first of these that gives it a mask:
    "Torso" a chest, "Primary" any weapon), by its "Classes" line ("All Classes" or class names); where pages of the
    name differ, the one of the record's level, else none. A page of armour naming exactly the ten classes before the
    alchemist (1023, the leather wearers of their day) gives the leather wearers of the live game, 17407, as
-   Sandstorm's records of such pieces have them.
+   the reference server's records of such pieces have them.
 3. **The same item here**: records of the same name and wear slot with a mask (a trailing " (copy)" aside), all one.
 4. **The rule** (OURS):
    a. an armour piece's set: the other pieces of the set its name says (the name without the piece's noun,
       "Cavernous Bracers", "Gloves of the Howler"; a possessive or a plural s aside) within 3 levels of it that
-      Sandstorm's records or Allakhazam's pages give a mask, all one;
+      the reference server's records or Allakhazam's pages give a mask, all one;
    b. else (--no-rule leaves these at 0) jewellery and belts every class; armour by its material (itempattern.model:
       cloth every class, leather 17407, chain and scale 879, plate and banded 525; style 0, 6 or 8 none), but a piece
       whose look tools/fix_style0_looks.py chose by its AC (its log says so) the next lighter material's wearers
@@ -34,15 +34,15 @@ A record whose race mask is 0 (CLIENT refuses every race) takes every race, 1023
 other race masks are left as they are, also where the class mask's source names fewer races (reported).
 
 Measured on that copy, one a name and slot (1,025 Allakhazam pages read, 688 of them fetched for it):
-- Allakhazam's pages against Sandstorm's records of the same items: 58 of 78 equal, 7 differ by the alchemist's bit
+- Allakhazam's pages against the reference server's records of the same items: 58 of 78 equal, 7 differ by the alchemist's bit
   alone, 6 by the warrior's, 7 otherwise. Against this database's masks: 158 of 281 equal, 110 by the warrior's bit
-  alone (weapons whose masks here lack it), 5 by the alchemist's, 8 otherwise. Sandstorm's against this database's:
+  alone (weapons whose masks here lack it), 5 by the alchemist's, 8 otherwise. The reference server's against this database's:
   296 of 352 equal, 49 otherwise (most of them every class here and a class group there).
 - Held out: the 688 records with no mask that sources 1-3 give one, which the rule never looks at. The set names
   126 of the 146 it guesses exactly and leaves out a class the record allows for 11. Armour by the rule: 72 of 442
   exact, 23 narrower, the rest wider (one no guess); of the 347 whose look was chosen by AC, their material's wearers
   would leave out a class for 88 (62 exact), the next lighter material's for 15 (40 exact), every class for none (25
-  exact). Jewellery, every class: 124 of 232 exact, never narrower. On Sandstorm's own records (their styles not
+  exact). Jewellery, every class: 124 of 232 exact, never narrower. On the reference server's own records (their styles not
   chosen by AC) the rule's armour is exact for 92 of 127 and narrower for one; the set for 95 of the 97 it guesses.
 - The balance simulator's kits move (more is wearable): of the real-database checks (balancesim_real_test.go), the
   unfixed copy fails 2 cells, the fixed one 7 (a warrior of 20 and paladins of 20, 40 and 55 lose yellows; a
@@ -53,7 +53,7 @@ The report counts each source and its picks by slot and by where the game hands 
 with its evidence (--list every one, --tsv FILE all of it), says what is left, the masks before and after, the held
 copies a new mask refuses to their holder's class, and every measure above (each source against this database's
 masks and the others, one a name and slot; the rule against what sources 1-3 give the records with no mask, which
-it never looks at, under every --ac-armour, and against Sandstorm's records and this database's, crafted families,
+it never looks at, under every --ac-armour, and against the reference server's records and this database's, crafted families,
 a description 8 records share, left out).
 
 --apply writes it in one transaction and logs every change in item_classmask_fix_log (the record, the column, before
@@ -117,15 +117,15 @@ PAGE_SLOTS = {"Head": {1}, "Robe": {2}, "Ear": {3}, "Neck": {4}, "Chest": {5}, "
               "Primary": {12, 14, 15, 16, 17}, "Secondary": {13, 14}}
 
 # 4. The rule (OURS). An armour piece's material is its style (itempattern.model; handlers/character.go
-# wornLook draws it): the classes that wear the material, as Sandstorm's records of styled armour carry them.
-# (fix_style0_looks.py's tiers; Sandstorm's and Allakhazam's records of styles 6 and 8 name no one material's)
+# wornLook draws it): the classes that wear the material, as the reference server's records of styled armour carry them.
+# (fix_style0_looks.py's tiers; the reference server's and Allakhazam's records of styles 6 and 8 name no one material's)
 MATERIAL = {1: ("cloth", ALL), 2: ("leather", LEATHER_NOW), 3: ("chain", 879), 7: ("scale", 879), 4: ("plate", 525),
             5: ("banded", 525)}
 # a piece whose look tools/fix_style0_looks.py chose by its AC (its log says "its AC"): an AC names the tier 63% of
 # the time and misses by a tier, so by default the next lighter material's wearers (AC_ARMOUR, --ac-armour)
 LIGHTER = {525: ("chain", 879), 879: ("leather", LEATHER_NOW), LEATHER_NOW: ("cloth", ALL), ALL: ("cloth", ALL)}
 AC_ARMOUR = ("lighter", "material", "every", "none")
-# the rest by kind: (wear slots, attack types or None, mask, what); a kind's commonest mask in Sandstorm's records
+# the rest by kind: (wear slots, attack types or None, mask, what); a kind's commonest mask in the reference server's records
 # and this database's, or where those differ the one that leaves out fewest of the classes they name (a
 # piercer's every class but the monk, where the commonest left out the casters of half of them; a robe's every
 # priest and caster, where the casters' alone left out half)
@@ -208,8 +208,8 @@ def set_key(name):
 
 
 def set_index(ss, ak):
-    """{set: [(name, wear slot, level, mask, whose)]}: every armour piece Sandstorm's records or Allakhazam's
-    pages give a mask, by the set its name says (Sandstorm's record of a name and slot before a page)."""
+    """{set: [(name, wear slot, level, mask, whose)]}: every armour piece the reference server's records or Allakhazam's
+    pages give a mask, by the set its name says (the reference server's record of a name and slot before a page)."""
     out = collections.defaultdict(list)
     seen = set()
     for (k, slot), cands in sorted(ss.items()):
@@ -230,7 +230,7 @@ def set_index(ss, ak):
 
 
 def sandstorm(paths):
-    """Sandstorm's gear records: {(name, wear slot): [record]}, each record (level, class mask, race mask, id)
+    """the reference server's gear records: {(name, wear slot): [record]}, each record (level, class mask, race mask, id)
     once."""
     files = []
     for p in paths:
@@ -349,7 +349,7 @@ def from_same(rec, same):
 
 def from_set(rec, sets):
     """4a. An armour piece's set: the other pieces of the set its name says, within SET_LEVELS of its level,
-    that Sandstorm's records or Allakhazam's pages give a mask, all one."""
+    that the reference server's records or Allakhazam's pages give a mask, all one."""
     if rec["slot"] not in ARMOUR:
         return None, ""
     sk = set_key(rec["name"])
@@ -499,9 +499,9 @@ def guesses(r, sets, ac_armour, variants=False):
 
 
 def measure(recs, ss, ak, same, sets, ac_armour):
-    """Each source against the masks it can be checked on, one a name and slot: Sandstorm's records and
+    """Each source against the masks it can be checked on, one a name and slot: the reference server's records and
     Allakhazam's pages against this database's masks and each other, and the set and the rule against this
-    database's masks (records of ours, made families left out) and Sandstorm's."""
+    database's masks (records of ours, made families left out) and the reference server's."""
     out = collections.defaultdict(collections.Counter)
     descs = collections.Counter(r["desc"] for r in recs)
     seen = set()

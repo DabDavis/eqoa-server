@@ -54,8 +54,8 @@ type wayPlace struct {
 }
 
 // podArrival is where a trip to the Plane of Disease lands (the owner,
-// 2026-11-13: "where dust is now is where the dead hills PoD portal ports
-// to"): Dust's spot then, facing as he did; until then in front of the Portal
+// 2026-11-13: "where [a GM] is now is where the dead hills PoD portal ports
+// to"): a GM's spot then, facing as he did; until then in front of the Portal
 // to the Dead Hills.
 var podArrival = &wayPlace{World: 5, X: 4644.3, Y: -11.8, Z: 3818.7, Facing: 3.117049}
 
@@ -118,7 +118,7 @@ var wayRoutes = map[string][]wayRoute{
 		{To: "Lavastorm", Arrive: "Explorer Springa", MinLevel: 55},
 	},
 
-	// The boats (petition 1034, Zaeire: "Dockmasters in FP arent giving an
+	// The boats (petition 1034: "Dockmasters in FP arent giving an
 	// option to visit either destination they offer. Bogman/hazinak nor the
 	// arc/som"): each dockmaster's harbours as EQOA-Data's map marks them
 	// (Map/zones.json: "Dockmaster Yarnning to Arc SoM", "Dockmaster Endol to
@@ -128,7 +128,7 @@ var wayRoutes = map[string][]wayRoute{
 	// the harbour reached: Freeport's Odus boat Yarnning's, its other one
 	// Endol's ("Endol is at the end of the dock you teleport to. He teleports
 	// you to the Hazinak Outpost", neriak-nektulos/cleric; "using Dockmaster
-	// D'Eleth from Hazniak to Freeport", neriak-nektulos/warrior). Sandstorm's
+	// D'Eleth from Hazniak to Freeport", neriak-nektulos/warrior). The reference server's
 	// Bibbin offered "Bogman Village." and "Freeport." (pcaps/sandstorm-
 	// warp.pcap). Arcadin and the Stone of Morathals are Odus's (world 2),
 	// the rest Tunaria's. No fee: no guide gives one.
@@ -175,7 +175,7 @@ var wayRoutes = map[string][]wayRoute{
 	"Waysender Iskan": {
 		{To: "the Black Market", Arrive: "Waysender Mazaran"},
 	},
-	// Arcadin and the Stone's good side (petition 1541, Neo: "talking to
+	// Arcadin and the Stone's good side (petition 1541: "talking to
 	// Waysender Yuresh does not port you to stone of morathalis"): Yuresh
 	// stands by Arcadin's docks (Dockmaster Killeron's), and Arcadin is the
 	// good Stone's town (the coaches' routes, entity/coachroutes.go: "Stone
@@ -221,7 +221,7 @@ var wayRoutes = map[string][]wayRoute{
 		{To: "Oggok Gate", At: &wayPlace{World: 0, X: 12571, Y: 60, Z: 29520.8}},
 	},
 
-	// The Archons' towers in Geomancer's Citadel (ticket 1196, Larrybird: "each
+	// The Archons' towers in Geomancer's Citadel (ticket 1196: "each
 	// side fire and earth should have two different portals each one to the
 	// archon and the other too the primael boss"). The guide (Misc/archon-aereth-
 	// archon-vetash-and-primeval-elements): "The Fire Primeval is located in the
@@ -274,8 +274,8 @@ var wayRoutes = map[string][]wayRoute{
 	// The Last House's far portal (the wiki's Oozing Portal): the quest's last
 	// step, then for one who finished it the way on, with the suit ("Have the
 	// suit in your inventory to pass through"); its landing the step's.
-	// The Last House's ward where Dust stood (the owner, 2026-11-13: "add a npc
-	// stone golem where dust stands that players talk to pass through the bbox
+	// The Last House's ward where a GM stood (the owner, 2026-11-13: "add a npc
+	// stone golem where [a GM] stands that players talk to pass through the bbox
 	// that possess the flesh suit"; named "Last House Warden" by the owner): a
 	// stone golem beside the ward's invisible wall
 	// sets one with the zombie flesh suit past it, on its far side (the ward's
@@ -291,7 +291,7 @@ var wayRoutes = map[string][]wayRoute{
 	"Portal to the Dead Hills": {
 		{To: "the Dead Hills", Arrive: "Necrologist Zizclank"},
 	},
-	// The First Seal (petition 1534, Fullmetal: "Spirit Takers Portal is not
+	// The First Seal (petition 1534: "Spirit Takers Portal is not
 	// responding and will not port to Caretaker"): the guide's black orb
 	// portal in Spirit Talkers Woods, to the Heyokah Burial Ground, landing
 	// in front of the Caretaker; open to anyone (the quest's amulet and the
@@ -329,7 +329,7 @@ var wayRoutes = map[string][]wayRoute{
 	},
 	// Noroxus "Take the combined item to the big cauldron in the middle of
 	// all 3 pools to open fuming portal ... This leads to Noroxus" (F3 pass
-	// 21, jib: he stood at "his portal entrance, not his arena"): the
+	// 21, a GM: he stood at "his portal entrance, not his arena"): the
 	// Fuming Portal at the cauldron, to his lair, the north-west lake's lobe
 	// (eqoa.live's wiki map); live's slime hearts open it, here level 60.
 	"Fuming Portal": {
@@ -339,7 +339,7 @@ var wayRoutes = map[string][]wayRoute{
 		{To: "the cauldron", Arrive: "Fuming Portal"},
 	},
 
-	// Zaoran Plateau, the Secrets world's zone 5 (tools/seed_zp.py, jib's PR #4,
+	// Zaoran Plateau, the Secrets world's zone 5 (tools/seed_zp.py, a GM's PR #4,
 	// places these NPCs). Razeal Moloch: "a post spawns in the center. Speak w/it
 	// and he is summoned to the isle; you recieve Razeal Raid Teleporter. Port up
 	// and own": the post by the cemetery, to the south-east isle, and a portal
@@ -462,13 +462,13 @@ var wayRoutes = map[string][]wayRoute{
 // porting onto the raft from Norrach").
 var iodRaft = wayPlace{World: 0, X: 24578, Y: 52.6, Z: 3626, Facing: 3.9}
 
-// sanctuaryLanding is where the vampires' Sanctuary is reached: Sandstorm's
+// sanctuaryLanding is where the vampires' Sanctuary is reached: the reference server's
 // landing for its Sanctuary spell (claude-notes/sanctuary-memcard-patch-
 // 20261025.md: S2's world 7 at (4322.19, 274.134, 6179.78), the Frontiers
 // disc's world 5 file), on the floor there, under 48 of rock (ground.Roof).
 var sanctuaryLanding = wayPlace{World: 5, X: 4322.19, Y: 273.62, Z: 6179.78}
 
-// The waysender's words. A trip is asked as Sandstorm's dockmasters ask one
+// The waysender's words. A trip is asked as the reference server's dockmasters ask one
 // (pcaps/sandstorm-warp.pcap: "Where do you wish to go?", then "Very
 // well."); one place alone as Yes or No.
 const (

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Zerkziee's construct as a catapult (the owner, 2026-11-17, of Zerkziee's petition 2131: "where dust is is a
-catapult prop. we have templates for props as mobs now. lets give it to zerkziee. it can ram for attack and we can
+"""a player's construct as a catapult (the owner, 2026-11-17, of a player's petition 2131: "where [a GM] is is a
+catapult prop. we have templates for props as mobs now. lets give it to [a player]. it can ram for attack and we can
 make the catapult fire").
 
-The catapult is Tunaria's siege engine prop 0xE64B8D78 (zone 108: three of them by where the GM Dust stood, at
+The catapult is Tunaria's siege engine prop 0xE64B8D78 (zone 108: three of them by where a GM stood, at
 21228.7, 19147.5; Rathe's zones 13 and 17 hold it too), a zone's sprite no character file has. So it is a pet's ART
 (server branch catapult-pet: a rank's PetArt, decorart rows of kind pet, entity/cmpetlook.go and decorlights.go): a
 client that draws it (vanilla answering the decorations at layout 3) is sent the construct in the catapult, in a world
@@ -12,8 +12,8 @@ whose decorart pet row names the zone that holds it; every other client (a PS2) 
 forward at each swing, and at each of its casts (Tinker Kick, every 12 s) fires a boulder (0xBFEE4CCD, the rock
 beside the catapults in the same zones) from its arm to the target.
 
-Writes (Heirloom only: Zerkziee is serverid 747 there, a level 60 gnome with Tinker and Construct; on Live 747 is
-someone else, so it REFUSES unless 747 is Zerkziee with rank 1542):
+Writes (Heirloom only: a player is serverid 747 there, a level 60 gnome with Tinker and Construct; on Live 747 is
+someone else, so it REFUSES unless 747 is a player with rank 1542):
   1. cmcatalog "Construct (Catapult)" at the next free id from 900919 (after 900918, the giant spider): Tinker,
      category 4, gnomes, rank 4 under Construct (1542), level 60, cost 0, requires Construct@60 /
      901835|901836|901837, effects PetArt:3863711096,OnlyFor:747 (a look-only rank, as 900917).
@@ -25,7 +25,7 @@ someone else, so it REFUSES unless 747 is Zerkziee with rank 1542):
      Of his look ranks the highest id's wins, so the catapult is his construct's look on vanilla until he removes the
      rank; a PS2 still shows Construct (Giant Spider) (900918's PetLook).
 
-Checked as found, else REFUSED and nothing written: Zerkziee at 747 with ranks 1541 and 1542; cmcatalog 1542 and the
+Checked as found, else REFUSED and nothing written: a player at 747 with ranks 1541 and 1542; cmcatalog 1542 and the
 Construct spells' petstats rows; no other "Construct (Catapult)" row; no decorart rows of these names that differ.
 A report by default; --apply in one transaction, a gm_audit line a row, what was there kept in --applied (JSON);
 --undo puts back exactly that, refused if a row has changed since (all or nothing).

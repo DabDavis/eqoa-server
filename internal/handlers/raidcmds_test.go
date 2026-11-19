@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// The raid's commands as typed (raidcmds.go; the GM Jibrish's petitions 1448, 1451,
+// The raid's commands as typed (raidcmds.go; a GM's petitions 1448, 1451,
 // 1452, 1453): every spelling reaches its command, and a PS2's "/t <word>" stays a tell
 // where a player of the name is in the world or the sender has nothing to answer.
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """tools/fix_weapon_records.py against a made-up database and harvest: a
-weapon of no attack type and no model takes Sandstorm's record and the model
+weapon of no attack type and no model takes the reference server's record and the model
 most clubs here wear; a potion is left; a second --apply is refused; --undo
 gives back the table as it was. No game data.
 

@@ -1,7 +1,7 @@
 package entity
 
 // movecheck.go — the server's own view of a player's moves (2026-11-01, the
-// user: "we are hardening the eqoaclassic server. the client is authoritative
+// user: "we are hardening the production server. the client is authoritative
 // on several things like Y axis, gravity, etc.", "its really in the state
 // channel manipulation").
 //
@@ -37,7 +37,7 @@ package entity
 //     (VIScene::Collide stops the ball at one): a wall, a house, the
 //     terrain's own floor (down through the ground), a cave's roof.
 //
-// Measured on eqoaclassic's own players before any of it judged anyone
+// Measured on the production server's own players before any of it judged anyone
 // (cmd/movereplay over the live log of 2026-10-31, 58,422 reports of 16
 // sessions, PS2s, native and browser clients): every report its walker said
 // stood on a floor was within 0.1 of a floor of the ground but six, all
@@ -172,7 +172,7 @@ const (
 	mcFixesNoted          = 5 // moves back in the window that are logged as a pattern
 	mcLogEvery            = 2 * time.Second
 
-	// A body in something placed (the owner, 2026-11-18: Lonewulf in the
+	// A body in something placed (the owner, 2026-11-18: a player in the
 	// rock by Noroxus; ground/embed.go): the walk keeps a 0.6 ball round the
 	// middle off every face, and no report of the 58,422 real ones of
 	// 2026-10-31 had a ball of mcBall in one (116 at 0.6: the walk's ball
@@ -615,7 +615,7 @@ func (w *World) underLiquidLocked(p *Player) (under, known bool) {
 	return mid != 0 && dn&^up == 0, true
 }
 
-// nearBlockerLocked is a place over an invisible blocker's box (Sandstorm's
+// nearBlockerLocked is a place over an invisible blocker's box (the reference server's
 // collision-only SimpleSprite, 5 a side, which a body may stand on and the
 // ground does not hold). Must be called with the lock held.
 func (w *World) nearBlockerLocked(world uint8, x, y, z float32) bool {

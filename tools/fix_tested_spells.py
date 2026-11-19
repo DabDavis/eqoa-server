@@ -7,8 +7,8 @@ The source, named in every entry below: Allakhazam's EQOA spell database
 page a spell (spell.html?eqoaspell=<id>, "AK <id>"), as the Wayback Machine
 archived it in 2006 and 2012, with each spell's class and level, casting
 time, recast, power cost, scope ("Single Target", "Self Only", "Group"),
-duration and effect. Its records agree with Sandstorm's where both have a
-spell (Decaying Flesh, AK 528: cast 6, recast 30, power 526, Sandstorm's
+duration and effect. Its records agree with the reference server's where both have a
+spell (Decaying Flesh, AK 528: cast 6, recast 30, power 526, the reference server's
 record exactly).
 
 What it changes:
@@ -16,7 +16,7 @@ What it changes:
   1. Scopes: ten spells tools/import_eqoadata_spells.py and its mastery
      sibling made self spells (scope 0: EQOA-Data's line has no target word)
      that their pages say are cast at a target. A self spell lands on its
-     caster whatever is targeted (CLIENT's scope, Sandstorm's measured way),
+     caster whatever is targeted (CLIENT's scope, the reference server's measured way),
      so Ember Strike, Annihilate and Arcane Bonds landed on the wizard and
      the monk who cast them at a creature (B02-B04), and Plaguebringer's Rash
      (L01) on the necromancer. Each is now scope 1 with the importer's range

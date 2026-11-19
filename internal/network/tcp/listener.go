@@ -48,7 +48,7 @@ const (
 //
 // It was assumed to be a random per-connection challenge, and we generated it
 // with crypto/rand. It is NOT random: a live capture of eqoa.live from February
-// and a fresh capture of Sandstorm in August are byte-identical, so the real
+// and a fresh capture of the reference server in August are byte-identical, so the real
 // servers send a CONSTANT here. Since neither server validates the password
 // hash the client derives from it, a random value survives the login exchange —
 // but the PS2's station layer opens a SECOND connection to this port after a

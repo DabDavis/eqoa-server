@@ -38,7 +38,7 @@ WHAT IS CHANGED (plan(); each change a unit of rows, its why written beside it)
            in proportion to its kinds, on its own open ground (cmd/campground's spot: a floor within reach of the
            copied creature's height, dry, clear of walls and placed things, no wall between them), each the farthest of
            CANDIDATES random places within SPREAD of the camp's creatures from every NPC, SPACING apart at least
-  fork     the owner's 11-15 database ("Database for Dab 11-15-26.db": "this has some updated camps but some is old
+  fork     the owner's 11-15 database ("the owner's database file of 11-15": "this has some updated camps but some is old
            from a fork", read-only, --fork): its own camp edits where it is the newer version (FORK_TAKE), each said
   owner    the owner's answers of 2026-11-18 (owner_units, propagate_units): the fork's frost giant camp by the Artic
            Spiritcaller on both shards, Heirloom's Xrag/bone hunter/Snowgrin/Quintashi rows at Live's levels, and the
@@ -51,7 +51,7 @@ WHAT IS CHANGED (plan(); each change a unit of rows, its why written beside it)
 Planning reads both shards' copies and the ground; applying needs neither (a before.sh holds the server seconds):
 
     python3 -E -s tools/xp_camps_20261118.py --heirloom H.db --live L.db --ground worlds/ground \\
-        [--fork "Database for Dab 11-15-26.db"] [--eqoa-data ../external/EQOA-Data] --write-plan PLAN.json [--report]
+        [--fork "OWNERS-DB.db"] [--eqoa-data ../external/EQOA-Data] --write-plan PLAN.json [--report]
     python3 -E -s tools/xp_camps_20261118.py --db eqoa.db --plan PLAN.json [--shard h|l] [--apply | --undo | --hash]
 
 --apply in one transaction, a gm_audit line a row, log xp_camps_20261118_log (and _meta: the npcs sequence before); a

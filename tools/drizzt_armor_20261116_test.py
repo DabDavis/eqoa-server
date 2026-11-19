@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """drizzt_armor_20261116.py on a small database: the report writes nothing; --apply makes the six scale mail records
 (model 7) and the six ornate plate records (model 9), each ranger only, NO TRADE, LORE, with its own description of
-at most 200 plain characters, table itemowner and a row binding each to Drizzt, each write with a gm_audit
+at most 200 plain characters, table itemowner and a row binding each to a player, each write with a gm_audit
 line; --apply --give then puts one of each in his pack, unequipped at the end of the list; a third apply finds nothing
 to do; --undo puts the database back as it was (gm_audit aside), and leaves a record someone still holds. The
-controls: a Drizzt who is no level 60 dark elf ranger, a taken id, a pack with no room, or a piece worse than what he
+controls: a player who is no level 60 dark elf ranger, a taken id, a pack with no room, or a piece worse than what he
 wears refuse the whole, writing nothing."""
 import os
 import sqlite3
@@ -132,7 +132,7 @@ class DrizztArmor(unittest.TestCase):
         make(self.path)
         run(self.path, "--give", "--apply")
         db = sqlite3.connect(self.path)
-        db.execute("UPDATE charinventory SET serverid = 417 WHERE patternid = 715046")  # Destiny took the gloves
+        db.execute("UPDATE charinventory SET serverid = 417 WHERE patternid = 715046")  # the account's other ranger took the gloves
         db.commit()
         db.close()
         code, out = run(self.path, "--undo")

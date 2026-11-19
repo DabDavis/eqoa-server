@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Spell records, class links and lines put right where a public source says
-ours are wrong (jib's review, F3 pass 19).
+ours are wrong (a GM's review, F3 pass 19).
 
 The sources, named in every entry below:
 
@@ -11,7 +11,7 @@ The sources, named in every entry below:
     scope ("Single Target", "Self Only", "Group"), duration and effect.
   - EQOA-Data's class lists (external/EQOA-Data, Information/databases/
     spells/<class>.json): the lines spelleffect holds.
-  - Sandstorm's spell vendors as harvests/sandstorm-spells-20261021 recorded
+  - The reference server's spell vendors as harvests/sandstorm-spells-20261021 recorded
     them (scrolls_by_class.tsv: each scroll's classes).
 
 What it changes:
@@ -27,13 +27,13 @@ What it changes:
      word) that their pages say are cast at a target or a group: scope 1 or
      2, and that scope's range and icon frame as the importer gives a record
      of it (30.0, and the frame every record of the scope here has: ours, the
-     importer's rule; Sandstorm's records of those scopes mostly have them).
+     importer's rule; the reference server's records of those scopes mostly have them).
   3. Links (classspells): rows of the old dump that give a class a spell its
      lists never give it (seven warrior spells the magician had, the
      warrior's Call to Arms the druid), and the shaman's and wizard's second
      invisibility, 700067 "Invisibilty": EQOA-Data's spelling, which the
      importer made a record of beside the Invisibility both classes already
-     had (509, the spell Sandstorm's "Invisibility (SHA, WIZ)" scroll teaches
+     had (509, the spell the reference server's "Invisibility (SHA, WIZ)" scroll teaches
      here: scribe.go finds a scroll's spell by its name, so a class whose
      spell were 700067 would be given 509 by its scroll and hold two again).
      509 stays each one's spell. Its numbers are the enchanter's (AK 97: cast
@@ -135,7 +135,7 @@ SCOPES = {
 # 3. Links, by (class, name, level): (the row's source now, why, the spell
 # (name, level) the class must keep a link to, or None). The dump's: each
 # spell is on Allakhazam's and EQOA-Data's lists of the classes named, and on
-# no other's, and Sandstorm sells its scroll to those classes alone.
+# no other's, and the reference server sells its scroll to those classes alone.
 WARRIORS = "the warrior's (AK {}), on no magician's list; Sandstorm's scroll is the warrior's"
 TAUNT = ("the warrior's, paladin's and shadow knight's (AK {}), on no magician's list; Sandstorm's scroll is "
          "theirs")

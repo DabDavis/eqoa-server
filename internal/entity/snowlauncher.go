@@ -9,7 +9,7 @@ import (
 )
 
 // snowlauncher.go — the Automatic Snowball Launcher (the owner, 2026-11-16:
-// "lets give zerkziee an automatic snowball launcher, infinite ammo").
+// "lets give [a player] an automatic snowball launcher, infinite ammo").
 //
 // The launcher is an item record (handlers/snowlauncher.go: by its name, bound
 // to its one character by table itemowner; tools/snowball_launcher_20261116.py

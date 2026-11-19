@@ -11,12 +11,12 @@ import (
 // highest in full, the second at SecondItemShare, every further one 1; and
 // every point is 1 hit point (power) a tick, a tick every six seconds.
 //
-// Sandstorm agrees (pcaps/ps2_main_capture.pcap, its stat channel): a level
+// The reference server agrees (pcaps/ps2_main_capture.pcap, its stat channel): a level
 // 51 bard's power rose every 6.0-6.2 s for over two minutes, by 119, 127 and
 // 131 at maxima of 3735, 4149 and 4347, each a 50 of the maximum plus the
 // same 45 (its items'); its hit points rose 89 a tick once its songs ended
 // (4201 / 50 = 84, plus 5); and both kept rising while it was hit between
-// ticks, so a fight does not stop them. Sandstorm leaves the stat channel's
+// ticks, so a fight does not stop them. The reference server leaves the stat channel's
 // PoT and HoT (bytes 48 and 52) 0; they are filled here.
 //
 // A spell's healing over time is not counted here: a "per tic" line is its
@@ -72,7 +72,7 @@ func (p *Player) PoTNow() int {
 // points at full health too (the user, 2026-11-01, "yes"), where until then
 // the tick ran only below full health and a full necromancer paid nothing.
 // One a spell's effect makes (Mods.HoT below nothing: Lich) can kill (the
-// owner, 2026-11-10, for the GM Jibrish's ruling of 2026-10-29 in jib's PR #1:
+// owner, 2026-11-10, for a GM's ruling of 2026-10-29 in a GM's PR #1:
 // "You could definitely kill yourself with lich form, pacts and so on");
 // until then it stopped at 1, as anything else (a worn item's) still does. It
 // reports whether the tick took the last hit point (regenSystem: the death).

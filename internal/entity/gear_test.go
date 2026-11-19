@@ -5,11 +5,11 @@ import (
 	"testing"
 )
 
-// A level 23 druid in its gear, as Sandstorm's stat channel showed one
+// A level 23 druid in its gear, as the reference server's stat channel showed one
 // (2026-10-21): the worn items' stats on the base ones, the maximum hit
 // points of all the stamina plus the items' 113, the maximum power of all
 // the stats plus the items' 145, and the base maxima. The hit points are
-// the live game's formula's (stats.go): 566 of the stamina where Sandstorm,
+// the live game's formula's (stats.go): 566 of the stamina where the reference server,
 // rounding STA/11 first, sent 575 (and 688 with the items' where 679).
 func TestRecalcStatsWithGear(t *testing.T) {
 	p := &Player{Class: 7, Level: 23,
@@ -40,7 +40,7 @@ func TestRecalcStatsWithGear(t *testing.T) {
 			t.Errorf("byte %d = %d, want %d", o, got, want)
 		}
 	}
-	// the worn AC and resists (Sandstorm showed this druid AC 529: something
+	// the worn AC and resists (the reference server showed this druid AC 529: something
 	// adds more than the items' 404, not yet known), each resist with its WIS
 	// 102's 14 (the beta sheet's 1 each 7 WIS, ours since 2026-11-11: the
 	// items' 26 and 12)

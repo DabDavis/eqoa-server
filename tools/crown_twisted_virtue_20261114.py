@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""The Heirloom Crown of Twisted Virtue: Dust's red circlet as an item (the owner, 2026-11-14: "for dusts circlet make
+"""The Heirloom Crown of Twisted Virtue: a GM's red circlet as an item (the owner, 2026-11-14: "for dusts circlet make
 it an actual item with that model we just made, named crown of twist virtue").
 
-Named in the series of Dust's Heirloom Sword and Shield of Twisted Virtue (714382, 714383): "Heirloom Crown of Twisted
-Virtue" (the owner typed "twist"; the series says "Twisted"). --apply (Heirloom: Dust is on no other shard):
+Named in the series of a GM's Heirloom Sword and Shield of Twisted Virtue (714382, 714383): "Heirloom Crown of Twisted
+Virtue" (the owner typed "twist"; the series says "Twisted"). --apply (Heirloom: a GM is on no other shard):
 
-1. itempattern, at the next free id after 714386 in the heirloom range: Dust's own Heirloom Helm (714043) copied whole
+1. itempattern, at the next free id after 714386 in the heirloom range: a GM's own Heirloom Helm (714043) copied whole
    (a helm, equipslot 1; no trade; its figures the heirlooms' rule: the best head piece his class wears at his level,
    as the Sword and Shield of Twisted Virtue are) with its own name, description, the crown icon of the game's crowns
    (1396793324, Crown of the Jaguar's), the series' crimson (3238989567) and model 0: a crown draws no helm (the game's
@@ -15,7 +15,7 @@ Virtue" (the owner typed "twist"; the series says "Twisted"). --apply (Heirloom:
 3. itemaura: kind 8 (circlet: database.ValidItemAura), source 0x1D875ECD (the Ascendant staff's ring), colour
    0xE01818FF, nodes 72 (72% up the head: the temples): anyone wearing it in the helm's slot shows the red circlet
    (entity.pieceAuras); hidden, none.
-4. One into Dust's pack (location 0, the next list number).
+4. One into a GM's pack (location 0, the next list number).
 
 His own circlet (charaura slot 5, the same look) is KEPT: it shows whatever he wears, so nothing changes for him
 until he puts the crown on. Then --finish: his charaura circlet row deleted (the crown's own shows the same), and his
@@ -28,7 +28,7 @@ back exactly what was there (the last step first; the crown taken out of his pac
 
 Needs a server with crown-twisted-virtue (itemaura kind 8; an older one drops the row: the crown would show nothing)
 and a vanilla with circlet-height (65f229d) for the height. After --apply: the panel's "Reload every NPC" (the item
-auras) and Dust's next login (his pack).
+auras) and a GM's next login (his pack).
 
     python3 -E -s tools/crown_twisted_virtue_20261114.py --db eqoa.db [--apply | --finish | --undo]
 """

@@ -2,7 +2,7 @@ package entity
 
 import "testing"
 
-// Live petition 5055 (Innoruuk, a level 17 shadow knight): a magician's level 16 earth pet's taunt
+// Live petition 5055 (a level 17 shadow knight): a magician's level 16 earth pet's taunt
 // puts it 320 over the top (20 a level); a shadow knight's Taunt of ~120 hate (x1.05) put him a
 // mere 142 over the pet (its raise to the top at 105% too), which its melee passed long before its next taunt. Now a player's taunt
 // is at least the margin a pet of his level gets (pettaunttank.go): 340 at 17, 357 at his 105%, 373 in all.

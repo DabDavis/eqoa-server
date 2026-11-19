@@ -14,7 +14,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// welcome.go — the welcome guide (petition 1457, the GM Jibrish: "Add a game
+// welcome.go — the welcome guide (petition 1457: "Add a game
 // popup when people first log in, a dialogue pop up, for the day ... 1: Ask if
 // they would like a guide of the server 2: Ask if they never want to see this
 // on that character again ... Make sure to tell them that /tutorial will bring

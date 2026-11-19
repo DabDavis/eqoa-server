@@ -8,7 +8,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// The Hydromancer's Ghilan Noble (the magician Waldorf's petition 1395: "Ghilan
+// The Hydromancer's Ghilan Noble (a magician's petition 1395: "Ghilan
 // Noble for Hydromance MCA should get an added undead nuke against undead
 // creatures. Hit around 1500 I believe."), as petfix180_20261109.py leaves its
 // workbook row: its own kit, and Purifying Tide ("Target undead, Decrease

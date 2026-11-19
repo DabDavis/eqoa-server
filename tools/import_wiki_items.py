@@ -17,11 +17,11 @@ aside, and two letters of a typo: the wiki's "Rusty Hachet" is our Rusty Hatchet
 "Short Sword of Ykesha" for our "Short Sword of the Ykesha", is in ALIASES; an Item List line whose slot, level,
 classes, AC or damage, attack type and first word are one of ours is that item's Classic name, "Banded Gloves"
 for Frontiers' Banded Gauntlets). Only items with a level and a
-slot are made (from a Sandstorm record of the same name, else an item page, a set row or an Item List line, in
+slot are made (from a reference-server record of the same name, else an item page, a set row or an Item List line, in
 that order); a name in a loot list alone is listed, not made.
 
 Each record:
-- **Sandstorm's** fields where its harvests hold the item (its icon, value, slot, type, damage, range, level,
+- **the reference server's** fields where its harvests hold the item (its icon, value, slot, type, damage, range, level,
   masks, durability, stats, description); the wiki's otherwise.
 - **The icon and the look (OURS)**: an armour piece's style from its material, read off its page (a model
   picture "ChainMail..." chain 3, "BandedMail..." banded 6; an icon picture "Icon-...-plate" plate 4,
@@ -32,11 +32,11 @@ Each record:
   server's weapons of its attack type carry most among those named with its last word, else of its type. A
   jewel, belt, held item or shield the commonest icon (and a shield's model) of this server's items of its slot
   named with its kind's word.
-- **Its value**: Sandstorm's, else tools/stock_merchants.py's rule.
+- **Its value**: the reference server's, else tools/stock_merchants.py's rule.
 - Hit points the line's or 200 a level, durability 50, NO TRADE when the wiki's trade says No.
 
 Where it comes from (OURS where the wiki gives no rate; every row logged):
-- a merchant Sandstorm's harvest shows selling it, or the Halas vendor the Item List names ("Halas - Yelda": our
+- a merchant the reference server's harvest shows selling it, or the Halas vendor the Item List names ("Halas - Yelda": our
   "Smithy Yelda"), when this server has that merchant: onto its catalog (at most 40 wares);
 - a named creature of this server's the wiki says drops it: a loot table of its own ("wiki <name>"), rolled
   once a kill at NAMED_CHANCE percent (npcloot; a creature the wiki calls generic, "bandit", GENERIC_CHANCE);
@@ -371,7 +371,7 @@ def has_table(db, name):
 
 
 def harvest_records(paths):
-    """{key: (ware, merchant name)} off eqoa harvest JSONs: Sandstorm's records and who sells them."""
+    """{key: (ware, merchant name)} off eqoa harvest JSONs: the reference server's records and who sells them."""
     out = {}
     files = []
     for p in paths:

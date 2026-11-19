@@ -15,7 +15,7 @@ const balanceNewPlayersNote = "levels 1-12 balanced apart for new players (tools
 // balancelevel or balancecon table it makes (BalanceSeedClasses and
 // BalanceSeedClassLevels a balanceclass or balanceclasslevel table): the
 // tuning of 2026-10-30 (claude-notes/balance-20261029.md), found with the
-// fight simulator (entity/balancesim.go, cmd/balancesim) on eqoaclassic's
+// fight simulator (entity/balancesim.go, cmd/balancesim) on the production server's
 // own items, spells and pets, to the user's targets of that day: "Yellow
 // (+1/+2): should be a scary fight, at least take you down to less than a
 // third hp" and still usually won; "Red (+3 and up): needs a group", a lone
@@ -129,7 +129,7 @@ const balanceNewPlayersNote = "levels 1-12 balanced apart for new players (tools
 // and tools/refit_eqoaemu_balance.py to these.
 //
 // A creature's heal out of a fight (regen_pct): 5% of its hit points a tick
-// from its third tick (the user: "Mobs regen slower"; jib's was 15%), so one
+// from its third tick (the user: "Mobs regen slower"; a GM's was 15%), so one
 // left empty is whole in about 2 min 10 s, one left at half in 1 min 12 s:
 // longer than an even fight (about 40 s) and a red's (70-90 s), so a fight
 // broken off and taken up again inside that time is not lost, and still

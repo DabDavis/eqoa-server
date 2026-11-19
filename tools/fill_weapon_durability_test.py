@@ -70,7 +70,7 @@ class FillWeaponDurability(unittest.TestCase):
         self.assertEqual(dump(self.path), self.before, "undo puts every row back")
 
     def test_undo_reads_the_first_versions_log(self):
-        # the log eqoaclassic holds (2026-10-30): itempattern rows of old values 0/0, held copies with no
+        # the log the production server holds (2026-10-30): itempattern rows of old values 0/0, held copies with no
         # old duration; an undo of it still puts back 0/0 and remainHP 0
         db = sqlite3.connect(self.path)
         db.execute("UPDATE itempattern SET maxhp = 800, duration = 50 WHERE patternid = 10")

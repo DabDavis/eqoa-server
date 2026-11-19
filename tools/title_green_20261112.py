@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dabrish's and the Testing Heroes Vendor's titles green (the GM Jibrish's petitions 1790 and 1791, 2026-11-12: "Color
+"""Dabrish's and the Testing Heroes Vendor's titles green (a GM's petitions 1790 and 1791, 2026-11-12: "Color
 the XP/CM title on Dabrish green, semi bright green so it shows but not too green as to be unreadable", and the same for
 the Testing Heroes Vendor's title).
 

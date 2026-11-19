@@ -123,7 +123,7 @@ func TestRealMercMasterClasses(t *testing.T) {
 
 // Petition 2195 on a real database (EQOA_REAL_DB, a copy): an alchemist of
 // every Master Class it may take (a human's, a gnome's and a barbarian's
-// racial ones), its ten slots set as Lonewulff's Cardor's were (buffs, a
+// racial ones), its ten slots set as a player's Cardor's were (buffs, a
 // potion spell, a nuke: no refinement, which the window never lists), keeps
 // the same stacks as one with no Master Class and no slots: its
 // single-target potion, its cocktail (a Cocktail alchemist) and its draught.
@@ -181,7 +181,7 @@ func TestRealMercAlchemistMasterClassesBrew(t *testing.T) {
 
 // Petition 2216 on a real database (EQOA_REAL_DB, a copy): an alchemist's
 // Master Class mixtures are used (entity's mercselfpotion.go), its ten slots
-// set as Felthious's Ornar's were: a Transmuter takes its Transformative Pill
+// set as a player's Ornar's were: a Transmuter takes its Transformative Pill
 // and throws its Transmutive Potion, a Metabolist drinks its Miraculous
 // Draught; with no Master Class none of them.
 func TestRealMercAlchemistMasterMixtures(t *testing.T) {

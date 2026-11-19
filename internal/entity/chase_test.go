@@ -68,7 +68,7 @@ func TestACreatureRunsAtItsEnemyAndFightsWhenItReaches(t *testing.T) {
 	if swungAt == 0 {
 		t.Fatalf("never swung: at %.2f, %.2f from its enemy", c.npc.X, c.p.X-c.npc.X)
 	}
-	// in its reach after a run of about 23.5 at Sandstorm's 9.9 a second (it
+	// in its reach after a run of about 23.5 at the reference server's 9.9 a second (it
 	// eases off in the last unit and a quarter), the first tick in reach;
 	// this test asked 2.6 to 3 s of the player's base run (8.83) and the
 	// easing over 2.5 units until F3 pass 16

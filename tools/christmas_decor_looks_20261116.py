@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
-"""Christmas decorations' looks: globe bulbs, tinsel and rope garlands, wrapping paper (the owner, 2026-11-16: "where dust
-is standing this model the magic globe can be used for bulbs and made different colors"; "the tent dust is standing has
-material that can be used for a wrap and the rope hanging also can be used to decorate the tree"; "where dust is in this
-camp we can use these tents as wrapping paper for presents"; "the tree where dust is has tinsel looking leaves we can
+"""Christmas decorations' looks: globe bulbs, tinsel and rope garlands, wrapping paper (the owner, 2026-11-16: "where [a GM] is standing this model the magic globe can be used for bulbs and made different colors"; "the tent [a GM] is standing has
+material that can be used for a wrap and the rope hanging also can be used to decorate the tree"; "where [a GM] is in this
+camp we can use these tents as wrapping paper for presents"; "the tree where [a GM] is has tinsel looking leaves we can
 use").
 
 Writes (source christmas-2026-looks, season Christmas):
   decorassets   the art the looks draw, read off each player's own disc by vanilla (christmas5), whatever world:
-                  Magic globe          TUNARIA.ESF zone 108  0xF8E6C045 (Dust's table by the Lightwolf: the globe)
+                  Magic globe          TUNARIA.ESF zone 108  0xF8E6C045 (a GM's table by the Lightwolf: the globe)
                   Tunaria plaid cloth  TUNARIA.ESF zone 28   0x58B41D37 0x6A41D388 (Odus camp tents' cloth; Tunaria has them)
                   Tunaria damask cloth TUNARIA.ESF zone 16   0x9EEAF67B 0xB078ACCC (the camp's other tents)
-                  Odus tent cloth      ODUS.ESF zone 15      0x4BC0D7FA 0xB1C8A396 0x7B3D8677 (Dust's tent: its cloth,
+                  Odus tent cloth      ODUS.ESF zone 15      0x4BC0D7FA 0xB1C8A396 0x7B3D8677 (a GM's tent: its cloth,
                                                              its bow banner, its hanging rope net)
-                  Odus tinsel leaves   ODUS.ESF zone 34      0x9196DAC4 (the spiky leaves of the tree Dust stood by)
+                  Odus tinsel leaves   ODUS.ESF zone 34      0x9196DAC4 (the spiky leaves of the tree a GM stood by)
   lighttemplates  Christmas globes (the globe at each bulb, a small glow), Gold tinsel, Silver tinsel, Red rope garland
                   (no glow: a textured cord, draped)
   lightstrings    the tree's garlands, between its rings of lights (--garland tinsel: gold and silver; rope: red rope;

@@ -35,7 +35,7 @@ func (w *World) ClearEffects(sess *session.Session) {
 }
 
 // ClearBuffs ends every effect on the session's player now (a GM's
-// #clearbuffs: F3 20261029-011146, jib's "a GM Test command to clear all
+// #clearbuffs: F3 20261029-011146, a GM's "a GM Test command to clear all
 // buffs on the character issuing it"), each as its time running out ends it
 // (removeEffectLocked, as effectSystem calls it): its slot off the effects
 // channel, the stat changes summed again with the hit points and power kept

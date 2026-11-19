@@ -8,7 +8,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// questheadmarks.go — the quest marks over the NPCs' heads (the GM Jibrish's
+// questheadmarks.go — the quest marks over the NPCs' heads (a GM's
 // petition 1813, 2026-11-12: "Add the ability for us to add yellow ! and ?
 // over NPCs in game, visible to the player ... The exclamation point over
 // their head should only happen if there's a quest they can log right then,

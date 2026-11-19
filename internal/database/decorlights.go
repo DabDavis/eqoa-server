@@ -615,8 +615,8 @@ type DecorArt struct {
 }
 
 // DecorArtPet is decorart.kind for a pet's look: a prop worn by a pet (the
-// owner, 2026-11-17: "where dust is is a catapult prop. we have templates for
-// props as mobs now. lets give it to zerkziee. it can ram for attack and we
+// owner, 2026-11-17: "where [a GM] is is a catapult prop. we have templates for
+// props as mobs now. lets give it to [a player]. it can ram for attack and we
 // can make the catapult fire").
 const DecorArtPet = "pet"
 

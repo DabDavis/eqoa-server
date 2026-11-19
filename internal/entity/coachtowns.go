@@ -6,7 +6,7 @@ import "math"
 // lists it by (F3 20261025-171410: the menus listed "Coachman Droogra" where
 // the town belonged). Every coachman of the server's npcs is here. Coachman
 // Dilga stands by Oggok's own announcement board in the Rathe (world 1), and is
-// Oggok's (petition 1124, the GM Jibrish: "The Oggok coachman is not on the coach
+// Oggok's (petition 1124: "The Oggok coachman is not on the coach
 // network with any connected paths."); coachTowns' Oggok is only where EQOA-Data's
 // map draws it. Each other was placed by where it stands: EQOA-Data's map (github.com/Jadiction/EQOA-Data,
 // Map/zones.json's towns, the coach network of Map/coach_map.json) laid over

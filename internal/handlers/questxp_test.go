@@ -6,7 +6,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// world.quest_xp_pct (the GM Jibwiz's petition 1915: Heirloom's one-time quests
+// world.quest_xp_pct (a GM's petition 1915: Heirloom's one-time quests
 // four times their experience): a one-time quest's 430 is 1720 at 400; a
 // repeatable's and a hunt and gather's (by its source, made one-time) stay;
 // unset or 100, every quest's stays.

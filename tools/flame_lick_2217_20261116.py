@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Petition 2217 (Mightyeagle, L60 ranger, Heirloom, 2026-11-16): "Flamelick forester mca is 0 cast and 6 recast post
+"""Petition 2217 (L60 ranger, Heirloom, 2026-11-16): "Flamelick forester mca is 0 cast and 6 recast post
 cb". Flame Lick, the Forester Master Class's ability (cmcatalog 3513), is cast as its record has it: 2 s cast, 15 s
 recast (the log: "begins "Flame Lick" (spell 701140) ... 2s cast"), from the import of EQOAEmu's workbook, whose
 record is Allakhazam's 2004 one (2 s, 15 s, 487 power) with the Combat Balance's cost and hate (325 power, 1000 hate,

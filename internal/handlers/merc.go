@@ -458,7 +458,7 @@ func (m *Mercs) askRaces(sess *session.Session, p *entity.Player, a mercAsk) {
 // mercName is a merc's name: one of the server's random names (character.go's
 // parts), the same for the same owner, class, race and hour, but none of
 // taken (any case: its owner's other hires' names and its own; the owner,
-// 2026-11-12: the GM Jibrish's three clerics hired within the hour were all
+// 2026-11-12: a GM's three clerics hired within the hour were all
 // "Jorador", so /merc Jorador named one of three).
 func mercName(serverID uint32, class, race int, at time.Time, taken ...string) string {
 	name := ""
@@ -528,7 +528,7 @@ func (m *Mercs) namesTaken(p *entity.Player, rows []database.MercRow) []string {
 }
 
 // A class may be hired more than once, up to the three slots (petition 1920,
-// Hoggieson: "2 or 3 of the same class in our grp for merc requits, like 2
+// a player: "2 or 3 of the same class in our grp for merc requits, like 2
 // monks"; it lifts the owner's 2026-11-12 "only 1 of each class"). Each hire's
 // name is still its own (mercName passes over the names taken).
 
@@ -750,7 +750,7 @@ func (m *Mercs) kit(row database.MercRow, level int) (entity.MercKit, error) {
 	return k, err
 }
 
-// An alchemist's merc holds a potion bottle (petition 1585, Hogbear: "alc
+// An alchemist's merc holds a potion bottle (petition 1585: "alc
 // option feels off with alc not holding a potion bottle, they got a staff
 // instead"): the look of the thrown potions (attack type 10, thrown) the
 // alchemists throw, in its main hand where the staff was, as the alchemists'
@@ -1014,7 +1014,7 @@ func (m *Mercs) backWhenRested(sess *session.Session, owner *entity.Player, slot
 			if m.gw.MercOwnerDead(sess) {
 				// its owner dead or on its way to its bind point (the owner,
 				// 2026-11-18: "/merc will only add 2 mercs back and not the
-				// third": Gonzo's third's rest ended a second after his death,
+				// third": a player's third's rest ended a second after his death,
 				// HireMercAt refused it, and nothing asked again): asked again
 				// until its owner stands
 				try(mercDeadOwnerRetry)

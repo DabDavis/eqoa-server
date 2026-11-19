@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Drizzt's weapons, Twinkle and Icingdeath, in the ranger heirloom scimitar's look, each with its own aura (the owner,
-2026-11-16: "lets give make drizzt special weapons twinkle and icingdeath look like ranger heirloom scimitar but icing
+"""a player's weapons, Twinkle and Icingdeath, in the ranger heirloom scimitar's look, each with its own aura (the owner,
+2026-11-16: "lets give make [a player] special weapons twinkle and icingdeath look like ranger heirloom scimitar but icing
 death freezing aura and blue. twinkle the aura from druid epic.").
 
 1. The look: the ranger's heirloom scimitar is the Heirloom Scimitar of Fury (714027, heirlooms class 1 = ranger, role
@@ -14,7 +14,7 @@ death freezing aura and blue. twinkle the aura from druid epic.").
    hands (the named aura "freezing"), at the blade's tip (nodes 0: vanilla's aura::tip), in blue 0x3060FFFF.
 3. Twinkle's aura: the druid's epic glow, itemaura kind 7 (epic look) of 0xCBF4135A, the Oak Staff of Eilerawdl (the
    druid's level 49 epic; the named aura "druid staff glow", the one the owner called "the druid epic aura" on
-   Zerkziee's scimitar): the staff's amber emissive, its gold sheen and its green sparkles at 45% along the blade
+   a player's scimitar): the staff's amber emissive, its gold sheen and its green sparkles at 45% along the blade
    (nodes 45, as the named look), in the staff's own colours (colour 0). The druid's level 60 epic scimitar, the Triad
    Scimitar (0xD03942DE), carries an emissive glow alone: no sheen, no particles.
 

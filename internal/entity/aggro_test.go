@@ -146,7 +146,7 @@ func TestAHostileCreatureAttacksAPlayerWhoComesNear(t *testing.T) {
 	}
 }
 
-// Sandstorm's level-51 player (pcaps/ps2_sandstorm_1min10secs.pcap): level
+// The reference server's level-51 player (pcaps/ps2_sandstorm_1min10secs.pcap): level
 // 18 and 19 creatures showed the red face and level 17 ones the white, all of
 // them green to it; the white Black Bear Cub came within 7.1 and did not
 // attack. Green, none attacks it on sight (the user, 2026-10-30); healing
@@ -321,7 +321,7 @@ func TestAGMRuleNamesWhoAttacksAndFromHowFar(t *testing.T) {
 }
 
 // A GM's rule is for its name in any case, trimmed and without a trailing $
-// (as npcclass keys a name): Sandstorm's "Cave Minnow" row keeps Return
+// (as npcclass keys a name): the reference server's "Cave Minnow" row keeps Return
 // Home's lake "cave minnow" peaceful too. Two spellings that disagree: the
 // peaceful one wins.
 func TestAGMRuleIsForEverySpellingOfItsName(t *testing.T) {
@@ -535,7 +535,7 @@ func TestACustomRaceBodyLeavesItsCreaturesHostile(t *testing.T) {
 	}
 }
 
-// Petition 1814 (Skywalker): a creature whose name's npcaggro row says
+// Petition 1814: a creature whose name's npcaggro row says
 // see_invis notices an invisible player and attacks it on sight, its
 // invisibility kept; a creature without one walks past it as ever; a GM's
 // Toggle Invis hides from both.

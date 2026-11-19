@@ -5,7 +5,7 @@ import (
 )
 
 // petgroupheal.go — a pet's heal of everyone of its side in reach at once (the
-// magician Waldorf's petition 1495: "Ghilan Noble should have three heals, the
+// magician a player's petition 1495: "Ghilan Noble should have three heals, the
 // large one, small one, and an AOE heal for 150 that heals players and pets in
 // range. First two seem to work fine but is missing the third").
 //

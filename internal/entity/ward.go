@@ -9,7 +9,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// ward.go — a creature's ward (database.AbilityWard; the GM Jibrish's petition 1892: "Add a buff to mr moogie
+// ward.go — a creature's ward (database.AbilityWard; a GM's petition 1892: "Add a buff to mr moogie
 // that fires off at 15% remaining HP. This gives mr. moogie a 500 a hit heal DS that heals him when hit, and
 // gives him a 5000 damage a hit additional damage shield that damages everyone with pure damage when hes hit").
 //

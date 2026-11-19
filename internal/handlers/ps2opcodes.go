@@ -186,7 +186,7 @@ func SendCharSelectNotice(sess *session.Session, op protocol.GameOpcode) {
 // float's high half as Range, and its two low bytes as the zigzag "Unk2" and
 // "Unk3" that came before it. So the float is put back together from all
 // three; for the low bytes to be single zigzag bytes, Unk2 and Unk3 must be in
-// 0..63, and Sandstorm's always are (they are 0).
+// 0..63, and the reference server's always are (they are 0).
 //
 // The icon hashes are written as signed 32-bit values: CLIENT gathers a
 // zigzag int into 32 bits, so a hash stored unsigned would lose its top bit.

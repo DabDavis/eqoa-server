@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Two vendor-trash items for every creature that has none, made by its body
-(the user, 2026-10-30: "Make them by body"; jib: each creature's own two
+(the user, 2026-10-30: "Make them by body"; a GM: each creature's own two
 stackable trash items, its trash roll picking between them).
 
 tools/seed_loot_categories.py gave only 148 creature names trash of their own:
@@ -28,7 +28,7 @@ the game's trophies for the rest were never recorded. This makes them:
     46 up: "torn wolf pelt", "wolf pelt", "fine wolf pelt", "pristine wolf
     pelt"), so that the price rises with the level.
   - **Its price**: the median level of the creatures that drop it times
-    PRICE_PER_LEVEL (2.40 tunar: what Sandstorm's 17 priced trophies fetch a
+    PRICE_PER_LEVEL (2.40 tunar: what the reference server's 17 priced trophies fetch a
     level of their creatures, tools/seed_loot_categories.py's fit), 1 at the
     least; stacking to 99; for vendors only (in no quest, recipe or shop).
   - **Its record**: an existing one where one already is that item (the same

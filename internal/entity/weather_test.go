@@ -170,7 +170,7 @@ func TestWeatherLavaGMResendInstance(t *testing.T) {
 	if len(got) != 1 || got[0].op != protocol.OpcodeSkyboxWeather || got[0].body[0] != 0 {
 		t.Fatalf("lava over 2.5 h: %+v, want the one 0x00C7 0", got)
 	}
-	zones, until, id, err := ww.w.CallWeather(0, 600, 2600, weather.Where{Kind: "here"}, weather.Snow, weather.Heavy, 10, "", "Dab", 0)
+	zones, until, id, err := ww.w.CallWeather(0, 600, 2600, weather.Where{Kind: "here"}, weather.Snow, weather.Heavy, 10, "", "Dax", 0)
 	if err != nil || len(zones) != 1 || id == 0 || until.Before(time.Now()) {
 		t.Fatalf("CallWeather: %v %v %v", zones, until, err)
 	}
@@ -270,7 +270,7 @@ func TestWeatherKeptOverKeepRestart(t *testing.T) {
 	if !ww.w.SetWeatherDraws(ww.ps2, true) {
 		t.Fatal("no player")
 	}
-	_, until, id, err := ww.w.CallWeather(0, 600, 2600, weather.Where{Kind: "here"}, weather.Snow, weather.Heavy, 5, "", "Jibrish", 0)
+	_, until, id, err := ww.w.CallWeather(0, 600, 2600, weather.Where{Kind: "here"}, weather.Snow, weather.Heavy, 5, "", "Jinkles", 0)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -9,7 +9,7 @@ import (
 	"github.com/eqoa/server/internal/entity"
 )
 
-// Call of the Hero through the handlers (callhero.go, entity/callhero.go; jib's
+// Call of the Hero through the handlers (callhero.go, entity/callhero.go; a GM's
 // PR #1): the portals' rig with Anna's group, the hooks set as
 // RegisterDefaultHandlers sets them. The spell is made up in the workbook's
 // shape of the live one; the people and places are the rig's.

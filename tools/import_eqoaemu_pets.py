@@ -18,7 +18,7 @@ Each pet becomes the petstats row of its summoning spell (entity/petstats.go
 says what the server does with it). Its body and weapons are the sheet's
 DictIDs BYTE-REVERSED, as npcs.modelid and npcs.primary_weapon keep them (all
 113 bodies are CHAR.ESF CSprites read so; the Fire Elemental's is the body
-Sandstorm's recorded one wore); --models (cmd/modelbake's file of the disc's
+the reference server's recorded one wore); --models (cmd/modelbake's file of the disc's
 bodies) and the NPCs wearing each are checked and said. Its spells become its
 abilities, pinned by their ids here, each by what its effects do: a hit on
 the enemy a nuke (an area one on its target and round it), a root at the
@@ -41,7 +41,7 @@ swing as pet.go has them.
 Every pet the workbook has takes its row whole, over a GM's too (the user,
 2026-11-01: "workbook wins on all", "the correct pet models are in the
 worksheet"). Each row written is a row edit as the GM panel writes one
-(gm_audit, as dab, via "tool") and is logged in eqoaemu_pets_log for --undo,
+(gm_audit, as the owner, via "tool") and is logged in eqoaemu_pets_log for --undo,
 which puts back each row still as written (one a GM changed since is left,
 and said). The
 server reads petstats at its start, or at once at a GM's edit of the

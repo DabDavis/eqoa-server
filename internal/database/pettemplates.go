@@ -25,7 +25,7 @@ import (
 //     shadow knight that swings a warrior's round;
 //   - swing, a CLIENT swing kind (0-11) it swings whatever its level in place
 //     of that (-1: none), and round_ms its round's length (0: the swing's
-//     own delay): Sandstorm's recorded rounds for the Death Sacrament pets.
+//     own delay): the reference server's recorded rounds for the Death Sacrament pets.
 //     A fixed swing keeps the damage a second its class's own round gave the
 //     pet (its hits scaled);
 //   - note; source gm, or seed for the rows the table is made with.

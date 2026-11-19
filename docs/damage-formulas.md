@@ -11,7 +11,7 @@ built-in one (`internal/entity/dmgformula.go`, `internal/formula`).
 ```yaml
 # config.yaml
 combat:
-  formula_file: /home/sdg/eqoa-server/private/damage.formula
+  formula_file: /srv/eqoa/private/damage.formula
 ```
 
 - Leave the key out, or set it to `""`, and the server behaves as it always has.
@@ -29,14 +29,14 @@ combat:
 
 ```yaml
 combat:
-  formula_file: /home/sdg/eqoa-server/private/damage.formula
+  formula_file: /srv/eqoa/private/damage.formula
   formula_mode: shadow            # "" or off | live | shadow
-  formula_shadow_log: /home/sdg/eqoa-server/private/formula-shadow.jsonl
+  formula_shadow_log: /srv/eqoa/private/formula-shadow.jsonl
   formula_shadow_sample: 1        # the share of hits recorded (unset: all)
   formula_shadow_max_mb: 64       # rotated to <file>.1 at this size
   formula_shard: heirloom         # this shard's name in /formula
   formula_peers:                  # other shards' databases, switchable from here
-    live: /home/sdg/eqoa-live/eqoa.db
+    live: /srv/eqoa-second/eqoa.db
 ```
 
 - **off** (`""`, `off`): the file is read (so `reload_formulas` names what it

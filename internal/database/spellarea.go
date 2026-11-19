@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// spellarea: a GM's word on a spell's area (entity/area.go; jib's review, F3
+// spellarea: a GM's word on a spell's area (entity/area.go; a GM's review, F3
 // pass 19), by spellid, over what the spell's line reads. centre: 0 as its
 // line reads, 1 round its target, 2 round its caster, 3 a cone in front of its
 // caster, aimed at its target (the owner, 2026-11-11: Cleave), -1 not an area

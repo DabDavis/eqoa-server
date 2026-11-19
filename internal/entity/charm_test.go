@@ -9,7 +9,7 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 )
 
-// The enchanter's charm (F3 20261025-164922), held to what Sandstorm sent
+// The enchanter's charm (F3 20261025-164922), held to what the reference server sent
 // an enchanter of 49 (harvests/sandstorm-spells-20261021/pets/
 // dolph-charm-*.json): 0x007E with the creature's own id, 0x1003 with its
 // name, its channel's 142 3, 143 0 and npc flags 0x80; and to the live
@@ -113,7 +113,7 @@ func castsAt(msgs [][]byte) bool {
 	return false
 }
 
-// redLine is a cast's refusal as Sandstorm sends one: 0x0A7B, the words,
+// redLine is a cast's refusal as the reference server sends one: 0x0A7B, the words,
 // (255, 63, 63).
 func redLine(s string) []byte {
 	b := binary.LittleEndian.AppendUint16(nil, uint16(protocol.OpcodeColoredChat))
@@ -121,10 +121,10 @@ func redLine(s string) []byte {
 	return append(append(b, wide16(s)...), castRefusalRGB[:]...)
 }
 
-// F3 20261029-082049 (jib: "Charm line should not be castable while you
+// F3 20261029-082049 (a GM: "Charm line should not be castable while you
 // currently have a pet"): with a charmed creature out a charm is not cast at
 // all, whatever is targeted (a creature it could take, an undead, no one): the
-// one red line, as Sandstorm refuses a cast, and no 0x00B1 (the 600 ms fizzle
+// one red line, as the reference server refuses a cast, and no 0x00B1 (the 600 ms fizzle
 // it showed, which looked cast), no lockout, no power, no hate. A summoned pet
 // out is no refusal since petition 1348: it goes when the charm takes hold
 // (charm_summoned_test.go). The controls: with no pet the same charm is cast
@@ -190,7 +190,7 @@ func TestACharmIsNotCastWithAPetOut(t *testing.T) {
 	}
 }
 
-// Taken: the crab is the enchanter's pet as Sandstorm's ant was, by its own
+// Taken: the crab is the enchanter's pet as the reference server's ant was, by its own
 // id, its channel turned player-side; it keeps its level and hit points,
 // swings as itself, follows and fights for its master.
 func TestACharmMakesTheCreatureAPet(t *testing.T) {
@@ -237,7 +237,7 @@ func TestACharmMakesTheCreatureAPet(t *testing.T) {
 // Undead are charmed as anything else (the wiki's Charmable Mobs page:
 // spectres, spirits, lost souls, ghouls and dead riders): an enchanter's
 // charm takes the Rotting Flesh; resisted (a roll under the charm's 10%), with
-// Sandstorm's line, and the creature comes at the caster. The controls: the
+// the reference server's line, and the creature comes at the caster. The controls: the
 // same roll does not resist at the crab, and the necromancer's undead charm
 // is refused at the crab (undead.go).
 func TestACharmTakesUndead(t *testing.T) {
@@ -346,7 +346,7 @@ func TestACharmedCreatureDiesAndComesBackItself(t *testing.T) {
 	r.w.killNPC(crab)
 	r.w.mu.Unlock()
 	r.tick(time.Minute + time.Second)
-	// its death ends the charm (the owner, 2026-11-14: "jib has charmed 2 dead
+	// its death ends the charm (the owner, 2026-11-14: "a GM has charmed 2 dead
 	// crocodiles and they stayed charmed"): off its master's bar, its master
 	// told, the corpse a creature's again (no owner, no charmed flags), of
 	// nothing (no one's to loot), lying where it fell
@@ -446,7 +446,7 @@ func toldLine(msgs [][]byte, line string) bool {
 	return false
 }
 
-// Charm is one absolute check (#1574, jibrish 2026-11-16, petition 2233:
+// Charm is one absolute check (#1574, a GM 2026-11-16, petition 2233:
 // "basically its an absolute distance check from player location to pet"):
 // its master taken 3,000 off in its world (a gate, a coach: alike now), a
 // charmed creature is not carried and not let go, it runs to its master at
@@ -566,7 +566,7 @@ func TestACharmedCreatureRunsToItsMaster(t *testing.T) {
 	}
 }
 
-// Zerkziee's flesh crawler (petition 2233): charmed on the Isle of Dread at
+// A player's flesh crawler (petition 2233): charmed on the Isle of Dread at
 // its spawn (24848.5, 3306), its master gone home by Return Home to Klik'Anon
 // (23619.4, 6289.0), 3,226 off: it is not let go, it runs, and it arrives in
 // about 281 s at charmRunSpeed.

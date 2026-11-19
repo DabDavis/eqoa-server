@@ -2,7 +2,7 @@ package entity
 
 import "math"
 
-// An NPC's melee hit on a player, as Sandstorm's lands: measured
+// An NPC's melee hit on a player, as the reference server's lands: measured
 // 2026-10-21/22 on Muniel's Tea Garden's training dummies, 2,660 hits on
 // four characters of three archetypes, their AC moved by taking armour off
 // and their AGI by forms, songs and a talisman, one at a time
@@ -88,7 +88,7 @@ func (r meleeRoll) topOn(p *Player) int {
 // whose share is its top's growth (level^1.52, creatureRoll) from its level
 // to the player's. The offsets were measured on Lv45 and Lv55 dummies and do
 // not grow with the creature's level, so whole they were most of a far
-// lower creature's hit (2026-11-18, Jibrish, level 60 enchanter: a level 2
+// lower creature's hit (2026-11-18, a GM, level 60 enchanter: a level 2
 // bat and a hatchling hit him for 13-22, a top of 1.6 plus the caster's
 // 31.7, where a tank took 1). Even, blue and red fights keep it whole (the
 // balance's fits were made on them).
@@ -106,7 +106,7 @@ const softFloorLeast = 0.5
 
 // softHit is one hit of the roll on the player as a creature whose class
 // template boosts its melee lands it (NPC.softFloor), unrounded (petition
-// 1289, jibrish, 2026-11-08, of Bertoxxulous, Cazic-Thule and the other raid
+// 1289, a GM, 2026-11-08, of Bertoxxulous, Cazic-Thule and the other raid
 // bosses: "Going from 2k to 3k ac made 0 change, exact minimum hits
 // everytime. Damage always needs to hit within a window with a little
 // randomness, and the scaling from 2k to 3k should work with diminishing
@@ -142,13 +142,13 @@ func (r meleeRoll) softRangeOn(p *Player) (lo, hi int) {
 // creature whose class template boosts its melee (melee_pct above 100: the
 // raid and dungeon bosses and theirs, whose floor times the boost was every
 // hit on a well armoured tank), never a training dummy, whose floors are
-// Sandstorm's, measured. Every other creature keeps Sandstorm's floor.
+// the reference server's, measured. Every other creature keeps the reference server's floor.
 func (n *NPC) softFloor() bool {
 	return n.Dummy == NotDummy && n.tmpl != nil && n.tmpl.MeleePct > 100
 }
 
 // npcMeleeOn is one melee hit of the NPC on the player as its class template
-// makes it (meleeOut), before the balance's: Sandstorm's roll, or softHit's
+// makes it (meleeOut), before the balance's: the reference server's roll, or softHit's
 // for a boosted creature, boosted before it is rounded so that a hit keeps
 // its own figure.
 func npcMeleeOn(npc *NPC, p *Player, intn func(int) int) int {

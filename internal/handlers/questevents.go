@@ -692,7 +692,7 @@ func (q *QuestEngine) byStepNPC(qu *database.Quest, st *database.QuestStep, name
 // (stepSpawns), the step still short of its count: when the creature killed was
 // one of the character's spawns of the step and none of them is left alive, the
 // step's spawns come again before the player, as the step first made them, no
-// more than the kills still wanted (petition 1539, Froglegs: "2 bloodletters
+// more than the kills still wanted (petition 1539: "2 bloodletters
 // spawn, killed them and no more spawn": Pages of Pardon's six bloodletters, the
 // guide's waves, came two and never again). Must be called with q.mu held.
 func (q *QuestEngine) nextWaveLocked(p *entity.Player, c *questChar, qu *database.Quest, st *database.QuestStep, killed entity.EntityID, left int) {
@@ -793,7 +793,7 @@ func (q *QuestEngine) stepStartedLocked(sess *session.Session, p *entity.Player,
 // item on the FIRST record of it and keeps nothing past its stack, opening no
 // second record (0x003B and a corpse's 0x0019/0x001A alike), so a player who
 // held a full stack from before the step (a quest given up and taken again:
-// jib's quest walk of 2026-10-30, "Wands and Branches" and its two wands)
+// a GM's quest walk of 2026-10-30, "Wands and Branches" and its two wands)
 // could never take one and never finish. What it holds is the step's item.
 func (q *QuestEngine) lootKillLocked(k entity.KillCredit, kp entity.KillPlayer, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep) {
 	pid, need, ok := st.LootItem()
@@ -869,7 +869,7 @@ func (q *QuestEngine) Looted(sess *session.Session, p *entity.Player, pattern, n
 // Received is items a player took in other than off a corpse (a trade): each
 // loot step under way counts what the pack now holds of its item, as a step
 // become the step to do counts it (lootStepHeldLocked), and is done when they
-// are enough. Live petition 5248 (Waldorf): a snake fang handed over in a
+// are enough. Live petition 5248: a snake fang handed over in a
 // trade left the step where it was, and the player had to hunt their own.
 func (q *QuestEngine) Received(sess *session.Session, p *entity.Player) {
 	if q == nil || sess == nil || p == nil {
@@ -920,7 +920,7 @@ func (q *QuestEngine) countLootLocked(sess *session.Session, p *entity.Player, c
 // quest: declined or left unanswered, the next request opens the window; so is
 // its "not yet" for a quest the player is too low for (quests_notyet.go). A
 // new login (LoggedIn) and the quest given up forget the offer, so it is made
-// again (it was remembered for the server's whole run: jib's quest walk of
+// again (it was remembered for the server's whole run: a GM's quest walk of
 // 2026-10-30, Spellsmith Ulla's "The Orb of Parathior" offered once and never
 // again until a restart). It reports whether the quests answered (the window
 // is not opened then).

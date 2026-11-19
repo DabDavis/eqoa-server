@@ -88,7 +88,7 @@ func TestTheCoinsLineFollowsTheOption(t *testing.T) {
 	}
 }
 
-// Petition 1145, Larrybird: "i cant see what my other grp is loooting could be uber rare gear". A take
+// Petition 1145: "i cant see what my other grp is loooting could be uber rare gear". A take
 // from a corpse says what it gave to the looter's group, each by its own Loot Messages option; a take-all a
 // line an item. The control: with no group, nobody else hears.
 func TestTheGroupHearsWhatIsLooted(t *testing.T) {

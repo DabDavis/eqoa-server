@@ -6,13 +6,13 @@ knight two from level 20, a warrior four from level 35).
 
 An NPC row names no class. Two sources do:
 
-- Sandstorm's entity records (byte 145), as `eqoa harvest` recordings saw
+- The reference server's entity records (byte 145), as `eqoa harvest` recordings saw
   them ("seen", each creature's name, level and class), or a TSV of them
   (`name<TAB>level<TAB>class[<TAB>...]`, # comments). These win.
 - Return Home's EQOA_Master.sql: its npcs table's npc_type column, which
   Return Home's own server never reads, holds 0-14 like a class (19,097
   warriors, 1,015 magicians, 571 bards...). On the 562 names both sources
-  hold it agrees with Sandstorm on 526; the rest are mostly merchants it
+  hold it agrees with the reference server on 526; the rest are mostly merchants it
   calls bards and a few casters it calls warriors.
 
 A name takes the class it has most often in a source. Only the names the

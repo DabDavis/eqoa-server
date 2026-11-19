@@ -11,7 +11,7 @@ import (
 )
 
 // The game's own experience model (killexp.go, CLIENT viexperience.cpp):
-// Sandstorm's one measured kill is exactly it (a level 2's solo kill of a
+// the reference server's one measured kill is exactly it (a level 2's solo kill of a
 // level 2 Orc Pawn: 0x0020 from 6 to 380, 374 = LevelExp(2)); the control is
 // the formula this server had, a creature's level x 100 (200 there). The
 // level table is CLIENT's ExpForLevel, its upper branch from level 51 (the
@@ -35,7 +35,7 @@ func TestAKillIsWorthTheGamesOwnExperience(t *testing.T) {
 		}
 	}
 
-	// a level 60 on a level 63 alone (jib's report): LevelExp(63) x 1.15,
+	// a level 60 on a level 63 alone (a GM's report): LevelExp(63) x 1.15,
 	// three mastery points' worth in one kill
 	if got := groupExp(63, 60, []int{60}); got != 425820 {
 		t.Errorf("a level 60's kill of a level 63: %d, want 425,820", got)
@@ -123,7 +123,7 @@ func earned(p *Player, debtBefore int) int {
 // A kill's experience goes to the killer and the group's members in its
 // world within KillShareRange, each GroupExp's share of the members there;
 // one away (or in another world) gets none and counts for none. (Level 60s:
-// it is all mastery experience, jib's rule: earned counts it wherever it went.)
+// it is all mastery experience, a GM's rule: earned counts it wherever it went.)
 func TestAKillIsSharedWithTheGroupNear(t *testing.T) {
 	k := newKillWorld(t, 60, 60, 60)
 	near, far := k.players[1], k.players[2]
@@ -147,10 +147,10 @@ func TestAKillIsSharedWithTheGroupNear(t *testing.T) {
 	}
 }
 
-// jib's report: a level 60 gets three points from one kill of a level 63
+// A GM's report: a level 60 gets three points from one kill of a level 63
 // (425,820: the first three cost 125,000, 125,763 and 126,530), told by
-// 0x1402 and Sandstorm's one line, "You received N class mastery XP.", and
-// at the level cap whatever the window's share (jib's rule, F3
+// 0x1402 and the reference server's one line, "You received N class mastery XP.", and
+// at the level cap whatever the window's share (a GM's rule, F3
 // 20261026-042328: 0% too); the control is a level 59 with no share: the
 // level's line and no point.
 func TestALevel60KillMakesAMasteryPoint(t *testing.T) {

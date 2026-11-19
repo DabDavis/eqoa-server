@@ -9,7 +9,7 @@ import (
 )
 
 // The monkeys' snowballs (monkeythrow.go; the owner, 2026-11-16: "make
-// moose's monkeys throw snowballs at players").
+// [a player]'s monkeys throw snowballs at players").
 
 // wide is s as a client message carries it (UTF-16LE).
 func wide(s string) []byte {

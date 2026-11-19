@@ -5,8 +5,8 @@ through the import's map (a held pattern dropped, a creature's loot not, a
 catalog already there kept); a trade's merchant takes the catalog of its
 region's level, a town's second smithy another one, a town's chemists the
 three lists; a merchant of no trade the general goods, a jeweler plain
-jewelry; the left out (a Keeper, a beast, one Sandstorm shows unflagged, one a
-GM stocked by hand) are logged; prices measured by name and by id, Sandstorm's
+jewelry; the left out (a Keeper, a beast, one the reference server shows unflagged, one a
+GM stocked by hand) are logged; prices measured by name and by id, the reference server's
 0 kept, the rule's by damage and by the nearest items, a nonzero price and a
 GM's pattern never changed; --apply then --undo exact (and checked by md5), a
 second --apply refused, a row changed since left alone. No game data: every
@@ -120,8 +120,8 @@ def build(dirname):
     w.item("Spare Stud", slot=3, level=2, trade=1)    # no trade: no jeweler's
     w.item("Priced Thing", cost=77, level=3)          # a price already: never changed
     w.item("GM Thing", level=3)                       # a GM's pattern: its 0 stays
-    w.item("Handout Cap", slot=1, level=1, ac=1)      # Sandstorm sells it at 0
-    w.item("Old Name Axe", slot=14, level=8, dmg=80, pid=5000)  # Sandstorm's 5000, renamed
+    w.item("Handout Cap", slot=1, level=1, ac=1)      # the reference server sells it at 0
+    w.item("Old Name Axe", slot=14, level=8, dmg=80, pid=5000)  # the reference server's 5000, renamed
     w.item("Held Thing")                              # Return Home's, held by the import
     w.item("Beast Fang")
     # the region's merchants; the low town at 1000,1000
@@ -159,21 +159,21 @@ def build(dirname):
     jeweler = w.npc("Jeweler Gem", 1010, 1100)
     keeper = w.npc("Keeper Lore", 1020, 1100)
     beast = w.npc("grizzly bear", 1030, 1100)
-    unflagged = w.npc("Merchant Shy", 1040, 1100)   # Sandstorm shows it without the flag
+    unflagged = w.npc("Merchant Shy", 1040, 1100)   # the reference server shows it without the flag
     gmed = w.npc("Merchant Hand", 1050, 1100)       # a GM emptied its catalog
     db.execute("UPDATE npcs SET npc_id = id WHERE id = ?", (gmed,))
     db.execute("INSERT INTO gm_audit (tbl, rowkey, before) VALUES ('npcitem', '{\"itemid\": 9}', ?)",
                (json.dumps({"itemid": 9, "npcid": gmed, "patternid": 1}),))
     db.execute("INSERT INTO gm_audit (tbl, rowkey, after) VALUES ('itempattern', ?, '{}')",
                (json.dumps({"patternid": w.p["GM Thing"]}),))
-    # Sandstorm's own: a tailor the harvest opened (three wares here, by id,
+    # the reference server's own: a tailor the harvest opened (three wares here, by id,
     # by name, by a renamed id; one this database lacks), which Return Home
     # stocks too; a smithy none of whose wares are here; a grocer stocked
     # already; a merchant whose namesake here stands too far
     w.item("Cotton Shirt", slot=5, level=5, ac=8, pid=6001)
     w.item("Cotton Cap", slot=1, level=5, ac=2, pid=6100)
     w.item("Old Pants", slot=10, level=5, ac=5, pid=6003)
-    w.item("Gnolls Gloves", slot=0, level=1, pid=6200)   # Sandstorm's "Gnoll's Gloves", another slot
+    w.item("Gnolls Gloves", slot=0, level=1, pid=6200)   # the reference server's "Gnoll's Gloves", another slot
     sand = w.npc("Tailor Sand", 1000, 2000)       # a town of their own
     moldy = w.npc("Smithy Moldy", 1050, 2000)
     for name, kind, lvl, cost in (("Ale", "beverage that aids in power regeneration", 3, 30),
@@ -217,7 +217,7 @@ def build(dirname):
     for npcid, pids in ((1, (501, 502, 503)), (2, (504, 507, 508, 509)), (3, (505,)), (4, (506,)), (5, (505,))):
         for n, pid in enumerate(pids):
             w.prh.execute("INSERT INTO npcitem (npcid, patternid, listnumber) VALUES (?, ?, ?)", (npcid, pid, n))
-    # the harvest: wares and an inventory with Sandstorm's values; what it saw
+    # the harvest: wares and an inventory with the reference server's values; what it saw
     harvest = {
         "server": "test", "when": 1, "character": {"name": "Tester", "world": 0},
         "merchants": [
@@ -314,7 +314,7 @@ class StockMerchantsTest(unittest.TestCase):
     def test_sandstorms_own_catalog(self):
         p, pats, _ = self.plan()
         items, src = p.stock[self.ids["sand"]]
-        # Sandstorm's order; by id, by name, by a renamed id; the lacking one listed, not made
+        # the reference server's order; by id, by name, by a renamed id; the lacking one listed, not made
         self.assertEqual(self.names(pats, items), ["Cotton Shirt", "Cotton Cap", "Old Pants", "Gnolls Gloves"])
         self.assertEqual(src, "Sandstorm's catalog (4 of 5 wares here)")
         got, missing, renamed, near = p.sandstorm[self.ids["sand"]]
@@ -329,7 +329,7 @@ class StockMerchantsTest(unittest.TestCase):
         self.assertNotIn(self.ids["grocer"], p.stock)
         self.assertEqual([m["name"] for m in p.misses], ["Merchant Far", "Smithy Elsewhere"])
         self.assertEqual(p.stock[self.ids["farname"]][1], "general goods")
-        # the prices: Sandstorm's, by name and by the renamed id
+        # the prices: the reference server's, by name and by the renamed id
         price = {pats[x]["name"]: v for x, (v, _) in p.prices.items()}
         self.assertEqual((price["Cotton Shirt"], price["Cotton Cap"], price["Old Pants"], price["Gnolls Gloves"]),
                          (19, 14, 15, 9))  # the last by its name, its apostrophe aside
@@ -337,11 +337,11 @@ class StockMerchantsTest(unittest.TestCase):
     def test_the_two_exceptions(self):
         p, pats, _ = self.plan()
         got = {pats[x]["name"]: (old, new) for x, (old, new, _) in p.reprice.items()}
-        # a grocer's price of ours that Sandstorm sells otherwise: Sandstorm's;
+        # a grocer's price of ours that the reference server sells otherwise: the reference server's;
         # a scroll the EQOA-Data import left at 1: the curve's (above the
         # highest level measured, 10 at 160, by the square of the level)
         self.assertEqual(got, {"Ale": (30, 25), "Made Scroll": (1, 640)})
-        # not: a grocer's item Sandstorm sells not (Stew) or a GM's (Wine); a
+        # not: a grocer's item the reference server sells not (Stew) or a GM's (Wine); a
         # made scroll at 2; one a GM edited; one at 1 the import did not make
         for name in ("Stew", "Wine", "Made Two", "Made GM", "Other Scroll"):
             self.assertNotIn(name, got)
@@ -394,7 +394,7 @@ class StockMerchantsTest(unittest.TestCase):
         self.assertIn("GM", p.left_out[self.ids["gmed"]])
         for k in ("keeper", "beast", "unflagged", "gmed"):
             self.assertNotIn(self.ids[k], p.stock)
-        # without the harvest Sandstorm's flags are unknown: a plain merchant
+        # without the harvest the reference server's flags are unknown: a plain merchant
         p2, _, _ = self.plan(prices=[os.path.join(self.dir, "prices.tsv")] if self.write_tsv() else None)
         self.assertNotIn(self.ids["unflagged"], p2.left_out)
 
@@ -416,7 +416,7 @@ class StockMerchantsTest(unittest.TestCase):
         self.assertNotIn("Beast Fang", price)              # a creature's loot: not a merchant's
         self.assertNotIn("GM Thing", price)                # a GM's pattern
         self.assertIn(pats_id(pats, "GM Thing"), p.gm_priced)
-        self.assertIn(pats_id(pats, "Handout Cap"), p.free)  # Sandstorm's 0
+        self.assertIn(pats_id(pats, "Handout Cap"), p.free)  # the reference server's 0
         # ours: a weapon without stats by damage, fitted on the measured ones (1.82..1.83 a point)
         a = m and p.rule.a
         self.assertAlmostEqual(a, 1.8255, places=2)
@@ -449,7 +449,7 @@ class StockMerchantsTest(unittest.TestCase):
             WHERE i.npcid = ? ORDER BY i.listnumber""", (key,)).fetchall()
         self.assertEqual([r[0] for r in rows], ["Tin Knife", "Tin Axe"])
         self.assertTrue(all(r[1] > 0 for r in rows))
-        # every merchant stocked but the left out; every catalog item priced but Sandstorm's 0 and the GM's
+        # every merchant stocked but the left out; every catalog item priced but the reference server's 0 and the GM's
         left = {k for (k,) in db.execute("SELECT key FROM merchant_stock WHERE what = 'left out'")}
         empty = [i for (i,) in db.execute("""SELECT id FROM npcs n WHERE npc_type & 1 AND NOT EXISTS
             (SELECT 1 FROM npcitem i WHERE i.npcid = n.npc_id AND n.npc_id != 0)""")]

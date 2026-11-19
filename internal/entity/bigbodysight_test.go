@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Heirloom petition 2202 (Zerkziee, 2026-11-16, the Isle of Dread):
+// Heirloom petition 2202 (2026-11-16, the Isle of Dread):
 // "Megaladon fight doesnt seem right with range in the water I had to get on
 // top of him to actually shoot him with a bow ability/attack". The shark's
 // feet were under the beach the player stood on, so the lines to a man's head

@@ -9,7 +9,7 @@ import (
 // petdyes and petdyeareas: a pet's dyes, two colours on two areas of its body,
 // which the Pet Groomer puts on (handlers/petgroomer.go) and a client that
 // draws them is told (entity/petdyes.go, protocol.OpcodePetDyes). The owner,
-// 2026-11-16, of Zerkziee's drachnid: "make it have 2 different color areas
+// 2026-11-16, of a player's drachnid: "make it have 2 different color areas
 // that can be changed like armor dye (will be a template for pet color dye)".
 // A PS2 is never told: it draws every pet in its body's own colours.
 //

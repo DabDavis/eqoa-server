@@ -8,7 +8,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// questxp.go — a server's share of its one-time quests' experience (world.quest_xp_pct; the GM Jibwiz's
+// questxp.go — a server's share of its one-time quests' experience (world.quest_xp_pct; a GM's
 // petition 1915, for the Heirloom Test Server: "On heirloom increase NON hunt and gather or repeatable quest
 // XP by 4x its current amount"). Every step's experience of a quest that is not repeatable and not a hunt
 // and gather is the share's (400: four times), as it is given (quests.go) and as the quest helper says it

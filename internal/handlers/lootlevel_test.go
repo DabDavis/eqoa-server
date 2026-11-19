@@ -9,7 +9,7 @@ import (
 // Equipment a corpse rolls is at most lootLevelReach above its opener's level
 // (the user, 2026-11-07: "equipment drops from mobs for players should be
 // within the players level range, with in 10 levels higher/lower") and of any
-// level below it (jib, 2026-11-08: "level 60 players should absolutely be able
+// level below it (a GM, 2026-11-08: "level 60 players should absolutely be able
 // to farm the gear", Cazic-Thule's Rubicite armour of levels 47-48); what is
 // not gear, an item with no level and a corpse with no known opener are not
 // judged.

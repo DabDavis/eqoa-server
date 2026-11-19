@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Spread stacked camps and make standing creatures roam, world by world (the owner, 2026-11-12: "there are many zones
 with mobs not dispersed or patroling, lets fix that disperse and patrol"; "skeletal giant and others are not roaming
-correctly, they only move a small distance"; "ship the disperse fix world by world"; the GM Jibrish's petitions
+correctly, they only move a small distance"; "ship the disperse fix world by world"; a GM's petitions
 1734-1737, tools/disperse_patrol_20261112_gm.tsv).
 
 The plan is cmd/disperseplan's (tools/disperse_patrol_20261112_plan.json, made from Heirloom's database of 2026-11-12

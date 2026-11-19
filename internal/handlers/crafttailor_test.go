@@ -9,7 +9,7 @@ import (
 )
 
 // Tailoring through the wire (0x1101 in, 0x1102 out), on records shaped as
-// tools/seed_tradeskills.py --craft tailor writes them: Sandstorm's Adept
+// tools/seed_tradeskills.py --craft tailor writes them: the reference server's Adept
 // Tailor's Kit (wear 24, the Tailoring skill's tool; level 21, tier 5), a
 // Sheet of Suede Hide, the Leather Gloves Pattern and a Tunare Hair Thread;
 // the recipe Tunare Suede Gloves (skill 2, the Suede tab 7 of CLIENT's

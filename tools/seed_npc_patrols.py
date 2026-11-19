@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""The cities' patrols as Sandstorm walks them (the user, 2026-10-29: "we need
+"""The cities' patrols as the reference server walks them (the user, 2026-10-29: "we need
 patrolling npcs through the cities to work correctly. sandstorm is good to go
 to each city and watch the patrols").
 
 This server's NPCs walked no route at all: npcpaths (entity/path.go, the GM
 panel's path editor) had no row, so every guard and walker stood on its spawn.
-eqoa-rust-headless's harvester watched Sandstorm's: in each city a new
+eqoa-rust-headless's harvester watched the reference server's: in each city a new
 character hunted for anyone who walks (its `hunt` step: the 24 creatures
 nearest it, followed when one walks, until its route came round) and wrote
 every creature in view twice a second (`track on`: --tracks, the
 `<combo>.json.track.jsonl` files beside the survey's JSON).
 
-**What Sandstorm sends of a walker.** A walker's place on its channel changes
+**What the reference server sends of a walker.** A walker's place on its channel changes
 only now and then, its velocity saying where it goes between (the game
 extrapolates). So its walk is the places it was sent, in order: its stops
 (the velocity falls to 0 there; the pause lasts until it moves off again) and
@@ -38,19 +38,19 @@ points, so a route joins only places the walker was seen walking between.
 - Every leg is held to the walk it was read from (ON_WALK); a route with one
   off it is left out and said.
 - The pace is the median of its legs' speeds (database PathSpeed: a number
-  of units a second; Sandstorm's pikers 3.12, under the walk's 5).
+  of units a second; the reference server's pikers 3.12, under the walk's 5).
 - Every point's pause is its own: a stop's as seen (one whose start or end was
   not seen at least the median of those seen whole), a turn's 0 (a point with
-  none takes the path's pause, and Sandstorm's walkers do not stop at their
+  none takes the path's pause, and the reference server's walkers do not stop at their
   corners), an end where it was lost from view the median. The path's pause is
   the median of the stops seen whole.
 - The same walker seen in two watches is read from its best sight: one that
   came round first, then the longest walk. One never seen to come round and
   seen walking less than MIN_WALK is left standing: Freeport's Shersam Cor,
   seen walking 6 s once and standing ten minutes when followed, would pace a
-  street Sandstorm's never paces.
+  street the reference server's never paces.
 
-**A wanderer is no patrol.** Sandstorm's creatures that roam (Highbourne's
+**A wanderer is no patrol.** the reference server's creatures that roam (Highbourne's
 Lost Souls, Moradhim's Frosteye goblins and quarry workers) walk at its
 wander's pace, 4.87-4.98 (roam.go's 5 is it), in legs that never come round,
 with rests of 3 to 30 seconds between; a patrol walks slower (2.62-3.12, Halas'
@@ -62,13 +62,13 @@ chance; no patrol was measured at that pace): its name gets an npcmove row
 seen from the middle of its walk, 15 to 75), never a path, and no NPC is
 made for one; a name with an npcmove row already is left.
 
-A runner is no patrol either: Sandstorm's patrols walk (2.62-4.43); one at
+A runner is no patrol either: the reference server's patrols walk (2.62-4.43); one at
 RUN_PACE or more (a magician's Air Elementalkin at 9.68 in Qeynos, after its
 owner) is chasing or following.
 
 Who is left out: an animal by its name (seed_npc_move.py's wildlife_word, the
 server's own list), the watcher itself, and every player: an id of
-PLAYER_IDS or more (the channels give players and NPCs one kind; Sandstorm's
+PLAYER_IDS or more (the channels give players and NPCs one kind; the reference server's
 players' ids are in the hundreds of millions, its NPCs' under 25 million). Wildlife wanders here by
 roam.go, not by a path.
 
@@ -76,18 +76,18 @@ Each route goes to this database's NPC of the same name (any case, no "$")
 in the city's world whose spawn is nearest the route, within 150; each NPC
 once. An NPC with a path a GM gave it is left and said.
 
-**Sandstorm's walkers are mostly its own NPCs** (Fayspires' Hunter Lyraeth,
+**the reference server's walkers are mostly its own NPCs** (Fayspires' Hunter Lyraeth,
 level 65, and Thalioren Vaerwyn, 60, walk between the guards at its bank;
 nothing of either name was in this database). With --add a walker of no NPC
 here is made one: the row of this database's NPC nearest its route, in its
-world, for every column Sandstorm's channel does not show (its zone and the
+world, for every column the reference server's channel does not show (its zone and the
 rest), and from the track's `who` line its name, body, size, the items it
 holds, its armor, hair, face, robe, race, level and class and npc flags
 (npc_type: the class in the high byte, the flags' low byte in the low), its
 spawn its route's first point, its health the median of this database's NPCs
 of its level. It is of the faction of the nearest of its town's people (an
 npcfaction row at its spawn), so it is the town's, not a stranger to it.
-Sandstorm's armor tints are not kept: this server sends every NPC's as 0.
+The reference server's armor tints are not kept: this server sends every NPC's as 0.
 
 Rows are logged in npcpaths_seed (the npc, the row before or none, the row
 written); --undo puts back each one still as written and drops the log; a
@@ -116,7 +116,7 @@ DEFAULT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "eqo
 SAME_POINT = 3.0      # a walk back this near a waypoint is at it again
 MOVING = 0.3          # a speed above this is a leg
 GAP = 1.6             # s: a walker in view is sampled twice a second; a longer silence is time out of view
-STALE = 15.0          # s: Sandstorm sends a walker's place again within 10.3 s (4,922 legs); a velocity held longer stands
+STALE = 15.0          # s: the reference server sends a walker's place again within 10.3 s (4,922 legs); a velocity held longer stands
 SAME_PLACE = 0.25     # two updates this near are one place (a stop and its walking off, a turn on the spot)
 TOL = 0.5             # a corner of a walk this far off the line between its neighbours is a waypoint
 CLOSE_TURN = math.radians(20)  # back at a waypoint and off within this of the leg it took there before: it came round
@@ -126,7 +126,7 @@ MIN_WALK = 60.0       # a route not seen to come round needs this much walk seen
 MATCH = 150.0         # a route to an NPC of its name whose spawn is this near it
 PLAYER_IDS = 100_000_000  # an id this or more is a player's, never an NPC's
 RUN_PACE = 7.0           # a walker this fast runs: a chase or a pet after its owner, no route
-WANDER_PACE = (4.8, 5.2)  # Sandstorm's wander (4.87-4.98 measured; roam.go's 5); patrols 2.62-3.94, an ogre's 4.32-4.43
+WANDER_PACE = (4.8, 5.2)  # the reference server's wander (4.87-4.98 measured; roam.go's 5); patrols 2.62-3.94, an ogre's 4.32-4.43
 WANDER_RADIUS = (15.0, 75.0)
 MOVE_LOG = """CREATE TABLE npcmove_seed (
     name   TEXT PRIMARY KEY,   -- npcmove.name written
@@ -189,7 +189,7 @@ def state(r):
 
 
 def updates(samples):
-    """The samples where Sandstorm sent something new: the place or the
+    """The samples where the reference server sent something new: the place or the
     velocity changed."""
     out, last = [], None
     for r in samples:
@@ -200,7 +200,7 @@ def updates(samples):
 
 
 def held(samples):
-    """[(t, seconds)]: each place and velocity Sandstorm sent, from the first
+    """[(t, seconds)]: each place and velocity the reference server sent, from the first
     sample of it to the last, time out of view between counted when it was the
     same on both sides (a walker sent once and seen again later the same)."""
     out, last = [], None
@@ -241,7 +241,7 @@ def moving_in(run, hold):
 
 
 def walked(run, hold):
-    """A run's walk as Sandstorm sent it: its places in order, each [x, y, z,
+    """A run's walk as the reference server sent it: its places in order, each [x, y, z,
     stop, pause, whole] (a stop's pause the time until it walked off, None
     when it still stood at the run's end, whole when both ends of it were
     seen; a turn's 0), and where its last leg had taken it by the run's last
@@ -396,7 +396,7 @@ def route(samples):
         elif mode == "pingpong" and (pts[k] is wk[0] or pts[k] is wk[-1]):
             q = end_pause  # an end where it came into view or was lost from it
         else:
-            q = 0.0  # a corner, or a turn on the spot: Sandstorm's walkers do not stop there
+            q = 0.0  # a corner, or a turn on the spot: the reference server's walkers do not stop there
         points.append((round(x, 1), round(y, 2), round(z, 1), round(min(q, 600.0), 1)))
     mx = statistics.median(u["x"] for u in ups)
     mz = statistics.median(u["z"] for u in ups)

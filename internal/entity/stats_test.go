@@ -99,10 +99,10 @@ func floorRat(x *big.Rat) int {
 // Formulas): (HP factor + STA/11) x level, STA/11 a real division, the whole
 // truncated. The wiki's worked example: a level 60 priest's factor 13 (its
 // caster with Hearty 1 and 2) and 400 stamina, 2961 (its text rounds 400/11
-// to 36.4 and says 2964). Then every (class, level, stamina) of Sandstorm's
+// to 36.4 and says 2964). Then every (class, level, stamina) of the reference server's
 // measured characters with no hit point mastery, against the exact fraction;
-// Sandstorm's own values (stat channel byte 148) are kept beside them, 11 of
-// 25 equal. The control: Sandstorm's rounding (STA/11 to a whole number
+// the reference server's own values (stat channel byte 148) are kept beside them, 11 of
+// 25 equal. The control: the reference server's rounding (STA/11 to a whole number
 // first) misses the wiki's example.
 func TestCalculateMaxHP(t *testing.T) {
 	if got := CalculateMaxHP(60, 9, 400); got != 2961 {
@@ -145,8 +145,8 @@ func TestCalculateMaxHP(t *testing.T) {
 // (eqoa.fandom.com Formulas): (28 + primary/10 + secondary/20) x level,
 // truncated, the pair the class's (powerStats). The wiki's worked example: a
 // level 31 magician of 267 INT and 204 AGI, 2011 (its arithmetic writes 206
-// AGI and gets 2011.9). Then the stats of Sandstorm's measured characters,
-// against the exact fraction; Sandstorm's values (byte 156, rounded half up)
+// AGI and gets 2011.9). Then the stats of the reference server's measured characters,
+// against the exact fraction; the reference server's values (byte 156, rounded half up)
 // kept beside them. The control: rounding half up gives the example 2012.
 func TestCalculateMaxPower(t *testing.T) {
 	if got := CalculateMaxPower(31, 10, 50, 50, 204, 50, 50, 267, 50); got != 2011 {
@@ -199,7 +199,7 @@ func TestCalculateMaxPower(t *testing.T) {
 	}
 }
 
-// TestLookupBaseStats holds the starting stats to Sandstorm's level 1
+// TestLookupBaseStats holds the starting stats to the reference server's level 1
 // characters, less the 20 points each spent (a character that put them all
 // in STA shows it 20 over). The Barbarian Warrior is the row Return Home's
 // table has wrong.
@@ -214,7 +214,7 @@ func TestLookupBaseStats(t *testing.T) {
 		{2, 14, baseStats{50, 65, 55, 70, 75, 90, 50}}, // Dark Elf Alchemist
 		{0, 2, baseStats{75, 80, 65, 65, 60, 55, 55}},  // Human Paladin
 		{5, 3, baseStats{90, 90, 60, 60, 50, 55, 50}},  // Troll Shadow Knight
-		{3, 9, baseStats{60, 60, 65, 60, 75, 65, 70}},  // Gnome Cleric (Sandstorm's 20 more STA)
+		{3, 9, baseStats{60, 60, 65, 60, 75, 65, 70}},  // Gnome Cleric (the reference server's 20 more STA)
 	}
 	for _, tt := range tests {
 		if got := LookupBaseStats(tt.race, tt.class); got != tt.want {
@@ -234,7 +234,7 @@ func TestNPCOffMod(t *testing.T) {
 
 // TestSizesAreSandstormsNotScaledByRace: an NPC sends its row's size and a
 // player 1.0, whatever the race (F3 20261025-172359, -173632: the gnome
-// bankers and Psova Brinkbar drawn at under half size). Sandstorm's captures
+// bankers and Psova Brinkbar drawn at under half size). The reference server's captures
 // carry 1.00 for players of every race and each NPC's own value (a gnome NPC
 // at 1.00 and one at 1.20). The control: the race factors this replaced (a
 // gnome 0.45, an ogre 1.5) fail every row below but the human's.
@@ -245,7 +245,7 @@ func TestSizesAreSandstormsNotScaledByRace(t *testing.T) {
 		want float32
 	}{
 		{"3", 1.0, 1.0},   // Psova Brinkbar, a gnome body
-		{"3", 1.2, 1.2},   // Sandstorm's Craigwold, a gnome at 1.20
+		{"3", 1.2, 1.2},   // the reference server's Craigwold, a gnome at 1.20
 		{"9", 1.0, 1.0},   // an ogre
 		{"4", 0.75, 0.75}, // a dwarf row with its own size
 		{"0", 2.0, 2.0},   // the Tests Program

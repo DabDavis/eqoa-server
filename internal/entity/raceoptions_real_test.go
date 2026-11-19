@@ -40,7 +40,7 @@ func TestRealRaceOptions(t *testing.T) {
 		}
 		t.Logf("%s (%d): %d rows", d.Name, d.ID, len(rows))
 		// a race whose body row has steps of its own for a woman wears the first of
-		// them by racedefs too (the GM Jibrish's petition 1647: the satyr's faun, the
+		// them by racedefs too (a GM's petition 1647: the satyr's faun, the
 		// hill giantess and the orc matron were drawn as the male on the race page,
 		// and on a creation that sends no steps)
 		for _, r := range rows {

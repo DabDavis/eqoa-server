@@ -7,7 +7,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// Mr. Moogie's unreached moment (the GM Jibwiz's petition 1916): with no melee
+// Mr. Moogie's unreached moment (a GM's petition 1916): with no melee
 // hit landed for 60 s, every 6 s 20,000 pure on each player of his hate list
 // that has been on it 60 s or more; one on it a shorter time is spared, and a
 // hit landed puts it off again for 60 s.

@@ -175,7 +175,7 @@ BOARD_WELCOME = {
     "Fayspires": "Welcome to the Fayspires, the new home of the elves who fled Takish'Hiz.",
     "Surefall Glade": "Welcome to Surefall Glade. Respect the forest and the creatures in it.",
     # in the ogres' own speech (tools/dialog/race_lines.json's): Oggok's board
-    # came with Sandstorm's census of Rathe (2026-10-31), after the first run
+    # came with the reference server's census of Rathe (2026-10-31), after the first run
     "Oggok": "Dis Oggok, home of da ogres. Rallos Zek make us strong. Come in peace, you stay. Make trouble, you get smashed.",
 }
 # What a board's name calls its city, where that is not the city's own name

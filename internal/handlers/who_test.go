@@ -34,13 +34,13 @@ func TestAnyoneMayUseWho(t *testing.T) {
 	}
 }
 
-// A tell to a GM by its name as it is drawn ("[GM] Jibrish") goes to Jibrish; the control, a
+// A tell to a GM by its name as it is drawn ("[GM] Name") goes to that GM; the control, a
 // plain name, is as it was.
 func TestATellReadsAGMsTag(t *testing.T) {
 	for line, want := range map[string][2]string{
-		"/t [GM] Jibrish hello there": {"Jibrish", "hello there"},
-		"/tell [gm] Jibrish hi":       {"Jibrish", "hi"},
-		"/t Jibrish hi":               {"Jibrish", "hi"},
+		"/t [GM] Jinkles hello there": {"Jinkles", "hello there"},
+		"/tell [gm] Jinkles hi":       {"Jinkles", "hi"},
+		"/t Jinkles hi":               {"Jinkles", "hi"},
 	} {
 		name, text, ok := parseTell(line)
 		if !ok || name != want[0] || text != want[1] {

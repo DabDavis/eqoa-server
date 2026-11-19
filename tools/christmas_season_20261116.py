@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Freeport's Christmas season (the owner, 2026-11-16: "lets make a christmas season trigger. where dust is standing, a big
+"""Freeport's Christmas season (the owner, 2026-11-16: "lets make a christmas season trigger. where [a GM] is standing, a big
 fir tree like a christmas tree. needs lights on trees in different colors. the lights can be a template so we can put christmas
 lights on fences buildings etc. only tree for now"; then "for the giant fir tree make the stock cut off so the firs touch the
 ground and takes up a big area like a town tree").
 
-  - "Christmas Tree": an NPC in Freeport's north plaza (by where Dust stood), friendly (npc_type 128), standing, never
+  - "Christmas Tree": an NPC in Freeport's north plaza (by where a GM stood), friendly (npc_type 128), standing, never
     attacking, a town tree's size, its art sunk so its lowest boughs rest on the plaza and no bare stem shows. Its npcs row's body is
     Oakhollow's (CHAR.ESF 0x46392747, a treant: what a PS2 can draw, every character file being resident); a client that
     draws decorations (vanilla) is sent the fir (decorart: TUNARIA.ESF's 0x0E318233, a LOD sprite of zone 32 that the client
@@ -38,7 +38,7 @@ TEMPLATE_ROW = (113208, "Oakhollow")   # a treant's body: the PS2's tree
 PS2_BODY = 0x46392747                   # Oakhollow (CHAR.ESF)
 FIR = 0x0E318233                        # TUNARIA.ESF: a full fir, a LOD sprite
 FIR_WORLD, FIR_ZONE = 0, 32             # held by zone 32 (and 6, 16, 30, 31, 43-45, 57, 58)
-# where Dust stood: (25303.8, 54.1, 15774.6), the plaza's sand by the shore, south of the Announcements obelisk; its boughs
+# where a GM stood: (25303.8, 54.1, 15774.6), the plaza's sand by the shore, south of the Announcements obelisk; its boughs
 # (6.5 round at the sand) clear of every NPC round it (the nearest, Rehabilitator Sela, 12 north)
 SIZE = 1.0                              # the fir at 1: some 35 high over the plaza, its boughs some 13 across at the sand
 SINK = 13.0                             # the fir's bare stem and its first boughs' droop, in its own units: the art drawn that

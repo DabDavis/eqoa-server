@@ -25,9 +25,9 @@ def ware(i, name, slot, level, value, dmg=0, ac=0):
 
 
 class FillItemValues(unittest.TestCase):
-    """tools/fill_item_values.py on a made-up database: gear of level 2 and up worth 0 takes Sandstorm's value
-    by name, else the rule fitted on Sandstorm's values (damage for a plain weapon, the nearest measured
-    items otherwise); a Sandstorm 0, a NO RENT record, a crafted product, a repeatable quest's reward (a
+    """tools/fill_item_values.py on a made-up database: gear of level 2 and up worth 0 takes the reference server's value
+    by name, else the rule fitted on the reference server's values (damage for a plain weapon, the nearest measured
+    items otherwise); the reference server 0, a NO RENT record, a crafted product, a repeatable quest's reward (a
     reward, a choice, a give event) and a GM's record are left, as are levels 0-1, priced records and what is
     not gear; a non-repeatable quest's reward is valued; an undo puts every row back. No game data."""
 
@@ -54,7 +54,7 @@ class FillItemValues(unittest.TestCase):
             stats["AC"] = ac
             return (pid, name, cost, slot, level, 1, dmg, 1, "", 0, 0, rent, *[stats[s] for s in STATS])
         rows = [
-            item(200, "Iron Sword", 0, 12, 5, dmg=100),          # Sandstorm's by name: 185
+            item(200, "Iron Sword", 0, 12, 5, dmg=100),          # the reference server's by name: 185
             item(201, "Rusty Blade", 0, 12, 10, dmg=300),        # the rule: 1.847 x 300
             item(202, "Hide Cap", 0, 1, 10, ac=5),               # the rule: the 3 nearest armour, median 110
             item(203, "Starter Shirt", 0, 5, 1),                 # level 1: left
@@ -65,7 +65,7 @@ class FillItemValues(unittest.TestCase):
             item(303, "Event Gloves", 0, 19, 20, ac=5),          # a repeatable quest's give event: left
             item(304, "Crafted Ring", 0, 8, 20),                 # a crafted product: left
             item(305, "GM Robe", 0, 2, 20),                      # a GM's: left
-            item(306, "Free Handout", 0, 5, 5),                  # Sandstorm's own 0: left
+            item(306, "Free Handout", 0, 5, 5),                  # the reference server's own 0: left
             item(307, "Priced Cap", 50, 1, 10, ac=5),            # priced: left
             item(308, "Quest Bone", 0, -1, 10),                  # not gear: left
             item(309, "Bait", 0, 21, 10),                        # not gear: left

@@ -9,7 +9,7 @@ import (
 )
 
 // The Ghilan Noble as tools/ghilan_noble_2001_20261113.py leaves her row (the
-// magician Waldorf's ticket 2001: "Ghilan Noble doesn't seem to cast her
+// magician a player's ticket 2001: "Ghilan Noble doesn't seem to cast her
 // blessing on herself in addition to the caster ... can you confirm that Ghilan
 // Noble also casts a debuff on the mob. That was one of the first spells she
 // would use"): Ghilan's Frost Curse (35 off a creature's cold resist for a

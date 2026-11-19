@@ -6,7 +6,7 @@ import (
 )
 
 // The owner's report of 2026-11-18 on the real ground (EQOA_GROUND_DIR):
-// Lonewulf on the terrain under the edge of the rock east of Noroxus in
+// a player on the terrain under the edge of the rock east of Noroxus in
 // Secrets (world 5; the rock is the LOD sprite 0x6630AE67 at 4240.1, -20.4,
 // 2167.7, its level 0's collision in 5.walls), and put out beside it.
 // Controls: the open ground round it and the rock's own top are free, and the
@@ -43,7 +43,7 @@ func TestRealLonewulfInTheRockByNoroxus(t *testing.T) {
 		t.Fatalf("no rock over the spot: %v", g.Surfaces(w, x, z, -25, -10))
 	}
 	if !g.Embedded(w, x, y, z, mid, r) {
-		t.Fatal("Lonewulf's place is not in the rock")
+		t.Fatal("Loneowls's place is not in the rock")
 	}
 	// the rock's middle (on the terrain under it) is in it too
 	if !g.Embedded(w, 4240, -21.5, 2166, mid, r) {

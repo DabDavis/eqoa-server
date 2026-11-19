@@ -11,7 +11,7 @@ import (
 )
 
 // questpreloot.go — a quest's items drop before its step (the owner, 2026-11-14: "allow
-// pre-looting for all quests"; Live petition 5016, Odium: the fire bat wings of Neriak's level 5
+// pre-looting for all quests"; Live petition 5016: the fire bat wings of Neriak's level 5
 // quest could not be had before the step; the owner again, 2026-11-18: "allow pre farming of
 // quest items").
 //
@@ -26,7 +26,7 @@ import (
 //   - never: past the step, a finished quest that does not repeat, a draft, holding as many as
 //     the step wants already (its Ascended records counted, as a quest counts them, less what
 //     the quest's earlier loot steps keep: keptForEarlier), one of a Lore item, a full stack.
-//   - a REPEATABLE quest farms ahead (the owner, 2026-11-18, petition 2383, Wanuven: the SK
+//   - a REPEATABLE quest farms ahead (the owner, 2026-11-18, petition 2383: the SK
 //     exemplar's Screaming Souls stopped at the ten one round wants, though the souls stack to
 //     999): its item drops past the count, up to a full stack, and past the step too (the quest
 //     under way at a later step: its next round's); each give step takes only its own count,

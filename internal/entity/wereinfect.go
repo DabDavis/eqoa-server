@@ -12,7 +12,7 @@ import (
 // is a layer to the were grind, players must be melee attacked by the were
 // animal to be infected. the oasis NPCs around the campfire offer cures for a
 // price. so you can be accidently infected, though very rare"), since work 1461
-// (the GM Jibrish, 2026-11-14) by the were's opening critical hit alone: each
+// (a GM, 2026-11-14) by the were's opening critical hit alone: each
 // spawn's infection ability rides its first crit and then waits a day
 // (werecrit.go), rolling once at the crit on the player it strikes, 1% from a
 // were that cons green to the player and 5% from every other con. A roll that
@@ -75,7 +75,7 @@ func WereLine(name string) string {
 }
 
 // wereInfectPer10000 is the opening crit's chance in ten thousand by the con
-// the were shows the player (Jibrish, 2026-11-14: "Set green con to 1%", every
+// the were shows the player (2026-11-14: "Set green con to 1%", every
 // other con 5%).
 func wereInfectPer10000(con byte) int {
 	if con == ConGreen {

@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// callhero.go — Call of the Hero's question (entity/callhero.go; jib's PR #1,
+// callhero.go — Call of the Hero's question (entity/callhero.go; a GM's PR #1,
 // 7b79650): each far member of the caster's group it reaches is asked in a
 // Yes/No box (0x0034) under heroCallBoxMark, as a Summoning Portal's call asks
 // (summonportal.go), and HandleDialogueOption hands the 0x0035 here. Yes within
@@ -25,7 +25,7 @@ import (
 
 // heroCallBoxMark marks a call's box (beside summonportal.go's list and the
 // welcome guide's 0x61 and the herald's 0x62; 0x60's byte is the pets'
-// non-collide id, petNoCollideID, and is left alone). jib's PR used
+// non-collide id, petNoCollideID, and is left alone). A GM's PR used
 // 0x55000000, which is the were advisors' on main (wereinfect.go).
 const heroCallBoxMark = 0x63000000
 

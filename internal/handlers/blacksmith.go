@@ -21,7 +21,7 @@ import (
 // The window shows each item's GetInvItemRepairCost (0x00BCCC00 [V]):
 // (int)(value × (1 − condition)). A repair costs that and restores the item
 // to its pattern's maximum; 0x0052 then carries the purse. The request has no
-// pending flag, so a refused repair needs no answer. Sandstorm's 0x0060 also
+// pending flag, so a refused repair needs no answer. The reference server's 0x0060 also
 // reports wear in combat (ps2_main_capture), which is not this window's.
 
 // adjustItemHPPayload is 0x0060: an item's condition, by key.

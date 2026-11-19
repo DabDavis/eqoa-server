@@ -21,7 +21,7 @@ import (
 //   - a PS2 (the Frontiers disc) and vanilla without the live window: a
 //     challenge is /duel at the target or /duel <name> (a client that
 //     forwards its /commands: vanilla, an S2) or "/tell <name> duel" (any
-//     client: Sandstorm's way, "whisper "duel" to another player to
+//     client: the reference server's way, "whisper "duel" to another player to
 //     challenge"); the invitation is a box (0x0034) with Accept and Decline;
 //     /duel cancel asks "Cancel duel?" and then withdraws, declines or
 //     surrenders; /duel accept and /duel decline answer without the box.
@@ -174,7 +174,7 @@ func duelAnswerOwn(gw *entity.World, sess *session.Session, accept bool, now tim
 	gw.DuelAnswer(sess, 0, accept, now)
 }
 
-// duelTell reports a tell's text as Sandstorm's challenge: "duel", or
+// duelTell reports a tell's text as the reference server's challenge: "duel", or
 // "duel" and a wager ("duel 100").
 func duelTell(text string) (wager int, ok bool) {
 	words := strings.Fields(text)

@@ -11,9 +11,9 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// Ruggid's duel (2026-11-13, Heirloom, 23:04): his Swarming Death fought a training dummy, died,
-// was summoned again and buffed (a proc on it, as Soul Mastery +), and in a duel with Hoofbite it
-// joined once Hoofbite struck Ruggid, but did nothing but melee: none of its abilities (the
+// A player's duel (2026-11-13, Heirloom, 23:04): his Swarming Death fought a training dummy, died,
+// was summoned again and buffed (a proc on it, as Soul Mastery +), and in a duel with a player it
+// joined once a player struck a player, but did nothing but melee: none of its abilities (the
 // damage over time, the tap, the harm touch), its template's Swarming Sting nor its buff's proc.
 // Now it casts them at its foe, each landing as duel damage (halved, from the pet), and its hits
 // are logged as the pet's.
@@ -50,7 +50,7 @@ func TestADuelistsPetCastsAndProcs(t *testing.T) {
 	pet.Effects = append(pet.Effects, &ActiveEffect{SpellID: 900977, Name: "Soul Mastery +", Proc: 1000, ProcMax: 1000,
 		Until: r.at(time.Hour), Rules: EffectRules{ProcChance: 100}})
 
-	// Hoofbite, beside Ruggid
+	// A player, beside a player
 	mgr := r.w.SessionManager
 	sb := mgr.CreateSession(&net.UDPAddr{IP: net.IPv4(10, 0, 0, 77), Port: 7077}, 77, 77, 1, 2, true)
 	b := &Player{ServerID: 1077, Name: "Hoofbite", Class: 6, Level: 60, HP: 1_000_000, MaxHP: 1_000_000, Power: 100, MaxPower: 100,
@@ -82,7 +82,7 @@ func TestADuelistsPetCastsAndProcs(t *testing.T) {
 		t.Fatalf("the duel did not begin: phase %d", duel.Phase)
 	}
 	start := 51*time.Second + DuelCountdown
-	// Hoofbite strikes Ruggid first; the defensive pet joins
+	// a player strikes a player first; the defensive pet joins
 	r.w.duelHurtLocked(duel, b, b.ServerID, r.p, 10, r.at(start), numberMelee)
 	r.w.mu.Unlock()
 	lines.Reset()
@@ -146,7 +146,7 @@ func TestADuelistsPetCastsAndProcs(t *testing.T) {
 }
 
 // A duel's melee hit, the foe's or its pet's, goes through the struck duelist's mitigation as a
-// creature's does (the owner, 2026-11-13: Ruggid's Stoneskin stopped nothing of Hoofbite's), at
+// creature's does (the owner, 2026-11-13: a player's Stoneskin stopped nothing of a player's), at
 // its percent of what the duel's share leaves, its most spent as it goes, the buff breaking when
 // it is spent. A spell's hit is no melee: it takes nothing off.
 func TestADuelsMeleeIsMitigated(t *testing.T) {

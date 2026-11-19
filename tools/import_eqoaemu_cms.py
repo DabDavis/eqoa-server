@@ -72,7 +72,7 @@ the spells import), so run that first: --apply refuses a plan whose added or
 needed spells are not all in spellpattern, unless --allow-missing-spells.
 
 Each change is a row edit as the GM panel writes one: the row before and
-after in gm_audit (as dab, via "tool"), so the panel lists it with the rank and
+after in gm_audit (as the owner, via "tool"), so the panel lists it with the rank and
 reverts it alone; all are logged in cmcatalog_eqoaemu_log for --undo, which
 puts back every row still as it wrote it (one changed since is left and said;
 a new rank a character bought since is left too). The world reads the catalog

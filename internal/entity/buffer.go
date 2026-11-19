@@ -9,7 +9,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// buffer.go — Buffer, who buffs whoever talks to him (the GM Jibrish's petition 1390, Heirloom: "Add a vendor
+// buffer.go — Buffer, who buffs whoever talks to him (a GM's petition 1390, Heirloom: "Add a vendor
 // close but north of the announcement board in FP named "Buffer". When spoken to, buffer gives you avatar, order,
 // pure heart, the cleric + all resists buffs and a stackable GM AC that is +500ac buff. They last for 5 hours. It
 // casts it after 1 second."). handlers/buffer.go reads which spells (their records, at each talk) and asks here.
@@ -41,9 +41,9 @@ func IsBuffer(name string) bool {
 }
 
 const (
-	// BufferCastTime is how long his cast takes: Jibrish's "It casts it after 1 second".
+	// BufferCastTime is how long his cast takes: a GM's "It casts it after 1 second".
 	BufferCastTime = time.Second
-	// BufferLasts is how long what he casts lasts, of play: Jibrish's "They last for 5 hours".
+	// BufferLasts is how long what he casts lasts, of play: a GM's "They last for 5 hours".
 	BufferLasts = 5 * time.Hour
 	// bufferReach is how near him the speaker must still be when his cast lands (a talk's reach is
 	// InteractRange; a second's walk takes it no farther than this)

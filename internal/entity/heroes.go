@@ -10,7 +10,7 @@ import (
 )
 
 // heroes.go — the Testing Heroes, the World's half (handlers/heroes.go is the
-// vendor's). Petition 1471, the GM Jibrish, 2026-11-10: "For all mobs that give
+// vendor's). Petition 1471, 2026-11-10: "For all mobs that give
 // the player XP, add a new faction "Testing Heroes". This starts at max
 // negative for all players. Each kill that gives XP also grants +1 to this
 // faction, and +5 for raid bosses. Add a vendor in freeport near the well and
@@ -56,7 +56,7 @@ const HeroesFaction = database.HeroesFaction
 
 // HeroesKill and HeroesBossKill are what a kill that gives experience is
 // worth with the Testing Heroes: a creature's, a raid boss's (petition 1471; a raid
-// boss 20 since petition 1603, Jibrish: "increase the faction increase from 5 to 20").
+// boss 20 since petition 1603: "increase the faction increase from 5 to 20").
 const (
 	HeroesKill     = 1
 	HeroesBossKill = 20
@@ -248,7 +248,7 @@ func (w *World) HeroesRefund(sess *session.Session, cost int) (after int, ok boo
 
 // RaidBossesUp is a line for each raid boss (raidBossLocked) alive in the
 // world now, by name: its world and place, its hit points, and whether it is
-// in a fight (the GM Jibwiz's petition 1947: "/raidboss ... will show us
+// in a fight (a GM's petition 1947: "/raidboss ... will show us
 // text which mobs tagged raid boss ... are currently spawned"). Pets,
 // charmed creatures and a dungeon's copies are left out of nothing: a copy
 // is named as one.

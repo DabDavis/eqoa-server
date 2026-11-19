@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// The GM Jibrish's petition 1894: "If mr moogie hits 1 hp, he freezes and is immune to damage, unable to take
+// a GM's petition 1894: "If mr moogie hits 1 hp, he freezes and is immune to damage, unable to take
 // damage or die for 30 seconds", with his line. Over the template rig: the hit that would kill the guard leaves it
 // at 1, its line in /say; for 30 s no hit lands (a spell's, an NPC's), no heal at a hit raises it, and it swings at
 // no one; at 30 s its fight goes on (it swings again) and the next hit kills it. Once a fight: the next fight holds

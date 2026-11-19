@@ -12,7 +12,7 @@ import (
 // the new client ignored every roster (Msg0772 returns out of a group): the
 // group window empty, Leave Group "you are not in a group", an invite of its
 // own refused as "full" or "already in a group" and its group still listing it
-// (petitions 2338, 2348, 2351: Michael's and Lorarda's boxes after a reload).
+// (petitions 2338, 2348, 2351: two players' boxes after a reload).
 // mercRejoinAskLocked's probe (petition 2213) did this for a group of an owner
 // and its mercs alone; groupRejoinAskLocked does it for one with other
 // players: its own box, once its client is in the world. A client in the group

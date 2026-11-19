@@ -14,7 +14,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// classtemplate.go — NPC class templates (jib's F3 20261029-025234-7430ece1:
+// classtemplate.go — NPC class templates (a GM's F3 20261029-025234-7430ece1:
 // "Monsters need classes. Classes should determine stat profile (tank classes
 // a little tankier, melee hit a little harder and occasionally kick, wizards
 // chain cast 2 level appropriate spells, one aoe one single target, necro's
@@ -36,9 +36,9 @@ import (
 //     on it lands (offence.go, pet.go), and its own melee hits on a player or
 //     a pet are melee_pct of its roll (defence.go), each at least 1;
 //   - kicks (its special) in special_chance of its rounds, a second after the
-//     round's last hit: a 0x00B1 of cast 0 with Sandstorm's creature special's
+//     round's last hit: a 0x00B1 of cast 0 with the reference server's creature special's
 //     visual (0x66CD778E, or special_fx) and the level times special_damage,
-//     fixed and through any armour, as Sandstorm's creatures' specials hit
+//     fixed and through any armour, as the reference server's creatures' specials hit
 //     (the training dummies' note: a level 34 crab's 251 on a tank of 1,763
 //     AC and an enchanter of 167 alike); a damage shield answers it as melee;
 //     and the same special on a clock (special_every, the user's SOE roamer:
@@ -47,7 +47,7 @@ import (
 //     special_every, each special_jitter either way, on a clock of its time
 //     AT its enemy (its turns in reach, templateContactGap apart at most):
 //     time closing in, held off by a root or casting is not counted, as
-//     Sandstorm's specials come with its rounds (one round in five) and a
+//     the reference server's specials come with its rounds (one round in five) and a
 //     creature out of reach has none (a creature's, no pet's, comes as a round
 //     of its own, its first opening every fight whatever special_first: work
 //     1340, critround.go); either only from special_from on, a
@@ -57,7 +57,7 @@ import (
 //     enemy (a player, or a player's pet), one at a time, standing still for
 //     each cast (no chase, no way round, as a root holds it) and its melee
 //     rounds going on through it while its enemy is in its reach (the GM
-//     Jibrish's petition 1593, 2026-11-11: "Mobs should stop moving while
+//     a GM's petition 1593, 2026-11-11: "Mobs should stop moving while
 //     casting (but the spell always resolves unless otherwise specified);
 //     however they should also keep quading IF in melee range of the
 //     target"; castHeld). A round begun while it casts sends no swing of its
@@ -94,10 +94,10 @@ import (
 // beneficial effect on what it fights, a player or a pet, ends, and a GM's
 // #testmode, the god mode, goes off (strip.go).
 //
-// The numbers of jib's five are ours, the row's notes say which; the kick's
-// are Sandstorm's crab's. No recording has a creature casting.
+// The numbers of a GM's five are ours, the row's notes say which; the kick's
+// are the reference server's crab's. No recording has a creature casting.
 
-// templateSpecialFX is Sandstorm's creature special's 0x00B1 visual, cast 0
+// templateSpecialFX is the reference server's creature special's 0x00B1 visual, cast 0
 // (claude-notes/training-dummies-20261021.md: the Desert Crab's and the
 // Gharial's specials).
 const templateSpecialFX uint32 = 0x66CD778E
@@ -1001,7 +1001,7 @@ func (w *World) templateWantsLocked(npc *NPC, a *templateAbility, target EntityI
 
 // templateFarTurnLocked is a templated NPC's turn while what it fights (target:
 // a player, a player's pet, or the NPC of a scripted fight) stands beyond its
-// melee reach, rooted, snared or kiting (the GM Jibrish's petition 1442: Metal
+// melee reach, rooted, snared or kiting (a GM's petition 1442: Metal
 // Moogie V2's "ranged attack they can use if the target is out of range ... ONLY
 // if the target is out of normal melee attack range, due to root or snare or
 // kiting"): the first of its out-of-reach abilities (OutOfReach) due and wanted,
@@ -1176,7 +1176,7 @@ func (w *World) castFoeLocked(npc *NPC, target EntityID) *NPC {
 // other fight between two NPCs is their melee alone (a town's guard and a
 // creature): one a trigger's sic set on the other with casts (castsAt,
 // SetNPCOn), either way round, so the NPC it was set on fights it back so too
-// (the GM Jibrish's petition 1437: Mr. Moogie answered Tunare and her pets by
+// (a GM's petition 1437: Mr. Moogie answered Tunare and her pets by
 // his melee alone, his Lay Hands, his strip and his crit never fired); and an
 // add a summon called (summon.go) fights as its creature does, either way round.
 func scriptedFoes(npc, foe *NPC) bool {
@@ -1424,7 +1424,7 @@ func templateFigure(effects []SpellEffect, pct int) (hit, drained int) {
 }
 
 // powerDrainCapShare is the share of a mana tap a resist at the cap takes:
-// the GM Jibrish's petition 1295, of the pariahs of Xrag's: "It should take
+// a GM's petition 1295, of the pariahs of Xrag's: "It should take
 // 1k mana as a baseline, but resist down to 200 mana with max AR". A spell's
 // damage keeps ResistCapShare (resist.go).
 const powerDrainCapShare = 0.8
@@ -1582,7 +1582,7 @@ func debuffStats(s *CastSpell) bool {
 		if e.Kind == EffectStat && !e.Set && e.Amount < 0 {
 			return true
 		}
-		// a damage over time (the GM Jibrish's petition 1259: the Ebony
+		// a damage over time (a GM's petition 1259: the Ebony
 		// Recluse's "poison dot that lasts 30 seconds ... that ticks for 300")
 		if e.Kind == EffectHPTick && e.Amount < 0 {
 			return true

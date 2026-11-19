@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 )
 
-// Petition 1504 (Lifeispain): "Logged back in here and immediately got a
+// Petition 1504: "Logged back in here and immediately got a
 // group invite from it. I declined but it is still following me around ... It
 // still is fighting for me even though not in group ... when I just left the
 // dummy the merc is still fighting it by itself." A merc fights only in its

@@ -22,12 +22,12 @@ record, claude-notes/tradeskill-sources-20261029.md.
   a failure loses the ore and the mold and keeps the modifier (eqoatrade's
   tutorial). Its book tab is its metal (CLIENT's own list, spec 3.2), its level
   the trade level, its rarity its rarest part's (Prima).
-- The components are Sandstorm's own records, read off its merchants in the
+- The components are the reference server's own records, read off its merchants in the
   harvests (--harvests; `eqoa harvest`'s JSON, never kept here): ten armorsmith
   hammers, a tier a metal ("Novice ... suitable for forging crude iron" to
   "Grandmaster ... seralite"), seventeen molds ("Plate Breastplate Mold",
   "Chain Coif Mold", five shields') and ten ores ("Crude Iron Ore" ... "Seralite
-  Ore"), under Sandstorm's ids where this server has them free.
+  Ore"), under the reference server's ids where this server has them free.
 - Prima's rules (p. 440-441): a product's level is 5 x trade level - 2; its
   armor type chain or banded to trade level 5 and scale or plate from 6 (CLIENT's
   armor sets 3, 5, 7, 4, as the live records carry them), its tint the trade
@@ -46,8 +46,8 @@ by the rotated labels' places, and its cells by metal), a recipe a cell and a
 mold (a bar, the mold and the gem, the gem kept on a failure), the products
 "<metal> <gem> <piece>" at the same level rule (no metal's hit points; Prima's
 bonus durability); the eight gems SOE changed on 5 Dec 2003 by the live
-records' figures (GEM_ANCHORS); Sandstorm's own kits, wax molds and bars; the
-gems this server lacks made as Sandstorm's are, a drop table "craft gems";
+records' figures (GEM_ANCHORS); the reference server's own kits, wax molds and bars; the
+gems this server lacks made as the reference server's are, a drop table "craft gems";
 eqoatrade's starter (a glass trinket, a cracked glass earring) under Special.
 A live record is the product only with the product's stats too.
 
@@ -58,7 +58,7 @@ level), which eqoatrade's 1H and 2H grids are checked against (every filled
 cell agrees: a difference is a problem and nothing is written); QuestMasters'
 Weaponcrafting and gem pages (2006: id526, id459, id458) for who wields each
 mold and the seventeen modifiers (Prima's fourteen starred ones, in no other
-source, are left out). A recipe is an ore (Armor's: Sandstorm's), the mold and
+source, are left out). A recipe is an ore (Armor's: the reference server's), the mold and
 from trade level 3 a modifier (kept on a failure); a gem gives its stat, an
 alloy or crystal its proc in the words entity/weaponproc.go reads (a fiery,
 freezing, cursed or withering weapon's hit, a malign, venomous, volatile or
@@ -67,7 +67,7 @@ a vampiric one's life tap, a siphoning one's mana tap, at trade levels 9 and
 10). Names "<metal> <product>" and "<word> <metal> <product>" (eqoatrade's
 "Makes Fiery xxx", "Cursed Adamantite Flamberge"); each product's look (model,
 icon, colour) the commonest of this server's weapon records named as it is, a
-mold's wear slot its products' looks' commonest. Sandstorm's hammers and
+mold's wear slot its products' looks' commonest. The reference server's hammers and
 molds; eqoatrade's vendors (Prima's where eqoatrade's is no NPC here) and
 starter (a dull knife by its recipe, a crude rusty mace by experiment, both
 under Special); the modifiers drop from the loot categories' "modifiers".
@@ -85,7 +85,7 @@ textile, a pattern and from trade level 4 (a robe's from 3: Prima's counts,
 "<word> <textile> <piece>" in Title Case, by Prima's naming conventions
 ("Titan*", "Heartsblood*") and the live record's "Heartsblood Stonehide Helm"
 (a leather cap is a helm). Padded cloth (CLIENT's armor set 1), leather (2),
-robes style 0, each tinted by Prima's colour for its trade level. Sandstorm's
+robes style 0, each tinted by Prima's colour for its trade level. The reference server's
 kits (wear slot 24, Tailoring's tool), patterns and textiles; Prima's city
 tables for the trainers and sellers (every NPC of a seller's name stocked; a
 name the two shards spell two ways set to Prima's); the starter (no source
@@ -325,7 +325,7 @@ def read_grids(folder):
     return grids, bonus, problems
 
 
-# The ultra-rare modifiers give three stats beside the grid's HoT / PoT (Innoruuk's petitions, 2026-11-16: 5196
+# The ultra-rare modifiers give three stats beside the grid's HoT / PoT (a player's petitions, 2026-11-16: 5196
 # "Heartsblood Alloy is supposed to give Stamina, AR and HP in stats for plate armor. Currently only giving HoT."; 5197
 # "mindflow crystals supposed to give wisdom, power and AR to armor when crafted. Only giving PoT."; the live records'
 # heartsblood seralite plate and scale give Sta, AR and HP): each at least the single-stat modifier's at the trade
@@ -336,7 +336,7 @@ ULTRA_PLUS = {
 }
 
 
-# a modifier's stat given as another, the same figure (Innoruuk's petitions, 2026-11-16: 5198 "Enstatite gem should give
+# a modifier's stat given as another, the same figure (a player's petitions, 2026-11-16: 5198 "Enstatite gem should give
 # strength and stamina to armor when crafted, not strength and intelligence."; 5199 "Takish ivory should give dex and
 # agility when crafted, not charisma."; 5201 "Marr Blessed Alloy should give Stamina and Wisdom, not Stamina and
 # Charisma"; 5202 "Lazulite is supposed to give crafted armor Agility and Stamina."; the grid and Prima give Str and Int,
@@ -443,7 +443,7 @@ def commonest(db, sql, args=()):
 
 
 def harvest_components(harvests, want=None):
-    """Sandstorm's own records of a craft's tools, molds and metals (want: the
+    """the reference server's own records of a craft's tools, molds and metals (want: the
     names; Armor's by default), by name, off every harvest file's merchants (a
     file of another kind is passed over)."""
     files = []
@@ -487,7 +487,7 @@ def plan(db, folder, harvests):
             continue
         pid = row["patternid"]
         if pid in taken:
-            pid = None  # Sandstorm's id holds another item here: a new one
+            pid = None  # the reference server's id holds another item here: a new one
         r = {c: v for c, v in row.items() if c in cols}
         r.pop("patternid", None)
         r.setdefault("model", 0)  # a harvested record has no model or tint: a component shows nothing
@@ -694,8 +694,8 @@ def resolve(db, p):
     for name, pid in p["ids"].items():
         ref[name] = pid
     items = []
-    for pid, row in sorted(p["items"], key=lambda x: x[0] is None):  # Sandstorm's ids first (as one by one did)
-        # one under Sandstorm's id is that id already (a catalog may list it: Sandstorm's own); else a ref
+    for pid, row in sorted(p["items"], key=lambda x: x[0] is None):  # the reference server's ids first (as one by one did)
+        # one under the reference server's id is that id already (a catalog may list it: the reference server's own); else a ref
         ref[row["itemname"]] = pid or "@" + row["itemname"]
         items.append({"ref": ref[row["itemname"]], "fixed": pid, "row": row})
     for name, v in list(ref.items()):
@@ -1059,20 +1059,20 @@ JEWEL = 3  # the skill: CLIENT's craft slot
 JEWEL_METALS = ["Iron", "Bronze", "Steel", "Copper", "Silver", "Electrum", "Gold", "Platinum", "Adamantite", "Mithril"]
 JEWEL_BONUS_DUR = [0, 2, 4, 6, 8, 10, 12, 15, 18, 20]
 JEWEL_SPECIAL = 10
-# Sandstorm's ten kits, a tier a metal (Freeport's Merchant Gillinen), and its four wax molds and ten bars (Merchant
+# the reference server's ten kits, a tier a metal (Freeport's Merchant Gillinen), and its four wax molds and ten bars (Merchant
 # Rothien): the tool held while working, worn in Held as a hammer is (wear slot 22 + 3)
 KITS = ["Novice", "Initiate", "Assistant", "Apprentice", "Adept", "Journeyman", "Expert", "Artisan", "Master", "Grandmaster"]
 # p. 443, "Casting Molds": a mold's piece and its equip slot (Ring, Ear, Neck, one Forearm)
 JEWEL_MOLDS = {"Ring Mold": ("ring", 8), "Earring Mold": ("earring", 3), "Pendant Mold": ("pendant", 4),
                "Bracelet Mold": ("bracelet", 6)}
-# p. 442, "Gem Properties": its columns left to right, as their rotated labels stand (Lightning before Cold; Sandstorm's
+# p. 442, "Gem Properties": its columns left to right, as their rotated labels stand (Lightning before Cold; the reference server's
 # Turquoise is "cold resistance" and its Topaz "lightning and arcane", as these columns read)
 GEM_LABELS = ["Str", "Sta", "Agi", "Dex", "Wis", "Int", "Chr", "HP Max", "PWR Max", "HoT", "PoT", "AC", "Fire", "Lightening",
               "Cold", "Arcane", "Poison", "Disease"]
 GEM_COLS = ["str", "sta", "agi", "dex", "wis", "intelligence", "cha", "HPMAX", "POWMAX", "HoT", "PoT", "AC", "FR", "LR", "CR",
             "AR", "PR", "DR"]
 GEM_RARITY = {"common": 0, "uncommon": 1, "rare": 2, "ultra-rare": 3}
-# a gem's item where this server's record is named otherwise than the table (Sandstorm's "Black Bloodstone", "These gems
+# a gem's item where this server's record is named otherwise than the table (the reference server's "Black Bloodstone", "These gems
 # are often sought after by jewelers ... stamina"), and its word in a product's name, as the live records have them
 # ("electrum bloodstone earring", "mithril rose quartz earring")
 GEM_ITEM = {"Bloodstone": "Black Bloodstone"}
@@ -1095,7 +1095,7 @@ GEM_ANCHORS = {
 GEM_TWINS = {"Emerald": ("Ruby", {"HPMAX": "POWMAX"}),
              "Fire Emerald": ("Star Ruby", {"str": "dex", "PR": "FR", "HPMAX": "POWMAX"})}
 CHANGED_GEMS = ("Ruby", "Emerald", "Sapphire", "Star Ruby", "Fire Emerald", "Black Sapphire", "Diamond", "Blue Diamond")
-GEM_PRICE = [20, 60, 270, 800]       # the gems Sandstorm prices (20, 60, 270); the ultra rare ours
+GEM_PRICE = [20, 60, 270, 800]       # the gems the reference server prices (20, 60, 270); the ultra rare ours
 JEWEL_LOOT_TABLE = "craft gems"
 JEWEL_LOOT_CHANCE = 5                # ours: percent of every creature's corpses (the user, 2026-10-30: the gems' 3 to 5)
 # the starter (eqoatrade's tutorial: the jeweler's kit, "a glass trinket recipe, 1 piece of glass, 1 piece of cracked
@@ -1233,7 +1233,7 @@ def gem_stats(props, cells, problems):
 
 
 def gem_desc(cols):
-    """A gem's line, as Sandstorm's gems word theirs."""
+    """A gem's line, as the reference server's gems word theirs."""
     res = [STAT_WORDS[c] for c in cols if c in RESISTS]
     other = [STAT_WORDS[c] for c in cols if c not in RESISTS]
     if res:
@@ -1291,7 +1291,7 @@ def plan_jewel(db, folder, harvests):
         items.append((pid, r))
         ids[name] = pid
 
-    # the gems: this server's own where it has them, else made as Sandstorm's are
+    # the gems: this server's own where it has them, else made as the reference server's are
     gem_rows = db.execute("SELECT itemicon, itemcost FROM itempattern WHERE craft > 0 AND equipslot = -1 AND "
                           "itemdesc LIKE '%sought after by jewelers%'").fetchall()
     for gem, (rarity, _, _) in props.items():
@@ -1392,7 +1392,7 @@ def plan_jewel(db, folder, harvests):
 WEAPON = 0  # the skill: CLIENT's craft slot (Recipe Book: Weapons -> 0)
 WEAPON_SPECIAL = 10
 # Prima p. 446, "Metals" (Weaponcrafting): bonus durability and hit points by trade level; QuestMasters' Weaponcrafting
-# page (id526) prints the same table. The metals and their order are Armor's (CLIENT's own list): Sandstorm's ores.
+# page (id526) prints the same table. The metals and their order are Armor's (CLIENT's own list): the reference server's ores.
 WEAPON_BONUS_DUR = [2, 5, 7, 10, 12, 15, 17, 20, 22, 25]
 WEAPON_BONUS_HP = [50, 100, 200, 400, 800, 1200, 1800, 2000, 2400, 2600]
 # p. 447, "Mundane Crafted Weapon Damage" (the damage itempattern.weapondamage holds: this server's merchant bronze
@@ -1593,7 +1593,7 @@ def plan_weapon(db, folder, harvests):
     problems = []
     cells = read_weapon_grid(folder, problems)
     vendors = read_vendors(folder, "weapon")
-    hammers = [f"{h} Weaponsmith Hammer" for h in KITS]  # Sandstorm's: "Expert" where the armorsmiths' have "Craftsman"
+    hammers = [f"{h} Weaponsmith Hammer" for h in KITS]  # the reference server's: "Expert" where the armorsmiths' have "Craftsman"
     ores = [f"{m} Ore" for m in METALS]
     want = set(hammers) | set(WEAPON_MOLDS) | set(ores)
     comps, missing = harvest_components(harvests, want)
@@ -1753,7 +1753,7 @@ def plan_weapon(db, folder, harvests):
 
 TAILOR = 2  # the skill: CLIENT's craft slot (Recipe Book: Tailoring -> 2, with S2; tool wear slot 24, TAILORING)
 # CLIENT's Tailoring list (VIWndRecipe::ComponentName, spec 3.2): the book's tab is a textile's index, Special last.
-# Each: its word in a product's name (Prima p. 444, "Textiles"), Sandstorm's record of it (Freeport's Merchant Dirlen),
+# Each: its word in a product's name (Prima p. 444, "Textiles"), the reference server's record of it (Freeport's Merchant Dirlen),
 # cloth or leather, its trade level.
 TEXTILES = [
     ("Fur", "Fur Swatch", "cloth", 1), ("Cotton", "Cotton Swatch", "cloth", 2), ("Wool", "Wool Swatch", "cloth", 3),
@@ -1783,7 +1783,7 @@ TAILOR_AC = {
                 "bracers": [9, 15, 24, 34, 43, 53, 62, 74, 83, 93], "gloves": [9, 15, 24, 34, 43, 53, 62, 74, 83, 93],
                 "leggings": [11, 18, 30, 42, 54, 66, 78, 92, 104, 116], "boots": [7, 11, 18, 25, 32, 39, 46, 55, 62, 69]},
 }
-# a piece: its equip slot, its word in a product's name, and Sandstorm's pattern (Merchant Flagan). A leather cap is a
+# a piece: its equip slot, its word in a product's name, and the reference server's pattern (Merchant Flagan). A leather cap is a
 # "Helm" as the live records name it ("Heartsblood Stonehide Helm", level 48); a robe is cloth's alone (p. 444).
 TAILOR_PIECES = {
     "cloth": [("cap", 1, "Cap", "Cloth Cap Pattern"), ("tunic", 5, "Tunic", "Cloth Tunic Pattern"),
@@ -1841,7 +1841,7 @@ TAILOR_PROPERTY = {
     ("HPMAX", "POWMAX"): "Hit Point and Power Max", "HoT": "Hit Point Regen", "PoT": "Power Regen",
 }
 TAILOR_PRIMA_WORD = {"Sinahlite": "Sinhalite"}  # Prima's naming column's misprint
-# a modifier made to give other stats than Prima's (Innoruuk's petition 5200, 2026-11-16: "Rallosian Studs ... Stamina
+# a modifier made to give other stats than Prima's (a player's petition 5200, 2026-11-16: "Rallosian Studs ... Stamina
 # and Dexterity I believe should be the stats."; tools/rallosian_studs_5200_20261116.py made the live records so): what
 # Prima says, for the check against its table
 TAILOR_PRIMA_COLS = {"Rallosian Studs": ("str", "intelligence")}
@@ -1998,7 +1998,7 @@ def plan_tailor(db, folder, harvests):
     """Tailoring's items, recipes, stock and drops (the module's doc)."""
     problems = []
     cells = read_prima_tailor(folder, problems)
-    kits = [f"{k} {TAILOR_KIT}" for k in KITS]  # Sandstorm's: "Expert" as the jewelers' kits
+    kits = [f"{k} {TAILOR_KIT}" for k in KITS]  # the reference server's: "Expert" as the jewelers' kits
     patterns = [p for ps in TAILOR_PIECES.values() for _, _, _, p in ps]
     textiles = [n for _, n, _, _ in TEXTILES]
     comps, missing = harvest_components(harvests, set(kits) | set(patterns) | set(textiles))

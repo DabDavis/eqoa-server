@@ -16,8 +16,8 @@ import (
 // login that takes it over as it stands) has not left, so it keeps them. The player is told once
 // in the world.
 //
-// A login within NoRentAway of the character's last logout keeps them too (jib's PR #1, bf7400b,
-// the GM Jibrish's ruling of 2026-10-29: No Rent "means it vanishes if the player logs out for more
+// A login within NoRentAway of the character's last logout keeps them too (a GM's PR #1, bf7400b,
+// a GM's ruling of 2026-10-29: No Rent "means it vanishes if the player logs out for more
 // than 5 minutes"): the logout is table charlogout's, written as a session ends and at a
 // shutdown's save (network/udp/norentsave.go) and taken away at the next login. With no row (a
 // crash, the first login after this came) the items go, as before it: only a logout known to be

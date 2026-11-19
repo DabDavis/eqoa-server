@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Creatures heal fast once a fight is over (F3 20261025-215107, jib: "When
+// Creatures heal fast once a fight is over (F3 20261025-215107, a GM: "When
 // mobs leash / deagro they should begin regenerating HP rapidly, 15% per
 // tick. The regen shouldn't kick in for 2 ticks out of combat."). Until then
 // a creature never healed: one a fight left at a sliver (its enemy dead, gone
@@ -15,12 +15,12 @@ import (
 // On the regen's six-second clock (regen.go's RegenInterval, the players'
 // own), an NPC out of a fight counts the ticks: the first npcCalmTicks give
 // nothing, and every one after heals its level's regen_pct of its maximum
-// (Balance by level; npcCalmHealPct, jib's 15, with no rows), at least 1,
+// (Balance by level; npcCalmHealPct, a GM's 15, with no rows), at least 1,
 // until it is whole. Any threat on it (addThreatLocked: a hit, a spell, its
 // own notice of a player, a friend's call for help) starts the count again,
 // so one fought again between two ticks waits its two ticks anew. Out of a
 // fight is no enemy: on its way home after its leash it heals already. Not a
-// dummy (dummy.go) or a corpse. The two calm ticks are jib's account of the
+// dummy (dummy.go) or a corpse. The two calm ticks are a GM's account of the
 // live game, not measured.
 //
 // The user, 2026-10-29: "pets will have HoT, PoT per tick when charmed or a
@@ -33,7 +33,7 @@ import (
 // seed hit points from level 15 are seven tenths of the first tuning's so the
 // pet classes win by the con as before (database/balanceseed.go). And
 // the seed rows make a creature out of a fight heal 5% a tick, a third of
-// jib's 15 (claude-notes/balance-20261029.md: a creature left empty is whole
+// a GM's 15 (claude-notes/balance-20261029.md: a creature left empty is whole
 // in about 2 min 10 s, not 50 s).
 
 // npcCalmTicks is how many of the regen's ticks out of a fight give a
@@ -41,7 +41,7 @@ import (
 const npcCalmTicks = 2
 
 // npcCalmHealPct is the share of its maximum hit points a creature out of a
-// fight heals each tick after npcCalmTicks with no balance rows (jib's; the
+// fight heals each tick after npcCalmTicks with no balance rows (a GM's; the
 // rows' regen_pct otherwise).
 const npcCalmHealPct = 15
 

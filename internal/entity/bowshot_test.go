@@ -6,9 +6,9 @@ import (
 )
 
 // A bow's shot (the user, 2026-11-06: "at level 35 bow damage should double,
-// because 2 arrows are shot for one hit", "tmac should hit 2000 on level 50
+// because 2 arrows are shot for one hit", "[a player] should hit 2000 on level 50
 // training dummy with bow"), on the ranged roll since 2026-11-11 (the beta
-// sheet's: DEX the top, WIS the bottom): Tmac as the Heirloom snapshot has him
+// sheet's: DEX the top, WIS the bottom): a player as the Heirloom snapshot has him
 // (a level 60 ranger, STR 106, DEX 453 within his masteries' cap, WIS 260, the
 // heirloom bow's 759) rolls 503-523 an arrow on a level 50 training dummy, and
 // shoots it for 2,000 on average at Range4 (two arrows), 1,000 at Range2 (one

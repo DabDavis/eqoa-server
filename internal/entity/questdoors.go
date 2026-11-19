@@ -10,13 +10,13 @@ import (
 )
 
 // questdoors.go — a door an NPC keeps, kept by the server too (petition
-// 2212, Hoofbite, Heirloom 2026-11-16: "The Guardian in IOD blocking
+// 2212, a player, Heirloom 2026-11-16: "The Guardian in IOD blocking
 // entrance to cazic thule house is able to be bypassed via logging and then
 // running forward while relogging").
 //
 // The Estate's Guardian (npcs 118859) stands in the doorway, and his body is
 // the door: CLIENT stops its walk at a creature's capsule
-// (claude-notes/creature-collision-20261024.md), and only CLIENT. Hoofbite
+// (claude-notes/creature-collision-20261024.md), and only CLIENT. A player
 // walked up on to him until he stood in his body ((25705.8, 55.0, 3231.9),
 // 1.3 off his middle: "held up in the air", MOVECHECK 01:14:35), logged out
 // there (01:15:03), and logged in there (01:15:11): a walker that starts in a

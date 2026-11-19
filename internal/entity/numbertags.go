@@ -59,7 +59,7 @@ package entity
 // tick whose caster is gone (the figure falls to its bearer, runTickLocked).
 //
 // numberByMerc is set on any of them the player's merc made (petition 1613,
-// Thorinoak: "Is there a way that the text color for mercs damage be changed
+// a player: "Is there a way that the text color for mercs damage be changed
 // to be different than the chars?"): its melee and shots (mercMeleeHitLocked,
 // mercShootLocked), its spells' hits and damage over time's ticks
 // (mercHarmLocked, mercTickLocked, through mercDamageLocked), its heal on its

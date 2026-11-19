@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """held_barred_20261119.py: the boss and raid loot that no creature drops as what it holds (table heldbarred, read by
-the server at its start: internal/database/helddrops.go). The owner, 2026-11-19: "hoofbite killed a soluseks eye fire
+the server at its start: internal/database/helddrops.go). The owner, 2026-11-19: "[a player] killed a soluseks eye fire
 goblin and waraxe of noroxxus dropped. staff of jade forest keeps dropping for players too much, etc. those ultra rare
 items should drop less". Prints the candidates as patternid|name|level|why for a shard's database: hand and shield
 records of level 45+ that the guides' raid and loot pages name (questmasters text pages titled Loot/Raid/Solusek's

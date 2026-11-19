@@ -38,7 +38,7 @@ const charAuraSchema = `
 	);`
 
 // charAuraSecondCols are a held item's second aura's columns on a hand's row
-// (CharAuraMainHand, CharAuraOffHand alone; the owner, 2026-11-16, of Dust's
+// (CharAuraMainHand, CharAuraOffHand alone; the owner, 2026-11-16, of a GM's
 // sword: "it will keep the red aura it has and stack the twinkle"): color2,
 // kind2, source2, nodes2, as itemaura's (ValidItemAuraSecond). All 0 (the
 // default) none. A character's hand row takes the held item's place whole,

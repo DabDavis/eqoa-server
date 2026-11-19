@@ -41,7 +41,7 @@ import (
 // attacks, and a GM's npcaggro row for its name still decides as below;
 // world.faction_aggro false leaves factions out of both (the rules below).
 //
-// Measured on Sandstorm (faces off 0x0010's replies, levels off the entity
+// Measured on the reference server (faces off 0x0010's replies, levels off the entity
 // channels; claude-notes/aggro-20261025.md):
 //   - pcaps/ps2_sandstorm_1min10secs.pcap, a level-51 player among Tunaria's
 //     wildlife: the level 18 and 19 creatures (a Black Bear Cub, a
@@ -68,7 +68,7 @@ import (
 //     players' bodies are not, unless a GM's rule says so (table npcaggro, by
 //     name: AggroRule; tools/seed_npc_aggro.py seeds the players' pets the
 //     NPC rows hold and the Cave Minnow). The npc_type bits the loader reads
-//     as hostile (FactionHostile) count for nothing here: eqoaclassic's 22
+//     as hostile (FactionHostile) count for nothing here: the production server's 22
 //     such NPCs hold a human yeoman at Freeport's gate (0x800, the big
 //     creature's reach) and players' pets. With no race models (an empty
 //     charactermodel) nothing attacks but by a GM's rule;
@@ -90,7 +90,7 @@ import (
 // DefaultAggroRadius is how near a creature notices a player it attacks on
 // sight when nothing else says: every NPC's AggroRadius from the loader. It was
 // 30, under the 38.9 a red-faced creature stood off without attacking (the
-// file's doc); 30% off that (petition 1123, the GM Jibrish: "Lower the hostile
+// file's doc); 30% off that (petition 1123: "Lower the hostile
 // mob agro radius by a blanket 30%. It is far too long right now.").
 const DefaultAggroRadius float32 = 21
 
@@ -142,7 +142,7 @@ type AggroRule struct {
 //
 // A rule is for its name as npcclass keys one (database.NPCClassKey: any case,
 // trimmed, no trailing $), so one row covers every spelling the imports gave
-// a name ("Cave Minnow" Sandstorm's, the lake's "cave minnow" Return Home's);
+// a name ("Cave Minnow" the reference server's, the lake's "cave minnow" Return Home's);
 // byName keeps each spelling's lookup, made once (cacheMu: a lookup may come
 // under the World's read lock).
 type aggroState struct {
@@ -181,7 +181,7 @@ func (a *aggroState) ruleFor(name string) (AggroRule, bool) {
 // aggroRuleLocked is ruleFor for npc: the GMs' rule for its name, but not a
 // peaceful seed rule for a player's pet's name on an instanced dungeon's
 // creature, which is a raid's foe as the dungeon's others are (ticket 2380,
-// Waldorf: Collonridge's basement Decaying Flesh, L64, stood neutral; 77 of
+// a player: Collonridge's basement Decaying Flesh, L64, stood neutral; 77 of
 // world 14's creatures share a pet's name: Companion and Kindred Spirits,
 // Decaying and Wilting Flesh, Fire Elemental, Howling Death, Swarming Bones).
 func (w *World) aggroRuleLocked(npc *NPC) (AggroRule, bool) {
@@ -254,7 +254,7 @@ func (w *World) hostileNatureLocked(npc *NPC) bool {
 		// an instanced dungeon's creature's own pet (companion.go) is of its master's nature, before
 		// any rule for its name: the seed's npcaggro rows for pets' names (Howling Death, Companion
 		// Spirit, ...: "a player's pet recorded beside its owner") left Rubbip's Howling Death neutral
-		// beside him in Guk's instance (ticket 2009, Waldorf)
+		// beside him in Guk's instance (ticket 2009)
 		if m := w.companionMasterLocked(npc); m != nil && m != npc {
 			return w.hostileNatureLocked(m)
 		}
@@ -265,7 +265,7 @@ func (w *World) hostileNatureLocked(npc *NPC) bool {
 	if IsDungeonWorld(npc.World) {
 		// the instanced dungeons' creatures (dungeons.go) are a raid's foes, whatever their
 		// bodies: Guk's Maerik N'Toxis, a dark elf's body, showed the white face and let
-		// players pass (ticket 2005, Waldorf), as did the dungeons' Teir`Dal, bandits,
+		// players pass (ticket 2005), as did the dungeons' Teir`Dal, bandits,
 		// bishops and thralls of players' races; the warden (the NPC bit) is above
 		return true
 	}
@@ -453,7 +453,7 @@ func (w *World) noticeableByLocked(npc *NPC, p *Player) bool {
 }
 
 // seesInvisLocked reports npc seeing p through its invisibility: its name's
-// npcaggro row says see_invis (petition 1814, Skywalker: "make all moth larva
+// npcaggro row says see_invis (petition 1814: "make all moth larva
 // npc in the game see through invisibility"). A GM hidden by Toggle Invis is
 // never seen. Being seen leaves the invisibility on; a hit ends it (invis.go).
 // Must be called with the lock held.
@@ -565,7 +565,7 @@ func (w *World) SetAggroRules(rules map[string]AggroRule) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	// by NPCClassKey; two spellings of one name: the peaceful rule wins (the
-	// GMs' rows agree on eqoaclassic, every spelling pair of them)
+	// GMs' rows agree on the production server, every spelling pair of them)
 	// a NoWord row is its leash alone; two spellings' leashes: the longer
 	keyed := make(map[string]AggroRule, len(rules))
 	var leash map[string]float32
@@ -668,8 +668,8 @@ func (w *World) SetAggroIgnored(sess *session.Session, ignored bool) bool {
 }
 
 // healHateLocked is a heal's hate. Petition 1225 made a heal hate at all (half of what it
-// restored, shared); petitions 1962 (Yggab: "Healing aggro is basically non-exsistant")
-// and 1967 (the GM Jibwiz, 2026-11-13) set it as it is now: "If at least 1 point was
+// restored, shared); petitions 1962 ("Healing aggro is basically non-exsistant")
+// and 1967 (a GM, 2026-11-13) set it as it is now: "If at least 1 point was
 // healed from the action, that full heal amount should generate agro in the same amount
 // as if it were doing that damage to the monster ... if the 1000 health heal hits a target
 // with full health, that generates agro as if 200 damage were applied. Healing agro

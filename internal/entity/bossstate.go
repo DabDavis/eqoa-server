@@ -6,7 +6,7 @@ import (
 )
 
 // What an overseer tells of a boss (handlers/overseer.go; petition 1699,
-// Skywalker: "Overseer Yurgulch can be used to check whether Bertoxxulous,
+// a player: "Overseer Yurgulch can be used to check whether Bertoxxulous,
 // Uzrathixius, or Poxathixius spawns are up and available to kill"): whether
 // one of the name stands alive in a world now, and if not, when its row brings
 // it back.

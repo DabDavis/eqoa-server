@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Santa's sleigh and its team by Freeport's Christmas tree (the owner, 2026-11-16: "where dust is standing is what we can
+"""Santa's sleigh and its team by Freeport's Christmas tree (the owner, 2026-11-16: "where [a GM] is standing is what we can
 use for santas sleigh"; "i believe there are deer ambient creatures that could be used for santa sleigh").
 
-The sleigh is the sled that stands by the igloo where Dust stood in Tunaria's north (TUNARIA.ESF 0x0B3BA520, zone 22, at
+The sleigh is the sled that stands by the igloo where a GM stood in Tunaria's north (TUNARIA.ESF 0x0B3BA520, zone 22, at
 5859.8, 54.1, 6663.8): an NPC "Santa's Sleigh" beside Santa, west of the tree, worn as that art by the clients that draw
 decorations (decorart, as the tree is) and, to a PS2, the chest's body (0x3B09103E, the Runed Box's: a chest of
 presents where the sleigh stands; the invisible blocker's body stood the sleigh 630 up in the air in vanilla). Its

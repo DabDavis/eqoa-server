@@ -144,7 +144,7 @@ func TestTheCopiesFollowTheirBasesAtTheStart(t *testing.T) {
 	}
 }
 
-// Petition 1320 (jibrish): "The -30% debuff on imported gear went a bit too
+// Petition 1320: "The -30% debuff on imported gear went a bit too
 // hard, lets reduce that to -15%". The share is 85% unless set, and a copy
 // made at another share is made again at the one in force at the next start.
 func TestTheShareIsASettingAndTheCopiesFollowIt(t *testing.T) {

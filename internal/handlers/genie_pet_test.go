@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 )
 
-// Petition 1351 (Jibrish: "All charm lines and pet lines need to be able to be
+// Petition 1351 ("All charm lines and pet lines need to be able to be
 // out and not lose the pet while they summon the genie in their inventory ...
 // Its only for the vendor stones"), end to end through the genie's handlers: a
 // master with a summoned pet rubs the lamp and answers each of the genie's

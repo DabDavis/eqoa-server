@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """pet_groomers_20261116.py on a small database: the report writes nothing; --apply writes the rank for the one gnome
-Zerkziee (PetLook and OnlyFor his serverid), the drachnid's areas and a groomer beside each dyer that has none (3 units on
+a player (PetLook and OnlyFor his serverid), the drachnid's areas and a groomer beside each dyer that has none (3 units on
 from the dyer, away from its outfitter, in the other sex's body), each with a gm_audit line; a second apply finds nothing
-to do; --undo takes out exactly what it made. The controls: an elf Zerkziee gets no rank (the rest still written); a
+to do; --undo takes out exactly what it made. The controls: an elf gets no rank (the rest still written); a
 dyer with a groomer beside it gets no second; id 900917 taken by another row refuses the whole, writing nothing."""
 import math
 import os

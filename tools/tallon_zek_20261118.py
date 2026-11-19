@@ -22,7 +22,7 @@ that post describes"), on top of the guide-gaps set `tallon` (tools/guidegaps/ta
   The ramp      step 4 (reach): (4715, 185, 7500) radius 110, any height: the whole foot of the slope from x 4616 to
                 4814 (worlds/ground/5.ground: the slope rises from the basin's 147 at z 7444 to the plateau's 218 at
                 z 7572, x 4610-4820), the port-in (4750, 147.6, 7380) 125 off. The old point (4750, 160, 7460, 25) was
-                missed by a player who ran up 96 to its side (Dust, 2026-11-18). It takes Tallon's Key and gives
+                missed by a player who ran up 96 to its side (2026-11-18). It takes Tallon's Key and gives
                 Tallon's Bent Key: "the person with the key will now get a popup that states you have given away the
                 key, and received 'Tallon's Bent Key' in exchange, and that the fortress is now attackable"; its events
                 as before (the fortress's and the post's triggers).

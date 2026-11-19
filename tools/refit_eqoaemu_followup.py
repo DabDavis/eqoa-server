@@ -3,7 +3,7 @@
 tools/refit_eqoaemu_balance.py): the classes those fixes moved, fitted again by that re-fit's method to the same targets.
 
 What the follow-up moved, measured with the fight simulator (cmd/balancesim against SOE's roamer, every level 1-60, 40
-fights a cell, the player's low point averaged over the fights won one and two up) on eqoaclassic's database of 14:07
+fights a cell, the player's low point averaged over the fights won one and two up) on the production server's database of 14:07
 UTC with the follow-up's data in it (tools/fix_eqoaemu_followup.py, tools/seed_spell_gates.py), under the 10:20
 re-fit's rows, against the 10:20 state (that database before the follow-up, the 10:20 server):
 

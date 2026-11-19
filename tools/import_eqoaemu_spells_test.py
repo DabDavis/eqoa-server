@@ -94,7 +94,7 @@ SPELLS = [
           ScrollSource="Quest"),                                                                # new, a were form
     spell("010E", "Rage of Claws", EffectID1="000E", Scope="Self", Target_Type="Self", CLASS="RAN MNK"),  # a were quest's
     spell("010F", "Pet Strike", EffectID1="0001", CLASS="", Learn_Method="", ScrollSource=""),   # a pet's
-    spell("0110", "Sure Taunt", EffectID1="000F", Level=20, Range=20, Recast=6),                 # ours: 106, Sandstorm's
+    spell("0110", "Sure Taunt", EffectID1="000F", Level=20, Range=20, Recast=6),                 # ours: 106, the reference server's
     spell("0111", "Hearth Portal", EffectID1="0010", Scope="Group", Target_Type="Friendly", ScrollSource="Quest"),
     spell("0112", "Moon Portal", EffectID1="0011", Scope="Group", Target_Type="Friendly", ScrollSource="Quest"),
     spell("0113", "Sun Escape", EffectID1="0012", Scope="Group", Target_Type="Friendly", ScrollSource="Quest"),

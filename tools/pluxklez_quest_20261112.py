@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pluxklez's toad eyes as a Pusling faction quest, and the Pusling owed (petition 1651, Skywalker: "Pluxklez quest for
+"""Pluxklez's toad eyes as a Pusling faction quest, and the Pusling owed (petition 1651: "Pluxklez quest for
 plane of disease hunting and gathering quest ... Players need at least 150 faction with The Pusling to log this quest ... Collect
 Bulging Toad Eye x4 ... Each completed turn-in rewards: Scuzz Toad Stew x1, 10 faction with The Pusling. Notes:
 changed from an XP reward to a faction reward ... Bulging Toad Eye is tradeable.").
@@ -31,7 +31,7 @@ its standing less the faction's start (factions.standing; refused if any faction
 else moves The Pusling (no factionhits, no npcfaction, no event or trigger names it), so a standing above the start
 is what played steps gave. It is granted what it lacks: owed less had, none when had is as much or more (no double
 grant: a character that earned it by playing has its standing already), the standing kept within -2000..2000; a
-character without a charfactions row for it gets one. Sandstorm transfers have the quests marked done and no row.
+character without a charfactions row for it gets one. The reference server transfers have the quests marked done and no row.
 Each grant is logged in pluxklez_grant_1112_log (the row before, the row after) with a gm_audit line. charfactions is
 read at login and written over at logout from the player in memory, so run it with nobody in the world: a keep
 restart's before.sh (after the save, before the new process loads the rows) or with the server stopped. Every changed column is logged in

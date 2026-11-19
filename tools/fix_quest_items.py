@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
-"""Quest items made as copies of another item take Sandstorm's own record
+"""Quest items made as copies of another item take the reference server's own record
 where it has one (the user, 2026-10-29: "bone bracers for sk level 1 quest is
-wrong, they are level 42. sandstorm harvest prob fixed it").
+wrong, they are level 42. [the reference server's] harvest prob fixed it").
 
 tools/import_quests.py makes a quest file's item that no item of its name is
 as a copy of its "like" item with its name and description (trade 1 when
 notrade), so the copy keeps the like item's level, classes, races, slot,
 stats and icon: Bone Bracers, a copy of Whale Bone Bracers, was a level 42
-item of other classes in the shadow knight's level 1 quest. Sandstorm's
+item of other classes in the shadow knight's level 1 quest. The reference server's
 records (its merchants' wares in the harvests, --prices, as
 tools/stock_merchants.py reads them) hold 61 of the 1,402 under the same
 name: mostly starting-quest gear of one race and class at level 1 (Bone
 Bracers: a shadow knight's and a dark elf's, level 1, +3 STR, free from a
 Neriak merchant), tradeskill parts and handouts. Each of those takes
-Sandstorm's record: every column a ware fills
+the reference server's record: every column a ware fills
 (tools/item_rows.py's item_row: value, icons, slot, trade,
 attack type, damage, range, level, stack, condition, classes, races and the
 rest) and its stats, its id and name kept (the quests name it by id) and its
-model and colour too (no ware carries them). An item Sandstorm gives two
+model and colour too (no ware carries them). An item the reference server gives two
 records, or one a GM changed (gm_audit), is left and said.
 
 Every change is logged in quest_items_fix_log (the pattern, the row before
@@ -59,7 +59,7 @@ def has_table(db, name):
 
 
 def records(paths):
-    """Sandstorm's item records by name: {name: [itempattern columns]}, one
+    """the reference server's item records by name: {name: [itempattern columns]}, one
     entry a distinct record."""
     files = []
     for p in paths:
@@ -116,7 +116,7 @@ def plan(db, recs):
         if r is None:
             continue
         have = dict(zip(cols, r))
-        # a stat Sandstorm's record lacks is NULL; ours 0 reads the same (no stat)
+        # a stat the reference server's record lacks is NULL; ours 0 reads the same (no stat)
         want = {c: v for c, v in found[0].items()
                 if c in have and have[c] != v and not (v is None and have[c] in (0, None))}
         if want:

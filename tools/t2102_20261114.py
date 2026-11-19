@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Petition 2102 (Kyros, Heirloom, 2026-11-14; batch tix5, lane t2102): "Pickclaws outside HP attack immediately when you
+"""Petition 2102 (Heirloom, 2026-11-14; batch tix5, lane t2102): "Pickclaws outside HP attack immediately when you
 get within range making it impossible to leave HP via road without invis." Both shards.
 
 Highpass Hold's east way out runs from the hold's east end among its guards (y 196, Captain Maehler's post), down a
@@ -9,8 +9,8 @@ tiers' (pickclaw soldier and elder 48, adept pickclaw soldier and elder 58): row
 guards, 360 and 362 on the ramp, 2080 15 from the lower gate's guards on the canyon floor, and the soldiers 2088 and
 190076-190078 (the last three tools/faq_quest_fixes_20261114.py's, for quest 101185's sashes) in the north arm by the
 gate. Each sees a player 21 off (entity/aggro.go DefaultAggroRadius) and attacks below three times its level, so a
-level 24 bard (Kyros: a level 48 elder from 19 at 12:17:39) cannot pass them on a way 30-40 wide; petition 1580
-(Noxx) said the same of the 58s ("stand on the East path of Highpass all the time").
+level 24 bard (a player: a level 48 elder from 19 at 12:17:39) cannot pass them on a way 30-40 wide; petition 1580
+(a player) said the same of the 58s ("stand on the East path of Highpass all the time").
 
   - Those four tiers' sight -> 10.5 (npcaggro by name, as the crabs' of petition 1129): they still attack whoever
     comes to them, a player keeping to the other side of the way passes. Their camps, levels and the quests that

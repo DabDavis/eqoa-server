@@ -18,7 +18,7 @@ faykind needs updated"), the site's local copy external/questmasters/text/:
     adds to a template of another figure takes its own (resist_kind "AR:50": the code of this branch reads a kind's
     own percent). A template another creature the list does not name shares (roamer, se goblin named, pod twins)
     is copied for the listed one (its row as it is, the resists added, named after it) and npctemplate points the
-    listed name at the copy. Not changed: what the GM Jibrish decided has no resists of its own (Contagion, board
+    listed name at the copy. Not changed: what a GM decided has no resists of its own (Contagion, board
     649; Impale, 651; Reaver of Graumord, 654), the Isle of Dread's Dread and Terror (their names are twelve other
     creatures' too: a name-keyed template would reach them; code ask 4), and the mobs this server has no NPC of.
 

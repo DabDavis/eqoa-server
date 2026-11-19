@@ -8,7 +8,7 @@ import (
 )
 
 // A casting creature stands still and keeps its melee going (the GM
-// Jibrish's petition 1593: "Mobs should stop moving while casting (but the
+// a GM's petition 1593: "Mobs should stop moving while casting (but the
 // spell always resolves unless otherwise specified); however they should
 // also keep quading IF in melee range of the target"). The rig's wizard
 // template chain-casts Fire Storm at 2 s (2 s cast, held to 4.4 s) and

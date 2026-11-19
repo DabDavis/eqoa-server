@@ -119,7 +119,7 @@ func (w *World) mercChooseTargetLocked(ms *mercState) {
 // mercLeftBehindLocked reports a target the merc's owner has walked off
 // from: farther than petAssist from its owner (as far as the merc looks round
 // its owner for a fight) and not its owner's auto-attack's. /merc attack's
-// order is kept to petLeash (petition 1504, Lifeispain: "when I just left the
+// order is kept to petLeash (petition 1504: "when I just left the
 // dummy the merc is still fighting it by itself"). Must be called with the
 // lock held.
 func (w *World) mercLeftBehindLocked(ms *mercState, id EntityID) bool {
@@ -385,7 +385,7 @@ func mercHitOn(npc, m *NPC, intn func(int) int) int {
 // attackEngagedLocked reports a player's auto-attack on npc as a fight his
 // mercs join: npc within his weapon's reach (inReach), or npc fighting him.
 // An attack pressed on a creature out of reach sets the switch with no fight
-// (Zerkziee, 2026-11-17: "if you target a mob far and you press X to attack,
+// (2026-11-17: "if you target a mob far and you press X to attack,
 // but cant because of range, the mercs will still go attack"); they wait
 // until he closes in or it comes at him. Must be called with the lock held.
 func (w *World) attackEngagedLocked(p *Player, npc *NPC) bool {

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The rewards of Neriak's and Oggok's "New Gear" quests (the user, 2026-10-30: Dust turned in the
+"""The rewards of Neriak's and Oggok's "New Gear" quests (the user, 2026-10-30: a GM turned in the
 iron ore, the wooden shaft and the chipped raven beak and was given no weapon).
 
 EQOA-Data's guides (the quests' source, tools/quests/data/) name the item each "New Gear" makes in
@@ -105,7 +105,7 @@ def plan(db):
         item.update(patternid=pid, itemname=name, itemdesc=desc)
         if not item.get("maxhp") and not item.get("duration"):
             # a blank record of the old dump (no hit points, no durability: the item window's
-            # "HP 0/0, DUR 0"): what Sandstorm's own level 4-5 weapons carry, 5 of 6 (the user,
+            # "HP 0/0, DUR 0"): what the reference server's own level 4-5 weapons carry, 5 of 6 (the user,
             # 2026-10-30: "the weapons you added are HP 0/0, DUR 0")
             item.update(maxhp=BLANK_HP, duration=BLANK_DUR)
         if look is not None:

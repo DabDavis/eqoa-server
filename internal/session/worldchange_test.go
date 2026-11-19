@@ -160,7 +160,7 @@ func TestRetransmitKeepsTheSequenceNumber(t *testing.T) {
 
 // TestMarkRemovedClearsOnlyTheFlag: a removal is the entity's own id and type
 // with byte 0 cleared, which CLIENT's ChannelEntity reads as "delete it, make
-// nothing" (Sandstorm's removal). A channel that never held an entity sends
+// nothing" (the reference server's removal). A channel that never held an entity sends
 // nothing at all.
 func TestMarkRemovedClearsOnlyTheFlag(t *testing.T) {
 	cd := session.NewConnectionData(nil, 0, 0)

@@ -599,7 +599,7 @@ func TestAVeryLargeRaidRosterIsPaged(t *testing.T) {
 }
 
 // A box's yes counts though the asked one's view moved its inviter since (the user,
-// 2026-11-08: "dwarfrish tried to /raid after we all accepted and folks couldnt
+// 2026-11-08: "[a GM] tried to /raid after we all accepted and folks couldnt
 // join"): the box named the leader by its slot's id, a crowd moved the leader to
 // another slot before the yes, and the yes, naming the id the box carried, joins. The
 // control: a yes naming an id no box of its carried is not taken, and says so.

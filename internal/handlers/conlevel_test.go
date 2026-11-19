@@ -78,7 +78,7 @@ func TestConSaysTheTargetsLevel(t *testing.T) {
 	}
 }
 
-// The control: with world.con_level off (Sandstorm's game, every server
+// The control: with world.con_level off (the reference server's game, every server
 // before the petition) /con is no command: neither /con nor "/t con" tells a
 // level, and no offer goes at world entry.
 func TestConIsNothingWithTheSwitchOff(t *testing.T) {

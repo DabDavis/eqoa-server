@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// A ranged shot needs its shooter to see its target (Hoofbite's petition
+// A ranged shot needs its shooter to see its target (a player's petition
 // 1924: Tinael Windstream pulled through a wall with a bow): with a wall
 // between them nothing lands, no hate, no power paid, "You cannot see your
 // target." in red, the fight let go; a throw the same. The controls: the same

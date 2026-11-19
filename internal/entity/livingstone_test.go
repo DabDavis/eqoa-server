@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Petition 1579 (Tom, a gargoyle shadow knight: "Living stone MCA for gargoyle
+// Petition 1579 (a gargoyle shadow knight: "Living stone MCA for gargoyle
 // doesnt stack on raid buffs"): Living Stone was of the self stack type (2),
 // +AC, one line with a knight's own Ebonweave (stack 2, +AC 320): the higher
 // rank (Living Stone's 60) took Ebonweave off, and Hand of Innoruuk (+AC +INT

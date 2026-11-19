@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Petition 1295 (jibrish): a pariah of Xrag's mana tap "should take 1k mana
+// Petition 1295: a pariah of Xrag's mana tap "should take 1k mana
 // as a baseline, but resist down to 200 mana with max AR". A templated
 // creature's nuke pinned to a spell that lowers its target's power takes it,
 // by its AR: all of it with none, a fifth at the cap (the dice holding), and

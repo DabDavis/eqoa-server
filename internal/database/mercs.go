@@ -64,7 +64,7 @@ const charMercSchema = `
 const MercSlots = 3
 
 // familiars: what a familiar is and does, by the item whose Use calls it
-// (handlers/familiar.go, entity/familiar.go; the GM Jibrish's petition 1445,
+// (handlers/familiar.go, entity/familiar.go; a GM's petition 1445,
 // Healbot the first: tools/seed_familiars.py), GM-editable: its name, body
 // (CHAR.ESF, as npcs.modelid) and size, its hit points and what it regenerates
 // each six-second tick, the item's cast and its visual (0: a buff's stand-in),

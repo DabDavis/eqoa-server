@@ -10,7 +10,7 @@ import (
 // questnotyet: what a quest giver says to a player who meets everything its
 // next quest asks but the level (handlers/quests_notyet.go): the user,
 // 2026-10-30, "for the early quest givers if they are the next quest in line,
-// but the player is too low level like dust is level 6 and cannot take level
+// but the player is too low level like [a GM] is level 6 and cannot take level
 // 7 q yet let the quest npc say come back when you are stronger, but word it
 // in the city flavor language". No record of what the live game's givers said
 // then exists here: the lines are ours, each city's in its people's voice (its

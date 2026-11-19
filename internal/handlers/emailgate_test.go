@@ -30,7 +30,7 @@ func chatLines(sess *session.Session, op protocol.GameOpcode) []string {
 func TestTheEmailGateInTheWorld(t *testing.T) {
 	c := newChatWorld(t)
 	cut := time.Date(2026, 12, 1, 0, 0, 0, 0, time.UTC)
-	gate := &accountmail.Gate{DB: verifiedFlags{2: true}, Cutoff: cut, Every: 30 * time.Minute, Page: "eqoaclassic.com/eqoa/password"}
+	gate := &accountmail.Gate{DB: verifiedFlags{2: true}, Cutoff: cut, Every: 30 * time.Minute, Page: "example.com/eqoa/password"}
 	g := NewEmailGate(gate, c.sm)
 	clock := cut.Add(-48 * time.Hour)
 	g.Now = func() time.Time { return clock }
@@ -47,7 +47,7 @@ func TestTheEmailGateInTheWorld(t *testing.T) {
 	c.gw.PlayerEntered(as)
 	c.gw.PlayerEntered(bs)
 	a := chatLines(as, protocol.OpcodeColoredChat)
-	if len(a) != 1 || !strings.Contains(a[0], "eqoaclassic.com/eqoa/password") || !strings.Contains(a[0], "December 1, 2026") {
+	if len(a) != 1 || !strings.Contains(a[0], "example.com/eqoa/password") || !strings.Contains(a[0], "December 1, 2026") {
 		t.Fatalf("Ann was told %q", a)
 	}
 	if b := chatLines(bs, protocol.OpcodeColoredChat); len(b) != 0 {

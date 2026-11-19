@@ -7,7 +7,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// cmdsearch.go — "/tan ?" lists the commands that begin with "/tan" (the GM Jibrish's petition 1865, 2026-11-12: "add a
+// cmdsearch.go — "/tan ?" lists the commands that begin with "/tan" (a GM's petition 1865, 2026-11-12: "add a
 // fuzzy search marker to commands so if we go /tan ? - it will pull up all the commands we can do that start with
 // /tan"). A word that begins with / or #, a space and a question mark: every line of /help (playerHelpLines) and, for a
 // GM, of #help (gmHelpLines) naming a command that begins with the word, either sign alike ("/tan ?" finds

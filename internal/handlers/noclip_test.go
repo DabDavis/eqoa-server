@@ -28,14 +28,14 @@ func noclipMessages(s *session.Session) []uint32 {
 	return out
 }
 
-// The GM Jibrish's petition 1904: /noclip, "Just for jibrish and dabs account", "default turns on /fly", a toggle.
+// a GM's petition 1904: /noclip, "Just for a GM and dabs account", "default turns on /fly", a toggle.
 // A GM of world.noclip_accounts (any case) turns it over: on, it flies (0x7E1B 1) and is told noclip (0x7E7A 1);
 // again, both off. #fly off ends it. A GM of another account is told it is not theirs and nothing changes (the
 // control); a player is answered as an unknown command; a client that cannot fly is told so, and nothing is sent.
 func TestNoclipIsTheNamedGMsToggle(t *testing.T) {
 	c, gs, gp, ps, pp := gmWorld(t)
-	c.h.SetAccessLevels(namedLevels{levels: levels{1: 1, 2: 0, 3: 2}, names: map[int]string{1: "Dab", 2: "player", 3: "othergm"}})
-	SetNoclipAccounts([]string{" dab ", "jibrish"})
+	c.h.SetAccessLevels(namedLevels{levels: levels{1: 1, 2: 0, 3: 2}, names: map[int]string{1: "Dax", 2: "player", 3: "othergm"}})
+	SetNoclipAccounts([]string{" dax ", "jinkles"})
 	t.Cleanup(func() { SetNoclipAccounts(nil) })
 	gs.SetFlyClient(true)
 	ps.SetFlyClient(true)

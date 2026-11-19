@@ -2,7 +2,7 @@
 """Epic-sode 3 of the level 60 Evil Melee epic as the owner's source has it: Ronson's walkthrough on the EQOA forum
 (eqoa.forumotion.com/t155-evil-melee, the owner 2026-11-18: "make the Evil Melee epic, episode 3, work as that post
 describes"), and its twin for the Good Caster (t152-good-caster, the same Boldunder and the same summoning), with the
-two bosses as the GM Jibrish's board entries have them (636 Boldunder, 615 Ahriaana, 692 "spawn from quest", 676's
+two bosses as a GM's board entries have them (636 Boldunder, 615 Ahriaana, 692 "spawn from quest", 676's
 hp_pct). By NAMES and places, never by ids: the two shards' rows are read where they stand.
 
 WHAT DIFFERED, and what this writes:

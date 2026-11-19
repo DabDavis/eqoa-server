@@ -12,7 +12,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// rockfreeport.go — the Rock of Freeport (petition 1338, the GM Jibrish,
+// rockfreeport.go — the Rock of Freeport (petition 1338,
 // 2026-11-09: "Add a stone every character in game gets by default on the
 // test server (heirloom). This stone is called "Rock of Freeport" and on use
 // it teleports the caster in front of Dabrish in freeport. This is unlimited
@@ -43,7 +43,7 @@ import (
 // on its way. With the switch off a stone held does nothing but say so.
 //
 // Ours, all of it but Return Home's visual: the live game's records hold no
-// such item (Sandstorm's travel stones, whose icon it wears, "instantly
+// such item (the reference server's travel stones, whose icon it wears, "instantly
 // teleport").
 
 // The stone's record's name, its cast and its record (ours, but for the icon).
@@ -56,15 +56,15 @@ const (
 	// boards' wolf -1004)
 	rockCastID = -1005
 	// ReturnHomeVisual is Return Home's 0x00B1 visual, the spelleffect fxdict
-	// of all three of its records on eqoaclassic (1542, 1623, 2300; 2026-11-09):
+	// of all three of its records on the production server (1542, 1623, 2300; 2026-11-09):
 	// the stone's when no row gives one
 	ReturnHomeVisual uint32 = 0x8FB28233
 	// rockRecordID is where the record is made, the next of the kept items'
 	// ids (the lamp 715000, the fang 715010, the portal 715020, the Stone of
-	// Guenhwyvar 715030; 715040-715042 are Drizzt's gear), or the first free
+	// Guenhwyvar 715030; 715040-715042 are a player's gear), or the first free
 	// one after it
 	rockRecordID = 715050
-	// rockIcon is ITEMICON.ESF's blue rune stone, Sandstorm's travel stones'
+	// rockIcon is ITEMICON.ESF's blue rune stone, the reference server's travel stones'
 	// ("Freeport Travel Stone", "Zentar's Keep Travel Stone") and the Grobb
 	// Teleportation Rune's
 	rockIcon = 414194432

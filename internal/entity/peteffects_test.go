@@ -13,7 +13,7 @@ import (
 // The pet's effects (peteffects.go): on the pet, never on its owner's effects
 // window, and to a client that asked, whenever they change.
 
-// Spells of a necromancer's pet's kind (the user, 2026-11-09: "jibcro is
+// Spells of a necromancer's pet's kind (the user, 2026-11-09: "[a character] is
 // showing pets buffs as if on him"): the pet's own buff on itself, its owner's
 // on it (scope 3, on the pet whatever is targeted), and the owner's on itself.
 var (

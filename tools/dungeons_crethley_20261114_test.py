@@ -123,7 +123,7 @@ class CrethleyManor(unittest.TestCase):
         named = db.execute("SELECT '#' || id FROM npcs WHERE world = 14 AND npc_name = 'Gravedigger'").fetchone()[0]
         self.assertEqual(db.execute("SELECT tablename, chance, rolls FROM npcloot WHERE npc_name = ?", (named,)).fetchall(),
                          [("dungeon crethley named", 60, 1)])
-        # the twin at the entrance: 4 to the right of where Dust stood (6716.4, 14519.3), facing as he did (205 degrees)
+        # the twin at the entrance: 4 to the right of where a GM stood (6716.4, 14519.3), facing as he did (205 degrees)
         w = db.execute("SELECT x_coord, z_coord, world FROM npcs WHERE npc_name = ? AND x_coord < 10000", (tool.WARDEN,)).fetchall()
         self.assertEqual(len(w), 1)
         self.assertAlmostEqual(w[0][0], 6716.4 - 3.62, delta=0.05)

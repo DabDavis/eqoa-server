@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Petition 2379 (Bolgorf): no battle music on any client. CLIENT and vanilla
+// Petition 2379: no battle music on any client. CLIENT and vanilla
 // play it while the player's own channel's byte 155 (m_p263) is set; it is set
 // while the player swings at a target or within CombatMusicHold of a blow, and
 // clear otherwise (the control: a player at rest, a dead one).

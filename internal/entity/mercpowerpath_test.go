@@ -2,7 +2,7 @@ package entity
 
 import "testing"
 
-// Heirloom petition 2302 (Gonzo, 2026-11-17: "I picked power path and they
+// Heirloom petition 2302 (2026-11-17: "I picked power path and they
 // have no power path spells"): the necromancer's Power path, a foe's power
 // drained to the caster's group, is a merc's hit at its foe as the Blood
 // path's hit points are, and worth its figure; a power drain to the caster

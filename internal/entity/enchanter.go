@@ -95,7 +95,7 @@ func procBonus(e SpellEffect, caster *Player) int {
 		return 0
 	}
 	// the workbook's level scaling, as spellAmount has it (petition 1155,
-	// Larrybird: Shroud of Hate, 1 and the level's whole share, answered for 1)
+	// a player: Shroud of Hate, 1 and the level's whole share, answered for 1)
 	bonus := caster.Level * e.LevelPct / 100
 	if e.Scale != StatNone && e.ScalePct != 0 {
 		bonus += caster.StatNow(e.Scale) * e.ScalePct / 100
@@ -204,7 +204,7 @@ const arcaneDebuffPer = 15
 
 // creatureResists is a hit n (negative) or a tick of a spell of that resist on a
 // creature strong in that resist, its template's resist_kind (petition 1178,
-// Jibrish, of the lava centipede: "very resistant to FR. Not immune, but very strong
+// a GM, of the lava centipede: "very resistant to FR. Not immune, but very strong
 // to it"): it does not take resist_pct percent of it (or the kind's own, "LR:75":
 // templateResistPct), less what a debuff of that kind on it takes off
 // (npcResistKindPct), and at least 1 lands (none at 100 under the elemental model: elemental.go). Then its template's taken_resist percent
@@ -287,7 +287,7 @@ func templateResistPct(kinds string, pct int, resist Stat) int {
 }
 
 // arcaneDebuffed is a hit n (negative) or a tick of a spell of that resist on a
-// creature, as hard as its arcane debuff makes it (petition 1176, Jibrish: "It
+// creature, as hard as its arcane debuff makes it (petition 1176: "It
 // should have a noticeable impact on resists for AR, and even increase AR
 // damage a bit from the resist debuff"): arcane's alone, the debuff's other
 // half being the resist it takes off (npcResistOffPct). Any other as it is.

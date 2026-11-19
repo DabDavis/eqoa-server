@@ -223,7 +223,7 @@ func TestPetTemplateSeeds(t *testing.T) {
 
 // A necromancer's pet is a shadow knight (its class) that swings a warrior's
 // round: two hits from 20 (Attack2), four from 35 (Attack4); the Death
-// Sacrament versions swing Sandstorm's recorded rounds, the zombie Attack2,
+// Sacrament versions swing the reference server's recorded rounds, the zombie Attack2,
 // the spectre Attack3 every 5.2 s, their hits scaled to the base pet's damage
 // a second (x1 and x1.73; the 20% more of their first day taken off by the
 // balance's pet fit). The control: with the pettemplate

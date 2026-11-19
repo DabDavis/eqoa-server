@@ -7,7 +7,7 @@ import (
 
 // A pet that yields in a duel is out of that duel, not its owner's pets after
 // it (the owner, 2026-11-18, on Heirloom: "pets if killed in a duel cant be
-// resummoned": Zerkziee's Construct yielded to Dust and the two he summoned
+// resummoned": a player's Construct yielded to a GM and the two he summoned
 // after stood out of the duel until he forfeited).
 
 // newYieldDuelists is the duelists with Alpha a level 45 magician, the Fire

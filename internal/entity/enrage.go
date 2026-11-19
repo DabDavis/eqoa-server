@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// enrage.go — a creature's enrage (database.AbilityEnrage; the GM Jibrish's petition 1443: "At 10% health
+// enrage.go — a creature's enrage (database.AbilityEnrage; a GM's petition 1443: "At 10% health
 // mr moogie enrages at grows in size by 200% and should start summoning players on his agro list to him
 // every 3 seconds, unless they are already in melee distance. ... where he attacks them with rampage. This
 // should work as if a tank is main tanking moogie, he summons number 2 on the agro list and does rampage

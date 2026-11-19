@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """catapult_pet_20261117.py on a small database: the report writes nothing; --apply adds decorart's pet columns, the
 rank Construct (Catapult) (PetArt 0xE64B8D78, OnlyFor 747, free, under Construct), the two decorart pet rows
-(Tunaria zone 108, Rathe zone 13) and Zerkziee's charcms grant, one gm_audit line each, and keeps them in --applied; a
+(Tunaria zone 108, Rathe zone 13) and a player's charcms grant, one gm_audit line each, and keeps them in --applied; a
 second report finds nothing to do and a second --apply is refused; --undo puts the rows back exactly (the columns
-stay). --no-grant leaves charcms alone. The controls: serverid 747 not Zerkziee (Live), refused, nothing written; a row
+stay). --no-grant leaves charcms alone. The controls: serverid 747 not a player (Live), refused, nothing written; a row
 changed since, --undo refused, nothing undone."""
 import json
 import os

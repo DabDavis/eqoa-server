@@ -253,7 +253,7 @@ func ClientHolds(seq, ack uint16, mask uint64) bool {
 
 // maxResendWait is the longest a message waits between resends, however
 // often it went: a client gone quiet costs a packet every few seconds, not
-// one every tick (eqoaclassic's dead sessions resent 4 messages each tick, 600
+// one every tick (the production server's dead sessions resent 4 messages each tick, 600
 // lines a minute a session, for as long as they lingered).
 const maxResendWait = 4 * time.Second
 
@@ -463,7 +463,7 @@ func (q *MessageQueue) Waits(opcode protocol.GameOpcode) bool {
 // every netLogEvery while it resends, writes its "Net:" line: who, how many
 // went again, and its stream as it stands (Report). It replaced a line a
 // packet with no session named ("Queue: retransmitting 4 unacked reliable
-// message(s), first seq=206"), 7,583 a minute on eqoaclassic at 03:54 UTC
+// message(s), first seq=206"), 7,583 a minute on the production server at 03:54 UTC
 // 2026-11-09. Caller must hold q.mu.
 func (q *MessageQueue) noteResentLocked(msgs int, now time.Time) {
 	if q.session == nil || q.session.Connection() == nil {

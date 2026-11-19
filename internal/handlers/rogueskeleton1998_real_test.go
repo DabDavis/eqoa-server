@@ -8,7 +8,7 @@ import (
 )
 
 // Over a real server's database with tools/rogue_skeleton_1998_20261113.py
-// applied (EQOA_REAL_DB, copied; Hoofbite's ticket 1998, a skeleton disguise
+// applied (EQOA_REAL_DB, copied; a player's ticket 1998, a skeleton disguise
 // for rogues): the Spell Archivist's Grant basic spells gives a rogue of 60
 // Skeletal Mask (its scroll sold by Merchant Morian and the archivists, its
 // classspells row a vendor's), a rogue of 59 and an enchanter of 60 not.

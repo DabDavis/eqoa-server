@@ -9,7 +9,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// Petition 1501 (the GM Jibrish): GM's Reward, the record tools/gm_reward_20261111.py writes and #reward gives
+// Petition 1501: GM's Reward, the record tools/gm_reward_20261111.py writes and #reward gives
 // (handlers/reward.go): "a 25 heal damage shield aka they heal for 25 whenever hit, and it deals 25 to who hits
 // them. They also gain 100ac, 50 str, 50 dex, 50 wis, 50 int, 50 cha, 50 sta. Lasts 1 hour." Petition 1740 (the
 // same GM): "the /reward ability needs to HEAL the player and damage the attacking monster when hit": 200 each

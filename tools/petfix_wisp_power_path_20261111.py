@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Wisp's "mana" path spells (petition 1586, Wisp, 2026-11-11: "Requested Path spell mana spells towering mind,
+"""A wizard's "mana" path spells (petition 1586, 2026-11-11: "Requested Path spell mana spells towering mind,
 aktrans will and fortress but they werent added to spell book").
 
 The three are the wizard's self-power line: Towering Mind (700653, the level 49 path reward's option, the Spell
@@ -8,15 +8,15 @@ Aktrana's Tower of Will and Aktrana's Cerebral Fortress (701099, 701098: the lev
 Information/epics_60.json; here the options of the wizard's epic reward, quests 101120 and 101132, Ediopolus). Why they
 were not written: the Archivist's paths are the 20/30/40/49 path quests' (handlers/archivistpaths.go: pathRewards
 reads the 30,40,49 reward quests and the level 20 class quests only, the rule the GMs answered petition 1487 with), so
-his Mind path ends at Towering Mind, which Wisp's book has; the 60 epic's spells come only from the epic quest's one
-pick, and Wisp has done neither epic quest (no charquests row for 101120 or 101132). No fault in data or code: this
+his Mind path ends at Towering Mind, which the character's book has; the 60 epic's spells come only from the epic quest's one
+pick, and the character has done neither epic quest (no charquests row for 101120 or 101132). No fault in data or code: this
 writes what was asked.
 
-Into Wisp's book (by name and serverid: "Wisp", 676; refused when 676 is another character, skipped with a line where
+Into the character's book (by name and serverid: "Wisp", 676; refused when 676 is another character, skipped with a line where
 there is none, as on the Live shard) each of the three spells it lacks (by name; refused when a name is not exactly
 one record), off the bar at its next display index, as the scribe and the Archivist write one. Report only by default;
 --apply in one transaction, a gm_audit line a row, log wisp_power_path_1111_log; --undo exact (a row moved since, put
-on the bar, is left and said). The book is read at login: from Wisp's next login; no restart.
+on the bar, is left and said). The book is read at login: from the character's next login; no restart.
 
     tools/petfix_wisp_power_path_20261111.py --db eqoa.db [--apply | --undo]
 """

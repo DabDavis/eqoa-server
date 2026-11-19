@@ -98,7 +98,7 @@ func (h *SpellbookHandler) recastGroupOf(spell *entity.CastSpell, book []databas
 }
 
 // castSpell is a book entry as the World casts it. The record gives cast
-// time and recast in seconds (Sandstorm's: Minor Healing's 2 and 1 are a
+// time and recast in seconds (the reference server's: Minor Healing's 2 and 1 are a
 // 3300 ms lockout), the front icon the effects channel shows, the range as
 // writeAbilityRecord sends it; its line is read with its name, which says
 // what an illusion is (entity/illusion.go) and gives a line where the

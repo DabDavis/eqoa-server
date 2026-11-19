@@ -15,7 +15,7 @@ AN EPIC is a record that (any one):
     item lists), with or without "Ascended ", or an epic's name followed by " (" (the transfer stand-in "Staff of
     Nebula (1H)"), or has "Epic" in its name.
 AN HEIRLOOM is a record of table heirlooms, or named "Heirloom ...".
-KEPT as the owner made them: Twinkle and Icingdeath (Drizzt's weapons, the owner 2026-11-16, KEEP_NAMES).
+KEPT as the owner made them: Twinkle and Icingdeath (a player's weapons, the owner 2026-11-16, KEEP_NAMES).
 
 THE NEW LOOK, of the item's own kind (hands: wear 15 two-handed, else one; damage: its attack type, slash 1/2, blunt
 3/4, pierce 5/6; a held item, wear 18 or not worn, by its name):
@@ -237,9 +237,9 @@ NPC_LOOK = {
     "ShadowKnight_Polearm": "partizan", "Shaman_Club": "club", "Shaman_Spear": "partizan", "Warrior_Greataxe": "greataxe",
     "Warrior_Greatsword": "broadsword", "Warrior_Longsword": "scimitar", "Wizard_Rod": "moonwand", "Wizard_Staff": "crook",
 }
-KEEP_NAMES = {"twinkle", "icingdeath",   # Drizzt's weapons, their look the owner's (2026-11-16)
-              # looks chosen on purpose, kept (the owner, 2026-11-18): petitions 1559, 1310, 1316, jibrish,
-              # Zaeire, transfer 10
+KEEP_NAMES = {"twinkle", "icingdeath",   # a player's weapons, their look the owner's (2026-11-16)
+              # looks chosen on purpose, kept (the owner, 2026-11-18): petitions 1559, 1310, 1316,
+              # a player, transfer 10
               "vanquishers blade", "world splitter", "sapphyras sword", "sword of power",
               "sword of protection", "malefactors edge", "bo of the drunken fist", "white obliterator",
               # their epic looks put back (the owner, 2026-11-18: "Keep both epic looks", petitions 2355/2356)

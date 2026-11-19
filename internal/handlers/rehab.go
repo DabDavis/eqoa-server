@@ -283,7 +283,7 @@ func (r *Rehab) confirmed(sess *session.Session, p *entity.Player, b *rehabBox) 
 // --- the menu ---
 
 // menu asks what to do: a reset, a path and, where templates are kept, a
-// build saved and a saved build used (petition 1344, jibrish: "an explicit
+// build saved and a saved build used (petition 1344: "an explicit
 // option to save your current build into one of the two template slots ...
 // The other option should open up the option to choose one of your two saved
 // builds. The regular option to blanket respec etc. should stay as is"). CLIENT's

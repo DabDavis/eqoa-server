@@ -1,4 +1,4 @@
-// Command sirenplan plans the GM Jibrish's siren camps (petition 1741,
+// Command sirenplan plans a GM's siren camps (petition 1741,
 // 2026-11-12: "Disperse the sirens in groups of 4 that are agro, but do not
 // assist. Spread them out."), for tools/misc1112_20261112.py. It reads a COPY
 // of the database and the baked ground and prints, for every enchanting siren

@@ -16,7 +16,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// A GM's portals (petition 1624, the GM Jibrish: "We need a GM command that
+// A GM's portals (petition 1624: "We need a GM command that
 // allows me to mark the entry and exit points of teleporters. It should be like
 // /markportal and if im targeting something that NPC should be the start of the
 // teleport. Then I /markportal exit and it either uses where im standing, or

@@ -8,7 +8,7 @@ import (
 )
 
 // archivistside.go — the quests' side spells in the Spell Archivist's "Grant
-// basic spells" (the GM Jibrish's petition 1361, 2026-11-09: "Add to the basic
+// basic spells" (a GM's petition 1361, 2026-11-09: "Add to the basic
 // spell option spell grant the quested side spells for example the level 20
 // spells, the level 5 spells. Do this for each class.").
 //

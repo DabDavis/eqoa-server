@@ -23,7 +23,7 @@ func (f tempFlags) PasswordTemporary(id int) (bool, error) {
 // account with its own password is told nothing (the control).
 func TestATemporaryPasswordIsSaidInTheWorld(t *testing.T) {
 	c := newChatWorld(t)
-	c.gw.OnPlayerEntered(PasswordTempNotice(tempFlags{1: true}, "eqoaclassic.com/eqoa/password"))
+	c.gw.OnPlayerEntered(PasswordTempNotice(tempFlags{1: true}, "example.com/eqoa/password"))
 	as, _ := c.join(1, "Ann", 100, 100, 0)
 	bs, _ := c.join(2, "Bob", 110, 110, 0)
 	as.SetAccountID(1)
@@ -43,7 +43,7 @@ func TestATemporaryPasswordIsSaidInTheWorld(t *testing.T) {
 	c.gw.PlayerEntered(as)
 	c.gw.PlayerEntered(bs)
 	a := lines(queued(as, protocol.OpcodeErrorMessage))
-	if len(a) != 1 || !strings.Contains(a[0], "temporary") || !strings.Contains(a[0], "eqoaclassic.com/eqoa/password") {
+	if len(a) != 1 || !strings.Contains(a[0], "temporary") || !strings.Contains(a[0], "example.com/eqoa/password") {
 		t.Fatalf("Ann was told %q", a)
 	}
 	if b := lines(queued(bs, protocol.OpcodeErrorMessage)); len(b) != 0 {

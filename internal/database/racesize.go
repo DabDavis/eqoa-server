@@ -8,8 +8,8 @@ import (
 // racesize: a player race's body size on every client (the state channel's
 // ModelSize, bytes 36-39), by race on the network enum (Human 0 ... Ogre 9,
 // Froglok 10). 1.0 is the race's own body as CHAR.ESF has it, which
-// Sandstorm sends for every player (claude-notes/f3-pass-20261025e.md); a
-// race with no row is 1.0. Made with jib's gnomes at 0.9 (F3
+// the reference server sends for every player (claude-notes/f3-pass-20261025e.md); a
+// race with no row is 1.0. Made with a GM's gnomes at 0.9 (F3
 // 20261029-212125-e7ff987a: "Shrink player gnome size by about 10%"), once,
 // when the table is made: a GM's later change or delete of that row stands.
 // NPCs keep their own rows' sizes (entity.NPCSize). source: gm, or seed for

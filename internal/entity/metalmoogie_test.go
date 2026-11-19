@@ -13,7 +13,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// Mr. Moogie's challenge (the GM Jibrish's petitions 1379 and 1380, by Jibcro): a rig of a database
+// Mr. Moogie's challenge (a GM's petitions 1379 and 1380, by a GM): a rig of a database
 // with Mr. Moogie, his metal twin's spawn-only row on its class template (the figures the data step
 // gives him: 347% of a level 60's hit points, melee 750%, a 750 kick every 6 s, a 750 unresistable
 // lifetap every 30 s, a 25% 500 lightning proc), Heirloom's balance rows for a level 60 (hit points
@@ -181,7 +181,7 @@ func (r *metalRig) tick(d time.Duration) {
 
 // A challenge stands one Metal Moogie up, his challenger's to fight: a copy of the spawn-only
 // original at its spot (30 off Mr. Moogie), on his template (347% of a level 60's 14,400: 49,968 hit
-// points, about Jibcro's 50k), attackable, going for the challenger at once. While he stands, another
+// points, about a GM's 50k), attackable, going for the challenger at once. While he stands, another
 // player's ask is refused with a line naming whom he duels, the challenger's own second ask too, and
 // the challenger may not have Mr. Moogie's help (a heal mid-duel); the control: another player may.
 func TestMetalMoogieRisesForOneChallengerAtATime(t *testing.T) {
@@ -369,7 +369,7 @@ func TestOnlyTheChallengerHurtsMetalMoogie(t *testing.T) {
 	}
 }
 
-// His figures on what Jibcro measured them by, a 2,000 AC warrior of the most AGI (#tankprofile2: AC
+// His figures on what a GM measured them by, a 2,000 AC warrior of the most AGI (#tankprofile2: AC
 // 2000, AGI 400), level 60: he quads (a warrior's Attack4 from level 35), each hit near 300 (the
 // template's 750% of the soft floor's, then the balance's 160% and the warrior's 110%).
 func TestMetalMoogieHitsAWarriorNearThreeHundred(t *testing.T) {

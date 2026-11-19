@@ -11,7 +11,7 @@ import (
 
 // A Master Class a character cannot buy is listed "???" and opens CLIENT's
 // Requirements window, whose pages show only the level, the masteries, the
-// abilities and the minimum stats (Moose, a Hill Giant shadow knight holding
+// abilities and the minimum stats (a Hill Giant shadow knight holding
 // Titan, 2026-11-16: Slayer "???" with every requirement shown met). The one
 // Master Class rule and a quest needed are said on its Required Masteries
 // page. The rule is the same for a custom race's own Master Class as for a

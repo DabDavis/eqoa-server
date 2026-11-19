@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""Ornate plate at level 60 (the owner, 2026-11-13: "lets also add armor plate type 9 the sandstorm patch, but we dont
+"""Ornate plate at level 60 (the owner, 2026-11-13: "lets also add armor plate type 9 the [reference server's] patch, but we dont
 need the patch the armor is on the ISO"; internal/entity/livelook.go, this server's armour).
 
 Set 9 is the ornate gold-and-steel plate CHAR.ESF holds under the plain plate's DictIDs (claude-notes/
 charesf-shadowed-armor.md). An item record of model 9 on an armour slot wears it: a vanilla client that draws this
 server's armour draws it (and its gold trim in a trim dye: the Armor Dyers' "Armor trim"), a PS2 and every other
-client is sent set 4, the plain plate, in its place. The database already holds Sandstorm's level 48 set (patternid
+client is sent set 4, the plain plate, in its place. The database already holds the reference server's level 48 set (patternid
 34278-34282: Ornate Tunic, Bracers, Gloves, Leggings, Boots, classuse 879); this adds a level 60 set beside it.
 
 What it writes (a report by default; --apply writes, --undo takes back exactly what the last --apply wrote):
 - **Five records** (itempattern), at FIRST_ID on: chest, bracers, gloves, legs and boots of model 9, colour 0 (the
   art's own), each a copy of SOURCE's figures (the Valiant set, level 60 plate: its level, AC, stats, resists, hit
   points, wear, value, class and race masks, trade and rent) under the name, description and icon given here (the
-  level 48 Ornate set's icons, Sandstorm's own for this art). Nothing sells or drops them: a GM gives them (#giveitem,
+  level 48 Ornate set's icons, the reference server's own for this art). Nothing sells or drops them: a GM gives them (#giveitem,
   the GM panel) or a later step stocks them.
 
 A record is read at each request: no restart. Logged in ornate_plate_log; --undo deletes the records it made unless

@@ -14,13 +14,13 @@ import (
 )
 
 // peteffects.go — the effects on a player's pet, for a client that draws them
-// under its pet's bar (the user, 2026-11-09: "jibcro is showing pets buffs as if
+// under its pet's bar (the user, 2026-11-09: "[a character] is showing pets buffs as if
 // on him, put the buff icons under the pet name plate").
 //
 // CLIENT has no place for them: its pet bar (VIWndGame::DrawPet) shows the pet's
 // name, its health and two status icons (channel byte 154's poison and disease),
 // and its effects window (VIWndInfluence) is channel 0x43, the player's own. From
-// petition 1041 (2026-11-06, Eatma: "Pet buffs for necro aren't showing up on buff
+// petition 1041 (2026-11-06, a player: "Pet buffs for necro aren't showing up on buff
 // display") the pet's effects were sent on that channel after the player's, so
 // every client, a PS2 too, showed them as the player's own; they are not any more
 // (statesync.go's SerializeBuffUpdate). A client that draws them where the pet is

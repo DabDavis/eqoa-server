@@ -29,7 +29,7 @@ type ServerHandler struct {
 }
 
 // NewServerHandler creates a new server handler with the default server list:
-// one shard. eqoa.live sends six identical "Marr's Fist" entries and Sandstorm
+// one shard. eqoa.live sends six identical "Marr's Fist" entries and the reference server
 // four, behind a RAW count byte that CLIENT reads as zigzag (VIShardInfo::Read,
 // 0x00BFC208: ReadSigned), so the byte 2 this server used to send with two
 // entries reached a PS2 as ONE. One entry with a zigzag count is the same byte
@@ -58,7 +58,7 @@ const maxShardName = 31
 // breaks a line once its text reaches 8 short of that, at the last space,
 // with an ellipsis on a one-line box (flag 2). Vanilla's TextBox is the same.
 // So "Live Server - No Wipes Ever" (253) showed as "Live Server - No Wipes
-// ..." (the GM Jibwiz's petition 1923).
+// ..." (a GM's petition 1923).
 const shardNameRoom = 245 - 8
 
 // arialUIWidths is each printable ASCII glyph's width in ARIALUI.CSF (the

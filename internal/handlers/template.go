@@ -14,7 +14,7 @@ import (
 )
 
 // #template (also /template): a character made a level-60 one of its class at
-// once, for testing (jib's ask, F3 pass 13, 2026-10-25): level 60 with no experience
+// once, for testing (a GM's ask, F3 pass 13, 2026-10-25): level 60 with no experience
 // into it (one past it stays where it is), every spell of its class in the book
 // (classspells, a mastery's, an epic's and a master class's too: all but a were's),
 // at least 1,000,000 tunar in the purse (never fewer than it had), and of equipment

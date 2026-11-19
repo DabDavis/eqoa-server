@@ -13,7 +13,7 @@ import (
 // A quest giver whose next quest for the player waits on the player's level
 // alone says so, in its city's words (the user, 2026-10-30: "for the early
 // quest givers if they are the next quest in line, but the player is too low
-// level like dust is level 6 and cannot take level 7 q yet let the quest npc
+// level like [a GM] is level 6 and cannot take level 7 q yet let the quest npc
 // say come back when you are stronger, but word it in the city flavor
 // language"). Until then such a giver answered as if it had no quests: Talk
 // found no step and no quest the player might take, so it said what any of

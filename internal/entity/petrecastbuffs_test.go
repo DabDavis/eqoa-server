@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// A new pet takes none of the old one's buffs (Live petition 5254, Statler:
+// A new pet takes none of the old one's buffs (Live petition 5254:
 // "When casting a new pet, while a pet is already casted, the new pet should
 // not inherit the old pet's buffs").
 func TestANewPetTakesNoneOfTheOldOnesBuffs(t *testing.T) {

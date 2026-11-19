@@ -10,7 +10,7 @@ import (
 )
 
 // hotkeys.go — the L2 menu's quick chat kept for each character (petition 1003,
-// Waldorf: "L2 changes to hotkeys don't save after logging out"; the user,
+// a player: "L2 changes to hotkeys don't save after logging out"; the user,
 // 2026-11-06: "build the hotkey saving"). CLIENT and vanilla both tell the server
 // each change (VIWndMenu4's editor, quickchat.rs), which nothing here read, so the
 // MemoryDump sent the default sets at every login:

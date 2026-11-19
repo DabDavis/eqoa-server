@@ -13,7 +13,7 @@ import (
 )
 
 // area.go — area spells: a spell that lands on everything within a radius of
-// its target or of its caster, up to a cap (jib's review, F3 pass 19). Until
+// its target or of its caster, up to a cap (a GM's review, F3 pass 19). Until
 // now the wizard's storms and maelstroms, the magician's storms, the warrior's
 // shouts and the cleric's Undead line landed on their one target.
 //
@@ -603,7 +603,7 @@ func (w *World) areaStartLocked(p *Player, cs *castState, now time.Time) {
 // caster (the owner, 2026-11-17: "aoe taunt for wars should area of effect
 // taunt all mobs within 10m"). Until then a spellarea row the EQOAEmu import
 // made from the workbook's sheet scope ("AoERadius 10 (Target)", centre 1)
-// laid the shouts round their target: on Heirloom on 2026-11-17 Zerkx's shouts
+// laid the shouts round their target: on Heirloom on 2026-11-17 a player's shouts
 // centred up to 17.6 off him, took creatures 22.6 off him and spared one 6.2
 // beside him (out of sight of the target, which the area also needed), and
 // the cap of AreaMaxTargets left the rest of a crowd untaunted. Now an area
@@ -776,7 +776,7 @@ func (w *World) groupNearLocked(p *Player, r float32) []areaNear {
 			add(pet.ServerID, pet.World, pet.X, pet.Y, pet.Z)
 		}
 	}
-	// the group's mercs, members as its players are (mercgroup.go; Deathcore's
+	// the group's mercs, members as its players are (mercgroup.go; a player's
 	// petition 1909: until 2026-11-13 a group spell with a radius, a bard's
 	// power songs, a group heal, reached its players and pets and no merc)
 	for _, id := range w.groupMercsLocked(p, nil, r) {

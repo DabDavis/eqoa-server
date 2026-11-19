@@ -13,7 +13,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// Mr. Moogie's answers of 2026-11-10 (the GM Jibrish's petitions 1441 and 1444) and the trigger's pets dying
+// Mr. Moogie's answers of 2026-11-10 (a GM's petitions 1441 and 1444) and the trigger's pets dying
 // with their caller (the owner's "when the summoned pet's master dies, so does the pet").
 
 // cooldownsSent is each 0x00CD sent to s: its display index and its lockout in ms.

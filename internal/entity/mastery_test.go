@@ -15,7 +15,7 @@ import (
 // level 60 (Corsten's VIPlayer m_p44), 350 at 45 (Lostologist's). A cap
 // rises only by the masteries the character BOUGHT (cmbuy.go): its STR MAX
 // to CHA MAX, so the five general ranks of a stat and Godborn make 550 at 60
-// (jib's cap "including the normal 5 ranks", F3 20261025-163704) and a
+// (a GM's cap "including the normal 5 ranks", F3 20261025-163704) and a
 // master class's +50 600. The controls: the server's old flat 475 is neither
 // base, a character who bought nothing has the base alone (until F3 pass 17
 // every character counted the general ranks as held: 550 at 60), and a cap
@@ -49,7 +49,7 @@ func TestStatCapsAreSOEsAndTheMasteriesBought(t *testing.T) {
 }
 
 // What a stat is past its cap counts for nothing: the stat channel's total,
-// the maximum hit points from stamina and the maximum power. Jibrish, a
+// the maximum hit points from stamina and the maximum power. A GM, a
 // level 60 enchanter, had INT 980 and STA 686 on the channel. The control:
 // the same stats uncapped give more.
 func TestStatsPastTheCapCountForNothing(t *testing.T) {
@@ -163,7 +163,7 @@ func TestTheShareDividesExperience(t *testing.T) {
 	}
 }
 
-// jib's rules (F3 20261026-042328): at the level cap every bit goes to the
+// A GM's rules (F3 20261026-042328): at the level cap every bit goes to the
 // masteries whatever the window's share; while a debt is owed half of each
 // award pays it (never more than is owed), at the cap the other half going to
 // the masteries and below it divided by the share; masteries held at 1500 take
@@ -212,7 +212,7 @@ func TestTheCapAndTheDebtDivideExperience(t *testing.T) {
 	}
 }
 
-// #grantcm as jib asked: spent and unspent never past MasteryCap (2000 since
+// #grantcm as a GM asked: spent and unspent never past MasteryCap (2000 since
 // 2026-11-13) together, the grant unspent. The control: a grant with no cap
 // would give it all.
 func TestGrantCMFollowsJibsExamples(t *testing.T) {
@@ -289,7 +289,7 @@ func TestAKillMakesMasteryPointsAndTellsTheCap(t *testing.T) {
 	}
 }
 
-// The gods' blessings give their resists (jib, F3 20261026-043542: "The
+// The gods' blessings give their resists (a GM, F3 20261026-043542: "The
 // first ranks gave +5 of the resist for their corresponding god"): Marr's
 // arcane, Ro's fire, as EQOA-Data lists them (cmcatalog), each rank's figure
 // adding to the ranks' below it as the cap masteries' must for the live 550:
@@ -320,7 +320,7 @@ func TestTheGodsBlessingsGiveTheirResists(t *testing.T) {
 	}
 }
 
-// The HUD's bar (BarXP; the GM Jibrish's petition 1271): below the cap with
+// The HUD's bar (BarXP; a GM's petition 1271): below the cap with
 // some experience going to the level, the level's; at 100%, or at the cap
 // whatever the share, the way to the next mastery point as the same share of
 // the level's bar (half a point's experience fills half of it); empty again as

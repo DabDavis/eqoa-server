@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Stand the Bug Finder Leaderboard against Freeport's well (handlers/bugboard.go; the owner, 2026-11-15: "lets add a
 bulletin board in freeport by the well like the others with Bug Finder Leaderboard. the same list from the website
-with out jib and I.").
+with out a GM and I.").
 
 One npcs row named "Bug Finder Leaderboard": Highpass's papered bulletin board (modelid 638497839, 0x260EB42F, size 1,
 the boards' look: no gear, robe_style 255), a board talked to and never attacked (npc_type 384, level 1, as the Real

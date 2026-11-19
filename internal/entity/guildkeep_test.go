@@ -29,7 +29,7 @@ func TestGuildChangesAreKept(t *testing.T) {
 	store := &guildStoreLog{}
 	w.SetGuildStore(store)
 	dasher := &Player{ServerID: 1, CharServerID: 101, Name: "Dasher"}
-	zaeire := &Player{ServerID: 2, CharServerID: 102, Name: "Zaeire"}
+	zaeire := &Player{ServerID: 2, CharServerID: 102, Name: "Zephyr"}
 	w.Players[dasher.ServerID], w.Players[zaeire.ServerID] = dasher, zaeire
 	g, err := w.CreateGuild("Bad Boys", dasher)
 	if err != nil {
@@ -57,7 +57,7 @@ func TestGuildChangesAreKept(t *testing.T) {
 	if !reflect.DeepEqual(last, want) {
 		t.Fatalf("kept %+v\nwant %+v", last, want)
 	}
-	// the leader leaves: Zaeire leads, kept; the last out ends it
+	// the leader leaves: a player leads, kept; the last out ends it
 	if _, ended, _, err := w.LeaveGuild(dasher); err != nil || ended {
 		t.Fatalf("the leader leaving: ended %v %v", ended, err)
 	}

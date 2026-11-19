@@ -5,7 +5,7 @@ classes that have them (classspells), and for a merchant spell its scroll at
 the class's spell vendors (itempattern, npcitem).
 
 F3 20261025-222444: "Cleric is missing most of its spells after level 20."
-spellpattern held only what Sandstorm's dumps and vendors and Return Home's
+spellpattern held only what the reference server's dumps and vendors and Return Home's
 export gave (402 records); EQOA-Data (Information/databases/spells/
 <class>.json) lists 1,693 abilities, each with its level, its line ("Target,
 Increase HP per tic by 250 ; Increase 25% based on CHA, 24sec"), how it is
@@ -53,7 +53,7 @@ Scrolls: a merchant spell with no scroll of its name (the scroll's art,
 -607649328, worn nowhere: scribe.go) gets one, copied from the class's
 nearest-level scroll (its level, a price scaled by the square of the level,
 the classes that buy it), sold by every vendor that sells the class's scrolls
-in that level band (three bands a class on Sandstorm: 1-20, 24-34, 39-49),
+in that level band (three bands a class on the reference server: 1-20, 24-34, 39-49),
 in every city, and above the last band by the last.
 
 Report only by default; --apply writes it all in one transaction and logs

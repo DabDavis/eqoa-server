@@ -8,7 +8,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// What a creature's ability carries past one cast (abilitytimes.go; the GM Jibrish's petition 1394, Mr.
+// What a creature's ability carries past one cast (abilitytimes.go; a GM's petition 1394, Mr.
 // Moogie's "1 hour cool down complete heal at 50% health, and if he uses it he says "Thats an hour cool
 // down, you'll pay for that". After Lh he also gets a proc buff on melee attacks, 25% chance to proc
 // additional melee damage that does 1500").

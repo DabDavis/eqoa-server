@@ -8,7 +8,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// Petition 2198 (Trulytwo, Heirloom, Isle of Dread: "Dracoliche is still
+// Petition 2198 (Heirloom, Isle of Dread: "Dracoliche is still
 // attackable with pets thru the walls in IoD"): no fight through a quest wall
 // its owner does not pass (questwallfight.go).
 

@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Petition 1496 (the magician Waldorf, in Permafrost): "pets in general don't
+// Petition 1496 (a magician, in Permafrost): "pets in general don't
 // respect walls/barriers/floors/ceilings etc. They just take the quickest line
 // to target". On the chase routes' own ground (chaseroute_test.go's terrace
 // over a field, a cliff between them but for a ramp): a pet following its

@@ -10,7 +10,7 @@ import (
 )
 
 // dabrish.go — Dabrish, who sets a player's level and adds to its mastery
-// points (the GM Jibrish's petition 1266, 2026-11-08: "When talked to Dabrish
+// points (a GM's petition 1266, 2026-11-08: "When talked to Dabrish
 // should let players set their level. They can pick in increments of 5. Level
 // 5 to level 60. They can change their level at will. He should also have an
 // option for CM's to set them between 0 and 1000 CM's, but it will just add

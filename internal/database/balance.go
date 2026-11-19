@@ -6,7 +6,7 @@ import (
 )
 
 // balancelevel and balancecon: the game's balance (entity/balance.go), the
-// GMs' to tune in the panel. Sandstorm's measured formulas stay as they are
+// GMs' to tune in the panel. The reference server's measured formulas stay as they are
 // (offence.go, defence.go, stats.go); these scale what goes into a fight
 // and what comes out of it.
 //
@@ -54,7 +54,7 @@ import (
 //
 // balancelevel's regen_pct is what a creature of the level heals out of a
 // fight each six-second tick after its two calm ones, a percent of its most
-// (entity/npcregen.go; 15, jib's, is the column's default and the rate with
+// (entity/npcregen.go; 15, a GM's, is the column's default and the rate with
 // no rows).
 //
 // balancelevel's art_cooldown_ms is by a PLAYER's level, the one column that
@@ -238,7 +238,7 @@ var balanceColumns = []balanceColumn{
 	// a balanceclasslevel made before its pet column (no seed rows of it
 	// anywhere live: the table and the column are of 2026-10-30)
 	{"balanceclasslevel", "pet_hp_pct", "REAL NOT NULL DEFAULT 100", "class", func() map[int]float64 { return nil }},
-	// and before its dealt column (eqoaclassic's of 2026-10-30 00:27, which
+	// and before its dealt column (the production server's of 2026-10-30 00:27, which
 	// tools/retune_balance.py writes it in): every row all of its damage
 	{"balanceclasslevel", "dealt_pct", "REAL NOT NULL DEFAULT 100", "class", func() map[int]float64 { return nil }},
 	// and before its melee column (2026-11-04): every row all of its melee,

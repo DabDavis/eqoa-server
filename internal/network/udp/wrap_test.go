@@ -8,7 +8,7 @@ import (
 )
 
 // A long session passes 65535 in every count: the client's packet numbers
-// after two to three hours (eqoaclassic, 01:39:15 UTC 2026-11-09: arrival 0
+// after two to three hours (the production server, 01:39:15 UTC 2026-11-09: arrival 0
 // to 458 dropped against 65535, the session's acks never taken again), our
 // message numbers after 65,535 reliable messages. Each is compared by the
 // signed 16-bit difference, as connection.cpp compares them.

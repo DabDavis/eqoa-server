@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// The spells' effects as eqoaclassic's spelleffect rows hold them (2026-11-17, both shards).
+// The spells' effects as the production server's spelleffect rows hold them (2026-11-17, both shards).
 const (
 	needlesJSON = `{"v":1,"scope":"target","target_type":"Friendly","harmful":false,"duration_s":1800,"stack":1,"level":60,"min_level":1,"req_equipment":"Any","sheet_type":"Statistic Change","arch_type":"Damage Shield","effects":[{"id":"0204","type":"Statistic Change","kind":"stat","stat":"ar","amount":50},{"id":"0205","type":"Defensive Proc","kind":"def_proc","procs":[{"id":"0D19","type":"Dmg/Heal","kind":"hp","amount":-120,"resist":"pierce","on":"defense","scope":"target","target_type":"Enemy"},{"id":"0D1A","type":"Statistic Change","kind":"stat","stat":"ar","amount":-50,"on":"defense","scope":"target","target_type":"Enemy","duration_s":60}]}]}`
 	megaWardJSON = `{"v":1,"scope":"group","target_type":"Friendly","harmful":false,"duration_s":1800,"stack":1,"level":60,"min_level":36,"req_equipment":"Any","sheet_type":"Statistic Change","arch_type":"Buff All Resists","effects":[{"id":"0161","type":"Statistic Change","kind":"stat","stat":"fr","amount":85,"scale":"wis","scale_pct":10},{"id":"0161","type":"Statistic Change","kind":"stat","stat":"cr","amount":85,"scale":"wis","scale_pct":10},{"id":"0161","type":"Statistic Change","kind":"stat","stat":"lr","amount":85,"scale":"wis","scale_pct":10},{"id":"0161","type":"Statistic Change","kind":"stat","stat":"pr","amount":85,"scale":"wis","scale_pct":10},{"id":"0161","type":"Statistic Change","kind":"stat","stat":"dr","amount":85,"scale":"wis","scale_pct":10},{"id":"0161","type":"Statistic Change","kind":"stat","stat":"ar","amount":85,"scale":"wis","scale_pct":10}],"radius":30}`

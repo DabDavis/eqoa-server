@@ -7,7 +7,7 @@ import (
 )
 
 // metalv5.go — the chain's last duel, Metal Moogie V5's script, and what a metal duel's adds are (work board
-// #688, the GM Jibrish's, 2026-11-10; "jibrish decided all of this").
+// #688, a GM's, 2026-11-10; "a GM decided all of this").
 //
 // V5's template heals him whole the first time he falls below half (its Self Repair: a heal of his share,
 // every and cooldown of its own, so once a duel: each duel's V5 is a new NPC). The rest is this file's, on
@@ -30,7 +30,7 @@ import (
 // to every other client); they die with him (masterdeath.go) and go at any other end of the duel
 // (duelAddsGoLocked), with every root of theirs on the challenger.
 
-// V5's lines (the GM Jibrish's words) and the malfunction's wait.
+// V5's lines (a GM's words) and the malfunction's wait.
 const (
 	MetalV5Hacks       = "%s! HACKS! Nobody breaks my repairs that fast. I am reporting you to the GMs!"
 	MetalV5Complete    = "COMPLETE HEAL ACTIVE"

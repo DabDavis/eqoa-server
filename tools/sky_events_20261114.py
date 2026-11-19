@@ -42,7 +42,7 @@ points, 40% of a hit taken: ours) for Ryini and the aviak elder, and the two que
 Every spot is a row's own (the creature's), or one read off ~/.cache/movecheck/ground/4.ground (the Voice, the
 squire by the portal, the courtyard's mouth, the four wave spots, Ryini's route by a heightfield search from her
 row to the Wind Mephit's and on to the floor over the village); every count, chance and time not in the guides is
-ours. Jib's package (#1371) sets these creatures' templates by name: its rows apply to the copies as they are, and
+ours. A GM's package (#1371) sets these creatures' templates by name: its rows apply to the copies as they are, and
 its held Sun 4 rare (rapacious -> rancorous) and Enraged Aeyinar profile slot in beside these without a change.
 
 Refused, nothing written, unless trigger slots 201-219 are free, no trigger has one of the names, each row is the

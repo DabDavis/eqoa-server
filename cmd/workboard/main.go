@@ -1,7 +1,7 @@
 // workboard is the work board on the box: who is working on what on this
 // server (the GM panel's Work board page, and the work_board / post_work /
-// update_work_overview operations jib's agents call), read and written in the
-// server's database beside the running server, as dab's sessions unless -as
+// update_work_overview operations a GM's agents call), read and written in the
+// server's database beside the running server, as the owner's sessions unless -as
 // names someone else. Every change is written to gm_audit as the panel writes
 // one, so the panel's audit log lists it and revert_change undoes it. It opens
 // the database for the board alone (database.OpenWorkBoard): the board's
@@ -14,8 +14,8 @@
 //	workboard overview                 the overview and its version
 //	workboard overview set -version 4 -file overview.md
 //	workboard boards                   the personal boards, with what is unread
-//	workboard board jib                a personal board's newest messages
-//	workboard post jib -reply 7 "the fix is live"
+//	workboard board a GM                a personal board's newest messages
+//	workboard post a GM -reply 7 "the fix is live"
 //
 // Run it where config.yaml is (the database is its server.db_path), or give
 // -db. `workboard help` says it all.

@@ -9,7 +9,7 @@ import (
 )
 
 // familiar.go — familiars: a follower an item calls, which neither fights nor
-// is fought and does one thing of its own (the GM Jibrish's petition 1445,
+// is fought and does one thing of its own (a GM's petition 1445,
 // 2026-11-10: "On the genie heirloom vendor add a familiar pet people can buy.
 // They can resummon the pet as much as they want, its a 2 second cast time on
 // item use, however they can only have 1 familiar at a time. Familiars do not

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The casters' Heirloom Chestguard on the cloth chest's icon (petition 1632, Zerkz, an elf enchanter: "Heirloom
+"""The casters' Heirloom Chestguard on the cloth chest's icon (petition 1632, an elf enchanter: "Heirloom
 chestguard shows pants instead of a chest item.").
 
 The four casters' Heirloom Chestguards (magician, necromancer, enchanter, wizard) were seeded (tools/seed_heirlooms.py,

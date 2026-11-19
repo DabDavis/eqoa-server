@@ -2,7 +2,7 @@ package database
 
 import "testing"
 
-// charaura's hands' second auras (color2 ... nodes2; 2026-11-16, Dust's
+// charaura's hands' second auras (color2 ... nodes2; 2026-11-16, a GM's
 // sword: "it will keep the red aura it has and stack the twinkle"): a table
 // made before them is given the columns; a hand row's second is read beside
 // its first, a second on a slot not a hand's (or of a kind not a hand's, or

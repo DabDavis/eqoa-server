@@ -1,14 +1,14 @@
 package handlers
 
 // noclip.go — /noclip, the server's own GMs' flight through walls (entity/noclip.go;
-// the GM Jibrish's petition 1904, 2026-11-13: "Add a high level GM only command (Just
-// for jibrish and dabs account) that is /noclip - this lets the player move through
+// a GM's petition 1904, 2026-11-13: "Add a high level GM only command (Just
+// for a GM and dabs account) that is /noclip - this lets the player move through
 // walls vertical or horizontal and default turns on /fly. Make it a toggle, hitting
 // it again turns it off").
 //
 // A GM's (acctlevel 1 or more, as every # command) whose account is one of
-// world.noclip_accounts (SetNoclipAccounts; the owner's dab and Jibrish's jibrish on
-// eqoaclassic): any other GM is told it is not theirs, a player is answered as an
+// world.noclip_accounts (SetNoclipAccounts; the owner's the owner and a GM's GM on
+// the production server): any other GM is told it is not theirs, a player is answered as an
 // unknown command. Alone it turns over, `on` and `off` say which. On, the flight comes
 // on with it (OpcodeFly 1, then OpcodeNoclip 1), and the server's movement check
 // judges none of its moves (a flyer's, movecheck.go); off, both go (OpcodeNoclip 0,

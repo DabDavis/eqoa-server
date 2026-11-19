@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""The Anvil of Sarek as the GM Jibwiz asked in petition 1956 (2026-11-13): "Anvil of sarek should be non agro (white
+"""The Anvil of Sarek as a GM asked in petition 1956 (2026-11-13): "Anvil of sarek should be non agro (white
 face), non attackable, permanently in that spot. If a player hits the distance my character is currently at from him he
 should do a kick animation and hit them for 10,000 unresistable damage every second. That's all he does."
 
-His distance: Jibwiz stood at (4738.6, 133.4, 4671.8), the Anvil's row 120968 at (4738.4, 132.0, 4651.9): 19.87 across
+His distance: a GM stood at (4738.6, 133.4, 4671.8), the Anvil's row 120968 at (4738.4, 132.0, 4651.9): 19.87 across
 (the petition's own "19.9 away"). The zone is the new template ability kickzone (entity/kickzone.go):
 
   classtemplates 'anvil of sarek'  new: class -1 (his own), hp 100%, abilities

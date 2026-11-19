@@ -8,7 +8,7 @@ import "github.com/eqoa/server/internal/session"
 // asker knows it, or -1 for none (word 838, "There is no target for
 // assisting."). Assist Target is whom the asker's target has targeted,
 // Assist Leader whom the asker's group leader has: EverQuest's /assist. No
-// capture of either was made, on Sandstorm or a retail server.
+// capture of either was made, on the reference server or a retail server.
 //
 // A player's target is its last 0x0010, an id in ITS session's table; the
 // answer is the same entity in the asker's. Object ids are per session (each

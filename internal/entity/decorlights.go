@@ -63,8 +63,8 @@ const DecorLightsLayout = 4
 const DecorPetArtLayout = 3
 
 // DecorPetArtAnywhereLayout is the layout from which a client is sent a pet
-// in its art in every world (the owner, 2026-11-18: "zerkziee construct is
-// turning back into a spider and not a catapult": Zerkziee took the Teleporter
+// in its art in every world (the owner, 2026-11-18: "[a player] construct is
+// turning back into a spider and not a catapult": a player took the Teleporter
 // to Odus, whose zones hold no catapult): the art's zone is among the assets
 // (petArtAssets), which such a client reads off its own disc whatever world
 // it is in and draws the pet from.

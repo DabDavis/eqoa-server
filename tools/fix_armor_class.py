@@ -23,17 +23,17 @@ WIDE_SPAN when fewer than MIN_PEERS):
     attribute or resist as well, far above an attribute (Danlon's Iron Wall,
     armor class 343 and agility 343): the stat 0.
   - **undecided**, listed and left: two or more stats that could be the armor
-    class, a robe's number (half of Sandstorm's robes have no armor class, and
+    class, a robe's number (half of the reference server's robes have no armor class, and
     a robe's power is the size of its armor class), or a number above an
     attribute's but outside the armor class range.
 
 Measured on the live data of 2026-10-30 02:05 UTC: 320 moved, 15 copies taken
-out, 68 undecided. Against Sandstorm's own records (the harvest of
+out, 68 undecided. Against the reference server's own records (the harvest of
 2026-10-21): every one of the 7 moved items it has carries exactly the number
 moved as its armor class. The same records show the rest of these records'
 stats mislabeled as well (the values are in the game's stat order, labeled
 strength, stamina, agility, ... from the first: Incandescent Shield's strength
-25, stamina 100 and dexterity 22 are Sandstorm's wisdom 25, power 100 and fire
+25, stamina 100 and dexterity 22 are the reference server's wisdom 25, power 100 and fire
 resist 22); this moves the armor class alone.
 
 Every change is logged in armor_class_fix_log (the item, the stat, its number,
@@ -60,7 +60,7 @@ ATTR_OVER = 10        # an attribute above its item's level + this is no attribu
 LOW, HIGH = 0.25, 2.0  # the armor class range: LOW to HIGH times the peers' median armor class (cloth to plate)
 AC_SIZED = 0.5         # of several numbers in the range, the largest is the armor class when it is twice the next
                        # and every other is below this times the peers' median
-ROBE = 2               # half of Sandstorm's robes have no armor class: a robe's number is never taken for one
+ROBE = 2               # half of the reference server's robes have no armor class: a robe's number is never taken for one
 ATTR_MARGIN = 1.5     # and above this times their attributes' 95th percentile
 
 LOG_DDL = """CREATE TABLE IF NOT EXISTS armor_class_fix_log (

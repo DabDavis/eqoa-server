@@ -116,7 +116,7 @@ func (w *World) armorBodyLocked(p *Player) uint32 {
 // bodies: not a body it chose (ChosenBody), and not its race's own female body where that is
 // another than the male's (the hill giantess, F34501CB: the rows are the male's armour, a male
 // giant's body each, and she keeps her own look in any armour as a chosen female giant does; the
-// GM Jibrish's petition 1647, 2026-11-11, gave the hill giant, the orc and the satyr their female
+// GM a GM's petition 1647, 2026-11-11, gave the hill giant, the orc and the satyr their female
 // bodies in racedefs). Any other body (the race's own male one, a GM's) takes them as before.
 func takesArmorBody(race int, model uint32) bool {
 	if ChosenBody(race, model) {

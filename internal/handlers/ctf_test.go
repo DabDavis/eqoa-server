@@ -203,7 +203,7 @@ func TestCTFHeraldEndToEnd(t *testing.T) {
 
 // The herald and /ctf join let in a client that said it holds the arena (0x7E31's answer: vanilla, natively or in a
 // page, which the server cannot tell apart and need not) and tell every other why: a PS2 of the disc, a PS2 on the
-// July S2 (its table takes every slot below 30, the server's own worlds among them), one on Sandstorm's live S2, a
+// July S2 (its table takes every slot below 30, the server's own worlds among them), one on the reference server's live S2, a
 // vanilla from before the server's worlds or one that read no version 2 list (either holds none), and one holding
 // the Homelands but not the arena. The control: the July S2's table alone says it loads world 11, so CanLoadWorld
 // does; the herald goes by what the client holds.

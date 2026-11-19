@@ -230,7 +230,7 @@ func TestGorereaverHitsGoblins(t *testing.T) {
 }
 
 // katanaWords are the Katana of Severing's words with its proc (petition 1360,
-// Zaeire: "proc should be set to 2k with a 10% chance to proc").
+// a player: "proc should be set to 2k with a 10% chance to proc").
 const katanaWords = "This katana severs heads with great efficiency. Procs 2000 slashing damage, a 10% chance each hit."
 
 // A proc's own chance in its words: "N% chance", "N% a hit", "per swing", from
@@ -301,7 +301,7 @@ func TestAWeaponProcsOwnChanceHoldsAtAnyDEX(t *testing.T) {
 	}
 }
 
-// Petition 1360 (Zaeire: "weapon proc chance scales off dex while ability proc
+// Petition 1360 ("weapon proc chance scales off dex while ability proc
 // chance scales off int"): a weapon of no chance of its own procs by its
 // wielder's DEX, whatever its INT: a roll one under the DEX rule's chance
 // procs and a roll at it does not. The control: a wielder of low DEX and high

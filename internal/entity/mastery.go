@@ -36,7 +36,7 @@ import (
 // nothing more. Until then every character counted the general ones its level
 // allowed as held (550 at 60 for all).
 //
-// A raised cap holds the training too (petition 1375, Beef: "stat maxes dont
+// A raised cap holds the training too (petition 1375: "stat maxes dont
 // work, not extending maximums"; a player's claim is taken as given): a stat's
 // base takes training points up to its cap, raises and all. SOE's game did
 // not: Corsten's state holds m_p44 400 beside m_bonus [150 150 45 220 25 25
@@ -146,7 +146,7 @@ type xpShares struct {
 	Level, Mastery, Debt int
 }
 
-// splitXP divides an award of xp for a player at level owing debt, as jib has
+// splitXP divides an award of xp for a player at level owing debt, as a GM has
 // the live game's (F3 20261026-042328): while a debt is owed, half of the
 // award pays it, never more than is owed; the rest goes to mastery points
 // alone at the level cap (MaxLevel), and below it as the mastery points
@@ -226,7 +226,7 @@ func (w *World) MasteryOf(id EntityID) (Mastery, bool) {
 // some of the experience going to the level, it is the level's (XPInLevel). At
 // the cap, or with all of it going to the masteries (the window's 100%), it is
 // the way to the next mastery point, as the same share of the bar: the bar
-// fills as that point comes (the GM Jibrish's petition 1271, 2026-11-08: "When
+// fills as that point comes (a GM's petition 1271, 2026-11-08: "When
 // on 100% CM xp commitment, or when level 60, the XP bar should show progress
 // toward your next CM ... Same fashion, yellow and pink and when yellow bars
 // fill you get your point"). Holding MasteryCap points it is empty: no point is

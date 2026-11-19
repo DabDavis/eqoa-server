@@ -13,11 +13,11 @@ import (
 func TestKeepOverridesRoundTrip(t *testing.T) {
 	t0 := time.Date(2026, 11, 16, 23, 44, 35, 0, time.UTC)
 	e := testEngine()
-	snow, err := e.Call(0, 600, 600, Where{Kind: "here"}, Snow, Heavy, 5, "Jibrish", 0, t0)
+	snow, err := e.Call(0, 600, 600, Where{Kind: "here"}, Snow, Heavy, 5, "Jinkles", 0, t0)
 	if err != nil {
 		t.Fatal(err)
 	}
-	sand, err := e.Call(0, 2600, 600, Where{Kind: "near", Near: 1}, Sand, Moderate, 30, "Dab", 9, t0)
+	sand, err := e.Call(0, 2600, 600, Where{Kind: "near", Near: 1}, Sand, Moderate, 30, "Dax", 9, t0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,8 +42,8 @@ func TestKeepOverridesRoundTrip(t *testing.T) {
 		t.Fatalf("restored %d, bad %v; want 2", n, bad)
 	}
 	was, now := e.Overrides(after), f.Overrides(after)
-	if len(now) != 1 || now[0].ID != snow.ID || !now[0].Until.Equal(snow.Until) || now[0].By != "Jibrish" || now[0].Kind != Snow {
-		t.Fatalf("in force after: %+v, want #%d snow by Jibrish until %v (the ended sand faded out)", now, snow.ID, snow.Until)
+	if len(now) != 1 || now[0].ID != snow.ID || !now[0].Until.Equal(snow.Until) || now[0].By != "Jinkles" || now[0].Kind != Snow {
+		t.Fatalf("in force after: %+v, want #%d snow by Jinkles until %v (the ended sand faded out)", now, snow.ID, snow.Until)
 	}
 	if len(was) != 1 || was[0].ID != now[0].ID {
 		t.Fatalf("old engine in force: %+v", was)
@@ -67,7 +67,7 @@ func TestKeepOverridesRoundTrip(t *testing.T) {
 	if f.EndID(sand.ID, after) {
 		t.Fatal("the ended sand ended again")
 	}
-	next, err := f.Call(0, 600, 600, Where{Kind: "here"}, Rain, Light, 3, "Dab", 0, after)
+	next, err := f.Call(0, 600, 600, Where{Kind: "here"}, Rain, Light, 3, "Dax", 0, after)
 	if err != nil || next.ID <= sand.ID {
 		t.Fatalf("next id %d (%v), want past %d", next.ID, err, sand.ID)
 	}
@@ -82,7 +82,7 @@ func TestKeepOverridesRoundTrip(t *testing.T) {
 func TestKeepOverridesLongOver(t *testing.T) {
 	t0 := time.Date(2026, 11, 16, 12, 0, 0, 0, time.UTC)
 	e := testEngine()
-	o, err := e.Call(0, 600, 600, Where{Kind: "here"}, Snow, Heavy, 2, "Dab", 0, t0)
+	o, err := e.Call(0, 600, 600, Where{Kind: "here"}, Snow, Heavy, 2, "Dax", 0, t0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,7 +91,7 @@ func TestKeepOverridesLongOver(t *testing.T) {
 	if n, bad := f.Restore(kept, t0.Add(3*time.Hour)); n != 0 || len(bad) != 0 {
 		t.Fatalf("restored %d, bad %v; want none", n, bad)
 	}
-	next, _ := f.Call(0, 600, 600, Where{Kind: "here"}, Rain, Light, 3, "Dab", 0, t0.Add(3*time.Hour))
+	next, _ := f.Call(0, 600, 600, Where{Kind: "here"}, Rain, Light, 3, "Dax", 0, t0.Add(3*time.Hour))
 	if next.ID <= o.ID {
 		t.Fatalf("id %d handed out again", next.ID)
 	}

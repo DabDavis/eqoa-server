@@ -236,7 +236,7 @@ func (h *SupportHandler) fileTicketWith(sess *session.Session, me *entity.Player
 var errReportLimit = fmt.Errorf("too many reports lately")
 
 // isGM is whether sess's account is a GM's (acctlevel 1 or more), whose
-// reports the limit does not count (the GM Jibrish files many while testing,
+// reports the limit does not count (a GM files many while testing,
 // 2026-11-10: the owner, "lets raise limit").
 func (h *SupportHandler) isGM(sess *session.Session) bool {
 	if h.access == nil || sess.AccountID() == 0 {

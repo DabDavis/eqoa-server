@@ -7,39 +7,39 @@ import (
 )
 
 // Creatures wander round their spawn (F3 20261025-044257: "Wildlife does not
-// roam around") as Sandstorm's do (the user, 2026-10-31, choosing
-// "Sandstorm's everywhere" for the range once the census of Rathe and Odus
+// roam around") as the reference server's do (the user, 2026-10-31, choosing
+// "the reference server's everywhere" for the range once the census of Rathe and Odus
 // had measured it): within the roam radius (world.roam_radius, 70; it was 225
-// from F3 20261029-024920, jib's "by triple", 75 from F3 20261025-164404, 15
-// before), in legs of Sandstorm's lengths (roamLegs) in any direction from
-// where it stands, inside the radius, walked at Sandstorm's walking pace
-// (npcmove.go), each followed by Sandstorm's rest of 4.1 to 4.6 s, so a
-// creature is on its feet about half the time, as Sandstorm's are.
+// from F3 20261029-024920, a GM's "by triple", 75 from F3 20261025-164404, 15
+// before), in legs of the reference server's lengths (roamLegs) in any direction from
+// where it stands, inside the radius, walked at the reference server's walking pace
+// (npcmove.go), each followed by the reference server's rest of 4.1 to 4.6 s, so a
+// creature is on its feet about half the time, as the reference server's are.
 //
 // The census (cmd/sandroute's flights, tools/seed_sandstorm_census.py; the
 // harvester tracked every creature in sight every half second, its velocity
 // too) saw 82% of Odus's and 86% of Rathe's creatures watched 20 s or more
-// walk, at 4.92 a second; Sandstorm sends a walker's place only at its stops
+// walk, at 4.92 a second; the reference server sends a walker's place only at its stops
 // and leg starts, so a leg is the distance between the rests either side of
 // it: 11,646 of them, median 19, 90% under 40, none past 73; its 12,120
 // rests 4.09 to 4.64 s (5% to 95%), no short pause among them; and over five
 // minutes a creature's places kept within 47 of their middle nine times in
 // ten, 66 ninety-nine times in a hundred. (It was legs of 10 to 75, rests of
 // 2 to 12 s or, three times in five, a pause of half a second to two: on its
-// feet 70% of the time, which jib asked for.) A leg never ends in a town nor
+// feet 70% of the time, which a GM asked for.) A leg never ends in a town nor
 // passes through one (towns.go: "they should generally not path near or
-// into cities"), unless the creature lives there. Sandstorm's town guards,
+// into cities"), unless the creature lives there. The reference server's town guards,
 // sentries and townsfolk stand.
 //
 // What wanders (movement.go's movementLocked): wildlife (wildlife.go: an
 // animal by its name's head noun, not undead), and any creature table
-// npcmove names a roamer (roam 1: the census's kinds Sandstorm showed
+// npcmove names a roamer (roam 1: the census's kinds the reference server showed
 // walking, whatever they are, tools/seed_sandstorm_census.py --move), on a body of its own (a model, and not
 // one of the players' races, charactermodel: those are the guards, the
 // merchants and the townsfolk, which a roamer's row moves too), that can be
 // fought (no 0x80 in npc_type: an NPC a player talks to stays put; a path
 // walks it), not a training dummy. Anything else stands on its spawn until
-// pulled and goes back there after (F3 20261026-042712, jib: "Not all mobs
+// pulled and goes back there after (F3 20261026-042712, a GM: "Not all mobs
 // are wild life. Fire Giants are roaming currently when they should not be
 // unless otherwise specified / designated as a roamer with a path"); until
 // then every creature that was not on a player's body wandered. It stands
@@ -71,7 +71,7 @@ import (
 // as before; what changes is that its legs end on the same few places, as a
 // creature keeps to the same few places of its ground. Measured over eight
 // creatures' three hours each on open ground (TestAWandererWalksBetweenItsSpots
-// holds one to it): legs of median 19.7, 90% under 40.2 (Sandstorm's 19 and
+// holds one to it): legs of median 19.7, 90% under 40.2 (the reference server's 19 and
 // 40.4; drawn anywhere, as every leg was before, they came out 16.9 and
 // 36.1, a leg ending past the radius drawn again), on its feet half the
 // time; a leg checked whole 56% of the time in its first ten minutes (its
@@ -82,11 +82,11 @@ import (
 // found for changes: its spawn, world, radius, lift over the terrain or what
 // it keeps to, or the world's ground or water.
 
-// DefaultRoamRadius is how far from its spawn a creature wanders: Sandstorm's
+// DefaultRoamRadius is how far from its spawn a creature wanders: the reference server's
 // (the file's comment), a little past the 66 its creatures kept to.
 const DefaultRoamRadius float32 = 70
 
-// The rest between walks (Sandstorm's, the file's comment), and the first
+// The rest between walks (the reference server's, the file's comment), and the first
 // rest of one that comes into a player's range (so a crowd does not set off
 // at once).
 const (
@@ -95,12 +95,12 @@ const (
 	roamFirstRest = 10 * time.Second
 )
 
-// roamLegs is Sandstorm's leg length at every 5% of the census's legs (the
+// roamLegs is the reference server's leg length at every 5% of the census's legs (the
 // file's comment), 0% to 100%: a leg's length is drawn from it (roamLeg).
 var roamLegs = [...]float32{0.5, 4.1, 6.1, 7.9, 9.7, 11.2, 12.7, 14.4, 16.0, 17.6, 19.2,
 	20.8, 22.7, 24.7, 27.1, 29.6, 32.3, 35.9, 40.4, 47.5, 72.6}
 
-// roamLeg is the leg length at u (0 to 1) of Sandstorm's (roamLegs, straight
+// roamLeg is the leg length at u (0 to 1) of the reference server's (roamLegs, straight
 // between its points).
 func roamLeg(u float64) float32 {
 	n := len(roamLegs) - 1
@@ -113,14 +113,14 @@ func roamLeg(u float64) float32 {
 // not roaming correctly, they only move a small distance"): a creature given a
 // radius past the server's (npcmove's radius, npcwander's: the kinds that roam
 // a canyon or a zone, not a camp's ground) walks legs as much longer as its
-// radius is wider, up to roamLegScaleMax times Sandstorm's, so it crosses its
+// radius is wider, up to roamLegScaleMax times the reference server's, so it crosses its
 // ground rather than shuffling round its spawn: its spots (the file's comment)
-// are the ends of those legs, as spread as they are. Sandstorm's lengths were
+// are the ends of those legs, as spread as they are. The reference server's lengths were
 // measured on creatures keeping within 66 of their middle; at the server's
 // radius and under it a leg is as ever.
 const roamLegScaleMax float32 = 4
 
-// roamLegScaleLocked is how much longer than Sandstorm's a leg is drawn for a
+// roamLegScaleLocked is how much longer than the reference server's a leg is drawn for a
 // creature wandering within r (the comment above): 1 up to the server's
 // radius. Must be called with the lock held.
 func (w *World) roamLegScaleLocked(r float32) float32 {
@@ -403,7 +403,7 @@ func (w *World) roamStepLocked(npc *NPC, now time.Time) {
 	}
 }
 
-// roamPointLocked is where a creature walks next: a leg of Sandstorm's
+// roamPointLocked is where a creature walks next: a leg of the reference server's
 // lengths (roamLeg; at least roamMinStep, at most the radius) in any
 // direction from where it stands, ending within its radius of its spawn,
 // neither ending in a town nor passing through one unless its spawn is in

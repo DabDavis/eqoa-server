@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The epic quests reward Ascended weapons and spells (petition 1629, the GM Jibrish, 2026-11-11: "For all epic quests
+"""The epic quests reward Ascended weapons and spells (petition 1629, 2026-11-11: "For all epic quests
 have the rewards give out an Ascended version of their epic weapon and spells. All spells work exactly the same but do
 10% more, eg 10% more damage, 10% more healing, give 10% more mana, absorb 10% more damage and so on. The epic weapons
 and robes have 10% more stats."). Run it on each shard's database; everything is found by name and content, never by

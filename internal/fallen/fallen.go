@@ -1,7 +1,7 @@
 // Package fallen is the public page of the Hardcore heroes (the owner,
 // 2026-11-18: a fallen Hardcore character is "shown on a fallen-heroes list";
 // "also class cm count etc"; "make the leaderboard and memorial show on the
-// website too"): /hardcore (eqoaclassic.com/eqoa/hardcore; /fallen sends its
+// website too"): /hardcore (the website's /eqoa/hardcore; /fallen sends its
 // reader there) and /api/hardcore on the account pages' server, read-only:
 // each shard's living Hardcore characters ranked and its falls as their rows
 // keep them (database hardcore.go), nothing of any account. This shard's, and with
@@ -230,7 +230,7 @@ func Duration(secs int64) string {
 }
 
 // ServePage is the page (/hardcore; /fallen sends its reader there): the
-// site's look (eqoaclassic.com's: dark panels, Cinzel headings, gold
+// site's look (the original website's: dark panels, Cinzel headings, gold
 // accents), Hardcore's own accent an ember red; each shard's Living Hardcore
 // Leaderboard and Memorial of the Fallen. Read-only, a minute's cache.
 func (p *Page) ServePage(w http.ResponseWriter, r *http.Request) {

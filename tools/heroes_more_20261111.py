@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The Testing Heroes Vendor's second stock (handlers/heroes.go, entity/wornshield.go), the GM Jibrish's petitions of
+"""The Testing Heroes Vendor's second stock (handlers/heroes.go, entity/wornshield.go), a GM's petitions of
 2026-11-10, on a server that has tools/seed_testing_heroes.py's rows:
 
   1516 + 1517: the Seraphic Planar Breastplate in three versions, "weakened -50% stats including proc", regular and

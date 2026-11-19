@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Freeport's Christmas tree as the fir where Dust stood by Castle Lightwolf (the owner, 2026-11-16: "the christmas tree npc
-model should be a fir tree model like where dust is standing, but cut the stock down so boughs are on the ground", then
+"""Freeport's Christmas tree as the fir where a GM stood by Castle Lightwolf (the owner, 2026-11-16: "the christmas tree npc
+model should be a fir tree model like where [a GM] is standing, but cut the stock down so boughs are on the ground", then
 "with the tree you can place lower Y so trunk goes through ground instead of cutting").
 
-Dust stood at world 0 (9164.2, 54.1, 6599.5); the fir 4.3 from him is TUNARIA.ESF's 0xC4BE0726, a snow-dusted fir of zone
+A GM stood at world 0 (9164.2, 54.1, 6599.5); the fir 4.3 from him is TUNARIA.ESF's 0xC4BE0726, a snow-dusted fir of zone
 24 (the same mesh as the green 0x0E318233 the tree wore, 21.8 across, its lowest boughs' tips 10.9 over its foot, other
 textures; six 0x444153A7 and one 0xC4BE0727 stand round him too). The tree's decorart row (tools/christmas_season_20261116.py)
 names the art a decorating client (vanilla) is sent in the NPC's body and the zone it reads it from: now 0xC4BE0726 of zone

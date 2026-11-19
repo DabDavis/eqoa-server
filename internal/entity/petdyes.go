@@ -12,7 +12,7 @@ import (
 
 // petdyes.go — a pet's dyes: two colours on two areas of its body, which the
 // Pet Groomer puts on (handlers/petgroomer.go; the owner, 2026-11-16, of
-// Zerkziee's drachnid: "make it have 2 different color areas that can be
+// a player's drachnid: "make it have 2 different color areas that can be
 // changed like armor dye (will be a template for pet color dye). then add Pet
 // Groomer near Equipment Dyer also").
 //

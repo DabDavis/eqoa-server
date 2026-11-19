@@ -199,9 +199,9 @@ func mustOps(t *testing.T, msgs [][]byte, want ...protocol.GameOpcode) {
 
 // --- merchant ---
 
-// 0x00B7 against Sandstorm's own (ps2_main_capture, 70.689 s): the merchant's
+// 0x00B7 against the reference server's own (ps2_main_capture, 70.689 s): the merchant's
 // id, both rates 100, ten records under counter 10, each record's instance
-// fields as Sandstorm writes a catalog entry (1 of it, condition 20, no
+// fields as the reference server writes a catalog entry (1 of it, condition 20, no
 // charges, not equipped, no quick slot, key = position), and the greeting.
 func TestMerchantOpenIsSandstormsMerchantBox(t *testing.T) {
 	f := newShopFixture(t)
@@ -248,7 +248,7 @@ func TestMerchantRefusesWhatIsNotAMerchant(t *testing.T) {
 
 // The buy, as the capture has it: 0x004A {0, 1, merchant} with 562 tunar, a
 // 38-tunar item → 0x003B (one, new: condition 100) then 0x0052 = 524
-// (Sandstorm's 98 08). Bought again, the stack grows on the same record.
+// (the reference server's 98 08). Bought again, the stack grows on the same record.
 func TestMerchantBuy(t *testing.T) {
 	f := newShopFixture(t)
 	f.catalog(f.bait, 10, 20)

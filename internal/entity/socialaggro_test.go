@@ -101,7 +101,7 @@ func TestAnNPCWithNoRowIsOfTheFactionsItsKillLowers(t *testing.T) {
 	}
 }
 
-// A creature noticing a player on its own (aggro.go) calls no one: jib's
+// A creature noticing a player on its own (aggro.go) calls no one: a GM's
 // "the other won't assist unless they see you hit them". The friend stands 25
 // off the creature and 45 off the player: out of its own notice, in the call's
 // radius.

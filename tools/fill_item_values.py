@@ -6,26 +6,26 @@ An item sells for its value at the merchant's rate less its wear (CLIENT's GetIn
 handlers/merchant.go sellPrice) and is mended for its value times its wear (GetInvItemRepairCost,
 handlers/blacksmith.go): an item of value 0 sells for nothing and is mended for nothing. Return Home's import
 brought every item it had no price for at 0 (tools/import_prh_content.py: "itemcost 0 means price unknown"),
-and the tools that copied its records kept it: on eqoaclassic about 6,800 records of gear of level 2 and up,
+and the tools that copied its records kept it: on the production server about 6,800 records of gear of level 2 and up,
 the Sword of Faith among them.
 
-Sandstorm's records price gear of level 2 and up: 374 of its 377 such records carry a value (the three at 0
+The reference server's records price gear of level 2 and up: 374 of its 377 such records carry a value (the three at 0
 are a quest's staff and two thrown potions), where gear of level 0 and 1 is mostly the starting quests'
 handouts, at 0 (27 of 35). So each record of wear slot 1-19 (worn, held and wielded) of level 2 and up and
 value 0 is given:
-1. Sandstorm's value for it (tools/stock_merchants.py's Measured: the harvests' wares and inventories, by
-   name, else by Sandstorm's id at the same wear slot and level); a value of 0 there is kept, and listed;
+1. The reference server's value for it (tools/stock_merchants.py's Measured: the harvests' wares and inventories, by
+   name, else by the reference server's id at the same wear slot and level); a value of 0 there is kept, and listed;
 2. else stock_merchants' rule, fitted on those same values: a weapon without stats 1.845 x its damage,
    anything else the median of the 3 nearest measured items of its kind (its error is printed, leave one out),
-   without the measured items worth less than a fifth of their kind's within 5 levels (robust_rule): Sandstorm's
+   without the measured items worth less than a fifth of their kind's within 5 levels (robust_rule): the reference server's
    crafted Mithril Diamond ring, bracelet and pendant at 131 beside the earring's 3,614 had priced 93 dropped
    jewels of 42-60 at 131, and cheap vendor goods and bait are no measure of a rare.
 Never, each listed:
 - a NO RENT record (rent 0): what a spell conjures (entity/balancekit.go simPick), which sold would be tunar
   out of nothing; nor an item a spell summons by name (a spelleffect line's "Summon X", "Summons X x3", or its
-  workbook items: the alchemist's thrown potions and cocktails, normal rent), for the same reason (Sandstorm
+  workbook items: the alchemist's thrown potions and cocktails, normal rent), for the same reason (the reference server
   values its thrown potions 0);
-- a record in wear slot 17, which no record of Sandstorm's uses (two misfiled items: listed);
+- a record in wear slot 17, which no record of the reference server's uses (two misfiled items: listed);
 - a crafted product (craftrecipes.product): the tradeskill seeds price theirs against their components;
 - a repeatable quest's reward (its steps' rewarditems, byclass, choices and give events, and the quest's
   own): done again and again it would mint tunar;
@@ -54,7 +54,7 @@ from stock_merchants import Measured, Rule, load_patterns, norm  # noqa: E402
 
 DEFAULT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "eqoa.db")
 GEAR = (1, 19)          # wear slots: head .. hands (handlers/equip.go); 20+ are fishing gear and tools
-MIN_LEVEL = 2           # Sandstorm's handouts are levels 0 and 1
+MIN_LEVEL = 2           # the reference server's handouts are levels 0 and 1
 
 LOG_DDL = """CREATE TABLE IF NOT EXISTS item_value_fill_log (
     seq       INTEGER PRIMARY KEY AUTOINCREMENT,

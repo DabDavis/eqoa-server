@@ -1,13 +1,13 @@
 package entity
 
 // petearthtaken.go — a magician's earth pet takes a creature's melee as a player tank of its owner's
-// level does (Live petition 5057, Innoruuk, 2026-11-14: "mage earth pet squishy, can't take hits very
+// level does (Live petition 5057, 2026-11-14: "mage earth pet squishy, can't take hits very
 // well").
 //
 // A player's hit from a creature is the creature's roll, the balance's level and con shares
 // (npcHitLocked), then the share his class takes at his level (npcHitPlayerLocked: balanceclasslevel's
 // melee_taken_pct, a level 19 warrior's 55%, a shadow knight's 52%). A pet's was the first two alone:
-// on Live 2026-11-14 08:14-08:33 a level 24 crocodile hit Odium's earth elementalkin (owner level 19,
+// on Live 2026-11-14 08:14-08:33 a level 24 crocodile hit a player's earth elementalkin (owner level 19,
 // 1885 HP, its sheet's AC 750 already at the roll's floor) for 55-62, the level 19 players beside it
 // for 30-40. An earth pet (petState.earth: the "pet earth" template's, pettaunthate.go) now takes
 // the warrior's share at its owner's level (its template's class is the warrior's), after which its

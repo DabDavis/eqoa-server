@@ -1,9 +1,9 @@
 // Command importdamper puts the gear character transfers brought in on its
 // imported copies (database/imported.go: each record copied once at ImportedShare of
-// its stats, 85% since petition 1320; petition 1314, jibrish: "Any gear that was imported from the
+// its stats, 85% since petition 1320; petition 1314: "Any gear that was imported from the
 // character transfer tool should be blanket reduced in stats by 30%. The real
 // world server drop equivelents should be the full thing."; the user: "you
-// can do what jib says for the 30% imported gear damper").
+// can do what a GM says for the 30% imported gear damper").
 //
 // The rows are the ones charmigrate gave (charmigrate_log's items, not
 // undone) and still held, wherever they are now: every transfer's, the form's

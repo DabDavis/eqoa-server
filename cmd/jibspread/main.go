@@ -1,4 +1,4 @@
-// Command jibspread plans the GM Jibrish's petitions 5050, 5052 and 5053 (2026-11-14: "a static pile of non roaming
+// Command jibspread plans a GM's petitions 5050, 5052 and 5053 (2026-11-14: "a static pile of non roaming
 // NPC's ... They need to roam throughout the zone"; "a pack of unroaming mobs in a row ... All of these need to roam
 // throughout the zone"; "unmoving mobs in a row, these need to roam throughout the zone") for
 // tools/jib_resize_20261114.py to apply. It reads a COPY of the server's database (opening it migrates its schema, as

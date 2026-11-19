@@ -69,7 +69,7 @@ func (w *World) standLocked(world uint8, x, y, z float32) (f float32, placed, ro
 
 // How near the terrain a creature's spawn must be for it to stand on the
 // ground as it moves: below it CLIENT's own reach (0x00CBCE40), above it a
-// little more, for the spawns recorded a little high. Of eqoaclassic's
+// little more, for the spawns recorded a little high. Of the production server's
 // 22,750 spawns about 20,000 lie within half a unit of the terrain, 613
 // between half a unit and 1.5 above it, 148 between 1.5 and 2 and 72
 // between 2 and 2.5, against a tail of 30 to 70 a half unit beyond, the NPCs
@@ -167,7 +167,7 @@ func (w *World) groundNPCLocked(npc *NPC) (noFloor bool) {
 	return !ok
 }
 
-// Under the ground (petition 1500, Jibrish: "Players are able to run monsters
+// Under the ground (petition 1500: "Players are able to run monsters
 // into the water, swim down, then run quickly on land and the mobs can end up
 // underneath the world floor, unable to hit the player"). The ground's floor
 // at a place is the highest within its step (floorStepUp) over the height it

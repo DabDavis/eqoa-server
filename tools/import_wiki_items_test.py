@@ -45,8 +45,8 @@ def dump(path):
 
 class ImportWikiItems(unittest.TestCase):
     """tools/import_wiki_items.py on a made-up wiki and database: Item List lines, an item page, a set row and
-    a Sandstorm record made; an item of ours under the wiki's spacing, typo or Classic name not made; a name
-    in a loot list alone left; each placed where the wiki says (a Halas vendor's or Sandstorm's merchant's
+    a reference-server record made; an item of ours under the wiki's spacing, typo or Classic name not made; a name
+    in a loot list alone left; each placed where the wiki says (a Halas vendor's or the reference server's merchant's
     catalog, a named creature's table, a creature type's table bound to that type's creatures of its levels,
     a region's pool, every region's pool) or nowhere (NO TRADE); an undo deletes all of it. No game data."""
 

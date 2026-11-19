@@ -8,7 +8,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// A merc's name is the world's (petition 2409: Zerkziee's "Arthas" and
+// A merc's name is the world's (petition 2409: a player's "Arthas" and
 // Photon's, and vanilla's merc list keys its mercs by name). A new hire passes
 // over every other character's hires and every character; at its owner's
 // login a hire named as another's EARLIER hire, or as a character, is named

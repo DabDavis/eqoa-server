@@ -11,7 +11,7 @@ import (
 // GM panel's "Creature movement", applied at once). Whether a creature
 // wanders is its row's roam: 1 it wanders (a designated roamer, wildlife or
 // not: Klik'Anon's pirate patrols), 0 it stands on its spawn until a fight
-// takes it (F3 20261026-021730, jib: "hexbones in zentaurs keep do NOT roam,
+// takes it (F3 20261026-021730, a GM: "hexbones in zentaurs keep do NOT roam,
 // they are static spawn until agrod"), -1 (the default) or no row as its
 // kind: wildlife wanders (wildlife.go) and anything else stands (F3
 // 20261026-042712: "Not all mobs are wild life. Fire Giants are roaming
@@ -69,7 +69,7 @@ const (
 )
 
 // A big creature's knee is as high over the floor as its body is wider than a
-// man's (petition 1883, Brother, 2026-11-13: "Tenacious Frost Giants pathing is
+// man's (petition 1883, 2026-11-13: "Tenacious Frost Giants pathing is
 // all messed up when xping"): a frost giant, its body's edge 3.19 against a
 // man's 1.395 (reach.go's models.txt), steps over the knee-high stones of its
 // camp (1.4 tall, 27 of them round it) where it went round each one in its
@@ -214,7 +214,7 @@ func (w *World) moveRuleLocked(npc *NPC) (database.NPCMoveRule, bool) {
 // walkSpeedLocked is the pace a creature wanders at (roam.go) and walks
 // home off a path (path.go): its name's npcmove speed, else NPCWalkSpeed.
 // A body whose walk covers less ground a cycle than a man's is given a slower
-// one (petition 5189, Innoruuk, 2026-11-16: "Gharial conned runs too fast
+// one (petition 5189, 2026-11-16: "Gharial conned runs too fast
 // when roaming"): CLIENT plays byte 58's walk at the body's own rate,
 // whatever the velocity (VIClient::UpdateCreatures, SetLocomotion), so at a
 // man's 5.0 a crocodile's short stride slides along the ground. A chase
@@ -346,7 +346,7 @@ func (w *World) movementLocked(npc *NPC) (wanders bool, why moveWhy, word string
 	}
 	if r, own := w.rowWander[npc.ServerID]; own && r < 0 {
 		// its row's own "it does not roam" (a negative radius: the GM
-		// Jibcrotwo's petitions 2088-2089, Croc Island's crocodiles in the
+		// a GM's petitions 2088-2089, Croc Island's crocodiles in the
 		// hut), ahead of its name's and its kind
 		return false, whyRowOwnStands, ""
 	} else if own {

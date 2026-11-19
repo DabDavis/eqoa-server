@@ -17,7 +17,7 @@ import (
 // the 0x00B4s applied in the order they were queued, one ability on the slot,
 // and a 0x0032 of the slot casting that one. Before booklock.go each read the
 // book before the other's write and both went onto the slot; the press cast
-// the first of the book's (Trulytwo's Bloodwraith, not Shroud of Death +).
+// the first of the book's (a player's Bloodwraith, not Shroud of Death +).
 func TestConcurrentMemorizeKeepsOneAbilityOnTheSlot(t *testing.T) {
 	db, err := database.NewSQLite(t.TempDir() + "/book.db")
 	if err != nil {

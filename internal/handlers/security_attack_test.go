@@ -9,7 +9,7 @@ import (
 
 // The 0x000F limiter lets the game's own presses through: CLIENT's timer
 // puts only 2000 VITimer ticks (2.03 s) between two after a due swing at a
-// target out of reach (AutoAttackTick), and eqoaclassic's log held presses
+// target out of reach (AutoAttackTick), and the production server's log held presses
 // 1,992 ms apart that the old 2.5 s limit dropped, a new target then never
 // engaged. A flood is still refused.
 func TestTheAttackLimiterLetsTheGamesRetryThrough(t *testing.T) {

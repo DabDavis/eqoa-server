@@ -9,7 +9,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// raidsubgroups.go — a raid's groups of four inside it (the GM Jibrish's petition 1687,
+// raidsubgroups.go — a raid's groups of four inside it (a GM's petition 1687,
 // 2026-11-12: "Even though everyone's in a raid group, sort them by group 1,2,3,4 etc. and
 // allow the raid leader and assistant raid leader ... to move people from group to group.
 // This is so raids can easily organize for fights and say things like 'Group 2 go here'").

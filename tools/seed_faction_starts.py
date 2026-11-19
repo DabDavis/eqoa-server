@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The measured starting standings: factionstart's rows, and the factions
-table's own standings and names, as Sandstorm gives a new character
+table's own standings and names, as the reference server gives a new character
 (entity/faction.go; 2026-10-29, the user's new dark elf killed by Neriak's
 ghoul servant, which "should be revered").
 
@@ -10,14 +10,14 @@ The measurement is a TSV, a line a combo and a faction:
 
 race, class and humtype as defaultcharacter has them (humtype 0 for every
 race but the humans, 1 the east's, 2 the west's), off a new character of each
-of defaultcharacter's combos made on Sandstorm and its faction window read
+of defaultcharacter's combos made on the reference server and its faction window read
 (the coordinator's survey, harvest-runs/sandstorm/survey/starts.tsv). A first
 line naming the columns, blank lines and lines starting with # are passed
 over; a combo is read as the server reads a character's (a froglok and a
 human of no city as the east's, another race's city 0).
 
 The factions table's standings were one eqoa.live character's (a gnome's,
-moved since it was made: a new gnome on Sandstorm differs in 174 of 370), so
+moved since it was made: a new gnome on the reference server differs in 174 of 370), so
 they are no one's start, and by default each faction's own standing is made
 the start most measured combos have (--keep-defaults leaves them, and the
 rows then say every difference from them). On top of that, the fewest rows:
@@ -33,8 +33,8 @@ rows then say every difference from them). On top of that, the fewest rows:
   comes out (the server's rule: its most specific row, else the faction's
   own) at its measured standing, or the tool stops.
 
-A faction Sandstorm lists and the table lacks is added, at the start most
-combos have, so the faction window lists what Sandstorm's does; one whose name
+A faction the reference server lists and the table lacks is added, at the start most
+combos have, so the faction window lists what the reference server's does; one whose name
 starts with '*' ("*Delete") is junk and left out. A faction of the table the
 measurement never lists is said, not deleted (a quest or a hit may name it).
 

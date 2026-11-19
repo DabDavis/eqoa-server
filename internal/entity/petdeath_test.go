@@ -141,7 +141,7 @@ func TestAPetKilledInAFightLiesItsTime(t *testing.T) {
 	}
 }
 
-// The attack command says why it is refused (Waldorf's petition 1399): a
+// The attack command says why it is refused (a player's petition 1399): a
 // creature the pet could fight but too far from its owner is "too far away";
 // one it may not fight at all (here a creature of npc flags 0x80), near or
 // far, keeps "Your pet cannot attack that."; a near one is attacked.

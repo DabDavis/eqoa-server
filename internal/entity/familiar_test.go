@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Familiars (familiar.go), held to the GM Jibrish's petition 1445: Healbot
+// Familiars (familiar.go), held to a GM's petition 1445: Healbot
 // comes by its item's 2 s cast, one at a time; heals its owner 600 below 75%
 // of its hit points (not at 76%), at most every 6 s, never one flagged for
 // PvP or in a duel; draws no hate, never attacks, regenerates 2,000 a tick;

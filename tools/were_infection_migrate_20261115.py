@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The were infection's migration (work 1463, the GM Jibrish's of 2026-11-14: a successful animal-were infection is
+"""The were infection's migration (work 1463, a GM's of 2026-11-14: a successful animal-were infection is
 a seven-day debuff, and that debuff is the infection flag; database/wereinfection.go, handlers/wereinfect.go).
 
 Before it a character's infection was its line's hidden fever marker, the draft quest Weres/<line>/infection
@@ -24,7 +24,7 @@ migration made (source 'migration', key migration/<serverid>/<questid>) and its 
 (another key) is left.
 
 It also checks what the code reads off the records, read-only: Disease Cloud (spell 875), the infection's icon
-0xCF3C577B and its crit's visual 0x052EF90F (Sandstorm's recorded cast, spell_visuals_sandstorm_log), and counts the
+0xCF3C577B and its crit's visual 0x052EF90F (the reference server's recorded cast, spell_visuals_sandstorm_log), and counts the
 weres the code gives their crit (the five lines' names, by template).
 
 Report by default (--dry says the same); --apply, --undo. Run --apply in the swap's hold (tools/swap_keep.sh's

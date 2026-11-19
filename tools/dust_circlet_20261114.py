@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""Dust's monk circlet (the owner, 2026-11-14: "the effect on the end of the monks epic yin yang staff the circle of
-light with the criss cross lets make that effect into a circlet on the head of dust turn it so it will sit like a
+"""a GM's monk circlet (the owner, 2026-11-14: "the effect on the end of the monks epic yin yang staff the circle of
+light with the criss cross lets make that effect into a circlet on the head of [a GM] turn it so it will sit like a
 circlet").
 
 The circlet is the helm's charaura slot (5) of kind 8 (database.AuraCirclet) with source 0x1D875ECD, the Ascendant staff
 (the monk's level 49 epic, ITEM.ESF Monk_Staff): its glowing ring with the criss-cross at its yin-yang end laid flat
 round the head at the brow, sized to it, following the head (vanilla's aura::circlet); colour 0, the staff's own
-colours. The same as /aura monk circlet. Shown while no helm is drawn: Dust (Heirloom serverid 197) wears the Heirloom
-Helm hidden (charhiddenlooks), so it shows. A client before it draws nothing (kind 8 with no colour). Dust is on
-Heirloom alone; on a shard with no Dust the tool reports it and writes nothing.
+colours. The same as /aura monk circlet. Shown while no helm is drawn: a GM (Heirloom serverid 197) wears the Heirloom
+Helm hidden (charhiddenlooks), so it shows. A client before it draws nothing (kind 8 with no colour). A GM is on
+Heirloom alone; on a shard with no such character the tool reports it and writes nothing.
 
-Checked as found, else REFUSED and nothing written: at most one character named Dust; an itempattern row of the
+Checked as found, else REFUSED and nothing written: at most one character named a GM; an itempattern row of the
 staff's model; tables charaura and gm_audit. A row on his helm slot already (his is none) is changed and its old values
 kept in the log. Report by default; --apply in one transaction, a gm_audit line, logged in dust_circlet_1114_log; a
 second --apply finds nothing to do; --undo puts back exactly what was there.

@@ -6,7 +6,7 @@ import "testing"
 //
 // $Tints (0x004E0C08) has 15 entries and GetTintColor (0x004294E8) does
 // `return &Tints[index*4]` with no bounds check; the clamp to 0-14 lives in
-// SetArmorSlot, which Sandstorm's S2 patches. Sending 0xFF therefore renders
+// SetArmorSlot, which the reference server's S2 patches. Sending 0xFF therefore renders
 // correctly on a retail client and renders NPCs with no clothes and invisible
 // hands and feet on an S2 client — measured on both, same server, same NPC.
 func TestNPCTintIndicesAreInRange(t *testing.T) {

@@ -16,7 +16,7 @@ import (
 // quests run here; the quests' side spells of petition 1361 are
 // TestRealArchivistSideSpells'): each class's basic spells at
 // levels 20, 49 and 60 number what the petition's own checks counted at 60
-// (Jibrish's agent's Go code and a separate Python check, on the Heirloom
+// (a GM's agent's Go code and a separate Python check, on the Heirloom
 // server's data of 2026-11-08) and what a Python reading of the same rule
 // counted at 20 and 49 (the necromancer's one more at 49 and 60 the Drain
 // Soul scroll petfix172 makes, petition 1381); none is a master class's or

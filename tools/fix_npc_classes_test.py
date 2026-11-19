@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """tools/fix_npc_classes.py against a made-up database: a few npcs names, an
-npcclass with Return Home's and Sandstorm's rows, and a GM's edit in
+npcclass with Return Home's and the reference server's rows, and a GM's edit in
 gm_audit. No game data.
 
     python3 tools/fix_npc_classes_test.py
@@ -34,7 +34,7 @@ class TheNameSaysTheClass(unittest.TestCase):
             "fire giant magus": 13,
             "kappa defiler": 11,
             "lich overlord": 11,
-            "crag wisp": 10,             # Sandstorm's records: wisps are magicians
+            "crag wisp": 10,             # the reference server's records: wisps are magicians
             "fire elementalkin": 10,
             "chemist aishi": 14,
             "paladin freeland": 2,
@@ -67,7 +67,7 @@ def make_db(path):
         ("merchant samoul", 5, "return home"),   # -> warrior
         ("kappa warrior", 0, "return home"),     # already right: untouched
         ("gnoll seer", 13, "return home"),       # a GM's (gm_audit): untouched
-        ("crag wisp", 10, "sandstorm"),          # Sandstorm's: untouched
+        ("crag wisp", 10, "sandstorm"),          # the reference server's: untouched
         ("guard findel", 3, "sandstorm"),
     ])
     db.execute("""INSERT INTO gm_audit (tbl, rowkey) VALUES ('npcclass', '{"name":"gnoll seer"}')""")

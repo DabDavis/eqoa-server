@@ -48,7 +48,7 @@ const (
 
 // TransferLines are the lines a character may say it was, and their labels.
 // The werehunter's is a line too (the user, 2026-11-06: "the werehunter doesnt
-// show up for the transfer form"; Larrybird's Heroic Were-Hunter, which needs
+// show up for the transfer form"; a player's Heroic Were-Hunter, which needs
 // its brand, was missed for want of it): its quests are not a were line's
 // parts (p1, L40) but their own steps (reCatWerehunter), and the class's
 // trials and ability quest are only its archetype's (questForClass).

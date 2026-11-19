@@ -11,17 +11,17 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// A corpse's tunar, as Sandstorm hands it over (questrec16,
+// A corpse's tunar, as the reference server hands it over (questrec16,
 // claude-notes/quests-sandstorm-20261025.md: a level 2 Orc Pawn's corpse,
 // opened by 0x0015, answered 0x0052, the purse, and "You receive 2 tunar from
 // the corpse." before its items): the coins go to whoever first opens a
 // creature's corpse after its death, at once, and the corpse holds only its
 // items after. How much is ours, as that one corpse is all that was recorded:
 // a roll from the creature's level to twice it, the pawn's 2 at level 2 its
-// floor (the user: "add the corpse tunar drop like sandstorm too"). A pet's
+// floor (the user: "add the corpse tunar drop like [the reference server] too"). A pet's
 // corpse and a training dummy's carry none.
 
-// corpseCoinLine is Sandstorm's line for them.
+// corpseCoinLine is the reference server's line for them.
 const corpseCoinLine = "You receive %d tunar from the corpse."
 
 // corpseCoins is the tunar a creature's corpse carries, rolled when it is
@@ -41,7 +41,7 @@ func corpseCoins(npc *entity.NPC, roll func(int) int) int {
 const corpseSplitLine = "You receive %d tunar as your split."
 
 // giveCorpseCoins puts n tunar in the opener's purse, kept, the purse sent
-// (0x0052) and the line said, as Sandstorm's; with its group about it, shared
+// (0x0052) and the line said, as the reference server's; with its group about it, shared
 // (petition 1228: "During live, the entire group shared a portion of it"):
 // each member who would share the kill (entity.CoinSharers) an equal part,
 // the odd coins the opener's, each told in its own line.

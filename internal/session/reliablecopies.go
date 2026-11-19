@@ -6,14 +6,14 @@ import (
 )
 
 // reliablecopies.go: a client's reliable message taken once (petition 1032,
-// Jibrish: "Sometimes if you send a message in chat it gets duplicated
+// a GM: "Sometimes if you send a message in chat it gets duplicated
 // repeatedly ... despite only hitting enter once").
 //
 // A DRDP client resends every reliable message it has not seen acknowledged
 // in each packet it sends until the acknowledgment comes (CLIENT's
 // connection.cpp; the server does the same), so a stalled link (a relay's or
 // a phone's: the client's packets held, then delivered at once) brings the
-// same message many times: Zaeire's shout of 03:26:51 UTC 2026-11-06 went to
+// same message many times: a player's shout of 03:26:51 UTC 2026-11-06 went to
 // eight players 24 times in that second. CLIENT keeps its own dedup of the
 // server's messages (connection_has_reliable: at or before its rx, or held
 // out of order), and so does the server now, the same way: by number, in the

@@ -2,8 +2,8 @@ package entity
 
 import "time"
 
-// hot.go — a heal over time on a player, as jib has the live game's (F3
-// 20261025-222354; eqoaclassic's rules):
+// hot.go — a heal over time on a player, as a GM has the live game's (F3
+// 20261025-222354; the production server's rules):
 //
 //   - with no heal over time on the player, the first tick lands at once and
 //     the next at the regular tick, then every regular tick ("2 seconds into
@@ -14,7 +14,7 @@ import "time"
 //     tick is the new one's, and it has all its ticks.
 //
 // The regular tick is the server's six-second regen tick (regenSystem,
-// regen.go). Sandstorm's recorded Minor Healing ticked at its landing and
+// regen.go). The reference server's recorded Minor Healing ticked at its landing and
 // then every six seconds from it; with no regen tick yet (a world that has
 // not run one, the tests) the ticks keep that rhythm. A heal over time has
 // as many ticks as its duration holds (24 s: four, "63 x4"), the first one
@@ -102,7 +102,7 @@ func (w *World) advanceTickLocked(ae *ActiveEffect, now time.Time) {
 	prev := ae.NextTick
 	next := w.nextRegularTick(prev, now)
 	// never a second tick within half a tick of the last (Heirloom petition
-	// 2221, Mightyeagle, Marr's Blessing: "it will double tick a lot, have
+	// 2221, a player, Marr's Blessing: "it will double tick a lot, have
 	// ticks go in between the tick, and then stop ticking a while before it
 	// wears off"). The regen tick falls every 60th world tick
 	// (regenSystem), later than six seconds whenever a world tick runs long,

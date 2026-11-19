@@ -11,7 +11,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// The Mermaid's pets (tools/mermaid_pets_20261113.py, Zauz's math, the owner
+// The Mermaid's pets (tools/mermaid_pets_20261113.py, a player's math, the owner
 // 2026-11-13): Aquatic Birthright 1-5, racials of 15 CMs at levels 15 to 55,
 // each after the one before and each replacing the one before's summoning in
 // the book; and Aquatic Ascension, Siren Royal's fourth rank (50 CMs, level

@@ -7,8 +7,8 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 )
 
-// Petition 1435 (Afk, a wizard holding Swampstench, punched for 1; the GM
-// Jibrish: hitting with a held item is "supposed to be no"): hands holding a
+// Petition 1435 (a wizard holding Swampstench, punched for 1; the GM
+// a GM: hitting with a held item is "supposed to be no"): hands holding a
 // held item and no weapon never swing, and the press is refused with a red
 // line, said once however fast the presses come. The control: the same orb
 // with a blade in the primary hand fights.

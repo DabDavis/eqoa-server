@@ -72,7 +72,7 @@ const (
 // (session.SecondAura, the live look's answer bit 7). A character's own hand
 // aura (charaura 9/10) takes the hand's place whole: no second then. AuraWire
 // counts every aura the channel can carry. A character's hand row may carry a
-// second aura of its own (charaura's color2 ... nodes2, 2026-11-16: Dust's
+// second aura of its own (charaura's color2 ... nodes2, 2026-11-16: a GM's
 // sword "will keep the red aura it has and stack the twinkle"), sent here as
 // the item's second would be.
 const (
@@ -465,8 +465,8 @@ func (w *World) pieceAuras(pieces *[AuraSlots]int, items *[AuraSlots]int, mask u
 		}
 		// the String of Lights (database.AuraLights) on the worn cape is the
 		// toy itself: it shows over the character's own cape aura (charaura
-		// 8), which would hide it (the owner, 2026-11-18: "for dust the string
-		// of lights does not look like the christmas lights": Dust's own red
+		// 8), which would hide it (the owner, 2026-11-18: "for [a GM] the string
+		// of lights does not look like the christmas lights": a GM's own red
 		// cape aura took the slot, so his client was never told of the lights)
 		if i == AuraCape && m != nil {
 			if a, ok := (*m)[pieces[i]]; ok && a.Kind == database.AuraLights {

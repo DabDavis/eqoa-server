@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// The raid gods' fights of 2026-11-10 (the GM Jibrish's petitions 1437-1443 and the owner's asks for Tunare
+// The raid gods' fights of 2026-11-10 (a GM's petitions 1437-1443 and the owner's asks for Tunare
 // and Innoruuk), over the template rig's creatures (newTemplateRig): a scripted fight fought back by the
 // whole template, preferred foes, a fixed tap and a heal at every hit, a heal at a share, a summon's adds
 // at a share of their creature, an enrage, an attack from out of reach, a creature's damage over time,
@@ -65,7 +65,7 @@ func pool(n *NPC, hp int) {
 	n.HP, n.MaxHP = hp, hp
 }
 
-// The GM Jibrish's petition 1437: Mr. Moogie's Lay Hands never fired against the gods set on him, for the
+// a GM's petition 1437: Mr. Moogie's Lay Hands never fired against the gods set on him, for the
 // NPC a trigger's sic set on another fought it back by its melee alone. Now the NPC set on (the guard,
 // "Moogie") fights the one set on it with casts (the brute, "Tunare") by its whole template: its kick lands
 // on it, and below half it lays hands on itself once, whole, a fight's proc of 350 on every hit after (100%),
@@ -137,7 +137,7 @@ func TestAScriptedFightIsFoughtBackByTheWholeTemplate(t *testing.T) {
 	}
 }
 
-// The GM Jibrish's petition 1438: a creature fights its preferred foes first whenever one is on its hate
+// a GM's petition 1438: a creature fights its preferred foes first whenever one is on its hate
 // list, whatever the rest's hate, and a taunt does not turn it from one; with none of them on the list
 // (the control) it fights its highest threat, as ever.
 func TestAPreferredFoeIsFoughtFirst(t *testing.T) {
@@ -172,7 +172,7 @@ func TestAPreferredFoeIsFoughtFirst(t *testing.T) {
 	}
 }
 
-// The GM Jibrish's petition 1439: a lifetap of a fixed 4,000 every 30 s, its look of its own name and
+// a GM's petition 1439: a lifetap of a fixed 4,000 every 30 s, its look of its own name and
 // visual, all of it on the player it fights and all of it back on the creature; the next not before its
 // 30 s.
 func TestAFixedLifetap(t *testing.T) {
@@ -217,7 +217,7 @@ func TestAFixedLifetap(t *testing.T) {
 	}
 }
 
-// The GM Jibrish's petition 1439: a heal of 150 at every hit that lands on the creature, the hit itself
+// a GM's petition 1439: a heal of 150 at every hit that lands on the creature, the hit itself
 // landing whole: a player's spell hit, its damage over time's tick, its melee, an NPC's melee. Not a hit
 // that kills it. The control: a creature of no such template (the pup, the necro's level) takes the same
 // hits whole, no heal.
@@ -303,7 +303,7 @@ func TestAFullHealAtTwentyPercent(t *testing.T) {
 	}
 }
 
-// The GM Jibrish's petition 1440: at 25% the creature calls three adds, once a fight: none above 25%,
+// a GM's petition 1440: at 25% the creature calls three adds, once a fight: none above 25%,
 // three below it, not six however long it stays there; each its creature's template at half: half its most
 // hit points, its kick at half, its special (a level's) at half of its creature's level's, its melee on the
 // same target half of its creature's; the adds call none of their own. They join its fight on its foes. Its
@@ -410,7 +410,7 @@ func TestASummonCallsThreeAddsAtHalf(t *testing.T) {
 	}
 }
 
-// The GM Jibrish's petition 1443: below 10% the creature enrages, once a fight: three times its size, every
+// a GM's petition 1443: below 10% the creature enrages, once a fight: three times its size, every
 // 3 s the players of its hate list beyond its reach brought beside it (never one in reach), and half of each
 // melee hit on the one it fights on the second of its list, from the round after it enraged, the second in
 // its reach. Above 10% (the control) none of it; a fight's end gives it its own size back.
@@ -489,7 +489,7 @@ func TestAnEnrageGrowsPullsAndRampages(t *testing.T) {
 	}
 }
 
-// The GM Jibrish's petition 1442: an attack of a fixed 2,000 every 10 s, cast only while what it fights
+// a GM's petition 1442: an attack of a fixed 2,000 every 10 s, cast only while what it fights
 // stands beyond its melee reach (rooted here) and within its range: three in 25 s; never in its reach (the
 // control), nor past its range.
 func TestAnAttackFromOutOfReach(t *testing.T) {

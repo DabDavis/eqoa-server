@@ -6,7 +6,7 @@ import (
 )
 
 // A workbook hit's hate_pct is the share of its damage that is its hate
-// (petition 1372: Vylinnuza's Merciless Blizzard and Inferno, "little to no
+// (petition 1372: a player's Merciless Blizzard and Inferno, "little to no
 // aggro generated"), kept as HateOff: 0 when absent, held to 0..100, and kept
 // on the least a resisted hit does.
 func TestAHitsHatePctIsRead(t *testing.T) {

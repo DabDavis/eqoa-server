@@ -289,11 +289,11 @@ func TestGMDeleteUndoKeepsGoing(t *testing.T) {
 		t.Fatal("the first undo did not put back the last deleted alone")
 	}
 	// the one before was another GM's (the owner: "let any gm undo anyones delete")
-	if _, err := db.Exec(`UPDATE gm_audit SET accountid = 99, username = 'forestwood' WHERE action = 'delete' AND reverted_by IS NULL`); err != nil {
+	if _, err := db.Exec(`UPDATE gm_audit SET accountid = 99, username = 'fernmeadow' WHERE action = 'delete' AND reverted_by IS NULL`); err != nil {
 		t.Fatal(err)
 	}
 	c.say(gs, "/delete undo")
-	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Put back wolf (row %d) (deleted by forestwood) with npcs.", ids[0])) {
+	if l := gmReplies(t, gs); !hasLine(l, fmt.Sprintf("Put back wolf (row %d) (deleted by fernmeadow) with npcs.", ids[0])) {
 		t.Fatalf("the second undo: %q", l)
 	}
 	if npcRowMap(t, db, ids[0]) == nil {

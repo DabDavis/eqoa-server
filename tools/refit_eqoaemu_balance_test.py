@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """tools/refit_eqoaemu_balance.py against tools/tune_pets_test.py's made-up database at the state the four tunings
-leave (tools/tune_balance.py, retune_balance.py, tune_pets.py, fit_pet_selfbuffs.py, as eqoaclassic had them when the
+leave (tools/tune_balance.py, retune_balance.py, tune_pets.py, fit_pet_selfbuffs.py, as the production server had them when the
 workbook went in): balanceclasslevel becomes the re-fit's rows exactly (rows changed, added and taken out, dealt_pct
 among them) and balancelevel's pet columns 100 at every row, its other columns as they were; a second --apply changes
 nothing; --undo gives back every table exactly and drops the log; a GM's row is left (and said); nothing is done

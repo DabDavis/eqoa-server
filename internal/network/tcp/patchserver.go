@@ -27,10 +27,10 @@ import (
 // ssFile selects which SS payload is served. SS is the BOOTSTRAP: it is the
 // only thing that installs the loader stub which reads and applies S2. Serving
 // an SS without that stub means S2 is downloaded to the memory card and then
-// ignored entirely — every S2 record, Sandstorm's included, silently does
+// ignored entirely — every S2 record, the reference server's included, silently does
 // nothing. There is no error and no log line; the file simply is not read.
 //
-//	ss-s2boot.dat  THE ONE TO SERVE. Sandstorm's bootstrap: their 1196-byte stub
+//	ss-s2boot.dat  THE ONE TO SERVE. The reference server's bootstrap: their 1196-byte stub
 //	               at 0x00157400 plus the CLIENT+0xBBEC hook, re-emitted as an
 //	               aligned CLIENT-relative quadword (their own 4-byte write to
 //	               0x00BC056C is misaligned by 12, and sceRead is DMA and needs
@@ -50,7 +50,7 @@ import (
 //
 //	ss-dual.dat    OURS, built from source by re-tools/build_stub.py. Same hook,
 //	               same load address, same S2 semantics — stage 1 applies S2 in
-//	               Sandstorm's arena with their malloc order and their rounding,
+//	               the reference server's arena with their malloc order and their rounding,
 //	               so the cave pointer and every relocated address come out
 //	               identical. Stage 2 then loads "SD" into a SEPARATE arena at
 //	               0x0F000000. Verified by executing BOTH stubs under the R5900
@@ -68,7 +68,7 @@ const defaultSSFile = ""
 // ssFile is the SS bootstrap to serve. EQOA_SS_FILE overrides it, mirroring
 // EQOA_S2_FILE — SS is the single riskiest file in the set (it is what makes S2
 // apply at all), and ours has never run on hardware, so rolling back to
-// Sandstorm's must be a restart rather than a rebuild.
+// the reference server's must be a restart rather than a rebuild.
 //
 // Whichever is served, the switch needs the two-pass Delete dance below: SS is
 // already on the memory card under that LocalName, and a CRC-stamped remote
@@ -98,7 +98,7 @@ func (s *PatchServer) ssFile() string {
 
 // s2File selects which S2 payload is served.
 //
-//	S2-stock   Sandstorm's, byte-for-byte. Set 9 and robes only; the armor-set
+//	S2-stock   the reference server's, byte-for-byte. Set 9 and robes only; the armor-set
 //	           clamp is < 10, so set 10 is clamped away to "no armor".
 //	S2-set10   the same file extended by re-tools/extend_s2.py — 3 of their 108
 //	           records repointed, 5 added, clamp raised to < 11. (== patches/S2)
@@ -111,7 +111,7 @@ func (s *PatchServer) ssFile() string {
 //	           by re-tools/strip_s2_helm.py. Everything else is byte-identical.
 //	S2-race10-noresload
 //	           S2-race10 with ONE record reverted: the 0x004283CC repoint goes
-//	           back to Sandstorm's `j 0xF9200`, so our set-10 loader never runs
+//	           back to the reference server's `j 0xF9200`, so our set-10 loader never runs
 //	           and its two dictionary registrations never happen. The clamp,
 //	           the GetArmorSetTexture hook and every cave stay exactly as they
 //	           are. TESTED ON THE CONSOLE: the symptom PERSISTED, so the
@@ -123,7 +123,7 @@ func (s *PatchServer) ssFile() string {
 //	           S2-race10 minus ONLY armor set 10, by re-tools/strip_s2_set10.py:
 //	           the five set-10 caves dropped and the three records set 10 had
 //	           REPOINTED (SetResources, the clamp, GetArmorSetTexture) reverted
-//	           to Sandstorm's payloads, so set 9 is untouched. Diffed against
+//	           to the reference server's payloads, so set 9 is untouched. Diffed against
 //	           S2-stock it adds exactly the 13 race+helm records and the SetSky
 //	           repoint and nothing else. Froglok and helm still work.
 //
@@ -139,7 +139,7 @@ func (s *PatchServer) ssFile() string {
 // displaces (`lui $v0, 0x0050` at +0x4) is the high half of $Armor itself, and
 // the function's first act is to write -1 across all nine retail sets and then
 // refill them from FindTyped results. So the table is computed at runtime and
-// is self-consistent with however many resources exist. Sandstorm's own loader
+// is self-consistent with however many resources exist. The reference server's own loader
 // registers FIVE at the same site and retail models render fine, which the
 // shift story never explained either.
 //
@@ -375,7 +375,7 @@ type PatchServer struct {
 	cfg            *config.Config
 	files          []patchFile // patch files to serve
 	productVersion int         // bumped whenever the served content changes
-	changesCRC     uint32      // fingerprint of the served set; Sandstorm's is non-zero
+	changesCRC     uint32      // fingerprint of the served set; the reference server's is non-zero
 	refresh        []string    // LocalNames to Delete before re-adding
 
 	// cardSeq sequences the Delete dance per console, over every managed file.
@@ -649,8 +649,8 @@ func (s *PatchServer) buildPatchFiles() {
 	// that its SIZE carries its content.
 	//
 	// THE PATCHER CANNOT SEE A SAME-SIZE CHANGE. Measured on the console
-	// 2026-08-14: a card holding "5.161.217.188\n\n" was offered
-	// "192.168.40.87\n\n" — same fifteen bytes, different address, different
+	// 2026-08-14: a card holding "203.0.113.188\n\n" was offered
+	// "192.168.1.100\n\n" — same fifteen bytes, different address, different
 	// CRC, both in the manifest — and the client did not fetch it, twice, with
 	// the wrong address left in place and every log on both ends healthy. It
 	// only ever fetched this file when it was ABSENT.
@@ -663,7 +663,7 @@ func (s *PatchServer) buildPatchFiles() {
 	// Padding makes the deletion unnecessary. Trailing newlines change the byte
 	// count without changing what any reader sees — the game's, and _dl_addr's,
 	// which stops at the first character that is not a digit or a dot — so
-	// "5.161.217.188" is 76 bytes here and "192.168.40.87" is 50, and the
+	// "203.0.113.188" is 76 bytes here and "192.168.1.100" is 50, and the
 	// client's own size rule replaces one with the other unaided.
 	//
 	// The pad is derived from the content, so it is STABLE: a restart, a
@@ -801,7 +801,7 @@ func (s *PatchServer) serveDir() string {
 // a file shuffle. Empty means "serve the folder's copy", which is the default
 // for all three.
 //
-//	EQOA_SS_FILE=ss-s2boot.dat   Sandstorm's bootstrap
+//	EQOA_SS_FILE=ss-s2boot.dat   the reference server's bootstrap
 //	EQOA_S2_FILE=S2-race10-nohelm  a single-variable control
 //	EQOA_SD_FILE=SD-hddnpc       the last assembly payload
 //
@@ -1153,9 +1153,9 @@ const stationPakFloor = 96 * 1024
 //
 // This is what caused "Server not ready, please try again later. (nodbs)" the
 // moment a game server was picked: the pak we shipped had been taken from
-// Sandstorm, and its stationLiveHosts.txt read "5.161.217.188:9735". That is a
+// the reference server, and its stationLiveHosts.txt read "203.0.113.188:9735". That is a
 // literal IP, so the PNACH's gethostbyname hook cannot redirect it the way it
-// redirects the hostname in NewsURL — the client went straight to Sandstorm's
+// redirects the hostname in NewsURL — the client went straight to the reference server's
 // auth host, got no database list back for the account, and errored out.
 //
 // Container format (big-endian, repeated until EOF):
@@ -1266,7 +1266,7 @@ var (
 
 // raisePasswordFields lets a page's password fields take auth.MaxPasswordLen
 // characters, all the login carries, where they take fewer, and says how
-// many it raised. The pak served is Sandstorm's, whose login, account and
+// many it raised. The pak served is the reference server's, whose login, account and
 // password pages (login.xml, IDCreate.xml, PassChng.xml) say 16, 15
 // characters, where the account page takes longer passwords; a PS2's
 // STATION holds the 31 everywhere (char[64] and char[32] buffers, strncpy'd
@@ -1355,7 +1355,7 @@ func (s *PatchServer) serveUpdateXML(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// UseCRC="True", as Sandstorm's manifest has it. Without it the PS2's
+	// UseCRC="True", as the reference server's manifest has it. Without it the PS2's
 	// patcher judges each file by its SIZE alone
 	// (FileDownloader::FileDiscrepancy, decomp/modules/setup/src/
 	// filedownloader.cpp), so a change that keeps a file's length never

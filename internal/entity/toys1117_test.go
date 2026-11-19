@@ -208,7 +208,7 @@ func TestThePlushieLeavesWithItsOwner(t *testing.T) {
 }
 
 // The String of Lights on the worn cape shows over the character's own cape
-// aura (charaura 8: Dust's red shell hid his lights, the owner 2026-11-18),
+// aura (charaura 8: a GM's red shell hid his lights, the owner 2026-11-18),
 // and the own aura comes back with any other cape. The control: the own cape
 // aura with a cape of no aura of its own is the own.
 func TestTheLightsShowOverTheOwnCapeAura(t *testing.T) {

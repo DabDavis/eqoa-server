@@ -332,7 +332,7 @@ func writeCMNode(w *buffer.Writer, n entity.CMNode) {
 // of each entry it is given and touches no other, so an empty list changes
 // nothing, and the last message's whole list leaves every flag as one each
 // would have. Each list is 8 bytes an entry, 2,016 of a message's 2,023 with
-// 252 masteries: Jibrish's 58-rank reset at 03:41:55 UTC 2026-11-09 was 116
+// 252 masteries: a GM's 58-rank reset at 03:41:55 UTC 2026-11-09 was 116
 // fragments, which went out at a fragment a tick ahead of everything queued
 // after it (chat, a target's con), and is now 58 small messages and one of
 // 2 KB.

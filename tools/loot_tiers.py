@@ -5,14 +5,14 @@ on its own, at its own rate a kill).
 
 Gear is sorted by the first rule that holds:
 
-  1. legendary by name (LEGENDARY_ITEMS): jib's two, Aura of Karana and Orb of
+  1. legendary by name (LEGENDARY_ITEMS): a GM's two, Aura of Karana and Orb of
      Primordial Intellect (the orb's second record, Primordial Orb of
      Intellect, is never placed), the orb's twin orb of spiritual fortitude
      (the same slot, level and amounts, wisdom for intelligence), and the two
      items Allakhazam's players of 2004 called one of a kind on their server;
   2. by Allakhazam's players' word (ARCHIVE: its item pages' comments,
      2003-2005, as tools/fetch_item_pages.py keeps them): "very rare" ultra
-     rare, "a rare drop" super rare (jib's rare, 1 in 1,000 and so);
+     rare, "a rare drop" super rare (a GM's rare, 1 in 1,000 and so);
   3. by its stats against its level's (score / the median score of the items
      of its level within LEVEL_SPAN, every slot): ULTRA_RATIO times or more
      ultra rare, SUPER_RATIO super rare, RARE_RATIO rare (on the 02:05 data of

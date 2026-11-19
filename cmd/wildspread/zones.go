@@ -267,9 +267,9 @@ func (p *plan) undeadKinds(w int) map[string]*kind {
 // placeCamps places the rules' camps of world w before the fill: each
 // camp's count of its kinds on the open land within campSpread of its point,
 // campSpacing apart and clear of every creature, less those of its kinds
-// standing there already (the rules fill what the census of Sandstorm's
+// standing there already (the rules fill what the census of the reference server's
 // Rathe left empty, the user's "for what the census leaves empty"; it found
-// Sandstorm's own thugs and Tae Ew commanders at these points); what was
+// the reference server's own thugs and Tae Ew commanders at these points); what was
 // placed.
 func (p *plan) placeCamps(land *landGrid, w int, open func(int) bool, occupied *index, rng *rand.Rand) []fill {
 	var out []fill

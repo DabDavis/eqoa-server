@@ -121,7 +121,7 @@ type Session struct {
 
 	// discVersion is the first byte of the client's DiscVersion (0x0000):
 	// 0x12 from a Frontiers disc (a retail PS2, eqoa-rust-client-vanilla, the
-	// web page), 0x13 from a PS2 running Sandstorm's S2 patch on its world
+	// web page), 0x13 from a PS2 running the reference server's S2 patch on its world
 	// session, 0 before one arrives. See DiscVersion.
 	discVersion byte
 

@@ -24,7 +24,7 @@ import (
 //     not start with a gnome's Neriak (2026-10-29, the user: "i made a dark
 //     elf sk and tried to run to the coach and the ghoul servant killed me
 //     because it hated me, but should be revered"). tools/seed_faction_starts.py
-//     writes Sandstorm's measured starts. A character has its own standing
+//     writes the reference server's measured starts. A character has its own standing
 //     where it moved off its start (Player.Factions, table charfactions:
 //     loaded at the login and saved at a logout, a takeover and a shutdown,
 //     as its spell effects are), so a character made before the starts were
@@ -43,7 +43,7 @@ import (
 //     killed (ours): the town creatures the seed gives a city include quest
 //     targets (Klick'Anon's clockworks, which EQOA-Data's guide says cost no
 //     faction), so a default would invent hits no record holds.
-//   - Each change is a white chat line (0x0A7A) as Sandstorm words it: the
+//   - Each change is a white chat line (0x0A7A) as the reference server words it: the
 //     standing after it, " faction with ", the faction, the change ("-690
 //     faction with Centaurs of the Plains (-10)", "11 faction with Merchant
 //     House Nothard (+10)": factionLine), unless the client's Faction
@@ -620,7 +620,7 @@ func (w *World) factionKillLocked(sess *session.Session, p *Player, npc *NPC) {
 	}
 	// the killer and its group's members who share the kill (killexp.go's
 	// rule, the experience's and the quests'): each takes the hits (petition
-	// 5078, Horizon, 2026-11-14: only the killer's standings moved)
+	// 5078, a player, 2026-11-14: only the killer's standings moved)
 	for _, m := range w.killSharersLocked(p, npc) {
 		ms := sess
 		if m != p {
@@ -652,9 +652,9 @@ func (w *World) takeFactionHitsLocked(sess *session.Session, p *Player, npc *NPC
 	}
 }
 
-// factionLine is Sandstorm's line for a change to a standing: the standing
+// factionLine is the reference server's line for a change to a standing: the standing
 // now, " faction with ", the faction, and the change asked in brackets with
-// its sign. Sandstorm's own, as its client saw them (0x0A7A, white): the
+// its sign. The reference server's own, as its client saw them (0x0A7A, white): the
 // quest rewards questrec16 recorded ("11 faction with Merchant House Nothard
 // (+10)", "6 faction with Citizens of Freeport (+5)") and kills in players'
 // reports ("-690 faction with Centaurs of the Plains (-10)", "-561 faction

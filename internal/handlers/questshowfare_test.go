@@ -71,7 +71,7 @@ func TestAHandInRefusesAnotherSide(t *testing.T) {
 }
 
 // A refusal of a held hand-in waits on the giver's other business (petition
-// 2395): a player holding a later hand-in's items (Poppapump's Honor Guard's
+// 2395): a player holding a later hand-in's items (a player's Honor Guard's
 // blades, 101674 at the Akessan Agent) is offered the quest before it that the
 // giver has for it, not refused; with nothing to offer, refused as before.
 func TestAHandInRefusalWaitsOnAnOffer(t *testing.T) {

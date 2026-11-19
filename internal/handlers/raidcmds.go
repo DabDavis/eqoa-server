@@ -12,7 +12,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// raidcmds.go — the raid's commands as clients send them (the GM Jibrish's petitions
+// raidcmds.go — the raid's commands as clients send them (a GM's petitions
 // 1448, 1451, 1452 and 1453, 2026-11-10): the typed lines, everyone's, in their /, # and a
 // PS2's "/t <word>" spellings (chat.go hands them here), and vanilla's raid offer, rolls
 // and menu (protocol.OpcodeRaidOffer..OpcodeRaidCommand). The rules are the World's

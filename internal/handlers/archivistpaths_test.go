@@ -337,7 +337,7 @@ func (f *pathRig) fortyNine1366() {
 	}
 }
 
-// Petition 1366 (Fujiko: "Didnt receive 49 Boon spell (pwr to target) upon
+// Petition 1366 ("Didnt receive 49 Boon spell (pwr to target) upon
 // speaking with Archivist"): with the level 49 reward offering the Boon path's
 // two, he says the path of Power Jet to its 49s, and an enchanter whose book
 // holds Power Jet and Power Surge alone (what he wrote her before) is given

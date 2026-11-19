@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The Mermaid's (race 32) pets, the part of her kit (tools/mermaid_kit_20261112.py) left out for its designer Zauz's
+"""The Mermaid's (race 32) pets, the part of her kit (tools/mermaid_kit_20261112.py) left out for its designer a player's
 math, as he gave it (the owner, 2026-11-13). Verbatim:
 
   "Aquatic Birthright 1-5: grants a weak version of mage water pet ... if you pick the racial MC it unlocks a MCA for

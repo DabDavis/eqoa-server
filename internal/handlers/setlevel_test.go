@@ -7,7 +7,7 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 )
 
-// #setlevel names any character (Jibrish, petition 1265: "/setlevel Nuke 60
+// #setlevel names any character (petition 1265: "/setlevel Nuke 60
 // should set the character nuke to 60 if im targeting them, but not add or
 // remove spells or change anything beyond level"): by name, in either order;
 // with none the GM's target player, else the GM; a character out of the world
@@ -68,7 +68,7 @@ func TestSetLevelTakesANameOrTheTarget(t *testing.T) {
 	}
 }
 
-// #testmode and #tankprofile1-3 (the GM Jibrish's petition 1272) toggle on a
+// #testmode and #tankprofile1-3 (a GM's petition 1272) toggle on a
 // GM, in either spelling, and say so; a player's are an unknown command and
 // change nothing.
 func TestTestModeAndTankProfilesToggle(t *testing.T) {

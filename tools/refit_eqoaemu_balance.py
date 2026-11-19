@@ -5,7 +5,7 @@ combat numbers replace ours: "Workbook wins, re-fit"): its spells, effects, mast
 to the user's targets of 2026-10-30, which the four tunings before had met on our own spells
 (claude-notes/balance-20261029.md).
 
-What the workbook moved, measured with the fight simulator on eqoaclassic's database of 07:15 UTC 2026-11-01 with
+What the workbook moved, measured with the fight simulator on the production server's database of 07:15 UTC 2026-11-01 with
 the whole import in it (cmd/balancesim against SOE's roamer, the player's low point averaged over the fights won one
 and two up; the tables as the four tunings left them):
 
@@ -41,7 +41,7 @@ a row a GM changed is left, and said):
                      class's own play, in a new character's starting gear at 1-5). Levels 1-12 are each a row, above
                      them each curve the fewest rows within 4% of every level's fit (the pets' 7%); dealt_pct exact.
                      Eleven cells set after, each a row: a shadow knight of 5 at 95 (the user's fire bat fight,
-                     Dust's, won with 15% left), a magician of 4 dealing 144 with its pet at 100 (at 216 its nukes
+                     a GM's, won with 15% left), a magician of 4 dealing 144 with its pet at 100 (at 216 its nukes
                      pulled the creature off its pet), an alchemist of 6 at 35 (its even fights by hand at the fit's
                      edge), a druid of 5 and 10 at 59 and 39 and a magician of 44's pet at 44 (a red won alone 42-57%
                      at the fit's rows), and five yellows the cut left at the edge of their win rates, each a step of

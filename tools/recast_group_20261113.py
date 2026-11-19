@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The ranger's Wolf's Instinct and Hunter's Instinct share one recast (ticket 2011, Brother, 2026-11-13: "should Not
+"""The ranger's Wolf's Instinct and Hunter's Instinct share one recast (ticket 2011, 2026-11-13: "should Not
 be able to cast Hunter Form or Wolf form while one or the other is on Cooldown ... should Not be able to have both").
 
 Wolf's Instinct (spell 701068, mastery 3371, L51) and its free upgrade Hunter's Instinct (760110, mastery 900645, the

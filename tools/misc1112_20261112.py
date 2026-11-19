@@ -1,31 +1,31 @@
 #!/usr/bin/env python3
 """Lane misc1112's data (Heirloom's petitions of 2026-11-12), one transaction, one log, one exact undo:
 
-  sirens (petitions 1739/1741/1742; the GM Jibrish: "Disperse the sirens in groups of 4 that are agro, but do not
+  sirens (petitions 1739/1741/1742: "Disperse the sirens in groups of 4 that are agro, but do not
     assist. Spread them out."): the enchanting sirens' six stacked groups of four (Vastly Deep, West Toxx, Kerra Isle),
     each with its waterlogged chest, moved apart (npcs x/y/z/facing; tools/misc1112_sirens_plan.json, cmd/sirenplan's:
     each camp's two groups pushed 16 further from the camp's middle along the line between them, so the groups' middles
     stand 55-88 apart, past two aggro radii, 21 each; the four of a group on a ring of 5 round their chest, each spot one
     its walk could reach from where it stood, under the water as before); npcaggro "enchanting siren" aggressive 1 (they
     attack on sight, as they did by nature); npcsocial "enchanting siren" social 0 (they help no one: as they did, now
-    written). Hoofbite's "none of them aggro" was his safe mode (/testinvis, on 02:56-04:52 UTC): nothing to change.
-  /reward (petition 1740, Jibrish: "the /reward ability needs to HEAL the player and damage the attacking monster when
+    written). A player's "none of them aggro" was his safe mode (/testinvis, on 02:56-04:52 UTC): nothing to change.
+  /reward (petition 1740: "the /reward ability needs to HEAL the player and damage the attacking monster when
     hit"): GM's Reward (spell 905121) heals its bearer 200 and deals 200 back at every hit taken, where it was 25 and 25
-    (a level 60 creature's 48 a hit outweighed it; Jibrish stood at 1 HP in GM test mode with it on). Its other
+    (a level 60 creature's 48 a hit outweighed it; a GM stood at 1 HP in GM test mode with it on). Its other
     effects, its hour and its look as they were. spelleffect.effects and line, spellpattern.spelldesc.
-  Jebodan (petition 1751, Hoofbite: "When Mervol tells you to pay jebodan in the house, he will not talk to you or
+  Jebodan (petition 1751: "When Mervol tells you to pay jebodan in the house, he will not talk to you or
     progress step. however, there was another Jebodan outside between the coach and the river that talks to you"):
     the one in the manor house (row 101608) was spelt "Jeboban", so the step (Jebodan's Price, 101050) took the quest
     import's Jebodan beside the coach (row 122661) alone. The house's is named Jebodan (and npcclass "jebodan" as
     "jeboban"'s); the coach's is deleted with its npcrespawn row (as Bobble-by-Water's second Kayle, petition 1712).
-  plague swine (petition 1763, Skywalker: "make all Plague Swine NPC in the game drop Plague Swine tusk at a 75% drop
+  plague swine (petition 1763: "make all Plague Swine NPC in the game drop Plague Swine tusk at a 75% drop
     rate per kill, also ... rotten hoof at 15% drop rate per kill"): every plague swine (16, Plane of Disease) rolls
     loot table "plague swine tusk" (plagueswine tusk, 701458) at 75 and "plague swine rotten hoof" at 15, one roll each
     a kill (npcloot; loottables rows); "rotten hoof" is item 709310, made as a copy of the plagueswine tusk (its icon
     master centaur's hoof's).
-  titles (petitions 1765/1766, Jibrish): npctitle 163008 (Testing Heroes Vendor) "XP Grinding Rewards", 162568
+  titles (petitions 1765/1766): npctitle 163008 (Testing Heroes Vendor) "XP Grinding Rewards", 162568
     (Dabrish) "XP/CM's" (table npctitle made when the database has none: entity/npctitle.go).
-  Ascended Strategic Blow (petition 1774, Poppapump: "should be a kick animation if possible"): its visual
+  Ascended Strategic Blow (petition 1774: "should be a kick animation if possible"): its visual
     (spelleffect 906796 fxdict) the Kick's, 0x0A286E2E (its caster's SetAction 43, the kick), where it was Strategic
     Blow's 0x1292786E (PlayAttack, the weapon's swing). Strategic Blow itself as it was.
 

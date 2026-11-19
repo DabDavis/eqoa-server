@@ -21,13 +21,13 @@ func hitsOver(npc *NPC, p *Player) (lo, hi int, mean float64, distinct int) {
 	return lo, hi, float64(sum) / float64(r.Width+1), len(seen)
 }
 
-// Petition 1289 (jibrish, 2026-11-08): past about 2k AC Bertoxxulous hit for
+// Petition 1289 (2026-11-08): past about 2k AC Bertoxxulous hit for
 // its floor times its template's 1380% every time, and 3k AC changed nothing.
 // A creature whose template boosts its melee now lands a roll under its floor
 // between the floor and half of it, so its hits keep a window and more AC
 // takes off ever less; where its roll is over the floor nothing changed. The
 // controls: the same creature unboosted, and a boosted training dummy, still
-// hit Sandstorm's floor every time.
+// hit the reference server's floor every time.
 func TestABoostedCreatureHitsInAWindowPastItsFloor(t *testing.T) {
 	boss := &NPC{Level: 66, tmpl: &ClassTemplate{ClassTemplate: database.ClassTemplate{MeleePct: 1380}}}
 	tank := func(ac int) *Player { return &Player{Level: 60, Class: 0, AC: ac, Agi: 400} }
@@ -51,7 +51,7 @@ func TestABoostedCreatureHitsInAWindowPastItsFloor(t *testing.T) {
 		t.Errorf("out of the floor's band: %d at the most (floor %d), %d at the least (half %d)", hi2, floorHit, lo3, floorHit/2)
 	}
 
-	// over the floor, Sandstorm's roll as before
+	// over the floor, the reference server's roll as before
 	p := tank(0)
 	p.Agi = 0
 	r := npcMeleeRollFor(boss, p)

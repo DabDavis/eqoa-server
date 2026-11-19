@@ -7,7 +7,7 @@ import (
 	"github.com/eqoa/server/internal/entity"
 )
 
-// Petition 2199 (Cardile: "argot bittersteel is asking for the runed tablet. i
+// Petition 2199 ("argot bittersteel is asking for the runed tablet. i
 // already retrieved it but hes sending me back to get it again"): two
 // tellings of one errand exclude each other (quests.excludes): one who has
 // finished either, or has either under way, is not offered the other; the

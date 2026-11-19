@@ -99,7 +99,7 @@ func TestALoopIsWalkedInOrderAtAWalkAndTheCreatureNeverWanders(t *testing.T) {
 	}
 }
 
-// A path of its own pace (npcpaths.speed a number, a patrol as Sandstorm's
+// A path of its own pace (npcpaths.speed a number, a patrol as the reference server's
 // walks it) is walked at it, with the walk's animation below 7 a second and
 // the run's from it; the control: walk is the walk's 5.
 func TestAPathsOwnPaceIsWalkedAtIt(t *testing.T) {

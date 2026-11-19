@@ -6,7 +6,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// Petition 1858 (the GM Jibrish): /hide mercs and /show mercs are everyone's.
+// Petition 1858: /hide mercs and /show mercs are everyone's.
 // Each spelling ("/hide mercs", "#hide mercs", a PS2's "/t hide mercs", any
 // case, and the same for show) turns the viewer's hide the way it names,
 // answered to the player alone and kept in charhidemercs; "/t hide hello" and

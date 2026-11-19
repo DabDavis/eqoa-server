@@ -22,7 +22,7 @@ import (
 // one (NPCFromRecord: its hit points, class and swing), and the fight runs
 // tick by tick through aiSystem, attackSystem, petSystem, castSystem,
 // effectSystem, regenSystem and npcRegenSystem: the rounds (rounds.go),
-// Sandstorm's rolls (offence.go, defence.go), the spells as their lines
+// the reference server's rolls (offence.go, defence.go), the spells as their lines
 // read (cast.go), the pets (pet.go), the regeneration (regen.go,
 // npcregen.go) and the balance's scaling,
 // with the dice seeded. What is the simulator's own is only the player's

@@ -18,7 +18,7 @@ import (
 // refusals, while the caster carries fewer (its bank's do not count), and
 // they are taken (the database, the session's list, 0x003C) only when the
 // World begins the cast, so a cast refused for any other reason takes none.
-// The refusal's words are ours: Sandstorm has one, never recorded. A
+// The refusal's words are ours: the reference server has one, never recorded. A
 // potion's line says the same of what using it costs (potion.go: Envar's
 // gems, each needing the cracked gem the last one left), refused and taken
 // the same way, with the potion.

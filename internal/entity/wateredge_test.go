@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Heirloom petitions 2189/2190 (Zerkziee) and the owner, 2026-11-15: "the
+// Heirloom petitions 2189/2190 and the owner, 2026-11-15: "the
 // sting rays chased players out of water at isle of dread"; "Stingrays in IoD
 // once you port in in the water chase you onto land when they attack you and
 // follow you out of the water". The island's manta rays, regan piranhas and

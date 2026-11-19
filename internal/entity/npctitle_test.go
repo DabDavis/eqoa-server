@@ -9,7 +9,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// Petitions 1765 and 1766 (the GM Jibrish): a title over the Testing Heroes
+// Petitions 1765 and 1766: a title over the Testing Heroes
 // Vendor's name, "XP Grinding Rewards", and over Dabrish's, "XP/CM's". A
 // titled NPC in view brings its plate on the next slot: under the title, where
 // it stands, on its own body at titleScale of its size (its name a quarter of
@@ -144,7 +144,7 @@ func TestLoadNPCTitles(t *testing.T) {
 	}
 }
 
-// Petitions 1790 and 1791 (the GM Jibrish): Dabrish's and the Testing Heroes
+// Petitions 1790 and 1791: Dabrish's and the Testing Heroes
 // Vendor's titles green. A title's colour is CLIENT's ApplyLook pick off the
 // plate's own channel alone (byte 142 >= 2, byte 157 bit 0: NameColors[2]),
 // so every viewer, of any level, sees the same; blue is 142 >= 2 without the
@@ -223,7 +223,7 @@ func TestLoadNPCTitleColors(t *testing.T) {
 	}
 }
 
-// Heirloom petition 2288 (the GM Jibrish, 2026-11-17): Santa's reindeer other
+// Heirloom petition 2288 (2026-11-17): Santa's reindeer other
 // than Rudolph not targetable. npctitle's noselect, with no title, clears the
 // NPC's byte 26 bit 0 (CLIENT's IsSelectable) for every viewer; the others
 // keep theirs, and a row made again keeps it.

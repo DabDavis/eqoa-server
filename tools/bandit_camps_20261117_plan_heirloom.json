@@ -1,6 +1,6 @@
 {
  "tool": "tools/bandit_camps_20261117.py",
- "made_from": "/home/sdg/.cache/bandits/db/bandits-heirloom.db",
+ "made_from": "bandits-heirloom.db",
  "parts": {
   "camps": [
    {

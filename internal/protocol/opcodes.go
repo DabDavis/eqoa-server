@@ -348,7 +348,7 @@ const (
 
 // SOE's live client's duel (eqoa-live-1500, entity/duelwire.go): 0x1501 up,
 // 0x1502 down, each {u8 sub, u32 duel id, ...}. The Frontiers disc has
-// neither. Sandstorm's S2 player search runs the other way (0x1502 up,
+// neither. The reference server's S2 player search runs the other way (0x1502 up,
 // 0x1500/0x1501 down), so neither direction clashes.
 const (
 	OpcodeDuelRequest GameOpcode = 0x1501 // client: challenge, decline, accept, surrender, the wager's
@@ -474,7 +474,7 @@ const (
 	// after a session's first character list; a client that reads the live
 	// look answers 1 to have it and 0 to go back. A PS2 ignores the offer and
 	// is sent the disc's look, as is every client of a server that never
-	// offers it (Sandstorm). Bit 1 of the answer: its select page lists every
+	// offers it (the reference server). Bit 1 of the answer: its select page lists every
 	// character (handlers/charslots.go); bit 2: it draws this server's armour,
 	// set 9 (the ornate plate) and the trim colours (entity/livelook.go
 	// ArmorChannel): its channels are then 225 bytes and its records' gear 95,
@@ -627,7 +627,7 @@ const (
 	OpcodePetDyes GameOpcode = 0x7E92
 
 	// OpcodeNoclip is not retail: a GM's /noclip (handlers/noclip.go,
-	// entity/noclip.go; the GM Jibrish's petition 1904), server to a client that
+	// entity/noclip.go; a GM's petition 1904), server to a client that
 	// flies (OpcodeFly's): a u32, 1 on and 0 off. On, the client's walk passes
 	// through every wall, floor and ceiling while it flies (it is sent with
 	// OpcodeFly 1, and its end with OpcodeFly 0). A client that does not know it
@@ -875,7 +875,7 @@ const (
 	// answered 1) is the retail body alone.
 	OpcodeNumberTagsAnswer GameOpcode = 0x7E39
 
-	// The raid's windows (the GM Jibrish's petitions 1448 and 1451: the leader's
+	// The raid's windows (a GM's petitions 1448 and 1451: the leader's
 	// mark, loot rules, need before greed's rolls, the master looter's list;
 	// entity/raidrules.go, handlers/raidloot.go). Not retail: CLIENT's dispatcher
 	// has no case above 0x1402 and no default, so a PS2 ignores every one and is
@@ -990,7 +990,7 @@ const (
 	// name keys the same (a player's never) with each of its colours' red,
 	// green and blue times the tint's (255ths), as much of it as the alpha
 	// says (0xFF the whole, 0 none). Each one is the whole set; 0 names: none.
-	// At most entity.NPCTintsMost. Layout 2 (the GM Jibrish's petition 1893:
+	// At most entity.NPCTintsMost. Layout 2 (a GM's petition 1893:
 	// Mr. Moogie's whole body in a soft red glow) follows each colour with a
 	// u32 glow 0xRRGGBBAA (0 none): a light of the body's own, the held items'
 	// glow (vanilla's aura.rs) on every layer of it, the colour at the alpha's
@@ -1050,7 +1050,7 @@ const (
 
 // A monster's name and level when the player talks to it (□, Q on vanilla's
 // keyboard) and it has nothing to say, for a client that shows them in the
-// target's details box (handlers/mobinfo.go, world.mob_info; the GM Jibrish's
+// target's details box (handlers/mobinfo.go, world.mob_info; a GM's
 // petition 1459, 2026-11-10: "press the mob information button on monster (Q
 // by default on keyboard). This should ONLY show the monsters name and level,
 // nothing else.").
@@ -1109,7 +1109,7 @@ const (
 )
 
 // Mercenaries told apart and dismissed from the menu, and the group search's
-// registration and its "Allow anyone in my group to invite" (the GM Jibrish's
+// registration and its "Allow anyone in my group to invite" (a GM's
 // petitions 1475, 1476 and 1488, 2026-11-11; handlers/mercui.go,
 // handlers/groupreg.go). None is retail: a PS2 ignores every offer (CLIENT's
 // dispatcher has no case above 0x1402 and no default) and never answers, so it
@@ -1297,7 +1297,7 @@ const (
 
 // Item links in chat, EQ1's: a player puts a link to one of its own items in a
 // line, and whoever clicks it sees the item as the linker held it then
-// (handlers/itemlinks.go; the GM Jibrish's petition 1463, 2026-11-10). A PS2,
+// (handlers/itemlinks.go; a GM's petition 1463, 2026-11-10). A PS2,
 // and any client that does not take links, sees the item's name in the line,
 // plain, the retail message byte for byte. All little-endian.
 const (
@@ -1351,7 +1351,7 @@ const (
 	OpcodeItemLinkRecord GameOpcode = 0x7E53
 )
 
-// The profanity filter as a client's own setting (the GM Jibrish's petition
+// The profanity filter as a client's own setting (a GM's petition
 // 1490, 2026-11-11: "Under options then interface add an option to turn the
 // profanity filter on or off"). The filter itself is retail's 0x0045 and the
 // server's (handlers/profanity.go): on at every login, masking what that one
@@ -1478,7 +1478,7 @@ const (
 const (
 	GameVersionEQOAFrontiers = 0x25
 	GameVersionEQOAVanilla   = 0x12
-	// GameVersionSandstormS2 is what a client running the Sandstorm S2 patch
+	// GameVersionSandstormS2 is what a client running the reference server's S2 patch
 	// reports on its SECOND session — the world-transfer / session-handoff one
 	// that follows character select. S2 rewrites `li $v0, 18` to `li $v0, 19` at
 	// CLIENT 0x00BC1EC8, in the outgoing write at 0x00BC1DCC, so the handshake
@@ -1491,7 +1491,7 @@ const (
 	// game, please try again later." — which reads like a patch-server problem
 	// and is not one.
 	GameVersionSandstormS2 = 0x13
-	// GameVersionSandstormS2Live is what Sandstorm's live S2 (October 2026)
+	// GameVersionSandstormS2Live is what the reference server's live S2 (October 2026)
 	// sends instead: a u32 21, then its own identity fields
 	// (claude-notes/sandstorm-s2-live-20261015.md); its world table is S2's
 	// eight, with no hard-disk loader after it.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The Froglok Herbalist's protection event (petition 1617, Lickinfrogs, barbarian warrior 60: "60 good war epic, ep1,
+"""The Froglok Herbalist's protection event (petition 1617, barbarian warrior 60: "60 good war epic, ep1,
 collected items for froglok herbalist, turned in and no mobs spawned"). EQOA-Data's Good Tank, Episode 1, and
 questmasters1.com's t238: "Talking to the Herbalist with your ingredients will initiate an event in which you must
 protect the herbalist. Every five minutes, 2 mobs will spawn - this will occur for 3 rounds ... Two Watchmen, Two
@@ -20,7 +20,7 @@ tools/seed_guide_gaps.py's machinery, every row it changes logged in guide_set_l
     potion (701141) given by the step's own done event;
   - quests 101035 and 101097 (the herbalist's two epic lines) step 4: its trigger event HELD (talking to him with the
     ingredients fires the event and takes nothing; a talk while it runs says so), its words and journal; step 5 and
-    everyone already past step 4 (Lickinfrogs, potion in hand) untouched;
+    everyone already past step 4 (potion in hand) untouched;
   - five spawn-only rows (looks copied off Guk's froglok guk warrior, zol knight, yun warrior, assassin, executioner;
     the bouncer at 1.3), held out of the world by row key ("#id": the world's froglok scouts stay where they are);
     npctemplate roamer for the new names as Guk's frogloks have; classtemplate "guk bouncer" (ours);

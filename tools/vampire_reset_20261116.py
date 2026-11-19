@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Undo one character's vampirism (Live petitions 5184/5187, Xylith, serverid 54).
+"""Undo one character's vampirism (Live petitions 5184/5187, serverid 54).
 
 A vampire is made by the vampire line (quest import keys Weres/vampire/*: "Razeal Has Won" makes
 one at its desmodus bats, through its step's "vampire" event, and its Hinder step teaches Feed and

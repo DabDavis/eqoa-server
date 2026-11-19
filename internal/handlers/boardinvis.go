@@ -10,7 +10,7 @@ import (
 )
 
 // boardinvis.go — a town's announcement board offers Superior Invisibility (petition
-// 1140, the GM's Jibmage: "For all announcement boards that currently give boon and sow,
+// 1140, the GM's GM: "For all announcement boards that currently give boon and sow,
 // when players talk to them also give it a dialogue option so they can optionally get a 10
 // minute superior invisibility cast on them"). After the boon and the Spirit of the Wolf,
 // the board asks; a yes lands the spell's own record on the player, as if it had cast it on
@@ -18,7 +18,7 @@ import (
 // The words are ours. A hostile act ends the invisibility as it ends any (invis.go).
 //
 // The same box offers the way back to where the player last died, while a rez's chance
-// still holds that place (petition 1218, the GM Jibrish: "Add to all signposts /
+// still holds that place (petition 1218: "Add to all signposts /
 // announcement boards in town an additional option players can select to get a 0% XP
 // resurrect that sends them back to the point they died at"): entity's TakeDeathPlace. A
 // town's other signs ask it alone, of one who has a place to go back to; a road's do not.

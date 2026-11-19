@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Quest kill and loot steps given the creatures their journal names (the
 user, 2026-10-30: "we need to look at drop rates for items, including quest
-drops. for example dust was farming beaks for the weapon quest and it never
+drops. for example [a GM] was farming beaks for the weapon quest and it never
 drops").
 
 A kill or loot step counts the creatures named its target, as the server

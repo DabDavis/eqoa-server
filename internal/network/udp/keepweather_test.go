@@ -12,7 +12,7 @@ import (
 )
 
 // A GM's weather goes across the exec (weather/keep.go): build321's keep
-// restart at 23:46 UTC 2026-11-16 dropped Jibrish's #weather snow heavy 5 here
+// restart at 23:46 UTC 2026-11-16 dropped a GM's #weather snow heavy 5 here
 // of 23:44:35. It comes back under its own id with the end it had, and a
 // weather called after takes an id past it.
 func TestAGMWeatherGoesAcrossTheExec(t *testing.T) {
@@ -30,11 +30,11 @@ func TestAGMWeatherGoesAcrossTheExec(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer l.Stop()
-	_, until, id, err := old.CallWeather(0, 2000, 2000, weather.Where{Kind: "here"}, weather.Snow, weather.Heavy, 5, "", "Jibrish", 0)
+	_, until, id, err := old.CallWeather(0, 2000, 2000, weather.Where{Kind: "here"}, weather.Snow, weather.Heavy, 5, "", "Jinkles", 0)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, _, id2, err := old.CallWeather(0, 9000, 9000, weather.Where{Kind: "here"}, weather.Sand, weather.Moderate, 20, "", "Dab", 0)
+	_, _, id2, err := old.CallWeather(0, 9000, 9000, weather.Where{Kind: "here"}, weather.Sand, weather.Moderate, 20, "", "Dax", 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -63,10 +63,10 @@ func TestAGMWeatherGoesAcrossTheExec(t *testing.T) {
 	l2 := NewListener(cfg, session.NewManager(), nil, now)
 	l2.ResumeKept(snap, time.Now())
 	got := now.Weather.Overrides(time.Now())
-	if len(got) != 2 || got[0].ID != id || !got[0].Until.Equal(until) || got[0].By != "Jibrish" || got[0].Kind != weather.Snow || got[1].ID != id2 {
-		t.Fatalf("after the exec: %+v, want #%d snow by Jibrish until %v and #%d", got, id, until, id2)
+	if len(got) != 2 || got[0].ID != id || !got[0].Until.Equal(until) || got[0].By != "Jinkles" || got[0].Kind != weather.Snow || got[1].ID != id2 {
+		t.Fatalf("after the exec: %+v, want #%d snow by Jinkles until %v and #%d", got, id, until, id2)
 	}
-	_, _, next, err := now.CallWeather(0, 2000, 2000, weather.Where{Kind: "here"}, weather.Rain, weather.Light, 3, "", "Dab", 0)
+	_, _, next, err := now.CallWeather(0, 2000, 2000, weather.Where{Kind: "here"}, weather.Rain, weather.Light, 3, "", "Dax", 0)
 	if err != nil || next <= id2 {
 		t.Fatalf("next id %d (%v), want past %d", next, err, id2)
 	}

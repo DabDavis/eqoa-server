@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Petition 2103 (Kyros, Heirloom, 2026-11-14): "Mummy for FP 17 quest should be Ancient Mummy. Location seems
+"""Petition 2103 (Heirloom, 2026-11-14): "Mummy for FP 17 quest should be Ancient Mummy. Location seems
 accurate." (he stood at world 0 (22900.1, 67.9, 16232.5), on mummy row 115916).
 
 The level 17 quest The Scribe's Inks (100748) asks for embalming fluid. The players' guide (eqoa.forumotion.com,

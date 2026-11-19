@@ -159,13 +159,13 @@ const (
 	equipHeldOff  = 20
 )
 
-// heldSlot is where an item held goes (petition 1019, Etmabattery's: "Eagle
+// heldSlot is where an item held goes (petition 1019: "Eagle
 // Rod is being equipped as if it is a primary ... I can't equip my primary
 // and held at the same time"). The first free slot of 19 and 20, CLIENT's
 // own EquipSlotFor (0x00BDCEA0) too, is 19 whenever no held item is worn, and
 // 19 takes the primary hand off while a primary weapon takes 19's item off
 // (12 → 14 empties 16, 18, 19): a weapon and a held item could never be worn
-// together, though Sandstorm's players held a mace or a staff with a wand
+// together, though the reference server's players held a mace or a staff with a wand
 // beside it (claude-notes/held-items-channel-20261022.md: the weapon item 0,
 // the wand item 1, which is 20), and with an item in 19 GetSwing gives a
 // caster no swing at all (entity.GetSwing: swingNone). So: the off hand when
@@ -189,7 +189,7 @@ func heldSlot(worn map[int]bool) int {
 // eitherHandSlot is where a weapon either hand may hold (wear 14, which the
 // item window calls SECONDARY: word 340) goes on a class that may hold two:
 // the primary hand while nothing is in it, else the secondary, taking the
-// place of what is there. Until petition 1376 (Zaeire's, a rogue of 60 with a
+// place of what is there. Until petition 1376 (a rogue of 60 with a
 // dagger in each hand: "if you ... equip a different secondary weapon, its
 // replacing the primary ... rather than the default left hand (secondary)")
 // both hands full took the first of the pair, the primary. CLIENT's own
@@ -649,7 +649,7 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 
 // cannotWear is why the player may not put the item on, "" when it may:
 // CLIENT's CanUse (0x00BCA8F0: the class mask, then the race mask, then the
-// level), in the lines Sandstorm refuses an item with (scribe.go). CLIENT
+// level), in the lines the reference server refuses an item with (scribe.go). CLIENT
 // marks such an item in the item menu (CanUseListItem) but sends the request
 // all the same, so the refusal is the server's; until 2026-10-29 it put on
 // anything (the user: "though the bracers are level 42 my level 2 sk can
@@ -676,7 +676,7 @@ func cannotWear(player *entity.Player, p *database.ItemPatternRecord) string {
 	return ""
 }
 
-// mayWear is cannotWear's refusal said in Sandstorm's red, and whether the
+// mayWear is cannotWear's refusal said in the reference server's red, and whether the
 // item may go on.
 func mayWear(sess *session.Session, player *entity.Player, p *database.ItemPatternRecord) bool {
 	why := cannotWear(player, p)

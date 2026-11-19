@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Ascended Natureblade at level 60 (Zerkziee's petition 1926, 2026-11-13: "Ranger 60 epic reward ability Ascended
+"""Ascended Natureblade at level 60 (a player's petition 1926, 2026-11-13: "Ranger 60 epic reward ability Ascended
 natures blad is lvl 49").
 
 Natureblade (700623) is the ranger's level 60 epic Broken path ability, which hands out the level 49 epic's spell
@@ -13,7 +13,7 @@ tools/ascended_epics_20261111.py made its Ascended copy with its base's level, 4
   outranks Natureblade in their line rather than tying it).
 
 Its figures are not touched: the proc is the record's 275 (questmasters' 250 a tenth more) plus 11% of its caster's STR
-(10% a tenth more), the INT 165: Zerkziee's procs land 321 every time in gameserver.log (275 + 11% of about 420 STR).
+(10% a tenth more), the INT 165: a player's procs land 321 every time in gameserver.log (275 + 11% of about 420 STR).
 
 Found by name ("Ascended Natureblade", listed in spellascended with its base "Natureblade"), never by id: Heirloom's is
 906732, Live's 906613. --also-broken does the same for the other Ascended copies of a 60 epic reward at level 49 (the

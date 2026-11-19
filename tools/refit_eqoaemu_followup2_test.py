@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """tools/refit_eqoaemu_followup2.py against tools/tune_pets_test.py's made-up database at the state the 16:38 re-fit
-leaves (the four tunings, then tools/refit_eqoaemu_balance.py and tools/refit_eqoaemu_followup.py, as eqoaclassic had
+leaves (the four tunings, then tools/refit_eqoaemu_balance.py and tools/refit_eqoaemu_followup.py, as the production server had
 them when the second round went in): each span's rows become this re-fit's exactly (rows changed, added and taken out),
 every row outside the spans and every other table as they were; the apply says "changed N rows" (the deploy reads that
 line); a second --apply changes nothing; --undo gives back every table exactly and drops the log; a GM's row is left

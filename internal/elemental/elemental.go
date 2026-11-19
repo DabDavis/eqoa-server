@@ -1,4 +1,4 @@
-// Copied from the elemental resistance research package of 2026-11-14 (EQOA-Elemental-Resistance-for-Dab-2026-11-14,
+// Copied from the elemental resistance research package of 2026-11-14 (its
 // reference-go/resist.go, prepared for this server by a GM collaborator through the owner), unchanged but for
 // the package name. The server adapter is entity/elemental.go.
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The Lord Valkanith quest's diamond from any creature of the dark elf tower of Sycamore Joy's Rest, at 10% (the owner,
-2026-11-17, at Dust's place in the tower, world 0 (23607.4, 73.1, 23714.0): "tal thex diamond isnt dropping for dust in
+2026-11-17, at a GM's place in the tower, world 0 (23607.4, 73.1, 23714.0): "tal thex diamond isnt dropping for [a GM] in
 the tower he is in"; Ronson's post, forum t171: the diamond "from Sycamore Joy's Rest, the dark elf tower on the east
 coast").
 

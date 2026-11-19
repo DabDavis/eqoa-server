@@ -23,7 +23,7 @@ func (c *caster) healed(d time.Duration, last *int) int {
 	return got
 }
 
-// jib's account (F3 20261025-222354), with the regular tick 2 s before the
+// A GM's account (F3 20261025-222354), with the regular tick 2 s before the
 // landing: the first tick at once, the next at the regular tick, four in
 // all, none after.
 func TestHoTFirstTickAtOnceThenTheRegularTick(t *testing.T) {
@@ -110,7 +110,7 @@ func TestHoTStrongerOverWeakerTakesItsNextTick(t *testing.T) {
 	}
 }
 
-// Without a regen tick yet the ticks keep Sandstorm's rhythm (six seconds
+// Without a regen tick yet the ticks keep the reference server's rhythm (six seconds
 // from the landing), and a recast of the same heal replaces it with no tick
 // at once.
 func TestHoTRecastReplacesWithoutATickAtOnce(t *testing.T) {

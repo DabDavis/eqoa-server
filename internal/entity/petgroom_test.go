@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// Zerkziee's construct as Jarek's Creation (cmpetlook.go) and the pets' dyes
+// A player's construct as Jarek's Creation (cmpetlook.go) and the pets' dyes
 // (petdyes.go; the owner, 2026-11-16).
 
 // jarekLook is Jarek's Creation's body, 0x15764DA8, as cmcatalog's effects
@@ -18,7 +18,7 @@ import (
 const jarekLook = 0x15764DA8
 
 // petLookRanks is a catalog of the fire elemental's look for character 77
-// alone (as Zerkziee's construct: requires the summoning spell, 717 in the
+// alone (as a player's construct: requires the summoning spell, 717 in the
 // pet rig, or 718 standing in for it), and a rank of another body requiring
 // no spell for anyone.
 func petLookRanks() []database.CMRankRow {

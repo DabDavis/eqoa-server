@@ -7,7 +7,7 @@ import (
 	"github.com/eqoa/server/internal/entity"
 )
 
-// Petition 5035 (the GM Jibrish), the con's lines: before six minutes an outsider is told when
+// Petition 5035, the con's lines: before six minutes an outsider is told when
 // the corpse unlocks and its owner how long it is theirs (a group mate too); from six minutes,
 // anyone is told it is anyone's and when it decays. A kill a raid made is locked the same, then
 // open. A pet's corpse says nothing.

@@ -3,8 +3,8 @@ package worlds
 // Patch art: the disc's art added to the art file the patch server sends
 // (patches/serve/ss-art.csf), so a sprite only some zones hold is had
 // everywhere. CLIENT reads its added art off the memory card at world entry
-// (retail addart.csf through a 16 KB buffer; Sandstorm's S2 reads ss-art.csf
-// through a bigger one, our served S2's 256 KB, Sandstorm's own live S2's 80
+// (retail addart.csf through a 16 KB buffer; the reference server's S2 reads ss-art.csf
+// through a bigger one, our served S2's 256 KB, the reference server's own live S2's 80
 // KB: claude-notes/esf-asset-injection.md) and parses it into the live scene,
 // re-parsing it at every scene's SetSky; vanilla adds the server folder's copy
 // to its library (crates/eqoa/src/main.rs, s2::Rules::art_path). So a
@@ -15,7 +15,7 @@ package worlds
 // AddArt copies a piece's records out of the disc as extras do (extras.go's
 // need: the sprite's record whole and, before it, every record it names by
 // DictID that the file does not register already), appended to the file's
-// top-level records after its own, so the base file's records, Sandstorm's
+// top-level records after its own, so the base file's records, the reference server's
 // robes and set 9 among them, keep their bytes and their order. Nothing of
 // the disc is in the repository: tools/art/*.json names the pieces, and
 // cmd/artbuild reads them off the operator's disc.

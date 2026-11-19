@@ -1,6 +1,6 @@
 {
  "tool": "tools/bandit_camps_20261117.py",
- "made_from": "/home/sdg/.cache/bandits/db/bandits-live.db",
+ "made_from": "bandits-live.db",
  "parts": {
   "camps": [
    {

@@ -4,10 +4,10 @@ is Equip: Robe", then "also look for others with same issue").
 
 Return Home's import (tools/import_prh_content.py, 2026-10-21) copied its wear slots as they stood, and among
 its records are belts, sashes and girdles in wear slot 2 (robe) and robes in wear slot 9 (belt): on
-eqoaclassic 173 and 51, the Bowline Belt among the first. The item window says "Equip: Robe" for such a belt
+the production server 173 and 51, the Bowline Belt among the first. The item window says "Equip: Robe" for such a belt
 (CLIENT reads the wear slot off the record), the server's equip puts it in the robe slot (handlers/equip.go:
 wear 2 goes in equip slot 21) and draws it as a robe of style 0 (handlers/character.go wornLook: wear 2 is a
-robe), and a robe in slot 9 goes on as a belt and draws nothing. Sandstorm's records (the harvests) and
+robe), and a robe in slot 9 goes on as a belt and draws nothing. The reference server's records (the harvests) and
 Allakhazam's item lists (tools/fetch_item_pages.py) hold 19 and 109 of these items, and every one of them is
 in the slot its icon says.
 
@@ -16,11 +16,11 @@ The rule:
   the names in those two slots: an icon whose items are named as belts (the head noun, before any " of ",
   a belt, sash, girdle, cord, cincture, strap or buckle) three times as often as robes is a belt's, and one
   named as robes (robe, gown, shroud, vestment, raiment, drape, cloak, mantle, smock, rags, tabard, uniform,
-  garb, shawl) three times as often a robe's. On eqoaclassic 9 icons are belts', 11 robes', none both.
+  garb, shawl) three times as often a robe's. On the production server 9 icons are belts', 11 robes', none both.
 - An item whose icon is of neither family goes by what its description calls it ("This belt has an ingot
   ...": the Ingot of Vitality), else it is listed and left.
-- With --prices and --pages, an item a Sandstorm record or an Allakhazam list places otherwise than its icon
-  is listed and left; and an item outside the two slots goes to the belt or the robe slot when its Sandstorm
+- With --prices and --pages, an item a reference-server record or an Allakhazam list places otherwise than its icon
+  is listed and left; and an item outside the two slots goes to the belt or the robe slot when its the reference server
   record, or every Allakhazam list naming it, says so and its icon is of that family (the Healthy Belt, in the
   chest slot: Allakhazam's Waist).
 - A record a GM edited in the panel (gm_audit) is listed and left.
@@ -127,7 +127,7 @@ def gm_patterns(db):
 
 
 def measured(k, ss, ak):
-    """(slot, source) a Sandstorm record or Allakhazam's lists give a name in the two slots' terms, or
+    """(slot, source) a reference-server record or Allakhazam's lists give a name in the two slots' terms, or
     (None, '') when neither places it as a belt or a robe."""
     if k in ss and ss[k][0] in (ROBE, BELT):
         return ss[k][0], "Sandstorm's record"

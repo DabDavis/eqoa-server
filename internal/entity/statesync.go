@@ -52,7 +52,7 @@ const (
 // velocityToByte is a velocity in units a second as the entity state's
 // signed byte: CLIENT's ChannelEntity (0x00BD41B8) reads bytes 40-42 as
 // (signed char) × 21/128 units a second — the Go client's world lane checked
-// the scale on two Sandstorm captures (creatures travel 1.019 and 1.011 of
+// the scale on two the reference server captures (creatures travel 1.019 and 1.011 of
 // velocity × time between updates). The old ×4 of a per-update position
 // difference moved a running player at about a quarter of its speed.
 func velocityToByte(v float32) byte {
@@ -192,7 +192,7 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 		binary.LittleEndian.PutUint32(buf[83:87], p.ctf.hand)
 	}
 	// Offset 91-92: the two hands' attack types (m_itemType), as every player
-	// in the Sandstorm captures has them: ApplyItems attaches items 0 and 1
+	// in the reference-server captures has them: ApplyItems attaches items 0 and 1
 	// with them, and the swing is picked by them (a two-hander's 2, 4 or 6
 	// off item 0; 0 has no attack animation).
 	buf[91] = p.PrimaryType
@@ -308,7 +308,7 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 	buf[156] = 0x01
 
 	// Offset 152, 154-155, 157: zero on every entity in the capture, but
-	// 154 is 1 on an invisible player: Sandstorm set it on the caster's own
+	// 154 is 1 on an invisible player: the reference server set it on the caster's own
 	// channel when Camouflage landed (2026-10-21, cast.go).
 	if p.Invisible() {
 		buf[154] = 1
@@ -317,7 +317,7 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 	// Offset 155: CLIENT's m_p263 (Byte263), in combat: VIClient::Process
 	// plays the battle music while the player's own is set (vanilla
 	// sound.rs battle_music, play.rs self_fighting), so with it never set no
-	// client had battle music (petition 2379, Bolgorf: none on android, the
+	// client had battle music (petition 2379: none on android, the
 	// PC app or the page). Set while the player swings at a target or for
 	// CombatMusicHold after its last blow given or taken (LastCombatTime: its
 	// swing or harmful spell landing, a creature's on it). Zero in the
@@ -360,7 +360,7 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 // lives shows at least 1. Until 2026-11-06 the byte was rounded down, so a creature
 // with under one 255th of its hit points left could not be hit by anyone's melee:
 // 1 to 6 of a crab's 1613, under 118 of a 30,000 raid creature's (petition 1125, the
-// GM Jibrish: "These 2 crabs were not dying to combat damage. I had to /kill both
+// GM a GM: "These 2 crabs were not dying to combat damage. I had to /kill both
 // with a GM command"; a player's "mobs rnt dying", both crabs left on 1).
 // CombatMusicHold is how long after its last blow given or taken a player's
 // channel still says it is in combat (byte 155: the battle music plays on).
@@ -491,7 +491,7 @@ func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
 	//
 	// $Tints (0x004E0C08) holds 15 entries and GetTintColor (0x004294E8) is
 	// `return &Tints[index*4]` with NO bounds check — the clamp to 0-14 lives
-	// in SetArmorSlot (0x00422530), and Sandstorm's S2 patches
+	// in SetArmorSlot (0x00422530), and the reference server's S2 patches
 	// SetArmorSlot+0x44. Under retail our 0xFF was clamped to 0 and nothing
 	// showed; under S2 it survives and GetTintColor reads 1020 bytes past a
 	// 60-byte table, yielding garbage RGBA (alpha included) — geometry drawn
@@ -543,7 +543,7 @@ func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
 	buf[141] = 0
 
 	// Offset 142: NameColor — eqoa.live: 0 for ALL NPCs, 2 for players only;
-	// 3 for a pet (pet.go: CLIENT's m_p256, player-side, as Sandstorm's
+	// 3 for a pet (pet.go: CLIENT's m_p256, player-side, as the reference server's
 	// summoned Fire Elemental carried it)
 	buf[142] = 0
 	if n.Owner != 0 {
@@ -667,21 +667,21 @@ func SerializeStatUpdate(p *Player) []byte {
 	writeInt32(24, int32(p.StatNow(StatCha)))
 
 	// HP/Power (offsets 28-43); the maximums with spells' (Rockskin's +30
-	// max HP came here on Sandstorm, the base at 148 kept)
+	// max HP came here on the reference server, the base at 148 kept)
 	writeInt32(28, int32(p.HP))
 	writeInt32(32, int32(p.MaxHPNow()))
 	writeInt32(36, int32(p.Power))
 	writeInt32(40, int32(p.MaxPowerNow()))
 
 	// Offsets 44-56: field_100 (always 100 on SOE retail), then stats 12
-	// and 13, HoT and PoT with the worn items' (regen.go; Sandstorm sends
+	// and 13, HoT and PoT with the worn items' (regen.go; the reference server sends
 	// 0; they were the old OFF/DEF placeholders), then the AC. CLIENT names
 	// stat 12 HoT and 13 PoT (FindStatWord: words 240, 241); until
 	// 2026-11-06 PoT went in 12 and HoT in 13 (petition 1091)
 	writeInt32(44, 100)
 	writeInt32(48, int32(p.HoTNow()))
 	writeInt32(52, int32(p.PoTNow()))
-	writeInt32(56, int32(p.StatNow(StatAC))) // Rockskin's AC 150 came here on Sandstorm
+	writeInt32(56, int32(p.StatNow(StatAC))) // Rockskin's AC 150 came here on the reference server
 
 	// Resists (offsets 88-111), with spells'
 	writeInt32(88, int32(p.StatNow(StatPR)))
@@ -700,7 +700,7 @@ func SerializeStatUpdate(p *Player) []byte {
 	writeInt32(136, int32(p.BaseInt))
 	writeInt32(140, int32(p.BaseCha))
 
-	// Base maxima (offsets 148, 156), as Sandstorm sends them (gear.go): the
+	// Base maxima (offsets 148, 156), as the reference server sends them (gear.go): the
 	// hit points of all the stamina without anything's own, the power of the
 	// base stats alone. 144 and 152 stay 0, not the current HP and power.
 	writeInt32(144, 0)
@@ -713,7 +713,7 @@ func SerializeStatUpdate(p *Player) []byte {
 	writeInt32(164, int32(p.HoTBase()))
 	writeInt32(168, int32(p.PoTBase()))
 
-	// Base AC (offset 172): 0, as on Sandstorm; the AC is all the worn items'
+	// Base AC (offset 172): 0, as on the reference server; the AC is all the worn items'
 	// and the spells' (56). The client adds the worn items' to the base half
 	// itself (GetStatTotal), so a base AC would count them twice.
 	writeInt32(172, 0)
@@ -740,9 +740,9 @@ func SerializeStatUpdate(p *Player) []byte {
 // only when an effect starts or ends.
 //
 // The effects are the player's own alone (p.Buffs). From 2026-11-06 to
-// 2026-11-09 its pet's were sent after them (petition 1041, Eatma: "Pet buffs
+// 2026-11-09 its pet's were sent after them (petition 1041: "Pet buffs
 // for necro aren't showing up on buff display"), and every client, a PS2's
-// too, showed them as the player's own (the user: "jibcro is showing pets
+// too, showed them as the player's own (the user: "[a character] is showing pets
 // buffs as if on him, put the buff icons under the pet name plate"): a
 // client that draws them under the pet's bar is sent them by OpcodePetEffects
 // (peteffects.go).

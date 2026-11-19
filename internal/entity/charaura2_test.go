@@ -8,7 +8,7 @@ import (
 )
 
 // A character's own hand second aura (charaura's color2 ... nodes2,
-// 2026-11-16: Dust's sword "will keep the red aura it has and stack the
+// 2026-11-16: a GM's sword "will keep the red aura it has and stack the
 // twinkle"): his row's first in the main hand's place and its second in the
 // main hand's second, both of the held item's auras given way; another
 // wearer of the same item keeps the item's two; a row with a first alone

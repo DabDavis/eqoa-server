@@ -271,7 +271,7 @@ func (cliff) Floor(_ uint8, x, y, _ float32) (float32, bool) {
 }
 
 // npcmove's roam 0 stands a creature on its spawn that its kind would walk
-// (a Giant Rat), 1 walks one its kind would stand (jib's Hexbones, not
+// (a Giant Rat), 1 walks one its kind would stand (a GM's Hexbones, not
 // wildlife), -1 leaves it to its kind; its own radius is its wander's.
 func TestNPCMoveStandsACreature(t *testing.T) {
 	w := roamWorld(t)
@@ -588,7 +588,7 @@ func TestAFishUpTheBankComesDown(t *testing.T) {
 
 // A player wading in shallow water (water at its feet, not half a unit up)
 // is on neither side of the edge: its attack on a creature in deeper water
-// is not refused (Heirloom petition 2145, Zerkx, Guk: "'your target is in
+// is not refused (Heirloom petition 2145, Guk: "'your target is in
 // the water' even if im in the water or the water is very low"). The
 // control: a player just out of it, dry at its feet, still is refused.
 func TestAWadingPlayerIsNotAcrossTheWatersEdge(t *testing.T) {

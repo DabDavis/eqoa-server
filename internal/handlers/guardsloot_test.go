@@ -7,7 +7,7 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 )
 
-// A creature the town guards hit is no one's to loot (entity/guards.go, jib's
+// A creature the town guards hit is no one's to loot (entity/guards.go, a GM's
 // F3 20261030-063534): its corpse answers "That entity is not lootable", by
 // 0x0004 and by 0x0015 alike. The control: the same corpse, no guard's,
 // opens with its item.

@@ -1,4 +1,4 @@
-// importdump parses a captured Sandstorm MemoryDump binary and imports the
+// importdump parses a captured the reference server MemoryDump binary and imports the
 // character's items and spells into eqoa.db. Creates pattern entries in
 // itempattern/spellpattern and per-character entries in charinventory/spells.
 //
@@ -276,7 +276,7 @@ func spellToRecord(sp *parsedSpell) *database.SpellPatternRecord {
 	}
 }
 
-// parseMemoryDump parses the Sandstorm MemoryDump binary.
+// parseMemoryDump parses the reference server MemoryDump binary.
 // Returns inventory items, bank items, spells, and character name.
 func parseMemoryDump(data []byte) (invItems, bankItems []parsedItem, spells []parsedSpell, charName string) {
 	// Skip opcode (2 bytes)

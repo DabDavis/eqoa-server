@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Zerkziee's druid staff glow lower down his weapons' blades (the owner, 2026-11-14: "lets move the druid epic aura
-down zerkziee scimitar down the blade more").
+"""a player's druid staff glow lower down his weapons' blades (the owner, 2026-11-14: "lets move the druid epic aura
+down [a player] scimitar down the blade more").
 
 His hands' charaura rows (slots 9 and 10, kind 7, source 0xCBF4135A, the Oak Staff of Eilerawdl: written by
 tools/zerkziee_glow_20261114.py) get nodes 45: on a hand that byte is where along the held weapon the borrowed sparkles
@@ -8,7 +8,7 @@ sit, the share in percent of its length from the hand (database.AuraAlongMost; v
 his Triad-look scimitar. 0 was the staff's own share, 78%, near the tip. --along N for another share (1-100). The
 named look "druid staff glow" carries 45 too, so /aura druid staff glow gives the same.
 
-Checked as found, else REFUSED and nothing written: exactly one character named Zerkziee; both his hand rows there and
+Checked as found, else REFUSED and nothing written: exactly one character named a player; both his hand rows there and
 of the druid staff glow (kind 7, source 0xCBF4135A). Report by default; --apply in one transaction, a gm_audit line a
 row, logged in zerkziee_glow_lower_1114_log; a second --apply finds nothing to do; --undo puts back exactly what was
 there, a row changed since left and listed. Run it on each shard.

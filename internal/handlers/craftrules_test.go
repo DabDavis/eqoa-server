@@ -113,7 +113,7 @@ func TestCraftChance(t *testing.T) {
 	}
 }
 
-// A tool's tier is its level / 5 + 1 (Sandstorm's ten hammers, levels 1, 6,
+// A tool's tier is its level / 5 + 1 (the reference server's ten hammers, levels 1, 6,
 // ... 46, are tiers 1 to 10), and a recipe of level L needs tier L or more.
 func TestCraftToolTier(t *testing.T) {
 	for _, c := range []struct{ levelReq, tier int }{
@@ -134,7 +134,7 @@ func TestCraftToolTier(t *testing.T) {
 }
 
 // A character with no rows: skills 0-3 at level 1 rank 0 and live; 4 and 5
-// sent as Sandstorm sends them and not live; a row makes any skill its own.
+// sent as the reference server sends them and not live; a row makes any skill its own.
 func TestCraftSkillDefaults(t *testing.T) {
 	var rows [database.CraftSkills]database.CraftSkill
 	for i := 0; i < 4; i++ {

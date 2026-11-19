@@ -103,7 +103,7 @@ func TestShardListChecks(t *testing.T) {
 	}
 }
 
-// A shard's name against the list's one line (the GM Jibwiz's petition 1923):
+// A shard's name against the list's one line (a GM's petition 1923):
 // "Live Server - No Wipes Ever" draws 253 and is cut; the box's names and the
 // proposed one fit. Widths are ARIALUI.CSF's, each glyph and one.
 func TestShardNameFits(t *testing.T) {

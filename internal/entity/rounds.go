@@ -6,20 +6,20 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// NPC melee in rounds, as Sandstorm's NPCs fight (recorded 2026-10-21 on
+// NPC melee in rounds, as the reference server's NPCs fight (recorded 2026-10-21 on
 // training dummies and the beach creatures by Muniel's Tea Garden, and in
 // pcaps/ps2_main_capture.pcap and ps2_sandstorm_cast_spells_and_autoattack.pcap;
 // claude-notes/training-dummies-20261021.md):
 //
 //   - A round opens with the NPC's swing at its target, 0x00B1 with the
 //     swing's delay (VISwing::Delay) as the cast time and VISwing::Effect's
-//     id, sent to everyone who sees the NPC (Sandstorm showed us a guard's
+//     id, sent to everyone who sees the NPC (the reference server showed us a guard's
 //     swing at another player).
 //   - Its hits come at fixed times into the round, each a 0x00DB to the
 //     player hit alone.
 //   - The swing is CLIENT's GetSwing for the NPC's class and level,
 //     carrying what it carries, as a player's is. For a warrior, which most
-//     of Sandstorm's NPCs are (641 of the 833 names it has shown us):
+//     of the reference server's NPCs are (641 of the 833 names it has shown us):
 //     below Lv20 Attack1, one hit at 0.5 s in a 3.2 s round; Lv20-34
 //     Attack2, hits at 0.5 and 1.5 s in 4 s; from Lv35 Attack4, hits at
 //     0.5, 1, 1.7 and 2.4 s in 6 s; from Lv35 with a shield Attack3, hits
@@ -48,7 +48,7 @@ func npcSwingKind(npc *NPC) int {
 
 // npcRound is the shape of the NPC's round: its length, the swing (the
 // delay its 0x00B1 carries, its effect id) and the times of its hits. The
-// length is the delay but for Attack1's: Sandstorm's said 3000 and came
+// length is the delay but for Attack1's: the reference server's said 3000 and came
 // every 3.2 s, twelve in a row.
 func npcRound(npc *NPC) (length, delay time.Duration, fx uint32, hits []time.Duration) {
 	kind := npcSwingKind(npc)
@@ -67,7 +67,7 @@ func npcRound(npc *NPC) (length, delay time.Duration, fx uint32, hits []time.Dur
 	return length, delay, HashResourceID(SwingEffectName(kind)), hits
 }
 
-// swingHits is the times of a round's hits by swing kind, as Sandstorm's
+// swingHits is the times of a round's hits by swing kind, as the reference server's
 // NPCs and players both land them (a player's measured from the first hit:
 // a bard's Attack4 0, 0.5, 1.2, 1.9 s; an SK's Attack3 0, 0.5; an
 // enchanter's Attack1 one): Attack1 one hit at 0.5 s; Attack2 at 0.5 and
@@ -106,7 +106,7 @@ func (w *World) npcRoundAtLocked(npc *NPC, target EntityID, now time.Time, hit f
 	length, delay, fx, hits := npcRound(npc)
 	if npc.RoundStart.IsZero() || !now.Before(npc.RoundStart.Add(length)) {
 		// a round on from the last one's start, a steady cadence as
-		// Sandstorm's; the first, or one after a pause, from now
+		// the reference server's; the first, or one after a pause, from now
 		next := npc.RoundStart.Add(length)
 		if npc.RoundStart.IsZero() || now.Sub(next) >= length {
 			next = now

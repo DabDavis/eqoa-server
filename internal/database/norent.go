@@ -7,13 +7,13 @@ import (
 )
 
 // norent.go: the records whose copies vanish when their holder logs out (the user,
-// 2026-11-07: "yes make no rent vanish at logout", for Jibrish's "Make all lord nagafens drop No
+// 2026-11-07: "yes make no rent vanish at logout", for a GM's "Make all lord nagafens drop No
 // Rent temporarily, we will turn that off later"). A record of rent 0 shows NO RENT and stays off
 // the auction, and until now that was all: the 36 conjured records of the old data (a magician's
 // Phase Staff, a rogue's Rogue's Dagger) stay on their holders, so a record vanishes only when a row
 // here names it. It goes at the holder's next login, which is its logout with any way of leaving
 // counted (a dropped link, a restart, a crash), unless that login comes within five minutes of a
-// logout charlogout recorded (jib's PR #1, the GM Jibrish's ruling of 2026-10-29: No Rent "means it
+// logout charlogout recorded (a GM's PR #1, a GM's ruling of 2026-10-29: No Rent "means it
 // vanishes if the player logs out for more than 5 minutes"; handlers/norent.go).
 
 const noRentVanishSchema = `
@@ -35,7 +35,7 @@ func (db *SQLiteDB) ensureNoRentVanish() error {
 
 // charlogout is when each character last left the world (its session's end, a shutdown's save), for its No
 // Rent items (handlers/norent.go: a login within five minutes of it keeps them). Read and taken away at the next
-// login; at is Unix seconds. jib's PR #1 (bf7400b), its table as the PR has it.
+// login; at is Unix seconds. A GM's PR #1 (bf7400b), its table as the PR has it.
 const charLogoutSchema = `
 	CREATE TABLE IF NOT EXISTS charlogout (
 		serverid INTEGER PRIMARY KEY,

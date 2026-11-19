@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-// The owner, 2026-11-18 (petition 2383, Wanuven): a REPEATABLE quest's item farms ahead past
+// The owner, 2026-11-18 (petition 2383): a REPEATABLE quest's item farms ahead past
 // the count one round wants (the SK exemplar's Screaming Souls: ten a round, the souls stack to
 // 999), before the quest is taken and past its loot step too (on its give step: the next
 // round's). A one-time quest stops at its count, as before. Each round's give step takes only

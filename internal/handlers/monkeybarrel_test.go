@@ -11,7 +11,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// The Barrel of Monkeys from the item menu (the owner, 2026-11-16: "give moose
+// The Barrel of Monkeys from the item menu (the owner, 2026-11-16: "give [a player]
 // a barrel of monkeys unique item. it spawns a monkey that follows him around,
 // up to 5"): each Use lets one more monkey out, named in a line with how many
 // are out, up to five; the fifth's line says the next Use sends them home, and

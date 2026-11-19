@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The Plane of Disease's quests as the wiki has them (the owner, 2026-11-12, sending wiki.eqoa.live's
 "Plane of Disease: Weapon Quest", "Plane of Disease: Ability Quest" and "Honcho Ulgurglch" (its "Plane of Disease:
-Noroxus Quest"), with Skywalker's petitions of the day; petition 1678: "rename this npc Rawlg the Carnage Hound").
+Noroxus Quest"), with a player's petitions of the day; petition 1678: "rename this npc Rawlg the Carnage Hound").
 
 The quests are tools/quests/data/portal.json's, as now edited, written again through tools/import_quests.py for
 their keys alone (found by key in quest_import_quests and checked by giver and name; refused when a GM has changed

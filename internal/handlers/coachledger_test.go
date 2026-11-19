@@ -482,7 +482,7 @@ func TestEveryLedgerAtOnceIsKeptAsItsOwnSource(t *testing.T) {
 	}
 }
 
-// Petition 1124, the GM Jibrish: "The Oggok coachman is not on the coach network
+// Petition 1124: "The Oggok coachman is not on the coach network
 // with any connected paths." Coachman Dilga, in the Rathe, is Oggok's: his coach
 // runs to Dark Solace in Tunaria and Dark Solace's back, each once the other's
 // ledger is signed, and a ride changes the player's world. The network's other

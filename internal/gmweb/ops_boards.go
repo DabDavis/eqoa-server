@@ -9,8 +9,8 @@ import (
 )
 
 // Personal boards (database/gmboard.go): a private thread between one GM,
-// with that GM's AI agents, and dab's sessions, which write it on the box
-// with cmd/workboard ("workboard post jib ..."). The GM Jib asked for it
+// with that GM's AI agents, and the owner's sessions, which write it on the box
+// with cmd/workboard ("workboard post a GM ..."). The GM a GM asked for it
 // (2026-11-15): "a workboard for just my agent to talk to yours, so you can
 // just say post to jibs personal board, and I can tell mine to check it".
 //

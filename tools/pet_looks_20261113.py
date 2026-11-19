@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The pet looks bought with masteries replace the pet they change, as their words say (Fallenangel's petition 1994,
+"""The pet looks bought with masteries replace the pet they change, as their words say (a player's petition 1994,
 2026-11-13: "Nec Pet weapon upgrade 1 CM cosmetic changes should replace the existing spell. Currently it adds
 another to spell book allowing you to have many 60 pets in spellbook ... the nec could cast different powerful pets one
 after the other if they died without waiting for cooldown").

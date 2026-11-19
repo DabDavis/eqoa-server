@@ -1,28 +1,28 @@
 #!/usr/bin/env python3
-"""The starting items' records as Sandstorm's (the user, 2026-10-29: "the
+"""The starting items' records as the reference server's (the user, 2026-10-29: "the
 starting rations are in the wrong slot, they are showing as Misc stacks.
 should be magic slot as usable").
 
-tools/seed_start_items.py gives a new character Sandstorm's starting items,
-by this database's records of them, and those were not Sandstorm's:
+tools/seed_start_items.py gives a new character the reference server's starting items,
+by this database's records of them, and those were not the reference server's:
 - **The rations' item type was 0.** That is the record's +0x4C,
   itempattern.procanim. CLIENT files an item under Misc unless its type is
   2, 5, 7 or 8 (VIInfoText::IsMisc 0x00C0A3A0, IsUsable 0x00C0A3F0), and a
-  type 2 item also fits the HUD's first two quick slots. Sandstorm's rations
+  type 2 item also fits the HUD's first two quick slots. The reference server's rations
   are type 2.
 - **The rations' masks were 0, and their level 0.** Their descriptions were
   the older "Simple field rations.".
 - **The Apprentice Sword left out warriors** (class mask 14 where
-  Sandstorm's is 15) and gnomes, barbarians and halflings (race mask 823
-  where Sandstorm's is 1023). The wear rule of the same day refused the
+  the reference server's is 15) and gnomes, barbarians and halflings (race mask 823
+  where the reference server's is 1023). The wear rule of the same day refused the
   sword to the warriors who start with it.
 
-The faction survey (--measured: a new character of every combo on Sandstorm,
-with its inventory) holds Sandstorm's record of each. Each item a new
+The faction survey (--measured: a new character of every combo on the reference server,
+with its inventory) holds the reference server's record of each. Each item a new
 character carries there takes it where ours differs: every column a ware
 fills (tools/item_rows.py's item_row) and its stats. Its id,
 model and colour are kept (no ware carries the last two). An item is ours by
-Sandstorm's id where our record of that id has its name, else by its name,
+the reference server's id where our record of that id has its name, else by its name,
 as seed_start_items.py finds it. One a GM changed (gm_audit) is left and
 said.
 
@@ -90,7 +90,7 @@ def plan(db, combos):
             continue
         have = dict(zip(cols, db.execute("SELECT * FROM itempattern WHERE patternid = ?", (pid,)).fetchone()))
         row, _ = harvest.item_row(w)
-        # a stat Sandstorm's record lacks is NULL; ours 0 reads the same (no stat)
+        # a stat the reference server's record lacks is NULL; ours 0 reads the same (no stat)
         want = {c: v for c, v in row.items()
                 if c in have and c not in KEEP and have[c] != v and not (v is None and have[c] in (0, None))}
         if want:

@@ -23,7 +23,7 @@ import (
 // between the well and the east sign post on each shard). A talk to it is the
 // shard's fallen Hardcore characters, the newest fall first, memorialPerPage a
 // talk in dialogue boxes (0x0046, packed: sayPacked, 217 characters a box,
-// within CLIENT's ring of eleven), each a line: "Meshuggah, level 52 Shadow
+// within CLIENT's ring of eleven), each a line: "a player, level 52 Shadow
 // Knight, 140 CMs, fell 2026-11-18 08:45 UTC in Freeport, slain by a Zek
 // sentry." The next talk shows the next page, and after the last the first
 // again. Nothing past ASCII or a '|' (a PS2's TextBox: claude-notes
@@ -163,7 +163,7 @@ func IsLeaderboard(name string) bool {
 	return strings.EqualFold(strings.TrimSpace(name), LeaderboardName)
 }
 
-// LeaderboardLine is rank's line: "1. Meshuggah, level 52 Shadow Knight, 140
+// LeaderboardLine is rank's line: "1. A player, level 52 Shadow Knight, 140
 // CMs, alive 12d 4h".
 func LeaderboardLine(rank int, h database.LivingHero, now time.Time) string {
 	line := fmt.Sprintf("%d. %s, level %d %s, %s", rank, h.Name, h.Level, entity.ClassName(h.Class), countOfThing(h.CMs, "CM", "CMs"))

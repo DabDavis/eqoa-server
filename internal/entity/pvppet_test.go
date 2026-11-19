@@ -7,7 +7,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// A foe's pets are fought as the foe is (pvp.go, the owner 2026-11-18: "zerkziee and I are Pvp
+// A foe's pets are fought as the foe is (pvp.go, the owner 2026-11-18: "[a player] and I are Pvp
 // flagged but pets dont get flagged so i cant attack").
 
 const (

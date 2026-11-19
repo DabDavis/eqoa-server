@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// statsreport.go — #stats (F3 20261026-014422, jib: "For testing purposes we
+// statsreport.go — #stats (F3 20261026-014422, a GM: "For testing purposes we
 // need a gm /command to display extended states - such as PoT, HoT, def mods,
 // off mods and any other not normally displayed stats, in the chat log"):
 // what the server works out about a player or a creature and the game does

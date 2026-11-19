@@ -7,7 +7,7 @@ import (
 
 // wildlife.go — which creatures are wildlife, the kind that wanders round its
 // spawn (roam.go) when table npcmove does not say otherwise (F3
-// 20261026-042712, jib: "Not all mobs are wild life. Fire Giants are roaming
+// 20261026-042712, a GM: "Not all mobs are wild life. Fire Giants are roaming
 // currently when they should not be unless otherwise specified / designated
 // as a roamer with a path").
 //

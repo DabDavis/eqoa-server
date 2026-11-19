@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Two tellings of one errand exclude each other (petition 2199, Heirloom, Cardile: "argot bittersteel is asking for
+"""Two tellings of one errand exclude each other (petition 2199, Heirloom, a player: "argot bittersteel is asking for
 the runed tablet. i already retrieved it but hes sending me back to get it again").
 
 The same errand came in from two guides: 100868 "The Runed Clay Tablet" (Crikston Gundlefop's class and race quest,
@@ -15,7 +15,7 @@ What --apply writes, in one transaction, each change a gm_audit line and a row o
   - quest_import_quests.digest of the two (tools/import_quests.py's digest), when it was the quest's own before the
     change, so a later import still knows them as its own (a GM's changed quest is left and said);
   - charquests: a character who finished one of the two and holds the other unfinished (done 0: under way, or a row
-    left at step 0) loses the unfinished one's row (Cardile holds 100770 at step 1); the row is logged whole.
+    left at step 0) loses the unfinished one's row (a player holds 100770 at step 1); the row is logged whole.
 A character with both under way, or both finished, is reported only.
 
 Report by default; --apply; --undo (the excludes as they were, the rows back where the character has none of the

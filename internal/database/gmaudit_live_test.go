@@ -10,7 +10,7 @@ func TestAuditGMLive(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
-	if _, err := db.Exec(`INSERT INTO accountinfo (accountid, username) VALUES (44, 'jibrish')`); err != nil {
+	if _, err := db.Exec(`INSERT INTO accountinfo (accountid, username) VALUES (44, 'jinkles')`); err != nil {
 		t.Skipf("accountinfo here: %v", err)
 	}
 	id, err := db.AuditGMLive(GMEdit{AccountID: 44, Via: "game", IP: "10.0.0.1"}, "#reward in the game: GM's Reward on Bob")
@@ -19,7 +19,7 @@ func TestAuditGMLive(t *testing.T) {
 	}
 	var user, via, action, tbl, detail string
 	db.QueryRow(`SELECT username, via, action, tbl, detail FROM gm_audit WHERE id = ?`, id).Scan(&user, &via, &action, &tbl, &detail)
-	if user != "jibrish" || via != "game" || action != "live" || tbl != "" || detail != "#reward in the game: GM's Reward on Bob" {
+	if user != "jinkles" || via != "game" || action != "live" || tbl != "" || detail != "#reward in the game: GM's Reward on Bob" {
 		t.Errorf("the line: %s %s %s %q %q", user, via, action, tbl, detail)
 	}
 	if _, err := db.AuditGMLive(GMEdit{AccountID: 99, Via: "game"}, "x"); err == nil {

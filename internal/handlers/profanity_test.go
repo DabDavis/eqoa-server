@@ -14,7 +14,7 @@ func TestMaskProfanity(t *testing.T) {
 	for in, want := range map[string]string{
 		"shit cunt penis":                          "**** **** *****",
 		"FUCKING hell, shitty!":                    "******* hell, ******!",
-		"Jibrish shouts: penis":                    "Jibrish shouts: *****",
+		"Jinkles shouts: penis":                    "Jinkles shouts: *****",
 		"Scunthorpe cockatrice assist class grass": "Scunthorpe cockatrice assist class grass",
 		"you ass": "you ***",
 	} {
@@ -33,7 +33,7 @@ func TestProfaneNamesAreRefused(t *testing.T) {
 			t.Errorf("%s was taken", n)
 		}
 	}
-	for _, n := range []string{"Grapes", "Hancock", "Cassandra", "Titania", "Dickens", "Funyun", "Jibrish"} {
+	for _, n := range []string{"Grapes", "Hancock", "Cassandra", "Titania", "Dickens", "Fumble", "Jinkles"} {
 		if !h.isValidName(n) {
 			t.Errorf("%s was refused", n)
 		}

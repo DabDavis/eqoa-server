@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// The NPC rounds held to Sandstorm's: the swing by level and gear, its
+// The NPC rounds held to the reference server's: the swing by level and gear, its
 // length and hit times, the swing to everyone who sees the NPC and the hits
 // to the player hit, and the fight's end with the enemy.
 
@@ -34,7 +34,7 @@ func TestNPCRoundShapes(t *testing.T) {
 		{"the Lv35 gharial: Attack4 every 6 s", NPC{Level: 35}, 6000, 6000, 0xDA9BEA14, []int{500, 1000, 1700, 2400}},
 		{"a Lv49 guard with sword and shield: Attack3 every 4 s", NPC{Level: 49, PrimaryWeapon: 0x64B86194, Shield: 0x77CAADDE}, 4000, 4000, 0xDA9BEA13, []int{500, 1000}},
 		{"a Lv60 with a sword alone: Attack4", NPC{Level: 60, PrimaryWeapon: 1}, 6000, 6000, 0xDA9BEA14, []int{500, 1000, 1700, 2400}},
-		// the class's swing, as a player's (Sandstorm's classes: a Crag Wisp
+		// the class's swing, as a player's (the reference server's classes: a Crag Wisp
 		// is a magician, Guard Findel a shadow knight)
 		{"a Lv27 magician: Attack1 always", NPC{Level: 27, Class: 10}, 3200, 3000, 0xDA9BEA11, []int{500}},
 		{"a Lv60 enchanter: Attack1 always", NPC{Level: 60, Class: 12}, 3200, 3000, 0xDA9BEA11, []int{500}},

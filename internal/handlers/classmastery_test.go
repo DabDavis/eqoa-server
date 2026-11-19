@@ -617,7 +617,7 @@ func TestCMNeedsAQuestFinished(t *testing.T) {
 	}
 }
 
-// A removal gives nothing back (jib, F3 20261026-043542): the rank's cost
+// A removal gives nothing back (a GM, F3 20261026-043542): the rank's cost
 // leaves the spent points and the unspent stay, so the character holds that
 // many fewer, to earn again; the later rank goes first; a rank whose
 // abilities it added takes them back and gives back those it took. The
@@ -662,7 +662,7 @@ func TestCMRemoveGivesNothingBackAndKeepsOrder(t *testing.T) {
 }
 
 // A rank that adds and removes one spell improves it in place (EQOA-Data's
-// Quick Blade, Hydromancy...; jib's review, F3 pass 19): buying it leaves the
+// Quick Blade, Hydromancy...; a GM's review, F3 pass 19): buying it leaves the
 // spell in the book, so the next rank, which needs the same spell, can be
 // bought; removing it and #cmreset leave it too. The control: Battle Cry 1,
 // which adds one spell and removes another, still swaps them.

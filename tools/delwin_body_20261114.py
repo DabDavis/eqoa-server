@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Delwin Stitchfinger stands (Kyros's petition 2065, 2026-11-14: "Pretty funny since in the quest you kill him anyways,
+"""Delwin Stitchfinger stands (a player's petition 2065, 2026-11-14: "Pretty funny since in the quest you kill him anyways,
 but Delwin Stitchfinger is dying constantly and/or laying facedown when you go to talk to him the first time for bard
 quest (either 13 or 15 I think?)").
 
 Delwin (npcs row 1138, Bobble-by-Water, the bard's level 13 quest Ilenar's Robe: steps 2, 4 and 7 are his) has the
-body Sandstorm gives him, CHAR.ESF 0xD7741560: the halfling made for the quest's end ("Oh... I feel faint...", the
+body the reference server gives him, CHAR.ESF 0xD7741560: the halfling made for the quest's end ("Oh... I feel faint...", the
 fixed chocolates of step 7), one play-once clip (lying, up, down again) that the client copies into every animation
 slot, so each idle fidget plays the fall again (claude-notes/f3-pass-20261028.md: it was judged then to be the record;
 the petition says it is wrong where the quest starts). This gives him the halfling man's own body, 0xA3DB3FE2, the

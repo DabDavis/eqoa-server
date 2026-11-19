@@ -552,7 +552,7 @@ func TestAnItemThatIsACirclet(t *testing.T) {
 }
 
 // A hat another body has built in (kind 10 on the helm's charaura slot,
-// 2026-11-16: Hoofbite's kappa straw hat): sent whether a helm is worn or
+// 2026-11-16: a player's kappa straw hat): sent whether a helm is worn or
 // not, hidden or not (the client draws it in place of the helm); valid on the
 // helm's charaura slot alone (and itemaura: TestAnItemThatIsAHat), never in
 // npctint, and it always shows, with no colour too.
@@ -590,7 +590,7 @@ func TestAHatOnTheHead(t *testing.T) {
 }
 
 // An item that is a hat (itemaura kind 10 on a helm-slot record, 2026-11-16:
-// Dust's Turban of Twisted Virtue): worn in the helm's slot it shows; hidden,
+// a GM's Turban of Twisted Virtue): worn in the helm's slot it shows; hidden,
 // none; worn on any other piece, none; a character's own hat (charaura) still
 // wins over it. Kind 10 is valid in itemaura, never in npctint.
 func TestAnItemThatIsAHat(t *testing.T) {

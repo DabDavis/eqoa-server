@@ -144,7 +144,7 @@ func TestAuraEasyWords(t *testing.T) {
 		{"monk circlet height=82", auraSpec{A: database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: 82}, Where: entity.AuraHelm, Look: "monk circlet"}},
 		{"red circlet head source=1D875ECD height=70%", auraSpec{A: database.ItemAura{Color: 0xFF2020FF, Kind: database.AuraCirclet, Source: 0x1D875ECD, Nodes: 70}, Where: entity.AuraHelm}},
 		{"circlet helm source=1D875ECD", auraSpec{A: database.ItemAura{Kind: database.AuraCirclet, Source: 0x1D875ECD}, Where: entity.AuraHelm}},
-		// a hat another body has built in (2026-11-16, Hoofbite's): on the head by default
+		// a hat another body has built in (2026-11-16, a player's): on the head by default
 		{"santa hat", auraSpec{A: database.ItemAura{Kind: database.AuraHat, Source: database.GnomeCap, Nodes: database.HatSanta}, Where: entity.AuraHelm, Look: "santa hat"}},
 		{"kappa hat", auraSpec{A: database.ItemAura{Kind: database.AuraHat, Source: database.KappaHat}, Where: entity.AuraHelm, Look: "kappa hat"}},
 		{"green Kappa_Hat head", auraSpec{A: database.ItemAura{Color: 0x30FF40FF, Kind: database.AuraHat, Source: database.KappaHat}, Where: entity.AuraHelm, Look: "kappa hat"}},
@@ -542,7 +542,7 @@ func TestGMAuraItemSecond(t *testing.T) {
 	}
 }
 
-// /aura second ... on a player (2026-11-16, Dust's sword: "it will keep the
+// /aura second ... on a player (2026-11-16, a GM's sword: "it will keep the
 // red aura it has and stack the twinkle"): the hand's second kept beside its
 // own first (charaura's color2 ... nodes2), audited, in the world at once; a
 // piece's slot and a shell refused; second off clears it, the first kept.

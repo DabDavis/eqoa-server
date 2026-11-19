@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// Training dummies as Sandstorm's, measured 2026-10-21 with eqoa-rs's
+// Training dummies as the reference server's, measured 2026-10-21 with eqoa-rs's
 // `eqoa harvest` attack step on the Freeport "Training Dummy Lv50" and
 // Muniel's Tea Garden's ladder of Lv20-60
 // (claude-notes/training-dummies-20261021.md):
@@ -66,7 +66,7 @@ func DummyKindOf(name string) DummyKind {
 var dummyHitsName = regexp.MustCompile(`(?i)\bx([2-9])\s*$`)
 
 // DummyHitsOf is how many times as hard a sparring dummy of that name hits
-// (petition 1324, jibrish, 2026-11-09: "Add a second sparring dummy that hits
+// (petition 1324, 2026-11-09: "Add a second sparring dummy that hits
 // twice as hard as the previous one but is otherwise the same"): the digit of
 // a name ending "x2" to "x9", else 1.
 func DummyHitsOf(name string) int {
@@ -90,10 +90,10 @@ const dummyReach = 10
 
 // dummyEngagedLocked is a hit landing on a dummy, n told: its hate for the one
 // that landed it, a player, a pet or a mercenary (by), and its fight begun if it
-// had none. The first round starts at once, as Sandstorm's did within a tick of
+// had none. The first round starts at once, as the reference server's did within a tick of
 // the first hit.
 //
-// A dummy's hate (the magician Lifeispain's petition 1484: "Sparing/Training
+// A dummy's hate (a magician's petition 1484: "Sparing/Training
 // dummy's in FP won't attack a pet, even if the caster is well out of striking
 // distance. They just stand there. They should attack whichever has the most
 // hate"): until then a pet's or a mercenary's hit set the dummy on its owner,

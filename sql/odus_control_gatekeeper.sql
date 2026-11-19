@@ -15,7 +15,7 @@
 --   Odus is empty -> the world-change path itself is broken for everything,
 --                    and guk was never the problem
 --
--- Position is the exact one captured from a real gatekeeper port on Sandstorm
+-- Position is the exact one captured from a real gatekeeper port on the reference server
 -- (claude-notes/memcard-world-loading.md): world 02, (7338.12, 54.21, 11124.15).
 -- Being a warp NPC it also gives Odus a way BACK, so the control cannot strand
 -- anyone the way the earlier failed guk teleport did.

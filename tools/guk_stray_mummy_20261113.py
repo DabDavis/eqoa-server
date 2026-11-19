@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guk's stray mummy (Waldorf's ticket 2010, 2026-11-13: "I've killed 306 of 307. Is the last npc the teleport?", then
+"""Guk's stray mummy (a player's ticket 2010, 2026-11-13: "I've killed 306 of 307. Is the last npc the teleport?", then
 "You actually have/put a mummy at a random camp outside the dungeon near the water").
 
 The 307th of Guk's instance is world 14 row 166250, a "mummy" (level 60) at (24979.3, 59.0, 28791.3): a copy that

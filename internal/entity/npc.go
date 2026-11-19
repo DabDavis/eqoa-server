@@ -28,7 +28,7 @@ type NPC struct {
 	ModelID int64
 	Size    float32
 	// Art is a player's pet's look past any body CHAR.ESF holds (a mastery
-	// rank's PetArt: a zone's prop, Zerkziee's catapult; cmpetlook.go), sent
+	// rank's PetArt: a zone's prop, a player's catapult; cmpetlook.go), sent
 	// in place of ModelID to a client that draws it (decorlights.go's
 	// petArtViewLocked); 0 none
 	Art uint32

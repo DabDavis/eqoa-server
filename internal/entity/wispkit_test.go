@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// The Wisp's kit as Zauz designed it (tools/wisp_kit_20261112.py, the owner
+// The Wisp's kit as a player designed it (tools/wisp_kit_20261112.py, the owner
 // 2026-11-12), its records as the tool writes them, read by the engine as it
 // stands: Ponder's PoT, 80% of the caster's level and 3% of its INT; and
 // Metaphysical Wound's FR, CR and LR -125 each and a tenth of the caster's
@@ -109,7 +109,7 @@ func TestWispKitRanksSum(t *testing.T) {
 
 // TestRealWispFullSpec prints a level 60 wizard's maxima as the server's kit
 // gives them (SimKitFromDB, the middle tier), a human with no racial or
-// Master Class beside a Wisp with Zauz's whole kit, for the owner
+// Master Class beside a Wisp with a player's whole kit, for the owner
 // (EQOA_REAL_DB: a copy with tools/wisp_kit_20261112.py applied;
 // EQOA_WISP_PROBE=1).
 func TestRealWispFullSpec(t *testing.T) {

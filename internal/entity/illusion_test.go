@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// Illusions (F3 20261025-173245, jib's). The bodies are charactermodel's
+// Illusions (F3 20261025-173245, a GM's). The bodies are charactermodel's
 // rows (race, sex, model, as the wire carries a model id) and this server's
 // own Clay Golems'.
 

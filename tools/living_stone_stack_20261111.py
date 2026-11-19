@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Living Stone stacks with every buff (petition 1579, Tom, 2026-11-11: "Living stone MCA for gargoyle doesnt stack on
+"""Living Stone stacks with every buff (petition 1579, 2026-11-11: "Living stone MCA for gargoyle doesnt stack on
 raid buffs").
 
 Living Stone (spell 760156, the gargoyle's mastery: 2000 health at once and 400 AC for a minute) was of the workbook's

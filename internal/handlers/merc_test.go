@@ -472,7 +472,7 @@ func TestFamiliarItemCallsIt(t *testing.T) {
 	}
 }
 
-// Petition 1504 (Lifeispain): a merc back at a login is asked into a group,
+// Petition 1504: a merc back at a login is asked into a group,
 // and the no dismisses it, its row dropped as /merc dismiss drops it; the next
 // login brings none. The control: the row is kept until the answer.
 func TestADeclinedMercsHireEnds(t *testing.T) {

@@ -26,7 +26,7 @@ func (w *World) ToggleGMHidden(id EntityID) (on, ok bool) {
 	return p.GMHidden, true
 }
 
-// ToggleGMTestMode is #testmode on the player (the GM Jibrish's petition 1272:
+// ToggleGMTestMode is #testmode on the player (a GM's petition 1272:
 // "This makes it so the GM cannot die, but still takes full displayed damage.
 // The idea being to spawn a raid boss, test its damage without needing
 // healers."): every hit is taken and shown in full, and a hit that would kill

@@ -1,7 +1,7 @@
 package entity
 
 // seaspeed.go — a sea folk race swims at Spirit of the Wolf's speed (the GM
-// Jibrish's petition 1650, for the Mermaid race of petition 1620: "When the new
+// a GM's petition 1650, for the Mermaid race of petition 1620: "When the new
 // mermaid race is added, it should detect if its in water and swim at SoW
 // speed by default").
 //

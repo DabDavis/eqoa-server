@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// A player's melee hit on an NPC, as Sandstorm's lands: measured 2026-10-22
+// A player's melee hit on an NPC, as the reference server's lands: measured 2026-10-22
 // on Muniel's Tea Garden's training dummies and a beach Gharial, 1,595
 // swings by three characters of three archetypes, the weapon, its
 // condition, STR, DEX and the target moved one at a time
@@ -98,10 +98,10 @@ func targetDefenceAt(npc *NPC, level int) float64 {
 // punches want bare hands (the workbook's required equipment None,
 // workbookmore.go), so until then a monk fought with a weapon or with
 // nothing. Ours: no record of the live game's hand-to-hand damage exists,
-// and Sandstorm's unarmed characters do not swing at all. It is the line of
+// and the reference server's unarmed characters do not swing at all. It is the line of
 // the server's own items: the median DMG of the one-handed weapons a monk may
 // wear (wear 12 and 14, attack types 1-6, a class mask with the monk's bit or
-// none, no GM's test item) at each levelreq 1-60 (eqoaclassic's of
+// none, no GM's test item) at each levelreq 1-60 (the production server's of
 // 2026-11-01: 283 weapons over 58 levels) lies on 10.64 a level less 4
 // (least absolute deviations; each ten levels' median residual within 3 of
 // it; least squares on the medians 10.34 L + 5.6, on every weapon 10.95 L -
@@ -109,7 +109,7 @@ func targetDefenceAt(npc *NPC, level int) float64 {
 // 528 at 50, 634 at 60. The levels' own medians at 58-60 run above it (640,
 // 690, 700: the epics).
 //
-// Then a tenth less (petition 1455, the monk Drunkenfist, 2026-11-10: "Monks
+// Then a tenth less (petition 1455, a monk, 2026-11-10: "Monks
 // barefist damage should be reduced by 10% to match live. Bare hand damage is
 // doing 450 dmg a hit vs 430 a hit with force of mind"): handToHandShare of the
 // line, 6 at level 1, 44 at 5, 92 at 10, 188 at 20, 284 at 30, 379 at 40, 475

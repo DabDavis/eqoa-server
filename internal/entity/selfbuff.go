@@ -21,7 +21,7 @@ import (
 // and Mr. Moogie's strip would take them); its procs' hits show the ability's own look (fx) at what they
 // hit, the creature special's for none, and its veil's taps their fx or nothing.
 //
-// A killsay (database.AbilityKillSay; the GM Jibrish's petition 1458: "whenever he kills Innoruuk he says
+// A killsay (database.AbilityKillSay; a GM's petition 1458: "whenever he kills Innoruuk he says
 // "Dab got dunked again"") is its creature's line in /say ("Name: text", heard as a say is, within a say's
 // reach) when a hit of its own kills one of its foes by name: the killing blow, tracked exactly, of its
 // melee, casts, specials, kicks, procs, veil, rampage or damage over time on a creature (an NPC: the fight's

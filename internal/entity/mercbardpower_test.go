@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// A player bard's power songs reach its group's mercs (Deathcore's petition
+// A player bard's power songs reach its group's mercs (a player's petition
 // 1909: "bard power abilities dont affect mercs"): Power Dance (the group's
 // power over time) and Power Ballad (the group's power now) as the database
 // holds them, and Celedonicus' Grand Finale (a self spell whose +5000 power

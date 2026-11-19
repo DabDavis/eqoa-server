@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The spells of EQOAEmu's spell workbook in eqoaclassic's tables (the user,
+"""The spells of EQOAEmu's spell workbook in the production server's tables (the user,
 2026-11-01: "lean on them", and of its combat numbers, "Workbook wins,
 re-fit"): every ability record the workbook gives (spellpattern), what each
 does as the workbook's effects say it (spelleffect.effects, plus a line in
@@ -36,7 +36,7 @@ What it writes, and from what:
       mid-word: the user's "change it"). Several workbook rows
       mapped onto one record (one name, two classes' different spells) set it
       from the row that is the record's own (a class the record is linked to,
-      its level, a class of Sandstorm's, its scope, the lowest SpellID); the
+      its level, a class of the reference server's, its scope, the lowest SpellID); the
       others, split off in the map (--split-map: how "split", their own id
       900000 + SpellID, split_from the record), are made new records, and what
       was their classes' on the shared one moves over (plan_splits): their
@@ -49,7 +49,7 @@ What it writes, and from what:
       round that is an icon in the disc's UI.CSF: icon_of), iconColor by
       IconBGDColor as every record of ours has its frame (Red 486870879 the
       target frame, Yellow -1809115846 self, Purple 593297002 group, Gray
-      439871130 pet, Green -1580294943 the storms' area frame on Sandstorm's
+      439871130 pet, Green -1580294943 the storms' area frame on the reference server's
       records), eqprequire from ReqEQuipment as VIWndSpellBook::AddEquipReq
       reads the mask (bit 0 1HS, 1 2HS, 2 1HB, 3 2HB, 4 1HP, 5 2HP, 6 RANGED, 7
       SHIELD; "None" 0, "Any" -1, as ours), spelldesc a sentence or two of
@@ -63,8 +63,8 @@ What it writes, and from what:
     range: the workbook's when it is over 1. Its 1 (and 0 or blank) is its
       word for self or touch ("Self are set to 1"; its melee skills too),
       which the records hold as 4.5 (CLIENT's TargetInRange reach; all of
-      Sandstorm's melee skills): a self or target spell takes 4.5, unless
-      ours is one of Sandstorm's own records (its glamours' 5.0 stays); a
+      the reference server's melee skills): a self or target spell takes 4.5, unless
+      ours is one of the reference server's own records (its glamours' 5.0 stays); a
       group or pet spell keeps ours (a new one 30.0, the records' convention
       for them). The column holds the float's high half (writeAbilityRecord).
 
@@ -82,7 +82,7 @@ What it writes, and from what:
           less (HEAL_TICKS_UP_TO: every such row of the workbook's lasts 18
           or 24 s) is a heal each tick ("hp_tick"): the workbook's legend has
           a heal tick as a HoT does, twice at its landing and every 6 seconds
-          after, and Sandstorm's Minor Healing ticked its line's figure
+          after, and the reference server's Minor Healing ticked its line's figure
           (casting-sandstorm-20261021.md). One that lasts longer is a heal at
           its landing ("hp"): the legend's HP1 is the "Damage (or heal) base
           number", a heal over time its HoT, and the user's Avatar (2026-11-01)
@@ -178,7 +178,7 @@ What it writes, and from what:
     Scroll + Vendor: a scroll as ours are (the scroll's art, worn nowhere:
       handlers/scribe.go scribes the first spell of its name at its level),
       id = its spell's, the classes' and races' masks the workbook's, priced
-      on Sandstorm's scroll curve (stock_merchants.py's Rule); sold by every
+      on the reference server's scroll curve (stock_merchants.py's Rule); sold by every
       merchant that sells three or more of a class's scrolls in a band
       holding its level (else the nearest band), as
       import_eqoadata_spells.py stocks one, never past the 40 records a
@@ -1545,7 +1545,7 @@ def quest_rewards(db):
 
 
 def scroll_curve(db):
-    """Sandstorm's scroll prices by level (the scrolls import_sandstorm_harvest.py
+    """the reference server's scroll prices by level (the scrolls import_sandstorm_harvest.py
     wrote, else every scroll a merchant sells), as stock_merchants.py's Rule."""
     from stock_merchants import Rule
     q = ("SELECT levelreq, itemcost FROM itempattern WHERE itemicon = ? AND equipslot = -1 AND itemcost > 0 "
@@ -1588,7 +1588,7 @@ def rename_safe(old, new, db=None):
 def pick_owner(rows, rec, linked, sandstorm_classes=()):
     """Of several workbook rows mapped onto one record, the record's own: a
     row of a class the record is linked to today (classspells), else its
-    level, a class Sandstorm's dumps or vendors gave it (classspells dump or
+    level, a class the reference server's dumps or vendors gave it (classspells dump or
     vendor), its scope, the lowest SpellID. The others are split off
     (split_map)."""
     def score(s):
@@ -1783,7 +1783,7 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None, b
         r = num(s, "Range")
         ours = range_of(rec["range"]) if rec else None
         if new_scope == 0:
-            # a self spell's is 4.5, the records' convention (Sandstorm's own kept)
+            # a self spell's is 4.5, the records' convention (the reference server's own kept)
             if rec is None or (sid not in sandstorm and ours != TOUCH):
                 want["range"] = range_bits(TOUCH)
         elif r is not None and r > 1:

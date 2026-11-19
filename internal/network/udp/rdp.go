@@ -86,7 +86,7 @@ func (r *RDPHandler) ProcessIncoming(sess *session.Session, packet *Packet) {
 	// numbers. A plain <= stopped every packet of a client whose packet
 	// numbers passed 65535 (two to three hours at a page's 6-10 packets a
 	// second): its acks never taken again, all of our reliable messages
-	// resent until its own gave up on ours (eqoaclassic, 01:39:15 UTC
+	// resent until its own gave up on ours (the production server, 01:39:15 UTC
 	// 2026-11-09: arrival 0 to 458 against 65535).
 	if !session.SeqAfter(body.ArrivalNumber, conn.LastReceivedPacketSeq()) {
 		// A packet with no flush ack is a connection's first: always taken
@@ -498,7 +498,7 @@ func (r *RDPHandler) TickSession(sess *session.Session) {
 	// A session silent before the world ends after PreGameSilentEnd: its
 	// client is gone (CLIENT keeps a connection alive with a keepalive every
 	// 30 s, connection_flush), where one lived on for 10 pings of
-	// world.session_timeout_pre (300 s on eqoaclassic: 50 minutes)
+	// world.session_timeout_pre (300 s on the production server: 50 minutes)
 	silent := time.Since(sess.LastActivity())
 	if !sess.InGame() && !sess.CharacterInWorld() && !sess.DidServerInitiate() && silent > PreGameSilentEnd {
 		log.Printf("Session: %s silent %.0fs before the world: ended", sess.Label(), silent.Seconds())
@@ -523,7 +523,7 @@ func (r *RDPHandler) TickSession(sess *session.Session) {
 	// world sends its 0x40 ten times a second, a page in the background too):
 	// a dropped client's session lingers its 50 pings with its character in
 	// the world, and was sent the world's changes every tick, to a relay port
-	// long closed (eqoaclassic's kernel counted ~9 such datagrams a second). A
+	// long closed (the production server's kernel counted ~9 such datagrams a second). A
 	// client heard from again gets them from its last acknowledged state on.
 	states := sess.CharacterInWorld() && !sess.StateChannelsHeld() && silent < StateSilence
 	var round entityRound
@@ -577,9 +577,9 @@ const (
 // nothing before its session ends and its character leaves the world.
 //
 // Until 2026-11-09 only the ping rule ended one: 50 pings unanswered, one
-// every world.session_timeout_game, 10 s on eqoaclassic, so a closed tab, a
+// every world.session_timeout_game, 10 s on the production server, so a closed tab, a
 // crashed or hung page or a dropped line left its character standing in the
-// world about 500 s (eqoaclassic that morning: Zaeire's client fell silent
+// world about 500 s (the production server that morning: a player's client fell silent
 // at 08:10 and the character stood until 08:18:51, other players targeting
 // it, its session resending up to 240 messages every ten seconds to a relay
 // port long closed), and a login of the character in that time took it over
@@ -654,7 +654,7 @@ var testAfterDrain func(sess *session.Session)
 // only in answer to one of its client's, so the worlds' recipes (70 KB, 62
 // fragments) went one fragment for each of the client's acknowledgements,
 // which its DRDP holds 100 ms: 8 s on a loopback and a round trip more a
-// fragment on a real line, 10 to 36 s on eqoaclassic, every login, with every
+// fragment on a real line, 10 to 36 s on the production server, every login, with every
 // pick in a page waiting for it (petition 1468). A resend that is due goes
 // with the first packet, and alone only while the client was heard from
 // within StateSilence (the last fragment lost: the client, sent nothing

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """tools/seed_start_items.py against a made-up database and survey: a combo's
-items are found by Sandstorm's id where our record of it has the name, else
-by name, and one this database lacks is made from Sandstorm's record; rows
+items are found by the reference server's id where our record of it has the name, else
+by name, and one this database lacks is made from the reference server's record; rows
 are written per combo with their counts; a second --apply is refused; --undo
 takes the rows and the made item back (one a character holds stays). No game
 data.

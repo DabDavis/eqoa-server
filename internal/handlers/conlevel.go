@@ -13,7 +13,7 @@ import (
 )
 
 // conlevel.go — a target's level, seen as its con colour is (world.con_level;
-// Live petition 5130, Indulgence: "Would it be possible to con an enemy to see
+// Live petition 5130: "Would it be possible to con an enemy to see
 // what level it is?", the owner 2026-11-15: "yes lets allow").
 //
 // CLIENT shows a target's con colour (the ring under it, 0x0010's con byte)

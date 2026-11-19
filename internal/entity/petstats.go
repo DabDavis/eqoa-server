@@ -430,7 +430,7 @@ func (n *NPC) petFights() bool {
 	return n.sheet == nil || n.sheet.Type != database.PetTypeNonCombat && n.sheet.familiar() != familiarPlain
 }
 
-// A wizard's familiar as petition 1952 has it (the GM Jibwiz, 2026-11-13: "Only the CM
+// A wizard's familiar as petition 1952 has it (a GM, 2026-11-13: "Only the CM
 // upgraded version of wizard familiars should attack when hit only. The default spell
 // summoned familiar was permanently passive"): the familiar line's pets (Minor, Lesser,
 // Greater, Elder and Arch Familiar, the Gargoyle Familiar: their rows' stances passive

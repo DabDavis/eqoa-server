@@ -6,7 +6,7 @@ The guide (episode 3, step 7): "Quil'Eyne is extremely hard — with a 2000 hit 
 damage (looks like taunt) spell, and a small proc — he is very hard to MT", "Bring an army for this — preferably
 petters", "Quil'Eyne will drop 4 bloods and 4 journals". It names no level, hit points or respawn.
 
-Her class template "epic quileyne" (the GM Jibrish's epic audit, board entries 633/1130, applied 2026-11-12 03:02 UTC)
+Her class template "epic quileyne" (a GM's epic audit, board entries 633/1130, applied 2026-11-12 03:02 UTC)
 already has the 2,000 quad (melee_pct 1497 on a level 65 warrior target), the 2,000 critical (special Critical Hit),
 a 2,000 nuke (Blood Strike) and the small proc (Drain, 500 every 10.5 s), at level 65 and 1,619,982 hit points (hp_pct
 9660: the army the guide asks for). The guide's fourth, the "2000 damage (looks like taunt) spell", was missing: it is

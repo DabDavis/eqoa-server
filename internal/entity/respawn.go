@@ -20,13 +20,13 @@ import (
 // player but leaves the flag set, so on a PS2 a warp alone keeps the screen
 // black and the pad dead. The dump is what ends a death.
 //
-// What Sandstorm sends, measured on one death in pcaps/breath_capture.pcap
+// What the reference server sends, measured on one death in pcaps/breath_capture.pcap
 // (a level 1 character drowned): 0x005E at 163.36 s; nothing more for the
 // player until 178.96 s, 15.6 s later, when one packet carries the player's
 // state channel, a 0x007B, the stat channel with HP back at 16/16 (its whole
 // maximum; it had counted down to 0), and then the MemoryDump at the
 // character's bind point. The client answers it as it answers a login's dump
-// (0x0014, 0x000E, 0x00C9, 0x00CA), and Sandstorm sends nothing in reply.
+// (0x0014, 0x000E, 0x00C9, 0x00CA), and the reference server sends nothing in reply.
 //
 // Here: the death drops every NPC's threat on the player and is told once;
 // PlayerRespawnDelay later the tick restores HP and Power to their maximum
@@ -34,7 +34,7 @@ import (
 // handlers set to move the player to the login spawn and send the dump.
 
 // PlayerRespawnDelay is how long a dead player waits for the respawn: the
-// 15.6 s between Sandstorm's 0x005E and its MemoryDump in
+// 15.6 s between the reference server's 0x005E and its MemoryDump in
 // pcaps/breath_capture.pcap (one death, so one sample), rounded down to the
 // second; the client's own death camera and fade take the first 8 s of it.
 const PlayerRespawnDelay = 15 * time.Second
@@ -251,7 +251,7 @@ func (w *World) PlayerSnapshot(id EntityID) (Player, bool) {
 
 // SyncSelfChannels writes the session's player into its own state channel
 // (0) and its stat channel (0x42) now rather than at the next sync, so a
-// respawn's HP and place go out with it, as Sandstorm's do.
+// respawn's HP and place go out with it, as the reference server's do.
 func (w *World) SyncSelfChannels(sess *session.Session) {
 	w.mu.Lock()
 	defer w.mu.Unlock()

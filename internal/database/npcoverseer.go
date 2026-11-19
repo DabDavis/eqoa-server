@@ -9,7 +9,7 @@ import (
 )
 
 // npcoverseer: the NPCs who, talked to, say which bosses are up (handlers/overseer.go;
-// petition 1699, Skywalker: "Overseer Yurgulch can be used to check whether Bertoxxulous,
+// petition 1699: "Overseer Yurgulch can be used to check whether Bertoxxulous,
 // Uzrathixius, or Poxathixius spawns are up and available to kill", the wiki's Plane of
 // Disease: Bertoxxulous Quest). A row is one boss one overseer tells of, in ord's order:
 //

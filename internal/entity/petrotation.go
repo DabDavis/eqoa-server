@@ -8,7 +8,7 @@ import (
 )
 
 // petrotation.go — the necromancer's zombie, mummy and spectre fight as
-// Sandstorm's do (recorded 2026-10-30 by lane-spellfx24: a necromancer of 51
+// the reference server's do (recorded 2026-10-30 by lane-spellfx24: a necromancer of 51
 // set Decaying Flesh, Putrid Flesh and Howling Death on a Training Dummy Lv25
 // for 120 s each, `petattack`; its Ancient Death joined its owner's casts
 // besides; ~/.cache/f3pass24/lane-spellfx24-notes.md "Pets"):
@@ -33,22 +33,22 @@ import (
 //
 // Here the taps do what ours did (pettap.go: the necromancer's own tap of
 // the pet's level, its figure off the target and as much back on the pet),
-// on Sandstorm's cadence and visual and untold; the openers are their
+// on the reference server's cadence and visual and untold; the openers are their
 // visuals alone (nothing recorded what they did). The spectre's instant
 // lands as a blow of three of its own melee hits, each rolled as they are
 // (the target's defence counted, its hits' scale below), the three being
 // balancelevel's pet_special_hits at its balance level, a GM's, read when it
 // lands (the user, 2026-10-30: "does the necro pet at 45 use the harm touch
 // like move, not as much damage but sizable"); untold as its hits are, the
-// target's hit points showing it. Nothing measured its size: Sandstorm told
+// target's hit points showing it. Nothing measured its size: the reference server told
 // no hit. The
 // melee keeps the damage a second our round gave the pet (petHitRate): no
-// hit of these pets was ever shown on Sandstorm, so only the cadence is
+// hit of these pets was ever shown on the reference server, so only the cadence is
 // recorded, and our warrior's round from level 35 (Attack4, four hits in 6
-// s) out-hits Sandstorm's mummy (two in 4 s) by a third and its spectre (two
+// s) out-hits the reference server's mummy (two in 4 s) by a third and its spectre (two
 // in 5.2 s) by three quarters, which the balance's pets were tuned on
 // (balancesim: a necromancer of 50 with its spectre won every +2 fight
-// before, none at Sandstorm's round with our hits). A pet
+// before, none at the reference server's round with our hits). A pet
 // of any other kind (the necromancer's skeletons and Swarming pets, every
 // other class's, a charmed creature) is ours: pet.go's rounds, pettap.go's
 // 30 s tap, its hits told to its owner.
@@ -75,11 +75,11 @@ func (k petKind) String() string {
 	return "ours"
 }
 
-// petKindsByName are the necromancer's summonings by name, as Sandstorm's
+// petKindsByName are the necromancer's summonings by name, as the reference server's
 // own records describe them ("Summons a zombie with weapons to aid you.",
 // "... a mummy ...", "... a spectre with a weapon ..."); ours carry other
 // lines for some (Putrid Flesh's "Summons a Zombie pet"), so the name
-// decides. Wilting Flesh, which Sandstorm's characters lack, is a zombie by
+// decides. Wilting Flesh, which the reference server's characters lack, is a zombie by
 // its line ("Summons a zombie to your aid").
 var petKindsByName = map[string]petKind{
 	"wilting flesh":   petKindZombie,
@@ -100,7 +100,7 @@ func petKindOf(casterClass int, spellName string) petKind {
 	return petKindsByName[strings.ToLower(strings.TrimSpace(spellName))]
 }
 
-// The rotation's visuals, as Sandstorm sent them.
+// The rotation's visuals, as the reference server sent them.
 const (
 	fxPetTap            uint32 = 0xAF72B895 // the necromancer's Drain Spirit's
 	fxPetTapLong        uint32 = 0xAF72B894 // Lifespike's and Spirit Tap's, with 2000 ms

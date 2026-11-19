@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The Tester Pro (the GM Jibrish's petition 1725: "Create an item that has infinite charges and is no trade lore. Call it
+"""The Tester Pro (a GM's petition 1725: "Create an item that has infinite charges and is no trade lore. Call it
 "Tester Pro". When the player uses it, it gives them a run speed buff that is x2 SoW speed. However, also make it reduce
 their max HP to 1, and set all of their stats to 1 while the buff is up"; internal/entity/hpcap.go).
 

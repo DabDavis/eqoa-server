@@ -30,7 +30,7 @@ func (skyGround) Blocked(world uint8, x0, y0, z0, x1, y1, z1 float32) (string, b
 func (skyGround) Knows(world uint8) bool { return world == skyWorld }
 
 // A player who steps off a Plane of Sky island and falls is sent home once it
-// has fallen skyFallAfter (Hoofbite's petition 1995: "When jumping off plane
+// has fallen skyFallAfter (a player's petition 1995: "When jumping off plane
 // of sky island, you do not return home and continue to fall forever"), told
 // why; one standing on the island, walking off and landing again, or flying
 // by #fly, is not; and a PS2 parked at the world floor (-1000) saying nothing

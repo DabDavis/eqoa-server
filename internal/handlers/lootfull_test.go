@@ -8,7 +8,7 @@ import (
 )
 
 // A take the pack has no room for is answered CLIENT's own "no room" line and
-// leaves the window as it is (petitions 1026, 1030: Arcana's loot window
+// leaves the window as it is (petitions 1026, 1030: a player's loot window
 // "flashes instead of throwing the full inventory message": it was closed and
 // sent again, unchanged, with no word); a take-all that takes nothing the
 // same. The control: with a place free, the take goes in and the window is

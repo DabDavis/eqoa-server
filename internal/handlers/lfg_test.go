@@ -151,7 +151,7 @@ func newLFGWorld(t *testing.T) *lfgWorld {
 }
 
 // Register, search both ways, unregister: either type finds every registered
-// character (petition 1582, the GM Jibrish: registered players "should
+// character (petition 1582: registered players "should
 // display" on the search's list), in no group or leading one with room; the
 // rows read back as the live client reads them, the id the one 0x0625 takes;
 // nothing unregistered, out of the range typed, a member who does not lead

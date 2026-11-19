@@ -103,7 +103,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	t.mark(tsRespawns)
 	w.regenSystem(now)
 	t.mark(tsRegen)
-	w.vampireSunSystem(now) // after the regen, as Sandstorm's (vampire.go)
+	w.vampireSunSystem(now) // after the regen, as the reference server's (vampire.go)
 	t.mark(tsVampires)
 	w.weatherSystem(now) // the regional weather, once a second (weather.go)
 	t.mark(tsWeather)
@@ -145,7 +145,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	return due, gates, gone
 }
 
-// aiSystem runs every aggro'd NPC's melee in rounds, as Sandstorm's
+// aiSystem runs every aggro'd NPC's melee in rounds, as the reference server's
 // (rounds.go): its swing at its current enemy when a round begins, then the
 // round's hits. Out of its reach it runs at its enemy, and past its leash it
 // gives up and goes home (chase.go); it drops an enemy that is gone or dead,
@@ -329,7 +329,7 @@ func (w *World) npcMeleeOnPlayerLocked(npc *NPC, player *Player, pct int, ramp b
 		return // across the water's edge (water.go)
 	}
 
-	// Sandstorm's roll on the player's AC, AGI and archetype (defence.go),
+	// The reference server's roll on the player's AC, AGI and archetype (defence.go),
 	// as its class template makes it (classtemplate.go), then the balance's
 	// (balance.go: its level's, its con's and the player's class's); an add's
 	// as its creature's at its share (summon.go)
@@ -410,7 +410,7 @@ func (w *World) defenceProcsLocked(sess *session.Session, p *Player, npc *NPC, n
 
 // regenSystem gives every player its HoT in hit points and its PoT in power
 // every RegenInterval (6 s), in a fight or out of one (regen.go: the live
-// game's rule and Sandstorm's capture). Must be called with lock held.
+// game's rule and the reference server's capture). Must be called with lock held.
 func (w *World) regenSystem(now time.Time) {
 	// a tick every RegenInterval (regen.go), at the world's 100 ms ticks
 	if w.TickCount%uint64(RegenInterval/(100*time.Millisecond)) != 0 {
@@ -530,7 +530,7 @@ func isSwimAnimation(anim byte) bool {
 }
 
 // drowningShare is the share of the player's maximum health a drowning step
-// takes (jib's "about 10% of max hp per tick").
+// takes (a GM's "about 10% of max hp per tick").
 const drowningShare = 0.10
 
 // drowningDamage is one drowning step on the player: a tenth of its maximum
@@ -542,13 +542,13 @@ func drowningDamage(p *Player) int {
 // breathSystem handles breath depletion underwater and drowning damage.
 // Runs every 6 ticks (0.6s). Breath is 0-255, 255 full, the byte the client's
 // breath gauge draws (the dump's and stat channel 0x42's byte 232): under
-// liquid it loses BreathStep every 6 s, as Sandstorm's did in
+// liquid it loses BreathStep every 6 s, as the reference server's did in
 // pcaps/breath_capture.pcap (in the water at 34.6 s, 0xDF at 35.9 s, 0 at
 // 78.3 s); once it is gone, a tenth of the player's maximum health every 6 s
-// until it is dead (jib, F3 20261026-020342: "about 10% of max hp per tick,
-// until dead"; Sandstorm's one recorded drowning, a level 1, took 2 a step),
+// until it is dead (a GM, F3 20261026-020342: "about 10% of max hp per tick,
+// until dead"; the reference server's one recorded drowning, a level 1, took 2 a step),
 // with DamageIndication (0x00DB) and the drowning action (0x0775, action 34),
-// as Sandstorm does.
+// as the reference server does.
 // Underwater is the client's own IsUnderLiquid, out of the walker flags in
 // its 0x40 (UnderLiquid): in a liquid and not at its surface, which is when
 // the client draws the breath gauge. The swim animation alone said nothing
@@ -586,7 +586,7 @@ func (w *World) breathSystem(now time.Time) {
 			p.DrowningCounter = 0
 		} else if p.Underwater {
 			// Every 6 s under liquid: 32 of the 255 breath, then once it is
-			// gone the HP (pcaps/breath_capture.pcap, Sandstorm: 0xFF to 0
+			// gone the HP (pcaps/breath_capture.pcap, the reference server: 0xFF to 0
 			// in eight steps, 48 s of air). The breath reaches the client on
 			// the stat channel (byte 232, statChannelSyncSystem).
 			p.DrowningCounter += 6 // 6 ticks per breathSystem call
@@ -639,7 +639,7 @@ func (w *World) breathSystem(now time.Time) {
 // statChannelSyncSystem serializes stat data into session stat channel (0x42) buffers.
 // Runs every 20 ticks (2 seconds) to keep HP/Power bars in sync with regen,
 // and on the tick after a player's stats changed (StatsDirty: a cast's cost
-// goes out with its start, as on Sandstorm). Must be called with lock held.
+// goes out with its start, as on the reference server). Must be called with lock held.
 func (w *World) statChannelSyncSystem() {
 	if w.SessionManager == nil {
 		return

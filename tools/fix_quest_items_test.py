@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """tools/fix_quest_items.py against a made-up database and harvest: a quest
-item made as a copy of a higher item takes Sandstorm's record (its level,
-classes, races, icon, stats), its id, name and model kept; an item Sandstorm
+item made as a copy of a higher item takes the reference server's record (its level,
+classes, races, icon, stats), its id, name and model kept; an item the reference server
 gives two records is left; an item no quest made is never touched; a second
 --apply is refused and --undo gives back the table as it was. No game data.
 

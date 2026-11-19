@@ -26,7 +26,7 @@ import (
 //   - its class is the template's: its swing (CLIENT's GetSwing of its
 //     level), unless the row names a swing class (a necromancer's pet, a
 //     shadow knight, swings a warrior's round) or a fixed swing and round
-//     (the Death Sacrament pets, Sandstorm's recorded rounds; its hits then
+//     (the Death Sacrament pets, the reference server's recorded rounds; its hits then
 //     scaled to keep the damage a second its class's round gave it);
 //   - hp_pct of its hit points (after the balance's pet hit points), and
 //     taken_pct of a creature's melee hit on it lands; its own melee hits
@@ -53,7 +53,7 @@ import (
 // (petTemplateSpecialLocked; special_chance, the kick by chance, an NPC's
 // alone). A "dot" is a damage over time on what it fights, kept up, and a
 // template's melee proc (proc_chance) is the pet's own melee hits' too, as
-// it is a creature's (the GM Jibrish's petition 1388, the Swarming Deaths':
+// it is a creature's (a GM's petition 1388, the Swarming Deaths':
 // petDoTLocked, petTemplateProcLocked); an ability's cast may be its own
 // (cast: the half second a record's whole seconds cannot hold). A charmed
 // creature fights by its npccharm row's template
@@ -261,7 +261,7 @@ func (w *World) petTemplateTurnLocked(ps *petState, t *NPC, now time.Time) bool 
 // petSingleHealDueLocked is whether one of the pet's single-target heals (on
 // its owner, itself, either or a member: not a group heal, not a heal of its
 // own share) is due and wanted now. A group heal yields to it whatever their
-// order in the row (the magician Waldorf's petition 1639, 2026-11-11: "Ghilan
+// order in the row (a magician's petition 1639, 2026-11-11: "Ghilan
 // Noble doesn't seem to be casting her giant heal anymore": her tide, wanted
 // while anyone of her side is a little hurt, is the cheap one; the big heal,
 // wanted when one is below its threshold, the urgent one). Must be called with
@@ -390,7 +390,7 @@ func (w *World) petWantsLocked(ps *petState, a *templateAbility, now time.Time) 
 // petUndeadMayLocked is whether a pet's spell may go at t: any spell at
 // anything, but a spell for undead alone (a "Target undead" line, undead.go) at
 // an undead creature alone (its npcundead row, else its name: undeadLocked), as
-// a player's is refused at the living (the magician Waldorf's petition 1395:
+// a player's is refused at the living (a magician's petition 1395:
 // the Ghilan Noble's "undead nuke against undead creatures"); so it is neither
 // cast at nor lands on the living, and an area of it spares them. No spell or
 // no target is the caller's to say. Must be called with the lock held.
@@ -707,7 +707,7 @@ func (w *World) petRootLocked(ps *petState, t *NPC, spell *CastSpell, now time.T
 }
 
 // petDebuffLocked lands a summoned pet's debuff (AbilityDebuff; the magician
-// Waldorf's ticket 2001, of the Ghilan Noble: "casts a debuff on the mob. That
+// a player's ticket 2001, of the Ghilan Noble: "casts a debuff on the mob. That
 // was one of the first spells she would use"): the stats and resists its
 // spell's lines take off (the negative ones, by their figures) lowered on its
 // target for the spell's time, as a player's debuff on a creature is (an effect
@@ -810,7 +810,7 @@ func (w *World) petDrainStatsLocked(ps *petState, t *NPC, spell *CastSpell, now 
 	log.Printf("Pet: %s's %q drains %s with %q: %+v", ps.owner.Name, pet.Name, t.Name, spell.Name, gain)
 }
 
-// A pet's damage over time (AbilityDoT; the GM Jibrish's petition 1388, of the
+// A pet's damage over time (AbilityDoT; a GM's petition 1388, of the
 // Swarming Deaths: "a 300 a tick dot (.5 second cast) it keeps up that lasts for
 // 24 seconds") is its spell's damage tick on what it fights for the spell's
 // time, ticking at its landing and every effectTick after it (a 24 s spell four
@@ -922,7 +922,7 @@ func (w *World) petTickLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
 }
 
 // petTemplateProcLocked rolls the pet's template's melee proc after one of its
-// melee hits landed on t, still standing (petition 1388, Jibrish: the Swarming
+// melee hits landed on t, still standing (petition 1388: the Swarming
 // Deaths' "melee proc for 250 damage, with a 25% proc rate, base"): proc_chance
 // percent of its hits that land also deal proc_damage, neither scaled by
 // anything of the pet's, less the share the creature's template resists of

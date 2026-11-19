@@ -15,7 +15,7 @@ import (
 // merchant flag but the ones the tool left out (merchant_stock 'left out'
 // rows: Keepers, beasts, ...) opens on a catalog, through the same
 // GetNPCItems by npc_id the window reads, within the list's 40, and every
-// item in a catalog has a price but the ones Sandstorm itself sells at 0 and
+// item in a catalog has a price but the ones the reference server itself sells at 0 and
 // a GM's (merchant_stock 'free' and 'gm price'). Skipped without a database,
 // and on one the tool has not stocked: none is in this repository.
 func TestRealMerchantsSellSomething(t *testing.T) {

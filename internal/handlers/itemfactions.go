@@ -11,7 +11,7 @@ import (
 )
 
 // An item whose Use raises the user's standings (table itemfactions,
-// database/itemfactions.go): petition 5089 (Live, Trulyblind, 2026-11-15:
+// database/itemfactions.go): petition 5089 (Live, a player, 2026-11-15:
 // "would it be possible to get some kind of item or something, so I can test
 // the other 17s?"), the owner: "give them faction stone that increases
 // factions with all lvl 17 q givers". Each row brings one faction up to its

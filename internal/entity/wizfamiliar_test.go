@@ -7,7 +7,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// Petition 1952 (the GM Jibwiz): "Only the CM upgraded version of wizard familiars should
+// Petition 1952: "Only the CM upgraded version of wizard familiars should
 // attack when hit only. The default spell summoned familiar was permanently passive". The
 // spell's familiar fights nothing: an attack command is refused and a creature fighting its
 // master or it is left alone. The mastery's guardian refuses a command too, stays out of a

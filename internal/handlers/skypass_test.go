@@ -156,7 +156,7 @@ func (r *skyRig) group() {
 	}
 }
 
-// Petition 1608 (Jibrish, at the second isle of rain's essence): without its
+// Petition 1608 (at the second isle of rain's essence): without its
 // boss's key the essence says what it wants and sends no one, its quest step
 // waiting; with it, it takes one key and sends the giver and the group by it to
 // the third isle's landing, each one's step of the chain done there.
@@ -279,7 +279,7 @@ func TestAnEssencesOtherBusiness(t *testing.T) {
 	}
 }
 
-// Petition 2434 (Itamin) and the GM Jibrish's board entry 1758: Madam
+// Petition 2434 and a GM's board entry 1758: Madam
 // Watrya's isle, where the sun key lands, has an essence of day of its own
 // that takes anyone, keyless, and the group by it, to the brightstar fairies'
 // isle (Day Chain 1); a stray essence of day is still dim.
@@ -333,7 +333,7 @@ func TestThePassagesTable(t *testing.T) {
 	}
 }
 
-// Petitions 2077-2079 (the GM Jibcrotwo): the main isle's essence of snow
+// Petitions 2077-2079: the main isle's essence of snow
 // takes the snow key the Mark of the Majestic gives and sends the giver and
 // the group by it to the first isle of snow, where he stood; the first isle's
 // own essence, beside the landing, has no passage and is dim.

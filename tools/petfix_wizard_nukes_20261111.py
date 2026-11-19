@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""The wizard's single-target nukes: a 1 second cast, and ready again 1 second after they land (petition 1584, Wisp,
+"""The wizard's single-target nukes: a 1 second cast, and ready again 1 second after they land (petition 1584,
 2026-11-11: "all the wizzy single target spells have wrong recast they should be 1 sec cast 1 second recast, recast
-starts after spell is cast so you have to chain 2 spells back and forth"; petition 1590, the GM Jibmonk: "They were 1
+starts after spell is cast so you have to chain 2 spells back and forth"; petition 1590: "They were 1
 second cast time, and would come off cool down 1 second after they fired. ... Don't change our recast calculation at
 all, but verify the non mca wizard single target nukes only (not AoE), have that same behavior").
 
 The server's recast (entity/cast.go, not changed): a cast locks its ability out for cast time + recast + 300 ms from
-the moment it begins (Sandstorm's lockout, recorded 2026-10-21). With casttime 1 and recast 1 a nuke goes off 1 s after
-it begins and may begin again 2.3 s after it began: 1 s (and Sandstorm's 0.3 s) after it went off, the behaviour asked.
+the moment it begins (the reference server's lockout, recorded 2026-10-21). With casttime 1 and recast 1 a nuke goes off 1 s after
+it begins and may begin again 2.3 s after it began: 1 s (and the reference server's 0.3 s) after it went off, the behaviour asked.
 Before, most had casttime 2 (EQOAEmu's workbook and the import: 2 s cast, recast 1 or 3), so they went off at 2 s and
 were ready again at 3.3 s (recast 1) or 5.3 s (recast 3).
 

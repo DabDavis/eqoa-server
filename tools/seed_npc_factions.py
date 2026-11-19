@@ -30,14 +30,14 @@ Rows, each said by town:
   attack no one); one whose name ends in a house's ("... Do`Vexis": House
   Do`Vexis; "Merchant House Nothard") or is a faction's ("Zentar Reese") to
   that faction; a word of a faction of no kind keeps no one from its town
-  ("Priest of Bertoxxulous" is Freeport's, whatever Sandstorm's Bertoxxulous);
+  ("Priest of Bertoxxulous" is Freeport's, whatever the reference server's Bertoxxulous);
 - the creatures among a town's people: a creature's body, no NPC bit,
   spawned within --near (40, the town's margin) in 3D of one of the town's
   people, or inside the hull of the town's people within --hull (150) of it
   and --height (30) of its height: Neriak's servants, zombies, animations
   and its ghoul servant 53 off between two of the city's chains. Wildlife
   (wildlife.go's words, seed_npc_move.py's) only inside that hull: a city's
-  cats and tavern rats, the cave minnows of Neriak's lake (Sandstorm's let a
+  cats and tavern rats, the cave minnows of Neriak's lake (the reference server's let a
   level-1 swimmer be), not the outskirts' snakes, nor the forest's bats over
   Neriak's cavern (54 above it).
 - left out, said: players' pets and what a GM made peaceful (npcaggro rows
@@ -68,7 +68,7 @@ The impact, before anything is written: per town, how many of its
 attackable members (no NPC bit, no npcaggro row) would attack a new
 character of each race (humans by city; a range over the race's classes) on
 sight: its starting standing (factionstart, else the factions table; with
---measured, Sandstorm's measured TSV wherever it holds the combo) below -350.
+--measured, the reference server's measured TSV wherever it holds the combo) below -350.
 And the start check: a new character of each combo at its start spot must not
 be attacked on sight by a member within 60 of it; --apply is refused where it
 would be (--force writes anyway): seed the measured starts first
@@ -138,7 +138,7 @@ DUMMY = re.compile(r"^(?:training|regular|sparring) dummy")
 # faction whose measured start leaves a new character Friendly, or short of
 # Aggressive (the coordinator, 2026-10-29: "the Portal quests must TALK to
 # them"; until then creatures' bodies attacking on sight). Measured on
-# Sandstorm, every combo alike so far: Denizens of the Plane of Sky +200,
+# the reference server, every combo alike so far: Denizens of the Plane of Sky +200,
 # Citizens of Graumord -150, Lord Nagafen -500.
 NAMED = [
     # the Plane of Sky's quest NPCs and its essences (EQOA-Data's Plane of Sky
@@ -436,7 +436,7 @@ def plan(db, eqoa_data, link=60, reach=400, near=40, hull_r=150, height=30, crea
             if not f:
                 # a person named for a kind's faction ("Bandit") is its kind's; one
                 # named for a faction of no kind stays its town's ("Priest of
-                # Bertoxxulous" is Freeport's: Sandstorm's Bertoxxulous starts every
+                # Bertoxxulous" is Freeport's: the reference server's Bertoxxulous starts every
                 # new character at -1000)
                 kinded = [h for h in own_kind(n["name"], kinds) if kind_of[h]]
                 if kinded:
@@ -577,7 +577,7 @@ def npc_faction(rows_by_key, n):
 
 
 class Starts:
-    """A new character's starting standings: Sandstorm's measured (with
+    """A new character's starting standings: the reference server's measured (with
     --measured) where they hold its combo, else factionstart's, else the
     factions table's (seed_faction_starts.py's rule)."""
 

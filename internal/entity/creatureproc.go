@@ -30,7 +30,7 @@ import (
 //     much on every hit): what the resist leaves lands, and heals it the same; a resist that takes all of
 //     it (a creature's strong resist cannot: at least 1 lands) leaves nothing to heal.
 //
-// On a player either is told as the template's proc is (the creature's 0x00B1 with Sandstorm's creature
+// On a player either is told as the template's proc is (the creature's 0x00B1 with the reference server's creature
 // special's visual, or its own fx, a 0x00DB, a line, a death; the player's resist rolled on the
 // template's dice, resist.go); on a pet its workbook resists take their share (petstats.go), any other
 // takes it whole; on a creature it fights in a scripted fight (scriptedFoes, classtemplate.go), the
@@ -87,7 +87,7 @@ func veilOf(db *database.SQLiteDB, a database.TemplateAbility) (templateVeil, *t
 
 // procOf is a proc ability as the world rolls it: its own figures, or its pinned spell's proc and the
 // buff that spell is (cast on its creature: selfbuff.go); a problem's words for a spell that is none
-// or has no proc. Its fx is each proc's look on what it hit (0: Sandstorm's creature special's).
+// or has no proc. Its fx is each proc's look on what it hit (0: the reference server's creature special's).
 func procOf(db *database.SQLiteDB, a database.TemplateAbility) (templateProc, *templateSelfBuff, string, error) {
 	if a.Spell == "" && a.SpellID == 0 {
 		name := a.ProcName
@@ -156,7 +156,7 @@ func (p *templateProc) rollFor(npc *NPC) int {
 	return npc.shared(n)
 }
 
-// visual is a proc's 0x00B1 visual: its own, else Sandstorm's creature special's.
+// visual is a proc's 0x00B1 visual: its own, else the reference server's creature special's.
 func procVisual(fx uint32) uint32 {
 	if fx != 0 {
 		return fx

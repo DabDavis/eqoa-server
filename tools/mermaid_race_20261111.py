@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The Mermaid, race 32 of the Heirloom Test Server (petition 1620, the GM Jibrish, 2026-11-11: "Add mermaid as a
+"""The Mermaid, race 32 of the Heirloom Test Server (petition 1620, 2026-11-11: "Add mermaid as a
 playable race to the game, all classes, using the new races starting area. It works functionally the same as the
 others. ... Name the race Mermaid though, not siren."), as the Jal'Raeth and the Wisp were made
 (claude-notes/races-30-31-20261109.md):

@@ -2,7 +2,7 @@
 """Three pet petitions of 2026-11-10 whose fix is rows (the rest of each is the
 server's code, the pets-1110 lane's):
 
-  1478 (the magician Lifeispain): "Efreeti Lord doesn't cast a buff on the
+  1478 (a magician): "Efreeti Lord doesn't cast a buff on the
   caster. He casts one only himself, not sure if that is intended or not."
     The workbook has every magician pet's buff on its owner (Efreeti's Fire,
     902164: sheet scope Owner, a "Pet Buff"); the pet import put the
@@ -14,7 +14,7 @@ server's code, the pets-1110 lane's):
     lacks it (30 minutes). No code: a pet's buff on its owner is what the
     Ghilan Noble's blessing is.
 
-  1495 (the magician Waldorf): "Ghilan Noble should have three heals, the large
+  1495 (a magician): "Ghilan Noble should have three heals, the large
   one, small one, and an AOE heal for 150 that heals players and pets in range.
   First two seem to work fine but is missing the third".
     A new spell, Ghilan's Healing Tide (905495: 150, instant, Tide of Glory's
@@ -25,7 +25,7 @@ server's code, the pets-1110 lane's):
     while any of them is below full (OURS: the petition gives the figure, not
     how often; 6 s is the game's regeneration tick and Healbot's own pace).
 
-  1493 (Waldorf): "Similar to ticket 1305, the shamans in permafrost aren't
+  1493 (a player): "Similar to ticket 1305, the shamans in permafrost aren't
   attached to their pets so they don't attack when the shaman does" (his target
   an ice goblin shaman).
     As petition 1305 tied Guk's Mummified Guardians to their necromancers: two

@@ -1,7 +1,7 @@
 package handlers
 
 // questencounter.go — a quest is never left stuck when the encounter it waits on
-// ends without the kill (the owner, 2026-11-13, after Lonewulf lost two Rallos Zek
+// ends without the kill (the owner, 2026-11-13, after a player lost two Rallos Zek
 // fights to server updates).
 //
 // The guides' raid quests fire a GM trigger (questevents.go's trigger event) and

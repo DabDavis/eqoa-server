@@ -8,7 +8,7 @@ import (
 )
 
 // Town guards come to the help of a player a creature hits in front of them
-// (F3 20261030-063534, jib: "guards should assist players that get attacked
+// (F3 20261030-063534, a GM: "guards should assist players that get attacked
 // in front of them, within a range of 30 yards. If they engage a monster
 // though, no loot or xp should be given to the player if the guards hit
 // it."; the user, 2026-11-04: "lets stop guards from attacking mobs unless a
@@ -24,7 +24,7 @@ import (
 // Guard, The Highpass Guard, Klick`Anon Watch). Those are exactly
 // tools/seed_npc_social.py's rows: every town's guards, found off
 // factionhits' "Citizens of" rows and a guard's word in the name (298 names
-// on eqoaclassic). Not a guard by its name alone, which takes in the hostile
+// on the production server). Not a guard by its name alone, which takes in the hostile
 // camps' human-bodied spawns ("Jextalan guard", town-dialog-20261029.md), nor
 // a camp a GM made social under a faction of its own; a GM makes another
 // guard by its row.
@@ -53,7 +53,7 @@ import (
 //   - anything a GM's npcaggro row makes peaceful (Aggressive false);
 //   - a resident: one whose own spawn point lies within the guard's radius of
 //     its post. "Wanders within range" is a creature that comes in; one put
-//     there by the data would be killed at every respawn. On eqoaclassic's
+//     there by the data would be killed at every respawn. On the production server's
 //     01:24 UTC database that is 9 spawns and nothing else: 6 of Highpass
 //     Hold's pickclaws among its guards (L19-58, the Pickclaw Sashes and
 //     Captain Scilond's quests' targets), Qeynos's coin chest, Freeport's
@@ -101,7 +101,7 @@ func (w *World) fightsPlayerNearLocked(c, g *NPC) bool {
 
 // SignpostBody and BlockerBody are bodies of things, never creatures: every
 // sign post and board's (CHAR.ESF 0x6A82352C, handlers/signs.go's SignBody),
-// and Sandstorm's invisible blocker's (CHAR.ESF 0x6F412342, collision alone).
+// and the reference server's invisible blocker's (CHAR.ESF 0x6F412342, collision alone).
 const (
 	SignpostBody uint32 = 0x6A82352C
 	BlockerBody  uint32 = 0x6F412342

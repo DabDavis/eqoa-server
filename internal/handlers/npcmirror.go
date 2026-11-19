@@ -14,7 +14,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// npcmirror.go — the owner, 2026-11-14: "./copy should work for jib also on
+// npcmirror.go — the owner, 2026-11-14: "./copy should work for a GM also on
 // live server, also his placements and copies should show on heirloom also".
 // On a shard whose config names the accounts (world.mirror_npc_edits_accounts)
 // and the other shard's database (world.mirror_npc_db), an NPC row edit by a

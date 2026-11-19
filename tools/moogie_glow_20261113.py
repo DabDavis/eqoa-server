@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Mr. Moogie's soft red glow (2026-11-13; the GM Jibrish's petition 1893: "Use the new glow mechanic to make mr. moogies
+"""Mr. Moogie's soft red glow (2026-11-13; a GM's petition 1893: "Use the new glow mechanic to make mr. moogies
 whole body glow a soft red"), on the server's code of the same branch (database/npctint.go's glow column, sent in
 OpcodeNPCTints layout 2: entity/npctint.go).
 

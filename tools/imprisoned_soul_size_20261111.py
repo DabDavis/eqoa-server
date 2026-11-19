@@ -7,7 +7,7 @@ Isle of Dread is scaled way too big").
 Why 1.0: the camp's other 15 imprisoned souls (zones 1125/1126, the same body 647210326, level 53) are all 1.0; every
 other NPC on that body is 1.0 to 1.25 (Graumord citizens 1.0 x20, glyphed familiars 1.0, animated guards 1.0, the
 marionettes 1.0-1.75, Kithgrin 1.25); the soul and ghost bodies elsewhere average 1.0-1.17 and top out at 1.875. The
-2.9375 came with jib's Return Home import (prh_import_npcs 18952) and is that row's alone. Its template (iod native)
+2.9375 came with a GM's Return Home import (prh_import_npcs 18952) and is that row's alone. Its template (iod native)
 grows nothing (no enrage).
 
 Refused, nothing written, when the row is not as expected (missing, or a size other than 2.9375 or 1.0). Report only by

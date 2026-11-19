@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""Melee weapons as Sandstorm's records have them (the user, 2026-10-29: "dust
-has a worn club equipped, but it wont atk and no model").
+"""Melee weapons as the reference server's records have them (the user, 2026-10-29: "[a GM] has a worn club equipped, but it wont atk and no model").
 
 A weapon's attack type (itempattern.attacktype: 1-6 the melee kinds) is what
 CLIENT's TargetInRange and the server's reach (entity/attack.go SwingFor)
@@ -8,14 +7,14 @@ read: any other type is never in reach, so a weapon of type 0 cannot strike.
 Its model (itempattern.model) is what the character's state channel holds in
 its hand (handlers/character.go applyEquipmentFromDB): 0 is no weapon drawn.
 The Worn Club (1825) had both 0, as Return Home's record has them, where
-Sandstorm's own record (its smiths' wares in the harvests, --prices) is a
+the reference server's own record (its smiths' wares in the harvests, --prices) is a
 blunt weapon (type 3) of damage 20 at level 2, and 14 of the melee weapons
-Sandstorm sells differ so.
+the reference server sells differ so.
 
-Each melee weapon Sandstorm sells, by its name, takes Sandstorm's record
+Each melee weapon the reference server sells, by its name, takes the reference server's record
 (slot, attack type, damage, level) where ours differs; one of no model takes
 the model most of this server's weapons of its kind wear (the name's last
-word and the attack type: an axe an axe's), else Sandstorm's starting weapon's
+word and the attack type: an axe an axe's), else the reference server's starting weapon's
 of its attack type (the Apprentice Club's, Sword's, Dagger's or Staff's):
 OURS, as no ware carries a model. A potion's (itemeffect) is left, and a value set since by a GM
 (gm_audit) too.
@@ -39,7 +38,7 @@ import sys
 DEFAULT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "eqoa.db")
 MELEE = range(1, 7)
 FIELDS = {"wear_slot": "equipslot", "attack_type": "attacktype", "damage": "weapondamage", "level_req": "levelreq"}
-# the starting weapons (every new character's on Sandstorm), whose models stand in by attack type
+# the starting weapons (every new character's on the reference server), whose models stand in by attack type
 STARTERS = {1: "apprentice sword", 3: "apprentice club", 4: "apprentice staff", 5: "apprentice dagger"}
 
 LOG_SCHEMA = """CREATE TABLE weapon_records_fix_log (
@@ -60,7 +59,7 @@ def has_table(db, name):
 
 
 def records(paths):
-    """Sandstorm's melee weapons' records by name: {name: {column: value}}, a
+    """the reference server's melee weapons' records by name: {name: {column: value}}, a
     name of two records left out."""
     files = []
     for p in paths:

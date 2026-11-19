@@ -3,7 +3,7 @@ package entity
 import "log"
 
 // questwallfight.go — no fight through a quest wall (petition 2198,
-// Trulytwo, Heirloom, Isle of Dread: "Dracoliche is still attackable with
+// a player, Heirloom, Isle of Dread: "Dracoliche is still attackable with
 // pets thru the walls in IoD").
 //
 // A quest wall (questwalls.go) is a box CLIENT stops its player's walk at,

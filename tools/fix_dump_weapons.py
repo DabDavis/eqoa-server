@@ -5,23 +5,23 @@ looks like an epic weapon 2h sword for crafted composite longbow, that same
 icon is on many").
 
 This server's old dump carries 423 weapons with damage and no attack type,
-none of which Sandstorm sells. tools/fix_weapon_records.py gave the ones it
-does sell Sandstorm's records.
+none of which the reference server sells. tools/fix_weapon_records.py gave the ones it
+does sell the reference server's records.
 
 - **The attack type** (itempattern.attacktype) is what reaches. 1-6 are the
   melee kinds (one- and two-hand slash, blunt and pierce); 7, 9 and 10 are
   bow, crossbow and thrown, which reach by the range. 0 never reaches
   (CLIENT's TargetInRange, entity/attack.go SwingFor).
 - **Nearly all sit in slot 12**, the primary hand, zweihanders, staves and
-  poleaxes too; Sandstorm's two-handers are slot 15.
+  poleaxes too; the reference server's two-handers are slot 15.
 - **Nearly all have no model**, so nothing is drawn in the hand.
-- **Nearly all carry the dump's stand-in icon** (848266163 on eqoaclassic:
-  455 items, 433 of them of no attack type). None of Sandstorm's 1,316 items
+- **Nearly all carry the dump's stand-in icon** (848266163 on the production server:
+  455 items, 433 of them of no attack type). None of the reference server's 1,316 items
   uses it, and it draws an epic two-hand sword for a bow. The fix of the day
-  gave the bows Sandstorm's records but kept this icon.
+  gave the bows the reference server's records but kept this icon.
 
 **A weapon of no attack type** takes the first of these that has it:
-1. Sandstorm's record (--prices: its merchants' wares in the harvests): its
+1. The reference server's record (--prices: its merchants' wares in the harvests): its
    attack type and wear slot.
 2. Allakhazam's page (--pages: tools/fetch_item_pages.py's folder, its
    players' submissions of the live game's items), by the item's name: its
@@ -37,18 +37,18 @@ does sell Sandstorm's records.
    (OURS), never the stand-in's.
 5. One-hand blunt (OURS), listed: nothing says what it is.
 
-**A weapon in wear slot 0** (284 on eqoaclassic: no slot, CLIENT's "empty";
-Sandstorm's records use none, and the server's wear table refuses it) goes
+**A weapon in wear slot 0** (284 on the production server: no slot, CLIENT's "empty";
+the reference server's records use none, and the server's wear table refuses it) goes
 to its hand slot by its attack type, Allakhazam's "Secondary" to 14; one of
 no attack type takes one first, as above. One named as armour (a shield,
 bracers, a ring) is left to tools/fix_wear_slots.py.
 
 **A weapon with the stand-in icon** (slot 12, 14, 15 or 16: 13 is a shield's; of any type) takes its own
-Sandstorm record's icon, else the commonest icon of its kind (the name's last
-word and attack type) among Sandstorm's weapons, then this server's, else
-the commonest of its attack type among Sandstorm's (OURS: a stand-in of its
+the reference server record's icon, else the commonest icon of its kind (the name's last
+word and attack type) among the reference server's weapons, then this server's, else
+the commonest of its attack type among the reference server's (OURS: a stand-in of its
 kind). A stand-in is an icon on 20 weapons or more of three kinds or more that no
-Sandstorm item carries (eqoaclassic has two: 848266163, the dump's weapons',
+the reference server item carries (the production server has two: 848266163, the dump's weapons',
 and -570739083, every slot 0 item's), or --placeholder's.
 
 A weapon with no model takes the model most of this server's weapons of its
@@ -57,7 +57,7 @@ fix_weapon_records.py). A ranged one with no range takes its description's
 "Range: N", else 25 (fix_ranged_reach.py's). A potion's (itemeffect) is
 left, and one a GM changed (gm_audit) too.
 
-The report measures each source against Sandstorm's records where both have
+The report measures each source against the reference server's records where both have
 a weapon: Allakhazam's pages, the rule and the icons.
 
 Every change is logged in dump_weapons_fix_log (the pattern, its values
@@ -91,10 +91,10 @@ TWO_HAND = {2, 4, 6}
 RANGED = {7, 9, 10}
 SLOT_TWO_HAND, SLOT_RANGED, SLOT_EITHER = 15, 16, 14
 # OURS: the weapon words, and the words of a two-hander. EQOA's own names
-# (Sandstorm's records) make a battleaxe and a spear one-handed, a greataxe,
+# (the reference server's records) make a battleaxe and a spear one-handed, a greataxe,
 # a beheader, a warblade, a walking stick and a glaive (a slashing weapon)
 # two-handed. The rule is tuned on those records; the report measures it on
-# Allakhazam's pages of weapons Sandstorm does not sell, which it was not.
+# Allakhazam's pages of weapons the reference server does not sell, which it was not.
 RANGED_WORDS = [(r"\bcross ?bows?\b", 9), (r"\b(?:great|long|short|composite|recurve)?bows?\b", 7),
                 (r"\bthrow(?:ing)? (?:knife|knives|dagger|axe|star)s?\b|\bshuriken\b|\bchakram\b", 10)]
 KIND = [
@@ -153,7 +153,7 @@ def by_words(text):
 
 
 def sandstorm(paths):
-    """Sandstorm's weapons by name: {name: (attack type, wear slot, icon)}, a
+    """the reference server's weapons by name: {name: (attack type, wear slot, icon)}, a
     name of two records left out; and every icon its items carry."""
     files = []
     for p in paths:
@@ -187,7 +187,7 @@ def sandstorm(paths):
 
 def placeholder_icons(db, ss_icons):
     """The dump's stand-in icons: each on 20 weapons or more, of three kinds or
-    more (a real icon draws one kind), that no Sandstorm item carries."""
+    more (a real icon draws one kind), that no reference-server item carries."""
     kinds = collections.defaultdict(collections.Counter)
     for icon, at, name in db.execute("SELECT itemicon, attacktype, itemname FROM itempattern WHERE "
                                      "(weapondamage > 0 OR attacktype > 0) AND equipslot IN (0, 12, 14, 15, 16)"):
@@ -404,7 +404,7 @@ def plan(db, ss, ak, stand_ins):
 
 
 def measure(db, ss, ak, stand_ins):
-    """How often each source agrees with Sandstorm's records where both have a
+    """How often each source agrees with the reference server's records where both have a
     weapon: [(source, agree, of)]."""
     icons = collections.defaultdict(collections.Counter)
     names = {}

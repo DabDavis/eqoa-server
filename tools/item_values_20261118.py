@@ -14,7 +14,7 @@ missed the loot steps (only quest gives count there). This tool prices exactly t
 CREATURE gives (a loot table, the loot pool, or an enabled quest's loot step).
 
 No real record gives these values: Allakhazam's archived item pages carry no merchant value (only players' asking
-prices), EQOA-Data's item files have no value field, and Sandstorm is no reference (the owner, 2026-11-15). So the
+prices), EQOA-Data's item files have no value field, and the reference server is no reference (the owner, 2026-11-15). So the
 values are our own data's, the way the priced trash was made (tools/seed_trash_items.py: PRICE_PER_LEVEL x the
 median level of the creatures that drop it):
 

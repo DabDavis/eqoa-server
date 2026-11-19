@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-// classtemplates is made with jib's five examples and npctemplate empty: no
+// classtemplates is made with a GM's five examples and npctemplate empty: no
 // NPC fights by a template until a GM gives one. A seed a GM deleted stays
 // deleted at the next start (the table is seeded only when it is made).
 func TestClassTemplatesAreSeededAndNoneApplied(t *testing.T) {
@@ -27,7 +27,7 @@ func TestClassTemplatesAreSeededAndNoneApplied(t *testing.T) {
 			t.Errorf("seed %q not in the table", s.Name)
 		}
 	}
-	// jib's five, the wisp and the roamer, and the pets' templates pettemplate gives the table
+	// a GM's five, the wisp and the roamer, and the pets' templates pettemplate gives the table
 	// with it (pettemplates.go)
 	if strings.Join(names, ",") != "tank,melee,wizard,necromancer,shadowknight,wisp,roamer" ||
 		len(got) != len(SeedClassTemplates)+len(SeedPetClassTemplates) {
@@ -55,7 +55,7 @@ func TestClassTemplatesAreSeededAndNoneApplied(t *testing.T) {
 	if tk := got["tank"]; tk.HPPct <= 100 || tk.TakenPct >= 100 || len(tk.Abilities) != 0 {
 		t.Errorf("the tank: %+v", tk)
 	}
-	// the wisp is jib's wizard but for its abilities' figures, 28% where his are 35% (the user's "28%")
+	// the wisp is a GM's wizard but for its abilities' figures, 28% where his are 35% (the user's "28%")
 	wz, ws := got["wizard"], got["wisp"]
 	if len(ws.Abilities) != len(wz.Abilities) || ws.Class != wz.Class || ws.HPPct != wz.HPPct || ws.TakenPct != wz.TakenPct ||
 		ws.MeleePct != wz.MeleePct || ws.Special != wz.Special || ws.SpecialEvery != wz.SpecialEvery {
@@ -596,7 +596,7 @@ func TestTheMagiciansMasteryPetsHaveTheirOwn(t *testing.T) {
 	}
 }
 
-// The abilities of 2026-11-10 (the GM Jibrish's petitions 1437-1443, the owner's Tunare and Innoruuk): the
+// The abilities of 2026-11-10 (a GM's petitions 1437-1443, the owner's Tunare and Innoruuk): the
 // raid gods' lists read and written back the same; each new field refused where its kind takes none, a
 // passive kind's clock and cast fields refused, a summon's and an enrage's share of hit points needed.
 func TestTheRaidGodsAbilities(t *testing.T) {
@@ -666,7 +666,7 @@ func TestAbilitiesOfSelfBuffsAndKillSays(t *testing.T) {
 	for _, good := range []string{
 		`[{"kind":"proc","spell_id":700794,"fx":212655841},{"kind":"veil","spell_id":1431,"tap_pct":1,"resist":"AR"}]`,
 		`[{"kind":"veil","spell":"Veil of Death +","tap_pct":1,"fx":7}]`,
-		`[{"kind":"killsay","foes":["Innoruuk","Tunare"],"say":"Dab got dunked again"}]`,
+		`[{"kind":"killsay","foes":["Innoruuk","Tunare"],"say":"Dax got dunked again"}]`,
 	} {
 		list, err := ParseTemplateAbilities(good)
 		if err != nil {
@@ -680,7 +680,7 @@ func TestAbilitiesOfSelfBuffsAndKillSays(t *testing.T) {
 	}
 	for _, bad := range []string{
 		`[{"kind":"killsay","foes":["Innoruuk"]}]`,                             // a line of nothing
-		`[{"kind":"killsay","say":"Dab got dunked again"}]`,                    // no foes
+		`[{"kind":"killsay","say":"Dax got dunked again"}]`,                    // no foes
 		`[{"kind":"killsay","foes":[""],"say":"x"}]`,                           // a foe of no name
 		`[{"kind":"killsay","foes":["Innoruuk"],"say":"x","every":10}]`,        // a clock on what casts nothing
 		`[{"kind":"killsay","foes":["Innoruuk"],"say":"x","spell_id":1431}]`,   // a spell on a line
@@ -696,7 +696,7 @@ func TestAbilitiesOfSelfBuffsAndKillSays(t *testing.T) {
 	}
 }
 
-// The GM Jibrish's petitions 1892 and 1894 (2026-11-13): Mr. Moogie's ward below 15% (a heal and a pure damage at every
+// a GM's petitions 1892 and 1894 (2026-11-13): Mr. Moogie's ward below 15% (a heal and a pure damage at every
 // hit) and his hold at 1 hit point (30 s): both read and written back the same, beside his nine abilities; each
 // refused without its parts, with a resist (a ward's damage is pure), out of bounds, or with the other's fields.
 func TestWardAndDeathHoldAbilities(t *testing.T) {

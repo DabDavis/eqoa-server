@@ -6,7 +6,7 @@ Ew Crusader" is "Tae Ew crusader", "Copperhead " is "copperhead"), one
 capitalized everywhere is read by its words ("Albino Rat" is "albino rat"),
 an individual's keeps its case ("Guard Rick", "Captain Scilond", "Sarek the
 Betrayer", "child of Xrag" as written); a retail savestate's spelling wins
-("Sign Post" is "sign post") and Sandstorm's capitals do not; pets, towns'
+("Sign Post" is "sign post") and the reference server's capitals do not; pets, towns'
 people, the names the server's code keys and the capitals it reads are kept.
 --apply renames every column that holds a name, merges two rows that become
 one, keeps every join the server makes, and --undo gives back every table as
@@ -147,7 +147,7 @@ class Classification(unittest.TestCase):
         self.words = os.path.join(self.dir.name, "words")
         with open(self.words, "w") as f:
             f.write("\n".join(WORDS + ["Rick", "Snake"]) + "\n")
-        # Sandstorm's recording: capitalized throughout, as its 2,094 of 2,103 names are
+        # the reference server's recording: capitalized throughout, as its 2,094 of 2,103 names are
         self.harvest = os.path.join(self.dir.name, "harvest.json")
         with open(self.harvest, "w") as f:
             json.dump({"server": "eqoa.live", "seen": [{"id": 1001, "name": "Grass Viper"}, {"id": 1002, "name": "Moss Snake"},

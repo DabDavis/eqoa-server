@@ -242,7 +242,7 @@ func lookSession(t *testing.T, n byte) *session.Session {
 	return sess
 }
 
-// A client of the disc's look (every PS2's, Sandstorm's) is handed the very
+// A client of the disc's look (every PS2's, the reference server's) is handed the very
 // buffer the serializer wrote, on a channel that stays 162 bytes; one of the
 // live look the live game's 201, and back to 162 when it goes back: a
 // channel takes the length of what it is given.

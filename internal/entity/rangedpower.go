@@ -6,7 +6,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// A ranged weapon's shot costs power (petition 1581, the GM Jibrish: "Range
+// A ranged weapon's shot costs power (petition 1581: "Range
 // attack abilities, such as alchemist throw or ranger firing their bow (NOT
 // ABILITIES!) should take exactly 10% of the players maximum mana"): every
 // auto-attack shot of a ranged weapon (CLIENT's Range1-4, GetSwing's kinds

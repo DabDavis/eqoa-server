@@ -65,7 +65,7 @@ TEMPLATES = {
     # had killed two level 60 GMs in seconds; those deaths were in fact of creatures with NO template, the first rows
     # lacking a resist_kind: naked clones of 1,243 hit points hit for ~2,000). Measured with cmd/balancesim (tier 0.5
     # gear, groups of 2-3): trash 10-12 s for three players at 97-99% hit points left; a named 98 s for two (78% left);
-    # the boss won by three in 60% of fights (1.7 dead a fight), never by two. Jibrish tunes from here.
+    # the boss won by three in 60% of fights (1.7 dead a fight), never by two. A GM tunes from here.
     "dungeon trash": (100, 130, 7.4, 10, [],
                       "The instanced dungeons' creatures (tools/dungeons_20261112.py): levels 60-62, about 15k hit points, "
                       "130% melee, the roamer's crit, 10% resists. A first pull for a 4-6 player L60 raid in raid gear (balancesim: "

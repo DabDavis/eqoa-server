@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The Stone of Seventeen Banners, the Live shard only (petition 5089, Trulyblind, 2026-11-15: "would it be possible to
+"""The Stone of Seventeen Banners, the Live shard only (petition 5089, 2026-11-15: "would it be possible to
 get some kind of item or something, so i can test the other 17s? just for testing"; the owner: "give them faction
 stone that increases factions with all lvl 17 q givers").
 

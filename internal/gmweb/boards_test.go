@@ -9,24 +9,24 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// boardFixture is the panel with jib's board configured: jibrish (a GM, its
+// boardFixture is the panel with a GM's board configured: a GM (a GM, its
 // member), gm (a GM who is not) and boss (an admin, the owner).
 func boardFixture(t *testing.T) *fixture {
 	t.Helper()
 	f := newFixture(t)
 	hash, _ := auth.HashPassword(testPassword, 4)
-	mustExec(t, f.db, `INSERT INTO accountinfo (accountid, username, pwhash, acctstatus, acctlevel) VALUES (10, 'jibrish', ?, 1, 1)`, hash)
-	f.s.cfg.PersonalBoards = map[string][]string{"Jib": {"JibRish"}}
+	mustExec(t, f.db, `INSERT INTO accountinfo (accountid, username, pwhash, acctstatus, acctlevel) VALUES (10, 'jinkles', ?, 1, 1)`, hash)
+	f.s.cfg.PersonalBoards = map[string][]string{"Jib": {"Jinkles"}}
 	return f
 }
 
-// dabPosts posts as dab's sessions do, through cmd/workboard's call.
+// dabPosts posts as the owner's sessions do, through cmd/workboard's call.
 func dabPosts(t *testing.T, f *fixture, text string, reply int64) database.BoardMessage {
 	t.Helper()
 	m, audit, err := f.db.PostBoardMessage(database.BoardPost{Board: "jib", Text: text, ReplyTo: reply, Via: database.BoardViaCLI},
 		database.GMEdit{Username: "dab's sessions", Via: "cli", IP: "local"})
 	if err != nil || audit == 0 {
-		t.Fatalf("dab's post: %v (audit %d)", err, audit)
+		t.Fatalf("dax's post: %v (audit %d)", err, audit)
 	}
 	return m
 }
@@ -36,7 +36,7 @@ func TestAPersonalBoardIsItsMembersAndTheAdmins(t *testing.T) {
 	dabPosts(t, f, "the **secret** plan for the Freeport gate", 0)
 
 	jib := f.browser()
-	jib.login("jibrish")
+	jib.login("jinkles")
 	agent := f.bearer(jib.workToken("claude", "write"))
 	code, mine := agent.op("my_boards", nil)
 	if code != 200 {
@@ -60,7 +60,7 @@ func TestAPersonalBoardIsItsMembersAndTheAdmins(t *testing.T) {
 		t.Fatalf("jib reads: %v", th)
 	}
 	code, out := agent.op("post_board_message", map[string]any{"board": "jib", "text": "on it", "reply_to": first["id"]})
-	if code != 200 || out["posted"].(map[string]any)["author"] != "jibrish (token:claude)" || out["audit"] == nil {
+	if code != 200 || out["posted"].(map[string]any)["author"] != "jinkles (token:claude)" || out["audit"] == nil {
 		t.Fatalf("jib posts: %d %v", code, out)
 	}
 	// its own post is not unread to it
@@ -75,7 +75,7 @@ func TestAPersonalBoardIsItsMembersAndTheAdmins(t *testing.T) {
 		th["unread"] != float64(2) {
 		t.Fatalf("boss reads: %d %v", code, th)
 	}
-	if _, mine := boss.op("my_boards", nil); fmt.Sprint(mine["boards"].([]any)[0].(map[string]any)["members"]) != "[jibrish]" {
+	if _, mine := boss.op("my_boards", nil); fmt.Sprint(mine["boards"].([]any)[0].(map[string]any)["members"]) != "[jinkles]" {
 		t.Fatalf("boss's boards: %v", mine)
 	}
 
@@ -142,7 +142,7 @@ func TestABoardReadsSinceAnIDAndCountsWhatIsUnread(t *testing.T) {
 		dabPosts(t, f, fmt.Sprintf("message %d", i), 0)
 	}
 	jib := f.browser()
-	jib.login("jibrish")
+	jib.login("jinkles")
 	// the newest two, oldest first; three still unread
 	code, th := jib.op("board_messages", map[string]any{"board": "jib", "limit": 2, "peek": true})
 	if code != 200 || len(th["messages"].([]any)) != 2 || th["messages"].([]any)[0].(map[string]any)["id"] != float64(4) ||

@@ -299,7 +299,7 @@ func TestOverride(t *testing.T) {
 	if _, ok := e.At(0, 100, 2100, t0); ok {
 		t.Fatal("a lava square has a timeline")
 	}
-	o, err := e.Call(0, 100, 2100, Where{Kind: "here"}, Snow, Heavy, 10, "Dab", 0, t0)
+	o, err := e.Call(0, 100, 2100, Where{Kind: "here"}, Snow, Heavy, 10, "Dax", 0, t0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -331,7 +331,7 @@ func TestOverrideFadesFromWhatShows(t *testing.T) {
 	if k != Rain || s <= 0 {
 		t.Fatalf("showing mid-event %s %g", k, s)
 	}
-	o, err := e.Call(0, 1000, 1000, Where{Kind: "here"}, Snow, Heavy, 5, "Dab", 0, mid)
+	o, err := e.Call(0, 1000, 1000, Where{Kind: "here"}, Snow, Heavy, 5, "Dax", 0, mid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -353,7 +353,7 @@ func TestOverrideFadesFromWhatShows(t *testing.T) {
 
 func TestEndOverride(t *testing.T) {
 	e := testEngine()
-	o, _ := e.Call(0, 1000, 1000, Where{Kind: "near", Near: 1}, Sand, Heavy, 30, "Dab", 7, t0)
+	o, _ := e.Call(0, 1000, 1000, Where{Kind: "near", Near: 1}, Sand, Heavy, 30, "Dax", 7, t0)
 	if len(o.Zones) != 4 { // (0,0) and its in-grid neighbours (1,0), (0,1), (1,1)
 		t.Fatalf("near 1: %d zones", len(o.Zones))
 	}

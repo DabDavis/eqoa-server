@@ -12,7 +12,7 @@ import (
 
 // balance.go — the game's balance, the GMs' to tune: tables balancelevel
 // and balancecon (database/balance.go; the GM panel's "Balance by level"
-// and "Balance by con", live). Sandstorm's measured formulas stay as they
+// and "Balance by con", live). The reference server's measured formulas stay as they
 // are (offence.go, defence.go, the players' stats); this scales what goes
 // into a fight and what comes out of it, in one place:
 //
@@ -324,7 +324,7 @@ func (b *Balance) ArtCooldown(level int) time.Duration {
 }
 
 // RegenPct is what a creature of the level heals each tick out of a fight
-// (npcregen.go), a percent of its maximum: jib's 15 with no rows.
+// (npcregen.go), a percent of its maximum: a GM's 15 with no rows.
 func (b *Balance) RegenPct(level int) float64 {
 	return b.Level(level).RegenPct
 }
@@ -337,7 +337,7 @@ func (b *Balance) PetSpecialHits(level int) float64 {
 
 // isArt is whether a spell is a combat art for the global cooldown: an
 // ability with no cast time cast at a creature (a Kick, a Bash, a strike). One
-// paid for with an item is held by its stack instead (petition 1036, Zaeire: "the
+// paid for with an item is held by its stack instead (petition 1036: "the
 // recast should be instant on agony but there is quite the delay between each
 // dagger thrown"; Agony and its Rogue's Daggers are the only such today).
 func isArt(s *CastSpell) bool {
@@ -423,7 +423,7 @@ func (w *World) LoadBalance(db *database.SQLiteDB) (levels, cons int, err error)
 }
 
 // balanced is whether the balance acts on the NPC: not a training dummy
-// (dummy.go), whose fights are Sandstorm's as measured.
+// (dummy.go), whose fights are the reference server's as measured.
 func balanced(npc *NPC) bool { return npc != nil && npc.Dummy == NotDummy && npc.siege == nil } // a siege's hit points are its settings' (siege.go)
 
 // summoned is whether the NPC is a summoned pet (a charmed creature is not).

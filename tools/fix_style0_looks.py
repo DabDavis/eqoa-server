@@ -6,7 +6,7 @@ then, of the pieces that went cloth by their icon though their AC is a heavier a
 An armour piece's style (itempattern.model, wear slots 1 5 7 10 11 19) is the armour set the character is drawn
 in (handlers/character.go wornLook; style 0 draws none, on the head no helm); a shield's, weapon's or held item's
 model (wear slots 12-18 and 20) is the ITEM.ESF sprite in the hand, and 0 draws nothing. The old dump's records
-came with neither: on eqoaclassic 1,437 armour pieces of style 0, 1,392 of them on their slot's plain cloth icon
+came with neither: on the production server 1,437 armour pieces of style 0, 1,392 of them on their slot's plain cloth icon
 (the Basher Shirt, a troll warrior's first chest, among them) and 1,272 of those with no class mask, and 300-odd
 shields, weapons and held items of model 0. No record says how they were drawn. Changed:
 
@@ -27,7 +27,7 @@ shields, weapons and held items of model 0. No record says how they were drawn. 
    A tier's style is its commonest among the slot's styled drops near the level (chain at 18, scale from the
    20s). A look other than cloth takes the icon the slot's records of that style carry most, so the picture and
    the look agree. "Styled drops": armour records with a style, AC and level, neither crafted ("Armor forged
-   of ...") nor changed by this tool, each name once. Measured leaving each out (1,286 on eqoaclassic): a name's
+   of ...") nor changed by this tool, each name once. Measured leaving each out (1,286 on the production server): a name's
    word names the tier of 226 of the 229 it decides, AC alone 63% (86% for cloth or not, its misses the next tier
    up or down), the two together 70%.
 2. **Armour on an icon of a style** (at least 3 records of its slot carry it with a style, 9 in 10 of those the
@@ -39,7 +39,7 @@ shields, weapons and held items of model 0. No record says how they were drawn. 
    one-handed, either-hand and two-handed weapons; bows; thrown; held items, with the weapons; fishing poles)
    carry with one model (at least 3, 9 in 10 of them): that model, which those records are already drawn with.
    The held items' stand-in picture is a wand's, drawn as the wand it shows (136 books, orbs, totems and horns
-   on eqoaclassic): the icon decides, as for the armour.
+   on the production server): the icon decides, as for the armour.
 
 Left, and listed: armour on an icon no rule reads (crowns, circlets and headbands on icons of their own, which
 no styled record shares; a necklace's picture with no material in the name), and anything a GM edited

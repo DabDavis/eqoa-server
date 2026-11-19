@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// Creatures wander round their spawn at Sandstorm's walking pace, resting
+// Creatures wander round their spawn at the reference server's walking pace, resting
 // between walks; townsfolk, merchants and dummies stand (roam.go; F3
 // 20261025-044257).
 
@@ -80,7 +80,7 @@ func TestACreatureWandersWithinItsRadiusAtAWalkAndRests(t *testing.T) {
 				t.Fatalf("walking at %.2f, want %v", v, NPCWalkSpeed)
 			}
 			if !resting.IsZero() {
-				// Sandstorm's rest after a walk (the first, before any, is
+				// the reference server's rest after a walk (the first, before any, is
 				// shorter), and never a short pause
 				rest, slack := now.Sub(resting), 200*time.Millisecond
 				if walked > 1 && (rest < roamRestMin-slack || rest > roamRestMax+slack) {
@@ -112,7 +112,7 @@ func TestACreatureWandersWithinItsRadiusAtAWalkAndRests(t *testing.T) {
 	if len(legs) < 100 {
 		t.Fatalf("in thirty minutes it walked %d legs", len(legs))
 	}
-	// Sandstorm's legs: median 19, 90% under 40.4 (roam.go); on its feet
+	// the reference server's legs: median 19, 90% under 40.4 (roam.go); on its feet
 	// about half the time
 	sort.Float64s(legs)
 	med, p90 := legs[len(legs)/2], legs[len(legs)*9/10]
@@ -124,7 +124,7 @@ func TestACreatureWandersWithinItsRadiusAtAWalkAndRests(t *testing.T) {
 	}
 }
 
-// Sandstorm's leg lengths are drawn as measured: roamLeg at u is the table
+// The reference server's leg lengths are drawn as measured: roamLeg at u is the table
 // at its points and straight between them.
 func TestALegIsSandstormsLength(t *testing.T) {
 	for i, want := range roamLegs {

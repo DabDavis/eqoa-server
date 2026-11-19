@@ -41,7 +41,7 @@ import (
 // <name>" (CLIENT's word 636 is "<name> invites you to join a group"); its yes
 // makes the group of two, its owner leading (member 0), and its client shows
 // the merc in it. A merc fights only in its owner's group (petition 1504,
-// Lifeispain: "I declined but it is still following me around ... It still is
+// a player: "I declined but it is still following me around ... It still is
 // fighting for me even though not in group"): while its box (or another's box
 // it waits behind) is up it stands where it is and fights nothing, and its no
 // dismisses it, as /merc dismiss does (its hire ended, its row dropped). The
@@ -226,7 +226,7 @@ func mercClientReady(sess *session.Session) bool {
 }
 
 // mercRejoinAskLocked sends o's client its mercs' own box though o is in a
-// group with them here (petition 2213, Drizzt: "mercenaries drop group after
+// group with them here (petition 2213: "mercenaries drop group after
 // a reset. seemingly still with me but dont help"): CLIENT holds itself in a
 // group only after its own Invite or Accept, and Connect clears it, so a new
 // client of a character taken over (keep restart's frozen client logging in

@@ -63,7 +63,7 @@ func TestTrailingGarbageDoesNotAffectPassword(t *testing.T) {
 }
 
 func TestEncryptDecryptRoundTrip(t *testing.T) {
-	for _, pw := range []string{"a", "dab", "Pass:word9", "0123456789012345678901234567890"} {
+	for _, pw := range []string{"a", "dax", "Pass:word9", "0123456789012345678901234567890"} {
 		field, err := encryptPassword(pw)
 		if err != nil {
 			t.Fatalf("encrypt %q: %v", pw, err)
@@ -83,14 +83,14 @@ func TestEncryptDecryptRoundTrip(t *testing.T) {
 
 // The PS2's garbage does not start at a block boundary -- it starts at the byte
 // after the NUL. The real capture's first plaintext block is
-// "dab\x00" + b0c81400, so a zero-filling client cannot produce byte-identical
+// a 3-letter account name, "\x00" and b0c81400, so a zero-filling client cannot produce byte-identical
 // ciphertext and there is no point asserting that it does.
 //
 // What must hold is that the garbage is irrelevant to the recovered password,
 // wherever it starts. This reproduces the PS2's buffer shape directly: same
 // password, arbitrary trailing bytes, one answer.
 func TestGarbageAfterTheNULIsIgnoredWhereverItStarts(t *testing.T) {
-	const password = "dab"
+	const password = "dax"
 
 	tails := [][]byte{
 		{},                             // fully zero-filled

@@ -2,7 +2,7 @@ package handlers
 
 import "testing"
 
-// Sandstorm's con colours (0x0010's second byte) against the two levels, every
+// The reference server's con colours (0x0010's second byte) against the two levels, every
 // pair seven PS2 captures hold (pcaps/ps2_*.pcap, breath_capture.pcap; read
 // with the entity channels accumulated as CLIENT does:
 // claude-notes/aggro-20261025.md). calcConColor gives each one. The yellow

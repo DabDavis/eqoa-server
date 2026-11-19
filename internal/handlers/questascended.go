@@ -9,7 +9,7 @@ import (
 )
 
 // Ascended items in quests (database/ascended.go; petition 1446, the GM
-// Jibrish: "For quest items that produce gear that they drop, add an option
+// a GM: "For quest items that produce gear that they drop, add an option
 // at the end of that normal quest line where they can turn in the ascended
 // version instead and get a +10% version, but they still have to do all steps
 // of the quest. AKA if they have ring of veeshan or ascended ring of veeshan,

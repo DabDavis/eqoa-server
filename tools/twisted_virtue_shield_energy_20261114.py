@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dust's Heirloom Shield of Twisted Virtue as an energy shield (the owner, 2026-11-14: "dusts shield is just metal but
+"""a GM's Heirloom Shield of Twisted Virtue as an energy shield (the owner, 2026-11-14: "dusts shield is just metal but
 should look like the shield he had before but shaped like the current shield now with the same diamond and cross
 pattern but with the energy shield effect").
 
@@ -9,7 +9,7 @@ old model's, 0x2EC56029: a round disc of one additive layer, a streak texture (0
 714383 an itemaura row of kind 9 (database.AuraEnergy: an energy skin, a held item's own aura shown on the hand that
 holds it), source 0x2EC56029, colour 0xC10F0EFF (the record's own Twisted Virtue crimson): vanilla lays the disc's
 streak layer over the square's metal in crimson and lights it by night (aura::energy_skin). Every holder of 714383
-shows it (Dust holds the only one); a PS2 and an older client draw the metal shield as now.
+shows it (a GM holds the only one); a PS2 and an older client draw the metal shield as now.
 
 Checked as found, else REFUSED and nothing written: itempattern 714383 the Heirloom Shield of Twisted Virtue; tables
 itemaura and gm_audit. A row there already (a GM's) is changed and its old values kept in the log. Report by default;

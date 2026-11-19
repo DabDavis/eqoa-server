@@ -170,7 +170,7 @@ func (h *NPCWindowHandler) bankItem(sess *session.Session, id uint32, fromBank b
 	}
 	if took == 0 {
 		log.Printf("BankItem: %s: no room for %q", player.Name, p.ItemName)
-		// said (Live petition 5267, Innoruuk: "When depositing items in the bank, there
+		// said (Live petition 5267: "When depositing items in the bank, there
 		// is no message indicating your bank inventory is full"): CLIENT checks no room
 		// before its 0x1254 (VIBankControl::Move) and has no word of a full bank, so the
 		// line is ours, as the account bank's (above)

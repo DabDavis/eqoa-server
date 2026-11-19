@@ -8,11 +8,11 @@ import (
 	"strings"
 )
 
-// The loot a creature's corpse rolls by CATEGORY (the user and jib,
+// The loot a creature's corpse rolls by CATEGORY (the user and a GM,
 // 2026-10-30: rates per tier, per kill; "500 more items change nothing about
 // how much drops"). Four tables, all read at every corpse:
 //
-//   - lootpreset: named sets of rates; the one with active 1 is used ("jib",
+//   - lootpreset: named sets of rates; the one with active 1 is used ("a GM",
 //     the live game's GM's, and "user" are tools/seed_loot_categories.py's).
 //   - lootrate: a preset's rates by PROFILE and category. A profile is a kind
 //     of creature ("xp" the default; "named", "boss", "trash" ...). Each

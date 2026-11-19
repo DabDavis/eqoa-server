@@ -72,7 +72,7 @@ func (n *NPC) CorpseOfNothing() bool {
 }
 
 // markCompanionPetLocked marks npc, dying, a creature's own pet when it is one (companion.go's pairs): its
-// corpse one of nothing, as one that died with its master is (Waldorf's ticket 2008, 2026-11-13: "If you
+// corpse one of nothing, as one that died with its master is (a player's ticket 2008, 2026-11-13: "If you
 // kill the pet first you can loot it. If you kill the caster first, you get a message stating 'you can't
 // loot that entity'. Should be consistent regardless of order"; the operator's ruling: a creature's pet
 // carries no loot, no tunar and no items, whichever dies first). A player's pet (Owner) and a charmed

@@ -9,7 +9,7 @@ import (
 )
 
 // objf is an OBJF file of the records, its header as VIObjFile writes one
-// (a file type of 0xAB4F, Sandstorm's ss-art.csf's).
+// (a file type of 0xAB4F, the reference server's ss-art.csf's).
 func objf(records ...[]byte) []byte {
 	b := []byte("FJBO")
 	b = binary.LittleEndian.AppendUint32(b, uint32(len(records)))

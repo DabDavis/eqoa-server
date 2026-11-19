@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Work board #688 (the GM Jibrish's, 2026-11-10; "jibrish decided all of this"): the Metal Moogie V3-V5 chain's
+"""Work board #688 (a GM's, 2026-11-10; "a GM decided all of this"): the Metal Moogie V3-V5 chain's
 data, on the server's code of the same branch (melee_fixed, a creature's root, the chain's turn-ins and uses are
 that code's: run it as the before.sh of the restart that brings it, never under an older server).
 

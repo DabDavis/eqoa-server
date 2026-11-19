@@ -315,7 +315,7 @@ func (l *invList) loreRoom(p *database.ItemPatternRecord, room int) int {
 
 // loreHeld is whether the character holds one of an item anywhere a Lore item
 // counts: worn or in the pack (the list), kept beside the lists, or in the bank
-// (jib's PR #1: a lore item "held once", worn, in the inventory or the bank;
+// (a GM's PR #1: a lore item "held once", worn, in the inventory or the bank;
 // until 2026-11-10 the bank's was not counted).
 func (l *invList) loreHeld(patternID int) bool {
 	if l == nil {

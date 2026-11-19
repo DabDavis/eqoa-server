@@ -34,13 +34,13 @@ itself and is named bare, "Spellbinder" for the list's "Spellbinder 1" (F3
 
 A Master Class's ranks after the first are its abilities, which the lists
 write as a chain ("Transmuter 2", "Transmuter 3"), and they are not one (F3
-20261026-222613, jib: "Tag *unlocks* the 2, but isn't a singular master class
+20261026-222613, a GM: "Tag *unlocks* the 2, but isn't a singular master class
 purchase chain"): each has the master class itself (its first rank) as its
 parent, so once that is bought they are bought in any order. One that
 improves another rank's ability keeps that rank before it: a rank needing or
 replacing an ability an earlier rank of its master class adds, and those in
 MASTER_UPGRADES (Defender 3, Immortal Guard, free after Guard). Each is named
-for what it gives (jib: "named what they are"): the one ability it adds, as
+for what it gives (a GM: "named what they are"): the one ability it adds, as
 the server's spell is named (as the list names it when no spell is found),
 else MASTER_ABILITY_NAMES (a rank of stats alone, or of several abilities:
 the rank's notes', EQOA-Data's spell lists', or OURS), where a few that
@@ -144,7 +144,7 @@ MASTER_UPGRADES = {
 # (stats alone, or several), and the few whose one spell's name would read
 # wrong: (master class, rank): (name, why). A rank's notes or EQOA-Data's
 # spell lists name some, the rest are OURS; the live game's names are asked
-# of jib, who knows them (F3 20261026-222613).
+# of a GM, who knows them (F3 20261026-222613).
 MASTER_ABILITY_NAMES = {
     ("defender", 4): ("Defender's Toughness", "EQOA-Data's warrior spell list: a Defender MCA ability, "
                                               "all six resists +25, perm, as this rank gives"),
@@ -213,7 +213,7 @@ def group_races(name):
 
 def master_class_name(category, rank_index, mastery, name):
     """A rank's name: a Master Class's first rank is the class itself, named
-    bare ("Spellbinder 1" is "Spellbinder"; F3 20261026-135728, jib); any
+    bare ("Spellbinder 1" is "Spellbinder"; F3 20261026-135728, a GM); any
     other rank as the list writes it."""
     mastery, name = mastery.strip(), name.strip()
     if category == 4 and rank_index == 0 and name == f"{mastery} 1":

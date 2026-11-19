@@ -10,7 +10,7 @@ import (
 )
 
 // Rows of the owner's case (2026-11-18): Tunare and her two pets, spawn-only
-// originals standing as eqoaclassic's 162665, 162670 and 162671 stand off each
+// originals standing as the production server's 162665, 162670 and 162671 stand off each
 // other, paired by nothing but trigger 141's resummons; and a creature of no one
 // 9 off her, the control for every pair.
 const (

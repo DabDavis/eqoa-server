@@ -289,7 +289,7 @@ func TestDungeonResetAndKilledStayDead(t *testing.T) {
 	}
 }
 
-// Petition 1832 (Waldorf, 2026-11-12): "Running the Guk 60 Instance and shamans aren't tied to their pets". An
+// Petition 1832 (2026-11-12): "Running the Guk 60 Instance and shamans aren't tied to their pets". An
 // instance's copies of a shaman and the Companion Spirit 1.5 off it fight as one, within their own instance alone;
 // the templates and a GM's copy (Temporary, no instance) stay out of every pair.
 func TestDungeonShamansKeepTheirPets(t *testing.T) {
@@ -346,7 +346,7 @@ func TestDungeonShamansKeepTheirPets(t *testing.T) {
 	}
 }
 
-// Petition 1841 (Waldorf, 2026-11-12): "a tracker to see how many of the total we killed ... Like xx of yy killed".
+// Petition 1841 (2026-11-12): "a tracker to see how many of the total we killed ... Like xx of yy killed".
 // /dungeon's line counts the party's kills against the instance's creatures.
 func TestDungeonStatusCountsKills(t *testing.T) {
 	r := newDungeons(t, 1)
@@ -407,7 +407,7 @@ func TestASpawnedCopyIsOfItsOwnWorldsOriginal(t *testing.T) {
 	}
 }
 
-// A dungeon's creature of a players' race's body attacks on sight in its instance (ticket 2005, Waldorf: "In Guk
+// A dungeon's creature of a players' race's body attacks on sight in its instance (ticket 2005: "In Guk
 // Instance, Maerik N'Toxis is neutral faced and should be aggressive"), as Guk's frogloks do; its open world self, a
 // dark elf in the world, stays as it was (no one's foe on sight), and the warden twin (the NPC bit) attacks no one.
 func TestDungeonCreaturesOfPlayersBodiesAttack(t *testing.T) {

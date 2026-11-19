@@ -14,7 +14,7 @@ import (
 //   - in a loop (the last point back to the first),
 //   - back and forth (to the last point and back the same way), or
 //   - once (to the last point, where it then stands);
-// at Sandstorm's walking pace or the chase's run, standing at each point for
+// at the reference server's walking pace or the chase's run, standing at each point for
 // the path's pause or the point's own. It is walked with the wander's and
 // the chase's own step (npcmove.go): on the ground where the creature
 // spawned on it (groundnpc.go), else along the waypoints' heights; facing
@@ -58,7 +58,7 @@ type PathPoint struct {
 }
 
 // NPCPath is one creature's path. Pace is its own speed in units a second
-// (npcpaths.speed a number: a patrol as Sandstorm's walks it), 0 the walk's
+// (npcpaths.speed a number: a patrol as the reference server's walks it), 0 the walk's
 // or, with Run, the run's.
 type NPCPath struct {
 	World  uint8

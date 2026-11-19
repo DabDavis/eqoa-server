@@ -8,7 +8,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// duelprocs.go — what a melee hit sets off in a duel (petition 1135, Larrybird: "proc items
+// duelprocs.go — what a melee hit sets off in a duel (petition 1135: "proc items
 // dont work in duels, Bpoa or sbpb do not work in duels tested both multi times"). A duel's
 // melee went straight to duelHurtLocked, so nothing a hit sets off on a creature ever ran.
 // Now, as on a creature:

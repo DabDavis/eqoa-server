@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """Three petitions' data of 2026-11-14 (batch tix5, lane tix-1114d), each checked on world 0's ground and walls files.
 
-  2098 (Fullmetal, Heirloom): "Harbingers of Khalimet: Next part after defeating Armis didnt drop required loot and quest
+  2098 (a player, Heirloom): "Harbingers of Khalimet: Next part after defeating Armis didnt drop required loot and quest
        marker reset to part of canyon that cannot be reached". Step 3 spawns Armis beside the player (the tome); step 4
        wants the Wand of Shattered Souls off Armis too, and the spawned Armis is gone once looted, so step 4's mark is
        Armis's standing row, npcs 123040 at (20937, 136.2, 20722): the mesa top 2073 moved the camp off (no walk from
        the canyon floor comes nearer than ~110). npcs 123040 -> (20929.5, 6.68, 20889.4), Box Canyon's floor 52 north of
-       the camp (step 2, radius 40: outside it), a walk from where Fullmetal stood (a flood over the ground and walls
+       the camp (step 2, radius 40: outside it), a walk from where a player stood (a flood over the ground and walls
        files). Its 90 s respawn is kept. Since build217's pre-looting a kill of Armis on step 3 drops the wand too (the
-       test TestTwoLootStepsOffOneCreatureDropBothOnOneKill); Fullmetal's kill (07:07) was before it. Both shards.
-  2099 (Zerkziee, Heirloom): "professor dugan quest sphere of annihilation spawns seem to be missing/sparse and not
+       test TestTwoLootStepsOffOneCreatureDropBothOnOneKill); a player's kill (07:07) was before it. Both shards.
+  2099 (a player, Heirloom): "professor dugan quest sphere of annihilation spawns seem to be missing/sparse and not
        dropping quest loot". Archaeologist Duggan's Wooden Cylinder Gaskets (quest 101140: four gaskets off spheres of
        annihilation, 0.5 each kill) had four spheres (108091, 108109, 108123, 108153) 850 apart on a 30-minute respawn
-       (npcrespawn 1800, "757 section3 stopgap"): Zerkziee and Zaeire's kills 07:34-07:57 dropped none of four rolls. Four
+       (npcrespawn 1800, "757 section3 stopgap"): a player and a player's kills 07:34-07:57 dropped none of four rolls. Four
        more spheres, each a copy of 108123 (its level, body and the rest) on walkable ground round Duggan, none within 40
        of another creature: (15106.6, 19.58, 27306.5), (14700.6, 58.97, 27300.5), (14750.6, 54.19, 27100.5), (15050.6,
        52.97, 27150.5), each its npcrespawn row of 1800 as the others'; the step's chance 0.5 -> 1.0 (a rare creature,
@@ -20,13 +20,13 @@
   5040 (Innoruuk, Live): "Freeport house crocs need tweaked, not spawned where they should, one spawning over itself".
        Croc Island's hut is a room of placed walls round (25371, 17326), its floor 69.95 running out past them as a
        porch. Croc (122113) stands in the room; the three crocodiles stood on the porch outside its walls: 1038 east of
-       the east wall, 3216 south-east of the south-east wall, and Jibrish's /place 162787 (Heirloom's mirror 168973) 1.5
+       the east wall, 3216 south-east of the south-east wall, and a GM's /place 162787 (Heirloom's mirror 168973) 1.5
        west of the west wall, its body into it. Into the room, each at least 4 from the others and Croc and 2-3 from the
        walls, on the side each stood: 162787/168973 -> (25367.5, 17326.5), 1038 -> (25376.0, 17325.0), 3216 ->
        (25372.8, 17330.2), height and facing kept (no two rows were within a unit of each other: none deleted). Both
        shards.
 
-  2101 (Zerkziee, Heirloom): "nashirs outside of freeport not giving freeport guard or other Freeport faction correctly".
+  2101 (a player, Heirloom): "nashirs outside of freeport not giving freeport guard or other Freeport faction correctly".
        The Nasehir bandits' camps round Freeport (fourteen kinds, "nasehir bandit" ... "nasehir yven") gave Heirloom's
        video-audit hits alone (Nasehir Cutthroats -10, The Taksehir Nation +1, Tunaria Gypsies +5, Smugglers of Temby +1):
        nothing of Freeport's, where the other bandits and raiders round the city (highwayman, the hatebone orcs, orc

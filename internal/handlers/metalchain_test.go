@@ -10,7 +10,7 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// The Metal Moogie chain's turn-ins (work board #688, the GM Jibrish's): the metal fixture with the four
+// The Metal Moogie chain's turn-ins (work board #688, a GM's): the metal fixture with the four
 // parts (lore, no trade) and the rewards in its item records, V3's original spawn-only beside Metal Moogie's.
 
 // item adds an item record of the name; its id.

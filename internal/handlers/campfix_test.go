@@ -249,7 +249,7 @@ func hasFlag(fl []CampfixFlagRecord, mark int, flag string) bool {
 	return false
 }
 
-// Petition 1423, jibrish: "Verify everyone on the server can use the
+// Petition 1423: "Verify everyone on the server can use the
 // /campfix set of commands. No gm or tester flag needed." A player of
 // acctlevel 0, no sub GM and no tester, drives every command end to end in
 // every spelling (/name, #name, a PS2's "/t name"): open, mark, add, remove,

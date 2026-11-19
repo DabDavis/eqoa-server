@@ -177,7 +177,7 @@ func findSetItem(inv []*database.CharInventoryEntry, itemID, patternID int, skip
 }
 
 // offHandRefusal is what a knight is told when a weapon set would put a
-// weapon in its off hand (ours: Sandstorm's lines have none).
+// weapon in its off hand (ours: the reference server's lines have none).
 const offHandRefusal = "You can only wield that weapon in your primary hand."
 
 // mainSlotFor is the equip slot a set's main hand goes into: a one-handed

@@ -2,7 +2,7 @@
 // "Players can submit waypoints to be added to the in-game map. Submissions
 // would require official approval, similar to our spellfx"): ONE list, kept on
 // this server, that eqoa-rust-client-vanilla's map draws for its player on any
-// game server (Sandstorm too: the map is drawn off the player's own disc, so a
+// game server (the reference server too: the map is drawn off the player's own disc, so a
 // place is the same on every server), and the suggestions players send from
 // that map with no sign-in. They wait in mapmark_suggestions for a GM, who
 // accepts (an audited insert into mapmarks, the name, note, kind and place the

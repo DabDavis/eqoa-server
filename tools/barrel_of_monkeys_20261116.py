@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The Barrel of Monkeys: one record, Moose's alone, given into his pack (the owner, 2026-11-16: "give moose a barrel
+"""The Barrel of Monkeys: one record, a player's alone, given into his pack (the owner, 2026-11-16: "give [a player] a barrel
 of monkeys unique item. it spawns a monkey that follows him around, up to 5. they have no life bar and cannot be
 targeted. they do not take up a pet slot, but are still owned by that player only").
 
@@ -17,8 +17,8 @@ targeted. they do not take up a pet slot, but are still owned by that player onl
    unless he holds one already. Run it only while he is OFFLINE (the row reaches him at his next login); while he is
    online give it by the GM panel's give (patternid 715080), which sends it at once.
 
-The character is found by name (Moose) and must be account 281 (Mrmoose1775), else REFUSED and nothing written (a
-Moose of another account, as on another shard, is refused). Checked too: the id free (or already this record), the
+The character is found by name and must be account 281, else REFUSED and nothing written (one of that
+name on another account, as on another shard, is refused). Checked too: the id free (or already this record), the
 binding free (or already his), tables itempattern, characters, charinventory and gm_audit, and with --give his
 pack's room. Report by default; --apply in one transaction, a gm_audit line a row (as the panel's), logged in
 barrel_monkeys_1116_log; a second --apply finds nothing to do; --undo puts back exactly what was there (a row changed

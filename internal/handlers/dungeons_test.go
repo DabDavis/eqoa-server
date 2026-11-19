@@ -62,7 +62,7 @@ func TestReadDungeonsRecipe(t *testing.T) {
 			t.Fatalf("the Salt Mines' landing %+v is inside its box", sm.Entrance)
 		}
 	}
-	// Crethley Manor (2026-11-14): its box inside Tunaria's cell (3, 7), the manor's zone 75; its landing where Dust
+	// Crethley Manor (2026-11-14): its box inside Tunaria's cell (3, 7), the manor's zone 75; its landing where a GM
 	// stood, in the graveyard yard inside the box, facing the house as he did (205 degrees, north-north-west)
 	cm := keys["crethley"]
 	for _, b := range cm.Boxes {
@@ -221,7 +221,7 @@ func TestDungeonKeepRestartSendsOut(t *testing.T) {
 	}
 }
 
-// Petition 1834 (Waldorf, 2026-11-12): "When in a group, selecting a raid instance from the board should transport
+// Petition 1834 (2026-11-12): "When in a group, selecting a raid instance from the board should transport
 // the group all at once if within range". Anna leads; Cora beside her goes in with her, into her instance; Bert, of
 // the group but 15,000 off, stays where he is.
 func TestDungeonEntryTakesTheGroupNear(t *testing.T) {
@@ -265,7 +265,7 @@ func TestDungeonEntryTakesTheGroupNear(t *testing.T) {
 	}
 }
 
-// Petition 1840 (Waldorf, 2026-11-12): an "instance ground rules" choice on the board. The warden's box opens with
+// Petition 1840 (2026-11-12): an "instance ground rules" choice on the board. The warden's box opens with
 // "How instances work", and picking it tells the rules (no respawn among them); the dungeons follow it.
 func TestDungeonBoardTellsTheRules(t *testing.T) {
 	r := newPortalRig(t)

@@ -261,7 +261,7 @@ func (h *AuthHandler) HandleDiscVersion(sess *session.Session, msg *protocol.Mes
 		// Answer with the DISC version, not an echo. 19 is a patched-client
 		// marker S2 writes on the OUTGOING path (it rewrote `li $v0,18` at
 		// CLIENT 0x00BC1EC8); the disc underneath is still Frontiers. Across all
-		// five Sandstorm captures the server answers 0x12 to all 20 DiscVersion
+		// five the reference server captures the server answers 0x12 to all 20 DiscVersion
 		// messages and 0x13 never appears in either direction, so 0x12 is the
 		// only reply with evidence behind it. Echoing 0x13 was tried and the
 		// client still refused with string 719.
@@ -539,7 +539,7 @@ func (h *AuthHandler) HandleAuthenticate2(sess *session.Session, msg *protocol.M
 	// Reset and update state to character select
 	sess.SetState(session.StateCharacterSelect)
 
-	// Camera1 (0x07D1) carries int32 -1, NOT 3. Verified in every Sandstorm
+	// Camera1 (0x07D1) carries int32 -1, NOT 3. Verified in every the reference server
 	// capture — `Camera1 payload=4  ff ff ff ff` — on the pre-promotion session
 	// as well as the promoted one. The old 0x03 came from a doc line that
 	// CLAUDE.md and the memory notes both record as wrong; SendMemoryDump was
@@ -562,12 +562,12 @@ func (h *AuthHandler) HandleAuthenticate2(sess *session.Session, msg *protocol.M
 	// ACK between them, and it does not promote first.
 	//
 	// Promotion to a master session now happens in HandleSelectedChar, once a
-	// character has actually been picked (Sandstorm does it at t=4.61s). The
+	// character has actually been picked (the reference server does it at t=4.61s). The
 	// old code promoted here, which told the PS2 "server-initiated, new
 	// instance, here is your session ID" while it was still sitting in
 	// character select; it bounced back to the station screen ~3s later.
 	if h.characterHandler != nil {
-		// NOT sent: ServerLoginResponse (0x0728). Sandstorm never sends it —
+		// NOT sent: ServerLoginResponse (0x0728). The reference server never sends it —
 		// zero occurrences across all three PS2 captures — and sending it here
 		// pushed CharacterSelect from seq 3 to seq 4, which is the only
 		// remaining difference between our character-select packet and a

@@ -6,8 +6,8 @@ lean on them", "change gm set also").
 EQOAEmu's EQOA_Spells_and_CM workbook (2020; the operator's copy, an .ods: it
 is not in this repository) names each spell's visual in its Spells sheet's
 Graphic column: the DictID 0x00B1 plays (spelleffect.fxdict). Measured before
-it was used: it agreed with what Sandstorm plays for 200 of the 210 spells
-recorded there, and its level, cast time and power with Sandstorm's own
+it was used: it agreed with what the reference server plays for 200 of the 210 spells
+recorded there, and its level, cast time and power with the reference server's own
 ability records for 95% of 163; its icons (byte-reversed) for only 123, so
 those are not taken.
 
@@ -17,9 +17,9 @@ taken only when it is one of the disc's (SPELLFX.CSF's 0xC200 records, read
 off the operator's ISO as the GM panel reads them), the sheet's few typos read
 as the disc settles them (9 hex digits: the 8 that are a visual). The sheet's
 goes in wherever the spell's differs: a stand-in (0 or no row), and also one
-recorded from Sandstorm, an EQOA-Data import, a GM or the community, as the
+recorded from the reference server, an EQOA-Data import, a GM or the community, as the
 user chose. Each change is a row edit as the GM panel writes one: the row
-before and after in gm_audit (as dab, via "tool"), so the panel lists it with
+before and after in gm_audit (as the owner, via "tool"), so the panel lists it with
 the spell and reverts it alone; and all of them are logged in
 spell_visuals_eqoaemu_log for --undo. A cast reads its visual at the cast, so
 no restart is needed (the community page's list is rebuilt within a minute).
@@ -188,7 +188,7 @@ def disc_visuals(iso):
 def disc_icons(iso):
     """Every surface's DictID in the disc's DATA2/UI.CSF (its top-level 0x1000
     records' first word): the icons an ability record can show (the client
-    draws an ability's icon by that DictID; every spell icon eqoaclassic had
+    draws an ability's icon by that DictID; every spell icon the production server had
     before 2026-11-01, 39, is one of its 83)."""
     data, roots = disc_records(iso, ("DATA2", "UI.CSF"))
     return {struct.unpack_from("<I", data, b)[0] for t, b, sz, _ in roots if t == 0x1000 and sz >= 4}

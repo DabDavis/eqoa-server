@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """What each spell does, into the server's spelleffect table: the line that
 says so, out of the EQOA-Data project's per-class spell lists, and the spell
-visual Sandstorm plays for it, out of `eqoa harvest` recordings.
+visual the reference server plays for it, out of `eqoa harvest` recordings.
 
 A spell's ability record (spellpattern) says how it is cast and never what it
 does. EQOA-Data's lists (https://github.com/Jadiction/EQOA-Data,

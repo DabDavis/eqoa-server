@@ -28,7 +28,7 @@ import (
 //     m_iconFront, read in that order: spellpattern.iconColor then icon): the front a 32x32 picture, the back a
 //     64x64 coloured gem it sits on. iconColor is no colour.
 //   - lookItemLook: itempattern.model, read by the item's wear slot (handlers wornLook): an armour piece's set
-//     (head, chest, forearms, legs, feet, hands: 0-9, 9 Sandstorm's), a robe's style (0-3), a cape's style
+//     (head, chest, forearms, legs, feet, hands: 0-9, 9 the reference server's), a robe's style (0-3), a cape's style
 //     (capes.go), a hand's ITEM.ESF model.
 //   - lookItemColor: itempattern.color: 0-14 a disc tint (entity.RobeLook: a robe is drawn in it; on armour
 //     entity.ArmorColor leaves it undrawn), 0xFFFFFFFF plain, anything else 0xRRGGBBAA, drawn so by a client of

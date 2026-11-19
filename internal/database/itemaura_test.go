@@ -206,7 +206,7 @@ func TestCharAurasHands(t *testing.T) {
 	z, other := got[CharAuraKey{CharID: 193}], got[CharAuraKey{CharID: 194}]
 	taint := ItemAura{Kind: AuraEpic, Source: 0x5FD4AE7C}
 	if z[CharAuraMainHand] != taint || z[CharAuraOffHand] != (ItemAura{Color: 0xFF2020FF, Kind: AuraEpic, Source: 0x5FD4AE7C}) || z[1] != (ItemAura{}) {
-		t.Fatalf("Zaeire's: %+v", z)
+		t.Fatalf("Zephyr's: %+v", z)
 	}
 	// a hand's nodes is where along the weapon, 0-100; a body's 0-32
 	if along := got[CharAuraKey{CharID: 196}]; along[CharAuraMainHand] != (ItemAura{Kind: AuraEpic, Source: 0xCBF4135A, Nodes: 45}) ||

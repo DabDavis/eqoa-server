@@ -228,7 +228,8 @@ func TestABossAoEOnAHundredBodies(t *testing.T) {
 	t.Logf("cast and landing on 100 bodies: %v", took)
 	// 100 ms, not 20: on a quiet machine it is a few ms, but the full suite
 	// shares the dev box with other builds and once read 34.8 ms under that load
-	// (2026-11-18, build346); 100 still catches a real slowdown (a tick is 50).
+	// (2026-11-18, build346); 100 still catches a real slowdown (a turn over
+	// 50 ms is logged as slow: ticktime.go tickSlow).
 	if took > 100*time.Millisecond {
 		t.Errorf("cast and landing on 100 bodies took %v", took)
 	}

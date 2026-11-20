@@ -261,8 +261,8 @@ func TestGMSizeKeptInTheRow(t *testing.T) {
 // ./size ... will set that mobs size in the database so will stay that size and also
 // update it instantly". A player's /size is an unknown command (the control); made
 // a sub GM (a GM's tester row, marked sub GM), its /size on a creature sizes it at once and
-// keeps it in the row, audited; with no creature targeted it is refused (a sub GM's
-// /size is a creature's), its own size left alone.
+// keeps it in the row, audited; with no creature targeted it sizes itself (a player, as a
+// GM's /size does: 2026-11-20), no row touched.
 func TestSubGMSizeKeptInTheRow(t *testing.T) {
 	c, db, _, _, _, ps := campWorld(t)
 	pp := c.gw.SessionPlayer(ps)
@@ -291,11 +291,20 @@ func TestSubGMSizeKeptInTheRow(t *testing.T) {
 		t.Fatalf("%d npcs updates audited", n)
 	}
 
+	// a player too, since 2026-11-20 ("make /size work for players also for sub
+	// gms"): with nothing targeted its own, three times its size, and 1 back
 	own := pp.Size
 	pp.TargetObjectID = 0
 	c.say(ps, "/size 3")
-	if l := gmReplies(t, ps); !hasLine(l, "target a creature first") || pp.Size != own {
-		t.Fatalf("a sub GM's /size on no creature: %q, size %v", l, pp.Size)
+	if l := gmReplies(t, ps); math.Abs(float64(pp.Size-3*own)) > 0.01 {
+		t.Fatalf("a sub GM's /size on itself: %q, size %v, own %v", l, pp.Size, own)
+	}
+	c.say(ps, "/size 1")
+	if math.Abs(float64(pp.Size-own)) > 0.01 {
+		t.Fatalf("/size 1 left it at %v, own %v", pp.Size, own)
+	}
+	if n := auditLines(t, db, "npcs", "update"); n != 1 {
+		t.Fatalf("a player's size touched the npcs rows: %d updates audited", n)
 	}
 }
 

@@ -726,19 +726,6 @@ func (h *ChatHandler) roamerCommand(sess *session.Session, player *entity.Player
 // roamerOff are /roamer's words for "this creature stops roaming".
 var roamerOff = map[string]bool{"off": true, "stop": true, "none": true, "no": true, "stay": true}
 
-// targetsCreature is whether the player's target is a creature (an NPC).
-func (h *ChatHandler) targetsCreature(sess *session.Session, player *entity.Player) bool {
-	if player == nil || player.TargetObjectID == 0 || player.TargetObjectID == 0xFFFFFFFF {
-		return false
-	}
-	ent, ok := h.gameWorld.FindEntityByObjectID(sess, player.TargetObjectID)
-	if !ok {
-		return false
-	}
-	_, isNPC := ent.(*entity.NPC)
-	return isNPC
-}
-
 // keepNPCSize saves the size a GM's /size gave its target creature to the
 // creature's npcs row, so it keeps it over respawns and restarts (the owner,
 // 2026-11-13). A player's size, a creature with no row (a pet, a summoned

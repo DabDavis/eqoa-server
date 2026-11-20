@@ -58,6 +58,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.aiSystem(now)
 	t.mark(tsAI)
 	w.templateSystem(now) // templated NPCs' casts landing (classtemplate.go)
+	w.kinHealSystem(now)  // healers' heals of their kin out of their own fights (kinheal.go)
 	w.addsSystem(now)     // the adds creatures' summons called, to their fights (summon.go)
 	t.mark(tsTemplates)
 	w.homeSystem(now)

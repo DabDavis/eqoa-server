@@ -535,6 +535,7 @@ func (s *StateUpdateData) restore(k KeptChannel, object bool) {
 	if k.Data != nil {
 		s.data = append([]byte(nil), k.Data...)
 	}
+	s.forgetBase()
 	s.sent, s.acked, s.ackSeq = nil, false, 0
 	s.sentOnce, s.lastSentSeq = false, 0
 	s.isActive = k.Active

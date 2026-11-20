@@ -110,6 +110,11 @@ type StateUpdateData struct {
 	// already left `sent`. Whether data differs from it decides a resend.
 	baseXOR []byte
 
+	// baseKnown says baseDiffers is whether data differs from baseXOR
+	// (GenerateXORDelta's compare, made again only after one of them
+	// changed: every write of either clears baseKnown, forgetBase)
+	baseKnown, baseDiffers bool
+
 	// Message counter for this channel (the next sequence number)
 	messageCounter uint16
 
@@ -574,6 +579,7 @@ func (s *StateUpdateData) UpdateBaseXor(msgCounter uint16) {
 		// channel counts as unsynced and goes out whole until a newer ack
 		s.baseXOR = nil
 	}
+	s.forgetBase()
 
 	// Reset the resend throttle
 	s.resendTicks = 0
@@ -597,6 +603,7 @@ func (s *StateUpdateData) ForceFullResend() {
 	defer s.mu.Unlock()
 
 	s.baseXOR = make([]byte, len(s.data))
+	s.forgetBase()
 	s.sent = nil
 	s.acked = false
 	s.dirty = true
@@ -629,6 +636,7 @@ func (s *StateUpdateData) MarkRemoved() {
 		return
 	}
 	s.data[0] = 0
+	s.forgetBase()
 	s.dirty = true
 	s.isActive = true
 	s.resendTicks = 0
@@ -694,6 +702,7 @@ func (s *StateUpdateData) setDataLocked(data []byte) {
 	n := min(len(s.data), len(data))
 	if !bytes.Equal(s.data[:n], data[:n]) {
 		copy(s.data, data)
+		s.forgetBase()
 		s.dirty = true
 		s.isActive = true
 		s.resendTicks = 0 // Reset throttle so new data is sent immediately
@@ -738,6 +747,7 @@ func (s *StateUpdateData) setSizedDataLocked(data []byte) {
 		return
 	}
 	s.data = append([]byte(nil), data...)
+	s.forgetBase()
 	s.dirty = true
 	s.isActive = true
 	s.resendTicks = 0
@@ -764,7 +774,13 @@ func (s *StateUpdateData) GenerateXORDelta() (data []byte, seq uint16, xorByte b
 
 	// Check if data differs from base (matches C# ServerObjectUpdate.GenerateUpdate);
 	// a value of another length differs (SetSizedData)
-	differs := !bytes.Equal(s.data, s.baseXOR)
+	if !s.baseKnown {
+		s.baseDiffers, s.baseKnown = !bytes.Equal(s.data, s.baseXOR), true
+	}
+	differs := s.baseDiffers
+	if baseCheck && differs != !bytes.Equal(s.data, s.baseXOR) {
+		panic("session: a channel's kept compare with its base is stale")
+	}
 
 	if !differs && !s.dirty {
 		return nil, 0, 0
@@ -799,6 +815,17 @@ func (s *StateUpdateData) GenerateXORDelta() (data []byte, seq uint16, xorByte b
 	data, xorByte = s.encodeLocked(seq)
 	return data, seq, xorByte
 }
+
+// forgetBase is for every write of data or baseXOR: GenerateXORDelta
+// compares them again. Must be called with s.mu held.
+func (s *StateUpdateData) forgetBase() { s.baseKnown = false }
+
+// baseCheck has GenerateXORDelta check its kept compare against a fresh one
+// (this package's tests and the entity package's set it).
+var baseCheck bool
+
+// SetBaseCheck sets baseCheck, for tests.
+func SetBaseCheck(on bool) { baseCheck = on }
 
 // retransmitLocked repeats the last message sent on this channel under the
 // sequence number it first had, re-encoded against the newest copy the client

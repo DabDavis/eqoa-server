@@ -3,6 +3,8 @@ package entity
 import (
 	"os"
 	"testing"
+
+	"github.com/eqoa/server/internal/session"
 )
 
 // TestMain runs the package's tests with the NPC sets checked, then removes
@@ -14,6 +16,9 @@ func TestMain(m *testing.M) {
 	npcSetsCheck = true
 	// every NPC class key kept is checked against one made afresh (npckey.go)
 	npcKeyCheck = true
+	// every channel's kept compare with its base is checked against a fresh
+	// one (session.StateUpdateData.GenerateXORDelta)
+	session.SetBaseCheck(true)
 	code := m.Run()
 	if petFixture.db != nil {
 		petFixture.db.Close()

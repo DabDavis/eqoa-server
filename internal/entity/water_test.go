@@ -610,3 +610,33 @@ func TestAWadingPlayerIsNotAcrossTheWatersEdge(t *testing.T) {
 		t.Errorf("dry at the edge at a creature in the water: %q, want %q", got, castTargetInWater)
 	}
 }
+
+// seaMud is seaWater's sea as mud (Geomancer's Citadel's pits).
+type seaMud struct{}
+
+func (seaMud) Flags(_ uint8, _, y, _ float32) (uint32, bool) {
+	if y < 50 {
+		return envMud, true
+	}
+	return 0, true
+}
+
+// Heirloom petition 2512 (2026-11-20): swimming in Geomancer's Citadel's mud, a player's harmful cast at a
+// creature on the bank is refused as across the water's edge; the control: both in the mud, nothing is refused.
+func TestMudIsOnTheFarSideOfTheEdge(t *testing.T) {
+	w := beachWorld(t, false)
+	w.SetEnv(seaMud{})
+	p := w.Players[1]
+	p.X, p.Y = 2025, 40 // in the mud
+	croc := addNPC(w, 100, "mud crawler", 1985, 1000, creatureModel, 0)
+	croc.Y, croc.SpawnY = 60, 60 // on the bank
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if got := w.waterRefusalLocked(p, []EntityID{croc.ServerID}); got != castTargetOutWater {
+		t.Errorf("from the mud at a creature on the bank: %q, want %q", got, castTargetOutWater)
+	}
+	croc.X, croc.Y = 2030, 40 // in the mud with it
+	if got := w.waterRefusalLocked(p, []EntityID{croc.ServerID}); got != "" {
+		t.Errorf("both in the mud: %q, want no refusal", got)
+	}
+}

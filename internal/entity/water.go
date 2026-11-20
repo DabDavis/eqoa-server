@@ -91,8 +91,8 @@ const envMud uint32 = 8
 // swimmableAtLocked is waterAtLocked with mud too: CLIENT's walker swims in water, lava, slime and mud
 // (walkFlagsSubmerged), so its player swims across Geomancer's Citadel's mud pits, and a pet following it does
 // too (Heirloom petition 2510, 2026-11-20: "pets don't register the mud pits as water so they walk along the
-// bottom or on top when your toon is swimming"). A pet's alone (swimLocked): mud is no water to the rest of the
-// server (a creature's keeping to water, a cast across the water's edge).
+// bottom or on top when your toon is swimming"). A pet's (swimLocked) and the water's edge's
+// (edgeInLocked, petition 2512): mud is no water to the rest of the server (a creature's keeping to water).
 func (w *World) swimmableAtLocked(world uint8, x, y, z float32) bool {
 	if w.env == nil {
 		return false
@@ -296,8 +296,21 @@ func (w *World) apartLocked(p *Player, npc *NPC) bool {
 	if w.env == nil {
 		return false
 	}
-	return apartBodies(w.playerInWaterLocked(p), w.wetAtLocked(p.World, p.X, p.Y, p.Z),
-		w.npcInWaterLocked(npc), w.wetAtLocked(npc.World, npc.X, npc.Y, npc.Z))
+	return apartBodies(w.edgeInLocked(p.World, p.X, p.Y, p.Z), w.edgeWetLocked(p.World, p.X, p.Y, p.Z),
+		w.edgeInLocked(npc.World, npc.X, npc.Y, npc.Z), w.edgeWetLocked(npc.World, npc.X, npc.Y, npc.Z))
+}
+
+// edgeInLocked and edgeWetLocked are the water's edge's in-the-water and wet-feet tests: water, slime and mud
+// (swimmableAtLocked), as CLIENT's walker swims in all three. A body swimming in Geomancer's Citadel's mud is on
+// the far side of the edge from one on its bank (Heirloom petition 2512, 2026-11-20: "the mud also isn't
+// registered by your character when attacking mobs in it or while you are swimming in it. Doesn't block you
+// from casting a creature on land while swimming"). Must be called with the lock held.
+func (w *World) edgeInLocked(world uint8, x, y, z float32) bool {
+	return w.swimmableAtLocked(world, x, y+bodyAbove, z)
+}
+
+func (w *World) edgeWetLocked(world uint8, x, y, z float32) bool {
+	return w.swimmableAtLocked(world, x, y+bodyWet, z) || w.swimmableAtLocked(world, x, y+bodyAbove, z)
 }
 
 // waterRefusalLocked is a harmful cast's refusal when its target is on the
@@ -307,13 +320,13 @@ func (w *World) waterRefusalLocked(caster *Player, targets []EntityID) string {
 	if w.env == nil || len(targets) == 0 {
 		return ""
 	}
-	in := w.playerInWaterLocked(caster)
-	wet := w.wetAtLocked(caster.World, caster.X, caster.Y, caster.Z)
+	in := w.edgeInLocked(caster.World, caster.X, caster.Y, caster.Z)
+	wet := w.edgeWetLocked(caster.World, caster.X, caster.Y, caster.Z)
 	var theirs, theirsWet bool
 	if npc := w.NPCs[targets[0]]; npc != nil {
-		theirs, theirsWet = w.npcInWaterLocked(npc), w.wetAtLocked(npc.World, npc.X, npc.Y, npc.Z)
+		theirs, theirsWet = w.edgeInLocked(npc.World, npc.X, npc.Y, npc.Z), w.edgeWetLocked(npc.World, npc.X, npc.Y, npc.Z)
 	} else if p := w.Players[targets[0]]; p != nil && p != caster {
-		theirs, theirsWet = w.playerInWaterLocked(p), w.wetAtLocked(p.World, p.X, p.Y, p.Z)
+		theirs, theirsWet = w.edgeInLocked(p.World, p.X, p.Y, p.Z), w.edgeWetLocked(p.World, p.X, p.Y, p.Z)
 	} else {
 		return ""
 	}

@@ -82,12 +82,32 @@ func (w *World) fxLandFor(p *Player, spell *CastSpell) (time.Duration, bool) {
 }
 
 // landAfterLocked is how long after its cast time a player's cast of the spell lands: its visual's
-// fxland row, else castLand. Must be called with the lock held.
+// fxland row, else at once for a heal of no cast time (instantHeal), else castLand. Must be called
+// with the lock held.
 func (w *World) landAfterLocked(p *Player, spell *CastSpell) time.Duration {
 	if d, ok := w.fxLandFor(p, spell); ok {
 		return d
 	}
+	if instantHeal(spell) {
+		return 0
+	}
 	return castLand
+}
+
+// instantHeal is whether a player's spell is a heal of no cast time, which lands at once rather than
+// castLand on (the GM's petition, 2026-11-20: "Lay hands should fire off its heal instantly when
+// used"; a monk's Mend the other such ability): not harmful (a taunt's heal of its caster is a taunt's,
+// taunt.go), and hit points given now by one of its effects.
+func instantHeal(spell *CastSpell) bool {
+	if spell.CastTime != 0 || spell.Def.Harmful {
+		return false
+	}
+	for _, e := range spell.Def.Effects {
+		if e.Kind == EffectHP && e.Amount > 0 {
+			return true
+		}
+	}
+	return false
 }
 
 // simFXLandCache is SimFXLandFromDB once a database (SimKitFromDB, SimStartKitFromDB).

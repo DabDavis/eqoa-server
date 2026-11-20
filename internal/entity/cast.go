@@ -842,6 +842,8 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 		busy, land = tauntLockout, 0
 	} else if animated {
 		busy, land = max(castBusy, hit), hit
+	} else if instantHeal(&spell) {
+		land = 0 // a heal of no cast time lands at once (fxland.go instantHeal)
 	}
 	if isArt(&spell) {
 		switch {

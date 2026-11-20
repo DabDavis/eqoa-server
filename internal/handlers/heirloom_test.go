@@ -259,6 +259,40 @@ func TestAnEpicHeirloomIsItsEpicFromItsLevel(t *testing.T) {
 	}
 }
 
+// Petition 2521 (2026-11-20): an epic with no stats of its own (Downfall, the
+// shadow knight's: its damage and its proc alone) leaves its heirloom the
+// heirlooms' stats from the epic's level: the epic's damage and proc, and 10 of
+// every stat, 40 HP and power at 49. The control (the test above): an epic with
+// stats keeps its own.
+func TestAStatlessEpicHeirloomKeepsTheHeirloomsStats(t *testing.T) {
+	f := newHeirloomFixture(t)
+	items := database.NewItemPatternStore(f.db)
+	for _, r := range []database.ItemPatternRecord{
+		{PatternID: 900021, ItemName: "Downfall", EquipSlot: 15, LevelReq: 49, WeaponDamage: 666, AttackType: 2,
+			ClassUse: 8, Rent: 1, RaceUse: 32767, MaxStack: 1},
+		{PatternID: 714006, ItemName: "Heirloom Downfall", EquipSlot: 15, LevelReq: 1, AttackType: 2,
+			ClassUse: 1, Rent: 1, RaceUse: 32767, MaxStack: 1},
+	} {
+		if err := items.UpsertItemPattern(&r); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := f.db.Exec(`INSERT INTO heirlooms (patternid, class, role, epic) VALUES (714006, 0, 'twohand', 900021)`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.inv.AddCharItem(f.sid, 714006, 1, 100, 0, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.h = NewHeirlooms(f.db)
+	f.h.Start(nil, nil)
+	f.h.Note(f.sid, 0, 0, 49)
+	e := f.held()[714006]
+	if e.WeaponDamage < 666 || val(e.Str) != 10 || val(e.Wis) != 10 || val(e.HPMAX) != 40 || val(e.POWMAX) != 40 || e.ProcName != "Downfall" {
+		t.Errorf("at 49: damage %d STR %d WIS %d HP %d power %d proc %q; want the epic's 666 and proc, and the heirlooms' 10, 40, 40",
+			e.WeaponDamage, val(e.Str), val(e.Wis), val(e.HPMAX), val(e.POWMAX), e.ProcName)
+	}
+}
+
 // Every heirloom carries the same stats at its wearer's level, whatever its
 // best carries (the user, 2026-11-06: "lets tone down the heirloom to +10 all
 // stats 40 hp", power 40 too, scaled up to it at 60, since 2026-11-08 at 49):

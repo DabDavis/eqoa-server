@@ -199,10 +199,11 @@ func (h *Heirlooms) ViewFor(race, level int, p *database.ItemPatternRecord) {
 func (h *Heirlooms) figuresFor(def database.HeirloomDef, race, level int, p *database.ItemPatternRecord) {
 	level = min(level, heirloomTopLevel) // its figures go no further (heirloomTopLevel)
 	epicNow := false
+	bare := false // an epic that carries no stat of its own (Downfall, Virtus Ferrum: petition 2521)
 	if def.Epic != 0 {
 		if epic, ok := h.epicOf(def.Epic); ok && level >= max(epic.LevelReq, 1) {
 			heirloomEpicFigures(p, &epic)
-			epicNow = true
+			epicNow, bare = true, epicStatless(&epic)
 		}
 	}
 	if best, ok := h.bestOf(def.Class, race, level, def.Role); ok {
@@ -219,9 +220,22 @@ func (h *Heirlooms) figuresFor(def database.HeirloomDef, race, level int, p *dat
 	// every heirloom, weapons and shields too (the user: "let heirloom weapon
 	// get stats also and shields"), the same figures for every class; an epic
 	// from its level keeps the epic's own (the user's choice, 2026-11-06)
-	if !epicNow {
+	// (petition 2521, 2026-11-20: an epic with no stats of its own, Downfall's,
+	// left its heirloom with none; it keeps the heirloom's)
+	if !epicNow || bare {
 		heirloomStats(p, level)
 	}
+}
+
+// epicStatless is whether an epic carries none of the stats, hit points or
+// power an heirloom gives.
+func epicStatless(e *database.ItemPatternRecord) bool {
+	for _, v := range []*int{e.Str, e.Sta, e.Agi, e.Dex, e.Wis, e.Intelligence, e.Cha, e.HPMAX, e.POWMAX} {
+		if v != nil && *v != 0 {
+			return false
+		}
+	}
+	return true
 }
 
 // The heirlooms' stats (the user, 2026-11-06: "lets tone down the heirloom to

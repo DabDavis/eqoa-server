@@ -337,3 +337,86 @@ func TestTheTagHeadsTheDescription(t *testing.T) {
 		t.Fatal("an untagged copy tagged")
 	}
 }
+
+// An aura whose source is the held copy's own look is refused, free (Heirloom
+// petition 2472: 54 Holly Tokens spent on Energized for the Tower of Woe, which is
+// the old energy shield whose skin Energized lends: vanilla lends a source nothing
+// on itself, so nothing changed). The control: Shadowed, of no source, is put on.
+func TestAnAuraOfTheItemsOwnLookIsRefused(t *testing.T) {
+	t.Cleanup(func() { database.SetInstanceAuraCache(nil); SetEnchanterPrice(-1, "", 0) })
+	tw := newTalkWorld(t, 100, 100)
+	db, err := database.NewSQLite(t.TempDir() + "/enchant.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	rec := &database.CharacterRecord{CharName: "Talker", AccountID: 1, Level: 10}
+	if err := database.NewSQLiteCharacterStore(db).Create(rec); err != nil {
+		t.Fatal(err)
+	}
+	tw.p.CharServerID = rec.ServerID
+	ps := database.NewItemPatternStore(db)
+	for _, p := range []database.ItemPatternRecord{
+		{PatternID: 900210, ItemName: "Tower of Woe", EquipSlot: 13, Model: 0x2EC56029, MaxHP: 100, MaxStack: 1, ClassUse: 32767, RaceUse: 32767, Rent: 1},
+		{PatternID: 900201, ItemName: "Holly Token", MaxHP: 1, MaxStack: 99, ClassUse: 32767, RaceUse: 32767, Rent: 1},
+	} {
+		if err := ps.UpsertItemPattern(&p); err != nil {
+			t.Fatal(err)
+		}
+	}
+	inv := database.NewInventoryStore(db)
+	shield, _ := inv.AddCharItem(rec.ServerID, 900210, 1, 100, 0, 0)
+	inv.SetEquipLoc(rec.ServerID, shield, 13)
+	if _, err := inv.AddCharItem(rec.ServerID, 900201, 60, 1, 0, 0); err != nil {
+		t.Fatal(err)
+	}
+	rows, _ := inv.GetCharacterItems(rec.ServerID)
+	tw.s.SetInventoryList(newInvList(rows))
+	e := NewEnchanter(tw.w, db)
+	enchanter := &entity.NPC{ServerID: 3201, Name: "Weapon Enchanter", NPCType: 0x80}
+	questMsgs(tw.s)
+	SetEnchanterPrice(54, "", 0)
+	tw.p.SetWornPiece(entity.AuraOffHand, 900210)
+	tw.p.WornItems[entity.AuraOffHand] = shield
+	pick := func(msgs []string, n byte) []string {
+		t.Helper()
+		id := boxID(msgs)
+		if id == 0 || !e.Answer(tw.s, tw.p, id, n) {
+			t.Fatalf("no enchanter's question in %q", msgs)
+		}
+		return questMsgs(tw.s)
+	}
+	tokens := func() int {
+		n := 0
+		rows, _ := inv.GetCharacterItems(rec.ServerID)
+		for _, r := range rows {
+			if r.Pattern.PatternID == 900201 {
+				n += r.StackLeft
+			}
+		}
+		return n
+	}
+	e.Talk(tw.s, tw.p, enchanter)
+	got := pick(questMsgs(tw.s), 0) // first aura
+	got = pick(got, 5)              // More...
+	got = pick(got, 1)              // Energized
+	if !strings.Contains(strings.Join(got, "\n"), "would not show on it") {
+		t.Fatalf("Energized on the energy shield: %q", got)
+	}
+	if _, has, _ := db.InstanceAuraOf(shield); has || tokens() != 60 {
+		t.Fatalf("refused, yet written (%v) or paid: %d tokens left", has, tokens())
+	}
+	// the picker's way to enchant() is refused too
+	e.enchant(tw.s, tw.p, enchanterAsk{speaker: "Weapon Enchanter", hand: entity.AuraOffHand, itemID: shield}, 6, 0x01520EFF, false)
+	if _, has, _ := db.InstanceAuraOf(shield); has || tokens() != 60 {
+		t.Fatalf("the picker's way: written (%v) or paid: %d tokens left", has, tokens())
+	}
+	// the control
+	e.Talk(tw.s, tw.p, enchanter)
+	got = pick(questMsgs(tw.s), 0)
+	got = pick(got, 5)
+	pick(got, 0) // Shadowed
+	if a, has, _ := db.InstanceAuraOf(shield); !has || a.Tag != "Shadowed" || tokens() != 6 {
+		t.Fatalf("Shadowed: %+v %v, %d tokens left", a, has, tokens())
+	}
+}

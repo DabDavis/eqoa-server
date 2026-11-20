@@ -245,6 +245,38 @@ func (e *Enchanter) askHand(sess *session.Session, p *entity.Player, speaker str
 	e.ask(sess, p, enchanterAsk{speaker: speaker, stage: encHand, npc: npc}, "Which weapon shall I enchant?", answers)
 }
 
+// lendsNothing is whether aura i of the catalog would change nothing on a held
+// item of model: one whose aura's source is that very look (Heirloom petition
+// 2472: Energized, the old energy shield's skin, bought for the Tower of Woe,
+// which IS the old energy shield: vanilla lends a look or particles from a
+// source only to an item that is not it, aura.rs's lend_hand and
+// hand_emitters).
+func lendsNothing(i int, model int64) bool {
+	if i < 0 || i >= len(enchanterAuras) {
+		return false
+	}
+	src := enchanterAuras[i].A.Source
+	return src != 0 && uint32(model) == src
+}
+
+// heldLook is the model of the copy itemID the player holds (0: unknown).
+func (e *Enchanter) heldLook(p *entity.Player, itemID int) int64 {
+	if e.inv == nil {
+		return 0
+	}
+	r, err := e.inv.GetCharItem(p.CharServerID, itemID)
+	if err != nil {
+		return 0
+	}
+	return r.Pattern.Model
+}
+
+// sameLookLine is what the enchanter says of an aura that would lend nothing.
+func sameLookLine(i int, item string) string {
+	return fmt.Sprintf("Your %s is the very look %s comes from, so it would not show on it. Choose another aura.",
+		item, enchanterAuras[i].Tag)
+}
+
 // auraName is a copy's aura by its catalog name, "none", or "an aura" (a GM's).
 func auraName(a database.ItemAura) string {
 	if !a.SecondShows() {
@@ -354,6 +386,8 @@ func (e *Enchanter) Answer(sess *session.Session, p *entity.Player, box uint32, 
 		case n >= len(shown) || i >= len(all):
 		case i == len(enchanterAuras):
 			e.enchant(sess, p, a, -1, 0, false) // this aura off
+		case lendsNothing(i, e.heldLook(p, a.itemID)):
+			e.say(sess, a.speaker, sameLookLine(i, e.itemName(p, a.itemID)))
 		case !enchanterAuras[i].Colours:
 			e.enchant(sess, p, a, i, enchanterAuras[i].A.Color, false)
 		default:
@@ -446,6 +480,10 @@ func (e *Enchanter) enchant(sess *session.Session, p *entity.Player, a enchanter
 	if err != nil {
 		log.Printf("Enchanter: %s's item %d: %v", p.Name, a.itemID, err)
 		e.say(sess, a.speaker, "Something went wrong with my runes. Try again.")
+		return
+	}
+	if aura >= 0 && lendsNothing(aura, e.heldLook(p, a.itemID)) { // the picker's way here too
+		e.say(sess, a.speaker, sameLookLine(aura, e.itemName(p, a.itemID)))
 		return
 	}
 	oldTag := row.Tag

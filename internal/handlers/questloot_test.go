@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"testing"
+	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
@@ -183,12 +184,13 @@ func (f *corpseFixture) heldOf(pattern int) int {
 	return n
 }
 
-// A drop ahead of its step (questpreloot.go) keeps no corpse (Live petition
-// 5118, a player: ant soldiers by Klick lay on, empty to him, holding Ant
-// Chitin dropped ahead for his other characters): the corpse's own item
-// taken, the corpse goes with another character's drop ahead still on it.
+// A drop ahead of its step (questpreloot.go) keeps no corpse past aheadKeep (Live
+// petition 5118, a player: ant soldiers lay on, empty to their killer, holding Ant
+// Chitin dropped ahead for his other characters): the corpse's own item taken
+// after the keep, the corpse goes with another character's drop ahead still on it.
 func TestADropAheadKeepsNoCorpse(t *testing.T) {
 	f := newCorpseFixture(t, 1)
+	f.h.lootNow = func() time.Time { return f.npc.DeathTime.Add(aheadKeep + time.Second) }
 	other := uint32(f.charSID + 100)
 	f.h.AddQuestDropAhead(f.npc.ServerID, f.npc.DeathTime, other, f.dropOf(f.bait))
 	f.h.OpenCorpse(f.sess, f.npc)
@@ -220,5 +222,81 @@ func TestADropAheadIsTakenWhileTheCorpseLies(t *testing.T) {
 	}
 	if len(f.cleared) != 0 {
 		t.Fatal("the corpse went with another character's on-step drop on it")
+	}
+}
+
+// Within aheadKeep of the death a drop ahead keeps the corpse (Live petitions 5337,
+// 5340, 5347: one of a group's characters took everything it saw and the corpse went
+// with the others' drops ahead on it): the looter's window closes empty and the
+// corpse lies for the other character, who takes its drop; past the keep, closed
+// with none taken, it goes at the sweep.
+func TestADropAheadKeepsTheCorpseAWhile(t *testing.T) {
+	f := newCorpseFixture(t, 1)
+	now := f.npc.DeathTime.Add(10 * time.Second)
+	f.h.lootNow = func() time.Time { return now }
+	other := uint32(f.charSID + 100)
+	f.h.AddQuestDropAhead(f.npc.ServerID, f.npc.DeathTime, other, f.dropOf(f.bait))
+	f.h.OpenCorpse(f.sess, f.npc)
+	f.sent()
+	f.send(protocol.OpcodeClientLoot, func(w *buffer.Writer) { w.WriteUint32(0); w.WriteUint32(1) })
+	f.sent()
+	if len(f.cleared) != 0 {
+		t.Fatalf("the corpse went at once with another character's drop ahead on it: cleared %v", f.cleared)
+	}
+	ls := f.h.loots()
+	ls.mu.Lock()
+	f.h.sweepAheadLocked(ls, f.npc.ServerID, f.npc.DeathTime, now)
+	ls.mu.Unlock()
+	if len(f.cleared) != 0 {
+		t.Fatal("swept inside the keep")
+	}
+	if v := ls.viewLocked(f.npc.ServerID, ls.corpses[f.npc.ServerID], other); len(v) != 1 {
+		t.Fatalf("the other character sees %d records, want its drop ahead", len(v))
+	}
+	now = f.npc.DeathTime.Add(aheadKeep + time.Second)
+	ls.mu.Lock()
+	f.h.sweepAheadLocked(ls, f.npc.ServerID, f.npc.DeathTime, now)
+	ls.mu.Unlock()
+	if len(f.cleared) != 1 {
+		t.Fatalf("past the keep the corpse with only a drop ahead on it did not go: cleared %v", f.cleared)
+	}
+}
+
+// A looter's own drop ahead left on the corpse keeps it when the window closes
+// (Heirloom petition 2469: a corpse whose only loot was the SK exemplar's skull
+// rotted the moment its window closed), until the keep's end.
+func TestAnOwnDropAheadLeftKeepsTheCorpse(t *testing.T) {
+	f := newCorpseFixture(t, 0)
+	now := f.npc.DeathTime.Add(5 * time.Second)
+	f.h.lootNow = func() time.Time { return now }
+	f.h.AddQuestDropAhead(f.npc.ServerID, f.npc.DeathTime, f.charSID, f.dropOf(f.bait))
+	f.h.OpenCorpse(f.sess, f.npc)
+	if n := lootCount(t, f.sent()[0]); n != 1 {
+		t.Fatalf("the looter sees %d records, want its drop ahead", n)
+	}
+	f.send(protocol.OpcodeClientCloseLoot, nil)
+	f.sent()
+	if len(f.cleared) != 0 {
+		t.Fatal("the corpse rotted at the close with the looter's drop ahead on it")
+	}
+	f.h.OpenCorpse(f.sess, f.npc)
+	if n := lootCount(t, f.sent()[0]); n != 1 {
+		t.Fatalf("opened again: %d records, want the drop ahead", n)
+	}
+	f.send(protocol.OpcodeClientLoot, func(w *buffer.Writer) { w.WriteUint32(0); w.WriteUint32(1) })
+	f.sent()
+	if f.heldOf(f.bait) != 1 || len(f.cleared) != 1 {
+		t.Fatalf("taken: bait %d, cleared %v; want it held and the corpse gone", f.heldOf(f.bait), f.cleared)
+	}
+	// past the keep, a close leaves no corpse for a drop ahead alone (5118)
+	g := newCorpseFixture(t, 0)
+	g.h.lootNow = func() time.Time { return g.npc.DeathTime.Add(aheadKeep) }
+	g.h.AddQuestDropAhead(g.npc.ServerID, g.npc.DeathTime, g.charSID, g.dropOf(g.bait))
+	g.h.OpenCorpse(g.sess, g.npc)
+	g.sent()
+	g.send(protocol.OpcodeClientCloseLoot, nil)
+	g.sent()
+	if len(g.cleared) != 1 {
+		t.Fatal("past the keep a closed corpse with only a drop ahead on it stayed")
 	}
 }

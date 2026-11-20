@@ -21,7 +21,7 @@ import (
 //     the corpse bit (ToggleAutoAttack: byte 26's 2, which a creature's
 //     channel takes at its death, entity/visibility.go), is the game's way,
 //     as the reference server answers it: the corpse opened (HandleLootCorpse). One out
-//     of reach is answered "Out of range." (ours: no record of the reference server's);
+//     of reach is answered corpseTooFar (ours: no record of the reference server's);
 //     one that is no corpse, or gone, 0x0085 2.
 //   - 0x0004 (InteractWithTarget's default) on a dead NPC opens its corpse too
 //     (InteractWithTarget sends nothing for a creature the game shows as
@@ -449,8 +449,10 @@ func (h *NPCWindowHandler) resendCorpse(sess *session.Session, ls *lootState, c 
 	if len(view) == 0 {
 		delete(ls.open, sess)
 		delete(ls.since, sess)
-		if open && ls.emptyLocked(id, c) {
+		if now := h.lootClock(); open && ls.emptyLocked(id, c, now) {
 			h.emptiedLocked(ls, id, c)
+		} else if open {
+			h.keepAheadLocked(ls, id, c, now) // others' drops ahead: a while (questloot.go)
 		}
 		return
 	}
@@ -485,12 +487,18 @@ func (h *NPCWindowHandler) HandleLootCorpse(sess *session.Session, msg *protocol
 	if reach := entity.InteractRange + npc.ReachExtra(); !entity.InRange(player, npc, reach) {
 		log.Printf("Loot: %s too far from %q's corpse (%.1f > %.1f)", player.Name, npc.Name,
 			entity.DistanceBetween(player, npc), reach)
-		SendColoredChat(sess, "Out of range.", 255, 63, 63)
+		SendColoredChat(sess, corpseTooFar, 255, 63, 63)
 		return nil
 	}
 	h.OpenCorpse(sess, npc)
 	return nil
 }
+
+// corpseTooFar is what a looter out of a corpse's reach is told, by the attack
+// button or by talking to it (interact.go): its own words, not the spells' and
+// the melee's "Out of range." (Live petition 5348: a player read the corpse's
+// refusal as nothing said).
+const corpseTooFar = "You are too far away to loot that corpse."
 
 // HandleLootClose is 0x0016 (LootNoWindow): answered with 0x0016. A corpse
 // closed with nothing left on it goes (emptiedLocked).
@@ -503,8 +511,10 @@ func (h *NPCWindowHandler) HandleLootClose(sess *session.Session, msg *protocol.
 	queueReliable(sess, protocol.OpcodeClientCloseLoot, closeLootPayload())
 	if c := ls.corpses[id]; open && c != nil {
 		h.servedHoldersLocked(c, nil, 0, nil) // the kill's characters that need no copy (lootshare.go)
-		if ls.emptyLocked(id, c) {
+		if now := h.lootClock(); ls.emptyLocked(id, c, now) {
 			h.emptiedLocked(ls, id, c)
+		} else {
+			h.keepAheadLocked(ls, id, c, now) // drops ahead left: a while (questloot.go)
 		}
 	}
 	ls.mu.Unlock()

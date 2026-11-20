@@ -190,7 +190,8 @@ func (d *HeldDrops) Pick(model uint32, shield bool, level int, name string) (Cha
 // held; only an item a player owns alone (a GM's gift of one of a kind) stays off.
 // The owner, 2026-11-19 ("those ultra rare items should drop less"): a boss's
 // or a raid's loot (table heldbarred: tools/held_barred_20261119.py, from the
-// guides) and the rare-or-rarer loot pools' items (heldRarePools) stay off too.
+// guides) and the rare-or-rarer loot pools' items (heldRarePools) stay off too,
+// and so does a copy of any of them (barCopies).
 var heldBarredTables = []struct{ table, why string }{
 	{"itemowner", "owned"},
 	{"heldbarred", "boss loot"},
@@ -247,6 +248,11 @@ func (s *InventoryStore) HeldDrops() (*HeldDrops, error) {
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
+	copies, err := s.itemCopies()
+	if err != nil {
+		return nil, err
+	}
+	barCopies(excluded, copies)
 	d := BuildHeldDrops(recs, excluded)
 	if err := s.loadNamedHeld(d); err != nil {
 		return nil, err
@@ -254,7 +260,64 @@ func (s *InventoryStore) HeldDrops() (*HeldDrops, error) {
 	if err := s.loadNamedLoot(d); err != nil {
 		return nil, err
 	}
+	d.copiesOnlyFor(copies)
 	return d, nil
+}
+
+// A COPY of a record (an Ascended record, itemascended; an import copy, itemimported: a transfer's or the import
+// damper's) has the look and level of its base under another patternid, so a bar or a named creature's own by the
+// base's patternid alone let a creature holding the look drop the copy in its place (the owner, 2026-11-20: "some
+// mobs are dropping boss loot still": the import copy of the Sky constructs' Pneumatic Staff off level 60 creatures
+// holding a staff, its base being a rare pool's). A copy keeps its base's bar and its base's names.
+
+// itemCopies is every copy's base (copy -> base): the Ascended records' and the import copies'.
+func (s *InventoryStore) itemCopies() (map[int]int, error) {
+	ascended, imported, err := s.ItemVersions()
+	if err != nil {
+		return nil, fmt.Errorf("held drops' copies: %w", err)
+	}
+	for c, b := range imported {
+		ascended[c] = b
+	}
+	return ascended, nil
+}
+
+// copyBases is each base a copy goes back to, nearest first (an import copy of an Ascended record: the Ascended
+// record, then its base); a cycle ends it.
+func copyBases(copies map[int]int, id int) []int {
+	var out []int
+	seen := map[int]bool{id: true}
+	for b, ok := copies[id]; ok && !seen[b]; b, ok = copies[b] {
+		seen[b] = true
+		out = append(out, b)
+	}
+	return out
+}
+
+// barCopies bars each copy not barred itself whose base is, as the base is.
+func barCopies(excluded map[int]string, copies map[int]int) {
+	for c := range copies {
+		if _, ok := excluded[c]; ok {
+			continue
+		}
+		for _, b := range copyBases(copies, c) {
+			if why, ok := excluded[b]; ok {
+				excluded[c] = why
+				break
+			}
+		}
+	}
+}
+
+// copiesOnlyFor makes each copy of a named creature's own loot that creature's alone too.
+func (d *HeldDrops) copiesOnlyFor(copies map[int]int) {
+	for c := range copies {
+		for _, b := range copyBases(copies, c) {
+			for name := range d.only[b] {
+				d.OnlyFor(c, name)
+			}
+		}
+	}
 }
 
 // loadNamedLoot marks each named creature's own loot as its alone (HeldDrops.OnlyFor): the

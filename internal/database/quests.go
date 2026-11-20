@@ -253,7 +253,16 @@ const (
 	// EventClassQuest: the player's own city class quests of a level (Level) finished too, silently: a
 	// homeland's starter quest stands for its city's (handlers/questevents.go). A quest's, on its finish.
 	EventClassQuest = "classquest"
+	// EventHide: the NPCs named NPC within HideReach of the player out of every view for Minutes (0: the
+	// engine's ten), as a GM trigger's hide (entity.World.HideNPCs): one that "twists and swells into a
+	// lycanthrope" (a spawn of its beast beside it) is not left standing too (Heirloom petition 2516,
+	// 2026-11-20: "spawning as Level 63 separate mobs and the original NPC is still standing there in human
+	// form"). A step's.
+	EventHide = "hide"
 )
+
+// HideReach is how far from the player a hide event finds its NPCs.
+const HideReach = 40
 
 // TeleportMainland is a teleport's to that sends the player to its race's spot
 // on the disc's worlds (QuestEvent.To).
@@ -264,7 +273,7 @@ const TeleportMainland = "mainland"
 var (
 	QuestEventWhens   = []string{EventAccept, EventFinish}
 	StepEventWhens    = []string{EventStart, EventDone}
-	QuestEventActions = []string{EventPopup, EventSay, EventGive, EventSpawn, EventAttack, EventVisual, EventTeleport, EventVampire, EventTrigger, EventDoStep, EventClassQuest, EventCast}
+	QuestEventActions = []string{EventPopup, EventSay, EventGive, EventSpawn, EventAttack, EventVisual, EventTeleport, EventVampire, EventTrigger, EventDoStep, EventClassQuest, EventCast, EventHide}
 )
 
 // DoesStep reports a step tried at once when it starts (EventDoStep).
@@ -334,6 +343,13 @@ type QuestEvent struct {
 	Level int `json:"level,omitempty"`
 	// Count (spawn): how many copies, round the player (0: one)
 	Count int `json:"count,omitempty"`
+	// Con (spawn): the copies' level by the player's, so it cons the same to
+	// every player who raises it: "player" (white), "player+3" (red),
+	// "player-2" (dark blue): SpawnLevel. "": the NPC's own. Heirloom petition
+	// 2517 (2026-11-20, the rat were line's Trissen): "he was a low level
+	// green when he should have spawned red to the character that talked to
+	// him" (board 901: "The mob will con red to the person who triggers him").
+	Con string `json:"con,omitempty"`
 	// Minutes (spawn): how long they stay at most (0: the engine's ten)
 	Minutes float64 `json:"minutes,omitempty"`
 	// Keep (spawn, a survive step's start): each one made again as its corpse
@@ -461,6 +477,19 @@ func EventProblems(s string, step bool) []string {
 			}
 			if e.World < 0 || e.World > 255 {
 				add(i, "spawn's world %d is not 0 to 255", e.World)
+			}
+			if _, ok := SpawnLevel(e.Con, 30); !ok {
+				add(i, "spawn's con %q is not player, player+N or player-N", e.Con)
+			}
+		case EventHide:
+			if strings.TrimSpace(e.NPC) == "" {
+				add(i, "hide names no NPC")
+			}
+			if !step {
+				add(i, "a hide is a step's: the NPC near the player then")
+			}
+			if e.Minutes < 0 || e.Minutes > 120 {
+				add(i, "hide's minutes %g is not 0 to 120", e.Minutes)
 			}
 		case EventAttack:
 			if !step {
@@ -1659,4 +1688,27 @@ func QuestAskProblems(s string, hasDecline bool) []string {
 		out = append(out, fmt.Sprintf("asks: %d answers may be open at once with the accept and decline, %d at most", most+fixed, AskMostAtOnce))
 	}
 	return out
+}
+
+// SpawnLevel is a spawn's level by its con (QuestEvent.Con) for a player of
+// level: the player's, plus or minus N, 1 to 65; con "" is no level of its
+// own (0, ok). ok false for a con it cannot read.
+func SpawnLevel(con string, level int) (int, bool) {
+	c := strings.ToLower(strings.ReplaceAll(con, " ", ""))
+	if c == "" {
+		return 0, true
+	}
+	rest, found := strings.CutPrefix(c, "player")
+	if !found {
+		return 0, false
+	}
+	n := 0
+	if rest != "" {
+		v, err := strconv.Atoi(rest)
+		if err != nil || rest[0] != '+' && rest[0] != '-' || v < -10 || v > 10 {
+			return 0, false
+		}
+		n = v
+	}
+	return min(max(level+n, 1), 65), true
 }

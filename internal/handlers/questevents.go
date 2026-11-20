@@ -182,6 +182,8 @@ func (q *QuestEngine) runEventsLocked(sess *session.Session, p *entity.Player, c
 			q.classQuestLocked(p, c, qu, e.Level)
 		case database.EventCast:
 			q.castLocked(sess, p, qu, step, e.Spell)
+		case database.EventHide:
+			q.hideLocked(p, qu, step, e)
 		default:
 			log.Printf("Quests: %q step %d: no event %q", qu.Name, step, e.Do)
 		}
@@ -472,6 +474,9 @@ func (q *QuestEngine) spawnSomeLocked(p *entity.Player, c *questChar, qu *databa
 			log.Printf("Quests: %q step %d: no NPC %q to spawn", qu.Name, step, e.NPC)
 			return
 		}
+		if lv, _ := database.SpawnLevel(e.Con, p.Level); lv > 0 {
+			q.gw.LevelSpawn(id, lv) // its con the same to whoever raises it (QuestEvent.Con)
+		}
 		if q.spawns == nil {
 			q.spawns = map[uint32][]questSpawn{}
 		}
@@ -479,6 +484,25 @@ func (q *QuestEngine) spawnSomeLocked(p *entity.Player, c *questChar, qu *databa
 			until: time.Now().Add(life), npc: strings.TrimSpace(e.NPC), group: e.Group})
 		log.Printf("Quests: %q step %d spawned %q (%d) for %s", qu.Name, step, name, id, p.Name)
 	}
+}
+
+// hideLocked is a hide event of the quest's step: the NPCs of its name near the
+// player out of every view for its minutes (database.EventHide), as the human
+// a spawn beside it stands for is. Must be called with q.mu held.
+func (q *QuestEngine) hideLocked(p *entity.Player, qu *database.Quest, step int, e database.QuestEvent) {
+	if q.gw == nil || step == 0 {
+		return
+	}
+	world, x, _, z, ok := q.gw.PlayerPlace(p)
+	if !ok {
+		return
+	}
+	life := questSpawnLife
+	if e.Minutes > 0 {
+		life = time.Duration(e.Minutes * float64(time.Minute))
+	}
+	n := q.gw.HideNPCs(strings.TrimSpace(e.NPC), world, x, z, database.HideReach, time.Now().Add(life))
+	log.Printf("Quests: %q step %d hid %d %q near %s for %s", qu.Name, step, n, e.NPC, p.Name, life)
 }
 
 // attackLocked is an attack event of the quest's step: the NPC it names, else

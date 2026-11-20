@@ -14,7 +14,7 @@ import (
 // shoots it for 2,000 on average at Range4 (two arrows), 1,000 at Range2 (one
 // arrow). The controls:
 // the same player's melee swing (Attack4) and a thrown potion's roll stay the
-// melee roll (STR and DEX, 455 here).
+// melee roll (STR and DEX, 394 here at its bottom).
 func TestABowShotIsItsArrows(t *testing.T) {
 	p := &Player{Class: classRanger, Level: 60, Str: 106, Dex: 453, Wis: 260}
 	p.Gear.WeaponDamage, p.Gear.WeaponCond, p.Gear.WeaponSlot = 759, 1, 18
@@ -25,8 +25,8 @@ func TestABowShotIsItsArrows(t *testing.T) {
 		t.Fatalf("the ranged roll %d (floor), %d-%d, want 87, 503-523", floor, low, high)
 	}
 	melee := playerMeleeHit(p, npc, func(int) int { return 0 })
-	if melee != 455 {
-		t.Fatalf("the melee roll %d, want 455", melee)
+	if melee != 394 { // the bottom of a melee class's line since petition 2478 (455 on the bard's fit)
+		t.Fatalf("the melee roll %d, want 394", melee)
 	}
 	// every roll of the arrow once, each as likely: the shot's mean
 	var two, one float64

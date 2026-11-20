@@ -79,11 +79,11 @@ func TestAWorkbookPetIsItsRow(t *testing.T) {
 	}
 	pet.RoundHits = 1
 	hit, ok := sheetMeleeHit(pet, r.enemy, zero)
-	d, a := 450.0, offenceArchs[archMelee]
+	d, a := 450.0, measuredArchs[archMelee] // the measured line (offence.go)
 	low := int(math.Round(a.LowShare*(offLowD+offLowDEX*70)*d + a.Low - a.Defence*targetDefence(r.enemy)))
 	floor := int(math.Floor(offFloorD*d + offFloorSTR*55))
 	if !ok || hit != max(low, floor, 1) {
-		t.Errorf("its least hit %d (%v): want a melee player's with the 450 weapon, %d", hit, ok, max(low, floor, 1))
+		t.Errorf("its least hit %d (%v): want the measured melee line with the 450 weapon, %d", hit, ok, max(low, floor, 1))
 	}
 	pet.RoundHits = 2
 	if off, _ := sheetMeleeHit(pet, r.enemy, zero); off >= hit {

@@ -312,7 +312,7 @@ func sheetMeleeHit(pet, t *NPC, intn func(int) int) (hit int, ok bool) {
 		dmg = s.Wpn2Dmg // RoundHits counts the hit landing: its 2nd, 4th
 	}
 	d := float64(dmg)
-	a := offenceArchs[s.arch]
+	a := measuredArchs[s.arch]
 	str, dex := float64(pet.petStat(StatStr)), float64(pet.petStat(StatDex))
 	def := a.Defence*targetDefence(t) + t.creatureDefence(pet.Level) // its effects' AC and AGI (pet.go)
 	high := int(math.Round(offHighD*d + offHighSTR*str + a.High - def))

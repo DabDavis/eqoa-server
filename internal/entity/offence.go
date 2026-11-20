@@ -47,6 +47,19 @@ var offenceArchs = [...]offenceArch{
 	archCaster: {High: -77.35, Low: -104.7, LowShare: 1.636, Defence: 1.385},
 }
 
+// measuredArchs are the archetypes as measured, the melee's the bard's fit
+// still: a workbook pet's melee rolls by them (petstats.go sheetMeleeHit; its
+// figures were set on them, petition 1447's Efreeti Lord quad of 600 a hit)
+// and a player's arrow (playerRangedRoll, set on them 2026-11-11: 2,000 a
+// Range4 shot). The owner's change to a melee class's line (2478) is the
+// players' melee alone.
+var measuredArchs = [...]offenceArch{
+	archTank:   offenceArchs[archTank],
+	archMelee:  {High: 32.28, Low: -90.0, LowShare: 2.495, Defence: 2.041},
+	archPriest: offenceArchs[archPriest],
+	archCaster: offenceArchs[archCaster],
+}
+
 // The lines themselves, the tank's (fitted on its weapons in repair: an
 // axe, a blade and a staff, at four dummies).
 var (
@@ -151,7 +164,7 @@ func (p *Player) meleeWeapon() (dmg int, cond float64, twoHanded bool) {
 
 // playerMeleeRoll is the player's roll on the NPC: its floor and its ends.
 func playerMeleeRoll(p *Player, npc *NPC) (floor, low, high int) {
-	return playerRollOn(p, npc, p.StatNow(StatStr), p.StatNow(StatDex))
+	return playerRollBy(p, npc, p.StatNow(StatStr), p.StatNow(StatDex), &offenceArchs)
 }
 
 // playerRangedRoll is the player's roll on the NPC for one arrow of a ranged
@@ -164,13 +177,13 @@ func playerMeleeRoll(p *Player, npc *NPC) (floor, low, high int) {
 // then a shot rolled the melee's, STR and DEX. Ours: no record of the live
 // game's ranged roll exists.
 func playerRangedRoll(p *Player, npc *NPC) (floor, low, high int) {
-	return playerRollOn(p, npc, p.StatNow(StatDex), p.StatNow(StatWis))
+	return playerRollBy(p, npc, p.StatNow(StatDex), p.StatNow(StatWis), &measuredArchs)
 }
 
-// playerRollOn is a roll of the player's on the NPC with top the stat that
+// playerRollBy is a roll of the player's on the NPC with top the stat that
 // raises its top and floor (STR in melee), bottom the one that raises its
 // bottom (DEX in melee).
-func playerRollOn(p *Player, npc *NPC, top, bottom int) (floor, low, high int) {
+func playerRollBy(p *Player, npc *NPC, top, bottom int, archs *[4]offenceArch) (floor, low, high int) {
 	dmg, cond, two := p.meleeWeapon()
 	d := float64(dmg) * rollWorth(cond)
 	fl := float64(dmg) * floorWorth(cond)
@@ -178,7 +191,7 @@ func playerRollOn(p *Player, npc *NPC, top, bottom int) (floor, low, high int) {
 		d *= offTwoHand
 		fl *= offFloorTwo
 	}
-	a := offenceArchs[archetypeOf(p.Class)]
+	a := archs[archetypeOf(p.Class)]
 	str, dex := float64(top), float64(bottom)
 	def := a.Defence * targetDefenceAt(npc, npc.Level-p.Mods.OffMod) // an OFF mod's levels (workbookmore.go)
 	def += npc.creatureDefence(p.Level)                              // its effects' AC and AGI (pet.go)

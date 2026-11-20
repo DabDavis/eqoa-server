@@ -35,8 +35,8 @@ ids differ).
             it was; every held copy of durability 12,200 or less (the old record's: all four held today, worn,
             packed and banked) is pointed at it.
   refund    (Heirloom only; Heirloom petition 2472: "i used 54 Holly tokens on my Shield of Woe and it didnt change
-            its graphic"). The Weapon Enchanter put Energized (the old energy shield 0x2EC56029's skin) on Larrybird's
-            Tower of Woe, whose own look IS the old energy shield: vanilla lends a source nothing on itself, so nothing
+            its graphic"). The Weapon Enchanter put Energized (the old energy shield 0x2EC56029's skin) on a player's
+            Tower of Woe (the character named by --owner: no player's name in the repository), whose own look IS the old energy shield: vanilla lends a source nothing on itself, so nothing
             changed (the server now refuses that, free: branch petpass-20261120-loot). Its 54 Holly Tokens back onto
             his pack's Holly Token stack (a new pack row if none has room), and the copy's no-op aura row
             (instanceaura, tag "Energized") taken off. RUN IT WHILE HE IS OFFLINE: an online session's pack mirror
@@ -74,7 +74,8 @@ PARCHMENT_DESC = ("A Master Spellsmith on the Zaoran Plateau takes this parchmen
                   "2,000 with the Soldiers of Rallos Zek, Mithaniel Marr's Crusaders or the Akessan Collective.")
 TOXIC, TOXIC_AUDIT_DETAIL = "Ring of Toxic Breath", "petfix532_20261119.py%"
 LEGACY_RANGE = (966000, 966999)
-OWNER, TOKEN, REFUND, AURA_ITEM, AURA_TAG = "Larrybird", "Holly Token", 54, "Tower of Woe", "Energized"
+OWNER = ""  # --owner: the character of parts aura and refund (no player's name in the repository)
+TOKEN, REFUND, AURA_ITEM, AURA_TAG = "Holly Token", 54, "Tower of Woe", "Energized"
 
 
 class Refused(Exception):
@@ -322,12 +323,18 @@ def main(argv=None):
     g.add_argument("--apply", action="store_true")
     g.add_argument("--undo", action="store_true")
     ap.add_argument("--no-backup", action="store_true")
+    ap.add_argument("--owner", default="", help="the character whose Tower of Woe parts aura and refund are about")
     a = ap.parse_args(argv)
     parts = [p for p in a.parts.split(",") if p] or [p for p, s in PARTS.items() if a.shard in s]
     for p in parts:
         if p != "aura" and (p not in PARTS or a.shard not in PARTS[p]):
             print(f"refused: part {p!r} is not for the {a.shard} shard")
             return 2
+    global OWNER
+    OWNER = a.owner.strip()
+    if not OWNER and any(p in ("aura", "refund") for p in parts) and not a.undo:
+        print("refused: parts aura and refund need --owner <character>")
+        return 2
     if (a.apply or a.undo) and not a.no_backup:
         backup(a.db)
     db = sqlite3.connect(a.db, isolation_level=None)

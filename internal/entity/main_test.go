@@ -12,6 +12,8 @@ func TestMain(m *testing.M) {
 	// change of an NPC's state made without its hook fails here (npcsets.go;
 	// EQOA_CHECK_NPC_SETS=log lists them all instead)
 	npcSetsCheck = true
+	// every NPC class key kept is checked against one made afresh (npckey.go)
+	npcKeyCheck = true
 	code := m.Run()
 	if petFixture.db != nil {
 		petFixture.db.Close()

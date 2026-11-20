@@ -5,6 +5,8 @@ import "time"
 // NPC is a flat struct containing all NPC fields.
 // Replaces 11+ ECS components with direct field access.
 type NPC struct {
+	// key is NPCClassKey(Name) as classKey last made it (npckey.go)
+	key npcKey
 	// pickedAt is when a pickpocket last took from it (workbookmore.go)
 	pickedAt time.Time
 	// Identity

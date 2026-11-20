@@ -558,7 +558,7 @@ func (w *World) decorArtViewLocked(sess *session.Session, npc *NPC, buf []byte) 
 	if art == nil || len(*art) == 0 {
 		return
 	}
-	a, ok := (*art)[database.NPCClassKey(npc.Name)]
+	a, ok := (*art)[npc.classKey()]
 	if !ok {
 		return
 	}

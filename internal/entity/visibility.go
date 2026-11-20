@@ -345,7 +345,7 @@ func (w *World) serializeEntityForChannel(sess *session.Session, id EntityID, ob
 		if n.WornMask != 0 {
 			auras = w.NPCPieceAurasOf(n) // a mercenary's heirlooms (pieceaura.go)
 		}
-		dyes = npcDyesOf(n.Name) // its name's dyes (npcdyes.go)
+		dyes = npcDyesOfKey(n.classKey()) // its name's dyes (npcdyes.go)
 	}
 	return ForViewerAuras(sess, buf, dyes, auras)
 }
@@ -372,13 +372,13 @@ func (w *World) serializeEntityDiscLocked(sess *session.Session, id EntityID, ob
 			buf[26] = 3
 			buf[27] = 0
 		}
-		w.duelViewPetLocked(sess, npc, buf)      // a duel opponent's pet as a creature (duel.go)
-		w.pvpViewPetLocked(sess, npc, buf)       // a foe's pet, to be swung at (pvp.go)
-		w.challengeViewLocked(sess, npc, buf)    // a Metal Moogie not one's own to fight (metalmoogie.go)
-		w.decorArtViewLocked(sess, npc, buf)     // a decoration's art, to a client that draws decorations (decorlights.go)
-		w.petArtViewLocked(sess, npc, buf)       // a pet's art (a rank's PetArt), to a client that draws it (decorlights.go)
-		putNPCDyeTints(npcDyesOf(npc.Name), buf) // its dyes' nearest tints (npcdyes.go)
-		putNPCDyeRobe(npc.Name, buf)             // and the robe its dyes put on
+		w.duelViewPetLocked(sess, npc, buf)               // a duel opponent's pet as a creature (duel.go)
+		w.pvpViewPetLocked(sess, npc, buf)                // a foe's pet, to be swung at (pvp.go)
+		w.challengeViewLocked(sess, npc, buf)             // a Metal Moogie not one's own to fight (metalmoogie.go)
+		w.decorArtViewLocked(sess, npc, buf)              // a decoration's art, to a client that draws decorations (decorlights.go)
+		w.petArtViewLocked(sess, npc, buf)                // a pet's art (a rank's PetArt), to a client that draws it (decorlights.go)
+		putNPCDyeTints(npcDyesOfKey(npc.classKey()), buf) // its dyes' nearest tints (npcdyes.go)
+		putNPCDyeRobeKey(npc.classKey(), buf)             // and the robe its dyes put on
 		w.putChannelTargetLocked(sess, npc, buf)
 		if npc.NoSelect && !npc.Dead {
 			buf[26] &^= 1 // not selectable: no Tab, no click, no target box (npctitle.go's noselect)

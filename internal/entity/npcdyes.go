@@ -65,25 +65,26 @@ func (w *World) LoadSeasonLooks(db *database.SQLiteDB) (tinted, told, dyed int, 
 	return
 }
 
-// putNPCDyeRobe puts the robe an npcdyes robe row puts on the NPCs of a name
-// in an NPC's channel (byte 109), if one does.
-func putNPCDyeRobe(name string, buf []byte) {
+// putNPCDyeRobeKey puts the robe an npcdyes robe row puts on the NPCs of a
+// name (by its class key) in an NPC's channel (byte 109), if one does.
+func putNPCDyeRobeKey(key string, buf []byte) {
 	m := npcDyeRobes.Load()
 	if m == nil || len(*m) == 0 || len(buf) < 110 {
 		return
 	}
-	if r, ok := (*m)[database.NPCClassKey(name)]; ok {
+	if r, ok := (*m)[key]; ok {
 		buf[109] = r
 	}
 }
 
-// npcDyesOf is the dyes of the NPCs of a name, or nil.
-func npcDyesOf(name string) *Dyes {
+// npcDyesOfKey is the dyes of the NPCs of a name, by its class key
+// (database.NPCClassKey; an NPC's classKey), or nil.
+func npcDyesOfKey(key string) *Dyes {
 	m := npcDyes.Load()
 	if m == nil || len(*m) == 0 {
 		return nil
 	}
-	return (*m)[database.NPCClassKey(name)]
+	return (*m)[key]
 }
 
 // putNPCDyeTints puts the disc tint nearest each dyed armour slot and the

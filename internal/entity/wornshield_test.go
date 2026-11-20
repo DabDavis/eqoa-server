@@ -3,6 +3,8 @@ package entity
 import (
 	"testing"
 	"time"
+
+	"github.com/eqoa/server/internal/database"
 )
 
 // The items: by their record's name in any case, nothing for another; a
@@ -41,6 +43,8 @@ func TestWornShieldOf(t *testing.T) {
 		"fathomsteel guard": {Power: 15}, "FesterTwig": {Power: 15},
 		// QuestMasters' (2006)
 		"bracers of toxicity": {Damage: 64}, "Golden Spiked Gloves": {Damage: 20}, "Sandals of the Burning Sands": {Damage: 35},
+		// the other classes' records of the bracers
+		"Vambracers of Toxicity": {Damage: 64}, "Wristguards of Toxicity": {Damage: 64},
 	} {
 		want.Item = name
 		if s, ok := of(name); !ok || s != want {
@@ -302,5 +306,20 @@ func TestTheAnointedHoldsHate(t *testing.T) {
 	r.w.mu.Unlock()
 	if r.npc.CurrentEnemy != r.friend.ServerID {
 		t.Errorf("its enemy is %d, not the wearer %d", r.npc.CurrentEnemy, r.friend.ServerID)
+	}
+}
+
+// The Ascended Wristguards of Toxicity (the owner, 2026-11-20: a player's
+// "ascended bracers of toxicity" did nothing at a hit): an Ascended copy of
+// the other classes' wrist records answers as its base, a tenth more.
+func TestAscendedToxicityWristsAnswer(t *testing.T) {
+	defer SetAscendedItems(nil)
+	SetAscendedItems(map[int]int{980540: 718258, 980539: 718257, 980529: 6787})
+	for id, name := range map[int]string{980540: "Ascended Wristguards of Toxicity", 980539: "Ascended Vambracers of Toxicity",
+		980529: "Ascended bracers of toxicity"} {
+		s, ok := WornShieldOf(id, name)
+		if want := database.AscendedFigure(64); !ok || s.Damage != want {
+			t.Errorf("%s: %+v %v, want %d damage", name, s, ok, want)
+		}
 	}
 }

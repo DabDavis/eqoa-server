@@ -60,7 +60,27 @@ type skyPass struct {
 	// name they are at (the portal does the essence's), "" its own
 	Steps   [][2]int
 	StepsAs string
+	// Back is its way back for a player of a chain who still has business
+	// behind it (nil none)
+	Back *skyBack
 }
+
+// skyBack is a passage's way back: a player on Quest at a step before Before
+// is taken, with no key, to At (To its name) instead of on.
+type skyBack struct {
+	Quest, Before int
+	To            string
+	At            wayPlace
+}
+
+// skyBurnfeathers is Singe Burnfeathers' hut on the third isle of rain, where
+// the black gem of Ghizilanve's cave goes (quest 101303 step 4): its floor,
+// 3 north of him, facing him (petition 2451: Granavik's portal, in her cave,
+// "sends to rain 4 ... it should send back to burnfeathers instead"; the cave
+// has no walk up, so the quest stalled until the player came round by the
+// main isle). The hut's floor walks to the isle's own essence of rain.
+var skyBurnfeathers = &skyBack{Quest: 101303, Before: 5, To: "Singe Burnfeathers' hut",
+	At: wayPlace{World: 4, X: 4611.2, Y: 113.02, Z: 4936.0, Facing: 0}}
 
 // skyPassReach is how near its spot an essence of a name stands.
 const skyPassReach = 20
@@ -83,7 +103,8 @@ var skyPasses = []skyPass{
 		At: wayPlace{World: 4, X: 4242.0, Y: 80.06, Z: 4305.3, Facing: 3.37}, Steps: [][2]int{{101303, 5}}},
 	// Granavik's portal, standing where he fell (petition 1612)
 	{NPC: "Rain 3 Portal", Key: "Rain Key 3", To: "the fourth isle of rain",
-		At: wayPlace{World: 4, X: 4242.0, Y: 80.06, Z: 4305.3, Facing: 3.37}, Steps: [][2]int{{101303, 5}}, StepsAs: "essence of rain"},
+		At: wayPlace{World: 4, X: 4242.0, Y: 80.06, Z: 4305.3, Facing: 3.37}, Steps: [][2]int{{101303, 5}}, StepsAs: "essence of rain",
+		Back: skyBurnfeathers},
 	{NPC: "essence of rain", X: 4199.7, Z: 4148.3, Key: "Rain Key 4", To: "the fifth isle of rain",
 		At: wayPlace{World: 4, X: 4869.0, Y: 26.75, Z: 4316.0, Facing: 4.67}, Steps: [][2]int{{101303, 9}}},
 	{NPC: "essence of rain", X: 4516.5, Z: 4271.6, Key: "Rain Key 5", To: "the Isle of Wonder",
@@ -171,6 +192,7 @@ const (
 	skyPassWants  = "The %s wants %s before it will take you on."
 	skyPassDim    = "The %s is dim: it takes no one from here."
 	skyGroupWords = "%s takes the group to %s."
+	skyBackGo     = "%s: the light takes you back to %s: %q is not done there yet. Your key stays with you."
 )
 
 // skyPassOf is the passage of that NPC, and whether its name is a passage's
@@ -228,6 +250,10 @@ func (h *InteractHandler) skyPassTalk(sess *session.Session, p *entity.Player, n
 	q := Quests()
 	if q.StepHereBesides(p, npc.Name, npc.ServerID, skyPassSteps()) {
 		return false
+	}
+	if pass != nil && pass.Back != nil && q.AtStepBefore(p, pass.Back.Quest, pass.Back.Before) {
+		h.skyBack(sess, p, npc, pass.Back)
+		return true
 	}
 	if pass != nil && (pass.Key == "" || q.HeldNamed(p, pass.Key) > 0) {
 		h.skyPass(sess, p, npc, pass)
@@ -297,7 +323,49 @@ func (h *InteractHandler) skyPass(sess *session.Session, p *entity.Player, npc *
 		})
 }
 
+// skyBack sends the player, and its group by the passage, back to the
+// business its chain has behind it: no key taken, no step done.
+func (h *InteractHandler) skyBack(sess *session.Session, p *entity.Player, npc *entity.NPC, back *skyBack) {
+	forgetDialogs(p)
+	dest := entity.CoachDest{Name: back.To, X: back.At.X, Y: back.At.Y, Z: back.At.Z, Facing: back.At.Facing, World: back.At.World}
+	if !CanLoadWorld(sess, dest.World) {
+		return
+	}
+	if _, err := ValidateTeleport(dest.X, dest.Y, dest.Z, dest.World); err != nil {
+		log.Printf("SkyPass: %s's way back to %s refused: %v", npc.Name, back.To, err)
+		return
+	}
+	SendClientMessage(sess, fmt.Sprintf(skyBackGo, npc.Name, back.To, Quests().questName(back.Quest)))
+	log.Printf("SkyPass: %s is taken back by %s to %s (quest %d before step %d)", p.Name, npc.Name, back.To, back.Quest, back.Before)
+	h.warp(sess, p, dest)
+	h.moveGroup(p, npc.ServerID, dest, fmt.Sprintf(skyGroupWords, npc.Name, back.To), "SkyPass", nil)
+}
+
 // --- the quests' side ---
+
+// AtStepBefore is whether the player is on the quest, at a step before that one.
+func (q *QuestEngine) AtStepBefore(p *entity.Player, quest, before int) bool {
+	if q == nil || p == nil {
+		return false
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	cq := q.namedLocked(p.CharServerID, p.Name).quests[quest]
+	return cq != nil && cq.Active() && cq.Step < before
+}
+
+// questName is a quest's name, "" for none.
+func (q *QuestEngine) questName(quest int) string {
+	if q == nil {
+		return ""
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	if qu := q.cat.byID[quest]; qu != nil {
+		return qu.Name
+	}
+	return ""
+}
 
 // StepHereBesides is whether the player has a quest step at the NPC called
 // name (spawn, its spawn) that is not one of those.

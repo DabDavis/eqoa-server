@@ -259,7 +259,7 @@ var teleCampNames = map[string]string{
 	"icegiants": "Ice giant refugees", "kappa": "Kappa, Slythis Dwell", "kappawarriors": "Kappa warriors, Odus",
 	"tendora": "Tendora-Buki kerrans", "gargoyles": "Gargoyles, Barren Coast", "phantoms": "Phantoms, East Plateau",
 	"kappaelites": "Kappa elites, Odus", "moots": "Moots, Erud's Crossing", "harpies": "Harpies, Erud's Crossing",
-	"ghosts": "Wandering ghosts", "xrag": "Children of Xrag",
+	"ghosts": "Wandering ghosts", "xrag": "Children of Xrag", "rancidbones": "Rancidbone trolls, Bogman",
 }
 
 // teleSpot is a place it offers: its answer, its creatures' levels (0: not

@@ -1228,6 +1228,11 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 	// out of its reach, or its target on the floor over or under it (no fight
 	// through a floor while the ground has a way to it: petwalk.go)
 	if d > petReach || w.petStackedLocked(pet, t.X, t.Y, t.Z, now) {
+		if w.petFarTurnLocked(ps, t, now) { // its spells from wherever they reach (pettemplate.go)
+			pet.stopMoving()
+			pet.Facing = headingTo(t.X-pet.X, t.Z-pet.Z)
+			return
+		}
 		x, z := pet.X, pet.Z
 		if d > petReach {
 			x = t.X + (pet.X-t.X)/d*(petReach-1)

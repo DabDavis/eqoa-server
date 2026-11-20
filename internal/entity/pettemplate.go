@@ -258,6 +258,72 @@ func (w *World) petTemplateTurnLocked(ps *petState, t *NPC, now time.Time) bool 
 	return false
 }
 
+// petFarKind is whether a kind of the pet's is cast at what it fights from
+// wherever its spell reaches, before it is in its melee reach: its nukes, life
+// taps, damage over time and debuffs.
+func petFarKind(kind string) bool {
+	switch kind {
+	case database.AbilityNuke, database.AbilityLifetap, database.AbilityDoT, database.AbilityDebuff:
+		return true
+	}
+	return false
+}
+
+// petFarTurnLocked is a templated pet's turn while it closes in on t, beyond its
+// melee reach (a magician's petition, 2026-11-19: the Ghilan Noble sent at a
+// creature from afar "should be using either her debuff spell or her nuke
+// depending on what is available as soon as she is in the spells range.
+// Currently she waits until she physically strikes her opponent before
+// casting"): the first of its spells cast at a foe (petFarKind) that is due and
+// wanted, with t within the spell's range (centre to centre) and in the pet's
+// sight (sight.go); the rest wait, due, for its turn in reach
+// (petTemplateTurnLocked). It reports whether it is casting: it stands to cast,
+// and walks on once the cast is over. Must be called with the lock held.
+func (w *World) petFarTurnLocked(ps *petState, t *NPC, now time.Time) bool {
+	abilities := ps.petAbilities()
+	pet := ps.npc
+	if len(abilities) == 0 || t == nil || t.Dead || t.World != pet.World {
+		return false
+	}
+	f := ps.petAbilityClocks(t.ServerID, now)
+	if now.Before(f.busy) {
+		return true
+	}
+	d := dist3(pet.X, pet.Y, pet.Z, t.X, t.Y, t.Z)
+	seen := 0 // 1 in its sight, -1 not: looked at once, when a spell is due
+	for i := range abilities {
+		a := &abilities[i]
+		if a.Chain || !petFarKind(a.Kind) || now.Before(f.next[i]) || pet.Level < a.From ||
+			a.Kind == database.AbilityDebuff && pet.Charm != nil {
+			continue
+		}
+		s := a.spellFor(petSpellClass(a, pet), pet.Level)
+		if s == nil || s.Range <= 0 || d > s.Range {
+			continue // out of its range: it waits, due
+		}
+		if seen == 0 {
+			seen = -1
+			if w.npcSeesLocked(pet, t.World, t.X, t.Y, t.Z) {
+				seen = 1
+			}
+		}
+		if seen < 0 {
+			return false // hidden from it: it closes in
+		}
+		if !w.petWantsLocked(ps, a, now) {
+			continue
+		}
+		f.next[i] = now.Add(a.every)
+		if c := a.ChanceOr(); c < 100 && templateIntn(100) >= c {
+			continue
+		}
+		if w.petCastLocked(ps, i, t, now) {
+			return now.Before(f.busy)
+		}
+	}
+	return false
+}
+
 // petSingleHealDueLocked is whether one of the pet's single-target heals (on
 // its owner, itself, either or a member: not a group heal, not a heal of its
 // own share) is due and wanted now. A group heal yields to it whatever their

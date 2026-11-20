@@ -70,6 +70,7 @@ func newSkyRig(t *testing.T) *skyRig {
 		(101301, 3, 'kill', 'Artiokanis', '', 'Kill Artiokanis.', ''),
 		(101302, 4, 'talk', 'essence of rain', '', 'Use the wand''s keys on the essence of rain.', ''),
 		(101302, 5, 'talk', 'Nobody', '', 'Then nothing.', ''),
+		(101303, 4, 'give', 'Singe Burnfeathers', '', 'Bring the black gem to Singe Burnfeathers.', ''),
 		(101303, 5, 'talk', 'essence of rain', '', 'Use the wand''s keys on the essence of rain down the road.', ''),
 		(101303, 6, 'talk', 'Nobody', '', 'Then nothing.', ''),
 		(900001, 1, 'talk', 'essence of rain', '', 'Speak to the essence of rain.', ''),
@@ -253,6 +254,45 @@ func TestGranaviksPortalTakesARainKey3(t *testing.T) {
 	}
 	if s, _ := r.step(r.pa, 101303); s != 6 {
 		t.Errorf("the essence's step: %d, want 6", s)
+	}
+}
+
+// Petition 2451: Granavik's portal stands in Ghizilanve's cave, where the
+// black gem drops; a player of the chain who has yet to bring it to Singe
+// Burnfeathers (step 4) is taken back up to his hut, the group by it along,
+// and keeps the key, the step waiting for him there; once it is done the
+// portal takes the key on to the fourth isle.
+func TestGranaviksPortalTakesTheGemBackToBurnfeathers(t *testing.T) {
+	r := newSkyRig(t)
+	r.group()
+	r.on(r.pa, 101303, 4)
+	r.own(r.pa, "Rain Key 3", 20)
+	r.by("portal")
+	r.talk(r.anna, r.npcs["portal"])
+	got := r.msgs(r.anna)
+	if !hasMsg(got, `chat:Rain 3 Portal: the light takes you back to Singe Burnfeathers' hut: "The Necrologist of Rain" is not done there yet. Your key stays with you.`) ||
+		!hasMsg(got, "teleport") {
+		t.Fatalf("the way back: %q", got)
+	}
+	if r.pa.X != 4611.2 || r.pa.Y != 113.02 || r.pa.Z != 4936.0 {
+		t.Errorf("Anna landed at (%.2f, %.2f, %.2f)", r.pa.X, r.pa.Y, r.pa.Z)
+	}
+	if n := r.held(r.pa, "Rain Key 3"); n != 20 {
+		t.Errorf("Anna holds %d keys, want all 20", n)
+	}
+	if s, _ := r.step(r.pa, 101303); s != 4 {
+		t.Errorf("Anna's step: %d, want 4 still", s)
+	}
+	if cora := r.msgs(r.cora); !hasMsg(cora, "chat:Rain 3 Portal takes the group to Singe Burnfeathers' hut.") || r.pc.Z != r.pa.Z {
+		t.Errorf("Cora was not taken along: %q", cora)
+	}
+
+	r.on(r.pa, 101303, 5)
+	forgetQuestChar(r.pa)
+	r.by("portal")
+	r.talk(r.anna, r.npcs["portal"])
+	if got := r.msgs(r.anna); !hasMsg(got, "teleport") || r.pa.X != 4242.0 || r.held(r.pa, "Rain Key 3") != 19 {
+		t.Errorf("at step 5: %q at (%.1f, %.1f), %d keys", got, r.pa.X, r.pa.Z, r.held(r.pa, "Rain Key 3"))
 	}
 }
 

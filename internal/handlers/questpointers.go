@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"regexp"
 	"sort"
@@ -166,6 +167,19 @@ func (q *QuestEngine) endsAtGiverLocked(c *questChar, s *database.Quest) bool {
 
 // pointerLineLocked is S's pointer line: its name, its giver and where.
 func (q *QuestEngine) pointerLineLocked(p *entity.Player, c *questChar, s *database.Quest) string {
+	name := strings.TrimSpace(s.Name)
+	if name == "" {
+		name = fmt.Sprintf("Quest %d", s.ID)
+	}
+	line := name + ": find " + strings.TrimSpace(s.Giver)
+	if where := q.pointerWhereLocked(p, c, s); where != "" {
+		line += " " + where
+	}
+	return line
+}
+
+// pointerWhereLocked is where S's giver is, as its pointer says it ("" not known).
+func (q *QuestEngine) pointerWhereLocked(p *entity.Player, c *questChar, s *database.Quest) string {
 	giver := strings.TrimSpace(s.Giver)
 	where := ""
 	// what the finished quests' last words say of the giver, the latest
@@ -189,15 +203,63 @@ func (q *QuestEngine) pointerLineLocked(p *entity.Player, c *questChar, s *datab
 	if where == "" {
 		where = q.giverPlaceLocked(p, giver)
 	}
-	name := strings.TrimSpace(s.Name)
-	if name == "" {
-		name = fmt.Sprintf("Quest %d", s.ID)
+	return where
+}
+
+// questSendOn is what the giver of a quest the player finished says when it has
+// nothing more for the player and the quest that follows is another's.
+const questSendOn = "I have nothing more for you. For %q, find %s%s."
+
+// SendOn is the giver of a finished quest sending the player on to the next
+// quest's giver when it has nothing of its own for it (petition 5314: a player
+// deleted the journal's pointer to the next giver, "so i deleted it to relog it
+// but the npc wont give me the quest now", and went back to the giver he had
+// finished with): a quest S that requires a quest whose last step was at this
+// NPC, which the player may take now and has never finished, is another's
+// (endsAtGiverLocked false), and the NPC says where. The pointer's line comes
+// back to the journal if it was deleted. HandleInteract asks it where a giver
+// with nothing to give would say a town's words; it reports whether it spoke.
+func (q *QuestEngine) SendOn(sess *session.Session, p *entity.Player, npc *entity.NPC) bool {
+	if q == nil || p == nil || npc == nil || npc.Dead {
+		return false
 	}
-	line := name + ": find " + giver
-	if where != "" {
-		line += " " + where
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	c := q.namedLocked(p.CharServerID, p.Name)
+	look := q.lookAt(sess)
+	here := foldName(npc.Name)
+	var done []*database.CharQuest
+	for _, cq := range c.quests {
+		if cq.Done == 0 || len(q.cat.successors[cq.QuestID]) == 0 {
+			continue
+		}
+		if st := lastStep(q.cat.byID[cq.QuestID]); st != nil && database.AtNPC(st.Kind) && foldName(st.Target) == here {
+			done = append(done, cq)
+		}
 	}
-	return line
+	sort.Slice(done, func(i, j int) bool {
+		if done[i].Updated != done[j].Updated {
+			return done[i].Updated > done[j].Updated
+		}
+		return done[i].QuestID < done[j].QuestID
+	})
+	for _, cq := range done {
+		for _, s := range q.cat.successors[cq.QuestID] {
+			if foldName(s.Giver) == here || c.timesDone(s.ID) > 0 || q.mayTakeLocked(look, p, c, s) != "" {
+				continue
+			}
+			where := q.pointerWhereLocked(p, c, s)
+			if where != "" {
+				where = " " + where
+			}
+			c.box = nil
+			delete(c.dismissed, s.ID)
+			q.tellLocked(c, sess, npc.Name, fmt.Sprintf(questSendOn, strings.TrimSpace(s.Name), strings.TrimSpace(s.Giver), where))
+			log.Printf("Quests: %s sends %s on to %s for %q", npc.Name, p.Name, s.Giver, s.Name)
+			return true
+		}
+	}
+	return false
 }
 
 // pointerWorlds is how a pointer names a world its giver stands in when no

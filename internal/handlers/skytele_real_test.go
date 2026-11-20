@@ -173,6 +173,9 @@ func TestRealSkyTeleporters(t *testing.T) {
 	var trips []skyTrip
 	for _, p := range skyPasses {
 		trips = append(trips, skyTrip{fmt.Sprintf("pass %s (%.0f, %.0f) -> %s", p.NPC, p.X, p.Z, p.To), p.At})
+		if p.Back != nil {
+			trips = append(trips, skyTrip{fmt.Sprintf("pass %s (%.0f, %.0f) back -> %s", p.NPC, p.X, p.Z, p.Back.To), p.Back.At})
+		}
 	}
 	var names []string
 	for n := range wayRoutes {

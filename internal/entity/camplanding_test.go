@@ -165,3 +165,33 @@ func TestCampLandingNeverOverLava(t *testing.T) {
 		t.Error("lavaUnderLocked: 40 over the lake, 190 over it, beside it")
 	}
 }
+
+// keepFloor is a terrain with a keep's floor over it east of x 1050 (a castle
+// over the terrain, as Permafrost's courtyard stands over the terrain under
+// it); Floor does not see it from far above, Roof does.
+type keepFloor struct {
+	flatGround
+	over float32
+}
+
+func (g keepFloor) Roof(world uint8, x, y0, y1, z float32) bool {
+	return x > 1050 && g.over > y0 && g.over <= y1
+}
+
+// A landing is never under what stands over the terrain (petition 2332: the
+// ice giant refugees' landing lay on the terrain under Lady Vox's castle,
+// whence a player walked under it and off the world): east of the camp, the
+// side away from its middle, lies under the keep, so it lands elsewhere in the
+// open; the control: the same camp with no keep lands east.
+func TestCampLandingNotUnderAKeep(t *testing.T) {
+	w := campWorld(flatGround{y: 50})
+	x, _, _, ok := w.CampLanding("orc", 0, 1020, 1000, 300)
+	if !ok || x <= 1050 {
+		t.Fatalf("the control landed at x %.0f %v, want east past 1050", x, ok)
+	}
+	w = campWorld(keepFloor{flatGround: flatGround{y: 50}, over: 92})
+	x, y, z, ok := w.CampLanding("orc", 0, 1020, 1000, 300)
+	if !ok || y != 50 || x > 1050 || (x == 1020 && z == 1000) {
+		t.Fatalf("landed (%.0f, %.1f, %.0f) %v, want the open terrain west of the keep", x, y, z, ok)
+	}
+}

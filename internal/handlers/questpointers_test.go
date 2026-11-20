@@ -190,3 +190,47 @@ func TestPlaceInSays(t *testing.T) {
 		}
 	}
 }
+
+// Petition 5314: a player deleted the pointer and went back to the giver he had
+// finished with, who had nothing for him; now that giver sends him on, saying
+// where, and the pointer's line comes back to the journal. A giver whose next
+// quest is its own offers it instead (the pointer's rule), and once the next
+// quest is taken it says nothing of it.
+func TestTheLastGiverSendsThePlayerOn(t *testing.T) {
+	f, ozmo, tilvyis := pointerFixture(t)
+	f.exec(`INSERT INTO charquests (serverid, questid, step, done, updated) VALUES (?, 20001, 0, 1, '2026-11-11')`, f.sid)
+	f.qe.ReloadCharacter(f.sid)
+	f.msgs()
+	token, lines := f.qe.JournalFor(f.tw.s, f.tw.p)
+	if len(lines) != 1 || lines[0] != tilvyisLine {
+		t.Fatalf("the journal: %q", lines)
+	}
+	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeDeleteQuest)
+	msg.SetData(build(protocol.OpcodeDeleteQuest, 16, func(w *buffer.Writer) {
+		w.WriteUint32(token)
+		w.Write7BitEncodedInt64(0)
+	})[2:])
+	if err := f.qe.HandleDrop(f.tw.s, msg); err != nil {
+		t.Fatal(err)
+	}
+	f.want(f.msgs(), "drop:0")
+	f.qe.syncPointers()
+	if m := f.msgs(); len(m) != 0 {
+		t.Fatalf("a deleted pointer came back: %q", m)
+	}
+
+	f.tw.talk(ozmo)
+	f.want(f.msgs(), `box:Ozmo da Basher: I have nothing more for you. For "The Breastplate and the Leggings", find Tilvyis S`+"`"+`Lynx in the south of Neriak west of the coachman.`)
+	f.qe.syncPointers()
+	f.want(f.msgs(), "add:"+tilvyisLine)
+
+	// taken at Tilvyis: Ozmo has nothing to say of it
+	f.tw.talk(tilvyis)
+	if id := boxID(f.msgs()); id != 0 {
+		f.tw.pick(id, 0)
+	}
+	f.msgs()
+	if f.qe.SendOn(f.tw.s, f.tw.p, f.tw.w.NPCs[entity.EntityID(ozmo)]) {
+		t.Errorf("Ozmo sent the player on to a quest under way")
+	}
+}

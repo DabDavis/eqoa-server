@@ -118,6 +118,9 @@ func (w *World) CampLanding(name string, world uint8, x, z, reach float32) (lx, 
 			if top, ok := w.ground.Floor(world, px, fy+1000, pz); ok && top > fy+campOpen {
 				continue // under a roof, an overhang, another floor
 			}
+			if roofs, ok := w.ground.(Roofs); ok && roofs.Roof(world, px, fy+campOpen, fy+1000, pz) {
+				continue // under something placed: a keep's floor over the terrain (petition 2332: the ice giant refugees' landed under Lady Vox's castle, on the terrain under its courtyard, 41 below it)
+			}
 			if w.waterAtLocked(world, px, fy+bodyAbove, pz) || w.lavaUnderLocked(world, px, fy, pz) {
 				continue // the water, the slime; in the lava or over it (petition 1895)
 			}

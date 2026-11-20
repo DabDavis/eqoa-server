@@ -132,13 +132,14 @@ func TestAShopOffersAQuestOnceASession(t *testing.T) {
 	f.want(openShop(f, ulla, id), shop)
 }
 
-// A giver whose quests are all repeatable offers its first, then, that one
-// finished, the next it has never finished, and once every one is finished
-// the one finished fewest times: the player goes through them all. Before,
-// the first was offered for ever (Chef Lukkif's eleven). A never-finished
-// quest of the giver comes before a finished repeatable one whatever their
-// ids (the control: 82 comes before 81 once 81 is finished).
-func TestARepeatableGiverGoesOnThroughItsQuests(t *testing.T) {
+// A giver whose quests are all repeatable asks which the player will do
+// (petition 2388, Chef Lukkif's Hunt and Gather: until then each talk took the
+// next one, in turn, filling the journal): every one it may take now, by name;
+// the one picked is taken (no answer to take it here), its step done at the
+// chef, and the board comes again with all three. The controls: one under way
+// is left off the board; a giver with a quest that is not repeatable offers
+// as before (no board).
+func TestARepeatableGiverAsksWhichQuest(t *testing.T) {
 	f := newQuestFixture(t)
 	f.exec(`UPDATE quests SET enabled = 0 WHERE questid = 10010`)
 	chef := f.tw.add(1, &entity.NPC{ServerID: 751, Name: "Chef Lukkif", SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5})
@@ -150,30 +151,78 @@ func TestARepeatableGiverGoesOnThroughItsQuests(t *testing.T) {
 		t.Fatal(err)
 	}
 	f.msgs()
-	round := func() string {
+	board := func(want string) []string {
 		t.Helper()
-		f.tw.talk(chef) // taken at once: no answer to take it
+		f.tw.talk(chef)
 		m := f.msgs()
-		var line string
-		for _, s := range m {
-			if strings.HasPrefix(s, "add:Cook dish") {
-				line = strings.TrimSuffix(strings.TrimPrefix(s, "add:Cook dish "), ".")
-			}
+		if len(m) != 1 || !strings.HasSuffix(m[0], ":"+questAskBoard+"|"+want) {
+			t.Fatalf("the board: %q, want %q", m, want)
 		}
-		if line == "" {
-			t.Fatalf("no dish offered: %q", m)
+		return m
+	}
+	f.tw.pick(boxID(board("Dish 81|Dish 82|Dish 83")), 1)
+	f.want(f.msgs(), "add:Cook dish 82.")
+	f.tw.talk(chef) // its one step, at the chef: done
+	f.want(f.msgs(), "box:"+questFinished)
+	f.tw.pick(boxID(board("Dish 81|Dish 82|Dish 83")), 2)
+	f.want(f.msgs(), "add:Cook dish 83.")
+	// 83 under way: its step comes first at the chef, so take 81 with it
+	// under way by asking the board's own quests (the control)
+	f.qe.mu.Lock()
+	list := f.qe.boardLocked(nil, f.tw.p, f.qe.charLocked(f.sid), "Chef Lukkif")
+	f.qe.mu.Unlock()
+	if len(list) != 2 || list[0].ID != 81 || list[1].ID != 82 {
+		t.Fatalf("the board with 83 under way: %v", list)
+	}
+	f.tw.talk(chef)
+	f.want(f.msgs(), "box:"+questFinished)
+	// a chain's quest at the giver: no board, the old offer
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, repeatable) VALUES (84, 'Dish 84', 1, 'Chef Lukkif', 0)`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal, rewardtunar) VALUES (84, 1, 'talk', 'Chef Lukkif', 'Cook dish 84.', 1)`)
+	if err := f.qe.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	f.msgs()
+	f.tw.talk(chef)
+	for _, s := range f.msgs() {
+		if strings.Contains(s, questAskBoard) {
+			t.Fatalf("a board at a giver of a chain's quest: %q", s)
 		}
-		f.tw.talk(chef) // its one step, at the chef: done
-		f.want(f.msgs(), "box:"+questFinished)
-		return line
 	}
-	var got []string
-	for i := 0; i < 5; i++ {
-		got = append(got, round())
+}
+
+// A board of more quests than a box holds goes in pages: five names and
+// "Something else." in the PS2's six, the next page the rest, and past the
+// last the first again.
+func TestARepeatableGiversBoardTurnsItsPages(t *testing.T) {
+	f := newQuestFixture(t)
+	f.exec(`UPDATE quests SET enabled = 0 WHERE questid = 10010`)
+	chef := f.tw.add(1, &entity.NPC{ServerID: 751, Name: "Chef Lukkif", SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5})
+	for id := 81; id <= 88; id++ {
+		f.exec(fmt.Sprintf(`INSERT INTO quests (questid, name, enabled, giver, repeatable) VALUES (%d, 'Dish %d', 1, 'Chef Lukkif', 1)`, id, id))
+		f.exec(fmt.Sprintf(`INSERT INTO queststeps (questid, step, kind, target, journal, rewardtunar) VALUES (%d, 1, 'talk', 'Chef Lukkif', 'Cook dish %d.', 1)`, id, id))
 	}
-	if strings.Join(got, " ") != "81 82 83 81 82" {
-		t.Fatalf("the dishes in turn: %q, want 81 82 83 81 82", got)
+	if err := f.qe.Reload(); err != nil {
+		t.Fatal(err)
 	}
+	f.msgs()
+	f.tw.talk(chef)
+	m := f.msgs()
+	if len(m) != 1 || !strings.HasSuffix(m[0], ":"+questAskBoard+"|Dish 81|Dish 82|Dish 83|Dish 84|Dish 85|"+questBoardMore) {
+		t.Fatalf("the first page: %q", m)
+	}
+	f.tw.pick(boxID(m), 5)
+	m = f.msgs()
+	if len(m) != 1 || !strings.HasSuffix(m[0], ":"+questAskBoard+"|Dish 86|Dish 87|Dish 88|"+questBoardMore) {
+		t.Fatalf("the second page: %q", m)
+	}
+	f.tw.pick(boxID(m), 3)
+	m = f.msgs()
+	if len(m) != 1 || !strings.HasSuffix(m[0], "|Dish 81|Dish 82|Dish 83|Dish 84|Dish 85|"+questBoardMore) {
+		t.Fatalf("past the last, the first again: %q", m)
+	}
+	f.tw.pick(boxID(m), 4)
+	f.want(f.msgs(), "add:Cook dish 85.")
 }
 
 // A loot step whose item the player holds a full stack of counts each drop

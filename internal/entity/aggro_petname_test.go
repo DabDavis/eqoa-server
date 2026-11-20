@@ -1,6 +1,10 @@
 package entity
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/eqoa/server/internal/database"
+)
 
 // Ticket 2380: Collonridge's instanced basement Decaying Flesh (L64)
 // stood neutral: the seed's npcaggro row for a player's pet's name ("Decaying
@@ -69,5 +73,25 @@ func TestAFamiliarShowsTheAllyFace(t *testing.T) {
 	}
 	if got := f.face(other); got == FaceAlly {
 		t.Error("the control, another NPC, showed the ally face")
+	}
+}
+
+// Heirloom petition 2508 (2026-11-20): Grundle's cave's Earth Elementalkin stood peaceful under the seed's row for
+// a magician's pet's name. A GM's npcfaction place row naming it there (no faction) makes it a creature, its nature
+// deciding; the control: one of the name outside the place stays the recorded pet the seed's row keeps peaceful.
+func TestAPlaceRowMakesAPetNamedCreatureACreature(t *testing.T) {
+	f := newAggroFix(t, 60)
+	cave := f.npc(3031, "Earth Elementalkin", 40, bearBody, 1010, 1000)
+	away := f.npc(3032, "Earth Elementalkin", 40, bearBody, 1600, 1000)
+	cave.SpawnX, cave.SpawnZ, away.SpawnX, away.SpawnZ = cave.X, cave.Z, away.X, away.Z
+	f.w.SetAggroRules(map[string]AggroRule{"Earth Elementalkin": {Aggressive: false, PetName: true}})
+	f.w.SetNPCFactions([]database.NPCFactionRow{{Name: "Earth Elementalkin", World: int(cave.World), X: 1000, Z: 1000, Radius: 200}})
+	f.w.mu.Lock()
+	defer f.w.mu.Unlock()
+	if !f.w.hostileLocked(cave) {
+		t.Error("the cave's Earth Elementalkin, a place row's, is not hostile")
+	}
+	if f.w.hostileLocked(away) {
+		t.Error("an Earth Elementalkin outside the place became hostile")
 	}
 }

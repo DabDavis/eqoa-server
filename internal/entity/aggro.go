@@ -184,12 +184,28 @@ func (a *aggroState) ruleFor(name string) (AggroRule, bool) {
 // a player: Collonridge's basement Decaying Flesh, L64, stood neutral; 77 of
 // world 14's creatures share a pet's name: Companion and Kindred Spirits,
 // Decaying and Wilting Flesh, Fire Elemental, Howling Death, Swarming Bones).
+//
+// Nor does it hold for a creature a GM's place row of npcfaction names (a radius, its faction any or none):
+// Heirloom petition 2508 (2026-11-20, "The elementals in Grundle's cave should all be aggressive"): the cave's
+// Earth, Fire and Water Elementalkin stand alone, no one's pet, yet the seed's rows for the magicians' pets'
+// names left them peaceful; a place row says these are creatures, and their nature decides as any creature's.
 func (w *World) aggroRuleLocked(npc *NPC) (AggroRule, bool) {
 	r, ok := w.aggro.ruleFor(npc.Name)
-	if ok && r.PetName && !r.Aggressive && IsDungeonWorld(npc.World) {
+	if ok && r.PetName && !r.Aggressive && (IsDungeonWorld(npc.World) || w.placedCreatureLocked(npc)) {
 		return AggroRule{}, false
 	}
 	return r, ok
+}
+
+// placedCreatureLocked reports an NPC an npcfaction row of a place (a radius) holds: a GM's word that the
+// creatures of its name standing there are creatures (aggroRuleLocked).
+func (w *World) placedCreatureLocked(npc *NPC) bool {
+	for _, r := range w.factions.npcRows(npc.Name) {
+		if r.r > 0 && r.holds(npc) {
+			return true
+		}
+	}
+	return false
 }
 
 // leashFor is the GMs' leash for an NPC of this name, 0 none (npcaggro's

@@ -330,10 +330,12 @@ const (
 	choiceAccept = iota + 1
 	choiceDecline
 	choiceStep
-	choiceNotYet  // a show or give step's answer while its items lack: the reminder
-	choiceNothing // a dead end (the reference server's "Farewell")
-	choicePick    // an option of a step's choice (database.StepChoices)
-	choiceAsk     // a question asked at the offer (database.QuestAsk)
+	choiceNotYet    // a show or give step's answer while its items lack: the reminder
+	choiceNothing   // a dead end (the reference server's "Farewell")
+	choicePick      // an option of a step's choice (database.StepChoices)
+	choiceAsk       // a question asked at the offer (database.QuestAsk)
+	choiceBoard     // a quest picked off a giver's board (questboard.go)
+	choiceBoardMore // the board's next page (option: the page)
 )
 
 // NewQuestEngine reads the quests out of db. Start sets it running.
@@ -794,6 +796,10 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 	// and never offering 101665, the quest before them in his line)
 	refusal := q.handInRefusalLocked(look, p, c, npc.Name)
 	if q.stepAtLocked(sess, p, c, look, npc.Name, npc.ServerID, false) {
+		return true
+	}
+	if list := q.boardLocked(look, p, c, npc.Name); list != nil {
+		q.askBoardLocked(sess, c, npc.Name, list, 0) // questboard.go
 		return true
 	}
 	if qu := q.offerAtLocked(look, p, c, npc.Name); qu != nil {
@@ -1527,6 +1533,16 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 		return true
 	}
 	switch ch.kind {
+	case choiceBoard:
+		if why := q.mayTakeLocked(q.lookAt(sess), p, c, qu); why != "" {
+			log.Printf("Quests: %s picked %q off its giver's board, but %s", p.Name, qu.Name, why)
+			return true
+		}
+		q.offerLocked(sess, p, c, qu)
+	case choiceBoardMore:
+		if list := q.boardLocked(q.lookAt(sess), p, c, qu.Giver); list != nil {
+			q.askBoardLocked(sess, c, qu.Giver, list, ch.option)
+		}
 	case choiceAccept:
 		if why := q.mayTakeLocked(q.lookAt(sess), p, c, qu); why != "" {
 			log.Printf("Quests: %s answered to take %q, but %s", p.Name, qu.Name, why)

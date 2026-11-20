@@ -22,7 +22,8 @@ import (
 // in repair, its floor a third. The target's defence grows with its level,
 // a training dummy's as measured. A caster's roll sits 96 below a tank's
 // and loses 1.39 times as much to a higher target; a melee class's, 13
-// above and 2.04 times (one bard, his rapiers 1.6% of their hit points).
+// above and, measured, 2.04 times (one bard, his rapiers 1.6% of their hit
+// points): played, the tank's (below).
 // What a priest does was not measured: between the melee's and the
 // caster's. Every attacker measured was level 49-51.
 
@@ -35,7 +36,13 @@ type offenceArch struct {
 
 var offenceArchs = [...]offenceArch{
 	archTank:   {High: 18.95, Low: 16.46, LowShare: 1.002, Defence: 1.02},
-	archMelee:  {High: 32.28, Low: -90.0, LowShare: 2.495, Defence: 2.041},
+	// a melee class's, its own top over the tank's line but the tank's bottom and
+	// the tank's share of the target's defence (the owner, 2026-11-20, petition
+	// 2478): the bard's fit (32.28, -90.0, 2.495, 2.041; one bard, his rapiers at
+	// 1.6%) took 2.04 times the tank's defence off a level 60 creature, and its
+	// bottom came out above its top for any weapon in repair, so every hit of a
+	// level 60 monk, rogue, ranger or bard was one number under a warrior's
+	archMelee:  {High: 32.28, Low: 16.46, LowShare: 1.002, Defence: 1.02},
 	archPriest: {High: -22.5, Low: -97.4, LowShare: 2.07, Defence: 1.71},
 	archCaster: {High: -77.35, Low: -104.7, LowShare: 1.636, Defence: 1.385},
 }

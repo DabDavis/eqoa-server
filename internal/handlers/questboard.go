@@ -14,8 +14,9 @@ import (
 // take now (mayTakeLocked), asks which, a quest's name an answer; the one
 // picked is offered as ever (its offer, or taken at once with no answer to
 // take it). More than a box holds go in pages, the last answer of each the
-// next page. A giver of one takeable quest, or of any quest that is not
-// repeatable (a chain), offers as before (offerAtLocked).
+// next page. A giver of one takeable quest, of any quest that is not
+// repeatable (a chain), or of a quest whose first step hands it items, offers
+// as before (offerAtLocked, readyHandInLocked).
 
 // questAskBoard is the board's question (ours: no recording has one), and
 // questBoardMore the answer that turns the page.
@@ -38,6 +39,12 @@ func (q *QuestEngine) boardLocked(look *factionLook, p *entity.Player, c *questC
 			continue
 		}
 		if !qu.Repeatable {
+			return nil
+		}
+		// a hand-in at the giver (the Plane of Sky's armourers, a quest a
+		// piece): offered by what the player holds (readyHandInLocked), a
+		// no moving on to the next (offerAtLocked), as before
+		if st := qu.First(); st != nil && (st.Kind == database.StepGive || st.Kind == database.StepShow) && foldName(st.Target) == foldName(giver) {
 			return nil
 		}
 		if q.mayTakeLocked(look, p, c, qu) == "" {

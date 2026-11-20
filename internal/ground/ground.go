@@ -218,8 +218,11 @@ type world struct {
 	f       *os.File
 	entries []entry
 	loaded  map[int]*zoneGrid
-	index   *zoneIndex // its zones by place (zoneindex.go), made at its first query
-	m       *mapFile   // its map (mapfile.go), nil: its zones are decoded
+	// at is loaded by zone, for zoneLocked's look (a map's hash a query was
+	// a share of the creatures' wander checks, 2026-11-20)
+	at    []*zoneGrid
+	index *zoneIndex // its zones by place (zoneindex.go), made at its first query
+	m     *mapFile   // its map (mapfile.go), nil: its zones are decoded
 }
 
 // Ground is the worlds' ground, a file each, their zones loaded as asked;
@@ -228,7 +231,11 @@ type Ground struct {
 	mu     sync.Mutex
 	worlds map[uint8]*world
 	walls  map[uint8]*wallWorld
-	clock  uint64
+	// worldAt and wallsAt are worlds and walls by number, for the queries'
+	// look (Open, Close)
+	worldAt [256]*world
+	wallsAt [256]*wallWorld
+	clock   uint64
 	// keep is how many zones stay loaded at once (SetKeep), the walls
 	// files' as many again, counted apart; 0, every zone once read. A zone
 	// loads in 6 ms (12 at most) and takes 2.4 MB on average loaded, all six
@@ -268,6 +275,7 @@ func Open(dir string) (*Ground, error) {
 			w.m = nil
 		}
 		g.worlds[uint8(n)] = w
+		g.worldAt[n] = w
 	}
 	if len(g.worlds) == 0 {
 		return nil, fmt.Errorf("no ground files in %s", dir)
@@ -290,6 +298,7 @@ func Open(dir string) (*Ground, error) {
 			w.m = nil
 		}
 		g.walls[uint8(n)] = w
+		g.wallsAt[n] = w
 	}
 	return g, nil
 }
@@ -360,6 +369,7 @@ func (g *Ground) Close() {
 		w.m.close()
 	}
 	g.worlds, g.walls = nil, nil
+	g.worldAt, g.wallsAt = [256]*world{}, [256]*wallWorld{}
 }
 
 func readTable(f *os.File) (*world, error) {
@@ -535,7 +545,7 @@ func heightAt(t tri, x, z float32) (float32, bool) {
 func (g *Ground) Floor(worldN uint8, x, y, z float32) (float32, bool) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	w := g.worlds[worldN]
+	w := g.worldAt[worldN]
 	if w == nil {
 		return y, false
 	}
@@ -590,7 +600,7 @@ func (g *Ground) Placed(worldN uint8, x0, y0, z0, x1, y1, z1 float32) bool {
 // steep faces. Must be called with g.mu held.
 func (g *Ground) terrainWallLocked(worldN uint8, a, b Vertex) bool {
 	lo, hi := lowest(a, b), highest(a, b)
-	if w := g.worlds[worldN]; w != nil {
+	if w := g.worldAt[worldN]; w != nil {
 		for _, zi := range w.terrainIndexLocked().near(lo.X, lo.Z, hi.X, hi.Z) {
 			i, e := int(zi), w.entries[zi]
 			if e.verts == 0 || hi.X < e.minX || lo.X > e.maxX || hi.Z < e.minZ || lo.Z > e.maxZ {
@@ -621,7 +631,7 @@ func (g *Ground) terrainWallLocked(worldN uint8, a, b Vertex) bool {
 // placed on the terrain. Must be called with g.mu held.
 func (g *Ground) placedLocked(worldN uint8, a, b Vertex) bool {
 	lo, hi := lowest(a, b), highest(a, b)
-	if w := g.walls[worldN]; w != nil {
+	if w := g.wallsAt[worldN]; w != nil {
 		for _, zi := range w.wallsIndexLocked().near(lo.X, lo.Z, hi.X, hi.Z) {
 			i, e := int(zi), w.zones[zi]
 			if e.count == 0 || !overlaps(lo, hi, e.lo, e.hi) {
@@ -660,7 +670,7 @@ func (g *Ground) placedLocked(worldN uint8, a, b Vertex) bool {
 // called with g.mu held.
 func (g *Ground) wallZoneLocked(w *wallWorld, i int) (*wallZone, error) {
 	g.clock++
-	if z := w.loaded[i]; z != nil {
+	if z := w.loadedAt(i); z != nil {
 		z.used = g.clock
 		return z, nil
 	}
@@ -671,6 +681,7 @@ func (g *Ground) wallZoneLocked(w *wallWorld, i int) (*wallZone, error) {
 	g.WallLoads++
 	z.used = g.clock
 	w.loaded[i] = z
+	w.setAt(i, z)
 	total := 0
 	for _, ww := range g.walls {
 		total += len(ww.loaded)
@@ -686,6 +697,7 @@ func (g *Ground) wallZoneLocked(w *wallWorld, i int) (*wallZone, error) {
 			}
 		}
 		delete(oldW.loaded, oldI)
+		oldW.setAt(oldI, nil)
 		total--
 	}
 	return z, nil
@@ -695,7 +707,7 @@ func (g *Ground) wallZoneLocked(w *wallWorld, i int) (*wallZone, error) {
 // let go past keep. Must be called with g.mu held.
 func (g *Ground) zoneLocked(w *world, i int) (*zoneGrid, error) {
 	g.clock++
-	if z := w.loaded[i]; z != nil {
+	if z := w.loadedAt(i); z != nil {
 		z.used = g.clock
 		return z, nil
 	}
@@ -706,6 +718,7 @@ func (g *Ground) zoneLocked(w *world, i int) (*zoneGrid, error) {
 	g.Loads++
 	z.used = g.clock
 	w.loaded[i] = z
+	w.setAt(i, z)
 	total := 0
 	for _, ww := range g.worlds {
 		total += len(ww.loaded)
@@ -721,7 +734,54 @@ func (g *Ground) zoneLocked(w *world, i int) (*zoneGrid, error) {
 			}
 		}
 		delete(oldW.loaded, oldI)
+		oldW.setAt(oldI, nil)
 		total--
 	}
 	return z, nil
+}
+
+// loadedAt is zone i loaded, nil when it is not.
+func (w *world) loadedAt(i int) *zoneGrid {
+	if i >= 0 && i < len(w.at) {
+		return w.at[i]
+	}
+	return w.loaded[i]
+}
+
+// setAt keeps loaded's zone i in at.
+func (w *world) setAt(i int, z *zoneGrid) {
+	if w.at == nil {
+		w.at = make([]*zoneGrid, len(w.entries))
+		for j, zz := range w.loaded {
+			if j >= 0 && j < len(w.at) {
+				w.at[j] = zz
+			}
+		}
+	}
+	if i >= 0 && i < len(w.at) {
+		w.at[i] = z
+	}
+}
+
+// loadedAt is zone i loaded, nil when it is not.
+func (w *wallWorld) loadedAt(i int) *wallZone {
+	if i >= 0 && i < len(w.at) {
+		return w.at[i]
+	}
+	return w.loaded[i]
+}
+
+// setAt keeps loaded's zone i in at.
+func (w *wallWorld) setAt(i int, z *wallZone) {
+	if w.at == nil {
+		w.at = make([]*wallZone, len(w.zones))
+		for j, zz := range w.loaded {
+			if j >= 0 && j < len(w.at) {
+				w.at[j] = zz
+			}
+		}
+	}
+	if i >= 0 && i < len(w.at) {
+		w.at[i] = z
+	}
 }

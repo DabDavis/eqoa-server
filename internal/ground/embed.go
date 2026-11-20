@@ -30,7 +30,7 @@ import "math"
 func (g *Ground) Embedded(worldN uint8, x, y, z, mid, r float32) bool {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	w := g.walls[worldN]
+	w := g.wallsAt[worldN]
 	if w == nil {
 		return false
 	}

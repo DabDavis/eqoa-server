@@ -45,7 +45,7 @@ func (g *Ground) Stand(worldN uint8, x, y, z float32) (h float32, placed, roofed
 	best, found := float32(0), false
 	next, over := float32(0), false // the lowest floor over the step, within StandHead of it
 	ceil := top + StandHead
-	if w := g.worlds[worldN]; w != nil {
+	if w := g.worldAt[worldN]; w != nil {
 		for _, zi := range w.terrainIndexLocked().near(x, z, x, z) {
 			i, e := int(zi), w.entries[zi]
 			if e.verts == 0 || x < e.minX || x > e.maxX || z < e.minZ || z > e.maxZ {
@@ -73,7 +73,7 @@ func (g *Ground) Stand(worldN uint8, x, y, z float32) (h float32, placed, roofed
 			}
 		}
 	}
-	if ww := g.walls[worldN]; ww != nil {
+	if ww := g.wallsAt[worldN]; ww != nil {
 		// the placed floors between the terrain's (or standDepth under y) and
 		// StandHead over the step: an upright segment down through them
 		low := y - standDepth

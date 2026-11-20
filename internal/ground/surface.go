@@ -30,7 +30,7 @@ func (g *Ground) Surfaces(worldN uint8, x, z, lo, hi float32) []Surface {
 	defer g.mu.Unlock()
 	var out []Surface
 	in := func(h float32) bool { return h >= lo && h <= hi }
-	if w := g.worlds[worldN]; w != nil {
+	if w := g.worldAt[worldN]; w != nil {
 		for _, zi := range w.terrainIndexLocked().near(x, z, x, z) {
 			i, e := int(zi), w.entries[zi]
 			if e.verts == 0 || x < e.minX || x > e.maxX || z < e.minZ || z > e.maxZ {
@@ -58,7 +58,7 @@ func (g *Ground) Surfaces(worldN uint8, x, z, lo, hi float32) []Surface {
 			}
 		}
 	}
-	if w := g.walls[worldN]; w != nil {
+	if w := g.wallsAt[worldN]; w != nil {
 		a, b := Vertex{x, hi, z}, Vertex{x, lo, z}
 		for _, zi := range w.wallsIndexLocked().near(x, z, x, z) {
 			i, e := int(zi), w.zones[zi]
@@ -196,7 +196,7 @@ func (g *Ground) Crosses(worldN uint8, x0, y0, z0, x1, y1, z1 float32) Crossing 
 // held.
 func (g *Ground) terrainFloorLocked(worldN uint8, a, b Vertex) bool {
 	lo, hi := lowest(a, b), highest(a, b)
-	w := g.worlds[worldN]
+	w := g.worldAt[worldN]
 	if w == nil {
 		return false
 	}
@@ -263,5 +263,5 @@ func (g *Ground) Blocked(worldN uint8, x0, y0, z0, x1, y1, z1 float32) (string, 
 func (g *Ground) Knows(worldN uint8) bool {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	return g.worlds[worldN] != nil
+	return g.worldAt[worldN] != nil
 }

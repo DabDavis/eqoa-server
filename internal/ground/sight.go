@@ -25,7 +25,7 @@ func (g *Ground) Sees(worldN uint8, x0, y0, z0, x1, y1, z1 float32) bool {
 // terrain, its floors and ceilings or its steep faces, from either side. Must
 // be called with g.mu held.
 func (g *Ground) terrainMeetsLocked(worldN uint8, a, b Vertex) bool {
-	w := g.worlds[worldN]
+	w := g.worldAt[worldN]
 	if w == nil {
 		return false
 	}
@@ -66,7 +66,7 @@ func (z *zoneGrid) gridMeets(g *triGrid, tri func(int32) tri, lo, hi, a, b Verte
 // placedMeetsLocked is whether the line from a to b meets a face of anything
 // placed on the terrain, from either side. Must be called with g.mu held.
 func (g *Ground) placedMeetsLocked(worldN uint8, a, b Vertex) bool {
-	w := g.walls[worldN]
+	w := g.wallsAt[worldN]
 	if w == nil {
 		return false
 	}

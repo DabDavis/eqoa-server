@@ -3,7 +3,7 @@
 
 import { h, mount, icon, toast, debounce, store } from './lib/dom.js';
 import { api, op, setCSRF, onUnauthorized } from './lib/api.js';
-import { state, go, isTester, isStoryteller, isLimited } from './lib/nav.js';
+import { state, go, isTester, isStoryteller, isSubGM, isLimited } from './lib/nav.js';
 
 const NAV = [
   ['Overview', [
@@ -57,12 +57,14 @@ const TESTER_PAGES = new Set(['items', 'spells', 'visuals', 'tables', 'audit', '
 // The pages a storyteller has (storyteller.go): the quests' words, its tables
 // (NPC dialog among them), its log.
 const STORYTELLER_PAGES = new Set(['quests', 'tables', 'audit', 'ai', 'security']);
+// The pages a sub GM has beside a tester's (subgm.go): the World map, to move creatures.
+const SUBGM_PAGES = new Set(['map']);
 
 // mayOpen is whether a page is the signed-in account's: a GM's every one;
 // below a GM those of its roles.
 function mayOpen(id) {
   if (!isLimited()) return true;
-  return (isTester() && TESTER_PAGES.has(id)) || (isStoryteller() && STORYTELLER_PAGES.has(id));
+  return (isTester() && TESTER_PAGES.has(id)) || (isStoryteller() && STORYTELLER_PAGES.has(id)) || (isSubGM() && SUBGM_PAGES.has(id));
 }
 
 // the label of the tables page, as a role below a GM sees it
@@ -179,7 +181,7 @@ function start(session) {
   }
   main = h('main', { id: 'main', tabindex: '-1' });
   const menuBtn = h('button', { class: 'ghost icon menu-btn', type: 'button', 'aria-label': 'Menu', onclick: () => shell.classList.toggle('nav-open') }, icon('menu'));
-  const lvl = isLimited() ? h('span', { class: 'badge ok' }, [isTester() ? 'Tester' : null, isStoryteller() ? 'Storyteller' : null].filter(Boolean).join(' · ') || 'No role')
+  const lvl = isLimited() ? h('span', { class: 'badge ok' }, [isSubGM() ? 'Sub GM' : isTester() ? 'Tester' : null, isStoryteller() ? 'Storyteller' : null].filter(Boolean).join(' · ') || 'No role')
     : session.user.admin ? h('span', { class: 'badge accent' }, 'Admin') : h('span', { class: 'badge info' }, 'GM');
   const themeBtn = h('button', { class: 'ghost icon', type: 'button', title: 'Light or dark', 'aria-label': 'Theme', onclick: () => {
     const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');

@@ -68,7 +68,7 @@ type tableAccess struct {
 }
 
 // roleGrants are the roles below a GM, in the order a role names them.
-var roleGrants = []*grant{testerGrant, storytellerGrant}
+var roleGrants = []*grant{testerGrant, storytellerGrant, subGMGrant}
 
 // grantsOf is the roles a role names: "tester", "storyteller", or both as
 // panelRole joins them, "tester+storyteller" (a space or a comma parts them
@@ -346,6 +346,9 @@ func (s *Server) panelRole(a accountState) string {
 	var roles []string
 	if s.testerFlag(a.ID) {
 		roles = append(roles, roleTester)
+		if s.subGMFlag(a.ID) { // a sub GM is a tester whose row says so (subgm.go)
+			roles = append(roles, roleSubGM)
+		}
 	}
 	if s.storytellerFlag(a.ID) {
 		roles = append(roles, roleStoryteller)
@@ -359,6 +362,9 @@ func (s *Server) lowerRoles(accountID int) []string {
 	var out []string
 	if s.testerFlag(accountID) {
 		out = append(out, roleTester)
+		if s.subGMFlag(accountID) {
+			out = append(out, roleSubGM)
+		}
 	}
 	if s.storytellerFlag(accountID) {
 		out = append(out, roleStoryteller)

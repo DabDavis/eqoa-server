@@ -33,3 +33,8 @@ export function isTester() {
 export function isStoryteller() {
   return roles().includes('storyteller');
 }
+
+// a sub GM (a tester whose row says so): the World map too, moving creatures (subgm.go)
+export function isSubGM() {
+  return roles().includes('subgm');
+}

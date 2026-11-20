@@ -2986,7 +2986,7 @@ var catalog = map[string]tableNote{
 			"granted_by": {Label: "Given by"},
 			"granted_at": {Label: "Given at"},
 			"note":       {Label: "Note", Help: "why"},
-			"subgm":      {Label: "Sub GM", Help: "1: a sub GM, above a tester: the tester's panel, and in the game /fly; 0: a tester"},
+			"subgm":      {Label: "Sub GM", Help: "1: a sub GM, above a tester: the tester's panel and the World map (moving creatures: subgm.go), and in the game /fly, /goto, /gotoplayer and the NPC moves (handlers/devcmds.go subGMCommands); 0: a tester"},
 		},
 	},
 	"gm_storytellers": {

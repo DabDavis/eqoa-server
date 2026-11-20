@@ -233,7 +233,7 @@ func (g subs) SubGM(id int) (bool, error) { return g.sub[id], nil }
 // A sub GM (the user, 2026-11-08: "make his account a sub gm new category above
 // tester than can fly"): its world entry offers its client the flight (0x7E07),
 // never the GM channel (0x0700); /fly and #fly turn it over; /goto and
-// /gotoplayer move it and /testmode turns over (2026-11-20); no other GM command (/summon, #pos) is its. The control: an account that is no sub GM is offered
+// /gotoplayer move it, /summon brings a player and /testmode turns over (2026-11-20); no other GM command (/tele, #pos) is its. The control: an account that is no sub GM is offered
 // nothing and its /fly is an unknown command.
 func TestASubGMFlies(t *testing.T) {
 	c := newChatWorld(t)
@@ -313,7 +313,13 @@ func TestASubGMFlies(t *testing.T) {
 		t.Fatal("#testmode again did not turn it off")
 	}
 	fs.Queue().GetPending()
-	for _, other := range []string{"/summon Player", "#pos"} {
+	c.say(fs, "/summon Player")
+	if _, _, _, moved := teleported(ps); !moved {
+		t.Fatal("the sub GM's /summon did not bring the player")
+	}
+	ps.Queue().GetPending()
+	fs.Queue().GetPending()
+	for _, other := range []string{"/tele vaal", "#pos"} {
 		c.say(fs, other)
 		if got := heard(t, fs); len(got) != 1 || !strings.HasPrefix(got[0].text, "Unrecognized command") {
 			t.Fatalf("the sub GM's %s, a GM's command: %+v", other, got)

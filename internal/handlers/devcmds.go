@@ -74,11 +74,12 @@ type subGMs interface {
 // (chat.go), and kept in its row as any GM's (gmnpcrow.go's keepNPCSize).
 // The owner, 2026-11-20 (Garrak, Zerkziee): "also give sub GM ./goto and
 // ./gotoplayer": #goto (#teleport, its other name) and #gotoplayer, the GM's
-// own moves; #summon and #tele stay a GM's. Later the same day: "give sub GM
+// own moves; #tele stays a GM's. Later the same day: "give sub GM
 // /testmode" (the GM's #testmode on its own character alone: chat.go), then
 // "make /safemode for GMs same as the ingame GM menu works also for sub GMs"
-// (#safemode, aggrocmd.go: the TEST menu's Safe Mode).
-var subGMCommands = map[string]bool{"#goto": true, "#teleport": true, "#gotoplayer": true, "#testmode": true, "#safemode": true, "#fly": true, "#speed": true, "#delete": true, "#clone": true, "#place": true, "#move": true, "#roamer": true,
+// (#safemode, aggrocmd.go: the TEST menu's Safe Mode), and "give sub GMs /summon
+// too" (#summon <name>: an online player brought beside it, told who did it).
+var subGMCommands = map[string]bool{"#summon": true, "#goto": true, "#teleport": true, "#gotoplayer": true, "#testmode": true, "#safemode": true, "#fly": true, "#speed": true, "#delete": true, "#clone": true, "#place": true, "#move": true, "#roamer": true,
 	"#size": true}
 
 // isSubGM reports whether sess's account is a sub GM.

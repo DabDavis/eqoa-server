@@ -159,39 +159,39 @@ func putPieceAuras(out []byte, a *PieceAuras, n int) []byte {
 // AuraChannel is ArmorChannel with the pieces' auras after it: a client that
 // draws them's.
 func AuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
-	return putPieceAuras(ArmorChannel(disc, d), foldHelmHat(a), AuraPieces)
+	return putPieceAuras(armorChannel(disc, d, PieceAuraSize*AuraPieces), foldHelmHat(a), AuraPieces)
 }
 
 // BodyAuraChannel is AuraChannel with the body's aura after the pieces': a
 // client that draws it's.
 func BodyAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
-	return putPieceAuras(ArmorChannel(disc, d), foldHelmHat(a), AuraBody+1)
+	return putPieceAuras(armorChannel(disc, d, PieceAuraSize*(AuraBody+1)), foldHelmHat(a), AuraBody+1)
 }
 
 // CapeAuraChannel is BodyAuraChannel with the cape's aura after the body's:
 // a client that draws it's.
 func CapeAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
-	return putPieceAuras(ArmorChannel(disc, d), foldHelmHat(a), AuraCape+1)
+	return putPieceAuras(armorChannel(disc, d, PieceAuraSize*(AuraCape+1)), foldHelmHat(a), AuraCape+1)
 }
 
 // HandAuraChannel is CapeAuraChannel with the hands' auras after the cape's
 // (the main hand's, then the off hand's): a client that draws them's.
 func HandAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
-	return putPieceAuras(ArmorChannel(disc, d), foldHelmHat(a), AuraSlots)
+	return putPieceAuras(armorChannel(disc, d, PieceAuraSize*AuraSlots), foldHelmHat(a), AuraSlots)
 }
 
 // SecondAuraChannel is HandAuraChannel with the hands' second auras after
 // the hands' (the main hand's, then the off hand's): a client that draws
 // them's.
 func SecondAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
-	return putPieceAuras(ArmorChannel(disc, d), foldHelmHat(a), AuraHelmHat)
+	return putPieceAuras(armorChannel(disc, d, PieceAuraSize*AuraHelmHat), foldHelmHat(a), AuraHelmHat)
 }
 
 // HatAuraChannel is SecondAuraChannel with the helm's hat after the seconds
 // (AuraHelmHat), the helm's other aura in its place: a client that draws a
 // hat with an aura on it's.
 func HatAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
-	return putPieceAuras(ArmorChannel(disc, d), a, AuraWire)
+	return putPieceAuras(armorChannel(disc, d, PieceAuraSize*AuraWire), a, AuraWire)
 }
 
 // foldHelmHat is a for a channel with no place for the helm's hat

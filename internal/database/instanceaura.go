@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 	"unicode"
 	"unicode/utf8"
 )
@@ -288,8 +289,40 @@ func SetInstanceAuraCache(by map[int]InstanceAura) {
 	instanceAuraMu.Unlock()
 }
 
-// InstanceAuraHeld is a copy's row as the game reads it (false: none).
+// instancePreviews are the Weapon Enchanter's try-ons (petition 2450, the
+// owner 2026-11-20: "preview the aura first on the weapon ... prior to
+// purchase"): a copy's row as it would be bought, drawn in place of its own
+// until its time is up; its tag and its kept row are not touched.
+var instancePreviews sync.Map // itemid -> instancePreview
+
+type instancePreview struct {
+	a     InstanceAura
+	until time.Time
+}
+
+// PreviewInstanceAura draws a's auras on its copy for d, in place of its own.
+func PreviewInstanceAura(a InstanceAura, d time.Duration) {
+	instancePreviews.Store(a.ItemID, instancePreview{a, time.Now().Add(d)})
+}
+
+// EndInstanceAuraPreview ends a copy's try-on: its own auras drawn again.
+func EndInstanceAuraPreview(itemID int) { instancePreviews.Delete(itemID) }
+
+// InstanceAuraHeld is a copy's row as the game draws it (false: none): a
+// try-on while it lasts (PreviewInstanceAura), else its own.
 func InstanceAuraHeld(itemID int) (InstanceAura, bool) {
+	if v, ok := instancePreviews.Load(itemID); ok {
+		pv := v.(instancePreview)
+		if time.Now().Before(pv.until) {
+			return pv.a, true
+		}
+		instancePreviews.CompareAndDelete(itemID, v)
+	}
+	return instanceAuraOwn(itemID)
+}
+
+// instanceAuraOwn is a copy's own row (false: none).
+func instanceAuraOwn(itemID int) (InstanceAura, bool) {
 	m := instanceAuraCache.Load()
 	if m == nil || itemID == 0 {
 		return InstanceAura{}, false
@@ -308,7 +341,7 @@ func InstanceAuraCount() int {
 
 // InstanceTag is a copy's tag ("Virtuous", shown "Aura: Virtuous"), "" none.
 func InstanceTag(itemID int) string {
-	a, _ := InstanceAuraHeld(itemID)
+	a, _ := instanceAuraOwn(itemID) // never a try-on's
 	return a.Tag
 }
 

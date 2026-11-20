@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
@@ -114,6 +115,16 @@ const (
 	encAura          // enchanterAuras (paged)
 	encFamily        // its own colour, or a family of colours (paged)
 	encShade         // a family's shades
+	encTry           // its try-on: buy it or not
+)
+
+// enchantTryOn is how long a try-on shows before its question is answered.
+const enchantTryOn = 30 * time.Second
+
+// The try-on's answers (encTry).
+const (
+	enchantBuy   = "Buy it"
+	enchantNoBuy = "No, take it off"
 )
 
 // enchanterAsk is a question asked.
@@ -123,7 +134,8 @@ type enchanterAsk struct {
 	hand    int // entity.AuraMainHand, AuraOffHand
 	itemID  int // the copy, as it was held when asked
 	second  bool
-	aura    int // enchanterAuras' index
+	aura    int    // enchanterAuras' index
+	colour  uint32 // the try-on's colour (encTry)
 	page    int
 	family  int
 	speaker string
@@ -343,8 +355,20 @@ func (e *Enchanter) Answer(sess *session.Session, p *entity.Player, box uint32, 
 	if !IsEnchanterBox(box) {
 		return false
 	}
-	if e == nil || p == nil || option == 255 {
-		return true // a close
+	if e == nil || p == nil {
+		return true
+	}
+	if option == 255 { // a close: a try-on asked is taken off
+		e.mu.Lock()
+		a, ok := e.asked[p.CharServerID]
+		if ok && a.id == box {
+			delete(e.asked, p.CharServerID)
+		}
+		e.mu.Unlock()
+		if ok && a.id == box && a.stage == encTry {
+			database.EndInstanceAuraPreview(a.itemID)
+		}
+		return true
 	}
 	e.mu.Lock()
 	a, ok := e.asked[p.CharServerID]
@@ -389,7 +413,7 @@ func (e *Enchanter) Answer(sess *session.Session, p *entity.Player, box uint32, 
 		case lendsNothing(i, e.heldLook(p, a.itemID)):
 			e.say(sess, a.speaker, sameLookLine(i, e.itemName(p, a.itemID)))
 		case !enchanterAuras[i].Colours:
-			e.enchant(sess, p, a, i, enchanterAuras[i].A.Color, false)
+			e.tryOn(sess, p, a, i, enchanterAuras[i].A.Color)
 		default:
 			a.aura, a.stage, a.page = i, encFamily, 0
 			a.picker = sess.DyePicker() >= 1
@@ -409,7 +433,7 @@ func (e *Enchanter) Answer(sess *session.Session, p *entity.Player, box uint32, 
 		switch {
 		case n >= len(shown) || i >= len(all):
 		case i == 0:
-			e.enchant(sess, p, a, a.aura, 0, false) // its own colours
+			e.tryOn(sess, p, a, a.aura, 0) // its own colours
 		case a.picker && i == len(all)-1:
 			e.openPicker(sess, p, a)
 		default:
@@ -423,10 +447,55 @@ func (e *Enchanter) Answer(sess *session.Session, p *entity.Player, box uint32, 
 		}
 	case encShade:
 		if cs := database.DyeFamilies[a.family].Colours; n < len(cs) {
-			e.enchant(sess, p, a, a.aura, cs[n].RGBA, false)
+			e.tryOn(sess, p, a, a.aura, cs[n].RGBA)
+		}
+	case encTry:
+		database.EndInstanceAuraPreview(a.itemID)
+		if n == 0 {
+			e.enchant(sess, p, a, a.aura, a.colour, false)
+		} else {
+			e.say(sess, a.speaker, "As you wish: it is as it was.")
 		}
 	}
 	return true
+}
+
+// tryOn shows the aura chosen on the held copy for enchantTryOn, to everyone
+// who sees it (as it would be bought: the copy's other aura kept), and asks
+// whether to buy it (petition 2450). Its answer, or a close, takes it off;
+// unanswered, it goes by itself.
+func (e *Enchanter) tryOn(sess *session.Session, p *entity.Player, a enchanterAsk, aura int, colour uint32) {
+	if p.WornItems[a.hand] != a.itemID || p.WornMask&(1<<a.hand) == 0 {
+		e.say(sess, a.speaker, "You are no longer holding that weapon. Hold it and speak to me again.")
+		return
+	}
+	if lendsNothing(aura, e.heldLook(p, a.itemID)) {
+		e.say(sess, a.speaker, sameLookLine(aura, e.itemName(p, a.itemID)))
+		return
+	}
+	row, _, err := e.db.InstanceAuraOf(a.itemID)
+	if err != nil {
+		log.Printf("Enchanter: %s's item %d: %v", p.Name, a.itemID, err)
+		e.say(sess, a.speaker, "Something went wrong with my runes. Try again.")
+		return
+	}
+	row.ItemID = a.itemID
+	put := enchanterAuras[aura].A
+	put.Color = colour
+	if a.second {
+		row.Second = put
+	} else {
+		row.First = put
+	}
+	database.PreviewInstanceAura(row, enchantTryOn)
+	a.stage, a.aura, a.colour = encTry, aura, colour
+	price := ""
+	if n := int(enchanterPrice.Load()); n > 0 {
+		_, name := e.tokenPattern()
+		price = " for " + reagentWords(name, n)
+	}
+	e.ask(sess, p, a, fmt.Sprintf("Here is %s on your weapon for a moment. Buy it%s?", enchanterAuras[aura].Tag, price), []string{enchantBuy, enchantNoBuy})
+	log.Printf("Enchanter: %s tries %s on item %d (colour %08X)", p.Name, enchanterAuras[aura].Tag, a.itemID, colour)
 }
 
 // EnchantTag is a copy's tag from its two auras: each one's catalog name

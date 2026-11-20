@@ -117,7 +117,17 @@ func TestTheWeaponEnchanter(t *testing.T) {
 	if !strings.Contains(last(got), ":Which colour for Virtuous?|Its own colours|Whites, greys and blacks|") || !strings.HasSuffix(last(got), "|More...") {
 		t.Fatalf("the colours: %q", got)
 	}
-	got = pick(got, 0) // its own colours
+	got = pick(got, 0) // its own colours: tried on first (petition 2450)
+	if !strings.Contains(last(got), ":Here is Virtuous on your weapon for a moment. Buy it for 1 Holly Token?|Buy it|No, take it off") {
+		t.Fatalf("the try-on's question: %q", got)
+	}
+	if a := tw.w.PieceAurasOf(tw.p); a == nil || a[entity.AuraMainHand].Source != 0x88EC092D || row().Tag != "" || tokens() != 2 {
+		t.Fatalf("the try-on: %+v, row %+v, tokens %d", a, row(), tokens())
+	}
+	if database.InstanceTag(sword) != "" {
+		t.Fatal("a try-on tagged the copy")
+	}
+	got = pick(got, 0) // Buy it
 	if r := row(); r.Tag != "Virtuous" || r.First != (database.ItemAura{Kind: database.AuraEpic, Source: 0x88EC092D}) || r.Source != "enchanter" {
 		t.Fatalf("Virtuous: %+v (%q)", r, got)
 	}
@@ -133,7 +143,7 @@ func TestTheWeaponEnchanter(t *testing.T) {
 	if !strings.Contains(last(got), ":Which aura?|Shadowed|Energized|No aura (take it off)|More...") {
 		t.Fatalf("the catalog's second page: %q", got)
 	}
-	got = pick(got, 0)
+	got = pick(pick(got, 0), 0) // Shadowed, bought
 	if r := row(); r.Tag != "Virtuous, Shadowed" || r.Second != (database.ItemAura{Kind: database.AuraParticles, Color: 0x000000FF}) {
 		t.Fatalf("two auras: %+v (%q)", r, got)
 	}
@@ -141,7 +151,7 @@ func TestTheWeaponEnchanter(t *testing.T) {
 	got = pick(talk(), 0)
 	got = pick(got, 1) // Freezing
 	got = pick(got, 1) // whites
-	got = pick(got, 0) // white
+	got = pick(pick(got, 0), 0) // white, bought
 	if !strings.Contains(strings.Join(got, "\n"), "An aura costs 1 Holly Token, and you carry 0.") || row().Tag != "Virtuous, Shadowed" {
 		t.Fatalf("short of tokens: %q %+v", got, row())
 	}
@@ -150,9 +160,29 @@ func TestTheWeaponEnchanter(t *testing.T) {
 	got = pick(talk(), 0)
 	got = pick(got, 1) // Freezing
 	got = pick(got, 1) // whites
-	got = pick(got, 0) // white
+	got = pick(pick(got, 0), 0) // white, bought
 	if r := row(); r.Tag != "Freezing, Shadowed" || r.First != (database.ItemAura{Kind: database.AuraParticles, Source: 0x6C151A60, Color: 0xFFFFFFFF}) {
 		t.Fatalf("the first replaced: %+v", r)
+	}
+	// tried on and not bought, then closed: as it was
+	got = pick(talk(), 0)
+	got = pick(got, 3) // Twinkling
+	got = pick(got, 0) // its own colours
+	if a := tw.w.PieceAurasOf(tw.p); a == nil || a[entity.AuraMainHand].Source != 0x1D875ECD {
+		t.Fatalf("the Twinkling try-on: %+v", a)
+	}
+	got = pick(got, 1) // No
+	if a := tw.w.PieceAurasOf(tw.p); a == nil || a[entity.AuraMainHand].Source != 0x6C151A60 || row().Tag != "Freezing, Shadowed" {
+		t.Fatalf("not bought: %+v, row %+v (%q)", a, row(), got)
+	}
+	got = pick(talk(), 0)
+	got = pick(got, 3)
+	got = pick(got, 0)
+	if !e.Answer(tw.s, tw.p, boxID(got), 255) {
+		t.Fatal("the close")
+	}
+	if a := tw.w.PieceAurasOf(tw.p); a == nil || a[entity.AuraMainHand].Source != 0x6C151A60 {
+		t.Fatalf("closed: %+v", a)
 	}
 	// swapped since the question
 	got = pick(talk(), 0)
@@ -415,7 +445,7 @@ func TestAnAuraOfTheItemsOwnLookIsRefused(t *testing.T) {
 	e.Talk(tw.s, tw.p, enchanter)
 	got = pick(questMsgs(tw.s), 0)
 	got = pick(got, 5)
-	pick(got, 0) // Shadowed
+	pick(pick(got, 0), 0) // Shadowed, tried on and bought
 	if a, has, _ := db.InstanceAuraOf(shield); !has || a.Tag != "Shadowed" || tokens() != 6 {
 		t.Fatalf("Shadowed: %+v %v, %d tokens left", a, has, tokens())
 	}

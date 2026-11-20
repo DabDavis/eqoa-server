@@ -58,6 +58,7 @@ var campDests = map[string]teleDest{
 	"freezeblood":    {NPC: "Freezeblood berserker", Near: true, X: 13435.0, Y: 54.7, Z: 6587.1, World: 0, Levels: "13-19", Label: "Everfrost's Freezeblood goblins"},
 	"crocodiles":     {NPC: "young crocodile", Near: true, X: 25751.5, Y: 54.1, Z: 11072.0, World: 0, Levels: "19-20", Label: "Bobble-by-Water's saltwater crocodiles"},
 	"minotaurs":      {NPC: "Rustel Minotaur", Near: true, X: 13002.0, Y: 59.0, Z: 26869.2, World: 0, Levels: "40-43", Label: "the Gerntar Mines' Rustel minotaurs"},
+	"rancidbones":    {NPC: "rancidbone troll", Near: true, X: 5548.7, Y: 54.1, Z: 8631.1, World: 0, Levels: "34", Label: "Bogman Village's rancidbone trolls"},
 }
 
 // campNotes are what the GM panel's map says of each camp (campinfo.go):
@@ -114,6 +115,7 @@ var campNotes = map[string]campNote{
 	"freezeblood":    {Note: "Everfrost. Undead camp with steady respawns. Casters should watch for wandering adds.", Guide: "10-15", Creatures: []string{"Freezeblood berserker", "freezeblood cleric", "freezeblood scout", "Freezeblood grunt", "Freezeblood mystic"}, Rare: []campRare{{Name: "Frostbite", Level: 20, Drops: []string{}}}},
 	"crocodiles":     {Note: "Bobble-By-Water (E). Island-based camp with social aggro. Pull carefully to avoid chain fights.", Guide: "18-20", Creatures: []string{"young crocodile", "caiman"}, Rare: []campRare{{Name: "Alleza", Level: 22, Drops: []string{}}}},
 	"minotaurs":      {Note: "Gerntar Mines (C). High mob density inside caves. Strong XP but can overwhelm unprepared groups.", Guide: "29-38", Creatures: []string{"Rustel Minotaur", "Rustel Minotaur Scout"}, Rare: []campRare{}},
+	"rancidbones":    {Note: "", Guide: "", Creatures: []string{"rancidbone troll"}, Rare: []campRare{}},
 }
 
 // mapTowns are EQOA-Data's towns outside Tunaria (whose are coachtowns.go's),
@@ -127,14 +129,15 @@ var mapTowns = []TownMark{
 
 // campAliases are other names a GM may type for a camp.
 var campAliases = map[string]string{
-	"deathfist": "dfc",
-	"shrieks":   "hexbones",
-	"halasorcs": "hatebone",
-	"kerrans":   "tendora",
-	"slythis":   "kappa",
-	"bbgnolls":  "blackburrow",
-	"bandits":   "cutthroats",
-	"druk":      "orctunnel",
-	"pariah":    "xrag",
-	"icywind":   "gusts",
+	"deathfist":  "dfc",
+	"shrieks":    "hexbones",
+	"halasorcs":  "hatebone",
+	"kerrans":    "tendora",
+	"slythis":    "kappa",
+	"bbgnolls":   "blackburrow",
+	"bandits":    "cutthroats",
+	"druk":       "orctunnel",
+	"pariah":     "xrag",
+	"icywind":    "gusts",
+	"rancidbone": "rancidbones",
 }

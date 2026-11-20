@@ -849,13 +849,10 @@ func (w *World) landOthersLocked(cs *castState, caster *Player, casterSess *sess
 	}
 	spared := func(name string, world uint8, x, y, z float32) bool {
 		if group {
-			// a group's: its caster's line alone, no centre's (sight.go); one
-			// gone behind something since it began is spared
-			if w.helpSeenLocked(caster, &cs.spell.Def, world, x, y, z, false) {
-				return false
-			}
-			log.Printf("LoS: %s's %q spares %s at (%.1f, %.1f, %.1f), out of sight from (%.1f, %.1f, %.1f)", caster.Name, cs.spell.Name, name, x, y, z, caster.X, caster.Y, caster.Z)
-			return true
+			// a group's: its caster's line alone, looked at as it began
+			// (sight.go, petition 2494): one gone behind something since is
+			// still reached
+			return false
 		}
 		reached := w.reachesLocked(place, x, y, z)
 		seen.note(reached, name, x, y, z)

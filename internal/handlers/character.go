@@ -2391,6 +2391,7 @@ func (h *CharacterHandler) queueMemoryDumpAt(sess *session.Session, player *enti
 	bankList.kept = bankHidden // the account bank's rows not on its first page (accountbank.go)
 	grandfatherList(bankList, true, fitted.keptBank, sessionOG(sess), sharedBank(player))
 	packList.bank = bankList // a Lore item in the bank is one held (itemlist.go's loreRoom)
+	packList.bankShared = sharedBank(player) // but not one in the account's (petition 2453)
 	sess.SetBankList(bankList)
 	// the account's other characters in the world see what this dump's reading
 	// changed of their bank (kept rows back, the auction's deliveries: accountbank.go)

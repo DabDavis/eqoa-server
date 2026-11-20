@@ -182,6 +182,18 @@ func (w *World) MarkSpawn(id EntityID, untouchable, noloot bool) {
 	}
 }
 
+// LevelSpawn gives a quest's copy a level of its own (its con to the player who
+// raised it: database.QuestEvent.Con) and the balance's hit points of that
+// level, whole. A copy gone or dead is left.
+func (w *World) LevelSpawn(id EntityID, level int) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if c := w.NPCs[id]; c != nil && !c.Dead && level > 0 {
+		c.Level = level
+		w.applyBalanceLocked(c)
+	}
+}
+
 // MakeAttackable clears a copy's NPC bit, and no more: it does not attack on sight.
 func (w *World) MakeAttackable(id EntityID) {
 	w.mu.Lock()

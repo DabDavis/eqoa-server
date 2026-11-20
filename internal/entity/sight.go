@@ -29,18 +29,21 @@ import (
 //     body do not hide everyone round it (the owner, 2026-11-17).
 //
 //   - a heal or a buff (any spell that is not harmful) on another player or a
-//     pet: its caster must see the body, as it begins and again as it lands
-//     (petition 1243: "healing allows LOS through obstructions. do not
-//     allow heals through obstructions or buffs"). One aimed at a body out of
-//     sight is refused before its power is spent; a group's spell leaves out
-//     the members its caster cannot see; a body that gets behind something
-//     before it lands is spared. Either line clear is enough (a low wall hides
-//     no one from a healer). A resurrection is not held to it.
+//     pet: its caster must see the body as it begins (petition 1243:
+//     "healing allows LOS through obstructions. do not allow heals through
+//     obstructions or buffs"). One aimed at a body out of sight is refused
+//     before its power is spent; a group's spell leaves out the members its
+//     caster cannot see. Once begun it lands wherever either has gone since
+//     (petition 2494, 2026-11-20: "in live that you just needed los when you
+//     casted and could move out of the way"; it had spared a body gone behind
+//     something before it landed). Either line clear is enough (a low wall
+//     hides no one from a healer). A resurrection is not held to it.
 //
 //   - every other heal on another (the owner, 2026-11-18: "also healing
 //     shouldnt fire if there is no Line of sight"): a group's spell with a
 //     radius (a group heal, groupNearLocked) leaves out a member, pet or merc
-//     its caster cannot see, as it begins and as it lands; a tap's take or a
+//     its caster cannot see as it begins (as it lands too until petition
+//     2494); a tap's take or a
 //     drain over time's tick shared with the group (drainersLocked) and a
 //     weapon's restoring proc (restoreProcLocked) go to the members their
 //     giver sees; a pet heals its owner, its group or a member only in its
@@ -175,21 +178,6 @@ func (w *World) npcSeesLocked(n *NPC, world uint8, x, y, z float32) bool {
 // t. Must be called with the lock held.
 func (w *World) playerSeesLocked(p, t *Player) bool {
 	return p == t || p.World == t.World && w.inSightLocked(p.World, p.X, p.Y, p.Z, t.X, t.Y, t.Z)
-}
-
-// helpHiddenLocked spares a body a helpful spell lands on out of its caster's
-// sight (helpSeenLocked), with a log and, when the body is the cast's one
-// target, castNotSeen to its caster. It reports the body spared. Must be called
-// with the lock held.
-func (w *World) helpHiddenLocked(cs *castState, caster *Player, casterSess *session.Session, name string, world uint8, x, y, z float32, self bool) bool {
-	if w.helpSeenLocked(caster, &cs.spell.Def, world, x, y, z, self) {
-		return false
-	}
-	log.Printf("LoS: %s's %q spares %s at (%.1f, %.1f, %.1f), out of sight from (%.1f, %.1f, %.1f)", caster.Name, cs.spell.Name, name, x, y, z, caster.X, caster.Y, caster.Z)
-	if casterSess != nil && len(cs.targets) == 1 {
-		w.sendColoredLocked(casterSess, castNotSeen, castRefusalRGB)
-	}
-	return true
 }
 
 // shotUnseenLocked reports a ranged swing (a bow's shot, a throw) at npc that

@@ -149,6 +149,13 @@ func (h *NPCWindowHandler) bankItem(sess *session.Session, id uint32, fromBank b
 		return false
 	}
 	p := &row.Pattern
+	if fromBank && p.Lore != 0 && (dst.held(p.PatternID) > 0 || dst.keptHas(p.PatternID)) {
+		// a Lore item one of the account's characters banked, out to one that
+		// holds one already (itemlist.go's bankShared, petition 2453)
+		log.Printf("BankItem: %s takes out Lore %q, holding one", player.Name, p.ItemName)
+		SendErrorMessage(sess, fmt.Sprintf("You already have %s, a LORE item: you can hold only one.", p.ItemName))
+		return false
+	}
 	took := dst.wouldAdd(p.PatternID, n, p.MaxStack)
 	if !fromBank && sharedBank(player) {
 		// the account's bank (accountbank.go): never a record past its size,

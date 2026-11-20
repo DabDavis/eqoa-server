@@ -103,6 +103,39 @@ CAMPS = [
     ("minotaurs", [], "Rustel Minotaur", None, r"^rustel minotaur", "the Gerntar Mines' Rustel minotaurs"),
 ]
 
+# Camps EQOA-Data's map has no point for, placed by their creatures here round a centre (world, x, z) within
+# reach: (key, aliases, (world, x, z, reach), the creatures (a regex on npcs.npc_name), what the list calls it).
+# Heirloom petition 2489 (2026-11-20): "there is no level 34. One of my favorite camps is bogman rancid bone
+# trolls" (seven rancidbone trolls, L34, west of Bogman Village).
+EXTRA_CAMPS = [
+    ("rancidbones", ["rancidbone"], (0, 5536.0, 8616.0, 250.0), r"^rancidbone troll$", "Bogman Village's rancidbone trolls"),
+]
+
+
+def place_extra(spec, rows):
+    key, aliases, (w, cx, cz, reach), pattern, label = spec
+    rx = re.compile(pattern, re.I)
+    kind = [r for r in rows if r[5] == w and rx.search(r[1].strip())]
+    near = [r for r in kind if math.hypot(r[2] - cx, r[4] - cz) <= reach]
+    if len(near) < 3:
+        return None, f"only {len(near)} of its creatures within {reach:.0f} of its centre"
+    anchor = camp_heart(kind, near, True, cx, cz)
+    around = [o for o in kind if math.hypot(o[2] - anchor[2], o[4] - anchor[4]) <= LEVELS_WITHIN]
+    lv = [o[6] for o in around if o[6]]
+    levels = f"{min(lv)}-{max(lv)}" if lv and min(lv) != max(lv) else (str(lv[0]) if lv else "")
+    spell = collections.defaultdict(collections.Counter)
+    for o in kind:
+        if math.hypot(o[2] - anchor[2], o[4] - anchor[4]) <= CREATURE_REACH:
+            spell[o[1].strip().lower()][o[1].strip()] += 1
+    creatures = [c.most_common(1)[0][0] for _, c in sorted(spell.items(), key=lambda kv: (-sum(kv[1].values()), kv[0]))]
+    return {
+        "key": key, "aliases": aliases, "label": label, "npc": anchor[1],
+        "x": anchor[2], "y": anchor[3], "z": anchor[4], "world": w, "levels": levels,
+        "count": len(around), "kinds": collections.Counter(o[1].strip() for o in around).most_common(4), "off": 0.0,
+        "point": (cx, cz), "guide": "", "note": "", "creatures": creatures,
+    }, ""
+
+
 # The worlds a camp may be in: Tunaria (0), whose sheet the map is, and Odus
 # (2), drawn on the same sheet to its southwest.
 FIT_WORLDS = (0, 2)
@@ -829,6 +862,16 @@ def main():
         off = f", the map {p['off']:.0f} off" if p["off"] else ""
         kinds = ", ".join(f"{k} x{n}" for k, n in p["kinds"])
         print(f"  {p['key']:15s} w{p['world']} ({p['x']:.0f}, {p['y']:.1f}, {p['z']:.0f}) {p['npc']!r} levels {p['levels']} (guide {p['guide']}){off}: {kinds}", file=sys.stderr)
+    for spec in EXTRA_CAMPS:
+        p, why = place_extra(spec, rows)
+        if p is None:
+            print(f"  -- {spec[0]:15s} left out: {why}", file=sys.stderr)
+            continue
+        if p["key"] in keys:
+            sys.exit(f"duplicate key {p['key']}")
+        keys.add(p["key"])
+        placed.append(p)
+        print(f"  {p['key']:15s} w{p['world']} ({p['x']:.0f}, {p['y']:.1f}, {p['z']:.0f}) {p['npc']!r} levels {p['levels']} (extra)", file=sys.stderr)
     faq_levels(placed, rows)
     rare_near(placed, zones, rows, fitted, drops_by_mob(args.eqoa_data))
     for p in placed:

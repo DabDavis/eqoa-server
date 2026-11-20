@@ -291,3 +291,19 @@ func TestRequireGroups(t *testing.T) {
 		t.Errorf("101064, 101065, 101066 apart: %v %v, want 101064 unmet", g, unmet)
 	}
 }
+
+// A spawn's con (QuestEvent.Con): the player's level, plus or minus, 1 to 65;
+// "" none; anything else unread, and a step's events naming one refused.
+func TestSpawnLevel(t *testing.T) {
+	for _, c := range []struct {
+		con   string
+		level int
+		want  int
+		ok    bool
+	}{{"", 40, 0, true}, {"player", 40, 40, true}, {"player+3", 60, 63, true}, {"Player - 2", 30, 28, true},
+		{"player+3", 64, 65, true}, {"player-5", 3, 1, true}, {"player3", 30, 0, false}, {"red", 30, 0, false}, {"player+20", 30, 0, false}} {
+		if got, ok := SpawnLevel(c.con, c.level); got != c.want || ok != c.ok {
+			t.Errorf("SpawnLevel(%q, %d) = %d, %v; want %d, %v", c.con, c.level, got, ok, c.want, c.ok)
+		}
+	}
+}

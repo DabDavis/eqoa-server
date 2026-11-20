@@ -92,8 +92,12 @@ func TestLoreRoom(t *testing.T) {
 // A Lore item held in the bank is held (a GM's PR #1: a lore item comes to a character holding one
 // anywhere, worn, in the inventory or in the bank, not at all): a summon gives none and says why; the
 // control, the bank empty, gives one. The lists are linked as a dump links them (SendMemoryDump).
+//
+// The account's bank (accountbank.go) is no character's own: one there is not held, so a summon gives one
+// (Heirloom petition 2453: "it says I can only hold one of them. But I don't have it in my inventory").
 func TestALoreItemInTheBankIsHeld(t *testing.T) {
-	for _, banked := range []bool{true, false} {
+	for _, c := range []struct{ banked, shared bool }{{true, false}, {false, false}, {true, true}} {
+		banked := c.banked
 		f := newScribeFixture(t)
 		f.potionWorld()
 		lore := f.potion("Reconstructive", -1, 1, 0, "Self, Increase Hitpoints by 20000", "", "")
@@ -116,7 +120,7 @@ func TestALoreItemInTheBankIsHeld(t *testing.T) {
 			}
 		}
 		pl, bl := newInvList(pack), newInvList(bank)
-		pl.bank = bl
+		pl.bank, pl.bankShared = bl, c.shared
 		f.sess.SetInventoryList(pl)
 		f.sess.SetBankList(bl)
 
@@ -128,6 +132,9 @@ func TestALoreItemInTheBankIsHeld(t *testing.T) {
 			}
 		}
 		switch {
+		case c.shared && got != 1:
+			t.Errorf("one in the account's bank: %d summoned, want 1", got)
+		case c.shared:
 		case banked && (got != 0 || !f.loreLineSent("Reconstructive")):
 			t.Errorf("one in the bank: %d summoned (want 0), told %v", got, f.loreLineSent("Reconstructive"))
 		case !banked && got != 1:

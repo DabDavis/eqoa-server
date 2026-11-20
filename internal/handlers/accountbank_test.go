@@ -154,7 +154,7 @@ func (f *acctFixture) login(name string, bankCap int) *session.Session {
 	}
 	pl, bl := newInvListCap(pack, 0), newInvListCap(bank, bankCap)
 	bl.kept = hidden
-	pl.bank = bl
+	pl.bank, pl.bankShared = bl, sharedBank(p) // as SendMemoryDump links them
 	s.SetInventoryList(pl)
 	s.SetBankList(bl)
 	c := &acctClient{next: uint32(len(bank)), cap: bankCap}
@@ -609,7 +609,7 @@ func TestAccountBankPageFill(t *testing.T) {
 
 // A dump with the account bank (fitItemLists): a PS2 is sent the first 40 of
 // an account bank of 100 and no row is kept (location 3); the rest are held
-// for the Lore rule. The control: off, the 60 past 40 are kept for it.
+// for the Lore rule only when the bank is the character's own. The control: off, the 60 past 40 are kept for it.
 func TestAccountBankDumpIsAPage(t *testing.T) {
 	for _, on := range []bool{true, false} {
 		w := newListsWorld(t)
@@ -630,8 +630,10 @@ func TestAccountBankDumpIsAPage(t *testing.T) {
 		case !on && kept != 60:
 			t.Errorf("off: %d kept, want 60", kept)
 		}
-		if on && !sessionInvList(sess).loreHeld(w.charm) {
-			t.Error("a Lore item in the account bank off the page is not held")
+		// the account's bank is no character's own (petition 2453): a Lore item in it, on its page or
+		// off it, is not held; in a character's own bank it is
+		if held := sessionInvList(sess).loreHeld(w.charm); held == on {
+			t.Errorf("on %v: a Lore item in the bank off the page held %v", on, held)
 		}
 	}
 }
@@ -658,4 +660,42 @@ func TestBankFullIsSaid(t *testing.T) {
 	g.login("Ash", 40)
 	g.bankItem("Ash", false, g.keyOf("Ash", false, s), 1)
 	mustOps(t, g.sent("Ash"), protocol.OpcodeRemoveInvItem, protocol.OpcodeAddBankItem)
+}
+
+// A Lore item in the account's bank is no character's own (itemlist.go's bankShared, Heirloom petition
+// 2453): Birch, holding one, is refused Ash's banked copy, told why, both where they were; the control,
+// Cedar of the same account holding none, takes it out.
+func TestAccountBankLoreTakenOutOnlyByOneWithout(t *testing.T) {
+	f := newAcctFixture(t, true, 0)
+	eye := f.pattern("Eye of the Sunken Halls", 1)
+	if _, err := f.db.Exec(`UPDATE itempattern SET lore = 1 WHERE patternid = ?`, eye); err != nil {
+		t.Fatal(err)
+	}
+	banked := f.own("Ash", eye, 1, 1, database.LocBank)[0]
+	worn := f.own("Birch", eye, 1, 1, database.LocPack)[0]
+	f.login("Birch", 40)
+	if pl := sessionInvList(f.sess["Birch"]); !pl.bankShared || pl.loreRoom(&database.ItemPatternRecord{PatternID: eye, Lore: 1}, 1) != 0 {
+		t.Fatalf("Birch's pack: bankShared %v; holding one in the pack, room for another", pl.bankShared)
+	}
+	f.bankItem("Birch", true, f.keyOf("Birch", true, banked), 1)
+	if sid, loc := f.rowAt(banked); sid != f.sid["Ash"] || loc != database.LocBank {
+		t.Fatalf("the banked eye is character %d's at %d, want still Ash's in the bank", sid, loc)
+	}
+	if sid, loc := f.rowAt(worn); sid != f.sid["Birch"] || loc != database.LocPack {
+		t.Fatalf("Birch's eye is character %d's at %d", sid, loc)
+	}
+	f.sent("Birch")
+
+	// Birch's own gone: the banked one is no longer kept from it
+	if _, err := f.db.Exec(`DELETE FROM charinventory WHERE itemid = ?`, worn); err != nil {
+		t.Fatal(err)
+	}
+	f.login("Birch", 40)
+	if pl := sessionInvList(f.sess["Birch"]); pl.loreRoom(&database.ItemPatternRecord{PatternID: eye, Lore: 1}, 1) != 1 {
+		t.Fatal("Birch holding none, one in the account's bank: no room for one (the account's bank counted as Birch's)")
+	}
+	f.bankItem("Birch", true, f.keyOf("Birch", true, banked), 1)
+	if sid, loc := f.rowAt(banked); sid != f.sid["Birch"] || loc != database.LocPack {
+		t.Fatalf("the control: the eye is character %d's at %d, want Birch's pack", sid, loc)
+	}
 }

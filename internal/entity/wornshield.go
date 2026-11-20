@@ -126,7 +126,15 @@ var wornShields = map[string]WornShield{
 	// "Boots of Burning Sand are all/all. Proc a 35 fire based DS", this server's
 	// record of which is the all/all "Sandals of the Burning Sands" (the list's
 	// other line of them: "Fire based damage shield", no figure)
-	"bracers of toxicity":          {Damage: 64},
+	"bracers of toxicity": {Damage: 64},
+	// the same wrist drop as the other classes' records of it (a GM's
+	// Plane of Disease loot of 2026-11-12: the Vambracers for the knights'
+	// and warriors' mask, the Wristguards for the priests' and casters'),
+	// which carried no hit effect, so their wearers, and their Ascended
+	// copies', got nothing (the owner, 2026-11-20: "ascended bracers of
+	// toxicity ... dont proc but the regular bracers of toxicity do")
+	"vambracers of toxicity":       {Damage: 64},
+	"wristguards of toxicity":      {Damage: 64},
 	"golden spiked gloves":         {Damage: 20},
 	"sandals of the burning sands": {Damage: 35},
 	// (the heirlooms' chest piece healed as the Anointed from 2026-11-06 04:00

@@ -148,6 +148,21 @@ func (qt *QuadTree) Remove(id EntityID, x, y float32) bool {
 func (qt *QuadTree) Update(id EntityID, oldX, oldY, newX, newY float32) bool {
 	if qt.bounds.Contains(oldX, oldY) && qt.bounds.Contains(newX, newY) {
 		if qt.divided {
+			// a step within one leaf (most of a walk's: a leaf is 100 units
+			// at the least): what Remove and Insert would do there, the
+			// entry taken out and put at the leaf's end, without the two
+			// descents (a profile of the Live shard, 2026-11-20: an eighth
+			// of the creatures' wandering)
+			if leaf := qt.leafOf(oldX, oldY); leaf != nil && leaf == qt.leafOf(newX, newY) {
+				e := leaf.entries
+				for i := range e {
+					if e[i].ID == id {
+						copy(e[i:], e[i+1:])
+						e[len(e)-1] = qtEntry{ID: id, X: newX, Y: newY}
+						return true
+					}
+				}
+			}
 			qt.Remove(id, oldX, oldY)
 			return qt.Insert(id, newX, newY)
 		}
@@ -164,6 +179,30 @@ func (qt *QuadTree) Update(id EntityID, oldX, oldY, newX, newY float32) bool {
 
 	qt.Remove(id, oldX, oldY)
 	return qt.Insert(id, newX, newY)
+}
+
+// leafOf is the leaf a point is put in (Insert's descent: the first child
+// that contains it), nil when none does.
+func (qt *QuadTree) leafOf(x, y float32) *QuadTree {
+	n := qt
+	if !n.bounds.Contains(x, y) {
+		return nil
+	}
+	for n.divided {
+		switch {
+		case n.northwest.bounds.Contains(x, y):
+			n = n.northwest
+		case n.northeast.bounds.Contains(x, y):
+			n = n.northeast
+		case n.southwest.bounds.Contains(x, y):
+			n = n.southwest
+		case n.southeast.bounds.Contains(x, y):
+			n = n.southeast
+		default:
+			return nil
+		}
+	}
+	return n
 }
 
 // Query returns all entity IDs within a rectangular region.

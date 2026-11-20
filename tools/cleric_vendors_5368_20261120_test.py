@@ -55,10 +55,10 @@ class Cleric(unittest.TestCase):
             r = run(p, "--apply")
             self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
             db = sqlite3.connect(p)
-            self.assertEqual(db.execute("SELECT COUNT(*) FROM npcitem").fetchone()[0], 1 + 8 * 6)
-            self.assertEqual(db.execute("SELECT MIN(listnumber), MAX(listnumber) FROM npcitem WHERE npcid = 1935 AND patternid <> 700049").fetchone(), (11, 18))
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM npcitem").fetchone()[0], 1 + 2 * 6)
+            self.assertEqual(db.execute("SELECT MIN(listnumber), MAX(listnumber) FROM npcitem WHERE npcid = 1935 AND patternid <> 700049").fetchone(), (11, 12))
             self.assertEqual(db.execute("SELECT itemcost FROM itempattern WHERE patternid = 8792").fetchone(), (4589,))
-            self.assertEqual(db.execute("SELECT itemcost FROM itempattern WHERE patternid = 716259").fetchone(), (5000,))
+            self.assertEqual(db.execute("SELECT itemcost FROM itempattern WHERE patternid = 716222").fetchone(), (5000,))
             db.close()
             self.assertIn("nothing to do", run(p, "--apply").stdout)
             self.assertEqual(run(p, "--undo").returncode, 0)
@@ -66,7 +66,7 @@ class Cleric(unittest.TestCase):
 
     def test_stocked_refused(self):
         with tempfile.TemporaryDirectory() as d:
-            p = self.make(d, extra=(106020, 716259))
+            p = self.make(d, extra=(106020, 716222))
             start = state(p)
             self.assertEqual(run(p, "--apply").returncode, 1)
             self.assertEqual(state(p), start)
@@ -75,7 +75,7 @@ class Cleric(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             p = self.make(d)
             db = sqlite3.connect(p)
-            db.executemany("INSERT INTO npcitem (npcid, patternid, listnumber) VALUES (162430, ?, ?)", [(9000 + i, i) for i in range(33)])
+            db.executemany("INSERT INTO npcitem (npcid, patternid, listnumber) VALUES (162430, ?, ?)", [(9000 + i, i) for i in range(39)])
             db.commit()
             db.close()
             r = run(p, "--apply")

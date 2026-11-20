@@ -3,14 +3,13 @@
 "lvl 55 or 60 CL heal missing from vender").
 
 Heirloom sells every class's level 50+ spells at its Spell Archivists (2026-11-08, petition 1273), which Live does not
-have (tools/shard_sync_20261115.py leaves their stock Heirloom's). Eight of the cleric's (classspells) are sold by no one
-on Live: Censure Death (51), Consume Affliction (54), Cure Mystical Plague and Envaric Salve (55), Reclamation (57), and
-Divinity, Influence and Vibrance (60, the heals the petition misses). Each goes last into the stock of Live's six
-cleric guild merchants (Yornman, Diziria, Marith, Brezzler, Ezzlebip, Sorendil: 12-17 items each, the cleric's spells to
-49 and Celestial Healing), not the four mixed cleric and druid merchants that sell the other 55s and 60s (Utmar, Jimbra,
-Gayle, Acquine: 38 items each, and the client's list holds 40, the rest cut off). Their values stay as they are (the
-Archivist's 2,500 / 3,500 / 5,000) but Cure Mystical Plague's, 0 (never priced), which becomes 4,589, its fellows'
-(Vital Antidote, Vital Curative).
+have (tools/shard_sync_20261115.py leaves their stock Heirloom's). Two of the cleric's (classspells) no merchant, loot
+table or quest gives on Live, Cure Mystical Plague and Envaric Salve (55); the rest of its 51-60 scrolls drop by design
+(its level 51-57 spells off creatures, its level 60 heals Divinity, Influence and Vibrance off Zaoran Plateau). Each
+of the two goes last into the stock of Live's six cleric guild merchants (Yornman, Diziria, Marith, Brezzler, Ezzlebip,
+Sorendil: 12-17 items each), not the four mixed cleric and druid merchants (Utmar, Jimbra, Gayle, Acquine: 38 items
+each; the client's list holds 40). Envaric Salve's value stays (3,500); Cure Mystical Plague's, 0 (never priced),
+becomes 4,589, its fellows' (Vital Antidote, Vital Curative).
 
 Refused unless each vendor and record is found by row and name and no vendor stocks any of them. Report only by default;
 --apply in one transaction, a gm_audit line a row, logged in cleric_5368_log; --undo exact.
@@ -28,8 +27,11 @@ import sys
 LOG = "cleric_5368_log"
 DETAIL = "petition 5368: the cleric's unsold 51-60 scrolls at Live's cleric merchants: tools/cleric_vendors_5368_20261120.py"
 WHO, VIA = "claude", "tool"
-SCROLLS = {716202: "Censure Death", 716213: "Consume Affliction", 8792: "Cure Mystical Plague", 716222: "Envaric Salve",
-           716233: "Reclamation", 716242: "Divinity", 716251: "Influence", 716259: "Vibrance"}
+# The first apply (2026-11-20 17:55) stocked eight; six are drops by design on Live (Censure Death, Consume
+# Affliction and Reclamation off creatures, tables "t303 ... spells"/"uwu 51 spells"; Divinity, Influence and
+# Vibrance off Zaoran Plateau, "zp spells"), so it was undone and the two no table or quest gives put back alone
+# (the owner's sweep of the same day, tools/live_spell_sweep_20261120.py, found it).
+SCROLLS = {8792: "Cure Mystical Plague", 716222: "Envaric Salve"}
 PRICES = {8792: (0, 4589)}  # a record's value: (as found, as set)
 VENDORS = {1935: "Merchant Yornman", 102305: "Merchant Diziria", 106020: "Merchant Marith", 106181: "Merchant Brezzler",
            106472: "Merchant Ezzlebip", 162430: "Merchant Sorendil"}

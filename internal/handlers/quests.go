@@ -812,7 +812,42 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 		q.tellLocked(c, sess, npc.Name, refusal)
 		return true
 	}
+	// a step pinned to another spawn of this name (the Cazic-Thule trials' three
+	// Kithgrins: petition 2530, a player at the second's step talked to the
+	// third, who had nothing to say): it says the step's journal line
+	if line := q.otherSpawnLineLocked(c, npc.Name, npc.ServerID); line != "" {
+		q.tellLocked(c, sess, npc.Name, otherSpawnSays+line)
+		return true
+	}
 	return false
+}
+
+// otherSpawnSays begins what an NPC says to a player whose step is at another
+// spawn of its name.
+const otherSpawnSays = "Not I. "
+
+// otherSpawnLineLocked is the journal line of the player's open step at
+// another spawn of the NPC's name (a talk, show or give step pinned to one
+// spawn, NPCID, of target name, not this one), "" for none.
+func (q *QuestEngine) otherSpawnLineLocked(c *questChar, name string, spawn entity.EntityID) string {
+	name = strings.TrimSpace(name)
+	for _, cq := range c.active() {
+		qu := q.cat.byID[cq.QuestID]
+		if qu == nil {
+			continue
+		}
+		for _, st := range openSteps(qu, cq) {
+			if !database.AtNPC(st.Kind) || st.NPCID == 0 || entity.EntityID(st.NPCID) == spawn ||
+				!strings.EqualFold(strings.TrimSpace(st.Target), name) {
+				continue
+			}
+			if j := strings.TrimSpace(st.Journal); j != "" {
+				return j
+			}
+			return "Another " + name + " waits for you."
+		}
+	}
+	return ""
 }
 
 // ReadyTalk is Talk's first half alone: a quest step at this NPC the player

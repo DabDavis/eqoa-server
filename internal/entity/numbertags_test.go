@@ -133,7 +133,7 @@ func TestNumberKinds(t *testing.T) {
 		hit, heal, tick, htick numberKind
 	}{
 		{figuresSpell, numberSpell, numberHeal, numberDoT, numberHoT},
-		{figuresProc, numberProc, numberProc, numberProc, numberProc},
+		{figuresProc, numberProc, numberProc, numberProc, numberHoT}, // a proc's heal over time's ticks a heal over time's
 		{figuresPet, 0x82, 0x86, 0x83, 0x87},
 		{figuresGift, 0, 0, 0, 0},
 	} {
@@ -279,6 +279,15 @@ func TestNumberTagsByPath(t *testing.T) {
 				ProcSpells: []ProcSpell{{Chance: 100, Duration: 12 * time.Second, Effects: []SpellEffect{own, hit(44), tick(-6)}}}}}
 			r.w.procSpellsLocked(r.p, r.sess, r.npc, false, r.t0)
 		}, []int{5, 5, 5, 5}, nil},
+		{"a spell proc's heal over time on its bearer (Fervor's at a hit): a heal over time's tick", func(r *tagRig) {
+			procIntn = dice(0, 99)
+			own := tick(9)
+			own.Self = true
+			r.p.HP = r.p.MaxHP - 100
+			r.p.Effects = []*ActiveEffect{{SpellID: 9207, Name: "Test Fervor", Until: r.later,
+				ProcSpells: []ProcSpell{{Defense: true, Chance: 100, Duration: 18 * time.Second, Effects: []SpellEffect{own}}}}}
+			r.w.procSpellsLocked(r.p, r.sess, r.npc, true, r.t0)
+		}, []int{7, 7}, nil},
 		{"a heal on oneself", func(r *tagRig) {
 			r.w.landOnPlayerLocked(r.cast(heal(100)), r.p, r.sess, r.p, r.t0)
 		}, []int{6}, nil},

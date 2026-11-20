@@ -149,7 +149,12 @@ func (f castFigures) kind(heal, tick bool) numberKind {
 	switch {
 	case f == figuresGift:
 		return 0
-	case f == figuresProc:
+	case f == figuresProc && !(heal && tick):
+		// a proc's figure is a proc's, but for the ticks of a heal over time a
+		// proc set going (Fervor's, Tribal Ward's: workbookmore.go), told as a
+		// heal over time's (the GM's petition, 2026-11-20: "Fervor's heal over
+		// time component is healing, but the display numbers are the same color
+		// as damage when they should be green healing")
 		return numberProc
 	case heal && tick:
 		k = numberHoT

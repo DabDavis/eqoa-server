@@ -807,6 +807,13 @@ type StepOption struct {
 	Says   string // the NPC's words when it is picked, a line a box
 	Stay   bool   // picked, the step is not done (a wrong answer: talk again)
 	Reward ClassReward
+	// Cost is the tunar the option takes (a bribe: the rat were quest's
+	// Cogwhisker paid off, Heirloom petition 2487); a player without it is
+	// told so and the step stays.
+	Cost int
+	// Skip is how many of the steps after this one the option passes over (the
+	// bribe passes over the fight that is the other answer's way).
+	Skip int
 }
 
 // MaxStepOptions is how many answers a choice has room for (CLIENT's
@@ -821,6 +828,8 @@ type stepChoicesJSON struct {
 		Answer string `json:"answer"`
 		Says   string `json:"says,omitempty"`
 		Stay   bool   `json:"stay,omitempty"`
+		Cost   int    `json:"cost,omitempty"`
+		Skip   int    `json:"skip,omitempty"`
 		XP     int    `json:"xp,omitempty"`
 		Tunar  int    `json:"tunar,omitempty"`
 		Items  string `json:"items,omitempty"`
@@ -830,7 +839,8 @@ type stepChoicesJSON struct {
 
 // ParseStepChoices reads a choices column: {"ask": "<the question>",
 // "options": [{"answer", "says", "stay", "xp", "tunar", "items":
-// "patternid*count, ...", "spells": "id, ..."}]} ("" none). Options past
+// "patternid*count, ...", "spells": "id, ...", "cost": tunar taken, "skip":
+// steps passed over}]} ("" none). Options past
 // MaxStepOptions and without an answer are left out (ChoiceProblems names
 // them).
 func ParseStepChoices(s string) (StepChoices, error) {
@@ -847,7 +857,7 @@ func ParseStepChoices(s string) (StepChoices, error) {
 			continue
 		}
 		out.Options = append(out.Options, StepOption{Answer: strings.TrimSpace(o.Answer), Says: o.Says, Stay: o.Stay,
-			Reward: ClassReward{XP: o.XP, Tunar: o.Tunar, Items: ParseItemCounts(o.Items), Spells: ParseIntList(o.Spells)}})
+			Cost: o.Cost, Skip: o.Skip, Reward: ClassReward{XP: o.XP, Tunar: o.Tunar, Items: ParseItemCounts(o.Items), Spells: ParseIntList(o.Spells)}})
 	}
 	return out, nil
 }
@@ -863,7 +873,7 @@ func ChoiceProblems(s, kind string) []string {
 	}
 	var raw stepChoicesJSON
 	if err := json.Unmarshal([]byte(s), &raw); err != nil {
-		return []string{`its choice is not {"ask", "options": [{"answer", "says", "stay", "xp", "tunar", "items", "spells"}]}: ` + err.Error()}
+		return []string{`its choice is not {"ask", "options": [{"answer", "says", "stay", "cost", "skip", "xp", "tunar", "items", "spells"}]}: ` + err.Error()}
 	}
 	var out []string
 	if !AtNPC(kind) {
@@ -883,8 +893,11 @@ func ChoiceProblems(s, kind string) []string {
 		case n > 63:
 			out = append(out, where+"'s answer is longer than 63 characters: the client cuts it")
 		}
-		if o.XP < 0 || o.Tunar < 0 {
-			out = append(out, where+": experience and tunar are not below 0")
+		if o.XP < 0 || o.Tunar < 0 || o.Cost < 0 || o.Skip < 0 {
+			out = append(out, where+": experience, tunar, cost and skip are not below 0")
+		}
+		if o.Stay && (o.Cost > 0 || o.Skip > 0) {
+			out = append(out, where+": an option that stays neither costs nor skips")
 		}
 		if len(nonEmptyParts(o.Items)) != len(ParseItemCounts(o.Items)) {
 			out = append(out, fmt.Sprintf("%s: items %q are not patternid*count, comma separated", where, o.Items))

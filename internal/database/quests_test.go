@@ -178,13 +178,19 @@ func TestStepChoices(t *testing.T) {
 	}
 	ps := strings.Join(ChoiceProblems(`{"options": [{"answer": "", "items": "a sword"}, {"answer": "`+strings.Repeat("x", 64)+`", "xp": -1}]}`, StepKill), "\n")
 	for _, want := range []string{"a kill step asks no choice", "option 1 has no answer", `items "a sword"`,
-		"option 2's answer is longer than 63", "option 2: experience and tunar"} {
+		"option 2's answer is longer than 63", "option 2: experience, tunar, cost and skip"} {
 		if !strings.Contains(ps, want) {
 			t.Errorf("problems lack %q:\n%s", want, ps)
 		}
 	}
 	if ps := ChoiceProblems(seven, StepTalk); len(ps) != 1 || !strings.Contains(ps[0], "7 options") {
 		t.Errorf("seven options: %q", ps)
+	}
+	if ps := ChoiceProblems(`{"options": [{"answer": "Pay", "cost": 500, "skip": 1}, {"answer": "Stay", "stay": true, "cost": 1}]}`, StepTalk); len(ps) != 1 || !strings.Contains(ps[0], "option 2: an option that stays") {
+		t.Errorf("a bribe's problems: %q", ps)
+	}
+	if c, _ := ParseStepChoices(`{"options": [{"answer": "Pay", "cost": 500, "skip": 1}]}`); c.Options[0].Cost != 500 || c.Options[0].Skip != 1 {
+		t.Errorf("a bribe read as %+v", c.Options[0])
 	}
 	if ps := ChoiceProblems(`{"options": [{"answer": "Gold"}]}`, StepGive); len(ps) != 0 {
 		t.Errorf("the control has problems: %q", ps)

@@ -89,6 +89,8 @@ const (
 	questAskStep  = "Yes?"
 	// a step's choice asked with no question of its own (ours)
 	questAskChoice = "Which do you choose?"
+	// questChoiceCost: a choice that costs more tunar than the player holds
+	questChoiceCost = "You do not have the %d tunar."
 )
 
 // questEngine is the running engine, for the GM panel and the MemoryDump.
@@ -1458,6 +1460,12 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 			log.Printf("Quests: %s picked %q at %q step %d: the step stays", p.Name, opt.Answer, qu.Name, st.Step)
 			return
 		}
+		// a bribe the player cannot pay: the step stays to do
+		if opt.Cost > 0 && p.Tunar < opt.Cost {
+			q.tellLocked(c, sess, st.Target, fmt.Sprintf(questChoiceCost, opt.Cost))
+			log.Printf("Quests: %s picked %q at %q step %d without the %d tunar", p.Name, opt.Answer, qu.Name, st.Step, opt.Cost)
+			return
+		}
 	}
 	// a held trigger (database.QuestEvent's Hold): the trigger fired, the step
 	// left to its queststep (questhold.go)
@@ -1491,7 +1499,23 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 		q.payStepTunarLocked(sess, p, st, given)
 	}
 	var extra *database.ClassReward
+	skip := 0
 	if opt != nil {
+		if opt.Cost > 0 && q.inv != nil {
+			p.Tunar -= opt.Cost
+			economy.Spent(economy.QuestPayment, p.CharServerID, p.Name, opt.Cost)
+			if err := q.inv.SetPurse(p.CharServerID, p.Tunar); err != nil {
+				log.Printf("Quests: %s's tunar: %v", p.Name, err)
+			}
+			if sess != nil {
+				queueReliable(sess, protocol.OpcodePlayerTunar, tunarPayload(p.Tunar))
+			}
+			if given == nil {
+				given = &handedIn{}
+			}
+			given.names = append(given.names, fmt.Sprintf("%d tunar", opt.Cost))
+		}
+		skip = opt.Skip
 		q.tellLocked(c, sess, st.Target, sayLines(opt.Says)...)
 		extra = &opt.Reward
 		// kept in the quest's row (completeStepLocked saves it): what a
@@ -1499,7 +1523,7 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 		cq.Picks = database.WithPick(cq.Picks, st.Step, pick)
 		log.Printf("Quests: %s picked %q at %q step %d", p.Name, opt.Answer, qu.Name, st.Step)
 	}
-	q.completeStepLocked(sess, p, c, qu, cq, st, given, extra)
+	q.completeStepSkipLocked(sess, p, c, qu, cq, st, given, extra, skip)
 }
 
 // Answer is HandleDialogueOption's first question: an answer to a quest's box.
@@ -1876,9 +1900,19 @@ func withinHeight(st *database.QuestStep, y float32) bool {
 // faction lines. extra is the rewards of the option the player picked (nil
 // none), given besides the step's.
 func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep, given *handedIn, extra *database.ClassReward) {
+	q.completeStepSkipLocked(sess, p, c, qu, cq, st, given, extra, 0)
+}
+
+// completeStepSkipLocked is completeStepLocked passing over skip steps after
+// st (a choice's Skip: the bribe that passes over the fight), none of their
+// events fired; past the last, the quest is finished.
+func (q *QuestEngine) completeStepSkipLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep, given *handedIn, extra *database.ClassReward, skip int) {
 	delete(c.packTold, [2]int{qu.ID, st.Step})
 	idx := c.index(qu.ID)
 	next := qu.Next(st.Step)
+	for ; skip > 0 && next != nil; skip-- {
+		next = qu.Next(next.Step)
+	}
 	// a step of a group done in any order (questanyorder.go): the quest stays
 	// on the group until all of it is done, then goes on past its last step
 	stay, oldLine := false, q.lineLocked(cq)

@@ -18,8 +18,9 @@ import (
 // and its level 20 class quests' picks (their scrolls' spells; petition 1361),
 // is in exactly one path, or sold to the class by a merchant (a basic spell);
 // every step's own spell is every path's or sold; each line's every name is
-// a spell those quests give; no spell is in two paths; the paths number the
-// lines. The table is logged as the GM reads it (petition 1325's report).
+// a spell those quests give (but a line none of whose names any gives, a
+// merc's path alone: mercOnlyLine); no spell is in two paths; the paths
+// number the lines. The table is logged as the GM reads it (petition 1325's report).
 func TestRealArchivistPathsAreTheQuests(t *testing.T) {
 	db := realRehabDB(t)
 	inv := database.NewInventoryStore(db)
@@ -34,7 +35,15 @@ func TestRealArchivistPathsAreTheQuests(t *testing.T) {
 	for class := 0; class <= database.MaxClassID; class++ {
 		slug := database.TransferClassSlugs[class]
 		paths, common := classPaths(qe, arch, class)
-		lines := archivistPathLines[class]
+		// a line no quest gives a spell of is a merc's path alone (mercpath.go: the
+		// cleric's Elemental line, its quests' options gone since board #1686)
+		var lines [][]string
+		for _, line := range archivistPathLines[class] {
+			if mercOnlyLine(qe, arch, class, line) {
+				continue
+			}
+			lines = append(lines, line)
+		}
 		if len(paths) != len(lines) {
 			t.Errorf("%s: %d paths, %d lines", slug, len(paths), len(lines))
 		}
@@ -208,4 +217,20 @@ func TestRealArchivistChangesEveryClassesPaths(t *testing.T) {
 		"box:Spell Archivist: The path of Expansive Mind: Spacious Mind. The path of Power Jet: Power Boon.", "ask#*:"+archivistPathAsk+"|"+strings.Join(enc, "|"))
 	reset(12, 19)
 	f.wantMsgs("a level 19 enchanter", f.pick(f.menu(), archivistPath), "box:Spell Archivist: "+fmt.Sprintf(archivistPathsTooLow, 20))
+}
+
+// mercOnlyLine is whether none of a line's names is a spell the class's path
+// reward quests give: a merc's path alone (the cleric's Elemental line).
+func mercOnlyLine(qe *QuestEngine, arch *spellArchive, class int, line []string) bool {
+	has := func(id int) bool { _, ok := arch.sources[id][class]; return ok }
+	for _, r := range qe.pathRewards(class) {
+		for _, id := range arch.optionSpells(r, has) {
+			for _, name := range line {
+				if exactKey(arch.names[id].Name) == exactKey(name) {
+					return false
+				}
+			}
+		}
+	}
+	return true
 }

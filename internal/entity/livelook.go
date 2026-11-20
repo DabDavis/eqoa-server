@@ -359,11 +359,7 @@ func SetEntityState(state *session.StateUpdateData, data []byte) {
 	if state == nil {
 		return
 	}
-	if state.Len() == len(data) {
-		state.SetData(data)
-		return
-	}
-	state.SetSizedData(data)
+	state.PutData(data)
 }
 
 // DyeTarget is the character #dye works on: sess's target when that is a

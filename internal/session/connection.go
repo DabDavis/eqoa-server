@@ -685,25 +685,32 @@ func (s *StateUpdateData) SetData(data []byte) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// Check if data actually changed
-	changed := false
-	maxLen := len(s.data)
-	if len(data) < maxLen {
-		maxLen = len(data)
-	}
-	for i := 0; i < maxLen; i++ {
-		if s.data[i] != data[i] {
-			changed = true
-			break
-		}
-	}
+	s.setDataLocked(data)
+}
 
-	if changed {
+// setDataLocked is SetData with s.mu held.
+func (s *StateUpdateData) setDataLocked(data []byte) {
+	// Check if data actually changed (over the shorter of the two)
+	n := min(len(s.data), len(data))
+	if !bytes.Equal(s.data[:n], data[:n]) {
 		copy(s.data, data)
 		s.dirty = true
 		s.isActive = true
 		s.resendTicks = 0 // Reset throttle so new data is sent immediately
 	}
+}
+
+// PutData is SetData when data is the channel's own length and SetSizedData
+// otherwise, under one hold of the channel's lock (an entity's state each
+// tick: entity.SetEntityState).
+func (s *StateUpdateData) PutData(data []byte) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if len(s.data) == len(data) {
+		s.setDataLocked(data)
+		return
+	}
+	s.setSizedDataLocked(data)
 }
 
 // Len is the length of the channel's value.
@@ -722,6 +729,11 @@ func (s *StateUpdateData) Len() int {
 func (s *StateUpdateData) SetSizedData(data []byte) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	s.setSizedDataLocked(data)
+}
+
+// setSizedDataLocked is SetSizedData with s.mu held.
+func (s *StateUpdateData) setSizedDataLocked(data []byte) {
 	if bytes.Equal(s.data, data) {
 		return
 	}
@@ -752,13 +764,7 @@ func (s *StateUpdateData) GenerateXORDelta() (data []byte, seq uint16, xorByte b
 
 	// Check if data differs from base (matches C# ServerObjectUpdate.GenerateUpdate);
 	// a value of another length differs (SetSizedData)
-	differs := len(s.data) != len(s.baseXOR)
-	for i := 0; i < len(s.data) && i < len(s.baseXOR); i++ {
-		if s.data[i] != s.baseXOR[i] {
-			differs = true
-			break
-		}
-	}
+	differs := !bytes.Equal(s.data, s.baseXOR)
 
 	if !differs && !s.dirty {
 		return nil, 0, 0

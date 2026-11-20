@@ -264,11 +264,15 @@ func TestAGroupSpellSparesItsOwnBehindAWall(t *testing.T) {
 		r.p.GroupID, friend.GroupID = 7, 7
 		r.w.SetGround(ground)
 		cs := &castState{spell: CastSpell{Scope: scope, Name: "Test Heal", Area: SpellArea{Centre: AreaOnCaster, Radius: 30},
-			Def: SpellDef{Effects: []SpellEffect{{Kind: EffectHP, Amount: 100}}}}, caster: r.p.ServerID, others: []EntityID{friend.ServerID}}
+			Def: SpellDef{Effects: []SpellEffect{{Kind: EffectHP, Amount: 100}}}}, caster: r.p.ServerID}
 		r.w.mu.Lock()
 		defer r.w.mu.Unlock()
 		for _, n := range r.w.groupNearLocked(r.p, 30) {
 			found = append(found, n.id)
+		}
+		cs.others = found // as it began: a group's is its caster's line then (petition 2494)
+		if scope == 0 {
+			cs.others = []EntityID{friend.ServerID} // a helping area's others: stopped at the landing by the wall
 		}
 		r.w.landOthersLocked(cs, r.p, r.sess, r.t0)
 		return friend.HP - 500, found
@@ -414,7 +418,7 @@ func TestAWallStopsAThrownSplash(t *testing.T) {
 // "healing allows LOS through obstructions. do not allow heals through obstructions or
 // buffs"): a heal on a friend behind a wall is refused before its power is spent, and
 // lands on one this side of it (the control); a group's buff leaves out the member behind
-// the wall; a friend who steps behind the wall during the cast is spared, its caster told.
+// the wall; a friend who steps behind the wall during the cast is still healed (2494).
 // The other controls: harm on a creature behind the same wall begins as before, and with
 // nothing in the way every member is reached.
 func TestAHealNeedsItsCasterToSeeItsTarget(t *testing.T) {
@@ -443,15 +447,17 @@ func TestAHealNeedsItsCasterToSeeItsTarget(t *testing.T) {
 		t.Errorf("the control, this side of the wall: HP %d, want 150", near.HP)
 	}
 
-	// stepping behind the wall during the cast
+	// stepping behind the wall during the cast: its sight was as it began
+	// (petition 2494: "you just needed los when you casted")
 	if !c.w.StartCast(c.sess, heal, 0x1424A1D3, c.at(2*time.Minute)) {
 		t.Fatal("the second heal did not begin")
 	}
 	near.X = 110
 	c.tick(2*time.Minute + heal.CastTime + castLand)
-	if lines := redLines(c.sess); near.HP != 150 || !slices.Contains(lines, castNotSeen) {
-		t.Errorf("behind the wall as it lands: HP %d, lines %q", near.HP, lines)
+	if lines := redLines(c.sess); near.HP != 200 || slices.Contains(lines, castNotSeen) {
+		t.Errorf("behind the wall as it lands: HP %d (want 200), lines %q", near.HP, lines)
 	}
+	near.HP = 150
 	c.sent()
 	near.X = 103
 

@@ -1464,8 +1464,9 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 				continue
 			}
 			w.rezLandLocked(cs, caster, casterSess, t, now) // resurrect.go: on the dead too
-			// a heal or a buff spares a body out of its caster's sight (sight.go)
-			if !t.IsDead() && !w.helpHiddenLocked(cs, caster, casterSess, t.Name, t.World, t.X, t.Y, t.Z, t == caster) {
+			// a heal or a buff's sight was its caster's as it began (sight.go):
+			// one gone behind something since still has it (petition 2494)
+			if !t.IsDead() {
 				w.landOnPlayerLocked(cs, caster, casterSess, t, now)
 			}
 			continue
@@ -1479,9 +1480,7 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 				if w.duelLandPetLocked(cs, caster, npc, now) { // harm on a pet: a duel's (duelfight.go)
 					continue
 				}
-				if !w.helpHiddenLocked(cs, caster, casterSess, npc.Name, npc.World, npc.X, npc.Y, npc.Z, false) { // sight.go
-					w.landOnPetLocked(cs, caster, casterSess, npc, now)
-				}
+				w.landOnPetLocked(cs, caster, casterSess, npc, now) // its sight was as it began (sight.go)
 				continue
 			}
 			if w.areaOwnSparedLocked(caster, cs, npc) { // area.go: behind a rock from its caster

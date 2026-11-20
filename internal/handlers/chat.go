@@ -1754,11 +1754,15 @@ func sendTeleportGM(sess *session.Session, x, y, z, facing float32, world byte) 
 }
 
 // whoList tells sess who is in this server's world, by name, level and class, in name order,
-// and how many: anyone's /who. Where each stands is a GM's #who alone.
+// and how many: anyone's /who. Where each stands is a GM's #who alone. A hidden GM is left
+// out for anyone but a GM, as in the who window (whoShows).
 func (h *ChatHandler) whoList(sess *session.Session) {
 	var lines []string
+	viewer := h.gameWorld.SessionPlayer(sess)
 	h.gameWorld.ForEachPlayer(func(p *entity.Player) {
-		lines = append(lines, fmt.Sprintf("%s: level %d %s", p.ShownName(), p.Level, entity.ClassName(p.Class)))
+		if whoShows(viewer, p) {
+			lines = append(lines, fmt.Sprintf("%s: level %d %s", p.ShownName(), p.Level, entity.ClassName(p.Class)))
+		}
 	})
 	sort.Slice(lines, func(i, j int) bool { return strings.ToLower(lines[i]) < strings.ToLower(lines[j]) })
 	for _, l := range lines {

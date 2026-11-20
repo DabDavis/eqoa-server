@@ -25,10 +25,10 @@ func TestWhoListTokenIsZigzag(t *testing.T) {
 			t.Fatal(err)
 		}
 		msgs := alice.Queue().PeekPending()
-		if len(msgs) != before+1 {
+		if len(msgs) != before+2 { // the list, then its count line (who_test.go)
 			t.Fatalf("token %d: no answer", token)
 		}
-		r := buffer.NewReader(msgs[len(msgs)-1].Data()[2:])
+		r := buffer.NewReader(msgs[len(msgs)-2].Data()[2:])
 		one, _ := r.ReadByte()
 		got, _ := r.Read7BitEncodedInt64()
 		n, _ := r.Read7BitEncodedInt64()

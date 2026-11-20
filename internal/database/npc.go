@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"strings"
+	"sync"
 )
 
 // NPCRecord represents a row from the npcs table.
@@ -129,9 +130,71 @@ func (s *NPCStore) Count() (int, error) {
 
 // NPCClassKey is an NPC's name as the npcclass table keys it: trimmed, any
 // case, without the trailing '$' some sources mark names with.
+//
+// It is asked of every wandering creature near a player every tick (its move
+// rule, movement.go) and of every NPC update written (its dyes, npcdyes.go):
+// a profile of a full shard (2026-11-20, 38 players, 63,000 NPCs) had it at
+// 4% of the CPU, nearly all of it lowering the names with capitals into a new
+// string each time, which the collector then had to sweep. A name that is
+// already its own key comes back as it is; any other's key is made once and
+// kept (a shard has a few thousand names).
 func NPCClassKey(name string) string {
+	if isOwnClassKey(name) {
+		return name
+	}
+	classKeys.RLock()
+	k, ok := classKeys.m[name]
+	classKeys.RUnlock()
+	if ok {
+		return k
+	}
+	k = npcClassKeyOf(name)
+	classKeys.Lock()
+	if len(classKeys.m) < maxClassKeys {
+		classKeys.m[name] = k
+	}
+	classKeys.Unlock()
+	return k
+}
+
+// classKeys holds the keys of the names that are not their own (capitals,
+// spaces at an end, the '$'). It is bounded so that names made without end
+// (a GM's, a player's pet's) cannot grow it past maxClassKeys.
+var classKeys = struct {
+	sync.RWMutex
+	m map[string]string
+}{m: map[string]string{}}
+
+const maxClassKeys = 1 << 16
+
+// npcClassKeyOf is NPCClassKey made from the name.
+func npcClassKeyOf(name string) string {
 	n := strings.ToLower(strings.TrimSpace(name))
 	return strings.TrimSpace(strings.TrimSuffix(n, "$"))
+}
+
+// isOwnClassKey says if a name is already its key: all ASCII, no capital, no
+// space at either end and no '$' at its end (anything else, non-ASCII
+// included, goes the long way).
+func isOwnClassKey(name string) bool {
+	if name == "" {
+		return true
+	}
+	for i := 0; i < len(name); i++ {
+		c := name[i]
+		if c >= 0x80 || ('A' <= c && c <= 'Z') {
+			return false
+		}
+	}
+	switch name[0] {
+	case ' ', '\t', '\n', '\v', '\f', '\r':
+		return false
+	}
+	switch name[len(name)-1] {
+	case ' ', '\t', '\n', '\v', '\f', '\r', '$':
+		return false
+	}
+	return true
 }
 
 // RangedModels is the item catalog's ranged weapons by model: a model every

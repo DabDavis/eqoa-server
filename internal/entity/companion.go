@@ -136,14 +136,25 @@ var companionOwnerOnly = map[string]bool{
 // an orc augur or prophet, a spiritfeather aviak, a snowfist, Freezeblood, baga or gnoll mystic, a goblin seer or shaman,
 // a Tae Ew shaman), Fire Elementals (3, each 1.1-1.6 off a mage or Lord Usael), Decaying and Wilting Flesh (by lesser
 // ghouls) and Swarming Bones (by its froglok bonecaster).
+//
+// Ancient Death is a necromancer's too, as Howling Death is (Heirloom petition 2505, 2026-11-20, "In the Warrens
+// instance, Ancient Death isn't tethered to Minion of Krrgar"): the open world's stands 1.6 off Necromancer Warpheus,
+// the Warrens' 1.87 off the clan kolbok mystic whose pet Minion of Krrgar is (no Krrgar near: the nearest creature's),
+// so the three fight as one. The fire elementals' smaller kinds are their casters' as the Fire Elementals are (Live
+// petition 5369, 2026-11-20, the Nasehir camp south of Freeport: "his fire elemental isn't tethered to him"): the
+// Fire Elementaling 1.41 off Nasehir Kresni, the two Fire Elementalkin 1.7 off a skeleton scholar and 1.78 off a
+// Gal`Saris magician.
 var companionPetKinds = map[string]bool{
-	"feral spirit":   true,
-	"howling death":  true,
-	"kindred spirit": true,
-	"fire elemental": true,
-	"decaying flesh": true,
-	"wilting flesh":  true,
-	"swarming bones": true,
+	"feral spirit":      true,
+	"howling death":     true,
+	"ancient death":     true,
+	"kindred spirit":    true,
+	"fire elemental":    true,
+	"fire elementaling": true,
+	"fire elementalkin": true,
+	"decaying flesh":    true,
+	"wilting flesh":     true,
+	"swarming bones":    true,
 }
 
 // companionName is whether an NPC's name is a pet's.

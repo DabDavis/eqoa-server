@@ -270,6 +270,42 @@ func TestAFeralSpiritIsItsShamansPet(t *testing.T) {
 	}
 }
 
+// Heirloom petition 2505 and Live petition 5369 (2026-11-20): an Ancient Death beside the Warrens' kolbok mystic is
+// the mystic's pet, as the mystic's Minion of Krrgar is, so the three fight as one; a Fire Elementaling beside Nasehir
+// Kresni is his, a Fire Elementalkin beside a Gal`Saris magician hers. The controls: one of each alone is no one's.
+func TestAncientDeathAndTheLesserFireElementalsArePets(t *testing.T) {
+	w, _, _, _, _ := companionWorld(t)
+	add := func(n *NPC) *NPC {
+		n.SpawnX, n.SpawnY, n.SpawnZ = n.X, n.Y, n.Z
+		w.NPCs[n.ServerID] = n
+		return n
+	}
+	mystic := add(&NPC{ServerID: 4501, Name: "clan kolbok mystic", X: 700, Z: 700})
+	minion := add(&NPC{ServerID: 4502, Name: "Minion of Krrgar", X: 700, Z: 700})
+	death := add(&NPC{ServerID: 4503, Name: "Ancient Death", X: 701.8, Z: 700.6})
+	kresni := add(&NPC{ServerID: 4504, Name: "Nasehir Kresni", X: 600, Z: 600})
+	ling := add(&NPC{ServerID: 4505, Name: "Fire Elementaling", X: 601.4, Z: 600})
+	mage := add(&NPC{ServerID: 4506, Name: "Gal`Saris magician", X: 500, Z: 500})
+	kin := add(&NPC{ServerID: 4507, Name: "Fire Elementalkin", X: 501.7, Z: 500.5})
+	var lone []*NPC
+	for i, name := range []string{"Ancient Death", "Fire Elementaling", "Fire Elementalkin"} {
+		lone = append(lone, add(&NPC{ServerID: EntityID(4510 + i), Name: name, X: float32(300 + 100*i), Z: 300}))
+	}
+	w.mu.Lock()
+	w.linkCompanionsLocked()
+	w.mu.Unlock()
+	for _, c := range []struct{ pet, owner *NPC }{{minion, mystic}, {death, mystic}, {ling, kresni}, {kin, mage}} {
+		if got := w.companionOf[c.pet.ServerID]; got != c.owner.ServerID {
+			t.Errorf("%s is %d's, want %s's %d", c.pet.Name, got, c.owner.Name, c.owner.ServerID)
+		}
+	}
+	for _, n := range lone {
+		if o, ok := w.companionOf[n.ServerID]; ok {
+			t.Errorf("a lone %s paired with %d", n.Name, o)
+		}
+	}
+}
+
 // Heirloom petition 2291 (2026-11-17): Guk's elder spirits are its
 // shamans' pets, the one beside a fungal priest too (the shaman 1.7 off), while
 // the Tower of Phantoms' elder spirits, among spirits with no shaman near, are

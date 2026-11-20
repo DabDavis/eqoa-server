@@ -46,8 +46,16 @@ type invList struct {
 	// reads them.
 	kept map[int]bool
 	// bank is the session's bank list beside its pack's (the pack's own; nil
-	// for the bank and before a dump): a Lore item there is one held too
+	// for the bank and before a dump): a Lore item there is one held too,
+	// unless bankShared
 	bank *invList
+	// bankShared is whether that bank is the account's (accountbank.go), whose
+	// items are every one of the account's characters': a Lore item there is
+	// none held by this one (Heirloom petition 2453, 2026-11-20: a Lore item
+	// "says I can only hold one of them ... Maybe I have one in the bank but
+	// should still be able to hold one on my character"). Taking it out of the
+	// bank is refused while one is held (bank.go)
+	bankShared bool
 	// page is, for a bank list with the account bank, the row of the account's
 	// bank its page starts at (accountbank.go); its kept the items of the rows
 	// not on the page
@@ -314,15 +322,18 @@ func (l *invList) loreRoom(p *database.ItemPatternRecord, room int) int {
 }
 
 // loreHeld is whether the character holds one of an item anywhere a Lore item
-// counts: worn or in the pack (the list), kept beside the lists, or in the bank
-// (a GM's PR #1: a lore item "held once", worn, in the inventory or the bank;
-// until 2026-11-10 the bank's was not counted).
+// counts: worn or in the pack (the list), kept beside the lists, or in its own
+// bank (a GM's PR #1: a lore item "held once", worn, in the inventory or the
+// bank; until 2026-11-10 the bank's was not counted). The account's bank is
+// not its own (bankShared, petition 2453).
 func (l *invList) loreHeld(patternID int) bool {
 	if l == nil {
 		return false
 	}
-	// (with the account bank, a row of its not on the page: accountbank.go)
-	return l.held(patternID) > 0 || l.keptHas(patternID) || l.bank.held(patternID) > 0 || l.bank.keptHas(patternID)
+	if l.held(patternID) > 0 || l.keptHas(patternID) {
+		return true
+	}
+	return !l.bankShared && (l.bank.held(patternID) > 0 || l.bank.keptHas(patternID))
 }
 
 // stackOnto is the list index of the record a stackable item would join

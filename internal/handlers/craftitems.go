@@ -145,7 +145,7 @@ func craftNeeds(r *database.CraftRecipe, lostOnly bool) []craftNeed {
 func (l *invList) clone() *invList {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	return &invList{recs: append([]invRec(nil), l.recs...), next: l.next, cap: l.cap, kept: l.kept, bank: l.bank, most: l.most, keptN: l.keptN}
+	return &invList{recs: append([]invRec(nil), l.recs...), next: l.next, cap: l.cap, kept: l.kept, bank: l.bank, bankShared: l.bankShared, most: l.most, keptN: l.keptN}
 }
 
 // craftRoom is whether n of the product fits once the takes are taken, filed

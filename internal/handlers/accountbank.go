@@ -172,8 +172,9 @@ func pageFill(rows []database.CharInventoryEntry, from int, shown map[int]bool, 
 }
 
 // accountBankPage is a dump's page of the account's bank (a list of most
-// records from its first row) and the items of the rows not on it, which are
-// held (a Lore item there is one held: itemlist.go's loreHeld).
+// records from its first row) and the items of the rows not on it (kept beside
+// the list; a Lore item in the account's bank is none of its characters' own:
+// itemlist.go's bankShared).
 func accountBankPage(rows []database.CharInventoryEntry, most int) ([]database.CharInventoryEntry, map[int]bool) {
 	idx := pageFill(rows, 0, nil, nil, most)
 	on := make(map[int]bool, len(idx))

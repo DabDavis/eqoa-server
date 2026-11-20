@@ -426,6 +426,7 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 	}
 	if pack != nil {
 		pack.bank = bank // a Lore item in the bank is one held (itemlist.go's loreRoom)
+		pack.bankShared = sharedBank(player) // but not one in the account's (petition 2453)
 	}
 	sess.SetInventoryList(pack)
 	sess.SetBankList(bank)

@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"github.com/eqoa/server/internal/debuglog"
 	"log"
-	"sort"
+	"slices"
 	"sync/atomic"
 	"time"
 
@@ -86,6 +86,31 @@ func (vs *VisibilityState) fit(conn *session.ConnectionData) {
 type entityDist struct {
 	ID     EntityID
 	DistSq float32
+	// pin is the sort's: a quest's wall or blocker near the observer, first
+	// (visibilitySystem)
+	pin bool
+}
+
+// sortView sorts a view's candidates (byPinThenDistance).
+func sortView(c []entityDist) { slices.SortFunc(c, byPinThenDistance) }
+
+// byPinThenDistance is the view's order (visibilitySystem): a pinned
+// candidate first, then the nearer. Only its sign below zero is read: it is
+// sort.Slice's less as slices.SortFunc asks it.
+func byPinThenDistance(a, b entityDist) int {
+	if a.pin != b.pin {
+		if a.pin {
+			return -1
+		}
+		return 1
+	}
+	if a.DistSq < b.DistSq {
+		return -1
+	}
+	if b.DistSq < a.DistSq {
+		return 1
+	}
+	return 0
 }
 
 // visibilitySystem assigns nearby entities to each player session's entity
@@ -121,8 +146,12 @@ func (w *World) visibilitySystem() {
 		// Query nearby entities from spatial index
 		nearbyIDs := w.SpatialIndex.QueryRadius(player.X, player.Z, float32(conn.ViewDistance()))
 
-		// Filter out self, dead entities (unless recent corpse), and build distance list
-		var candidates []entityDist
+		// Filter out self, dead entities (unless recent corpse), and build
+		// distance list; and each papered board's name plate beside it
+		// (boardplate.go: found here with the board, put after every candidate
+		// in the order of their boards)
+		var candidates, plates []entityDist
+		now := time.Now() // the session's look at the spawns and corpses
 		for _, id := range nearbyIDs {
 			if id == player.ServerID {
 				continue
@@ -146,7 +175,7 @@ func (w *World) visibilitySystem() {
 				}
 				// out of every view: the panel remaking it, or spawn-only
 				// (spawnonly.go)
-				if npc.hiddenAt(time.Now()) {
+				if npc.hiddenAt(now) {
 					continue
 				}
 				// another player's mercenary, to a player that hid them (/hide
@@ -162,12 +191,15 @@ func (w *World) visibilitySystem() {
 				}
 				// A corpse is in view while it lies (corpse.go): emptied
 				// and closed, or decayed, it leaves every view.
-				if npc.Dead && !npc.corpseLies(time.Now(), w.corpseDecay) {
+				if npc.Dead && !npc.corpseLies(now, w.corpseDecay) {
 					continue
 				}
 				dx := npc.X - player.X
 				dz := npc.Z - player.Z
 				candidates = append(candidates, entityDist{ID: id, DistSq: dx*dx + dz*dz})
+				if npc.hasPlate() {
+					plates = append(plates, plateDist(npc, dx*dx+dz*dz))
+				}
 				continue
 			}
 
@@ -183,7 +215,7 @@ func (w *World) visibilitySystem() {
 		}
 
 		// each papered board's name plate beside it (boardplate.go)
-		candidates = w.boardPlatesLocked(candidates)
+		candidates = append(candidates, plates...)
 
 		// The player's pet first, wherever it is (pet.go)
 		candidates = w.pinPetLocked(player, candidates)
@@ -201,12 +233,14 @@ func (w *World) visibilitySystem() {
 			n, ok := w.NPCs[c.ID]
 			return ok && (uint32(n.ModelID) == BlockerBody || w.isQuestWallLocked(n))
 		}
-		sort.Slice(candidates, func(i, j int) bool {
-			if pi, pj := pinWall(candidates[i]), pinWall(candidates[j]); pi != pj {
-				return pi
-			}
-			return candidates[i].DistSq < candidates[j].DistSq
-		})
+		// (each candidate's pin found once, not at each comparison; and
+		// slices.SortFunc, the same pattern-defeating quicksort as
+		// sort.Slice's made from the same template, without its reflection:
+		// the same order, a profile of the Live shard's 2026-11-20)
+		for i := range candidates {
+			candidates[i].pin = pinWall(candidates[i])
+		}
+		sortView(candidates)
 
 		// Cap at the session's slots
 		if len(candidates) > slots {

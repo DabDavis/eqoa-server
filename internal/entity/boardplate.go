@@ -30,7 +30,7 @@ import (
 // board's spot at the size that puts its name plateAbove over the board's top.
 // It is no NPC of the world: it is never in World.NPCs or the spatial index,
 // so no system (aggro, combat, quests, the GM panel) ever sees it; the
-// visibility system adds it after its board (boardPlatesLocked) and serializes
+// visibility system adds it after its board (visibilitySystem, plateDist) and serializes
 // it from the board as it stands now (serializePlate), so a board moved,
 // renamed, resized or out of view takes its plate with it.
 //
@@ -113,16 +113,9 @@ func (w *World) plateBoardLocked(id EntityID) *NPC {
 	return n
 }
 
-// boardPlatesLocked adds to a view's candidates each board's plate, just
-// after its board (the same distance), so the two come and go together
-// unless the slots end between them. Must be called with the lock held.
-func (w *World) boardPlatesLocked(cands []entityDist) []entityDist {
-	for _, c := range cands {
-		if n, ok := w.NPCs[c.ID]; ok && n.hasPlate() {
-			cands = append(cands, entityDist{ID: plateID(n), DistSq: math.Nextafter32(c.DistSq, math.MaxFloat32)})
-		}
-	}
-	return cands
+// plateDist is the candidate of n's plate, n at distSq: just past its board.
+func plateDist(n *NPC, distSq float32) entityDist {
+	return entityDist{ID: plateID(n), DistSq: math.Nextafter32(distSq, math.MaxFloat32)}
 }
 
 // serializePlate is the channel of board's plate under objectID: the

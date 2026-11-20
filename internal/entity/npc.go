@@ -327,6 +327,9 @@ type NPC struct {
 	tmpl   *ClassTemplate
 	tbase  templateBase
 	tfight *templateFight
+	// kinIdleNext is when its heal of its kin out of its own fights may come
+	// next (kinheal.go)
+	kinIdleNext time.Time
 	// abilityReady is when each of its template's abilities with a cooldown
 	// may be cast again, by abilityKey (abilitytimes.go): on the creature, not
 	// its fight, so a fight's end and its death leave it; a restart that keeps

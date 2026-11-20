@@ -113,6 +113,9 @@ type World struct {
 	noRoam noRoamState
 	// kickZones are the creatures whose template guards the ground round them (kickzone.go)
 	kickZones map[EntityID]*kickZoneState
+	// kinHealers are the creatures whose template heals their kin, for their
+	// heals out of their own fights (kinheal.go)
+	kinHealers map[EntityID]*NPC
 	// regenAt is when the last regen tick fell (regenSystem): the regular
 	// tick a heal over time's ticks after its first keep to (hot.go)
 	regenAt time.Time

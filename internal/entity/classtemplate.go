@@ -152,6 +152,9 @@ type ClassTemplate struct {
 	areaRampage *database.TemplateAbility
 	// farCasts: one of its abilities is cast only out of its reach (OutOfReach)
 	farCasts bool
+	// kinHeals: one of its abilities heals its kin (kinheal.go), out of its own
+	// fights too
+	kinHeals bool
 	// problems is what of it the world cannot use, for the log and the panel
 	problems []string
 	// were marks a were's own copy of its template (werecrit.go, work 1461)
@@ -445,6 +448,7 @@ func (w *World) applyTemplateLocked(npc *NPC) {
 	}
 	t := w.templateForLocked(npc)
 	if t == npc.tmpl {
+		w.kinHealWatchLocked(npc, t) // a copy made with its row's template (kinheal.go)
 		return
 	}
 	if npc.tmpl == nil {
@@ -452,6 +456,7 @@ func (w *World) applyTemplateLocked(npc *NPC) {
 	}
 	npc.tmpl = t
 	w.kickZoneWatchLocked(npc) // kickzone.go
+	w.kinHealWatchLocked(npc, t)
 	npc.endTemplateFight()
 	class, maxHP := npc.tbase.class, npc.tbase.maxHP
 	if t != nil {
@@ -746,6 +751,7 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 				continue
 			}
 			t.farCasts = t.farCasts || ra.OutOfReach
+			t.kinHeals = t.kinHeals || ra.Kind == database.AbilityHeal && ra.Target == database.AbilityOnKin
 			if ra.Spell == "" && ra.SpellID == 0 && (ra.Kind == database.AbilityTaunt || ra.Kind == database.AbilityHeal && ra.HealPct > 0) {
 				if ra.Kind == database.AbilityHeal {
 					a.share = shareHealSpell(ra) // a creature's cast of it (abilitytimes.go)
@@ -987,6 +993,9 @@ func (w *World) templateWantsLocked(npc *NPC, a *templateAbility, target EntityI
 	}
 	switch a.Kind {
 	case database.AbilityHeal:
+		if a.Target == database.AbilityOnKin {
+			return w.kinHealTargetLocked(npc, a) != nil // itself or its kin, the worst off (kinheal.go)
+		}
 		if npc.healBarred() {
 			return false // nothing heals it (metalv5.go): it waits
 		}
@@ -1115,6 +1124,13 @@ func (w *World) templateCastLocked(npc *NPC, i int, target EntityID, now time.Ti
 	}
 	if a.Kind == database.AbilityHeal {
 		c.heal, c.target, c.healPct = true, npc.ServerID, a.HealPct
+		if a.Target == database.AbilityOnKin {
+			on := w.kinHealTargetLocked(npc, a) // itself or the worst off of its kin (kinheal.go)
+			if on == nil {
+				return false
+			}
+			c.target = on.ServerID
+		}
 	} else {
 		if !w.templateMayHitLocked(npc, target) {
 			return false
@@ -1714,6 +1730,15 @@ func (w *World) npcTickLocked(t *Player, ae *ActiveEffect, now time.Time) {
 // it is short of its maximum.
 func (w *World) templateHealLocked(c *npcCast) {
 	npc := c.npc
+	on := npc
+	if c.target != npc.ServerID {
+		// a heal of its kin (kinheal.go): the one it was cast at, still there,
+		// alive, beside it
+		on = w.NPCs[c.target]
+		if on == nil || on.Dead || on.Owner != 0 || !w.npcsShareLocked(npc, on) {
+			return
+		}
+	}
 	n := 0
 	for _, e := range c.spell.Def.Effects {
 		if e.Kind == EffectHP && e.Amount > 0 && !e.Self && e.Drain == DrainNone {
@@ -1723,19 +1748,36 @@ func (w *World) templateHealLocked(c *npcCast) {
 	if c.healPct > 0 {
 		// a heal of its share in place of its spell's figure, what it lacks of
 		// it (abilitytimes.go: Mr. Moogie's Lay Hands, all of it)
-		n = min(petShareAmount(npc.MaxHP, c.healPct), npc.MaxHP-npc.HP)
+		// (kinheal.go: on its kin, the healer's own share, what the one healed lacks)
+		n = min(petShareAmount(npc.MaxHP, c.healPct), on.MaxHP-on.HP)
 	}
-	if n <= 0 || npc.HP >= npc.MaxHP || npc.healBarred() {
+	if n <= 0 || on.HP >= on.MaxHP || on.healBarred() {
 		return
 	}
-	npc.HP = min(npc.HP+n, npc.MaxHP)
-	npc.selfHealed = true // a heal of its own landed (metalv5.go: V5's Self Repair)
+	on.HP = min(on.HP+n, on.MaxHP)
 	var sess *session.Session
-	if p := w.Players[npc.CurrentEnemy]; p != nil {
+	if p := w.Players[on.CurrentEnemy]; p != nil {
 		sess = w.findSessionByEntityIDLocked(p.ServerID)
 	}
+	if on != npc {
+		w.tellNPCHealOnLocked(sess, npc, on, n)
+		log.Printf("Template: %s heals %s with %q for %d (HP %d/%d)", npc.Name, on.Name, c.spell.Name, n, on.HP, on.MaxHP)
+		return
+	}
+	npc.selfHealed = true // a heal of its own landed (metalv5.go: V5's Self Repair)
 	w.tellNPCHealLocked(sess, npc, n)
 	log.Printf("Template: %s heals itself with %q for %d (HP %d/%d)", npc.Name, c.spell.Name, n, npc.HP, npc.MaxHP)
+}
+
+// tellNPCHealOnLocked tells sess (the one the healed NPC fights) of from's heal
+// on another NPC (kinheal.go): a 0x00DB from the healer to the one healed.
+func (w *World) tellNPCHealOnLocked(sess *session.Session, from, on *NPC, n int) {
+	if sess == nil {
+		return
+	}
+	if oid := w.objectIDForEntityLocked(sess, on.ServerID); oid != 0 {
+		w.sendDamageIndication(sess, w.objectIDForEntityLocked(sess, from.ServerID), n, oid, 0)
+	}
 }
 
 // tellNPCHealLocked tells sess (the one the NPC fights or hit) of the NPC's
@@ -2021,6 +2063,9 @@ func (w *World) templateLineLocked(npc *NPC, now time.Time) string {
 		}
 		if a.Kind == database.AbilityHeal && a.HealPct > 0 && s != nil {
 			line = fmt.Sprintf("heal %s (%v cast) of %d%% of its hit points below %d%% %s", s.Name, a.castTime(s), a.HealPct, a.BelowOr(), when)
+		}
+		if a.Kind == database.AbilityHeal && a.Target == database.AbilityOnKin {
+			line += fmt.Sprintf(", on itself or the worst off of its kin within %g (kinheal.go)", w.kinHealRangeLocked(npc))
 		}
 		if a.OutOfReach {
 			line += fmt.Sprintf(", only out of its reach within %g", a.RangeOr())

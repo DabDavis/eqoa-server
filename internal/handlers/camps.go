@@ -54,7 +54,7 @@ var campDests = map[string]teleDest{
 	"xrag":           {NPC: "child of Xrag", Near: true, X: 14968.9, Y: 19.7, Z: 27410.6, World: 0, Levels: "61-66", Label: "the Elephant Graveyard's children of Xrag"},
 	"tombrats":       {NPC: "tomb rat", Near: true, X: 17767.0, Y: 57.8, Z: 8183.4, World: 0, Levels: "6-8", Label: "the tomb rats"},
 	"gusts":          {NPC: "freezing gust", Near: true, X: 15734.1, Y: 60.1, Z: 6740.6, World: 0, Levels: "13-16", Label: "the freezing gusts"},
-	"guardianforest": {NPC: "goblin assassin", Near: true, X: 10182.1, Y: 75.3, Z: 6973.6, World: 0, Levels: "35-60", Label: "Guardian Forest's goblins"},
+	"guardianforest": {NPC: "goblin assassin", Near: true, X: 10182.1, Y: 75.3, Z: 6973.6, World: 0, Levels: "59-60", Label: "Guardian Forest's goblins"},
 	"freezeblood":    {NPC: "Freezeblood berserker", Near: true, X: 13435.0, Y: 54.7, Z: 6587.1, World: 0, Levels: "13-19", Label: "Everfrost's Freezeblood goblins"},
 	"crocodiles":     {NPC: "young crocodile", Near: true, X: 25751.5, Y: 54.1, Z: 11072.0, World: 0, Levels: "19-20", Label: "Bobble-by-Water's saltwater crocodiles"},
 	"minotaurs":      {NPC: "Rustel Minotaur", Near: true, X: 13002.0, Y: 59.0, Z: 26869.2, World: 0, Levels: "40-43", Label: "the Gerntar Mines' Rustel minotaurs"},

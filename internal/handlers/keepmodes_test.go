@@ -197,3 +197,31 @@ func TestAGMsSafeModeOutlivesALogin(t *testing.T) {
 		t.Fatal("#aggro on did not hold over a login")
 	}
 }
+
+// The owner, 2026-11-20: "make /safemode for GMs same as the ingame GM menu
+// works also for sub GMs". A sub GM's /safemode is the TEST menu's Safe Mode,
+// kept in its row as a GM's: a world entry after it (SendGMChannel, a login's)
+// has it on again; /safemode again turns it off, and the next entry leaves it off.
+func TestASubGMsSafeModeIsKept(t *testing.T) {
+	db := keepDB(t)
+	c, _ := modesProcess(t, db)
+	c.h.SetAccessLevels(subs{levels{3: 0}, map[int]bool{3: true}})
+	s := modesSession(t, c.sm)
+	if _, err := ResumeCharacter(s, KeptExtras{}, entity.KeptPlayer{CharServerID: 7, Name: "Hero"}, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	c.say(s, "/safemode")
+	if ign, _, _ := c.gw.AggroIgnored(s); !ign {
+		t.Fatal("the sub GM's /safemode did not turn Safe Mode on")
+	}
+	c.gw.SetAggroIgnored(s, false) // a new login's world knows nothing of it
+	c.h.SendGMChannel(s)
+	if ign, _, _ := c.gw.AggroIgnored(s); !ign {
+		t.Fatal("the sub GM's world entry did not put its Safe Mode back")
+	}
+	c.say(s, "/safemode")
+	c.h.SendGMChannel(s)
+	if ign, _, _ := c.gw.AggroIgnored(s); ign {
+		t.Fatal("Safe Mode turned off came back at the next entry")
+	}
+}

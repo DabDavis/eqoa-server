@@ -75,8 +75,10 @@ type subGMs interface {
 // The owner, 2026-11-20 (Garrak, Zerkziee): "also give sub GM ./goto and
 // ./gotoplayer": #goto (#teleport, its other name) and #gotoplayer, the GM's
 // own moves; #summon and #tele stay a GM's. Later the same day: "give sub GM
-// /testmode" (the GM's #testmode on its own character alone: chat.go).
-var subGMCommands = map[string]bool{"#goto": true, "#teleport": true, "#gotoplayer": true, "#testmode": true, "#fly": true, "#speed": true, "#delete": true, "#clone": true, "#place": true, "#move": true, "#roamer": true,
+// /testmode" (the GM's #testmode on its own character alone: chat.go), then
+// "make /safemode for GMs same as the ingame GM menu works also for sub GMs"
+// (#safemode, aggrocmd.go: the TEST menu's Safe Mode).
+var subGMCommands = map[string]bool{"#goto": true, "#teleport": true, "#gotoplayer": true, "#testmode": true, "#safemode": true, "#fly": true, "#speed": true, "#delete": true, "#clone": true, "#place": true, "#move": true, "#roamer": true,
 	"#size": true}
 
 // isSubGM reports whether sess's account is a sub GM.
@@ -133,7 +135,7 @@ var gmCommands = map[string]bool{
 	"#giveitem": true, "#size": true, "#mark": true, "#marks": true, "#camp": true, "#path": true,
 	"#markportal": true, "#delete": true, "#clone": true, "#place": true, "#move": true, "#roamer": true,
 	"#noclip": true, "#raidboss": true, "#aura": true, "#hazard": true, "#announce": true, "#formula": true,
-	"#copy": true, // #clone (gmAliases)
+	"#safemode": true, "#copy": true, // #copy: #clone (gmAliases)
 }
 
 // slashGM is the # spelling of a /command line that names a GM command

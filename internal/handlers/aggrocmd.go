@@ -41,3 +41,34 @@ func (h *ChatHandler) aggroCommand(sess *session.Session, args []string) {
 		h.gmReply(sess, "Creatures attack you on sight (#aggro off leaves you alone)")
 	}
 }
+
+// safeModeCommand is #safemode [on|off] (the owner, 2026-11-20: "make /safemode
+// for GMs same as the ingame GM menu works also for sub GMs"): the TEST menu's
+// Safe Mode (gmchannel.go's gmSubSafeMode), #aggro off's flag, kept over
+// logouts and restarts. Alone it turns over; on and off set it.
+func (h *ChatHandler) safeModeCommand(sess *session.Session, args []string) {
+	ignored, _, ok := h.gameWorld.AggroIgnored(sess)
+	if !ok {
+		return
+	}
+	on := !ignored
+	if len(args) > 0 {
+		switch strings.ToLower(args[0]) {
+		case "on":
+			on = true
+		case "off":
+			on = false
+		default:
+			h.gmReply(sess, "Usage: #safemode [on|off]")
+			return
+		}
+	}
+	if !h.setGMNoAggro(sess, on) {
+		return
+	}
+	if on {
+		h.gmReply(sess, "Safe Mode on: creatures leave you alone (as #aggro off); a fight already on goes on")
+	} else {
+		h.gmReply(sess, "Safe Mode off: creatures attack you on sight again")
+	}
+}

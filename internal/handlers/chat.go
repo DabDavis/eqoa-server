@@ -1535,6 +1535,10 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 	case "#aggro":
 		// #aggro [on|off]: whether creatures attack you on sight (aggrocmd.go)
 		h.aggroCommand(sess, parts[1:])
+	case "#safemode":
+		// #safemode [on|off]: the TEST menu's Safe Mode, a toggle alone
+		// (aggrocmd.go): #aggro off's flag, a sub GM's too
+		h.safeModeCommand(sess, parts[1:])
 	case "#tour":
 		// #tour [name]: a tour started as its host's talk starts it, the GM
 		// aboard (npctour.go); out or resting, how long
@@ -1828,6 +1832,7 @@ var gmHelpLines = []string{
 	"  #banktunar [name] <amount> - added to a bank (negative takes away; no name: your target, else you)",
 	"  #servdown - restart the server, everyone saved (an admin's; say it twice)",
 	"  #aggro [on|off] - whether creatures attack you on sight (off until #aggro on)",
+	"  #safemode [on|off] - the TEST menu's Safe Mode: creatures leave you alone (a toggle alone)",
 	"  #fly [on|off] - fly where you look at your run speed, no gravity (alone: on, or off again; until you log out)",
 	"  #movecheck [off|log|enforce] - the check of players' own moves, and who it moved back",
 	"  #ticks - how long the server's ticks took over the last minute, system by system",

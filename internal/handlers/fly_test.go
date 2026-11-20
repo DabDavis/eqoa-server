@@ -295,6 +295,15 @@ func TestASubGMFlies(t *testing.T) {
 		t.Fatalf("the sub GM's /gotoplayer: moved %v to x %v, Player at %v", moved, x, pp.X)
 	}
 	fs.Queue().GetPending()
+	c.say(fs, "/safemode")
+	if ignored, _, _ := c.gw.AggroIgnored(fs); !ignored {
+		t.Fatal("the sub GM's /safemode did not turn Safe Mode on")
+	}
+	c.say(fs, "#safemode off")
+	if ignored, _, _ := c.gw.AggroIgnored(fs); ignored {
+		t.Fatal("#safemode off did not turn it off")
+	}
+	fs.Queue().GetPending()
 	c.say(fs, "/testmode")
 	if !fp.GMTestMode {
 		t.Fatal("the sub GM's /testmode did not turn it on")
@@ -326,5 +335,9 @@ func TestASubGMFlies(t *testing.T) {
 	c.say(ps, "/testmode")
 	if pp.GMTestMode {
 		t.Fatal("the control's /testmode turned it on")
+	}
+	c.say(ps, "/safemode")
+	if ignored, _, _ := c.gw.AggroIgnored(ps); ignored {
+		t.Fatal("the control's /safemode turned Safe Mode on")
 	}
 }

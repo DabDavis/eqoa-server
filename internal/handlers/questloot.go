@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"time"
 
 	"github.com/eqoa/server/internal/database"
@@ -15,11 +16,17 @@ import (
 // two together, keyed by position, so Take and Take all go on as before; a
 // corpse goes when its window closes with its own items AND every
 // character's drops gone, else when it decays. A drop ahead of its step
-// (questpreloot.go) keeps no corpse: it is there to take while the corpse
-// lies, and goes with it (Live petition 5118, 2026-11-14: ant
-// soldiers by Klick lay on, empty to him, holding Ant Chitin his other
-// characters could have the quest for: "could have a lot of dead wildlife
-// just waiting to despawn holding up other people").
+// (questpreloot.go) keeps a corpse only a while: aheadKeep from the death, so
+// the kill's characters have time to come to it (Live petitions 5337, 5340,
+// 5347 and Heirloom 2469, 2026-11-20: one character's window closed empty and
+// the corpse went with its group's drops ahead still on it, and a corpse with
+// a looter's own drop ahead alone on it rotted the moment the window closed),
+// and no longer (Live petition 5118, 2026-11-14: ant soldiers lay on, empty to
+// their killer, holding Ant Chitin his other characters could have the quest
+// for: "could have a lot of dead wildlife just waiting to despawn holding up
+// other people"). Past aheadKeep a corpse with only drops ahead left goes as
+// an empty one does: at its window's close, or, closed already, then
+// (sweepAheadLocked).
 //
 // A shared drop (AddSharedDrop: a season's token, seasonrewards.go) is no one
 // character's: it lies on every view of the corpse, after the corpse's own
@@ -174,9 +181,14 @@ func (d *questDrops) takeLocked(key uint32, j, n int) {
 	}
 }
 
-// emptyLocked is whether nothing is left on the corpse that keeps it: its own
-// items and every character's drops, but those dropped ahead of their step.
-func (ls *lootState) emptyLocked(id entity.EntityID, c *corpse) bool {
+// aheadKeep is how long after its death a corpse's drops ahead of their step
+// keep it (the file's doc).
+const aheadKeep = 2 * time.Minute
+
+// emptyLocked is whether nothing is left on the corpse that keeps it at now: its
+// own items and every character's drops, those dropped ahead of their step only
+// until aheadKeep after the death.
+func (ls *lootState) emptyLocked(id entity.EntityID, c *corpse, now time.Time) bool {
 	if len(c.items) > 0 || c.raid != nil && len(c.raid.held) > 0 { // a raid's rolled and won items (raidloot.go)
 		return false
 	}
@@ -187,14 +199,56 @@ func (ls *lootState) emptyLocked(id entity.EntityID, c *corpse) bool {
 	if d == nil || !d.died.Equal(c.died) {
 		return true
 	}
+	keepAhead := now.Before(c.died.Add(aheadKeep))
 	for sid, recs := range d.items {
 		for _, r := range recs {
-			if !d.ahead[sid][r.Pattern.PatternID] {
+			if keepAhead || !d.ahead[sid][r.Pattern.PatternID] {
 				return false
 			}
 		}
 	}
 	return true
+}
+
+// aheadOnlyLocked is whether what keeps the corpse at now is only drops ahead
+// of their step (their keep not over): a corpse that goes at its keep's end.
+func (ls *lootState) aheadOnlyLocked(id entity.EntityID, c *corpse, now time.Time) bool {
+	return !ls.emptyLocked(id, c, now) && ls.emptyLocked(id, c, c.died.Add(aheadKeep))
+}
+
+// keepAheadLocked is a corpse whose window closed with only drops ahead left on
+// it: it goes at their keep's end unless something takes it first
+// (sweepAheadLocked). Must be called with ls.mu held.
+func (h *NPCWindowHandler) keepAheadLocked(ls *lootState, id entity.EntityID, c *corpse, now time.Time) {
+	if !ls.aheadOnlyLocked(id, c, now) || h.lootNow != nil { // a test sweeps itself
+		return
+	}
+	died := c.died
+	time.AfterFunc(died.Add(aheadKeep).Sub(now)+time.Second, func() {
+		ls := h.loots()
+		ls.mu.Lock()
+		defer ls.mu.Unlock()
+		h.sweepAheadLocked(ls, id, died, h.lootClock())
+	})
+}
+
+// sweepAheadLocked takes away the corpse of NPC id's death died when, at now,
+// nothing keeps it any more and no window is open on it (one open goes at its
+// close). Must be called with ls.mu held.
+func (h *NPCWindowHandler) sweepAheadLocked(ls *lootState, id entity.EntityID, died, now time.Time) {
+	c := ls.corpses[id]
+	if c == nil || !c.died.Equal(died) {
+		return
+	}
+	for _, open := range ls.open {
+		if open == id {
+			return
+		}
+	}
+	if ls.emptyLocked(id, c, now) {
+		log.Printf("Loot: a corpse (entity %d) lay with only drops ahead of their steps on it: gone", id)
+		h.emptiedLocked(ls, id, c)
+	}
 }
 
 // charOf is the character (characters.serverid) a session plays, 0 none.

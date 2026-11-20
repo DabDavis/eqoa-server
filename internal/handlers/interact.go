@@ -251,6 +251,21 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 	if player == nil {
 		return nil
 	}
+	// A corpse is reached as the attack button reaches it (loot.go's HandleLootCorpse): a
+	// large creature's allowance beyond; one out of that reach is said to be (Live
+	// petition 5348: "it should say something like 'This is too far away'. Right now it
+	// says nothing").
+	if npc, ok := targetEntity.(*entity.NPC); ok && npc.Dead && h.corpse != nil {
+		if reach := entity.InteractRange + npc.ReachExtra(); !entity.InRange(player, npc, reach) {
+			log.Printf("Interact: %s too far from %q's corpse (%.1f > %.1f)", player.Name, npc.Name,
+				entity.DistanceBetween(player, npc), reach)
+			SendColoredChat(sess, corpseTooFar, 255, 63, 63)
+			return nil
+		}
+		if h.corpse(sess, npc) {
+			return nil
+		}
+	}
 	if !entity.InRange(player, targetEntity, entity.InteractRange) {
 		// A monster out of reach is looked at, not talked to: its name and
 		// level, where world.mob_info is on (mobinfo.go).

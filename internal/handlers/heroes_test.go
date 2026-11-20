@@ -181,7 +181,7 @@ func TestTheHeroesVendorListsHisStock(t *testing.T) {
 	r := newHeroesRig(t)
 	got, box := r.visit()
 	r.want("Anna", got,
-		"box:Testing Heroes Vendor: Well met, Anna. Every kill that gives you experience earns 1 faction with the Testing Heroes, a raid boss 5. You stand at -2000. All of it above -2000 is yours to spend: 0.",
+		"box:Testing Heroes Vendor: Well met, Anna. A kill that gives you experience earns 1 faction with the Testing Heroes, a raid boss 20, up to 2000. You stand at -2000: 0 to spend. A purchase takes it off.",
 		fmt.Sprintf("ask#%d:Testing Heroes Vendor: 'You have 0 to spend. What will you have?'|%s", box, heroesList))
 	if !IsHeroesBox(box) || box&0xFF000000 != 0x64000000 || IsHeroesBox(0x63000001) {
 		t.Errorf("the box %#x is not under his mark 0x64000000", box)
@@ -270,7 +270,7 @@ func TestTheHeroesVendorSpendsANegativeStanding(t *testing.T) {
 	r := newHeroesRig(t)
 	r.pa.Factions = map[string]int{entity.HeroesFaction: -1500}
 	got, box := r.visit()
-	if !hasMsg(got, "box:Testing Heroes Vendor: Well met, Anna. Every kill that gives you experience earns 1 faction with the Testing Heroes, a raid boss 5. You stand at -1500. All of it above -2000 is yours to spend: 500.") ||
+	if !hasMsg(got, "box:Testing Heroes Vendor: Well met, Anna. A kill that gives you experience earns 1 faction with the Testing Heroes, a raid boss 20, up to 2000. You stand at -1500: 500 to spend. A purchase takes it off.") ||
 		!hasMsg(got, fmt.Sprintf("ask#%d:Testing Heroes Vendor: 'You have 500 to spend. What will you have?'|%s", box, heroesList)) {
 		t.Fatalf("the greeting at -1500: %q", got)
 	}
@@ -539,7 +539,7 @@ func TestTheHeroesVendorsBoxesFit(t *testing.T) {
 	if l := len(fmt.Sprintf(heroesAskList, 4000)); l > questAskChars {
 		t.Errorf("the list's question is %d characters", l)
 	}
-	if l := len(HeroesVendorName + ": " + fmt.Sprintf(heroesGreeting, "Abcdefghijklmnopqrst", entity.FactionMin, entity.FactionMin, entity.FactionMax-entity.FactionMin)); l > questBoxChars {
+	if l := len(HeroesVendorName + ": " + fmt.Sprintf(heroesGreeting, "Abcdefghijklmnopqrst", entity.HeroesBossKill, entity.FactionMax, entity.FactionMin, entity.FactionMax-entity.FactionMin)); l > questBoxChars {
 		t.Errorf("the greeting is %d characters for a long name, a box %d", l, questBoxChars)
 	}
 

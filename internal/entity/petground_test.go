@@ -336,3 +336,41 @@ func TestAPetSwimsAtItsOwnersDepth(t *testing.T) {
 		}
 	}
 }
+
+// riverMud is riverWater's river as mud (Geomancer's Citadel's pits).
+type riverMud struct{}
+
+func (riverMud) Flags(_ uint8, x, y, _ float32) (uint32, bool) {
+	if onDeck(x) && y < 57 {
+		return envMud, true
+	}
+	return 0, true
+}
+
+// Heirloom petition 2510 (2026-11-20): in Geomancer's Citadel's mud pits, where its owner swims (CLIENT swims in
+// mud), the pet swims too, at its owner's depth; it had walked the bottom. The control: mud is still no water to
+// the rest of the server (waterAtLocked).
+func TestAPetSwimsInMud(t *testing.T) {
+	r := newPetRig(t)
+	r.w.SetGround(bridgeGround{})
+	r.w.SetEnv(riverMud{})
+	r.p.X, r.p.Y, r.p.Z = 8610, 60, 5421.5
+	pet, _ := r.summon(t, fireElemental(), 0)
+	for ms := 100; ms <= 12_000; ms += 100 {
+		r.p.X = min(8610+float32(ms)/1000*8.8, 8680)
+		if onDeck(r.p.X) {
+			r.p.Y = 52
+		}
+		r.w.mu.Lock()
+		r.w.petSystem(r.at(time.Duration(ms) * time.Millisecond))
+		r.w.mu.Unlock()
+	}
+	if !pet.swimming || math.Abs(float64(pet.Y-52)) > 0.06 {
+		t.Errorf("the pet in the mud at y %.2f swimming %v, want 52 swimming", pet.Y, pet.swimming)
+	}
+	r.w.mu.Lock()
+	defer r.w.mu.Unlock()
+	if r.w.waterAtLocked(0, 8640, 52, 5421.5) {
+		t.Error("mud became water for the rest of the server")
+	}
+}

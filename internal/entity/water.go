@@ -85,6 +85,22 @@ func (w *World) waterAtLocked(world uint8, x, y, z float32) bool {
 	return ok && f&(envWater|envSlime) != 0
 }
 
+// envMud is a zone leaf's mud flag (ground.EnvMud).
+const envMud uint32 = 8
+
+// swimmableAtLocked is waterAtLocked with mud too: CLIENT's walker swims in water, lava, slime and mud
+// (walkFlagsSubmerged), so its player swims across Geomancer's Citadel's mud pits, and a pet following it does
+// too (Heirloom petition 2510, 2026-11-20: "pets don't register the mud pits as water so they walk along the
+// bottom or on top when your toon is swimming"). A pet's alone (swimLocked): mud is no water to the rest of the
+// server (a creature's keeping to water, a cast across the water's edge).
+func (w *World) swimmableAtLocked(world uint8, x, y, z float32) bool {
+	if w.env == nil {
+		return false
+	}
+	f, ok := w.env.Flags(world, x, y, z)
+	return ok && f&(envWater|envSlime|envMud) != 0
+}
+
 // npcInWaterLocked and playerInWaterLocked report a body in the water.
 func (w *World) npcInWaterLocked(npc *NPC) bool {
 	return w.waterAtLocked(npc.World, npc.X, npc.Y+bodyAbove, npc.Z)
@@ -357,10 +373,15 @@ const (
 // holds; else the search widens (1, 2, 4 ... over the point) and halves, a
 // score of lookups in the deepest sea. Must be called with the lock held.
 func (w *World) waterSurfaceLocked(world uint8, x, y, z, hint float32) (float32, bool) {
-	if !w.waterAtLocked(world, x, y, z) {
+	return w.liquidSurfaceLocked(w.waterAtLocked, world, x, y, z, hint)
+}
+
+// liquidSurfaceLocked is waterSurfaceLocked for the liquid in says is there.
+func (w *World) liquidSurfaceLocked(in func(world uint8, x, y, z float32) bool, world uint8, x, y, z, hint float32) (float32, bool) {
+	if !in(world, x, y, z) {
 		return 0, false
 	}
-	if hint > y && w.waterAtLocked(world, x, hint-0.025, z) && !w.waterAtLocked(world, x, hint+0.025, z) {
+	if hint > y && in(world, x, hint-0.025, z) && !in(world, x, hint+0.025, z) {
 		return hint, true
 	}
 	lo, hi := y, y
@@ -369,14 +390,14 @@ func (w *World) waterSurfaceLocked(world uint8, x, y, z, hint float32) (float32,
 		if step > surfaceSearch {
 			return 0, false
 		}
-		if !w.waterAtLocked(world, x, hi, z) {
+		if !in(world, x, hi, z) {
 			break
 		}
 		lo = hi
 	}
 	for hi-lo > 0.05 {
 		mid := (lo + hi) / 2
-		if w.waterAtLocked(world, x, mid, z) {
+		if in(world, x, mid, z) {
 			lo = mid
 		} else {
 			hi = mid
@@ -397,7 +418,11 @@ func (w *World) swimLocked(npc *NPC) bool {
 	if npc.Owner == 0 && w.keepsToLocked(npc) != keepsToLand {
 		return false
 	}
-	top, ok := w.waterSurfaceLocked(npc.World, npc.X, npc.Y+bodyAbove, npc.Z, npc.surface)
+	in := w.waterAtLocked
+	if npc.Owner != 0 {
+		in = w.swimmableAtLocked // a pet swims where its owner can: mud too
+	}
+	top, ok := w.liquidSurfaceLocked(in, npc.World, npc.X, npc.Y+bodyAbove, npc.Z, npc.surface)
 	if !ok || top-npc.Y <= swimDepth {
 		return false // out of the water, or wading
 	}

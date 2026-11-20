@@ -112,8 +112,12 @@ func keptEvents(st *database.QuestStep) []database.QuestEvent {
 // keepSpawnsLocked makes again the kept spawns of the step whose copies are
 // gone (neither alive nor a corpse lying).
 func (q *QuestEngine) keepSpawnsLocked(p *entity.Player, c *questChar, qu *database.Quest, st *database.QuestStep) {
-	if _, _, _, _, ok := q.gw.PlayerPlace(p); !ok {
+	world, x, _, z, ok := q.gw.PlayerPlace(p)
+	if !ok {
 		return // dead: they come again when the player stands
+	}
+	if !nearSurvivePlace(st, world, x, z) {
+		return // away from the trial: they come again when the player is back there
 	}
 	for _, e := range keptEvents(st) {
 		n := max(e.Count, 1)
@@ -133,6 +137,29 @@ func (q *QuestEngine) keepSpawnsLocked(p *entity.Player, c *questChar, qu *datab
 			q.spawnSomeLocked(p, c, qu, st.Step, e, stand, n, n)
 		}
 	}
+}
+
+// surviveKeepReach is how far past its radius (times) from a survive step's
+// place its kept spawns are made again: the hall and its doorway, not the town a
+// questor respawned in (petition 2532, 2026-11-20: after a death, and after a
+// restart that kept the sessions, the Trial of Endurance's thoughtbleeders came
+// up round their questors at Freeport's bind and killed the people there,
+// Hardcore characters among them).
+const surviveKeepReach = 4
+
+// nearSurvivePlace is whether a player at world, x, z is at a survive step's
+// place (within surviveKeepReach times its radius, at least 100): always when
+// the step names none.
+func nearSurvivePlace(st *database.QuestStep, world uint8, x, z float32) bool {
+	if st.X == 0 && st.Z == 0 {
+		return true
+	}
+	if int(world) != st.World {
+		return false
+	}
+	r := max(st.Radius*surviveKeepReach, 100)
+	dx, dz := x-st.X, z-st.Z
+	return dx*dx+dz*dz <= r*r
 }
 
 // keptAliveLocked is whether one of the step's kept spawns for the character is alive.

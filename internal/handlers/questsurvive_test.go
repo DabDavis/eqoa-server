@@ -65,3 +65,44 @@ func TestASurviveStepKeepsItsSpawnsUpForItsTime(t *testing.T) {
 		t.Fatalf("%d bleeders after the step", n)
 	}
 }
+
+// Petition 2532 (2026-11-20): a survive step's kept spawns come again only at
+// its place. A questor who died and stands in town (or one a restart put back
+// there) is not followed by the trial; back at the hall, the spawns come again.
+func TestASurviveStepsSpawnsComeOnlyAtItsPlace(t *testing.T) {
+	f := newQuestFixture(t)
+	f.tw.p.HP, f.tw.p.MaxHP = 100, 100
+	f.tw.add(5, &entity.NPC{ServerID: 707, Name: "thoughtbleeder", MaxHP: 100, SpawnX: 26000, SpawnY: 54.1, SpawnZ: 15000})
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver) VALUES (81, 'Endurance', 1, 'Malsis')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, count, journal, world, x, z, radius, events) VALUES (81, 1, 'survive', 60, 'Survive.', 0, 100, 100, 30,
+		'[{"on":"start","do":"spawn","npc":"thoughtbleeder","hostile":true,"count":2,"keep":true,"minutes":30}]')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (81, 2, 'talk', 'Malsis', 'Return to Malsis.')`)
+	f.qe.Reload()
+	live := func() (n int) {
+		for _, c := range f.tw.w.NPCs {
+			if c.QuestSpawn && !c.Dead {
+				n++
+			}
+		}
+		return n
+	}
+	f.tw.p.X, f.tw.p.Z = 100, 100 // in the hall
+	if _, err := f.qe.SetCharacterQuest(f.sid, 81, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	for _, n := range f.tw.w.NPCs { // every one killed, its corpse gone
+		if n.QuestSpawn {
+			n.Dead, n.DeathTime, n.CorpseGone = true, time.Now(), time.Now()
+		}
+	}
+	f.tw.p.X, f.tw.p.Z = 5000, 5000 // respawned in town
+	f.qe.checkSurvive()
+	if n := live(); n != 0 {
+		t.Fatalf("away from the hall: %d spawns came round the questor, want none", n)
+	}
+	f.tw.p.X, f.tw.p.Z = 110, 95 // back in the hall
+	f.qe.checkSurvive()
+	if n := live(); n != 2 {
+		t.Fatalf("back in the hall: %d spawns, want 2", n)
+	}
+}

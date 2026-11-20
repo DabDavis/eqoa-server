@@ -2057,7 +2057,7 @@ var catalog = map[string]tableNote{
 			"cost":           {Label: "Cost", Help: "mastery points"},
 			"level":          {Label: "Level"},
 			"spent":          {Label: "Points spent", Help: "the mastery points the character must have spent already"},
-			"minstats":       {Label: "Base stats needed", Help: "STR:100,STA:150 (base and training, and what masteries add)"},
+			"minstats":       {Label: "Base stats needed", Help: "STR:100,STA:150 (base and training, and what masteries add); a group after ; ending @mask is for the classes of the mask in its place: INT:100;WIS:100@909"},
 			"requires":       {Label: "Abilities needed", Help: "Name@level; ... as shown"},
 			"require_ranks":  {Label: "Masteries needed", Help: "other masteries' ranks owned first, their ids (6634, ...); the rank before it in its own line is Rank before; an id the catalog lacks is not checked, and a rank another one needs is not removed before it"},
 			"require_spells": {Label: "Abilities needed (spells)", Help: "their spellpattern ids, in the same order: the book must hold them; 0 is not checked; 12|56: 12, or 56 standing in for it (a spell another line traded 12 for)"},

@@ -135,7 +135,13 @@ type CMRank struct {
 	Name                         string
 	Parent, Cost, Level, Spent   int
 	MinStats                     [7]int
-	Requires                     []CMAbility
+	// ClassMinStats are the base stats it needs of the classes of a mask in
+	// place of MinStats (minstats "INT:100;WIS:100@909": a group after a ";"
+	// with "@" and a mask of the classes column's bits, a later group over an
+	// earlier one; petition 2480, the Focus line: WIS for tanks and healers,
+	// INT for the others)
+	ClassMinStats []CMClassStats
+	Requires      []CMAbility
 	// RequireRanks are other masteries' ranks owned first (require_ranks);
 	// one the catalog lacks is not checked
 	RequireRanks []int
@@ -219,6 +225,53 @@ func (r *CMRank) BookChange() (gives, takes []CMAbility) {
 	return gives, takes
 }
 
+// CMClassStats is a minstats group for the classes of a mask.
+type CMClassStats struct {
+	Classes int
+	Stats   [7]int
+}
+
+// MinStatsFor is the base stats the rank needs of a character of the class:
+// the last of its class groups that holds the class, else MinStats.
+func (r *CMRank) MinStatsFor(class int) [7]int {
+	out := r.MinStats
+	for _, g := range r.ClassMinStats {
+		if class >= 0 && class < 31 && g.Classes&(1<<class) != 0 {
+			out = g.Stats
+		}
+	}
+	return out
+}
+
+// parseMinStats reads minstats: "STR:100,STA:150" for every class, then any
+// groups after a ";" ending "@mask" for the classes of the mask (the classes
+// column's bits); a group without a mask adds to the first.
+func parseMinStats(s string) (all [7]int, groups []CMClassStats) {
+	for _, part := range strings.Split(s, ";") {
+		stats, mask, masked := strings.Cut(part, "@")
+		var v [7]int
+		for k, n := range parseStatList(stats) {
+			if slot, ok := cmStatSlots[k]; ok && slot < 7 {
+				v[slot] = n
+			}
+		}
+		if !masked {
+			for j := range v {
+				if v[j] > 0 {
+					all[j] = v[j]
+				}
+			}
+			continue
+		}
+		m, err := strconv.Atoi(strings.TrimSpace(mask))
+		if err != nil || m <= 0 {
+			continue
+		}
+		groups = append(groups, CMClassStats{Classes: m, Stats: v})
+	}
+	return all, groups
+}
+
 // cmCatalog is the ranks by id.
 type cmCatalog struct {
 	byID  map[int]*CMRank
@@ -260,11 +313,7 @@ func ParseCMRank(r database.CMRankRow) *CMRank {
 	c := &CMRank{ID: r.ID, Category: r.Category, Classes: r.Classes, Races: r.Races, Mastery: r.Mastery,
 		Rank: r.Rank, Name: r.Name, Parent: r.Parent, Cost: r.Cost, Level: r.Level, Spent: r.Spent,
 		Description: r.Description, Enabled: r.Enabled}
-	for k, v := range parseStatList(r.MinStats) {
-		if s, ok := cmStatSlots[k]; ok && s < 7 {
-			c.MinStats[s] = v
-		}
-	}
+	c.MinStats, c.ClassMinStats = parseMinStats(r.MinStats)
 	for k, v := range parseStatList(r.Effects) {
 		if s, ok := cmStatSlots[k]; ok {
 			c.Effects[s] += v
@@ -637,7 +686,7 @@ func (w *World) cmBlockLocked(p *Player, r *CMRank, k CMKnows) string {
 		return fmt.Sprintf("You must have spent %d mastery points to buy %s.", r.Spent, r.Name)
 	}
 	base := [7]int{p.BaseStr, p.BaseSta, p.BaseAgi, p.BaseDex, p.BaseWis, p.BaseInt, p.BaseCha}
-	for i, need := range r.MinStats {
+	for i, need := range r.MinStatsFor(p.Class) {
 		if need > 0 && base[i]+p.CMEffects[i] < need {
 			return fmt.Sprintf("Your %s must be at least %d to buy %s.", statNames[i], need, r.Name)
 		}
@@ -823,7 +872,7 @@ func (w *World) CMNodeOf(sess *session.Session, id int, k CMKnows) (CMNode, bool
 	block := w.cmBlockLocked(p, r, k)
 	n := CMNode{CMEntry: CMEntry{ID: r.ID, Parent: r.Parent, Category: r.Category, Cost: r.Cost,
 		Owned: owned, Known: !owned && block == "", Name: r.Name},
-		Level: r.Level, Spent: r.Spent, MinStats: r.MinStats, Rank: r.Rank, Title: r.Name}
+		Level: r.Level, Spent: r.Spent, MinStats: r.MinStatsFor(p.Class), Rank: r.Rank, Title: r.Name}
 	n.Text = r.Description
 	if n.Text == "" {
 		n.Text = r.Mastery

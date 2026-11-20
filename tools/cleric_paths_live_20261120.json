@@ -1,0 +1,171 @@
+[
+ {
+  "audit": 111749,
+  "questid": 100963,
+  "step": 1,
+  "target": "Elowyn Dawnspring",
+  "journal": "Choose your level 49 path reward from Elowyn Dawnspring.",
+  "set": {
+   "spells": {
+    "before": "700601",
+    "after": ""
+   }
+  }
+ },
+ {
+  "audit": 111750,
+  "questid": 100997,
+  "step": 1,
+  "target": "Gribble Greencog",
+  "journal": "Choose your level 49 path reward from Gribble Greencog.",
+  "set": {
+   "spells": {
+    "before": "700601",
+    "after": ""
+   }
+  }
+ },
+ {
+  "audit": 111751,
+  "questid": 100958,
+  "step": 1,
+  "target": "Elowyn Dawnspring",
+  "journal": "Choose your level 40 path reward from Elowyn Dawnspring.",
+  "set": {
+   "choices": {
+    "before": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Flame Ward and the Hallowed Morningstar\",\"says\":\"Then it is yours.\",\"items\":\"700982\",\"spells\":\"700454\"},{\"answer\":\"Flame Ward and the Sacrosanct Warhammer\",\"says\":\"Then it is yours.\",\"items\":\"5813\",\"spells\":\"700454\"},{\"answer\":\"Quick Stitching and the Hallowed Morningstar\",\"says\":\"Then it is yours.\",\"items\":\"700982\",\"spells\":\"700470\"},{\"answer\":\"Quick Stitching and the Sacrosanct Warhammer\",\"says\":\"Then it is yours.\",\"items\":\"5813\",\"spells\":\"700470\"},{\"answer\":\"Elemental Barrier and the Hallowed Morningstar\",\"says\":\"Then it is yours.\",\"items\":\"700982\",\"spells\":\"900288\"},{\"answer\":\"Elemental Barrier and the Sacrosanct Warhammer\",\"says\":\"Then it is yours.\",\"items\":\"5813\",\"spells\":\"900288\"}]}",
+    "after": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Flame Ward and the Hallowed Morningstar\",\"says\":\"Then it is yours.\",\"items\":\"700982\",\"spells\":\"700454\"},{\"answer\":\"Flame Ward and the Sacrosanct Warhammer\",\"says\":\"Then it is yours.\",\"items\":\"5813\",\"spells\":\"700454\"},{\"answer\":\"Quick Stitching and the Hallowed Morningstar\",\"says\":\"Then it is yours.\",\"items\":\"700982\",\"spells\":\"700470\"},{\"answer\":\"Quick Stitching and the Sacrosanct Warhammer\",\"says\":\"Then it is yours.\",\"items\":\"5813\",\"spells\":\"700470\"}]}"
+   }
+  }
+ },
+ {
+  "audit": 111752,
+  "questid": 100994,
+  "step": 1,
+  "target": "Belran Nightrift",
+  "journal": "Choose your level 40 path reward from Belran Nightrift.",
+  "set": {
+   "choices": {
+    "before": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Flame Ward and the Night Priest Warhammer\",\"says\":\"Then it is yours.\",\"items\":\"700937\",\"spells\":\"700454\"},{\"answer\":\"Quick Stitching and the Cursed Morning Star\",\"says\":\"Then it is yours.\",\"items\":\"701013\",\"spells\":\"700470\"},{\"answer\":\"Elemental Barrier and the Night Priest Warhammer\",\"says\":\"Then it is yours.\",\"items\":\"700937\",\"spells\":\"900288\"},{\"answer\":\"Elemental Barrier and the Cursed Morning Star\",\"says\":\"Then it is yours.\",\"items\":\"701013\",\"spells\":\"900288\"}]}",
+    "after": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Flame Ward and the Night Priest Warhammer\",\"says\":\"Then it is yours.\",\"items\":\"700937\",\"spells\":\"700454\"},{\"answer\":\"Quick Stitching and the Cursed Morning Star\",\"says\":\"Then it is yours.\",\"items\":\"701013\",\"spells\":\"700470\"}]}"
+   }
+  }
+ },
+ {
+  "audit": 111753,
+  "questid": 100953,
+  "step": 1,
+  "target": "Elowyn Dawnspring",
+  "journal": "Choose your level 30 path reward from Elowyn Dawnspring.",
+  "set": {
+   "choices": {
+    "before": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Poison Ward and the Holy Forgehammer\",\"says\":\"Then it is yours.\",\"items\":\"700978\",\"spells\":\"700339\"},{\"answer\":\"Poison Ward and the Benevolent Battlehammer\",\"says\":\"Then it is yours.\",\"items\":\"5521\",\"spells\":\"700339\"},{\"answer\":\"Bind Wounds and the Holy Forgehammer\",\"says\":\"Then it is yours.\",\"items\":\"700978\",\"spells\":\"700322\"},{\"answer\":\"Bind Wounds and the Benevolent Battlehammer\",\"says\":\"Then it is yours.\",\"items\":\"5521\",\"spells\":\"700322\"},{\"answer\":\"Elemental Guard and the Holy Forgehammer\",\"says\":\"Then it is yours.\",\"items\":\"700978\",\"spells\":\"900277\"},{\"answer\":\"Elemental Guard and the Benevolent Battlehammer\",\"says\":\"Then it is yours.\",\"items\":\"5521\",\"spells\":\"900277\"}]}",
+    "after": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Poison Ward and the Holy Forgehammer\",\"says\":\"Then it is yours.\",\"items\":\"700978\",\"spells\":\"700339\"},{\"answer\":\"Poison Ward and the Benevolent Battlehammer\",\"says\":\"Then it is yours.\",\"items\":\"5521\",\"spells\":\"700339\"},{\"answer\":\"Bind Wounds and the Holy Forgehammer\",\"says\":\"Then it is yours.\",\"items\":\"700978\",\"spells\":\"700322\"},{\"answer\":\"Bind Wounds and the Benevolent Battlehammer\",\"says\":\"Then it is yours.\",\"items\":\"5521\",\"spells\":\"700322\"}]}"
+   }
+  }
+ },
+ {
+  "audit": 111754,
+  "questid": 100991,
+  "step": 1,
+  "target": "Belran Nightrift",
+  "journal": "Choose your level 30 path reward from Belran Nightrift.",
+  "set": {
+   "choices": {
+    "before": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Elemental Guard and the Dark Priest Warhammer\",\"says\":\"Then it is yours.\",\"items\":\"700934\",\"spells\":\"900277\"},{\"answer\":\"Bind Wounds and the Dark Priest Hammer\",\"says\":\"Then it is yours.\",\"items\":\"5588\",\"spells\":\"700322\"}]}",
+    "after": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Poison Ward and the Dark Priest Warhammer\",\"says\":\"Then it is yours.\",\"items\":\"700934\",\"spells\":\"700339\"},{\"answer\":\"Bind Wounds and the Dark Priest Hammer\",\"says\":\"Then it is yours.\",\"items\":\"5588\",\"spells\":\"700322\"}]}"
+   }
+  }
+ },
+ {
+  "audit": 111755,
+  "questid": 100020,
+  "step": 8,
+  "target": "Tessarina Starshimmer",
+  "journal": "Return to Tessarina Starshimmer in Fayspires.",
+  "set": {
+   "choices": {
+    "before": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Disease Ward\",\"says\":\"Then it is yours.\",\"items\":\"8411, 8414\"},{\"answer\":\"Field Dress\",\"says\":\"Then it is yours.\",\"items\":\"8412, 8413\"},{\"answer\":\"Elemental Ward\",\"says\":\"Then it is yours.\",\"spells\":\"900258\"}]}",
+    "after": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Disease Ward\",\"says\":\"Then it is yours.\",\"items\":\"8411, 8414\"},{\"answer\":\"Field Dress\",\"says\":\"Then it is yours.\",\"items\":\"8412, 8413\"}]}"
+   }
+  }
+ },
+ {
+  "audit": 111756,
+  "questid": 100240,
+  "step": 15,
+  "target": "Bishop Felkahn",
+  "journal": "Speak with Bishop Felkahn on the bridge in Highbourne.",
+  "set": {
+   "choices": {
+    "before": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Disease Ward\",\"says\":\"Then it is yours.\",\"items\":\"8411, 8414\"},{\"answer\":\"Field Dress\",\"says\":\"Then it is yours.\",\"items\":\"8412, 8413\"},{\"answer\":\"Elemental Ward\",\"says\":\"Then it is yours.\",\"spells\":\"900258\"}]}",
+    "after": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Disease Ward\",\"says\":\"Then it is yours.\",\"items\":\"8411, 8414\"},{\"answer\":\"Field Dress\",\"says\":\"Then it is yours.\",\"items\":\"8412, 8413\"}]}"
+   }
+  }
+ },
+ {
+  "audit": 111757,
+  "questid": 100316,
+  "step": 13,
+  "target": "Teka Harnswoof",
+  "journal": "Bring Control Gear to Teka Harnswoof in Brell's church in Klik'Anon.",
+  "set": {
+   "choices": {
+    "before": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Disease Ward\",\"says\":\"Then it is yours.\",\"items\":\"8411, 8414\"},{\"answer\":\"Field Dress\",\"says\":\"Then it is yours.\",\"items\":\"8412, 8413\"},{\"answer\":\"Elemental Ward\",\"says\":\"Then it is yours.\",\"spells\":\"900258\"}]}",
+    "after": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Disease Ward\",\"says\":\"Then it is yours.\",\"items\":\"8411, 8414\"},{\"answer\":\"Field Dress\",\"says\":\"Then it is yours.\",\"items\":\"8412, 8413\"}]}"
+   }
+  }
+ },
+ {
+  "audit": 111758,
+  "questid": 100386,
+  "step": 13,
+  "target": "Belgar Karakson",
+  "journal": "Give Belgar Karakson the pages of Karak's research, in the last house on the right of Moradhim's residential district.",
+  "set": {
+   "choices": {
+    "before": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Disease Ward\",\"says\":\"Then it is yours.\",\"items\":\"8411, 8414\"},{\"answer\":\"Field Dress\",\"says\":\"Then it is yours.\",\"items\":\"8412, 8413\"},{\"answer\":\"Elemental Ward\",\"says\":\"Then it is yours.\",\"spells\":\"900258\"}]}",
+    "after": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Disease Ward\",\"says\":\"Then it is yours.\",\"items\":\"8411, 8414\"},{\"answer\":\"Field Dress\",\"says\":\"Then it is yours.\",\"items\":\"8412, 8413\"}]}"
+   }
+  }
+ },
+ {
+  "audit": 111759,
+  "questid": 100436,
+  "step": 8,
+  "target": "Denouncer T`Crit",
+  "journal": "Bring the captain's ring to Denouncer T'Crit atop the main tower of Fort Seriak.",
+  "set": {
+   "choices": {
+    "before": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Disease Ward\",\"says\":\"Then it is yours.\",\"items\":\"8411, 8414\"},{\"answer\":\"Field Dress\",\"says\":\"Then it is yours.\",\"items\":\"8412, 8413\"},{\"answer\":\"Elemental Ward\",\"says\":\"Then it is yours.\",\"spells\":\"900258\"}]}",
+    "after": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Disease Ward\",\"says\":\"Then it is yours.\",\"items\":\"8411, 8414\"},{\"answer\":\"Field Dress\",\"says\":\"Then it is yours.\",\"items\":\"8412, 8413\"}]}"
+   }
+  }
+ },
+ {
+  "audit": 111760,
+  "questid": 100566,
+  "step": 11,
+  "target": "Vedilion Brithstar",
+  "journal": "Return to Vedilion Brithstar in Qeynos.",
+  "set": {
+   "choices": {
+    "before": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Disease Ward\",\"says\":\"Then it is yours.\",\"items\":\"8411, 8414\"},{\"answer\":\"Field Dress\",\"says\":\"Then it is yours.\",\"items\":\"8412, 8413\"},{\"answer\":\"Elemental Ward\",\"says\":\"Then it is yours.\",\"spells\":\"900258\"}]}",
+    "after": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Disease Ward\",\"says\":\"Then it is yours.\",\"items\":\"8411, 8414\"},{\"answer\":\"Field Dress\",\"says\":\"Then it is yours.\",\"items\":\"8412, 8413\"}]}"
+   }
+  }
+ },
+ {
+  "audit": 111761,
+  "questid": 100656,
+  "step": 16,
+  "target": "Darm Leafsway",
+  "journal": "Bring the bag of supplies to Darm Leafsway in Rivervale.",
+  "set": {
+   "choices": {
+    "before": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Disease Ward\",\"says\":\"Then it is yours.\",\"items\":\"8411, 8414\"},{\"answer\":\"Field Dress\",\"says\":\"Then it is yours.\",\"items\":\"8412, 8413\"},{\"answer\":\"Elemental Ward\",\"says\":\"Then it is yours.\",\"spells\":\"900258\"}]}",
+    "after": "{\"ask\":\"Which do you take?\",\"options\":[{\"answer\":\"Disease Ward\",\"says\":\"Then it is yours.\",\"items\":\"8411, 8414\"},{\"answer\":\"Field Dress\",\"says\":\"Then it is yours.\",\"items\":\"8412, 8413\"}]}"
+   }
+  }
+ }
+]

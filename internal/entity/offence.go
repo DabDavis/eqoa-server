@@ -35,7 +35,7 @@ type offenceArch struct {
 }
 
 var offenceArchs = [...]offenceArch{
-	archTank:   {High: 18.95, Low: 16.46, LowShare: 1.002, Defence: 1.02},
+	archTank: {High: 18.95, Low: 16.46, LowShare: 1.002, Defence: 1.02},
 	// a melee class's, its own top over the tank's line but the tank's bottom and
 	// the tank's share of the target's defence (the owner, 2026-11-20, petition
 	// 2478): the bard's fit (32.28, -90.0, 2.495, 2.041; one bard, his rapiers at

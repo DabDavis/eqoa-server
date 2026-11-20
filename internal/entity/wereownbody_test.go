@@ -124,3 +124,31 @@ func TestNoWereIllusionIsReadOffTheEffects(t *testing.T) {
 		}
 	}
 }
+
+// The owner, 2026-11-20 ("were forms seem to wear off a lot sooner than I remember them",
+// then "until dropped"): a were form with no time in its record lasts until dropped
+// (shown with no end in the buff window); any other illusion with none, ten minutes.
+func TestAWereFormLastsUntilDropped(t *testing.T) {
+	const ratwere = `{"v":1,"scope":"self","target_type":"Self","harmful":false,"stack":0,"level":30,"min_level":1,"req_equipment":"Any","sheet_type":"Alter Appearance","effects":[{"id":"0947","type":"Alter Appearance","kind":"illusion","sprite":"0x7095A682"},{"id":"0948","type":"Statistic Change","kind":"stat","stat":"agi","amount":45}]}`
+	d, err := ParseSpellJSON("Ratwere", "", ratwere)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if d.Duration != wereFormLasts {
+		t.Errorf("Ratwere lasts %v, want until dropped (%v)", d.Duration, wereFormLasts)
+	}
+	other, err := ParseSpellJSON("Illusion: Rat", "", ratwere)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if other.Duration != illusionDuration {
+		t.Errorf("the control, an illusion of no time: %v, want %v", other.Duration, illusionDuration)
+	}
+	now := time.Now()
+	w := NewWorld()
+	p := &Player{Effects: []*ActiveEffect{{Name: "Ratwere", SpellID: 1820, Until: now.Add(wereFormLasts)}}}
+	lines := w.buffWindowSetLocked(p, now)
+	if len(lines) != 1 || lines[0].LeftMS != buffNoEnd {
+		t.Errorf("the buff window's line %+v: want no end", lines)
+	}
+}

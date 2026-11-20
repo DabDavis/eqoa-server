@@ -52,6 +52,10 @@ const (
 // buffNoEnd is a line's time left when it has no end the server keeps (a #effect slot).
 const buffNoEnd = math.MaxUint32
 
+// noEndShown is the time left past which a line is shown with no end (buffNoEnd): a
+// were form's, until dropped.
+const noEndShown = 365 * 24 * time.Hour
+
 // BuffWindowLine is one line of the set.
 type BuffWindowLine struct {
 	Whose     uint8
@@ -84,6 +88,9 @@ func (w *World) SetBuffWindow(sess *session.Session, on bool) bool {
 func (w *World) buffWindowSetLocked(p *Player, now time.Time) []BuffWindowLine {
 	var out []BuffWindowLine
 	left := func(e *ActiveEffect) uint32 {
+		if e.Until.Sub(now) > noEndShown { // a were form's (illusion.go wereFormLasts)
+			return buffNoEnd
+		}
 		return uint32(max(0, min(e.Until.Sub(now).Milliseconds(), buffNoEnd-1)))
 	}
 	backed := make([]bool, len(p.Buffs))

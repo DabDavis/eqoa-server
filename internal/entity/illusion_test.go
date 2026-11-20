@@ -84,8 +84,8 @@ func TestIllusionsAreReadOffTheirNames(t *testing.T) {
 		{"Illusion: Clay Golem", "Self, Golem Form, 10min", "Illusion only", FormSelf, "clay golem", 10 * time.Minute},
 		{"Glamour: Elf", "Elf form, Faction Change, Increase DEX by 10, DR by 10, 10min", "CM: Illusion and faction change.", FormGroup, "elf", 10 * time.Minute},
 		{"Illusion: Rat", "", "", FormSelf, "rat", illusionDuration},
-		{"Mouse Form", "", "Assume the form of a mouse.", FormSelf, "mouse", illusionDuration},
-		{"Feral Lion Form", "", "CM: Illusion", FormSelf, "feral lion", illusionDuration},
+		{"Mouse Form", "", "Assume the form of a mouse.", FormSelf, "mouse", wereFormLasts}, // a were form: until dropped
+		{"Feral Lion Form", "", "CM: Illusion", FormSelf, "feral lion", wereFormLasts},
 		{"Feral Lion Form", "", "This spell grants the power of the beast without changing your form.", FormNone, "", 0},
 		{"Remove Illusion", "", "This ability removes the current illusion on you.", FormEnd, "", 0},
 		{"True Form", "Reverts caster to natural form", "Returns Caster to Natural Self.", FormEnd, "", 0},

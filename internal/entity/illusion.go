@@ -50,6 +50,21 @@ const (
 // illusions, ten minutes. Ours, not measured.
 const illusionDuration = 10 * time.Minute
 
+// wereFormLasts is a were form's time (the owner, 2026-11-20: "were forms seem to
+// wear off a lot sooner than I remember them", then "until dropped"): no end the
+// player meets, so it goes as any form does (death, True Form, a click off, a cure);
+// the buff window shows it with no time (buffwindow.go, past noEndShown).
+const wereFormLasts = 10 * 365 * 24 * time.Hour
+
+// illusionTime is how long an illusion by this name lasts when its line gives no
+// time: a were form's until dropped (wereFormLasts), any other's illusionDuration.
+func illusionTime(name string) time.Duration {
+	if IsWereForm(name) {
+		return wereFormLasts
+	}
+	return illusionDuration
+}
+
 // castNotInGroup refuses a glamour at someone outside the caster's group, in
 // the red of the reference server's other refusals. The words are ours: no recording
 // has one.
@@ -106,7 +121,7 @@ func (d *SpellDef) readIllusion(name, desc string) {
 	}
 	d.Effects = append(d.Effects, SpellEffect{Kind: EffectIllusion})
 	if d.Duration <= 0 {
-		d.Duration = illusionDuration
+		d.Duration = illusionTime(name)
 	}
 }
 

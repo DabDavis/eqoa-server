@@ -736,7 +736,7 @@ func (d *SpellDef) readEffectJSON(name, desc string, e effectJSON, aoe bool, are
 			d.Form = strings.ToLower(strings.TrimSpace(e.Sprite))
 		}
 		if d.Duration <= 0 {
-			d.Duration = illusionDuration
+			d.Duration = illusionTime(name)
 		}
 	case "create_item":
 		if e.Item != nil && strings.TrimSpace(e.Item.Name) != "" {

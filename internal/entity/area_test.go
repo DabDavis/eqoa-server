@@ -648,3 +648,38 @@ func TestAnAreaPullsNoIdleRaidBoss(t *testing.T) {
 		t.Fatal("the control: a raid boss in a fight was spared the area")
 	}
 }
+
+// A player's petition (2026-11-20): a shadow knight's screams (area debuffs round
+// their target, 30) made "enemies to tether (group up and respond even if not
+// being debuffed)". An area debuff lands on what already fights and pulls no
+// creature standing by; the control, an area of the same reach that hits, does.
+func TestAnAreaDebuffPullsNoBystander(t *testing.T) {
+	scream := func() CastSpell {
+		s := fireStorm()
+		s.SpellID, s.Name = 1432, "Scream of Pain"
+		s.Def = ParseSpellText("Target, Decrease AC by 25, 10min")
+		s.Def.Harmful = true
+		s.Area = SpellArea{Centre: AreaOnTarget, Radius: 30}
+		return s
+	}
+	if !areaDebuffAlone(scream().Def) || areaDebuffAlone(fireStorm().Def) {
+		t.Fatalf("debuff alone: the scream %v, the storm %v", areaDebuffAlone(scream().Def), areaDebuffAlone(fireStorm().Def))
+	}
+	r := newAreaRig(t)
+	target := r.creature(2001, "indigo pirate", 1020, 1000)
+	by := r.creature(2002, "indigo pirate", 1024, 1000)
+	r.cast(t, scream(), target.ServerID)
+	if len(by.Threats) != 0 || len(by.Effects) != 0 {
+		t.Fatalf("the pirate standing by: threats %v, %d effects; want it left alone", by.Threats, len(by.Effects))
+	}
+	by.Threats = map[EntityID]int64{r.p.ServerID: 1}
+	r.cast(t, scream(), target.ServerID)
+	if len(by.Effects) == 0 {
+		t.Error("a pirate already fighting: the scream spared it")
+	}
+	by2 := r.creature(2003, "indigo pirate", 1018, 1000)
+	r.cast(t, fireStorm(), target.ServerID)
+	if by2.HP == by2.MaxHP {
+		t.Error("the control: an area hit spared a pirate standing by")
+	}
+}

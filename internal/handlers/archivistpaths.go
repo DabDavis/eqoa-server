@@ -111,10 +111,13 @@ var archivistPathLines = map[int][][]string{
 		{"Sickening Wind", "Wilting Wind", "Withering Wind", "Decaying Wind"},
 		{"Spiritual Guard", "Spiritual Hunter", "Spiritual Warrior", "Spiritual Guide"},
 	},
-	9: { // cleric: resists; a heal; the elements' resists (First Aid, the 49 step's own, every path's)
+	9: { // cleric: resists; a heal; the elements' resists (the era's two paths since board #1686, 2026-11-18,
+		// the Elemental line's options gone from the quests; the heal's 49, First Aid and Remedy, an option since, had been the 49
+		// step's own First Aid, every path's, and left out of the line the path stopped at 40: a player's petition
+		// of 2026-11-19. The resist path's 49, Ice Ward, is a merchant's scroll: the basic grant's)
 		{"Poison Ward", "Flame Ward", "Disease Ward"},
-		{"Bind Wounds", "Quick Stitching", "Field Dress"},
-		{"Elemental Guard", "Elemental Barrier", "Elemental Bulwark", "Elemental Ward"},
+		{"Bind Wounds", "Quick Stitching", "First Aid", "Remedy", "Field Dress"},
+		{"Elemental Guard", "Elemental Barrier", "Elemental Bulwark", "Elemental Ward"}, // no quest's now; a merc's book's
 	},
 	10: { // magician: the pet's mark; a conjured missile (the 49's Incinerating Aura is a merchant's scroll)
 		{"Burning Mark", "Earthen Mark", "Elemental Mark", "Frozen Mark"},

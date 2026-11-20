@@ -706,6 +706,14 @@ func (w *World) areaCreaturesLocked(p *Player, cs *castState, cx, cy, cz, r floa
 		if w.apartLocked(p, npc) || undead && !w.undeadLocked(npc) { // water.go, undead.go
 			continue
 		}
+		if len(npc.Threats) == 0 && areaDebuffAlone(cs.spell.Def) {
+			// an area debuff (no hit, no hate: a shadow knight's screams) lands
+			// on what already fights and pulls no one else (a player's petition,
+			// 2026-11-20: "Sk debuffs cause enemies to tether (group up and
+			// respond even if not being debuffed), even white faced ones like
+			// pirates in odus. Shouldn't happen.")
+			continue
+		}
 		if len(npc.Threats) == 0 && w.raidBossLocked(npc) {
 			// an area never pulls a raid boss not yet fighting: only its own
 			// target does (the owner, 2026-11-13: "mr moogie attacked some
@@ -721,6 +729,28 @@ func (w *World) areaCreaturesLocked(p *Player, cs *castState, cx, cy, cz, r floa
 		}
 	}
 	return out
+}
+
+// areaDebuffAlone is whether a harmful area spell only debuffs: none of its
+// effects on its targets takes hit points now or over time, or adds hate.
+func areaDebuffAlone(d SpellDef) bool {
+	if !d.Harmful {
+		return false
+	}
+	for _, e := range d.Effects {
+		if e.Self {
+			continue
+		}
+		switch e.Kind {
+		case EffectHP, EffectHPTick:
+			if e.Amount < 0 {
+				return false
+			}
+		case EffectHate, EffectProc, EffectShield:
+			return false
+		}
+	}
+	return true
 }
 
 // areaFriendsLocked is the players and players' pets a helping area's others

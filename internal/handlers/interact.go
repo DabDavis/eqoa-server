@@ -542,6 +542,13 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		}
 	}
 
+	// The giver of a quest the player finished, with nothing more for it,
+	// sends it on to the next quest's giver (questpointers.go, SendOn).
+	if npc, ok := targetEntity.(*entity.NPC); ok && Quests().SendOn(sess, player, npc) {
+		forgetDialogs(player)
+		return nil
+	}
+
 	// A quest giver whose next quest for the player waits on its level alone
 	// (quests_notyet.go): its city's "come back when you are stronger", in
 	// place of a town's words.

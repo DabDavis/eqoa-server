@@ -192,7 +192,7 @@ func TestGMDeleteAndClone(t *testing.T) {
 // GM's world, with its respawn time, in the database and the world at once,
 // audited. A sub GM may /place, /clone and /delete as it may /fly (the owner:
 // "players with the /fly /speed can use also"), "/t place <name>" too; still
-// no other GM command (/goto). The controls: a player's /place is an unknown
+// no other GM command (/summon; /goto is a sub GM's since 2026-11-20). The controls: a player's /place is an unknown
 // command and "/t place wolf" a tell; a name no NPC has is refused with close
 // names; nothing made.
 func TestPlaceAndSubGMs(t *testing.T) {
@@ -248,10 +248,10 @@ func TestPlaceAndSubGMs(t *testing.T) {
 	targetAs(pp, entity.EntityID(nid), 100700, ps)
 	c.say(ps, "#clone")
 	c.say(ps, "/delete")
-	c.say(ps, "/goto 1 2 3")
+	c.say(ps, "/summon Gm")
 	l := gmReplies(t, ps)
 	if !hasLine(l, "Cloned pariah of Xrag as row") || !hasLine(l, fmt.Sprintf("Deleted pariah of Xrag (row %d).", nid)) ||
-		!hasLine(l, `Unrecognized command "/goto"`) {
+		!hasLine(l, `Unrecognized command "/summon"`) {
 		t.Fatalf("a sub GM's: %q", l)
 	}
 }

@@ -72,7 +72,10 @@ type subGMs interface {
 // The owner, 2026-11-14: "lets give the account for [a GM], [a player] access to use
 // ./size in addition to the rest he has": a sub GM's /size is on a creature alone
 // (chat.go), and kept in its row as any GM's (gmnpcrow.go's keepNPCSize).
-var subGMCommands = map[string]bool{"#fly": true, "#speed": true, "#delete": true, "#clone": true, "#place": true, "#move": true, "#roamer": true,
+// The owner, 2026-11-20 (Garrak, Zerkziee): "also give sub GM ./goto and
+// ./gotoplayer": #goto (#teleport, its other name) and #gotoplayer, the GM's
+// own moves; #summon and #tele stay a GM's.
+var subGMCommands = map[string]bool{"#goto": true, "#teleport": true, "#gotoplayer": true, "#fly": true, "#speed": true, "#delete": true, "#clone": true, "#place": true, "#move": true, "#roamer": true,
 	"#size": true}
 
 // isSubGM reports whether sess's account is a sub GM.

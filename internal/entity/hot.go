@@ -115,3 +115,57 @@ func (w *World) advanceTickLocked(ae *ActiveEffect, now time.Time) {
 	}
 	ae.NextTick = next
 }
+
+// activeNPCHoT is activeHoT for a pet's effects.
+func activeNPCHoT(n *NPC, now time.Time) *ActiveEffect {
+	var best *ActiveEffect
+	for _, e := range n.Effects {
+		if e.HPTick <= 0 || e.NextTick.IsZero() || !now.Before(e.Until) {
+			continue
+		}
+		if best == nil || e.HPTick > best.HPTick {
+			best = e
+		}
+	}
+	return best
+}
+
+// placePetHoTLocked is placeHoTLocked for a pet (Heirloom petitions 2496 and 2499, 2026-11-20: a druid's Celestial
+// Healing on an enchanter's pet showed "the initial tick" and none after, and "every time i get a 1500 stack ... on
+// live if you casted a tick on a player that already has a tick on them it wouldn't start it over"): a pet's heal
+// over time was put on as any effect, its first tick (twice, by the workbook's rule) due at once, so a recast every
+// cast time landed that first tick again and the regular ones never came. Now as on a player: with none ticking the
+// first tick lands at once; a weaker one does nothing; over one ticking, the next tick is the old one's, with all
+// the new one's ticks, the old one taken off. It reports whether the new one goes on.
+func (w *World) placePetHoTLocked(pet *NPC, ae *ActiveEffect, now time.Time) bool {
+	old := activeNPCHoT(pet, now)
+	if old == nil {
+		ae.NextTick = now
+		return true
+	}
+	if ae.HPTick < old.HPTick {
+		return false
+	}
+	next := old.NextTick
+	if !next.After(now) {
+		next = w.nextRegularTick(now, now)
+	}
+	left := pet.Effects[:0]
+	for _, e := range pet.Effects {
+		if e.HPTick > 0 && !e.NextTick.IsZero() && e.SpellID != ae.SpellID {
+			continue
+		}
+		left = append(left, e)
+	}
+	for i := len(left); i < len(pet.Effects); i++ {
+		pet.Effects[i] = nil
+	}
+	pet.Effects = left
+	ae.NextTick = next
+	if ticks := hotTicks(ae.Until.Sub(now)); ae.Ticks <= 0 {
+		if last := next.Add(time.Duration(ticks-1) * effectTick); !last.Before(ae.Until) {
+			ae.Until = last.Add(time.Millisecond)
+		}
+	}
+	return true
+}

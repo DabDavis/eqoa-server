@@ -1746,7 +1746,9 @@ func (w *World) landOnPetLocked(cs *castState, caster *Player, casterSess *sessi
 		}
 	}
 	if ae := lasting(cs, caster, now); ae != nil {
-		if over := putOnPetLocked(pet, &cs.spell, ae); over != nil {
+		if ae.HPTick > 0 && !w.placePetHoTLocked(pet, ae, now) { // hot.go: a recast takes over the running one's tick
+			log.Printf("Cast: %s's %q does not take on the pet %q: a stronger heal over time ticks", caster.Name, cs.spell.Name, pet.Name)
+		} else if over := putOnPetLocked(pet, &cs.spell, ae); over != nil {
 			log.Printf("Cast: %s's %q (rank %d) does not take on the pet %q: %q (rank %d) is on, line %s",
 				caster.Name, cs.spell.Name, ae.Rank, pet.Name, over.Name, over.Rank, ae.Line)
 			if casterSess != nil {

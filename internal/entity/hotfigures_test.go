@@ -119,3 +119,29 @@ func TestStatHoTIsToldNaturalRegenIsNot(t *testing.T) {
 		t.Errorf("the pet's: %v, want (me, 50, pet) tag 7", f)
 	}
 }
+
+// Heirloom petitions 2496 and 2499 (2026-11-20): a heal over time recast on a pet takes over the running one's next
+// tick, no tick at once (it had landed its first, doubled, tick at every recast); with none ticking it ticks at once;
+// a weaker one does not go on.
+func TestAPetsHoTRecastKeepsItsTick(t *testing.T) {
+	r := newTagRig(t)
+	first := &ActiveEffect{SpellID: 700771, Name: "Celestial Healing", Caster: r.p.ServerID, Until: r.t0.Add(24 * time.Second), HPTick: 775}
+	r.w.mu.Lock()
+	defer r.w.mu.Unlock()
+	if !r.w.placePetHoTLocked(r.pet, first, r.t0) || !first.NextTick.Equal(r.t0) {
+		t.Fatalf("the first: placed at %v, want at once %v", first.NextTick, r.t0)
+	}
+	r.pet.Effects = append(r.pet.Effects, first)
+	r.pet.HP = 10
+	r.w.petEffectsLocked(r.ps, r.t0) // its first tick
+	next := first.NextTick
+	at := r.t0.Add(3 * time.Second)
+	recast := &ActiveEffect{SpellID: 700771, Name: "Celestial Healing", Caster: r.p.ServerID, Until: at.Add(24 * time.Second), HPTick: 775}
+	if !r.w.placePetHoTLocked(r.pet, recast, at) || !recast.NextTick.Equal(next) {
+		t.Errorf("the recast: next tick %v, want the running one's %v", recast.NextTick, next)
+	}
+	weak := &ActiveEffect{SpellID: 700001, Name: "Minor Healing", Caster: r.p.ServerID, Until: at.Add(24 * time.Second), HPTick: 50}
+	if r.w.placePetHoTLocked(r.pet, weak, at) {
+		t.Error("a weaker heal over time went on over a stronger one ticking")
+	}
+}

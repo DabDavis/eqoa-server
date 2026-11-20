@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"math"
 	"regexp"
+	"sync"
 )
 
 // boardplate.go — a bulletin board's name plate (the owner, 2026-11-12: "for
@@ -84,8 +85,36 @@ func (n *NPC) isBoard() bool {
 	if _, ok := boardTops[model]; !ok {
 		return false
 	}
-	return model == PaperedBoardBody || boardNamed.MatchString(n.Name)
+	return model == PaperedBoardBody || boardName(n.Name)
 }
+
+// boardName is boardNamed.MatchString(name), each name's answer kept (a
+// sign post's NPCs are asked at every view and channel pass: the regexp was
+// a twentieth of the view's time on the Live shard's copy, 2026-11-20). At
+// most maxBoardNames are kept, so names made without end (a GM's, a pet's)
+// cannot grow it.
+func boardName(name string) bool {
+	boardNames.RLock()
+	b, ok := boardNames.m[name]
+	boardNames.RUnlock()
+	if ok {
+		return b
+	}
+	b = boardNamed.MatchString(name)
+	boardNames.Lock()
+	if len(boardNames.m) < maxBoardNames {
+		boardNames.m[name] = b
+	}
+	boardNames.Unlock()
+	return b
+}
+
+var boardNames = struct {
+	sync.RWMutex
+	m map[string]bool
+}{m: map[string]bool{}}
+
+const maxBoardNames = 1 << 16
 
 // plateSize is the size of board's plate body: its name plateAbove over the
 // board's top, at the board's size.

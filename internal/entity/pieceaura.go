@@ -159,39 +159,63 @@ func putPieceAuras(out []byte, a *PieceAuras, n int) []byte {
 // AuraChannel is ArmorChannel with the pieces' auras after it: a client that
 // draws them's.
 func AuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
-	return putPieceAuras(armorChannel(disc, d, PieceAuraSize*AuraPieces), foldHelmHat(a), AuraPieces)
+	return auraChannel(nil, disc, d, a)
+}
+
+func auraChannel(to, disc []byte, d *Dyes, a *PieceAuras) []byte {
+	return putPieceAuras(armorChannel(to, disc, d, PieceAuraSize*AuraPieces), foldHelmHat(a), AuraPieces)
 }
 
 // BodyAuraChannel is AuraChannel with the body's aura after the pieces': a
 // client that draws it's.
 func BodyAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
-	return putPieceAuras(armorChannel(disc, d, PieceAuraSize*(AuraBody+1)), foldHelmHat(a), AuraBody+1)
+	return bodyAuraChannel(nil, disc, d, a)
+}
+
+func bodyAuraChannel(to, disc []byte, d *Dyes, a *PieceAuras) []byte {
+	return putPieceAuras(armorChannel(to, disc, d, PieceAuraSize*(AuraBody+1)), foldHelmHat(a), AuraBody+1)
 }
 
 // CapeAuraChannel is BodyAuraChannel with the cape's aura after the body's:
 // a client that draws it's.
 func CapeAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
-	return putPieceAuras(armorChannel(disc, d, PieceAuraSize*(AuraCape+1)), foldHelmHat(a), AuraCape+1)
+	return capeAuraChannel(nil, disc, d, a)
+}
+
+func capeAuraChannel(to, disc []byte, d *Dyes, a *PieceAuras) []byte {
+	return putPieceAuras(armorChannel(to, disc, d, PieceAuraSize*(AuraCape+1)), foldHelmHat(a), AuraCape+1)
 }
 
 // HandAuraChannel is CapeAuraChannel with the hands' auras after the cape's
 // (the main hand's, then the off hand's): a client that draws them's.
 func HandAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
-	return putPieceAuras(armorChannel(disc, d, PieceAuraSize*AuraSlots), foldHelmHat(a), AuraSlots)
+	return handAuraChannel(nil, disc, d, a)
+}
+
+func handAuraChannel(to, disc []byte, d *Dyes, a *PieceAuras) []byte {
+	return putPieceAuras(armorChannel(to, disc, d, PieceAuraSize*AuraSlots), foldHelmHat(a), AuraSlots)
 }
 
 // SecondAuraChannel is HandAuraChannel with the hands' second auras after
 // the hands' (the main hand's, then the off hand's): a client that draws
 // them's.
 func SecondAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
-	return putPieceAuras(armorChannel(disc, d, PieceAuraSize*AuraHelmHat), foldHelmHat(a), AuraHelmHat)
+	return secondAuraChannel(nil, disc, d, a)
+}
+
+func secondAuraChannel(to, disc []byte, d *Dyes, a *PieceAuras) []byte {
+	return putPieceAuras(armorChannel(to, disc, d, PieceAuraSize*AuraHelmHat), foldHelmHat(a), AuraHelmHat)
 }
 
 // HatAuraChannel is SecondAuraChannel with the helm's hat after the seconds
 // (AuraHelmHat), the helm's other aura in its place: a client that draws a
 // hat with an aura on it's.
 func HatAuraChannel(disc []byte, d *Dyes, a *PieceAuras) []byte {
-	return putPieceAuras(armorChannel(disc, d, PieceAuraSize*AuraWire), a, AuraWire)
+	return hatAuraChannel(nil, disc, d, a)
+}
+
+func hatAuraChannel(to, disc []byte, d *Dyes, a *PieceAuras) []byte {
+	return putPieceAuras(armorChannel(to, disc, d, PieceAuraSize*AuraWire), a, AuraWire)
 }
 
 // foldHelmHat is a for a channel with no place for the helm's hat
@@ -210,25 +234,31 @@ func foldHelmHat(a *PieceAuras) *PieceAuras {
 // ForViewerAuras is ForViewer with the wearer's pieces' auras (nil: none),
 // which go after the trims to a client that asked for them.
 func ForViewerAuras(sess *session.Session, disc []byte, d *Dyes, a *PieceAuras) []byte {
+	return forViewerAuras(nil, sess, disc, d, a)
+}
+
+// forViewerAuras is ForViewerAuras made in the scratch buffer to
+// (liveChannel).
+func forViewerAuras(to []byte, sess *session.Session, disc []byte, d *Dyes, a *PieceAuras) []byte {
 	if sess != nil && sess.PieceAuras() && len(disc) == EntityStateSize {
 		if sess.HatAura() {
-			return HatAuraChannel(disc, d, a)
+			return hatAuraChannel(to, disc, d, a)
 		}
 		if sess.SecondAura() {
-			return SecondAuraChannel(disc, d, a)
+			return secondAuraChannel(to, disc, d, a)
 		}
 		if sess.HandAura() {
-			return HandAuraChannel(disc, d, a)
+			return handAuraChannel(to, disc, d, a)
 		}
 		if sess.CapeAura() {
-			return CapeAuraChannel(disc, d, a)
+			return capeAuraChannel(to, disc, d, a)
 		}
 		if sess.BodyAura() {
-			return BodyAuraChannel(disc, d, a)
+			return bodyAuraChannel(to, disc, d, a)
 		}
-		return AuraChannel(disc, d, a)
+		return auraChannel(to, disc, d, a)
 	}
-	return ForViewer(sess, disc, d)
+	return forViewer(to, sess, disc, d)
 }
 
 // itemAuraState is the world's itemaura rows, by patternid; swapped whole.

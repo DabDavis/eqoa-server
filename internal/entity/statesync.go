@@ -87,7 +87,12 @@ func FacingByte(f float32) byte {
 // SerializePlayerUpdate builds a 162-byte state channel 0 buffer from a Player struct.
 // Byte-for-byte identical output to the ECS SerializeObjectUpdate.
 func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
-	buf := make([]byte, EntityStateSize)
+	return putPlayerUpdate(make([]byte, EntityStateSize), objectID, p)
+}
+
+// putPlayerUpdate is SerializePlayerUpdate into buf, EntityStateSize bytes
+// of zeros, and returns it.
+func putPlayerUpdate(buf []byte, objectID uint32, p *Player) []byte {
 
 	// Byte 0: isActive flag
 	buf[0] = 1
@@ -388,7 +393,12 @@ func healthBar(hp, top int) byte {
 // SerializeNPCUpdate builds a 162-byte state channel buffer for an NPC.
 // Byte-for-byte identical output to the ECS SerializeNPCObjectUpdate.
 func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
-	buf := make([]byte, EntityStateSize)
+	return putNPCUpdate(make([]byte, EntityStateSize), objectID, n)
+}
+
+// putNPCUpdate is SerializeNPCUpdate into buf, EntityStateSize bytes of
+// zeros, and returns it.
+func putNPCUpdate(buf []byte, objectID uint32, n *NPC) []byte {
 
 	// Byte 0: isActive flag
 	buf[0] = 1

@@ -343,7 +343,7 @@ func (w *World) visibilitySystem() {
 			}
 			objectID := vis.ChannelObjectID[i]
 
-			stateData := w.serializeEntityForChannel(sess, id, objectID)
+			stateData := w.serializeEntityForChannelIn(&w.chanScratch, sess, id, objectID)
 			if stateData != nil {
 				SetEntityState(conn.GetServerObject(i+1), stateData)
 				if debuglog.Packets() {
@@ -367,7 +367,36 @@ func (w *World) visibilitySystem() {
 // look gets the live game's 201 bytes with the player's dyes (livelook.go).
 // Must be called with the lock held.
 func (w *World) serializeEntityForChannel(sess *session.Session, id EntityID, objectID uint32) []byte {
-	buf, p := w.serializeEntityDiscLocked(sess, id, objectID)
+	return w.serializeEntityForChannelIn(nil, sess, id, objectID)
+}
+
+// chanScratch is the two buffers a channel pass makes each record in: the
+// disc's look's and the live look's made from it. A record put on its
+// channel (SetEntityState) is copied there, so the pass that puts each one
+// at once (entityChannelSyncSystem, visibilitySystem's) makes them all in
+// these instead of two new buffers a channel a tick (a profile of the Live
+// shard, 2026-11-20: thousands of channels a tick).
+type chanScratch struct {
+	disc, live []byte
+}
+
+// chanScratchSize is the live look's room: its channel, the trims, every
+// piece's aura (forViewerAuras's largest).
+const chanScratchSize = LiveEntityStateSize + trimBytes + PieceAuraSize*AuraWire
+
+// serializeEntityForChannelIn is serializeEntityForChannel made in s's
+// buffers (nil: new ones): what it returns is s's until the next call, to
+// be copied before then.
+func (w *World) serializeEntityForChannelIn(s *chanScratch, sess *session.Session, id EntityID, objectID uint32) []byte {
+	var disc, live []byte
+	if s != nil {
+		if s.disc == nil {
+			s.disc, s.live = make([]byte, EntityStateSize), make([]byte, 0, chanScratchSize)
+		}
+		clear(s.disc)
+		disc, live = s.disc, s.live
+	}
+	buf, p := w.serializeEntityDiscIn(disc, sess, id, objectID)
 	if buf == nil {
 		return nil
 	}
@@ -381,12 +410,21 @@ func (w *World) serializeEntityForChannel(sess *session.Session, id EntityID, ob
 		}
 		dyes = npcDyesOfKey(n.classKey()) // its name's dyes (npcdyes.go)
 	}
-	return ForViewerAuras(sess, buf, dyes, auras)
+	return forViewerAuras(live, sess, buf, dyes, auras)
 }
 
 // serializeEntityDiscLocked is serializeEntityForChannel's buffer in the
 // disc's look, and the player it is (nil for an NPC).
 func (w *World) serializeEntityDiscLocked(sess *session.Session, id EntityID, objectID uint32) ([]byte, *Player) {
+	return w.serializeEntityDiscIn(nil, sess, id, objectID)
+}
+
+// serializeEntityDiscIn is serializeEntityDiscLocked made in to,
+// EntityStateSize bytes of zeros (nil: a new buffer).
+func (w *World) serializeEntityDiscIn(to []byte, sess *session.Session, id EntityID, objectID uint32) ([]byte, *Player) {
+	if to == nil {
+		to = make([]byte, EntityStateSize)
+	}
 	// a board's name plate, from its board as it stands (boardplate.go)
 	if board := w.plateBoardLocked(id); board != nil {
 		return serializePlate(objectID, board), nil
@@ -394,7 +432,7 @@ func (w *World) serializeEntityDiscLocked(sess *session.Session, id EntityID, ob
 
 	// Check NPC first
 	if npc, ok := w.NPCs[id]; ok {
-		buf := SerializeNPCUpdate(objectID, npc)
+		buf := putNPCUpdate(to, objectID, npc)
 		if npc.Dead {
 			buf[58] = 0x0e // AnimationState.Die
 			// a corpse, as the reference server turns a kill's channel: byte 26 (CLIENT's
@@ -443,7 +481,7 @@ func (w *World) serializeEntityDiscLocked(sess *session.Session, id EntityID, ob
 		// A player is distinguished from an NPC by the high half being ZERO,
 		// which is what the serializer already does, so there is nothing for
 		// the visibility path to add.
-		buf := SerializePlayerUpdate(objectID, p)
+		buf := putPlayerUpdate(to, objectID, p)
 		w.duelViewLocked(sess, p.ServerID, buf) // a duel opponent as a creature (duel.go)
 		w.pvpViewLocked(sess, p, buf)           // a foe, to be swung at (pvp.go)
 		w.ctfViewLocked(sess, p, buf)           // the arena's teams by their names' colours (ctf.go)

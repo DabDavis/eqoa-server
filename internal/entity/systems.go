@@ -515,7 +515,8 @@ func (w *World) entityChannelSyncSystem() {
 			}
 			objectID := vis.ChannelObjectID[i]
 
-			stateData := w.serializeEntityForChannel(sess, id, objectID)
+			// made in the pass's buffers, copied onto the channel
+			stateData := w.serializeEntityForChannelIn(&w.chanScratch, sess, id, objectID)
 			if stateData != nil {
 				SetEntityState(conn.GetServerObject(i+1), stateData)
 			}

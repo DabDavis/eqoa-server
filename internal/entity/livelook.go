@@ -193,15 +193,24 @@ func dyeOr(d *Dyes, slot int, undyed uint32) uint32 {
 // any, else each armour slot and the robe in its tint's colour and each
 // held item white; every variant 0.
 func LiveChannel(disc []byte, d *Dyes) []byte {
-	return liveChannel(disc, d, 0)
+	return liveChannel(nil, disc, d, 0)
 }
 
 // liveChannel is LiveChannel with room for more bytes after it, so that
 // what a channel puts after it (the trims, the auras) is appended without a
 // second allocation and copy (a profile of the Live shard, 2026-11-20: the
 // regrowth was half the time of a vanilla client's channel record).
-func liveChannel(disc []byte, d *Dyes, more int) []byte {
-	out := make([]byte, LiveEntityStateSize, LiveEntityStateSize+more)
+//
+// to, when it has the room, is the scratch buffer it is made in (a channel
+// pass's, chanScratch), else a new one is made.
+func liveChannel(to []byte, disc []byte, d *Dyes, more int) []byte {
+	var out []byte
+	if cap(to) >= LiveEntityStateSize+more {
+		out = to[:LiveEntityStateSize]
+		clear(out)
+	} else {
+		out = make([]byte, LiveEntityStateSize, LiveEntityStateSize+more)
+	}
 	if len(disc) < EntityStateSize {
 		disc = append(append([]byte(nil), disc...), make([]byte, EntityStateSize-len(disc))...)
 	}
@@ -290,15 +299,15 @@ func putTrims(out []byte, d *Dyes) []byte {
 // ArmorChannel is LiveChannel with the trim colours after it: a client that
 // draws this server's armour's.
 func ArmorChannel(disc []byte, d *Dyes) []byte {
-	return armorChannel(disc, d, 0)
+	return armorChannel(nil, disc, d, 0)
 }
 
 // trimBytes is the trim colours' bytes after the live channel (putTrims).
 const trimBytes = 4 * database.DyeTrims
 
 // armorChannel is ArmorChannel with room for more bytes after it.
-func armorChannel(disc []byte, d *Dyes, more int) []byte {
-	return putTrims(liveChannel(disc, d, trimBytes+more), d)
+func armorChannel(to []byte, disc []byte, d *Dyes, more int) []byte {
+	return putTrims(liveChannel(to, disc, d, trimBytes+more), d)
 }
 
 // ArmorGear is LiveGear with the trim colours after it.
@@ -334,11 +343,16 @@ func LiveGear(disc []byte, d *Dyes) []byte {
 // draws this server's armour, else the buffer itself. A client that does not
 // draw this server's armour is sent set 9 as set 4 (PlainArmor).
 func ForViewer(sess *session.Session, disc []byte, d *Dyes) []byte {
+	return forViewer(nil, sess, disc, d)
+}
+
+// forViewer is ForViewer made in the scratch buffer to (liveChannel).
+func forViewer(to []byte, sess *session.Session, disc []byte, d *Dyes) []byte {
 	if sess != nil && sess.LiveLook() && len(disc) == EntityStateSize {
 		if sess.ArmorLook() {
-			return ArmorChannel(disc, d)
+			return armorChannel(to, disc, d, 0)
 		}
-		out := LiveChannel(disc, d)
+		out := liveChannel(to, disc, d, 0)
 		PlainArmor(out[ChannelArmor : ChannelArmor+6])
 		return out
 	}

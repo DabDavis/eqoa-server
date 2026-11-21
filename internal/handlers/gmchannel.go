@@ -329,6 +329,11 @@ func buildGMPrompt(name string) []byte {
 // boot (a PS2), whichever comes.
 func (h *ChatHandler) SendGMChannel(sess *session.Session) {
 	if !h.isGM(sess) {
+		// a sub GM's character is drawn "[Test] Name" (entity/testtag.go), an
+		// account no longer one's bare again
+		if h.gameWorld != nil {
+			h.gameWorld.SetPlayerSubGM(sess, h.isSubGM(sess))
+		}
 		if h.isSubGM(sess) {
 			queueReliable(sess, protocol.OpcodeGMTriggers, buildTriggerNamesOffer())
 			log.Printf("Fly: account %d (a sub GM) offered the flight", sess.AccountID())

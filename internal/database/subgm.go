@@ -15,3 +15,23 @@ func (s *SQLiteAccountStore) SubGM(accountID int) (bool, error) {
 	}
 	return n > 0, nil
 }
+
+// subGMCharacters is the names of the characters of sub GMs' accounts, for the
+// lists vanilla keys by a drawn name (CharactersOfRaces, LookCharacters: a sub
+// GM's is drawn "[Test] Name", entity.TestTag). None where the panel's table or
+// its column is missing, as SubGM reads it.
+func (db *SQLiteDB) subGMCharacters() map[string]bool {
+	rows, err := db.Query(`SELECT c.charName FROM characters c JOIN gm_testers t ON t.accountid = c.accountid WHERE t.subgm != 0`)
+	if err != nil {
+		return nil
+	}
+	defer rows.Close()
+	out := map[string]bool{}
+	for rows.Next() {
+		var n string
+		if rows.Scan(&n) == nil {
+			out[n] = true
+		}
+	}
+	return out
+}

@@ -124,6 +124,7 @@ func scanCharLook(rows *sql.Rows) (CharLook, error) {
 type LookCharacter struct {
 	Name    string
 	GM      bool
+	Sub     bool // a sub GM's (subGMCharacters): its channel name may carry the [Test] tag
 	OG      bool // an [OG] character (ogchar.go): its channel name may carry the tag
 	HC      bool // a Hardcore character (hardcore.go): its channel name may carry the tag
 	Race    int
@@ -171,7 +172,15 @@ func (db *SQLiteDB) LookCharacters(serverIDs ...uint32) ([]LookCharacter, error)
 		c.Looks = []CharLook{l}
 		out = append(out, c)
 	}
-	return out, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	rows.Close() // its one connection free for the next query
+	subs := db.subGMCharacters()
+	for i := range out {
+		out[i].Sub = subs[out[i].Name]
+	}
+	return out, nil
 }
 
 // HasCharLook reports whether serverID has a charlook row: its login refreshes

@@ -442,6 +442,16 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		return
 	}
 
+	// /grpsummon (#grpsummon, a PS2's "/t grpsummon"): the caller's group or raid
+	// brought to it, a GM's or a listed account's (grpsummon.go); anyone else's
+	// goes on as any other line, an unknown command or a tell
+	if grpSummonLine(message) {
+		if may, gm := h.mayGrpSummon(sess); may {
+			h.grpSummonCommand(sess, player, gm, time.Now())
+			return
+		}
+	}
+
 	// GM commands start with #
 	if strings.HasPrefix(message, "#") {
 		h.handleGMCommand(sess, player, message)
@@ -1203,6 +1213,10 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 	case "#summon":
 		h.summonCommand(sess, player, parts[1:])
 
+	case "#grpsummon":
+		// #grpsummon: the GM's group or raid brought to it (grpsummon.go)
+		h.grpSummonCommand(sess, player, true, time.Now())
+
 	case "#despawn":
 		h.despawnCommand(sess, player)
 
@@ -1797,6 +1811,7 @@ var gmHelpLines = []string{
 	"  #gotoplayer <name> - go to an online player",
 	"  #giveitem <item id> <player> [count] - give an online player an item",
 	"  #summon <name> - bring an online player to you",
+	"  #grpsummon - bring every other member of your group or raid to you",
 	"  #spawn <name> - a copy of that NPC beside you; #despawn takes the target away",
 	"  #hide gmtag, #show gmtag - your [GM] tag off your name, or back (kept)",
 	"  #monstersearch <start of a name> - up to ten NPC names",

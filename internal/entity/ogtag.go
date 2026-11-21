@@ -48,7 +48,7 @@ func cutShownName(name string) string {
 }
 
 // nameTags are the tags a drawn name may begin with.
-var nameTags = []string{GMTag, OGTag, HCTag, CTFCarrierTag}
+var nameTags = []string{GMTag, TestTag, OGTag, HCTag, CTFCarrierTag}
 
 // PlainName is a name as typed or sent back, without the tags a drawn name
 // carries before it ("[GM] [OG] Name", "[OG][HC]Name" are "Name"), and trimmed.
@@ -95,14 +95,23 @@ func IsNameTag(word string) bool {
 // not Hardcore (hc) may be drawn by on this shard, its own first: the lists
 // vanilla keys by the drawn name. A GM may hide its tag, so both forms.
 func ShownNames(name string, gm, og, hc bool) []string {
+	return ShownNamesOf(name, gm, false, og, hc)
+}
+
+// ShownNamesOf is ShownNames for an account that may be a sub GM's (sub: its
+// [Test] tag, testtag.go), drawn only where it is no GM's.
+func ShownNamesOf(name string, gm, sub, og, hc bool) []string {
 	og = og && OGTagsOn()
 	hc = hc && HardcoreOn()
+	sub = sub && !gm
 	var more []string
 	for _, g := range []bool{false, gm} {
 		for _, o := range []bool{false, og} {
 			for _, h := range []bool{false, hc} {
-				if s := shownWith(name, g, false, o, h); s != name {
-					more = append(more, s)
+				for _, t := range []bool{false, sub} {
+					if s := shownWith(name, g, t, false, o, h); s != name {
+						more = append(more, s)
+					}
 				}
 			}
 		}

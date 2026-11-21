@@ -158,6 +158,13 @@ world:
   # every wall, floor and ceiling (handlers/noclip.go). Empty: nobody.
   # noclip_accounts: [someaccount]
 
+  # The accounts (accountinfo.username) that may /grpsummon though they are no
+  # GM's: every other member of their group or raid brought to them
+  # (handlers/grpsummon.go). A GM and a sub GM always may. Empty: GMs and sub
+  # GMs alone. Such an account (a sub GM too) waits grpsummon_cooldown seconds between two (unset: 60; 0: none; a GM: none).
+  # grpsummon_accounts: [someaccount]
+  # grpsummon_cooldown: 60
+
   # The regional weather (internal/weather, #1549): rain, snow and sandstorms
   # by the ground under each 500x500 square (<worlds_dir>/ground/<world>.profiles,
   # cmd/groundbake -only-profiles; tables weatherprofiles, weatherzones,

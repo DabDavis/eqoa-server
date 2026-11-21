@@ -247,6 +247,16 @@ func (w *World) DuelOf(p *Player) (id uint32, on bool) {
 	return 0, false
 }
 
+// Dueling reports p in a duel accepted: its countdown or its fight (an
+// invitation not yet answered is none). /grpsummon leaves such a player where
+// it is (handlers/grpsummon.go).
+func (w *World) Dueling(p *Player) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	d := w.duels.of[p.ServerID]
+	return d != nil && (d.Phase == duelOn || d.Phase == duelCountdown)
+}
+
 // duelOnLocked is the duel p fights, or nil.
 func (w *World) duelOnLocked(id EntityID) *Duel {
 	if d := w.duels.of[id]; d != nil && d.Phase == duelOn {

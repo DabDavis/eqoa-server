@@ -514,6 +514,10 @@ type Player struct {
 	// HideGMTag: a GM that hid its [GM] tag (/hide gmtag, handlers/hidegmtag.go):
 	// its name is drawn bare, as a player's; it is a GM as before
 	HideGMTag bool
+	// SubGM: its account was a sub GM's at its world entry (a tester's row
+	// marked subgm, handlers' SendGMChannel): its name is drawn with TestTag
+	// where it is no GM's (testtag.go)
+	SubGM bool
 	// OG: an [OG] character (database/ogchar.go), read at its
 	// login: on a shard with world.og_accounts its name is drawn with OGTag
 	// (ogtag.go) and its session has the game's own UI (handlers/ogaccount.go)

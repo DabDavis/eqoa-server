@@ -137,6 +137,9 @@ type RaceCharacter struct {
 	// GM: its account's acctlevel is 1 or more, so its name is drawn with a tag
 	// (entity.GMTag)
 	GM bool
+	// Sub: its account is a sub GM's (gm_testers.subgm), so its name is drawn
+	// with a tag where it is no GM's (entity.TestTag; subGMCharacters)
+	Sub bool
 	// OG: an [OG] character (ogchar.go), whose name a shard with
 	// world.og_accounts draws with its tag (entity.OGTag)
 	OG bool
@@ -174,5 +177,13 @@ func (db *SQLiteDB) CharactersOfRaces(races []int) ([]RaceCharacter, error) {
 		}
 		out = append(out, c)
 	}
-	return out, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	rows.Close() // its one connection free for the next query
+	subs := db.subGMCharacters()
+	for i := range out {
+		out[i].Sub = subs[out[i].Name]
+	}
+	return out, nil
 }

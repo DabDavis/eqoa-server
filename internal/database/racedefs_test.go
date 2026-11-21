@@ -97,3 +97,32 @@ func TestCharactersOfRaces(t *testing.T) {
 		t.Errorf("no races: %v, %v", got, err)
 	}
 }
+
+// A sub GM's characters are marked Sub (their names drawn "[Test] Name",
+// entity.TestTag) once the panel's gm_testers table says so; with no such table
+// none are, and the list is still read.
+func TestCharactersOfRacesMarksSubGMs(t *testing.T) {
+	db, err := NewSQLite(filepath.Join(t.TempDir(), "racesub.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	store := NewSQLiteCharacterStore(db)
+	for _, c := range []CharacterRecord{{CharName: "Neo", AccountID: 1, Race: 11}, {CharName: "Bob", AccountID: 2, Race: 11}} {
+		if err := store.Create(&c); err != nil {
+			t.Fatal(err)
+		}
+	}
+	got, err := db.CharactersOfRaces([]int{11})
+	if err != nil || len(got) != 2 || got[0].Sub || got[1].Sub {
+		t.Fatalf("no gm_testers: %+v, %v", got, err)
+	}
+	if _, err := db.Exec(`CREATE TABLE gm_testers (accountid INTEGER PRIMARY KEY, subgm INTEGER NOT NULL DEFAULT 0);
+		INSERT INTO gm_testers (accountid, subgm) VALUES (1, 1), (2, 0)`); err != nil {
+		t.Fatal(err)
+	}
+	got, err = db.CharactersOfRaces([]int{11})
+	if err != nil || len(got) != 2 || got[0].Name != "Bob" || got[0].Sub || !got[1].Sub {
+		t.Fatalf("with gm_testers: %+v, %v", got, err)
+	}
+}

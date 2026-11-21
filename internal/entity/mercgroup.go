@@ -87,16 +87,17 @@ type groupView struct {
 	name    string
 	hp, top int
 	x, y, z float32
+	world   uint8
 }
 
 // memberViewLocked is a group member's view: a player, or a merc (its NPC),
 // false for neither. Must be called with the lock held.
 func (w *World) memberViewLocked(id EntityID) (groupView, bool) {
 	if p := w.Players[id]; p != nil {
-		return groupView{id: p.ServerID, name: p.Name, hp: p.HP, top: p.MaxHPNow(), x: p.X, y: p.Y, z: p.Z}, true
+		return groupView{id: p.ServerID, name: p.Name, hp: p.HP, top: p.MaxHPNow(), x: p.X, y: p.Y, z: p.Z, world: p.World}, true
 	}
 	if n := w.NPCs[id]; n.isMerc() && !n.Dead {
-		return groupView{id: n.ServerID, name: n.Name, hp: n.HP, top: n.MaxHP, x: n.X, y: n.Y, z: n.Z}, true
+		return groupView{id: n.ServerID, name: n.Name, hp: n.HP, top: n.MaxHP, x: n.X, y: n.Y, z: n.Z, world: n.World}, true
 	}
 	return groupView{}, false
 }
@@ -135,8 +136,12 @@ func (w *World) groupIDSeenByLocked(recv *session.Session, id EntityID) uint32 {
 }
 
 // groupRecord is a member's 13 bytes of the group channel (0x40, CLIENT's
-// Channel40): its id, its health known and of 255, a byte, and its place in
-// whole units.
+// Channel40): its id, its health known and of 255, its world (the member's
+// m_p0C), and its place in whole units. DrawPatch puts a member with no actor
+// in view on the compass by that place only when the byte is the player's
+// world (`m_p0C != m_worldId`: skipped): written 0 until 2026-11-21, a group
+// out of each other's view had no dots anywhere but Tunaria (petition 5391,
+// Sloth and Warsloth 470 apart in Odus).
 func groupRecord(r []byte, id uint32, v groupView) {
 	r[0], r[1], r[2], r[3] = byte(id), byte(id>>8), byte(id>>16), byte(id>>24)
 	r[4] = 1
@@ -145,7 +150,7 @@ func groupRecord(r []byte, id uint32, v groupView) {
 		hp = int(healthBar(v.hp, v.top))
 	}
 	r[5] = byte(max(0, min(255, hp)))
-	r[6] = 0
+	r[6] = v.world
 	for c, f := range []float32{v.x, v.y, v.z} {
 		s := int16(max(math.MinInt16, min(math.MaxInt16, int(f))))
 		r[7+2*c], r[8+2*c] = byte(s), byte(uint16(s)>>8)

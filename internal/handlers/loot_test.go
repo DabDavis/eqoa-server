@@ -226,3 +226,29 @@ func TestACorpsesTunarGoesToItsFirstOpener(t *testing.T) {
 		t.Fatalf("a level 40's corpse carried %d tunar, want 40 to 80", n)
 	}
 }
+
+// Petition 2590: a corpse opened is refreshed (the World's RefreshCorpse: it lies on from
+// the open), its death's; one refused (another's kill, gone) is not.
+func TestACorpseOpenedIsRefreshed(t *testing.T) {
+	f := newCorpseFixture(t, 1)
+	var refreshed []time.Time
+	f.h.refreshCorpse = func(id entity.EntityID, died time.Time) bool {
+		if id == f.npc.ServerID {
+			refreshed = append(refreshed, died)
+		}
+		return true
+	}
+	f.h.OpenCorpse(f.sess, f.npc)
+	f.sent()
+	if len(refreshed) != 1 || !refreshed[0].Equal(f.npc.DeathTime) {
+		t.Fatalf("opened: refreshed %v", refreshed)
+	}
+	f.send(protocol.OpcodeClientCloseLoot, nil)
+	f.sent()
+	f.lies = false
+	f.h.OpenCorpse(f.sess, f.npc)
+	f.sent()
+	if len(refreshed) != 1 {
+		t.Fatalf("a gone corpse refreshed: %v", refreshed)
+	}
+}

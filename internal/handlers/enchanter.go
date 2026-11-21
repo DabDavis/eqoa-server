@@ -482,6 +482,14 @@ func (e *Enchanter) tryOn(sess *session.Session, p *entity.Player, a enchanterAs
 	row.ItemID = a.itemID
 	put := enchanterAuras[aura].A
 	put.Color = colour
+	was := row.First
+	if a.second {
+		was = row.Second
+	}
+	if sameAura(was, put) { // nothing to buy (petition 2576: a second pick of the colour it wears)
+		e.say(sess, a.speaker, fmt.Sprintf("Your weapon already wears %s in that colour.", enchanterAuras[aura].Tag))
+		return
+	}
 	if a.second {
 		row.Second = put
 	} else {
@@ -496,6 +504,12 @@ func (e *Enchanter) tryOn(sess *session.Session, p *entity.Player, a enchanterAs
 	}
 	e.ask(sess, p, a, fmt.Sprintf("Here is %s on your weapon for a moment. Buy it%s?", enchanterAuras[aura].Tag, price), []string{enchantBuy, enchantNoBuy})
 	log.Printf("Enchanter: %s tries %s on item %d (colour %08X)", p.Name, enchanterAuras[aura].Tag, a.itemID, colour)
+}
+
+// sameAura is whether a copy's aura is already put (its kind, source, nodes
+// and colour, the PatternID aside).
+func sameAura(was, put database.ItemAura) bool {
+	return was.SecondShows() && was.Kind == put.Kind && was.Source == put.Source && was.Nodes == put.Nodes && was.Color == put.Color
 }
 
 // EnchantTag is a copy's tag from its two auras: each one's catalog name
@@ -625,8 +639,11 @@ func (e *Enchanter) enchant(sess *session.Session, p *entity.Player, a enchanter
 
 // openPicker opens the client's colour picker (dyepicker.go) for the aura
 // chosen: its colour now where the copy wears that aura, previewed on the
-// hand; a colour picked is enchanted as a palette's colour is (the price
-// paid, the weapon still held).
+// hand; a colour picked is tried on as a palette's colour is (tryOn: shown
+// for enchantTryOn, then "Buy it" or not), never bought at the pick: Heirloom
+// petitions 2576/2578 (Neo): a pick came in by itself through lag (the
+// picker's white, 3 s after it opened) and 54 tokens were spent on the wrong
+// colour with no question asked.
 func (e *Enchanter) openPicker(sess *session.Session, p *entity.Player, a enchanterAsk) {
 	c := enchanterAuras[a.aura]
 	place := uint8(auraPlaceMainHand)
@@ -649,6 +666,6 @@ func (e *Enchanter) openPicker(sess *session.Session, p *entity.Player, a enchan
 	}
 	what := fmt.Sprintf("%s's %s (item %d) %s", p.Name, auraPieceNames[a.hand], a.itemID, c.Tag)
 	openDyePicker(sess, p, a.npc, a.speaker, what, o, func(sess *session.Session, p *entity.Player, rgba uint32) {
-		e.enchant(sess, p, a, a.aura, rgba, false)
+		e.tryOn(sess, p, a, a.aura, rgba)
 	})
 }

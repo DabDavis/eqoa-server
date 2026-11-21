@@ -456,8 +456,31 @@ func TestTheEnchanterPicker(t *testing.T) {
 	}
 	o, _ = readPickerOpen(msgs[len(msgs)-1])
 	answerPicker(t, h, tw.s, DyePickerPicked, o.token, 0x3FA7D6FF)
+	// a pick is tried on and asked, never bought at once (petitions 2576/2578)
+	if r, _, _ := db.InstanceAuraOf(sword); r.Second.Source != 0 {
+		t.Fatalf("a pick bought the aura with no question: %+v", r)
+	}
+	if held, ok := database.InstanceAuraHeld(sword); !ok || held.Second.Color != 0x3FA7D6FF {
+		t.Fatalf("the pick not tried on: %v %+v", ok, held)
+	}
+	got = questMsgs(tw.s)
+	if last := got[len(got)-1]; !strings.HasSuffix(last, "|"+enchantBuy+"|"+enchantNoBuy) {
+		t.Fatalf("no Buy box after the pick: %q", got)
+	}
+	got = pick(got, 0) // Buy it
 	r, _, _ := db.InstanceAuraOf(sword)
 	if r.Second.Color != 0x3FA7D6FF || r.Second.Source != 0x88EC092D || r.Tag != "Virtuous" {
 		t.Fatalf("the aura: %+v", r)
+	}
+	// the colour it wears picked again: nothing to buy, nothing asked
+	e.Talk(tw.s, tw.p, enchanter)
+	got = pick(pick(questMsgs(tw.s), 1), 0)
+	e.Answer(tw.s, tw.p, boxID(got), 1)
+	msgs = pickerMsgs(tw.s)
+	questMsgs(tw.s)
+	o, _ = readPickerOpen(msgs[len(msgs)-1])
+	answerPicker(t, h, tw.s, DyePickerPicked, o.token, 0x3FA7D6FF)
+	if got = questMsgs(tw.s); !hasMsg(got, "box:Weapon Enchanter: Your weapon already wears Virtuous in that colour.") {
+		t.Fatalf("the same colour again: %q", got)
 	}
 }

@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"maps"
 	"sort"
 	"strings"
 	"time"
@@ -180,6 +181,16 @@ func (w *World) spawnCopyAsLocked(t *NPC, x, y, z, facing float32, world uint8, 
 	c.roam = roamState{}
 	c.spots = nil // its own, round its own spawn
 	c.Threats = nil
+	// its own maps, never the original's: `c := *t` shared them, so every copy of a
+	// row (each dungeon instance's) tallied its damage into one map, and a kill in one
+	// instance went to the player who had hit that creature in another (Heirloom
+	// petition 2574, Nephycelium: Tomb of Kings' Excavation Team twice "another
+	// player's", Skywalker's resets' damage, 17,446 and 20,340 on a 14,860 HP creature;
+	// killcredit.go). A copy is a new life: no damage on it yet; its hate's holders
+	// and its abilities' clocks go on from the original's, as its own.
+	c.damageBy = nil
+	c.hcHate = maps.Clone(t.hcHate)
+	c.abilityReady = maps.Clone(t.abilityReady)
 	c.CurrentEnemy = 0
 	c.castsAt = 0 // a trigger's sic sets its own (gmtriggers.go)
 	c.LastCombat = time.Time{}

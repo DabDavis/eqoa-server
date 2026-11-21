@@ -158,6 +158,20 @@ func (w *World) HoldCorpse(id EntityID, died, until time.Time) bool {
 	return true
 }
 
+// RefreshCorpse is a corpse of the death died opened by a looter: it lies at least the
+// corpse decay (world.corpse_decay, 3 minutes) from now, as a corpse checked did on Live
+// (Heirloom petition 2590, Mightyeagle: "checking body doesnt refresh timer like it
+// should"): a corpse opened near its end (one lingering to 20 minutes, corpselinger.go,
+// or an instance's, which goes at 3) is not taken from under its looter. A hold
+// (HoldCorpse) carried to the copy a lingering corpse leaves, and over a keep restart; it
+// reports whether it holds.
+func (w *World) RefreshCorpse(id EntityID, died time.Time) bool {
+	w.mu.RLock()
+	d := w.corpseDecay
+	w.mu.RUnlock()
+	return w.HoldCorpse(id, died, time.Now().Add(d))
+}
+
 // decayOf is how long the NPC's corpse lies: its own CorpseDecay (a pet's,
 // pet.go), else the world's.
 func (n *NPC) decayOf(world time.Duration) time.Duration {

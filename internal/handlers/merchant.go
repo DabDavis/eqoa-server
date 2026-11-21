@@ -68,6 +68,9 @@ type NPCWindowHandler struct {
 	groupOf     func(*entity.Player) []*session.Session
 	corpseLies  func(entity.EntityID) (time.Time, bool)
 	clearCorpse func(entity.EntityID, time.Time) bool
+	// refreshCorpse is the World's RefreshCorpse: a corpse opened lies on
+	// (petition 2590)
+	refreshCorpse func(entity.EntityID, time.Time) bool
 	// guardsKill is the World's GuardsKill: a corpse the town guards made
 	// is no one's to loot (entity/guards.go)
 	guardsKill func(entity.EntityID) bool
@@ -148,6 +151,7 @@ func (h *NPCWindowHandler) SetGameWorld(gw *entity.World) {
 	}
 	h.corpseLies = gw.CorpseLies
 	h.clearCorpse = gw.ClearCorpse
+	h.refreshCorpse = gw.RefreshCorpse
 	h.guardsKill = gw.GuardsKill
 	h.duelLoot = gw.ChallengeLooter // a Metal Moogie's corpse is his challenger's (entity/metalmoogie.go)
 	h.lootSeed = gw.NPCLootSeed     // loot determined at the spawn (entity/spawnloot.go)

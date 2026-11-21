@@ -478,24 +478,31 @@ def main(argv=None):
                 print(f"  part {p}: applied already (--undo --only {p} to take it back)")
         if not todo:
             return 0
-        plan = Plan(db, todo, a.data)
+        # each part is read after the parts before it are written (f before c: c finds Live's rows as f left
+        # them), all in one transaction; a report only rolls it back
         from collections import Counter
-        sk = Counter(p for p, _ in plan.skipped)
-        al = Counter(p for p, _ in plan.done_already)
+        db.execute("BEGIN IMMEDIATE")
+        n, bad = {}, []
         for p in todo:
+            plan = Plan(db, [p], a.data)
+            sk = Counter(x for x, _ in plan.skipped)
+            al = Counter(x for x, _ in plan.done_already)
             print(f"  part {p}: {len(plan.writes[p])} rows to write, {sk.get(p, 0)} skipped, {al.get(p, 0)} as wanted already")
-        for p, why in plan.skipped if a.verbose else plan.skipped[:40]:
-            print(f"    skipped [{p}] {why}")
-        if not a.verbose and len(plan.skipped) > 40:
-            print(f"    ... {len(plan.skipped) - 40} more (-v)")
-        if plan.bad:
-            print("refused, nothing done:\n  " + "\n  ".join(plan.bad[:80]))
-            return 1
-        if not a.apply:
+            for _, why in plan.skipped if a.verbose else plan.skipped[:15]:
+                print(f"    skipped [{p}] {why}")
+            if not a.verbose and len(plan.skipped) > 15:
+                print(f"    ... {len(plan.skipped) - 15} more (-v)")
+            if plan.bad:
+                bad += plan.bad
+                continue
+            n.update(apply(db, plan, [p]))
+        if bad or not a.apply:
+            db.execute("ROLLBACK")
+            if bad:
+                print("refused, nothing done:\n  " + "\n  ".join(bad[:80]))
+                return 1
             print("report only: --apply to write it")
             return 0
-        db.execute("BEGIN IMMEDIATE")
-        n = apply(db, plan, todo)
         db.execute("COMMIT")
         print(f"applied: {n}; quests at the next quest reload (quest_set_enabled on one quest) or restart, "
               f"dialog and boards within 30 s")

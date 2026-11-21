@@ -423,6 +423,9 @@ func (h *ChatHandler) playerHelp(sess *session.Session) {
 	for _, l := range playerHelpLines {
 		SendClientMessage(sess, l)
 	}
+	if may, gm := h.mayGrpSummon(sess); may && !gm { // a sub GM's or a listed account's own (grpsummon.go)
+		SendClientMessage(sess, grpSummonHelp)
+	}
 	if h.isGM(sess) {
 		SendClientMessage(sess, "  GM commands: #help")
 	}

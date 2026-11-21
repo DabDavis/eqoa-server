@@ -748,6 +748,12 @@ func main() {
 	handlers.SetTestInvis(cfg.World.TestInvis)
 	// /noclip's GMs (handlers/noclip.go)
 	handlers.SetNoclipAccounts(cfg.World.NoclipAccounts)
+	// /grpsummon's accounts that are no GM's, and their wait (handlers/grpsummon.go)
+	grpSummonWait := -1 // the default, 60 s
+	if cfg.World.GrpSummonCooldown != nil {
+		grpSummonWait = *cfg.World.GrpSummonCooldown
+	}
+	handlers.SetGrpSummon(cfg.World.GrpSummonAccounts, grpSummonWait)
 	// whose NPC row edits are written to the other shard's database too (handlers/npcmirror.go)
 	handlers.SetNPCMirror(cfg.World.MirrorNPCEditsAccounts, cfg.World.MirrorNPCDB)
 	handlers.SetTeleporter(cfg.World.Teleporter) // handlers/teleporter.go

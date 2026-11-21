@@ -210,6 +210,7 @@ Every `#` command (`handlers/chat.go`, `devcmds.go`) needs `accountinfo.acctleve
 anyone else is answered `Unrecognized command "#x".` A client that forwards `/commands` may use `/` too; a PS2's
 CLIENT forwards only tells, so some commands also take `/t <word>`. Players' own commands (`/help`,
 `playerHelpLines`) are separate from a GM's `#help`. Among them: travel (`#goto`, `#tele`, the map), `#summon`,
+`#grpsummon` (the group or raid; also `world.grpsummon_accounts`' players),
 `#spawn`, `#template`, `#stats`, `#ticks`, `#net`, `#packetlog`, `#movecheck`, `#giveitem`, `#clearbuffs`, flight and
 `/noclip`, the GM TEST menu, and **triggers**: GM-scripted events (spawns, steps, walls, encounter runs) kept over a
 keep restart, edited in the panel.

@@ -604,6 +604,20 @@ type WorldConfig struct {
 	// Unset or empty: nobody.
 	NoclipAccounts []string `yaml:"noclip_accounts"`
 
+	// GrpSummonAccounts are the accounts (accountinfo.username, any case) that
+	// may use /grpsummon though they are no GM's (handlers/grpsummon.go; the
+	// owner, 2026-11-21: "/grpsummon new GM command summons whole raid or group
+	// that they are in. also give [a player] the ability to his account"): every
+	// other member of the caller's group or raid brought to the caller. A GM
+	// (acctlevel 1 or more) and a sub GM ("sub gms can /grpsummon", the owner,
+	// the same day) may always. Unset or empty: GMs and sub GMs alone.
+	GrpSummonAccounts []string `yaml:"grpsummon_accounts"`
+
+	// GrpSummonCooldown is the seconds between one /grpsummon and the next for
+	// a sub GM or an account of GrpSummonAccounts that is no GM's (a GM has none). Unset:
+	// 60. 0: none.
+	GrpSummonCooldown *int `yaml:"grpsummon_cooldown"`
+
 	// MirrorNPCEditsAccounts are the accounts (accountinfo.username, any case)
 	// whose GM edits of NPC rows here are written to the shard database
 	// MirrorNPCDB names as well (handlers/npcmirror.go; the owner, 2026-11-14:

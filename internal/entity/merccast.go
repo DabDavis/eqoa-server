@@ -43,6 +43,14 @@ import (
 //     that is a player's own). Pets: its own pet it tends (mercpetbuff.go);
 //     its owner's pet and its owner's other mercs' pets are its owner's, so
 //     the rule allows them, but it has never tended them and still does not;
+//   - a power gift (mercPowerTurnLocked: the enchanter's Boon path, Power
+//     Jet to Power Boon and Ahrianna's Blessed Boon, a bard's Power Ballad):
+//     power now for the one of its heals' team (mercHealTeamLocked, itself
+//     left out: the line is power for others) lowest in its share of power,
+//     under mercPowerGiftPct, a body with no power never; its best gift that
+//     is ready and reaches it, in its sight, held while its heals are held
+//     (Heirloom petition 2551, Kang: "boon path Enchanter Merc does not have
+//     any of the boon spells. Probly why it sucks at giving power");
 //   - with no pet of its own out, its summoning (mercpet.go);
 //   - its pet's heal when it is hurt, then its pet's buffs, the best of
 //     each line kept on it (mercpetbuff.go);
@@ -103,6 +111,9 @@ const (
 	// mercBuffSpare: a merc buffs out of a fight only with this share of its
 	// power or more
 	mercBuffSpare = 50
+	// mercPowerGiftPct is the share of its power below which a merc gives one
+	// of its team its power gift (mercPowerTurnLocked)
+	mercPowerGiftPct = 60
 )
 
 // mercBuffLasts is the least a buff lasts for a merc to keep it up out of a
@@ -122,13 +133,14 @@ const (
 	useHoT               // a heal over time of one
 	useGroupHeal         // a heal of the group, now or over time
 	useBuff              // what lasts on a friend: itself, one or the group
+	usePower             // power now for one of its team, or its group
 )
 
 // MercUseName is what a merc casts a spell for, in words ("" for a spell it
 // never casts): the handlers' real-data test's.
 func MercUseName(s *CastSpell) string {
 	return [...]string{useNone: "", useNuke: "hit", useDoT: "damage over time", useTaunt: "taunt", useHeal: "heal",
-		useHoT: "heal over time", useGroupHeal: "group heal", useBuff: "buff"}[mercUseOf(s)]
+		useHoT: "heal over time", useGroupHeal: "group heal", useBuff: "buff", usePower: "give power"}[mercUseOf(s)]
 }
 
 // MercBuffsKept is the buffs a merc of the kit keeps up, as its book holds
@@ -176,7 +188,7 @@ func mercUseOf(s *CastSpell) mercUse {
 		return useNone
 	}
 	d := &s.Def
-	var hate, hit, tick, heal, hot, lasting bool
+	var hate, hit, tick, heal, hot, lasting, gift bool
 	for _, e := range d.Effects {
 		if e.Self {
 			continue
@@ -194,6 +206,10 @@ func mercUseOf(s *CastSpell) mercUse {
 			// 2026-11-17: "I picked power path and they have no power path
 			// spells")
 			hit = hit || e.Amount < 0 && e.Drain == DrainGroup
+			// power given now to a friend (the enchanter's Boon path: Power
+			// Jet to Power Boon; Heirloom petition 2551, Kang: "boon path
+			// Enchanter Merc does not have any of the boon spells")
+			gift = gift || e.Amount > 0 && e.Drain == DrainNone && !e.Set
 		case EffectHPTick:
 			tick = tick || e.Amount < 0
 			hot = hot || e.Amount > 0
@@ -225,6 +241,8 @@ func mercUseOf(s *CastSpell) mercUse {
 		return useHoT
 	case (heal || hot || lasting) && d.lasts():
 		return useBuff
+	case gift && !hit && (s.Scope == 1 || s.Scope == 2):
+		return usePower
 	}
 	return useNone
 }
@@ -365,7 +383,7 @@ func mercSongFigure(s *CastSpell) int {
 
 // mercWorth is what a spell is worth to the merc: a hit's or a heal's
 // figure as its body would roll it on average (a tick's times its ticks), a
-// taunt's hate and hit, a buff's level.
+// taunt's hate and hit, a power gift's power, a buff's level.
 func mercWorth(s *CastSpell, u mercUse, b *Player) float64 {
 	if u == useBuff {
 		return float64(s.Level)
@@ -398,8 +416,8 @@ func mercWorth(s *CastSpell, u mercUse, b *Player) float64 {
 		case EffectHP:
 			v += n
 		case EffectPower:
-			if e.Drain == DrainGroup {
-				v += n // the group's power, worth its hit points' figure (mercUseOf)
+			if e.Drain == DrainGroup || u == usePower && e.Amount > 0 && e.Drain == DrainNone {
+				v += n // the group's power, worth its hit points' figure (mercUseOf); a gift's power
 			}
 		case EffectHPTick:
 			v += n * ticks
@@ -431,11 +449,11 @@ func mercReaches(m *NPC, s *CastSpell, x, y, z, extra float32) bool {
 }
 
 // mercCastTurnLocked is the merc's cast this turn, if any (the file's doc):
-// a heal, else its pet's summoning, heal or buff, else out of a fight a
+// a heal, else a power gift, else its pet's summoning, heal or buff, else out of a fight a
 // buff, else a tank's taunt, else an attack. It reports a cast begun. Must
 // be called with the lock held.
 func (w *World) mercCastTurnLocked(ms *mercState, t *NPC, now time.Time) bool {
-	if w.mercHealTurnLocked(ms, now) {
+	if w.mercHealTurnLocked(ms, now) || w.mercPowerTurnLocked(ms, now) {
 		return true
 	}
 	// an alchemist's draught for its power, its Master Class's buff and heal
@@ -674,6 +692,75 @@ func (w *World) mercHealTurnLocked(ms *mercState, now time.Time) bool {
 			continue
 		}
 		if pick(low, useHoT) || pick(low, useHeal) || pick(low, useGroupHeal) {
+			return true
+		}
+	}
+	return false
+}
+
+// mercPowerTurnLocked is a power gift the merc casts now, if any (the file's
+// doc): at the one of its heals' team lowest in its share of power, under
+// mercPowerGiftPct, not itself, nor one with no power, nor one its gift is on
+// its way to; its best gift (mercBook's order) that is ready and reaches it,
+// the next lowest when none reaches or it is out of sight (Heirloom petition
+// 2551, Kang: "boon path Enchanter Merc does not have any of the boon
+// spells"). It reports a cast begun. Must be called with the lock held.
+func (w *World) mercPowerTurnLocked(ms *mercState, now time.Time) bool {
+	book := ms.mercBook()
+	if !slices.ContainsFunc(book, func(sp mercSpell) bool { return sp.use == usePower }) {
+		return false
+	}
+	m := ms.npc
+	type low struct {
+		mm    mercMate
+		share float64
+	}
+	var lows []low
+	for _, mm := range w.mercHealTeamLocked(ms) {
+		if mm.id() == m.ServerID {
+			continue // power for others (archivistpaths.go's Boon path)
+		}
+		pw, top := mm.power()
+		if top <= 0 || pw*100 >= top*mercPowerGiftPct || w.mercGiftComingLocked(ms, mm.id()) {
+			continue
+		}
+		lows = append(lows, low{mm, float64(pw) / float64(top)})
+	}
+	if len(lows) == 0 || w.mercHealHeldLocked(ms) { // held as its heals are (merccall.go)
+		return false
+	}
+	sort.SliceStable(lows, func(i, j int) bool { return lows[i].share < lows[j].share })
+	for _, lo := range lows {
+		if !w.mercSeesLocked(ms, lo.mm) {
+			continue
+		}
+		x, y, z := lo.mm.place()
+		for _, sp := range book {
+			if sp.use != usePower || !ms.mercReady(sp.s, now) {
+				continue
+			}
+			if sp.s.Scope == 2 {
+				if !w.mercGroupReachesLocked(ms, sp.s, lo.mm) {
+					continue
+				}
+				w.mercCastLocked(ms, sp.s, m.ServerID, true, now)
+				return true
+			}
+			if !mercReaches(m, sp.s, x, y, z, 0) {
+				continue
+			}
+			w.mercCastLocked(ms, sp.s, lo.mm.id(), false, now)
+			return true
+		}
+	}
+	return false
+}
+
+// mercGiftComingLocked reports a power gift of the merc's on its way to id
+// (its group's to any). Must be called with the lock held.
+func (w *World) mercGiftComingLocked(ms *mercState, id EntityID) bool {
+	for _, c := range w.mercCasts {
+		if c.ms == ms && c.life == ms.life && (c.group || c.target == id) && mercUseOf(&c.spell) == usePower {
 			return true
 		}
 	}
@@ -1126,11 +1213,12 @@ func (w *World) mercSplashLocked(ms *mercState, s *CastSpell, t *NPC, now time.T
 }
 
 // mercHeals is whether s is one of the merc's heals (a heal, a heal over time,
-// a group's), which its sight holds as it lands (the file's doc); its buffs are
-// not held to it, as before.
+// a group's) or a power gift, which go where its heals go (mercHealTeamLocked)
+// and which its sight holds as they land (the file's doc); its buffs are not
+// held to it, as before.
 func mercHeals(s *CastSpell) bool {
 	u := mercUseOf(s)
-	return u == useHeal || u == useHoT || u == useGroupHeal
+	return u == useHeal || u == useHoT || u == useGroupHeal || u == usePower
 }
 
 // mercSeesIDLocked reports a line of sight from the merc to the body of id

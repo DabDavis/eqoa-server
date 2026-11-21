@@ -22,8 +22,9 @@ func withCreation(t *testing.T, r CreationRules) {
 	t.Cleanup(func() { SetRaceDefs(nil); SetCreationRules(CreationRules{}) })
 }
 
-// Off (the Live Server's): the game's ten races and the froglok take any class,
-// as they always did, and no race of racedefs is made; on, those are taken, each
+// Off (the Live Server's): the game's ten races take their own classes only (the
+// owner, 2026-11-21: until then any class, the pages alone deciding), no froglok
+// and no race of racedefs is made; on, those are taken, each
 // with its classes (its row's, else its wire race's) unless every class is open.
 func TestCheckCreation(t *testing.T) {
 	type c struct {
@@ -40,7 +41,8 @@ func TestCheckCreation(t *testing.T) {
 		}
 	}
 	run("off", CreationRules{}, []c{
-		{0, 3, 2, true}, {5, 13, 0, true}, {raceFroglok, 1, 0, true}, // as before: the pages decide
+		{0, 3, 2, false}, {5, 13, 0, false}, {raceFroglok, 1, 0, false}, // a western SK, a troll wizard, a froglok
+		{0, 3, 1, true}, {5, 0, 0, true}, {0, 1, 0, true}, // an eastern SK, a troll warrior, a page's human ranger
 		{11, 0, 0, false}, {12, 0, 0, false}, {0, 15, 0, false}, {0, 0, 3, false}, {31, 0, 0, false},
 	})
 	run("races", CreationRules{Races: true}, []c{
@@ -48,7 +50,7 @@ func TestCheckCreation(t *testing.T) {
 		{12, 1, 0, true}, {12, 2, 0, false}, // its own: WAR RAN
 		{13, 3, 0, true}, {13, 1, 0, false}, // the dark elf's
 		{14, 0, 0, false}, // no row
-		{5, 13, 0, true},  // the game's races as before
+		{5, 13, 0, false}, {raceFroglok, 0, 0, true}, // the game's races by their classes
 	})
 	run("all classes", CreationRules{Races: true, AllClasses: true}, []c{
 		{11, 13, 0, true}, {12, 2, 0, true}, {13, 14, 0, true}, {14, 0, 0, false}, {11, 15, 0, false},
@@ -145,5 +147,37 @@ func TestCheckRaceDefCreation(t *testing.T) {
 		if why := CheckRaceDefCreation(c.wire, c.mask, c.city); (why == "") != c.ok {
 			t.Errorf("wire %d mask %#x city %d: %q", c.wire, c.mask, c.city, why)
 		}
+	}
+}
+
+// TestCreationKeepsTheGamesClassesWhenClosed: with every class not open (a
+// shard like Live), the game's races are held to their own classes (a troll
+// wizard refused); a human by its city, either city's with none; the froglok
+// only where races are open. Open, every class is any race's as before.
+func TestCreationKeepsTheGamesClassesWhenClosed(t *testing.T) {
+	prev := Creation()
+	defer SetCreationRules(prev)
+	SetCreationRules(CreationRules{})
+	for _, c := range []struct {
+		race, class, city int
+		ok                bool
+	}{
+		{5, 13, 0, false}, // troll wizard
+		{5, 0, 0, true},   // troll warrior
+		{6, 8, 0, true},   // barbarian shaman
+		{1, 0, 0, false},  // elf warrior
+		{0, 13, 1, true},  // eastern human wizard
+		{0, 1, 1, false},  // eastern human ranger (0x7E69 has no ranger)
+		{0, 1, 2, true},   // western human ranger
+		{0, 1, 0, true},   // the account page's human, either city
+		{10, 0, 1, false}, // froglok, races closed
+	} {
+		if got := CheckCreation(c.race, c.class, c.city); (got == "") != c.ok {
+			t.Errorf("race %d class %d city %d: %q, want ok=%v", c.race, c.class, c.city, got, c.ok)
+		}
+	}
+	SetCreationRules(CreationRules{Races: true, AllClasses: true})
+	if got := CheckCreation(5, 13, 0); got != "" {
+		t.Errorf("open: troll wizard refused: %q", got)
 	}
 }

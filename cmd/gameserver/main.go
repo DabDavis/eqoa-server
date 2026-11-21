@@ -1144,10 +1144,9 @@ func main() {
 		accountServer.Mail = accountMail
 		accountServer.SetNewCharacterRules(newRules)
 		accountServer.MaxCharacters = entity.CharSlots()
-		// races past the game's, where creation takes them (entity/creation.go)
-		if creation.On() {
-			accountServer.SetExtraRaces(handlers.NewCharRace)
-		}
+		// creation's rules (entity/creation.go): the game's races by their classes
+		// unless every class is open, and races past the game's where it takes them
+		accountServer.SetExtraRaces(handlers.NewCharRace)
 
 		// The account pages can move a character on the logged-in account. Where the
 		// destinations ARE depends on where their defining NPCs spawned, and moving a

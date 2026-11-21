@@ -437,7 +437,7 @@ func planSpent(pl entity.RespecPlan) database.RehabTemplate {
 }
 
 // leftText says what stays unspent: "205 of your 705 mastery points and 408
-// of your 482 training points stay yours to spend."
+// of your 485 training points stay yours to spend."
 func leftText(pl entity.RespecPlan, tail string) string {
 	tpAll := pl.TPAfter
 	for _, v := range pl.TPTo {

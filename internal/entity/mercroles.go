@@ -9,7 +9,7 @@ package entity
 // spent by its role here where the role says, each within the level's cap
 // (StatCapBase: 350, 400 past 45):
 //   - a tank (warrior, paladin, shadow knight) all of them on STA and AGI,
-//     half each: at 60 its 482 points put both near the cap (a human
+//     half each: at 60 its 485 points put both near the cap (a human
 //     warrior's STA 350, AGI 330 before its heirlooms), none on STR, so its
 //     melee stays a tank's, under a melee fighter's;
 //   - a melee fighter (ranger, monk, bard, rogue: the melee archetype)

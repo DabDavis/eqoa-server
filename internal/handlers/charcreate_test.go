@@ -40,8 +40,11 @@ func TestCheckNewChar(t *testing.T) {
 	if why := checkNewChar(0, 9, 1, 7, 3, 3, 3, 1, ok); why != "" {
 		t.Fatalf("a form the pages can make refused: %s", why)
 	}
-	if why := checkNewChar(10, 0, 0, 0, 0, 0, 0, 0, make([]int32, 7)); why != "" {
-		t.Fatalf("the froglok refused: %s", why)
+	if why := checkNewChar(10, 0, 0, 0, 0, 0, 0, 0, make([]int32, 7)); why == "" {
+		t.Fatal("the froglok taken with races closed (world.open_races off)")
+	}
+	if why := checkNewChar(5, 13, 0, 0, 0, 0, 0, 0, ok); why == "" {
+		t.Fatal("a troll wizard taken with every class closed")
 	}
 	bad := map[string]func() string{
 		"race 11":       func() string { return checkNewChar(11, 0, 0, 0, 0, 0, 0, 0, ok) },

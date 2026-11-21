@@ -161,10 +161,29 @@ func CheckCreation(race, class, city int) string {
 		return fmt.Sprintf("class %d", class)
 	case city < 0 || city > 2:
 		return fmt.Sprintf("city %d", city)
-	case race >= 0 && race <= raceFroglok:
-		return ""
 	}
 	r := Creation()
+	if race >= 0 && race <= raceFroglok {
+		// The game's races (and the froglok) by the game's own rules unless
+		// every class is open (the owner, 2026-11-21: "enforce creation rules
+		// on live"): only the client's pages held them, so a crafted 0x002B or
+		// account page request made a troll wizard. A human of no city (the
+		// account page's) may be either city's classes.
+		switch {
+		case race == raceFroglok && !r.Races:
+			return "race 10 (no race past the game's here: world.open_races)"
+		case r.AllClasses:
+			return ""
+		}
+		mask := GameClassMask(race, city)
+		if race == 0 && city == 0 {
+			mask = GameClassMask(0, 1) | GameClassMask(0, 2)
+		}
+		if mask&(1<<uint(class)) == 0 {
+			return fmt.Sprintf("class %d is not race %d's in the game (world.all_classes is off)", class, race)
+		}
+		return ""
+	}
 	if !r.Races {
 		return fmt.Sprintf("race %d (no race past the game's here: world.open_races)", race)
 	}

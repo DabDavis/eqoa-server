@@ -130,8 +130,12 @@ func SendCreationRaces(sess *session.Session) {
 // NewCharRace is the account page's rule for a race past the game's ten (main.go
 // wires it where creation takes such races): whether creation takes race and class
 // (entity.CheckCreation) and the body the character wears ("" taken).
+// A game race (0-9) is checked alone: (0, "") when creation takes its class.
 func NewCharRace(race, class, sex int) (int64, string) {
-	if race <= 9 || race > entity.LastCustomRace {
+	if race >= 0 && race <= 9 {
+		return 0, entity.CheckCreation(race, class, 0)
+	}
+	if race > entity.LastCustomRace {
 		return 0, "not a race past the game's"
 	}
 	if why := entity.CheckCreation(race, class, 0); why != "" {

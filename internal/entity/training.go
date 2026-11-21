@@ -38,12 +38,22 @@ func TrainingPerLevel(l int) int {
 	return 14
 }
 
+// TrainingAtTop is what reaching level 60 gives over leaving 59 (the owner,
+// 2026-11-21, from the guide audit): the brackets left 462 at 60 where the
+// GameFAQs walkthrough's "485 Training Points ... from your character's
+// creation to the moment you hit level 60" and Corsten's 465 over creation
+// both say 465 (+ the create screen's 20).
+const TrainingAtTop = 3
+
 // TrainingPointsDue is every training point a character of that level has
-// been given: the create screen's and each level's below it.
+// been given: the create screen's, each level's below it, and level 60's own.
 func TrainingPointsDue(level int) int {
 	n := CreationTrainingPoints
 	for l := 1; l < min(level, 60); l++ {
 		n += TrainingPerLevel(l)
+	}
+	if level >= 60 {
+		n += TrainingAtTop
 	}
 	return n
 }

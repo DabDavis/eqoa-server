@@ -19,7 +19,7 @@ func TestTrainingPointsByLevel(t *testing.T) {
 			t.Errorf("leaving level %d: %d, want %d", l, got, want)
 		}
 	}
-	for level, want := range map[int]int{1: 20, 2: 23, 15: 62, 16: 67, 30: 137, 45: 272, 60: 482} {
+	for level, want := range map[int]int{1: 20, 2: 23, 15: 62, 16: 67, 30: 137, 45: 272, 59: 468, 60: 485} {
 		if got := TrainingPointsDue(level); got != want {
 			t.Errorf("level %d is due %d, want %d", level, got, want)
 		}

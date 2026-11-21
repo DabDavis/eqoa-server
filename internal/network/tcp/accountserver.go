@@ -1371,7 +1371,13 @@ func (s *AccountServer) handleAPICreateCharacter(w http.ResponseWriter, r *http.
 	}
 	// a race past the game's ten only where creation takes it, in its body
 	extraModel := int64(0)
-	if req.Race < 0 || req.Race > 9 {
+	if req.Race >= 0 && req.Race <= 9 && s.extraRaces != nil { // the game's races by its own classes (CheckCreation)
+		if _, why := s.extraRaces(req.Race, req.Class, req.Gender); why != "" {
+			log.Printf("AccountServer: race %d class %d refused: %s", req.Race, req.Class, why)
+			json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "That race cannot be that class"})
+			return
+		}
+	} else if req.Race < 0 || req.Race > 9 {
 		why := "no such race"
 		if s.extraRaces != nil {
 			extraModel, why = s.extraRaces(req.Race, req.Class, req.Gender)

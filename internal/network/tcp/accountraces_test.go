@@ -45,6 +45,12 @@ func TestTheAccountPageTakesExtraRacesByItsRule(t *testing.T) {
 		t.Fatalf("no rule: a race past ten was made: %v", out)
 	}
 	s.SetExtraRaces(func(race, class, sex int) (int64, string) {
+		if race >= 0 && race <= 9 { // the game's races: a troll wizard refused
+			if race == 5 && class == 13 {
+				return 0, "not the troll's"
+			}
+			return 0, ""
+		}
 		if race == 12 && class != 13 {
 			return 0x22176258 + int64(sex), ""
 		}
@@ -58,6 +64,9 @@ func TestTheAccountPageTakesExtraRacesByItsRule(t *testing.T) {
 	}
 	if out := create("Wizkitty", 12, 13); out["success"] != false {
 		t.Fatalf("the rule refused it, the page made it: %v", out)
+	}
+	if out := create("Trollwiz", 5, 13); out["success"] != false {
+		t.Fatalf("the rule refused a troll wizard, the page made it: %v", out)
 	}
 	// the control: a race of the game's is the page's own
 	if out := create("Plainman", 0, 13); out["success"] != true {

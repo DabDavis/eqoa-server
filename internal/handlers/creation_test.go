@@ -226,8 +226,11 @@ func TestNewCharRace(t *testing.T) {
 	if m, why := NewCharRace(10, 3, 1); why != "" || m != entity.FroglokBody {
 		t.Errorf("a froglok: %#x %q", m, why)
 	}
-	if _, why := NewCharRace(3, 0, 0); why == "" {
-		t.Error("the control: a race of the game's is the page's own")
+	if m, why := NewCharRace(3, 0, 0); why != "" || m != 0 {
+		t.Errorf("a gnome warrior, the game's race, its body the page's: %#x %q", m, why)
+	}
+	if _, why := NewCharRace(5, 13, 0); why == "" {
+		t.Error("a troll wizard taken with every class closed")
 	}
 	newCreationRig(t, entity.CreationRules{})
 	if _, why := NewCharRace(11, 0, 0); why == "" {

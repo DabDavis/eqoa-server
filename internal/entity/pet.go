@@ -934,7 +934,7 @@ func (w *World) petSystem(now time.Time) {
 // owner is petFollowStart away, at the owner's speed (half as fast again
 // once petCatchUp behind), and stands when there.
 func (w *World) petFollowLocked(ps *petState, dt float32, now time.Time) {
-	w.followLocked(ps.npc, ps.owner, slotPet, dt, now) // followslot.go: its slot, at its owner's right
+	w.petFollowSlotLocked(ps.npc, ps.owner, slotPet, dt, now) // followslot.go: its slot, at its owner's right (followstuck.go: unstuck)
 }
 
 // petStepLocked steps the pet toward (x, z), its floor looked for from

@@ -295,7 +295,7 @@ func (w *World) sidePetSystem(now time.Time) {
 		} else {
 			ps.target = 0
 			if !w.petTemplateTurnLocked(ps, nil, now) {
-				w.followLocked(pet, owner, slotSidePet, dt, now)
+				w.petFollowSlotLocked(pet, owner, slotSidePet, dt, now) // followstuck.go
 			} else {
 				pet.stopMoving()
 			}

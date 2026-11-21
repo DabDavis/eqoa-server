@@ -1,8 +1,11 @@
 package entity
 
 import (
+	"net"
 	"testing"
 	"time"
+
+	"github.com/eqoa/server/internal/session"
 )
 
 // A heal on a full target is told whole (petition 2016): the caster's own on
@@ -143,5 +146,116 @@ func TestAPetsHoTRecastKeepsItsTick(t *testing.T) {
 	weak := &ActiveEffect{SpellID: 700001, Name: "Minor Healing", Caster: r.p.ServerID, Until: at.Add(24 * time.Second), HPTick: 50}
 	if r.w.placePetHoTLocked(r.pet, weak, at) {
 		t.Error("a weaker heal over time went on over a stronger one ticking")
+	}
+}
+
+// Petition 2593 (a ranger: "Forest's Succor still doesn't seem to heal anybody
+// but me, or at least I can't see the numbers even on mercs in my group"): a
+// spell's HoT stat cast on another player is told its caster each regen tick,
+// its own part over the bearer, whole at full health; the bearer's own figure
+// is the whole, as before; a player with no part in it is told nothing.
+func TestStatHoTIsToldItsCaster(t *testing.T) {
+	r := newTagRig(t)
+	other := r.w.SessionManager.CreateSession(&net.UDPAddr{IP: net.IPv4(10, 0, 0, 11), Port: 7003}, 4, 4, 4, 5, true)
+	op := &Player{ServerID: 1003, Name: "Onlooker", Level: 20, HP: 900, MaxHP: 900, X: 102, Y: 10, Z: 100}
+	r.w.Players[op.ServerID] = op
+	other.SetECSEntity(op)
+	other.SetCharacterInWorld(true)
+	other.SetPlayerObjectID(0x0140DDD0)
+	other.SetNumberTags(true)
+	ov := GetOrCreateVisibility(other)
+	ov.ChannelEntity[1], ov.ChannelObjectID[1] = r.friend.ServerID, 0x0140DDD1
+	ov.ChannelEntity[2], ov.ChannelObjectID[2] = r.pet.ServerID, 0x0140DDD2
+	ov.ChannelEntity[3], ov.ChannelObjectID[3] = r.p.ServerID, 0x0140DDD3
+	regen := func() {
+		r.w.mu.Lock()
+		r.w.TickCount = 0
+		r.w.regenSystem(r.t0)
+		r.w.npcRegenSystem(r.t0)
+		r.w.mu.Unlock()
+	}
+
+	// Forest's Succor (701142) from the caster on the friend, at full health,
+	// beside the friend's own HoT stat
+	succor := &ActiveEffect{SpellID: 701142, Name: "Forest's Succor", Caster: r.p.ServerID, Until: r.later, Mods: StatMods{HoT: 205}}
+	own := &ActiveEffect{SpellID: 9403, Name: "Test Own Regrowth", Caster: r.friend.ServerID, Until: r.later, Mods: StatMods{HoT: 30}}
+	r.friend.Effects = []*ActiveEffect{succor, own}
+	r.friend.Mods = sumEffectMods(r.friend.Effects)
+	r.friend.HP = r.friend.MaxHP
+	regen()
+	if got := figTags(t, r.sess); len(got) != 1 || got[0].src != r.me || got[0].dst != r.fid || got[0].amount != 205 || got[0].tag != 7 {
+		t.Errorf("its HoT stat on a full friend: the caster was told %v, want one (me, 205, friend) tag 7", got)
+	}
+	if got := figTags(t, r.fsess); len(got) != 1 || got[0].src != 0x0140AAA0 || got[0].dst != 0x0140AAA0 || got[0].amount != 235 || got[0].tag != -1 {
+		t.Errorf("the friend was told %v, want its whole (it, 235, it) untagged, as before", got)
+	}
+	if got := figTags(t, other); len(got) != 0 {
+		t.Errorf("an onlooker was told %v, want nothing", got)
+	}
+	if r.friend.HP != r.friend.MaxHP {
+		t.Errorf("friend HP %d, want capped at %d", r.friend.HP, r.friend.MaxHP)
+	}
+
+	// the friend's on the caster's full pet: the friend told its part over the
+	// pet, the owner the whole, from itself, as before
+	r.friend.Effects, r.friend.Mods = nil, StatMods{}
+	fv := GetOrCreateVisibility(r.fsess)
+	fv.ChannelEntity[2], fv.ChannelObjectID[2] = r.pet.ServerID, 0x0150CCC0
+	r.pet.HP = r.pet.MaxHP
+	r.pet.Effects = []*ActiveEffect{{SpellID: 701142, Name: "Forest's Succor", Caster: r.friend.ServerID, Until: r.later, Mods: StatMods{HoT: 205}}}
+	regen()
+	if got := figTags(t, r.fsess); len(got) != 1 || got[0].src != 0x0140AAA0 || got[0].dst != 0x0150CCC0 || got[0].amount != 205 || got[0].tag != 7 {
+		t.Errorf("its HoT stat on a full pet: the caster was told %v, want one (it, 205, pet) tag 7", got)
+	}
+	if got := figTags(t, r.sess); len(got) != 1 || got[0].src != r.me || got[0].dst != r.petO || got[0].amount != 205 || got[0].tag != -1 {
+		t.Errorf("the pet's owner was told %v, want (me, 205, pet) untagged, as before", got)
+	}
+	if got := figTags(t, other); len(got) != 0 {
+		t.Errorf("an onlooker was told %v, want nothing", got)
+	}
+	if r.pet.HP != r.pet.MaxHP {
+		t.Errorf("pet HP %d, want capped at %d", r.pet.HP, r.pet.MaxHP)
+	}
+}
+
+// Petition 2593's merc: a ranger's HoT stat on a whole merc in its group keeps
+// the merc in the regeneration's set and is told the ranger and the merc's
+// owner each regen tick; its hit points stay at its maximum.
+func TestStatHoTOnAWholeMercIsToldItsCasterAndOwner(t *testing.T) {
+	r := newMercRig(t)
+	ms := r.hire(r.kit(classWarrior, 0, 0), MercAssist)
+	rsess, ranger := r.player("Ranger", classRanger, 0)
+	osess, _ := r.player("Onlooker", classWarrior, 0)
+	for i, s := range []*session.Session{r.sess, rsess, osess} {
+		s.SetNumberTags(true)
+		v := GetOrCreateVisibility(s)
+		v.ChannelEntity[5], v.ChannelObjectID[5] = ms.npc.ServerID, 0x0160E000+uint32(i)
+		s.Queue().GetPending()
+	}
+	r.w.mu.Lock()
+	ms.npc.Effects = append(ms.npc.Effects, &ActiveEffect{SpellID: 701142, Name: "Forest's Succor", Caster: ranger.ServerID,
+		Until: r.at(time.Hour), Mods: StatMods{HoT: 205}})
+	syncMercBody(ms)
+	ms.npc.HP = ms.npc.MaxHP
+	r.w.wakeNPCLocked(ms.npc)
+	r.w.TickCount = 0
+	r.w.npcRegenSystem(r.at(0))
+	_, kept := r.w.sets.regen.m[ms.npc.ServerID]
+	hp, most := ms.npc.HP, ms.npc.MaxHP
+	r.w.mu.Unlock()
+	if !kept {
+		t.Error("the whole merc with a HoT stat left the regeneration's set")
+	}
+	if got := figTags(t, rsess); len(got) != 1 || got[0].src != rsess.PlayerObjectID() || got[0].dst != 0x0160E001 || got[0].amount != 205 || got[0].tag != 7 {
+		t.Errorf("the ranger was told %v, want one (it, 205, merc) tag 7", got)
+	}
+	if got := figTags(t, r.sess); len(got) != 1 || got[0].src != r.sess.PlayerObjectID() || got[0].dst != 0x0160E000 || got[0].amount != 205 || got[0].tag != -1 {
+		t.Errorf("the owner was told %v, want (it, 205, merc) untagged", got)
+	}
+	if got := figTags(t, osess); len(got) != 0 {
+		t.Errorf("an onlooker was told %v, want nothing", got)
+	}
+	if hp != most {
+		t.Errorf("merc HP %d, want capped at %d", hp, most)
 	}
 }

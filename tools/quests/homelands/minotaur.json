@@ -209,7 +209,7 @@
     "giver": "Warden Ironhide",
     "offer": [
       "A Rustel of your size needs a heavier weapon. The herd sold its best ore to the Eyrie outpost this season, so Quartermaster Dunmore will give a little back.",
-      "Bring me his ore, and three skeins of silk from the rime spiders north-east of the outpost to bind the grip.",
+      "Bring me his ore, and three skeins of silk from the rime spiders around the outpost to bind the grip.",
       "Will you bring me the ore and the silk?"
     ],
     "accept": "I will bring them.",
@@ -234,7 +234,7 @@
       "like": "Black Widow Silk"
     },
     "hunt": {
-      "journal": "Take three skeins of silk from the rime spiders north-east of the Eyrie outpost."
+      "journal": "Take three skeins of silk from the rime spiders around the Eyrie outpost."
     },
     "give": {
       "journal": "Bring the iron ore and the rime spider silk to Warden Ironhide.",

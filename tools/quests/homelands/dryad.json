@@ -225,7 +225,7 @@
     "giver": "Thornwarden Briony",
     "offer": [
       "You have grown past a sapling's arms. I will make you a thornwarden's weapon, bound with silk that does not rot in rain or snow.",
-      "Weaver Fernlight has cord for the grip. Then bring me two skeins from the rime spiders north-east of the Eyrie outpost.",
+      "Weaver Fernlight has cord for the grip. Then bring me two skeins from the rime spiders around the Eyrie outpost.",
       "Will you bring me the cord and the silk?"
     ],
     "accept": "I will bring them.",
@@ -254,7 +254,7 @@
       "like": "Black Widow Silk"
     },
     "hunt": {
-      "journal": "Take two skeins of silk from the rime spiders north-east of the Eyrie outpost."
+      "journal": "Take two skeins of silk from the rime spiders around the Eyrie outpost."
     },
     "give": {
       "journal": "Bring the willow-bark cord and the rime spider silk to Thornwarden Briony.",

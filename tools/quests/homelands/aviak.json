@@ -221,7 +221,7 @@
     "giver": "Huntmaster Arrok",
     "offer": [
       "You have grown past the arms a fledgling carries. I will make you better, but the outpost has what I need.",
-      "Quartermaster Dunmore keeps good ore at the Eyrie outpost. Then bring me silk from the rime spiders north-east of it.",
+      "Quartermaster Dunmore keeps good ore at the Eyrie outpost. Then bring me silk from the rime spiders around it.",
       "Will you bring me the ore and the silk?"
     ],
     "accept": "I will bring them.",
@@ -246,7 +246,7 @@
       "like": "Black Widow Silk"
     },
     "hunt": {
-      "journal": "Take two skeins of silk from the rime spiders north-east of the Eyrie outpost."
+      "journal": "Take two skeins of silk from the rime spiders around the Eyrie outpost."
     },
     "give": {
       "journal": "Bring the iron ore and the rime spider silk to Huntmaster Arrok.",

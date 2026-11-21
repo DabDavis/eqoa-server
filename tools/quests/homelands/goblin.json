@@ -209,7 +209,7 @@
     "giver": "Pitmaster Grukk",
     "offer": [
       "Your blade is a toy now, little one. Grukk made a deal with the Eyrie's quartermaster: he gives you ore and a shaft, and we say nice things about him.",
-      "Get them from Quartermaster Dunmore at the outpost. Then bring me silk from the rime spiders north-east of it, three skeins, to bind it all.",
+      "Get them from Quartermaster Dunmore at the outpost. Then bring me silk from the rime spiders around it, three skeins, to bind it all.",
       "Will you fetch Grukk's bargain?"
     ],
     "accept": "I will fetch it.",
@@ -235,7 +235,7 @@
       "like": "Black Widow Silk"
     },
     "hunt": {
-      "journal": "Take three skeins of silk from the rime spiders north-east of the Eyrie outpost."
+      "journal": "Take three skeins of silk from the rime spiders around the Eyrie outpost."
     },
     "give": {
       "journal": "Bring the iron ore, the wooden shaft and the rime spider silk to Pitmaster Grukk.",

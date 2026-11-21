@@ -221,7 +221,7 @@
     "giver": "Watcher Vaeris",
     "offer": [
       "The tool I gave you served a novice. You need a better one. Do not grow fond of this one either.",
-      "Artificer Maelis has a shaft for me. Then take two skeins of silk from the rime spiders north-east of the Eyrie outpost, to bind it.",
+      "Artificer Maelis has a shaft for me. Then take two skeins of silk from the rime spiders around the Eyrie outpost, to bind it.",
       "Will you bring me the shaft and the silk?"
     ],
     "accept": "I will bring them.",
@@ -246,7 +246,7 @@
       "like": "Black Widow Silk"
     },
     "hunt": {
-      "journal": "Take two skeins of silk from the rime spiders north-east of the Eyrie outpost."
+      "journal": "Take two skeins of silk from the rime spiders around the Eyrie outpost."
     },
     "give": {
       "journal": "Bring the wooden shaft and the rime spider silk to Watcher Vaeris.",

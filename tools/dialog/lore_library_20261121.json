@@ -1,0 +1,195 @@
+{
+  "about": "The Lore Library's pieces (eqoa.forumotion.com f48 and its subforums, SOE's lore as preserved there), retold in our words for Tunaria in the Age of Adventure: tools/lore_library_20261121.py. Each entry's src is the forum thread. Where a piece contradicts our facts (tools/dialog/LORE-FACTS.md) ours stand: the elves of Takish'Hiz fled to Fayspires, Erud is alive in Highbourne, Ykesha is dead and Grobb is the trolls'.",
+  "lines": [
+    {"town": "Halas", "src": "t389", "lines": [
+      "Every village of the north had its bear watchers, a family who sat the night fires in Growth to keep the waking bears out. Kiva of the old tale was one.",
+      "The old folk say a bear comes near a village not to kill but to look. Some say the bears seek a mate among the Northmen, to share their strength.",
+      "Kiva met Benno gathering firewood. He was taller than any Northman, spoke our tongue oddly, and fished by swatting the fish out of the river with his hand.",
+      "When the Horde came over the ice, Benno crossed the thawing river alone and let the orcs chase him. The villagers drove them into the water. Not one climbed out.",
+      "After the river, the clans took heart and won Halas back from the Horde. Kiva wed Benno, and the bear's strength still runs in Northmen blood. So the elders say.",
+      "Benno said he was the last of his kin. He never said what kin. The elders smile when they tell that part, and look at the bears.",
+      "The tale of Kiva and Benno is told in Growth, when the bears wake. Children who fall asleep before the river crossing must hear it again next year."
+    ]},
+    {"town": "Castle Lightwolf", "src": "t384", "lines": [
+      "Levandius suffers no masterless wolf, yet he leaves us be. The Night Reapers need someone to hold the north edge of the wood. We hold it.",
+      "Barbarians to the north, plainsmen to the south, and old Wegadas fading. Levandius counts his friends carefully these days. So do we.",
+      "A wolfwere has no man in it to talk to. When Drinal's moon is full they all take the wolfman's shape and hunt till dawn. Bar your door.",
+      "Most tales of were-beasts tearing up villages are lone wolves and wolfweres. Packs that keep their secret do not leave bodies on the road.",
+      "The Night Reapers count about a dozen sworn, each with followers among the human and half-elf tribes of the Unkempt. They are choosing more, and carefully."
+    ]},
+    {"town": "Zentar's Keep", "src": "t384, t405", "lines": [
+      "The Witchking was bitten tending a wounded bear, and ran before the Reapers or the Wards could judge him. Now he means to rule the whole wood.",
+      "The true Unkempt never leave the wood. Its keepers call themselves the Unkempt Warders, and they guard the borders closer than our walls."
+    ]},
+    {"town": "Surefall Glade", "src": "t405, t384", "lines": [
+      "Scraps of the Writ of the Wild turn up now and then, a tome bound in living moss and fern. Few can read its symbols. Fewer still read them right.",
+      "There is a hermit in the south of the Karana plains who was taught the Unkempt ways long ago. He translates a little of the Writ. Only a little.",
+      "Some outcast druids and rangers call themselves Unkempt on the strength of a few translated pages. The real Unkempt would not have them.",
+      "The wild-cult druids of the Rathe Mountains went looking for the Unkempt Wood itself. Ignorance is a poor map. I would not follow them in.",
+      "Corindas fought beside the lionmen against the Sabretooth gnolls and took a death wound. Their spirit Sateb Mahlni healed him, and he rose a lion.",
+      "The lionmen call themselves the Kejrahn. Our hunters killed their lions for generations before Corindas made any peace. They remember."
+    ]},
+    {"town": "Qeynos", "src": "t556, t597", "lines": [
+      "Before Qeynos there was Oceangreen, a village of green hills by the western bay. The city grew from its foundations.",
+      "They call the first Antonius Bayle the Great Unifier. He led hunters into the hills against the Plague King's faithful and built a city on the bay.",
+      "A temple to Bertoxxulous once stood near Oceangreen. Plague crept out of those hills into beasts and crops until the first Bayle burned it out.",
+      "The Sabretooth gnolls barred themselves inside Blackburrow when the plague temple grew strong. Even gnolls know when to keep their heads down.",
+      "When the first Bayle's war was won, the druids of Karana washed the taint out of the hills. Ask an old farmer, he will tell you which fields still stink.",
+      "There is a plainsman's tale of a Bayle who dove for treasure off the Karana coast and brought up a golden staff from a drowned fishman temple. It went badly.",
+      "In that tale old Graycat died saying 'Nations will know your name.' Every Bayle since has been reminded of it. Usually by his mother."
+    ]},
+    {"town": "Freeport", "src": "t556", "lines": [
+      "When men spread over the middle of Tunaria, two towns grew into cities. Qeynos in the west, and here, the port for anyone braving the Ocean of Tears.",
+      "Oceangreen fought the plague a long time ago, and won. Somebody should write down how. Freeport would like a copy."
+    ]},
+    {"town": "Highbourne", "src": "t407, t390", "lines": [
+      "Long before the elves, a people the dragons call the Xulous lived on the land that became Tunaria. They killed dragons and built with their bones.",
+      "The Xulous buried their kings in a necropolis of dragon bone named Lxanvon, which meant Kings' Rest. Something grew in its lowest crypts.",
+      "Our scholars hold that Bertoxxulous was born in the rot of the Xulous kings' tombs. The Plague King began as a corpse's fever. Remember that.",
+      "Ultor Szanvon the Putrid, a priest of the Xulous, sacrificed his own king in the crypts and bound twelve dead kings to his service.",
+      "The twelve risen kings carried a plague across the Xulous lands. Their whole people died of it. The dragons watched, and remembered.",
+      "When the mist lifted from Lxanvon, the necropolis was gone. Some say it stands whole in the Plane of Disease. I hope never to check.",
+      "There are three tiers of divinity: the demigods, the gods of nature and influence we pray to, and the great gods of elemental power above them all.",
+      "Above every god stands the Nameless, which made all things. Whether it cares what becomes of Norrath, no scholar in Highbourne will promise you."
+    ]},
+    {"town": "Fayspires", "src": "t443, t386", "lines": [
+      "When Innoruuk stole our first King and Queen, Tak'Hiz, the throne passed to King and Queen Tak'Yaliz. They reigned as the forest died.",
+      "The druids of Takish'Hiz called for rain and for Tunare's shelter. Neither came. Solusek Ro's grip on the sky was stronger than our prayers.",
+      "Solusek Ro did not burn the forest at once. He arched the spine of the world, slowly, so no god would notice, and then he called the sun down on us.",
+      "In the last years of Takish'Hiz the elves dug aqueducts, raised dead trees and planted new ones, all to push the sands back. The sands won.",
+      "Our geomancers shaped the sand itself into walls where the stone gave way. For a while half the city stood on sand that thought it was stone.",
+      "Tak'Yaliz blew a great horn at the end, the signal to leave. Most of us came north to build Fayspires. Not every elf heard the horn.",
+      "The masters of Rosethorn Spire knew they could tear the whole isle from the land and send it floating among the clouds. They chose to stand and fight.",
+      "The Spire's wizards rained fire and lightning on the dark elf army until the Lifire choked with bodies. Then the necromancers laughed."
+    ]},
+    {"town": "Tethelin", "src": "t384, t443", "lines": [
+      "Wegadas was a druid of our people before he was anything else. His ties to Tunare and to the spirits of the Unkempt let his children survive the change.",
+      "The Elddar once covered the whole south-east of Tunaria. Walk the Desert of Ro and try to picture it. Then do not, it only hurts.",
+      "Wegadas fathered more than a dozen children over the centuries. Only a few became beasts. The rest lived quiet lives as Unkempt tribesmen."
+    ]},
+    {"town": "Grobb", "src": "t463, t383", "lines": [
+      "Long ago trolls pray only Cazic-Thule. Then Innoruuk touch troll mystic Zraxth. Hate is better than fear, Zraxth say. Zraxth right.",
+      "Zraxth want vision. Innoruuk want blood. Zraxth kill all old priests of Cazic-Thule in one night. Get vision. Good trade.",
+      "Ink no hold Zraxth's words. So Zraxth carve them in stone with priest blood and bone chisel. Stone burn black, then words just there.",
+      "Stone say Grozmok come. Greatest troll. Unite all clans with Fear and Hate, smash all empires. No stone, no true Grozmok.",
+      "Ogres steal Grozmok stone long ago and hide it in vault. Then gods smash ogre empire. Ha. Stone wait in rubble for trolls.",
+      "Clan Ykesha find stone. Warlord Ykesha think he Grozmok. Then he go crazy, hide in his hole. Clan Broken Skull smash him and take stone.",
+      "What left of Clan Ykesha follow Warlord Jurgash. They call themselves Clan Grobb. Clan Grobb take stone back from Broken Skull Rock.",
+      "Grozmok stone hide deep in Grobb now. Young trolls say it just story. Old trolls wait for Grozmok. Me wait too. Maybe it me.",
+      "Ykesha's old fortress sink in swamp. He still in there. Dead. Nobody go look. Swamp eat them."
+    ]},
+    {"town": "Oggok", "src": "t463, t402", "lines": [
+      "Ogre empire rule all south Tunaria once. Trolls weak then. Trolls fear ogres. Ogres no fear trolls. Good days.",
+      "Rallos Zek make Ankexfen too. Smart ones. Ankexfen and ogres go fight Plane of Earth. Lose. Gods angry.",
+      "Gods smash ogre empire for Plane of Earth. Throw giants all over world. Ankexfen all die. Goblins come from Ankexfen ashes. Ugly ashes.",
+      "Four goblin tribes, each get one piece of Ankexfen staff. Put pieces together, big magic. Ogre want staff. Ogre no have staff.",
+      "Old ogres say we once take troll stone and lock it up. Trolls still mad. Ogres no care."
+    ]},
+    {"town": "Neriak", "src": "t463, t443", "lines": [
+      "Innoruuk chose a troll mystic named Zraxth to break the trolls from Cazic-Thule. Hate travels well. It always finds a home.",
+      "When Ykesha's clan grew too loyal, Innoruuk planted doubt in the Warlord's mind until it ate him. Unity is a weakness our lord does not permit.",
+      "The first King and Queen of Takish'Hiz spent three hundred years in the Plane of Hate. We are what came out. You may thank them."
+    ]},
+    {"town": "Rivervale", "src": "t380, t595", "lines": [
+      "The goblins' own histories say Rallos Zek made them, with a partner they call The-Brell-That-Is-Not. Brell's priests do not find that funny.",
+      "Goblin tales say an Avatar of War once made their One Clan swear an oath for every generation after. Breaking oaths is about all they do now.",
+      "My grandmother told of a halfling shipwright who swore his boat would fly. Everyone laughed. It flew. Once. Then it burned. He built another."
+    ]},
+    {"town": "Bobble-by-Water", "src": "t595", "lines": [
+      "There is a story about a mermaid queen who saved a halfling babe from drowning in a pond. Lasydia, the story calls her. Mind the deep water anyway.",
+      "'There is much below pond, lake and ocean that is too beautiful to lose to fear.' That was the mermaid's word. My father fished by it."
+    ]},
+    {"town": "Moradhim", "src": "t390, t380", "lines": [
+      "The Rathe are a council of twelve that rule the Plane of Earth. Cut one down and another rises in its place. A dwarf could respect a council like that.",
+      "Goblins claim Brell had a hand in making them. They call him The-Brell-That-Is-Not. Say that in a Moradhim tavern and see how far you get.",
+      "The ogres once marched on the Plane of Earth itself. The Rathe threw them back and the gods cursed them for it. Some lessons stick."
+    ]},
+    {"town": "Klick`Anon", "src": "t624, t390", "lines": [
+      "The Rathe are said to have grass-green hair and earthen skin veined with gold and turquoise. Imagine what they would fetch at market. Purely as a thought.",
+      "Of all the powers of the Planes of Order, only the Rathe Council ever took any interest in our world. Neutral interest. The most tiring kind."
+    ]},
+    {"town": "Highpass", "src": "t390", "lines": [
+      "A scholar came through with a list of every god, tier by tier. The pass charged him a toll for each one. He paid for twenty and kept walking.",
+      "Some of the lesser gods were mortal once, they say, heroes and villains raised up by a patron. Keep your receipts. You never know."
+    ]},
+    {"town": "Wyndhaven", "src": "t384", "lines": [
+      "Bearweres have been seen as far as the Commonlands, standing upright at dusk and dawn. A bear on two legs is not a bear. Remember that out there."
+    ]}
+  ],
+  "books": [
+    {"near": "Grand Historian Kortha", "src": "t407", "pages": [
+      ["Kings' Rest, I", "Kings' Rest, from the old dragons' tales, as the scribes took them down. In an age when dragons ruled land, sea and sky, a people the dragons call the Xulous rose on the lands that would become Tunaria. They were cunning and strong, the first to stand against Veeshan's children and slay them, and they built their cities of the bones and sinew of the dragons they killed. They buried their kings in a necropolis of dragon bone and named it Lxanvon, Kings' Rest. As the crypts filled with honored royalty, something festered in their lowest depths: in the rot of those kings, fed by the Xulous' reverence for their dead and their trade in dead dragons, Bertoxxulous was born. Wearing the bodies of dead nobles, he came before the royal priests who brought offerings, and demanded worship, obedience and sacrifice. The priests turned from their living kings to the Lord of Death and Decay."],
+      ["Kings' Rest, II", "Chief among the priests of decay was Ultor Szanvon the Putrid, who schemed and murdered his way to the side of the greatest Xulous king. Ultor persuaded the king to visit the tombs of his fathers, and there, before the full might of Bertoxxulous, he sacrificed him. By that rite Ultor raised the spirits of twelve kings of old and bound them to his service. The risen kings raised armies of the dead and swept across the Xulous lands, and what their weapons spared a plague they carried finished, until the Xulous were no more. Pleased with his work, Bertoxxulous called his servants home to Lxanvon, and a great mist covered it. When the mist cleared the dragons saw only broken, barren ground where the necropolis had stood. It is said that Lxanvon stands whole in the Plane of Disease, and that the Plague King, when he walks there, wears the shape of the people he destroyed."]
+    ]},
+    {"near": "Grand Historian Kortha", "src": "t390", "pages": [
+      ["The Three Tiers", "On the tiers of divinity, as the Library teaches them. The first tier is the demigods, nearest to mortals in their nature and purpose though wholly divine; many are said to have been mortal once, heroes and villains raised by a patron god or by their own deeds. The second tier is the gods of nature and influence, those we know best: Tunare, Brell Serilis, Prexus, Rallos Zek, Innoruuk, Cazic-Thule, the Marr twins, Bristlebane, Karana, Solusek Ro, Bertoxxulous, Veeshan and their kin. We name our feelings and our wants after them, though in ignorance. The third tier is the great gods of elemental power, the gods of the gods, beyond our reach forever; among them the Rathe, the council of twelve that is the Plane of Earth. Above all stands the Nameless, which made everything that is. What it intends, and whether it cares at all what becomes of Norrath, no one knows."]
+    ]},
+    {"near": "Keeper Etherson", "src": "t386", "pages": [
+      ["Aros'Thalinor, I", "On Rosethorn Spire, Aros'Thalinor in our tongue. Few buildings of mortal make are older, and none can say who first raised it; there is elven work in it, but whether the style was ours or borrowed, no one knows. Our wizards shaped its black stone with magic, raised a balcony and carved the vaults below that hold the artifacts and learning of the Koada'Dal wizards. Digging there, they found a room of the same black stone carved in a style no scholar could read, and in it a sarcophagus and an arch of a stone found nowhere in all Tunaria. The mystery held our scholars for nearly a century, until the Elddar began to die and the blackened elves came up out of the Underfoot. Then there was no time for mysteries. The masters of the Spire knew they could tear the isle from the land and send it sailing among the clouds. They chose instead to stay and defend it."],
+      ["Aros'Thalinor, II", "The Teir'Dal came with living warriors from Neriak and a legion of raised dead. From atop the Spire the wizards called down the greatest firestorm the world had seen: thunderheads of flame and webs of lightning, until the field was ash and the Lifire choked with bodies. The masters looked down and were satisfied. Then the necromancers laughed. They had poisoned the mana itself, the weave all magic draws on, and they told the wizards they would come back when the fools had died. All but four of the Spire's masters lie in their tombs now, and those four are dying. Still the Spire teaches: wizards come from afar, even Teir'Dal wizards, though no necromancer is suffered through the door. The roses that ringed it are dry, and the hardest test a pupil faces there is not the magic. It is the sorrow and the anger that fill the place."]
+    ]},
+    {"near": "Keeper Etherson", "src": "t443", "pages": [
+      ["The Sands of Elddar", "How Takish'Hiz fell to the sand, as our elders tell it. Tunare made the elves and gave them the Elddar Forest, and Solusek Ro, who had wanted that forest, watched our white city of wood and marble shine for thousands of years and hated it. He arched the spine of the world, slowly, so that no god would notice, and called down the sun. The edges of the Elddar withered, then the heart. The druids called for rain and for Tunare's shelter, and neither came. King and Queen Tak'Yaliz, who took the throne after Innoruuk stole the first King and Queen, set every elf to the work: aqueducts were dug, dead trees raised and new ones planted, and the geomancers shaped the sand itself into walls where the stone failed. It was a battle that never ended. At last a great horn sounded through the city, and most of our people came north to build Fayspires. Not every elf heard the horn."]
+    ]},
+    {"near": "Elder Joram", "src": "t389", "pages": [
+      ["Blood of the Bear, I", "A legend of the Northlands, from the years when the orc Horde held our homes. In each village one family kept watch for the bears that wake hungry in Growth. Kiva was of such a family. Gathering firewood, she slipped on the ice, and a hand reached down to lift her: a man taller than any Northman, who spoke our tongue with a lilt she had never heard. His name was Benno. He carried her wood to the edge of the camp and was gone into the trees. On her night watches Kiva found bear tracks near the fire, and once Benno himself at the edge of the woods. A great shaggy bear came out of the brush beside them, looked at her, and went away. 'The bears do not come to kill,' Benno told her. 'They come to look. Some say they come to find a mate among the Northmen, so they may share their strength.'"],
+      ["Blood of the Bear, II", "Kiva next found Benno by the river, swatting fish out of the black water with his bare hand. 'That is how we fish in my clan,' he said, and when she asked where his clan was from he carried her across the thawing river as if the cold were nothing. 'I am of the North,' he laughed. Under the roots of a great tree he showed her a cave lit with candles, and gave her honey mead and dried berries. 'Where is the rest of your clan?' she asked. A shadow crossed his face. 'I am the last of my kind,' he said, and then, as if correcting himself, 'of my kin. The Horde found us. I alone escaped. They will come here too, but they will not get what they seek. When they are gone I will join another clan, and my strength will be theirs.' He took her back across the river before dark."],
+      ["Blood of the Bear, III", "The Horde came at last. The village had dug trenches lined with stakes, but the orcs were many. Benno told the elders: 'Drive them into the river. Their gear is heavy, and the water will hold them.' He crossed alone to the far bank and taunted the orcs until every one of them faced him. 'Now!' cried Kiva, and the villagers burst from hiding. Caught between, the orcs were pressed back into the icy river, and there they froze or drowned. That victory turned the war. Word went from clan to clan, the scattered Northmen took heart, and together they took Halas back. Kiva and Benno were wed, and through them, the elders say, the strength of the bear still runs in the blood of the Northmen. Benno never said what kin he was the last of. The elders only smile, and look toward the woods in Growth."]
+    ]},
+    {"near": "Fryda Lightwolf", "src": "t384", "pages": [
+      ["Wegadas's Children, I", "On the children of Wegadas, as the druids of the Unkempt tell it. Before Takish'Hiz fell, while men were still wandering tribes, the elven druid Wegadas made a pact with the Lujien, the wolfmen, and the Gihjna, the bearmen. His ties to Tunare and to the spirits of the Unkempt let his children live through the rites of change. He gave two unborn sons to be raised by them; in the Valley of the Dawn their mortal spirits were taken. The first, Levandius, was gifted by Drinal, the Silver Reaper, spirit of night and death, and became the Wolf Father. His Night Reapers fly a silver crescent on black and destroy any wolf they judge unworthy. The second, Dorandas, was gifted by Ehayae, Matron of the Dawn, and became the Bear Father. His werebears, the Wards of Dawn, carry a golden half circle on black, and serve the tribes as healers and guides."],
+      ["Wegadas's Children, II", "Wegadas fathered over a dozen children through the centuries, and most lived as plain Unkempt tribesmen. Corindas, bound by no pact, went south to the Plains of Karana and worked among the druids of Surefall Glade; dying in battle against the Sabretooth gnolls beside the lionmen, he was healed by their spirit Sateb Mahlni and rose a werelion, chief of the Sun Manes. Yindrius was stolen in his cradle by the Ratonga, whose god Caertex made him the first wererat; his Topi di Ombra live by smuggling and murder in every city. Now Wegadas is dying. The Wards of Dawn guard him and struggle to delay his passing, fearing the Night Reapers will seize the wood. The Werebear Witchking gathers masterless weres to take it himself. And here, at the north edge of the Unkempt, the lords of Castle Lightwolf keep their own counsel, and their own secret."]
+    ]},
+    {"near": "Kuthrak", "src": "t463", "pages": [
+      ["Stone of Grozmok, I", "Dis is troll story. Shaman tell it so. Long ago, trolls follow only Cazic-Thule, who make them. Then Innoruuk touch young mystic Zraxth. Zraxth gather mystics far from troll camps and make Hate into power, but ogre empire still too strong. Zraxth ask Innoruuk: when trolls get power? Innoruuk say: pay blood. So Zraxth and his followers sneak into camps at night and kill every old priest of Cazic-Thule for blood. Eight days Zraxth no sleep, no eat. Then he speak. Ink no hold his words, they run off like water. So Zraxth take big stone and carve words with priest blood and bone chisel. Each word burn with black fire, then cool like it always there. Stone say: Grozmok come, greatest troll, unite clans with Fear and Hate, smash all empires of Tunaria. No true Grozmok without stone. Many false Grozmok die for it. Zraxth die too. Ritual kill him."],
+      ["Stone of Grozmok, II", "Ogres hear of stone. Ogres no fear trolls, but they fear stone. They smash tribe that keep it and lock stone in vault. Then gods curse ogre empire for being too proud, and it fall. Trolls fight for empty land, Clan Broken Skull against Clan Ykesha. Clan Ykesha find stone in ruined ogre fort. Warlord Ykesha say he Grozmok, and many tribes come to him. But Innoruuk no like trolls getting friendly. He put doubt in Ykesha head. Ykesha hide deep in his fort and go crazy, and Broken Skull smash his clan and take stone to Broken Skull Rock. What left of Clan Ykesha follow Warlord Jurgash and call themselves Clan Grobb. Innoruuk show Grobb mystic where stone is. Clan Grobb take it back. Now stone hide deep in Grobb. Young trolls say is just story. Old trolls wait. One day Grozmok come."]
+    ]},
+    {"near": "Jeeves the Scribe", "src": "t556", "pages": [
+      ["Oceangreen", "Of the founding of Qeynos, as the scribes have it. When men spread over the middle of Tunaria, they lived in small villages on the plains of Karana and in the Oceangreen Hills by the western sea: green grassland, the Jaggedpine forest to the north, steep hills to the east broken only by the tunnel to Blackburrow and a narrow valley out to the plains. Two towns grew into cities, Freeport in the east and, in the west, Qeynos, from the foundations of Oceangreen village. A shadow lay over those years. Unknown to Oceangreen's founders, a temple to Bertoxxulous had been raised on the village's outskirts, and as the village grew, so did the temple, until a plague crept into beasts and crops alike, and even the Sabretooth gnolls barred themselves inside Blackburrow. Then Antonius Bayle, the Great Unifier, led hunters and warriors into the hills, broke the Plague King's faithful, and with the druids of Karana washing the taint from the land, founded a city on the bay. He called it Qeynos."]
+    ]}
+  ],
+  "tales": [
+    {"name": "Tales of the Northlands", "giver": "Elder Joram", "faction": "Citizens of Halas", "src": "t389",
+     "offer": "You have the look of someone who has not heard the tale of Kiva and Benno. Every Northman should. Sit by the fire and I will tell it.",
+     "parts": [
+      "Kiva kept the bear watch for her village in Growth. One day a man taller than any Northman lifted her from the ice. Benno, he called himself, and he spoke our tongue strangely.",
+      "Benno fished with his bare hand and crossed the thawing river as if it were summer. He told her he was the last of his kin. The Horde had found the rest.",
+      "When the Horde came, Benno let the orcs chase him across the river and the village drove them into the ice. Halas was won back after. Remember Kiva and Benno, and walk tall among the bears."
+     ]},
+    {"name": "Tales of the Unkempt", "giver": "Fryda Lightwolf", "faction": "Citizens of Castle Lightwolf", "src": "t384",
+     "offer": "Guests always ask what the wolf on our banner means. Few are ready for the answer. Would you hear the tale of Wegadas and his children?",
+     "parts": [
+      "Wegadas, an elven druid, bargained with the wolfmen and the bearmen of the Unkempt. Two of his sons were changed in the Valley of the Dawn: Levandius the Wolf Father and Dorandas the Bear Father.",
+      "Levandius serves Drinal, and his Night Reapers destroy any wolf they judge unworthy. Any, save us. We hold the north edge of the wood for him, and he lets us be.",
+      "Now Wegadas is dying, and the wood will choose a master: the Reapers, the Wards of Dawn or the Witchking. Whoever wins will need friends at Lightwolf. Be one."
+     ]},
+    {"name": "Tales of the Sands", "giver": "Keeper Etherson", "faction": "Citizens of Fayspires", "src": "t443, t386",
+     "offer": "The young forget how Takish'Hiz died. I keep the memory, and I give it to anyone who will carry it. Will you hear it?",
+     "parts": [
+      "Solusek Ro coveted the Elddar. He arched the spine of the world, slowly, and called down the sun. Our druids called for rain. None came.",
+      "King and Queen Tak'Yaliz set every elf to the work: aqueducts, new trees, walls of shaped sand where the stone failed. And at Rosethorn Spire our wizards burned the dark elf army to ash, and still lost to their poison.",
+      "At last the great horn sounded, and most of us came north to build this city. Carry that, and remember Takish'Hiz when you pass through the sand."
+     ]},
+    {"name": "Tales of the Grozmok", "giver": "Kuthrak", "faction": "Citizens of Grobb", "src": "t463",
+     "offer": "You want hear about Grozmok stone? Old troll story. Kuthrak tell good. You sit. You no eat Kuthrak lunch.",
+     "parts": [
+      "Innoruuk touch troll mystic Zraxth. Zraxth kill all old priests for blood, carve big prophecy on stone. Grozmok come, greatest troll, smash all empires.",
+      "Ogres steal stone. Gods smash ogres. Clan Ykesha find stone, Ykesha go crazy, Broken Skull take it. Then Clan Grobb take it back. Clan Grobb is us.",
+      "Stone sleep deep in Grobb now. You tell story good, maybe you remember Grobb is strong. Grobb remember you. Go."
+     ]},
+    {"name": "Tales of Kings' Rest", "giver": "Grand Historian Kortha", "faction": "Citizens of Highbourne", "src": "t407",
+     "offer": "The plague that walks Tunaria has a history, and history is the Library's business. Would you hear where the Plague King was born?",
+     "parts": [
+      "Before the elves, the Xulous ruled the land that became Tunaria. They slew dragons and buried their kings in a necropolis of dragon bone: Lxanvon, Kings' Rest.",
+      "In the rot of those kings Bertoxxulous was born. His priest Ultor Szanvon sacrificed the living king and raised twelve dead ones, and their plague ended the Xulous.",
+      "Lxanvon vanished in a mist, and it is said to stand whole in the Plane of Disease. Remember the Xulous when you meet the plague's dead. It has done this before."
+     ]},
+    {"name": "Tales of Oceangreen", "giver": "Jeeves the Scribe", "faction": "Citizens of Qeynos", "src": "t556, t597",
+     "offer": "Every citizen should know how Qeynos began, and few do. I copy the old accounts for anyone who will listen. Will you?",
+     "parts": [
+      "Before Qeynos there was Oceangreen, a village of green hills by the western bay. A temple of Bertoxxulous grew beside it, and plague crept into the land.",
+      "The first Antonius Bayle, the Great Unifier, led hunters into the hills, broke the Plague King's faithful, and with the druids of Karana made the land clean.",
+      "He built a city on the bay and called it Qeynos. The plainsfolk have a saying from those days: nations will know your name. Make it true, for Qeynos."
+     ]}
+  ]
+}

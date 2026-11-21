@@ -1065,7 +1065,7 @@
           ],
           "count": 1,
           "chance": 1.0,
-          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+          "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -3629,7 +3629,7 @@
           ],
           "count": 1,
           "chance": 1.0,
-          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+          "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -6237,7 +6237,7 @@
           ],
           "count": 1,
           "chance": 1.0,
-          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+          "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -8942,7 +8942,7 @@
           ],
           "count": 1,
           "chance": 1.0,
-          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+          "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -11606,7 +11606,7 @@
       "requires": [
         "homelands/ratman/L13"
       ],
-      "offer": "The Rimeheart in the ice caves north-east of the Eyrie outpost is no beast. Skritch says it is a cold spirit, and a broken spirit does not always stay broken.\nBreak it, and take its shard to Spiritmaster Oswin at the outpost, so he can lay it to rest. Then come back to me.\nWill you break the Rimeheart?",
+      "offer": "The Rimeheart at the foot of the ice caves' mountain, north-east of the Eyrie outpost is no beast. Skritch says it is a cold spirit, and a broken spirit does not always stay broken.\nBreak it, and take its shard to Spiritmaster Oswin at the outpost, so he can lay it to rest. Then come back to me.\nWill you break the Rimeheart?",
       "accept": "I will break it.",
       "decline": "Not yet.",
       "declined": "Then the caves grow colder, and so do we.",
@@ -11623,7 +11623,7 @@
           ],
           "count": 1,
           "chance": 1.0,
-          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+          "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -14205,7 +14205,7 @@
           ],
           "count": 1,
           "chance": 1.0,
-          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+          "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -16791,7 +16791,7 @@
           ],
           "count": 1,
           "chance": 1.0,
-          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+          "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -19462,7 +19462,7 @@
       "requires": [
         "homelands/gargoyle/L13"
       ],
-      "offer": "There is a cold in the ice caves north-east of the Eyrie outpost that cracks stone. The hunters call it the Rimeheart. A sleeper that wakes too near it will never wake again.\nBreak it. Carry a shard to Warden Halvek, so the outpost knows its watch is safe. Then come back.\nWill you break the Rimeheart?",
+      "offer": "There is a cold at the foot of the ice caves' mountain, north-east of the Eyrie outpost that cracks stone. The hunters call it the Rimeheart. A sleeper that wakes too near it will never wake again.\nBreak it. Carry a shard to Warden Halvek, so the outpost knows its watch is safe. Then come back.\nWill you break the Rimeheart?",
       "accept": "I will break it.",
       "decline": "Not yet.",
       "declined": "Then the cold keeps cracking.",
@@ -19479,7 +19479,7 @@
           ],
           "count": 1,
           "chance": 1.0,
-          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+          "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -22138,7 +22138,7 @@
       "requires": [
         "homelands/jalraeth/L13"
       ],
-      "offer": "Something in the ice caves north-east of the Eyrie outpost does not rest. The hunters call it the Rimeheart. It is old, and it is never still.\nThe order would study such a thing. Break it, and bring me a shard. Ice that does not melt has something to teach.\nWill you bring me a shard of the Rimeheart?",
+      "offer": "Something at the foot of the ice caves' mountain, north-east of the Eyrie outpost does not rest. The hunters call it the Rimeheart. It is old, and it is never still.\nThe order would study such a thing. Break it, and bring me a shard. Ice that does not melt has something to teach.\nWill you bring me a shard of the Rimeheart?",
       "accept": "I will bring one.",
       "decline": "Not yet.",
       "declined": "It will still be there. That is its trouble.",
@@ -22155,7 +22155,7 @@
           ],
           "count": 1,
           "chance": 1.0,
-          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+          "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -24808,7 +24808,7 @@
       "requires": [
         "homelands/aviak/L13"
       ],
-      "offer": "Something old walks in the ice caves north-east of the Eyrie outpost. The hunters call it the Rimeheart, and the cold that follows it kills the snow's game.\nBreak it, and carry a shard of it to Warden Halvek, so the outpost knows it is done. Then come back to me.\nWill you face the Rimeheart?",
+      "offer": "Something old walks at the foot of the ice caves' mountain, north-east of the Eyrie outpost. The hunters call it the Rimeheart, and the cold that follows it kills the snow's game.\nBreak it, and carry a shard of it to Warden Halvek, so the outpost knows it is done. Then come back to me.\nWill you face the Rimeheart?",
       "accept": "I will face it.",
       "decline": "Not yet.",
       "declined": "Then the caves grow colder.",
@@ -24825,7 +24825,7 @@
           ],
           "count": 1,
           "chance": 1.0,
-          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+          "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -27505,7 +27505,7 @@
           ],
           "count": 1,
           "chance": 1.0,
-          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+          "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -30063,7 +30063,7 @@
           ],
           "count": 1,
           "chance": 1.0,
-          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+          "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -32757,7 +32757,7 @@
           ],
           "count": 1,
           "chance": 1.0,
-          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+          "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -35433,7 +35433,7 @@
           ],
           "count": 1,
           "chance": 1.0,
-          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+          "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -38037,7 +38037,7 @@
       "requires": [
         "homelands/fairy/L13"
       ],
-      "offer": "They say the Rimeheart in the ice caves north-east of the Eyrie outpost is a heart that never laughed, and the cold it makes is the cold of that.\nBreak it, little friend. Carry a shard to Warden Halvek so his outpost knows, and then come back and tell me how it went.\nWill you break the Rimeheart?",
+      "offer": "They say the Rimeheart at the foot of the ice caves' mountain, north-east of the Eyrie outpost is a heart that never laughed, and the cold it makes is the cold of that.\nBreak it, little friend. Carry a shard to Warden Halvek so his outpost knows, and then come back and tell me how it went.\nWill you break the Rimeheart?",
       "accept": "I will break it.",
       "decline": "Not yet.",
       "declined": "Then the caves stay cold, and no one laughs.",
@@ -38054,7 +38054,7 @@
           ],
           "count": 1,
           "chance": 1.0,
-          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+          "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -40794,7 +40794,7 @@
           ],
           "count": 1,
           "chance": 1.0,
-          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+          "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -43382,7 +43382,7 @@
           ],
           "count": 1,
           "chance": 1.0,
-          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+          "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -45934,7 +45934,7 @@
       "requires": [
         "homelands/minotaur/L13"
       ],
-      "offer": "Dunmore sends word of a thing in the ice caves north-east of the Eyrie outpost, the Rimeheart. Its ice never melts, he says, not even in a forge.\nBreak it, and carry a shard of it to Dunmore. The herd's smiths want to know if he is right. Then come back to me.\nWill you break the Rimeheart?",
+      "offer": "Dunmore sends word of a thing at the foot of the ice caves' mountain, north-east of the Eyrie outpost, the Rimeheart. Its ice never melts, he says, not even in a forge.\nBreak it, and carry a shard of it to Dunmore. The herd's smiths want to know if he is right. Then come back to me.\nWill you break the Rimeheart?",
       "accept": "I will break it.",
       "decline": "Not yet.",
       "declined": "Then the caves stay cold, and the smiths stay curious.",
@@ -45951,7 +45951,7 @@
           ],
           "count": 1,
           "chance": 1.0,
-          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+          "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -48635,7 +48635,7 @@
           ],
           "count": 1,
           "chance": 1.0,
-          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+          "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -51414,7 +51414,7 @@
           ],
           "count": 1,
           "chance": 1.0,
-          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+          "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -53960,7 +53960,7 @@
       "requires": [
         "homelands/wisp/L13"
       ],
-      "offer": "There is a cold in the ice caves north-east of the Eyrie outpost that puts out any light that drifts too near. The hunters call it the Rimeheart.\nBreak it. Take a shard to Spiritmaster Oswin at the outpost: he keeps the spirits of every home, and he will know what to do with it. Then come back.\nWill you face the Rimeheart?",
+      "offer": "There is a cold at the foot of the ice caves' mountain, north-east of the Eyrie outpost that puts out any light that drifts too near. The hunters call it the Rimeheart.\nBreak it. Take a shard to Spiritmaster Oswin at the outpost: he keeps the spirits of every home, and he will know what to do with it. Then come back.\nWill you face the Rimeheart?",
       "accept": "I will face it.",
       "decline": "Not yet.",
       "declined": "Then keep away from the caves. Far away.",
@@ -53977,7 +53977,7 @@
           ],
           "count": 1,
           "chance": 1.0,
-          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+          "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -56636,7 +56636,7 @@
       "requires": [
         "homelands/mermaid/L13"
       ],
-      "offer": "Something old walks in the ice caves north-east of the Eyrie outpost. The hunters call it the Rimeheart, and the cold that follows it kills the snow's game.\nBreak it, and carry a shard of it to Warden Halvek, so the outpost knows it is done. Then come back to me.\nWill you face the Rimeheart?",
+      "offer": "Something old walks at the foot of the ice caves' mountain, north-east of the Eyrie outpost. The hunters call it the Rimeheart, and the cold that follows it kills the snow's game.\nBreak it, and carry a shard of it to Warden Halvek, so the outpost knows it is done. Then come back to me.\nWill you face the Rimeheart?",
       "accept": "I will face it.",
       "decline": "Not yet.",
       "declined": "Then the caves grow colder.",
@@ -56653,7 +56653,7 @@
           ],
           "count": 1,
           "chance": 1.0,
-          "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+          "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
         },
         {
           "kind": "give",

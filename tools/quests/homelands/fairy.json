@@ -297,7 +297,7 @@
     "name": "The Heart Without a Laugh",
     "giver": "Warden Larkspur",
     "offer": [
-      "They say the Rimeheart in the ice caves north-east of the Eyrie outpost is a heart that never laughed, and the cold it makes is the cold of that.",
+      "They say the Rimeheart at the foot of the ice caves' mountain, north-east of the Eyrie outpost is a heart that never laughed, and the cold it makes is the cold of that.",
       "Break it, little friend. Carry a shard to Warden Halvek so his outpost knows, and then come back and tell me how it went.",
       "Will you break the Rimeheart?"
     ],
@@ -313,7 +313,7 @@
       "like": "cracked elemental shard"
     },
     "hunt": {
-      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+      "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
     },
     "carry": {
       "target": "Warden Halvek",

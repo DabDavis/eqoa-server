@@ -280,7 +280,7 @@
     "name": "The Heart of the Rime",
     "giver": "Huntmaster Arrok",
     "offer": [
-      "Something old walks in the ice caves north-east of the Eyrie outpost. The hunters call it the Rimeheart, and the cold that follows it kills the snow's game.",
+      "Something old walks at the foot of the ice caves' mountain, north-east of the Eyrie outpost. The hunters call it the Rimeheart, and the cold that follows it kills the snow's game.",
       "Break it, and carry a shard of it to Warden Halvek, so the outpost knows it is done. Then come back to me.",
       "Will you face the Rimeheart?"
     ],
@@ -296,7 +296,7 @@
       "like": "cracked elemental shard"
     },
     "hunt": {
-      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+      "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
     },
     "carry": {
       "target": "Warden Halvek",

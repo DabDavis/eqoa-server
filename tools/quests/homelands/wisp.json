@@ -268,7 +268,7 @@
     "name": "The Cold That Puts Out Lights",
     "giver": "Watchlight Gleam",
     "offer": [
-      "There is a cold in the ice caves north-east of the Eyrie outpost that puts out any light that drifts too near. The hunters call it the Rimeheart.",
+      "There is a cold at the foot of the ice caves' mountain, north-east of the Eyrie outpost that puts out any light that drifts too near. The hunters call it the Rimeheart.",
       "Break it. Take a shard to Spiritmaster Oswin at the outpost: he keeps the spirits of every home, and he will know what to do with it. Then come back.",
       "Will you face the Rimeheart?"
     ],
@@ -284,7 +284,7 @@
       "like": "cracked elemental shard"
     },
     "hunt": {
-      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+      "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
     },
     "carry": {
       "target": "Spiritmaster Oswin",

@@ -268,7 +268,7 @@
     "name": "Ice That Never Melts",
     "giver": "Warden Ironhide",
     "offer": [
-      "Dunmore sends word of a thing in the ice caves north-east of the Eyrie outpost, the Rimeheart. Its ice never melts, he says, not even in a forge.",
+      "Dunmore sends word of a thing at the foot of the ice caves' mountain, north-east of the Eyrie outpost, the Rimeheart. Its ice never melts, he says, not even in a forge.",
       "Break it, and carry a shard of it to Dunmore. The herd's smiths want to know if he is right. Then come back to me.",
       "Will you break the Rimeheart?"
     ],
@@ -284,7 +284,7 @@
       "like": "cracked elemental shard"
     },
     "hunt": {
-      "journal": "Take a shard from the Rimeheart, in the ice caves north-east of the Eyrie outpost."
+      "journal": "Take a shard from the Rimeheart, at the foot of the ice caves' mountain, north-east of the Eyrie outpost."
     },
     "carry": {
       "target": "Quartermaster Dunmore",

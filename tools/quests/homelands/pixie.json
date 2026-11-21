@@ -221,7 +221,7 @@
     "giver": "Huntress Thistledown",
     "offer": [
       "Your arms are too small for you now, little spark. I will make you new ones, light as a wing and sharp as a sting.",
-      "Spinner Gossamer has a shaft for me. Then bring me two skeins of silk from the rime spiders north-east of the Eyrie outpost. Frost silk holds a spell.",
+      "Spinner Gossamer has a shaft for me. Then bring me two skeins of silk from the rime spiders around the Eyrie outpost. Frost silk holds a spell.",
       "Will you bring me the shaft and the silk?"
     ],
     "accept": "I will bring them.",
@@ -246,7 +246,7 @@
       "like": "Black Widow Silk"
     },
     "hunt": {
-      "journal": "Take two skeins of silk from the rime spiders north-east of the Eyrie outpost."
+      "journal": "Take two skeins of silk from the rime spiders around the Eyrie outpost."
     },
     "give": {
       "journal": "Bring the wooden shaft and the rime spider silk to Huntress Thistledown.",

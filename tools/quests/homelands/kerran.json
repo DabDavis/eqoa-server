@@ -221,7 +221,7 @@
     "giver": "Huntress Kazhra",
     "offer": [
       "Your arms are a cub's arms still. Shimra weaves grips that never slip, wet paws or dry, but palm will not do for what you need now.",
-      "The rime spiders north-east of the Eyrie outpost spin a frosted silk. Bring me three skeins, and Shimra and I will make you something better.",
+      "The rime spiders around the Eyrie outpost spin a frosted silk. Bring me three skeins, and Shimra and I will make you something better.",
       "Will you bring me the silk?"
     ],
     "accept": "I will bring it.",
@@ -236,7 +236,7 @@
       "like": "Black Widow Silk"
     },
     "hunt": {
-      "journal": "Take three skeins of silk from the rime spiders north-east of the Eyrie outpost."
+      "journal": "Take three skeins of silk from the rime spiders around the Eyrie outpost."
     },
     "give": {
       "journal": "Bring the three skeins of rime spider silk to Huntress Kazhra.",

@@ -209,7 +209,7 @@
     "giver": "Stonehand Borrik",
     "offer": [
       "You grew. Your arms did not. I will make you a bigger thing to hit with.",
-      "The quartermaster at the Eyrie outpost has ore. Marna has leather. Then bring one skein of silk off the rime spiders north-east of the outpost, to wrap the grip.",
+      "The quartermaster at the Eyrie outpost has ore. Marna has leather. Then bring one skein of silk off the rime spiders around the outpost, to wrap the grip.",
       "Will you bring me ore, leather and silk?"
     ],
     "accept": "I will bring them.",
@@ -242,7 +242,7 @@
       "like": "Black Widow Silk"
     },
     "hunt": {
-      "journal": "Take a skein of silk from the rime spiders north-east of the Eyrie outpost."
+      "journal": "Take a skein of silk from the rime spiders around the Eyrie outpost."
     },
     "give": {
       "journal": "Bring the iron ore, the leather strip and the rime spider silk to Stonehand Borrik.",

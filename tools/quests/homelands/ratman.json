@@ -213,7 +213,7 @@
     "giver": "Tunnelrunner Chisk",
     "offer": [
       "A whisker your size needs a better bite. I will make you a proper weapon, and Tikka wants spider silk to mend her nets while I am at it.",
-      "Net cord from Tikka, ore from Quartermaster Dunmore at the Eyrie outpost, then three skeins from the rime spiders north-east of it.",
+      "Net cord from Tikka, ore from Quartermaster Dunmore at the Eyrie outpost, then three skeins from the rime spiders around it.",
       "Will you bring me all of it?"
     ],
     "accept": "I will bring it.",
@@ -250,7 +250,7 @@
       "like": "Black Widow Silk"
     },
     "hunt": {
-      "journal": "Take three skeins of silk from the rime spiders north-east of the Eyrie outpost."
+      "journal": "Take three skeins of silk from the rime spiders around the Eyrie outpost."
     },
     "give": {
       "journal": "Bring the net cord, the iron ore and the rime spider silk to Tunnelrunner Chisk.",

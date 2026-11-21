@@ -747,7 +747,7 @@
       "requires": [
         "homelands/hillgiant/L7"
       ],
-      "offer": "You grew. Your arms did not. I will make you a bigger thing to hit with.\nThe quartermaster at the Eyrie outpost has ore. Marna has leather. Then bring one skein of silk off the rime spiders north-east of the outpost, to wrap the grip.\nWill you bring me ore, leather and silk?",
+      "offer": "You grew. Your arms did not. I will make you a bigger thing to hit with.\nThe quartermaster at the Eyrie outpost has ore. Marna has leather. Then bring one skein of silk off the rime spiders around the outpost, to wrap the grip.\nWill you bring me ore, leather and silk?",
       "accept": "I will bring them.",
       "decline": "Not now.",
       "declined": "Then hit things with the small one.",
@@ -800,7 +800,7 @@
           ],
           "count": 1,
           "chance": 0.5,
-          "journal": "Take a skein of silk from the rime spiders north-east of the Eyrie outpost."
+          "journal": "Take a skein of silk from the rime spiders around the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -3355,7 +3355,7 @@
       "requires": [
         "homelands/kerran/L7"
       ],
-      "offer": "Your arms are a cub's arms still. Shimra weaves grips that never slip, wet paws or dry, but palm will not do for what you need now.\nThe rime spiders north-east of the Eyrie outpost spin a frosted silk. Bring me three skeins, and Shimra and I will make you something better.\nWill you bring me the silk?",
+      "offer": "Your arms are a cub's arms still. Shimra weaves grips that never slip, wet paws or dry, but palm will not do for what you need now.\nThe rime spiders around the Eyrie outpost spin a frosted silk. Bring me three skeins, and Shimra and I will make you something better.\nWill you bring me the silk?",
       "accept": "I will bring it.",
       "decline": "Not now.",
       "declined": "Then keep the cub's arms a while.",
@@ -3372,7 +3372,7 @@
           ],
           "count": 3,
           "chance": 0.5,
-          "journal": "Take three skeins of silk from the rime spiders north-east of the Eyrie outpost."
+          "journal": "Take three skeins of silk from the rime spiders around the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -5919,7 +5919,7 @@
       "requires": [
         "homelands/kappa/L7"
       ],
-      "offer": "River clay makes a fine pot and a poor blade. You need better arms now, and the Eyrie outpost has the ore for it.\nAsk Quartermaster Dunmore there for ore, and Ishiko here for her reed cord. Then a skein of silk from the rime spiders north-east of the outpost, to bind it.\nWill you bring me all three?",
+      "offer": "River clay makes a fine pot and a poor blade. You need better arms now, and the Eyrie outpost has the ore for it.\nAsk Quartermaster Dunmore there for ore, and Ishiko here for her reed cord. Then a skein of silk from the rime spiders around the outpost, to bind it.\nWill you bring me all three?",
       "accept": "I will bring them.",
       "decline": "Not now.",
       "declined": "Then keep your old arms oiled.",
@@ -5972,7 +5972,7 @@
           ],
           "count": 1,
           "chance": 0.5,
-          "journal": "Take a skein of silk from the rime spiders north-east of the Eyrie outpost."
+          "journal": "Take a skein of silk from the rime spiders around the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -11305,7 +11305,7 @@
       "requires": [
         "homelands/ratman/L7"
       ],
-      "offer": "A whisker your size needs a better bite. I will make you a proper weapon, and Tikka wants spider silk to mend her nets while I am at it.\nNet cord from Tikka, ore from Quartermaster Dunmore at the Eyrie outpost, then three skeins from the rime spiders north-east of it.\nWill you bring me all of it?",
+      "offer": "A whisker your size needs a better bite. I will make you a proper weapon, and Tikka wants spider silk to mend her nets while I am at it.\nNet cord from Tikka, ore from Quartermaster Dunmore at the Eyrie outpost, then three skeins from the rime spiders around it.\nWill you bring me all of it?",
       "accept": "I will bring it.",
       "decline": "Not now.",
       "declined": "Then bite harder with what you have.",
@@ -11358,7 +11358,7 @@
           ],
           "count": 3,
           "chance": 0.5,
-          "journal": "Take three skeins of silk from the rime spiders north-east of the Eyrie outpost."
+          "journal": "Take three skeins of silk from the rime spiders around the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -16495,7 +16495,7 @@
       "requires": [
         "homelands/dryad/L7"
       ],
-      "offer": "You have grown past a sapling's arms. I will make you a thornwarden's weapon, bound with silk that does not rot in rain or snow.\nWeaver Fernlight has cord for the grip. Then bring me two skeins from the rime spiders north-east of the Eyrie outpost.\nWill you bring me the cord and the silk?",
+      "offer": "You have grown past a sapling's arms. I will make you a thornwarden's weapon, bound with silk that does not rot in rain or snow.\nWeaver Fernlight has cord for the grip. Then bring me two skeins from the rime spiders around the Eyrie outpost.\nWill you bring me the cord and the silk?",
       "accept": "I will bring them.",
       "decline": "Not now.",
       "declined": "Then your old arms will serve a while longer.",
@@ -16530,7 +16530,7 @@
           ],
           "count": 2,
           "chance": 0.5,
-          "journal": "Take two skeins of silk from the rime spiders north-east of the Eyrie outpost."
+          "journal": "Take two skeins of silk from the rime spiders around the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -19148,7 +19148,7 @@
       "requires": [
         "homelands/gargoyle/L7"
       ],
-      "offer": "Your arms are a wakeling's. I will make you a guardian's weapon, with a rime spider's fang set in it, hard as frost.\nA thong from Hidecutter Vess, ore from Quartermaster Dunmore at the Eyrie outpost, two fangs from the rime spiders north-east of it.\nWill you bring me all of it?",
+      "offer": "Your arms are a wakeling's. I will make you a guardian's weapon, with a rime spider's fang set in it, hard as frost.\nA thong from Hidecutter Vess, ore from Quartermaster Dunmore at the Eyrie outpost, two fangs from the rime spiders around it.\nWill you bring me all of it?",
       "accept": "I will bring it.",
       "decline": "Not now.",
       "declined": "Then strike harder with what you have.",
@@ -19201,7 +19201,7 @@
           ],
           "count": 2,
           "chance": 0.5,
-          "journal": "Take two rime spider fangs from the rime spiders north-east of the Eyrie outpost."
+          "journal": "Take two rime spider fangs from the rime spiders around the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -21859,7 +21859,7 @@
       "requires": [
         "homelands/jalraeth/L7"
       ],
-      "offer": "The tool I gave you served a novice. You need a better one. Do not grow fond of this one either.\nArtificer Maelis has a shaft for me. Then take two skeins of silk from the rime spiders north-east of the Eyrie outpost, to bind it.\nWill you bring me the shaft and the silk?",
+      "offer": "The tool I gave you served a novice. You need a better one. Do not grow fond of this one either.\nArtificer Maelis has a shaft for me. Then take two skeins of silk from the rime spiders around the Eyrie outpost, to bind it.\nWill you bring me the shaft and the silk?",
       "accept": "I will bring them.",
       "decline": "Not now.",
       "declined": "Then the old tool must do. Tools usually do.",
@@ -21894,7 +21894,7 @@
           ],
           "count": 2,
           "chance": 0.5,
-          "journal": "Take two skeins of silk from the rime spiders north-east of the Eyrie outpost."
+          "journal": "Take two skeins of silk from the rime spiders around the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -24529,7 +24529,7 @@
       "requires": [
         "homelands/aviak/L7"
       ],
-      "offer": "You have grown past the arms a fledgling carries. I will make you better, but the outpost has what I need.\nQuartermaster Dunmore keeps good ore at the Eyrie outpost. Then bring me silk from the rime spiders north-east of it.\nWill you bring me the ore and the silk?",
+      "offer": "You have grown past the arms a fledgling carries. I will make you better, but the outpost has what I need.\nQuartermaster Dunmore keeps good ore at the Eyrie outpost. Then bring me silk from the rime spiders around it.\nWill you bring me the ore and the silk?",
       "accept": "I will bring them.",
       "decline": "Not now.",
       "declined": "Then your old arms will have to do.",
@@ -24564,7 +24564,7 @@
           ],
           "count": 2,
           "chance": 0.5,
-          "journal": "Take two skeins of silk from the rime spiders north-east of the Eyrie outpost."
+          "journal": "Take two skeins of silk from the rime spiders around the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -27188,7 +27188,7 @@
       "requires": [
         "homelands/goblin/L7"
       ],
-      "offer": "Your blade is a toy now, little one. Grukk made a deal with the Eyrie's quartermaster: he gives you ore and a shaft, and we say nice things about him.\nGet them from Quartermaster Dunmore at the outpost. Then bring me silk from the rime spiders north-east of it, three skeins, to bind it all.\nWill you fetch Grukk's bargain?",
+      "offer": "Your blade is a toy now, little one. Grukk made a deal with the Eyrie's quartermaster: he gives you ore and a shaft, and we say nice things about him.\nGet them from Quartermaster Dunmore at the outpost. Then bring me silk from the rime spiders around it, three skeins, to bind it all.\nWill you fetch Grukk's bargain?",
       "accept": "I will fetch it.",
       "decline": "Not now.",
       "declined": "Then keep your toy, and hope nothing bites.",
@@ -27227,7 +27227,7 @@
           ],
           "count": 3,
           "chance": 0.5,
-          "journal": "Take three skeins of silk from the rime spiders north-east of the Eyrie outpost."
+          "journal": "Take three skeins of silk from the rime spiders around the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -32426,7 +32426,7 @@
       "requires": [
         "homelands/brownie/L7"
       ],
-      "offer": "You have outgrown your little arms, sprout. Time for proper ones. Mossbutton has a leather strip for me, and the Eyrie's quartermaster has iron.\nThen bring me two skeins of silk from the rime spiders north-east of the Eyrie outpost. Nothing binds a grip like it.\nWill you gather it all?",
+      "offer": "You have outgrown your little arms, sprout. Time for proper ones. Mossbutton has a leather strip for me, and the Eyrie's quartermaster has iron.\nThen bring me two skeins of silk from the rime spiders around the Eyrie outpost. Nothing binds a grip like it.\nWill you gather it all?",
       "accept": "I will gather it.",
       "decline": "Not now.",
       "declined": "Then mind you do not break the old ones.",
@@ -32479,7 +32479,7 @@
           ],
           "count": 2,
           "chance": 0.5,
-          "journal": "Take two skeins of silk from the rime spiders north-east of the Eyrie outpost."
+          "journal": "Take two skeins of silk from the rime spiders around the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -35137,7 +35137,7 @@
       "requires": [
         "homelands/pixie/L7"
       ],
-      "offer": "Your arms are too small for you now, little spark. I will make you new ones, light as a wing and sharp as a sting.\nSpinner Gossamer has a shaft for me. Then bring me two skeins of silk from the rime spiders north-east of the Eyrie outpost. Frost silk holds a spell.\nWill you bring me the shaft and the silk?",
+      "offer": "Your arms are too small for you now, little spark. I will make you new ones, light as a wing and sharp as a sting.\nSpinner Gossamer has a shaft for me. Then bring me two skeins of silk from the rime spiders around the Eyrie outpost. Frost silk holds a spell.\nWill you bring me the shaft and the silk?",
       "accept": "I will bring them.",
       "decline": "Not now.",
       "declined": "Then your old arms will have to do.",
@@ -35172,7 +35172,7 @@
           ],
           "count": 2,
           "chance": 0.5,
-          "journal": "Take two skeins of silk from the rime spiders north-east of the Eyrie outpost."
+          "journal": "Take two skeins of silk from the rime spiders around the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -40524,7 +40524,7 @@
           ],
           "count": 2,
           "chance": 0.5,
-          "journal": "Take two rime spider fangs from the rime spiders north-east of the Eyrie outpost."
+          "journal": "Take two rime spider fangs from the rime spiders around the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -45655,7 +45655,7 @@
       "requires": [
         "homelands/minotaur/L7"
       ],
-      "offer": "A Rustel of your size needs a heavier weapon. The herd sold its best ore to the Eyrie outpost this season, so Quartermaster Dunmore will give a little back.\nBring me his ore, and three skeins of silk from the rime spiders north-east of the outpost to bind the grip.\nWill you bring me the ore and the silk?",
+      "offer": "A Rustel of your size needs a heavier weapon. The herd sold its best ore to the Eyrie outpost this season, so Quartermaster Dunmore will give a little back.\nBring me his ore, and three skeins of silk from the rime spiders around the outpost to bind the grip.\nWill you bring me the ore and the silk?",
       "accept": "I will bring them.",
       "decline": "Not now.",
       "declined": "Then carry the calf's weapon a while longer.",
@@ -45690,7 +45690,7 @@
           ],
           "count": 3,
           "chance": 0.5,
-          "journal": "Take three skeins of silk from the rime spiders north-east of the Eyrie outpost."
+          "journal": "Take three skeins of silk from the rime spiders around the Eyrie outpost."
         },
         {
           "kind": "give",
@@ -56357,7 +56357,7 @@
       "requires": [
         "homelands/mermaid/L7"
       ],
-      "offer": "You have grown past the arms of a little fin. I will make you better, but the outpost has what I need.\nQuartermaster Dunmore keeps good ore at the Eyrie outpost. Then bring me silk from the rime spiders north-east of it.\nWill you bring me the ore and the silk?",
+      "offer": "You have grown past the arms of a little fin. I will make you better, but the outpost has what I need.\nQuartermaster Dunmore keeps good ore at the Eyrie outpost. Then bring me silk from the rime spiders around it.\nWill you bring me the ore and the silk?",
       "accept": "I will bring them.",
       "decline": "Not now.",
       "declined": "Then your old arms will have to do.",
@@ -56392,7 +56392,7 @@
           ],
           "count": 2,
           "chance": 0.5,
-          "journal": "Take two skeins of silk from the rime spiders north-east of the Eyrie outpost."
+          "journal": "Take two skeins of silk from the rime spiders around the Eyrie outpost."
         },
         {
           "kind": "give",

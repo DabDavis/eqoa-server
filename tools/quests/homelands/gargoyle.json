@@ -213,7 +213,7 @@
     "giver": "Talonmaster Krall",
     "offer": [
       "Your arms are a wakeling's. I will make you a guardian's weapon, with a rime spider's fang set in it, hard as frost.",
-      "A thong from Hidecutter Vess, ore from Quartermaster Dunmore at the Eyrie outpost, two fangs from the rime spiders north-east of it.",
+      "A thong from Hidecutter Vess, ore from Quartermaster Dunmore at the Eyrie outpost, two fangs from the rime spiders around it.",
       "Will you bring me all of it?"
     ],
     "accept": "I will bring it.",
@@ -250,7 +250,7 @@
       "like": "Icefang Spiderling Fang"
     },
     "hunt": {
-      "journal": "Take two rime spider fangs from the rime spiders north-east of the Eyrie outpost."
+      "journal": "Take two rime spider fangs from the rime spiders around the Eyrie outpost."
     },
     "give": {
       "journal": "Bring the crag-hide thong, the iron ore and the rime spider fangs to Talonmaster Krall.",

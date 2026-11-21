@@ -225,7 +225,7 @@
     "giver": "Reedwarden Tsumo",
     "offer": [
       "River clay makes a fine pot and a poor blade. You need better arms now, and the Eyrie outpost has the ore for it.",
-      "Ask Quartermaster Dunmore there for ore, and Ishiko here for her reed cord. Then a skein of silk from the rime spiders north-east of the outpost, to bind it.",
+      "Ask Quartermaster Dunmore there for ore, and Ishiko here for her reed cord. Then a skein of silk from the rime spiders around the outpost, to bind it.",
       "Will you bring me all three?"
     ],
     "accept": "I will bring them.",
@@ -262,7 +262,7 @@
       "like": "Black Widow Silk"
     },
     "hunt": {
-      "journal": "Take a skein of silk from the rime spiders north-east of the Eyrie outpost."
+      "journal": "Take a skein of silk from the rime spiders around the Eyrie outpost."
     },
     "give": {
       "journal": "Bring the iron ore, the braided reed cord and the rime spider silk to Reedwarden Tsumo.",

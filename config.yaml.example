@@ -111,6 +111,9 @@ world:
   # the characters of the old [OG] accounts (accountinfo.og) become [OG]
   # characters, once. Off unless set.
   # og_accounts: true
+  # The most Combat Mastery points a character holds, spent and unspent
+  # together (entity.MasteryCap): Heirloom 2000, the Live shard 1500.
+  # mastery_cap: 2000
 
   # [HC] Hardcore characters (handlers/hardcore.go; the owner, 2026-11-18):
   # chosen for a character when it is made (vanilla's create page; a PS2's first

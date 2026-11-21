@@ -58,9 +58,12 @@ const strandGrace = 10 * time.Second
 // others) the trigger may spawn.
 type encounterLink struct {
 	quest, from, kill int
-	trigger           string
-	targets           []string
-	loot              bool // the kill step is a loot step: its corpses are looted after the kill
+	// putback: the earlier step the quest goes back to in place of from, nothing
+	// handed back (database.QuestEvent.PutBack); 0 for from
+	putback int
+	trigger string
+	targets []string
+	loot    bool // the kill step is a loot step: its corpses are looted after the kill
 	// between is the creatures (targets) of each kill or loot step after from and before
 	// kill: the link holds only while the trigger spawns every one of them too, so a kill
 	// step reached past kills of the world's own standing creatures is not the encounter's
@@ -96,7 +99,11 @@ func encounterLinks(all []*database.Quest) []encounterLink {
 						continue
 					}
 					targets := append([]string{st.Target}, st.Also...)
-					out = append(out, encounterLink{quest: qu.ID, from: from, kill: st.Step, trigger: e.Trigger, targets: targets,
+					pb := 0
+					if e.PutBack > 0 && e.PutBack < from {
+						pb = e.PutBack
+					}
+					out = append(out, encounterLink{quest: qu.ID, from: from, kill: st.Step, putback: pb, trigger: e.Trigger, targets: targets,
 						loot: st.Kind == database.StepLoot, between: append([][]string(nil), between...)})
 					between = append(between, targets)
 				}
@@ -196,12 +203,16 @@ func (q *QuestEngine) putBackLocked(sess *session.Session, p *entity.Player, c *
 		return
 	}
 	at := cq.Step
+	to := l.from
+	if l.putback > 0 {
+		to = l.putback // back further, nothing handed back: the steps give it again
+	}
 	// what the steps from the firing one on took: a give step's items, a reach step's (set down there:
 	// The Thulite Anvil's golem parts, the primal stew; petition 2446), a give or show step's tunar
 	var back database.ClassReward
 	for i := range qu.Steps {
 		st := &qu.Steps[i]
-		if st.Step < max(l.from, 1) || st.Step >= at {
+		if l.putback > 0 || st.Step < max(l.from, 1) || st.Step >= at {
 			continue
 		}
 		if st.Kind == database.StepGive || st.Kind == database.StepReach {
@@ -220,7 +231,7 @@ func (q *QuestEngine) putBackLocked(sess *session.Session, p *entity.Player, c *
 		said = fmt.Sprintf("%s: the encounter ended before %s fell. The quest is yours to take again.", qu.Name, l.targets[0])
 	} else {
 		old := q.lineLocked(cq)
-		cq.Step, cq.Count = l.from, 0
+		cq.Step, cq.Count = to, 0
 		if text := q.lineLocked(cq); text != old || idx < 0 {
 			q.dropLineLocked(sess, c, idx)
 			cq.Slot = c.nextSlot()
@@ -228,9 +239,12 @@ func (q *QuestEngine) putBackLocked(sess *session.Session, p *entity.Player, c *
 		}
 		q.saveLocked(cq)
 		said = fmt.Sprintf("%s: the encounter ended before %s fell. Its step is yours to do again.", qu.Name, l.targets[0])
+		if l.putback > 0 {
+			said = fmt.Sprintf("%s: the encounter ended before %s fell. You must begin again from an earlier step.", qu.Name, l.targets[0])
+		}
 	}
 	lines := append([]string{said}, q.rewardLocked(sess, p, back, economy.QuestRefund)...)
 	q.tellLocked(c, sess, "", lines...)
 	log.Printf("Quests: %s's %q put back from step %d to step %d: no run of %q lives and %s did not fall (handed back: %d items, %d tunar)",
-		p.Name, qu.Name, at, l.from, l.trigger, l.targets[0], len(back.Items), back.Tunar)
+		p.Name, qu.Name, at, to, l.trigger, l.targets[0], len(back.Items), back.Tunar)
 }

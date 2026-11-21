@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 )
 
@@ -96,9 +97,9 @@ func TestMistmooreEncounterAsTheGuide(t *testing.T) {
 	}
 
 	// the quest: three steps before the tool's, then its 4-8, the items the fixture's
-	f.exec(`INSERT INTO quests (questid, name, enabled, giver, offer, accept) VALUES (90, 'Mistmoore', 1, 'Djivan Mertshak', 'x', 'y')`)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, offer, accept) VALUES (101383, 'Mistmoore', 1, 'Djivan Mertshak', 'x', 'y')`)
 	for s := 1; s <= 3; s++ {
-		f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (90, ?, 'talk', 'Enrique Revnold', 'x')`, s)
+		f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (101383, ?, 'talk', 'Enrique Revnold', 'x')`, s)
 	}
 	fix := func(v any) any {
 		if s, ok := v.(string); ok {
@@ -108,7 +109,7 @@ func TestMistmooreEncounterAsTheGuide(t *testing.T) {
 		return v
 	}
 	for s := 4; s <= 8; s++ {
-		cols, vals := []string{"questid", "step"}, []any{90, s}
+		cols, vals := []string{"questid", "step"}, []any{101383, s}
 		for c, v := range d.Steps[itoa(s)] {
 			cols, vals = append(cols, c), append(vals, fix(v))
 		}
@@ -117,7 +118,7 @@ func TestMistmooreEncounterAsTheGuide(t *testing.T) {
 	if err := f.qe.Reload(); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := f.qe.SetCharacterQuest(f.sid, 90, QuestGive, 4); err != nil {
+	if _, err := f.qe.SetCharacterQuest(f.sid, 101383, QuestGive, 4); err != nil {
 		t.Fatal(err)
 	}
 	f.msgs()
@@ -137,21 +138,21 @@ func TestMistmooreEncounterAsTheGuide(t *testing.T) {
 	// on the carpet without the songbook: nothing
 	carpet()
 	f.qe.checkReach()
-	if s, _ := f.progress(90); s != 4 || e.RunningNamed("Maestro of Rancor") {
+	if s, _ := f.progress(101383); s != 4 || e.RunningNamed("Maestro of Rancor") {
 		t.Fatalf("no songbook: step %d, running %v", s, e.RunningNamed("Maestro of Rancor"))
 	}
 	// a floor below the carpet: nothing (the step's height)
 	f.own(tome, 1)
 	f.tw.p.Y = -88
 	f.qe.checkReach()
-	if s, _ := f.progress(90); s != 4 {
+	if s, _ := f.progress(101383); s != 4 {
 		t.Fatalf("a floor below: step %d", s)
 	}
 	// on the carpet with it: taken, the popup, the Maestro five seconds later
 	carpet()
 	f.qe.checkReach()
 	m := strings.Join(f.msgs(), "|")
-	if s, _ := f.progress(90); s != 5 || f.held(tome) != 0 || !e.RunningNamed("Maestro of Rancor") {
+	if s, _ := f.progress(101383); s != 5 || f.held(tome) != 0 || !e.RunningNamed("Maestro of Rancor") {
 		t.Fatalf("on the carpet: step %d, %d songbooks, running %v (%s)", s, f.held(tome), e.RunningNamed("Maestro of Rancor"), m)
 	}
 	if !strings.Contains(m, "songbook crumbles") {
@@ -171,19 +172,20 @@ func TestMistmooreEncounterAsTheGuide(t *testing.T) {
 		}
 	}
 
-	// the fight lost: the run ends with no kill, and the questor is put back to the carpet with the songbook
+	// the fight lost: the run ends with no kill, and the questor goes back to the Writ (step 2) as the guide has it,
+	// the songbook not handed back (the steps give it again)
 	if runs, _ := e.StopRuns(901); runs != 1 {
 		t.Fatalf("%d runs stopped", runs)
 	}
 	t0 := time.Now().Add(time.Hour)
 	f.qe.checkStranded(t0)
 	f.qe.checkStranded(t0.Add(strandGrace + time.Second))
-	if s, _ := f.progress(90); s != 4 || f.held(tome) != 1 {
-		t.Fatalf("after a lost fight: step %d, %d songbooks (the engine's put-back, not the guide's Writ)", s, f.held(tome))
+	if s, _ := f.progress(101383); s != 2 || f.held(tome) != 0 {
+		t.Fatalf("after a lost fight: step %d, %d songbooks; want step 2 (the Writ), none handed back", s, f.held(tome))
 	}
 
 	// the song: at the coffin, taken, the coffin down, Mistmoore three seconds later
-	if _, err := f.qe.SetCharacterQuest(f.sid, 90, QuestSetStep, 6); err != nil {
+	if _, err := f.qe.SetCharacterQuest(f.sid, 101383, QuestSetStep, 6); err != nil {
 		t.Fatal(err)
 	}
 	f.own(page, 1)
@@ -193,7 +195,7 @@ func TestMistmooreEncounterAsTheGuide(t *testing.T) {
 	if ms := f.msgs(); boxID(ms) != 0 {
 		f.qe.Answer(f.tw.s, f.tw.p, boxID(ms), 0)
 	}
-	if s, _ := f.progress(90); s != 7 || f.held(page) != 0 || !e.RunningNamed("Mayong Mistmoore") {
+	if s, _ := f.progress(101383); s != 7 || f.held(page) != 0 || !e.RunningNamed("Mayong Mistmoore") {
 		t.Fatalf("at the coffin: step %d, %d songs, running %v (%v)", s, f.held(page), e.RunningNamed("Mayong Mistmoore"), f.msgs())
 	}
 	at(time.Second)
@@ -215,9 +217,26 @@ func TestMistmooreEncounterAsTheGuide(t *testing.T) {
 		t.Fatal("the trigger is free while he stands")
 	}
 
+	// the group shares his kill: his trigger sets everyone near on the quest at steps 4-7 to step 8
+	shared := 0
+	for _, tr := range d.Triggers {
+		var steps []database.TriggerStep
+		if err := json.Unmarshal(tr.Steps, &steps); err != nil {
+			t.Fatal(err)
+		}
+		for _, st := range steps {
+			if st.Do == "questset" && st.Quest == 101383 && st.QuestStep == 8 && st.From == 4 {
+				shared++
+			}
+		}
+	}
+	if shared != 1 {
+		t.Fatalf("Mistmoore's trigger sets the group's quest %d times, want once", shared)
+	}
+
 	// his kill: the step done; the run ends and the coffin stays down half an hour from then
 	f.killFor("Mayong Mistmoore", mis.ServerID)
-	if s, _ := f.progress(90); s != 8 {
+	if s, _ := f.progress(101383); s != 8 {
 		t.Fatalf("his kill: step %d", s)
 	}
 	mis.Dead, mis.HP, mis.DeathTime = true, 0, now

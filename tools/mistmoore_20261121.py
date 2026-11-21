@@ -43,11 +43,11 @@ THE GUIDE, and what this makes of it (quests 101383-101386, "Mistmoore", one an 
 6. Step 7 is the kill of Mayong Mistmoore (the old step 6's), step 8 the return to Djivan (the old step 7, its
    rewards as they were). A character on the old step 7 goes to 8.
 7. "If you fail to kill the Maestro [Mistmoore], then you will have to start the ability quest from the very
-   beginning, meaning you'll have to farm another Writ of the Wild": NOT AS WRITTEN. The engine's encounter put-back
-   (handlers/questencounter.go, the owner's rule of 2026-11-13: a quest is never left stuck on an encounter's kill)
-   puts a questor whose fight ended without the kill back to the step that fired it (4 or 6), handing back what that
-   step took (the tome or the song), not to step 2 with it gone. Doing the guide's rule needs code (a put-back to a
-   named earlier step, keeping what was taken); the data has no step that sets a quest back.
+   beginning, meaning you'll have to farm another Writ of the Wild": as written. Steps 4 and 6's trigger events carry
+   putback 2 (database.QuestEvent.PutBack): a fight that ends without its kill puts the questor back to step 2, the
+   Writ's loot, the tome or song not handed back (the steps give them again).
+8. One song wakes Mistmoore for the group: at his death every player near on the quest at steps 4-7 is set to step 8
+   (questset), so a group's members need not each give a song (the owner, 2026-11-21).
 
 Report only by default; --apply in one transaction, a gm_audit line a row (account 1 'dab', via 'tool') and the log
 mistmoore_1121_log (every row before and after); a second --apply does nothing; --undo puts back exactly what it
@@ -149,7 +149,7 @@ def maestro_steps(row_key, x, y, z):
     ]
 
 
-def mistmoore_steps(row_key, x, y, z):
+def mistmoore_steps(row_key, x, y, z, qids):
     return [
         {"do": "lock", "lock": L_MISTMOORE},
         {"do": "hide", "npc": COFFIN, "radius": COFFIN_REACH, "minutes": 75},
@@ -160,6 +160,9 @@ def mistmoore_steps(row_key, x, y, z):
          "z": z},
         {"do": "broadcast", "text": "Mayong Mistmoore: \"Vedel's song, sung by cattle. You will be my new choir.\""},
         {"do": "awaitdead"},
+        # the group shares the kill (the owner, 2026-11-21: one song wakes him for everyone): each player near
+        # on the quest past the Writ (steps 4-7) is set to its last step, the return to Djivan
+        *[{"do": "questset", "quest": q, "step": 8, "from": 4} for q in qids],
         {"do": "broadcast", "text": "Mayong Mistmoore is destroyed. His coffin stands empty."},
         {"do": "end"},
         {"do": "despawn"},
@@ -185,7 +188,7 @@ def step_changes(tome, page):
                        "doorway right of the room with the spider mosaic) with Vedel's songbook. Clear the glyphed "
                        "familiars and bring a group: the Maestro cannot be soloed.",
             "reminder": "Only Vedel's own songbook, the tome of Vedel's songs from Enrique Revnold, can call the Maestro of Rancor.",
-            "events": jsc([{"on": "done", "do": "trigger", "trigger": T_MAESTRO, "text": MAESTRO_BUSY},
+            "events": jsc([{"on": "done", "do": "trigger", "trigger": T_MAESTRO, "text": MAESTRO_BUSY, "putback": 2},
                            {"on": "done", "do": "popup",
                             "text": "You step onto the red carpet and play Vedel's song on the organ. The songbook crumbles "
                                     "to dust in your hands, and something stirs in the dark..."}])},
@@ -196,7 +199,7 @@ def step_changes(tome, page):
             "answer": "I sing vedel's song of awakening.",
             "says": "The page crumbles as the last note fades. Something stirs inside the coffin...",
             "waiting": "The coffin is sealed fast. Only vedel's song of awakening will wake what sleeps inside.",
-            "events": jsc([{"on": "done", "do": "trigger", "trigger": T_MISTMOORE, "text": MISTMOORE_BUSY}])},
+            "events": jsc([{"on": "done", "do": "trigger", "trigger": T_MISTMOORE, "text": MISTMOORE_BUSY, "putback": 2}])},
     }
 
 
@@ -456,7 +459,7 @@ def apply(db, ids):
     made["trigger " + T_MAESTRO] = slot
     insert("gmtriggers", {"slot": slot + 1, "name": T_MISTMOORE, "enabled": 1, "scope": "near", "radius": 150,
                           "world": 0, "x": cof["x_coord"], "y": cof["y_coord"], "z": cof["z_coord"],
-                          "steps": jsc(mistmoore_steps(f"#{ids['mistmoore']}", mis["x_coord"], mis["y_coord"], mis["z_coord"])),
+                          "steps": jsc(mistmoore_steps(f"#{ids['mistmoore']}", mis["x_coord"], mis["y_coord"], mis["z_coord"], ids["quests"])),
                           "notes": MISTMOORE_TRIG_NOTE}, {"slot": slot + 1})
     made["trigger " + T_MISTMOORE] = slot + 1
 
@@ -544,7 +547,7 @@ def dump():
             {"slot": 901, "name": T_MAESTRO, "scope": "near", "radius": 120, "world": 0, "x": mx, "y": my, "z": mz,
              "steps": maestro_steps("#106853", mx, my, mz)},
             {"slot": 902, "name": T_MISTMOORE, "scope": "near", "radius": 150, "world": 0, "x": cx, "y": cy, "z": cz,
-             "steps": mistmoore_steps("#106904", vx, vy, vz)},
+             "steps": mistmoore_steps("#106904", vx, vy, vz, [101383, 101384, 101385, 101386])},
         ],
         "rows": {"maestro": {"id": 106853, "name": MAESTRO, "x": mx, "y": my, "z": mz, "level": 51},
                  "mistmoore": {"id": 106904, "name": MISTMOORE, "x": vx, "y": vy, "z": vz, "level": 54},

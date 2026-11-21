@@ -364,6 +364,13 @@ type QuestEvent struct {
 	// does not fire it again. Says: what the step's NPC says as it fires.
 	Hold bool   `json:"hold,omitempty"`
 	Says string `json:"says,omitempty"`
+	// PutBack (trigger): when the encounter the trigger raises ends without its
+	// kill (handlers/questencounter.go), the quest goes back to this earlier step
+	// in place of the firing one, nothing handed back: the steps from there give
+	// it all again (the owner, 2026-11-21, Mistmoore as the GameFAQs walkthrough
+	// has it: "you'll have to farm another Writ of the Wild"). 0 or a step not
+	// before the firing one: the firing step, what was taken handed back.
+	PutBack int `json:"putback,omitempty"`
 }
 
 // HoldTrigger is a step's held trigger event (Hold), nil for none.

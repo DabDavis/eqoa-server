@@ -232,3 +232,45 @@ func TestRaceDefsGainCreationsColumns(t *testing.T) {
 		t.Errorf("columns %v", cols)
 	}
 }
+
+// A class with a row on a server's own world and one on the disc's (the evil
+// dwarves' deep, world 10, and their camp by Moradhim, world 0) starts a new
+// character in the server's world whichever row was written first, and a
+// login whose client lacks that world goes to the disc's row
+// (MainlandPlace); the race's other classes start as before, a class of no row
+// of its own on the race's first, never in the deep.
+func TestStartPlaceOfAClassWithAServerWorldRow(t *testing.T) {
+	_, s := creationDB(t)
+	if _, err := s.db.Exec(`INSERT INTO defaultcharacter (tclass, race, humType, level, tunar, bankTunar, unusedTP, totalTP, x, y, z, facing, world)
+		VALUES (0, 4, 0, 1, 0, 0, 0, 0, 15190.8, 99.9, 8767.3, 0, 0),
+		       (3, 4, 0, 1, 0, 0, 0, 0, 15295.0, 54.1, 9430.0, 0, 0),
+		       (3, 4, 0, 1, 0, 0, 0, 0, 18745.0, -59.0, 9170.0, 0, 10),
+		       (11, 4, 0, 1, 0, 0, 0, 0, 18745.0, -59.0, 9170.0, 0, 10),
+		       (11, 4, 0, 1, 0, 0, 0, 0, 15295.0, 54.1, 9430.0, 0, 0)`); err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range []struct {
+		name  string
+		class int
+		x     float32
+		world int
+	}{
+		{"Darksk", 3, 18745, 10}, {"Darknec", 11, 18745, 10}, {"Stonewar", 0, 15190.8, 0}, {"Stoneranger", 1, 15190.8, 0},
+	} {
+		r := &CharacterRecord{CharName: c.name, AccountID: 1, Race: 4, TClass: c.class}
+		if _, err := s.CreateNew(r); err != nil {
+			t.Fatalf("%s: %v", c.name, err)
+		}
+		got, _ := s.GetByServerID(r.ServerID)
+		if got.X != c.x || got.World != c.world {
+			t.Errorf("%s: starts at x %.1f world %d, want x %.1f world %d", c.name, got.X, got.World, c.x, c.world)
+		}
+		m := *got
+		if !s.MainlandPlace(&m) || m.World != 0 {
+			t.Errorf("%s: mainland world %d", c.name, m.World)
+		}
+		if want := map[int]float32{3: 15295, 11: 15295, 0: 15190.8, 1: 15190.8}[c.class]; m.X != want {
+			t.Errorf("%s: mainland x %.1f, want %.1f", c.name, m.X, want)
+		}
+	}
+}

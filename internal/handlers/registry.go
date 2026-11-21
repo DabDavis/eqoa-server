@@ -258,9 +258,17 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// take them (potion.go, entity/potion.go)
 	if gameWorld != nil {
 		equipHandler.LoadPotions()
-		gameWorld.OnSummonItem(equipHandler.summonItem)
-		gameWorld.OnPotionThrown(equipHandler.potionThrown)
-		gameWorld.OnAmmoSpent(equipHandler.ammoSpent) // a bow's arrow, a crossbow's bolt (ammo.go)
+		// the World runs each in a goroutine of its own: under the session's
+		// item lists' hold, as a handler is (session.LockItems; itemsync.go)
+		gameWorld.OnSummonItem(func(sess *session.Session, char uint32, item string, count int, spell string) {
+			withItems(sess, func() { equipHandler.summonItem(sess, char, item, count, spell) })
+		})
+		gameWorld.OnPotionThrown(func(sess *session.Session, char uint32, pattern int) {
+			withItems(sess, func() { equipHandler.potionThrown(sess, char, pattern) })
+		})
+		gameWorld.OnAmmoSpent(func(sess *session.Session, char uint32, kind int) { // a bow's arrow, a crossbow's bolt (ammo.go)
+			withItems(sess, func() { equipHandler.ammoSpent(sess, char, kind) })
+		})
 	}
 	interactHandler := NewInteractHandler(sessionMgr)
 	if gameWorld != nil {

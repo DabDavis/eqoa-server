@@ -504,6 +504,14 @@ const corpseTooFar = "You are too far away to loot that corpse."
 // HandleLootClose is 0x0016 (LootNoWindow): answered with 0x0016. A corpse
 // closed with nothing left on it goes (emptiedLocked).
 func (h *NPCWindowHandler) HandleLootClose(sess *session.Session, msg *protocol.Message) error {
+	h.closeLoot(sess)
+	return nil
+}
+
+// closeLoot is LootNoWindow's answer, the session's corpse let go: 0x0016,
+// which closes CLIENT's window whatever it holds, and the corpse gone when
+// nothing is left on it.
+func (h *NPCWindowHandler) closeLoot(sess *session.Session) {
 	ls := h.loots()
 	ls.mu.Lock()
 	id, open := ls.open[sess]
@@ -519,7 +527,6 @@ func (h *NPCWindowHandler) HandleLootClose(sess *session.Session, msg *protocol.
 		}
 	}
 	ls.mu.Unlock()
-	return nil
 }
 
 // HandleLootItem is 0x0019 {u32 key, u32 count} (SendLoot): the record with

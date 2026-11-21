@@ -233,7 +233,11 @@ func (s *Server) giveItem(a *actor, who, what any, count int, location string) (
 		// The live path writes the rows itself (as a sale does); the log gets
 		// each row it made or changed.
 		before, _ := s.rowsOf(`SELECT * FROM charinventory WHERE serverid = ? AND patternid = ?`, id, item.PatternID)
+		// under the session's item lists' hold, as its own messages' handlers
+		// change them (session.LockItems)
+		sess.LockItems()
 		given, err := handlers.GiveItemNow(sess, s.d.World, database.NewInventoryStore(s.d.DB), item, count)
+		sess.UnlockItems()
 		if err != nil && given == 0 {
 			return nil, err
 		}

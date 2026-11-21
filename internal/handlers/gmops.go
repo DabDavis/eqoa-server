@@ -136,7 +136,10 @@ func SendLevel(sess *session.Session, level, bar, trainerCap int) {
 // the end of the inventory, in the database and in the session's mirror of
 // the client's list, sent as 0x003B. It comes new, at full condition. It
 // returns how many went in: fewer than n when the stack or the list is full,
-// 0 when nothing could.
+// 0 when nothing could. Its caller holds the session's item lists
+// (session.LockItems: a message's handler does; anything else takes it,
+// itemsync.go's withItems), so nothing else changes them between its look at
+// the list and its message.
 func GiveItemNow(sess *session.Session, gw *entity.World, inv *database.InventoryStore, pattern database.ItemPatternRecord, n int) (int, error) {
 	if sess == nil || gw == nil || inv == nil || n < 1 {
 		return 0, errors.New("nothing to give to")

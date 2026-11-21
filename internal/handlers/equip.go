@@ -74,7 +74,6 @@ type EquipHandler struct {
 	// training keeps the training points an item's use gave (potion.go); nil:
 	// they are kept at the logout alone
 	training trainingKeeper
-
 }
 
 // NewEquipHandler creates the handler. spells may be nil: no scroll is then
@@ -366,7 +365,7 @@ func invItemByKey(items []database.CharInventoryEntry, list *invList, key uint32
 	}
 	idx := list.index(key)
 	if idx < 0 {
-		return -1, nil, fmt.Errorf("the client holds no record with key %d", key)
+		return -1, nil, outOfStep(fmt.Sprintf("the client holds no record with key %d", key))
 	}
 	rec, _ := list.at(idx)
 	for _, e := range inv {
@@ -374,7 +373,22 @@ func invItemByKey(items []database.CharInventoryEntry, list *invList, key uint32
 			return idx, e, nil
 		}
 	}
-	return -1, nil, fmt.Errorf("key %d is item %d, which the inventory no longer holds", key, rec.itemID)
+	return -1, nil, outOfStep(fmt.Sprintf("key %d is item %d, which the inventory no longer holds", key, rec.itemID))
+}
+
+// outOfStepError is a request's key that shows the client's list and the
+// server's copy apart (invItemByKey): one the copy does not hold, or one whose
+// row is gone. resyncItems sets them right (itemsync.go).
+type outOfStepError string
+
+func (e outOfStepError) Error() string { return string(e) }
+
+func outOfStep(msg string) error { return outOfStepError(msg) }
+
+// isOutOfStep is whether err is an outOfStepError.
+func isOutOfStep(err error) bool {
+	var e outOfStepError
+	return errors.As(err, &e)
 }
 
 // planInteractItem decides one toggle, for the record the key names
@@ -620,6 +634,9 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 	plan, err := planInteractItem(items, sessionInvList(sess), key, player.Class)
 	if err != nil {
 		log.Printf("InteractItem: serverID=%d key=%d %q: %v", serverID, key, plan.name, err)
+		if isOutOfStep(err) {
+			resyncItems(sess, player.Name, fmt.Sprintf("InteractItem: %v", err))
+		}
 		return nil
 	}
 	if plan.equip {
@@ -738,6 +755,11 @@ func (h *EquipHandler) HandleArrangeItem(sess *session.Session, msg *protocol.Me
 	a, b := l.index(ka), l.index(kb)
 	if a < 0 || b < 0 || a == b || !l.move(a, b) {
 		log.Printf("ArrangeItem: keys %d and %d (list indices %d, %d): nothing to move", ka, kb, a, b)
+		if (a < 0 || b < 0) && h.playerOf != nil {
+			if p := h.playerOf(sess); p != nil {
+				resyncItems(sess, p.Name, fmt.Sprintf("ArrangeItem: keys %d and %d, list indices %d and %d", ka, kb, a, b))
+			}
+		}
 		return nil
 	}
 	if h.playerOf != nil && h.inventoryStore != nil {

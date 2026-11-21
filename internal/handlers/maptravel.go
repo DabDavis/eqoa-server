@@ -42,7 +42,8 @@ func buildMapTravelOffer() []byte {
 // moved there (and told so in a [GM] line), unless the spot is no world's
 // place, the GM's client cannot load its world (teleportTo says so) or the
 // ground knows no floor there (said, with #goto for a spot of the GM's own
-// height). Anyone else's ask, or one too short, moves no one.
+// height). A sub GM's is taken as a GM's (devcmds.go; the owner, 2026-11-21).
+// Anyone else's ask, or one too short, moves no one.
 func (h *ChatHandler) HandleMapTravelTo(sess *session.Session, msg *protocol.Message) error {
 	d := msg.Data()
 	if len(d) < 12 {
@@ -52,7 +53,7 @@ func (h *ChatHandler) HandleMapTravelTo(sess *session.Session, msg *protocol.Mes
 	world := binary.LittleEndian.Uint32(d)
 	x := math.Float32frombits(binary.LittleEndian.Uint32(d[4:]))
 	z := math.Float32frombits(binary.LittleEndian.Uint32(d[8:]))
-	if !h.isGM(sess) {
+	if !h.isGM(sess) && !h.isSubGM(sess) { // a sub GM's too (the owner, 2026-11-21)
 		log.Printf("Map travel: account %d, not a GM, asked for (%.0f, %.0f) in world %d: refused", sess.AccountID(), x, z, world)
 		return nil
 	}

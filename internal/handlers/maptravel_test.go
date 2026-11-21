@@ -135,3 +135,45 @@ func TestMapTravelIsAGMs(t *testing.T) {
 		t.Fatal("an account no longer a GM's travelled")
 	}
 }
+
+// A sub GM travels by its map as a GM does (the owner, 2026-11-21: "give sub gm
+// accounts control and click map teleport"): its world entry offers it (beside
+// the flight's 0x7E07, still no GM channel) and its ask moves it onto the floor
+// there. The control: an account that is no sub GM is offered nothing and its
+// ask moves no one.
+func TestASubGMTravelsByTheMap(t *testing.T) {
+	c := newChatWorld(t)
+	c.h.SetAccessLevels(subs{levels{1: 0, 2: 0}, map[int]bool{1: true}})
+	c.gw.SetGround(mapGround{})
+	fs, fp := c.join(1, "Neo", 25000, 15000, 0)
+	fs.SetAccountID(1)
+	ps, pp := c.join(2, "Player", 25010, 15010, 0)
+	ps.SetAccountID(2)
+	fs.Queue().GetPending()
+	ps.Queue().GetPending()
+	c.h.SendGMChannel(fs)
+	c.h.SendGMChannel(ps)
+	if got := sentAll(fs, protocol.OpcodeMapTravel); len(got) != 1 || hex.EncodeToString(got[0]) != "01000000" {
+		t.Fatalf("the sub GM's offer: %x", got)
+	}
+	if got := sentAll(fs, protocol.OpcodeAdminCode); len(got) != 0 {
+		t.Fatalf("the sub GM was sent the GM channel: %x", got)
+	}
+	if got := sentAll(ps, protocol.OpcodeMapTravel); len(got) != 0 {
+		t.Fatalf("the player's offer: %x", got)
+	}
+	fs.Queue().GetPending()
+	ps.Queue().GetPending()
+	if err := c.h.HandleMapTravelTo(fs, mapTravel(0, 25500, 15600)); err != nil {
+		t.Fatal(err)
+	}
+	if x, z, w, ok := teleported(fs); !ok || x != 25500 || z != 15600 || w != 0 || fp.Y != 60 {
+		t.Fatalf("the sub GM's travel: (%v, %v) world %d sent %v, at height %v", x, z, w, ok, fp.Y)
+	}
+	if err := c.h.HandleMapTravelTo(ps, mapTravel(0, 25500, 15600)); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, _, moved := teleported(ps); moved || pp.X != 25010 {
+		t.Fatalf("the player's ask moved it to x %v", pp.X)
+	}
+}

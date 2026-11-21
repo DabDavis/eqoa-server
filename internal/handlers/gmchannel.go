@@ -336,6 +336,9 @@ func (h *ChatHandler) SendGMChannel(sess *session.Session) {
 		}
 		if h.isSubGM(sess) {
 			queueReliable(sess, protocol.OpcodeGMTriggers, buildTriggerNamesOffer())
+			// and travel by its map (the owner, 2026-11-21: "give sub gm accounts
+			// control and click map teleport"; HandleMapTravelTo takes theirs)
+			queueReliable(sess, protocol.OpcodeMapTravel, buildMapTravelOffer())
 			log.Printf("Fly: account %d (a sub GM) offered the flight", sess.AccountID())
 			if h.gameWorld != nil {
 				h.restoreGMNoAggro(sess) // its #safemode, kept as a GM's is (gmnoaggro.go)

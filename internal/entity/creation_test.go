@@ -49,7 +49,7 @@ func TestCheckCreation(t *testing.T) {
 		{11, 0, 0, true}, {11, 3, 0, true}, {11, 13, 0, false}, // the ogre's: WAR SK SHA NEC
 		{12, 1, 0, true}, {12, 2, 0, false}, // its own: WAR RAN
 		{13, 3, 0, true}, {13, 1, 0, false}, // the dark elf's
-		{14, 0, 0, false}, // no row
+		{14, 0, 0, false},                            // no row
 		{5, 13, 0, false}, {raceFroglok, 0, 0, true}, // the game's races by their classes
 	})
 	run("all classes", CreationRules{Races: true, AllClasses: true}, []c{

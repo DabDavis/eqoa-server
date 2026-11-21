@@ -1,0 +1,775 @@
+{
+ "about": "Part d: the bare 'Bring me N' errands given a voice for the giver and the place.",
+ "entries": [
+  {
+   "giver": "Rathei Slaerin",
+   "name": "Dragonfly Wings",
+   "step": 0,
+   "field": "offer",
+   "before": "Bring me two damaged dragonfly wings from the flies outside the walls of Freeport.",
+   "after": "House Slaerin does not buy from beggars. Bring me two damaged dragonfly wings from the flies outside the walls of Freeport.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Underlord Krullik",
+   "name": "Python Scales",
+   "step": 0,
+   "field": "offer",
+   "before": "Go to the swamp and kill snakes. Bring me three ruined python scales.",
+   "after": "Snakes in swamp. Grobb needs scales. Go kill, bring me three ruined python scales.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Truborne Jaegir",
+   "name": "Tarantula Leg Tips",
+   "step": 0,
+   "field": "offer",
+   "before": "Bring me two tarantula leg tips. The hatchlings outside either gate carry them.",
+   "after": "My tinctures want tarantula. Bring me two leg tips from the hatchlings outside either gate of Highbourne.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Truborne Jaegir",
+   "name": "The Alchemist's Log",
+   "step": 0,
+   "field": "offer",
+   "before": "Bring me a cracked beetle horn from the beetles round the gates, and 100 tunar.",
+   "after": "Bring me a cracked beetle horn from the beetles round the gates, and 100 tunar. Highbourne's scholars pay for what they use.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Caller Arkhad",
+   "name": "Strands of Rat Fur",
+   "step": 0,
+   "field": "offer",
+   "before": "Bring me two strands of rat fur from the rats in the savannah.",
+   "after": "The savannah rats are thick as fleas. Bring me two strands of rat fur, and I will see it put to use.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Master Veljhan",
+   "name": "A Poison Sac",
+   "step": 0,
+   "field": "offer",
+   "before": "Bring me a poison sac from a banded kingsnake outside town.",
+   "after": "A kingsnake's sac keeps a long while. Bring me one from a banded kingsnake outside town.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Retainer Alishal",
+   "name": "The Staff of Necromancy",
+   "step": 0,
+   "field": "offer",
+   "before": "Bring me a leather strap and a wooden shaft from Merchant Shudan, and a cracked rat claw.",
+   "after": "Highbourne's fleet wants arrows. Bring me a leather strap and a wooden shaft from Merchant Shudan, and a cracked rat claw.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Ulana Stillmind",
+   "name": "The Recruit's Shortsword",
+   "step": 0,
+   "field": "offer",
+   "before": "Bring me a leather strip and iron ore from Merchant Shudan, and a beetle leg segment.",
+   "after": "A fine bowstring needs fine fittings. Bring me a leather strip and iron ore from Merchant Shudan, and a beetle leg segment.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Ulana Stillmind",
+   "name": "The Poison Sac",
+   "step": 0,
+   "field": "offer",
+   "before": "Bring me a poison sac from the banded kingsnakes by the rocks out of the east gate.",
+   "after": "Bring me a poison sac from the banded kingsnakes by the rocks out of the east gate. Mind the fangs.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Prof. Valespin",
+   "name": "Mechanagic Fluid",
+   "step": 0,
+   "field": "offer",
+   "before": "The Model II PEs of the Rogue Clockworks carry mechanagic fluid. Bring me some.",
+   "after": "The Model II PEs of the Rogue Clockworks carry mechanagic fluid, and Klick'Anon could use it. Bring me some!",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Werlib Quackook",
+   "name": "A Stunned Mindwhipper",
+   "step": 0,
+   "field": "offer",
+   "before": "Bring me a stunned mindwhipper, from the hive south along the hill past the west gate.",
+   "after": "A stunned mindwhipper is worth a month of study. Bring me one from the hive south along the hill past the west gate.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Sergeant Grem",
+   "name": "The Rogue Clockworks",
+   "step": 0,
+   "field": "offer",
+   "before": "There's a rumor of a new clockwork east of here, a model II PE. Bring me its metal frame.",
+   "after": "The Watch hears of a new clockwork east of here, a model II PE. Bring me its metal frame, and mind yourself.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Prof. Cranslip",
+   "name": "The Master Gear",
+   "step": 0,
+   "field": "offer",
+   "before": "Bring me a master gear from a Model II PE clockwork, east of Klick'Anon.",
+   "after": "Ooh, a master gear! Bring me one from a Model II PE clockwork, east of Klick'Anon.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Enchanter T`Crit",
+   "name": "Proving Yourself",
+   "step": 0,
+   "field": "offer",
+   "before": "Go outside and kill bats. Bring me two pieces of bat meat as proof.",
+   "after": "Bats are a nuisance, and the Dead take no interest in nuisances. Kill them outside, bring me two pieces of bat meat.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Walt Deeppockets",
+   "name": "Rat Fur",
+   "step": 0,
+   "field": "offer",
+   "before": "Bring me two strands of rat fur from the rats just outside town.",
+   "after": "Rivervale folk like a tidy burrow. Bring me two strands of rat fur from the rats just outside town.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Celedonicus",
+   "name": "Celedonicus's Sashes",
+   "step": 0,
+   "field": "offer",
+   "before": "Bandits in the middle of Tak'Xiv wear sashes. Bring me four.",
+   "after": "Bandits in the middle of Tak'Xiv wear sashes. Qeynos would know them. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Nickton",
+   "name": "Nicton's Eyelash",
+   "step": 0,
+   "field": "offer",
+   "before": "I need the eyelash of one of the eyes of the Elephant Graveyard. Bring me one.",
+   "after": "I need the eyelash of one of the eyes of the Elephant Graveyard. Bring me one, and watch its gaze.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Corison",
+   "name": "Ice Giant Glyphs",
+   "step": 0,
+   "field": "offer",
+   "before": "The tenacious giants carve glyphs into the ice. I study them. Bring me four.",
+   "after": "The tenacious giants carve glyphs into the ice, and I study them. Bring me four, if you can.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Gypsy Taylor",
+   "name": "Small Chipped Rubies",
+   "step": 0,
+   "field": "offer",
+   "before": "The Majorkahn giants carry little rubies, chipped, but pretty. Bring me four.",
+   "after": "The Majorkahn giants carry little rubies, chipped but pretty. A gypsy knows a bargain. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Corison",
+   "name": "Giant Blue Pearl Rings",
+   "step": 0,
+   "field": "offer",
+   "before": "The ice giants wear rings with blue pearls the size of eggs. Bring me four.",
+   "after": "The ice giants wear rings with blue pearls the size of eggs. Bring me four for my studies.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Giant Slayer Derkev",
+   "name": "Pearl Rings of the Refugees",
+   "step": 0,
+   "field": "offer",
+   "before": "Even the ice giants' refugees wear their pearl rings. Bring me four.",
+   "after": "Even the ice giants' refugees wear their pearl rings. A giant slayer counts them. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Corison",
+   "name": "Flawed Black Diamonds",
+   "step": 0,
+   "field": "offer",
+   "before": "Shadow wisps leave black diamonds when they fade, flawed but useful. Bring me four.",
+   "after": "Shadow wisps leave black diamonds when they fade, flawed but they suit my work. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Corison",
+   "name": "Broken Leopard Claws",
+   "step": 0,
+   "field": "offer",
+   "before": "Frost leopards break their claws on the ice. Bring me four broken claws.",
+   "after": "Frost leopards break their claws on the ice, and I gather what they leave. Bring me four broken claws.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Corison",
+   "name": "Heavy Venom Sacs",
+   "step": 0,
+   "field": "offer",
+   "before": "Freezefang spiders carry heavy venom sacs. Careful with them. Bring me four.",
+   "after": "Freezefang spiders carry heavy venom sacs, and I know their worth. Careful. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Chef Lukkif",
+   "name": "Savory Treant Roots",
+   "step": 0,
+   "field": "offer",
+   "before": "Treant roots, savory and tender, for my soup. Bring me four.",
+   "after": "My soup wants treant roots, savory and tender. Bring me four from the treant defenders.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Chef Lukkif",
+   "name": "Ghoulish Preservatives",
+   "step": 0,
+   "field": "offer",
+   "before": "Ghouls keep themselves with a preservative that keeps my meats too. Bring me four.",
+   "after": "Ghouls keep themselves with a preservative that keeps my meats too. Bring me four from the ghoul servants.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Chef Lukkif",
+   "name": "Purified Water Canteens",
+   "step": 0,
+   "field": "offer",
+   "before": "The Taksehir miners carry the purest water there is. Bring me four canteens.",
+   "after": "The Taksehir miners carry the purest water there is, a cook's dream. Bring me four canteens.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Chef Lukkif",
+   "name": "Froglok Stomachs",
+   "step": 0,
+   "field": "offer",
+   "before": "Froglok stomachs, stuffed, are a delicacy. Bring me four.",
+   "after": "Froglok stomachs, stuffed, are a delicacy. Bring me four from the froglok dar warriors.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Chef Lukkif",
+   "name": "Tasty Froglok Skins",
+   "step": 0,
+   "field": "offer",
+   "before": "The froglok slayers have the tastiest skins. Crisp them in the fire... Bring me four.",
+   "after": "The froglok slayers have the tastiest skins, my secret. Crisp them in the fire... Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Chef Lukkif",
+   "name": "Fiery Hot Peppers",
+   "step": 0,
+   "field": "offer",
+   "before": "Peppers grow in animated lava, the hottest in the world. Bring me four.",
+   "after": "Peppers grow in animated lava, the hottest in the world. Bring me four, and do not singe yourself.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Chef Lukkif",
+   "name": "Bandit Herbs",
+   "step": 0,
+   "field": "offer",
+   "before": "Bandits carry the best herbs; they steal them. Bring me four bundles.",
+   "after": "Bandits carry the best herbs; they steal them from better cooks. Bring me four bundles from the Taksehir bandits.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Chef Lukkif",
+   "name": "Evil Eye Corneas",
+   "step": 0,
+   "field": "offer",
+   "before": "The children of Xrag have corneas that make a fine jelly. Bring me four.",
+   "after": "The children of Xrag have corneas that make a fine jelly, trust a cook. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Chef Lukkif",
+   "name": "Frost Giant Toes",
+   "step": 0,
+   "field": "offer",
+   "before": "Frost giant toes, pickled, keep a winter. Bring me four.",
+   "after": "Frost giant toes, pickled, keep a winter. Bring me four from the tenacious frost giants.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Farmer Steveson",
+   "name": "Nixie Caps",
+   "step": 0,
+   "field": "offer",
+   "before": "Nixies trample my crops. Bring me four of their caps, and I will know they learned.",
+   "after": "Nixies trample Murnf's crops. Bring me four of their caps, and I will know they learned.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Larn Yolger",
+   "name": "More Nixie Caps",
+   "step": 0,
+   "field": "offer",
+   "before": "I collect nixie caps. Do not ask why. Bring me four.",
+   "after": "I collect nixie caps. Murnf folk keep their own counsel. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Yarn Molsen",
+   "name": "Dark Skull Rings",
+   "step": 0,
+   "field": "offer",
+   "before": "Green goo swallows rings, and the dark skull rings it swallows are mine. Bring me four.",
+   "after": "Green goo swallows rings, and the dark skull rings it swallows are mine by right. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Gypsy Leigh",
+   "name": "Mutant Ant Carapaces: Leafcutters",
+   "step": 0,
+   "field": "offer",
+   "before": "The red ants south of the Oasis are mutating. Bring me four carapaces of the leafcutters.",
+   "after": "The red ants south of the Oasis are mutating, and the Gypsies want to know why. Bring me four carapaces of the leafcutters.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Gypsy Leigh",
+   "name": "Mutant Ant Carapaces: Workers",
+   "step": 0,
+   "field": "offer",
+   "before": "The red ant workers south of the Oasis are changing. Bring me four of their carapaces.",
+   "after": "The red ant workers south of the Oasis are changing, and I mean to learn how. Bring me four of their carapaces.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Gypsy Leigh",
+   "name": "Mutant Ant Carapaces: Scouts",
+   "step": 0,
+   "field": "offer",
+   "before": "Even the red ant scouts are changing. Bring me four of their carapaces.",
+   "after": "Even the red ant scouts are changing. The Oasis should hear of it. Bring me four of their carapaces.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Gertrude Ross",
+   "name": "Petrified Roses",
+   "step": 0,
+   "field": "offer",
+   "before": "The desert gypsies carry petrified roses as charms. Bring me four.",
+   "after": "The desert gypsies carry petrified roses as charms. Forkwatch has use for them. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Recruiter Deryn",
+   "name": "Platinum Gnoll Pendants",
+   "step": 0,
+   "field": "offer",
+   "before": "The gnoll berserkers wear platinum pendants. Bring me four, and Qeynos will pay.",
+   "after": "The gnoll berserkers wear platinum pendants. Bring me four, and Qeynos will pay in coin.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Recruiter Deryn",
+   "name": "Blood Paw Collars",
+   "step": 0,
+   "field": "offer",
+   "before": "The Bloodpaw gnolls wear collars. Bring me four.",
+   "after": "The Bloodpaw gnolls wear collars, and Qeynos pays for proof. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Recruiter Deryn",
+   "name": "Black Gnoll Rings",
+   "step": 0,
+   "field": "offer",
+   "before": "The gnoll strongfangs wear black rings. Bring me four.",
+   "after": "The gnoll strongfangs wear black rings. Qeynos pays for proof. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Recruiter Deryn",
+   "name": "Gnoll Ear Cuffs",
+   "step": 0,
+   "field": "offer",
+   "before": "The gnoll stalkers wear ear cuffs. Bring me four.",
+   "after": "The gnoll stalkers wear ear cuffs. Qeynos pays for proof. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Ingrid Adder",
+   "name": "Matted Bear Hides",
+   "step": 0,
+   "field": "offer",
+   "before": "Young bears' hides, matted or not, keep a house warm. Bring me four.",
+   "after": "Young bears' hides, matted or not, keep a house warm through winter. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Sirnal Baubbletink",
+   "name": "Torn Snake Scales",
+   "step": 0,
+   "field": "offer",
+   "before": "Moss snakes shed torn scales I can use. Bring me four.",
+   "after": "Moss snakes shed torn scales I can use. Bring me four, friend.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Tugren Fyrebrand",
+   "name": "Pristine Raven Feathers",
+   "step": 0,
+   "field": "offer",
+   "before": "Snow crows have pristine feathers, black as coal. Bring me four.",
+   "after": "Snow crows have pristine feathers, black as coal. A dwarf needs good fletching. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Tresca Goodmorrow",
+   "name": "Pike Meat",
+   "step": 0,
+   "field": "offer",
+   "before": "Pike meat for the pot. Bring me four pieces.",
+   "after": "Pike meat for the pot, Freeport's best. Bring me four pieces.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Neshki Widdlewick",
+   "name": "Ant Chitin",
+   "step": 0,
+   "field": "offer",
+   "before": "Ant soldiers have the hardest chitin. Bring me four pieces.",
+   "after": "Ant soldiers have the hardest chitin, ideal for tinkering! Bring me four pieces.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Zaraznia",
+   "name": "Sunbeetle Carapaces",
+   "step": 0,
+   "field": "offer",
+   "before": "Sunbeetles shine like gold in the sun. Bring me four of their carapaces.",
+   "after": "Sunbeetles shine like gold in the sun, a wonder near Qeynos. Bring me four of their carapaces.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Elzilor Marbe",
+   "name": "Runes of Crethley Manor",
+   "step": 0,
+   "field": "offer",
+   "before": "The dead of Crethley Manor, north of the lake, carry runes. Bring me a full stack: ten.",
+   "after": "The dead of Crethley Manor, north of the lake, carry runes I would study. Bring me a full stack: ten.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Ragh Skulcrak",
+   "name": "Ragh's Firepit: a Charm",
+   "step": 0,
+   "field": "offer",
+   "before": "A bandit charm burns hotter than any blade. Bring me one.",
+   "after": "A bandit charm burns hotter than any blade. Bring me one. Ogre wants.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Akessan Liason",
+   "name": "Weapons for the Liason",
+   "step": 0,
+   "field": "offer",
+   "before": "Bring me the weapons of the Honor Guard, four at a time.",
+   "after": "The Collective wants what the Honor Guard carries. Bring me their weapons, four at a time.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Akessan Agent",
+   "name": "The Rallosian Lenses",
+   "step": 0,
+   "field": "offer",
+   "before": "The Rallosian Arcanists carry lenses that see through our veils. Bring me two.",
+   "after": "The Rallosian Arcanists carry lenses that see through our veils. Bring me two, quietly.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Akessan Agent",
+   "name": "The Captains' Weapons",
+   "step": 0,
+   "field": "offer",
+   "before": "The last test: the Honor Guard Captain and the Rallosian Captain. Bring me their weapons.",
+   "after": "The last test is hard: the Honor Guard Captain and the Rallosian Captain. Bring me their weapons.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Jeweler Yilt",
+   "name": "Charred Bones",
+   "step": 0,
+   "field": "offer",
+   "before": "The primordial tortoises carry charred bones. Bring me four.",
+   "after": "The primordial tortoises carry charred bones, good for a jeweler's work. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Counciler Dreda",
+   "name": "Unkempt Bracelets",
+   "step": 0,
+   "field": "offer",
+   "before": "The unkempt tribesmen, druids and rangers carry unkempt bracelets. Bring me four.",
+   "after": "The unkempt tribesmen, druids and rangers carry unkempt bracelets. The council wants them. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Jenya Gooten",
+   "name": "Tiny Daggers",
+   "step": 0,
+   "field": "offer",
+   "before": "The pixies carry tiny daggers. Bring me four.",
+   "after": "The pixies carry tiny daggers. Bring me four, if you can catch them.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Tinker Z.",
+   "name": "Drachnid Leg Tips",
+   "step": 0,
+   "field": "offer",
+   "before": "The drachnids of the salt mines carry drachnid leg tips. Bring me four.",
+   "after": "The drachnids of the salt mines carry drachnid leg tips, useful for my tinkering. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Katrina Finney",
+   "name": "Chipped Badger Claws",
+   "step": 0,
+   "field": "offer",
+   "before": "The giant badgers carry chipped badger claws. Bring me four.",
+   "after": "The giant badgers carry chipped badger claws, handy for my needs. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Terison Eydillo",
+   "name": "Preserved Zombie Eyes",
+   "step": 0,
+   "field": "offer",
+   "before": "The restless zombies carry preserved zombie eyes. Bring me four.",
+   "after": "The restless zombies carry preserved zombie eyes. Bring me four, and forgive my trade.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Viltharus Battleprayer",
+   "name": "Cinder Cat Wings",
+   "step": 0,
+   "field": "offer",
+   "before": "The cinder cats carry wings. Bring me five.",
+   "after": "The cinder cats carry wings, and the flame burns them clean. Bring me five.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Viltharus Battleprayer",
+   "name": "Cinder Cat Fangs",
+   "step": 0,
+   "field": "offer",
+   "before": "The cinder cats carry fangs. Bring me five.",
+   "after": "The cinder cats carry fangs, and fire hardens them. Bring me five.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Chef Lukkif",
+   "name": "Basilisk Claws",
+   "step": 0,
+   "field": "offer",
+   "before": "The fire basilisks near my fire have claws that crack into a fine broth. Bring me four.",
+   "after": "The fire basilisks near my fire have claws that crack into a fine broth, so go hunt. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Chef Lukkif",
+   "name": "Flavored Mushrooms",
+   "step": 0,
+   "field": "offer",
+   "before": "The fungal folk of Guk grow the most flavorful mushrooms. Bring me four.",
+   "after": "The fungal folk of Guk grow the most flavorful mushrooms, damp and rich. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Terison Eydillo",
+   "name": "Preserved Ghast Eyes",
+   "step": 0,
+   "field": "offer",
+   "before": "The ghasts of Collonridge Cemetery carry preserved ghast eyes. Bring me four.",
+   "after": "The ghasts of Collonridge Cemetery carry preserved ghast eyes. Bring me four, and a steady stomach.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Fist of Marr Recruiter",
+   "name": "Dark Silver Rings",
+   "step": 0,
+   "field": "offer",
+   "before": "The Deathfist legionnaires wear dark silver rings. Bring me four.",
+   "after": "The Deathfist legionnaires wear dark silver rings. Fist of Marr counts them. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Fist of Marr Recruiter",
+   "name": "Deathfist Insignia Rings",
+   "step": 0,
+   "field": "offer",
+   "before": "The Deathfist champions and clerics of the citadel wear insignia rings. Bring me four.",
+   "after": "The Deathfist champions and clerics of the citadel wear insignia rings. Fist of Marr wants them. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Fist of Marr Recruiter",
+   "name": "Platinum Insignias",
+   "step": 0,
+   "field": "offer",
+   "before": "The Deathfist reavers and slayers carry platinum insignias. Bring me four.",
+   "after": "The Deathfist reavers and slayers carry platinum insignias. Fist of Marr wants them. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Fist of Marr Recruiter",
+   "name": "Deathfist Seals",
+   "step": 0,
+   "field": "offer",
+   "before": "The Deathfist myrmidons west of the tea garden carry the citadel's seals. Bring me four.",
+   "after": "The Deathfist myrmidons west of the tea garden carry the citadel's seals. Fist of Marr wants them. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Handyman Hilty",
+   "name": "Rat Whiskers",
+   "step": 0,
+   "field": "offer",
+   "before": "The ratmen of Cape Dreg have whiskers stiff enough for my brushes. Bring me four.",
+   "after": "The ratmen of Cape Dreg have whiskers stiff enough for my brushes, a handyman's boon. Bring me four.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Venathorn",
+   "name": "The Shalebone Wolf",
+   "step": 0,
+   "field": "offer",
+   "before": "Bring me the pelt of the shalebone wolf that wanders the shores to the north.",
+   "after": "The shores to the north are wild. Bring me the pelt of the shalebone wolf that wanders there, for Fayspires.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Venathorn",
+   "name": "Yellowjack Water",
+   "step": 0,
+   "field": "offer",
+   "before": "Bring me a forger wolf fang, from the narrow passage into Misty Thicket.",
+   "after": "Bring me a forger wolf fang, from the narrow passage into Misty Thicket. The elves of Fayspires need it.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Priest Lighthand",
+   "name": "Sparkfly Wings",
+   "step": 0,
+   "field": "offer",
+   "before": "Bring me two sparkfly wings.",
+   "after": "Bring me two sparkfly wings. The light is in them.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Bellia Silkspinner",
+   "name": "Bellia's Weapon",
+   "step": 0,
+   "field": "offer",
+   "before": "Bring me a strip of leather and iron ore from Merchant Grener, and two cracked rat claws.",
+   "after": "Bring me a strip of leather and iron ore from Merchant Grener, and two cracked rat claws, for my loom.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Johandar Elthiron",
+   "name": "Johandar's Sword",
+   "step": 0,
+   "field": "offer",
+   "before": "Bring me a strip of leather and iron ore from Merchant Grener, and two spider eyes.",
+   "after": "Bring me a strip of leather and iron ore from Merchant Grener, and two spider eyes, for my craft.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  },
+  {
+   "giver": "Professor Blacklake",
+   "name": "Rat Furs",
+   "step": 0,
+   "field": "offer",
+   "before": "Bring me two rat furs from the rats out of town.",
+   "after": "The rats out of town gnaw at my studies. Bring me two rat furs.",
+   "tag": "color",
+   "why": "voice from giver, city and trade"
+  }
+ ]
+}

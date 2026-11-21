@@ -1,0 +1,634 @@
+{
+ "about": "Part f: Heirloom's words for quests both shards give, where Live's are the shorter and the steps are the same (read from both shards' 2026-11-21 23:16-23:18 pre-swap backups). Quests skipped and why are listed.",
+ "entries": [
+  {
+   "giver": "Azlynn",
+   "name": "The Bronze Ring",
+   "classes": "12",
+   "races": "0, 10",
+   "minlevel": 1,
+   "live": {
+    "offer": "Merchant Yulia, outside to the north-east, has a bronze ring for you. Pick it up and show me.",
+    "accept": "I will do it.",
+    "decline": "Not now.",
+    "declined": "Then go. Come back when you are ready.",
+    "started": "Go, then, and do not keep me waiting."
+   },
+   "heirloom": {
+    "offer": "You've found the Academy of Arcane Science. Most who come here want to throw fire. I don't teach fire.\nI teach the mind: how to bend it, how to fool it, and how to keep your own. Do you want to learn?",
+    "accept": "I wish to become an enchanter.",
+    "decline": "Exit",
+    "declined": "",
+    "started": "Then start small. An enchanter's first tool is a ring with a rune cut into it, to keep a little power close.\nMerchant Yulia, at her tent outside the Academy to the north-east, has a bronze ring for you. The Academy pays for it.\nBring it back and show me."
+   },
+   "steps": [
+    {
+     "step": 1,
+     "kind": "talk",
+     "target": "Merchant Yulia",
+     "count": 1,
+     "live": {
+      "journal": "Speak with Merchant Yulia at her tent by the foot of the ramp, outside the Academy in Freeport.",
+      "answer": "",
+      "says": "A bronze ring for a new enchanter.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "heirloom": {
+      "journal": "Get your bronze ring from Merchant Yulia at her tent outside the Academy. She charges nothing for it.",
+      "answer": "",
+      "says": "A bronze ring for one of Azlynn's? It's on my table. Take it, no charge.\nThe Academy settles with me later. It always does, eventually.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     }
+    },
+    {
+     "step": 2,
+     "kind": "show",
+     "target": "Azlynn",
+     "count": 1,
+     "live": {
+      "journal": "Show the bronze ring to Azlynn in Freeport.",
+      "answer": "",
+      "says": "It suits you. Wear it, and remember who gave it. Come see me again at level 2: I will have more for you.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "heirloom": {
+      "journal": "Show the bronze ring to Azlynn in the Academy of Arcane Science.",
+      "answer": "Here it is.",
+      "says": "Bronze. Cheap, honest metal, and the rune is cut true. That's all a ring needs to be.\nWear it. Then go and learn the city; nobody can bend a place they don't know. Come back to me at level 2.",
+      "waiting": "Do you have the ring?",
+      "notyet": "Not yet.",
+      "reminder": "Merchant Yulia, at her tent outside the Academy. The ring costs you nothing."
+     }
+    }
+   ]
+  },
+  {
+   "giver": "Denouncer Alshea",
+   "name": "The Dark Ones bracers",
+   "classes": "8",
+   "races": "0, 10",
+   "minlevel": 1,
+   "live": {
+    "offer": "Every petitioner of our faith wears the cap. Merchant Olkan, outside to the north-east, has one for you. Get it and show me.",
+    "accept": "I have come to learn the ways of the shaman.",
+    "decline": "Not now.",
+    "declined": "Then go. Come back when you are ready.",
+    "started": "A shaman! We see few of your calling here, but you are welcome among us. Take the Dark Ones bracers, put it on, and show me."
+   },
+   "heirloom": {
+    "offer": "You stand in the Shining Shield. Freeport calls us the Spiteful Shield, when it thinks we can't hear. Both names are true.\nI am Denouncer Alshea. We mend what this city breaks, and we remember who asked. Have you come to serve?",
+    "accept": "I have come to learn the ways of the shaman.",
+    "decline": "",
+    "declined": "",
+    "started": "A shaman! We see few of your calling here, but you are welcome among us. Take the Dark Ones bracers, put it on, and show me."
+   },
+   "steps": [
+    {
+     "step": 1,
+     "kind": "show",
+     "target": "Denouncer Alshea",
+     "count": 1,
+     "live": {
+      "journal": "Put on the Dark Ones bracers and show Denouncer Alshea.",
+      "answer": "",
+      "says": "It suits you. Now go on with your training.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "heirloom": {
+      "journal": "Put on the Dark Ones bracers and show Denouncer Alshea.",
+      "answer": "",
+      "says": "It suits you. Now go on with your training.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     }
+    }
+   ]
+  },
+  {
+   "giver": "Denouncer Alshea",
+   "name": "The Leaf covered jerkin",
+   "classes": "7",
+   "races": "0, 10",
+   "minlevel": 1,
+   "live": {
+    "offer": "Every petitioner of our faith wears the cap. Merchant Olkan, outside to the north-east, has one for you. Get it and show me.",
+    "accept": "I have come to learn the ways of the druid.",
+    "decline": "Not now.",
+    "declined": "Then go. Come back when you are ready.",
+    "started": "A druid! We see few of your calling here, but you are welcome among us. Take the leaf covered jerkin, put it on, and show me."
+   },
+   "heirloom": {
+    "offer": "You stand in the Shining Shield. Freeport calls us the Spiteful Shield, when it thinks we can't hear. Both names are true.\nI am Denouncer Alshea. We mend what this city breaks, and we remember who asked. Have you come to serve?",
+    "accept": "I have come to learn the ways of the druid.",
+    "decline": "",
+    "declined": "",
+    "started": "A druid! We see few of your calling here, but you are welcome among us. Take the leaf covered jerkin, put it on, and show me."
+   },
+   "steps": [
+    {
+     "step": 1,
+     "kind": "show",
+     "target": "Denouncer Alshea",
+     "count": 1,
+     "live": {
+      "journal": "Put on the leaf covered jerkin and show Denouncer Alshea.",
+      "answer": "",
+      "says": "It suits you. Now go on with your training.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "heirloom": {
+      "journal": "Put on the leaf covered jerkin and show Denouncer Alshea.",
+      "answer": "",
+      "says": "It suits you. Now go on with your training.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     }
+    }
+   ]
+  },
+  {
+   "giver": "Denouncer Alshea",
+   "name": "The Squire's Shield",
+   "classes": "2",
+   "races": "0, 10",
+   "minlevel": 1,
+   "live": {
+    "offer": "Every petitioner of our faith wears the cap. Merchant Olkan, outside to the north-east, has one for you. Get it and show me.",
+    "accept": "I have come to learn the ways of the paladin.",
+    "decline": "Not now.",
+    "declined": "Then go. Come back when you are ready.",
+    "started": "A paladin! We see few of your calling here, but you are welcome among us. Take the Squire's Shield, put it on, and show me."
+   },
+   "heirloom": {
+    "offer": "You stand in the Shining Shield. Freeport calls us the Spiteful Shield, when it thinks we can't hear. Both names are true.\nI am Denouncer Alshea. We mend what this city breaks, and we remember who asked. Have you come to serve?",
+    "accept": "I have come to learn the ways of the paladin.",
+    "decline": "",
+    "declined": "",
+    "started": "A paladin! We see few of your calling here, but you are welcome among us. Take the Squire's Shield, put it on, and show me."
+   },
+   "steps": [
+    {
+     "step": 1,
+     "kind": "show",
+     "target": "Denouncer Alshea",
+     "count": 1,
+     "live": {
+      "journal": "Put on the Squire's Shield and show Denouncer Alshea.",
+      "answer": "",
+      "says": "It suits you. Now go on with your training.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "heirloom": {
+      "journal": "Put on the Squire's Shield and show Denouncer Alshea.",
+      "answer": "",
+      "says": "It suits you. Now go on with your training.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     }
+    }
+   ]
+  },
+  {
+   "giver": "Fethinar Silspin",
+   "name": "The Elddar Tome",
+   "classes": "10",
+   "races": "1",
+   "minlevel": 5,
+   "live": {
+    "offer": "Hatebone thieves stole the Elddar tome. Kill them in the hills south of town and get the seeds back.",
+    "accept": "I will do it.",
+    "decline": "Not now.",
+    "declined": "Then come back to me when you are ready.",
+    "started": "Good. Come back to me when it is done."
+   },
+   "heirloom": {
+    "offer": "Greetings. I am Fethinar Silspin, guildmaster of the magicians of the College of High Magic.\nI called for every student of your rank. Will you hear why?",
+    "accept": "Why did you call for us?",
+    "decline": "",
+    "declined": "",
+    "started": "Hatebone orcs fell upon a small band of our people and slew them. The elves were carrying the last known Elddar tomes.\nIf the orcs keep them, the College loses teachings it can never write again.\nEven one of these orcs is too strong for you alone. Band together with other elves to bring the thieves down.\nThe hatebone thieves keep to the hills south of Fayspires. Recover a tome and bring it to me."
+   },
+   "steps": [
+    {
+     "step": 1,
+     "kind": "loot",
+     "target": "hatebone thief",
+     "count": 1,
+     "live": {
+      "journal": "Take elddar seeds from the hatebone thieves or orc burglars in the hills south-east of Fayspires.",
+      "answer": "",
+      "says": "",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "heirloom": {
+      "journal": "Take an Elddar tome from the hatebone thieves in the hills south-east of Fayspires.",
+      "answer": "",
+      "says": "",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     }
+    },
+    {
+     "step": 2,
+     "kind": "give",
+     "target": "Fethinar Silspin",
+     "count": 1,
+     "live": {
+      "journal": "Bring elddar seeds to Fethinar Silspin in Fayspires.",
+      "answer": "",
+      "says": "Good. Come see me again at level 7: I will have more for you.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "heirloom": {
+      "journal": "Bring the Elddar tome to Fethinar Silspin in Fayspires.",
+      "answer": "Yes\nNo",
+      "says": "The College owes you much. What you have saved could never be written again.\nTake this scroll of Motivate. It will spur your pet on in battle.\nCome back to me at level 7.",
+      "waiting": "Professor Skysign tells me you fought the thieves. Did you recover a tome?",
+      "notyet": "",
+      "reminder": "The hatebone thieves keep to the hills south of Fayspires. Band together with other elves and bring back a tome."
+     }
+    }
+   ]
+  },
+  {
+   "giver": "Malsis",
+   "name": "The Iron Ring",
+   "classes": "10",
+   "races": "0, 10",
+   "minlevel": 1,
+   "live": {
+    "offer": "Say what you must, I haven't got all day.",
+    "accept": "I wish to become an apprentice.",
+    "decline": "",
+    "declined": "",
+    "started": "Oooohhh, well we do require that a prospective apprentice complete a number of tasks before the enrollment.\nYour first task is to acquire an iron ring from the merchant outside. Her name is Yulia. She won't charge you for the ring.\nWhen you have the iron ring, return to me and I'll send you on your second task."
+   },
+   "heirloom": {
+    "offer": "Say what you must, I haven't got all day.",
+    "accept": "I wish to become an apprentice.",
+    "decline": "Exit",
+    "declined": "",
+    "started": "Oooohhh, well we do require that a prospective apprentice complete a number of tasks before the enrollment.\nYour first task is to acquire an iron ring from the merchant outside. Her name is Yulia. She won't charge you for the ring.\nWhen you have the iron ring, return to me and I'll send you on your second task."
+   },
+   "steps": [
+    {
+     "step": 1,
+     "kind": "talk",
+     "target": "Merchant Yulia",
+     "count": 1,
+     "live": {
+      "journal": "Buy an iron ring from Merchant Yulia at her tent outside the Academy in Freeport.",
+      "answer": "",
+      "says": "",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "heirloom": {
+      "journal": "Buy an iron ring from Merchant Yulia at her tent outside the Academy in Freeport.",
+      "answer": "",
+      "says": "",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     }
+    },
+    {
+     "step": 2,
+     "kind": "show",
+     "target": "Malsis",
+     "count": 1,
+     "live": {
+      "journal": "Show the iron ring to Malsis in Freeport.",
+      "answer": "Yes I do.",
+      "says": "Wonderful. That is no ordinary ring. A small amount of power has been infused into the metal. We'll discuss more of that later.\nTake some rest now. Return when you are ready and you shall have your next task.",
+      "waiting": "I take it you have the ring I sent you for?",
+      "notyet": "Well, actually, no.",
+      "reminder": ""
+     },
+     "heirloom": {
+      "journal": "Show the iron ring to Malsis in Freeport.",
+      "answer": "Yes I do.",
+      "says": "Wonderful. That is no ordinary ring. A small amount of power has been infused into the metal. We'll discuss more of that later.\nTake some rest now. Return when you are ready and you shall have your next task.",
+      "waiting": "I take it you have the ring I sent you for?",
+      "notyet": "Well, actually, no.",
+      "reminder": ""
+     }
+    }
+   ]
+  },
+  {
+   "giver": "Necorik the Ghost",
+   "name": "The Burglar's Gloves",
+   "classes": "6",
+   "races": "0, 10",
+   "minlevel": 1,
+   "live": {
+    "offer": "Go upstairs and out by the ramp to Merchant Olkan. He has burglar's gloves for you. Then show me.",
+    "accept": "I will do it.",
+    "decline": "Not now.",
+    "declined": "Then go. Come back when you are ready.",
+    "started": "Go, then, and do not keep me waiting."
+   },
+   "heirloom": {
+    "offer": "You found the door, so you're not hopeless. This is the Shining Shield. The street calls it the Spiteful Shield. Down here, it's mine.\nI am Necorik. They call me the Ghost. Ask the people who owed me why, if you can find any of them.\nAnyone who steals in Freeport steals for me, or stops stealing. Will you work for me?",
+    "accept": "I will work for you.",
+    "decline": "Exit",
+    "declined": "",
+    "started": "Good. The Shield takes its cut of everything you take in this city. Everything. And you never, ever take from the Shield.\nGo upstairs and out by the ramp. Merchant Olkan has a pair of burglar's gloves for you. Free: the last free thing you'll get from me.\nPut them on, and come back to show me."
+   },
+   "steps": [
+    {
+     "step": 1,
+     "kind": "talk",
+     "target": "Merchant Olkan",
+     "count": 1,
+     "live": {
+      "journal": "Speak with Merchant Olkan, just outside the hall to the north-east, by the ramp, in Freeport.",
+      "answer": "",
+      "says": "Burglar's gloves. Quiet hands, friend.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "heirloom": {
+      "journal": "Get a pair of burglar's gloves from Merchant Olkan, upstairs and out by the ramp of the Shining Shield's hall.",
+      "answer": "Necorik sent me for burglar's gloves.\nJust looking.",
+      "says": "Burglar's gloves. Here. They cost you nothing; the Shield pays for its own, and it remembers what it paid.\nThin at the fingertips, so you'll feel the pins of a lock through them. Don't wear them in front of the Militia.",
+      "waiting": "One of Necorik's? I can always tell. You look at my shelves the way a cat looks at a fish.",
+      "notyet": "",
+      "reminder": ""
+     }
+    },
+    {
+     "step": 2,
+     "kind": "show",
+     "target": "Necorik the Ghost",
+     "count": 1,
+     "live": {
+      "journal": "Show the burglar's gloves to Necorik the Ghost in Freeport.",
+      "answer": "",
+      "says": "It suits you. Wear it, and remember who gave it. Come see me again at level 2: I will have more for you.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "heirloom": {
+      "journal": "Show the burglar's gloves to Necorik the Ghost, downstairs in the Shining Shield's hall.",
+      "answer": "Here they are.",
+      "says": "They fit. A burglar's hands should be the quietest thing about them.\nLearn this city: its alleys, its roofs, its gates and who stands at them. Come back to me at level 2.",
+      "waiting": "Well? Gloves?",
+      "notyet": "Not yet.",
+      "reminder": "Merchant Olkan. Upstairs, and out by the ramp. The gloves are free. Don't haggle; he enjoys it too much."
+     }
+    }
+   ]
+  },
+  {
+   "giver": "Witchdoctor Muglchlur",
+   "name": "Bertoxxulous and the Throne of Plague",
+   "classes": "",
+   "races": "",
+   "minlevel": 50,
+   "live": {
+    "offer": "You are a friend of the puslings now. Give me the Queen's stinger and I will make a scepter of it. Show the scepter to the Throne of Bertoxxulous, past the Bloody Portal, and he will come.",
+    "accept": "Make me the scepter.",
+    "decline": "Not now.",
+    "declined": "The throne can wait.",
+    "started": "Bring your strongest. He is one tough foe."
+   },
+   "heirloom": {
+    "offer": "You are a friend of the puslings now. Give me the Queen's stinger and I will make a bonescepter of it. Use it at the Throne of Bertoxxulous, past the Bloody Portal, and he will come.",
+    "accept": "Make me the scepter.",
+    "decline": "Not now.",
+    "declined": "The throne can wait.",
+    "started": "Bring your strongest. He is one tough foe."
+   },
+   "steps": [
+    {
+     "step": 1,
+     "kind": "give",
+     "target": "Witchdoctor Muglchlur",
+     "count": 1,
+     "live": {
+      "journal": "Give Queen Qy'tha's stinger to Witchdoctor Muglchlur.",
+      "answer": "",
+      "says": "There. The scepter of plague. The throne will answer it.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "heirloom": {
+      "journal": "Give Queen Qy'tha's stinger to Witchdoctor Muglchlur.",
+      "answer": "",
+      "says": "There. The bonescepter. The throne will answer it.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     }
+    },
+    {
+     "step": 2,
+     "kind": "show",
+     "target": "Throne of Bertoxxulous",
+     "count": 1,
+     "live": {
+      "journal": "Take the Bloody Portal to the Twins' valley and show the scepter of plague to the Throne of Bertoxxulous.",
+      "answer": "",
+      "says": "The throne shudders, and the Plaguebringer turns to face you.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "heirloom": {
+      "journal": "Take the Bloody Portal to the Twins' valley and use the bonescepter at the Throne of Bertoxxulous.",
+      "answer": "",
+      "says": "The throne shudders, and the Plaguebringer turns to face you.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": "The throne answers only the bonescepter."
+     }
+    },
+    {
+     "step": 3,
+     "kind": "kill",
+     "target": "Bertoxxulous",
+     "count": 1,
+     "live": {
+      "journal": "Kill Bertoxxulous the Plaguebringer.",
+      "answer": "",
+      "says": "",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "heirloom": {
+      "journal": "Kill Bertoxxulous the Plaguebringer before he leaves, an hour after he rises.",
+      "answer": "",
+      "says": "",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     }
+    }
+   ]
+  }
+ ],
+ "skipped": [
+  {
+   "giver": "Counciler Dreda",
+   "name": "Unkempt Bracelets",
+   "why": "several enabled quests share giver, name, classes, races and level"
+  },
+  {
+   "giver": "Djivan Mertshak",
+   "name": "Silver and Fur",
+   "why": "its steps differ on the two shards"
+  },
+  {
+   "giver": "Ediopolus",
+   "name": "The Alchemist's Epic Reward",
+   "why": "several enabled quests share giver, name, classes, races and level"
+  },
+  {
+   "giver": "Ediopolus",
+   "name": "The Cleric's Epic Reward",
+   "why": "several enabled quests share giver, name, classes, races and level"
+  },
+  {
+   "giver": "Ediopolus",
+   "name": "The Enchanter's Epic Reward",
+   "why": "several enabled quests share giver, name, classes, races and level"
+  },
+  {
+   "giver": "Ediopolus",
+   "name": "The Magician's Epic Reward",
+   "why": "several enabled quests share giver, name, classes, races and level"
+  },
+  {
+   "giver": "Ediopolus",
+   "name": "The Rogue's Epic Reward",
+   "why": "several enabled quests share giver, name, classes, races and level"
+  },
+  {
+   "giver": "Ediopolus",
+   "name": "The Shaman's Epic Reward",
+   "why": "several enabled quests share giver, name, classes, races and level"
+  },
+  {
+   "giver": "Ediopolus",
+   "name": "The Warrior's Epic Reward",
+   "why": "several enabled quests share giver, name, classes, races and level"
+  },
+  {
+   "giver": "Ediopolus",
+   "name": "The Wizard's Epic Reward",
+   "why": "several enabled quests share giver, name, classes, races and level"
+  },
+  {
+   "giver": "Fethinar Silspin",
+   "name": "The Bone earring",
+   "why": "Live's words are not the shorter"
+  },
+  {
+   "giver": "Holiday Elf",
+   "name": "Carols for the Guard",
+   "why": "Christmas is Heirloom's alone (the owner, 2026-11-17)"
+  },
+  {
+   "giver": "Holiday Elf",
+   "name": "Gifts for Freeport",
+   "why": "Christmas is Heirloom's alone (the owner, 2026-11-17)"
+  },
+  {
+   "giver": "Jenya Gooten",
+   "name": "Tiny Daggers",
+   "why": "several enabled quests share giver, name, classes, races and level"
+  },
+  {
+   "giver": "Jeweler Yilt",
+   "name": "Charred Bones",
+   "why": "several enabled quests share giver, name, classes, races and level"
+  },
+  {
+   "giver": "Katrina Finney",
+   "name": "Chipped Badger Claws",
+   "why": "several enabled quests share giver, name, classes, races and level"
+  },
+  {
+   "giver": "Kithgrin",
+   "name": "The Trials of Cazic Thule",
+   "why": "Live's words are not the shorter"
+  },
+  {
+   "giver": "Sir Lothwin Galiel",
+   "name": "The Crusader's Tunic",
+   "why": "its steps differ on the two shards"
+  },
+  {
+   "giver": "Sir Lothwin Galiel",
+   "name": "The Militia bracer",
+   "why": "Live's words are not the shorter"
+  },
+  {
+   "giver": "Sir Lothwin Galiel",
+   "name": "The Recruits Shield",
+   "why": "Live's words are not the shorter"
+  },
+  {
+   "giver": "Terison Eydillo",
+   "name": "Preserved Zombie Eyes",
+   "why": "several enabled quests share giver, name, classes, races and level"
+  },
+  {
+   "giver": "Tessarina Starshimmer",
+   "name": "Nature's Mantle",
+   "why": "its steps differ on the two shards"
+  },
+  {
+   "giver": "Tessarina Starshimmer",
+   "name": "The Dark Ones bracers",
+   "why": "Live's words are not the shorter"
+  },
+  {
+   "giver": "Tinker Z.",
+   "name": "Drachnid Leg Tips",
+   "why": "several enabled quests share giver, name, classes, races and level"
+  },
+  {
+   "giver": "Viltharus Battleprayer",
+   "name": "Cinder Cat Fangs",
+   "why": "several enabled quests share giver, name, classes, races and level"
+  },
+  {
+   "giver": "Viltharus Battleprayer",
+   "name": "Cinder Cat Wings",
+   "why": "several enabled quests share giver, name, classes, races and level"
+  },
+  {
+   "giver": "stone guardian",
+   "name": "Passage to the Inner Temple",
+   "why": "several enabled quests share giver, name, classes, races and level"
+  }
+ ]
+}

@@ -1,0 +1,339 @@
+{
+ "about": "Part a: the proposal's 23 rewrites (the 6th Dark Portals offer and its sister quests alike), five towns' boards (Klik`Anon's and Live's Klik'Anon board, Surefall's second board on Live) and Hodstock's town dialog. Drafts: ~/.cache proposal, owner approved 2026-11-21.",
+ "entries": [
+  {
+   "giver": "Levandius",
+   "name": "Wolfwere Tails",
+   "step": 0,
+   "field": "offer",
+   "before": "The wolfweres of these woods carry the curse in their blood. Bring me four of their tails and the Night Reapers will count you a friend. Hunt the ones that are a match for you.",
+   "after": "Wolfweres are the curse with no man left in it; under Drinal's full moon they hunt till dawn. Bring me four of their tails and the Night Reapers will count you a friend.",
+   "tag": "color",
+   "why": "WERE-7 (t384): Drinal's moon, wolfweres"
+  },
+  {
+   "giver": "Levandius",
+   "name": "The Hunt",
+   "step": 2,
+   "field": "says",
+   "before": "Zaren is dead and the fever has run its course. You are one of us now, wolf.",
+   "after": "Zaren is dead and the fever has run its course. You are one of us now, wolf. Drinal's moon will call you: answer it in the wood, never in a town.",
+   "tag": "color",
+   "why": "WERE-21: Drinal the Silver Reaper"
+  },
+  {
+   "giver": "Dorandas",
+   "name": "Bearwere Tails",
+   "step": 0,
+   "field": "offer",
+   "before": "The bearweres carry a sickness that is also a gift. Bring me four of their tails and the Wards of the Dawn will count you a friend. Hunt the ones that are a match for you.",
+   "after": "The bearweres carry a sickness that is also a gift. Bring me four of their tails and the Wards of Dawn will count you a friend. Hunt the ones that are a match for you.",
+   "tag": "fix",
+   "why": "'Wards of the Dawn' -> 'Wards of Dawn' (t384, our lines and signs)"
+  },
+  {
+   "giver": "Dorandas",
+   "name": "Bearwere Tails",
+   "step": 2,
+   "field": "says",
+   "before": "Four tails. The Wards of the Dawn will hear of it.",
+   "after": "Four tails. The Wards of Dawn will hear of it. We heal more than we kill, but a bearwere has no man left in it to heal.",
+   "tag": "fix+color",
+   "why": "name fix; WERE-8 Wards are healers"
+  },
+  {
+   "giver": "Dorandas",
+   "name": "Mirin",
+   "step": 2,
+   "field": "says",
+   "before": "Mirin is gone, and the bear is yours. Welcome to the Wards of the Dawn.",
+   "after": "Mirin is gone, and the bear is yours. Welcome to the Wards of Dawn. Wear the golden half circle, and heal before you fight.",
+   "tag": "fix+color",
+   "why": "WERE-8: golden half circle on black"
+  },
+  {
+   "giver": "Corindas",
+   "name": "Lionwere Tails",
+   "step": 0,
+   "field": "offer",
+   "before": "The lionweres carry the Sunmanes' gift in their blood. Bring me four of their tails and the Sunmanes will count you a friend. Hunt the ones that are a match for you.",
+   "after": "The lionweres carry the Sun Manes' gift in their blood. Bring me four of their tails and the Sun Manes will count you a friend. Hunt the ones that are a match for you.",
+   "tag": "fix",
+   "why": "'Sunmanes' -> 'Sun Manes' (t384, our lines)",
+   "drops": [
+    "Sunmanes",
+    "Sunmane"
+   ]
+  },
+  {
+   "giver": "Corindas",
+   "name": "Lionwere Tails",
+   "step": 2,
+   "field": "says",
+   "before": "Four tails. The Sunmanes will hear your name.",
+   "after": "Four tails. The Sun Manes will hear your name.",
+   "tag": "fix",
+   "why": "'Sunmanes' -> 'Sun Manes'",
+   "drops": [
+    "Sunmanes",
+    "Sunmane"
+   ]
+  },
+  {
+   "giver": "Corindas",
+   "name": "Jensen",
+   "step": 2,
+   "field": "says",
+   "before": "Jensen is dead and the lion is yours. Welcome, Sunmane.",
+   "after": "Jensen is dead and the lion is yours. Welcome to the Sun Manes. Sateb Mahlni gave me this gift when the Sabretooth gnolls had all but killed me. Use it for the Kejrahn.",
+   "tag": "fix+color",
+   "why": "WERE-12 (t384): Sateb Mahlni, Sabretooth gnolls",
+   "drops": [
+    "Sunmanes",
+    "Sunmane"
+   ]
+  },
+  {
+   "giver": "Yindrius",
+   "name": "Ratwere Tails",
+   "step": 0,
+   "field": "offer",
+   "before": "The wererats carry the plague of the swarm. Bring me four of their tails and the Topi di Ombra will count you a friend. Ferran's Hope crawls with them; hunt the ones that are a match for you.",
+   "after": "The ratweres carry the plague of the swarm and answer to no family. Bring me four of their tails and the Topi di Ombra will count you a friend. Ferran's Hope crawls with them.",
+   "tag": "color",
+   "why": "WERE-17: orphans offered once"
+  },
+  {
+   "giver": "Fryda Lightwolf",
+   "name": "Fryda's Kin",
+   "step": 6,
+   "field": "says",
+   "before": "So the curse spreads. Levandius, in the druid village of Unkempt North, knows the wolf's blood better than anyone. Go to him.",
+   "after": "So the curse spreads, onto our own road. Three generations my house has kept its counsel, and the north edge of the wood.\nLevandius, in the druid village of Unkempt North, knows the wolf's blood better than anyone. Go to him.",
+   "tag": "MEANING",
+   "why": "WERE-6: hints the Lightwolfs' own secret to the player"
+  },
+  {
+   "giver": "Kiev Bearclaw",
+   "name": "Paws in the Snow",
+   "step": 8,
+   "field": "says",
+   "before": "Twice now. You have their respect, and that means something. Dorandas, in the druid village of Unkempt North, will tell you what.",
+   "after": "Twice now. The Northmen say a bear comes to look, not to kill; those two came to look at you.\nYou have their respect, and that means something. Dorandas, in the druid village of Unkempt North, will tell you what.",
+   "tag": "color",
+   "why": "t389 Blood of the Bear (our Halas lines)"
+  },
+  {
+   "giver": "Commander Pearson",
+   "name": "Witchking Collars",
+   "step": 0,
+   "field": "offer",
+   "before": "The cultists of the Witchking wear collars. Bring me four, and their cult is four the smaller.",
+   "after": "The Witchking was an Unkempt tribesman, bitten tending a wounded bear, who ran from Wards and Reapers both.\nHis cultists wear collars. Bring me four, and his cult is four the smaller.",
+   "tag": "color",
+   "why": "WERE-9 (t384)"
+  },
+  {
+   "giver": "Elaryness",
+   "name": "Unkempt War",
+   "step": 0,
+   "field": "offer",
+   "before": "The Dawn and Moon tribes will make war on the defenders of these woods. Before I trust you with that, bring me four faerie dusts: any faerie carries it, the wood faeries most of all.",
+   "after": "Wegadas fades, and the Dawn and Moon tribes will make war on the defenders of these woods. Before I trust you with that, bring me four faerie dusts: any faerie carries it.",
+   "tag": "MEANING",
+   "why": "WERE-5: ties the guide's Dawn/Moon tribes (Wards, Reapers) to the heirs' war"
+  },
+  {
+   "giver": "Djivan Mertshak",
+   "name": "Silver and Fur",
+   "step": 0,
+   "field": "offer",
+   "before": "Lycanthropes walk among the farmers of Hodstock. Take this silver needle: one prick shows them for what they are. A man with a pet rat keeps to a farming village in the north-west. Start there.",
+   "after": "Lycanthropes walk among the farmers of Hodstock; the hunters still study what I wrote of them. This silver needle shows them for what they are. Start with a man with a pet rat, north-west.",
+   "tag": "MEANING",
+   "why": "t388 names Djivan Mertshak's ancient texts of the werehunters; makes him their author"
+  },
+  {
+   "giver": "Djivan Mertshak",
+   "name": "The Werehunter's Brand",
+   "step": 0,
+   "field": "offer",
+   "before": "You have fought them and lived, and the gypsies trust you. Will you join the Were-Hunters? I will brand you with silver. No lycan's bite will ever take you after that.",
+   "after": "You have fought them and lived, and the gypsies trust you. Will you join the Were-Hunters? I will brand you with silver, with Marr's blessing on it. No lycan's bite will ever take you after that.",
+   "tag": "color",
+   "why": "t388: werehunters hunt with Marr's blessing"
+  },
+  {
+   "giver": "Hajyd Golemon",
+   "name": "Zombie Patron Skins",
+   "step": 0,
+   "field": "offer",
+   "before": "My golems want a hide that does not rot further. The patrons of Bertoxxulous in the Plane of Disease have such skins. Bring me four.",
+   "after": "My golems want a hide that does not rot further. Bertoxxulous was born in the rot of dead kings, and his patrons in the Plane of Disease have finished rotting. Bring me four of their skins.",
+   "tag": "color",
+   "why": "t407 Kings' Rest (our book)"
+  },
+  {
+   "giver": "Necrologist Zizclank",
+   "name": "The Last House",
+   "step": 0,
+   "field": "offer",
+   "before": "Beyond the mausoleum's portal lies the Last House, where plague is tended like a garden. Find your way through it to its far portal, and the Plane of Disease will be open to you.",
+   "after": "Beyond the mausoleum's portal lies the Last House, where plague is tended like a garden. Pass through it, and the Plane of Disease, where Lxanvon stands, is open to you.",
+   "tag": "color",
+   "why": "t407"
+  },
+  {
+   "giver": "Seer Yalgima",
+   "name": "Two Undead Souls",
+   "step": 0,
+   "field": "offer",
+   "before": "A wandering spectre walks Centaur Valley north of Blackwater; a red derelict mummy guards a tomb in the Dead Hills, where the Plane of Disease opens. Bring me their souls.",
+   "after": "A wandering spectre walks Centaur Valley north of Blackwater; a red derelict mummy guards a tomb in the Dead Hills, where Kings' Rest stood and the Plane of Disease opens. Bring me their souls.",
+   "tag": "MEANING",
+   "why": "t407: places Lxanvon's site at the Dead Hills (the source gives no place)"
+  },
+  {
+   "giver": "Taszin K'Ven",
+   "name": "The Truearrow Brooch",
+   "step": 0,
+   "field": "offer",
+   "before": "Any business to discuss? So you are the mercenary I sent for. Good. I need a killer: the leader of the Tier'dal camp near the ruins of Oasis, in Takish'Hiz. Bring me his brooch as proof.",
+   "after": "So you are the mercenary I sent for. Good. I need a killer: Cyrian Truearrow, whose elves still camp near the ruins of Oasis, in Takish'Hiz. Bring me his brooch as proof.",
+   "tag": "FIX (contradiction)",
+   "why": "offer called Truearrow's camp 'the Tier'dal camp'; TOMB-10: Truearrow leads the last elves against the Teir'Dal; his steps already kill the Truearrows",
+   "drops": [
+    "Tier'dal"
+   ]
+  },
+  {
+   "giver": "Crusader Tursk",
+   "name": "Froglok Fishing Nets",
+   "step": 0,
+   "field": "started",
+   "before": "Good! Your deeds shall prove the truth of the words you say. It is now time for you to quench your bloodlust.\nCazic Thule demands we spill the blood of our enemies, the Frogloks. Go now, to the swamp and kill their fishermen.\nBring me 2 crude fishing nets, for slaying these fisherman I will teach you a new ability.",
+   "after": "Good! Your deeds shall prove the truth of the words you say. It is now time for you to quench your bloodlust.\nCazic-Thule made the trolls before Hate ever touched us, and he demands we spill the blood of our enemies, the Frogloks. Go now, to the swamp and kill their fishermen.\nBring me 2 crude fishing nets, for slaying these fisherman I will teach you a new ability.",
+   "tag": "color",
+   "why": "t463: trolls followed only Cazic-Thule in the Elder Age"
+  },
+  {
+   "giver": "Vedilion Brithstar",
+   "name": "The Dark Portals",
+   "step": 0,
+   "field": "offer",
+   "before": "Captain Leighthron at Bayle Mansion has asked for help. Go to him.",
+   "after": "Captain Leighthron at Bayle Mansion has asked for help. A Bayle has guarded this bay since it was Oceangreen. Go to him.",
+   "tag": "color",
+   "why": "t556 Oceangreen (our Qeynos lines); same edit on its 5 sister quests"
+  },
+  {
+   "giver": "Gadenon Flamefist",
+   "name": "The Dark Portals",
+   "step": 0,
+   "field": "offer",
+   "before": "Captain Leighthron at Bayle Mansion has asked for help. Go to him.",
+   "after": "Captain Leighthron at Bayle Mansion has asked for help. A Bayle has guarded this bay since it was Oceangreen. Go to him.",
+   "tag": "color",
+   "why": "t556 Oceangreen (our Qeynos lines); same edit on its 5 sister quests"
+  },
+  {
+   "giver": "Sir Hanst Breach",
+   "name": "The Dark Portals",
+   "step": 0,
+   "field": "offer",
+   "before": "Captain Leighthron at Bayle Mansion has asked for help. Go to him.",
+   "after": "Captain Leighthron at Bayle Mansion has asked for help. A Bayle has guarded this bay since it was Oceangreen. Go to him.",
+   "tag": "color",
+   "why": "t556 Oceangreen (our Qeynos lines); same edit on its 5 sister quests"
+  },
+  {
+   "giver": "Crow Darkstride",
+   "name": "The Dark Portals",
+   "step": 0,
+   "field": "offer",
+   "before": "Captain Leighthron at Bayle Mansion has asked for help. Go to him.",
+   "after": "Captain Leighthron at Bayle Mansion has asked for help. A Bayle has guarded this bay since it was Oceangreen. Go to him.",
+   "tag": "color",
+   "why": "t556 Oceangreen (our Qeynos lines); same edit on its 5 sister quests"
+  },
+  {
+   "giver": "Ammathor Lithkin",
+   "name": "The Dark Portals",
+   "step": 0,
+   "field": "offer",
+   "before": "Captain Leighthron at Bayle Mansion has asked for help. Go to him.",
+   "after": "Captain Leighthron at Bayle Mansion has asked for help. A Bayle has guarded this bay since it was Oceangreen. Go to him.",
+   "tag": "color",
+   "why": "t556 Oceangreen (our Qeynos lines); same edit on its 5 sister quests"
+  },
+  {
+   "giver": "Lyriam Kaelean",
+   "name": "The Elddar Tome",
+   "step": 0,
+   "field": "started",
+   "before": "Hatebone orcs fell upon a small band of our people and slew them. The elves were carrying the last known Elddar tomes.\nIf the orcs keep them, the College loses teachings it can never write again.\nEven one of these orcs is too strong for you alone. Band together with other elves to bring the thieves down.\nTake the path south out of town, the water on your west. Where it bends west, go straight on into the hills, to the second orc camp.",
+   "after": "Hatebone orcs fell upon a small band of our people and slew them. The elves were carrying the last known Elddar tomes.\nI wrote down what is known of the Tomb of the Crown. I will not see the Elddar's own words lost to orcs.\nIf the orcs keep them, the College loses teachings it can never write again.\nEven one of these orcs is too strong for you alone. Band together with other elves to bring the thieves down.\nTake the path south out of town, the water on your west. Where it bends west, go straight on into the hills, to the second orc camp.",
+   "tag": "color",
+   "why": "TOMB-1: Lyriam Kaelean documented Holciel Rowen'dal"
+  },
+  {
+   "giver": "tomb spirit",
+   "name": "The Dead Hills' Blight",
+   "step": 0,
+   "field": "offer",
+   "before": "You see me? Few do. The Dead Hills die, and I know not why. Go west to the lizardman ruins and climb their towers. What waits there will tell you more.",
+   "after": "You see me? Few do. The Dead Hills die, and I know not why. Kings lay here before the elves. Go west to the lizardman ruins and climb their towers. What waits there will tell you more.",
+   "tag": "MEANING",
+   "why": "t407 (as Seer Yalgima's): ties the Dead Hills to Lxanvon"
+  }
+ ],
+ "boards": [
+  {
+   "name": "Grobb Announcements",
+   "text": "Grobb. Home of Clan Grobb, who take back Grozmok stone. Trolls eat here. You maybe get eaten. Mind manners."
+  },
+  {
+   "name": "Highbourne Announcements",
+   "text": "Welcome to Highbourne, city of the Library and of Erud. Speak softly near the scholars; they are thinking."
+  },
+  {
+   "name": "Highpass Announcements",
+   "text": "Highpass Hold. The only road through the Serpent Spine, and the toll is fair. Fair to Highpass."
+  },
+  {
+   "name": "Klik`Anon Announcements",
+   "text": "Klick'Anon! Built on warm ground by the Lavastorm Mountains. Mind the contraptions; some of them mind you back."
+  },
+  {
+   "name": "Klik'Anon Announcements",
+   "text": "Klick'Anon! Built on warm ground by the Lavastorm Mountains. Mind the contraptions; some of them mind you back."
+  },
+  {
+   "name": "Qeynos Announcements",
+   "text": "Welcome to Qeynos, city of the Bayles, raised from Oceangreen village by the western bay. Keep the peace of King Antonius Bayle II."
+  },
+  {
+   "name": "Surefall Announcements",
+   "text": "Welcome to Surefall Glade. Respect the forest and the creatures in it."
+  }
+ ],
+ "lines": [
+  {
+   "town": "Hodstock",
+   "lines": [
+    "Hodstock feeds Freeport, and Freeport never says thank you. The fields do not care. They grow anyway.",
+    "Gypsies camp on the roads past our fields. They pay for what they take, mostly. Count your chickens after they go.",
+    "A man came through with a silver needle, pricking farmhands. One of them howled. We do not talk about Slick any more.",
+    "Some of our neighbors keep odd hours when the moon is full. A wise farmer bolts the barn and asks no questions.",
+    "The were-hunters say silver finds what eyes cannot. Grandmother says a sharp scythe finds most things too.",
+    "Old folk say a plague crept out of the western hills once and killed the crops at Oceangreen. Pray it stays west.",
+    "Elder Fitzgrott remembers every harvest for sixty years. Ask him about one. Then ask him to stop.",
+    "Bandits watch the Freeport road at harvest time. Market day is the day you find out who your friends are.",
+    "Rats in the granary are trouble. Rats that walk on two legs at night are worse trouble. We have had both.",
+    "The coach to Freeport is quicker, but the walk is cheaper, and the walk does not ask your business.",
+    "Rain on Hodstock is a blessing. Rain on market day is Bristlebane's idea of a joke.",
+    "Our wheat goes to Freeport, our sons go to the Militia, and the tax collector goes everywhere."
+   ]
+  }
+ ]
+}

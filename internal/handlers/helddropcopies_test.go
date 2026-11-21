@@ -69,8 +69,9 @@ func TestHeldDropsCopiesKeepTheirBasesBar(t *testing.T) {
 	if d.Left["rare pool"] != 2 || d.Left["boss loot"] != 3 {
 		t.Errorf("left out %v, want the staff and its copy (rare pool), the blade and its two copies (boss loot)", d.Left)
 	}
-	name := func(model uint32, level int, who string) string {
-		e, ok := d.Pick(model, false, level, who)
+	d.LevelBelow, d.LevelAbove = 100, 0 // the window off: the nearest at or below, as before it
+	name := func(model uint32, level int, who string, rare bool) string {
+		e, ok := d.Pick(model, false, level, who, rare)
 		if !ok {
 			return ""
 		}
@@ -80,16 +81,18 @@ func TestHeldDropsCopiesKeepTheirBasesBar(t *testing.T) {
 		model uint32
 		level int
 		who   string
+		rare  bool
 		want  string
 	}{
-		{staff, 64, "agra", "plain staff/9100"},                 // never the staff's copy
-		{ripper, 40, "overlord frank", "plain ripper/9200"},     // never the seer's copy
-		{ripper, 40, "Darkwood seer", "Two Horned Ripper/9201"}, // the seer drops its own
-		{blade, 65, "solusek champion", "plain blade/9300"},     // never the boss's copies
-		{axe, 28, "orc pawn", "Ascended free axe/9401"},         // a free base's copy drops
-		{axe, 40, "orc pawn", "free axe/9400"},                  //
+		{staff, 64, "agra", true, "plain staff/9100"},                  // never the staff's copy, a rare roll too
+		{ripper, 40, "overlord frank", false, "plain ripper/9200"},     // never the seer's copy
+		{ripper, 40, "Darkwood seer", false, "Two Horned Ripper/9201"}, // the seer drops its own
+		{blade, 65, "solusek champion", true, "plain blade/9300"},      // never the boss's copies
+		{axe, 28, "orc pawn", true, "Ascended free axe/9401"},          // a free base's copy drops, a rare record
+		{axe, 28, "orc pawn", false, ""},                               // an Ascended copy is never a plain one
+		{axe, 40, "orc pawn", false, "free axe/9400"},                  //
 	} {
-		if got := name(c.model, c.level, c.who); got != c.want {
+		if got := name(c.model, c.level, c.who, c.rare); got != c.want {
 			t.Errorf("%s (level %d): %q, want %q", c.who, c.level, got, c.want)
 		}
 	}

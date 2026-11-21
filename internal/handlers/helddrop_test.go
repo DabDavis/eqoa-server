@@ -10,7 +10,8 @@ import (
 )
 
 // A creature killed holding a weapon or a shield drops it (helddrop.go): the
-// catalog's record of its look for its level, of several the lowest patternid,
+// catalog's record of its look for its level (a plain one but 1 in 500: the
+// rules are helddroprule_test.go's), of several the lowest patternid,
 // any record of the look (No Trade, Lore, No Rent, an heirloom, an Ascended copy,
 // an epic, a quest's: the owner, 2026-11-18, ticket 2366) but an item a player
 // owns alone and a GM's test record; nothing for a look no record has, for a pet,
@@ -47,9 +48,9 @@ func heldDB(t *testing.T) (*database.InventoryStore, *database.HeldDrops) {
 		{8004, "bound short sword", 14, 25, 1, 1, 0, sword}, // NO TRADE
 		{8005, "lore short sword", 14, 25, 0, 1, 1, sword},  // LORE
 		{8006, "Ascended fine short sword", 12, 25, 0, 1, 0, sword},
-		{8007, "family short sword", 14, 26, 0, 1, 0, sword}, // an heirloom
-		{8008, "reward short sword", 14, 27, 0, 1, 0, sword}, // a quest's reward
-		{8011, "rented short sword", 14, 28, 0, 0, 0, sword}, // NO RENT
+		{8007, "family short sword", 14, 26, 0, 1, 0, sword},     // an heirloom
+		{8008, "reward short sword", 14, 27, 0, 1, 0, sword},     // a quest's reward
+		{8011, "rented short sword", 14, 28, 0, 0, 0, sword},     // NO RENT
 		{8012, "Sword of the Epic Test", 14, 29, 0, 1, 0, sword}, // a GM's test record
 		{8013, "owned short sword", 14, 21, 0, 1, 0, sword},      // a player's alone (itemowner)
 		{8009, "wooden shield", 13, 10, 0, 1, 0, heldShieldLook},
@@ -96,12 +97,17 @@ func TestHeldDropsMapALookToItsLevelsRecord(t *testing.T) {
 	if len(d.Left) != 2 {
 		t.Errorf("left out %v, want the test record and the owned one alone", d.Left)
 	}
-	name := func(model uint32, shield bool, level int, who string) string {
-		e, ok := d.Pick(model, shield, level, who)
+	// the window off (the nearest at or below, as before it): the lists' order and bars
+	d.LevelBelow, d.LevelAbove = 100, 0
+	pick := func(model uint32, shield bool, level int, who string, rare bool) string {
+		e, ok := d.Pick(model, shield, level, who, rare)
 		if !ok {
 			return ""
 		}
 		return e.Pattern.ItemName
+	}
+	name := func(model uint32, shield bool, level int, who string) string {
+		return pick(model, shield, level, who, false)
 	}
 	if got := name(heldSwordLook, false, 10, "gnoll scout"); got != "rusty short sword" {
 		t.Errorf("level 10: %q, want the level 5 record", got)
@@ -109,16 +115,21 @@ func TestHeldDropsMapALookToItsLevelsRecord(t *testing.T) {
 	if got := name(heldSwordLook, false, 3, "gnoll scout"); got != "" || !d.Has(heldSwordLook, false) {
 		t.Errorf("level 3: %q, want nothing (none at or below), the look known", got)
 	}
-	// of several of a levelreq, the lowest patternid, whatever the name; the owned
-	// level 21 record never
+	// plain: of several of a levelreq, the lowest patternid, whatever the name; the owned
+	// level 21 record never; No Trade, Lore and No Rent are rare records: a plain draw never
+	// drops one (the "Ascended" name alone makes no copy: no itemascended row)
 	for _, c := range []struct {
 		level int
+		rare  bool
 		want  string
-	}{{20, "fine short sword"}, {21, "fine short sword"}, {25, "bound short sword"}, {26, "family short sword"},
-		{27, "reward short sword"}, {60, "rented short sword"}} {
+	}{{20, false, "fine short sword"}, {21, false, "fine short sword"}, {25, false, "Ascended fine short sword"},
+		{26, false, "family short sword"}, {27, false, "reward short sword"}, {60, false, "reward short sword"},
+		// a rare draw: the rare record nearest, else the plain one
+		{20, true, "fine short sword"}, {25, true, "bound short sword"}, {27, true, "bound short sword"},
+		{28, true, "rented short sword"}, {60, true, "rented short sword"}} {
 		for _, who := range []string{"gnoll scout", "orc pawn", "Ice goblin warrior"} {
-			if got := name(heldSwordLook, false, c.level, who); got != c.want {
-				t.Errorf("%s at %d: %q, want %q", who, c.level, got, c.want)
+			if got := pick(heldSwordLook, false, c.level, who, c.rare); got != c.want {
+				t.Errorf("%s at %d (rare %v): %q, want %q", who, c.level, c.rare, got, c.want)
 			}
 		}
 	}
@@ -135,17 +146,19 @@ func TestHeldDropsMapALookToItsLevelsRecord(t *testing.T) {
 		t.Error("an unknown look maps")
 	}
 	rep := HeldDropsReport(d, [][2]uint32{{heldSwordLook, 0}, {heldSwordLook, 0}, {heldShieldLook, 1}, {heldNoLook, 0}})
-	if rep.Models != 3 || rep.Mapped != 2 || rep.Rows != 4 || rep.RowsMapped != 3 || rep.Unmapped[[2]uint32{heldNoLook, 0}] != 1 {
+	if rep.Models != 3 || rep.Mapped != 2 || rep.Plain != 2 || rep.RareOnly != 0 || rep.Rows != 4 || rep.RowsMapped != 3 || rep.Unmapped[[2]uint32{heldNoLook, 0}] != 1 {
 		t.Errorf("report %+v", rep)
 	}
 }
 
 func TestACorpseDropsWhatItsCreatureHeld(t *testing.T) {
 	inv, d := heldDB(t)
+	d.LevelBelow = 25 // the level 10 shield in reach of a level 30 kobold
 	h := NewNPCWindowHandler(nil, inv)
 	h.lootFloat = func() float64 { return 0.999999 }
 	h.lootIntn = func(n int) int { return n - 1 }
 	h.coinRoll = func(int) int { return 0 }
+	h.heldFloat = func() float64 { return 0.5 } // a plain draw
 	names := func(c *corpse) map[string]int {
 		out := map[string]int{}
 		for _, it := range c.items {
@@ -161,8 +174,8 @@ func TestACorpseDropsWhatItsCreatureHeld(t *testing.T) {
 	defer SetHeldDrops(nil)
 
 	got := names(h.rollCorpse(scout(), time.Now(), 30))
-	want, _ := d.Pick(heldSwordLook, false, 30, "kobold runt")
-	if got[want.Pattern.ItemName] != 1 || got["wooden shield"] != 1 || len(got) != 2 {
+	want, _ := d.Pick(heldSwordLook, false, 30, "kobold runt", false)
+	if want.Pattern.ItemName != "reward short sword" || got[want.Pattern.ItemName] != 1 || got["wooden shield"] != 1 || len(got) != 2 {
 		t.Errorf("a level 30 kobold with a sword and shield left %v, want %s and the wooden shield", got, want.Pattern.ItemName)
 	}
 	for _, it := range h.rollCorpse(scout(), time.Now(), 30).items {
@@ -176,7 +189,7 @@ func TestACorpseDropsWhatItsCreatureHeld(t *testing.T) {
 	if got := names(h.rollCorpse(bare, time.Now(), 30)); len(got) != 1 || got["wooden shield"] != 1 {
 		t.Errorf("a kobold with the shield alone left %v", got)
 	}
-	// judged against level 5: the level 20 sword is past its reach (fitItems), the shield not
+	// judged against level 5: the level 27 sword is past its reach (fitItems), the shield not
 	if got := names(h.rollCorpse(scout(), time.Now(), 5)); len(got) != 1 || got["wooden shield"] != 1 {
 		t.Errorf("judged at level 5: %v, want the shield alone", got)
 	}

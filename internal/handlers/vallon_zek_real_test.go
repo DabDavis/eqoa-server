@@ -216,7 +216,7 @@ func TestRealVallonZek(t *testing.T) {
 	if e, ok := hd.Named("Vallon Zek", database.NPCHeldPrimary); !ok || e.Pattern.PatternID != sword {
 		t.Errorf("his held drop: %+v %v, want Sapphyra's Sword (%d)", e.Pattern.ItemName, ok, sword)
 	}
-	if e, ok := hd.Pick(uint32(model), false, 68, "Vallon Zek"); ok {
+	if e, ok := hd.Pick(uint32(model), false, 68, "Vallon Zek", false); ok {
 		t.Logf("the look alone would drop %q (%d): npcheld names the sword", e.Pattern.ItemName, e.Pattern.PatternID)
 	}
 	vr, err := inv.NPCLootRolls("Vallon Zek", 68)

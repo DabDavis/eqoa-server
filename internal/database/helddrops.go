@@ -23,6 +23,21 @@ import (
 // can drop these also"): No Trade, Lore, No Rent, an heirloom, an Ascended
 // copy, an epic, a quest's item. Only an item a player owns alone (itemowner)
 // and a GM's test record (a name saying test) never do.
+//
+// But a rare one only seldom (the owner, 2026-11-21: "mobs are dropping rare
+// items because they are holding those items, the chances of them holding rare
+// items should be like 1 in 500", "and let it be around that mobs level"). A
+// look's records are PLAIN (HeldPlain: no stat, no resist, no use, not Lore,
+// not No Trade, not No Rent; a shield's armour class counts as plain, a
+// weapon's does not; MarkRare: no proc; no Ascended copy) or RARE (every
+// other). At a death each piece rolls once (handlers/helddrop.go, by the corpse's dice): 1 in RareOneIn
+// (world.held_rare_one_in, 500 unset, 0 never) it drops the look's rare record
+// of the creature's level, else its plain one. Either is the record whose
+// levelreq is nearest the creature's level within LevelBelow under it and
+// LevelAbove over it (world.held_level_window and held_level_above, 5 and 2
+// unset): of two as near, the lower levelreq, then the lowest patternid. A rare
+// roll with no rare record in the window drops the plain one; a plain roll
+// with no plain record in it drops nothing (never a rare one in its place).
 
 // HeldHandSlots is the itempattern equip slots of an item held in a hand:
 // 12 either hand, 14 the primary, 15 a two-hander, 16 a ranged weapon, 18 a
@@ -31,6 +46,13 @@ var HeldHandSlots = []int{12, 14, 15, 16, 18}
 
 // HeldShieldSlot is a shield's itempattern equip slot.
 const HeldShieldSlot = 13
+
+// The held drops' rules unset (the file's doc; the owner, 2026-11-21).
+const (
+	DefaultHeldRareOneIn  = 500 // a rare record 1 in 500 held pieces
+	DefaultHeldLevelBelow = 5   // a record's levelreq at most 5 under the creature's level
+	DefaultHeldLevelAbove = 2   // and at most 2 over it
+)
 
 // HeldDrops is the catalog's droppable hand and shield records by model,
 // each list in levelreq order (BuildHeldDrops).
@@ -49,6 +71,64 @@ type HeldDrops struct {
 	// owner, 2026-11-19: "waraxe of noroxxus dropped" from a fire goblin, "noroxxus is only off
 	// noroxxus".
 	only map[int]map[string]bool
+	// rare is the records that are no plain record of their look (HeldPlain, MarkRare), by patternid
+	rare map[int]bool
+	// RareOneIn: a held piece drops its look's rare record 1 in this many deaths (0 never);
+	// LevelBelow and LevelAbove the window of levelreqs around the creature's level a record
+	// is picked from (the file's doc). BuildHeldDrops sets the defaults; set them before use.
+	RareOneIn, LevelBelow, LevelAbove int
+}
+
+// HeldPlain reports whether a hand's or a shield's record is a plain one of its look by its
+// columns: no stat, power, health or resist, no use (procanim: a wand's, a clicky's), not
+// Lore, not No Trade, not No Rent; and no armour class on a weapon (a shield's own armour
+// class is plain: every shield has one). A proc is MarkRare's: the game reads a weapon's
+// proc by its name or description (entity.WeaponProcOf), never by the weaponproc column,
+// which on a bow is its range ("Range: 25") and elsewhere holds stray figures (1 on the
+// Apprentice Sword), so that column says nothing here.
+func HeldPlain(p *ItemPatternRecord) bool {
+	if p.Lore != 0 || p.Trade > 0 || p.Rent == 0 || p.ProcAnim != 0 {
+		return false
+	}
+	for _, v := range []*int{p.Str, p.Sta, p.Agi, p.Wis, p.Dex, p.Cha, p.Intelligence, p.HPMAX, p.POWMAX, p.PoT, p.HoT,
+		p.PR, p.DR, p.FR, p.CR, p.LR, p.AR} {
+		if v != nil && *v != 0 {
+			return false
+		}
+	}
+	if p.EquipSlot != HeldShieldSlot && p.AC != nil && *p.AC != 0 {
+		return false
+	}
+	return true
+}
+
+// MarkRare makes rare each record procs says has a proc (entity.WeaponProcOf: by its name or
+// its description, which no column holds), and reports how many it newly made so.
+func (d *HeldDrops) MarkRare(procs func(p *ItemPatternRecord) bool) int {
+	if d == nil || procs == nil {
+		return 0
+	}
+	n := 0
+	for _, m := range []map[uint32][]CharInventoryEntry{d.hands, d.shields} {
+		for _, l := range m {
+			for i := range l {
+				id := l[i].Pattern.PatternID
+				if !d.rare[id] && procs(&l[i].Pattern) {
+					d.rare[id] = true
+					n++
+				}
+			}
+		}
+	}
+	return n
+}
+
+// Rare reports whether record id is a rare record of its look (no plain one).
+func (d *HeldDrops) Rare(id int) bool { return d != nil && d.rare[id] }
+
+// RollsRare reports whether a roll in [0, 1) draws the rare record: under 1/RareOneIn.
+func (d *HeldDrops) RollsRare(roll float64) bool {
+	return d != nil && d.RareOneIn > 0 && roll*float64(d.RareOneIn) < 1
 }
 
 // OnlyFor makes record id a held drop of the named creature name alone (its own loot).
@@ -107,7 +187,8 @@ func heldDropWhyNot(p *ItemPatternRecord, excluded map[int]string) string {
 // the hand and shield records a held item may drop as, excluded those barred
 // by table (id -> why).
 func BuildHeldDrops(records []CharInventoryEntry, excluded map[int]string) *HeldDrops {
-	d := &HeldDrops{hands: map[uint32][]CharInventoryEntry{}, shields: map[uint32][]CharInventoryEntry{}, Left: map[string]int{}}
+	d := &HeldDrops{hands: map[uint32][]CharInventoryEntry{}, shields: map[uint32][]CharInventoryEntry{}, Left: map[string]int{},
+		rare: map[int]bool{}, RareOneIn: DefaultHeldRareOneIn, LevelBelow: DefaultHeldLevelBelow, LevelAbove: DefaultHeldLevelAbove}
 	for _, e := range records {
 		p := &e.Pattern
 		hand, shield := heldHand(p.EquipSlot), p.EquipSlot == HeldShieldSlot
@@ -125,6 +206,9 @@ func BuildHeldDrops(records []CharInventoryEntry, excluded map[int]string) *Held
 			m = d.shields
 		}
 		m[uint32(p.Model)] = append(m[uint32(p.Model)], e)
+		if !HeldPlain(p) {
+			d.rare[p.PatternID] = true
+		}
 		d.Records++
 	}
 	for _, m := range []map[uint32][]CharInventoryEntry{d.hands, d.shields} {
@@ -152,11 +236,30 @@ func (d *HeldDrops) Has(model uint32, shield bool) bool {
 	return len(d.hands[model]) > 0
 }
 
+// HasPlain reports whether any plain record looks like the model held, whatever its level.
+func (d *HeldDrops) HasPlain(model uint32, shield bool) bool {
+	if d == nil {
+		return false
+	}
+	l := d.hands[model]
+	if shield {
+		l = d.shields[model]
+	}
+	for i := range l {
+		if !d.rare[l[i].Pattern.PatternID] {
+			return true
+		}
+	}
+	return false
+}
+
 // Pick is the record a creature of level, named name (its kind: NPCClassKey),
-// drops of the model it held (a shield's or a hand's): the nearest levelreq at
-// or below level, one of several of that levelreq by the name. ok is false
-// when no record looks like it (none: false too) or none is of its level.
-func (d *HeldDrops) Pick(model uint32, shield bool, level int, name string) (CharInventoryEntry, bool) {
+// drops of the model it held (a shield's or a hand's), rare its roll's draw
+// (RollsRare): the look's rare record of its level, else (rare false, or no
+// rare record in the window) its plain one; never a rare one on a plain draw
+// (the file's doc). ok is false when no record of the kind is in the window
+// (none looks like it: false too).
+func (d *HeldDrops) Pick(model uint32, shield bool, level int, name string, rare bool) (CharInventoryEntry, bool) {
 	if d == nil || model == 0 {
 		return CharInventoryEntry{}, false
 	}
@@ -164,24 +267,41 @@ func (d *HeldDrops) Pick(model uint32, shield bool, level int, name string) (Cha
 	if shield {
 		l = d.shields[model]
 	}
-	// the highest levelreq at or below level among the records this creature may drop (another
-	// named creature's own loot is skipped: the next record of the look below it, else nothing);
-	// of several of that levelreq the lowest patternid (the list's order: the first met)
 	key := NPCClassKey(name)
-	best, bestReq := -1, -1
+	if rare {
+		if i := d.pickOf(l, level, key, true); i >= 0 {
+			return l[i], true
+		}
+	}
+	if i := d.pickOf(l, level, key, false); i >= 0 {
+		return l[i], true
+	}
+	return CharInventoryEntry{}, false
+}
+
+// pickOf is the index in l of the record of the kind (rare or plain) a creature of level whose
+// NPCClassKey is key drops: its levelreq within [level-LevelBelow, level+LevelAbove], the
+// nearest level; of two as near the lower levelreq; of several of that levelreq the lowest
+// patternid (the list's order: the first met). Another named creature's own loot is skipped.
+// -1: none.
+func (d *HeldDrops) pickOf(l []CharInventoryEntry, level int, key string, rare bool) int {
+	lo, hi := level-max(d.LevelBelow, 0), level+max(d.LevelAbove, 0)
+	best, bestDist, bestReq := -1, 0, 0
 	for i := range l {
+		id := l[i].Pattern.PatternID
 		req := max(l[i].Pattern.LevelReq, 0)
-		if req > level || !d.heldFor(l[i].Pattern.PatternID, key) {
+		if req < lo || req > hi || d.rare[id] != rare || !d.heldFor(id, key) {
 			continue
 		}
-		if req > bestReq {
-			best, bestReq = i, req
+		dist := req - level
+		if dist < 0 {
+			dist = -dist
+		}
+		if best < 0 || dist < bestDist || (dist == bestDist && req < bestReq) {
+			best, bestDist, bestReq = i, dist, req
 		}
 	}
-	if best < 0 {
-		return CharInventoryEntry{}, false
-	}
-	return l[best], true
+	return best
 }
 
 // heldBarredTables is each table whose patternid column bars a record, and why.
@@ -248,12 +368,15 @@ func (s *InventoryStore) HeldDrops() (*HeldDrops, error) {
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-	copies, err := s.itemCopies()
+	copies, ascended, err := s.itemCopies()
 	if err != nil {
 		return nil, err
 	}
 	barCopies(excluded, copies)
 	d := BuildHeldDrops(recs, excluded)
+	for id := range ascended { // an Ascended copy is a tuned boss's: never a plain record
+		d.rare[id] = true
+	}
 	if err := s.loadNamedHeld(d); err != nil {
 		return nil, err
 	}
@@ -270,16 +393,21 @@ func (s *InventoryStore) HeldDrops() (*HeldDrops, error) {
 // mobs are dropping boss loot still": the import copy of the Sky constructs' Pneumatic Staff off level 60 creatures
 // holding a staff, its base being a rare pool's). A copy keeps its base's bar and its base's names.
 
-// itemCopies is every copy's base (copy -> base): the Ascended records' and the import copies'.
-func (s *InventoryStore) itemCopies() (map[int]int, error) {
+// itemCopies is every copy's base (copy -> base): the Ascended records' and the import copies';
+// and the Ascended records alone.
+func (s *InventoryStore) itemCopies() (copies, ascended map[int]int, err error) {
 	ascended, imported, err := s.ItemVersions()
 	if err != nil {
-		return nil, fmt.Errorf("held drops' copies: %w", err)
+		return nil, nil, fmt.Errorf("held drops' copies: %w", err)
+	}
+	copies = make(map[int]int, len(ascended)+len(imported))
+	for c, b := range ascended {
+		copies[c] = b
 	}
 	for c, b := range imported {
-		ascended[c] = b
+		copies[c] = b
 	}
-	return ascended, nil
+	return copies, ascended, nil
 }
 
 // copyBases is each base a copy goes back to, nearest first (an import copy of an Ascended record: the Ascended

@@ -335,6 +335,16 @@ type WorldConfig struct {
 	HeldShieldChance *float64                    `yaml:"held_shield_chance"`
 	HeldNamedRows    *int                        `yaml:"held_named_rows"`
 	HeldChances      map[string]HeldChanceConfig `yaml:"held_chances"`
+	// HeldRareOneIn: a held piece drops its look's rare record (any stat, resist, proc or
+	// use, Lore, No Trade, No Rent) 1 in this many deaths, else its plain one (unset: 500;
+	// 0: never). HeldLevelWindow and HeldLevelAbove: either is picked from the records whose
+	// levelreq is at most this many levels under the creature's level, and over it (unset: 5
+	// and 2). The owner, 2026-11-21: "mobs are dropping rare items because they are holding
+	// those items, the chances of them holding rare items should be like 1 in 500", "and let
+	// it be around that mobs level" (database/helddrops.go).
+	HeldRareOneIn   *int `yaml:"held_rare_one_in"`
+	HeldLevelWindow *int `yaml:"held_level_window"`
+	HeldLevelAbove  *int `yaml:"held_level_above"`
 
 	// FactionAggro is whether an NPC of a faction (table npcfaction) attacks
 	// and shows its face by a player's standing with it (entity/aggro.go):

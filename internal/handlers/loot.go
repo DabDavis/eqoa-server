@@ -176,7 +176,7 @@ func (h *NPCWindowHandler) rollCorpse(npc *entity.NPC, died time.Time, level int
 	items, cut := fitItems(items, level)
 	// and what it held at its death: its weapons and shield (helddrop.go), to the
 	// same reach of the opener's level
-	held, n := fitItems(heldDropItems(npc), level)
+	held, n := fitItems(heldDropItems(npc, h.heldDice(npc)), level)
 	items, cut = append(items, held...), cut+n
 	// and what its loot tables roll at this death (loottables, npcloot),
 	// then the tables every creature's corpse rolls (npcloot's "*")

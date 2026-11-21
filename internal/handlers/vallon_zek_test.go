@@ -253,7 +253,9 @@ func TestPortalShardSendsItsUser(t *testing.T) {
 }
 
 // A creature's held drop is its name's npcheld record for that hand (No Trade as it is) where it has one, the
-// catalog's of its look otherwise; nothing for a hand it holds nothing in.
+// catalog's of its look otherwise; nothing for a hand it holds nothing in. The catalog's here is a rare record (a
+// use: the fixture's items' procanim) far below level 68, so the drops roll rare in a window wide enough for it;
+// the named record drops whatever the roll (the owner, 2026-11-21: the 1 in 500 is the look's pick alone).
 func TestNPCHeldNamesItsDrop(t *testing.T) {
 	f := newScribeFixture(t)
 	const look = 0x4B4F6A2A
@@ -274,11 +276,12 @@ func TestNPCHeldNamesItsDrop(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	d.LevelBelow = 100
 	SetHeldDrops(d)
 	t.Cleanup(func() { SetHeldDrops(nil) })
 	drops := func(name string, primary, shield int) []string {
 		var out []string
-		for _, e := range heldDropItems(&entity.NPC{Name: name, Level: 68, PrimaryWeapon: primary, Shield: shield}) {
+		for _, e := range heldDropItems(&entity.NPC{Name: name, Level: 68, PrimaryWeapon: primary, Shield: shield}, func() float64 { return 0 }) {
 			out = append(out, e.Pattern.ItemName)
 		}
 		return out

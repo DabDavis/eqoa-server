@@ -87,6 +87,9 @@ type NPCWindowHandler struct {
 	coinRoll  func(int) int
 	lootIntn  func(int) int
 	lootFloat func() float64
+	// heldFloat rolls a held piece's rare draw (helddrop.go's heldDice), in [0, 1): the
+	// spawn's dice when nil
+	heldFloat func() float64
 	// questItem is whether an item is one a quest step names (QuestEngine.QuestItem): a
 	// No Trade stack of one on a corpse is not shared one to a character (lootshare.go);
 	// nil, none is

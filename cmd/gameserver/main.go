@@ -1530,6 +1530,20 @@ func vampireSunOf(w config.WorldConfig) entity.VampireSun {
 	return r
 }
 
+// heldDropRules sets d's rare odds and level window from world.held_rare_one_in,
+// held_level_window and held_level_above, each unset its default (database/helddrops.go).
+func heldDropRules(cfg config.WorldConfig, d *database.HeldDrops) {
+	if cfg.HeldRareOneIn != nil {
+		d.RareOneIn = max(0, *cfg.HeldRareOneIn)
+	}
+	if cfg.HeldLevelWindow != nil {
+		d.LevelBelow = max(0, *cfg.HeldLevelWindow)
+	}
+	if cfg.HeldLevelAbove != nil {
+		d.LevelAbove = max(0, *cfg.HeldLevelAbove)
+	}
+}
+
 // setupHeldGear sets the world's held gear rules from cfg (entity/heldgear.go),
 // rolls every monster's spawn, and turns the held drops on with the catalog's
 // model map (handlers/helddrop.go), logging the looks held that map to nothing.
@@ -1578,10 +1592,11 @@ func setupHeldGear(cfg config.WorldConfig, w *entity.World, inv *database.Invent
 		handlers.SetHeldDrops(nil)
 		return
 	}
+	heldDropRules(cfg, d)
 	handlers.SetHeldDrops(d)
 	rep := handlers.HeldDropsReport(d, w.HeldKits())
-	log.Printf("Held drops: %d records by look (left out: %v); the rows' held looks: %d of %d have a record (%d of %d pieces held)",
-		d.Records, d.Left, rep.Mapped, rep.Models, rep.RowsMapped, rep.Rows)
+	log.Printf("Held drops: %d records by look (left out: %v); the rows' held looks: %d of %d have a record (%d of %d pieces held); of them %d have a plain record, %d rare ones alone; rare 1 in %d (0 never), levelreq level-%d..level+%d",
+		d.Records, d.Left, rep.Mapped, rep.Models, rep.RowsMapped, rep.Rows, rep.Plain, rep.RareOnly, d.RareOneIn, d.LevelBelow, d.LevelAbove)
 	for look, n := range rep.Unmapped {
 		log.Printf("Held drops: no record looks like %08X (shield %v), held %d times: nothing extra drops", look[0], look[1] != 0, n)
 	}

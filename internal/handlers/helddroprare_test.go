@@ -62,8 +62,9 @@ func TestHeldDropsSkipRareAndOthersNamedLoot(t *testing.T) {
 	if d.Left["rare pool"] != 1 || d.Left["boss loot"] != 1 {
 		t.Errorf("left out %v, want the rare pool's and the boss's", d.Left)
 	}
+	d.LevelBelow, d.LevelAbove = 100, 0 // the window off: the nearest at or below, as before it
 	name := func(level int, who string) string {
-		e, ok := d.Pick(uint32(0xC0000002), false, level, who)
+		e, ok := d.Pick(uint32(0xC0000002), false, level, who, false)
 		if !ok {
 			return ""
 		}

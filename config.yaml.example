@@ -78,6 +78,14 @@ world:
   # held_named_rows: 3
   # held_chances:
   #   "gnoll scout": {weapon: 80, shield: 0}
+  # What a held piece drops: its look's plain record (no stat, resist, proc or
+  # use, not Lore, No Trade or No Rent), or 1 in held_rare_one_in deaths its
+  # rare one (0: never), either of a levelreq at most held_level_window levels
+  # under the creature's level and held_level_above over it, the nearest. A
+  # look with rare records alone drops nothing but on the rare roll.
+  # held_rare_one_in: 500
+  # held_level_window: 5
+  # held_level_above: 2
 
   # A monster's name and level, and nothing else, when a player presses the
   # talk button on it (square; Q on vanilla's keyboard) and it has nothing to

@@ -251,6 +251,9 @@ func (w *World) corpseSystem(now time.Time) []EntityID {
 			continue // a GM's Kill Spawner holds it (gmchannel.go)
 		}
 		w.respawnNPCLocked(npc)
+		if w.offHoursLocked(npc, now) {
+			npc.offHours = true // back outside its time of day: held until it (npctime.go)
+		}
 		log.Printf("CorpseSystem: respawned NPC '%s' (entity ID=%d)", npc.Name, npc.ServerID)
 	}
 	w.sets.corpse.tidy()

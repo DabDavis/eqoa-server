@@ -181,6 +181,9 @@ func (w *World) npcStatsLocked(npc *NPC, viewer *Player, now time.Time) []string
 	if line := metalWord(npc); line != "" {
 		out = append(out, line) // metalmoogie.go
 	}
+	if line := w.npcTimeLineLocked(npc, now); line != "" {
+		out = append(out, line) // npctime.go
+	}
 	extra := npcReachExtra(npc)
 	out = append(out, fmt.Sprintf("Reach %.1f%+.0f; attacks on sight: %s (within %.0f); leash %.0f, roams within %.0f",
 		meleeReach, extra, yesNo(w.hostileLocked(npc)), npc.AggroRadius, w.leashLocked(npc), npc.RoamRadius))

@@ -253,6 +253,9 @@ type NPC struct {
 	// wardDown is a door's ward held out of the world while its guardian is dead
 	// (doorwards.go)
 	wardDown bool
+	// offHours is an NPC of a time of day (npctime.go) held out of the world
+	// outside it
+	offHours bool
 
 	// SpawnOnly keeps it out of the world for good (spawnonly.go, table
 	// npcspawnonly): the original a quest's spawn event copies, in no view,

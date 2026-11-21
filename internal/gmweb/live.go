@@ -105,6 +105,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveRares()
 	case "npcrarecycle":
 		return s.liveRareCycles()
+	case "npctime":
+		return s.liveNPCTimes()
 	case "balancelevel", "balancecon", "balanceclass", "balanceclasslevel":
 		return s.liveBalance() // live_balance.go
 	case "classtemplates", "npctemplate", "pettemplate", "petstats":
@@ -611,6 +613,36 @@ func (s *Server) liveRares() string {
 		return "not applied to the world: " + err.Error()
 	}
 	return "at once: " + s.d.World.RareSummary() + "; each placeholder rolls by it the next time it comes back"
+}
+
+// liveNPCTimes reads the NPCs of a time of day again (entity/npctime.go; the
+// change is committed: the database is free).
+func (s *Server) liveNPCTimes() string {
+	if s.d.World == nil || s.d.DB == nil {
+		return "no world is running: at the next start"
+	}
+	_, changed, err := s.d.World.LoadNPCTimes(s.d.DB)
+	if err != nil {
+		return "not applied to the world: " + err.Error()
+	}
+	return fmt.Sprintf("at once: %d NPC(s) changed; %s", changed, s.d.World.NPCTimeSummary())
+}
+
+// checkNPCTimeRow holds an npctime row to an NPC's name (or #row) and day or
+// night.
+func checkNPCTimeRow(row map[string]any) error {
+	if v, ok := row["name"]; ok {
+		if name, _ := v.(string); database.NPCClassKey(name) == "" {
+			return badRequest("name is the NPC's name, as in NPCs (any case), or #<row> for one row")
+		}
+	}
+	if v, ok := row["time"]; ok {
+		t, _ := v.(string)
+		if _, ok := database.NPCTimeOf(t); !ok {
+			return badRequest("time is day or night")
+		}
+	}
+	return nil
 }
 
 // liveRareCycles reads the NPCs only sometimes there again

@@ -93,8 +93,8 @@ func (h *NPCWindowHandler) SetDialogLines(f func() ([]database.NPCDialogLine, er
 // the window's opening (talk) its own hostile line when it has one, else, and
 // at a buy or a sale, merchantRefusal in red. The caller refuses the request.
 func (h *NPCWindowHandler) merchantRefuses(sess *session.Session, player *entity.Player, npc *entity.NPC, talk bool) bool {
-	if h.gameWorld == nil || !h.gameWorld.Refuses(sess, npc) {
-		return false
+	if h.gameWorld == nil || (h.isGM != nil && h.isGM(sess)) || !h.gameWorld.Refuses(sess, npc) {
+		return false // a GM is always served (the owner, 2026-11-21), as at coachmen
 	}
 	log.Printf("Merchant: %q refuses %s, at or below %d with %s", npc.Name, player.Name, entity.FactionKOSAt, h.gameWorld.NPCFaction(npc))
 	if talk {

@@ -100,6 +100,13 @@ func TestAMerchantRefusesTheRedBands(t *testing.T) {
 	f.wantMsgs("Jextalan at -450", f.open(200002),
 		"box:Jextalan shopkeeper: You have nothing I want and I have nothing you need. Good day.", "op:00D7")
 
+	// a GM is served at -2000 (the owner, 2026-11-21: "exempt GMs at merchants too")
+	f.windows.isGM = func(*session.Session) bool { return true }
+	f.p.Factions["Citizens of Baga"] = -2000
+	f.wantMsgs("a GM at -2000", f.open(200001), "shop:200001 1")
+	f.windows.isGM = func(*session.Session) bool { return false }
+	f.p.Factions["Citizens of Baga"] = -350
+
 	// a buy refused: the chat line, nothing given, the request cleared
 	f.sess.Queue().GetPending()
 	if err := f.windows.HandleMerchantBuy(f.sess, incoming(protocol.OpcodeMerchantBuy, append([]byte{0, 2}, u32b(200001)...))); err != nil {

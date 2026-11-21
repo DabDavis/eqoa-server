@@ -52,6 +52,9 @@ const merchantGreeting = "Have a look at my wares."
 
 // NPCWindowHandler runs the merchant, bank and blacksmith windows.
 type NPCWindowHandler struct {
+	// isGM is the chat handler's (acctlevel 1 or more): a GM is never refused by a
+	// merchant (factionrefusal.go; the owner, 2026-11-21)
+	isGM           func(*session.Session) bool
 	sessionManager *session.Manager
 	gameWorld      *entity.World
 	inv            *database.InventoryStore

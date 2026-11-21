@@ -340,6 +340,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// blacksmith.go): the requests InteractWithTarget sends instead of 0x0004.
 	npcWindowHandler := NewNPCWindowHandler(sessionMgr, invStore)
 	targetHandler.corpseCon = npcWindowHandler.ConsideredCorpse // a corpse's lock said on a con (lootrights.go)
+	npcWindowHandler.isGM = chatHandler.isGM                    // GMs are served by every merchant (factionrefusal.go)
 	npcWindowHandler.links = chatHandler.links                  // loot lines' item links (lootlinks.go)
 	keepWindows.Store(npcWindowHandler)                         // what a restart carries of the corpses (keep.go)
 	acctBankWindows.Store(npcWindowHandler)                     // the account bank's sessions kept in step (accountbank.go)

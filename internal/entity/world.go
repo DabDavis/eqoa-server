@@ -175,6 +175,8 @@ type World struct {
 	lootSalt uint64
 	// rareCycles: the NPCs only sometimes there, by row (npcrarecycle.go)
 	rareCycles map[EntityID]*rareCycle
+	// times: the NPCs that stand only by day or only by night (npctime.go)
+	times npcTimes
 
 	// Each player race's two bodies by race and sex (charactermodel), the
 	// bodies a race's illusion shows (illusion.go)

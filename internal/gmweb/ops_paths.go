@@ -147,6 +147,9 @@ func checkRow(table string, row map[string]any) error {
 	if table == "gmseasons" && row != nil {
 		return checkSeasonRow(row) // live_seasons.go
 	}
+	if table == "npctime" && row != nil {
+		return checkNPCTimeRow(row) // live.go
+	}
 	if table == "npcseason" && row != nil {
 		return checkNPCSeasonRow(row) // live_seasons.go
 	}

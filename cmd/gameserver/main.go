@@ -459,6 +459,12 @@ func main() {
 		log.Printf("WARNING: %v; every NPC stands in the world", err)
 	}
 	log.Printf("Creatures: %s", gameWorld.SpawnOnlySummary())
+	// The NPCs that stand only by day or only by night (entity/npctime.go,
+	// table npctime): after a keep restart the clock decides again
+	if _, _, err := gameWorld.LoadNPCTimes(db); err != nil {
+		log.Printf("WARNING: %v; every NPC stands day and night", err)
+	}
+	log.Printf("Creatures: %s", gameWorld.NPCTimeSummary())
 	// The quests' walls: invisible blockers a quest lets its characters
 	// through (entity/questwalls.go, table questwalls)
 	if n, err := gameWorld.LoadQuestWalls(db); err != nil {

@@ -37,9 +37,9 @@ import (
 
 // hiddenAt reports an NPC kept out of every view at now: spawn-only, or the
 // panel's refresh hold not over, or a door's ward down with its guardian dead
-// (doorwards.go).
+// (doorwards.go), or outside its time of day (npctime.go).
 func (n *NPC) hiddenAt(now time.Time) bool {
-	return n.SpawnOnly || n.wardDown || now.Before(n.HiddenUntil)
+	return n.SpawnOnly || n.wardDown || n.offHours || now.Before(n.HiddenUntil)
 }
 
 // spawnOnlyLocked is whether the NPCs of that name stand out of the world.

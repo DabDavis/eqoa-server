@@ -84,6 +84,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.homesSystem(now)       // the homes: who may stand in each, the yards' edges (homes.go)
 	w.readySystem(now)       // the groups' ready checks' ends (readycheck.go)
 	w.rareCycleSystem(now)   // the NPCs only sometimes there (npcrarecycle.go)
+	w.npcTimeSystem(now)     // the NPCs only by day or by night (npctime.go)
 	t.mark(tsDuels)
 	gates := w.castSystem(now)
 	t.mark(tsCasts)

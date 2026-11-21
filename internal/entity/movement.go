@@ -262,6 +262,7 @@ const (
 	whyRowOwnWanders
 	whySiege
 	whyRowOwnStands
+	whyOffHours
 )
 
 // MoveWhyText says why, in a GM's words (the panel's NPC page); word is the
@@ -306,6 +307,8 @@ func MoveWhyText(why moveWhy, word string) string {
 		return "a creature's own pet (companion.go): it keeps beside its owner, walking where its owner wanders"
 	case whySiege:
 		return "a siege's King or gate (siege.go): it stands where the siege put it"
+	case whyOffHours:
+		return "outside its time of day (NPC times of day): it stands on its spawn out of every view until its time comes"
 	case whyRowOwnStands:
 		return "it stands on its spawn until pulled: its own row says so (npcwander, a negative radius), whatever its name's"
 	}
@@ -319,6 +322,8 @@ func (w *World) movementLocked(npc *NPC) (wanders bool, why moveWhy, word string
 	switch {
 	case npc.SpawnOnly:
 		return false, whySpawnOnly, "" // spawnonly.go
+	case npc.offHours:
+		return false, whyOffHours, "" // npctime.go
 	case npc.Dead:
 		return false, whyDead, ""
 	case npc.Owner != 0:

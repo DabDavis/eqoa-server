@@ -1205,6 +1205,23 @@ var catalog = map[string]tableNote{
 			"source":     {Label: "Source", Help: "gm, or the tool that wrote it"},
 		},
 	},
+	"npctime": {
+		Label: "NPC times of day", Group: "World", Title: "name", Sort: "name",
+		Help: "NPCs that stand in the world only by day or only by night (entity/npctime.go; the owner, 2026-11-21, of " +
+			"Southwatch Keep: \"mercenaries by day, skeletal watchmen by night\"), by NPC NAME (any case: every NPC of " +
+			"the name) or #<row> for one row of NPCs alone (it wins over its name's row). Day is the sun up as every " +
+			"client draws it, 6:00 to 18:00 of the game's clock (a game day is 61 real minutes). Out of its time an NPC " +
+			"is held out of the world as an NPC spawn only one is, on its spawn; one fighting leaves when its fight " +
+			"is over, a corpse lies out its decay and comes back held. GMs', quests' and triggers' copies are never held.",
+		Live:   "At once: every NPC the rows name leaves every view or comes back into them, as the game's hour says.",
+		Search: []string{"name", "time", "note", "source"},
+		Cols: map[string]colNote{
+			"name":   {Label: "NPC name or #row (key)", Help: "as in NPCs, any case; #111141 names that row alone"},
+			"time":   {Label: "Stands by", Help: "day (6:00-18:00) or night (18:00-6:00)"},
+			"note":   {Label: "Note"},
+			"source": {Label: "Source", Help: "gm, or the tool that wrote the row"},
+		},
+	},
 	"npcundead": {
 		Label: "Undead creatures", Group: "World", Title: "name", Sort: "name",
 		Help: "Which creatures are undead, by NPC NAME (lower case, no trailing $): the spells for undead alone (a " +

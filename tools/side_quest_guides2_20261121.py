@@ -1,10 +1,28 @@
 #!/usr/bin/env python3
-"""The level 23-37 side quests made as the forum walkthroughs have them where side_quest_guides_20261121.py left ours (the
-owner, 2026-11-21, of that tool's "left as ours" list: "lets fix these"). Run it AFTER side_quest_guides_20261121.py
---apply (that tool finds its steps by these NPCs' old names).
+"""The level 23-37 side quests made as the forum walkthroughs and the work board's research have them, where
+side_quest_guides_20261121.py left ours (the owner, 2026-11-21, of that tool's "left as ours" list: "lets fix these";
+then, of the board's entries #975, #931 and #1014 on the same quests: "lets do jibs"). Run it AFTER
+side_quest_guides_20261121.py --apply (that tool finds its steps by these NPCs' old names).
 
-Five parts, each its own --part (all by default), logged together in side_quest_guides2_1121_log, undone together:
+Six parts, each its own --part (all by default, in this order), logged together in side_quest_guides2_1121_log, undone
+together:
 
+bandit   Work board #975, sections 1-2 (Hodstock 23 part 1). The red-haired bandit is the fort's one level 25 arctic
+         bandit (row 107270 on both shards, hair colour 4, at the south outpost), keeping the name "arctic bandit" (the
+         era's comments: same name, told by his con and hair): level 26, back in 600 s (npcrespawn). Quest 100759 step 2
+         is keyed to his row (npcid; a step pinned to a spawn takes its target at that spawn only, so the other 29 drop
+         nothing), every kill, and its item record 700739 becomes the Scribbled Note (the bandana was the import's):
+         no slot, level 0, no value, no figures, the Runic Recording's icon, NO TRADE kept. Step 1's words, steps 2-3's
+         journals as #975. Not here: his wander (npcpaths, laid on the panel's map; until then he stands) and #975's
+         sections 3-6 (the pendant's chance and LORE, the zombies' levels, the kinds' loot tables and record fixes, the
+         chain's experience).
+ravager  Work board #931, section 2 (Oasis 37, Poisontongue). The Blacktongue Ravager: a new npcs row (level 37, at
+         (19330, 54.1, 16930) in the east camp, the orcs' body 939332601, size 1, a copy of the nearest Blacktongue orc
+         otherwise), out of the world (npcspawnonly), template roamer, class 0. Quest 100782 gets a new step 8, a reach
+         of the east camp (19300, 54, 16950, radius 120) whose done spawns him hostile; the old step 8 becomes 9, his
+         alone (target Blacktongue Ravager, every kill: the 25% off any Blacktongue orc stops), and 9-13 become 10-14;
+         a character on step 8 or later moves up one. Not here: #931's sections 1 and 3-5 (Blacktongue's rarity, the
+         kill hits, the kinds' loot, record fixes); its Elmo Haggar is the renames part's.
 renames  The NPCs spelt as the guides spell them: Feria Hurkert -> Feria Huckert (her daughter Drew and Jimbo with her:
          one family), Apprentice Buema -> Apprentice Buerma, Razuan Marus -> Razuam Marus, Captain Hogofa -> Captain
          Ogofa, Father Manstein -> Father Manstien, Demetrios Velspane -> Dametrios Velspane, Phoborium -> Phorriun,
@@ -12,26 +30,14 @@ renames  The NPCs spelt as the guides spell them: Feria Hurkert -> Feria Huckert
          Elmo Hagger -> Elmo Haggar. Every place a name keys data (NAME_COLS: the npcs rows and every rule table that
          matches an NPC by its name, any case, as NPCClassKey does, quests.giver, queststeps.target,
          queststeptargets), each value written in its own case style (a lowercase key stays lowercase). Their words go
-         with them (TOKENS, whole words: the full names, and a given name said alone): the quests' texts and their steps' (offer,
-         accept, decline, declined, started; journal, answer, says, waiting, notyet, reminder) of every quest that names
-         one, the names and descriptions of the items those quests' steps want or give (Phoborium's Horn becomes
-         Phorriun's Horn), and the renamed NPCs' own npcdialog lines. Not renamed: the faction "Feria Hurkert" (a
-         faction, not an NPC: its standings are characters' rows the running server saves back under its own name), the
-         guides' "Captain Ravensite" (the same thread also writes "CPT Ravenhite", ours), and quests' notes (a line is
-         added). Refused if a new name is already any NPC's or any rule's, or if a gmtriggers step, a quest or step
-         event, a camp's kinds or a tour names an old one (not handled here).
-creatures The two creatures the guides name and we lacked, each the only source of its quest's item (the step's own
-         drop, every kill, questpreloot.go; the kind's 25% stops, as the step no longer names the kind):
-           Redheaded Bandit (t105: "a Redheaded Bandit (CONs yel-red?? to 23), this bandit roams and spawns near the
-             fort"): a copy of the fort's red-haired arctic bandit (the one L25 row, hair colour 4, at its south
-             outpost) beside it, level 26 (yellow-red to a 23, and an era comment's figure), respawn 600 s (era
-             comments' ten minutes), a roamer (npcmove roam 1, radius 80); quest 100759 step 2 his alone, every kill.
-           Blacktongue Ravager (t111: "kill a Blacktongue Ravager(CONs WHT) in Ferran's Hope (FH) for a Lantern"):
-             a copy of the east camp's Blacktongue orc nearest (19330, 16930), level 37 (white to a 37), respawn 600 s
-             (ours), standing; quest 100782 step 8 his alone, every kill.
-         Each copy is every column of its row but the id (npc_id 0, as the content tools' copies), plus every rule row
-         its kind has by name (class, template, faction, loot pools, kill hits ...) under the new name. Refused if a
-         loot table, a held item or another quest step gives the quest item.
+         with them (TOKENS, whole words: the full names, and a given name said alone): the quests' texts and their
+         steps' (offer, accept, decline, declined, started; journal, answer, says, waiting, notyet, reminder) of every
+         quest that names one, the names and descriptions of the items those quests' steps want or give (Phoborium's
+         Horn becomes Phorriun's Horn), and the renamed NPCs' own npcdialog lines. Not renamed: the faction "Feria
+         Hurkert" (a faction, not an NPC: its standings are characters' rows the running server saves back under its own
+         name), the guides' "Captain Ravensite" (the same thread also writes "CPT Ravenhite", ours), and quests' notes
+         (a line is added). Refused if a new name is already any NPC's or any rule's, or if a gmtriggers step, a quest
+         or step event, a camp's kinds or a tour names an old one (not handled here).
 featherlite The shaman's Hodstock pieces as t105 names them: Featherlite Helm, Featherlite Tunic and Featherlite Gloves,
          new records copied whole from the Featherweave Coif, Tunic and Gloves given now (no figures in the guide), ids
          from ITEM_RANGE; given in parts 1, 2 and 3 (with Tribal Strength in part 1, as before). The Featherweave records
@@ -39,22 +45,34 @@ featherlite The shaman's Hodstock pieces as t105 names them: Featherlite Helm, F
 cleric   The cleric's Hodstock list read as t105 orders it: part 1 the cap (our Goldlight Coif) and Weaken Death, part 2
          the next Goldlight piece of the level (the Goldlight Boots; the guide's second "Goldlight Cap" is a slip), part
          3 the Goldlight Shield (it was part 2's, the boots part 3's: swapped).
-tsekar   The red diamond's second seller (t107: "from either Grithmil Darkstone in Moradhim or Tsekar in Gree Rift"):
-         Tsekar Kelriss a talker (npc_type 0 -> 128, as Grithmil) and quest 100766 step 3 done at him too
-         (queststeptargets, the journal saying both). NEEDS THE SERVER that takes a talk, show or give step at any of
-         its NPCs (branch quest-step-either-npc); an older one keeps the row and ignores it.
+tsekar   The red diamond's second seller (t107: "from either Grithmil Darkstone in Moradhim or Tsekar in Gree Rift";
+         work board #1014, section 2 and its code ask): Tsekar Kelriss a talker (npc_type 0 -> 128, as Grithmil), quest
+         100766 step 3 done at him too (queststeptargets), 1,500 tunar (the era's page; 1,450 was the import's), the
+         journal naming both, its words "A red diamond. Take it to Saerk.". NEEDS THE SERVER that takes a talk, show or
+         give step at any of its NPCs (fcb26eca, "A talk, show or give step is done at any of its NPCs"); an older one
+         keeps the row and ignores it.
 
 Everything goes by NAME: quests by source and name, NPC rows by name (and place for the copies' models), items by
 itemname. Dry run by default (every change printed); --apply writes it in one transaction, each row with its gm_audit
 line, logged; a second --apply finds nothing to do; --undo puts each row back still as this tool left it (a row changed
 since is left and said), deletes what it made and puts each table's id sequence back.
 
-WHEN IT TAKES EFFECT: NPC rows (the renames, the two creatures, Tsekar) at reload_npcs or the server's next start, the
-quests at a GM panel quest edit or reload. The renames must reach the world and the quests together: run it as the
-before.sh of a keep restart (the one that brings the tsekar part's server), or reload_npcs and reload the quests at
-once.
+WHEN IT TAKES EFFECT (no restart, with the running server holding fcb26eca): the GM panel's live reads, in this
+order, right after the --apply:
+  1. npcspawnonly: any edit of the row "blacktongue ravager" (its note) on the panel reads the table again
+     (liveSpawnOnly), so the next step makes the Ravager out of the world; done after it instead, he stands in the
+     camp until this read;
+  2. npcrespawn: any edit of row 107270's (its note): the bandit's 600 s (liveRespawn); else at the next start;
+  3. factionhits or npcfaction: any edit of a renamed NPC's row (liveFactions reads factions, factionhits,
+     factionstart and npcfaction): the renamed NPCs' faction and kill hits; else they have none until the next start;
+  4. npcdialog: any edit of Jimbo Huckert's line (the dialog cache); else at the next start;
+  5. reload_npcs: the renames, the bandit's level, the Ravager's row, Tsekar a talker (it reads npcclass and the
+     templates too);
+  6. a quest reload (a GM panel quest edit): the quests and their steps, the step's other NPC, the item record's name
+     (item records reach each client at its login).
+The renames must reach the world and the quests together: 5 and 6 back to back. Loot pools are read at each kill.
 
-    python3 -E -s tools/side_quest_guides2_20261121.py --db eqoa.db [--part renames,creatures,...] [--apply | --undo]
+    python3 -E -s tools/side_quest_guides2_20261121.py --db eqoa.db [--part bandit,ravager,renames,...] [--apply | --undo]
 """
 import argparse
 import datetime
@@ -67,7 +85,9 @@ LOG = "side_quest_guides2_1121_log"
 TOOL = "tools/side_quest_guides2_20261121.py"
 DETAIL = "side quests as the forum walkthroughs, part 2 (the owner's \"lets fix these\"): " + TOOL
 ACCOUNT, WHO, VIA = 1, "dab", "tool"
-PARTS = ("renames", "creatures", "featherlite", "cleric", "tsekar")
+# bandit and ravager first: renames folds its words into the rows they change (Plan.view), and the ravager's step
+# shifts must run in their own order (the last step first)
+PARTS = ("bandit", "ravager", "renames", "featherlite", "cleric", "tsekar")
 
 RENAMES = [
     ("Feria Hurkert", "Feria Huckert"), ("Drew Hurkert", "Drew Huckert"), ("Jimbo Hurkert", "Jimbo Huckert"),
@@ -105,20 +125,28 @@ TEXT_KEYS = [("gmtriggers", "steps"), ("quests", "events"), ("queststeps", "even
 QUEST_TEXT = ("offer", "accept", "decline", "declined", "started")
 STEP_TEXT = ("journal", "answer", "says", "waiting", "notyet", "reminder")
 
-# (source, quest, step kind, old target, new name, the row's kind, the row's level, a place to stand it near (x, z),
-#  offset, level, respawn s, roam radius or None, journal, the guide's words)
-CREATURES = [
-    ("EQOA-Data 23-47/23/p1", "The Redheaded Bandit", "loot", "arctic bandit", "Redheaded Bandit",
-     "arctic bandit", 25, (17653.2, 5593.3), (5.0, 0.0), 26, 600, 80,
-     "Kill the Redheaded Bandit, who roams round the bandit fort in Greyvax's Caves east of Bram, for his bandana.",
-     "t105: a Redheaded Bandit (CONs yel-red?? to 23), this bandit roams and spawns near the fort"),
-    ("EQOA-Data 23-47/37/rigo", "Poisontongue", "loot", "Blacktongue orc", "Blacktongue Ravager",
-     "Blacktongue orc", None, (19330.0, 16930.0), None, 37, 600, None,
-     "Kill the Blacktongue Ravager at the big orc camp down the river south of Bastable, in Ferran's Hope, for his"
-     " lantern.",
-     "t111: kill a Blacktongue Ravager(CONs WHT) in Ferran's Hope (FH) for a Lantern"),
-]
-CREATURE_NEAR = 60.0  # the row copied stands within this of the place given
+# work board #975 (sections 1-2): the red-haired arctic bandit is row 107270, named "arctic bandit" as the others
+BANDIT_QUEST = ("EQOA-Data 23-47/23/p1", "The Redheaded Bandit")
+BANDIT_KIND, BANDIT_AT, BANDIT_WAS, BANDIT_LEVEL, BANDIT_RESPAWN = "arctic bandit", (17653.2, 5593.3), 25, 26, 600
+BANDIT_JOURNAL = {2: "Kill the red-haired arctic bandit who wanders outside the bandit fort and take the scribbled note he"
+                     " carries.",
+                  3: "Bring the scribbled note to Feria Hurkert in Hodstock."}
+BANDIT_SAYS1 = ("Coin first, always. Now: a red-haired bandit rides with the arctic bandits east of here. Kill him, and"
+                " bring what he carries to Feria.")
+BANDIT_ITEM_WAS = "Redheaded Bandit's Bandana"
+BANDIT_ITEM = {"itemname": "Scribbled Note", "itemdesc": "A scribbled note, taken from the red-haired arctic bandit.",
+               "equipslot": -1, "levelreq": 0, "itemcost": 0, "maxhp": 0, "PR": 0, "AR": 0}
+BANDIT_ICON_OF = "Runic Recording"
+
+# work board #931 (section 2): the Ravager, spawn-only, raised by a new reach step 8
+RAVAGER_QUEST = ("EQOA-Data 23-47/37/rigo", "Poisontongue")
+RAVAGER, RAVAGER_KIND, RAVAGER_LEVEL, RAVAGER_BODY = "Blacktongue Ravager", "Blacktongue orc", 37, 939332601
+RAVAGER_AT = (19330.0, 54.1, 16930.0)
+RAVAGER_STEP = 8
+RAVAGER_REACH = (19300.0, 54.0, 16950.0, 120.0)
+RAVAGER_REACH_JOURNAL = ("Find the burned village of Ferran's Hope, due south of Bastable, where the Blacktongue orcs"
+                         " camp.")
+RAVAGER_KILL_JOURNAL = "Kill the Blacktongue Ravager for his lantern."
 
 FEATHERLITE = [  # (quest source, quest, the record given now, the guide's record)
     ("EQOA-Data 23-47/23/p1", "The Redheaded Bandit", "Featherweave Coif", "Featherlite Helm"),
@@ -136,6 +164,8 @@ CLERIC_SWAP = [  # (quest source, quest, now, the guide's)
 
 TSEKAR = "Tsekar Kelriss"
 TSEKAR_QUEST = ("EQOA-Data 23-47/27/p2", "Saerk's Ring", 3, "give", "Grithmil Darkstone")
+TSEKAR_TUNAR = 1500  # work board #1014 (the era's page)
+TSEKAR_SAYS = "A red diamond. Take it to Saerk."
 TSEKAR_JOURNAL = ("Buy a red diamond from Grithmil Darkstone in Moradhim or Tsekar Kelriss in the Green Rift"
                   " ({tunar:,} tunar).")
 TALKER = 128
@@ -301,11 +331,11 @@ def plan_renames(db, p):
         touched |= {r["questid"] for r in named(db, "queststeptargets", "target", o)}
     items = set()
     for qid in sorted(touched):
-        q = rows(db, "SELECT rowid AS _rowid, * FROM quests WHERE questid = ?", (qid,))[0]
+        q = p.view("quests", rows(db, "SELECT rowid AS _rowid, * FROM quests WHERE questid = ?", (qid,))[0])
         ch = {k: replace_tokens(q[k]) for k in QUEST_TEXT if k in q and q[k]}
         ch["notes"] = (q["notes"] or "") + NOTE.format(TOOL, "the NPCs' names as the guides spell them")
         p.update("renames", "quests", q, ch, f"quest {qid}'s words")
-        for st in steps_of(db, qid):
+        for st in [p.view("queststeps", x) for x in steps_of(db, qid)]:
             p.update("renames", "queststeps", st, {k: replace_tokens(st[k]) for k in STEP_TEXT if st[k]},
                      f"quest {qid} step {st['step']}'s words")
             items |= set(ids_in(st["items"])) | set(ids_in(st["rewarditems"]))
@@ -313,7 +343,7 @@ def plan_renames(db, p):
                 if isinstance(e, dict) and e.get("do") == "give":
                     items |= set(ids_in(e.get("items", "")))
     for pid in sorted(items, key=int):
-        r = rows(db, "SELECT rowid AS _rowid, * FROM itempattern WHERE patternid = ?", (int(pid),))
+        r = [p.view("itempattern", x) for x in rows(db, "SELECT rowid AS _rowid, * FROM itempattern WHERE patternid = ?", (int(pid),))]
         if r:
             p.update("renames", "itempattern", r[0], {"itemname": replace_tokens(r[0]["itemname"]),
                                                       "itemdesc": replace_tokens(r[0]["itemdesc"])},
@@ -324,74 +354,120 @@ def plan_renames(db, p):
             p.update("renames", "npcdialog", r, {"line": replace_tokens(r["line"])}, f"{o}'s line")
 
 
-def plan_creatures(db, p):
-    for (source, qname, kind, old_t, new_name, kind_name, row_level, (px, pz), off, level, respawn, roam,
-         journal, why) in CREATURES:
-        q = find_quest(db, source, qname)
-        sts = [s for s in steps_of(db, q["questid"]) if s["kind"] == kind and fold(s["target"]) in (fold(old_t), fold(new_name))]
-        if len(sts) != 1:
-            raise Refused(f"creatures: quest {qname!r} has {len(sts)} {kind} steps of {old_t!r} or {new_name!r}")
-        st = sts[0]
-        item = ids_in(st["items"])
-        if len(item) != 1:
-            raise Refused(f"creatures: quest {qname!r} step {st['step']} wants {st['items']!r}")
-        have = named(db, "npcs", "npc_name", new_name)
-        if fold(st["target"]) == fold(new_name) and have:
-            p.done.append(f"creatures: {new_name} stands and quest {q['questid']} step {st['step']} is his")
-            continue
-        if have:
-            raise Refused(f"creatures: an NPC named {new_name!r} stands already, and the step is the kind's")
-        for t, c in NAME_COLS:
-            if t != "npcs" and named(db, t, c, new_name):
-                raise Refused(f"creatures: {t}.{c} already names {new_name!r}")
-        # nothing else gives the quest item
-        for t, c in (("loottables", "patternid"), ("npcheld", "patternid")):
-            if has_col(db, t, c):
-                n = db.execute(f'SELECT count(*) FROM "{t}" WHERE "{c}" = ?', (int(item[0]),)).fetchone()[0]
-                if n:
-                    raise Refused(f"creatures: {n} {t} rows give item {item[0]} too")
-        others = [s for s in rows(db, "SELECT questid, step, items FROM queststeps WHERE kind = 'loot' AND items LIKE ?",
-                                  ("%" + item[0] + "%",))
-                  if item[0] in ids_in(s["items"]) and (s["questid"], s["step"]) != (q["questid"], st["step"])]
-        if others:
-            raise Refused(f"creatures: other loot steps drop item {item[0]}: {[(s['questid'], s['step']) for s in others]}")
-        cands = named(db, "npcs", "npc_name", kind_name)
-        cands = [r for r in cands if (row_level is None or r["npc_level"] == row_level)
-                 and (r["x_coord"] - px) ** 2 + (r["z_coord"] - pz) ** 2 <= CREATURE_NEAR ** 2]
-        if not cands:
-            raise Refused(f"creatures: no {kind_name} (level {row_level}) within {CREATURE_NEAR} of ({px}, {pz})")
-        base = min(cands, key=lambda r: ((r["x_coord"] - px) ** 2 + (r["z_coord"] - pz) ** 2, r["id"]))
-        row = {k: v for k, v in base.items() if k not in ("_rowid", "id")}
-        row["npc_name"], row["npc_level"] = new_name, level
-        if "npc_id" in row:
-            row["npc_id"] = 0
-        if off is not None:
-            row["x_coord"], row["z_coord"] = base["x_coord"] + off[0], base["z_coord"] + off[1]
-        else:
-            row["x_coord"], row["z_coord"] = px, pz
-        p.insert("creatures", "npcs", row, f"{new_name}, a copy of {kind_name} row {base['id']}: {why}")
-        p.said.append(f"creatures: {new_name} from {kind_name} row {base['id']} ({base['x_coord']:.1f}, "
-                      f"{base['z_coord']:.1f}) to ({row['x_coord']:.1f}, {row['z_coord']:.1f}), level {level}")
-        # its respawn (by its row: filled in at the apply), its roam, its kind's rules under its name
-        p.insert("creatures", "npcrespawn", {"npc_row": "$new:" + new_name, "seconds": float(respawn),
-                                              "note": "the guide's named: " + TOOL, "source": "gm"}, f"{new_name}'s respawn")
-        if roam is not None:
-            if named(db, "npcmove", "name", new_name):
-                raise Refused(f"creatures: npcmove names {new_name!r} already")
-            p.insert("creatures", "npcmove", {"name": new_name.lower(), "roam": 1, "radius": float(roam), "water": "land",
-                                              "note": "the guide's: he roams near the fort; " + TOOL, "source": "gm",
-                                              "speed": 0.0}, f"{new_name} roams")
-        for t, c in COPY_RULES:
-            if t == "npcmove" and roam is not None:
-                continue
-            for r in named(db, t, c, kind_name):
-                nr = {k: v for k, v in r.items() if k not in ("_rowid", "id")}
-                nr[c] = styled(r[c], new_name)
-                p.insert("creatures", t, nr, f"{new_name} takes {kind_name}'s {t} row")
-        p.update("creatures", "queststeps", st, {"target": new_name, "chance": 1.0, "npcid": 0, "journal": journal},
-                 f"quest {q['questid']} step {st['step']}: {new_name}'s alone, every kill")
-        p.update("creatures", "quests", q, {"notes": (q["notes"] or "") + NOTE.format(
-            TOOL, f"{new_name} made, the only source of the item ({why})")}, f"quest {q['questid']}'s notes")
+def plan_bandit(db, p):
+    """Work board #975 sections 1-2: the red-haired arctic bandit's row, his respawn, the step keyed to his row, the
+    note."""
+    source, qname = BANDIT_QUEST
+    q = find_quest(db, source, qname)
+    sts = {s["step"]: s for s in steps_of(db, q["questid"])}
+    loot = sts.get(2)
+    if not loot or loot["kind"] != "loot" or fold(loot["target"]) != fold(BANDIT_KIND):
+        raise Refused(f"bandit: quest {qname!r} step 2 is not a loot step of {BANDIT_KIND!r}")
+    near = [r for r in named(db, "npcs", "npc_name", BANDIT_KIND)
+            if abs(r["x_coord"] - BANDIT_AT[0]) <= 5 and abs(r["z_coord"] - BANDIT_AT[1]) <= 5
+            and r["npc_level"] in (BANDIT_WAS, BANDIT_LEVEL)]
+    if len(near) != 1:
+        raise Refused(f"bandit: {len(near)} {BANDIT_KIND} rows of level {BANDIT_WAS} at {BANDIT_AT}, not one")
+    him = near[0]
+    item = ids_in(loot["items"])
+    rec = rows(db, "SELECT rowid AS _rowid, * FROM itempattern WHERE patternid = ?", (int(item[0]),)) if len(item) == 1 else []
+    if not rec or rec[0]["itemname"] not in (BANDIT_ITEM_WAS, BANDIT_ITEM["itemname"]):
+        raise Refused(f"bandit: step 2's item is not {BANDIT_ITEM_WAS!r}")
+    icon = rows(db, "SELECT itemicon FROM itempattern WHERE itemname = ?", (BANDIT_ICON_OF,))
+    if len(icon) != 1:
+        raise Refused(f"bandit: {len(icon)} records named {BANDIT_ICON_OF!r}, not one")
+    if loot["npcid"] == him["id"] and rec[0]["itemname"] == BANDIT_ITEM["itemname"]:
+        p.done.append(f"bandit: quest {q['questid']} step 2 is row {him['id']}'s, the {BANDIT_ITEM['itemname']}")
+        return
+    if loot["npcid"] not in (0, him["id"]):
+        raise Refused(f"bandit: step 2 is pinned to row {loot['npcid']}")
+    p.update("bandit", "npcs", him, {"npc_level": BANDIT_LEVEL}, f"the red-haired arctic bandit (row {him['id']}) level {BANDIT_LEVEL}")
+    rs = rows(db, "SELECT rowid AS _rowid, * FROM npcrespawn WHERE npc_row = ?", (him["id"],))
+    if rs:
+        p.update("bandit", "npcrespawn", rs[0], {"seconds": float(BANDIT_RESPAWN)}, f"row {him['id']} back in {BANDIT_RESPAWN} s")
+    else:
+        p.insert("bandit", "npcrespawn", {"npc_row": him["id"], "seconds": float(BANDIT_RESPAWN),
+                                          "note": "work board #975: " + TOOL, "source": "gm"}, f"row {him['id']} back in {BANDIT_RESPAWN} s")
+    p.update("bandit", "queststeps", loot, {"npcid": him["id"], "chance": 1.0, "journal": BANDIT_JOURNAL[2]},
+             f"quest {q['questid']} step 2: row {him['id']}'s alone, every kill")
+    if 1 in sts:
+        p.update("bandit", "queststeps", sts[1], {"says": BANDIT_SAYS1}, f"quest {q['questid']} step 1's words")
+    if 3 in sts:
+        p.update("bandit", "queststeps", sts[3], {"journal": BANDIT_JOURNAL[3]}, f"quest {q['questid']} step 3's journal")
+    p.update("bandit", "itempattern", rec[0], dict(BANDIT_ITEM, itemicon=icon[0]["itemicon"]),
+             f"item {item[0]}: the {BANDIT_ITEM['itemname']}")
+    p.update("bandit", "quests", q, {"notes": (q["notes"] or "") + NOTE.format(
+        TOOL, f"work board #975: the red-haired arctic bandit (row {him['id']}) drops the scribbled note, every kill")},
+        f"quest {q['questid']}'s notes")
+    p.said.append(f"bandit: row {him['id']} at ({him['x_coord']:.1f}, {him['z_coord']:.1f}); his wander (npcpaths) is laid on "
+                  "the panel's map (#975): until then he stands")
+
+
+def plan_ravager(db, p):
+    """Work board #931 section 2: the Blacktongue Ravager out of the world, raised by a new reach step of his quest."""
+    source, qname = RAVAGER_QUEST
+    q = find_quest(db, source, qname)
+    qid = q["questid"]
+    sts = steps_of(db, qid)
+    by = {s["step"]: s for s in sts}
+    if by.get(RAVAGER_STEP) and by[RAVAGER_STEP]["kind"] == "reach" and by.get(RAVAGER_STEP + 1) and \
+            fold(by[RAVAGER_STEP + 1]["target"]) == fold(RAVAGER) and named(db, "npcs", "npc_name", RAVAGER):
+        p.done.append(f"ravager: quest {qid} step {RAVAGER_STEP} raises him, step {RAVAGER_STEP + 1} is his")
+        return
+    loot = by.get(RAVAGER_STEP)
+    if not loot or loot["kind"] != "loot" or fold(loot["target"]) != fold(RAVAGER_KIND):
+        raise Refused(f"ravager: quest {qid} step {RAVAGER_STEP} is not a loot step of {RAVAGER_KIND!r}")
+    for t, c in NAME_COLS:
+        if named(db, t, c, RAVAGER):
+            raise Refused(f"ravager: {t}.{c} already names {RAVAGER!r}")
+    item = ids_in(loot["items"])
+    for t, c in (("loottables", "patternid"), ("npcheld", "patternid")):
+        if has_col(db, t, c) and db.execute(f'SELECT count(*) FROM "{t}" WHERE "{c}" = ?', (int(item[0]),)).fetchone()[0]:
+            raise Refused(f"ravager: a {t} row gives item {item[0]} too")
+    for t in ("queststeptargets", "questdoors", "questwalls"):
+        if has_col(db, t, "step") and db.execute(f'SELECT count(*) FROM "{t}" WHERE questid = ? AND step >= ?',
+                                                 (qid, RAVAGER_STEP)).fetchone()[0]:
+            raise Refused(f"ravager: {t} rows name quest {qid}'s steps from {RAVAGER_STEP}")
+    cands = named(db, "npcs", "npc_name", RAVAGER_KIND)
+    if not cands:
+        raise Refused(f"ravager: no {RAVAGER_KIND}")
+    base = min(cands, key=lambda r: ((r["x_coord"] - RAVAGER_AT[0]) ** 2 + (r["z_coord"] - RAVAGER_AT[2]) ** 2, r["id"]))
+    row = {k: v for k, v in base.items() if k not in ("_rowid", "id")}
+    row.update(npc_name=RAVAGER, npc_level=RAVAGER_LEVEL, x_coord=RAVAGER_AT[0], y_coord=RAVAGER_AT[1],
+               z_coord=RAVAGER_AT[2], modelid=RAVAGER_BODY, size=1.0, npc_type=0)
+    if "npc_id" in row:
+        row["npc_id"] = 0
+    p.insert("ravager", "npcs", row, f"{RAVAGER}, a copy of {RAVAGER_KIND} row {base['id']} (#931)")
+    p.insert("ravager", "npcspawnonly", {"name": RAVAGER.lower(), "note": "work board #931: raised by quest "
+             f"{qid} step {RAVAGER_STEP}; {TOOL}", "source": "gm"}, f"{RAVAGER} out of the world")
+    p.insert("ravager", "npctemplate", {"name": RAVAGER.lower(), "template": "roamer", "note": "#931", "source": "gm"},
+             f"{RAVAGER}'s template")
+    p.insert("ravager", "npcclass", {"name": RAVAGER.lower(), "class": 0, "source": "gm"}, f"{RAVAGER}'s class")
+    # the steps from RAVAGER_STEP one on, the last first (the key is questid and step)
+    for s in sorted([s for s in sts if s["step"] >= RAVAGER_STEP], key=lambda s: -s["step"]):
+        ch = {"step": s["step"] + 1}
+        if s["step"] == RAVAGER_STEP:
+            ch.update(target=RAVAGER, chance=1.0, journal=RAVAGER_KILL_JOURNAL)
+        p.update("ravager", "queststeps", s, ch, f"quest {qid} step {s['step']} -> {s['step'] + 1}")
+    new = {k: v for k, v in loot.items() if k != "_rowid"}
+    for k in new:
+        if k not in ("questid", "step", "kind", "target", "npcid", "items", "tunar", "count", "world", "x", "y", "z",
+                     "radius", "journal", "events", "chance"):
+            if isinstance(new[k], (int, float)) and not isinstance(new[k], bool):
+                new[k] = type(new[k])(0)
+            elif isinstance(new[k], str):
+                new[k] = ""
+    new.update(step=RAVAGER_STEP, kind="reach", target="", npcid=0, items="", tunar=0, count=1, world=0,
+               x=RAVAGER_REACH[0], y=RAVAGER_REACH[1], z=RAVAGER_REACH[2], radius=RAVAGER_REACH[3],
+               journal=RAVAGER_REACH_JOURNAL, chance=0.0,
+               events=json.dumps([{"on": "done", "do": "spawn", "npc": RAVAGER, "hostile": True}], separators=(",", ":")))
+    p.insert("ravager", "queststeps", new, f"quest {qid} step {RAVAGER_STEP}: reach the camp, the Ravager rises")
+    for c in rows(db, "SELECT rowid AS _rowid, * FROM charquests WHERE questid = ? AND done = 0 AND step >= ?",
+                  (qid, RAVAGER_STEP)):
+        p.update("ravager", "charquests", c, {"step": c["step"] + 1}, f"character {c['serverid']} on step {c['step']} moves up one")
+    p.update("ravager", "quests", q, {"notes": (q["notes"] or "") + NOTE.format(
+        TOOL, f"work board #931: the {RAVAGER} raised at the camp (step {RAVAGER_STEP}), his lantern every kill")},
+        f"quest {qid}'s notes")
 
 
 def byclass_step(db, p, source, qname):
@@ -479,13 +555,16 @@ def plan_tsekar(db, p):
         p.insert("tsekar", "queststeptargets", {"questid": q["questid"], "step": step, "target": TSEKAR},
                  f"quest {q['questid']} step {step} at {TSEKAR} too")
     p.update("tsekar", "npcs", ts[0], {"npc_type": TALKER}, f"{TSEKAR} a talker (as Grithmil)")
-    p.update("tsekar", "queststeps", st, {"journal": TSEKAR_JOURNAL.format(tunar=st["tunar"])},
-             f"quest {q['questid']} step {step}'s journal")
+    if st["tunar"] not in (1450, TSEKAR_TUNAR):
+        raise Refused(f"tsekar: step {step} asks {st['tunar']} tunar, not 1450")
+    p.update("tsekar", "queststeps", st, {"tunar": TSEKAR_TUNAR, "says": TSEKAR_SAYS,
+                                          "journal": TSEKAR_JOURNAL.format(tunar=TSEKAR_TUNAR)},
+             f"quest {q['questid']} step {step}: 1,500 tunar at either seller (#1014)")
     p.update("tsekar", "quests", q, {"notes": (q["notes"] or "") + NOTE.format(
         TOOL, f"the red diamond bought from {TSEKAR} too (t107)")}, f"quest {q['questid']}'s notes")
 
 
-PLANNERS = {"renames": plan_renames, "creatures": plan_creatures, "featherlite": plan_featherlite,
+PLANNERS = {"bandit": plan_bandit, "ravager": plan_ravager, "renames": plan_renames, "featherlite": plan_featherlite,
             "cleric": plan_cleric, "tsekar": plan_tsekar}
 
 

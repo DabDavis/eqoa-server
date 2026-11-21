@@ -809,6 +809,8 @@ func main() {
 	// [OG] characters: chosen when new, the game's own UI for their sessions,
 	// drawn "[OG] Name" (handlers/ogaccount.go, database/ogchar.go)
 	handlers.SetOGAccounts(cfg.World.OGAccounts)
+	entity.SetMasteryCap(cfg.World.MasteryCap)
+	log.Printf("Masteries: a character holds at most %d Combat Mastery points, spent and unspent (world.mastery_cap)", entity.MasteryCap)
 	if cfg.World.OGAccounts {
 		log.Printf("OG characters: a new character may choose [OG]; an [OG] character plays with the game's own UI, drawn [OG] (world.og_accounts)")
 	}

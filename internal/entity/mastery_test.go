@@ -450,3 +450,18 @@ func TestAMasteryChangeTellsTheTrainersCap(t *testing.T) {
 		t.Errorf("a GM's reload to none told %v, want [400]", got)
 	}
 }
+
+// Petition 5386 (Jibrish, 2026-11-21): the cap is the shard's (world.mastery_cap):
+// the Live shard's 1500 holds a grant there; unset, 2000.
+func TestTheMasteryCapIsTheShards(t *testing.T) {
+	t.Cleanup(func() { SetMasteryCap(0) })
+	SetMasteryCap(1500)
+	m := Mastery{Points: 50, Spent: 50}
+	if give := grantMastery(&m, 2000); give != 1400 || m.Points+m.Spent != 1500 {
+		t.Errorf("at 1500: gave %d, holding %d", give, m.Points+m.Spent)
+	}
+	SetMasteryCap(0)
+	if MasteryCap != 2000 {
+		t.Errorf("unset: %d, want 2000", MasteryCap)
+	}
+}

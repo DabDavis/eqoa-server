@@ -52,8 +52,22 @@ import (
 
 // MasteryCap is the most mastery points a character holds, spent and
 // unspent together (F3 20261025-165747: 1500; the owner, 2026-11-13: "lets
-// raise CM cap to 2000"). CMPointXP's table goes on past it unchanged.
-const MasteryCap = 2000
+// raise CM cap to 2000"), per shard (world.mastery_cap, SetMasteryCap:
+// petition 5386, Jibrish, 2026-11-21: "The CM cap on live should be 1500, not
+// 2000. It's only 2000 from heirloom."). CMPointXP's table goes on past it
+// unchanged. Set at the start, before any character is in the world.
+var MasteryCap = DefaultMasteryCap
+
+// DefaultMasteryCap is MasteryCap with world.mastery_cap unset.
+const DefaultMasteryCap = 2000
+
+// SetMasteryCap sets MasteryCap (n > 0; else the default).
+func SetMasteryCap(n int) {
+	if n <= 0 {
+		n = DefaultMasteryCap
+	}
+	MasteryCap = n
+}
 
 // CMPointXP is the experience the character's nth mastery point takes (n
 // counts every point it has earned: spent, unspent and this one): the live

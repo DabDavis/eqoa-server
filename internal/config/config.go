@@ -738,6 +738,11 @@ type WorldConfig struct {
 	// character is any other here.
 	OGAccounts bool `yaml:"og_accounts"`
 
+	// MasteryCap is the most Combat Mastery points a character holds, spent and
+	// unspent together (entity.MasteryCap; petition 5386: the Live shard's 1500,
+	// Heirloom's 2000). Unset or 0: 2000.
+	MasteryCap int `yaml:"mastery_cap"`
+
 	// Hardcore is [HC] Hardcore characters (handlers/hardcore.go; the owner,
 	// 2026-11-18: "lets add [HC] tag for characters. Hardcore mode chars stay
 	// dead and cannot respawn"). Off unless enabled.

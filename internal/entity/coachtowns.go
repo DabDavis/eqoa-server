@@ -118,11 +118,16 @@ func TownAt(world uint8, x, z float32) (string, bool) {
 
 // coachLabel is the name a coachman's town is listed by: its own entry, else
 // the town it stands in (TownAt, at its spawn), else its name; ok reports a
-// town. One standing in a world the server made is the stable of the race's
-// home he stands in (coachhomes.go), whatever he is called, and of no town
-// where that world has no home.
+// town. One standing in a world the server made is the stable of the place of
+// its own he stands in (coachstables.go), else of the race's home he stands in
+// (coachhomes.go), whatever he is called, and of no town where that world has
+// neither.
 func coachLabel(npc *NPC) (string, bool) {
 	if Composed(npc.World) {
+		// a stable of its own inside a home's zone (Blackvein Deep: coachstables.go) first
+		if town, ok := serverStableAt(npc.World, npc.SpawnX, npc.SpawnZ); ok {
+			return town, true
+		}
 		if town, ok := coachHomeAt(npc.World, npc.SpawnX, npc.SpawnZ); ok {
 			return town, true
 		}

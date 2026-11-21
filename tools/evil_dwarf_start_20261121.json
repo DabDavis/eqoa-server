@@ -23,6 +23,8 @@
      "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by the name), as every home has one; left out where the database has none"},
     {"name": "Tunnelwarden Brokk Deepdelve", "like": 104309, "level": 40, "role": "talker", "at": [18715.0, -59.09, 9140.0], "toward": [18745.0, 9170.0],
      "note": "the ways out: up to the camp by Moradhim's coach, and the smugglers' road to Freeport (after the level 5 quest)"},
+    {"name": "Coachman Grumli Soothand", "like": 975, "level": 10, "role": "talker", "at": [18760.0, -59.0, 9195.0], "toward": [18745.0, 9170.0],
+     "note": "Blackvein Deep's stable (entity/coachstables.go: a coachman in the cave's tunnels, of no faction, so he serves every dwarf): his coach runs to Moradhim, and Moradhim's to him, for a client that holds world 10 alone; talking to him signs his ledger. A rider lands 5 in front of him, on the hall's floor (campground: -59.0 at his spot and at (18758, 9190))"},
     {"name": "Blackvein sentry", "like": 104315, "level": 40, "role": "talker", "at": [18715.0, -60.0, 9125.0], "toward": [18715.0, 9040.0]},
     {"name": "deep road grub", "like": 107506, "level": 1, "role": "foe", "at": [18510.0, -87.14, 9045.0], "facing": 40},
     {"name": "deep road grub", "like": 107506, "level": 2, "role": "foe", "at": [18530.0, -89.66, 9070.0], "facing": 90},
@@ -95,14 +97,16 @@
         "says": "Good. Now you look like one of us. Keep it longer than its last owner did.", "xp": 430}
      ]},
     {"id": 104901, "key": "blackvein/L2", "name": "Bound in the Deep", "giver": "Oathbreaker Thrain Blackvein", "minlevel": 2, "requires": "104900", "classquest": [2],
-     "offer": "A dwarf who dies far from home is lost. Have Spiritmaster Vorna bind your spirit to the deep, so you wake here and not in some Moradhim shrine.\nThen speak with Tunnelwarden Brokk. He knows every way in and out of this deep.\nWill you see them both?",
-     "accept": "I will see them both.", "declined": "Then try not to die.",
-     "started": "Vorna is at the east end of the hall. Brokk watches the north door.",
+     "offer": "A dwarf who dies far from home is lost. Have Spiritmaster Vorna bind your spirit to the deep, so you wake here and not in some Moradhim shrine.\nThen speak with Tunnelwarden Brokk, who knows every way in and out of this deep, and give your name to Coachman Grumli for his ledger. His coach runs to Moradhim, for those whose names Moradhim's stable knows too.\nWill you see them?",
+     "accept": "I will see them.", "declined": "Then try not to die.",
+     "started": "Vorna is at the east end of the hall, Brokk at the north door, Grumli at the south wall.",
      "steps": [
        {"kind": "talk", "target": "Spiritmaster Vorna Ironvein", "journal": "Speak with Spiritmaster Vorna Ironvein at the east end of Blackvein Hall.",
         "says": "Another spirit for the deep. Hold still. There. If you die now, you wake here."},
        {"kind": "talk", "target": "Tunnelwarden Brokk Deepdelve", "journal": "Speak with Tunnelwarden Brokk Deepdelve at the north door of the hall.",
         "says": "I can take you up to the camp by Moradhim's coach whenever you like. When Thrain trusts you, I will show you the smugglers' road to Freeport."},
+       {"kind": "talk", "target": "Coachman Grumli Soothand", "journal": "Give your name to Coachman Grumli Soothand, at the south wall of Blackvein Hall.",
+        "says": "Your name is in my ledger. Sign Coachman Doba's in Moradhim too, and my horses will take you there and back."},
        {"kind": "talk", "target": "Oathbreaker Thrain Blackvein", "journal": "Return to Oathbreaker Thrain Blackvein.",
         "says": "Now the deep knows you. Your guildmaster has work for you.", "xp": 2200}
      ]},

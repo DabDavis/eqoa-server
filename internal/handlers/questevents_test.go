@@ -13,10 +13,11 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// lootDrop is one drop the engine handed the corpse windows.
+// lootDrop is one drop the engine handed the corpse windows: its corpse, whether it
+// dropped with no player of the kill on its step (ahead), and its item.
 type lootDrop struct {
 	npc     entity.EntityID
-	char    uint32
+	ahead   bool
 	pattern int
 }
 
@@ -31,8 +32,8 @@ func lootQuest(f *questFixture, item int, rolls ...float64) *[]lootDrop {
 	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (60, 2, 'talk', 'Malsis', 'Return to Malsis.')`)
 	f.qe.Reload()
 	var drops []lootDrop
-	f.qe.drop = func(npc entity.EntityID, _ time.Time, char uint32, rec database.CharInventoryEntry) {
-		drops = append(drops, lootDrop{npc, char, rec.Pattern.PatternID})
+	f.qe.drop = func(npc entity.EntityID, _ time.Time, rec database.CharInventoryEntry, ahead bool) {
+		drops = append(drops, lootDrop{npc, ahead, rec.Pattern.PatternID})
 	}
 	f.qe.roll = func() float64 {
 		if len(rolls) == 0 {
@@ -51,13 +52,14 @@ func (f *questFixture) killFor(name string, npc entity.EntityID) {
 		Players: []entity.KillPlayer{{Session: f.tw.s, ServerID: f.sid, Name: "Talker"}}})
 }
 
-// A loot step drops its item for the player on it, at the step's chance and
-// only off its creature; a kill credited to nobody on it drops nothing. Taking
-// the items counts them, and the last one needed does the step.
+// A loot step's creature drops its item on its corpse at the step's chance and only off its
+// creature; a kill credited to a character not on the quest drops it too (the owner,
+// 2026-11-21: "players dont need to be on a quest to obtain a quest drop"), and after the
+// step is done. Taking the items counts them, and the last one needed does the step.
 func TestALootStepDropsItsItemAtItsChance(t *testing.T) {
 	f := newQuestFixture(t)
 	belt := f.pattern("slashed belt", 20)
-	drops := lootQuest(f, belt, 0.7, 0.2, 0.1)
+	drops := lootQuest(f, belt, 0.7, 0.2, 0.1, 0.1, 0.1)
 	if _, err := f.qe.SetCharacterQuest(f.sid, 60, QuestGive, 0); err != nil {
 		t.Fatal(err)
 	}
@@ -72,15 +74,17 @@ func TestALootStepDropsItsItemAtItsChance(t *testing.T) {
 		t.Fatalf("a draw above the chance dropped: %v", *drops)
 	}
 	f.killFor("orc pawn", 803) // 0.2: a drop
-	if len(*drops) != 1 || (*drops)[0] != (lootDrop{803, f.sid, belt}) {
+	if len(*drops) != 1 || (*drops)[0] != (lootDrop{803, false, belt}) {
 		t.Fatalf("the drops: %v, want the belt on 803 for the character", *drops)
 	}
-	// the control: a kill credited to another character drops nothing for it
+	// a kill credited to another character, not on the quest: the belt drops on its corpse
+	// all the same (0.1), one that keeps the corpse only a while (ahead)
 	f.qe.killed(entity.KillCredit{NPCName: "Orc Pawn", NPCID: 804, Died: time.Now(),
 		Players: []entity.KillPlayer{{ServerID: f.sid + 50, Name: "Other"}}})
-	if len(*drops) != 1 {
-		t.Fatalf("a character not on the step got a drop: %v", *drops)
+	if len(*drops) != 2 || (*drops)[1] != (lootDrop{804, true, belt}) {
+		t.Fatalf("a kill by a character not on the quest: %v, want the belt on 804", *drops)
 	}
+	*drops = (*drops)[:1]
 
 	// taken: the count said; the second does the step
 	f.qe.Looted(f.tw.s, f.tw.p, belt, 1)
@@ -98,10 +102,10 @@ func TestALootStepDropsItsItemAtItsChance(t *testing.T) {
 	if s, _ := f.progress(60); s != 2 {
 		t.Fatalf("two belts held, the step is %d", s)
 	}
-	// the step done, no more drop
+	// the step done, the belt drops all the same (0.1), for anyone
 	f.killFor("Orc Pawn", 805)
-	if len(*drops) != 2 {
-		t.Errorf("a drop after the step: %v", *drops)
+	if len(*drops) != 3 || (*drops)[2] != (lootDrop{805, true, belt}) {
+		t.Errorf("after the step: %v, want the belt on 805", *drops)
 	}
 }
 
@@ -453,7 +457,7 @@ func TestAKillOfALaterStepSaysWhatComesFirst(t *testing.T) {
 	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (61, 3, 'talk', 'Malsis', 'Return to Malsis.')`)
 	f.qe.Reload()
 	var drops []int
-	f.qe.drop = func(_ entity.EntityID, _ time.Time, _ uint32, rec database.CharInventoryEntry) {
+	f.qe.drop = func(_ entity.EntityID, _ time.Time, rec database.CharInventoryEntry, _ bool) {
 		drops = append(drops, rec.Pattern.PatternID)
 	}
 	f.qe.roll = func() float64 { return 0 }

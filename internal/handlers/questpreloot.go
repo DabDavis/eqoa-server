@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 
 	"github.com/eqoa/server/internal/database"
@@ -10,72 +11,71 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// questpreloot.go — a quest's items drop before its step (the owner, 2026-11-14: "allow
-// pre-looting for all quests"; Live petition 5016: the fire bat wings of Neriak's level 5
-// quest could not be had before the step; the owner again, 2026-11-18: "allow pre farming of
-// quest items").
+// questpreloot.go — a quest's loot step items on a corpse.
 //
-// A loot step's item drops for a character on that step (questevents.go lootKillLocked). A kill
-// of a loot step's creature (stepNPC: its target or its other creatures) also drops the step's
-// item, at the step's own chance, for each player the kill counts for who is not on that step
-// yet, each on its own view of the corpse (questloot.go) (aheadRefusalLocked):
-//   - any player not past the step: the quest under way at an earlier step, or not taken at all
-//     (the owner, 2026-11-18: "do not require quest at all, just drops"): no level, class,
-//     race, required quest or faction asked. But an area's any-creature step (target '*': every
-//     kill in the area is one) drops ahead only for a player with its quest under way;
-//   - never: past the step, a finished quest that does not repeat, a draft, holding as many as
-//     the step wants already (its Ascended records counted, as a quest counts them, less what
-//     the quest's earlier loot steps keep: keptForEarlier), one of a Lore item, a full stack.
-//   - a REPEATABLE quest farms ahead (the owner, 2026-11-18, petition 2383: the SK
-//     exemplar's Screaming Souls stopped at the ten one round wants, though the souls stack to
-//     999): its item drops past the count, up to a full stack, and past the step too (the quest
-//     under way at a later step: its next round's); each give step takes only its own count,
-//     and the next round's loot step counts what is held and is done at once.
-// One kill drops one of an item for a player at most: a second quest's step on the same creature
-// and item rolls nothing more, nor does the step the player is on.
+// A kill of a loot step's creature (stepKill: its target, its other creatures, an area's any
+// creature) puts the step's item on the corpse ONCE, for whoever may loot it (questloot.go's
+// shared drops: the kill group, then anyone once the corpse unlocks), whether or not anyone
+// of the kill is on the quest (the owner, 2026-11-21: "players dont need to be on a quest to
+// obtain a quest drop ... no instanced quest items for each character ... remove lore from
+// quest stacks like madmen blood"). It is one item, taken by one looter like any other loot:
+// a group of four on the step sees one, not one each. The looter's own loot step counts it
+// as it is taken (Looted); a pack's items count when their loot step becomes the step to do
+// (lootStepHeldLocked); a give or show step takes or looks at what the pack holds, as ever.
 //
-// Not ahead, where a drop ahead would break the step's design (aheadExcludedLocked):
+// Before, each player of the kill on the step had a drop of its own on its own view of the
+// corpse (the owner, 2026-11-14: "allow pre-looting for all quests"; 2026-11-18: "do not
+// require quest at all, just drops"), and a player not on the step one only while it held
+// fewer than the step wanted, no Lore one held and no full stack.
+//
+// One roll per distinct item per corpse (corpseDropsLocked): several quests' steps naming the
+// same creature and item (the five quests of Ilenar Crelwin that each want a desert
+// madman's blood) roll it once, at the highest of their chances (database.LootChance: a
+// chance of 0 is every kill). A step that drops to anyone (openDropLocked) counts; a step
+// that does not counts only when a player of the kill is on it, or would have had it ahead of
+// it (aheadRefusalLocked, aheadExcludedLocked: the rules below, kept from before).
+//
+// Not to anyone, where a drop to anyone would break the step's design (those still drop for a
+// player of the kill on the step, and ahead of it for one the old rules let):
+//   - an area's any-creature step (target '*': every kill in the area is one, the owner
+//     2026-11-17: Lord Valkanith's emerald "in this city only"): its quest under way;
 //   - an item that an earlier loot or give step of the quest, not yet done, wants too (the
 //     Spider Queen Aszec's seven Crystal Spider Shards, one off each of seven named spiders in
 //     turn; the Split Ruby's halves): the pack cannot say which creature an item came from, so
-//     Fengzel's shard taken ahead would do Grosp's step 1 at once and Fengzel's step 3 want
+//     Fengzel's shard had ahead would do Grosp's step 1 at once and Fengzel's step 3 want
 //     another, and the order the quest walks is lost;
 //   - a creature the quest brings (a spawn event of any of its steps or of its taking: the
 //     Siliskor quest's mirrored soul and its Scepter of Reflection, Jarek's Creation) or one that
 //     stands in no world (npcspawnonly: what a trigger raises, Kratas for the harpoon of
-//     Telinan): its item is the encounter's, had by fighting the one the step brings; a drop off
-//     another player's copy would do the step at its start, its own spawn standing for no one.
-//     Except for a player on the step that brought that creature (Harbingers of Khalimet,
-//     petition 2098: Armis, spawned by step 3, drops step 4's wand on the same kill);
+//     Telinan): its item is the encounter's, had by fighting the one the step brings. Except for
+//     a player on the step that brought that creature (Harbingers of Khalimet, petition 2098:
+//     Armis, spawned by step 3, drops step 4's wand on the same kill);
 //   - a step whose doing fires a trigger, a spawn or an attack (its done events): those happen
 //     where the step is done, and a step done at its start (the items held) would raise them
 //     wherever the player stood, at the giver in town;
 //   - a key an event reads in the pack (raidportal.go's Tallon's Key, whose one bearer closes
-//     the portal behind the raid: one key a raid, a drop ahead would make a second bearer;
-//     skypass.go's isles' keys) and a watched item (a creature's aggro looks for it, a wall or a
-//     door opens for it: entity/questwalls.go): holding it does something before the step.
+//     the portal behind the raid: one key a raid; skypass.go's isles' keys) and a watched item
+//     (a creature's aggro looks for it, a wall or a door opens for it: entity/questwalls.go).
+//   - a disabled quest's step: for a player on it alone.
 //
-// A loot step that becomes the step to do (stepStartedLocked: taking the quest, or the step
-// before done) counts the items already in the pack, up to what it wants, and is done at once
-// when they are enough (lootStepHeldLocked); a give or show step takes or looks at what the pack
-// holds, as ever. Taking items off a corpse while on the step counts as ever (Looted). The
-// tracker (questprogress.go) shows the items held ahead of a later loot step of a quest under
-// way; a kill of a later step's creature says that its item drops ahead (laterStepKillLocked).
+// An item dropped with no player of the kill on its step keeps the corpse only aheadKeep
+// (questloot.go: Live petition 5118, dead wildlife holding Ant Chitin for no one); one a player
+// of the kill is on the step for keeps it as any loot does. A kill no player is credited with
+// drops nothing. The tracker (questprogress.go) shows the items held ahead of a later loot
+// step of a quest under way; a kill of a later step's creature says that its item drops
+// (laterStepKillLocked).
 
-// lootRef is one enabled quest's loot step.
+// lootRef is one quest's loot step.
 type lootRef struct {
 	qu *database.Quest
 	st *database.QuestStep
 }
 
-// lootStepsFor is every enabled quest's loot step a creature's kill matches
-// (stepKill: an AnyCreature step's area too).
+// lootStepsForLocked is every quest's loot step a creature's kill matches (stepKill: an
+// AnyCreature step's area too), a disabled quest's included (its players on the step).
 func (q *QuestEngine) lootStepsForLocked(k entity.KillCredit) []lootRef {
 	var out []lootRef
 	for _, qu := range q.cat.all {
-		if !qu.Enabled {
-			continue
-		}
 		for i := range qu.Steps {
 			st := &qu.Steps[i]
 			if st.Kind == database.StepLoot && stepKill(st, k) {
@@ -86,50 +86,109 @@ func (q *QuestEngine) lootStepsForLocked(k entity.KillCredit) []lootRef {
 	return out
 }
 
-// preLootLocked drops the loot steps' items of the kill for one player it counts for who is not
-// on those steps yet (the file's doc); rolled holds the items already rolled for the player on
-// this kill (the step it is on).
-func (q *QuestEngine) preLootLocked(k entity.KillCredit, kp entity.KillPlayer, c *questChar, rolled map[int]bool) {
-	if q.drop == nil || k.NPCID == 0 || kp.Session == nil || q.playerOf == nil {
-		return
+// noQuests is a character with no quest at all: the one a drop to anyone is judged for.
+var noQuests = &questChar{}
+
+// openDropLocked is whether a loot step's item drops on a kill of the creature named killed
+// for anyone, no quest asked (the file's doc).
+func (q *QuestEngine) openDropLocked(qu *database.Quest, st *database.QuestStep, pat *database.ItemPatternRecord, killed string) bool {
+	return qu.Enabled && q.aheadRefusalLocked(noQuests, qu, st, killed) == "" && q.aheadExcludedLocked(qu, st, pat) == ""
+}
+
+// onLootStep is whether a character is on a loot step and wants more of its item.
+func onLootStep(c *questChar, qu *database.Quest, st *database.QuestStep) bool {
+	cq := c.quests[qu.ID]
+	_, need, ok := st.LootItem()
+	return ok && cq != nil && cq.Active() && cq.Step == st.Step && cq.Count < need
+}
+
+// questDrop is one item a kill's corpse rolls: the highest chance of the steps that drop it,
+// and whether a player of the kill is on one of them.
+type questDrop struct {
+	pat    *database.ItemPatternRecord
+	chance float64
+	onStep bool
+	why    string // a step that drops it, for the log
+	seq    int    // its place among the kill's items: the steps' order
+	// counted is a player on the step with a full stack of it counted it at the kill
+	// (lootKillLocked): it goes on no corpse
+	counted bool
+}
+
+// corpseDropsLocked rolls the loot steps' items of a kill, each item once (the file's doc),
+// chars being the kill's players' quests (by k.Players' order): the items that dropped, by
+// pattern id, for placeDropsLocked to put on the corpse once the kill's steps are counted.
+func (q *QuestEngine) corpseDropsLocked(k entity.KillCredit, chars []*questChar) map[int]*questDrop {
+	if q.drop == nil || k.NPCID == 0 || len(k.Players) == 0 {
+		return nil
 	}
-	p := q.playerOf(kp.Session)
-	if p == nil {
-		return
-	}
+	var order []int
+	byItem := map[int]*questDrop{}
+	pats := map[int]*database.ItemPatternRecord{}
 	for _, ref := range q.lootStepsForLocked(k) {
 		qu, st := ref.qu, ref.st
-		pid, need, ok := st.LootItem()
-		if !ok || rolled[pid] {
+		pid, _, ok := st.LootItem()
+		if !ok {
 			continue
 		}
-		if q.aheadRefusalLocked(c, qu, st, k.NPCName) != "" {
+		pat, seen := pats[pid]
+		if !seen {
+			if p, err := q.items.GetItemPattern(pid); err == nil {
+				pat = p
+			} else {
+				log.Printf("Quests: %q step %d's item %d: %v", qu.Name, st.Step, pid, err)
+			}
+			pats[pid] = pat
+		}
+		if pat == nil {
 			continue
 		}
-		held := sessionInvList(kp.Session).heldStandingFor(pid)
-		if !qu.Repeatable && held-keptForEarlier(qu, st, pid) >= need {
-			continue // a repeatable quest's farms on to a full stack (fullStack below)
+		drops, onStep := q.openDropLocked(qu, st, pat, k.NPCName), false
+		for _, c := range chars {
+			switch {
+			case onLootStep(c, qu, st):
+				drops, onStep = true, true
+			case !drops && qu.Enabled && q.aheadRefusalLocked(c, qu, st, k.NPCName) == "" && q.aheadExcludedLocked(qu, st, pat) == "":
+				drops = true
+			}
 		}
-		pat, err := q.items.GetItemPattern(pid)
-		if err != nil || pat == nil {
+		if !drops {
 			continue
 		}
-		if pat.Lore != 0 && held > 0 || q.aheadExcludedLocked(qu, st, pat) != "" {
+		d := byItem[pid]
+		if d == nil {
+			d = &questDrop{pat: pat, seq: len(order)}
+			byItem[pid] = d
+			order = append(order, pid)
+		}
+		if ch := database.LootChance(st.Chance); ch > d.chance { // in (0, 1]: the first sets it
+			d.chance, d.why = ch, fmt.Sprintf("step %d of %q", st.Step, qu.Name)
+		}
+		d.onStep = d.onStep || onStep
+	}
+	for _, pid := range order {
+		if q.roll() >= byItem[pid].chance {
+			delete(byItem, pid)
+		}
+	}
+	return byItem
+}
+
+// placeDropsLocked puts a kill's rolled items (corpseDropsLocked) on its corpse, each once,
+// but one a full stack counted at the kill (lootKillLocked).
+func (q *QuestEngine) placeDropsLocked(k entity.KillCredit, dropped map[int]*questDrop) {
+	ids := make([]int, 0, len(dropped))
+	for pid := range dropped {
+		ids = append(ids, pid)
+	}
+	sort.Slice(ids, func(i, j int) bool { return dropped[ids[i]].seq < dropped[ids[j]].seq })
+	for _, pid := range ids {
+		d := dropped[pid]
+		if d.counted {
 			continue
 		}
-		rolled[pid] = true
-		if q.roll() >= database.LootChance(st.Chance) {
-			continue
-		}
-		if fullStack(sessionInvList(kp.Session), pat) {
-			continue
-		}
-		drop := q.drop
-		if q.dropAhead != nil {
-			drop = q.dropAhead
-		}
-		drop(k.NPCID, k.Died, kp.ServerID, database.CharInventoryEntry{StackLeft: 1, EquipLoc: -1, Pattern: *pat})
-		log.Printf("Quests: %q dropped %q for %s ahead of step %d of %q", k.NPCName, pat.ItemName, kp.Name, st.Step, qu.Name)
+		q.drop(k.NPCID, k.Died, database.CharInventoryEntry{StackLeft: 1, EquipLoc: -1, Pattern: *d.pat}, !d.onStep)
+		log.Printf("Quests: %q dropped %q on its corpse (%s; a player on the step: %v)", k.NPCName, d.pat.ItemName, d.why, d.onStep)
 	}
 }
 

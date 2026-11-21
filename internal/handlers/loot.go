@@ -224,8 +224,9 @@ func (h *NPCWindowHandler) rollCorpse(npc *entity.NPC, died time.Time, level int
 		items[i] = catalogRecord(items[i])
 	}
 	h.fireDropTriggers(npc, items) // lootdroptrigger.go: Vallon Zek's portal at its rune
-	// No Trade stacks shared, one to each character of the kill (lootshare.go)
-	items, shares := splitShares(items)
+	// No Trade stacks shared, one to each character of the kill, but a quest item's
+	// (lootshare.go)
+	items, shares := splitShares(items, h.questItem)
 	c := &corpse{died: died, items: items, tunar: corpseCoins(npc, coins), shares: shares}
 	owe(shares, h.killCharsOf(npc.ServerID, c))
 	return c

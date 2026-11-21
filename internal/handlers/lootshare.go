@@ -35,6 +35,14 @@ import (
 //   - A share keeps its corpse only while a character of the kill waits for its copy;
 //     the spares left after keep none, so a boss's respawn is not held up by them.
 //
+// Not a quest item's stack (the owner, 2026-11-21: "no instanced quest items for each
+// character, so all 4 players dont need to loot the corpse it slows things down too
+// much"): an item a quest's loot, give or show step names (QuestEngine.QuestItem) is one
+// stack on the corpse, one looter's, as any other record. A key an event reads in the
+// pack (eventKey: the isles' keys above, Tallon's Key) stays a share, a quest's or not:
+// the keys are what this was made for. Every other No Trade stack is shared as before:
+// the owner spoke of quest items only.
+//
 // A raid's rules never held these (raidCovers: no stackable), and still do not: a
 // master looter's hold and a roll's go on over the corpse's other items as they did.
 
@@ -47,19 +55,23 @@ type lootShare struct {
 	waiting map[uint32]bool
 }
 
-// sharesItem is whether a corpse's record is shared: a No Trade stack.
-func sharesItem(rec *database.CharInventoryEntry) bool {
-	return rec.Pattern.Trade > 0 && rec.StackLeft > 1
+// sharesItem is whether a corpse's record is shared: a No Trade stack, not a quest
+// item's (questItem; nil: none is) unless a key an event reads.
+func sharesItem(rec *database.CharInventoryEntry, questItem func(int) bool) bool {
+	if rec.Pattern.Trade <= 0 || rec.StackLeft <= 1 {
+		return false
+	}
+	return questItem == nil || !questItem(rec.Pattern.PatternID) || eventKey(rec.Pattern.ItemName)
 }
 
 // splitShares takes a corpse's No Trade stacks out of its items as shares, the same
-// item's records gathered in one.
-func splitShares(items []database.CharInventoryEntry) ([]database.CharInventoryEntry, []*lootShare) {
+// item's records gathered in one (sharesItem: a quest item's stays a record).
+func splitShares(items []database.CharInventoryEntry, questItem func(int) bool) ([]database.CharInventoryEntry, []*lootShare) {
 	keep := items[:0:0]
 	var shares []*lootShare
 	byPattern := map[int]*lootShare{}
 	for _, it := range items {
-		if !sharesItem(&it) {
+		if !sharesItem(&it, questItem) {
 			keep = append(keep, it)
 			continue
 		}

@@ -87,6 +87,10 @@ type NPCWindowHandler struct {
 	coinRoll  func(int) int
 	lootIntn  func(int) int
 	lootFloat func() float64
+	// questItem is whether an item is one a quest step names (QuestEngine.QuestItem): a
+	// No Trade stack of one on a corpse is not shared one to a character (lootshare.go);
+	// nil, none is
+	questItem func(pattern int) bool
 	// lootSeed is a creature's loot seed for its spawn (entity/spawnloot.go): the
 	// corpse's dice where the hooks above are nil; nil: unseeded dice
 	lootSeed func(*entity.NPC) uint64

@@ -9,10 +9,16 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// A loot step's drops (quests.go): an item a kill drops for one character on
-// a loot step lies on THAT character's view of the corpse, after the corpse's
-// own items (loot.go), and only that character sees and takes it, as a quest
-// item dropped for one player on the live game. The corpse's window lists the
+// A loot step's drops (questpreloot.go): since 2026-11-21 a kill's quest item
+// lies on the corpse ONCE, a shared drop (below) whoever may loot the corpse
+// takes (the owner, 2026-11-21: "players dont need to be on a quest to obtain a
+// quest drop ... no instanced quest items for each character": AddCorpseQuestDrop).
+//
+// A character's own drop (AddQuestDrop) is how they were before: an item a kill
+// dropped for one character on a loot step lay on THAT character's view of the
+// corpse, after the corpse's own items (loot.go), and only that character saw
+// and took it. Nothing drops so now, but a keep restart's corpses from before
+// carry theirs (keep.go), and they are taken as they were. The corpse's window lists the
 // two together, keyed by position, so Take and Take all go on as before; a
 // corpse goes when its window closes with its own items AND every
 // character's drops gone, else when it decays. A drop ahead of its step
@@ -65,6 +71,14 @@ func (h *NPCWindowHandler) AddSharedDrop(id entity.EntityID, died time.Time, rec
 	h.addQuestDrop(id, died, sharedDrops, rec, false)
 }
 
+// AddCorpseQuestDrop puts a loot step's item on the corpse of the death died of
+// NPC id for whoever may loot it (questpreloot.go): one item, a stack of the same
+// item grows. Ahead (no player of the kill on the step) it keeps the corpse only
+// aheadKeep, as a drop ahead of its step did.
+func (h *NPCWindowHandler) AddCorpseQuestDrop(id entity.EntityID, died time.Time, rec database.CharInventoryEntry, ahead bool) {
+	h.addQuestDrop(id, died, sharedDrops, rec, ahead)
+}
+
 // AddQuestDropAhead is AddQuestDrop for an item dropped ahead of its step
 // (questpreloot.go): it keeps no corpse.
 func (h *NPCWindowHandler) AddQuestDropAhead(id entity.EntityID, died time.Time, serverID uint32, rec database.CharInventoryEntry) {
@@ -89,6 +103,8 @@ func (h *NPCWindowHandler) addQuestDrop(id entity.EntityID, died time.Time, serv
 			d.ahead[serverID] = map[int]bool{}
 		}
 		d.ahead[serverID][rec.Pattern.PatternID] = true
+	} else if d.ahead != nil {
+		delete(d.ahead[serverID], rec.Pattern.PatternID) // one that keeps the corpse joins it: the stack does
 	}
 	mine := d.items[serverID]
 	for i := range mine {

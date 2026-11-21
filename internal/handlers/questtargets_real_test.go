@@ -80,12 +80,21 @@ func TestRealQuestTargetsDropOffEveryCreature(t *testing.T) {
 	}
 	type drop struct {
 		npc     entity.EntityID
-		char    uint32
+		ahead   bool
 		pattern int
 	}
 	var drops []drop
-	qe.drop = func(npc entity.EntityID, _ time.Time, char uint32, rec database.CharInventoryEntry) {
-		drops = append(drops, drop{npc, char, rec.Pattern.PatternID})
+	countDrops := func(ds []drop, pid int) int {
+		n := 0
+		for _, d := range ds {
+			if d.pattern == pid {
+				n++
+			}
+		}
+		return n
+	}
+	qe.drop = func(npc entity.EntityID, _ time.Time, rec database.CharInventoryEntry, ahead bool) {
+		drops = append(drops, drop{npc, ahead, rec.Pattern.PatternID})
 	}
 	qe.roll = func() float64 { return 0 }
 	const char uint32 = 900000001
@@ -145,8 +154,10 @@ func TestRealQuestTargetsDropOffEveryCreature(t *testing.T) {
 				t.Errorf("quest %d step %d: a creature it does not name dropped %v", a.quest, a.step, drops)
 			}
 			kill(name+" ", entity.EntityID(20000+i))
-			if len(drops) != 1 || drops[0].pattern != pid || drops[0].char != char {
-				t.Errorf("quest %d step %d: a kill of %q dropped %v, want its item %d", a.quest, a.step, name, drops, pid)
+			// its item once among them: other quests' steps on the creature drop theirs to
+			// anyone too (questpreloot.go, the owner 2026-11-21), each item once
+			if n := countDrops(drops, pid); n != 1 {
+				t.Errorf("quest %d step %d: a kill of %q dropped %v, want its item %d once", a.quest, a.step, name, drops, pid)
 			}
 		}
 		if _, err := qe.SetCharacterQuest(char, a.quest, QuestReset, 0); err != nil {
@@ -168,8 +179,8 @@ func TestRealQuestTargetsDropOffEveryCreature(t *testing.T) {
 			t.Errorf("a crow dropped %v: the guide's beak is the ravens' and magpies'", drops)
 		}
 		kill("Magpie ", 30002)
-		if len(drops) != 1 {
-			t.Errorf("a magpie dropped %v, want the beak", drops)
+		if pid, _, _ := st.LootItem(); countDrops(drops, pid) != 1 {
+			t.Errorf("a magpie dropped %v, want the beak once", drops)
 		}
 	}
 	steps := map[[2]int]bool{}

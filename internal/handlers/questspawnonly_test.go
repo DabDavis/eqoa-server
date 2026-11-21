@@ -214,8 +214,8 @@ func TestJareksCreationIsMadeThenFoughtAndLooted(t *testing.T) {
 	}
 
 	drops := []lootDrop{}
-	f.qe.drop = func(npc entity.EntityID, _ time.Time, char uint32, rec database.CharInventoryEntry) {
-		drops = append(drops, lootDrop{npc, char, rec.Pattern.PatternID})
+	f.qe.drop = func(npc entity.EntityID, _ time.Time, rec database.CharInventoryEntry, ahead bool) {
+		drops = append(drops, lootDrop{npc, ahead, rec.Pattern.PatternID})
 	}
 	f.qe.roll = func() float64 { return 0.99 } // the step's chance is 1: every kill
 	f.killFor("fungus cockroach", 1331)
@@ -224,7 +224,7 @@ func TestJareksCreationIsMadeThenFoughtAndLooted(t *testing.T) {
 	}
 	f.killFor("Jarek's Creation", c.ServerID)
 	shell := items["mutated shell"]
-	if len(drops) != 1 || drops[0] != (lootDrop{c.ServerID, f.sid, shell}) {
+	if len(drops) != 1 || drops[0] != (lootDrop{c.ServerID, false, shell}) {
 		t.Fatalf("the creation's drops: %v, want the shell on it", drops)
 	}
 	f.qe.Looted(f.tw.s, f.tw.p, shell, 1)

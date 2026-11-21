@@ -132,12 +132,13 @@ type QuestEngine struct {
 	// wake is nudge's: the marks and trackers looked at now
 	wake chan struct{}
 
-	// drop puts a loot step's item on one character's view of a corpse (the
-	// windows' AddQuestDrop, questloot.go); nil drops nothing
-	drop func(npc entity.EntityID, died time.Time, serverID uint32, rec database.CharInventoryEntry)
-	// dropAhead is drop's for an item dropped ahead of its step (questpreloot.go): it keeps
-	// no corpse (the windows' AddQuestDropAhead); nil uses drop
-	dropAhead func(npc entity.EntityID, died time.Time, serverID uint32, rec database.CharInventoryEntry)
+	// drop puts a loot step's item on a corpse for whoever may loot it (the windows'
+	// AddCorpseQuestDrop, questloot.go; questpreloot.go): ahead, no player of the kill on
+	// the step, it keeps the corpse only a while; nil drops nothing
+	drop func(npc entity.EntityID, died time.Time, rec database.CharInventoryEntry, ahead bool)
+	// questItems is every item a quest step names (questItemsOf), for the loot's sharing
+	// (QuestItem): read with no lock, so a corpse's roll never waits on the quests
+	questItems atomic.Pointer[map[int]bool]
 	// roll is a loot step's draw in [0, 1) (tests fix it)
 	roll func() float64
 	// spawns are the NPCs steps' spawn events placed, by character
@@ -506,6 +507,8 @@ func (q *QuestEngine) Reload() error {
 	if err != nil {
 		return err
 	}
+	items := questItemsOf(cat.all)
+	q.questItems.Store(&items)
 	q.mu.Lock()
 	q.cat = cat
 	q.wereq = wereQuestsOf(cat)                            // wereinfect.go
@@ -516,6 +519,34 @@ func (q *QuestEngine) Reload() error {
 	q.mu.Unlock()
 	q.nudge() // a GM's edit: the marks and trackers again
 	return nil
+}
+
+// questItemsOf is every item a quest's loot, give or show step names: its quest items
+// (a reward alone is not one).
+func questItemsOf(all []*database.Quest) map[int]bool {
+	out := map[int]bool{}
+	for _, qu := range all {
+		for i := range qu.Steps {
+			st := &qu.Steps[i]
+			switch st.Kind {
+			case database.StepLoot, database.StepGive, database.StepShow:
+				for _, it := range st.Items {
+					out[it.PatternID] = true
+				}
+			}
+		}
+	}
+	return out
+}
+
+// QuestItem is whether an item is one a quest step names (questItemsOf). It takes no
+// lock: a corpse's roll (loot.go) asks it with the loot's lock held.
+func (q *QuestEngine) QuestItem(pattern int) bool {
+	if q == nil {
+		return false
+	}
+	m := q.questItems.Load()
+	return m != nil && (*m)[pattern]
 }
 
 // foldName is a name as names are matched: trimmed, any case.
@@ -1715,13 +1746,19 @@ func (q *QuestEngine) giveUpLocked(cq *database.CharQuest) {
 	q.saveLocked(cq)
 }
 
-// killed counts a kill on the kill steps of every player it was credited to.
+// killed counts a kill on the kill steps of every player it was credited to, and puts the
+// loot steps' items on its corpse, each once, for whoever loots it (questpreloot.go).
 func (q *QuestEngine) killed(k entity.KillCredit) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	for _, kp := range k.Players {
-		c := q.namedLocked(kp.ServerID, kp.Name)
-		rolled := map[int]bool{} // the items rolled for the player on this kill (questpreloot.go)
+	chars := make([]*questChar, len(k.Players))
+	for i, kp := range k.Players {
+		chars[i] = q.namedLocked(kp.ServerID, kp.Name)
+	}
+	dropped := q.corpseDropsLocked(k, chars) // before the steps move on: who is on which, at the kill
+	defer q.placeDropsLocked(k, dropped)     // after: but those a full stack counted (lootKillLocked)
+	for i, kp := range k.Players {
+		c := chars[i]
 		for _, cq := range c.active() {
 			qu := q.cat.byID[cq.QuestID]
 			if qu == nil {
@@ -1729,10 +1766,7 @@ func (q *QuestEngine) killed(k entity.KillCredit) {
 			}
 			st := qu.Step(cq.Step)
 			if st != nil && st.Kind == database.StepLoot && stepKill(st, k) {
-				if pid, _, ok := st.LootItem(); ok {
-					rolled[pid] = true
-				}
-				q.lootKillLocked(k, kp, c, qu, cq, st) // questevents.go
+				q.lootKillLocked(k, kp, c, qu, cq, st, dropped) // questevents.go
 				continue
 			}
 			if st == nil || st.Kind != database.StepKill || !stepKill(st, k) {
@@ -1758,7 +1792,6 @@ func (q *QuestEngine) killed(k entity.KillCredit) {
 			}
 			q.completeStepLocked(kp.Session, p, c, qu, cq, st, nil, nil)
 		}
-		q.preLootLocked(k, kp, c, rolled) // after its steps' own: the steps it is not on yet (questpreloot.go)
 	}
 }
 
@@ -1804,14 +1837,11 @@ func (q *QuestEngine) laterStepKillLocked(c *questChar, kp entity.KillPlayer, qu
 	}
 }
 
-// dropsAheadNameLocked is a later loot step's item's name, and whether it drops ahead of its
-// step for the kill's player (questpreloot.go's rules; the pack's holding aside).
+// dropsAheadNameLocked is a later loot step's item's name, and whether its creature's kill
+// drops it with the player not on the step yet (questpreloot.go: to anyone, or ahead of the
+// step for this player).
 func (q *QuestEngine) dropsAheadNameLocked(kp entity.KillPlayer, c *questChar, qu *database.Quest, later *database.QuestStep, killed string) (string, bool) {
-	if later.Kind != database.StepLoot || kp.Session == nil || q.playerOf == nil || q.items == nil {
-		return "", false
-	}
-	p := q.playerOf(kp.Session)
-	if p == nil || q.aheadRefusalLocked(c, qu, later, killed) != "" {
+	if later.Kind != database.StepLoot || kp.Session == nil || q.items == nil {
 		return "", false
 	}
 	pid, _, _ := later.LootItem()
@@ -1819,7 +1849,10 @@ func (q *QuestEngine) dropsAheadNameLocked(kp entity.KillPlayer, c *questChar, q
 	if err != nil || pat == nil || q.aheadExcludedLocked(qu, later, pat) != "" {
 		return "", false
 	}
-	return pat.ItemName, true
+	if q.openDropLocked(qu, later, pat, killed) || qu.Enabled && q.aheadRefusalLocked(c, qu, later, killed) == "" {
+		return pat.ItemName, true
+	}
+	return "", false
 }
 
 // laterSayGap is how long after saying a quest's later kill counts later it is

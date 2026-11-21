@@ -167,7 +167,7 @@ func newWereRig(t *testing.T, src string, seed int64) *wereRig {
 	r := &wereRig{t: t, db: db, gw: gw, mgr: mgr, qe: qe, inv: inv, spells: spells,
 		rng: rand.New(rand.NewSource(seed)), ids: map[string]int{}}
 	qe.roll = r.rng.Float64
-	qe.drop = func(_ entity.EntityID, _ time.Time, _ uint32, rec database.CharInventoryEntry) {
+	qe.drop = func(_ entity.EntityID, _ time.Time, rec database.CharInventoryEntry, _ bool) {
 		r.drops = append(r.drops, rec.Pattern.PatternID)
 	}
 	// the World's kill credits, as the engine's queue hears them (the

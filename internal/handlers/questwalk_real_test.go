@@ -180,7 +180,7 @@ func newQuestWalker(t testing.TB, src string) *questWalker {
 	w := &questWalker{t: t, db: db, gw: gw, mgr: mgr, qe: qe, inv: inv, npcs: map[string]*entity.NPC{},
 		byCombo: map[[2]int]*walkChar{}, fit: map[[3]int]bool{}}
 	qe.roll = func() float64 { return 0 } // every loot step's drop lands
-	qe.drop = func(_ entity.EntityID, _ time.Time, _ uint32, rec database.CharInventoryEntry) {
+	qe.drop = func(_ entity.EntityID, _ time.Time, rec database.CharInventoryEntry, _ bool) {
 		w.drops = append(w.drops, rec.Pattern.PatternID)
 	}
 	rows, err := db.Query(`SELECT DISTINCT tclass, race, humType FROM defaultcharacter`)

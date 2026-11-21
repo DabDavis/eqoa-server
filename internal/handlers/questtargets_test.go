@@ -30,8 +30,8 @@ func (f *questFixture) otherCreatures(quest, step int, names ...string) {
 // from rolls (0.99 once they run out).
 func recordDrops(f *questFixture, rolls ...float64) *[]lootDrop {
 	var drops []lootDrop
-	f.qe.drop = func(npc entity.EntityID, _ time.Time, char uint32, rec database.CharInventoryEntry) {
-		drops = append(drops, lootDrop{npc, char, rec.Pattern.PatternID})
+	f.qe.drop = func(npc entity.EntityID, _ time.Time, rec database.CharInventoryEntry, ahead bool) {
+		drops = append(drops, lootDrop{npc, ahead, rec.Pattern.PatternID})
 	}
 	f.qe.roll = func() float64 {
 		if len(rolls) == 0 {
@@ -126,12 +126,12 @@ func TestALootStepDropsOffEveryCreatureItNames(t *testing.T) {
 		t.Fatalf("a crow dropped a beak: %v", *got)
 	}
 	f.killFor("Magpie ", 802) // 0.2: a drop
-	if len(*got) != 1 || (*got)[0] != (lootDrop{802, f.sid, beak}) {
+	if len(*got) != 1 || (*got)[0] != (lootDrop{802, false, beak}) {
 		t.Fatalf("the drops %v, want the beak on the magpie 802", *got)
 	}
 	f.killFor("raven", 803) // 0.7: none at 0.5
 	f.killFor("raven", 804) // 0.3: a drop (the crow took no draw)
-	if len(*got) != 2 || (*got)[1] != (lootDrop{804, f.sid, beak}) {
+	if len(*got) != 2 || (*got)[1] != (lootDrop{804, false, beak}) {
 		t.Fatalf("the drops %v, want a second beak on the raven 804", *got)
 	}
 	f.qe.Looted(f.tw.s, f.tw.p, beak, 2)

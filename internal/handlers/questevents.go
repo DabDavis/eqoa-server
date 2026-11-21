@@ -67,13 +67,12 @@ import (
 //     its city's, so the guildmaster on the mainland goes on from there.
 //
 // A loot step (kind loot) is a kill step whose kills drop its item: each kill
-// of its creature credited to a player on the step, while the player has
-// taken fewer than the step wants, drops one with the step's chance onto that
-// player's own view of the corpse (questloot.go); the step counts what the
-// player takes off corpses while it is the step to do (the character's
-// quest count, as a kill step counts kills; what the pack holds when the step
-// starts counts at once, and the item drops ahead of the step by
-// questpreloot.go's rules), and is done at its count.
+// of its creature puts one on the corpse at the step's chance, once for the
+// corpse and for whoever loots it, whether or not anyone of the kill is on the
+// quest (questpreloot.go; the owner, 2026-11-21); the step counts what the
+// player takes off corpses while it is the step to do (the character's quest
+// count, as a kill step counts kills; what the pack holds when the step starts
+// counts at once), and is done at its count.
 
 // questSpawnLife is how long a quest's spawn stays at most.
 const questSpawnLife = 10 * time.Minute
@@ -810,43 +809,32 @@ func (q *QuestEngine) stepStartedLocked(sess *session.Session, p *entity.Player,
 	q.lootStepHeldLocked(sess, p, c, qu, cq, st) // a loot step's items held already (questpreloot.go)
 }
 
-// lootKillLocked is a kill on a loot step: its item dropped for the player
-// with the step's chance while it has taken fewer than the step wants. A drop
-// the player could never take is counted at once: its record of the item is a
-// full stack, and CLIENT's VIItemList::AddItem (0x00BBD130) puts a stackable
-// item on the FIRST record of it and keeps nothing past its stack, opening no
-// second record (0x003B and a corpse's 0x0019/0x001A alike), so a player who
-// held a full stack from before the step (a quest given up and taken again:
-// a GM's quest walk of 2026-10-30, "Wands and Branches" and its two wands)
-// could never take one and never finish. What it holds is the step's item.
-func (q *QuestEngine) lootKillLocked(k entity.KillCredit, kp entity.KillPlayer, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep) {
+// lootKillLocked is a kill on a loot step for a player on it: its item lies on the corpse
+// for whoever loots it, rolled once for the corpse (questpreloot.go's corpseDropsLocked:
+// dropped), and the looter's step counts it as it is taken (Looted). A drop the player could
+// never take is counted for it at once, and goes on no corpse (one item, one player's): its record of the item is a full stack, and CLIENT's
+// VIItemList::AddItem (0x00BBD130) puts a stackable item on the FIRST record of it and keeps
+// nothing past its stack, opening no second record (0x003B and a corpse's 0x0019/0x001A
+// alike), so a player who held a full stack from before the step (a quest given up and taken
+// again: a GM's quest walk of 2026-10-30, "Wands and Branches" and its two wands) could never
+// take one and never finish. What it holds is the step's item.
+func (q *QuestEngine) lootKillLocked(k entity.KillCredit, kp entity.KillPlayer, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep, dropped map[int]*questDrop) {
 	pid, need, ok := st.LootItem()
-	if !ok || q.drop == nil || k.NPCID == 0 || cq.Count >= need {
-		return
-	}
-	if q.roll() >= database.LootChance(st.Chance) {
+	d := dropped[pid]
+	if !ok || d == nil || d.counted || cq.Count >= need || kp.Session == nil || q.playerOf == nil {
 		return
 	}
 	pat, err := q.items.GetItemPattern(pid)
-	if err != nil || pat == nil {
-		log.Printf("Quests: %q step %d's item %d: %v", qu.Name, st.Step, pid, err)
+	if err != nil || pat == nil || !fullStack(sessionInvList(kp.Session), pat) {
 		return
 	}
-	if fullStack(sessionInvList(kp.Session), pat) {
-		var p *entity.Player
-		if kp.Session != nil && q.playerOf != nil {
-			p = q.playerOf(kp.Session)
-		}
-		if p != nil {
-			SendClientMessage(kp.Session, fmt.Sprintf("You can carry no more %s: this one counts.", pat.ItemName))
-			log.Printf("Quests: %q dropped %q for %s, whose stack of it is full: counted (step %d of %q)",
-				k.NPCName, pat.ItemName, kp.Name, st.Step, qu.Name)
-			q.countLootLocked(kp.Session, p, c, qu, cq, st, 1)
-			return
-		}
+	if p := q.playerOf(kp.Session); p != nil {
+		SendClientMessage(kp.Session, fmt.Sprintf("You can carry no more %s: this one counts.", pat.ItemName))
+		log.Printf("Quests: %q dropped %q, and %s's stack of it is full: counted (step %d of %q)",
+			k.NPCName, pat.ItemName, kp.Name, st.Step, qu.Name)
+		d.counted = true
+		q.countLootLocked(kp.Session, p, c, qu, cq, st, 1)
 	}
-	q.drop(k.NPCID, k.Died, kp.ServerID, database.CharInventoryEntry{StackLeft: 1, EquipLoc: -1, Pattern: *pat})
-	log.Printf("Quests: %q dropped %q for %s (step %d of %q)", k.NPCName, pat.ItemName, kp.Name, st.Step, qu.Name)
 }
 
 // fullStack is whether a list's record of a stackable item is full: CLIENT

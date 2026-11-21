@@ -8,8 +8,10 @@ import (
 // The owner, 2026-11-18 (petition 2383): a REPEATABLE quest's item farms ahead past
 // the count one round wants (the SK exemplar's Screaming Souls: ten a round, the souls stack to
 // 999), before the quest is taken and past its loot step too (on its give step: the next
-// round's). A one-time quest stops at its count, as before. Each round's give step takes only
-// its own count (TestAFullPackWaitsForRoom: three held, two taken).
+// round's). Since 2026-11-21 a one-time quest's does too (the owner: "players dont need to be on
+// a quest to obtain a quest drop ... remove lore from quest stacks"): what is held, or the quest
+// being past the step, stops no drop. Each round's give step takes only its own count
+// (TestAFullPackWaitsForRoom: three held, two taken).
 func TestARepeatableQuestFarmsAhead(t *testing.T) {
 	f := newQuestFixture(t)
 	soul := f.pattern("screaming soul", 999)
@@ -24,16 +26,16 @@ func TestARepeatableQuestFarmsAhead(t *testing.T) {
 
 	f.own(soul, 2)
 	f.killFor("a paladin", 901) // not taken, the two one round wants held: a repeatable quest's drops on
-	if len(*drops) != 1 || (*drops)[0] != (lootDrop{901, f.sid, soul}) {
+	if len(*drops) != 1 || (*drops)[0] != (lootDrop{901, true, soul}) {
 		t.Fatalf("repeatable, two held of two: drops %v, want a soul", *drops)
 	}
 
 	f.exec(`UPDATE quests SET repeatable = 0 WHERE questid = 72`)
 	f.qe.Reload()
 	*drops = nil
-	f.killFor("a paladin", 902) // the control: one-time, two held: none
-	if len(*drops) != 0 {
-		t.Fatalf("one-time, two held of two: dropped %v", *drops)
+	f.killFor("a paladin", 902) // one-time, two held: a soul all the same (once stopped)
+	if len(*drops) != 1 || (*drops)[0] != (lootDrop{902, true, soul}) {
+		t.Fatalf("one-time, two held of two: dropped %v, want a soul", *drops)
 	}
 
 	f.exec(`UPDATE quests SET repeatable = 1 WHERE questid = 72`)
@@ -54,8 +56,8 @@ func TestARepeatableQuestFarmsAhead(t *testing.T) {
 	f.exec(`UPDATE quests SET repeatable = 0 WHERE questid = 72`)
 	f.qe.Reload()
 	*drops = nil
-	f.killFor("a paladin", 904) // the control: one-time, past its loot step: none
-	if len(*drops) != 0 {
-		t.Fatalf("one-time, on its give step: dropped %v", *drops)
+	f.killFor("a paladin", 904) // one-time, past its loot step: a soul all the same (once stopped)
+	if len(*drops) != 1 || (*drops)[0] != (lootDrop{904, true, soul}) {
+		t.Fatalf("one-time, on its give step: dropped %v, want a soul", *drops)
 	}
 }

@@ -11,11 +11,12 @@ import (
 	"github.com/eqoa/server/internal/entity"
 )
 
-// The owner, 2026-11-14: "allow pre-looting for all quests" (questpreloot.go). Before the
-// quest is taken, a kill of its loot step's creature drops the step's item at the step's
-// chance (0.7 nothing, 0.2 a belt); one kill drops one belt at most though the roll is
-// drawn once. Holding the two the step wants, no more drop. Taken with the two in the pack,
-// the step is done at once. Finished (not repeatable), no drop; another creature none ever.
+// The owner, 2026-11-14: "allow pre-looting for all quests"; 2026-11-21: "players dont need to
+// be on a quest to obtain a quest drop" (questpreloot.go). Before the quest is taken, a kill of
+// its loot step's creature drops the step's item on the corpse at the step's chance (0.7
+// nothing, 0.2 a belt). Holding the two the step wants, it drops all the same (it once
+// stopped). Taken with the two in the pack, the step is done at once. Finished (not
+// repeatable), it drops still; another creature none ever.
 func TestAQuestsItemDropsBeforeItsStep(t *testing.T) {
 	f := newQuestFixture(t)
 	belt := f.pattern("slashed belt", 20)
@@ -26,13 +27,13 @@ func TestAQuestsItemDropsBeforeItsStep(t *testing.T) {
 		t.Fatalf("drops before: %v", *drops)
 	}
 	f.killFor("orc pawn", 803) // 0.2: a belt, not on the quest
-	if len(*drops) != 1 || (*drops)[0] != (lootDrop{803, f.sid, belt}) {
+	if len(*drops) != 1 || (*drops)[0] != (lootDrop{803, true, belt}) {
 		t.Fatalf("the drops: %v, want the belt on 803 before the quest", *drops)
 	}
 	f.own(belt, 2)
-	f.killFor("Orc Pawn", 804) // two held: no roll, no drop
-	if len(*drops) != 1 {
-		t.Fatalf("two held of two, another dropped: %v", *drops)
+	f.killFor("Orc Pawn", 804) // two held: 0.2, a belt all the same
+	if len(*drops) != 2 || (*drops)[1] != (lootDrop{804, true, belt}) {
+		t.Fatalf("two held of two: %v, want another belt on 804", *drops)
 	}
 	if _, err := f.qe.SetCharacterQuest(f.sid, 60, QuestGive, 0); err != nil {
 		t.Fatal(err)
@@ -44,14 +45,15 @@ func TestAQuestsItemDropsBeforeItsStep(t *testing.T) {
 		t.Fatal(err)
 	}
 	f.tw.s.SetInventoryList(newInvList(nil))
-	f.killFor("Orc Pawn", 805) // finished, not repeatable: none at a roll of 0.2
-	if len(*drops) != 1 {
-		t.Fatalf("a finished quest's item dropped: %v", *drops)
+	f.killFor("Orc Pawn", 805) // finished, not repeatable: 0.1, a belt all the same
+	if len(*drops) != 3 || (*drops)[2] != (lootDrop{805, true, belt}) {
+		t.Fatalf("a finished quest's item: %v, want a belt on 805", *drops)
 	}
 }
 
-// A character on an earlier step (a talk first) gets the later loot step's item too; one on
-// the step itself gets one drop a kill, as ever, not two.
+// A character on an earlier step (a talk first) has the later loot step's item drop too; one
+// on the step of one quest and before another's step of the same item has one drop a kill,
+// one roll (the corpse rolls each item once), not two.
 func TestAQuestsItemDropsOnAnEarlierStep(t *testing.T) {
 	f := newQuestFixture(t)
 	belt := f.pattern("slashed belt", 20)
@@ -97,7 +99,7 @@ func TestTwoLootStepsOffOneCreatureDropBothOnOneKill(t *testing.T) {
 		t.Fatal(err)
 	}
 	f.killFor("Armis", 820)
-	if len(*drops) != 2 || (*drops)[0] != (lootDrop{820, f.sid, tome}) || (*drops)[1] != (lootDrop{820, f.sid, wand}) {
+	if len(*drops) != 2 || (*drops)[0] != (lootDrop{820, false, tome}) || (*drops)[1] != (lootDrop{820, true, wand}) {
 		t.Fatalf("one kill on the tome's step dropped %v, want the tome and the wand", *drops)
 	}
 	f.own(wand, 1) // the wand taken first: step 1 still wants the tome
@@ -137,7 +139,7 @@ func TestALaterLootStepOfTheSameItemWantsItsOwn(t *testing.T) {
 	}
 	*drops = nil
 	f.killFor("fat piranha", 831)
-	if len(*drops) != 1 || (*drops)[0] != (lootDrop{831, f.sid, ruby}) {
+	if len(*drops) != 1 || (*drops)[0] != (lootDrop{831, false, ruby}) {
 		t.Fatalf("the piranha dropped %v, want the second half", *drops)
 	}
 	f.own(ruby, 1)
@@ -207,26 +209,26 @@ func prefarmQuest(f *questFixture, belt int, rolls ...float64) *[]lootDrop {
 }
 
 // On step 1, a kill of step 3's creature drops its item at the step's chance (0.7 none, 0.2 a
-// belt), up to the two the step wants (two held: no draw at all); the tracker shows them
+// belt), past the two the step wants too (two held: a third); the tracker shows the two
 // "(ahead)"; reaching step 3 (the bat killed) counts the two at once and moves on to step 4.
 func TestPreFarmALaterStepsItemCountsWhenItsStepComes(t *testing.T) {
 	f := newQuestFixture(t)
 	belt := f.pattern("slashed belt", 20)
-	drops := prefarmQuest(f, belt, 0.7, 0.2, 0.2)
+	drops := prefarmQuest(f, belt, 0.7, 0.2, 0.2, 0.2)
 	if _, err := f.qe.SetCharacterQuest(f.sid, 70, QuestGive, 0); err != nil {
 		t.Fatal(err)
 	}
 	f.killFor("Orc Pawn", 840) // 0.7: none
 	f.killFor("Orc Pawn", 841) // 0.2: a belt
-	if len(*drops) != 1 || (*drops)[0] != (lootDrop{841, f.sid, belt}) {
+	if len(*drops) != 1 || (*drops)[0] != (lootDrop{841, true, belt}) {
 		t.Fatalf("on step 1 the drops are %v, want a belt ahead of step 3 on 841", *drops)
 	}
 	f.own(belt, 1)
 	f.killFor("Orc Pawn", 842) // 0.2: the second
 	f.own(belt, 1)
-	f.killFor("Orc Pawn", 843) // two held of two: no draw, none
-	if len(*drops) != 2 {
-		t.Fatalf("drops %v, want two: no more than the step will take", *drops)
+	f.killFor("Orc Pawn", 843) // two held of two: 0.2, a third (it once stopped at the two)
+	if len(*drops) != 3 {
+		t.Fatalf("drops %v, want three: what is held stops no drop", *drops)
 	}
 	f.qe.mu.Lock()
 	tracker := show(f.qe.progressLocked(sessionInvList(f.tw.s), f.tw.p, f.qe.namedLocked(f.sid, "Talker")))
@@ -256,16 +258,17 @@ func TestPreFarmALaterStepsItemCountsWhenItsStepComes(t *testing.T) {
 }
 
 // The owner, 2026-11-18: "do not require quest at all, just drops". A quest not taken drops
-// its loot steps' items ahead as one under way does: quest 70's step 3, after a kill step, and
-// quest 71's tusk though the quest begins at level 20 and the player is level 5. Taken with the
-// tusk held, its step is done at once; finished (not repeatable), none drops again.
+// its loot steps' items as one under way does: quest 70's step 3, after a kill step, and quest
+// 71's tusk though the quest begins at level 20 and the player is level 5. One held, another
+// drops (2026-11-21); taken with the tusk held, its step is done at once; finished (not
+// repeatable), it drops again.
 func TestPreFarmANotTakenQuestDropsToo(t *testing.T) {
 	f := newQuestFixture(t)
 	belt := f.pattern("slashed belt", 20)
 	tusk := f.pattern("boar tusk", 20)
 	drops := prefarmQuest(f, belt, 0, 0, 0, 0, 0, 0)
 	f.killFor("Orc Pawn", 850)
-	if len(*drops) != 1 || (*drops)[0] != (lootDrop{850, f.sid, belt}) {
+	if len(*drops) != 1 || (*drops)[0] != (lootDrop{850, true, belt}) {
 		t.Fatalf("not taken, a loot step after a kill: drops %v, want the belt", *drops)
 	}
 	f.exec(`INSERT INTO quests (questid, name, enabled, giver, minlevel) VALUES (71, 'Tusks', 1, 'Malsis', 20)`)
@@ -280,9 +283,9 @@ func TestPreFarmANotTakenQuestDropsToo(t *testing.T) {
 	}
 	f.own(tusk, 1)
 	*drops = nil
-	f.killFor("a boar", 853) // one held of one: none
-	if len(*drops) != 0 {
-		t.Fatalf("the tusk held: dropped %v", *drops)
+	f.killFor("a boar", 853) // one held of one: another all the same
+	if len(*drops) != 1 || (*drops)[0].pattern != tusk {
+		t.Fatalf("the tusk held: dropped %v, want another tusk", *drops)
 	}
 	f.tw.p.Level = 20
 	if _, err := f.qe.SetCharacterQuest(f.sid, 71, QuestGive, 0); err != nil {
@@ -296,16 +299,18 @@ func TestPreFarmANotTakenQuestDropsToo(t *testing.T) {
 	}
 	f.exec(`DELETE FROM charinventory WHERE serverid = ?`, f.sid)
 	f.tw.s.SetInventoryList(newInvList(nil))
+	*drops = nil
 	f.killFor("a boar", 854)
-	if len(*drops) != 0 {
-		t.Fatalf("finished, not repeatable: dropped %v", *drops)
+	if len(*drops) != 1 || (*drops)[0] != (lootDrop{854, true, tusk}) {
+		t.Fatalf("finished, not repeatable: dropped %v, want the tusk", *drops)
 	}
 }
 
 // The exclusions (questpreloot.go's doc), each against a control that drops: a loot step whose
 // doing fires a trigger; a key an event reads (Tallon's Key); a creature the quest brings (the
 // mirrored soul, spawned by step 3: none on step 1, its item on step 3's own kill for step 4);
-// an item an earlier loot step still to do wants too (the Spider Queen's shards).
+// an item an earlier loot step still to do wants too (the Spider Queen's shards). None of them
+// drops to a killer with no quest either; Grosp's shard, the control, does.
 func TestPreFarmExclusions(t *testing.T) {
 	f := newQuestFixture(t)
 	belt := f.pattern("slashed belt", 20)
@@ -346,6 +351,15 @@ func TestPreFarmExclusions(t *testing.T) {
 	if len(*drops) != 1 || (*drops)[0].pattern != shard {
 		t.Fatalf("on step 1, Grosp dropped %v, want his shard ahead", *drops)
 	}
+	// a killer with no quest: the same
+	*drops = nil
+	for i, name := range []string{"mirrored soul", "fire beetle", "Zek Sergeant", "Fengzel", "Grosp"} {
+		f.qe.killed(entity.KillCredit{NPCName: name, NPCSpawn: entity.EntityID(880 + i), NPCID: entity.EntityID(880 + i), Died: time.Now(),
+			Players: []entity.KillPlayer{{ServerID: f.sid + 77, Name: "Stranger"}}})
+	}
+	if len(*drops) != 1 || (*drops)[0] != (lootDrop{884, true, shard}) {
+		t.Fatalf("a killer with no quest: drops %v, want Grosp's shard alone", *drops)
+	}
 	// on the step that brings the mirrored soul: its own kill drops the next step's scepter too
 	*drops = nil
 	if _, err := f.qe.SetCharacterQuest(f.sid, 72, QuestSetStep, 3); err != nil {
@@ -371,12 +385,13 @@ func TestPreFarmExclusions(t *testing.T) {
 	}
 }
 
-// A shared kill drops each player its own belt, at its own draw, on its own view of the corpse,
-// the quest not asked (the owner's "just drops"): the first on the quest, the second without it.
-func TestPreFarmASharedKillDropsEachQuesterItsOwn(t *testing.T) {
+// A shared kill drops ONE belt on the corpse, at one draw, whoever of the kill is on the quest
+// (the owner, 2026-11-21: "no instanced quest items for each character, so all 4 players dont
+// need to loot the corpse"): before, each player had its own belt at its own draw.
+func TestPreFarmASharedKillDropsOneBelt(t *testing.T) {
 	f := newQuestFixture(t)
 	belt := f.pattern("slashed belt", 20)
-	drops := prefarmQuest(f, belt, 0.2, 0.7, 0.1)
+	drops := prefarmQuest(f, belt, 0.2, 0.7, 0)
 	rec := &database.CharacterRecord{CharName: "Second", AccountID: 2}
 	if err := database.NewSQLiteCharacterStore(f.db).Create(rec); err != nil {
 		t.Fatal(err)
@@ -394,26 +409,16 @@ func TestPreFarmASharedKillDropsEachQuesterItsOwn(t *testing.T) {
 	if _, err := f.qe.SetCharacterQuest(f.sid, 70, QuestGive, 0); err != nil {
 		t.Fatal(err)
 	}
-	both(870) // 0.2 for the first: its belt; 0.7 for the second: none
-	if len(*drops) != 1 || (*drops)[0] != (lootDrop{870, f.sid, belt}) {
-		t.Fatalf("drops %v, want the first's belt alone", *drops)
+	both(870) // 0.2: one belt
+	if len(*drops) != 1 || (*drops)[0] != (lootDrop{870, true, belt}) {
+		t.Fatalf("drops %v, want one belt", *drops)
 	}
-	*drops = nil
-	both(871) // 0.1 for the first: a belt; the second's draw the default 0.99: none
-	if len(*drops) != 1 || (*drops)[0] != (lootDrop{871, f.sid, belt}) {
-		t.Fatalf("drops %v, want the first's second belt", *drops)
+	both(871) // 0.7: none, for either (one draw, not one each)
+	if len(*drops) != 1 {
+		t.Fatalf("drops %v after a draw of 0.7, want none more", *drops)
 	}
-	f.qe.roll = func() float64 { return 0 }
-	*drops = nil
-	both(872) // every draw 0: a belt each, the second without the quest too
-	got := map[uint32]bool{}
-	for _, d := range *drops {
-		got[d.char] = true
-		if d.npc != 872 || d.pattern != belt {
-			t.Fatalf("drop %v", d)
-		}
-	}
-	if len(*drops) != 2 || !got[f.sid] || !got[rec.ServerID] {
-		t.Fatalf("drops %v, want one belt each", *drops)
+	both(872) // 0: one belt, not one each
+	if len(*drops) != 2 || (*drops)[1] != (lootDrop{872, true, belt}) {
+		t.Fatalf("drops %v, want one belt on 872", *drops)
 	}
 }

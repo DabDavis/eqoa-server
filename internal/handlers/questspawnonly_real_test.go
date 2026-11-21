@@ -104,8 +104,8 @@ func TestRealQuestSpawnsStandOutOfTheWorld(t *testing.T) {
 	}
 	te := NewTriggerEngine(db, w, mgr, nil)
 	var drops []lootDrop
-	qe.drop = func(npc entity.EntityID, _ time.Time, char uint32, rec database.CharInventoryEntry) {
-		drops = append(drops, lootDrop{npc, char, rec.Pattern.PatternID})
+	qe.drop = func(npc entity.EntityID, _ time.Time, rec database.CharInventoryEntry, ahead bool) {
+		drops = append(drops, lootDrop{npc, ahead, rec.Pattern.PatternID})
 	}
 	qe.roll = func() float64 { return 0.99 }
 	rec := &database.CharacterRecord{CharName: "Spawntest", AccountID: 1}
@@ -178,7 +178,7 @@ func TestRealQuestSpawnsStandOutOfTheWorld(t *testing.T) {
 		drops = nil
 		qe.killed(entity.KillCredit{NPCName: c.Name, NPCID: c.ServerID, Died: time.Now(),
 			Players: []entity.KillPlayer{{ServerID: rec.ServerID, Name: p.Name}}})
-		if len(drops) != 1 || drops[0] != (lootDrop{c.ServerID, rec.ServerID, pid}) {
+		if len(drops) != 1 || drops[0] != (lootDrop{c.ServerID, false, pid}) {
 			t.Errorf("%d %q: the creation's drops %v, want item %d on it", qu.ID, qu.Name, drops, pid)
 		}
 		qe.Looted(sess, p, pid, 1)

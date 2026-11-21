@@ -278,7 +278,8 @@ func (r *SeasonRewards) Tick(d time.Duration) {
 			s := got[id] + int(d/time.Second)
 			for s >= 3600 {
 				s -= 3600
-				r.give(w.sess, row.Item, row.Hourly, "An hour of the season in Norrath!")
+				// its own goroutine's: under the session's item lists' hold (itemsync.go)
+				withItems(w.sess, func() { r.give(w.sess, row.Item, row.Hourly, "An hour of the season in Norrath!") })
 				log.Printf("SeasonRewards: %s: an hour played by %s: %d", row.Season, w.p.Name, row.Hourly)
 			}
 			got[id] = s

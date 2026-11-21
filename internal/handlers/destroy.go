@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/eqoa/pkg/pkg/buffer"
@@ -66,6 +67,9 @@ func (h *EquipHandler) destroy(sess *session.Session, key uint32, n int) bool {
 	idx, row, err := invItemByKey(items, l, key)
 	if err != nil {
 		log.Printf("DestroyItem: %s, key %d: %v", player.Name, key, err)
+		if isOutOfStep(err) {
+			resyncItems(sess, player.Name, fmt.Sprintf("DestroyItem: %v", err)) // itemsync.go
+		}
 		return false
 	}
 	// the client's Took asserts the record holds at least n, and the row

@@ -91,6 +91,13 @@ type Session struct {
 	// bankList is the same for the client's bank list (VIBankControl+8),
 	// which keeps keys of its own.
 	bankList interface{}
+	// itemsMu is held by whatever changes the client's item lists and tells
+	// it (LockItems): a key looked up, the list changed and the message
+	// queued, as one step.
+	itemsMu sync.Mutex
+	// itemsResync is when the item lists were last sent again for a key the
+	// server's copy did not hold (TakeItemsResync), in Unix nanoseconds.
+	itemsResync atomic.Int64
 	// merchantWindow is the handlers package's note of the list it last sent
 	// the client as 0x00B7 (handlers/buyback.go).
 	merchantWindow interface{}
@@ -1778,6 +1785,39 @@ func (s *Session) InventoryList() interface{} {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.inventoryList
+}
+
+// LockItems holds the session's item lists (the handlers package's copies of
+// the client's pack and bank lists, inventoryList and bankList) until
+// UnlockItems: every message of the session is handled under it (the UDP
+// listener's HandlerRegistry), and so is everything else that changes the
+// lists outside a handler (a spell's summoned items, a thrown potion, an
+// arrow spent). Each packet is handled in a goroutine of its own, and the
+// World's hooks run in theirs, so without it two of them interleaved: one
+// looked up a record's list index, the other took a record before it, and the
+// first took the record after the one asked for, or queued its message after
+// the other's while its change came first; the client, which applies the
+// messages in the order they come, then held records under keys the server's
+// copy did not (Live petition 5401, 2026-11-21: Cloth Pants that could be
+// neither sold nor destroyed). Not reentrant: what holds it never takes it
+// again.
+func (s *Session) LockItems() { s.itemsMu.Lock() }
+
+// UnlockItems lets LockItems' hold go.
+func (s *Session) UnlockItems() { s.itemsMu.Unlock() }
+
+// TakeItemsResync reports whether the item lists may be sent again now: not
+// within every of the last time it said so (which it notes as now).
+func (s *Session) TakeItemsResync(now time.Time, every time.Duration) bool {
+	for {
+		last := s.itemsResync.Load()
+		if last != 0 && now.Sub(time.Unix(0, last)) < every {
+			return false
+		}
+		if s.itemsResync.CompareAndSwap(last, now.UnixNano()) {
+			return true
+		}
+	}
 }
 
 // SetMerchantWindow stores the note of the merchant list last sent.

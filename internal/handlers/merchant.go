@@ -553,6 +553,9 @@ func (h *NPCWindowHandler) sell(sess *session.Session, id, key uint32, n int) bo
 	rec, found := inv.at(i)
 	if !found || rec.qty < n {
 		log.Printf("MerchantSell: %s sells %d of key %d, which the inventory does not hold", player.Name, n, key)
+		if !found {
+			resyncItems(sess, player.Name, fmt.Sprintf("MerchantSell: the client holds no record with key %d", key)) // itemsync.go
+		}
 		return false
 	}
 	row, err := h.inv.GetCharItem(player.CharServerID, rec.itemID)

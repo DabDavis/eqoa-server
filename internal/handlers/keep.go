@@ -425,7 +425,7 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 		}
 	}
 	if pack != nil {
-		pack.bank = bank // a Lore item in the bank is one held (itemlist.go's loreRoom)
+		pack.bank = bank                     // a Lore item in the bank is one held (itemlist.go's loreRoom)
 		pack.bankShared = sharedBank(player) // but not one in the account's (petition 2453)
 	}
 	sess.SetInventoryList(pack)
@@ -479,6 +479,17 @@ const ResumeLine = "The server was updated. You stayed in the world."
 // and, for a GM's client, the GM channel and its flight; and the line that says
 // what happened. It reports whether the session has a character.
 func ResumeDump(sess *session.Session, dead bool) bool {
+	if !dumpWhereItStands(sess, dead) {
+		return false
+	}
+	SendClientMessage(sess, ResumeLine)
+	return true
+}
+
+// dumpWhereItStands is ResumeDump without its line: the session's MemoryDump
+// where its character stands (home, respawned, when dead) and what the dump
+// leaves out. It reports whether the session has a character.
+func dumpWhereItStands(sess *session.Session, dead bool) bool {
 	h := keepChars.Load()
 	if h == nil || h.gameWorld == nil {
 		return false
@@ -523,7 +534,6 @@ func ResumeDump(sess *session.Session, dead bool) bool {
 			SendNoclip(sess, true) // and through walls (noclip.go)
 		}
 	}
-	SendClientMessage(sess, ResumeLine)
 	return true
 }
 

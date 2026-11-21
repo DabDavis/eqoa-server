@@ -1147,8 +1147,19 @@ func (r *HandlerRegistry) Register(opcode protocol.GameOpcode, handler Handler) 
 	r.handlers[opcode] = handler
 }
 
-// Handle dispatches a message to the appropriate handler.
+// Handle dispatches a message to the appropriate handler, under the
+// session's item lists' hold (session.LockItems): a client's packets are
+// handled each in a goroutine of its own (turns.go), so two of its messages
+// (a Destroy and a Take all, two Destroys, a cast that spends reagents) ran at
+// once and one's change to the lists came between the other's look-up and its
+// change, or before the other's message in the lists but after it in the
+// queue: the client's copy and the server's went apart (Live petition 5401).
+// One message of a session at a time, each whole.
 func (r *HandlerRegistry) Handle(sess *session.Session, msg *protocol.Message) {
+	if sess != nil {
+		sess.LockItems()
+		defer sess.UnlockItems()
+	}
 	r.mu.RLock()
 	handler, ok := r.handlers[msg.Opcode]
 	r.mu.RUnlock()

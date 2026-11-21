@@ -38,8 +38,20 @@ import (
 // player, beside its pet and its merc. It follows its owner as a pet does and
 // comes along through a teleport (never into capture the flag's arena: it
 // waits outside, ctfaway.go), goes when its owner dies, logs out (not kept
-// over a logout: the item calls it again) or dismisses it (/familiar dismiss),
-// and is carried through a keep restart.
+// over a logout: the item calls it again) or dismisses it (/familiar dismiss,
+// or Dismiss Pet: below), and is carried through a keep restart.
+//
+// It is on its owner's pet bar while the owner has no pet (jibrish,
+// 2026-11-21: "add a way to dismiss healbot on heirloom, bind it to dismiss
+// pet"): CLIENT sends a pet command (0x0041) only with m_petId set (word 1021
+// otherwise, never sent), so the familiar is told as the pet (0x007E) whenever
+// no pet is out (familiarBarLocked), and PetCommand takes a command with no pet
+// as the familiar's: Dismiss Pet (5) sends it away, every other is answered
+// that it does not fight. A pet's 0x007E takes the bar from it (a summoning, a
+// charm), and once the pet goes (its 0x007F) the familiar is told again; it
+// goes off the bar (0x007F) when it goes. It stays no pet: not on w.pets, so a
+// summoning, a charm and a pet's spell go as with none out (the genie's rule,
+// genie.go).
 //
 // It is never fought: an NPC with the NPC bit (npc flags 0x80, as the genie's,
 // never owned) is no player's or pet's to attack, no guard's, no area spell's
@@ -84,7 +96,16 @@ type familiarState struct {
 	nextHeal  time.Time
 	last      time.Time
 	noCollide bool
+	// told is the object id its owner's client was told as its pet (0x007E:
+	// familiarBarLocked), 0 none: a pet's on the bar, or not yet
+	told uint32
 }
+
+// The familiar's answers to a pet command (ours).
+const (
+	familiarDismissed = "You dismiss %s."
+	familiarNoFight   = "%s does not fight."
+)
 
 // familiarCastID is a familiar item's cast's id: no spell's, no effect's (the
 // Rock of Freeport's cast is -1005).
@@ -150,6 +171,7 @@ func (w *World) summonFamiliarLocked(p *Player, sess *session.Session, d *Famili
 	}
 	w.familiars[p.ServerID] = fs
 	w.familiarTellLocked(fs, sess)
+	w.familiarBarLocked(fs, sess)
 	log.Printf("Familiar: %s calls %q (body %#x, size %.2f): %d HP, %d a tick, heals %d below %d%% every %v",
 		p.Name, n.Name, d.Model, n.Size, n.MaxHP, d.Regen, d.Heal, d.HealBelow, d.HealEvery)
 }
@@ -178,13 +200,18 @@ func (w *World) RestoreFamiliar(sess *session.Session, d FamiliarDef, hpShare fl
 }
 
 // familiarGoesLocked takes the familiar out of the world at once, off its
-// owner's non-collide list (sess, the owner's, or nil). Must be called with
-// the lock held.
+// owner's pet bar when it is there (0x007F; never a pet's) and off its
+// non-collide list (sess, the owner's, or nil). Must be called with the lock
+// held.
 func (w *World) familiarGoesLocked(fs *familiarState, sess *session.Session) {
 	n := fs.npc
 	if w.familiars[fs.owner.ServerID] == fs {
 		delete(w.familiars, fs.owner.ServerID)
 	}
+	if sess != nil && fs.told != 0 && w.pets[fs.owner.ServerID] == nil {
+		sendClearPet(sess)
+	}
+	fs.told = 0
 	if sess != nil && fs.noCollide {
 		sendNoCollideRemove(sess, familiarNoCollideID)
 	}
@@ -203,6 +230,58 @@ func (w *World) familiarTellLocked(fs *familiarState, sess *session.Session) {
 	}
 	sendNoCollideAdd(sess, fs.npc.Name, familiarNoCollideID)
 	fs.noCollide = true
+}
+
+// familiarBarLocked puts the familiar on its owner's pet bar (0x007E) while
+// the owner has no pet, so that CLIENT's pet commands reach it (the file's
+// doc): told again when its id changed (a MemoryDump or a new login cleared
+// it: PetDumped, takeover.go; a pet's 0x007E took the bar), on one of the
+// session's entity slots first if it is not on one, as a pet's
+// (announcePetLocked). With a pet out (one on w.pets, alive or not yet taken
+// away: its own 0x007E and 0x007F are the bar's) it tells nothing and marks
+// itself off the bar. Must be called with the lock held.
+func (w *World) familiarBarLocked(fs *familiarState, sess *session.Session) {
+	if w.pets[fs.owner.ServerID] != nil {
+		fs.told = 0
+		return
+	}
+	if sess == nil {
+		return
+	}
+	id := w.objectIDForEntityLocked(sess, fs.npc.ServerID)
+	if id == 0 {
+		id = w.pinPetChannelLocked(sess, fs.npc)
+	}
+	if id != 0 && id != fs.told {
+		sendSetPet(sess, id)
+		fs.told = id
+	}
+}
+
+// familiarOnBarLocked is p's familiar when its client has it as its pet
+// (familiarBarLocked), nil otherwise. Must be called with the lock held.
+func (w *World) familiarOnBarLocked(p *Player) *familiarState {
+	fs := w.familiars[p.idOrZero()]
+	if p == nil || fs == nil || fs.owner != p || fs.told == 0 || fs.npc.Dead {
+		return nil
+	}
+	return fs
+}
+
+// familiarCommandLocked is a pet command (0x0041) to the familiar on its
+// owner's pet bar: Dismiss Pet (5) sends it away, as /familiar dismiss; 0 and
+// 6 are no command; any other (a stance, back off, attack) is answered that
+// it does not fight. Must be called with the lock held.
+func (w *World) familiarCommandLocked(fs *familiarState, sess *session.Session, cmd byte) {
+	switch cmd {
+	case 0, 6:
+	case petCmdDismiss:
+		name := fs.npc.Name
+		w.familiarGoesLocked(fs, sess)
+		w.sendChatToSession(sess, fmt.Sprintf(familiarDismissed, name))
+	default:
+		w.sendChatToSession(sess, fmt.Sprintf(familiarNoFight, fs.npc.Name))
+	}
 }
 
 // DismissFamiliar sends the session's player's familiar away. It reports its
@@ -285,6 +364,7 @@ func (w *World) familiarSystem(now time.Time) {
 		n.Level = owner.Level
 		w.familiarActLocked(fs, sess, now)
 		w.familiarTellLocked(fs, sess)
+		w.familiarBarLocked(fs, sess)
 	}
 }
 

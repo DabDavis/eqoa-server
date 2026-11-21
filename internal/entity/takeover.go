@@ -190,6 +190,9 @@ func (w *World) handedOverLocked(p *Player) {
 	if ps := w.petStateLocked(p); ps != nil {
 		ps.told = 0 // and its pet (0x007E), as after any dump
 	}
+	if fs := w.familiars[p.ServerID]; fs != nil && fs.owner == p {
+		fs.told = 0 // or its familiar on the pet bar (familiar.go)
+	}
 }
 
 // takeoverOfLocked is what p carries now. Must be called with the lock held.

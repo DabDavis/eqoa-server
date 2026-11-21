@@ -725,6 +725,14 @@ type WorldConfig struct {
 	// Unset or false: everything as before.
 	VanillaUI bool `yaml:"vanilla_ui"`
 
+	// FollowAnyPlayer false is the game's own follow (handlers/vanillaui.go,
+	// QoLFollowGroupOnly; Live petition 5400, Innoruuk: "Auto follow currently
+	// allowing to auto follow people not in group"; the owner 2026-11-21: group
+	// only on Live): a vanilla client is told (protocol.OpcodeVanillaUI) to
+	// follow group members only, as CLIENT's ToggleFollow does. Unset or true:
+	// any player can follow any player (the owner, 2026-11-11), Heirloom's.
+	FollowAnyPlayer *bool `yaml:"follow_any_player"`
+
 	// OGAccounts turns [OG] characters on (handlers/ogaccount.go; the owner,
 	// 2026-11-18, for the Vanilla Test server: "[OG] tag shows players you
 	// opt-out of the QoL changes to EQOA and only use the most basic upgrades

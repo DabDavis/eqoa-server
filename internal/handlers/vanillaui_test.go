@@ -213,3 +213,49 @@ func TestVanillaUIConIsTheGames(t *testing.T) {
 		t.Fatalf("a target box offer went with vanilla_ui: %d messages", len(got))
 	}
 }
+
+// world.follow_any_player false (Live petition 5400, Innoruuk: "Auto follow
+// currently allowing to auto follow people not in group"; the owner
+// 2026-11-21: group only on Live): a vanilla client is sent
+// QoLFollowGroupOnly, alone on a shard without world.vanilla_ui, with
+// QoLAllOff where it is set. The control: unset (true), nothing is sent.
+func TestFollowGroupOnlyIsSentPerConfig(t *testing.T) {
+	_, h, _, as, _ := bugWorld(t)
+	yes := []byte{1, 0, 0, 0}
+	if !FollowAnyPlayer() {
+		t.Fatal("world.follow_any_player is on unless set")
+	}
+	as.Queue().GetPending()
+	h.handleBugReportOffer(as, incoming(protocol.OpcodeBugReportOffer, yes))
+	if got := vanillaUISent(as); len(got) != 0 {
+		t.Fatalf("follow any player: sent % x", got)
+	}
+
+	SetFollowAnyPlayer(false)
+	t.Cleanup(func() { SetFollowAnyPlayer(true) })
+	msg := func(off uint32) []byte {
+		b := binary.LittleEndian.AppendUint16(nil, uint16(protocol.OpcodeVanillaUI))
+		return binary.LittleEndian.AppendUint32(append(b, 1), off)
+	}
+	as.Queue().GetPending()
+	h.handleBugReportOffer(as, incoming(protocol.OpcodeBugReportOffer, yes))
+	if got := vanillaUISent(as); len(got) != 1 || !bytes.Equal(got[0], msg(QoLFollowGroupOnly)) {
+		t.Fatalf("group only: sent % x, want % x", got, msg(QoLFollowGroupOnly))
+	}
+	if QoLFollowGroupOnly != 1<<15 || QoLAllOff&QoLFollowGroupOnly != 0 || QoLOGOff&QoLFollowGroupOnly != 0 {
+		t.Fatalf("bit %#x: vanilla's settings::qol::FOLLOW_GROUP_ONLY is 1 << 15, apart from the others", QoLFollowGroupOnly)
+	}
+
+	vanillaUISwitch(t)
+	as.Queue().GetPending()
+	h.handleBugReportOffer(as, incoming(protocol.OpcodeBugReportOffer, yes))
+	if got := vanillaUISent(as); len(got) != 1 || !bytes.Equal(got[0], msg(QoLAllOff|QoLFollowGroupOnly)) {
+		t.Fatalf("with vanilla_ui: sent % x", got)
+	}
+
+	ps2 := entitySlotsSession()
+	SendVanillaUI(ps2)
+	if got := vanillaUISent(ps2); len(got) != 0 {
+		t.Fatal("a client that never answered the bug report offer was sent it")
+	}
+}

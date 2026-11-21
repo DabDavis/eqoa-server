@@ -100,6 +100,11 @@ world:
   # off its own (quest helper, stat caps, auto-cast, bars 3-4...) and to start
   # the map, minimap and item links off. Off unless set.
   # vanilla_ui: true
+  # Follow (vanilla's /follow and quick command): false tells vanilla
+  # (opcode 0x7EA0, bit 15) to follow group members only, as the game does
+  # (Live petition 5400, the owner 2026-11-21: group only on Live). Unset, or
+  # set to true, any player can follow any player (Heirloom).
+  # follow_any_player: false
 
   # [OG] characters (handlers/ogaccount.go, database/ogchar.go; the Vanilla
   # Test shard, the owner 2026-11-18, a character's since 2026-11-19): a new

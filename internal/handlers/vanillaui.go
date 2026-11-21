@@ -82,7 +82,25 @@ const (
 	QoLLocked  uint32 = 1 << 12 // QoLMap and QoLItemLinks LOCKED off, not off by default: no row turns them on
 	QoLNoMouse uint32 = 1 << 13 // the mouse does nothing in the world (keyboard and controllers)
 	QoLNoTouch uint32 = 1 << 14 // no touch pad, the touch screen does nothing in the world
+	// world.follow_any_player false's, on any session, never part of QoLAllOff:
+	QoLFollowGroupOnly uint32 = 1 << 15 // follow takes group members only (CLIENT's ToggleFollow, word 1195)
 )
+
+// followAnyPlayer is world.follow_any_player: on unless set false.
+var followAnyPlayer atomic.Bool
+
+func init() { followAnyPlayer.Store(true) }
+
+// SetFollowAnyPlayer sets world.follow_any_player: on, any player can follow
+// any player (the owner, 2026-11-11, Heirloom's); off, a vanilla client is
+// told QoLFollowGroupOnly and follows group members only, as CLIENT's
+// ToggleFollow does (Live petition 5400, Innoruuk: "Auto follow currently
+// allowing to auto follow people not in group"; the owner 2026-11-21: group
+// only on Live). A client never told the bit follows any player.
+func SetFollowAnyPlayer(on bool) { followAnyPlayer.Store(on) }
+
+// FollowAnyPlayer reports world.follow_any_player.
+func FollowAnyPlayer() bool { return followAnyPlayer.Load() }
 
 // QoLOGOff is what an [OG] character's session is sent: every addition off, the
 // map and links locked, no mouse, no touch.
@@ -104,8 +122,9 @@ func buildVanillaUI(off uint32) []byte {
 }
 
 // SendVanillaUI tells a vanilla client (one that answered the bug report
-// offer) what is off on this server, where world.vanilla_ui is set; elsewhere,
-// and to any other client, nothing goes.
+// offer) what is off on this server, where world.vanilla_ui is set, for an
+// [OG] character, or where world.follow_any_player is false; elsewhere, and
+// to any other client, nothing goes.
 func SendVanillaUI(sess *session.Session) {
 	off := vanillaUIBits(sess)
 	if off == 0 || !sess.BugReports() {
@@ -116,15 +135,19 @@ func SendVanillaUI(sess *session.Session) {
 
 // vanillaUIBits is what the session's client is told is off: an [OG]
 // character's QoLOGOff (ogaccount.go), else world.vanilla_ui's QoLAllOff, else
-// nothing.
+// nothing; and QoLFollowGroupOnly with world.follow_any_player false.
 func vanillaUIBits(sess *session.Session) uint32 {
+	var off uint32
 	switch {
 	case sess.OG():
-		return QoLOGOff
+		off = QoLOGOff
 	case VanillaUI():
-		return QoLAllOff
+		off = QoLAllOff
 	}
-	return 0
+	if !FollowAnyPlayer() {
+		off |= QoLFollowGroupOnly
+	}
+	return off
 }
 
 // stopKeptQoL ends, at a keep restart's resume into world.vanilla_ui, what the

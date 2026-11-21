@@ -1422,7 +1422,9 @@ const (
 	// world entry where world.vanilla_ui is set; a server without it never
 	// sends one, and the client keeps everything. An [OG] account's session
 	// (world.og_accounts, handlers/ogaccount.go) is sent QoLOGOff: bits 12
-	// to 14 too (the map and links locked, no mouse, no touch).
+	// to 14 too (the map and links locked, no mouse, no touch). Bit 15
+	// (QoLFollowGroupOnly) goes to every vanilla session where
+	// world.follow_any_player is false: follow takes group members only.
 	OpcodeVanillaUI GameOpcode = 0x7EA0
 
 	// OpcodeMailAttach is not retail: what a tell-gram carries, tunar and an

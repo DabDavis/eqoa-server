@@ -806,6 +806,11 @@ func main() {
 	if cfg.World.VanillaUI {
 		log.Printf("Vanilla UI: no quality-of-life additions (world.vanilla_ui)")
 	}
+	// follow: any player, or group members only (handlers/vanillaui.go)
+	handlers.SetFollowAnyPlayer(cfg.World.FollowAnyPlayer == nil || *cfg.World.FollowAnyPlayer)
+	if !handlers.FollowAnyPlayer() {
+		log.Printf("Follow: group members only (world.follow_any_player false)")
+	}
 	// [OG] characters: chosen when new, the game's own UI for their sessions,
 	// drawn "[OG] Name" (handlers/ogaccount.go, database/ogchar.go)
 	handlers.SetOGAccounts(cfg.World.OGAccounts)

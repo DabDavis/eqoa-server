@@ -1,0 +1,8177 @@
+{
+ "entries": [
+  {
+   "fields": {
+    "intelligence": {
+     "guide": -50,
+     "read": [
+      63
+     ]
+    }
+   },
+   "guide_name": "Amulet of Loathing",
+   "name": "Amulet of Loathing",
+   "threads": [
+    "t287"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": -100,
+     "read": [
+      63
+     ]
+    }
+   },
+   "guide_name": "Amulet of Necropotence",
+   "name": "Amulet of Necropotence",
+   "threads": [
+    "t287"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    },
+    "sta": {
+     "guide": 30,
+     "read": [
+      20
+     ]
+    }
+   },
+   "guide_name": "Andelfoof's gown",
+   "name": "Andelfoof's gown",
+   "threads": [
+    "t291",
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "str": {
+     "guide": -15,
+     "read": [
+      63
+     ]
+    }
+   },
+   "guide_name": "arcanist's robe",
+   "name": "arcanist's robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "dex": {
+     "guide": 15,
+     "prior": "live 2026-11-19 tool",
+     "read": [
+      12
+     ],
+     "suspect": "guide threads disagree ['12', '15']"
+    }
+   },
+   "guide_name": "ash robe",
+   "name": "ash robe",
+   "threads": [
+    "t291",
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 0,
+     "read": [
+      64
+     ]
+    }
+   },
+   "guide_name": "Assassin's Bracelet",
+   "name": "Assassin's Bracelet",
+   "threads": [
+    "t287",
+    "t297"
+   ]
+  },
+  {
+   "fields": {
+    "DR": {
+     "guide": -30,
+     "read": [
+      63
+     ]
+    },
+    "PR": {
+     "guide": -48,
+     "read": [
+      63
+     ]
+    }
+   },
+   "guide_name": "Astralmetal Ring",
+   "name": "astralmetal ring",
+   "threads": [
+    "t284"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 65,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Badland Bracers",
+   "name": "Badland Bracers",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 65,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Badland Leggings",
+   "name": "badland leggings",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 65,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Badland Tunic",
+   "name": "Badland Tunic",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 60,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Bangle of Nimbleness",
+   "name": "Bangle of Nimbleness",
+   "threads": [
+    "t295"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Bastion Helm",
+   "name": "Bastion Helm",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "BATTLE ROBE",
+   "name": "battle robe",
+   "threads": [
+    "t285",
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Battleborn earring",
+   "name": "Battleborn Earring",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "PoT": {
+     "guide": 5,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "beguiler's gown",
+   "name": "Beguiler's Gown",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 20 under str"
+    },
+    "AR": {
+     "guide": 5,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 5 under dex"
+    },
+    "POWMAX": {
+     "guide": 30,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 30 under sta"
+    },
+    "cha": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 20 under str"
+    }
+   },
+   "guide_name": "beguiling robe",
+   "name": "Beguiling Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 99,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 14200,
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "belt of red dragon scales",
+   "name": "belt of red dragon scales",
+   "threads": [
+    "t283",
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Bile Etched Obsidian Choker",
+   "name": "Bile Etched Obsidian Choker",
+   "threads": [
+    "t283",
+    "t287"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 90,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 13600,
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Bladestopper",
+   "name": "Bladestopper",
+   "threads": [
+    "t283",
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "blessed protector",
+   "name": "blessed protector",
+   "threads": [
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "AR": {
+     "guide": 8,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 8 under dex"
+    },
+    "HPMAX": {
+     "guide": 25,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 25 under str"
+    },
+    "LR": {
+     "guide": 5,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 5 under intelligence"
+    },
+    "POWMAX": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 20 under sta"
+    },
+    "PoT": {
+     "guide": 10,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "Bloodgale battlehammer",
+   "name": "Bloodgale Battlehammer",
+   "threads": [
+    "t397"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 25,
+     "read": [
+      0
+     ]
+    },
+    "HPMAX": {
+     "guide": 55,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 55 under agi"
+    },
+    "POWMAX": {
+     "guide": 35,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 35 under dex"
+    },
+    "intelligence": {
+     "guide": 10,
+     "read": [
+      25
+     ]
+    }
+   },
+   "guide_name": "bloodshade robe",
+   "name": "Bloodshade Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "levelreq": {
+     "guide": 5,
+     "read": [
+      4
+     ]
+    }
+   },
+   "guide_name": "blue robe",
+   "name": "blue robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 30,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 30 under agi"
+    },
+    "HPMAX": {
+     "guide": 120,
+     "read": [
+      0
+     ]
+    },
+    "sta": {
+     "guide": 15,
+     "read": [
+      120
+     ],
+     "suspect": "0.12x ours"
+    }
+   },
+   "guide_name": "boar skin robe",
+   "name": "Boar Skin Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": 55,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 55 under agi"
+    },
+    "POWMAX": {
+     "guide": 75,
+     "read": [
+      0
+     ]
+    },
+    "dex": {
+     "guide": 10,
+     "read": [
+      75
+     ],
+     "suspect": "0.13x ours"
+    },
+    "intelligence": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 20 under sta"
+    }
+   },
+   "guide_name": "bogwater robe",
+   "name": "Bogwater Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 35,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 35 under wis"
+    },
+    "AR": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 10 under str"
+    },
+    "HPMAX": {
+     "guide": 30,
+     "read": [
+      8
+     ],
+     "suspect": "3.75x ours"
+    },
+    "POWMAX": {
+     "guide": 55,
+     "read": [
+      0
+     ]
+    },
+    "PR": {
+     "guide": 8,
+     "read": [
+      0
+     ]
+    },
+    "dex": {
+     "guide": 10,
+     "read": [
+      30
+     ],
+     "suspect": "0.33x ours"
+    },
+    "intelligence": {
+     "guide": 5,
+     "read": [
+      55
+     ],
+     "suspect": "0.09x ours"
+    }
+   },
+   "guide_name": "boneweave robe",
+   "name": "Boneweave Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 20 under agi"
+    },
+    "DR": {
+     "guide": 15,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 15 under dex"
+    },
+    "HPMAX": {
+     "guide": 30,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 30 under str"
+    },
+    "PoT": {
+     "guide": 10,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "boneweave shroud",
+   "name": "Boneweave Shroud",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 120,
+     "prior": "live 2026-11-16 tool",
+     "read": [
+      31
+     ],
+     "suspect": "guide threads disagree ['120', '31']"
+    },
+    "intelligence": {
+     "guide": -50,
+     "prior": "live 2026-11-16 tool",
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['-50', 'None']"
+    },
+    "sta": {
+     "guide": 25,
+     "prior": "live 2026-11-16 tool",
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['25', 'None']"
+    },
+    "wis": {
+     "guide": 20,
+     "prior": "live 2026-11-16 tool",
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['20', 'None']"
+    }
+   },
+   "guide_name": "Boots of Doubt",
+   "name": "Boots of Doubt",
+   "threads": [
+    "t287"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 38,
+     "read": [
+      31
+     ]
+    }
+   },
+   "guide_name": "Boots of loathing",
+   "name": "Boots of Loathing",
+   "threads": [
+    "t287"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Boots of the Chosen",
+   "name": "Boots of the Chosen",
+   "threads": [
+    "t295"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 10,
+     "read": [
+      101
+     ],
+     "suspect": "0.10x ours"
+    }
+   },
+   "guide_name": "Boots of the Mystic",
+   "name": "Boots of the Mystic",
+   "threads": [
+    "t290"
+   ]
+  },
+  {
+   "fields": {
+    "str": {
+     "guide": -50,
+     "read": [
+      63
+     ]
+    }
+   },
+   "guide_name": "Bracelet of Horror",
+   "name": "Bracelet of Horror",
+   "threads": [
+    "t287"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 13900,
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Bracers of Annihilation",
+   "name": "bracers of annihilation",
+   "threads": [
+    "t283",
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 60,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Bracers of Devotion",
+   "name": "bracers of devotion",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 123,
+     "read": [
+      151
+     ]
+    }
+   },
+   "guide_name": "Bracers of the Traveler",
+   "name": "bracers of the Traveler",
+   "threads": [
+    "t290"
+   ]
+  },
+  {
+   "fields": {
+    "sta": {
+     "guide": 25,
+     "read": [
+      28
+     ]
+    }
+   },
+   "guide_name": "Branched necklace",
+   "name": "branched necklace",
+   "threads": [
+    "t289"
+   ]
+  },
+  {
+   "fields": {
+    "str": {
+     "guide": 62,
+     "read": [
+      61
+     ]
+    }
+   },
+   "guide_name": "Brawny Bangle",
+   "name": "brawny bangle",
+   "threads": [
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 13400,
+     "read": [
+      12600
+     ]
+    }
+   },
+   "guide_name": "Breastplate of Disbelief",
+   "name": "Breastplate of Disbelief",
+   "threads": [
+    "t283",
+    "t287"
+   ]
+  },
+  {
+   "fields": {
+    "AR": {
+     "guide": 10,
+     "prior": "heirloom 2026-11-07 tool",
+     "read": [
+      30
+     ],
+     "suspect": "0.33x ours"
+    }
+   },
+   "guide_name": "Breastplate of the Annointed",
+   "name": "Breastplate of the Anointed",
+   "threads": [
+    "t283"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 28,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 28 under agi"
+    },
+    "AR": {
+     "guide": 6,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 6 under dex"
+    },
+    "cha": {
+     "guide": 17,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 17 under sta"
+    },
+    "wis": {
+     "guide": 24,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 24 under str"
+    }
+   },
+   "guide_name": "butterfly winged robe",
+   "name": "Butterfly Winged Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "dex": {
+     "guide": 14,
+     "read": [
+      15
+     ]
+    }
+   },
+   "guide_name": "Calanin's Vestment",
+   "name": "Calanin's vestments",
+   "threads": [
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 60,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Campaigner Legs",
+   "name": "Campaigner Legs",
+   "threads": [
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": 165,
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['165', 'None']"
+    },
+    "duration": {
+     "guide": 60,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Campaigner's Tunic",
+   "name": "Campaigner's Tunic",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Caretaker's Bracers",
+   "name": "Caretaker's Bracers",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Caretaker's Breastplate",
+   "name": "Caretaker's Breastplate",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "weapondamage": {
+     "guide": 595,
+     "prior": "live 2026-11-15 tool",
+     "read": [
+      598
+     ]
+    }
+   },
+   "guide_name": "Carnage",
+   "name": "Carnage",
+   "threads": [
+    "t287",
+    "t297"
+   ]
+  },
+  {
+   "fields": {
+    "AR": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 10 under str"
+    },
+    "HPMAX": {
+     "guide": 50,
+     "read": [
+      0
+     ]
+    },
+    "LR": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 10 under str"
+    },
+    "agi": {
+     "guide": 20,
+     "read": [
+      50
+     ]
+    },
+    "sta": {
+     "guide": 10,
+     "read": [
+      20
+     ]
+    }
+   },
+   "guide_name": "Catlink Boots",
+   "name": "Catlink Boots",
+   "threads": [
+    "t617"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 15900,
+     "read": [
+      12600
+     ]
+    }
+   },
+   "guide_name": "Chestplate of the Bastion",
+   "name": "Chestplate of the Bastion",
+   "threads": [
+    "t283",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 16000,
+     "read": [
+      12600
+     ]
+    }
+   },
+   "guide_name": "Chestplate of the Icy Whirlwind",
+   "name": "Chestplate of the Icy Whirlwind",
+   "threads": [
+    "t283"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 40,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 40 under wis"
+    },
+    "HPMAX": {
+     "guide": 25,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 25 under intelligence"
+    },
+    "POWMAX": {
+     "guide": 25,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 25 under intelligence"
+    },
+    "dex": {
+     "guide": 10,
+     "read": [
+      25
+     ]
+    }
+   },
+   "guide_name": "chillfist shroud",
+   "name": "Chillfist Shroud",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": 80,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 80 under str"
+    },
+    "POWMAX": {
+     "guide": 75,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 75 under sta"
+    }
+   },
+   "guide_name": "chimera skin robe",
+   "name": "Chimera Skin Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": 150,
+     "read": [
+      100
+     ],
+     "suspect": "guide threads disagree ['100', '150']"
+    },
+    "wis": {
+     "guide": 25,
+     "read": [
+      15
+     ],
+     "suspect": "guide threads disagree ['15', '25']"
+    }
+   },
+   "guide_name": "Chosen's Staff",
+   "name": "Chosen's Staff",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "FR": {
+     "guide": 20,
+     "read": [
+      15
+     ]
+    }
+   },
+   "guide_name": "Cindersilk Sandals",
+   "name": "cindersilk sandals",
+   "threads": [
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "POWMAX": {
+     "guide": 111,
+     "read": [
+      210
+     ]
+    },
+    "cha": {
+     "guide": 20,
+     "read": [
+      0
+     ]
+    },
+    "intelligence": {
+     "guide": 20,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "circlet of spun ether",
+   "name": "Circlet of Spun Ether",
+   "threads": [
+    "t284"
+   ]
+  },
+  {
+   "fields": {
+    "weapondamage": {
+     "guide": 690,
+     "read": [
+      697
+     ]
+    }
+   },
+   "guide_name": "Claws of the beast",
+   "name": "claws of the beast",
+   "threads": [
+    "t286",
+    "t296",
+    "t616"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": 100,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 100 under intelligence"
+    },
+    "cha": {
+     "guide": 5,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 5 under str"
+    },
+    "wis": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 10 under agi"
+    }
+   },
+   "guide_name": "clay robe",
+   "name": "Clay Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 43,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 43 under intelligence"
+    },
+    "CR": {
+     "guide": 3,
+     "read": [
+      0
+     ]
+    },
+    "FR": {
+     "guide": 15,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 15 under agi"
+    },
+    "HPMAX": {
+     "guide": 15,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 15 under agi"
+    },
+    "POWMAX": {
+     "guide": 51,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 51 under dex"
+    },
+    "cha": {
+     "guide": 3,
+     "read": [
+      15
+     ]
+    },
+    "wis": {
+     "guide": 17,
+     "read": [
+      3
+     ]
+    }
+   },
+   "guide_name": "confluent robe",
+   "name": "Confluent Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 57,
+     "read": [
+      0
+     ]
+    },
+    "AR": {
+     "guide": 4,
+     "read": [
+      0
+     ]
+    },
+    "HPMAX": {
+     "guide": 18,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 18 under agi"
+    },
+    "POWMAX": {
+     "guide": 63,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 63 under dex"
+    },
+    "PR": {
+     "guide": 20,
+     "read": [
+      0
+     ]
+    },
+    "cha": {
+     "guide": 23,
+     "read": [
+      20
+     ]
+    },
+    "intelligence": {
+     "guide": 5,
+     "read": [
+      57
+     ],
+     "suspect": "0.09x ours"
+    }
+   },
+   "guide_name": "cotidal robe",
+   "name": "Cotidal Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 134000,
+     "read": [
+      13400
+     ],
+     "suspect": "guide threads disagree ['13400', '134000']"
+    }
+   },
+   "guide_name": "Crimson Robe",
+   "name": "Crimson Robe",
+   "threads": [
+    "t287",
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 60,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Crown of Tactics",
+   "name": "Crown of Tactics",
+   "threads": [
+    "t295"
+   ]
+  },
+  {
+   "fields": {
+    "CR": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['20', 'None']"
+    }
+   },
+   "guide_name": "Dark Lord's bracers",
+   "name": "Dark Lord's bracers",
+   "threads": [
+    "t287",
+    "t297"
+   ]
+  },
+  {
+   "fields": {
+    "AR": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 20 under DR"
+    }
+   },
+   "guide_name": "Dark Lord's Leggings",
+   "name": "Dark Lord's Leggings",
+   "threads": [
+    "t287",
+    "t297"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 45,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 45 under dex"
+    },
+    "CR": {
+     "guide": 15,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 15 under str"
+    },
+    "HPMAX": {
+     "guide": 75,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 75 under sta"
+    },
+    "PoT": {
+     "guide": 10,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "darkvine robe",
+   "name": "Darkvine Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "cha": {
+     "guide": 10,
+     "read": [
+      20
+     ],
+     "suspect": "guide threads disagree ['10', '20']"
+    },
+    "wis": {
+     "guide": 20,
+     "read": [
+      10
+     ],
+     "suspect": "guide threads disagree ['10', '20']"
+    }
+   },
+   "guide_name": "Dawnfire, morning star of Light",
+   "name": "DawnFire, Morning Star of Light",
+   "threads": [
+    "t287"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 65,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Deadstone Bracers",
+   "name": "Deadstone Bracers",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 65,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Deadstone Leggings",
+   "name": "Deadstone Leggings",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 65,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Deadstone Tunic",
+   "name": "Deadstone Tunic",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "AR": {
+     "guide": 15,
+     "prior": "heirloom 2026-11-11 oauth",
+     "read": [
+      5
+     ]
+    }
+   },
+   "guide_name": "decaying hide robe",
+   "name": "decaying hide robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 7,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 7 under agi"
+    },
+    "POWMAX": {
+     "guide": 71,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 71 under sta"
+    },
+    "cha": {
+     "guide": 30,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 30 under str"
+    }
+   },
+   "guide_name": "dire rat hide robe",
+   "name": "Dire Rat Hide Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "cha": {
+     "guide": -35,
+     "read": [
+      63
+     ]
+    }
+   },
+   "guide_name": "dirty silken gown",
+   "name": "dirty silken gown",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 66,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Donals Hammer",
+   "name": "Donal's Hammer",
+   "threads": [
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": 50,
+     "read": [
+      90
+     ]
+    }
+   },
+   "guide_name": "Dreadskin Shield",
+   "name": "Dreadskin Shield",
+   "threads": [
+    "t287",
+    "t297"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 5,
+     "read": [
+      15
+     ]
+    },
+    "PR": {
+     "guide": 8,
+     "read": [
+      5
+     ]
+    }
+   },
+   "guide_name": "dread swamp offering",
+   "name": "Dreadswamp Offering",
+   "threads": [
+    "t287",
+    "t297"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 14500,
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Earring of Fortitude",
+   "name": "earring of fortitude",
+   "threads": [
+    "t283",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": 210,
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['210', 'None']"
+    },
+    "sta": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['10', 'None']"
+    }
+   },
+   "guide_name": "Earring of Loathing",
+   "name": "Earring of Loathing",
+   "threads": [
+    "t287"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Earring of Overflowing Efficancy",
+   "name": "Earring of Overflowing Efficancy",
+   "threads": [
+    "t295"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Earring of Sharpened Intellect",
+   "name": "Earring of Sharpened Intellect",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 60,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "earring of strategy",
+   "name": "earring of strategy",
+   "threads": [
+    "t295"
+   ]
+  },
+  {
+   "fields": {
+    "dex": {
+     "guide": 20,
+     "read": [
+      25
+     ]
+    },
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "earring of virtues",
+   "name": "earring of virtues",
+   "threads": [
+    "t295"
+   ]
+  },
+  {
+   "fields": {
+    "agi": {
+     "guide": 20,
+     "read": [
+      25
+     ]
+    },
+    "weapondamage": {
+     "guide": 667,
+     "read": [
+      687
+     ]
+    }
+   },
+   "guide_name": "Earthbound katana",
+   "name": "earthbound katana",
+   "threads": [
+    "t286",
+    "t296",
+    "t616"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Earthen Bracers",
+   "name": "Earthen Bracers",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Earthen Garb",
+   "name": "earthen garb",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Earthen Leggings",
+   "name": "earthen leggings",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 25,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 25 under wis"
+    },
+    "CR": {
+     "guide": 8,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 8 under cha"
+    },
+    "HPMAX": {
+     "guide": 30,
+     "read": [
+      10
+     ],
+     "suspect": "3.00x ours"
+    },
+    "LR": {
+     "guide": 10,
+     "read": [
+      0
+     ]
+    },
+    "POWMAX": {
+     "guide": 75,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 75 under dex"
+    },
+    "PoT": {
+     "guide": 5,
+     "read": [
+      0
+     ]
+    },
+    "agi": {
+     "guide": 6,
+     "read": [
+      30
+     ],
+     "suspect": "0.20x ours"
+    },
+    "intelligence": {
+     "guide": 6,
+     "read": [
+      5
+     ]
+    }
+   },
+   "guide_name": "earthshadow robe",
+   "name": "Earthshadow Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      65
+     ]
+    },
+    "sta": {
+     "guide": 10,
+     "read": [
+      15
+     ]
+    },
+    "weapondamage": {
+     "guide": 693,
+     "read": [
+      664
+     ]
+    }
+   },
+   "guide_name": "Earthshard",
+   "name": "earthshard",
+   "threads": [
+    "t286",
+    "t296",
+    "t616"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 15,
+     "read": [
+      0
+     ]
+    },
+    "DR": {
+     "guide": 12,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 12 under wis"
+    },
+    "LR": {
+     "guide": 12,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 12 under wis"
+    },
+    "POWMAX": {
+     "guide": 23,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 23 under agi"
+    },
+    "PoT": {
+     "guide": 6,
+     "read": [
+      0
+     ]
+    },
+    "cha": {
+     "guide": 10,
+     "read": [
+      12
+     ]
+    },
+    "intelligence": {
+     "guide": 10,
+     "read": [
+      15
+     ]
+    }
+   },
+   "guide_name": "earthwhisper robe",
+   "name": "Earthwhisper Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "sta": {
+     "guide": 25,
+     "read": [
+      10
+     ]
+    },
+    "weapondamage": {
+     "guide": 585,
+     "read": [
+      542
+     ]
+    }
+   },
+   "guide_name": "ebon mandible",
+   "name": "Ebon Mandible",
+   "threads": [
+    "t287",
+    "t297"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 46,
+     "read": [
+      0
+     ]
+    },
+    "DR": {
+     "guide": 3,
+     "read": [
+      0
+     ]
+    },
+    "HPMAX": {
+     "guide": 16,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 16 under agi"
+    },
+    "LR": {
+     "guide": 15,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 15 under wis"
+    },
+    "POWMAX": {
+     "guide": 58,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 58 under dex"
+    },
+    "cha": {
+     "guide": 4,
+     "read": [
+      3
+     ]
+    },
+    "intelligence": {
+     "guide": 19,
+     "read": [
+      46
+     ]
+    }
+   },
+   "guide_name": "eelskin robe",
+   "name": "Eelskin Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 514,
+     "read": [
+      512
+     ],
+     "suspect": "guide threads disagree ['512', '514']"
+    },
+    "LR": {
+     "guide": 40,
+     "read": [
+      50
+     ],
+     "suspect": "guide threads disagree ['40', '50']"
+    },
+    "duration": {
+     "guide": 70,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 15900,
+     "read": [
+      12600
+     ]
+    }
+   },
+   "guide_name": "Eliminator's Chestplate",
+   "name": "Eliminator's Chestplate",
+   "threads": [
+    "t283",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Eliminator's Legplates",
+   "name": "Eliminator's Legplates",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": 85,
+     "read": [
+      0
+     ]
+    },
+    "POWMAX": {
+     "guide": 50,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 50 under agi"
+    },
+    "sta": {
+     "guide": 25,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 25 under str"
+    }
+   },
+   "guide_name": "emerald silken robe",
+   "name": "Emerald Silken Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Ensorceling Boots",
+   "name": "ensorceling boots",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Ensorceling Bracers",
+   "name": "Ensorceling Bracers",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Ensorceling Helm",
+   "name": "Ensorceling Helm",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "PR": {
+     "guide": 25,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 25 under DR"
+    },
+    "levelreq": {
+     "guide": 43,
+     "read": [
+      42
+     ]
+    }
+   },
+   "guide_name": "enveloped robe",
+   "name": "Enveloped Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": -75,
+     "read": [
+      63
+     ]
+    },
+    "POWMAX": {
+     "guide": -75,
+     "read": [
+      63
+     ]
+    }
+   },
+   "guide_name": "Etched rubicite necklace",
+   "name": "Etched Rubicite Necklace",
+   "threads": [
+    "t397"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 159,
+     "read": [
+      101
+     ]
+    }
+   },
+   "guide_name": "etheric scale coif",
+   "name": "etheric scale coif",
+   "threads": [
+    "t284"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 80,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "Evoker's Gloves",
+   "name": "Evoker's gloves",
+   "threads": [
+    "t287",
+    "t297"
+   ]
+  },
+  {
+   "fields": {
+    "POWMAX": {
+     "guide": 75,
+     "prior": "live 2026-11-15 tool",
+     "read": [
+      -75
+     ],
+     "suspect": "sign flipped against ours"
+    }
+   },
+   "guide_name": "Fetid Flesh Shield",
+   "name": "Fetid Flesh Shield",
+   "threads": [
+    "t289"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "FEVER ROBE",
+   "name": "fever robe",
+   "threads": [
+    "t285",
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "fiery vestment",
+   "name": "fiery vestment",
+   "threads": [
+    "t291",
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 19,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "fine silk robe",
+   "name": "Fine Silk Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 26,
+     "read": [
+      0
+     ]
+    },
+    "CR": {
+     "guide": 14,
+     "read": [
+      0
+     ]
+    },
+    "agi": {
+     "guide": 17,
+     "read": [
+      26
+     ]
+    },
+    "dex": {
+     "guide": 23,
+     "read": [
+      14
+     ]
+    }
+   },
+   "guide_name": "fire savant robe",
+   "name": "Fire Savant Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 460,
+     "read": [
+      467
+     ]
+    },
+    "FR": {
+     "guide": 58,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Flameshield Guardian",
+   "name": "flameshield guardian",
+   "threads": [
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 40,
+     "prior": "live 2026-11-19 tool",
+     "read": [
+      75
+     ]
+    }
+   },
+   "guide_name": "Flameshot Longbow",
+   "name": "Flameshot Longbow",
+   "threads": [
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 17,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 17 under intelligence"
+    },
+    "HPMAX": {
+     "guide": 50,
+     "read": [
+      0
+     ]
+    },
+    "POWMAX": {
+     "guide": 40,
+     "read": [
+      0
+     ]
+    },
+    "agi": {
+     "guide": 15,
+     "read": [
+      50
+     ],
+     "suspect": "0.30x ours"
+    },
+    "dex": {
+     "guide": 20,
+     "read": [
+      40
+     ]
+    }
+   },
+   "guide_name": "forest gi",
+   "name": "Forest Gi",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "HoT": {
+     "guide": 15,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "forest guide's robe",
+   "name": "Forest Guide's Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "PR": {
+     "guide": 10,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "forest kin's robe",
+   "name": "Forest Kin's Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 148000,
+     "read": [
+      13400
+     ],
+     "suspect": "148000 outside its tier's range"
+    }
+   },
+   "guide_name": "Frenzied Boots",
+   "name": "Frenzied Boots",
+   "threads": [
+    "t294"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 148000,
+     "read": [
+      12000
+     ],
+     "suspect": "148000 outside its tier's range"
+    }
+   },
+   "guide_name": "Frenzied Bracelet(1)",
+   "name": "Frenzied Bracelet",
+   "threads": [
+    "t294"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 148000,
+     "read": [
+      13400
+     ],
+     "suspect": "148000 outside its tier's range"
+    }
+   },
+   "guide_name": "Frenzied Gloves",
+   "name": "Frenzied Gloves",
+   "threads": [
+    "t294"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 148000,
+     "read": [
+      13400
+     ],
+     "suspect": "148000 outside its tier's range"
+    }
+   },
+   "guide_name": "Frenzied Helm",
+   "name": "Frenzied Helm",
+   "threads": [
+    "t294"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 148000,
+     "read": [
+      13400
+     ],
+     "suspect": "148000 outside its tier's range"
+    }
+   },
+   "guide_name": "Frenzied Leggings",
+   "name": "Frenzied Leggings",
+   "threads": [
+    "t294"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 148000,
+     "read": [
+      12600
+     ],
+     "suspect": "148000 outside its tier's range"
+    }
+   },
+   "guide_name": "Frenzied Tunic",
+   "name": "Frenzied Tunic",
+   "threads": [
+    "t294"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 184,
+     "read": [
+      188
+     ]
+    },
+    "agi": {
+     "guide": 20,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Gladiator Boots",
+   "name": "Gladiator Boots",
+   "threads": [
+    "t287",
+    "t297"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 237,
+     "read": [
+      233
+     ]
+    },
+    "agi": {
+     "guide": 20,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Gladiator Bracers",
+   "name": "Gladiator Bracers",
+   "threads": [
+    "t287",
+    "t297"
+   ]
+  },
+  {
+   "fields": {
+    "AR": {
+     "guide": 20,
+     "read": [
+      0
+     ]
+    },
+    "cha": {
+     "guide": -50,
+     "read": [
+      63
+     ]
+    },
+    "dex": {
+     "guide": 5,
+     "read": [
+      0
+     ]
+    },
+    "intelligence": {
+     "guide": -50,
+     "read": [
+      63
+     ]
+    }
+   },
+   "guide_name": "Gladiator Breastplate",
+   "name": "Gladiator Breast Plate",
+   "threads": [
+    "t287",
+    "t297"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": 20,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Gladiator Helm",
+   "name": "Gladiator's Helm",
+   "threads": [
+    "t287",
+    "t297"
+   ]
+  },
+  {
+   "fields": {
+    "POWMAX": {
+     "guide": 210,
+     "read": [
+      110
+     ]
+    }
+   },
+   "guide_name": "Gloves of Loathing",
+   "name": "Gloves of Loathing",
+   "threads": [
+    "t287"
+   ]
+  },
+  {
+   "fields": {
+    "DR": {
+     "guide": -30,
+     "read": [
+      63
+     ],
+     "suspect": "guide threads disagree ['-30', 'None']"
+    },
+    "PR": {
+     "guide": -30,
+     "read": [
+      63
+     ],
+     "suspect": "guide threads disagree ['-30', 'None']"
+    }
+   },
+   "guide_name": "gloves of the plaguebringer",
+   "name": "Gloves of Plaguebringer",
+   "threads": [
+    "t287",
+    "t289",
+    "t297"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 65,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Gloves of the Howling Dead",
+   "name": "Gloves of the Howling Dead",
+   "threads": [
+    "t289"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 15500,
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Gloves of the Wayward Dead",
+   "name": "Gloves of the Wayward Dead",
+   "threads": [
+    "t289"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Glowing Cerulean Choker",
+   "name": "Glowing Cerulean Choker",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": 30,
+     "read": [
+      20
+     ]
+    }
+   },
+   "guide_name": "Glubox Broadsword",
+   "name": "glubox broadsword",
+   "threads": [
+    "t289"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 25,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 25 under dex"
+    },
+    "HoT": {
+     "guide": 7,
+     "read": [
+      0
+     ]
+    },
+    "PoT": {
+     "guide": 7,
+     "read": [
+      0
+     ]
+    },
+    "wis": {
+     "guide": 15,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 15 under str"
+    }
+   },
+   "guide_name": "golden prayer robe",
+   "name": "Golden Prayer Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "weapondamage": {
+     "guide": 700,
+     "read": [
+      675
+     ]
+    }
+   },
+   "guide_name": "Gorereaver",
+   "name": "Gorereaver",
+   "threads": [
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 14250,
+     "prior": "live 2026-11-15 tool",
+     "read": [
+      14100
+     ]
+    }
+   },
+   "guide_name": "Gory Cleaver of Mavis",
+   "name": "gory cleaver of Mavis",
+   "threads": [
+    "t283"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 60,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Greaves of Maneuvering",
+   "name": "Greaves of Maneuvering",
+   "threads": [
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "dex": {
+     "guide": 10,
+     "read": [
+      5
+     ]
+    }
+   },
+   "guide_name": "Greaves of the Seeker",
+   "name": "GREAVES OF THE SEEKER",
+   "threads": [
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 60,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Greaves of the Void",
+   "name": "Greaves of the Void",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "levelreq": {
+     "guide": 50,
+     "read": [
+      46
+     ]
+    }
+   },
+   "guide_name": "Greensap great club",
+   "name": "Greensap Great Club",
+   "threads": [
+    "t397"
+   ]
+  },
+  {
+   "fields": {
+    "PR": {
+     "guide": 8,
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['8', 'None']"
+    },
+    "sta": {
+     "guide": 18,
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['18', 'None']"
+    },
+    "wis": {
+     "guide": 40,
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['40', 'None']"
+    }
+   },
+   "guide_name": "gregarcian robe",
+   "name": "Gregarcian Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 55,
+     "prior": "live 2026-11-19 tool",
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Grimsar Warblade",
+   "name": "Grimsar Warblade",
+   "threads": [
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "unk5": {
+     "guide": 40,
+     "read": [
+      25
+     ]
+    }
+   },
+   "guide_name": "groaning bow of sinew",
+   "name": "groaning bow of sinew",
+   "threads": [
+    "t284"
+   ]
+  },
+  {
+   "fields": {
+    "weapondamage": {
+     "guide": 824,
+     "read": [
+      825
+     ]
+    }
+   },
+   "guide_name": "Grrkill",
+   "name": "Grrkill",
+   "threads": [
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 75,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Grundleskin Bracers",
+   "name": "Grundleskin Bracers",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 75,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Grundleskin Greaves",
+   "name": "Grundleskin Greaves",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Guardian Band",
+   "name": "guardian band",
+   "threads": [
+    "t283",
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 65,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      60
+     ]
+    },
+    "maxhp": {
+     "guide": 15000,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      13400
+     ]
+    }
+   },
+   "guide_name": "Guru Gloves",
+   "name": "Guru Gloves",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "read": [
+      12600
+     ]
+    }
+   },
+   "guide_name": "Guru Tunic",
+   "name": "guru tunic",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 20 under str"
+    },
+    "AR": {
+     "guide": 4,
+     "read": [
+      0
+     ]
+    },
+    "CR": {
+     "guide": 4,
+     "read": [
+      0
+     ]
+    },
+    "DR": {
+     "guide": 8,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 8 under wis"
+    },
+    "FR": {
+     "guide": 4,
+     "read": [
+      0
+     ]
+    },
+    "LR": {
+     "guide": 4,
+     "read": [
+      0
+     ]
+    },
+    "PR": {
+     "guide": 8,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 8 under wis"
+    }
+   },
+   "guide_name": "hapless mantle",
+   "name": "Hapless Mantle",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "POWMAX": {
+     "guide": 150,
+     "read": [
+      125
+     ],
+     "suspect": "guide threads disagree ['125', '150']"
+    },
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Heartsblood robe",
+   "name": "heartsblood robe",
+   "threads": [
+    "t286",
+    "t291",
+    "t296",
+    "t616"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 140,
+     "read": [
+      125
+     ]
+    }
+   },
+   "guide_name": "Helmet of Disbelief",
+   "name": "Helm of Disbelief",
+   "threads": [
+    "t287"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Hydra Scale Bracers",
+   "name": "Hydra Scale Bracers",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Hydra Scale Leggings",
+   "name": "Hydra Scale Leggings",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Hydra Scale Mail",
+   "name": "Hydra Scalemai",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "weapondamage": {
+     "guide": 804,
+     "read": [
+      803
+     ]
+    }
+   },
+   "guide_name": "Ichorfang",
+   "name": "Ichorfang",
+   "threads": [
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 167,
+     "read": [
+      162
+     ]
+    }
+   },
+   "guide_name": "immaculate pants of penance",
+   "name": "Immaculate Pants of Penance",
+   "threads": [
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 70,
+     "read": [
+      74
+     ]
+    }
+   },
+   "guide_name": "Impskin Gloves",
+   "name": "impskin gloves",
+   "threads": [
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Influencer's Necklace",
+   "name": "Influencer's Necklace",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 76,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 76 under agi"
+    },
+    "HPMAX": {
+     "guide": 50,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 50 under sta"
+    }
+   },
+   "guide_name": "Ironsong belt",
+   "name": "Ironsong Belt",
+   "threads": [
+    "t617"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Ironweave Coat",
+   "name": "Ironweave Coat",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Ironweave Leggings",
+   "name": "Ironweave Leggings",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "AR": {
+     "guide": 15,
+     "read": [
+      19
+     ]
+    },
+    "LR": {
+     "guide": 15,
+     "read": [
+      19
+     ]
+    }
+   },
+   "guide_name": "ivory spike",
+   "name": "Ivory Spike",
+   "threads": [
+    "t287",
+    "t297"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Jadescale Bracers",
+   "name": "Jadescale Bracers",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Jadescale Leggings",
+   "name": "Jadescale Leggings",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Jadescale Tunic",
+   "name": "Jadescale Tunic",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 15,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 15 under dex"
+    },
+    "CR": {
+     "guide": 5,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 5 under wis"
+    },
+    "FR": {
+     "guide": 5,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 5 under wis"
+    },
+    "POWMAX": {
+     "guide": 100,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 100 under agi"
+    },
+    "intelligence": {
+     "guide": 10,
+     "read": [
+      5
+     ]
+    }
+   },
+   "guide_name": "Jibley's Bauble",
+   "name": "Jibley's Bauble",
+   "threads": [
+    "t617"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 60,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Keeper's Focus",
+   "name": "Keeper's Focus",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 60,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Keeper's Mace",
+   "name": "Keeper's Mace",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 60,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Keeper's Sai",
+   "name": "Keeper's Sai",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "LABORATORY COAT",
+   "name": "laboratory coat",
+   "threads": [
+    "t285",
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Lead Plated Choker",
+   "name": "Lead Plated Choker",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": 210,
+     "read": [
+      55
+     ],
+     "suspect": "3.82x ours"
+    },
+    "dex": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 10 under sta"
+    },
+    "str": {
+     "guide": 25,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 25 under cha"
+    }
+   },
+   "guide_name": "Leggings of Loathing",
+   "name": "Leggings of Loathing",
+   "threads": [
+    "t287"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 60,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Leggings of Obliteration",
+   "name": "Leggings of Obliteration",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "POWMAX": {
+     "guide": 30,
+     "read": [
+      35
+     ]
+    }
+   },
+   "guide_name": "Legs of the Assasin",
+   "name": "Leggings of the Assasin",
+   "threads": [
+    "t290"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      65
+     ]
+    },
+    "str": {
+     "guide": 20,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "Lodestone of Saerk",
+   "name": "Lodestone of Sarek",
+   "threads": [
+    "t286",
+    "t296",
+    "t616"
+   ]
+  },
+  {
+   "fields": {
+    "CR": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 10 under dex"
+    },
+    "FR": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 20 under wis"
+    },
+    "HPMAX": {
+     "guide": 25,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 25 under sta"
+    },
+    "LR": {
+     "guide": 5,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 5 under intelligence"
+    }
+   },
+   "guide_name": "Longwind bracers",
+   "name": "Longwind Bracers",
+   "threads": [
+    "t617"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": 100,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 100 under POWMAX"
+    },
+    "weapondamage": {
+     "guide": 460,
+     "read": [
+      410
+     ]
+    }
+   },
+   "guide_name": "mace of thunder",
+   "name": "Mace of Thunder",
+   "threads": [
+    "t287",
+    "t297"
+   ]
+  },
+  {
+   "fields": {
+    "POWMAX": {
+     "guide": 60,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 60 under sta"
+    },
+    "intelligence": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 10 under str"
+    }
+   },
+   "guide_name": "magicus robe",
+   "name": "Magicus Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    },
+    "str": {
+     "guide": 15,
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['15', 'None']"
+    }
+   },
+   "guide_name": "Mail of Maneuvering",
+   "name": "Mail of Maneuvering",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 60,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Mail of the Seeker",
+   "name": "Mail of the Seeker",
+   "threads": [
+    "t295"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 60,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Mail of the Void",
+   "name": "Mail of the Void",
+   "threads": [
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 60,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 13400,
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Massive Mithril Torque",
+   "name": "massive mithril torque",
+   "threads": [
+    "t283",
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Maven's Boots",
+   "name": "Maven's Boots",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Maven's Leggings",
+   "name": "Maven's Leggings",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "read": [
+      12600
+     ]
+    }
+   },
+   "guide_name": "Maven's Tunic",
+   "name": "maven's tunic",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 75,
+     "read": [
+      70
+     ]
+    }
+   },
+   "guide_name": "Maxillioan's robe",
+   "name": "Maxillioan's Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Medium Leggings",
+   "name": "Medium Leggings",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 65,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Mercurial Bracers",
+   "name": "Mercurial Bracers",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 65,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Mercurial Leggings",
+   "name": "Mercurial Leggings",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 65,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Mercurial Tunic",
+   "name": "Mercurial Tunic",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "CR": {
+     "guide": 30,
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['30', 'None']"
+    },
+    "FR": {
+     "guide": 30,
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['30', 'None']"
+    },
+    "LR": {
+     "guide": 30,
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['30', 'None']"
+    },
+    "PR": {
+     "guide": 30,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['30', 'None']"
+    },
+    "maxhp": {
+     "guide": 10800,
+     "prior": "heirloom 2026-11-06 tool",
+     "read": [
+      11200
+     ]
+    }
+   },
+   "guide_name": "metamorphic robes",
+   "name": "Metamorphic Robes",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Mineralized Helm",
+   "name": "mineralized helm",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Mineralized Leggings",
+   "name": "Mineralized Leggings",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      12600
+     ]
+    }
+   },
+   "guide_name": "Mineralized Tunic",
+   "name": "Mineralized Tunic",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "CR": {
+     "guide": 5,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 5 under dex"
+    },
+    "FR": {
+     "guide": 3,
+     "read": [
+      0
+     ]
+    },
+    "HPMAX": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 20 under str"
+    },
+    "POWMAX": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 20 under str"
+    },
+    "PR": {
+     "guide": 3,
+     "read": [
+      0
+     ]
+    },
+    "PoT": {
+     "guide": 6,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "mistweave shroud",
+   "name": "Mistweave Shroud",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 75,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 12200,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Monarchial Helm",
+   "name": "Monarchial Helm",
+   "threads": [
+    "t289"
+   ]
+  },
+  {
+   "fields": {
+    "CR": {
+     "guide": 15,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 15 under str"
+    },
+    "FR": {
+     "guide": 15,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 15 under str"
+    },
+    "POWMAX": {
+     "guide": 25,
+     "read": [
+      0
+     ]
+    },
+    "agi": {
+     "guide": 15,
+     "read": [
+      25
+     ]
+    }
+   },
+   "guide_name": "mud covered robe",
+   "name": "Mud Covered Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Necklace of Rallosian Runes",
+   "name": "necklace of Rallosian runes",
+   "threads": [
+    "t295"
+   ]
+  },
+  {
+   "fields": {
+    "PoT": {
+     "guide": 5,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "nefarios rags",
+   "name": "Nefarios Rags",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": 50,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 50 under sta"
+    },
+    "POWMAX": {
+     "guide": 50,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 50 under sta"
+    }
+   },
+   "guide_name": "Nightsky bracers",
+   "name": "Nightsky Bracers",
+   "threads": [
+    "t617"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 35,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 35 under agi"
+    },
+    "LR": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 10 under str"
+    },
+    "POWMAX": {
+     "guide": 35,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 35 under agi"
+    },
+    "PoT": {
+     "guide": 4,
+     "read": [
+      0
+     ]
+    },
+    "dex": {
+     "guide": 10,
+     "read": [
+      4
+     ]
+    },
+    "intelligence": {
+     "guide": 10,
+     "read": [
+      35
+     ],
+     "suspect": "0.29x ours"
+    }
+   },
+   "guide_name": "nitemorrow silk shroud",
+   "name": "Nitemorrow Silk Shroud",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "No-Dachi of Toxicity",
+   "name": "No-Dachi of Toxicity",
+   "threads": [
+    "t289"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 148000,
+     "read": [
+      13400
+     ],
+     "suspect": "148000 outside its tier's range"
+    }
+   },
+   "guide_name": "Noble Boots",
+   "name": "Noble Boots",
+   "threads": [
+    "t294"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 148000,
+     "read": [
+      12000
+     ],
+     "suspect": "148000 outside its tier's range"
+    }
+   },
+   "guide_name": "Noble Bracelet(1)",
+   "name": "Noble Bracelet",
+   "threads": [
+    "t294"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 148000,
+     "read": [
+      13400
+     ],
+     "suspect": "148000 outside its tier's range"
+    }
+   },
+   "guide_name": "Noble Gloves",
+   "name": "Noble Gloves",
+   "threads": [
+    "t294"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 148000,
+     "read": [
+      13400
+     ],
+     "suspect": "148000 outside its tier's range"
+    }
+   },
+   "guide_name": "Noble Helm",
+   "name": "Noble Helm",
+   "threads": [
+    "t294"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 148000,
+     "read": [
+      13400
+     ],
+     "suspect": "148000 outside its tier's range"
+    }
+   },
+   "guide_name": "Noble Leggings",
+   "name": "Noble Leggings",
+   "threads": [
+    "t294"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 148000,
+     "read": [
+      12600
+     ],
+     "suspect": "148000 outside its tier's range"
+    }
+   },
+   "guide_name": "Noble Tunic",
+   "name": "Noble Tunic",
+   "threads": [
+    "t294"
+   ]
+  },
+  {
+   "fields": {
+    "levelreq": {
+     "guide": 59,
+     "read": [
+      60
+     ]
+    },
+    "maxhp": {
+     "guide": 12800,
+     "prior": "live 2026-11-15 tool",
+     "read": [
+      11642
+     ]
+    }
+   },
+   "guide_name": "Noroxus Fang Dagger",
+   "name": "Noroxus Fang Dagger",
+   "threads": [
+    "t289"
+   ]
+  },
+  {
+   "fields": {
+    "str": {
+     "guide": -40,
+     "read": [
+      63
+     ]
+    }
+   },
+   "guide_name": "Nubris' totem",
+   "name": "Nurbis' totem",
+   "threads": [
+    "t397"
+   ]
+  },
+  {
+   "fields": {
+    "PoT": {
+     "guide": 15,
+     "read": [
+      0
+     ]
+    },
+    "sta": {
+     "guide": 30,
+     "read": [
+      15
+     ]
+    }
+   },
+   "guide_name": "oaken moss robe",
+   "name": "Oaken Moss Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 75,
+     "read": [
+      -25
+     ],
+     "suspect": "sign flipped against ours"
+    },
+    "HPMAX": {
+     "guide": 120,
+     "read": [
+      0
+     ]
+    },
+    "dex": {
+     "guide": 35,
+     "read": [
+      13
+     ]
+    }
+   },
+   "guide_name": "Obsidian Band",
+   "name": "Obsidian Band",
+   "threads": [
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 65,
+     "prior": "live 2026-11-19 tool",
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Obsidian Crusher",
+   "name": "Obsidian Crusher",
+   "threads": [
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 13000,
+     "read": [
+      13005
+     ]
+    }
+   },
+   "guide_name": "Obsidian Ring",
+   "name": "obsidian ring",
+   "threads": [
+    "t283"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 20 under str"
+    },
+    "POWMAX": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 20 under str"
+    },
+    "PoT": {
+     "guide": 15,
+     "read": [
+      0
+     ]
+    },
+    "intelligence": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 20 under str"
+    }
+   },
+   "guide_name": "omnipotent robes",
+   "name": "Omnipotent Robes",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": 225,
+     "read": [
+      220
+     ]
+    },
+    "duration": {
+     "guide": 65,
+     "read": [
+      50
+     ]
+    },
+    "maxhp": {
+     "guide": 19025,
+     "read": [
+      11000
+     ]
+    }
+   },
+   "guide_name": "Otherworldly Helm",
+   "name": "Otherworldly Helm",
+   "threads": [
+    "t283"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": 40,
+     "read": [
+      0
+     ]
+    },
+    "POWMAX": {
+     "guide": 115,
+     "read": [
+      0
+     ]
+    },
+    "duration": {
+     "guide": 55,
+     "read": [
+      65
+     ]
+    },
+    "intelligence": {
+     "guide": 25,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "painted silk robe",
+   "name": "Painted Silk Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "wis": {
+     "guide": 20,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['20', 'None']"
+    }
+   },
+   "guide_name": "Palladia Gloves",
+   "name": "Palladia Gloves",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Pantaloons of the Wayward Dead",
+   "name": "pantaloons of the wayward dead",
+   "threads": [
+    "t289"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Pendant of the Diviner",
+   "name": "Pendant of the Diviner",
+   "threads": [
+    "t295"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": 30,
+     "read": [
+      35
+     ]
+    }
+   },
+   "guide_name": "Pertrified Earring",
+   "name": "petrified earring",
+   "threads": [
+    "t289"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": 70,
+     "read": [
+      0
+     ]
+    },
+    "POWMAX": {
+     "guide": 70,
+     "read": [
+      0
+     ]
+    },
+    "wis": {
+     "guide": 25,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "petrified ring",
+   "name": "Petrified Ring",
+   "threads": [
+    "t289"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 60,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 11400,
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Pickclaw Guard's sash",
+   "name": "pickclaw guard's sash",
+   "threads": [
+    "t283"
+   ]
+  },
+  {
+   "fields": {
+    "CR": {
+     "guide": 5,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 5 under wis"
+    },
+    "FR": {
+     "guide": 5,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 5 under wis"
+    },
+    "HPMAX": {
+     "guide": 30,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 30 under agi"
+    },
+    "LR": {
+     "guide": 5,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 5 under wis"
+    },
+    "POWMAX": {
+     "guide": 25,
+     "read": [
+      0
+     ]
+    },
+    "dex": {
+     "guide": 10,
+     "read": [
+      25
+     ]
+    },
+    "intelligence": {
+     "guide": 15,
+     "read": [
+      5
+     ]
+    }
+   },
+   "guide_name": "pine coated robe",
+   "name": "Pine Coated Robe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "DR": {
+     "guide": -50,
+     "read": [
+      63
+     ]
+    },
+    "sta": {
+     "guide": -50,
+     "read": [
+      63
+     ]
+    }
+   },
+   "guide_name": "Plaguebringer's Robe",
+   "name": "plaguebringer's robe",
+   "threads": [
+    "t289",
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": 50,
+     "read": [
+      0
+     ]
+    },
+    "weapondamage": {
+     "guide": 650,
+     "read": [
+      568
+     ]
+    }
+   },
+   "guide_name": "plagued waraxe",
+   "name": "Plagued Waraxe",
+   "threads": [
+    "t289"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 15,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 15 under wis"
+    },
+    "CR": {
+     "guide": 15,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 15 under wis"
+    },
+    "LR": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 10 under dex"
+    },
+    "POWMAX": {
+     "guide": 50,
+     "read": [
+      0
+     ]
+    },
+    "PoT": {
+     "guide": 10,
+     "read": [
+      0
+     ]
+    },
+    "agi": {
+     "guide": 12,
+     "read": [
+      50
+     ],
+     "suspect": "0.24x ours"
+    },
+    "intelligence": {
+     "guide": 8,
+     "read": [
+      15
+     ]
+    }
+   },
+   "guide_name": "plainswynd shrouds",
+   "name": "Plainswynd Shrouds",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 13450,
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Primeval Iron Girdle",
+   "name": "primeval iron girdle",
+   "threads": [
+    "t283",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "intelligence": {
+     "guide": 15,
+     "read": [
+      20
+     ]
+    }
+   },
+   "guide_name": "pslignium robe of fire",
+   "name": "pslignium robe of fire",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 25,
+     "read": [
+      0
+     ]
+    },
+    "AR": {
+     "guide": 12,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 12 under str"
+    },
+    "FR": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 10 under cha"
+    },
+    "HPMAX": {
+     "guide": 35,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 35 under agi"
+    },
+    "POWMAX": {
+     "guide": 100,
+     "read": [
+      0
+     ]
+    },
+    "dex": {
+     "guide": 12,
+     "read": [
+      100
+     ],
+     "suspect": "0.12x ours"
+    },
+    "intelligence": {
+     "guide": 5,
+     "read": [
+      25
+     ],
+     "suspect": "0.20x ours"
+    }
+   },
+   "guide_name": "rallosian imperial shrouds",
+   "name": "Rallosian Imperial Shrouds",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 75,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Rawlg's Mace",
+   "name": "Rawlg's mace",
+   "threads": [
+    "t289"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Reconstructive Earring",
+   "name": "Reconstructive Earring",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Redfire",
+   "name": "Red Fire",
+   "threads": [
+    "t287"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "ring of chaos",
+   "name": "ring of chaos",
+   "threads": [
+    "t295"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Ring of Deft Action",
+   "name": "Ring of Deft Action",
+   "threads": [
+    "t295"
+   ]
+  },
+  {
+   "fields": {
+    "sta": {
+     "guide": 75,
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['75', 'None']"
+    }
+   },
+   "guide_name": "Ring of Determination",
+   "name": "Ring of Determination",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "ring of dimensions",
+   "name": "ring of dimensions",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "str": {
+     "guide": -50,
+     "prior": "live 2026-11-15 tool",
+     "read": [
+      50
+     ],
+     "suspect": "sign flipped against ours"
+    }
+   },
+   "guide_name": "ring of mind's eye",
+   "name": "ring of mind's eye",
+   "threads": [
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": 110,
+     "read": [
+      150
+     ]
+    },
+    "duration": {
+     "guide": 60,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "ring of stealth",
+   "name": "ring of stealth",
+   "threads": [
+    "t295"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "robe from the dragonhoard",
+   "name": "robe from the dragonhoard",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Robe of Arcanic Runes",
+   "name": "Robe of Arcanic Runes",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 20 under sta"
+    },
+    "AR": {
+     "guide": 15,
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['15', 'None']"
+    },
+    "DR": {
+     "guide": 5,
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['5', 'None']"
+    },
+    "HPMAX": {
+     "guide": 25,
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['25', 'None']"
+    },
+    "POWMAX": {
+     "guide": 25,
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['25', 'None']"
+    },
+    "PR": {
+     "guide": 5,
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['5', 'None']"
+    },
+    "cha": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['15', '20']"
+    },
+    "intelligence": {
+     "guide": 30,
+     "read": [
+      5
+     ],
+     "suspect": "guide threads disagree ['30', 'None']"
+    },
+    "wis": {
+     "guide": 15,
+     "read": [
+      5
+     ],
+     "suspect": "guide threads disagree ['15', 'None']"
+    }
+   },
+   "guide_name": "robe of awe",
+   "name": "Robe of Awe",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "robe of divergence",
+   "name": "robe of divergence",
+   "threads": [
+    "t290",
+    "t291",
+    "t298"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Robe of Electric Currents",
+   "name": "Robe of Electric Currents",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "AR": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 10 under agi"
+    },
+    "FR": {
+     "guide": 5,
+     "read": [
+      0
+     ]
+    },
+    "LR": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 10 under agi"
+    },
+    "dex": {
+     "guide": 15,
+     "read": [
+      10
+     ]
+    },
+    "intelligence": {
+     "guide": 15,
+     "read": [
+      5
+     ]
+    }
+   },
+   "guide_name": "robe of evocation",
+   "name": "Robe of Evocation",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "LR": {
+     "guide": 5,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 5 under CR"
+    }
+   },
+   "guide_name": "robe of expedience",
+   "name": "Robe of Expedience",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    },
+    "intelligence": {
+     "guide": 25,
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['25', 'None']"
+    }
+   },
+   "guide_name": "Robe of Geomancy",
+   "name": "robe of geomancy",
+   "threads": [
+    "t286",
+    "t292",
+    "t296",
+    "t616"
+   ]
+  },
+  {
+   "fields": {
+    "dex": {
+     "guide": 30,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      10
+     ],
+     "suspect": "3.00x ours"
+    },
+    "intelligence": {
+     "guide": 10,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      30
+     ],
+     "suspect": "0.33x ours"
+    }
+   },
+   "guide_name": "Robe of Icy Waters",
+   "name": "Robe of Icy Waters",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "CR": {
+     "guide": 5,
+     "read": [
+      0
+     ]
+    },
+    "FR": {
+     "guide": 5,
+     "read": [
+      0
+     ]
+    },
+    "LR": {
+     "guide": 5,
+     "read": [
+      0
+     ]
+    },
+    "POWMAX": {
+     "guide": 25,
+     "read": [
+      5
+     ],
+     "suspect": "5.00x ours"
+    },
+    "str": {
+     "guide": 2,
+     "read": [
+      5
+     ]
+    }
+   },
+   "guide_name": "robe of leaves",
+   "name": "Robe of Leaves",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "AR": {
+     "guide": 45,
+     "prior": "live 2026-11-11 tool",
+     "read": [
+      50
+     ]
+    },
+    "POWMAX": {
+     "guide": 200,
+     "prior": "live 2026-11-11 tool",
+     "read": [
+      0
+     ]
+    },
+    "agi": {
+     "guide": 30,
+     "prior": "live 2026-11-11 tool",
+     "read": [
+      45
+     ]
+    },
+    "intelligence": {
+     "guide": 10,
+     "prior": "live 2026-11-11 tool",
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "Robe of Magical Affluence",
+   "name": "Robe of Magical Affluence",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      60
+     ]
+    }
+   },
+   "guide_name": "Robe of Potential",
+   "name": "Robe of Potential",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "LR": {
+     "guide": 35,
+     "prior": "live 2026-11-11 tool",
+     "read": [
+      50
+     ]
+    },
+    "POWMAX": {
+     "guide": 100,
+     "prior": "live 2026-11-11 tool",
+     "read": [
+      0
+     ]
+    },
+    "PoT": {
+     "guide": 25,
+     "prior": "live 2026-11-11 tool",
+     "read": [
+      0
+     ]
+    },
+    "agi": {
+     "guide": 20,
+     "prior": "live 2026-11-11 tool",
+     "read": [
+      10
+     ]
+    }
+   },
+   "guide_name": "Robe of Shocking Energies",
+   "name": "Robe of Shocking Energies",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 20 under dex"
+    },
+    "CR": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 10 under intelligence"
+    },
+    "HPMAX": {
+     "guide": 35,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 35 under agi"
+    },
+    "LR": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 10 under intelligence"
+    },
+    "wis": {
+     "guide": 18,
+     "read": [
+      10
+     ]
+    }
+   },
+   "guide_name": "robe of the barrens",
+   "name": "Robe of the Barrens",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Robe of the Chasm",
+   "name": "robe of the chasm",
+   "threads": [
+    "t286",
+    "t292",
+    "t296",
+    "t616"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Robe of the Chilling Winds",
+   "name": "Robe of the Chilling Winds",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "robe of the extirpator",
+   "name": "robe of the extirpator",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "FR": {
+     "guide": 35,
+     "prior": "live 2026-11-11 tool",
+     "read": [
+      50
+     ]
+    },
+    "POWMAX": {
+     "guide": 100,
+     "prior": "live 2026-11-11 tool",
+     "read": [
+      150
+     ]
+    },
+    "PoT": {
+     "guide": 25,
+     "prior": "live 2026-11-11 tool",
+     "read": [
+      0
+     ]
+    },
+    "intelligence": {
+     "guide": 20,
+     "prior": "live 2026-11-11 tool",
+     "read": [
+      45
+     ]
+    }
+   },
+   "guide_name": "Robe of the Fiery Inferno",
+   "name": "Robe of the Fiery Inferno",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Robe of the Fiery Tempest",
+   "name": "Robe of the Fiery Tempest",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "CR": {
+     "guide": 45,
+     "prior": "live 2026-11-11 tool",
+     "read": [
+      50
+     ]
+    },
+    "POWMAX": {
+     "guide": 200,
+     "prior": "live 2026-11-11 tool",
+     "read": [
+      150
+     ]
+    },
+    "agi": {
+     "guide": 10,
+     "prior": "live 2026-11-11 tool",
+     "read": [
+      0
+     ]
+    },
+    "intelligence": {
+     "guide": 30,
+     "prior": "live 2026-11-11 tool",
+     "read": [
+      45
+     ]
+    }
+   },
+   "guide_name": "Robe of the Frost Rift",
+   "name": "Robe of the Frost Rift",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 30,
+     "prior": "live 2026-11-15 tool",
+     "read": [
+      120
+     ],
+     "suspect": "guide threads disagree ['30', 'None']"
+    }
+   },
+   "guide_name": "robe of the master",
+   "name": "Robe of the Master",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Robe of the Serpent God",
+   "name": "robe of the serpent god",
+   "threads": [
+    "t289",
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "sta": {
+     "guide": -15,
+     "read": [
+      63
+     ]
+    },
+    "wis": {
+     "guide": -15,
+     "read": [
+      63
+     ]
+    }
+   },
+   "guide_name": "robe of the void",
+   "name": "robe of the void",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 16,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 16 under agi"
+    },
+    "PoT": {
+     "guide": 15,
+     "read": [
+      0
+     ]
+    },
+    "intelligence": {
+     "guide": 15,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 15 under str"
+    }
+   },
+   "guide_name": "Robe of Thormanil",
+   "name": "Robe of Thormanil",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "PR": {
+     "guide": 18,
+     "read": [
+      0
+     ]
+    },
+    "agi": {
+     "guide": 16,
+     "read": [
+      18
+     ]
+    },
+    "intelligence": {
+     "guide": 24,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 24 under sta"
+    }
+   },
+   "guide_name": "rotting hide robe",
+   "name": "Rotting Hide Robe",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 65,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Ruby Studded Bracers",
+   "name": "Ruby Studded Bracers",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 65,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Ruby Studded Leggings",
+   "name": "Ruby Studded Leggings",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 65,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Ruby Studded Vest",
+   "name": "Ruby Studded Vest",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Runic Mithril Bracers",
+   "name": "Runic Mithril Bracers",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Runic Mithril Helm",
+   "name": "Runic Mithril Helm",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Runic Mithril Leggings",
+   "name": "Runic Mithril Leggings",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 80,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 15260,
+     "read": [
+      10578
+     ]
+    }
+   },
+   "guide_name": "Sapphyra's Sword",
+   "name": "Sapphyra's Sword",
+   "threads": [
+    "t283",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "sash of pure energy",
+   "name": "sash of pure energy",
+   "threads": [
+    "t295"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 36,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 36 under intelligence"
+    },
+    "AR": {
+     "guide": 13,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 13 under agi"
+    },
+    "HPMAX": {
+     "guide": 13,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 13 under agi"
+    },
+    "LR": {
+     "guide": 3,
+     "read": [
+      0
+     ]
+    },
+    "POWMAX": {
+     "guide": 45,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 45 under dex"
+    },
+    "sta": {
+     "guide": 3,
+     "read": [
+      15
+     ]
+    },
+    "wis": {
+     "guide": 15,
+     "read": [
+      13
+     ]
+    }
+   },
+   "guide_name": "seafarer's robe",
+   "name": "Seafarer's Robe",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "shield of purity",
+   "name": "shield of purity",
+   "threads": [
+    "t295"
+   ]
+  },
+  {
+   "fields": {
+    "str": {
+     "guide": 20,
+     "read": [
+      30
+     ]
+    }
+   },
+   "guide_name": "Shield of the Defender",
+   "name": "Shield of the Defender",
+   "threads": [
+    "t283"
+   ]
+  },
+  {
+   "fields": {
+    "PoT": {
+     "guide": 15,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "shimmerdawn robe",
+   "name": "Shimmerdawn Robe",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": 75,
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['75', 'None']"
+    },
+    "PoT": {
+     "guide": 3,
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['3', 'None']"
+    },
+    "intelligence": {
+     "guide": 6,
+     "read": [
+      0
+     ],
+     "suspect": "guide threads disagree ['6', 'None']"
+    }
+   },
+   "guide_name": "shimmering robe",
+   "name": "Shimmering Robe",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 140,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      85
+     ]
+    },
+    "CR": {
+     "guide": 45,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      50
+     ]
+    },
+    "POWMAX": {
+     "guide": 200,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      150
+     ]
+    },
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    },
+    "intelligence": {
+     "guide": 30,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      45
+     ]
+    },
+    "sta": {
+     "guide": 10,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "Shroud of Crystals",
+   "name": "Shroud of Crystals",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 35,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 35 under dex"
+    },
+    "AR": {
+     "guide": 5,
+     "read": [
+      0
+     ]
+    },
+    "FR": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 20 under sta"
+    },
+    "HPMAX": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 20 under sta"
+    },
+    "POWMAX": {
+     "guide": 40,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 40 under agi"
+    },
+    "intelligence": {
+     "guide": 10,
+     "read": [
+      5
+     ]
+    }
+   },
+   "guide_name": "shroud of elemental flame",
+   "name": "Shroud of Elemental Flame",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "LR": {
+     "guide": 50,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      35
+     ]
+    }
+   },
+   "guide_name": "Shroud of Ignited Energy",
+   "name": "Shroud of Ignited Energy",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 140,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      85
+     ]
+    },
+    "LR": {
+     "guide": 35,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      50
+     ]
+    },
+    "POWMAX": {
+     "guide": 100,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      150
+     ]
+    },
+    "PoT": {
+     "guide": 25,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      0
+     ]
+    },
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    },
+    "sta": {
+     "guide": 20,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      10
+     ]
+    }
+   },
+   "guide_name": "Shroud of Radioactivity",
+   "name": "Shroud of Radioactivity",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 140,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      85
+     ]
+    },
+    "FR": {
+     "guide": 35,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      50
+     ]
+    },
+    "POWMAX": {
+     "guide": 100,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      150
+     ]
+    },
+    "PoT": {
+     "guide": 25,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      0
+     ]
+    },
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    },
+    "intelligence": {
+     "guide": 20,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      10
+     ]
+    }
+   },
+   "guide_name": "Shroud of the Blaze",
+   "name": "Shroud of the Blaze",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 140,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      85
+     ]
+    },
+    "AR": {
+     "guide": 45,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      50
+     ]
+    },
+    "HPMAX": {
+     "guide": 200,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      150
+     ]
+    },
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    },
+    "intelligence": {
+     "guide": 10,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      0
+     ]
+    },
+    "sta": {
+     "guide": 30,
+     "prior": "live 2026-11-13 tool",
+     "read": [
+      45
+     ]
+    }
+   },
+   "guide_name": "Shroud of Trickery",
+   "name": "Shroud of Trickery",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 25,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 25 under sta"
+    },
+    "AR": {
+     "guide": 5,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 5 under agi"
+    },
+    "DR": {
+     "guide": 8,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 8 under intelligence"
+    },
+    "FR": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 10 under dex"
+    },
+    "PoT": {
+     "guide": 15,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "shrouds of ash",
+   "name": "Shrouds of Ash",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 20,
+     "read": [
+      0
+     ]
+    },
+    "CR": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 10 under sta"
+    },
+    "HPMAX": {
+     "guide": 35,
+     "read": [
+      0
+     ]
+    },
+    "LR": {
+     "guide": 12,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 12 under cha"
+    },
+    "POWMAX": {
+     "guide": 75,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 75 under dex"
+    },
+    "agi": {
+     "guide": 5,
+     "read": [
+      35
+     ],
+     "suspect": "0.14x ours"
+    },
+    "intelligence": {
+     "guide": 10,
+     "read": [
+      20
+     ]
+    }
+   },
+   "guide_name": "shrouds of the storm",
+   "name": "Shrouds of the Storm",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 168,
+     "read": [
+      151
+     ]
+    },
+    "duration": {
+     "guide": 65,
+     "read": [
+      55
+     ]
+    },
+    "maxhp": {
+     "guide": 15000,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      12000,
+      13400
+     ]
+    }
+   },
+   "guide_name": "Silent Chain Bracers",
+   "name": "Silent Chain Bracers",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Silent Chain Helm",
+   "name": "Silent Chain Helm",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 225,
+     "read": [
+      201
+     ]
+    },
+    "duration": {
+     "guide": 65,
+     "read": [
+      55
+     ]
+    },
+    "maxhp": {
+     "guide": 15000,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      12000,
+      13400
+     ]
+    }
+   },
+   "guide_name": "Silent Chain Leggings",
+   "name": "Silent Chain Leggings",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Silverscale Bracers",
+   "name": "Silverscale Bracers",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Silverscale Leggings",
+   "name": "Silverscale Leggings",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Silverscale Tunic",
+   "name": "Silverscale Tunic",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 14,
+     "read": [
+      61
+     ],
+     "suspect": "0.23x ours"
+    }
+   },
+   "guide_name": "sinister robe",
+   "name": "sinister robe",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Slaying ring",
+   "name": "Slaying ring",
+   "threads": [
+    "t283",
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "FR": {
+     "guide": -15,
+     "read": [
+      63
+     ]
+    }
+   },
+   "guide_name": "snow woven robe",
+   "name": "snow woven robe",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 36,
+     "read": [
+      0
+     ]
+    },
+    "HPMAX": {
+     "guide": 30,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 30 under str"
+    },
+    "POWMAX": {
+     "guide": 50,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 50 under sta"
+    }
+   },
+   "guide_name": "Snowpad Boots",
+   "name": "Snowpad Boots",
+   "threads": [
+    "t617"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Soldier's legplates",
+   "name": "soldier's legplates",
+   "threads": [
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "sta": {
+     "guide": 15,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 15 under str"
+    }
+   },
+   "guide_name": "Soluesk Kris",
+   "name": "solusek kris",
+   "threads": [
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "POWMAX": {
+     "guide": 88,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 88 under agi"
+    },
+    "cha": {
+     "guide": 16,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 16 under sta"
+    },
+    "intelligence": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 20 under str"
+    }
+   },
+   "guide_name": "soul drinker",
+   "name": "Soul Drinker",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 75,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Sovereign Bracers",
+   "name": "Sovereign Bracers",
+   "threads": [
+    "t289"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 75,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Sovereign Helm",
+   "name": "Sovereign Helm",
+   "threads": [
+    "t289"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Sparkling Robes",
+   "name": "Sparkling Robes",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "levelreq": {
+     "guide": 30,
+     "read": [
+      39
+     ]
+    }
+   },
+   "guide_name": "spectre robe",
+   "name": "spectre robe",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Spiritist's Ring",
+   "name": "Spiritist's Ring",
+   "threads": [
+    "t295"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 25,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 25 under wis"
+    },
+    "AR": {
+     "guide": 12,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 12 under cha"
+    },
+    "HPMAX": {
+     "guide": 30,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 30 under agi"
+    },
+    "POWMAX": {
+     "guide": 70,
+     "read": [
+      0
+     ]
+    },
+    "PoT": {
+     "guide": 6,
+     "read": [
+      0
+     ]
+    },
+    "dex": {
+     "guide": 10,
+     "read": [
+      70
+     ],
+     "suspect": "0.14x ours"
+    },
+    "intelligence": {
+     "guide": 5,
+     "read": [
+      6
+     ]
+    }
+   },
+   "guide_name": "starfyre weave robe",
+   "name": "Starfyre Weave Robe",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Starless night robe",
+   "name": "starless night robe",
+   "threads": [
+    "t286",
+    "t292",
+    "t296",
+    "t616"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 25,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 25 under wis"
+    },
+    "AR": {
+     "guide": 12,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 12 under cha"
+    },
+    "FR": {
+     "guide": 10,
+     "read": [
+      0
+     ]
+    },
+    "HPMAX": {
+     "guide": 50,
+     "read": [
+      10
+     ],
+     "suspect": "5.00x ours"
+    },
+    "POWMAX": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 20 under dex"
+    },
+    "PoT": {
+     "guide": 6,
+     "read": [
+      0
+     ]
+    },
+    "agi": {
+     "guide": 5,
+     "read": [
+      50
+     ],
+     "suspect": "a digit added/dropped (ten times or a tenth of ours)"
+    },
+    "intelligence": {
+     "guide": 8,
+     "read": [
+      6
+     ]
+    }
+   },
+   "guide_name": "stoneshadow robe",
+   "name": "Stoneshadow Robe",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "cha": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 20 under str"
+    },
+    "intelligence": {
+     "guide": 20,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 20 under str"
+    }
+   },
+   "guide_name": "stunning robe",
+   "name": "Stunning Robe",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Stygian Leggings",
+   "name": "Stygian Leggings",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "read": [
+      12600
+     ]
+    }
+   },
+   "guide_name": "Stygian Tunic",
+   "name": "stygian tunic",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": 25,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "Summoner's Circlet",
+   "name": "Summoner's circlet",
+   "threads": [
+    "t297"
+   ]
+  },
+  {
+   "fields": {
+    "FR": {
+     "guide": 20,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "Summoners Bracelet",
+   "name": "Summoners Bracelet",
+   "threads": [
+    "t287"
+   ]
+  },
+  {
+   "fields": {
+    "DR": {
+     "guide": 20,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "Summoners Circlet",
+   "name": "Summoners Circlet",
+   "threads": [
+    "t287"
+   ]
+  },
+  {
+   "fields": {
+    "PoT": {
+     "guide": 5,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "summoners raiment",
+   "name": "Summoners Raiment",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "PR": {
+     "guide": 20,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "Summoners Robe",
+   "name": "Summoners Robe",
+   "threads": [
+    "t287"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 75,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 12200,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Supreme Helm",
+   "name": "Supreme Helm",
+   "threads": [
+    "t289"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 75,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 12200,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Supreme Leggings",
+   "name": "Supreme Leggings",
+   "threads": [
+    "t289"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 75,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 12200,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Supreme Tunic",
+   "name": "Supreme Tunic",
+   "threads": [
+    "t289"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 16000,
+     "read": [
+      10578
+     ]
+    }
+   },
+   "guide_name": "Sword of the Contender",
+   "name": "Sword of the Contender",
+   "threads": [
+    "t283"
+   ]
+  },
+  {
+   "fields": {
+    "sta": {
+     "guide": 22,
+     "read": [
+      0
+     ]
+    },
+    "str": {
+     "guide": 22,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "Tainted Necklace",
+   "name": "tainted necklace",
+   "threads": [
+    "t289"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 14100,
+     "read": [
+      10578
+     ]
+    }
+   },
+   "guide_name": "Tanto of Toxicity",
+   "name": "Tanto of Toxicity",
+   "threads": [
+    "t289"
+   ]
+  },
+  {
+   "fields": {
+    "AR": {
+     "guide": 11,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 11 under wis"
+    },
+    "HPMAX": {
+     "guide": 30,
+     "read": [
+      0
+     ]
+    },
+    "LR": {
+     "guide": 11,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 11 under wis"
+    },
+    "POWMAX": {
+     "guide": 30,
+     "read": [
+      0
+     ]
+    },
+    "dex": {
+     "guide": 8,
+     "read": [
+      30
+     ],
+     "suspect": "0.27x ours"
+    },
+    "intelligence": {
+     "guide": 8,
+     "read": [
+      30
+     ],
+     "suspect": "0.27x ours"
+    }
+   },
+   "guide_name": "tempestmage robe",
+   "name": "Tempestmage Robe",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 65,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Terra Cloth Tunic",
+   "name": "Terra Cloth Tunic",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Thaumaturgical Boots",
+   "name": "Thaumaturgical Boots",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 65,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      50
+     ]
+    },
+    "maxhp": {
+     "guide": 15000,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      13400
+     ]
+    }
+   },
+   "guide_name": "Thaumaturgical Gloves",
+   "name": "Thaumaturgical Gloves",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "read": [
+      12600
+     ]
+    }
+   },
+   "guide_name": "Thaumaturgical Tunic",
+   "name": "thaumaturgical tunic",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 80,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 18000,
+     "read": [
+      13005
+     ]
+    }
+   },
+   "guide_name": "Stoneheart",
+   "name": "The Stoneheart",
+   "threads": [
+    "t283"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Theurgist's Bracers",
+   "name": "theurgist's bracers",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Theurgist's Helm",
+   "name": "Theurgist's Helm",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "maxhp": {
+     "guide": 15000,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      12600
+     ]
+    }
+   },
+   "guide_name": "Theurgist's Tunic",
+   "name": "Theurgist's Tunic",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 32,
+     "prior": "heirloom 2026-11-06 oauth",
+     "read": [
+      8
+     ],
+     "suspect": "4.00x ours"
+    },
+    "HPMAX": {
+     "guide": 50,
+     "read": [
+      0
+     ]
+    },
+    "agi": {
+     "guide": 18,
+     "read": [
+      0
+     ]
+    },
+    "intelligence": {
+     "guide": 10,
+     "read": [
+      0
+     ]
+    }
+   },
+   "guide_name": "thornsilk robe",
+   "name": "Thornsilk Robe",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 45,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 45 under intelligence"
+    },
+    "AR": {
+     "guide": 19,
+     "read": [
+      0
+     ]
+    },
+    "CR": {
+     "guide": 4,
+     "read": [
+      0
+     ]
+    },
+    "HPMAX": {
+     "guide": 16,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 16 under agi"
+    },
+    "POWMAX": {
+     "guide": 59,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 59 under dex"
+    },
+    "sta": {
+     "guide": 4,
+     "read": [
+      19
+     ],
+     "suspect": "0.21x ours"
+    }
+   },
+   "guide_name": "torrent robe",
+   "name": "Torrent Robe",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 485,
+     "read": [
+      484
+     ]
+    },
+    "duration": {
+     "guide": 75,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Tower of Woe",
+   "name": "Tower of Woe",
+   "threads": [
+    "t286",
+    "t296",
+    "t616"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 75,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 14100,
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Toxic wyrm tower",
+   "name": "toxic wyrm tower",
+   "threads": [
+    "t283"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 75,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Traitorous Greaves",
+   "name": "Traitorous Greaves",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 75,
+     "read": [
+      65
+     ],
+     "suspect": "guide threads disagree ['65', '75']"
+    }
+   },
+   "guide_name": "Transcendental Wall",
+   "name": "transcendental wall",
+   "threads": [
+    "t283",
+    "t290"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 169,
+     "read": [
+      244
+     ]
+    },
+    "POWMAX": {
+     "guide": 75,
+     "read": [
+      0
+     ]
+    },
+    "agi": {
+     "guide": 65,
+     "read": [
+      10
+     ],
+     "suspect": "6.50x ours"
+    }
+   },
+   "guide_name": "Trousers of the ancient dead",
+   "name": "Trousers of the Ancient Dead",
+   "threads": [
+    "t289"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 25,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 25 under wis"
+    },
+    "HPMAX": {
+     "guide": 15,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 15 under intelligence"
+    },
+    "POWMAX": {
+     "guide": 15,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 15 under intelligence"
+    },
+    "dex": {
+     "guide": 5,
+     "read": [
+      15
+     ]
+    }
+   },
+   "guide_name": "truefist robe",
+   "name": "Truefist Robe",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 60,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Tunic of Obliteration",
+   "name": "Tunic of Obliteration",
+   "threads": [
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "CR": {
+     "guide": 15,
+     "read": [
+      30
+     ]
+    },
+    "duration": {
+     "guide": 80,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 15400,
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Valiant Boots",
+   "name": "Valiant Boots",
+   "threads": [
+    "t283",
+    "t294"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 80,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 15400,
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Valiant Bracers",
+   "name": "Valiant Bracers",
+   "threads": [
+    "t294"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 80,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 15400,
+     "read": [
+      12600
+     ]
+    }
+   },
+   "guide_name": "Valiant Chestplate",
+   "name": "Valiant Chestplate",
+   "threads": [
+    "t294"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 80,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 15400,
+     "read": [
+      15000
+     ]
+    }
+   },
+   "guide_name": "Valiant Gloves",
+   "name": "Valiant Gloves",
+   "threads": [
+    "t283"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 80,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 15400,
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Valiant Helm",
+   "name": "Valiant Helm",
+   "threads": [
+    "t294"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 100,
+     "read": [
+      0
+     ]
+    },
+    "HoT": {
+     "guide": 20,
+     "read": [
+      0
+     ]
+    },
+    "duration": {
+     "guide": 75,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 16000,
+     "read": [
+      10578
+     ]
+    }
+   },
+   "guide_name": "Vanquisher's Blade",
+   "name": "Vanquisher's Blade",
+   "threads": [
+    "t283"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      65
+     ],
+     "suspect": "guide threads disagree ['70', '75']"
+    },
+    "maxhp": {
+     "guide": 15000,
+     "read": [
+      10578
+     ]
+    }
+   },
+   "guide_name": "Victor's Blade",
+   "name": "Victor's Blade",
+   "threads": [
+    "t283",
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "agi": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 10 under str"
+    },
+    "dex": {
+     "guide": 15,
+     "read": [
+      10
+     ]
+    },
+    "duration": {
+     "guide": 60,
+     "read": [
+      65
+     ]
+    },
+    "sta": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 10 under str"
+    },
+    "wis": {
+     "guide": 15,
+     "read": [
+      10
+     ]
+    }
+   },
+   "guide_name": "Victor's Gloves",
+   "name": "Victor's Gloves",
+   "threads": [
+    "t295"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 65,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      55
+     ]
+    },
+    "maxhp": {
+     "guide": 15000,
+     "prior": "heirloom 2026-11-12 oauth",
+     "read": [
+      13400
+     ]
+    }
+   },
+   "guide_name": "Virtuoso Gloves",
+   "name": "Virtuoso Gloves",
+   "threads": [
+    "t285"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Voltaic Band",
+   "name": "Voltaic Band",
+   "threads": [
+    "t295"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 75,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 16000,
+     "read": [
+      12000
+     ]
+    }
+   },
+   "guide_name": "Wall of the Dark Disciple",
+   "name": "Wall of the Dark Disciple",
+   "threads": [
+    "t283"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 30,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 30 under sta"
+    },
+    "LR": {
+     "guide": 30,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 30 under sta"
+    },
+    "wis": {
+     "guide": 15,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 15 under str"
+    }
+   },
+   "guide_name": "War Lore Earring",
+   "name": "War Lore Earring",
+   "threads": [
+    "t617"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "War Mage's Earring",
+   "name": "War Mage's Earring",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "AR": {
+     "guide": 25,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 25 under sta"
+    },
+    "POWMAX": {
+     "guide": 25,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 25 under sta"
+    }
+   },
+   "guide_name": "Warding bracer",
+   "name": "Warding Bracer",
+   "threads": [
+    "t617"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 15,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 15 under agi"
+    },
+    "AR": {
+     "guide": 25,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 25 under dex"
+    },
+    "cha": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 10 under str"
+    },
+    "intelligence": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 10 under str"
+    }
+   },
+   "guide_name": "warding robe",
+   "name": "Warding Robe",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "intelligence": {
+     "guide": 5,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 5 under dex"
+    }
+   },
+   "guide_name": "Warlock's Bracelet",
+   "name": "Warlock's Bracelet",
+   "threads": [
+    "t287",
+    "t297"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 15900,
+     "read": [
+      12600
+     ]
+    }
+   },
+   "guide_name": "Warlord's Chestguard",
+   "name": "Warlord's Chestguard",
+   "threads": [
+    "t283",
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 70,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Warlord's Legplates",
+   "name": "Warlord's Legplates",
+   "threads": [
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 50,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Warmage's Tunic",
+   "name": "Warmage's Tunic",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 60,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Warmonger's Club",
+   "name": "Warmonger's Club",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 60,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Warmonger's Longsword",
+   "name": "Warmonger's Longsword",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 60,
+     "read": [
+      65
+     ]
+    }
+   },
+   "guide_name": "Warmonger's Totem",
+   "name": "Warmonger's Totem",
+   "threads": [
+    "t295",
+    "t301"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 18,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 18 under dex"
+    },
+    "FR": {
+     "guide": 15,
+     "read": [
+      0
+     ]
+    },
+    "LR": {
+     "guide": 18,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 18 under dex"
+    },
+    "agi": {
+     "guide": 22,
+     "read": [
+      18
+     ]
+    },
+    "intelligence": {
+     "guide": 22,
+     "read": [
+      15
+     ]
+    }
+   },
+   "guide_name": "whale hide robe",
+   "name": "Whale Hide Robe",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "weapondamage": {
+     "guide": 700,
+     "prior": "heirloom 2026-11-09 tool",
+     "read": [
+      900
+     ]
+    }
+   },
+   "guide_name": "White Obliterator",
+   "name": "White Obliterator",
+   "threads": [
+    "t283"
+   ]
+  },
+  {
+   "fields": {
+    "unk5": {
+     "guide": 32,
+     "read": [
+      25
+     ]
+    },
+    "weapondamage": {
+     "guide": 637,
+     "read": [
+      673
+     ]
+    }
+   },
+   "guide_name": "wicker man bow",
+   "name": "wicker man bow",
+   "threads": [
+    "t287",
+    "t297"
+   ]
+  },
+  {
+   "fields": {
+    "dex": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 10 under str"
+    },
+    "intelligence": {
+     "guide": 15,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 15 under agi"
+    }
+   },
+   "guide_name": "winestone robe",
+   "name": "Winestone Robe",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "HPMAX": {
+     "guide": 95,
+     "read": [
+      35
+     ]
+    }
+   },
+   "guide_name": "Wooden Earring",
+   "name": "wooden earring",
+   "threads": [
+    "t289"
+   ]
+  },
+  {
+   "fields": {
+    "PR": {
+     "guide": 35,
+     "read": [
+      30
+     ]
+    }
+   },
+   "guide_name": "Workman Gloves",
+   "name": "workman gloves",
+   "threads": [
+    "t293"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 75,
+     "read": [
+      65
+     ]
+    },
+    "maxhp": {
+     "guide": 16000,
+     "read": [
+      10578
+     ]
+    }
+   },
+   "guide_name": "World Splitter",
+   "name": "World Splitter",
+   "threads": [
+    "t283"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 75,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Worldbreaker Bracers",
+   "name": "Worldbreaker Bracers",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "duration": {
+     "guide": 75,
+     "read": [
+      50
+     ]
+    }
+   },
+   "guide_name": "Worldbreaker Greaves",
+   "name": "Worldbreaker Greaves",
+   "threads": [
+    "t286",
+    "t296"
+   ]
+  },
+  {
+   "fields": {
+    "LR": {
+     "guide": 10,
+     "read": [
+      0
+     ],
+     "suspect": "ours holds 10 under dex"
+    }
+   },
+   "guide_name": "Wraps of might",
+   "name": "Wraps of Might",
+   "threads": [
+    "t617"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 35,
+     "read": [
+      0
+     ]
+    },
+    "POWMAX": {
+     "guide": 80,
+     "read": [
+      0
+     ]
+    },
+    "agi": {
+     "guide": 14,
+     "read": [
+      80
+     ],
+     "suspect": "0.17x ours"
+    },
+    "dex": {
+     "guide": 25,
+     "read": [
+      35
+     ]
+    }
+   },
+   "guide_name": "wyrm hide robe",
+   "name": "Wyrm Hide Robe",
+   "threads": [
+    "t292"
+   ]
+  },
+  {
+   "fields": {
+    "levelreq": {
+     "guide": 5,
+     "read": [
+      4
+     ]
+    }
+   },
+   "guide_name": "yellow robe",
+   "name": "yellow robe",
+   "threads": [
+    "t292"
+   ]
+  }
+ ]
+}

@@ -305,3 +305,57 @@ func TestALostSpawnOfASpawnOnlyCreatureComesBack(t *testing.T) {
 		t.Errorf("a creature that stands in the world was made again: %d", n)
 	}
 }
+
+// A keep restart carries no quest spawn (petition 2569: owt gone mid-trial):
+// what stood at the freeze is kept as [quest, step] (standingSpawns), and at the
+// resume (oweSpawns) the step's spawns are made again before the player at once,
+// however far from the original, once. The controls: nothing is owed for a step
+// whose spawns did not stand, and an owed step the character has left is made
+// nothing for.
+func TestAKeepRestartGivesBackAQuestSpawn(t *testing.T) {
+	f, items, jarek, creation := jarekFixture(t)
+	if _, err := f.qe.SetCharacterQuest(f.sid, 120, QuestSetStep, 4); err != nil {
+		t.Fatal(err)
+	}
+	f.own(items["spikeshell crab claw"], 1)
+	f.own(items["fungus cockroach leg"], 1)
+	f.tw.talk(jarek)
+	kept := f.qe.standingSpawns(f.sid)
+	if len(kept) != 1 || kept[0][0] != 120 {
+		t.Fatalf("kept at the freeze: %v, want the creation's step", kept)
+	}
+	// the restart: every quest spawn gone, the player far from the original
+	back := f.qe.sessionOf
+	f.qe.sessionOf = func(uint32) *session.Session { return nil }
+	f.qe.expireSpawns()
+	f.qe.sessionOf = back
+	if n := f.liveCopies(); n != 0 {
+		t.Fatalf("%d creations survived the restart", n)
+	}
+	f.tw.p.X, f.tw.p.Z = creation.X+400, creation.Z
+	f.qe.respawnLost()
+	if n := len(f.questCopies()); n != 0 {
+		t.Fatalf("the control: 400 off with nothing owed, %d came", n)
+	}
+	f.qe.oweSpawns(f.sid, kept)
+	f.qe.respawnLost()
+	cs := f.questCopies()
+	if len(cs) != 1 || cs[0].CurrentEnemy != f.tw.p.ServerID {
+		t.Fatalf("owed after the restart, 400 off: %d creations, want one at the player", len(cs))
+	}
+	f.qe.respawnLost()
+	if len(f.questCopies()) != 1 {
+		t.Fatal("made twice")
+	}
+	if len(f.qe.owed) != 0 {
+		t.Fatalf("still owed: %v", f.qe.owed)
+	}
+
+	// an owed step the character has since left: nothing
+	f.qe.oweSpawns(f.sid, [][2]int{{120, 99}})
+	before := len(f.questCopies())
+	f.qe.respawnLost()
+	if len(f.questCopies()) != before || len(f.qe.owed) != 0 {
+		t.Fatalf("a left step's owed spawns made something or stayed owed")
+	}
+}

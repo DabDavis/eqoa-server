@@ -50,6 +50,11 @@ type KeptExtras struct {
 	// QuestHeadMarks is whether the client asked for the marks over the
 	// NPCs' heads (questheadmarks.go)
 	QuestHeadMarks bool `json:"quest_head_marks,omitempty"`
+	// QuestSpawns: each [quest, step] whose spawns stood for the character at the
+	// freeze (alive or a corpse lying). A keep restart carries no quest spawn, so
+	// at the resume those steps are owed theirs again, made before the player at
+	// once (questevents.go's respawnLost; petition 2569: owt gone mid-trial).
+	QuestSpawns [][2]int `json:"quest_spawns,omitempty"`
 	// LootOpen: its client has a corpse's window open (ResumeCharacter closes it)
 	LootOpen bool `json:"loot_open,omitempty"`
 	// Trading: it was in a trade, asked or open. A trade does not come
@@ -135,6 +140,7 @@ func KeepExtras(sess *session.Session, p *entity.Player) KeptExtras {
 	if q := Quests(); q != nil && p != nil {
 		k.QuestMarks, k.QuestProgress = q.keptFlags(p)
 		k.QuestHeadMarks = q.headMarksOn(p)
+		k.QuestSpawns = q.standingSpawns(p.CharServerID)
 	}
 	if h := keepWindows.Load(); h != nil {
 		ls := h.loots()
@@ -439,6 +445,9 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 	// and it is told what is off (vanillaui.go)
 	stopKeptQoL(h.gameWorld, sess)
 	SendVanillaUI(sess)
+	if q := Quests(); q != nil {
+		q.oweSpawns(player.CharServerID, ex.QuestSpawns)
+	}
 	if q := Quests(); q != nil && QoLOnFor(sess) {
 		if ex.QuestMarks {
 			q.SetMarkers(sess, player, true)

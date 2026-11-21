@@ -632,6 +632,42 @@ func (q *QuestEngine) spawnStandsLocked(serverID uint32, quest, step int) bool {
 	return false
 }
 
+// standingSpawns is each [quest, step] of the character's whose spawns stand
+// (spawnStandsLocked), for a keep restart to carry (keep.go).
+func (q *QuestEngine) standingSpawns(serverID uint32) [][2]int {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	seen := map[[2]int]bool{}
+	var out [][2]int
+	for _, s := range q.spawns[serverID] {
+		k := [2]int{s.quest, s.step}
+		if !seen[k] && q.spawnStandsLocked(serverID, s.quest, s.step) {
+			seen[k] = true
+			out = append(out, k)
+		}
+	}
+	return out
+}
+
+// oweSpawns marks the steps whose spawns a keep restart took from the character
+// (keep.go's QuestSpawns): respawnLost makes them again at its next turn, where
+// the player stands, if the character is still on that step.
+func (q *QuestEngine) oweSpawns(serverID uint32, steps [][2]int) {
+	if len(steps) == 0 {
+		return
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	if q.owed == nil {
+		q.owed = map[uint32]map[[2]int]bool{}
+	}
+	m := map[[2]int]bool{}
+	for _, k := range steps {
+		m[k] = true
+	}
+	q.owed[serverID] = m
+}
+
 // respawnLost makes a kill or loot step's spawns again for a player who lost
 // them (once a second): when the creature a spawn of the step brings stands
 // out of the world (entity/spawnonly.go: there is no other to kill), none of
@@ -649,6 +685,19 @@ func (q *QuestEngine) respawnLost() {
 	defer q.mu.Unlock()
 	for id, c := range q.chars {
 		var p *entity.Player
+		owed := q.owed[id]
+		if owed != nil {
+			// owed spawns wait for the player in the world; the rest of the
+			// owed (a step since moved on) is dropped with them
+			sess := q.sessionOf(id)
+			if sess == nil || !sess.CharacterInWorld() {
+				continue
+			}
+			if p = q.playerOf(sess); p == nil {
+				continue
+			}
+			delete(q.owed, id)
+		}
 		for _, cq := range c.active() {
 			qu := q.cat.byID[cq.QuestID]
 			if qu == nil {
@@ -675,10 +724,16 @@ func (q *QuestEngine) respawnLost() {
 				continue // its group's stand: the group fights those
 			}
 			world, x, _, z, ok := q.gw.PlayerPlace(p)
-			if !ok || !q.gw.SpawnOnlyNear(world, x, z, questRespawnReach, names) && !q.byStepNPC(qu, st, names, world, x, z) {
+			if !ok {
 				continue
 			}
-			log.Printf("Quests: %q step %d: %s came back for %s", qu.Name, st.Step, p.Name, strings.Join(names, ", "))
+			if owed[[2]int{qu.ID, st.Step}] {
+				log.Printf("Quests: %q step %d: %s's spawns (%s) made again after a keep restart", qu.Name, st.Step, p.Name, strings.Join(names, ", "))
+			} else if !q.gw.SpawnOnlyNear(world, x, z, questRespawnReach, names) && !q.byStepNPC(qu, st, names, world, x, z) {
+				continue
+			} else {
+				log.Printf("Quests: %q step %d: %s came back for %s", qu.Name, st.Step, p.Name, strings.Join(names, ", "))
+			}
 			for _, e := range evs {
 				q.spawnLocked(p, c, qu, st.Step, e)
 			}

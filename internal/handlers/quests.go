@@ -118,6 +118,10 @@ type QuestEngine struct {
 	cat    questCatalog
 	chars  map[uint32]*questChar
 	boxSeq uint32
+	// owed are the steps whose spawns a keep restart took from a character,
+	// [quest, step] by character, made again by respawnLost wherever it stands
+	// (keep.go's QuestSpawns)
+	owed map[uint32]map[[2]int]bool
 
 	kills chan entity.KillCredit
 	// infections are the weres' bites that infect (wereinfect.go), cures

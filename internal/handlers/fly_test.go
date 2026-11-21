@@ -347,3 +347,32 @@ func TestASubGMFlies(t *testing.T) {
 		t.Fatal("the control's /safemode turned Safe Mode on")
 	}
 }
+
+// The owner, 2026-11-21: "lets give sub gms a tag [Test]". A sub GM's world entry
+// (SendGMChannel) draws its name "[Test] Neo" and a tell typed to that drawn name
+// reaches it; a plain player's entry leaves its name bare (the control), and an
+// account no longer a sub GM's loses the tag at its next entry.
+func TestASubGMIsDrawnWithTheTestTag(t *testing.T) {
+	c := newChatWorld(t)
+	c.h.SetAccessLevels(subs{levels{1: 0, 2: 0}, map[int]bool{1: true}})
+	fs, fp := c.join(1, "Neo", 25000, 15000, 0)
+	fs.SetAccountID(1)
+	ps, pp := c.join(2, "Player", 25010, 15010, 0)
+	ps.SetAccountID(2)
+	c.h.SendGMChannel(fs)
+	c.h.SendGMChannel(ps)
+	if fp.ShownName() != "[Test] Neo" || pp.ShownName() != "Player" {
+		t.Fatalf("drawn %q and %q", fp.ShownName(), pp.ShownName())
+	}
+	flushQueue(fs)
+	flushQueue(ps)
+	c.say(ps, "/t [Test] Neo hail")
+	if got := heard(t, fs); len(got) != 2 || got[1].text != "Player tells you, 'hail'" {
+		t.Fatalf("Neo heard %+v", got)
+	}
+	c.h.SetAccessLevels(subs{levels{1: 0, 2: 0}, map[int]bool{}})
+	c.h.SendGMChannel(fs)
+	if fp.ShownName() != "Neo" {
+		t.Fatalf("no longer a sub GM: drawn %q", fp.ShownName())
+	}
+}

@@ -209,6 +209,32 @@ type GMConfig struct {
 	// sessions (cmd/workboard on the box). The panel's admins (admin_level)
 	// read and post every board; no other GM reads one. Unset: no boards.
 	PersonalBoards map[string][]string `yaml:"personal_boards"`
+
+	// One panel for every shard (gmweb/forward.go; the owner, 2026-11-21: "we
+	// could have both servers in 1 gm panel instead of 2 different panels").
+	// ShardID is the short name this panel answers to in an operation's
+	// "shard" argument ("heirloom" unset) and ShardLabel what its page's switch
+	// calls it ("Heirloom" unset). OtherShards are the panels of the other
+	// shards on this machine this one hands a call for them to, as the GM who
+	// made it; ShardKeyFile is the key such a call must carry for this panel to
+	// take it (from a loopback address alone; empty: none taken).
+	ShardID      string         `yaml:"shard_id"`
+	ShardLabel   string         `yaml:"shard_label"`
+	OtherShards  []GMShardPanel `yaml:"other_shards"`
+	ShardKeyFile string         `yaml:"shard_key_file"`
+}
+
+// GMShardPanel is another shard's GM panel (GMConfig.OtherShards).
+type GMShardPanel struct {
+	// Name is its short name, as an operation's "shard" argument gives it
+	// ("live"); Label what the page's switch says ("Live").
+	Name  string `yaml:"name"`
+	Label string `yaml:"label"`
+	// URL is its panel on this machine, its own listener and not the public
+	// proxy ("http://127.0.0.1:8082").
+	URL string `yaml:"url"`
+	// KeyFile holds the key that panel's shard_key_file holds.
+	KeyFile string `yaml:"key_file"`
 }
 
 // ServerConfig holds network server settings.

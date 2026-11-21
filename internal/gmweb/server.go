@@ -153,6 +153,13 @@ type Server struct {
 	// presetCache is the log's presets' counts by the newest line indexed
 	presetMu    sync.Mutex
 	presetCache map[string]*presetCount
+
+	// the other shards' panels this one hands their calls to, and the key a
+	// call handed to this one must carry (forward.go); ownShardArg names the
+	// operations with a "shard" argument of their own
+	peers       []*shardPeer
+	shardKey    string
+	ownShardArg map[string]bool
 }
 
 // New builds the panel. It creates its own tables (gm_audit, gm_totp,
@@ -225,6 +232,9 @@ func New(d Deps) (*Server, error) {
 	s.clearSnapshotDir() // a link dies with the server that made it: so does its file
 	s.registerOps()
 	s.holdSharedAccounts()
+	if err := s.initShards(); err != nil {
+		return nil, err
+	}
 	return s, nil
 }
 
@@ -250,6 +260,8 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/api/ops", s.handleOpList)
 	mux.HandleFunc("/api/openapi.json", s.handleOpenAPI)
 	mux.HandleFunc("/api/guide", s.handleGuide)
+	// an operation another shard's panel on this machine hands over (forward.go)
+	mux.HandleFunc("/api/shard/op/", s.handleShardOp)
 
 	// a sanitised snapshot's link, which is its own credential: once, for
 	// minutes, for the admin it was made for (ops_snapshot.go)

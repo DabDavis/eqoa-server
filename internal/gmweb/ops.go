@@ -97,8 +97,7 @@ func errStatus(err error) int {
 	if errors.As(err, &oe) {
 		return oe.status
 	}
-	var ce *errConflict
-	if errors.As(err, &ce) {
+	if _, ok := conflictRow(err); ok {
 		return http.StatusConflict
 	}
 	return http.StatusBadRequest
@@ -156,8 +155,9 @@ func (s *Server) registerOps() {
 	s.registerStorytellerOps() // storyteller.go
 }
 
-// run calls an operation as an actor, with the scope check, and logs a
-// failure. It is the one way in for the page, MCP and OpenAPI alike.
+// run calls an operation here as an actor, with the scope check, and logs a
+// failure. The page, MCP and OpenAPI come in through dispatch (forward.go),
+// which picks the shard.
 func (s *Server) run(a *actor, name string, raw json.RawMessage, r *http.Request) (any, error) {
 	op, ok := s.ops[name]
 	if !ok {
@@ -213,11 +213,11 @@ func (s *Server) handleOp(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	out, err := s.run(a, name, raw, r)
+	// the shard: ?shard= (the page's switch), else the arguments' (forward.go)
+	out, err := s.dispatch(a, name, raw, r, r.URL.Query().Get("shard"), true)
 	if err != nil {
-		var ce *errConflict
-		if errors.As(err, &ce) {
-			writeJSON(w, http.StatusConflict, map[string]any{"error": err.Error(), "current": ce.current})
+		if cur, ok := conflictRow(err); ok {
+			writeJSON(w, http.StatusConflict, map[string]any{"error": err.Error(), "current": cur})
 			return
 		}
 		writeError(w, errStatus(err), err.Error())

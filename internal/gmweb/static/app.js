@@ -2,7 +2,7 @@
 // the router that hands #/<page>/<id> to a view.
 
 import { h, mount, icon, toast, debounce, store } from './lib/dom.js';
-import { api, op, setCSRF, onUnauthorized } from './lib/api.js';
+import { api, op, setCSRF, onUnauthorized, setShard, currentShard } from './lib/api.js';
 import { state, go, isTester, isStoryteller, isSubGM, isLimited } from './lib/nav.js';
 
 const NAV = [
@@ -136,8 +136,8 @@ function showLogin(message) {
     submit.disabled = true;
     msg.textContent = '';
     try {
-      const s = await api('api/auth/login', { username: user.value, password: pass.value, code: code.value });
-      start(s);
+      base = await api('api/auth/login', { username: user.value, password: pass.value, code: code.value });
+      await enterShard(store('shard') || '');
     } catch (err) {
       if (err.data?.needCode) {
         codeRow.classList.remove('hidden');
@@ -164,6 +164,59 @@ onUnauthorized(() => showLogin('Your session ended. Sign in again.'));
 // ---- the frame
 
 let main, nav, shell;
+
+// base is the session as this panel gives it; on another shard (the header's
+// switch, forward.go) the page is drawn from that shard's view of the same GM.
+let base = null;
+
+// enterShard draws the page for a shard: '' (or this panel's own) is here;
+// another's name sends every operation there, the page drawn as that shard
+// sees the GM (its level, its admin, what it leaves out).
+async function enterShard(id) {
+  setCSRF(base.csrf);
+  const target = (base.shards || []).find((x) => x.id === id && !x.here);
+  if (!target) {
+    setShard('');
+    store('shard', '');
+    start(base);
+    return;
+  }
+  setShard(target.id);
+  try {
+    const st = await op('server_status');
+    const you = st.you || {};
+    store('shard', target.id);
+    start({
+      ...base,
+      user: { ...base.user, level: you.level, role: you.role, admin: !!you.admin, adminNeedsTOTP: false },
+      server: { ...base.server, shard: st.shard || target.label, build: st.build || base.server.build,
+        noTransfers: !!st.noTransfers, accountsShared: !!st.accountsShared },
+    });
+  } catch (e) {
+    setShard('');
+    store('shard', '');
+    toast(target.label + ': ' + e.message, 'error');
+    start(base);
+  }
+}
+
+// shardSwitch is the header's switch between the shards, when there are more
+// than one.
+function shardSwitch() {
+  const shards = base?.shards;
+  if (!shards || shards.length < 2) return null;
+  const cur = currentShard();
+  return h('div', { class: 'shard-switch', role: 'group', 'aria-label': 'Shard' },
+    ...shards.map((x) => {
+      const on = x.here ? !cur : cur === x.id;
+      return h('button', {
+        type: 'button', class: (on ? 'on' : '') + (x.here ? '' : ' away'), 'aria-pressed': String(on),
+        title: x.here ? 'Work on ' + x.label + ' (this panel\'s own shard)' : 'Work on ' + x.label + ': every change goes to its server, as you',
+        disabled: x.ready === false ? true : null,
+        onclick: () => { if (!on) enterShard(x.here ? '' : x.id); },
+      }, x.label);
+    }));
+}
 
 function start(session) {
   state.session = session;
@@ -192,7 +245,8 @@ function start(session) {
     try { await api('api/auth/logout', {}); } catch { /* signed out anyway */ }
     showLogin('Signed out.');
   } }, icon('out'));
-  shell = h('div', { class: 'shell' },
+  const away = currentShard();
+  shell = h('div', { class: 'shell' + (away ? ' shard-away' : '') },
     h('aside', { class: 'side' },
       h('div', { class: 'brand' }, h('span', { class: 'brand-mark' }, 'GM'), h('div', null, 'EQOA GM', h('small', null, (session.server.shard ? session.server.shard + ' · ' : '') + 'build ' + session.server.build))),
       nav,
@@ -200,10 +254,12 @@ function start(session) {
     // search is a GM's and a tester's (the items and spells): a storyteller's
     // gate refuses it
     h('header', { class: 'top' }, menuBtn, !isLimited() || isTester() ? globalSearch() : null, h('span', { class: 'spacer' }),
+      shardSwitch(),
       h('span', { class: 'who' }, lvl, h('strong', { class: 'name' }, session.user.username)), themeBtn, outBtn),
     main);
   mount(app, shell);
   if (session.server.shard) document.title = 'EQOA GM: ' + session.server.shard;
+  if (away) document.title += ' (from ' + (base.shards?.find((x) => x.here)?.label || 'this panel') + ')';
   waitingBadge();
   if (session.totp?.required && !session.totp.enabled) {
     location.hash = '#/security';
@@ -318,8 +374,10 @@ function globalSearch() {
 
 (async () => {
   try {
-    start(await api('api/auth/session'));
+    base = await api('api/auth/session');
   } catch {
     showLogin();
+    return;
   }
+  await enterShard(store('shard') || '');
 })();

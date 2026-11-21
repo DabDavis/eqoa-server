@@ -234,6 +234,10 @@ func (s *Server) sessionInfo(accountID int, sess *gmSession, admin bool) map[str
 			"noTransfers":    s.d.NoTransfers,
 		},
 	}
+	// the shards this panel reaches (forward.go): the page's switch
+	if len(s.peers) > 0 {
+		out["shards"] = s.shardList()
+	}
 	// below a GM, each role's tables (roles.go): what the page offers
 	if limitedRole(role) {
 		for _, g := range grantsOf(role) {

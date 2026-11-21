@@ -48,7 +48,11 @@ type actor struct {
 	// signed in with its code (or enrolled it), the token was made by such a
 	// sign-in, and the account has it still. An admin's tools are the whole
 	// server's, so the game password alone never reaches them.
-	Admin   bool
+	Admin bool
+	// MFA: the credential came of a sign-in with an authenticator's code
+	// (a session that gave it, a token while its account keeps one): what
+	// another shard's panel is told, which asks for no second code.
+	MFA     bool
 	Scope   string // what this credential may do (scopeRead/Write/Admin)
 	Via     string // "web", "token:<name>", "oauth:<client>"
 	IP      string
@@ -479,7 +483,7 @@ func (s *Server) authenticate(r *http.Request) (*actor, error) {
 	s.sessions.mu.Unlock()
 	a := &actor{
 		AccountID: acc.ID, Username: acc.Username, Level: acc.Level, Role: role,
-		Admin: acc.Level >= s.cfg.AdminLevel && mfa && on, Scope: scopeWrite, Via: "web", IP: ip, sess: sess,
+		Admin: acc.Level >= s.cfg.AdminLevel && mfa && on, MFA: mfa && on, Scope: scopeWrite, Via: "web", IP: ip, sess: sess,
 	}
 	if a.Admin {
 		a.Scope = scopeAdmin

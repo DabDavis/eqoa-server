@@ -172,6 +172,16 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 14px 0; }
 .search-pop button:hover, .search-pop button.sel { background: var(--raise); }
 .search-pop .sub { color: var(--muted); font-size: 12px; }
 .top .spacer { flex: 1; }
+/* the shard switch (forward.go): this panel's own shard in the accent, another in blue, and the
+   whole header marked while the page works on another */
+.shard-switch { display: inline-flex; border: 1px solid var(--border-2); border-radius: 999px; padding: 2px; gap: 2px; flex: none; }
+.shard-switch button { border: 0; background: none; color: var(--muted); padding: 4px 12px; border-radius: 999px; font-weight: 600; font-size: 12px; }
+.shard-switch button:hover:not(:disabled) { color: var(--text); background: var(--raise); }
+.shard-switch button.on { background: var(--accent); color: var(--accent-ink); }
+.shard-switch button.on.away { background: var(--info); color: #fff; }
+.shard-switch button:disabled { opacity: 0.45; cursor: not-allowed; }
+.shell.shard-away .top { box-shadow: inset 0 -3px 0 var(--info); background: var(--info-soft); }
+.shell.shard-away .brand-mark { background: var(--info); color: #fff; }
 .who { display: flex; align-items: center; gap: 8px; color: var(--muted); }
 .who strong { color: var(--text); }
 

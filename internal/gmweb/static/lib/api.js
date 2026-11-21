@@ -38,7 +38,14 @@ export async function api(path, body, method = body === undefined ? 'GET' : 'POS
   return data;
 }
 
-// op calls an operation: the same ones an AI agent calls.
+// The shard the page works on (the header's switch, forward.go): '' is the
+// panel's own; another's name sends every operation to that shard's server.
+let shard = '';
+export function setShard(id) { shard = id || ''; }
+export function currentShard() { return shard; }
+
+// op calls an operation: the same ones an AI agent calls, on the shard the
+// switch names.
 export function op(name, args) {
-  return api('api/op/' + name, args || {});
+  return api('api/op/' + name + (shard ? '?shard=' + encodeURIComponent(shard) : ''), args || {});
 }

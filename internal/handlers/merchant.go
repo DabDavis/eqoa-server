@@ -108,6 +108,10 @@ type NPCWindowHandler struct {
 	// genie is the lamps' genies (genie.go): a window one opened is theirs
 	genie *Genie
 
+	// dialogLines is npcdialog (database.NPCDialog): a refusing merchant's own
+	// words (factionrefusal.go). Nil: the chat line alone.
+	dialogLines func() ([]database.NPCDialogLine, error)
+
 	// archivist is the Spell Archivists (archivist.go): a request for one's
 	// window is answered with his question; nil, his shop opens at once
 	archivist *Archivist
@@ -351,6 +355,12 @@ func (h *NPCWindowHandler) HandleMerchantOpen(sess *session.Session, msg *protoc
 		refuse(sess)
 		return nil
 	}
+	// a merchant whose faction holds the player in the red bands opens nothing
+	// (factionrefusal.go, board #742)
+	if h.merchantRefuses(sess, player, npc, true) {
+		refuse(sess)
+		return nil
+	}
 	// a quest's step to do at it is done first (questevents.go: CLIENT
 	// never talks to an NPC with a window)
 	if questsAtWindow(sess, player, npc) {
@@ -400,6 +410,9 @@ func (h *NPCWindowHandler) buy(sess *session.Session, id uint32, index, count in
 	player, npc, ok := h.windowNPC(sess, id, npcFlagMerchant, "MerchantBuy")
 	inv := sessionInvList(sess)
 	if !ok || h.inv == nil || inv == nil || count < 1 {
+		return false
+	}
+	if h.merchantRefuses(sess, player, npc, false) { // a standing fallen with the window open (factionrefusal.go)
 		return false
 	}
 	// the list last sent: past its wares a line to buy back (buyback.go), of
@@ -554,6 +567,9 @@ func (h *NPCWindowHandler) sell(sess *session.Session, id, key uint32, n int) bo
 	player, npc, ok := h.windowNPC(sess, id, npcFlagMerchant, "MerchantSell")
 	inv := sessionInvList(sess)
 	if !ok || h.inv == nil || inv == nil || n < 1 {
+		return false
+	}
+	if h.merchantRefuses(sess, player, npc, false) { // a standing fallen with the window open (factionrefusal.go)
 		return false
 	}
 	i := inv.index(key)

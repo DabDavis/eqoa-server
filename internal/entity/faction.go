@@ -568,27 +568,34 @@ func (w *World) npcFactionLocked(npc *NPC) string {
 	return ""
 }
 
-// CoachFactionMin is the least standing with a coachman's faction at which
-// he signs his ledger and runs his coach for a player: the players' faction
-// guide of 2010 ("-99 or better to sign a coach"; the owner, 2026-11-21: "add
-// the coach gate"). A coachman of no faction serves everyone.
-const CoachFactionMin = -99
-
-// CoachRefuses reports whether a coachman will not serve the session's
-// player: its standing with his faction is below CoachFactionMin. It also
-// says the faction, for his words.
-func (w *World) CoachRefuses(sess *session.Session, npc *NPC) (bool, string) {
+// Refuses reports whether an NPC of a faction will not serve the session's
+// player (board #742, the live game as filmed: Coachman Lothi of Neriak, Coachman
+// Zuggug of Grobb and the shopkeepers of Baga and Jextalan refusing a player
+// with a red face): its standing with the NPC's faction is in the red bands,
+// at or below FactionKOSAt (Kos; the owner, 2026-11-21: "use jibs -350",
+// over the coach gate's -99 of the same day). An NPC of no faction (no
+// npcfaction row) never refuses, nor does the player's own genie, and with
+// world.faction_aggro off (the faces off) nobody does.
+func (w *World) Refuses(sess *session.Session, npc *NPC) bool {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
-	p := w.sessionPlayerLocked(sess)
-	if p == nil {
-		return false, ""
+	return w.refusesLocked(w.sessionPlayerLocked(sess), npc)
+}
+
+// refusesLocked is Refuses for a player. Must be called with the lock held
+// (a read lock will do).
+func (w *World) refusesLocked(p *Player, npc *NPC) bool {
+	if p == nil || npc == nil || w.aggro.factionOff {
+		return false
+	}
+	if p.genie != nil && p.genie.rec == npc {
+		return false
 	}
 	f := w.npcFactionLocked(npc)
 	if f == "" {
-		return false, ""
+		return false
 	}
-	return w.standingLocked(p, f) < CoachFactionMin, f
+	return Kos(w.standingLocked(p, f))
 }
 
 // NPCFaction is the faction an NPC is of, "" none (npcfaction).

@@ -140,11 +140,23 @@ func (s *SQLiteCharacterStore) placeOf(c *CharacterRecord, own bool) (string, bo
 			}
 		}
 	}
+	// A class may have two rows: one on a server's own world, where a new
+	// character of it starts (the evil dwarves' deep, world 10: the owner,
+	// 2026-11-21, tools/evil_dwarf_start_20261121.py), and one on the disc's
+	// worlds, for a login whose client lacks that world (own false:
+	// MainlandPlace). A new character takes its class's row of the server's
+	// world first; MainlandPlace takes the disc's rows alone. A class with no
+	// row of its own takes its race's first as ever, whatever its world.
+	disc := ""
+	if !own {
+		disc = fmt.Sprintf(" AND COALESCE(world, 0) < %d", discWorldCount)
+	}
 	var x, y, z, facing float64
 	var world, rowHum, rowClass int
 	err := s.db.QueryRow(`SELECT x, y, COALESCE(z, 0), facing, COALESCE(world, 0), humType, tclass
-		FROM defaultcharacter WHERE race = ?
-		ORDER BY humType = ? DESC, tclass = ? DESC, humType, tclass LIMIT 1`, race, hum, c.TClass).
+		FROM defaultcharacter WHERE race = ?`+disc+`
+		ORDER BY humType = ? DESC, tclass = ? DESC, (tclass = ? AND COALESCE(world, 0) >= ?) DESC, humType, tclass LIMIT 1`,
+		race, hum, c.TClass, c.TClass, discWorldCount).
 		Scan(&x, &y, &z, &facing, &world, &rowHum, &rowClass)
 	if err != nil {
 		if err != sql.ErrNoRows {

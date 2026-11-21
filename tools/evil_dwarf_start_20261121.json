@@ -1,0 +1,196 @@
+{
+  "note": "Blackvein Deep: the evil dwarves' start (shadow knights and necromancers), the Heirloom server's alone. The cave under the Hatebone orcs' hills east of Moradhim (Tunaria zone 42, Thedruk, cell 9,4), as world 10 (the Homelands) holds it whole: its tunnels at (18500-19080, 8890-9310), floors -103 to -23 under the rock, empty in world 10 (the orcs' home is the camp on the surface, 1,000 east). Spots: world 10's and world 0's baked ground (cmd/campground check, 2026-11-21), each answer beside it.",
+  "cave_world": 10,
+  "start": {"world": 10, "x": 18745.0, "y": -59.0, "z": 9170.0, "toward": [18765.0, 9170.0]},
+  "camp": {"world": 0, "x": 15295.0, "y": 54.09, "z": 9430.0, "toward": [15352.0, 9267.0],
+           "note": "by Moradhim's coach (Coachman Doba, 15352, 9267), 170 south-west of him on the open meadow: where a dwarf shadow knight or necromancer stands whose client lacks world 10 (a PS2: database.MainlandPlace), and where the deep's tunnelwarden sends one up"},
+  "freeport": {"world": 0, "x": 25478.1, "y": 53.5, "z": 15607.3, "facing": 1.0632,
+               "note": "the eastern humans' shadow knight's start row (defaultcharacter id 2), beside Malethai Crimsonhand and the necromancers' Corious Slaerin: the smugglers' road lands here"},
+  "people": [
+    {"name": "Oathbreaker Thrain Blackvein", "like": 446, "level": 50, "role": "talker", "at": [18765.0, -59.0, 9170.0], "toward": [18745.0, 9170.0],
+     "note": "the deep's elder (Durgrim Oathbreaker's look: a dwarf in plain dress): the storyline's giver"},
+    {"name": "Dread Lord Morvek Ashbeard", "like": 1181, "level": 50, "role": "talker", "at": [18700.0, -59.09, 9150.0], "toward": [18745.0, 9170.0],
+     "note": "the shadow knights' guildmaster (a Doomseeker's plate and axe)"},
+    {"name": "Bonecaller Sigrun Coalmourn", "like": 1188, "level": 50, "role": "talker", "at": [18700.0, -59.0, 9190.0], "toward": [18745.0, 9170.0],
+     "note": "the necromancers' guildmaster (a dwarf woman)"},
+    {"name": "Forgewife Hesta Grimhammer", "like": 113811, "level": 35, "role": "talker", "at": [18790.0, -59.0, 9190.0], "toward": [18745.0, 9170.0], "stock": "Armorer Kardin",
+     "note": "the deep's outfitter: hands over the level 1 gift; Moradhim's armorer's wares"},
+    {"name": "Brewer Dunmar Sootbeard", "like": 113805, "level": 35, "role": "talker", "at": [18790.0, -59.0, 9165.0], "toward": [18745.0, 9170.0], "stock": "Grocer Stukthum",
+     "note": "the deep's grocer: Moradhim's grocer's wares"},
+    {"name": "Spiritmaster Vorna Ironvein", "like": 113808, "level": 35, "role": "talker", "at": [18820.0, -57.33, 9175.0], "toward": [18745.0, 9170.0],
+     "note": "binds, as every spiritmaster (handlers/spiritmaster.go, by the name)"},
+    {"name": "Spell Archivist", "like": "Spell Archivist", "level": 30, "role": "talker", "at": [18730.0, -59.0, 9195.0], "toward": [18745.0, 9170.0], "stock": "Spell Archivist", "optional": true,
+     "note": "the Heirloom server's Spell Archivist (handlers/archivist.go, by the name), as every home has one; left out where the database has none"},
+    {"name": "Tunnelwarden Brokk Deepdelve", "like": 104309, "level": 40, "role": "talker", "at": [18715.0, -59.09, 9140.0], "toward": [18745.0, 9170.0],
+     "note": "the ways out: up to the camp by Moradhim's coach, and the smugglers' road to Freeport (after the level 5 quest)"},
+    {"name": "Blackvein sentry", "like": 104315, "level": 40, "role": "talker", "at": [18715.0, -60.0, 9125.0], "toward": [18715.0, 9040.0]},
+    {"name": "deep road grub", "like": 107506, "level": 1, "role": "foe", "at": [18510.0, -87.14, 9045.0], "facing": 40},
+    {"name": "deep road grub", "like": 107506, "level": 2, "role": "foe", "at": [18530.0, -89.66, 9070.0], "facing": 90},
+    {"name": "deep road grub", "like": 107506, "level": 1, "role": "foe", "at": [18550.0, -86.75, 9045.0], "facing": 150},
+    {"name": "deep road grub", "like": 107506, "level": 2, "role": "foe", "at": [18570.0, -86.75, 9065.0], "facing": 200},
+    {"name": "deep road grub", "like": 107506, "level": 3, "role": "foe", "at": [18585.0, -85.49, 9045.0], "facing": 10},
+    {"name": "deep road grub", "like": 107506, "level": 3, "role": "foe", "at": [18545.0, -86.75, 9060.0], "facing": 120},
+    {"name": "deep road grub", "like": 107506, "level": 2, "role": "foe", "at": [18525.0, -89.88, 9055.0], "facing": 230},
+    {"name": "deepweb spider", "like": 1400, "level": 3, "role": "foe", "at": [18875.0, 34.38, 9095.0], "facing": 60},
+    {"name": "deepweb spider", "like": 1400, "level": 4, "role": "foe", "at": [18885.0, 34.37, 9110.0], "facing": 160},
+    {"name": "deepweb spider", "like": 1400, "level": 4, "role": "foe", "at": [18870.0, 34.5, 9125.0], "facing": 20},
+    {"name": "deepweb spider", "like": 1400, "level": 5, "role": "foe", "at": [18880.0, 34.43, 9140.0], "facing": 220},
+    {"name": "deepweb spider", "like": 1400, "level": 5, "role": "foe", "at": [18875.0, 34.39, 9150.0], "facing": 100},
+    {"name": "Moradhim tracker", "like": 104304, "level": 4, "role": "foe", "at": [18730.0, -88.1, 8912.0], "facing": 64},
+    {"name": "Moradhim tracker", "like": 104304, "level": 5, "role": "foe", "at": [18760.0, -93.21, 8912.0], "facing": 192},
+    {"name": "Moradhim tracker", "like": 104304, "level": 5, "role": "foe", "at": [18790.0, -98.36, 8915.0], "facing": 64},
+    {"name": "Moradhim tracker", "like": 104304, "level": 6, "role": "foe", "at": [18820.0, -102.75, 8905.0], "facing": 192},
+    {"name": "Moradhim tracker", "like": 104304, "level": 6, "role": "foe", "at": [18855.0, -102.75, 8900.0], "facing": 192},
+    {"name": "Brellsworn zealot", "like": 104301, "level": 7, "role": "foe", "at": [18935.0, -38.62, 9040.0], "facing": 200},
+    {"name": "Brellsworn zealot", "like": 104301, "level": 8, "role": "foe", "at": [18950.0, -38.62, 9065.0], "facing": 30},
+    {"name": "Brellsworn zealot", "like": 104301, "level": 8, "role": "foe", "at": [18995.0, -44.1, 9050.0], "facing": 120},
+    {"name": "Brellsworn zealot", "like": 104301, "level": 9, "role": "foe", "at": [19020.0, -50.95, 9075.0], "facing": 220},
+    {"name": "Brellsworn zealot", "like": 104301, "level": 9, "role": "foe", "at": [19045.0, -51.07, 9055.0], "facing": 90},
+    {"name": "Brellsworn paladin", "like": 104315, "level": 12, "role": "foe", "at": [19000.0, -23.25, 9185.0], "facing": 160},
+    {"name": "Brellsworn paladin", "like": 104315, "level": 12, "role": "foe", "at": [19035.0, -23.25, 9215.0], "facing": 230},
+    {"name": "Truthbearer Haldric Ironbrow", "like": 104300, "level": 14, "role": "foe", "at": [19020.0, -23.25, 9195.0], "facing": 200,
+     "note": "the storyline's level 13 quest's foe: Moradhim's Truthbearer, come down with his paladins to end the oathbreakers"},
+    {"name": "Deepwarden Korga Ashvein", "like": 1824, "level": 40, "role": "talker", "world": 0, "at": [15310.0, 53.84, 9410.0], "toward": [15295.0, 9430.0],
+     "note": "the camp by Moradhim's coach: down into the deep (a client that holds world 10 alone: a PS2 is refused by the engine), and the smugglers' road to Freeport for anyone of the two classes"},
+    {"name": "Spiritmaster Haldra Coalvein", "like": 1938, "level": 35, "role": "talker", "world": 0, "at": [15285.0, 54.09, 9410.0], "toward": [15295.0, 9430.0],
+     "note": "binds at the camp: a PS2's evil dwarf (it cannot load the deep) binds here"}
+  ],
+  "peaceful": ["deep road grub", "deepweb spider"],
+  "hostile": ["Moradhim tracker", "Brellsworn zealot", "Brellsworn paladin", "Truthbearer Haldric Ironbrow"],
+  "lines": {
+    "Oathbreaker Thrain Blackvein": [
+      "I swore on Brell's anvil once. The anvil did not answer. Something else did.",
+      "Moradhim calls us oathbreakers. We call it honesty, %p.",
+      "Every tunnel in this deep was cut by dwarves who had stopped believing in the light."
+    ],
+    "Dread Lord Morvek Ashbeard": [
+      "A shadow knight of the deep fears nothing that walks in daylight.",
+      "Innoruuk does not ask for oaths. He takes what is offered."
+    ],
+    "Bonecaller Sigrun Coalmourn": [
+      "The old miners are still down here, %p. They work for me now.",
+      "Bones remember the stone they were buried in. I listen to them."
+    ],
+    "Blackvein sentry": [
+      "Watch the north tunnel. Moradhim's trackers come that way.",
+      "Nothing from the surface gets past me."
+    ],
+    "Tunnelwarden Brokk Deepdelve": [
+      "Every tunnel ends somewhere. I know where."
+    ],
+    "Deepwarden Korga Ashvein": [
+      "Keep your voice down. The Stoneguard tolerate us here. They do not like us."
+    ]
+  },
+  "quests": [
+    {"id": 104900, "key": "blackvein/L1", "name": "The Broken Oath", "giver": "Oathbreaker Thrain Blackvein", "minlevel": 1, "classquest": [1],
+     "offer": "So Moradhim spat out another one. Good. Down here no one asks which god you pray to, only whether you can hold a blade or a bone.\nI was a Doomseeker once. I swore my oath on Brell's anvil, and when the anvil gave me nothing I took what the dark offered. This deep is for dwarves like us.\nForgewife Hesta keeps the gear for newcomers. Will you go to her and come back to me?",
+     "accept": "I will see Hesta.", "declined": "Then stand there. The trackers will find you either way.",
+     "started": "Hesta is by the north wall of the hall. Tell her I sent you.",
+     "steps": [
+       {"kind": "talk", "target": "Forgewife Hesta Grimhammer", "journal": "Ask Forgewife Hesta Grimhammer, in Blackvein Hall, for a newcomer's gear.",
+        "says": "Thrain's new one? Take this. It was a Moradhim recruit's once. He has no need of it now.",
+        "byclass": {"3": {"items": "6178"}, "11": {"items": "5151"}}},
+       {"kind": "talk", "target": "Oathbreaker Thrain Blackvein", "journal": "Return to Oathbreaker Thrain Blackvein.",
+        "says": "Good. Now you look like one of us. Keep it longer than its last owner did.", "xp": 430}
+     ]},
+    {"id": 104901, "key": "blackvein/L2", "name": "Bound in the Deep", "giver": "Oathbreaker Thrain Blackvein", "minlevel": 2, "requires": "104900", "classquest": [2],
+     "offer": "A dwarf who dies far from home is lost. Have Spiritmaster Vorna bind your spirit to the deep, so you wake here and not in some Moradhim shrine.\nThen speak with Tunnelwarden Brokk. He knows every way in and out of this deep.\nWill you see them both?",
+     "accept": "I will see them both.", "declined": "Then try not to die.",
+     "started": "Vorna is at the east end of the hall. Brokk watches the north door.",
+     "steps": [
+       {"kind": "talk", "target": "Spiritmaster Vorna Ironvein", "journal": "Speak with Spiritmaster Vorna Ironvein at the east end of Blackvein Hall.",
+        "says": "Another spirit for the deep. Hold still. There. If you die now, you wake here."},
+       {"kind": "talk", "target": "Tunnelwarden Brokk Deepdelve", "journal": "Speak with Tunnelwarden Brokk Deepdelve at the north door of the hall.",
+        "says": "I can take you up to the camp by Moradhim's coach whenever you like. When Thrain trusts you, I will show you the smugglers' road to Freeport."},
+       {"kind": "talk", "target": "Oathbreaker Thrain Blackvein", "journal": "Return to Oathbreaker Thrain Blackvein.",
+        "says": "Now the deep knows you. Your guildmaster has work for you.", "xp": 2200}
+     ]},
+    {"id": 104902, "key": "blackvein/L3-shadowknight", "name": "Grubs of the Deep Road", "giver": "Dread Lord Morvek Ashbeard", "minlevel": 3, "classes": "3", "requires": "104901", "classquest": [3],
+     "offer": "Thrain says you can hold a blade. Prove it. Grubs have bred in the west gallery, where the old road runs, and they eat the props out of the tunnels.\nKill six of them and come back to me.",
+     "accept": "I will kill them.", "declined": "Then you are no shadow knight of mine.", "started": "West, down the long tunnel. Mind the drop.",
+     "steps": [
+       {"kind": "kill", "target": "deep road grub", "count": 6, "journal": "Kill six deep road grubs in the west gallery of Blackvein Deep."},
+       {"kind": "talk", "target": "Dread Lord Morvek Ashbeard", "journal": "Return to Dread Lord Morvek Ashbeard.", "says": "Six. Good. Innoruuk likes a dwarf who finishes a job.", "xp": 6900}
+     ]},
+    {"id": 104903, "key": "blackvein/L3-necromancer", "name": "Grubs of the Deep Road", "giver": "Bonecaller Sigrun Coalmourn", "minlevel": 3, "classes": "11", "requires": "104901", "classquest": [3],
+     "offer": "The grubs in the west gallery chew through the dead before I can use them. I want them gone.\nKill six of them and come back to me.",
+     "accept": "I will kill them.", "declined": "Then the dead are on their own.", "started": "West, down the long tunnel. Mind the drop.",
+     "steps": [
+       {"kind": "kill", "target": "deep road grub", "count": 6, "journal": "Kill six deep road grubs in the west gallery of Blackvein Deep."},
+       {"kind": "talk", "target": "Bonecaller Sigrun Coalmourn", "journal": "Return to Bonecaller Sigrun Coalmourn.", "says": "Good. My miners can rest now. Or work, rather.", "xp": 6900}
+     ]},
+    {"id": 104904, "key": "blackvein/L4-shadowknight", "name": "Webs in the Upper Run", "giver": "Dread Lord Morvek Ashbeard", "minlevel": 4, "classes": "3", "requires": "104902", "classquest": [4],
+     "offer": "Spiders have spun the upper run shut, the tunnel that climbs east of the hall. Our runners cannot get through.\nKill four of them.",
+     "accept": "I will clear the run.", "declined": "Then you can run the long way round.", "started": "East end of the hall, then up.",
+     "steps": [
+       {"kind": "kill", "target": "deepweb spider", "count": 4, "journal": "Kill four deepweb spiders in the upper run, east of Blackvein Hall."},
+       {"kind": "talk", "target": "Dread Lord Morvek Ashbeard", "journal": "Return to Dread Lord Morvek Ashbeard.", "says": "The run is open. Now, Thrain wants you.", "xp": 17000}
+     ]},
+    {"id": 104905, "key": "blackvein/L4-necromancer", "name": "Webs in the Upper Run", "giver": "Bonecaller Sigrun Coalmourn", "minlevel": 4, "classes": "11", "requires": "104903", "classquest": [4],
+     "offer": "The spiders in the upper run wrap my bodies in silk before I can reach them. Clear the run.\nKill four of them.",
+     "accept": "I will clear the run.", "declined": "Then I will burn the webs myself.", "started": "East end of the hall, then up.",
+     "steps": [
+       {"kind": "kill", "target": "deepweb spider", "count": 4, "journal": "Kill four deepweb spiders in the upper run, east of Blackvein Hall."},
+       {"kind": "talk", "target": "Bonecaller Sigrun Coalmourn", "journal": "Return to Bonecaller Sigrun Coalmourn.", "says": "Good. Now, Thrain wants you.", "xp": 17000}
+     ]},
+    {"id": 104906, "key": "blackvein/L5", "name": "Trackers from Moradhim", "giver": "Oathbreaker Thrain Blackvein", "minlevel": 5, "requires": "104904|104905", "classquest": [5],
+     "offer": "Moradhim has sent trackers down the north tunnel. They want to know how many of us there are, and where we sleep.\nKill five of them before they carry it home.",
+     "accept": "They will not get home.", "declined": "Then Moradhim will be here by spring.", "started": "North door, then down. They hide in the dark like we do.",
+     "steps": [
+       {"kind": "kill", "target": "Moradhim tracker", "count": 5, "journal": "Kill five Moradhim trackers in the north tunnel of Blackvein Deep."},
+       {"kind": "talk", "target": "Oathbreaker Thrain Blackvein", "journal": "Return to Oathbreaker Thrain Blackvein.",
+        "says": "Five trackers who will not report to the Stoneguard. Brokk will show you the smugglers' road now. Freeport's guilds take anyone who can pay or fight.",
+        "xp": 36500, "factions": "The Dark Ones:+10"}
+     ]},
+    {"id": 104907, "key": "blackvein/L8", "name": "The Brellsworn", "giver": "Oathbreaker Thrain Blackvein", "minlevel": 8, "requires": "104906",
+     "offer": "The trackers were only scouts. The Brellsworn came after them, zealots of Brell who think the deep should be sealed with us inside.\nThey are in the eastern halls. Kill five of them.",
+     "accept": "I will kill them.", "declined": "Then seal yourself in, if you like.", "started": "East along the long tunnel, past the junction.",
+     "steps": [
+       {"kind": "kill", "target": "Brellsworn zealot", "count": 5, "journal": "Kill five Brellsworn zealots in the eastern halls of Blackvein Deep."},
+       {"kind": "talk", "target": "Oathbreaker Thrain Blackvein", "journal": "Return to Oathbreaker Thrain Blackvein.",
+        "says": "Their leader is down here too. Haldric Ironbrow, the Truthbearer. I knew him, once. When you are stronger, we will talk about him.", "xp": 157000}
+     ]},
+    {"id": 104908, "key": "blackvein/L13", "name": "What Was Sworn", "giver": "Oathbreaker Thrain Blackvein", "minlevel": 13, "requires": "104907",
+     "offer": "Haldric Ironbrow and I swore our oaths on the same day, at the same anvil. He kept his. Now he has come to make me keep mine.\nHe holds the south-east chamber with two of his paladins. End him, and the Brellsworn will stay out of this deep.\nWill you do it?",
+     "accept": "I will end him.", "declined": "Then he will end us.", "started": "South-east, past the upper run. He will not run from you.",
+     "steps": [
+       {"kind": "kill", "target": "Truthbearer Haldric Ironbrow", "count": 1, "journal": "Kill Truthbearer Haldric Ironbrow in the south-east chamber of Blackvein Deep."},
+       {"kind": "talk", "target": "Oathbreaker Thrain Blackvein", "journal": "Return to Oathbreaker Thrain Blackvein.",
+        "says": "So Haldric kept his oath to the end. I will not say I am glad. But the deep is ours now, and so are you.",
+        "xp": 550698, "rewardtunar": 500, "factions": "The Dark Ones:+25"}
+     ]}
+  ],
+  "trips": [
+    {"id": 104909, "key": "blackvein/up", "name": "Up to Moradhim's Gate", "giver": "Tunnelwarden Brokk Deepdelve", "to": "camp",
+     "offer": "I can take you up the old shaft to the camp by Moradhim's coach. The Stoneguard leave it alone, mostly.\nShall I take you up?",
+     "accept": "Take me up.", "declined": "The shaft will be here.", "started": "Mind your head on the way up."},
+    {"id": 104910, "key": "blackvein/freeport", "name": "The Smugglers' Road", "giver": "Tunnelwarden Brokk Deepdelve", "to": "freeport", "requires": "104906",
+     "offer": "Thrain says you can be trusted with the smugglers' road. It comes out under Freeport, near the guilds that train our kind.\nShall I take you to Freeport?",
+     "accept": "Take me to Freeport.", "declined": "The road will keep.", "started": "Keep quiet. Freeport's militia do not like surprises."},
+    {"id": 104911, "key": "blackvein/down", "name": "Down into Blackvein Deep", "giver": "Deepwarden Korga Ashvein", "to": "start",
+     "offer": "Back to the deep? The shaft is behind the rocks. Thrain will be glad to see you.\nShall I take you down?",
+     "accept": "Take me down.", "declined": "Suit yourself.", "started": "Hold the rope."},
+    {"id": 104912, "key": "blackvein/camp-freeport", "name": "The Smugglers' Road", "giver": "Deepwarden Korga Ashvein", "to": "freeport",
+     "offer": "Freeport's guilds train our kind, and they do not ask about oaths. I can put you on the smugglers' road.\nShall I take you to Freeport?",
+     "accept": "Take me to Freeport.", "declined": "The road will keep.", "started": "Keep quiet. Freeport's militia do not like surprises."}
+  ],
+  "widen": {
+    "note": "race 4 added to the races a dwarf shadow knight or necromancer goes on with: Freeport's class chains (the deep's level 1-5 quests stand for their level 1-5 by classquest events, so Malethai Crimsonhand and Corious Slaerin go on from level 7), the level 30-49 group-6-evil quests, the necromancers' evil caster epic (the shadow knights' evil tank epic lists dwarves already)",
+    "quests": [100131, 100132, 100133, 100134, 100135, 100136, 100137, 100138, 100139, 100140,
+               100141, 100142, 100143, 100144, 100145, 100146, 100147, 100148, 100149, 100150,
+               100939, 100940, 100941, 100942, 100943, 100944, 100945, 100946, 100947, 100948, 100949, 100950,
+               101075, 101076, 101077, 101078, 101079, 101080, 101081, 101082, 101083, 101084,
+               101095, 101096, 101097, 101098, 101099, 101100, 101101, 101102, 101103, 101104]
+  },
+  "disable": {"note": "the off-race starters of 2026-11-21 (petition 2540) that sent a dwarf shadow knight to Moradhim's warriors and a dwarf necromancer to its clerics: the deep's quests stand for them", "quests": [103569, 103570, 103571, 103584, 103585, 103586]},
+  "items": {"note": "the Freeport necromancers' gear a dwarf could not wear (raceuse lacked the dwarf's bit, 16): the level 1 bone earring and the level 7 old padded pants", "raceuse_add": 16, "patterns": [8459, 8525]},
+  "factions": {
+    "note": "a dwarf shadow knight's and necromancer's starts: the erudite's of the class (an evil class of a good race, which starts at home), but the erudites' own (Highbourne's, and Qeynos's tolerance of them) the gnome necromancer's (the other good race with an evil class) and Moradhim's own neutral",
+    "like_race": 8, "own_race": 4, "classes": [3, 11],
+    "others_like": [3, 11],
+    "others": ["Citizens of Highbourne", "Library of Highbourne", "The Highbourne Senate", "The Peacekeepers", "Denizens of Arcadin",
+               "Citizens of Qeynos", "The Qeynos Guard", "Qeynos Troupe", "The Heavy Purse", "The Anagogical Order"],
+    "home": {"Citizens of Moradhim": 0, "The Stoneguard": 0, "The Doomseekers of Moradhim": 0}
+  }
+}

@@ -212,3 +212,36 @@ func TestCMCommandsAreAGMs(t *testing.T) {
 		t.Errorf("told the client %d removals and points %v; want 2 and the points", removed, points)
 	}
 }
+
+// #grantcm <amount> <name> gives the named online player the points (the
+// owner, 2026-11-21: "make /grantcm targetable by GMs"), kept and told to that
+// player's client as a gain, the player told who gave them; the GM's own stay as
+// they were. The controls: an unknown name gives nothing, and a player's
+// #grantcm <name> gives nothing.
+func TestGrantCMGoesToTheNamedPlayer(t *testing.T) {
+	c, gs, gp, ps, pp := gmWorld(t)
+	kept := &keptMastery{}
+	c.h.SetMasteryStore(kept)
+	c.say(ps, "#grantcm 300 "+gp.Name)
+	if gp.Mastery.Points != 0 || pp.Mastery.Points != 0 {
+		t.Fatalf("the control: a player's #grantcm gave %d / %d", gp.Mastery.Points, pp.Mastery.Points)
+	}
+	c.say(gs, "#grantcm 250 "+pp.Name)
+	if pp.Mastery.Points != 250 || kept.rows[pp.CharServerID].Points != 250 {
+		t.Fatalf("the named player: %d unspent, kept %d; want 250", pp.Mastery.Points, kept.rows[pp.CharServerID].Points)
+	}
+	if gp.Mastery.Points != 0 {
+		t.Fatalf("the GM's own changed: %d", gp.Mastery.Points)
+	}
+	if u, _, ok := masteryPoints(ps); !ok || u != 250 {
+		t.Errorf("the player's client told %d (%v), want 250", u, ok)
+	}
+	if got := texts(heard(t, ps)); len(got) == 0 || !strings.Contains(strings.Join(got, "|"), "granted you 250 mastery points") {
+		t.Errorf("the player was told %q", got)
+	}
+	gs.Queue().GetPending()
+	c.say(gs, "#grantcm 10 Nobodyhere")
+	if pp.Mastery.Points != 250 || gp.Mastery.Points != 0 {
+		t.Fatalf("the control: an unknown name gave %d / %d", pp.Mastery.Points, gp.Mastery.Points)
+	}
+}

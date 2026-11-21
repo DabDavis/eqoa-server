@@ -1608,6 +1608,9 @@ func (e *TriggerEngine) spawnLocked(r *triggerRun, s database.TriggerStep) strin
 		if s.Untouchable || s.NoLoot {
 			e.gw.MarkSpawn(id, s.Untouchable, s.NoLoot)
 		}
+		if len(s.Patrol) > 0 {
+			e.gw.PatrolSpawn(id, s.Patrol, s.PingPong, time.Duration(s.Pause*float64(time.Second)), s.Pace)
+		}
 		spelled = sp
 		ts := triggerSpawn{id: id, name: sp, until: until}
 		if s.Engage > 0 {

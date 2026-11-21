@@ -712,3 +712,46 @@ func TestTriggerWaitUpto(t *testing.T) {
 		t.Errorf("the control: %q %v", lines, err)
 	}
 }
+
+// A spawn step's patrol (the owner, 2026-11-21: the Trial of Celerity's named
+// "roaming outside that room"): each copy walks the route, back and forth with
+// pingpong (a loop without), pausing as told; a copy gone takes its path with
+// it, so the id another copy is given later walks nothing. The control: a spawn
+// with no patrol stands.
+func TestATriggerSpawnPatrols(t *testing.T) {
+	w := newTrigWorld(t)
+	w.set(1, "Roam", "gm", 0, `[{"do":"spawn","npc":"Orc Pawn","count":1,"minutes":1,"patrol":[[110,50,100],[140,50,100]],"pingpong":true,"pause":2},{"do":"spawn","npc":"Orc Pawn","count":1,"minutes":1}]`)
+	if _, err := w.fire(1); err != nil {
+		t.Fatal(err)
+	}
+	sp := w.spawned()
+	if len(sp) != 2 {
+		t.Fatalf("%d spawned, want 2", len(sp))
+	}
+	var walking, standing int
+	for _, n := range sp {
+		p, ok := w.gw.NPCPathOf(n.ServerID)
+		switch {
+		case ok && p.Mode == entity.PathPingPong && len(p.Points) == 2 && p.Pause == 2*time.Second && p.Points[1].X == 140:
+			walking++
+		case !ok:
+			standing++
+		default:
+			t.Fatalf("copy %d's path: %+v", n.ServerID, p)
+		}
+	}
+	if walking != 1 || standing != 1 {
+		t.Fatalf("%d patrolling, %d standing: want 1 and 1", walking, standing)
+	}
+	w.at(61 * time.Second) // their minute up: gone, and their paths with them
+	for _, n := range sp {
+		if _, ok := w.gw.NPCPathOf(n.ServerID); ok {
+			t.Fatalf("copy %d gone, its path kept", n.ServerID)
+		}
+	}
+	// a bad patrol is a problem the panel shows
+	steps, _ := database.ParseTriggerSteps(`[{"do":"spawn","npc":"Orc Pawn","pingpong":true}]`)
+	if probs := database.StepProblems(steps); len(probs) == 0 {
+		t.Fatal("pingpong with no patrol passed its checks")
+	}
+}

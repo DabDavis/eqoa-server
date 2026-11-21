@@ -55,6 +55,33 @@ func (w *World) SpawnEventNPCFacing(name string, world uint8, cx, cy, cz, x, z, 
 	return id, spelled, true
 }
 
+// PatrolSpawn gives a trigger's spawn its patrol (database.TriggerStep.Patrol):
+// the route walked in a loop, or back and forth (pingPong), pause at each point,
+// at pace (0: walking); a temporary copy's path goes when it does (dropNPCLocked).
+// False for an NPC gone or a route of no points.
+func (w *World) PatrolSpawn(id EntityID, route [][3]float32, pingPong bool, pause time.Duration, pace float32) bool {
+	if len(route) == 0 {
+		return false
+	}
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	n := w.NPCs[id]
+	if n == nil {
+		return false
+	}
+	pts := make([]PathPoint, 0, len(route))
+	for _, q := range route {
+		pts = append(pts, PathPoint{X: q[0], Y: q[1], Z: q[2], Pause: -1})
+	}
+	mode := PathLoop
+	if pingPong {
+		mode = PathPingPong
+	}
+	w.setPathLocked(id, &NPCPath{World: n.World, Mode: mode, Pause: pause, Run: pace >= pathRunFrom, Pace: pace, Points: pts})
+	w.wakeNPCLocked(n)
+	return true
+}
+
 // PlayerSpot is where a player stands and whether it is dead; ok false for
 // one that is no longer the world's.
 func (w *World) PlayerSpot(p *Player) (world uint8, x, y, z float32, dead, ok bool) {

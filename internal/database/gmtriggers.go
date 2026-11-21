@@ -228,6 +228,15 @@ type TriggerStep struct {
 	// Spots (spawn): places [x, y, z] of its world, the one nearest the run's place taken
 	// (a death's: the Erych patroller of the quarter where its placeholder fell)
 	Spots [][3]float32 `json:"spots,omitempty"`
+	// Patrol (spawn): a route [x, y, z] its copies walk while they live, from the
+	// first point on, in a loop (the last back to the first) or, PingPong, back
+	// and forth; Pause seconds at each point, Pace its speed (0: walking). A
+	// fight takes a copy off it and it takes it up again after (entity/path.go).
+	// The owner, 2026-11-21: the Trial of Celerity's named "roaming outside that
+	// room, enough distance apart that you body pull 1 at a time".
+	Patrol   [][3]float32 `json:"patrol,omitempty"`
+	PingPong bool         `json:"pingpong,omitempty"`
+	Pause    float64      `json:"pause,omitempty"`
 	// Untouchable (spawn): its copies carry the NPC bit, no player hurts them and they
 	// attack no one (the Erych Arbiter asleep in her ring); NoLoot: their corpses are
 	// of nothing (the Arbiter's first two lives)
@@ -516,6 +525,15 @@ func StepProblems(steps []TriggerStep) []string {
 			}
 			if len(s.Spots) > TriggerMaxSteps {
 				add(i, "spawn's spots: %d, %d at most", len(s.Spots), TriggerMaxSteps)
+			}
+			if len(s.Patrol) > TriggerMaxSteps {
+				add(i, "spawn's patrol: %d points, %d at most", len(s.Patrol), TriggerMaxSteps)
+			}
+			if s.Pause < 0 || s.Pause > 600 {
+				add(i, "spawn's patrol pause %.1f seconds: 0 to 600", s.Pause)
+			}
+			if (s.PingPong || s.Pause > 0) && len(s.Patrol) == 0 {
+				add(i, "spawn's pingpong and pause are a patrol's: it has no points")
 			}
 			if s.Untouchable && (s.Hostile || s.Attackable) {
 				add(i, "spawn untouchable is neither hostile nor attackable")

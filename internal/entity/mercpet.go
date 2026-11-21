@@ -310,7 +310,7 @@ func (w *World) mercPetTurnLocked(ms *mercState, sess *session.Session, fight bo
 	}
 	ps.target = 0
 	if !w.petTemplateTurnLocked(ps, nil, now) { // its heals and buffs while it follows (pettemplate.go)
-		w.followLocked(pet, ms.body, slotMercPet, dt, now)
+		w.petFollowSlotLocked(pet, ms.body, slotMercPet, dt, now) // followstuck.go
 	} else {
 		pet.stopMoving()
 	}

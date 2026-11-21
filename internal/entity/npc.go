@@ -141,6 +141,8 @@ type NPC struct {
 
 	// fslot is a follower's place round whom it follows (followslot.go).
 	fslot followSlotCache
+	// fstuck is a pet's watch on its way to whom it follows (followstuck.go).
+	fstuck followStuck
 
 	// path is where it is on the path a GM gave it (path.go).
 	path pathState

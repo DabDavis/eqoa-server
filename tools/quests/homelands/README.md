@@ -14,7 +14,7 @@ its gatekeeper's flight to the mainland comes after:
 | `L2` | 2 | 2,200 | the spiritmaster binds; the coachman signs his ledger; back to the giver | |
 | `L3` | 3 | 6,900 | 2-3 drops off a creature of the home (one kill in two drops one), handed in | the class's level 3 quest ability (Kick, Sneak, Minor Blessing ...) |
 | `L4` | 4 | 17,000 | "new gear": materials one or two merchants hand over, and a creature's drop, handed in | the class's level 4 weapon (a robe or gloves for the cloth classes) |
-| `L5` | 5 | 36,500 | a named foe's drop (it always drops), or a count of a tougher kind | the class's level 5 quest ability (Taunt, Shadowstrike, Holy Shock ...) |
+| `L5` | 5 | 36,500 | a named foe's drop (it always drops), or a count of a tougher kind | the class's level 5 quest ability (Taunt, Shadow Strike, Holy Shock ...) |
 | `flight` | after all five | none | the gatekeeper sends the character to its class's city on the mainland and binds it there: the passage the five quests earn (word it so; it is not the only road, a coach runs between the home and Freeport) | |
 
 The owner, 2026-11-11: "let's add up to lvl 20 path quests for them all. you can add a new zone for the higher level

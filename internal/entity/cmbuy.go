@@ -899,6 +899,12 @@ func (w *World) CMNodeOf(sess *session.Session, id int, k CMKnows) (CMNode, bool
 			n.Abilities = append(n.Abilities, CMEntryLine{Text: a.Name})
 		}
 	}
+	// the masteries it needs, each said, a held one marked (cmHeldMark): until
+	// 2026-11-21 a held one was left out, so a rank whose other bars stood
+	// showed none of what it needs (Live petition 5398, Innoruuk: "I didn't see
+	// it as a requirement when clicking it's proper \"???\" in class mastery
+	// window": Death Knight's Tainted Blood 3 and Parasitic Bond 3)
+	// (the rank before it, its own line's, only while it lacks it)
 	if r.Parent != 0 {
 		if _, ok := p.CMs[r.Parent]; !ok {
 			if pr := w.cms.byID[r.Parent]; pr != nil {
@@ -908,7 +914,9 @@ func (w *World) CMNodeOf(sess *session.Session, id int, k CMKnows) (CMNode, bool
 	}
 	for _, id := range r.RequireRanks {
 		if o := w.cms.byID[id]; o != nil {
-			if _, ok := p.CMs[id]; !ok {
+			if _, ok := p.CMs[id]; ok {
+				n.Masteries = append(n.Masteries, o.Name+cmHeldMark)
+			} else {
 				n.Masteries = append(n.Masteries, o.Name)
 			}
 		}
@@ -918,6 +926,10 @@ func (w *World) CMNodeOf(sess *session.Session, id int, k CMKnows) (CMNode, bool
 	}
 	return n, true
 }
+
+// cmHeldMark follows a required mastery the character holds on the
+// Requirements window's Required Masteries page (CMNodeOf).
+const cmHeldMark = " (held)"
 
 // cmUnshownBlocksLocked is what bars the rank that CLIENT's Requirements
 // window has no page for, said as lines of its Required Masteries page (the

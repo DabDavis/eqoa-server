@@ -93,3 +93,34 @@ func TestCMMasterClassBlockIsSaidInTheRequirements(t *testing.T) {
 		t.Errorf("Titan after Slayer: %q, want the one Master Class refusal", r.Refusal)
 	}
 }
+
+// Live petition 5398 (Innoruuk: "I didn't see it as a requirement when
+// clicking it's proper \"???\" in class mastery window"): a Master Class's
+// other masteries (require_ranks, Death Knight's Tainted Blood 3 and
+// Parasitic Bond 3) are all said on its Required Masteries page, a held one
+// marked, so a "???" rank barred by something else (here its STA) still
+// shows what it needs. The control: the one lacked is said plainly.
+func TestCMRequiredRanksAreAllSaid(t *testing.T) {
+	w := NewWorld()
+	mgr := session.NewManager()
+	w.SessionManager = mgr
+	sk, retail := 1<<3, 2047
+	w.SetCMCatalog([]database.CMRankRow{
+		{ID: 3963, Category: 3, Classes: sk, Races: retail, Mastery: "Tainted Blood", Rank: 3, Name: "Tainted Blood 3", Cost: 30, Level: 1, Enabled: true},
+		{ID: 3943, Category: 3, Classes: sk, Races: retail, Mastery: "Parasitic Bond", Rank: 3, Name: "Parasitic Bond 3", Cost: 30, Level: 1, Enabled: true},
+		{ID: 4111, Category: CMCategoryMaster, Classes: sk, Races: retail, Mastery: "Death Knight", Rank: 1, Name: "Death Knight", Cost: 200, Level: 55, Spent: 500,
+			MinStats: "STA:900", RequireRanks: "3963,3943", Enabled: true},
+	})
+	p := &Player{ServerID: 977, CharServerID: 977, Name: "P", Race: 0, Class: 3, Level: 60, Mastery: Mastery{Points: 1000, Spent: 700}, CMs: map[int]int{3963: 30}}
+	s := mgr.CreateSession(&net.UDPAddr{IP: net.IPv4(10, 0, 0, 9), Port: 7310}, p.CharServerID, p.CharServerID, 1, 2, true)
+	w.Players[p.ServerID] = p
+	s.SetECSEntity(p)
+	s.SetCharacterInWorld(true)
+	n, ok := w.CMNodeOf(s, 4111, CMKnows{})
+	if !ok {
+		t.Fatal("Death Knight not offered")
+	}
+	if n.Known || !slices.Equal(n.Masteries, []string{"Tainted Blood 3 (held)", "Parasitic Bond 3"}) {
+		t.Fatalf("known %v, masteries %q", n.Known, n.Masteries)
+	}
+}

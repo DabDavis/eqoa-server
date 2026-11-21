@@ -46,6 +46,24 @@ import (
 // signs nothing, so a ledger is signed only at its own coachman. Ledgers
 // already signed, by the offer too, stay signed.
 
+// coachRefusal is what a coachman says to a player his faction holds below
+// entity.CoachFactionMin (the faction gate, the owner's of 2026-11-21): he
+// neither signs his ledger for it nor runs his coach for it.
+const coachRefusal = "I do not deal with your kind. Earn some standing with my people before you ask for a seat on my coach."
+
+// coachRefuses reports whether the coachman will not serve the session's
+// player (entity.World.CoachRefuses); a GM is always served.
+func (h *InteractHandler) coachRefuses(sess *session.Session, npc *entity.NPC) bool {
+	if h.isGM != nil && h.isGM(sess) {
+		return false
+	}
+	refuses, faction := h.gameWorld.CoachRefuses(sess, npc)
+	if refuses {
+		log.Printf("Coach: %s refuses a player below %d with %s", npc.Name, entity.CoachFactionMin, faction)
+	}
+	return refuses
+}
+
 // coachSignAll is world.coach_sign_all (SetCoachSignAll): whether coachmen
 // offer every ledger at once. Unset: off.
 var coachSignAll atomic.Bool
@@ -94,6 +112,9 @@ func joinAnd(names []string) string {
 func (h *InteractHandler) signLedger(sess *session.Session, player *entity.Player, npc *entity.NPC) {
 	if h.ledger == nil || npc.Dead || player.CharServerID == 0 {
 		return
+	}
+	if h.coachRefuses(sess, npc) {
+		return // he does not deal with the player (coachRefuses): no ledger signed
 	}
 	town, named := entity.CoachTown(npc)
 	if !named {
@@ -186,6 +207,11 @@ func (h *InteractHandler) coachDests(sess *session.Session, player *entity.Playe
 // not first. It reports whether he said anything: a coachman with no other
 // coach in his world has nothing to say here.
 func (h *InteractHandler) coachMenu(sess *session.Session, player *entity.Player, npc *entity.NPC) bool {
+	if h.coachRefuses(sess, npc) {
+		forgetDialogs(player)
+		h.sendDialogueBox(sess, coachRefusal)
+		return true
+	}
 	dests, none, every := h.coachDests(sess, player, npc)
 	if len(dests) == 0 && none != "" {
 		forgetDialogs(player)

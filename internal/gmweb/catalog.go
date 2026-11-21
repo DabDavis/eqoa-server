@@ -1039,9 +1039,9 @@ var catalog = map[string]tableNote{
 	"npcfaction": {
 		Label: "NPC factions", Group: "World", Title: "name", Sort: "name",
 		Help: "Which faction an NPC is of, by NPC NAME as NPC classes key it (lower case, no trailing space or $). Its " +
-			"target box shows a player the player's standing with it (below -700 Aggressive, Dubious, Cautious from -350, " +
-			"Neutral from -150, Friendly from 150, Warm, Allied from 700), and it attacks on sight a player whose standing " +
-			"is below -350 (the red faces), at any level, and no one else, whatever its body (entity/aggro.go); one with the NPC bit (0x80) " +
+			"target box shows a player the player's standing with it (below -700 Aggressive, Dubious, Cautious above -350, " +
+			"Neutral from -150, Friendly above 150, Warm, Allied from 700), and it attacks on sight a player whose standing " +
+			"is -350 or below (the red faces), at any level, and no one else, whatever its body (entity/aggro.go); one with the NPC bit (0x80) " +
 			"never attacks, and a Creature aggro row for the name decides its aggro as before. world -1: every NPC of the " +
 			"name; a world with radius 0: those in it; a radius: those that spawned within it of (x, z) in that world, " +
 			"the smallest place first (a city's namesakes told from the wild's). An empty faction: of none. Rows of " +

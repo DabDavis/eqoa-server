@@ -30,7 +30,7 @@ import (
 // included). A GM trigger's spawn attacks green players too (gmtriggers.go).
 //
 // An NPC of a faction (npcfaction, faction.go) attacks a player on sight when
-// the player's standing with it is in a red band (below -350, FactionKOSBelow:
+// the player's standing with it is in a red band (-350 or below, FactionKOSAt:
 // Aggressive below -700, Dubious from there),
 // at any level it is not green to (a city's guards defend it whatever comes
 // that is not far below them: ours, and the user's of 2026-10-30), and never on
@@ -316,7 +316,7 @@ func (w *World) AggroSummary() string {
 	case w.aggro.factionOff:
 		s += "; factions count for nothing (world.faction_aggro false)"
 	case w.factions.nNPC > 0:
-		s += fmt.Sprintf("; an NPC of a faction (%d npcfaction rows) attacks only a player whose standing with it is below %d, at any level", w.factions.nNPC, FactionKOSBelow)
+		s += fmt.Sprintf("; an NPC of a faction (%d npcfaction rows) attacks only a player whose standing with it is at or below %d, at any level", w.factions.nNPC, FactionKOSAt)
 	}
 	return s
 }
@@ -393,7 +393,7 @@ func (w *World) threatensLocked(npc *NPC, p *Player) bool {
 		if p.disguised(time.Now()) {
 			return false // a disguise: no faction attacks it on sight (workbookmore.go)
 		}
-		return w.standingLocked(p, f) < FactionKOSBelow
+		return Kos(w.standingLocked(p, f))
 	}
 	return inAggroLevels(npc.Level, p.Level) && w.hostileLocked(npc)
 }

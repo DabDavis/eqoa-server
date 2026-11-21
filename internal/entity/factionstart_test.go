@@ -134,8 +134,8 @@ func TestStandingDispositionEdges(t *testing.T) {
 		want byte
 	}{
 		{-2000, DispAggressive}, {-701, DispAggressive}, {-700, DispDubious}, {-351, DispDubious},
-		{-350, DispCautious}, {-151, DispCautious}, {-150, DispNeutral}, {0, DispNeutral}, {149, DispNeutral},
-		{150, DispFriendly}, {349, DispFriendly}, {350, DispWarm}, {699, DispWarm}, {700, DispAllied}, {2000, DispAllied},
+		{-350, DispDubious}, {-349, DispCautious}, {-151, DispCautious}, {-150, DispNeutral}, {0, DispNeutral}, {149, DispNeutral},
+		{150, DispNeutral}, {151, DispFriendly}, {349, DispFriendly}, {350, DispWarm}, {699, DispWarm}, {700, DispAllied}, {2000, DispAllied},
 	} {
 		if got := StandingDisposition(c.v); got != c.want {
 			t.Errorf("standing %d: disposition %d, want %d", c.v, got, c.want)
@@ -200,9 +200,9 @@ func TestTheGhoulServantLeavesADarkElfAlone(t *testing.T) {
 }
 
 // A guard of a faction attacks on sight a player whose standing with it is
-// in a red band (below -350: Aggressive, then Dubious), at any level it is
+// in a red band (-350 or below: Aggressive, then Dubious), at any level it is
 // not green to (a level 60 by a level 50 guard), showing it the red face, and
-// no one else; the face is the standing's from -350 up. A level 10 guard,
+// no one else; the face is the standing's above -350. A level 10 guard,
 // green to the level 60, shows it the red face and leaves it alone on sight
 // (the user, 2026-10-30). With
 // world.faction_aggro false a guard with a players' race's body attacks no
@@ -219,7 +219,7 @@ func TestAGuardAttacksAKOSPlayerOnSight(t *testing.T) {
 		face     byte
 	}{
 		{-2000, true, DispAggressive}, {-701, true, DispAggressive}, {-700, true, DispAggressive},
-		{-500, true, DispAggressive}, {-351, true, DispAggressive}, {-350, false, DispCautious},
+		{-500, true, DispAggressive}, {-351, true, DispAggressive}, {-350, true, DispAggressive}, {-349, false, DispCautious},
 		{1, false, DispNeutral}, {500, false, DispWarm}, {2000, false, DispAllied},
 	} {
 		f.p.Factions = map[string]int{"The Freeport Militia": c.standing}
@@ -348,7 +348,7 @@ func TestTheFaceAndTheAttackAgreeWithFactions(t *testing.T) {
 					if (face == DispAggressive && !green) != f.attacks(n) {
 						t.Fatalf("player %d, %s level %d, standing %d: face %d, green %v, attacked %v", pl, k.name, lvl, standing, face, green, f.attacks(n))
 					}
-					if k.faction && k.npcType == 0 && k.rule == nil && f.attacks(n) != (standing < FactionKOSBelow && !green) {
+					if k.faction && k.npcType == 0 && k.rule == nil && f.attacks(n) != (Kos(standing) && !green) {
 						t.Errorf("player %d, %s level %d, standing %d: attacked %v", pl, k.name, lvl, standing, f.attacks(n))
 					}
 					f.w.SpatialIndex.Remove(n.ServerID, n.X, n.Z)
@@ -424,7 +424,7 @@ func TestStartThreats(t *testing.T) {
 func TestAggroSummaryNamesFactions(t *testing.T) {
 	f := newAggroFix(t, 10)
 	f.w.SetNPCFactions([]database.NPCFactionRow{{Name: "ghoul servant", World: -1, Faction: "Citizens of Neriak"}})
-	if s := f.w.AggroSummary(); !strings.Contains(s, fmt.Sprintf("below %d", FactionKOSBelow)) {
+	if s := f.w.AggroSummary(); !strings.Contains(s, fmt.Sprintf("at or below %d", FactionKOSAt)) {
 		t.Errorf("%q", s)
 	}
 	f.npc(2001, "ghoul servant", 55, ghoulBody, 1100, 1252)

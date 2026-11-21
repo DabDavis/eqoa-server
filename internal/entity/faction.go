@@ -71,26 +71,36 @@ const (
 	DispAllied
 )
 
-// FactionKOSBelow is the standing below which an NPC of a faction attacks a
+// FactionKOSAt is the standing at or below which an NPC of a faction attacks a
 // player on sight: the red faces' bands, Aggressive and Dubious
 // (StandingDisposition), which VIWndGame::DrawTarget draws alike, so a
 // creature attacks on sight exactly the players it shows the red face to (the
-// user's "aggro from mobs that are red faced", 2026-10-25).
-const FactionKOSBelow = -350
+// user's "aggro from mobs that are red faced", 2026-10-25). At or below, as the
+// players' faction guide of 2010 has it ("KOS at -350 or lower"; the owner,
+// 2026-11-21: "match the forum edges"); until then -350 itself was Cautious.
+const FactionKOSAt = -350
+
+// FactionFriendlyAbove is the standing above which a faction shows its blue
+// face (Friendly): the same guide's "blue from 151"; until 2026-11-21 150 was.
+const FactionFriendlyAbove = 150
+
+// Kos reports whether a standing is at or below FactionKOSAt.
+func Kos(v int) bool { return v <= FactionKOSAt }
 
 // StandingDisposition is the disposition a standing shows: CLIENT's own
 // edges, the faction window's colour bands (VIWndFaction::DrawStanding,
 // 0x00C4ACD0: -700, -350, -150, 0, 150, 350, 700); which band is which
-// disposition is ours, the window's two nearest 0 being one Neutral.
+// disposition is ours, the window's two nearest 0 being one Neutral; -350
+// belongs to the red side and 150 to Neutral (FactionKOSAt, FactionFriendlyAbove).
 func StandingDisposition(v int) byte {
 	switch {
 	case v < -700:
 		return DispAggressive
-	case v < FactionKOSBelow:
+	case Kos(v):
 		return DispDubious
 	case v < -150:
 		return DispCautious
-	case v < 150:
+	case v <= FactionFriendlyAbove:
 		return DispNeutral
 	case v < 350:
 		return DispFriendly
@@ -556,6 +566,29 @@ func (w *World) npcFactionLocked(npc *NPC) string {
 		}
 	}
 	return ""
+}
+
+// CoachFactionMin is the least standing with a coachman's faction at which
+// he signs his ledger and runs his coach for a player: the players' faction
+// guide of 2010 ("-99 or better to sign a coach"; the owner, 2026-11-21: "add
+// the coach gate"). A coachman of no faction serves everyone.
+const CoachFactionMin = -99
+
+// CoachRefuses reports whether a coachman will not serve the session's
+// player: its standing with his faction is below CoachFactionMin. It also
+// says the faction, for his words.
+func (w *World) CoachRefuses(sess *session.Session, npc *NPC) (bool, string) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil {
+		return false, ""
+	}
+	f := w.npcFactionLocked(npc)
+	if f == "" {
+		return false, ""
+	}
+	return w.standingLocked(p, f) < CoachFactionMin, f
 }
 
 // NPCFaction is the faction an NPC is of, "" none (npcfaction).

@@ -191,8 +191,8 @@ func (w *World) npcStatsLocked(npc *NPC, viewer *Player, now time.Time) []string
 		// of a faction, its body counts for nothing: the viewer's standing
 		// decides (aggro.go), and the line above is what it would do without
 		s := w.standingLocked(viewer, f)
-		out = append(out, fmt.Sprintf("Of %s: %s's standing %d, %s; attacks %s on sight: %s (below %d)",
-			f, viewer.Name, s, DispositionWords[StandingDisposition(s)], viewer.Name, yesNo(w.threatensLocked(npc, viewer)), FactionKOSBelow))
+		out = append(out, fmt.Sprintf("Of %s: %s's standing %d, %s; attacks %s on sight: %s (at or below %d)",
+			f, viewer.Name, s, DispositionWords[StandingDisposition(s)], viewer.Name, yesNo(w.threatensLocked(npc, viewer)), FactionKOSAt))
 	}
 	helps := "no one"
 	if rule, ok := w.npcSocial.ruleFor(npc.Name); ok && rule.Social {

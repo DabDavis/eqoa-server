@@ -69,12 +69,18 @@ func (p *Player) respawnPending() bool {
 // however many more hits or drowning ticks the corpse would have taken. sess
 // may be nil (no client to tell). Must be called with the lock held.
 func (w *World) playerDiedLocked(sess *session.Session, p *Player, now time.Time) {
-	w.playerDownLocked(sess, p, now, DeathDebt(p.Level))
+	w.playerFallsLocked(sess, p, now, DeathDebt(p.Level), true)
 }
 
-// playerDownLocked is playerDiedLocked with the death's experience debt given:
-// deathdebt.go's for any death but a PvP one (pvp.go).
+// playerDownLocked is playerDiedLocked with the death's experience debt given
+// and no tunar lost: a PvP death's (pvp.go: a duel's too), at no cost.
 func (w *World) playerDownLocked(sess *session.Session, p *Player, now time.Time, debt int) {
+	w.playerFallsLocked(sess, p, now, debt, false)
+}
+
+// playerFallsLocked is a death, its experience debt given; purse is whether it
+// costs the carried tunar too (deathtunar.go: a PvE death's).
+func (w *World) playerFallsLocked(sess *session.Session, p *Player, now time.Time, debt int, purse bool) {
 	if p.respawnPending() || p.Fallen {
 		return
 	}
@@ -121,7 +127,11 @@ func (w *World) playerDownLocked(sess *session.Session, p *Player, now time.Time
 			w.sendChatToSession(sess, fmt.Sprintf("Your death left an experience debt of %d (%d owed in all).", debt, p.Debt))
 		}
 	}
-	log.Printf("Death: %s died at level %d, %d experience debt (%d owed); respawn in %v", p.Name, p.Level, debt, p.Debt, PlayerRespawnDelay)
+	lost := 0
+	if purse {
+		lost = w.deathTunarLocked(sess, p) // deathtunar.go: half the purse, the bank untouched
+	}
+	log.Printf("Death: %s died at level %d, %d experience debt (%d owed), %d tunar lost (%d carried); respawn in %v", p.Name, p.Level, debt, p.Debt, lost, p.Tunar, PlayerRespawnDelay)
 }
 
 // dropAggroLocked takes the entity off every NPC's threat table. An NPC whose

@@ -231,7 +231,7 @@ keep restart, edited in the panel.
 | `pathSystem` | every tick | GM-drawn NPC paths (`path.go`, `npcpaths`) |
 | `petSystem`, `mercSystem`, `familiarSystem` | every tick | summoned/charmed pets, mercenaries (`merc*.go`), familiars |
 | `ctfSystem`, `duelSystem` | every tick | capture the flag / siege arenas; duels and wagers |
-| `playerRespawnSystem` | every tick | a dead player restored 15 s later by a MemoryDump at its bind point (the dump clears CLIENT's dead flag); experience debt (`deathdebt.go`) |
+| `playerRespawnSystem` | every tick | a dead player restored 15 s later by a MemoryDump at its bind point (the dump clears CLIENT's dead flag); experience debt (`deathdebt.go`); a PvE death takes `world.death_tunar_pct` (50) of the purse, never the bank (`deathtunar.go`) |
 | `regenSystem` | every 6 s | HoT = max HP/50, PoT = max power/50, plus gear and meals (`regen.go`) |
 | `vampireSunSystem` | every 6 s | the sun burns a vampire by day (`vampire.go`) |
 | `weatherSystem` | every 10 ticks | regional weather byte (0x00C7/0x00C5) and, for a client that asked, timelines (0x7E94) |

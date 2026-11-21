@@ -801,6 +801,12 @@ type WorldConfig struct {
 	// Heirloom's 2000). Unset or 0: 2000.
 	MasteryCap int `yaml:"mastery_cap"`
 
+	// DeathTunarPct is the share of the carried tunar a PvE death takes
+	// (entity/deathtunar.go; work board #1762, the owner 2026-11-21): none at
+	// a PvP death or a duel's, in a CTF arena, or from the bank. Unset: 50
+	// (half, as the live game took); 0 turns it off; held to 0-100.
+	DeathTunarPct *int `yaml:"death_tunar_pct"`
+
 	// Hardcore is [HC] Hardcore characters (handlers/hardcore.go; the owner,
 	// 2026-11-18: "lets add [HC] tag for characters. Hardcore mode chars stay
 	// dead and cannot respawn"). Off unless enabled.

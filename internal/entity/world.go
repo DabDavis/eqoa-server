@@ -1180,7 +1180,7 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 	}
 	shares := splitXP(player.Mastery, player.Level, player.Debt, xp)
 	levelXP, cmXP := shares.Level, shares.Mastery
-	made := gainMastery(&player.Mastery, cmXP)
+	made := gainMastery(&player.Mastery, cmXP, player.Level) // the level splitXP was given
 	if shares.Debt > 0 {
 		player.Debt = max(0, player.Debt-shares.Debt)
 		sendExpDebt(sess, player.Debt)
@@ -1218,7 +1218,7 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 			levelXP -= over
 			if player.Mastery.Points+player.Mastery.Spent < MasteryCap {
 				cmXP += over
-				made += gainMastery(&player.Mastery, over)
+				made += gainMastery(&player.Mastery, over, player.Level)
 			}
 		}
 	}

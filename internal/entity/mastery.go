@@ -70,12 +70,26 @@ func SetMasteryCap(n int) {
 }
 
 // CMPointXP is the experience the character's nth mastery point takes (n
-// counts every point it has earned: spent, unspent and this one): the live
-// game's table, eqoa.fandom.com's "CM Point XP Required" (125,000 for the
-// first, 13,426,215 for the 770th), which is exactly round(125000 *
-// 1.0061^(n-1)) at all 151 points it lists.
+// counts every point it has earned: spent, unspent and this one): 125,000
+// for the first, each 0.6% more than the one before (jibrish's ruling of
+// 2026-11-20, work board #1816; the 1,500 together 164,314,080,877). Until
+// then 1.0061 a point, eqoa.fandom.com's "CM Point XP Required" table.
 func CMPointXP(n int) int {
-	return int(math.Round(125000 * math.Pow(1.0061, float64(max(n, 1)-1))))
+	return int(math.Round(125000 * math.Pow(1.006, float64(max(n, 1)-1))))
+}
+
+// MasteryCapAt is the most mastery points a character of a level holds,
+// spent and unspent together: 25 a level below MaxLevel (825 at 33, 1,475 at
+// 59), never past the shard's MasteryCap, and MasteryCap at it (jibrish,
+// work board #1816: past its level's cap a character's experience goes to its
+// level). A character already holding more (a GM's grant, a level set lower,
+// a transfer) keeps every point and earns none until its level's cap passes
+// what it holds; #grantcm and charmove go by MasteryCap alone.
+func MasteryCapAt(level int) int {
+	if level >= MaxLevel {
+		return MasteryCap
+	}
+	return max(0, min(25*level, MasteryCap))
 }
 
 // StatCapBase is the stat cap before masteries at a level (CLIENT's m_p44):
@@ -164,9 +178,10 @@ type xpShares struct {
 // the live game's (F3 20261026-042328): while a debt is owed, half of the
 // award pays it, never more than is owed; the rest goes to mastery points
 // alone at the level cap (MaxLevel), and below it as the mastery points
-// window's share divides it. Holding MasteryCap points, the masteries take
-// nothing: their part pays what is left of the debt, then goes to the level
-// (at the cap nothing comes of it).
+// window's share divides it. Holding MasteryCapAt(level) points (MasteryCap
+// at the level cap, 25 a level below it), the masteries take nothing: their
+// part pays what is left of the debt, then goes to the level (at the cap
+// nothing comes of it).
 func splitXP(m Mastery, level, debt, xp int) xpShares {
 	var s xpShares
 	if xp <= 0 {
@@ -181,7 +196,7 @@ func splitXP(m Mastery, level, debt, xp int) xpShares {
 	}
 	s.Mastery = rest * pct / 100
 	s.Level = rest - s.Mastery
-	if m.Points+m.Spent >= MasteryCap {
+	if m.Points+m.Spent >= MasteryCapAt(level) {
 		pay := min(debt-s.Debt, s.Mastery)
 		s.Debt += pay
 		s.Level += s.Mastery - pay
@@ -192,14 +207,16 @@ func splitXP(m Mastery, level, debt, xp int) xpShares {
 
 // gainMastery puts xp of mastery experience on m, each point made when the
 // experience reaches its cost (CMPointXP of the point it would be), never
-// past MasteryCap points: the points it made.
-func gainMastery(m *Mastery, xp int) int {
+// past MasteryCapAt(level) points: the points it made. Its experience is
+// emptied at MasteryCap alone; held at a lower level's cap, what is left of
+// it stays toward the next point for when the level allows it.
+func gainMastery(m *Mastery, xp, level int) int {
 	if xp <= 0 {
 		return 0
 	}
 	m.XP += xp
 	made := 0
-	for m.Points+m.Spent < MasteryCap {
+	for m.Points+m.Spent < MasteryCapAt(level) {
 		cost := CMPointXP(m.Points + m.Spent + 1)
 		if m.XP < cost {
 			break
@@ -244,9 +261,11 @@ func (w *World) MasteryOf(id EntityID) (Mastery, bool) {
 // on 100% CM xp commitment, or when level 60, the XP bar should show progress
 // toward your next CM ... Same fashion, yellow and pink and when yellow bars
 // fill you get your point"). Holding MasteryCap points it is empty: no point is
-// to come. Held under 2^31, the client's signed int.
+// to come. Below the level cap, holding its level's (MasteryCapAt), it is the
+// level's again: the experience goes to the level (#1816). Held under 2^31,
+// the client's signed int.
 func (p *Player) BarXP() int {
-	if p.Level < MaxLevel && p.Mastery.Percent < 100 {
+	if p.Level < MaxLevel && (p.Mastery.Percent < 100 || p.Mastery.Points+p.Mastery.Spent >= MasteryCapAt(p.Level)) {
 		return p.XPInLevel
 	}
 	m := p.Mastery

@@ -58,6 +58,7 @@ const (
 	DuelWager     Source = "duel_wager"     // a duel's wager: the loser's stake to the winner
 	Mail          Source = "mail"           // tunar a gram carried, sender to recipient (handlers/mailattach.go), or back
 	Postage       Source = "postage"        // the post's fee for a gram that carries something (world.mail_postage)
+	DeathLoss     Source = "death_loss"     // the carried tunar a PvE death takes (entity/deathtunar.go, world.death_tunar_pct)
 )
 
 // Info says what a source is.
@@ -88,6 +89,7 @@ var Sources = []Info{
 	{Cure, Sink, "Fever cures", "a were fever drawn out at the campfire", "fever cures"},
 	{AuctionFee, Sink, "Auction listing fees", "the auction house's fee for putting a lot up", "auction listing fees"},
 	{Postage, Sink, "Postage", "the post's fee for a gram carrying an item or tunar (world.mail_postage)", "postage"},
+	{DeathLoss, Sink, "Lost at death", "the share of the carried tunar a death to a creature or the world takes (world.death_tunar_pct)", "deaths"},
 	{AuctionHouse, Sink, "Auction house's own lots", "buys from the house's standing lots, which have no seller", "the auction house's own lots"},
 	{GMTake, Sink, "GM removals", "#tunar, #banktunar and the panel's edits lowering a purse or a bank", "GM removals"},
 	{Trade, Transfer, "Trades", "tunar given in a trade window", "trades"},

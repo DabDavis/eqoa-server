@@ -148,7 +148,7 @@ func TestAKillIsSharedWithTheGroupNear(t *testing.T) {
 }
 
 // A GM's report: a level 60 gets three points from one kill of a level 63
-// (425,820: the first three cost 125,000, 125,763 and 126,530), told by
+// (425,820: the first three cost 125,000, 125,750 and 126,504), told by
 // 0x1402 and the reference server's one line, "You received N class mastery XP.", and
 // at the level cap whatever the window's share (a GM's rule, F3
 // 20261026-042328: 0% too); the control is a level 59 with no share: the
@@ -162,8 +162,8 @@ func TestALevel60KillMakesAMasteryPoint(t *testing.T) {
 		p.Mastery = Mastery{Percent: pct}
 		k.w.awardKillXPLocked(k.sess[0], p, npc)
 		lines, told := sentOf(k.sess[0])
-		if p.Mastery.Points != 3 || p.Mastery.XP != left || left != 48527 || !told {
-			t.Fatalf("at %d%%: mastery %+v, told %v; want three points and 48,527 toward the fourth", pct, p.Mastery, told)
+		if p.Mastery.Points != 3 || p.Mastery.XP != left || left != 48566 || !told {
+			t.Fatalf("at %d%%: mastery %+v, told %v; want three points and 48,566 toward the fourth", pct, p.Mastery, told)
 		}
 		if len(lines) != 1 || lines[0] != "You received 425820 class mastery XP." {
 			t.Errorf("at %d%%: the chat %q, want Sandstorm's one line", pct, lines)

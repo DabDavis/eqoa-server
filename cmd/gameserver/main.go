@@ -828,6 +828,8 @@ func main() {
 	handlers.SetOGAccounts(cfg.World.OGAccounts)
 	entity.SetMasteryCap(cfg.World.MasteryCap)
 	log.Printf("Masteries: a character holds at most %d Combat Mastery points, spent and unspent (world.mastery_cap)", entity.MasteryCap)
+	entity.SetDeathTunarPct(cfg.World.DeathTunarPct)
+	log.Printf("Death: a PvE death takes %d%% of the carried tunar (world.death_tunar_pct)", entity.DeathTunarPct)
 	if cfg.World.OGAccounts {
 		log.Printf("OG characters: a new character may choose [OG]; an [OG] character plays with the game's own UI, drawn [OG] (world.og_accounts)")
 	}

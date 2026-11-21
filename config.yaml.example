@@ -127,6 +127,10 @@ world:
   # The most Combat Mastery points a character holds, spent and unspent
   # together (entity.MasteryCap): Heirloom 2000, the Live shard 1500.
   # mastery_cap: 2000
+  # The share of the carried tunar a death to a creature or the world takes
+  # (entity/deathtunar.go): never at a PvP death or a duel's, in a CTF arena,
+  # or from the bank. Unset: 50 (half, as the live game); 0 turns it off.
+  # death_tunar_pct: 50
 
   # [HC] Hardcore characters (handlers/hardcore.go; the owner, 2026-11-18):
   # chosen for a character when it is made (vanilla's create page; a PS2's first

@@ -102,27 +102,52 @@ func TestStatsPastTheCapCountForNothing(t *testing.T) {
 	}
 }
 
-// A point costs what the live game's table says (eqoa.fandom.com's "CM
-// Point XP Required"), the nth of the character's points: sixteen of its 151
-// listed values, all of which round(125000 * 1.0061^(n-1)) gives. The
-// control: a curve a hair flatter misses the table.
+// A point costs 0.6% more than the one before (jibrish's ruling of
+// 2026-11-20, work board #1816): the nth of the character's points
+// round(125000 * 1.006^(n-1)). The control: the old curve (1.0061, the
+// fandom table) misses every point past the first.
 func TestAMasteryPointCostsTheLiveTables(t *testing.T) {
 	table := map[int]int{
-		1: 125000, 10: 132032, 100: 228236, 200: 419275, 300: 770218, 400: 1414909,
-		500: 2599222, 600: 4774834, 700: 8771486, 770: 13426215, 800: 16113432,
-		900: 29600767, 1000: 54377328, 1200: 183504899, 1400: 619266325, 1500: 1137607284,
+		1: 125000, 10: 131914, 100: 226001, 200: 411063, 300: 747664, 400: 1359892,
+		500: 2473446, 600: 4498839, 700: 8182736, 770: 12438190, 800: 14883210,
+		900: 27070400, 1000: 49237132, 1200: 162887927, 1400: 538871283, 1500: 980128713,
+		2000: 19510727895,
 	}
 	missed := 0
 	for n, want := range table {
 		if got := CMPointXP(n); got != want {
-			t.Errorf("point %d: %d, want the table's %d", n, got, want)
+			t.Errorf("point %d: %d, want %d", n, got, want)
 		}
-		if int(math.Round(125000*math.Pow(1.006, float64(n-1)))) != want {
+		if int(math.Round(125000*math.Pow(1.0061, float64(n-1)))) != want {
 			missed++
 		}
 	}
-	if missed < len(table)-1 {
-		t.Fatalf("the control: 1.006 matched %d of the table's points", len(table)-missed)
+	if missed != len(table)-1 {
+		t.Fatalf("the control: 1.0061 matched %d of the table's points", len(table)-missed)
+	}
+	total := 0
+	for n := 1; n <= 1500; n++ {
+		total += CMPointXP(n)
+	}
+	if total != 164314080877 {
+		t.Errorf("the 1,500 together: %d, want 164,314,080,877", total)
+	}
+}
+
+// The most a level holds (#1816): 25 a level below the level cap, the
+// shard's MasteryCap at it; a shard's lower cap holds the levels below too.
+func TestMasteryCapAtTheLevel(t *testing.T) {
+	t.Cleanup(func() { SetMasteryCap(0) })
+	for lvl, want := range map[int]int{0: 0, 1: 25, 30: 750, 33: 825, 59: 1475, 60: 2000, 100: 2000} {
+		if got := MasteryCapAt(lvl); got != want {
+			t.Errorf("level %d: %d, want %d", lvl, got, want)
+		}
+	}
+	SetMasteryCap(1000)
+	for lvl, want := range map[int]int{30: 750, 41: 1000, 59: 1000, 60: 1000} {
+		if got := MasteryCapAt(lvl); got != want {
+			t.Errorf("a 1000 shard, level %d: %d, want %d", lvl, got, want)
+		}
 	}
 }
 
@@ -133,33 +158,69 @@ func TestAMasteryPointCostsTheLiveTables(t *testing.T) {
 // controls: 0% gives the masteries nothing, and a point is not made early.
 func TestTheShareDividesExperience(t *testing.T) {
 	for _, c := range []struct {
-		m              Mastery
-		xp, lvl, cm, n int
+		m                     Mastery
+		xp, lvl, cm, n, level int
 	}{
-		{Mastery{Percent: 100}, 6000, 0, 6000, 0},
-		{Mastery{Percent: 0}, 6000, 6000, 0, 0},
-		{Mastery{Percent: 25}, 1000, 750, 250, 0},
-		{Mastery{Percent: 33}, 1000, 670, 330, 0},
-		{Mastery{Percent: 100, XP: CMPointXP(1) - 1000}, 1200, 0, 1200, 1},
-		{Mastery{Percent: 100, XP: CMPointXP(1) - 1}, CMPointXP(2) + 1, 0, CMPointXP(2) + 1, 2},
-		{Mastery{Percent: 100, XP: CMPointXP(1) - 1}, CMPointXP(2), 0, CMPointXP(2), 1},
-		{Mastery{Percent: 100, XP: 0}, CMPointXP(1) - 1, 0, CMPointXP(1) - 1, 0},
-		{Mastery{Percent: 100, Points: 700, Spent: 69, XP: CMPointXP(770) - 5}, 10, 0, 10, 1},
-		{Mastery{Percent: 100, Points: 1500, Spent: 500}, 6000, 6000, 0, 0},
-		{Mastery{Percent: 100, Points: 1999, XP: CMPointXP(2000) - 100}, 30000, 0, 30000, 1},
+		{Mastery{Percent: 100}, 6000, 0, 6000, 0, 30},
+		{Mastery{Percent: 0}, 6000, 6000, 0, 0, 30},
+		{Mastery{Percent: 25}, 1000, 750, 250, 0, 30},
+		{Mastery{Percent: 33}, 1000, 670, 330, 0, 30},
+		{Mastery{Percent: 100, XP: CMPointXP(1) - 1000}, 1200, 0, 1200, 1, 30},
+		{Mastery{Percent: 100, XP: CMPointXP(1) - 1}, CMPointXP(2) + 1, 0, CMPointXP(2) + 1, 2, 30},
+		{Mastery{Percent: 100, XP: CMPointXP(1) - 1}, CMPointXP(2), 0, CMPointXP(2), 1, 30},
+		{Mastery{Percent: 100, XP: 0}, CMPointXP(1) - 1, 0, CMPointXP(1) - 1, 0, 30},
+		{Mastery{Percent: 100, Points: 700, Spent: 69, XP: CMPointXP(770) - 5}, 10, 0, 10, 1, 60},
+		{Mastery{Percent: 100, Points: 1500, Spent: 500}, 6000, 6000, 0, 0, 60},
+		{Mastery{Percent: 100, Points: 1999, XP: CMPointXP(2000) - 100}, 30000, 0, 30000, 1, 60},
+		// level 30 holds at most 750 (#1816)
+		{Mastery{Percent: 100, Points: 700, Spent: 49, XP: CMPointXP(750) - 100}, 30000, 0, 30000, 1, 30},
+		{Mastery{Percent: 100, Points: 700, Spent: 50}, 6000, 6000, 0, 0, 30},
+		{Mastery{Percent: 25, Points: 750}, 1000, 1000, 0, 0, 30},
 	} {
-		sh := splitXP(c.m, 30, 0, c.xp)
+		level := c.level
+		if level == 0 {
+			level = 30
+		}
+		sh := splitXP(c.m, level, 0, c.xp)
 		lvl, cm := sh.Level, sh.Mastery
 		if lvl != c.lvl || cm != c.cm || sh.Debt != 0 {
 			t.Errorf("%+v of %d: level %d, masteries %d, debt %d; want %d, %d, 0", c.m, c.xp, lvl, cm, sh.Debt, c.lvl, c.cm)
 		}
 		m := c.m
-		if n := gainMastery(&m, cm); n != c.n {
+		if n := gainMastery(&m, cm, level); n != c.n {
 			t.Errorf("%+v of %d: %d points made, want %d", c.m, c.xp, n, c.n)
 		}
-		if m.Points+m.Spent > MasteryCap {
-			t.Errorf("%+v: %d points held, past %d", c.m, m.Points+m.Spent, MasteryCap)
+		if m.Points+m.Spent > MasteryCapAt(level) {
+			t.Errorf("%+v: %d points held, past %d", c.m, m.Points+m.Spent, MasteryCapAt(level))
 		}
+	}
+	// held at level 30's cap with a debt, the masteries' part pays the debt
+	if sh := splitXP(Mastery{Percent: 100, Points: 750}, 30, 1000, 1000); sh.Debt != 1000 || sh.Level != 0 || sh.Mastery != 0 {
+		t.Errorf("750 at level 30, a debt of 1000: %+v, want debt 1000, level 0", sh)
+	}
+	// the controls: one point under the level's cap the masteries still take
+	// it all, and the level 60 rule is unchanged for the same 750
+	if sh := splitXP(Mastery{Percent: 100, Points: 749}, 30, 0, 6000); sh.Mastery != 6000 {
+		t.Fatalf("the control: 749 at level 30 gave the masteries %d", sh.Mastery)
+	}
+	if sh := splitXP(Mastery{Percent: 100, Points: 750}, 60, 0, 6000); sh.Mastery != 6000 {
+		t.Fatalf("the control: 750 at level 60 gave the masteries %d", sh.Mastery)
+	}
+	// a point held back by the level keeps its experience toward the next
+	m := Mastery{Percent: 100, Points: 749, XP: CMPointXP(750) - 10}
+	if n := gainMastery(&m, CMPointXP(751)+500, 30); n != 1 || m.Points != 750 || m.XP != CMPointXP(751)+490 {
+		t.Errorf("past level 30's cap: %d made, %+v; want 1, 750, the rest kept", n, m)
+	}
+	if n := gainMastery(&m, 0, 31); n != 0 {
+		t.Errorf("nothing awarded makes nothing: %d", n)
+	}
+	if n := gainMastery(&m, 1, 31); n != 1 || m.Points != 751 {
+		t.Errorf("at level 31 the kept experience makes point 751: %d, %+v", n, m)
+	}
+	// a character over its level's cap (a GM's grant) keeps every point
+	over := Mastery{Percent: 100, Points: 1000, XP: 5}
+	if n := gainMastery(&over, CMPointXP(1001)*2, 30); n != 0 || over.Points != 1000 {
+		t.Errorf("1000 held at level 30: %d made, %+v", n, over)
 	}
 }
 
@@ -349,6 +410,16 @@ func TestTheBarShowsTheWayToTheNextMasteryPoint(t *testing.T) {
 	p.Mastery = Mastery{Points: MasteryCap, Percent: 100, XP: 999}
 	if got := p.BarXP(); got != 0 {
 		t.Errorf("holding the cap: %d", got)
+	}
+	// below the level cap holding its level's cap (#1816): the level's bar
+	p.Level, p.XPInLevel = 30, 12345
+	p.Mastery = Mastery{Points: 700, Spent: 50, Percent: 100, XP: 999}
+	if got := p.BarXP(); got != 12345 {
+		t.Errorf("level 30 holding 750 at 100%%: %d, want the level's 12345", got)
+	}
+	p.Mastery.Spent = 49
+	if got := p.BarXP(); got == 12345 || got <= 0 {
+		t.Errorf("the control: level 30 holding 749 at 100%%: %d, want the mastery bar", got)
 	}
 	p.Level, p.Mastery = 100, Mastery{Percent: 100, XP: CMPointXP(1) - 1}
 	if got := p.BarXP(); got <= 0 || got > math.MaxInt32 {

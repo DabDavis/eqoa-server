@@ -44,6 +44,13 @@ const testPassword = "correct horse"
 
 func newFixture(t *testing.T) *fixture {
 	t.Helper()
+	return newFixtureWith(t, nil)
+}
+
+// newFixtureWith is newFixture with the config changed before the panel is
+// made.
+func newFixtureWith(t *testing.T, tweak func(*config.Config)) *fixture {
+	t.Helper()
 	dir := t.TempDir()
 	db, err := database.NewSQLite(filepath.Join(dir, "eqoa.db"))
 	if err != nil {
@@ -81,6 +88,9 @@ func newFixture(t *testing.T) *fixture {
 	os.WriteFile(cfg.GM.LogPath, []byte("line one\nGM: something\nline three\n"), 0o644)
 	cfg.World.NPCText = map[string]string{"Guard Dahvel": "Move along."}
 	handlers.SetNPCText(cfg.World.NPCText)
+	if tweak != nil {
+		tweak(cfg)
+	}
 
 	world := entity.NewWorld()
 	npcs := database.NewNPCStore(db)

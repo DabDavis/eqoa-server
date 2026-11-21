@@ -767,6 +767,25 @@ gm:
 
   # personal_boards: {alice: [alicegm]}
 
+  # One panel for several shards on one machine (gmweb/forward.go). Every
+  # operation, on the page, over MCP and at api/op/<name>, takes an optional
+  # "shard": shard_id (or nothing) runs it here, another shard's name hands it
+  # to that shard's own panel at url, as the GM who called, judged there by
+  # that shard's account and audited there. The page gets a switch.
+  # shard_id is this panel's name in that argument, shard_label its switch's.
+  # shard_id: "heirloom"
+  # shard_label: "Heirloom"
+  # other_shards:
+  #   - name: "live"
+  #     label: "Live"
+  #     url: "http://127.0.0.1:8082"
+  #     key_file: "/home/eqoa/gm-shard.key"
+  # On the shard that is handed calls: the same key, in a file both read
+  # (owner-only; 32 random bytes or more: openssl rand -hex 32). A call is
+  # taken from a loopback address alone, never through the proxy. Empty:
+  # this panel takes none.
+  # shard_key_file: "/home/eqoa/gm-shard.key"
+
 # The quest engine (handlers/quests.go).
 # quests:
 #   # The journal's pointer to a finished quest's next quest at another giver

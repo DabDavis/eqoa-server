@@ -179,6 +179,12 @@ func (s *Server) status(a *actor) map[string]any {
 	if name := s.shardName(); name != "" {
 		out["shard"] = name
 	}
+	// the shard's name in an operation's shard argument, and what this one
+	// leaves out (forward.go: the page's switch reads them)
+	out["shardId"] = s.ownShard()
+	out["shardLabel"] = s.ownLabel()
+	out["noTransfers"] = s.d.NoTransfers
+	out["accountsShared"] = s.d.AccountsShared
 	if s.d.AccountsShared {
 		out["accounts"] = sharedAccountsWord
 	}

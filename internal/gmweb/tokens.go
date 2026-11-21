@@ -194,7 +194,7 @@ func (s *Server) tokenActor(value, ip string) (*actor, error) {
 	// is an admin's only while the account keeps one
 	return &actor{
 		AccountID: acc.ID, Username: acc.Username, Level: acc.Level, Role: role,
-		Admin: acc.Level >= s.cfg.AdminLevel && on, Scope: t.Scope, Via: via, IP: ip, TokenID: t.ID,
+		Admin: acc.Level >= s.cfg.AdminLevel && on, MFA: on, Scope: t.Scope, Via: via, IP: ip, TokenID: t.ID,
 	}, nil
 }
 

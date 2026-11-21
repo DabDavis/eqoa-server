@@ -186,6 +186,7 @@ func (s *Server) mcpCall(a *actor, r *http.Request, m rpcMessage) (any, *rpcErro
 		if a.limited() {
 			instructions = roleInstructions(a.grants())
 		}
+		instructions += s.shardInstructions()
 		return map[string]any{
 			"protocolVersion": version,
 			"capabilities":    map[string]any{"tools": map[string]any{"listChanged": false}},
@@ -204,16 +205,15 @@ func (s *Server) mcpCall(a *actor, r *http.Request, m rpcMessage) (any, *rpcErro
 		if err := json.Unmarshal(m.Params, &p); err != nil {
 			return nil, &rpcError{Code: -32602, Message: "params are {name, arguments}"}
 		}
-		if _, ok := s.ops[p.Name]; !ok {
+		if _, ok := s.ops[p.Name]; !ok && !s.routesAway(p.Arguments, "") {
 			return nil, &rpcError{Code: -32602, Message: fmt.Sprintf("no tool %q", p.Name)}
 		}
-		out, err := s.run(a, p.Name, p.Arguments, r)
+		out, err := s.dispatch(a, p.Name, p.Arguments, r, "", true)
 		if err != nil {
 			text := err.Error()
-			var ce *errConflict
-			if errors.As(err, &ce) {
-				cur, _ := json.Marshal(ce.current)
-				text += "\ncurrent row: " + string(cur)
+			if cur, ok := conflictRow(err); ok {
+				b, _ := json.Marshal(cur)
+				text += "\ncurrent row: " + string(b)
 			}
 			return map[string]any{"content": []any{map[string]any{"type": "text", "text": text}}, "isError": true}, nil
 		}

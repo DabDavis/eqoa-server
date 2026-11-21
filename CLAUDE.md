@@ -347,6 +347,13 @@ kept in `gm_sessions` by the token's SHA-256, so they outlive a restart.
   layers and NPC paths (`ops_maplayers.go`, `ops_paths.go`), the table catalog (`catalog.go`: what each column
   means), look columns (`looks.go`), spell visuals, community suggestions and map marks (`internal/mapmarks`). The map
   and 3D models are drawn in the browser from the GM's own disc image (`static/disc/`); the server holds no game files.
+- **One panel for both shards** (`forward.go`, 2026-11-21): every op takes an optional `shard` (the args, or `?shard=`
+  from the page's header switch); `gm.shard_id` (default `heirloom`) or nothing runs it here, a `gm.other_shards[].name`
+  hands it to that shard's own panel on this machine at `api/shard/op/<name>` with the key both read
+  (`key_file` / the receiver's `gm.shard_key_file`), taken only from loopback with no proxy headers. The receiver judges
+  the GM by ITS account (same id and name; its min/admin level; the authenticator not asked again) and audits there
+  (via `"... via heirloom panel"`). An op with its own `shard` (economy, set_formula_mode) keeps it for non-shard
+  values; the work and personal boards (`hereOnlyOps`) always run here.
 - Tests: `go test ./internal/gmweb/`.
 
 ## Key protocol details

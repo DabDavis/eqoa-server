@@ -253,33 +253,54 @@
      "guide": 20,
      "read": [
       0
-     ],
-     "suspect": "ours holds 20 under str"
+     ]
     },
     "AR": {
      "guide": 5,
      "read": [
       0
-     ],
-     "suspect": "ours holds 5 under dex"
+     ]
     },
     "POWMAX": {
      "guide": 30,
      "read": [
       0
-     ],
-     "suspect": "ours holds 30 under sta"
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      20
+     ]
     },
     "cha": {
      "guide": 20,
      "read": [
       0
-     ],
-     "suspect": "ours holds 20 under str"
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      5
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      30
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      20
+     ]
     }
    },
    "guide_name": "beguiling robe",
    "name": "Beguiling Robe",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -365,39 +386,66 @@
      "guide": 8,
      "read": [
       0
-     ],
-     "suspect": "ours holds 8 under dex"
+     ]
     },
     "HPMAX": {
      "guide": 25,
      "read": [
       0
-     ],
-     "suspect": "ours holds 25 under str"
+     ]
     },
     "LR": {
      "guide": 5,
      "read": [
       0
-     ],
-     "suspect": "ours holds 5 under intelligence"
+     ]
     },
     "POWMAX": {
      "guide": 20,
      "read": [
       0
-     ],
-     "suspect": "ours holds 20 under sta"
+     ]
     },
     "PoT": {
      "guide": 10,
      "read": [
       0
      ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      8
+     ]
+    },
+    "intelligence": {
+     "guide": 0,
+     "read": [
+      5
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      20
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      25
+     ]
     }
    },
    "guide_name": "Bloodgale battlehammer",
    "name": "Bloodgale Battlehammer",
+   "scrambled": true,
    "threads": [
     "t397"
    ]
@@ -414,25 +462,42 @@
      "guide": 55,
      "read": [
       0
-     ],
-     "suspect": "ours holds 55 under agi"
+     ]
     },
     "POWMAX": {
      "guide": 35,
      "read": [
       0
-     ],
-     "suspect": "ours holds 35 under dex"
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      55
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      35
+     ]
     },
     "intelligence": {
      "guide": 10,
      "read": [
       25
      ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      10
+     ]
     }
    },
    "guide_name": "bloodshade robe",
    "name": "Bloodshade Robe",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -458,8 +523,7 @@
      "guide": 30,
      "read": [
       0
-     ],
-     "suspect": "ours holds 30 under agi"
+     ]
     },
     "HPMAX": {
      "guide": 120,
@@ -467,16 +531,28 @@
       0
      ]
     },
+    "agi": {
+     "guide": 0,
+     "read": [
+      30
+     ]
+    },
     "sta": {
      "guide": 15,
      "read": [
       120
-     ],
-     "suspect": "0.12x ours"
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      15
+     ]
     }
    },
    "guide_name": "boar skin robe",
    "name": "Boar Skin Robe",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -487,8 +563,7 @@
      "guide": 55,
      "read": [
       0
-     ],
-     "suspect": "ours holds 55 under agi"
+     ]
     },
     "POWMAX": {
      "guide": 75,
@@ -496,23 +571,40 @@
       0
      ]
     },
+    "agi": {
+     "guide": 0,
+     "read": [
+      55
+     ]
+    },
     "dex": {
      "guide": 10,
      "read": [
       75
-     ],
-     "suspect": "0.13x ours"
+     ]
     },
     "intelligence": {
      "guide": 20,
      "read": [
       0
-     ],
-     "suspect": "ours holds 20 under sta"
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      20
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      10
+     ]
     }
    },
    "guide_name": "bogwater robe",
    "name": "Bogwater Robe",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -523,22 +615,19 @@
      "guide": 35,
      "read": [
       0
-     ],
-     "suspect": "ours holds 35 under wis"
+     ]
     },
     "AR": {
      "guide": 10,
      "read": [
       0
-     ],
-     "suspect": "ours holds 10 under str"
+     ]
     },
     "HPMAX": {
      "guide": 30,
      "read": [
       8
-     ],
-     "suspect": "3.75x ours"
+     ]
     },
     "POWMAX": {
      "guide": 55,
@@ -552,23 +641,46 @@
       0
      ]
     },
+    "agi": {
+     "guide": 0,
+     "read": [
+      5
+     ]
+    },
+    "cha": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
     "dex": {
      "guide": 10,
      "read": [
       30
-     ],
-     "suspect": "0.33x ours"
+     ]
     },
     "intelligence": {
      "guide": 5,
      "read": [
       55
-     ],
-     "suspect": "0.09x ours"
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
+    "wis": {
+     "guide": 0,
+     "read": [
+      35
+     ]
     }
    },
    "guide_name": "boneweave robe",
    "name": "Boneweave Robe",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -579,32 +691,54 @@
      "guide": 20,
      "read": [
       0
-     ],
-     "suspect": "ours holds 20 under agi"
+     ]
     },
     "DR": {
      "guide": 15,
      "read": [
       0
-     ],
-     "suspect": "ours holds 15 under dex"
+     ]
     },
     "HPMAX": {
      "guide": 30,
      "read": [
       0
-     ],
-     "suspect": "ours holds 30 under str"
+     ]
     },
     "PoT": {
      "guide": 10,
      "read": [
       0
      ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      20
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      15
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      30
+     ]
     }
    },
    "guide_name": "boneweave shroud",
    "name": "Boneweave Shroud",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -782,6 +916,28 @@
   },
   {
    "fields": {
+    "AC": {
+     "guide": 0,
+     "read": [
+      259
+     ]
+    },
+    "POWMAX": {
+     "guide": 0,
+     "read": [
+      25
+     ]
+    }
+   },
+   "guide_name": "Bravo Pantaloons",
+   "name": "Bravo Pantaloons",
+   "scrambled": true,
+   "threads": [
+    "t293"
+   ]
+  },
+  {
+   "fields": {
     "str": {
      "guide": 62,
      "read": [
@@ -840,33 +996,54 @@
      "guide": 28,
      "read": [
       0
-     ],
-     "suspect": "ours holds 28 under agi"
+     ]
     },
     "AR": {
      "guide": 6,
      "read": [
       0
-     ],
-     "suspect": "ours holds 6 under dex"
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      28
+     ]
     },
     "cha": {
      "guide": 17,
      "read": [
       0
-     ],
-     "suspect": "ours holds 17 under sta"
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      6
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      17
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      24
+     ]
     },
     "wis": {
      "guide": 24,
      "read": [
       0
-     ],
-     "suspect": "ours holds 24 under str"
+     ]
     }
    },
    "guide_name": "butterfly winged robe",
    "name": "Butterfly Winged Robe",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -979,8 +1156,7 @@
      "guide": 10,
      "read": [
       0
-     ],
-     "suspect": "ours holds 10 under str"
+     ]
     },
     "HPMAX": {
      "guide": 50,
@@ -992,8 +1168,7 @@
      "guide": 10,
      "read": [
       0
-     ],
-     "suspect": "ours holds 10 under str"
+     ]
     },
     "agi": {
      "guide": 20,
@@ -1001,15 +1176,34 @@
       50
      ]
     },
+    "intelligence": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
     "sta": {
      "guide": 10,
      "read": [
       20
      ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
+    "wis": {
+     "guide": 0,
+     "read": [
+      10
+     ]
     }
    },
    "guide_name": "Catlink Boots",
    "name": "Catlink Boots",
+   "scrambled": true,
    "threads": [
     "t617"
    ]
@@ -1057,32 +1251,48 @@
      "guide": 40,
      "read": [
       0
-     ],
-     "suspect": "ours holds 40 under wis"
+     ]
     },
     "HPMAX": {
      "guide": 25,
      "read": [
       0
-     ],
-     "suspect": "ours holds 25 under intelligence"
+     ]
     },
     "POWMAX": {
      "guide": 25,
      "read": [
       0
-     ],
-     "suspect": "ours holds 25 under intelligence"
+     ]
     },
     "dex": {
      "guide": 10,
      "read": [
       25
      ]
+    },
+    "intelligence": {
+     "guide": 0,
+     "read": [
+      25
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
+    "wis": {
+     "guide": 0,
+     "read": [
+      40
+     ]
     }
    },
    "guide_name": "chillfist shroud",
    "name": "Chillfist Shroud",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -1093,19 +1303,30 @@
      "guide": 80,
      "read": [
       0
-     ],
-     "suspect": "ours holds 80 under str"
+     ]
     },
     "POWMAX": {
      "guide": 75,
      "read": [
       0
-     ],
-     "suspect": "ours holds 75 under sta"
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      75
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      80
+     ]
     }
    },
    "guide_name": "chimera skin robe",
    "name": "Chimera Skin Robe",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -1199,26 +1420,42 @@
      "guide": 100,
      "read": [
       0
-     ],
-     "suspect": "ours holds 100 under intelligence"
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      10
+     ]
     },
     "cha": {
      "guide": 5,
      "read": [
       0
-     ],
-     "suspect": "ours holds 5 under str"
+     ]
+    },
+    "intelligence": {
+     "guide": 0,
+     "read": [
+      100
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      5
+     ]
     },
     "wis": {
      "guide": 10,
      "read": [
       0
-     ],
-     "suspect": "ours holds 10 under agi"
+     ]
     }
    },
    "guide_name": "clay robe",
    "name": "Clay Robe",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -1229,8 +1466,7 @@
      "guide": 43,
      "read": [
       0
-     ],
-     "suspect": "ours holds 43 under intelligence"
+     ]
     },
     "CR": {
      "guide": 3,
@@ -1242,27 +1478,54 @@
      "guide": 15,
      "read": [
       0
-     ],
-     "suspect": "ours holds 15 under agi"
+     ]
     },
     "HPMAX": {
      "guide": 15,
      "read": [
       0
-     ],
-     "suspect": "ours holds 15 under agi"
+     ]
     },
     "POWMAX": {
      "guide": 51,
      "read": [
       0
-     ],
-     "suspect": "ours holds 51 under dex"
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      15
+     ]
     },
     "cha": {
      "guide": 3,
      "read": [
       15
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      51
+     ]
+    },
+    "intelligence": {
+     "guide": 0,
+     "read": [
+      43
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      3
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      17
      ]
     },
     "wis": {
@@ -1274,6 +1537,7 @@
    },
    "guide_name": "confluent robe",
    "name": "Confluent Robe",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -1296,20 +1560,24 @@
      "guide": 18,
      "read": [
       0
-     ],
-     "suspect": "ours holds 18 under agi"
+     ]
     },
     "POWMAX": {
      "guide": 63,
      "read": [
       0
-     ],
-     "suspect": "ours holds 63 under dex"
+     ]
     },
     "PR": {
      "guide": 20,
      "read": [
       0
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      18
      ]
     },
     "cha": {
@@ -1318,16 +1586,40 @@
       20
      ]
     },
+    "dex": {
+     "guide": 0,
+     "read": [
+      63
+     ]
+    },
     "intelligence": {
      "guide": 5,
      "read": [
       57
-     ],
-     "suspect": "0.09x ours"
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      23
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      5
+     ]
+    },
+    "wis": {
+     "guide": 0,
+     "read": [
+      4
+     ]
     }
    },
    "guide_name": "cotidal robe",
    "name": "Cotidal Robe",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -1406,36 +1698,80 @@
   },
   {
    "fields": {
+    "agi": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      20
+     ]
+    }
+   },
+   "guide_name": "Darklords wand",
+   "name": "Darklord's Wand",
+   "scrambled": true,
+   "threads": [
+    "t287"
+   ]
+  },
+  {
+   "fields": {
     "AC": {
      "guide": 45,
      "read": [
       0
-     ],
-     "suspect": "ours holds 45 under dex"
+     ]
     },
     "CR": {
      "guide": 15,
      "read": [
       0
-     ],
-     "suspect": "ours holds 15 under str"
+     ]
     },
     "HPMAX": {
      "guide": 75,
      "read": [
       0
-     ],
-     "suspect": "ours holds 75 under sta"
+     ]
     },
     "PoT": {
      "guide": 10,
      "read": [
       0
      ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      45
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      75
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      15
+     ]
     }
    },
    "guide_name": "darkvine robe",
    "name": "Darkvine Robe",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -1529,30 +1865,68 @@
   },
   {
    "fields": {
+    "agi": {
+     "guide": 0,
+     "read": [
+      20
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      15
+     ]
+    }
+   },
+   "guide_name": "dew covered robe",
+   "name": "Dew Covered Robe",
+   "scrambled": true,
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
     "AC": {
      "guide": 7,
      "read": [
       0
-     ],
-     "suspect": "ours holds 7 under agi"
+     ]
     },
     "POWMAX": {
      "guide": 71,
      "read": [
       0
-     ],
-     "suspect": "ours holds 71 under sta"
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      7
+     ]
     },
     "cha": {
      "guide": 30,
      "read": [
       0
-     ],
-     "suspect": "ours holds 30 under str"
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      71
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      30
+     ]
     }
    },
    "guide_name": "dire rat hide robe",
    "name": "Dire Rat Hide Robe",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -1568,6 +1942,28 @@
    },
    "guide_name": "dirty silken gown",
    "name": "dirty silken gown",
+   "threads": [
+    "t291"
+   ]
+  },
+  {
+   "fields": {
+    "agi": {
+     "guide": 0,
+     "read": [
+      25
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      8
+     ]
+    }
+   },
+   "guide_name": "divine robe",
+   "name": "Divine Robe",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -1814,22 +2210,19 @@
      "guide": 25,
      "read": [
       0
-     ],
-     "suspect": "ours holds 25 under wis"
+     ]
     },
     "CR": {
      "guide": 8,
      "read": [
       0
-     ],
-     "suspect": "ours holds 8 under cha"
+     ]
     },
     "HPMAX": {
      "guide": 30,
      "read": [
       10
-     ],
-     "suspect": "3.00x ours"
+     ]
     },
     "LR": {
      "guide": 10,
@@ -1841,8 +2234,7 @@
      "guide": 75,
      "read": [
       0
-     ],
-     "suspect": "ours holds 75 under dex"
+     ]
     },
     "PoT": {
      "guide": 5,
@@ -1854,18 +2246,48 @@
      "guide": 6,
      "read": [
       30
-     ],
-     "suspect": "0.20x ours"
+     ]
+    },
+    "cha": {
+     "guide": 0,
+     "read": [
+      8
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      75
+     ]
     },
     "intelligence": {
      "guide": 6,
      "read": [
       5
      ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      6
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      6
+     ]
+    },
+    "wis": {
+     "guide": 0,
+     "read": [
+      25
+     ]
     }
    },
    "guide_name": "earthshadow robe",
    "name": "Earthshadow Robe",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -1911,27 +2333,30 @@
      "guide": 12,
      "read": [
       0
-     ],
-     "suspect": "ours holds 12 under wis"
+     ]
     },
     "LR": {
      "guide": 12,
      "read": [
       0
-     ],
-     "suspect": "ours holds 12 under wis"
+     ]
     },
     "POWMAX": {
      "guide": 23,
      "read": [
       0
-     ],
-     "suspect": "ours holds 23 under agi"
+     ]
     },
     "PoT": {
      "guide": 6,
      "read": [
       0
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      23
      ]
     },
     "cha": {
@@ -1940,15 +2365,40 @@
       12
      ]
     },
+    "dex": {
+     "guide": 0,
+     "read": [
+      6
+     ]
+    },
     "intelligence": {
      "guide": 10,
      "read": [
       15
      ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
+    "wis": {
+     "guide": 0,
+     "read": [
+      12
+     ]
     }
    },
    "guide_name": "earthwhisper robe",
    "name": "Earthwhisper Robe",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -1993,22 +2443,25 @@
      "guide": 16,
      "read": [
       0
-     ],
-     "suspect": "ours holds 16 under agi"
+     ]
     },
     "LR": {
      "guide": 15,
      "read": [
       0
-     ],
-     "suspect": "ours holds 15 under wis"
+     ]
     },
     "POWMAX": {
      "guide": 58,
      "read": [
       0
-     ],
-     "suspect": "ours holds 58 under dex"
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      16
+     ]
     },
     "cha": {
      "guide": 4,
@@ -2016,15 +2469,40 @@
       3
      ]
     },
+    "dex": {
+     "guide": 0,
+     "read": [
+      58
+     ]
+    },
     "intelligence": {
      "guide": 19,
      "read": [
       46
      ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      4
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      19
+     ]
+    },
+    "wis": {
+     "guide": 0,
+     "read": [
+      15
+     ]
     }
    },
    "guide_name": "eelskin robe",
    "name": "Eelskin Robe",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -2083,6 +2561,12 @@
   },
   {
    "fields": {
+    "AC": {
+     "guide": 0,
+     "read": [
+      85
+     ]
+    },
     "HPMAX": {
      "guide": 85,
      "read": [
@@ -2093,19 +2577,30 @@
      "guide": 50,
      "read": [
       0
-     ],
-     "suspect": "ours holds 50 under agi"
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      50
+     ]
     },
     "sta": {
      "guide": 25,
      "read": [
       0
-     ],
-     "suspect": "ours holds 25 under str"
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      25
+     ]
     }
    },
    "guide_name": "emerald silken robe",
    "name": "Emerald Silken Robe",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -2320,12 +2815,47 @@
      "read": [
       14
      ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      23
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      17
+     ]
     }
    },
    "guide_name": "fire savant robe",
    "name": "Fire Savant Robe",
+   "scrambled": true,
    "threads": [
     "t291"
+   ]
+  },
+  {
+   "fields": {
+    "AC": {
+     "guide": 0,
+     "read": [
+      344
+     ]
+    },
+    "AR": {
+     "guide": 0,
+     "read": [
+      7
+     ]
+    }
+   },
+   "guide_name": "Firepit Tunic",
+   "name": "Firepit tunic",
+   "scrambled": true,
+   "threads": [
+    "t293"
    ]
   },
   {
@@ -2371,8 +2901,7 @@
      "guide": 17,
      "read": [
       0
-     ],
-     "suspect": "ours holds 17 under intelligence"
+     ]
     },
     "HPMAX": {
      "guide": 50,
@@ -2390,18 +2919,36 @@
      "guide": 15,
      "read": [
       50
-     ],
-     "suspect": "0.30x ours"
+     ]
     },
     "dex": {
      "guide": 20,
      "read": [
       40
      ]
+    },
+    "intelligence": {
+     "guide": 0,
+     "read": [
+      17
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      20
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      15
+     ]
     }
    },
    "guide_name": "forest gi",
    "name": "Forest Gi",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -2751,8 +3298,7 @@
      "guide": 25,
      "read": [
       0
-     ],
-     "suspect": "ours holds 25 under dex"
+     ]
     },
     "HoT": {
      "guide": 7,
@@ -2766,16 +3312,40 @@
       0
      ]
     },
+    "agi": {
+     "guide": 0,
+     "read": [
+      7
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      25
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      7
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      15
+     ]
+    },
     "wis": {
      "guide": 15,
      "read": [
       0
-     ],
-     "suspect": "ours holds 15 under str"
+     ]
     }
    },
    "guide_name": "golden prayer robe",
    "name": "Golden Prayer Robe",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -3040,8 +3610,7 @@
      "guide": 20,
      "read": [
       0
-     ],
-     "suspect": "ours holds 20 under str"
+     ]
     },
     "AR": {
      "guide": 4,
@@ -3059,8 +3628,7 @@
      "guide": 8,
      "read": [
       0
-     ],
-     "suspect": "ours holds 8 under wis"
+     ]
     },
     "FR": {
      "guide": 4,
@@ -3078,12 +3646,54 @@
      "guide": 8,
      "read": [
       0
-     ],
-     "suspect": "ours holds 8 under wis"
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      4
+     ]
+    },
+    "cha": {
+     "guide": 0,
+     "read": [
+      8
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      4
+     ]
+    },
+    "intelligence": {
+     "guide": 0,
+     "read": [
+      4
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      4
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      20
+     ]
+    },
+    "wis": {
+     "guide": 0,
+     "read": [
+      8
+     ]
     }
    },
    "guide_name": "hapless mantle",
    "name": "Hapless Mantle",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -3243,19 +3853,36 @@
      "guide": 76,
      "read": [
       0
-     ],
-     "suspect": "ours holds 76 under agi"
+     ]
     },
     "HPMAX": {
      "guide": 50,
      "read": [
       0
-     ],
-     "suspect": "ours holds 50 under sta"
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      76
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      50
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      10
+     ]
     }
    },
    "guide_name": "Ironsong belt",
    "name": "Ironsong Belt",
+   "scrambled": true,
    "threads": [
     "t617"
    ]
@@ -3368,32 +3995,52 @@
      "guide": 15,
      "read": [
       0
-     ],
-     "suspect": "ours holds 15 under dex"
+     ]
     },
     "CR": {
      "guide": 5,
      "read": [
       0
-     ],
-     "suspect": "ours holds 5 under wis"
+     ]
     },
     "FR": {
      "guide": 5,
      "read": [
       0
-     ],
-     "suspect": "ours holds 5 under wis"
+     ]
     },
     "POWMAX": {
      "guide": 100,
      "read": [
       0
-     ],
-     "suspect": "ours holds 100 under agi"
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      100
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      15
+     ]
     },
     "intelligence": {
      "guide": 10,
+     "read": [
+      5
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
+    "wis": {
+     "guide": 0,
      "read": [
       5
      ]
@@ -3401,6 +4048,7 @@
    },
    "guide_name": "Jibley's Bauble",
    "name": "Jibley's Bauble",
+   "scrambled": true,
    "threads": [
     "t617"
    ]
@@ -3575,33 +4223,60 @@
      "guide": 10,
      "read": [
       0
-     ],
-     "suspect": "ours holds 10 under dex"
+     ]
     },
     "FR": {
      "guide": 20,
      "read": [
       0
-     ],
-     "suspect": "ours holds 20 under wis"
+     ]
     },
     "HPMAX": {
      "guide": 25,
      "read": [
       0
-     ],
-     "suspect": "ours holds 25 under sta"
+     ]
     },
     "LR": {
      "guide": 5,
      "read": [
       0
-     ],
-     "suspect": "ours holds 5 under intelligence"
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
+    "intelligence": {
+     "guide": 0,
+     "read": [
+      5
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      25
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      15
+     ]
+    },
+    "wis": {
+     "guide": 0,
+     "read": [
+      20
+     ]
     }
    },
    "guide_name": "Longwind bracers",
    "name": "Longwind Bracers",
+   "scrambled": true,
    "threads": [
     "t617"
    ]
@@ -3635,19 +4310,30 @@
      "guide": 60,
      "read": [
       0
-     ],
-     "suspect": "ours holds 60 under sta"
+     ]
     },
     "intelligence": {
      "guide": 10,
      "read": [
       0
-     ],
-     "suspect": "ours holds 10 under str"
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      60
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      10
+     ]
     }
    },
    "guide_name": "magicus robe",
    "name": "Magicus Robe",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -3951,8 +4637,7 @@
      "guide": 5,
      "read": [
       0
-     ],
-     "suspect": "ours holds 5 under dex"
+     ]
     },
     "FR": {
      "guide": 3,
@@ -3964,15 +4649,13 @@
      "guide": 20,
      "read": [
       0
-     ],
-     "suspect": "ours holds 20 under str"
+     ]
     },
     "POWMAX": {
      "guide": 20,
      "read": [
       0
-     ],
-     "suspect": "ours holds 20 under str"
+     ]
     },
     "PR": {
      "guide": 3,
@@ -3985,10 +4668,47 @@
      "read": [
       0
      ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      6
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      5
+     ]
+    },
+    "intelligence": {
+     "guide": 0,
+     "read": [
+      3
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      20
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      20
+     ]
+    },
+    "wis": {
+     "guide": 0,
+     "read": [
+      3
+     ]
     }
    },
    "guide_name": "mistweave shroud",
    "name": "Mistweave Shroud",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -4022,15 +4742,13 @@
      "guide": 15,
      "read": [
       0
-     ],
-     "suspect": "ours holds 15 under str"
+     ]
     },
     "FR": {
      "guide": 15,
      "read": [
       0
-     ],
-     "suspect": "ours holds 15 under str"
+     ]
     },
     "POWMAX": {
      "guide": 25,
@@ -4043,10 +4761,29 @@
      "read": [
       25
      ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      15
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      15
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      15
+     ]
     }
    },
    "guide_name": "mud covered robe",
    "name": "Mud Covered Robe",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -4087,19 +4824,36 @@
      "guide": 50,
      "read": [
       0
-     ],
-     "suspect": "ours holds 50 under sta"
+     ]
     },
     "POWMAX": {
      "guide": 50,
      "read": [
       0
-     ],
-     "suspect": "ours holds 50 under sta"
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      50
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      50
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      15
+     ]
     }
    },
    "guide_name": "Nightsky bracers",
    "name": "Nightsky Bracers",
+   "scrambled": true,
    "threads": [
     "t617"
    ]
@@ -4110,27 +4864,30 @@
      "guide": 35,
      "read": [
       0
-     ],
-     "suspect": "ours holds 35 under agi"
+     ]
     },
     "LR": {
      "guide": 10,
      "read": [
       0
-     ],
-     "suspect": "ours holds 10 under str"
+     ]
     },
     "POWMAX": {
      "guide": 35,
      "read": [
       0
-     ],
-     "suspect": "ours holds 35 under agi"
+     ]
     },
     "PoT": {
      "guide": 4,
      "read": [
       0
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      35
      ]
     },
     "dex": {
@@ -4143,12 +4900,30 @@
      "guide": 10,
      "read": [
       35
-     ],
-     "suspect": "0.29x ours"
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
+    "wis": {
+     "guide": 0,
+     "read": [
+      10
+     ]
     }
    },
    "guide_name": "nitemorrow silk shroud",
    "name": "Nitemorrow Silk Shroud",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -4405,15 +5180,13 @@
      "guide": 20,
      "read": [
       0
-     ],
-     "suspect": "ours holds 20 under str"
+     ]
     },
     "POWMAX": {
      "guide": 20,
      "read": [
       0
-     ],
-     "suspect": "ours holds 20 under str"
+     ]
     },
     "PoT": {
      "guide": 15,
@@ -4421,16 +5194,40 @@
       0
      ]
     },
+    "agi": {
+     "guide": 0,
+     "read": [
+      15
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      20
+     ]
+    },
     "intelligence": {
      "guide": 20,
      "read": [
       0
-     ],
-     "suspect": "ours holds 20 under str"
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      20
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      20
+     ]
     }
    },
    "guide_name": "omnipotent robes",
    "name": "Omnipotent Robes",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -4611,34 +5408,42 @@
      "guide": 5,
      "read": [
       0
-     ],
-     "suspect": "ours holds 5 under wis"
+     ]
     },
     "FR": {
      "guide": 5,
      "read": [
       0
-     ],
-     "suspect": "ours holds 5 under wis"
+     ]
     },
     "HPMAX": {
      "guide": 30,
      "read": [
       0
-     ],
-     "suspect": "ours holds 30 under agi"
+     ]
     },
     "LR": {
      "guide": 5,
      "read": [
       0
-     ],
-     "suspect": "ours holds 5 under wis"
+     ]
     },
     "POWMAX": {
      "guide": 25,
      "read": [
       0
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      30
+     ]
+    },
+    "cha": {
+     "guide": 0,
+     "read": [
+      5
      ]
     },
     "dex": {
@@ -4652,10 +5457,29 @@
      "read": [
       5
      ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      15
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
+    "wis": {
+     "guide": 0,
+     "read": [
+      5
+     ]
     }
    },
    "guide_name": "pine coated robe",
    "name": "Pine Coated Robe",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -4709,22 +5533,19 @@
      "guide": 15,
      "read": [
       0
-     ],
-     "suspect": "ours holds 15 under wis"
+     ]
     },
     "CR": {
      "guide": 15,
      "read": [
       0
-     ],
-     "suspect": "ours holds 15 under wis"
+     ]
     },
     "LR": {
      "guide": 10,
      "read": [
       0
-     ],
-     "suspect": "ours holds 10 under dex"
+     ]
     },
     "POWMAX": {
      "guide": 50,
@@ -4742,11 +5563,40 @@
      "guide": 12,
      "read": [
       50
-     ],
-     "suspect": "0.24x ours"
+     ]
+    },
+    "cha": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      10
+     ]
     },
     "intelligence": {
      "guide": 8,
+     "read": [
+      15
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      8
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      12
+     ]
+    },
+    "wis": {
+     "guide": 0,
      "read": [
       15
      ]
@@ -4754,6 +5604,7 @@
    },
    "guide_name": "plainswynd shrouds",
    "name": "Plainswynd Shrouds",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -4801,22 +5652,19 @@
      "guide": 12,
      "read": [
       0
-     ],
-     "suspect": "ours holds 12 under str"
+     ]
     },
     "FR": {
      "guide": 10,
      "read": [
       0
-     ],
-     "suspect": "ours holds 10 under cha"
+     ]
     },
     "HPMAX": {
      "guide": 35,
      "read": [
       0
-     ],
-     "suspect": "ours holds 35 under agi"
+     ]
     },
     "POWMAX": {
      "guide": 100,
@@ -4824,23 +5672,52 @@
       0
      ]
     },
+    "agi": {
+     "guide": 0,
+     "read": [
+      35
+     ]
+    },
+    "cha": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
     "dex": {
      "guide": 12,
      "read": [
       100
-     ],
-     "suspect": "0.12x ours"
+     ]
     },
     "intelligence": {
      "guide": 5,
      "read": [
       25
-     ],
-     "suspect": "0.20x ours"
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      5
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      12
+     ]
+    },
+    "wis": {
+     "guide": 0,
+     "read": [
+      12
+     ]
     }
    },
    "guide_name": "rallosian imperial shrouds",
    "name": "Rallosian Imperial Shrouds",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -5028,8 +5905,7 @@
      "guide": 20,
      "read": [
       0
-     ],
-     "suspect": "ours holds 20 under sta"
+     ]
     },
     "AR": {
      "guide": 15,
@@ -5066,6 +5942,12 @@
      ],
      "suspect": "guide threads disagree ['5', 'None']"
     },
+    "agi": {
+     "guide": 0,
+     "read": [
+      25
+     ]
+    },
     "cha": {
      "guide": 20,
      "read": [
@@ -5073,12 +5955,30 @@
      ],
      "suspect": "guide threads disagree ['15', '20']"
     },
+    "dex": {
+     "guide": 0,
+     "read": [
+      20
+     ]
+    },
     "intelligence": {
      "guide": 30,
      "read": [
       5
      ],
      "suspect": "guide threads disagree ['30', 'None']"
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      20
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      15
+     ]
     },
     "wis": {
      "guide": 15,
@@ -5090,6 +5990,7 @@
    },
    "guide_name": "robe of awe",
    "name": "Robe of Awe",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -5132,8 +6033,7 @@
      "guide": 10,
      "read": [
       0
-     ],
-     "suspect": "ours holds 10 under agi"
+     ]
     },
     "FR": {
      "guide": 5,
@@ -5145,8 +6045,13 @@
      "guide": 10,
      "read": [
       0
-     ],
-     "suspect": "ours holds 10 under agi"
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      10
+     ]
     },
     "dex": {
      "guide": 15,
@@ -5159,10 +6064,23 @@
      "read": [
       5
      ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      15
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      15
+     ]
     }
    },
    "guide_name": "robe of evocation",
    "name": "Robe of Evocation",
+   "scrambled": true,
    "threads": [
     "t291"
    ]
@@ -5247,6 +6165,18 @@
       0
      ]
     },
+    "HPMAX": {
+     "guide": 0,
+     "read": [
+      25
+     ]
+    },
+    "HoT": {
+     "guide": 0,
+     "read": [
+      5
+     ]
+    },
     "LR": {
      "guide": 5,
      "read": [
@@ -5257,8 +6187,13 @@
      "guide": 25,
      "read": [
       5
-     ],
-     "suspect": "5.00x ours"
+     ]
+    },
+    "PoT": {
+     "guide": 0,
+     "read": [
+      5
+     ]
     },
     "str": {
      "guide": 2,
@@ -5269,6 +6204,7 @@
    },
    "guide_name": "robe of leaves",
    "name": "Robe of Leaves",
+   "scrambled": true,
    "threads": [
     "t292"
    ]
@@ -5369,29 +6305,49 @@
      "guide": 20,
      "read": [
       0
-     ],
-     "suspect": "ours holds 20 under dex"
+     ]
     },
     "CR": {
      "guide": 10,
      "read": [
       0
-     ],
-     "suspect": "ours holds 10 under intelligence"
+     ]
     },
     "HPMAX": {
      "guide": 35,
      "read": [
       0
-     ],
-     "suspect": "ours holds 35 under agi"
+     ]
     },
     "LR": {
      "guide": 10,
      "read": [
       0
-     ],
-     "suspect": "ours holds 10 under intelligence"
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      35
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      20
+     ]
+    },
+    "intelligence": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      18
+     ]
     },
     "wis": {
      "guide": 18,
@@ -5402,6 +6358,7 @@
    },
    "guide_name": "robe of the barrens",
    "name": "Robe of the Barrens",
+   "scrambled": true,
    "threads": [
     "t292"
    ]
@@ -5603,8 +6560,7 @@
      "guide": 16,
      "read": [
       0
-     ],
-     "suspect": "ours holds 16 under agi"
+     ]
     },
     "PoT": {
      "guide": 15,
@@ -5612,16 +6568,34 @@
       0
      ]
     },
+    "agi": {
+     "guide": 0,
+     "read": [
+      16
+     ]
+    },
     "intelligence": {
      "guide": 15,
      "read": [
       0
-     ],
-     "suspect": "ours holds 15 under str"
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      15
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      15
+     ]
     }
    },
    "guide_name": "Robe of Thormanil",
    "name": "Robe of Thormanil",
+   "scrambled": true,
    "threads": [
     "t292"
    ]
@@ -5644,12 +6618,24 @@
      "guide": 24,
      "read": [
       0
-     ],
-     "suspect": "ours holds 24 under sta"
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      24
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      16
+     ]
     }
    },
    "guide_name": "rotting hide robe",
    "name": "Rotting Hide Robe",
+   "scrambled": true,
    "threads": [
     "t292"
    ]
@@ -5790,22 +6776,19 @@
      "guide": 36,
      "read": [
       0
-     ],
-     "suspect": "ours holds 36 under intelligence"
+     ]
     },
     "AR": {
      "guide": 13,
      "read": [
       0
-     ],
-     "suspect": "ours holds 13 under agi"
+     ]
     },
     "HPMAX": {
      "guide": 13,
      "read": [
       0
-     ],
-     "suspect": "ours holds 13 under agi"
+     ]
     },
     "LR": {
      "guide": 3,
@@ -5817,13 +6800,42 @@
      "guide": 45,
      "read": [
       0
-     ],
-     "suspect": "ours holds 45 under dex"
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      13
+     ]
+    },
+    "cha": {
+     "guide": 0,
+     "read": [
+      3
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      45
+     ]
+    },
+    "intelligence": {
+     "guide": 0,
+     "read": [
+      36
+     ]
     },
     "sta": {
      "guide": 3,
      "read": [
       15
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      3
      ]
     },
     "wis": {
@@ -5835,6 +6847,7 @@
    },
    "guide_name": "seafarer's robe",
    "name": "Seafarer's Robe",
+   "scrambled": true,
    "threads": [
     "t292"
    ]
@@ -5970,8 +6983,7 @@
      "guide": 35,
      "read": [
       0
-     ],
-     "suspect": "ours holds 35 under dex"
+     ]
     },
     "AR": {
      "guide": 5,
@@ -5983,32 +6995,60 @@
      "guide": 20,
      "read": [
       0
-     ],
-     "suspect": "ours holds 20 under sta"
+     ]
     },
     "HPMAX": {
      "guide": 20,
      "read": [
       0
-     ],
-     "suspect": "ours holds 20 under sta"
+     ]
     },
     "POWMAX": {
      "guide": 40,
      "read": [
       0
-     ],
-     "suspect": "ours holds 40 under agi"
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      40
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      35
+     ]
     },
     "intelligence": {
      "guide": 10,
      "read": [
       5
      ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      20
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
+    "wis": {
+     "guide": 0,
+     "read": [
+      20
+     ]
     }
    },
    "guide_name": "shroud of elemental flame",
    "name": "Shroud of Elemental Flame",
+   "scrambled": true,
    "threads": [
     "t292"
    ]
@@ -6185,39 +7225,66 @@
      "guide": 25,
      "read": [
       0
-     ],
-     "suspect": "ours holds 25 under sta"
+     ]
     },
     "AR": {
      "guide": 5,
      "read": [
       0
-     ],
-     "suspect": "ours holds 5 under agi"
+     ]
     },
     "DR": {
      "guide": 8,
      "read": [
       0
-     ],
-     "suspect": "ours holds 8 under intelligence"
+     ]
     },
     "FR": {
      "guide": 10,
      "read": [
       0
-     ],
-     "suspect": "ours holds 10 under dex"
+     ]
     },
     "PoT": {
      "guide": 15,
      "read": [
       0
      ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      5
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
+    "intelligence": {
+     "guide": 0,
+     "read": [
+      8
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      25
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      15
+     ]
     }
    },
    "guide_name": "shrouds of ash",
    "name": "Shrouds of Ash",
+   "scrambled": true,
    "threads": [
     "t292"
    ]
@@ -6234,8 +7301,7 @@
      "guide": 10,
      "read": [
       0
-     ],
-     "suspect": "ours holds 10 under sta"
+     ]
     },
     "HPMAX": {
      "guide": 35,
@@ -6247,32 +7313,60 @@
      "guide": 12,
      "read": [
       0
-     ],
-     "suspect": "ours holds 12 under cha"
+     ]
     },
     "POWMAX": {
      "guide": 75,
      "read": [
       0
-     ],
-     "suspect": "ours holds 75 under dex"
+     ]
     },
     "agi": {
      "guide": 5,
      "read": [
       35
-     ],
-     "suspect": "0.14x ours"
+     ]
+    },
+    "cha": {
+     "guide": 0,
+     "read": [
+      12
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      75
+     ]
     },
     "intelligence": {
      "guide": 10,
      "read": [
       20
      ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      5
+     ]
+    },
+    "wis": {
+     "guide": 0,
+     "read": [
+      10
+     ]
     }
    },
    "guide_name": "shrouds of the storm",
    "name": "Shrouds of the Storm",
+   "scrambled": true,
    "threads": [
     "t292"
    ]
@@ -6457,19 +7551,36 @@
      "guide": 30,
      "read": [
       0
-     ],
-     "suspect": "ours holds 30 under str"
+     ]
     },
     "POWMAX": {
      "guide": 50,
      "read": [
       0
-     ],
-     "suspect": "ours holds 50 under sta"
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      34
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      50
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      30
+     ]
     }
    },
    "guide_name": "Snowpad Boots",
    "name": "Snowpad Boots",
+   "scrambled": true,
    "threads": [
     "t617"
    ]
@@ -6511,26 +7622,42 @@
      "guide": 88,
      "read": [
       0
-     ],
-     "suspect": "ours holds 88 under agi"
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      88
+     ]
     },
     "cha": {
      "guide": 16,
      "read": [
       0
-     ],
-     "suspect": "ours holds 16 under sta"
+     ]
     },
     "intelligence": {
      "guide": 20,
      "read": [
       0
-     ],
-     "suspect": "ours holds 20 under str"
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      16
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      20
+     ]
     }
    },
    "guide_name": "soul drinker",
    "name": "Soul Drinker",
+   "scrambled": true,
    "threads": [
     "t292"
    ]
@@ -6618,22 +7745,19 @@
      "guide": 25,
      "read": [
       0
-     ],
-     "suspect": "ours holds 25 under wis"
+     ]
     },
     "AR": {
      "guide": 12,
      "read": [
       0
-     ],
-     "suspect": "ours holds 12 under cha"
+     ]
     },
     "HPMAX": {
      "guide": 30,
      "read": [
       0
-     ],
-     "suspect": "ours holds 30 under agi"
+     ]
     },
     "POWMAX": {
      "guide": 70,
@@ -6647,22 +7771,52 @@
       0
      ]
     },
+    "agi": {
+     "guide": 0,
+     "read": [
+      30
+     ]
+    },
+    "cha": {
+     "guide": 0,
+     "read": [
+      12
+     ]
+    },
     "dex": {
      "guide": 10,
      "read": [
       70
-     ],
-     "suspect": "0.14x ours"
+     ]
     },
     "intelligence": {
      "guide": 5,
      "read": [
       6
      ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      5
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
+    "wis": {
+     "guide": 0,
+     "read": [
+      25
+     ]
     }
    },
    "guide_name": "starfyre weave robe",
    "name": "Starfyre Weave Robe",
+   "scrambled": true,
    "threads": [
     "t292"
    ]
@@ -6691,15 +7845,13 @@
      "guide": 25,
      "read": [
       0
-     ],
-     "suspect": "ours holds 25 under wis"
+     ]
     },
     "AR": {
      "guide": 12,
      "read": [
       0
-     ],
-     "suspect": "ours holds 12 under cha"
+     ]
     },
     "FR": {
      "guide": 10,
@@ -6711,15 +7863,13 @@
      "guide": 50,
      "read": [
       10
-     ],
-     "suspect": "5.00x ours"
+     ]
     },
     "POWMAX": {
      "guide": 20,
      "read": [
       0
-     ],
-     "suspect": "ours holds 20 under dex"
+     ]
     },
     "PoT": {
      "guide": 6,
@@ -6734,15 +7884,46 @@
      ],
      "suspect": "a digit added/dropped (ten times or a tenth of ours)"
     },
+    "cha": {
+     "guide": 0,
+     "read": [
+      12
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      20
+     ]
+    },
     "intelligence": {
      "guide": 8,
      "read": [
       6
      ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      8
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      5
+     ]
+    },
+    "wis": {
+     "guide": 0,
+     "read": [
+      25
+     ]
     }
    },
    "guide_name": "stoneshadow robe",
    "name": "Stoneshadow Robe",
+   "scrambled": true,
    "threads": [
     "t292"
    ]
@@ -6753,19 +7934,30 @@
      "guide": 20,
      "read": [
       0
-     ],
-     "suspect": "ours holds 20 under str"
+     ]
     },
     "intelligence": {
      "guide": 20,
      "read": [
       0
-     ],
-     "suspect": "ours holds 20 under str"
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      20
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      20
+     ]
     }
    },
    "guide_name": "stunning robe",
    "name": "Stunning Robe",
+   "scrambled": true,
    "threads": [
     "t292"
    ]
@@ -7008,8 +8200,7 @@
      "guide": 11,
      "read": [
       0
-     ],
-     "suspect": "ours holds 11 under wis"
+     ]
     },
     "HPMAX": {
      "guide": 30,
@@ -7021,8 +8212,7 @@
      "guide": 11,
      "read": [
       0
-     ],
-     "suspect": "ours holds 11 under wis"
+     ]
     },
     "POWMAX": {
      "guide": 30,
@@ -7030,23 +8220,46 @@
       0
      ]
     },
+    "cha": {
+     "guide": 0,
+     "read": [
+      11
+     ]
+    },
     "dex": {
      "guide": 8,
      "read": [
       30
-     ],
-     "suspect": "0.27x ours"
+     ]
     },
     "intelligence": {
      "guide": 8,
      "read": [
       30
-     ],
-     "suspect": "0.27x ours"
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      8
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      8
+     ]
+    },
+    "wis": {
+     "guide": 0,
+     "read": [
+      11
+     ]
     }
    },
    "guide_name": "tempestmage robe",
    "name": "Tempestmage Robe",
+   "scrambled": true,
    "threads": [
     "t292"
    ]
@@ -7230,8 +8443,7 @@
      "guide": 45,
      "read": [
       0
-     ],
-     "suspect": "ours holds 45 under intelligence"
+     ]
     },
     "AR": {
      "guide": 19,
@@ -7249,26 +8461,54 @@
      "guide": 16,
      "read": [
       0
-     ],
-     "suspect": "ours holds 16 under agi"
+     ]
     },
     "POWMAX": {
      "guide": 59,
      "read": [
       0
-     ],
-     "suspect": "ours holds 59 under dex"
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      16
+     ]
+    },
+    "cha": {
+     "guide": 0,
+     "read": [
+      4
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      59
+     ]
+    },
+    "intelligence": {
+     "guide": 0,
+     "read": [
+      45
+     ]
     },
     "sta": {
      "guide": 4,
      "read": [
       19
-     ],
-     "suspect": "0.21x ours"
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      4
+     ]
     }
    },
    "guide_name": "torrent robe",
    "name": "Torrent Robe",
+   "scrambled": true,
    "threads": [
     "t292"
    ]
@@ -7384,32 +8624,48 @@
      "guide": 25,
      "read": [
       0
-     ],
-     "suspect": "ours holds 25 under wis"
+     ]
     },
     "HPMAX": {
      "guide": 15,
      "read": [
       0
-     ],
-     "suspect": "ours holds 15 under intelligence"
+     ]
     },
     "POWMAX": {
      "guide": 15,
      "read": [
       0
-     ],
-     "suspect": "ours holds 15 under intelligence"
+     ]
     },
     "dex": {
      "guide": 5,
      "read": [
       15
      ]
+    },
+    "intelligence": {
+     "guide": 0,
+     "read": [
+      15
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      5
+     ]
+    },
+    "wis": {
+     "guide": 0,
+     "read": [
+      25
+     ]
     }
    },
    "guide_name": "truefist robe",
    "name": "Truefist Robe",
+   "scrambled": true,
    "threads": [
     "t292"
    ]
@@ -7704,26 +8960,42 @@
      "guide": 30,
      "read": [
       0
-     ],
-     "suspect": "ours holds 30 under sta"
+     ]
     },
     "LR": {
      "guide": 30,
      "read": [
       0
-     ],
-     "suspect": "ours holds 30 under sta"
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      30
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      30
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      15
+     ]
     },
     "wis": {
      "guide": 15,
      "read": [
       0
-     ],
-     "suspect": "ours holds 15 under str"
+     ]
     }
    },
    "guide_name": "War Lore Earring",
    "name": "War Lore Earring",
+   "scrambled": true,
    "threads": [
     "t617"
    ]
@@ -7750,19 +9022,36 @@
      "guide": 25,
      "read": [
       0
-     ],
-     "suspect": "ours holds 25 under sta"
+     ]
     },
     "POWMAX": {
      "guide": 25,
      "read": [
       0
-     ],
-     "suspect": "ours holds 25 under sta"
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      25
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      25
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      10
+     ]
     }
    },
    "guide_name": "Warding bracer",
    "name": "Warding Bracer",
+   "scrambled": true,
    "threads": [
     "t617"
    ]
@@ -7773,33 +9062,54 @@
      "guide": 15,
      "read": [
       0
-     ],
-     "suspect": "ours holds 15 under agi"
+     ]
     },
     "AR": {
      "guide": 25,
      "read": [
       0
-     ],
-     "suspect": "ours holds 25 under dex"
+     ]
+    },
+    "agi": {
+     "guide": 0,
+     "read": [
+      15
+     ]
     },
     "cha": {
      "guide": 10,
      "read": [
       0
-     ],
-     "suspect": "ours holds 10 under str"
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      25
+     ]
     },
     "intelligence": {
      "guide": 10,
      "read": [
       0
-     ],
-     "suspect": "ours holds 10 under str"
+     ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      10
+     ]
     }
    },
    "guide_name": "warding robe",
    "name": "Warding Robe",
+   "scrambled": true,
    "threads": [
     "t292"
    ]
@@ -7929,8 +9239,7 @@
      "guide": 18,
      "read": [
       0
-     ],
-     "suspect": "ours holds 18 under dex"
+     ]
     },
     "FR": {
      "guide": 15,
@@ -7942,11 +9251,16 @@
      "guide": 18,
      "read": [
       0
-     ],
-     "suspect": "ours holds 18 under dex"
+     ]
     },
     "agi": {
      "guide": 22,
+     "read": [
+      18
+     ]
+    },
+    "dex": {
+     "guide": 0,
      "read": [
       18
      ]
@@ -7956,10 +9270,23 @@
      "read": [
       15
      ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      22
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      22
+     ]
     }
    },
    "guide_name": "whale hide robe",
    "name": "Whale Hide Robe",
+   "scrambled": true,
    "threads": [
     "t292"
    ]
@@ -8004,23 +9331,34 @@
   },
   {
    "fields": {
+    "agi": {
+     "guide": 0,
+     "read": [
+      15
+     ]
+    },
     "dex": {
      "guide": 10,
      "read": [
       0
-     ],
-     "suspect": "ours holds 10 under str"
+     ]
     },
     "intelligence": {
      "guide": 15,
      "read": [
       0
-     ],
-     "suspect": "ours holds 15 under agi"
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      10
+     ]
     }
    },
    "guide_name": "winestone robe",
    "name": "Winestone Robe",
+   "scrambled": true,
    "threads": [
     "t292"
    ]
@@ -8114,12 +9452,24 @@
      "guide": 10,
      "read": [
       0
-     ],
-     "suspect": "ours holds 10 under dex"
+     ]
+    },
+    "dex": {
+     "guide": 0,
+     "read": [
+      10
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      15
+     ]
     }
    },
    "guide_name": "Wraps of might",
    "name": "Wraps of Might",
+   "scrambled": true,
    "threads": [
     "t617"
    ]
@@ -8142,18 +9492,30 @@
      "guide": 14,
      "read": [
       80
-     ],
-     "suspect": "0.17x ours"
+     ]
     },
     "dex": {
      "guide": 25,
      "read": [
       35
      ]
+    },
+    "sta": {
+     "guide": 0,
+     "read": [
+      25
+     ]
+    },
+    "str": {
+     "guide": 0,
+     "read": [
+      14
+     ]
     }
    },
    "guide_name": "wyrm hide robe",
    "name": "Wyrm Hide Robe",
+   "scrambled": true,
    "threads": [
     "t292"
    ]

@@ -6,7 +6,11 @@ Each of the section's threads was read and every item with figures taken out of 
 HP, power, the seven stats, the six resists, HoT/PoT, DMG, range, condition and DUR). Our records were matched to
 them by name on both shards; where an EXISTING record's figure differs from the guide's, the guide's is the one
 written here (armory_items_20261121_plan.json, by our records' names). Only the figures the guide states are
-touched: a figure the guide leaves out is left as it is, never zeroed. No record is made, no class or race mask is
+touched: a figure the guide leaves out is left as it is, never zeroed, save on a SCRAMBLED record (the plan's
+"scrambled": 67 names, ids 2097-2112, 4091-4140, 4257-4308, 4527-4536 and a few more, mostly robes): its figures
+were written into str, sta, agi, dex, ... in the order the source listed them, whatever they were (Omnipotent Robes'
+INT 20 POW 20 POT 15 AC 20 stood as STR 20 STA 20 AGI 15 DEX 20), so there the guide's full stat line is written and
+the misplaced columns it does not list are set to 0. No record is made, no class or race mask is
 touched (the guides word them loosely: "tank/melee (no mnk)"), and no loot or drop table is touched (the owner
 decides drops).
 

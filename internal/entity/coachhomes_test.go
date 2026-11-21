@@ -64,8 +64,9 @@ func TestTheHomesStablesAreANetworkOfTheirOwn(t *testing.T) {
 		t.Error("Tunaria's Gerntar Mines is a home's stable")
 	}
 	names := CoachTownNames()
-	if len(names) != len(before)+3 {
-		t.Errorf("%d coach towns with the homes, %d without: want three more", len(names), len(before))
+	// three homes, and world 10's own stables (Blackvein Deep: coachstables.go), there while it is composed
+	if len(names) != len(before)+3+len(serverStableNames()) {
+		t.Errorf("%d coach towns with the homes, %d without: want three more and world 10's own stables", len(names), len(before))
 	}
 	seen := map[string]bool{}
 	for _, n := range names {

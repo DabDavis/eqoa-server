@@ -74,6 +74,9 @@ func SetCoachHomes(homes []CoachHome) {
 	for _, t := range gameCoachTowns() {
 		game[t] = true
 	}
+	for _, s := range serverStables { // a stable of a server's world keeps its name (coachstables.go)
+		game[s.town] = true
+	}
 	taken := map[string]bool{}
 	for _, h := range homes {
 		if h.Zone == "" {

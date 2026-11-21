@@ -24,7 +24,9 @@ existing   charfactions of the dwarf shadow knights and necromancers there are, 
            of those factions moved by the start's change (its earned part kept), within -2000..2000. A faction it holds
            no row for reads the new start by itself.
 people     npcs: the deep's elder, the two guildmasters, an outfitter and a grocer (Moradhim's wares), a spiritmaster,
-           the Spell Archivist (where the database has one), the tunnelwarden, a sentry; its creatures for levels 1-14
+           the Spell Archivist (where the database has one), the tunnelwarden, a coachman (Blackvein Deep's stable,
+           whose coach runs to Moradhim and Moradhim's back, for a client that holds world 10: entity/coachstables.go;
+           of no faction, so the coach-faction gate never refuses him), a sentry; its creatures for levels 1-14
            (grubs and spiders that attack no one, Moradhim's trackers and the Brellsworn who attack on sight: npcaggro);
            at the camp a deepwarden and a spiritmaster. Their words (npcdialog by name).
 quests     the deep's quests (104900-104912): the storyline "The Oathbreaker's Road" (The Broken Oath L1, Bound in the
@@ -75,6 +77,7 @@ TALKER, FOE, MERCHANT = 128, 0, 0x01
 DWARF, WARRIOR = 4, 0
 STATS = ms.STATS
 KOS_BELOW = ms.KOS_BELOW
+COACH_FACTION_MIN = -99  # entity.CoachFactionMin: a coachman of a faction serves no one below it
 KEYS = {"defaultcharacter": ("defaultCharacterID",), "factionstart": ("id",), "charfactions": ("serverid", "faction"),
         "npcs": ("id",), "npcitem": ("itemid",), "npcaggro": ("npc_name",), "npcdialog": ("id",),
         "quests": ("questid",), "queststeps": ("questid", "step"), "itempattern": ("patternid",)}
@@ -413,7 +416,9 @@ def npc_faction(rules, name, world, x, z):
 def check(db, data, before=None):
     """After the write: a new dwarf of each class starts in the deep, its disc row at the camp, and no NPC standing
     within 300 of the deep's start, the camp or Freeport's landing turns KOS to it (one it was KOS to before, a
-    creature hostile to every new character, is no change); before: the start rows as they were (factionstart)."""
+    creature hostile to every new character, is no change), nor is a coachman there of a faction it stands below
+    entity.CoachFactionMin with (he would not sign his ledger: Moradhim's Doba by the camp, Freeport's Ronks); before:
+    the start rows as they were (factionstart)."""
     probs = []
     def starts(rowsrc):
         st = {}
@@ -445,6 +450,8 @@ def check(db, data, before=None):
                 was = ms.resolve(old.get(fac, []), base.get(fac, 0), combo)
                 if v < KOS_BELOW <= was:
                     probs.append(f"class {cls}: {name} ({fac}) by the {where} turns KOS to it ({was} -> {v})")
+                if name.startswith(("Coachman ", "Coachwoman ")) and v < COACH_FACTION_MIN:
+                    probs.append(f"class {cls}: {name} ({fac}) by the {where} will not sign his ledger for it ({v} < {COACH_FACTION_MIN})")
     return probs
 
 
@@ -599,7 +606,7 @@ def main(argv=None):
             for pr in probs:
                 print(f"CHECK: {pr}")
             print("check: every dwarf shadow knight and necromancer starts in the deep, its disc row at the camp, "
-                  "KOS to no one by the deep, the camp or Freeport's landing" if not probs else "")
+                  "KOS to no one by the deep, the camp or Freeport's landing, served by the coachmen there" if not probs else "")
             return 1 if probs else 0
         before = db.execute("SELECT race, class, humtype, faction, standing FROM factionstart").fetchall()
         with db:

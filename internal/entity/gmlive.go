@@ -41,6 +41,7 @@ func (w *World) UpsertNPC(rec *database.NPCRecord, class int) (created bool, err
 		if existing.Temporary {
 			return false, fmt.Errorf("entity id %d is a GM spawn's; despawn it first", fresh.ServerID)
 		}
+		w.charmGoesForRemakeLocked(existing)
 		oldX, oldZ := existing.X, existing.Z
 		*existing = *fresh
 		w.npcChangedLocked(existing) // npcsets.go
@@ -284,6 +285,7 @@ func (w *World) ReloadNPCs(store *database.NPCStore) (loaded, removed int, err e
 				continue // unchanged: left as it is, fight and all
 			}
 			fresh.HiddenUntil = hold
+			w.charmGoesForRemakeLocked(existing)
 			oldX, oldZ := existing.X, existing.Z
 			*existing = *fresh
 			w.npcChangedLocked(existing) // npcsets.go
@@ -308,12 +310,45 @@ func (w *World) ReloadNPCs(store *database.NPCStore) (loaded, removed int, err e
 	return loaded, removed, nil
 }
 
+// ownNPCType is the NPC's flags as its row gives them: a charmed creature's
+// own, not the charm's (charmNPCType).
+func (n *NPC) ownNPCType() int {
+	if n.Charm != nil {
+		return n.Charm.npcType
+	}
+	return n.NPCType
+}
+
+// charmGoesForRemakeLocked lets a charmed creature go before a GM's reload
+// remakes it from its row. A charmed pet's charm flags differed from its row,
+// so every reload remade it: its charm and owner wiped under its master's pet
+// state, which then treated the wild creature as a summoned pet (pulled to
+// its merc's side, killed when the merc charmed it again, and that charm
+// taken on the corpse: Heirloom petition 2555, Matonxxsk: "charmed a raging
+// rhino on merc enc , RR broke free n was killed now RR runs back to where
+// died and stands there"). Now an unchanged row leaves it charmed
+// (npcSameRecord by its own flags), and a changed one lets it go first. Must
+// be called with the lock held.
+func (w *World) charmGoesForRemakeLocked(npc *NPC) {
+	if npc.Charm == nil {
+		return
+	}
+	ps := w.petStateOfNPCLocked(npc)
+	switch {
+	case ps == nil:
+	case ps.merc != nil:
+		w.mercCharmReleaseLocked(ps.merc, false)
+	default:
+		w.releaseCharmLocked(ps, w.findSessionByEntityIDLocked(ps.owner.ServerID), "", false)
+	}
+}
+
 // npcSameRecord is whether two NPCs were made from the same row as it was:
 // every field NPCFromRecord sets from it.
 func npcSameRecord(a, b *NPC) bool {
 	return a.Name == b.Name && a.SpawnX == b.SpawnX && a.SpawnY == b.SpawnY && a.SpawnZ == b.SpawnZ &&
 		a.SpawnFacing == b.SpawnFacing && a.World == b.World && a.ModelID == b.ModelID && a.Size == b.Size &&
-		a.NPCID == b.NPCID && a.NPCType == b.NPCType &&
+		a.NPCID == b.NPCID && a.ownNPCType() == b.ownNPCType() &&
 		a.kit == b.kit && a.Torso == b.Torso && a.Tint == b.Tint &&
 		a.Forearm == b.Forearm && a.NPCGloves == b.NPCGloves && a.NPCLegs == b.NPCLegs && a.Feet == b.Feet &&
 		a.Head == b.Head && a.HairColor == b.HairColor && a.HairLength == b.HairLength &&

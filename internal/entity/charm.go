@@ -310,7 +310,12 @@ func (w *World) charmLandLocked(cs *castState, caster *Player, sess *session.Ses
 		w.stackCharmLandLocked(caster, sess, npc, &cs.spell, now) // beside the pet out (stackcharm.go)
 		return
 	}
-	if old := w.pets[caster.ServerID]; old != nil && w.sideStepLocked(old, caster, sess) {
+	if old := w.pets[caster.ServerID]; old != nil && old.npc == npc {
+		// its own pet, its charm gone from under it (a GM's NPC reload remade
+		// it from its row): taken again, not killed as a summoned pet goes and
+		// then charmed dead (Heirloom petition 2555)
+		delete(w.pets, caster.ServerID)
+	} else if old != nil && w.sideStepLocked(old, caster, sess) {
 		// a stacking charm's animal stays, beside the new one (stackcharm.go)
 	} else if old != nil {
 		// one pet at a time (petition 1351): the summoned pet that held the
@@ -327,6 +332,9 @@ func (w *World) charmLandLocked(cs *castState, caster *Player, sess *session.Ses
 			log.Printf("Charm: %s's %q takes the place of its %q", caster.Name, cs.spell.Name, old.npc.Name)
 		}
 		w.dismissPetLocked(old, tell, line, now)
+	}
+	if npc.Dead {
+		return // a charm never takes hold of a dead creature (petition 2555)
 	}
 	w.charmLocked(caster, sess, npc, &cs.spell, now)
 }

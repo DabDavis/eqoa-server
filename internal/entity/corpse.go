@@ -301,6 +301,13 @@ func (w *World) respawnNPCLocked(npc *NPC) {
 	npc.stopMoving()
 	npc.roam = roamState{}
 	npc.path = pathState{}
+	// and no chase: a creature killed in a fight kept its chase (its start,
+	// on), so once back it was sent "home" to where that fight began and
+	// stood there, and its next fight's leash and way home were that place's
+	// again (Heirloom petition 2555, Matonxxsk: "charmed a raging rhino on
+	// merc enc , RR broke free n was killed now RR runs back to where died
+	// and stands there")
+	npc.chase = chaseState{}
 	w.SpatialIndex.Update(npc.ServerID, oldX, oldZ, npc.SpawnX, npc.SpawnZ)
 	w.wakeNPCLocked(npc)        // a new life: its last fight put away, its calm counted (npcsets.go)
 	w.companionsBackLocked(npc) // the pets that went with it, back with it (companion.go)

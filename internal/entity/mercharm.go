@@ -180,8 +180,18 @@ func (w *World) mercCharmLandLocked(ms *mercState, s *CastSpell, id EntityID, no
 		log.Printf("Merc: %s's %q's %q resisted by %s (%d%%)", o.Name, m.Name, s.Name, t.Name, resist)
 		return
 	}
-	if ms.pet != nil {
+	if ms.pet != nil && ms.pet.npc == t {
+		// its own pet, its charm gone from under it (a GM's NPC reload remade
+		// it from its row): taken again, not killed as a summoned pet goes and
+		// then charmed dead (Heirloom petition 2555, Matonxxsk: "charmed a
+		// raging rhino on merc enc , RR broke free n was killed now RR runs
+		// back to where died and stands there")
+		ms.pet = nil
+	} else if ms.pet != nil {
 		w.mercPetGoesLocked(ms, now) // its summoned pet goes as the charm takes hold
+	}
+	if t.Dead {
+		return // a charm never takes hold of a dead creature (petition 2555)
 	}
 	hold := &charmHold{npcType: t.NPCType, faction: t.Faction, world: t.World, spell: s.Name}
 	if d := charmDuration(s, ms.body.StatNow(StatCha)); d > 0 {

@@ -80,6 +80,19 @@ const RezWindow = 30 * time.Minute
 // (ours), and what the caster is told when a rez lands on nothing.
 const castNoRez = "%s has no experience to recover."
 
+// castNoRezLate is castNoRez's line when the latest death left debt a rez could
+// have given back but its chance's RezWindow has run out (Live petition 5414: a
+// rez 45 minutes after the death read as "no experience to recover").
+const castNoRezLate = "%s died too long ago: a resurrection gives back experience only within 30 minutes of a death."
+
+// noRezLine is the line for a rez at t that finds nothing to recover now.
+func noRezLine(t *Player, now time.Time) string {
+	if t.Rez.Debt > 0 && t.Debt > 0 && !t.Rez.Until.IsZero() && !t.Rez.live(now) {
+		return fmt.Sprintf(castNoRezLate, t.Name)
+	}
+	return fmt.Sprintf(castNoRez, t.Name)
+}
+
 // castNoRezFallen is the refusal of a rez at a fallen Hardcore character
 // (hardcore.go; ours).
 const castNoRezFallen = "%s was a Hardcore character and has fallen for good: no resurrection can bring them back."
@@ -243,7 +256,7 @@ func (w *World) rezStartLocked(p *Player, spell *CastSpell, targets []EntityID, 
 		len(w.rezGroupNearLocked(p, pct, a.radiusFor(false), now)) > 0 {
 		return "", false
 	}
-	name := ""
+	name, line := "", ""
 	for _, id := range targets {
 		if t := w.Players[id]; t != nil {
 			if t.Fallen { // a fallen Hardcore character (hardcore.go)
@@ -253,11 +266,14 @@ func (w *World) rezStartLocked(p *Player, spell *CastSpell, targets []EntityID, 
 				return "", false
 			}
 			if name == "" {
-				name = t.Name
+				name, line = t.Name, noRezLine(t, now)
 			}
 		} else if npc := w.NPCs[id]; npc != nil && name == "" {
 			name = strings.TrimSpace(npc.Name)
 		}
+	}
+	if line != "" {
+		return line, true
 	}
 	if name == "" {
 		name = "Your target"
@@ -286,14 +302,15 @@ func (w *World) rezLandLocked(cs *castState, caster *Player, casterSess *session
 	}
 	if n <= 0 {
 		returned := t.Rez.returns(now)
+		line := noRezLine(t, now)
+		log.Printf("Rez: %s's %q lands on %s with nothing to recover (chance %d, live %v; %d owed)",
+			caster.Name, cs.spell.Name, t.Name, t.Rez.Debt, t.Rez.live(now), t.Debt)
 		t.Rez = RezChance{}
 		if returned {
 			return
 		}
-		log.Printf("Rez: %s's %q lands on %s with nothing to recover (chance %d, live %v; %d owed)",
-			caster.Name, cs.spell.Name, t.Name, t.Rez.Debt, t.Rez.live(now), t.Debt)
 		if casterSess != nil {
-			w.sendColoredLocked(casterSess, fmt.Sprintf(castNoRez, t.Name), castRefusalRGB)
+			w.sendColoredLocked(casterSess, line, castRefusalRGB)
 		}
 		return
 	}

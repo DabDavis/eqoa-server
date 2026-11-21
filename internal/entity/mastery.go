@@ -70,12 +70,13 @@ func SetMasteryCap(n int) {
 }
 
 // CMPointXP is the experience the character's nth mastery point takes (n
-// counts every point it has earned: spent, unspent and this one): 125,000
-// for the first, each 0.6% more than the one before (jibrish's ruling of
-// 2026-11-20, work board #1816; the 1,500 together 164,314,080,877). Until
-// then 1.0061 a point, eqoa.fandom.com's "CM Point XP Required" table.
+// counts every point it has earned: spent, unspent and this one): the live
+// game's table, eqoa.fandom.com's "CM Point XP Required" (125,000 for the
+// first, 13,426,215 for the 770th), which is exactly round(125000 *
+// 1.0061^(n-1)) at all 151 points it lists (kept by the owner, 2026-11-21,
+// over work board #1816's 1.006: the players' formula guide's table too).
 func CMPointXP(n int) int {
-	return int(math.Round(125000 * math.Pow(1.006, float64(max(n, 1)-1))))
+	return int(math.Round(125000 * math.Pow(1.0061, float64(max(n, 1)-1))))
 }
 
 // MasteryCapAt is the most mastery points a character of a level holds,

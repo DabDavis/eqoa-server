@@ -102,35 +102,27 @@ func TestStatsPastTheCapCountForNothing(t *testing.T) {
 	}
 }
 
-// A point costs 0.6% more than the one before (jibrish's ruling of
-// 2026-11-20, work board #1816): the nth of the character's points
-// round(125000 * 1.006^(n-1)). The control: the old curve (1.0061, the
-// fandom table) misses every point past the first.
+// A point costs what the live game's table says (eqoa.fandom.com's "CM
+// Point XP Required"), the nth of the character's points: sixteen of its 151
+// listed values, all of which round(125000 * 1.0061^(n-1)) gives. The
+// control: a curve a hair flatter misses the table.
 func TestAMasteryPointCostsTheLiveTables(t *testing.T) {
 	table := map[int]int{
-		1: 125000, 10: 131914, 100: 226001, 200: 411063, 300: 747664, 400: 1359892,
-		500: 2473446, 600: 4498839, 700: 8182736, 770: 12438190, 800: 14883210,
-		900: 27070400, 1000: 49237132, 1200: 162887927, 1400: 538871283, 1500: 980128713,
-		2000: 19510727895,
+		1: 125000, 10: 132032, 100: 228236, 200: 419275, 300: 770218, 400: 1414909,
+		500: 2599222, 600: 4774834, 700: 8771486, 770: 13426215, 800: 16113432,
+		900: 29600767, 1000: 54377328, 1200: 183504899, 1400: 619266325, 1500: 1137607284,
 	}
 	missed := 0
 	for n, want := range table {
 		if got := CMPointXP(n); got != want {
-			t.Errorf("point %d: %d, want %d", n, got, want)
+			t.Errorf("point %d: %d, want the table's %d", n, got, want)
 		}
-		if int(math.Round(125000*math.Pow(1.0061, float64(n-1)))) != want {
+		if int(math.Round(125000*math.Pow(1.006, float64(n-1)))) != want {
 			missed++
 		}
 	}
-	if missed != len(table)-1 {
-		t.Fatalf("the control: 1.0061 matched %d of the table's points", len(table)-missed)
-	}
-	total := 0
-	for n := 1; n <= 1500; n++ {
-		total += CMPointXP(n)
-	}
-	if total != 164314080877 {
-		t.Errorf("the 1,500 together: %d, want 164,314,080,877", total)
+	if missed < len(table)-1 {
+		t.Fatalf("the control: 1.006 matched %d of the table's points", len(table)-missed)
 	}
 }
 

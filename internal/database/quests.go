@@ -733,9 +733,11 @@ type QuestStep struct {
 	Kind   string
 	Target string // talk/give: the NPC's name; kill, loot: the creature's
 	NPCID  int    // talk/give/kill/loot: only that spawn (npcs.id) of Target, 0 any of the name
-	// Also is the other creatures a kill or loot step counts, at any of their
-	// spawns (the queststeptargets table): a talk, show, give or reach step's
-	// are kept and counted for nothing
+	// Also is the other names a step takes, at any of their spawns (the
+	// queststeptargets table): the other creatures a kill or loot step counts,
+	// and the other NPCs a talk, show or give step is done at (the guide's "buy a
+	// red diamond from either Grithmil Darkstone in Moradhim or Tsekar in the
+	// Green Rift"); a reach step's are kept and counted for nothing
 	Also []string
 	// Items are what a show or give step wants held, and a loot step's item
 	// (its first; Count of it, else the item's own count, is to be taken off
@@ -1177,8 +1179,8 @@ type QuestUnlock struct {
 }
 
 // Targets is the names a step's NPC or creatures go by: its Target, then for
-// a kill or loot step each of Also not already said (trimmed, any case: as
-// names are matched), each trimmed.
+// a kill, loot, talk, show or give step each of Also not already said
+// (trimmed, any case: as names are matched), each trimmed.
 func (s *QuestStep) Targets() []string {
 	var out []string
 	seen := map[string]bool{}
@@ -1192,7 +1194,7 @@ func (s *QuestStep) Targets() []string {
 		out = append(out, n)
 	}
 	add(s.Target)
-	if Hunts(s.Kind) {
+	if Hunts(s.Kind) || AtNPC(s.Kind) {
 		for _, n := range s.Also {
 			add(n)
 		}

@@ -1050,10 +1050,10 @@ func (q *QuestEngine) offerAtLocked(look *factionLook, p *entity.Player, c *ques
 	return qu
 }
 
-// stepNPC is whether a step names this NPC: a talk, show or give step by its
-// target, a kill or loot step by its target or one of its others (Also). A
-// step pinned to one spawn (NPCID) takes its target at that spawn only; its
-// others count at any of theirs.
+// stepNPC is whether a step names this NPC: by its target or one of its others
+// (Also), a kill or loot step's creatures and a talk, show or give step's NPCs
+// alike (either seller of a step's item). A step pinned to one spawn (NPCID)
+// takes its target at that spawn only; its others count at any of theirs.
 // stepKill reports a kill a kill or loot step takes: its creature by name
 // (stepNPC), or any creature that died within its area (AnyCreature).
 func stepKill(st *database.QuestStep, k entity.KillCredit) bool {
@@ -1065,7 +1065,7 @@ func stepNPC(st *database.QuestStep, name string, spawn entity.EntityID) bool {
 	if strings.EqualFold(strings.TrimSpace(st.Target), name) {
 		return st.NPCID == 0 || entity.EntityID(st.NPCID) == spawn
 	}
-	if !database.Hunts(st.Kind) {
+	if !database.Hunts(st.Kind) && !database.AtNPC(st.Kind) {
 		return false
 	}
 	for _, t := range st.Also {

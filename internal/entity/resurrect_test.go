@@ -399,7 +399,8 @@ func TestTheChanceIsKeptOverASaveAndLoad(t *testing.T) {
 	r3 := login()
 	drain(r3.sa)
 	began := r3.w.StartCast(r3.sa, revive(), rezB, r3.at(20*time.Minute+time.Second))
-	refusedNoRez(t, began, drain(r3.sa), "Bran has no experience to recover.", r3.a, 800, 0)
+	// its window run out with its debt still owed: the caster is told so (Live petition 5414)
+	refusedNoRez(t, began, drain(r3.sa), "Bran died too long ago: a resurrection gives back experience only within 30 minutes of a death.", r3.a, 800, 0)
 
 	spent, ok := r2.w.SavedRez(r2.b.ServerID, r2.at(20*time.Minute))
 	if !ok || spent != (database.RezRow{}) {

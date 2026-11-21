@@ -204,9 +204,9 @@ func TestStepChoices(t *testing.T) {
 // in the order written: Targets is its target and then each of them once
 // (a spelling of a name already said, any case or spaces, left out), and
 // TargetWords says them as one. A database made before the table gains it
-// (the old database above opens with it: hasColumn). The controls: a talk
-// step's rows are kept and named by neither, and a row for no step is left
-// out.
+// (the old database above opens with it: hasColumn). A talk step's rows are its
+// other NPCs (either may take the step). The controls: a reach step's rows are
+// kept and named by neither, and a row for no step is left out.
 func TestAStepsOtherCreatures(t *testing.T) {
 	db, err := NewSQLite(filepath.Join(t.TempDir(), "targets.db"))
 	if err != nil {
@@ -219,9 +219,9 @@ func TestAStepsOtherCreatures(t *testing.T) {
 	for _, q := range []string{
 		`INSERT INTO quests (questid, name, enabled, giver) VALUES (7, 'New Gear', 1, 'Sythonis')`,
 		`INSERT INTO queststeps (questid, step, kind, target) VALUES (7, 1, 'talk', 'Merchant Rokar'), (7, 2, 'loot', 'raven'),
-			(7, 3, 'kill', ' Crow ')`,
+			(7, 3, 'kill', ' Crow '), (7, 4, 'reach', '')`,
 		`INSERT INTO queststeptargets (questid, step, target) VALUES (7, 2, 'Magpie '), (7, 2, 'RAVEN'), (7, 2, 'crow'),
-			(7, 1, 'Merchant Kertal'), (7, 9, 'nobody')`,
+			(7, 1, 'Merchant Kertal'), (7, 4, 'Someone'), (7, 9, 'nobody')`,
 	} {
 		if _, err := db.Exec(q); err != nil {
 			t.Fatal(err)
@@ -245,8 +245,12 @@ func TestAStepsOtherCreatures(t *testing.T) {
 	if !reflect.DeepEqual(talk.Also, []string{"Merchant Kertal"}) {
 		t.Errorf("the talk step's row was not kept: %q", talk.Also)
 	}
-	if got := talk.Targets(); !reflect.DeepEqual(got, []string{"Merchant Rokar"}) {
-		t.Errorf("a talk step names %q, want its NPC alone", got)
+	if got := talk.Targets(); !reflect.DeepEqual(got, []string{"Merchant Rokar", "Merchant Kertal"}) {
+		t.Errorf("a talk step names %q, want its NPC and its other", got)
+	}
+	reach := q.Step(4)
+	if !reflect.DeepEqual(reach.Also, []string{"Someone"}) || len(reach.Targets()) != 0 {
+		t.Errorf("a reach step's row: kept %q, named %q", reach.Also, reach.Targets())
 	}
 	if !Hunts(StepKill) || !Hunts(StepLoot) || Hunts(StepTalk) || Hunts(StepReach) {
 		t.Errorf("Hunts: kill and loot only")

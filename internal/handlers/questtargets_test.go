@@ -138,23 +138,24 @@ func TestALootStepDropsOffEveryCreatureItNames(t *testing.T) {
 	f.want(f.msgs(), "drop:0", "add:Return to Malsis.")
 }
 
-// A talk step's rows in the table name no one: the step is done at its own
-// NPC only (the control: the row's NPC talked to does nothing of it).
-func TestATalkStepsOtherNamesCountForNothing(t *testing.T) {
+// A talk step's rows in the table are its other NPCs (the red diamond's two
+// sellers): the step is done at either. The control: an NPC neither names
+// does nothing of it.
+func TestATalkStepsOtherNamesAreItsNPCsToo(t *testing.T) {
 	f := newQuestFixture(t)
-	kellina := f.tw.add(2, &entity.NPC{ServerID: 702, Name: "Kellina", SpawnX: 25404, SpawnY: 54.1, SpawnZ: 15726})
 	f.otherCreatures(10010, 1, "Malsis")
 	if _, err := f.qe.SetCharacterQuest(f.sid, 10010, QuestGive, 0); err != nil {
 		t.Fatal(err)
 	}
 	f.msgs()
-	malsis := f.tw.add(1, &entity.NPC{ServerID: 701, Name: "Malsis", SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5})
-	f.tw.talk(malsis)
+	other := f.tw.add(2, &entity.NPC{ServerID: 703, Name: "Kellina's Cousin", SpawnX: 25404, SpawnY: 54.1, SpawnZ: 15726})
+	f.tw.talk(other)
 	f.not(f.msgs(), "drop:0")
 	if s, _ := f.progress(10010); s != 1 {
-		t.Fatalf("Malsis did the talk step to Kellina: it is %d", s)
+		t.Fatalf("an NPC the step does not name did the talk step: it is %d", s)
 	}
-	f.tw.talk(kellina)
+	malsis := f.tw.add(1, &entity.NPC{ServerID: 701, Name: "Malsis", SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5})
+	f.tw.talk(malsis)
 	f.want(f.msgs(), "drop:0", "add:Bring Kellina two cracked ant pincers.")
 }
 

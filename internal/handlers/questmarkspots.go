@@ -203,17 +203,20 @@ func (q *QuestEngine) stepSpotsLocked(spots map[string][]entity.NPCSpot, st *dat
 	kind := markStep
 	switch {
 	case database.AtNPC(st.Kind):
-		out = q.copiesLocked(serverID, []string{st.Target})
+		names := st.Targets() // the step's NPC, then its others (Also): either may be the one
+		out = q.copiesLocked(serverID, names)
 		if len(out) == 0 {
 			var standing, orig []entity.NPCSpot
-			for _, s := range spots[foldName(st.Target)] {
-				if st.NPCID != 0 && int(s.ID) != st.NPCID {
-					continue
-				}
-				if s.SpawnOnly {
-					orig = append(orig, s)
-				} else {
-					standing = append(standing, s)
+			for i, n := range names {
+				for _, s := range spots[foldName(n)] {
+					if i == 0 && st.NPCID != 0 && int(s.ID) != st.NPCID {
+						continue
+					}
+					if s.SpawnOnly {
+						orig = append(orig, s)
+					} else {
+						standing = append(standing, s)
+					}
 				}
 			}
 			out = standing

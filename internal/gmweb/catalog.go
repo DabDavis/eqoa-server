@@ -1042,7 +1042,9 @@ var catalog = map[string]tableNote{
 			"target box shows a player the player's standing with it (below -700 Aggressive, Dubious, Cautious above -350, " +
 			"Neutral from -150, Friendly above 150, Warm, Allied from 700), and it attacks on sight a player whose standing " +
 			"is -350 or below (the red faces), at any level, and no one else, whatever its body (entity/aggro.go); one with the NPC bit (0x80) " +
-			"never attacks, and a Creature aggro row for the name decides its aggro as before. world -1: every NPC of the " +
+			"never attacks, and a Creature aggro row for the name decides its aggro as before. A coachman or merchant of a " +
+			"faction refuses a player at -350 or below with it (no menu, no shop window; its own hostile npcdialog line, " +
+			"else the filmed words: handlers/factionrefusal.go). world -1: every NPC of the " +
 			"name; a world with radius 0: those in it; a radius: those that spawned within it of (x, z) in that world, " +
 			"the smallest place first (a city's namesakes told from the wild's). An empty faction: of none. Rows of " +
 			"source seed are tools/seed_npc_factions.py's: a town's people under its Citizens faction (its guards its " +

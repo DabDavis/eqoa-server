@@ -533,3 +533,42 @@ func kinWord(sex int) string {
 	}
 	return "brother"
 }
+
+// RefusalLine is what npc says as it refuses p (World.Refuses, board #742): a
+// line of npcdialog of its own name in mood hostile, picked as TownLine picks
+// (DialogCandidatesFor, each line's weight), its words filled in (%p the
+// player's name), with its name as it is shown; ok false when it has no
+// hostile line of its own. A town's hostile lines for its people are not a
+// refusal: they are not said here.
+func (w *World) RefusalLine(p *Player, npc *NPC, lines []database.NPCDialogLine) (speaker, line string, ok bool) {
+	if p == nil || npc == nil {
+		return "", "", false
+	}
+	w.mu.Lock() // the voice fills the towns' cache (townRacesLocked)
+	defer w.mu.Unlock()
+	town, role := DialogTown(w.npcFactionLocked(npc)), NPCRole(npc.Name)
+	var picks []DialogPick
+	total := 0
+	for _, c := range DialogCandidatesFor(lines, town, role, npc.Name, MoodHostile, w.dialogSexLocked(npc), p.Race, p.Class,
+		w.dialogVoiceLocked(npc, town)) {
+		if c.Line.Name == "" {
+			continue // its own lines alone (DialogMoodFits keeps those for a hostile listener)
+		}
+		picks = append(picks, c)
+		total += c.Weight
+	}
+	if total == 0 {
+		return "", "", false
+	}
+	n := rand.IntN(total)
+	chosen := picks[0].Line
+	for _, c := range picks {
+		if n < c.Weight {
+			chosen = c.Line
+			break
+		}
+		n -= c.Weight
+	}
+	speaker = strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(npc.Name), "$"))
+	return speaker, DialogSay(chosen.Line, p, speaker, town), true
+}

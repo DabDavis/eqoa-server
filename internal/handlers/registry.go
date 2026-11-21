@@ -420,6 +420,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		interactHandler.ledger = charStore
 		// what a town's people and the guards say (entity/dialog.go)
 		interactHandler.SetDialogLines(charStore.DB().NPCDialog)
+		npcWindowHandler.SetDialogLines(charStore.DB().NPCDialog) // a refusing merchant's own words (factionrefusal.go)
 		// what the signs and boards say (signs.go)
 		interactHandler.SetSignTexts(charStore.DB().SignTexts)
 		// who says which bosses are up (overseer.go)

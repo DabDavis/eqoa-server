@@ -218,7 +218,9 @@ var wayRoutes = map[string][]wayRoute{
 		{To: "Moggok's Gate", At: &wayPlace{World: 1, X: 9825.9, Y: 57.3, Z: 9785}},
 	},
 	"Door to Oggok Gate": {
-		{To: "Oggok Gate", At: &wayPlace{World: 0, X: 12571, Y: 60, Z: 29520.8}},
+		// where a player stood for it (petition 2606, 2026-11-21: "the spawn in
+		// point is in wrong spot"), by Tunaria's door as petition 2601 placed it
+		{To: "Oggok Gate", At: &wayPlace{World: 0, X: 12562, Y: 60, Z: 29554.4}},
 	},
 
 	// The Archons' towers in Geomancer's Citadel (ticket 1196: "each

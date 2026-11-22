@@ -663,6 +663,23 @@ func (w *World) cureLocked(cs *castState, t *Player) int {
 	return n
 }
 
+// cancelSpellLocked takes every effect of the spell named name (any case) off
+// t, as a cure takes one off (removeEffectLocked: the effects channel, its
+// mods, charbuffs), and reports how many; none on, nothing (board 875: Take a
+// Shield Break's "Cancel Sacred Shield"). Must be called with the lock held.
+func (w *World) cancelSpellLocked(cs *castState, t *Player, name string) int {
+	n := 0
+	for _, ae := range append([]*ActiveEffect(nil), t.Effects...) {
+		if ae.SpellID == cs.spell.SpellID || !strings.EqualFold(strings.TrimSpace(ae.Name), name) {
+			continue
+		}
+		log.Printf("Cast: %s's %q cancels %q on %s", w.entityNameLocked(cs.caster), cs.spell.Name, ae.Name, t.Name)
+		w.removeEffectLocked(t, ae.SpellID)
+		n++
+	}
+	return n
+}
+
 // harmfulEffect reports an effect that harms its bearer: a harmful spell's,
 // a damage tick, a hold or a slow, a stat taken.
 func harmfulEffect(ae *ActiveEffect) bool {

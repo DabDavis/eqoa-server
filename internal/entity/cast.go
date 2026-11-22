@@ -1708,6 +1708,8 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 			illusion = true
 		case EffectCure:
 			w.cureLocked(cs, t) // workbook.go
+		case EffectCancel:
+			w.cancelSpellLocked(cs, t, e.Spell) // workbook.go
 		case EffectSummonPlayer:
 			if t == caster {
 				w.heroCallLandLocked(cs, caster, casterSess) // callhero.go: the far group asked

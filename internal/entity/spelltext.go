@@ -91,6 +91,10 @@ const (
 	// EffectStatPin holds each of the bearer's seven stats (STR to CHA) at Amount while it lasts,
 	// whatever else adds to them ("Set All Stats to 1": hpcap.go)
 	EffectStatPin
+	// EffectCancel takes every active effect of the spell named Spell (any
+	// case) off the target at the landing, as a cure takes one off ("Cancel
+	// Sacred Shield": Take a Shield Break, board 875); its recast untouched
+	EffectCancel
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales
@@ -193,6 +197,8 @@ type SpellEffect struct {
 	// Undead Servant's lifetap, 80 and 160 on what its shadow knight has
 	// debuffed, petition 1805; the effects JSON's debuffed_pct); 0, as it is
 	DebuffedPct int
+	// Spell is the spell an EffectCancel takes off, by name (lower case)
+	Spell string
 	// HateOff is the percent of a hit's damage that makes no hate on the
 	// creature it lands on (the workbook JSON's hate_pct, 100 less it): 0, all
 	// of it is hate, as every hit's is; 100, none (a player's Merciless
@@ -807,6 +813,13 @@ func (d *SpellDef) parsePart(part, verb string) string {
 	}
 	if n, ok := trainingPart(part); ok { // training points, an item's use alone to give (potion.go)
 		d.Effects = append(d.Effects, SpellEffect{Kind: EffectTrainingPoints, Amount: n, AmountMax: n})
+		return verb
+	}
+	// a spell's effects ended ("Cancel Sacred Shield": board 875; the
+	// clause's words are ours, the live book says "Cancels the Sacred Shield
+	// and/or Divine Shield abilities")
+	if name, ok := strings.CutPrefix(part, "cancel "); ok && strings.TrimSpace(name) != "" {
+		d.Effects = append(d.Effects, SpellEffect{Kind: EffectCancel, Spell: strings.ToLower(strings.TrimSpace(name))})
 		return verb
 	}
 	// the target's hate for the caster gone (Vampiric Gaze, vampire.go)

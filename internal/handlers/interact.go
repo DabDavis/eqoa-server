@@ -218,6 +218,9 @@ func (h *InteractHandler) RegisterHandlers(r *Registry) {
 	}
 }
 
+// talkOutOfReachLine is the live game's answer to a talk from out of reach.
+const talkOutOfReachLine = "You can't chat with your target from there."
+
 // HandleInteract handles NPC interaction requests (opcode 0x0004).
 // Client sends: uint32 targetObjectID
 // A corpse opens its loot, a sign or a board its words (and nothing else),
@@ -285,6 +288,9 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 			player.Name, entity.EntityName(targetEntity),
 			entity.DistanceBetween(player, targetEntity), entity.InteractRange,
 			player.X, player.Y, player.Z, tx, ty, tz, targetObjectID)
+		// The live game answered a talk from out of reach in red (2012
+		// footage, Neriak's guards and a theologist, ten times over).
+		SendColoredChat(sess, talkOutOfReachLine, 255, 63, 63)
 		return nil
 	}
 

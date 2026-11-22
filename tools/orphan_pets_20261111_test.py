@@ -82,7 +82,7 @@ class OrphanPetsTest(unittest.TestCase):
 
         code, out = self.run_tool("--apply", "--remove")
         self.assertEqual(code, 0, out)
-        self.assertIn("0 pets attached, 30 removed", out)
+        self.assertIn("0 pets attached, 29 removed", out)
         self.assertEqual(self.db().execute("SELECT count(*) FROM npcs").fetchone()[0], 2 * len(op.ATTACH) + 1)
 
         code, out = self.run_tool("--undo")

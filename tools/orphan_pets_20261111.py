@@ -12,15 +12,15 @@ of 2026-11-11 06:22 UTC):
     with it. The reference server's census and Return Home's rows caught these spirits where they had followed a wandering
     caster: hobgoblin oracle 6.2 off, gnoll mystic 21.9, merkan shamans 41-79 (the shamans wander, census).
 
-  REMOVE (30, --apply --remove: the owner's yes first): pets with no caster to belong to anywhere near (every caster
+  REMOVE (29, --apply --remove: the owner's yes first): pets with no caster to belong to anywhere near (every caster
     of the kind within 80 has its own pet already, or there is none):
     - 11 Companion Spirits of the goblins' camps (Return Home's rows): 9 by the hill goblins' camp of brigands and
       gladiators, whose 20 witch doctors each have their spirit already (26 to 112 off the nearest), 2 by King
       Merdid's goblins, whose one witchdoctor has his; and 1 (level 47) among the Bouncers of world 1, no caster near;
     - 10 undead minions standing together in world 0, nothing within 140 of them (the only rows of the name);
     - 3 glyphed familiars among the drachnids (a parasite 27-92 off, all with or without one; a Siloth necromancer 60);
-    - a decaying minion among skeletal servants (no caster near), a thrall (a player race's body, level 15, among
-      level 41-45 terrors), the Arch Familiar of world 2 by Lover's Fear (the other of the name paired).
+    - a decaying minion among skeletal servants (no caster near), the Arch Familiar of world 2 by Lover's Fear (the
+      other of the name paired). (The Jaeger Mansion's thrall was on this list: filmed there on live, work board 995.)
     A removal is a spawn removal: the row is deleted (no other table names these rows: no path, camp, respawn, quest).
 
 Refused, nothing written, when a row is not as found (its name, world or place) or a caster has a pet beside it now.
@@ -83,7 +83,8 @@ REMOVE = [
     (106901, "glyphed familiar", 0, 14444.4, 19065.5, "among the drachnids: no caster within 76"),
     (106902, "glyphed familiar", 0, 14431.7, 19066.2, "among the drachnids: no caster within 88"),
     (1115, "decaying minion", 0, 22872.4, 8781.6, "among skeletal servants: no caster near"),
-    (102976, "thrall", 0, 7237.17, 10450.1, "a player race's body, level 15, among level 41-45 terrors"),
+    # 102976 "thrall" (Jaeger Mansion) taken out: filmed there on live, put back by work board 995
+    # (tools/jib_batch2_20261122.py); a second run must not remove it again
     (134091, "Arch Familiar", 2, 9088.06, 11378.17, "by Lover's Fear (19.9 off, no caster): the other paired"),
 ]
 
@@ -236,7 +237,7 @@ def main():
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--apply", action="store_true")
     g.add_argument("--undo", action="store_true")
-    ap.add_argument("--remove", action="store_true", help="also remove the 30 masterless pets (the owner's yes first)")
+    ap.add_argument("--remove", action="store_true", help="also remove the 29 masterless pets (the owner's yes first)")
     a = ap.parse_args()
     db = sqlite3.connect(a.db, isolation_level=None, timeout=30)
     if a.undo:

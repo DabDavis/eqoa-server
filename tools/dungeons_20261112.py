@@ -28,6 +28,12 @@ The server reads npcs, templates and loot rows at its start (loot tables at each
 before.sh with world.dungeons on. Refused when applied already (a second run does nothing) or a row it would write
 exists; --undo deletes every row it wrote, refused when one changed since (a GM's edit); exact.
 
+A re-run never writes over the GMs' later tuning (work board 1310, 1312, 1697, 1736, 1860: heroic Guk's King 100 /
+named 6 / trash 1 and its x10/9 chances below the first floor, the Fungal Spore Tunic out of "dungeon guk named", the
+heroic templates and floor levels, the other dungeons' 1/4 trash): --apply refuses while the run is applied, and --undo
+refuses once any row it wrote has changed since, so neither can run over those rows. Anyone re-running it on a
+database without them must put them back after (their before/after: heroic_depth_1118_log, heroic_loot_1120_log).
+
     python3 -E -s tools/dungeons_20261112.py --db eqoa.db [--apply | --undo] [--recipe tools/worlds/dungeons.json]
 """
 import argparse

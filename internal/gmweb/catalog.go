@@ -987,11 +987,13 @@ var catalog = map[string]tableNote{
 			"off the live game); a creature with no row, or no profile, is profile xp and draws every region's rows " +
 			"alone. Rows of source category-seed are tools/seed_loot_categories.py's: the region of most of the " +
 			"creature's spawns (a Tunaria quadrant's biome from EQOA-Data's map, Tunaria's waters marine, the Rathe, " +
-			"Odus, Lavastorm, the Plane of Sky, the Secrets) and the boss and named profiles.",
+			"Odus, Lavastorm, the Plane of Sky, the Secrets) and the boss and named profiles. A key #<row id> (an NPCs " +
+			"row's id) is that spawn's own, read before its name's in every world: its region and profile alone (the " +
+			"Loot pools' rows of a creature's own stay by its name).",
 		Live:   "At once: its next corpse rolls by it.",
 		Search: []string{"npc_name", "region", "profile", "source"},
 		Cols: map[string]colNote{
-			"npc_name": {Label: "NPC name (key)", Help: "lower case, as in NPCs without a trailing space or $"},
+			"npc_name": {Label: "NPC name (key)", Help: "lower case, as in NPCs without a trailing space or $; or #<row id>, one spawn's own"},
 			"region":   {Label: "Region", Help: "a Loot pools region; - rolls no category"},
 			"profile":  {Label: "Profile", Help: "a Loot rates profile; empty: xp"},
 			"source":   {Label: "Source", Help: "gm, or category-seed for tools/seed_loot_categories.py's rows"},

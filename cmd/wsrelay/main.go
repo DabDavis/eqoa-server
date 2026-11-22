@@ -43,6 +43,8 @@ func main() {
 	udpIdle := flag.Duration("udp-idle", 120*time.Second, "close a UDP socket after this long with no datagram either way")
 	tcpIdle := flag.Duration("tcp-idle", 10*time.Minute, "close a TCP connection after this long idle")
 	ping := flag.Duration("ping", 30*time.Second, "WebSocket ping interval that notices a silent client (0: off)")
+	pingTimeout := flag.Duration("ping-timeout", 0, "how long a ping may go unanswered before the client is dropped (0: the ping interval); past the game client's own 60 s, its timer decides")
+	writeWait := flag.Duration("write-wait", 10*time.Second, "how long one write to a client's WebSocket may take before the client is dropped")
 	lookup := flag.String("lookup", "", "also serve GET /client?port=N here (the client address behind one of the relay's local ports) for the relayed server; loopback only, never public")
 	verbose := flag.Bool("v", false, "log dropped datagrams and failed handshakes too")
 	flag.Usage = func() {
@@ -68,14 +70,16 @@ func main() {
 		p = -1
 	}
 	relay := wsrelay.New(wsrelay.Config{
-		AllowUDP: udp,
-		AllowTCP: tcp,
-		Origins:  origins,
-		MaxPerIP: *maxPerIP,
-		UDPIdle:  *udpIdle,
-		TCPIdle:  *tcpIdle,
-		Ping:     p,
-		Verbose:  *verbose,
+		AllowUDP:    udp,
+		AllowTCP:    tcp,
+		Origins:     origins,
+		MaxPerIP:    *maxPerIP,
+		UDPIdle:     *udpIdle,
+		TCPIdle:     *tcpIdle,
+		Ping:        p,
+		PingTimeout: *pingTimeout,
+		WriteWait:   *writeWait,
+		Verbose:     *verbose,
 	})
 	o := "any origin"
 	if len(origins) > 0 {

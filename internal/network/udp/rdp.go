@@ -232,7 +232,7 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 	// Check if we need to send anything. A due retransmit counts as work even
 	// when nothing new is queued — otherwise a stalled transfer never recovers.
 	// The resend timeout: the client's round trip's (netstats.go's RTO)
-	rto := sess.Connection().Net().RTO()
+	rto := resendDelay(sess, sess.Connection().Net().RTO())
 	needRetransmit := queue.HasRetransmits(rto)
 	if !queue.CheckQueue() && !needRetransmit {
 		flags := queue.GetBodyFlags()
@@ -572,6 +572,23 @@ const (
 	StateSilence     = 5 * time.Second
 	PreGameSilentEnd = 3 * time.Minute
 )
+
+// SilentResendWait is how long a reliable message waits between resends to a
+// client in the world that has been silent StateSilence (entry 1623): a
+// browser's line that stalls (TCP under its WebSocket) and then recovers had
+// a pipe full of the same messages, resent up to every maxResendWait (the
+// production server, 2026-11-17 22:37:56: 106 messages in 89 packets over
+// 10 s to a silent relay port).
+const SilentResendWait = 10 * time.Second
+
+// resendDelay is the resend timeout for sess: rto, or SilentResendWait once
+// its client in the world has been silent StateSilence. Heard again, rto.
+func resendDelay(sess *session.Session, rto time.Duration) time.Duration {
+	if sess.CharacterInWorld() && time.Since(sess.LastActivity()) >= StateSilence && rto < SilentResendWait {
+		return SilentResendWait
+	}
+	return rto
+}
 
 // InGameSilentEnd is how long a client past character select may send
 // nothing before its session ends and its character leaves the world.

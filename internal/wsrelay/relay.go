@@ -56,8 +56,16 @@ type Config struct {
 	ConnectTimeout time.Duration
 	// Ping is the interval of the WebSocket pings that notice a client gone
 	// silent (a browser answers them itself). 0: 30 s; negative: none.
-	Ping    time.Duration
-	Verbose bool
+	Ping time.Duration
+	// PingTimeout is how long a ping may go unanswered before the client is
+	// dropped (0: Ping). A stalled TCP path under the WebSocket (a lossy
+	// line's retransmit backoff) can outlast one interval and still recover;
+	// past the game client's own 60 s give-up, its timer decides instead.
+	PingTimeout time.Duration
+	// WriteWait bounds one write to the WebSocket (0: 10 s): a stalled path
+	// that holds a write longer drops the client.
+	WriteWait time.Duration
+	Verbose   bool
 	// Logf receives one line per socket opened, refused and closed (nil:
 	// log.Printf).
 	Logf func(format string, args ...any)
@@ -73,10 +81,7 @@ type Relay struct {
 	owner map[int]string
 }
 
-const (
-	maxMessage = 1 << 20
-	writeWait  = 10 * time.Second
-)
+const maxMessage = 1 << 20
 
 // New fills in Config's defaults.
 func New(cfg Config) *Relay {
@@ -94,6 +99,12 @@ func New(cfg Config) *Relay {
 	}
 	if cfg.Ping == 0 {
 		cfg.Ping = 30 * time.Second
+	}
+	if cfg.PingTimeout <= 0 {
+		cfg.PingTimeout = cfg.Ping
+	}
+	if cfg.WriteWait <= 0 {
+		cfg.WriteWait = 10 * time.Second
 	}
 	if cfg.Logf == nil {
 		cfg.Logf = log.Printf
@@ -312,8 +323,10 @@ func (r *Relay) socket(w http.ResponseWriter, req *http.Request) {
 	c.SetReadLimit(maxMessage)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+	gone := new(reason)
+	ctx = context.WithValue(ctx, reasonKey{}, gone)
 	if r.cfg.Ping > 0 {
-		go r.pinger(ctx, c)
+		go r.pinger(ctx, c, gone)
 	}
 	if kind == "udp" {
 		r.udp(ctx, cancel, c, ip)
@@ -322,9 +335,30 @@ func (r *Relay) socket(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// reason is why the relay itself dropped a client (its ping unanswered, a
+// write that timed out), for the close line: "" when it did not.
+type reason struct{ v atomic.Value }
+
+type reasonKey struct{}
+
+func (g *reason) set(s string) { g.v.CompareAndSwap(nil, s) }
+
+func (g *reason) get() string {
+	s, _ := g.v.Load().(string)
+	return s
+}
+
+// relayReason is the relay's own reason for dropping the client on ctx, if any.
+func relayReason(ctx context.Context) string {
+	if g, ok := ctx.Value(reasonKey{}).(*reason); ok {
+		return g.get()
+	}
+	return ""
+}
+
 // pinger drops a client that stops answering pings (a browser answers them
-// itself; the page never sees one).
-func (r *Relay) pinger(ctx context.Context, c *websocket.Conn) {
+// itself; the page never sees one) within PingTimeout.
+func (r *Relay) pinger(ctx context.Context, c *websocket.Conn, gone *reason) {
 	t := time.NewTicker(r.cfg.Ping)
 	defer t.Stop()
 	for {
@@ -332,11 +366,13 @@ func (r *Relay) pinger(ctx context.Context, c *websocket.Conn) {
 		case <-ctx.Done():
 			return
 		case <-t.C:
-			pctx, done := context.WithTimeout(ctx, r.cfg.Ping)
+			sent := time.Now()
+			pctx, done := context.WithTimeout(ctx, r.cfg.PingTimeout)
 			err := c.Ping(pctx)
 			done()
 			if err != nil {
 				if ctx.Err() == nil {
+					gone.set(fmt.Sprintf("ping unanswered for %s", time.Since(sent).Round(time.Second)))
 					c.CloseNow()
 				}
 				return
@@ -480,7 +516,7 @@ func (r *Relay) udp(ctx context.Context, cancel context.CancelFunc, c *websocket
 	cancel()
 	r.logf("wsrelay: udp close client=%s port=%d up=%d/%d down=%d/%d dropped=%d dur=%s (%s)",
 		ip, port, up.Load(), upN.Load(), down.Load(), downN.Load(), dropped.Load(),
-		time.Since(start).Round(time.Millisecond), why(err, idled.Load(), ""))
+		time.Since(start).Round(time.Millisecond), why(err, idled.Load(), relayDropped(ctx)))
 }
 
 func (r *Relay) tcp(ctx context.Context, cancel context.CancelFunc, c *websocket.Conn, ip string, req *http.Request) {
@@ -571,17 +607,34 @@ func (r *Relay) tcp(ctx context.Context, cancel context.CancelFunc, c *websocket
 	if other == "" && serverEOF.Load() {
 		other = "server closed"
 	}
+	if other == "" {
+		other = relayDropped(ctx)
+	}
 	cancel()
 	r.logf("wsrelay: tcp close client=%s target=%s up=%d down=%d dur=%s (%s)",
 		ip, target, up.Load(), down.Load(), time.Since(start).Round(time.Millisecond), why(err, idled.Load(), other))
 }
 
 func (r *Relay) write(ctx context.Context, c *websocket.Conn, typ websocket.MessageType, p []byte) error {
-	wctx, done := context.WithTimeout(ctx, writeWait)
+	wctx, done := context.WithTimeout(ctx, r.cfg.WriteWait)
 	defer done()
 	err := c.Write(wctx, typ, p)
 	if err != nil && !errors.Is(err, context.Canceled) {
 		r.vlogf("wsrelay: write: %v", err)
+		if errors.Is(err, context.DeadlineExceeded) && ctx.Err() == nil {
+			if g, ok := ctx.Value(reasonKey{}).(*reason); ok {
+				g.set(fmt.Sprintf("a write held past %s", r.cfg.WriteWait))
+			}
+		}
 	}
 	return err
+}
+
+// relayDropped is relayReason's reason as the close line says it: "" when the
+// relay did not drop the client itself.
+func relayDropped(ctx context.Context) string {
+	if s := relayReason(ctx); s != "" {
+		return "dropped by the relay: " + s
+	}
+	return ""
 }

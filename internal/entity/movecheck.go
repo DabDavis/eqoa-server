@@ -169,7 +169,9 @@ const (
 	mcBadFor              = time.Second     // or for this long
 	mcSilentAir           = 3 * time.Second // in the air with no report for this long: put down
 	mcFixesWindow         = 5 * time.Minute
-	mcFixesNoted          = 5 // moves back in the window that are logged as a pattern
+	mcFixesNoted          = 5               // moves back in the window that are logged as a pattern
+	mcSnapSilence         = 3 * time.Second // no report for this long: the next are held to where it was
+	mcSnapWindow          = 2 * time.Second // for this long after the first report back
 	mcLogEvery            = 2 * time.Second
 
 	// A body in something placed (the owner, 2026-11-18: a player in the
@@ -235,6 +237,16 @@ type moveState struct {
 	breathLogged uint64 // the tick the breath's disagreement was last logged
 
 	inAt time.Time // since when the places taken have been in something placed; zero, not
+
+	// a silence's end (entry 1623, snapback): when the last report came,
+	// when the first after a silence of mcSnapSilence came and the place the
+	// player had then, held to it for mcSnapWindow; and a move back of the
+	// snapback's that drops the rest of the burst, whatever the mode
+	heard               time.Time
+	snapAt              time.Time
+	snapSilent          time.Duration
+	snapX, snapY, snapZ float32
+	snapping            bool
 }
 
 // serverMovedLocked: the player stands where the server put it, and the
@@ -250,6 +262,7 @@ func (st *moveState) serverMoved(p *Player, now time.Time, ours bool) {
 	st.pendAt, st.pendFixAt, st.pendFix = now, now, ours
 	st.bad = 0
 	st.inAt = time.Time{}
+	st.snapAt, st.snapping = time.Time{}, false
 }
 
 // arrived reports a report from where a server move put the player.
@@ -302,6 +315,12 @@ func (w *World) judgeMoveLocked(p *Player, u *ClientUpdate, now time.Time) (take
 		// teleport, a respawn
 		st.serverMoved(p, now, false)
 	}
+	// how long the client was silent before this report (snapback)
+	var silent time.Duration
+	if !st.heard.IsZero() {
+		silent = now.Sub(st.heard)
+	}
+	st.heard = now
 	world := p.World
 	if u.HasWorld && u.World != world {
 		// a report from another world: from before a world change the
@@ -312,7 +331,7 @@ func (w *World) judgeMoveLocked(p *Player, u *ClientUpdate, now time.Time) (take
 	if st.pending {
 		if w.arrivedLocked(st, world, u) {
 			held, wet, judged := w.heldLocked(world, u.X, u.Y, u.Z)
-			st.pending, st.bad = false, 0
+			st.pending, st.bad, st.snapping = false, 0, false
 			st.x, st.y, st.z, st.at = u.X, u.Y, u.Z, now
 			st.judged, st.air, st.wet = judged, judged && !held && !wet, wet
 			st.airAt, st.airY, st.airN = now, u.Y, 0
@@ -331,6 +350,14 @@ func (w *World) judgeMoveLocked(p *Player, u *ClientUpdate, now time.Time) (take
 			}
 			return true, nil
 		}
+		// a snapback's: the rest of the burst dropped, whatever the mode
+		if st.snapping {
+			if now.Sub(st.pendFixAt) >= mcResend {
+				st.pendFixAt = now
+				w.sendMoveBackLocked(p, st.pendWorld, st.pendX, st.pendY, st.pendZ)
+			}
+			return false, nil
+		}
 		// from before the client heard of the move: not a place it is (a
 		// put out of something placed is sent again in log mode too)
 		if (mode == MoveCheckEnforce || st.pendFix) && now.Sub(st.pendFixAt) >= mcResend {
@@ -340,6 +367,14 @@ func (w *World) judgeMoveLocked(p *Player, u *ClientUpdate, now time.Time) (take
 				st.pendX, st.pendY, st.pendZ, now.Sub(st.pendAt).Seconds()), u, "sent there again", true)
 		}
 		return mode != MoveCheckEnforce, nil
+	}
+
+	if silent >= mcSnapSilence {
+		st.snapAt, st.snapSilent = now, silent
+		st.snapX, st.snapY, st.snapZ = st.x, st.y, st.z
+	}
+	if !st.snapAt.IsZero() && now.Sub(st.snapAt) <= mcSnapWindow && w.snapBackLocked(p, st, u, now) {
+		return false, nil
 	}
 
 	j := w.judgeLocked(p, st, u, now)
@@ -386,6 +421,40 @@ func (w *World) judgeMoveLocked(p *Player, u *ClientUpdate, now time.Time) (take
 		w.moveLogLocked(p, now, j.why, u, "not taken", false)
 	}
 	return false, nil
+}
+
+// snapBackLocked holds a client back from a silence (entry 1623: a stalled
+// link that recovers brings its buffered reports in a burst, a UDP lag switch
+// one jump): for mcSnapWindow after the first report back, every report must
+// be within the move rate's reach of where the player was when it fell
+// silent, a second's worth more than the time since that first report (the
+// speed with mcSlack, and mcBurst). One past it, whatever world.movecheck's
+// mode: the server's place kept (the player stayed there while silent, and
+// creatures saw and hit it there), the client moved back there with the
+// teleport, and the rest of the burst dropped. True when it was one. Must be
+// called with the lock held.
+func (w *World) snapBackLocked(p *Player, st *moveState, u *ClientUpdate, now time.Time) bool {
+	dx, dz := u.X-st.snapX, u.Z-st.snapZ
+	far := float32(math.Sqrt(float64(dx*dx + dz*dz)))
+	since := float32(now.Sub(st.snapAt).Seconds())
+	reach := st.speed(p, now)*mcSlack*(since+1) + mcBurst
+	if far <= reach {
+		return false
+	}
+	log.Printf("MOVECHECK snapback: %s silent %.0fs, report %.1f from last place (%.1f, %.1f, %.1f), reach %.1f",
+		p.Name, st.snapSilent.Seconds(), far, st.snapX, st.snapY, st.snapZ, reach)
+	st.why = "snapback after a silence"
+	st.x, st.y, st.z = st.snapX, st.snapY, st.snapZ
+	st.air = false
+	if p.World == st.world {
+		oldX, oldZ := p.X, p.Z
+		p.X, p.Y, p.Z = st.x, st.y, st.z
+		w.SpatialIndex.Update(p.ServerID, oldX, oldZ, p.X, p.Z)
+	}
+	w.moveBackLocked(p, now)
+	st.snapping = true
+	st.snapAt = time.Time{}
+	return true
 }
 
 // arrivedLocked reports a report from where a server move put the player:

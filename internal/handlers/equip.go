@@ -74,6 +74,8 @@ type EquipHandler struct {
 	// training keeps the training points an item's use gave (potion.go); nil:
 	// they are kept at the logout alone
 	training trainingKeeper
+	// marks are the Heirloom Marks: the Ring of Guises and the Mastery Tome (keeper.go); nil none
+	marks *HeirloomMarks
 }
 
 // NewEquipHandler creates the handler. spells may be nil: no scroll is then
@@ -561,6 +563,15 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 		// the Stone of Guenhwyvar, never spent (guenhwyvar.go)
 		if IsGuenhwyvarStone(&row.Pattern) {
 			h.useGuenhwyvarStone(sess, player)
+			return nil
+		}
+		// the Ring of Guises, never spent: its guise (keeper.go); a Mastery Tome, one read
+		if row.EquipLoc < 0 && IsRingOfGuises(&row.Pattern) {
+			h.useRing(sess, player, target)
+			return nil
+		}
+		if row.EquipLoc < 0 && IsMasteryTome(&row.Pattern) {
+			h.useTome(sess, player, idx, row)
 			return nil
 		}
 		// the Rock of Freeport, never spent: a cast to Freeport (rockfreeport.go)

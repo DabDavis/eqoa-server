@@ -178,6 +178,14 @@ var snapshotRules = map[string]snapshotRule{
 	// which accountinfo keeps as it is (only players' accounts are renamed).
 	"loginannounce": {why: "the GMs' announcement at login: one line every player is sent, and the GM who set it"},
 
+	// Heirloom Marks (marks.go, work 1927): game state, no person's data; kept whole, said here so a
+	// snapshot's reader knows them.
+	"charmarks":      {why: "each character's Heirloom Marks, its kill-mark hour, Ring of Guises rank and guise, Heirloom Rank (marks.go)"},
+	"charmarks_log":  {why: "each award and spending of Heirloom Marks: character, time, source, amount, what for (marks.go)"},
+	"charrelive":     {why: "a level 60's Relive: its level, experience, debt, since when, on or not (marks.go)"},
+	"hotzones":       {why: "the GMs' Hot zones: places and quest sets with a marks bonus; created_by is a GM's name, kept as the panel names GMs"},
+	"heirloomrankac": {why: "the AC an Heirloom Rank adds to each heirloom armour piece, by class and rank (marks.go)"},
+
 	// Named like a secret, holding none: the content tools' provenance (their
 	// --undo, and what the real-data tests read). A key column is a row's key
 	// in the table the tool changed, a meta table's key the name of a fact.

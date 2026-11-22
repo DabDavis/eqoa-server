@@ -107,6 +107,8 @@ type InteractHandler struct {
 	// rehab is the rehabilitators (rehab.go): their menu, and its answers.
 	// Nil: a rehabilitator is any other NPC.
 	rehab *Rehab
+	// marks are the Heirloom Marks: the Keeper, the Hot Zone Herald, Relive (marks.go); nil none
+	marks *HeirloomMarks
 	// welcome answers the welcome guide's box (welcome.go); nil: none is asked
 	welcome *WelcomeGuide
 	// spheres is lightspheres' rows (lightsphere.go): teleporting spheres known by their place
@@ -356,6 +358,11 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 
 	// Dabrish (dabrish.go): a level of the player's choosing, or mastery points.
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.dabrishTalk(sess, player, npc) {
+		return nil
+	}
+
+	// The Heirloom Keeper (keeper.go) and the Hot Zone Herald (hotzones.go): Heirloom Marks.
+	if npc, ok := targetEntity.(*entity.NPC); ok && (h.marks.keeperTalk(sess, player, npc) || h.marks.heraldTalk(sess, player, npc)) {
 		return nil
 	}
 
@@ -833,6 +840,12 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// Dabrish's (dabrish.go); an old one does nothing
 	if h.answerDabrish(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// the Heirloom Marks' (keeper.go, hotzones.go, relive.go); an old one does nothing
+	if h.marks.answerKeeper(sess, player, targetObjectID, selectedOption) ||
+		h.marks.answerHerald(sess, player, targetObjectID, selectedOption) ||
+		h.marks.answerRelive(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// the Teleporter's (teleporter.go); an old one does nothing

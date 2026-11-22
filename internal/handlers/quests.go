@@ -1508,6 +1508,9 @@ func (q *QuestEngine) startLocked(sess *session.Session, p *entity.Player, c *qu
 	// a run of its own: a finished run's picks are not this one's
 	cq.Step, cq.Count, cq.Slot, cq.Picks = st.Step, 0, c.nextSlot(), ""
 	q.saveLocked(cq)
+	if cq.Done == 0 {
+		q.store.MarkQuestTaken(c.serverID, qu.ID, time.Now()) // the Heirloom Marks' real-time limit (marks.go)
+	}
 	// the live game's order (board 967: two tapes, 2009 and 2012): the
 	// journal's line, the giver's words, then "You received a quest!"
 	q.addLineLocked(sess, c, q.lineLocked(cq))
@@ -2137,6 +2140,10 @@ func (q *QuestEngine) completeStepSkipLocked(sess *session.Session, p *entity.Pl
 	q.tellLocked(c, sess, "", lines...)
 	if rw.XP > 0 && sess != nil && p != nil {
 		q.gw.AwardXP(sess, p, rw.XP)
+	}
+	if next == nil && !stay && sess != nil && p != nil {
+		// its Heirloom Marks, a first finish's (marks.go)
+		heirloomMarks.Load().QuestDone(sess, p, qu, cq.Done == 1)
 	}
 	if len(st.Factions) > 0 && p != nil {
 		hits := make([]entity.FactionHit, len(st.Factions))

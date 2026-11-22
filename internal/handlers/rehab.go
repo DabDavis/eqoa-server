@@ -149,6 +149,7 @@ type Rehab struct {
 	chars  resetStore          // the characters' rows: the training reset
 	tpl    templateStore       // and a template's use (rehabtemplates.go); nil: no templates
 	quests func() *QuestEngine // the running quests (Quests)
+	marks  *HeirloomMarks      // Relive's answers (relive.go); nil none
 	now    func() time.Time
 
 	mu    sync.Mutex
@@ -262,6 +263,8 @@ func (r *Rehab) picked(sess *session.Session, p *entity.Player, speaker string, 
 		r.askPaths(sess, p, speaker)
 	case rehabTplSave, rehabTplUse:
 		r.askSlot(sess, p, speaker, what)
+	case rehabRelive, rehabResume, rehabReliveEnd:
+		r.marks.relivePicked(sess, p, speaker, what) // relive.go
 	}
 }
 
@@ -295,6 +298,10 @@ func (r *Rehab) menu(sess *session.Session, p *entity.Player, speaker string) {
 	if r.templatesServed() {
 		labels = append(labels, rehabSaveBuildAnswer, rehabUseBuildAnswer)
 		options = append(options, rehabTplSave, rehabTplUse)
+	}
+	// Relive (relive.go): "Relive", "Resume at N", or "Return to level 60"
+	if l, o := r.marks.reliveMenu(p); len(l) > 0 {
+		labels, options = append(labels, l...), append(options, o...)
 	}
 	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStageMenu, options: options}, rehabAskMenu, labels)
 }

@@ -827,6 +827,12 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 		log.Printf("Cast: %s uses %q while a travel of its own is on its way: not answered", p.Name, spell.Name)
 		return false
 	}
+	if why := w.reliveCastRefusalLocked(p, &spell); why != "" {
+		// a Relive's: no power spent, no lockout (marks.go)
+		log.Printf("Cast: %s casts %q while reliving at %d: refused", p.Name, spell.Name, p.Level)
+		w.sendColoredLocked(sess, why, castRefusalRGB)
+		return false
+	}
 	targets, refusal, fizzle := w.castRefusalLocked(sess, p, &spell, targetObjectID, now, true)
 	if refusal != "" {
 		log.Printf("Cast: %s casts %q on %#x: %s", p.Name, spell.Name, targetObjectID, refusal)

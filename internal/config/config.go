@@ -616,6 +616,12 @@ type WorldConfig struct {
 	// nothing. The Heirloom Test Server sets it.
 	RockOfFreeport bool `yaml:"rock_of_freeport"`
 
+	// HeirloomMarks turns on Heirloom Marks (handlers/marks.go, work board 1927): marks below 60
+	// (or while reliving) for quests and kills, the Hot zones and their herald, the Heirloom
+	// Keeper (the Ring of Guises, Heirloom Rank to 55, Mastery Tomes) and Relive at the
+	// Rehabilitators. Unset or false: none of it. The Heirloom Test Server sets it.
+	HeirloomMarks bool `yaml:"heirloom_marks"`
+
 	// TestInvis turns on /testinvis, every player's safe mode
 	// (handlers/safemode.go, entity/safemode.go; petition 1424): typed, no
 	// creature attacks the character on sight until it is typed again, and a

@@ -490,7 +490,7 @@ func (p *Player) refreshCMLocked(cat *cmCatalog) {
 	var s [CMSlots]int
 	ownBody, kick := false, false
 	breath, offRanks, defRanks := 0, 0, 0
-	if cat != nil {
+	if cat != nil && p.Relive == nil { // a Relive's masteries sleep (marks.go)
 		for id := range p.CMs {
 			if r := cat.byID[id]; r != nil {
 				for i, v := range r.Effects {

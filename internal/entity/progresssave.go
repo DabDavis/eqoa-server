@@ -56,6 +56,10 @@ type ProgressSave struct {
 	Level, TotalXP int
 	Debt           int
 	Ding           bool // a level changed (else the periodic save)
+	// Relive is the character's Relive's row when it relives (marks.go): Level, TotalXP and
+	// Debt are its true ones all the same
+	Relive    bool
+	ReliveRow ReliveSave
 }
 
 // ProgressFunc writes a character's figures (the listener's: the character
@@ -104,8 +108,12 @@ func (w *World) queueProgressLocked(p *Player) {
 
 // progressOf is p's figures. Must be called with the lock held.
 func progressOf(p *Player) ProgressSave {
-	return ProgressSave{CharServerID: p.CharServerID, Name: p.Name, Level: p.Level,
-		TotalXP: TotalXP(p.Level, p.XPInLevel), Debt: p.Debt}
+	level, total, debt := p.SavedProgress() // a Relive's true ones (marks.go)
+	s := ProgressSave{CharServerID: p.CharServerID, Name: p.Name, Level: level, TotalXP: total, Debt: debt}
+	if p.Relive != nil {
+		s.Relive, s.ReliveRow = true, reliveSaveOf(p)
+	}
+	return s
 }
 
 // liveOfLocked is the world's live Player of p's character: p, or the newer
@@ -177,8 +185,12 @@ func (w *World) runProgressSaves(now time.Time) {
 			n++
 		}
 	}
+	relive := w.reliveSave
 	w.mu.Unlock()
 	for _, s := range out {
 		fn(s)
+		if s.Relive && relive != nil {
+			relive(s.ReliveRow)
+		}
 	}
 }

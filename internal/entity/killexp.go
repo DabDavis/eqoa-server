@@ -187,6 +187,7 @@ func (w *World) awardKillXPLocked(killerSess *session.Session, killer *Player, n
 			w.sendChatToSession(sess, zeroXPLine)
 			continue
 		}
+		w.killMarksLocked(sess, m, npc, xp) // an Heirloom Mark's roll, on the experience before any boon (marks.go)
 		w.awardXP(sess, m, xp)
 		w.heroesCreditLocked(sess, m, npc) // heroes.go: a kill that gives experience, the Testing Heroes'
 	}

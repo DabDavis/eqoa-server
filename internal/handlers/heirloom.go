@@ -118,6 +118,13 @@ type Heirlooms struct {
 	// characters made hundreds of those reads, most of the restart's pause)
 	pool   []database.ItemPatternRecord
 	poolAt time.Time
+	// the Heirloom Rank (work 1927 8b, heirloomrank.go): each character's rank, the AC table and
+	// the records no heirloom takes past heirloomTopLevel, each read again once old
+	ranks    map[uint32]heirloomRankOf
+	rankAC   map[[2]int]int
+	rankACAt time.Time
+	raidRecs map[int]bool
+	raidAt   time.Time
 }
 
 type heirloomKey struct {
@@ -184,24 +191,37 @@ func (h *Heirlooms) View(serverID uint32, p *database.ItemPatternRecord) {
 	if !ok {
 		return
 	}
-	h.figuresFor(def, race, level, p)
+	h.figuresFor(def, race, level, h.rankOf(serverID), p)
 }
 
 // ViewFor is View for a wearer that is no character, of race and level: a
 // merc's heirlooms (merc.go). Any other record is left as it is.
 func (h *Heirlooms) ViewFor(race, level int, p *database.ItemPatternRecord) {
+	h.ViewForOwner(0, race, level, p)
+}
+
+// ViewForOwner is ViewFor for a merc whose owner is the character owner: its heirlooms take the
+// owner's Heirloom Rank (heirloomrank.go); 0 is no owner.
+func (h *Heirlooms) ViewForOwner(owner uint32, race, level int, p *database.ItemPatternRecord) {
 	if def, ok := h.def(p.PatternID); ok {
-		h.figuresFor(def, race, level, p)
+		rank := 0
+		if owner != 0 {
+			rank = h.rankOf(owner)
+		}
+		h.figuresFor(def, race, level, rank, p)
 	}
 }
 
-// figuresFor puts the heirloom's figures for a wearer of race and level on p.
-func (h *Heirlooms) figuresFor(def database.HeirloomDef, race, level int, p *database.ItemPatternRecord) {
-	level = min(level, heirloomTopLevel) // its figures go no further (heirloomTopLevel)
+// figuresFor puts the heirloom's figures for a wearer of race and level, of Heirloom Rank rank,
+// on p.
+func (h *Heirlooms) figuresFor(def database.HeirloomDef, race, level, rank int, p *database.ItemPatternRecord) {
+	level = min(level, heirloomTopLevel+rank) // its figures go no further (heirloomTopLevel, the rank's levels past it)
 	epicNow := false
 	bare := false // an epic that carries no stat of its own (Downfall, Virtus Ferrum: petition 2521)
 	if def.Epic != 0 {
-		if epic, ok := h.epicOf(def.Epic); ok && level >= max(epic.LevelReq, 1) {
+		// an epic heirloom keeps the 49 path epic's figures: never an epic above heirloomTopLevel
+		// (work 1927 8b), whatever the rank
+		if epic, ok := h.epicOf(def.Epic); ok && level >= max(epic.LevelReq, 1) && epic.LevelReq <= heirloomTopLevel {
 			heirloomEpicFigures(p, &epic)
 			epicNow, bare = true, epicStatless(&epic)
 		}
@@ -225,6 +245,7 @@ func (h *Heirlooms) figuresFor(def database.HeirloomDef, race, level int, p *dat
 	if !epicNow || bare {
 		heirloomStats(p, level)
 	}
+	h.rankArmour(def, rank, p) // the rank's AC on an armour piece (heirloomrank.go)
 }
 
 // epicStatless is whether an epic carries none of the stats, hit points or
@@ -358,9 +379,13 @@ func (h *Heirlooms) bestOf(class, race, level int, role string) (database.ItemPa
 	h.mu.Lock()
 	defs := h.defs
 	h.mu.Unlock()
+	var raid map[int]bool
+	if key.level > heirloomTopLevel {
+		raid = h.raidRecords() // past 49 no raid's, boss's, dungeon's or epic's record (heirloomrank.go)
+	}
 	items = slices.DeleteFunc(items, func(it database.ItemPatternRecord) bool {
 		_, heirloom := defs[it.PatternID]
-		return heirloom || heirloomUnfit(&it)
+		return heirloom || heirloomUnfit(&it) || raid[it.PatternID] || (raid != nil && heirloomRaidID(it.PatternID))
 	})
 	order := byScore
 	if r.weapon {

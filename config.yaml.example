@@ -327,6 +327,13 @@ world:
   # Dabrish. Off unless set.
   # rock_of_freeport: true
 
+  # Heirloom Marks (handlers/marks.go): marks below 60, or while a 60 relives at a
+  # Rehabilitator, for quests and kills; the Hot zones (table hotzones, #hotzone, the
+  # Hot Zone Herald), /marks, the Heirloom Keeper (Ring of Guises, Heirloom Rank to
+  # 55, Mastery Tomes). Its records and NPCs are data (tools/heirloom_marks_*.py).
+  # Off unless set.
+  # heirloom_marks: true
+
   # The Testing Heroes (entity/heroes.go, handlers/heroes.go): every kill that
   # gives a character experience gives it 1 standing with the faction Testing
   # Heroes, a raid boss's 5; the faction starts at the floor, -2000, and the

@@ -554,6 +554,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		gameWorld.OnPlayerEntered(tellSafeMode(gameWorld))
 		// and one with other players' mercenaries hidden, /hide mercs (hidemercs.go)
 		gameWorld.OnPlayerEntered(tellMercsHidden(gameWorld))
+		// a GM's chat mutes by the hour (chatmute.go): kept per shard, told at entry
+		chatHandler.SetChatMuteStore(charStore.DB())
+		gameWorld.OnPlayerEntered(chatHandler.muteEntered)
 
 		// the welcome guide (welcome.go): the box a character's first world entry
 		// of a UTC day asks, its answers, and /tutorial

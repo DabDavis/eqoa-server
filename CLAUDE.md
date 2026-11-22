@@ -215,6 +215,11 @@ CLIENT forwards only tells, so some commands also take `/t <word>`. Players' own
 `/noclip`, the GM TEST menu, and **triggers**: GM-scripted events (spawns, steps, walls, encounter runs) kept over a
 keep restart, edited in the panel.
 
+**Chat mutes by the hour** (`handlers/chatmute.go`, `database/chatmutes.go`): `#mute <name> <hours>` stops the shouts
+of that character's ACCOUNT, `#muteall` its every chat line (what `gmChatGate` passes, the Hardcore channel too); 0
+lifts one, `#mute <name>` says what holds, `#unmute` lifts both; never an account at or above the GM's level. Table
+`chatmutes` (a row per account and scope), held in memory and read again once 30 s old; each shard keeps its own.
+
 ## Game systems (run in `Tick()`)
 
 | System | Interval | Purpose |

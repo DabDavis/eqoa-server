@@ -75,6 +75,9 @@ func (h *ChatHandler) hcChat(sess *session.Session, player *entity.Player, text 
 		SendErrorMessage(sess, fmt.Sprintf(hcChatUsage, hcChatSpelling(sess.AckMasks())))
 		return
 	}
+	if !h.gmChatGate(sess, player, "hc", text) { // Silence, Snoop and a GM's mute, as every other channel
+		return
+	}
 	line := entity.HCTag + player.Name + ": " + text
 	n := hcChatSay(h.gameWorld, line)
 	log.Printf("HCChat: %s: %q to %d", player.Name, text, n)

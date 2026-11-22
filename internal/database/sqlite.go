@@ -874,6 +874,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCharHideGMTag(); err != nil { // charhidegmtag.go: GMs who hid their [GM] tag, /hide gmtag
 		return err
 	}
+	if err := db.ensureChatMutes(); err != nil { // chatmutes.go: a GM's chat mutes by the hour, per account
+		return err
+	}
 	if err := db.ensureCharGMNoAggro(); err != nil { // chargmnoaggro.go: GMs no creature attacks on sight, Safe Mode / #aggro off
 		return err
 	}

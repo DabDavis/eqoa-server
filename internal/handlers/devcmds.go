@@ -133,6 +133,7 @@ var gmCommands = map[string]bool{
 	"#trigger": true, "#tour": true, "#craftskill": true, "#craftlearn": true,
 	"#clearbuffs": true, "#nukebuffs": true, "#reward": true, "#dye": true, "#vampire": true,
 	"#rst_mastr": true, "#rst_both": true, "#rem_abil": true, "#banktunar": true, "#servdown": true,
+	"#mute": true, "#muteall": true, "#unmute": true,
 	"#giveitem": true, "#size": true, "#mark": true, "#marks": true, "#camp": true, "#path": true,
 	"#markportal": true, "#delete": true, "#clone": true, "#place": true, "#move": true, "#roamer": true,
 	"#noclip": true, "#raidboss": true, "#aura": true, "#hazard": true, "#announce": true, "#formula": true,

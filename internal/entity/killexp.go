@@ -135,6 +135,10 @@ func (w *World) killSharersLocked(killer *Player, npc *NPC) []*Player {
 	return out
 }
 
+// zeroXPLine is a credited kill worth no experience to a sharer: the live
+// game's line (board 813).
+const zeroXPLine = "You receive 0 XP."
+
 // awardKillXPLocked gives a player's kill of npc its experience: each sharer
 // its GroupExp, a raid group's its cut share (raid.go), through awardXP (a
 // boon's, the debt's and the masteries' shares of that, the lines, 0x0020). Every
@@ -170,14 +174,17 @@ func (w *World) awardKillXPLocked(killerSess *session.Session, killer *Player, n
 		if raid {
 			xp = raidShare(xp)
 		}
-		if xp <= 0 {
-			continue
-		}
 		sess := killerSess
 		if m != killer || sess == nil {
 			sess = w.sessionOfLocked(m)
 		}
 		if sess == nil {
+			continue
+		}
+		if xp <= 0 {
+			// a kill worth nothing to it says so, once a kill, as the live
+			// game did (a level 5's rats and sparkflies, filmed: board 813)
+			w.sendChatToSession(sess, zeroXPLine)
 			continue
 		}
 		w.awardXP(sess, m, xp)

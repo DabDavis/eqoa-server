@@ -251,3 +251,21 @@ func TestADebtAwardSaysTheLiveLine(t *testing.T) {
 		}
 	}
 }
+
+// A kill worth nothing to a player says "You receive 0 XP." once (board 813:
+// a level 5's rats, filmed): a level 20's level 5 rat. The control: a kill
+// worth something says its own line, and no 0 XP line.
+func TestAKillWorthNothingSaysZero(t *testing.T) {
+	rat := &NPC{ServerID: 5004, Name: "a rat", Level: 5, X: 1000, Z: 1000}
+	k := newKillWorld(t, 20)
+	p := k.players[0]
+	k.w.awardKillXPLocked(k.sess[0], p, rat)
+	if lines, _ := sentOf(k.sess[0]); len(lines) != 1 || lines[0] != "You receive 0 XP." {
+		t.Errorf("a level 20's rat: %q", lines)
+	}
+	k = newKillWorld(t, 5)
+	k.w.awardKillXPLocked(k.sess[0], k.players[0], rat)
+	if lines, _ := sentOf(k.sess[0]); len(lines) != 1 || lines[0] == "You receive 0 XP." {
+		t.Errorf("the control, a level 5's rat: %q", lines)
+	}
+}

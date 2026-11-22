@@ -168,6 +168,13 @@ func (q *QuestEngine) runEventsLocked(sess *session.Session, p *entity.Player, c
 			if e.Hold {
 				continue // fired at the step's NPC, before the step is done (holdLocked)
 			}
+			if res := q.takeReservedLocked(c.serverID, e.Trigger); res != nil {
+				// a hand-in's run, reserved before it took anything (questatomic.go)
+				if _, err := Triggers().Activate(res); err != nil {
+					log.Printf("Quests: %q step %d starts its reserved %q: %v", qu.Name, step, e.Trigger, err)
+				}
+				continue
+			}
 			if _, err := Triggers().FireNamed(e.Trigger, TriggerFirer{Name: p.Name, Sess: sess, Player: p, Quiet: true}); err != nil {
 				log.Printf("Quests: %q step %d fires %q: %v", qu.Name, step, e.Trigger, err)
 			}

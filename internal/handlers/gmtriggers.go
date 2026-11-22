@@ -103,6 +103,12 @@ type TriggerEngine struct {
 	// deaths is table npcdeath; kills what the World heard, for the worker
 	deaths map[string][]database.NPCDeathTrigger
 	kills  chan entity.KillCredit
+
+	// reserved are the runs admitted ahead of a quest hand-in's commit, by
+	// their number: each holds its lock until activated or released
+	// (gmtriggerreserve.go); never kept over a restart
+	reserved map[int]*TriggerReservation
+	resSeq   int
 }
 
 // triggerRun is one firing of a trigger.
@@ -518,7 +524,7 @@ func (e *TriggerEngine) SpawnsNPC(name, npc string) bool {
 	return false
 }
 
-// lockHeldLocked is whether a run of that lock lives ("": no lock, never). Must
+// lockHeldLocked is whether a run of that lock lives, or a reservation holds it ("": no lock, never). Must
 // be called with e.mu held.
 func (e *TriggerEngine) lockHeldLocked(lock string) bool {
 	if lock == "" {
@@ -529,7 +535,7 @@ func (e *TriggerEngine) lockHeldLocked(lock string) bool {
 			return true
 		}
 	}
-	return false
+	return e.reservedLocked(lock) // a quest hand-in's admission waits for it (gmtriggerreserve.go)
 }
 
 // List is every trigger as last read.
@@ -552,21 +558,37 @@ var (
 // from there). It answers the lines for the GM: what was done, or why
 // nothing was (the error then).
 func (e *TriggerEngine) Fire(slot int, by TriggerFirer) ([]string, error) {
+	r, lines, err := e.prepareRun(slot, by)
+	if err != nil {
+		return lines, err
+	}
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if e.lockHeldLocked(r.lock) {
+		return []string{fmt.Sprintf("%s waits: a run of its lock %q lives", r.trig.Title(), r.lock)}, ErrTriggerBusy
+	}
+	return e.admitLocked(r), nil
+}
+
+// prepareRun is a firing's run as the trigger in slot is written now, not yet
+// admitted: its definition read, on, parsed, and placed (Fire's checks, which a
+// reservation makes too: gmtriggerreserve.go). Its lines say why not.
+func (e *TriggerEngine) prepareRun(slot int, by TriggerFirer) (*triggerRun, []string, error) {
 	if e == nil || e.db == nil || e.gw == nil {
-		return []string{"The triggers are not running on this server"}, ErrTriggerNone
+		return nil, []string{"The triggers are not running on this server"}, ErrTriggerNone
 	}
 	t, ok, err := e.db.GMTriggerBySlot(slot)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if !ok {
-		return []string{fmt.Sprintf("Trigger %d: none set (the GM panel's Triggers page sets one; #trigger lists them)", slot)}, ErrTriggerNone
+		return nil, []string{fmt.Sprintf("Trigger %d: none set (the GM panel's Triggers page sets one; #trigger lists them)", slot)}, ErrTriggerNone
 	}
 	if !t.Enabled {
-		return []string{t.Title() + " is off (the GM panel's Triggers page turns it on)"}, ErrTriggerOff
+		return nil, []string{t.Title() + " is off (the GM panel's Triggers page turns it on)"}, ErrTriggerOff
 	}
 	if probs := database.TriggerProblems(t); len(probs) > 0 {
-		return []string{fmt.Sprintf("%s cannot run: %s", t.Title(), probs[0])}, ErrTriggerBroken
+		return nil, []string{fmt.Sprintf("%s cannot run: %s", t.Title(), probs[0])}, ErrTriggerBroken
 	}
 	steps, _ := database.ParseTriggerSteps(t.Steps)
 	r := &triggerRun{trig: t, steps: steps, by: strings.TrimSpace(by.Name), quiet: by.Quiet, lock: database.TriggerLockName(steps)}
@@ -583,16 +605,17 @@ func (e *TriggerEngine) Fire(slot int, by TriggerFirer) ([]string, error) {
 	} else {
 		world, x, y, z, _, ok := e.gw.PlayerSpot(by.Player)
 		if by.Player == nil || !ok {
-			return []string{t.Title() + " happens where the GM stands, and you are not in the world: give it a place of its own, or fire it in the game"}, ErrTriggerNoPlace
+			return nil, []string{t.Title() + " happens where the GM stands, and you are not in the world: give it a place of its own, or fire it in the game"}, ErrTriggerNoPlace
 		}
 		r.world, r.x, r.y, r.z = world, x, y, z
 	}
+	return r, nil, nil
+}
 
-	e.mu.Lock()
-	defer e.mu.Unlock()
-	if e.lockHeldLocked(r.lock) {
-		return []string{fmt.Sprintf("%s waits: a run of its lock %q lives", t.Title(), r.lock)}, ErrTriggerBusy
-	}
+// admitLocked starts a prepared run: numbered, timed, its first steps done. The
+// caller checked its lock. Must be called with e.mu held.
+func (e *TriggerEngine) admitLocked(r *triggerRun) []string {
+	t := r.trig
 	if all, err := e.db.GMTriggers(); err == nil {
 		e.cat, e.starts = all, nil
 	}
@@ -605,7 +628,7 @@ func (e *TriggerEngine) Fire(slot int, by TriggerFirer) ([]string, error) {
 	lines := []string{fmt.Sprintf("%s fired at (%.0f, %.0f, %.0f) in %s", t.Title(), r.x, r.y, r.z, placeName(r.world, r.x, r.y, r.z))}
 	lines = append(lines, e.advanceLocked(r)...)
 	e.syncNamesLocked()
-	return lines, nil
+	return lines
 }
 
 // StopRuns ends the runs of the trigger in slot (0: every run): their steps

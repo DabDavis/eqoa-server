@@ -1921,7 +1921,7 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 			}
 		case EffectHate:
 			if taunt {
-				w.tauntHateLocked(npc, caster.ServerID, spellAmount(e, caster), playerTauntHatePct(caster.Class), caster.Level) // taunt.go: the top of its hate (pettaunttank.go: at least a pet's margin)
+				w.tauntHateLocked(npc, caster.ServerID, playerTauntHate(spellAmount(e, caster)), playerTauntHatePct(caster.Class), caster.Level) // taunt.go: the top of its hate, x1.45 (SOE 2009; pettaunttank.go: at least a pet's margin)
 			} else {
 				w.updateAggro(npc, caster.ServerID, spellAmount(e, caster))
 			}

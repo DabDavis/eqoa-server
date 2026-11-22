@@ -75,6 +75,22 @@ func isTaunt(s *CastSpell) bool {
 // player's and stay as they were.
 const tankTauntHatePct = 105
 
+// tauntEffectPct is a player's taunt's hate, in percent of its record's figure: SOE's Game Update
+// Notes of 2009-04-02, "All Taunts have 45% increased effectiveness", which stood to the shutdown
+// (board 1776); the records here (Goad's 954 + 16% STR) predate it. It is applied to the hate
+// alone (playerTauntHate), before the floor (playerTauntFloor) and the tank's share
+// (playerTauntHatePct), which takes the raise to the top as before. Mercenaries' and pets' taunts
+// are not a player's and stay as they were.
+const tauntEffectPct = 145
+
+// playerTauntHate is a player's taunt's hate for its record's figure (tauntEffectPct).
+func playerTauntHate(hate int) int {
+	if hate <= 0 {
+		return hate // a hate that takes away is no taunt's (tauntHateLocked)
+	}
+	return int(pctOf(int64(hate), tauntEffectPct))
+}
+
 // playerTauntHatePct is the share of the threat a player's taunt gives (tauntHatePct).
 func playerTauntHatePct(class int) int {
 	if archetypeOf(class) == archTank {

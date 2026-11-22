@@ -1,0 +1,56 @@
+{
+  "city": "harbingers",
+  "notes": "Harbingers of Khalimet, Part II (work board 682 and 684): the portal in Wktaan's 4th Talon, the hounds and their pack leader, the post the four Khal gems are given to, Khalimet's Call to the isle, the General hailed and the Khal Viceroy killed. Written by tools/harbingers_20261122.py, which leaves it OFF (enabled 0) as the GM ruled: 'After adding khal, disable the quest until we choose to enable it'. The riddle's words and the pouch of port stones are in no source: the post takes the gems and hands sixteen Khalimet's Calls at once (the tool writes the give: its record's id is the shard's). The gems' order (Blue, Green, Red, Yellow) is said, not enforced.",
+  "items": [],
+  "quests": [
+    {
+      "key": "Misc/harbingers-of-khalimet/p2",
+      "name": "Harbingers of Khalimet: The Viceroy",
+      "giver": "Anibael",
+      "classes": [],
+      "races": [],
+      "minlevel": 55,
+      "maxlevel": 60,
+      "requires": ["Misc/harbingers-of-khalimet/p1"],
+      "repeatable": true,
+      "offer": "Khalimet comes. The four gems you took from his harbingers open his way: carry them to the portal in Wktaan's 4th Talon, and bring your friends. Many friends.",
+      "accept": "I will carry the gems to the portal.",
+      "decline": "Not yet.",
+      "declined": "Keep the gems close, then.",
+      "started": "The portal lies in the north-east of Wktaan's 4th Talon. It will know the gems.",
+      "steps": [
+        {
+          "kind": "reach",
+          "journal": "Carry the four Khal gems to the portal in Wktaan's 4th Talon (NE).",
+          "world": 0, "x": 17880, "y": 63, "z": 20120, "radius": 60,
+          "events": [{"on": "done", "do": "trigger", "trigger": "Khal Hounds", "text": "The portal is quiet; its hounds are still out. Come back later."}]
+        },
+        {
+          "kind": "kill",
+          "target": "Khal Pack Leader",
+          "count": 1,
+          "journal": "Kill the Khal hounds that pour from the portal until their pack leader comes, and kill him."
+        },
+        {
+          "kind": "give",
+          "target": "Khal signpost",
+          "journal": "Give the post by the portal the Khal gems, Blue, Green, Red and Yellow.",
+          "items": [
+            {"item": "Khal Blue Gem", "count": 1},
+            {"item": "Khal Green Gem", "count": 1},
+            {"item": "Khal Red Gem", "count": 1},
+            {"item": "Khal Yellow Gem", "count": 1}
+          ],
+          "says": "The gems sink into the post, and sixteen stones fall out: Khalimet's Call. Each will carry one of you to him.",
+          "events": [{"on": "done", "do": "trigger", "trigger": "Khalimet's General"}]
+        },
+        {
+          "kind": "kill",
+          "target": "Khal Viceroy",
+          "count": 1,
+          "journal": "Use Khalimet's Call to reach the General's isle in Zaoran Plateau, hail him, and kill the Khal Viceroy."
+        }
+      ]
+    }
+  ]
+}

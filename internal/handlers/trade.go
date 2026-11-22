@@ -130,6 +130,10 @@ func (h *TradeHandler) send(s *tradeSide, sub byte, id uint32, fill func(w *buff
 	queueReliable(s.sess, protocol.OpcodeTradeUI, tradeSub(sub, id, fill))
 }
 
+// tradeOutOfReachLine is the live game's answer to a trade asked for from out
+// of reach ("can not" as two words, as filmed).
+const tradeOutOfReachLine = "You can not trade with your target from there."
+
 // HandleTradeRequest is 0x0057 {u32 target}: the target is asked (0x0057 to
 // it), or told the asker is busy when it is trading already.
 func (h *TradeHandler) HandleTradeRequest(sess *session.Session, msg *protocol.Message) error {
@@ -141,6 +145,12 @@ func (h *TradeHandler) HandleTradeRequest(sess *session.Session, msg *protocol.M
 	me := h.gameWorld.SessionPlayer(sess)
 	them := h.gameWorld.PlayerSeenBy(sess, target)
 	if me == nil || them == nil || them == me {
+		return nil
+	}
+	// out of reach: the live game's red line (filmed), and the other player
+	// is not asked; the reach is a talk's (interact.go), the live one unmeasured
+	if !entity.InRange(me, them, entity.InteractRange) {
+		SendColoredChat(sess, tradeOutOfReachLine, 255, 63, 63)
 		return nil
 	}
 	// a Hardcore character trades with no one, Hardcore or not (hcitems.go)

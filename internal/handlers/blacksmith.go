@@ -95,6 +95,7 @@ func (h *NPCWindowHandler) HandleRepair(sess *session.Session, msg *protocol.Mes
 	cost := repairCost(p.ItemCost, row.RemainHP, p.MaxHP)
 	if cost > player.Tunar {
 		log.Printf("Repair: %s cannot afford %q (%d > %d)", player.Name, p.ItemName, cost, player.Tunar)
+		SendColoredChat(sess, cantAffordLine, 255, 63, 63) // the merchant's line (ours here, not filmed)
 		return nil
 	}
 	if err := h.inv.SetItemRemainHP(player.CharServerID, rec.itemID, p.MaxHP); err != nil {

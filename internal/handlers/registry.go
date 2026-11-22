@@ -616,6 +616,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 			log.Printf("Quests: not running: %v", err)
 		} else {
 			qe.drop = npcWindowHandler.AddCorpseQuestDrop // a loot step's drops, once a corpse (questpreloot.go)
+			qe.dropFor = npcWindowHandler.AddQuestDrop    // a player on the step's own copy (questpreloot.go)
 			npcWindowHandler.questItem = qe.QuestItem     // quest items are no No Trade share (lootshare.go)
 			qe.takeOff = equipHandler.TakeOff             // a worn item a give step takes comes off first
 			supportHandler.SetQuests(qe)                  // a petition's quests (petitionview.go)

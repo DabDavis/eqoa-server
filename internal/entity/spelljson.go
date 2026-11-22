@@ -217,9 +217,17 @@ type itemJSON struct {
 	Count int    `json:"count"`
 }
 
+// mitigateJSON is a mitigation's (kind "mitigation" or "invulnerable"): pct of each melee hit
+// on its bearer stopped, at most max over its time (0, or 100000 and over: no limit). A cap by a
+// stat instead: max_stat names the CASTER's stat (as "stat" takes it: "agi", "sta", "wis", ...)
+// and max_pct the percent of it the cap is, worked out once as the effect lands (Forest's Might:
+// {"pct": 75, "max_stat": "agi", "max_pct": 764}, a caster of 120 AGI stopping at most 916). With
+// both a max and a max_stat, the lower cap holds.
 type mitigateJSON struct {
-	Pct float64 `json:"pct"`
-	Max float64 `json:"max"`
+	Pct     float64 `json:"pct"`
+	Max     float64 `json:"max"`
+	MaxStat string  `json:"max_stat,omitempty"`
+	MaxPct  float64 `json:"max_pct,omitempty"`
 	// Rune: each hit it meets is stopped whole, its pool spent by the whole
 	// hit, the breaking one too, and 1 hit point goes through (board 1350:
 	// Eldrich Rune)
@@ -828,9 +836,18 @@ func (d *SpellDef) readEffectJSON(name, desc string, e effectJSON, aoe bool, are
 		if most >= mitigateNoLimit {
 			most = 0
 		}
+		capStat, capPct := StatNone, 0 // a cap by the caster's stat (mitigateJSON)
+		if m := e.Mitigation; m != nil && strings.TrimSpace(m.MaxStat) != "" && m.MaxPct > 0 {
+			if st, ok := jsonStats[strings.ToLower(strings.TrimSpace(m.MaxStat))]; ok {
+				capStat, capPct = st, round(m.MaxPct)
+			} else {
+				log.Printf("Spells: effect %s: mitigation's max_stat %q is no stat: its fixed max alone", e.ID, m.MaxStat)
+			}
+		}
 		if pct > 0 {
 			add(SpellEffect{Kind: EffectMitigate, Amount: min(pct, 100), AmountMax: most, ID: e.ID,
-				Rune: e.Mitigation != nil && e.Mitigation.Rune && most > 0})
+				MitigateStat: capStat, MitigateStatPct: capPct,
+				Rune: e.Mitigation != nil && e.Mitigation.Rune && (most > 0 || capPct > 0)})
 		}
 	case "lull":
 		se := effectOf(EffectLull, e)

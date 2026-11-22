@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -1123,4 +1124,50 @@ func TestNestedProcLinesGoByRank(t *testing.T) {
 	c.castOn(t, graal, 0)
 	c.castOn(t, venom, 10*time.Second)
 	want(c, "Venomus Strike over Final Strike", graal.Name)
+}
+
+// A mitigation's cap by its caster's stat (the owner, 2026-11-22: "yes" to damage-reduction
+// effects with a limit based on agility, as Forest's Might): max_stat and max_pct read as
+// MitigateStat and MitigateStatPct; the cap is worked out as it lands (764% of 100 AGI: 764),
+// not moved by the stat after; with a fixed max too the lower holds; the controls: today's row
+// (max -1000000, no max_stat) never runs out, and a max_stat that names no stat leaves the
+// fixed max alone.
+func TestMitigationCapByTheCastersStat(t *testing.T) {
+	d := SpellDefFrom("Test Might", "", "", `{"v":1,"scope":"self","duration_s":60,"effects":[{"kind":"invulnerable","mitigation":{"pct":75,"max":-1000000,"max_stat":"AGI","max_pct":764}}]}`)
+	if len(d.Effects) != 1 || d.Effects[0].MitigateStat != StatAgi || d.Effects[0].MitigateStatPct != 764 || d.Effects[0].AmountMax != 0 {
+		t.Fatalf("the effect: %+v, want AGI at 764%% and no fixed most", d.Effects)
+	}
+	might := func(id int, mit string) CastSpell {
+		return wbSpell(id, 5, 0, "Test Might", `{"v":1,"scope":"self","duration_s":60,"effects":[{"kind":"invulnerable","mitigation":`+mit+`}]}`)
+	}
+	hits := func(c *caster, n int) []int {
+		var out []int
+		for i := 0; i < n; i++ {
+			out = append(out, c.w.mitigateLocked(c.p, 1000, c.at(5*time.Second)))
+		}
+		return out
+	}
+	for _, tc := range []struct {
+		what string
+		mit  string
+		want []int // taken of three hits of 1000
+		on   bool  // still on after them
+	}{
+		// 764 most: 750 off, then 14 off (spent: it breaks), then whole
+		{"764% of AGI", `{"pct":75,"max":-1000000,"max_stat":"agi","max_pct":764}`, []int{250, 986, 1000}, false},
+		{"a fixed 500 below it", `{"pct":75,"max":-500,"max_stat":"agi","max_pct":764}`, []int{500, 1000, 1000}, false},
+		{"the control: no max_stat", `{"pct":75,"max":-1000000}`, []int{250, 250, 250}, true},
+		{"the control: no such stat", `{"pct":75,"max":-1000000,"max_stat":"luck","max_pct":764}`, []int{250, 250, 250}, true},
+	} {
+		c := newCaster(t)
+		c.p.Agi = 100
+		c.castOn(t, might(961, tc.mit), 0)
+		c.p.Agi = 400 // after it lands: the cap stays as it was worked out
+		if got := hits(c, 3); fmt.Sprint(got) != fmt.Sprint(tc.want) {
+			t.Errorf("%s: taken %v, want %v", tc.what, got, tc.want)
+		}
+		if on := len(c.effectNames()) == 1; on != tc.on {
+			t.Errorf("%s: on after the hits %v, want %v", tc.what, on, tc.on)
+		}
+	}
 }

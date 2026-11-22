@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"log"
+	"slices"
 	"sort"
 	"strings"
 
@@ -14,23 +15,28 @@ import (
 // questpreloot.go — a quest's loot step items on a corpse.
 //
 // A kill of a loot step's creature (stepKill: its target, its other creatures, an area's any
-// creature) puts the step's item on the corpse ONCE, for whoever may loot it (questloot.go's
-// shared drops: the kill group, then anyone once the corpse unlocks), whether or not anyone
-// of the kill is on the quest (the owner, 2026-11-21: "players dont need to be on a quest to
-// obtain a quest drop ... no instanced quest items for each character ... remove lore from
-// quest stacks like madmen blood"). It is one item, taken by one looter like any other loot:
-// a group of four on the step sees one, not one each. The looter's own loot step counts it
-// as it is taken (Looted); a pack's items count when their loot step becomes the step to do
-// (lootStepHeldLocked); a give or show step takes or looks at what the pack holds, as ever.
+// creature) puts the step's item on the corpse. Each player of the kill (the killer's group or
+// raid in reach: entity.KillCredit.Players) on the step who still needs the item has a copy of
+// its own, at its own draw of the step's chance, on its own view of the corpse (questloot.go's
+// AddQuestDrop): a group of four on the step sees one each (the owner, 2026-11-22, Lord
+// Chardith's bones: "Should every grouped member on the step get one per kill? yes"); one of
+// the kill not on the step has none of those (helpers get nothing). With no player of the kill
+// on the step the item still drops once, at one draw, for whoever may loot the corpse, whether
+// or not anyone of the kill is on the quest (the owner, 2026-11-21: "players dont need to be on
+// a quest to obtain a quest drop ... remove lore from quest stacks like madmen blood"). The
+// looter's own loot step counts it as it is taken (Looted); a pack's items count when their
+// loot step becomes the step to do (lootStepHeldLocked); a give or show step takes or looks at
+// what the pack holds, as ever.
 //
-// Before, each player of the kill on the step had a drop of its own on its own view of the
+// From 2026-11-21 to 11-22 the item lay ONCE, shared, whoever of the kill was on the step ("no
+// instanced quest items for each character"). Before that, each player of the kill on the step had a drop of its own on its own view of the
 // corpse (the owner, 2026-11-14: "allow pre-looting for all quests"; 2026-11-18: "do not
 // require quest at all, just drops"), and a player not on the step one only while it held
 // fewer than the step wanted, no Lore one held and no full stack.
 //
-// One roll per distinct item per corpse (corpseDropsLocked): several quests' steps naming the
-// same creature and item (the five quests of Ilenar Crelwin that each want a desert
-// madman's blood) roll it once, at the highest of their chances (database.LootChance: a
+// One roll per distinct item per corpse and player on its step (corpseDropsLocked): several
+// quests' steps naming the same creature and item (the five quests of Ilenar Crelwin that each
+// want a desert madman's blood) roll it once, at the highest of their chances (database.LootChance: a
 // chance of 0 is every kill). A step that drops to anyone (openDropLocked) counts; a step
 // that does not counts only when a player of the kill is on it, or would have had it ahead of
 // it (aheadRefusalLocked, aheadExcludedLocked: the rules below, kept from before).
@@ -103,21 +109,31 @@ func onLootStep(c *questChar, qu *database.Quest, st *database.QuestStep) bool {
 }
 
 // questDrop is one item a kill's corpse rolls: the highest chance of the steps that drop it,
-// and whether a player of the kill is on one of them.
+// and the players of the kill on one of them, each with a copy of its own.
 type questDrop struct {
 	pat    *database.ItemPatternRecord
-	chance float64
+	chance float64 // the shared copy's: the highest of the steps that drop it to anyone
 	onStep bool
 	why    string // a step that drops it, for the log
 	seq    int    // its place among the kill's items: the steps' order
-	// counted is a player on the step with a full stack of it counted it at the kill
-	// (lootKillLocked): it goes on no corpse
-	counted bool
+	// members are the players of the kill on a step of it who still need it, by k.Players'
+	// order: each rolls its own step's chance (memberChance) and has a copy of its own
+	members      []uint32
+	memberChance map[uint32]float64
+	// got is the members whose own roll dropped a copy; a member's goes on no corpse once
+	// its full stack counted it at the kill (lootKillLocked deletes it)
+	got map[uint32]bool
 }
 
-// corpseDropsLocked rolls the loot steps' items of a kill, each item once (the file's doc),
-// chars being the kill's players' quests (by k.Players' order): the items that dropped, by
-// pattern id, for placeDropsLocked to put on the corpse once the kill's steps are counted.
+// corpseDropsLocked rolls the loot steps' items of a kill (the file's doc), chars being the kill's
+// players' quests (by k.Players' order): the items that dropped, by pattern id, for
+// placeDropsLocked to put on the corpse once the kill's steps are counted. An item a player of
+// the kill (its group or raid in reach: entity.KillCredit.Players) is on a step of and still
+// needs drops a copy for each such player, at each one's own draw of its step's chance, that
+// player's alone (the owner, 2026-11-22: "Should every grouped member on the step get one per
+// kill? yes"; a helper not on the step gets none); an item no player of the kill is on a step
+// of, but that drops to anyone or ahead (openDropLocked, aheadRefusalLocked), drops once, at
+// one draw, for whoever may loot the corpse.
 func (q *QuestEngine) corpseDropsLocked(k entity.KillCredit, chars []*questChar) map[int]*questDrop {
 	if q.drop == nil || k.NPCID == 0 || len(k.Players) == 0 {
 		return nil
@@ -143,39 +159,63 @@ func (q *QuestEngine) corpseDropsLocked(k entity.KillCredit, chars []*questChar)
 		if pat == nil {
 			continue
 		}
-		drops, onStep := q.openDropLocked(qu, st, pat, k.NPCName), false
-		for _, c := range chars {
+		ch := database.LootChance(st.Chance) // in (0, 1]
+		drops := q.openDropLocked(qu, st, pat, k.NPCName)
+		var on []uint32
+		for i, c := range chars {
 			switch {
 			case onLootStep(c, qu, st):
-				drops, onStep = true, true
+				on = append(on, k.Players[i].ServerID)
 			case !drops && qu.Enabled && q.aheadRefusalLocked(c, qu, st, k.NPCName) == "" && q.aheadExcludedLocked(qu, st, pat) == "":
 				drops = true
 			}
 		}
-		if !drops {
+		if !drops && len(on) == 0 {
 			continue
 		}
 		d := byItem[pid]
 		if d == nil {
-			d = &questDrop{pat: pat, seq: len(order)}
+			d = &questDrop{pat: pat, seq: len(order), memberChance: map[uint32]float64{}, got: map[uint32]bool{}}
 			byItem[pid] = d
 			order = append(order, pid)
 		}
-		if ch := database.LootChance(st.Chance); ch > d.chance { // in (0, 1]: the first sets it
+		if ch > d.chance { // the first sets it
 			d.chance, d.why = ch, fmt.Sprintf("step %d of %q", st.Step, qu.Name)
 		}
-		d.onStep = d.onStep || onStep
+		for _, sid := range on {
+			d.memberChance[sid] = max(d.memberChance[sid], ch) // two quests' steps of one item: one copy, the higher
+		}
+		d.onStep = d.onStep || len(on) > 0
 	}
 	for _, pid := range order {
-		if q.roll() >= byItem[pid].chance {
+		d := byItem[pid]
+		if !d.onStep {
+			if q.roll() >= d.chance {
+				delete(byItem, pid)
+			}
+			continue
+		}
+		for _, kp := range k.Players { // the kill's order, each once
+			if _, on := d.memberChance[kp.ServerID]; on && !slices.Contains(d.members, kp.ServerID) {
+				d.members = append(d.members, kp.ServerID)
+			}
+		}
+		for _, sid := range d.members {
+			if q.roll() < d.memberChance[sid] {
+				d.got[sid] = true
+			}
+		}
+		if len(d.got) == 0 {
 			delete(byItem, pid)
 		}
 	}
 	return byItem
 }
 
-// placeDropsLocked puts a kill's rolled items (corpseDropsLocked) on its corpse, each once,
-// but one a full stack counted at the kill (lootKillLocked).
+// placeDropsLocked puts a kill's rolled items (corpseDropsLocked) on its corpse: an item for
+// players on its step a copy each, on that player's own view of the corpse; one for no one on
+// its step once, for whoever may loot it (ahead); but a copy a full stack counted at the kill
+// (lootKillLocked).
 func (q *QuestEngine) placeDropsLocked(k entity.KillCredit, dropped map[int]*questDrop) {
 	ids := make([]int, 0, len(dropped))
 	for pid := range dropped {
@@ -184,11 +224,27 @@ func (q *QuestEngine) placeDropsLocked(k entity.KillCredit, dropped map[int]*que
 	sort.Slice(ids, func(i, j int) bool { return dropped[ids[i]].seq < dropped[ids[j]].seq })
 	for _, pid := range ids {
 		d := dropped[pid]
-		if d.counted {
+		rec := database.CharInventoryEntry{StackLeft: 1, EquipLoc: -1, Pattern: *d.pat}
+		if !d.onStep {
+			q.drop(k.NPCID, k.Died, rec, true)
+			log.Printf("Quests: %q dropped %q on its corpse (%s; no player of the kill on the step)", k.NPCName, d.pat.ItemName, d.why)
 			continue
 		}
-		q.drop(k.NPCID, k.Died, database.CharInventoryEntry{StackLeft: 1, EquipLoc: -1, Pattern: *d.pat}, !d.onStep)
-		log.Printf("Quests: %q dropped %q on its corpse (%s; a player on the step: %v)", k.NPCName, d.pat.ItemName, d.why, d.onStep)
+		n := 0
+		for _, sid := range d.members {
+			if !d.got[sid] {
+				continue
+			}
+			n++
+			if q.dropFor != nil {
+				q.dropFor(k.NPCID, k.Died, sid, rec)
+			} else {
+				q.drop(k.NPCID, k.Died, rec, false)
+			}
+		}
+		if n > 0 {
+			log.Printf("Quests: %q dropped %d of %q on its corpse, one each for the kill's players on the step (%s)", k.NPCName, n, d.pat.ItemName, d.why)
+		}
 	}
 }
 

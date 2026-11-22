@@ -141,6 +141,9 @@ type QuestEngine struct {
 	// AddCorpseQuestDrop, questloot.go; questpreloot.go): ahead, no player of the kill on
 	// the step, it keeps the corpse only a while; nil drops nothing
 	drop func(npc entity.EntityID, died time.Time, rec database.CharInventoryEntry, ahead bool)
+	// dropFor puts a loot step's item on one character's own view of a corpse (the windows'
+	// AddQuestDrop): a player of the kill on the step's copy (questpreloot.go); nil, drop's
+	dropFor func(npc entity.EntityID, died time.Time, serverID uint32, rec database.CharInventoryEntry)
 	// questItems is every item a quest step names (questItemsOf), for the loot's sharing
 	// (QuestItem): read with no lock, so a corpse's roll never waits on the quests
 	questItems atomic.Pointer[map[int]bool]

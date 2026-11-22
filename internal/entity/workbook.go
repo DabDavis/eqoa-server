@@ -165,9 +165,10 @@ func rulesOf(d *SpellDef) EffectRules {
 	return r
 }
 
-// workbookLasting puts one of the workbook's own kinds on what lasts, and
+// workbookLasting puts one of the workbook's own kinds on what lasts, a
+// mitigation's cap by a stat the caster's (SpellEffect.MitigateStat), and
 // reports whether it was one; anything else is lasting's.
-func (ae *ActiveEffect) workbookLasting(e SpellEffect, d *SpellDef) bool {
+func (ae *ActiveEffect) workbookLasting(e SpellEffect, d *SpellDef, caster *Player) bool {
 	switch e.Kind {
 	case EffectSnare:
 		if e.Amount >= 0 || !d.Workbook {
@@ -177,8 +178,14 @@ func (ae *ActiveEffect) workbookLasting(e SpellEffect, d *SpellDef) bool {
 		ae.Snare = ae.Snare || d.Harmful
 	case EffectMitigate:
 		ae.Rules.MitigatePct = max(ae.Rules.MitigatePct, e.Amount)
-		ae.Rules.MitigateLeft, ae.Rules.MitigateCapped = e.AmountMax, e.AmountMax > 0
-		ae.Rules.MitigateRune = e.Rune && e.AmountMax > 0
+		most := e.AmountMax
+		if e.MitigateStatPct > 0 && caster != nil { // a cap by the caster's stat, as it lands
+			if byStat := max(caster.StatNow(e.MitigateStat)*e.MitigateStatPct/100, 1); most <= 0 || byStat < most {
+				most = byStat
+			}
+		}
+		ae.Rules.MitigateLeft, ae.Rules.MitigateCapped = most, most > 0
+		ae.Rules.MitigateRune = e.Rune && most > 0
 	case EffectLull:
 		ae.Rules.Lull = true
 	case EffectBreath:

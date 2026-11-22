@@ -930,10 +930,10 @@ func (q *QuestEngine) stepStartedLocked(sess *session.Session, p *entity.Player,
 	q.lootStepHeldLocked(sess, p, c, qu, cq, st) // a loot step's items held already (questpreloot.go)
 }
 
-// lootKillLocked is a kill on a loot step for a player on it: its item lies on the corpse
-// for whoever loots it, rolled once for the corpse (questpreloot.go's corpseDropsLocked:
-// dropped), and the looter's step counts it as it is taken (Looted). A drop the player could
-// never take is counted for it at once, and goes on no corpse (one item, one player's): its record of the item is a full stack, and CLIENT's
+// lootKillLocked is a kill on a loot step for a player on it: its own copy of the item lies on
+// the corpse when its draw dropped one (questpreloot.go's corpseDropsLocked: dropped), and its
+// step counts it as it is taken (Looted). A drop the player could never take is counted for it
+// at once, and its copy goes on no corpse: its record of the item is a full stack, and CLIENT's
 // VIItemList::AddItem (0x00BBD130) puts a stackable item on the FIRST record of it and keeps
 // nothing past its stack, opening no second record (0x003B and a corpse's 0x0019/0x001A
 // alike), so a player who held a full stack from before the step (a quest given up and taken
@@ -942,7 +942,7 @@ func (q *QuestEngine) stepStartedLocked(sess *session.Session, p *entity.Player,
 func (q *QuestEngine) lootKillLocked(k entity.KillCredit, kp entity.KillPlayer, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep, dropped map[int]*questDrop) {
 	pid, need, ok := st.LootItem()
 	d := dropped[pid]
-	if !ok || d == nil || d.counted || cq.Count >= need || kp.Session == nil || q.playerOf == nil {
+	if !ok || d == nil || !d.got[kp.ServerID] || cq.Count >= need || kp.Session == nil || q.playerOf == nil {
 		return
 	}
 	pat, err := q.items.GetItemPattern(pid)
@@ -953,7 +953,7 @@ func (q *QuestEngine) lootKillLocked(k entity.KillCredit, kp entity.KillPlayer, 
 		SendClientMessage(kp.Session, fmt.Sprintf("You can carry no more %s: this one counts.", pat.ItemName))
 		log.Printf("Quests: %q dropped %q, and %s's stack of it is full: counted (step %d of %q)",
 			k.NPCName, pat.ItemName, kp.Name, st.Step, qu.Name)
-		d.counted = true
+		delete(d.got, kp.ServerID) // its own copy goes on no corpse
 		q.countLootLocked(kp.Session, p, c, qu, cq, st, 1)
 	}
 }

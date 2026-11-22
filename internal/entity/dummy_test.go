@@ -290,3 +290,36 @@ func TestASparringDummyStopsShortOfKillingAPet(t *testing.T) {
 		t.Error("the owner was not told the sparring dummy let its pet be")
 	}
 }
+
+// A dummy's hit on the player meets the player's mitigation as a creature's melee does (the
+// owner, 2026-11-22: "let damage reduction work"): a 50% one halves the Lv35's floor of 14, a
+// capped one stops no more than it has left and breaks when spent; with none (the control) the
+// hit is whole. A Training Dummy's heal of 300 follows each.
+func TestADummysHitMeetsMitigation(t *testing.T) {
+	for _, tc := range []struct {
+		what  string
+		rules *EffectRules
+		taken int
+		stays bool
+	}{
+		{"no mitigation", nil, 14, false},
+		{"50%", &EffectRules{MitigatePct: 50}, 7, true},
+		{"75% with 5 left", &EffectRules{MitigatePct: 75, MitigateCapped: true, MitigateLeft: 5}, 9, false},
+	} {
+		c := newDummy(t, "Training Dummy Lv35", 35)
+		c.p.AC = 600 // the Lv35's floor, 14, every hit
+		c.p.HP, c.p.MaxHP = 1000, 5000
+		if tc.rules != nil {
+			c.p.Effects = []*ActiveEffect{{SpellID: 901185, Name: "Forest's Might", Until: c.at(time.Hour), Rules: *tc.rules}}
+		}
+		c.w.mu.Lock()
+		c.w.dummyHitLocked(c.sess, c.npc, c.p, c.at(time.Second))
+		c.w.mu.Unlock()
+		if want := 1000 - tc.taken + dummyHeal; c.p.HP != want {
+			t.Errorf("%s: HP %d, want %d (%d taken, then the heal)", tc.what, c.p.HP, want, tc.taken)
+		}
+		if on := len(c.p.Effects) == 1; tc.rules != nil && on != tc.stays {
+			t.Errorf("%s: the mitigation on %v, want %v", tc.what, on, tc.stays)
+		}
+	}
+}

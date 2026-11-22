@@ -9,16 +9,17 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// A loot step's drops (questpreloot.go): since 2026-11-21 a kill's quest item
-// lies on the corpse ONCE, a shared drop (below) whoever may loot the corpse
-// takes (the owner, 2026-11-21: "players dont need to be on a quest to obtain a
-// quest drop ... no instanced quest items for each character": AddCorpseQuestDrop).
+// A loot step's drops (questpreloot.go): since 2026-11-22 each player of the
+// kill on the step has a copy of its own (AddQuestDrop, below; the owner,
+// 2026-11-22: "Should every grouped member on the step get one per kill?
+// yes"), and an item no one of the kill is on the step for lies on the corpse
+// ONCE, a shared drop whoever may loot the corpse takes (AddCorpseQuestDrop;
+// the owner, 2026-11-21: "players dont need to be on a quest to obtain a quest
+// drop"). From 2026-11-21 to 11-22 the shared one was every quest drop.
 //
-// A character's own drop (AddQuestDrop) is how they were before: an item a kill
-// dropped for one character on a loot step lay on THAT character's view of the
-// corpse, after the corpse's own items (loot.go), and only that character saw
-// and took it. Nothing drops so now, but a keep restart's corpses from before
-// carry theirs (keep.go), and they are taken as they were. The corpse's window lists the
+// A character's own drop (AddQuestDrop) lies on THAT character's view of the
+// corpse, after the corpse's own items (loot.go), and only that character sees
+// and takes it; a keep restart's corpses carry theirs (keep.go), and they are taken as they were. The corpse's window lists the
 // two together, keyed by position, so Take and Take all go on as before; a
 // corpse goes when its window closes with its own items AND every
 // character's drops gone, else when it decays. A drop ahead of its step

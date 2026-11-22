@@ -872,3 +872,23 @@ func TestAuctionBankSlotsAreTheHolders(t *testing.T) {
 	}
 	r.audit()
 }
+
+// A lot that ends unsold into a bank with room says the live game's words
+// (board 1749, filmed): "Auction Update: '<item>' received no bids and was
+// returned to your bank inventory."; the control, a bank with no room, keeps
+// our waiting line (TestAuctionDeliveryWaitsForRoom).
+func TestAuctionNoBidsLineInTheLiveWords(t *testing.T) {
+	r := newAuctionRig(t)
+	lot, err := r.list(r.seller, r.item(r.seller, r.sword, 1, 1), 100, 1000, 720)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sw, err := r.db.AuctionSettleDue(time.Unix(lot.EndsAt, 0))
+	if err != nil || len(sw.Settled) != 1 || sw.Settled[0].Lot.State != AuctionUnsold {
+		t.Fatal(sw, err)
+	}
+	notes, _ := r.db.AuctionNotices(r.seller)
+	if want := "Auction Update: 'Fine Sword' received no bids and was returned to your bank inventory."; len(notes) != 1 || notes[0].Line != want {
+		t.Errorf("notices %+v, want %q", notes, want)
+	}
+}

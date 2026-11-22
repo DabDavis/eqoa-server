@@ -413,6 +413,11 @@ func (db *SQLiteDB) BankTunar(serverID uint32) (int, bool, error) {
 	return bankTunarTx(db, serverID)
 }
 
+// auctionNoBidsBanked is the live game's line for a lot that ended unsold and
+// went back to its seller's bank (filmed on a 2009 tape, a map chest key; board
+// 1749). The waiting-for-room line and the sold lines were not filmed: ours.
+const auctionNoBidsBanked = "Auction Update: '%s' received no bids and was returned to your bank inventory."
+
 func noticeTx(tx sqlRunner, serverID uint32, now time.Time, format string, args ...any) error {
 	if serverID == 0 {
 		return nil
@@ -960,7 +965,11 @@ func settleTx(tx sqlRunner, l AuctionLot, now time.Time) (AuctionSettlement, err
 			return st, err
 		}
 	} else if !st.SellerGone {
-		if err := noticeTx(tx, l.Seller, now, "Your auction of %s ended with no bids. %s", name, where); err != nil {
+		line := fmt.Sprintf(auctionNoBidsBanked, name) // in the bank: the live game's words (filmed)
+		if d == nil && !after.Delivered {
+			line = fmt.Sprintf("Your auction of %s ended with no bids. %s", name, where) // waiting for room: ours
+		}
+		if err := noticeTx(tx, l.Seller, now, "%s", line); err != nil {
 			return st, err
 		}
 	}

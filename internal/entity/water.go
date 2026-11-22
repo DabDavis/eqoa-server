@@ -428,7 +428,11 @@ func (w *World) swimLocked(npc *NPC) bool {
 	if w.env == nil || npc.Dead {
 		return false
 	}
-	if npc.Owner == 0 && w.keepsToLocked(npc) != keepsToLand {
+	// a creature of the water keeps its own depth; one of the land and one
+	// that goes both ways (caimans, crocodiles) swims at the surface where
+	// the water is deep (petition 5446: "young caimen run along the bottom of
+	// water when chasing you")
+	if npc.Owner == 0 && w.keepsToLocked(npc) == keepsToWater {
 		return false
 	}
 	in := w.waterAtLocked

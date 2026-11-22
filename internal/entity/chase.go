@@ -360,7 +360,7 @@ func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (i
 	npc.X += ux * step
 	npc.Z += uz * step
 	noFloor := w.groundNPCLocked(npc)
-	if (guarded && (npc.Y < oldY-legDrop || npc.Y > oldY+routeClimb)) || w.intoGroundLocked(npc, noFloor) || w.movedUnderLocked(npc) {
+	if (guarded && (npc.Y < oldY-legDrop || (npc.Y > oldY+routeClimb && !(npc.swimming && !oldSwim)))) || w.intoGroundLocked(npc, noFloor) || w.movedUnderLocked(npc) {
 		// off an edge the look ahead stepped over (or into the water below it),
 		// into the ground (a bank too high out of the water, a face too steep:
 		// groundnpc.go), or under a floor (a slab a little higher than a step,

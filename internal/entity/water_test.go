@@ -640,3 +640,41 @@ func TestMudIsOnTheFarSideOfTheEdge(t *testing.T) {
 		t.Errorf("both in the mud: %q, want no refusal", got)
 	}
 }
+
+// A creature that goes both ways (npcmove water "both": caimans, crocodiles)
+// swims at the surface in deep water as one of the land does, never walking
+// the sea floor (petition 5446). The control: one of the water keeps its depth.
+func TestACreatureOfBothSwimsInDeepWater(t *testing.T) {
+	const surface = 50
+	for _, c := range []struct {
+		water string
+		swims bool
+	}{{keepsToBoth, true}, {keepsToWater, false}} {
+		w := beachWorld(t, true)
+		w.SetMoveRules(map[string]database.NPCMoveRule{"young caiman": {Roam: true, Water: c.water}})
+		cai := addNPC(w, 100, "young caiman", 1985, 1000, creatureModel, 0)
+		cai.Y, cai.SpawnY = 60, 60
+		deep := false
+		w.mu.Lock()
+		for i := 0; i < 400; i++ {
+			arrived := w.stepNPCToward(cai, 2030, 1000, 5, 0.1)
+			if surface-beachFloor(cai.X) > swimDepth+0.1 {
+				deep = true
+				if c.swims && (!cai.swimming || cai.Y < surface-swimDepth-0.06) {
+					w.mu.Unlock()
+					t.Fatalf("water %q at x %.1f: y %.2f swimming %v, want the surface", c.water, cai.X, cai.Y, cai.swimming)
+				}
+			}
+			if arrived {
+				break
+			}
+		}
+		w.mu.Unlock()
+		if !deep {
+			t.Fatalf("water %q: never reached deep water (x %.1f)", c.water, cai.X)
+		}
+		if c.swims != cai.swimming {
+			t.Errorf("water %q: swimming %v at the end, want %v (y %.2f)", c.water, cai.swimming, c.swims, cai.Y)
+		}
+	}
+}

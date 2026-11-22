@@ -89,11 +89,12 @@ var companionNotPets = map[string]bool{
 	"village pet":          true,
 }
 
-// companionWords are the words a pet's name ends in (any case). "servant"
+// companionWords are the words a pet's name ends in (any case; "primal spirit": the
+// clan kolbok mystics' pets, petition 2654). "servant"
 // only names an owner's ("Moogie's Servant", "Servant of Vorin": the
 // companionOwnerName forms): alone it is a kind of creature here (dark
 // servants, slith tar servants, tower servants, 70 rows mostly standing alone).
-var companionWords = regexp.MustCompile(`(?i)(^|[\s'])(pet|minion|familiar|thrall|companion spirit)$`)
+var companionWords = regexp.MustCompile(`(?i)(^|[\s'])(pet|minion|familiar|thrall|companion spirit|primal spirit)$`)
 
 // companionOwnerName is the owner a pet's name names: "Goran's pet" Goran,
 // "Minion of Krrgar" Krrgar, "" for none.

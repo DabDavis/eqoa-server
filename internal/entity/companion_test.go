@@ -123,7 +123,7 @@ func TestWhoIsACreaturesPet(t *testing.T) {
 	if w.companionOf[gpet.ServerID] != goran.ServerID {
 		t.Errorf("Goran's pet is %d's, want Goran's %d", w.companionOf[gpet.ServerID], goran.ServerID)
 	}
-	for name, want := range map[string]bool{"spectral minion": true, "Companion Spirit": true, "Minion of Krrgar": true,
+	for name, want := range map[string]bool{"spectral minion": true, "Companion Spirit": true, "Primal Spirit": true, "spirit wolf": false, "Minion of Krrgar": true,
 		"Servant of Vorin": true, "maiden's servant": true, "griffawn": false, "Trumpeter": false, "Petal sprite": false, "dark servant": false, "Moogie's Servant": true} {
 		if companionName(name) != want {
 			t.Errorf("companionName(%q) = %v", name, !want)

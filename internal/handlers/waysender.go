@@ -99,6 +99,13 @@ var wayRoutes = map[string][]wayRoute{
 	// "Waysender Glowbap who will teleport you to Rivervale" (klick-anon/wizard)
 	"Waysender Glowbap": {
 		{To: "Rivervale", Arrive: "Waysender Windfoot"},
+		// Prima p.207 and Allakhazam q829 send the Klick'Anon alchemist to
+		// Highbourne by Glowbap and back by the Highbourne waysender
+		// (Prima's "Hganis", the game's Ilganis): work board 1933, section 5
+		{To: "Highbourne", Arrive: "Waysender Ilganis"},
+	},
+	"Waysender Ilganis": {
+		{To: "Klik'Anon", Arrive: "Waysender Glowbap"},
 	},
 	// "Waysender Windfoot to teleport back to Klick'Anon" (klick-anon/wizard)
 	"Waysender Windfoot": {

@@ -232,12 +232,19 @@ func (w *World) dummyHitPetLocked(npc, pet *NPC, now time.Time) bool {
 	return false
 }
 
-// dummyHitLocked is one of a dummy's hits on the player, and a Training
-// Dummy's heal after it. It reports the player's death.
+// dummyHitLocked is one of a dummy's hits on the player, less what the player's
+// mitigations take off (workbook.go), and a Training Dummy's heal after it. It
+// reports the player's death.
 func (w *World) dummyHitLocked(sess *session.Session, npc *NPC, p *Player, now time.Time) bool {
 	damage := npcMeleeRoll(npc).hitOn(p, rand.Intn)
 	if npc.Dummy == SparringDummy {
 		damage = npc.sparHits(damage) // "Sparring Dummy x2": twice as hard
+	}
+	// the player's mitigations take their share off it, their most spent, as off a creature's
+	// melee (npcMeleeOnPlayerLocked; the owner, 2026-11-22: "let damage reduction work", so a
+	// Forest's Might shows on a dummy); no balance, no damage formula: a dummy's roll is its own
+	damage = w.mitigateLocked(p, damage, now)
+	if npc.Dummy == SparringDummy {
 		if w.sparHitLocked(sess, npc, p, damage, "", now) {
 			return true
 		}

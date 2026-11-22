@@ -45,6 +45,8 @@ func TestWornShieldOf(t *testing.T) {
 		"bracers of toxicity": {Damage: 64}, "Golden Spiked Gloves": {Damage: 20}, "Sandals of the Burning Sands": {Damage: 35},
 		// the other classes' records of the bracers
 		"Vambracers of Toxicity": {Damage: 64}, "Wristguards of Toxicity": {Damage: 64},
+		// heroic Guk's (work board 1312)
+		"Fungal Spore Tunic": {Heal: 20},
 	} {
 		want.Item = name
 		if s, ok := of(name); !ok || s != want {
@@ -60,7 +62,7 @@ func TestWornShieldOf(t *testing.T) {
 	}
 	for _, name := range []string{"Robe of the Anointed", "Nightshade Boots", "Nite Jaguar-Hide Gloves", "seraphic planar robe",
 		"Seraphic Planar Greaves", "Worldbreaker Greaves", "Grundleskin Bracers", "Traitorous Greaves", "Golden Spiked Bracers",
-		"shield of the isle", "Imperial Breastplate", "Tobrin's Eyepatch", "Martyr's Breastplate"} {
+		"shield of the isle", "Imperial Breastplate", "Tobrin's Eyepatch", "Martyr's Breastplate", "Legacy Fungal Spore Tunic", "Fungal Spore Robe"} {
 		if _, ok := of(name); ok {
 			t.Errorf("%s answers a hit", name)
 		}
@@ -321,5 +323,37 @@ func TestAscendedToxicityWristsAnswer(t *testing.T) {
 		if want := database.AscendedFigure(64); !ok || s.Damage != want {
 			t.Errorf("%s: %+v %v, want %d damage", name, s, ok, want)
 		}
+	}
+}
+
+// The Fungal Spore Tunic (work board 1312) heals its wearer 20 at each hit,
+// and hits back with nothing; worn beside Splendor both answer. The control:
+// the Legacy copy answers nothing.
+func TestTheFungalSporeTunicHealsTwenty(t *testing.T) {
+	c, crab := casterAndCrab(t)
+	tunic, ok := WornShieldOf(995009, "Fungal Spore Tunic")
+	if !ok {
+		t.Fatal("the tunic has no hit effect")
+	}
+	c.p.Gear.Shields = []WornShield{tunic}
+	c.p.HP = c.p.MaxHPNow() - 100
+	before := crab.HP
+	c.w.mu.Lock()
+	c.w.playerShieldsLocked(c.sess, c.p, crab, c.at(time.Second))
+	c.w.mu.Unlock()
+	if c.p.HP != c.p.MaxHPNow()-80 || crab.HP != before {
+		t.Errorf("the tunic alone: the wearer short %d (want 80), the crab %d (want %d)", c.p.MaxHPNow()-c.p.HP, crab.HP, before)
+	}
+	splendor, _ := WornShieldOf(2256, "Splendor")
+	c.p.Gear.Shields = []WornShield{tunic, splendor}
+	c.p.HP = c.p.MaxHPNow() - 100
+	c.w.mu.Lock()
+	c.w.playerShieldsLocked(c.sess, c.p, crab, c.at(2*time.Second))
+	c.w.mu.Unlock()
+	if c.p.HP != c.p.MaxHPNow()-65 || crab.HP != before-30 {
+		t.Errorf("with Splendor: the wearer short %d (want 65), the crab %d (want %d)", c.p.MaxHPNow()-c.p.HP, crab.HP, before-30)
+	}
+	if _, ok := WornShieldOf(966011, "Legacy Fungal Spore Tunic"); ok {
+		t.Error("the Legacy tunic answers a hit")
 	}
 }

@@ -81,6 +81,9 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 	case "npcdialog":
 		database.InvalidateNPCDialog()
 		return "at once: the next talk to a town's person or a guard"
+	case "npctalk":
+		database.InvalidateNPCTalk()
+		return "at once: the next talk to that NPC"
 	case "npcoverseer":
 		database.InvalidateNPCOverseer()
 		return "at once: the next talk to the overseer"
@@ -623,6 +626,29 @@ func checkMerchantPriceRow(row map[string]any) error {
 	}
 	if v, ok := row["price"]; ok && (v == nil || rowInt(row, "price") < 0) {
 		return badRequest("price is tunar for one, 0 or more")
+	}
+	return nil
+}
+
+// checkNPCTalkRow holds an npctalk row (work board 883) to a name's key, a node of 1 or more, and says and
+// answers a client can draw (database.TalkNodeProblems: answers that read as JSON, each 63 characters at
+// most, five beside Exit, no |). A next naming no node closes the conversation when picked.
+func checkNPCTalkRow(row map[string]any) error {
+	if v, ok := row["npc"]; ok {
+		if name, _ := v.(string); database.NPCClassKey(name) == "" || database.NPCClassKey(name) != name {
+			return badRequest("npc is the NPC's name as NPC classes key it: lower case, no trailing space or $")
+		}
+	}
+	if _, ok := row["node"]; ok && rowInt(row, "node") < 1 {
+		return badRequest("node is 1 or more (1 is where a talk starts)")
+	}
+	says, _ := row["says"].(string)
+	choices, has := row["choices"].(string)
+	if !has {
+		choices = ""
+	}
+	if p := database.TalkNodeProblems(says, choices); len(p) > 0 {
+		return badRequest("%s", strings.Join(p, "; "))
 	}
 	return nil
 }

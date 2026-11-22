@@ -62,7 +62,7 @@ func (s *Server) registerQuestOps() {
 		"repeatable": integer("1: may be taken again once finished"),
 		"offer":      str("the giver's words offering it: a paragraph (lines between blank lines) a question, a line a box, each paragraph's last line the question"),
 		"accept":     str("the player's answers that take it, a line a question (the last one gives the quest); empty: taken as soon as the giver is talked to"),
-		"decline":    str("the player's answer that refuses it, offered with each answer; empty: none"),
+		"decline":    str("the player's answer that refuses it: one line, offered with each question; several lines, a line a question as accept's (an empty line: that question has none); empty: none"),
 		"declined":   str("the giver's reply to a refusal, said as written (no name put before it)"),
 		"started":    str("the giver's words once it is taken"),
 		"source":     str("where it came from"),
@@ -657,8 +657,14 @@ func (s *Server) questProblems(q map[string]any, steps []map[string]any, unlocks
 	if text(q, "accept") == "" && text(q, "decline") != "" {
 		add("it has an answer refusing it but none taking it: it is taken when talked to, and the refusal never shows")
 	}
-	if utf8.RuneCountInString(text(q, "accept")) > 63 || utf8.RuneCountInString(text(q, "decline")) > 63 {
-		add("an answer is longer than 63 characters: the client cuts it")
+	// a line a question, each its own answer (work board 883: a refusal per question)
+	for _, col := range []string{"accept", "decline"} {
+		for _, l := range strings.Split(text(q, col), "\n") {
+			if utf8.RuneCountInString(strings.TrimSpace(l)) > 63 {
+				add("an answer is longer than 63 characters: the client cuts it")
+				break
+			}
+		}
 	}
 	self, _ := asFloat(q["questid"])
 	for _, r := range database.ParseIntList(text(q, "requires")) {

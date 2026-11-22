@@ -1715,6 +1715,25 @@ var catalog = map[string]tableNote{
 			"source":       {Label: "Source", Help: "gm, or ours for tools/seed_town_dialog.py's rows"},
 		},
 	},
+	"npctalk": {
+		Label: "NPC talk", Group: "World", Title: "says", Sort: "npc",
+		Help: "An NPC's conversation, as live NPCs held them outside any quest (handlers/npctalk.go): a talk to an NPC " +
+			"whose name has a node 1, where nothing before it answers (a quest step or offer, a shop, a route, a bind, a " +
+			"sign post), plays node 1 in place of a town's line (NPC dialog). A node's lines go a dialogue box each, the " +
+			"speaker's name before them; with answers, its last line is the question asked with them and Exit (added by " +
+			"the server). An answer plays the node it names, 0 closes. npc is the name as NPC classes key it (lower case, " +
+			"no trailing space or $). Source video-audit rows are conversations read off live-era footage.",
+		Live:   "At once: the next talk.",
+		Search: []string{"npc", "says", "choices", "note", "source"},
+		Cols: map[string]colNote{
+			"npc":     {Label: "NPC (key)", Help: "lower case, as in NPCs without a trailing space or $"},
+			"node":    {Label: "Node", Help: "1 is where a talk starts"},
+			"says":    {Label: "Says", Format: "multiline", Help: "a line a dialogue box; with answers the last line is the question (127 characters at most)"},
+			"choices": {Label: "Answers", Format: "multiline", Help: `a JSON list of {"text": the answer (63 characters at most), "next": the node it plays, 0 closes}; [] none; 5 at most beside Exit`},
+			"source":  {Label: "Source", Help: "gm, or video-audit for words read off live-era footage"},
+			"note":    {Label: "Note", Help: "why"},
+		},
+	},
 	"signtext": {
 		Label: "Sign words", Group: "World", Title: "text", Sort: "npcid",
 		Help: "What a sign post or an announcement board says when talked to (handlers/signs.go), in dialogue boxes: " +
@@ -2892,7 +2911,7 @@ var catalog = map[string]tableNote{
 			"repeatable": {Label: "Repeatable"},
 			"offer":      {Label: "Giver offers", Format: "multiline", Help: "a paragraph a question: a line a box, its last line asks"},
 			"accept":     {Label: "Answers taking it", Format: "multiline", Help: "a line a question; empty: taken when talked to"},
-			"decline":    {Label: "Answer refusing it", Help: "empty: none (Close refuses)"},
+			"decline":    {Label: "Answer refusing it", Help: "one line: offered beside every question; several lines: a line a question, as the answers taking it (an empty line: that question has none); empty: none (Close refuses)"},
 			"declined":   {Label: "Giver replies to a refusal", Format: "multiline", Help: "said as written"},
 			"started":    {Label: "Giver says once taken", Format: "multiline"},
 			"source":     {Label: "Source"},

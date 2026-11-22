@@ -1333,7 +1333,7 @@ func (q *QuestEngine) askStageLocked(sess *session.Session, c *questChar, qu *da
 func offerChoices(qu *database.Quest, k int, picked []string) []questChoice {
 	answers := sayLines(qu.Accept)
 	choices := []questChoice{{kind: choiceAccept, quest: qu.ID, step: k, label: answers[k]}}
-	if d := strings.TrimSpace(qu.Decline); d != "" {
+	if d := declineAt(qu, k); d != "" {
 		choices = append(choices, questChoice{kind: choiceDecline, quest: qu.ID, label: d})
 	}
 	if k != len(answers)-1 {
@@ -1346,6 +1346,21 @@ func offerChoices(qu *database.Quest, k int, picked []string) []questChoice {
 		choices = append(choices, questChoice{kind: choiceAsk, quest: qu.ID, step: k, label: o.ask.Answer, ask: o.path, picked: picked})
 	}
 	return choices
+}
+
+// declineAt is the refusal offered beside the offer's question k (work board 883: the live givers refused
+// per question): decline read as accept is, a line a question, an empty line that question's none; a
+// decline of one line (no \n) is the refusal of every question, as before.
+func declineAt(qu *database.Quest, k int) string {
+	raw := strings.ReplaceAll(qu.Decline, "\r", "")
+	if !strings.Contains(raw, "\n") {
+		return strings.TrimSpace(raw)
+	}
+	lines := strings.Split(raw, "\n")
+	if k < 0 || k >= len(lines) {
+		return ""
+	}
+	return strings.TrimSpace(lines[k])
 }
 
 // openAsk is an ask that may be asked now and its path.

@@ -149,6 +149,9 @@ func checkRow(table string, row map[string]any) error {
 	if table == "merchantprice" && row != nil {
 		return checkMerchantPriceRow(row) // live.go
 	}
+	if table == "npctalk" && row != nil {
+		return checkNPCTalkRow(row) // live.go
+	}
 	if table == "npcspawnonly" && row != nil {
 		return checkSpawnOnlyRow(row) // live.go
 	}

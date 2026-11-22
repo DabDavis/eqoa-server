@@ -79,7 +79,10 @@ type InteractHandler struct {
 	// Mr. Moogie's boxes (moogie.go), under boardMu, and his favor's turn-in (metalmoogie.go; nil:
 	// none offered)
 	moogie moogieAsks
-	favor  *MoogieFavor
+	// the talk trees' boxes (npctalk.go), under boardMu, and npctalk's reader (database.NPCTalk)
+	talks     talkAsks
+	talkTrees func() (map[string]map[int]database.TalkNode, error)
+	favor     *MoogieFavor
 	// Dabrish's boxes (dabrish.go), under boardMu, and his work: a level set
 	// as #setlevel sets it (ChatHandler.applyLevel) and mastery points given
 	// as #grantcm gives them (ChatHandler.giveMastery). Nil: his ledger is
@@ -578,6 +581,12 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 
+	// An NPC's talk tree (npctalk.go, work board 883): its conversation, in
+	// place of a town's line.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.talkTree(sess, player, npc) {
+		return nil
+	}
+
 	// A town's people and the guards of Norrath (entity/dialog.go): a line of
 	// npcdialog, when one fits.
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.townSay(sess, player, npc) {
@@ -776,6 +785,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// a board's offer (boardinvis.go); an old one does nothing
 	if h.answerBoardInvis(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// a talk tree's (npctalk.go); an old one does nothing
+	if h.answerTalk(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// Mr. Moogie's (moogie.go); an old one does nothing

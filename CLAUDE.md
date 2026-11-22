@@ -289,6 +289,7 @@ Each system's file is its long form; its tests document the edge cases. `world.<
 | Item effect clauses (unlimited uses, speed, HP cap, stat pin) | `entity/hpcap.go`, the spell/effect parsers |
 | Groups (any member invites, 0x7E17), raids, raid rules and loot | `entity/group.go`, `raid*.go`, `handlers/raidloot.go`, `handlers/raidcmds.go` |
 | Regional weather | `internal/weather`, `entity/weather.go`, `handlers/weather.go` |
+| NPC talk trees (live conversations, per-question quest refusals) | `handlers/npctalk.go`, `database/npctalk.go` (table `npctalk`), `quests.decline` a line a question |
 | Combat arts landing when their graphic ends | `entity/fxland.go`, table `fxland` |
 | Corpse tunar, the live game's: 1 + 0..level/4, wildlife none, named creatures by table `npccoins` (live-era footage: very little tunar dropped); pickpocket the ordinary amount | `handlers/corpsecoins.go`, `database/npccoins.go` |
 

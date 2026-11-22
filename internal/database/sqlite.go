@@ -802,6 +802,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureNPCDialog(); err != nil { // npcdialog.go
 		return err
 	}
+	if err := db.ensureNPCTalk(); err != nil { // npctalk.go: NPC talk trees (work board 883)
+		return err
+	}
 	if err := db.ensureSignText(); err != nil { // signtext.go
 		return err
 	}

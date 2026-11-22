@@ -660,7 +660,7 @@ type Quest struct {
 	// Accept is the player's answers taking it, a line a question (the reference server's
 	// first warrior quest asks two); "" takes it when the giver is talked to.
 	Accept  string
-	Decline string // the player's answer refusing it, offered with each answer; "" none
+	Decline string // the player's answer refusing it: one line, offered with each question; several, a line a question (handlers declineAt); "" none
 	// Declined is the giver's reply to a refusal, said as written (the reference server's
 	// Captain Norgam's carries no name before it).
 	Declined string

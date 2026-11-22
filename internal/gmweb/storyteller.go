@@ -18,7 +18,7 @@ import (
 // command, no GM channel (nothing outside the panel reads the table). It signs
 // in to the panel as a GM does, every route and the same authenticator rule.
 //
-// It writes what NPCs say: town dialog (npcdialog), whole, its rows added,
+// It writes what NPCs say: town dialog (npcdialog) and talk trees (npctalk), whole, its rows added,
 // changed and taken away; and the quests' words (storytellerWords): what a
 // quest's giver and its NPCs say, the player's answers and the journal's
 // lines, never what a quest is (who gives it and to whom, its steps, rewards
@@ -58,11 +58,15 @@ CREATE TABLE IF NOT EXISTS gm_storytellers (
 // stand; the quests' steps refer to them). Not on it: every other table, the
 // quests' players (charquests) and the givers' "not yet" lines and the signs'
 // words among them (questnotyet, signtext: one word each here, if wanted).
-var storytellerTableList = []string{"npcdialog", "quests", "queststeps", "questunlocks", "queststeptargets", "npcs"}
+var storytellerTableList = []string{"npcdialog", "npctalk", "quests", "queststeps", "questunlocks", "queststeptargets", "npcs"}
 
 // storytellerLines is the table a storyteller has whole: rows added, changed
 // in every column and taken away.
 const storytellerLines = "npcdialog"
+
+// storytellerTalk is the NPCs' talk trees (work board 883), a storyteller's whole as town dialog is: what an
+// NPC says and the answers it is asked, nothing the game does but play them.
+const storytellerTalk = "npctalk"
 
 // storytellerWords are the columns of the quests' tables a storyteller
 // changes: what is said and shown. A quest's name (the journal's line when a
@@ -123,7 +127,7 @@ func isStorytellerTable(name string) bool { return slices.Contains(storytellerTa
 // storytellerWrites is whether a storyteller changes a table's rows (its
 // rules after: storytellerRow).
 func storytellerWrites(name string) bool {
-	return name == storytellerLines || storytellerWords[name] != nil
+	return name == storytellerLines || name == storytellerTalk || storytellerWords[name] != nil
 }
 
 // storytellerOps is the whole of what a storyteller may call. A rule is what
@@ -204,6 +208,8 @@ func storytellerRow(table, action string, vals map[string]any) error {
 			return err
 		}
 		return storytellerLineNumbers(vals)
+	case table == storytellerTalk:
+		return storytellerText(vals) // its answers' JSON and node numbers: checkRow
 	case quest:
 		if action != "update" {
 			return forbidden("a storyteller adds no %s row and takes none away, it changes the words of one: a new "+
@@ -325,7 +331,7 @@ func changedColumns(before, after map[string]any) []string {
 // storytellerAccess is what a storyteller does with one of its tables.
 func storytellerAccess(t *Table) tableAccess {
 	switch {
-	case t.Name == storytellerLines:
+	case t.Name == storytellerLines, t.Name == storytellerTalk:
 		return tableAccess{Write: roleStoryteller, Insert: true, Delete: true}
 	case storytellerWords[t.Name] != nil:
 		return tableAccess{Write: roleStoryteller, Only: storytellerWords[t.Name]}
@@ -442,7 +448,7 @@ func (s *Server) registerStorytellerOps() {
 
 // mcpStorytellerInstructions is the MCP instructions for a storyteller's agent.
 const mcpStorytellerInstructions = "You are a storyteller's assistant on an EverQuest Online Adventures private server. This " +
-	"account changes what NPCs say: town dialog (npcdialog), whole, and the quests' words (quests: name, offer, accept, " +
+	"account changes what NPCs say: town dialog (npcdialog) and talk trees (npctalk), whole, and the quests' words (quests: name, offer, accept, " +
 	"decline, declined, started, notes; queststeps: journal, answer, says, waiting, notyet, reminder), and reads the quests " +
 	"and the NPCs, nothing else: the tools listed are all it has, and a refusal is the role's limit, not an error to work " +
 	"around. Call guide first. Every change is audited under the storyteller you act for and can be reverted " +

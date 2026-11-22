@@ -900,6 +900,12 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 		return nil
 	}
 
+	// A waysender's box of its own words (npcwords.go)
+	if player.WayStep != 0 {
+		h.answerWay(sess, player, int(selectedOption))
+		return nil
+	}
+
 	// A waysender's one trip, asked as Yes or No (waysender.go)
 	if player.PendingYesNo {
 		dest := player.PendingCoachDests[0]
@@ -972,7 +978,11 @@ func (h *InteractHandler) travel(sess *session.Session, player *entity.Player, d
 		economy.Spent(economy.Travel, player.CharServerID, player.Name, dest.Fee)
 	}
 	if dest.Via != "" {
-		sess.Queue().AddWithSequence(buildClientMessage(dest.Via + ": " + wayGo))
+		gone := wayGo
+		if w, ok := wayScripts[dest.Via]; ok && w.Gone != "" {
+			gone = w.Gone // its own (npcwords.go)
+		}
+		sess.Queue().AddWithSequence(buildClientMessage(dest.Via + ": " + gone))
 	}
 	h.warp(sess, player, dest)
 }

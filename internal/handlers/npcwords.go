@@ -2,6 +2,10 @@ package handlers
 
 import (
 	"fmt"
+	"log"
+	"strings"
+
+	"github.com/eqoa/server/internal/session"
 
 	"github.com/eqoa/server/internal/entity"
 )
@@ -95,4 +99,86 @@ var coachWordsByName = map[string]coachWords{
 	"Coachman Huff": {Greet: "Hello there, need a horse?", Dest: "How about one to %s?",
 		Names: map[string]string{"Highpass Hold": "Highpass", "Fayspire": "Fayspires"}},
 	"Coachman Frender": {Greet: "Hail traveler."},
+}
+
+// wayWords is a waysender's own words, step by step (board 745): Greet the
+// first question (a "%s" in it the player's name), each trip its answer by
+// place in Labels (else the place's name); then, where set, Tell a box with
+// the one answer "Done", Ask a question answered Yes or No, and Gone said
+// before the warp (wayGo where unset). The client's Exit, or No, closes the
+// box with nothing said; the level, fee and unlock checks stay travel's.
+type wayWords struct {
+	Greet        string
+	Labels       map[string]string
+	Tell         string
+	Ask, Yes, No string
+	Gone         string
+}
+
+// The steps of wayWords a player can have open (Player.WayStep).
+const (
+	wayStepPick = 1 + iota
+	wayStepTell
+	wayStepAsk
+)
+
+// greet is the first question to the player.
+func (w wayWords) greet(player string) string {
+	if strings.Contains(w.Greet, "%s") {
+		return fmt.Sprintf(w.Greet, player)
+	}
+	return w.Greet
+}
+
+// labels are the trips as its first question's answers.
+func (w wayWords) labels(dests []entity.CoachDest) []string {
+	out := make([]string, 0, len(dests))
+	for _, d := range dests {
+		if l, ok := w.Labels[d.Name]; ok {
+			out = append(out, l)
+		} else {
+			out = append(out, destLabel(d))
+		}
+	}
+	return out
+}
+
+// wayScripts are the waysenders with their own words, by name.
+var wayScripts = map[string]wayWords{
+	// Freeport's dock, a 2012 tape read frame by frame (board 745)
+	"Dockmaster Yarnning": {Greet: "What can I do for you today?",
+		Labels: map[string]string{"Arcadin": "I want to explore Frontiers."},
+		Tell:   "I hear there are some exciting places there. I can arrange for your travel.",
+		Ask:    "Are you certain that is where you want to go?", Yes: "Yes.", No: "No.",
+		Gone: "Off you go then."},
+}
+
+// answerWay takes the answer to a waysender's box of its own words: a trip
+// picked goes on to its Tell, its Ask, then the trip; anything past the box's
+// answers (the client's Exit), or No, closes it with nothing said.
+func (h *InteractHandler) answerWay(sess *session.Session, player *entity.Player, option int) {
+	w, dests, step := wayScripts[player.CoachBy], player.PendingCoachDests, player.WayStep
+	var dest entity.CoachDest
+	switch {
+	case step == wayStepPick && option < len(dests):
+		dest = dests[option]
+	case (step == wayStepTell || step == wayStepAsk) && option == 0 && len(dests) == 1:
+		dest = dests[0]
+	default:
+		log.Printf("Waysender: %s closed %s's box (step %d, answer %d)", player.Name, player.CoachBy, step, option)
+		forgetDialogs(player)
+		return
+	}
+	if step < wayStepTell && w.Tell != "" {
+		player.PendingCoachDests, player.WayStep = []entity.CoachDest{dest}, wayStepTell
+		h.sendOptionBox(sess, w.Tell, []string{"Done"})
+		return
+	}
+	if step < wayStepAsk && w.Ask != "" {
+		player.PendingCoachDests, player.WayStep = []entity.CoachDest{dest}, wayStepAsk
+		h.sendOptionBox(sess, w.Ask, []string{w.Yes, w.No})
+		return
+	}
+	forgetDialogs(player)
+	h.travel(sess, player, dest)
 }

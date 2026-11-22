@@ -132,9 +132,12 @@ var wayRoutes = map[string][]wayRoute{
 	// Bibbin offered "Bogman Village." and "Freeport." (pcaps/sandstorm-
 	// warp.pcap). Arcadin and the Stone of Morathals are Odus's (world 2),
 	// the rest Tunaria's. No fee: no guide gives one.
+	// Yarnning sails to Arcadin alone, as the live game's did (board 745:
+	// jibrish's "Live words, Arcadin only", a 2012 tape); the Stone of
+	// Morathals is Bogman Village's (Geben), and Bibbin's boat still comes in
+	// at Yarnning's
 	"Dockmaster Yarnning": {
 		{To: "Arcadin", Arrive: "Dockmaster Killeron"},
-		{To: "Stone of Morathals", Arrive: "Dockmaster Bibbin"},
 	},
 	"Dockmaster Endol": {
 		{To: "Hazinak", Arrive: "Dockmaster D'Eleth"},
@@ -611,6 +614,12 @@ func (h *InteractHandler) offerWay(sess *session.Session, player *entity.Player,
 	}
 	forgetDialogs(player)
 	player.PendingCoachDests = dests
+	if w, ok := wayScripts[npc.Name]; ok { // its own words (npcwords.go)
+		player.CoachBy, player.WayStep = npc.Name, wayStepPick
+		h.sendOptionBox(sess, w.greet(player.Name), w.labels(dests))
+		log.Printf("Waysender: %s offers %s %d trips in its own words", npc.Name, player.Name, len(dests))
+		return true
+	}
 	if len(dests) == 1 {
 		player.PendingYesNo = true
 		h.sendOptionBox(sess, wayAskOne(dests[0]), []string{"Yes", "No"})
@@ -627,6 +636,7 @@ func forgetDialogs(player *entity.Player) {
 	player.PendingCoachDests = nil
 	player.CoachPage = 0
 	player.CoachBy = ""
+	player.WayStep = 0
 	player.PendingYesNo = false
 	player.PendingBind = entity.Bind{}
 	player.PendingSpar = entity.SparPick{}

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/binary"
+	"math"
 	"slices"
 	"testing"
 	"unicode/utf16"
@@ -150,4 +151,70 @@ func ronksLabels(towns ...string) []string {
 		out = append(out, coachWordsByName["Coachman Ronks"].label(entity.CoachDest{Name: t}))
 	}
 	return out
+}
+
+// wayWorld is a talk world with the trips' landing NPCs: Killeron at Arcadin
+// (Odus, world 2), Ronks in Freeport and Billfer in Qeynos.
+func wayWorld(t *testing.T) *talkWorld {
+	tw := newTalkWorld(t, 25500, 15700)
+	for _, n := range []*entity.NPC{
+		{ServerID: 9001, Name: "Dockmaster Killeron", World: 2, SpawnX: 4300, SpawnY: 30, SpawnZ: 5200},
+		{ServerID: 416, Name: "Coachman Ronks", SpawnX: 25273.7, SpawnY: 54.1, SpawnZ: 15719.1},
+		{ServerID: 101428, Name: "Coachman Billfer", SpawnX: 4813, SpawnY: 58, SpawnZ: 17144},
+	} {
+		n.X, n.Y, n.Z = n.SpawnX, n.SpawnY, n.SpawnZ
+		tw.w.NPCs[n.ServerID] = n
+	}
+	return tw
+}
+
+// Dockmaster Yarnning walks the live game's four boxes in order (board 745):
+// "What can I do for you today?" [I want to explore Frontiers.], the one-answer
+// box [Done], "Are you certain that is where you want to go?" [Yes. No.], then
+// "Off you go then." and Arcadin, in front of Killeron; his one trip. The
+// controls: Exit at the first box and "No." at the third send nothing more.
+func TestYarnningSpeaksTheLiveMenu(t *testing.T) {
+	if r := wayRoutes["Dockmaster Yarnning"]; len(r) != 1 || r[0].To != "Arcadin" || r[0].Arrive != "Dockmaster Killeron" {
+		t.Fatalf("Yarnning's trips: %+v", r)
+	}
+	walk := func(answers ...byte) (*talkWorld, [][2]any) {
+		tw := wayWorld(t)
+		id := tw.add(1, &entity.NPC{ServerID: 702, Name: "Dockmaster Yarnning", SpawnX: 25500, SpawnY: 54.1, SpawnZ: 15703})
+		tw.talk(id)
+		var boxes [][2]any
+		q, opts := askedBox(t, tw.s)
+		boxes = append(boxes, [2]any{q, opts})
+		for i, a := range answers {
+			tw.pick(id, a)
+			if i == len(answers)-1 {
+				break
+			}
+			q, opts := askedBox(t, tw.s)
+			boxes = append(boxes, [2]any{q, opts})
+		}
+		return tw, boxes
+	}
+	tw, boxes := walk(0, 0, 0)
+	want := [][2]any{
+		{"What can I do for you today?", []string{"I want to explore Frontiers."}},
+		{"I hear there are some exciting places there. I can arrange for your travel.", []string{"Done"}},
+		{"Are you certain that is where you want to go?", []string{"Yes.", "No."}},
+	}
+	for i := range want {
+		if i >= len(boxes) || boxes[i][0] != want[i][0] || !slices.Equal(boxes[i][1].([]string), want[i][1].([]string)) {
+			t.Fatalf("box %d: %v, want %v", i, boxes, want[i])
+		}
+	}
+	if got := said(tw); !slices.Contains(got, "Dockmaster Yarnning: Off you go then.") {
+		t.Errorf("Yes said %q", got)
+	}
+	if x, z, world, ok := teleported(tw.s); !ok || world != 2 || math.Hypot(float64(x-4300), float64(z-5200)) > 5 {
+		t.Errorf("Yes went to (%.0f, %.0f) world %d (%v), want Arcadin by Killeron", x, z, world, ok)
+	}
+	for _, answers := range [][]byte{{1}, {0, 0, 1}} {
+		tw, _ := walk(answers...)
+		if _, _, _, ok := teleported(tw.s); ok || len(tw.s.Queue().PeekPending()) != 0 || tw.p.WayStep != 0 {
+			t.Errorf("answers %v: sent %d more, step %d", answers, len(tw.s.Queue().PeekPending()), tw.p.WayStep)
+		}
+	}
 }

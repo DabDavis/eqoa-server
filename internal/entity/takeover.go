@@ -165,7 +165,7 @@ func (w *World) handedOverLocked(p *Player) {
 	p.AutoAttack = false
 	p.disengage()
 	p.VelX, p.VelY, p.VelZ = 0, 0, 0
-	p.PendingCoachDests, p.CoachPage, p.CoachBy, p.PendingYesNo = nil, 0, "", false
+	p.PendingCoachDests, p.CoachPage, p.CoachBy, p.PendingYesNo, p.WayStep = nil, 0, "", false, 0
 	p.PendingHDDMenu = 0
 	p.PendingBind = Bind{}
 	p.PendingSpar = SparPick{}

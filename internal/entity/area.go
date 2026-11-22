@@ -565,7 +565,12 @@ func (w *World) areaStartLocked(p *Player, cs *castState, now time.Time) {
 			var own []EntityID
 			for _, id := range cs.targets {
 				t := w.Players[id]
-				if t == nil || (pvpAreaAtTarget && p.pvpFoe(t)) { // pvp.go
+				// a creature, a flagged foe (pvp.go), or the duel opponent the cast
+				// was aimed at (duelSpellTargetLocked): its target's share is the
+				// fight's (duelLandLocked). Until 2026-11-22 the duel opponent was
+				// dropped here, so an area spell at it (the Zaoran Plateau fingers,
+				// a target-based area) landed on nothing in a duel (petition 2647)
+				if t == nil || (pvpAreaAtTarget && p.pvpFoe(t)) || (cs.spell.duel && w.duelFoeLocked(p, id)) {
 					own = append(own, id)
 				}
 			}

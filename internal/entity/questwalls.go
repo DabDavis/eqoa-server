@@ -38,6 +38,9 @@ type questWallState struct {
 	walls  map[EntityID]database.QuestWall
 	passes map[uint32]map[EntityID]bool // by character id
 	holds  map[uint32]map[int]bool      // by character id: the watched items it holds
+	// at is, by character id, the creatures (NPCClassKey) whose kick zone
+	// spares it: one of its quests' steps to do is at that creature (kickzone.go)
+	at map[uint32]map[string]bool
 }
 
 // SetQuestWalls sets table questwalls' rows (at the start and after a GM's edit).
@@ -122,6 +125,22 @@ func (w *World) ForgetQuestState(charID uint32) {
 	defer w.mu.Unlock()
 	delete(w.qwalls.passes, charID)
 	delete(w.qwalls.holds, charID)
+	delete(w.qwalls.at, charID)
+}
+
+// SetQuestAt sets the creatures (NPCClassKey) one of whose quest steps to do
+// is at it, among KickZoneSpareNames (nil: none), as the quest engine reads them.
+func (w *World) SetQuestAt(charID uint32, names map[string]bool) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if len(names) == 0 {
+		delete(w.qwalls.at, charID)
+		return
+	}
+	if w.qwalls.at == nil {
+		w.qwalls.at = map[uint32]map[string]bool{}
+	}
+	w.qwalls.at[charID] = names
 }
 
 // isQuestWallLocked is whether the NPC is a wall (a copy of none).

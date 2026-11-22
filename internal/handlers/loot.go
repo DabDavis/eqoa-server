@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"math"
@@ -30,9 +31,12 @@ import (
 //     its position. A client not in play answers 0x0016 at once
 //     (LootNoWindow).
 //   - 0x0019 {u32 key, u32 count} (LootOne 0x00BCAB?? → SendLoot(25, ...)):
-//     that record into the inventory (0x003B), and the corpse sent again
-//     (0x0016, then 0x0018 while anything is left). CLIENT's 0x0018 asserts
-//     no corpse is held, so 0x0016 always goes first.
+//     that record into the inventory, answered as the game answers it: 0x0019
+//     {u8 slot, zigzag} (Msg0019, the record moved in place, the window and its
+//     selection left as they are) when that leaves the client's corpse and
+//     inventory as the server's (lootInPlaceLocked); else 0x003B and the corpse
+//     sent again (0x0016, then 0x0018 while anything is left). CLIENT's 0x0018
+//     asserts no corpse is held, so 0x0016 always goes first.
 //   - 0x001A, no payload (RequestLootAll): 0x001A back, and CLIENT moves every
 //     record it has room for itself (Msg001A 0x00BD98B0: AddItem, then Took on
 //     the corpse); the server mirrors that in the database and the list, then
@@ -559,6 +563,10 @@ func (h *NPCWindowHandler) HandleLootItem(sess *session.Session, msg *protocol.M
 		h.resendCorpse(sess, ls, c)
 		return nil
 	}
+	// the corpse as the client holds it (the 0x0018 it was sent): a take that
+	// leaves the server's view as CLIENT's own Msg0019 leaves the client's is
+	// answered with 0x0019 (lootInPlaceLocked)
+	before := append([]database.CharInventoryEntry(nil), view[:min(len(view), maxCorpseItems)]...)
 	rec := view[i]
 	count := min(int(n), rec.StackLeft)
 	room := inv.wouldAdd(rec.Pattern.PatternID, count, rec.Pattern.MaxStack)
@@ -583,16 +591,69 @@ func (h *NPCWindowHandler) HandleLootItem(sess *session.Session, msg *protocol.M
 		if err != nil {
 			log.Printf("Loot: %s: %v", player.Name, err)
 		} else {
-			queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, k, readsCapes(sess)))
 			ls.tookLocked(id, c, char, i, took)
+			inPlace := count == rec.StackLeft && took == room &&
+				h.lootInPlaceLocked(sess, ls, id, c, char, before, i, took, out, k)
+			if inPlace {
+				queueReliable(sess, protocol.OpcodeClientLoot, lootTookPayload(i, took))
+			} else {
+				queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, k, readsCapes(sess)))
+			}
 			looted = append(looted, lootTake{rec.Pattern.PatternID, took})
 			h.tellLooted(sess, player.Name, rec, took)
 			h.tellGroupLooted(player, rec, took)
 			log.Printf("Loot: %s took %d %q", player.Name, took, rec.Pattern.ItemName)
+			if inPlace {
+				ls.since[sess] = h.lootClock() // a take: still looting (lootrights.go)
+				return nil
+			}
 		}
 	}
 	h.resendCorpse(sess, ls, c)
 	return nil
+}
+
+// lootTookPayload is 0x0019 to the client: u8 the corpse record's slot, zigzag
+// a count CLIENT does not read (Msg0019: VIItemList::Get(slot), the
+// record into the inventory by AddItem, then Took on the corpse). It is the
+// game's own answer to LootOne: the window stays open as it is, its selection
+// where the player left it. The close and resend (resendCorpse) reopen the
+// window, and VIWndLoot::Open's ResetScroll puts the selection back on the top
+// row at every take (Heirloom petition 2616: "it refreshes, flashes and moves
+// your cursor").
+func lootTookPayload(slot, n int) []byte {
+	return build(protocol.OpcodeClientLoot, 16, func(w *buffer.Writer) {
+		w.WriteByte(byte(slot))
+		w.Write7BitEncodedInt64(int64(n))
+	})
+}
+
+// lootInPlaceLocked is whether a take of n from slot i of before (the corpse as
+// the client holds it) can be answered with 0x0019: the client's Msg0019 then
+// leaves its corpse (Took: n off the record, the record gone at none) as the
+// server's view now stands, byte for byte as a resend would send it, and its
+// inventory as 0x003B would (AddItem of the corpse's record, unequipped, against
+// the record given). Anything else (a raid's corpse and its master looter's
+// list, a corpse emptied, another's share served, a drop come in, a record the
+// give changed) is the close and resend as before.
+func (h *NPCWindowHandler) lootInPlaceLocked(sess *session.Session, ls *lootState, id entity.EntityID, c *corpse,
+	char uint32, before []database.CharInventoryEntry, i, n int, out *database.CharInventoryEntry, k uint32) bool {
+	if c.raid != nil || i >= len(before) || i > 255 || out == nil {
+		return false
+	}
+	capes := readsCapes(sess)
+	held := before[i]
+	held.StackLeft, held.EquipLoc = n, -1
+	if !bytes.Equal(addInvItemPayload(&held, k, capes), addInvItemPayload(out, k, capes)) {
+		return false
+	}
+	want := append([]database.CharInventoryEntry(nil), before...)
+	if want[i].StackLeft -= n; want[i].StackLeft <= 0 {
+		want = append(want[:i], want[i+1:]...)
+	}
+	h.servedHoldersLocked(c, sess, char, sessionInvList(sess))
+	after := ls.viewLocked(id, c, char)
+	return len(after) > 0 && bytes.Equal(buildLoot(want, capes), buildLoot(after, capes))
 }
 
 // HandleLootAll is 0x001A (RequestLootAll): 0x001A back, and the server does

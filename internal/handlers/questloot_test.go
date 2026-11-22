@@ -165,8 +165,10 @@ func TestASharedDropKeepsTheCorpse(t *testing.T) {
 	if f.heldOf(f.sword) != 1 || f.heldOf(f.bait) != 0 {
 		t.Fatalf("the second record taken: sword %d bait %d, want its own drop", f.heldOf(f.sword), f.heldOf(f.bait))
 	}
-	if lootCount(t, lastOp(t, got, protocol.OpcodeLoot)) != 1 {
-		t.Fatalf("after its own drop: %s, want the token left", ops(got))
+	// the token left: the take answered in place (0x0019 slot 1, petition 2616),
+	// the client's corpse the token alone as the server's view is
+	if opOf(got[0]) != protocol.OpcodeClientLoot || got[0][2] != 1 {
+		t.Fatalf("after its own drop: %s, want 0x0019 for slot 1", ops(got))
 	}
 	f.send(protocol.OpcodeClientCloseLoot, nil)
 	f.sent()

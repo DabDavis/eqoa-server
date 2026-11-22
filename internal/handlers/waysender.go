@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"log"
+	"math"
 	"strings"
 
 	"github.com/eqoa/server/internal/entity"
@@ -252,6 +253,20 @@ var wayRoutes = map[string][]wayRoute{
 	},
 	"Fire Primeval Portal": {
 		{To: "the Fire Primeval", At: &wayPlace{World: 1, X: 4700, Y: 85, Z: 2361}},
+	},
+	// And down again (Heirloom petition 2670: "When killing Archon Vetash, no
+	// portal spawns to allow you to go back down to the Geomancers Citadel"; the
+	// guide says nothing of the way down: ours). An Archon's death stands a portal
+	// on its floor for ten minutes (npcdeath, the triggers "Aereth Portal Down"
+	// and "Vetash Portal Down": tools/archon_portal_down_20261122.py), which sets
+	// a player down on its tower's ground floor between the two portals up, facing
+	// the tower's door (+z is south: Aereth's tower opens north, Vetash's south).
+	// Names of at most 23 letters: the state channel's name field is 24 bytes.
+	"Portal down from Aereth": {
+		{To: "the Geomancer's Citadel", At: &wayPlace{World: 1, X: 4700, Y: 66, Z: 2512, Facing: math.Pi}},
+	},
+	"Portal down from Vetash": {
+		{To: "the Geomancer's Citadel", At: &wayPlace{World: 1, X: 4700, Y: 66, Z: 2330}},
 	},
 
 	// The Plane of Disease (F3 pass 17, "unable to travel to PoD"), the

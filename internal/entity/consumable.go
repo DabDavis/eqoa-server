@@ -156,6 +156,9 @@ func (w *World) Consume(sess *session.Session, c Consumable, now time.Time) erro
 		p.Power = min(p.Power+max(ae.Mods.PoT, 0), max(p.Power, p.MaxPowerNow()))
 		p.StatsDirty = true
 	}
+	if ae.Mods.HoT > 0 { // its first tick's figure (hotfigures.go, petition 2688)
+		w.sendDamageIndication(sess, sess.PlayerObjectID(), ae.Mods.HoT, sess.PlayerObjectID(), numberHoT)
+	}
 	log.Printf("Consume: %s has %q (HoT %d, PoT %d for %v)", p.Name, c.Name, ae.Mods.HoT, ae.Mods.PoT, d)
 	return nil
 }

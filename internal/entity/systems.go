@@ -442,6 +442,7 @@ func (w *World) regenSystem(now time.Time) {
 			continue
 		}
 		w.tellPlayerStatHoTLocked(p) // a spell's HoT stat, its part alone (hotfigures.go)
+		w.tellPlayerMealHoTLocked(p) // a meal's and a drink's (hotfigures.go, petition 2688)
 	}
 	for _, p := range dead {
 		log.Printf("Regen: %s's price over time (HoT %d) takes its last hit point", p.Name, p.HoTNow())

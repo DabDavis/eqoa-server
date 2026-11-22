@@ -16,24 +16,69 @@ import (
 // opened by 0x0015, answered 0x0052, the purse, and "You receive 2 tunar from
 // the corpse." before its items): the coins go to whoever first opens a
 // creature's corpse after its death, at once, and the corpse holds only its
-// items after. How much is ours, as that one corpse is all that was recorded:
-// a roll from the creature's level to twice it, the pawn's 2 at level 2 its
-// floor (the user: "add the corpse tunar drop like [the reference server] too"). A pet's
-// corpse and a training dummy's carry none.
+// items after. How much is the live game's (work board 658, a GM's decision from
+// live-era footage of 2012: a level 5 highwayman's corpse held 1, level 14-17
+// creatures' 2-4; "very little tunar dropped"; wildlife printed no tunar line):
+// an ordinary creature's corpse holds 1 + 0..level/4, an animal's (entity's
+// wildlife test, the one that decides wandering) none, and a named creature's
+// the amount its npccoins row gives (database/npccoins.go), whatever it is. A
+// pet's corpse, a training dummy's, a duel spawn's and a corpse of nothing carry
+// none, a row or not.
 
 // corpseCoinLine is the reference server's line for them.
 const corpseCoinLine = "You receive %d tunar from the corpse."
 
+// OrdinaryCorpseCoins is an ordinary creature's corpse tunar at that level: 1 +
+// roll(level/4 + 1) (roll is rand.Intn, a test's stand-in), the level at least 1.
+// Pickpocketing takes the same (entity/workbookmore.go).
+func OrdinaryCorpseCoins(level int, roll func(int) int) int {
+	if roll == nil {
+		roll = rand.Intn
+	}
+	return 1 + roll(max(level, 1)/4+1)
+}
+
 // corpseCoins is the tunar a creature's corpse carries, rolled when it is
-// first opened (roll is rand.Intn, a test's stand-in).
-func corpseCoins(npc *entity.NPC, roll func(int) int) int {
+// first opened (roll is rand.Intn, a test's stand-in): named is its npccoins
+// row (ok false: none), wild whether it is wildlife.
+func corpseCoins(npc *entity.NPC, roll func(int) int, named coinRange, wild bool) int {
 	if npc.Owner != 0 || npc.Dummy != entity.NotDummy || npc.Level <= 0 || npc.DuelSpawn() || npc.CorpseOfNothing() {
 		return 0 // a Metal Moogie's gives its tribute alone (entity/metalmoogie.go)
 	}
 	if roll == nil {
 		roll = rand.Intn
 	}
-	return npc.Level + roll(npc.Level+1)
+	if named.ok {
+		return named.lo + roll(named.hi-named.lo+1)
+	}
+	if wild {
+		return 0
+	}
+	return OrdinaryCorpseCoins(npc.Level, roll)
+}
+
+// coinRange is a creature's npccoins row: coins_min..coins_max.
+type coinRange struct {
+	lo, hi int
+	ok     bool
+}
+
+// corpseCoinsOf is npc's corpse tunar with its npccoins row and its wildlife
+// verdict looked up (the row read now: a GM's edit counts for the next corpse).
+func (h *NPCWindowHandler) corpseCoinsOf(npc *entity.NPC, roll func(int) int) int {
+	var named coinRange
+	if h.inv != nil {
+		lo, hi, ok, err := h.inv.NPCCoins(npc.Name)
+		if err != nil {
+			log.Printf("Loot: %q's npccoins row: %v", npc.Name, err)
+		}
+		named = coinRange{lo, hi, ok}
+	}
+	wild := false
+	if !named.ok && h.isWild != nil {
+		wild = h.isWild(npc)
+	}
+	return corpseCoins(npc, roll, named, wild)
 }
 
 // corpseSplitLine is a group member's line for its share of the coins of a

@@ -191,15 +191,16 @@ func TestTheAttackButtonOpensACorpse(t *testing.T) {
 // A corpse's coins go to its first opener at once, as the reference server's did (a
 // level 2 Orc Pawn's 2: 0x0052 with the purse, "You receive 2 tunar from the
 // corpse.", then its items), kept; opened again it holds only its items. The
-// roll is the creature's level to twice it; a pet's corpse carries none.
+// roll is the live game's 1 + 0..level/4 (work board 658); a pet's corpse
+// carries none.
 func TestACorpsesTunarGoesToItsFirstOpener(t *testing.T) {
 	f := newCorpseFixture(t, 1)
-	f.npc.Level = 2
+	f.npc.Level = 9
 	f.h.coinRoll = func(n int) int {
 		if n != 3 {
-			t.Fatalf("rolled over %d, want 0..2 above the level", n)
+			t.Fatalf("rolled over %d, want 0..2 (level 9 / 4) above 1", n)
 		}
-		return 1
+		return 2
 	}
 	f.h.OpenCorpse(f.sess, f.npc)
 	got := f.sent()
@@ -218,12 +219,68 @@ func TestACorpsesTunarGoesToItsFirstOpener(t *testing.T) {
 	f.sent()
 	f.h.OpenCorpse(f.sess, f.npc)
 	mustOps(t, f.sent(), protocol.OpcodeLoot) // the coins gone with the first
+}
 
-	if n := corpseCoins(&entity.NPC{Level: 40, Owner: 1009}, nil); n != 0 {
+// Work board 658: an ordinary corpse holds 1 + 0..level/4 (a level 17's 1-5, a
+// level 40's 1-11, a level 60's 1-16, levels 1-3 exactly 1); an animal's none;
+// a named creature's its npccoins row's roll, an animal's too; a pet's none, a
+// row or not. The negative control is the old rule's range: a level 40 never
+// reaches 40.
+func TestCorpseCoinsAreTheLiveGames(t *testing.T) {
+	span := func(level int, named coinRange, wild bool) (lo, hi int) {
+		lo, hi = 1<<30, -1
+		for i := 0; i < 400; i++ {
+			r := i
+			n := corpseCoins(&entity.NPC{Level: level}, func(k int) int { return r % k }, named, wild)
+			lo, hi = min(lo, n), max(hi, n)
+		}
+		return lo, hi
+	}
+	for _, c := range []struct{ level, lo, hi int }{{1, 1, 1}, {3, 1, 1}, {5, 1, 2}, {15, 1, 4}, {17, 1, 5}, {40, 1, 11}, {60, 1, 16}} {
+		if lo, hi := span(c.level, coinRange{}, false); lo != c.lo || hi != c.hi {
+			t.Errorf("level %d: %d-%d, want %d-%d", c.level, lo, hi, c.lo, c.hi)
+		}
+	}
+	if lo, hi := span(40, coinRange{}, true); lo != 0 || hi != 0 {
+		t.Errorf("a level 40 animal's corpse held %d-%d, want none", lo, hi)
+	}
+	if lo, hi := span(10, coinRange{214, 214, true}, false); lo != 214 || hi != 214 {
+		t.Errorf("a 214..214 row gave %d-%d", lo, hi)
+	}
+	for _, r := range []func(int) int{func(int) int { return 0 }, func(k int) int { return k - 1 }} {
+		n := corpseCoins(&entity.NPC{Level: 60}, r, coinRange{24388, 46040, true}, true)
+		if n != 24388 && n != 46040 {
+			t.Errorf("a named animal's row's ends gave %d", n)
+		}
+	}
+	if n := corpseCoins(&entity.NPC{Level: 40, Owner: 1009}, nil, coinRange{214, 214, true}, false); n != 0 {
 		t.Fatalf("a pet's corpse carried %d tunar", n)
 	}
-	if n := corpseCoins(&entity.NPC{Level: 40}, nil); n < 40 || n > 80 {
-		t.Fatalf("a level 40's corpse carried %d tunar, want 40 to 80", n)
+	if n := corpseCoins(&entity.NPC{Level: 40}, nil, coinRange{}, false); n < 1 || n > 11 {
+		t.Fatalf("a level 40's corpse carried %d tunar, want 1 to 11", n)
+	}
+}
+
+// The npccoins row is read at the corpse's first roll, by the name as npcclass
+// keys it; the World's wildlife test keeps an animal's corpse empty.
+func TestACorpseReadsItsNPCCoinsRow(t *testing.T) {
+	f := newCorpseFixture(t, 0)
+	f.npc.Name, f.npc.Level = "Lil'snapa", 12
+	if _, err := f.db.Exec(`INSERT INTO npccoins (npc_name, coins_min, coins_max, source) VALUES ('lil''snapa', 214, 214, 'video-audit')`); err != nil {
+		t.Fatal(err)
+	}
+	if n := f.h.corpseCoinsOf(f.npc, nil); n != 214 {
+		t.Fatalf("Lil'snapa's corpse held %d, want 214", n)
+	}
+	f.h.isWild = func(*entity.NPC) bool { return true }
+	rat := &entity.NPC{Name: "giant rat", Level: 20}
+	if n := f.h.corpseCoinsOf(rat, nil); n != 0 {
+		t.Fatalf("a rat's corpse held %d tunar", n)
+	}
+	f.h.isWild = func(*entity.NPC) bool { return false }
+	orc := &entity.NPC{Name: "orc pawn", Level: 20}
+	if n := f.h.corpseCoinsOf(orc, nil); n < 1 || n > 6 {
+		t.Fatalf("an orc's corpse held %d tunar, want 1-6", n)
 	}
 }
 

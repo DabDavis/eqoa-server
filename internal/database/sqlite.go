@@ -892,6 +892,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureLootDropTriggers(); err != nil { // lootdroptrigger.go: an item a corpse rolls fires a trigger (Vallon Zek's rune)
 		return err
 	}
+	if err := db.ensureNPCCoins(); err != nil { // npccoins.go: a named creature's corpse tunar (work board 658)
+		return err
+	}
 	if err := db.ensureGemSetting(); err != nil { // gemsetting.go: Hogarth's Gems of Khalimet in the Khal weapons
 		return err
 	}

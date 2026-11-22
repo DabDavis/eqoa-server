@@ -285,6 +285,7 @@ Each system's file is its long form; its tests document the edge cases. `world.<
 | Groups (any member invites, 0x7E17), raids, raid rules and loot | `entity/group.go`, `raid*.go`, `handlers/raidloot.go`, `handlers/raidcmds.go` |
 | Regional weather | `internal/weather`, `entity/weather.go`, `handlers/weather.go` |
 | Combat arts landing when their graphic ends | `entity/fxland.go`, table `fxland` |
+| Corpse tunar, the live game's: 1 + 0..level/4, wildlife none, named creatures by table `npccoins` (live-era footage: very little tunar dropped); pickpocket the ordinary amount | `handlers/corpsecoins.go`, `database/npccoins.go` |
 
 **Raid groups**: past four only by a raid flag (`/raid`). CLIENT's `m_group[4]` is followed by its count and
 `Msg0772` reads the count unbounded, so **no client is told of more than four members** unless it asked for the

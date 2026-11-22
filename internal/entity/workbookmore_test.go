@@ -111,7 +111,8 @@ func TestWorkbookPickpocket(t *testing.T) {
 	c.npc.Level, c.npc.HP, c.npc.MaxHP = 20, 1000, 1000
 	old := pickIntn
 	defer func() { pickIntn = old }()
-	pickIntn = func(int) int { return 0 }
+	var asked []int
+	pickIntn = func(n int) int { asked = append(asked, n); return 0 }
 	cast := func(at time.Duration) {
 		t.Helper()
 		if !c.w.StartCast(c.sess, pick, c.npcO, c.at(at)) {
@@ -120,17 +121,21 @@ func TestWorkbookPickpocket(t *testing.T) {
 		c.tick(at + pick.CastTime + castLand)
 	}
 	cast(0)
-	if c.p.Tunar != 20 || c.npc.CurrentEnemy != 0 {
+	if c.p.Tunar != 1 || c.npc.CurrentEnemy != 0 {
 		t.Fatalf("after a pick: %d tunar, enemy %d", c.p.Tunar, c.npc.CurrentEnemy)
 	}
+	// work board 658: an ordinary corpse's amount, 1 + 0..level/4 (a level 20's 1-6), not its level to twice it
+	if len(asked) != 2 || asked[1] != 6 {
+		t.Fatalf("the dice were asked %v, want the chance then 0..5 (level 20 / 4)", asked)
+	}
 	cast(10 * time.Second)
-	if c.p.Tunar != 20 {
+	if c.p.Tunar != 1 {
 		t.Errorf("picked again at once: %d tunar", c.p.Tunar)
 	}
 	c.npc.pickedAt = time.Time{}
 	pickIntn = func(int) int { return 99 }
 	cast(20 * time.Second)
-	if c.p.Tunar != 20 || c.npc.CurrentEnemy != c.p.ServerID {
+	if c.p.Tunar != 1 || c.npc.CurrentEnemy != c.p.ServerID {
 		t.Errorf("caught: %d tunar, enemy %d", c.p.Tunar, c.npc.CurrentEnemy)
 	}
 }

@@ -917,6 +917,22 @@ var catalog = map[string]tableNote{
 			"source":    {Label: "Source", Help: "gm, or camp-seed for tools/seed_camp_loot.py's rows (its --undo deletes those no GM changed)"},
 		},
 	},
+	"npccoins": {
+		Label: "Corpse tunar", Group: "World", Title: "npc_name", Sort: "npc_name",
+		Help: "Tunar a named creature's corpse holds instead of the ordinary 1 + 0..level/4: a roll from coins_min to " +
+			"coins_max (handlers/corpsecoins.go), by NPC NAME as NPC classes key it (lower case, no trailing space or $); " +
+			"a GM's #spawn copy uses its original's row. An animal's corpse holds none unless a row names it; a pet's, a " +
+			"training dummy's or a duel spawn's none at all. Source video-audit rows are amounts read off live-era footage.",
+		Live:   "At once: the next corpse of that name is rolled with it.",
+		Search: []string{"npc_name", "note", "source"},
+		Cols: map[string]colNote{
+			"npc_name":  {Label: "NPC name (key)", Help: "lower case, as in NPCs without a trailing space or $"},
+			"coins_min": {Label: "Least", Help: "the fewest tunar the corpse holds, 0 or more"},
+			"coins_max": {Label: "Most", Help: "the most tunar the corpse holds, coins_min or more"},
+			"note":      {Label: "Note", Help: "why"},
+			"source":    {Label: "Source", Help: "gm, or video-audit for amounts read off live-era footage"},
+		},
+	},
 	"lootpreset": {
 		Label: "Loot presets", Group: "World", Title: "name", Sort: "name",
 		Help: "Named sets of loot rates (Loot rates): the one with active 1 is the one every corpse rolls by. Rows of " +

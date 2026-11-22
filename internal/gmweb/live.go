@@ -591,6 +591,25 @@ func checkSpawnOnlyRow(row map[string]any) error {
 	return nil
 }
 
+// checkNPCCoinsRow holds an npccoins row (work board 658) to a name's key and
+// 0 <= coins_min <= coins_max (an edit giving one bound alone is held to 0 or more).
+func checkNPCCoinsRow(row map[string]any) error {
+	if v, ok := row["npc_name"]; ok {
+		if name, _ := v.(string); database.NPCClassKey(name) == "" || database.NPCClassKey(name) != name {
+			return badRequest("npc_name is the NPC's name as NPC classes key it: lower case, no trailing space or $")
+		}
+	}
+	lo, hasLo := row["coins_min"]
+	hi, hasHi := row["coins_max"]
+	if hasLo && rowInt(row, "coins_min") < 0 || hasHi && rowInt(row, "coins_max") < 0 {
+		return badRequest("coins_min and coins_max are 0 or more")
+	}
+	if hasLo && hasHi && lo != nil && hi != nil && rowInt(row, "coins_min") > rowInt(row, "coins_max") {
+		return badRequest("coins_min is at most coins_max")
+	}
+	return nil
+}
+
 // liveCamps reads the camps' spawns again (entity/campspawn.go; the change is
 // committed: the database is free).
 func (s *Server) liveCamps() string {

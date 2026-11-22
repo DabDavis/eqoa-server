@@ -102,6 +102,9 @@ type EffectRules struct {
 	// ProcHealUndead: the proc heals only at a hit on, or by, an undead
 	// creature (the workbook's "Enemy - Undead" proc; none heals so yet)
 	ProcHealUndead bool `json:",omitempty"`
+	// ProcHealGroup: the heal reaches the bearer's group within it too (0 the
+	// bearer alone; board 1659)
+	ProcHealGroup float32 `json:",omitempty"`
 	// ProcDebuffedPct is its proc's percent more, the damage and the heal, at a
 	// hit on a creature that carries a lasting harmful spell of the bearer's
 	// (SpellEffect.DebuffedPct, proc.go)
@@ -188,6 +191,7 @@ func (ae *ActiveEffect) workbookLasting(e SpellEffect, d *SpellDef) bool {
 		ae.Rules.ProcHeal, ae.Rules.ProcHealDef = e.Amount, e.Defense
 		ae.Rules.ProcHealScale, ae.Rules.ProcHealScalePct, ae.Rules.ProcHealChance = e.Scale, e.ScalePct, e.Chance
 		ae.Rules.ProcHealUndead = e.Undead
+		ae.Rules.ProcHealGroup = e.ProcHealGroup
 		ae.Rules.ProcDebuffedPct = max(ae.Rules.ProcDebuffedPct, e.DebuffedPct)
 	default:
 		return false
@@ -769,8 +773,11 @@ func (w *World) procHealsLocked(p *Player, npc *NPC, defense bool, now time.Time
 		if r.ProcHeal <= 0 || r.ProcHealDef != defense || !now.Before(ae.Until) {
 			continue
 		}
-		if !defense && ae.Proc > 0 {
-			continue // its heal comes with its hit, one proc (procTapLocked)
+		// its heal comes with its hit, one proc (procTapLocked), where the hit
+		// can fire: an undead-only hit's heal rolls by itself at any other
+		// creature (board 1659: Crusader's Aura healed nothing but on undead)
+		if !defense && ae.Proc > 0 && (!ae.ProcUndead || (npc != nil && w.undeadLocked(npc))) {
+			continue
 		}
 		if r.ProcHealUndead && (npc == nil || !w.undeadLocked(npc)) {
 			continue
@@ -786,7 +793,27 @@ func (w *World) procHealsLocked(p *Player, npc *NPC, defense bool, now time.Time
 		if r.ProcHealScale != StatNone && r.ProcHealScalePct != 0 {
 			n += p.StatNow(r.ProcHealScale) * r.ProcHealScalePct / 100
 		}
-		log.Printf("Proc: %s's %q heals it for %d", p.Name, ae.Name, n)
-		w.procHealLocked(p, w.findSessionByEntityIDLocked(p.ServerID), p, n)
+		w.procHealGroupLocked(p, w.findSessionByEntityIDLocked(p.ServerID), ae, n)
 	}
+}
+
+// procHealGroupLocked is a proc's heal of n on its bearer p and, where its
+// effect reaches the group (ProcHealGroup), on each other living player of
+// p's group in p's world within it (players alone: no pets or mercs).
+func (w *World) procHealGroupLocked(p *Player, sess *session.Session, ae *ActiveEffect, n int) {
+	w.procHealLocked(p, sess, p, n)
+	reach := ae.Rules.ProcHealGroup
+	if reach <= 0 {
+		log.Printf("Proc: %s's %q heals it for %d", p.Name, ae.Name, n)
+		return
+	}
+	healed := 0
+	for _, m := range w.groupMembersLocked(p) {
+		if m == p || m.IsDead() || m.World != p.World || outOfRange(p, m.X, m.Y, m.Z, reach) {
+			continue
+		}
+		w.procHealLocked(p, sess, m, n)
+		healed++
+	}
+	log.Printf("Proc: %s's %q heals it and %d of its group for %d", p.Name, ae.Name, healed, n)
 }

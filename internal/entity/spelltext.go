@@ -199,6 +199,9 @@ type SpellEffect struct {
 	DebuffedPct int
 	// Spell is the spell an EffectCancel takes off, by name (lower case)
 	Spell string
+	// ProcHealGroup is a proc heal's group reach: each member of its bearer's
+	// group within it is healed too (0: the bearer alone; board 1659)
+	ProcHealGroup float32
 	// Rune is an EffectMitigate that stops each hit whole and lets 1 hit point
 	// through (workbook.go mitigateSnapLocked; board 1350)
 	Rune bool

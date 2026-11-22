@@ -152,7 +152,10 @@ type effectJSON struct {
 	RezPct          float64       `json:"rez_pct"`
 	Mitigation      *mitigateJSON `json:"mitigation"`
 	Procs           []effectJSON  `json:"procs"`
-	On              string        `json:"on"`
+	// Radius is a proc heal's reach round its bearer with scope "group"
+	// (ProcHealGroup; board 1659), 30 where it gives none
+	Radius float64 `json:"radius,omitempty"`
+	On     string  `json:"on"`
 	// TargetType is a proc's own target type: "Enemy - Undead" fires on the
 	// undead alone (the proc's, not its buff's, which goes on a friend)
 	TargetType string `json:"target_type"`
@@ -960,6 +963,12 @@ func (d *SpellDef) readProcsJSON(name, kind string, e effectJSON) {
 			se := effectOf(EffectProcHeal, p)
 			se.Defense = def
 			se.Undead = undead
+			if strings.EqualFold(strings.TrimSpace(p.Scope), "group") {
+				se.ProcHealGroup = float32(p.Radius) // the group within it heals too (board 1659)
+				if se.ProcHealGroup <= 0 {
+					se.ProcHealGroup = 30
+				}
+			}
 			se.DebuffedPct = max(round(p.DebuffedPct), 0)
 			if def {
 				se.Chance = 100

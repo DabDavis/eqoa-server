@@ -275,6 +275,18 @@ var wayRoutes = map[string][]wayRoute{
 	"Portal down from Vetash": {
 		{To: "the Geomancer's Citadel", At: &wayPlace{World: 1, X: 4700, Y: 66, Z: 2330}},
 	},
+	// And from the Primevals' middle floors the same way (Heirloom petitions
+	// 2674 and 2676: "At fire primeval there is no portal to go back down after
+	// killing the enemy"): a Primeval's death stands its portal by the landing of
+	// the portal up for ten minutes (the triggers "Earth Portal Down" and "Fire
+	// Portal Down": tools/primeval_portal_down_20261122.py), landing where the
+	// Archons' do. The Earth Primeval is in Aereth's tower, the Fire in Vetash's.
+	"Portal down from Earth": {
+		{To: "the Geomancer's Citadel", At: &wayPlace{World: 1, X: 4700, Y: 66, Z: 2512, Facing: math.Pi}},
+	},
+	"Portal down from Fire": {
+		{To: "the Geomancer's Citadel", At: &wayPlace{World: 1, X: 4700, Y: 66, Z: 2330}},
+	},
 
 	// The Plane of Disease (F3 pass 17, "unable to travel to PoD"), the
 	// Secrets world's "Last Home" (world 5): "Log the quest by speaking to

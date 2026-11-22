@@ -2,6 +2,7 @@ package entity
 
 import (
 	"log"
+	"math/bits"
 	"strings"
 	"time"
 
@@ -313,8 +314,8 @@ func (w *World) landIllusionLocked(cs *castState, t *Player, ae *ActiveEffect) {
 		// its body, at the bearer's size unless its name's body says
 		// another; a race's body the bearer's sex's of that race, at the
 		// race's size
-		model, ok = d.FormModel, true
-		if b, race, isRace := w.raceBodyLocked(d.FormModel, t.Sex); isRace {
+		model, ok = discOrderLocked(cs.spell.Name, d.FormModel), true
+		if b, race, isRace := w.raceBodyLocked(model, t.Sex); isRace {
 			model, size = b, w.raceSizeLocked(race)
 		}
 	}
@@ -348,6 +349,30 @@ func onDisc(model uint32) bool {
 	}
 	_, ok := (*m)[model]
 	return ok
+}
+
+// discOrderLocked is an illusion's body as the disc's DictID: model when the
+// disc has it, else model read the other way round when the disc has that.
+// The two orders are one trap: a workbook sprite (spelleffect.effects) is
+// written byte-reversed against npcs.modelid and is turned round as it is read
+// (spelljson.go spriteBody), while itemeffect.body, a proc's body and every
+// panel look column are the disc's order. A sprite typed in the disc's order
+// (petition 2301: Form of the Predator's 0xF23F517F, a GM's edit, showed no
+// wolf) or a body typed as a sprite (the owner, 2026-11-22: "some models got
+// swaped by endianess for illusions") came out reversed, a body no CSprite
+// has, and the illusion showed nothing. No disc body is another's reversal
+// (worlds/models.txt, 569 of them), so either order names one body; the turn
+// is logged so the row can be put right. Without the disc's table the model
+// is taken as given (onDisc).
+func discOrderLocked(spell string, model uint32) uint32 {
+	if onDisc(model) {
+		return model
+	}
+	if r := bits.ReverseBytes32(model); onDisc(r) {
+		log.Printf("Cast: %q: body %#08x is not on the disc but %#08x, its bytes the other way round, is: shown as that (its row has the other byte order)", spell, model, r)
+		return r
+	}
+	return model
 }
 
 // Body is the model and scale a creature is shown with: the newest illusion
@@ -393,8 +418,8 @@ func (w *World) landNPCIllusionLocked(cs *castState, npc *NPC, ae *ActiveEffect)
 	sex := w.modelSex[uint32(npc.ModelID)]
 	model, size, ok := w.illusionBodyLocked(d.Form, sex)
 	if d.FormModel != 0 {
-		model, ok, size = d.FormModel, true, 0
-		if b, _, isRace := w.raceBodyLocked(d.FormModel, sex); isRace {
+		model, ok, size = discOrderLocked(cs.spell.Name, d.FormModel), true, 0
+		if b, _, isRace := w.raceBodyLocked(model, sex); isRace {
 			model = b // at the creature's own size: NPCs keep their rows' sizes (racesize.go)
 		} else {
 			size = w.bodySizeLocked(model)

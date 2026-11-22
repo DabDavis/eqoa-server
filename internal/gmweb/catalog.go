@@ -2413,7 +2413,9 @@ var catalog = map[string]tableNote{
 			"effects": {Label: "Effects (JSON)", Format: "multiline", Help: "EQOAEmu's spell workbook's effects as JSON " +
 				"(entity/spelljson.go): when not empty, what the spell does, the line then only words; empty, the line is read. An Offensive Proc's \"proc_fx\" (a SPELLFX.CSF DictID, a number or " +
 				"\"0x...\", on the proc's entry or its Offensive Proc) is its look on what each proc hits, a player's, a pet's or a " +
-				"creature template's pinned on the spell; none, the stand-in."},
+				"creature template's pinned on the spell; none, the stand-in. An illusion's \"sprite\" is the workbook's, the body's " +
+				"DictID BYTE-REVERSED (the barbarian man, 0x61CA3EDF as a body, is \"0xDF3ECA61\"); a body typed in the disc's " +
+				"order is still shown (and logged) where the disc has only that one."},
 		},
 	},
 	"spellarea": {

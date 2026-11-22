@@ -611,6 +611,12 @@ type TemplateAbility struct {
 	// To is a portfoe's landing, [world, x, y, z]; none: the player's own bind
 	// point (AbilityPortFoe).
 	To []float64 `json:"to,omitempty"`
+	// SpareQuest (a kickzone's): a player whose quest step to do is at its
+	// creature (a talk, show or give step naming it) is not kicked, so the one
+	// sent to it may come up to it and talk where anyone else is struck down
+	// (work board 709, the Anvil of Sarek: "a death touch on whoever rushes in
+	// before the pop-up").
+	SpareQuest bool `json:"spare_quest,omitempty"`
 }
 
 // UnhitOr is an unreached moment's wait: its own, else DefaultUnhitSeconds.
@@ -819,6 +825,9 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 		if len(a.To) > 0 && a.Kind != AbilityPortFoe {
 			return fmt.Errorf("ability %d: to is a portfoe's", n)
 		}
+		if a.SpareQuest && a.Kind != AbilityKickZone {
+			return fmt.Errorf("ability %d: spare_quest is a kickzone's", n)
+		}
 		if a.Kind == AbilityHealShield {
 			if a.Below < 1 || a.Below > 100 {
 				return fmt.Errorf("ability %d: a heal shield's below %d: 1 to 100 percent of its hit points", n, a.Below)
@@ -921,10 +930,10 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 
 // checkKickZone holds a kick zone (AbilityKickZone) to its fields: a radius of 1
 // to MostKickZoneRadius, a damage of 1 to MostKickZoneDamage, every 0 (1 s) or
-// 0.5 to 3600 seconds, a name, a visual and a say as any; nothing else.
+// 0.5 to 3600 seconds, a name, a visual, a say and spare_quest as any; nothing else.
 func checkKickZone(n int, a TemplateAbility) error {
 	k := a
-	k.Kind, k.Radius, k.Damage, k.Every, k.Name, k.FX, k.Say = "", 0, 0, 0, "", 0, ""
+	k.Kind, k.Radius, k.Damage, k.Every, k.Name, k.FX, k.Say, k.SpareQuest = "", 0, 0, 0, "", 0, "", false
 	switch {
 	case math.IsNaN(a.Radius) || a.Radius < 1 || a.Radius > MostKickZoneRadius:
 		return fmt.Errorf("ability %d: a kickzone's radius %.1f: 1 to %d", n, a.Radius, MostKickZoneRadius)
@@ -937,7 +946,7 @@ func checkKickZone(n int, a TemplateAbility) error {
 	case len(a.Say) > SayMost || strings.ContainsAny(a.Say, "|\n\r"):
 		return fmt.Errorf("ability %d: a say of more than %d characters, or with a | or a line break", n, SayMost)
 	case !reflect.DeepEqual(k, TemplateAbility{}):
-		return fmt.Errorf("ability %d: a kickzone takes radius, damage, every, name, fx and say alone", n)
+		return fmt.Errorf("ability %d: a kickzone takes radius, damage, every, name, fx, say and spare_quest alone", n)
 	}
 	return nil
 }

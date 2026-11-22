@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/session"
 )
@@ -41,7 +42,8 @@ func (q *QuestEngine) syncQuestState() {
 	walls := q.gw.QuestWalls()
 	doors := q.gw.QuestDoors()
 	items := q.gw.WatchedItems()
-	if len(walls) == 0 && len(doors) == 0 && len(items) == 0 {
+	spares := q.gw.KickZoneSpareNames()
+	if len(walls) == 0 && len(doors) == 0 && len(items) == 0 && len(spares) == 0 {
 		return
 	}
 	itemWalls := false
@@ -112,17 +114,53 @@ func (q *QuestEngine) syncQuestState() {
 				keys = append(keys, fmt.Sprintf("d%d", d.NPCID))
 			}
 		}
+		// a kick zone that spares the one a quest sends to its creature
+		// (entity/kickzone.go): the steps to do now at one
+		at := q.questAtLocked(c, spares)
+		for k := range at {
+			keys = append(keys, "a"+k)
+		}
 		sort.Strings(keys)
 		sent := "+" + strings.Join(keys, ",")
 		if sent != c.qstate.sent {
 			c.qstate.sent = sent
 			q.gw.SetQuestState(id, passes, holds)
-			log.Printf("Quests: %s passes %d walls and holds %d watched items (%s)", p.Name, len(passes), len(holds), sent)
+			q.gw.SetQuestAt(id, at)
+			log.Printf("Quests: %s passes %d walls, holds %d watched items and is sent to %d guarded creatures (%s)",
+				p.Name, len(passes), len(holds), len(at), sent)
 		}
 		if itemWalls {
 			q.tellWallsLocked(c, sess, p)
 		}
 	}
+}
+
+// questAtLocked is which of the creatures names (NPCClassKey) a step the
+// character has to do now is at (a talk, show or give step naming it), nil for
+// none. Must be called with q.mu held.
+func (q *QuestEngine) questAtLocked(c *questChar, names []string) map[string]bool {
+	if len(names) == 0 {
+		return nil
+	}
+	want := make(map[string]bool, len(names))
+	for _, n := range names {
+		want[n] = true
+	}
+	var at map[string]bool
+	for qid, cq := range c.quests {
+		if cq == nil || !cq.Active() {
+			continue
+		}
+		for _, st := range openSteps(q.cat.byID[qid], cq) {
+			if k := database.NPCClassKey(st.Target); database.AtNPC(st.Kind) && want[k] {
+				if at == nil {
+					at = map[string]bool{}
+				}
+				at[k] = true
+			}
+		}
+	}
+	return at
 }
 
 // tellWallsLocked tells a character the line of each wall of an item it has

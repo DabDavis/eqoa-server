@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"log"
+	"sort"
 	"time"
 
 	"github.com/eqoa/server/internal/database"
@@ -19,10 +20,15 @@ import (
 // Radius of it across and no more than Radius above or below is kicked: the creature turns to it
 // with its special's swing (0x00B1, the ability's FX for another), and the player takes Damage at
 // once, fixed (no resist, no armour, no balance), told as a hit from the creature (0x00DB), and
-// may die of it. Not kicked: the dead, one on its way back from a death, a GM flying (#fly). Its
-// clock waits while no one is in it, so the first to step in is kicked at once. It is the whole of
-// what the zone does: no hate, no fight. Being unattackable and not aggressive are the creature's
-// own rows (the NPC bit, npcaggro), not the zone's.
+// may die of it. Not kicked: the dead, one on its way back from a death, a GM flying (#fly), and,
+// in a zone that spares questers (SpareQuest), a player whose quest step to do is at the creature
+// (a talk, show or give step naming it: work board 709, the one who comes to the Anvil of Sarek
+// for his quest talks where anyone rushing in is struck down; the quest engine says who, each
+// second, SetQuestAt). Its clock waits while no one is in it, so the first to step in is kicked at
+// once. A creature out of the world (spawn-only, or hidden: a quest's or a trigger's hide, its
+// time of day) kicks no one. It is the whole of what the zone does: no hate, no fight. Being
+// unattackable and not aggressive are the creature's own rows (the NPC bit, npcaggro), not the
+// zone's.
 
 // kickZoneState is a creature with a kick zone, and when each of its zones may kick next.
 type kickZoneState struct {
@@ -62,7 +68,7 @@ func (w *World) kickZoneSystem(now time.Time) {
 			continue
 		}
 		zs := npc.tmpl.kickZonesOf()
-		if npc.Dead || npc.SpawnOnly || len(zs) != len(ks.next) {
+		if npc.Dead || npc.hiddenAt(now) || len(zs) != len(ks.next) {
 			continue
 		}
 		for i := range zs {
@@ -95,6 +101,9 @@ func (w *World) kickZoneLocked(npc *NPC, z *database.TemplateAbility, now time.T
 		}
 		if dy := p.Y - npc.Y; dy > r || dy < -r || distXZ(p.X, p.Z, npc.X, npc.Z) > r {
 			continue
+		}
+		if z.SpareQuest && w.qwalls.at[p.CharServerID][database.NPCClassKey(npc.Name)] {
+			continue // sent to it by a quest (SetQuestAt)
 		}
 		in = append(in, p)
 	}
@@ -136,4 +145,24 @@ func (w *World) kickZoneLocked(npc *NPC, z *database.TemplateAbility, now time.T
 		}
 	}
 	return true
+}
+
+// KickZoneSpareNames are the creatures (NPCClassKey, sorted) in the world whose kick zone spares
+// a player on a quest step at it (SpareQuest): the quest engine says, of these alone, whose step
+// is at which (SetQuestAt).
+func (w *World) KickZoneSpareNames() []string {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	seen := map[string]bool{}
+	var out []string
+	for _, ks := range w.kickZones {
+		for _, z := range ks.npc.tmpl.kickZonesOf() {
+			if k := database.NPCClassKey(ks.npc.Name); z.SpareQuest && !seen[k] {
+				seen[k] = true
+				out = append(out, k)
+			}
+		}
+	}
+	sort.Strings(out)
+	return out
 }

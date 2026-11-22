@@ -933,7 +933,11 @@ async function editor(box, id) {
           field('Races', idSet(q, 'races', RACES), 'none ticked: any', true),
           field('Quests finished first', text(q, 'requires', { placeholder: 'quest ids, comma separated; 11|12 for either', class: 'mono' }), null, true),
           field('Standings asked', factionReqs(q, 'factionreq'), 'offered, marked and done at its giver only while each is met (-2000 to 2000)', true),
-          field('Day group', text(q, 'daygroup', { placeholder: 'a name, e.g. christmas-gifts' }), 'quests of one name are one a day: none while another is under way or was finished today', true))),
+          field('Day group', text(q, 'daygroup', { placeholder: 'a name, e.g. christmas-gifts' }), 'quests of one name are one a day: none while another is under way or was finished today', true),
+          data.marks ? field('Heirloom Marks', h('div', { class: 'muted' },
+            `pays ${data.marks.pays} (computed ${data.marks.computed} from ${Math.round(data.marks.minutes * 10) / 10} minutes${data.marks.key ? ', key ' + data.marks.key : ''}; ` +
+            (data.marks.set === null || data.marks.set === undefined ? 'marks column empty: computed' : `marks column ${data.marks.set}`) + ')'),
+            "a first finish's, before the real-time limit and the bonuses; set the quests table's marks column to fix it, empty to compute it", true) : null)),
         card('What the giver says', h('div', { class: 'fields' },
           field('Offer', area(q, 'offer', 6), 'a paragraph a question: its lines a box each, its last line the question (no name before it)', true),
           field('Answers taking it', area(q, 'accept', 2), 'a line a question; empty: taken as soon as the giver is talked to', true),

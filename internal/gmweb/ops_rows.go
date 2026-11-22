@@ -452,6 +452,7 @@ func (s *Server) deleteCharacter(a *actor, id int64, dry bool) (any, error) {
 		{"weaponhotbar", "serverid"}, {"quickslots", "serverid"}, {"gearsets", "serverid"}, {"charbuyback", "serverid"},
 		{"charquests", "serverid"}, {"charcoaches", "serverid"}, {"charresets", "serverid"}, {"rehabtemplates", "serverid"},
 		{"charrecord", "serverid"},
+		{"charmarks", "serverid"}, {"charrelive", "serverid"},
 		{"guild_members", "player_id"},
 	}
 	plan := map[string]int64{}

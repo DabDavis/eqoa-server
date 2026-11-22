@@ -466,6 +466,79 @@ var catalog = map[string]tableNote{
 			"signed":   {Label: "Signed", Format: "stamp", Help: "when, RFC 3339 in UTC (2026-10-30T01:30:00Z); empty for a grant"},
 		},
 	},
+	"charmarks": {
+		Label: "Heirloom Marks", Group: "Players", Sort: "serverid",
+		Help: "Each character's Heirloom Marks (handlers/marks.go, world.heirloom_marks): marks unspent, the fraction carried " +
+			"(frac), every mark earned (lifetime), its hour of kill marks (kill_hour_start, unix seconds; kill_hour_marks of 38), " +
+			"its Ring of Guises rank (0-14) and the guise picked (a spell id), its Heirloom Rank (0-6, heirlooms to 49 + rank). " +
+			"Earned below 60 or while reliving, for quests and kills; spent at an Heirloom Keeper. A row edit is kept; log it in charmarks_log.",
+		Live: "At once for /marks and the Keeper; an Heirloom Rank's figures within 30 s.",
+		Show: []string{"serverid", "marks", "lifetime", "kill_hour_marks", "ring_rank", "heirloom_rank"},
+		Cols: map[string]colNote{
+			"serverid":        {Label: "Character", Ref: "characters"},
+			"marks":           {Label: "Marks", Help: "unspent"},
+			"frac":            {Label: "Fraction carried", Help: "0-0.999: a 1.3 bonus adds up"},
+			"lifetime":        {Label: "Earned in all"},
+			"kill_hour_start": {Label: "Kill hour began", Help: "unix seconds"},
+			"kill_hour_marks": {Label: "Kill marks this hour", Help: "of 38, before bonuses"},
+			"ring_rank":       {Label: "Ring of Guises rank", Help: "0-14"},
+			"ring_guise":      {Label: "Guise", Help: "the spell id of the illusion the ring lands"},
+			"heirloom_rank":   {Label: "Heirloom Rank", Help: "0-6"},
+		},
+	},
+	"charmarks_log": {
+		Label: "Heirloom Marks log", Group: "Players", Sort: "id",
+		Help:   "Each award and spending of Heirloom Marks: source quest, kill, spend or gm, its whole marks (a spending negative), what for (a quest id, an NPC row, what was bought) and the bonus factor (group x Hot zone).",
+		Live:   "A record: nothing reads it back.",
+		Show:   []string{"id", "serverid", "at", "source", "amount", "ref", "bonus"},
+		Search: []string{"ref", "source"},
+		Cols: map[string]colNote{
+			"serverid": {Label: "Character", Ref: "characters"},
+			"at":       {Label: "When", Format: "stamp"},
+		},
+	},
+	"charrelive": {
+		Label: "Relive", Group: "Players", Sort: "serverid",
+		Help: "A level 60's Relive (handlers/relive.go): the level it relives at, the experience into it and its own debt, " +
+			"since when, and whether it relives now (active). The row stays after it returns to 60, for a Rehabilitator's " +
+			"Resume. Its true level and experience stay in characters.",
+		Live: "At its next login, or the next Resume.",
+		Cols: map[string]colNote{
+			"serverid": {Label: "Character", Ref: "characters"},
+			"since":    {Label: "Since", Help: "unix seconds"},
+			"active":   {Label: "Reliving now"},
+		},
+	},
+	"hotzones": {
+		Label: "Hot zones", Group: "World", Title: "name", Sort: "id",
+		Help: "The GMs' Hot zones (handlers/hotzones.go): Heirloom Marks earned in one get its bonus_pct (default 10). A camp zone " +
+			"fits a kill of a creature whose spawn is in its world within radius of (x, z); a quest zone a quest whose import " +
+			"key starts with one of its prefixes (quests: e.g. homelands/erudite) or whose id it lists. The Hot Zone Herald in " +
+			"Freeport lists the zones on with their notes and sends players there (beside the camp's anchor when camp names " +
+			"a #tele camp, else to x, y, z). A zone of announce 1 turned on tells every player one line. In the game: #hotzone.",
+		Live: "Within 30 s (at once through #hotzone).",
+		Show: []string{"id", "name", "enabled", "kind", "bonus_pct", "world", "radius", "quests"},
+		Cols: map[string]colNote{
+			"kind":      {Label: "Kind", Help: "camp or quests"},
+			"quests":    {Label: "Quests", Help: "import-key prefixes or quest ids, comma separated (a quest zone)"},
+			"bonus_pct": {Label: "Bonus %"},
+			"note":      {Label: "Note", Help: "shown to players by the herald; no '|'"},
+			"announce":  {Label: "Announce", Help: "1: turned on, every player is told"},
+			"camp":      {Label: "Camp", Help: "the #tele camp it was made on: the herald lands beside its anchor; empty: at x, y, z"},
+			"updated":   {Label: "Updated", Format: "stamp"},
+		},
+	},
+	"heirloomrankac": {
+		Label: "Heirloom Rank AC", Group: "Items & spells", Sort: "class",
+		Help: "The AC an Heirloom Rank adds to each worn heirloom armour piece (head, hands, chest, robe, bracers, waist, legs, " +
+			"feet, shield; never jewellery or a weapon), by the heirloom's class and the rank (1-6).",
+		Live: "Within 30 s, at the next look at the item; worn figures at the next gear change or level.",
+		Cols: map[string]colNote{
+			"class": {Label: "Class", Enum: "class"},
+			"rank":  {Label: "Rank"},
+			"ac":    {Label: "AC a piece"},
+		},
+	},
 	"charrecord": {
 		Label: "Combat records", Group: "Players", Sort: "serverid",
 		Help: "Each character's combat record, lifetime, a row each from its first count (entity/combatrecord.go): PvP " +
@@ -642,6 +715,7 @@ var catalog = map[string]tableNote{
 			"count":    {Label: "Killed so far"},
 			"done":     {Label: "Times finished"},
 			"slot":     {Label: "Journal order"},
+			"taken":    {Label: "Taken", Help: "when it was first taken, unix seconds (Heirloom Marks' real-time limit); empty on rows older than the column"},
 			"updated":  {Label: "Updated", Format: "stamp", ReadOnly: true},
 			"picks": {Label: "Picks", Help: "the options picked at its choices, step:option from 0 (2:1 the second " +
 				"option at step 2): what a rehabilitator undoing a path takes back"},
@@ -3014,6 +3088,7 @@ var catalog = map[string]tableNote{
 			"source":     {Label: "Source"},
 			"notes":      {Label: "Notes", Format: "multiline"},
 			"events":     {Label: "Events", Format: "multiline", Help: "a JSON list: on accept or finish, do popup, say, give, spawn, visual, teleport, vampire or classquest (on finish, with a level: the character's city class quest of that level finished too) (the Quests page edits them)"},
+			"marks":      {Label: "Heirloom Marks", Help: "what its first finish pays in Heirloom Marks (world.heirloom_marks, before the real-time limit and the bonuses); empty: computed from its steps and its import key (the Quests page shows the figure)"},
 			"factionreq": {Label: "Standings asked", Help: "Faction Name:min or Faction Name:min..max, comma separated (the factions table's names): offered, and done at its giver, only while each is met; empty: none"},
 		},
 	},

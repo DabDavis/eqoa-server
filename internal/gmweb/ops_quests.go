@@ -186,8 +186,10 @@ func (s *Server) registerQuestOps() {
 		Name: "quest_get", Title: "Get a quest", Scope: scopeRead, Core: true,
 		Description: "One quest with its steps in order (each with also: the other creatures a kill or loot step " +
 			"counts), the trips it unlocks, what is wrong with it (problems: unknown NPCs, items, spells or factions, a " +
-			"bad class id, a trip no route is, a step no one can do), who has it, and routes: every travel NPC's trips an " +
-			"unlock may name.",
+			"bad class id, a trip no route is, a step no one can do), who has it, routes: every travel NPC's trips an " +
+			"unlock may name, and marks: the Heirloom Marks its first finish pays (set: the quests.marks column, null " +
+			"computed; computed: from its steps' minutes and its import key's kind; minutes; key; pays: the figure used, " +
+			"before the real-time limit and the bonuses; 0 for a level 60 epic).",
 		Input: obj(map[string]any{"quest": integer("the quest's id")}, "quest"),
 		Handler: func(c *opCtx) (any, error) {
 			var req struct{ Quest int64 }
@@ -493,7 +495,8 @@ func (s *Server) questGet(id int64) (any, error) {
 	}
 	unlocks := s.questUnlocks(id)
 	out := map[string]any{"quest": quest[0], "steps": steps, "unlocks": unlocks,
-		"problems": s.questProblems(quest[0], steps, unlocks), "characters": who, "routes": handlers.TravelRoutes()}
+		"problems": s.questProblems(quest[0], steps, unlocks), "characters": who, "routes": handlers.TravelRoutes(),
+		"marks": s.questMarks(id, quest[0], steps)}
 	// where it stands among the rest: its status and why, the quests it
 	// requires and those that require it
 	if idx, err := s.loadQuestIndex(); err == nil {
@@ -1343,4 +1346,26 @@ func (s *Server) liveCharQuest(before, after map[string]any) string {
 		return "at the character's next login"
 	}
 	return q.ReloadCharacter(uint32(id))
+}
+
+// questMarks is what a quest pays in Heirloom Marks (database/marks.go, work board 1927): its marks
+// column (nil: computed), the computed figure, its minutes, its import key and the figure used.
+func (s *Server) questMarks(id int64, quest map[string]any, steps []map[string]any) map[string]any {
+	q := database.Quest{ID: int(id)}
+	for _, st := range steps {
+		count, _ := asFloat(st["count"])
+		chance, _ := asFloat(st["chance"])
+		items, _ := st["items"].(string)
+		q.Steps = append(q.Steps, database.QuestStep{Kind: fmt.Sprint(st["kind"]), Count: int(count), Chance: chance,
+			Items: database.ParseItemCounts(items)})
+	}
+	var set any
+	if v, ok := asFloat(quest["marks"]); ok && quest["marks"] != nil {
+		n := int(v)
+		q.Marks, set = &n, n
+	}
+	key := ""
+	s.d.DB.QueryRow(`SELECT key FROM quest_import_quests WHERE questid = ? LIMIT 1`, id).Scan(&key)
+	return map[string]any{"set": set, "computed": database.QuestMarksComputed(&q, key), "minutes": database.QuestMinutes(&q),
+		"key": key, "pays": database.QuestMarksFor(&q, key)}
 }

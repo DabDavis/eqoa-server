@@ -53,6 +53,9 @@ var boxMarks = map[string]uint32{
 	"tokenShopBoxMark":  tokenShopBoxMark,
 	"raidPortalBoxMark": raidPortalBoxMark,
 	"gemSetterBoxMark":  gemSetterBoxMark,
+	"hotZoneBoxMark":    hotZoneBoxMark, // hotzones.go
+	"keeperBoxMark":     keeperBoxMark,  // keeper.go
+	"reliveBoxMark":     reliveBoxMark,  // relive.go
 	"talkBoxMark":       talkBoxMark,
 	"introBoxMark":      introBoxMark,              // cityintro.go
 	"placeTextBoxMark":  entity.PlaceTextBoxMark(), // entity/placetexts.go

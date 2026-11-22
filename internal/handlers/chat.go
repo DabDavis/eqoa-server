@@ -117,6 +117,8 @@ type ChatHandler struct {
 	links     *ItemLinks
 	linkRows  itemLinkRows
 	guildChat func(sess *session.Session, p *entity.Player, line chatText)
+	// marks are the Heirloom Marks: /marks, /relive, #hotzone (marks.go); nil none
+	marks *HeirloomMarks
 }
 
 // NewChatHandler creates a new chat handler.
@@ -412,6 +414,19 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		return
 	}
 
+	// /marks (or #marks; a PS2's "/t marks", below): the character's Heirloom Marks, and
+	// /relive [end] (#relive, "/t relive end"): a Relive's state or its end, everyone's (marks.go)
+	// (a GM's /marks is its camp marks' list, gmcamps.go: a GM earns none)
+	if word, _, _ := strings.Cut(message, " "); (strings.EqualFold(word, "/marks") || strings.EqualFold(word, "#marks")) &&
+		HeirloomMarksOn() && !h.isGM(sess) {
+		h.marks.marksCommand(sess, player)
+		return
+	}
+	if word, rest, _ := strings.Cut(message, " "); (strings.EqualFold(word, "/relive") || strings.EqualFold(word, "#relive")) && HeirloomMarksOn() {
+		h.marks.reliveCommand(sess, player, rest)
+		return
+	}
+
 	// /record [name] (or #record; a PS2's is "/t record [name]", below): a combat
 	// record, its own or any character's, everyone's (combatrecord.go)
 	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/record") || strings.EqualFold(word, "#record") {
@@ -556,6 +571,15 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		}
 		if strings.EqualFold(name, "familiar") && familiarWords(body) {
 			h.familiars.Command(sess, player, body)
+			return
+		}
+		// and the Heirloom Marks (marks.go): "/t marks", "/t relive", "/t relive end"
+		if b := strings.ToLower(strings.TrimSpace(body)); strings.EqualFold(name, "marks") && b == "" && HeirloomMarksOn() {
+			h.marks.marksCommand(sess, player)
+			return
+		}
+		if b := strings.ToLower(strings.TrimSpace(body)); strings.EqualFold(name, "relive") && (b == "" || b == "end") && HeirloomMarksOn() {
+			h.marks.reliveCommand(sess, player, b)
 			return
 		}
 		// and the combat record: "/t record" its own, "/t record <name>" a
@@ -1614,6 +1638,10 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// #fx <visual> [seconds] | <spell>: a spell visual played on the
 		// target now, nothing saved (spellfx.go)
 		h.fxCommand(sess, parts[1:])
+	case "#hotzone":
+		// #hotzone [...]: the Hot zones, listed or changed, each change audited (hotzones.go)
+		_, rest, _ := strings.Cut(strings.TrimSpace(message), " ")
+		h.marks.hotZoneCommand(sess, player, rest)
 	case "#spellfx":
 		// #spellfx <spell> [<visual> | 0]: a spell's visual, said or set
 		// (spellfx.go)

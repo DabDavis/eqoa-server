@@ -170,7 +170,7 @@ func (m *Mercs) mercOwnItems(row database.MercRow, level int) (worn []database.C
 		p := it.Pattern
 		if it.EquipLoc >= 0 {
 			if m.heir != nil {
-				m.heir.ViewFor(row.Race, level, &p)
+				m.heir.ViewForOwner(row.ServerID, row.Race, level, &p)
 			}
 			worn = append(worn, database.CharInventoryEntry{ItemID: -it.ID, Pattern: p, EquipLoc: it.EquipLoc, RemainHP: it.RemainHP, StackLeft: 1})
 			continue

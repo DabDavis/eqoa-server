@@ -882,6 +882,8 @@ func (h *CharacterHandler) enterFromRecord(sess *session.Session, record *databa
 		} else {
 			h.gameWorld.RestoreCMs(sess, owned)
 		}
+		// and a Relive it logged out in, before its gear (relive.go)
+		heirloomMarks.Load().restoreRelive(sess, record.ServerID)
 		// and where a spiritmaster bound it (spiritmaster.go)
 		if b, ok, err := h.store.LoadBind(record.ServerID); err != nil {
 			log.Printf("SelectedChar: '%s' bind point: %v", record.CharName, err)
@@ -2978,4 +2980,28 @@ var defaultHotkeys = []hotkey{
 	{30, "North", "North", "West", "West", "East", "East", "South", "South"},                                                                                                                                               // SW
 	{179, "Good", "Good", "Bad", "Bad", "How's it?", "How's it?", "Okay", "Okay"},                                                                                                                                          // NSE
 	{243, "Sorry, busy", "Sorry, busy", "Quit", "Quit", "Long break", "Long break", "Keyboard", "Keyboard"},                                                                                                                // NSS
+}
+
+// dumpHere sends sess's player a MemoryDump where it stands (a Relive's start and end: relive.go),
+// its channels and lockouts told again as a respawn's are.
+func (h *CharacterHandler) dumpHere(sess *session.Session) {
+	gw := h.gameWorld
+	if gw == nil {
+		return
+	}
+	p := gw.SessionPlayer(sess)
+	if p == nil {
+		return
+	}
+	world, x, y, z, _, ok := gw.PlayerSpot(p)
+	if !ok {
+		return
+	}
+	placed, _, ok := gw.PlaceFacing(p.ServerID, x, y, z, world, p.Facing)
+	if !ok {
+		return
+	}
+	gw.SyncSelfChannels(sess)
+	h.queueMemoryDump(sess, &placed)
+	gw.SendLockouts(sess, time.Now())
 }

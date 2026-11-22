@@ -239,6 +239,8 @@ func (h *InteractHandler) dungeonsTalk(sess *session.Session, p *entity.Player, 
 	switch {
 	case ds == nil || !on:
 		dungeonsSay(sess, dungeonsAs(npc), dungeonsClosed)
+	case p.Reliving():
+		dungeonsSay(sess, dungeonsAs(npc), WardenReliveLine) // relive.go
 	case !dungeonsReaches(sess, world):
 		dungeonsSay(sess, dungeonsAs(npc), dungeonsNoWorld)
 		log.Printf("Dungeons: %s at the warden: its game cannot load world %d", p.Name, world)

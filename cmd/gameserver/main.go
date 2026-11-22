@@ -762,6 +762,11 @@ func main() {
 	// the Rock of Freeport (world.rock_of_freeport): its record made now when
 	// none is so named, given at a login, a cast to Freeport when used
 	handlers.SetRockOfFreeport(cfg.World.RockOfFreeport)
+	// Heirloom Marks (world.heirloom_marks, handlers/marks.go): off unless set
+	handlers.SetHeirloomMarks(cfg.World.HeirloomMarks)
+	if cfg.World.HeirloomMarks {
+		log.Printf("Heirloom Marks: on (world.heirloom_marks): marks, Hot zones, the Heirloom Keeper, Relive")
+	}
 	// /testinvis, every player's safe mode (handlers/safemode.go)
 	handlers.SetTestInvis(cfg.World.TestInvis)
 	// /noclip's GMs (handlers/noclip.go)

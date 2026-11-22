@@ -633,6 +633,21 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		interactHandler.rehab = NewRehab(charStore.DB(), gameWorld, invStore, spellStore, classMasteryHandler, charStore)
 	}
 
+	// Heirloom Marks (marks.go, work board 1927; world.heirloom_marks): the awards, the Hot zones,
+	// the Heirloom Keeper, the Ring of Guises, the Mastery Tome and Relive
+	if charStore != nil && gameWorld != nil {
+		marks := NewHeirloomMarks(charStore.DB(), gameWorld, charHandler.heirlooms, invStore, spellStore)
+		marks.dump = charHandler.dumpHere
+		marks.refresh = func(p *entity.Player) { charHandler.applyEquipmentFromDB(p, p.CharServerID, false) }
+		marks.travel = interactHandler.travel
+		interactHandler.marks, chatHandler.marks, equipHandler.marks = marks, marks, marks
+		if interactHandler.rehab != nil {
+			interactHandler.rehab.marks = marks
+		}
+		SetHeirloomMarksService(marks)
+		marks.Start()
+	}
+
 	// The GMs' triggers (gmtriggers.go): scripted events the TEST menu's
 	// TRIGGER lines, #trigger and the GM panel fire
 	if charStore != nil && gameWorld != nil {

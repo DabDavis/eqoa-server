@@ -363,7 +363,7 @@ func (m *Mercs) windowRecords(p *entity.Player, row database.MercRow, level int)
 			AuraTag: database.InstanceTag(-it.ID)} // the copy's own tag (instanceaura)
 		if it.EquipLoc >= 0 {
 			if m.heir != nil {
-				m.heir.ViewFor(row.Race, level, &e.Pattern) // its figures as it wears it (mercOwnItems)
+				m.heir.ViewForOwner(row.ServerID, row.Race, level, &e.Pattern) // its figures as it wears it (mercOwnItems)
 			}
 			own = append(own, e)
 			worn = append(worn, mercWindowRec{id: it.ID, kind: mercRecWorn, e: e})

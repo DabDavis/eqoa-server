@@ -868,6 +868,7 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	}
 	w.pvpCastBegunLocked(p, &spell, targets, now) // pvp.go: an attack given
 	w.breakInvisLocked(p, "a spell cast")         // invis.go
+	w.afkActiveLocked(p, "a cast")                // afk.go
 	if spell.Def.Harmful {
 		w.breakBoardWolfLocked(p, "a harmful spell") // boardwolf.go
 	}

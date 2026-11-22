@@ -215,6 +215,12 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, line chatText, target uint32) {
 	message := line.text
 
+	// /afk (or #afk, a PS2's "/t afk"): the away tag; any other line from an
+	// away player ends it, and goes on (afk.go)
+	if h.afkTyped(sess, message) {
+		return
+	}
+
 	// /hddsetup, for players who reach for the slash. The PS2 client eats most
 	// /-commands locally, so this only ever fires when it forwards one as plain
 	// chat — which costs nothing to support and saves explaining why the
@@ -643,6 +649,7 @@ func (h *ChatHandler) HandleShoutChat(sess *session.Session, msg *protocol.Messa
 // links (itemlinks.go). A typed line in shout mode comes here, a portal's name
 // too (summonportal.go), which takes the text alone.
 func (h *ChatHandler) shoutLine(sess *session.Session, player *entity.Player, line chatText) {
+	h.gameWorld.AFKActive(sess, "a shout") // an away tag ends (afk.go)
 	if h.portal.TakeName(sess, player, line.text) {
 		return
 	}
@@ -920,6 +927,7 @@ func (h *ChatHandler) tell(sess *session.Session, from *entity.Player, name stri
 	SendReplyName(toSess, from.Name)
 	h.tellLine(toSess, to, text.wrap(from.Name+" tells you, '", "'"))
 	h.tellLine(sess, from, text.wrap("You told "+to.Name+", '", "'"))
+	h.afkAnswer(sess, from, to) // its away message, if it is away (afk.go)
 	log.Printf("Tell: %s -> %s", from.Name, to.Name)
 }
 
@@ -955,6 +963,7 @@ func (h *ChatHandler) whisper(sess *session.Session, from *entity.Player, target
 	h.tellLine(toSess, to, text.wrap(from.Name+" whispers, '", "'"))
 	if toSess != sess {
 		h.tellLine(sess, from, text.wrap("You whisper to "+to.Name+", '", "'"))
+		h.afkAnswer(sess, from, to) // afk.go
 	}
 }
 

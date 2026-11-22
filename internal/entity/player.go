@@ -372,6 +372,9 @@ type Player struct {
 	pvp         pvpFlag
 	targetToken uint32
 
+	// afk: its away tag, message and anchor (afk.go); in no row
+	afk afkState
+
 	// RaceLabels: the player's client shows a race of racedefs' own words and
 	// asked for them (racelabels.go, opcode 0x7E1C); raceLabelsSent is the list
 	// it was last sent, so only a change goes out ("" unknown, after a restart).

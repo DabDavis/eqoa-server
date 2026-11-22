@@ -59,6 +59,11 @@ type KeptPlayer struct {
 	// PvP: its flag (pvp.go), and how long it must yet stay on
 	PvP       bool  `json:"pvp,omitempty"`
 	PvPHoldMS int64 `json:"pvp_hold_ms,omitempty"`
+	// AFK: its away tag (afk.go), its message and the place it went away
+	// from; the tellers' minute is not kept (one may be answered once more)
+	AFK      bool        `json:"afk,omitempty"`
+	AFKMsg   string      `json:"afk_msg,omitempty"`
+	AFKPlace *[3]float32 `json:"afk_place,omitempty"`
 	// Jumps: its client jumps (jump.go)
 	Jumps bool `json:"jumps,omitempty"`
 	// DPSMeter: its client draws a damage meter (dpsmeter.go); its fight ends
@@ -165,6 +170,10 @@ func (w *World) KeepPlayer(sess *session.Session, now time.Time) (KeptPlayer, bo
 	if p.pvp.on {
 		k.PvP, k.PvPHoldMS = true, max(0, p.pvp.hold.Sub(now).Milliseconds())
 	}
+	if p.afk.on {
+		at := p.afk.at
+		k.AFK, k.AFKMsg, k.AFKPlace = true, p.afk.msg, &at
+	}
 	for _, l := range p.Lockouts {
 		if left := l.until.Sub(now); left > 0 {
 			k.Lockouts = append(k.Lockouts, KeptLockout{Spell: l.spellID, Index: l.displayIndex, LeftMS: left.Milliseconds()})
@@ -216,6 +225,12 @@ func (w *World) RestoreKeptPlayer(sess *session.Session, k KeptPlayer, now time.
 	p.RecordWindow = k.RecordWindow
 	if k.PvP && w.pvpAllowed { // a server since turned off drops it
 		p.pvp = pvpFlag{on: true, hold: now.Add(time.Duration(k.PvPHoldMS) * time.Millisecond)}
+	}
+	if k.AFK { // its away tag, from where it went away (afk.go)
+		p.afk = afkState{on: true, msg: k.AFKMsg, at: [3]float32{p.X, p.Y, p.Z}}
+		if k.AFKPlace != nil {
+			p.afk.at = *k.AFKPlace
+		}
 	}
 	p.Jumps = k.Jumps && w.jumpsAllowed // and its jumps (its client is told: handlers/keep.go)
 	w.restoreFlyingLocked(p, k)

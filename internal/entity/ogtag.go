@@ -48,7 +48,7 @@ func cutShownName(name string) string {
 }
 
 // nameTags are the tags a drawn name may begin with.
-var nameTags = []string{GMTag, TestTag, OGTag, HCTag, CTFCarrierTag}
+var nameTags = []string{GMTag, TestTag, OGTag, HCTag, CTFCarrierTag, AFKTag}
 
 // PlainName is a name as typed or sent back, without the tags a drawn name
 // carries before it ("[GM] [OG] Name", "[OG][HC]Name" are "Name"), and trimmed.
@@ -99,7 +99,8 @@ func ShownNames(name string, gm, og, hc bool) []string {
 }
 
 // ShownNamesOf is ShownNames for an account that may be a sub GM's (sub: its
-// [Test] tag, testtag.go), drawn only where it is no GM's.
+// [Test] tag, testtag.go), drawn only where it is no GM's. Any character may be
+// away (afk.go), so each form comes with its [AFK] too, where it fits.
 func ShownNamesOf(name string, gm, sub, og, hc bool) []string {
 	og = og && OGTagsOn()
 	hc = hc && HardcoreOn()
@@ -109,8 +110,10 @@ func ShownNamesOf(name string, gm, sub, og, hc bool) []string {
 		for _, o := range []bool{false, og} {
 			for _, h := range []bool{false, hc} {
 				for _, t := range []bool{false, sub} {
-					if s := shownWith(name, g, t, false, o, h); s != name {
-						more = append(more, s)
+					for _, a := range []bool{false, true} {
+						if s := shownWith(name, g, t, false, o, h, a); s != name {
+							more = append(more, s)
+						}
 					}
 				}
 			}

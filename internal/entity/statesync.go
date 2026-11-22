@@ -791,11 +791,12 @@ const GMTag = "[GM] "
 // ShownName is the name the entity channel carries: a GM's with GMTag, a sub
 // GM's with TestTag (testtag.go), an
 // [OG] character's with OGTag (ogaccount.go), a Hardcore character's with HCTag
-// (hardcore.go), the tags joined and fitted to ShownNameMost (composeTags).
+// (hardcore.go), an away player's with AFKTag (afk.go), the tags joined and
+// fitted to ShownNameMost (composeTags).
 func (p *Player) ShownName() string {
-	og := p.OG && OGTagsOn()                                  // an [OG] character's, on a shard with world.og_accounts
-	hc := p.Hardcore && HardcoreOn()                          // a Hardcore character's, on a shard with world.hardcore (hardcore.go)
-	gm := p.GM && !p.HideGMTag                                // a GM's, unless hidden
-	test := p.SubGM && !p.GM                                  // a sub GM's that is no GM's (testtag.go)
-	return shownWith(p.Name, gm, test, p.ctf.carries, og, hc) // the arena's banner carrier (ctfflag.go) too
+	og := p.OG && OGTagsOn()                                            // an [OG] character's, on a shard with world.og_accounts
+	hc := p.Hardcore && HardcoreOn()                                    // a Hardcore character's, on a shard with world.hardcore (hardcore.go)
+	gm := p.GM && !p.HideGMTag                                          // a GM's, unless hidden
+	test := p.SubGM && !p.GM                                            // a sub GM's that is no GM's (testtag.go)
+	return shownWith(p.Name, gm, test, p.ctf.carries, og, hc, p.afk.on) // the arena's banner carrier (ctfflag.go) too
 }

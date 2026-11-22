@@ -305,6 +305,7 @@ func (w *World) pvpEngageLocked(p *Player, ent Entity, objectID uint32, swing Sw
 func (w *World) pvpEngageOnLocked(p *Player, id EntityID, name string, objectID uint32, swing Swing, now time.Time) {
 	p.pvp.hold = now.Add(PvPHoldTime)
 	p.Swing, p.swingNew = swing, false
+	w.afkActiveLocked(p, "an attack") // afk.go
 	if p.AttackTarget == id && p.AttackObjectID == objectID {
 		p.pressed(now)
 		return

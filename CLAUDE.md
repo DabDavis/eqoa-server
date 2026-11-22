@@ -258,6 +258,7 @@ Each system's file is its long form; its tests document the edge cases. `world.<
 | Jump (for a client that can) | `entity/jump.go`, `handlers/jump.go`, `world.jump` |
 | Duels (the live game's 0x1501/0x1502), wagers | `entity/duel*.go`, `handlers/duel.go` |
 | PvP flag | `entity/pvp.go`, `handlers/pvp.go`, `world.pvp` |
+| /afk: the [AFK] name tag (first dropped), away message on tells, ends at chat, attack, cast or a 2-unit move; kept over a keep restart | `entity/afk.go`, `handlers/afk.go` |
 | Monster name and level on □ | `handlers/mobinfo.go`, `world.mob_info` |
 | [OG] and [HC] (hardcore) characters, memorial | `handlers/ogaccount.go`, `hardcore*.go`, `hc*.go`, `memorial.go`, `entity/hcrules.go`, `internal/fallen`, `world.og_accounts`, `world.hardcore` |
 | Profanity filter, item links in chat | `handlers/profanity.go`, `handlers/itemlinks.go` |

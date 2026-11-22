@@ -194,6 +194,7 @@ type World struct {
 	// way to landing (merccast.go), what became of them this tick for the
 	// handlers (runMercNotes), and a count telling one hire from the next
 	mercs     map[EntityID][]*mercState // by owner, by slot (merc.go)
+	ambient   ambientState              // the NPCs' unprompted lines (ambient.go)
 	mercCasts []*mercCast
 	// mercCalls: the creatures each owner called his mercs onto (merccall.go)
 	mercCalls  map[EntityID]map[EntityID]bool

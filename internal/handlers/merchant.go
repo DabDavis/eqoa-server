@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
@@ -47,8 +48,34 @@ const merchantRate = 100
 const roseNotSold = "Merchants will not buy a Rose of Rehabilitation."
 
 // merchantGreeting is the line 0x00B7 ends with (m_merchantName, at most 127
-// UTF-16 characters). The reference server sends each merchant's own; npcs carries none.
+// UTF-16 characters) for a merchant with no greeting of its own: its own is
+// an npcdialog line of use shop (shopGreeting).
 const merchantGreeting = "Have a look at my wares."
+
+// shopGreeting is the greeting atop npc's merchant window to player: its
+// npcdialog line of use shop, picked as a talk's line is (its own name's rows
+// first, then its town's and role's: entity.World.ShopLine), clipped to
+// greetingMax characters; merchantGreeting when it has none or the
+// table cannot be read (a GM's ask of 2026-11-11: each merchant's own words,
+// as live footage shows them).
+func (h *NPCWindowHandler) shopGreeting(player *entity.Player, npc *entity.NPC) string {
+	if h.gameWorld == nil || h.dialogLines == nil || player == nil || npc == nil {
+		return merchantGreeting
+	}
+	rows, err := h.dialogLines()
+	if err != nil {
+		log.Printf("Merchant: npcdialog: %v", err)
+		return merchantGreeting
+	}
+	line, ok := h.gameWorld.ShopLine(player, npc, rows)
+	if !ok || strings.TrimSpace(line) == "" {
+		return merchantGreeting
+	}
+	if r := []rune(line); len(r) > greetingMax {
+		line = string(r[:greetingMax])
+	}
+	return line
+}
 
 // NPCWindowHandler runs the merchant, bank and blacksmith windows.
 type NPCWindowHandler struct {
@@ -380,7 +407,7 @@ func (h *NPCWindowHandler) HandleMerchantOpen(sess *session.Session, msg *protoc
 		refuse(sess)
 		return nil
 	}
-	h.openMerchant(sess, player, npc, id, merchantGreeting)
+	h.openMerchant(sess, player, npc, id, h.shopGreeting(player, npc))
 	return nil
 }
 

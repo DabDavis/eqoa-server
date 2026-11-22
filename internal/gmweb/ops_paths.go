@@ -60,6 +60,11 @@ func checkRow(table string, row map[string]any) error {
 	if (table == "workboard" || table == "workboard_overview") && row != nil {
 		return checkWorkRow(table, row) // ops_work.go
 	}
+	if table == "npcdialog" && row != nil {
+		if err := checkNPCDialogRow(row); err != nil { // live.go
+			return err
+		}
+	}
 	if table == "mapmarks" && row != nil {
 		return checkMapMarkRow(row)
 	}

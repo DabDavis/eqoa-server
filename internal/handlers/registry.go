@@ -421,7 +421,10 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		interactHandler.ledger = charStore
 		// what a town's people and the guards say (entity/dialog.go)
 		interactHandler.SetDialogLines(charStore.DB().NPCDialog)
-		npcWindowHandler.SetDialogLines(charStore.DB().NPCDialog) // a refusing merchant's own words (factionrefusal.go)
+		npcWindowHandler.SetDialogLines(charStore.DB().NPCDialog) // a refusing merchant's own words (factionrefusal.go), a shop's greeting (merchant.go)
+		if gameWorld != nil {
+			gameWorld.SetAmbientLines(charStore.DB().NPCDialog) // the NPCs' unprompted lines (entity/ambient.go)
+		}
 		// what the signs and boards say (signs.go)
 		interactHandler.SetSignTexts(charStore.DB().SignTexts)
 		// who says which bosses are up (overseer.go)

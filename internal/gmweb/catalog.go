@@ -1689,12 +1689,15 @@ var catalog = map[string]tableNote{
 			"lines, never its host town's; trolls and ogres never say the common lines (no town, no race). An NPC with lines " +
 			"of its own name says those alone. A line of its town counts three times, of its role twice, of its " +
 			"name six times, of its people three times, of its race, class, a race it is not for or sex twice; class (the listener's) and not race (a listener of it never hears the line: " +
-			"Qeynos's welcome to the monks of other races than the humans, tools/monk_start.py) narrow it further. In a line %p is the " +
+			"Qeynos's welcome to the monks of other races than the humans, tools/monk_start.py) narrow it further. Use says what a row " +
+			"is for: empty a talk's line, ambient a line said aloud unprompted to the players near (entity/ambient.go), shop a " +
+			"merchant's greeting atop its window (else \"Have a look at my wares.\"); each is picked from its own rows as a " +
+			"talk's is. In a line %p is the " +
 			"listener's name, %r its race, %c its class, %b brother or sister by its sex, %t the town, %n " +
 			"the speaker. tools/seed_town_dialog.py's rows are source ours (its --undo deletes those no GM changed); " +
 			"tools/seed_npc_lines.py's (a name's or a race's own lines) too.",
 		Live:   "At once: the next talk.",
-		Search: []string{"line", "town", "role", "name", "mood", "sex", "source"},
+		Search: []string{"line", "town", "role", "name", "mood", "sex", "use", "source"},
 		Cols: map[string]colNote{
 			"town":         {Label: "Town", Help: "the speaker's town, as its faction names it; empty any"},
 			"role":         {Label: "Role", Help: "guard, trader, priest, scholar, worker, noble or citizen; empty any"},
@@ -1706,6 +1709,7 @@ var catalog = map[string]tableNote{
 			"away":         {Label: "Away", Help: "1: a race's line said only by a guest, away from its own towns"},
 			"class":        {Label: "Listener's class", Enum: "class", Help: "-1 any"},
 			"not_race":     {Label: "Not to race", Enum: "race", Help: "a listener of this race never hears it; -1 none"},
+			"use":          {Label: "Use", Help: "empty: said when talked to; ambient: said aloud, unprompted, every 90-240 s to the players within 60 (a say, never a box); shop: the greeting atop its merchant window (127 characters at most). A talk picks only empty rows, so a line for two uses is two rows"},
 			"line":         {Label: "Line", Help: "%p name, %r race, %c class, %b brother/sister, %t town, %n speaker; said after the speaker's name and \": \", a box shows 217 characters (a longer line goes in several)"},
 			"weight":       {Label: "Weight", Help: "how often against the others that fit"},
 			"source":       {Label: "Source", Help: "gm, or ours for tools/seed_town_dialog.py's rows"},

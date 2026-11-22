@@ -1030,3 +1030,27 @@ func raceName(r int) string {
 	}
 	return fmt.Sprintf("race %d", r)
 }
+
+// checkNPCDialogRow holds npcdialog.use to its three values (empty a talk's line,
+// ambient, shop: database.DialogUseValid); another would be a line said
+// nowhere.
+func checkNPCDialogRow(row map[string]any) error {
+	v, ok := row["use"]
+	if !ok || v == nil {
+		return nil
+	}
+	var u string
+	switch x := v.(type) {
+	case string:
+		u = x
+	case []byte:
+		u = string(x)
+	default:
+		return badRequest("use is text: empty (a talk's line), ambient or shop")
+	}
+	if !database.DialogUseValid(u) {
+		return badRequest("use %q is none of empty (a talk's line), ambient (said aloud, unprompted, to the players near) "+
+			"or shop (the greeting atop the speaker's merchant window)", u)
+	}
+	return nil
+}

@@ -2936,6 +2936,7 @@ var catalog = map[string]tableNote{
 			"world":       {Label: "World", Enum: "world"},
 			"radius":      {Label: "Within"},
 			"height":      {Label: "Within up or down", Help: "a reach step's: the player within this of y too (one floor of a building); 0 any height"},
+			"exactbase":   {Label: "Exact items only", Help: "1 (show, give, loot): only the items' own records count, never an Ascended record of them, and the step never hands out Ascended rewards; 0 (default): either counts"},
 			"anyorder":    {Label: "Any order", Help: "1: this step and the steps next to it with 1 (talk, show or give) are done in any order, the quest going on past them once all are; the journal lists who is left"},
 			"journal":     {Label: "Journal line", Help: "at most 127 characters"},
 			"answer":      {Label: "Player's answer", Format: "multiline", Help: "the first line does it, any others change nothing; empty: done on talking"},

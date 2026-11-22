@@ -26,7 +26,7 @@ var questCols = []string{"name", "enabled", "giver", "minlevel", "maxlevel", "cl
 // stepCols are a step row's columns the editor sends.
 var stepCols = []string{"kind", "target", "npcid", "items", "tunar", "count", "world", "x", "y", "z", "radius",
 	"journal", "answer", "says", "waiting", "notyet", "reminder", "xp", "rewardtunar", "rewarditems", "factions", "spells",
-	"chance", "events", "byclass", "choices", "anyorder"}
+	"chance", "events", "byclass", "choices", "anyorder", "exactbase"}
 
 // questUnlock is one trip a quest unlocks as the editor sends it (a
 // questunlocks row: handlers/questtrips.go).
@@ -102,7 +102,8 @@ func (s *Server) registerQuestOps() {
 		"events":      str("what happens when it becomes the step to do (on start) and when it is done (on done): " + eventsHelp),
 		"byclass": str(`rewards for a player of one class besides the above: a JSON object by class id (0 Warrior ... 14 ` +
 			`Alchemist), each {"xp", "tunar", "items": "patternid*count, ...", "spells": "spell ids, comma separated"}; empty: none`),
-		"anyorder": integer("talk/show/give: 1: this step and the steps next to it with 1 are done in any order, the quest going on past them once all are; the journal lists who is left"),
+		"exactbase": integer("show/give/loot: 1: only the items' own records count, never their Ascended records (no Ascended hand-in or reward from this step); 0 (default): either"),
+		"anyorder":  integer("talk/show/give: 1: this step and the steps next to it with 1 are done in any order, the quest going on past them once all are; the journal lists who is left"),
 		"choices": str(`talk/show/give: a pick asked when the step is done at its NPC (a guide's "choose your epic weapon"): ` +
 			`{"ask": "the question", "options": [{"answer", "says", "stay", "xp", "tunar", "items": "patternid*count, ...", ` +
 			`"spells": "spell ids"}]}, at most six options; the picked one's rewards are given besides the step's own, and one ` +

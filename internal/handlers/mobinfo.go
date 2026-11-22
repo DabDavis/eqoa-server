@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"log"
+	"slices"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -50,17 +51,29 @@ func SetMobInfo(on bool) { mobInfoOn.Store(on) }
 // MobInfoOn reports world.mob_info.
 func MobInfoOn() bool { return mobInfoOn.Load() }
 
-// mobInfoLayout is the layout of OpcodeMobInfo the offer names.
-const mobInfoLayout = 1
+// mobInfoLayout is the layout of OpcodeMobInfo the offer names first (what
+// every client that reads the offer takes), mobInfoLayoutMost the highest the
+// server sends, named second: layout 2 is layout 1's fields and extra lines
+// (the player's own merc's commands, board entry 680). A client that reads
+// only the first byte answers 1, as before.
+const (
+	mobInfoLayout     = 1
+	mobInfoLayoutMost = 2
+)
+
+// mobInfoExtraMost is the most characters of an extra line of layout 2.
+const mobInfoExtraMost = 63
 
 // mobInfoNameMost is the most characters of a name shown, what OpcodeMobInfo's
 // count allows (no NPC's name is near it; a PS2's box holds far more).
 const mobInfoNameMost = 63
 
-// buildMobInfoOffer is OpcodeMobInfoOffer from the server: a u8, the layout.
+// buildMobInfoOffer is OpcodeMobInfoOffer from the server: a u8, the layout
+// (1), then a u8, the highest layout it sends (2).
 func buildMobInfoOffer() []byte {
-	return build(protocol.OpcodeMobInfoOffer, 3, func(w *buffer.Writer) {
+	return build(protocol.OpcodeMobInfoOffer, 4, func(w *buffer.Writer) {
 		w.WriteByte(mobInfoLayout)
+		w.WriteByte(mobInfoLayoutMost)
 	})
 }
 
@@ -96,16 +109,42 @@ func mobInfoLines(name string, level int) string {
 // monster by, its level (a byte: none is past 255) and its name (mobInfoOf's,
 // ASCII, so its bytes are its characters).
 func buildMobInfo(objectID uint32, name string, level int) []byte {
+	return buildMobInfoLayout(1, objectID, name, level, nil)
+}
+
+// buildMobInfoLayout is OpcodeMobInfo in the layout given: layout 2 adds, after
+// layout 1's fields, a u8 count of extra lines, each a u8 length and its ASCII
+// bytes (at most 63), drawn under the level.
+func buildMobInfoLayout(layout uint8, objectID uint32, name string, level int, extra []string) []byte {
 	if len(name) > mobInfoNameMost {
 		name = name[:mobInfoNameMost]
 	}
 	level = max(0, min(level, 255))
-	return build(protocol.OpcodeMobInfo, 2+1+4+1+1+len(name), func(w *buffer.Writer) {
-		w.WriteByte(mobInfoLayout)
+	size := 2 + 1 + 4 + 1 + 1 + len(name)
+	if layout >= 2 {
+		if len(extra) > 255 {
+			extra = extra[:255]
+		}
+		size++
+		for i, l := range extra {
+			l = consoleLine(l, mobInfoExtraMost)
+			extra[i] = l
+			size += 1 + len(l)
+		}
+	}
+	return build(protocol.OpcodeMobInfo, size, func(w *buffer.Writer) {
+		w.WriteByte(max(layout, 1))
 		w.WriteUint32(objectID)
 		w.WriteByte(byte(level))
 		w.WriteByte(byte(len(name)))
 		w.WriteBytes([]byte(name))
+		if layout >= 2 {
+			w.WriteByte(byte(len(extra)))
+			for _, l := range extra {
+				w.WriteByte(byte(len(l)))
+				w.WriteBytes([]byte(l))
+			}
+		}
 	})
 }
 
@@ -122,15 +161,27 @@ func showMobInfo(sess *session.Session, player *entity.Player, npc *entity.NPC, 
 	if !ok {
 		return false
 	}
+	// the talker's own mercenary lists its commands under its level (board
+	// entry 680): in layout 2's extra lines, else in the dialogue box, which a
+	// layout 1 client is sent for its own merc so they are never lost; any
+	// other merc or monster shows its name and level alone
+	var extra []string
+	if player != nil && npc.IsMerc() && npc.Owner == player.ServerID {
+		extra = slices.Clone(mercOwnCommands)
+	}
 	how := "a dialogue box"
-	if sess.MobInfo() {
-		queueReliable(sess, protocol.OpcodeMobInfo, buildMobInfo(objectID, name, level))
+	if layout := sess.MobInfoLayout(); layout >= 2 || (layout == 1 && extra == nil) {
+		queueReliable(sess, protocol.OpcodeMobInfo, buildMobInfoLayout(layout, objectID, name, level, extra))
 		how = "its details box"
 	} else {
 		// a '%' doubled, which CLIENT's text expander (VIClientText::Expand)
 		// shows as one (alone it would read the next character as a token: %p
 		// the player's name), as a sign's words are sent (signs.go)
-		SendDialogueBox(sess, 0, strings.ReplaceAll(mobInfoLines(name, level), "%", "%%"))
+		lines := mobInfoLines(name, level)
+		for _, l := range extra {
+			lines += "\n" + l
+		}
+		SendDialogueBox(sess, 0, strings.ReplaceAll(lines, "%", "%%"))
 	}
 	who := "?"
 	if player != nil {
@@ -160,8 +211,11 @@ func (h *MobInfoHandler) HandleMobInfoAnswer(sess *session.Session, msg *protoco
 		log.Printf("MobInfo: short answer (%d bytes) from %s", len(data), sess.RemoteAddr())
 		return nil
 	}
-	on := qolAnswerFor(sess, data[0] != 0)
-	sess.SetMobInfo(on)
-	log.Printf("MobInfo: %s %s", sess.RemoteAddr(), map[bool]string{true: "shows a monster's in its details box", false: "takes the dialogue box"}[on])
+	layout := min(data[0], mobInfoLayoutMost) // a layout past ours: ours
+	if !qolAnswerFor(sess, layout != 0) {
+		layout = 0
+	}
+	sess.SetMobInfoLayout(layout)
+	log.Printf("MobInfo: %s %s (layout %d)", sess.RemoteAddr(), map[bool]string{true: "shows a monster's in its details box", false: "takes the dialogue box"}[layout != 0], layout)
 	return nil
 }

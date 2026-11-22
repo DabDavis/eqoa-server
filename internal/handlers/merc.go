@@ -276,6 +276,47 @@ func mercSay(sess *session.Session, line string) {
 	}
 }
 
+// mercLiaisonCommands is what the liaison tells before its first question (a
+// GM's ask, board entry 680: players had no way to find how to dismiss a merc;
+// the words are ours), a line each.
+var mercLiaisonCommands = []string{
+	"A mercenary is yours for nothing, one at a time, at your level. Once hired, it heeds these words:",
+	"/merc: how it fares (hit points, power, stance).",
+	"/merc stance passive, assist or aggressive: how readily it fights.",
+	"/merc follow, or /merc stay: walk with you, or hold its place.",
+	"/merc attack: it attacks your target.",
+	"/merc group: it joins your group.",
+	"/merc revive: it comes back after its rest.",
+	"/merc dismiss: send it away; a liaison will hire you another.",
+	"On a PS2, type /t merc and the word (/t merc dismiss).",
+}
+
+// mercOwnCommands is the commands □ on the player's own merc lists under its
+// name and level (mobinfo.go), a line each.
+var mercOwnCommands = []string{
+	"/merc", "/merc stance passive|assist|aggressive", "/merc follow", "/merc stay", "/merc attack",
+	"/merc group", "/merc revive", "/merc dismiss",
+}
+
+// mercSayLines is the liaison's lines in as few dialogue boxes as hold them,
+// a line never cut (each well under a box's questBoxChars), the liaison's
+// name before the first.
+func mercSayLines(sess *session.Session, lines []string) {
+	box := MercLiaisonName + ": "
+	for i, l := range lines {
+		if i > 0 && len([]rune(box))+1+len([]rune(l)) > questBoxChars {
+			SendDialogueBox(sess, 0, box)
+			box = l
+			continue
+		}
+		if i > 0 {
+			box += "\n"
+		}
+		box += l
+	}
+	SendDialogueBox(sess, 0, box)
+}
+
 // Talk is a talk to npc: the liaison's first question when npc is one and
 // mercenaries are on, else false (a liaison then says nothing: no dialog).
 func (m *Mercs) Talk(sess *session.Session, p *entity.Player, npc *entity.NPC) bool {
@@ -292,6 +333,7 @@ func (m *Mercs) Talk(sess *session.Session, p *entity.Player, npc *entity.NPC) b
 		mercSay(sess, hcMercLiaisonWords)
 		return true
 	}
+	mercSayLines(sess, mercLiaisonCommands) // what a merc heeds, before the question (entry 680)
 	answers := make([]string, len(mercRoles))
 	for i, r := range mercRoles {
 		answers[i] = r.label

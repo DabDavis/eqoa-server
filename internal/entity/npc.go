@@ -403,6 +403,9 @@ type NPC struct {
 // isMerc reports a hired mercenary.
 func (n *NPC) isMerc() bool { return n != nil && n.merc != nil }
 
+// IsMerc reports a hired mercenary (its Owner is its hirer).
+func (n *NPC) IsMerc() bool { return n.isMerc() }
+
 // isFamiliar reports a familiar (familiar.go).
 func (n *NPC) isFamiliar() bool { return n != nil && n.familiar != nil }
 

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"strconv"
 	"testing"
 	"time"
@@ -36,39 +37,123 @@ func TestAQuestCreatureDropsItsItemWithNoOneOnTheQuest(t *testing.T) {
 	}
 }
 
-// A group of four kills the creature: ONE item goes on the corpse at ONE draw, whoever of them
-// is on the quest (one here, on the step: the drop keeps the corpse). Two quests naming the
-// same creature and item (chances 0.3 and 0.6) roll it once, at the higher: a draw of 0.5
-// drops it, one of 0.7 does not, and each kill takes one draw.
-func TestAGroupOfFourGetsOneQuestItem(t *testing.T) {
+// The owner, 2026-11-22 (Lord Chardith's bones): "Should every grouped member on the step get
+// one per kill? yes". A group of four kills the creature: each member on the step who still
+// needs the item has a copy of its own, at its own draw of its own step's chance; one on two
+// quests' steps of the same item has one copy, at the higher chance; a helper on no step has
+// none, and no shared copy lies beside the members' (questpreloot.go).
+func TestEveryGroupMemberOnTheStepGetsTheirOwnCopy(t *testing.T) {
 	f := newQuestFixture(t)
 	blood := f.pattern("blood of the desert madman", 1)
-	drops := lootQuest(f, blood, 0.5, 0.7, 0.1)
-	f.exec(`UPDATE queststeps SET chance = 0.3 WHERE questid = 60 AND step = 1`)
+	// draws: kill 1 Talker 0.4, B 0.55, C 0.55; kill 2 Talker 0.55, B 0.7, C 0.1;
+	// kill 3 (Talker past the step) B 0.1, C 0.9; kill 4 (the helper alone) 0.1
+	drops := lootQuest(f, blood, 0.4, 0.55, 0.55, 0.55, 0.7, 0.1, 0.1, 0.9, 0.1)
 	f.exec(`INSERT INTO quests (questid, name, enabled, giver) VALUES (61, 'Research', 1, 'Ilenar')`)
 	f.exec(`INSERT INTO queststeps (questid, step, kind, target, items, count, chance, journal)
 		VALUES (61, 1, 'loot', 'Orc Pawn', '` + strconv.Itoa(blood) + `', 1, 0.6, 'A madman''s blood.')`)
 	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (61, 2, 'talk', 'Ilenar', 'Back.')`)
 	f.qe.Reload()
-	if _, err := f.qe.SetCharacterQuest(f.sid, 60, QuestGive, 0); err != nil {
-		t.Fatal(err)
+	b, c, d := f.sid+1, f.sid+2, f.sid+3
+	for _, g := range []struct {
+		sid   uint32
+		quest int
+	}{{f.sid, 60}, {b, 61}, {c, 60}, {c, 61}} {
+		if _, err := f.qe.SetCharacterQuest(g.sid, g.quest, QuestGive, 0); err != nil {
+			t.Fatal(err)
+		}
+	}
+	type own struct {
+		npc entity.EntityID
+		sid uint32
+	}
+	var owns []own
+	f.qe.dropFor = func(npc entity.EntityID, _ time.Time, sid uint32, rec database.CharInventoryEntry) {
+		if rec.Pattern.PatternID != blood {
+			t.Fatalf("dropped item %d, want the blood", rec.Pattern.PatternID)
+		}
+		owns = append(owns, own{npc, sid})
 	}
 	four := []entity.KillPlayer{{Session: f.tw.s, ServerID: f.sid, Name: "Talker"},
-		{ServerID: f.sid + 1, Name: "B"}, {ServerID: f.sid + 2, Name: "C"}, {ServerID: f.sid + 3, Name: "D"}}
+		{ServerID: b, Name: "B"}, {ServerID: c, Name: "C"}, {ServerID: d, Name: "D"}}
 	kill := func(npc entity.EntityID) {
 		f.qe.killed(entity.KillCredit{NPCName: "Orc Pawn", NPCSpawn: npc, NPCID: npc, Died: time.Now(), Players: four})
 	}
-	kill(993) // 0.5 under 0.6: one blood
-	if len(*drops) != 1 || (*drops)[0] != (lootDrop{993, false, blood}) {
-		t.Fatalf("four killed it: drops %v, want ONE blood on 993", *drops)
+	kill(993) // Talker 0.4 < 0.5, B 0.55 < 0.6, C 0.55 < max(0.5, 0.6): three copies
+	if want := []own{{993, f.sid}, {993, b}, {993, c}}; fmt.Sprint(owns) != fmt.Sprint(want) {
+		t.Fatalf("kill 1: own copies %v, want %v (one each on the step, none for the helper D)", owns, want)
 	}
-	kill(994) // 0.7: none
-	if len(*drops) != 1 {
-		t.Fatalf("a draw of 0.7 dropped: %v", *drops)
+	if len(*drops) != 0 {
+		t.Fatalf("kill 1: a shared copy beside the members' own: %v", *drops)
 	}
-	kill(995) // 0.1: one, the third draw (one a kill)
-	if len(*drops) != 2 || (*drops)[1] != (lootDrop{995, false, blood}) {
-		t.Fatalf("the third kill: drops %v, want one blood on 995", *drops)
+	owns = nil
+	kill(994) // Talker 0.55 > 0.5, B 0.7 > 0.6, C 0.1: C's alone
+	if want := []own{{994, c}}; fmt.Sprint(owns) != fmt.Sprint(want) {
+		t.Fatalf("kill 2: own copies %v, want %v", owns, want)
+	}
+	// the control: Talker past the step (two taken) needs no more and gets none
+	f.qe.Looted(f.tw.s, f.tw.p, blood, 2)
+	if s, _ := f.progress(60); s != 2 {
+		t.Fatalf("two bloods taken, Talker's step is %d", s)
+	}
+	owns = nil
+	kill(995) // B 0.1, C 0.9
+	if want := []own{{995, b}}; fmt.Sprint(owns) != fmt.Sprint(want) {
+		t.Fatalf("kill 3: own copies %v, want %v (Talker done with the step)", owns, want)
+	}
+	// no one of the kill on the step: one shared copy, at one draw, as before
+	owns = nil
+	f.qe.killed(entity.KillCredit{NPCName: "Orc Pawn", NPCSpawn: 996, NPCID: 996, Died: time.Now(), Players: four[3:]})
+	if len(owns) != 0 || len(*drops) != 1 || (*drops)[0] != (lootDrop{996, true, blood}) {
+		t.Fatalf("the helper alone: own %v, shared %v; want one shared blood on 996", owns, *drops)
+	}
+}
+
+// Each member's copy lies on its own view of the corpse: the member on the step takes its own,
+// the other member's stays for them, the helper sees none, and a Lore copy one holds already
+// stays on the corpse (the take's checks are the corpse's, as for any record).
+func TestAMembersQuestCopyIsTheirsToTake(t *testing.T) {
+	r := newRaidLootRig(t, 4)
+	blood := r.questPattern("blood of the desert madman", 1, 1)
+	if _, err := r.f.db.Exec(`UPDATE itempattern SET lore = 1 WHERE patternid = ?`, blood); err != nil {
+		t.Fatal(err)
+	}
+	r.f.h.heardKillRight(entity.KillCredit{NPCID: r.f.npc.ServerID, Died: r.f.npc.DeathTime, Players: []entity.KillPlayer{
+		{ServerID: r.p[0].CharServerID}, {ServerID: r.p[1].CharServerID}, {ServerID: r.p[2].CharServerID}, {ServerID: r.p[3].CharServerID}}})
+	for _, i := range []int{1, 2} { // 1 and 2 on the step; 0 and 3 helpers
+		r.f.h.AddQuestDrop(r.f.npc.ServerID, r.f.npc.DeathTime, r.p[i].CharServerID, r.f.dropOf(blood))
+	}
+	// member 2 holds a Lore blood already
+	if _, err := r.f.inv.AddCharItem(r.p[2].CharServerID, blood, 1, 0, 0, 0); err != nil {
+		t.Fatal(err)
+	}
+	rows, err := r.f.inv.GetCharacterItems(r.p[2].CharServerID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r.sess[2].SetInventoryList(newInvList(rows))
+
+	r.f.h.OpenCorpse(r.sess[1], r.f.npc)
+	for i, want := range []int{0, 1, 1, 0} {
+		if got := r.view(i)["blood of the desert madman"]; got != want {
+			t.Fatalf("%s's view lists %d bloods, want %d", r.p[i].Name, got, want)
+		}
+	}
+	r.lootCall(1, protocol.OpcodeLootTakeAll, nil)
+	r.lootCall(1, protocol.OpcodeClientCloseLoot, nil)
+	if r.owns(1, "blood of the desert madman") != 1 || r.view(1)["blood of the desert madman"] != 0 {
+		t.Fatal("member 1 did not take its own copy")
+	}
+	if r.view(2)["blood of the desert madman"] != 1 {
+		t.Fatal("member 1's take took member 2's copy")
+	}
+	if len(r.f.cleared) != 0 {
+		t.Fatal("the corpse went with member 2's copy on it")
+	}
+	r.f.h.OpenCorpse(r.sess[2], r.f.npc)
+	r.lootCall(2, protocol.OpcodeLootTakeAll, nil)
+	if r.owns(2, "blood of the desert madman") != 1 || r.view(2)["blood of the desert madman"] != 1 {
+		t.Fatalf("member 2 holding a Lore blood: holds %d, the corpse %d; want 1 and its copy left",
+			r.owns(2, "blood of the desert madman"), r.view(2)["blood of the desert madman"])
 	}
 }
 

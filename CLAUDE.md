@@ -264,7 +264,7 @@ Each system's file is its long form; its tests document the edge cases. `world.<
 | Combat record (PvP, duels) | `entity/combatrecord.go`, table `charrecord` |
 | Capture the flag, the siege | `entity/ctf*.go`, `entity/siege.go`, `handlers/ctf.go`, `handlers/siege.go`, `world.ctf`, `world.siege` |
 | Player homes (instanced world) | `entity/homes.go`, `handlers/homes.go`, `world.homes` |
-| Instanced raid dungeons (world 14) | `entity/dungeons.go`, `handlers/dungeons.go`, `world.dungeons` |
+| Instanced raid dungeons (world 14), the lockout before a new instance | `entity/dungeons.go`, `dungeonlockout.go`, `handlers/dungeons.go`, `world.dungeons` |
 | Mail, resets, Master Class, petitions (the live client's) | `handlers/mail.go`, `mailattach.go`, `gmresets.go`, `classmastery.go`, `petitionview.go` |
 | Bug reports as petitions with the server's view | `handlers/bugreport.go`, `petitionview.go`; bug board `handlers/bugboard.go` |
 | Camp fix reports | `handlers/campfixreview.go`, `cmd/campfixfile` |

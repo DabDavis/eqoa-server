@@ -52,6 +52,8 @@ type KeptDungeons struct {
 	Next  uint32            `json:"next"`
 	Insts []KeptDungeonInst `json:"insts,omitempty"`
 	Stays []KeptDungeonStay `json:"stays,omitempty"`
+	// Lockouts are the lockouts still running (dungeonlockout.go)
+	Lockouts []KeptDungeonLock `json:"lockouts,omitempty"`
 }
 
 // KeptDungeonInst is one open instance.
@@ -71,6 +73,8 @@ type KeptDungeonInst struct {
 	NPCs []KeptInstNPC `json:"npcs,omitempty"`
 	// In are the characters standing in it
 	In []uint32 `json:"in,omitempty"`
+	// Stood are the characters who stood in it, locked out of its dungeon when it closes (dungeonlockout.go)
+	Stood []uint32 `json:"stood,omitempty"`
 	// Added are the characters added to it beyond its party, Removed those it took out
 	// and when (instancemembers.go)
 	Added   []KeptInstMember `json:"added,omitempty"`
@@ -111,10 +115,11 @@ type DungeonsRestored struct {
 func (w *World) KeepDungeons(now time.Time) *KeptDungeons {
 	w.mu.Lock() // not RLock: as KeepNPCs
 	defer w.mu.Unlock()
-	if !w.dungeons.on || len(w.dungeons.insts) == 0 && len(w.dungeons.stays) == 0 {
+	locks := w.keptLockoutsLocked(now)
+	if !w.dungeons.on || len(w.dungeons.insts) == 0 && len(w.dungeons.stays) == 0 && len(locks) == 0 {
 		return nil
 	}
-	k := &KeptDungeons{Next: w.dungeons.next}
+	k := &KeptDungeons{Next: w.dungeons.next, Lockouts: locks}
 	ids := make([]uint32, 0, len(w.dungeons.insts))
 	for id := range w.dungeons.insts {
 		ids = append(ids, id)
@@ -145,6 +150,10 @@ func (w *World) KeepDungeons(now time.Time) *KeptDungeons {
 			}
 		}
 		sort.Slice(ki.In, func(i, j int) bool { return ki.In[i] < ki.In[j] })
+		for c := range in.stood {
+			ki.Stood = append(ki.Stood, c)
+		}
+		sort.Slice(ki.Stood, func(i, j int) bool { return ki.Stood[i] < ki.Stood[j] })
 		for c, n := range in.invited {
 			ki.Added = append(ki.Added, KeptInstMember{Char: c, Name: n})
 		}
@@ -181,6 +190,16 @@ func (w *World) RestoreDungeons(k *KeptDungeons) (ids map[EntityID]EntityID, r D
 	for _, s := range k.Stays {
 		w.dungeons.stays[s.Char] = dungeonStay{From: s.From, FromFacing: s.Facing}
 	}
+	if w.dungeons.lockouts == nil {
+		w.dungeons.lockouts = map[dungeonLock]time.Time{}
+	}
+	for _, l := range k.Lockouts { // dungeonlockout.go: a dungeon gone from the recipe keeps none
+		for _, d := range w.dungeons.defs {
+			if strings.EqualFold(d.Key, l.Key) {
+				w.dungeons.lockouts[dungeonLock{l.Char, d.Key}] = l.Began
+			}
+		}
+	}
 	for i := range k.Insts {
 		ki := &k.Insts[i]
 		def := -1
@@ -196,6 +215,9 @@ func (w *World) RestoreDungeons(k *KeptDungeons) (ids map[EntityID]EntityID, r D
 		}
 		in := &dungeonInst{id: ki.ID, def: def, owner: ki.Owner, ownerName: ki.OwnerName, group: ki.Group,
 			opened: ki.Opened, lastIn: ki.LastIn, creatures: ki.Creatures}
+		for _, c := range ki.Stood { // dungeonlockout.go
+			in.markStood(c)
+		}
 		for _, m := range ki.Added { // instancemembers.go
 			if in.invited == nil {
 				in.invited = map[uint32]string{}

@@ -676,8 +676,13 @@ func (h *InteractHandler) sendCoachPage(sess *session.Session, player *entity.Pl
 	start, end, hasMore, hasBack := navPage(total, page, dialogRoom(sess))
 	pageDests := dests[start:end]
 
+	words, own := coachWordsByName[player.CoachBy] // a filmed coachman's (npcwords.go)
 	options := make([]string, 0, len(pageDests)+2)
 	for _, d := range pageDests {
+		if own && !d.Ledgers {
+			options = append(options, words.label(d))
+			continue
+		}
 		options = append(options, destLabel(d))
 	}
 	if hasMore {
@@ -692,6 +697,8 @@ func (h *InteractHandler) sendCoachPage(sess *session.Session, player *entity.Pl
 		greeting = wayAskMany // a waysender's, as the reference server's dockmasters ask
 	} else if len(dests) == 1 && dests[0].Ledgers {
 		greeting = everyLedgerAlone // a coachman's offer alone (coachledger.go)
+	} else if own && words.Greet != "" {
+		greeting = words.Greet
 	}
 	log.Printf("Coaching: page %d, showing %d dests (%d-%d of %d), options=%v", page, len(pageDests), start, end-1, total, options)
 	h.sendOptionBox(sess, greeting, options)

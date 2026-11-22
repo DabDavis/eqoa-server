@@ -626,6 +626,7 @@ func (h *InteractHandler) offerWay(sess *session.Session, player *entity.Player,
 func forgetDialogs(player *entity.Player) {
 	player.PendingCoachDests = nil
 	player.CoachPage = 0
+	player.CoachBy = ""
 	player.PendingYesNo = false
 	player.PendingBind = entity.Bind{}
 	player.PendingSpar = entity.SparPick{}

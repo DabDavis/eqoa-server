@@ -108,7 +108,11 @@ func (h *InteractHandler) signLedger(sess *session.Session, player *entity.Playe
 		return
 	}
 	if signed {
-		sess.Queue().AddWithSequence(buildClientMessage(npc.Name + ": " + ledgerSigned))
+		line := ledgerSigned
+		if w, ok := coachWordsByName[npc.Name]; ok && w.Signed != "" {
+			line = w.Signed // his own (npcwords.go)
+		}
+		sess.Queue().AddWithSequence(buildClientMessage(npc.Name + ": " + line))
 		log.Printf("Coach: %s signed %s's ledger (%s)", player.Name, npc.Name, town)
 	}
 }
@@ -210,6 +214,7 @@ func (h *InteractHandler) coachMenu(sess *session.Session, player *entity.Player
 	forgetDialogs(player)
 	player.PendingCoachDests = dests
 	player.CoachPage = 0
+	player.CoachBy = npc.Name // his own words, where he has them (npcwords.go)
 	h.sendCoachPage(sess, player)
 	return true
 }

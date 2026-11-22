@@ -111,14 +111,14 @@ func TestACoachRunsOnlyToSignedNeighbours(t *testing.T) {
 	book[44] = map[string]bool{"Freeport": true, "Highpass Hold": true, "Rivervale": true, "Qeynos": true}
 
 	tw.talk(ronks)
-	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Highpass Hold"}) {
+	if got := optionBox(t, tw.s); !slices.Equal(got, ronksLabels("Highpass Hold")) {
 		t.Fatalf("Ronks offered %q; want Highpass Hold alone (Rivervale and Qeynos are signed but his "+
 			"coach never ran there; Neriak, Bobble-by-Water and Muniel's Tea Garden it ran to are not signed)", got)
 	}
 
 	book[44]["Neriak"] = true
 	tw.talk(ronks)
-	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Highpass Hold", "Neriak"}) {
+	if got := optionBox(t, tw.s); !slices.Equal(got, ronksLabels("Highpass Hold", "Neriak")) {
 		t.Fatalf("with Neriak signed Ronks offered %q, want Highpass Hold and Neriak", got)
 	}
 	tw.pick(ronks, 1)
@@ -315,7 +315,7 @@ func TestACoachmanSignsEveryLedgerAtOnce(t *testing.T) {
 	book[44] = map[string]bool{"Highpass Hold": true}
 
 	tw.talk(ronks)
-	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Highpass Hold", everyLedgerOption}) {
+	if got := optionBox(t, tw.s); !slices.Equal(got, append(ronksLabels("Highpass Hold"), everyLedgerOption)) {
 		t.Fatalf("Ronks offered %q, want Highpass Hold and his offer last", got)
 	}
 	tw.pick(ronks, 1)
@@ -336,7 +336,7 @@ func TestACoachmanSignsEveryLedgerAtOnce(t *testing.T) {
 	}
 
 	tw.talk(ronks)
-	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Highpass Hold", everyLedgerOption}) {
+	if got := optionBox(t, tw.s); !slices.Equal(got, append(ronksLabels("Highpass Hold"), everyLedgerOption)) {
 		t.Fatalf("after No Ronks offered %q, want Highpass Hold and his offer again", got)
 	}
 	tw.pick(ronks, 1)
@@ -353,7 +353,7 @@ func TestACoachmanSignsEveryLedgerAtOnce(t *testing.T) {
 	}
 	msgs := questMsgs(tw.s)
 	want := []string{"box:Coachman Ronks: " + everyLedgerDone,
-		"ask#0:Greetings, traveler! Where would you like to go?|Bobble-by-Water|Highpass Hold|Muniel's Tea Garden|Neriak"}
+		"ask#0:" + coachWordsByName["Coachman Ronks"].Greet + "|" + strings.Join(ronksLabels("Bobble-by-Water", "Highpass Hold", "Muniel's Tea Garden", "Neriak"), "|")} // his words (board 659)
 	if !slices.Equal(msgs, want) {
 		t.Fatalf("Yes answered %q, want %q", msgs, want)
 	}
@@ -404,7 +404,7 @@ func TestNoEveryLedgerOfferWhereItGrantsNothing(t *testing.T) {
 		book[44][town] = true
 	}
 	tw.talk(ronks)
-	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Bobble-by-Water", "Highpass Hold", "Muniel's Tea Garden", "Neriak"}) {
+	if got := optionBox(t, tw.s); !slices.Equal(got, ronksLabels("Bobble-by-Water", "Highpass Hold", "Muniel's Tea Garden", "Neriak")) {
 		t.Errorf("with every ledger signed Ronks offered %q, want his neighbours alone", got)
 	}
 
@@ -568,7 +568,7 @@ func TestEachLedgerIsSignedAtItsOwnCoachman(t *testing.T) {
 	tw.p.CharServerID = 45
 	tw.w.UpdatePosition(tw.p.ServerID, 25274, 54, 15716, 0)
 	tw.talk(ronks)
-	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Bobble-by-Water", "Highpass Hold", "Muniel's Tea Garden", "Neriak"}) {
+	if got := optionBox(t, tw.s); !slices.Equal(got, ronksLabels("Bobble-by-Water", "Highpass Hold", "Muniel's Tea Garden", "Neriak")) {
 		t.Errorf("with every ledger signed before, Ronks offered %q, want his four neighbours", got)
 	}
 	if len(book[45]) != len(entity.CoachTownNames()) {

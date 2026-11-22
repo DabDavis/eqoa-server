@@ -206,6 +206,9 @@ type Player struct {
 	TeleportCounter   uint32
 	PendingCoachDests []CoachDest
 	CoachPage         int
+	// CoachBy is the coachman whose menu PendingCoachDests is ("" another
+	// travel NPC's): his own words, where he has them (handlers/npcwords.go)
+	CoachBy string
 
 	// Which hard-disk-setup dialogue this player has open, if any. Separate
 	// from PendingCoachDests because the option handler has to know WHICH menu

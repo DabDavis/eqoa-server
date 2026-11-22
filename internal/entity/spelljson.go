@@ -217,6 +217,10 @@ type itemJSON struct {
 type mitigateJSON struct {
 	Pct float64 `json:"pct"`
 	Max float64 `json:"max"`
+	// Rune: each hit it meets is stopped whole, its pool spent by the whole
+	// hit, the breaking one too, and 1 hit point goes through (board 1350:
+	// Eldrich Rune)
+	Rune bool `json:"rune,omitempty"`
 }
 
 // SpellItem is an item a spell makes or takes, by name.
@@ -822,7 +826,8 @@ func (d *SpellDef) readEffectJSON(name, desc string, e effectJSON, aoe bool, are
 			most = 0
 		}
 		if pct > 0 {
-			add(SpellEffect{Kind: EffectMitigate, Amount: min(pct, 100), AmountMax: most, ID: e.ID})
+			add(SpellEffect{Kind: EffectMitigate, Amount: min(pct, 100), AmountMax: most, ID: e.ID,
+				Rune: e.Mitigation != nil && e.Mitigation.Rune && most > 0})
 		}
 	case "lull":
 		se := effectOf(EffectLull, e)

@@ -199,6 +199,9 @@ type SpellEffect struct {
 	DebuffedPct int
 	// Spell is the spell an EffectCancel takes off, by name (lower case)
 	Spell string
+	// Rune is an EffectMitigate that stops each hit whole and lets 1 hit point
+	// through (workbook.go mitigateSnapLocked; board 1350)
+	Rune bool
 	// HateOff is the percent of a hit's damage that makes no hate on the
 	// creature it lands on (the workbook JSON's hate_pct, 100 less it): 0, all
 	// of it is hate, as every hit's is; 100, none (a player's Merciless

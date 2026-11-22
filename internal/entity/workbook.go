@@ -77,9 +77,12 @@ type EffectRules struct {
 	MitigatePct    int  `json:",omitempty"`
 	MitigateLeft   int  `json:",omitempty"`
 	MitigateCapped bool `json:",omitempty"`
-	Lull           bool `json:",omitempty"`
-	Breath         bool `json:",omitempty"`
-	Hide           bool `json:",omitempty"`
+	// MitigateRune: a rune's (SpellEffect.Rune), each hit stopped whole with 1
+	// hit point through, the pool spent by the whole hit
+	MitigateRune bool `json:",omitempty"`
+	Lull         bool `json:",omitempty"`
+	Breath       bool `json:",omitempty"`
+	Hide         bool `json:",omitempty"`
 	// Resist is the resist its harm goes by and Harm whether it was a
 	// harmful spell's (a cure's words go by them)
 	Resist Stat `json:",omitempty"`
@@ -168,6 +171,7 @@ func (ae *ActiveEffect) workbookLasting(e SpellEffect, d *SpellDef) bool {
 	case EffectMitigate:
 		ae.Rules.MitigatePct = max(ae.Rules.MitigatePct, e.Amount)
 		ae.Rules.MitigateLeft, ae.Rules.MitigateCapped = e.AmountMax, e.AmountMax > 0
+		ae.Rules.MitigateRune = e.Rune && e.AmountMax > 0
 	case EffectLull:
 		ae.Rules.Lull = true
 	case EffectBreath:
@@ -561,12 +565,16 @@ type mitSnap struct {
 	pct    int
 	capped bool
 	left   int
+	rune   bool // a rune's: each hit stopped whole, 1 through
 }
 
 // take is n less what the mitigation would take off it.
 func (m mitSnap) take(n int) int {
 	if !m.on || n <= 0 {
 		return n
+	}
+	if m.rune && m.capped && m.left > 0 {
+		return 1 // the whole hit stopped, the breaking one too; 1 through (board 1350)
 	}
 	off := n * m.pct / 100
 	if m.capped {
@@ -597,13 +605,18 @@ func (w *World) mitigateSnapLocked(p *Player, n int, now time.Time) (int, mitSna
 	if best == nil {
 		return n, mitSnap{}
 	}
-	snap := mitSnap{on: true, pct: best.Rules.MitigatePct, capped: best.Rules.MitigateCapped, left: best.Rules.MitigateLeft}
+	snap := mitSnap{on: true, pct: best.Rules.MitigatePct, capped: best.Rules.MitigateCapped, left: best.Rules.MitigateLeft,
+		rune: best.Rules.MitigateRune}
 	if n <= 0 {
 		return n, snap
 	}
 	off := n - snap.take(n)
 	if best.Rules.MitigateCapped {
-		best.Rules.MitigateLeft -= off
+		spent := off
+		if snap.rune {
+			spent = n // a rune's pool pays the whole hit, not the 1 through
+		}
+		best.Rules.MitigateLeft = max(0, best.Rules.MitigateLeft-spent)
 	}
 	if off > 0 {
 		log.Printf("Combat: %s's %q takes %d off a hit of %d", p.Name, best.Name, off, n)

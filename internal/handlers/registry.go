@@ -704,6 +704,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		interactHandler.dyer = NewDyer(gameWorld, charStore.DB())
 		// the Weapon Enchanters (enchanter.go): a held copy's own auras
 		interactHandler.enchanter = NewEnchanter(gameWorld, charStore.DB())
+		// Hogarth Bartholomew sets the Gems of Khalimet (gemsetter.go)
+		interactHandler.gemSetter = NewGemSetter(gameWorld, charStore.DB())
 		// the Pet Groomers (petgroomer.go) dye a pet's two areas as the dyers dye armour
 		interactHandler.groomer = NewGroomer(gameWorld, charStore.DB())
 		// the lamps' genies (genie.go): the bank, an outfitter's wares, the forge

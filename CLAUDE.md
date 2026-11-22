@@ -270,6 +270,7 @@ Each system's file is its long form; its tests document the edge cases. `world.<
 | The live client's feature word, group search, auction stacks | `handlers/livefeatures.go`, `lfg.go`, `auction*.go` |
 | Ascended raid gear | `database/ascended.go`, `entity/ascended.go`, `tools/ascend_boss_loot.py` |
 | Heirloom gear, armour dyers, capes | `handlers/heirloom.go`, `handlers/dyer.go`, `entity/capes.go`, `world.heirlooms`, `world.capes` |
+| Hogarth's gem setting (Gems of Khalimet in the Khal weapons) | `handlers/gemsetter.go`, `database/gemsetting.go` (table `gemsetting`), `tools/harbingers_20261122.py` |
 | Races and classes past the game's; custom race options | `entity/creation.go`, `entity/raceoptions.go`, `database/charlook.go`, `world.open_races`, `world.all_classes` |
 | Guilds | `entity/guild.go`, `database/guilds.go` |
 | Creatures with companions | `entity/companion.go` |

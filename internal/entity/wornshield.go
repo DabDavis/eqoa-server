@@ -113,7 +113,7 @@ var wornShields = map[string]WornShield{
 	"rune crested gloves":       {Damage: 30},
 	"stinging kite shield":      {Damage: 20},
 	"thornlink":                 {Damage: 40},
-	"positronian energy shield": {Damage: 200, Undead: true},
+	"positronian energy shield": {Damage: 100, Undead: true}, // 200 until board 1249 (jibrish)
 	"marauder breastplate":      {Damage: 10, Heal: 5},
 	"tower of woe":              {Damage: 90, Heal: 45},
 	"mithron chestplate":        {Heal: 15, Power: 15}, // QuestMasters' 15 (the sheet's 10)

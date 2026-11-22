@@ -152,7 +152,7 @@ func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, i
 		h.keepTraining(player, row.Pattern.ItemName, used)
 	}
 	if pe.Cooldown > 0 { // kept over a logout and a restart (database/potioncooldown.go)
-		if err := h.inventoryStore.SetPotionCooldown(int(player.CharServerID), entity.RecordOf(row.Pattern.PatternID), used.Add(pe.Cooldown)); err != nil {
+		if err := h.inventoryStore.SetPotionCooldown(int(player.CharServerID), row.Pattern.PatternID, used.Add(pe.Cooldown)); err != nil {
 			log.Printf("Potion: %s, %q: keeping its cooldown: %v", player.Name, row.Pattern.ItemName, err)
 		}
 	}

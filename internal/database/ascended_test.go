@@ -298,7 +298,6 @@ func TestAscendBossLootToolKeepsTheRule(t *testing.T) {
 	for _, c := range []struct{ name, tool, server string }{
 		{"FIGURE_SQL", figure.String(), goSQL(ascendedFigureSQL)},
 		{"NAME_SQL", str("NAME_SQL"), goSQL(ascendedNameSQL)},
-		{"TRADE_SQL", str("TRADE_SQL"), goSQL(ascendedTradeSQL)},
 		{"RENT_SQL", str("RENT_SQL"), goSQL(ascendedRentSQL)},
 	} {
 		if c.tool != c.server {

@@ -42,7 +42,7 @@ type FoodEffectRow struct {
 // Read at every use, so a GM's change counts at the next one.
 func (s *InventoryStore) FoodEffect(patternID int) (row FoodEffectRow, ok bool, err error) {
 	var cast, contact int
-	err = s.db.QueryRow(`SELECT duration_s, ends_on_cast, ends_on_contact FROM foodeffect WHERE patternid = `+legacyRecordSQL, patternID, patternID).
+	err = s.db.QueryRow(`SELECT duration_s, ends_on_cast, ends_on_contact FROM foodeffect WHERE patternid = ?`, patternID).
 		Scan(&row.DurationS, &cast, &contact)
 	if err == sql.ErrNoRows {
 		return FoodEffectRow{}, false, nil

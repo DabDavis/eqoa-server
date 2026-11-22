@@ -462,7 +462,7 @@ func (w *World) potionCoolingLocked(p *Player, pe *PotionEffect, now time.Time) 
 	if pe.Cooldown <= 0 {
 		return ""
 	}
-	t, ok := p.potionReady[RecordOf(pe.PatternID)] // a Legacy record shares its record's (ascended.go)
+	t, ok := p.potionReady[pe.PatternID]
 	if !ok || !now.Before(t) {
 		return ""
 	}
@@ -480,7 +480,7 @@ func (w *World) potionUsedLocked(p *Player, pe *PotionEffect, now time.Time) {
 	if p.potionReady == nil {
 		p.potionReady = map[int]time.Time{}
 	}
-	p.potionReady[RecordOf(pe.PatternID)] = now.Add(pe.Cooldown)
+	p.potionReady[pe.PatternID] = now.Add(pe.Cooldown)
 }
 
 // SetPotionCooldowns gives the player sess plays its items' cooldowns as its

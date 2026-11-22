@@ -66,9 +66,6 @@ func IsAscended(patternID int) bool {
 // (by its base's name), a tenth more; an import of an Ascended record both.
 func copyRecord(patternID int, name string) (record int, lookup string, imported, ascended bool) {
 	record, lookup = patternID, name
-	if r, ok := LegacyRecord(record); ok { // a Legacy record is its record (database/legacy.go)
-		record, lookup = r, database.LegacyBaseName(lookup)
-	}
 	if b, ok := ImportedBase(record); ok {
 		record, imported = b, true
 	}
@@ -92,38 +89,4 @@ func (s WornShield) ascended() WornShield {
 	s.Damage, s.DamageTo, s.Heal, s.Power = f(s.Damage), f(s.DamageTo), f(s.Heal), f(s.Power)
 	s.DamageMax, s.HealMax, s.HealPct = f(s.DamageMax), f(s.HealMax), f(s.HealPct)
 	return s
-}
-
-// legacyItems is every Legacy record's record (legacy -> record; database/legacy.go), nil for none.
-var legacyItems atomic.Pointer[map[int]int]
-
-// SetLegacyItems names the Legacy records (database.LegacyMap).
-func SetLegacyItems(m map[int]int) { legacyItems.Store(&m) }
-
-// LoadLegacyItems reads the Legacy records out of db (SetLegacyItems) and says how many there are.
-func LoadLegacyItems(db *sql.DB) (int, error) {
-	m, err := database.LegacyMap(db)
-	if err != nil {
-		return 0, err
-	}
-	SetLegacyItems(m)
-	return len(m), nil
-}
-
-// LegacyRecord is the record a Legacy record was split off; false for a record that is none.
-func LegacyRecord(patternID int) (int, bool) {
-	m := legacyItems.Load()
-	if m == nil {
-		return 0, false
-	}
-	r, ok := (*m)[patternID]
-	return r, ok
-}
-
-// RecordOf is a record as the world knows it: a Legacy record's record, any other itself.
-func RecordOf(patternID int) int {
-	if r, ok := LegacyRecord(patternID); ok {
-		return r
-	}
-	return patternID
 }

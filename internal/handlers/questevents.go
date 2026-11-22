@@ -988,8 +988,7 @@ func (q *QuestEngine) Looted(sess *session.Session, p *entity.Player, pattern, n
 			continue
 		}
 		pid, _, ok := st.LootItem()
-		// its Ascended or Legacy record counts for it (questascended.go), but on an exactbase step the base record alone
-		if !ok || (st.ExactBase && pid != pattern) || (!st.ExactBase && pid != entity.RecordOf(pattern) && !ascendedFor(pattern, pid)) {
+		if !ok || (pid != pattern && (st.ExactBase || !ascendedFor(pattern, pid))) { // its Ascended record counts for it, but on an exactbase step (questascended.go)
 			continue
 		}
 		q.countLootLocked(sess, p, c, qu, cq, st, n)

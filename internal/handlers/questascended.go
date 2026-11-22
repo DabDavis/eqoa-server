@@ -107,9 +107,8 @@ func (q *QuestEngine) planHandInLocked(p *entity.Player, st *database.QuestStep)
 	}
 	own, standIn := map[int]int{}, map[int]int{} // units of the record itself, of its Ascended records
 	for _, r := range held {
-		pid := entity.RecordOf(r.Pattern.PatternID) // a Legacy record counts as its record (database/legacy.go)
-		own[pid] += r.StackLeft
-		if b, ok := baseOf(pid); ok {
+		own[r.Pattern.PatternID] += r.StackLeft
+		if b, ok := baseOf(r.Pattern.PatternID); ok {
 			standIn[b] += r.StackLeft
 		}
 	}
@@ -144,7 +143,7 @@ func (q *QuestEngine) planHandInLocked(p *entity.Player, st *database.QuestStep)
 				if n == 0 {
 					return
 				}
-				if left[i] == 0 || !match(entity.RecordOf(held[i].Pattern.PatternID)) {
+				if left[i] == 0 || !match(held[i].Pattern.PatternID) {
 					continue
 				}
 				k := min(n, left[i])
@@ -205,10 +204,9 @@ func (q *QuestEngine) ascendRewardLocked(rw database.ClassReward, who string) da
 	return out
 }
 
-// ascendedFor reports whether record id is an Ascended record of base (a
-// Legacy record of one too).
+// ascendedFor reports whether record id is an Ascended record of base.
 func ascendedFor(id, base int) bool {
-	b, ok := entity.AscendedBase(entity.RecordOf(id)) // a Legacy record is its record (database/legacy.go)
+	b, ok := entity.AscendedBase(id)
 	return ok && b == base
 }
 
@@ -247,7 +245,7 @@ func (l *invList) heldStandingFor(patternID int) int {
 	defer l.mu.Unlock()
 	n := 0
 	for _, r := range l.recs {
-		if entity.RecordOf(r.patternID) == patternID || ascendedFor(r.patternID, patternID) {
+		if r.patternID == patternID || ascendedFor(r.patternID, patternID) {
 			n += r.qty
 		}
 	}

@@ -47,7 +47,7 @@ type ItemSpellRow struct {
 func (s *InventoryStore) ItemSpell(patternID int) (ItemSpellRow, bool, error) {
 	var r ItemSpellRow
 	var rest float64
-	err := s.db.QueryRow(`SELECT patternid, spellid, rest_s FROM itemspell WHERE patternid = `+legacyRecordSQL, patternID, patternID).
+	err := s.db.QueryRow(`SELECT patternid, spellid, rest_s FROM itemspell WHERE patternid = ?`, patternID).
 		Scan(&r.PatternID, &r.SpellID, &rest)
 	if errors.Is(err, sql.ErrNoRows) {
 		return ItemSpellRow{}, false, nil

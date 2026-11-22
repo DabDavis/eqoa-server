@@ -31,9 +31,7 @@ import (
 // is, since a tenth more never makes an item worse); its use effects
 // (itemeffect) with each "by N" so. Everything else is its base's: its
 // durability (maxhp) and its price (itemcost), as the petition says, its look,
-// icon, slot, level, classes and races, its Lore flag; but always NO TRADE (a
-// GM's ruling, 2026-11-18, work board 1714: "all ascended should be no trade";
-// the copies held before it are Legacy records, legacy.go), and never
+// icon, slot, level, classes and races, its NO TRADE and Lore flags; but never
 // NO RENT: a base of rent 0 (Lord Nagafen's while they were made to vanish,
 // norent.go) makes a copy of rent 1, and a copy is never in norentvanish. What a
 // record's figures do not hold, a weapon's proc and a worn item's hit effect
@@ -116,8 +114,6 @@ const ascendedFigureSQL = `CASE WHEN %[1]s IS NULL THEN NULL WHEN CAST(%[1]s AS 
 const (
 	ascendedNameSQL = `'` + AscendedPrefix + `' || trim(%[1]s)`
 	ascendedRentSQL = `CASE WHEN %[1]s = 0 THEN 1 ELSE %[1]s END`
-	// ascendedTradeSQL is every Ascended record's trade: NO TRADE
-	ascendedTradeSQL = `1`
 )
 
 // AscendedName is the name of base's Ascended record.
@@ -191,8 +187,6 @@ func ascendedColumns(cols []string) (set, from string) {
 			f = append(f, fmt.Sprintf(ascendedNameSQL, q))
 		case low == "rent":
 			f = append(f, fmt.Sprintf(ascendedRentSQL, q))
-		case low == "trade":
-			f = append(f, ascendedTradeSQL) // always NO TRADE (work board 1714)
 		default:
 			f = append(f, q)
 		}

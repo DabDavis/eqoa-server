@@ -904,9 +904,6 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureItemSpeed(); err != nil { // itemspeed.go: a worn item's own run speed
 		return err
 	}
-	if err := db.ensureLegacy(); err != nil { // legacy.go: the Legacy records of the Ascended ones held before NO TRADE
-		return err
-	}
 	if err := db.ensureLootDropTriggers(); err != nil { // lootdroptrigger.go: an item a corpse rolls fires a trigger (Vallon Zek's rune)
 		return err
 	}

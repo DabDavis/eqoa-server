@@ -211,11 +211,7 @@ func (h *EquipHandler) scribe(sess *session.Session, player *entity.Player, idx 
 	} else {
 		has = func(id int) bool { return own[id] }
 	}
-	scroll := p.ItemName
-	if _, legacy := entity.LegacyRecord(p.PatternID); legacy {
-		scroll = database.LegacyBaseName(scroll) // a Legacy scroll scribes its record's spell (database/legacy.go)
-	}
-	spell, ok := scrollSpellFor(names, scroll, p.LevelReq, has)
+	spell, ok := scrollSpellFor(names, p.ItemName, p.LevelReq, has)
 	if !ok {
 		refuse(scribeNoSpell)
 		return

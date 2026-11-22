@@ -331,7 +331,7 @@ goes on the work board above; a personal board is for talking about it.
   the game never talks to, a creature that never spawns, words the client cuts). How it plays:
   the giver, talked to, says `offer` a box a line; each paragraph of it (lines between blank lines) ends in a
   question the player answers with that line of `accept` (no `accept`: the quest is given at once). Taken, the
-  journal gets the first step's `journal` line, then "You have received a quest!", then `started`; a refusal
+  journal gets the first step's `journal` line, then "You received a quest!", then `started`; a refusal
   (`decline`) gets `declined`, as written. An NPC's lines are shown with its name before them, as the live game's
   are; a question is not; `%p` is the player's name. Steps: `talk` (talk to `target`; with an `answer`, the
   player picks its first line first, any further lines being answers that change nothing, "Farewell"), `show`
@@ -344,7 +344,7 @@ goes on the work board above; a personal board is for talking about it.
   `world`). A kill or loot step counts every creature its journal names: `target` and its `also`, a list of the
   others (`"target": "raven", "also": ["magpie"]` for "from the ravens and magpies"; a step's `also` left out of
   a save stays as it is, `[]` clears it). A step done says its `says`,
-  takes its journal line and adds the next step's ("You have finished a quest!" and "You have received a
+  takes its journal line and adds the next step's ("You finished a quest!" and "You have received a
   quest!", as the live game announces each step; the last step only the first) and gives its rewards (the reference server
   gives them at the last step only): `xp`, `rewardtunar`,
   `rewarditems`, `factions` (`Faction Name:+10`), `spells` (ids). **Events** (`events` on the quest: `on`

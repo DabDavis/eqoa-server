@@ -469,7 +469,7 @@ func TestMoveCheckSparseHover(t *testing.T) {
 }
 
 // A client silent 3 s or more is held to where it was (entry 1623,
-// snapback): a report 150 away after 20 s of silence is not taken, the
+// snapback): a report 1500 away after 20 s of silence is not taken, the
 // client is moved back there and the rest of its burst is dropped, in log
 // mode too; once it reports from there, it walks on. The controls: an honest
 // walk after the same silence is taken, and the same jump without a silence
@@ -479,8 +479,8 @@ func TestMoveCheckSnapsBackAfterASilence(t *testing.T) {
 	if missed := r.walk(20, 0, 5, flat); missed != 0 {
 		t.Fatalf("the control: an honest walk had %d reports not taken", missed)
 	}
-	if r.report(170, 0, 0, 20000) {
-		t.Fatal("a report 150 away after 20 s of silence was taken")
+	if r.report(1520, 0, 0, 20000) {
+		t.Fatal("a report 1500 away after 20 s of silence was taken")
 	}
 	if r.p.X != 20 || r.p.Z != 0 {
 		t.Fatalf("the server's place moved to (%.1f, %.1f), want (20, 0)", r.p.X, r.p.Z)
@@ -490,7 +490,7 @@ func TestMoveCheckSnapsBackAfterASilence(t *testing.T) {
 	}
 	// the rest of the burst (TCP's, in order): dropped, log mode or not
 	for i := 1; i <= 5; i++ {
-		if r.report(170+float32(i)*0.5, 0, 0, 0) {
+		if r.report(1520+float32(i)*0.5, 0, 0, 0) {
 			t.Fatalf("burst report %d taken after the snapback", i)
 		}
 	}
@@ -500,6 +500,14 @@ func TestMoveCheckSnapsBackAfterASilence(t *testing.T) {
 	}
 	if missed := r.walk(30, 0, 5, flat); missed != 0 {
 		t.Fatalf("after the snapback, %d honest reports not taken", missed)
+	}
+
+	// the silence counts (the owner, 2026-11-22: lost packets rubberbanded
+	// honest runners): a run of 30 at its speed through a 4 s silence is taken
+	rs := newMCRig(t, MoveCheckLog, 0, 0, 0)
+	rs.walk(20, 0, 5, flat)
+	if !rs.report(50, 0, 0, 4000) {
+		t.Fatal("a run of 30 through a 4 s silence was not taken")
 	}
 
 	// the control: an honest step after the same silence is taken
@@ -514,15 +522,12 @@ func TestMoveCheckSnapsBackAfterASilence(t *testing.T) {
 			t.Fatalf("the control: burst report %d of an honest walk not taken", i)
 		}
 	}
-	// ...but a burst that walked 20 s while silent goes past it
-	n := 0
-	for i := 1; i <= 100 && n == 0; i++ {
+	// ...and a burst that walked within its speed through the 20 s silence is
+	// taken too (the silence counts: the owner, 2026-11-22)
+	for i := 1; i <= 100; i++ {
 		if !r2.report(27+float32(i)*0.5, 0, 0, 0) {
-			n = i
+			t.Fatalf("burst report %d of a walk through the silence not taken", i)
 		}
-	}
-	if n == 0 || !r2.p.mv.snapping {
-		t.Fatal("a burst of 50 units in an instant was taken whole")
 	}
 
 	// the control: the same jump without a silence is log mode's (taken)

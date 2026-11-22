@@ -104,6 +104,9 @@ func TestSkyFallSendsHome(t *testing.T) {
 	t1 := 2 * time.Minute
 	report(t1, 150, 380)
 	tick(t1)
+	for i := 1; i < 5; i++ { // back to the island a second at a time (no silence: movecheck's snapback)
+		report(t1+time.Duration(i)*time.Second, 150-float32(i)*20, 390)
+	}
 	report(t1+5*time.Second, 50, 400)
 	for d := 5 * time.Second; d < 30*time.Second; d += time.Second {
 		report(t1+d, 50, 400)

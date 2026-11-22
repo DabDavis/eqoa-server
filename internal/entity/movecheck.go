@@ -437,7 +437,11 @@ func (w *World) snapBackLocked(p *Player, st *moveState, u *ClientUpdate, now ti
 	dx, dz := u.X-st.snapX, u.Z-st.snapZ
 	far := float32(math.Sqrt(float64(dx*dx + dz*dz)))
 	since := float32(now.Sub(st.snapAt).Seconds())
-	reach := st.speed(p, now)*mcSlack*(since+1) + mcBurst
+	// the silence counts (the owner, 2026-11-22: honest players' lost packets
+	// rubberbanded them back by Tethelin): what it ran while unheard at its
+	// speed is taken, only a move past what that speed allows is held back
+	silent := float32(st.snapSilent.Seconds())
+	reach := st.speed(p, now)*mcSlack*(silent+since+1) + mcBurst
 	if far <= reach {
 		return false
 	}

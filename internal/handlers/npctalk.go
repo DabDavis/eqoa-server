@@ -16,6 +16,10 @@ import (
 // with answers its last line is a question (0x0034, under talkBoxMark) of those answers and Exit; an
 // answer plays the node it names, 0 or Exit closes. A conversation is held in memory only: a keep restart
 // drops an open one (its box's answer then does nothing, as an old box's), and the next talk starts again.
+//
+// An answer may be a trade (work board 747, Ionma Oschba's tokens): it names a quest whose first step gives
+// this NPC items, handed in at once when picked (questtrade.go). An NPC whose tree trades plays it before
+// the quests' offers (tradeMenu), so its trades are picked in the menu, never offered by a talk.
 
 // talkBoxMark marks a talk tree's questions' ids.
 const talkBoxMark = 0x69000000
@@ -37,6 +41,8 @@ type talkAsk struct {
 	speaker string
 	spawn   entity.EntityID
 	next    []int
+	quest   []int    // a trade's quest by answer (work board 747), 0 none
+	lacking []string // its words to a player without the items
 }
 
 // SetTalkTrees gives the handler npctalk's reader (database.NPCTalk).
@@ -74,6 +80,36 @@ func (h *InteractHandler) talkTree(sess *session.Session, p *entity.Player, npc 
 	return true
 }
 
+// tradeMenu is a talk to an NPC whose tree trades (an answer names a quest, work board 747): a quest step
+// at it the player can do comes first (one under way), then the tree, in place of the quests' offers, so
+// the trades' own quests are never offered by a talk but picked in the menu.
+func (h *InteractHandler) tradeMenu(sess *session.Session, p *entity.Player, npc *entity.NPC) bool {
+	if npc == nil || npc.Dead {
+		return false
+	}
+	tree := h.talkTreeOf(npc.Name)
+	if !treeTrades(tree) {
+		return false
+	}
+	if Quests().TalkStep(sess, p, npc.Name, npc.ServerID) {
+		return true
+	}
+	h.playTalkNode(sess, p, database.NPCClassKey(npc.Name), npc.Name, npc.ServerID, tree, 1)
+	return true
+}
+
+// treeTrades is whether any answer of a tree is a trade.
+func treeTrades(tree map[int]database.TalkNode) bool {
+	for _, n := range tree {
+		for _, c := range n.Choices {
+			if c.Quest > 0 {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // playTalkNode says node n of a tree to p: its lines a box each, and with answers its last line asked with
 // them and Exit. A node not in the tree closes the conversation.
 func (h *InteractHandler) playTalkNode(sess *session.Session, p *entity.Player, key, speaker string, spawn entity.EntityID, tree map[int]database.TalkNode, n int) {
@@ -98,23 +134,24 @@ func (h *InteractHandler) playTalkNode(sess *session.Session, p *entity.Player, 
 	}
 	room := dialogRoom(sess) - 1 // Exit's place
 	var labels []string
-	var next []int
+	var next, quest []int
+	var lacking []string
 	for _, c := range node.Choices {
 		if len(labels) >= room {
 			log.Printf("Interact: npctalk %q node %d has more answers than a box holds: the rest left out", key, n)
 			break
 		}
 		labels = append(labels, clipRunes(strings.TrimSpace(c.Text), questAnswerChars))
-		next = append(next, c.Next)
+		next, quest, lacking = append(next, c.Next), append(quest, c.Quest), append(lacking, c.Lacking)
 	}
-	labels, next = append(labels, talkExit), append(next, 0)
+	labels, next, quest, lacking = append(labels, talkExit), append(next, 0), append(quest, 0), append(lacking, "")
 	h.boardMu.Lock()
 	h.talks.seq++
 	id := talkBoxMark | (h.talks.seq & 0xFFFFFF)
 	if h.talks.asked == nil {
 		h.talks.asked = map[uint32]talkAsk{}
 	}
-	h.talks.asked[p.CharServerID] = talkAsk{box: id, tree: key, speaker: speaker, spawn: spawn, next: next}
+	h.talks.asked[p.CharServerID] = talkAsk{box: id, tree: key, speaker: speaker, spawn: spawn, next: next, quest: quest, lacking: lacking}
 	h.boardMu.Unlock()
 	SendQuestPopupMulti(sess, id, clipRunes(question, questAskChars), labels)
 }
@@ -132,7 +169,14 @@ func (h *InteractHandler) answerTalk(sess *session.Session, p *entity.Player, bo
 		delete(h.talks.asked, p.CharServerID)
 	}
 	h.boardMu.Unlock()
-	if !ok || asked.box != box || int(option) >= len(asked.next) || asked.next[option] <= 0 {
+	if !ok || asked.box != box || int(option) >= len(asked.next) {
+		return true
+	}
+	if qid := asked.quest[option]; qid > 0 {
+		Quests().TradeAt(sess, p, asked.speaker, asked.spawn, qid, asked.lacking[option]) // questtrade.go
+		return true
+	}
+	if asked.next[option] <= 0 {
 		return true
 	}
 	tree := h.talkTreeOf(asked.speaker)

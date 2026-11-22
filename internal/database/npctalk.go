@@ -17,7 +17,8 @@ import (
 //   - says: the NPC's lines, one a dialogue box (the speaker's name before each), separated by \n; with
 //     choices, the last line is the question's own words;
 //   - choices: a JSON list of {"text": the answer, "next": the node it plays (0 closes)}; Exit is added
-//     last by the server. An empty list ends the conversation after says.
+//     last by the server. An empty list ends the conversation after says. An answer with "quest" (and
+//     "lacking") is a trade: that quest's hand-in at this NPC at once (work board 747).
 //
 // Read at most npcTalkFor old, as npcdialog is: a row a tool writes is played within it, a GM's edit at once
 // (InvalidateNPCTalk).
@@ -43,6 +44,11 @@ func (db *SQLiteDB) ensureNPCTalk() error {
 type TalkChoice struct {
 	Text string `json:"text"`
 	Next int    `json:"next"` // the node it plays; 0 closes the conversation
+	// Quest, when set, is a trade (work board 747: Ionma Oschba's tokens): the quest of that id, its first step
+	// a give at this NPC, is handed in at once (its items taken, its choice of rewards asked) in place of Next;
+	// Lacking is what the NPC says to a player without its items ("" the quests' own reminder).
+	Quest   int    `json:"quest,omitempty"`
+	Lacking string `json:"lacking,omitempty"`
 }
 
 // TalkNode is one row of npctalk.
@@ -96,7 +102,10 @@ func TalkNodeProblems(says, choices string) []string {
 		if c.Next < 0 {
 			out = append(out, fmt.Sprintf("answer %d's next is below 0 (0 closes)", i+1))
 		}
-		if strings.Contains(c.Text, "|") {
+		if c.Quest < 0 {
+			out = append(out, fmt.Sprintf("answer %d's quest is below 0", i+1))
+		}
+		if strings.Contains(c.Text, "|") || strings.Contains(c.Lacking, "|") {
 			out = append(out, fmt.Sprintf("answer %d holds a | (a run of them kills a PS2)", i+1))
 		}
 	}

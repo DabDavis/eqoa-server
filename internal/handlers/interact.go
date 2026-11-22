@@ -465,6 +465,12 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 
+	// A trader's menu (npctalk.go, questtrade.go; work board 747): its talk
+	// tree, whose answers hand in its quests, in place of their offers.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.tradeMenu(sess, player, npc) {
+		return nil
+	}
+
 	// A quest's step at this NPC, or a quest it offers (quests.go), before
 	// the NPC's own business.
 	if npc, ok := targetEntity.(*entity.NPC); ok && Quests().Talk(sess, player, npc) {

@@ -52,6 +52,8 @@ func TestTalkNodeProblems(t *testing.T) {
 		{"x", `[{"text":"a","next":-1}]`, "below 0"},
 		{"x", `[{"text":"a"},{"text":"b"},{"text":"c"},{"text":"d"},{"text":"e"},{"text":"f"}]`, "at most"},
 		{"a || b", "[]", "|"},
+		{"x", `[{"text":"a","quest":-1}]`, "quest is below 0"},
+		{"x", `[{"text":"a","quest":5,"lacking":"a|b"}]`, "|"},
 		{strings.Repeat("q", 128), `[{"text":"a","next":0}]`, "question"},
 	} {
 		if p := strings.Join(TalkNodeProblems(c.says, c.choices), "; "); !strings.Contains(p, c.want) {

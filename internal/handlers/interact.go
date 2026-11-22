@@ -109,6 +109,8 @@ type InteractHandler struct {
 	rehab *Rehab
 	// welcome answers the welcome guide's box (welcome.go); nil: none is asked
 	welcome *WelcomeGuide
+	// spheres is lightspheres' rows (lightsphere.go): teleporting spheres known by their place
+	spheres lightSpheres
 	// intro answers a new character's welcome and merchant question (cityintro.go); nil: none is asked
 	intro *CityIntro
 
@@ -435,6 +437,11 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 
+	// A sphere of light known by its place (lightsphere.go): its line and "Touch the light."
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.lightSphereTalk(sess, player, npc) {
+		return nil
+	}
+
 	// A spiritmaster not yet bound to offers its bind first (the reference server's Zole,
 	// recorded by questrec16); Yes does its quest's step too (answerBind).
 	if npc, ok := targetEntity.(*entity.NPC); ok && IsSpiritmaster(npc.Name) {
@@ -741,6 +748,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// the welcome guide's (welcome.go); an old one does nothing
 	if h.welcome.Answer(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// a place text's Done (entity/placetexts.go): nothing more
+	if entity.IsPlaceTextBox(targetObjectID) {
 		return nil
 	}
 	// a new character's welcome or merchant question (cityintro.go); an old one does nothing

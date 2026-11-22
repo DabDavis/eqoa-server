@@ -114,6 +114,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	t.mark(tsNPCRegen)
 	w.breathSystem(now)
 	w.hazardSystem(now)   // hazards.go
+	w.placeTextSystem()   // placetexts.go
 	w.lavaSystem(now)     // lava.go
 	w.kickZoneSystem(now) // kickzone.go
 	t.mark(tsBreath)

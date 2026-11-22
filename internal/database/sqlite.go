@@ -859,6 +859,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCharWelcome(); err != nil { // welcome.go: the welcome guide's box, a character's day and never
 		return err
 	}
+	if err := db.ensurePlaces(); err != nil { // places.go: spheres known by their place, place texts
+		return err
+	}
 	if err := db.ensureCityIntro(); err != nil { // cityintro.go: a new character's first-login welcome, its merchant question
 		return err
 	}

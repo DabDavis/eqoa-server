@@ -1770,6 +1770,49 @@ var catalog = map[string]tableNote{
 			"note":     {Label: "Note"},
 		},
 	},
+	"lightspheres": {
+		Label: "Spheres of light", Group: "World", Title: "line", Sort: "id",
+		Help: "Teleporting spheres known by where they stand, not a name (handlers/lightsphere.go): Highbourne library's " +
+			"spheres of light, nameless on the live game. A talk to an NPC standing within 3 of (x, z) in world opens the " +
+			"line with the one answer (Touch the light.; the box's Exit closes it), which sends the player in front of " +
+			"(to_x, to_y, to_z) in to_world, facing the way to_facing (0-255, as npcs.facing) looks: the other sphere's " +
+			"place and facing. No fee, no level. The NPC itself is an npcs row like any other.",
+		Live: "Within 30 seconds: the next talk to a sphere.",
+		Cols: map[string]colNote{
+			"world":     {Label: "World"},
+			"x":         {Label: "X", Help: "where the sphere's NPC stands"},
+			"z":         {Label: "Z", Help: "where the sphere's NPC stands"},
+			"line":      {Label: "Line", Help: "the question box's words (at most 127 characters)"},
+			"answer":    {Label: "Answer", Help: "the one answer (at most 63 characters)"},
+			"to_world":  {Label: "To world"},
+			"to_x":      {Label: "To X", Help: "the other sphere's place"},
+			"to_y":      {Label: "To Y"},
+			"to_z":      {Label: "To Z"},
+			"to_facing": {Label: "To facing", Help: "the other sphere's facing, 0-255: the player lands in front of it, facing it"},
+			"source":    {Label: "Source", Help: "video-audit: read off live-era footage; gm: a GM's"},
+			"note":      {Label: "Note"},
+		},
+	},
+	"placetexts": {
+		Label: "Place texts", Group: "World", Title: "text", Sort: "id",
+		Help: "A box with one answer (Done) opened once each time a player walks into an area (entity/placetexts.go), " +
+			"as the live game's place texts: x1..x2, z1..z2 and y1..y2 in world. Never again while the player stays " +
+			"inside; not when it logs in there. At most 127 characters, no '|' or '%'.",
+		Live: "At once: within half a second, whoever walks in.",
+		Cols: map[string]colNote{
+			"world":  {Label: "World"},
+			"x1":     {Label: "X from"},
+			"x2":     {Label: "X to"},
+			"z1":     {Label: "Z from"},
+			"z2":     {Label: "Z to"},
+			"y1":     {Label: "Y from", Help: "the floor's height range: a room under another tells them apart"},
+			"y2":     {Label: "Y to"},
+			"text":   {Label: "Text"},
+			"answer": {Label: "Answer", Help: "the box's one answer (Done)"},
+			"source": {Label: "Source", Help: "video-audit: read off live-era footage; gm: a GM's"},
+			"note":   {Label: "Note"},
+		},
+	},
 	"signtext": {
 		Label: "Sign words", Group: "World", Title: "text", Sort: "npcid",
 		Help: "What a sign post or an announcement board says when talked to (handlers/signs.go), in dialogue boxes: " +

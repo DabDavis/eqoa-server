@@ -600,6 +600,12 @@ func main() {
 		log.Printf("WARNING: %v; no hazard hurts anyone", err)
 	}
 	log.Printf("World: %s", gameWorld.HazardsSummary())
+	// The place texts (entity/placetexts.go, table placetexts): a box as a player walks into an area
+	if n, err := gameWorld.LoadPlaceTexts(db); err != nil {
+		log.Printf("WARNING: %v; no place text opens", err)
+	} else {
+		log.Printf("World: %d place texts", n)
+	}
 	// The no-roam areas (entity/noroam.go, table noroam): ground no wandering creature walks into
 	if _, err := gameWorld.LoadNoRoam(db); err != nil {
 		log.Printf("WARNING: %v; wanderers walk anywhere", err)

@@ -428,6 +428,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		}
 		// what the signs and boards say (signs.go)
 		interactHandler.SetSignTexts(charStore.DB().SignTexts)
+		interactHandler.SetLightSpheres(charStore.DB().LightSpheres) // lightsphere.go: spheres known by their place
 		// who says which bosses are up (overseer.go)
 		interactHandler.overseers = charStore.DB().NPCOverseers
 		boardSpells := database.NewSpellbookStore(charStore.DB())

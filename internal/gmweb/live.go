@@ -120,6 +120,10 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveOrbs() // live_orbs.go
 	case "hazards":
 		return s.liveHazards() // live_hazards.go
+	case "placetexts":
+		return s.livePlaceTexts() // live_places.go
+	case "lightspheres":
+		return "within 30 seconds: the next talk to a sphere"
 	case "noroam":
 		return s.liveNoRoam() // live_hazards.go
 	case "racesize":

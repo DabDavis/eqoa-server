@@ -53,7 +53,7 @@ func (ms *mercState) mercWindowBook() []MercBookSpell {
 		out = append(out, MercBookSpell{Spell: *s, Use: use, Off: slices.Contains(ms.kit.SpellsOff, s.SpellID)})
 	}
 	for _, sp := range all.mercBook() {
-		add(sp.s, MercUseName(sp.s))
+		add(sp.s, sp.use.name()) // as this merc casts it (a short buff that heals over time: its heal, mercBook)
 	}
 	for i := range all.kit.Spells {
 		s := &all.kit.Spells[i]

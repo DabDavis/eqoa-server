@@ -139,8 +139,13 @@ const (
 // MercUseName is what a merc casts a spell for, in words ("" for a spell it
 // never casts): the handlers' real-data test's.
 func MercUseName(s *CastSpell) string {
+	return mercUseOf(s).name()
+}
+
+// name is the use in words, "" for useNone.
+func (u mercUse) name() string {
 	return [...]string{useNone: "", useNuke: "hit", useDoT: "damage over time", useTaunt: "taunt", useHeal: "heal",
-		useHoT: "heal over time", useGroupHeal: "group heal", useBuff: "buff", usePower: "give power"}[mercUseOf(s)]
+		useHoT: "heal over time", useGroupHeal: "group heal", useBuff: "buff", usePower: "give power"}[u]
 }
 
 // MercBuffsKept is the buffs a merc of the kit keeps up, as its book holds
@@ -233,6 +238,14 @@ func mercUseOf(s *CastSpell) mercUse {
 		return useNone
 	}
 	switch {
+	case hot && !heal && lasting && d.lasts() && (s.Scope == 1 || s.Scope == 2):
+		// a heal over time that carries a lasting effect (armour, stats,
+		// power over time) is a buff kept up, not a heal for the hurt alone
+		// (Heirloom petition 2660: a bard merc holding Marr's Blessing, a
+		// group's HoT and +200 AC for two minutes, never cast it, its team
+		// never under mercEmergencyPct); a merc that keeps no buff that
+		// short casts it as the heal it was (mercBook, mercHealUseOf)
+		return useBuff
 	case (heal || hot) && s.Scope == 2:
 		return useGroupHeal
 	case heal && s.Scope == 1:
@@ -243,6 +256,26 @@ func mercUseOf(s *CastSpell) mercUse {
 		return useBuff
 	case gift && !hit && (s.Scope == 1 || s.Scope == 2):
 		return usePower
+	}
+	return useNone
+}
+
+// mercHealUseOf is the heal a buff that heals over time is for a merc that
+// does not keep it up (mercBook): its group's heal (scope 2) or one's heal
+// over time (scope 1); useNone for any other.
+func mercHealUseOf(s *CastSpell) mercUse {
+	if mercUseOf(s) != useBuff {
+		return useNone
+	}
+	for _, e := range s.Def.Effects {
+		if !e.Self && e.Kind == EffectHPTick && e.Amount > 0 {
+			switch s.Scope {
+			case 2:
+				return useGroupHeal
+			case 1:
+				return useHoT
+			}
+		}
 	}
 	return useNone
 }
@@ -277,10 +310,14 @@ func (ms *mercState) mercBook() []mercSpell {
 		short := false
 		if u == useBuff {
 			if s.Def.Duration < mercBuffLasts {
-				if !mercKeepsShort(ms.kit.Class, s) {
+				switch {
+				case mercKeepsShort(ms.kit.Class, s):
+					short = true
+				case mercHealUseOf(s) != useNone:
+					u = mercHealUseOf(s) // a fight's buff that heals over time: the heal it was (mercUseOf)
+				default:
 					continue // a fight's buff
 				}
-				short = true
 			} else if s.Level*mercBuffFloor < ms.kit.Level && mercPlainBuff(s) {
 				continue // far beneath it: a level 1 +1 INT at 60 (mercBuffFloor)
 			}

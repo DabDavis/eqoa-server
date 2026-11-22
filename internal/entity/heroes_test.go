@@ -74,7 +74,7 @@ func TestAKillThatGivesExperienceCreditsTheTestingHeroes(t *testing.T) {
 		t.Fatalf("after a kill worth experience: %d, want %d", got, FactionMin+1)
 	}
 	all := lines(k.sess[0])
-	want := "-1999 faction with Testing Heroes (+1)"
+	want := "-1999 faction with Testing Heroes (1)."
 	if got := heroLines(k.sess[0]); len(got) != 1 || got[0] != want {
 		t.Fatalf("the lines %q, want %q", got, want)
 	}
@@ -128,9 +128,9 @@ func TestARaidBossIsWorthTwenty(t *testing.T) {
 			if got := k.standing(0) - FactionMin; got != tc.want {
 				t.Errorf("worth %d, want %d", got, tc.want)
 			}
-			wantLine := "faction with Testing Heroes (+1)"
+			wantLine := "faction with Testing Heroes (1)."
 			if tc.want == HeroesBossKill {
-				wantLine = "-1980 faction with Testing Heroes (+20)"
+				wantLine = "-1980 faction with Testing Heroes (20)."
 			}
 			if got := heroLines(k.sess[0]); len(got) != 1 || !strings.Contains(got[0], wantLine) {
 				t.Errorf("the line %q, want %q", got, wantLine)
@@ -202,7 +202,7 @@ func TestTheTestingHeroesStandingHoldsAtTheCeiling(t *testing.T) {
 	if got := k.standing(0); got != FactionMax {
 		t.Fatalf("standing %d, want the ceiling %d", got, FactionMax)
 	}
-	if got := heroLines(k.sess[0]); len(got) != 1 || got[0] != "2000 faction with Testing Heroes (+20)" {
+	if got := heroLines(k.sess[0]); len(got) != 1 || got[0] != "2000 faction with Testing Heroes (20)." {
 		t.Errorf("the line %q", got)
 	}
 }
@@ -313,7 +313,7 @@ func TestSpendingStopsAtTheFloor(t *testing.T) {
 	if after, ok := k.w.HeroesRefund(sess, 75); !ok || after != -1925 {
 		t.Errorf("a refund of 75: %d (%v), want -1925", after, ok)
 	}
-	want := []string{"-1925 faction with Testing Heroes (-25)", "-2000 faction with Testing Heroes (-75)", "-1925 faction with Testing Heroes (+75)"}
+	want := []string{"-1925 faction with Testing Heroes (-25).", "-2000 faction with Testing Heroes (-75).", "-1925 faction with Testing Heroes (75)."}
 	if got := heroLines(sess); strings.Join(got, "|") != strings.Join(want, "|") {
 		t.Errorf("the lines %q, want %q", got, want)
 	}

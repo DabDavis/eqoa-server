@@ -135,11 +135,13 @@ func (w *World) MoogieHeal(sess *session.Session) (name string, ok bool) {
 	return p.Name, true
 }
 
-// MoogieOutmatched is CLIENT's word 1196, the line its 0x077A case adds in red ("You are outmatched.
-// Attacking again is not advised.", VIClient's receive loop at 0x00BD280C): a harmful spell at Mr.
+// MoogieOutmatched is the line the live client's 0x077A case added in red, as a 2009 tape filmed it
+// ("You are outmatched. Attempting to engage again is not advised."; board 1784): Frontiers' disc
+// has it as word 1196, "You are outmatched. Attacking again is not advised." (VIClient's receive
+// loop at 0x00BD280C), which a PS2 here still shows for 0x077A itself. A harmful spell at Mr.
 // Moogie is refused with these words, as a swing at him is refused with 0x077A itself (the owner,
 // 2026-11-19: "if players accidently attack mr. moogie lets use it").
-const MoogieOutmatched = "You are outmatched. Attacking again is not advised."
+const MoogieOutmatched = "You are outmatched. Attempting to engage again is not advised."
 
 // isMoogie reports whether npc is Mr. Moogie, whom no player may hurt (a swing, a spell, an area, a
 // thrown potion, a pet or merc): he clears buffs and heals (handlers/moogie.go). Creatures still may:

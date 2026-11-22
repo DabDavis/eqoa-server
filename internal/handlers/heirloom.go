@@ -245,6 +245,12 @@ func (h *Heirlooms) figuresFor(def database.HeirloomDef, race, level, rank int, 
 	if !epicNow || bare {
 		heirloomStats(p, level)
 	}
+	if p.EquipSlot == wearHeld {
+		// a held heirloom (the casters' Rod of Elemental Union, of the twohand
+		// role) never swings (entity.Swing.Held): it shows no damage, whatever
+		// its best of the role deals (Heirloom petition 2680, 2026-11-22)
+		p.WeaponDamage = 0
+	}
 	h.rankArmour(def, rank, p) // the rank's AC on an armour piece (heirloomrank.go)
 }
 

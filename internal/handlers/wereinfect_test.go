@@ -16,9 +16,9 @@ import (
 // third quest) and the werehunters' brand, on a running quest engine, by
 // their import keys as tools/import_quests.py writes them.
 type wereFixture struct {
-	t   *testing.T
-	tw  *talkWorld
-	db  *database.SQLiteDB
+	t    *testing.T
+	tw   *talkWorld
+	db   *database.SQLiteDB
 	qe   *QuestEngine
 	sid  uint32
 	keys int
@@ -487,6 +487,28 @@ func TestFeverMarkersAreMigratedOnce(t *testing.T) {
 		f.db.QueryRow(`SELECT COUNT(*) FROM charinfection_migration WHERE serverid = ?`, f.sid).Scan(&n)
 		if n != 1 {
 			t.Errorf("%s: %d migration rows after a second start", c.name, n)
+		}
+	}
+}
+
+// An infection caught before the werehunters' brand ends with the brand at the
+// next showing (a login, a keep restart): no effect, the row ended "brand"
+// (Heirloom petition 2619). The control: the same infection without the brand
+// is shown.
+func TestTheBrandEndsAnInfectionCaughtBefore(t *testing.T) {
+	for _, branded := range []bool{false, true} {
+		f := newWereFixture(t)
+		f.qe.infect(entity.InfectionHit{Session: f.tw.s, ServerID: f.sid, Name: "Talker", Line: "lionwere", NPCName: "Elder lionwere", At: time.Now().Add(-time.Hour), Key: "k1"})
+		if branded {
+			f.set(hunterBrand, QuestComplete)
+		}
+		shown := f.qe.show(f.sid, false)
+		inf := f.row()
+		switch {
+		case !branded && (!shown || inf == nil || !inf.Active(time.Now())):
+			t.Errorf("unbranded: shown %v, row %+v; want it carried", shown, inf)
+		case branded && (shown || len(f.tw.w.PlayerEffects(f.tw.s)) != 0 || inf == nil || inf.EndedHow != database.InfectionBrand):
+			t.Errorf("branded: shown %v, %d effects, row %+v; want it ended by the brand", shown, len(f.tw.w.PlayerEffects(f.tw.s)), inf)
 		}
 	}
 }

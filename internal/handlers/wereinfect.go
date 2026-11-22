@@ -401,7 +401,19 @@ func (q *QuestEngine) show(serverID uint32, fresh bool) bool {
 	}
 	now := time.Now()
 	q.mu.Lock()
-	inf := q.activeLocked(q.charLocked(serverID), now)
+	c := q.charLocked(serverID)
+	inf := q.activeLocked(c, now)
+	// a werehunter carries no infection: one caught before the brand ends with it
+	// (Heirloom petition 2619: a Heroic Were Hunter told "You carry the lionwere
+	// infection", caught two hours before the brand)
+	if w := q.wereQuestsLocked(); inf != nil && w.brand != 0 && c.hasFinished(w.brand) {
+		if _, err := q.endLocked(c, database.InfectionBrand, now); err != nil {
+			log.Printf("Weres: character %d's %s not ended by the brand: %v", serverID, entity.InfectionName(inf.Line), err)
+		} else {
+			log.Printf("Weres: character %d's %s ended by the werehunters' brand", serverID, entity.InfectionName(inf.Line))
+			inf = nil
+		}
+	}
 	var row database.Infection
 	if inf != nil {
 		row = *inf

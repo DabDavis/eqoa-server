@@ -90,6 +90,9 @@ const (
 	InfectionCured    = "cured"
 	InfectionAntidote = "antidote"
 	InfectionTurned   = "turned"
+	// InfectionBrand is an infection caught before its character took the
+	// werehunters' brand, ended by the brand (Heirloom petition 2619)
+	InfectionBrand = "brand"
 )
 
 func unixOrZero(v int64) time.Time {

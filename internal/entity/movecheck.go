@@ -521,7 +521,7 @@ func (w *World) judgeLocked(p *Player, st *moveState, u *ClientUpdate, now time.
 		case dy > mcAirRise && dry && !j.held && !rising:
 			j.why = fmt.Sprintf("rose %.2f in the air", dy)
 			return j
-		case dy > dh*mcRiseSlope+mcRiseStep && dry:
+		case dy > dh*mcRiseSlope+mcRiseStep+j.jump.higher(rising) && dry:
 			j.why = fmt.Sprintf("climbed %.2f over %.2f across", dy, dh)
 			return j
 		}
@@ -537,7 +537,9 @@ func (w *World) judgeLocked(p *Player, st *moveState, u *ClientUpdate, now time.
 				}
 			}
 			if j.jump.on {
-				from = max(from, j.jump.floor) // a jump falls from the floor it left
+				// a jump falls from the floor it left (a froglok's from as
+				// much higher as its jump is: jump.go)
+				from = max(from, j.jump.floor+j.jump.higher(true))
 			}
 			// how long it has been in the air: a falling client reports
 			// at its cadence (its state changes every frame), so its

@@ -22,11 +22,16 @@ package entity
 //     floor under its first report in the air (a run up a slope leaves a floor
 //     higher than the place it last reported);
 //   - its reports rise as a jump rises (where the air takes no rise of more
-//     than mcAirRise), to JumpTop + mcJumpTol over its floor and no further;
+//     than mcAirRise), to JumpTop + mcJumpTol over its floor and no further
+//     (a froglok's to FroglokJumpTop + mcJumpTol: jumpTopOf); a froglok's
+//     climb between two reports on its way up may be FroglokJumpTop - JumpTop
+//     more than anyone's (a lost report between two of its rise);
 //   - once a report of it has come down from its highest, a rise is a second
 //     jump in the air: "rose again in the air";
 //   - it falls as any fall does, the fall rule asking it down from its floor
-//     once its time is up (the jump's top is within the rule's own mcFallTol);
+//     once its time is up (the jump's top is within the rule's own mcFallTol;
+//     a froglok's from its floor raised by FroglokJumpTop - JumpTop, so its
+//     own top is too);
 //   - it ends at a report standing or swimming.
 //
 // Everything else is judged as before: a rise with no floor under its start, a
@@ -46,6 +51,23 @@ import (
 // number; a client that jumps higher is judged as jumping too high.
 const JumpTop float32 = 0.9
 
+// FroglokJumpTop is a froglok's (the owner, 2026-11-22, on a player's petition:
+// "frogluks should be able to jump higher then other characters"): twice
+// everyone's, the walk's whole body (1.8), vanilla's walker.rs
+// FROGLOK_JUMP_TOP, reached at its FROGLOK_JUMP_SPEED of 10 a second (1.79 over
+// the floor, its top 0.4 s in, about 0.87 s in the air on flat ground). By the
+// race (raceFroglok, 10: what vanilla reads its own character's race from, the
+// MemoryDump's), never by the body drawn: an illusion is no froglok.
+const FroglokJumpTop float32 = 1.8
+
+// jumpTopOf is the highest p's jump takes its feet over the floor it left.
+func jumpTopOf(p *Player) float32 {
+	if p.Race == raceFroglok {
+		return FroglokJumpTop
+	}
+	return JumpTop
+}
+
 const (
 	// mcJumpTol is how far over JumpTop a report of a jump may be: the 0x40's
 	// rounding and a console frame's step. JumpTop plus it is the fall rule's
@@ -61,6 +83,7 @@ const (
 type jumpState struct {
 	on    bool
 	floor float32 // the height of the floor it left
+	top   float32 // the highest it may take the feet over it (jumpTopOf)
 	peak  float32 // its highest report
 	down  bool    // a report of it has come down from its highest by mcJumpDip
 }
@@ -125,7 +148,7 @@ func (w *World) judgeJumpLocked(p *Player, st *moveState, u *ClientUpdate, dy fl
 		if dy <= 0 || !st.judged || st.air || st.wet || p.SpeedNow() <= 0 {
 			return jumpState{}, ""
 		}
-		j = jumpState{on: true, floor: st.y}
+		j = jumpState{on: true, floor: st.y, top: jumpTopOf(p)}
 		if mg, ok := w.ground.(MoveGround); ok {
 			if f, ok := mg.Support(p.World, st.x, st.y, st.z, mcFloorAbove, mcFloorDepth); ok {
 				j.floor = f
@@ -137,8 +160,8 @@ func (w *World) judgeJumpLocked(p *Player, st *moveState, u *ClientUpdate, dy fl
 		}
 		j.peak = j.floor
 	}
-	if over := u.Y - j.floor; over > JumpTop+mcJumpTol {
-		return j, fmt.Sprintf("jumped %.2f over the floor it left, %.2f at most", over, JumpTop)
+	if over := u.Y - j.floor; over > j.top+mcJumpTol {
+		return j, fmt.Sprintf("jumped %.2f over the floor it left, %.2f at most", over, j.top)
 	}
 	if j.down && dy > mcJumpDip {
 		return j, fmt.Sprintf("rose %.2f again in the air, its jump come down", dy)
@@ -148,4 +171,14 @@ func (w *World) judgeJumpLocked(p *Player, st *moveState, u *ClientUpdate, dy fl
 		j.down = true
 	}
 	return j, ""
+}
+
+// higher is how much higher than everyone's this jump may go (a froglok's
+// FroglokJumpTop - JumpTop, else 0), when it applies (on the way up, for the
+// climb rule): 0 for no jump.
+func (j jumpState) higher(applies bool) float32 {
+	if !j.on || !applies || j.top <= JumpTop {
+		return 0
+	}
+	return j.top - JumpTop
 }

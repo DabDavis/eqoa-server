@@ -83,7 +83,12 @@ func consoleStep(n int) int {
 // leaves. It ends at the report that lands it on floorAt (relative to the floor
 // it left), or after 4 s.
 func jumpArc(vh float64, lead int, floorAt func(dx float32) float32) []arcReport {
-	y, vy, x := 0.0, jumpSpeed, 0.0
+	return jumpArcAt(jumpSpeed, vh, lead, floorAt)
+}
+
+// jumpArcAt is jumpArc at the start speed v0 upward.
+func jumpArcAt(v0, vh float64, lead int, floorAt func(dx float32) float32) []arcReport {
+	y, vy, x := 0.0, v0, 0.0
 	since, ms := lead, 0.0
 	var out []arcReport
 	first := true
@@ -278,6 +283,192 @@ func TestMoveCheckTakesAJump(t *testing.T) {
 		if !strings.Contains(why, "rose") {
 			t.Fatalf("the control, %s: refused for %q", c.name, why)
 		}
+	}
+}
+
+// froglokJumpSpeed is vanilla's froglok's start speed (walker.rs
+// FROGLOK_JUMP_SPEED): twice everyone's height.
+const froglokJumpSpeed = 10.0
+
+// newFroglokRig is newJumpRig's player a froglok (race 10).
+func newFroglokRig(t *testing.T, mode MoveCheckMode, x, y, z float32) *mcRig {
+	r := newJumpRig(t, mode, x, y, z, true)
+	r.p.Race = raceFroglok
+	return r
+}
+
+// jumpAt is jump at the start speed v0, its first lost reports not sent
+// (lost: their time goes to the next).
+func (r *mcRig) jumpAt(v0, vh float64, lead, lost int, floorAt func(dx float32) float32) (int, string) {
+	x0, y0, z := r.p.X, r.p.Y, r.p.Z
+	missed, why, carry := 0, "", 0
+	for i, a := range jumpArcAt(v0, vh, lead, floorAt) {
+		if i < lost {
+			carry += a.ms
+			continue
+		}
+		if !r.report(x0+a.dx, y0+a.dy, z, a.ms+carry) {
+			if missed == 0 {
+				why = r.p.mv.why
+			}
+			missed++
+		}
+		carry = 0
+	}
+	return missed, why
+}
+
+// A froglok's jump (the owner, 2026-11-22) goes twice as high, to
+// FroglokJumpTop (1.8): its arc as vanilla makes it tops out at 1.79 and lands
+// about 0.87 s on, and in enforce mode it is taken in place, at a run, with its
+// first two reports in the air lost (its climb from the floor then 1.6 in one
+// report, past anyone's 1.3), onto the box and off the platform's edge, never moved back. The
+// controls: the very same jump from a human (and every race but the froglok)
+// is refused as past its top of 0.9; the human's own jump, two reports lost,
+// is still taken without the froglok's allowance; a climb past the froglok's
+// allowance is refused (and a human's past its own); and a froglok still may
+// not go past its own top, hover at it, or jump again in the air.
+func TestMoveCheckFroglokJumpsTwiceAsHigh(t *testing.T) {
+	top, end := float32(0), 0
+	for _, a := range jumpArcAt(froglokJumpSpeed, 0, 100, level) {
+		top = max(top, a.dy)
+		end += a.ms
+	}
+	if top > FroglokJumpTop+0.01 || top < FroglokJumpTop-0.2 || top < 2*JumpTop*0.85 {
+		t.Fatalf("the froglok's reports' top %.3f, FroglokJumpTop %.2f", top, FroglokJumpTop)
+	}
+	if end < 800 || end > 960 {
+		t.Fatalf("a froglok in the air %d ms", end)
+	}
+
+	r := newFroglokRig(t, MoveCheckEnforce, 0, 0, 5)
+	if n, why := r.jumpAt(froglokJumpSpeed, 0, 100, 0, level); n != 0 {
+		t.Fatalf("a froglok's jump in place: %d not taken (%s)", n, why)
+	}
+	if r.p.Y != 0 || r.p.mv.air || r.p.mv.jump.on {
+		t.Fatalf("landed: y %.2f, air %v, jump %+v", r.p.Y, r.p.mv.air, r.p.mv.jump)
+	}
+	for i := 0; i < 3; i++ {
+		r.stand(120)
+		if n, why := r.jumpAt(froglokJumpSpeed, float64(RunSpeed), 100+i*30, 0, level); n != 0 {
+			t.Fatalf("a froglok's running jump %d: %d not taken (%s)", i, n, why)
+		}
+		if n := r.walk(r.p.X+4, 5, RunSpeed, flat); n != 0 {
+			t.Fatalf("running on after jump %d: %d not taken (%s)", i, n, r.p.mv.why)
+		}
+	}
+	r.stand(120)
+	arc := jumpArcAt(froglokJumpSpeed, 0, 100, level)
+	if arc[2].dy < mcRiseStep+0.1 {
+		t.Fatalf("the rig: its third report only %.2f up", arc[2].dy)
+	}
+	if n, why := r.jumpAt(froglokJumpSpeed, 0, 100, 2, level); n != 0 {
+		t.Fatalf("a froglok's jump, its first two reports in the air lost (%.2f up at the next): %d not taken (%s)", arc[2].dy, n, why)
+	}
+	r.w.UpdatePosition(r.p.ServerID, 297, 0, 5, 0)
+	r.report(297, 0, 5, 300)
+	box := func(dx float32) float32 {
+		if x := 297 + dx; x >= 300 && x <= 306 {
+			return 0.7
+		}
+		return 0
+	}
+	if n, why := r.jumpAt(froglokJumpSpeed, float64(RunSpeed), 100, 0, box); n != 0 {
+		t.Fatalf("a froglok onto the box: %d not taken (%s)", n, why)
+	}
+	r.w.UpdatePosition(r.p.ServerID, 209, 10, 5, 0)
+	r.report(209, 10, 5, 300)
+	edge := func(dx float32) float32 {
+		if 209+dx <= 210 {
+			return 0
+		}
+		return -10
+	}
+	if n, why := r.jumpAt(froglokJumpSpeed, float64(RunSpeed), 100, 0, edge); n != 0 || r.p.Y != 0 {
+		t.Fatalf("a froglok off the platform: %d not taken (%s), landed at %.2f", n, why, r.p.Y)
+	}
+	if len(r.p.mv.fixes) != 0 {
+		t.Errorf("a froglok moved back %d times", len(r.p.mv.fixes))
+	}
+
+	// the controls: the froglok's jump from any other race
+	for _, race := range []int{0, 1, 3, 9, 11, 30} {
+		h := newJumpRig(t, MoveCheckEnforce, 0, 0, 5, true)
+		h.p.Race = race
+		n, why := h.jumpAt(froglokJumpSpeed, 0, 100, 0, level)
+		if n == 0 || !strings.Contains(why, "over the floor it left, 0.90 at most") {
+			t.Fatalf("the control, race %d: the froglok's jump %d refused (%q)", race, n, why)
+		}
+	}
+	// a human's own jump, its first two reports in the air lost: taken as
+	// before, with no allowance
+	h := newJumpRig(t, MoveCheckEnforce, 0, 0, 5, true)
+	if n, why := h.jumpAt(jumpSpeed, 0, 100, 2, level); n != 0 {
+		t.Fatalf("the control: a human's jump with two reports lost: %d not taken (%s)", n, why)
+	}
+	// the climb rule still bites a froglok: from the ground by the box, its
+	// first report in the air 1.8 over the box (its floor, under that report,
+	// so within its top) is a climb of 2.5 in one report, over its 1.3 + 0.9;
+	// a human's 0.9 over the box is refused the same (1.6 over 1.3)
+	for _, c := range []struct {
+		race int
+		y    float32
+	}{{raceFroglok, 0.7 + FroglokJumpTop}, {0, 0.7 + JumpTop}} {
+		b := newJumpRig(t, MoveCheckEnforce, 299.9, 0, 5, true)
+		b.p.Race = c.race
+		b.stand(120)
+		if b.report(300.1, c.y, 5, 100) || !strings.Contains(b.p.mv.why, "climbed") {
+			t.Fatalf("the control, race %d up %.2f onto the box at once: taken, or refused for %q", c.race, c.y, b.p.mv.why)
+		}
+	}
+
+	// a froglok past its own top
+	r = newFroglokRig(t, MoveCheckEnforce, 0, 0, 5)
+	for _, y := range []float32{0.5, 1.2, 1.85} {
+		if !r.report(0, y, 5, 100) {
+			t.Fatalf("a froglok's %.2f not taken (%s)", y, r.p.mv.why)
+		}
+	}
+	if r.report(0, 2.3, 5, 100) || !strings.Contains(r.p.mv.why, "jumped 2.30 over the floor it left, 1.80 at most") {
+		t.Fatalf("a froglok past its top: taken, or refused for %q", r.p.mv.why)
+	}
+	// a hover at its top
+	r = newFroglokRig(t, MoveCheckEnforce, 0, 0, 5)
+	for _, a := range arc[:4] {
+		r.report(0, a.dy, 5, a.ms)
+	}
+	hover := r.p.Y
+	refusedN := 0
+	for i := 0; i < 20 && len(r.p.mv.fixes) == 0; i++ {
+		if !r.report(0, hover, 5, 100) {
+			refusedN++
+		}
+	}
+	if refusedN == 0 || len(r.p.mv.fixes) == 0 || !strings.Contains(r.p.mv.why, "held up in the air") {
+		t.Fatalf("a froglok two seconds at %.2f: %d refused, %d moves back (%s)", hover, refusedN, len(r.p.mv.fixes), r.p.mv.why)
+	}
+	// a double jump
+	r = newFroglokRig(t, MoveCheckEnforce, 0, 0, 5)
+	again := -1
+	for i, a := range arc {
+		if !r.report(0, a.dy, 5, a.ms) {
+			t.Fatalf("the first jump's %.2f not taken (%s)", a.dy, r.p.mv.why)
+		}
+		if i > 0 && a.dy < arc[i-1].dy-mcJumpDip {
+			again = i
+			break
+		}
+	}
+	from := arc[again].dy
+	refused := false
+	for _, b := range jumpArcAt(froglokJumpSpeed, 0, 100, level)[:2] {
+		if !r.report(0, from+b.dy, 5, b.ms) {
+			refused = true
+			break
+		}
+	}
+	if !refused || !(strings.Contains(r.p.mv.why, "again in the air") || strings.Contains(r.p.mv.why, "1.80 at most")) {
+		t.Fatalf("a froglok's double jump from %.2f: refused %v (%s)", from, refused, r.p.mv.why)
 	}
 }
 

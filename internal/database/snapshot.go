@@ -202,6 +202,7 @@ var snapshotRules = map[string]snapshotRule{
 	"genie_lamp_log":              {allow: []string{"rowkey"}, why: "tools/seed_genie_lamp.py's log"},
 	"grocer_stock":                {allow: []string{"key"}, why: "tools/stock_grocers.py's log"},
 	"heirloom_epics_log":          {allow: []string{"rowkey"}, why: "tools/heirloom_epics.py's log"},
+	"jib_lane2_1122_log":          {allow: []string{"rowkey"}, why: "tools/jib_lane2_20261122.py's log"},
 	"merchant_stock":              {allow: []string{"key"}, why: "tools/stock_merchants.py's log"},
 	"petition_fix_log":            {allow: []string{"rowkey"}, why: "the petition fixes' log, written on the live server (rowkey: the content row a fix changed; petition: a number, the petitions are cleared)"},
 	"pod_seed_meta":               {allow: []string{"key"}, why: "tools/seed_pod.py's facts"},

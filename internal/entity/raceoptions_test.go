@@ -342,7 +342,7 @@ func TestRaceLooksOnTheWire(t *testing.T) {
 		{Name: "Gnomey", Race: 3, ModelID: 0x70D898C6, Looks: []database.CharLook{{Part: "cap", Kind: database.LookColour, Value: gold}}},
 	}
 	b := EncodeRaceLooks(chars)
-	if b[0] != 1 || binary.LittleEndian.Uint16(b[1:]) != 2 {
+	if b[0] != 1 || binary.LittleEndian.Uint16(b[1:]) != 4 { // each name with its [AFK] too (afk.go)
 		t.Fatalf("version and count: %v", b[:3])
 	}
 	one := []byte{6, 'S', 'p', 'o', 'r', 'e', 'y'}
@@ -465,11 +465,14 @@ func TestTheJalRaethAndTheWisp(t *testing.T) {
 		t.Fatalf("a female Wisp: %#x %v %v", uint32(body), looks, err)
 	}
 	b := EncodeRaceLooks([]database.LookCharacter{{Name: "Glim", Race: 31, Sex: 1, ModelID: signed(bodyHumanFemale), Looks: looks}})
-	want := append([]byte{raceOptionsVersion, 1, 0, 4}, "Glim"...)
-	want = binary.LittleEndian.AppendUint32(want, bodyHumanFemale)
-	want = append(want, 1, byte(KindTexture))
-	want = binary.LittleEndian.AppendUint32(want, bodyWillOWisp)
-	want = append(want, 1, 7, 0)
+	want := []byte{raceOptionsVersion, 2, 0} // the name and its [AFK] form (afk.go)
+	for _, n := range []string{"Glim", AFKTag + "Glim"} {
+		want = append(append(want, byte(len(n))), n...)
+		want = binary.LittleEndian.AppendUint32(want, bodyHumanFemale)
+		want = append(want, 1, byte(KindTexture))
+		want = binary.LittleEndian.AppendUint32(want, bodyWillOWisp)
+		want = append(want, 1, 7, 0)
+	}
 	if string(b) != string(want) {
 		t.Errorf("the female Wisp's look\n got % x\nwant % x", b, want)
 	}

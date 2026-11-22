@@ -122,10 +122,12 @@ func wantList(long, short string, names ...string) []byte {
 	b = append(b, long...)
 	b = append(b, byte(len(short)))
 	b = append(b, short...)
-	b = binary.LittleEndian.AppendUint16(b, uint16(len(names)))
+	b = binary.LittleEndian.AppendUint16(b, uint16(2*len(names)))
 	for _, n := range names {
-		b = append(b, byte(len(n)))
-		b = append(b, n...)
+		for _, f := range []string{n, entity.AFKTag + n} { // each name and its [AFK] form (entity/afk.go)
+			b = append(b, byte(len(f)))
+			b = append(b, f...)
+		}
 	}
 	return b
 }

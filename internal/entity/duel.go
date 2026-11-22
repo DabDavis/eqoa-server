@@ -1118,6 +1118,7 @@ func (w *World) duelEngageLocked(p *Player, ent Entity, objectID uint32, swing S
 	}
 	id := ent.GetEntityID()
 	p.Swing, p.swingNew = swing, false
+	w.afkActiveLocked(p, "an attack") // afk.go
 	if p.AttackTarget == id && p.AttackObjectID == objectID {
 		p.pressed(now) // a press with the client's timer run out (attack.go)
 		return true

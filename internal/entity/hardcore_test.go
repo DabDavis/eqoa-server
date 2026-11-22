@@ -150,7 +150,7 @@ func TestTheTagsFit(t *testing.T) {
 		t.Error("IsNameTag")
 	}
 	names := ShownNames("Bob", false, true, true)
-	if strings.Join(names, ",") != "Bob,[HC] Bob,[OG] Bob,[OG][HC] Bob" {
+	if strings.Join(names, ",") != "Bob,[AFK] Bob,[HC] Bob,[HC][AFK] Bob,[OG] Bob,[OG][AFK] Bob,[OG][HC] Bob,[OG][HC][AFK] Bob" {
 		t.Errorf("ShownNames %q", names)
 	}
 	SetHardcoreOn(false)

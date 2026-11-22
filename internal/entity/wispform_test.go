@@ -110,11 +110,11 @@ func TestAMortalWispLosesItsWispFromTheLooks(t *testing.T) {
 		{Name: "Wil", Race: 31, ModelID: signed(bodyHumanMale), Looks: looks},
 	}
 	all := encodeRaceLooks(chars, nil)
-	if string(all) != string(EncodeRaceLooks(chars)) || binary.LittleEndian.Uint16(all[1:3]) != 2 {
+	if string(all) != string(EncodeRaceLooks(chars)) || binary.LittleEndian.Uint16(all[1:3]) != 4 { // with their [AFK] forms (afk.go)
 		t.Fatalf("both Wisps: % x", all)
 	}
 	one := encodeRaceLooks(chars, map[string]bool{"Glim": true})
-	if binary.LittleEndian.Uint16(one[1:3]) != 1 || string(one[4:7]) != "Wil" {
+	if binary.LittleEndian.Uint16(one[1:3]) != 2 || string(one[4:7]) != "Wil" {
 		t.Errorf("Glim in a mortal form is left out: % x", one)
 	}
 

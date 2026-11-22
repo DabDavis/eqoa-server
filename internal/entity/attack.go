@@ -363,6 +363,7 @@ func (w *World) engageLocked(sess *session.Session, p *Player, objectID uint32, 
 		return false
 	}
 	p.Swing, p.swingNew = swing, false
+	w.afkActiveLocked(p, "an attack") // afk.go
 	if p.AttackTarget == npc.ServerID && p.AttackObjectID == objectID {
 		p.pressed(now) // a press with the client's timer run out: its timer from the press
 		return true

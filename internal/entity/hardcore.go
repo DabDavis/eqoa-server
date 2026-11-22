@@ -274,14 +274,15 @@ func composeTags(name string, tags []string, drop []string) string {
 	}
 }
 
-// tagDropOrder is the order tags go in when a name does not fit: the [OG]
-// first (the least of what a glance needs), then a sub GM's [Test] (testtag.go),
-// then the [HC]; the [GM] and a carried banner are never dropped.
-var tagDropOrder = []string{OGTag, TestTag, HCTag}
+// tagDropOrder is the order tags go in when a name does not fit: an away
+// player's [AFK] first (afk.go: a passing state, never at another tag's cost),
+// then the [OG] (the least of what a glance needs), then a sub GM's [Test]
+// (testtag.go), then the [HC]; the [GM] and a carried banner are never dropped.
+var tagDropOrder = []string{AFKTag, OGTag, TestTag, HCTag}
 
-// shownWith is name drawn with the tags gm, test, banner, og and hc set (in that
-// order: "[GM][Test][Banner][OG][HC] Name"), fitted (composeTags).
-func shownWith(name string, gm, test, banner, og, hc bool) string {
+// shownWith is name drawn with the tags gm, test, banner, og, hc and afk set (in
+// that order: "[GM][Test][Banner][OG][HC][AFK] Name"), fitted (composeTags).
+func shownWith(name string, gm, test, banner, og, hc, afk bool) string {
 	var tags []string
 	if gm {
 		tags = append(tags, GMTag)
@@ -298,6 +299,9 @@ func shownWith(name string, gm, test, banner, og, hc bool) string {
 	if hc {
 		tags = append(tags, HCTag)
 	}
+	if afk {
+		tags = append(tags, AFKTag)
+	}
 	return composeTags(name, tags, tagDropOrder)
 }
 
@@ -305,7 +309,7 @@ func shownWith(name string, gm, test, banner, og, hc bool) string {
 // its [OG] and [HC] tags (handlers.ps2ListName), fitted to CLIENT's 23 bytes
 // as the channel's name is (composeTags), the name never cut.
 func ListName(name string, og, hc bool) string {
-	return shownWith(name, false, false, false, og, hc)
+	return shownWith(name, false, false, false, og, hc, false)
 }
 
 // sortStrings is s sorted, without repeats.

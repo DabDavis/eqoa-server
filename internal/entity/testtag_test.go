@@ -44,13 +44,13 @@ func TestTheTestTagFits(t *testing.T) {
 	if !IsNameTag("[Test]") || !IsNameTag("[test][HC]") || IsNameTag("[Test]Bob") || PlainName("[TEST] Bob") != "Bob" {
 		t.Error("IsNameTag/PlainName with [Test]")
 	}
-	if got := ShownNamesOf("Bob", false, true, false, false); !slices.Equal(got, []string{"Bob", "[Test] Bob"}) {
+	if got := ShownNamesOf("Bob", false, true, false, false); !slices.Equal(got, []string{"Bob", "[AFK] Bob", "[Test] Bob", "[Test][AFK] Bob"}) {
 		t.Errorf("a sub GM's names %q", got)
 	}
-	if got := ShownNamesOf("Bob", false, true, true, false); !slices.Equal(got, []string{"Bob", "[OG] Bob", "[Test] Bob", "[Test][OG] Bob"}) {
+	if got := ShownNamesOf("Bob", false, true, true, false); !slices.Equal(got, []string{"Bob", "[AFK] Bob", "[OG] Bob", "[OG][AFK] Bob", "[Test] Bob", "[Test][AFK] Bob", "[Test][OG] Bob", "[Test][OG][AFK] Bob"}) {
 		t.Errorf("a sub GM's [OG] names %q", got)
 	}
-	if got := ShownNamesOf("Bob", true, true, false, false); !slices.Equal(got, []string{"Bob", "[GM] Bob"}) {
+	if got := ShownNamesOf("Bob", true, true, false, false); !slices.Equal(got, []string{"Bob", "[AFK] Bob", "[GM] Bob", "[GM][AFK] Bob"}) {
 		t.Errorf("a GM's names %q", got)
 	}
 	// on the wire: the channel's 24 bytes at 116

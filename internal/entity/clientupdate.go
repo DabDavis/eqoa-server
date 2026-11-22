@@ -190,6 +190,7 @@ func (w *World) ApplyClientUpdate(id EntityID, u ClientUpdate) {
 		take = false
 	}
 	p.mv.tookMove(p, now, take)
+	w.afkMovedLocked(p, before) // a walk away ends an away tag (afk.go)
 	if u.HasFacing {
 		p.Facing = u.Facing
 	}

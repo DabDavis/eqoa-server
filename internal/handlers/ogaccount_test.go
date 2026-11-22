@@ -259,21 +259,22 @@ func TestOGTagKeepsNamesForTellsAndInvites(t *testing.T) {
 }
 
 // The lists vanilla keys by the name it draws carry every form: the plain
-// name always, the tagged ones only where the tag is drawn.
+// name always, the tagged ones only where the tag is drawn, each with an away
+// player's [AFK] where it fits (entity/afk.go).
 func TestShownNamesForTheLists(t *testing.T) {
-	if got := entity.ShownNames("Meshuggah", false, true, false); !slices.Equal(got, []string{"Meshuggah"}) {
+	if got := entity.ShownNames("Meshuggah", false, true, false); !slices.Equal(got, []string{"Meshuggah", "[AFK] Meshuggah"}) {
 		t.Fatalf("switch off: %q", got)
 	}
 	ogSwitch(t)
-	if got := entity.ShownNames("Meshuggah", false, true, false); !slices.Equal(got, []string{"Meshuggah", "[OG] Meshuggah"}) {
+	if got := entity.ShownNames("Meshuggah", false, true, false); !slices.Equal(got, []string{"Meshuggah", "[AFK] Meshuggah", "[OG] Meshuggah", "[OG][AFK] Meshuggah"}) {
 		t.Fatalf("[OG]: %q", got)
 	}
 	// the tags joined, the space dropped for a full name (entity/hardcore.go's composeTags)
 	if got := entity.ShownNames("Abcdefghijklmno", true, true, false); !slices.Equal(got,
-		[]string{"Abcdefghijklmno", "[GM] Abcdefghijklmno", "[GM][OG]Abcdefghijklmno", "[OG] Abcdefghijklmno"}) {
+		[]string{"Abcdefghijklmno", "[AFK] Abcdefghijklmno", "[GM] Abcdefghijklmno", "[GM][OG]Abcdefghijklmno", "[OG] Abcdefghijklmno"}) {
 		t.Fatalf("a GM's [OG] with a full name: %q", got)
 	}
-	if got := entity.ShownNames("Bob", true, false, false); !slices.Equal(got, []string{"Bob", "[GM] Bob"}) {
+	if got := entity.ShownNames("Bob", true, false, false); !slices.Equal(got, []string{"Bob", "[AFK] Bob", "[GM] Bob", "[GM][AFK] Bob"}) {
 		t.Fatalf("a GM's: %q", got)
 	}
 }

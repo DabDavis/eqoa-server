@@ -26,7 +26,7 @@ var questCols = []string{"name", "enabled", "giver", "minlevel", "maxlevel", "cl
 // stepCols are a step row's columns the editor sends.
 var stepCols = []string{"kind", "target", "npcid", "items", "tunar", "count", "world", "x", "y", "z", "radius",
 	"journal", "answer", "says", "waiting", "notyet", "reminder", "xp", "rewardtunar", "rewarditems", "factions", "spells",
-	"chance", "events", "byclass", "choices", "anyorder"}
+	"chance", "events", "byclass", "choices", "anyorder", "exactbase"}
 
 // questUnlock is one trip a quest unlocks as the editor sends it (a
 // questunlocks row: handlers/questtrips.go).
@@ -62,7 +62,7 @@ func (s *Server) registerQuestOps() {
 		"repeatable": integer("1: may be taken again once finished"),
 		"offer":      str("the giver's words offering it: a paragraph (lines between blank lines) a question, a line a box, each paragraph's last line the question"),
 		"accept":     str("the player's answers that take it, a line a question (the last one gives the quest); empty: taken as soon as the giver is talked to"),
-		"decline":    str("the player's answer that refuses it, offered with each answer; empty: none"),
+		"decline":    str("the player's answer that refuses it: one line, offered with each question; several lines, a line a question as accept's (an empty line: that question has none); empty: none"),
 		"declined":   str("the giver's reply to a refusal, said as written (no name put before it)"),
 		"started":    str("the giver's words once it is taken"),
 		"source":     str("where it came from"),
@@ -102,7 +102,8 @@ func (s *Server) registerQuestOps() {
 		"events":      str("what happens when it becomes the step to do (on start) and when it is done (on done): " + eventsHelp),
 		"byclass": str(`rewards for a player of one class besides the above: a JSON object by class id (0 Warrior ... 14 ` +
 			`Alchemist), each {"xp", "tunar", "items": "patternid*count, ...", "spells": "spell ids, comma separated"}; empty: none`),
-		"anyorder": integer("talk/show/give: 1: this step and the steps next to it with 1 are done in any order, the quest going on past them once all are; the journal lists who is left"),
+		"exactbase": integer("show/give/loot: 1: only the items' own records count, never their Ascended records (no Ascended hand-in or reward from this step); 0 (default): either"),
+		"anyorder":  integer("talk/show/give: 1: this step and the steps next to it with 1 are done in any order, the quest going on past them once all are; the journal lists who is left"),
 		"choices": str(`talk/show/give: a pick asked when the step is done at its NPC (a guide's "choose your epic weapon"): ` +
 			`{"ask": "the question", "options": [{"answer", "says", "stay", "xp", "tunar", "items": "patternid*count, ...", ` +
 			`"spells": "spell ids"}]}, at most six options; the picked one's rewards are given besides the step's own, and one ` +
@@ -656,8 +657,14 @@ func (s *Server) questProblems(q map[string]any, steps []map[string]any, unlocks
 	if text(q, "accept") == "" && text(q, "decline") != "" {
 		add("it has an answer refusing it but none taking it: it is taken when talked to, and the refusal never shows")
 	}
-	if utf8.RuneCountInString(text(q, "accept")) > 63 || utf8.RuneCountInString(text(q, "decline")) > 63 {
-		add("an answer is longer than 63 characters: the client cuts it")
+	// a line a question, each its own answer (work board 883: a refusal per question)
+	for _, col := range []string{"accept", "decline"} {
+		for _, l := range strings.Split(text(q, col), "\n") {
+			if utf8.RuneCountInString(strings.TrimSpace(l)) > 63 {
+				add("an answer is longer than 63 characters: the client cuts it")
+				break
+			}
+		}
 	}
 	self, _ := asFloat(q["questid"])
 	for _, r := range database.ParseIntList(text(q, "requires")) {

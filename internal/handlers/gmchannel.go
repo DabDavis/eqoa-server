@@ -959,7 +959,7 @@ func (h *ChatHandler) gmSilence(sess *session.Session, gm *entity.Player, name s
 }
 
 // gmChatGate is every chat line's check (say, shout, tells, group, guild):
-// false for a silenced speaker (told so), and the line copied to the GMs who
+// false for a silenced speaker or a muted account's (told so), and the line copied to the GMs who
 // snoop the speaker. kind names the channel for the copy.
 func (h *ChatHandler) gmChatGate(sess *session.Session, p *entity.Player, kind, text string) bool {
 	h.gm.mu.Lock()
@@ -976,6 +976,10 @@ func (h *ChatHandler) gmChatGate(sess *session.Session, p *entity.Player, kind, 
 	}
 	if silenced {
 		SendErrorMessage(sess, "You have been silenced by a GM.")
+		return false
+	}
+	if line, muted := h.mutedLine(sess, kind); muted { // a GM's mute of the account (chatmute.go)
+		SendErrorMessage(sess, line)
 		return false
 	}
 	return true

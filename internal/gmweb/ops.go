@@ -132,6 +132,7 @@ func (s *Server) registerOps() {
 	s.registerAdminOps()
 	s.registerSnapshotOps() // ops_snapshot.go: a sanitised copy of the database, for an admin's own machine
 	s.registerQuestOps()
+	s.registerQuestPatchOps() // ops_questpatch.go: a reviewed quest content patch as one guarded change
 	s.registerPathOps()
 	s.registerVisualOps()
 	s.registerLookOps()         // looks.go: what wears each body, model, icon and visual, for the pickers

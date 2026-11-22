@@ -494,7 +494,7 @@ func (w *World) mercInFightLocked(ms *mercState) bool {
 		return true
 	}
 	o, m := ms.owner, ms.npc
-	for _, id := range w.SpatialIndex.QueryRadius(o.X, o.Z, petAssist) {
+	for _, id := range w.mercAroundLocked(ms, petAssist) { // round its camp too (merccamp.go)
 		npc := w.NPCs[id]
 		if npc != nil && !npc.Dead && (npc.CurrentEnemy == o.ServerID || npc.CurrentEnemy == m.ServerID) {
 			return true
@@ -897,7 +897,7 @@ func (w *World) mercLooseFoeLocked(ms *mercState) *NPC {
 	var best *NPC
 	var bestD float32
 	mates := w.mercGroupMatesLocked(ms) // an aggressive merc's (GM ticket 2025)
-	for _, id := range w.SpatialIndex.QueryRadius(o.X, o.Z, petAssist) {
+	for _, id := range w.mercAroundLocked(ms, petAssist) { // round its camp too (merccamp.go)
 		npc := w.NPCs[id]
 		if npc == nil || !mercMayFight(m, npc) || !team[npc.CurrentEnemy] || !w.mercCalledForLocked(ms, mates, npc) {
 			continue

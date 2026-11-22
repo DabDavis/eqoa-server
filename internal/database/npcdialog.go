@@ -37,6 +37,10 @@ import (
 //     for the races to have their own dialogue");
 //   - away: 1 for a race's line said only away from its own towns (a guest
 //     homesick, or of the town it is in: "%t");
+//   - use: what the line is for: "" a talk's, "ambient" said aloud unprompted
+//     to the players near (entity/ambient.go), "shop" the greeting atop the
+//     speaker's merchant window (handlers/merchant.go); a GM's ask of
+//     2026-11-11, live footage's lines;
 //   - class: the listener's class, -1 any;
 //   - not_race: a listener of this race never hears it, -1 none (the user,
 //     2026-11-17: Qeynos's welcome to the monks of other races than the
@@ -61,7 +65,8 @@ CREATE TABLE IF NOT EXISTS npcdialog (
 	speaker_race INTEGER NOT NULL DEFAULT -1,
 	away   INTEGER NOT NULL DEFAULT 0,
 	class  INTEGER NOT NULL DEFAULT -1,
-	not_race INTEGER NOT NULL DEFAULT -1
+	not_race INTEGER NOT NULL DEFAULT -1,
+	use    TEXT NOT NULL DEFAULT ''
 );`
 
 func (db *SQLiteDB) ensureNPCDialog() error {
@@ -75,6 +80,7 @@ func (db *SQLiteDB) ensureNPCDialog() error {
 		{"away", "INTEGER NOT NULL DEFAULT 0"},
 		{"class", "INTEGER NOT NULL DEFAULT -1"},
 		{"not_race", "INTEGER NOT NULL DEFAULT -1"},
+		{"use", "TEXT NOT NULL DEFAULT ''"},
 	} {
 		has, err := hasColumn(db.DB, "npcdialog", c.name)
 		if err != nil {
@@ -97,13 +103,27 @@ type NPCDialogLine struct {
 	Sex                    string // "male", "female" or "" (any)
 	Line                   string
 	Weight                 int
-	Voiced                 bool // a race's own voice: said only by a speaker of SpeakerRace (speaker_race >= 0)
-	SpeakerRace            int  // that race, by the speaker's body (speaker_race; -1 any)
-	Away                   bool // a race's line said only away from its own towns (a guest's)
-	ForClass               bool // said only to a listener of Class (class >= 0)
-	Class                  int  // that class (class; -1 any)
-	Unheard                bool // never said to a listener of NotRace (not_race >= 0)
-	NotRace                int  // that race (not_race; -1 none)
+	Voiced                 bool   // a race's own voice: said only by a speaker of SpeakerRace (speaker_race >= 0)
+	SpeakerRace            int    // that race, by the speaker's body (speaker_race; -1 any)
+	Away                   bool   // a race's line said only away from its own towns (a guest's)
+	ForClass               bool   // said only to a listener of Class (class >= 0)
+	Class                  int    // that class (class; -1 any)
+	Unheard                bool   // never said to a listener of NotRace (not_race >= 0)
+	NotRace                int    // that race (not_race; -1 none)
+	Use                    string // what the line is for: "" a talk's (DialogUseTalk), "ambient" or "shop"
+}
+
+// What a line of npcdialog is for (npcdialog.use): a talk picks only its own
+// (DialogUseTalk) rows, so a line meant for two uses is two rows.
+const (
+	DialogUseTalk    = ""        // said when talked to and nothing else answers (entity.World.TownLine)
+	DialogUseAmbient = "ambient" // said aloud, unprompted, to the players near (entity/ambient.go)
+	DialogUseShop    = "shop"    // the greeting atop a merchant's window (handlers/merchant.go)
+)
+
+// DialogUseValid reports whether u is one of npcdialog.use's values.
+func DialogUseValid(u string) bool {
+	return u == DialogUseTalk || u == DialogUseAmbient || u == DialogUseShop
 }
 
 // npcDialogFor is how long a read of npcdialog is kept: a row a tool writes
@@ -133,7 +153,7 @@ func (db *SQLiteDB) NPCDialog() ([]NPCDialogLine, error) {
 	if npcDialogCache.db == db && time.Since(npcDialogCache.at) < npcDialogFor {
 		return npcDialogCache.lines, nil
 	}
-	rows, err := db.Query(`SELECT id, town, role, name, mood, race, sex, line, weight, speaker_race, away, class, not_race FROM npcdialog ORDER BY id`)
+	rows, err := db.Query(`SELECT id, town, role, name, mood, race, sex, line, weight, speaker_race, away, class, not_race, use FROM npcdialog ORDER BY id`)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +161,7 @@ func (db *SQLiteDB) NPCDialog() ([]NPCDialogLine, error) {
 	var out []NPCDialogLine
 	for rows.Next() {
 		var l NPCDialogLine
-		if err := rows.Scan(&l.ID, &l.Town, &l.Role, &l.Name, &l.Mood, &l.Race, &l.Sex, &l.Line, &l.Weight, &l.SpeakerRace, &l.Away, &l.Class, &l.NotRace); err != nil {
+		if err := rows.Scan(&l.ID, &l.Town, &l.Role, &l.Name, &l.Mood, &l.Race, &l.Sex, &l.Line, &l.Weight, &l.SpeakerRace, &l.Away, &l.Class, &l.NotRace, &l.Use); err != nil {
 			return nil, err
 		}
 		l.Voiced = l.SpeakerRace >= 0

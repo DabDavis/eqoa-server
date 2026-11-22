@@ -398,7 +398,11 @@ type Player struct {
 	door doorWatch
 	// hazardNext is when a hazard may hit it again (hazards.go); hazardX/hazardZ where its last
 	// hit took it, while hazardHit (an on_move hazard's still player is not hit again)
-	hazardNext       time.Time
+	hazardNext time.Time
+	// placeIn is the place texts' areas it stands in, placeSeen whether it was looked at once
+	// (placetexts.go)
+	placeIn          map[int]bool
+	placeSeen        bool
 	lavaNext         time.Time // when the lava may burn it again (lava.go); zero out of it
 	hazardX, hazardZ float32
 	hazardHit        bool

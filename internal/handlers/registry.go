@@ -421,9 +421,14 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		interactHandler.ledger = charStore
 		// what a town's people and the guards say (entity/dialog.go)
 		interactHandler.SetDialogLines(charStore.DB().NPCDialog)
-		npcWindowHandler.SetDialogLines(charStore.DB().NPCDialog) // a refusing merchant's own words (factionrefusal.go)
+		interactHandler.SetTalkTrees(charStore.DB().NPCTalk)      // npctalk.go: NPC talk trees (work board 883)
+		npcWindowHandler.SetDialogLines(charStore.DB().NPCDialog) // a refusing merchant's own words (factionrefusal.go), a shop's greeting (merchant.go)
+		if gameWorld != nil {
+			gameWorld.SetAmbientLines(charStore.DB().NPCDialog) // the NPCs' unprompted lines (entity/ambient.go)
+		}
 		// what the signs and boards say (signs.go)
 		interactHandler.SetSignTexts(charStore.DB().SignTexts)
+		interactHandler.SetLightSpheres(charStore.DB().LightSpheres) // lightsphere.go: spheres known by their place
 		// who says which bosses are up (overseer.go)
 		interactHandler.overseers = charStore.DB().NPCOverseers
 		boardSpells := database.NewSpellbookStore(charStore.DB())
@@ -554,12 +559,19 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		gameWorld.OnPlayerEntered(tellSafeMode(gameWorld))
 		// and one with other players' mercenaries hidden, /hide mercs (hidemercs.go)
 		gameWorld.OnPlayerEntered(tellMercsHidden(gameWorld))
+		// a GM's chat mutes by the hour (chatmute.go): kept per shard, told at entry
+		chatHandler.SetChatMuteStore(charStore.DB())
+		gameWorld.OnPlayerEntered(chatHandler.muteEntered)
 
 		// the welcome guide (welcome.go): the box a character's first world entry
 		// of a UTC day asks, its answers, and /tutorial
 		welcome := NewWelcomeGuide(gameWorld, charStore.DB())
 		interactHandler.welcome, chatHandler.welcome = welcome, welcome
 		gameWorld.OnPlayerEntered(welcome.Entered)
+		// a new character's first-login welcome and merchant question (cityintro.go)
+		intro := NewCityIntro(gameWorld, charStore.DB())
+		interactHandler.intro, npcWindowHandler.intro = intro, intro
+		gameWorld.OnPlayerEntered(intro.Entered)
 
 		// [HC] Hardcore (hardcore.go): a fall's record, announcement and
 		// logout; the time played; the choice a new character's first entry

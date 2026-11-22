@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
@@ -47,8 +48,34 @@ const merchantRate = 100
 const roseNotSold = "Merchants will not buy a Rose of Rehabilitation."
 
 // merchantGreeting is the line 0x00B7 ends with (m_merchantName, at most 127
-// UTF-16 characters). The reference server sends each merchant's own; npcs carries none.
+// UTF-16 characters) for a merchant with no greeting of its own: its own is
+// an npcdialog line of use shop (shopGreeting).
 const merchantGreeting = "Have a look at my wares."
+
+// shopGreeting is the greeting atop npc's merchant window to player: its
+// npcdialog line of use shop, picked as a talk's line is (its own name's rows
+// first, then its town's and role's: entity.World.ShopLine), clipped to
+// greetingMax characters; merchantGreeting when it has none or the
+// table cannot be read (a GM's ask of 2026-11-11: each merchant's own words,
+// as live footage shows them).
+func (h *NPCWindowHandler) shopGreeting(player *entity.Player, npc *entity.NPC) string {
+	if h.gameWorld == nil || h.dialogLines == nil || player == nil || npc == nil {
+		return merchantGreeting
+	}
+	rows, err := h.dialogLines()
+	if err != nil {
+		log.Printf("Merchant: npcdialog: %v", err)
+		return merchantGreeting
+	}
+	line, ok := h.gameWorld.ShopLine(player, npc, rows)
+	if !ok || strings.TrimSpace(line) == "" {
+		return merchantGreeting
+	}
+	if r := []rune(line); len(r) > greetingMax {
+		line = string(r[:greetingMax])
+	}
+	return line
+}
 
 // NPCWindowHandler runs the merchant, bank and blacksmith windows.
 type NPCWindowHandler struct {
@@ -103,6 +130,9 @@ type NPCWindowHandler struct {
 	// lootSeed is a creature's loot seed for its spawn (entity/spawnloot.go): the
 	// corpse's dice where the hooks above are nil; nil: unseeded dice
 	lootSeed func(*entity.NPC) uint64
+	// isWild is the World's wildlife test (entity/wildlife.go): an animal's corpse
+	// holds no tunar unless npccoins names it (corpsecoins.go); nil, none is wildlife
+	isWild func(*entity.NPC) bool
 
 	// auction is the auction house (auction.go): 0x1205, and what it holds
 	// for a player filed as its bank opens
@@ -114,6 +144,10 @@ type NPCWindowHandler struct {
 	// dialogLines is npcdialog (database.NPCDialog): a refusing merchant's own
 	// words (factionrefusal.go). Nil: the chat line alone.
 	dialogLines func() ([]database.NPCDialogLine, error)
+
+	// intro asks a new character's merchant question in place of its first
+	// window (cityintro.go); nil: none is asked
+	intro *CityIntro
 
 	// archivist is the Spell Archivists (archivist.go): a request for one's
 	// window is answered with his question; nil, his shop opens at once
@@ -162,6 +196,7 @@ func (h *NPCWindowHandler) SetGameWorld(gw *entity.World) {
 	h.guardsKill = gw.GuardsKill
 	h.duelLoot = gw.ChallengeLooter // a Metal Moogie's corpse is his challenger's (entity/metalmoogie.go)
 	h.lootSeed = gw.NPCLootSeed     // loot determined at the spawn (entity/spawnloot.go)
+	h.isWild = gw.IsWildlife        // an animal's corpse holds no tunar (corpsecoins.go)
 	gw.OnCorpseGone(h.CorpsesGone)
 	gw.OnCorpseLeft(h.moveCorpse) // a corpse left to lie 20 minutes (corpseleft.go)
 	h.corpseMoved = gw.CorpseMoved
@@ -369,6 +404,12 @@ func (h *NPCWindowHandler) HandleMerchantOpen(sess *session.Session, msg *protoc
 	if questsAtWindow(sess, player, npc) {
 		return nil
 	}
+	// a new character's first window asks the merchant question instead
+	// (cityintro.go); the next opens the shop
+	if h.intro.MerchantAsk(sess, player) {
+		refuse(sess)
+		return nil
+	}
 	// a Spell Archivist asks first (archivist.go): his shop, the class's basic
 	// spells or a clear book; the request cleared so his box shows, as a
 	// quest's is
@@ -376,7 +417,7 @@ func (h *NPCWindowHandler) HandleMerchantOpen(sess *session.Session, msg *protoc
 		refuse(sess)
 		return nil
 	}
-	h.openMerchant(sess, player, npc, id, merchantGreeting)
+	h.openMerchant(sess, player, npc, id, h.shopGreeting(player, npc))
 	return nil
 }
 

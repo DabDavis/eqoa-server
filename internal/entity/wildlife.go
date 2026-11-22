@@ -184,6 +184,18 @@ func (w *World) wildlifeLocked(npc *NPC) (word string, ok bool) {
 	return k.word, k.wild
 }
 
+// IsWildlife reports a creature that is wildlife (wildlifeLocked), under the
+// World's read lock: a corpse's coins (handlers/corpsecoins.go).
+func (w *World) IsWildlife(npc *NPC) bool {
+	if npc == nil {
+		return false
+	}
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	_, wild := w.wildlifeLocked(npc)
+	return wild
+}
+
 // forgetWildlifeLocked drops the verdicts, for the undead tags changed. Must
 // be called with the World's lock held.
 func (w *World) forgetWildlifeLocked() {

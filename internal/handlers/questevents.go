@@ -168,6 +168,13 @@ func (q *QuestEngine) runEventsLocked(sess *session.Session, p *entity.Player, c
 			if e.Hold {
 				continue // fired at the step's NPC, before the step is done (holdLocked)
 			}
+			if res := q.takeReservedLocked(c.serverID, e.Trigger); res != nil {
+				// a hand-in's run, reserved before it took anything (questatomic.go)
+				if _, err := Triggers().Activate(res); err != nil {
+					log.Printf("Quests: %q step %d starts its reserved %q: %v", qu.Name, step, e.Trigger, err)
+				}
+				continue
+			}
 			if _, err := Triggers().FireNamed(e.Trigger, TriggerFirer{Name: p.Name, Sess: sess, Player: p, Quiet: true}); err != nil {
 				log.Printf("Quests: %q step %d fires %q: %v", qu.Name, step, e.Trigger, err)
 			}
@@ -734,10 +741,70 @@ func (q *QuestEngine) respawnLost() {
 			} else {
 				log.Printf("Quests: %q step %d: %s came back for %s", qu.Name, st.Step, p.Name, strings.Join(names, ", "))
 			}
-			for _, e := range evs {
-				q.spawnLocked(p, c, qu, st.Step, e)
+			left := waveUnbounded
+			if st.Kind == database.StepKill {
+				if left = max(st.Count, 1) - cq.Count; left <= 0 {
+					continue // no kill wanted: no hunt wave (entry 1290)
+				}
+			}
+			q.spawnWaveLocked(p, c, qu, st.Step, evs, names, left)
+		}
+	}
+}
+
+// waveUnbounded is a wave's budget where the step counts no kills (a loot step's items are not creatures).
+const waveUnbounded = int(^uint(0) >> 1)
+
+// waveCounts is how many creatures each of a hunt step's spawn events (stepSpawns' evs, in order) makes in a wave
+// when left kills of the step's targets (names) are still wanted (board entry 1290): the target events share
+// that budget in their order, each its Count (unset: 1) cut to what is left, and none once it is spent; an event of
+// a creature the step does not count (a companion, an add) keeps its own Count and comes only with a wave that
+// brings at least one target. Before, the cap counted events, not creatures: one left and a target event of
+// Count 3 made 3, and the lost-spawn recovery made every count again.
+func waveCounts(evs []database.QuestEvent, names []string, left int) []int {
+	out := make([]int, len(evs))
+	if left <= 0 {
+		return out
+	}
+	isTarget := func(e database.QuestEvent) bool {
+		for _, n := range names {
+			if strings.EqualFold(strings.TrimSpace(e.NPC), n) {
+				return true
 			}
 		}
+		return false
+	}
+	targets := 0
+	for i, e := range evs {
+		if !isTarget(e) {
+			continue
+		}
+		n := min(max(e.Count, 1), left)
+		out[i] = n
+		left -= n
+		targets += n
+	}
+	if targets == 0 {
+		return make([]int, len(evs))
+	}
+	for i, e := range evs {
+		if !isTarget(e) {
+			out[i] = max(e.Count, 1)
+		}
+	}
+	return out
+}
+
+// spawnWaveLocked makes a hunt step's spawns (stepSpawns' evs and names) as waveCounts allows with left kills
+// still wanted. Must be called with q.mu held.
+func (q *QuestEngine) spawnWaveLocked(p *entity.Player, c *questChar, qu *database.Quest, step int, evs []database.QuestEvent, names []string, left int) {
+	for i, n := range waveCounts(evs, names, left) {
+		if n <= 0 {
+			continue
+		}
+		e := evs[i]
+		e.Count = n
+		q.spawnLocked(p, c, qu, step, e)
 	}
 }
 
@@ -770,14 +837,14 @@ func (q *QuestEngine) byStepNPC(qu *database.Quest, st *database.QuestStep, name
 // (stepSpawns), the step still short of its count: when the creature killed was
 // one of the character's spawns of the step and none of them is left alive, the
 // step's spawns come again before the player, as the step first made them, no
-// more than the kills still wanted (petition 1539: "2 bloodletters
+// more of its target creatures than the kills still wanted (waveCounts) (petition 1539: "2 bloodletters
 // spawn, killed them and no more spawn": Pages of Pardon's six bloodletters, the
 // guide's waves, came two and never again). Must be called with q.mu held.
 func (q *QuestEngine) nextWaveLocked(p *entity.Player, c *questChar, qu *database.Quest, st *database.QuestStep, killed entity.EntityID, left int) {
 	if q.gw == nil || p == nil || left <= 0 {
 		return
 	}
-	evs, _ := stepSpawns(qu, st)
+	evs, names := stepSpawns(qu, st)
 	if len(evs) == 0 {
 		return
 	}
@@ -796,12 +863,7 @@ func (q *QuestEngine) nextWaveLocked(p *entity.Player, c *questChar, qu *databas
 		return
 	}
 	log.Printf("Quests: %q step %d: the next wave for %s (%d kills to go)", qu.Name, st.Step, p.Name, left)
-	for i, e := range evs {
-		if i >= left {
-			break
-		}
-		q.spawnLocked(p, c, qu, st.Step, e)
-	}
+	q.spawnWaveLocked(p, c, qu, st.Step, evs, names, left) // creatures, not events, held to the kills left (entry 1290)
 }
 
 // teleportLocked warps the player as a travel NPC does.
@@ -926,7 +988,8 @@ func (q *QuestEngine) Looted(sess *session.Session, p *entity.Player, pattern, n
 			continue
 		}
 		pid, _, ok := st.LootItem()
-		if !ok || (pid != entity.RecordOf(pattern) && !ascendedFor(pattern, pid)) { // its Ascended or Legacy record counts for it (questascended.go)
+		// its Ascended or Legacy record counts for it (questascended.go), but on an exactbase step the base record alone
+		if !ok || (st.ExactBase && pid != pattern) || (!st.ExactBase && pid != entity.RecordOf(pattern) && !ascendedFor(pattern, pid)) {
 			continue
 		}
 		q.countLootLocked(sess, p, c, qu, cq, st, n)

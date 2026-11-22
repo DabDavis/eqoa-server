@@ -1057,15 +1057,17 @@ const (
 const (
 	// OpcodeMobInfoOffer is not retail: the server's offer, server to client
 	// once the player is in the world, only where world.mob_info is on: a u8,
-	// 1, the layout of OpcodeMobInfo. A PS2 ignores it (CLIENT's dispatcher
+	// 1, the layout of OpcodeMobInfo, then a u8, the highest layout the server
+	// sends (2; a client that reads only the first byte answers 1). A PS2 ignores it (CLIENT's dispatcher
 	// has no case above 0x1402 and no default) and never answers: its talk to
 	// such a monster is answered with a dialogue box (0x0046) of the same two
 	// lines.
 	OpcodeMobInfoOffer GameOpcode = 0x7E4C
 
 	// OpcodeMobInfoAnswer is a client's answer to OpcodeMobInfoOffer, client to
-	// server, at once: a u8, 1 to be sent OpcodeMobInfo in place of the
-	// dialogue box, 0 for the box (a wider answer is read by its first byte).
+	// server, at once: a u8, the layout of OpcodeMobInfo to be sent in place
+	// of the dialogue box (1 or 2), 0 for the box (a wider answer is read by
+	// its first byte).
 	OpcodeMobInfoAnswer GameOpcode = 0x7E4D
 
 	// OpcodeMobInfo is a monster's name and level, server to a client that
@@ -1078,6 +1080,9 @@ const (
 	// handlers/consoletext.go). The client shows the two as CLIENT's
 	// VIWndGame::DrawTargetInfo shows a pet's (the name, then word 503 "Level"
 	// and the level), in the target's details box, while its □ is held.
+	// Layout 2 (a client that answered 2) adds a u8 count of extra lines, each
+	// a u8 length and ASCII bytes (at most 63), drawn under the level: the
+	// commands of the player's own mercenary (handlers/mobinfo.go).
 	OpcodeMobInfo GameOpcode = 0x7E4E
 )
 

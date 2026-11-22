@@ -136,7 +136,7 @@ func TestMercLiaisonHires(t *testing.T) {
 	r.drain()
 	r.talk(r.anna, lia)
 	got := r.msgs(r.anna)
-	if len(got) != 1 || !strings.HasSuffix(got[0], "|A healer|A tank|A melee fighter|A caster") {
+	if len(got) < 2 || !strings.HasSuffix(got[len(got)-1], "|A healer|A tank|A melee fighter|A caster") {
 		t.Fatalf("the liaison's first box: %q", got)
 	}
 	got = r.answer(got, "A tank")

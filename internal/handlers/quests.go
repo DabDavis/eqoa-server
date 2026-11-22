@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -194,6 +195,25 @@ type QuestEngine struct {
 	// quests' changes (nudge), which those marks are worked out again on
 	marked map[int]bool
 	gen    atomic.Uint64
+
+	// reservedRuns are the trigger runs a hand-in reserved before it took
+	// anything, by character and the trigger's folded name, for its done
+	// event to start (questatomic.go); handInFault fails a hand-in's
+	// transaction at a write (tests)
+	reservedRuns map[uint32]map[string]*TriggerReservation
+	handInFault  func(i int) error
+
+	// the guarded definition edits (questdefgate.go): defMu orders every
+	// publication of the catalog (Reload, a guarded edit), held the quests
+	// it holds back from play, pubGen counts publications
+	defMu  sync.Mutex
+	held   map[int]bool
+	pubGen atomic.Uint64
+	// unpublished are the quests of an edit committed but not yet published
+	// (held until a reload succeeds)
+	unpublished map[int]bool
+	// loadHook runs as a publication begins (tests: a slow load)
+	loadHook func()
 }
 
 // questCatalog is the quests as last read.
@@ -472,8 +492,22 @@ func (q *QuestEngine) run() {
 	}
 }
 
-// Reload reads the quests again (a GM's change).
+// Reload reads the quests again (a GM's change). Publications are one at a
+// time (defMu, questdefgate.go): a load begun before another's can never
+// publish over it.
 func (q *QuestEngine) Reload() error {
+	q.defMu.Lock()
+	defer q.defMu.Unlock()
+	return q.publishLocked()
+}
+
+// publishLocked is Reload with defMu held: the quests read and the catalog
+// swapped in, its generation counted; quests an earlier edit left
+// unpublished are let go.
+func (q *QuestEngine) publishLocked() error {
+	if q.loadHook != nil {
+		q.loadHook()
+	}
 	all, err := q.store.LoadQuests()
 	if err != nil {
 		return err
@@ -520,6 +554,11 @@ func (q *QuestEngine) Reload() error {
 	q.texts, q.names = texts, names
 	q.saysPlaces = nil
 	q.spots, q.camps, q.hops = nil, nil, nil // the marks read the NPCs' places again
+	for id := range q.unpublished {
+		delete(q.held, id)
+	}
+	q.unpublished = nil
+	q.pubGen.Add(1)
 	q.mu.Unlock()
 	q.nudge() // a GM's edit: the marks and trackers again
 	return nil
@@ -936,7 +975,7 @@ func (q *QuestEngine) stepAtLocked(sess *session.Session, p *entity.Player, c *q
 	wontDeal := ""
 	for _, cq := range c.active() {
 		qu := q.cat.byID[cq.QuestID]
-		if qu == nil {
+		if qu == nil || q.heldLocked(qu.ID) { // held for an edit: questdefgate.go
 			continue
 		}
 		// its step, or any of its group's not yet done (questanyorder.go)
@@ -1155,6 +1194,8 @@ func (q *QuestEngine) mayTakeLocked(look *factionLook, p *entity.Player, c *ques
 // giver's "not yet", quests_notyet.go).
 func (q *QuestEngine) mayTakeAtLocked(look *factionLook, p *entity.Player, c *questChar, qu *database.Quest, level int) string {
 	switch {
+	case q.heldLocked(qu.ID):
+		return "it is being changed (questdefgate.go)"
 	case !qu.Enabled:
 		return "it is a draft"
 	case qu.First() == nil:
@@ -1333,7 +1374,7 @@ func (q *QuestEngine) askStageLocked(sess *session.Session, c *questChar, qu *da
 func offerChoices(qu *database.Quest, k int, picked []string) []questChoice {
 	answers := sayLines(qu.Accept)
 	choices := []questChoice{{kind: choiceAccept, quest: qu.ID, step: k, label: answers[k]}}
-	if d := strings.TrimSpace(qu.Decline); d != "" {
+	if d := declineAt(qu, k); d != "" {
 		choices = append(choices, questChoice{kind: choiceDecline, quest: qu.ID, label: d})
 	}
 	if k != len(answers)-1 {
@@ -1346,6 +1387,21 @@ func offerChoices(qu *database.Quest, k int, picked []string) []questChoice {
 		choices = append(choices, questChoice{kind: choiceAsk, quest: qu.ID, step: k, label: o.ask.Answer, ask: o.path, picked: picked})
 	}
 	return choices
+}
+
+// declineAt is the refusal offered beside the offer's question k (work board 883: the live givers refused
+// per question): decline read as accept is, a line a question, an empty line that question's none; a
+// decline of one line (no \n) is the refusal of every question, as before.
+func declineAt(qu *database.Quest, k int) string {
+	raw := strings.ReplaceAll(qu.Decline, "\r", "")
+	if !strings.Contains(raw, "\n") {
+		return strings.TrimSpace(raw)
+	}
+	lines := strings.Split(raw, "\n")
+	if k < 0 || k >= len(lines) {
+		return ""
+	}
+	return strings.TrimSpace(lines[k])
 }
 
 // openAsk is an ask that may be asked now and its path.
@@ -1557,6 +1613,12 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 	var given *handedIn
 	switch st.Kind {
 	case database.StepGive:
+		if (opt == nil || opt.Cost == 0) && len(handInTriggers(st)) > 0 {
+			// its doing fires an encounter: the run reserved, the items and
+			// the progress one transaction, then the run started (questatomic.go)
+			q.atomicHandInLocked(sess, p, c, qu, cq, st, opt, pick)
+			return
+		}
 		var ok bool
 		if given, ok = q.takeLocked(sess, p, st); !ok {
 			q.tellLocked(c, sess, st.Target, sayLines(orText(st.Reminder, questNotYet))...)
@@ -1624,6 +1686,11 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 	}
 	qu := q.cat.byID[ch.quest]
 	if qu == nil {
+		return true
+	}
+	if q.heldLocked(qu.ID) {
+		// an old box of a quest being changed: nothing of it is done (questdefgate.go)
+		q.tellLocked(c, sess, "", questHeldLine)
 		return true
 	}
 	switch ch.kind {
@@ -1765,7 +1832,7 @@ func (q *QuestEngine) killed(k entity.KillCredit) {
 		c := chars[i]
 		for _, cq := range c.active() {
 			qu := q.cat.byID[cq.QuestID]
-			if qu == nil {
+			if qu == nil || q.heldLocked(qu.ID) { // held for an edit: questdefgate.go
 				continue
 			}
 			st := qu.Step(cq.Step)
@@ -2239,19 +2306,43 @@ func (q *QuestEngine) lackingLocked(p *entity.Player, st *database.QuestStep) st
 // database, the session's list and the client's (0x003C, 0x0052), and returns
 // what was handed in, by name, and whether it came Ascended (an item's
 // Ascended record stands for it: questascended.go); false (and nothing
-// taken) when something lacks.
+// taken) when something lacks or the database refused any of it: every row
+// and the purse are written in one transaction (takeTxLocked).
 func (q *QuestEngine) takeLocked(sess *session.Session, p *entity.Player, st *database.QuestStep) (*handedIn, bool) {
+	given, err := q.takeTxLocked(sess, p, st, nil)
+	return given, err == nil
+}
+
+// takeTxLocked is takeLocked writing progress too: cq, when given, is the
+// quest's row as doing the step leaves it, written in the same transaction as
+// the items and the purse (database.InventoryStore.HandIn), so a hand-in and
+// its progress are kept together or not at all (board entry 1263). Nothing is
+// told the client, and nothing changes in memory, until that commit.
+func (q *QuestEngine) takeTxLocked(sess *session.Session, p *entity.Player, st *database.QuestStep, cq *database.CharQuest) (*handedIn, error) {
 	plan := q.planHandInLocked(p, st)
 	if len(plan.lack) > 0 || q.inv == nil {
-		return nil, false
+		return nil, errors.New("lacks " + strings.Join(plan.lack, ", "))
 	}
 	// a worn copy (taken only when no carried one is left: heldItems' order)
 	// comes off first, as Destroy takes one off: its slot emptied in the
-	// database, UnequipItem to the client, the look and the hands again
+	// database, UnequipItem to the client, the look and the hands again (a
+	// refusal after leaves it carried, never lost)
 	for _, t := range plan.takes {
 		if t.row.EquipLoc >= 0 && !q.takeOffLocked(sess, p, t.row) {
-			return nil, false
+			return nil, errors.New("a worn item could not be taken off")
 		}
+	}
+	takes := make([]database.HandInTake, len(plan.takes))
+	for i, t := range plan.takes {
+		takes[i] = database.HandInTake{ItemID: t.row.ItemID, Left: t.row.StackLeft, N: t.n}
+	}
+	purse := -1
+	if st.Tunar > 0 {
+		purse = p.Tunar - st.Tunar
+	}
+	if err := q.inv.HandIn(p.CharServerID, takes, purse, cq, q.handInFault); err != nil {
+		log.Printf("Quests: %s's hand-in at step %d refused whole: %v", p.Name, st.Step, err)
+		return nil, err
 	}
 	l := sessionInvList(sess)
 	given := &handedIn{ascended: plan.ascended}
@@ -2259,16 +2350,6 @@ func (q *QuestEngine) takeLocked(sess *session.Session, p *entity.Player, st *da
 	var order []int
 	for _, t := range plan.takes {
 		r := t.row
-		var err error
-		if t.n >= r.StackLeft {
-			err = q.inv.DeleteCharItem(p.CharServerID, r.ItemID)
-		} else {
-			err = q.inv.SetItemStack(p.CharServerID, r.ItemID, r.StackLeft-t.n)
-		}
-		if err != nil {
-			log.Printf("Quests: taking %q from %s: %v", r.Pattern.ItemName, p.Name, err)
-			continue
-		}
 		if l != nil {
 			if idx := l.indexOfItem(r.ItemID); idx >= 0 && l.took(idx, t.n) && sess != nil {
 				queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(idx, 0, t.n))
@@ -2286,8 +2367,16 @@ func (q *QuestEngine) takeLocked(sess *session.Session, p *entity.Player, st *da
 	for _, id := range order {
 		given.names = append(given.names, countOf(taken[id], names[id]))
 	}
-	q.payStepTunarLocked(sess, p, st, given)
-	return given, true
+	if st.Tunar > 0 {
+		// written with the rows: the purse in memory and the client's
+		p.Tunar = purse
+		economy.Spent(economy.QuestPayment, p.CharServerID, p.Name, st.Tunar)
+		if sess != nil {
+			queueReliable(sess, protocol.OpcodePlayerTunar, tunarPayload(p.Tunar))
+		}
+		given.names = append(given.names, fmt.Sprintf("%d tunar", st.Tunar))
+	}
+	return given, nil
 }
 
 // takeOffLocked takes a worn row off before a give step takes it: the

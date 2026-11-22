@@ -46,7 +46,7 @@ func TestACorpsesLootIsItsSpawnsWhoeverOpensIt(t *testing.T) {
 	f.h.lootIntn = func(n int) int { return 0 }
 	f.h.lootFloat = func() float64 { return 0 }
 	f.h.coinRoll = func(int) int { return 0 }
-	if c := f.h.rollCorpse(f.npc, time.Now(), f.npc.Level); c.tunar != f.npc.Level {
-		t.Errorf("the hooks' coins: %d, want %d", c.tunar, f.npc.Level)
+	if c := f.h.rollCorpse(f.npc, time.Now(), f.npc.Level); c.tunar != 1 {
+		t.Errorf("the hooks' coins: %d, want 1 (1 + the roll's 0: corpsecoins.go)", c.tunar)
 	}
 }

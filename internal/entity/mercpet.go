@@ -333,7 +333,7 @@ func (w *World) mercPetChooseTargetLocked(ms *mercState, ps *petState) {
 	pet, m, owner := ps.npc, ms.npc, ms.owner
 	valid := func(id EntityID) *NPC {
 		t := w.NPCs[id]
-		if id == 0 || t == nil || !mercMayFight(pet, t) || distXZ(owner.X, owner.Z, t.X, t.Z) > petLeash || w.walledOffLocked(owner, pet, t) {
+		if id == 0 || t == nil || !mercMayFight(pet, t) || !w.mercGuardsLocked(ms, t.X, t.Z, petLeash) || w.walledOffLocked(owner, pet, t) {
 			return nil // a quest wall between too (questwallfight.go, petition 2198)
 		}
 		return t
@@ -373,7 +373,7 @@ func (w *World) mercPetChooseTargetLocked(ms *mercState, ps *petState) {
 	}
 	var best *NPC
 	var bestD float32
-	for _, id := range w.SpatialIndex.QueryRadius(owner.X, owner.Z, petAssist) {
+	for _, id := range w.mercAroundLocked(ms, petAssist) { // round its merc's camp too (merccamp.go)
 		npc := valid(id)
 		if npc == nil || !mine(npc) {
 			continue

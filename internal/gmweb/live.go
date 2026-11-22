@@ -90,6 +90,9 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 	case "npcdialog":
 		database.InvalidateNPCDialog()
 		return "at once: the next talk to a town's person or a guard"
+	case "npctalk":
+		database.InvalidateNPCTalk()
+		return "at once: the next talk to that NPC"
 	case "npcoverseer":
 		database.InvalidateNPCOverseer()
 		return "at once: the next talk to the overseer"
@@ -126,6 +129,10 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveOrbs() // live_orbs.go
 	case "hazards":
 		return s.liveHazards() // live_hazards.go
+	case "placetexts":
+		return s.livePlaceTexts() // live_places.go
+	case "lightspheres":
+		return "within 30 seconds: the next talk to a sphere"
 	case "noroam":
 		return s.liveNoRoam() // live_hazards.go
 	case "racesize":
@@ -600,6 +607,65 @@ func checkSpawnOnlyRow(row map[string]any) error {
 	return nil
 }
 
+// checkNPCCoinsRow holds an npccoins row (work board 658) to a name's key and
+// 0 <= coins_min <= coins_max (an edit giving one bound alone is held to 0 or more).
+func checkNPCCoinsRow(row map[string]any) error {
+	if v, ok := row["npc_name"]; ok {
+		if name, _ := v.(string); database.NPCClassKey(name) == "" || database.NPCClassKey(name) != name {
+			return badRequest("npc_name is the NPC's name as NPC classes key it: lower case, no trailing space or $")
+		}
+	}
+	lo, hasLo := row["coins_min"]
+	hi, hasHi := row["coins_max"]
+	if hasLo && rowInt(row, "coins_min") < 0 || hasHi && rowInt(row, "coins_max") < 0 {
+		return badRequest("coins_min and coins_max are 0 or more")
+	}
+	if hasLo && hasHi && lo != nil && hi != nil && rowInt(row, "coins_min") > rowInt(row, "coins_max") {
+		return badRequest("coins_min is at most coins_max")
+	}
+	return nil
+}
+
+// checkMerchantPriceRow holds a merchantprice row (work board 880) to a
+// merchant's name key, an item record and a price of 0 or more.
+func checkMerchantPriceRow(row map[string]any) error {
+	if v, ok := row["merchant"]; ok {
+		if name, _ := v.(string); database.NPCClassKey(name) == "" || database.NPCClassKey(name) != name {
+			return badRequest("merchant is the merchant's name as NPC classes key it: lower case, no trailing space or $")
+		}
+	}
+	if _, ok := row["patternid"]; ok && rowInt(row, "patternid") <= 0 {
+		return badRequest("patternid is an item record's id")
+	}
+	if v, ok := row["price"]; ok && (v == nil || rowInt(row, "price") < 0) {
+		return badRequest("price is tunar for one, 0 or more")
+	}
+	return nil
+}
+
+// checkNPCTalkRow holds an npctalk row (work board 883) to a name's key, a node of 1 or more, and says and
+// answers a client can draw (database.TalkNodeProblems: answers that read as JSON, each 63 characters at
+// most, five beside Exit, no |). A next naming no node closes the conversation when picked.
+func checkNPCTalkRow(row map[string]any) error {
+	if v, ok := row["npc"]; ok {
+		if name, _ := v.(string); database.NPCClassKey(name) == "" || database.NPCClassKey(name) != name {
+			return badRequest("npc is the NPC's name as NPC classes key it: lower case, no trailing space or $")
+		}
+	}
+	if _, ok := row["node"]; ok && rowInt(row, "node") < 1 {
+		return badRequest("node is 1 or more (1 is where a talk starts)")
+	}
+	says, _ := row["says"].(string)
+	choices, has := row["choices"].(string)
+	if !has {
+		choices = ""
+	}
+	if p := database.TalkNodeProblems(says, choices); len(p) > 0 {
+		return badRequest("%s", strings.Join(p, "; "))
+	}
+	return nil
+}
+
 // liveCamps reads the camps' spawns again (entity/campspawn.go; the change is
 // committed: the database is free).
 func (s *Server) liveCamps() string {
@@ -1002,4 +1068,28 @@ func raceName(r int) string {
 		}
 	}
 	return fmt.Sprintf("race %d", r)
+}
+
+// checkNPCDialogRow holds npcdialog.use to its three values (empty a talk's line,
+// ambient, shop: database.DialogUseValid); another would be a line said
+// nowhere.
+func checkNPCDialogRow(row map[string]any) error {
+	v, ok := row["use"]
+	if !ok || v == nil {
+		return nil
+	}
+	var u string
+	switch x := v.(type) {
+	case string:
+		u = x
+	case []byte:
+		u = string(x)
+	default:
+		return badRequest("use is text: empty (a talk's line), ambient or shop")
+	}
+	if !database.DialogUseValid(u) {
+		return badRequest("use %q is none of empty (a talk's line), ambient (said aloud, unprompted, to the players near) "+
+			"or shop (the greeting atop the speaker's merchant window)", u)
+	}
+	return nil
 }

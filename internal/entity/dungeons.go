@@ -121,6 +121,9 @@ type DungeonSettings struct {
 	// DefaultDungeonCap), RaidCap a raid's instance's (0: DefaultDungeonRaidCap):
 	// instancemembers.go
 	Cap, RaidCap int
+	// Lockout is how long a character who stood in a closed instance waits before entering a new instance of
+	// the same dungeon (dungeonlockout.go; 0: no wait)
+	Lockout time.Duration
 }
 
 // dungeonInst is one open instance.
@@ -138,6 +141,9 @@ type dungeonInst struct {
 	// those taken out of it and when (instancemembers.go)
 	invited map[uint32]string
 	removed map[uint32]time.Time
+	// stood are the characters who stood in it (its opener with them): each is locked out of its dungeon when it
+	// closes (dungeonlockout.go)
+	stood map[uint32]bool
 }
 
 // dungeonStay is where a character in the dungeons came from.
@@ -160,6 +166,10 @@ type dungeonsState struct {
 	// resumeIn is, while a restart that keeps the sessions puts them back, the instance each character stood in
 	// (keepdungeon.go); empty otherwise
 	resumeIn map[uint32]uint32
+	// lockouts are when each character's lockout from a dungeon (by key) began (dungeonlockout.go)
+	lockouts map[dungeonLock]time.Time
+	// clock is the time of a call that takes none (nil: time.Now; tests set it)
+	clock func() time.Time
 }
 
 // SetDungeons turns the dungeons on (or off) in world with its dungeons. Their rows become templates (out of the
@@ -184,7 +194,8 @@ func (w *World) SetDungeons(on bool, world uint8, defs []DungeonDef, set Dungeon
 		set.RaidCap = DefaultDungeonRaidCap
 	}
 	w.dungeons = dungeonsState{on: on, world: world, defs: defs, set: set, insts: map[uint32]*dungeonInst{},
-		stays: map[uint32]dungeonStay{}, movedAt: map[EntityID]time.Time{}, badAt: map[EntityID]time.Time{}}
+		stays: map[uint32]dungeonStay{}, movedAt: map[EntityID]time.Time{}, badAt: map[EntityID]time.Time{},
+		lockouts: map[dungeonLock]time.Time{}}
 	dungeonWorlds[world].Store(on)
 	SetInstancedWorld(world, on)
 	held := 0
@@ -390,6 +401,9 @@ func (w *World) DungeonEnter(sess *session.Session, key string, now time.Time) (
 	}
 	d := &w.dungeons.defs[def]
 	in := w.dungeonInstForLocked(def, p)
+	if why, locked := w.dungeonLockedOutLocked(p.CharServerID, def, in, now); locked {
+		return why, false
+	}
 	if in == nil {
 		if !w.dungeonLeaderLocked(p) {
 			return fmt.Sprintf(dungeonLineNoOpen, d.Name), false
@@ -405,6 +419,7 @@ func (w *World) DungeonEnter(sess *session.Session, key string, now time.Time) (
 	}
 	p.Instance = in.id
 	in.lastIn = now
+	in.markStood(p.CharServerID)
 	w.dungeons.movedAt[p.ServerID] = now
 	delete(w.dungeons.badAt, p.ServerID)
 	e := d.Entrance
@@ -421,6 +436,7 @@ func (w *World) dungeonOpenLocked(def int, p *Player, now time.Time) *dungeonIns
 	w.dungeons.next++
 	in := &dungeonInst{id: w.dungeons.next, def: def, owner: p.CharServerID, ownerName: p.Name, group: p.GroupID,
 		opened: now, lastIn: now}
+	in.markStood(p.CharServerID) // the opener is locked out like the rest (entry 1261)
 	d := &w.dungeons.defs[def]
 	var ts []*NPC
 	for _, npc := range w.NPCs {
@@ -445,8 +461,10 @@ func (w *World) dungeonOpenLocked(def int, p *Player, now time.Time) *dungeonIns
 	return in
 }
 
-// dungeonCloseLocked closes an instance: its creatures go.
-func (w *World) dungeonCloseLocked(in *dungeonInst, why string) {
+// dungeonCloseLocked closes an instance at now: its creatures go, and everyone who stood in it is locked out of
+// its dungeon (dungeonlockout.go).
+func (w *World) dungeonCloseLocked(in *dungeonInst, why string, now time.Time) {
+	w.dungeonLockOutLocked(in, now)
 	gone := 0
 	for _, id := range in.npcs {
 		if c := w.NPCs[id]; c != nil && c.Temporary && c.Instance == in.id {
@@ -465,6 +483,7 @@ func (w *World) dungeonCloseLocked(in *dungeonInst, why string) {
 func (w *World) DungeonReset(sess *session.Session, key string) string {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	now := w.dungeonNowLocked()
 	p := w.sessionPlayerLocked(sess)
 	if p == nil || !w.dungeons.on {
 		return ""
@@ -480,7 +499,7 @@ func (w *World) DungeonReset(sess *session.Session, key string) string {
 		if in.owner != p.CharServerID || w.dungeonPeopleLocked(in) > 0 {
 			return dungeonLineResetNo
 		}
-		w.dungeonCloseLocked(in, "reset by its owner")
+		w.dungeonCloseLocked(in, "reset by its owner", now)
 		return fmt.Sprintf(dungeonLineReset, d.Name)
 	}
 	return fmt.Sprintf("There is no dungeon named %s.", key)
@@ -645,6 +664,7 @@ func (w *World) dungeonsSystem(now time.Time) {
 		return
 	}
 	w.dungeons.checkAt = now.Add(dungeonsCheckEvery)
+	w.dungeonLockoutsPruneLocked(now)
 	for id, at := range w.dungeons.movedAt {
 		if now.Sub(at) > time.Minute {
 			delete(w.dungeons.movedAt, id)
@@ -665,6 +685,7 @@ func (w *World) dungeonsSystem(now time.Time) {
 		in := w.dungeons.insts[p.Instance]
 		if in != nil && w.dungeonAllowsLocked(in, p) {
 			in.lastIn = now
+			in.markStood(p.CharServerID)
 			delete(w.dungeons.badAt, p.ServerID)
 			continue
 		}
@@ -691,7 +712,7 @@ func (w *World) dungeonsSystem(now time.Time) {
 	}
 	for _, in := range w.dungeons.insts {
 		if now.Sub(in.lastIn) >= w.dungeons.set.CloseAfter && w.dungeonPeopleLocked(in) == 0 {
-			w.dungeonCloseLocked(in, fmt.Sprintf("no one in it for %v", w.dungeons.set.CloseAfter))
+			w.dungeonCloseLocked(in, fmt.Sprintf("no one in it for %v", w.dungeons.set.CloseAfter), now)
 		}
 	}
 }
@@ -712,11 +733,16 @@ func (w *World) DungeonStatus(sess *session.Session) string {
 				in.creatures-w.dungeonAliveLocked(in), in.creatures, w.dungeonPeopleLocked(in)))
 		}
 	}
-	log.Printf("Dungeons: %s asks its party's dungeons: %s", p.Name, strings.Join(parts, "; "))
-	if len(parts) == 0 {
-		return "Your party has no dungeon open. A group's leader (or a player alone) opens one at a Dungeon Warden."
+	locks := w.dungeonLockoutLinesLocked(p.CharServerID, w.dungeonNowLocked())
+	log.Printf("Dungeons: %s asks its party's dungeons: %s", p.Name, strings.Join(append(parts, locks...), "; "))
+	line := "Your party has no dungeon open. A group's leader (or a player alone) opens one at a Dungeon Warden."
+	if len(parts) > 0 {
+		line = "Your party's dungeons: " + strings.Join(parts, "; ") + "."
 	}
-	return "Your party's dungeons: " + strings.Join(parts, "; ") + "."
+	if len(locks) > 0 {
+		line += " " + strings.Join(locks, " ")
+	}
+	return line
 }
 
 // DungeonInstanceInfo is (for tests and the log) the instance id an entity stands in and whether that instance is

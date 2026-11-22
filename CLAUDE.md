@@ -215,6 +215,11 @@ CLIENT forwards only tells, so some commands also take `/t <word>`. Players' own
 `/noclip`, the GM TEST menu, and **triggers**: GM-scripted events (spawns, steps, walls, encounter runs) kept over a
 keep restart, edited in the panel.
 
+**Chat mutes by the hour** (`handlers/chatmute.go`, `database/chatmutes.go`): `#mute <name> <hours>` stops the shouts
+of that character's ACCOUNT, `#muteall` its every chat line (what `gmChatGate` passes, the Hardcore channel too); 0
+lifts one, `#mute <name>` says what holds, `#unmute` lifts both; never an account at or above the GM's level. Table
+`chatmutes` (a row per account and scope), held in memory and read again once 30 s old; each shard keeps its own.
+
 ## Game systems (run in `Tick()`)
 
 | System | Interval | Purpose |
@@ -259,7 +264,7 @@ Each system's file is its long form; its tests document the edge cases. `world.<
 | Combat record (PvP, duels) | `entity/combatrecord.go`, table `charrecord` |
 | Capture the flag, the siege | `entity/ctf*.go`, `entity/siege.go`, `handlers/ctf.go`, `handlers/siege.go`, `world.ctf`, `world.siege` |
 | Player homes (instanced world) | `entity/homes.go`, `handlers/homes.go`, `world.homes` |
-| Instanced raid dungeons (world 14) | `entity/dungeons.go`, `handlers/dungeons.go`, `world.dungeons` |
+| Instanced raid dungeons (world 14), the lockout before a new instance | `entity/dungeons.go`, `dungeonlockout.go`, `handlers/dungeons.go`, `world.dungeons` |
 | Mail, resets, Master Class, petitions (the live client's) | `handlers/mail.go`, `mailattach.go`, `gmresets.go`, `classmastery.go`, `petitionview.go` |
 | Bug reports as petitions with the server's view | `handlers/bugreport.go`, `petitionview.go`; bug board `handlers/bugboard.go` |
 | Camp fix reports | `handlers/campfixreview.go`, `cmd/campfixfile` |
@@ -277,14 +282,18 @@ Each system's file is its long form; its tests document the edge cases. `world.<
 | Genie's Lamp, Fang of the Wolf, Summoning Portal, Barrel of Monkeys, Rock of Freeport | `handlers/genie.go`, `wolffang.go`, `summonportal.go`, `monkeybarrel.go`, `rockfreeport.go` |
 | Safe mode, hiding others' mercenaries, the welcome guide | `handlers/safemode.go`, `hidemercs.go`, `welcome.go` |
 | The Teleporter | `handlers/teleporter.go`, `world.teleporter` |
-| Mercenaries | `entity/merc*.go`, `handlers/merc.go`, `world.mercs` |
+| Mercenaries; `/merc camp` (holds until its owner goes 125 off; kept over a keep restart) | `entity/merc*.go`, `entity/merccamp.go`, `handlers/merc.go`, `world.mercs` |
 | Testing Heroes faction | `entity/heroes.go`, `handlers/heroes.go`, `world.testing_heroes` |
 | Hazards, no-roam areas, teleport orbs | `entity/hazards.go`, `noroam.go`, `orbs.go` (tables of the same names) |
 | Quick chat kept, buyback, packs and banks past 40, account bank | `handlers/hotkeys.go`, `buyback.go`, `itemlists.go`, `accountbank.go`, `entity/itemslots.go` |
 | Item effect clauses (unlimited uses, speed, HP cap, stat pin) | `entity/hpcap.go`, the spell/effect parsers |
 | Groups (any member invites, 0x7E17), raids, raid rules and loot | `entity/group.go`, `raid*.go`, `handlers/raidloot.go`, `handlers/raidcmds.go` |
 | Regional weather | `internal/weather`, `entity/weather.go`, `handlers/weather.go` |
+| NPC talk trees (live conversations, per-question quest refusals, trades by talk) | `handlers/npctalk.go`, `questtrade.go`, `database/npctalk.go` (table `npctalk`), `quests.decline` a line a question |
 | Combat arts landing when their graphic ends | `entity/fxland.go`, table `fxland` |
+| Corpse tunar, the live game's: 1 + 0..level/4, wildlife none, named creatures by table `npccoins` (live-era footage: very little tunar dropped); pickpocket the ordinary amount | `handlers/corpsecoins.go`, `database/npccoins.go` |
+| A reviewed quest content patch as one guarded change (admin op `quest_definition_patch`: whole-row manifest, drift and anyone-has-it refused, quests held until published once) | `gmweb/ops_questpatch.go`, `handlers/questdefgate.go` |
+| A hand-in that fires an encounter is one outcome (trigger run reserved, items + progress one transaction) | `handlers/questatomic.go`, `gmtriggerreserve.go`, `database/handin.go` |
 
 **Raid groups**: past four only by a raid flag (`/raid`). CLIENT's `m_group[4]` is followed by its count and
 `Msg0772` reads the count unbounded, so **no client is told of more than four members** unless it asked for the

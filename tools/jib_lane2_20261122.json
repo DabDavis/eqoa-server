@@ -1,0 +1,3831 @@
+[
+ {
+  "entry": 658,
+  "summary": "npccoins: 10 named corpse amounts (the entry's 7 + its notes' Bulwark, plagued forest drake, Slayer Demaeog), both shards",
+  "binary_first": false,
+  "requires": [
+   "each name has an npcs row on both shards (checked 2026-11-22: Snowgrin 103174, Thailav D`yal 103978 already renamed, Slayer Demaeog 104899, Lil'snapa 105047, Enraged Aeyinar 119679, Archon Aereth 120972, plagued forest drake 122692, Construct of Frost 162492, Veeshan's Bulwark 162495, Razeal Moloch 162532; same ids on Heirloom and Live)"
+  ],
+  "creates": [
+   "CREATE TABLE IF NOT EXISTS npccoins (\n\t\tnpc_name  TEXT PRIMARY KEY,\n\t\tcoins_min INTEGER NOT NULL,\n\t\tcoins_max INTEGER NOT NULL,\n\t\tnote      TEXT,\n\t\tsource    TEXT\n\t)"
+  ],
+  "add_columns": [],
+  "inserts": [
+   {
+    "table": "npccoins",
+    "key": [
+     "npc_name"
+    ],
+    "row": {
+     "npc_name": "lil'snapa",
+     "coins_min": 214,
+     "coins_max": 214,
+     "note": "live-era footage (entry 658)",
+     "source": "video-audit"
+    }
+   },
+   {
+    "table": "npccoins",
+    "key": [
+     "npc_name"
+    ],
+    "row": {
+     "npc_name": "snowgrin",
+     "coins_min": 2202,
+     "coins_max": 2202,
+     "note": "live-era footage (entry 658)",
+     "source": "video-audit"
+    }
+   },
+   {
+    "table": "npccoins",
+    "key": [
+     "npc_name"
+    ],
+    "row": {
+     "npc_name": "archon aereth",
+     "coins_min": 36,
+     "coins_max": 36,
+     "note": "live-era footage (entry 658)",
+     "source": "video-audit"
+    }
+   },
+   {
+    "table": "npccoins",
+    "key": [
+     "npc_name"
+    ],
+    "row": {
+     "npc_name": "enraged aeyinar",
+     "coins_min": 264,
+     "coins_max": 276,
+     "note": "live-era footage (entry 658)",
+     "source": "video-audit"
+    }
+   },
+   {
+    "table": "npccoins",
+    "key": [
+     "npc_name"
+    ],
+    "row": {
+     "npc_name": "construct of frost",
+     "coins_min": 4388,
+     "coins_max": 4388,
+     "note": "live-era footage (entry 658)",
+     "source": "video-audit"
+    }
+   },
+   {
+    "table": "npccoins",
+    "key": [
+     "npc_name"
+    ],
+    "row": {
+     "npc_name": "razeal moloch",
+     "coins_min": 24388,
+     "coins_max": 46040,
+     "note": "live-era footage (entry 658)",
+     "source": "video-audit"
+    }
+   },
+   {
+    "table": "npccoins",
+    "key": [
+     "npc_name"
+    ],
+    "row": {
+     "npc_name": "thailav d`yal",
+     "coins_min": 23,
+     "coins_max": 23,
+     "note": "live-era footage (entry 658)",
+     "source": "video-audit"
+    }
+   },
+   {
+    "table": "npccoins",
+    "key": [
+     "npc_name"
+    ],
+    "row": {
+     "npc_name": "veeshan's bulwark",
+     "coins_min": 7524,
+     "coins_max": 7527,
+     "note": "live-era footage: 1881 each, a group of four (entry 658 note 11-19)",
+     "source": "video-audit"
+    }
+   },
+   {
+    "table": "npccoins",
+    "key": [
+     "npc_name"
+    ],
+    "row": {
+     "npc_name": "plagued forest drake",
+     "coins_min": 102,
+     "coins_max": 136,
+     "note": "live-era footage: 34 each, a group of three or four (entry 658 note 11-19)",
+     "source": "video-audit"
+    }
+   },
+   {
+    "table": "npccoins",
+    "key": [
+     "npc_name"
+    ],
+    "row": {
+     "npc_name": "slayer demaeog",
+     "coins_min": 74,
+     "coins_max": 74,
+     "note": "live-era footage: 74 solo (entry 658 note 11-19)",
+     "source": "video-audit"
+    }
+   }
+  ],
+  "updates": []
+ },
+ {
+  "entry": 747,
+  "summary": "Ionma Oschba's token trade: Token of Greater/Major Benediction records (747436/747437, copies of 701436), trade quests 109747 (Greater) and 109749 (Superior), her talk tree (3 nodes)",
+  "binary_first": true,
+  "requires": [
+   "ids 747436/747437 (itempattern) and 109747-109749 (quests/queststeps) free on both shards: checked 2026-11-22",
+   "reward records 1007 Greater Corrosive Stick, 8154/1025/6241/7985 Superior rewards exist on both: checked; no Major records and no Greater Orcblood Band/Tainted Circlet/Goblinate exist: Major's answer says it has nothing yet (node 3), Greater offers the stick alone",
+   "quests are read at the server's start or a GM panel quest save",
+   "the tree needs the binary with npctalk trades: before it the old binary offers the trade quests by talk (repeatable give quests); apply after the binary"
+  ],
+  "creates": [
+   "CREATE TABLE IF NOT EXISTS npctalk (\n\tnpc     TEXT NOT NULL,\n\tnode    INTEGER NOT NULL,\n\tsays    TEXT NOT NULL DEFAULT '',\n\tchoices TEXT NOT NULL DEFAULT '[]',\n\tsource  TEXT NOT NULL DEFAULT 'gm',\n\tnote    TEXT NOT NULL DEFAULT '',\n\tPRIMARY KEY (npc, node)\n);"
+  ],
+  "inserts": [
+   {
+    "table": "itempattern",
+    "key": [
+     "patternid"
+    ],
+    "row": {
+     "patternid": 747436,
+     "itemcost": 0,
+     "unk1": 0,
+     "itemicon": 376230725,
+     "unk2": 0,
+     "equipslot": -1,
+     "unk3": 0,
+     "trade": 1,
+     "rent": 1,
+     "unk4": 0,
+     "attacktype": 0,
+     "weapondamage": 0,
+     "unk5": 0,
+     "levelreq": 0,
+     "maxstack": 1,
+     "maxhp": 0,
+     "duration": 0,
+     "classuse": 0,
+     "raceuse": 0,
+     "procanim": 0,
+     "lore": 1,
+     "unk6": 0,
+     "craft": 0,
+     "itemname": "Token of Greater Benediction",
+     "itemdesc": "A token of greater benediction.",
+     "model": 0,
+     "color": 4294967295,
+     "str": 0,
+     "sta": 0,
+     "agi": 0,
+     "wis": 0,
+     "dex": 0,
+     "cha": 0,
+     "intelligence": 0,
+     "HPMAX": 0,
+     "POWMAX": 0,
+     "PoT": 0,
+     "HoT": 0,
+     "AC": 0,
+     "PR": 0,
+     "DR": 0,
+     "FR": 0,
+     "CR": 0,
+     "LR": 0,
+     "AR": 0,
+     "weaponproc": 0,
+     "fish": 0
+    }
+   },
+   {
+    "table": "itempattern",
+    "key": [
+     "patternid"
+    ],
+    "row": {
+     "patternid": 747437,
+     "itemcost": 0,
+     "unk1": 0,
+     "itemicon": 376230725,
+     "unk2": 0,
+     "equipslot": -1,
+     "unk3": 0,
+     "trade": 1,
+     "rent": 1,
+     "unk4": 0,
+     "attacktype": 0,
+     "weapondamage": 0,
+     "unk5": 0,
+     "levelreq": 0,
+     "maxstack": 1,
+     "maxhp": 0,
+     "duration": 0,
+     "classuse": 0,
+     "raceuse": 0,
+     "procanim": 0,
+     "lore": 1,
+     "unk6": 0,
+     "craft": 0,
+     "itemname": "Token of Major Benediction",
+     "itemdesc": "A token of major benediction.",
+     "model": 0,
+     "color": 4294967295,
+     "str": 0,
+     "sta": 0,
+     "agi": 0,
+     "wis": 0,
+     "dex": 0,
+     "cha": 0,
+     "intelligence": 0,
+     "HPMAX": 0,
+     "POWMAX": 0,
+     "PoT": 0,
+     "HoT": 0,
+     "AC": 0,
+     "PR": 0,
+     "DR": 0,
+     "FR": 0,
+     "CR": 0,
+     "LR": 0,
+     "AR": 0,
+     "weaponproc": 0,
+     "fish": 0
+    }
+   },
+   {
+    "table": "quests",
+    "key": [
+     "questid"
+    ],
+    "row": {
+     "questid": 109747,
+     "name": "Ionma's trade: Token of Greater Benediction",
+     "enabled": 1,
+     "giver": "Ionma Oschba",
+     "minlevel": 0,
+     "maxlevel": 0,
+     "classes": "",
+     "races": "",
+     "requires": "",
+     "repeatable": 1,
+     "offer": "",
+     "accept": "",
+     "decline": "",
+     "declined": "",
+     "started": "",
+     "source": "work board 747 (tools/jib_lane2_20261122.py)",
+     "notes": "Traded from Ionma Oschba's talk tree (npctalk), never offered by a talk; Rianba Oschba still rewards the Superior token too (101285 step 29).",
+     "events": "",
+     "factionreq": "",
+     "excludes": "",
+     "asks": "",
+     "daygroup": ""
+    }
+   },
+   {
+    "table": "quests",
+    "key": [
+     "questid"
+    ],
+    "row": {
+     "questid": 109749,
+     "name": "Ionma's trade: Token of Superior Benediction",
+     "enabled": 1,
+     "giver": "Ionma Oschba",
+     "minlevel": 0,
+     "maxlevel": 0,
+     "classes": "",
+     "races": "",
+     "requires": "",
+     "repeatable": 1,
+     "offer": "",
+     "accept": "",
+     "decline": "",
+     "declined": "",
+     "started": "",
+     "source": "work board 747 (tools/jib_lane2_20261122.py)",
+     "notes": "Traded from Ionma Oschba's talk tree (npctalk), never offered by a talk; Rianba Oschba still rewards the Superior token too (101285 step 29).",
+     "events": "",
+     "factionreq": "",
+     "excludes": "",
+     "asks": "",
+     "daygroup": ""
+    }
+   },
+   {
+    "table": "queststeps",
+    "key": [
+     "questid",
+     "step"
+    ],
+    "row": {
+     "questid": 109747,
+     "step": 1,
+     "kind": "give",
+     "target": "Ionma Oschba",
+     "npcid": 0,
+     "items": "747436",
+     "tunar": 0,
+     "count": 1,
+     "world": 0,
+     "x": 0.0,
+     "y": 0.0,
+     "z": 0.0,
+     "radius": 15.0,
+     "journal": "Trade the token to Ionma Oschba.",
+     "answer": "",
+     "says": "Wear it in good health.",
+     "waiting": "A token of greater benediction! Choose your reward.",
+     "notyet": "",
+     "reminder": "You do not have that token.",
+     "xp": 0,
+     "rewardtunar": 0,
+     "rewarditems": "",
+     "factions": "",
+     "spells": "",
+     "events": "",
+     "chance": 0.0,
+     "byclass": "",
+     "choices": "{\"ask\":\"Which will you have?\",\"options\":[{\"answer\":\"The Greater Corrosive Stick.\",\"items\":\"1007\"}]}",
+     "height": 0.0,
+     "anyorder": 0
+    }
+   },
+   {
+    "table": "queststeps",
+    "key": [
+     "questid",
+     "step"
+    ],
+    "row": {
+     "questid": 109749,
+     "step": 1,
+     "kind": "give",
+     "target": "Ionma Oschba",
+     "npcid": 0,
+     "items": "701436",
+     "tunar": 0,
+     "count": 1,
+     "world": 0,
+     "x": 0.0,
+     "y": 0.0,
+     "z": 0.0,
+     "radius": 15.0,
+     "journal": "Trade the token to Ionma Oschba.",
+     "answer": "",
+     "says": "Wear it in good health.",
+     "waiting": "A token of superior benediction! Choose your reward.",
+     "notyet": "",
+     "reminder": "You do not have that token.",
+     "xp": 0,
+     "rewardtunar": 0,
+     "rewarditems": "",
+     "factions": "",
+     "spells": "",
+     "events": "",
+     "chance": 0.0,
+     "byclass": "",
+     "choices": "{\"ask\":\"Which will you have?\",\"options\":[{\"answer\":\"The Superior Orcblood Band.\",\"items\":\"8154\"},{\"answer\":\"The Superior Corrosive Stick.\",\"items\":\"1025\"},{\"answer\":\"The Superior Tainted Circlet.\",\"items\":\"6241\"},{\"answer\":\"The Superior Goblinate.\",\"items\":\"7985\"}]}",
+     "height": 0.0,
+     "anyorder": 0
+    }
+   },
+   {
+    "table": "npctalk",
+    "key": [
+     "npc",
+     "node"
+    ],
+    "row": {
+     "npc": "ionma oschba",
+     "node": 1,
+     "says": "Greetings!",
+     "choices": "[{\"text\":\"I heard that you will trade my Token of Greater Benediction.\",\"next\":0,\"quest\":109747,\"lacking\":\"You do not have that token.\"},{\"text\":\"I heard that you will trade my Token of Major Benediction.\",\"next\":3},{\"text\":\"I heard that you will trade my Token of Superior Benediction.\",\"next\":0,\"quest\":109749,\"lacking\":\"You do not have that token.\"},{\"text\":\"More. . .\",\"next\":2}]",
+     "source": "video-audit",
+     "note": "Hazinak (live-era footage, 160-172 s), work board 747: the filmed box"
+    }
+   },
+   {
+    "table": "npctalk",
+    "key": [
+     "npc",
+     "node"
+    ],
+    "row": {
+     "npc": "ionma oschba",
+     "node": 2,
+     "says": "Greetings!",
+     "choices": "[]",
+     "source": "gm",
+     "note": "More. . .: its page is not on film; ours until one is"
+    }
+   },
+   {
+    "table": "npctalk",
+    "key": [
+     "npc",
+     "node"
+    ],
+    "row": {
+     "npc": "ionma oschba",
+     "node": 3,
+     "says": "I have nothing to trade for that token yet.",
+     "choices": "[]",
+     "source": "gm",
+     "note": "ours: no Major tier reward records exist"
+    }
+   }
+  ]
+ },
+ {
+  "entry": 773,
+  "summary": "Highbourne's six nameless spheres of light (6 npcs rows on the Shimmering Portal's body 8143DC70, npc_type 384, + 6 lightspheres rows pairing library and guild houses) and three place texts (library hall, dock quarter, and 792 step 47's cartographers' room)",
+  "binary_first": false,
+  "requires": [
+   "No nameless npcs row stands at any sphere spot on either shard (checked 2026-11-22); npcs ids are left to each shard's AUTOINCREMENT (the tool keys the rows by name '', world, x, z).",
+   "New npcs rows enter the world at the server's next start (or a keep restart): apply before the binary's swap, or restart after.",
+   "Steps 38, 42-44 of 773 (names, beetles, cub, Draid's quest, Rayne's refusal) were applied by the coordinator earlier; step 39's ambient flag is entry 775's."
+  ],
+  "creates": [
+   "CREATE TABLE IF NOT EXISTS lightspheres (\n\t\tid        INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tworld     INTEGER NOT NULL DEFAULT 0,\n\t\tx         REAL NOT NULL DEFAULT 0,\n\t\tz         REAL NOT NULL DEFAULT 0,\n\t\tline      TEXT NOT NULL DEFAULT '',\n\t\tanswer    TEXT NOT NULL DEFAULT 'Touch the light.',\n\t\tto_world  INTEGER NOT NULL DEFAULT 0,\n\t\tto_x      REAL NOT NULL DEFAULT 0,\n\t\tto_y      REAL NOT NULL DEFAULT 0,\n\t\tto_z      REAL NOT NULL DEFAULT 0,\n\t\tto_facing INTEGER NOT NULL DEFAULT 0,\n\t\tsource    TEXT NOT NULL DEFAULT 'gm',\n\t\tnote      TEXT NOT NULL DEFAULT ''\n\t)",
+   "CREATE TABLE IF NOT EXISTS placetexts (\n\t\tid     INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tworld  INTEGER NOT NULL DEFAULT 0,\n\t\tx1     REAL NOT NULL DEFAULT 0,\n\t\tx2     REAL NOT NULL DEFAULT 0,\n\t\tz1     REAL NOT NULL DEFAULT 0,\n\t\tz2     REAL NOT NULL DEFAULT 0,\n\t\ty1     REAL NOT NULL DEFAULT -100000,\n\t\ty2     REAL NOT NULL DEFAULT 100000,\n\t\ttext   TEXT NOT NULL DEFAULT '',\n\t\tanswer TEXT NOT NULL DEFAULT 'Done',\n\t\tsource TEXT NOT NULL DEFAULT 'gm',\n\t\tnote   TEXT NOT NULL DEFAULT ''\n\t)"
+  ],
+  "inserts": [
+   {
+    "table": "npcs",
+    "key": [
+     "npc_name",
+     "world",
+     "x_coord",
+     "z_coord"
+    ],
+    "row": {
+     "zone": 0,
+     "unk_a": 0,
+     "unk_b": 0,
+     "world": 0,
+     "dt_kill": null,
+     "hp": 100,
+     "hp_percent": 255,
+     "modelid": 2168708208,
+     "size": 1.0,
+     "unk_d": 0,
+     "unk_f": 0,
+     "unk_g": 0,
+     "primary_weapon": 0,
+     "secondary_weapon": 0,
+     "shield": 0,
+     "unk_h": 0,
+     "torso": 0,
+     "forearm": 0,
+     "gloves": 0,
+     "legs": 0,
+     "feet": 0,
+     "head": 0,
+     "hair_color": 0,
+     "hair_length": 0,
+     "hair_style": 0,
+     "face": 0,
+     "robe_style": "255",
+     "race": "0",
+     "unk_j": 0,
+     "npc_level": 1,
+     "npc_type": 384,
+     "npc_id": 0,
+     "unk_k": 0,
+     "unk_i": "",
+     "pd_icon": 0,
+     "unk_m": 0,
+     "unk_n": 0,
+     "unk_o": 0,
+     "npc_name": "",
+     "x_coord": 4503.2,
+     "y_coord": 66.0,
+     "z_coord": 21550.0,
+     "facing": 196
+    }
+   },
+   {
+    "table": "npcs",
+    "key": [
+     "npc_name",
+     "world",
+     "x_coord",
+     "z_coord"
+    ],
+    "row": {
+     "zone": 0,
+     "unk_a": 0,
+     "unk_b": 0,
+     "world": 0,
+     "dt_kill": null,
+     "hp": 100,
+     "hp_percent": 255,
+     "modelid": 2168708208,
+     "size": 1.0,
+     "unk_d": 0,
+     "unk_f": 0,
+     "unk_g": 0,
+     "primary_weapon": 0,
+     "secondary_weapon": 0,
+     "shield": 0,
+     "unk_h": 0,
+     "torso": 0,
+     "forearm": 0,
+     "gloves": 0,
+     "legs": 0,
+     "feet": 0,
+     "head": 0,
+     "hair_color": 0,
+     "hair_length": 0,
+     "hair_style": 0,
+     "face": 0,
+     "robe_style": "255",
+     "race": "0",
+     "unk_j": 0,
+     "npc_level": 1,
+     "npc_type": 384,
+     "npc_id": 0,
+     "unk_k": 0,
+     "unk_i": "",
+     "pd_icon": 0,
+     "unk_m": 0,
+     "unk_n": 0,
+     "unk_o": 0,
+     "npc_name": "",
+     "x_coord": 4505.4,
+     "y_coord": 66.0,
+     "z_coord": 21555.5,
+     "facing": 192
+    }
+   },
+   {
+    "table": "npcs",
+    "key": [
+     "npc_name",
+     "world",
+     "x_coord",
+     "z_coord"
+    ],
+    "row": {
+     "zone": 0,
+     "unk_a": 0,
+     "unk_b": 0,
+     "world": 0,
+     "dt_kill": null,
+     "hp": 100,
+     "hp_percent": 255,
+     "modelid": 2168708208,
+     "size": 1.0,
+     "unk_d": 0,
+     "unk_f": 0,
+     "unk_g": 0,
+     "primary_weapon": 0,
+     "secondary_weapon": 0,
+     "shield": 0,
+     "unk_h": 0,
+     "torso": 0,
+     "forearm": 0,
+     "gloves": 0,
+     "legs": 0,
+     "feet": 0,
+     "head": 0,
+     "hair_color": 0,
+     "hair_length": 0,
+     "hair_style": 0,
+     "face": 0,
+     "robe_style": "255",
+     "race": "0",
+     "unk_j": 0,
+     "npc_level": 1,
+     "npc_type": 384,
+     "npc_id": 0,
+     "unk_k": 0,
+     "unk_i": "",
+     "pd_icon": 0,
+     "unk_m": 0,
+     "unk_n": 0,
+     "unk_o": 0,
+     "npc_name": "",
+     "x_coord": 4503.3,
+     "y_coord": 66.0,
+     "z_coord": 21561.1,
+     "facing": 191
+    }
+   },
+   {
+    "table": "npcs",
+    "key": [
+     "npc_name",
+     "world",
+     "x_coord",
+     "z_coord"
+    ],
+    "row": {
+     "zone": 0,
+     "unk_a": 0,
+     "unk_b": 0,
+     "world": 0,
+     "dt_kill": null,
+     "hp": 100,
+     "hp_percent": 255,
+     "modelid": 2168708208,
+     "size": 1.0,
+     "unk_d": 0,
+     "unk_f": 0,
+     "unk_g": 0,
+     "primary_weapon": 0,
+     "secondary_weapon": 0,
+     "shield": 0,
+     "unk_h": 0,
+     "torso": 0,
+     "forearm": 0,
+     "gloves": 0,
+     "legs": 0,
+     "feet": 0,
+     "head": 0,
+     "hair_color": 0,
+     "hair_length": 0,
+     "hair_style": 0,
+     "face": 0,
+     "robe_style": "255",
+     "race": "0",
+     "unk_j": 0,
+     "npc_level": 1,
+     "npc_type": 384,
+     "npc_id": 0,
+     "unk_k": 0,
+     "unk_i": "",
+     "pd_icon": 0,
+     "unk_m": 0,
+     "unk_n": 0,
+     "unk_o": 0,
+     "npc_name": "",
+     "x_coord": 4185.5,
+     "y_coord": 128.3,
+     "z_coord": 21547.5,
+     "facing": 130
+    }
+   },
+   {
+    "table": "npcs",
+    "key": [
+     "npc_name",
+     "world",
+     "x_coord",
+     "z_coord"
+    ],
+    "row": {
+     "zone": 0,
+     "unk_a": 0,
+     "unk_b": 0,
+     "world": 0,
+     "dt_kill": null,
+     "hp": 100,
+     "hp_percent": 255,
+     "modelid": 2168708208,
+     "size": 1.0,
+     "unk_d": 0,
+     "unk_f": 0,
+     "unk_g": 0,
+     "primary_weapon": 0,
+     "secondary_weapon": 0,
+     "shield": 0,
+     "unk_h": 0,
+     "torso": 0,
+     "forearm": 0,
+     "gloves": 0,
+     "legs": 0,
+     "feet": 0,
+     "head": 0,
+     "hair_color": 0,
+     "hair_length": 0,
+     "hair_style": 0,
+     "face": 0,
+     "robe_style": "255",
+     "race": "0",
+     "unk_j": 0,
+     "npc_level": 1,
+     "npc_type": 384,
+     "npc_id": 0,
+     "unk_k": 0,
+     "unk_i": "",
+     "pd_icon": 0,
+     "unk_m": 0,
+     "unk_n": 0,
+     "unk_o": 0,
+     "npc_name": "",
+     "x_coord": 4515.5,
+     "y_coord": 139.9,
+     "z_coord": 21707.4,
+     "facing": 190
+    }
+   },
+   {
+    "table": "npcs",
+    "key": [
+     "npc_name",
+     "world",
+     "x_coord",
+     "z_coord"
+    ],
+    "row": {
+     "zone": 0,
+     "unk_a": 0,
+     "unk_b": 0,
+     "world": 0,
+     "dt_kill": null,
+     "hp": 100,
+     "hp_percent": 255,
+     "modelid": 2168708208,
+     "size": 1.0,
+     "unk_d": 0,
+     "unk_f": 0,
+     "unk_g": 0,
+     "primary_weapon": 0,
+     "secondary_weapon": 0,
+     "shield": 0,
+     "unk_h": 0,
+     "torso": 0,
+     "forearm": 0,
+     "gloves": 0,
+     "legs": 0,
+     "feet": 0,
+     "head": 0,
+     "hair_color": 0,
+     "hair_length": 0,
+     "hair_style": 0,
+     "face": 0,
+     "robe_style": "255",
+     "race": "0",
+     "unk_j": 0,
+     "npc_level": 1,
+     "npc_type": 384,
+     "npc_id": 0,
+     "unk_k": 0,
+     "unk_i": "",
+     "pd_icon": 0,
+     "unk_m": 0,
+     "unk_n": 0,
+     "unk_o": 0,
+     "npc_name": "",
+     "x_coord": 4470.0,
+     "y_coord": 189.1,
+     "z_coord": 21845.7,
+     "facing": 190
+    }
+   },
+   {
+    "table": "lightspheres",
+    "key": [
+     "world",
+     "x",
+     "z"
+    ],
+    "row": {
+     "world": 0,
+     "x": 4503.2,
+     "z": 21550.0,
+     "line": "This sphere of light is used to teleport to the Crimson Hand's guild house.",
+     "answer": "Touch the light.",
+     "to_world": 0,
+     "to_x": 4185.5,
+     "to_y": 128.3,
+     "to_z": 21547.5,
+     "to_facing": 130,
+     "source": "video-audit",
+     "note": "library, red hand (the Crimson Hand's banner) -> the Crimson Hand's house, by Keeper Draid and Spiritmaster Kaolo (Highbourne Tour; the landing in front of it is ours)"
+    }
+   },
+   {
+    "table": "lightspheres",
+    "key": [
+     "world",
+     "x",
+     "z"
+    ],
+    "row": {
+     "world": 0,
+     "x": 4505.4,
+     "z": 21555.5,
+     "line": "This sphere of light is used to teleport to the Craft Keepers' guild house.",
+     "answer": "Touch the light.",
+     "to_world": 0,
+     "to_x": 4515.5,
+     "to_y": 139.9,
+     "to_z": 21707.4,
+     "to_facing": 190,
+     "source": "video-audit",
+     "note": "library, purple hand (the Craft Keepers' banner) -> the Craft Keepers' house, by Spiritmaster Keystone and Master Delar (Highbourne Tour; the landing in front of it is ours)"
+    }
+   },
+   {
+    "table": "lightspheres",
+    "key": [
+     "world",
+     "x",
+     "z"
+    ],
+    "row": {
+     "world": 0,
+     "x": 4503.3,
+     "z": 21561.1,
+     "line": "This sphere of light is used to teleport to the Gate Caller's guild house.",
+     "answer": "Touch the light.",
+     "to_world": 0,
+     "to_x": 4470.0,
+     "to_y": 189.1,
+     "to_z": 21845.7,
+     "to_facing": 190,
+     "source": "video-audit",
+     "note": "library, green spiral (the Gate Callers' banner) -> the Gate Callers' house, by Spiritmaster Anja and Master Veljhan (Highbourne Tour; the landing in front of it is ours)"
+    }
+   },
+   {
+    "table": "lightspheres",
+    "key": [
+     "world",
+     "x",
+     "z"
+    ],
+    "row": {
+     "world": 0,
+     "x": 4185.5,
+     "z": 21547.5,
+     "line": "This sphere of light is used to teleport to the Highbourne library.",
+     "answer": "Touch the light.",
+     "to_world": 0,
+     "to_x": 4503.2,
+     "to_y": 66.0,
+     "to_z": 21550.0,
+     "to_facing": 196,
+     "source": "video-audit",
+     "note": "the Crimson Hand's house, by Keeper Draid and Spiritmaster Kaolo -> library, red hand (the Crimson Hand's banner) (Highbourne Tour; the landing in front of it is ours)"
+    }
+   },
+   {
+    "table": "lightspheres",
+    "key": [
+     "world",
+     "x",
+     "z"
+    ],
+    "row": {
+     "world": 0,
+     "x": 4515.5,
+     "z": 21707.4,
+     "line": "This sphere of light is used to teleport to the Highbourne library.",
+     "answer": "Touch the light.",
+     "to_world": 0,
+     "to_x": 4505.4,
+     "to_y": 66.0,
+     "to_z": 21555.5,
+     "to_facing": 192,
+     "source": "video-audit",
+     "note": "the Craft Keepers' house, by Spiritmaster Keystone and Master Delar -> library, purple hand (the Craft Keepers' banner) (Highbourne Tour; the landing in front of it is ours)"
+    }
+   },
+   {
+    "table": "lightspheres",
+    "key": [
+     "world",
+     "x",
+     "z"
+    ],
+    "row": {
+     "world": 0,
+     "x": 4470.0,
+     "z": 21845.7,
+     "line": "This sphere of light is used to teleport to the Highbourne library.",
+     "answer": "Touch the light.",
+     "to_world": 0,
+     "to_x": 4503.3,
+     "to_y": 66.0,
+     "to_z": 21561.1,
+     "to_facing": 191,
+     "source": "video-audit",
+     "note": "the Gate Callers' house, by Spiritmaster Anja and Master Veljhan -> library, green spiral (the Gate Callers' banner) (Highbourne Tour; the landing in front of it is ours)"
+    }
+   },
+   {
+    "table": "placetexts",
+    "key": [
+     "world",
+     "x1",
+     "z1",
+     "y1"
+    ],
+    "row": {
+     "world": 0,
+     "x1": 4480,
+     "x2": 4530,
+     "z1": 21520,
+     "z2": 21590,
+     "y1": 54,
+     "y2": 75,
+     "text": "Organized commotion seems to be taking place, but suddenly comes to a close as you enter the library grounds.",
+     "answer": "Done",
+     "source": "video-audit",
+     "note": "the library's pool hall (entry 773 step 41; edges ours)"
+    }
+   },
+   {
+    "table": "placetexts",
+    "key": [
+     "world",
+     "x1",
+     "z1",
+     "y1"
+    ],
+    "row": {
+     "world": 0,
+     "x1": 4440,
+     "x2": 4520,
+     "z1": 21350,
+     "z2": 21515,
+     "y1": 40,
+     "y2": 90,
+     "text": "The sound of organized commotion; hammers to wood and voices barking orders; emanate from the docks.",
+     "answer": "Done",
+     "source": "video-audit",
+     "note": "the dock quarter (entry 773 step 41; edges ours, z kept south of the hall)"
+    }
+   },
+   {
+    "table": "placetexts",
+    "key": [
+     "world",
+     "x1",
+     "z1",
+     "y1"
+    ],
+    "row": {
+     "world": 0,
+     "x1": 4490,
+     "x2": 4515,
+     "z1": 21540,
+     "z2": 21565,
+     "y1": 40,
+     "y2": 53.5,
+     "text": "The commotion of voices, one strange and foreign to these lands, suspiciously hushes as you approach.",
+     "answer": "Done",
+     "source": "video-audit",
+     "note": "the cartographers' lower room under the hall (entry 792 step 47; edges ours)"
+    }
+   }
+  ]
+ },
+ {
+  "entry": 775,
+  "summary": "76 npcdialog rows of use shop/ambient: entry 775's 6 + the filmed shop greetings and ambient lines that waited on it (by entry: 775:6, 1109:5, 1117:2, 1129:1, 1166:2, 785:1, 792:6, 794:2, 798:11, 811:3, 821:4, 841:4, 844:4, 845:4, 848:4, 867:5, 881:2, 885:5, 894:2, 928:3)",
+  "binary_first": true,
+  "requires": [
+   "Every speaker's npcs name checked on both shards' 11-21/11-22 backups (case-insensitive): all present, except that Live still names Merchant Opplefix (entry 867's rename, a Live mirror not yet run): his greeting is keyed 'Merchant Opplefiz' on both shards and greets on Live once the rename runs.",
+   "Researcher Taruna's two talk rows (entry 773 step 39) stay talk rows, as entry 775 says; her two ambient rows are new rows (773's later note to turn the talk rows into ambient instead is not applied).",
+   "Left out, no filmed words on the board: Deputy Prelk's ambient line (1220), Rivervale's shop greetings (1222: in a report file, not the entry), the unnamed fifth Tethelin spell vendor (775).",
+   "811's and 845's rows ask town Fayspires, 848's/867's/885's town Klick'Anon: written with town '' as every other row here, since the speaker's own name already selects them (a town that DialogTown spells otherwise would silence them).",
+   "Student Marrick (885) has npc_type 0 (no merchant window): his shop row is harmless but shows only if he is made a merchant."
+  ],
+  "add_columns": [
+   {
+    "table": "npcdialog",
+    "column": "use",
+    "ddl": "ALTER TABLE npcdialog ADD COLUMN use TEXT NOT NULL DEFAULT ''"
+   }
+  ],
+  "inserts": [
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Researcher Taruna",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "All scribes are to catalogue these volumes. Be sure it is done.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "ambient"
+    },
+    "from_entry": 775
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Researcher Taruna",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Ah ha! Here it is...",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "ambient"
+    },
+    "from_entry": 775
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Whitepaw",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Is there anything you would like to buy?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 775
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Darial",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Wouldst thou care to purchase one of mine fine spells?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 775
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Bowyer Derinthal",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Greetings, looking for a bow or crossbow? I've ammo as well.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 775
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Efreya",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "I have a few odds and ends to sell.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 775
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Lendal",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Greetings, take a look at my fine items.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 1109
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Redfern",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Perhaps I have something that could be of use to you?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 1109
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Bowyer Fillkner",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Welcome! Slay your foes from afar with my well crafted weapons.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 1109
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Bowyer Aymrite",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Greetings, looking for a good bow or perhaps some ammo?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 1109
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Tailor Fendhope",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Hello may I show you some cloth armor?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 1109
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Horgus",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Your enemies will know fear with the items I have here.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 1117
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Klum",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Maybe I have something that you can use?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 1117
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Risa",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "The path to wisdom and terror lie first in my items.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 1129
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Filgo",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "What's you lookin for?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 1166
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Tront",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Maybe I have something that you can use?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 1166
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Loramal",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Is there anything you would like to buy?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 785
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Overseer Zealla",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Remember that your research will benefit all of Highbourne.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "ambient"
+    },
+    "from_entry": 792
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Overseer Zealla",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "The reports of the Script of Peace are due tonight.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "ambient"
+    },
+    "from_entry": 792
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Scribe Kalyne",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "I wish I didn't have to study the origins of ancient undead...",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "ambient"
+    },
+    "from_entry": 792
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Felcia",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Hello, how may I help you?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 792
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Ophan",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Wouldst thou care to purchase one of mine fine spells?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 792
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Shudan",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Looking for some supplies?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 792
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Yurn",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Feel free to browse my assortment of materials.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 794
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Benen O'Leary",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Can I show you my wares?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 794
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Kulesh",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "How may I help you?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 798
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Smithy Galu",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Welcome! My weapons are made only from the finest steel.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 798
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Hanna",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Hello. Looking for a uniform?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 798
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Ferra",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Looking for paladin spells? Take a look at what I have.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 798
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Dranst",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Looking for paladin spells? Take a look at what I have.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 798
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Heladne",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Would you be interested in any of these fine metals?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 798
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Armorer Nesha",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Step right up, I have the finest chainmail in all the land.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 798
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Tailor Coras",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "You look like you need some studded leather armor.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 798
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Tailor Yuhao",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Hello! I have some nice cured armor in. Would you like to see?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 798
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Tailor Jhal",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "How about some woolen armor to protect you?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 798
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Tailor Dend",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Hello. May I show you some cloth armor?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 798
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Initiate Firebringer",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Is there anything you would like to buy?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 811
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Tailor Sinthios",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Hello. May I show you some cloth armor?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 811
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Chemist Farlite",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Looking for some potions?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 811
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Erfila",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "I have just what you need to get started as a miner.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 821
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Kohl",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Perhaps I have something that could be of use to you.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 821
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Smithy Gigdi",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Welcome! Might I interest you in a spear or dagger?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 821
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Armorer Origson",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "May I show you some Armor?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 821
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Kole",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Greetings, child.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 841
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Bodhi",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Perhaps I have something that may aid you.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 841
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Smithy Wella",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Welcome! Looking for anything special?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 841
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Tailor Nissa",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Something I can get for you?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 841
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Domdi",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "If'n ye be a chosen of Brell then my wares are for you.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 844
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Barg",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Wouldst thou care to purchase one of mine fine spells?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 844
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Streng",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Looking for paladin spells? Take a look at what I have.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 844
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Gandral",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Looking for paladin spells? Take a look at what I have.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 844
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Frisbane",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Wouldst thou care to purchase one of mine fine spells?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 845
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Amberleaf",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Would you be interested in any of these fine components today?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 845
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Grener",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "I have a few odds and ends to sell.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 845
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Bowyer Lylora",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Greetings, looking for a bow or crossbow? I've ammo as well.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 845
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Klockizar Sizzick",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Someone let me outta here!",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "ambient"
+    },
+    "from_entry": 848
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Klockizar Sizzick",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Terrible, really.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "ambient"
+    },
+    "from_entry": 848
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Klockizar Sizzick",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "What is this loathsome cell you keep me in? I demand to be let out!",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "ambient"
+    },
+    "from_entry": 848
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "clockwork worker",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Bzzt.. Beep.. Maintenance complete.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "ambient"
+    },
+    "from_entry": 848
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Tailor Tavin",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Hello may I show you some cloth armor?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 867
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Opplefiz",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Wouldst thou care to purchase one of mine fine spells?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 867
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Folsop",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Can I interest you in an oilstone or dusting feathers perhaps?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 867
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Samwe",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Got some good rods and gears. Take your time.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 867
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Huffle",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Would you care to purchase a spell?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 867
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Urtica Dioica",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Oh, happy day! Tunare's blessed us with such wealth!",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "ambient"
+    },
+    "from_entry": 881
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Urtica Dioica",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "With my hammer and Tunare's love, I shall help in the growth!",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "ambient"
+    },
+    "from_entry": 881
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Tailor Nokar",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Hello! I have some nice cured armor in would you like to see.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 885
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Chemist Wilder",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Looking for some potions?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 885
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Chemist Snarfa",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Looking for some potions?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 885
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Chemist Zalben",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "What can I do for you %p?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 885
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Student Marrick",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "What can I do for you %p?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 885
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Dolson",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Hey there, looking for something?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 894
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Shohan",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "I've the finest wares to serve all your metal working needs.",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 894
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Yulia",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Hello, anything I can interest you in?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 928
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Verona",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Wouldst thou care to purchase one of mine fine spells?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 928
+   },
+   {
+    "table": "npcdialog",
+    "key": [
+     "name",
+     "line",
+     "use"
+    ],
+    "row": {
+     "town": "",
+     "role": "",
+     "name": "Merchant Yesam",
+     "mood": "",
+     "race": -1,
+     "sex": "",
+     "line": "Can I interest you in some rare materials from the far west?",
+     "weight": 1,
+     "source": "video-audit",
+     "speaker_race": -1,
+     "away": 0,
+     "class": -1,
+     "not_race": -1,
+     "use": "shop"
+    },
+    "from_entry": 928
+   }
+  ]
+ },
+ {
+  "entry": 825,
+  "summary": "7 first-login welcomes (cityintro: Moradhim rogue + paladin, Highbourne wizard + paladin, Fayspires enchanter, western monk, Freeport bard) and the ability tutorial question on quests 100399 step 2 (Foreman Stolgo) and 100389 step 2 (Doomwalker Gazad) as step choices",
+  "binary_first": true,
+  "requires": [
+   "Each start place is the defaultcharacter spot of its race and class (and the bard's humType 1, Freeport), read on both shards 2026-11-22: identical.",
+   "Quests are read at the server's start or a panel quest save: the two choices count after the next start/save.",
+   "The 'Yes.' branches of the welcomes' last box and the ability question's 'Sure.'/'Yes.' words are ours (not filmed); the No branch of the rogue's is ours by the paladin's.",
+   "Left out (no row yet): 845's 'leaving the city' combat question and Earthbearer's ability question, 849's Mu Nan scrolls question and east-gate question, 894's Solenia scrolls question: the scroll/ability ones can be step choices like these once their quest steps are named; the place-triggered ones need place questions (not built)."
+  ],
+  "creates": [
+   "CREATE TABLE IF NOT EXISTS cityintro (\n\t\tid       INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tworld    INTEGER NOT NULL DEFAULT 0,\n\t\tx        REAL NOT NULL DEFAULT 0,\n\t\tz        REAL NOT NULL DEFAULT 0,\n\t\tradius   REAL NOT NULL DEFAULT 60,\n\t\trace     INTEGER NOT NULL DEFAULT -1,\n\t\tclass    INTEGER NOT NULL DEFAULT -1,\n\t\tboxes    TEXT NOT NULL DEFAULT '',\n\t\tyes_last TEXT NOT NULL DEFAULT '',\n\t\tno_last  TEXT NOT NULL DEFAULT '',\n\t\tsource   TEXT NOT NULL DEFAULT 'gm',\n\t\tnote     TEXT NOT NULL DEFAULT ''\n\t)",
+   "CREATE TABLE IF NOT EXISTS charintro (\n\t\tserverid INTEGER PRIMARY KEY,\n\t\twelcomed TEXT NOT NULL DEFAULT '',\n\t\tmerchant TEXT NOT NULL DEFAULT ''\n\t)"
+  ],
+  "inserts": [
+   {
+    "table": "cityintro",
+    "key": [
+     "world",
+     "x",
+     "z",
+     "race",
+     "class"
+    ],
+    "row": {
+     "world": 0,
+     "x": 15382.33,
+     "z": 8687.14,
+     "radius": 60,
+     "race": 4,
+     "class": 6,
+     "boxes": "Welcome to Moradhim young rogue, home of the stout dwarves and the fiercest brew of these lands.\nAs a new rogue, you have been invited to join Miner's Guild 231. They are the rogue's guild of Moradhim.",
+     "yes_last": "You are now ready to move on to your first quest. Speak to Forman Druza, she is the guildmaster standing before you.",
+     "no_last": "Then you are ready to move on to your first quest. Speak to Forman Druza, she is the guildmaster standing before you.",
+     "source": "video-audit",
+     "note": "Moradhim rogue (entry 825, Lets Play Dwarf Rogue 94-119 s): the Yes branch filmed word for word ('Forman' as shown); No ours by the paladin's pattern"
+    }
+   },
+   {
+    "table": "cityintro",
+    "key": [
+     "world",
+     "x",
+     "z",
+     "race",
+     "class"
+    ],
+    "row": {
+     "world": 0,
+     "x": 15437.28,
+     "z": 8727.31,
+     "radius": 60,
+     "race": 4,
+     "class": 2,
+     "boxes": "Welcome to Moradhim young paladin, home of the stout dwarves and the fiercest brew of these lands.\nAs a new paladin, you have been invited to join the Doomseekers. They are the paladin's guild of Moradhim.",
+     "yes_last": "You are now ready to move on to your first quest. Speak to Ungrist the Prophet, he is the guildmaster standing before you.",
+     "no_last": "Then you are ready to move on to your first quest. Speak to Ungrist the Prophet, he is the guildmaster standing before you.",
+     "source": "video-audit",
+     "note": "Moradhim paladin (entry 825 note, 85-103 s): No filmed; Yes's last box ours by the rogue's pattern"
+    }
+   },
+   {
+    "table": "cityintro",
+    "key": [
+     "world",
+     "x",
+     "z",
+     "race",
+     "class"
+    ],
+    "row": {
+     "world": 0,
+     "x": 4191.0,
+     "z": 21517.44,
+     "radius": 60,
+     "race": 8,
+     "class": 13,
+     "boxes": "Welcome to Highbourne young wizard. This is the beautiful home of the Erudites, here on Tunaria.\nAs a new wizard, you have been invited to join the Library of Highbourne as a Crimson Hand.",
+     "yes_last": "You are now ready to move on to your first quest. Speak to Master Rayne, he is the guildmaster standing before you.",
+     "no_last": "Then you are ready to move on to your first quest. Speak to Master Rayne, he is the guildmaster standing before you.",
+     "source": "video-audit",
+     "note": "Highbourne wizard (entry 792 step 54, 90-102 s): No filmed; Yes's last box ours"
+    }
+   },
+   {
+    "table": "cityintro",
+    "key": [
+     "world",
+     "x",
+     "z",
+     "race",
+     "class"
+    ],
+    "row": {
+     "world": 0,
+     "x": 4727.37,
+     "z": 21654.9,
+     "radius": 60,
+     "race": 8,
+     "class": 2,
+     "boxes": "Welcome to Highbourne young paladin. This is the beautiful home of the Erudites, here on Tunaria.\nAs a new paladin, you have been invited to join the Peacekeepers. They are the paladin's guild of Highbourne.",
+     "yes_last": "You are now ready to move on to your first quest. Speak to Zulan Sunshield, she is the guildmaster standing before you.",
+     "no_last": "Then you are ready to move on to your first quest. Speak to Zulan Sunshield, she is the guildmaster standing before you.",
+     "source": "video-audit",
+     "note": "Highbourne paladin (entry 798 step 62, 93-104 s): No filmed; Yes's last box ours"
+    }
+   },
+   {
+    "table": "cityintro",
+    "key": [
+     "world",
+     "x",
+     "z",
+     "race",
+     "class"
+    ],
+    "row": {
+     "world": 0,
+     "x": 18888.04,
+     "z": 6544.83,
+     "radius": 60,
+     "race": 1,
+     "class": 12,
+     "boxes": "Welcome to Fayspires young enchanter. This is the last bastion of hope for the highborn elves of Tunaria.\nAs a new enchanter you have been invited to join the College of High Magic. They are the enchanter's guild of Fayspires.",
+     "yes_last": "You are now ready to move on to your first quest. Speak to Casalandria Lyssia, she is the guildmaster standing before you.",
+     "no_last": "Then you are ready to move on to your first quest. Speak to Casalandria Lyssia, she is the guildmaster standing before you.",
+     "source": "video-audit",
+     "note": "Fayspires enchanter (entry 845 section 8, 89-106 s): No filmed; Yes's last box ours"
+    }
+   },
+   {
+    "table": "cityintro",
+    "key": [
+     "world",
+     "x",
+     "z",
+     "race",
+     "class"
+    ],
+    "row": {
+     "world": 0,
+     "x": 5593.73,
+     "z": 17626.63,
+     "radius": 60,
+     "race": 0,
+     "class": 4,
+     "boxes": "Welcome to Qeynos young monk. This is the western home of the humans and the newly crowned king, Antonius Bayle II.\nAs a new monk, you have been invited to join the Order of the Silent Fist. They are the monk's guild of this city.",
+     "yes_last": "You are now ready to move on to your first quest. Speak to Master T`an Chen, he is the guildmaster standing before you.",
+     "no_last": "Then you are ready to move on to your first quest. Speak to Master T`an Chen, he is the guildmaster standing before you.",
+     "source": "video-audit",
+     "note": "Western human monk (entry 849 step 75, 160-178 s): No filmed; Yes's last box ours; a human monk's start (the monastery)"
+    }
+   },
+   {
+    "table": "cityintro",
+    "key": [
+     "world",
+     "x",
+     "z",
+     "race",
+     "class"
+    ],
+    "row": {
+     "world": 0,
+     "x": 25416.24,
+     "z": 15606.23,
+     "radius": 60,
+     "race": 0,
+     "class": 5,
+     "boxes": "Welcome to Freeport young bard. This is the city of trade and the eastern home of the humans.\nAs a new bard, you have been invited to join the Silken Gauntlet. They are the bard's guild of Freeport.",
+     "yes_last": "You are now ready to move on to your first quest. Speak to William Corufost, he is the guildmaster standing before you.",
+     "no_last": "Then you are ready to move on to your first quest. Speak to William Corufost, he is the guildmaster standing before you.",
+     "source": "video-audit",
+     "note": "Eastern human bard (entry 894 step 116, 89-100 s): No filmed; Yes's last box ours"
+    }
+   }
+  ],
+  "updates": [
+   {
+    "table": "queststeps",
+    "where": {
+     "questid": 100399,
+     "step": 2
+    },
+    "set": {
+     "choices": {
+      "before": "",
+      "after": "{\"ask\":\"Say, since you've just got a new ability, how'd you like fer me to tell you all about how abilities work now?\",\"options\":[{\"answer\":\"Sure.\",\"says\":\"Use the scroll in your inventory to learn the ability, then put it on a quick slot to use it.\"},{\"answer\":\"No thanks.\",\"says\":\"Go and get some rest then. I should have something else lined up for you when you come back.\"}]}"
+     }
+    }
+   },
+   {
+    "table": "queststeps",
+    "where": {
+     "questid": 100389,
+     "step": 2
+    },
+    "set": {
+     "choices": {
+      "before": "",
+      "after": "{\"ask\":\"Would you like me to tell you more about how abilities work?\",\"options\":[{\"answer\":\"Yes.\",\"says\":\"Use the scroll in your inventory to learn the ability, then put it on a quick slot to use it.\\nNow it is time for you to receive the weapon of our order, the doomhammer. Tell Spellsmith Doldanaf yer in need of one.\"},{\"answer\":\"No.\",\"says\":\"Now it is time for you to receive the weapon of our order, the doomhammer. Tell Spellsmith Doldanaf yer in need of one.\"}]}"
+     }
+    }
+   }
+  ]
+ },
+ {
+  "entry": 880,
+  "summary": "merchantprice: 42 filmed per-merchant buy prices (the entry's 36 + its notes' 6), same ids on both shards",
+  "binary_first": false,
+  "requires": [
+   "merchant names are npcclass keys present on both shards (checked 2026-11-22); patternids exist on both with the same ids",
+   "Jaelish/Elafamae rows keyed to the druid copies 991139-991143 (each stocked by that merchant on both shards); Scoriae 700112 and Spikeshield 700068 are druid-only records already, keyed as they are",
+   "Smithy Ifiria's four combine weapons without records (entry 807) and Chemist Snarfa's L1 alchemist scrolls get no rows (not on film / no record)",
+   "a row whose price equals today's itemcost changes nothing now; it pins the merchant's price if the record's value moves"
+  ],
+  "creates": [
+   "CREATE TABLE IF NOT EXISTS merchantprice (\n\t\tmerchant  TEXT NOT NULL,\n\t\tpatternid INTEGER NOT NULL,\n\t\tprice     INTEGER NOT NULL,\n\t\tsource    TEXT DEFAULT 'gm',\n\t\tnote      TEXT DEFAULT '',\n\t\tPRIMARY KEY (merchant, patternid)\n\t)"
+  ],
+  "add_columns": [],
+  "inserts": [
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "tailor nissa",
+     "patternid": 8316,
+     "price": 40,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "merchant efreya",
+     "patternid": 8316,
+     "price": 50,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "merchant grener",
+     "patternid": 8316,
+     "price": 50,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "smithy wella",
+     "patternid": 8318,
+     "price": 60,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "smithy wella",
+     "patternid": 700613,
+     "price": 0,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "bowyer derinthal",
+     "patternid": 700131,
+     "price": 42,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "bowyer lylora",
+     "patternid": 700131,
+     "price": 42,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "tailor sinthios",
+     "patternid": 7828,
+     "price": 99,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "initiate firebringer",
+     "patternid": 700168,
+     "price": 0,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "initiate firebringer",
+     "patternid": 5189,
+     "price": 0,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "merchant whitepaw",
+     "patternid": 700670,
+     "price": 0,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "merchant loramal",
+     "patternid": 6542,
+     "price": 0,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "tailor tavin",
+     "patternid": 4911,
+     "price": 0,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "merchant kole",
+     "patternid": 8102,
+     "price": 0,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "merchant domdi",
+     "patternid": 700393,
+     "price": 0,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "merchant erfila",
+     "patternid": 700405,
+     "price": 0,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "merchant erfila",
+     "patternid": 700392,
+     "price": 50,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "armorer origson",
+     "patternid": 8424,
+     "price": 50,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "merchant kohl",
+     "patternid": 20725,
+     "price": 11,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "merchant gandral",
+     "patternid": 20685,
+     "price": 11,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "merchant gandral",
+     "patternid": 20680,
+     "price": 24,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "merchant gandral",
+     "patternid": 20683,
+     "price": 24,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "merchant bodhi",
+     "patternid": 20709,
+     "price": 11,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "merchant bodhi",
+     "patternid": 20711,
+     "price": 24,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "merchant bodhi",
+     "patternid": 20712,
+     "price": 24,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "merchant folsop",
+     "patternid": 700309,
+     "price": 36,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "merchant samwe",
+     "patternid": 700337,
+     "price": 42,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "keeper jaelish",
+     "patternid": 991139,
+     "price": 1002,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880); druid copy of Greater Curative 8789"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "keeper jaelish",
+     "patternid": 991140,
+     "price": 1311,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880); druid copy of Superior Healing 8776"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "keeper jaelish",
+     "patternid": 991141,
+     "price": 1663,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880); druid copy of Major Curative 8790"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "druid elafamae",
+     "patternid": 991142,
+     "price": 6161,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880); druid copy of Celestial Healing 8778"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "druid elafamae",
+     "patternid": 700112,
+     "price": 6161,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "druid elafamae",
+     "patternid": 991143,
+     "price": 4143,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880); druid copy of Vital Curative 8791"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "druid elafamae",
+     "patternid": 700068,
+     "price": 4143,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "smithy ifiria",
+     "patternid": 5568,
+     "price": 2025,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "smithy ifiria",
+     "patternid": 5569,
+     "price": 1809,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "tailor nokar",
+     "patternid": 5141,
+     "price": 0,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "merchant samwe",
+     "patternid": 700320,
+     "price": 42,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "merchant folsop",
+     "patternid": 700385,
+     "price": 58,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "merchant shohan",
+     "patternid": 8316,
+     "price": 40,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "merchant shohan",
+     "patternid": 8318,
+     "price": 60,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   },
+   {
+    "table": "merchantprice",
+    "key": [
+     "merchant",
+     "patternid"
+    ],
+    "row": {
+     "merchant": "merchant shohan",
+     "patternid": 8317,
+     "price": 40,
+     "source": "video-audit",
+     "note": "live-era footage (entry 880)"
+    }
+   }
+  ],
+  "updates": []
+ },
+ {
+  "entry": 883,
+  "summary": "Alanaxia's filmed talk tree (5 npctalk nodes) and quest 100792's per-question refusals",
+  "binary_first": true,
+  "requires": [
+   "npcs 101802 'Alanaxia' (world 0) on both shards: checked",
+   "quests 100792 decline '' on both shards: checked; quests are read at the server's start or a GM panel quest save (save any quest after --apply, or run before a restart)",
+   "tools/quests/data/23-47.json still holds the pre-748 accept/decline for 100792 (its accept differs from the DB's filmed one); not changed here"
+  ],
+  "creates": [
+   "CREATE TABLE IF NOT EXISTS npctalk (\n\tnpc     TEXT NOT NULL,\n\tnode    INTEGER NOT NULL,\n\tsays    TEXT NOT NULL DEFAULT '',\n\tchoices TEXT NOT NULL DEFAULT '[]',\n\tsource  TEXT NOT NULL DEFAULT 'gm',\n\tnote    TEXT NOT NULL DEFAULT '',\n\tPRIMARY KEY (npc, node)\n);"
+  ],
+  "inserts": [
+   {
+    "table": "npctalk",
+    "key": [
+     "npc",
+     "node"
+    ],
+    "row": {
+     "npc": "alanaxia",
+     "node": 1,
+     "says": "With the Dominators retreated back to wherever they came from, it looks as if Tunaria will recover from this famine.",
+     "choices": "[{\"text\":\"Tell me about the famine.\",\"next\":2}]",
+     "source": "video-audit",
+     "note": "Forkwatch (live-era footage, Oqb34SsGgck 38.5-64 s), work board 883"
+    }
+   },
+   {
+    "table": "npctalk",
+    "key": [
+     "npc",
+     "node"
+    ],
+    "row": {
+     "npc": "alanaxia",
+     "node": 2,
+     "says": "Well, I'm sure you know about some of this, but I'll start from the beginning.\nOne day, Josephine Huely ran into the Qeynos city gates talking about a swarm of dreadful bugs.\nWhile not everyone believed her, we soon found out she was telling the truth.",
+     "choices": "[{\"text\":\"Where did the insects come from?\",\"next\":3}]",
+     "source": "video-audit",
+     "note": "Forkwatch (live-era footage, Oqb34SsGgck 38.5-64 s), work board 883"
+    }
+   },
+   {
+    "table": "npctalk",
+    "key": [
+     "npc",
+     "node"
+    ],
+    "row": {
+     "npc": "alanaxia",
+     "node": 3,
+     "says": "The chiktar and slith tar, which we found out were being controlled by a powerful force, came from their hives and invaded.\nThe slith tar infected just about every well on the continent and put a lot of taverns out of business temporarily.\nSome thought that we were doomed to starve!",
+     "choices": "[{\"text\":\"What was controlling these bugs?\",\"next\":4}]",
+     "source": "video-audit",
+     "note": "Forkwatch (live-era footage, Oqb34SsGgck 38.5-64 s), work board 883"
+    }
+   },
+   {
+    "table": "npctalk",
+    "key": [
+     "npc",
+     "node"
+    ],
+    "row": {
+     "npc": "alanaxia",
+     "node": 4,
+     "says": "It was found that several evil eye dominators were controlling the queens of these races, therefore enslaving them all.\nWith their retreat, along with the dissolution of the chiktar and slith tar armies, everything seems to be back to normal.",
+     "choices": "[{\"text\":\"Are we safe from the famine now?\",\"next\":5}]",
+     "source": "video-audit",
+     "note": "Forkwatch (live-era footage, Oqb34SsGgck 38.5-64 s), work board 883"
+    }
+   },
+   {
+    "table": "npctalk",
+    "key": [
+     "npc",
+     "node"
+    ],
+    "row": {
+     "npc": "alanaxia",
+     "node": 5,
+     "says": "Things are looking up, and the grocers have been able to return to selling all their wares again.\nHowever, this could be part of a larger plan...perhaps the retreat was a little hasty to be called a victory...\nNo, no, I'm fairly sure that we've beaten them. Cheers to you if you helped Tunaria beat these horrible foes!",
+     "choices": "[]",
+     "source": "video-audit",
+     "note": "Forkwatch (live-era footage, Oqb34SsGgck 38.5-64 s), work board 883"
+    }
+   }
+  ],
+  "updates": [
+   {
+    "table": "quests",
+    "where": {
+     "questid": 100792
+    },
+    "set": {
+     "decline": {
+      "before": "",
+      "after": "\nNo, I already carry more than I should physically be able to.\nI'm not running down there again."
+     }
+    }
+   }
+  ]
+ }
+]

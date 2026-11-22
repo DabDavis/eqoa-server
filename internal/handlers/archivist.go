@@ -286,7 +286,7 @@ func (a *Archivist) here(sess *session.Session, id uint32) (*entity.Player, *ent
 // browse opens his shop under the id the client named him by.
 func (a *Archivist) browse(sess *session.Session, id uint32) {
 	if p, npc, ok := a.here(sess, id); ok {
-		a.windows.openMerchant(sess, p, npc, id, merchantGreeting)
+		a.windows.openMerchant(sess, p, npc, id, a.windows.shopGreeting(p, npc))
 	}
 }
 

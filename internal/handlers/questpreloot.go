@@ -340,7 +340,7 @@ func aheadHeld(l *invList, qu *database.Quest, cq *database.CharQuest) []progres
 		if !ok {
 			continue
 		}
-		if n := min(l.heldStandingFor(pid)-keptForEarlier(qu, s, pid), need); n > 0 {
+		if n := min(l.heldForStep(s, pid)-keptForEarlier(qu, s, pid), need); n > 0 {
 			out = append(out, progressAhead{pattern: pid, have: n, need: need})
 		}
 	}
@@ -392,7 +392,7 @@ func (q *QuestEngine) lootStepHeldLocked(sess *session.Session, p *entity.Player
 	if !ok {
 		return false
 	}
-	held := min(max(0, sessionInvList(sess).heldStandingFor(pid)-keptForEarlier(qu, st, pid)), need)
+	held := min(max(0, sessionInvList(sess).heldForStep(st, pid)-keptForEarlier(qu, st, pid)), need)
 	if held <= cq.Count {
 		return false
 	}

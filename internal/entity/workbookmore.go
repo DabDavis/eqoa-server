@@ -42,7 +42,7 @@ import (
 //   - HP Factors (the legend: "Increase to MAX hp based on your level (60 hp
 //     at lvl 60)"): maximum hit points the factor times the level more.
 //   - Pickpocket (ours): a rogue's hand in a living creature's pockets takes
-//     tunar, its level to twice it as a corpse's (handlers/corpsecoins.go),
+//     tunar, 1 + 0..level/4, as an ordinary corpse's (handlers/corpsecoins.go),
 //     with a chance of 50%, 4 a level the rogue is above it (less below),
 //     and a fifth of its DEX over 100, from 5% to 95%; caught, the creature
 //     fights; once in ten minutes a creature, then it has nothing left. No
@@ -564,8 +564,8 @@ func (w *World) pickpocketLocked(p *Player, sess *session.Session, npc *NPC, now
 		return
 	}
 	npc.pickedAt = now
-	lvl := max(npc.Level, 1)
-	n := lvl + pickIntn(lvl+1)
+	// as an ordinary corpse's (handlers/corpsecoins.go, work board 658), whatever npccoins says
+	n := 1 + pickIntn(max(npc.Level, 1)/4+1)
 	p.Tunar += n
 	economy.Made(economy.Pickpocket, p.CharServerID, p.Name, n)
 	log.Printf("Pickpocket: %s takes %d tunar from %s (%d now)", p.Name, n, npc.Name, p.Tunar)

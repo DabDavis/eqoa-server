@@ -28,10 +28,11 @@ func (w *World) Tick(now time.Time) {
 	w.runProgressSaves(now) // a level gained, and experience every few minutes, written (progresssave.go)
 	w.runRespawns(due)
 	w.runGates(gates)
-	w.runTravels()   // the spells that send players to a named place (gates.go)
-	w.runHeroCalls() // Call of the Hero's members asked (callhero.go)
-	w.runHandsBack() // the hands a switch took off for a cast, back after it (cast.go)
-	w.runMercNotes() // what became of the mercs, to the handlers (merc.go)
+	w.runTravels()    // the spells that send players to a named place (gates.go)
+	w.runHeroCalls()  // Call of the Hero's members asked (callhero.go)
+	w.runHandsBack()  // the hands a switch took off for a cast, back after it (cast.go)
+	w.runMercNotes()  // what became of the mercs, to the handlers (merc.go)
+	w.runAmbient(now) // the NPCs' unprompted lines, npcdialog read with no lock held (ambient.go)
 	w.runCorpsesGone(gone)
 	w.ticks.mark(tsAfterLock)
 }
@@ -113,6 +114,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	t.mark(tsNPCRegen)
 	w.breathSystem(now)
 	w.hazardSystem(now)   // hazards.go
+	w.placeTextSystem()   // placetexts.go
 	w.lavaSystem(now)     // lava.go
 	w.kickZoneSystem(now) // kickzone.go
 	t.mark(tsBreath)

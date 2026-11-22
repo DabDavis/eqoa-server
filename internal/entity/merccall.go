@@ -243,13 +243,13 @@ func (w *World) mercHealsMateLocked(ms *mercState, id EntityID) bool {
 // creature fighting one of its own team while its owner has no called fight
 // and the merc itself is not fought. Must be called with the lock held.
 func (w *World) mercHealHeldLocked(ms *mercState) bool {
-	o, m := ms.owner, ms.npc
+	m := ms.npc
 	team := map[EntityID]bool{}
 	for _, mm := range w.mercHealTeamLocked(ms) {
 		team[mm.id()] = true
 	}
 	fought := false
-	for _, id := range w.SpatialIndex.QueryRadius(o.X, o.Z, petAssist) {
+	for _, id := range w.mercAroundLocked(ms, petAssist) { // round its camp too (merccamp.go)
 		npc := w.NPCs[id]
 		if npc == nil || npc.Dead || npc.CurrentEnemy == 0 || npc.Owner != 0 {
 			continue

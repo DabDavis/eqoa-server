@@ -61,7 +61,7 @@ import (
 // after a death (entity.MercRest, then /merc); through a keep restart it is
 // carried as it was, on standby or out (keep.go's restoreMerc). /merc
 // (chat.go: "/merc", "#merc", a PS2's "/t merc ...") is its commands: its
-// state, stance, follow, stay, attack, group, revive and dismiss, each for
+// state, stance, follow, stay, camp (entity/merccamp.go), attack, group, revive and dismiss, each for
 // one merc named by its slot or its name (first or last: "/merc 2 stay",
 // "/merc dismiss Ithiel"), else for every one out (stance, follow, stay,
 // attack, charm, group, revive), else for the one hired (dismiss, path, pet).
@@ -111,7 +111,7 @@ const (
 	mercRestLine  = "Your mercenary %s rests for %d more seconds."
 	mercBackLine  = "Your mercenary %s is back at your side."
 	mercKitFailed = "The liaison's ledger is out of order. Try again."
-	mercHelpLine  = "/merc [name or 1-3] menu, stance passive|assist|aggressive, defensive|offensive (a healer), follow, stay, attack (your target), path, pet, master [name|none] (55+), charm [off], group, revive, dismiss, give [item], inv, equip|unequip|take <item>, aoe|single (a Cocktail alchemist), stock, claim: with no name, every merc out. /familiar dismiss sends a familiar away."
+	mercHelpLine  = "/merc [name or 1-3] menu, stance passive|assist|aggressive, defensive|offensive (a healer), follow, stay, camp (here until you go 125 off; again breaks it), attack (your target), path, pet, master [name|none] (55+), charm [off], group, revive, dismiss, give [item], inv, equip|unequip|take <item>, aoe|single (a Cocktail alchemist), stock, claim: with no name, every merc out. /familiar dismiss sends a familiar away."
 )
 
 // mercRoles are the liaison's first answers, each role's classes in their
@@ -276,6 +276,63 @@ func mercSay(sess *session.Session, line string) {
 	}
 }
 
+// mercLiaisonCommands is what the liaison tells before its first question (a
+// GM's ask, board entry 680: players had no way to find how to dismiss a merc;
+// the words are ours), a line each.
+var mercLiaisonCommands = []string{
+	"A mercenary is yours for nothing, one at a time, at your level. Once hired, it heeds these words:",
+	"/merc: how it fares (hit points, power, stance).",
+	"/merc stance passive, assist or aggressive: how readily it fights.",
+	"/merc follow, or /merc stay: walk with you, or hold its place.",
+	"/merc camp: make camp where you stand; it holds there until you go 125 off. Again breaks camp.",
+	"/merc attack: it attacks your target.",
+	"/merc group: it joins your group.",
+	"/merc revive: it comes back after its rest.",
+	"/merc dismiss: send it away; a liaison will hire you another.",
+	"On a PS2, type /t merc and the word (/t merc dismiss).",
+}
+
+// mercOwnCommands is the commands □ on the player's own merc lists under its
+// name and level (mobinfo.go), a line each.
+var mercOwnCommands = []string{
+	"/merc", "/merc stance passive|assist|aggressive", "/merc follow", "/merc stay", "/merc camp", "/merc attack",
+	"/merc group", "/merc revive", "/merc dismiss",
+}
+
+// mercCampWords is /merc camp's answer (ours): a camp made or broken, for one
+// merc or several.
+func mercCampWords(camped, several bool) string {
+	off := int(entity.MercCampBreak)
+	switch {
+	case camped && several:
+		return fmt.Sprintf("Your mercenaries make camp here. They hold it and fight as ever, and follow you again if you go %d from it. /merc camp again breaks camp.", off)
+	case camped:
+		return fmt.Sprintf("Your mercenary makes camp here. It holds it and fights as ever, and follows you again if you go %d from it. /merc camp again breaks camp.", off)
+	case several:
+		return "Your mercenaries break camp and follow you."
+	}
+	return "Your mercenary breaks camp and follows you."
+}
+
+// mercSayLines is the liaison's lines in as few dialogue boxes as hold them,
+// a line never cut (each well under a box's questBoxChars), the liaison's
+// name before the first.
+func mercSayLines(sess *session.Session, lines []string) {
+	box := MercLiaisonName + ": "
+	for i, l := range lines {
+		if i > 0 && len([]rune(box))+1+len([]rune(l)) > questBoxChars {
+			SendDialogueBox(sess, 0, box)
+			box = l
+			continue
+		}
+		if i > 0 {
+			box += "\n"
+		}
+		box += l
+	}
+	SendDialogueBox(sess, 0, box)
+}
+
 // Talk is a talk to npc: the liaison's first question when npc is one and
 // mercenaries are on, else false (a liaison then says nothing: no dialog).
 func (m *Mercs) Talk(sess *session.Session, p *entity.Player, npc *entity.NPC) bool {
@@ -292,6 +349,7 @@ func (m *Mercs) Talk(sess *session.Session, p *entity.Player, npc *entity.NPC) b
 		mercSay(sess, hcMercLiaisonWords)
 		return true
 	}
+	mercSayLines(sess, mercLiaisonCommands) // what a merc heeds, before the question (entry 680)
 	answers := make([]string, len(mercRoles))
 	for i, r := range mercRoles {
 		answers[i] = r.label
@@ -1218,6 +1276,12 @@ func (m *Mercs) Command(sess *session.Session, p *entity.Player, args string) {
 		} else {
 			SendClientMessage(sess, "Your mercenary follows you.")
 		}
+	case "camp": // entity/merccamp.go: a toggle
+		n, camped := m.gw.ToggleMercCamp(sess, slot)
+		if !out(n) {
+			return
+		}
+		SendClientMessage(sess, mercCampWords(camped, n > 1))
 	case "attack":
 		name, why := m.gw.MercAttack(sess, slot)
 		if why != "" {
@@ -1341,7 +1405,7 @@ func (m *Mercs) dismiss(sess *session.Session, p *entity.Player, slot int) {
 
 // mercVerbs are /merc's words, which "/t merc <word>" takes as the command
 // (chat.go: anything else to a "merc" is a tell).
-var mercVerbs = map[string]bool{"status": true, "dismiss": true, "stance": true, "follow": true, "stay": true, "attack": true,
+var mercVerbs = map[string]bool{"status": true, "dismiss": true, "stance": true, "follow": true, "stay": true, "camp": true, "attack": true,
 	"group": true, "revive": true, "help": true, "path": true, "pet": true, "charm": true, "list": true, "defensive": true,
 	"offensive": true, "menu": true, "master": true, "aoe": true, "single": true, "give": true, "inv": true, "inventory": true, "items": true,
 	"equip": true, "unequip": true, "take": true, "stock": true, "claim": true, "spells": true}
@@ -1411,7 +1475,9 @@ func (m *Mercs) status(sess *session.Session, p *entity.Player, rows []database.
 			if mode := entity.MercModeName(info.Class, info.Offensive); mode != "" {
 				line += ", " + mode
 			}
-			if info.Stay {
+			if info.Camp {
+				line += ", holding your camp"
+			} else if info.Stay {
 				line += ", holding its place"
 			}
 			if info.Target != "" {

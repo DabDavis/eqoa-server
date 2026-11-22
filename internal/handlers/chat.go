@@ -99,6 +99,8 @@ type ChatHandler struct {
 
 	camps campTools // /mark's, /camp's and /path's (gmcamps.go)
 
+	mutes chatMutes // #mute's, #muteall's and #unmute's (chatmute.go)
+
 	campfix campfixReports // the players' camp reports, /campfix's (campfix.go)
 	// mercs and familiars are /merc's and /familiar's (merc.go, familiar.go)
 	mercs     *Mercs
@@ -1632,6 +1634,9 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 	case "#servdown":
 		// #servdown: the server restarted, an admin's, asked twice (gmresets.go)
 		h.servDownCommand(sess, player)
+	case "#mute", "#muteall", "#unmute":
+		// an account's chat mutes by the hour (chatmute.go)
+		h.muteCommand(sess, player, cmd, parts[1:])
 	case "#dye":
 		// #dye [<slot|armor|all> <colour|none>]: the target's (a player) or
 		// the GM's dyes, drawn by clients of the live game's look (dye.go)
@@ -1847,6 +1852,9 @@ var gmHelpLines = []string{
 	"  #rem_abil <name> <ability> - an ability (its name or spell id) out of a character's book",
 	"  #banktunar [name] <amount> - added to a bank (negative takes away; no name: your target, else you)",
 	"  #servdown - restart the server, everyone saved (an admin's; say it twice)",
+	"  #mute <name> <hours> - that character's account cannot shout for so long, every character of it (.5 is 30 minutes; 0 lifts; no hours: its mutes)",
+	"  #muteall <name> <hours> - that account cannot say, shout, tell, group or guild for so long (0 lifts)",
+	"  #unmute <name> - both mutes of that character's account lifted",
 	"  #aggro [on|off] - whether creatures attack you on sight (off until #aggro on)",
 	"  #safemode [on|off] - the TEST menu's Safe Mode: creatures leave you alone (a toggle alone)",
 	"  #fly [on|off] - fly where you look at your run speed, no gravity (alone: on, or off again; until you log out)",

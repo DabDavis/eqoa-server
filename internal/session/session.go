@@ -324,7 +324,9 @@ type Session struct {
 	// (protocol.OpcodeMobInfoAnswer, handlers/mobinfo.go), so a monster's name
 	// and level go to it as OpcodeMobInfo, shown in its target's details box. A
 	// client that never answered (a PS2, an older build) is sent a dialogue box.
-	mobInfo bool
+	// mobInfoLayout is the layout it answered (1 or 2; 0 with mobInfo: 1).
+	mobInfo       bool
+	mobInfoLayout uint8
 
 	// mercsTold: the client answered the mercs' offer 1
 	// (protocol.OpcodeMercsOffer, handlers/mercui.go), so it is sent the
@@ -668,7 +670,29 @@ func (s *Session) TakeGroupReg(body string) bool {
 func (s *Session) SetMobInfo(on bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.mobInfo = on
+	s.mobInfo, s.mobInfoLayout = on, 0
+	if on {
+		s.mobInfoLayout = 1
+	}
+}
+
+// SetMobInfoLayout records the layout of OpcodeMobInfo the client answered
+// (0: the dialogue box; 1 or 2).
+func (s *Session) SetMobInfoLayout(layout uint8) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.mobInfo, s.mobInfoLayout = layout != 0, layout
+}
+
+// MobInfoLayout is the layout of OpcodeMobInfo the client reads, 0 for none
+// (the dialogue box).
+func (s *Session) MobInfoLayout() uint8 {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if !s.mobInfo {
+		return 0
+	}
+	return max(s.mobInfoLayout, 1)
 }
 
 // MobInfo is whether the client shows a monster's name and level in its own

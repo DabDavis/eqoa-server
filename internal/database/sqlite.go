@@ -802,6 +802,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureNPCDialog(); err != nil { // npcdialog.go
 		return err
 	}
+	if err := db.ensureNPCTalk(); err != nil { // npctalk.go: NPC talk trees (work board 883)
+		return err
+	}
 	if err := db.ensureSignText(); err != nil { // signtext.go
 		return err
 	}
@@ -856,6 +859,12 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCharWelcome(); err != nil { // welcome.go: the welcome guide's box, a character's day and never
 		return err
 	}
+	if err := db.ensurePlaces(); err != nil { // places.go: spheres known by their place, place texts
+		return err
+	}
+	if err := db.ensureCityIntro(); err != nil { // cityintro.go: a new character's first-login welcome, its merchant question
+		return err
+	}
 	if err := db.ensureHeirlooms(); err != nil { // heirlooms.go: test gear that follows its wearer
 		return err
 	}
@@ -872,6 +881,9 @@ func (db *SQLiteDB) initSchema() error {
 		return err
 	}
 	if err := db.ensureCharHideGMTag(); err != nil { // charhidegmtag.go: GMs who hid their [GM] tag, /hide gmtag
+		return err
+	}
+	if err := db.ensureChatMutes(); err != nil { // chatmutes.go: a GM's chat mutes by the hour, per account
 		return err
 	}
 	if err := db.ensureCharGMNoAggro(); err != nil { // chargmnoaggro.go: GMs no creature attacks on sight, Safe Mode / #aggro off
@@ -896,6 +908,12 @@ func (db *SQLiteDB) initSchema() error {
 		return err
 	}
 	if err := db.ensureLootDropTriggers(); err != nil { // lootdroptrigger.go: an item a corpse rolls fires a trigger (Vallon Zek's rune)
+		return err
+	}
+	if err := db.ensureNPCCoins(); err != nil { // npccoins.go: a named creature's corpse tunar (work board 658)
+		return err
+	}
+	if err := db.ensureMerchantPrices(); err != nil { // merchantprice.go: a merchant's own price for an item (work board 880)
 		return err
 	}
 	if err := db.ensureGemSetting(); err != nil { // gemsetting.go: Hogarth's Gems of Khalimet in the Khal weapons

@@ -59,7 +59,7 @@ func (w *World) mercChooseTargetLocked(ms *mercState) {
 	}
 	valid := func(id EntityID) *NPC {
 		t := w.NPCs[id]
-		if t == nil || !mercMayFight(m, t) || distXZ(owner.X, owner.Z, t.X, t.Z) > petLeash || w.walledOffLocked(owner, m, t) {
+		if t == nil || !mercMayFight(m, t) || !w.mercGuardsLocked(ms, t.X, t.Z, petLeash) || w.walledOffLocked(owner, m, t) {
 			return nil // a quest wall between too (questwallfight.go, petition 2198)
 		}
 		return t
@@ -97,7 +97,7 @@ func (w *World) mercChooseTargetLocked(ms *mercState) {
 	var best *NPC
 	var bestD float32
 	mates := w.mercGroupMatesLocked(ms) // an aggressive merc's (GM ticket 2025)
-	for _, id := range w.SpatialIndex.QueryRadius(owner.X, owner.Z, petAssist) {
+	for _, id := range w.mercAroundLocked(ms, petAssist) { // round its camp too (merccamp.go)
 		npc := w.NPCs[id]
 		if npc == nil || !mercMayFight(m, npc) || w.walledOffLocked(owner, m, npc) {
 			continue
@@ -127,7 +127,7 @@ func (w *World) mercLeftBehindLocked(ms *mercState, id EntityID) bool {
 	if t == nil || id == ms.ordered || owner.Attacking() && owner.AttackTarget == id {
 		return false
 	}
-	return distXZ(owner.X, owner.Z, t.X, t.Z) > petAssist
+	return !w.mercGuardsLocked(ms, t.X, t.Z, petAssist)
 }
 
 // mercTurnLocked is the merc's turn: its target, then a cast its role wants

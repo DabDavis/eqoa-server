@@ -208,7 +208,7 @@ func TestMobInfoTheNameAsShown(t *testing.T) {
 // (net::session's mob_info_offer_answer_and_show): the offer a u8 1; the
 // message the layout, the id, the level, the name's count and bytes.
 func TestMobInfoOnTheWire(t *testing.T) {
-	if got, want := buildMobInfoOffer(), []byte{0x4C, 0x7E, 1}; !bytes.Equal(got, want) {
+	if got, want := buildMobInfoOffer(), []byte{0x4C, 0x7E, 1, 2}; !bytes.Equal(got, want) {
 		t.Errorf("the offer %x, want %x", got, want)
 	}
 	want := []byte{0x4E, 0x7E, 1, 0xA1, 0x86, 0x01, 0x00, 3, 10, 'm', 'o', 's', 's', ' ', 's', 'n', 'a', 'k', 'e'}
@@ -244,7 +244,7 @@ func TestMobInfoOfferAndAnswer(t *testing.T) {
 	if got := offersOf(false); len(got) != 0 {
 		t.Fatalf("the control, off: offered %x", got)
 	}
-	if got, want := offersOf(true), []byte{0x4C, 0x7E, 1}; len(got) != 1 || !bytes.Equal(got[0], want) {
+	if got, want := offersOf(true), []byte{0x4C, 0x7E, 1, 2}; len(got) != 1 || !bytes.Equal(got[0], want) {
 		t.Fatalf("on: offered %x, want one %x", got, want)
 	}
 

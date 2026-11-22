@@ -294,7 +294,7 @@ func TestTheStorytellersAllowlistIsTheOneMeant(t *testing.T) {
 	if !slices.Equal(got, want) {
 		t.Errorf("the allowlist:\n got %v\nwant %v", got, want)
 	}
-	if !slices.Equal(storytellerTableList, []string{"npcdialog", "quests", "queststeps", "questunlocks", "queststeptargets", "npcs"}) {
+	if !slices.Equal(storytellerTableList, []string{"npcdialog", "npctalk", "quests", "queststeps", "questunlocks", "queststeptargets", "npcs"}) {
 		t.Errorf("the tables: %v", storytellerTableList)
 	}
 	var writes []string
@@ -303,7 +303,7 @@ func TestTheStorytellersAllowlistIsTheOneMeant(t *testing.T) {
 			writes = append(writes, name)
 		}
 	}
-	if !slices.Equal(writes, []string{"npcdialog", "quests", "queststeps"}) || storytellerWrites("itempattern") || storytellerWrites("") {
+	if !slices.Equal(writes, []string{"npcdialog", "npctalk", "quests", "queststeps"}) || storytellerWrites("itempattern") || storytellerWrites("") {
 		t.Errorf("the tables it writes: %v", writes)
 	}
 	// the words, and the text columns that are not: what a quest is, and the
@@ -1739,7 +1739,7 @@ func TestTheStorytellersPageInABrowser(t *testing.T) {
     [...document.querySelectorAll('main button')].find((b) => b.textContent.trim() === 'Save').click();
     await wait(() => document.body.textContent.includes('Saved'), 'Saved');
     await open('#/tables', 'Dialog and quest tables');
-    same(links().filter((l) => l.startsWith('#/tables/')).sort(), ['#/tables/npcdialog', '#/tables/npcs', '#/tables/questunlocks', '#/tables/queststeps', '#/tables/queststeptargets', '#/tables/quests'].sort());
+    same(links().filter((l) => l.startsWith('#/tables/')).sort(), ['#/tables/npcdialog', '#/tables/npctalk', '#/tables/npcs', '#/tables/questunlocks', '#/tables/queststeps', '#/tables/queststeptargets', '#/tables/quests'].sort());
     await open('#/tables/npcdialog', 'NPC dialog');
     yes(buttons(), 'New');
     await open('#/tables/npcdialog/1', 'Move along');
@@ -1770,7 +1770,7 @@ func TestTheStorytellersPageInABrowser(t *testing.T) {
     if (!document.querySelector('header input[type=search]')) throw new Error('no search box for the tester');
     await wait(() => text().includes('Rusty Sword'), 'the items (the home page)');
     await open('#/tables', 'Your tables');
-    if (links().filter((l) => l.startsWith('#/tables/')).length !== 12) throw new Error('the tables of both: ' + links().join(' '));
+    if (links().filter((l) => l.startsWith('#/tables/')).length !== 13) throw new Error('the tables of both: ' + links().join(' '));
     await open('#/quests/40', 'What the giver says');
     no(buttons(), 'Try it');
     await open('#/ai', 'Your tokens');

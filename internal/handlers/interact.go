@@ -79,7 +79,10 @@ type InteractHandler struct {
 	// Mr. Moogie's boxes (moogie.go), under boardMu, and his favor's turn-in (metalmoogie.go; nil:
 	// none offered)
 	moogie moogieAsks
-	favor  *MoogieFavor
+	// the talk trees' boxes (npctalk.go), under boardMu, and npctalk's reader (database.NPCTalk)
+	talks     talkAsks
+	talkTrees func() (map[string]map[int]database.TalkNode, error)
+	favor     *MoogieFavor
 	// Dabrish's boxes (dabrish.go), under boardMu, and his work: a level set
 	// as #setlevel sets it (ChatHandler.applyLevel) and mastery points given
 	// as #grantcm gives them (ChatHandler.giveMastery). Nil: his ledger is
@@ -106,6 +109,10 @@ type InteractHandler struct {
 	rehab *Rehab
 	// welcome answers the welcome guide's box (welcome.go); nil: none is asked
 	welcome *WelcomeGuide
+	// spheres is lightspheres' rows (lightsphere.go): teleporting spheres known by their place
+	spheres lightSpheres
+	// intro answers a new character's welcome and merchant question (cityintro.go); nil: none is asked
+	intro *CityIntro
 
 	// archivist answers the Spell Archivists' boxes (archivist.go), which a
 	// request for one's shop asks (merchant.go); nil: none is asked
@@ -430,6 +437,11 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 
+	// A sphere of light known by its place (lightsphere.go): its line and "Touch the light."
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.lightSphereTalk(sess, player, npc) {
+		return nil
+	}
+
 	// A spiritmaster not yet bound to offers its bind first (the reference server's Zole,
 	// recorded by questrec16); Yes does its quest's step too (answerBind).
 	if npc, ok := targetEntity.(*entity.NPC); ok && IsSpiritmaster(npc.Name) {
@@ -459,6 +471,12 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 	// A Plane of Sky essence's passage, with its isle's key (skypass.go), before
 	// its quest steps, which only the passage does.
 	if npc, ok := targetEntity.(*entity.NPC); ok && h.skyPassTalk(sess, player, npc) {
+		return nil
+	}
+
+	// A trader's menu (npctalk.go, questtrade.go; work board 747): its talk
+	// tree, whose answers hand in its quests, in place of their offers.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.tradeMenu(sess, player, npc) {
 		return nil
 	}
 
@@ -575,6 +593,12 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 	// place of a town's words.
 	if npc, ok := targetEntity.(*entity.NPC); ok && Quests().NotYet(sess, player, npc) {
 		forgetDialogs(player)
+		return nil
+	}
+
+	// An NPC's talk tree (npctalk.go, work board 883): its conversation, in
+	// place of a town's line.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.talkTree(sess, player, npc) {
 		return nil
 	}
 
@@ -726,6 +750,14 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	if h.welcome.Answer(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
+	// a place text's Done (entity/placetexts.go): nothing more
+	if entity.IsPlaceTextBox(targetObjectID) {
+		return nil
+	}
+	// a new character's welcome or merchant question (cityintro.go); an old one does nothing
+	if h.intro.Answer(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
 	// the Hardcore choice's (hardcoreask.go); an old one does nothing
 	if hardcoreAnswer(sess, player, targetObjectID, selectedOption) {
 		return nil
@@ -776,6 +808,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// a board's offer (boardinvis.go); an old one does nothing
 	if h.answerBoardInvis(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// a talk tree's (npctalk.go); an old one does nothing
+	if h.answerTalk(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// Mr. Moogie's (moogie.go); an old one does nothing

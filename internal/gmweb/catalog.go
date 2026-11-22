@@ -436,6 +436,19 @@ var catalog = map[string]tableNote{
 			"changed":   {Label: "Changed", Format: "stamp", ReadOnly: true, Help: "when the row last changed (UTC)"},
 		},
 	},
+	"charintro": {
+		Label: "Character welcomes", Group: "Players", Sort: "serverid",
+		Help: "What a character was shown of its first-login welcome (handlers/cityintro.go), a row a character: when the " +
+			"welcome of its start place and class (table cityintro) went out, and when its first merchant window asked the " +
+			"merchant tutorial question instead of opening. A character with no row was never welcomed; only a welcomed " +
+			"character is asked the merchant question. Clear merchant to have it asked again.",
+		Live: "At the character's next world entry or merchant window.",
+		Cols: map[string]colNote{
+			"serverid": {Label: "Character", Ref: "characters"},
+			"welcomed": {Label: "Welcomed", Format: "stamp", Help: "when the welcome went out (UTC); empty: never"},
+			"merchant": {Label: "Merchant question", Format: "stamp", Help: "when the merchant question was asked (UTC); empty: not yet"},
+		},
+	},
 	"charcoaches": {
 		Label: "Character coach ledgers", Group: "Players", Sort: "serverid",
 		Help: "The stables' ledgers each character has signed, a town a row (handlers/coachledger.go): talking to a " +
@@ -915,6 +928,40 @@ var catalog = map[string]tableNote{
 			"rolls":     {Label: "Rolls", Help: "how many rolls a kill makes"},
 			"note":      {Label: "Note", Help: "why"},
 			"source":    {Label: "Source", Help: "gm, or camp-seed for tools/seed_camp_loot.py's rows (its --undo deletes those no GM changed)"},
+		},
+	},
+	"npccoins": {
+		Label: "Corpse tunar", Group: "World", Title: "npc_name", Sort: "npc_name",
+		Help: "Tunar a named creature's corpse holds instead of the ordinary 1 + 0..level/4: a roll from coins_min to " +
+			"coins_max (handlers/corpsecoins.go), by NPC NAME as NPC classes key it (lower case, no trailing space or $); " +
+			"a GM's #spawn copy uses its original's row. An animal's corpse holds none unless a row names it; a pet's, a " +
+			"training dummy's or a duel spawn's none at all. Source video-audit rows are amounts read off live-era footage.",
+		Live:   "At once: the next corpse of that name is rolled with it.",
+		Search: []string{"npc_name", "note", "source"},
+		Cols: map[string]colNote{
+			"npc_name":  {Label: "NPC name (key)", Help: "lower case, as in NPCs without a trailing space or $"},
+			"coins_min": {Label: "Least", Help: "the fewest tunar the corpse holds, 0 or more"},
+			"coins_max": {Label: "Most", Help: "the most tunar the corpse holds, coins_min or more"},
+			"note":      {Label: "Note", Help: "why"},
+			"source":    {Label: "Source", Help: "gm, or video-audit for amounts read off live-era footage"},
+		},
+	},
+	"merchantprice": {
+		Label: "Merchant prices", Group: "World", Title: "merchant", Sort: "merchant",
+		Help: "A merchant's own price for an item (handlers/buyback.go waresFor): live merchants charged different " +
+			"prices for the same item, and an item record keeps one value. The merchant by NPC NAME as NPC classes key " +
+			"it (lower case, no trailing space or $), the item record, and what one costs at that merchant's window, " +
+			"shown and charged (0: free). Every other merchant, and every other item, costs the record's value as " +
+			"before. Selling is unchanged (the client works out what a merchant pays from the player's own record). " +
+			"Source video-audit rows are prices read off live-era footage.",
+		Live:   "At once: the next window opened or buy made at that merchant.",
+		Search: []string{"merchant", "note", "source"},
+		Cols: map[string]colNote{
+			"merchant":  {Label: "Merchant (key)", Help: "lower case, as in NPCs without a trailing space or $"},
+			"patternid": {Label: "Item", Ref: "itempattern"},
+			"price":     {Label: "Price", Help: "tunar for one at this merchant, 0 or more"},
+			"source":    {Label: "Source", Help: "gm, or video-audit for prices read off live-era footage"},
+			"note":      {Label: "Note", Help: "why"},
 		},
 	},
 	"lootpreset": {
@@ -1671,12 +1718,15 @@ var catalog = map[string]tableNote{
 			"lines, never its host town's; trolls and ogres never say the common lines (no town, no race). An NPC with lines " +
 			"of its own name says those alone. A line of its town counts three times, of its role twice, of its " +
 			"name six times, of its people three times, of its race, class, a race it is not for or sex twice; class (the listener's) and not race (a listener of it never hears the line: " +
-			"Qeynos's welcome to the monks of other races than the humans, tools/monk_start.py) narrow it further. In a line %p is the " +
+			"Qeynos's welcome to the monks of other races than the humans, tools/monk_start.py) narrow it further. Use says what a row " +
+			"is for: empty a talk's line, ambient a line said aloud unprompted to the players near (entity/ambient.go), shop a " +
+			"merchant's greeting atop its window (else \"Have a look at my wares.\"); each is picked from its own rows as a " +
+			"talk's is. In a line %p is the " +
 			"listener's name, %r its race, %c its class, %b brother or sister by its sex, %t the town, %n " +
 			"the speaker. tools/seed_town_dialog.py's rows are source ours (its --undo deletes those no GM changed); " +
 			"tools/seed_npc_lines.py's (a name's or a race's own lines) too.",
 		Live:   "At once: the next talk.",
-		Search: []string{"line", "town", "role", "name", "mood", "sex", "source"},
+		Search: []string{"line", "town", "role", "name", "mood", "sex", "use", "source"},
 		Cols: map[string]colNote{
 			"town":         {Label: "Town", Help: "the speaker's town, as its faction names it; empty any"},
 			"role":         {Label: "Role", Help: "guard, trader, priest, scholar, worker, noble or citizen; empty any"},
@@ -1688,9 +1738,95 @@ var catalog = map[string]tableNote{
 			"away":         {Label: "Away", Help: "1: a race's line said only by a guest, away from its own towns"},
 			"class":        {Label: "Listener's class", Enum: "class", Help: "-1 any"},
 			"not_race":     {Label: "Not to race", Enum: "race", Help: "a listener of this race never hears it; -1 none"},
+			"use":          {Label: "Use", Help: "empty: said when talked to; ambient: said aloud, unprompted, every 90-240 s to the players within 60 (a say, never a box); shop: the greeting atop its merchant window (127 characters at most). A talk picks only empty rows, so a line for two uses is two rows"},
 			"line":         {Label: "Line", Help: "%p name, %r race, %c class, %b brother/sister, %t town, %n speaker; said after the speaker's name and \": \", a box shows 217 characters (a longer line goes in several)"},
 			"weight":       {Label: "Weight", Help: "how often against the others that fit"},
 			"source":       {Label: "Source", Help: "gm, or ours for tools/seed_town_dialog.py's rows"},
+		},
+	},
+	"npctalk": {
+		Label: "NPC talk", Group: "World", Title: "says", Sort: "npc",
+		Help: "An NPC's conversation, as live NPCs held them outside any quest (handlers/npctalk.go): a talk to an NPC " +
+			"whose name has a node 1, where nothing before it answers (a quest step or offer, a shop, a route, a bind, a " +
+			"sign post), plays node 1 in place of a town's line (NPC dialog). A node's lines go a dialogue box each, the " +
+			"speaker's name before them; with answers, its last line is the question asked with them and Exit (added by " +
+			"the server). An answer plays the node it names, 0 closes. npc is the name as NPC classes key it (lower case, " +
+			"no trailing space or $). Source video-audit rows are conversations read off live-era footage.",
+		Live:   "At once: the next talk.",
+		Search: []string{"npc", "says", "choices", "note", "source"},
+		Cols: map[string]colNote{
+			"npc":     {Label: "NPC (key)", Help: "lower case, as in NPCs without a trailing space or $"},
+			"node":    {Label: "Node", Help: "1 is where a talk starts"},
+			"says":    {Label: "Says", Format: "multiline", Help: "a line a dialogue box; with answers the last line is the question (127 characters at most)"},
+			"choices": {Label: "Answers", Format: "multiline", Help: `a JSON list of {"text": the answer (63 characters at most), "next": the node it plays, 0 closes}; [] none; 5 at most beside Exit`},
+			"source":  {Label: "Source", Help: "gm, or video-audit for words read off live-era footage"},
+			"note":    {Label: "Note", Help: "why"},
+		},
+	},
+	"cityintro": {
+		Label: "First-login welcomes", Group: "World", Title: "boxes", Sort: "id",
+		Help: "A new character's first-login welcome, as the live game's tapes show it (handlers/cityintro.go): at the " +
+			"first world entry of a character with no experience, standing within radius of (x, z) in world, of the row's " +
+			"race and class (-1 any; a row naming the class wins), its boxes (a line a box, at most 217 characters) and " +
+			"then the shared question \"do you need instructions on how to use the basic controls?\": Yes says the shared " +
+			"control boxes and yes_last, No says no_last (each sends the player to its guildmaster). Once a character " +
+			"(table charintro). A welcomed character's first merchant window asks the merchant tutorial question.",
+		Live: "At once: the next new character's first entry.",
+		Cols: map[string]colNote{
+			"world":    {Label: "World", Help: "the world the start place is in"},
+			"x":        {Label: "X", Help: "the start place's centre"},
+			"z":        {Label: "Z", Help: "the start place's centre"},
+			"radius":   {Label: "Radius", Help: "how far from (x, z) a new character may stand"},
+			"race":     {Label: "Race", Help: "the race (-1 any)"},
+			"class":    {Label: "Class", Help: "the class (-1 any)"},
+			"boxes":    {Label: "Boxes", Help: "the welcome's boxes before the question, a line a box"},
+			"yes_last": {Label: "Yes, last box", Help: "said after the shared control boxes on Yes"},
+			"no_last":  {Label: "No box", Help: "said on No"},
+			"source":   {Label: "Source", Help: "video-audit: read off live-era footage; gm: a GM's"},
+			"note":     {Label: "Note"},
+		},
+	},
+	"lightspheres": {
+		Label: "Spheres of light", Group: "World", Title: "line", Sort: "id",
+		Help: "Teleporting spheres known by where they stand, not a name (handlers/lightsphere.go): Highbourne library's " +
+			"spheres of light, nameless on the live game. A talk to an NPC standing within 3 of (x, z) in world opens the " +
+			"line with the one answer (Touch the light.; the box's Exit closes it), which sends the player in front of " +
+			"(to_x, to_y, to_z) in to_world, facing the way to_facing (0-255, as npcs.facing) looks: the other sphere's " +
+			"place and facing. No fee, no level. The NPC itself is an npcs row like any other.",
+		Live: "Within 30 seconds: the next talk to a sphere.",
+		Cols: map[string]colNote{
+			"world":     {Label: "World"},
+			"x":         {Label: "X", Help: "where the sphere's NPC stands"},
+			"z":         {Label: "Z", Help: "where the sphere's NPC stands"},
+			"line":      {Label: "Line", Help: "the question box's words (at most 127 characters)"},
+			"answer":    {Label: "Answer", Help: "the one answer (at most 63 characters)"},
+			"to_world":  {Label: "To world"},
+			"to_x":      {Label: "To X", Help: "the other sphere's place"},
+			"to_y":      {Label: "To Y"},
+			"to_z":      {Label: "To Z"},
+			"to_facing": {Label: "To facing", Help: "the other sphere's facing, 0-255: the player lands in front of it, facing it"},
+			"source":    {Label: "Source", Help: "video-audit: read off live-era footage; gm: a GM's"},
+			"note":      {Label: "Note"},
+		},
+	},
+	"placetexts": {
+		Label: "Place texts", Group: "World", Title: "text", Sort: "id",
+		Help: "A box with one answer (Done) opened once each time a player walks into an area (entity/placetexts.go), " +
+			"as the live game's place texts: x1..x2, z1..z2 and y1..y2 in world. Never again while the player stays " +
+			"inside; not when it logs in there. At most 127 characters, no '|' or '%'.",
+		Live: "At once: within half a second, whoever walks in.",
+		Cols: map[string]colNote{
+			"world":  {Label: "World"},
+			"x1":     {Label: "X from"},
+			"x2":     {Label: "X to"},
+			"z1":     {Label: "Z from"},
+			"z2":     {Label: "Z to"},
+			"y1":     {Label: "Y from", Help: "the floor's height range: a room under another tells them apart"},
+			"y2":     {Label: "Y to"},
+			"text":   {Label: "Text"},
+			"answer": {Label: "Answer", Help: "the box's one answer (Done)"},
+			"source": {Label: "Source", Help: "video-audit: read off live-era footage; gm: a GM's"},
+			"note":   {Label: "Note"},
 		},
 	},
 	"signtext": {
@@ -2870,7 +3006,7 @@ var catalog = map[string]tableNote{
 			"repeatable": {Label: "Repeatable"},
 			"offer":      {Label: "Giver offers", Format: "multiline", Help: "a paragraph a question: a line a box, its last line asks"},
 			"accept":     {Label: "Answers taking it", Format: "multiline", Help: "a line a question; empty: taken when talked to"},
-			"decline":    {Label: "Answer refusing it", Help: "empty: none (Close refuses)"},
+			"decline":    {Label: "Answer refusing it", Help: "one line: offered beside every question; several lines: a line a question, as the answers taking it (an empty line: that question has none); empty: none (Close refuses)"},
 			"declined":   {Label: "Giver replies to a refusal", Format: "multiline", Help: "said as written"},
 			"started":    {Label: "Giver says once taken", Format: "multiline"},
 			"source":     {Label: "Source"},
@@ -2918,6 +3054,7 @@ var catalog = map[string]tableNote{
 			"world":       {Label: "World", Enum: "world"},
 			"radius":      {Label: "Within"},
 			"height":      {Label: "Within up or down", Help: "a reach step's: the player within this of y too (one floor of a building); 0 any height"},
+			"exactbase":   {Label: "Exact items only", Help: "1 (show, give, loot): only the items' own records count, never an Ascended record of them, and the step never hands out Ascended rewards; 0 (default): either counts"},
 			"anyorder":    {Label: "Any order", Help: "1: this step and the steps next to it with 1 (talk, show or give) are done in any order, the quest going on past them once all are; the journal lists who is left"},
 			"journal":     {Label: "Journal line", Help: "at most 127 characters"},
 			"answer":      {Label: "Player's answer", Format: "multiline", Help: "the first line does it, any others change nothing; empty: done on talking"},

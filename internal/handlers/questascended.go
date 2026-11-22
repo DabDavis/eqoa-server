@@ -30,6 +30,12 @@ import (
 //     gem gives the regular reward;
 //   - a loot step counts an Ascended record taken off a corpse for its base.
 //
+// A step with queststeps.exactbase on (database.QuestStep.ExactBase; board
+// entry 1292, default off, set on no step by this code) opts out of all of
+// this: only its items' own records meet it, in the hand-in (an Ascended-only
+// pack lacks, a mixed one gives only its base units), the loot credit and the
+// tracker, and it never comes Ascended.
+//
 // What a quest's events hand over (a give event) and its tunar, experience,
 // factions and spells are never Ascended. Worn items and the bank are not
 // handed in, as before.
@@ -85,6 +91,9 @@ func (q *QuestEngine) planHandInLocked(p *entity.Player, st *database.QuestStep)
 	held := q.heldItems(p)
 	asc := q.ascendedMapLocked()
 	baseOf := func(id int) (int, bool) {
+		if st.ExactBase {
+			return 0, false // the step's own records alone (entry 1292)
+		}
 		b, ok := asc[id]
 		return b, ok
 	}
@@ -112,7 +121,7 @@ func (q *QuestEngine) planHandInLocked(p *entity.Player, st *database.QuestStep)
 		some = true
 		all = all && standIn[id] >= need[id]
 	}
-	plan.ascended = some && all
+	plan.ascended = some && all && !st.ExactBase
 	for _, id := range order {
 		if have := own[id] + standIn[id]; have < need[id] {
 			plan.lack = append(plan.lack, fmt.Sprintf("%d of item %d", need[id]-have, id))
@@ -201,6 +210,30 @@ func (q *QuestEngine) ascendRewardLocked(rw database.ClassReward, who string) da
 func ascendedFor(id, base int) bool {
 	b, ok := entity.AscendedBase(entity.RecordOf(id)) // a Legacy record is its record (database/legacy.go)
 	return ok && b == base
+}
+
+// heldForStep is heldStandingFor as step st counts it: its own records alone on an exactbase step.
+func (l *invList) heldForStep(st *database.QuestStep, patternID int) int {
+	if st != nil && st.ExactBase {
+		return l.heldExact(patternID)
+	}
+	return l.heldStandingFor(patternID)
+}
+
+// heldExact is how many of the record itself (not its Ascended records) the list holds.
+func (l *invList) heldExact(patternID int) int {
+	if l == nil {
+		return 0
+	}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	n := 0
+	for _, r := range l.recs {
+		if r.patternID == patternID {
+			n += r.qty
+		}
+	}
+	return n
 }
 
 // heldStandingFor is how many of an item the list holds counted as a quest

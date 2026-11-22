@@ -175,7 +175,11 @@ func SetupDungeons(gw *entity.World, c config.DungeonsConfig, _ *database.SQLite
 	if gw == nil {
 		return false
 	}
-	set := entity.DungeonSettings{CloseAfter: c.CloseAfter, MaxInstances: c.MaxInstances, Cap: c.Cap, RaidCap: c.RaidCap}
+	set := entity.DungeonSettings{CloseAfter: c.CloseAfter, MaxInstances: c.MaxInstances, Cap: c.Cap, RaidCap: c.RaidCap,
+		Lockout: entity.DefaultDungeonLockout}
+	if c.Lockout != nil {
+		set.Lockout = time.Duration(*c.Lockout) // 0: off
+	}
 	if !c.Enabled {
 		gw.SetDungeons(false, world, nil, set)
 		return false

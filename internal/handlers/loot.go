@@ -234,7 +234,7 @@ func (h *NPCWindowHandler) rollCorpse(npc *entity.NPC, died time.Time, level int
 	// No Trade stacks shared, one to each character of the kill, but a quest item's
 	// (lootshare.go)
 	items, shares := splitShares(items, h.questItem)
-	c := &corpse{died: died, items: items, tunar: corpseCoins(npc, coins), shares: shares}
+	c := &corpse{died: died, items: items, tunar: h.corpseCoinsOf(npc, coins), shares: shares}
 	owe(shares, h.killCharsOf(npc.ServerID, c))
 	return c
 }

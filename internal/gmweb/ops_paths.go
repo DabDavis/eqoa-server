@@ -60,6 +60,11 @@ func checkRow(table string, row map[string]any) error {
 	if (table == "workboard" || table == "workboard_overview") && row != nil {
 		return checkWorkRow(table, row) // ops_work.go
 	}
+	if table == "npcdialog" && row != nil {
+		if err := checkNPCDialogRow(row); err != nil { // live.go
+			return err
+		}
+	}
 	if table == "mapmarks" && row != nil {
 		return checkMapMarkRow(row)
 	}
@@ -138,6 +143,15 @@ func checkRow(table string, row map[string]any) error {
 	if table == "petstats" && row != nil {
 		return checkPetStatsRow(row) // live_templates.go
 	}
+	if table == "npccoins" && row != nil {
+		return checkNPCCoinsRow(row) // live.go
+	}
+	if table == "merchantprice" && row != nil {
+		return checkMerchantPriceRow(row) // live.go
+	}
+	if table == "npctalk" && row != nil {
+		return checkNPCTalkRow(row) // live.go
+	}
 	if table == "npcspawnonly" && row != nil {
 		return checkSpawnOnlyRow(row) // live.go
 	}
@@ -176,6 +190,15 @@ func checkRow(table string, row map[string]any) error {
 	}
 	if table == "signtext" && row != nil {
 		return checkSignTextRow(row) // live_signs.go
+	}
+	if table == "placetexts" && row != nil {
+		return checkPlaceTextRow(row) // live_places.go
+	}
+	if table == "lightspheres" && row != nil {
+		return checkLightSphereRow(row) // live_places.go
+	}
+	if table == "cityintro" && row != nil {
+		return checkCityIntroRow(row) // live_cityintro.go
 	}
 	if table != "npcpaths" || row == nil {
 		return nil

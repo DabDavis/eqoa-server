@@ -110,7 +110,9 @@ type World struct {
 	orbs orbState
 	// hazards are the places that hurt a player standing in them (hazards.go)
 	hazards hazardState
-	lava    LavaRule // lava.go: what the lava does (zero: nothing)
+	// placeTexts is the areas that open a text as a player walks in (placetexts.go)
+	placeTexts placeTextState
+	lava       LavaRule // lava.go: what the lava does (zero: nothing)
 	// noRoam is the ground no wandering creature walks into (noroam.go)
 	noRoam noRoamState
 	// kickZones are the creatures whose template guards the ground round them (kickzone.go)
@@ -194,6 +196,7 @@ type World struct {
 	// way to landing (merccast.go), what became of them this tick for the
 	// handlers (runMercNotes), and a count telling one hire from the next
 	mercs     map[EntityID][]*mercState // by owner, by slot (merc.go)
+	ambient   ambientState              // the NPCs' unprompted lines (ambient.go)
 	mercCasts []*mercCast
 	// mercCalls: the creatures each owner called his mercs onto (merccall.go)
 	mercCalls  map[EntityID]map[EntityID]bool

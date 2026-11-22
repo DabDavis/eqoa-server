@@ -136,6 +136,7 @@ func (db *SQLiteDB) initQuests() error {
 		{"quests", "excludes", `TEXT NOT NULL DEFAULT ''`},
 		{"quests", "asks", `TEXT NOT NULL DEFAULT ''`}, {"quests", "daygroup", `TEXT NOT NULL DEFAULT ''`},
 		{"queststeps", "anyorder", `INTEGER NOT NULL DEFAULT 0`},
+		{"queststeps", "exactbase", `INTEGER NOT NULL DEFAULT 0`},
 	} {
 		has, err := hasColumn(db.DB, c.table, c.col)
 		if err != nil {
@@ -659,7 +660,7 @@ type Quest struct {
 	// Accept is the player's answers taking it, a line a question (the reference server's
 	// first warrior quest asks two); "" takes it when the giver is talked to.
 	Accept  string
-	Decline string // the player's answer refusing it, offered with each answer; "" none
+	Decline string // the player's answer refusing it: one line, offered with each question; several, a line a question (handlers declineAt); "" none
 	// Declined is the giver's reply to a refusal, said as written (the reference server's
 	// Captain Norgam's carries no name before it).
 	Declined string
@@ -795,6 +796,10 @@ type QuestStep struct {
 	// 2026-11-17: "players can speak with bowyer koll or tailor bariston in
 	// any order"; AnyOrderGroup)
 	AnyOrder bool
+	// ExactBase (the exactbase column, default off) makes a show, give or loot step take its items' own records
+	// alone: no Ascended record stands in for one, in the hand-in, the loot credit or the tracker, and a hand-in
+	// never comes Ascended (handlers/questascended.go; board entry 1292). Off, every step accepts either.
+	ExactBase bool
 }
 
 // AnyOrderGroup is the steps done in any order that step n is one of, in
@@ -1316,7 +1321,7 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 	}
 	srs, err := s.db.Query(`SELECT questid, step, kind, target, npcid, items, tunar, count, world, x, y, z, radius,
 		journal, answer, says, waiting, notyet, reminder, xp, rewardtunar, rewarditems, factions, spells, chance, events, byclass,
-		choices, height, anyorder FROM queststeps ORDER BY questid, step`)
+		choices, height, anyorder, exactbase FROM queststeps ORDER BY questid, step`)
 	if err != nil {
 		return nil, err
 	}
@@ -1326,7 +1331,7 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 		if err := srs.Scan(&st.Quest, &st.Step, &st.Kind, &st.Target, &st.NPCID, &items, &st.Tunar, &st.Count, &st.World,
 			&st.X, &st.Y, &st.Z, &st.Radius, &st.Journal, &st.Answer, &st.Says, &st.Waiting, &st.NotYet, &st.Reminder,
 			&st.XP, &st.RewardTunar,
-			&rewardItems, &factions, &spells, &st.Chance, &events, &byClass, &choices, &st.Height, &st.AnyOrder); err != nil {
+			&rewardItems, &factions, &spells, &st.Chance, &events, &byClass, &choices, &st.Height, &st.AnyOrder, &st.ExactBase); err != nil {
 			srs.Close()
 			return nil, err
 		}

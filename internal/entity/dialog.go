@@ -258,9 +258,14 @@ func dialogAble(npc *NPC) bool {
 // ownLines is whether lines hold any of the speaker called name's own (their
 // npcdialog.name its name, as npcclass keys a name): then it says those alone.
 func ownLines(lines []database.NPCDialogLine, name string) bool {
+	return ownLinesFor(lines, name, database.DialogUseTalk)
+}
+
+// ownLinesFor is ownLines among the lines of one use (npcdialog.use).
+func ownLinesFor(lines []database.NPCDialogLine, name, use string) bool {
 	key := database.NPCClassKey(name)
 	for _, l := range lines {
-		if l.Name != "" && l.Line != "" && l.Weight > 0 && database.NPCClassKey(l.Name) == key {
+		if l.Use == use && l.Name != "" && l.Line != "" && l.Weight > 0 && database.NPCClassKey(l.Name) == key {
 			return true
 		}
 	}
@@ -378,12 +383,23 @@ func DialogCandidates(lines []database.NPCDialogLine, town, role, name, mood, se
 }
 
 // DialogCandidatesFor is DialogCandidates to a listener of the race and
-// class (-1 none: no line for a class fits).
+// class (-1 none: no line for a class fits). Only a talk's lines
+// (npcdialog.use empty) are among them.
 func DialogCandidatesFor(lines []database.NPCDialogLine, town, role, name, mood, sex string, race, class int, voice DialogVoice) []DialogPick {
+	return dialogCandidatesUse(lines, database.DialogUseTalk, town, role, name, mood, sex, race, class, voice)
+}
+
+// dialogCandidatesUse is DialogCandidatesFor among the lines of one use
+// (npcdialog.use): a shop's greeting and an ambient line are picked as a
+// talk's line is, from their own rows alone.
+func dialogCandidatesUse(lines []database.NPCDialogLine, use, town, role, name, mood, sex string, race, class int, voice DialogVoice) []DialogPick {
 	key := database.NPCClassKey(name)
-	own := ownLines(lines, name)
+	own := ownLinesFor(lines, name, use)
 	var out []DialogPick
 	for _, l := range lines {
+		if l.Use != use {
+			continue // another use's line (a shop's greeting, an ambient line): never a talk's
+		}
 		if l.Line == "" || l.Weight <= 0 || (town == "" && strings.Contains(l.Line, "%t")) {
 			continue // a line naming the town, from a speaker of none (a guard on a road)
 		}
@@ -467,16 +483,36 @@ func DialogCandidatesFor(lines []database.NPCDialogLine, town, role, name, mood,
 func (w *World) TownLine(p *Player, npc *NPC, lines []database.NPCDialogLine, last int) (speaker, line string, id int, ok bool) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	return w.useLineLocked(p, npc, lines, last, database.DialogUseTalk)
+}
+
+// ShopLine is npc's greeting atop its merchant window to p: a line of
+// npcdialog of use shop, picked as TownLine picks a talk's (its own name's
+// rows alone when it has any, else its town's and role's), its words filled
+// in; ok false when none fits.
+func (w *World) ShopLine(p *Player, npc *NPC, lines []database.NPCDialogLine) (line string, ok bool) {
+	if p == nil || npc == nil {
+		return "", false
+	}
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	_, line, _, ok = w.useLineLocked(p, npc, lines, 0, database.DialogUseShop)
+	return line, ok
+}
+
+// useLineLocked is TownLine for the lines of one use (npcdialog.use). Must be
+// called with the World's lock held.
+func (w *World) useLineLocked(p *Player, npc *NPC, lines []database.NPCDialogLine, last int, use string) (speaker, line string, id int, ok bool) {
 	town, role, ok := w.dialogSpeakerLocked(npc)
 	if !ok {
 		// a speaker of its own lines, wherever it stands and whatever its body
-		if !dialogAble(npc) || !ownLines(lines, npc.Name) {
+		if !dialogAble(npc) || !ownLinesFor(lines, npc.Name, use) {
 			return "", "", 0, false
 		}
 		town, role = DialogTown(w.npcFactionLocked(npc)), NPCRole(npc.Name)
 	}
 	mood := w.dialogMoodLocked(p, npc)
-	picks := DialogCandidatesFor(lines, town, role, npc.Name, mood, w.dialogSexLocked(npc), p.Race, p.Class, w.dialogVoiceLocked(npc, town))
+	picks := dialogCandidatesUse(lines, use, town, role, npc.Name, mood, w.dialogSexLocked(npc), p.Race, p.Class, w.dialogVoiceLocked(npc, town))
 	if len(picks) > 1 && last != 0 {
 		kept := picks[:0:0]
 		for _, c := range picks {

@@ -297,6 +297,7 @@ world:
   #   max_instances: 30
   #   cap: 4              # players in a dungeon's instance (a dungeon's own cap wins)
   #   raid_cap: 50        # players in a raid's instance
+  #   lockout: 10m        # after an instance closes, who stood in it waits this long for a new one (0: off)
 
   # How many records the pack (worn items among them, as CLIENT's 40 counts
   # them) and the bank hold for a client that holds more (vanilla, offered them

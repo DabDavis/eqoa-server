@@ -89,6 +89,7 @@ type Kept struct {
 	// DecorLights is the decoration lights' layout the client answered
 	DecorLights uint8 `json:"decor_lights,omitempty"`
 	MobInfo     bool  `json:"mob_info,omitempty"`
+	MobInfoLay  uint8 `json:"mob_info_layout,omitempty"` // 0 from an older binary: layout 1
 	MercsTold   bool  `json:"mercs_told,omitempty"`
 	// MercsLayout is the layout of OpcodeMercsData the client asked for (2
 	// names each merc's hirer, the client's "<X's Mercenary>" tag): without
@@ -254,6 +255,7 @@ func (s *Session) Keep() Kept {
 		NPCTintsLayout:     s.npcTintsLayout,
 		DecorLights:        s.decorLights,
 		MobInfo:            s.mobInfo,
+		MobInfoLay:         s.mobInfoLayout,
 		MercsTold:          s.mercsTold,
 		MercsLayout:        s.mercsLayout,
 		MercWindow:         s.mercWindow,
@@ -446,7 +448,7 @@ func (s *Session) restore(k Kept, now time.Time) {
 	if k.DecorLights != 0 {
 		s.decorLightsSent = npcTintsUnknown
 	}
-	s.mobInfo = k.MobInfo
+	s.mobInfo, s.mobInfoLayout = k.MobInfo, k.MobInfoLay
 	// what they were sent is sent again at the next refresh (the client
 	// keeps it; the world may have changed in the hold)
 	s.mercsTold, s.mercsLayout, s.mercsSent = k.MercsTold, k.MercsLayout, ""

@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -867,6 +868,27 @@ type DungeonsConfig struct {
 	// own (unset: 4, the heroic dungeons'); RaidCap a raid's instance's (unset: 50)
 	Cap     int `yaml:"cap"`
 	RaidCap int `yaml:"raid_cap"`
+	// Lockout is how long a character who stood in a closed instance waits before it may enter a new instance of
+	// that dungeon (entity/dungeonlockout.go; unset: 10m, 0: off)
+	Lockout *ZeroDuration `yaml:"lockout"`
+}
+
+// ZeroDuration is a duration that also reads a bare 0 (yaml reads a time.Duration only from a string such as
+// "10m", so "lockout: 0" was an error).
+type ZeroDuration time.Duration
+
+// UnmarshalYAML reads a duration ("10m") or a number of seconds (0).
+func (d *ZeroDuration) UnmarshalYAML(n *yaml.Node) error {
+	if v, err := strconv.ParseFloat(n.Value, 64); err == nil {
+		*d = ZeroDuration(time.Duration(v * float64(time.Second)))
+		return nil
+	}
+	v, err := time.ParseDuration(n.Value)
+	if err != nil {
+		return fmt.Errorf("line %d: %q is not a duration (10m, 0)", n.Line, n.Value)
+	}
+	*d = ZeroDuration(v)
+	return nil
 }
 
 // HardcoreConfig is world.hardcore (handlers/hardcore.go).

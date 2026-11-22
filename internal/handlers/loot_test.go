@@ -252,3 +252,66 @@ func TestACorpseOpenedIsRefreshed(t *testing.T) {
 		t.Fatalf("a gone corpse refreshed: %v", refreshed)
 	}
 }
+
+// A take is answered as the game answers it, 0x0019 {slot}: the window is left
+// open as it is, its selection where it was (Heirloom petition 2616: the close
+// and resend reopened it, and VIWndLoot::Open put the cursor back on the top
+// row at every take). The last record taken, the window closes as before.
+func TestATakeIsAnsweredInPlace(t *testing.T) {
+	f := newCorpseFixture(t, 3)
+	f.h.OpenCorpse(f.sess, f.npc)
+	f.sent()
+	take := func(key, n uint32) [][]byte {
+		f.send(protocol.OpcodeClientLoot, func(w *buffer.Writer) { w.WriteUint32(key); w.WriteUint32(n) })
+		return f.sent()
+	}
+	for want := 1; want <= 2; want++ {
+		got := take(1, 1)
+		if len(got) == 0 || opOf(got[0]) != protocol.OpcodeClientLoot {
+			t.Fatalf("take %d: sent %s, want 0x0019 first", want, ops(got))
+		}
+		for _, m := range got {
+			if op := opOf(m); op == protocol.OpcodeClientCloseLoot || op == protocol.OpcodeLoot || op == protocol.OpcodeAddInvItem {
+				t.Fatalf("take %d: the window closed and was sent again: %s", want, ops(got))
+			}
+		}
+		if got[0][2] != 1 {
+			t.Fatalf("take %d: 0x0019 for slot %d, want 1", want, got[0][2])
+		}
+		if n := len(f.rows()); n != want {
+			t.Fatalf("take %d: %d rows in the pack, want %d", want, n, want)
+		}
+	}
+	// the last one: taken, and the window closes (the corpse goes)
+	got := take(0, 1)
+	if opOf(got[0]) != protocol.OpcodeAddInvItem || opOf(got[len(got)-1]) != protocol.OpcodeClientCloseLoot {
+		t.Fatalf("emptied: sent %s, want 0x003B .. 0x0016", ops(got))
+	}
+	if len(f.cleared) != 1 || len(f.rows()) != 3 {
+		t.Fatalf("emptied: cleared %v, %d rows", f.cleared, len(f.rows()))
+	}
+}
+
+// A take the client's Msg0019 would not mirror is the close and resend: part of
+// a stack (the client moves the whole record).
+func TestAPartTakeIsResent(t *testing.T) {
+	f := newCorpseFixture(t, 1)
+	bait := f.bait
+	if _, err := f.db.Exec(`INSERT INTO npcitem (npcid, stackleft, remainHP, patternid, listnumber)
+		VALUES (?, 5, 100, ?, 1)`, corpseNPCID, bait); err != nil {
+		t.Fatal(err)
+	}
+	f.h.OpenCorpse(f.sess, f.npc)
+	f.sent()
+	f.send(protocol.OpcodeClientLoot, func(w *buffer.Writer) { w.WriteUint32(1); w.WriteUint32(2) })
+	got := f.sent()
+	if opOf(got[0]) != protocol.OpcodeAddInvItem || opOf(got[len(got)-2]) != protocol.OpcodeClientCloseLoot ||
+		opOf(got[len(got)-1]) != protocol.OpcodeLoot {
+		t.Fatalf("2 of a stack of 5: sent %s, want 0x003B .. 0x0016 0x0018", ops(got))
+	}
+	// the whole stack, as CLIENT's LootOne asks: in place
+	f.send(protocol.OpcodeClientLoot, func(w *buffer.Writer) { w.WriteUint32(1); w.WriteUint32(3) })
+	if got = f.sent(); opOf(got[0]) != protocol.OpcodeClientLoot {
+		t.Fatalf("the rest of the stack: sent %s, want 0x0019", ops(got))
+	}
+}

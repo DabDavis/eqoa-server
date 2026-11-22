@@ -116,6 +116,9 @@ func (q *QuestEngine) SetCharacterQuest(serverID uint32, questID int, action str
 	}
 	q.mu.Lock()
 	defer q.mu.Unlock()
+	if q.heldLocked(questID) {
+		return "", fmt.Errorf("quest %d is held for a guarded edit (questdefgate.go): try again when it is published", questID)
+	}
 	qu := q.cat.byID[questID]
 	c := q.charLocked(serverID)
 	cq := c.quests[questID]

@@ -209,6 +209,11 @@ type QuestEngine struct {
 	defMu  sync.Mutex
 	held   map[int]bool
 	pubGen atomic.Uint64
+	// unpublished are the quests of an edit committed but not yet published
+	// (held until a reload succeeds)
+	unpublished map[int]bool
+	// loadHook runs as a publication begins (tests: a slow load)
+	loadHook func()
 }
 
 // questCatalog is the quests as last read.
@@ -487,8 +492,22 @@ func (q *QuestEngine) run() {
 	}
 }
 
-// Reload reads the quests again (a GM's change).
+// Reload reads the quests again (a GM's change). Publications are one at a
+// time (defMu, questdefgate.go): a load begun before another's can never
+// publish over it.
 func (q *QuestEngine) Reload() error {
+	q.defMu.Lock()
+	defer q.defMu.Unlock()
+	return q.publishLocked()
+}
+
+// publishLocked is Reload with defMu held: the quests read and the catalog
+// swapped in, its generation counted; quests an earlier edit left
+// unpublished are let go.
+func (q *QuestEngine) publishLocked() error {
+	if q.loadHook != nil {
+		q.loadHook()
+	}
 	all, err := q.store.LoadQuests()
 	if err != nil {
 		return err
@@ -535,6 +554,11 @@ func (q *QuestEngine) Reload() error {
 	q.texts, q.names = texts, names
 	q.saysPlaces = nil
 	q.spots, q.camps, q.hops = nil, nil, nil // the marks read the NPCs' places again
+	for id := range q.unpublished {
+		delete(q.held, id)
+	}
+	q.unpublished = nil
+	q.pubGen.Add(1)
 	q.mu.Unlock()
 	q.nudge() // a GM's edit: the marks and trackers again
 	return nil
@@ -951,7 +975,7 @@ func (q *QuestEngine) stepAtLocked(sess *session.Session, p *entity.Player, c *q
 	wontDeal := ""
 	for _, cq := range c.active() {
 		qu := q.cat.byID[cq.QuestID]
-		if qu == nil {
+		if qu == nil || q.heldLocked(qu.ID) { // held for an edit: questdefgate.go
 			continue
 		}
 		// its step, or any of its group's not yet done (questanyorder.go)
@@ -1170,6 +1194,8 @@ func (q *QuestEngine) mayTakeLocked(look *factionLook, p *entity.Player, c *ques
 // giver's "not yet", quests_notyet.go).
 func (q *QuestEngine) mayTakeAtLocked(look *factionLook, p *entity.Player, c *questChar, qu *database.Quest, level int) string {
 	switch {
+	case q.heldLocked(qu.ID):
+		return "it is being changed (questdefgate.go)"
 	case !qu.Enabled:
 		return "it is a draft"
 	case qu.First() == nil:
@@ -1662,6 +1688,11 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 	if qu == nil {
 		return true
 	}
+	if q.heldLocked(qu.ID) {
+		// an old box of a quest being changed: nothing of it is done (questdefgate.go)
+		q.tellLocked(c, sess, "", questHeldLine)
+		return true
+	}
 	switch ch.kind {
 	case choiceBoard:
 		if why := q.mayTakeLocked(q.lookAt(sess), p, c, qu); why != "" {
@@ -1801,7 +1832,7 @@ func (q *QuestEngine) killed(k entity.KillCredit) {
 		c := chars[i]
 		for _, cq := range c.active() {
 			qu := q.cat.byID[cq.QuestID]
-			if qu == nil {
+			if qu == nil || q.heldLocked(qu.ID) { // held for an edit: questdefgate.go
 				continue
 			}
 			st := qu.Step(cq.Step)

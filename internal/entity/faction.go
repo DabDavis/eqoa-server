@@ -525,18 +525,35 @@ func (w *World) FactionHitsFor(npcName string) []FactionHit {
 // specific factionstart row, else the faction's own. Must be called with the
 // lock held.
 func (w *World) startLocked(p *Player, faction string) int {
+	return w.startForLocked(p.Race, p.Class, p.HumType, faction)
+}
+
+// startForLocked is the start of a race, class and human type with a faction.
+func (w *World) startForLocked(race, class, hum int, faction string) int {
 	w.factions.ensure()
 	if len(w.factions.starts[faction]) > 0 {
-		if v, ok := w.factions.startsFor(comboOf(p.Race, p.Class, p.HumType))[faction]; ok {
+		if v, ok := w.factions.startsFor(comboOf(race, class, hum))[faction]; ok {
 			return v
 		}
 	}
 	return w.factions.byName[faction]
 }
 
-// standingLocked is p's standing with a faction: its own, else its start.
-// Must be called with the lock held.
+// standingLocked is p's standing with a faction as the world sees it: its
+// own (ownStandingLocked), shifted while a race illusion with "Race Faction"
+// lasts (racefaction.go). Must be called with the lock held.
 func (w *World) standingLocked(p *Player, faction string) int {
+	v := w.ownStandingLocked(p, faction)
+	if race, ok := p.factionRace(); ok {
+		v = clampFaction(v + w.startForLocked(race, p.Class, p.HumType, faction) - w.startLocked(p, faction))
+	}
+	return v
+}
+
+// ownStandingLocked is p's own standing with a faction: its own, else its
+// start; what a kill's or a quest's hit moves and the faction window shows.
+// Must be called with the lock held.
+func (w *World) ownStandingLocked(p *Player, faction string) int {
 	if v, ok := p.Factions[faction]; ok {
 		return v
 	}
@@ -677,7 +694,7 @@ func (w *World) takeFactionHitsLocked(sess *session.Session, p *Player, npc *NPC
 		if h.Delta == 0 {
 			continue
 		}
-		old := w.standingLocked(p, h.Faction)
+		old := w.ownStandingLocked(p, h.Faction) // the real one, under an illusion too (racefaction.go)
 		now := clampFaction(old + h.Delta)
 		if now != old {
 			if p.Factions == nil {

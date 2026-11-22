@@ -504,6 +504,12 @@ func main() {
 	}
 	log.Printf("Creatures: %s", gameWorld.DecorLightSummary())
 	log.Printf("Creatures: %s", gameWorld.TourSummary()) // the NPCs' tours (entity/npctour.go)
+	// The worn items' own run speeds (entity/itemspeed.go, table itemspeed)
+	if n, err := entity.LoadItemSpeeds(db); err != nil {
+		log.Printf("WARNING: %v; no worn item runs faster", err)
+	} else if n > 0 {
+		log.Printf("Items: %d records run their wearer faster (itemspeed)", n)
+	}
 	// The NPCs' dyes, by name (entity/npcdyes.go, table npcdyes)
 	if n, err := gameWorld.LoadNPCDyes(db); err != nil {
 		log.Printf("WARNING: %v; no NPC is dyed", err)

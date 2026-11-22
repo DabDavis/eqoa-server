@@ -156,7 +156,7 @@ func (w *World) ApplyFactionHits(sess *session.Session, p *Player, hits []Factio
 		if h.Delta == 0 || h.Faction == "" {
 			continue
 		}
-		old := w.standingLocked(p, h.Faction)
+		old := w.ownStandingLocked(p, h.Faction) // the real one (racefaction.go)
 		now := clampFaction(old + h.Delta)
 		if now != old {
 			if p.Factions == nil {

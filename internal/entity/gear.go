@@ -51,6 +51,9 @@ type Gear struct {
 	// Armor is the kind of armour on the chest (a robe: cloth), for a race shown in another body
 	// by it (armorbody.go)
 	Armor ArmorKind
+	// SpeedPct is the worn items' own run speed, a percent of the base run
+	// (itemspeed.go)
+	SpeedPct float64
 }
 
 // Add puts one worn item's stats, by stat id, into the sums.
@@ -181,9 +184,15 @@ func (w *World) SetGear(id EntityID, g Gear, fill bool) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	if p, ok := w.Players[id]; ok {
+		speed := p.SpeedNow()
 		p.Gear = g
 		p.RecalcStats(fill)
 		p.ArmorBody = w.armorBodyLocked(p) // armorbody.go
+		if s := p.SpeedNow(); s != speed { // a worn item's own speed on or off (itemspeed.go)
+			if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
+				sendPlayerSpeed(sess, s)
+			}
+		}
 	}
 }
 

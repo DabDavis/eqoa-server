@@ -155,7 +155,11 @@ func (w *World) duelWeaponProcLocked(d *Duel, p *Player, sess *session.Session, 
 		w.formProcLocked(sess, p, wp, now)
 		return false
 	}
-	if procIntn(100) >= wp.chancePct(p.StatNow(StatDex)) {
+	if wp.misses(p) {
+		return false
+	}
+	if wp.Kind == ProcPower {
+		w.powerProcLocked(p, wp)
 		return false
 	}
 	n := wp.Damage

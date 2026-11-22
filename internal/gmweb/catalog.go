@@ -1291,6 +1291,20 @@ var catalog = map[string]tableNote{
 			"source":      {Label: "Source", Help: "gm, or seed for tools/seed_npc_tint.py's rows (its --undo takes out exactly what it wrote)"},
 		},
 	},
+	"itemspeed": {
+		Label: "Item run speed", Group: "Items & spells", Title: "patternid", Sort: "patternid",
+		Help: "A worn item's own run speed (entity/itemspeed.go): while it is worn its wearer runs Pct percent of the base run " +
+			"faster, beside Spirit of the Wolf and the movement masteries (7: SoW's 1.30 times the run becomes 1.37). A hold " +
+			"or a freeze is still a stop; a slow takes its share of the whole.",
+		Live:   "At once: each wearer runs by it at its next change of gear (or login).",
+		Search: []string{"note", "source"},
+		Cols: map[string]colNote{
+			"patternid": {Label: "Item (key)", Help: "an itempattern record"},
+			"pct":       {Label: "Pct", Help: "percent of the base run added while worn"},
+			"note":      {Label: "Note", Help: "what it is"},
+			"source":    {Label: "Source", Help: "gm, or the tool that wrote it"},
+		},
+	},
 	"itemaura": {
 		Label: "Item auras", Group: "Items & spells", Title: "patternid", Sort: "patternid",
 		Help: "An aura on a worn piece of armour or a robe (entity/pieceaura.go): every character (and mercenary) wearing the item shows it " +

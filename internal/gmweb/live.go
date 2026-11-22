@@ -74,6 +74,15 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveOutfits()
 	case "tokenshop":
 		return "at once: the shop reads its stock at every talk and again at the buyer's Yes (a new shop's name within 30 seconds)"
+	case "itemspeed":
+		if s.d.DB == nil {
+			return "no database: at the next start"
+		}
+		if n, err := entity.LoadItemSpeeds(s.d.DB); err != nil {
+			return "not applied to the world: " + err.Error()
+		} else {
+			return fmt.Sprintf("at once: %d records; each wearer runs by it at its next change of gear", n)
+		}
 	case "itemaura", "charaura", "instanceaura":
 		return s.liveItemAuras()
 	case "npctitle":

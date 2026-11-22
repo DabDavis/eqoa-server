@@ -769,14 +769,21 @@ func (p *Player) SpeedNow() float32 {
 		}
 	}
 	slow *= p.slowFactor() // a buff's own slow (workbook.go)
+	worn := float32(p.Gear.SpeedPct / 100) // the worn items' own speed, beside the rest (itemspeed.go)
 	switch r := p.MoveRate(); {
 	case r <= moveRateBase:
-		return p.Speed * slow
+		if worn == 0 {
+			return p.Speed * slow
+		}
+		return p.Speed * (1 + worn) * slow
 	case r >= moveRateMax:
-		return p.Speed * speedBuff * p.sowFactor() * slow // a speed of its own past the buff's (hpcap.go)
+		if worn == 0 {
+			return p.Speed * speedBuff * p.sowFactor() * slow // a speed of its own past the buff's (hpcap.go)
+		}
+		return p.Speed * (speedBuff*p.sowFactor() + worn) * slow
 	default:
 		f := 1 + (speedBuff-1)*float64(r-moveRateBase)/float64(moveRateMax-moveRateBase)
-		return p.Speed * float32(f) * slow
+		return p.Speed * (float32(f) + worn) * slow
 	}
 }
 

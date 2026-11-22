@@ -146,6 +146,8 @@ func (wp WeaponProc) Explain() string {
 		what = "halves the creature's hate for the wielder"
 	case ProcRestore:
 		what = fmt.Sprintf("gives %s health and %d power to the wielder and its group within %d", figure, wp.Power, procRestoreReach)
+	case ProcPower:
+		what = fmt.Sprintf("gives %d power to the wielder (no hit, no hate)", wp.Power)
 	case ProcForm:
 		if wp.Scale != StatNone && wp.ScalePct != 0 {
 			figure += fmt.Sprintf(" + %d%% of %s", wp.ScalePct, procStatWord(wp.Scale))
@@ -172,7 +174,10 @@ func (wp WeaponProc) Explain() string {
 		what += fmt.Sprintf(" and snares it, %d%% slower for %.0f s", wp.snarePct(), wp.snareFor().Seconds())
 	}
 	if wp.Kind != ProcForm {
-		if wp.Chance > 0 {
+		if wp.ChanceStatPer > 0 {
+			what += fmt.Sprintf(", %g%% a landed hit and %g%% more for each point of the wielder's highest DEX, INT or WIS (100%% at most)",
+				wp.ChanceBase, wp.ChanceStatPer)
+		} else if wp.Chance > 0 {
 			what += fmt.Sprintf(", %d%% a landed hit (its own chance, any DEX)", wp.Chance)
 		} else {
 			what += ", " + WeaponProcChanceRule()

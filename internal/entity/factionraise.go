@@ -36,7 +36,7 @@ func (w *World) RaiseFactions(sess *session.Session, floors []database.ItemFacti
 			log.Printf("Factions: %s's item names %q, no faction here: passed by", p.Name, f)
 			continue
 		}
-		old := w.standingLocked(p, f)
+		old := w.ownStandingLocked(p, f) // the real one (racefaction.go)
 		to := clampFaction(r.Standing)
 		if old >= to {
 			continue

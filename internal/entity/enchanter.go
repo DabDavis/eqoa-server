@@ -36,11 +36,19 @@ import (
 //     masteries list's "group melee-proc buff", and pets swing.
 //   - The clarity line (clarityFamily: Breeze, Intuition, Clarity, Lucidity,
 //     Tranquility, Empathy and the group's Empathic ...) is one at a time on a
-//     player, the most power a tick winning, as heals over time are (hot.go):
-//     a weaker one does nothing, a stronger or equal one replaces the other
-//     and keeps its tick (no tick at once). Mana Flow, the Power Flow, Tide,
-//     Wave and Flood bursts and the bards' songs are not of the line and add
-//     to it.
+//     player in each of its two slots (claritySlot), the most power a tick
+//     winning, as heals over time are (hot.go): a weaker one does nothing, a
+//     stronger or equal one replaces the other and keeps its tick (no tick at
+//     once). The slots are the single target's ranks and the Empathy CM's
+//     forms (Empathy, Empathic ...): the players' Ability Stacking Guide's
+//     third exception (2026-11-22), "By purchasing the Empathy CM line, they
+//     can use that buff in their group ability slot and still use the single
+//     target ability that was upgraded", so one of each stays on. Until then
+//     the line was one slot, and Empathy took Clarity off. (A workbook spell's
+//     PoT is a stat and goes by its stack type, buffline.go: the single ranks'
+//     1 and the Empathy forms' 3 give the same two slots.) Mana Flow, the
+//     Power Flow, Tide, Wave and Flood bursts and the bards' songs are not of
+//     the line and add to it.
 //   - An arcane resist debuff on a creature (the Paralytic line, "Decrease
 //     Resist Arcane by 25, 15min") lowers the chance it resists what this
 //     server rolls an arcane resist for: a proc (proc.go) and a charm
@@ -131,6 +139,16 @@ func clarityFamily(name string) bool {
 	return strings.HasPrefix(n, "empathic ")
 }
 
+// claritySlot is the slot of the clarity line a spell of this name takes (the
+// file's doc): "group" for the Empathy CM's forms, "single" for the rest.
+func claritySlot(name string) string {
+	n := strings.ToLower(strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(name), "+")))
+	if n == "empathy" || strings.HasPrefix(n, "empathic ") {
+		return "group"
+	}
+	return "single"
+}
+
 // clarityWeaker is what the caster is told when its clarity does not take
 // (ours).
 const clarityWeaker = "%s already has a stronger power over time."
@@ -144,7 +162,8 @@ func (w *World) placeClarityLocked(caster *Player, casterSess *session.Session, 
 	}
 	var old *ActiveEffect
 	for _, e := range t.Effects {
-		if e.SpellID != ae.SpellID && e.PowerTick > 0 && clarityFamily(e.Name) && now.Before(e.Until) {
+		if e.SpellID != ae.SpellID && e.PowerTick > 0 && clarityFamily(e.Name) && claritySlot(e.Name) == claritySlot(ae.Name) &&
+			now.Before(e.Until) {
 			old = e
 			break
 		}

@@ -102,7 +102,18 @@ type TriggerEngine struct {
 
 	// deaths is table npcdeath; kills what the World heard, for the worker
 	deaths map[string][]database.NPCDeathTrigger
-	kills  chan entity.KillCredit
+	// spawnedBy is the trigger (by name) that spawned each creature a run made.
+	// A death row firing the trigger that spawned the dead creature is a
+	// trigger feeding itself: meant when bounded (the Harbingers' hounds, each
+	// back after its death, ten times), endless when each death brings more
+	// than one (the Cazic Thule phantasms' splits, 2026-11-22: ~2,400 in four
+	// hours, max holding only how many stood at once). selfRefireOK caps it.
+	// Taken out at the death it answers.
+	spawnedBy map[entity.EntityID]string
+	// selfRefires are, by trigger, the times in the last hour its own spawns'
+	// deaths fired it again (selfRefireOK)
+	selfRefires map[string][]time.Time
+	kills       chan entity.KillCredit
 
 	// reserved are the runs admitted ahead of a quest hand-in's commit, by
 	// their number: each holds its lock until activated or released
@@ -375,12 +386,18 @@ func (e *TriggerEngine) Killed(k entity.KillCredit) {
 	if ok {
 		e.heardKillLocked(k, world, x, z)
 	}
+	by := e.spawnedBy[k.NPCID]
+	delete(e.spawnedBy, k.NPCID)
 	e.mu.Unlock()
 	if len(rows) == 0 || !ok {
 		return
 	}
 	for _, r := range rows {
 		if r.Chance < 100 && e.rand()*100 >= r.Chance {
+			continue
+		}
+		if by != "" && strings.EqualFold(strings.TrimSpace(r.Trigger), strings.TrimSpace(by)) && !e.selfRefireOK(r.Trigger) {
+			log.Printf("Triggers: %q's death would fire %q, which spawned it, past %d times in an hour: not fired (a death row feeding its own trigger)", k.NPCName, r.Trigger, selfRefireMax)
 			continue
 		}
 		if _, err := e.FireNamed(r.Trigger, TriggerFirer{Name: k.NPCName + "'s death", Quiet: true,
@@ -1640,6 +1657,7 @@ func (e *TriggerEngine) spawnLocked(r *triggerRun, s database.TriggerStep) strin
 			ts.engage, ts.idle = time.Duration(s.Engage*float64(time.Minute)), e.now()
 		}
 		r.spawns = append(r.spawns, ts)
+		e.markSpawnedLocked(id, r.trig.Name)
 		placed++
 	}
 	how := ""
@@ -2142,4 +2160,44 @@ func (e *TriggerEngine) weatherStepLocked(r *triggerRun, s database.TriggerStep)
 		return "weather: " + err.Error()
 	}
 	return fmt.Sprintf("weather %s %s on %d zones for %d min", kind, weather.StrengthName(strength), len(zones), minutes)
+}
+
+// markSpawnedLocked notes the trigger that spawned id (spawnedBy). Must be
+// called with e.mu held.
+func (e *TriggerEngine) markSpawnedLocked(id entity.EntityID, trigger string) {
+	if e.spawnedBy == nil {
+		e.spawnedBy = make(map[entity.EntityID]string)
+	}
+	e.spawnedBy[id] = trigger
+}
+
+// selfRefireMax is how often in an hour a trigger may be fired again by the
+// deaths of its own spawns (the owner, 2026-11-22: "add the trigger fix").
+const selfRefireMax = 60
+
+// selfRefireOK counts one more firing of trigger by its own spawn's death
+// and reports whether it stays within selfRefireMax in the last hour.
+func (e *TriggerEngine) selfRefireOK(trigger string) bool {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	key := strings.ToLower(strings.TrimSpace(trigger))
+	now := e.now()
+	kept := e.selfRefires[key][:0]
+	for _, at := range e.selfRefires[key] {
+		if now.Sub(at) < time.Hour {
+			kept = append(kept, at)
+		}
+	}
+	if len(kept) >= selfRefireMax {
+		if e.selfRefires == nil {
+			e.selfRefires = make(map[string][]time.Time)
+		}
+		e.selfRefires[key] = kept
+		return false
+	}
+	if e.selfRefires == nil {
+		e.selfRefires = make(map[string][]time.Time)
+	}
+	e.selfRefires[key] = append(kept, now)
+	return true
 }

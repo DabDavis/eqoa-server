@@ -242,6 +242,7 @@ func (e *TriggerEngine) restore(k *KeptTriggers, copies map[entity.EntityID]enti
 				ts.engage, ts.idle = time.Duration(s.Engage*float64(time.Second)), later(s.Idle)
 			}
 			run.spawns = append(run.spawns, ts)
+			e.markSpawnedLocked(id, run.trig.Name)
 		}
 		for _, rs := range kr.Resummons {
 			run.resummons = append(run.resummons, &triggerResummon{step: rs.Step, fell: later(rs.Fell), callerSeen: rs.CallerSeen})

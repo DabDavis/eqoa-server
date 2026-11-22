@@ -66,7 +66,7 @@ func TestARangedShotNeedsSight(t *testing.T) {
 // A harmful spell at a creature its caster cannot see is refused before it
 // begins (the owner, 2026-11-13: "casters that cast from behind a barrier ...
 // still drains mana and visually casts but no damage"): no cast, no power
-// spent, "You cannot see your target." in red. The control: with nothing
+// spent, "No line of sight." in red. The control: with nothing
 // between, the same spell begins.
 func TestAHarmfulSpellNeedsSightToBegin(t *testing.T) {
 	nuke := CastSpell{SpellID: 9901, Name: "Test Nuke", Level: 1, Scope: 1, Range: 30, PowerCost: 50, CastTime: 2 * time.Second,

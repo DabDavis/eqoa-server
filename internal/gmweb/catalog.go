@@ -1228,7 +1228,7 @@ var catalog = map[string]tableNote{
 		Label: "Undead creatures", Group: "World", Title: "name", Sort: "name",
 		Help: "Which creatures are undead, by NPC NAME (lower case, no trailing $): the spells for undead alone (a " +
 			"\"Target undead\" line, as the ... Death nukes have, and the necromancer's Charm, Command, Control and Coerce " +
-			"Undead) are refused at anything else with \"This spell only works on the undead.\" (an enchanter's or a bard's " +
+			"Undead) are refused at anything else with \"Invalid creature type for that ability.\" (the live game's words; an enchanter's or a bard's " +
 			"charm takes undead as anything else: charm.go). undead 1 makes every NPC of the name undead, 0 none, whatever its name says; a name with no " +
 			"row is undead when its name says so (skeleton, zombie, ghoul, mummy, wraith, spectre, ghost...). Rows of " +
 			"source seed are tools/seed_npc_undead.py's, from the creatures' names and bodies: no record of the live game " +

@@ -111,6 +111,9 @@ const (
 	castNotFriendly = "Target is not friendly."
 	castOutOfRange  = "Out of range."
 	castNoPower     = "Not enough power."
+	// a cast at a creature just killed, its name still in the target box:
+	// the live game's red line (a 2012 tape, twice; board 759)
+	castDeadTarget = "You can't cast abilities on dead creatures."
 	// a pet's spell with no pet: CLIENT's own word for it (1021), which it
 	// shows itself for a pet command with none
 	castNoPet = "You do not have a pet."
@@ -1221,7 +1224,7 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 		return []EntityID{t.ServerID}, ""
 	case *NPC:
 		if t.Dead {
-			return nil, castNoTarget
+			return nil, castDeadTarget // the live game's words (filmed, board 759)
 		}
 		if t.Owner != 0 {
 			// a pet is on the players' side: helped, never harmed (pet.go)

@@ -32,8 +32,8 @@ import (
 // Coerce Undead: "CM: Charm an Undead.", their lines a plain "Target, Charm
 // ; Increase 25% based on CHA"), or a harmful spell whose name ends "Undead"
 // (Annihilate Undead). Cast at a creature that is not undead it is
-// refused at its start with castNotUndead in red (EverQuest's words: no
-// recording of the live game's refusal exists), a brief cast (charmFizzle:
+// refused at its start with castNotUndead in red (the live game's words, filmed:
+// a 2012 tape of a cleric's Smite Death at a living crocodile; board 759), a brief cast (charmFizzle:
 // a GM's "fizzle, and not fire off") and no power taken, no lockout. A charm
 // cast with a pet out is refused before this (charm.go). An undead-only charm
 // takes undead with the charm's own roll (charm.go), as every other charm
@@ -42,7 +42,7 @@ import (
 // failed on them ("Attempt resisted!", as the reference server's did on Rotting Flesh).
 
 // castNotUndead is the refusal of an undead-only spell at anything else.
-const castNotUndead = "This spell only works on the undead."
+const castNotUndead = "Invalid creature type for that ability."
 
 // reUndeadName is the words that make a creature's name undead's, whole
 // words only: "Hatebone" orcs and "Bonefish" are not, as the old substring

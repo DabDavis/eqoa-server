@@ -54,6 +54,17 @@ type KeptMerc struct {
 	// as a pet's are kept (keeppet.go). Before 2026-11-16 it came back bare,
 	// its hit points and armour short of its buffs' until it cast them again.
 	Effects []database.BuffRow `json:"effects,omitempty"`
+	// Camp is its camp (/merc camp: merccamp.go), nil for none: kept while
+	// its owner is within MercCampBreak of it
+	Camp *KeptMercCamp `json:"camp,omitempty"`
+}
+
+// KeptMercCamp is a kept merc's camp: its world, its owner's spot and facing,
+// and the merc's place there.
+type KeptMercCamp struct {
+	World uint8      `json:"world"`
+	Spot  [4]float32 `json:"spot"` // x, y, z, facing
+	At    [3]float32 `json:"at"`
 }
 
 // KeptMercsOf is what a kept player carries of its mercs: Mercs, or a
@@ -98,6 +109,9 @@ func (w *World) keptMercLocked(p *Player, ms *mercState, now time.Time) *KeptMer
 	if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil && groupHas(g, n.ServerID) {
 		k.Grouped = true
 	}
+	if c := ms.camp; c != nil {
+		k.Camp = &KeptMercCamp{World: c.World, Spot: [4]float32{c.X, c.Y, c.Z, c.Face}, At: c.At}
+	}
 	if ps := w.mercPetOutLocked(ms); ps != nil && ps.npc.Charm == nil && ps.spell != 0 {
 		pet := ps.npc
 		k.Pet = &KeptPet{Name: pet.Name, Spell: ps.spell, HPPct: share(pet.HP, pet.MaxHP), Stance: byte(ps.stance),
@@ -139,11 +153,19 @@ func (w *World) RestoreMerc(sess *session.Session, kit MercKit, k KeptMerc, now 
 	w.unbenchLocked(p, slot)
 	ms := w.spawnMercLocked(p, slot, kit, MercStance(k.Stance), now)
 	n := ms.npc
-	if k.World == p.World && distXZ(k.Place[0], k.Place[2], p.X, p.Z) <= petLost {
+	// a camp its owner is still at comes back with it (merccamp.go)
+	camped := k.Camp != nil && k.Camp.World == p.World && k.World == p.World &&
+		distXZ(k.Camp.Spot[0], k.Camp.Spot[2], p.X, p.Z) <= MercCampBreak
+	if camped || k.World == p.World && distXZ(k.Place[0], k.Place[2], p.X, p.Z) <= petLost {
 		oldX, oldZ := n.X, n.Z
 		n.X, n.Y, n.Z, n.Facing = k.Place[0], k.Place[1], k.Place[2], k.Place[3]
 		w.SpatialIndex.Update(n.ServerID, oldX, oldZ, n.X, n.Z)
 		ms.stay, ms.stayAt = k.Stay, k.StayAt
+		if camped {
+			c := k.Camp
+			ms.camp = &mercCamp{World: c.World, X: c.Spot[0], Y: c.Spot[1], Z: c.Spot[2], Face: c.Spot[3], At: c.At}
+			ms.stay = false
+		}
 	}
 	for _, r := range k.Effects {
 		if r.LeftMS > 0 {

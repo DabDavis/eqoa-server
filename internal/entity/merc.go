@@ -216,6 +216,10 @@ type mercState struct {
 	// stay holds it where it stood (/merc stay), stayAt that place
 	stay   bool
 	stayAt [3]float32
+	// camp is the camp it holds (/merc camp: merccamp.go), nil none;
+	// campBack: it broke camp and runs back to its owner
+	camp     *mercCamp
+	campBack bool
 	// target is what it fights, 0 none; ordered what /merc attack named,
 	// fought whatever its stance until it dies or goes
 	target, ordered EntityID
@@ -499,6 +503,8 @@ type MercInfo struct {
 	HP, MaxHP, Power, MaxPower int
 	Stance                     MercStance
 	Stay                       bool
+	// Camp: it holds a camp (/merc camp: merccamp.go)
+	Camp bool
 	Target                     string
 	// Offensive: a healer's mode (MercKit.Offensive)
 	Offensive bool
@@ -521,7 +527,7 @@ func (w *World) MercInfosOf(sess *session.Session) []MercInfo {
 	for _, ms := range w.mercsOfLocked(w.sessionPlayerLocked(sess)) {
 		n := ms.npc
 		info := MercInfo{Slot: ms.slot, Name: n.Name, Class: ms.kit.Class, Race: ms.kit.Race, Sex: ms.kit.Sex, Level: n.Level, HP: n.HP,
-			MaxHP: n.MaxHP, Power: n.Power, MaxPower: n.MaxPower, Stance: ms.stance, Stay: ms.stay, Grouped: w.mercInOwnGroupLocked(ms), Offensive: ms.kit.Offensive,
+			MaxHP: n.MaxHP, Power: n.Power, MaxPower: n.MaxPower, Stance: ms.stance, Stay: ms.stay, Camp: ms.camp != nil, Grouped: w.mercInOwnGroupLocked(ms), Offensive: ms.kit.Offensive,
 			AC: ms.body.StatNow(StatAC), Worn: ms.kit.Worn, AoE: ms.kit.AoE, Master: ms.kit.Master}
 		if t := w.NPCs[ms.target]; t != nil {
 			info.Target = t.Name
@@ -833,6 +839,9 @@ func (w *World) SetMercStay(sess *session.Session, slot int, stay bool) int {
 	defer w.mu.Unlock()
 	list := w.mercPickLocked(w.sessionPlayerLocked(sess), slot)
 	for _, ms := range list {
+		// follow runs back from a camp; stay holds where it then stands
+		w.breakMercCampLocked(ms)
+		ms.campBack = ms.campBack && !stay
 		ms.stay = stay
 		if stay {
 			n := ms.npc
@@ -1091,7 +1100,8 @@ func (w *World) mercSystem(now time.Time) {
 			w.mercPetTurnLocked(ms, sess, false, dt, now)
 			continue
 		}
-		if n.World != owner.World || distXZ(n.X, n.Z, owner.X, owner.Z) > petLost {
+		w.mercCampUpkeepLocked(ms, sess) // a camp its owner left breaks (merccamp.go)
+		if n.World != owner.World || distXZ(n.X, n.Z, owner.X, owner.Z) > w.mercLostLocked(ms) {
 			// a teleport, another world, a coach: it comes along, as a pet does
 			oldX, oldZ := n.X, n.Z
 			n.World = owner.World
@@ -1099,6 +1109,7 @@ func (w *World) mercSystem(now time.Time) {
 			n.stopMoving()
 			ms.target, ms.ordered = 0, 0
 			ms.stay = false
+			ms.camp, ms.campBack = nil, false
 			n.endRound()
 			w.SpatialIndex.Update(n.ServerID, oldX, oldZ, n.X, n.Z)
 			syncMercBody(ms)
@@ -1158,6 +1169,10 @@ func (n *NPC) mercRegen() {
 // or the place it holds (/merc stay). Must be called with the lock held.
 func (w *World) mercHomeLocked(ms *mercState, dt float32, now time.Time) {
 	n := ms.npc
+	if ms.camp != nil { // its camp's place (merccamp.go)
+		w.mercCampHomeLocked(ms, dt, now)
+		return
+	}
 	if !ms.stay {
 		if w.mercIdleLocked(ms, dt, now) { // at ease, its owner standing (mercidle.go)
 			return

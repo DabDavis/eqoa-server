@@ -88,7 +88,7 @@ func (ms *mercState) mercIdleNoteBusy(now time.Time) {
 func (w *World) mercAtEaseLocked(ms *mercState, f *followFrame, now time.Time) bool {
 	o, n := ms.owner, ms.npc
 	since := func(t time.Time) bool { return t.IsZero() || !now.Before(t.Add(mercIdleAfter)) }
-	return !ms.stay && ms.target == 0 && n.World == o.World && !o.Attacking() && !o.IsDead() &&
+	return !ms.stay && ms.camp == nil && !ms.campBack && ms.target == 0 && n.World == o.World && !o.Attacking() && !o.IsDead() &&
 		since(ms.idle.quiet) && since(f.movedAt) && since(o.LastCombatTime) && since(n.LastCombatTime) &&
 		!now.Before(ms.busy.Add(mercIdleAfter))
 }

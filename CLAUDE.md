@@ -277,7 +277,7 @@ Each system's file is its long form; its tests document the edge cases. `world.<
 | Genie's Lamp, Fang of the Wolf, Summoning Portal, Barrel of Monkeys, Rock of Freeport | `handlers/genie.go`, `wolffang.go`, `summonportal.go`, `monkeybarrel.go`, `rockfreeport.go` |
 | Safe mode, hiding others' mercenaries, the welcome guide | `handlers/safemode.go`, `hidemercs.go`, `welcome.go` |
 | The Teleporter | `handlers/teleporter.go`, `world.teleporter` |
-| Mercenaries | `entity/merc*.go`, `handlers/merc.go`, `world.mercs` |
+| Mercenaries; `/merc camp` (holds until its owner goes 125 off; kept over a keep restart) | `entity/merc*.go`, `entity/merccamp.go`, `handlers/merc.go`, `world.mercs` |
 | Testing Heroes faction | `entity/heroes.go`, `handlers/heroes.go`, `world.testing_heroes` |
 | Hazards, no-roam areas, teleport orbs | `entity/hazards.go`, `noroam.go`, `orbs.go` (tables of the same names) |
 | Quick chat kept, buyback, packs and banks past 40, account bank | `handlers/hotkeys.go`, `buyback.go`, `itemlists.go`, `accountbank.go`, `entity/itemslots.go` |

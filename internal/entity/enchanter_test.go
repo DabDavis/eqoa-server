@@ -124,10 +124,13 @@ func clarityLine(id int, name, line string) CastSpell {
 		Range: 30, Def: ParseSpellNamed(name, line, "")}
 }
 
-// The clarity line is one at a time: Breeze (5) over Clarity (17) does
-// nothing and the caster is told; Empathy (33) replaces Clarity with no tick
-// at once; the controls: Mana Flow, not of the line, goes on beside Empathy,
-// and with nothing of the line on, Clarity ticks at its landing.
+// The clarity line is one at a time in each slot: Breeze (5) over Clarity
+// (17) does nothing and the caster is told; Lucidity (25) replaces Clarity
+// with no tick at once; Empathy (33), the Empathy CM's (the group slot: the
+// Ability Stacking Guide's third exception), goes on beside Lucidity, and
+// Empathic Tranquility (40) replaces Empathy, Lucidity left; the controls:
+// Mana Flow, not of the line, goes on beside them, and with nothing of the
+// line on, Clarity ticks at its landing.
 func TestTheClarityLineIsOneAtATime(t *testing.T) {
 	c := newCaster(t)
 	c.p.Power, c.p.MaxPower = 100, 5000
@@ -148,13 +151,44 @@ func TestTheClarityLineIsOneAtATime(t *testing.T) {
 		t.Errorf("Breeze over Clarity: effects %+v, told %v; want Clarity alone, the caster told", c.p.Effects, told)
 	}
 	power := c.p.Power
+	c.land(t, clarityLine(596, "Lucidity", "Target, Increase Power per tic by 25, 15min"), c.me, 15*time.Second)
+	if len(c.p.Effects) != 1 || c.p.Effects[0].Name != "Lucidity" || c.p.Power != power {
+		t.Errorf("Lucidity over Clarity: effects %+v, power %d (was %d); want Lucidity alone, no tick at once", c.p.Effects, c.p.Power, power)
+	}
 	c.land(t, clarityLine(700779, "Empathy", "Target, Increase Power per tic by 33, 15min"), c.me, 20*time.Second)
-	if len(c.p.Effects) != 1 || c.p.Effects[0].Name != "Empathy" || c.p.Power != power {
-		t.Errorf("Empathy over Clarity: effects %+v, power %d (was %d); want Empathy alone, no tick at once", c.p.Effects, c.p.Power, power)
+	if names := effectNamesOf(c.p); len(names) != 2 || names[0] != "Lucidity" || names[1] != "Empathy" {
+		t.Errorf("Empathy beside Lucidity (the group slot): effects %v; want both", names)
+	}
+	c.land(t, clarityLine(701134, "Empathic Tranquility", "Group, Increase Power per tic by 40, 15min"), c.me, 25*time.Second)
+	if names := effectNamesOf(c.p); len(names) != 2 || names[0] != "Lucidity" || names[1] != "Empathic Tranquility" {
+		t.Errorf("Empathic Tranquility over Empathy: effects %v; want Lucidity and Empathic Tranquility", names)
 	}
 	c.land(t, clarityLine(700755, "Mana Flow", "Group, Increase Power per tic by 200 ; Increase 50% based on CHA, 24sec"), c.me, 30*time.Second)
-	if len(c.p.Effects) != 2 {
-		t.Errorf("Mana Flow (control) beside Empathy: %+v", c.p.Effects)
+	if len(c.p.Effects) != 3 {
+		t.Errorf("Mana Flow (control) beside them: %+v", c.p.Effects)
+	}
+}
+
+func effectNamesOf(p *Player) []string {
+	var out []string
+	for _, e := range p.Effects {
+		out = append(out, e.Name)
+	}
+	return out
+}
+
+// The clarity line's slots by name: the Empathy CM's forms the group's, the
+// ranks (a "+" one too) the single target's.
+func TestTheClaritySlots(t *testing.T) {
+	for _, n := range []string{"Empathy", "Empathic Breeze", "Empathic Tranquility", "Empathy+"} {
+		if claritySlot(n) != "group" {
+			t.Errorf("%s: slot %q, want group", n, claritySlot(n))
+		}
+	}
+	for _, n := range []string{"Breeze", "Clarity", "Clarity+", "Lucidity", "Tranquility"} {
+		if claritySlot(n) != "single" {
+			t.Errorf("%s: slot %q, want single", n, claritySlot(n))
+		}
 	}
 }
 

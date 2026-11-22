@@ -689,11 +689,20 @@ func lineStrength(a, b *ActiveEffect) int {
 	n := 0
 	for st := Stat(1); int(st) < len(statLineNames)-1; st++ {
 		k := "+" + statLineNames[st]
-		if slices.Contains(pa.keys, k) && slices.Contains(pb.keys, k) {
+		if hasStatKey(pa.keys, k) && hasStatKey(pb.keys, k) {
 			n += max(a.Mods.get(st), 0)
 		}
 	}
 	return n
+}
+
+// hasStatKey reports a line's keys raising the stat of key k ("+AC"), on its
+// bearer or as a self share ("+AC@self": the taunts' AC on their caster, one
+// line since the Ability Stacking Guide's sixth exception, 2026-11-22, and
+// weighed by it as any line: until then a share's AC counted as no shared
+// stat, so of two taunts of one level the later took the stronger's off).
+func hasStatKey(keys []string, k string) bool {
+	return slices.Contains(keys, k) || slices.Contains(keys, k+"@self")
 }
 
 // lineOutranks reports a, of b's line, keeping b off (the doc above): a gives

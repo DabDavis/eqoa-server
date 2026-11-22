@@ -114,12 +114,28 @@ func ParseLootCounts(s string) ([]float64, error) {
 // CategoryRolls is every category a creature of that name rolls at that
 // level under the active preset, in the rates' order, each with its pool.
 func (s *InventoryStore) CategoryRolls(name string, level int) ([]CategoryRoll, error) {
+	return s.CategoryRollsOf("", name, level)
+}
+
+// CategoryRollsOf is CategoryRolls for one spawn: its lootcreature row by
+// its npcs row's key (row, "#<npcs.id>": entity.RowKey; "" none) before its
+// name's, in every world, as npctemplate takes it (board 1861: a heroic
+// dungeon's trash rolls its own profile where its open-world namesake keeps
+// its own). Only the region and the profile come from the "#" row; the pool's
+// own rows (lootpool.npc_name) stay its NAME's.
+func (s *InventoryStore) CategoryRollsOf(row, name string, level int) ([]CategoryRoll, error) {
 	key := NPCClassKey(name)
+	var rowKey any // NULL matches no row
+	if row = strings.TrimSpace(row); row != "" {
+		rowKey = row
+	}
 	region, profile := "", ""
-	// matched by NPCClassKey whatever case the row was stored in (board 743),
-	// the row stored as its key first
-	switch err := s.db.QueryRow(`SELECT region, profile FROM lootcreature WHERE `+RuleKeySQL("npc_name")+` = ?
-		ORDER BY npc_name = ? DESC LIMIT 1`, key, key).Scan(&region, &profile); {
+	// the spawn's "#" row first; then the name's, matched by NPCClassKey
+	// whatever case the row was stored in (board 743), the row stored as its
+	// key first
+	switch err := s.db.QueryRow(`SELECT region, profile FROM lootcreature
+		WHERE npc_name = ? OR `+RuleKeySQL("npc_name")+` = ?
+		ORDER BY npc_name = ? DESC, npc_name = ? DESC LIMIT 1`, rowKey, key, rowKey, key).Scan(&region, &profile); {
 	case errors.Is(err, sql.ErrNoRows):
 	case err != nil:
 		return nil, fmt.Errorf("lootcreature: %w", err)

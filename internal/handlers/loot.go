@@ -204,7 +204,7 @@ func (h *NPCWindowHandler) rollCorpse(npc *entity.NPC, died time.Time, level int
 	// and a roll a category (lootcategory.go), but for a pet's, a
 	// charmed creature's or a training dummy's corpse
 	if rollsCategories(npc) {
-		if rolls, err := h.inv.CategoryRolls(npc.Name, npc.Level); err != nil {
+		if rolls, err := h.inv.CategoryRollsOf(entity.RowKey(npc.Row()), npc.Name, npc.Level); err != nil { // its "#" row first (board 1861)
 			log.Printf("Loot: %q's loot categories: %v", npc.Name, err)
 		} else if len(rolls) > 0 {
 			for i := range rolls {

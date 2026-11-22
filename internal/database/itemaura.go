@@ -103,7 +103,11 @@ func (db *SQLiteDB) ItemAuras() (map[int]ItemAura, error) {
 			out[id] = a
 		}
 	}
-	return out, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	rows.Close() // one connection: closed before the next query
+	return out, db.legacyAuras(out)
 }
 
 // ValidItemAuraSecond holds an itemaura row's second aura (kind2, nodes2): a
@@ -145,7 +149,11 @@ func (db *SQLiteDB) ItemSecondAuras() (map[int]ItemAura, error) {
 			out[id] = a
 		}
 	}
-	return out, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	rows.Close() // one connection: closed before the next query
+	return out, db.legacyAuras(out)
 }
 
 // SetItemAuraSecondAudited writes item a.PatternID's second aura (an aura that
@@ -359,4 +367,22 @@ func npcTintRowName(tx *sql.Tx, k string) (string, error) {
 		}
 	}
 	return found, rows.Err()
+}
+
+// legacyAuras gives each Legacy record (legacy.go) without a row of its own its
+// record's aura in m.
+func (db *SQLiteDB) legacyAuras(m map[int]ItemAura) error {
+	legacy, err := LegacyMap(db.DB)
+	if err != nil {
+		return err
+	}
+	for l, r := range legacy {
+		if a, ok := m[r]; ok {
+			if _, own := m[l]; !own {
+				a.PatternID = l
+				m[l] = a
+			}
+		}
+	}
+	return nil
 }

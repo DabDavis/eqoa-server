@@ -248,8 +248,11 @@ type SpellDef struct {
 	// Charges", "Never Spent") takes nothing of the item (handlers' usePotion:
 	// the Tester Pro, petition 1725); a spell's cast reads nothing of it
 	Unlimited bool
-	Duration  time.Duration // 0: it all happens when it lands
-	Harmful   bool
+	// RaceFaction: a race illusion whose line says "Race Faction" shows its
+	// bearer's standings as the race's (racefaction.go)
+	RaceFaction bool
+	Duration    time.Duration // 0: it all happens when it lands
+	Harmful     bool
 	// Pet is the creature a summoning line names ("Summons an Iron Golem to
 	// your defense": "iron golem"), "" when it names none ("Summons a pet").
 	Pet string
@@ -773,6 +776,10 @@ func (d *SpellDef) parsePart(part, verb string) string {
 		d.Effects = append(d.Effects, e)
 		return verb
 	}
+	if part == "race faction" { // a race illusion's standings (racefaction.go)
+		d.RaceFaction = true
+		return verb
+	}
 	if reUnlimited.MatchString(part) { // an item used without end (potion.go)
 		d.Unlimited = true
 		return verb
@@ -925,7 +932,7 @@ func (d *SpellDef) parsePart(part, verb string) string {
 		if sign < 0 {
 			add(SpellEffect{Kind: EffectSnare})
 		} else {
-			add(SpellEffect{Kind: EffectSpeed})
+			add(SpellEffect{Kind: EffectSpeed, SowPct: speedFigurePct(amount)})
 		}
 		return verb
 	}

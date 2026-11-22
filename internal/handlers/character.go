@@ -1667,6 +1667,7 @@ func wornGear(items []database.CharInventoryEntry) entity.Gear {
 		for id, v := range itemPatternStats(&it.Pattern) {
 			g.Add(id, v)
 		}
+		g.SpeedPct += entity.ItemSpeedPct(it.Pattern.PatternID) // its own run speed (entity/itemspeed.go)
 		// what it does when its wearer is hit (entity/wornshield.go)
 		if s, ok := entity.WornShieldOf(it.Pattern.PatternID, it.Pattern.ItemName); ok {
 			g.Shields = append(g.Shields, s)

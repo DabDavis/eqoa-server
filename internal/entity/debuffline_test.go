@@ -64,7 +64,7 @@ func TestACreatureCountsOnlyTheBestRankOfAClasssDebuff(t *testing.T) {
 	now := time.Unix(1_800_000_000, 0)
 	lower := debuffSpell(9601, 20, "Test Ailment", map[string]int{"str": -40, "dex": -50}, -25)
 	higher := debuffSpell(9602, 40, "Test Plague", map[string]int{"str": -90, "dex": -120}, 0)
-	if got, want := DebuffLine(&lower, 8), "debuff8 -DEX -STR"; got != want {
+	if got, want := DebuffLine(&lower, 8), "debuffpriest -DEX -STR"; got != want {
 		t.Fatalf("the line %q, want %q", got, want)
 	}
 	landDebuff(w, a, npc, higher, now)
@@ -158,8 +158,8 @@ func TestAMercsAndAPlayersDebuffOfOneClassAreOneLine(t *testing.T) {
 		t.Fatalf("%d effects on the creature, want the player's and the merc's", len(crab.Effects))
 	}
 	for _, e := range crab.Effects {
-		if e.Line != "debuff8 -STR" {
-			t.Errorf("%q's line %q, want debuff8 -STR", e.Name, e.Line)
+		if e.Line != "debuffpriest -STR" {
+			t.Errorf("%q's line %q, want debuffpriest -STR", e.Name, e.Line)
 		}
 	}
 	if m := crab.creatureMods(); m.Str != -90 {
@@ -192,5 +192,37 @@ func TestACreatureDebuffKeptKeepsItsLine(t *testing.T) {
 	}
 	if m := back.creatureMods(); m.Dex != -120 {
 		t.Errorf("DEX %+d made again, want -120 alone", m.Dex)
+	}
+}
+
+// A creature debuff's line is the caster's archetype's (the live game's notes
+// of 2006-04): two classes of one archetype are one line, the stronger
+// counting; two archetypes' debuffs of one stat both count.
+func TestCreatureDebuffLinesGoByArchetype(t *testing.T) {
+	noResist(t)
+	w := NewWorld()
+	npc := debuffFoe(w)
+	nec, enc := debuffCaster(w, 1001, 11), debuffCaster(w, 1002, 12)
+	now := time.Unix(1_800_000_000, 0)
+	landDebuff(w, nec, npc, debuffSpell(9651, 40, "Test Rot", map[string]int{"str": -70}, 0), now)
+	landDebuff(w, enc, npc, debuffSpell(9652, 30, "Test Sap", map[string]int{"str": -50}, 0), now.Add(time.Second))
+	if m := npc.creatureMods(); m.Str != -70 {
+		t.Errorf("a necromancer's and an enchanter's STR debuffs: STR %+d, want the stronger -70 alone", m.Str)
+	}
+
+	w2 := NewWorld()
+	npc2 := debuffFoe(w2)
+	sk, sha := debuffCaster(w2, 1001, 3), debuffCaster(w2, 1002, 8)
+	landDebuff(w2, sk, npc2, debuffSpell(9653, 40, "Test Scream", map[string]int{"str": -70}, 0), now)
+	landDebuff(w2, sha, npc2, debuffSpell(9654, 40, "Test Fever", map[string]int{"str": -50}, 0), now.Add(time.Second))
+	if m := npc2.creatureMods(); m.Str != -120 {
+		t.Errorf("a shadow knight's and a shaman's STR debuffs: STR %+d, want both, -120", m.Str)
+	}
+
+	for class, want := range map[int]string{0: "tank", 2: "tank", 3: "tank", 1: "melee", 4: "melee", 5: "melee", 6: "melee",
+		10: "caster", 11: "caster", 12: "caster", 13: "caster", 14: "caster", 7: "priest", 8: "priest", 9: "priest"} {
+		if got := debuffArchetype(class); got != want {
+			t.Errorf("class %d's archetype %q, want %q", class, got, want)
+		}
 	}
 }

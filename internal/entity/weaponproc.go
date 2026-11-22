@@ -105,6 +105,7 @@ const (
 	ProcForm                    // the wielder shown in a body for a while, the body's own proc beside it
 	ProcRoot                    // the creature held in place for a while (procRootFor)
 	ProcSnare                   // the creature slowed for a while (procSnareFor, procSnarePct)
+	ProcPower                   // power to the wielder alone, up to its most: no hit, no hate (Power)
 )
 
 // procRootFor is how long a weapon's root holds (ours: no source gives one), unless
@@ -176,6 +177,12 @@ type WeaponProc struct {
 	// tap" or "power drain": manaTapRe). The creature's hit points pay it, as a
 	// life tap's do: a creature here has no power to take (charm.go).
 	PowerBack bool
+	// ChanceBase and ChanceStatPer are a chance of its own by the wielder's
+	// highest DEX, INT or WIS, as the stat channel shows them: ChanceBase
+	// percent and ChanceStatPer percent more a point, at most 100 (a GM's bag,
+	// work board 1258: "a 10% chance each hit, plus 0.15% for each point of its
+	// wielder's highest DEX, INT or WIS (100% at 600)"); in place of Chance
+	ChanceBase, ChanceStatPer float64
 }
 
 // rootFor is how long its root holds.
@@ -210,6 +217,35 @@ func (wp *WeaponProc) holdWords() string {
 		return fmt.Sprintf("a %d%% snare for %.0f s", wp.snarePct(), wp.snareFor().Seconds())
 	}
 	return ""
+}
+
+// misses is whether a hit of p's does not proc it: the chance by its highest
+// DEX, INT or WIS when it has one of its own (ChanceStatPer), else chancePct by
+// its DEX. Rolled to a thousandth of a percent.
+func (wp *WeaponProc) misses(p *Player) bool {
+	if wp.ChanceStatPer > 0 {
+		return procIntn(100000) >= int(wp.statChancePct(p)*1000)
+	}
+	return procIntn(100) >= wp.chancePct(p.StatNow(StatDex))
+}
+
+// statChancePct is its chance by p's highest DEX, INT or WIS (ChanceStatPer).
+func (wp *WeaponProc) statChancePct(p *Player) float64 {
+	best := max(p.StatNow(StatDex), p.StatNow(StatInt), p.StatNow(StatWis), 0)
+	return min(wp.ChanceBase+wp.ChanceStatPer*float64(best), 100)
+}
+
+// powerProcLocked gives the wielder a power proc's power, up to its most: no
+// hit, no hate. Must be called with the lock held.
+func (w *World) powerProcLocked(p *Player, wp *WeaponProc) {
+	if wp.FX != 0 {
+		w.broadcastCastLocked(p, p.ServerID, 0, wp.FX)
+	}
+	if mp := p.MaxPowerNow(); p.Power < mp {
+		p.Power = min(p.Power+wp.Power, mp)
+		p.StatsDirty = true
+	}
+	log.Printf("Proc: %s's %q gives it %d power", p.Name, wp.Item, wp.Power)
 }
 
 // chancePct is the chance, in percent, that a hit of a bearer of that DEX procs
@@ -339,7 +375,11 @@ var (
 	procChanceRe = regexp.MustCompile(`(?i)\b(\d{1,3})\s*%\s*(?:chance\b|(?:a|an|per|each)\s+(?:hit|swing)s?\b)`)
 	// manaTapRe is a tap whose take is power (WeaponProc.PowerBack): "Procs a
 	// 10 point mana tap", "a power drain proc"; never "power drained"
-	manaTapRe = regexp.MustCompile(`(?i)\b(?:mana|power)\s+(?:tap|drain)\b`)
+	// "Procs 100 power to its wielder" (work board 1258)
+	procPowerRe = regexp.MustCompile(`(?i)\bprocs?\s+(\d+)\s+power\s+to\s+(?:its|the|their|his|her)\s+wielder\b`)
+	// "a 10% chance each hit, plus 0.15% for each point of its wielder's highest DEX, INT or WIS"
+	procStatChanceRe = regexp.MustCompile(`(?i)\b(\d+(?:\.\d+)?)\s*%\s*chance\b[^.]*?\bplus\s+(\d+(?:\.\d+)?)\s*%\s*for\s+each\s+point\s+of\s+(?:its|the)\s+wielder'?s\s+highest\s+dex,?\s+int\s+or\s+wis\b`)
+	manaTapRe        = regexp.MustCompile(`(?i)\b(?:mana|power)\s+(?:tap|drain)\b`)
 	// procHoldRe is a proc that holds or slows, in one sentence: "Procs a root.",
 	// "Procs: Snare", "procs a 6 second root", "root proc", "a snaring proc", "Proc:
 	// Ensnare 40%"; never a "Rootweave" nor a root of a tree with no proc beside it
@@ -397,6 +437,13 @@ func procHoldOf(desc string) (root, snare bool, pct int, hold time.Duration, ok 
 // gives none, or none with a figure (weaponProcsByName has those).
 func WeaponProcFromText(desc string) (WeaponProc, bool) {
 	lower := strings.ToLower(desc)
+	if m := procPowerRe.FindStringSubmatch(desc); m != nil { // power to its wielder (work board 1258)
+		if n, _ := strconv.Atoi(m[1]); n > 0 {
+			wp := WeaponProc{Kind: ProcPower, Power: n}
+			wp.readChance(desc)
+			return wp, true
+		}
+	}
 	if m := procNamedRe.FindStringSubmatch(desc); m != nil {
 		if wp, ok := procSpellsByName[strings.ToLower(strings.TrimSpace(m[1]))]; ok {
 			return wp, true
@@ -437,12 +484,27 @@ func WeaponProcFromText(desc string) (WeaponProc, bool) {
 	if m := onlyOnRe.FindStringSubmatch(desc); m != nil {
 		wp.Only = strings.ToLower(m[1])
 	}
+	wp.readChance(desc)
+	return wp, true
+}
+
+// readChance reads a proc's own chance out of its words: a chance by the
+// wielder's highest DEX, INT or WIS (procStatChanceRe), else a fixed one
+// (procChanceRe).
+func (wp *WeaponProc) readChance(desc string) {
+	if m := procStatChanceRe.FindStringSubmatch(desc); m != nil {
+		base, _ := strconv.ParseFloat(m[1], 64)
+		per, _ := strconv.ParseFloat(m[2], 64)
+		if per > 0 && base >= 0 && base <= 100 {
+			wp.ChanceBase, wp.ChanceStatPer = base, per
+			return
+		}
+	}
 	if m := procChanceRe.FindStringSubmatch(desc); m != nil {
 		if c, _ := strconv.Atoi(m[1]); c >= 1 && c <= 100 {
 			wp.Chance = c
 		}
 	}
-	return wp, true
 }
 
 // procElements are the words that name a proc's element, in the order
@@ -613,7 +675,11 @@ func (w *World) weaponProcLocked(sess *session.Session, p *Player, npc *NPC, now
 		w.formProcLocked(sess, p, wp, now)
 		return false
 	}
-	if procIntn(100) >= wp.chancePct(p.StatNow(StatDex)) {
+	if wp.misses(p) {
+		return false
+	}
+	if wp.Kind == ProcPower {
+		w.powerProcLocked(p, wp)
 		return false
 	}
 	// resisted, a proc that hurts does the least it can (workbook.go's leastHarm); one that
@@ -737,7 +803,7 @@ func (wp *WeaponProc) formChance() string {
 // is not on it already (the file's doc). Must be called with the lock held.
 func (w *World) formProcLocked(sess *session.Session, p *Player, wp *WeaponProc, now time.Time) {
 	id := weaponProcSpellID(wp.pattern)
-	if procIntn(100) >= wp.chancePct(p.StatNow(StatDex)) {
+	if wp.misses(p) {
 		return
 	}
 	// the form on: the proc renews its time, nothing else (the file's doc)

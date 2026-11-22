@@ -137,6 +137,10 @@ var wornShields = map[string]WornShield{
 	"wristguards of toxicity":      {Damage: 64},
 	"golden spiked gloves":         {Damage: 20},
 	"sandals of the burning sands": {Damage: 35},
+	// heroic Guk's tunic (a GM, 2026-11-13, work board 1312: "a stackable
+	// with other gear and buffs 20 heal damage shield"); its old copies,
+	// renamed "Legacy Fungal Spore Tunic", have none (the whole name keys)
+	"fungal spore tunic": {Heal: 20},
 	// (the heirlooms' chest piece healed as the Anointed from 2026-11-06 04:00
 	// to the next deploy: the user, "give it a healing effect per hit like the
 	// breastplate of the anointed", then "lets turn off the healing effect on

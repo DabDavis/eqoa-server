@@ -272,3 +272,44 @@ func TestACorpseHoldsWhatItsCategoriesRolled(t *testing.T) {
 		t.Fatalf("no active preset: %d records", n)
 	}
 }
+
+// A spawn's own lootcreature row ("#<row>") is read before its name's
+// (work board 1861, 1310): its profile beats the name's, its region too, and
+// the name's own pool rows still come. The controls: another row of the name,
+// and no row key, roll as the name's row says.
+func TestARowKeysLootCreatureRowBeatsItsNames(t *testing.T) {
+	f := newCorpseFixture(t, 0)
+	seedCategories(t, f)
+	if _, err := f.db.Exec(`INSERT INTO lootrate (preset, profile, category, rate, position) VALUES ('jib', 'heroic trash', 'uncommon', 0.125, 2),
+		('jib', 'heroic trash', 'trash', 0, 1)`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.db.Exec(`UPDATE lootrate SET counts = '0,0,1' WHERE profile = 'heroic trash' AND category = 'trash'`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.db.Exec(`INSERT INTO lootcreature (npc_name, region, profile) VALUES ('#4242', 'swamp', 'heroic trash')`); err != nil {
+		t.Fatal(err)
+	}
+	rolls, err := f.inv.CategoryRollsFor("Beetle", "#4242", 15)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rolls) != 2 || rolls[1].Category != "uncommon" || rolls[1].Rate != 0.125 {
+		t.Fatalf("#4242's rolls %+v: want its own profile's uncommon at 0.125", rolls)
+	}
+	if got := patterns(rolls[1].Choices); len(got) != 1 || got[0] != f.bait {
+		t.Errorf("#4242's uncommon pool %v: want every region's bait alone (its region is the swamp, not the plains)", got)
+	}
+	if got := patterns(rolls[0].Choices); len(got) != 1 || got[0] != f.bait {
+		t.Errorf("#4242's trash %v: want the beetle's own bait, by its name", got)
+	}
+	for _, key := range []string{"#4243", ""} {
+		rolls, err := f.inv.CategoryRollsFor("Beetle", key, 15)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(rolls) != 2 || rolls[1].Rate != 0.5 || len(patterns(rolls[1].Choices)) != 2 {
+			t.Errorf("row key %q: %+v, want the beetle's row's (0.5, the plains' sword and the bait)", key, rolls)
+		}
+	}
+}

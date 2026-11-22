@@ -86,6 +86,23 @@ func sowSpeedPart(part string) (int, bool) {
 	return int(math.Round(min(v, SowTimesMost) * 100)), true
 }
 
+// speedFigureSow is the figure of "Increase Movement Speed by N" that is the
+// movement buff's own run: the run in percent, as Spirit of the Wolf's lines
+// write it (130: cast.go's speedBuff).
+const speedFigureSow = 130
+
+// speedFigurePct is the SowPct of "Increase Movement Speed by N": 0 (the
+// movement buff's own speed, as before) for N of 130 or less, else N's run
+// as a share of the buff's, at most SowTimesMost of it. A GM's item, 2026-11
+// (work board 693): "Increase Movement Speed by 260" is twice the buff's run,
+// as "Run Speed 2x Spirit of the Wolf" is.
+func speedFigurePct(n int) int {
+	if n <= speedFigureSow {
+		return 0
+	}
+	return min(int(math.Round(float64(n)*100/speedFigureSow)), SowTimesMost*100)
+}
+
 // hpCap is the lowest ceiling the player's effects put on its maximum hit
 // points, and whether any does.
 func (p *Player) hpCap() (int, bool) {

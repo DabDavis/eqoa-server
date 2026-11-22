@@ -140,6 +140,9 @@ type EffectRules struct {
 	HPCapped   bool `json:",omitempty"`
 	StatPin    int  `json:",omitempty"`
 	StatPinned bool `json:",omitempty"`
+	// FactionRace is a race illusion's race + 1 whose line said "Race Faction"
+	// (racefaction.go): its bearer's standings shown as that race's; 0 none
+	FactionRace int `json:",omitempty"`
 }
 
 // rulesOf is a cast's rules for what lasts of it.
@@ -152,6 +155,7 @@ func rulesOf(d *SpellDef) EffectRules {
 			break
 		}
 	}
+	r.FactionRace = raceFactionOf(d) // racefaction.go
 	return r
 }
 

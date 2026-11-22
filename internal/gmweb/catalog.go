@@ -987,11 +987,13 @@ var catalog = map[string]tableNote{
 			"off the live game); a creature with no row, or no profile, is profile xp and draws every region's rows " +
 			"alone. Rows of source category-seed are tools/seed_loot_categories.py's: the region of most of the " +
 			"creature's spawns (a Tunaria quadrant's biome from EQOA-Data's map, Tunaria's waters marine, the Rathe, " +
-			"Odus, Lavastorm, the Plane of Sky, the Secrets) and the boss and named profiles.",
+			"Odus, Lavastorm, the Plane of Sky, the Secrets) and the boss and named profiles. A key #<row id> (an NPCs " +
+			"row's id) is that spawn's own, read before its name's in every world: its region and profile alone (the " +
+			"Loot pools' rows of a creature's own stay by its name).",
 		Live:   "At once: its next corpse rolls by it.",
 		Search: []string{"npc_name", "region", "profile", "source"},
 		Cols: map[string]colNote{
-			"npc_name": {Label: "NPC name (key)", Help: "lower case, as in NPCs without a trailing space or $"},
+			"npc_name": {Label: "NPC name (key)", Help: "lower case, as in NPCs without a trailing space or $; or #<row id>, one spawn's own"},
 			"region":   {Label: "Region", Help: "a Loot pools region; - rolls no category"},
 			"profile":  {Label: "Profile", Help: "a Loot rates profile; empty: xp"},
 			"source":   {Label: "Source", Help: "gm, or category-seed for tools/seed_loot_categories.py's rows"},
@@ -1287,6 +1289,20 @@ var catalog = map[string]tableNote{
 			"note":        {Label: "Note", Help: "why"},
 			"season":      {Label: "Season", Help: "blank always; else a season (Seasons: Christmas) the row holds only while it is on: off, the name is drawn as with no row"},
 			"source":      {Label: "Source", Help: "gm, or seed for tools/seed_npc_tint.py's rows (its --undo takes out exactly what it wrote)"},
+		},
+	},
+	"itemspeed": {
+		Label: "Item run speed", Group: "Items & spells", Title: "patternid", Sort: "patternid",
+		Help: "A worn item's own run speed (entity/itemspeed.go): while it is worn its wearer runs Pct percent of the base run " +
+			"faster, beside Spirit of the Wolf and the movement masteries (7: SoW's 1.30 times the run becomes 1.37). A hold " +
+			"or a freeze is still a stop; a slow takes its share of the whole.",
+		Live:   "At once: each wearer runs by it at its next change of gear (or login).",
+		Search: []string{"note", "source"},
+		Cols: map[string]colNote{
+			"patternid": {Label: "Item (key)", Help: "an itempattern record"},
+			"pct":       {Label: "Pct", Help: "percent of the base run added while worn"},
+			"note":      {Label: "Note", Help: "what it is"},
+			"source":    {Label: "Source", Help: "gm, or the tool that wrote it"},
 		},
 	},
 	"itemaura": {

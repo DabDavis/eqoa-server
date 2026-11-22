@@ -183,7 +183,7 @@ func (w *World) heroesCreditLocked(sess *session.Session, p *Player, npc *NPC) {
 // within FactionMin..FactionMax: the standing before and after. Must be called
 // with the lock held.
 func (w *World) heroesMoveLocked(p *Player, delta int) (old, now int) {
-	old = w.standingLocked(p, HeroesFaction)
+	old = w.ownStandingLocked(p, HeroesFaction)
 	now = clampFaction(old + delta)
 	if now != old {
 		if p.Factions == nil {
@@ -204,7 +204,7 @@ func (w *World) HeroesBalance(sess *session.Session) (balance, standing int, ok 
 	if p == nil || !w.heroesOpenLocked() {
 		return 0, 0, false
 	}
-	standing = w.standingLocked(p, HeroesFaction)
+	standing = w.ownStandingLocked(p, HeroesFaction)
 	return standing - FactionMin, standing, true
 }
 
@@ -219,7 +219,7 @@ func (w *World) HeroesSpend(sess *session.Session, cost int) (before, after int,
 	if p == nil || cost <= 0 || !w.heroesOpenLocked() {
 		return 0, 0, false
 	}
-	before = w.standingLocked(p, HeroesFaction)
+	before = w.ownStandingLocked(p, HeroesFaction)
 	if before-cost < FactionMin {
 		return before, before, false
 	}

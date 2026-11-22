@@ -504,6 +504,12 @@ func main() {
 	}
 	log.Printf("Creatures: %s", gameWorld.DecorLightSummary())
 	log.Printf("Creatures: %s", gameWorld.TourSummary()) // the NPCs' tours (entity/npctour.go)
+	// The worn items' own run speeds (entity/itemspeed.go, table itemspeed)
+	if n, err := entity.LoadItemSpeeds(db); err != nil {
+		log.Printf("WARNING: %v; no worn item runs faster", err)
+	} else if n > 0 {
+		log.Printf("Items: %d records run their wearer faster (itemspeed)", n)
+	}
 	// The NPCs' dyes, by name (entity/npcdyes.go, table npcdyes)
 	if n, err := gameWorld.LoadNPCDyes(db); err != nil {
 		log.Printf("WARNING: %v; no NPC is dyed", err)
@@ -576,10 +582,26 @@ func main() {
 	} else {
 		log.Printf("Items: %d Ascended gear records at +%d%%", n, database.AscendedPercent)
 	}
+	// The Legacy records of the Ascended copies held before every Ascended
+	// record was NO TRADE (database/legacy.go, work board 1714): each made its
+	// record again, then known as its record wherever an item is read
+	if n, err := database.SyncLegacyCopies(db.DB, time.Now()); err != nil {
+		log.Printf("WARNING: the Legacy records not made their records again: %v", err)
+	} else if n > 0 {
+		log.Printf("Items: %d Legacy records made their records again (a record changed)", n)
+	}
+	if n, err := entity.LoadLegacyItems(db.DB); err != nil {
+		log.Printf("WARNING: %v; no Legacy record is known", err)
+	} else if n > 0 {
+		log.Printf("Items: %d Legacy records, each read as its record", n)
+	}
 	go func() {
 		for range time.Tick(time.Minute) {
 			if _, err := entity.LoadAscendedItems(db.DB); err != nil {
 				log.Printf("Items: the Ascended records not read again: %v", err)
+			}
+			if _, err := entity.LoadLegacyItems(db.DB); err != nil {
+				log.Printf("Items: the Legacy records not read again: %v", err)
 			}
 		}
 	}()

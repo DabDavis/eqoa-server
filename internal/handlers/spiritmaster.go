@@ -11,15 +11,14 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
-// A spiritmaster binds: talked to, it asks bindQuestion, and Yes binds the
-// player to the spot right in front of it (F3 20261025-172313), kept in
-// charbind. Return Home and a death take the player there (homeOf); a
+// A spiritmaster binds: talked to, it asks its question (npcwords.go: the live
+// game's "Would you like to be bound?", or its own), and its one answer binds
+// the player to the spot right in front of it (F3 20261025-172313), kept in
+// charbind; the client's Exit binds no one. Return Home and a death take the player there (homeOf); a
 // character that never bound goes where every login starts, as before.
 
-// bindQuestion is what every spiritmaster asks.
-const bindQuestion = "Do you wish to set this as your bind point?"
-
-// boundLine is the spiritmaster's word once the player is bound.
+// boundLine is a spiritmaster's word once the player is bound, where it has
+// none of its own (npcwords.go).
 const boundLine = "You are now bound to this place."
 
 // bindReach is how far in front of a spiritmaster its bind point lies.
@@ -100,13 +99,15 @@ func homeOf(gw *entity.World, sess *session.Session, id entity.EntityID) (x, y, 
 // askBind opens a spiritmaster's question.
 func (h *InteractHandler) askBind(sess *session.Session, player *entity.Player, npc *entity.NPC) {
 	player.PendingBind = bindSpot(npc)
-	h.sendOptionBox(sess, bindQuestion, []string{"Yes", "No"})
+	w := bindWordsOf(npc.Name)
+	h.sendOptionBox(sess, w.Ask, []string{w.Answer})
 	log.Printf("Bind: %s asks %s", npc.Name, player.Name)
 }
 
-// answerBind takes the answer to the open question: Yes (option 0) binds the
-// player there, kept, then does the player's quest step at that spiritmaster
-// (a "bind your spirit" step) in the same go; No or anything else closes it.
+// answerBind takes the answer to the open question: its one answer (option 0)
+// binds the player there, kept, then does the player's quest step at that
+// spiritmaster (a "bind your spirit" step) in the same go; anything else (the
+// client's Exit) closes it.
 // The reference server's Zole (questrec16) answered the step only at the next talk: two
 // talks a new player did not know to make (F3 20261029-200655, 20261030-062009).
 func (h *InteractHandler) answerBind(sess *session.Session, player *entity.Player, option byte) {
@@ -121,7 +122,9 @@ func (h *InteractHandler) answerBind(sess *session.Session, player *entity.Playe
 			log.Printf("Bind: saving %s's bind point: %v", player.Name, err)
 		}
 	}
-	sess.Queue().AddWithSequence(buildClientMessage(b.By + ": " + boundLine))
+	for _, line := range bindWordsOf(b.By).Bound {
+		sess.Queue().AddWithSequence(buildClientMessage(b.By + ": " + line))
+	}
 	h.gameWorld.NPCVisual(b.NPC, player.ServerID, bindCast, bindVisual)
 	log.Printf("Bind: %s bound by %s at (%.1f, %.1f, %.1f) world=%d", player.Name, b.By, b.X, b.Y, b.Z, b.World)
 	if Quests().TalkStep(sess, player, b.By, b.NPC) {

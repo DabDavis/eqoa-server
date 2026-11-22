@@ -223,7 +223,7 @@ func TestTheHeroesVendorSellsEachWare(t *testing.T) {
 				t.Fatal("asking gave or took something")
 			}
 			got, _ = r.choose(buy, 0)
-			if !hasMsg(got, fmt.Sprintf("chat:-2000 faction with Testing Heroes (-%d)", w.cost)) ||
+			if !hasMsg(got, fmt.Sprintf("chat:-2000 faction with Testing Heroes (-%d).", w.cost)) ||
 				!hasMsg(got, fmt.Sprintf("box:Testing Heroes Vendor: The %s is yours. You have 0 left to spend.", w.name)) ||
 				!hasMsg(got, "op:003B") {
 				t.Errorf("the purchase said %q", got)
@@ -276,7 +276,7 @@ func TestTheHeroesVendorSpendsANegativeStanding(t *testing.T) {
 	}
 	_, buy := r.choose(box, 2)
 	got, _ = r.choose(buy, 0)
-	if !hasMsg(got, "chat:-1750 faction with Testing Heroes (-250)") ||
+	if !hasMsg(got, "chat:-1750 faction with Testing Heroes (-250).") ||
 		!hasMsg(got, "box:Testing Heroes Vendor: The Weakened Breastplate of the Anointed is yours. You have 250 left to spend.") {
 		t.Fatalf("the Weakened at -1500: %q", got)
 	}
@@ -416,10 +416,10 @@ func TestTheHeroesVendorTakesNothingForNothing(t *testing.T) {
 	_, box = r.visit()
 	_, buy := r.choose(box, 0)
 	got, _ = r.choose(buy, 0)
-	if !hasMsg(got, "chat:-2000 faction with Testing Heroes (-25)*") && !hasMsg(got, "chat:-1925 faction with Testing Heroes (-25)") {
+	if !hasMsg(got, "chat:-2000 faction with Testing Heroes (-25).*") && !hasMsg(got, "chat:-1925 faction with Testing Heroes (-25).") {
 		t.Errorf("the payment was not told: %q", got)
 	}
-	if !hasMsg(got, "chat:-1900 faction with Testing Heroes (+25)") || !hasMsg(got, "box:Testing Heroes Vendor: I could not hand it over: you keep your faction. Try again.") {
+	if !hasMsg(got, "chat:-1900 faction with Testing Heroes (25).") || !hasMsg(got, "box:Testing Heroes Vendor: I could not hand it over: you keep your faction. Try again.") {
 		t.Errorf("the refund: %q", got)
 	}
 	if r.standing() != entity.FactionMin+100 || r.purchases() != 0 {

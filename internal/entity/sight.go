@@ -149,9 +149,11 @@ func (w *World) clearLineLocked(world uint8, x0, y0, z0, x1, y1, z1 float32) boo
 	return w.inSightLocked(world, x0, y0, z0, x1, y1, z1)
 }
 
-// castNotSeen refuses a heal or a buff on a body its caster cannot see (ours,
-// as EverQuest's; no recording has one).
-const castNotSeen = "You cannot see your target."
+// castNotSeen refuses a cast or a shot at a body its caster cannot see: the
+// live game's red words, filmed (a 2012 tape of casts at a creature behind an
+// island's rocks, four times; board 759). It was ours, as EverQuest's ("You
+// cannot see your target."), until then.
+const castNotSeen = "No line of sight."
 
 // helpSeenLocked reports whether a helpful spell (not harmful, no resurrection)
 // from caster reaches a body at (x, y, z) in world: a line of sight between

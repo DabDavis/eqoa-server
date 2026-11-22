@@ -44,10 +44,10 @@ func bindCasts(s *session.Session) [][4]uint32 {
 	return out
 }
 
-// A spiritmaster asks "Do you wish to set this as your bind point?", Yes
-// binds the player right in front of it, kept, with its cast of the bind's
+// A spiritmaster asks "Would you like to be bound?" (the live game's), its one
+// answer binds the player right in front of it, kept, with its cast of the bind's
 // visual onto the player as the reference server's Zole did, and Return Home takes it
-// there (F3 20261025-172313). The controls: No binds nothing, and before any
+// there (F3 20261025-172313). The controls: Exit binds nothing, and before any
 // bind Return Home goes where every login starts.
 func TestASpiritmasterBinds(t *testing.T) {
 	tw := newTalkWorld(t, 23594, 6304)
@@ -70,15 +70,15 @@ func TestASpiritmasterBinds(t *testing.T) {
 	tw.w.UpdatePosition(tw.p.ServerID, 23594, 32.6, 6304, 0) // back at Savi's
 
 	tw.talk(id)
-	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Yes", "No"}) {
-		t.Fatalf("Spiritmaster Savi offered %q, want Yes and No", got)
+	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Yes, bind me."}) {
+		t.Fatalf("Spiritmaster Savi offered %q, want the live game's one answer", got)
 	}
-	tw.pick(id, 1)
+	tw.pick(id, 1) // the client's Exit, after the one answer
 	if _, bound := tw.w.BindOf(tw.p.ServerID); bound || len(kept) != 0 {
-		t.Fatal("the control: No bound the player")
+		t.Fatal("the control: Exit bound the player")
 	}
 	if cast := bindCasts(tw.s); len(cast) != 0 {
-		t.Fatalf("the control: No played the bind's visual %v", cast)
+		t.Fatalf("the control: Exit played the bind's visual %v", cast)
 	}
 	tw.s.SetPlayerObjectID(500000001)
 	tw.talk(id)

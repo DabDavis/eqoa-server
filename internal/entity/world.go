@@ -1243,25 +1243,24 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 		SendTrainingPoints(sess, player.UnusedTP)
 	}
 	w.sendGrantXP(sess, player.Level, player.BarXP()) // mastery.go: the level's, or the next mastery point's
-	// the reference server's words: "You receive N XP." for a kill and a quest alike
-	// (recorded by questrec16, claude-notes/quests-sandstorm-20261025.md),
-	// and for the masteries' share "You received N class mastery XP." alone
-	// when it is all of it (a level 60's the reference server session in a client
-	// report's chat, F3 20261025-225337); a boon's share named after them
-	// (ours)
-	if levelXP > 0 || (cmXP == 0 && shares.Debt == 0) {
+	// "You receive N XP." for a kill and a quest alike (the reference server's
+	// words, recorded by questrec16, claude-notes/quests-sandstorm-20261025.md;
+	// the live game's too, a quest's "You receive 36500 XP." filmed), and for
+	// the masteries' share "You received N class mastery XP." alone when it is
+	// all of it (a level 60's session in a client report's chat, F3
+	// 20261025-225337); a boon's share named after them (ours). An award that
+	// pays a debt says the live game's one line instead of the first, the
+	// whole award, what of it paid the debt and the debt before it: "You
+	// received 2195 XP. 1097 was paid towards your debt of 2195." (filmed on
+	// three live tapes; board 789); the masteries' line stays after it.
+	if shares.Debt > 0 {
+		w.sendChatToSession(sess, fmt.Sprintf("You received %d XP%s. %d was paid towards your debt of %d.",
+			levelXP+cmXP+shares.Debt, boon, shares.Debt, player.Debt+shares.Debt))
+	} else if levelXP > 0 || cmXP == 0 {
 		w.sendChatToSession(sess, fmt.Sprintf("You receive %d XP%s.", levelXP, boon))
 	}
 	if cmXP > 0 {
 		w.sendChatToSession(sess, fmt.Sprintf("You received %d class mastery XP%s.", cmXP, boon))
-	}
-	// what paid the debt, in our words: no record of the live game's line
-	if shares.Debt > 0 {
-		if player.Debt > 0 {
-			w.sendChatToSession(sess, fmt.Sprintf("%d experience went to your experience debt (%d left).", shares.Debt, player.Debt))
-		} else {
-			w.sendChatToSession(sess, fmt.Sprintf("%d experience went to your experience debt, and it is paid off.", shares.Debt))
-		}
 	}
 	if made > 0 {
 		SendMasteryPoints(sess, player.Mastery)

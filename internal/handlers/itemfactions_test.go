@@ -58,8 +58,8 @@ func TestTheFactionStoneRaisesItsFactions(t *testing.T) {
 	got := textsOf(r.use(r.key(stone), 0), protocol.OpcodeClientMessage)
 	// Halas stands past the floor: untouched, unsaid; the unknown faction passed by
 	wantLines := []string{
-		"700 faction with Citizens of Neriak (+2700)",
-		"700 faction with Citizens of Qeynos (+699)",
+		"700 faction with Citizens of Neriak (2700).",
+		"700 faction with Citizens of Qeynos (699).",
 		"The Stone of Seventeen Banners glows. Your standing has risen with 2 of its factions.",
 	}
 	if strings.Join(got, "\n") != strings.Join(wantLines, "\n") {

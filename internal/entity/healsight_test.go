@@ -27,7 +27,7 @@ func pillarAt(x, z float32) sightBox {
 
 // A heal on oneself behind a wall lands whatever stands round its caster; the
 // same heal on a friend behind the wall is refused before it begins, no power
-// spent, "You cannot see your target." in red, and on the friend in sight lands.
+// spent, "No line of sight." in red, and on the friend in sight lands.
 func TestAHealOnOneselfNeedsNoSight(t *testing.T) {
 	c := newCaster(t) // at (100, 10, 100)
 	c.w.SetGround(sightGround{pillarAt(110, 100), wallAt(105)})

@@ -114,34 +114,31 @@ func ParseLootCounts(s string) ([]float64, error) {
 // CategoryRolls is every category a creature of that name rolls at that
 // level under the active preset, in the rates' order, each with its pool.
 func (s *InventoryStore) CategoryRolls(name string, level int) ([]CategoryRoll, error) {
-	return s.CategoryRollsFor(name, "", level)
+	return s.CategoryRollsOf("", name, level)
 }
 
-// CategoryRollsFor is CategoryRolls for one spawn: a lootcreature row keyed
-// by its row's key (rowKey, "#<npcs.id>"; "" none) is read before its name's,
-// in every world, as npctemplate's are (work board 1861, 1310: a dungeon's
-// copy of a creature rolling its own profile while its open world namesake
-// keeps its). Only the region and the profile come from the row's key; the
-// pool's rows of a creature's own (lootpool.npc_name) stay by its name.
-func (s *InventoryStore) CategoryRollsFor(name, rowKey string, level int) ([]CategoryRoll, error) {
+// CategoryRollsOf is CategoryRolls for one spawn: its lootcreature row by
+// its npcs row's key (row, "#<npcs.id>": entity.RowKey; "" none) before its
+// name's, in every world, as npctemplate takes it (board 1861: a heroic
+// dungeon's trash rolls its own profile where its open-world namesake keeps
+// its own). Only the region and the profile come from the "#" row; the pool's
+// own rows (lootpool.npc_name) stay its NAME's.
+func (s *InventoryStore) CategoryRollsOf(row, name string, level int) ([]CategoryRoll, error) {
 	key := NPCClassKey(name)
-	region, profile := "", ""
-	found := false
-	if rowKey != "" {
-		switch err := s.db.QueryRow(`SELECT region, profile FROM lootcreature WHERE npc_name = ?`, rowKey).Scan(&region, &profile); {
-		case errors.Is(err, sql.ErrNoRows):
-		case err != nil:
-			return nil, fmt.Errorf("lootcreature: %w", err)
-		default:
-			found = true
-		}
+	var rowKey any // NULL matches no row
+	if row = strings.TrimSpace(row); row != "" {
+		rowKey = row
 	}
-	if !found {
-		switch err := s.db.QueryRow(`SELECT region, profile FROM lootcreature WHERE npc_name = ?`, key).Scan(&region, &profile); {
-		case errors.Is(err, sql.ErrNoRows):
-		case err != nil:
-			return nil, fmt.Errorf("lootcreature: %w", err)
-		}
+	region, profile := "", ""
+	// the spawn's "#" row first; then the name's, matched by NPCClassKey
+	// whatever case the row was stored in (board 743), the row stored as its
+	// key first
+	switch err := s.db.QueryRow(`SELECT region, profile FROM lootcreature
+		WHERE npc_name = ? OR `+RuleKeySQL("npc_name")+` = ?
+		ORDER BY npc_name = ? DESC, npc_name = ? DESC LIMIT 1`, rowKey, key, rowKey, key).Scan(&region, &profile); {
+	case errors.Is(err, sql.ErrNoRows):
+	case err != nil:
+		return nil, fmt.Errorf("lootcreature: %w", err)
 	}
 	if region == NoLootRegion {
 		return nil, nil

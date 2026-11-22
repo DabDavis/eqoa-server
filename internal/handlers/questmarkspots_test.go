@@ -108,7 +108,7 @@ func TestWayToAnotherWorld(t *testing.T) {
 	if !ok || h.from.ID != 1 || h.to != 2 {
 		t.Fatalf("Freeport's dockmaster to Odus: %+v %v", h, ok)
 	}
-	if got := wayLine(h, ""); got != "Travel with Dockmaster Yarnning to Arcadin" && got != "Travel with Dockmaster Yarnning to Stone of Morathals" {
+	if got := wayLine(h, ""); got != "Travel with Dockmaster Yarnning to Arcadin" {
 		t.Errorf("its line %q", got)
 	}
 	if _, ok := q.wayToLocked(spots, 0, 9, 0, 0); ok {

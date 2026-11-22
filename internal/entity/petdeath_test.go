@@ -168,16 +168,21 @@ func TestThePetsAttackRefusals(t *testing.T) {
 		line   string
 		target EntityID
 	}{
-		{"a crab too far off", far, petTargetTooFar, 0},
+		{"a crab too far off", far, "Master, that enemy is too far away.", 0},
 		{"the control, a merchant", merchant, petCannotAttack, 0},
 		{"a merchant too far off too", farMerchant, petCannotAttack, 0},
 		{"a crab near", near, "Your pet attacks Near Crab.", 7304},
 	} {
 		ps.target = 0
 		r.w.PetCommand(r.sess, petCmdAttack, c.object, r.at(20*time.Second))
-		lines := linesOf(r.sent())
+		msgs := r.sent()
+		lines := linesOf(msgs)
 		if len(lines) != 1 || lines[0] != c.line || ps.target != c.target {
 			t.Errorf("%s: %q, target %d; want %q, target %d", c.name, lines, ps.target, c.line, c.target)
+		}
+		// the far line is the live game's red one (board 843); the rest stay plain
+		if red := len(msgs) == 1 && opOfMsg(msgs[0]) == protocol.OpcodeColoredChat; red != (c.line == petTargetTooFar) {
+			t.Errorf("%s: red %v", c.name, red)
 		}
 	}
 	if pet.Dead {

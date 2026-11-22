@@ -307,7 +307,7 @@ func TestQuestTriggerEventAndItsLock(t *testing.T) {
 	if f.held(rain) != 0 || f.held(sun) != 2 {
 		t.Fatalf("the rain's taken at once: rain %d sun %d (%v)", f.held(rain), f.held(sun), m)
 	}
-	if !strings.Contains(strings.Join(m, "|"), "You have finished a quest!") {
+	if !strings.Contains(strings.Join(m, "|"), "You finished a quest!") {
 		t.Fatalf("not finished on the answer: %v", m)
 	}
 	// the lock is held: the sun's hand-in takes nothing and says why
@@ -460,7 +460,7 @@ func TestAFinishedRepeatableIsOfferedAgainAtTheWindow(t *testing.T) {
 	}
 	m = f.msgs()
 	f.qe.Answer(f.tw.s, f.tw.p, boxID(m), 0)
-	if m = f.msgs(); !strings.Contains(strings.Join(m, "|"), "You have finished a quest!") {
+	if m = f.msgs(); !strings.Contains(strings.Join(m, "|"), "You finished a quest!") {
 		t.Fatalf("not finished: %v", m)
 	}
 	if !f.qe.AtWindow(f.tw.s, f.tw.p, shop) {

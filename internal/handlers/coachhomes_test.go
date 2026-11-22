@@ -124,8 +124,8 @@ func TestFreeportsCoachRunsToTheHomesAClientHolds(t *testing.T) {
 	if got := offered(tw.p); !slices.Equal(got, want) {
 		t.Fatalf("Ronks offered %q, want %q (Tunaria's Gerntar Mines is no neighbour of Freeport's)", got, want)
 	}
-	if got := optionBox(t, tw.s); !slices.Equal(got, want) {
-		t.Errorf("Ronks's page %q, want the four towns alone", got)
+	if got := optionBox(t, tw.s); !slices.Equal(got, ronksLabels(want...)) {
+		t.Errorf("Ronks's page %q, want the four towns alone (in his words)", got)
 	}
 	tw.pick(ronks, 0)
 	if x, z, world, moved := teleported(tw.s); !moved || !nearCoach(x, z, 9211.7, 21547.1) || world != 10 {

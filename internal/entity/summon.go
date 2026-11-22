@@ -45,7 +45,9 @@ import (
 // templates, as every fight by a template ends at one, or its going from the world): out of the world at
 // once, no corpse. One killed in the fight lies its corpse's time, a corpse of nothing no one loots
 // (handlers' loot: CorpseOfNothing: no coins, no items, no loot table or category roll); its kill earns
-// what a creature's of its level does. A keep restart carries no Temporary NPC: the adds are gone, their
+// what a creature's of its level does. A summon with a life (Life, seconds) sends each add away that
+// long after it rises, as one whose fight ended goes (board 1660: the Grinch's Mini Grinches, 90 s).
+// A keep restart carries no Temporary NPC: the adds are gone, their
 // creature whole on its spawn's terms (keepnpc.go). Ours: the ring, the lines and the rules of their
 // going.
 
@@ -57,6 +59,7 @@ type addTie struct {
 	fight        *templateFight
 	pct          int
 	level, class int
+	until        time.Time // when it goes, its summon's life up (zero: no limit)
 }
 
 // templateSummon is one of a template's summons.
@@ -178,6 +181,9 @@ func (w *World) summonLocked(npc *NPC, f *templateFight, s *templateSummon, now 
 		c.NPCType &^= 0x80 // a fighter, attackable
 		c.EventAggro, c.QuestSpawn = false, false
 		c.add = &addTie{by: npc, fight: f, pct: s.Share, level: npc.Level, class: npc.Class}
+		if s.Life > 0 {
+			c.add.until = now.Add(time.Duration(s.Life * float64(time.Second)))
+		}
 		// a metal duel's creature's adds are the duel's as he is (metalv5.go: his gearlings): the challenger's
 		// alone to fight and to be fought by, every other client shown them with the NPC bit
 		c.challenge = npc.challenge
@@ -259,6 +265,12 @@ func (w *World) addsSystem(now time.Time) {
 			log.Printf("Template: %s (%d) goes with its creature's fight", a.Name, a.ServerID)
 			continue
 		}
+		if !a.add.until.IsZero() && !now.Before(a.add.until) {
+			w.dropAggroLocked(a.ServerID)
+			w.removeNPCLocked(a)
+			log.Printf("Template: %s (%d) goes, its time up", a.Name, a.ServerID)
+			continue
+		}
 		if a.CurrentEnemy == 0 && by.CurrentEnemy != 0 && len(by.Threats) > 0 {
 			w.joinAddLocked(a, by)
 		}
@@ -276,8 +288,12 @@ func addWords(npc *NPC) string {
 	if a == nil || a.by == nil {
 		return ""
 	}
-	if a.pct <= 0 {
-		return fmt.Sprintf("An add of %s's summon, as itself; it goes with its fight", a.by.Name)
+	goes := ""
+	if !a.until.IsZero() {
+		goes = fmt.Sprintf("; it goes in %d s", max(0, int(time.Until(a.until).Seconds()+0.5)))
 	}
-	return fmt.Sprintf("An add of %s's summon at %d%% of its figures (as its level %d); it goes with its fight", a.by.Name, a.pct, a.level)
+	if a.pct <= 0 {
+		return fmt.Sprintf("An add of %s's summon, as itself; it goes with its fight%s", a.by.Name, goes)
+	}
+	return fmt.Sprintf("An add of %s's summon at %d%% of its figures (as its level %d); it goes with its fight%s", a.by.Name, a.pct, a.level, goes)
 }

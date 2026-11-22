@@ -69,10 +69,10 @@ anyone else's what changed and when.
 - **A quest NPC's closing line** (what it says when the quest is finished): `quest_list` searching for its name or its
   giver, `quest_get` with its `questid`, then the last step's `says`: `update_row` with `table: queststeps`,
   `key: {"questid": 12, "step": 3}`, `values: {"says": "Well done, %p. Freeport thanks you."}` and `expect` its words
-  as read. A line of `says` is a box; "You have finished a quest!" and the rewards come after it.
+  as read. A line of `says` is a box; "You finished a quest!" and the rewards come after it.
 - **What a giver says to offer its quest**: the quest's `offer` (a paragraph a question), `accept` (a line a question:
   the answer that goes on), `decline` (the answer that refuses it), `declined` (its reply to a refusal) and `started`
-  (its words once the quest is taken, after "You have received a quest!").
+  (its words once the quest is taken, after "You received a quest!").
 - **What a step's NPC says**: `waiting` before the step can be done (with an `answer`, its last line asks), `notyet` and
   `reminder` while a show or give step's items are not held (the player's answer, then the NPC's words), `says` when it
   is done.

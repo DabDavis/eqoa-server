@@ -153,8 +153,8 @@ func TestMobInfoLeavesEveryOtherTalkAsItWas(t *testing.T) {
 
 // Out of the talk's reach, where a talk does nothing, a monster is looked at:
 // its name and level, as CLIENT's details box shows a player at any distance.
-// The controls: the switch off, nothing (as before); an NPC with the NPC bit
-// out of reach, nothing.
+// The controls: the switch off, and an NPC with the NPC bit out of reach,
+// only the live game's out-of-reach line (board 671).
 func TestAMonsterOutOfReachShowsItsNameAndLevel(t *testing.T) {
 	tw := newTalkWorld(t, 25403, 15725)
 	far := tw.add(1, &entity.NPC{ServerID: 721, Name: "Deathfist pawn", Level: 7, SpawnX: 25433, SpawnY: 54, SpawnZ: 15725})
@@ -163,17 +163,18 @@ func TestAMonsterOutOfReachShowsItsNameAndLevel(t *testing.T) {
 		t.Fatal("the pawn stands in the talk's reach")
 	}
 	tw.talk(far)
-	if got := tw.taken(); len(got) != 0 {
-		t.Fatalf("the control, the switch off: %d messages", len(got))
+	if got := chatLines(tw.s, protocol.OpcodeColoredChat); len(tw.s.Queue().PeekPending()) != 1 || len(got) != 1 || got[0] != talkOutOfReachLine {
+		t.Fatalf("the control, the switch off: %q", got)
 	}
+	tw.taken()
 	mobInfoSwitch(t)
 	tw.talk(far)
 	if got := tw.taken(); len(got) != 1 || mobBox(got[0]) != "Deathfist pawn\nLevel 7" {
 		t.Fatalf("out of reach: %q", mobBoxes(got))
 	}
 	tw.talk(farClerk)
-	if got := tw.taken(); len(got) != 0 {
-		t.Fatalf("the control, an NPC with the NPC bit out of reach: %d messages", len(got))
+	if got := chatLines(tw.s, protocol.OpcodeColoredChat); len(tw.s.Queue().PeekPending()) != 1 || len(got) != 1 || got[0] != talkOutOfReachLine {
+		t.Fatalf("the control, an NPC with the NPC bit out of reach: %q", got)
 	}
 }
 

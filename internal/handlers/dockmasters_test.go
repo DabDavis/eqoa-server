@@ -7,8 +7,9 @@ import (
 
 // The boats (petition 1034): every dockmaster's trip lands in front of the
 // dockmaster of the harbour it names, who has trips of his own, so no boat
-// strands a player; Freeport's two dockmasters offer the five harbours
-// EQOA-Data's map gives them, and a boat back to Freeport lands on the one
+// strands a player; Freeport's two dockmasters offer the harbours EQOA-Data's
+// map gives them, but the Stone of Morathals (Yarnning sails to Arcadin alone,
+// as the live game's did: board 745), and a boat back to Freeport lands on the one
 // whose boats go that way (an Odus harbour's on Yarnning, the others' on
 // Endol). The control: a dockmaster the map gives no boat stays one with
 // nothing to say.
@@ -41,7 +42,7 @@ func TestTheBoatsLandOnDockmastersWithBoats(t *testing.T) {
 			fp = append(fp, r.To)
 		}
 	}
-	if got := strings.Join(fp, ", "); got != "Arcadin, Stone of Morathals, Hazinak, Highbourne, Bogman Village" {
+	if got := strings.Join(fp, ", "); got != "Arcadin, Hazinak, Highbourne, Bogman Village" {
 		t.Errorf("Freeport's boats: %s", got)
 	}
 	if IsWaysender("Dockmaster Twallny") || IsWaysender("dock master") {

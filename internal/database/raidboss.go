@@ -9,7 +9,7 @@ func (s *InventoryStore) RaidBoss(name string) (bool, error) {
 	key := NPCClassKey(name)
 	var boss bool
 	err := s.db.QueryRow(`SELECT
-		EXISTS(SELECT 1 FROM lootcreature WHERE npc_name = ? AND lower(trim(profile)) = 'boss')
+		EXISTS(SELECT 1 FROM lootcreature WHERE `+RuleKeySQL("npc_name")+` = ? AND lower(trim(profile)) = 'boss')
 		OR EXISTS(SELECT 1 FROM npcloot WHERE npc_name = ? AND lower(tablename) LIKE 'boss %')`, key, key).Scan(&boss)
 	return boss, err
 }
@@ -31,7 +31,7 @@ func (db *SQLiteDB) RaidBossNames() ([]string, error) {
 		if err := rows.Scan(&n); err != nil {
 			return nil, err
 		}
-		out = append(out, n)
+		out = append(out, NPCClassKey(n)) // a row in capitals as its key (board 743)
 	}
 	return out, rows.Err()
 }

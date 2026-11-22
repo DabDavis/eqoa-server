@@ -96,7 +96,7 @@ func (w *World) mercChooseTargetLocked(ms *mercState) {
 	}
 	var best *NPC
 	var bestD float32
-	mates := w.mercGroupMatesLocked(ms) // an aggressive merc's (GM ticket 2025)
+	mates := w.mercGroupMatesLocked(ms)                    // an aggressive merc's (GM ticket 2025)
 	for _, id := range w.mercAroundLocked(ms, petAssist) { // round its camp too (merccamp.go)
 		npc := w.NPCs[id]
 		if npc == nil || !mercMayFight(m, npc) || w.walledOffLocked(owner, m, npc) {

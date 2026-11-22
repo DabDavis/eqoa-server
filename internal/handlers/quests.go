@@ -42,7 +42,7 @@ import (
 //     delete (0x007D) sends back. A quest's line is its step's journal words; a
 //     step done takes the line and adds the next step's at the end, as Return
 //     Home's quests did; the quest finished takes it away.
-//   - A step done: the NPC's words, "You have finished a quest!" after the last
+//   - A step done: the NPC's words, "You finished a quest!" after the last
 //     step, a line for each thing handed in and each item given, then the
 //     rewards (experience as a kill's, tunar, items as a sale's 0x003B, faction
 //     standings in the reference server's chat lines, spells as a scribe's 0x00B3). Those lines
@@ -82,8 +82,8 @@ const questBoxMark = 0x51000000
 
 // What the server says around a quest.
 const (
-	questReceived = "You have received a quest!"
-	questFinished = "You have finished a quest!"
+	questReceived = "You received a quest!" // the live game's (board 967; "You have ..." the reference server's)
+	questFinished = "You finished a quest!"
 	questFull     = "Your quest journal is full."
 	questNotYet   = "Come back when you have what I asked for."
 	questAskOffer = "Will you help?"
@@ -1505,11 +1505,11 @@ func (q *QuestEngine) startLocked(sess *session.Session, p *entity.Player, c *qu
 	// a run of its own: a finished run's picks are not this one's
 	cq.Step, cq.Count, cq.Slot, cq.Picks = st.Step, 0, c.nextSlot(), ""
 	q.saveLocked(cq)
-	// the reference server's order: the journal's line, "You have received a quest!",
-	// then the giver's words
+	// the live game's order (board 967: two tapes, 2009 and 2012): the
+	// journal's line, the giver's words, then "You received a quest!"
 	q.addLineLocked(sess, c, q.lineLocked(cq))
-	q.tellLocked(c, sess, "", questReceived)
 	q.tellLocked(c, sess, qu.Giver, sayLines(qu.Started)...)
+	q.tellLocked(c, sess, "", questReceived)
 	who := fmt.Sprintf("character %d", c.serverID)
 	if p != nil {
 		who = p.Name
@@ -2034,7 +2034,7 @@ func withinHeight(st *database.QuestStep, y float32) bool {
 
 // completeStepLocked does a step in the reference server's order (its first warrior
 // quest, recorded): the NPC's words, the journal's line taken (and the next
-// step's added), "You have finished a quest!" after the last step, a line for
+// step's added), "You finished a quest!" after the last step, a line for
 // what was handed in and each item given, then the experience and the
 // faction lines. extra is the rewards of the option the player picked (nil
 // none), given besides the step's.

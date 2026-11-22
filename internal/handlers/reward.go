@@ -26,7 +26,8 @@ import (
 // bearer (entity.World.LandOnSelf, as a board's gift lands): its icon and name in the bearer's effects, kept over a
 // logout as every buff is (buffsave.go), a second reward renewing it at its whole hour. The record is read at each
 // use, checked by its name (a record renamed or missing is said and nothing given). Each reward is a "live" line in
-// gm_audit (database.AuditGMLive), as the panel's kicks and messages are; the GM and the player are both told.
+// gm_audit (database.AuditGMLive), as the panel's kicks and messages are; the GM is told; the player is told
+// "You've been thanked by GM <name>, keep up the good work!" and a line of what it gives (jibrish, 2026-11-11).
 //
 // Petition 1740 (2026-11-12: "the /reward ability needs to HEAL the player and damage the attacking monster
 // when hit"): 25 was under a level 60 creature's 48 a hit, so it showed nothing; tools/misc1112_20261112.py makes
@@ -46,7 +47,11 @@ const (
 	rewardNoRecord = "#reward: GM's Reward's record (spell %d) is not on this server: %s"
 	rewardRefused  = "#reward: %s cannot take it now (dead, or not in the world)."
 	rewardGMLine   = "GM's Reward is on %s for an hour: a damage shield of 200 and a heal of 200 at every hit taken, +100 AC, +50 STR, STA, DEX, WIS, INT and CHA."
-	rewardYouLine  = "A GM has rewarded you: GM's Reward is on you for an hour of play. You heal 200 and deal 200 back at every hit you take, and gain 100 AC and 50 STR, STA, DEX, WIS, INT and CHA."
+	// the player's two (board 1084): the thank-you naming the GM, then what it gives, as spell
+	// 905121's record has it on both shards (a damage shield of 30, a heal of 30 at every hit:
+	// tools/misc1112_20261112.py's 200 came down since); change it with the record
+	rewardThanksLine = "You've been thanked by GM %s, keep up the good work!"
+	rewardBuffLine   = "GM's Reward (1 hour): +100 AC, +50 STR, STA, DEX, WIS, INT and CHA; when hit, you heal 30 and deal 30 back."
 )
 
 // rewardStore is where #reward reads its record and writes its audit line.
@@ -117,7 +122,8 @@ func (h *ChatHandler) rewardCommand(sess *session.Session, gm *entity.Player, ar
 	}
 	log.Printf("GM: account %d (%s): %s", sess.AccountID(), gm.Name, detail)
 	h.gmReply(sess, fmt.Sprintf(rewardGMLine, t.Name))
-	SendColoredChat(ts, rewardYouLine, 255, 255, 0)
+	SendColoredChat(ts, fmt.Sprintf(rewardThanksLine, gm.Name), 255, 255, 0)
+	SendColoredChat(ts, rewardBuffLine, 255, 255, 0)
 }
 
 // rewardTarget is a GM's reward's player: the one named (args), or the GM's target, a player; what is wrong is said

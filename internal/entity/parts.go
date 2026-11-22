@@ -48,20 +48,21 @@ type effectPart struct {
 	PowerCap     int      `json:",omitempty"`
 	PowerCapped  bool     `json:",omitempty"`
 	// the workbook's own (workbook.go's EffectRules)
-	SpeedPct         int  `json:",omitempty"`
-	MitigatePct      int  `json:",omitempty"`
-	MitigateLeft     int  `json:",omitempty"`
-	MitigateCapped   bool `json:",omitempty"`
-	Lull             bool `json:",omitempty"`
-	Breath           bool `json:",omitempty"`
-	Hide             bool `json:",omitempty"`
-	Disguise         bool `json:",omitempty"`
-	ProcHeal         int  `json:",omitempty"`
-	ProcHealDef      bool `json:",omitempty"`
-	ProcHealScale    Stat `json:",omitempty"`
-	ProcHealScalePct int  `json:",omitempty"`
-	ProcHealChance   int  `json:",omitempty"`
-	ProcHealUndead   bool `json:",omitempty"`
+	SpeedPct         int     `json:",omitempty"`
+	MitigatePct      int     `json:",omitempty"`
+	MitigateLeft     int     `json:",omitempty"`
+	MitigateCapped   bool    `json:",omitempty"`
+	Lull             bool    `json:",omitempty"`
+	Breath           bool    `json:",omitempty"`
+	Hide             bool    `json:",omitempty"`
+	Disguise         bool    `json:",omitempty"`
+	ProcHeal         int     `json:",omitempty"`
+	ProcHealDef      bool    `json:",omitempty"`
+	ProcHealScale    Stat    `json:",omitempty"`
+	ProcHealScalePct int     `json:",omitempty"`
+	ProcHealChance   int     `json:",omitempty"`
+	ProcHealUndead   bool    `json:",omitempty"`
+	ProcHealGroup    float32 `json:",omitempty"`
 	// Form: an illusion (its body is the effect's, illusion.go); SetStat: a
 	// stat set (setStatsLocked measures it on the bearer)
 	Form    bool `json:",omitempty"`
@@ -95,7 +96,7 @@ func partOf(a *ActiveEffect, e SpellEffect) *effectPart {
 		PowerCapped: a.PowerCapped, SpeedPct: r.SpeedPct, MitigatePct: r.MitigatePct, MitigateLeft: r.MitigateLeft,
 		MitigateCapped: r.MitigateCapped, Lull: r.Lull, Breath: r.Breath, Hide: r.Hide, Disguise: r.Disguise, ProcHeal: r.ProcHeal,
 		ProcHealDef: r.ProcHealDef, ProcHealScale: r.ProcHealScale, ProcHealScalePct: r.ProcHealScalePct,
-		ProcHealChance: r.ProcHealChance, ProcHealUndead: r.ProcHealUndead,
+		ProcHealChance: r.ProcHealChance, ProcHealUndead: r.ProcHealUndead, ProcHealGroup: r.ProcHealGroup,
 		Form: e.Kind == EffectIllusion, SetStat: e.Kind == EffectStat && e.Set,
 		Contact: e.EndsOnContact, Cast: e.EndsOnCast, Invisibility: a.Invis}
 }
@@ -136,6 +137,7 @@ func mergeParts(ps []*effectPart) effectPart {
 		if p.ProcHeal != 0 && m.ProcHeal == 0 {
 			m.ProcHeal, m.ProcHealDef, m.ProcHealScale = p.ProcHeal, p.ProcHealDef, p.ProcHealScale
 			m.ProcHealScalePct, m.ProcHealChance, m.ProcHealUndead = p.ProcHealScalePct, p.ProcHealChance, p.ProcHealUndead
+			m.ProcHealGroup = p.ProcHealGroup
 		}
 		m.Form, m.SetStat = m.Form || p.Form, m.SetStat || p.SetStat
 	}
@@ -275,6 +277,7 @@ func (ae *ActiveEffect) takeOff(m, r effectPart) {
 	if m.ProcHeal != 0 {
 		ae.Rules.ProcHeal, ae.Rules.ProcHealDef, ae.Rules.ProcHealScale = r.ProcHeal, r.ProcHealDef, r.ProcHealScale
 		ae.Rules.ProcHealScalePct, ae.Rules.ProcHealChance, ae.Rules.ProcHealUndead = r.ProcHealScalePct, r.ProcHealChance, r.ProcHealUndead
+		ae.Rules.ProcHealGroup = r.ProcHealGroup
 	}
 	ae.Rules.Lull = ae.Rules.Lull && (!m.Lull || r.Lull)
 	ae.Rules.Breath = ae.Rules.Breath && (!m.Breath || r.Breath)

@@ -495,9 +495,9 @@ func TestABoxIsNoLongerThanCLIENTShows(t *testing.T) {
 // The reference server's first warrior quest as questrec16 recorded it, in its shape (the
 // words here are the test's own): two questions before the quest is given, a
 // step that wants an item shown and keeps it, and the messages in the reference server's
-// order: taken, the journal's line, "You have received a quest!", then the
+// order: taken, the journal's line, "You received a quest!", then the
 // giver's words, each named for the giver; done, the giver's words, the line
-// taken, "You have finished a quest!", then the experience.
+// taken, "You finished a quest!", then the experience.
 func TestSandstormsFirstQuestsShape(t *testing.T) {
 	f := newQuestFixture(t)
 	f.exec(`INSERT INTO quests (questid, name, enabled, giver, offer, accept, started) VALUES (30, 'Join up', 1, 'Commander Test',
@@ -524,7 +524,8 @@ func TestSandstormsFirstQuestsShape(t *testing.T) {
 	}
 	f.tw.pick(boxID(m), 0)
 	m = f.msgs()
-	order := []string{"add:Pick up a bracer.", "box:" + questReceived, "box:Commander Test: Good.", "box:Commander Test: Fetch the bracer."}
+	// the live game's order (board 967): the giver's words, then the receipt
+	order := []string{"add:Pick up a bracer.", "box:Commander Test: Good.", "box:Commander Test: Fetch the bracer.", "box:" + questReceived}
 	if strings.Join(m, "\n") != strings.Join(order, "\n") {
 		t.Fatalf("taken:\n%s\nwant\n%s", strings.Join(m, "\n"), strings.Join(order, "\n"))
 	}

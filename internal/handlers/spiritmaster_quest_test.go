@@ -11,7 +11,7 @@ import (
 // (answerBind): "Bound to Neriak"'s first step, "Have Spiritmaster Sharun bind
 // your spirit to Neriak.", is done by the Yes that binds, where it waited for
 // a second talk that new players did not know to make (F3 20261029-200655,
-// 20261030-062009). The controls: No binds nothing and leaves the step; the
+// 20261030-062009). The controls: Exit binds nothing and leaves the step; the
 // bind of another spiritmaster (Friey, where cow bound) leaves Sharun's step.
 func TestABindDoesItsQuestStep(t *testing.T) {
 	f := newQuestFixture(t)
@@ -32,7 +32,7 @@ func TestABindDoesItsQuestStep(t *testing.T) {
 	friey := f.tw.add(1, &entity.NPC{ServerID: 2477, Name: "Spiritmaster Friey", SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5})
 	sharun := f.tw.add(2, &entity.NPC{ServerID: 2485, Name: "Spiritmaster Sharun", SpawnX: 25404, SpawnY: 54.1, SpawnZ: 15726})
 
-	// the controls: Friey's bind is not Sharun's step; No at Sharun binds nothing
+	// the controls: Friey's bind is not Sharun's step; Exit at Sharun binds nothing
 	f.tw.talk(friey)
 	f.tw.s.Queue().GetPending()
 	f.tw.pick(friey, 0)
@@ -44,15 +44,15 @@ func TestABindDoesItsQuestStep(t *testing.T) {
 	}
 	f.msgs()
 	f.tw.talk(sharun)
-	if got := optionBox(t, f.tw.s); !slices.Equal(got, []string{"Yes", "No"}) {
-		t.Fatalf("Sharun offered %q, want his bind's Yes and No first", got)
+	if got := optionBox(t, f.tw.s); !slices.Equal(got, []string{"Yes, bind me."}) {
+		t.Fatalf("Sharun offered %q, want his bind's answer first", got)
 	}
-	f.tw.pick(sharun, 1)
+	f.tw.pick(sharun, 1) // the client's Exit
 	if b, _ := f.tw.w.BindOf(f.tw.p.ServerID); b.By != "Spiritmaster Friey" {
-		t.Fatalf("the control: No at Sharun bound the player by %q", b.By)
+		t.Fatalf("the control: Exit at Sharun bound the player by %q", b.By)
 	}
 	if s, _ := f.progress(10020); s != 1 {
-		t.Fatalf("the control: No at Sharun moved the step to %d", s)
+		t.Fatalf("the control: Exit at Sharun moved the step to %d", s)
 	}
 	f.msgs()
 

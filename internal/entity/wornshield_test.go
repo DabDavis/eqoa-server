@@ -37,7 +37,7 @@ func TestWornShieldOf(t *testing.T) {
 	for name, want := range map[string]WornShield{
 		"Baleful Hide Chestguard": {Damage: 23, DamageTo: 24}, "Coat of Jagged Rust": {Damage: 39, DamageTo: 40},
 		"Golden Spiked Boots": {Damage: 30}, "Guard of the Deep": {Damage: 20}, "Rune Crested Gloves": {Damage: 30},
-		"Stinging Kite Shield": {Damage: 20}, "Thornlink": {Damage: 40}, "positronian energy shield": {Damage: 200, Undead: true},
+		"Stinging Kite Shield": {Damage: 20}, "Thornlink": {Damage: 40}, "positronian energy shield": {Damage: 100, Undead: true},
 		"Marauder Breastplate": {Damage: 10, Heal: 5}, "Tower of Woe": {Damage: 90, Heal: 45},
 		"Mithron Chestplate": {Heal: 15, Power: 15}, "coralium chestguard": {Power: 15}, "Coral Tunic": {Power: 25},
 		"fathomsteel guard": {Power: 15}, "FesterTwig": {Power: 15},
@@ -263,8 +263,8 @@ func TestTheSheetsShields(t *testing.T) {
 	c.w.mu.Lock()
 	c.w.playerShieldsLocked(c.sess, c.p, crab, c.at(time.Second))
 	c.w.mu.Unlock()
-	if hp-crab.HP != 200 {
-		t.Errorf("the positronian shield on a skeleton: hit %d, want 200", hp-crab.HP)
+	if hp-crab.HP != 100 {
+		t.Errorf("the positronian shield on a skeleton: hit %d, want 100", hp-crab.HP)
 	}
 }
 
@@ -355,5 +355,69 @@ func TestTheFungalSporeTunicHealsTwenty(t *testing.T) {
 	}
 	if _, ok := WornShieldOf(966011, "Legacy Fungal Spore Tunic"); ok {
 		t.Error("the Legacy tunic answers a hit")
+	}
+}
+
+// The Positronian Energy Shield answers an undead creature's hit with 100
+// (board 1249; 200 until then), by its record 6067 under its name in any case
+// and spacing, and nothing to a creature that is not undead: undeadLocked's
+// npcundead row decides over the name (a "skeleton" tagged 0 takes nothing, a
+// crab tagged 1 takes 100). Its copies: an Ascended record's is a tenth more
+// (110), once; an import's at a share of 0.85 is 85, and an import of the
+// Ascended record 94 (110 x 0.85, half up).
+func TestThePositronianShieldsHundred(t *testing.T) {
+	s, ok := WornShieldOf(6067, "  Positronian ENERGY Shield ")
+	if !ok || s.Damage != 100 || s.DamageTo != 0 || !s.Undead || s.Heal != 0 || s.Power != 0 {
+		t.Fatalf("6067: %+v %v", s, ok)
+	}
+	hit := func(name string, tags map[string]bool) int {
+		c, crab := casterAndCrab(t)
+		c.w.SetUndeadTags(tags)
+		crab.Name = name
+		c.p.Gear.Shields = []WornShield{s}
+		hp := crab.HP
+		c.w.mu.Lock()
+		c.w.playerShieldsLocked(c.sess, c.p, crab, c.at(time.Second))
+		c.w.mu.Unlock()
+		return hp - crab.HP
+	}
+	for _, c := range []struct {
+		what string
+		name string
+		tags map[string]bool
+		want int
+	}{
+		{"a skeleton by its name", "a decaying skeleton", nil, 100},
+		{"a crab by its name", "Desert Crab", nil, 0},
+		{"a skeleton tagged not undead", "a decaying skeleton", map[string]bool{"a decaying skeleton": false}, 0},
+		{"a crab tagged undead", "Desert Crab", map[string]bool{"desert crab": true}, 100},
+	} {
+		if got := hit(c.name, c.tags); got != c.want {
+			t.Errorf("%s: hit %d, want %d", c.what, got, c.want)
+		}
+	}
+
+	const asc, imp, impAsc = 980067, 990067, 990068
+	oldAsc, oldImp := ascendedItems.Load(), importedItems.Load()
+	SetAscendedItems(map[int]int{asc: 6067})
+	SetImportedItems(map[int]int{imp: 6067, impAsc: asc})
+	was := database.SetImportedShare(0.85)
+	t.Cleanup(func() {
+		ascendedItems.Store(oldAsc)
+		importedItems.Store(oldImp)
+		database.SetImportedShare(was)
+	})
+	for _, c := range []struct {
+		id   int
+		name string
+		want int
+	}{
+		{asc, "Ascended Positronian Energy Shield", 110},
+		{imp, "Positronian Energy Shield", 85},
+		{impAsc, "Ascended Positronian Energy Shield", 94},
+	} {
+		if s, ok := WornShieldOf(c.id, c.name); !ok || s.Damage != c.want || !s.Undead {
+			t.Errorf("%d %q: %+v %v, want %d on undead", c.id, c.name, s, ok, c.want)
+		}
 	}
 }

@@ -184,3 +184,31 @@ func wideText(b []byte) string {
 	}
 	return string(r)
 }
+
+// A talk from out of reach is answered in red, "You can't chat with your
+// target from there." (the live game, 2012 footage of Neriak's guards), and
+// opens nothing; the control: the same talk from within reach gets no such
+// line.
+func TestATalkFromOutOfReach(t *testing.T) {
+	tw := newTalkWorld(t, 25403, 15725)
+	SetNPCText(map[string]string{"Guard Drasn": "Move along."})
+	defer SetNPCText(nil)
+	far := tw.add(1, &entity.NPC{ServerID: 693, Name: "Guard Drasn", SpawnX: 25403 + 2*entity.InteractRange, SpawnY: 54, SpawnZ: 15725})
+	tw.talk(far)
+	got := chatLines(tw.s, protocol.OpcodeColoredChat)
+	if len(got) != 1 || got[0] != "You can't chat with your target from there." {
+		t.Fatalf("out of reach: lines %q", got)
+	}
+	if n := len(queued(tw.s, protocol.OpcodeDialogueBox)); n != 0 {
+		t.Errorf("out of reach: %d dialogue boxes", n)
+	}
+	tw.s.Queue().GetPending()
+	near := tw.add(2, &entity.NPC{ServerID: 694, Name: "Guard Drasn", SpawnX: 25404, SpawnY: 54, SpawnZ: 15726})
+	tw.talk(near)
+	if got := chatLines(tw.s, protocol.OpcodeColoredChat); len(got) != 0 {
+		t.Errorf("in reach: lines %q", got)
+	}
+	if n := len(queued(tw.s, protocol.OpcodeDialogueBox)); n != 1 {
+		t.Errorf("in reach: %d dialogue boxes, want 1", n)
+	}
+}

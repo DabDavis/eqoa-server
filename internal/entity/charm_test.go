@@ -273,7 +273,7 @@ func TestACharmTakesUndead(t *testing.T) {
 	began, msgs := castCharm(t, r4, coerce, crabID, 0)
 	said := false
 	for _, m := range msgs {
-		said = said || bytes.Contains(m, wide16("only works on the undead"))
+		said = said || bytes.Contains(m, wide16(castNotUndead))
 	}
 	if began || r4.enemy.Owner != 0 || !said {
 		t.Errorf("the necromancer's undead charm at the crab: began %v, owner %d, %x", began, r4.enemy.Owner, msgs)

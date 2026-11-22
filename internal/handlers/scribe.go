@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
@@ -246,6 +248,32 @@ func (h *EquipHandler) scribe(sess *session.Session, player *entity.Player, idx 
 		}
 	}
 
+	// An Ascended spell and its base (spellascended; board 1645): a base's
+	// scroll is refused once its Ascended spell is known, and an Ascended
+	// scroll takes the base's place in the book
+	asc, err := h.spells.AscendedSpellBases()
+	if err != nil {
+		log.Printf("Scribe: %s, %q: the Ascended spells: %v (read as none)", player.Name, p.ItemName, err)
+	}
+	for a, base := range asc {
+		if base != spell.SpellID {
+			continue
+		}
+		for _, e := range book {
+			if e.Pattern.SpellID == a {
+				unlock()
+				refuse(scribeKnown)
+				return
+			}
+		}
+	}
+	if base, ok := asc[spell.SpellID]; ok {
+		if baseRows := baseRowsOf(book, base, spellNameOf(names, base)); len(baseRows) > 0 {
+			h.scribeAscended(sess, player, idx, row, spell, baseRows, unlock)
+			return
+		}
+	}
+
 	// The spell first: should taking the scroll then fail, the player keeps
 	// a scroll of a spell known, rather than losing one for nothing.
 	order := nextDisplayIndex(book)
@@ -292,4 +320,86 @@ func (h *EquipHandler) takeOne(sess *session.Session, player *entity.Player, idx
 		l.took(idx, 1)
 	}
 	return nil
+}
+
+// scribeAscendedLine is said when an Ascended scroll takes its base's place
+// (board 1645; ours).
+const scribeAscendedLine = "%s replaces %s in your spell book."
+
+// spellNameOf is the record's name in names ("" none).
+func spellNameOf(names []database.SpellName, id int) string {
+	for _, s := range names {
+		if s.SpellID == id {
+			return s.Name
+		}
+	}
+	return ""
+}
+
+// baseRowsOf are the book's rows of an Ascended spell's base: its record, or
+// one of its exact name.
+func baseRowsOf(book []database.CharSpellEntry, base int, name string) []database.CharSpellEntry {
+	key := exactKey(name)
+	var out []database.CharSpellEntry
+	for _, e := range book {
+		if e.Pattern.SpellID == base || name != "" && exactKey(e.Pattern.SpellName) == key {
+			out = append(out, e)
+		}
+	}
+	return out
+}
+
+// scribeAscended puts an Ascended scroll's spell in its base's place (board
+// 1645): the base's rows out and the spell in at the first's display index,
+// on the hot bar where it was, in one transaction; then the scroll taken, the
+// client told as a path change tells it (0x00B8 a row gone, 0x00B3 the spell
+// come), the World told (BookChanged) and the player told in one line. unlock
+// is the book's lock, held until the write. Nothing is changed when the
+// write fails.
+func (h *EquipHandler) scribeAscended(sess *session.Session, player *entity.Player, idx int, row *database.CharInventoryEntry,
+	spell database.SpellName, baseRows []database.CharSpellEntry, unlock func()) {
+	first := baseRows[0]
+	for _, e := range baseRows[1:] {
+		if e.AddedOrder < first.AddedOrder {
+			first = e
+		}
+	}
+	var out []int
+	seen := map[int]bool{}
+	for _, e := range baseRows {
+		if !seen[e.Pattern.SpellID] {
+			seen[e.Pattern.SpellID] = true
+			out = append(out, e.Pattern.SpellID)
+		}
+	}
+	gone, err := h.spells.ReplaceSpell(player.CharServerID, out, spell.SpellID, first.AddedOrder, first.OnHotBar, first.WhereOnHotBar)
+	unlock()
+	if err != nil {
+		log.Printf("Scribe: %s, %q: putting spell %d in for %v: %v (nothing changed)", player.Name, row.Pattern.ItemName, spell.SpellID, out, err)
+		return
+	}
+	if err := h.takeOne(sess, player, idx, row); err != nil {
+		log.Printf("Scribe: %s, %q: taking the scroll: %v (the spell stays learned)", player.Name, row.Pattern.ItemName, err)
+	} else {
+		queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(idx, 0, 1))
+	}
+	later := takeRows(sess, baseRows, nil)
+	came := map[int]int{}
+	if book, err := h.spells.GetCharacterSpells(player.CharServerID); err != nil {
+		log.Printf("Scribe: %s, %q: the book after: %v", player.Name, row.Pattern.ItemName, err)
+	} else {
+		for i := range book {
+			if book[i].Pattern.SpellID == spell.SpellID {
+				SendAbilityAdd(sess, 0, true, &book[i])
+				came[spell.SpellID] = book[i].AddedOrder
+				break
+			}
+		}
+	}
+	if h.gameWorld != nil {
+		h.gameWorld.BookChanged(sess, out, came, time.Now())
+	}
+	log.Printf("Scribe: %s learned %q (spell %d) in place of %q (%d rows, display index %d; %d past the book's end)",
+		player.Name, spell.Name, spell.SpellID, first.Pattern.SpellName, gone, first.AddedOrder, len(later))
+	SendColoredChat(sess, fmt.Sprintf(scribeAscendedLine, spell.Name, first.Pattern.SpellName), 255, 255, 0)
 }

@@ -566,6 +566,23 @@ func checkItemAuraRow(row map[string]any) error {
 	return checkAuraCols(row, "kind", "source", "nodes")
 }
 
+// ruleNameColumns are the name-keyed rule tables whose name a GM's write
+// stores as database.NPCClassKey keys it (board 743: rows written with
+// capitals had matched no one).
+var ruleNameColumns = map[string]string{"npcclass": "name", "lootcreature": "npc_name"}
+
+// keyRuleNames stores a rule table's name in row as its key (ruleNameColumns):
+// "Acolyte Satyr" as "acolyte satyr"; a "#<row>" key is kept as it is.
+func keyRuleNames(table string, row map[string]any) {
+	col, ok := ruleNameColumns[table]
+	if !ok {
+		return
+	}
+	if v, ok := row[col].(string); ok {
+		row[col] = database.NPCClassKey(v)
+	}
+}
+
 // checkTintRow holds an npctint row to a name and a 32-bit colour: a blank name
 // would tint no NPC and say nothing.
 func checkTintRow(row map[string]any) error {
@@ -867,12 +884,12 @@ func (s *Server) liveNPCClass(before, after map[string]any) string {
 	}
 	var msgs []string
 	if before != nil && (after == nil || fmt.Sprint(before["name"]) != fmt.Sprint(after["name"])) {
-		n := s.d.World.SetNPCClass(fmt.Sprint(before["name"]), 0)
+		n := s.d.World.SetNPCClass(database.NPCClassKey(fmt.Sprint(before["name"])), 0)
 		msgs = append(msgs, fmt.Sprintf("%d NPCs named %q are warriors again", n, before["name"]))
 	}
 	if after != nil {
 		class, _ := asFloat(after["class"])
-		n := s.d.World.SetNPCClass(fmt.Sprint(after["name"]), int(class))
+		n := s.d.World.SetNPCClass(database.NPCClassKey(fmt.Sprint(after["name"])), int(class))
 		msgs = append(msgs, fmt.Sprintf("%d NPCs named %q swing as a %s now", n, after["name"], className(int(class))))
 	}
 	return strings.Join(msgs, "; ")

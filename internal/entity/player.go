@@ -206,6 +206,9 @@ type Player struct {
 	TeleportCounter   uint32
 	PendingCoachDests []CoachDest
 	CoachPage         int
+	// CoachBy is the coachman whose menu PendingCoachDests is ("" another
+	// travel NPC's): his own words, where he has them (handlers/npcwords.go)
+	CoachBy string
 
 	// Which hard-disk-setup dialogue this player has open, if any. Separate
 	// from PendingCoachDests because the option handler has to know WHICH menu
@@ -222,6 +225,9 @@ type Player struct {
 	// PendingYesNo marks PendingCoachDests as a waysender's one route asked
 	// as Yes or No (waysender.go in handlers) rather than a list of places.
 	PendingYesNo bool
+	// WayStep is the box of a waysender's own words (handlers/npcwords.go,
+	// CoachBy its name) the player has open: 0 none
+	WayStep int
 
 	// Bind is where Return Home and a death take the player: the spot before
 	// a spiritmaster it bound to, kept in charbind; unset, the login spawn.

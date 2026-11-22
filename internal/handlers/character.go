@@ -1754,8 +1754,9 @@ func (h *CharacterHandler) isValidName(name string) bool {
 		}
 	}
 
-	// A name with a profane root in it (profanity.go)
-	if profaneName(name) {
+	// A name carrying a word of the High profanity filter or worse
+	// (profanity_names.go)
+	if refusedName(name) {
 		return false
 	}
 
@@ -2391,7 +2392,7 @@ func (h *CharacterHandler) queueMemoryDumpAt(sess *session.Session, player *enti
 	bankList := newInvListCap(bankItems, bankCap)
 	bankList.kept = bankHidden // the account bank's rows not on its first page (accountbank.go)
 	grandfatherList(bankList, true, fitted.keptBank, sessionOG(sess), sharedBank(player))
-	packList.bank = bankList // a Lore item in the bank is one held (itemlist.go's loreRoom)
+	packList.bank = bankList                 // a Lore item in the bank is one held (itemlist.go's loreRoom)
 	packList.bankShared = sharedBank(player) // but not one in the account's (petition 2453)
 	sess.SetBankList(bankList)
 	// the account's other characters in the world see what this dump's reading

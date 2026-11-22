@@ -273,43 +273,63 @@ func TestACorpseHoldsWhatItsCategoriesRolled(t *testing.T) {
 	}
 }
 
-// A spawn's own lootcreature row ("#<row>") is read before its name's
-// (work board 1861, 1310): its profile beats the name's, its region too, and
-// the name's own pool rows still come. The controls: another row of the name,
-// and no row key, roll as the name's row says.
-func TestARowKeysLootCreatureRowBeatsItsNames(t *testing.T) {
+// A lootcreature row stored with capitals gives its region to the creature
+// whatever case its name is in (board 743: 208 census rows had matched no
+// one): "Acolyte Satyr" of the plains rolls the plains' sword beside every
+// region's bait, as "acolyte satyr" and as "Acolyte Satyr". The control: a
+// name with no row rolls every region's bait alone.
+func TestALootCreatureRowInCapitalsCounts(t *testing.T) {
 	f := newCorpseFixture(t, 0)
 	seedCategories(t, f)
-	if _, err := f.db.Exec(`INSERT INTO lootrate (preset, profile, category, rate, position) VALUES ('jib', 'heroic trash', 'uncommon', 0.125, 2),
-		('jib', 'heroic trash', 'trash', 0, 1)`); err != nil {
+	if _, err := f.db.Exec(`INSERT INTO lootcreature (npc_name, region, profile, source) VALUES ('Acolyte Satyr', 'plains', '', 'sandstorm-census')`); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := f.db.Exec(`UPDATE lootrate SET counts = '0,0,1' WHERE profile = 'heroic trash' AND category = 'trash'`); err != nil {
-		t.Fatal(err)
+	for _, name := range []string{"acolyte satyr", "Acolyte Satyr"} {
+		rolls, err := f.inv.CategoryRolls(name, 15)
+		if err != nil || len(rolls) != 2 {
+			t.Fatalf("%q: %+v %v", name, rolls, err)
+		}
+		if got := patterns(rolls[1].Choices); len(got) != 2 || got[0] != f.sword || got[1] != f.bait {
+			t.Errorf("%q's uncommon pool %v: want the plains' sword and every region's bait", name, got)
+		}
 	}
-	if _, err := f.db.Exec(`INSERT INTO lootcreature (npc_name, region, profile) VALUES ('#4242', 'swamp', 'heroic trash')`); err != nil {
-		t.Fatal(err)
+	if rolls, _ := f.inv.CategoryRolls("Acolyte Faun", 15); len(rolls) != 2 || len(patterns(rolls[1].Choices)) != 1 {
+		t.Errorf("the control, no row: %+v", rolls)
 	}
-	rolls, err := f.inv.CategoryRollsFor("Beetle", "#4242", 15)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(rolls) != 2 || rolls[1].Category != "uncommon" || rolls[1].Rate != 0.125 {
-		t.Fatalf("#4242's rolls %+v: want its own profile's uncommon at 0.125", rolls)
-	}
-	if got := patterns(rolls[1].Choices); len(got) != 1 || got[0] != f.bait {
-		t.Errorf("#4242's uncommon pool %v: want every region's bait alone (its region is the swamp, not the plains)", got)
-	}
-	if got := patterns(rolls[0].Choices); len(got) != 1 || got[0] != f.bait {
-		t.Errorf("#4242's trash %v: want the beetle's own bait, by its name", got)
-	}
-	for _, key := range []string{"#4243", ""} {
-		rolls, err := f.inv.CategoryRollsFor("Beetle", key, 15)
-		if err != nil {
+}
+
+// A spawn's "#<row>" lootcreature row comes before its name's (board 1861):
+// beetle #77's profile "named" beats the beetle's xp, and the beetle's own
+// pool rows still come (matched by its name); #78's region "-" rolls nothing
+// though the beetle's row is the plains'. The control: a spawn with no "#" row
+// rolls as its name does.
+func TestASpawnsRowKeyComesBeforeItsName(t *testing.T) {
+	f := newCorpseFixture(t, 0)
+	seedCategories(t, f)
+	for _, q := range []struct {
+		sql  string
+		args []any
+	}{
+		{`INSERT INTO lootcreature (npc_name, region, profile) VALUES ('#77', 'plains', 'named'), ('#78', '-', '')`, nil},
+		{`INSERT INTO lootpool (category, npc_name, patternid) VALUES ('uncommon', 'beetle', ?)`, []any{f.sword}},
+	} {
+		if _, err := f.db.Exec(q.sql, q.args...); err != nil {
 			t.Fatal(err)
 		}
-		if len(rolls) != 2 || rolls[1].Rate != 0.5 || len(patterns(rolls[1].Choices)) != 2 {
-			t.Errorf("row key %q: %+v, want the beetle's row's (0.5, the plains' sword and the bait)", key, rolls)
-		}
+	}
+	rolls, err := f.inv.CategoryRollsOf(entity.RowKey(77), "Beetle", 15)
+	if err != nil || len(rolls) != 1 || rolls[0].Category != "uncommon" || rolls[0].Rate != 0.9 {
+		t.Fatalf("beetle #77: %+v %v; want the named profile's uncommon at 0.9", rolls, err)
+	}
+	if got := patterns(rolls[0].Choices); len(got) != 1 || got[0] != f.sword {
+		t.Errorf("beetle #77's uncommon pool %v: want the beetle's own sword", got)
+	}
+	if rolls, err := f.inv.CategoryRollsOf(entity.RowKey(78), "beetle", 15); err != nil || len(rolls) != 0 {
+		t.Errorf("beetle #78 of region -: %+v %v", rolls, err)
+	}
+	byName, _ := f.inv.CategoryRolls("beetle", 15)
+	other, _ := f.inv.CategoryRollsOf(entity.RowKey(79), "beetle", 15)
+	if len(other) != 2 || len(byName) != 2 || other[0].Category != byName[0].Category || other[1].Rate != byName[1].Rate {
+		t.Errorf("the control, beetle #79 with no row: %+v, its name's %+v", other, byName)
 	}
 }

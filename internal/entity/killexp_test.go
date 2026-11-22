@@ -184,7 +184,8 @@ func TestALevel60KillMakesAMasteryPoint(t *testing.T) {
 // level 60 owing 100,000 pays it all off out of a 425,820 kill and gets the
 // rest as mastery experience, one owing 1,000,000 pays half (212,910) and
 // still owes the rest; 0x00D9 tells CLIENT the debt left, and the chat says
-// both shares. The control: no debt, no 0x00D9.
+// the live game's debt line, then the masteries' share. The control: no
+// debt, no 0x00D9.
 func TestADebtTakesHalfOfAKill(t *testing.T) {
 	npc := &NPC{ServerID: 5003, Name: "Froglok Slayer", Level: 63, X: 1000, Z: 1000}
 	debtOf := func(s *session.Session) (int, bool) {
@@ -200,8 +201,8 @@ func TestADebtTakesHalfOfAKill(t *testing.T) {
 		debt, paid, left int
 		line             string
 	}{
-		{100000, 100000, 0, "100000 experience went to your experience debt, and it is paid off."},
-		{1000000, 212910, 787090, "212910 experience went to your experience debt (787090 left)."},
+		{100000, 100000, 0, "You received 425820 XP. 100000 was paid towards your debt of 100000."},
+		{1000000, 212910, 787090, "You received 425820 XP. 212910 was paid towards your debt of 1000000."},
 	} {
 		k := newKillWorld(t, 60)
 		p := k.players[0]
@@ -215,7 +216,7 @@ func TestADebtTakesHalfOfAKill(t *testing.T) {
 		if got := earned(p, c.debt); got != 425820 {
 			t.Errorf("a debt of %d: %d earned in all, want the kill's 425,820", c.debt, got)
 		}
-		want := []string{fmt.Sprintf("You received %d class mastery XP.", 425820-c.paid), c.line}
+		want := []string{c.line, fmt.Sprintf("You received %d class mastery XP.", 425820-c.paid)}
 		if len(lines) != 2 || lines[0] != want[0] || lines[1] != want[1] {
 			t.Errorf("a debt of %d: the chat %q, want %q", c.debt, lines, want)
 		}
@@ -225,5 +226,46 @@ func TestADebtTakesHalfOfAKill(t *testing.T) {
 	k.w.awardKillXPLocked(k.sess[0], k.players[0], npc)
 	if _, ok := debtOf(k.sess[0]); ok {
 		t.Fatal("the control: no debt, no 0x00D9")
+	}
+}
+
+// An award that pays a debt says the live game's one line (board 789: two
+// live tapes' readings, a level 6 warrior's) and no "You receive N XP.":
+// the whole award, what paid the debt, the debt before it. The control:
+// with no debt, "You receive N XP." alone.
+func TestADebtAwardSaysTheLiveLine(t *testing.T) {
+	for _, c := range []struct {
+		debt, xp int
+		want     string
+	}{
+		{2195, 2195, "You received 2195 XP. 1097 was paid towards your debt of 2195."},
+		{58, 576, "You received 576 XP. 58 was paid towards your debt of 58."},
+		{0, 576, "You receive 576 XP."},
+	} {
+		k := newKillWorld(t, 6)
+		p := k.players[0]
+		p.Debt = c.debt
+		k.w.awardXP(k.sess[0], p, c.xp)
+		if lines, _ := sentOf(k.sess[0]); len(lines) != 1 || lines[0] != c.want {
+			t.Errorf("%d XP with %d owed: %q, want %q", c.xp, c.debt, lines, c.want)
+		}
+	}
+}
+
+// A kill worth nothing to a player says "You receive 0 XP." once (board 813:
+// a level 5's rats, filmed): a level 20's level 5 rat. The control: a kill
+// worth something says its own line, and no 0 XP line.
+func TestAKillWorthNothingSaysZero(t *testing.T) {
+	rat := &NPC{ServerID: 5004, Name: "a rat", Level: 5, X: 1000, Z: 1000}
+	k := newKillWorld(t, 20)
+	p := k.players[0]
+	k.w.awardKillXPLocked(k.sess[0], p, rat)
+	if lines, _ := sentOf(k.sess[0]); len(lines) != 1 || lines[0] != "You receive 0 XP." {
+		t.Errorf("a level 20's rat: %q", lines)
+	}
+	k = newKillWorld(t, 5)
+	k.w.awardKillXPLocked(k.sess[0], k.players[0], rat)
+	if lines, _ := sentOf(k.sess[0]); len(lines) != 1 || lines[0] == "You receive 0 XP." {
+		t.Errorf("the control, a level 5's rat: %q", lines)
 	}
 }

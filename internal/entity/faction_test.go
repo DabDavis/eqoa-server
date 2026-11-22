@@ -74,8 +74,8 @@ func TestAKillChangesTheKillersFactions(t *testing.T) {
 		t.Errorf("standings %v, want Citizens of Freeport -24 and The Freeport Militia -49", got)
 	}
 	want := []string{
-		"-24 faction with Citizens of Freeport (-25)",
-		"-49 faction with The Freeport Militia (-50)",
+		"-24 faction with Citizens of Freeport (-25).",
+		"-49 faction with The Freeport Militia (-50).",
 	}
 	if got := factionLines(f.sess); strings.Join(got, "|") != strings.Join(want, "|") {
 		t.Errorf("lines %q, want %q", got, want)
@@ -151,8 +151,8 @@ func TestStandingsStayInRange(t *testing.T) {
 		t.Errorf("standing %d, want %d", got, FactionMin)
 	}
 	want := []string{
-		"-2000 faction with Citizens of Freeport (-25)",
-		"-2000 faction with Citizens of Freeport (-25)",
+		"-2000 faction with Citizens of Freeport (-25).",
+		"-2000 faction with Citizens of Freeport (-25).",
 	}
 	if got := factionLines(f.sess); strings.Join(got, "|") != strings.Join(want, "|") {
 		t.Errorf("lines %q, want %q", got, want)
@@ -165,8 +165,8 @@ func TestStandingsStayInRange(t *testing.T) {
 		t.Errorf("standing %d, want %d", got, FactionMax)
 	}
 	want = []string{
-		"2000 faction with Citizens of Freeport (+4000)",
-		"2000 faction with Citizens of Freeport (+4000)",
+		"2000 faction with Citizens of Freeport (4000).",
+		"2000 faction with Citizens of Freeport (4000).",
 	}
 	if got := factionLines(f.sess); strings.Join(got, "|") != strings.Join(want, "|") {
 		t.Errorf("lines %q, want %q", got, want)
@@ -265,15 +265,15 @@ func TestFactionLinesAreSandstorms(t *testing.T) {
 		want            string
 	}{
 		// questrec16's first Freeport warrior quest (r04-buy-return)
-		{"Merchant House Nothard", 10, 11, "11 faction with Merchant House Nothard (+10)"},
-		{"Citizens of Freeport", 5, 6, "6 faction with Citizens of Freeport (+5)"},
+		{"Merchant House Nothard", 10, 11, "11 faction with Merchant House Nothard (10)."},
+		{"Citizens of Freeport", 5, 6, "6 faction with Citizens of Freeport (5)."},
 		// a kill's, in a report's chat log (F3 20261029-130643)
-		{"Centaurs of the Plains", -10, -690, "-690 faction with Centaurs of the Plains (-10)"},
-		{"Citizens of Caer Sloth", 1, -561, "-561 faction with Citizens of Caer Sloth (+1)"},
+		{"Centaurs of the Plains", -10, -690, "-690 faction with Centaurs of the Plains (-10)."},
+		{"Citizens of Caer Sloth", 1, -561, "-561 faction with Citizens of Caer Sloth (1)."},
 		// at the floor (F3 20261024-200725, nine kills running)
-		{"Blackburrow Gnolls", -10, FactionMin, "-2000 faction with Blackburrow Gnolls (-10)"},
+		{"Blackburrow Gnolls", -10, FactionMin, "-2000 faction with Blackburrow Gnolls (-10)."},
 		// a name as a table may keep it, and a standing of 0
-		{" Citizens of Qeynos ", -1, 0, "0 faction with Citizens of Qeynos (-1)"},
+		{" Citizens of Qeynos ", -1, 0, "0 faction with Citizens of Qeynos (-1)."},
 	} {
 		if got := factionLine(c.faction, c.delta, c.standing); got != c.want {
 			t.Errorf("factionLine(%q, %d, %d) = %q, want %q", c.faction, c.delta, c.standing, got, c.want)
@@ -288,7 +288,7 @@ func TestQuestFactionRewardsSaySandstormsLines(t *testing.T) {
 	f := newFight(t)
 	hits := []FactionHit{{"Citizens of Freeport", 10}, {"The Freeport Militia", 5}, {"Citizens of Freeport", 0}}
 	f.w.ApplyFactionHits(f.sess, f.p, hits)
-	want := []string{"11 faction with Citizens of Freeport (+10)", "6 faction with The Freeport Militia (+5)"}
+	want := []string{"11 faction with Citizens of Freeport (10).", "6 faction with The Freeport Militia (5)."}
 	if got := factionLines(f.sess); strings.Join(got, "|") != strings.Join(want, "|") {
 		t.Errorf("lines %q, want %q", got, want)
 	}

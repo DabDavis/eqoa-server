@@ -298,7 +298,7 @@ goes on the work board above; a personal board is for talking about it.
 - **Enchanter procs and clarity**: a weapon proc is a hit with a duration whose ability description says "proc", or a spell of the enchanter's proc lines by name (Chaotic Flux/Mark/Glyph/Rune, Anarchic ..., Stormlord's ..., Rune of ...); a `Group` proc also lands on the members' pets; a proc's `; Increase N% based on X` is its caster's, at its landing. The clarity line (Breeze, Intuition, Clarity, Lucidity, Tranquility, Empathy, Empathic ...) is one at a time: the most power a tick stays. A `Decrease Resist Arcane by N` on a creature makes it resist procs and charms less (25 AR: 6 points; the strongest one counts).
 - **Undead**: a spell whose line starts `Target undead`, and a charm whose name or description says undead (the
   necromancer's Charm/Command/Control/Coerce Undead), works only on creatures that are undead (`npcundead`); cast at any
-  other it is refused with "This spell only works on the undead." Every other charm fails on undead. To make a creature
+  other it is refused with "Invalid creature type for that ability." (the live game's words). Every other charm fails on undead. To make a creature
   undead (or not), `insert_row` (or `update_row`) on `npcundead` with its name in lower case and `undead` 1 (or 0); it
   counts at once. Rows of source `seed` are the seeding tool's guesses from names and bodies: no record says.
 - **Area spells**: a line makes a spell land on everything round its target or its caster, up to 8 (its own target
@@ -331,7 +331,7 @@ goes on the work board above; a personal board is for talking about it.
   the game never talks to, a creature that never spawns, words the client cuts). How it plays:
   the giver, talked to, says `offer` a box a line; each paragraph of it (lines between blank lines) ends in a
   question the player answers with that line of `accept` (no `accept`: the quest is given at once). Taken, the
-  journal gets the first step's `journal` line, then "You have received a quest!", then `started`; a refusal
+  journal gets the first step's `journal` line, then "You received a quest!", then `started`; a refusal
   (`decline`) gets `declined`, as written. An NPC's lines are shown with its name before them, as the live game's
   are; a question is not; `%p` is the player's name. Steps: `talk` (talk to `target`; with an `answer`, the
   player picks its first line first, any further lines being answers that change nothing, "Farewell"), `show`
@@ -344,7 +344,7 @@ goes on the work board above; a personal board is for talking about it.
   `world`). A kill or loot step counts every creature its journal names: `target` and its `also`, a list of the
   others (`"target": "raven", "also": ["magpie"]` for "from the ravens and magpies"; a step's `also` left out of
   a save stays as it is, `[]` clears it). A step done says its `says`,
-  takes its journal line and adds the next step's ("You have finished a quest!" and "You have received a
+  takes its journal line and adds the next step's ("You finished a quest!" and "You have received a
   quest!", as the live game announces each step; the last step only the first) and gives its rewards (the reference server
   gives them at the last step only): `xp`, `rewardtunar`,
   `rewarditems`, `factions` (`Faction Name:+10`), `spells` (ids). **Events** (`events` on the quest: `on`

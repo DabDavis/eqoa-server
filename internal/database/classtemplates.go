@@ -565,6 +565,10 @@ type TemplateAbility struct {
 	Count int    `json:"count,omitempty"`
 	NPC   string `json:"npc,omitempty"`
 	Share int    `json:"share,omitempty"`
+	// Life is a summon's: seconds each add stays after it rises, then it
+	// leaves the world (0: until its creature's fight ends, as before; board
+	// 1660)
+	Life float64 `json:"life,omitempty"`
 	// Grow and Rampage are an enrage's: how many percent bigger it grows (200:
 	// three times its size), and the percent of each of its melee hits on the
 	// one it fights that also lands on the second of its hate list (0 none).
@@ -1017,8 +1021,8 @@ func checkKindFields(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: heal is a hitheal's or a ward's", n)
 	case a.Hold != 0 && k != AbilityDeathHold:
 		return fmt.Errorf("ability %d: hold is a deathhold's", n)
-	case (a.Count != 0 || a.NPC != "" || a.Share != 0) && k != AbilitySummon:
-		return fmt.Errorf("ability %d: count, npc and share are a summon's", n)
+	case (a.Count != 0 || a.NPC != "" || a.Share != 0 || a.Life != 0) && k != AbilitySummon:
+		return fmt.Errorf("ability %d: count, npc, share and life are a summon's", n)
 	case (a.Grow != 0 || a.Rampage != 0) && k != AbilityEnrage:
 		return fmt.Errorf("ability %d: grow and rampage are an enrage's", n)
 	case len(a.Foes) > 0 && k != AbilityPrefer && k != AbilityKillSay:
@@ -1169,6 +1173,8 @@ func checkPassiveAbility(n int, a TemplateAbility) error {
 			return fmt.Errorf("ability %d: a summon's npc: the name of the NPC it calls copies of (1 to 64 characters)", n)
 		case a.Share < 0 || a.Share > 1000:
 			return fmt.Errorf("ability %d: a summon's share %d: 0 (the copies' own) to 1000 percent of its figures", n, a.Share)
+		case !finite(a.Life) || a.Life < 0 || (a.Life > 0 && a.Life < 2) || a.Life > 3600:
+			return fmt.Errorf("ability %d: a summon's life %.1f: 0 (until the fight ends) or 2 to 3600 seconds", n, a.Life)
 		}
 	case AbilityEnrage:
 		switch {

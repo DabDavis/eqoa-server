@@ -77,9 +77,12 @@ type EffectRules struct {
 	MitigatePct    int  `json:",omitempty"`
 	MitigateLeft   int  `json:",omitempty"`
 	MitigateCapped bool `json:",omitempty"`
-	Lull           bool `json:",omitempty"`
-	Breath         bool `json:",omitempty"`
-	Hide           bool `json:",omitempty"`
+	// MitigateRune: a rune's (SpellEffect.Rune), each hit stopped whole with 1
+	// hit point through, the pool spent by the whole hit
+	MitigateRune bool `json:",omitempty"`
+	Lull         bool `json:",omitempty"`
+	Breath       bool `json:",omitempty"`
+	Hide         bool `json:",omitempty"`
 	// Resist is the resist its harm goes by and Harm whether it was a
 	// harmful spell's (a cure's words go by them)
 	Resist Stat `json:",omitempty"`
@@ -99,6 +102,9 @@ type EffectRules struct {
 	// ProcHealUndead: the proc heals only at a hit on, or by, an undead
 	// creature (the workbook's "Enemy - Undead" proc; none heals so yet)
 	ProcHealUndead bool `json:",omitempty"`
+	// ProcHealGroup: the heal reaches the bearer's group within it too (0 the
+	// bearer alone; board 1659)
+	ProcHealGroup float32 `json:",omitempty"`
 	// ProcDebuffedPct is its proc's percent more, the damage and the heal, at a
 	// hit on a creature that carries a lasting harmful spell of the bearer's
 	// (SpellEffect.DebuffedPct, proc.go)
@@ -172,6 +178,7 @@ func (ae *ActiveEffect) workbookLasting(e SpellEffect, d *SpellDef) bool {
 	case EffectMitigate:
 		ae.Rules.MitigatePct = max(ae.Rules.MitigatePct, e.Amount)
 		ae.Rules.MitigateLeft, ae.Rules.MitigateCapped = e.AmountMax, e.AmountMax > 0
+		ae.Rules.MitigateRune = e.Rune && e.AmountMax > 0
 	case EffectLull:
 		ae.Rules.Lull = true
 	case EffectBreath:
@@ -188,6 +195,7 @@ func (ae *ActiveEffect) workbookLasting(e SpellEffect, d *SpellDef) bool {
 		ae.Rules.ProcHeal, ae.Rules.ProcHealDef = e.Amount, e.Defense
 		ae.Rules.ProcHealScale, ae.Rules.ProcHealScalePct, ae.Rules.ProcHealChance = e.Scale, e.ScalePct, e.Chance
 		ae.Rules.ProcHealUndead = e.Undead
+		ae.Rules.ProcHealGroup = e.ProcHealGroup
 		ae.Rules.ProcDebuffedPct = max(ae.Rules.ProcDebuffedPct, e.DebuffedPct)
 	default:
 		return false
@@ -565,12 +573,16 @@ type mitSnap struct {
 	pct    int
 	capped bool
 	left   int
+	rune   bool // a rune's: each hit stopped whole, 1 through
 }
 
 // take is n less what the mitigation would take off it.
 func (m mitSnap) take(n int) int {
 	if !m.on || n <= 0 {
 		return n
+	}
+	if m.rune && m.capped && m.left > 0 {
+		return 1 // the whole hit stopped, the breaking one too; 1 through (board 1350)
 	}
 	off := n * m.pct / 100
 	if m.capped {
@@ -601,13 +613,18 @@ func (w *World) mitigateSnapLocked(p *Player, n int, now time.Time) (int, mitSna
 	if best == nil {
 		return n, mitSnap{}
 	}
-	snap := mitSnap{on: true, pct: best.Rules.MitigatePct, capped: best.Rules.MitigateCapped, left: best.Rules.MitigateLeft}
+	snap := mitSnap{on: true, pct: best.Rules.MitigatePct, capped: best.Rules.MitigateCapped, left: best.Rules.MitigateLeft,
+		rune: best.Rules.MitigateRune}
 	if n <= 0 {
 		return n, snap
 	}
 	off := n - snap.take(n)
 	if best.Rules.MitigateCapped {
-		best.Rules.MitigateLeft -= off
+		spent := off
+		if snap.rune {
+			spent = n // a rune's pool pays the whole hit, not the 1 through
+		}
+		best.Rules.MitigateLeft = max(0, best.Rules.MitigateLeft-spent)
 	}
 	if off > 0 {
 		log.Printf("Combat: %s's %q takes %d off a hit of %d", p.Name, best.Name, off, n)
@@ -663,6 +680,23 @@ func (w *World) cureLocked(cs *castState, t *Player) int {
 				break
 			}
 		}
+	}
+	return n
+}
+
+// cancelSpellLocked takes every effect of the spell named name (any case) off
+// t, as a cure takes one off (removeEffectLocked: the effects channel, its
+// mods, charbuffs), and reports how many; none on, nothing (board 875: Take a
+// Shield Break's "Cancel Sacred Shield"). Must be called with the lock held.
+func (w *World) cancelSpellLocked(cs *castState, t *Player, name string) int {
+	n := 0
+	for _, ae := range append([]*ActiveEffect(nil), t.Effects...) {
+		if ae.SpellID == cs.spell.SpellID || !strings.EqualFold(strings.TrimSpace(ae.Name), name) {
+			continue
+		}
+		log.Printf("Cast: %s's %q cancels %q on %s", w.entityNameLocked(cs.caster), cs.spell.Name, ae.Name, t.Name)
+		w.removeEffectLocked(t, ae.SpellID)
+		n++
 	}
 	return n
 }
@@ -743,8 +777,11 @@ func (w *World) procHealsLocked(p *Player, npc *NPC, defense bool, now time.Time
 		if r.ProcHeal <= 0 || r.ProcHealDef != defense || !now.Before(ae.Until) {
 			continue
 		}
-		if !defense && ae.Proc > 0 {
-			continue // its heal comes with its hit, one proc (procTapLocked)
+		// its heal comes with its hit, one proc (procTapLocked), where the hit
+		// can fire: an undead-only hit's heal rolls by itself at any other
+		// creature (board 1659: Crusader's Aura healed nothing but on undead)
+		if !defense && ae.Proc > 0 && (!ae.ProcUndead || (npc != nil && w.undeadLocked(npc))) {
+			continue
 		}
 		if r.ProcHealUndead && (npc == nil || !w.undeadLocked(npc)) {
 			continue
@@ -760,7 +797,27 @@ func (w *World) procHealsLocked(p *Player, npc *NPC, defense bool, now time.Time
 		if r.ProcHealScale != StatNone && r.ProcHealScalePct != 0 {
 			n += p.StatNow(r.ProcHealScale) * r.ProcHealScalePct / 100
 		}
-		log.Printf("Proc: %s's %q heals it for %d", p.Name, ae.Name, n)
-		w.procHealLocked(p, w.findSessionByEntityIDLocked(p.ServerID), p, n)
+		w.procHealGroupLocked(p, w.findSessionByEntityIDLocked(p.ServerID), ae, n)
 	}
+}
+
+// procHealGroupLocked is a proc's heal of n on its bearer p and, where its
+// effect reaches the group (ProcHealGroup), on each other living player of
+// p's group in p's world within it (players alone: no pets or mercs).
+func (w *World) procHealGroupLocked(p *Player, sess *session.Session, ae *ActiveEffect, n int) {
+	w.procHealLocked(p, sess, p, n)
+	reach := ae.Rules.ProcHealGroup
+	if reach <= 0 {
+		log.Printf("Proc: %s's %q heals it for %d", p.Name, ae.Name, n)
+		return
+	}
+	healed := 0
+	for _, m := range w.groupMembersLocked(p) {
+		if m == p || m.IsDead() || m.World != p.World || outOfRange(p, m.X, m.Y, m.Z, reach) {
+			continue
+		}
+		w.procHealLocked(p, sess, m, n)
+		healed++
+	}
+	log.Printf("Proc: %s's %q heals it and %d of its group for %d", p.Name, ae.Name, healed, n)
 }

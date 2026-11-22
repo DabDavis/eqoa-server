@@ -225,6 +225,9 @@ func (h *InteractHandler) RegisterHandlers(r *Registry) {
 	}
 }
 
+// talkOutOfReachLine is the live game's answer to a talk from out of reach.
+const talkOutOfReachLine = "You can't chat with your target from there."
+
 // HandleInteract handles NPC interaction requests (opcode 0x0004).
 // Client sends: uint32 targetObjectID
 // A corpse opens its loot, a sign or a board its words (and nothing else),
@@ -292,6 +295,9 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 			player.Name, entity.EntityName(targetEntity),
 			entity.DistanceBetween(player, targetEntity), entity.InteractRange,
 			player.X, player.Y, player.Z, tx, ty, tz, targetObjectID)
+		// The live game answered a talk from out of reach in red (2012
+		// footage, Neriak's guards and a theologist, ten times over).
+		SendColoredChat(sess, talkOutOfReachLine, 255, 63, 63)
 		return nil
 	}
 
@@ -694,8 +700,13 @@ func (h *InteractHandler) sendCoachPage(sess *session.Session, player *entity.Pl
 	start, end, hasMore, hasBack := navPage(total, page, dialogRoom(sess))
 	pageDests := dests[start:end]
 
+	words, own := coachWordsByName[player.CoachBy] // a filmed coachman's (npcwords.go)
 	options := make([]string, 0, len(pageDests)+2)
 	for _, d := range pageDests {
+		if own && !d.Ledgers {
+			options = append(options, words.label(d))
+			continue
+		}
 		options = append(options, destLabel(d))
 	}
 	if hasMore {
@@ -710,6 +721,8 @@ func (h *InteractHandler) sendCoachPage(sess *session.Session, player *entity.Pl
 		greeting = wayAskMany // a waysender's, as the reference server's dockmasters ask
 	} else if len(dests) == 1 && dests[0].Ledgers {
 		greeting = everyLedgerAlone // a coachman's offer alone (coachledger.go)
+	} else if own && words.Greet != "" {
+		greeting = words.Greet
 	}
 	log.Printf("Coaching: page %d, showing %d dests (%d-%d of %d), options=%v", page, len(pageDests), start, end-1, total, options)
 	h.sendOptionBox(sess, greeting, options)
@@ -923,6 +936,12 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 		return nil
 	}
 
+	// A waysender's box of its own words (npcwords.go)
+	if player.WayStep != 0 {
+		h.answerWay(sess, player, int(selectedOption))
+		return nil
+	}
+
 	// A waysender's one trip, asked as Yes or No (waysender.go)
 	if player.PendingYesNo {
 		dest := player.PendingCoachDests[0]
@@ -995,7 +1014,11 @@ func (h *InteractHandler) travel(sess *session.Session, player *entity.Player, d
 		economy.Spent(economy.Travel, player.CharServerID, player.Name, dest.Fee)
 	}
 	if dest.Via != "" {
-		sess.Queue().AddWithSequence(buildClientMessage(dest.Via + ": " + wayGo))
+		gone := wayGo
+		if w, ok := wayScripts[dest.Via]; ok && w.Gone != "" {
+			gone = w.Gone // its own (npcwords.go)
+		}
+		sess.Queue().AddWithSequence(buildClientMessage(dest.Via + ": " + gone))
 	}
 	h.warp(sess, player, dest)
 }

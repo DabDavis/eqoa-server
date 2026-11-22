@@ -430,6 +430,12 @@ func settleUnitsTx(tx sqlRunner, l AuctionLot, now time.Time) (AuctionSettlement
 	if !st.SellerGone {
 		var line string
 		switch {
+		case st.Sold == 0 && !waits[l.Seller]: // in the bank: the live game's words (auction.go)
+			what := name
+			if n != 1 {
+				what = fmt.Sprintf("%d %s", n, name)
+			}
+			line = fmt.Sprintf(auctionNoBidsBanked, what)
 		case st.Sold == 0:
 			line = fmt.Sprintf("Your auction of %d %s ended with no bids. %s", n, name, where(l.Seller, n == 1))
 		case left == 0:

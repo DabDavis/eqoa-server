@@ -43,10 +43,10 @@ import (
 //     killed (ours): the town creatures the seed gives a city include quest
 //     targets (Klick'Anon's clockworks, which EQOA-Data's guide says cost no
 //     faction), so a default would invent hits no record holds.
-//   - Each change is a white chat line (0x0A7A) as the reference server words it: the
-//     standing after it, " faction with ", the faction, the change ("-690
-//     faction with Centaurs of the Plains (-10)", "11 faction with Merchant
-//     House Nothard (+10)": factionLine), unless the client's Faction
+//   - Each change is a white chat line (0x0A7A) as the live game words it: the
+//     standing after it, " faction with ", the faction, the change and a stop
+//     ("-690 faction with Centaurs of the Plains (-10).", "11 faction with
+//     Merchant House Nothard (10).": factionLine), unless the client's Faction
 //     Messages option is off (0x00C9: session.FactionMessagesOff); the
 //     client filters none itself.
 //   - A standing stays within FactionMin..FactionMax.
@@ -709,9 +709,11 @@ func (w *World) takeFactionHitsLocked(sess *session.Session, p *Player, npc *NPC
 	}
 }
 
-// factionLine is the reference server's line for a change to a standing: the standing
-// now, " faction with ", the faction, and the change asked in brackets with
-// its sign. The reference server's own, as its client saw them (0x0A7A, white): the
+// factionLine is the live game's line for a change to a standing: the standing
+// now, " faction with ", the faction, the change asked in brackets with no
+// plus on a gain, and a full stop (filmed: "-1251 faction with Fire Pit
+// Kobolds (1).", "-1374 faction with Solusek Goblins (-10)."; board 1784). It
+// was the reference server's, a plus and no stop, until then; its own, as its client saw them (0x0A7A, white): the
 // quest rewards questrec16 recorded ("11 faction with Merchant House Nothard
 // (+10)", "6 faction with Citizens of Freeport (+5)") and kills in players'
 // reports ("-690 faction with Centaurs of the Plains (-10)", "-561 faction
@@ -720,7 +722,7 @@ func (w *World) takeFactionHitsLocked(sess *session.Session, p *Player, npc *NPC
 // floor, nine times running, said "-2000 faction with Blackburrow Gnolls
 // (-10)" every time (F3 20261024-200725).
 func factionLine(faction string, delta, standing int) string {
-	return fmt.Sprintf("%d faction with %s (%+d)", standing, strings.TrimSpace(faction), delta)
+	return fmt.Sprintf("%d faction with %s (%d).", standing, strings.TrimSpace(faction), delta)
 }
 
 // PlayerFactions is the standings the session's faction window lists, in its

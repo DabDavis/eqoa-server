@@ -178,8 +178,7 @@ func (w *World) procTapLocked(p *Player, sess *session.Session, ae *ActiveEffect
 	if more > 0 {
 		n = n * (100 + more) / 100
 	}
-	log.Printf("Proc: %s's %q heals it for %d", p.Name, ae.Name, n)
-	w.procHealLocked(p, sess, p, n)
+	w.procHealGroupLocked(p, sess, ae, n) // workbook.go: its group too, where it reaches them
 }
 
 // procDebuffedMore is the percent more ae's proc does, its hit and its heal, at a hit on

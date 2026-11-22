@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"fmt"
 	"log"
 	"math"
 	"time"
@@ -38,8 +37,8 @@ import (
 //     power.";
 //   - a cast sent during another's cast time (and 0.4 s on): nothing at all;
 //   - a cast sent into its own recovery, its cast time over: the red line
-//     "Recovery time for that ability has not been met (N.N s)" and the
-//     player's own 0x00B1 at itself, cast 0, the lockout cloud 0x9EC7854A,
+//     "Recovery time for that ability has not been met." (the live game's
+//     words, filmed twice: no time left in it) and the player's own 0x00B1 at itself, cast 0, the lockout cloud 0x9EC7854A,
 //     at most one about every 1.25 s (recoveryAnswerLocked).
 //
 // What a spell does comes from its line (spelltext.go); a line this cannot
@@ -112,6 +111,9 @@ const (
 	castNotFriendly = "Target is not friendly."
 	castOutOfRange  = "Out of range."
 	castNoPower     = "Not enough power."
+	// a cast at a creature just killed, its name still in the target box:
+	// the live game's red line (a 2012 tape, twice; board 759)
+	castDeadTarget = "You can't cast abilities on dead creatures."
 	// a pet's spell with no pet: CLIENT's own word for it (1021), which it
 	// shows itself for a pet command with none
 	castNoPet = "You do not have a pet."
@@ -119,9 +121,11 @@ const (
 
 var castRefusalRGB = [3]byte{255, 63, 63}
 
-// A cast into its own recovery, as the reference server answered four spells spammed
-// (lane-spellfx24, 2026-10-30: Rockskin, Minor Healing, Roar and Focus): its
-// red line, the lockout left to a tenth ("(300.2 s)"), and the player's own
+// A cast into its own recovery: the live game's red line, as filmed twice
+// (2012 and an EQOA: Forever tape: "...has not been met." and nothing after
+// it, so no time left), and, as the reference server answered four spells
+// spammed (lane-spellfx24, 2026-10-30: Rockskin, Minor Healing, Roar and
+// Focus), the player's own
 // CastingCombat at itself, cast 0, the lockout cloud (SPELLFX.CSF's effect
 // 216: a puff of dust at the feet with a sound), sent as a cast is, so those
 // around see it too (an alchemist spamming beside the recorder was seen so).
@@ -129,7 +133,7 @@ var castRefusalRGB = [3]byte{255, 63, 63}
 // most one about every 1.25 s (1.03-1.40 s apart, mostly 1.25, to sends 0.25 s
 // apart) and dropped the rest: recoveryAnswerGap.
 const (
-	castRecoveryWords        = "Recovery time for that ability has not been met (%.1f s)"
+	castRecoveryWords        = "Recovery time for that ability has not been met."
 	fxLockoutCloud    uint32 = 0x9EC7854A
 	recoveryAnswerGap        = 1200 * time.Millisecond
 )
@@ -143,7 +147,7 @@ func (w *World) recoveryAnswerLocked(sess *session.Session, p *Player, spell *Ca
 		return
 	}
 	p.recoveryAnswered = now
-	text := fmt.Sprintf(castRecoveryWords, left.Seconds())
+	text := castRecoveryWords
 	log.Printf("Cast: %s casts %q, locked out for %v: %q", p.Name, spell.Name, left.Round(time.Millisecond), text)
 	w.sendColoredLocked(sess, text, castRefusalRGB)
 	w.broadcastCastLocked(p, p.ServerID, 0, fxLockoutCloud)
@@ -768,7 +772,7 @@ func (p *Player) SpeedNow() float32 {
 			slow = duelSnare
 		}
 	}
-	slow *= p.slowFactor() // a buff's own slow (workbook.go)
+	slow *= p.slowFactor()                 // a buff's own slow (workbook.go)
 	worn := float32(p.Gear.SpeedPct / 100) // the worn items' own speed, beside the rest (itemspeed.go)
 	switch r := p.MoveRate(); {
 	case r <= moveRateBase:
@@ -1227,7 +1231,7 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 		return []EntityID{t.ServerID}, ""
 	case *NPC:
 		if t.Dead {
-			return nil, castNoTarget
+			return nil, castDeadTarget // the live game's words (filmed, board 759)
 		}
 		if t.Owner != 0 {
 			// a pet is on the players' side: helped, never harmed (pet.go)
@@ -1711,6 +1715,8 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 			illusion = true
 		case EffectCure:
 			w.cureLocked(cs, t) // workbook.go
+		case EffectCancel:
+			w.cancelSpellLocked(cs, t, e.Spell) // workbook.go
 		case EffectSummonPlayer:
 			if t == caster {
 				w.heroCallLandLocked(cs, caster, casterSess) // callhero.go: the far group asked
@@ -1924,7 +1930,7 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 			}
 		case EffectHate:
 			if taunt {
-				w.tauntHateLocked(npc, caster.ServerID, spellAmount(e, caster), playerTauntHatePct(caster.Class), caster.Level) // taunt.go: the top of its hate (pettaunttank.go: at least a pet's margin)
+				w.tauntHateLocked(npc, caster.ServerID, playerTauntHate(spellAmount(e, caster)), playerTauntHatePct(caster.Class), caster.Level) // taunt.go: the top of its hate, x1.45 (SOE 2009; pettaunttank.go: at least a pet's margin)
 			} else {
 				w.updateAggro(npc, caster.ServerID, spellAmount(e, caster))
 			}

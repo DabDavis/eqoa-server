@@ -450,6 +450,11 @@ func (h *NPCWindowHandler) HandleMerchantBuy(sess *session.Session, msg *protoco
 	return nil
 }
 
+// cantAffordLine is the live game's red answer to a purchase the purse cannot
+// cover (filmed at a merchant; CLIENT's words have no line of its own for it).
+// The blacksmith's repair says it too: ours, not filmed.
+const cantAffordLine = "You can't afford that."
+
 func (h *NPCWindowHandler) buy(sess *session.Session, id uint32, index, count int) bool {
 	player, npc, ok := h.windowNPC(sess, id, npcFlagMerchant, "MerchantBuy")
 	inv := sessionInvList(sess)
@@ -500,6 +505,7 @@ func (h *NPCWindowHandler) buy(sess *session.Session, id uint32, index, count in
 		cost := price * took
 		if cost > player.Tunar {
 			log.Printf("MerchantBuy: %s cannot afford %d %q (%d > %d)", player.Name, took, p.ItemName, cost, player.Tunar)
+			SendColoredChat(sess, cantAffordLine, 255, 63, 63)
 			break
 		}
 		// A bought item comes new (the reference server's 0x003B carries the full

@@ -781,6 +781,7 @@ func (s *Server) insertRow(a *actor, t *Table, values map[string]any, o writeOpt
 	if t.Name == "accountinfo" {
 		return nil, errors.New("accounts are made with create_account (it hashes the password)")
 	}
+	keyRuleNames(t.Name, vals) // live.go
 	if err := roleRow(a, t.Name, "insert", vals); err != nil {
 		return nil, err
 	}
@@ -887,6 +888,7 @@ func (s *Server) updateRow(a *actor, t *Table, key, values, base map[string]any,
 			return nil, &errConflict{current: before, cols: moved}
 		}
 	}
+	keyRuleNames(t.Name, vals) // live.go
 	// only what changes
 	set := map[string]any{}
 	for name, v := range vals {

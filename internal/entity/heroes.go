@@ -2,8 +2,8 @@ package entity
 
 import (
 	"fmt"
-	"sort"
 	"log"
+	"sort"
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/session"

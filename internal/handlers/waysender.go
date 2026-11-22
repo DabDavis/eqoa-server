@@ -44,6 +44,12 @@ type wayRoute struct {
 	Lacks string
 }
 
+// porterFreeport and porterQeynos are a porter's trips (board 823).
+var (
+	porterFreeport = wayRoute{To: "Freeport", Arrive: "Coachman Ronks"}
+	porterQeynos   = wayRoute{To: "Qeynos", Arrive: "Coachman Billfer"}
+)
+
 // wayPlace is where a trip lands: a world and a point in it.
 type wayPlace struct {
 	World   uint8
@@ -132,9 +138,12 @@ var wayRoutes = map[string][]wayRoute{
 	// Bibbin offered "Bogman Village." and "Freeport." (pcaps/sandstorm-
 	// warp.pcap). Arcadin and the Stone of Morathals are Odus's (world 2),
 	// the rest Tunaria's. No fee: no guide gives one.
+	// Yarnning sails to Arcadin alone, as the live game's did (board 745:
+	// jibrish's "Live words, Arcadin only", a 2012 tape); the Stone of
+	// Morathals is Bogman Village's (Geben), and Bibbin's boat still comes in
+	// at Yarnning's
 	"Dockmaster Yarnning": {
 		{To: "Arcadin", Arrive: "Dockmaster Killeron"},
-		{To: "Stone of Morathals", Arrive: "Dockmaster Bibbin"},
 	},
 	"Dockmaster Endol": {
 		{To: "Hazinak", Arrive: "Dockmaster D'Eleth"},
@@ -441,6 +450,23 @@ var wayRoutes = map[string][]wayRoute{
 	// south-east, by Solusek's Eye); each takes a vampire to the Sanctuary,
 	// and the Sanctuary's own (tools/seed_vampires.py) to each of them. A
 	// trip lands three steps off its coffin, on the floor, clear of walls.
+	// The porters (board 823): Omiziki Porter (Moradhim) to Freeport and
+	// Qeynos, as filmed; Gigwigle (Rivervale) and Jwiggop (Surefall Glade) the
+	// same two, as filmed (in their menus' orders); the other seven to
+	// Freeport alone (jibrish's decision). Each lands in front of the city's
+	// coachman (Ronks, Billfer): ours, no tape shows an arrival. No fee or
+	// level, as filmed. Their words: npcwords.go.
+	"Omiziki Porter":   {porterFreeport, porterQeynos},
+	"Gigwigle Porter":  {porterQeynos, porterFreeport},
+	"Jwiggop Porter":   {porterFreeport, porterQeynos},
+	"Burfuzzik Porter": {porterFreeport},
+	"Gullio Porter":    {porterFreeport},
+	"Ninnozip Porter":  {porterFreeport},
+	"Piddixdon Porter": {porterFreeport},
+	"Riddletic Porter": {porterFreeport},
+	"Rigalig Porter":   {porterFreeport},
+	"Bertriza Porter":  {porterFreeport},
+
 	"coffin": {
 		{To: "The Sanctuary", At: &sanctuaryLanding, Vampire: true},
 	},
@@ -611,6 +637,12 @@ func (h *InteractHandler) offerWay(sess *session.Session, player *entity.Player,
 	}
 	forgetDialogs(player)
 	player.PendingCoachDests = dests
+	if w, ok := wayScripts[npc.Name]; ok { // its own words (npcwords.go)
+		player.CoachBy, player.WayStep = npc.Name, wayStepPick
+		h.sendOptionBox(sess, w.greet(player.Name), w.labels(dests))
+		log.Printf("Waysender: %s offers %s %d trips in its own words", npc.Name, player.Name, len(dests))
+		return true
+	}
 	if len(dests) == 1 {
 		player.PendingYesNo = true
 		h.sendOptionBox(sess, wayAskOne(dests[0]), []string{"Yes", "No"})
@@ -626,6 +658,8 @@ func (h *InteractHandler) offerWay(sess *session.Session, player *entity.Player,
 func forgetDialogs(player *entity.Player) {
 	player.PendingCoachDests = nil
 	player.CoachPage = 0
+	player.CoachBy = ""
+	player.WayStep = 0
 	player.PendingYesNo = false
 	player.PendingBind = entity.Bind{}
 	player.PendingSpar = entity.SparPick{}

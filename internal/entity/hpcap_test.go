@@ -200,3 +200,63 @@ func TestSpiritformIsNoHPCeiling(t *testing.T) {
 		}
 	}
 }
+
+// "Increase Movement Speed by N" past Spirit of the Wolf's 130 (work board 693,
+// a GM's Super SoW): 260 runs twice the movement buff's speed (2.6 times the
+// run), on the user's target, kept over a logout, and Spirit of the Wolf
+// landing after it leaves it on. The controls: 130, "Sow" and 50 are the
+// movement buff's own speed, as before.
+func TestASpeedFigurePastSoWRunsFaster(t *testing.T) {
+	line := func(id int, text string) PotionEffect {
+		return NewPotionEffect(id, "Test Speed", text, "Test Speed", 638503769, "attack", 0, 0)
+	}
+	for _, c := range []struct {
+		text string
+		sow  int
+	}{{"Increase Movement Speed by 130", 0}, {"Sow", 0}, {"Increase Movement Speed by 50", 0},
+		{"Increase Movement Speed by 260", 200}, {"Increase Movement Speed by 9999", SowTimesMost * 100}} {
+		def := line(990000, "Self, "+c.text+", 30min").Def
+		got := -1
+		for _, e := range def.Effects {
+			if e.Kind == EffectSpeed {
+				got = e.SowPct
+			}
+		}
+		if got != c.sow {
+			t.Errorf("%q: SowPct %d, want %d", c.text, got, c.sow)
+		}
+	}
+
+	c := newCaster(t)
+	p := c.p
+	sow := p.Speed * speedBuff
+	if r := c.use(t, line(990001, "Self, Increase Movement Speed by 130, 30min"), 0xFFFFFFFF, 0); r != "" {
+		t.Fatalf("130 refused: %q", r)
+	}
+	if p.SpeedNow() != sow {
+		t.Fatalf("130: speed %v, want the movement buff's %v", p.SpeedNow(), sow)
+	}
+	c.w.mu.Lock()
+	c.w.removeEffectLocked(p, PotionEffectID(990001))
+	c.w.mu.Unlock()
+
+	if r := c.use(t, line(990002, "Self, Increase Movement Speed by 260, 30min"), 0xFFFFFFFF, time.Second); r != "" {
+		t.Fatalf("260 refused: %q", r)
+	}
+	if want := sow * 2; p.SpeedNow() != want {
+		t.Fatalf("260: speed %v, want %v (2.6 times the run %v)", p.SpeedNow(), want, p.Speed)
+	}
+	// Spirit of the Wolf after it ("removing lesser speed boosts") leaves it on
+	if r := c.use(t, NewPotionEffect(1015, "Alacrity Potion", "Self, Sow, 30min", "", 638503769, "", 0, 0), 0xFFFFFFFF, 2*time.Second); r != "" {
+		t.Fatalf("Alacrity refused: %q", r)
+	}
+	if p.SpeedNow() != sow*2 {
+		t.Fatalf("with SoW after it: speed %v, want %v", p.SpeedNow(), sow*2)
+	}
+	// kept over a logout
+	rows := savedEffects(p, c.at(3*time.Second))
+	p.Effects, p.Buffs = nil, nil
+	if n := c.w.RestoreEffects(c.sess, rows, c.at(3*time.Second)); n == 0 || p.SpeedNow() != sow*2 {
+		t.Fatalf("restored %d: speed %v, want %v", n, p.SpeedNow(), sow*2)
+	}
+}

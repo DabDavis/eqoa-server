@@ -925,7 +925,7 @@ func (d *SpellDef) parsePart(part, verb string) string {
 		if sign < 0 {
 			add(SpellEffect{Kind: EffectSnare})
 		} else {
-			add(SpellEffect{Kind: EffectSpeed})
+			add(SpellEffect{Kind: EffectSpeed, SowPct: speedFigurePct(amount)})
 		}
 		return verb
 	}

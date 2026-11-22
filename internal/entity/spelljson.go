@@ -889,7 +889,8 @@ func (d *SpellDef) readSpeedJSON(e effectJSON) {
 		d.Effects = append(d.Effects, se)
 	case n > 0 || strings.EqualFold(strings.TrimSpace(e.Kind), "speed") && e.Amount == 0:
 		// a speed with no figure is the movement buff too
-		d.Effects = append(d.Effects, SpellEffect{Kind: EffectSpeed, Amount: n, AmountMax: n, ID: e.ID})
+		// (a figure past 130 a speed of its own: hpcap.go's speedFigurePct)
+		d.Effects = append(d.Effects, SpellEffect{Kind: EffectSpeed, Amount: n, AmountMax: n, ID: e.ID, SowPct: speedFigurePct(n)})
 	case n < 0:
 		se := effectOf(EffectSnare, e)
 		se.Amount, se.AmountMax = max(n, -100), max(n, -100)

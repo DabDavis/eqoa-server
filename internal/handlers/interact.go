@@ -109,6 +109,8 @@ type InteractHandler struct {
 	rehab *Rehab
 	// welcome answers the welcome guide's box (welcome.go); nil: none is asked
 	welcome *WelcomeGuide
+	// intro answers a new character's welcome and merchant question (cityintro.go); nil: none is asked
+	intro *CityIntro
 
 	// archivist answers the Spell Archivists' boxes (archivist.go), which a
 	// request for one's shop asks (merchant.go); nil: none is asked
@@ -739,6 +741,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// the welcome guide's (welcome.go); an old one does nothing
 	if h.welcome.Answer(sess, player, targetObjectID, selectedOption) {
+		return nil
+	}
+	// a new character's welcome or merchant question (cityintro.go); an old one does nothing
+	if h.intro.Answer(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// the Hardcore choice's (hardcoreask.go); an old one does nothing

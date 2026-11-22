@@ -145,6 +145,10 @@ type NPCWindowHandler struct {
 	// words (factionrefusal.go). Nil: the chat line alone.
 	dialogLines func() ([]database.NPCDialogLine, error)
 
+	// intro asks a new character's merchant question in place of its first
+	// window (cityintro.go); nil: none is asked
+	intro *CityIntro
+
 	// archivist is the Spell Archivists (archivist.go): a request for one's
 	// window is answered with his question; nil, his shop opens at once
 	archivist *Archivist
@@ -398,6 +402,12 @@ func (h *NPCWindowHandler) HandleMerchantOpen(sess *session.Session, msg *protoc
 	// a quest's step to do at it is done first (questevents.go: CLIENT
 	// never talks to an NPC with a window)
 	if questsAtWindow(sess, player, npc) {
+		return nil
+	}
+	// a new character's first window asks the merchant question instead
+	// (cityintro.go); the next opens the shop
+	if h.intro.MerchantAsk(sess, player) {
+		refuse(sess)
 		return nil
 	}
 	// a Spell Archivist asks first (archivist.go): his shop, the class's basic

@@ -436,6 +436,19 @@ var catalog = map[string]tableNote{
 			"changed":   {Label: "Changed", Format: "stamp", ReadOnly: true, Help: "when the row last changed (UTC)"},
 		},
 	},
+	"charintro": {
+		Label: "Character welcomes", Group: "Players", Sort: "serverid",
+		Help: "What a character was shown of its first-login welcome (handlers/cityintro.go), a row a character: when the " +
+			"welcome of its start place and class (table cityintro) went out, and when its first merchant window asked the " +
+			"merchant tutorial question instead of opening. A character with no row was never welcomed; only a welcomed " +
+			"character is asked the merchant question. Clear merchant to have it asked again.",
+		Live: "At the character's next world entry or merchant window.",
+		Cols: map[string]colNote{
+			"serverid": {Label: "Character", Ref: "characters"},
+			"welcomed": {Label: "Welcomed", Format: "stamp", Help: "when the welcome went out (UTC); empty: never"},
+			"merchant": {Label: "Merchant question", Format: "stamp", Help: "when the merchant question was asked (UTC); empty: not yet"},
+		},
+	},
 	"charcoaches": {
 		Label: "Character coach ledgers", Group: "Players", Sort: "serverid",
 		Help: "The stables' ledgers each character has signed, a town a row (handlers/coachledger.go): talking to a " +
@@ -1732,6 +1745,29 @@ var catalog = map[string]tableNote{
 			"choices": {Label: "Answers", Format: "multiline", Help: `a JSON list of {"text": the answer (63 characters at most), "next": the node it plays, 0 closes}; [] none; 5 at most beside Exit`},
 			"source":  {Label: "Source", Help: "gm, or video-audit for words read off live-era footage"},
 			"note":    {Label: "Note", Help: "why"},
+		},
+	},
+	"cityintro": {
+		Label: "First-login welcomes", Group: "World", Title: "boxes", Sort: "id",
+		Help: "A new character's first-login welcome, as the live game's tapes show it (handlers/cityintro.go): at the " +
+			"first world entry of a character with no experience, standing within radius of (x, z) in world, of the row's " +
+			"race and class (-1 any; a row naming the class wins), its boxes (a line a box, at most 217 characters) and " +
+			"then the shared question \"do you need instructions on how to use the basic controls?\": Yes says the shared " +
+			"control boxes and yes_last, No says no_last (each sends the player to its guildmaster). Once a character " +
+			"(table charintro). A welcomed character's first merchant window asks the merchant tutorial question.",
+		Live: "At once: the next new character's first entry.",
+		Cols: map[string]colNote{
+			"world":    {Label: "World", Help: "the world the start place is in"},
+			"x":        {Label: "X", Help: "the start place's centre"},
+			"z":        {Label: "Z", Help: "the start place's centre"},
+			"radius":   {Label: "Radius", Help: "how far from (x, z) a new character may stand"},
+			"race":     {Label: "Race", Help: "the race (-1 any)"},
+			"class":    {Label: "Class", Help: "the class (-1 any)"},
+			"boxes":    {Label: "Boxes", Help: "the welcome's boxes before the question, a line a box"},
+			"yes_last": {Label: "Yes, last box", Help: "said after the shared control boxes on Yes"},
+			"no_last":  {Label: "No box", Help: "said on No"},
+			"source":   {Label: "Source", Help: "video-audit: read off live-era footage; gm: a GM's"},
+			"note":     {Label: "Note"},
 		},
 	},
 	"signtext": {

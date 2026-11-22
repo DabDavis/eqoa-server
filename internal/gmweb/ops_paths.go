@@ -191,6 +191,9 @@ func checkRow(table string, row map[string]any) error {
 	if table == "signtext" && row != nil {
 		return checkSignTextRow(row) // live_signs.go
 	}
+	if table == "cityintro" && row != nil {
+		return checkCityIntroRow(row) // live_cityintro.go
+	}
 	if table != "npcpaths" || row == nil {
 		return nil
 	}

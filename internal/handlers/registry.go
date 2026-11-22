@@ -567,6 +567,10 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		welcome := NewWelcomeGuide(gameWorld, charStore.DB())
 		interactHandler.welcome, chatHandler.welcome = welcome, welcome
 		gameWorld.OnPlayerEntered(welcome.Entered)
+		// a new character's first-login welcome and merchant question (cityintro.go)
+		intro := NewCityIntro(gameWorld, charStore.DB())
+		interactHandler.intro, npcWindowHandler.intro = intro, intro
+		gameWorld.OnPlayerEntered(intro.Entered)
 
 		// [HC] Hardcore (hardcore.go): a fall's record, announcement and
 		// logout; the time played; the choice a new character's first entry

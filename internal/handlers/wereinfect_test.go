@@ -512,3 +512,25 @@ func TestTheBrandEndsAnInfectionCaughtBefore(t *testing.T) {
 		}
 	}
 }
+
+// The same at a login or a keep restart's resumption (InfectionLogin), the way
+// the character in petition 2619 met it: the branded one's infection ends and
+// no effect is put on; the control, unbranded, carries it.
+func TestTheBrandEndsAnInfectionAtTheLogin(t *testing.T) {
+	for _, branded := range []bool{false, true} {
+		f := newWereFixture(t)
+		f.qe.infect(entity.InfectionHit{Session: f.tw.s, ServerID: f.sid, Name: "Talker", Line: "lionwere", NPCName: "Elder lionwere", At: time.Now().Add(-time.Hour), Key: "k1"})
+		if branded {
+			f.set(hunterBrand, QuestComplete)
+		}
+		f.tw.w.TakeInfection(f.tw.s)
+		f.qe.InfectionLogin(f.tw.s, f.tw.p)
+		inf, effs := f.row(), len(f.tw.w.PlayerEffects(f.tw.s))
+		switch {
+		case !branded && (effs != 1 || inf == nil || !inf.Active(time.Now())):
+			t.Errorf("unbranded at the login: %d effects, row %+v; want it carried", effs, inf)
+		case branded && (effs != 0 || inf == nil || inf.EndedHow != database.InfectionBrand):
+			t.Errorf("branded at the login: %d effects, row %+v; want it ended by the brand", effs, inf)
+		}
+	}
+}

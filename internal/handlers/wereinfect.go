@@ -401,19 +401,7 @@ func (q *QuestEngine) show(serverID uint32, fresh bool) bool {
 	}
 	now := time.Now()
 	q.mu.Lock()
-	c := q.charLocked(serverID)
-	inf := q.activeLocked(c, now)
-	// a werehunter carries no infection: one caught before the brand ends with it
-	// (Heirloom petition 2619: a Heroic Were Hunter told "You carry the lionwere
-	// infection", caught two hours before the brand)
-	if w := q.wereQuestsLocked(); inf != nil && w.brand != 0 && c.hasFinished(w.brand) {
-		if _, err := q.endLocked(c, database.InfectionBrand, now); err != nil {
-			log.Printf("Weres: character %d's %s not ended by the brand: %v", serverID, entity.InfectionName(inf.Line), err)
-		} else {
-			log.Printf("Weres: character %d's %s ended by the werehunters' brand", serverID, entity.InfectionName(inf.Line))
-			inf = nil
-		}
-	}
+	inf := q.carriedLocked(q.charLocked(serverID), now)
 	var row database.Infection
 	if inf != nil {
 		row = *inf
@@ -435,6 +423,24 @@ func (q *QuestEngine) show(serverID uint32, fresh bool) bool {
 	return true
 }
 
+// carriedLocked is c's infection in force (activeLocked), but for a werehunter:
+// one caught before the brand ends with it (Heirloom petition 2619: a Heroic
+// Were Hunter told "You carry the lionwere infection", caught two hours before
+// the brand), at a showing and at a login or a keep restart's resumption. Must
+// be called with q.mu held.
+func (q *QuestEngine) carriedLocked(c *questChar, now time.Time) *database.Infection {
+	inf := q.activeLocked(c, now)
+	if w := q.wereQuestsLocked(); inf != nil && w.brand != 0 && c.hasFinished(w.brand) {
+		if _, err := q.endLocked(c, database.InfectionBrand, now); err != nil {
+			log.Printf("Weres: character %d's %s not ended by the brand: %v", c.serverID, entity.InfectionName(inf.Line), err)
+			return inf
+		}
+		log.Printf("Weres: character %d's %s ended by the werehunters' brand", c.serverID, entity.InfectionName(inf.Line))
+		return nil
+	}
+	return inf
+}
+
 // InfectionLogin puts the character's infection in force on its player as it
 // enters the world (character.go's enterFromRecord: a login, a keep restart's
 // resumption), and takes off one that is not; its markers put in step.
@@ -444,7 +450,7 @@ func (q *QuestEngine) InfectionLogin(sess *session.Session, p *entity.Player) {
 	}
 	now := time.Now()
 	q.mu.Lock()
-	inf := q.activeLocked(q.charLocked(p.CharServerID), now)
+	inf := q.carriedLocked(q.charLocked(p.CharServerID), now)
 	var row database.Infection
 	if inf != nil {
 		row = *inf

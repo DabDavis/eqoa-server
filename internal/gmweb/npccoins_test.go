@@ -31,3 +31,28 @@ func TestCheckRowHoldsNPCCoins(t *testing.T) {
 	}
 }
 
+// Work board 880: a merchantprice row is keyed by the merchant's name key and
+// an item, its price 0 or more.
+func TestCheckRowHoldsMerchantPrices(t *testing.T) {
+	for _, r := range []map[string]any{
+		{"merchant": "tailor nissa", "patternid": 8316, "price": 40},
+		{"merchant": "initiate firebringer", "patternid": 700168.0, "price": 0},
+	} {
+		if err := checkRow("merchantprice", r); err != nil {
+			t.Errorf("%v refused: %v", r, err)
+		}
+	}
+	for _, r := range []map[string]any{
+		{"merchant": "Tailor Nissa", "patternid": 8316, "price": 40},
+		{"merchant": "tailor nissa", "patternid": 0, "price": 40},
+		{"merchant": "tailor nissa", "patternid": 8316, "price": -1},
+		{"merchant": "tailor nissa", "patternid": 8316, "price": nil},
+	} {
+		if err := checkRow("merchantprice", r); err == nil {
+			t.Errorf("%v allowed", r)
+		}
+	}
+	if catalog["merchantprice"].Label != "Merchant prices" {
+		t.Errorf("no Merchant prices page")
+	}
+}

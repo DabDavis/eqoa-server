@@ -212,6 +212,18 @@ func (h *NPCWindowHandler) waresFor(player *entity.Player, npc *entity.NPC, cape
 	if len(wares) > merchantListCap {
 		wares = wares[:merchantListCap]
 	}
+	// the merchant's own prices (work board 880, table merchantprice): set on
+	// each entry's own copy of its record, so the 0x00B7 record shows it and
+	// buy (which reads this list again) charges it
+	prices, err := h.inv.MerchantPrices(npc.Name)
+	if err != nil {
+		log.Printf("Merchant: %q's own prices: %v", npc.Name, err)
+	}
+	for i := range wares {
+		if price, ok := prices[wares[i].Pattern.PatternID]; ok {
+			wares[i].Pattern.ItemCost = price
+		}
+	}
 	return wares, nil
 }
 

@@ -895,6 +895,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureNPCCoins(); err != nil { // npccoins.go: a named creature's corpse tunar (work board 658)
 		return err
 	}
+	if err := db.ensureMerchantPrices(); err != nil { // merchantprice.go: a merchant's own price for an item (work board 880)
+		return err
+	}
 	if err := db.ensureGemSetting(); err != nil { // gemsetting.go: Hogarth's Gems of Khalimet in the Khal weapons
 		return err
 	}

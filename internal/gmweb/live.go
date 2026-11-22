@@ -610,6 +610,23 @@ func checkNPCCoinsRow(row map[string]any) error {
 	return nil
 }
 
+// checkMerchantPriceRow holds a merchantprice row (work board 880) to a
+// merchant's name key, an item record and a price of 0 or more.
+func checkMerchantPriceRow(row map[string]any) error {
+	if v, ok := row["merchant"]; ok {
+		if name, _ := v.(string); database.NPCClassKey(name) == "" || database.NPCClassKey(name) != name {
+			return badRequest("merchant is the merchant's name as NPC classes key it: lower case, no trailing space or $")
+		}
+	}
+	if _, ok := row["patternid"]; ok && rowInt(row, "patternid") <= 0 {
+		return badRequest("patternid is an item record's id")
+	}
+	if v, ok := row["price"]; ok && (v == nil || rowInt(row, "price") < 0) {
+		return badRequest("price is tunar for one, 0 or more")
+	}
+	return nil
+}
+
 // liveCamps reads the camps' spawns again (entity/campspawn.go; the change is
 // committed: the database is free).
 func (s *Server) liveCamps() string {

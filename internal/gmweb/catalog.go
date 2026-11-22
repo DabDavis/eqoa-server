@@ -933,6 +933,24 @@ var catalog = map[string]tableNote{
 			"source":    {Label: "Source", Help: "gm, or video-audit for amounts read off live-era footage"},
 		},
 	},
+	"merchantprice": {
+		Label: "Merchant prices", Group: "World", Title: "merchant", Sort: "merchant",
+		Help: "A merchant's own price for an item (handlers/buyback.go waresFor): live merchants charged different " +
+			"prices for the same item, and an item record keeps one value. The merchant by NPC NAME as NPC classes key " +
+			"it (lower case, no trailing space or $), the item record, and what one costs at that merchant's window, " +
+			"shown and charged (0: free). Every other merchant, and every other item, costs the record's value as " +
+			"before. Selling is unchanged (the client works out what a merchant pays from the player's own record). " +
+			"Source video-audit rows are prices read off live-era footage.",
+		Live:   "At once: the next window opened or buy made at that merchant.",
+		Search: []string{"merchant", "note", "source"},
+		Cols: map[string]colNote{
+			"merchant":  {Label: "Merchant (key)", Help: "lower case, as in NPCs without a trailing space or $"},
+			"patternid": {Label: "Item", Ref: "itempattern"},
+			"price":     {Label: "Price", Help: "tunar for one at this merchant, 0 or more"},
+			"source":    {Label: "Source", Help: "gm, or video-audit for prices read off live-era footage"},
+			"note":      {Label: "Note", Help: "why"},
+		},
+	},
 	"lootpreset": {
 		Label: "Loot presets", Group: "World", Title: "name", Sort: "name",
 		Help: "Named sets of loot rates (Loot rates): the one with active 1 is the one every corpse rolls by. Rows of " +

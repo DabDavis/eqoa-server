@@ -1580,7 +1580,7 @@ func lastingParts(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 	ae.spellLevel = cs.spell.Level // its ticks' spell_level in a damage formula (dmgformula.go)
 	any := false
 	for _, e := range d.Effects {
-		if ae.workbookLasting(e, d) { // workbook.go: its own kinds
+		if ae.workbookLasting(e, d, caster) { // workbook.go: its own kinds
 			any = true
 			continue
 		}

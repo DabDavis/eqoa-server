@@ -161,7 +161,7 @@ func (q *QuestEngine) runEventsLocked(sess *session.Session, p *entity.Player, c
 			}
 			q.gw.PlayVisualOn(sess, fx, time.Duration(e.Seconds*float64(time.Second)))
 		case database.EventTeleport:
-			q.teleportLocked(sess, p, qu, e)
+			q.teleportLocked(sess, p, c, qu, e)
 		case database.EventVampire:
 			q.vampireLocked(p, qu)
 		case database.EventTrigger:
@@ -866,8 +866,11 @@ func (q *QuestEngine) nextWaveLocked(p *entity.Player, c *questChar, qu *databas
 	q.spawnWaveLocked(p, c, qu, st.Step, evs, names, left) // creatures, not events, held to the kills left (entry 1290)
 }
 
-// teleportLocked warps the player as a travel NPC does.
-func (q *QuestEngine) teleportLocked(sess *session.Session, p *entity.Player, qu *database.Quest, e database.QuestEvent) {
+// teleportLocked warps the player as a travel NPC does. One whose game cannot
+// load the world is told so by the quest's giver (a PS2 at a trip into a
+// server's world: Blackvein Deep's ways down, from the camp and the quarry),
+// rather than left standing with the trip done and nothing said.
+func (q *QuestEngine) teleportLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, e database.QuestEvent) {
 	if strings.EqualFold(strings.TrimSpace(e.To), database.TeleportMainland) {
 		at := &database.CharacterRecord{Race: p.Race, TClass: p.Class, HumType: p.HumType}
 		if q.places == nil || !q.places.MainlandPlace(at) {
@@ -887,6 +890,7 @@ func (q *QuestEngine) teleportLocked(sess *session.Session, p *entity.Player, qu
 	world := byte(e.World)
 	if !CanLoadWorld(sess, world) {
 		log.Printf("Quests: %q: %s's client cannot load world %d", qu.Name, p.Name, world)
+		q.tellLocked(c, sess, qu.Giver, TeleportClosed(world))
 		return
 	}
 	if _, err := ValidateTeleport(e.X, e.Y, e.Z, world); err != nil {

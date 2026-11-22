@@ -77,6 +77,12 @@ func CannotLoad(who string, world uint8) string {
 		who, worldName(world), world, discWorlds)
 }
 
+// TeleportClosed is what a quest's giver says to a player whose game cannot
+// load the world a trip of the quest goes to (questevents.go's teleportLocked).
+func TeleportClosed(world uint8) string {
+	return fmt.Sprintf("That way is closed to you: your game cannot load %s. Ask me of the roads on this side.", worldName(world))
+}
+
 // namesakeSpan is how far from their middle the NPCs a name finds may stand
 // and still be one place: half a zone of the world's grid (zones are 2,000
 // across), a camp or a dungeon's rooms, not a road's length of guards.

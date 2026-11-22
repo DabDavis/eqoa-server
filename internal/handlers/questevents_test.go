@@ -495,3 +495,23 @@ func TestAKillOfALaterStepSaysWhatComesFirst(t *testing.T) {
 		t.Fatalf("the drops %v, want the blood then the journal", drops)
 	}
 }
+
+// A trip into a world the player's game cannot load (a PS2 at a way down into
+// Blackvein Deep, world 10) moves no one, and its giver says why.
+func TestATripIntoAWorldTheGameLacksIsSaidClosed(t *testing.T) {
+	f := newQuestFixture(t)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, events) VALUES (91, 'Down', 1, 'Malsis',
+		'[{"on":"accept","do":"teleport","world":10,"x":18745,"y":-59,"z":9170}]')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (91, 1, 'talk', 'Malsis', 'Talk.')`)
+	f.qe.Reload()
+	x, z := f.tw.p.X, f.tw.p.Z
+	if _, err := f.qe.SetCharacterQuest(f.sid, 91, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	m := f.msgs()
+	f.not(m, fmt.Sprintf("op:%04X", uint16(protocol.OpcodeTeleport)))
+	f.want(m, "box:Malsis: That way is closed to you*")
+	if f.tw.p.X != x || f.tw.p.Z != z {
+		t.Errorf("the player was moved to %.0f, %.0f", f.tw.p.X, f.tw.p.Z)
+	}
+}

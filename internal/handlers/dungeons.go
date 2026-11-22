@@ -439,6 +439,10 @@ func dungeonCommand(gw *entity.World, sess *session.Session, rest string) {
 			dungeonsTell(sess, dungeonsHelpLine(gw))
 			return
 		}
+		if p.Reliving() {
+			dungeonsTell(sess, WardenReliveLine) // relive.go
+			return
+		}
 		ds.enter(sess, p, arg)
 	case "leave", "out":
 		ds.leave(sess)

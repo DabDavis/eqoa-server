@@ -102,6 +102,10 @@ func (h *InteractHandler) dabrishTalk(sess *session.Session, p *entity.Player, n
 		dabrishSay(sess, hcDabrishWords)
 		return true
 	}
+	if p.Reliving() { // relive.go: a Relive's level is the Rehabilitators'
+		dabrishSay(sess, WardenReliveLine)
+		return true
+	}
 	if h.dabrishLevel == nil || h.dabrishMastery == nil || h.gameWorld == nil {
 		dabrishSay(sess, "My ledger is closed today.")
 		return true

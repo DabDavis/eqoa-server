@@ -281,3 +281,41 @@ func TestBytesInFlightAndResendsWhileAcksMove(t *testing.T) {
 		t.Fatal("nothing resent with the ack stuck past the timeout")
 	}
 }
+
+// A client in the world silent StateSilence is resent to every
+// SilentResendWait, not every few seconds (entry 1623: a stalled browser's
+// pipe filled with the same messages). The controls: heard from, the usual
+// wait; out of the world, the usual wait.
+func TestASilentClientIsResentToLessOften(t *testing.T) {
+	r, sess, _ := slotsTick(t, 24)
+	msgs := queueN(sess, 4, 20)
+	r.PreparePacket(sess)
+	if sent(msgs) != 4 {
+		t.Fatalf("%d of 4 sent", sent(msgs))
+	}
+	q := sess.Queue()
+	age := func(d time.Duration) {
+		for _, m := range q.GetUnacknowledged() {
+			m.LastSent = time.Now().Add(-d)
+			m.Tries = 3
+		}
+	}
+	rto := sess.Connection().Net().RTO()
+	age(6 * time.Second)
+	sess.UpdateActivity()
+	if !q.HasRetransmits(resendDelay(sess, rto)) {
+		t.Fatal("the control: heard from, a message 6 s unanswered is not due")
+	}
+	sess.SetLastActivity(time.Now().Add(-StateSilence - time.Second))
+	if d := resendDelay(sess, rto); d != SilentResendWait || q.HasRetransmits(d) {
+		t.Fatalf("silent past %v: delay %v, a message 6 s unanswered is due", StateSilence, d)
+	}
+	age(SilentResendWait + time.Second)
+	if !q.HasRetransmits(resendDelay(sess, rto)) {
+		t.Fatalf("silent: a message %v unanswered is not due", SilentResendWait+time.Second)
+	}
+	sess.SetCharacterInWorld(false)
+	if d := resendDelay(sess, rto); d != rto {
+		t.Fatalf("the control: out of the world the delay is %v, not the RTO %v", d, rto)
+	}
+}

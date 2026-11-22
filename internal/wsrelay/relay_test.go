@@ -599,3 +599,61 @@ func TestClientOfNamesThePage(t *testing.T) {
 		time.Sleep(20 * time.Millisecond)
 	}
 }
+
+// A ping may go unanswered for PingTimeout, longer than the interval (entry
+// 1623: a stalled TCP path under a browser's WebSocket was cut at 30 s, before
+// the game client's own 60 s): a client stalled shorter than that and then
+// answering again stays, one that never answers is dropped with the relay's
+// reason in its close line. The control: with no PingTimeout (the interval)
+// the same stall is dropped.
+func TestPingTimeoutOutlastsTheInterval(t *testing.T) {
+	echo := newUDPPeer(t, true)
+	held := func(r *Relay, want int, within time.Duration) bool {
+		deadline := time.Now().Add(within)
+		for r.Held("127.0.0.1") != want && time.Now().Before(deadline) {
+			time.Sleep(10 * time.Millisecond)
+		}
+		return r.Held("127.0.0.1") == want
+	}
+
+	// the control: the interval alone drops a 300 ms stall
+	short, srv, _ := newRelay(t, Config{AllowUDP: allow(t, echo.addr().String()), Ping: 50 * time.Millisecond})
+	readText(t, dialOK(t, srv, "/udp"))
+	if !held(short, 0, 2*time.Second) {
+		t.Fatalf("the control: a stall past the interval was not dropped")
+	}
+
+	r, srv, logs := newRelay(t, Config{AllowUDP: allow(t, echo.addr().String()), Ping: 50 * time.Millisecond, PingTimeout: 700 * time.Millisecond})
+	stalled := dialOK(t, srv, "/udp")
+	readText(t, stalled)
+	time.Sleep(300 * time.Millisecond)
+	if n := r.Held("127.0.0.1"); n != 1 {
+		t.Fatalf("a client stalled 300 ms of a 700 ms timeout was dropped (%d held)", n)
+	}
+	// it answers again (reads, so its pongs go): it stays
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		for {
+			if _, _, err := stalled.Read(ctx); err != nil {
+				return
+			}
+		}
+	}()
+	time.Sleep(900 * time.Millisecond)
+	if n := r.Held("127.0.0.1"); n != 1 {
+		t.Fatalf("a client that answered again was dropped (%d held)", n)
+	}
+	// one that never answers is dropped, and the close line says why
+	readText(t, dialOK(t, srv, "/udp"))
+	if !held(r, 2, time.Second) || !held(r, 1, 3*time.Second) {
+		t.Fatalf("the silent client was not dropped: %d held", r.Held("127.0.0.1"))
+	}
+	deadline := time.Now().Add(2 * time.Second)
+	for !logs.has("dropped by the relay: ping unanswered") && time.Now().Before(deadline) {
+		time.Sleep(10 * time.Millisecond)
+	}
+	if !logs.has("dropped by the relay: ping unanswered") {
+		t.Fatalf("no reason in the close line: %q", logs.lines)
+	}
+}

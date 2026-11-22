@@ -467,3 +467,68 @@ func TestMoveCheckSparseHover(t *testing.T) {
 		t.Fatal("nine seconds at 10 over the ground, a report every 1.5 s: every report taken")
 	}
 }
+
+// A client silent 3 s or more is held to where it was (entry 1623,
+// snapback): a report 150 away after 20 s of silence is not taken, the
+// client is moved back there and the rest of its burst is dropped, in log
+// mode too; once it reports from there, it walks on. The controls: an honest
+// walk after the same silence is taken, and the same jump without a silence
+// is log mode's to take.
+func TestMoveCheckSnapsBackAfterASilence(t *testing.T) {
+	r := newMCRig(t, MoveCheckLog, 0, 0, 0)
+	if missed := r.walk(20, 0, 5, flat); missed != 0 {
+		t.Fatalf("the control: an honest walk had %d reports not taken", missed)
+	}
+	if r.report(170, 0, 0, 20000) {
+		t.Fatal("a report 150 away after 20 s of silence was taken")
+	}
+	if r.p.X != 20 || r.p.Z != 0 {
+		t.Fatalf("the server's place moved to (%.1f, %.1f), want (20, 0)", r.p.X, r.p.Z)
+	}
+	if !r.p.mv.pending || !r.p.mv.snapping {
+		t.Fatal("no move back sent")
+	}
+	// the rest of the burst (TCP's, in order): dropped, log mode or not
+	for i := 1; i <= 5; i++ {
+		if r.report(170+float32(i)*0.5, 0, 0, 0) {
+			t.Fatalf("burst report %d taken after the snapback", i)
+		}
+	}
+	// the client at the place it was sent: taken, and it walks on
+	if !r.report(20, 0, 0, 300) {
+		t.Fatal("the report from where it was sent was not taken")
+	}
+	if missed := r.walk(30, 0, 5, flat); missed != 0 {
+		t.Fatalf("after the snapback, %d honest reports not taken", missed)
+	}
+
+	// the control: an honest step after the same silence is taken
+	r2 := newMCRig(t, MoveCheckLog, 0, 0, 0)
+	r2.walk(20, 0, 5, flat)
+	if !r2.report(23, 0, 0, 20000) {
+		t.Fatal("the control: a step of 3 after a silence was not taken")
+	}
+	// a buffered burst of an honest walk, each 0.5 on, within the second's reach
+	for i := 1; i <= 8; i++ {
+		if !r2.report(23+float32(i)*0.5, 0, 0, 0) {
+			t.Fatalf("the control: burst report %d of an honest walk not taken", i)
+		}
+	}
+	// ...but a burst that walked 20 s while silent goes past it
+	n := 0
+	for i := 1; i <= 100 && n == 0; i++ {
+		if !r2.report(27+float32(i)*0.5, 0, 0, 0) {
+			n = i
+		}
+	}
+	if n == 0 || !r2.p.mv.snapping {
+		t.Fatal("a burst of 50 units in an instant was taken whole")
+	}
+
+	// the control: the same jump without a silence is log mode's (taken)
+	r3 := newMCRig(t, MoveCheckLog, 0, 0, 0)
+	r3.walk(20, 0, 5, flat)
+	if !r3.report(170, 0, 0, 100) {
+		t.Fatal("the control: log mode took no jump without a silence")
+	}
+}

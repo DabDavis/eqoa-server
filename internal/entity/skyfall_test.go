@@ -114,6 +114,11 @@ func TestSkyFallSendsHome(t *testing.T) {
 	}
 	// a PS2 parked at the world floor, silent: the tick alone sends it
 	t2 := 3 * time.Minute
+	// (its reports going on up to its fall, so the drop is no jump out of a
+	// silence: movecheck's snapback, entry 1623)
+	for d := 6 * time.Second; d > 0; d -= 2 * time.Second {
+		report(t2-d, 50, 400)
+	}
 	report(t2, 150, WorldFloorY)
 	tick(t2 + 10*time.Second)
 	if len(sent) != 0 {

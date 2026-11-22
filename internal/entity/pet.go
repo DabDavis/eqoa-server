@@ -773,7 +773,7 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 			return
 		}
 		if distXZ(p.X, p.Z, npc.X, npc.Z) > petLeash {
-			w.sendChatToSession(sess, petTargetTooFar) // one it could fight, too far off (petition 1399)
+			w.sendColoredLocked(sess, petTargetTooFar, castRefusalRGB) // one it could fight, too far off (petition 1399): live's red line
 			return
 		}
 		if w.walledOffLocked(p, pet, npc) {
@@ -808,14 +808,20 @@ func (w *World) petStandsDownLocked(ps *petState) {
 // a player, an unattackable creature, another's pet or duel, a pet that fights
 // nothing), and one it may but too far from its owner to go for (petLeash). The
 // magician a player's petition 1399 had the second say the first's line ("Should
-// read "Target is out of range." Or something like that"). Ours: CLIENT has no
-// line for a pet's (its word 723 "Out of range." is a ranged weapon's, and
-// the reference server's red "Out of range." a cast's, castOutOfRange), nor does a recording.
+// read "Target is out of range." Or something like that"). The far one is the
+// live game's, in red (filmed: an enchanter's Pendril's Animation sent at a
+// creature too far off, three times; board 843). petCannotAttack is ours: CLIENT
+// has no line for a pet's (its word 723 "Out of range." is a ranged weapon's,
+// and the reference server's red "Out of range." a cast's, castOutOfRange), nor
+// does a recording.
 const (
 	petCannotAttack = "Your pet cannot attack that."
 	// guardianOnlyDefends answers an attack command to a wizard's guardian (petition 1952)
 	guardianOnlyDefends = "Your guardian only defends: it fights what strikes it or you."
-	petTargetTooFar     = "Your target is too far away."
+	petTargetTooFar     = "Master, that enemy is too far away."
+	// mercTargetTooFar is a mercenary's (ours: no live mercenaries), the
+	// pet's old line
+	mercTargetTooFar = "Your target is too far away."
 )
 
 // petStanceRefused is the line for a stance a workbook pet does not take.

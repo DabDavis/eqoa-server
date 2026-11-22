@@ -873,7 +873,7 @@ func (w *World) MercAttack(sess *session.Session, slot int) (name, refusal strin
 		return "", "Your mercenary cannot attack that."
 	}
 	if distXZ(p.X, p.Z, t.X, t.Z) > petLeash {
-		return "", petTargetTooFar
+		return "", mercTargetTooFar
 	}
 	if w.walledOffLocked(p, nil, t) {
 		return "", petBehindWall // a quest wall between (questwallfight.go, petition 2198)

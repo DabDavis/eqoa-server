@@ -110,7 +110,9 @@ func TestRewardIsAGMsBuffOnAPlayer(t *testing.T) {
 	if got := texts(heard(t, gs)); !slices.Contains(got, "[GM] GM's Reward is on Player for an hour: a damage shield of 200 and a heal of 200 at every hit taken, +100 AC, +50 STR, STA, DEX, WIS, INT and CHA.") {
 		t.Errorf("the GM's line: %q", got)
 	}
-	if got := texts(heard(t, ps)); !slices.Contains(got, rewardYouLine) {
+	got := texts(heard(t, ps))
+	i := slices.Index(got, "You've been thanked by GM Gm, keep up the good work!")
+	if i < 0 || i+1 >= len(got) || got[i+1] != rewardBuffLine {
 		t.Errorf("the player's lines: %q", got)
 	}
 	if len(store.audits) != 1 || !strings.Contains(store.audits[0], "on Player") {

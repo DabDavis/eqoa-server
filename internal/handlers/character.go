@@ -1753,8 +1753,9 @@ func (h *CharacterHandler) isValidName(name string) bool {
 		}
 	}
 
-	// A name with a profane root in it (profanity.go)
-	if profaneName(name) {
+	// A name carrying a word of the High profanity filter or worse
+	// (profanity_names.go)
+	if refusedName(name) {
 		return false
 	}
 

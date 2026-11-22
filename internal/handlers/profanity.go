@@ -17,7 +17,8 @@ import (
 // filter's new state, a zigzag on/off, which Msg0045 shows as "Profanity
 // Filter: On" or "Off" (WORDS.TXT 550-552). The server masks what a player
 // with the filter on hears; it is on at every login. A character's name is
-// refused at creation when it carries one of the plainest roots.
+// refused at creation when it carries a word of the High filter or worse
+// (profanity_names.go).
 
 // profaneRoots mask any word they begin ("fucking", "shitty"): roots no
 // clean word begins.
@@ -40,9 +41,10 @@ var profaneWords = map[string]bool{
 	"douchebag": true,
 }
 
-// nameRoots refuse a character name that has one anywhere in it: a name is
-// one word, so "Shitlord" hides its root, and none of these is inside a
-// fair name (Grapes, Hancock, Cassandra, Titania and Dickens pass).
+// nameRoots refuse a label that has one anywhere in it (ProfaneLabel): a
+// word of it may hide its root ("Shitlord"), and none of these is inside a
+// fair name (Grapes, Hancock, Cassandra, Titania and Dickens pass). A
+// character's name has refusedName's stricter rules.
 var nameRoots = []string{
 	"fuck", "shit", "cunt", "bitch", "nigg", "faggot", "whore", "wank",
 	"dildo", "twat", "jizz", "pussy", "penis", "vagina", "asshole", "slut",
@@ -109,7 +111,7 @@ func maskWords(text string, bad func(string) bool) string {
 	return string(runes)
 }
 
-// profaneName is whether a new character's name is refused.
+// profaneName is whether a label holds one of nameRoots.
 func profaneName(name string) bool {
 	n := strings.ToLower(name)
 	for _, r := range nameRoots {
@@ -121,8 +123,8 @@ func profaneName(name string) bool {
 }
 
 // ProfaneLabel is whether a name players give a thing is refused (a community
-// map mark's: mapmarks.go): a word of it the chat would mask, or a root a
-// character's name may not carry anywhere in it.
+// map mark's: mapmarks.go): a word of it the chat would mask, or one of
+// nameRoots anywhere in it.
 func ProfaneLabel(name string) bool {
 	return profaneName(name) || maskProfanity(name) != name
 }

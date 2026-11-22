@@ -1436,7 +1436,25 @@ func (s *PatchServer) servePatchFile(w http.ResponseWriter, r *http.Request, f *
 
 // serveChanges serves the Changes.txt changelog.
 func (s *PatchServer) serveChanges(w http.ResponseWriter, r *http.Request) {
-	changes := `Spire - EQOA Go Server
+	changes := builtinChanges
+	if f := s.cfg.Patch.ChangesFile; f != "" {
+		if b, err := os.ReadFile(f); err == nil && len(b) > 0 {
+			changes = string(b)
+		} else if err != nil {
+			log.Printf("Patch server: changes_file %s: %v (the built-in notes served)", f, err)
+		}
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("Content-Length", itoa(len(changes)))
+	w.Header().Set("Connection", "close")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(changes))
+	log.Printf("Patch server: served Changes.txt (%d bytes)", len(changes))
+}
+
+// builtinChanges is Changes.txt when no changes_file is set.
+const builtinChanges = `Spire - EQOA Go Server
 2026-02-14
 
 Working:
@@ -1452,14 +1470,6 @@ Working:
 - Hotkey menu (L2 D-pad, 25 default hotkeys)
 - Patch system with eqahosts.txt auto-discovery
 `
-
-	w.Header().Set("Content-Type", "text/plain")
-	w.Header().Set("Content-Length", itoa(len(changes)))
-	w.Header().Set("Connection", "close")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(changes))
-	log.Printf("Patch server: served Changes.txt")
-}
 
 // uitoa converts a uint32 to a string.
 func uitoa(u uint32) string {

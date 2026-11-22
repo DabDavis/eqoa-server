@@ -1051,6 +1051,11 @@ type PatchConfig struct {
 	// server list, plain text ('\n' breaks a line); unset: "Welcome to Spire.".
 	// Every client reads it there, so it is the place to say the list has changed.
 	News string `yaml:"news"`
+
+	// ChangesFile is the patcher's release notes (Changes.txt, what SETUP shows
+	// after a patch), read at each request so the notes change without a
+	// restart. Plain text. Unset or unreadable: the built-in notes.
+	ChangesFile string `yaml:"changes_file"`
 }
 
 // AuthConfig holds authentication settings.

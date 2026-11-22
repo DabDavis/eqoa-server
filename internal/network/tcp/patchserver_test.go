@@ -392,3 +392,33 @@ func TestNewsIsPlainText(t *testing.T) {
 		t.Errorf("patch.news: %q (Content-Length %s)", got, w.Header().Get("Content-Length"))
 	}
 }
+
+// TestChangesFile: Changes.txt is patch.changes_file, read at each request,
+// and the built-in notes when it is unset or missing.
+func TestChangesFile(t *testing.T) {
+	s := newTestServer(t)
+	get := func() string {
+		w := httptest.NewRecorder()
+		s.handleRequest(w, httptest.NewRequest("GET", "/patch/eqoa/Changes.txt", nil))
+		if w.Code != 200 || w.Header().Get("Content-Length") != itoa(w.Body.Len()) {
+			t.Fatalf("Changes.txt: %d, Content-Length %s for %d bytes", w.Code, w.Header().Get("Content-Length"), w.Body.Len())
+		}
+		return w.Body.String()
+	}
+	if got := get(); got != builtinChanges {
+		t.Errorf("no changes_file: %q", got)
+	}
+	f := filepath.Join(t.TempDir(), "changes.txt")
+	s.cfg.Patch.ChangesFile = f
+	if got := get(); got != builtinChanges {
+		t.Errorf("a missing changes_file: %q", got)
+	}
+	os.WriteFile(f, []byte("Patch notes one"), 0o644)
+	if got := get(); got != "Patch notes one" {
+		t.Errorf("changes_file: %q", got)
+	}
+	os.WriteFile(f, []byte("Patch notes two"), 0o644)
+	if got := get(); got != "Patch notes two" {
+		t.Errorf("changes_file edited: %q", got)
+	}
+}

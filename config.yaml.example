@@ -630,6 +630,7 @@ patch:
   # on every client: plain text, a tag would be shown as written; \n breaks a
   # line. Unset: "Welcome to Spire."
   # news: "Welcome to Spire."
+  # changes_file: ""   # the patcher's release notes (Changes.txt), plain text, re-read at each request; unset: built-in notes
 
 auth:
   # Cost factor for password hashing (bcrypt). 4-31; outside that it falls back

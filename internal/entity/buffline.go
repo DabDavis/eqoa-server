@@ -178,13 +178,42 @@ func lineKeys(d *SpellDef) []string {
 // are lines apart and both count. A line decides only which effects' stat
 // changes count: every effect's ticks, root, snare and hate go on.
 
-// debuffLinePrefix begins a creature debuff's line; the class follows it in
-// the bearer's field, so no two classes' lines are one (lineFamily).
+//
+// By archetype (2026-11-19, the live game's notes of 2006-04: "Detrimental
+// abilities and damage over time stack by archetype"; "a shadowknight and a
+// shaman should both be able to stack detrimental effects on an NPC of the
+// same stat at the same time"): the bearer field is the caster's archetype,
+// not its class, so a necromancer's and an enchanter's debuff of one stat set
+// are one line (the stronger counting) and a shadow knight's and a shaman's
+// two. The four groups are debuffArchetype's, not defence.go's archetypeOf.
+
+// debuffLinePrefix begins a creature debuff's line; the caster's archetype
+// follows it in the bearer's field, so no two archetypes' lines are one
+// (lineFamily).
 const debuffLinePrefix = "debuff"
 
+// debuffArchetype is the word of a class's archetype in a creature debuff's
+// line: tank (warrior, paladin, shadow knight), melee (bard, monk, ranger,
+// rogue), caster (alchemist, enchanter, magician, necromancer, wizard), priest
+// (cleric, druid, shaman). A class outside the fifteen keeps a line of its own.
+func debuffArchetype(class int) string {
+	switch class {
+	case 0, 2, 3:
+		return "tank"
+	case 1, 4, 5, 6:
+		return "melee"
+	case 10, 11, 12, 13, 14:
+		return "caster"
+	case 7, 8, 9:
+		return "priest"
+	}
+	return fmt.Sprintf("class%d", class)
+}
+
 // DebuffLine is the line of a spell landing on a creature that BuffLine gives
-// none (the doc above): "debuff<class> " and its line's keys, "" when BuffLine
-// gives it a line or it changes no stat. class is the caster's (a merc's own).
+// none (the doc above): "debuff<archetype> " and its line's keys, "" when
+// BuffLine gives it a line or it changes no stat. class is the caster's (a
+// merc's own), its archetype the line's.
 func DebuffLine(s *CastSpell, class int) string {
 	d := &s.Def
 	if BuffLine(s) != "" || d.FormKind != FormNone || d.AltersLook || d.Summons() || d.Charms() {
@@ -198,7 +227,7 @@ func DebuffLine(s *CastSpell, class int) string {
 	if !stat || len(keys) == 0 {
 		return ""
 	}
-	return fmt.Sprintf("%s%d %s", debuffLinePrefix, class, strings.Join(keys, " "))
+	return debuffLinePrefix + debuffArchetype(class) + " " + strings.Join(keys, " ")
 }
 
 // creatureLine is the line of an effect of the spell landing on a creature:

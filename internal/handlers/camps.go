@@ -11,7 +11,7 @@ package handlers
 var campDests = map[string]teleDest{
 	"dfc":            {NPC: "Deathfist champion", Near: true, X: 21080.5, Y: 54.1, Z: 19078.3, World: 0, Levels: "33-40", Label: "Deathfist Citadel"},
 	"alfarak":        {NPC: "Deathfist slayer", Near: true, X: 22377.3, Y: 57.0, Z: 21305.1, World: 0, Levels: "37-40", Label: "Al Farak Ruins' Deathfist slayers and reavers"},
-	"hexbones":       {NPC: "hexbone", Near: true, X: 10306.6, Y: 54.1, Z: 8377.7, World: 0, Levels: "43-46", Label: "Zentar's Keep's hexbones and shrieks"},
+	"hexbones":       {NPC: "hexbone", Near: true, X: 10306.6, Y: 54.1, Z: 8377.7, World: 0, Levels: "43-46", Label: "the Gramash Ruins' hexbones and shrieks"},
 	"nasehir":        {NPC: "Nasehir ranger", Near: true, X: 24346.3, Y: 54.1, Z: 16213.8, World: 0, Levels: "11-17", Label: "Northern Ro's Nasehir, the first camp"},
 	"nasehir2":       {NPC: "Nasehir ranger", Near: true, X: 24539.3, Y: 57.7, Z: 17137.9, World: 0, Levels: "13-23", Label: "Northern Ro's Nasehir, the second camp"},
 	"hatebone":       {NPC: "hatebone guard", Near: true, X: 19957.6, Y: 54.1, Z: 7422.3, World: 0, Levels: "1-5", Label: "Halas' Hatebone orcs"},
@@ -59,6 +59,7 @@ var campDests = map[string]teleDest{
 	"crocodiles":     {NPC: "young crocodile", Near: true, X: 25751.5, Y: 54.1, Z: 11072.0, World: 0, Levels: "19-20", Label: "Bobble-by-Water's saltwater crocodiles"},
 	"minotaurs":      {NPC: "Rustel Minotaur", Near: true, X: 13002.0, Y: 59.0, Z: 26869.2, World: 0, Levels: "40-43", Label: "the Gerntar Mines' Rustel minotaurs"},
 	"rancidbones":    {NPC: "rancidbone troll", Near: true, X: 5548.7, Y: 54.1, Z: 8631.1, World: 0, Levels: "34", Label: "Bogman Village's rancidbone trolls"},
+	"zkhexbones":     {NPC: "hexbone", Near: true, X: 5479.4, Y: 54.7, Z: 6083.2, World: 0, Levels: "41-44", Label: "Zentar's Keep's hexbones and shrieks"},
 }
 
 // campNotes are what the GM panel's map says of each camp (campinfo.go):
@@ -116,6 +117,7 @@ var campNotes = map[string]campNote{
 	"crocodiles":     {Note: "Bobble-By-Water (E). Island-based camp with social aggro. Pull carefully to avoid chain fights.", Guide: "18-20", Creatures: []string{"young crocodile", "caiman"}, Rare: []campRare{{Name: "Alleza", Level: 22, Drops: []string{}}}},
 	"minotaurs":      {Note: "Gerntar Mines (C). High mob density inside caves. Strong XP but can overwhelm unprepared groups.", Guide: "29-38", Creatures: []string{"Rustel Minotaur", "Rustel Minotaur Scout"}, Rare: []campRare{}},
 	"rancidbones":    {Note: "", Guide: "", Creatures: []string{"rancidbone troll"}, Rare: []campRare{}},
+	"zkhexbones":     {Note: "", Guide: "", Creatures: []string{"hexbone", "shriek"}, Rare: []campRare{}},
 }
 
 // mapTowns are EQOA-Data's towns outside Tunaria (whose are coachtowns.go's),
@@ -129,15 +131,17 @@ var mapTowns = []TownMark{
 
 // campAliases are other names a GM may type for a camp.
 var campAliases = map[string]string{
-	"deathfist":  "dfc",
-	"shrieks":    "hexbones",
-	"halasorcs":  "hatebone",
-	"kerrans":    "tendora",
-	"slythis":    "kappa",
-	"bbgnolls":   "blackburrow",
-	"bandits":    "cutthroats",
-	"druk":       "orctunnel",
-	"pariah":     "xrag",
-	"icywind":    "gusts",
-	"rancidbone": "rancidbones",
+	"deathfist":      "dfc",
+	"shrieks":        "hexbones",
+	"halasorcs":      "hatebone",
+	"kerrans":        "tendora",
+	"slythis":        "kappa",
+	"bbgnolls":       "blackburrow",
+	"bandits":        "cutthroats",
+	"druk":           "orctunnel",
+	"pariah":         "xrag",
+	"icywind":        "gusts",
+	"rancidbone":     "rancidbones",
+	"zkhex":          "zkhexbones",
+	"zentarhexbones": "zkhexbones",
 }

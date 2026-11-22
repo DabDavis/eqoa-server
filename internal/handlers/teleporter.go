@@ -255,7 +255,7 @@ var teleCampNames = map[string]string{
 	"scarecrows": "Scarecrows, Alseop's Wall", "blackburrow": "Blackburrow gnolls", "gnollfishers": "Gnoll fishermen",
 	"serpents": "Serpent guardians", "gharial": "Gharial island", "dfc": "Deathfist Citadel", "guardianforest": "Guardian Forest goblins",
 	"alfarak": "Al Farak Ruins", "siloths": "Salt Mine siloths", "minotaurs": "Rustel minotaurs", "drudges": "Kappa drudges, Odus",
-	"hexbones": "Hexbones, Zentar's Keep", "cyclops": "The cyclops", "hillgiants": "Keliner's hill giants",
+	"hexbones": "Hexbones, Gramash Ruins", "zkhexbones": "Hexbones, Zentar's Keep", "cyclops": "The cyclops", "hillgiants": "Keliner's hill giants",
 	"icegiants": "Ice giant refugees", "kappa": "Kappa, Slythis Dwell", "kappawarriors": "Kappa warriors, Odus",
 	"tendora": "Tendora-Buki kerrans", "gargoyles": "Gargoyles, Barren Coast", "phantoms": "Phantoms, East Plateau",
 	"kappaelites": "Kappa elites, Odus", "moots": "Moots, Erud's Crossing", "harpies": "Harpies, Erud's Crossing",

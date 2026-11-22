@@ -50,7 +50,7 @@ import sys
 CAMPS = [
     ("dfc", ["deathfist"], "Deathfist Citadel (DFC)", None, r"^deathfist ", "Deathfist Citadel"),
     ("alfarak", [], "Deathfist Slayers & Reavers", None, r"^deathfist (slayer|reaver)", "Al Farak Ruins' Deathfist slayers and reavers"),
-    ("hexbones", ["shrieks"], "Hexbones & Shrieks", None, r"^(hexbone|shriek)$", "Zentar's Keep's hexbones and shrieks"),
+    ("hexbones", ["shrieks"], "Hexbones & Shrieks", None, r"^(hexbone|shriek)$", "the Gramash Ruins' hexbones and shrieks"),
     ("nasehir", [], "Nasehir", [0], r"^nasehir ", "Northern Ro's Nasehir, the first camp"),
     ("nasehir2", [], "Nasehir", [1], r"^nasehir ", "Northern Ro's Nasehir, the second camp"),
     ("hatebone", ["halasorcs"], "Hatebone Orcs", [0], r"^hatebone ", "Halas' Hatebone orcs"),
@@ -108,6 +108,9 @@ CAMPS = [
 # Heirloom petition 2489 (2026-11-20): "there is no level 34. One of my favorite camps is bogman rancid bone
 # trolls" (seven rancidbone trolls, L34, west of Bogman Village).
 EXTRA_CAMPS = [
+    # Heirloom petition 2671 (2026-11-22): the map's "Hexbones & Shrieks" point is the Gramash Ruins' camp, labelled
+    # Zentar's Keep's; the keep's own hexbones stand round its south walls
+    ("zkhexbones", ["zkhex", "zentarhexbones"], (0, 5480.0, 6100.0, 300.0), r"^(hexbone|shriek)$", "Zentar's Keep's hexbones and shrieks"),
     ("rancidbones", ["rancidbone"], (0, 5536.0, 8616.0, 250.0), r"^rancidbone troll$", "Bogman Village's rancidbone trolls"),
 ]
 

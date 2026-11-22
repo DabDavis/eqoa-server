@@ -270,17 +270,17 @@ func TestCastIntoItsRecoveryIsAnswered(t *testing.T) {
 	if c.w.StartCast(c.sess, strike(), c.npcO, c.at(4100*time.Millisecond)) || len(c.sent()) != 0 {
 		t.Error("another spell 0.1 s after the cast was answered")
 	}
-	// 4.1 s in: 2.9 s of the 7 left (the reference server's line, 4.26 s into its Rockskin, said 3.2 of its 7.3)
+	// 4.1 s in, 2.9 s of the 7 left: the live game's line, which says no
+	// time (it was the reference server's "... met (2.9 s)" until board 686)
 	if c.w.StartCast(c.sess, rock, c.me, c.at(4100*time.Millisecond)) {
 		t.Fatal("begun inside its own lockout")
 	}
 	msgs := c.sent()
 	wantOps(t, msgs, protocol.OpcodeColoredChat, protocol.OpcodeCastingCombat)
-	line := unhex(t, "7b0a370000005200650063006f0076006500720079002000740069006d006500200066006f007200200074006800610074002000"+
-		"6100620069006c00690074007900200068006100730020006e006f00740020006200650065006e0020006d00650074002000280032002e00"+
-		"3900200073002900ff3f3f")
+	const live = "Recovery time for that ability has not been met."
+	line := append(append([]byte{0x7b, 0x0a, byte(len(live)), 0, 0, 0}, utf16le(live)...), 0xff, 0x3f, 0x3f)
 	if !bytes.Equal(msgs[0], line) {
-		t.Errorf("the line % X\n want Sandstorm's % X", msgs[0], line)
+		t.Errorf("the line % X\n want the live game's % X", msgs[0], line)
 	}
 	if cloud := unhex(t, "b100d0a12414d0a1241400000000004a85c79e"); !bytes.Equal(msgs[1], cloud) {
 		t.Errorf("the cloud % X, want % X", msgs[1], cloud)
@@ -295,8 +295,8 @@ func TestCastIntoItsRecoveryIsAnswered(t *testing.T) {
 	}
 	msgs = c.sent()
 	wantOps(t, msgs, protocol.OpcodeColoredChat, protocol.OpcodeCastingCombat)
-	if !bytes.Contains(msgs[0], utf16le(" (1.6 s)")) {
-		t.Errorf("the second line % X, want the 1.6 s left", msgs[0])
+	if !bytes.Equal(msgs[0], line) {
+		t.Errorf("the second line % X, want the live line again", msgs[0])
 	}
 	if c.p.Power != power || len(c.p.Lockouts) != 1 {
 		t.Errorf("an answer took power or locked: power %d -> %d, %d lockouts", power, c.p.Power, len(c.p.Lockouts))

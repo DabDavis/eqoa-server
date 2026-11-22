@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"fmt"
 	"log"
 	"math"
 	"time"
@@ -38,8 +37,8 @@ import (
 //     power.";
 //   - a cast sent during another's cast time (and 0.4 s on): nothing at all;
 //   - a cast sent into its own recovery, its cast time over: the red line
-//     "Recovery time for that ability has not been met (N.N s)" and the
-//     player's own 0x00B1 at itself, cast 0, the lockout cloud 0x9EC7854A,
+//     "Recovery time for that ability has not been met." (the live game's
+//     words, filmed twice: no time left in it) and the player's own 0x00B1 at itself, cast 0, the lockout cloud 0x9EC7854A,
 //     at most one about every 1.25 s (recoveryAnswerLocked).
 //
 // What a spell does comes from its line (spelltext.go); a line this cannot
@@ -119,9 +118,11 @@ const (
 
 var castRefusalRGB = [3]byte{255, 63, 63}
 
-// A cast into its own recovery, as the reference server answered four spells spammed
-// (lane-spellfx24, 2026-10-30: Rockskin, Minor Healing, Roar and Focus): its
-// red line, the lockout left to a tenth ("(300.2 s)"), and the player's own
+// A cast into its own recovery: the live game's red line, as filmed twice
+// (2012 and an EQOA: Forever tape: "...has not been met." and nothing after
+// it, so no time left), and, as the reference server answered four spells
+// spammed (lane-spellfx24, 2026-10-30: Rockskin, Minor Healing, Roar and
+// Focus), the player's own
 // CastingCombat at itself, cast 0, the lockout cloud (SPELLFX.CSF's effect
 // 216: a puff of dust at the feet with a sound), sent as a cast is, so those
 // around see it too (an alchemist spamming beside the recorder was seen so).
@@ -129,7 +130,7 @@ var castRefusalRGB = [3]byte{255, 63, 63}
 // most one about every 1.25 s (1.03-1.40 s apart, mostly 1.25, to sends 0.25 s
 // apart) and dropped the rest: recoveryAnswerGap.
 const (
-	castRecoveryWords        = "Recovery time for that ability has not been met (%.1f s)"
+	castRecoveryWords        = "Recovery time for that ability has not been met."
 	fxLockoutCloud    uint32 = 0x9EC7854A
 	recoveryAnswerGap        = 1200 * time.Millisecond
 )
@@ -143,7 +144,7 @@ func (w *World) recoveryAnswerLocked(sess *session.Session, p *Player, spell *Ca
 		return
 	}
 	p.recoveryAnswered = now
-	text := fmt.Sprintf(castRecoveryWords, left.Seconds())
+	text := castRecoveryWords
 	log.Printf("Cast: %s casts %q, locked out for %v: %q", p.Name, spell.Name, left.Round(time.Millisecond), text)
 	w.sendColoredLocked(sess, text, castRefusalRGB)
 	w.broadcastCastLocked(p, p.ServerID, 0, fxLockoutCloud)

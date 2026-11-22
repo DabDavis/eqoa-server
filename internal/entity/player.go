@@ -524,6 +524,9 @@ type Player struct {
 	// VampireSun.GMs may spare.
 	Vampire bool
 	GM      bool
+	// Relive: a 60 reliving at a lower level (marks.go): its true level, experience and debt,
+	// which every save writes; Level, XPInLevel and Debt are the Relive's. nil not reliving
+	Relive *ReliveState
 	// HideGMTag: a GM that hid its [GM] tag (/hide gmtag, handlers/hidegmtag.go):
 	// its name is drawn bare, as a player's; it is a GM as before
 	HideGMTag bool

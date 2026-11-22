@@ -846,9 +846,9 @@ func (l *Listener) savePlayerPosition(sess *session.Session) {
 	// The level and the experience into it, as the game holds them, whatever
 	// becomes of the place: until 2026-10-25 nothing wrote them, so every
 	// level gained, and a level a GM set, was gone at the next login.
-	record.Level = player.Level
-	record.TotalXP = entity.TotalXP(player.Level, player.XPInLevel)
-	record.Debt = player.Debt // what experience has not yet paid (awardXP)
+	// (a Relive's true level, never the Relive's: entity/marks.go, its row written beside)
+	record.Level, record.TotalXP, record.Debt = player.SavedProgress() // the debt: what experience has not yet paid (awardXP)
+	l.gameWorld.FlushRelive(player)
 	record.UnusedTP, record.TotalTP = player.UnusedTP, player.TotalTP
 
 	// A death's place is not where the next login starts: the respawn would

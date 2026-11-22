@@ -280,6 +280,10 @@ type World struct {
 	onKill []KillFunc
 	// onLevelUp hears a player's level rise (questhooks.go)
 	onLevelUp []LevelUpFunc
+	// killMarks hears each sharer's chance of an Heirloom Mark at a kill, reliveSave writes a
+	// Relive's row (marks.go); nil none
+	killMarks  KillMarksFunc
+	reliveSave ReliveSaveFunc
 	// onInfection hears a were's bite that infects (wereinfect.go)
 	onInfection []InfectionFunc
 
@@ -1027,7 +1031,8 @@ func (w *World) LiveProgress(id EntityID) (level, totalXP, debt int, ok bool) {
 	if !found {
 		return 0, 0, 0, false
 	}
-	return p.Level, TotalXP(p.Level, p.XPInLevel), p.Debt, true
+	level, totalXP, debt = p.SavedProgress() // a Relive's true ones (marks.go)
+	return level, totalXP, debt, true
 }
 
 // sessionPlayerLocked extracts the *Player from a session. Must be called with lock held.
@@ -1182,6 +1187,11 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 		boon = " (" + tag + ")"
 	}
 	shares := splitXP(player.Mastery, player.Level, player.Debt, xp)
+	if player.Relive != nil {
+		// a Relive's masteries sleep: all of it the Relive level's (marks.go)
+		shares.Level += shares.Mastery
+		shares.Mastery = 0
+	}
 	levelXP, cmXP := shares.Level, shares.Mastery
 	made := gainMastery(&player.Mastery, cmXP, player.Level) // the level splitXP was given
 	if shares.Debt > 0 {
@@ -1193,8 +1203,23 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 	player.TotalXP += levelXP
 	player.XPInLevel += levelXP
 
-	// Process level-ups
-	if player.Level < MaxLevel {
+	// Process level-ups (a Relive's to ReliveTop, its bar held full there: marks.go)
+	if player.Relive != nil {
+		for player.Level < ReliveTop {
+			threshold := CharXPDict[player.Level]
+			if threshold <= 0 || player.XPInLevel < threshold {
+				break
+			}
+			player.XPInLevel -= threshold
+			player.Level++
+			player.RecalcStats(false)
+			w.sendChatToSession(sess, fmt.Sprintf("You have reached level %d!", player.Level))
+		}
+		if t := CharXPDict[player.Level]; player.Level >= ReliveTop && t > 0 && player.XPInLevel >= t {
+			player.XPInLevel = t - 1
+		}
+		w.queueProgressLocked(player) // its Relive's row written at the next tick (marks.go)
+	} else if player.Level < MaxLevel {
 		for {
 			threshold, ok := CharXPDict[player.Level]
 			if !ok || threshold <= 0 {

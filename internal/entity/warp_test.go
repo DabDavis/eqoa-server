@@ -39,7 +39,7 @@ func TestWarpNPCClassification(t *testing.T) {
 		{"Gatekeeper Krup", true, false},
 		{"Harbormaster Thand", true, false},
 		{"Coachman Ronks", false, true},
-		{"Coachwoman Darva", false, true},
+		{"Coachman Darva", false, true},
 		{"Guard Kellin", false, false},
 		// Substring, not prefix — must not match.
 		{"The Gatekeeper", false, false},

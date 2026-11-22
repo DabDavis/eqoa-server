@@ -22,7 +22,7 @@ var sandstormNPCWeapons = []struct {
 	{"Chemist R`Vorr", 0, 0x45708337, 1},
 	{"Coachman Quicksteed", 0, 0xBF7E7DCB, 1},
 	{"Coachman Ronks", 0, 0xBF7E7DCB, 1},
-	{"Coachwoman Darva", 0, 0xBF7E7DCB, 1},
+	{"Coachman Darva", 0, 0xBF7E7DCB, 1},
 	{"Commander Nothard", 0, 0xF488193F, 1},
 	{"Denouncer Alshea", 0, 0x5570F89B, 1},
 	{"Guard Balruss", 0, 0x3637AD33, 1},

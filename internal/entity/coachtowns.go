@@ -46,7 +46,7 @@ var coachLocationNames = map[string]string{
 	"Coachman Zelik":      "Hazinak (Good)",
 	"Coachman Zuggug":     "Grobb",
 	"Coachwoman Dainei":   "Murnf",
-	"Coachwoman Darva":    "Darvar Manor",
+	"Coachman Darva":      "Darvar Manor",
 	"Coachwoman Dernia":   "Oasis",
 	"Coachwoman Holly":    "Forkwatch",
 }

@@ -69,3 +69,26 @@ func TestCoachTownsAreDistinctAndOnTheMap(t *testing.T) {
 		t.Errorf("%d coachmen named, want the server's 31", len(coachLocationNames))
 	}
 }
+
+// The renamed coachmen keep their towns by their new names (board 706:
+// "Coachman Darva", as the live game names him), and
+// the old names are no keys of the table; a row still under an old name, until
+// its data tool runs, is named by where it stands (TownAt), the same towns.
+func TestTheRenamedCoachmenKeepTheirTowns(t *testing.T) {
+	for _, c := range []struct {
+		npc  NPC
+		want string
+	}{
+		{NPC{Name: "Coachman Darva", SpawnX: 13603.2, SpawnZ: 14762.7}, "Darvar Manor"},
+		{NPC{Name: "Coachwoman Darva", SpawnX: 13603.2, SpawnZ: 14762.7}, "Darvar Manor"},
+	} {
+		if got, town := coachLabel(&c.npc); got != c.want || !town {
+			t.Errorf("%s: %q (%v), want %q", c.npc.Name, got, town, c.want)
+		}
+	}
+	for _, old := range []string{"Coachwoman Darva"} {
+		if _, ok := coachLocationNames[old]; ok {
+			t.Errorf("%q is still a key", old)
+		}
+	}
+}

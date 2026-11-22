@@ -21,7 +21,8 @@ never by id (the two shards' ids differ):
     TestAscendBossLootToolKeepsTheRule holds this file's constants to it): "Ascended <name>"; each stat, AC, resist,
     hit point and power maximum and tick and a weapon's damage above 0 a tenth more (times 110 / 100 in whole
     numbers, half up: 4 stays 4, 5 is 6, 15 is 17; 0 or a penalty as it is), its use effect's "by N" so; its
-    durability (maxhp), price (itemcost), look, icon, slot, level, classes, races, NO TRADE and Lore its base's; never
+    durability (maxhp), price (itemcost), look, icon, slot, level, classes, races and Lore its base's; always NO TRADE
+    (trade 1, a GM's ruling of 2026-11-18, work board 1714: the copies held before it are Legacy records); never
     NO RENT (rent 0 is made 1). The server makes each its base again at every start (fix the base, never a copy).
   - A table another creature rolls too (bound to a name not made Ascended, by this run or an earlier one, or to "*")
     is not changed: the boss is bound instead to a copy of it, "<table> ascended", its rows the table's with the gear
@@ -63,6 +64,7 @@ FIGURE_SQL = ("CASE WHEN {q} IS NULL THEN NULL WHEN CAST({q} AS INTEGER) > 0 "
               "THEN (CAST({q} AS INTEGER) * {m} + 50) / 100 ELSE {q} END")
 NAME_SQL = "'Ascended ' || trim({q})"
 RENT_SQL = "CASE WHEN {q} = 0 THEN 1 ELSE {q} END"
+TRADE_SQL = "1"
 SCHEMA = """CREATE TABLE IF NOT EXISTS itemascended (
 	patternid INTEGER PRIMARY KEY,
 	base      INTEGER NOT NULL UNIQUE,
@@ -170,6 +172,8 @@ def copy_columns(cols):
             froms.append(NAME_SQL.format(q=q))
         elif low == "rent":
             froms.append(RENT_SQL.format(q=q))
+        elif low == "trade":
+            froms.append(TRADE_SQL)
         else:
             froms.append(q)
     return ", ".join(sets), ", ".join(froms), names

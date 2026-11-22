@@ -121,7 +121,7 @@ func TestATunedBossDropsAscendedGearAndItsSpells(t *testing.T) {
 		if c.ItemName != database.AscendedName(b.ItemName) || c.WeaponDamage != database.AscendedFigure(b.WeaponDamage) ||
 			fig(c.Str) != database.AscendedFigure(fig(b.Str)) || fig(c.AC) != database.AscendedFigure(fig(b.AC)) ||
 			fig(c.FR) != database.AscendedFigure(fig(b.FR)) || c.MaxHP != b.MaxHP || c.ItemCost != b.ItemCost || c.Rent != 1 ||
-			c.EquipSlot != b.EquipSlot || c.Lore != b.Lore || c.Trade != b.Trade || c.ItemIcon != b.ItemIcon || c.Model != b.Model {
+			c.EquipSlot != b.EquipSlot || c.Lore != b.Lore || c.Trade != 1 || c.ItemIcon != b.ItemIcon || c.Model != b.Model { // always NO TRADE (work board 1714)
 			t.Errorf("Ascended record %d of %d: %+v\nits base: %+v", copyID, base, c, b)
 		}
 	}

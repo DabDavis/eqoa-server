@@ -676,6 +676,9 @@ type Quest struct {
 	// Unlocks are the trips it opens (the questunlocks table).
 	Unlocks []QuestUnlock
 	Steps   []QuestStep
+	// Marks is the Heirloom Marks its first finish pays (the marks column, work 1927;
+	// marks.go): nil computes them from its steps and kind (QuestMarksFor)
+	Marks *int
 }
 
 // EventsOn is the events of one time, in order.
@@ -1319,6 +1322,18 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 	if err := rs.Err(); err != nil {
 		return nil, err
 	}
+	// the Heirloom Marks a quest is set to pay (marks.go); a table without the column has none
+	if mrs, err := s.db.Query(`SELECT questid, marks FROM quests WHERE marks IS NOT NULL`); err == nil {
+		for mrs.Next() {
+			var id, m int
+			if mrs.Scan(&id, &m) == nil {
+				if i, ok := byID[id]; ok {
+					out[i].Marks = &m
+				}
+			}
+		}
+		mrs.Close()
+	}
 	srs, err := s.db.Query(`SELECT questid, step, kind, target, npcid, items, tunar, count, world, x, y, z, radius,
 		journal, answer, says, waiting, notyet, reminder, xp, rewardtunar, rewarditems, factions, spells, chance, events, byclass,
 		choices, height, anyorder, exactbase FROM queststeps ORDER BY questid, step`)
@@ -1427,6 +1442,15 @@ func (s *QuestStore) SaveCharQuest(c *CharQuest) error {
 			done = excluded.done, slot = excluded.slot, updated = excluded.updated, picks = excluded.picks`,
 		c.ServerID, c.QuestID, c.Step, c.Count, c.Done, c.Slot, c.Updated, c.Picks)
 	return err
+}
+
+// MarkQuestTaken notes when a character took a quest (charquests.taken, work 1927: the Heirloom
+// Marks' real-time limit). A table without the column is left alone.
+func (s *QuestStore) MarkQuestTaken(serverID uint32, questID int, at time.Time) {
+	if _, err := s.db.Exec(`UPDATE charquests SET taken = ? WHERE serverid = ? AND questid = ?`, at.Unix(), serverID, questID); err != nil &&
+		!strings.Contains(err.Error(), "no such column") {
+		log.Printf("Quests: character %d's quest %d taken: %v", serverID, questID, err)
+	}
 }
 
 // ParsePicks reads a charquests picks column: the option picked (from 0) by

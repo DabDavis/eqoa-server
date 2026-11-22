@@ -967,6 +967,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureMail(); err != nil { // mail.go: the tell-grams and what they carry
 		return err
 	}
+	if err := db.ensureMarks(); err != nil { // marks.go: Heirloom Marks, Hot zones, Heirloom Rank, Relive (work 1927)
+		return err
+	}
 
 	log.Printf("SQLite schema initialized")
 	return nil
@@ -1341,6 +1344,10 @@ func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
 	}
 	// and its combat record (combatrecord.go)
 	if err := s.db.deleteCharRecord(serverID); err != nil {
+		return err
+	}
+	// and its Heirloom Marks and Relive (marks.go)
+	if err := s.db.deleteCharMarks(serverID); err != nil {
 		return err
 	}
 	// and the look it chose (charlook.go)

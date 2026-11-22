@@ -173,6 +173,7 @@ func (w *World) handedOverLocked(p *Player) {
 	p.ProfanityFilterOff, p.ProfanityFilterMedium = false, false
 	p.PowerBars, p.powerBarsSent, p.powerBarsDue = false, "", false
 	p.PetEffects, p.petEffectsSent, p.petEffectsDue = false, "", false
+	p.GroupEffects, p.groupEffectsSent, p.groupEffectsDue = false, "", false
 	p.BuffWindow, p.buffWindowSent, p.buffWindowDue = false, "", false
 	p.RaidRoster, p.raidRosterSent, p.RaidRosterGroups, p.RaidRosterKinds = false, "", false, false
 	p.dps = nil                             // its meter too (dpsmeter.go)

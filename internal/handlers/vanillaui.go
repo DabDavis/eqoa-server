@@ -74,7 +74,7 @@ const (
 	QoLStatCaps    uint32 = 1 << 5  // Character > Summary's "346/435": the value alone, the game's
 	QoLPowerBars   uint32 = 1 << 6  // others' power under their health
 	QoLBuffWindow  uint32 = 1 << 7  // the buff window: the game's effects strip
-	QoLPetEffects  uint32 = 1 << 8  // the pet's effects under its bar
+	QoLPetEffects  uint32 = 1 << 8  // the pet's effects under its bar, and the group members' beside theirs
 	QoLAutoCast    uint32 = 1 << 9  // auto-cast on the quick bars and auto targeting
 	QoLItemLinks   uint32 = 1 << 10 // off by default: item links in chat, the player's to turn on
 	QoLSpellBars   uint32 = 1 << 11 // Ability Bars 3 and 4 and Stacked Spell Bars: the game's two bars

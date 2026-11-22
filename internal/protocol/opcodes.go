@@ -1851,6 +1851,10 @@ func (op GameOpcode) String() string {
 		return "BuffWindowData"
 	case OpcodeBuffRemove:
 		return "BuffRemove"
+	case OpcodeGroupEffects:
+		return "GroupEffects"
+	case OpcodeGroupEffectsData:
+		return "GroupEffectsData"
 	case OpcodeReadyCheckOffer:
 		return "ReadyCheckOffer"
 	case OpcodeReadyCheckAnswer:

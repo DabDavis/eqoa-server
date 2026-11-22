@@ -218,3 +218,36 @@ func TestYarnningSpeaksTheLiveMenu(t *testing.T) {
 		}
 	}
 }
+
+// The porters (board 823): Omiziki Porter asks "What can I do for you,
+// <name>?" with "I wish to be sent to Freeport." and "I'd like to be sent to
+// Qeynos.", one box, and each lands by its city's coachman; Gigwigle's are in
+// his filmed order (Qeynos first); Bertriza's (the Rathe) is Freeport's alone,
+// into world 0.
+func TestThePortersSendOnward(t *testing.T) {
+	for _, c := range []struct {
+		porter string
+		world  uint8
+		want   []string
+		pick   byte
+		x, z   float64
+	}{
+		{"Omiziki Porter", 0, []string{"I wish to be sent to Freeport.", "I'd like to be sent to Qeynos."}, 1, 4813, 17144},
+		{"Omiziki Porter", 0, []string{"I wish to be sent to Freeport.", "I'd like to be sent to Qeynos."}, 0, 25273.7, 15719.1},
+		{"Gigwigle Porter", 0, []string{"I'd like to be sent to Qeynos.", "I wish to be sent to Freeport."}, 1, 25273.7, 15719.1},
+		{"Bertriza Porter", 1, []string{"I wish to be sent to Freeport."}, 0, 25273.7, 15719.1},
+	} {
+		tw := wayWorld(t)
+		tw.p.World = c.world
+		id := tw.add(1, &entity.NPC{ServerID: 703, Name: c.porter, World: c.world, SpawnX: 25500, SpawnY: 54.1, SpawnZ: 15703})
+		tw.talk(id)
+		if q, opts := askedBox(t, tw.s); q != "What can I do for you, Talker?" || !slices.Equal(opts, c.want) {
+			t.Errorf("%s asked %q %q", c.porter, q, opts)
+			continue
+		}
+		tw.pick(id, c.pick)
+		if x, z, world, ok := teleported(tw.s); !ok || world != 0 || math.Hypot(float64(x)-c.x, float64(z)-c.z) > 5 {
+			t.Errorf("%s's answer %d went to (%.0f, %.0f) world %d (%v), want by (%.0f, %.0f)", c.porter, c.pick, x, z, world, ok, c.x, c.z)
+		}
+	}
+}

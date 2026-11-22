@@ -143,6 +143,12 @@ func (w wayWords) labels(dests []entity.CoachDest) []string {
 	return out
 }
 
+// porterWords are the porters' (board 823): Omiziki Porter's, filmed, which
+// Gigwigle's and Jwiggop's films show too; the other porters say them with
+// Freeport alone (ours, from his).
+var porterWords = wayWords{Greet: "What can I do for you, %s?",
+	Labels: map[string]string{"Freeport": "I wish to be sent to Freeport.", "Qeynos": "I'd like to be sent to Qeynos."}}
+
 // wayScripts are the waysenders with their own words, by name.
 var wayScripts = map[string]wayWords{
 	// Freeport's dock, a 2012 tape read frame by frame (board 745)
@@ -151,6 +157,16 @@ var wayScripts = map[string]wayWords{
 		Tell:   "I hear there are some exciting places there. I can arrange for your travel.",
 		Ask:    "Are you certain that is where you want to go?", Yes: "Yes.", No: "No.",
 		Gone: "Off you go then."},
+	"Omiziki Porter":   porterWords,
+	"Gigwigle Porter":  porterWords,
+	"Jwiggop Porter":   porterWords,
+	"Burfuzzik Porter": porterWords,
+	"Gullio Porter":    porterWords,
+	"Ninnozip Porter":  porterWords,
+	"Piddixdon Porter": porterWords,
+	"Riddletic Porter": porterWords,
+	"Rigalig Porter":   porterWords,
+	"Bertriza Porter":  porterWords,
 }
 
 // answerWay takes the answer to a waysender's box of its own words: a trip

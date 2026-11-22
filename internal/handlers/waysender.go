@@ -44,6 +44,12 @@ type wayRoute struct {
 	Lacks string
 }
 
+// porterFreeport and porterQeynos are a porter's trips (board 823).
+var (
+	porterFreeport = wayRoute{To: "Freeport", Arrive: "Coachman Ronks"}
+	porterQeynos   = wayRoute{To: "Qeynos", Arrive: "Coachman Billfer"}
+)
+
 // wayPlace is where a trip lands: a world and a point in it.
 type wayPlace struct {
 	World   uint8
@@ -444,6 +450,23 @@ var wayRoutes = map[string][]wayRoute{
 	// south-east, by Solusek's Eye); each takes a vampire to the Sanctuary,
 	// and the Sanctuary's own (tools/seed_vampires.py) to each of them. A
 	// trip lands three steps off its coffin, on the floor, clear of walls.
+	// The porters (board 823): Omiziki Porter (Moradhim) to Freeport and
+	// Qeynos, as filmed; Gigwigle (Rivervale) and Jwiggop (Surefall Glade) the
+	// same two, as filmed (in their menus' orders); the other seven to
+	// Freeport alone (jibrish's decision). Each lands in front of the city's
+	// coachman (Ronks, Billfer): ours, no tape shows an arrival. No fee or
+	// level, as filmed. Their words: npcwords.go.
+	"Omiziki Porter":   {porterFreeport, porterQeynos},
+	"Gigwigle Porter":  {porterQeynos, porterFreeport},
+	"Jwiggop Porter":   {porterFreeport, porterQeynos},
+	"Burfuzzik Porter": {porterFreeport},
+	"Gullio Porter":    {porterFreeport},
+	"Ninnozip Porter":  {porterFreeport},
+	"Piddixdon Porter": {porterFreeport},
+	"Riddletic Porter": {porterFreeport},
+	"Rigalig Porter":   {porterFreeport},
+	"Bertriza Porter":  {porterFreeport},
+
 	"coffin": {
 		{To: "The Sanctuary", At: &sanctuaryLanding, Vampire: true},
 	},

@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"errors"
+	"log"
 	"strings"
 	"sync"
 )
@@ -173,6 +174,13 @@ func npcClassKeyOf(name string) string {
 	return strings.TrimSpace(strings.TrimSuffix(n, "$"))
 }
 
+// RuleKeySQL is NPCClassKey in SQLite on column col (lower case, trimmed, the
+// trailing '$' off), for a rule table's stored name to meet a key whatever
+// case it was written in (board 743).
+func RuleKeySQL(col string) string {
+	return "trim(rtrim(lower(trim(" + col + ")), '$'))"
+}
+
 // isOwnClassKey says if a name is already its key: all ASCII, no capital, no
 // space at either end and no '$' at its end (anything else, non-ASCII
 // included, goes the long way).
@@ -334,14 +342,26 @@ func (s *NPCStore) NPCClasses() (map[string]int, error) {
 		return nil, err
 	}
 	defer rows.Close()
+	// keyed by NPCClassKey, as every reader asks (board 743: a row stored with
+	// capitals, 207 of the census's, classed no one); where two rows meet on
+	// one key, the one stored as its key wins and the other is logged
 	out := make(map[string]int)
+	own := make(map[string]bool)
 	for rows.Next() {
 		var name string
 		var class int
 		if err := rows.Scan(&name, &class); err != nil {
 			return nil, err
 		}
-		out[name] = class
+		key := NPCClassKey(name)
+		if _, dup := out[key]; dup {
+			if own[key] || key != name {
+				log.Printf("npcclass: row %q is %q's too; the row %q counts", name, key, key)
+				continue
+			}
+			log.Printf("npcclass: a row under another case is %q's too; the row %q counts", key, key)
+		}
+		out[key], own[key] = class, key == name
 	}
 	return out, rows.Err()
 }
@@ -350,7 +370,9 @@ func (s *NPCStore) NPCClasses() (map[string]int, error) {
 // and 0 (a warrior's) when it holds none.
 func (s *NPCStore) NPCClassOf(name string) (int, error) {
 	var class int
-	err := s.db.QueryRow(`SELECT class FROM npcclass WHERE name = ?`, NPCClassKey(name)).Scan(&class)
+	key := NPCClassKey(name)
+	err := s.db.QueryRow(`SELECT class FROM npcclass WHERE `+RuleKeySQL("name")+` = ?
+		ORDER BY name = ? DESC LIMIT 1`, key, key).Scan(&class)
 	if errors.Is(err, sql.ErrNoRows) {
 		return 0, nil
 	}

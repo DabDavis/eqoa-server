@@ -116,7 +116,10 @@ func ParseLootCounts(s string) ([]float64, error) {
 func (s *InventoryStore) CategoryRolls(name string, level int) ([]CategoryRoll, error) {
 	key := NPCClassKey(name)
 	region, profile := "", ""
-	switch err := s.db.QueryRow(`SELECT region, profile FROM lootcreature WHERE npc_name = ?`, key).Scan(&region, &profile); {
+	// matched by NPCClassKey whatever case the row was stored in (board 743),
+	// the row stored as its key first
+	switch err := s.db.QueryRow(`SELECT region, profile FROM lootcreature WHERE `+RuleKeySQL("npc_name")+` = ?
+		ORDER BY npc_name = ? DESC LIMIT 1`, key, key).Scan(&region, &profile); {
 	case errors.Is(err, sql.ErrNoRows):
 	case err != nil:
 		return nil, fmt.Errorf("lootcreature: %w", err)

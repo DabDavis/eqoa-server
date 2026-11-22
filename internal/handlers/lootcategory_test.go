@@ -272,3 +272,28 @@ func TestACorpseHoldsWhatItsCategoriesRolled(t *testing.T) {
 		t.Fatalf("no active preset: %d records", n)
 	}
 }
+
+// A lootcreature row stored with capitals gives its region to the creature
+// whatever case its name is in (board 743: 208 census rows had matched no
+// one): "Acolyte Satyr" of the plains rolls the plains' sword beside every
+// region's bait, as "acolyte satyr" and as "Acolyte Satyr". The control: a
+// name with no row rolls every region's bait alone.
+func TestALootCreatureRowInCapitalsCounts(t *testing.T) {
+	f := newCorpseFixture(t, 0)
+	seedCategories(t, f)
+	if _, err := f.db.Exec(`INSERT INTO lootcreature (npc_name, region, profile, source) VALUES ('Acolyte Satyr', 'plains', '', 'sandstorm-census')`); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"acolyte satyr", "Acolyte Satyr"} {
+		rolls, err := f.inv.CategoryRolls(name, 15)
+		if err != nil || len(rolls) != 2 {
+			t.Fatalf("%q: %+v %v", name, rolls, err)
+		}
+		if got := patterns(rolls[1].Choices); len(got) != 2 || got[0] != f.sword || got[1] != f.bait {
+			t.Errorf("%q's uncommon pool %v: want the plains' sword and every region's bait", name, got)
+		}
+	}
+	if rolls, _ := f.inv.CategoryRolls("Acolyte Faun", 15); len(rolls) != 2 || len(patterns(rolls[1].Choices)) != 1 {
+		t.Errorf("the control, no row: %+v", rolls)
+	}
+}

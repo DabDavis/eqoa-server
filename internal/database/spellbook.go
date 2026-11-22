@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 )
 
 // SpellbookStore queries character spell data (spells joined with spellpattern).
@@ -298,4 +299,59 @@ func (db *SQLiteDB) ensureSpellEffects() error {
 		}
 	}
 	return nil
+}
+
+// AscendedSpellBases is table spellascended: each Ascended spell's base
+// (spellid -> base); empty where the table is not (a server no tool has made
+// one on).
+func (s *SpellbookStore) AscendedSpellBases() (map[int]int, error) {
+	out := map[int]int{}
+	rows, err := s.db.Query(`SELECT spellid, base FROM spellascended`)
+	if err != nil {
+		if strings.Contains(err.Error(), "no such table") {
+			return out, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var id, base int
+		if err := rows.Scan(&id, &base); err != nil {
+			return nil, err
+		}
+		out[id] = base
+	}
+	return out, rows.Err()
+}
+
+// ReplaceSpell takes every row of each spell of out out of a character's book
+// and puts spell in at display index order, on the hot bar as given (an
+// Ascended scroll's spell in its base's place: handlers/scribe.go), in one
+// transaction: all of it or none. It returns how many rows went.
+func (s *SpellbookStore) ReplaceSpell(serverID uint32, out []int, in, order, onHotBar, whereOnBar int) (int, error) {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback()
+	gone := 0
+	for _, id := range out {
+		res, err := tx.Exec(`DELETE FROM spells WHERE serverid = ? AND spellid = ?`, serverID, id)
+		if err != nil {
+			return 0, err
+		}
+		n, err := res.RowsAffected()
+		if err != nil {
+			return 0, err
+		}
+		gone += int(n)
+	}
+	if _, err := tx.Exec(`INSERT INTO spells (serverid, spellid, addedorder, onHotBar, whereonBar, unk1, showhide)
+		VALUES (?, ?, ?, ?, ?, 0, -1)`, serverID, in, order, onHotBar, whereOnBar); err != nil {
+		return 0, err
+	}
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+	return gone, nil
 }

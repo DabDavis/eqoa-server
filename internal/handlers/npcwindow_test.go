@@ -291,7 +291,8 @@ func TestMerchantBuyRefusals(t *testing.T) {
 		w.Write7BitEncodedInt64(1)
 		w.WriteUint32(shopMerchantID)
 	})
-	mustOps(t, f.sent(), protocol.OpcodeCancelPending)
+	// the live game's red "You can't afford that." (board 852), then the refusal
+	mustOps(t, f.sent(), protocol.OpcodeColoredChat, protocol.OpcodeCancelPending)
 	f.player.Tunar = 1000
 	f.send(protocol.OpcodeMerchantBuy, func(w *buffer.Writer) {
 		w.Write7BitEncodedInt64(5) // no such catalog row

@@ -630,10 +630,10 @@ func TestAccountBankDumpIsAPage(t *testing.T) {
 		case !on && kept != 60:
 			t.Errorf("off: %d kept, want 60", kept)
 		}
-		// the account's bank is no character's own (petition 2453): a Lore item in it, on its page or
-		// off it, is not held; in a character's own bank it is
-		if held := sessionInvList(sess).loreHeld(w.charm); held == on {
-			t.Errorf("on %v: a Lore item in the bank off the page held %v", on, held)
+		// a Lore item in the bank is held, on its page or off it, the account's bank too (the
+		// owner, 2026-11-22, petition 2613; from petition 2453 the account's had not counted)
+		if held := sessionInvList(sess).loreHeld(w.charm); !held {
+			t.Errorf("on %v: a Lore item in the bank off the page held %v, want held", on, held)
 		}
 	}
 }
@@ -691,8 +691,10 @@ func TestAccountBankLoreTakenOutOnlyByOneWithout(t *testing.T) {
 		t.Fatal(err)
 	}
 	f.login("Birch", 40)
-	if pl := sessionInvList(f.sess["Birch"]); pl.loreRoom(&database.ItemPatternRecord{PatternID: eye, Lore: 1}, 1) != 1 {
-		t.Fatal("Birch holding none, one in the account's bank: no room for one (the account's bank counted as Birch's)")
+	// the account's bank counts as held (petition 2613): no room for a second from anywhere else,
+	// and taking the banked one out (a move between bank and pack) is still allowed below
+	if pl := sessionInvList(f.sess["Birch"]); pl.loreRoom(&database.ItemPatternRecord{PatternID: eye, Lore: 1}, 1) != 0 {
+		t.Fatal("Birch holding none, one in the account's bank: room for another (the account's bank not counted)")
 	}
 	f.bankItem("Birch", true, f.keyOf("Birch", true, banked), 1)
 	if sid, loc := f.rowAt(banked); sid != f.sid["Birch"] || loc != database.LocPack {

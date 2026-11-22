@@ -132,8 +132,8 @@ func TestALoreItemInTheBankIsHeld(t *testing.T) {
 			}
 		}
 		switch {
-		case c.shared && got != 1:
-			t.Errorf("one in the account's bank: %d summoned, want 1", got)
+		case c.shared && (got != 0 || !f.loreLineSent("Reconstructive")):
+			t.Errorf("one in the account's bank: %d summoned (want 0, petition 2613), told %v", got, f.loreLineSent("Reconstructive"))
 		case c.shared:
 		case banked && (got != 0 || !f.loreLineSent("Reconstructive")):
 			t.Errorf("one in the bank: %d summoned (want 0), told %v", got, f.loreLineSent("Reconstructive"))

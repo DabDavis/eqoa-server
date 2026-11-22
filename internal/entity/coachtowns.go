@@ -22,7 +22,7 @@ var coachLocationNames = map[string]string{
 	"Coachman Boblon":     "Bobble-by-Water",
 	"Coachman Brody":      "Castle Lightwolf",
 	"Coachman Brumley":    "Wyndhaven",
-	"Coachman D'Larik":    "Fort Seriak",
+	"Coachman D`larik":    "Fort Seriak",
 	"Coachman Dilga":      "Oggok",
 	"Coachman Dapkus":     "Blackwater",
 	"Coachman Doba":       "Moradhim",

@@ -176,6 +176,15 @@ func (w *World) LoadRowWander(db *database.SQLiteDB) (int, error) {
 	return len(m), nil
 }
 
+// RowWanderOf is a creature's own wander radius as the world holds it (table
+// npcwander, by its npcs row's id), and whether it has a row.
+func (w *World) RowWanderOf(id EntityID) (float32, bool) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	r, ok := w.rowWander[id]
+	return r, ok
+}
+
 // MoveSummary says how creatures move, for the log at the start.
 func (w *World) MoveSummary() string {
 	w.mu.RLock()

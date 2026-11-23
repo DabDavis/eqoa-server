@@ -89,6 +89,9 @@ func checkRow(table string, row map[string]any) error {
 	if table == "npcmove" && row != nil {
 		return checkNPCMoveRow(row) // live.go
 	}
+	if table == "npcwander" && row != nil {
+		return checkNPCWanderRow(row) // live.go
+	}
 	if table == "racesize" && row != nil {
 		return checkRaceSizeRow(row) // live_racesize.go
 	}

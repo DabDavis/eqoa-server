@@ -2143,6 +2143,23 @@ var catalog = map[string]tableNote{
 			"source": {Label: "Source", Help: "gm, or seed for tools/seed_npc_move.py's rows (its --undo deletes those)"},
 		},
 	},
+	"npcwander": {
+		Label: "Creature wander (by spawn)", Group: "World", Title: "npcid", Sort: "npcid",
+		Help: "One creature's own wander, by its npcs row, ahead of its name's Creature movement (npcmove) row and its " +
+			"kind (entity/movement.go): radius above 0 wanders that far from its spawn, 0 wanders at its name's or the " +
+			"server's radius, below 0 stands on its spawn until pulled. The game's /move roamer, /clone roamer and " +
+			"/place ... roamer write the same rows. A pet, a training dummy, a path's, a camp's static spawn, a spawn-only " +
+			"original, one with no body or the NPC bit, or one off the ground never wanders whatever its row says.",
+		Live:   "At once: the next leg each wanderer chooses.",
+		Search: []string{"note", "source"},
+		Cols: map[string]colNote{
+			"npcid": {Label: "NPC", Ref: "npcs"},
+			"radius": {Label: "Radius", Help: "above 0: how far from its spawn it wanders (at most 2000); 0: its name's " +
+				"or the server's radius; below 0: it stands on its spawn until pulled"},
+			"note":   {Label: "Note"},
+			"source": {Label: "Source", Help: "gm, or a tool's (tools/disperse_patrol_20261112.py: disperse; its --undo deletes its own)"},
+		},
+	},
 	"classtemplates": {
 		Label: "Class templates", Group: "World", Title: "name", Sort: "name",
 		Help: "NPC class templates (entity/classtemplate.go; jib's F3 20261029-025234): a template a row, given to the NPCs " +

@@ -113,6 +113,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveCraftSkills(before, after) // live_craft.go
 	case "npcmove":
 		return s.liveMove()
+	case "npcwander":
+		return s.liveRowWander()
 	case "campspawns":
 		return s.liveCamps()
 	case "npcrare":
@@ -773,6 +775,42 @@ func (s *Server) liveMove() string {
 		return "not applied to the world: " + err.Error()
 	}
 	return "at once: the next step of every creature of that name uses it"
+}
+
+// liveRowWander reads every creature's own wander again (table npcwander,
+// entity/movement.go; the change is committed: the database is free), as the
+// game's /move roamer, /clone roamer and /place ... roamer do
+// (handlers/gmnpcrow.go reloadNPCExtras).
+func (s *Server) liveRowWander() string {
+	if s.d.World == nil || s.d.DB == nil {
+		return "no world is running: at the next start"
+	}
+	if _, err := s.d.World.LoadRowWander(s.d.DB); err != nil {
+		return "not applied to the world: " + err.Error()
+	}
+	return "at once: the next leg each wanderer chooses"
+}
+
+// checkNPCWanderRow holds an npcwander row to what a wander can be: npcid an
+// npcs row's id, radius a number no wider than a GM's command sets
+// (database.MaxWanderRadius); below 0 is read as -1 (it stands).
+func checkNPCWanderRow(row map[string]any) error {
+	if v, ok := row["npcid"]; ok && v != nil {
+		f, fok := asFloat(v)
+		if !fok || f != math.Trunc(f) || f < 1 {
+			return badRequest("npcid is an npcs row's id (a whole number from 1)")
+		}
+	}
+	v, ok := row["radius"]
+	if !ok || v == nil {
+		return nil
+	}
+	f, fok := asFloat(v)
+	if !fok || math.IsNaN(f) || math.IsInf(f, 0) || f > database.MaxWanderRadius {
+		return badRequest("radius is a number of units up to %d (0: its name's or the server's; below 0: it stands on its spawn)",
+			database.MaxWanderRadius)
+	}
+	return nil
 }
 
 // checkNPCMoveRow holds an npcmove row's speed to what a wander can walk

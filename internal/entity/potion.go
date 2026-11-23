@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/rand"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -280,6 +281,10 @@ func (pe *PotionEffect) duration() time.Duration {
 // id, name and icon, its line, scope 0 (self) or 1 (target).
 func (pe *PotionEffect) castSpell() CastSpell {
 	s := CastSpell{SpellID: PotionEffectID(pe.PatternID), Name: pe.Name, Icon: pe.Icon, Def: pe.Def, FX: pe.FX}
+	// "Target, Glorious Experience, 1hr" uses the ordinary timed buff path.
+	if pe.Def.Target == TargetSingle && !pe.Def.Harmful && pe.Def.Duration > 0 && slices.Contains(pe.Def.Unread, "glorious experience") {
+		s.SpellID = gloriousXPEffectID
+	}
 	if pe.Thrown() {
 		s.Scope, s.Range = 1, PotionRange
 	}
@@ -534,6 +539,15 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 		targets, refusal := w.castTargetsLocked(sess, p, &spell, targetObjectID)
 		if refusal != "" {
 			return refusal, nil, nil
+		}
+		if spell.SpellID == gloriousXPEffectID {
+			target := w.Players[targets[0]]
+			if target == nil || target.IsDead() || target.respawnPending() || !playersShare(p, target) {
+				return "Target a living player.", nil, nil
+			}
+			if w.hcAidRefusedLocked(p, target, false) {
+				return "You cannot use this potion on that player.", nil, nil
+			}
 		}
 		// an item whose use charms (the Puppet Strings: petition 1426, transfer
 		// 97): a charm spell's checks and landing (charm.go) on a creature, never a

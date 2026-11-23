@@ -101,6 +101,25 @@ func TestDrinkPotionTakesOne(t *testing.T) {
 	}
 }
 
+func TestGloriousExperienceConsumesOneFromAStack(t *testing.T) {
+	f := newScribeFixture(t)
+	w := f.potionWorld()
+	w.SessionManager = session.NewManager()
+	f.sess.SetPlayerObjectID(4001)
+	const name = "Glorious Experience Test"
+	id := f.potion(name, -1, 99, 1, "Target, Glorious Experience, 1hr", name, "")
+	f.own(id, 99)
+	f.loadList()
+	f.useAs(0, 0xFFFFFFFF, 0)
+	if got := f.stackOf(name); got != 99 {
+		t.Fatalf("no target left %d doses, want 99", got)
+	}
+	f.useAs(0, f.sess.PlayerObjectID(), 0)
+	if got := f.stackOf(name); got != 98 || len(f.player.Buffs) != 1 || f.player.Buffs[0].Name != name {
+		t.Fatalf("successful use left %d doses and buffs %+v", got, f.player.Buffs)
+	}
+}
+
 // A thrown potion is a ranged weapon (F3 20261026-014336): a quick slot's Use
 // (as the item menu's) wears it in the ranged slot (0x003F, equip slot 18)
 // and throws nothing; only one worn nowhere (a GM's) is thrown by Use, and

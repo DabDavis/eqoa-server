@@ -5530,13 +5530,15 @@
    "name": "astral breath",
    "description": "The astral breath, from High Priest Vorin.",
    "notrade": true,
-   "like": "Night Breath"
+   "like": "Night Breath",
+   "set": {"levelreq": 1, "classuse": 32767, "raceuse": 1023}
   },
   {
    "name": "ethereal breath",
    "description": "The ethereal breath, from the Jal'Raeth Patriarch.",
    "notrade": true,
-   "like": "Night Breath"
+   "like": "Night Breath",
+   "set": {"levelreq": 1, "classuse": 32767, "raceuse": 1023}
   },
   {
    "name": "Holy Symbol of Envar",

@@ -224,8 +224,8 @@ func (h *NPCWindowHandler) rollCorpse(npc *entity.NPC, died time.Time, level int
 		}
 	}
 	if cut > 0 {
-		log.Printf("Loot: %q rolled for a level %d opener: %d pieces of equipment above level %d left out",
-			npc.Name, level, cut, level+lootLevelReach)
+		log.Printf("Loot: %q rolled for a level %d opener: %d pieces of equipment above level %d or spell scrolls below level %d left out",
+			npc.Name, level, cut, level+lootLevelReach, min(level, lootSpellCap)-lootScrollReach)
 	}
 	for i := range items {
 		items[i] = catalogRecord(items[i])
@@ -310,9 +310,35 @@ const lootLevelReach = 10
 // lootGearSlots is the last equip slot of the gear (19, the gloves).
 const lootGearSlots = 19
 
+// lootScrollReach is how far below its creature's level (60 at most) a class's
+// spell scroll a corpse rolls may be (the owner, 2026-11-22, petition 2677, a
+// level 59 creature's "level 13 rogue spell": "13 spells shouldnt drop at all"):
+// a level 59 creature drops scrolls of level 49 and up, a level 70 boss those of
+// 50 and up, a level 20 creature those of 10 and up. Above the creature's level is
+// not judged (the Ascended scrolls of 60 off a boss), nor is a scroll with no level
+// of its own, nor one every class may use (classSpellScroll: the Corroded Giant's
+// illusions of every level, a quest's notes and pages in the scroll's art). A
+// quest's loot step item (questpreloot.go) is its step's, never judged here.
+const lootScrollReach = 10
+
+// lootSpellCap is the highest level a spell scroll asks for: a creature above
+// it is judged as one of it.
+const lootSpellCap = 60
+
+// classSpellScroll reports a spell scroll of some classes, not every one: the
+// scroll's art (isScroll) on a record whose class mask names some of the
+// fifteen classes but not all.
+func classSpellScroll(p *database.ItemPatternRecord) bool {
+	const every = 0x7FFF // entity's allClassesMask
+	return isScroll(p) && p.ClassUse&every != 0 && p.ClassUse&every != every
+}
+
 // lootFits reports an item a level's opener may find on a corpse (level 0:
 // no opener known, anything).
 func lootFits(p *database.ItemPatternRecord, level int) bool {
+	if level > 0 && p.LevelReq > 0 && classSpellScroll(p) {
+		return p.LevelReq >= min(level, lootSpellCap)-lootScrollReach
+	}
 	if level <= 0 || p.EquipSlot < 1 || p.EquipSlot > lootGearSlots || p.AttackType == 10 || p.LevelReq <= 0 {
 		return true
 	}

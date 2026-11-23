@@ -51,6 +51,11 @@ def make(path):
         db.execute("INSERT INTO spellpattern VALUES (?, ?)", (sid, name))
         db.execute("INSERT INTO classspells VALUES (?, ?)", (cls, sid))
         db.execute("INSERT INTO loottables (tablename, patternid) VALUES (?, ?)", (t.UWU_TABLE, pid))
+    for name, (pid, bit, sid, cls) in t.MORE.items():
+        db.execute("INSERT INTO itempattern VALUES (?, ?, ?, 46, -1, 0)", (pid, name, bit))
+        db.execute("INSERT INTO spellpattern VALUES (?, ?)", (sid, name))
+        db.execute("INSERT INTO classspells VALUES (?, ?)", (cls, sid))
+        db.execute("INSERT INTO loottables (tablename, patternid) VALUES (?, ?)", (t.UWU_TABLE, pid))
     # a second Burning Blade (a sword), not the scroll
     db.execute("INSERT INTO itempattern VALUES (9001, 'Burning Blade', 32767, 40, 14, 0)")
     for a in ARCHS:
@@ -127,7 +132,8 @@ class PetPass1123e(unittest.TestCase):
         self.assertEqual(self.q("SELECT itemicon FROM itempattern WHERE patternid = ?", (t.BLACK_SAPPHIRE,))[0][0],
                          t.DARK_GEM)
         # Uwu's drops left as they were
-        self.assertEqual(self.q("SELECT count(*) FROM loottables WHERE tablename = ?", (t.UWU_TABLE,))[0][0], 9)
+        self.assertEqual(self.q("SELECT count(*) FROM loottables WHERE tablename = ?", (t.UWU_TABLE,))[0][0], 11)
+        self.assertEqual(self.q("SELECT count(*) FROM npcitem WHERE patternid IN (8702, 8664)")[0][0], 0)
         self.assertEqual(self.q("SELECT count(*) FROM gm_audit")[0][0], 19)
         # Waldorf untouched by the main part
         self.assertEqual(snapshot(self.path)["charquests"], before["charquests"])
@@ -167,6 +173,27 @@ class PetPass1123e(unittest.TestCase):
         self.assertEqual(code, 0, out)
         self.assertEqual(snapshot(self.path), before)
         self.assertEqual(self.q("SELECT taken FROM charquests WHERE questid = 101353")[0][0], 1795450776)
+
+    def test_more_after_the_first_each_undone_alone(self):
+        before = snapshot(self.path)
+        run("--db", self.path, "--apply", "--no-backup")
+        mid = snapshot(self.path)
+        code, out = run("--db", self.path, "--more")
+        self.assertIn("dry run: 4 rows would change", out)  # 2 scrolls x 2 archivists
+        code, out = run("--db", self.path, "--more", "--apply", "--no-backup")
+        self.assertEqual(code, 0, out)
+        for a in ARCHS:
+            got = {r[0] for r in self.q("SELECT patternid FROM npcitem WHERE npcid = ? AND listnumber = 13", (a,))}
+            self.assertTrue({8702, 8664} <= got)
+        code, out = run("--db", self.path, "--more", "--apply", "--no-backup")
+        self.assertIn("applied already", out)
+        code, out = run("--db", self.path, "--more")
+        self.assertIn("dry run: 0 rows would change", out)
+        code, out = run("--db", self.path, "--more", "--undo", "--no-backup")
+        self.assertEqual(code, 0, out)
+        self.assertEqual(snapshot(self.path), mid)
+        run("--db", self.path, "--undo", "--no-backup")
+        self.assertEqual(snapshot(self.path), before)
 
     def test_refuses_a_row_not_as_read(self):
         db = sqlite3.connect(self.path)

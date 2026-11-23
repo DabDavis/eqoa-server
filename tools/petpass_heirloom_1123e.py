@@ -10,6 +10,8 @@ was made; a row already as this writes it is left ("already"); anything else ref
         row copied with the scroll's record. His "Grant basic spells" then writes them, and they can be bought.
   2799  Black Sapphire wore the green gem's icon (140265582, the cut gems' common one): it takes the dark gem's
         (-1071168822), read off Onyx (25640), which Hematite and Flawed Black Diamond wear too.
+  (--more) the same for the two older records in Uwu's table no shop sold either: Rend (8702, warrior) and Greater
+        Energy Storm (8664, wizard), approved after the first apply (its own log, so each part's --undo is its own).
   2798  (--waldorf, at Waldorf's logout) Waldorf's bearwere line taken back so he can take the wolfwere line, as
         petitions 2527 and 2598 took his ratwere and gatorwere lines: his three bearwere quests (Paws in the Snow
         101354, Bearwere Tails 101355, Mirin 101353: the third is what "turned" means, handlers/wereinfect.go
@@ -29,6 +31,7 @@ his next login.
     python3 -E -s tools/petpass_heirloom_1123e.py --db eqoa.db            report
     python3 -E -s tools/petpass_heirloom_1123e.py --db eqoa.db --apply    write it
     python3 -E -s tools/petpass_heirloom_1123e.py --db eqoa.db --undo     take it back
+    ... --more [--apply | --undo]                                          Rend and Greater Energy Storm
     ... --waldorf [--apply | --undo]                                       2798, at his logout
 """
 import argparse
@@ -39,6 +42,7 @@ import sys
 
 LOG = "petpass_heirloom_1123e_log"
 WALDORF_LOG = "petpass_heirloom_1123e_waldorf_log"
+MORE_LOG = "petpass_heirloom_1123e_more_log"
 WHO, VIA = "claude", "tool"
 DETAIL = "Heirloom petitions 2798/2799 + the nine level 46 scrolls (2026-11-23): tools/petpass_heirloom_1123e.py"
 
@@ -53,6 +57,11 @@ SCROLLS = {
     "Burning Blade": (716272, 1024, 700533, 10),
     "Cremation": (716273, 2048, 959, 11),
     "Arcane Bonding": (716274, 4096, 900588, 12),
+}
+# --more (the owner, the same day: "nine" was the earlier count): the other two in Uwu's table no shop sold
+MORE = {
+    "Rend": (8702, 1, 2675, 0),
+    "Greater Energy Storm": (8664, 8192, 700537, 13),
 }
 UWU_TABLE = "uwu 46 spells"
 ANGUISH, ANGUISH_SCROLL = "Mark of Anguish", 716271
@@ -116,9 +125,10 @@ def has_table(db, name):
 
 
 class Plan:
-    def __init__(self, db, waldorf=False):
+    def __init__(self, db, waldorf=False, more=False):
         self.db = db
         self.only_waldorf = waldorf
+        self.only_more = more
         self.changes = []  # (tbl, key dict or None, before row or None, values or None: a delete)
         self.lines = []
 
@@ -152,10 +162,13 @@ class Plan:
         if self.only_waldorf:
             self.waldorf()
             return
-        self.scrolls()
+        if self.only_more:
+            self.scrolls(MORE)
+            return
+        self.scrolls(SCROLLS)
         self.black_sapphire()
 
-    def scrolls(self):
+    def scrolls(self, which):
         db = self.db
         anguish = one(db, f"{ANGUISH}'s scroll", "SELECT patternid FROM itempattern WHERE itemname = ? AND "
                       "classuse = 512 AND levelreq = 46 AND equipslot = -1", (ANGUISH,))
@@ -165,7 +178,7 @@ class Plan:
                                                "AND (npc_type & 1) = 1 ORDER BY npc_id", (ARCHIVIST,))]
         if not archs:
             raise Refused("no Spell Archivist")
-        for name, (pid, bit, sid, cls) in SCROLLS.items():
+        for name, (pid, bit, sid, cls) in which.items():
             sc = one(db, f"{name}'s scroll", "SELECT patternid FROM itempattern WHERE itemname = ? AND classuse = ? "
                      "AND levelreq = 46 AND equipslot = -1", (name, bit))
             if sc["patternid"] != pid:
@@ -317,8 +330,11 @@ def main(argv=None):
     ap.add_argument("--undo", action="store_true")
     ap.add_argument("--no-backup", action="store_true")
     ap.add_argument("--waldorf", action="store_true", help="2798 alone (with Waldorf out of the world)")
+    ap.add_argument("--more", action="store_true", help="Rend and Greater Energy Storm at the archivists")
     a = ap.parse_args(argv)
-    log = WALDORF_LOG if a.waldorf else LOG
+    if a.waldorf and a.more:
+        ap.error("--waldorf and --more are separate parts")
+    log = WALDORF_LOG if a.waldorf else MORE_LOG if a.more else LOG
     db = sqlite3.connect(a.db, timeout=5, isolation_level=None)
     db.execute("BEGIN IMMEDIATE")
     try:
@@ -338,7 +354,7 @@ def main(argv=None):
             print(f"applied already ({log} exists): nothing written")
             db.execute("ROLLBACK")
             return 0
-        plan = Plan(db, a.waldorf)
+        plan = Plan(db, a.waldorf, a.more)
         plan.build()
         for line in plan.lines:
             print(line)

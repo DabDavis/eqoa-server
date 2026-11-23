@@ -8,9 +8,13 @@ Every row is found by its name (and what else names it), never by an id alone; a
         one." The record (991016, Heirloom only: Live has none) wore ITEMICON 0xB8E7D93C (-1192765124), the purple
         poison sac that the poison sacs wear. The stinger icon is the curved spike Queen Qy'tha's stinger (701441)
         wears, 0xC5E348B1 (-974960463, copied from that record, never worked out by hand); both rendered from
-        ITEMICON.ESF with ~/.cache/iconsheet before choosing. Only the record the petition names is changed: five
-        other stingers (brush wasp, Redsting's, Zapper, Defiler Prince's, Poison Stinger) wear the sac too, left for
-        a GM's word.
+        ITEMICON.ESF with ~/.cache/iconsheet before choosing.
+
+  --step 2 (the same claim, at the coordinator's word: a stinger looks like a stinger): the five other stingers
+        wearing the sac, brush wasp stinger, Redsting's stinger, Zapper Stinger, Defiler Prince's Stinger and Poison
+        Stinger, get the same icon, each found by its name (one record a name; a name the shard lacks is "absent":
+        Live has only Zapper, Defiler Prince's and its own Poison Stinger). Its own log (petpass_heirloom_1123m_s2_log)
+        and its own --undo (--step 2 --undo); it runs on Live as well.
 
   2811 (the elder orc sapper at Freeport's bank) and 2810 (a client stop in Highpass) need no data: the sapper was a
   player's charmed pet let go at the bank when its master's client went silent (fixed in code, entity/charm.go).
@@ -36,6 +40,10 @@ WHO, VIA = "claude", "tool"
 DETAIL = "Heirloom petition 2812 (2026-11-23): the mead wasp stinger wears the stinger icon: tools/petpass_heirloom_1123m.py"
 
 TARGET = ("mead wasp stinger", 991016)
+STEP2 = ["brush wasp stinger", "Redsting's stinger", "Zapper Stinger", "Defiler Prince's Stinger", "Poison Stinger"]
+LOG2 = "petpass_heirloom_1123m_s2_log"
+DETAIL2 = ("Heirloom petition 2812, step 2 (2026-11-23): the other stingers on the poison sac's icon wear the stinger "
+           "icon: tools/petpass_heirloom_1123m.py --step 2")
 SAC = -1192765124  # the poison sac's icon, as the record wears it now
 SOURCE = ("Queen Qy'tha's stinger", 701441)  # the stinger icon's record: its itemicon is copied
 
@@ -51,6 +59,9 @@ LOG_DDL = """CREATE TABLE IF NOT EXISTS {log} (
 )"""
 AUDIT_DDL = """CREATE TABLE IF NOT EXISTS gm_audit (id INTEGER PRIMARY KEY AUTOINCREMENT, at TEXT, accountid INTEGER,
     username TEXT, via TEXT, ip TEXT, action TEXT, tbl TEXT, rowkey TEXT, before TEXT, after TEXT, detail TEXT)"""
+
+
+STEP = [1]  # the step this run writes (--step), for the audit lines' detail
 
 
 class Refused(Exception):
@@ -85,8 +96,9 @@ def has_table(db, name):
 
 
 class Plan:
-    def __init__(self, db):
+    def __init__(self, db, step=1):
         self.db = db
+        self.step = step
         self.changes = []  # (tbl, key dict, before row, values)
         self.lines = []
 
@@ -99,6 +111,24 @@ class Plan:
         icon = src["itemicon"]
         if icon == SAC:
             raise Refused(f"{SOURCE[0]} wears the poison sac's icon")
+        if self.step == 2:
+            for name in STEP2:
+                got = rows(db, "SELECT * FROM itempattern WHERE itemname = ?", (name,))
+                what = f"2812 step 2 itempattern {name}"
+                if not got:
+                    self.lines.append(f"absent   {what}")
+                    continue
+                if len(got) != 1:
+                    raise Refused(f"{what}: {len(got)} records")
+                before = got[0]
+                if before["itemicon"] == icon:
+                    self.lines.append(f"already  {what} ({before['patternid']}): itemicon {icon}")
+                    continue
+                if before["itemicon"] != SAC:
+                    raise Refused(f"{what}: itemicon {before['itemicon']}, not the poison sac's {SAC}")
+                self.changes.append(("itempattern", {"patternid": before["patternid"]}, before, {"itemicon": icon}))
+                self.lines.append(f"update   {what} ({before['patternid']}): itemicon {SAC} (poison sac) -> {icon}")
+            return
         what = f"2812 itempattern {TARGET[1]} {TARGET[0]}"
         before = one(db, what, "SELECT * FROM itempattern WHERE itemname = ?", (TARGET[0],))
         if before["patternid"] != TARGET[1]:
@@ -113,11 +143,12 @@ class Plan:
 
 
 def audit(db, action, tbl, key, before, after):
+    detail = DETAIL2 if STEP[0] == 2 else DETAIL
     db.execute(AUDIT_DDL)
     cur = db.execute("""INSERT INTO gm_audit (at, accountid, username, via, ip, action, tbl, rowkey, before, after,
         detail) VALUES (?, 0, ?, ?, '', ?, ?, ?, ?, ?, ?)""",
                      (now(), WHO, VIA, action, tbl, go_json(key), go_json(before) if before else None,
-                      go_json(after) if after else None, DETAIL))
+                      go_json(after) if after else None, detail))
     return cur.lastrowid
 
 
@@ -190,7 +221,7 @@ def undo(db, log):
 
 
 def backup(path):
-    dst = f"{path}.bak-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}-pre-pet1123m"
+    dst = f"{path}.bak-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}-pre-pet1123m{'-s2' if STEP[0] == 2 else ''}"
     src = sqlite3.connect(path)
     out = sqlite3.connect(dst)
     src.backup(out)
@@ -205,8 +236,10 @@ def main(argv=None):
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--undo", action="store_true")
     ap.add_argument("--no-backup", action="store_true")
+    ap.add_argument("--step", type=int, choices=(1, 2), default=1)
     a = ap.parse_args(argv)
-    log = LOG
+    STEP[0] = a.step
+    log = LOG2 if a.step == 2 else LOG
     db = sqlite3.connect(a.db, timeout=5, isolation_level=None)
     db.execute("BEGIN IMMEDIATE")
     try:
@@ -226,7 +259,7 @@ def main(argv=None):
             print(f"applied already ({log} exists): nothing written")
             db.execute("ROLLBACK")
             return 0
-        plan = Plan(db)
+        plan = Plan(db, a.step)
         plan.build()
         for line in plan.lines:
             print(line)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The Deathfist mercenary camps dressed and peopled as the guide tells them (the owner, 2026-11-23: "Deathfist
-mercenary camps where Garrak is need populating correctly; they are supposed to have armoured melee and robed
+mercenary camps where a GM stood need populating correctly; they are supposed to have armoured melee and robed
 healers"). Every camp of world 0's Deathfist mercenaries (Southwatch Keep's and the eight round it in Deathfist
 Horde), on either shard.
 

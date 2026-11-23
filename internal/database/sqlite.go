@@ -61,6 +61,7 @@ func NewSQLite(dbPath string) (*SQLiteDB, error) {
 
 	// Verify connection
 	if err := db.Ping(); err != nil {
+		db.Close()
 		return nil, err
 	}
 
@@ -1588,6 +1589,19 @@ func (s *SQLiteAccountStore) SetBanned(accountID int, banned bool) error {
 func (s *SQLiteAccountStore) UpdatePasswordHash(accountID int, passwordHash string) error {
 	_, err := s.db.Exec(`UPDATE accountinfo SET pwhash = ? WHERE accountid = ?`, passwordHash, accountID)
 	return err
+}
+
+// CompareAndSwapPasswordHash upgrades the credential observed during sign-in.
+// The comparison uses the same representation as GetByUsername for legacy
+// BLOB and NULL values. A reset or another login that already updated the row wins.
+func (s *SQLiteAccountStore) CompareAndSwapPasswordHash(accountID int, previousHash, newHash string) (bool, error) {
+	result, err := s.db.Exec(`UPDATE accountinfo SET pwhash = ?
+		WHERE accountid = ? AND COALESCE(CAST(pwhash AS TEXT), '') = ?`, newHash, accountID, previousHash)
+	if err != nil {
+		return false, err
+	}
+	n, err := result.RowsAffected()
+	return n == 1, err
 }
 
 // CharacterModelStore provides lookups for the charactermodel table.

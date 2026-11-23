@@ -56,29 +56,25 @@ func (t *packetTurn) finish() {
 	close(t.done)
 }
 
-// turnLast is an address's last packet's turn, and when it was read.
-type turnLast struct {
-	done <-chan struct{}
-	at   time.Time
+// nextTurn links a packet to the latest in-flight packet from its address.
+func (l *Listener) nextTurn(addr netip.AddrPort) *packetTurn {
+	l.turnMu.Lock()
+	defer l.turnMu.Unlock()
+	if l.turns == nil {
+		l.turns = make(map[netip.AddrPort]chan struct{})
+	}
+	t := &packetTurn{earlier: l.turns[addr], done: make(chan struct{})}
+	l.turns[addr] = t.done
+	return t
 }
 
-// nextTurn is the turn of the packet the read loop has just read from addr at
-// now. The read loop's alone, as l.turns is.
-func (l *Listener) nextTurn(addr netip.AddrPort, now time.Time) *packetTurn {
-	if l.turns == nil {
-		l.turns = make(map[netip.AddrPort]turnLast)
+// finishTurn removes the last turn once its chain is done. A newer packet may
+// already have installed its own turn while this one was being handled.
+func (l *Listener) finishTurn(addr netip.AddrPort, t *packetTurn) {
+	t.finish()
+	l.turnMu.Lock()
+	if l.turns[addr] == t.done {
+		delete(l.turns, addr)
 	}
-	if len(l.turns) >= 4096 {
-		for k, o := range l.turns {
-			if now.Sub(o.at) > 5*time.Minute {
-				delete(l.turns, k)
-			}
-		}
-	}
-	t := &packetTurn{done: make(chan struct{})}
-	if o, ok := l.turns[addr]; ok {
-		t.earlier = o.done
-	}
-	l.turns[addr] = turnLast{done: t.done, at: now}
-	return t
+	l.turnMu.Unlock()
 }

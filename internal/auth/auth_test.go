@@ -95,7 +95,7 @@ func TestTicketGrantAndValidate(t *testing.T) {
 		t.Fatal("unknown username has a valid ticket")
 	}
 
-	s.Grant("alice", 42, "pw")
+	s.Grant("alice", "pw", LoginCredential{AccountID: 42, PasswordHash: "testhash"})
 	id, ok := s.Valid("alice")
 	if !ok {
 		t.Fatal("granted ticket is not valid")
@@ -109,7 +109,7 @@ func TestTicketGrantAndValidate(t *testing.T) {
 // too, or a client that logs in as "Alice" and then sends "alice" is refused.
 func TestTicketMatchingIsCaseInsensitive(t *testing.T) {
 	s := NewTicketStore(time.Minute)
-	s.Grant("Alice", 7, "pw")
+	s.Grant("Alice", "pw", LoginCredential{AccountID: 7, PasswordHash: "testhash"})
 
 	for _, name := range []string{"alice", "ALICE", "Alice", " alice "} {
 		if _, ok := s.Valid(name); !ok {
@@ -124,7 +124,7 @@ func TestTicketExpires(t *testing.T) {
 	now := time.Unix(1_700_000_000, 0)
 	s.now = func() time.Time { return now }
 
-	s.Grant("bob", 1, "pw")
+	s.Grant("bob", "pw", LoginCredential{AccountID: 1, PasswordHash: "testhash"})
 	if _, ok := s.Valid("bob"); !ok {
 		t.Fatal("ticket invalid immediately after being granted")
 	}
@@ -142,7 +142,7 @@ func TestTicketExpires(t *testing.T) {
 
 func TestTicketRevoke(t *testing.T) {
 	s := NewTicketStore(time.Minute)
-	s.Grant("carol", 3, "pw")
+	s.Grant("carol", "pw", LoginCredential{AccountID: 3, PasswordHash: "testhash"})
 	s.Revoke("carol")
 	if _, ok := s.Valid("carol"); ok {
 		t.Fatal("revoked ticket still valid")
@@ -151,7 +151,7 @@ func TestTicketRevoke(t *testing.T) {
 
 func TestEmptyUsernameNeverHoldsATicket(t *testing.T) {
 	s := NewTicketStore(time.Minute)
-	s.Grant("", 1, "pw")
+	s.Grant("", "pw", LoginCredential{AccountID: 1, PasswordHash: "testhash"})
 	if _, ok := s.Valid(""); ok {
 		t.Fatal("empty username holds a ticket")
 	}
@@ -165,7 +165,7 @@ func TestTicketStoreIsConcurrencySafe(t *testing.T) {
 		go func() {
 			defer func() { done <- struct{}{} }()
 			for j := 0; j < 200; j++ {
-				s.Grant("user", 1, "pw")
+				s.Grant("user", "pw", LoginCredential{AccountID: 1, PasswordHash: "testhash"})
 				s.Valid("user")
 				s.Revoke("other")
 			}
@@ -180,13 +180,13 @@ func TestTicketStoreIsConcurrencySafe(t *testing.T) {
 // that answered to the username let anyone sign in within ttl of a real login.
 func TestATicketAnswersOnlyToItsPassword(t *testing.T) {
 	s := NewTicketStore(time.Minute)
-	s.Grant("Alice", 42, "right")
-	if id, ok := s.ValidFor("alice", "right"); !ok || id != 42 {
-		t.Errorf("the password that earned it: account %d, %v", id, ok)
+	s.Grant("Alice", "right", LoginCredential{AccountID: 42, PasswordHash: "testhash"})
+	if id, ok := s.ValidFor("alice", "right"); !ok || id.AccountID != 42 || id.PasswordHash != "testhash" {
+		t.Errorf("the password that earned it: account %d, %v", id.AccountID, ok)
 	}
 	for _, wrong := range []string{"wrong", "", "Right", "right "} {
 		if id, ok := s.ValidFor("alice", wrong); ok {
-			t.Errorf("password %q answered, account %d", wrong, id)
+			t.Errorf("password %q answered, account %d", wrong, id.AccountID)
 		}
 	}
 	if _, ok := s.ValidFor("bob", "right"); ok {

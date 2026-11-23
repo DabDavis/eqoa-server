@@ -62,7 +62,7 @@ type Config struct {
 	// line's retransmit backoff) can outlast one interval and still recover;
 	// past the game client's own 60 s give-up, its timer decides instead.
 	PingTimeout time.Duration
-	// WriteWait bounds one write to the WebSocket (0: 10 s): a stalled path
+	// WriteWait bounds one write to the WebSocket or TCP peer (0: 10 s): a stalled path
 	// that holds a write longer drops the client.
 	WriteWait time.Duration
 	Verbose   bool
@@ -76,9 +76,15 @@ type Relay struct {
 	cfg   Config
 	mu    sync.Mutex
 	perIP map[string]int
-	// owner maps each local port the relay holds (a UDP socket's, a TCP
-	// connection's) to the client address it carries, for ClientOf.
-	owner map[int]string
+	// Distinct sockets can share a local port across protocols, or when TCP
+	// endpoints have different destinations. Keep each registration until
+	// its own close, and answer only when the client is unambiguous.
+	owners map[int]map[*socketOwner]struct{}
+}
+
+type socketOwner struct {
+	network string
+	ip      string
 }
 
 const maxMessage = 1 << 20
@@ -112,46 +118,63 @@ func New(cfg Config) *Relay {
 	for k, o := range cfg.Origins {
 		cfg.Origins[k] = normOrigin(o)
 	}
-	return &Relay{cfg: cfg, perIP: map[string]int{}, owner: map[int]string{}}
+	return &Relay{cfg: cfg, perIP: map[string]int{}, owners: map[int]map[*socketOwner]struct{}{}}
 }
 
 // own records that the relay's local port carries client ip until the
 // returned function is called.
-func (r *Relay) own(port int, ip string) func() {
+func (r *Relay) own(network string, port int, ip string) func() {
 	r.mu.Lock()
-	r.owner[port] = ip
+	owner := &socketOwner{network: network, ip: ip}
+	if r.owners[port] == nil {
+		r.owners[port] = make(map[*socketOwner]struct{})
+	}
+	r.owners[port][owner] = struct{}{}
 	r.mu.Unlock()
 	return func() {
 		r.mu.Lock()
-		if r.owner[port] == ip {
-			delete(r.owner, port)
+		defer r.mu.Unlock()
+		delete(r.owners[port], owner)
+		if len(r.owners[port]) == 0 {
+			delete(r.owners, port)
 		}
-		r.mu.Unlock()
 	}
 }
 
-// ClientOf names the client address behind one of the relay's local ports:
-// what the server it relays to sees as the source of a browser player is the
-// relay's own address, and the port is all that tells the players apart.
+// ClientOf serves older callers that only know the port.
 func (r *Relay) ClientOf(port int) (string, bool) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	ip, ok := r.owner[port]
-	return ip, ok
+	return r.clientOf("", port)
 }
 
-// Lookup serves ClientOf as GET /client?port=N: the client's address as
+func (r *Relay) clientOf(network string, port int) (string, bool) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	var found string
+	for owner := range r.owners[port] {
+		if network != "" && owner.network != network {
+			continue
+		}
+		if found != "" && found != owner.ip {
+			return "", false
+		}
+		found = owner.ip
+	}
+	return found, found != ""
+}
+
+// Lookup serves GET /client?port=N&network=tcp (or udp): the client's address as
 // text, or 404. It names players' addresses, so it is served on its own
 // listener for the relayed server alone (wsrelay -lookup, on loopback), never
 // beside the relay behind a public proxy.
 func (r *Relay) Lookup() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		port, err := strconv.Atoi(req.URL.Query().Get("port"))
+		q := req.URL.Query()
+		port, err := strconv.Atoi(q.Get("port"))
 		if req.URL.Path != "/client" || err != nil {
 			http.NotFound(w, req)
 			return
 		}
-		ip, ok := r.ClientOf(port)
+		ip, ok := r.clientOf(q.Get("network"), port)
 		if !ok {
 			http.NotFound(w, req)
 			return
@@ -408,12 +431,10 @@ func watchIdle(ctx context.Context, a *activity, limit time.Duration, fire func(
 	}
 }
 
-func header(ap netip.AddrPort) []byte {
-	h := make([]byte, 6, 6+2048)
+func putHeader(h []byte, ap netip.AddrPort) {
 	a := ap.Addr().Unmap().As4()
 	copy(h, a[:])
 	binary.BigEndian.PutUint16(h[4:], ap.Port())
-	return h
 }
 
 // why says how a read loop ended, for the close line.
@@ -439,7 +460,7 @@ func (r *Relay) udp(ctx context.Context, cancel context.CancelFunc, c *websocket
 	}
 	defer conn.Close()
 	port := conn.LocalAddr().(*net.UDPAddr).Port
-	defer r.own(port, ip)()
+	defer r.own("udp", port, ip)()
 	toward, ok := r.cfg.AllowUDP.First()
 	if !ok {
 		toward, _ = r.cfg.AllowTCP.First()
@@ -467,9 +488,9 @@ func (r *Relay) udp(ctx context.Context, cancel context.CancelFunc, c *websocket
 	}()
 	// datagrams in, to the page
 	go func() {
-		buf := make([]byte, 65536)
+		frame := make([]byte, 6+65536)
 		for {
-			n, from, err := conn.ReadFromUDPAddrPort(buf)
+			n, from, err := conn.ReadFromUDPAddrPort(frame[6:])
 			if err != nil {
 				return
 			}
@@ -479,7 +500,8 @@ func (r *Relay) udp(ctx context.Context, cancel context.CancelFunc, c *websocket
 				continue
 			}
 			act.touch()
-			if r.write(ctx, c, websocket.MessageBinary, append(header(from), buf[:n]...)) != nil {
+			putHeader(frame, from)
+			if r.write(ctx, c, websocket.MessageBinary, frame[:6+n]) != nil {
 				if ctx.Err() == nil {
 					c.CloseNow()
 				}
@@ -543,7 +565,7 @@ func (r *Relay) tcp(ctx context.Context, cancel context.CancelFunc, c *websocket
 	}
 	defer conn.Close()
 	me := conn.LocalAddr().(*net.TCPAddr)
-	defer r.own(me.Port, ip)()
+	defer r.own("tcp", me.Port, ip)()
 	if r.write(ctx, c, websocket.MessageText, []byte(fmt.Sprintf("ok %s %d", me.IP, me.Port))) != nil {
 		return
 	}
@@ -597,6 +619,7 @@ func (r *Relay) tcp(ctx context.Context, cancel context.CancelFunc, c *websocket
 			continue
 		}
 		act.touch()
+		conn.SetWriteDeadline(time.Now().Add(r.cfg.WriteWait))
 		if _, werr := conn.Write(m); werr != nil {
 			other = "server write failed"
 			c.Close(websocket.StatusNormalClosure, "")

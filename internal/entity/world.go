@@ -1449,7 +1449,7 @@ func (w *World) sendChatToSession(sess *session.Session, message string) {
 	writer := buffer.NewWriter(msg.Span())
 
 	writer.WriteUint16(uint16(protocol.OpcodeClientMessage))
-	writer.WriteStringUnicode(message)
+	protocol.WriteWideString(writer, message)
 
 	msg.SetSize(writer.Position())
 	sess.Queue().AddWithSequence(msg)

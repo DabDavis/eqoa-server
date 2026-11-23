@@ -293,7 +293,7 @@ func merchantBoxPayload(id uint32, catalog []database.CharInventoryEntry, greeti
 		for i := range lines {
 			writeSingleItem(w, &lines[i], len(catalog)+i, capes)
 		}
-		w.WriteStringUnicode(greeting)
+		protocol.WriteWideString(w, greeting)
 	})
 }
 

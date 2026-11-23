@@ -11,6 +11,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -45,7 +46,7 @@ func main() {
 	ping := flag.Duration("ping", 30*time.Second, "WebSocket ping interval that notices a silent client (0: off)")
 	pingTimeout := flag.Duration("ping-timeout", 0, "how long a ping may go unanswered before the client is dropped (0: the ping interval); past the game client's own 60 s, its timer decides")
 	writeWait := flag.Duration("write-wait", 10*time.Second, "how long one write to a client's WebSocket may take before the client is dropped")
-	lookup := flag.String("lookup", "", "also serve GET /client?port=N here (the client address behind one of the relay's local ports) for the relayed server; loopback only, never public")
+	lookup := flag.String("lookup", "", "also serve client address lookups here (the client address behind one of the relay's local ports) for the relayed server; loopback only, never public")
 	verbose := flag.Bool("v", false, "log dropped datagrams and failed handshakes too")
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "usage: wsrelay -allow-udp HOST:PORT -allow-tcp HOST:PORT[,...] [flags]\n\n")
@@ -87,14 +88,30 @@ func main() {
 	}
 	log.Printf("wsrelay: ws://%s, udp to %s, tcp to %s, %s, %d sockets per client", *listen, orNone(udp), orNone(tcp), o, *maxPerIP)
 	if *lookup != "" {
+		listener, err := listenLookup(*lookup)
+		if err != nil {
+			log.Fatalf("client lookup: %v", err)
+		}
 		go func() {
-			ls := &http.Server{Addr: *lookup, Handler: relay.Lookup(), ReadHeaderTimeout: 5 * time.Second}
-			log.Fatal(ls.ListenAndServe())
+			ls := &http.Server{Handler: relay.Lookup(), ReadHeaderTimeout: 5 * time.Second}
+			log.Fatal(ls.Serve(listener))
 		}()
-		log.Printf("wsrelay: client lookup on http://%s/client", *lookup)
+		log.Printf("wsrelay: client lookup on http://%s/client", listener.Addr())
 	}
 	srv := &http.Server{Addr: *listen, Handler: relay, ReadHeaderTimeout: 10 * time.Second}
 	log.Fatal(srv.ListenAndServe())
+}
+
+// Bind the verified address itself so a DNS change cannot expose player IPs.
+func listenLookup(addr string) (net.Listener, error) {
+	a, err := net.ResolveTCPAddr("tcp", addr)
+	if err != nil {
+		return nil, err
+	}
+	if !a.IP.IsLoopback() {
+		return nil, fmt.Errorf("%q must resolve to a loopback address", addr)
+	}
+	return net.ListenTCP("tcp", a)
 }
 
 func orNone(a wsrelay.AllowList) string {

@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"log"
 	"net"
@@ -37,8 +38,9 @@ type AccountServer struct {
 	createdIPsMu sync.RWMutex
 
 	// Session tokens for logged-in users
-	sessions   map[string]*webSession
-	sessionsMu sync.RWMutex
+	sessions         map[string]*webSession
+	sessionsMu       sync.RWMutex
+	nextSessionSweep time.Time
 
 	// extraRaces, wired by main.go where creation takes races past the game's
 	// ten (entity/creation.go: world.open_races): whether the page may make a
@@ -128,7 +130,7 @@ type AccountServer struct {
 	// empty: every address.
 	BindAddress string
 	// TOTP checks code against the account's authenticator (the GM panel's,
-	// gmweb.Server.AccountTOTP): enrolled false for an account with none.
+	// gmweb.AccountTOTP): enrolled false for an account with none.
 	// Changing an address asks for it. Nil: never asked.
 	TOTP func(accountID int, code string) (enrolled, ok bool)
 
@@ -208,14 +210,8 @@ func (s *AccountServer) checkPassword(r *http.Request, account *database.Account
 	switch auth.VerifyPassword(account.PasswordHash, password) {
 	case auth.Accepted:
 	case auth.AcceptedNeedsRehash:
-		// Stored plaintext, from before this page hashed anything. It matched,
-		// so replace it now -- this is the only point the plaintext is known.
-		if hash, herr := auth.HashPassword(password, s.bcryptCost); herr == nil {
-			if uerr := s.accountStore.UpdatePasswordHash(account.ID, hash); uerr != nil {
-				log.Printf("AccountServer: could not upgrade stored password for '%s': %v", account.Username, uerr)
-			} else {
-				log.Printf("AccountServer: upgraded '%s' from a plaintext password to bcrypt", account.Username)
-			}
+		if !upgradePassword(s.accountStore, account, password, s.bcryptCost) {
+			return false, ""
 		}
 	default:
 		// Covers Rejected and NoCredential. An account with no password set
@@ -267,26 +263,10 @@ func NewAccountServer(db *database.SQLiteDB, port int, bcryptCost int) *AccountS
 		sessions:     make(map[string]*webSession),
 	}
 
-	// Start session cleanup goroutine
-	go s.cleanupSessions()
-
 	return s
 }
 
-// cleanupSessions removes expired sessions periodically.
-func (s *AccountServer) cleanupSessions() {
-	ticker := time.NewTicker(5 * time.Minute)
-	for range ticker.C {
-		s.sessionsMu.Lock()
-		now := time.Now()
-		for token, sess := range s.sessions {
-			if now.Sub(sess.LastAccess) > 30*time.Minute {
-				delete(s.sessions, token)
-			}
-		}
-		s.sessionsMu.Unlock()
-	}
-}
+const webSessionIdle = 30 * time.Minute
 
 // ListenAddr is the address Start listens on: BindAddress (auth.bind_address)
 // and the port; every address when BindAddress is empty.
@@ -297,13 +277,21 @@ func (s *AccountServer) ListenAddr() string {
 // Start starts the account registration server.
 func (s *AccountServer) Start() error {
 	s.server = &http.Server{
-		Addr:    s.ListenAddr(),
-		Handler: s.Handler(),
+		Addr:              s.ListenAddr(),
+		Handler:           s.Handler(),
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		IdleTimeout:       time.Minute,
 	}
 
+	listener, err := net.Listen("tcp", s.server.Addr)
+	if err != nil {
+		return err
+	}
+	server := s.server
 	go func() {
-		log.Printf("Account registration server starting on %s", s.server.Addr)
-		if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Printf("Account registration server starting on %s", listener.Addr())
+		if err := server.Serve(listener); err != nil && err != http.ErrServerClosed {
 			log.Printf("Account server error: %v", err)
 		}
 	}()
@@ -476,27 +464,46 @@ func (s *AccountServer) getSession(r *http.Request) *webSession {
 	if sess == nil {
 		return nil
 	}
-	// a temporary password set since (a GM's reset): nothing but the change
-	// form until its owner sets their own
-	if s.passwordTemporary(sess.AccountID) {
-		s.sessionsMu.Lock()
-		delete(s.sessions, cookie.Value)
-		s.sessionsMu.Unlock()
+	// Recheck the account so suspension or a temporary password revokes
+	// an already-issued session. A database error cannot authorize a request.
+	var allowed bool
+	if err := s.db.QueryRow(`SELECT acctstatus >= 0 AND COALESCE(pwtemp, 0) = 0
+		FROM accountinfo WHERE accountid = ?`, sess.AccountID).Scan(&allowed); err != nil {
 		return nil
 	}
-	sess.LastAccess = time.Now()
-	return sess
+	s.sessionsMu.Lock()
+	defer s.sessionsMu.Unlock()
+	if s.sessions[cookie.Value] != sess {
+		return nil
+	}
+	now := time.Now()
+	if !allowed || now.Sub(sess.LastAccess) >= webSessionIdle {
+		delete(s.sessions, cookie.Value)
+		return nil
+	}
+	sess.LastAccess = now
+	result := *sess
+	return &result
 }
 
 // createSession creates a new session for an account.
 func (s *AccountServer) createSession(w http.ResponseWriter, accountID int, username string) string {
 	token := generateToken()
 	s.sessionsMu.Lock()
+	now := time.Now()
+	if !now.Before(s.nextSessionSweep) {
+		for k, old := range s.sessions {
+			if now.Sub(old.LastAccess) >= webSessionIdle {
+				delete(s.sessions, k)
+			}
+		}
+		s.nextSessionSweep = now.Add(5 * time.Minute)
+	}
 	s.sessions[token] = &webSession{
 		AccountID:  accountID,
 		Username:   username,
-		CreatedAt:  time.Now(),
-		LastAccess: time.Now(),
+		CreatedAt:  now,
+		LastAccess: now,
 	}
 	s.sessionsMu.Unlock()
 
@@ -504,7 +511,7 @@ func (s *AccountServer) createSession(w http.ResponseWriter, accountID int, user
 		Name:     "session",
 		Value:    token,
 		Path:     "/",
-		MaxAge:   1800, // 30 minutes
+		MaxAge:   int(webSessionIdle / time.Second),
 		HttpOnly: true,
 	})
 	return token
@@ -884,7 +891,7 @@ func (s *AccountServer) handleCharactersPage(w http.ResponseWriter, r *http.Requ
     <div class="nav">
         <a href="/characters">Characters</a>
         <a href="/logout">Logout</a>
-        <span class="user">Logged in as: ` + sess.Username + `</span>
+        <span class="user">Logged in as: ` + html.EscapeString(sess.Username) + `</span>
     </div>
     <div id="message"></div>
     <div class="card">
@@ -963,15 +970,14 @@ func (s *AccountServer) handleCharactersPage(w http.ResponseWriter, r *http.Requ
                 list.innerHTML = data.characters.map(c => ` + "`" + `
                     <div class="char-card">
                         <div class="char-info">
-                            <h3>${c.name}</h3>
+                            <h3></h3>
                             <p>Level ${c.level} ${races[c.race] || 'Unknown'} ${classes[c.class] || 'Unknown'}</p>
-                            <p class="loc">Last saved: ${c.isle ? 'Plane of Sky (' + c.isle + ')' : worldName(c.world)} (${Math.round(c.x)}, ${Math.round(c.y)}, ${Math.round(c.z)})</p>
+                            <p class="loc"></p>
                             <div class="tele-row">
                                 <select id="dest-${c.id}" onchange="toggleCustom(${c.id})">
-                                    ${destOptions()}
                                     <option value="">Custom coordinates...</option>
                                 </select>
-                                <button class="btn btn-small" onclick="teleportChar(${c.id}, '${c.name}')">Teleport</button>
+                                <button class="btn btn-small">Teleport</button>
                             </div>
                             <div class="tele-custom" id="custom-${c.id}" style="display:none">
                                 <input type="number" id="w-${c.id}" placeholder="world" value="${c.world}">
@@ -981,10 +987,24 @@ func (s *AccountServer) handleCharactersPage(w http.ResponseWriter, r *http.Requ
                             </div>
                         </div>
                         <div class="char-actions">
-                            <button class="btn btn-danger btn-small" onclick="deleteChar(${c.id}, '${c.name}')">Delete</button>
+                            <button class="btn btn-danger btn-small">Delete</button>
                         </div>
                     </div>
                 ` + "`" + `).join('');
+                data.characters.forEach((c, i) => {
+                    const card = list.children[i];
+                    card.querySelector('h3').textContent = c.name;
+                    const place = c.isle ? 'Plane of Sky (' + c.isle + ')' : worldName(c.world);
+                    card.querySelector('.loc').textContent = 'Last saved: ' + place + ' (' +
+                        Math.round(c.x) + ', ' + Math.round(c.y) + ', ' + Math.round(c.z) + ')';
+                    const select = card.querySelector('select');
+                    for (const d of destinations) {
+                        select.add(new Option(d.label, d.name), select.options.length - 1);
+                    }
+                    select.selectedIndex = 0;
+                    card.querySelector('.tele-row button').onclick = () => teleportChar(c.id, c.name);
+                    card.querySelector('.char-actions button').onclick = () => deleteChar(c.id, c.name);
+                });
             } catch (err) {
                 document.getElementById('charList').innerHTML = '<p style="color:#e94560">Failed to load characters</p>';
             }
@@ -994,11 +1014,6 @@ func (s *AccountServer) handleCharactersPage(w http.ResponseWriter, r *http.Requ
         // game does not have. Loaded once, before the first character list.
         let destinations = [];
         let worldNames = [];
-
-        function destOptions() {
-            return destinations.map(d =>
-                '<option value="' + d.name + '">' + d.label + '</option>').join('');
-        }
 
         function worldName(w) {
             return worldNames[w] ? worldNames[w] + ' (' + w + ')' : 'world ' + w;
@@ -1207,7 +1222,7 @@ func (s *AccountServer) handleAPILogin(w http.ResponseWriter, r *http.Request) {
 		Username string `json:"username"`
 		Password string `json:"password"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&req); err != nil {
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Invalid request"})
 		return
 	}
@@ -1221,6 +1236,11 @@ func (s *AccountServer) handleAPILogin(w http.ResponseWriter, r *http.Request) {
 			refusal = "Invalid username or password"
 		}
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": refusal})
+		return
+	}
+
+	if account.Banned {
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "This account is suspended"})
 		return
 	}
 
@@ -1342,7 +1362,7 @@ func (s *AccountServer) handleAPICreateCharacter(w http.ResponseWriter, r *http.
 		Class  int    `json:"class"`
 		Gender int    `json:"gender"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&req); err != nil {
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Invalid request"})
 		return
 	}
@@ -1486,7 +1506,7 @@ func (s *AccountServer) handleAPIDeleteCharacter(w http.ResponseWriter, r *http.
 	var req struct {
 		ID int `json:"id"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&req); err != nil {
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Invalid request"})
 		return
 	}

@@ -389,12 +389,12 @@ func (s *AccountServer) endWebSessions(accountID int) {
 }
 
 // passwordTemporary is whether the account's password is a temporary one; a
-// failed read counts as not (the sign-in stands as before this existed).
+// failed read requires the same restricted access as a temporary password.
 func (s *AccountServer) passwordTemporary(accountID int) bool {
 	t, err := s.db.PasswordTemporary(accountID)
 	if err != nil {
 		log.Printf("AccountServer: account %d's temporary password flag: %v", accountID, err)
-		return false
+		return true
 	}
 	return t
 }

@@ -262,3 +262,34 @@ func TestTheGameLoginTakesATemporaryPassword(t *testing.T) {
 		t.Fatal("a wrong password got in")
 	}
 }
+
+func TestAccountPageSessionChecksSuspensionAndIdleExpiry(t *testing.T) {
+	r := newPwRig(t)
+	acc, err := r.s.accountStore.GetByUsername("alice")
+	if err != nil {
+		t.Fatal(err)
+	}
+	req := httptest.NewRequest(http.MethodGet, "/characters", nil)
+	token := r.s.createSession(httptest.NewRecorder(), acc.ID, acc.Username)
+	req.AddCookie(&http.Cookie{Name: "session", Value: token})
+	if r.s.getSession(req) == nil {
+		t.Fatal("fresh session refused")
+	}
+	r.s.sessions[token].LastAccess = time.Now().Add(-webSessionIdle)
+	if r.s.getSession(req) != nil {
+		t.Fatal("expired session refreshed")
+	}
+	req = httptest.NewRequest(http.MethodGet, "/characters", nil)
+	token = r.s.createSession(httptest.NewRecorder(), acc.ID, acc.Username)
+	req.AddCookie(&http.Cookie{Name: "session", Value: token})
+	if err := r.s.accountStore.SetBanned(acc.ID, true); err != nil {
+		t.Fatal(err)
+	}
+	if r.s.getSession(req) != nil {
+		t.Fatal("suspended account retained web access")
+	}
+	_, out, resp := r.post("/api/login", "203.0.113.1", false, map[string]any{"username": "alice", "password": "pw-alice"})
+	if out["success"] != false || len(resp.Cookies()) != 0 {
+		t.Fatal("suspended account received a new session")
+	}
+}

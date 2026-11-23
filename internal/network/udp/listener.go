@@ -1,7 +1,9 @@
 package udp
 
 import (
+	"bytes"
 	"context"
+	"encoding/binary"
 	"github.com/eqoa/server/internal/debuglog"
 	"log"
 	"net"
@@ -49,7 +51,10 @@ type Listener struct {
 	charStore      *database.SQLiteCharacterStore
 	tickInterval   time.Duration                // StartTickRoutine's, for the tick timer (entity/ticktime.go)
 	recvSeen       map[netip.AddrPort]*recvSeen // the read loop's own (noteReceived)
-	turns          map[netip.AddrPort]turnLast  // the read loop's own (nextTurn)
+	recvSweep      time.Time
+	recvOverflow   recvSeen
+	turnMu         sync.Mutex
+	turns          map[netip.AddrPort]chan struct{}
 
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -163,6 +168,9 @@ func (l *Listener) Stop() {
 // readLoop continuously reads packets from the UDP socket.
 func (l *Listener) readLoop() {
 	defer l.wg.Done()
+	// Backpressure leaves a burst on the socket while handlers finish.
+	// Bound both outstanding datagrams and the per-address ordering chains.
+	inFlight := make(chan struct{}, 256)
 
 	for {
 		select {
@@ -203,6 +211,13 @@ func (l *Listener) readLoop() {
 			}
 		}
 
+		select {
+		case inFlight <- struct{}{}:
+		case <-l.ctx.Done():
+			l.bufferPool.Put(bufPtr)
+			return
+		}
+
 		// Copy data and return buffer to pool
 		packetData := make([]byte, n)
 		copy(packetData, buf[:n])
@@ -210,23 +225,39 @@ func (l *Listener) readLoop() {
 
 		if debuglog.Packets() {
 			log.Printf("UDP received %d bytes from %s", n, remoteAddr)
-			log.Printf("UDP raw hex: %x", packetData)
+			// Keep pre-game traffic, including fragmented credentials, out
+			// of the packet trace. Movement replay uses promoted traffic.
+			if traceGamePacket(packetData) {
+				log.Printf("UDP raw hex: %x", packetData)
+			}
 		} else {
 			l.noteReceived(n, remoteAddr, time.Now())
 		}
 
 		// Process packet in a goroutine, its place among its address's
 		// packets noted (turns.go)
-		turn := l.nextTurn(remoteAddr.AddrPort(), time.Now())
+		turn := l.nextTurn(remoteAddr.AddrPort())
 		l.wg.Add(1)
 		l.packets.Add(1)
 		go func(data []byte, addr *net.UDPAddr) {
 			defer l.wg.Done()
 			defer l.packets.Done()
-			defer turn.finish()
+			defer func() { <-inFlight }()
+			defer l.finishTurn(addr.AddrPort(), turn)
 			l.handlePacket(data, addr, turn)
 		}(packetData, remoteAddr)
 	}
+}
+
+// traceGamePacket permits raw payloads only for a software game endpoint
+// (the destination after world entry). The lobby and Station share a socket.
+func traceGamePacket(data []byte) bool {
+	if len(data) < 9 {
+		return false
+	}
+	flags, n := binary.Uvarint(data[4:])
+	return n > 0 && flags&uint64(protocol.SegmentFlagIsRemote) != 0 &&
+		!bytes.Contains(data, []byte("EQOA"))
 }
 
 // receivedEvery is how often an address's packets get a line in the log while
@@ -252,15 +283,21 @@ func (l *Listener) noteReceived(n int, addr *net.UDPAddr, now time.Time) {
 		if l.recvSeen == nil {
 			l.recvSeen = make(map[netip.AddrPort]*recvSeen)
 		}
-		if len(l.recvSeen) >= 4096 {
+		if len(l.recvSeen) >= 4096 && !now.Before(l.recvSweep) {
+			l.recvSweep = now.Add(receivedEvery)
 			for k, o := range l.recvSeen {
 				if now.Sub(o.last) > 5*time.Minute {
 					delete(l.recvSeen, k)
 				}
 			}
 		}
-		s = &recvSeen{}
-		l.recvSeen[key] = s
+		if len(l.recvSeen) < 4096 {
+			s = &recvSeen{}
+			l.recvSeen[key] = s
+		} else {
+			// Keep reporting activity for the swap watcher at a bounded rate.
+			s = &l.recvOverflow
+		}
 	}
 	s.packets++
 	if !s.last.IsZero() && now.Sub(s.last) < receivedEvery {

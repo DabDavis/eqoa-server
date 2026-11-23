@@ -84,10 +84,25 @@ func (r *rezRig) die(p *Player, s *session.Session, d time.Duration) {
 }
 
 // respawn runs the respawn at d: the dead whose 15 s are over stand again.
+// A risen player's slots are let go on every client (pvp.go pvpRiseLocked) and made
+// anew by the next visibility pass; the rig puts them back under the ids it knows.
 func (r *rezRig) respawn(d time.Duration) {
 	r.w.mu.Lock()
 	defer r.w.mu.Unlock()
+	type slots struct {
+		e []EntityID
+		o []uint32
+	}
+	kept := map[*session.Session]slots{}
+	for _, s := range []*session.Session{r.sa, r.sb, r.sc} {
+		vs := GetOrCreateVisibility(s)
+		kept[s] = slots{append([]EntityID(nil), vs.ChannelEntity...), append([]uint32(nil), vs.ChannelObjectID...)}
+	}
 	r.w.playerRespawnSystem(r.at(d))
+	for s, k := range kept {
+		vs := GetOrCreateVisibility(s)
+		vs.ChannelEntity, vs.ChannelObjectID = k.e, k.o
+	}
 }
 
 // land runs the casts whose landing has come by d.

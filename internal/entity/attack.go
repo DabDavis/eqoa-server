@@ -840,6 +840,9 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 	if w.shotUnseenLocked(sess, attacker, npc) {
 		return true // a shot or a throw at what its shooter cannot see: the fight let go (sight.go)
 	}
+	if w.meleeUnseenLocked(sess, attacker, npc, time.Now()) {
+		return false // a melee hit through a wall, a tent, a rock: nothing lands, the fight kept (sight.go)
+	}
 	if attacker.Swing.Potion != 0 {
 		return w.thrownPotionHitLocked(sess, attacker, npc, objectID) // potion.go
 	}

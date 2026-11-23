@@ -715,7 +715,7 @@ func TestPvPAndADuel(t *testing.T) {
 
 // A flagged player killed falls for everyone (byte 58 CLIENT's dying state, seen only while it lies
 // dead), and at its return every client that had it on a slot makes it anew under a new id; an
-// unflagged player's death is as it was.
+// unflagged player's death too (Live petition 5568), its byte 142 untouched.
 func TestPvPDeathIsSeen(t *testing.T) {
 	d := newPvP(t)
 	d.flag(t, d.sa, 0)
@@ -742,10 +742,13 @@ func TestPvPDeathIsSeen(t *testing.T) {
 			t.Errorf("dead: bytes 58, 142 %d, %d", b[58], b[142])
 		}
 	}
-	// the control: a player with no flag, dead, is as any dead player was
-	d.c.HP, d.c.DiedAt = 0, now
+	// a player with no flag falls too (Live petition 5568), and stands again alive
 	if b := view(d.sa, d.c, aSeesC); b[58] == pvpDyingState {
-		t.Errorf("an unflagged player's death changed byte 58: %d", b[58])
+		t.Fatalf("an unflagged player alive: byte 58 %d", b[58])
+	}
+	d.c.HP, d.c.DiedAt = 0, now
+	if b := view(d.sa, d.c, aSeesC); b[58] != pvpDyingState || b[142] == pvpFoeByte {
+		t.Errorf("an unflagged player dead: bytes 58, 142 %d, %d", b[58], b[142])
 	}
 	d.c.HP, d.c.DiedAt = 100, time.Time{}
 

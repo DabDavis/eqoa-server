@@ -85,3 +85,51 @@ func TestPetStatsRows(t *testing.T) {
 		t.Error("a row of no stances takes all four")
 	}
 }
+
+// petstats' melee_pct (Live petition 5555): read as written, 0 as 100, and a table made before it gains it at the
+// next open, every row at 100.
+func TestPetStatsMeleePct(t *testing.T) {
+	path := t.TempDir() + "/old.db"
+	db, err := NewSQLite(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, q := range []string{
+		`DROP TABLE petstats`,
+		`CREATE TABLE petstats (spellid INTEGER PRIMARY KEY, sheet_pet_id TEXT NOT NULL DEFAULT '', name TEXT NOT NULL DEFAULT '',
+			model INTEGER NOT NULL DEFAULT 0, primary_model INTEGER NOT NULL DEFAULT 0, secondary_model INTEGER NOT NULL DEFAULT 0,
+			level INTEGER NOT NULL DEFAULT 0, type TEXT NOT NULL DEFAULT '', element TEXT NOT NULL DEFAULT '', stances TEXT NOT NULL DEFAULT '',
+			ac INTEGER NOT NULL DEFAULT 0, str INTEGER NOT NULL DEFAULT 0, sta INTEGER NOT NULL DEFAULT 0, agi INTEGER NOT NULL DEFAULT 0,
+			dex INTEGER NOT NULL DEFAULT 0, wis INTEGER NOT NULL DEFAULT 0, intelligence INTEGER NOT NULL DEFAULT 0, cha INTEGER NOT NULL DEFAULT 0,
+			hp INTEGER NOT NULL DEFAULT 0, power INTEGER NOT NULL DEFAULT 0, hot INTEGER NOT NULL DEFAULT 0, pot INTEGER NOT NULL DEFAULT 0,
+			ar INTEGER NOT NULL DEFAULT 0, cr INTEGER NOT NULL DEFAULT 0, lr INTEGER NOT NULL DEFAULT 0, fr INTEGER NOT NULL DEFAULT 0,
+			pr INTEGER NOT NULL DEFAULT 0, dr INTEGER NOT NULL DEFAULT 0, str_max INTEGER NOT NULL DEFAULT 0, sta_max INTEGER NOT NULL DEFAULT 0,
+			agi_max INTEGER NOT NULL DEFAULT 0, dex_max INTEGER NOT NULL DEFAULT 0, wis_max INTEGER NOT NULL DEFAULT 0, int_max INTEGER NOT NULL DEFAULT 0,
+			cha_max INTEGER NOT NULL DEFAULT 0, hp_factor INTEGER NOT NULL DEFAULT 0, off_mod INTEGER NOT NULL DEFAULT 0, def_mod INTEGER NOT NULL DEFAULT 0,
+			wpn1_dmg INTEGER NOT NULL DEFAULT 0, wpn1_type TEXT NOT NULL DEFAULT '', wpn2_dmg INTEGER NOT NULL DEFAULT 0, wpn2_type TEXT NOT NULL DEFAULT '',
+			abilities TEXT NOT NULL DEFAULT '[]', keep_template INTEGER NOT NULL DEFAULT 0, note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm',
+			size REAL NOT NULL DEFAULT 0)`,
+		`INSERT INTO petstats (spellid, name) VALUES (591, 'Blade Swarm')`,
+	} {
+		if _, err := db.Exec(q); err != nil {
+			t.Fatalf("%s: %v", q, err)
+		}
+	}
+	db.Close()
+	if db, err = NewSQLite(path); err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if _, err := db.Exec(`INSERT INTO petstats (spellid, name, melee_pct) VALUES (586, 'Iron Golem', 200), (566, 'Stone Golem', 0)`); err != nil {
+		t.Fatal(err)
+	}
+	rows, bad, err := db.PetStatsRows()
+	if err != nil || len(bad) != 0 {
+		t.Fatalf("%v %v", err, bad)
+	}
+	for id, want := range map[int]int{591: 100, 586: 200, 566: 100} {
+		if got := rows[id].MeleePct; got != want {
+			t.Errorf("spell %d: melee_pct %d, want %d", id, got, want)
+		}
+	}
+}

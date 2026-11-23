@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/eqoa/server/internal/session"
 )
@@ -64,8 +65,19 @@ import (
 //     lands, no hate, no power paid, castNotSeen in red, the fight let go,
 //     as a shot short of power is (rangedpower.go).
 //
-// Harmful single-target spells, melee, a fight once it has begun and a town
-// guard's help stay as they were.
+//   - a player's melee hit on a creature (Live petition 5567, 2026-11-23:
+//     "able to attack thru tents at nasehir"): its hitter must see it as each
+//     hit lands, either line (seesCreatureLocked, as a shot's). A player
+//     stood on the slope of a tent's wall at Nasehir's camp in Tunaria, 1.7
+//     over the sand on its collision, and hit a ranger inside it 3.4 off,
+//     both lines through the canvas. Out of sight nothing lands and no hate
+//     comes of it, castNotSeen in red at most every meleeUnseenEvery, and the
+//     fight is kept: the next hit in sight lands. A creature's melee on a
+//     player is not held to it (a body that cannot hit back steps out), nor
+//     a duel's.
+//
+// Harmful single-target spells, a creature's melee, a fight once it has begun
+// and a town guard's help stay as they were.
 //
 // A player's shot or harmful spell at a creature bigger than a man looks at
 // its body where it stands up (seesCreatureLocked): the target end's heights
@@ -184,7 +196,7 @@ func (w *World) playerSeesLocked(p, t *Player) bool {
 
 // shotUnseenLocked reports a ranged swing (a bow's shot, a throw) at npc that
 // its shooter cannot see (seesCreatureLocked), told castNotSeen in red (sess nil:
-// untold) and logged; a melee swing, never. Must be called with the lock held.
+// untold) and logged; a melee swing, never (meleeUnseenLocked). Must be called with the lock held.
 func (w *World) shotUnseenLocked(sess *session.Session, p *Player, npc *NPC) bool {
 	if p.Swing.Kind < swingRange1 || p.Swing.Kind > swingRange4 {
 		return false
@@ -276,4 +288,27 @@ func (l *areaLog) write(when, caster, spell string, a areaPlace) {
 	}
 	log.Printf("LoS: %s's %q %s from (%.1f, %.1f, %.1f), centre (%.1f, %.1f, %.1f): reached %s; out of sight %s", caster, spell, when,
 		a.caster[0], a.caster[1], a.caster[2], a.centre[0], a.centre[1], a.centre[2], strings.Join(l.reached, ", "), strings.Join(l.spared, ", "))
+}
+
+// meleeUnseenEvery is how often a player hitting out of sight is told so
+// (and it is logged): a round's hits come a second or less apart.
+const meleeUnseenEvery = 3 * time.Second
+
+// meleeUnseenLocked reports a player's melee hit on npc that he cannot see
+// (seesCreatureLocked, either line, its body's heights for a big one: the
+// file's doc), told castNotSeen in red at most every meleeUnseenEvery (sess
+// nil: untold); a ranged swing, never (shotUnseenLocked). Must be called with
+// the lock held.
+func (w *World) meleeUnseenLocked(sess *session.Session, p *Player, npc *NPC, now time.Time) bool {
+	if p.Swing.Kind >= swingRange1 && p.Swing.Kind <= swingRange4 || w.seesCreatureLocked(p, npc) {
+		return false
+	}
+	if now.Sub(p.meleeUnseenTold) >= meleeUnseenEvery {
+		p.meleeUnseenTold = now
+		log.Printf("LoS: %s's melee on %s at (%.1f, %.1f, %.1f) refused, out of sight from (%.1f, %.1f, %.1f)", p.Name, npc.Name, npc.X, npc.Y, npc.Z, p.X, p.Y, p.Z)
+		if sess != nil {
+			w.sendColoredLocked(sess, castNotSeen, castRefusalRGB)
+		}
+	}
+	return true
 }

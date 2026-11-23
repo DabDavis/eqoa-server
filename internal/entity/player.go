@@ -271,6 +271,10 @@ type Player struct {
 	// start and its delay, 2 s after a swing out of reach; kept over a
 	// disengage, as the client's is (attack.go pressed)
 	swingTimer time.Time
+	// meleeUnseenTold is when it was last told a melee hit of its was
+	// refused out of sight (sight.go meleeUnseenLocked), told at most every
+	// meleeUnseenEvery
+	meleeUnseenTold time.Time
 
 	// The melee round in hand (attack.go): when it began and how many of its
 	// hits have come due.

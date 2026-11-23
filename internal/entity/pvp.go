@@ -39,7 +39,8 @@ import (
 //     2, NameColors[2]) green, from SerializePlayerUpdate, for every viewer. A foe stays green
 //     because of the next line.
 //   - A flagged player falls where it dies, for everyone (pvpViewLocked), and is made anew on every
-//     client at its return (pvpRiseLocked).
+//     client at its return (pvpRiseLocked); since Live petition 5568 (2026-11-23: "when other player
+//     dies i dont see him fall down only disapear") every dead player does, flagged or not.
 //   - A foe can be swung at: TargetInRange refuses a player whose target's m_p256 (channel byte 142)
 //     is 2 or 3, so a foe's channel says pvpFoeByte to that viewer alone (pvpViewLocked). The duels'
 //     0 would do for the swing, but ApplyLook draws anything under 2 in the NPCs' gold. To CLIENT
@@ -531,16 +532,21 @@ func (w *World) pvpDeathLocked(killer, t *Player, now time.Time) {
 	w.duelSayLocked(killer, fmt.Sprintf("You have slain %s.", t.Name), duelOrange)
 }
 
-// pvpViewLocked is a flagged player's channel as sess sees it: to a foe its byte 142 is pvpFoeByte
-// (the file's doc), and dead its byte 58 is CLIENT's dying state: its own client lays only its own
-// body down (Msg005E), and a dead client standing still reports nothing, so everyone else would see
-// the fallen stand there with no health until it went home. Must be called with the lock held.
+// pvpViewLocked is a player's channel as sess sees it: dead, any player's byte 58 is CLIENT's dying
+// state, and to a foe a flagged player's byte 142 is pvpFoeByte (the file's doc). Its own client lays
+// only its own body down (Msg005E), and a dead client reports nothing of it (the walk's states the
+// server passes on are 0-13 but 7-9: clientupdate.go's locoStates), so everyone else saw the fallen
+// stand there with no health, or lose it, until it went home: Live petition 5568, an unflagged
+// player's death, which only a flagged one's showed until then. Must be called with the lock held.
 func (w *World) pvpViewLocked(sess *session.Session, p *Player, buf []byte) {
-	if !p.pvpLive() || len(buf) <= 142 {
+	if len(buf) <= 142 {
 		return
 	}
 	if p.respawnPending() {
 		buf[58] = pvpDyingState
+		return
+	}
+	if !p.pvpLive() {
 		return
 	}
 	if viewer := w.sessionPlayerLocked(sess); p.pvpFoe(viewer) {
@@ -548,13 +554,14 @@ func (w *World) pvpViewLocked(sess *session.Session, p *Player, buf []byte) {
 	}
 }
 
-// pvpRiseLocked is a flagged player back from a death: every client that has it on a slot makes it
-// anew under a new id at the next visibility pass. CLIENT never stands a sprite it laid down
-// (VICSprite::m_dead clears only in Clear, a new sprite) and vanilla keeps a body by its entity's id,
-// so one that watched it fall, and whose view it comes back into before its slot goes, would draw it
-// lying there for as long as it stayed in view. Must be called with the lock held.
+// pvpRiseLocked is a player back from a death (a respawn's, a rez's; any player's since Live petition
+// 5568, a flagged one's before): every client that has it on a slot makes it anew under a new id at
+// the next visibility pass. CLIENT never stands a sprite it laid down (VICSprite::m_dead clears only
+// in Clear, a new sprite) and vanilla keeps a body by its entity's id, so one that watched it fall,
+// and whose view it comes back into before its slot goes, would draw it lying there for as long as it
+// stayed in view. Must be called with the lock held.
 func (w *World) pvpRiseLocked(p *Player) {
-	if !p.pvpLive() || w.SessionManager == nil {
+	if w.SessionManager == nil {
 		return
 	}
 	w.SessionManager.ForEach(func(s *session.Session) bool {

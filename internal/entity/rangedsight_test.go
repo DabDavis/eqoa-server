@@ -8,8 +8,8 @@ import (
 // A ranged shot needs its shooter to see its target (a player's petition
 // 1924: Tinael Windstream pulled through a wall with a bow): with a wall
 // between them nothing lands, no hate, no power paid, "You cannot see your
-// target." in red, the fight let go; a throw the same. The controls: the same
-// shot with nothing between lands, and a melee swing is not held to it.
+// target." in red, the fight let go; a throw the same. The control: the same
+// shot with nothing between lands.
 func TestARangedShotNeedsSight(t *testing.T) {
 	shoot := func(c *caster, kind int) {
 		c.npc.HP, c.npc.MaxHP = 100000, 100000
@@ -45,22 +45,7 @@ func TestARangedShotNeedsSight(t *testing.T) {
 	if c.npc.HP == 100000 || len(c.npc.Threats) == 0 {
 		t.Errorf("in sight: the creature at %d, threats %v", c.npc.HP, c.npc.Threats)
 	}
-
-	c = newCaster(t)
-	c.w.SetGround(sightGround{wallAt(100.8)})
-	c.npc.X = 102
-	swing := Swing{Kind: 5, Delay: 3500 * time.Millisecond, Reach: 20}
-	c.npc.HP, c.npc.MaxHP = 100000, 100000
-	c.w.EngageAttack(c.sess, c.npcO, swing, c.at(0))
-	c.p.AutoAttack = true
-	for _, d := range []time.Duration{250, 800} {
-		c.w.mu.Lock()
-		c.w.attackSystem(c.at(d * time.Millisecond))
-		c.w.mu.Unlock()
-	}
-	if c.npc.HP == 100000 {
-		t.Error("a melee swing was held to sight")
-	}
+	// a melee swing at the same creature is held to it too (meleesight_test.go)
 }
 
 // A harmful spell at a creature its caster cannot see is refused before it

@@ -52,6 +52,11 @@ import (
 //   - size: its scale (0: its body's wearers', within a person's; a player's
 //     petition 1283, 2026-11-08: "Ghilan Noble MCA for hydromancer is about a
 //     third of the size she should be", a body no NPC wears, so 1);
+//   - melee_pct: its melee hits' share, a percent (100 as the row's numbers
+//     make them; 0 is read as 100), as a class template's melee_pct is on a
+//     pet with no row: a workbook pet takes none of its template's (Live
+//     petition 5555, 2026-11-23, the owner's yes: the enchanter's animations
+//     and golems at 200, "very weak compared to how they were on live");
 //   - note; source eqoaemu (the tool's rows) or gm.
 const petStatsSchema = `
 	CREATE TABLE IF NOT EXISTS petstats (
@@ -100,6 +105,7 @@ const petStatsSchema = `
 		abilities       TEXT NOT NULL DEFAULT '[]',
 		keep_template   INTEGER NOT NULL DEFAULT 0,
 		size            REAL NOT NULL DEFAULT 0,
+		melee_pct       INTEGER NOT NULL DEFAULT 100,
 		note            TEXT NOT NULL DEFAULT '',
 		source          TEXT NOT NULL DEFAULT 'gm'
 	);`
@@ -160,6 +166,7 @@ type PetStats struct {
 	Abilities                    []TemplateAbility
 	KeepTemplate                 bool
 	Size                         float32 // its scale; 0 its body's wearers'
+	MeleePct                     int     // its melee hits' share (100: as made; 0 read as 100)
 	Note                         string
 }
 
@@ -214,7 +221,7 @@ func CheckPetStats(p PetStats) error {
 		{"str_max", p.StrMax}, {"sta_max", p.StaMax}, {"agi_max", p.AgiMax}, {"dex_max", p.DexMax},
 		{"wis_max", p.WisMax}, {"int_max", p.IntMax}, {"cha_max", p.ChaMax},
 		{"hp_factor", p.HPFactor}, {"off_mod", p.OffMod}, {"def_mod", p.DefMod},
-		{"wpn1_dmg", p.Wpn1Dmg}, {"wpn2_dmg", p.Wpn2Dmg},
+		{"wpn1_dmg", p.Wpn1Dmg}, {"wpn2_dmg", p.Wpn2Dmg}, {"melee_pct", p.MeleePct},
 	}
 	switch {
 	case p.SpellID <= 0:
@@ -237,18 +244,23 @@ func CheckPetStats(p PetStats) error {
 }
 
 // ensurePetStats makes petstats (initSchema), empty: the tool fills it, and
-// adds size to a table made before it.
+// adds size and melee_pct to a table made before them.
 func (db *SQLiteDB) ensurePetStats() error {
 	if _, err := db.Exec(petStatsSchema); err != nil {
 		return fmt.Errorf("petstats: %w", err)
 	}
-	has, err := hasColumn(db.DB, "petstats", "size")
-	if err != nil {
-		return fmt.Errorf("petstats: %w", err)
-	}
-	if !has {
-		if _, err := db.Exec(`ALTER TABLE petstats ADD COLUMN size REAL NOT NULL DEFAULT 0`); err != nil {
+	for _, c := range []struct{ name, def string }{
+		{"size", "REAL NOT NULL DEFAULT 0"},
+		{"melee_pct", "INTEGER NOT NULL DEFAULT 100"},
+	} {
+		has, err := hasColumn(db.DB, "petstats", c.name)
+		if err != nil {
 			return fmt.Errorf("petstats: %w", err)
+		}
+		if !has {
+			if _, err := db.Exec(`ALTER TABLE petstats ADD COLUMN ` + c.name + ` ` + c.def); err != nil {
+				return fmt.Errorf("petstats: %w", err)
+			}
 		}
 	}
 	return nil
@@ -257,7 +269,7 @@ func (db *SQLiteDB) ensurePetStats() error {
 const petStatsColumns = `spellid, sheet_pet_id, name, model, primary_model, secondary_model, level, type, element, stances,
 	ac, str, sta, agi, dex, wis, intelligence, cha, hp, power, hot, pot, ar, cr, lr, fr, pr, dr,
 	str_max, sta_max, agi_max, dex_max, wis_max, int_max, cha_max, hp_factor, off_mod, def_mod,
-	wpn1_dmg, wpn1_type, wpn2_dmg, wpn2_type, abilities, keep_template, size, note`
+	wpn1_dmg, wpn1_type, wpn2_dmg, wpn2_type, abilities, keep_template, size, melee_pct, note`
 
 // PetStatsRows is petstats' rows by summoning spell; bad says each row it
 // could not use and why (it is left out: its pets are as before).
@@ -278,7 +290,7 @@ func (db *SQLiteDB) PetStatsRows() (rows map[int]PetStats, bad []string, err err
 			&stances, &p.AC, &p.Str, &p.Sta, &p.Agi, &p.Dex, &p.Wis, &p.Int, &p.Cha, &p.HP, &p.Power, &p.HoT, &p.PoT,
 			&p.AR, &p.CR, &p.LR, &p.FR, &p.PR, &p.DR, &p.StrMax, &p.StaMax, &p.AgiMax, &p.DexMax, &p.WisMax, &p.IntMax,
 			&p.ChaMax, &p.HPFactor, &p.OffMod, &p.DefMod, &p.Wpn1Dmg, &p.Wpn1Type, &p.Wpn2Dmg, &p.Wpn2Type, &abilities,
-			&keep, &size, &p.Note); err != nil {
+			&keep, &size, &p.MeleePct, &p.Note); err != nil {
 			return nil, nil, err
 		}
 		p.Model, p.PrimaryModel, p.SecondaryModel = uint32(model), uint32(primary), uint32(secondary)
@@ -288,6 +300,9 @@ func (db *SQLiteDB) PetStatsRows() (rows map[int]PetStats, bad []string, err err
 		p.Wpn2Type = strings.ToLower(strings.TrimSpace(p.Wpn2Type))
 		p.KeepTemplate = keep != 0
 		p.Size = float32(size)
+		if p.MeleePct == 0 {
+			p.MeleePct = 100
+		}
 		var perr error
 		if p.Stances, perr = ParsePetStances(stances); perr == nil {
 			if p.Abilities, perr = ParseTemplateAbilities(abilities); perr == nil {

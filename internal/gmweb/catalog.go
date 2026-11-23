@@ -2299,6 +2299,7 @@ var catalog = map[string]tableNote{
 			"abilities":       {Label: "Abilities", Format: "json", Help: classTemplateAbilitiesHelp + `; "spell_id": a spell pinned by its id`},
 			"keep_template":   {Label: "Keep template abilities", Help: "1: its Pet class templates row's abilities as well"},
 			"size":            {Label: "Size", Help: "its scale; 0: the size its body's wearers have, within a person's (0.75-1.5)"},
+			"melee_pct":       {Label: "Melee %", Help: "its melee hits' share, a percent (100: as its numbers make them); its Pet class templates row's melee_pct counts for none"},
 			"note":            {Label: "Note"},
 			"source":          {Label: "Source", Help: "eqoaemu (tools/import_eqoaemu_pets.py), or gm"},
 		},

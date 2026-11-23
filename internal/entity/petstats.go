@@ -378,12 +378,17 @@ func sheetFigure(pet *NPC, effects []SpellEffect, pct int, heal bool) (n, draine
 // 30 secs. Crit recommendation 2k": special_every and its kin, as a charm
 // template's crit is cast, petTemplateSpecialLocked; until then a workbook
 // pet left its template's special out), no share of its hit points, a melee
-// hit on it or its own (the row's numbers are its own), and the row's
+// hit on it or its own (the row's numbers are its own: its own melee share is
+// the row's melee_pct, Live petition 5555), and the row's
 // abilities, then the base's when the row keeps them, at most
 // MaxTemplateAbilities.
 func petSheetTemplate(s *petSheet, spell *CastSpell, base *petTemplate) *petTemplate {
+	melee := s.MeleePct
+	if melee <= 0 {
+		melee = 100
+	}
 	ct := &ClassTemplate{ClassTemplate: database.ClassTemplate{Name: "workbook pet " + s.SheetPetID, Class: -1,
-		HPPct: 100, TakenPct: 100, MeleePct: 100}}
+		HPPct: 100, TakenPct: 100, MeleePct: melee}}
 	row := database.PetTemplate{Spell: database.TemplateKey(spell.Name), Template: ct.Name, SwingClass: -1, Swing: -1}
 	ct.abilities = append(ct.abilities, s.abilities...)
 	if base != nil {

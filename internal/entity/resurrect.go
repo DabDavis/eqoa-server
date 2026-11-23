@@ -452,6 +452,7 @@ func (w *World) TakeRezReturn(sess *session.Session, yes bool, now time.Time) (w
 	}
 	if p.respawnPending() {
 		p.DiedAt = time.Time{}
+		w.pvpRiseLocked(p) // pvp.go: each client that saw it fall makes it anew, standing
 		p.HP, p.Power = p.MaxHP, p.MaxPower
 		p.Breath = BreathFull
 		p.DrowningCounter = 0

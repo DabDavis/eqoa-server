@@ -51,6 +51,15 @@ func (m duelMark) name() string {
 	return m.pet.Name
 }
 
+// Only a pet with an inherited mob resist profile mitigates elemental duel
+// damage here. The fight applies its damage share afterwards.
+func (pet *NPC) duelElementalHit(damage int, resist Stat, now time.Time) int {
+	if t := pet.charmResists(); t != nil {
+		return -creatureHitAtResist(-damage, t.effectiveResistPct(pet, resist, now))
+	}
+	return damage
+}
+
 // duelHurtMarkLocked lands n of from's duel damage on the mark, told to from as kind
 // (numbertags.go); it reports the duel over, or the pet out of it.
 func (w *World) duelHurtMarkLocked(d *Duel, from *Player, m duelMark, n int, now time.Time, kind numberKind) bool {
@@ -70,7 +79,8 @@ func (w *World) duelAnswerLocked(d *Duel, t *Player, m duelMark, now time.Time) 
 		for _, h := range hits {
 			w.broadcastCastLocked(t, m.id(), 0, fxShieldHit)
 			log.Printf("%s: %s's %q answers %s for %d (proc %v)", d.tag(), t.Name, h.name, m.name(), h.n, h.proc)
-			if w.duelHurtMarkLocked(d, t, m, h.n, now, h.kind()) {
+			damage := m.pet.duelElementalHit(h.n, h.resist, now)
+			if damage > 0 && w.duelHurtMarkLocked(d, t, m, damage, now, h.kind()) {
 				return true
 			}
 		}
@@ -104,7 +114,8 @@ func (w *World) duelProcsLocked(d *Duel, p *Player, m duelMark, now time.Time) b
 		if fx := h.ae.Rules.ProcFX; fx != 0 {
 			w.broadcastCastLocked(p, m.id(), 0, fx) // its own look (proc.go's procHitFX)
 		}
-		over := w.duelHurtMarkLocked(d, p, m, h.n, now, numberProc)
+		damage := m.pet.duelElementalHit(h.n, h.ae.Rules.Resist, now)
+		over := damage > 0 && w.duelHurtMarkLocked(d, p, m, damage, now, numberProc)
 		w.procTapLocked(p, sess, h.ae, nil, 0)
 		if over {
 			return true
@@ -186,6 +197,10 @@ func (w *World) duelWeaponProcLocked(d *Duel, p *Player, sess *session.Session, 
 		return w.duelOverForLocked(d, p, m)
 	}
 	w.broadcastCastLocked(p, m.id(), 0, wp.FX)
+	n = m.pet.duelElementalHit(n, wp.Resist, now)
+	if n <= 0 {
+		return false
+	}
 	log.Printf("%s: %s's %q hits %s for %d", d.tag(), p.Name, wp.Item, m.name(), n)
 	over := w.duelHurtMarkLocked(d, p, m, n, now, numberProc)
 	if wp.Kind == ProcTap && !p.IsDead() {

@@ -443,6 +443,9 @@ func (w *World) namedTemplateLocked(npc *NPC) *ClassTemplate {
 // template has not changed is left as it is. Must be called with the lock
 // held.
 func (w *World) applyTemplateLocked(npc *NPC) {
+	if npc.Charm != nil {
+		npc.Charm.resists = w.charmResistsLocked(npc)
+	}
 	if npc.add != nil && npc.add.pct > 0 {
 		return // an add of a share keeps its creature's template it was called with (summon.go)
 	}
@@ -1462,7 +1465,7 @@ func templatePowerFigure(effects []SpellEffect, pct int) int {
 // templateHitLocked lands a templated NPC's harmful spell on one it hits (its
 // target or one of its others): a player takes the figure less its resist's
 // share (resist.go), told it in a 0x00DB from the NPC and a line, and dies of
-// it at nothing; a pet takes it whole. The drained share of what was taken
+// it at nothing. A pet uses its own elemental defenses. The drained share of what was taken
 // heals the NPC. Must be called with the lock held.
 func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect, now time.Time) {
 	npc := c.npc
@@ -1551,12 +1554,14 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 		}
 		w.castFoeHitLocked(npc, foe, taken, fmt.Sprintf("%q", c.spell.Name), now)
 	} else if pet := w.NPCs[id]; pet != nil && pet.Owner != 0 && !pet.Dead {
-		share := pet.petResistShare(c.spell.resist) // a workbook pet's resists (petstats.go); any other takes it whole
+		resist := c.spell.resist
+		resistible := !c.spell.unresistable || pet.charmResists() == nil
 		if c.fixed > 0 {
-			share = 0
-			if c.fixedResist != StatNone {
-				share = pet.petResistShare(c.fixedResist)
-			}
+			resist, resistible = c.fixedResist, c.fixedResist != StatNone
+		}
+		share := 0.0
+		if resistible {
+			hit, share = pet.petElementalHit(resist, hit, now, 1)
 		}
 		if power > 0 {
 			lost := min(int(math.Round(float64(power)*(1-min(share*powerDrainCapShare/ResistCapShare, 1)))), pet.Power)
@@ -1564,10 +1569,6 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 			log.Printf("Template: %s's %q drains the pet %q's power by %d (power %d/%d)", npc.Name, c.spell.Name, pet.Name, lost, pet.Power, pet.MaxPower)
 		}
 		if hit > 0 {
-			if share > 0 {
-				hit = max(int(math.Round(float64(hit)*(1-share))), 1)
-				drained = int(math.Round(float64(drained) * (1 - share)))
-			}
 			pet.HP = max(pet.HP-hit, 0)
 			pet.LastCombatTime = now
 			log.Printf("Template: %s's %q hits the pet %q for %d (HP %d/%d)", npc.Name, c.spell.Name, pet.Name, hit, pet.HP, pet.MaxHP)
@@ -1576,6 +1577,7 @@ func (w *World) templateHitLocked(c *npcCast, id EntityID, effects []SpellEffect
 				w.dropAggroLocked(pet.ServerID)
 			}
 		}
+		drained = int(math.Round(float64(drained) * (1 - share)))
 		if owner := w.Players[pet.Owner]; owner != nil {
 			sess = w.findSessionByEntityIDLocked(owner.ServerID)
 		}

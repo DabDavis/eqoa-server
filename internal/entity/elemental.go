@@ -20,7 +20,7 @@ import (
 //
 // combat.resist_model "legacy" keeps the model before it, for a rollback:
 // resist.go's RollResist (a GM's dice at the cap, a template's resist_fail
-// anywhere) and enchanter.go's creatureStrongIn (at least 1 at 100).
+// anywhere) and enchanter.go's creatureHitAtResist (at least 1 at 100).
 //
 // The adapter's decisions (the package leaves them to the server):
 //

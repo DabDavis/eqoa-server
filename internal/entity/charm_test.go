@@ -234,6 +234,94 @@ func TestACharmMakesTheCreatureAPet(t *testing.T) {
 	}
 }
 
+func TestEbonyRecluseResistsOnRestoredCharmAndTemplateReload(t *testing.T) {
+	defer withResistModel(ResistModel{Version: ResistModelElemental})()
+	r := newTemplateRig(t)
+	pet, attacker := r.npc("Gnoll Guard"), r.npc("Gnoll Mage")
+	pet.Name = "Ebony Recluse"
+	if _, err := r.db.Exec(`INSERT INTO classtemplates (name, resist_kind, resist_pct) VALUES
+		('recluse', 'FR,CR,LR,AR,PR,DR', 75)`); err != nil {
+		t.Fatal(err)
+	}
+	r.assign("ebony recluse", "recluse")
+	owner, sess := r.player("Owner", pet.X, pet.Z)
+	now := r.at(time.Second)
+	oldSave := KeptPet{NPC: uint32(pet.ServerID), Name: pet.Name, HPPct: 1, Charm: "Charm",
+		World: pet.World, Home: pet.World, Place: [4]float32{pet.X, pet.Y, pet.Z, pet.Facing}}
+	if !r.w.RestorePet(sess, oldSave, nil, now) || pet.Owner != owner.ServerID {
+		t.Fatal("the existing charm was not restored")
+	}
+	spellHit := func(element Stat) int {
+		t.Helper()
+		pet.HP, pet.MaxHP = 5000, 5000
+		c := &npcCast{npc: attacker, spell: &CastSpell{}, fixed: 400, fixedResist: element}
+		r.w.templateHitLocked(c, pet.ServerID, nil, now)
+		return 5000 - pet.HP
+	}
+	for _, element := range []Stat{StatFR, StatCR, StatLR, StatAR, StatPR, StatDR} {
+		if got := spellHit(element); got != 100 {
+			t.Errorf("restored pet, element %v: took %d of 400, want 100", element, got)
+		}
+	}
+	if got := spellHit(StatNone); got != 400 {
+		t.Errorf("untyped damage: took %d, want 400", got)
+	}
+
+	if _, err := r.db.Exec(`UPDATE classtemplates SET resist_kind='FR:100,CR:50' WHERE name='recluse'`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := r.w.LoadClassTemplates(r.db); err != nil {
+		t.Fatal(err)
+	}
+	if pet.Owner != owner.ServerID || r.w.petStateLocked(owner).tmpl != nil || pet.tmpl != nil {
+		t.Fatal("reloading resists changed the pet's owner or combat template")
+	}
+	if fire, cold, poison := spellHit(StatFR), spellHit(StatCR), spellHit(StatPR); fire != 0 || cold != 200 || poison != 400 {
+		t.Fatalf("after reload: fire %d, cold %d, poison %d", fire, cold, poison)
+	}
+	pet.Effects = []*ActiveEffect{{Until: now.Add(time.Minute), Mods: StatMods{FR: -105}}}
+	if got := spellHit(StatFR); got != 100 {
+		t.Errorf("debuffed fire resist: took %d, want 100", got)
+	}
+	if got := creatureResists(StatFR, pet, -400, now); got != -100 {
+		t.Errorf("elemental tick: HP change %d, want -100", got)
+	}
+	before := pet.HP
+	r.w.creatureProcPetHitLocked(attacker, pet, "Frost", 400, "CR", now)
+	if got := before - pet.HP; got != 200 {
+		t.Errorf("cold proc: took %d, want 200", got)
+	}
+	// Another charmed species with the same wild template still uses its usual pet defense.
+	other := r.npc("Gnoll Brute")
+	r.assign("gnoll brute", "recluse")
+	r.w.takeCharmedLocked(owner, other, &charmHold{})
+	if got, _ := other.petElementalHit(StatFR, 400, now, 1); got != 400 {
+		t.Errorf("other charmed creature: took %d, want 400", got)
+	}
+}
+
+func TestEbonyRecluseResistsDuelSpellBeforeFightShare(t *testing.T) {
+	defer withResistModel(ResistModel{Version: ResistModelElemental})()
+	d := newDuelists(t)
+	d.start(t)
+	pet := &NPC{ServerID: 3333, Name: "Ebony Recluse", HP: 1000, MaxHP: 1000}
+	tmpl := &ClassTemplate{}
+	tmpl.ResistKind, tmpl.ResistPct = "AR", 75
+	d.w.templates.use = map[string]string{"ebony recluse": "recluse"}
+	d.w.templates.byName = map[string]*ClassTemplate{"recluse": tmpl}
+	d.w.takeCharmedLocked(d.b, pet, &charmHold{})
+	cs := &castState{spell: CastSpell{duel: true, Def: ParseSpellText("Target, Decrease Hitpoints by 400")}}
+	cs.spell.Def.Effects[0].Resist = StatAR
+	if !d.w.duelLandPetLocked(cs, d.a, pet, d.t0) || pet.HP != 950 {
+		t.Fatalf("400 arcane at mob resist 75 and duel share 1/2: pet HP %d, want 950", pet.HP)
+	}
+	tmpl.ResistPct = 100
+	d.w.duelLandPetLocked(cs, d.a, pet, d.t0)
+	if pet.HP != 950 {
+		t.Fatalf("at immunity, pet HP %d, want 950", pet.HP)
+	}
+}
+
 // Undead are charmed as anything else (the wiki's Charmable Mobs page:
 // spectres, spirits, lost souls, ghouls and dead riders): an enchanter's
 // charm takes the Rotting Flesh; resisted (a roll under the charm's 10%), with

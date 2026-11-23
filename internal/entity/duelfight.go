@@ -128,7 +128,13 @@ func (w *World) duelLandPetLocked(cs *castState, caster *Player, pet *NPC, now t
 			continue
 		}
 		if n := spellAmount(e, caster); n < 0 {
-			w.duelHurtPetLocked(d, caster, pet, -n, now, cs.spell.hitKind())
+			hit := -n
+			if !cs.spell.unresistable && !cs.spell.Def.meleeStrike() {
+				hit = pet.duelElementalHit(hit, e.Resist, now)
+			}
+			if hit > 0 {
+				w.duelHurtPetLocked(d, caster, pet, hit, now, cs.spell.hitKind())
+			}
 			if d.petOut[pet.Owner] {
 				return true
 			}

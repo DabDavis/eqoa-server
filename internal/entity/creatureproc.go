@@ -32,8 +32,8 @@ import (
 //
 // On a player either is told as the template's proc is (the creature's 0x00B1 with the reference server's creature
 // special's visual, or its own fx, a 0x00DB, a line, a death; the player's resist rolled on the
-// template's dice, resist.go); on a pet its workbook resists take their share (petstats.go), any other
-// takes it whole; on a creature it fights in a scripted fight (scriptedFoes, classtemplate.go), the
+// template's dice, resist.go). A pet uses its elemental defenses (petstats.go).
+// On a creature it fights in a scripted fight (scriptedFoes, classtemplate.go), the
 // creature's template resists of the kind take theirs (creatureResists), and the hit is the fight's
 // (castFoeHitLocked: its hate, its heal at a hit, its death). Since petition 1437 a scripted fight's
 // melee hits roll the template's own proc and the fight's on the creature too, where they rolled on
@@ -235,9 +235,8 @@ func (w *World) abilityProcsOnPlayerLocked(sess *session.Session, p *Player, npc
 	return false
 }
 
-// abilityProcsOnPetLocked is abilityProcsOnPlayerLocked on a pet: a workbook pet's resists take their
-// share, any other takes it whole. It reports whether the pet died of one. Must be called with the lock
-// held.
+// abilityProcsOnPetLocked applies the pet's elemental defenses to the procs
+// and veils. It reports whether the pet died. Must be called with the lock held.
 func (w *World) abilityProcsOnPetLocked(npc, pet *NPC, now time.Time) bool {
 	t := npc.tmpl
 	for i := range t.procs {
@@ -254,12 +253,10 @@ func (w *World) abilityProcsOnPetLocked(npc, pet *NPC, now time.Time) bool {
 			break
 		}
 		v := &t.veils[i]
-		take := v.tapOf(npc)
-		share := 0.0
+		taken := v.tapOf(npc)
 		if v.resist != StatNone {
-			share = pet.petResistShare(v.resist)
+			taken, _ = pet.petElementalHit(v.resist, taken, now, 0)
 		}
-		taken := int(math.Round(float64(take) * (1 - share)))
 		if taken <= 0 {
 			continue
 		}
@@ -372,9 +369,7 @@ func (w *World) creatureProcStatHitLocked(sess *session.Session, p *Player, npc 
 func (w *World) creatureProcPetHitStatLocked(npc, pet *NPC, name string, damage int, resist Stat, fx uint32, now time.Time) bool {
 	taken := damage
 	if resist != StatNone {
-		if share := pet.petResistShare(resist); share > 0 {
-			taken = max(int(math.Round(float64(taken)*(1-share))), 1)
-		}
+		taken, _ = pet.petElementalHit(resist, taken, now, 1)
 	}
 	w.broadcastNPCSwingLocked(npc, pet.ServerID, 0, fx)
 	pet.HP = max(pet.HP-taken, 0)

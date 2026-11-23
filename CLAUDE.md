@@ -227,7 +227,7 @@ lifts one, `#mute <name>` says what holds, `#unmute` lifts both; never an accoun
 | `aiSystem` | every tick | NPC melee in rounds (`rounds.go`): a swing (0x00B1) then hits at fixed times, the swing CLIENT's GetSwing for the NPC's class (`npcclass`) |
 | `templateSystem` | every tick | NPC class templates (`classtemplate.go`, `classtemplates`): casts land after their cast time |
 | `aggroSystem` | every 5 ticks | creatures attack on sight, by line of sight off the game's collision (`sight.go`, `ground.Sees`); area spells and ranged shots need the same line |
-| `socialAssistLocked` | every hit | social NPCs of a faction join within a radius (`socialaggro.go`, `npcsocial`) |
+| `socialAssistLocked` | every hit | social NPCs of a faction join within a radius (`socialaggro.go`, `npcsocial`); a row with no faction helps the one its kill lowers most where it spawned (`factionhitareas`), so one name serves two camps |
 | `guardWatchSystem` | every 5 ticks | town guards take on a creature fighting a player near them (`guards.go`) |
 | `npcRegenSystem` | every 6 s | creatures heal out of a fight (`npcregen.go`, by level's `regen_pct`); pets regenerate as players |
 | `attackSystem` | every tick | players' auto-attack in rounds (`attack.go`, `offence.go`): a 0x000F engages, CLIENT's swing timer and reach; bows (`playerShotHit`) |

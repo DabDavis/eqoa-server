@@ -387,8 +387,7 @@ func (t *factionTable) hitsAt(npc *NPC) []FactionHit {
 	}
 	best := map[string]hitArea{}
 	for _, a := range rows {
-		dx, dz := npc.SpawnX-a.X, npc.SpawnZ-a.Z
-		if npc.World != a.World || dx*dx+dz*dz > a.Radius*a.Radius {
+		if !a.holds(npc) {
 			continue
 		}
 		if b, ok := best[a.Faction]; !ok || a.Radius < b.Radius {
@@ -410,6 +409,76 @@ func (t *factionTable) hitsAt(npc *NPC) []FactionHit {
 		out = append(out, a.FactionHit)
 	}
 	return out
+}
+
+// holds reports npc spawned within the area, in its world.
+func (a *hitArea) holds(npc *NPC) bool {
+	dx, dz := npc.SpawnX-a.X, npc.SpawnZ-a.Z
+	return npc.World == a.World && dx*dx+dz*dz <= a.Radius*a.Radius
+}
+
+// areaFor is the smallest of rows (one name's areas) naming faction that
+// holds where npc spawned, as hitsAt picks it.
+func areaFor(npc *NPC, rows []hitArea, faction string) (hitArea, bool) {
+	var best hitArea
+	found := false
+	for i := range rows {
+		a := &rows[i]
+		if a.Faction != faction || !a.holds(npc) {
+			continue
+		}
+		if !found || a.Radius < best.Radius {
+			best, found = *a, true
+		}
+	}
+	return best, found
+}
+
+// lowersAt reports a kill of npc lowering faction where it spawned: the
+// delta hitsAt gives it is below zero. Unlike hitsAt it builds nothing: the
+// social pull asks it of every NPC near every hit (socialaggro.go). Must be
+// called with the World's lock held.
+func (t *factionTable) lowersAt(npc *NPC, faction string) bool {
+	key := database.NPCClassKey(npc.Name)
+	if a, ok := areaFor(npc, t.areas[key], faction); ok {
+		return a.Delta < 0
+	}
+	for _, h := range t.hits[key] {
+		if h.Faction == faction {
+			return h.Delta < 0
+		}
+	}
+	return false
+}
+
+// worstAt is the faction a kill of npc lowers most where it spawned (of
+// hitsAt's hits), equals by the faction's name, first in byte order; "" when
+// it lowers none. Like lowersAt it builds nothing. Must be called with the
+// World's lock held.
+func (t *factionTable) worstAt(npc *NPC) string {
+	key := database.NPCClassKey(npc.Name)
+	rows := t.areas[key]
+	best, faction := 0, ""
+	take := func(f string, d int) {
+		if d < best || d < 0 && d == best && f < faction {
+			best, faction = d, f
+		}
+	}
+	for _, h := range t.hits[key] {
+		d := h.Delta
+		if a, ok := areaFor(npc, rows, h.Faction); ok {
+			d = a.Delta
+		}
+		take(h.Faction, d)
+	}
+	for i := range rows {
+		if rows[i].holds(npc) {
+			// the smallest area of its faction holding npc, as hitsAt's
+			a, _ := areaFor(npc, rows, rows[i].Faction)
+			take(a.Faction, a.Delta)
+		}
+	}
+	return faction
 }
 
 // hitsFor is what killing an NPC of this name does (factionhits, by

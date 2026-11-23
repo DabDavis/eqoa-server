@@ -29,8 +29,11 @@ import (
 // What is social, and which faction: table npcsocial, by NPC name (the GM
 // panel's "Social NPCs", live): social 1 and its faction (any name: a faction
 // of the factions table or a group of the GM's own). An attacked NPC is of its
-// own row's faction and of every faction its kill lowers (factionhits), so only
-// the NPCs that help need a row; one with none helps no one.
+// own row's faction and of every faction its kill lowers where it spawned
+// (factionhits, or a factionhitareas row for its place: the factions a kill of
+// it changes, hitsAt), so only the NPCs that help need a row; one with none
+// helps no one. A helper whose row names no faction helps the one its kill
+// lowers most where it spawned, so one name in two camps helps each camp's own.
 // tools/seed_npc_social.py writes the towns' guards, each town's under its
 // guard faction (The Freeport Militia, The Highpass Guard, The Qeynos Guard)
 // or, where the town has none, "Guards of <town>": guards help guards, not
@@ -81,34 +84,27 @@ func (s *npcSocialState) ruleFor(name string) (SocialRule, bool) {
 }
 
 // socialFactionLocked is the faction an NPC helps: its row's, else the one
-// its kill lowers most (factionhits; the first of equals); "" none. Must be
-// called with the lock held.
+// its kill lowers most where it spawned (factionhits, or factionhitareas'
+// row for its place: the faction a kill changes, hitsAt), equals by the
+// faction's name; "" none. A name shared by two camps (a gnoll of one name
+// in Blackburrow and among the Gnolls of Tunaria) is of each camp's own
+// faction, when an area row says so and its npcsocial row names no faction.
+// Must be called with the lock held.
 func (w *World) socialFactionLocked(npc *NPC) string {
 	if r, ok := w.npcSocial.ruleFor(npc.Name); ok && r.Faction != "" {
 		return r.Faction
 	}
-	best, faction := 0, ""
-	for _, h := range w.factions.hitsFor(npc.Name) {
-		if h.Delta < best {
-			best, faction = h.Delta, h.Faction
-		}
-	}
-	return faction
+	return w.factions.worstAt(npc)
 }
 
 // ofFactionLocked reports an NPC of the faction for the social pull: its
-// row's, or any its kill lowers (factionhits). Must be called with the lock
-// held.
+// row's, or any its kill lowers where it spawned (hitsAt). Must be called
+// with the lock held.
 func (w *World) ofFactionLocked(npc *NPC, faction string) bool {
 	if r, ok := w.npcSocial.ruleFor(npc.Name); ok && r.Faction == faction {
 		return true
 	}
-	for _, h := range w.factions.hitsFor(npc.Name) {
-		if h.Delta < 0 && h.Faction == faction {
-			return true
-		}
-	}
-	return false
+	return faction != "" && w.factions.lowersAt(npc, faction)
 }
 
 // socialEnemyLocked is whom the NPCs that help go for after a hit by

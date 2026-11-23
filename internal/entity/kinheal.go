@@ -18,8 +18,9 @@ import (
 // its world (its instance) and its sight (npcSeesLocked), the one with the
 // smallest share of its hit points below the heal's share (BelowOr), itself
 // first of equals. Its kin: the creatures of the faction it helps
-// (socialFactionLocked: its npcsocial row's, else the one its kill lowers most,
-// factionhits), every one of that faction (ofFactionLocked); with none, the
+// (socialFactionLocked: its npcsocial row's, else the one its kill lowers most
+// where it spawned, factionhits and factionhitareas), every one of that
+// faction (ofFactionLocked, by where each spawned); with none, the
 // creatures of its own name (NPCClassKey). None hurt enough: it waits, due, as a
 // heal on itself does.
 //

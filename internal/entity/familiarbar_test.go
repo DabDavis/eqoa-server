@@ -95,8 +95,9 @@ func TestHealbotIsOnThePetBarAndDismissPetSendsHimAway(t *testing.T) {
 		t.Fatalf("with a pet out Healbot told %v (told %#x), out %v", ids, fs.told, r.w.familiars[r.p.ServerID] == fs)
 	}
 
-	// Dismiss Pet with the pet out: the pet goes, Healbot stays, and the
-	// next tick puts him back on the bar
+	// Dismiss Pet with the pet out: the pet goes, Healbot stays, and keeps
+	// off the bar familiarBarGrace (a client's auto-cast summons the pet again
+	// meanwhile: petition 2791), then takes it
 	r.w.PetCommand(r.sess, petCmdDismiss, 0, r.at(15*time.Second))
 	msgs = r.sent()
 	if opIndex(msgs, protocol.OpcodeClearPet) < 0 || r.w.petOfLocked(r.p) != nil || r.w.familiars[r.p.ServerID] != fs {
@@ -104,13 +105,21 @@ func TestHealbotIsOnThePetBarAndDismissPetSendsHimAway(t *testing.T) {
 			r.w.petOfLocked(r.p), r.w.familiars[r.p.ServerID] == fs)
 	}
 	r.barTick(15100 * time.Millisecond)
+	if ids := setPetIDs(r.sent()); len(ids) != 0 || fs.told != 0 {
+		t.Fatalf("the pet just gone: 0x007E %v (told %#x), want none for %v", ids, fs.told, familiarBarGrace)
+	}
+	r.barTick(15*time.Second + familiarBarGrace - 100*time.Millisecond)
+	if ids := setPetIDs(r.sent()); len(ids) != 0 {
+		t.Fatalf("within the grace: 0x007E %v", ids)
+	}
+	r.barTick(15*time.Second + familiarBarGrace + 200*time.Millisecond)
 	healbotID = r.w.objectIDForEntityLocked(r.sess, fs.npc.ServerID)
 	if ids := setPetIDs(r.sent()); len(ids) != 1 || ids[0] != healbotID || fs.told != healbotID {
 		t.Fatalf("the pet gone: 0x007E %v, want Healbot's %#x", ids, healbotID)
 	}
 
 	// Dismiss Pet with Healbot on the bar: he goes, off the bar
-	r.w.PetCommand(r.sess, petCmdDismiss, 0, r.at(16*time.Second))
+	r.w.PetCommand(r.sess, petCmdDismiss, 0, r.at(16*time.Second+familiarBarGrace))
 	msgs = r.sent()
 	if lines := linesOf(msgs); len(lines) != 1 || lines[0] != fmt.Sprintf(familiarDismissed, "Healbot") ||
 		opIndex(msgs, protocol.OpcodeClearPet) < 0 || opIndex(msgs, protocol.OpcodeNoCollideRemove) < 0 {
@@ -121,7 +130,7 @@ func TestHealbotIsOnThePetBarAndDismissPetSendsHimAway(t *testing.T) {
 		t.Fatal("Healbot stayed after Dismiss Pet")
 	}
 	// the control: nothing out, a command is CLIENT's own refusal
-	r.w.PetCommand(r.sess, petCmdDismiss, 0, r.at(17*time.Second))
+	r.w.PetCommand(r.sess, petCmdDismiss, 0, r.at(17*time.Second+familiarBarGrace))
 	if lines := linesOf(r.sent()); len(lines) != 1 || lines[0] != castNoPet {
 		t.Errorf("Dismiss Pet with nothing out: %q, want %q", lines, castNoPet)
 	}
@@ -147,5 +156,50 @@ func TestHealbotLeavesAPetsBarAlone(t *testing.T) {
 	}
 	if r.w.petOfLocked(r.p) == nil {
 		t.Error("the pet went with Healbot")
+	}
+}
+
+// A pet's death with Healbot out leaves the pet bar clear (Heirloom petition
+// 2791: a client's auto-cast saw Healbot as the pet and never summoned it
+// again), so a summoning in the grace takes the bar and Healbot is never told.
+func TestHealbotLeavesTheBarClearForAPetsRecast(t *testing.T) {
+	r := newPetRig(t)
+	fs := r.barFamiliar(t, 0)
+	pet, _ := r.summon(t, fireElemental(), 5*time.Second)
+	r.barTick(14 * time.Second)
+	r.sent()
+	r.w.mu.Lock()
+	r.w.killNPC(pet)
+	r.w.mu.Unlock()
+	gone := time.Duration(0)
+	for at := 15 * time.Second; at < 120*time.Second && gone == 0; at += time.Second {
+		r.barTick(at)
+		if r.w.pets[r.p.ServerID] == nil {
+			gone = at
+		}
+	}
+	if gone == 0 {
+		t.Fatal("the dead pet never left")
+	}
+	r.barTick(gone + 5*time.Second)
+	if ids := setPetIDs(r.sent()); len(ids) != 0 || fs.told != 0 {
+		t.Fatalf("the pet dead: Healbot told %v (told %#x), want the bar left clear", ids, fs.told)
+	}
+	r.sent()
+	r.p.Power = r.p.MaxPower
+	if !r.w.StartCast(r.sess, fireElemental(), 0xFFFFFFFF, r.at(gone+10*time.Second)) {
+		t.Fatalf("the recast did not begin (the pet gone at %v): %q", gone, linesOf(r.sent()))
+	}
+	r.w.mu.Lock()
+	r.w.castSystem(r.at(gone + 10*time.Second + fireElemental().CastTime + castLand))
+	r.w.mu.Unlock()
+	again, msgs := r.w.petOfLocked(r.p), r.sent()
+	againID := r.w.objectIDForEntityLocked(r.sess, again.ServerID)
+	if ids := setPetIDs(msgs); len(ids) != 1 || ids[0] != againID {
+		t.Fatalf("the recast: 0x007E %v, want the new pet's %#x", ids, againID)
+	}
+	r.barTick(gone + 20*time.Second + familiarBarGrace)
+	if ids := setPetIDs(r.sent()); len(ids) != 0 || fs.told != 0 {
+		t.Errorf("with the new pet out Healbot told %v", ids)
 	}
 }

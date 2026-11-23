@@ -99,7 +99,21 @@ type familiarState struct {
 	// told is the object id its owner's client was told as its pet (0x007E:
 	// familiarBarLocked), 0 none: a pet's on the bar, or not yet
 	told uint32
+	// petOut is whether its owner had a pet out at its last look, and barFrom
+	// when it may take the bar again once that pet went (familiarBarGrace)
+	petOut  bool
+	barFrom time.Time
 }
+
+// familiarBarGrace is how long the familiar keeps off its owner's pet bar
+// after a pet goes (Heirloom petition 2791: "Healbot interferes with the auto
+// cast of a pet when it dies. I believe the game thinks the healbot is a pet
+// and won't recast the real pet automatically"): a client sees a pet by its
+// pet bar (vanilla's auto-cast summons one when m_petId is clear), and Healbot
+// told as the pet the moment the pet died filled it again. In this time the
+// auto-cast's summoning lands (a pet's 0x007E takes the bar); with none, the
+// familiar takes it after. Ours.
+const familiarBarGrace = 30 * time.Second
 
 // The familiar's answers to a pet command (ours).
 const (
@@ -171,7 +185,7 @@ func (w *World) summonFamiliarLocked(p *Player, sess *session.Session, d *Famili
 	}
 	w.familiars[p.ServerID] = fs
 	w.familiarTellLocked(fs, sess)
-	w.familiarBarLocked(fs, sess)
+	w.familiarBarLocked(fs, sess, now)
 	log.Printf("Familiar: %s calls %q (body %#x, size %.2f): %d HP, %d a tick, heals %d below %d%% every %v",
 		p.Name, n.Name, d.Model, n.Size, n.MaxHP, d.Regen, d.Heal, d.HealBelow, d.HealEvery)
 }
@@ -240,12 +254,15 @@ func (w *World) familiarTellLocked(fs *familiarState, sess *session.Session) {
 // (announcePetLocked). With a pet out (one on w.pets, alive or not yet taken
 // away: its own 0x007E and 0x007F are the bar's) it tells nothing and marks
 // itself off the bar. Must be called with the lock held.
-func (w *World) familiarBarLocked(fs *familiarState, sess *session.Session) {
+func (w *World) familiarBarLocked(fs *familiarState, sess *session.Session, now time.Time) {
 	if w.pets[fs.owner.ServerID] != nil {
-		fs.told = 0
+		fs.told, fs.petOut = 0, true
 		return
 	}
-	if sess == nil {
+	if fs.petOut { // the pet went: the bar stays clear a while (familiarBarGrace)
+		fs.petOut, fs.barFrom = false, now.Add(familiarBarGrace)
+	}
+	if sess == nil || now.Before(fs.barFrom) {
 		return
 	}
 	id := w.objectIDForEntityLocked(sess, fs.npc.ServerID)
@@ -364,7 +381,7 @@ func (w *World) familiarSystem(now time.Time) {
 		n.Level = owner.Level
 		w.familiarActLocked(fs, sess, now)
 		w.familiarTellLocked(fs, sess)
-		w.familiarBarLocked(fs, sess)
+		w.familiarBarLocked(fs, sess, now)
 	}
 }
 

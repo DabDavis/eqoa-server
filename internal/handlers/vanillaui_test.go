@@ -24,7 +24,7 @@ var qolOffers = []protocol.GameOpcode{
 	protocol.OpcodePowerBars, protocol.OpcodePetEffects, protocol.OpcodeBuffWindow,
 	protocol.OpcodeNumberTagsOffer, protocol.OpcodeDPSMeterOffer, protocol.OpcodeMobInfoOffer,
 	protocol.OpcodeConLevelOffer, protocol.OpcodeQuestMarkers, protocol.OpcodeQuestProgress,
-	protocol.OpcodeQuestHeadMarksOffer,
+	protocol.OpcodeQuestHeadMarksOffer, protocol.OpcodeGroupEffects,
 }
 
 // worldEntryOps is what a world entry (two 0x0014s, as a client sends) queues,

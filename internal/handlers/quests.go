@@ -872,7 +872,9 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 	// for, whichever quest's it is, then a hand-in it holds the items for
 	// (several quests at one giver: the Plane of Sky's armourers, a quest a
 	// piece, are asked for whichever piece the player has the parts of)
+	done := c.doneCount()
 	if q.stepAtLocked(sess, p, c, look, npc.Name, npc.ServerID, true) {
+		q.offerAfterFinishLocked(sess, p, c, npc.Name, done)
 		return true
 	}
 	if qu := q.readyHandInLocked(look, p, c, npc.Name); qu != nil {
@@ -886,6 +888,7 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 	// and never offering 101665, the quest before them in his line)
 	refusal := q.handInRefusalLocked(look, p, c, npc.Name)
 	if q.stepAtLocked(sess, p, c, look, npc.Name, npc.ServerID, false) {
+		q.offerAfterFinishLocked(sess, p, c, npc.Name, done)
 		return true
 	}
 	if list := q.boardLocked(look, p, c, npc.Name); list != nil {
@@ -1775,9 +1778,46 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 		if ch.kind == choicePick {
 			pick = ch.option
 		}
+		done := c.doneCount()
 		q.atNPCLocked(sess, p, c, qu, cq, st, true, pick)
+		q.offerAfterFinishLocked(sess, p, c, st.Target, done)
 	}
 	return true
+}
+
+// doneCount is how many times the character has finished its quests, all
+// told: a finish in a talk moves it.
+func (c *questChar) doneCount() int {
+	n := 0
+	for _, cq := range c.quests {
+		n += cq.Done
+	}
+	return n
+}
+
+// offerAfterFinishLocked is a talk's (or a step's answer's) last word when it
+// finished a quest at the NPC called giver (doneBefore: doneCount before it)
+// and left no question open: the giver's board, else the quest it offers the
+// player now (its next in a line, the finished one its requirement; never one
+// finished before, a repeatable's next round), asked at once. Heirloom petition 2735 (2026-11-23: "you have to talk to a quest NPC
+// after you should already have the flag ... It just did it again on
+// Talknar"): the hand-in that finished "The Broken Pact" at Talknar said its
+// words, and "The Ambassadors", his next, came only at a second talk, as
+// every quest line's next did; the head mark over him already showed it.
+func (q *QuestEngine) offerAfterFinishLocked(sess *session.Session, p *entity.Player, c *questChar, giver string, doneBefore int) {
+	if sess == nil || p == nil || c.box != nil || c.doneCount() <= doneBefore || strings.TrimSpace(giver) == "" {
+		return
+	}
+	look := q.lookAt(sess)
+	if list := q.boardLocked(look, p, c, giver); list != nil {
+		q.askBoardLocked(sess, c, giver, list, 0)
+		return
+	}
+	// a new quest only: a repeatable one again waits for the next talk
+	if qu := q.offerAtLocked(look, p, c, giver); qu != nil && c.timesDone(qu.ID) == 0 {
+		log.Printf("Quests: %s finished a quest at %s, who offers %q at once", p.Name, giver, qu.Name)
+		q.offerLocked(sess, p, c, qu)
+	}
 }
 
 // HandleDrop is the client's 0x007D (Send007D): the journal's token and the

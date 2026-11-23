@@ -282,7 +282,7 @@ Each system's file is its long form; its tests document the edge cases. `world.<
 | Guilds | `entity/guild.go`, `database/guilds.go` |
 | Creatures with companions | `entity/companion.go` |
 | Genie's Lamp, Fang of the Wolf, Summoning Portal, Barrel of Monkeys, Rock of Freeport | `handlers/genie.go`, `wolffang.go`, `summonportal.go`, `monkeybarrel.go`, `rockfreeport.go` |
-| Safe mode, hiding others' mercenaries, the welcome guide | `handlers/safemode.go`, `hidemercs.go`, `welcome.go` |
+| Safe mode, hiding others' mercenaries, the welcome guide (daily box, /tutorial: the guide's pages and the Commands/features topics, one 0x0034 window at a time, CLIENT's Close the exit; the topics' words all in `welcometopics.go`) | `handlers/safemode.go`, `hidemercs.go`, `welcome.go`, `welcometopics.go` |
 | The Teleporter | `handlers/teleporter.go`, `world.teleporter` |
 | Mercenaries; `/merc camp` (holds until its owner goes 125 off; kept over a keep restart) | `entity/merc*.go`, `entity/merccamp.go`, `handlers/merc.go`, `world.mercs` |
 | Testing Heroes faction | `entity/heroes.go`, `handlers/heroes.go`, `world.testing_heroes` |

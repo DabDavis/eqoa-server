@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -97,7 +98,7 @@ func (w *welcomeRig) asked(who string, s *session.Session, question string) uint
 	w.t.Helper()
 	got := w.msgs(s)
 	box := boxID(got)
-	want := fmt.Sprintf("ask#%d:%s|%s|%s", box, question, welcomeGuideAnswer, welcomeNeverAnswer)
+	want := fmt.Sprintf("ask#%d:%s|%s|%s|%s", box, question, welcomeGuideAnswer, welcomeCommandsAnswer, welcomeNeverAnswer)
 	if len(got) != 1 || !IsWelcomeBox(box) || box&0xFF000000 != 0x61000000 || got[0] != want {
 		w.t.Fatalf("%s was sent %q, want %q", who, got, want)
 	}
@@ -112,21 +113,57 @@ func (w *welcomeRig) none(who string, s *session.Session) {
 	}
 }
 
-// guideBoxes is the dialogue boxes in got, failing on anything else.
-func (w *welcomeRig) guideBoxes(who string, got []string) []string {
+// welcomeBox is a welcome window as sent: its id, question and answers.
+type welcomeBox struct {
+	id       uint32
+	question string
+	answers  []string
+}
+
+// window is the one welcome window in got, failing on anything else.
+func (w *welcomeRig) window(who string, got []string) welcomeBox {
 	w.t.Helper()
-	var boxes []string
-	for _, m := range got {
-		b, ok := strings.CutPrefix(m, "box:")
-		if !ok {
-			w.t.Fatalf("%s was sent %q: not only the guide's boxes", who, got)
+	box := boxID(got)
+	if len(got) != 1 || !IsWelcomeBox(box) {
+		w.t.Fatalf("%s was sent %q, want one welcome window", who, got)
+	}
+	body := strings.SplitN(got[0], ":", 2)[1]
+	parts := strings.Split(body, "|")
+	return welcomeBox{id: box, question: parts[0], answers: parts[1:]}
+}
+
+// walk reads pages from the window in got by Next (each page's first answer
+// while a page follows), each page ending on back and none holding more than
+// three answers (CLIENT's page: no More), and returns their questions; s is
+// left on the last page, whose id it returns too.
+func (w *welcomeRig) walk(who string, s *session.Session, got []string, back string) ([]string, uint32) {
+	w.t.Helper()
+	var pages []string
+	for i := 0; ; i++ {
+		b := w.window(fmt.Sprintf("%s page %d", who, i+1), got)
+		pages = append(pages, b.question)
+		if len(b.answers) > 3 || len(b.answers) == 0 || b.answers[len(b.answers)-1] != back {
+			w.t.Fatalf("%s page %d's answers %q: want at most three, the last %q", who, i+1, b.answers, back)
 		}
-		boxes = append(boxes, b)
+		if b.answers[0] != welcomeNextAnswer {
+			if len(b.answers) != 1 {
+				w.t.Fatalf("%s's last page's answers %q", who, b.answers)
+			}
+			return pages, b.id
+		}
+		if i > 30 {
+			w.t.Fatalf("%s: no last page", who)
+		}
+		w.pick(s, b.id, 0)
+		got = w.msgs(s)
 	}
-	if len(boxes) == 0 {
-		w.t.Fatalf("%s was sent no guide", who)
-	}
-	return boxes
+}
+
+// guide is the guide's pages, walked by Next from its first page in got.
+func (w *welcomeRig) guide(who string, s *session.Session, got []string) []string {
+	w.t.Helper()
+	pages, _ := w.walk(who, s, got, welcomeStartAnswer)
+	return pages
 }
 
 func daily(name string) string { return fmt.Sprintf(welcomeQuestionDaily, name) }
@@ -171,7 +208,7 @@ func TestWelcomeBoxAtTheFirstEntryOfADay(t *testing.T) {
 	box = w.asked("Anna the next day", w.anna, daily("Anna"))
 	w.asked("Cora's first entry", w.cora, daily("Cora"))
 	w.pick(w.anna, box, 0)
-	w.guideBoxes("Anna's guide", w.msgs(w.anna))
+	w.guide("Anna's guide", w.anna, w.msgs(w.anna))
 	// the guide leaves the next day's box on
 	w.run(24 * time.Hour)
 	w.enter(w.anna)
@@ -203,7 +240,7 @@ func TestWelcomeNeverAgainOnThatCharacter(t *testing.T) {
 	w.enter(w.anna, w.cora)
 	box := w.asked("Anna", w.anna, daily("Anna"))
 	w.asked("Cora", w.cora, daily("Cora"))
-	w.pick(w.anna, box, 1)
+	w.pick(w.anna, box, 2)
 	w.want("Anna's never", w.msgs(w.anna), "colour:You will not be asked again on Anna. Type /t tutorial any time to see the guide.")
 	if never, err := w.db.WelcomeNever(1); err != nil || !never {
 		t.Fatalf("never not kept: %v %v", never, err)
@@ -218,7 +255,7 @@ func TestWelcomeNeverAgainOnThatCharacter(t *testing.T) {
 	w.say(w.anna, "/tutorial")
 	box = w.asked("Anna's /tutorial", w.anna, welcomeQuestionTutorial)
 	w.pick(w.anna, box, 0)
-	w.guideBoxes("Anna's guide from /tutorial", w.msgs(w.anna))
+	w.guide("Anna's guide from /tutorial", w.anna, w.msgs(w.anna))
 	w.run(24 * time.Hour)
 	w.enter(w.anna)
 	w.none("Anna the day after her /tutorial's guide", w.anna)
@@ -230,7 +267,7 @@ func TestWelcomeNeverAgainOnThatCharacter(t *testing.T) {
 	w.cora.SetAckMasks()
 	w.cora.SetBugReports(true)
 	w.say(w.cora, "/tutorial")
-	w.pick(w.cora, w.asked("Cora's /tutorial", w.cora, welcomeQuestionTutorial), 1)
+	w.pick(w.cora, w.asked("Cora's /tutorial", w.cora, welcomeQuestionTutorial), 2)
 	w.want("Cora's never", w.msgs(w.cora), "colour:You will not be asked again on Cora. Type /tutorial any time to see the guide.")
 }
 
@@ -241,7 +278,7 @@ func TestWelcomeNeverAgainOnThatCharacter(t *testing.T) {
 func TestWelcomeNeverKeptOverALogout(t *testing.T) {
 	w := newWelcomeRig(t)
 	w.enter(w.anna, w.cora)
-	w.pick(w.anna, w.asked("Anna", w.anna, daily("Anna")), 1)
+	w.pick(w.anna, w.asked("Anna", w.anna, daily("Anna")), 2)
 	w.asked("Cora", w.cora, daily("Cora"))
 	relog := func(id int, name string, s *session.Session) *session.Session {
 		t.Helper()
@@ -366,15 +403,25 @@ func TestWelcomeThroughTheRegistry(t *testing.T) {
 		}
 		return box
 	}
-	send(protocol.OpcodeDialogueBoxOption, append(u32b(ask()), 1))
+	send(protocol.OpcodeDialogueBoxOption, append(u32b(ask()), 2))
 	if never, err := db.WelcomeNever(1001); err != nil || !never {
 		t.Fatalf("never through the registry: %v %v", never, err)
 	}
 	questMsgs(sess)
 	send(protocol.OpcodeDialogueBoxOption, append(u32b(ask()), 0))
-	got := questMsgs(sess)
-	if len(got) < 3 || !strings.HasPrefix(got[0], "box:") || !strings.Contains(got[len(got)-1], "/t tutorial") {
-		t.Fatalf("the guide through the registry: %q", got)
+	for pages := 1; ; pages++ {
+		got := questMsgs(sess)
+		box := boxID(got)
+		if len(got) != 1 || !IsWelcomeBox(box) || pages > 30 {
+			t.Fatalf("the guide's page %d through the registry: %q", pages, got)
+		}
+		if !strings.Contains(got[0], "|"+welcomeNextAnswer+"|") {
+			if pages < 3 || !strings.Contains(got[0], "/t tutorial") {
+				t.Fatalf("the guide's last page through the registry (%d pages): %q", pages, got)
+			}
+			break
+		}
+		send(protocol.OpcodeDialogueBoxOption, append(u32b(box), 0))
 	}
 }
 
@@ -461,7 +508,10 @@ func TestWelcomeDeclinedBoxGoesOutAgain(t *testing.T) {
 		t.Fatalf("a Close sent the box again (%d timers)", len(w.due))
 	}
 	w.pick(w.anna, box, 0)
-	w.guideBoxes("Anna's pick after her Close", w.msgs(w.anna))
+	first := w.window("Anna's pick after her Close", w.msgs(w.anna))
+	if first.answers[0] != welcomeNextAnswer {
+		t.Fatalf("Anna's guide's first page: %+v", first)
+	}
 	w.pick(w.anna, box, 0)
 	w.none("an answered box picked again", w.anna)
 
@@ -475,47 +525,69 @@ func TestWelcomeDeclinedBoxGoesOutAgain(t *testing.T) {
 	}
 }
 
-// The guide is what the server has, in the client's spelling: every box within
-// a 0x0046's 217 characters, in a PS2's own characters (no '%' or '|', which
-// CLIENT's text expander reads as codes), at most the eleven CLIENT queues; the
-// question and the answers within a 0x0034's 127 and 63. The Heirloom Test
-// Server's (the kept items, the Outfitters, Dabrish and the Spell Archivist by
-// Freeport's board) to vanilla and to a PS2 word for word; a server with none
-// of it (the Live Server) says none of it, nor "And more!"; and a helper not by
-// the board is not said to be in Freeport.
+// wholeSentences fails pages that are not sentences, in order, packed whole
+// (none cut, none left out), the pages of a part never sharing a page with
+// another part's.
+func wholeSentences(t *testing.T, what string, pages []string, parts [][]string) {
+	t.Helper()
+	i := 0
+	for _, part := range parts {
+		for j := 0; j < len(part); {
+			if i >= len(pages) {
+				t.Fatalf("%s: %q left out of %q", what, part[j], pages)
+			}
+			page := pages[i]
+			for page != "" && j < len(part) {
+				rest, ok := strings.CutPrefix(page, part[j])
+				if !ok {
+					t.Fatalf("%s: page %q does not go on with %q", what, page, part[j])
+				}
+				page = strings.TrimPrefix(rest, " ")
+				j++
+			}
+			if page != "" {
+				t.Fatalf("%s: page %d runs past its part: %q", what, i+1, page)
+			}
+			i++
+		}
+	}
+	if i != len(pages) {
+		t.Fatalf("%s: %d pages, %d of sentences", what, len(pages), i)
+	}
+}
+
+// The guide is what the server has, in the client's spelling: every page
+// within a 0x0034's 127 characters, sentences whole, in a PS2's own characters
+// (no '%' or '|', which CLIENT's text expander reads as codes). The Heirloom
+// Test Server's (the kept items, the Outfitters, Dabrish and the Spell
+// Archivist by Freeport's board) to vanilla and to a PS2; a server with none of
+// it (the Live Server) says none of it, nor "And more!"; and a helper not by
+// the board is not said to be in Freeport. Every window's question and answer
+// fits too: the day's at the longest name, the topics' at every fact on.
 func TestWelcomeGuideWords(t *testing.T) {
 	full := welcomeFacts{lamp: true, fang: true, portal: true, rock: true, outfitters: true,
 		dabrish: true, archivist: true, dabrishBoard: true, archivistBoard: true}
-	heirloom := []string{
-		"Your Genie's Lamp calls a genie anywhere: your bank, heirloom wares, repairs and more. Heirloom gear is free and grows with your level: an Heirloom Outfitter stands by your first quest giver.",
-		"Put the Heirloom Fang of the Wolf on a quick slot: it gives you run speed. The Summoning Portal calls any player to you. The Rock of Freeport takes you to Freeport.",
-		"In Freeport, by the Announcements board, Dabrish sets your level from 5 to 60 in steps of 5 and adds class mastery points. The Spell Archivist there has your class's spells. And more!",
+	heirloom := [][]string{
+		{welcomeLamp, welcomeOutfitter, welcomeFang, welcomePortal, welcomeRock},
+		{welcomeDabrishBoard, welcomeArchivistThere, welcomeAndMore},
 	}
-	ours := []string{
-		"Found a bug? Press F3, or type /bug and what went wrong, right where it happened. A GM answers in Support's inbox (start menu).",
-		"Things to explore: raids, with the Raid List window and the raid commands (/help lists them), and the loot rules a raid's leader sets in Community > Group > Raid: free for all, need before greed and master looter.",
-		"Options > Extended has more graphics options and settings. Type /tutorial any time to bring this guide back. Have fun!",
-	}
-	ps2 := []string{
-		"Found a bug? Type #bug and what went wrong, right where it happened, or use Support in the start menu. A GM answers in Support's inbox.",
-		"Things to explore: raids, with the raid commands (/t help lists them), and the loot rules a raid's leader sets with /t raidloot: free for all, need before greed and master looter.",
-		"On the PC or browser client, Options > Extended has more graphics options and settings. Type /t tutorial any time to bring this guide back. Have fun!",
-	}
+	ours := [][]string{splitSay(reportNoticeF3, questAskChars), {welcomeRaidsOurs, welcomeRaidLootOurs},
+		{welcomeExtendedOurs, "Type /tutorial any time to bring this guide back. Have fun!"}}
+	ps2 := [][]string{splitSay(reportNoticeText, questAskChars), {welcomeRaidsPS2, welcomeRaidLootPS2},
+		{welcomeExtendedPS2, "Type /t tutorial any time to bring this guide back. Have fun!"}}
 	for _, c := range []struct {
 		name     string
 		f        welcomeFacts
 		ours, f3 bool
-		want     []string
+		want     [][]string
 	}{
-		{"the Heirloom Test Server to vanilla", full, true, true, append(append([]string{}, heirloom...), ours...)},
-		{"the Heirloom Test Server to a PS2", full, false, false, append(append([]string{}, heirloom...), ps2...)},
+		{"the Heirloom Test Server to vanilla", full, true, true, append(append([][]string{}, heirloom...), ours...)},
+		{"the Heirloom Test Server to a PS2", full, false, false, append(append([][]string{}, heirloom...), ps2...)},
 		{"a server with none of it to vanilla", welcomeFacts{}, true, true, ours},
 		{"a server with none of it to a PS2", welcomeFacts{}, false, false, ps2},
 	} {
-		got := welcomeBoxes(c.f, c.ours, c.f3)
-		if strings.Join(got, "\n") != strings.Join(c.want, "\n") {
-			t.Errorf("%s:\n%s\nwant\n%s", c.name, strings.Join(got, "\n"), strings.Join(c.want, "\n"))
-		}
+		got := welcomeGuidePages(c.f, c.ours, c.f3)
+		wholeSentences(t, c.name, got, c.want)
 		all := strings.Join(got, " ")
 		tutorial, bug := "/t tutorial", "#bug"
 		if c.ours {
@@ -527,34 +599,119 @@ func TestWelcomeGuideWords(t *testing.T) {
 		if !c.ours && (strings.Contains(all, " /tutorial") || strings.Contains(all, "/bug") || strings.Contains(all, "F3")) {
 			t.Errorf("%s: a spelling a PS2 cannot send", c.name)
 		}
-		if len(got) > 11 {
-			t.Errorf("%s: %d boxes, more than CLIENT queues", c.name, len(got))
-		}
 		for _, b := range got {
-			checkConsoleText(t, c.name, b, questBoxChars)
+			checkConsoleText(t, c.name, b, questAskChars)
 		}
 	}
 
-	none := strings.Join(welcomeBoxes(welcomeFacts{}, true, true), " ")
+	none := strings.Join(welcomeGuidePages(welcomeFacts{}, true, true), " ")
 	for _, word := range []string{"Genie", "Heirloom", "Portal", "Rock", "Dabrish", "Archivist", "And more!", "In Freeport"} {
 		if strings.Contains(none, word) {
 			t.Errorf("a server with none of it speaks of %q", word)
 		}
 	}
 	// Dabrish away from the board, the Archivist by it; a portal with no rock
-	some := welcomeBoxes(welcomeFacts{portal: true, dabrish: true, archivist: true, archivistBoard: true}, true, true)
-	if some[0] != "The Summoning Portal calls any player to you, or takes you to Freeport." ||
-		some[1] != "Dabrish sets your level from 5 to 60 in steps of 5 and adds class mastery points. In Freeport, by the Announcements board, the Spell Archivist has your class's spells. And more!" {
-		t.Errorf("some of it: %q", some[:2])
-	}
+	some := welcomeGuidePages(welcomeFacts{portal: true, dabrish: true, archivist: true, archivistBoard: true}, true, true)
+	wholeSentences(t, "some of it", some[:3], [][]string{{welcomePortalFP}, {welcomeDabrish, welcomeArchivistBoard, welcomeAndMore}})
 
-	for _, name := range []string{"Al", "Abcdefghijkl", "Abcdefghijklmnopqrstuvw"} {
-		checkConsoleText(t, "the question", fmt.Sprintf(welcomeQuestionDaily, name), questAskChars)
+	for _, name := range []string{"Al", "Abcdefghijkl", "Abcdefghijklmno", "Abcdefghijklmnopqrstuvw"} {
+		checkConsoleText(t, "the question", startWindow(name, true).question, questAskChars)
 	}
 	checkConsoleText(t, "the /tutorial question", welcomeQuestionTutorial, questAskChars)
 	checkConsoleText(t, "the anonymous question", welcomeQuestionAnon, questAskChars)
-	for _, a := range []string{welcomeGuideAnswer, welcomeNeverAnswer} {
+	checkConsoleText(t, "the topics question", welcomeTopicsQuestion, questAskChars)
+	for _, a := range []string{welcomeGuideAnswer, welcomeCommandsAnswer, welcomeNeverAnswer, welcomeNextAnswer,
+		welcomeStartAnswer, welcomeTopicsAnswer, welcomeTopicGraphics, welcomeTopicGraphicsPS2, welcomeTopicFeatures,
+		welcomeTopicUI, welcomeTopicUIPS2} {
 		checkConsoleText(t, "an answer", a, questAnswerChars)
+	}
+
+	// every topic line at its longest: every fact on, a boon of 250 percent
+	// for 4 hours 30 minutes, each spelling
+	every := welcomeFacts{mercs: true, archivist: true, archivistBoard: true, teleporter: true, teleporterBoard: true,
+		boon: entity.Boon{Percent: 250, Duration: 4*time.Hour + 30*time.Minute}, ascended: true, conLevel: true}
+	for _, ours := range []bool{true, false} {
+		for _, f := range []welcomeFacts{every, {}} {
+			for _, tp := range welcomeTopics(f, ours, true) {
+				for _, l := range tp.lines {
+					checkConsoleText(t, tp.name, l, questAskChars)
+				}
+				for _, page := range welcomePack([][]string{tp.lines}) {
+					checkConsoleText(t, tp.name+"'s page", page, questAskChars)
+				}
+			}
+		}
+	}
+	if l := welcomeFeatureLines(every, true, true); !slices.Contains(l,
+		"XP Boon (optional, for testing): any city's Announcements gives 250 percent experience for 4 hours 30 minutes of play.") {
+		t.Errorf("the boon's line at 250 percent: %q", l)
+	}
+}
+
+// The Game features topic is the shard's: with the Heirloom Test Server's facts
+// (mercenaries, the Archivist and the Teleporter by Freeport's board, the boon,
+// Ascended gear) its lines are theirs, with the Live Server's (the boon, /con)
+// only those, the maps and /con, never a merc, the Archivist or the
+// Teleporter. To a PS2 the client's own topics say whose they are, the maps
+// line is the PC client's and the merc line "/t merc"; a session without the
+// server's quality-of-life additions ([OG]) hears of no map, /con or meter.
+func TestWelcomeTopicsAreTheShards(t *testing.T) {
+	boon := entity.Boon{Percent: 600, Duration: 4 * time.Hour}
+	heirloom := welcomeFacts{mercs: true, archivist: true, archivistBoard: true, teleporter: true,
+		teleporterBoard: true, boon: boon, ascended: true}
+	live := welcomeFacts{boon: entity.Boon{Percent: 200, Duration: 4 * time.Hour}, conLevel: true}
+	features := func(ts []welcomeTopic) []string {
+		f, ok := welcomeTopicOf(ts, topicFeatures)
+		if !ok {
+			t.Fatal("no Game features")
+		}
+		return f.lines
+	}
+	got := features(welcomeTopics(heirloom, true, true))
+	want := []string{fmt.Sprintf(welcomeMercs, "/merc"), welcomeArchivistFBoard, welcomeTeleporterBoard,
+		"XP Boon (optional, for testing): any city's Announcements gives 6x experience for 4 hours of play.",
+		welcomeAscended, welcomeMapsOurs}
+	if strings.Join(got, "\n") != strings.Join(want, "\n") {
+		t.Errorf("Heirloom's features:\n%s\nwant\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
+	}
+	got = features(welcomeTopics(live, true, true))
+	want = []string{"XP Boon (optional, for testing): any city's Announcements gives double experience for 4 hours of play.",
+		welcomeMapsOurs, welcomeConOurs}
+	if strings.Join(got, "\n") != strings.Join(want, "\n") {
+		t.Errorf("Live's features:\n%s\nwant\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
+	}
+	for _, l := range got {
+		for _, word := range []string{"merc", "Archivist", "Teleporter"} {
+			if strings.Contains(strings.ToLower(l), strings.ToLower(word)) {
+				t.Errorf("Live speaks of %s: %q", word, l)
+			}
+		}
+	}
+
+	ps2 := welcomeTopics(heirloom, false, true)
+	var names []string
+	for _, tp := range ps2 {
+		names = append(names, tp.name)
+	}
+	if strings.Join(names, ",") != "Graphics (PC and browser client),Game features,UI (PC and browser client)" {
+		t.Errorf("a PS2's topics: %q", names)
+	}
+	if l := features(ps2); l[0] != fmt.Sprintf(welcomeMercs, "/t merc") || !slices.Contains(l, welcomeMapsPS2) {
+		t.Errorf("a PS2's features: %q", l)
+	}
+	if l := features(welcomeTopics(live, false, true)); !slices.Contains(l, welcomeConPS2) {
+		t.Errorf("a PS2's /con on Live: %q", l)
+	}
+
+	og := welcomeTopics(live, true, false)
+	all := ""
+	for _, tp := range og {
+		all += strings.Join(tp.lines, " ")
+	}
+	for _, word := range []string{"Maps", "/con", "DPS"} {
+		if strings.Contains(all, word) {
+			t.Errorf("a session without the additions hears of %s", word)
+		}
 	}
 }
 
@@ -605,9 +762,17 @@ func TestWelcomeFactsAreTheServers(t *testing.T) {
 	dab := npc(9002, DabrishName, 25306, 15752)
 	npc(9003, SpellArchivistName, 25310, 15755)
 	npc(9004, heirloomOutfitterName, 4189, 4289)
+	npc(9005, TeleporterName, 25300, 15745)
+	defer SetTeleporter(TeleporterOn())
+	defer SetMercs(MercsOn())
+	SetTeleporter(true)
+	SetMercs(true)
+	w.gw.SetBoon(entity.Boon{Percent: 600, Duration: 4 * time.Hour})
 
 	full := welcomeFacts{lamp: true, fang: true, portal: true, rock: true, outfitters: true,
-		dabrish: true, archivist: true, dabrishBoard: true, archivistBoard: true}
+		dabrish: true, archivist: true, dabrishBoard: true, archivistBoard: true,
+		mercs: true, teleporter: true, teleporterBoard: true, boon: entity.Boon{Percent: 600, Duration: 4 * time.Hour},
+		ascended: len(entity.AscendedItems()) > 0, conLevel: ConLevelOn()}
 	if got := w.g.readFacts(); got != full {
 		t.Fatalf("the facts: %+v, want %+v", got, full)
 	}
@@ -615,15 +780,126 @@ func TestWelcomeFactsAreTheServers(t *testing.T) {
 	w.anna.SetBugReports(true)
 	w.say(w.anna, "/tutorial")
 	w.pick(w.anna, w.asked("Anna's /tutorial", w.anna, welcomeQuestionTutorial), 0)
-	got := w.guideBoxes("Anna's guide", w.msgs(w.anna))
-	if want := welcomeBoxes(full, true, true); strings.Join(got, "\n") != strings.Join(want, "\n") {
+	got := w.guide("Anna's guide", w.anna, w.msgs(w.anna))
+	if want := welcomeGuidePages(full, true, true); strings.Join(got, "\n") != strings.Join(want, "\n") {
 		t.Fatalf("Anna's guide:\n%s\nwant\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
 	}
 
 	SetHeirloomsGiven(false)
+	SetTeleporter(false)
+	SetMercs(false)
 	dab.SpawnX += 200
 	f := w.g.readFacts()
-	if f.lamp || f.fang || f.portal || !f.dabrish || f.dabrishBoard || !f.archivistBoard {
-		t.Fatalf("heirlooms off, Dabrish 200 off the board: %+v", f)
+	if f.lamp || f.fang || f.portal || !f.dabrish || f.dabrishBoard || !f.archivistBoard || f.teleporter || f.mercs {
+		t.Fatalf("heirlooms, the Teleporter and mercs off, Dabrish 200 off the board: %+v", f)
+	}
+}
+
+// The Commands/features tour, one window at a time: the start box's
+// Commands/features opens the Topics box (each topic, no more than CLIENT's
+// three a page); Graphics walks by Next to its last page, Back to topics
+// returns there, Game features opens; CLIENT's Close then (a 255 after
+// welcomeDeclined) ends the tour: nothing is sent, no timer left. An answer to
+// an older window, and an answer past a window's, do nothing.
+func TestWelcomeTopicsTour(t *testing.T) {
+	w := newWelcomeRig(t)
+	facts := welcomeFacts{mercs: true, archivist: true, ascended: true}
+	w.g.factsOf = func() welcomeFacts { return facts }
+	w.anna.SetAckMasks()
+	w.say(w.anna, "/tutorial")
+	start := w.asked("Anna's /tutorial", w.anna, welcomeQuestionTutorial)
+	w.pick(w.anna, start, 1)
+	topics := w.window("the Topics box", w.msgs(w.anna))
+	if topics.question != welcomeTopicsQuestion ||
+		strings.Join(topics.answers, "|") != welcomeTopicGraphics+"|"+welcomeTopicFeatures+"|"+welcomeTopicUI {
+		t.Fatalf("the Topics box: %+v", topics)
+	}
+	w.pick(w.anna, topics.id, 0)
+	first := w.msgs(w.anna)
+	firstID := boxID(first)
+	pages, last := w.walk("Graphics", w.anna, first, welcomeTopicsAnswer)
+	wholeSentences(t, "Graphics", pages, [][]string{welcomeGraphicsLines})
+	w.pick(w.anna, last, 0) // Back to topics
+	again := w.window("the Topics box again", w.msgs(w.anna))
+	if again.question != welcomeTopicsQuestion || again.id == topics.id {
+		t.Fatalf("Back to topics: %+v (the first Topics box %08X)", again, topics.id)
+	}
+	w.pick(w.anna, again.id, 1)
+	features := w.window("Game features", w.msgs(w.anna))
+	if !strings.HasPrefix(features.question, fmt.Sprintf(welcomeMercs, "/merc")) {
+		t.Fatalf("Game features' first page: %q", features.question)
+	}
+	w.pick(w.anna, features.id, 7) // past its answers
+	w.none("an answer past the window's", w.anna)
+	w.run(5 * time.Second)
+	w.pick(w.anna, features.id, 255) // the player's Close
+	w.none("Anna's Close", w.anna)
+	if len(w.due) != 0 {
+		t.Fatalf("%d timers after a Close", len(w.due))
+	}
+	for _, old := range []uint32{start, topics.id, firstID, last, again.id} {
+		w.pick(w.anna, old, 0)
+		w.none(fmt.Sprintf("an older window %08X", old), w.anna)
+	}
+	w.run(time.Minute)
+	w.none("Anna a minute after her Close", w.anna)
+}
+
+// CLIENT's decline (a menu up: a 255 within welcomeDeclined) on a topic's page
+// sends that same page again welcomeRetry on; a 255 later is the Close, and
+// nothing more comes. A topic's page waits for a death as the day's box does.
+func TestWelcomeTopicPageDeclinedGoesOutAgain(t *testing.T) {
+	w := newWelcomeRig(t)
+	w.say(w.anna, "/t tutorial")
+	w.pick(w.anna, w.asked("Anna's /tutorial", w.anna, welcomeQuestionTutorial), 1)
+	topics := w.window("the Topics box", w.msgs(w.anna))
+	if topics.answers[0] != welcomeTopicGraphicsPS2 || topics.answers[2] != welcomeTopicUIPS2 {
+		t.Fatalf("a PS2's topics: %q", topics.answers)
+	}
+	w.pick(w.anna, topics.id, 2)
+	ui := w.window("UI", w.msgs(w.anna))
+	w.run(500 * time.Millisecond)
+	w.pick(w.anna, ui.id, 255)
+	w.none("the declined page at once", w.anna)
+	w.run(welcomeRetry)
+	if again := w.window("the declined page again", w.msgs(w.anna)); again.id != ui.id || again.question != ui.question {
+		t.Fatalf("the declined page again: %+v, want %+v", again, ui)
+	}
+	w.run(5 * time.Second)
+	w.pick(w.anna, ui.id, 255)
+	w.run(welcomeRetry * 3)
+	w.none("after the Close", w.anna)
+
+	// dead: the next page waits until she is back
+	w.pick(w.anna, ui.id, 0) // Next (the PS2's pick after its Close)
+	w.window("UI's second page", w.msgs(w.anna))
+	w.say(w.anna, "/t tutorial")
+	w.pick(w.anna, w.asked("Anna's /tutorial", w.anna, welcomeQuestionTutorial), 1)
+	topics = w.window("the Topics box", w.msgs(w.anna))
+	w.pa.HP = 0
+	w.pick(w.anna, topics.id, 1)
+	w.none("Anna dead", w.anna)
+	w.pa.HP = 100
+	w.run(welcomeRetry)
+	w.window("Game features once she is back", w.msgs(w.anna))
+}
+
+// Back to the start from a guide's page is the start box with /tutorial's
+// question, and its Never still keeps never; the day's box alone takes the
+// day.
+func TestWelcomeBackToTheStart(t *testing.T) {
+	w := newWelcomeRig(t)
+	w.enter(w.anna)
+	w.pick(w.anna, w.asked("Anna", w.anna, daily("Anna")), 0)
+	page := w.window("the guide's first page", w.msgs(w.anna))
+	w.pick(w.anna, page.id, byte(len(page.answers)-1)) // Back to the start
+	start := w.asked("Back to the start", w.anna, welcomeQuestionTutorial)
+	if start == page.id {
+		t.Fatal("the start box under the page's id")
+	}
+	w.pick(w.anna, start, 2)
+	w.want("Anna's never", w.msgs(w.anna), "colour:You will not be asked again on Anna. Type /t tutorial any time to see the guide.")
+	if never, _ := w.db.WelcomeNever(1); !never {
+		t.Fatal("Never from Back to the start not kept")
 	}
 }

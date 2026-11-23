@@ -24,22 +24,35 @@ import (
 // after its client says it is in the world (as the login's other notices wait:
 // the bug line's 15 s, the boon's 20), in the game's own question box (0x0034,
 // CLIENT's Msg0034, as every NPC's question here, so a PS2 and vanilla show it
-// alike): a guide of the server, or never this box again on this character.
-// The day is taken (charwelcome.shown_day) as the box goes out, so a second
-// entry that day, a takeover's included, is not asked; the box's own Close
-// changes nothing else, and the next day asks again.
+// alike): a guide of the server, its commands and features, or never this box
+// again on this character. The day is taken (charwelcome.shown_day) as the box
+// goes out, so a second entry that day, a takeover's included, is not asked;
+// the box's own Close changes nothing else, and the next day asks again.
 //
-// The guide is dialogue boxes (0x0046: CLIENT's ShowDialog shows 217
-// characters a box; the ones after the first wait in its ring of eleven and
-// open in turn, as an NPC's lines do), each a part of what this server has
-// (welcomeFacts): the kept items a login gives (the Genie's Lamp, the Heirloom
-// Fang of the Wolf, the Summoning Portal, the Rock of Freeport) and the
-// Heirloom Outfitters' free gear, Dabrish and the Spell Archivist (in Freeport
-// when they stand by its Announcements board), "And more!", how to report a
-// bug, raids and their loot rules, the PC client's Options > Extended, and
-// /tutorial. Each line in the spelling the player's client can use: a client
-// of ours (vanilla: it answered the offers, Session.AckMasks) forwards a
-// /command it does not know, a PS2 keeps one to itself and types "/t tutorial".
+// Every window of it is such a box, one at a time (a GM's work entry of
+// 2026-11-17 and its review of 2026-11-23: an Exit on every window, the tour
+// closed at any time, no train of boxes left behind): the guide's pages, the
+// Topics box (Graphics, Game features, UI: welcometopics.go) and each topic's
+// pages, each with Next while a page follows and a way back (Back to the
+// start, Back to topics). CLIENT's own Close (VIWndResponse adds More, Back
+// and Close, WORDS 245, 217, 161, after three answers a page) is every
+// window's exit, on a PS2 and vanilla alike: no answer of ours says Exit
+// beside it, and no window has more than three answers, so none is paged.
+// Each window has its own id (welcomeBoxMark), so an answer to an older one
+// does nothing, and keeps the actions of its answers in their order
+// (welcomeAsk.actions): an answer acts by its place, an answer past them does
+// nothing.
+//
+// The guide is what this server has (welcomeFacts), a part a page or more,
+// packed into 127 characters a page: the kept items a login gives (the
+// Genie's Lamp, the Heirloom Fang of the Wolf, the Summoning Portal, the Rock
+// of Freeport) and the Heirloom Outfitters' free gear, Dabrish and the Spell
+// Archivist (in Freeport when they stand by its Announcements board), "And
+// more!", how to report a bug, raids and their loot rules, the PC client's
+// Options > Extended, and /tutorial. Each line in the spelling the player's
+// client can use: a client of ours (vanilla: it answered the offers,
+// Session.AckMasks) forwards a /command it does not know, a PS2 keeps one to
+// itself and types "/t tutorial".
 //
 // Never again is kept (charwelcome.never) through logouts and restarts; only
 // /tutorial (#tutorial, "/t tutorial") shows the box then, and choosing the
@@ -53,8 +66,10 @@ import (
 // next entry that day asks). A box CLIENT declines itself because a menu is up
 // (Msg0034: a 255 within welcomeDeclined of its sending) goes out again
 // welcomeRetry later until then (vanilla holds such a box until its menu closes
-// instead). A 255 after that is the player's Close; the question stands, as a
-// PS2 sends 255 just before the real pick when two boxes were open.
+// instead), every window of the tour alike. A 255 after that is the player's
+// Close: the tour ends there, nothing more is sent or tried; the window last
+// sent still takes a pick, as a PS2 sends 255 just before the real pick when
+// two boxes were open.
 //
 // world.welcome_guide false (SetWelcomeGuide) turns all of it off. Its words
 // and times are ours.
@@ -94,16 +109,21 @@ const welcomeBoardName = "Freeport Announcements"
 const (
 	welcomeQuestionDaily    = "Welcome, %s! Would you like a quick guide to this server? Close this to be asked again another day."
 	welcomeQuestionAnon     = "Welcome! Would you like a quick guide to this server? Close this to be asked again another day."
-	welcomeQuestionTutorial = "Would you like a quick guide to this server?"
+	welcomeQuestionTutorial = "Would you like a quick guide to this server, or its commands and features?"
 	welcomeGuideAnswer      = "Yes, show me the guide"
+	welcomeCommandsAnswer   = "Commands/features"
 	welcomeNeverAnswer      = "Never show this again on this character"
+	welcomeNextAnswer       = "Next"
+	welcomeStartAnswer      = "Back to the start"
+	welcomeTopicsAnswer     = "Back to topics"
 
 	welcomeNeverLine = "You will not be asked again on %s. Type %s any time to see the guide."
 	welcomeNeverFail = "That could not be kept just now: try again."
 	welcomeOffLine   = "There is no welcome guide on this server."
 )
 
-// The guide's parts, a sentence each, packed into boxes by part (welcomeBoxes).
+// The guide's parts, a sentence each, packed into pages by part
+// (welcomeGuidePages).
 // No '%' or '|' (CLIENT's text expander reads both as codes) and nothing past
 // ASCII, which a PS2's font has.
 const (
@@ -121,8 +141,10 @@ const (
 	welcomeArchivist      = "The Spell Archivist has your class's spells."
 	welcomeAndMore        = "And more!"
 
-	welcomeRaidsOurs    = "Things to explore: raids, with the Raid List window and the raid commands (/help lists them), and the loot rules a raid's leader sets in Community > Group > Raid: free for all, need before greed and master looter."
-	welcomeRaidsPS2     = "Things to explore: raids, with the raid commands (/t help lists them), and the loot rules a raid's leader sets with /t raidloot: free for all, need before greed and master looter."
+	welcomeRaidsOurs    = "Things to explore: raids, with the Raid List window and the raid commands (/help lists them)."
+	welcomeRaidLootOurs = "A raid's leader sets its loot rules in Community > Group > Raid: free for all, need before greed or master looter."
+	welcomeRaidsPS2     = "Things to explore: raids, with the raid commands (/t help lists them)."
+	welcomeRaidLootPS2  = "A raid's leader sets its loot rules with /t raidloot: free for all, need before greed or master looter."
 	welcomeExtendedOurs = "Options > Extended has more graphics options and settings."
 	welcomeExtendedPS2  = "On the PC or browser client, Options > Extended has more graphics options and settings."
 	welcomeTutorial     = "Type %s any time to bring this guide back. Have fun!"
@@ -166,13 +188,16 @@ type WelcomeGuide struct {
 	factsOf func() welcomeFacts
 }
 
-// welcomeAsk is a box asked: its character and session, its id and question,
-// whether it is the day's, when it last went out and until when it is tried.
+// welcomeAsk is a box asked: its character and session, its id, question and
+// answers with what each does, whether it is the day's, when it last went out
+// and until when it is tried.
 type welcomeAsk struct {
 	char     uint32
 	sess     *session.Session
 	box      uint32
 	question string
+	answers  []string
+	actions  []welcomeAction // what answers[i] does
 	daily    bool
 	taken    bool      // the day's box: the day taken (it went out)
 	sent     time.Time // when it last went out; zero: not yet
@@ -192,6 +217,97 @@ func NewWelcomeGuide(gw *entity.World, db *database.SQLiteDB) *WelcomeGuide {
 	return g
 }
 
+// welcomeStep is a window of the tour, or the never answer.
+type welcomeStep int
+
+const (
+	stepStart  welcomeStep = iota // the start box (/tutorial's question)
+	stepGuide                     // a page of the guide
+	stepTopics                    // the Topics box
+	stepTopic                     // a page of a topic
+	stepNever                     // never again on this character
+)
+
+// welcomeAction is what an answer does: the window it opens (a topic's, a
+// page's), or never.
+type welcomeAction struct {
+	step  welcomeStep
+	topic welcomeTopicID
+	page  int
+}
+
+// welcomeWindow is a window's question and its answers with their actions.
+type welcomeWindow struct {
+	question string
+	answers  []string
+	actions  []welcomeAction
+}
+
+// add is an answer and what it does.
+func (w *welcomeWindow) add(answer string, a welcomeAction) {
+	w.answers = append(w.answers, answer)
+	w.actions = append(w.actions, a)
+}
+
+// startWindow is the start box: the day's question (by name), or
+// /tutorial's.
+func startWindow(name string, daily bool) welcomeWindow {
+	w := welcomeWindow{question: welcomeQuestionTutorial}
+	if daily {
+		w.question = fmt.Sprintf(welcomeQuestionDaily, name)
+		if len([]rune(w.question)) > questAskChars || strings.ContainsAny(name, "%|") {
+			w.question = welcomeQuestionAnon
+		}
+	}
+	w.add(welcomeGuideAnswer, welcomeAction{step: stepGuide})
+	w.add(welcomeCommandsAnswer, welcomeAction{step: stepTopics})
+	w.add(welcomeNeverAnswer, welcomeAction{step: stepNever})
+	return w
+}
+
+// window is the window an action opens for the session, on a server that has
+// f; ok false for none (a topic gone since).
+func window(act welcomeAction, f welcomeFacts, sess *session.Session) (welcomeWindow, bool) {
+	ours := sess.AckMasks()
+	switch act.step {
+	case stepStart:
+		return startWindow("", false), true
+	case stepGuide:
+		return pageWindow(welcomeGuidePages(f, ours, sess.BugReports()), act, welcomeStartAnswer,
+			welcomeAction{step: stepStart}), true
+	case stepTopics:
+		w := welcomeWindow{question: welcomeTopicsQuestion}
+		for _, t := range welcomeTopics(f, ours, QoLOnFor(sess)) {
+			w.add(t.name, welcomeAction{step: stepTopic, topic: t.id})
+		}
+		return w, len(w.answers) > 0
+	case stepTopic:
+		t, ok := welcomeTopicOf(welcomeTopics(f, ours, QoLOnFor(sess)), act.topic)
+		if !ok {
+			return welcomeWindow{}, false
+		}
+		return pageWindow(welcomePack([][]string{t.lines}), act, welcomeTopicsAnswer, welcomeAction{step: stepTopics}), true
+	}
+	return welcomeWindow{}, false
+}
+
+// pageWindow is page act.page of pages (the last if past it): Next while a
+// page follows, then the way back.
+func pageWindow(pages []string, act welcomeAction, back string, backTo welcomeAction) welcomeWindow {
+	if len(pages) == 0 {
+		pages = []string{welcomeAndMore}
+	}
+	i := min(max(act.page, 0), len(pages)-1)
+	w := welcomeWindow{question: pages[i]}
+	if i+1 < len(pages) {
+		next := act
+		next.page = i + 1
+		w.add(welcomeNextAnswer, next)
+	}
+	w.add(back, backTo)
+	return w
+}
+
 // welcomeDay is t's UTC calendar day, as charwelcome keeps it.
 func welcomeDay(t time.Time) string { return t.UTC().Format("2006-01-02") }
 
@@ -209,7 +325,7 @@ func (g *WelcomeGuide) Entered(sess *session.Session, p *entity.Player) {
 	if !due {
 		return
 	}
-	a, _ := g.ask(sess, p, true)
+	a, _ := g.ask(sess, p, startWindow(p.Name, true), true)
 	g.tryIn(a, welcomeAfter)
 }
 
@@ -221,7 +337,7 @@ func (g *WelcomeGuide) Show(sess *session.Session, p *entity.Player) {
 		SendErrorMessage(sess, welcomeOffLine)
 		return
 	}
-	a, old := g.ask(sess, p, false)
+	a, old := g.ask(sess, p, startWindow(p.Name, false), false)
 	if old != nil && old.daily && !old.taken && g.store != nil {
 		if _, err := g.store.TakeWelcomeDay(p.CharServerID, welcomeDay(g.now())); err != nil {
 			log.Printf("Welcome: %s's day: %v", p.Name, err)
@@ -230,16 +346,10 @@ func (g *WelcomeGuide) Show(sess *session.Session, p *entity.Player) {
 	g.try(a)
 }
 
-// ask makes p's next box in place of any it has, which it returns (nil: none).
-func (g *WelcomeGuide) ask(sess *session.Session, p *entity.Player, daily bool) (a, old *welcomeAsk) {
+// ask makes p's next box, the window w, in place of any it has, which it
+// returns (nil: none).
+func (g *WelcomeGuide) ask(sess *session.Session, p *entity.Player, w welcomeWindow, daily bool) (a, old *welcomeAsk) {
 	now := g.now()
-	question := welcomeQuestionTutorial
-	if daily {
-		question = fmt.Sprintf(welcomeQuestionDaily, p.Name)
-		if len([]rune(question)) > questAskChars || strings.ContainsAny(p.Name, "%|") {
-			question = welcomeQuestionAnon
-		}
-	}
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	for char, x := range g.asked {
@@ -248,8 +358,8 @@ func (g *WelcomeGuide) ask(sess *session.Session, p *entity.Player, daily bool) 
 		}
 	}
 	g.seq++
-	a = &welcomeAsk{char: p.CharServerID, sess: sess, box: welcomeBoxMark | (g.seq & 0xFFFFFF), question: question,
-		daily: daily, asked: now, until: now.Add(welcomeGiveUp)}
+	a = &welcomeAsk{char: p.CharServerID, sess: sess, box: welcomeBoxMark | (g.seq & 0xFFFFFF), question: w.question,
+		answers: w.answers, actions: w.actions, daily: daily, asked: now, until: now.Add(welcomeGiveUp)}
 	old = g.asked[a.char]
 	g.asked[a.char] = a
 	return a, old
@@ -305,9 +415,9 @@ func (g *WelcomeGuide) try(a *welcomeAsk) {
 		a.taken = true
 	}
 	a.sent = now
-	sess, box, question := a.sess, a.box, a.question
+	sess, box, question, answers := a.sess, a.box, a.question, a.answers
 	g.mu.Unlock()
-	SendQuestPopupMulti(sess, box, question, []string{welcomeGuideAnswer, welcomeNeverAnswer})
+	SendQuestPopupMulti(sess, box, question, answers)
 }
 
 // free is whether a's player may be asked now; gone, that its session is not
@@ -340,8 +450,9 @@ func (g *WelcomeGuide) free(a *welcomeAsk) (free, gone bool) {
 // IsWelcomeBox reports a welcome box's id.
 func IsWelcomeBox(id uint32) bool { return id&0xFF000000 == welcomeBoxMark }
 
-// Answer is HandleDialogueOption's question for a welcome box: the guide, or
-// never again. It reports whether the box was one (an old one does nothing).
+// Answer is HandleDialogueOption's question for a welcome box: the window
+// its answer opens, or never again. It reports whether the box was one (an
+// old one, or an answer past the window's, does nothing).
 func (g *WelcomeGuide) Answer(sess *session.Session, p *entity.Player, box uint32, option byte) bool {
 	if !IsWelcomeBox(box) {
 		return false
@@ -358,7 +469,8 @@ func (g *WelcomeGuide) Answer(sess *session.Session, p *entity.Player, box uint3
 	}
 	if option == 255 {
 		// CLIENT's own decline (a menu up) goes out again; a later 255 is the
-		// player's Close, and the question stands for a pick that follows it
+		// player's Close, which ends the tour: nothing more is sent, and the
+		// window takes a pick that follows it (the file's doc)
 		declined := !a.sent.IsZero() && now.Sub(a.sent) < welcomeDeclined
 		g.mu.Unlock()
 		if declined {
@@ -366,28 +478,42 @@ func (g *WelcomeGuide) Answer(sess *session.Session, p *entity.Player, box uint3
 		}
 		return true
 	}
+	if int(option) >= len(a.actions) {
+		g.mu.Unlock()
+		return true
+	}
+	act := a.actions[option]
 	delete(g.asked, p.CharServerID)
 	g.mu.Unlock()
-	switch option {
-	case 0:
-		for _, b := range welcomeBoxes(g.factsNow(), sess.AckMasks(), sess.BugReports()) {
-			SendDialogueBox(sess, 0, b)
-		}
-		log.Printf("Welcome: %s asked for the guide", p.Name)
-	case 1:
-		if g.store == nil {
-			SendErrorMessage(sess, welcomeNeverFail)
-			return true
-		}
-		if err := g.store.SetWelcomeNever(p.CharServerID, true); err != nil {
-			log.Printf("Welcome: %s's never not kept: %v", p.Name, err)
-			SendErrorMessage(sess, welcomeNeverFail)
-			return true
-		}
-		SendColoredChat(sess, fmt.Sprintf(welcomeNeverLine, p.Name, tutorialSpelling(sess.AckMasks())), 255, 255, 0)
-		log.Printf("Welcome: %s is not to be asked again", p.Name)
+	if act.step == stepNever {
+		g.never(sess, p)
+		return true
 	}
+	if act.step == stepGuide && act.page == 0 {
+		log.Printf("Welcome: %s asked for the guide", p.Name)
+	}
+	w, ok := window(act, g.factsNow(), sess)
+	if !ok {
+		return true
+	}
+	next, _ := g.ask(sess, p, w, false)
+	g.try(next)
 	return true
+}
+
+// never keeps never again on p's character, and says how to see the guide.
+func (g *WelcomeGuide) never(sess *session.Session, p *entity.Player) {
+	if g.store == nil {
+		SendErrorMessage(sess, welcomeNeverFail)
+		return
+	}
+	if err := g.store.SetWelcomeNever(p.CharServerID, true); err != nil {
+		log.Printf("Welcome: %s's never not kept: %v", p.Name, err)
+		SendErrorMessage(sess, welcomeNeverFail)
+		return
+	}
+	SendColoredChat(sess, fmt.Sprintf(welcomeNeverLine, p.Name, tutorialSpelling(sess.AckMasks())), 255, 255, 0)
+	log.Printf("Welcome: %s is not to be asked again", p.Name)
 }
 
 // tutorialSpelling is /tutorial as the player's client can send it: a PS2
@@ -419,6 +545,13 @@ type welcomeFacts struct {
 	// dabrishBoard and archivistBoard: they stand within welcomeNear of Freeport's
 	// Announcements board
 	dabrishBoard, archivistBoard bool
+
+	// the Game features topic's (welcometopics.go)
+	mercs                       bool        // world.mercs (MercsOn)
+	teleporter, teleporterBoard bool        // world.teleporter and a Teleporter standing (by the board)
+	boon                        entity.Boon // the towns' boon (Boon.On: the boards give one)
+	ascended                    bool        // Ascended records exist
+	conLevel                    bool        // world.con_level (ConLevelOn)
 }
 
 // factsNow is what the server has, read at most every welcomeFactsFor.
@@ -449,12 +582,16 @@ func (g *WelcomeGuide) readFacts() welcomeFacts {
 		f.portal = keptItemID(g.db, SummoningPortalName, "Welcome") != 0
 	}
 	f.rock = RockOfFreeportOn()
+	f.mercs = MercsOn()
+	f.ascended = len(entity.AscendedItems()) > 0
+	f.conLevel = ConLevelOn()
 	if g.gw == nil {
 		return f
 	}
+	f.boon = g.gw.Boon()
 	key := func(s string) string { return strings.ToLower(strings.TrimSpace(s)) }
 	spots := g.gw.NPCSpotsNamed(map[string]bool{key(DabrishName): true, key(SpellArchivistName): true,
-		key(heirloomOutfitterName): true, key(welcomeBoardName): true})
+		key(heirloomOutfitterName): true, key(welcomeBoardName): true, key(TeleporterName): true})
 	boards := spots[key(welcomeBoardName)]
 	byBoard := func(of []entity.NPCSpot) bool {
 		for _, s := range of {
@@ -470,12 +607,17 @@ func (g *WelcomeGuide) readFacts() welcomeFacts {
 	f.dabrish, f.archivist = len(dab) > 0, len(arch) > 0
 	f.dabrishBoard, f.archivistBoard = byBoard(dab), byBoard(arch)
 	f.outfitters = len(spots[key(heirloomOutfitterName)]) > 0
+	if TeleporterOn() {
+		tele := spots[key(TeleporterName)]
+		f.teleporter, f.teleporterBoard = len(tele) > 0, byBoard(tele)
+	}
 	return f
 }
 
-// welcomeBoxes is the guide, a dialogue box at a time, for a server that has
-// f, to a client of ours (vanilla) or not (a PS2), that reports with F3 or not.
-func welcomeBoxes(f welcomeFacts, ours, f3 bool) []string {
+// welcomeGuidePages is the guide, a question box's page at a time, for a
+// server that has f, to a client of ours (vanilla) or not (a PS2), that
+// reports with F3 or not.
+func welcomeGuidePages(f welcomeFacts, ours, f3 bool) []string {
 	var items []string
 	if f.lamp {
 		items = append(items, welcomeLamp)
@@ -518,30 +660,35 @@ func welcomeBoxes(f welcomeFacts, ours, f3 bool) []string {
 	if f3 {
 		bug = reportNoticeF3
 	}
-	raids, extended := welcomeRaidsPS2, welcomeExtendedPS2
+	raids, loot, extended := welcomeRaidsPS2, welcomeRaidLootPS2, welcomeExtendedPS2
 	if ours {
-		raids, extended = welcomeRaidsOurs, welcomeExtendedOurs
+		raids, loot, extended = welcomeRaidsOurs, welcomeRaidLootOurs, welcomeExtendedOurs
 	}
-	// /tutorial's line last, in the closing box
-	parts := [][]string{items, freeport, {bug}, {raids}, {extended, fmt.Sprintf(welcomeTutorial, tutorialSpelling(ours))}}
+	// /tutorial's line last, on the closing page
+	return welcomePack([][]string{items, freeport, {bug}, {raids, loot}, {extended, fmt.Sprintf(welcomeTutorial, tutorialSpelling(ours))}})
+}
 
-	var boxes []string
+// welcomePack packs parts' sentences into pages of a question box's
+// questAskChars, a part's never sharing a page with another's; a sentence
+// longer than a page is cut where splitSay cuts it.
+func welcomePack(parts [][]string) []string {
+	var pages []string
 	for _, part := range parts {
-		var box string
+		var page string
 		for _, s := range part {
 			switch {
-			case box == "":
-				box = s
-			case len([]rune(box))+1+len([]rune(s)) <= questBoxChars:
-				box += " " + s
+			case page == "":
+				page = s
+			case len([]rune(page))+1+len([]rune(s)) <= questAskChars:
+				page += " " + s
 			default:
-				boxes = append(boxes, box)
-				box = s
+				pages = append(pages, splitSay(page, questAskChars)...)
+				page = s
 			}
 		}
-		if box != "" {
-			boxes = append(boxes, splitSay(box, questBoxChars)...)
+		if page != "" {
+			pages = append(pages, splitSay(page, questAskChars)...)
 		}
 	}
-	return boxes
+	return pages
 }

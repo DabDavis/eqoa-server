@@ -82,6 +82,10 @@ func boonTag(pct int) string {
 	return "boon x" + strconv.FormatFloat(float64(pct)/100, 'f', -1, 64)
 }
 
+// SpanWords is spanWords, for the welcome guide's boon line
+// (handlers/welcometopics.go).
+func SpanWords(d time.Duration) string { return spanWords(d) }
+
 // spanWords is a time in hours and minutes, a part of a minute counted
 // whole: "4 hours", "1 hour 30 minutes".
 func spanWords(d time.Duration) string {

@@ -907,6 +907,12 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	w.afkActiveLocked(p, "a cast")                // afk.go
 	if spell.Def.Harmful {
 		w.breakBoardWolfLocked(p, "a harmful spell") // boardwolf.go
+		for _, id := range targets {
+			if w.NPCs[id] != nil {
+				w.seenThroughLocked(p, "a harmful spell") // racefaction.go
+				break
+			}
+		}
 	}
 	w.dispelOnCastLocked(p, spell.Def.Harmful) // workbook.go: what ends at a cast (a run speed only at a harmful one)
 	lockout := castLockoutOf(&spell, w.balance.ArtCooldown(p.Level))

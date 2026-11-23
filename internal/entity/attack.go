@@ -380,6 +380,7 @@ func (w *World) engageLocked(sess *session.Session, p *Player, objectID uint32, 
 	p.pressed(now)
 	w.breakInvisLocked(p, "an attack")     // invis.go
 	w.breakBoardWolfLocked(p, "an attack") // boardwolf.go
+	w.seenThroughLocked(p, "an attack")    // racefaction.go
 	log.Printf("Combat: %s engages %s (swing %d, %v, reach %.1f)", p.Name, npc.Name, swing.Kind, swing.Delay, swing.Reach)
 	return true
 }

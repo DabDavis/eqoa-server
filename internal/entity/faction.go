@@ -544,7 +544,7 @@ func (w *World) startForLocked(race, class, hum int, faction string) int {
 // lasts (racefaction.go). Must be called with the lock held.
 func (w *World) standingLocked(p *Player, faction string) int {
 	v := w.ownStandingLocked(p, faction)
-	if race, ok := p.factionRace(); ok {
+	if race, ok := w.factionRaceLocked(p); ok {
 		v = clampFaction(v + w.startForLocked(race, p.Class, p.HumType, faction) - w.startLocked(p, faction))
 	}
 	return v

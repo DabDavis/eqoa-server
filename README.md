@@ -21,7 +21,7 @@ One binary, `cmd/gameserver`:
 | 9735 | TCP | Auth: the login request, DES-encrypted password, bcrypt-checked accounts |
 | 10070 | UDP | The game: DRDP (reliable messages, state channels, XOR deltas), world entry, movement, combat, NPCs, quests, equipment, chat, groups, guilds, factions, masteries, tradeskills, duels |
 | 7000 | HTTP | The patch server: the VerantPatcher manifest the PS2 downloads its patches from |
-| 8080 | HTTP | The account pages (and the community pages' routes); `account_port: 0` turns them off. They listen on every address: keep 8080 behind the firewall and a proxy |
+| 8080 | HTTP | The account pages (and the community pages' routes); `account_port: 0` turns them off. The example binds to loopback for a local TLS proxy |
 | 7003 | UDP | Optional: the PS2 hard-disk setup's world delivery |
 | (gm.port) | HTTP | Optional GM panel, behind a TLS proxy: a web page and MCP/OAuth/OpenAPI for AI agents |
 

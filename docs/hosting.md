@@ -318,6 +318,7 @@ gm:
   port: 8081
   public_url: "https://gm.example.com"
 auth:
+  bind_address: "127.0.0.1"
   password_url: "account.example.com/password"
   relay_lookup: "http://127.0.0.1:8792"
 # and, only if you turn the account e-mail on:

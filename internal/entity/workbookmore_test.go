@@ -372,6 +372,57 @@ func TestAHitSetsOffAHealOverTime(t *testing.T) {
 	}
 }
 
+// Live petition 5561 (Tribal Ward "is heal ticking twice"): the proc's heal over
+// time lands its first tick twice at the first hit (the workbook's), but a later
+// hit that renews it before its next tick lands nothing at once and leaves the
+// next tick a single one; every hit between two ticks had made that next tick
+// land twice. The control: the first hit's tick at once is still two.
+func TestARenewedProcHealTicksOnce(t *testing.T) {
+	buff := wbSpell(701246, 60, 0, "Tribal Ward", `{"v":1,"scope":"target","target_type":"Friendly","harmful":false,"duration_s":300,"stack":1,"level":60,"min_level":36,"req_equipment":"Any","sheet_type":"Defensive Proc","arch_type":"Damage Shield","effects":[{"id":"071A","type":"Defensive Proc","kind":"def_proc","procs":[{"id":"0D72","type":"Dmg/Heal","kind":"hp_tick","amount":550,"on":"defense","scope":"self","target_type":"Self","duration_s":18}]}]}`)
+	c := newCaster(t)
+	c.p.Level = 60
+	c.p.MaxHP, c.p.HP = 20000, 1000
+	c.castOn(t, buff, 0)
+	heal := func() *ActiveEffect {
+		for _, e := range c.p.Effects {
+			if e.SpellID == procSpellID(701246, 0) {
+				return e
+			}
+		}
+		return nil
+	}
+	hit := func(at time.Duration) {
+		c.w.mu.Lock()
+		defer c.w.mu.Unlock()
+		c.w.procSpellsLocked(c.p, c.sess, c.npc, true, c.at(at))
+	}
+	hp := c.p.HP
+	hit(10 * time.Second)
+	h := heal()
+	if h == nil || h.HPTick != 550 {
+		t.Fatalf("after a hit: %+v", h)
+	}
+	if got := c.p.HP - hp; got != 1100 {
+		t.Errorf("the first hit's tick at once healed %d, want 1100 (the workbook's first tick twice)", got)
+	}
+	next := h.NextTick
+	hit(12 * time.Second) // a second hit before the next tick: a renewal
+	h = heal()
+	if h == nil || !h.NextTick.Equal(next) {
+		t.Fatalf("the renewal's next tick %v, want the running one's %v", h.NextTick, next)
+	}
+	if h.Rules.Twice {
+		t.Error("the renewed heal still lands its next tick twice")
+	}
+	hp = c.p.HP
+	c.w.mu.Lock()
+	c.w.tickEffectLocked(c.p, h, next)
+	c.w.mu.Unlock()
+	if got := c.p.HP - hp; got != 550 {
+		t.Errorf("the tick after a renewal healed %d, want 550", got)
+	}
+}
+
 // Petition 1557: Rakish's pierce debuff on a creature counts on each hand's
 // hits by that hand's own weapon. With a weapon in each hand the odd hits of
 // a round are the main hand's and the even ones the off hand's (as their

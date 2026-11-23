@@ -1,0 +1,291 @@
+{
+ "quests": [
+  {
+   "questid": 103522,
+   "whole": false,
+   "quest_old": {
+    "name": "Bound to Fayspire",
+    "offer": "Spiritmaster Tintal will bind you; then see Coachman Thirtreel.",
+    "accept": "I will do it.",
+    "decline": "Not now.",
+    "declined": "Then come back to me when you are ready.",
+    "started": "Good. Come back to me when it is done."
+   },
+   "quest_new": {
+    "name": "The Spiritmaster and the Coachman",
+    "offer": "A warrior's strength is measured by what it protects, never by what it breaks.\nAre you ready for your first lesson?",
+    "accept": "I am ready.",
+    "decline": "",
+    "declined": "",
+    "started": "A knight who falls must know where the soul returns. Go to Tintal, the spiritmaster here in Paragon Keep, and learn what a spiritmaster does.\nTell Tintal I sent you."
+   },
+   "steps": [
+    {
+     "step": 1,
+     "old": {
+      "journal": "Speak with Spiritmaster Tintal in Fayspires.",
+      "answer": "",
+      "says": "Your spirit is bound. Now go to Coachman Thirtreel at the Fayspires coach.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "new": {
+      "journal": "Speak with Spiritmaster Tintal in Paragon Keep.",
+      "answer": "Itheria Silverwind sent me to talk to you.\nNothing.",
+      "says": "Then you are here to learn what I do and how it may help you in your training and future adventures.\nWell, I am a Spiritmaster. I have been trained to bind a person's soul to a certain location if they so wish it.\nWhen a person is slain, their spirit will return to where they are bound. There, his body and possessions will rematerialize.\nOnly when the gods deem that your destiny has been fulfilled will you truly die. Until then you will always return.\nAfter I bind you, I shall send you to Thirtreel, our coachman. You will find him next to a well on the southern road.",
+      "waiting": "Oh hello. What may I help you with?",
+      "notyet": "",
+      "reminder": ""
+     }
+    },
+    {
+     "step": 2,
+     "old": {
+      "journal": "Speak with Coachman Thirtreel at the coach south-east of Fayspires.",
+      "answer": "",
+      "says": "Signed. Now go back to Itheria Silverwind.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "new": {
+      "journal": "Speak with Coachman Thirtreel at the coach south-east of Fayspires.",
+      "answer": "Tintal sent me to you.\nGood day to you too, and farewell.",
+      "says": "A squire of Paragon Keep are you? Name's Thirtreel, coachman of Fayspires. I will record your name in our ledger.\nWhen your name is recorded in a stable's ledger, you'll be able travel to that stable from another, by horse.\nThere are stables all across Tunaria. Not all are friendly though, so watch your step when looking for a stable.\nOk, your name is recorded. You should head back to your teacher now. And remember me when you need a horse!",
+      "waiting": "Good day to you, is there something I can help you with?",
+      "notyet": "",
+      "reminder": ""
+     }
+    },
+    {
+     "step": 3,
+     "old": {
+      "journal": "Return to Itheria Silverwind in Fayspires.",
+      "answer": "",
+      "says": "Good. Come see me again at level 3: I will have more for you.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "new": {
+      "journal": "Return to Itheria Silverwind in Paragon Keep.",
+      "answer": "",
+      "says": "Now you know where you rise again, and how to ride where you are needed. A warrior is needed in many places.\nCome back at level 3.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     }
+    }
+   ],
+   "targets_old": [],
+   "targets_new": []
+  },
+  {
+   "questid": 103523,
+   "whole": false,
+   "quest_old": {
+    "name": "Slivers of Bat Meat",
+    "offer": "Learn to fight: kill bats and bring me two slivers of bat meat.",
+    "accept": "I will do it.",
+    "decline": "Not now.",
+    "declined": "Then come back to me when you are ready.",
+    "started": "Good. Come back to me when it is done."
+   },
+   "quest_new": {
+    "name": "Further Training",
+    "offer": "A warrior's strength is measured by what it protects, never by what it breaks.\nHave you come for your training?",
+    "accept": "I have come for my training.",
+    "decline": "",
+    "declined": "",
+    "started": "It is time you learned more about fighting. Go out into the grasslands and hunt the bats there.\nBring me two slivers of bat meat."
+   },
+   "steps": [
+    {
+     "step": 1,
+     "old": {
+      "journal": "Take 2 slivers of bat meat from the bats just outside Fayspires.",
+      "answer": "",
+      "says": "",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "new": {
+      "journal": "Take 2 slivers of bat meat from the bats in the grasslands outside Fayspires.",
+      "answer": "",
+      "says": "",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     }
+    },
+    {
+     "step": 2,
+     "old": {
+      "journal": "Bring 2 slivers of bat meat to Itheria Silverwind in Fayspires.",
+      "answer": "",
+      "says": "Good. Next, see Johandar Elthiron.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "new": {
+      "journal": "Bring 2 slivers of bat meat to Itheria Silverwind in Paragon Keep.",
+      "answer": "",
+      "says": "Two slivers, and you came back on your own feet. Good.\nHere is a scroll of Kick. It hardens you against the blows you will learn to take for others.\nYou have earned a weapon of your own. Go to Johandar Elthiron; he forges the Keep's blades.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": "Two slivers of bat meat. The bats fly over the grasslands outside Fayspires."
+     }
+    }
+   ],
+   "targets_old": [],
+   "targets_new": []
+  },
+  {
+   "questid": 103525,
+   "whole": false,
+   "quest_old": {
+    "name": "Bound to Fayspire",
+    "offer": "Spiritmaster Tintal will bind you; then see Coachman Thirtreel.",
+    "accept": "I will do it.",
+    "decline": "Not now.",
+    "declined": "Then come back to me when you are ready.",
+    "started": "Good. Come back to me when it is done."
+   },
+   "quest_new": {
+    "name": "The Spiritmaster and the Coachman",
+    "offer": "A shadow knight's strength is measured by what it protects, never by what it breaks.\nAre you ready for your first lesson?",
+    "accept": "I am ready.",
+    "decline": "",
+    "declined": "",
+    "started": "A knight who falls must know where the soul returns. Go to Tintal, the spiritmaster here in Paragon Keep, and learn what a spiritmaster does.\nTell Tintal I sent you."
+   },
+   "steps": [
+    {
+     "step": 1,
+     "old": {
+      "journal": "Speak with Spiritmaster Tintal in Fayspires.",
+      "answer": "",
+      "says": "Your spirit is bound. Now go to Coachman Thirtreel at the Fayspires coach.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "new": {
+      "journal": "Speak with Spiritmaster Tintal in Paragon Keep.",
+      "answer": "Itheria Silverwind sent me to talk to you.\nNothing.",
+      "says": "Then you are here to learn what I do and how it may help you in your training and future adventures.\nWell, I am a Spiritmaster. I have been trained to bind a person's soul to a certain location if they so wish it.\nWhen a person is slain, their spirit will return to where they are bound. There, his body and possessions will rematerialize.\nOnly when the gods deem that your destiny has been fulfilled will you truly die. Until then you will always return.\nAfter I bind you, I shall send you to Thirtreel, our coachman. You will find him next to a well on the southern road.",
+      "waiting": "Oh hello. What may I help you with?",
+      "notyet": "",
+      "reminder": ""
+     }
+    },
+    {
+     "step": 2,
+     "old": {
+      "journal": "Speak with Coachman Thirtreel at the coach south-east of Fayspires.",
+      "answer": "",
+      "says": "Signed. Now go back to Itheria Silverwind.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "new": {
+      "journal": "Speak with Coachman Thirtreel at the coach south-east of Fayspires.",
+      "answer": "Tintal sent me to you.\nGood day to you too, and farewell.",
+      "says": "A squire of Paragon Keep are you? Name's Thirtreel, coachman of Fayspires. I will record your name in our ledger.\nWhen your name is recorded in a stable's ledger, you'll be able travel to that stable from another, by horse.\nThere are stables all across Tunaria. Not all are friendly though, so watch your step when looking for a stable.\nOk, your name is recorded. You should head back to your teacher now. And remember me when you need a horse!",
+      "waiting": "Good day to you, is there something I can help you with?",
+      "notyet": "",
+      "reminder": ""
+     }
+    },
+    {
+     "step": 3,
+     "old": {
+      "journal": "Return to Itheria Silverwind in Fayspires.",
+      "answer": "",
+      "says": "Good. Come see me again at level 3: I will have more for you.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "new": {
+      "journal": "Return to Itheria Silverwind in Paragon Keep.",
+      "answer": "",
+      "says": "Now you know where you rise again, and how to ride where you are needed. A shadow knight is needed in many places.\nCome back at level 3.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     }
+    }
+   ],
+   "targets_old": [],
+   "targets_new": []
+  },
+  {
+   "questid": 103526,
+   "whole": false,
+   "quest_old": {
+    "name": "Slivers of Bat Meat",
+    "offer": "Learn to fight: kill bats and bring me two slivers of bat meat.",
+    "accept": "I will do it.",
+    "decline": "Not now.",
+    "declined": "Then come back to me when you are ready.",
+    "started": "Good. Come back to me when it is done."
+   },
+   "quest_new": {
+    "name": "Further Training",
+    "offer": "A shadow knight's strength is measured by what it protects, never by what it breaks.\nHave you come for your training?",
+    "accept": "I have come for my training.",
+    "decline": "",
+    "declined": "",
+    "started": "It is time you learned more about fighting. Go out into the grasslands and hunt the bats there.\nBring me two slivers of bat meat."
+   },
+   "steps": [
+    {
+     "step": 1,
+     "old": {
+      "journal": "Take 2 slivers of bat meat from the bats just outside Fayspires.",
+      "answer": "",
+      "says": "",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "new": {
+      "journal": "Take 2 slivers of bat meat from the bats in the grasslands outside Fayspires.",
+      "answer": "",
+      "says": "",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     }
+    },
+    {
+     "step": 2,
+     "old": {
+      "journal": "Bring 2 slivers of bat meat to Itheria Silverwind in Fayspires.",
+      "answer": "",
+      "says": "Good. Next, see Johandar Elthiron.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": ""
+     },
+     "new": {
+      "journal": "Bring 2 slivers of bat meat to Itheria Silverwind in Paragon Keep.",
+      "answer": "",
+      "says": "Two slivers, and you came back on your own feet. Good.\nHere is a scroll of Malice. It hardens you against the blows you will learn to take for others.\nYou have earned a weapon of your own. Go to Johandar Elthiron; he forges the Keep's blades.",
+      "waiting": "",
+      "notyet": "",
+      "reminder": "Two slivers of bat meat. The bats fly over the grasslands outside Fayspires."
+     }
+    }
+   ],
+   "targets_old": [],
+   "targets_new": []
+  }
+ ],
+ "spawnonly_off": []
+}

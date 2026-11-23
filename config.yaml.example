@@ -456,12 +456,20 @@ world:
   # corpse_decay: 3m
   # respawn_after: 60s
   # roam_radius: 70
-  # How long after its death a kill's corpse is its kill group's alone, then
+  # How long after its death a raid's kill's corpse is its kill group's alone, then
   # anyone's (unset or 0: 6m; below 0, always its group's: entity/corpseopen.go),
-  # and how long a lootable corpse lies from its death (unset or 0: 20m; at or
+  # and how long a raid's lootable corpse lies from its death (unset or 0: 20m; at or
   # below corpse_decay, none lingers: entity/corpselinger.go).
   # corpse_open_after: 6m
   # corpse_decay_after: 20m
+  # Outside a raid (entity/corpsesolo.go): a lootable corpse lies corpse_decay_solo
+  # (unset or 0: 10m; below 0 the rule off, every corpse under the raid's rules),
+  # its creature down with it until it goes; it is anyone's after
+  # corpse_open_after_solo (unset or 0: 7m); an opening puts its decay back to the
+  # full time, corpse_checks_max times a death (unset or 0: 10; below 0 none).
+  # corpse_decay_solo: 10m
+  # corpse_open_after_solo: 7m
+  # corpse_checks_max: 10
 
   # What a thrown potion and a ranged weapon's shot cost the thrower or
   # shooter, a percent of its most power (entity/potion.go,

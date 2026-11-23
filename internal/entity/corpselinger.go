@@ -25,6 +25,10 @@ import (
 // /spawn, a quest's or a trigger's spawn) lies on in place to the same time. An emptied
 // corpse still goes at once (ClearCorpse), and one never lootable (a pet's, an add's, one the
 // guards hit, a dummy's, a duel's, an instance's) goes at its corpse time as before.
+//
+// Since 2026-11-23 (a GM's Heirloom petition 2752) this is a raid's kill's corpse alone: outside
+// a raid a lootable corpse lies 10 minutes as one corpse, no copy left, its creature down until
+// it goes (corpsesolo.go).
 
 // DefaultCorpseLinger is how long a lootable corpse lies from its death.
 const DefaultCorpseLinger = 20 * time.Minute
@@ -68,13 +72,20 @@ func (w *World) CorpseLinger() time.Duration {
 // lingersLocked is whether npc's corpse, at its creature's corpse time, lies on to the linger
 // (the file's doc). Must be called with the lock held.
 func (w *World) lingersLocked(npc *NPC) bool {
-	if w.corpseLinger <= w.corpseDecay || npc.CorpseDecay != 0 || npc.withMaster || npc.Owner != 0 || npc.Charm != nil ||
-		npc.CorpseOfNothing() || npc.Dummy != NotDummy || npc.DuelSpawn() || npc.Instance != 0 || npc.challenge != nil ||
-		npc.siege != nil || npc.guardHit || npc.GenieOf != 0 || npc.PortalOf != 0 || npc.isMerc() || npc.isFamiliar() || npc.isMonkey() ||
-		IsMetalMoogieName(npc.Name) {
-		return false
+	if w.corpseLinger <= w.corpseDecay || npc.soloDecay > 0 || !lootableCorpse(npc) {
+		return false // under the rule outside a raid it lies as one corpse (corpsesolo.go)
 	}
 	return npc.DeathTime.Add(w.corpseLinger).After(npc.corpseEnds(w.corpseDecay))
+}
+
+// lootableCorpse is whether npc's corpse is one a player loots: not a pet's or one with
+// its own corpse time, not an add's, a dummy's, a duel's, an instance's, the guards', a
+// mercenary's, a familiar's or a monkey's.
+func lootableCorpse(npc *NPC) bool {
+	return !(npc.CorpseDecay != 0 || npc.withMaster || npc.Owner != 0 || npc.Charm != nil ||
+		npc.CorpseOfNothing() || npc.Dummy != NotDummy || npc.DuelSpawn() || npc.Instance != 0 || npc.challenge != nil ||
+		npc.siege != nil || npc.guardHit || npc.GenieOf != 0 || npc.PortalOf != 0 || npc.isMerc() || npc.isFamiliar() || npc.isMonkey() ||
+		IsMetalMoogieName(npc.Name))
 }
 
 // leaveCorpseLocked leaves npc's corpse where it fell as a copy (the file's doc), the hook
@@ -83,6 +94,7 @@ func (w *World) leaveCorpseLocked(npc *NPC) *NPC {
 	c := w.spawnCopyAsLocked(npc, npc.X, npc.Y, npc.Z, npc.Facing, npc.World, 0)
 	c.HP, c.Dead = 0, true
 	c.DeathTime, c.corpseHeld = npc.DeathTime, npc.corpseHeld
+	c.soloDecay = 0 // a raid's kill's (corpsesolo.go)
 	c.CorpseDecay = w.corpseLinger
 	c.corpseLeft = true
 	w.wakeNPCLocked(c) // the corpses' set, for its decay

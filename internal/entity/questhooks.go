@@ -92,6 +92,11 @@ func (w *World) creditKillLocked(sess *session.Session, p *Player, npc *NPC) {
 		// tribute should only go to the player who summons metal moogie")
 		raid = nil
 	}
+	if w.raidOfLocked(p) != nil {
+		// a raid's kill (its killer in a raid, whatever its loot rule) keeps the raid's
+		// corpse rule (corpsesolo.go)
+		npc.soloDecay = 0
+	}
 	openAt := w.corpseOpenLocked(npc) // the corpse anyone's six minutes after the death (corpseopen.go)
 	if len(w.onKill) == 0 {
 		return

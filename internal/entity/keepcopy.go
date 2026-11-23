@@ -59,6 +59,9 @@ type KeptCopy struct {
 	CorpseHeld time.Time `json:"corpse_held,omitzero"`
 	Held       bool      `json:"held,omitempty"`
 	GuardsKill bool      `json:"guards_kill,omitempty"`
+	// SoloDecay and Checks: its corpse under the rule outside a raid (corpsesolo.go)
+	SoloDecay time.Duration `json:"solo_decay,omitempty"`
+	Checks    int           `json:"checks,omitempty"`
 	// Lies is its own corpse time (CorpseDecay: a corpse left to linger, corpselinger.go),
 	// zero the world's
 	Lies time.Duration `json:"lies,omitempty"`
@@ -87,7 +90,7 @@ func (w *World) KeepCopies() []KeptCopy {
 			Place: [4]float32{npc.X, npc.Y, npc.Z, npc.Facing}, Level: npc.Level, MaxHP: npc.MaxHP,
 			NPCType: npc.NPCType, Quest: npc.QuestSpawn, Event: npc.EventAggro,
 			Died: npc.DeathTime, Gone: npc.CorpseGone, CorpseHeld: npc.corpseHeld, Held: npc.GMHeld, GuardsKill: npc.guardHit,
-			Lies: npc.CorpseDecay}
+			Lies: npc.CorpseDecay, SoloDecay: npc.soloDecay, Checks: npc.corpseChecks}
 		if (&KeptNPC{Spawn: k.Place}).finite() {
 			out = append(out, k)
 		}
@@ -126,6 +129,7 @@ func (w *World) RestoreCopies(kept []KeptCopy) (ids map[EntityID]EntityID, lost 
 		c.HP, c.Dead = 0, true
 		c.DeathTime, c.CorpseGone, c.corpseHeld = k.Died, k.Gone, k.CorpseHeld
 		c.GMHeld, c.guardHit = k.Held, k.GuardsKill
+		c.soloDecay, c.corpseChecks = k.SoloDecay, k.Checks
 		c.CorpseDecay = k.Lies // a lingering corpse's 20 minutes (corpselinger.go)
 		w.wakeNPCLocked(c)     // the corpses' set, for its decay and its going
 		ids[EntityID(k.ID)] = c.ServerID

@@ -177,6 +177,7 @@ func (w *World) spawnCopyAsLocked(t *NPC, x, y, z, facing float32, world uint8, 
 	c.DeathTime = time.Time{}
 	c.CorpseGone = time.Time{}
 	c.corpseHeld = time.Time{}
+	c.soloDecay, c.corpseChecks = 0, 0 // its own death's (corpsesolo.go)
 	c.stopMoving()
 	c.roam = roamState{}
 	c.spots = nil // its own, round its own spawn

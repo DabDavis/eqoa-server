@@ -327,14 +327,23 @@ type WorldConfig struct {
 	CorpseDecay  time.Duration `yaml:"corpse_decay"`
 	RespawnAfter time.Duration `yaml:"respawn_after"`
 	RoamRadius   float32       `yaml:"roam_radius"`
-	// CorpseOpenAfter is how long after its death a kill's corpse (a raid's too) is
+	// CorpseOpenAfter is how long after its death a raid's kill's corpse is
 	// its kill group's alone, then anyone's (unset or 0: 6m; below 0, always its
-	// group's). entity/corpseopen.go. CorpseDecayAfter is how long a lootable corpse
-	// lies from its death (unset or 0: 20m; at or below corpse_decay, none lingers):
-	// past corpse_decay it lies on as a copy and its creature comes back as before
-	// (entity/corpselinger.go).
+	// group's). entity/corpseopen.go. CorpseDecayAfter is how long a raid's kill's
+	// lootable corpse lies from its death (unset or 0: 20m; at or below corpse_decay,
+	// none lingers): past corpse_decay it lies on as a copy and its creature comes back
+	// as before (entity/corpselinger.go).
 	CorpseOpenAfter  time.Duration `yaml:"corpse_open_after"`
 	CorpseDecayAfter time.Duration `yaml:"corpse_decay_after"`
+	// The corpse rule outside a raid (entity/corpsesolo.go, Heirloom petition 2752):
+	// CorpseDecaySolo is how long a lootable corpse of a kill not a raid's lies, its
+	// creature down with it until it goes (unset or 0: 10m; below 0 the rule off, every
+	// corpse under the raid's rules above); CorpseOpenAfterSolo when it is anyone's
+	// (unset or 0: 7m; below 0 corpse_open_after); CorpseChecksMax how many openings put
+	// its decay back to the full time (unset or 0: 10; below 0 none).
+	CorpseDecaySolo     time.Duration `yaml:"corpse_decay_solo"`
+	CorpseOpenAfterSolo time.Duration `yaml:"corpse_open_after_solo"`
+	CorpseChecksMax     int           `yaml:"corpse_checks_max"`
 
 	// CoachSignAll turns back on a coachman's offer to sign every stable's
 	// ledger at once (handlers/coachledger.go; the user, 2026-11-06). Unset or

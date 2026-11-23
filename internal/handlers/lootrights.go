@@ -24,7 +24,10 @@ import (
 // From the kill's OpenAt (six minutes after the death, entity/corpseopen.go: the
 // GM a GM's Live petition 5035) a corpse is anyone's too, a raid's included,
 // whatever is left on it; it lies to 20 minutes after the death
-// (entity/corpselinger.go). Considering a corpse (0x0010 on it) says so in one line
+// (entity/corpselinger.go). Outside a raid (a GM's Heirloom petition 2752,
+// entity/corpsesolo.go) OpenAt is seven minutes after the death and the corpse
+// lies 10, each opening putting its 10 back, ten times at most; the con line reads
+// both from the kill and the World, so it tells either rule. Considering a corpse (0x0010 on it) says so in one line
 // (corpseConLine).
 //
 // One looter at a time (petition 1540: "should only allow one person to

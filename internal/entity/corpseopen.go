@@ -16,6 +16,10 @@ import (
 // opens for anyone, whatever is left on it then, a raid's too (its rolls and its master looter
 // run within the lock as before: handlers/raidloot.go). A Metal Moogie's stays his challenger's
 // (metalmoogie.go). It lies to 20 minutes after the death (corpselinger.go).
+//
+// Since 2026-11-23 (a GM's Heirloom petition 2752) those six minutes are a raid's kill's: a kill
+// outside a raid is anyone's after DefaultSoloCorpseOpenAfter (world.corpse_open_after_solo, 7
+// minutes) and lies 10 (corpsesolo.go).
 
 // DefaultCorpseOpenAfter is how long after its death a kill's corpse is its owners' alone.
 const DefaultCorpseOpenAfter = 6 * time.Minute
@@ -34,12 +38,16 @@ func (w *World) SetCorpseOpenAfter(d time.Duration) {
 // corpseOpenLocked is when the corpse of npc is anyone's (the file's doc), zero for never.
 // Must be called with the lock held, at the death.
 func (w *World) corpseOpenLocked(npc *NPC) time.Time {
-	if w.corpseOpenAfter <= 0 || npc.DeathTime.IsZero() || npc.Owner != 0 || npc.CorpseOfNothing() ||
+	after := w.corpseOpenAfter
+	if npc.soloDecay > 0 && w.corpseOpenSolo > 0 {
+		after = w.corpseOpenSolo // outside a raid, 7 minutes (corpsesolo.go)
+	}
+	if after <= 0 || npc.DeathTime.IsZero() || npc.Owner != 0 || npc.CorpseOfNothing() ||
 		npc.Charm != nil || npc.Dummy != NotDummy || npc.DuelSpawn() ||
 		npc.challenge != nil || IsMetalMoogieName(npc.Name) {
 		return time.Time{}
 	}
-	return npc.DeathTime.Add(w.corpseOpenAfter)
+	return npc.DeathTime.Add(after)
 }
 
 // CorpseOpenAfter is how long after its death a kill's corpse is its owners' alone (0 or

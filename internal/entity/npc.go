@@ -123,6 +123,13 @@ type NPC struct {
 	// corpseHeld keeps its corpse lying until then at least: a raid's loot rolls and
 	// its winners' time (corpse.go's HoldCorpse); zero none.
 	corpseHeld time.Time
+	// soloDecay is its corpse's time under the rule outside a raid (corpsesolo.go: 10
+	// minutes, no lingering copy, its return counted from its going), set at the death
+	// of a lootable corpse and taken off at a raid's kill; zero the older rule.
+	// corpseChecks is how many openings have put its decay back (at most
+	// world.corpse_checks_max).
+	soloDecay    time.Duration
+	corpseChecks int
 
 	// roam is its wander round its spawn (roam.go), and spots the places it
 	// wanders between, with the ways between them it has tried (roam.go's

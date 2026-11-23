@@ -20,7 +20,11 @@ import (
 //   - a GM's /spawn leaves the world when its corpse goes;
 //   - since 2026-11-14 (petition 5035) a lootable corpse still there at its
 //     decay lies on to 20 minutes after the death as a copy left where it fell,
-//     the creature going and coming back as above (corpselinger.go).
+//     the creature going and coming back as above (corpselinger.go);
+//   - since 2026-11-23 (a GM's Heirloom petition 2752) that is a raid's kill's
+//     alone: outside a raid a lootable corpse lies 10 minutes as one corpse, its
+//     creature down with it until it goes, an opening putting its 10 minutes back
+//     at most ten times (corpsesolo.go).
 //
 // Until 2026-10-25 a corpse stayed in view 30 s and every creature came back
 // 60 s after its death, looted or not.
@@ -158,17 +162,30 @@ func (w *World) HoldCorpse(id EntityID, died, until time.Time) bool {
 	return true
 }
 
-// RefreshCorpse is a corpse of the death died opened by a looter: it lies at least the
-// corpse decay (world.corpse_decay, 3 minutes) from now, as a corpse checked did on Live
-// (Heirloom petition 2590, Mightyeagle: "checking body doesnt refresh timer like it
-// should"): a corpse opened near its end (one lingering to 20 minutes, corpselinger.go,
-// or an instance's, which goes at 3) is not taken from under its looter. A hold
-// (HoldCorpse) carried to the copy a lingering corpse leaves, and over a keep restart; it
-// reports whether it holds.
+// RefreshCorpse is a corpse of the death died opened by a looter. Under the rule outside a
+// raid (corpsesolo.go: a GM's Heirloom petition 2752) its decay goes back to its full 10
+// minutes from now, at most world.corpse_checks_max times a death (false once they are
+// spent). A raid's kill's corpse lies at least the corpse decay (world.corpse_decay, 3
+// minutes) from now, as a corpse checked did on Live (Heirloom petition 2590: "checking
+// body doesnt refresh timer like it should"): a corpse opened near its end (one lingering
+// to 20 minutes, corpselinger.go, or an instance's, which goes at 3) is not taken from
+// under its looter. A hold (HoldCorpse) carried to the copy a lingering corpse leaves,
+// and over a keep restart; it reports whether it holds.
 func (w *World) RefreshCorpse(id EntityID, died time.Time) bool {
-	w.mu.RLock()
+	w.mu.Lock()
 	d := w.corpseDecay
-	w.mu.RUnlock()
+	if npc := w.NPCs[id]; npc != nil && npc.soloDecay > 0 && npc.DeathTime.Equal(died) &&
+		npc.corpseLies(time.Now(), d) {
+		if npc.corpseChecks >= w.corpseChecksMax {
+			w.mu.Unlock()
+			return false // its resets spent: it decays as it stands
+		}
+		npc.corpseChecks++
+		d = npc.soloDecay
+		log.Printf("Corpse: '%s' (entity ID=%d) opened: decays in %v (reset %d of %d)", npc.Name, npc.ServerID, d,
+			npc.corpseChecks, w.corpseChecksMax)
+	}
+	w.mu.Unlock()
 	return w.HoldCorpse(id, died, time.Now().Add(d))
 }
 
@@ -180,6 +197,9 @@ func (n *NPC) decayOf(world time.Duration) time.Duration {
 	}
 	if n.CorpseDecay > 0 {
 		return n.CorpseDecay
+	}
+	if n.soloDecay > 0 {
+		return n.soloDecay // the rule outside a raid (corpsesolo.go)
 	}
 	return world
 }
@@ -307,6 +327,7 @@ func (w *World) respawnNPCLocked(npc *NPC) {
 	npc.DeathTime = time.Time{}
 	npc.CorpseGone = time.Time{}
 	npc.corpseHeld = time.Time{}
+	npc.soloDecay, npc.corpseChecks = 0, 0 // a new life (corpsesolo.go)
 	npc.Threats = nil
 	npc.damageBy = nil // a new life (killcredit.go)
 	forgetHate(npc)    // and its hate's holders (hcrules.go)

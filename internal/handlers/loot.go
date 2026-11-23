@@ -161,7 +161,7 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 	SendLoot(sess, view)
 	h.raidOpenedLocked(sess, ls, npc, c)
 	if h.refreshCorpse != nil {
-		h.refreshCorpse(npc.ServerID, died) // checked: it lies on (petition 2590)
+		h.refreshCorpse(npc.ServerID, died) // checked: it lies on (petition 2590; outside a raid 10 minutes, ten times: petition 2752)
 	}
 	log.Printf("Loot: %s opened %q: %d items", sessName(h, sess), npc.Name, len(view))
 	return true

@@ -146,6 +146,11 @@ type World struct {
 	onCorpseLeft CorpseLeftFunc
 	corpsesLeft  []CorpseLeft
 	corpseLinger time.Duration
+	// the corpse rule outside a raid (corpsesolo.go): its decay (0 or below: off), when
+	// it is anyone's and how many openings put its decay back
+	corpseDecaySolo time.Duration
+	corpseOpenSolo  time.Duration
+	corpseChecksMax int
 
 	// Creatures' wandering (roam.go): how far from its spawn one goes, those
 	// near a player (the ones that move), the players' race models (whose
@@ -1108,6 +1113,8 @@ func (w *World) killNPC(npc *NPC) {
 	npc.Dead = true
 	npc.DeathTime = time.Now()
 	npc.CorpseGone = time.Time{}
+	npc.corpseChecks = 0
+	npc.soloDecay = w.soloDecayLocked(npc) // the rule outside a raid; a raid's kill takes it off (corpsesolo.go)
 	npc.Threats = nil
 	npc.CurrentEnemy = 0
 	npc.taunt = tauntHold{} // taunthold.go

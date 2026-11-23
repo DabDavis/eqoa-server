@@ -26,7 +26,8 @@ import (
 // its cast time and visual, no lockout, never spent, used again at will (a new
 // familiar takes the place of the old). /familiar (chat.go: "/familiar",
 // "#familiar", a PS2's "/t familiar ...") says what is out, "/familiar
-// dismiss" sends it away.
+// dismiss" sends it away, and so does Dismiss Pet with no pet out (the
+// familiar is on the pet bar then: entity/familiar.go).
 
 var familiarsOn atomic.Bool
 
@@ -158,7 +159,7 @@ func (f *Familiars) Command(sess *session.Session, p *entity.Player, args string
 		if row, found, err := f.db.Familiar(item); err == nil && found {
 			line += " " + entity.FamiliarLine(familiarDefOf(row))
 		}
-		SendClientMessage(sess, line+" /familiar dismiss sends it away.")
+		SendClientMessage(sess, line+" /familiar dismiss, or Dismiss Pet with no pet out, sends it away.")
 	}
 }
 

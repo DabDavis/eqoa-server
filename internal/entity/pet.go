@@ -693,18 +693,24 @@ func (w *World) petDiesLocked(pet *NPC, now time.Time) {
 }
 
 // PetDumped is a MemoryDump sent to the session: it cleared the client's pet,
-// so the next tick tells it again.
+// so the next tick tells it again (or the familiar on the bar: familiar.go).
 func (w *World) PetDumped(sess *session.Session) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	if ps := w.petStateLocked(w.sessionPlayerLocked(sess)); ps != nil {
+	p := w.sessionPlayerLocked(sess)
+	if ps := w.petStateLocked(p); ps != nil {
 		ps.told = 0
+	}
+	if fs := w.familiars[p.idOrZero()]; fs != nil && fs.owner == p {
+		fs.told = 0
 	}
 }
 
 // PetCommand is a 0x0041: the command byte, and for an attack the target as
 // the client names it. Each is answered with a line; CLIENT itself refuses
-// one with no pet (word 1021), which is answered the same here.
+// one with no pet (word 1021), which is answered the same here. With no pet
+// it is the familiar's when that is on the pet bar (familiar.go: Dismiss Pet
+// sends it away).
 func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now time.Time) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -714,6 +720,10 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 	}
 	ps := w.petStateLocked(p)
 	if ps == nil {
+		if fs := w.familiarOnBarLocked(p); fs != nil {
+			w.familiarCommandLocked(fs, sess, cmd)
+			return
+		}
 		if cmd != 0 && cmd != 6 {
 			w.sendChatToSession(sess, castNoPet)
 		}

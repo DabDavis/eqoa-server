@@ -32,6 +32,8 @@ reads as this tool expects; anything else refuses the whole run.
         Rapier (and its copies) the rapiers' (Dainty Rapier's), not the dirk's: the rest of the Toxicity and Chosen's
         weapons wear their kind's.
 
+  2706  U'Dedne's Chalice wore the spell scroll's icon and words: the chalices' icon, a chalice's description.
+
 --looks (the owner's call, not applied without it: his 2026-11-18 rule keeps epic models off non-epic items, and he
 had Hammer of Piety's Judgement look put back on 2026-11-19, petition 2444):
   2699  Chosen's Baton (and Ascended) take Glory of Elddar's model and icon (the enchanter's 49 staff epic).
@@ -81,6 +83,7 @@ LOOKS = [  # (petition, item, the look's record)
     (2700, "Hammer of Piety", "Hammer of Divinity"),
 ]
 QUEST_ITEMS_FROM = 700000
+CHALICE_DESC = "A chalice of the House of U'Dedne, carried off by Valraen V`Ghen."
 # item records open work-board entries hold (2026-11-22: 1981, 1995, 1996 and others' quest rebuilds and Live mirrors,
 # which compare those rows to what they read): the Misc sweep leaves them, the spikeshell crab leg (1996's) among them
 HELD = {700294, 700298, 700307, 700318, 700322, 700323, 700330, 700332, 700336, 700340, 700345, 700347, 700352, 700367,
@@ -143,10 +146,18 @@ class Plan:
 
     def update(self, tbl, row, values, why):
         key = self.keyof(tbl, row)
+        values = {c: v for c, v in values.items() if row[c] != v}
         if dumps([tbl, key]) in self.seen:
+            # a second change of the row (U'Dedne's Chalice: the Misc sweep, then its icon): one update, its columns
+            # each changed once
+            for i, (t, k, b, v, w) in enumerate(self.ops):
+                if t == tbl and k == key and v is not None and not set(v) & set(values):
+                    self.ops[i] = (t, k, b, {**v, **values}, f"{w}; {why}")
+                    self.say(f"{why}: {tbl} {dumps(key)} " + ", ".join(f"{c} {short(row[c])} -> {short(x)}"
+                                                                    for c, x in values.items()))
+                    return
             raise Refused(f"{tbl} {key} changed twice")
         self.seen.add(dumps([tbl, key]))
-        values = {c: v for c, v in values.items() if row[c] != v}
         if not values:
             self.say(f"{why}: {tbl} {dumps(key)} already so")
             return
@@ -338,6 +349,15 @@ def build(p):
                           "ORDER BY patternid", names):
             p.update("itempattern", r, {"model": src["model"], "itemicon": src["itemicon"]},
                      f"{why} {r['itemname']} wears {like}'s look")
+
+    # 2706/2707: U'Dedne's Chalice (the quest The U'Dedne Chalice) wore the spell scroll's art and words: the
+    # chalices' icon (chalice of the fallen, stone chalice, brass chalice) and a chalice's words
+    ch = item(db, "U'Dedne's Chalice", equipslot=-1)
+    cup = {r["itemicon"] for r in rows(db, "SELECT itemicon FROM itempattern WHERE itemname IN "
+                                           "('chalice of the fallen', 'stone chalice', 'brass chalice')")}
+    if len(cup) != 1:
+        raise Refused(f"the chalices' icon: {cup}")
+    p.update("itempattern", ch, {"itemicon": cup.pop(), "itemdesc": CHALICE_DESC}, "2706 U'Dedne's Chalice a chalice")
 
     # 2699, 2700, 2701: looks, the owner's call
     if p.looks:

@@ -115,6 +115,11 @@ type CombatConfig struct {
 	// (350-R)/350). A creature's never rolls.
 	ResistMode       string  `yaml:"resist_mode"`
 	ResistFullChance float64 `yaml:"resist_full_chance"`
+	// ResistPartial is resistance_scaled's second roll (entity/elemental.go,
+	// work board 2027): a resist that fails (it holds R/350 of the time) is a
+	// partial at R/350, else the hit lands whole. Refused at the start with
+	// any other mode. Off unless set.
+	ResistPartial bool `yaml:"resist_partial"`
 }
 
 // QuestsConfig is the quest engine's settings (internal/handlers/quests.go).

@@ -494,7 +494,7 @@ func (n *NPC) petElementalHit(element Stat, damage int, now time.Time, floor int
 		return -creatureHitAtResist(-damage, pct), float64(pct) / 100
 	}
 	share := n.petResistShare(element)
-	if damage > 0 && share > 0 {
+	if damage > 0 && share != 0 { // below 0: a lowered resist adds (elemental.go)
 		damage = max(floor, int(math.Round(float64(damage)*(1-share))))
 	}
 	return damage, share

@@ -703,7 +703,7 @@ func main() {
 			database.AccountBankSlots())
 	}
 	// what a resist takes off elemental damage (entity/elemental.go): the model's version logged
-	rm, err := entity.ParseResistModel(cfg.Combat.ResistModel, cfg.Combat.ResistMode, cfg.Combat.ResistFullChance)
+	rm, err := entity.ParseResistModel(cfg.Combat.ResistModel, cfg.Combat.ResistMode, cfg.Combat.ResistFullChance, cfg.Combat.ResistPartial)
 	if err != nil {
 		log.Fatalf("Config: %v", err)
 	}

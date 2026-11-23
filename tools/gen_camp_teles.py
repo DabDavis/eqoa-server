@@ -30,6 +30,13 @@ EQOA-Data's items name it the source of.
         --eqoa-data ../external/EQOA-Data [--out internal/handlers/camps.go]
 
 Without --out it prints the table it would write and every camp's match.
+
+    python3 -E -s tools/gen_camp_teles.py --db eqoa.db --eqoa-data ../external/EQOA-Data \\
+        --map-out internal/handlers/mapcamps.go --keep-written
+
+writes the maps' other camps (EQOA-Data's un-noted camps, FAQ_CAMPS, CENSUS_CAMPS); --keep-written keeps the camps
+the file holds as they are written (keep_written) and adds only new ones, so a run over a database whose creatures
+moved since does not move, rename or merge the camps the maps already show.
 """
 
 import argparse
@@ -750,7 +757,280 @@ def faq_camps(zones, rows, fitted, taken):
     return placed, left
 
 
-def render_map(placed):
+# ---- the census's camps (the owner, 2026-11-23: "we are missing some XP camps on the map still", a camp of shrieks
+# where a player stood among them) ----
+#
+# The camps the records hold that no map or #tele camp marks: the hostile spawns of worlds 0-2 (no NPC bit, a body,
+# not a player's; levels 5-65; not spawn-only, seasonal, a quest step's own row or a GM trigger's) linked where each is
+# within 50 of another (and 40 in height), a cluster of 5 or more with 4 or more of one kind, no camp within 300 of its
+# middle (200 of any of its spawns, 700 for a camp anchored on one of its kinds), its kinds coherent (its top two, or
+# one name's family, 60% of it), clusters of a kind within 300 one camp; kept when its lowest level is 60 or under and
+# MasterVG782's guide (GameFAQs, section XVI) names one of its kinds as a camp's, or it holds 10 or more, or 6 or more
+# of one kind. Each is placed as a FAQ camp is (census_camps: anchored by camp_heart on its kinds within its reach of
+# its middle, its levels and creatures those of its kinds in reach, its zone EQOA-Data's map's by the world's fit),
+# named by its creatures (the commonest kind, plural, and the next where it is 30%; a clan's name where no one kind is
+# half) and its zone, a side where a name repeats. One within SAME of a placed camp of its kind is that camp (said).
+# The comment after each: the cluster's size and levels, and the guide's camps it matches.
+# (key, name, world, the cluster's middle (x, z), its kinds (a regex on npcs.npc_name, any case), reach)
+CENSUS_CAMPS = [
+    ("alkaradghastsputridskeletonsalkaradruins", "Al'karad Ghasts & Putrid Skeletons (Al Karad Ruins)", 0, (10762.0, 14853.8), r"^(al'karad ghast|putrid skeleton|al'karad ghoul|rotbone skeleton)$", 140.0),  # n 26, 27-29
+    ("ancientgharielsserpenthills", "Ancient Ghariels (Serpent Hills)", 0, (16273.5, 22215.4), r"^(ancient ghariel)$", 70.0),  # n 9, 45-45
+    ("ancientsawtuskselephantgraveyard", "Ancient Sawtusks (Elephant Graveyard)", 0, (14817.0, 26748.5), r"^(ancient sawtusk)$", 60.0),  # n 10, 37-54
+    ("ancientsawtusksfortalliance", "Ancient Sawtusks (Fort Alliance)", 0, (15740.5, 24203.9), r"^(ancient sawtusk|bearwere)$", 80.0),  # n 8, 36-43
+    ("ancientsawtuskstakxizeast", "Ancient Sawtusks (Tak 'Xiz, east)", 0, (16696.1, 25043.4), r"^(ancient sawtusk)$", 60.0),  # n 6, 42-44
+    ("ancientsawtuskstakxiznorth", "Ancient Sawtusks (Tak 'Xiz, north)", 0, (16362.0, 24322.5), r"^(ancient sawtusk)$", 60.0),  # n 6, 42-44
+    ("ancientsawtuskstakxizsouth", "Ancient Sawtusks (Tak 'Xiz, south)", 0, (16124.5, 25327.3), r"^(ancient sawtusk)$", 60.0),  # n 6, 42-44
+    ("aviakthrashersbashersgoldfeathereyrie", "Aviak Thrashers & Bashers (Goldfeather Eyrie)", 0, (14660.9, 7441.0), r"^(aviak thrasher|aviak basher)$", 180.0),  # n 14, 20-20
+    ("aviakswidowspeak", "Aviaks (Widow's Peak)", 0, (12891.3, 22472.0), r"^(aviak|aviak scouter)$", 240.0),  # n 44, 41-43, guide: AVIAKS
+    ("blackantsantcolonies", "Black Ants (Ant Colonies)", 0, (21098.6, 29660.0), r"^(black ant scout|black ant leafcutter|black ant worker)$", 140.0),  # n 13, 25-32
+    ("blacktongueferranshope", "Blacktongue (Ferran's Hope)", 0, (18531.3, 16679.5), r"^(blacktongue disciple|blacktongue orc|blacktongue apprenctice)$", 100.0),  # n 12, 37-40
+    ("breathstealersdreadrotsisleofdread", "Breath Stealers & Dread Rots (Isle of Dread)", 0, (25398.9, 3194.6), r"^(breath stealer|dread rot)$", 150.0),  # n 13, 53-53
+    ("breathstealersisleofdreadnorth", "Breath Stealers (Isle of Dread, north)", 0, (24976.8, 2360.1), r"^(breath stealer|dread rot|virulent blade)$", 170.0),  # n 14, 53-55
+    ("breathstealersisleofdreadsouth", "Breath Stealers (Isle of Dread, south)", 0, (24649.9, 3016.6), r"^(breath stealer|dread rot|virulent blade|flesh crawler|dead rider|wicker man)$", 700.0),  # n 234, 53-55
+    ("centaurwarderselephantgraveyard", "Centaur Warders (Elephant Graveyard)", 0, (14776.3, 26269.2), r"^(centaur warder|centaur elder)$", 60.0),  # n 17, 42-45
+    ("chaoshoundstakishhiznorth", "Chaos Hounds (Takish'Hiz, north)", 0, (19304.5, 26624.3), r"^(chaos hound)$", 60.0),  # n 6, 44-45
+    ("chaoshoundstakishhizsouth", "Chaos Hounds (Takish'Hiz, south)", 0, (18961.3, 27252.5), r"^(chaos hound)$", 60.0),  # n 6, 44-46
+    ("cryptmummiessslathis", "Crypt Mummies (Sslathis)", 0, (22733.7, 28546.3), r"^(crypt mummy)$", 110.0),  # n 17, 26-28
+    ("darkwispsgriffenneselephantgraveyard", "Darkwisps & Griffennes (Elephant Graveyard)", 0, (13650.9, 26272.7), r"^(darkwisp|griffenne|spineback)$", 60.0),  # n 24, 37-38
+    ("darkwispsspiritselephantgraveyard", "Darkwisps & Spirits (Elephant Graveyard)", 0, (13623.8, 27712.2), r"^(darkwisp|spirit)$", 60.0),  # n 12, 37-40, guide: PHANTOMS
+    ("deathfistdeathfistforge", "Deathfist (Deathfist Forge)", 0, (20890.5, 17469.2), r"^(deathfist myrmidon|deathfist priest|deathfist champion)$", 100.0),  # n 15, 27-33, guide: DFC - DEATHFIST CITADEL; MYRMIDONS
+    ("deathfistnorthwesternro", "Deathfist (Northwestern Ro)", 0, (22550.2, 18544.7), r"^(deathfist legionnaire|deathfist healer|deathfist myrmidon|deathfist priest|deathfist oracle)$", 100.0),  # n 17, 23-30, guide: MTG DEATHFISTS; MTG DEATHFISTS/NASEHIRS; MYRMIDONS
+    ("deathfistmyrmidonspriestsdeathfistforge", "Deathfist Myrmidons & Priests (Deathfist Forge)", 0, (21350.9, 17548.5), r"^(deathfist myrmidon|deathfist priest)$", 100.0),  # n 15, 27-42, guide: MYRMIDONS
+    ("deathfistmyrmidonsdeathfistforge", "Deathfist Myrmidons (Deathfist Forge)", 0, (21664.2, 16516.4), r"^(deathfist myrmidon|deathfist priest)$", 80.0),  # n 14, 27-31, guide: MYRMIDONS
+    ("deathfistprophetsreaversserpenthills", "Deathfist Prophets & Reavers (Serpent Hills)", 0, (17885.9, 22152.7), r"^(deathfist prophet|deathfist reaver)$", 100.0),  # n 10, 38-40, guide: DFC - DEATHFIST CITADEL
+    ("deathfistreaversprophetsdeathfisthorde", "Deathfist Reavers & Prophets (Deathfist Horde)", 0, (19244.5, 20332.0), r"^(deathfist reaver|deathfist prophet)$", 80.0),  # n 10, 38-40, guide: DFC - DEATHFIST CITADEL
+    ("deathfistreaversdeathfisthordeeast", "Deathfist Reavers (Deathfist Horde, east)", 0, (19532.2, 21025.0), r"^(deathfist reaver|deathfist prophet)$", 90.0),  # n 8, 38-40, guide: DFC - DEATHFIST CITADEL
+    ("deathfistreaversdeathfisthordenorth", "Deathfist Reavers (Deathfist Horde, north)", 0, (19608.2, 20548.6), r"^(deathfist reaver|deathfist prophet)$", 80.0),  # n 7, 39-40, guide: DFC - DEATHFIST CITADEL
+    ("deathfistreaversdeathfisthordesouth", "Deathfist Reavers (Deathfist Horde, south)", 0, (19229.1, 21506.3), r"^(deathfist reaver|deathfist prophet)$", 90.0),  # n 11, 38-40, guide: DFC - DEATHFIST CITADEL
+    ("deathfistridersdeathfistcitadel", "Deathfist Riders (Deathfist Citadel)", 0, (21705.8, 18026.9), r"^(deathfist rider)$", 70.0),  # n 7, 31-33
+    ("decayingzombiesnorthwesternro", "Decaying Zombies (Northwestern Ro)", 0, (22927.3, 16943.6), r"^(decaying zombie|skeleton|decaying guardian|rotting wolf|grave rat)$", 150.0),  # n 15, 17-22
+    ("defiledmummiesfortalliance", "Defiled Mummies (Fort Alliance)", 0, (14484.3, 24563.5), r"^(defiled mummy)$", 80.0),  # n 8, 42-43
+    ("direratshagley", "Dire Rats (Hagley)", 0, (7739.3, 17447.5), r"^(dire rat|tomb rat|grave spider)$", 100.0),  # n 17, 15-17
+    ("direworgsrabidgreatbearsdshinnsredoubt", "Dire Worgs & Rabid Great Bears (Dshinn's Redoubt)", 0, (16124.8, 18829.3), r"^(dire worg|rabid great bear)$", 190.0),  # n 12, 44-51
+    ("dragonworshippersfortalliance", "Dragon Worshippers (Fort Alliance)", 0, (14293.6, 23727.5), r"^(dragon worshipper)$", 60.0),  # n 7, 49-54
+    ("elephantsrazorbackswidowspeak", "Elephants & Razorbacks (Widow's Peak)", 0, (13880.6, 22961.4), r"^(elephant|razorback)$", 270.0),  # n 18, 28-38
+    ("elitefungusmencentaurvalley", "Elite Fungusmen (Centaur Valley)", 0, (14477.9, 22367.8), r"^(elite fungusman)$", 70.0),  # n 8, 36-40
+    ("enthralledminotaursrunnyeye", "Enthralled Minotaurs (Runnyeye)", 0, (17744.0, 13563.5), r"^(enthralled minotaur)$", 100.0),  # n 7, 26-26
+    ("fireantsrogueclockworks", "Fire Ants (Rogue Clockworks)", 0, (25005.5, 6157.2), r"^(fire ant)$", 60.0),  # n 6, 8-10
+    ("froglokdarguk", "Froglok Dar (Guk)", 0, (24726.2, 29347.0), r"^(froglok dar warrior|froglok dar wizard|froglok dar shaman)$", 90.0),  # n 19, 38-43
+    ("froglokguardsguk", "Froglok Guards (Guk)", 0, (25216.7, 30357.8), r"^(froglok guard|froglok fisherman|froglok forager)$", 80.0),  # n 13, 5-6
+    ("froglokwarriorsshamansantcolonies", "Froglok Warriors & Shamans (Ant Colonies)", 0, (20233.5, 29344.7), r"^(froglok warrior|froglok shaman)$", 90.0),  # n 15, 31-33
+    ("frosthoundspermafrost", "Frost Hounds (Permafrost)", 0, (4503.9, 4415.9), r"^(frost hound)$", 90.0),  # n 9, 47-51, guide: PERMAFROST
+    ("funguscockroachescollonridgecemetary", "Fungus Cockroaches (Collonridge Cemetary)", 0, (24027.1, 8161.7), r"^(fungus cockroach)$", 80.0),  # n 8, 6-7
+    ("gnollberserkersshamanswidowspeak", "Gnoll Berserkers & Shamans (Widow's Peak)", 0, (13696.4, 22506.5), r"^(gnoll berserker|gnoll shaman)$", 120.0),  # n 12, 33-40
+    ("gnollraidersbandithills", "Gnoll Raiders (Bandit Hills)", 0, (13575.2, 14646.9), r"^(gnoll raider|gnoll mystic)$", 100.0),  # n 17, 16-35
+    ("gnollsbearcave", "Gnolls (Bear Cave)", 0, (9280.0, 17517.3), r"^(gnoll strongfang|widowmaker|gnoll spiritpaw)$", 130.0),  # n 26, 16-27
+    ("gnollsjethroscast", "Gnolls (Jethro's Cast)", 0, (6470.8, 13292.3), r"^(gnoll ranger|gnoll ovate|gnoll warder|gnoll spear fisher|gnoll hierophant)$", 180.0),  # n 28, 17-22
+    ("goblinbanditssaerktowers", "Goblin Bandits (Saerk Towers)", 0, (20350.2, 13177.8), r"^(goblin bandit)$", 60.0),  # n 7, 25-25
+    ("goldenemberfliesspidermine", "Golden Emberflies (Spider Mine)", 0, (9150.8, 19046.5), r"^(golden emberfly)$", 60.0),  # n 6, 28-28
+    ("greyfleshpikesqeynosprison", "Greyflesh Pikes (Qeynos Prison)", 0, (4089.4, 17213.9), r"^(greyflesh pike)$", 90.0),  # n 11, 8-8
+    ("griffawnsgriffonssaltmine", "Griffawns & Griffons (Salt Mine)", 0, (15036.7, 18535.8), r"^(griffawn|griffon|rabid great bear)$", 170.0),  # n 12, 32-45
+    ("griffonsserpenthills", "Griffons (Serpent Hills)", 0, (17603.5, 22991.3), r"^(griffon warrior|griffon nest protector|griffon elder)$", 180.0),  # n 27, 48-49, guide: GRIFFON WARRIORS
+    ("holcieltombofkings", "Holciel (Tomb of Kings)", 0, (21072.5, 14183.0), r"^(holciel guard|holciel commoner|holciel noble|holciel bureaucrat|summoned sentinel|hociel bureaucrat|fallen treasure hunter)$", 310.0),  # n 56, 31-34
+    ("icedrakesanuvillage", "Ice Drakes (Anu Village)", 0, (8803.2, 6022.4), r"^(ice drake)$", 160.0),  # n 12, 43-50, guide: SNOW GRIFFONS
+    ("icedrakespermafrost", "Ice Drakes (Permafrost)", 0, (4428.9, 4896.1), r"^(ice drake)$", 70.0),  # n 16, 48-52
+    ("iceclawbearssnowblindplains", "Iceclaw Bears (Snowblind Plains)", 0, (7664.4, 4150.7), r"^(iceclaw bear)$", 110.0),  # n 19, 46-50
+    ("imprisonedsoulsisleofdread", "Imprisoned Souls (Isle of Dread)", 0, (24863.6, 2597.8), r"^(imprisoned soul)$", 90.0),  # n 9, 53-53
+    ("mosssnakesbagavillage", "Moss Snakes (Baga Village)", 0, (14634.9, 9748.8), r"^(moss snake|lightning bug)$", 110.0),  # n 12, 8-9
+    ("orcthugsspiritiststhedruk", "Orc Thugs & Spiritists (Thedruk)", 0, (18431.6, 8248.0), r"^(orc thug|orc spiritist)$", 60.0),  # n 9, 7-8
+    ("orcsthedruknorth", "Orcs (Thedruk, north)", 0, (19298.1, 7893.7), r"^(orc arsonist|orc chemist|orc spiritist)$", 160.0),  # n 19, 7-12
+    ("petroleumoozeswhalehill", "Petroleum Oozes (Whale Hill)", 0, (5072.0, 15661.9), r"^(petroleum ooze)$", 170.0),  # n 15, 12-12
+    ("prisonratsqeynosprison", "Prison Rats (Qeynos Prison)", 0, (5496.8, 19045.8), r"^(prison rat)$", 80.0),  # n 8, 17-18
+    ("redantcarpentersburialmounds", "Red Ant Carpenters (Burial Mounds)", 0, (19051.4, 29769.2), r"^(red ant carpenter)$", 60.0),  # n 6, 34-35
+    ("redantcarpentersstonewatchers", "Red Ant Carpenters (Stone Watchers)", 0, (19759.4, 30069.8), r"^(red ant carpenter)$", 60.0),  # n 6, 34-36
+    ("redantsantcolonies", "Red Ants (Ant Colonies)", 0, (21489.3, 28535.2), r"^(red ant leafcutter|red ant warrior|red ant carpenter)$", 120.0),  # n 11, 35-40
+    ("sacredmonarchsmayflyglade", "Sacred Monarchs (Mayfly Glade)", 0, (10540.5, 18828.9), r"^(sacred monarch)$", 90.0),  # n 11, 30-30
+    ("scorchedspiritsseaoflions", "Scorched Spirits (Sea of Lions)", 0, (21045.2, 26410.2), r"^(scorched spirit)$", 60.0),  # n 7, 37-38
+    ("shrublingsspirittalkerswood", "Shrublings (Spirit Talker's Wood)", 0, (12132.0, 11518.0), r"^(shrubling)$", 60.0),  # n 8, 30-30
+    ("skeletonpiratesalfarakruins", "Skeleton Pirates (Al Farak Ruins)", 0, (23622.9, 19313.7), r"^(skeleton pirate)$", 60.0),  # n 6, 15-18
+    ("skeletonsdecayingzombiesalkaradruins", "Skeletons & Decaying Zombies (Al Karad Ruins)", 0, (9089.2, 14882.5), r"^(skeleton|decaying zombie|grave rat)$", 200.0),  # n 33, 16-20
+    ("skeletonsbagavillage", "Skeletons (Baga Village)", 0, (14041.8, 11612.1), r"^(skeleton)$", 60.0),  # n 8, 19-21
+    ("skeletonsbearcave", "Skeletons (Bear Cave)", 0, (9224.0, 15500.8), r"^(skeleton|decaying zombie)$", 160.0),  # n 16, 16-20
+    ("slesherswymondham", "Sleshers (Wymondham)", 0, (10536.2, 13826.7), r"^(slesher hierophant|slesher warrior|slesher scout)$", 100.0),  # n 14, 20-22
+    ("slithtarwymondham", "Slith Tar (Wymondham)", 0, (11121.1, 12381.0), r"^(slith tar worker|slith tar servant|slith tar warrior|slith tar grub)$", 110.0),  # n 20, 21-23
+    ("smallpiranhasthegreenrift", "Small Piranhas (The Green Rift)", 0, (22708.9, 11322.5), r"^(small piranha)$", 250.0),  # n 25, 18-27
+    ("snowgriffonsanuvillage", "Snow Griffons (Anu Village)", 0, (8939.9, 5120.8), r"^(snow griffon)$", 60.0),  # n 6, 46-46, guide: SNOW GRIFFONS
+    ("snowgriffonssnowblindplains", "Snow Griffons (Snowblind Plains)", 0, (7436.0, 4583.3), r"^(snow griffon)$", 60.0),  # n 6, 46-47, guide: SNOW GRIFFONS
+    ("spinebackslionweressaltmine", "Spinebacks & Lionweres (Salt Mine)", 0, (13507.9, 19644.4), r"^(spineback|lionwere)$", 160.0),  # n 11, 33-42
+    ("spinebacksmilasreef", "Spinebacks (Mila's Reef)", 0, (12452.3, 31176.0), r"^(spineback)$", 60.0),  # n 6, 36-38
+    ("sunbeetleswhalehill", "Sunbeetles (Whale Hill)", 0, (4360.2, 16696.1), r"^(sunbeetle|giant rat|large spider)$", 240.0),  # n 16, 5-10
+    ("sunstarstakishhiz", "Sunstars (Takish'Hiz)", 0, (19508.2, 27554.5), r"^(sunstar|moon wraith|star knight|plague stalker)$", 210.0),  # n 28, 44-52
+    ("taeewcazicthule", "Tae Ew (Cazic-Thule)", 0, (14757.1, 30440.1), r"^(tae ew devastator|tae ew templar|tae ew champion|tae ew crusader|tae ew hierophant|tae ew zealot|thulian maneater|tae ew chosen)$", 310.0),  # n 56, 42-49
+    ("taeewelephantgraveyard", "Tae Ew (Elephant Graveyard)", 0, (14915.7, 27755.0), r"^(tae ew crusader|tae ew devastator|tae ew hierophant)$", 140.0),  # n 15, 41-43
+    ("taeewhierophantslakenoregard", "Tae Ew Hierophants (Lake Noregard)", 0, (17120.7, 28448.2), r"^(tae ew hierophant|tae ew crusader|tae ew devastator)$", 100.0),  # n 12, 41-43
+    ("taeewknightsstonewatchers", "Tae Ew Knights (Stone Watchers)", 0, (18237.4, 30294.9), r"^(tae ew knight|tae ew destroyer|tae ew witchdoctor)$", 90.0),  # n 14, 37-39
+    ("taintedwolvesmarielvillage", "Tainted Wolves (Mariel Village)", 0, (5501.8, 11317.5), r"^(tainted wolf)$", 80.0),  # n 6, 32-32
+    ("tamegriffonsnorthkithicor", "Tame Griffons (North Kithicor)", 0, (21281.9, 10704.0), r"^(tame griffon)$", 70.0),  # n 8, 28-28
+    ("tenaciousfrostgiantspermafrosteast", "Tenacious Frost Giants (Permafrost, east)", 0, (5503.0, 5110.8), r"^(tenacious frost giant)$", 290.0),  # n 32, 44-59, guide: TFGS - TENACIOUS FROST GIANTS
+    ("tenaciousfrostgiantspermafrostwest", "Tenacious Frost Giants (Permafrost, west)", 0, (4939.8, 5466.0), r"^(tenacious frost giant)$", 70.0),  # n 10, 57-60, guide: TFGS - TENACIOUS FROST GIANTS
+    ("thicketvipersmistythicket", "Thicket Vipers (Misty Thicket)", 0, (17911.2, 10551.9), r"^(thicket viper)$", 60.0),  # n 6, 8-8
+    ("waterratshodstockandtemby", "Water Rats (Hodstock and Temby)", 0, (24932.6, 13616.6), r"^(water rat)$", 80.0),  # n 12, 10-13
+    ("werelionscentaurrangerscentaurvalley", "Werelions & Centaur Rangers (Centaur Valley)", 0, (14511.3, 21470.3), r"^(werelion|centaur ranger|centaur druid)$", 130.0),  # n 14, 33-33
+    ("widowspiderlingsrogueclockworks", "Widow Spiderlings (Rogue Clockworks)", 0, (24160.6, 6776.5), r"^(widow spiderling)$", 60.0),  # n 6, 7-8
+    ("wildgriffawnsnorthkithicor", "Wild Griffawns (North Kithicor)", 0, (21532.2, 10315.3), r"^(wild griffawn)$", 110.0),  # n 10, 25-25
+    ("wolfweresunkemptglade", "Wolfweres (Unkempt Glade)", 0, (6649.3, 8802.4), r"^(wolfwere)$", 100.0),  # n 8, 31-35
+    ("woodfaeriesunkemptglade", "Wood Faeries (Unkempt Glade)", 0, (7889.3, 9208.5), r"^(wood faerie|faerie druid)$", 60.0),  # n 10, 43-45
+    ("ankextetogreruins", "Ankextet (Ogre Ruins)", 1, (6489.8, 6754.9), r"^(ankextet soldier|ankextet guard|ankextet caster|ankextet priest|ankextet servant|ankextet noble)$", 210.0),  # n 46, 30-32
+    ("ateshahlakerathe", "Atesh-Ah (Lake Rathe)", 1, (6347.5, 4768.7), r"^(atesh\-ah scout|atesh\-ah guard|atesh\-ah warrior|atesh\-ah spiritist|atesh\-ah soldier|atesh\-ah fisher|atesh\-ah ritualist|atesh\-ah embalmer)$", 420.0),  # n 66, 40-45
+    ("cryptkeepersgeomancerspass", "Crypt Keepers (Geomancer's Pass)", 1, (4605.3, 6202.0), r"^(crypt keeper|malign wisp|toxic mist|revenant)$", 160.0),  # n 12, 46-50
+    ("cyclopssentriescyclopsfortresseast", "Cyclops Sentries (Cyclops' Fortress, east)", 1, (6996.3, 2613.5), r"^(cyclops sentry)$", 90.0),  # n 9, 45-53
+    ("cyclopssentriescyclopsfortresssouth", "Cyclops Sentries (Cyclops' Fortress, south)", 1, (6730.4, 3087.0), r"^(cyclops sentry)$", 90.0),  # n 10, 51-53
+    ("cyclopssentriescyclopsfortresswest", "Cyclops Sentries (Cyclops' Fortress, west)", 1, (6247.2, 2693.2), r"^(cyclops sentry)$", 90.0),  # n 9, 45-53
+    ("deadhillsspidersderelictmummiesdeadhills", "Dead Hills Spiders & Derelict Mummies (Dead Hills)", 1, (5113.6, 7521.6), r"^(dead hills spider|derelict mummy)$", 90.0),  # n 9, 54-57
+    ("deadlycentipedeslowlandbasiliskssphinxpyramid", "Deadly Centipedes & Lowland Basilisks (Sphinx Pyramid)", 1, (8672.8, 5548.1), r"^(deadly centipede|lowland basilisk|timber wolf cub|giant spider)$", 120.0),  # n 14, 13-15
+    ("derelictmummieszombiesdeadhills", "Derelict Mummies & Zombies (Dead Hills)", 1, (4625.8, 7634.3), r"^(derelict mummy|derelict zombie|derelict skeleton)$", 120.0),  # n 15, 53-55
+    ("derelictmummiesdeadhills", "Derelict Mummies (Dead Hills)", 1, (4333.8, 6402.7), r"^(derelict mummy|derelict zombie|derelict skeleton)$", 100.0),  # n 18, 58-62
+    ("fatpiranhasmoggoksgate", "Fat Piranhas (Moggok's Gate)", 1, (8883.0, 8559.3), r"^(fat piranha)$", 110.0),  # n 6, 13-13
+    ("giantspiderssphinxpyramid", "Giant Spiders (Sphinx Pyramid)", 1, (9066.5, 5990.8), r"^(giant spider|raven)$", 130.0),  # n 13, 8-13
+    ("greatspidersdirewolvesogreruins", "Great Spiders & Dire Wolves (Ogre Ruins)", 1, (6859.0, 7314.8), r"^(great spider|dire wolf|chaos rat)$", 140.0),  # n 14, 21-25
+    ("hobgoblinoracleslakerathe", "Hobgoblin Oracles (Lake Rathe)", 1, (7132.6, 5350.7), r"^(hobgoblin oracle|hobgoblin centurion)$", 120.0),  # n 16, 33-35
+    ("hobgoblinskulkssphinxpyramid", "Hobgoblin Skulks (Sphinx Pyramid)", 1, (8779.5, 6442.4), r"^(hobgoblin skulk)$", 90.0),  # n 8, 5-13
+    ("hobgoblinwarriorsoracleslakerathe", "Hobgoblin Warriors & Oracles (Lake Rathe)", 1, (7478.8, 5505.7), r"^(hobgoblin warrior|hobgoblin oracle)$", 90.0),  # n 10, 33-35
+    ("hobgoblinworkersogreruins", "Hobgoblin Workers (Ogre Ruins)", 1, (7045.5, 6902.6), r"^(hobgoblin worker|hobgoblin guard|hobgoblin footman)$", 100.0),  # n 15, 26-28
+    ("lizardmandregsmoggoksgate", "Lizardman Dregs (Moggok's Gate)", 1, (8330.2, 8981.1), r"^(lizardman dreg|cockroach|lowland basilisk|deadly centipede|giant beetle)$", 260.0),  # n 19, 11-15
+    ("lizardmenmoggoksgate", "Lizardmen (Moggok's Gate)", 1, (8223.6, 8254.0), r"^(lizardman dreg|lizardman neophyte|lizardman forager)$", 110.0),  # n 11, 11-15
+    ("mithrilgargoylesgeomancerscitadeleast", "Mithril Gargoyles (Geomancer's Citadel, east)", 1, (5220.3, 2859.0), r"^(mithril gargoyle)$", 310.0),  # n 34, 51-51
+    ("mithrilgargoylesgeomancerscitadelwest", "Mithril Gargoyles (Geomancer's Citadel, west)", 1, (4676.0, 2866.4), r"^(mithril gargoyle)$", 80.0),  # n 9, 51-51
+    ("spectralrallosiansgeomancerspasseast", "Spectral Rallosians (Geomancer's Pass, east)", 1, (5267.6, 5165.3), r"^(spectral rallosian|spectral warlord)$", 180.0),  # n 13, 58-62
+    ("spectralrallosiansgeomancerspasswest", "Spectral Rallosians (Geomancer's Pass, west)", 1, (4426.6, 5143.7), r"^(spectral rallosian|tomb serpent)$", 150.0),  # n 14, 52-62
+    ("taeewwestfeerrotteast", "Tae Ew (West Feerrott, east)", 1, (7273.2, 8946.9), r"^(tae ew soldier|tae ew warder|plague wasp)$", 140.0),  # n 15, 18-24
+    ("taeewwestfeerrottnorth", "Tae Ew (West Feerrott, north)", 1, (7251.2, 8128.8), r"^(tae ew soldier|tae ew warder|tae ew shaman)$", 70.0),  # n 12, 22-25
+    ("taeewwestfeerrottsouth1", "Tae Ew (West Feerrott, south 1)", 1, (7078.0, 9201.7), r"^(tae ew warder|tae ew shaman|tae ew soldier)$", 70.0),  # n 12, 21-23
+    ("taeewwestfeerrottsouth2", "Tae Ew (West Feerrott, south 2)", 1, (7430.4, 9374.2), r"^(tae ew warder|tae ew soldier|tae ew shaman|scythe beetle|large jaguar|slitnose alligator)$", 290.0),  # n 37, 18-25
+    ("taeewwestfeerrottsouth3", "Tae Ew (West Feerrott, south 3)", 1, (7022.6, 9716.6), r"^(tae ew warder|tae ew shaman|tae ew soldier)$", 90.0),  # n 13, 23-25
+    ("taeewwestfeerrottwest", "Tae Ew (West Feerrott, west)", 1, (6721.3, 8835.9), r"^(tae ew warder|slitnose alligator|tae ew soldier|tae ew shaman|wisp)$", 210.0),  # n 25, 18-25
+    ("timberwolfcubssphinxpyramid", "Timber Wolf Cubs (Sphinx Pyramid)", 1, (8098.0, 5053.2), r"^(timber wolf cub|deadly centipede)$", 140.0),  # n 12, 13-18
+    ("timberwolvessphinxpyramid", "Timber Wolves (Sphinx Pyramid)", 1, (9270.4, 4770.6), r"^(timber wolf|filth bug)$", 150.0),  # n 14, 19-22
+    ("tombserpentsgeomancerspass", "Tomb Serpents (Geomancer's Pass)", 1, (4462.6, 5982.1), r"^(tomb serpent|skeletal giant|pyre ash elemental|mummified ogre|revenant)$", 320.0),  # n 23, 48-55
+    ("torturedelementalslakerathe", "Tortured Elementals (Lake Rathe)", 1, (6797.1, 4657.4), r"^(tortured elemental|frenzied protectors|tortured guardian|wandering wisp)$", 100.0),  # n 13, 48-55
+    ("toxicmistsgeomancerspass", "Toxic Mists (Geomancer's Pass)", 1, (4954.2, 6220.7), r"^(toxic mist|revenant)$", 150.0),  # n 9, 46-50
+    ("treantsdeadhills", "Treants (Dead Hills)", 1, (5494.7, 7755.3), r"^(treant|revenant)$", 130.0),  # n 18, 48-53
+    ("widowspiderlingsmoggoksgate", "Widow Spiderlings (Moggok's Gate)", 1, (9471.3, 8852.7), r"^(widow spiderling|giant mosquito|marrow bat|roach|giant centipede)$", 130.0),  # n 26, 7-16
+    ("widowmakerswestfeerrott", "Widowmakers (West Feerrott)", 1, (6665.8, 9270.3), r"^(widowmaker|plague wasp|slitnose alligator|scythe beetle)$", 280.0),  # n 19, 21-24
+    ("willowispsogreruins", "Will O'wisps (Ogre Ruins)", 1, (7082.7, 6115.3), r"^(will o'wisp|grizzly bear|rabid timberwolf|hobgoblin footman)$", 240.0),  # n 15, 26-30
+    ("acolytefaunssatyrseasttoxxulia", "Acolyte Fauns & Satyrs (East Toxxulia)", 2, (7680.0, 4717.0), r"^(acolyte faun|acolyte satyr)$", 220.0),  # n 13, 41-45
+    ("acolytesatyrseasttoxxuliaeast", "Acolyte Satyrs (East Toxxulia, east)", 2, (7491.9, 5047.5), r"^(acolyte satyr|acolyte faun|swampfire cobra)$", 170.0),  # n 17, 41-45
+    ("acolytesatyrseasttoxxuliawest", "Acolyte Satyrs (East Toxxulia, west)", 2, (6055.7, 4436.7), r"^(acolyte satyr)$", 130.0),  # n 9, 41-44
+    ("acolytesatyrssouthtoxxulia", "Acolyte Satyrs (South Toxxulia)", 2, (7089.1, 5982.3), r"^(acolyte satyr|acolyte faun)$", 280.0),  # n 17, 41-54
+    ("acolyteseasttoxxulia", "Acolytes (East Toxxulia)", 2, (7248.9, 4657.5), r"^(acolyte faun|acolyte satyr|shadow lurker)$", 140.0),  # n 13, 41-45
+    ("alluringseawispsstoneshellseaturtleserudscrossing", "Alluring Sea Wisps & Stoneshell Seaturtles (Erud's Crossing)", 2, (10576.1, 3681.8), r"^(alluring sea wisp|stoneshell seaturtle|volcanic dervish)$", 170.0),  # n 10, 56-60
+    ("arisentemplarseasttoxxulia", "Arisen Templars (East Toxxulia)", 2, (8446.1, 5170.8), r"^(arisen templar)$", 140.0),  # n 9, 44-46
+    ("clankolbokwesttoxxuliasouth", "Clan Kolbok (West Toxxulia, south)", 2, (5693.3, 5690.0), r"^(clan kolbok shaman|clan kolbok scout|forest dryad|clan kolbok guard|noxious basilisk)$", 310.0),  # n 25, 46-55, guide: KOBOLDS
+    ("clankolbokshamansthewarrens", "Clan Kolbok Shamans (The Warrens)", 2, (9688.6, 9099.1), r"^(clan kolbok shaman|clan kolbok guard)$", 140.0),  # n 9, 46-53, guide: KOBOLDS
+    ("corrodedclockworkscapedreg", "Corroded Clockworks (Cape Dreg)", 2, (10918.2, 10738.8), r"^(corroded clockwork)$", 70.0),  # n 6, 51-53, guide: CORRODED CLOCKWORKS
+    ("elephantswestplateau", "Elephants (West Plateau)", 2, (8636.8, 4092.1), r"^(elephant|young cobra|savannah lioness)$", 130.0),  # n 10, 31-39
+    ("enchantingsirenswesttoxxulia", "Enchanting Sirens (West Toxxulia)", 2, (4458.6, 5866.9), r"^(enchanting siren)$", 70.0),  # n 8, 60-60, guide: ENCHANTING SIRENS
+    ("faunmaidenssylvanprotectorseasttoxxulia", "Faun Maidens & Sylvan Protectors (East Toxxulia)", 2, (6098.8, 4743.5), r"^(faun maiden|sylvan protector|shadow lurker)$", 150.0),  # n 16, 41-45
+    ("giantscarabbeetlessavannahmatriarchswestplateau", "Giant Scarab Beetles & Savannah Matriarchs (West Plateau)", 2, (8103.9, 3139.6), r"^(giant scarab beetle|savannah matriarch|hooded cobra|giant scythe beetle)$", 330.0),  # n 22, 36-40
+    ("haliaikerraisle", "Haliai (Kerra Isle)", 2, (4215.1, 6496.9), r"^(haliai guardian|haliai sorceress|haliai warrior|haliai priestess)$", 140.0),  # n 19, 60-63, guide: HALIAL
+    ("hamadryadsabyssmalsea", "Hama Dryads (Abyssmal Sea)", 2, (5271.2, 9586.5), r"^(hama dryad)$", 70.0),  # n 8, 51-53
+    ("hamadryadskerraisleeast", "Hama Dryads (Kerra Isle, east)", 2, (5084.8, 6827.3), r"^(hama dryad)$", 60.0),  # n 6, 51-53
+    ("hamadryadskerraislenorth", "Hama Dryads (Kerra Isle, north)", 2, (4478.4, 6439.6), r"^(hama dryad)$", 60.0),  # n 10, 52-53
+    ("hamadryadskerraislesouth", "Hama Dryads (Kerra Isle, south)", 2, (4910.3, 7549.1), r"^(hama dryad)$", 60.0),  # n 6, 52-53
+    ("hillgiantssylhilthisdwell", "Hill Giants (Sylhilthis' Dwell)", 2, (5834.2, 3580.3), r"^(hill giant|kappa slave)$", 110.0),  # n 7, 40-53, guide: HILL GIANTS
+    ("kappadrudgeswestplateaueast", "Kappa Drudges (West Plateau, east)", 2, (7578.8, 3701.8), r"^(kappa drudge)$", 90.0),  # n 8, 42-44, guide: PHANTOMS
+    ("kappadrudgeswestplateauwest", "Kappa Drudges (West Plateau, west)", 2, (6644.8, 3878.2), r"^(kappa drudge)$", 110.0),  # n 8, 42-44, guide: HILL GIANTS; PHANTOMS
+    ("kappashillgiantswestplateau", "Kappas & Hill Giants (West Plateau)", 2, (6318.9, 3295.5), r"^(kappa|hill giant)$", 160.0),  # n 11, 41-46, guide: HILL GIANTS
+    ("kejekanstonebruntmtns", "Kejekan (Stonebrunt Mtns)", 2, (8621.8, 7684.7), r"^(kejekan warrior|kejekan pasdar|kejekan amir|kejekan ghulam|kejekan ispusar|kejekan ghazi|sabretooth jaguar|sabretooth panther)$", 160.0),  # n 42, 51-62
+    ("kerranabyssmalseanorth", "Kerran (Abyssmal Sea, north)", 2, (5588.4, 8662.9), r"^(kerran priest|kerran wizard|kerran fisherman)$", 220.0),  # n 38, 55-57
+    ("kerranabyssmalseasouth", "Kerran (Abyssmal Sea, south)", 2, (5530.1, 9690.7), r"^(kerran priest|kerran mage|kerran wizard)$", 110.0),  # n 11, 55-57
+    ("kerrankerraisle", "Kerran (Kerra Isle)", 2, (5168.4, 6963.3), r"^(kerran soldier|kerran villager|kerran priest|kerran sentry|kerran fisherman)$", 110.0),  # n 24, 55-61
+    ("kerranpriestsabyssmalsea", "Kerran Priests (Abyssmal Sea)", 2, (4930.5, 9794.6), r"^(kerran priest|kerran wizard)$", 110.0),  # n 13, 55-57
+    ("kerranslavespaineel", "Kerran Slaves (Paineel)", 2, (6445.3, 9168.4), r"^(kerran slave|ooze|murk bone)$", 270.0),  # n 43, 20-35
+    ("kerranwarriorssouthtoxxulia", "Kerran Warriors (South Toxxulia)", 2, (6812.1, 6267.8), r"^(kerran warrior|shambling hulk|noxious millipede)$", 120.0),  # n 10, 52-57
+    ("marionettesgulfofuzun", "Marionettes (Gulf of Uzun)", 2, (8901.0, 11139.1), r"^(marionette|vagrant satyr)$", 250.0),  # n 25, 56-58
+    ("noxiousmillipedeskerraisle", "Noxious Millipedes (Kerra Isle)", 2, (4363.7, 6748.6), r"^(noxious millipede)$", 60.0),  # n 6, 51-53
+    ("oozespaineel", "Oozes (Paineel)", 2, (6916.3, 9088.4), r"^(ooze|murkwood hog|murk bone|murk spirit)$", 230.0),  # n 21, 31-35
+    ("rumblingsandsnorthbarrencoast", "Rumbling Sands (North Barren Coast)", 2, (11687.2, 5697.1), r"^(rumbling sand|grotesque gargoyle|ratman wizard|warthog|ratman scout)$", 330.0),  # n 23, 41-45
+    ("stoneshellseaturtlesvolcanicdervisheserudscrossing", "Stoneshell Seaturtles & Volcanic Dervishes (Erud's Crossing)", 2, (10253.4, 3089.5), r"^(stoneshell seaturtle|volcanic dervish|giant rockcrusher crab|alluring sea wisp)$", 130.0),  # n 14, 56-60
+    ("tendorabukiwesttoxxuliaeast", "Tendora-Buki (West Toxxulia, east)", 2, (4859.5, 4756.5), r"^(tendora\-buki puzhal|tendora\-buki pasdar|tendora\-buki amir|tendora\-buki spahi|tendora\-buki ispusar|sylvan satyr)$", 260.0),  # n 24, 46-50
+    ("tendorabukiwesttoxxuliawest", "Tendora-Buki (West Toxxulia, west)", 2, (4336.7, 4947.5), r"^(tendora\-buki fisherman|tendora\-buki mamluk|tendora\-buki spahi|tendora\-buki puzhal)$", 80.0),  # n 15, 46-50
+    ("tendorabukiispusarsfishermenwesttoxxulia", "Tendora-Buki Ispusars & Fishermen (West Toxxulia)", 2, (4522.1, 5594.4), r"^(tendora\-buki ispusar|tendora\-buki fisherman|tendora\-buki amir)$", 120.0),  # n 16, 46-50
+    ("welahinaierudscrossing", "Welahi-Nai (Erud's Crossing)", 2, (11192.0, 2472.1), r"^(welahi\-nai mujahed|welahi\-nai spahi|welahi\-nai ademzada|stoneshell seaturtle)$", 150.0),  # n 22, 56-63
+    ("welahinaikerraisle", "Welahi-Nai (Kerra Isle)", 2, (4742.1, 6645.2), r"^(welahi\-nai myrmidon|welahi\-nai amir|welahi\-nai priestess|welahi\-nai mage|welahi\-nai puzhal|welahi\-nai fisherman)$", 260.0),  # n 50, 59-63
+    ("welahinaifishermenkerraisle", "Welahi-Nai Fishermen (Kerra Isle)", 2, (4456.6, 7088.4), r"^(welahi\-nai fisherman)$", 60.0),  # n 6, 59-61
+]
+
+
+def census_camps(zones, rows, fitted, taken):
+    """CENSUS_CAMPS placed as faq_camps places FAQ_CAMPS: (placed, left out)."""
+    placed, left = [], []
+    for key, name, w, (cx, cz), pattern, reach in CENSUS_CAMPS:
+        rx = re.compile(pattern, re.I)
+        kind = [r for r in rows if r[5] == w and rx.search(r[1].strip())]
+        near = [r for r in kind if math.hypot(r[2] - cx, r[4] - cz) <= reach]
+        if len(near) < 3:
+            left.append((name, f"only {len(near)} of its creatures within {reach:.0f} of its middle"))
+            continue
+        anchor = camp_heart(kind, near, True, cx, cz)
+        same = [k for k, tw, x, z, trx, an in taken if tw == w and math.hypot(x - anchor[2], z - anchor[4]) <= SAME
+                and (trx.search(anchor[1].strip()) or rx.search(an.strip()))]
+        if same:
+            left.append((name, f"the camp {same[0]}"))
+            continue
+        spell = collections.defaultdict(collections.Counter)
+        for o in near:
+            spell[o[1].strip().lower()][o[1].strip()] += 1
+        creatures = [cc.most_common(1)[0][0] for _, cc in sorted(spell.items(), key=lambda kv: (-sum(kv[1].values()), kv[0]))]
+        (a, b, c, d), _, _, _ = fitted[w]
+        mx, my = (anchor[2] - b) / a, (anchor[4] - d) / c
+        zone, _ = zone_of(zones, mx, my)
+        label = name if zone.lower() in name.lower() else f"{name}, {zone}"
+        placed.append({"key": key, "name": name, "map": "", "zone": zone, "label": label, "world": w, "npc": anchor[1],
+                       "x": anchor[2], "y": anchor[3], "z": anchor[4], "levels": levels_of(near), "guide": "",
+                       "mx": mx, "my": my, "creatures": creatures, "point": (cx, cz), "points": 0, "rx": rx,
+                       "kinds": collections.Counter(o[1].strip() for o in near).most_common(4)})
+        taken.append((key, w, anchor[2], anchor[4], rx, anchor[1]))
+    return placed, left
+
+
+def written_map_camps(path):
+    """mapcamps.go's entries as written: key -> (its line, world, x, z, anchor's name, creatures)."""
+    out = {}
+    if not os.path.exists(path):
+        return out
+    for line in open(path):
+        m = re.match(r'\t"(\w+)":\s*\{.*NPC: "([^"]*)".*X: ([-\d.]+), Y: [-\d.]+, Z: ([-\d.]+), World: (\d+),.*Creatures: \[\]string\{([^}]*)\}', line)
+        if m:
+            out[m.group(1)] = (line.rstrip("\n"), int(m.group(5)), float(m.group(3)), float(m.group(4)), m.group(2),
+                               [x.lower() for x in re.findall(r'"([^"]*)"', m.group(6))])
+    return out
+
+
+# how far from a written camp its anchor's name may stand (handlers' campAnchorReach)
+ANCHOR_REACH = 300.0
+
+
+def keep_written(written, placed, rows):
+    """--keep-written: the camps written stay as they are (key, place, levels, name), but one whose anchor's name no
+    longer stands within ANCHOR_REACH of it (its creatures renamed) is written again as placed now; and a placed camp
+    is added only when its key is new and no written camp of its kind (either's anchor among the other's creatures)
+    is within SAME of it. Returns (the lines, the camps added, the camps a written one already is, those rewritten)."""
+    lines = {k: v[0] for k, v in written.items()}
+    added, dup, redone = [], [], []
+    stands = collections.defaultdict(list)
+    for r in rows:
+        stands[(r[1].strip().lower(), r[5])].append((r[2], r[4]))
+    for p in placed:
+        if p["key"] in written:
+            _, w, x, z, an, _ = written[p["key"]]
+            if not any(math.hypot(a - x, b - z) <= ANCHOR_REACH for a, b in stands[(an.strip().lower(), w)]):
+                lines[p["key"]] = None
+                redone.append(p)
+            continue
+        mine = {x.lower() for x in p["creatures"]} | {p["npc"].lower()}
+        same = [k for k, (_, w, x, z, an, cr) in written.items() if w == p["world"]
+                and math.hypot(x - p["x"], z - p["z"]) <= SAME and (an.lower() in mine or p["npc"].lower() in cr)]
+        if same:
+            dup.append((p, same[0]))
+            continue
+        lines[p["key"]] = None
+        added.append(p)
+    return lines, added, dup, redone
+
+
+def render_map(placed, kept=None):
+    """mapcamps.go of placed; kept (keep_written's): key -> its line as written, or None for a placed camp's."""
     lines = [
         "// Code written by tools/gen_camp_teles.py --map-out; DO NOT EDIT: change",
         "// the tool and run it again.",
@@ -762,10 +1042,16 @@ def render_map(placed):
         "// #tele shortcut or a Teleporter camp (campDests, camps.go). Name is the",
         "// map's, its zone added where it would not tell the camp apart; Guide its",
         "// level range where the map writes one; Levels the creatures' here; MapX",
-        "// and MapY its point on EQOA-Data's map.",
+        "// and MapY its point on EQOA-Data's map. The FAQ's camps and the census's",
+        "// (camps the records hold that nothing marked) are here too.",
         "var mapCamps = map[string]mapCamp{",
     ]
-    for p in placed:
+    by = {p["key"]: p for p in placed}
+    for key in sorted(kept) if kept is not None else [p["key"] for p in placed]:
+        if kept is not None and kept[key] is not None:
+            lines.append(kept[key])
+            continue
+        p = by[key]
         rare = ", ".join(
             f'{{Name: {go_string(r["name"])}, Level: {r["level"]}, Drops: []string{{{", ".join(go_string(x) for x in r["drops"])}}}}}'
             for r in p.get("rare", []))
@@ -844,6 +1130,8 @@ def main():
     ap.add_argument("--eqoa-data", required=True)
     ap.add_argument("--out")
     ap.add_argument("--map-out", help="write the map's other camps (mapcamps.go) here; camps.go is read, not written, unless --out")
+    ap.add_argument("--keep-written", action="store_true",
+                    help="--map-out: keep the camps the file holds as written and add only new camps (keep_written)")
     ap.add_argument("--camps", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "internal", "handlers", "camps.go"),
                     help="the #tele camps as written (camps.go), which the map's camps leave to them")
     args = ap.parse_args()
@@ -891,8 +1179,14 @@ def main():
         taken = [(k, tw, x, z, spec_rx.get(k, re.compile(re.escape(an), re.I)), an) for k, (an, x, z, tw) in tele_camps(args.camps).items()]
         taken += [(p["key"], p["world"], p["x"], p["z"], p["rx"], p["npc"]) for p in mplaced]
         fplaced, fleft = faq_camps(zones, rows, mfit, taken)
-        mplaced = sorted(mplaced + fplaced, key=lambda p: p["key"])
+        taken += [(p["key"], p["world"], p["x"], p["z"], re.compile("^(" + "|".join(re.escape(c) for c in p["creatures"]) + ")$", re.I),
+                   p["npc"]) for p in fplaced]
+        cplaced, cleft = census_camps(zones, rows, mfit, taken)
+        mplaced = sorted(mplaced + fplaced + cplaced, key=lambda p: p["key"])
+        if len({p["key"] for p in mplaced}) != len(mplaced):
+            sys.exit("duplicate map camp keys")
         mleft += [(f"FAQ {n}", why) for n, why in fleft]
+        mleft += [(f"census {n}", why) for n, why in cleft]
         faq_levels(mplaced, rows)
         rare_near(mplaced, zones, rows, mfit, drops_by_mob(args.eqoa_data))
         for p in mplaced:
@@ -903,12 +1197,21 @@ def main():
             print(f"  map -- {where}: {why}", file=sys.stderr)
         per = collections.Counter(p["world"] for p in mplaced)
         print(f"map camps: {len(mplaced)} placed ({dict(sorted(per.items()))}), {len(mleft)} left out", file=sys.stderr)
+        kept = None
+        if args.keep_written and args.map_out:
+            kept, added, dup, redone = keep_written(written_map_camps(args.map_out), mplaced, rows)
+            for p, k in dup:
+                print(f"  keep: {p['key']} is the written {k}", file=sys.stderr)
+            for p in redone:
+                print(f"  keep: {p['key']} written again (its anchor's name is gone from its place)", file=sys.stderr)
+            print(f"keep: {sum(1 for v in kept.values() if v is not None)} written kept, {len(added)} added: "
+                  + ", ".join(p["key"] for p in added), file=sys.stderr)
         if args.map_out:
             with open(args.map_out, "w") as f:
-                f.write(render_map(mplaced))
+                f.write(render_map(mplaced, kept))
             if shutil.which("gofmt"):
                 subprocess.run(["gofmt", "-w", args.map_out], check=True)
-            print(f"wrote {len(mplaced)} map camps to {args.map_out}", file=sys.stderr)
+            print(f"wrote {len(kept) if kept is not None else len(mplaced)} map camps to {args.map_out}", file=sys.stderr)
         if not args.out:
             return
     text = render(placed, towns)

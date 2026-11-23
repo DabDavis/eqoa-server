@@ -12,7 +12,7 @@ import (
 )
 
 // hotzones.go — the Hot zones (work board 1927 section 6): GMs mark a camp or a quest set, and
-// Heirloom Marks earned there get its bonus (default +10%). Changing one needs no build: it is table
+// Heirloom Marks earned there get its bonus (default +35%). Changing one needs no build: it is table
 // hotzones (the GM panel's "Hot zones"), or a GM's #hotzone (a /hotzone from vanilla), each change a
 // gm_audit row change as #spellfx writes one, read at once here (forgetZones) and at most 30 s old
 // anywhere else.
@@ -39,7 +39,7 @@ const hotZoneBoxMark = 0x75000000
 // The zones' defaults and words (ours, but the announcement's and the herald's last line, the spec's).
 const (
 	hotZoneRadius     = 150
-	hotZoneBonus      = 10
+	hotZoneBonus      = 35
 	hotZoneAnnounce   = "A Hot zone is up: %s, +%d%% Heirloom Marks. The Hot Zone Herald in Freeport can send you there."
 	heraldReport      = "Report anything wrong you find with /bug."
 	heraldAsk         = "Where shall I send you?"

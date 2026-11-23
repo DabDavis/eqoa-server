@@ -22,7 +22,7 @@ import (
 //   - charmarks_log: each award and spending (source quest, kill, spend or gm), its whole marks,
 //     what it was for (ref: a quest id, an NPC row, what was bought) and its bonus factor;
 //   - hotzones: the GMs' Hot zones (a camp, by its place and radius, or a quest set, by an import
-//     key prefix or quest ids), each with its bonus (default +10%) and a note players are shown;
+//     key prefix or quest ids), each with its bonus (default +35%) and a note players are shown;
 //     camp names the #tele camp a zone was made on (its anchor's landing), "" none;
 //   - heirloomrankac: the AC an Heirloom Rank adds to each worn heirloom armour piece, by class and
 //     rank;
@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS hotzones (
 	z          REAL NOT NULL DEFAULT 0,
 	radius     REAL NOT NULL DEFAULT 150,
 	quests     TEXT NOT NULL DEFAULT '',
-	bonus_pct  INTEGER NOT NULL DEFAULT 10,
+	bonus_pct  INTEGER NOT NULL DEFAULT 35,
 	note       TEXT NOT NULL DEFAULT '',
 	announce   INTEGER NOT NULL DEFAULT 0,
 	created_by TEXT NOT NULL DEFAULT '',

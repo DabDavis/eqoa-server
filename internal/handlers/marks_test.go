@@ -181,7 +181,7 @@ func TestQuestMarksAQuestsRewardDoesNotOutlevelIt(t *testing.T) {
 }
 
 // Kill marks: each won roll a mark, no roll past 38 in the hour; a group of four earners x1.3 and a
-// Hot zone's +10% on a creature spawned inside it, the fraction carried; #hotzone off stops the
+// Hot zone's +35% on a creature spawned inside it, the fraction carried; #hotzone off stops the
 // bonus at once; a lost roll gives nothing.
 func TestKillMarksCapGroupAndHotZone(t *testing.T) {
 	r := newMarksRig(t)
@@ -207,19 +207,19 @@ func TestKillMarksCapGroupAndHotZone(t *testing.T) {
 	r.pa.X, r.pa.Z = 5000, 5000
 	r.m.hotZoneCommand(r.anna, r.pa, "here 100 Orc Camp")
 	zones, _ := r.db.HotZones()
-	if len(zones) != 1 || !zones[0].Enabled || zones[0].BonusPct != 10 {
+	if len(zones) != 1 || !zones[0].Enabled || zones[0].BonusPct != 35 {
 		t.Fatalf("zones %+v", zones)
 	}
 	before := r.marks().Marks
 	for i := 0; i < 10; i++ {
-		r.kill(3, 5010, 5010) // four earners: x1.3, in the zone x1.1: 1.43 a kill
+		r.kill(3, 5010, 5010) // four earners: x1.3, in the zone x1.35: 1.755 a kill
 	}
-	if got := r.marks().Marks - before; got != 14 {
-		t.Fatalf("ten kills at 1.43: %d, want 14", got)
+	if got := r.marks().Marks - before; got != 17 {
+		t.Fatalf("ten kills at 1.755: %d, want 17", got)
 	}
 	var bonus float64
 	r.db.QueryRow(`SELECT bonus FROM charmarks_log ORDER BY id DESC LIMIT 1`).Scan(&bonus)
-	if bonus < 1.429 || bonus > 1.431 {
+	if bonus < 1.754 || bonus > 1.756 {
 		t.Fatalf("the last kill's bonus %v", bonus)
 	}
 	r.m.hotZoneCommand(r.anna, r.pa, "off 1")

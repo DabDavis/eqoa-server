@@ -511,7 +511,7 @@ var catalog = map[string]tableNote{
 	},
 	"hotzones": {
 		Label: "Hot zones", Group: "World", Title: "name", Sort: "id",
-		Help: "The GMs' Hot zones (handlers/hotzones.go): Heirloom Marks earned in one get its bonus_pct (default 10). A camp zone " +
+		Help: "The GMs' Hot zones (handlers/hotzones.go): Heirloom Marks earned in one get its bonus_pct (default 35). A camp zone " +
 			"fits a kill of a creature whose spawn is in its world within radius of (x, z); a quest zone a quest whose import " +
 			"key starts with one of its prefixes (quests: e.g. homelands/erudite) or whose id it lists. The Hot Zone Herald in " +
 			"Freeport lists the zones on with their notes and sends players there (beside the camp's anchor when camp names " +

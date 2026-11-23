@@ -753,6 +753,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 
 		// /testinvis's safe mode (safemode.go)
 		chatHandler.SetSafeModeStore(charStore.DB())
+		chatHandler.SetQuickChatStore(charStore.DB()) // /quickchat reset (quickchat.go)
 		// /hide mercs, kept (hidemercs.go)
 		chatHandler.SetMercsHiddenStore(charStore.DB())
 		chatHandler.SetGMTagHiddenStore(charStore.DB())

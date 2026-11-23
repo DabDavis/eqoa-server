@@ -34,6 +34,18 @@ const (
 	HotkeyTitleMax = 63
 )
 
+// ResetHotkeys deletes every one of the character's sets (/quickchat reset:
+// work board 1960, petition 2624), so its next login is sent the server's
+// defaults: the rows deleted.
+func (db *SQLiteDB) ResetHotkeys(serverID uint32) (int, error) {
+	res, err := db.Exec(`DELETE FROM hotkeys WHERE serverid = ?`, serverID)
+	if err != nil {
+		return 0, err
+	}
+	n, err := res.RowsAffected()
+	return int(n), err
+}
+
 // Hotkeys is the character's sets by id, none when it never changed one.
 func (db *SQLiteDB) Hotkeys(serverID uint32) ([]HotkeySet, error) {
 	rows, err := db.Query(`SELECT direction, COALESCE(Nlabel, ''), COALESCE(Nmessage, ''), COALESCE(Wlabel, ''), COALESCE(Wmessage, ''),

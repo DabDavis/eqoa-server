@@ -515,9 +515,10 @@ var catalog = map[string]tableNote{
 			"fits a kill of a creature whose spawn is in its world within radius of (x, z); a quest zone a quest whose import " +
 			"key starts with one of its prefixes (quests: e.g. homelands/erudite) or whose id it lists. The Hot Zone Herald in " +
 			"Freeport lists the zones on with their notes and sends players there (beside the camp's anchor when camp names " +
-			"a #tele camp, else to x, y, z). A zone of announce 1 turned on tells every player one line. In the game: #hotzone.",
+			"a #tele camp, else to x, y, z). A zone of announce 1 turned on tells every player one line. A level 60 not reliving " +
+			"earns kill marks only in an enabled camp zone of level60 1. In the game: #hotzone.",
 		Live: "Within 30 s (at once through #hotzone).",
-		Show: []string{"id", "name", "enabled", "kind", "bonus_pct", "world", "radius", "quests"},
+		Show: []string{"id", "name", "enabled", "kind", "bonus_pct", "level60", "world", "radius", "quests"},
 		Cols: map[string]colNote{
 			"kind":      {Label: "Kind", Help: "camp or quests"},
 			"quests":    {Label: "Quests", Help: "import-key prefixes or quest ids, comma separated (a quest zone)"},
@@ -525,6 +526,7 @@ var catalog = map[string]tableNote{
 			"note":      {Label: "Note", Help: "shown to players by the herald; no '|'"},
 			"announce":  {Label: "Announce", Help: "1: turned on, every player is told"},
 			"camp":      {Label: "Camp", Help: "the #tele camp it was made on: the herald lands beside its anchor; empty: at x, y, z"},
+			"level60":   {Label: "Level 60s", Help: "1: a camp for 60s: a level 60 (not reliving) earns kill marks here, and nowhere else; 0 (default): below 60 only"},
 			"updated":   {Label: "Updated", Format: "stamp"},
 		},
 	},

@@ -12,6 +12,8 @@ Heirloom they went in live by the panel's update_row; there this tool finds them
     anywhere still).
   - 2694 and 2690, the trigger Jarek's Creation: Jarek walked outside at a run ("lightning fast"): walked (pace 4);
     and after the creation tears him apart he was gone 5 minutes, so the next player found an empty hut: 1 minute.
+  - 2705, Talya Montar (The Scribe's Inks): to the top of the Highpass keep, where the player found her place, and
+    the step's journal says so (npcs rows are read at a start).
   - 2697, Waysender Hrumgar (where it is): its offer tells a hill giant that its next quests are at home.
 
 Each change is found by the quest's id, its name checked, (and step) or the trigger's name, and must read as before (else refused,
@@ -46,10 +48,16 @@ STEPS = [
     (101285, "Captain Scilond's Scouts", 22, "events", "", CORROSIONS),
     (100463, "Jarek's Creation", 3, "x", 0.0, 24303.0),
     (100463, "Jarek's Creation", 3, "z", 0.0, 9580.0),
+    (100748, "The Scribe's Inks", 2, "journal",
+     "Buy cured drake's blood from Talya Montar on the second floor of the Highpass keep (600 tunar).",
+     "Buy cured drake's blood from Talya Montar at the top of the Highpass keep (600 tunar)."),
 ]
+# (NPC name, world, its place as read (x, z), the new (x, y, z)): the one row of the name
+MOVES = [("Talya Montar", 0, (16889.75, 15236.33), (16896.5, 225.25, 15238.97))]
 STEP_CHECK = {("The Necrologist of Rain", 12): ("target", "manifestation of rain"),
               ("Captain Scilond's Scouts", 22): ("target", "deadly corrosion"),
-              ("Jarek's Creation", 3): ("target", "fungus cockroach")}
+              ("Jarek's Creation", 3): ("target", "fungus cockroach"),
+              ("The Scribe's Inks", 2): ("target", "Talya Montar")}
 TRIGGER = "Jarek's Creation"
 JAREK = "Jarek N`Toxis"
 
@@ -86,6 +94,20 @@ def plan(db):
             lines.append(f"  {what}: {old!r} -> {new!r}")
         else:
             raise Refused(f"{what} reads {r[0]!r}, not {old!r}")
+    for name, world, (ox, oz), (nx, ny, nz) in MOVES:
+        rows = db.execute("SELECT id, world, x_coord, y_coord, z_coord FROM npcs WHERE npc_name = ?", (name,)).fetchall()
+        if len(rows) != 1:
+            raise Refused(f"{name}: {len(rows)} npcs rows")
+        rid, w, x, y, z = rows[0]
+        what = f"{name} (npcs {rid})"
+        if w == world and same(x, nx) and same(y, ny) and same(z, nz):
+            lines.append(f"  {what}: already at ({nx}, {ny}, {nz})")
+            continue
+        if w != world or abs(x - ox) > 1 or abs(z - oz) > 1:
+            raise Refused(f"{what} stands at ({x}, {z}) world {w}, not as read")
+        for col, old, new in (("x_coord", x, nx), ("y_coord", y, ny), ("z_coord", z, nz)):
+            ops.append(("npcs", "id = ?", (rid,), col, old, new, f"{what} {col}"))
+        lines.append(f"  {what}: moved to the keep's top ({nx}, {ny}, {nz}), petition 2705")
     rows = db.execute("SELECT slot, steps FROM gmtriggers WHERE name = ?", (TRIGGER,)).fetchall()
     if len(rows) != 1:
         raise Refused(f"trigger {TRIGGER!r}: {len(rows)} rows")

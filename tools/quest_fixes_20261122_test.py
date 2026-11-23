@@ -33,13 +33,16 @@ class Test(unittest.TestCase):
             username TEXT, via TEXT, ip TEXT, action TEXT, tbl TEXT, rowkey TEXT, before TEXT, after TEXT, detail TEXT);
             CREATE TABLE quests (questid INTEGER PRIMARY KEY, name TEXT, giver TEXT, offer TEXT);
             CREATE TABLE queststeps (questid INTEGER, step INTEGER, target TEXT, rewarditems TEXT DEFAULT '',
-                events TEXT DEFAULT '', x REAL DEFAULT 0, z REAL DEFAULT 0, PRIMARY KEY (questid, step));
+                events TEXT DEFAULT '', journal TEXT DEFAULT '', x REAL DEFAULT 0, z REAL DEFAULT 0, PRIMARY KEY (questid, step));
             CREATE TABLE gmtriggers (slot INTEGER PRIMARY KEY, name TEXT, steps TEXT);""")
         db.executemany("INSERT INTO quests VALUES (?, ?, ?, ?)", [
             (101303, "The Necrologist of Rain", "Singe", ""), (101285, "Captain Scilond's Scouts", "Scilond", ""),
-            (100463, "Jarek's Creation", "J`Narus", ""), (103740, "The Stone Way Back", "Waysender Hrumgar", tool.HRUMGAR_OLD)])
+            (100463, "Jarek's Creation", "J`Narus", ""), (103740, "The Stone Way Back", "Waysender Hrumgar", tool.HRUMGAR_OLD), (100748, "The Scribe's Inks", "Scribe", "")])
         db.executemany("INSERT INTO queststeps (questid, step, target) VALUES (?, ?, ?)", [
-            (101303, 12, "manifestation of rain"), (101285, 22, "deadly corrosion"), (100463, 3, "fungus cockroach")])
+            (101303, 12, "manifestation of rain"), (101285, 22, "deadly corrosion"), (100463, 3, "fungus cockroach"), (100748, 2, "Talya Montar")])
+        db.execute("UPDATE queststeps SET journal = ? WHERE questid = 100748", (tool.STEPS[-1][4],))
+        db.execute("CREATE TABLE npcs (id INTEGER PRIMARY KEY, npc_name TEXT, world INTEGER, x_coord REAL, y_coord REAL, z_coord REAL)")
+        db.execute("INSERT INTO npcs VALUES (162789, 'Talya Montar', 0, 16889.75390625, 207.68852, 15236.33203125)")
         db.execute("INSERT INTO gmtriggers VALUES (143, ?, ?)", (tool.TRIGGER, json.dumps(TRIG)))
         db.commit()
         db.close()
@@ -49,7 +52,7 @@ class Test(unittest.TestCase):
 
     def snap(self):
         db = sqlite3.connect(self.db)
-        out = [db.execute(f"SELECT * FROM {t} ORDER BY 1, 2").fetchall() for t in ("quests", "queststeps", "gmtriggers")]
+        out = [db.execute(f"SELECT * FROM {t} ORDER BY 1, 2").fetchall() for t in ("quests", "queststeps", "gmtriggers", "npcs")]
         db.close()
         return out
 
@@ -63,11 +66,12 @@ class Test(unittest.TestCase):
         steps = json.loads(db.execute("SELECT steps FROM gmtriggers").fetchone()[0])
         self.assertEqual((steps[0]["pace"], steps[1]["minutes"]), (4.0, 1))
         self.assertEqual(db.execute("SELECT offer FROM quests WHERE questid = 103740").fetchone()[0], tool.HRUMGAR_NEW)
+        self.assertEqual(db.execute("SELECT x_coord, y_coord, z_coord FROM npcs").fetchone(), (16896.5, 225.25, 15238.97))
         db.close()
         after = self.snap()
         self.assertIn("nothing to write", run("--db", self.db, "--apply")[1])
         self.assertEqual(self.snap(), after)
-        self.assertIn("6 changes put back", run("--db", self.db, "--undo")[1])
+        self.assertIn("10 changes put back", run("--db", self.db, "--undo")[1])
         self.assertEqual(self.snap(), before)
 
     def test_refuses_a_row_not_as_read(self):

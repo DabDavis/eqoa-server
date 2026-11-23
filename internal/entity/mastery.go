@@ -173,6 +173,9 @@ type Mastery struct {
 // mastery points and to paying the experience debt.
 type xpShares struct {
 	Level, Mastery, Debt int
+	// Lost is what goes nowhere: all of it given to the masteries below the
+	// level cap, held at the level's cap of points (splitXP)
+	Lost int
 }
 
 // splitXP divides an award of xp for a player at level owing debt, as a GM has
@@ -181,8 +184,9 @@ type xpShares struct {
 // alone at the level cap (MaxLevel), and below it as the mastery points
 // window's share divides it. Holding MasteryCapAt(level) points (MasteryCap
 // at the level cap, 25 a level below it), the masteries take nothing: their
-// part pays what is left of the debt, then goes to the level (at the cap
-// nothing comes of it).
+// part pays what is left of the debt, then goes to the level, but at a share
+// of 100% below the level cap it is lost (Lost: the owner, 2026-11-23, 100%
+// to the masteries never levels), and at the level cap nothing comes of it.
 func splitXP(m Mastery, level, debt, xp int) xpShares {
 	var s xpShares
 	if xp <= 0 {
@@ -200,7 +204,15 @@ func splitXP(m Mastery, level, debt, xp int) xpShares {
 	if m.Points+m.Spent >= MasteryCapAt(level) {
 		pay := min(debt-s.Debt, s.Mastery)
 		s.Debt += pay
-		s.Level += s.Mastery - pay
+		if level < MaxLevel && pct >= 100 {
+			// all of it to the masteries, held at the level's cap: the rest is
+			// LOST, never the level's (the owner, 2026-11-23, Heirloom petition
+			// 2726: "100% to CMs never levels"); a lower share's part still
+			// goes to the level, as #1816 has it
+			s.Lost = s.Mastery - pay
+		} else {
+			s.Level += s.Mastery - pay
+		}
 		s.Mastery = 0
 	}
 	return s

@@ -456,6 +456,7 @@ func TestFeverMarkersAreMigratedOnce(t *testing.T) {
 		if c.turned {
 			f.exec(`INSERT INTO charquests (serverid, questid, step, count, done, slot, updated) VALUES (?, ?, 0, 0, 1, 0, '')`, f.sid, bearTurned)
 		}
+		migrationStart := time.Now().Truncate(time.Second)
 		f.fresh() // the engine reads the marker
 		f.qe.InfectionLogin(f.tw.s, f.tw.p)
 		inf := f.row()
@@ -465,8 +466,12 @@ func TestFeverMarkersAreMigratedOnce(t *testing.T) {
 		if inf.Active(time.Now()) != c.active || f.done(wolfFever) != c.active || inf.Source != "migration" {
 			t.Errorf("%s: row %+v (active %v), marker %v; want active %v", c.name, inf, inf.Active(time.Now()), f.done(wolfFever), c.active)
 		}
-		if d := inf.AppliedAt.Sub(c.applied); d < -5*time.Second || d > 5*time.Second {
-			t.Errorf("%s: applied %v, want %v", c.name, inf.AppliedAt, c.applied)
+		if c.updated == "" {
+			if inf.AppliedAt.Before(migrationStart) || inf.AppliedAt.After(time.Now()) {
+				t.Errorf("%s: applied %v outside this migration", c.name, inf.AppliedAt)
+			}
+		} else if !inf.AppliedAt.Equal(c.applied.Truncate(time.Second)) {
+			t.Errorf("%s: applied %v, want the saved timestamp %s", c.name, inf.AppliedAt, c.updated)
 		}
 		if line, _ := f.shown(); (line == "wolfwere") != c.active {
 			t.Errorf("%s: shown %q", c.name, line)

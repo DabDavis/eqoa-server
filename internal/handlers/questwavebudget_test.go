@@ -6,7 +6,6 @@ import (
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
-	"github.com/eqoa/server/internal/session"
 )
 
 // Board entry 1290: a hunt wave and a lost-spawn recovery make no more of the step's target creatures than the
@@ -120,10 +119,9 @@ func TestLostWaveHeldToTheKillsLeft(t *testing.T) {
 		f.tw.w.KillNPCNow(c.ServerID)
 		f.killFor("Wave Target", c.ServerID)
 	}
-	back := f.qe.sessionOf // the player away: every spawn goes
-	f.qe.sessionOf = func(uint32) *session.Session { return nil }
+	f.tw.s.SetCharacterInWorld(false)
 	f.qe.expireSpawns()
-	f.qe.sessionOf = back
+	f.tw.s.SetCharacterInWorld(true)
 	for _, c := range f.questCopies() {
 		if !c.Dead {
 			f.tw.w.KillNPCNow(c.ServerID)

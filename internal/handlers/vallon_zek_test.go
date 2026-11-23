@@ -33,17 +33,6 @@ func vzSet(w *trigWorld) {
 	zpSetData(w, out)
 }
 
-// waitAlive waits (a second at most) for n trigger copies of name: a drop fires its trigger on a goroutine.
-func (w *trigWorld) waitAlive(name string, n int) bool {
-	for i := 0; i < 200; i++ {
-		if w.alive(name) == n {
-			return true
-		}
-		time.Sleep(5 * time.Millisecond)
-	}
-	return false
-}
-
 // A corpse that rolled the rune raises the Portal of Zek where its row stands (held out of the world), talked to
 // only, for an hour; a second rune while it stands raises no second one; a corpse of anything else raises none.
 func TestVallonZekPortalRisesWithTheRune(t *testing.T) {
@@ -56,26 +45,28 @@ func TestVallonZekPortalRisesWithTheRune(t *testing.T) {
 	cs, _ := w.join(11, "Camper", 15310, 18905, 0)
 	h := &NPCWindowHandler{inv: database.NewInventoryStore(w.db)}
 	scout := &entity.NPC{ServerID: 77001, Name: "Zek scout", Level: 60, World: 0, X: 15330, Y: 61, Z: 18860, Dead: true}
-	h.fireDropTriggers(scout, []database.CharInventoryEntry{{Pattern: database.ItemPatternRecord{PatternID: 12}}})
-	time.Sleep(50 * time.Millisecond)
+	drop := func(items []database.CharInventoryEntry) {
+		if fired := h.fireDropTriggers(scout, items); fired != nil {
+			fired.Wait()
+		}
+	}
+	drop([]database.CharInventoryEntry{{Pattern: database.ItemPatternRecord{PatternID: 12}}})
 	if n := w.alive("Portal of Zek"); n != 0 {
 		t.Fatalf("a corpse of no rune raised %d portals", n)
 	}
-	h.fireDropTriggers(scout, []database.CharInventoryEntry{{Pattern: database.ItemPatternRecord{PatternID: 12}},
+	drop([]database.CharInventoryEntry{{Pattern: database.ItemPatternRecord{PatternID: 12}},
 		{Pattern: database.ItemPatternRecord{PatternID: rune}}})
-	if !w.waitAlive("Portal of Zek", 1) {
+	if w.alive("Portal of Zek") != 1 {
 		t.Fatalf("the rune raised %d portals, want 1", w.alive("Portal of Zek"))
 	}
 	p := w.first("Portal of Zek")
 	if p.World != 0 || p.X < 15290 || p.X > 15310 || p.Z < 18910 || p.Z > 18930 || p.NPCType&0x80 == 0 {
 		t.Errorf("the portal: world %d (%.0f, %.0f), type %#x: want world 0 at its row, talked to only", p.World, p.X, p.Z, p.NPCType)
 	}
-	time.Sleep(20 * time.Millisecond)
 	if got := strings.Join(yellow(t, cs), "|"); !strings.Contains(got, "A dark portal tears open") {
 		t.Errorf("the camp was told %q", got)
 	}
-	h.fireDropTriggers(scout, []database.CharInventoryEntry{{Pattern: database.ItemPatternRecord{PatternID: rune}}})
-	time.Sleep(50 * time.Millisecond)
+	drop([]database.CharInventoryEntry{{Pattern: database.ItemPatternRecord{PatternID: rune}}})
 	if n := w.alive("Portal of Zek"); n != 1 {
 		t.Fatalf("a second rune: %d portals", n)
 	}
@@ -83,8 +74,8 @@ func TestVallonZekPortalRisesWithTheRune(t *testing.T) {
 	if n := w.alive("Portal of Zek"); n != 0 {
 		t.Fatalf("%d portals outstay their hour", n)
 	}
-	h.fireDropTriggers(scout, []database.CharInventoryEntry{{Pattern: database.ItemPatternRecord{PatternID: rune}}})
-	if !w.waitAlive("Portal of Zek", 1) {
+	drop([]database.CharInventoryEntry{{Pattern: database.ItemPatternRecord{PatternID: rune}}})
+	if w.alive("Portal of Zek") != 1 {
 		t.Fatal("a rune after the portal went raised none")
 	}
 }

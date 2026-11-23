@@ -10,7 +10,6 @@ import (
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
-	"github.com/eqoa/server/internal/session"
 )
 
 // Jarek's creation (the user, 2026-10-30, at Jarek N`Toxis's hut on Neriak's
@@ -256,10 +255,9 @@ func TestALostSpawnOfASpawnOnlyCreatureComesBack(t *testing.T) {
 
 	away := func() {
 		t.Helper()
-		back := f.qe.sessionOf
-		f.qe.sessionOf = func(uint32) *session.Session { return nil }
+		f.tw.s.SetCharacterInWorld(false)
 		f.qe.expireSpawns()
-		f.qe.sessionOf = back
+		f.tw.s.SetCharacterInWorld(true)
 		if n := f.liveCopies(); n != 0 {
 			t.Fatalf("the player away, %d creations stay", n)
 		}
@@ -325,10 +323,9 @@ func TestAKeepRestartGivesBackAQuestSpawn(t *testing.T) {
 		t.Fatalf("kept at the freeze: %v, want the creation's step", kept)
 	}
 	// the restart: every quest spawn gone, the player far from the original
-	back := f.qe.sessionOf
-	f.qe.sessionOf = func(uint32) *session.Session { return nil }
+	f.tw.s.SetCharacterInWorld(false)
 	f.qe.expireSpawns()
-	f.qe.sessionOf = back
+	f.tw.s.SetCharacterInWorld(true)
 	if n := f.liveCopies(); n != 0 {
 		t.Fatalf("%d creations survived the restart", n)
 	}

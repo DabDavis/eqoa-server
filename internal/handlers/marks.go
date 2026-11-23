@@ -24,7 +24,8 @@ import (
 //   - Who earns: a character below 60, or a 60 while it relives (relive.go), never a GM's
 //     (entity.MarksEarner). Hardcore characters earn as everyone. Marks are the character's own.
 //   - A quest (QuestDone, from the quest engine at a quest's last step): its first finish, not
-//     repeatable, at a level (a Relive's) no more than its minlevel + 5, pays quests.marks or the
+//     repeatable, at a level (a Relive's; the level it was finished at, before its experience) no
+//     more than its minlevel + 5, pays quests.marks or the
 //     computed figure (database.QuestMarksFor), at most twice the real minutes since it was taken
 //     (charquests.taken) in marks.
 //   - A kill (entity's OnKillMarks): each sharer given experience rolls once for a mark at 20% x
@@ -234,12 +235,14 @@ func pctOver(f float64) int { return int((f-1)*100 + 0.5) }
 // --- quests ---
 
 // QuestDone is a quest finished by p (its last step, the quest engine's), first is whether it is
-// its first finish. The award is computed here and written on the worker.
-func (m *HeirloomMarks) QuestDone(sess *session.Session, p *entity.Player, qu *database.Quest, first bool) {
-	if m == nil || !HeirloomMarksOn() || p == nil || qu == nil || !first || qu.Repeatable || !entity.MarksEarner(p) {
+// its first finish and level the level p finished it at, before the quest's experience: who earns
+// and the quest's level limit are judged by it, so a reward that takes p past the limit (or to 60)
+// pays all the same. The award is computed here and written on the worker.
+func (m *HeirloomMarks) QuestDone(sess *session.Session, p *entity.Player, qu *database.Quest, first bool, level int) {
+	if m == nil || !HeirloomMarksOn() || p == nil || qu == nil || !first || qu.Repeatable || !entity.MarksEarnerAt(p, level) {
 		return
 	}
-	if p.Level > qu.MinLevel+marksLevelOver {
+	if level > qu.MinLevel+marksLevelOver {
 		return
 	}
 	key := m.importKey(qu.ID)

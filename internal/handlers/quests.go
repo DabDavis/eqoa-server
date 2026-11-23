@@ -2219,12 +2219,21 @@ func (q *QuestEngine) completeStepSkipLocked(sess *session.Session, p *entity.Pl
 		}
 	}
 	q.tellLocked(c, sess, "", lines...)
+	// the level the quest was finished at, before its experience: its marks
+	// are judged by it, so a reward that levels the player past the quest's
+	// minlevel + 5 does not take them away (marks.go; Heirloom 2026-11-23: a
+	// level 15 finishing a level 10 quest whose reward took it to 19 was paid
+	// nothing)
+	finishedAt := 0
+	if p != nil {
+		finishedAt = p.Level
+	}
 	if rw.XP > 0 && sess != nil && p != nil {
 		q.gw.AwardXP(sess, p, rw.XP)
 	}
 	if next == nil && !stay && sess != nil && p != nil {
 		// its Heirloom Marks, a first finish's (marks.go)
-		heirloomMarks.Load().QuestDone(sess, p, qu, cq.Done == 1)
+		heirloomMarks.Load().QuestDone(sess, p, qu, cq.Done == 1, finishedAt)
 	}
 	if len(st.Factions) > 0 && p != nil {
 		hits := make([]entity.FactionHit, len(st.Factions))

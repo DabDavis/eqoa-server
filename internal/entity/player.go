@@ -336,6 +336,14 @@ type Player struct {
 	petEffectsSent string
 	petEffectsDue  bool
 
+	// GroupEffects: the player's client draws its group members' effects beside their
+	// bars and asked for them (groupeffects.go, opcodes 0x7EC0 and 0x7EC1);
+	// groupEffectsSent is the body it was last sent, so only a change goes out, and
+	// groupEffectsDue sends the next one whatever it is (just asked).
+	GroupEffects     bool
+	groupEffectsSent string
+	groupEffectsDue  bool
+
 	// BuffWindow: the player's client draws its own buff window and asked for its set
 	// (buffwindow.go, opcodes 0x7E57-0x7E59); buffWindowSent is what made the set it was
 	// last sent, buffWindowDue sends the next whatever it is (just asked).

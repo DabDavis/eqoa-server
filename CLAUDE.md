@@ -391,7 +391,8 @@ The PS2 CLIENT (and its decomp) and packet captures are the source of truth, not
 - **Non-retail extensions are offers** (0x7Exx, `internal/protocol/opcodes.go` has each format): the server offers a
   capability after world entry, a client that understands it answers, and only then is it sent anything. A PS2
   never answers and gets the retail behaviour (often a chat line instead). Examples: more entities in view (0x7E00),
-  others' power (0x7E01/0x7E02), the live look and auras (0x7E0C), pet effects (0x7E32/0x7E33), number colours,
+  others' power (0x7E01/0x7E02), the live look and auras (0x7E0C), pet effects (0x7E32/0x7E33), the group
+  members' effects as tiny icons on their bars (0x7EC0/0x7EC1, `entity/groupeffects.go`), number colours,
   DPS meter (0x7E3B/0x7E3C), raid windows (0x7E42/0x7E44), more answers per dialog box (0x7E71; CLIENT's `Msg0034`
   overruns past six), the dye picker, quest marks and tracker, NPC tints and glows, weather timelines
   (0x7E93/0x7E94). **Reserve a new 0x7Exx in `opcodes.go` before using it.** A keep restart keeps what a session asked

@@ -670,6 +670,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// The pet's effects (0x7E32; peteffects.go): a client that draws them
 	// under its pet's bar
 	NewPetEffectsHandler(gameWorld).RegisterHandlers(r)
+	// The members' effects (0x7EC0; groupeffects.go): a client that draws them
+	// beside its group's bars
+	NewGroupEffectsHandler(gameWorld).RegisterHandlers(r)
 	NewBuffWindowHandler(gameWorld).RegisterHandlers(r)
 	// What made each figure (0x7E39; numbertags.go): a client that colours
 	// its numbers by it

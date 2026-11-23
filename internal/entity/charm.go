@@ -102,7 +102,10 @@ import (
 //     the mob is charmed in"), or in another world, goes home at once and
 //     fights no one ("If a charm expires on an NPC that has been taken a
 //     significant distance away from their spawn location, the NPC will
-//     despawn immediately"). A zone is the world's 2000-unit square (CLIENT's
+//     despawn immediately"). Ours: one whose master has left the world (a
+//     logout, a client gone silent) goes home at once wherever it is, its
+//     grace or not (Heirloom petition 2811: a freed elder orc sapper stood at
+//     Freeport's bank attacking players on sight). A zone is the world's 2000-unit square (CLIENT's
 //     zone-name grid, the ground files' zones). The grace decides only where
 //     a released creature ends up; it breaks no charm. One that dies as a pet
 //     leaves a corpse no one may loot (OpenCorpse) and comes back itself.
@@ -441,7 +444,8 @@ func charmFar(npc *NPC, home, world uint8, x, z float32) bool {
 
 // releaseCharmLocked lets a charmed pet go: off its master's pet bar
 // (0x007F, its non-collide entry off) with the line, the creature its own
-// again (unCharmLocked), sent home if it is past its grace (charmFar), and,
+// again (unCharmLocked), sent home if it is past its grace (charmFar) or its
+// master has left the world, and,
 // hostile and still near, turned on its master. A dead one is let go at once,
 // its corpse a creature's of nothing (no one's to loot) that comes back home
 // (charmDied, charmHome). sess is the
@@ -496,9 +500,17 @@ func (w *World) releaseCharmLocked(ps *petState, sess *session.Session, text str
 		}
 		w.affected[npc.ServerID] = npc
 	}
-	popped := charmFar(npc, home, npc.World, npc.X, npc.Z)
+	// its master gone from the world (logged out, or its client silent and
+	// its session ended) leaves it no one to turn on: home at once as past
+	// its grace, never standing where it was let go. Heirloom petition 2811
+	// (2026-11-23): Zaptir's charmed elder orc sapper (a level 50 of the orc
+	// camp north of Freeport) was let go at Freeport's bank when Zaptir's
+	// client went silent, and attacked players there on sight.
+	gone := w.Players[owner.ServerID] != owner
+	popped := gone || charmFar(npc, home, npc.World, npc.X, npc.Z)
 	if popped {
-		// past its grace: home at once, as it was found (the file's doc)
+		// past its grace, or its master gone: home at once, as it was found
+		// (the file's doc)
 		oldX, oldZ := npc.X, npc.Z
 		npc.World = home
 		npc.X, npc.Y, npc.Z, npc.Facing = npc.SpawnX, npc.SpawnY, npc.SpawnZ, npc.SpawnFacing

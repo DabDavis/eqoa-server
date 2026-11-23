@@ -718,3 +718,32 @@ func TestASummonedPetStillComesAlong(t *testing.T) {
 		t.Errorf("a summoned pet 3,000 behind: %.0f off its master the next tick", d)
 	}
 }
+
+// Heirloom petition 2811 (2026-11-23): a charmed creature whose master leaves
+// the world (a logout, a client gone silent) goes home at once, inside its
+// grace too, and fights no one; one let go a zone off with its master still in
+// the world stays there (TestACharmedCreatureDiesAndComesBackItself).
+func TestACharmedCreatureGoesHomeWhenItsMasterLeaves(t *testing.T) {
+	defer func(f func(int) int) { charmIntn = f }(charmIntn)
+	charmIntn = dice(99)
+	r, _, _ := charmRig(t)
+	crab := r.enemy
+	if began, _ := castCharm(t, r, captivation(), crabID, 0); !began || crab.Owner == 0 {
+		t.Fatal("not charmed")
+	}
+	r.w.mu.Lock()
+	crab.X += charmZone / 2 // inside its grace: where it was found, the camp; this, the town
+	r.p.X = crab.X + 2
+	r.w.mu.Unlock()
+	delete(r.w.Players, r.p.ServerID)
+	r.tick(time.Minute)
+	if crab.Owner != 0 || crab.Charm != nil || r.w.pets[r.p.ServerID] != nil {
+		t.Fatalf("still charmed: %+v", *crab)
+	}
+	if crab.X != crab.SpawnX || crab.Z != crab.SpawnZ || crab.Y != crab.SpawnY {
+		t.Errorf("let go at (%.1f, %.1f), not home at (%.1f, %.1f)", crab.X, crab.Z, crab.SpawnX, crab.SpawnZ)
+	}
+	if crab.CurrentEnemy != 0 {
+		t.Errorf("it fights %d", crab.CurrentEnemy)
+	}
+}

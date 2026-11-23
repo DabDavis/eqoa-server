@@ -25,9 +25,11 @@ def make(path):
         CREATE TABLE quests (questid INTEGER PRIMARY KEY, name TEXT, giver TEXT, offer TEXT);
         CREATE TABLE queststeps (questid INTEGER, step INTEGER, kind TEXT, target TEXT, items TEXT, world INTEGER,
             x REAL, z REAL, journal TEXT, PRIMARY KEY (questid, step));
-        CREATE TABLE itempattern (patternid INTEGER PRIMARY KEY, itemname TEXT, itemdesc TEXT);
-        CREATE TABLE npcs (id INTEGER PRIMARY KEY, npc_name TEXT, world INTEGER, x_coord REAL, y_coord REAL,
-            z_coord REAL);
+        CREATE TABLE itempattern (patternid INTEGER PRIMARY KEY, itemname TEXT, itemdesc TEXT, agi INTEGER DEFAULT 0,
+            AC INTEGER DEFAULT 0);
+        CREATE TABLE itemeffect (patternid INTEGER PRIMARY KEY, line TEXT NOT NULL);
+        CREATE TABLE npcs (id INTEGER PRIMARY KEY AUTOINCREMENT, npc_name TEXT, world INTEGER, x_coord REAL,
+            y_coord REAL, z_coord REAL, npc_level INTEGER DEFAULT 0);
         CREATE TABLE npcmove (name TEXT PRIMARY KEY, roam INTEGER NOT NULL DEFAULT -1, radius REAL NOT NULL DEFAULT 0,
             water TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm',
             speed REAL NOT NULL DEFAULT 0);
@@ -43,9 +45,14 @@ def make(path):
     db.execute("INSERT INTO queststeps VALUES (300, 1, 'loot', 'Deidre IV', '729', 0, 0, 0, '')")
     db.execute("INSERT INTO queststeps VALUES (300, 3, 'give', 'Ludvick Undogeem', '729, 730', 0, 0, 0, ?)",
                (t.DEIDRE_J3_OLD,))
-    db.execute("INSERT INTO itempattern VALUES (729, ?, 'A cog from the clockwork Deidre IV.')", (t.COG_OLD,))
-    db.execute("INSERT INTO itempattern VALUES (735, 'Shadowhand Receipt', ?)", (t.RECEIPT_OLD,))
-    db.execute("INSERT INTO npcs VALUES (122506, 'Wandering Priestess', 0, 11155.9, 57.6749, 17228.2)")
+    db.execute("INSERT INTO itempattern (patternid, itemname, itemdesc) VALUES (729, ?, 'A cog from the clockwork Deidre IV.')", (t.COG_OLD,))
+    db.execute("INSERT INTO itempattern (patternid, itemname, itemdesc) VALUES (735, 'Shadowhand Receipt', ?)", (t.RECEIPT_OLD,))
+    db.execute("INSERT INTO npcs VALUES (122506, 'Wandering Priestess', 0, 11155.9, 57.6749, 17228.2, 21)")
+    db.execute("INSERT INTO itempattern VALUES (2216, 'Gravemold Tunic', 'x', 75, 0)")
+    db.execute("INSERT INTO itempattern VALUES (50028, 'Infused Draught', 'x', 0, 0)")
+    db.execute("INSERT INTO itemeffect VALUES (50028, ?)", (t.DRAUGHT_OLD,))
+    for i, ((x, z), _) in enumerate(t.SPIDERS):
+        db.execute("INSERT INTO npcs VALUES (?, 'grave spider', 0, ?, 50, ?, 17)", (100485 + i, x, z))
     db.commit()
     db.close()
 
@@ -60,7 +67,7 @@ def run(*args):
 def snap(path):
     db = sqlite3.connect(path)
     out = {}
-    for tbl in ("spellpattern", "spelleffect", "quests", "queststeps", "itempattern", "npcs", "npcmove"):
+    for tbl in ("spellpattern", "spelleffect", "quests", "queststeps", "itempattern", "itemeffect", "npcs", "npcmove"):
         out[tbl] = db.execute(f"SELECT * FROM {tbl} ORDER BY 1, 2").fetchall()
     db.close()
     return out
@@ -79,7 +86,7 @@ class PetpassTest(unittest.TestCase):
         before = snap(self.path)
         code, out = run("--db", self.path, "--shard", "live")
         self.assertEqual(code, 0, out)
-        self.assertIn("dry run: 14 rows", out)
+        self.assertIn("dry run: 20 rows", out)
         self.assertEqual(snap(self.path), before)
 
     def test_apply_live_then_undo(self):
@@ -92,7 +99,13 @@ class PetpassTest(unittest.TestCase):
                          "Perpetual Motion Device")
         self.assertEqual(db.execute("SELECT x, z FROM queststeps WHERE questid = 101").fetchone(), t.TOWER)
         self.assertEqual(db.execute("SELECT roam, radius FROM npcmove").fetchone(), (1, 25.0))
-        self.assertEqual(db.execute("SELECT count(*) FROM gm_audit").fetchone()[0], 14)
+        self.assertEqual(db.execute("SELECT count(*) FROM gm_audit").fetchone()[0], 20)
+        self.assertEqual(db.execute("SELECT agi, AC FROM itempattern WHERE patternid = 2216").fetchone(), (0, 75))
+        self.assertIn("4 ticks", db.execute("SELECT line FROM itemeffect").fetchone()[0])
+        got = db.execute("SELECT x_coord, y_coord, z_coord, npc_level FROM npcs WHERE npc_name = 'grave spider' "
+                         "ORDER BY id").fetchall()
+        self.assertEqual(len(got), 8)
+        self.assertEqual(got[4:], [(x, y, z, 17) for _, (x, y, z) in t.SPIDERS])
         db.close()
         code, out = run("--db", self.path, "--shard", "live", "--apply", "--no-backup")
         self.assertIn("applied already", out)

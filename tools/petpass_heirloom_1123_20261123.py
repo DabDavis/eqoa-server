@@ -19,6 +19,9 @@ live-mirror (Live only: the Heirloom panel made these on 2026-11-23):
   2722  the Shadowhand Receipt's description sends its bearer to Nanibar Volsweath in Wyndhaven.
   2724  Grave Silk's journal says where the grave spiders stand, and the step has the tomb as its place (marks).
   2727  Deidre IV's Cog is the Perpetual Motion Device, and the quest's words with it.
+  2717  the Gravemold Tunic's AGI 75 is AC 75 (the source's misread; the owner, 2026-11-23).
+  2724  four more grave spiders in the tomb, copies of its four standing beside them on their floors (the owner).
+  2729  the Infused Draught ticks a 4th time, at 18 s: 3,200 power for 800 health (the owner).
 
 Every row written is a gm_audit line (via "tool") and a row of petpass_heirloom_1123_log; --undo puts each back
 as it was (a row changed since is left and said) and drops the log. A report by default; --apply writes once (a
@@ -75,10 +78,19 @@ DEIDRE_OFFER_NEW = ("Deidre IV has gone wild. Out the east gate, south-east over
                     "clockwork village. She roams the flats there. Bring me her perpetual motion device.")
 DEIDRE_J3_OLD = ("Bring Deidre IV's cog and the intense grease to Ludvick Undogeem in the enchanters' guild in "
                  "Klik'Anon.")
+DRAUGHT_OLD = "Self, Decrease Hitpoints by 800, Increase Power per tic by 800, 18sec"
+DRAUGHT_NEW = "Self, Decrease Hitpoints by 800, Increase Power per tic by 800, 4 ticks, 18sec"
+# each standing grave spider (its place) and its copy's place, on the same floor (the ground's floor at it)
+SPIDERS = [
+    ((7783.77, 17450.9), (7787.0, 74.51, 17451.0)),
+    ((7759.92, 17403.4), (7763.0, 76.14, 17408.0)),
+    ((7761.88, 17450.0), (7766.0, 24.67, 17452.0)),
+    ((7757.02, 17458.8), (7760.0, 24.82, 17462.0)),
+]
 DEIDRE_J3_NEW = ("Bring Deidre IV's perpetual motion device and the intense grease to Ludvick Undogeem in the "
                  "enchanters' guild in Klik'Anon.")
 
-KEYS = {"spelleffect": ("spellid",), "spellpattern": ("spellid",), "queststeps": ("questid", "step"),
+KEYS = {"itemeffect": ("patternid",), "spelleffect": ("spellid",), "spellpattern": ("spellid",), "queststeps": ("questid", "step"),
         "quests": ("questid",), "itempattern": ("patternid",), "npcs": ("id",), "npcmove": ("name",)}
 LOG_DDL = f"""CREATE TABLE IF NOT EXISTS {LOG} (
     seq    INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -200,6 +212,23 @@ class Plan:
         self.set("quests", q, {"offer": DEIDRE_OFFER_NEW}, {"offer": DEIDRE_OFFER_OLD}, "2727 Deidre IV's offer")
         st3 = one(db, "Deidre IV's step 3", "SELECT * FROM queststeps WHERE questid = ? AND step = 3", (q["questid"],))
         self.set("queststeps", st3, {"journal": DEIDRE_J3_NEW}, {"journal": DEIDRE_J3_OLD}, "2727 Deidre IV's step 3")
+        tunic = one(db, "the Gravemold Tunic", "SELECT * FROM itempattern WHERE itemname = 'Gravemold Tunic'")
+        self.set("itempattern", tunic, {"agi": 0, "AC": 75}, {"agi": 75, "AC": 0}, "2717 the Gravemold Tunic's AGI 75 as AC")
+        dr = one(db, "the Infused Draught's effect", """SELECT e.* FROM itemeffect e JOIN itempattern p ON
+            p.patternid = e.patternid WHERE p.itemname = 'Infused Draught'""")
+        self.set("itemeffect", dr, {"line": DRAUGHT_NEW}, {"line": DRAUGHT_OLD}, "2729 the Infused Draught's 4th tick")
+        spiders = rows(db, "SELECT * FROM npcs WHERE npc_name = 'grave spider' AND world = 0")
+        for (ox, oz), (x, y, z) in SPIDERS:
+            if any(abs(r["x_coord"] - x) < 0.5 and abs(r["z_coord"] - z) < 0.5 for r in spiders):
+                self.lines.append(f"already  2724 a grave spider at ({x}, {z})")
+                continue
+            src = [r for r in spiders if abs(r["x_coord"] - ox) < 0.5 and abs(r["z_coord"] - oz) < 0.5]
+            if len(src) != 1:
+                raise Refused(f"2724: {len(src)} grave spiders at ({ox}, {oz}), want one")
+            new = {k: v for k, v in src[0].items() if k != "id"}
+            new.update({"x_coord": x, "y_coord": y, "z_coord": z})
+            self.changes.append(("npcs", None, None, new))
+            self.lines.append(f"insert   2724 a grave spider at ({x}, {y}, {z}), a copy of row {src[0]['id']}")
 
 
 def audit(db, action, tbl, key, before, after):
@@ -220,8 +249,10 @@ def apply(db, plan):
     for tbl, key, before, values in plan.changes:
         if before is None:
             cols = list(values)
-            db.execute(f"INSERT INTO {tbl} ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})",
-                       [values[c] for c in cols])
+            cur = db.execute(f"INSERT INTO {tbl} ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})",
+                             [values[c] for c in cols])
+            if key is None:  # a new npcs row: its id is the one made
+                key = {"id": cur.lastrowid}
             after = rows(db, f"SELECT * FROM {tbl} WHERE {where(key)[0]}", where(key)[1])[0]
             a = audit(db, "insert", tbl, key, None, after)
         else:

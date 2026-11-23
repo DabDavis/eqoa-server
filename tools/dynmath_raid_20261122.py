@@ -12,7 +12,11 @@ level 60 ghost's body at size 1, the roamer's template (a warrior with a crit): 
     sight off CHAR.ESF's renders, `eqoa shot`), at size 2.5; level 60 kept.
   - His template "dynmath the tyrant raid" (npctemplate "dynmath the tyrant" from "roamer"): a necromancer's (class
     11), hp_pct 3000 (~430,000 at 60, beside the Fire Primeval's ~450,000 and the quest Sarek's 250,000), melee 175%,
-    the roamer's Critical Hit, a rampage, his book's lifetap and damage over time. Undead (npcundead).
+    the roamer's Critical Hit, a rampage, his book's lifetap and damage over time, and Grasp of the Dead: every 45 s
+    from 30 s into the fight the one he fights (the top of his hate list, a player) is sent beside one of his living
+    dead within 150 and every one of them round it is set on that player (portnear with top, entity/portnear.go; the
+    guide: "DtT is impossible to MT because he'll port whoever has aggro into his cadre of minions"), his line in
+    /say "Your place is among my dead!". Undead (npcundead).
   - His dead: a new spawn-only row "minion of Dynmath" (a copy of his row: the zombies' body 0x1BBB898C, size 1.1,
     level 57), template "minion of dynmath" (a warrior's, hp_pct 250, melee 120%), undead.
   - The trigger "Dynmath the Tyrant" (its own lock: one fight at a time, 30 minutes, ten with no one by the portal
@@ -73,10 +77,15 @@ BOSS_TEMPLATE = {
     "special_jitter": 5.0, "special_from": 10,
     "abilities": json.dumps([{"kind": "rampage", "chance": 15},
                              {"kind": "lifetap", "every": 18, "first": 6},
-                             {"kind": "dot", "every": 24, "first": 10}], separators=(",", ":")),
+                             {"kind": "dot", "every": 24, "first": 10},
+                             {"kind": "portnear", "every": 45, "first": 30, "radius": 150, "top": True,
+                              "foes": [MINION], "name": "Grasp of the Dead",
+                              "say": "Your place is among my dead!"}], separators=(",", ":")),
     "note": "Live petition 5500 (the owner, 2026-11-22): Dynmath the Tyrant a raid boss, ~430k at 60 (hp_pct 3000; "
             "the Fire Primeval ~450k, the quest Sarek 250k), a necromancer's lifetap and damage over time, the "
-            "roamer's Critical Hit and a rampage; his dead are the trigger's. " + TOOL,
+            "roamer's Critical Hit and a rampage; every 45 s from 30 s into the fight the one he fights is sent "
+            "into his dead (portnear, top: the guide's 'he'll port whoever has aggro into his cadre of minions'), "
+            "who are set on them; his dead are the trigger's. " + TOOL,
     "source": SRC,
 }
 MINION_TEMPLATE = {

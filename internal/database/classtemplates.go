@@ -267,6 +267,12 @@ const (
 	// (entity/portnear.go; the owner, 2026-11-13: "he will port players close
 	// to the mobs in the chamber so they get attacked by them", "make the port
 	// once every 3 mins").
+	//
+	// With Top it sends the one it fights instead, the top of its hate list
+	// (a pet never: none is sent), whoever else is there (Live petition 5500,
+	// the owner 2026-11-22: Dynmath the Tyrant "will port whoever has aggro
+	// into his cadre of minions"); Say is its creature's line in /say as it
+	// goes.
 	AbilityPortNear = "portnear"
 	// AbilityPortFoe: the one it fights, when a player (a pet never: the
 	// fight goes on), sent off: to its own bind point (Return Home's place), or
@@ -578,6 +584,9 @@ type TemplateAbility struct {
 	// first of them first; and a killsay's: those whose death by its hit its
 	// line is for.
 	Foes []string `json:"foes,omitempty"`
+	// Top is a portnear's: it sends the one its creature fights (the top of
+	// its hate list) in place of Count players of its list at random.
+	Top bool `json:"top,omitempty"`
 	// TapPct is a veil's: the percent of its creature's own most hit points each
 	// of its melee hits that lands takes from what it hit, into itself.
 	TapPct float64 `json:"tap_pct,omitempty"`
@@ -1090,6 +1099,14 @@ func checkBossMoment(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: a portnear's count %d: 0 (one) to 40 players", n, a.Count)
 	case a.Kind != AbilityRaidHeal && a.Kind != AbilityPortNear && a.Count != 0:
 		return fmt.Errorf("ability %d: a count is a raidheal's or a portnear's", n)
+	case a.Top && a.Kind != AbilityPortNear:
+		return fmt.Errorf("ability %d: top is a portnear's", n)
+	case a.Top && a.Count > 1:
+		return fmt.Errorf("ability %d: a portnear with top sends the one it fights alone (count 0 or 1)", n)
+	case a.Say != "" && a.Kind != AbilityPortNear:
+		return fmt.Errorf("ability %d: a say is a portnear's (of the moments)", n)
+	case len(a.Say) > SayMost || strings.ContainsAny(a.Say, "|\n\r"):
+		return fmt.Errorf("ability %d: a say of more than %d characters, or with a | or a line break", n, SayMost)
 	case a.Kind == AbilityPortNear && (a.Radius < 1 || a.Radius > MostPortRadius):
 		return fmt.Errorf("ability %d: a portnear's radius %.1f: 1 to %d", n, a.Radius, MostPortRadius)
 	case a.Kind != AbilityPortNear && len(a.Foes) > 0:

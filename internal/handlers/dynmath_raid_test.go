@@ -12,6 +12,31 @@ import (
 // them (its test checks they are these, letter for letter).
 const dynmathSteps = `[{"do":"lock","lock":"dynmath the tyrant"},{"do":"clock","seconds":1800,"empty":600},{"do":"broadcast","text":"The Etheneric Portal tears open. Dynmath the Tyrant strides through, his dead behind him."},{"do":"spawn","npc":"Dynmath the Tyrant","hostile":true,"spread":0.5,"minutes":35,"world":0,"x":4765.39,"y":58.95,"z":14028.43},{"do":"spawn","npc":"minion of Dynmath","hostile":true,"count":8,"spread":12,"minutes":35,"noloot":true,"world":0,"x":4765.39,"y":58.95,"z":14028.43},{"do":"resummon","npc":"minion of Dynmath","by":"Dynmath the Tyrant","seconds":15,"hostile":true,"minutes":35,"text":"Dynmath the Tyrant calls another of his dead out of the portal."},{"do":"awaitdead","npc":"Dynmath the Tyrant"},{"do":"broadcast","text":"Dynmath the Tyrant falls, and his dead crumble to dust."},{"do":"despawn","npc":"minion of Dynmath"},{"do":"end"},{"do":"despawn"}]`
 
+// dynmathAbilities are his template's abilities as the tool writes them (its
+// test checks they are these, letter for letter).
+const dynmathAbilities = `[{"kind":"rampage","chance":15},{"kind":"lifetap","every":18,"first":6},{"kind":"dot","every":24,"first":10},{"kind":"portnear","every":45,"first":30,"radius":150,"top":true,"foes":["minion of Dynmath"],"name":"Grasp of the Dead","say":"Your place is among my dead!"}]`
+
+// His template's abilities pass the template check, and Grasp of the Dead is a
+// portnear with top, among his dead.
+func TestDynmathsAbilitiesHold(t *testing.T) {
+	list, err := database.ParseTemplateAbilities(dynmathAbilities)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := database.CheckTemplateAbilities(list); err != nil {
+		t.Fatal(err)
+	}
+	var port *database.TemplateAbility
+	for i := range list {
+		if list[i].Kind == database.AbilityPortNear {
+			port = &list[i]
+		}
+	}
+	if port == nil || !port.Top || len(port.Foes) != 1 || port.Foes[0] != "minion of Dynmath" {
+		t.Fatalf("his port: %+v", port)
+	}
+}
+
 // Dynmath the Tyrant as a raid boss (Live petition 5500, the owner 2026-11-22):
 // the totem's hand-in raises him with eight of his dead; with all of them down,
 // one more comes 15 s after the last fell while he lives; at his death his dead

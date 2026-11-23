@@ -115,6 +115,9 @@ class Test(unittest.TestCase):
         with open(os.path.join(HERE, "..", "internal", "handlers", "dynmath_raid_test.go")) as f:
             go = f.read()
         self.assertIn(f"const dynmathSteps = `{steps}`", go, "the trigger's steps are not the Go test's")
+        abil = db.execute("SELECT abilities FROM classtemplates WHERE name = 'dynmath the tyrant raid'").fetchone()[0]
+        self.assertIn(f"const dynmathAbilities = `{abil}`", go, "his abilities are not the Go test's")
+        self.assertTrue(any(a["kind"] == "portnear" and a.get("top") for a in json.loads(abil)))
         db.close()
         after = snapshot(self.db)
         rc, out = run("--db", self.db, "--shard", "heirloom", "--apply")

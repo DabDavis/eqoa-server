@@ -174,15 +174,17 @@ var skyPasses = []skyPass{
 		At: skyIsleOfWonder, Steps: [][2]int{{101307, 18}}}, // 17 before the herb's step (tools/snow_chain_20261118.py)
 
 	// the chain of desolation (the Mark of Desolation's trip to its first
-	// isle: waysender.go)
+	// isle: waysender.go); its essence steps are 7, 12, 15 and 17 since the
+	// chain's guide steps were added (Heirloom petition 2675: the old 4/9/12/14
+	// left a quester on the third isle at step 12, the harpies not counting)
 	{NPC: "essence of desolation", X: 4751.5, Z: 6418.5, Key: "Desolation Key 1", To: "the second isle of desolation",
-		At: wayPlace{World: 4, X: 5127.7, Y: 615.75, Z: 6625.2, Facing: 4.77}, Steps: [][2]int{{101308, 4}}},
+		At: wayPlace{World: 4, X: 5127.7, Y: 615.75, Z: 6625.2, Facing: 4.77}, Steps: [][2]int{{101308, 7}}},
 	{NPC: "essence of desolation", X: 5146.8, Z: 6620.1, Key: "Desolation Key 2", To: "the third isle of desolation",
-		At: wayPlace{World: 4, X: 5199.3, Y: 709.38, Z: 6897.8, Facing: 6.12}, Steps: [][2]int{{101308, 9}}},
+		At: wayPlace{World: 4, X: 5199.3, Y: 709.38, Z: 6897.8, Facing: 6.12}, Steps: [][2]int{{101308, 12}}},
 	{NPC: "essence of desolation", X: 5116.0, Z: 7174.8, Key: "Desolation Key 3", To: "the fourth isle of desolation",
-		At: wayPlace{World: 4, X: 4798.0, Y: 858.7, Z: 7616.6, Facing: 3.77}, Steps: [][2]int{{101308, 12}}},
+		At: wayPlace{World: 4, X: 4798.0, Y: 858.7, Z: 7616.6, Facing: 3.77}, Steps: [][2]int{{101308, 15}}},
 	{NPC: "essence of desolation", X: 4734.2, Z: 7688.3, Key: "Desolation Key 4", To: "the Isle of Wonder",
-		At: skyIsleOfWonder, Steps: [][2]int{{101308, 14}}},
+		At: skyIsleOfWonder, Steps: [][2]int{{101308, 17}}},
 }
 
 // The essence's words.

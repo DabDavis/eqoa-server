@@ -876,6 +876,9 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 	w.updateAggro(npc, attacker.ServerID, damage)
 	w.rootBreakLocked(npc, attacker.Level) // root.go
 	if killed {
+		if wp := handProcLocked(attacker, attacker.RoundHits); wp != nil && wp.Kind == ProcMysteryTravel && !wp.misses(attacker) {
+			w.mysteryTravelLocked(sess, attacker)
+		}
 		w.killNPC(npc)
 		cs, cp := w.killCreditLocked(npc, sess, attacker) // killcredit.go: the most damage's group
 		w.awardKillXPLocked(cs, cp, npc)                  // killexp.go

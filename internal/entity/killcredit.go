@@ -38,6 +38,7 @@ func (w *World) tallyDamageLocked(npc *NPC, maker *Player, n int) {
 // damage on it, else the most damaging member of the group that did (the file's doc). Must be called with the lock
 // held.
 func (w *World) killCreditLocked(npc *NPC, sess *session.Session, killer *Player) (*session.Session, *Player) {
+	w.leftoverDeathLocked(npc, sess, killer)
 	if npc == nil || killer == nil || len(npc.damageBy) == 0 {
 		return sess, killer
 	}

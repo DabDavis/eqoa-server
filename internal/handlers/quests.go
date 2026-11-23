@@ -111,6 +111,7 @@ type QuestEngine struct {
 	// syncAsc is the Ascended records a sync of the marks reads once for
 	// every character's pass (questpass.go)
 	syncAsc *syncAscended
+	db      *database.SQLiteDB
 	store   *database.QuestStore
 	inv     *database.InventoryStore
 	items   *database.ItemPatternStore
@@ -267,6 +268,7 @@ func (cat *questCatalog) foldedName(qu *database.Quest) string {
 
 // questChar is one character's quests.
 type questChar struct {
+	westGate westGateSample
 	serverID uint32
 	// infection is its were infection's row (nil none), read once when
 	// infectionRead (wereinfect.go)
@@ -382,6 +384,7 @@ const (
 // NewQuestEngine reads the quests out of db. Start sets it running.
 func NewQuestEngine(db *database.SQLiteDB, gw *entity.World, sm *session.Manager, inv *database.InventoryStore, spells *database.SpellbookStore) (*QuestEngine, error) {
 	q := &QuestEngine{
+		db:         db,
 		store:      database.NewQuestStore(db),
 		inv:        inv,
 		items:      database.NewItemPatternStore(db),
@@ -861,6 +864,9 @@ func (q *QuestEngine) nudge() {
 // Talk is HandleInteract's first question: a quest step done at this NPC, or
 // a quest it offers. It reports whether the quests answered.
 func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.NPC) bool {
+	if npc != nil && npc.Temporary && npc.Row() == 197601 && npc.Name == "Turkey King" {
+		return true
+	}
 	if q == nil || p == nil || npc == nil || npc.Dead {
 		return false
 	}
@@ -1155,6 +1161,12 @@ func (q *QuestEngine) offerAtLocked(look *factionLook, p *entity.Player, c *ques
 // all over the world (Heirloom petition 2718: the tomb rats' "large rat" of
 // the River Saren tower's quests dropped their sigils off Halas's rats).
 func stepKill(st *database.QuestStep, k entity.KillCredit) bool {
+	if st.Quest == 109911 || st.Quest == 109912 {
+		return k.World == 0 && k.NPCSpawn != 0 && stepNPC(st, k.NPCName, k.NPCSpawn) && math.Hypot(float64(k.X-st.X), float64(k.Z-st.Z)) <= float64(st.Radius)
+	}
+	if st.Quest == turkeyQuest && st.Kind == database.StepKill {
+		return k.World == 0 && k.NPCSpawn == 0 && k.NPCName == "Turkey King" && k.OriginalRow == 197601
+	}
 	if st.TakesKillAt(int(k.World), k.X, k.Z) {
 		return true
 	}
@@ -1277,6 +1289,20 @@ func (q *QuestEngine) mayTakeAtLocked(look *factionLook, p *entity.Player, c *qu
 		return "not for that class"
 	case len(qu.Races) > 0 && !questRaceTakes(qu.Races, p.Race):
 		return "not for that race"
+	}
+	if qu.Source == "thanksgiving-2026" {
+		if !q.thanksgivingOpen() {
+			return "Thanksgiving has ended"
+		}
+		if qu.ID != turkeyQuest {
+			main := c.quests[turkeyQuest]
+			if main == nil || main.Step != 1 {
+				return "the King must be awaiting your marks"
+			}
+			if !q.turkeyPatrolOpen(p.CharServerID) {
+				return "the muster has paid its share"
+			}
+		}
 	}
 	// a homeland's quest stands finished when the city class quest it stands
 	// for is (standsFinishedLocked): for its own offer and for the next one's
@@ -1683,6 +1709,10 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 	if short := q.packShortLocked(sess, q.handInTakes(p, st), stepGains(p, qu, st, extraRw)); short != "" {
 		q.tellLocked(c, sess, st.Target, fmt.Sprintf(questPackFull, short))
 		log.Printf("Quests: %s's step %d of %q waits for room for %s", p.Name, st.Step, qu.Name, short)
+		return
+	}
+	if qu.Source == "thanksgiving-2026" && (st.Kind == database.StepTalk || st.Kind == database.StepGive) {
+		q.turkeyReport(sess, p, c, qu, cq, st)
 		return
 	}
 	var given *handedIn
@@ -2154,17 +2184,21 @@ func (q *QuestEngine) checkReach() {
 			}
 			p := q.playerOf(sess)
 			world, x, y, z, ok := q.gw.PlayerPlace(p)
-			if !ok || int(world) != st.World || !withinHeight(st, y) {
+			if qu.ID == turkeyQuest && qu.Source == "thanksgiving-2026" && st.Kind == database.StepReach {
+				if !ok || !c.westGate.crosses(world, x, y, z, time.Now()) || !q.thanksgivingOpen() {
+					continue
+				}
+			} else if !ok || int(world) != st.World || !withinHeight(st, y) {
 				continue
 			}
 			r := st.Radius
 			if r <= 0 {
 				r = 15
 			}
-			if dx, dz := x-st.X, z-st.Z; dx*dx+dz*dz > r*r {
+			if dx, dz := x-st.X, z-st.Z; !(qu.ID == turkeyQuest && qu.Source == "thanksgiving-2026") && dx*dx+dz*dz > r*r {
 				continue
 			}
-			if line := q.triggerBusyLocked(st); line != "" {
+			if line := q.triggerBusyLocked(st); line != "" && !(qu.Source == "thanksgiving-2026" && Triggers().RunningNamed("The King's Last Thanksgiving")) {
 				q.reachBusyLocked(sess, c, qu, line, time.Now())
 				continue
 			}
@@ -2307,6 +2341,11 @@ func (q *QuestEngine) completeStepSkipLocked(sess *session.Session, p *entity.Pl
 	var rw database.ClassReward
 	if p != nil {
 		rw = st.RewardFor(p.Class)
+	}
+	if qu.ID == turkeyQuest && qu.Source == "thanksgiving-2026" && next == nil && given != nil {
+		rw.Items = nil
+		q.showTurkeyClub(sess, p)
+		lines = append(lines, "You have received Turkey Smasher.")
 	}
 	if extra != nil {
 		rw = rw.Plus(*extra)

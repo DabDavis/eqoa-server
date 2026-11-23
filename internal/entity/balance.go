@@ -471,6 +471,7 @@ func (w *World) applyBalanceLocked(npc *NPC) {
 	}
 	// its effects' maximum on its new hit points (pet.go)
 	npc.effMaxHP = 0
+	npc.MaxHP = npc.turkeyHP(npc.MaxHP)
 	npc.syncEffectMaxHP()
 	npc.HP = npc.MaxHP
 }

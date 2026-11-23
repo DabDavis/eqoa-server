@@ -23,12 +23,13 @@ const KillShareRange float32 = 200
 // KillShareRange (alive or lying dead), and those of them who died in its fight
 // wherever they are now (fallen.go).
 type KillCredit struct {
-	NPCName  string
-	NPCSpawn EntityID // its spawn row (npcs.id); 0 for a GM's #spawn copy (no row, its original's name)
-	NPCID    EntityID // the creature itself, whose corpse a loot step's drop goes on
-	Died     time.Time
-	Level    int
-	World    uint8
+	OriginalRow EntityID // template spawn row, including temporary encounter copies
+	NPCName     string
+	NPCSpawn    EntityID // its spawn row (npcs.id); 0 for a GM's #spawn copy (no row, its original's name)
+	NPCID       EntityID // the creature itself, whose corpse a loot step's drop goes on
+	Died        time.Time
+	Level       int
+	World       uint8
 	// X and Z are where it died (an AnyCreature step's area: database.QuestStep.TakesKillAt)
 	X, Z    float32
 	Players []KillPlayer
@@ -101,7 +102,7 @@ func (w *World) creditKillLocked(sess *session.Session, p *Player, npc *NPC) {
 		spawn = 0
 	}
 	c := KillCredit{NPCName: npc.Name, NPCSpawn: spawn, NPCID: npc.ServerID, Died: npc.DeathTime, Level: npc.Level, World: npc.World, X: npc.X, Z: npc.Z, Raid: raid,
-		Group: p.GroupID, OpenAt: openAt}
+		Group: p.GroupID, OpenAt: openAt, OriginalRow: npc.row()}
 	// a Hardcore character helped gets no credit, no loot right (hcrules.go)
 	c.Hardcore = p.HardcoreBound()
 	c.HCEarned = c.Hardcore && !w.hcBarredLocked(npc, p)

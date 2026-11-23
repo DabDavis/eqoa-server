@@ -169,6 +169,10 @@ func (w *World) duelWeaponProcLocked(d *Duel, p *Player, sess *session.Session, 
 	if wp.misses(p) {
 		return false
 	}
+	if wp.Kind == ProcMysteryTravel {
+		w.mysteryTravelLocked(sess, p)
+		return false
+	}
 	if wp.Kind == ProcPower {
 		w.powerProcLocked(p, wp)
 		return false

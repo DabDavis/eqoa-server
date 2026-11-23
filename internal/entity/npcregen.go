@@ -60,6 +60,9 @@ func (w *World) npcRegenSystem(now time.Time) {
 		if npc = w.setMember(w.sets.regen.m, id, npc); npc == nil {
 			continue
 		}
+		if npc.sceneDown {
+			continue
+		}
 		if regenQuiet(npc) {
 			delete(w.sets.regen.m, id) // a corpse, a dummy, or whole and calm
 			continue

@@ -99,7 +99,9 @@ const (
 	// The run's spawn named npc called back while its spawn named by lives: seconds after the
 	// last one fell, one more beside it, set on target (the user, 2026-11-09: "cause tunare to
 	// resummon her pets"), from this step to the run's end
-	TriggerResummon = "resummon"
+	TriggerResummon    = "resummon"
+	TriggerSceneStrike = "scenestrike"
+	TriggerShout       = "shout"
 	// The NPC named npc nearest the run's place guarded from this step to the run's end:
 	// its death (or its going) fails the run, text said to its players, its spawns taken
 	// away and the rest left undone (petition 1617: "If the herbman dies while you are
@@ -152,7 +154,7 @@ const TriggerNearHeight float32 = 40
 var TriggerActions = []string{TriggerBroadcast, TriggerPopup, TriggerSay, TriggerGive, TriggerVisual,
 	TriggerTeleport, TriggerSpawn, TriggerDespawn, TriggerStop, TriggerWait,
 	TriggerLock, TriggerPlace, TriggerClock, TriggerEnd, TriggerAwaitTalk, TriggerAwaitDead, TriggerWalk, TriggerHome, TriggerHide, TriggerRouse, TriggerSic,
-	TriggerResummon, TriggerProtect, TriggerQuestStep, TriggerQuestSet, TriggerAwaitKill, TriggerAwaitNear, TriggerWeather, TriggerSeason}
+	TriggerResummon, TriggerProtect, TriggerQuestStep, TriggerQuestSet, TriggerAwaitKill, TriggerAwaitNear, TriggerWeather, TriggerSeason, TriggerSceneStrike, TriggerShout}
 
 // TriggerStep is one step of a trigger, kept in the steps column's array.
 type TriggerStep struct {
@@ -452,7 +454,7 @@ func StepProblems(steps []TriggerStep) []string {
 	}
 	for i, s := range steps {
 		switch s.Do {
-		case TriggerBroadcast, TriggerPopup, TriggerSay:
+		case TriggerBroadcast, TriggerPopup, TriggerSay, TriggerShout:
 			if strings.TrimSpace(s.Text) == "" {
 				add(i, "%s says nothing (text)", s.Do)
 			}
@@ -628,6 +630,10 @@ func StepProblems(steps []TriggerStep) []string {
 			default:
 				add(i, "season's turn %q: on, off or toggle (none: toggle)", s.Turn)
 			}
+		case TriggerSceneStrike:
+			if strings.TrimSpace(s.NPC) == "" || strings.TrimSpace(s.Target) == "" || strings.EqualFold(s.NPC, s.Target) || s.Count < 0 {
+				add(i, "scenestrike needs two different run actors and a nonnegative hit")
+			}
 		case TriggerSic:
 			if strings.TrimSpace(s.Target) == "" {
 				add(i, "sic names no target")
@@ -676,7 +682,7 @@ func StepProblems(steps []TriggerStep) []string {
 		case TriggerBroadcast, TriggerPopup, TriggerSay, TriggerGive, TriggerVisual, TriggerTeleport, TriggerSpawn,
 			TriggerDespawn, TriggerStop, TriggerWait, TriggerLock, TriggerPlace, TriggerClock, TriggerEnd,
 			TriggerWalk, TriggerHome, TriggerHide, TriggerRouse, TriggerSic, TriggerResummon, TriggerProtect, TriggerQuestStep,
-			TriggerQuestSet, TriggerWeather, TriggerSeason:
+			TriggerQuestSet, TriggerWeather, TriggerSeason, TriggerSceneStrike, TriggerShout:
 		default:
 			add(i, "do %q is not one of %s", s.Do, strings.Join(TriggerActions, ", "))
 		}

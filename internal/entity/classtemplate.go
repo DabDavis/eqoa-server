@@ -468,6 +468,7 @@ func (w *World) applyTemplateLocked(npc *NPC) {
 		}
 		maxHP = max(1, int(math.Round(float64(npc.tbase.maxHP)*float64(t.HPPct)/100)))
 	}
+	maxHP = npc.turkeyHP(maxHP)
 	if npc.Class != class {
 		npc.Class = class
 		npc.endRound()
@@ -1004,6 +1005,9 @@ func (w *World) templateWantsLocked(npc *NPC, a *templateAbility, target EntityI
 		}
 		return npc.HP*100 < npc.MaxHP*a.BelowOr() // whole enough: it waits
 	case database.AbilityDebuff, database.AbilityRoot:
+		if npc.turkeyKing() && a.SpellID == 909210 {
+			return true
+		} // caster-centred even when a pet has aggro
 		return w.Players[target] != nil // a pet: it waits (a root is a player's: creatureroot.go)
 	case database.AbilityDoT:
 		return w.creatureDoTWantedLocked(npc, a, target, now) // creaturedot.go
@@ -1393,6 +1397,17 @@ func (w *World) templateLandLocked(c *npcCast, now time.Time) {
 		w.templateHealLocked(c)
 		return
 	case c.debuff:
+		if npc.turkeyKing() && c.spell.SpellID == 909210 {
+			for _, p := range w.Players {
+				if p.World != npc.World || dist3(npc.X, npc.Y, npc.Z, p.X, p.Y, p.Z) > c.spell.Area.Radius {
+					continue
+				}
+				on := *c
+				on.target = p.ServerID
+				w.templateDebuffLocked(&on, now)
+			}
+			return
+		}
 		w.templateDebuffLocked(c, now)
 		return
 	case c.strip:

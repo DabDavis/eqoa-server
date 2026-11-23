@@ -1,0 +1,396 @@
+{
+  "title": "The King's Last Thanksgiving",
+  "source": "thanksgiving-2026",
+  "season": "Thanksgiving",
+  "shard": "heirloom",
+  "west_gate": {
+    "world": 0,
+    "x": 25220,
+    "y": 54.094,
+    "z": 15760,
+    "opening_z": [
+      15738,
+      15782
+    ],
+    "direction": "outbound"
+  },
+  "actors": [
+    [
+      197601,
+      "Turkey King",
+      102915,
+      0,
+      15227,
+      54.094,
+      22743,
+      2.5,
+      "court"
+    ],
+    [
+      197602,
+      "Archivist Quill",
+      121481,
+      0,
+      15211,
+      54.094,
+      22730,
+      0.95,
+      "court"
+    ],
+    [
+      197603,
+      "Quartermaster Giblet",
+      113912,
+      0,
+      15239,
+      54.094,
+      22731,
+      1.05,
+      "court"
+    ],
+    [
+      197604,
+      "Captain Tallyspur",
+      121481,
+      0,
+      13732,
+      57.554,
+      24216,
+      1.05,
+      "field"
+    ],
+    [
+      197605,
+      "Scout Brinebeak",
+      113912,
+      0,
+      25367,
+      54.156,
+      6474,
+      0.95,
+      "field"
+    ],
+    [
+      197606,
+      "Sergeant Rivetbeak",
+      121481,
+      1,
+      5334,
+      69.008,
+      9360,
+      0.95,
+      "field"
+    ],
+    [
+      197607,
+      "Leftovers",
+      113912,
+      0,
+      25163,
+      54.094,
+      15759,
+      0.48,
+      "prototype"
+    ],
+    [
+      197608,
+      "Santa Claus of Freeport",
+      190715,
+      0,
+      25169,
+      54.094,
+      15757,
+      1,
+      "prototype"
+    ]
+  ],
+  "positions": {
+    "arena": [
+      25163,
+      54.094,
+      15759
+    ],
+    "santa": [
+      25168,
+      54.094,
+      15757
+    ],
+    "grinch": [
+      25168,
+      54.094,
+      15762
+    ],
+    "tree_santa": [
+      25287.31,
+      54.094,
+      15768.9
+    ],
+    "santa_tree_row": 190715
+  },
+  "dialogs": {
+    "Archivist Quill": [
+      "The last entry before the gap reads: 'One turkey. No crown.' The next is in the same ink: 'His Majesty requires eight chairs.' I've spent all autumn looking for the pages in between.",
+      "Captain Scilond needed three lava centipede thoraxes just to call the Grinch out. His Majesty read that report and underlined the word 'three' until the paper tore."
+    ],
+    "Quartermaster Giblet": [
+      "First thing I remember after the gap is a wet bird standing on my flour barrel. He gave the order to open the granary. By supper every hungry soul in Blackwater called him King.",
+      "Brinebeak keeps the coast roster. Tallyspur counts giant spoons. Both pay in real Heirloom Marks. The King accepts thirty-five, all at once."
+    ],
+    "Turkey King": [
+      "Leave your boots by the flour, your petitions by the gravy, and your marks with me."
+    ],
+    "Captain Tallyspur": [
+      "See that dent in my helmet? The first royal cook mistook it for a ladle. It has fed more of the empire than the crown ever did."
+    ],
+    "Scout Brinebeak": [
+      "When the tide brought the fleet home, every sail was fourteen years older. Every biscuit was still hard. That is how the empire got its first building stones."
+    ],
+    "Sergeant Rivetbeak": [
+      "A shield makes a fine platter after a battle. The King's instructions say that goes the other way round, too."
+    ]
+  },
+  "armor_sources": {
+    "world": 1,
+    "bounds": [
+      5050,
+      5500,
+      9050,
+      9500
+    ],
+    "names": [
+      "envaric zombie",
+      "envaric skeleton",
+      "jal'raeth commoner",
+      "jal'raeth knight",
+      "jal'raeth champion",
+      "jal'raeth channeler",
+      "jal'raeth noble",
+      "accursed maggot",
+      "accursed zombie",
+      "accursed rat",
+      "anointed mummy",
+      "anointed skeleton",
+      "gargoyle servant",
+      "grave usher",
+      "death's head beetle"
+    ],
+    "chance": 0.2
+  },
+  "items": [
+    {
+      "id": 1000810,
+      "base": 966013,
+      "name": "Envar Field Armor",
+      "description": "Stripped from Envar's defenders and bundled for the royal quartermaster. These supplies disappear when Thanksgiving ends.",
+      "visual_from": 995121,
+      "stack": 99,
+      "lore": 0
+    },
+    {
+      "id": 1000811,
+      "base": 966014,
+      "name": "Stuffing",
+      "description": "A single warm parcel. A sprig of sage is tucked beneath its string.",
+      "visual_from": 8393,
+      "stack": 1,
+      "lore": 1
+    },
+    {
+      "id": 1000812,
+      "base": 3441,
+      "name": "Turkey Smasher",
+      "description": "This procs.. something, but you're not sure what",
+      "stack": 1,
+      "lore": 1
+    }
+  ],
+  "quests": [
+    {
+      "id": 109910,
+      "title": "The King's Last Thanksgiving",
+      "giver": "Turkey King",
+      "offer": "Fourteen years, gone. Nobody remembers eating a single Thanksgiving dinner. And who do I find on my turf? The Grinch with Scilond's militia chasing his green backside, and Santa with a tree in Freeport. I used to feed this whole road. I mean to take it back. Will you muster my empire?",
+      "accept": "I'll hear your price.",
+      "started": "Thirty-five Heirloom Marks. My captains can put you to work at Keliner's hill giants or the Klik'Anon coast. Bring the marks here when you're ready.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Turkey King",
+          "npcid": 197601,
+          "answer": "Hand over 35 Heirloom Marks.",
+          "waiting": "Once these thirty-five marks change claws, they belong to the army. Pay the tribute?",
+          "reminder": "The treasury counts thirty-five Heirloom Marks together. My field captains pay for a finished patrol.",
+          "says": "Feel that? One mark and the old standards stand up straight. With thirty-five I'll put iron in every wing in my army. Find Sergeant Rivetbeak in the Tomb City of Envar. We need equipment.",
+          "journal": "Bring 35 Heirloom Marks to the Turkey King in Blackwater."
+        },
+        {
+          "kind": "talk",
+          "target": "Sergeant Rivetbeak",
+          "npcid": 197606,
+          "answer": "I'll raid the city.",
+          "says": "Envar's rank and file wear good iron. Strip ten sets of field armor from the ordinary defenders. Leave the titled dead to their titles. Deliver the bundles to the King in Blackwater.",
+          "journal": "Find Sergeant Rivetbeak inside Envar for the King's equipment raid."
+        },
+        {
+          "kind": "give",
+          "target": "Turkey King",
+          "npcid": 197601,
+          "items": "1000810*10",
+          "exactbase": 1,
+          "answer": "Deliver ten sets of Envar Field Armor.",
+          "waiting": "Ten bundles for ten bare backs. Have you got them?",
+          "reminder": "Bring ten sets of Envar Field Armor from the city's ordinary defenders.",
+          "says": "Ten good sets! Giblet, tighten those straps. It's time to slay Santa and the Grinch. Walk out through Freeport's west gate. I'll meet you outside.",
+          "journal": "Bring 10 sets of Envar Field Armor to the Turkey King in Blackwater."
+        },
+        {
+          "kind": "reach",
+          "world": 0,
+          "x": 25220,
+          "y": 54.094,
+          "z": 15760,
+          "height": 5,
+          "radius": 25,
+          "journal": "Walk from inside Freeport out through the west gate to meet the King.",
+          "events": [
+            {
+              "on": "done",
+              "do": "trigger",
+              "trigger": "The King's Last Thanksgiving",
+              "text": "The King has already taken the field. Join the fight outside the gate."
+            }
+          ]
+        },
+        {
+          "kind": "kill",
+          "target": "Turkey King",
+          "count": 1,
+          "journal": "Defeat the Turkey King outside Freeport's west gate. Take one Stuffing from the corpse."
+        },
+        {
+          "kind": "give",
+          "target": "Santa Claus",
+          "npcid": 190715,
+          "items": "1000811",
+          "exactbase": 1,
+          "rewarditems": "1000812",
+          "answer": "Hand Santa one Stuffing.",
+          "waiting": "I can stand again. Is that sage I smell?",
+          "reminder": "One parcel of Stuffing, from the Turkey King. I'll wait here by the tree.",
+          "says": "I used to carve with this. It kept flattening the bird. After what I saw out there, I think it'll suit you better. Happy Thanksgiving, %p.",
+          "journal": "Take one Stuffing to Santa Claus by the Freeport Christmas tree."
+        }
+      ]
+    },
+    {
+      "id": 109911,
+      "title": "Six Spoons for the Muster",
+      "giver": "Captain Tallyspur",
+      "repeatable": 1,
+      "offer": "Six hill giants have been scooping our grain straight out of the wagons. Drive six off here at Keliner's camp. That's seven marks toward your King's tribute.",
+      "accept": "I'll clear the wagons.",
+      "started": "Stay around the hill giant camp. Come back after six.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "hill giant",
+          "world": 0,
+          "x": 13712,
+          "z": 24281,
+          "radius": 750,
+          "count": 6,
+          "journal": "Defeat 6 hill giants in Keliner's hill giant camp."
+        },
+        {
+          "kind": "talk",
+          "target": "Captain Tallyspur",
+          "npcid": 197604,
+          "answer": "Report the wagons clear.",
+          "says": "Six sets of tracks leading away from the grain. Seven Heirloom Marks to your name.",
+          "reminder": "The muster pays while the King is awaiting your tribute. Bring him thirty-five marks.",
+          "journal": "Report to Captain Tallyspur for 7 Heirloom Marks."
+        }
+      ]
+    },
+    {
+      "id": 109912,
+      "title": "Keep the Gravy Boats Afloat",
+      "giver": "Scout Brinebeak",
+      "repeatable": 1,
+      "offer": "The pirates have taken our gravy boats. Actual boats. Full of gravy. Drive off six deckhands or pirate crew here on the Klik'Anon coast and I'll pay seven Heirloom Marks toward the tribute.",
+      "accept": "I'll clear the shore.",
+      "started": "Six pirates here on the coast. Don't bring back the gravy.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "deckhand",
+          "also": [
+            "pirate scout",
+            "pirate stonemason"
+          ],
+          "world": 0,
+          "x": 25410,
+          "z": 6519,
+          "radius": 150,
+          "count": 6,
+          "journal": "Defeat 6 deckhands, pirate scouts or pirate stonemasons in the marked coastal camp."
+        },
+        {
+          "kind": "talk",
+          "target": "Scout Brinebeak",
+          "npcid": 197605,
+          "answer": "Report the shore clear.",
+          "says": "All six accounted for. Seven Heirloom Marks. And look at that! One boat's still got its biscuits.",
+          "reminder": "The muster pays while the King is awaiting your tribute. Bring him thirty-five marks.",
+          "journal": "Return to Scout Brinebeak for 7 Heirloom Marks."
+        }
+      ]
+    }
+  ],
+  "scene": {
+    "king": "Turkey King",
+    "santa": "Santa Claus of Freeport",
+    "grinch": "The Grinch",
+    "shout": "Fourteen years I miss dinner, and you two steal my holiday? Listen up, Freeport! This Black Friday the loot Santa and the Grinch drop is about to be HALF OFF!",
+    "apology": "I'm sorry. People woke up missing fourteen years. All I wanted was for them to have something to look forward to for the first time since.",
+    "pardon": "You holly jolly traitor. ... Keep your beard. But next year you wait until I've cleared the plates.",
+    "insult": "Thanksgiving isn't even a real holiday. It's a long lunch with worse company.",
+    "turn": "Hold on. I can see the decorations from here. That's tinsel on the west wall. And you lot have pine needles on your boots. YOU were celebrating.",
+    "attack": "That's it. I'm crashing out. I'm going to wipe the floor with every last one of you!",
+    "after": "Give me a little time to recover. When my knees stop knocking, meet me by the tree in Freeport. Bring a parcel of Stuffing."
+  },
+  "raid": {
+    "hp": 2000000,
+    "level": 64,
+    "melee_from": "quintessence of veeshan",
+    "santa_from": "the grinch",
+    "debuff": {
+      "id": 909210,
+      "name": "Turkey time",
+      "radius": 35,
+      "str": -200,
+      "dex": -200,
+      "seconds": 600,
+      "period": 60
+    },
+    "adds": {
+      "name": "Leftovers",
+      "count": 5,
+      "thresholds": [
+        90,
+        80,
+        70,
+        60,
+        50,
+        40,
+        30,
+        20,
+        10
+      ],
+      "hp": 1000,
+      "damage_percent": 50,
+      "burst": 2000
+    },
+    "stuffing": 20
+  }
+}

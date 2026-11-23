@@ -935,6 +935,23 @@ func players(n int) string {
 // it did. Must be called with e.mu held.
 func (e *TriggerEngine) stepLocked(r *triggerRun, s database.TriggerStep) string {
 	switch s.Do {
+	case database.TriggerSceneStrike:
+		var a, t entity.EntityID
+		for _, sp := range r.spawns {
+			if strings.EqualFold(sp.name, s.NPC) {
+				a = sp.id
+			}
+			if strings.EqualFold(sp.name, s.Target) {
+				t = sp.id
+			}
+		}
+		if e.gw == nil || !e.gw.SceneStrike(a, t, s.Count, s.Dead) {
+			return "scene actors unavailable"
+		}
+		return "scene strike"
+	case database.TriggerShout:
+		Broadcast(e.sm, s.NPC+" shouts: "+s.Text, [3]byte{63, 255, 63})
+		return "shouted"
 	case database.TriggerBroadcast:
 		who := e.audience(r)
 		for _, m := range who {
@@ -2108,6 +2125,19 @@ func (e *TriggerEngine) seasonLocked(r *triggerRun, s database.TriggerStep) stri
 		n, _ := e.db.NPCSeasonCount(name)
 		line += fmt.Sprintf(": its %d NPC name(s) %s (%d NPCs changed, %d held out in all); %d strings of lights lit (%d bulbs), sent to %d client(s)",
 			n, map[bool]string{true: "in the world", false: "out of it"}[on], changed, held, strs, bulbs, told)
+	}
+	if strings.EqualFold(name, "Thanksgiving") {
+		if !on {
+			e.stopLocked(func(other *triggerRun) bool { return other != r && other.trig.Name == "The King's Last Thanksgiving" })
+		}
+		// Quest talks hold the quest lock while entering the trigger engine. Refresh outside the reverse lock order.
+		go func() {
+			if q := Quests(); q != nil {
+				if err := q.Reload(); err != nil {
+					log.Printf("Thanksgiving quests: %v", err)
+				}
+			}
+		}()
 	}
 	// its currency earned from now on, or no longer (seasonrewards.go)
 	Rewards().Refresh()

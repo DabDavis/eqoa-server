@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -1797,10 +1798,85 @@ func (q *QuestEngine) HandleDrop(sess *session.Session, msg *protocol.Message) e
 		return nil
 	}
 	cq := act[idx]
+	never := cq.Done == 0
 	q.giveUpLocked(cq)
 	q.dropLineLocked(sess, c, int(idx))
 	log.Printf("Quests: %s gave up quest %d", p.Name, cq.QuestID)
+	if never {
+		for _, id := range q.forgetChoicesLocked(c, cq.QuestID) {
+			log.Printf("Quests: %s gave up quest %d, the choice of path it was taken by, with it", p.Name, id)
+		}
+	}
 	return nil
+}
+
+// forgetChoicesLocked undoes the choice of path a quest given up unfinished
+// was taken by (Heirloom petition 2683: a ratman wizard took the good side's
+// epic by mistake, deleted it and was refused the evil side's for ever). A
+// choice is a finished quest the given-up one requires that excludes others
+// (a recruiter: tools/dwarf_epic_choice_20261122.py), which nothing else the
+// character holds or has finished requires: it is forgotten, as if never
+// taken, so the other path's quests it excluded are offered again, and it can
+// be taken again. It returns the quests forgotten.
+func (q *QuestEngine) forgetChoicesLocked(c *questChar, given int) []int {
+	qu := q.cat.byID[given]
+	if qu == nil {
+		return nil
+	}
+	var out []int
+	for _, g := range qu.Required() {
+		for _, id := range g {
+			choice := q.cat.byID[id]
+			cq := c.quests[id]
+			if choice == nil || len(choice.Excludes) == 0 || !isChoiceQuest(choice) || cq == nil || cq.Done == 0 || cq.Active() {
+				continue
+			}
+			if q.requiredByOtherLocked(c, id, given) {
+				continue
+			}
+			if err := q.store.DeleteCharQuest(cq.ServerID, id); err != nil {
+				log.Printf("Quests: forgetting character %d's quest %d: %v", cq.ServerID, id, err)
+				continue
+			}
+			delete(c.quests, id)
+			c.forgetOffer(id)
+			out = append(out, id)
+		}
+	}
+	return out
+}
+
+// isChoiceQuest is a quest that is only a choice: one talk step that pays
+// nothing (no experience, tunar, spells, standings or class rewards; an item
+// such as a recruiter's token, which the path's first quest takes, may be
+// given), so taking it again gains nothing.
+func isChoiceQuest(qu *database.Quest) bool {
+	if len(qu.Steps) != 1 {
+		return false
+	}
+	st := qu.Steps[0]
+	return st.Kind == database.StepTalk && st.XP == 0 && st.RewardTunar == 0 && len(st.Spells) == 0 &&
+		len(st.Factions) == 0 && len(st.ByClass) == 0
+}
+
+// requiredByOtherLocked is whether a quest other than except, held or
+// finished by the character, requires id.
+func (q *QuestEngine) requiredByOtherLocked(c *questChar, id, except int) bool {
+	for qid := range c.quests {
+		if qid == except || qid == id {
+			continue
+		}
+		other := q.cat.byID[qid]
+		if other == nil {
+			continue
+		}
+		for _, g := range other.Required() {
+			if slices.Contains(g, id) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // giveUpLocked ends a quest under way unfinished: forgotten when it was never

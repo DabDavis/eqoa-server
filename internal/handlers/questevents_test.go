@@ -243,7 +243,7 @@ func TestASpawnIsTheSteps(t *testing.T) {
 		t.Fatalf("the friendly copy: type %#x, enemy %d", n.NPCType, n.CurrentEnemy)
 	}
 	// away: the character's session gone, its spawn goes
-	f.qe.sessionOf = func(uint32) *session.Session { return nil }
+	f.tw.s.SetCharacterInWorld(false)
 	f.qe.expireSpawns()
 	if len(copies()) != 0 {
 		t.Fatal("a spawn outlived its character's leaving")

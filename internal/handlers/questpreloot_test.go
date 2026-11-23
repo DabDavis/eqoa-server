@@ -392,14 +392,12 @@ func TestPreFarmASharedKillDropsOneBelt(t *testing.T) {
 	f := newQuestFixture(t)
 	belt := f.pattern("slashed belt", 20)
 	drops := prefarmQuest(f, belt, 0.2, 0.7, 0)
-	rec := &database.CharacterRecord{CharName: "Second", AccountID: 2}
+	rec := &database.CharacterRecord{CharName: "Second", AccountID: 2, Level: 5, TClass: 10}
 	if err := database.NewSQLiteCharacterStore(f.db).Create(rec); err != nil {
 		t.Fatal(err)
 	}
 	s2 := f.tw.mgr.CreateSession(&net.UDPAddr{IP: net.IPv4(10, 0, 0, 10), Port: 7010}, 10, 2, 3, 4, true)
-	p2 := &entity.Player{ServerID: 1010, Name: "Second", Level: 5, Class: 10, CharServerID: rec.ServerID}
-	f.tw.w.Players[p2.ServerID] = p2
-	s2.SetECSEntity(p2)
+	f.tw.w.CreatePlayer(s2, rec)
 	s2.SetCharacterInWorld(true)
 	s2.SetInventoryList(newInvList(nil))
 	both := func(npc entity.EntityID) {

@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"log"
+	"sync"
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
@@ -15,10 +16,11 @@ import (
 // a goroutine of its own (the trigger engine's lock is never taken under the loot's). A trigger whose
 // lock a run holds does not fire again.
 
-// fireDropTriggers fires the triggers the items npc's corpse rolled name.
-func (h *NPCWindowHandler) fireDropTriggers(npc *entity.NPC, items []database.CharInventoryEntry) {
+// fireDropTriggers starts the triggers the corpse rolled. The caller may wait
+// for all of them after releasing the loot lock. Nil means there were none.
+func (h *NPCWindowHandler) fireDropTriggers(npc *entity.NPC, items []database.CharInventoryEntry) *sync.WaitGroup {
 	if h.inv == nil || npc == nil || len(items) == 0 {
-		return
+		return nil
 	}
 	ids := make([]int, 0, len(items))
 	for _, it := range items {
@@ -27,16 +29,19 @@ func (h *NPCWindowHandler) fireDropTriggers(npc *entity.NPC, items []database.Ch
 	names, err := h.inv.LootDropTriggers(ids)
 	if err != nil {
 		log.Printf("Loot: %q's drop triggers: %v", npc.Name, err)
-		return
+		return nil
 	}
 	e := Triggers()
 	if e == nil || len(names) == 0 {
-		return
+		return nil
 	}
 	at := &triggerPlaceAt{world: npc.World, x: npc.X, y: npc.Y, z: npc.Z}
 	who := npc.Name + "'s loot"
+	var fired sync.WaitGroup
+	fired.Add(len(names))
 	for _, name := range names {
 		go func(name string) {
+			defer fired.Done()
 			if _, err := e.FireNamed(name, TriggerFirer{Name: who, Quiet: true, At: at}); err != nil {
 				if !errors.Is(err, ErrTriggerBusy) {
 					log.Printf("Loot: %s fires %q: %v", who, name, err)
@@ -46,4 +51,5 @@ func (h *NPCWindowHandler) fireDropTriggers(npc *entity.NPC, items []database.Ch
 			log.Printf("Loot: %s fires trigger %q", who, name)
 		}(name)
 	}
+	return &fired
 }

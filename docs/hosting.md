@@ -111,6 +111,7 @@ Wants=network-online.target
 Type=simple
 User=eqoa
 Group=eqoa
+UMask=0077
 WorkingDirectory=/srv/eqoa-server
 ExecStart=/srv/eqoa-server/gameserver -config /srv/eqoa-server/config.yaml
 Restart=on-failure

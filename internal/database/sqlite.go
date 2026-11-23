@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -29,12 +30,18 @@ const BusyTimeoutDSN = "_pragma=busy_timeout(5000)"
 
 // NewSQLite creates or opens a SQLite database.
 func NewSQLite(dbPath string) (*SQLiteDB, error) {
-	// Create directory if it doesn't exist
-	dir := filepath.Dir(dbPath)
-	if dir != "" && dir != "." {
-		if err := os.MkdirAll(dir, 0755); err != nil {
+	dsn := dbPath + "?" + BusyTimeoutDSN
+	if dbPath != "" && dbPath != ":memory:" && !strings.HasPrefix(dbPath, "file:") {
+		if err := os.MkdirAll(filepath.Dir(dbPath), 0o755); err != nil {
 			return nil, err
 		}
+		// SQLite would create account data with 0666 or 0644 subject to the
+		// process umask. Keep a new database and its WAL private by default.
+		if err := createEmpty(dbPath); err != nil && !os.IsExist(err) {
+			return nil, err
+		}
+		u := url.URL{Scheme: "file", Opaque: (&url.URL{Path: filepath.ToSlash(dbPath)}).EscapedPath()}
+		dsn = u.String() + "?" + BusyTimeoutDSN
 	}
 
 	// Open the database with a busy timeout: a statement that finds the
@@ -49,7 +56,7 @@ func NewSQLite(dbPath string) (*SQLiteDB, error) {
 	// "yes move the database to WAL"; walMode below), where a reader never
 	// blocks a writer. A copy of the file must be made with .backup (the swap
 	// scripts' way), never cp, which would miss what is in its -wal.
-	db, err := sql.Open("sqlite", dbPath+"?"+BusyTimeoutDSN)
+	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, err
 	}

@@ -131,6 +131,8 @@ PETSTATS_SCHEMA = """CREATE TABLE IF NOT EXISTS petstats (
 		wpn2_type       TEXT NOT NULL DEFAULT '',
 		abilities       TEXT NOT NULL DEFAULT '[]',
 		keep_template   INTEGER NOT NULL DEFAULT 0,
+		size            REAL NOT NULL DEFAULT 0,
+		melee_pct       INTEGER NOT NULL DEFAULT 100,
 		note            TEXT NOT NULL DEFAULT '',
 		source          TEXT NOT NULL DEFAULT 'gm'
 	)"""
@@ -557,7 +559,9 @@ def apply(db, rows, pts):
                     continue
                 if tbl == "pettemplate" and before is not None:
                     continue  # planned where none was: a GM's since, left
-                write_row(db, tbl, row)
+                # The workbook supplies only some columns. Retain server-side tuning
+                # such as size and melee_pct when replacing an existing pet.
+                write_row(db, tbl, {**(before or {}), **row})
                 after = row_of(db, tbl, k)
                 a = audit(db, "insert" if before is None else "update", tbl, k, before, after, DETAIL)
                 db.execute(f"INSERT INTO {LOG} (tbl, rowkey, before, after, audit) VALUES (?, ?, ?, ?, ?)",

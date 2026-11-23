@@ -48,9 +48,16 @@ else
 	OUT="${OUT:-$HOME/go-eqoa-server-$DATE.tar.gz}"
 fi
 
-STAGE="$STAGE_ROOT/go-eqoa-server"
-rm -rf "$STAGE"
-mkdir -p "$STAGE"
+mkdir -p "$STAGE_ROOT"
+STAGE_RUN=$(mktemp -d "$(cd "$STAGE_ROOT" && pwd)/.eqoa-stage.XXXXXX")
+WORK=
+cleanup() {
+	rm -rf -- "$STAGE_RUN"
+	if [ -n "$WORK" ]; then rm -rf -- "$WORK"; fi
+}
+trap cleanup EXIT
+STAGE="$STAGE_RUN/go-eqoa-server"
+mkdir "$STAGE"
 
 # ------------------------------------------------------------------ source --
 # The whole server source ships, tests included: an operator debugging his own
@@ -161,11 +168,10 @@ echo "== build ($GOOS_TARGET)"
 # ------------------------------------------------------------------ pack --
 # Keep the previous archive until its replacement passes every check.
 WORK=$(mktemp -d "$(cd "$(dirname "$OUT")" && pwd)/.eqoa-package.XXXXXX")
-trap 'rm -rf -- "$WORK"' EXIT
 archive="$WORK/$(basename "$OUT")"
 case "$OUT" in
-*.zip) (cd "$STAGE_ROOT" && zip -qr "$archive" go-eqoa-server) ;;
-*) (cd "$STAGE_ROOT" && tar czf "$archive" go-eqoa-server) ;;
+*.zip) (cd "$STAGE_RUN" && zip -qr "$archive" go-eqoa-server) ;;
+*) (cd "$STAGE_RUN" && tar czf "$archive" go-eqoa-server) ;;
 esac
 
 # -------------------------------------------------------------- verify --

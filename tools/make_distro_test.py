@@ -50,9 +50,12 @@ run) exit "${CHECK_STATUS:-0}" ;;
 esac
 """)
             (root / "bin" / "go").chmod(0o755)
+            staging = root / "stage"
+            unrelated = staging / "go-eqoa-server" / "operator-file"
+            put(unrelated, "keep")
             out = root / "operators.tar.gz"
             out.write_bytes(b"old archive")
-            env = dict(os.environ, STAGE_ROOT=str(root / "stage"),
+            env = dict(os.environ, STAGE_ROOT=str(staging),
                        PATH=f"{root}/bin:{os.environ['PATH']}")
             cmd = ["bash", str(script), "--out", str(out)]
             result = subprocess.run(cmd, cwd=server, env=env, capture_output=True, text=True)
@@ -65,6 +68,8 @@ esac
             failed = subprocess.run(cmd, cwd=server, env=dict(env, CHECK_STATUS="1"), capture_output=True)
             self.assertNotEqual(failed.returncode, 0)
             self.assertEqual(out.read_bytes(), verified)
+            self.assertEqual(unrelated.read_text(), "keep")
+            self.assertEqual(list(staging.iterdir()), [unrelated.parent])
 
 
 if __name__ == "__main__":

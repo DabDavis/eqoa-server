@@ -29,13 +29,14 @@ One binary, `cmd/gameserver`:
 
 ### 1. Build
 
-Go 1.24. The server reads the game's byte streams with
-[eqoa-esf-tools](https://github.com/DabDavis/eqoa-esf-tools)' `pkg/buffer`, through a `replace`
+Use Go 1.27.4 or a newer patched release. The server reads the game's byte streams with
+[eqoa-esf-tools](https://github.com/DabDavis/eqoa-esf-tools)' `pkg/buffer` and `pkg/esf`, through a `replace`
 to a sibling checkout, so clone both side by side:
 
 ```bash
 git clone https://github.com/DabDavis/eqoa-server
 git clone -b client-v1 https://github.com/DabDavis/eqoa-esf-tools go-eqoa-esf-tools
+git -C go-eqoa-esf-tools checkout --detach 87b79805071076ba45d55834110be9533a2d4f9b
 cd eqoa-server
 go build -o gameserver ./cmd/gameserver
 go test ./...
@@ -99,7 +100,7 @@ The settings that matter first:
 - `auth.allow_auto_register`: `true` lets an unknown account name register itself with the
   password it first logs in with; `false` admits only accounts already in the database or
   listed under `auth.accounts`.
-- `auth.accounts`: accounts made at start if missing (change the example's password).
+- `auth.accounts`: optional accounts made at start if missing. Set a unique password for each one.
 - `auth.one_login`: `false` allows several windows on an account (one character a window).
 
 Every other setting is explained in the comments of `config.yaml.example`, which names every key

@@ -67,6 +67,9 @@ func TestExampleParsesStrictly(t *testing.T) {
 	if err := dec.Decode(cfg); err != nil {
 		t.Fatalf("config.yaml.example: %v", err)
 	}
+	if len(cfg.Auth.Accounts) != 0 {
+		t.Fatal("the example must leave account credentials to the operator")
+	}
 	// And through Load, as the server reads it.
 	if _, err := Load(examplePath); err != nil {
 		t.Fatal(err)

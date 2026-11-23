@@ -79,7 +79,10 @@ type subGMs interface {
 // "make /safemode for GMs same as the ingame GM menu works also for sub GMs"
 // (#safemode, aggrocmd.go: the TEST menu's Safe Mode), and "give sub GMs /summon
 // too" (#summon <name>: an online player brought beside it, told who did it).
-var subGMCommands = map[string]bool{"#summon": true, "#goto": true, "#teleport": true, "#gotoplayer": true, "#testmode": true, "#safemode": true, "#fly": true, "#speed": true, "#delete": true, "#clone": true, "#place": true, "#move": true, "#roamer": true,
+// A GM, Heirloom petition 2741: "testers and gm's need a command to /ph ...
+// when I say testers, I mean the GM flag tester that actually displays TEST
+// next to their name": #ph (#placeholder), placeholder.go.
+var subGMCommands = map[string]bool{"#ph": true, "#summon": true, "#goto": true, "#teleport": true, "#gotoplayer": true, "#testmode": true, "#safemode": true, "#fly": true, "#speed": true, "#delete": true, "#clone": true, "#place": true, "#move": true, "#roamer": true,
 	"#size": true}
 
 // isSubGM reports whether sess's account is a sub GM.
@@ -102,7 +105,7 @@ func (h *ChatHandler) granted(sess *session.Session, cmd string) bool {
 // gmAliases are GM commands' other names (spelled "#copy"): the same command,
 // whoever may use it. The owner, 2026-11-14: "./copy should work for a GM also
 // on live server": /copy is /clone.
-var gmAliases = map[string]string{"#copy": "#clone"}
+var gmAliases = map[string]string{"#copy": "#clone", "#placeholder": "#ph"}
 
 // gmAlias is the command cmd (spelled "#copy", lower case) names.
 func gmAlias(cmd string) string {
@@ -138,6 +141,7 @@ var gmCommands = map[string]bool{
 	"#markportal": true, "#delete": true, "#clone": true, "#place": true, "#move": true, "#roamer": true,
 	"#noclip": true, "#raidboss": true, "#aura": true, "#hazard": true, "#announce": true, "#formula": true,
 	"#safemode": true, "#copy": true, // #copy: #clone (gmAliases)
+	"#ph": true, "#placeholder": true, // #placeholder: #ph (gmAliases; placeholder.go)
 }
 
 // slashGM is the # spelling of a /command line that names a GM command

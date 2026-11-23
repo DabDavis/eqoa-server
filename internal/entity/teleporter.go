@@ -62,8 +62,8 @@ func (w *World) GMCampSpots() []GMCampSpot {
 	for _, id := range ids {
 		cs := w.camps.spawns[id]
 		own := w.camps.recs[int(id)]
-		if own == nil {
-			continue
+		if own == nil || cs.camp == 0 {
+			continue // a placeholder (/ph) is no camp
 		}
 		k := key{cs.camp, uint8(own.rec.World)}
 		s := byCamp[k]

@@ -494,6 +494,11 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 			h.handleGMCommand(sess, player, strings.TrimSpace("#"+w+" "+b))
 			return
 		}
+		// and their "/t ph ..." and "/t placeholder ..." (placeholder.go)
+		if w := strings.ToLower(name); (w == "ph" || w == "placeholder") && (h.isGM(sess) || h.granted(sess, "#ph")) {
+			h.handleGMCommand(sess, player, strings.TrimSpace("#ph "+body))
+			return
+		}
 		// a PS2's raid flag and the raid's other commands: it sends /t on as typed and
 		// neither keeps /raid nor can type a # (entity/raidflag.go), and a tell with no
 		// text is no tell; /t invite, /t target, /t need ... when they are commands
@@ -1719,6 +1724,10 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// #path [loop|pingpong|once] [walk|run] | clear: the target walks
 		// the marks (gmcamps.go)
 		h.pathCommand(sess, player, parts[1:])
+	case "#ph":
+		// #ph <name>[odds], ... | clear: the target's spawn point pops one of
+		// 1-5 kinds at their odds (placeholder.go); #placeholder is the same
+		h.phCommand(sess, player, parts[1:])
 	case "#markportal":
 		// #markportal [exit [place] | on [id] | off [id] | list | cancel]: a
 		// portal's entry (the target) and landing, filed as a ticket and
@@ -1913,6 +1922,7 @@ var gmHelpLines = []string{
 	"  #mark [note] - keep where you stand as your next mark (#marks lists them; #marks undo, #marks clear)",
 	"  #camp <creature>[, <creature>...] - a static spawn at each mark, popping one of them at random each time; #camp undo",
 	"  #path [loop|pingpong|once] [walk|run] - your target walks your marks; #path clear takes its path away",
+	"  #ph <name>[odds], ... - your target's spawn point pops 1-5 kinds, odds adding to 100 (#ph deathfist reaver90, deathfist prophet10); #ph alone shows them, #ph clear; #placeholder, /t ph on a PS2",
 	"  #markportal - your target (an NPC) is a portal's entry; #markportal exit [place] - its landing: your target, else where you stand; filed as a ticket, off until #markportal on [id] (off, list, cancel)",
 	"  #hazard add <damage> <every seconds> [radius] [still] [name] - a place that hurts a player in it, where you stand (again only once moved; still: standing still too); #hazard list, #hazard remove [id]",
 	"  #who - list players",

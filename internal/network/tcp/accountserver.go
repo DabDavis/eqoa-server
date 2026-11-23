@@ -164,10 +164,10 @@ type MapMarksRoutes interface {
 }
 
 // CheckLogin is the account server's password check for another page (the
-// transfer page, internal/transfers): the account's id and name, else the
+// transfer page, internal/transfers): the account as authenticated, else the
 // refusal its player reads; counted by the same login limits, and a banned
 // account refused.
-func (s *AccountServer) CheckLogin(r *http.Request, username, password string) (int, string, string) {
+func (s *AccountServer) CheckLogin(r *http.Request, username, password string) (*database.AccountRecord, string) {
 	account, err := s.accountStore.GetByUsername(username)
 	if err != nil {
 		account = nil
@@ -176,15 +176,15 @@ func (s *AccountServer) CheckLogin(r *http.Request, username, password string) (
 		if refusal == "" {
 			refusal = "Invalid username or password"
 		}
-		return 0, "", refusal
+		return nil, refusal
 	}
 	if account.Banned {
-		return 0, "", "This account is suspended"
+		return nil, "This account is suspended"
 	}
 	if s.passwordTemporary(account.ID) {
-		return 0, "", TempPasswordRefusal
+		return nil, TempPasswordRefusal
 	}
-	return account.ID, account.Username, ""
+	return account, ""
 }
 
 // checkPassword is a page's password check under the limiter: counted by the
@@ -244,10 +244,11 @@ type TeleportDest struct {
 }
 
 type webSession struct {
-	AccountID  int
-	Username   string
-	CreatedAt  time.Time
-	LastAccess time.Time
+	passwordHash string
+	AccountID    int
+	Username     string
+	CreatedAt    time.Time
+	LastAccess   time.Time
 }
 
 // NewAccountServer creates a new account registration server.
@@ -466,9 +467,8 @@ func (s *AccountServer) getSession(r *http.Request) *webSession {
 	}
 	// Recheck the account so suspension or a temporary password revokes
 	// an already-issued session. A database error cannot authorize a request.
-	var allowed bool
-	if err := s.db.QueryRow(`SELECT acctstatus >= 0 AND COALESCE(pwtemp, 0) = 0
-		FROM accountinfo WHERE accountid = ?`, sess.AccountID).Scan(&allowed); err != nil {
+	allowed, err := s.db.WebSessionAllowed(sess.AccountID, sess.passwordHash)
+	if err != nil {
 		return nil
 	}
 	s.sessionsMu.Lock()
@@ -487,7 +487,7 @@ func (s *AccountServer) getSession(r *http.Request) *webSession {
 }
 
 // createSession creates a new session for an account.
-func (s *AccountServer) createSession(w http.ResponseWriter, accountID int, username string) string {
+func (s *AccountServer) createSession(w http.ResponseWriter, r *http.Request, account *database.AccountRecord) string {
 	token := generateToken()
 	s.sessionsMu.Lock()
 	now := time.Now()
@@ -500,10 +500,11 @@ func (s *AccountServer) createSession(w http.ResponseWriter, accountID int, user
 		s.nextSessionSweep = now.Add(5 * time.Minute)
 	}
 	s.sessions[token] = &webSession{
-		AccountID:  accountID,
-		Username:   username,
-		CreatedAt:  now,
-		LastAccess: now,
+		AccountID:    account.ID,
+		Username:     account.Username,
+		passwordHash: account.PasswordHash,
+		CreatedAt:    now,
+		LastAccess:   now,
 	}
 	s.sessionsMu.Unlock()
 
@@ -513,6 +514,8 @@ func (s *AccountServer) createSession(w http.ResponseWriter, accountID int, user
 		Path:     "/",
 		MaxAge:   int(webSessionIdle / time.Second),
 		HttpOnly: true,
+		Secure:   r.TLS != nil || strings.EqualFold(r.Header.Get("X-Forwarded-Proto"), "https"),
+		SameSite: http.SameSiteLaxMode,
 	})
 	return token
 }
@@ -1250,7 +1253,7 @@ func (s *AccountServer) handleAPILogin(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "mustChange": true, "error": TempPasswordRefusal})
 		return
 	}
-	s.createSession(w, account.ID, account.Username)
+	s.createSession(w, r, account)
 	json.NewEncoder(w).Encode(map[string]interface{}{"success": true})
 }
 

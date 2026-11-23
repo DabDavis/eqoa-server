@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -190,8 +191,8 @@ func TestATemporaryPasswordMustBeChangedOnThePages(t *testing.T) {
 	// the transfer page's sign-in says so too
 	req := httptest.NewRequest(http.MethodPost, "/", nil)
 	req.RemoteAddr = "203.0.113.9:1"
-	if aid, _, refusal := r.s.CheckLogin(req, "alice", "otter-maple-lantern-42"); aid != 0 || refusal != TempPasswordRefusal {
-		t.Fatalf("CheckLogin: %d %q", aid, refusal)
+	if account, refusal := r.s.CheckLogin(req, "alice", "otter-maple-lantern-42"); account != nil || refusal != TempPasswordRefusal {
+		t.Fatalf("CheckLogin returned account %v and refusal %q", account != nil, refusal)
 	}
 	// the change form: a wrong current password changes nothing
 	if _, out, _ := r.post("/api/password/change", "203.0.113.9", true, map[string]any{"account": "alice", "current": "wrong", "password": "my-own-one"}); out["ok"] != false {
@@ -270,17 +271,25 @@ func TestAccountPageSessionChecksSuspensionAndIdleExpiry(t *testing.T) {
 		t.Fatal(err)
 	}
 	req := httptest.NewRequest(http.MethodGet, "/characters", nil)
-	token := r.s.createSession(httptest.NewRecorder(), acc.ID, acc.Username)
+	token := r.s.createSession(httptest.NewRecorder(), req, acc)
 	req.AddCookie(&http.Cookie{Name: "session", Value: token})
-	if r.s.getSession(req) == nil {
-		t.Fatal("fresh session refused")
+	var readers sync.WaitGroup
+	for range 4 {
+		readers.Add(1)
+		go func() {
+			defer readers.Done()
+			if r.s.getSession(req) == nil {
+				t.Error("fresh session refused")
+			}
+		}()
 	}
+	readers.Wait()
 	r.s.sessions[token].LastAccess = time.Now().Add(-webSessionIdle)
 	if r.s.getSession(req) != nil {
 		t.Fatal("expired session refreshed")
 	}
 	req = httptest.NewRequest(http.MethodGet, "/characters", nil)
-	token = r.s.createSession(httptest.NewRecorder(), acc.ID, acc.Username)
+	token = r.s.createSession(httptest.NewRecorder(), req, acc)
 	req.AddCookie(&http.Cookie{Name: "session", Value: token})
 	if err := r.s.accountStore.SetBanned(acc.ID, true); err != nil {
 		t.Fatal(err)
@@ -291,5 +300,27 @@ func TestAccountPageSessionChecksSuspensionAndIdleExpiry(t *testing.T) {
 	_, out, resp := r.post("/api/login", "203.0.113.1", false, map[string]any{"username": "alice", "password": "pw-alice"})
 	if out["success"] != false || len(resp.Cookies()) != 0 {
 		t.Fatal("suspended account received a new session")
+	}
+}
+
+func TestChangingTheStoredCredentialEndsTheWebSession(t *testing.T) {
+	r := newPwRig(t)
+	req := httptest.NewRequest(http.MethodGet, "https://example.test/characters", nil)
+	acc, err := r.s.accountStore.GetByUsername("alice")
+	if err != nil {
+		t.Fatal(err)
+	}
+	rec := httptest.NewRecorder()
+	token := r.s.createSession(rec, req, acc)
+	cookie := rec.Result().Cookies()[0]
+	if !cookie.Secure || cookie.SameSite != http.SameSiteLaxMode || !cookie.HttpOnly {
+		t.Fatal("session cookie missing browser restrictions")
+	}
+	req.AddCookie(&http.Cookie{Name: "session", Value: token})
+	if err := r.s.accountStore.UpdatePasswordHash(acc.ID, "replacement"); err != nil {
+		t.Fatal(err)
+	}
+	if r.s.getSession(req) != nil {
+		t.Fatal("old session accepted after an external credential change")
 	}
 }

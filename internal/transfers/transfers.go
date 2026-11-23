@@ -32,9 +32,9 @@ import (
 	"github.com/eqoa/server/internal/entity"
 )
 
-// Check is the account server's password check: the account's id and name
+// Check is the account server's password check: the verified account
 // for a username and password, else a refusal the player reads.
-type Check func(r *http.Request, username, password string) (accountID int, name string, refusal string)
+type Check func(r *http.Request, username, password string) (account *database.AccountRecord, refusal string)
 
 // Server serves the transfer page and its routes.
 type Server struct {
@@ -58,9 +58,10 @@ type catalogAt struct {
 const catalogFresh = time.Minute
 
 type session struct {
-	accountID int
-	name      string
-	last      time.Time
+	accountID    int
+	passwordHash string
+	name         string
+	last         time.Time
 }
 
 const (
@@ -99,17 +100,31 @@ func (s *Server) session(r *http.Request) *session {
 		return nil
 	}
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	ss := s.sessions[c.Value]
-	if ss == nil || time.Since(ss.last) > sessionIdle {
+	s.mu.Unlock()
+	if ss == nil {
+		return nil
+	}
+	allowed, err := s.DB.WebSessionAllowed(ss.accountID, ss.passwordHash)
+	if err != nil {
+		return nil
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.sessions[c.Value] != ss {
+		return nil
+	}
+	now := time.Now()
+	if !allowed || now.Sub(ss.last) >= sessionIdle {
 		delete(s.sessions, c.Value)
 		return nil
 	}
-	ss.last = time.Now()
-	return ss
+	ss.last = now
+	result := *ss
+	return &result
 }
 
-func (s *Server) newSession(w http.ResponseWriter, r *http.Request, accountID int, name string) {
+func (s *Server) newSession(w http.ResponseWriter, r *http.Request, account *database.AccountRecord) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
 		return
@@ -132,7 +147,7 @@ func (s *Server) newSession(w http.ResponseWriter, r *http.Request, accountID in
 		}
 		delete(s.sessions, oldest)
 	}
-	s.sessions[token] = &session{accountID: accountID, name: name, last: now}
+	s.sessions[token] = &session{accountID: account.ID, name: account.Username, passwordHash: account.PasswordHash, last: now}
 	s.mu.Unlock()
 	http.SetCookie(w, &http.Cookie{Name: cookieName, Value: token, Path: "/", MaxAge: int(sessionIdle.Seconds()),
 		HttpOnly: true, Secure: secure(r), SameSite: http.SameSiteStrictMode})
@@ -177,16 +192,16 @@ func (s *Server) ServeAPI(w http.ResponseWriter, r *http.Request, path string) {
 			refuse(w, http.StatusBadRequest, "a name and a password")
 			return
 		}
-		id, name, refusal := s.Check(r, strings.TrimSpace(req.Username), req.Password)
-		if refusal != "" || id == 0 {
+		account, refusal := s.Check(r, strings.TrimSpace(req.Username), req.Password)
+		if refusal != "" || account == nil || account.ID == 0 {
 			if refusal == "" {
 				refusal = "Invalid username or password"
 			}
 			refuse(w, http.StatusForbidden, refusal)
 			return
 		}
-		s.newSession(w, r, id, name)
-		writeJSON(w, map[string]any{"ok": true, "account": name})
+		s.newSession(w, r, account)
+		writeJSON(w, map[string]any{"ok": true, "account": account.Username})
 	case "logout":
 		s.endSession(w, r)
 		writeJSON(w, map[string]any{"ok": true})

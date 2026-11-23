@@ -374,6 +374,16 @@ func (db *SQLiteDB) PasswordTemporary(accountID int) (bool, error) {
 	return t != 0, err
 }
 
+// WebSessionAllowed checks that a session's verified password still belongs
+// to an eligible account. A missing account also invalidates the session.
+func (db *SQLiteDB) WebSessionAllowed(accountID int, passwordHash string) (bool, error) {
+	var allowed bool
+	err := db.QueryRow(`SELECT EXISTS(SELECT 1 FROM accountinfo WHERE accountid = ?
+		AND COALESCE(acctstatus, 0) >= 0 AND COALESCE(pwtemp, 0) = 0
+		AND COALESCE(CAST(pwhash AS TEXT), '') = ?)`, accountID, passwordHash).Scan(&allowed)
+	return allowed, err
+}
+
 // SetOwnPassword is a password its owner chose: the hash kept, the account's
 // temporary flag cleared.
 func (db *SQLiteDB) SetOwnPassword(accountID int, hash string) error {

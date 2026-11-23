@@ -52,7 +52,8 @@ func teleTestServer(t *testing.T) (*AccountServer, uint32, uint32, string) {
 
 	// A logged-in web session for "mine".
 	rec := httptest.NewRecorder()
-	token := s.createSession(rec, mine.ID, "mine")
+	mine.PasswordHash = "x" // the test credential stored above
+	token := s.createSession(rec, httptest.NewRequest(http.MethodPost, "/api/login", nil), mine)
 
 	s.WorldNames = func() []string { return []string{"Tunaria"} }
 	s.Destinations = func() []TeleportDest {

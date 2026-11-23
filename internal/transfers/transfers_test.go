@@ -45,11 +45,11 @@ func fixture(t *testing.T) (*Server, *httptest.Server, *database.SQLiteDB) {
 			t.Fatal(err)
 		}
 	}
-	s := New(db, func(r *http.Request, user, pass string) (int, string, string) {
+	s := New(db, func(r *http.Request, user, pass string) (*database.AccountRecord, string) {
 		if user == "player" && pass == "secret" {
-			return 3, "player", ""
+			return &database.AccountRecord{ID: 3, Username: user, PasswordHash: "x"}, ""
 		}
-		return 0, "", "Invalid username or password"
+		return nil, "Invalid username or password"
 	})
 	mux := http.NewServeMux()
 	mux.HandleFunc("/transfer", s.ServePage)
@@ -103,6 +103,21 @@ func (c *client) do(method, path string, body any, bare bool) (int, map[string]a
 	var out map[string]any
 	json.NewDecoder(resp.Body).Decode(&out)
 	return resp.StatusCode, out, resp
+}
+
+func TestTransferSessionChecksCurrentCredential(t *testing.T) {
+	_, ts, db := fixture(t)
+	c := &client{t: t, base: ts.URL}
+	code, _, _ := c.do("POST", "/api/transfer/login", map[string]any{"username": "player", "password": "secret"}, false)
+	if code != http.StatusOK || c.cookie == nil {
+		t.Fatalf("sign in: %d", code)
+	}
+	if err := database.NewSQLiteAccountStore(db).UpdatePasswordHash(3, "replacement"); err != nil {
+		t.Fatal(err)
+	}
+	if code, _, _ := c.do("GET", "/api/transfer/state", nil, true); code != http.StatusUnauthorized {
+		t.Fatalf("state with old cookie: %d", code)
+	}
 }
 
 // The page; a sign-in refused, then taken (the cookie HttpOnly, Strict and

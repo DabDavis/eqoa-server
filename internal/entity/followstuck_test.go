@@ -147,6 +147,11 @@ func TestAMercsStuckPetAndAMercOnStay(t *testing.T) {
 		r := newMercRig(t)
 		ms := mercWithPet(t, r, MercAssist)
 		pet, m := ms.pet.npc, ms.npc
+		// A merc's random idle stroll can close the gap to the held pet,
+		// which correctly restarts the stuck timer. Keep its target still.
+		if r.w.SetMercStay(r.sess, 0, true) == 0 {
+			t.Fatal("no merc told to stay")
+		}
 		r.w.mu.Lock()
 		pet.X, pet.Z = m.X+30, m.Z
 		r.w.mu.Unlock()

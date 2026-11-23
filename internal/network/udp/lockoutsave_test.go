@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
+	"strings"
 	"testing"
 	"time"
 	"unicode/utf16"
@@ -256,8 +257,8 @@ func TestALogoutAndALoginKeepTheLockouts(t *testing.T) {
 		t.Fatal("THE EXPLOIT: a logout and a login made the ten-minute recast ready")
 	}
 	said := lines(second)[before:]
-	// the live line, no time in it: what is left is the badge's, above
-	if len(said) != 1 || said[0] != "Recovery time for that ability has not been met." {
+	// the live line with the time left (Heirloom petitions 2763/2764), about ten minutes
+	if len(said) != 1 || !strings.HasPrefix(said[0], "Recovery time for that ability has not been met. (9 minutes ") {
 		t.Fatalf("the refusal: %q", said)
 	}
 	// the control: the quick ward, over while the character was away

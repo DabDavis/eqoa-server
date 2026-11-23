@@ -419,6 +419,10 @@ func (w *World) playerShieldsLocked(sess *session.Session, p *Player, npc *NPC, 
 	// killed the creature too, their damage only on one still standing
 	died = w.wornShieldsLocked(sess, p, npc) || died
 	w.wornBuffsLocked(sess, p, now)
+	// the creature's own brand answers its hit, its caster's (markhit.go)
+	if !died {
+		died = w.creatureMarkLocked(npc, now)
+	}
 	return died
 }
 
@@ -428,8 +432,11 @@ func (w *World) playerShieldsLocked(sess *session.Session, p *Player, npc *NPC, 
 // hit, while the pet stands. It reports the creature's death.
 func (w *World) petShieldsLocked(pet, npc *NPC, now time.Time) bool {
 	ps := w.petStateOfNPCLocked(pet)
-	if ps == nil || ps.npc != pet || len(pet.Effects) == 0 || pet.Dead || npc.Dead {
+	if ps == nil || ps.npc != pet || pet.Dead || npc.Dead {
 		return false
+	}
+	if len(pet.Effects) == 0 {
+		return w.creatureMarkLocked(npc, now) // the creature's own brand (markhit.go)
 	}
 	hits, resisted := shieldAnswers(pet.Effects, pet.Level, npc.Level, npcResistOffPct(npc, now),
 		func() bool { return w.undeadLocked(npc) }, now, procIntn)
@@ -443,5 +450,5 @@ func (w *World) petShieldsLocked(pet, npc *NPC, now time.Time) bool {
 			return true
 		}
 	}
-	return false
+	return w.creatureMarkLocked(npc, now) // the creature's own brand (markhit.go)
 }

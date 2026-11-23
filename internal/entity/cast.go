@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"log"
 	"math"
 	"time"
@@ -37,8 +38,9 @@ import (
 //     power.";
 //   - a cast sent during another's cast time (and 0.4 s on): nothing at all;
 //   - a cast sent into its own recovery, its cast time over: the red line
-//     "Recovery time for that ability has not been met." (the live game's
-//     words, filmed twice: no time left in it) and the player's own 0x00B1 at itself, cast 0, the lockout cloud 0x9EC7854A,
+//     "Recovery time for that ability has not been met. (34 seconds remaining)"
+//     (the live game's words, filmed twice with no time in them; the time left
+//     added for Heirloom petitions 2763/2764: recoveryLeftWords) and the player's own 0x00B1 at itself, cast 0, the lockout cloud 0x9EC7854A,
 //     at most one about every 1.25 s (recoveryAnswerLocked).
 //
 // What a spell does comes from its line (spelltext.go); a line this cannot
@@ -147,10 +149,35 @@ func (w *World) recoveryAnswerLocked(sess *session.Session, p *Player, spell *Ca
 		return
 	}
 	p.recoveryAnswered = now
-	text := castRecoveryWords
+	text := castRecoveryWords + " (" + recoveryLeftWords(left) + ")"
 	log.Printf("Cast: %s casts %q, locked out for %v: %q", p.Name, spell.Name, left.Round(time.Millisecond), text)
 	w.sendColoredLocked(sess, text, castRefusalRGB)
 	w.broadcastCastLocked(p, p.ServerID, 0, fxLockoutCloud)
+}
+
+// recoveryLeftWords is the time left of a recovery as the red line adds it (Heirloom
+// petitions 2763/2764: "it should show how much time is remaining ... (34 secs)", "i
+// think it was spelled out 'seconds remaining'"): whole seconds rounded up, minutes and
+// seconds from a minute on ("34 seconds remaining", "2 minutes 5 seconds remaining").
+func recoveryLeftWords(left time.Duration) string {
+	secs := int((left + time.Second - 1) / time.Second)
+	if secs < 1 {
+		secs = 1
+	}
+	unit := func(n int, one string) string {
+		if n == 1 {
+			return "1 " + one
+		}
+		return fmt.Sprintf("%d %ss", n, one)
+	}
+	if secs < 60 {
+		return unit(secs, "second") + " remaining"
+	}
+	m, s := secs/60, secs%60
+	if s == 0 {
+		return unit(m, "minute") + " remaining"
+	}
+	return unit(m, "minute") + " " + unit(s, "second") + " remaining"
 }
 
 // The visuals the reference server's recorded casts named, as the stand-ins for spells
@@ -353,6 +380,9 @@ type ActiveEffect struct {
 	// (hot.go); 0 for an effect that ticks until it ends (a creature's, a
 	// pet's, one kept from before ticks were counted).
 	Ticks int
+	// HoTSlot is a heal over time's slot (hot.go): only the strongest of a
+	// slot ticks
+	HoTSlot int
 	// Shield is a damage shield or a defensive proc (dshield.go), nil for
 	// none
 	Shield *Shield
@@ -1731,7 +1761,7 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 		}
 	}
 	if ae := lasting(cs, caster, now); ae != nil && w.lineTakesLocked(caster, casterSess, t, &cs.spell, ae) && // buffline.go
-		(ae.HPTick <= 0 || w.placeHoTLocked(t, ae, now)) && // hot.go
+		(ae.HPTick <= 0 || w.placeHoTOfLocked(t, ae, &cs.spell, now)) && // hot.go
 		w.placeClarityLocked(caster, casterSess, t, ae, now) { // enchanter.go
 		w.dropLineLocked(t, ae) // its line's lower ranks off (buffline.go)
 		if illusion {
@@ -1857,6 +1887,10 @@ func (w *World) effectsChangedLocked(t *Player, speed float32) {
 // tickEffectLocked runs an effect's tick on a player when one is due.
 func (w *World) tickEffectLocked(t *Player, ae *ActiveEffect, now time.Time) {
 	if ae.NextTick.IsZero() || now.Before(ae.NextTick) || (ae.HPTick == 0 && ae.PowerTick == 0) {
+		return
+	}
+	if hotHeldLocked(t, ae, now) { // a stronger heal of its slot ticks: this one waits (hot.go)
+		ae.NextTick = w.nextRegularTick(ae.NextTick, now)
 		return
 	}
 	w.advanceTickLocked(ae, now) // hot.go

@@ -67,6 +67,9 @@ type savedMods struct {
 	// a heal over time's ticks left (hot.go); a row kept before reads as
 	// none, an effect that ticks until it ends
 	Ticks int `json:",omitempty"`
+	// a heal over time's slot (hot.go); a row kept before reads as 0, a slot
+	// of its own
+	HoTSlot int `json:",omitempty"`
 	// a damage shield or defensive proc (dshield.go); a row kept before
 	// reads as none
 	Shield *Shield `json:",omitempty"`
@@ -112,7 +115,7 @@ func effectRows(effects []*ActiveEffect, now time.Time, keep func(*ActiveEffect)
 			tick = max(0, e.NextTick.Sub(now).Milliseconds())
 		}
 		sm := savedMods{StatMods: e.Mods, Proc: e.Proc, ProcMax: e.ProcMax, ProcScale: e.ProcScale, ProcScalePct: e.ProcScalePct,
-			ProcCap: e.ProcCap, ProcUndead: e.ProcUndead, Form: e.Form, FormSize: e.FormSize, Ticks: e.Ticks, Shield: e.Shield, Line: e.Line, Rank: e.Rank,
+			ProcCap: e.ProcCap, ProcUndead: e.ProcUndead, Form: e.Form, FormSize: e.FormSize, Ticks: e.Ticks, HoTSlot: e.HoTSlot, Shield: e.Shield, Line: e.Line, Rank: e.Rank,
 			Food: e.Food, Parts: e.parts, Figures: e.figures}
 		if e.PowerCapped {
 			top := e.PowerCap
@@ -189,6 +192,7 @@ func effectFromRow(r database.BuffRow, now time.Time) *ActiveEffect {
 		ae.ProcUndead = sm.ProcUndead
 		ae.Form, ae.FormSize = sm.Form, sm.FormSize
 		ae.Ticks = sm.Ticks
+		ae.HoTSlot = sm.HoTSlot
 		ae.Shield = sm.Shield
 		ae.Line, ae.Rank = sm.Line, sm.Rank
 		if sm.Rules != nil {

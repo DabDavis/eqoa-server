@@ -20,18 +20,41 @@ import "time"
 // as many ticks as its duration holds (24 s: four, "63 x4"), the first one
 // at once included. Strength is a tick's hit points, as each landed from its
 // caster; an equal one replaces (a recast keeps a heal going).
+//
+// Slots (Heirloom petition 2756: "Marr's Blessing, froglok mc mca, it doesnt
+// stack with cleric tick heals ... the mca is set to target slot when it should
+// be group slot. also, the higher heal spell cleric heal over rides the same
+// slot mca so that works, but when the cleric spell wears off the lower spell
+// with lower effects and longer duration should still be there"): the rules
+// above hold within a heal's slot (HoTSlot: its workbook stack type, else its
+// scope's, hotSlot), so a single target's heal and a group's tick side by side.
+// Within a slot a stronger one landing over a weaker no longer takes it off: the
+// weaker stays on, its time running, and does not tick while the stronger does
+// (tickEffectLocked: hotHeldLocked); once the stronger ends, the weaker ticks
+// again at the regular tick for whatever of its time is left. It is kept over a
+// logout and a restart as any effect (buffsave.go: its slot with it).
 
 // hotTicks is how many ticks a heal over time of that duration has.
 func hotTicks(dur time.Duration) int {
 	return max(1, int((dur+effectTick/2)/effectTick))
 }
 
-// activeHoT is the player's heal over time with the most each tick that is
-// still ticking, nil when none is.
-func activeHoT(p *Player, now time.Time) *ActiveEffect {
+// hotSlot is the slot a heal over time of the spell ticks in (the file's doc):
+// the workbook's stack type, else its scope's (scopeStack: 1 a single target, 2
+// self, 3 a group).
+func hotSlot(s *CastSpell) int {
+	if s.Def.Workbook && s.Def.Stack > 0 {
+		return s.Def.Stack
+	}
+	return scopeStack(s.Scope)
+}
+
+// activeHoT is the player's heal over time of that slot with the most each
+// tick that is still ticking, nil when none is.
+func activeHoT(p *Player, slot int, now time.Time) *ActiveEffect {
 	var best *ActiveEffect
 	for _, e := range p.Effects {
-		if e.HPTick <= 0 || e.NextTick.IsZero() || !now.Before(e.Until) {
+		if e.HPTick <= 0 || e.NextTick.IsZero() || !now.Before(e.Until) || e.HoTSlot != slot {
 			continue
 		}
 		if best == nil || e.HPTick > best.HPTick {
@@ -41,6 +64,12 @@ func activeHoT(p *Player, now time.Time) *ActiveEffect {
 	return best
 }
 
+// placeHoTOfLocked is placeHoTLocked for a heal of the spell, its slot set.
+func (w *World) placeHoTOfLocked(t *Player, ae *ActiveEffect, s *CastSpell, now time.Time) bool {
+	ae.HoTSlot = hotSlot(s)
+	return w.placeHoTLocked(t, ae, now)
+}
+
 // placeHoTLocked sets a new heal over time's ticks by the rules above, and
 // reports whether it goes on at all. A heal it replaces comes off here.
 func (w *World) placeHoTLocked(t *Player, ae *ActiveEffect, now time.Time) bool {
@@ -48,7 +77,7 @@ func (w *World) placeHoTLocked(t *Player, ae *ActiveEffect, now time.Time) bool 
 	if ae.Ticks > 0 {
 		ticks = ae.Ticks // its line's own count ("3 ticks")
 	}
-	old := activeHoT(t, now)
+	old := activeHoT(t, ae.HoTSlot, now)
 	switch {
 	case old == nil:
 		ae.NextTick, ae.Ticks = now, ticks // addEffectLocked ticks it at once
@@ -60,8 +89,10 @@ func (w *World) placeHoTLocked(t *Player, ae *ActiveEffect, now time.Time) bool 
 	if !next.After(now) {
 		next = w.nextRegularTick(now, now)
 	}
+	// an equal one of its slot is replaced; a weaker one stays on, held while
+	// this one ticks (hotHeldLocked)
 	for _, e := range append([]*ActiveEffect(nil), t.Effects...) {
-		if e.HPTick > 0 && e.SpellID != ae.SpellID && !e.NextTick.IsZero() {
+		if e.HPTick > 0 && e.SpellID != ae.SpellID && !e.NextTick.IsZero() && e.HoTSlot == ae.HoTSlot && e.HPTick >= ae.HPTick {
 			w.removeEffectLocked(t, e.SpellID)
 		}
 	}
@@ -70,6 +101,17 @@ func (w *World) placeHoTLocked(t *Player, ae *ActiveEffect, now time.Time) bool 
 		ae.Until = last.Add(time.Millisecond) // its last tick before it ends
 	}
 	return true
+}
+
+// hotHeldLocked reports whether ae, a heal over time on t, is held at now: a
+// stronger one of its slot ticks (the file's doc). Its tick then passes, its
+// count kept. Must be called with the lock held.
+func hotHeldLocked(t *Player, ae *ActiveEffect, now time.Time) bool {
+	if ae.HPTick <= 0 || ae.PowerTick != 0 {
+		return false
+	}
+	best := activeHoT(t, ae.HoTSlot, now)
+	return best != nil && best != ae && best.HPTick > ae.HPTick
 }
 
 // nextRegularTick is the first regular tick after now, for an effect whose

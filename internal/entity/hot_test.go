@@ -65,7 +65,7 @@ func TestHoTFirstTickAtOnceThenTheRegularTick(t *testing.T) {
 func TestHoTWeakerOverStrongerDoesNothing(t *testing.T) {
 	c := newCaster(t)
 	c.p.HP, c.p.MaxHP = 100, 2000
-	strong := &ActiveEffect{SpellID: 902, Name: "Big", HPTick: 80, Ticks: 3,
+	strong := &ActiveEffect{SpellID: 902, Name: "Big", HPTick: 80, Ticks: 3, HoTSlot: 1,
 		Until: c.at(20 * time.Second), NextTick: c.at(5 * time.Second)}
 	c.p.Effects = []*ActiveEffect{strong}
 	c.w.StartCast(c.sess, hotSpell(903, 30, "Small"), c.me, c.at(0))
@@ -79,13 +79,14 @@ func TestHoTWeakerOverStrongerDoesNothing(t *testing.T) {
 	}
 }
 
-// A stronger heal over a weaker one with ticks left: none at once, the next
-// regular tick is the stronger's, and it has all four.
+// A stronger heal over a weaker one of its slot with ticks left: none at once,
+// the next regular tick is the stronger's, and it has all four; the weaker stays
+// on, held (Heirloom petition 2756), and ends with its time unticked.
 func TestHoTStrongerOverWeakerTakesItsNextTick(t *testing.T) {
 	c := newCaster(t)
 	c.p.HP, c.p.MaxHP = 100, 2000
 	c.w.regenAt = c.at(-1 * time.Second) // regular ticks at 5, 11, 17, 23, 29 s
-	weak := &ActiveEffect{SpellID: 904, Name: "Small", HPTick: 30, Ticks: 2,
+	weak := &ActiveEffect{SpellID: 904, Name: "Small", HPTick: 30, Ticks: 2, HoTSlot: 1,
 		Until: c.at(15 * time.Second), NextTick: c.at(5 * time.Second)}
 	c.p.Effects = []*ActiveEffect{weak}
 	c.p.Buffs = []BuffSlot{{Name: "Small"}}
@@ -94,8 +95,8 @@ func TestHoTStrongerOverWeakerTakesItsNextTick(t *testing.T) {
 	if got := c.healed(3400*time.Millisecond, &last); got != 0 {
 		t.Fatalf("healed %d at the landing, want none", got)
 	}
-	if len(c.p.Effects) != 1 || c.p.Effects[0].SpellID != 905 || len(c.p.Buffs) != 1 || c.p.Buffs[0].Name != "Mending" && c.p.Buffs[0].Name != "Big" {
-		t.Fatalf("effects %+v, buffs %+v", c.p.Effects, c.p.Buffs)
+	if len(c.p.Effects) != 2 || c.p.Effects[0] != weak || c.p.Effects[1].SpellID != 905 || len(c.p.Buffs) != 2 {
+		t.Fatalf("effects %+v, buffs %+v; want the weaker kept and the stronger on", c.p.Effects, c.p.Buffs)
 	}
 	for _, step := range []struct {
 		at   time.Duration
@@ -205,5 +206,61 @@ func TestHoTNoDoubleTickWhenTheRegenTickIsLate(t *testing.T) {
 	}
 	if end := land + 2*time.Minute; len(heals) > 0 && heals[len(heals)-1] < end-RegenInterval-time.Second {
 		t.Errorf("the last tick at %v, the heal ends at %v", heals[len(heals)-1], end)
+	}
+}
+
+// Heirloom petition 2756: a weaker heal held under a stronger of its slot ticks
+// again once the stronger ends, for what is left of its time; a heal of another
+// slot (a group's beside a single target's) ticks beside it all along.
+func TestHoTHeldUnderAStrongerComesBack(t *testing.T) {
+	c := newCaster(t)
+	c.p.HP, c.p.MaxHP = 100, 5000
+	c.w.regenAt = c.at(-1 * time.Second) // regular ticks at 5, 11, 17, 23, 29, 35 s
+	weak := &ActiveEffect{SpellID: 911, Name: "Long", HPTick: 30, HoTSlot: 1,
+		Until: c.at(38 * time.Second), NextTick: c.at(5 * time.Second)}
+	group := &ActiveEffect{SpellID: 912, Name: "Group", HPTick: 10, HoTSlot: 3,
+		Until: c.at(38 * time.Second), NextTick: c.at(5 * time.Second)}
+	c.p.Effects = []*ActiveEffect{weak, group}
+	c.p.Buffs = []BuffSlot{{Name: "Long"}, {Name: "Group"}}
+	c.w.StartCast(c.sess, hotSpell(913, 70, "Big"), c.me, c.at(0))
+	last := c.p.HP
+	if got := c.healed(3400*time.Millisecond, &last); got != 0 {
+		t.Fatalf("healed %d at the landing, want none (over a heal of its slot)", got)
+	}
+	if len(c.p.Effects) != 3 {
+		t.Fatalf("effects %+v, want all three on", c.p.Effects)
+	}
+	for _, step := range []struct {
+		at   time.Duration
+		want int
+	}{
+		{5 * time.Second, 80}, {11 * time.Second, 80}, {17 * time.Second, 80}, {23 * time.Second, 80}, // Big + Group
+		{29 * time.Second, 40}, {35 * time.Second, 40}, // Big over: Long back, Group on
+		{41 * time.Second, 0},
+	} {
+		if got := c.healed(step.at, &last); got != step.want {
+			t.Fatalf("at %v healed %d, want %d", step.at, got, step.want)
+		}
+	}
+}
+
+// A heal's slot is the workbook's stack type, else its scope's; it is kept over
+// a logout.
+func TestHoTSlotOfASpellAndKept(t *testing.T) {
+	single := minorHeal()
+	group := minorHeal()
+	group.Scope = 2
+	wb := minorHeal()
+	wb.Def.Workbook, wb.Def.Stack = true, 760121
+	if a, b, w := hotSlot(&single), hotSlot(&group), hotSlot(&wb); a != 1 || b != 3 || w != 760121 {
+		t.Fatalf("slots %d %d %d, want 1 3 760121", a, b, w)
+	}
+	c := newCaster(t)
+	c.p.Effects = []*ActiveEffect{{SpellID: 914, Name: "Group", HPTick: 30, HoTSlot: 3,
+		Until: c.at(20 * time.Second), NextTick: c.at(5 * time.Second)}}
+	rows, _ := c.w.SavedEffects(c.p.ServerID, c.at(0))
+	c.p.Effects, c.p.Buffs = nil, nil
+	if n := c.w.RestoreEffects(c.sess, rows, c.at(time.Minute)); n != 1 || c.p.Effects[0].HoTSlot != 3 {
+		t.Fatalf("restored %d: %+v", n, c.p.Effects)
 	}
 }

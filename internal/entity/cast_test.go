@@ -270,14 +270,14 @@ func TestCastIntoItsRecoveryIsAnswered(t *testing.T) {
 	if c.w.StartCast(c.sess, strike(), c.npcO, c.at(4100*time.Millisecond)) || len(c.sent()) != 0 {
 		t.Error("another spell 0.1 s after the cast was answered")
 	}
-	// 4.1 s in, 2.9 s of the 7 left: the live game's line, which says no
-	// time (it was the reference server's "... met (2.9 s)" until board 686)
+	// 4.1 s in, 2.9 s of the 7 left: the live game's line with the time left
+	// rounded up (Heirloom petitions 2763/2764; none in it from board 686 to them)
 	if c.w.StartCast(c.sess, rock, c.me, c.at(4100*time.Millisecond)) {
 		t.Fatal("begun inside its own lockout")
 	}
 	msgs := c.sent()
 	wantOps(t, msgs, protocol.OpcodeColoredChat, protocol.OpcodeCastingCombat)
-	const live = "Recovery time for that ability has not been met."
+	const live = "Recovery time for that ability has not been met. (3 seconds remaining)"
 	line := append(append([]byte{0x7b, 0x0a, byte(len(live)), 0, 0, 0}, utf16le(live)...), 0xff, 0x3f, 0x3f)
 	if !bytes.Equal(msgs[0], line) {
 		t.Errorf("the line % X\n want the live game's % X", msgs[0], line)
@@ -295,8 +295,10 @@ func TestCastIntoItsRecoveryIsAnswered(t *testing.T) {
 	}
 	msgs = c.sent()
 	wantOps(t, msgs, protocol.OpcodeColoredChat, protocol.OpcodeCastingCombat)
-	if !bytes.Equal(msgs[0], line) {
-		t.Errorf("the second line % X, want the live line again", msgs[0])
+	const second = "Recovery time for that ability has not been met. (2 seconds remaining)" // 1.6 s left
+	line2 := append(append([]byte{0x7b, 0x0a, byte(len(second)), 0, 0, 0}, utf16le(second)...), 0xff, 0x3f, 0x3f)
+	if !bytes.Equal(msgs[0], line2) {
+		t.Errorf("the second line % X, want % X", msgs[0], line2)
 	}
 	if c.p.Power != power || len(c.p.Lockouts) != 1 {
 		t.Errorf("an answer took power or locked: power %d -> %d, %d lockouts", power, c.p.Power, len(c.p.Lockouts))
@@ -506,5 +508,28 @@ func TestCastDeathClears(t *testing.T) {
 	c.w.mu.Unlock()
 	if len(c.p.Effects) != 0 || len(c.p.Buffs) != 0 || c.p.Casting != nil {
 		t.Errorf("after death: %+v %+v", c.p.Effects, c.p.Buffs)
+	}
+}
+
+// The time left in the red line (Heirloom petitions 2763/2764): whole seconds rounded
+// up, minutes and seconds from a minute on.
+func TestRecoveryLeftWords(t *testing.T) {
+	for _, c := range []struct {
+		left time.Duration
+		want string
+	}{
+		{0, "1 second remaining"},
+		{300 * time.Millisecond, "1 second remaining"},
+		{time.Second, "1 second remaining"},
+		{33100 * time.Millisecond, "34 seconds remaining"},
+		{59 * time.Second, "59 seconds remaining"},
+		{60 * time.Second, "1 minute remaining"},
+		{61 * time.Second, "1 minute 1 second remaining"},
+		{124500 * time.Millisecond, "2 minutes 5 seconds remaining"},
+		{10 * time.Minute, "10 minutes remaining"},
+	} {
+		if got := recoveryLeftWords(c.left); got != c.want {
+			t.Errorf("%v: %q, want %q", c.left, got, c.want)
+		}
 	}
 }

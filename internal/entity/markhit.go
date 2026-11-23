@@ -41,7 +41,17 @@ import (
 //   - its figure is its proc's as lasting() made it (cast.go: the workbook's
 //     own figure, a scale or level share of its caster's when it has one). The
 //     PR's stand-in for a line naming no figure (half the spell's level, a
-//     brand's twice that) is not needed: every live mark names its figure.
+//     brand's twice that) is not needed: every live mark names its figure;
+//   - the marked creature's own melee hits answer too (Heirloom petition 2754:
+//     "cl brands dont seem to work. using highest lvl one the mobs hp % doesnt
+//     go down ever ... it would also be great if the caster could see the dmg"):
+//     a brand's own words are "damages target when it hits", and a cleric who
+//     brands and heals saw nothing come of it. Each hit the creature lands on a
+//     player, a merc or a pet that it does not kill (playerShieldsLocked,
+//     petShieldsLocked, after the bearer's own shields) is answered by its
+//     strongest mark's figure, as the mark's caster's hit (creatureMarkLocked:
+//     the 0x00DB to the caster as a proc's, the hate and a kill the caster's),
+//     while its caster is in the creature's world; a caster gone answers nothing.
 
 // damageMarkAt is the strongest damage mark on n at now, nil for none.
 func (n *NPC) damageMarkAt(now time.Time) *ActiveEffect {
@@ -106,4 +116,27 @@ func (w *World) petMarkHitLocked(ps *petState, t *NPC, now time.Time) bool {
 	}
 	log.Printf("Mark: the pet %q's hit on %s under %q does %d more", ps.npc.Name, t.Name, ae.Name, n)
 	return w.petDamageLocked(ps, t, n, now, numberProc)
+}
+
+// creatureMarkLocked answers npc's own melee hit, landed, with its strongest damage
+// mark: its figure, as the mark's caster's hit (the file's doc). It reports a kill.
+// Must be called with the lock held.
+func (w *World) creatureMarkLocked(npc *NPC, now time.Time) bool {
+	if npc.Dead || npc.HP <= 0 {
+		return false
+	}
+	ae := npc.damageMarkAt(now)
+	if ae == nil {
+		return false
+	}
+	caster := w.Players[ae.Caster]
+	if caster == nil || caster.IsDead() || caster.World != npc.World {
+		return false
+	}
+	n := markRoll(ae, procIntn)
+	if n <= 0 {
+		return false
+	}
+	log.Printf("Mark: %s hits under %q: %d to it, %s's", npc.Name, ae.Name, n, caster.Name)
+	return w.spellHitLocked(caster, w.sessionOfLocked(caster), npc, n, numberProc)
 }

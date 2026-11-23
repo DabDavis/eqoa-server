@@ -106,3 +106,52 @@ func TestADamageMarkAnswersAPetsHit(t *testing.T) {
 		t.Errorf("a pet's hit took %d unmarked and %d marked, want the mark's 25 more", plain, marked)
 	}
 }
+
+// The marked creature's own melee hit answers too, as the mark's caster's hit
+// (Heirloom petition 2754: a cleric who brands and heals saw no damage come of
+// it): a hit the crab lands on its caster takes the mark's figure off the crab,
+// told to the caster. The controls: no mark, nothing; a mark whose caster is not
+// in the world answers nothing.
+func TestADamageMarkAnswersItsCreaturesOwnHits(t *testing.T) {
+	noResist(t)
+	c, crab := casterAndCrab(t)
+	mark := testMark(9611, 25)
+	if !c.w.StartCast(c.sess, mark, c.npcO, c.at(0)) {
+		t.Fatalf("the mark at the crab did not begin: %x", c.sent())
+	}
+	c.tick(mark.CastTime + castLand)
+	c.sent()
+	crabHits := func() int {
+		c.w.mu.Lock()
+		defer c.w.mu.Unlock()
+		before := crab.HP
+		c.w.playerShieldsLocked(c.sess, c.p, crab, time.Now())
+		return before - crab.HP
+	}
+	if got := crabHits(); got != 25 {
+		t.Errorf("the crab's hit under its mark took %d off it, want the mark's 25", got)
+	}
+	if figs := figures(c.sess); len(figs) != 1 || figs[0] != -25 {
+		t.Errorf("the caster was told %v, want the mark's -25", figs)
+	}
+
+	// the control: the caster gone from the world, nothing answers
+	c.w.mu.Lock()
+	p := c.w.Players[c.p.ServerID]
+	delete(c.w.Players, c.p.ServerID)
+	c.w.mu.Unlock()
+	if got := crabHits(); got != 0 {
+		t.Errorf("a mark whose caster is gone took %d", got)
+	}
+	c.w.mu.Lock()
+	c.w.Players[c.p.ServerID] = p
+	c.w.mu.Unlock()
+
+	// the control: no mark, nothing
+	for _, e := range crab.Effects {
+		e.Until = time.Now().Add(-time.Second)
+	}
+	if got := crabHits(); got != 0 {
+		t.Errorf("an unmarked crab's hit took %d off it", got)
+	}
+}

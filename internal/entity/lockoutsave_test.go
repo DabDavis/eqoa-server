@@ -37,7 +37,7 @@ func TestSavedLockoutsAreTheOnesStillRunning(t *testing.T) {
 
 // A login's lockouts (RestoreLockouts): one still running refuses its spell
 // with the cast's own answer ("Recovery time for that ability has not been
-// met.", the time left kept in the lockout: 599 s a second in) and is told after the dump
+// met. (9 minutes 59 seconds remaining)", the time left kept in the lockout: 599 s a second in) and is told after the dump
 // on the ability the book has its spell at now (SendLockouts: 0x00CD, 600000
 // ms), and its end is said there; one of a spell the book lacks refuses its
 // spell, is told on nothing and ends saying nothing; one over by the login is
@@ -75,8 +75,8 @@ func TestRestoredLockoutsRefuseAndShowOnTheBook(t *testing.T) {
 	}
 	msgs = c.sent()
 	wantOps(t, msgs, protocol.OpcodeColoredChat, protocol.OpcodeCastingCombat)
-	if !bytes.Contains(msgs[0], utf16le("Recovery time for that ability has not been met.")) || bytes.Contains(msgs[0], utf16le(" s)")) {
-		t.Errorf("the refusal % X, want the live line with no time in it", msgs[0])
+	if !bytes.Contains(msgs[0], utf16le("Recovery time for that ability has not been met. (9 minutes 59 seconds remaining)")) {
+		t.Errorf("the refusal % X, want the live line with the 599 s left in it", msgs[0])
 	}
 	for _, l := range c.p.Lockouts {
 		if l.spellID == heal.SpellID {

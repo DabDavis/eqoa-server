@@ -162,6 +162,13 @@ def quiet(f, *a):
         return f(*a)
 
 
+def replay_fixture(path, plan_path):
+    """Exercise the historical row writer independently of ticket admission."""
+    with open(plan_path) as f:
+        plan = json.load(f)
+    return ls._replay(path, lambda db, side: plan[side])
+
+
 class ShardSync(unittest.TestCase):
     def setUp(self):
         self.d = tempfile.mkdtemp()
@@ -215,7 +222,7 @@ class ShardSync(unittest.TestCase):
         quiet(ls.make_plan, self.h, self.l, self.plan, self.report)
         done = {}
         for s, p in (("L", self.l), ("H", self.h)):
-            d, there, left = quiet(ls.apply_plan, p, self.plan)
+            d, there, left = quiet(replay_fixture, p, self.plan)
             self.assertGreater(sum(d.values()), 0)
             self.assertEqual(left, [])
             done[s] = d
@@ -254,7 +261,7 @@ class ShardSync(unittest.TestCase):
             db.close()
         applied = {"H": snapshot(self.h), "L": snapshot(self.l)}
         for p in (self.l, self.h):
-            d2, _, _ = quiet(ls.apply_plan, p, self.plan)
+            d2, _, _ = quiet(replay_fixture, p, self.plan)
             self.assertEqual(sum(d2.values()), 0)
         self.assertEqual({"H": snapshot(self.h), "L": snapshot(self.l)}, applied)
         plan2 = os.path.join(self.d, "plan2.json")
@@ -273,7 +280,7 @@ class ShardSync(unittest.TestCase):
         db.execute("UPDATE queststeps SET journal = 'A Live GM changed it.' WHERE questid = 101000 AND step = 1")
         db.commit()
         db.close()
-        done, there, left = quiet(ls.apply_plan, self.l, self.plan)
+        done, there, left = quiet(replay_fixture, self.l, self.plan)
         self.assertTrue(any((x["unit"] or "").startswith("quest:") for x in left))
         db = sqlite3.connect(self.l)
         self.assertEqual(db.execute("SELECT COUNT(*) FROM queststeps WHERE questid = 101000").fetchone()[0], 2)
@@ -289,7 +296,7 @@ class ShardSync(unittest.TestCase):
         db.close()
         snap = snapshot(self.l)
         with self.assertRaises(ls.Refused):
-            quiet(ls.apply_plan, self.l, self.plan)
+            quiet(replay_fixture, self.l, self.plan)
         self.assertEqual(snapshot(self.l), snap)
 
     def test_part_way_character_keeps_the_quest(self):
@@ -303,7 +310,7 @@ class ShardSync(unittest.TestCase):
         db.commit()
         db.close()
         quiet(ls.make_plan, self.h, self.l, self.plan, None)
-        done, there, left = quiet(ls.apply_plan, self.l, self.plan)
+        done, there, left = quiet(replay_fixture, self.l, self.plan)
         self.assertTrue(any("part-way" in x["why"] for x in left))
         db = sqlite3.connect(self.l)
         self.assertEqual(db.execute("SELECT step FROM charquests WHERE serverid = 7").fetchone()[0], 2)
@@ -325,10 +332,10 @@ class RealShards(unittest.TestCase):
             before = {s: snapshot(p[s], tables[s]) for s in "HL"}
             for s in "LH":
                 t0 = time.time()
-                done, there, left = ls.apply_plan(p[s], plan)
+                done, there, left = replay_fixture(p[s], plan)
                 print(f"--apply {s}: {time.time() - t0:.2f} s, {sum(done.values())} rows")
             for s in "LH":
-                done2, _, _ = ls.apply_plan(p[s], plan)
+                done2, _, _ = replay_fixture(p[s], plan)
                 self.assertEqual(sum(done2.values()), 0)
             for s in "HL":
                 n, left3 = ls.undo(p[s])

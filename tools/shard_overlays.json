@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "overlays": [
+    {
+      "target": "both",
+      "table": "npcs",
+      "where": {
+        "npc_name": [
+          "Equipment Dyer",
+          "Weapon Enchanter",
+          "Pet Groomer"
+        ]
+      },
+      "fields": [
+        "*"
+      ],
+      "reason": "Work 2032 records separate service-vendor policies on Heirloom and Live."
+    },
+    {
+      "target": "both",
+      "table": "npcspawnonly",
+      "npc_from": "name",
+      "where": {
+        "npc_name": [
+          "Equipment Dyer",
+          "Weapon Enchanter",
+          "Pet Groomer"
+        ]
+      },
+      "fields": [
+        "*"
+      ],
+      "reason": "Work 2032 records separate service-vendor policies on Heirloom and Live."
+    },
+    {
+      "target": "both",
+      "table": "npcrespawn",
+      "npc_from": "npc_row",
+      "where": {
+        "npc_name": [
+          "Equipment Dyer",
+          "Weapon Enchanter",
+          "Pet Groomer"
+        ]
+      },
+      "fields": [
+        "*"
+      ],
+      "reason": "Work 2032 records separate service-vendor policies on Heirloom and Live."
+    },
+    {
+      "target": "heirloom",
+      "table": "itempattern",
+      "where": {
+        "patternid": [
+          5628,
+          6612,
+          7392,
+          991700,
+          991728,
+          991750,
+          991751,
+          991752,
+          991770,
+          991771,
+          991855,
+          991857,
+          991859,
+          700418,
+          7942,
+          713015
+        ]
+      },
+      "fields": [
+        "raceuse"
+      ],
+      "reason": "Work 2042 preserves Heirloom's all-races masks on these three sampled items and its 13 named restoration rows."
+    },
+    {
+      "target": "live",
+      "table": "itempattern",
+      "where": {
+        "patternid": [
+          5628,
+          6612,
+          7392,
+          991700,
+          991728,
+          991750,
+          991751,
+          991752,
+          991770,
+          991771,
+          991855,
+          991857,
+          991859,
+          700418,
+          7942,
+          713015
+        ]
+      },
+      "fields": [
+        "raceuse"
+      ],
+      "allow_after": {
+        "raceuse": 4
+      },
+      "reason": "Work 2042 sets the Live Dark Elf mask for these items. A Heirloom all-races value would widen it again."
+    }
+  ]
+}

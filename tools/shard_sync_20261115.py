@@ -42,13 +42,10 @@ The owner approved (2026-11-15) copying to Live these Heirloom-only changes as w
 spread and wandering, a GM's one-shard calls (Lady Vox's 2 h, Bertoxxulous -30%, the Recruiter starts at L60, the
 quests' race lists), the spell range pass, the GM-made items.
 
-Report by default (counts per table and the review list; --plan FILE writes every operation). --apply runs the
---from -> --to operations in one transaction on --to (with --plan FILE: only operations that file lists), a gm_audit
-line a row, each change logged in shard_sync_1115_log; a second --apply finds nothing to do. --undo puts back exactly
-what the log holds on --to (a row changed since is left and listed). The databases are read with read-only
-connections; --to is written only in the one transaction at the end, each row checked against what was read.
+Report by default. --plan FILE lists proposed operations. Use the reviewed-ticket path in live_sync_20261122.py
+for new releases. --undo restores the original November 15 log, checking each current row before restoring it.
 
-    python3 -E -s tools/shard_sync_20261115.py --from <heirloom eqoa.db> --to <live eqoa.db> [--plan p.json] [--apply | --undo]
+    python3 -E -s tools/shard_sync_20261115.py --from <heirloom eqoa.db> --to <live eqoa.db> [--plan p.json | --undo]
     python3 -E -s tools/shard_sync_20261115.py --from <live eqoa.db> --to <heirloom eqoa.db> ...
 
 Run Heirloom -> Live first, then Live -> Heirloom. Quests and templates load at the server's start (a keep restart);
@@ -62,6 +59,7 @@ import json
 import math
 import re
 import sqlite3
+from pathlib import Path
 import sys
 
 TOOL = "tools/shard_sync_20261115.py"
@@ -226,6 +224,10 @@ def has(db, t):
     return db.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?", (t,)).fetchone() is not None
 
 
+def readonly(path):
+    return sqlite3.connect(Path(path).resolve().as_uri() + "?mode=ro", uri=True, timeout=30)
+
+
 def cols(db, t):
     return [r[1] for r in db.execute(f'PRAGMA table_info("{t}")')]
 
@@ -254,7 +256,7 @@ class Shards:
         self.path = {"H": hpath, "L": lpath}
         self.db = {}
         for s in "HL":
-            c = sqlite3.connect(f"file:{self.path[s]}?mode=ro", uri=True, timeout=30)
+            c = readonly(self.path[s])
             c.row_factory = sqlite3.Row
             self.db[s] = c
         self.H, self.L = self.db["H"], self.db["L"]
@@ -1352,7 +1354,7 @@ LOG_DDL = f"""CREATE TABLE IF NOT EXISTS {LOG} (
 
 
 def role_of(path):
-    db = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+    db = readonly(path)
     try:
         n = db.execute("SELECT COUNT(*) FROM heirlooms").fetchone()[0] if has(db, "heirlooms") else 0
     finally:
@@ -1427,12 +1429,14 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--from", dest="src", required=True, help="the database to copy from")
     ap.add_argument("--to", dest="dst", required=True, help="the database to bring up to date")
-    ap.add_argument("--plan", help="report: write the operations here; --apply: run only the operations it lists")
+    ap.add_argument("--plan", help="write the proposed operations for review")
     ap.add_argument("--review", help="write the rows left for a person (no own edit on either shard) here")
     g = ap.add_mutually_exclusive_group()
-    g.add_argument("--apply", action="store_true")
+    g.add_argument("--apply", action="store_true", help=argparse.SUPPRESS)
     g.add_argument("--undo", action="store_true")
     a = ap.parse_args()
+    if a.apply:
+        ap.error("bulk sync retired; use a reviewed ticket receipt with live_sync_20261122.py")
     if a.undo:
         undo(a.dst)
         return
@@ -1456,51 +1460,12 @@ def main():
     print(f"left for a person (review, not synced): {len(review)}")
     if a.review:
         json.dump(review, open(a.review, "w"), indent=1, default=str)
-    if not a.apply:
-        if a.plan:
-            plan = {"from": a.src, "to": a.dst, "direction": f"{NAMES[rs]} -> {NAMES[rd]}", "counts": per,
-                    "ops": [{"id": op_id(t, r["action"], r["key"]), "table": t, "action": r["action"], "group": r["group"],
-                             "key": r["key"], "reason": r["reason"], "changed": r.get("changed")} for t, r in ops]}
-            json.dump(plan, open(a.plan, "w"), indent=0, default=str)
-            print("plan written:", a.plan)
-        return
-    allowed = None
     if a.plan:
-        allowed = {o["id"] for o in json.load(open(a.plan))["ops"]}
-    for c in sh.db.values():
-        c.close()
-    # the src side is read again by the quest copier: reopen read-only
-    sh.db[rs] = sqlite3.connect(f"file:{a.src}?mode=ro", uri=True, timeout=30)
-    sh.db[rs].row_factory = sqlite3.Row
-    w.sdb = sh.db[rs]
-    run = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ") + f"-{rs}{rd}"
-    ap_ = Applier(sh, w, a.dst, run, allowed)
-    ap_.db.execute(LOG_DDL)
-    t0 = datetime.datetime.now()
-    ap_.db.execute("BEGIN IMMEDIATE")
-    try:
-        ap_.run_ops(ops)
-        ap_.db.execute("COMMIT")
-        print(f"write transaction: {(datetime.datetime.now() - t0).total_seconds():.2f} s")
-    except Exception:
-        ap_.db.execute("ROLLBACK")
-        raise
-    print(f"APPLIED run {run}: {sum(ap_.done.values())} row changes on {NAMES[rd]}")
-    for (t, k), c in sorted(ap_.done.items(), key=lambda x: (ORDER.index(x[0][0]) if x[0][0] in ORDER else 999, x[0][1])):
-        print(f"  {t:20} {k:7} {c}")
-    print(f"skipped: {len(ap_.skipped)}")
-    sk = collections.Counter((s["table"], s["why"][:90]) for s in ap_.skipped)
-    for (t, why), c in sk.most_common(40):
-        print(f"  {c:5} {t:18} {why}")
-    if ap_.charq:
-        moved = [x for x in ap_.charq if x["from"] != x["to"]]
-        print(f"characters' quest progress: {len(ap_.charq)} part-way on replaced quests, {len(moved)} moved")
-        for x in moved[:60]:
-            print("  ", x)
-    out = a.plan.replace(".json", "") + f".applied-{run}.json" if a.plan else f"shard_sync_{run}.json"
-    json.dump({"run": run, "done": {f"{t}|{k}": c for (t, k), c in ap_.done.items()}, "skipped": ap_.skipped,
-               "charquests": ap_.charq}, open(out, "w"), indent=0, default=str)
-    print("written:", out)
+        plan = {"from": a.src, "to": a.dst, "direction": f"{NAMES[rs]} -> {NAMES[rd]}", "counts": per,
+                "ops": [{"id": op_id(t, r["action"], r["key"]), "table": t, "action": r["action"], "group": r["group"],
+                         "key": r["key"], "reason": r["reason"], "changed": r.get("changed")} for t, r in ops]}
+        json.dump(plan, open(a.plan, "w"), indent=0, default=str)
+        print("plan written:", a.plan)
 
 
 if __name__ == "__main__":

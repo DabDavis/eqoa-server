@@ -604,8 +604,13 @@ func (s *Server) authorizeSubmit(w http.ResponseWriter, r *http.Request) {
 	}
 	code := randomHex(24)
 	s.oauth.mu.Lock()
-	delete(s.oauth.pending, id)
 	s.oauth.prune(time.Now())
+	if s.oauth.pending[id] != p {
+		s.oauth.mu.Unlock()
+		s.renderAuthorize(w, r, http.StatusBadRequest, authorizeView{Fatal: "This sign-in has ended. Start again from the application."}, "")
+		return
+	}
+	delete(s.oauth.pending, id)
 	full := len(s.oauth.codes) >= oauthMaxPending
 	if !full {
 		s.oauth.codes[code] = &authCode{ClientID: p.ClientID, ClientName: p.ClientName, RedirectURI: p.RedirectURI,
@@ -670,7 +675,7 @@ func (s *Server) handleOAuthToken(w http.ResponseWriter, r *http.Request) {
 			oauthError(w, http.StatusBadRequest, "invalid_grant", "the code_verifier does not match the challenge")
 			return
 		}
-		s.issueOAuthPair(w, r, c.AccountID, c.ClientID, c.ClientName, c.Scope)
+		s.issueOAuthPair(w, r, c.AccountID, c.ClientID, c.ClientName, c.Scope, nil)
 	case "refresh_token":
 		t, err := s.refreshTokenOf(f.Get("refresh_token"))
 		if err != nil {
@@ -681,41 +686,11 @@ func (s *Server) handleOAuthToken(w http.ResponseWriter, r *http.Request) {
 			oauthError(w, http.StatusBadRequest, "invalid_grant", "the refresh token is another client's")
 			return
 		}
-		// rotate: the old pair goes, a new pair comes. A refresh token is
-		// good once: used again, a copy is in someone else's hands, and
-		// every token of that grant goes. Used twice within moments is a
-		// client racing itself (its other request got the new pair): that
-		// one is refused, and nothing else.
-		res, err := s.d.DB.Exec(`UPDATE gm_tokens SET revoked = 1, last_used = ? WHERE id = ? AND revoked = 0`, now(), t.ID)
-		if err != nil {
-			oauthError(w, http.StatusInternalServerError, "server_error", err.Error())
-			return
-		}
-		n, _ := res.RowsAffected()
-		if n != 1 && t.LastUsed != "" && time.Since(parseStamp(t.LastUsed)) < refreshGrace {
-			oauthError(w, http.StatusBadRequest, "invalid_grant", "the refresh token was just used")
-			return
-		}
-		if n != 1 || t.Revoked {
-			res, _ := s.d.DB.Exec(`UPDATE gm_tokens SET revoked = 1 WHERE accountid = ? AND client = ? AND revoked = 0`, t.AccountID, t.Client)
-			n := int64(0)
-			if res != nil {
-				n, _ = res.RowsAffected()
-			}
-			a := &actor{AccountID: t.AccountID, Username: "", Via: "oauth:" + t.Name, IP: clientIP(r)}
-			if acc, err := s.accountByID(t.AccountID); err == nil {
-				a.Username, a.Level = acc.Username, acc.Level
-			}
-			s.audit(a, "security", "", nil, nil, nil, fmt.Sprintf("a refresh token of %q was used twice: its %d live token(s) revoked", t.Name, n))
-			oauthError(w, http.StatusBadRequest, "invalid_grant", "the refresh token was used already; sign in again")
-			return
-		}
-		s.revokeToken(t.ID) // and its access token
 		scope := t.Scope
 		if want := f.Get("scope"); want != "" && scopeRank(scopeOf(want)) < scopeRank(scope) {
 			scope = scopeOf(want)
 		}
-		s.issueOAuthPair(w, r, t.AccountID, t.Client, t.Name, scope)
+		s.issueOAuthPair(w, r, t.AccountID, t.Client, t.Name, scope, &t)
 	default:
 		oauthError(w, http.StatusBadRequest, "unsupported_grant_type", "authorization_code or refresh_token")
 	}
@@ -733,7 +708,7 @@ func scopeRank(s string) int {
 	return 0
 }
 
-func (s *Server) issueOAuthPair(w http.ResponseWriter, r *http.Request, accountID int, clientID, clientName, scope string) {
+func (s *Server) issueOAuthPair(w http.ResponseWriter, r *http.Request, accountID int, clientID, clientName, scope string, old *tokenInfo) {
 	acc, err := s.accountByID(accountID)
 	if err != nil || s.panelRole(acc) == "" {
 		oauthError(w, http.StatusBadRequest, "invalid_grant", "the account no longer has the panel")
@@ -742,17 +717,70 @@ func (s *Server) issueOAuthPair(w http.ResponseWriter, r *http.Request, accountI
 	if scope == scopeAdmin && acc.Level < s.cfg.AdminLevel {
 		scope = scopeWrite
 	}
-	access, aid, err := s.issueToken(accountID, clientName, kindOAuth, scope, clientID, oauthAccessTTL, 0)
+	tx, err := s.d.DB.BeginTx(r.Context(), nil)
 	if err != nil {
 		oauthError(w, http.StatusInternalServerError, "server_error", err.Error())
 		return
 	}
-	refresh, _, err := s.issueToken(accountID, clientName, kindRefresh, scope, clientID, oauthRefreshTTL, aid)
+	defer tx.Rollback()
+	if old != nil {
+		// The conditional write serializes contenders. Read the winning
+		// request's timestamp inside this transaction if the token was spent.
+		res, err := tx.Exec(`UPDATE gm_tokens SET revoked = 1, last_used = ? WHERE id = ? AND revoked = 0`, now(), old.ID)
+		if err != nil {
+			oauthError(w, http.StatusInternalServerError, "server_error", err.Error())
+			return
+		}
+		n, err := res.RowsAffected()
+		if err != nil {
+			oauthError(w, http.StatusInternalServerError, "server_error", err.Error())
+			return
+		}
+		if n == 0 {
+			var lastUsed sql.NullString
+			if err := tx.QueryRow(`SELECT last_used FROM gm_tokens WHERE id = ?`, old.ID).Scan(&lastUsed); err != nil {
+				oauthError(w, http.StatusBadRequest, "invalid_grant", "unknown refresh token")
+				return
+			}
+			if lastUsed.Valid && time.Since(parseStamp(lastUsed.String)) < refreshGrace {
+				oauthError(w, http.StatusBadRequest, "invalid_grant", "the refresh token was just used")
+				return
+			}
+			res, err := tx.Exec(`UPDATE gm_tokens SET revoked = 1 WHERE accountid = ? AND client = ? AND revoked = 0`, accountID, clientID)
+			if err == nil {
+				err = tx.Commit()
+			}
+			if err != nil {
+				oauthError(w, http.StatusInternalServerError, "server_error", err.Error())
+				return
+			}
+			count, _ := res.RowsAffected()
+			a := &actor{AccountID: accountID, Username: acc.Username, Level: acc.Level, Via: "oauth:" + old.Name, IP: clientIP(r)}
+			s.audit(a, "security", "", nil, nil, nil, fmt.Sprintf("a refresh token of %q was used twice: its %d live token(s) revoked", old.Name, count))
+			oauthError(w, http.StatusBadRequest, "invalid_grant", "the refresh token was used already; sign in again")
+			return
+		}
+		if _, err := tx.Exec(`UPDATE gm_tokens SET revoked = 1 WHERE id = (SELECT parent FROM gm_tokens WHERE id = ?)`, old.ID); err != nil {
+			oauthError(w, http.StatusInternalServerError, "server_error", err.Error())
+			return
+		}
+	}
+	access, aid, err := s.insertToken(tx, accountID, clientName, kindOAuth, scope, clientID, oauthAccessTTL, 0)
 	if err != nil {
 		oauthError(w, http.StatusInternalServerError, "server_error", err.Error())
 		return
 	}
-	s.d.DB.Exec(`UPDATE gm_oauth_clients SET last_used = ? WHERE client_id = ?`, now(), clientID)
+	refresh, _, err := s.insertToken(tx, accountID, clientName, kindRefresh, scope, clientID, oauthRefreshTTL, aid)
+	if err == nil {
+		_, err = tx.Exec(`UPDATE gm_oauth_clients SET last_used = ? WHERE client_id = ?`, now(), clientID)
+	}
+	if err == nil {
+		err = tx.Commit()
+	}
+	if err != nil {
+		oauthError(w, http.StatusInternalServerError, "server_error", err.Error())
+		return
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"access_token":  access,
 		"token_type":    "Bearer",
@@ -783,14 +811,13 @@ func (s *Server) handleOAuthRevoke(w http.ResponseWriter, r *http.Request) {
 // revoked one used again is a stolen copy), but not expired.
 func (s *Server) refreshTokenOf(value string) (tokenInfo, error) {
 	var t tokenInfo
-	var expires, lastUsed sql.NullString
-	var revoked int
-	err := s.d.DB.QueryRow(`SELECT id, accountid, name, scope, client, expires, last_used, revoked FROM gm_tokens WHERE hash = ? AND kind = ?`,
-		hashToken(value), kindRefresh).Scan(&t.ID, &t.AccountID, &t.Name, &t.Scope, &t.Client, &expires, &lastUsed, &revoked)
+	var expires sql.NullString
+	err := s.d.DB.QueryRow(`SELECT id, accountid, name, scope, client, expires FROM gm_tokens WHERE hash = ? AND kind = ?`,
+		hashToken(value), kindRefresh).Scan(&t.ID, &t.AccountID, &t.Name, &t.Scope, &t.Client, &expires)
 	if err != nil {
 		return t, errors.New("unknown refresh token")
 	}
-	t.Expires, t.LastUsed, t.Revoked = expires.String, lastUsed.String, revoked != 0
+	t.Expires = expires.String
 	if t.Expires != "" && time.Now().After(parseStamp(t.Expires)) {
 		return t, errors.New("the refresh token expired; sign in again")
 	}

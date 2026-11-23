@@ -2,7 +2,9 @@ package mailer
 
 import (
 	"bufio"
+	"errors"
 	"net"
+	"net/smtp"
 	"strings"
 	"testing"
 	"time"
@@ -158,5 +160,41 @@ func TestSMTPSend(t *testing.T) {
 	// a relay that is not there is an error, not a hang
 	if err := (SMTP{Addr: "127.0.0.1:1", From: "no-reply@example.com", Timeout: time.Second}).Send(Message{To: "p@example.com"}); err == nil {
 		t.Fatal("no error for a closed port")
+	}
+}
+
+func TestRemoteSMTPRequiresSTARTTLS(t *testing.T) {
+	client, server := net.Pipe()
+	defer client.Close()
+	go func() {
+		defer server.Close()
+		server.Write([]byte("220 relay ESMTP\r\n"))
+		bufio.NewReader(server).ReadString('\n') // EHLO
+		server.Write([]byte("250 relay\r\n"))
+	}()
+	c, err := smtp.NewClient(client, "relay.example")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := requireTLS(c, "relay.example"); err == nil {
+		t.Fatal("accepted remote SMTP without STARTTLS")
+	}
+}
+
+func TestQueueBoundsOutstandingRetries(t *testing.T) {
+	attempted := make(chan struct{}, 1)
+	q := NewQueue(senderFunc(func(Message) error {
+		attempted <- struct{}{}
+		return errors.New("unavailable")
+	}), 1, []time.Duration{time.Hour})
+	defer q.Stop()
+	for i := 0; i < 2; i++ {
+		if !q.Post(Message{}) {
+			t.Fatal("queue refused a message before reaching capacity")
+		}
+		<-attempted
+	}
+	if q.Post(Message{}) {
+		t.Fatal("accepted another message while retries occupied every slot")
 	}
 }

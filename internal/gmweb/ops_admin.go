@@ -285,9 +285,11 @@ func (s *Server) settingsNow() map[string]any {
 	if s.d.Characters != nil {
 		rules = s.d.Characters.NewCharacterRules()
 	}
-	auto := s.d.Config.Auth.AllowAutoRegister
+	var auto bool
 	if s.d.AutoRegister != nil {
 		auto = s.d.AutoRegister()
+	} else {
+		auto = s.d.Config.Auth.AllowAutoRegister
 	}
 	sun, boon := entity.DefaultVampireSun, entity.DefaultBoon
 	if s.d.World != nil {
@@ -372,8 +374,7 @@ func (v vampireSunChange) apply(r entity.VampireSun, changes map[string]any) (en
 // settingsView is the live settings and the rest of the configuration,
 // without a password.
 func (s *Server) settingsView() map[string]any {
-	cfg := *s.d.Config
-	cfg.Auth.Accounts = nil
+	cfg := s.d.Config
 	var seeds []string
 	for _, a := range s.d.Config.Auth.Accounts {
 		seeds = append(seeds, a.Username)
@@ -500,10 +501,10 @@ var readOnlySQL = regexp.MustCompile(`(?is)^\s*(select|with|pragma|explain|value
 // readPragma is the PRAGMAs sql_query runs: the ones that only read, named
 // with at most a table or index for an argument. A PRAGMA that sets
 // something would set it on the game's own connection (there is one) for good.
-var readPragma = regexp.MustCompile(`(?is)^\s*pragma\s+(table_info|table_xinfo|table_list|index_list|index_info|index_xinfo|` +
-	`foreign_key_list|foreign_key_check|integrity_check|quick_check|database_list|collation_list|compile_options|` +
+var readPragma = regexp.MustCompile(`(?is)^\s*pragma\s+((table_info|table_xinfo|table_list|index_list|index_info|index_xinfo|` +
+	`foreign_key_list|foreign_key_check|integrity_check|quick_check)(\s*\(\s*['"\w.]*\s*\))?|database_list|collation_list|compile_options|` +
 	`function_list|pragma_list|page_count|page_size|freelist_count|user_version|schema_version|application_id|` +
-	`journal_mode|foreign_keys|encoding)\s*(\(\s*['"\w.]*\s*\))?\s*$`)
+	`journal_mode|foreign_keys|encoding)\s*$`)
 
 func (s *Server) sqlQuery(c *opCtx, query string, limit int) (any, error) {
 	q := strings.TrimSpace(query)
@@ -640,7 +641,7 @@ var labelChars = regexp.MustCompile(`[^a-zA-Z0-9_-]+`)
 // backup writes a consistent copy of the database and returns its path.
 func (s *Server) backup(label string) (string, int64, error) {
 	dir := s.backupDir()
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return "", 0, err
 	}
 	label = strings.Trim(labelChars.ReplaceAllString(label, "-"), "-")
@@ -651,11 +652,19 @@ func (s *Server) backup(label string) (string, int64, error) {
 	if label != "" {
 		name += "-" + label
 	}
-	path := filepath.Join(dir, name+".db")
-	if _, err := os.Stat(path); err == nil {
-		path = filepath.Join(dir, name+"-"+randomHex(3)+".db")
+	// VACUUM INTO accepts an empty file. Reserve it exclusively with owner-only
+	// permissions before SQLite writes any account or authenticator data.
+	f, err := os.CreateTemp(dir, name+"-*.db")
+	if err != nil {
+		return "", 0, err
+	}
+	path := f.Name()
+	if err := f.Close(); err != nil {
+		os.Remove(path)
+		return "", 0, err
 	}
 	if _, err := s.d.DB.Exec(`VACUUM INTO ?`, path); err != nil {
+		os.Remove(path)
 		return "", 0, err
 	}
 	fi, err := os.Stat(path)

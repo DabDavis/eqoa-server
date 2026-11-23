@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/eqoa/server/internal/database"
 	"rsc.io/qr"
 )
 
@@ -117,10 +118,10 @@ func (s *Server) totpEnabled(accountID int) (bool, error) {
 
 // totpCheck verifies a code against the account's authenticator and spends
 // its step. ok is false for a wrong code, a spent one, or no authenticator.
-func (s *Server) totpCheck(accountID int, code string) (bool, error) {
+func totpCheck(db *database.SQLiteDB, accountID int, code string) (bool, error) {
 	var secret string
 	var last int64
-	err := s.d.DB.QueryRow(`SELECT secret, last_step FROM gm_totp WHERE accountid = ?`, accountID).Scan(&secret, &last)
+	err := db.QueryRow(`SELECT secret, last_step FROM gm_totp WHERE accountid = ?`, accountID).Scan(&secret, &last)
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	}
@@ -131,7 +132,7 @@ func (s *Server) totpCheck(accountID int, code string) (bool, error) {
 	if !ok || step <= last {
 		return false, nil
 	}
-	res, err := s.d.DB.Exec(`UPDATE gm_totp SET last_step = ? WHERE accountid = ? AND last_step < ?`, step, accountID, step)
+	res, err := db.Exec(`UPDATE gm_totp SET last_step = ? WHERE accountid = ? AND secret = ? AND last_step < ?`, step, accountID, secret, step)
 	if err != nil {
 		return false, err
 	}
@@ -213,7 +214,7 @@ func (s *Server) handleTOTP(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusBadRequest, "no authenticator is enrolled")
 			return
 		}
-		ok, err := s.totpCheck(a.AccountID, req.Code)
+		ok, err := totpCheck(s.d.DB, a.AccountID, req.Code)
 		if err != nil {
 			writeError(w, http.StatusInternalServerError, err.Error())
 			return
@@ -237,14 +238,14 @@ func (s *Server) handleTOTP(w http.ResponseWriter, r *http.Request) {
 // AccountTOTP is the account pages' check of an authenticator's code
 // (tcp.AccountServer.TOTP: changing an e-mail): enrolled false for an account
 // with none; a right code is spent as a sign-in's is.
-func (s *Server) AccountTOTP(accountID int, code string) (enrolled, ok bool) {
-	on, err := s.totpEnabled(accountID)
+func AccountTOTP(db *database.SQLiteDB, accountID int, code string) (enrolled, ok bool) {
+	on, err := db.HasAuthenticator(accountID)
 	if err != nil {
 		return true, false
 	}
 	if !on {
 		return false, false
 	}
-	good, err := s.totpCheck(accountID, code)
+	good, err := totpCheck(db, accountID, code)
 	return true, err == nil && good
 }

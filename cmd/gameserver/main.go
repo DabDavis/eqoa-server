@@ -1086,13 +1086,6 @@ func main() {
 		authHandler.SetEmailRefusal(refused)
 		handlerRegistry.SetEmailRefusal(refused)
 	}
-	if cfg.Server.AuthPort != 0 {
-		authListener := tcp.NewListener(cfg, authHandler)
-		if err := authListener.Start(); err != nil {
-			log.Fatalf("Failed to start auth server: %v", err)
-		}
-		defer authListener.Stop()
-	}
 
 	// Initialize and start patch server
 	if cfg.Server.PatchPort != 0 {
@@ -1161,6 +1154,13 @@ func main() {
 			log.Printf("Accounts: e-mail on, LOGGED ONLY (mail.enabled false); links to %s", accountMail.PageURL())
 		}
 	}
+	if cfg.Server.AuthPort != 0 {
+		authListener := tcp.NewListener(cfg, authHandler)
+		if err := authListener.Start(); err != nil {
+			log.Fatalf("Failed to start auth server: %v", err)
+		}
+		defer authListener.Stop()
+	}
 	if g := handlers.NewEmailGate(emailGate, sessionMgr); g != nil {
 		gameWorld.OnPlayerEntered(g.Entered)
 		stopRemind := g.Run()
@@ -1181,6 +1181,9 @@ func main() {
 		accountServer = tcp.NewAccountServer(db, cfg.Server.AccountPort, cfg.Auth.BCryptCost)
 		accountServer.BindAddress = cfg.Auth.BindAddress
 		accountServer.Mail = accountMail
+		accountServer.TOTP = func(id int, code string) (bool, bool) {
+			return gmweb.AccountTOTP(db, id, code)
+		}
 		accountServer.SetNewCharacterRules(newRules)
 		accountServer.MaxCharacters = entity.CharSlots()
 		// creation's rules (entity/creation.go): the game's races by their classes
@@ -1318,11 +1321,6 @@ func main() {
 		})
 		if err != nil {
 			log.Fatalf("GM panel: %v", err)
-		}
-		// changing an account's e-mail on the account page asks for its
-		// authenticator's code when it has one (the panel's)
-		if accountServer != nil {
-			accountServer.TOTP = gm.AccountTOTP
 		}
 		if err := gm.Start(); err != nil {
 			log.Fatalf("GM panel: %v", err)

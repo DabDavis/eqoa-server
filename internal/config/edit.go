@@ -58,28 +58,45 @@ func SetInFile(path string, changes map[string]any) (string, error) {
 		return "", fmt.Errorf("the changed file would not load: %w", err)
 	}
 
-	mode := os.FileMode(0644)
+	mode := os.FileMode(0o600)
 	backup := ""
 	if fi, err := os.Stat(path); err == nil {
 		mode = fi.Mode().Perm()
-		backup = fmt.Sprintf("%s.bak-%s-gm", path, time.Now().UTC().Format("20060102-150405"))
-		if err := os.WriteFile(backup, old, mode); err != nil {
+		pattern := filepath.Base(path) + ".bak-" + time.Now().UTC().Format("20060102-150405") + "-*-gm"
+		f, err := os.CreateTemp(filepath.Dir(path), pattern)
+		if err != nil {
 			return "", fmt.Errorf("backup: %w", err)
 		}
+		if _, err := f.Write(old); err != nil {
+			f.Close()
+			os.Remove(f.Name())
+			return "", fmt.Errorf("backup: %w", err)
+		}
+		if err := f.Close(); err != nil {
+			os.Remove(f.Name())
+			return "", fmt.Errorf("backup: %w", err)
+		}
+		backup = f.Name()
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return "", err
 	}
 	tmp, err := os.CreateTemp(filepath.Dir(path), "."+filepath.Base(path)+".*")
 	if err != nil {
 		return backup, err
 	}
+	defer os.Remove(tmp.Name())
 	if _, err := tmp.Write(out.Bytes()); err != nil {
 		tmp.Close()
-		os.Remove(tmp.Name())
 		return backup, err
 	}
-	tmp.Close()
-	os.Chmod(tmp.Name(), mode)
+	if err := tmp.Chmod(mode); err != nil {
+		tmp.Close()
+		return backup, err
+	}
+	if err := tmp.Close(); err != nil {
+		return backup, err
+	}
 	if err := os.Rename(tmp.Name(), path); err != nil {
-		os.Remove(tmp.Name())
 		return backup, err
 	}
 	return backup, nil

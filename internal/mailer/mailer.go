@@ -9,6 +9,7 @@ package mailer
 import (
 	"bytes"
 	"crypto/rand"
+	"crypto/tls"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -42,8 +43,8 @@ type SMTP struct {
 	Timeout time.Duration // per message; unset: 20 s
 }
 
-// Send speaks SMTP to the relay: no authentication, STARTTLS when the relay
-// offers it and is not this machine (a local socket needs none).
+// Send requires verified STARTTLS for connections outside loopback. Account
+// verification and password reset links are bearer credentials.
 func (s SMTP) Send(m Message) error {
 	timeout := s.Timeout
 	if timeout <= 0 {
@@ -64,11 +65,9 @@ func (s SMTP) Send(m Message) error {
 	if err := c.Hello(helloName(s.From)); err != nil {
 		return err
 	}
-	if ip := net.ParseIP(host); ip == nil || !ip.IsLoopback() {
-		if ok, _ := c.Extension("STARTTLS"); ok {
-			if err := c.StartTLS(nil); err != nil {
-				return err
-			}
+	if !conn.RemoteAddr().(*net.TCPAddr).IP.IsLoopback() {
+		if err := requireTLS(c, host); err != nil {
+			return err
 		}
 	}
 	if err := c.Mail(s.From); err != nil {
@@ -89,6 +88,13 @@ func (s SMTP) Send(m Message) error {
 		return err
 	}
 	return c.Quit()
+}
+
+func requireTLS(c *smtp.Client, host string) error {
+	if ok, _ := c.Extension("STARTTLS"); !ok {
+		return errors.New("remote SMTP relay requires STARTTLS")
+	}
+	return c.StartTLS(&tls.Config{ServerName: host, MinVersion: tls.VersionTLS12})
 }
 
 // helloName is the name EHLO gives: the sender's domain.
@@ -177,6 +183,7 @@ func (m *Memory) All() []Message {
 type Queue struct {
 	sender  Sender
 	ch      chan Message
+	pending chan struct{} // counts queued, sending and retrying messages
 	backoff []time.Duration
 	stop    chan struct{}
 	done    chan struct{}
@@ -198,7 +205,7 @@ func NewQueue(sender Sender, size int, backoff []time.Duration) *Queue {
 	if backoff == nil {
 		backoff = DefaultBackoff
 	}
-	q := &Queue{sender: sender, ch: make(chan Message, size), backoff: backoff,
+	q := &Queue{sender: sender, ch: make(chan Message, size), pending: make(chan struct{}, size+1), backoff: backoff,
 		stop: make(chan struct{}), done: make(chan struct{})}
 	go q.run()
 	return q
@@ -212,10 +219,19 @@ func (q *Queue) Post(m Message) bool {
 		return false
 	default:
 	}
+	// Keep a place for this message through its last retry. A failing relay
+	// otherwise moves the whole queue into unbounded sleeping goroutines.
+	select {
+	case q.pending <- struct{}{}:
+	default:
+		log.Printf("Mail: the queue is full; a message to %s (%q) is dropped", Mask(m.To), m.Subject)
+		return false
+	}
 	select {
 	case q.ch <- m:
 		return true
 	default:
+		<-q.pending
 		log.Printf("Mail: the queue is full; a message to %s (%q) is dropped", Mask(m.To), m.Subject)
 		return false
 	}
@@ -232,6 +248,8 @@ func (q *Queue) run() {
 				log.Printf("Mail: to %s (%q) not sent: %v; retrying", Mask(m.To), m.Subject, err)
 				q.wg.Add(1)
 				go q.retry(m)
+			} else {
+				<-q.pending
 			}
 		}
 	}
@@ -239,6 +257,7 @@ func (q *Queue) run() {
 
 func (q *Queue) retry(m Message) {
 	defer q.wg.Done()
+	defer func() { <-q.pending }()
 	for i, wait := range q.backoff {
 		select {
 		case <-q.stop:

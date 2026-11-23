@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"mime"
 	"net/http"
 	"strings"
 	"time"
@@ -22,7 +23,8 @@ import (
 // must be sent as JSON: a page of another site can post a form or plain text
 // without asking, but not application/json.
 func decodeBody(r *http.Request, v any) error {
-	if ct := strings.ToLower(r.Header.Get("Content-Type")); !strings.Contains(ct, "json") {
+	ct, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if err != nil || !(ct == "application/json" || (strings.HasPrefix(ct, "application/") && strings.HasSuffix(ct, "+json"))) {
 		return errors.New("send the body as JSON (Content-Type: application/json)")
 	}
 	return decodeJSON(r, v)
@@ -31,13 +33,16 @@ func decodeBody(r *http.Request, v any) error {
 // decodeJSON is decodeBody whatever the Content-Type, for the endpoints
 // that take only a bearer token (MCP), which no other site's page can send.
 func decodeJSON(r *http.Request, v any) error {
-	dec := json.NewDecoder(io.LimitReader(r.Body, 4<<20))
+	dec := json.NewDecoder(r.Body) // secure has wrapped the body in http.MaxBytesReader
 	dec.UseNumber()
 	if err := dec.Decode(v); err != nil {
 		if errors.Is(err, io.EOF) {
 			return errors.New("a JSON body is required")
 		}
 		return fmt.Errorf("the body is not valid JSON: %v", err)
+	}
+	if _, err := dec.Token(); err != io.EOF {
+		return errors.New("expected exactly one JSON value")
 	}
 	return nil
 }
@@ -110,7 +115,7 @@ func (s *Server) checkCredentials(ip, username, password, code string) (acc acco
 		if strings.TrimSpace(code) == "" {
 			return acc, false, true, &authError{http.StatusUnauthorized, "enter the code from your authenticator app"}
 		}
-		ok, err := s.totpCheck(acc.ID, code)
+		ok, err := totpCheck(s.d.DB, acc.ID, code)
 		if err != nil {
 			return acc, false, false, err
 		}

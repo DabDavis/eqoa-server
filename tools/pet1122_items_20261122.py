@@ -42,6 +42,7 @@ two, and over Hammer of Piety's Judgement look put back on 2026-11-19, petition 
   2701  Chosen's Zwiehander (and Ascended) take Sapphyra's Sword's model and icon.
   2700  Hammer of Piety, Hammer of Ethereal Conquest and Hammer of Mystical Enlightenment (and their Ascended copies)
         take Hammer of Divinity's model and icon (the plain warhammer), off Judgement's.
+  2710  Warmonger's Club (and Ascended) take the shaman epic Cudgel of the Spirit Guide's model and icon (approved).
 --looks is accepted and changes nothing (they are in every run since the owner's yes).
 
 What takes effect when: spelleffect is read at every cast; item records at each request (a held copy shows its new
@@ -89,6 +90,8 @@ LOOKS = [  # (petition, item, the look's record)
     (2700, "Ascended Hammer of Ethereal Conquest", "Hammer of Divinity"),
     (2700, "Hammer of Mystical Enlightenment", "Hammer of Divinity"),
     (2700, "Ascended Hammer of Mystical Enlightenment", "Hammer of Divinity"),
+    (2710, "Warmonger's Club", "Cudgel of the Spirit Guide"),
+    (2710, "Ascended Warmonger's Club", "Cudgel of the Spirit Guide"),
 ]
 QUEST_ITEMS_FROM = 700000
 THROWN_HP = 200

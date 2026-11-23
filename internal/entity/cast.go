@@ -2125,6 +2125,9 @@ func (w *World) tickNPCEffectLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
 				for _, p := range w.tickDrainersLocked(caster, ae) {
 					w.healLocked(caster, sess, p, hit, ae.tickKind(true))
 				}
+				if ae.TickDrain == DrainGroup {
+					w.drainToPetLocked(caster, sess, ae.TickRange, hit, ae.tickKind(true)) // lifetap.go
+				}
 			}
 			if died {
 				return

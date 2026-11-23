@@ -199,6 +199,36 @@ func TestTapsInAStrikeAndForAGroup(t *testing.T) {
 	if g.p.HP != 225 || near.HP != 175 || far.HP != 50 {
 		t.Errorf("the group's tap: caster %d, near %d, far %d; want 225, 175, 50", g.p.HP, near.HP, far.HP)
 	}
+
+	// the caster's own pet takes the group's share too (Heirloom petition
+	// 2789); a group member's pet does not, nor the caster's out of range
+	for _, far := range []bool{false, true} {
+		h := newCaster(t)
+		h.npc.HP, h.npc.MaxHP = 1000, 1000
+		mate := &Player{ServerID: 1002, Name: "Mate", HP: 50, MaxHP: 500, X: 110, Y: 10, Z: 100}
+		h.w.Players[mate.ServerID] = mate
+		h.w.groups = map[uint32]*Group{7: {ID: 7, Members: []EntityID{h.p.ServerID, mate.ServerID}}}
+		h.p.GroupID, mate.GroupID = 7, 7
+		own := &NPC{ServerID: 3001, Name: "Own Pet", Level: 20, HP: 100, MaxHP: 1000, Owner: h.p.ServerID, X: 104, Y: 10, Z: 100}
+		if far {
+			own.X = 900
+		}
+		theirs := &NPC{ServerID: 3002, Name: "Their Pet", Level: 20, HP: 100, MaxHP: 1000, Owner: mate.ServerID, X: 106, Y: 10, Z: 100}
+		h.w.NPCs[own.ServerID], h.w.NPCs[theirs.ServerID] = own, theirs
+		if h.w.pets == nil {
+			h.w.pets = map[EntityID]*petState{}
+		}
+		h.w.pets[h.p.ServerID] = &petState{owner: h.p, npc: own}
+		h.w.pets[mate.ServerID] = &petState{owner: mate, npc: theirs}
+		h.landSeen(t, gale, h.npcO)
+		want := 225
+		if far {
+			want = 100
+		}
+		if own.HP != want || theirs.HP != 100 {
+			t.Errorf("far %v: the caster's pet %d, a member's %d; want %d and 100", far, own.HP, theirs.HP, want)
+		}
+	}
 }
 
 // pactRig is the caster with a friend beside it, seen.

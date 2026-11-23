@@ -424,6 +424,9 @@ func (w *World) drainLocked(cs *castState, caster *Player, sess *session.Session
 		for _, p := range w.drainersLocked(cs, caster, e.Drain) {
 			w.healLocked(caster, sess, p, n, cs.spell.healKind()) // a tap's take: its heal (numbertags.go)
 		}
+		if e.Drain == DrainGroup {
+			w.drainToPetLocked(caster, sess, cs.spell.Range, n, cs.spell.healKind())
+		}
 		log.Printf("Cast: %s's %q takes %d hit points for %s", caster.Name, cs.spell.Name, n, drainName(e.Drain))
 	case EffectPower:
 		for _, p := range w.drainersLocked(cs, caster, e.Drain) {
@@ -481,6 +484,22 @@ func (w *World) tickDrainersLocked(caster *Player, ae *ActiveEffect) []*Player {
 		}
 	}
 	return out
+}
+
+// drainToPetLocked gives a group drain's take to its caster's own pet too
+// (Heirloom petition 2789: "Necs blood line should heal their own pet in
+// addition to the group and themselves"): alive, in the caster's world,
+// within the spell's range and in its sight, as its group's members; told as
+// the take's heal (numbertags.go). A pet at full health is told the figure, as
+// a player is (healLocked). Must be called with the lock held.
+func (w *World) drainToPetLocked(caster *Player, sess *session.Session, r float32, n int, kind numberKind) {
+	pet := w.petOfLocked(caster)
+	if pet == nil || pet.Dead || n <= 0 || pet.World != caster.World || outOfRange(caster, pet.X, pet.Y, pet.Z, r) ||
+		!w.inSightLocked(pet.World, caster.X, caster.Y, caster.Z, pet.X, pet.Y, pet.Z) {
+		return
+	}
+	pet.HP = min(pet.HP+n, pet.MaxHP)
+	w.tellAmountLocked(caster, sess, pet.ServerID, n, kind)
 }
 
 func drainName(to DrainTo) string {

@@ -872,7 +872,7 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 	// for, whichever quest's it is, then a hand-in it holds the items for
 	// (several quests at one giver: the Plane of Sky's armourers, a quest a
 	// piece, are asked for whichever piece the player has the parts of)
-	done := c.doneCount()
+	done := q.doneCount(c)
 	if q.stepAtLocked(sess, p, c, look, npc.Name, npc.ServerID, true) {
 		q.offerAfterFinishLocked(sess, p, c, npc.Name, done)
 		return true
@@ -1815,25 +1815,28 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 		if ch.kind == choicePick {
 			pick = ch.option
 		}
-		done := c.doneCount()
+		done := q.doneCount(c)
 		q.atNPCLocked(sess, p, c, qu, cq, st, true, pick)
 		q.offerAfterFinishLocked(sess, p, c, st.Target, done)
 	}
 	return true
 }
 
-// doneCount is how many times the character has finished its quests, all
-// told: a finish in a talk moves it.
-func (c *questChar) doneCount() int {
+// doneCount is how many times the character has finished its quests that are
+// not repeatable, all told: a finish in a talk moves it. A repeatable one (a
+// trade picked in a talk tree, a hand-in made again) leads to no next quest.
+func (q *QuestEngine) doneCount(c *questChar) int {
 	n := 0
-	for _, cq := range c.quests {
-		n += cq.Done
+	for id, cq := range c.quests {
+		if qu := q.cat.byID[id]; qu != nil && !qu.Repeatable {
+			n += cq.Done
+		}
 	}
 	return n
 }
 
 // offerAfterFinishLocked is a talk's (or a step's answer's) last word when it
-// finished a quest at the NPC called giver (doneBefore: doneCount before it)
+// finished a quest that is not repeatable at the NPC called giver (doneBefore: doneCount before it)
 // and left no question open: the giver's board, else the quest it offers the
 // player now (its next in a line, the finished one its requirement; never one
 // finished before, a repeatable's next round), asked at once. Heirloom petition 2735 (2026-11-23: "you have to talk to a quest NPC
@@ -1842,7 +1845,7 @@ func (c *questChar) doneCount() int {
 // words, and "The Ambassadors", his next, came only at a second talk, as
 // every quest line's next did; the head mark over him already showed it.
 func (q *QuestEngine) offerAfterFinishLocked(sess *session.Session, p *entity.Player, c *questChar, giver string, doneBefore int) {
-	if sess == nil || p == nil || c.box != nil || c.doneCount() <= doneBefore || strings.TrimSpace(giver) == "" {
+	if sess == nil || p == nil || c.box != nil || q.doneCount(c) <= doneBefore || strings.TrimSpace(giver) == "" {
 		return
 	}
 	look := q.lookAt(sess)

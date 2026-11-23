@@ -11,7 +11,9 @@
 -- Re-runnable: the DELETE makes this idempotent. Restart the server after, or
 -- add the row through the GM panel, which applies it at once.
 
-DELETE FROM npcs WHERE npc_name = 'Sparring Dummy';
+-- Run both statements in one transaction and roll back on any SQL error.
+DELETE FROM npcs WHERE npc_name = 'Sparring Dummy'
+  AND EXISTS (SELECT 1 FROM npcs WHERE npc_name = 'Training Dummy Lv50');
 
 INSERT INTO npcs (
     npc_name, zone, unk_a, unk_b, x_coord, y_coord, z_coord, facing, world,

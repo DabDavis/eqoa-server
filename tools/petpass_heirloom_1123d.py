@@ -14,14 +14,22 @@ wall between it and the creature it copies).
   2776  Captain Scilond's Scouts: the Klick'Anon stage's deadly corrosions (level 15) come at the player's level and
         the Highpass stage's pickclaw warriors (19) one above it (the event's con), so the stages climb as the
         giants' before them did (40-62).
-  2777  the bearwere's Mirin: a reach step first, at his spawn, that hides him and raises a hostile copy three over
-        the player for fifteen minutes, as the gatorwere's Julian and the ratwere's Trissen do; then the kill, then
-        Dorandas. Characters on a step past the first move with it.
+  2777  the bearwere's Mirin: a reach step first, at his spawn (radius 60 and the kill's journal line, work board
+        800's), that hides him and raises a hostile copy three over the player for fifteen minutes, as the gatorwere's
+        Julian and the ratwere's Trissen do; then the kill, then Dorandas. Characters on a step past the first move
+        with it. (800's companion row and spawn-only Mirin are not built: no new spawns here.)
   2778  Mark of Anguish (cleric 46, its scroll 716271) in every Spell Archivist's shop, as petition 1521 put the
         shadowknight's Shroud of Death there: his "Grant basic spells" writes it, and Inquisitor's Brand 3 (which
         the Exorcist mastery requires) can be bought.
   2781  The Test of Greed's golem of greed stood behind Dark Solace's wall, out of reach: its spawn moved beside the
-        Stone Golem where the player stood, on the floor.
+        Stone Golem where the player stood, on the floor, 11 from Windle Geraprofit (work board 1071's own spot,
+        (12590, 90, 21200), is inside the ground).
+  2796  Goblin Attackers: Honjour (group 6 evil, level 40; 2797 names it): talking to Watcher Gabnu (step 2) fires
+        a trigger at the foot of his tower's ramp: four waves of two froglok elites, each after the last falls, then
+        The Captain, whose kill gives the shard (step 3). The two standing froglok elites and The Captain are
+        spawn-only (by row) so they come only in the waves; the goblin elites stand as before. Lines and the
+        30-minute clock are ours.
+  (no petition) the Eye of the Sphynx takes CLIENT's gem type, as on Live (Live petition 5547).
   2785  Tobul: his spawn where the player stood among the zintec zombies, and his wander from 250 to the 40 his
         kind's rule gives (npcmove "tobul", work board 936).
   2788  the three mindwhippers inside Klick'Anon's gate moved out to the hive (Hivewhipper's mound), spread round it.
@@ -34,9 +42,9 @@ as it was (a row changed since is left and said) and drops the log. A report by 
 second finds the log and writes nothing); --apply and --undo copy the database first (<db>.bak-<when>-pre-pet1123d)
 unless --no-backup.
 
-WHEN IT TAKES EFFECT: the recasts at each player's next login (the book's timers) and next cast (the server's);
-the archivist's shop at its next opening and his grant within 10 minutes (archiveTTL); npcs, npcwander, queststeps
-and questmarks at the server's next start.
+WHEN IT TAKES EFFECT: the Eye of the Sphynx at each holder's next login; the recasts at each player's next login (the book's timers) and next cast (the server's);
+the archivist's shop at its next opening and his grant within 10 minutes (archiveTTL); npcs, npcwander, queststeps,
+questmarks, npcspawnonly and the trigger at the server's next start.
 
     python3 -E -s tools/petpass_heirloom_1123d.py --db eqoa.db            report
     python3 -E -s tools/petpass_heirloom_1123d.py --db eqoa.db --apply    write it
@@ -77,11 +85,15 @@ MIRIN_EVENTS = [
     {"on": "done", "do": "say", "npc": "Mirin",
      "text": "Dorandas sends a cub to take what is mine? Then let the bear decide it."},
 ]
-MIRIN_JOURNAL = "Find Mirin, just east of the bandit village in Unkempt North (SW)."
+MIRIN_RADIUS = 60.0  # work board 800's
 
 # 2778: Mark of Anguish's scroll in the archivists' shops, beside Shroud of Death's (petition 1521)
 ANGUISH, ANGUISH_SPELL, SHROUD = "Mark of Anguish", 700541, "Shroud of Death"
 ARCHIVIST = "Spell Archivist"
+
+# Eye of the Sphynx (no petition: Live petition 5547's change, the coordinator's ask): CLIENT's gem type, usable
+# from the pack, as Magi'Kot's summoning gem (itempattern.procanim 0 -> 7; tools/petpass_live_1123d.py)
+EYE, EYE_NAME, PLAIN_TYPE, GEM_TYPE = 701463, "Eye of the Sphynx", 0, 7
 
 # 2781: the golem of greed
 GREED = ("golem of greed", (12677.615, 108.898, 21144.392), (12574.2, 89.55, 21195.9))
@@ -104,8 +116,37 @@ LIONELL = ("Lionell Redrick", (14516.217, 30.5625, 19033.084), (14520.7, 30.5625
 LION_Q = "Lionell Redrick"
 AMBUSH = [(14519.2, 30.5625, 19029.6), (14523.7, 30.5625, 19033.1), (14522.2, 30.5625, 19030.6)]
 
-KEYS = {"spellpattern": ("spellid",), "questmarks": ("questid",), "queststeps": ("questid", "step"),
-        "npcs": ("id",), "npcwander": ("npcid",), "npcitem": ("itemid",), "charquests": ("serverid", "questid")}
+# 2796/2797: Goblin Attackers: Honjour (group 6 evil, level 40): the attack on Watcher Gabnu's tower in waves
+HONJOUR_Q, HONJOUR_GIVER = "Goblin Attackers: Honjour", "Count Luvincius"
+FROGLOKS = [(122636, "froglok elite", (9944.3, 15275.6)), (122637, "froglok elite", (9925.0, 15255.6))]
+CAPTAIN = (122638, "The Captain", (9933.4, 15257.4))
+RAMP = (9931.5, 57.66, 15297.6)  # the foot of the tower's ramp, on the floor (cmd/campground)
+WAVES, TRIGGER_FROM = 4, 300
+TRIGGER = "Honjour Attackers"
+TRIGGER_BUSY = "The attack on the tower has begun already: hold the foot of the ramp until it is beaten."
+HONJOUR_JOURNAL = ("Hold the foot of Watcher Gabnu's ramp: the froglok elites come two at a time, then their "
+                   "captain. Kill the captain for a glowing silver shard.")
+
+
+def honjour_steps():
+    w, (x, y, z) = 0, RAMP
+    at = {"world": w, "x": x, "y": y, "z": z}
+    out = [{"do": "lock", "lock": "honjour attackers"}, {"do": "clock", "seconds": 1800, "empty": 300}]
+    for i in range(1, WAVES + 1):
+        out.append({"do": "popup", "text": f"Two froglok elites charge the foot of the tower! (wave {i} of {WAVES})"})
+        out.append(dict({"do": "spawn", "npc": f"#{FROGLOKS[(i - 1) % 2][0]}", "count": 2, "spread": 3, "minutes": 30,
+                         "hostile": True}, **at))
+        out.append({"do": "awaitdead"})
+    out.append({"do": "popup", "text": "The Captain who leads them comes for the tower himself!"})
+    out.append(dict({"do": "spawn", "npc": f"#{CAPTAIN[0]}", "count": 1, "minutes": 30, "hostile": True}, **at))
+    out.append({"do": "awaitdead"})
+    out.append({"do": "end"})
+    return json.dumps(out, separators=(",", ":"))
+
+
+KEYS = {"itempattern": ("patternid",), "spellpattern": ("spellid",), "questmarks": ("questid",), "queststeps": ("questid", "step"),
+        "npcs": ("id",), "npcwander": ("npcid",), "npcitem": ("itemid",), "charquests": ("serverid", "questid"),
+        "npcspawnonly": ("name",), "gmtriggers": ("slot",)}
 LOG_DDL = f"""CREATE TABLE IF NOT EXISTS {LOG} (
     seq    INTEGER PRIMARY KEY AUTOINCREMENT,
     tbl    TEXT NOT NULL,
@@ -206,6 +247,9 @@ class Plan:
         self.scilond()
         self.mirin()
         self.anguish()
+        eye = one(db, EYE_NAME, "SELECT * FROM itempattern WHERE patternid = ? AND itemname = ?", (EYE, EYE_NAME))
+        self.set("itempattern", eye, {"procanim": GEM_TYPE}, {"procanim": PLAIN_TYPE},
+                 f"{EYE_NAME} ({EYE}): CLIENT's gem type, usable from the pack (Live petition 5547's change)")
         # 2781
         one(db, GREED_Q, "SELECT questid FROM quests WHERE name = ?", (GREED_Q,))
         name, old, new = GREED
@@ -226,6 +270,37 @@ class Plan:
             r = self.found("2788", "mindwhipper", old, new)
             self.move("2788", 0, r["id"], "mindwhipper", old, new, "a mindwhipper from Klick'Anon's gate to the hive")
         self.lionell()
+        self.honjour()
+
+    def honjour(self):
+        db = self.db
+        q = one(db, HONJOUR_Q, "SELECT questid FROM quests WHERE name = ? AND giver = ?", (HONJOUR_Q, HONJOUR_GIVER))
+        for rid, name, (x, z) in FROGLOKS + [CAPTAIN]:
+            one(db, f"2796 {name} {rid}", "SELECT id FROM npcs WHERE id = ? AND npc_name = ? AND world = 0 AND "
+                "abs(x_coord - ?) < 0.1 AND abs(z_coord - ?) < 0.1", (rid, name, x, z))
+            have = rows(db, "SELECT * FROM npcspawnonly WHERE name = ?", (f"#{rid}",))
+            self.insert("npcspawnonly", {"name": f"#{rid}", "note": f"petition 2796: {name} comes only in the "
+                        f"Honjour tower's waves ({TRIGGER})", "source": SOURCE},
+                        f"2796 npcspawnonly #{rid} ({name})", have[0] if have else None)
+        steps = honjour_steps()
+        have = rows(db, "SELECT * FROM gmtriggers WHERE name = ?", (TRIGGER,))
+        slot = have[0]["slot"] if have else max([TRIGGER_FROM - 1] + [r["slot"] for r in rows(
+            db, "SELECT slot FROM gmtriggers WHERE slot >= ? AND slot < ?", (TRIGGER_FROM, TRIGGER_FROM + 100))]) + 1
+        self.insert("gmtriggers", {"slot": slot, "name": TRIGGER, "enabled": 1, "scope": "near", "radius": 80.0,
+                                   "world": 0, "x": RAMP[0], "y": RAMP[1], "z": RAMP[2], "steps": steps,
+                                   "notes": "petition 2796: Goblin Attackers: Honjour's attack on Watcher Gabnu's "
+                                            "tower, fired by quest step 2's done (tools/petpass_heirloom_1123d.py)"},
+                    f"2796 trigger {slot} {TRIGGER}: {WAVES} waves of two froglok elites, then The Captain",
+                    have[0] if have else None)
+        s2 = one(db, "2796 step 2", "SELECT * FROM queststeps WHERE questid = ? AND step = 2 AND kind = 'talk' AND "
+                 "target = 'Watcher Gabnu'", (q["questid"],))
+        ev = events({"on": "done", "do": "trigger", "trigger": TRIGGER, "text": TRIGGER_BUSY})
+        self.set("queststeps", s2, {"events": ev}, {"events": ""}, "2796 step 2's done fires the attack")
+        s3 = one(db, "2796 step 3", "SELECT * FROM queststeps WHERE questid = ? AND step = 3 AND kind = 'loot' AND "
+                 "target = 'The Captain'", (q["questid"],))
+        self.set("queststeps", s3, {"journal": HONJOUR_JOURNAL},
+                 {"journal": "Kill the goblin and froglok elites and their captain until you have a glowing silver shard."},
+                 "2796 step 3's journal")
 
     def found(self, pet, name, old, new):
         """the row of the name at old, or at new when this moved it already."""
@@ -271,7 +346,7 @@ class Plan:
         steps = rows(db, "SELECT * FROM queststeps WHERE questid = ? ORDER BY step", (qid,))
         shape = [(s["step"], s["kind"], s["target"]) for s in steps]
         reach = {"step": 1, "kind": "reach", "target": "", "world": 0, "x": MIRIN_SPAWN[0], "y": MIRIN_SPAWN[1],
-                 "z": MIRIN_SPAWN[2], "radius": 30.0, "journal": MIRIN_JOURNAL, "events": events(*MIRIN_EVENTS)}
+                 "z": MIRIN_SPAWN[2], "radius": MIRIN_RADIUS, "journal": steps[0]["journal"], "events": events(*MIRIN_EVENTS)}
         if shape == [(1, "reach", ""), (2, "kill", "Mirin"), (3, "talk", "Dorandas")]:
             self.lines.append("already  2777 Mirin's reach step")
             return

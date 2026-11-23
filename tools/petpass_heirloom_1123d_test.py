@@ -35,13 +35,18 @@ def make(path):
         CREATE TABLE charquests (serverid INTEGER, questid INTEGER, step INTEGER, done INTEGER DEFAULT 0,
             PRIMARY KEY (serverid, questid));
         CREATE TABLE itempattern (patternid INTEGER PRIMARY KEY, itemname TEXT, classuse INTEGER, levelreq INTEGER,
-            equipslot INTEGER);
+            equipslot INTEGER, procanim INTEGER DEFAULT 0);
         CREATE TABLE npcs (id INTEGER PRIMARY KEY AUTOINCREMENT, npc_name TEXT, world INTEGER, x_coord REAL,
             y_coord REAL, z_coord REAL, npc_id INTEGER DEFAULT 0, npc_type INTEGER DEFAULT 0);
         CREATE TABLE npcwander (npcid INTEGER PRIMARY KEY, radius REAL, note TEXT DEFAULT '', source TEXT DEFAULT '');
         CREATE TABLE npcitem (itemid INTEGER PRIMARY KEY AUTOINCREMENT, npcid INTEGER, stackleft INTEGER,
             remainHP INTEGER, remaincharge INTEGER, patternid INTEGER, equiploc INTEGER, location INTEGER,
             listnumber INTEGER);
+        CREATE TABLE npcspawnonly (name TEXT PRIMARY KEY, note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm');
+        CREATE TABLE gmtriggers (slot INTEGER PRIMARY KEY, name TEXT NOT NULL DEFAULT '', enabled INTEGER NOT NULL DEFAULT 1,
+            scope TEXT NOT NULL DEFAULT 'near', radius REAL NOT NULL DEFAULT 0, world INTEGER NOT NULL DEFAULT -1,
+            x REAL NOT NULL DEFAULT 0, y REAL NOT NULL DEFAULT 0, z REAL NOT NULL DEFAULT 0, steps TEXT NOT NULL DEFAULT '',
+            notes TEXT NOT NULL DEFAULT '');
     """)
     for name, (sid, old, _) in t.RECASTS.items():
         db.execute("INSERT INTO spellpattern VALUES (?, ?, ?)", (sid, name, old))
@@ -68,8 +73,9 @@ def make(path):
     db.execute("INSERT INTO queststeps (questid, step, kind, target, says) VALUES (101353, 2, 'talk', 'Dorandas', 'Yours.')")
     db.executemany("INSERT INTO charquests VALUES (?, 101353, ?, ?)", [(1, 1, 0), (2, 2, 0), (3, 0, 1)])
     # the archivists and the scrolls
-    db.execute("INSERT INTO itempattern VALUES (716264, ?, 2048, 46, -1)", (t.SHROUD,))
-    db.execute("INSERT INTO itempattern VALUES (716271, ?, 512, 46, -1)", (t.ANGUISH,))
+    db.execute("INSERT INTO itempattern VALUES (716264, ?, 2048, 46, -1, 0)", (t.SHROUD,))
+    db.execute("INSERT INTO itempattern VALUES (716271, ?, 512, 46, -1, 0)", (t.ANGUISH,))
+    db.execute("INSERT INTO itempattern VALUES (?, ?, 32767, 1, -1, 0)", (t.EYE, t.EYE_NAME))
     for a in (162588, 165284):
         db.execute("INSERT INTO npcs (npc_name, world, x_coord, y_coord, z_coord, npc_id, npc_type) "
                    "VALUES (?, 0, 1, 1, 1, ?, 129)", (t.ARCHIVIST, a))
@@ -89,6 +95,15 @@ def make(path):
         db.execute("INSERT INTO npcs (npc_name, world, x_coord, y_coord, z_coord) VALUES ('mindwhipper', 0, ?, ?, ?)", old)
     db.execute("INSERT INTO npcs (npc_name, world, x_coord, y_coord, z_coord) VALUES (?, 0, ?, 79, ?)",
                (t.HIVE[0], *t.HIVE[1]))
+    # Goblin Attackers: Honjour
+    db.execute("INSERT INTO quests (questid, name, giver) VALUES (100944, ?, ?)", (t.HONJOUR_Q, t.HONJOUR_GIVER))
+    db.execute("INSERT INTO queststeps (questid, step, kind, target) VALUES (100944, 2, 'talk', 'Watcher Gabnu')")
+    db.execute("INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (100944, 3, 'loot', 'The Captain', "
+               "'Kill the goblin and froglok elites and their captain until you have a glowing silver shard.')")
+    for rid, name, (x, z) in t.FROGLOKS + [t.CAPTAIN]:
+        db.execute("INSERT INTO npcs (id, npc_name, world, x_coord, y_coord, z_coord) VALUES (?, ?, 0, ?, 57.7, ?)",
+                   (rid, name, x, z))
+    db.execute("INSERT INTO gmtriggers (slot, name) VALUES (315, 'Another')")
     db.commit()
     db.close()
 
@@ -96,7 +111,7 @@ def make(path):
 def snapshot(path):
     db = sqlite3.connect(path)
     out = {}
-    for tbl in ("spellpattern", "questmarks", "queststeps", "charquests", "npcs", "npcwander", "npcitem"):
+    for tbl in ("gmtriggers", "npcspawnonly", "itempattern", "spellpattern", "questmarks", "queststeps", "charquests", "npcs", "npcwander", "npcitem"):
         out[tbl] = sorted(db.execute(f"SELECT * FROM {tbl}").fetchall(), key=repr)
     db.close()
     return out
@@ -129,15 +144,18 @@ class PetPass1123d(unittest.TestCase):
         before = snapshot(self.path)
         code, out = run("--db", self.path)
         self.assertEqual(code, 0, out)
-        self.assertIn("dry run: 33 rows would change", out)
+        self.assertIn("dry run: 40 rows would change", out)
         self.assertEqual(snapshot(self.path), before)
 
         code, out = run("--db", self.path, "--apply", "--no-backup")
         self.assertEqual(code, 0, out)
-        self.assertIn("applied: 33 rows", out)
+        self.assertIn("applied: 40 rows", out)
         # 2771
         got = dict(self.q("SELECT spellname, recast FROM spellpattern WHERE spellid != ?", (t.ANGUISH_SPELL,)))
         self.assertEqual(got, {n: new for n, (_, _, new) in t.RECASTS.items()})
+        self.assertEqual(self.q("SELECT procanim FROM itempattern WHERE patternid = ?", (t.EYE,))[0][0], t.GEM_TYPE)
+        j = self.q("SELECT journal FROM queststeps WHERE questid = 101353 AND step = 1")[0][0]
+        self.assertEqual(j, "Defeat Mirin.")
         # 2773: the eleven heads, not the follow-up
         marked = {r[0] for r in self.q("SELECT questid FROM questmarks")}
         self.assertEqual(marked, set(range(100747, 100758)))
@@ -147,7 +165,7 @@ class PetPass1123d(unittest.TestCase):
             self.assertEqual((ev[0]["npc"], ev[0]["con"], ev[0]["count"]), (npc, con, 5))
         # 2777: reach, kill, talk; the character on step 2 now on 3, the others as they were
         steps = self.q("SELECT step, kind, target, radius FROM queststeps WHERE questid = 101353 ORDER BY step")
-        self.assertEqual(steps, [(1, "reach", "", 30.0), (2, "kill", "Mirin", 15.0), (3, "talk", "Dorandas", 15.0)])
+        self.assertEqual(steps, [(1, "reach", "", 60.0), (2, "kill", "Mirin", 15.0), (3, "talk", "Dorandas", 15.0)])
         ev = json.loads(self.q("SELECT events FROM queststeps WHERE questid = 101353 AND step = 1")[0][0])
         self.assertEqual([e["do"] for e in ev], ["hide", "spawn", "say"])
         self.assertEqual(self.q("SELECT serverid, step, done FROM charquests ORDER BY serverid"),
@@ -165,8 +183,20 @@ class PetPass1123d(unittest.TestCase):
                          sorted((n[0], n[2]) for _, n in t.WHIPPERS))
         ev = json.loads(self.q("SELECT events FROM queststeps WHERE questid = 101368 AND step = 2")[0][0])
         self.assertEqual([(e["x"], e["z"]) for e in ev], [(x, z) for x, _, z in t.AMBUSH])
+        # 2796: the waves
+        self.assertEqual({r[0] for r in self.q("SELECT name FROM npcspawnonly")}, {"#122636", "#122637", "#122638"})
+        slot, steps = self.q("SELECT slot, steps FROM gmtriggers WHERE name = ?", (t.TRIGGER,))[0]
+        self.assertEqual(slot, 316)
+        steps = json.loads(steps)
+        spawns = [st for st in steps if st["do"] == "spawn"]
+        self.assertEqual([(st["npc"], st["count"]) for st in spawns],
+                         [("#122636", 2), ("#122637", 2), ("#122636", 2), ("#122637", 2), ("#122638", 1)])
+        self.assertTrue(all(st["hostile"] and (st["x"], st["z"]) == (t.RAMP[0], t.RAMP[2]) for st in spawns))
+        self.assertEqual(sum(st["do"] == "awaitdead" for st in steps), 5)
+        ev = json.loads(self.q("SELECT events FROM queststeps WHERE questid = 100944 AND step = 2")[0][0])
+        self.assertEqual((ev[0]["do"], ev[0]["trigger"]), ("trigger", t.TRIGGER))
         # every row audited
-        self.assertEqual(self.q("SELECT count(*) FROM gm_audit")[0][0], 33)
+        self.assertEqual(self.q("SELECT count(*) FROM gm_audit")[0][0], 40)
 
         code, out = run("--db", self.path, "--apply", "--no-backup")
         self.assertIn("applied already", out)

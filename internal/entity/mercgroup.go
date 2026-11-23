@@ -507,7 +507,7 @@ func (w *World) mercOutLocked(ms *mercState, sess *session.Session, line string)
 	if sess != nil {
 		w.sendChatToSession(sess, fmt.Sprintf(line, name))
 	}
-	w.noteMercLocked(MercNote{Kind: MercNoteDismissed, Owner: ms.owner, Sess: sess, Name: name})
+	w.noteMercLocked(MercNote{Kind: MercNoteDismissed, Owner: ms.owner, Slot: ms.slot, Sess: sess, Name: name})
 	log.Printf("Merc: %s's %q dismissed out of its owner's group", ms.owner.Name, name)
 }
 
@@ -663,6 +663,6 @@ func (w *World) mercBootedLocked(leader *Player, ms *mercState) {
 	if sess != nil && ms.owner != leader {
 		w.sendColoredLocked(sess, fmt.Sprintf(mercBootedLine, leader.Name, name), castRefusalRGB)
 	}
-	w.noteMercLocked(MercNote{Kind: MercNoteDismissed, Owner: ms.owner, Sess: sess, Name: name})
+	w.noteMercLocked(MercNote{Kind: MercNoteDismissed, Owner: ms.owner, Slot: ms.slot, Sess: sess, Name: name})
 	log.Printf("Group: %s booted %s's mercenary %q", leader.Name, ms.owner.Name, name)
 }

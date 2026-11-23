@@ -330,3 +330,49 @@ func TestElementalChancesUnchanged(t *testing.T) {
 		}()
 	}
 }
+
+// Heirloom petition 2709 (2026-11-23): a melee strike (a hit that grows with
+// its caster's STR: Vital Strike's AR and FR parts) is never resisted in a
+// duel, the opponent's resists notwithstanding: each part lands whole, at the
+// duel's half. The control: the same hits with no STR part are resisted.
+func TestADuelStrikeIsNotResisted(t *testing.T) {
+	defer withResistModel(ResistModel{Version: ResistModelElemental})()
+	vital := func(str bool) CastSpell {
+		sp := strike()
+		sp.SpellID = 652
+		sp.Def = ParseSpellText("Target, Decrease Hitpoints by 1000")
+		var hit SpellEffect
+		for _, e := range sp.Def.Effects {
+			if e.Kind == EffectHP {
+				hit = e
+			}
+		}
+		ar, fr := hit, hit
+		ar.Resist, fr.Resist = StatAR, StatFR
+		if str {
+			ar.Scale = StatStr // its share of STR (0 here: the figure stays 1000)
+		}
+		sp.Def.Effects = []SpellEffect{ar, fr}
+		return sp
+	}
+	for _, tt := range []struct {
+		str  bool
+		want int
+	}{{true, 1000}, {false, 100}} {
+		d := newDuelists(t)
+		d.start(t)
+		d.a.FireR, d.a.ArcaneR = 315, 315
+		d.a.HP, d.a.MaxHP = 5000, 5000
+		sp := vital(tt.str)
+		if !d.w.StartCast(d.sb, sp, d.bSeesA, d.at(2*time.Second)) {
+			t.Fatalf("refused: %q", duelLines(duelDrain(d.sb)))
+		}
+		before := d.a.HP
+		d.w.mu.Lock()
+		d.w.castSystem(d.at(2*time.Second + sp.CastTime + castLand))
+		d.w.mu.Unlock()
+		if got := before - d.a.HP; got != tt.want {
+			t.Errorf("STR part %v: took %d at 315 FR and AR, want %d", tt.str, got, tt.want)
+		}
+	}
+}

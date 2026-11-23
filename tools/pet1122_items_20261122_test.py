@@ -25,10 +25,12 @@ CREATE TABLE spellpattern (spellid INTEGER PRIMARY KEY, abilitylvl INTEGER, icon
 CREATE TABLE spelleffect (spellid INTEGER PRIMARY KEY, line TEXT NOT NULL, fxdict INTEGER NOT NULL DEFAULT 0,
     source TEXT NOT NULL DEFAULT '', effects TEXT NOT NULL DEFAULT '');
 CREATE TABLE itempattern (patternid INTEGER PRIMARY KEY, itemname TEXT, equipslot INTEGER, classuse INTEGER,
+    attacktype INTEGER NOT NULL DEFAULT 0, maxhp INTEGER NOT NULL DEFAULT 0,
     maxstack INTEGER, procanim INTEGER, HoT INTEGER, PoT INTEGER, itemicon INTEGER, model INTEGER,
     itemdesc TEXT NOT NULL DEFAULT '');
 CREATE TABLE npcitem (itemid INTEGER PRIMARY KEY AUTOINCREMENT, npcid INTEGER, patternid INTEGER);
-CREATE TABLE charinventory (itemid INTEGER PRIMARY KEY, serverid INTEGER, patternid INTEGER, equiploc INTEGER);
+CREATE TABLE charinventory (itemid INTEGER PRIMARY KEY, serverid INTEGER, patternid INTEGER, equiploc INTEGER,
+    remainHP INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE queststeps (questid INTEGER, step INTEGER, kind TEXT, items TEXT);
 CREATE TABLE itemeffect (patternid INTEGER PRIMARY KEY);
 CREATE TABLE itemspell (patternid INTEGER PRIMARY KEY);
@@ -82,6 +84,11 @@ def make(path):
     items += [(50023 + i, n, -1, 16384, 2000, 2, 0, 0, 1, 0) for i, n in enumerate(tool.DRAUGHTS)]
     db.executemany("INSERT INTO itempattern (patternid, itemname, equipslot, classuse, maxstack, procanim, HoT, PoT, "
                    "itemicon, model) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", items)
+    db.executemany("INSERT INTO itempattern (patternid, itemname, equipslot, attacktype, maxhp, maxstack) "
+                   "VALUES (?, ?, 16, 10, ?, 2000)", [(50016, "Freezing Potion", 200), (50021, "Freeport Cocktail", 200),
+                                                      (50003, "Volatile Potion", 0)])
+    db.executemany("INSERT INTO charinventory (itemid, serverid, patternid, equiploc, remainHP) VALUES (?, 5, ?, -1, ?)",
+                   [(1, 50003, 0), (2, 50016, 120)])
     db.executemany("INSERT INTO npcitem (npcid, patternid) VALUES (?, ?)", [(7, 700002), (7, 700012), (7, 8539)])
     db.executemany("INSERT INTO queststeps VALUES (1, ?, 'loot', ?)", [(1, "700370"), (2, "700371*2"), (3, "1013"), (4, "700372")])
     db.execute("INSERT INTO itemeffect VALUES (700371)")
@@ -156,6 +163,8 @@ class T(unittest.TestCase):
                          [(14, 13), (18, 17)], "the owner's looks in every run")
         self.assertEqual(self.q("SELECT model, itemicon FROM itempattern WHERE patternid = 5433"), [(22, 21)])
         self.assertEqual(self.q("SELECT itemicon FROM itempattern WHERE patternid = 700378"), [(40,)])
+        self.assertEqual(self.q("SELECT maxhp FROM itempattern WHERE patternid = 50003"), [(200,)])
+        self.assertEqual(self.q("SELECT itemid, remainHP FROM charinventory ORDER BY 1"), [(1, 200), (2, 120)])
         self.assertEqual(self.q("SELECT model, itemicon FROM itempattern WHERE patternid IN (5447, 960200) ORDER BY 1"),
                          [(32, 30), (36, 35)])
         self.assertGreater(self.q("SELECT count(*) FROM gm_audit")[0][0], 20)

@@ -32,6 +32,8 @@ reads as this tool expects; anything else refuses the whole run.
         Rapier (and its copies) the rapiers' (Dainty Rapier's), not the dirk's: the rest of the Toxicity and Chosen's
         weapons wear their kind's.
 
+  5499  (both shards) The thrown potions and stones had no hit points, which the inventory shows as broken (an X,
+        condition 0): 200, as Freezing Potion and Freeport Cocktail have, on the records and every copy held at 0.
   2706  U'Dedne's Chalice wore the spell scroll's icon and words: the chalices' icon, a chalice's description.
 
 The owner's decisions of 2026-11-23 (over his 2026-11-18 rule keeping epic models off non-epic items for the first
@@ -89,6 +91,7 @@ LOOKS = [  # (petition, item, the look's record)
     (2700, "Ascended Hammer of Mystical Enlightenment", "Hammer of Divinity"),
 ]
 QUEST_ITEMS_FROM = 700000
+THROWN_HP = 200
 CHALICE_DESC = "A chalice of the House of U'Dedne, carried off by Valraen V`Ghen."
 # item records open work-board entries hold (2026-11-22: 1981, 1995, 1996 and others' quest rebuilds and Live mirrors,
 # which compare those rows to what they read): the Misc sweep leaves them, the spikeshell crab leg (1996's) among them
@@ -106,7 +109,7 @@ LOG_DDL = f"""CREATE TABLE IF NOT EXISTS {LOG} (
 )"""
 
 KEYS = {"classspells": ("class", "spellid"), "npcitem": ("itemid",), "spells": ("id",), "spellpattern": ("spellid",),
-        "spelleffect": ("spellid",), "itempattern": ("patternid",)}
+        "spelleffect": ("spellid",), "itempattern": ("patternid",), "charinventory": ("itemid",)}
 
 
 class Refused(Exception):
@@ -364,6 +367,21 @@ def build(p):
     if len(cup) != 1:
         raise Refused(f"the chalices' icon: {cup}")
     p.update("itempattern", ch, {"itemicon": cup.pop(), "itemdesc": CHALICE_DESC}, "2706 U'Dedne's Chalice a chalice")
+
+    # 5499: the thrown potions and stones (worn in the ranged slot, attack type 10) had no hit points: CLIENT's
+    # Equipment tab flags a worn kind with none as broken (an X, condition 0). The hit points of the two that had
+    # theirs (Freezing Potion, Freeport Cocktail: 200), and each copy held at 0 given them (a new one is made with
+    # its record's: GiveItemNow; a stack added to keeps its own)
+    full = {r["maxhp"] for r in rows(db, "SELECT maxhp FROM itempattern WHERE itemname IN "
+                                         "('Freezing Potion', 'Freeport Cocktail')")}
+    if full != {THROWN_HP}:
+        raise Refused(f"the thrown potions' hit points: {full}")
+    for r in rows(db, "SELECT * FROM itempattern WHERE equipslot = 16 AND attacktype = 10 AND maxhp <= 0 "
+                      "ORDER BY patternid"):
+        p.update("itempattern", r, {"maxhp": THROWN_HP}, f"5499 {r['itemname']} {THROWN_HP} hit points")
+        for h in rows(db, "SELECT * FROM charinventory WHERE patternid = ? AND remainHP <= 0 ORDER BY itemid",
+                      (r["patternid"],)):
+            p.update("charinventory", h, {"remainHP": THROWN_HP}, f"5499 {r['itemname']} held (serverid {h['serverid']})")
 
     # 2699, 2700, 2701: looks, the owner's yes of 2026-11-23
     if True:

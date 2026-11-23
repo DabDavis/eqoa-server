@@ -89,6 +89,8 @@ type ChatHandler struct {
 
 	// safe is where /testinvis keeps a player's safe mode (safemode.go)
 	safe safeModeStore
+	// quickChat is where /quickchat reset deletes a character's sets (quickchat.go)
+	quickChat quickChatStore
 	// hideMercs is where /hide mercs is kept (hidemercs.go)
 	hideMercs mercsHiddenStore
 	// hideGMTag is where /hide gmtag is kept (hidegmtag.go)
@@ -388,6 +390,12 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		h.testInvisCommand(sess, player)
 		return
 	}
+	// /quickchat [reset] (or #quickchat; a PS2's is "/t quickchat reset", below):
+	// a player's own quick chat back to the defaults (quickchat.go)
+	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/"+quickChatWord) || strings.EqualFold(word, "#"+quickChatWord) {
+		h.quickChatCommand(sess, player, rest)
+		return
+	}
 
 	// /con (or #con; a PS2's is "/t con", below): the target's level, everyone's,
 	// where world.con_level is on (conlevel.go)
@@ -569,6 +577,12 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 		// and /testinvis, safe mode (safemode.go)
 		if strings.TrimSpace(body) == "" && strings.EqualFold(name, testInvisWord) {
 			h.testInvisCommand(sess, player)
+			return
+		}
+		// and /quickchat reset (quickchat.go): "/t quickchat" alone or with "reset";
+		// any other body to "quickchat" is a tell
+		if b := strings.TrimSpace(body); strings.EqualFold(name, quickChatWord) && (b == "" || strings.EqualFold(b, "reset")) {
+			h.quickChatCommand(sess, player, b)
 			return
 		}
 		// and /hide mercs, /show mercs (hidemercs.go): "/t hide mercs", "/t show

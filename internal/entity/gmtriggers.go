@@ -240,6 +240,9 @@ func (w *World) RouseNPC(id EntityID) bool {
 	}
 	c.NPCType &^= 0x80
 	c.EventAggro = true
+	if c.turkeyKing() {
+		c.HP = c.MaxHP
+	} // the staged blows precede the raid pull
 	return true
 }
 

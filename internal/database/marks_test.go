@@ -141,6 +141,64 @@ func TestHotZonesFitAndAudit(t *testing.T) {
 	}
 }
 
+// A camp zone opens to level 60s only while on, of level60 1 and of the camp kind (Fits60); the
+// column is kept through a save and read back, and a hotzones table made before it gains it at 0.
+func TestHotZonesOpenToSixties(t *testing.T) {
+	camp := HotZone{Enabled: true, Kind: HotZoneCamp, World: 0, X: 100, Z: 100, Radius: 50}
+	if camp.Fits60(0, 110, 110) {
+		t.Fatal("a zone of level60 0 opens to 60s")
+	}
+	camp.Level60 = true
+	if !camp.Fits60(0, 110, 110) || camp.Fits60(0, 300, 300) || camp.Fits60(1, 110, 110) {
+		t.Fatal("an open zone's fit")
+	}
+	off := camp
+	off.Enabled = false
+	q := HotZone{Enabled: true, Level60: true, Kind: HotZoneQuests, Quests: "x", World: 0, X: 100, Z: 100, Radius: 50}
+	if off.Fits60(0, 110, 110) || q.Fits60(0, 110, 110) {
+		t.Fatal("a zone off, or a quest zone, opens to 60s")
+	}
+	db := marksDB(t)
+	id, err := db.SaveHotZone(HotZone{Name: "PoD", Enabled: true, Kind: HotZoneCamp, Radius: 150, BonusPct: 35, Level60: true},
+		GMEdit{AccountID: 1, Username: "gm", Via: "game"}, "test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	zones, err := db.HotZones()
+	if err != nil || len(zones) != 1 || zones[0].ID != id || !zones[0].Level60 {
+		t.Fatalf("read back: %+v, %v", zones, err)
+	}
+	zones[0].Level60 = false
+	if _, err := db.SaveHotZone(zones[0], GMEdit{AccountID: 1, Username: "gm"}, "test"); err != nil {
+		t.Fatal(err)
+	}
+	if zones, _ = db.HotZones(); zones[0].Level60 {
+		t.Fatal("level60 not cleared")
+	}
+
+	// a table of the first build, without the column: the start adds it, each row at 0
+	old := marksDB(t)
+	if _, err := old.Exec(`DROP TABLE hotzones`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := old.Exec(`CREATE TABLE hotzones (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL,
+		enabled INTEGER NOT NULL DEFAULT 1, kind TEXT NOT NULL DEFAULT 'camp', world INTEGER NOT NULL DEFAULT 0,
+		x REAL NOT NULL DEFAULT 0, y REAL NOT NULL DEFAULT 0, z REAL NOT NULL DEFAULT 0, radius REAL NOT NULL DEFAULT 150,
+		quests TEXT NOT NULL DEFAULT '', bonus_pct INTEGER NOT NULL DEFAULT 10, note TEXT NOT NULL DEFAULT '',
+		announce INTEGER NOT NULL DEFAULT 0, created_by TEXT NOT NULL DEFAULT '', updated TEXT NOT NULL DEFAULT '',
+		camp TEXT NOT NULL DEFAULT '');
+		INSERT INTO hotzones (name) VALUES ('Tendora')`); err != nil {
+		t.Fatal(err)
+	}
+	if err := old.ensureMarks(); err != nil {
+		t.Fatal(err)
+	}
+	zones, err = old.HotZones()
+	if err != nil || len(zones) != 1 || zones[0].Name != "Tendora" || zones[0].Level60 {
+		t.Fatalf("an older table: %+v, %v", zones, err)
+	}
+}
+
 // Every table of the marks has a sanitiser rule.
 func TestMarksTablesHaveSnapshotRules(t *testing.T) {
 	for _, tbl := range []string{"charmarks", "charmarks_log", "charrelive", "hotzones", "heirloomrankac"} {

@@ -115,6 +115,11 @@ type CombatConfig struct {
 	// (350-R)/350). A creature's never rolls.
 	ResistMode       string  `yaml:"resist_mode"`
 	ResistFullChance float64 `yaml:"resist_full_chance"`
+	// ResistPartial is resistance_scaled's second roll (entity/elemental.go,
+	// work board 2027): a resist that fails (it holds R/350 of the time) is a
+	// partial at R/350, else the hit lands whole. Refused at the start with
+	// any other mode. Off unless set.
+	ResistPartial bool `yaml:"resist_partial"`
 }
 
 // QuestsConfig is the quest engine's settings (internal/handlers/quests.go).
@@ -816,6 +821,12 @@ type WorldConfig struct {
 	// unspent together (entity.MasteryCap; petition 5386: the Live shard's 1500,
 	// Heirloom's 2000). Unset or 0: 2000.
 	MasteryCap int `yaml:"mastery_cap"`
+
+	// MasteryPerLevel is the most Combat Mastery points a character below the
+	// level cap holds for each of its levels (entity.MasteryPerLevel; work board
+	// #1816: 25, the live game's). 0: no cap by level, MasteryCap at every level
+	// (Heirloom; petition 2726). Unset: 25.
+	MasteryPerLevel *int `yaml:"mastery_per_level"`
 
 	// DeathTunarPct is the share of the carried tunar a PvE death takes
 	// (entity/deathtunar.go; work board #1762, the owner 2026-11-21): none at

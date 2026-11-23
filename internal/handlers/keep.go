@@ -362,7 +362,7 @@ func ResumeCharacter(sess *session.Session, ex KeptExtras, kp entity.KeptPlayer,
 	if player == nil {
 		return nil, fmt.Errorf("character %d: no player made", record.ServerID)
 	}
-	if resumeMoved(&saved, record) {
+	if resumeMoved(&saved, record) || (kp.World == entity.DuelArenaWorld && record.World != int(kp.World)) {
 		// loginSpawn put it elsewhere (a dungeon's instance gone with the restart, a home it may not stand in, a
 		// server world rebuilt): its client's reports are of the old place until its dump moves it
 		sess.SetResumeMoved(true)

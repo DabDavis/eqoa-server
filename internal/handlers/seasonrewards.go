@@ -59,6 +59,7 @@ type SeasonRewards struct {
 
 	mu     sync.Mutex
 	active []database.SeasonReward // the rows of the seasons that are on
+	envar  map[entity.EntityID]string
 	kills  chan entity.KillCredit
 	stop   chan struct{}
 	roll   func() float64
@@ -90,9 +91,15 @@ func (r *SeasonRewards) Refresh() {
 		log.Printf("SeasonRewards: %v", err)
 		return
 	}
+	trash := r.armorSources(rows)
 	r.mu.Lock()
+	ended := r.envar != nil && trash == nil
+	r.envar = trash
 	r.active = rows
 	r.mu.Unlock()
+	if ended {
+		go expireTurkeyLists(r.sm)
+	}
 }
 
 func (r *SeasonRewards) activeRows() []database.SeasonReward {
@@ -158,6 +165,7 @@ func (r *SeasonRewards) Killed(k entity.KillCredit) {
 	if len(rows) == 0 || r.drop == nil {
 		return
 	}
+	r.envarDrop(k)
 	for _, kp := range k.Players {
 		var p *entity.Player
 		if kp.Session != nil && r.gw != nil {

@@ -127,6 +127,12 @@ world:
   # The most Combat Mastery points a character holds, spent and unspent
   # together (entity.MasteryCap): Heirloom 2000, the Live shard 1500.
   # mastery_cap: 2000
+  # The most Combat Mastery points a character below level 60 holds for each
+  # of its levels (entity.MasteryPerLevel); past it, its experience goes to its
+  # level (all of it to the masteries: lost). Unset: 25 (the live game's: the
+  # Live shard). 0: no cap by level, so 100% to masteries never levels
+  # (Heirloom).
+  # mastery_per_level: 25
   # The share of the carried tunar a death to a creature or the world takes
   # (entity/deathtunar.go): never at a PvP death or a duel's, in a CTF arena,
   # or from the bank. Unset: 50 (half, as the live game); 0 turns it off.
@@ -207,7 +213,9 @@ world:
   # worldN.json into the worlds folder from the operator's disc first
   # (tools/worlds/homelands.json is the Homelands, slot 10), then groundbake
   # -world 10=worlds/world10.ESF its ground. None unless listed.
-  # server_worlds: [10]
+  # Neriak instanced duels use slot 16 (tools/worlds/neriak-duel.json).
+  # Bake world16.ESF into worlds/ground to enable its four damaging lava pockets.
+  # server_worlds: [10, 16]
 
   # Capture the flag (entity/ctf.go, handlers/ctf.go): an arena world of the
   # server's own (built by cmd/worldbuild and listed in server_worlds), joined
@@ -724,8 +732,11 @@ auth:
 # and effect damage (internal/entity/elemental.go): "elemental-2026-11-14"
 # (unset: it), or "legacy", the model before it, for a rollback. resist_mode
 # is the player's: magnitude_only (unset), fixed_full_chance
-# (resist_full_chance of the hits land whole) or resistance_scaled. The model
-# in force is logged at the start ("Resists: model").
+# (resist_full_chance of the hits land whole) or resistance_scaled (a resist
+# holds R/350 of the time, a template's resist_fail making it fail more; with
+# resist_partial true a failure is a partial at R/350 again, else whole). A
+# resist below 0 adds R/350 to the hit in every elemental mode. The model in
+# force is logged at the start ("Resists: model").
 # combat:
 #   formula_file: ""
 #   formula_mode: "off"
@@ -737,6 +748,7 @@ auth:
 #   resist_model: "elemental-2026-11-14"
 #   resist_mode: "magnitude_only"
 #   resist_full_chance: 0
+#   resist_partial: false         # resistance_scaled only (both shards: true)
 
 gm:
   # The GM panel (internal/gmweb): a web page for GMs, and the same tools for

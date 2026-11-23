@@ -21,6 +21,9 @@ import (
 // RewardXPEffectID keys it among a player's effects (the boon is -1003, the CTF's speed -1010).
 const RewardXPEffectID = -1011
 
+// All doses share one saved effect, regardless of the item's database ID.
+const gloriousXPEffectID = -1013
+
 // RewardXPPct is the share of an award with it on: 10% more.
 const RewardXPPct = 110
 
@@ -64,9 +67,12 @@ func (w *World) GiveRewardXP(sess *session.Session, gm string, now time.Time) (n
 	return p.Name, renewed, left, true
 }
 
-// xpPctLocked is the share of an experience award a player gets, and its line's tag ("" for none): the boon's
-// percent while one is on it, the GM's reward's 10% more while that is. Must be called with the lock held.
+// xpPctLocked returns the player's effective XP percentage and its chat tag.
+// Glorious Experience sets the total while its timer runs. Must be called with the lock held.
 func (w *World) xpPctLocked(p *Player) (int, string) {
+	if p.hasEffect(gloriousXPEffectID) {
+		return 1500, "glorious experience x15"
+	}
 	pct := w.boonPctLocked(p)
 	tag := ""
 	if pct != 100 {
@@ -89,10 +95,9 @@ func (w *World) xpPctLocked(p *Player) (int, string) {
 	return pct, tag
 }
 
-// outlivesDeath reports an effect a death, a strip and a buffs' clear (but a GM's #clearbuffs) leave on: the towns'
-// boon, the GM's reward and Moogie's Insight.
+// outlivesDeath reports effects kept through death, a strip and the ordinary buff clear.
 func outlivesDeath(spellID int) bool {
-	return spellID == BoonEffectID || spellID == RewardXPEffectID || spellID == InsightEffectID || // moogieitems.go
+	return spellID == BoonEffectID || spellID == RewardXPEffectID || spellID == InsightEffectID || spellID == gloriousXPEffectID ||
 		infectionEffect(spellID) // a were's infection: its row's (wereinfect.go)
 }
 

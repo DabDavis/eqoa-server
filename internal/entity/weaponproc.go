@@ -106,6 +106,7 @@ const (
 	ProcRoot                    // the creature held in place for a while (procRootFor)
 	ProcSnare                   // the creature slowed for a while (procSnareFor, procSnarePct)
 	ProcPower                   // power to the wielder alone, up to its most: no hit, no hate (Power)
+	ProcMysteryTravel
 )
 
 // procRootFor is how long a weapon's root holds (ours: no source gives one), unless
@@ -537,6 +538,9 @@ func elementOf(lower string) Stat {
 // (ascended.go: an Ascended record's by its base's name, a tenth more; an
 // import's damped).
 func WeaponProcOf(patternID int, itemName, desc string) (WeaponProc, bool) {
+	if patternID == turkeySmasherPattern && itemName == "Turkey Smasher" {
+		return WeaponProc{Kind: ProcMysteryTravel, Item: itemName, pattern: patternID, Chance: 1}, true
+	}
 	_, lookup, imported, ascended := copyRecord(patternID, itemName)
 	wp, ok := weaponProcsByName[strings.ToLower(strings.TrimSpace(lookup))]
 	if !ok {
@@ -676,6 +680,10 @@ func (w *World) weaponProcLocked(sess *session.Session, p *Player, npc *NPC, now
 		return false
 	}
 	if wp.misses(p) {
+		return false
+	}
+	if wp.Kind == ProcMysteryTravel {
+		w.mysteryTravelLocked(sess, p)
 		return false
 	}
 	if wp.Kind == ProcPower {

@@ -3,7 +3,6 @@ package entity
 import (
 	"fmt"
 	"log"
-	"math"
 	"strings"
 	"time"
 
@@ -78,7 +77,7 @@ func (w *World) creatureShieldLocked(sess *session.Session, p *Player, npc *NPC,
 }
 
 // creatureShieldOnPetLocked is creatureShieldLocked for a pet's melee hit: a
-// workbook pet's resists cut it (petstats.go), any other pet takes it whole. It
+// pet's elemental resists cut it (petstats.go). It
 // reports whether the pet died of it, which ends the pet's round.
 func (w *World) creatureShieldOnPetLocked(ps *petState, npc *NPC, now time.Time) bool {
 	t, pet := npc.tmpl, ps.npc
@@ -87,9 +86,7 @@ func (w *World) creatureShieldOnPetLocked(ps *petState, npc *NPC, now time.Time)
 	}
 	taken := npc.shared(t.ShieldDamage)
 	if st := shieldResistStat(t.ShieldResist); st != StatNone {
-		if share := pet.petResistShare(st); share > 0 {
-			taken = max(int(math.Round(float64(taken)*(1-share))), 1)
-		}
+		taken, _ = pet.petElementalHit(st, taken, now, 1)
 	}
 	w.broadcastNPCSwingLocked(npc, pet.ServerID, 0, fxShieldHit)
 	pet.HP = max(pet.HP-taken, 0)
@@ -165,8 +162,8 @@ func (w *World) creatureProcHitLocked(sess *session.Session, p *Player, npc *NPC
 	return p.IsDead()            // a GM's #testmode stands at 1 HP: the hit goes on
 }
 
-// creatureProcOnPetLocked is creatureProcLocked on a pet: a workbook pet's resists cut the template's (petstats.go),
-// any other takes it whole, and the fight's proc as the template's of its resist. It reports whether the pet died of one.
+// creatureProcOnPetLocked applies the pet's elemental defenses to the template
+// and fight procs. It reports whether the pet died.
 func (w *World) creatureProcOnPetLocked(npc, pet *NPC, now time.Time) bool {
 	t := npc.tmpl
 	if t == nil || pet.Dead {
@@ -187,9 +184,7 @@ func (w *World) creatureProcOnPetLocked(npc, pet *NPC, now time.Time) bool {
 func (w *World) creatureProcPetHitLocked(npc, pet *NPC, name string, damage int, resist string, now time.Time) bool {
 	taken := damage
 	if st := shieldResistStat(resist); st != StatNone {
-		if share := pet.petResistShare(st); share > 0 {
-			taken = max(int(math.Round(float64(taken)*(1-share))), 1)
-		}
+		taken, _ = pet.petElementalHit(st, taken, now, 1)
 	}
 	w.broadcastNPCSwingLocked(npc, pet.ServerID, 0, templateSpecialFX)
 	pet.HP = max(pet.HP-taken, 0)

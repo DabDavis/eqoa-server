@@ -133,6 +133,7 @@ type charmHold struct {
 	world   uint8
 	until   time.Time // zero: until it is let go otherwise
 	spell   string
+	resists *ClassTemplate // wild elemental defenses retained for this charm
 }
 
 const (
@@ -379,6 +380,7 @@ func (w *World) holdCharmLocked(caster *Player, sess *session.Session, npc *NPC,
 // with the lock held.
 func (w *World) takeCharmedLocked(owner *Player, npc *NPC, hold *charmHold) {
 	npc.Charm = hold
+	hold.resists = w.charmResistsLocked(npc)
 	npc.Owner = owner.ServerID
 	npc.NPCType = charmNPCType
 	petPowerLocked(npc) // a pet's power, as a summoned one's (npcregen.go)
@@ -392,6 +394,22 @@ func (w *World) takeCharmedLocked(owner *Player, npc *NPC, hold *charmHold) {
 	if owner.AttackTarget == npc.ServerID {
 		owner.disengage()
 	}
+}
+
+// Ebony Recluse keeps its wild elemental resists while charmed. Its attacks
+// and hit points continue to follow the ordinary charm rules.
+func (w *World) charmResistsLocked(npc *NPC) *ClassTemplate {
+	if database.NPCClassKey(npc.Name) == "ebony recluse" {
+		return w.namedTemplateLocked(npc)
+	}
+	return nil
+}
+
+func (n *NPC) charmResists() *ClassTemplate {
+	if n == nil || n.Charm == nil {
+		return nil
+	}
+	return n.Charm.resists
 }
 
 // charmTemplateLocked is the pet template a charmed creature fights by: its

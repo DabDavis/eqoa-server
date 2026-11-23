@@ -545,6 +545,11 @@ func Compose(src Source, r Recipe) ([]byte, Built, error) {
 			brought[i], copiedIn = z.brought, z.copied
 		} else {
 			rec := append([]byte(nil), p.rec...)
+			if IsNeriakArena(r) {
+				if err := cutNeriakRoom(rec); err != nil {
+					return nil, Built{}, err
+				}
+			}
 			baseAt, err := rebase(rec, at-srcAt)
 			if err != nil {
 				return nil, Built{}, fmt.Errorf("%s zone %d: %w", r.Zones[i].From, r.Zones[i].Zone, err)

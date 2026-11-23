@@ -161,6 +161,9 @@ func (w *World) TakeOverPlayer(sess *session.Session, charServerID uint32) (*Pla
 // login), so the new client asks again. Its guild, its group's roster and its pet are told to the
 // new session as at a login. Must be called with the lock held.
 func (w *World) handedOverLocked(p *Player) {
+	if p.arenaStay != nil && !p.arenaStay.observer {
+		w.duelLeavingLocked(p)
+	}
 	p.TargetObjectID = 0
 	p.AutoAttack = false
 	p.disengage()

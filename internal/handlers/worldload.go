@@ -109,6 +109,7 @@ func (h *WorldLoadHandler) HandleEnableChannel(sess *session.Session, msg *proto
 	sess.ReleaseStateChannels()
 	// and the weather goes again, at once (0x00C7), into the loaded world
 	if h.world != nil {
+		h.world.ArenaLoaded(sess)
 		h.world.WeatherResend(sess)
 	}
 

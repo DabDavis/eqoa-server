@@ -69,6 +69,24 @@ func SetMasteryCap(n int) {
 	MasteryCap = n
 }
 
+// MasteryPerLevel is MasteryCapAt's points a level below MaxLevel, per shard
+// (world.mastery_per_level, SetMasteryPerLevel): 25, the live game's (#1816);
+// 0 none, MasteryCap at every level (Heirloom, petition 2726: below 60 at
+// 100% a character earns masteries and never levels). Set at the start.
+var MasteryPerLevel = DefaultMasteryPerLevel
+
+// DefaultMasteryPerLevel is MasteryPerLevel with world.mastery_per_level unset.
+const DefaultMasteryPerLevel = 25
+
+// SetMasteryPerLevel sets MasteryPerLevel (nil: the default; below 0: 0).
+func SetMasteryPerLevel(n *int) {
+	if n == nil {
+		MasteryPerLevel = DefaultMasteryPerLevel
+		return
+	}
+	MasteryPerLevel = max(*n, 0)
+}
+
 // CMPointXP is the experience the character's nth mastery point takes (n
 // counts every point it has earned: spent, unspent and this one): the live
 // game's table, eqoa.fandom.com's "CM Point XP Required" (125,000 for the
@@ -80,17 +98,20 @@ func CMPointXP(n int) int {
 }
 
 // MasteryCapAt is the most mastery points a character of a level holds,
-// spent and unspent together: 25 a level below MaxLevel (825 at 33, 1,475 at
-// 59), never past the shard's MasteryCap, and MasteryCap at it (jibrish,
+// spent and unspent together: MasteryPerLevel a level below MaxLevel (25
+// unset: 825 at 33, 1,475 at 59), never past the shard's MasteryCap, and
+// MasteryCap at it (jibrish,
 // work board #1816: past its level's cap a character's experience goes to its
 // level). A character already holding more (a GM's grant, a level set lower,
 // a transfer) keeps every point and earns none until its level's cap passes
-// what it holds; #grantcm and charmove go by MasteryCap alone.
+// what it holds; #grantcm and charmove go by MasteryCap alone. With
+// MasteryPerLevel 0 (Heirloom) it is MasteryCap at every level: below 60 the
+// share divides every award and 100% never levels.
 func MasteryCapAt(level int) int {
-	if level >= MaxLevel {
+	if level >= MaxLevel || MasteryPerLevel <= 0 {
 		return MasteryCap
 	}
-	return max(0, min(25*level, MasteryCap))
+	return max(0, min(MasteryPerLevel*level, MasteryCap))
 }
 
 // StatCapBase is the stat cap before masteries at a level (CLIENT's m_p44):

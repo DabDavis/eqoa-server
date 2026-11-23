@@ -231,12 +231,19 @@ const arcaneDebuffPer = 15
 // least 1 again. Any other as it is. Its chance to resist a spell whole is another
 // matter: that goes by the levels.
 func creatureResists(resist Stat, npc *NPC, n int, now time.Time) int {
-	if npc == nil || npc.tmpl == nil || n >= 0 || resist == StatNone {
+	if npc == nil || n >= 0 || resist == StatNone {
 		return n
 	}
-	n = creatureStrongIn(resist, npc, n, now)
-	if n == 0 {
-		return 0 // immune (elemental.go): nothing for taken_resist to scale
+	t := npc.tmpl
+	if inherited := npc.charmResists(); inherited != nil {
+		t = inherited
+	}
+	if t == nil {
+		return n
+	}
+	n = creatureHitAtResist(n, t.effectiveResistPct(npc, resist, now))
+	if n == 0 || npc.tmpl == nil {
+		return n
 	}
 	if pct := templateTakenPct(npc.tmpl.TakenResist, resist); pct != 100 {
 		n = min(int(math.Round(float64(n)*float64(pct)/100)), -1)
@@ -244,16 +251,20 @@ func creatureResists(resist Stat, npc *NPC, n int, now time.Time) int {
 	return n
 }
 
-// creatureStrongIn is creatureResists' cut of a resist the creature is strong in: the elemental
-// model's (elemental.go npcElementalTaken: its percent is R on the creature's 0..100 line, a debuff's
-// points off first; nothing at 100), the legacy model's at least 1 even at 100.
-func creatureStrongIn(resist Stat, npc *NPC, n int, now time.Time) int {
-	pct := templateResistPct(npc.tmpl.ResistKind, npc.tmpl.ResistPct, resist)
-	if pct <= 0 {
-		return n
+func (t *ClassTemplate) effectiveResistPct(npc *NPC, resist Stat, now time.Time) int {
+	if !elementStat(resist) {
+		return 0
 	}
-	pct -= npcResistKindPct(npc, resist, now)
+	pct := templateResistPct(t.ResistKind, t.ResistPct, resist)
 	if pct <= 0 {
+		return 0
+	}
+	return max(0, pct-npcResistKindPct(npc, resist, now))
+}
+
+// creatureHitAtResist takes a signed HP change and the effective mob resistance.
+func creatureHitAtResist(n, pct int) int {
+	if pct <= 0 || n >= 0 {
 		return n
 	}
 	if !legacyResists() {

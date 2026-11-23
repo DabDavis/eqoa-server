@@ -705,7 +705,7 @@ func main() {
 			database.AccountBankSlots())
 	}
 	// what a resist takes off elemental damage (entity/elemental.go): the model's version logged
-	rm, err := entity.ParseResistModel(cfg.Combat.ResistModel, cfg.Combat.ResistMode, cfg.Combat.ResistFullChance)
+	rm, err := entity.ParseResistModel(cfg.Combat.ResistModel, cfg.Combat.ResistMode, cfg.Combat.ResistFullChance, cfg.Combat.ResistPartial)
 	if err != nil {
 		log.Fatalf("Config: %v", err)
 	}
@@ -853,6 +853,12 @@ func main() {
 	handlers.SetOGAccounts(cfg.World.OGAccounts)
 	entity.SetMasteryCap(cfg.World.MasteryCap)
 	log.Printf("Masteries: a character holds at most %d Combat Mastery points, spent and unspent (world.mastery_cap)", entity.MasteryCap)
+	entity.SetMasteryPerLevel(cfg.World.MasteryPerLevel)
+	if entity.MasteryPerLevel > 0 {
+		log.Printf("Masteries: below level %d at most %d a level (world.mastery_per_level)", entity.MaxLevel, entity.MasteryPerLevel)
+	} else {
+		log.Printf("Masteries: no cap by level below %d (world.mastery_per_level 0)", entity.MaxLevel)
+	}
 	entity.SetDeathTunarPct(cfg.World.DeathTunarPct)
 	log.Printf("Death: a PvE death takes %d%% of the carried tunar (world.death_tunar_pct)", entity.DeathTunarPct)
 	if cfg.World.OGAccounts {
@@ -1347,6 +1353,7 @@ func main() {
 	// the instanced raid dungeons in a world of the server's own (world.dungeons; handlers/dungeons.go), after the
 	// NPCs are loaded (their rows there are the dungeons' templates) and before the kept sessions
 	handlers.SetupDungeons(gameWorld, cfg.World.Dungeons, db)
+	handlers.SetupDuelArena(gameWorld)
 
 	// What each monster carries of its row's weapons and shield at this spawn, and what
 	// a corpse drops of them (world.held_gear: entity/heldgear.go, handlers/helddrop.go),

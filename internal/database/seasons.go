@@ -156,6 +156,9 @@ func (db *SQLiteDB) NPCSeasonHeld() (map[string]bool, error) {
 			return nil, err
 		}
 		if k := NPCClassKey(name); k != "" && !active[SeasonKey(season)] {
+			if active["thanksgiving"] && SeasonKey(season) == "christmas" && (k == "santa claus" || k == "christmas tree") {
+				continue
+			}
 			out[k] = true
 		}
 	}

@@ -18,14 +18,15 @@ func marksHeard(w *World) *[]KillMarks {
 }
 
 // A creature's kill hands each earning sharer to the marks' hook with its weight (an even-con
-// solo kill 1); the controls: a level 60 not reliving, a GM and a green kill are not handed on.
+// solo kill 1); a level 60 not reliving is handed on marked At60 (the hook takes it only in a zone
+// open to 60s), a reliving one as an earner; the controls: a GM and a green kill are not handed on.
 func TestAKillHandsEarnersToTheMarks(t *testing.T) {
 	k := newKillWorld(t, 20)
 	got := marksHeard(k.w)
 	npc := &NPC{ServerID: 5101, Name: "orc pawn", Level: 20, X: 1000, Z: 1000, SpawnX: 1010, SpawnZ: 990, World: 0}
 	k.w.awardKillXPLocked(k.sess[0], k.players[0], npc)
-	if len(*got) != 1 || (*got)[0].Weight != 1 || (*got)[0].SpawnX != 1010 {
-		t.Fatalf("an even-con solo kill: %+v, want one at weight 1 with its spawn", *got)
+	if len(*got) != 1 || (*got)[0].Weight != 1 || (*got)[0].SpawnX != 1010 || (*got)[0].At60 {
+		t.Fatalf("an even-con solo kill: %+v, want one at weight 1 with its spawn, not At60", *got)
 	}
 	// a red kill weighs more, to 1.5
 	*got = nil
@@ -39,12 +40,19 @@ func TestAKillHandsEarnersToTheMarks(t *testing.T) {
 	if len(*got) != 0 {
 		t.Fatalf("a green kill rolled: %+v", *got)
 	}
-	// a level 60 earns nothing; reliving it does
+	// a level 60 is handed on At60, for the hook to judge by the zone; reliving, as an earner
 	sixty := newKillWorld(t, 60)
 	g60 := marksHeard(sixty.w)
-	sixty.w.awardKillXPLocked(sixty.sess[0], sixty.players[0], &NPC{ServerID: 5104, Name: "drake", Level: 60, X: 1000, Z: 1000})
-	if len(*g60) != 0 {
-		t.Fatalf("a level 60 rolled: %+v", *g60)
+	drake := &NPC{ServerID: 5104, Name: "drake", Level: 60, X: 1000, Z: 1000}
+	sixty.w.awardKillXPLocked(sixty.sess[0], sixty.players[0], drake)
+	if len(*g60) != 1 || !(*g60)[0].At60 || (*g60)[0].Weight != 1 {
+		t.Fatalf("a level 60's even-con kill: %+v, want one At60 at weight 1", *g60)
+	}
+	*g60 = nil
+	sixty.players[0].Relive = &ReliveState{Level: 60}
+	sixty.w.awardKillXPLocked(sixty.sess[0], sixty.players[0], drake)
+	if len(*g60) != 1 || (*g60)[0].At60 {
+		t.Fatalf("a reliving 60: %+v, want one not At60", *g60)
 	}
 	gm := newKillWorld(t, 20)
 	gm.players[0].GM = true
@@ -56,19 +64,23 @@ func TestAKillHandsEarnersToTheMarks(t *testing.T) {
 }
 
 // The group bonus counts the other earners of the group near: four earners count three; a level 60
-// in the group (not reliving) adds nothing.
+// in the group (not reliving) adds nothing but where 60s earn (with60), a GM never.
 func TestMarksGroupCountsEarnersNear(t *testing.T) {
 	k := newKillWorld(t, 20, 20, 20, 20)
-	if n := k.w.marksGroupLocked(k.players[0]); n != 3 {
+	if n := k.w.marksGroupLocked(k.players[0], false); n != 3 {
 		t.Fatalf("four earners: %d others, want 3", n)
 	}
-	mixed := newKillWorld(t, 20, 60)
-	if n := mixed.w.marksGroupLocked(mixed.players[0]); n != 0 {
+	mixed := newKillWorld(t, 20, 60, 60)
+	mixed.players[2].GM = true
+	if n := mixed.w.marksGroupLocked(mixed.players[0], false); n != 0 {
 		t.Fatalf("with a level 60: %d, want 0", n)
+	}
+	if n := mixed.w.marksGroupLocked(mixed.players[0], true); n != 1 {
+		t.Fatalf("with a level 60 and a GM where 60s earn: %d, want 1", n)
 	}
 	mixed.players[1].Relive = &ReliveState{Level: 60}
 	mixed.players[1].Level = 30
-	if n := mixed.w.marksGroupLocked(mixed.players[0]); n != 1 {
+	if n := mixed.w.marksGroupLocked(mixed.players[0], false); n != 1 {
 		t.Fatalf("with a reliving 60: %d, want 1", n)
 	}
 }

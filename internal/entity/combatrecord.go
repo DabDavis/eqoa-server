@@ -94,7 +94,7 @@ func (w *World) recordDuelLocked(d *Duel, loser EntityID, how duelEnd, now time.
 	if d.pvp {
 		return // two flagged players' fight: its end is a death (recordKillLocked)
 	}
-	e := database.DuelEnd{A: recordFighter(d.who[0]), B: recordFighter(d.who[1]), At: now}
+	e := database.DuelEnd{A: recordFighter(d.who[0]), B: recordFighter(d.who[1]), At: now, Arena: d.Arena}
 	if how != duelDraw && loser != 0 && (loser == d.A || loser == d.B) {
 		side := d.side(loser)
 		e.Loser = d.who[side].CharServerID

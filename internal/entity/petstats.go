@@ -485,6 +485,21 @@ func (n *NPC) petResistShare(element Stat) float64 {
 	return share
 }
 
+// petElementalHit resolves one incoming hit and the share resisted (also
+// used for a tap). A charmed Recluse uses the wild mob calculation, including
+// debuffs. Other pets retain their usual rounding floor for this type of hit.
+func (n *NPC) petElementalHit(element Stat, damage int, now time.Time, floor int) (int, float64) {
+	if t := n.charmResists(); t != nil {
+		pct := t.effectiveResistPct(n, element, now)
+		return -creatureHitAtResist(-damage, pct), float64(pct) / 100
+	}
+	share := n.petResistShare(element)
+	if damage > 0 && share != 0 { // below 0: a lowered resist adds (elemental.go)
+		damage = max(floor, int(math.Round(float64(damage)*(1-share))))
+	}
+	return damage, share
+}
+
 // petSheetRegen is a workbook pet's tick (npcregen.go's petRegen): its row's
 // HoT, scaled as the balance scaled its hit points, and PoT; a 50th of each
 // maximum where its row gives none; and what its effects add to each, as any

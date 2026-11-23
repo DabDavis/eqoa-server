@@ -123,6 +123,7 @@ type Duel struct {
 	A, B    EntityID   // the challenger and the challenged
 	who     [2]*Player // the two as they were asked: a new login under the same id is not them
 	Phase   duelPhase
+	Arena   bool      // the private Neriak match selected by the challenger
 	Expires time.Time // an invitation's end
 	Began   time.Time // the fight's start
 	Starts  time.Time // the countdown's end, when the fight begins
@@ -197,10 +198,11 @@ const duelIDMask = 0x00FFFFFF
 
 // duelTable is the world's duels.
 type duelTable struct {
-	byID  map[uint32]*Duel
-	of    map[EntityID]*Duel
-	next  uint32
-	asked map[EntityID]time.Time // each challenger's last challenge
+	byID      map[uint32]*Duel
+	of        map[EntityID]*Duel
+	next      uint32
+	asked     map[EntityID]time.Time // each challenger's last challenge
+	arenaMove func(*session.Session, GateSpot, float32)
 }
 
 func (t *duelTable) add(d *Duel) {
@@ -307,6 +309,14 @@ func (w *World) duelSayLocked(p *Player, text string, rgb [3]byte) {
 // wager, when not 0, is the tunar each is to stake (a client without the live
 // window names its wager here; two with it stake in the window instead).
 func (w *World) DuelChallenge(sess *session.Session, objectID uint32, name string, wager int, now time.Time) {
+	w.challengeDuel(sess, objectID, name, wager, false, now)
+}
+
+func (w *World) ArenaChallenge(sess *session.Session, objectID uint32, name string, now time.Time) {
+	w.challengeDuel(sess, objectID, name, 0, true, now)
+}
+
+func (w *World) challengeDuel(sess *session.Session, objectID uint32, name string, wager int, arena bool, now time.Time) {
 	defer w.runDuelPurse()
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -357,7 +367,11 @@ func (w *World) DuelChallenge(sess *session.Session, objectID uint32, name strin
 		w.duelSayLocked(p, fmt.Sprintf("You do not have %d tunar to wager.", wager), duelRed)
 		return
 	}
-	d := &Duel{ID: w.duels.newID(), A: p.ServerID, B: t.ServerID, who: [2]*Player{p, t}, Phase: duelAsked, Expires: now.Add(DuelInviteTime), Wager: wager}
+	if arena && !w.arenaPairReadyLocked(p, t) {
+		w.duelSayLocked(p, arenaUnavailable, duelRed)
+		return
+	}
+	d := &Duel{ID: w.duels.newID(), A: p.ServerID, B: t.ServerID, who: [2]*Player{p, t}, Phase: duelAsked, Expires: now.Add(DuelInviteTime), Wager: wager, Arena: arena}
 	w.duels.add(d)
 	if w.duels.asked == nil {
 		w.duels.asked = make(map[EntityID]time.Time)
@@ -368,7 +382,9 @@ func (w *World) DuelChallenge(sess *session.Session, objectID uint32, name strin
 	if p.DuelWindow {
 		w.sendDuelIDLocked(sess, d.ID)
 	}
-	if wager > 0 {
+	if arena {
+		w.duelSayLocked(p, fmt.Sprintf("You challenge %s to an instanced duel in Neriak.", t.Name), duelOrange)
+	} else if wager > 0 {
 		w.duelSayLocked(p, fmt.Sprintf("You challenge %s to a duel for %d tunar.", t.Name, wager), duelOrange)
 	} else {
 		w.duelSayLocked(p, fmt.Sprintf("You challenge %s to a duel.", t.Name), duelOrange)
@@ -389,7 +405,7 @@ func (w *World) duelRefusalLocked(p, t *Player, now time.Time) string {
 		return fmt.Sprintf("%s cannot duel now.", t.Name)
 	case p.ctf.match != 0 || t.ctf.match != 0 || w.ctfArenaLocked(p.World):
 		return ctfLineNoDuel // the arena's fights are its match's (ctf.go)
-	case p.World != t.World || dist3(p.X, p.Y, p.Z, t.X, t.Y, t.Z) > DuelStartRange:
+	case !SamePlace(p, t) || p.arenaStay != nil || t.arenaStay != nil || dist3(p.X, p.Y, p.Z, t.X, t.Y, t.Z) > DuelStartRange:
 		return fmt.Sprintf("%s is too far away to duel.", t.Name)
 	case !w.duels.asked[p.ServerID].IsZero() && now.Sub(w.duels.asked[p.ServerID]) < DuelAskAgain:
 		return "You must wait a moment before challenging again."
@@ -405,6 +421,11 @@ func (w *World) duelInviteLocked(d *Duel, from, t *Player) {
 		return
 	}
 	question := fmt.Sprintf(duelWordChallenges, from.Name)
+	if d.Arena {
+		question = fmt.Sprintf("%s challenges you to an instanced duel in Neriak. Enter the arena?", from.Name)
+		w.sendDuelBoxLocked(sess, DuelBoxID(d.ID), question, []string{duelWordAccept, duelWordDecline})
+		return
+	}
 	if d.Wager > 0 {
 		// the live words end in a stop: the wager goes before it
 		question = fmt.Sprintf("%s challenges you to a duel for %d tunar.", from.Name, d.Wager)
@@ -461,13 +482,19 @@ func (w *World) DuelAnswer(sess *session.Session, id uint32, accept bool, now ti
 		why = fmt.Sprintf("%s cannot duel now.", a.Name)
 	case p.IsDead() || p.respawnPending():
 		why = "You cannot duel now."
-	case a.World != p.World || dist3(a.X, a.Y, a.Z, p.X, p.Y, p.Z) > DuelStartRange:
+	case d.Arena && (now.After(d.Expires) || !w.arenaPairReadyLocked(a, p)):
+		why = arenaUnavailable
+	case !SamePlace(a, p) || dist3(a.X, a.Y, a.Z, p.X, p.Y, p.Z) > DuelStartRange:
 		why = fmt.Sprintf("%s is too far away to duel.", a.Name)
 	}
 	if why != "" {
 		w.duels.remove(d)
 		w.duelSayLocked(p, why, duelRed)
 		w.duelGoneToChallengerLocked(a, d)
+		return
+	}
+	if d.Arena {
+		w.enterArenaLocked(d, a, p, now)
 		return
 	}
 	if a.DuelWindow && p.DuelWindow {
@@ -534,8 +561,12 @@ func (w *World) duelGoneToChallengedLocked(b *Player, d *Duel, line string) {
 // first line. duelSystem says the rest and begins the fight.
 func (w *World) countdownDuelLocked(d *Duel, a, b *Player, now time.Time) {
 	d.Phase = duelCountdown
-	d.Starts = now.Add(DuelCountdown)
-	d.said = int(DuelCountdown / time.Second)
+	duration := DuelCountdown
+	if d.Arena {
+		duration = time.Minute
+	}
+	d.Starts = now.Add(duration)
+	d.said = int(duration / time.Second)
 	log.Printf("Duel %d: %s and %s count down from %d", d.ID, a.Name, b.Name, d.said)
 	if as := w.findSessionByEntityIDLocked(a.ServerID); as != nil && a.DuelWindow && !d.windowed {
 		w.sendDuelAcceptedLocked(as, d.ID) // the live client declines its own queue
@@ -545,12 +576,15 @@ func (w *World) countdownDuelLocked(d *Duel, a, b *Player, now time.Time) {
 
 // duelCountMarks are the countdown's lines after its first, by the seconds
 // left: every 5 seconds, then the last three.
-var duelCountMarks = []int{10, 5, 3, 2, 1}
+var duelCountMarks = []int{55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 3, 2, 1}
 
 // duelCountLocked tells the two the countdown's line for n seconds left: "Duel
 // starts in n seconds." from 5 up, the bare number below it, "START" at 0.
 func (w *World) duelCountLocked(d *Duel, n int) {
 	line := "START"
+	if d.Arena {
+		line = "FIGHT"
+	}
 	switch {
 	case n >= 5:
 		line = fmt.Sprintf("Duel starts in %d seconds.", n)
@@ -566,6 +600,16 @@ func (w *World) duelCountLocked(d *Duel, n int) {
 // line once its second comes (only the latest of marks a stalled tick passed),
 // and at the end "START" and the fight.
 func (w *World) countDownLocked(d *Duel, a, b *Player, now time.Time) {
+	if d.Arena && d.said > 1 && !now.Before(d.Starts.Add(-time.Second)) {
+		for _, p := range []*Player{a, b} {
+			p.HP, p.Power, p.StatsDirty = p.MaxHPNow(), p.MaxPowerNow(), true
+		}
+		d.said = 1
+		w.duelCountLocked(d, 1)
+		// Even a delayed world tick gives both clients their final second.
+		d.Starts = now.Add(time.Second)
+		return
+	}
 	if !now.Before(d.Starts) {
 		w.duelCountLocked(d, 0)
 		w.startDuelLocked(d, a, b, now)
@@ -603,6 +647,7 @@ func (w *World) callOffDuelLocked(d *Duel, line string) {
 		}
 	}
 	w.settleStakesLocked(d, 0) // duelpurse.go: each its own stake back
+	w.closeArenaLocked(d)
 }
 
 // startDuelLocked begins the fight between the challenger a and b.
@@ -611,6 +656,9 @@ func (w *World) startDuelLocked(d *Duel, a, b *Player, now time.Time) {
 	d.Began = now
 	d.World = a.World
 	d.X, d.Y, d.Z = (a.X+b.X)/2, (a.Y+b.Y)/2, (a.Z+b.Z)/2
+	if d.Arena {
+		d.X, d.Y, d.Z = arenaX, arenaFloor, arenaZ
+	}
 	d.pets = make(map[EntityID]bool)
 	d.petOut = make(map[EntityID]bool)
 	d.petTarget = make(map[EntityID]EntityID)
@@ -628,7 +676,9 @@ func (w *World) startDuelLocked(d *Duel, a, b *Player, now time.Time) {
 			w.sendDuelStateLocked(sess, d, p)
 			w.sendDuelPlaceLocked(sess, d)
 		}
-		w.sendColoredLocked(sess, fmt.Sprintf("The duel with %s has begun.", foe.Name), duelOrange)
+		if !d.Arena {
+			w.sendColoredLocked(sess, fmt.Sprintf("The duel with %s has begun.", foe.Name), duelOrange)
+		}
 	}
 }
 
@@ -766,6 +816,7 @@ func (w *World) endDuelLocked(d *Duel, loser EntityID, how duelEnd, now time.Tim
 	w.duelAnnounceLocked(d, line)
 	w.recordDuelLocked(d, loser, how, now) // combatrecord.go: before the stakes are paid
 	w.settleStakesLocked(d, loser)         // duelpurse.go
+	w.closeArenaLocked(d)
 }
 
 // duelAnnounceLocked says a duel's end to its two and to every player in its
@@ -779,7 +830,7 @@ func (w *World) duelAnnounceLocked(d *Duel, line string) {
 		}
 	}
 	for _, p := range w.Players {
-		if told[p.ServerID] || p.World != d.World || dist3(p.X, p.Y, p.Z, d.X, d.Y, d.Z) > DuelHeardWithin {
+		if told[p.ServerID] || p.World != d.World || (d.Arena && p.InstanceKey() != d.ID) || dist3(p.X, p.Y, p.Z, d.X, d.Y, d.Z) > DuelHeardWithin {
 			continue
 		}
 		w.duelSayLocked(p, line, duelOrange)
@@ -858,10 +909,18 @@ func (w *World) duelSystem(now time.Time) {
 			case a == nil || b == nil:
 				w.callOffDuelLocked(d, "The duel is off: your opponent has gone.")
 			case a.IsDead() || a.respawnPending() || b.IsDead() || b.respawnPending() ||
-				a.World != b.World || dist3(a.X, a.Y, a.Z, b.X, b.Y, b.Z) > DuelArenaRadius:
+				!SamePlace(a, b) || (d.Arena && (w.duelOutLocked(d, a) || w.duelOutLocked(d, b))) || (!d.Arena && dist3(a.X, a.Y, a.Z, b.X, b.Y, b.Z) > DuelArenaRadius):
 				w.callOffDuelLocked(d, "The duel is off.")
 			default:
-				w.countDownLocked(d, a, b, now)
+				if d.Arena && d.Starts.IsZero() {
+					if a.arenaStay.ready && b.arenaStay.ready {
+						w.countdownDuelLocked(d, a, b, now)
+					} else if !now.Before(d.Expires) {
+						w.callOffDuelLocked(d, "The arena could not be loaded in time.")
+					}
+				} else {
+					w.countDownLocked(d, a, b, now)
+				}
 			}
 			continue
 		}
@@ -897,6 +956,9 @@ func (w *World) duelSystem(now time.Time) {
 // duelOutLocked reports p out of the duel's arena: another world, or
 // farther than DuelArenaRadius from its centre.
 func (w *World) duelOutLocked(d *Duel, p *Player) bool {
+	if d.Arena {
+		return p.World != DuelArenaWorld || p.arenaStay == nil || p.InstanceKey() != d.ID || !arenaContains(p.X, p.Y, p.Z)
+	}
 	return p.World != d.World || dist3(p.X, p.Y, p.Z, d.X, d.Y, d.Z) > DuelArenaRadius
 }
 

@@ -61,7 +61,8 @@ func (w *World) duelPetProcsLocked(d *Duel, ps *petState, m duelMark, now time.T
 		if tm.ProcChance > 0 && tm.ProcDamage > 0 && templateIntn(100) < tm.ProcChance {
 			w.broadcastNPCSwingLocked(pet, m.id(), 0, fxShieldHit)
 			log.Printf("%s: %s's pet %q's %s hits %s for %d", d.tag(), ps.owner.Name, pet.Name, procName(tm), m.name(), tm.ProcDamage)
-			if w.duelPetHurtLocked(d, ps, m, tm.ProcDamage, now, numberProc) {
+			damage := m.pet.duelElementalHit(tm.ProcDamage, shieldResistStat(tm.ProcResist), now)
+			if damage > 0 && w.duelPetHurtLocked(d, ps, m, damage, now, numberProc) {
 				return true
 			}
 		}
@@ -77,7 +78,8 @@ func (w *World) duelPetProcsLocked(d *Duel, ps *petState, m duelMark, now time.T
 		if fx := h.ae.Rules.ProcFX; fx != 0 {
 			w.broadcastNPCSwingLocked(pet, m.id(), 0, fx)
 		}
-		if w.duelPetHurtLocked(d, ps, m, h.n, now, numberProc) {
+		damage := m.pet.duelElementalHit(h.n, h.ae.Rules.Resist, now)
+		if damage > 0 && w.duelPetHurtLocked(d, ps, m, damage, now, numberProc) {
 			return true
 		}
 	}
@@ -193,6 +195,12 @@ func (w *World) duelPetLandLocked(c *petCast, now time.Time) {
 		if pet.sheet != nil {
 			hit, drained = sheetFigure(pet, c.spell.Def.Effects, a.DamageOr(), false)
 		}
+		if hit > 0 && !c.spell.unresistable {
+			if taken := m.pet.duelElementalHit(hit, c.spell.resist, now); taken != hit {
+				drained = int(math.Round(float64(drained) * float64(taken) / float64(hit)))
+				hit = taken
+			}
+		}
 		if hit <= 0 {
 			return
 		}
@@ -212,6 +220,12 @@ func (w *World) duelPetLandLocked(c *petCast, now time.Time) {
 		}
 		if m.t == nil {
 			// nothing lasts on a duel's pet: its first tick alone
+			if !c.spell.unresistable {
+				tick = m.pet.duelElementalHit(tick, c.spell.resist, now)
+			}
+			if tick <= 0 {
+				return
+			}
 			log.Printf("%s: %s's pet %q's %q ticks on %s for %d before the halving", d.tag(), owner.Name, pet.Name, c.spell.Name, m.name(), tick)
 			w.duelPetHurtLocked(d, ps, m, tick, now, numberDoT)
 			return

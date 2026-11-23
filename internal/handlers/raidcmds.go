@@ -414,6 +414,7 @@ var playerHelpLines = []string{
 	"  /target <name> (or /tar) - targets the nearest within 100 whose name starts so",
 	"  /tutorial - the welcome guide again",
 	"  /pizza - a Chicago pizza fact",
+	"  /quickchat reset - your quick chat (the L2 menus) back to the game's defaults",
 	"  /who, /stuck, /roll, /pvp, /lfg on|off, /record [name], /bug <words>, /filter",
 	"  /feature <words> - asks the GMs for something new (a feature request, apart from bugs)",
 	"  /hide mercs, /show mercs - other players' mercenaries out of your view, or back",

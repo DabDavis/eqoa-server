@@ -58,6 +58,7 @@ type addTie struct {
 	by           *NPC
 	fight        *templateFight
 	pct          int
+	burst        bool
 	level, class int
 	until        time.Time // when it goes, its summon's life up (zero: no limit)
 }
@@ -173,6 +174,10 @@ func (w *World) summonLocked(npc *NPC, f *templateFight, s *templateSummon, now 
 		a := facing + float32(2*math.Pi*float64(k)/float64(s.Count)) + math.Pi/float32(max(s.Count, 1))
 		x, y, z := npc.X+summonRing*float32(math.Sin(float64(a))), npc.Y, npc.Z+summonRing*float32(math.Cos(float64(a)))
 		if w.ground != nil {
+			if npc.turkeyKing() && !w.legOKLocked(npc, x, z) {
+				// A kited King can stand beside a wall. Keep every bird on his side.
+				x, z = npc.X, npc.Z
+			}
 			if fy, ok := w.ground.Floor(npc.World, x, y+3, z); ok && fy-y <= summonFloor && y-fy <= summonFloor {
 				y = fy
 			}
@@ -196,6 +201,10 @@ func (w *World) summonLocked(npc *NPC, f *templateFight, s *templateSummon, now 
 			c.MaxHP = max(1, int(math.Round(float64(npc.MaxHP)*float64(s.Share)/100)))
 			c.HP = c.MaxHP
 		}
+		if c.leftover() {
+			c.tmpl = orig.tmpl // the same melee profile, without the King's spell or summons
+			c.HP, c.MaxHP = 1000, 1000
+		}
 		w.joinAddLocked(c, npc)
 		f.adds = append(f.adds, c.ServerID)
 		w.adds = append(w.adds, c)
@@ -212,6 +221,9 @@ func (w *World) summonLocked(npc *NPC, f *templateFight, s *templateSummon, now 
 func shareWords(share int, by *NPC) string {
 	if share <= 0 {
 		return "each as itself"
+	}
+	if by.turkeyKing() {
+		return fmt.Sprintf("each %d%% of %s's melee, 1,000 hit points", share, by.Name)
 	}
 	return fmt.Sprintf("each %d%% of %s's figures (%d hit points)", share, by.Name, max(1, int(math.Round(float64(by.MaxHP)*float64(share)/100))))
 }

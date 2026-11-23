@@ -1,0 +1,98 @@
+[
+  {
+    "Name": "Blackwater king",
+    "World": 0,
+    "X": 15227,
+    "Y": 54.094,
+    "Z": 22743,
+    "Radius": 5
+  },
+  {
+    "Name": "Archivist Quill",
+    "World": 0,
+    "X": 15211,
+    "Y": 54.094,
+    "Z": 22730,
+    "Radius": 3
+  },
+  {
+    "Name": "Quartermaster Giblet",
+    "World": 0,
+    "X": 15239,
+    "Y": 54.094,
+    "Z": 22731,
+    "Radius": 3
+  },
+  {
+    "Name": "Captain Tallyspur",
+    "World": 0,
+    "X": 13732,
+    "Y": 57.554,
+    "Z": 24216,
+    "Radius": 3
+  },
+  {
+    "Name": "Scout Brinebeak",
+    "World": 0,
+    "X": 25367,
+    "Y": 54.156,
+    "Z": 6474,
+    "Radius": 3
+  },
+  {
+    "Name": "Sergeant Rivetbeak",
+    "World": 1,
+    "X": 5334,
+    "Y": 69.008,
+    "Z": 9360,
+    "Radius": 3
+  },
+  {
+    "Name": "Gate outer lip",
+    "World": 0,
+    "X": 25219,
+    "Y": 55.729,
+    "Z": 15760,
+    "Radius": 3
+  },
+  {
+    "Name": "Gate arena and summon ring",
+    "World": 0,
+    "X": 25163,
+    "Y": 54.094,
+    "Z": 15759,
+    "Radius": 12
+  },
+  {
+    "Name": "Scene Santa",
+    "World": 0,
+    "X": 25168,
+    "Y": 54.094,
+    "Z": 15757,
+    "Radius": 3
+  },
+  {
+    "Name": "Scene Grinch",
+    "World": 0,
+    "X": 25168,
+    "Y": 54.094,
+    "Z": 15762,
+    "Radius": 3
+  },
+  {
+    "Name": "Tree Santa",
+    "World": 0,
+    "X": 25287.31,
+    "Y": 54.094,
+    "Z": 15768.9,
+    "Radius": 1
+  },
+  {
+    "Name": "Club landing",
+    "World": 0,
+    "X": 14607,
+    "Y": 54.188,
+    "Z": 19045,
+    "Radius": 2
+  }
+]

@@ -1,0 +1,7 @@
+{
+  "world": 16,
+  "name": "Neriak Duel Arena",
+  "zones": [
+    {"name": "Neriak Duel Arena", "from": "TUNARIA.ESF", "zone": 45}
+  ]
+}

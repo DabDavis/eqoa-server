@@ -61,6 +61,10 @@ func (w *World) ClearBuffs(sess *session.Session) (names []string, slots int, ok
 	if p == nil {
 		return nil, 0, false
 	}
+	return w.clearPlayerBuffsLocked(p)
+}
+
+func (w *World) clearPlayerBuffsLocked(p *Player) (names []string, slots int, ok bool) {
 	for _, ae := range append([]*ActiveEffect(nil), p.Effects...) {
 		if infectionEffect(ae.SpellID) {
 			continue // a were's infection is no buff: its flag's, until its end or its cure (wereinfect.go)

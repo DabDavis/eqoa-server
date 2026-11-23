@@ -54,8 +54,9 @@ type ResistOutcome int
 
 const (
 	ResistHeld    ResistOutcome = iota // it took its share
-	ResistPartial                      // at the cap, it failed in part
-	ResistFailed                       // at the cap, it failed altogether
+	ResistPartial                      // it failed in part (the legacy model at the cap; resistance_scaled's second roll)
+	ResistFailed                       // it failed altogether: the hit landed whole
+	ResistLowered                      // a resist below 0 added to the hit (elemental.go): the share is negative
 )
 
 // resistRand is the resist's dice (tests replace it).
@@ -162,6 +163,8 @@ func resistWords(share float64, how ResistOutcome) string {
 		return "your resist failed"
 	case ResistPartial:
 		return fmt.Sprintf("your resist took only %.0f%%", share*100)
+	case ResistLowered:
+		return fmt.Sprintf("your lowered resist added %.0f%%", -share*100)
 	}
 	return fmt.Sprintf("your resist took %.0f%%", share*100)
 }

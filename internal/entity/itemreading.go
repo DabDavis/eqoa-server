@@ -126,6 +126,9 @@ func WeaponProcChanceRule() string {
 // Explain is a weapon proc in plain words: what it does, how often, what the
 // creature resists it by.
 func (wp WeaponProc) Explain() string {
+	if wp.Kind == ProcMysteryTravel {
+		return "This procs.. something, but you're not sure what"
+	}
 	figure := fmt.Sprint(wp.Damage)
 	if wp.DamageTo > wp.Damage {
 		figure = fmt.Sprintf("%d-%d", wp.Damage, wp.DamageTo)

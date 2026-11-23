@@ -90,6 +90,7 @@ const (
 	duelUpAcceptBet  = 8  // two VIPool<int> of item keys: the wager accepted
 	duelUpUnaccept   = 9  // the accept withdrawn
 	duelUpCancelDuel = 10 // the wager window's "Cancel duel?" Yes
+	duelUpInstanced  = 11 // Community > Duel > Instanced duel
 )
 
 // HandleDuelRequest is a 0x1501 from a client with the live window.
@@ -102,12 +103,16 @@ func (h *DuelHandler) HandleDuelRequest(sess *session.Session, msg *protocol.Mes
 	r := buffer.NewReader(data[5:])
 	now := time.Now()
 	switch sub {
-	case duelUpChallenge:
+	case duelUpChallenge, duelUpInstanced:
 		target, err := r.ReadUint32()
 		if err != nil {
 			return nil
 		}
-		h.world.DuelChallenge(sess, target, "", 0, now)
+		if sub == duelUpInstanced {
+			h.world.ArenaChallenge(sess, target, "", now)
+		} else {
+			h.world.DuelChallenge(sess, target, "", 0, now)
+		}
 	case duelUpDecline, duelUpAccept:
 		id, err := r.ReadUint32()
 		if err != nil {
@@ -147,6 +152,10 @@ func duelCommand(gw *entity.World, sess *session.Session, rest string, target ui
 		return
 	case "decline", "no":
 		duelAnswerOwn(gw, sess, false, now)
+		return
+	}
+	if first, name, _ := strings.Cut(arg, " "); first == "instance" || first == "instanced" {
+		gw.ArenaChallenge(sess, target, strings.TrimSpace(name), now)
 		return
 	}
 	name, wager := duelWords(rest)

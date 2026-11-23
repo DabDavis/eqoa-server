@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"math"
+	"math/rand"
 	"strings"
 	"testing"
 	"time"
@@ -30,22 +31,22 @@ func withDice(d float64) func() {
 // The config's lines: unset is the elemental model, magnitude_only; legacy
 // for a rollback; anything else refused.
 func TestParseResistModel(t *testing.T) {
-	m, err := ParseResistModel("", "", 0)
+	m, err := ParseResistModel("", "", 0, false)
 	if err != nil || m.Version != ResistModelElemental || m.Mode != elemental.ModeMagnitudeOnly || m.String() != "elemental-2026-11-14 magnitude_only" {
 		t.Errorf("unset: %+v %v", m, err)
 	}
-	if m, err := ParseResistModel("legacy", "", 0); err != nil || m.String() != "legacy" {
+	if m, err := ParseResistModel("legacy", "", 0, false); err != nil || m.String() != "legacy" {
 		t.Errorf("legacy: %+v %v", m, err)
 	}
-	if m, err := ParseResistModel(ResistModelElemental, "fixed_full_chance", 0.1); err != nil || m.String() != "elemental-2026-11-14 fixed_full_chance 0.1" {
+	if m, err := ParseResistModel(ResistModelElemental, "fixed_full_chance", 0.1, false); err != nil || m.String() != "elemental-2026-11-14 fixed_full_chance 0.1" {
 		t.Errorf("fixed: %+v %v", m, err)
 	}
 	for _, bad := range [][2]string{{"elemental", ""}, {"", "sometimes"}} {
-		if _, err := ParseResistModel(bad[0], bad[1], 0); err == nil {
+		if _, err := ParseResistModel(bad[0], bad[1], 0, false); err == nil {
 			t.Errorf("%q accepted", bad)
 		}
 	}
-	if _, err := ParseResistModel("", "fixed_full_chance", 1.5); err == nil {
+	if _, err := ParseResistModel("", "fixed_full_chance", 1.5, false); err == nil {
 		t.Error("a chance of 1.5 accepted")
 	}
 	if got := CurrentResistModel(); got.Version != ResistModelElemental || got.Mode != elemental.ModeMagnitudeOnly {
@@ -73,15 +74,15 @@ func templateHitOn(t *testing.T, d0, r int, tm *ClassTemplate) (int, string) {
 
 // The package's acceptance cases on a player, through a creature's spell
 // (templateHitLocked): R315 680 -> 68 and 1000 -> 100, R245 -> 300, R0 the
-// whole; past the cap as at it, a negative as none. magnitude_only rolls no
-// dice.
+// whole; past the cap as at it; a negative adds R/350 (work board 2027: -35
+// 1100, -50 1143). magnitude_only rolls no dice.
 func TestElementalAcceptancePlayer(t *testing.T) {
 	defer withResistModel(ResistModel{Version: ResistModelElemental})()
 	defer func(f func() float64) { resistRand = f }(resistRand)
 	resistRand = func() float64 { t.Fatal("magnitude_only threw the dice"); return 0 }
 	for _, tt := range []struct{ d0, r, want int }{
-		{680, 315, 68}, {1000, 315, 100}, {1000, 245, 300}, {1000, 0, 1000}, {1000, 400, 100}, {1000, -50, 1000},
-		{1000, 175, 500}, {3, 175, 2}, {7, 315, 1}, {1, 315, 1},
+		{680, 315, 68}, {1000, 315, 100}, {1000, 245, 300}, {1000, 0, 1000}, {1000, 400, 100}, {1000, -50, 1143},
+		{1000, -35, 1100}, {1000, 175, 500}, {3, 175, 2}, {7, 315, 1}, {1, 315, 1},
 	} {
 		if got, lines := templateHitOn(t, tt.d0, tt.r, nil); got != tt.want {
 			t.Errorf("D0 %d at R %d: took %d, want %d (%q)", tt.d0, tt.r, got, tt.want, lines)
@@ -89,6 +90,99 @@ func TestElementalAcceptancePlayer(t *testing.T) {
 	}
 	if _, lines := templateHitOn(t, 1000, 315, nil); !strings.Contains(lines, "hits you for 100 (your resist took 90%)") {
 		t.Errorf("the line: %q", lines)
+	}
+	if _, lines := templateHitOn(t, 1000, -35, nil); !strings.Contains(lines, "hits you for 1100 (your lowered resist added 10%)") {
+		t.Errorf("a lowered resist's line: %q", lines)
+	}
+}
+
+// resistance_scaled with resist_partial (work board 2027): a resist holds
+// R/350 of the time at its magnitude_only share; a failure draws again, a
+// partial under R/350 (an even share of it), else whole; Partial off, a
+// failure is whole; a template's resist_fail f makes it fail 1 - s(1-f) of
+// the time (Lord Nagafen's 4 at 315: 13.6%). R 0 and a lowered resist roll
+// nothing.
+func TestElementalScaledPartial(t *testing.T) {
+	defer withResistModel(ResistModel{Version: ResistModelElemental, Mode: elemental.ModeResistanceScaled, Partial: true})()
+	old := resistRand
+	defer func() { resistRand = old }()
+	queue := func(dice ...float64) {
+		resistRand = func() float64 {
+			if len(dice) == 0 {
+				t.Fatal("a draw past the queue")
+			}
+			d := dice[0]
+			dice = dice[1:]
+			return d
+		}
+	}
+	for _, tt := range []struct {
+		d0, r int
+		dice  []float64
+		want  int
+		line  string
+	}{
+		{680, 315, []float64{0.5}, 68, "your resist took 90%"},
+		{540, 280, []float64{0.5}, 108, "your resist took 80%"},
+		{1000, 315, []float64{0.05, 0.5, 0.5}, 550, "your resist took only 45%"},
+		{1000, 315, []float64{0.05, 0.95}, 1000, "your resist failed"},
+		{1000, 0, nil, 1000, ""},
+		{1000, -35, nil, 1100, "your lowered resist added 10%"},
+	} {
+		queue(tt.dice...)
+		if got, lines := templateHitOn(t, tt.d0, tt.r, nil); got != tt.want || !strings.Contains(lines, tt.line) {
+			t.Errorf("D0 %d at R %d, dice %v: took %d, want %d (%q)", tt.d0, tt.r, tt.dice, got, tt.want, lines)
+		}
+	}
+	SetResistModel(ResistModel{Version: ResistModelElemental, Mode: elemental.ModeResistanceScaled})
+	queue(0.05)
+	if got, _ := templateHitOn(t, 1000, 315, nil); got != 1000 {
+		t.Errorf("partial off, a failure: %d, want 1000", got)
+	}
+	naga := &ClassTemplate{}
+	naga.ResistFail = 4
+	queue(0.135)
+	if got, _ := templateHitOn(t, 1000, 315, naga); got != 1000 {
+		t.Errorf("Nagafen at 315, 0.135 (under 13.6%%): %d, want 1000", got)
+	}
+	queue(0.137)
+	if got, _ := templateHitOn(t, 1000, 315, naga); got != 100 {
+		t.Errorf("Nagafen at 315, 0.137: %d, want 100", got)
+	}
+}
+
+// resistance_scaled with resist_partial at R 315: a mean of 14.95% of D0
+// (90% x 10%, 9% a partial at a mean 55%, 1% whole), over 200,000 seeded hits.
+func TestElementalScaledPartialMean(t *testing.T) {
+	m := ResistModel{Version: ResistModelElemental, Mode: elemental.ModeResistanceScaled, Partial: true}
+	old := resistRand
+	defer func() { resistRand = old }()
+	resistRand = rand.New(rand.NewSource(2027)).Float64
+	const n = 200000
+	sum := 0.0
+	for range n {
+		share, _ := playerElementalShare(&m, playerElem{d0: 1000, resist: 315})
+		sum += 1 - share
+	}
+	if mean := sum / n; math.Abs(mean-0.1495) > 0.002 {
+		t.Errorf("the mean at 315: %.4f of D0, want 0.1495", mean)
+	}
+}
+
+// resist_partial is refused but with resistance_scaled; it says so in the
+// start line.
+func TestParseResistPartial(t *testing.T) {
+	m, err := ParseResistModel(ResistModelElemental, "resistance_scaled", 0, true)
+	if err != nil || !m.Partial || m.String() != "elemental-2026-11-14 resistance_scaled partial" {
+		t.Fatalf("resistance_scaled partial: %v %v", m, err)
+	}
+	for _, mode := range []string{"", "magnitude_only", "fixed_full_chance"} {
+		if _, err := ParseResistModel("", mode, 0, true); err == nil {
+			t.Errorf("partial with %q taken", mode)
+		}
+	}
+	if _, err := ParseResistModel(ResistModelLegacy, "resistance_scaled", 0, true); err == nil {
+		t.Error("partial with the legacy model taken")
 	}
 }
 

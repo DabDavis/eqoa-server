@@ -40,6 +40,13 @@ const s2Worlds = 8
 // And for any client, the server's own worlds it said it holds, built off its
 // own disc (serverworlds.go; eqoa-rust-client-vanilla).
 func LoadableWorlds(sess *session.Session) func(world uint8) bool {
+	loadable := clientWorlds(sess)
+	return func(world uint8) bool {
+		return !entity.IsDuelArenaWorld(world) && loadable(world)
+	}
+}
+
+func clientWorlds(sess *session.Session) func(uint8) bool {
 	if sess != nil {
 		switch sess.DiscVersion() {
 		case protocol.GameVersionSandstormS2:

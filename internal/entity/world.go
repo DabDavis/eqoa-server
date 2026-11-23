@@ -296,6 +296,8 @@ type World struct {
 
 	// The GMs' undead tags by NPC name, table npcundead (undead.go)
 	undead map[string]bool
+	// noArea is table npcnoarea's names: no area touches them (noarea.go)
+	noArea map[string]bool
 	// armorBodies is each race's body for the armour on its chest (armorbody.go)
 	armorBodies map[int]map[ArmorKind]uint32
 	// The GMs' charm rules by NPC name, table npccharm (charm.go)

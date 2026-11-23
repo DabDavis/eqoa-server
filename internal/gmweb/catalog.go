@@ -1365,6 +1365,19 @@ var catalog = map[string]tableNote{
 			"source": {Label: "Source", Help: "gm, or seed for tools/seed_npc_undead.py's rows (its --undo deletes those)"},
 		},
 	},
+	"npcnoarea": {
+		Label: "No area spells", Group: "World", Title: "name", Sort: "name",
+		Help: "Creatures no AREA touches, by NPC NAME (lower case, no trailing $): a player's area spells, a potion's " +
+			"splash and a pet's or mercenary's area casts pass them by; what is cast at one (its own target) still lands " +
+			"(Heirloom petition 2740: Zaoran Plateau's Unmarked Headstones, clicked or killed on purpose).",
+		Live:   "At once: the next area spell passes the creatures of that name by.",
+		Search: []string{"name", "note"},
+		Cols: map[string]colNote{
+			"name":   {Label: "NPC name (key)", Help: "lower case, as in NPCs without a trailing space or $"},
+			"note":   {Label: "Note", Help: "why"},
+			"source": {Label: "Source", Help: "gm, or the tool that wrote the row"},
+		},
+	},
 	"npccharm": {
 		Label: "Charm rules", Group: "World", Title: "name", Sort: "name",
 		Help: "How the creatures of an NPC NAME (lower case, no trailing $) take a charm (entity/charm.go), over the " +

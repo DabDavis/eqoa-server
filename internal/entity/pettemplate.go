@@ -690,7 +690,7 @@ func (w *World) petAreaFoesLocked(pet, t *NPC, area SpellArea, now time.Time) []
 		o := w.NPCs[id]
 		// another instance's creature at the same spot is no foe of it (Heirloom petition 2574: a pet's area nuke in
 		// one Tomb of Kings instance hit the creatures standing there in every other)
-		if o == nil || o == t || !petMayFight(pet, o) || o.hiddenAt(now) || w.metalSparesLocked(o, pet.Owner) || !w.npcsShareLocked(pet, o) {
+		if o == nil || o == t || w.areaSparesLocked(o) || !petMayFight(pet, o) || o.hiddenAt(now) || w.metalSparesLocked(o, pet.Owner) || !w.npcsShareLocked(pet, o) {
 			continue
 		}
 		if in, d := inArea(cone, cx, cy, cz, r, o.X, o.Y, o.Z, npcReachExtra(o)); in && w.reachesLocked(place, o.X, o.Y, o.Z) {

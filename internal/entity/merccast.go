@@ -1232,8 +1232,8 @@ func (w *World) mercSplashLocked(ms *mercState, s *CastSpell, t *NPC, now time.T
 	for _, id := range w.SpatialIndex.QueryRadius(t.X, t.Z, r) {
 		o := w.NPCs[id]
 		if o == nil || o == t || o.Dead || o.World != t.World || !mercMayFight(m, o) || o.NPCType&0x80 != 0 || o.hiddenAt(now) ||
-			!team[o.CurrentEnemy] {
-			continue // what fights its team alone: it pulls nothing
+			!team[o.CurrentEnemy] || w.areaSparesLocked(o) {
+			continue // what fights its team alone: it pulls nothing (nor npcnoarea's: noarea.go)
 		}
 		if dist3(o.X, o.Y, o.Z, t.X, t.Y, t.Z) > r || !w.reachesLocked(place, o.X, o.Y, o.Z) {
 			continue

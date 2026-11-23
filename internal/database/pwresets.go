@@ -163,11 +163,10 @@ func (db *SQLiteDB) PwResetLimitsOf(addrHash string, accountID int, since time.T
 	s := since.UTC().Format(time.RFC3339)
 	var wait int
 	err := db.QueryRow(`SELECT
-			COALESCE(SUM(addr_hash = ? AND addr_hash != '' AND created >= ?), 0),
-			COALESCE(SUM(accountid = ? AND created >= ?), 0),
-			COALESCE(SUM(accountid = ? AND status = 'waiting'), 0),
-			COALESCE(SUM(status = 'waiting'), 0)
-		FROM pwresets`, addrHash, s, accountID, s, accountID).Scan(&l.FromAddr, &l.ForAccount, &wait, &l.WaitingAll)
+			(SELECT COUNT(*) FROM pwresets WHERE addr_hash = ? AND addr_hash != '' AND created >= ?),
+			(SELECT COUNT(*) FROM pwresets WHERE accountid = ? AND created >= ?),
+			EXISTS (SELECT 1 FROM pwresets WHERE accountid = ? AND status = 'waiting'),
+			(SELECT COUNT(*) FROM pwresets WHERE status = 'waiting')`, addrHash, s, accountID, s, accountID).Scan(&l.FromAddr, &l.ForAccount, &wait, &l.WaitingAll)
 	if err != nil {
 		return l, fmt.Errorf("pwresets: %w", err)
 	}

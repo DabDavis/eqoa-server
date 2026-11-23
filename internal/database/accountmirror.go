@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"reflect"
 	"strings"
 	"sync"
 	"time"
@@ -39,10 +40,12 @@ type AccountMirror struct {
 	held bool
 	// the file's size and time at the last Pull that read it whole, and when
 	// that was: a file that has not changed is not opened (mirrorMaxQuiet)
-	lastSize int64
-	lastTime time.Time
-	lastPull time.Time
-	now      func() time.Time
+	lastSize    int64
+	lastTime    time.Time
+	lastWALSize int64
+	lastWALTime time.Time
+	lastPull    time.Time
+	now         func() time.Time
 }
 
 const (
@@ -189,7 +192,7 @@ func (m *AccountMirror) columns(src *sql.DB) (accountCols, error) {
 type accountRow []any
 
 func (r accountRow) same(o accountRow) bool {
-	return fmt.Sprintf("%#v", []any(r)) == fmt.Sprintf("%#v", []any(o))
+	return reflect.DeepEqual(r, o)
 }
 
 func (r accountRow) id() int64 {
@@ -229,7 +232,10 @@ func readAccountRows(q interface {
 // kept for one already there (REPLACE would clear it).
 func writeAccount(tx *sql.Tx, cols accountCols, r accountRow) error {
 	var kept any
-	_ = tx.QueryRow(`SELECT CAST(lastlogin AS TEXT) FROM accountinfo WHERE accountid = ?`, r.id()).Scan(&kept)
+	err := tx.QueryRow(`SELECT CAST(lastlogin AS TEXT) FROM accountinfo WHERE accountid = ?`, r.id()).Scan(&kept)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return err
+	}
 	marks := strings.TrimSuffix(strings.Repeat("?, ", len(cols.names)), ", ")
 	if _, err := tx.Exec(`INSERT OR REPLACE INTO accountinfo (`+strings.Join(cols.names, ", ")+`) VALUES (`+marks+`)`, r...); err != nil {
 		return err
@@ -256,8 +262,18 @@ func (m *AccountMirror) Pull() (changed, gone, total int, err error) {
 	if err != nil {
 		return 0, 0, 0, err
 	}
+	// Commits can live entirely in the WAL until the next checkpoint.
+	var walSize int64
+	var walTime time.Time
+	wal, err := os.Stat(m.path + "-wal")
+	if err == nil {
+		walSize, walTime = wal.Size(), wal.ModTime()
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return 0, 0, 0, err
+	}
 	now := m.now()
-	if fi.Size() == m.lastSize && fi.ModTime().Equal(m.lastTime) && now.Sub(m.lastPull) < mirrorMaxQuiet {
+	if fi.Size() == m.lastSize && fi.ModTime().Equal(m.lastTime) &&
+		walSize == m.lastWALSize && walTime.Equal(m.lastWALTime) && now.Sub(m.lastPull) < mirrorMaxQuiet {
 		return 0, 0, 0, nil
 	}
 	src, err := m.open()
@@ -330,6 +346,7 @@ func (m *AccountMirror) Pull() (changed, gone, total int, err error) {
 		}
 	}
 	m.lastSize, m.lastTime, m.lastPull = fi.Size(), fi.ModTime(), now
+	m.lastWALSize, m.lastWALTime = walSize, walTime
 	return changed, gone, len(there), nil
 }
 
@@ -422,6 +439,9 @@ func mirrorRoles(tx *sql.Tx, src *sql.DB) (int, error) {
 			theirs[c] = true
 		}
 		rows.Close()
+		if err := rows.Err(); err != nil {
+			return 0, err
+		}
 		var cols []string
 		for _, c := range mine {
 			if theirs[c] {

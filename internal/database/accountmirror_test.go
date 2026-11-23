@@ -93,10 +93,13 @@ func TestTheMirrorFollowsTheOwner(t *testing.T) {
 	if err := shard.QueryRow(`SELECT lastlogin FROM accountinfo WHERE accountid = ?`, dab.ID).Scan(&loginHere); err != nil {
 		t.Fatal(err)
 	}
+	if _, err := owner.Exec(`PRAGMA wal_autocheckpoint=0`); err != nil {
+		t.Fatal(err)
+	}
 	store.UpdatePasswordHash(dab.ID, "hash-3")
 	store.SetBanned(jib.ID, true)
 	newcomer, _ := store.Create("newcomer", "hash-4")
-	m.force()
+	// The commits are in the WAL. An ordinary scheduled pull must see them.
 	if ch, _, total, err := m.Pull(); err != nil || ch != 3 || total != 3 {
 		t.Fatalf("the next pull: %d changed, %d in all, %v", ch, total, err)
 	}

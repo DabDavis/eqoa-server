@@ -65,8 +65,9 @@ func TestAQuestWaitsOnAFactionStanding(t *testing.T) {
 
 	f.standWith("Testmoor Watch", 50)
 	f.tw.talk(holt)
-	if m := f.msgs(); len(m) != 0 {
-		t.Fatalf("offered at a standing of 50 of the 100 it asks: %q", m)
+	// not offered: the giver says whose trust it wants (Heirloom petition 2742)
+	if m := f.msgs(); len(m) != 1 || m[0] != "box:Warden Holt: "+fmt.Sprintf(questUntrusted, "Testmoor Watch") {
+		t.Fatalf("at a standing of 50 of the 100 it asks: %q", m)
 	}
 	if got := f.takeMarks(); len(got) != 0 {
 		t.Fatalf("marked at 50: %q", got)
@@ -109,8 +110,8 @@ func TestAQuestWaitsOnAFactionStanding(t *testing.T) {
 	}
 	f.standWith("Lockjaw", 0)
 	f.tw.talk(holt)
-	if m := f.msgs(); len(m) != 0 {
-		t.Fatalf("offered at 0 with Lockjaw, which it wants at -100 or below: %q", m)
+	if m := f.msgs(); len(m) != 1 || m[0] != "box:Warden Holt: "+fmt.Sprintf(questTooTrusted, "Lockjaw") {
+		t.Fatalf("at 0 with Lockjaw, which it wants at -100 or below: %q", m)
 	}
 	f.standWith("Lockjaw", -100)
 	f.tw.talk(holt)
@@ -569,5 +570,31 @@ func TestTheWayBackToTheHutWaitsForTheChain(t *testing.T) {
 	dests, _, locked := wayDests(f.tw.h.gameWorld, f.tw.s, "essence of rain", f.tw.p)
 	if len(dests) != 2 || dests[0].Name != "Rain 1" || dests[1].Name != "Rain 3" || locked.place != "" {
 		t.Errorf("the whole chain done: %+v, locked %+v", dests, locked)
+	}
+}
+
+// Heirloom petition 2742: a giver whose quest a player's standing alone keeps
+// from it says so, naming the faction, then the quest's own words on earning
+// it (its untrusted column); at the standing the quest is offered.
+func TestAGiverSaysWhoseTrustItWants(t *testing.T) {
+	f := newQuestFixture(t)
+	buerma := f.tw.add(1, &entity.NPC{ServerID: 711, Name: "Apprentice Buerma", SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5})
+	f.exec(`UPDATE quests SET enabled = 0 WHERE questid = 10010`)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, offer, accept, factionreq, untrusted)
+		VALUES (51, 'The Ancient Stone Golem', 1, 'Apprentice Buerma', 'A golem walks.', 'I will.', 'Black Swan Inn:0',
+		'Kill the gnolls and bandits that trouble the Black Swan Inn.')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (51, 1, 'talk', 'Kellina', 'See Kellina.')`)
+	f.reload()
+	f.msgs()
+	f.standWith("Black Swan Inn", -200)
+	f.tw.talk(buerma)
+	m := f.msgs()
+	f.want(m, "box:Apprentice Buerma: "+fmt.Sprintf(questUntrusted, "Black Swan Inn"),
+		"box:Apprentice Buerma: Kill the gnolls and bandits that trouble the Black Swan Inn.")
+	f.not(m, "ask#*")
+	f.standWith("Black Swan Inn", 0)
+	f.tw.talk(buerma)
+	if m = f.msgs(); !strings.Contains(strings.Join(m, "\n"), "A golem walks.") {
+		t.Errorf("at the standing it asks: %q", m)
 	}
 }

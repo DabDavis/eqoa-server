@@ -903,6 +903,10 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 		q.tellLocked(c, sess, npc.Name, refusal)
 		return true
 	}
+	if line := q.untrustedLocked(look, p, c, npc.Name); line != "" {
+		q.tellLocked(c, sess, npc.Name, sayLines(line)...)
+		return true
+	}
 	// a step pinned to another spawn of this name (the Cazic-Thule trials' three
 	// Kithgrins: petition 2530, a player at the second's step talked to the
 	// third, who had nothing to say): it says the step's journal line
@@ -1091,6 +1095,39 @@ func (q *QuestEngine) handInRefusalLocked(look *factionLook, p *entity.Player, c
 
 // handInNotYours is that refusal: the side the giver works for.
 const handInNotYours = "I work only for those who have stood with %s, and you have not. Come back when you have."
+
+// untrustedLocked is what a giver with nothing else to say tells a player its
+// standing alone keeps from one of its quests (the quest's faction requirement
+// the only thing amiss: mayTakeLocked tests it last), "" for none: the line
+// naming the faction (questUntrusted, ours), then the quest's own words on
+// earning it (its untrusted column). Heirloom petition 2742 (2026-11-23):
+// Apprentice Buerma had "nothing to say" to a player below "The Ancient Stone
+// Golem"'s Black Swan Inn requirement, four talks running, and nothing said why.
+func (q *QuestEngine) untrustedLocked(look *factionLook, p *entity.Player, c *questChar, giver string) string {
+	for _, qu := range q.cat.givers[foldName(giver)] {
+		if len(qu.FactionReqs) == 0 || !strings.HasPrefix(q.mayTakeLocked(look, p, c, qu), "its standing ") {
+			continue
+		}
+		r, v, _ := unmetFaction(look, qu)
+		line := fmt.Sprintf(questUntrusted, r.Faction)
+		if r.HasMax && v > r.Max {
+			line = fmt.Sprintf(questTooTrusted, r.Faction)
+		}
+		log.Printf("Quests: %s's standing with %s (%d) keeps %q from %s", p.Name, r.Faction, v, qu.Name, giver)
+		if qu.Untrusted != "" {
+			line += "\n" + qu.Untrusted
+		}
+		return line
+	}
+	return ""
+}
+
+// What a giver says to one its quest's faction requirement keeps from it: a
+// standing too low, or too high (ours).
+const (
+	questUntrusted  = "I do not trust you yet. Earn the trust of the %s first."
+	questTooTrusted = "You stand too close to the %s for what I have in mind."
+)
 
 // offerAtLocked is the quest a giver talked to offers the player, or nil: the
 // next it has (nextOfferLocked) that the player has not just said no to, so a

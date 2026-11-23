@@ -643,6 +643,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureNPCRespawn(); err != nil { // npcrespawn.go
 		return err
 	}
+	if err := db.ensureRaidBossList(); err != nil { // raidbosslist.go: #raidboss's bosses
+		return err
+	}
 	if err := db.ensureWeather(); err != nil { // weather.go: the regional weather's three tables
 		return err
 	}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"sort"
+	"time"
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/session"
@@ -246,18 +247,45 @@ func (w *World) HeroesRefund(sess *session.Session, cost int) (after int, ok boo
 	return after, true
 }
 
-// RaidBossesUp is a line for each raid boss (raidBossLocked) alive in the
-// world now, by name: its world and place, its hit points, and whether it is
-// in a fight (a GM's petition 1947: "/raidboss ... will show us
-// text which mobs tagged raid boss ... are currently spawned"). Pets,
-// charmed creatures and a dungeon's copies are left out of nothing: a copy
-// is named as one.
+// RaidBossesUp is a line for each creature the raid loot's rule takes for a
+// raid boss (raidBossLocked) alive in the world now, by name: its world and
+// place, its hit points, and whether it is in a fight (a GM's petition 1947:
+// "/raidboss ... will show us text which mobs tagged raid boss ... are
+// currently spawned"; now #raidboss all). Pets, charmed creatures and an NPC
+// kept out of every view (spawn-only, off its hours, a ward down, the panel's
+// refresh hold: hiddenAt) are left out; a dungeon's copy is listed as one.
 func (w *World) RaidBossesUp() []string {
+	return w.raidBossesUp(nil)
+}
+
+// ListedRaidBossesUp is RaidBossesUp for the NPCs whose names (NPCClassKey)
+// are in listed alone, whatever the raid loot's rule says of them: the GMs'
+// list of the bosses themselves (database's raidbosslist), #raidboss's. The
+// owner, 2026-11-22: the loot's rule "shows tons of random raid mobs, not
+// bosses". An empty list lists nothing.
+func (w *World) ListedRaidBossesUp(listed map[string]bool) []string {
+	if listed == nil {
+		listed = map[string]bool{}
+	}
+	return w.raidBossesUp(listed)
+}
+
+// raidBossesUp is RaidBossesUp's lines: by the raid loot's rule when listed
+// is nil, else by listed alone.
+func (w *World) raidBossesUp(listed map[string]bool) []string {
+	now := time.Now()
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	var ns []*NPC
 	for _, n := range w.NPCs {
-		if n.Dead || n.Owner != 0 || n.Charm != nil || !w.raidBossLocked(n) {
+		if n.Dead || n.Owner != 0 || n.Charm != nil || n.hiddenAt(now) {
+			continue
+		}
+		if listed != nil {
+			if !listed[database.NPCClassKey(n.Name)] {
+				continue
+			}
+		} else if !w.raidBossLocked(n) {
 			continue
 		}
 		ns = append(ns, n)
@@ -269,7 +297,10 @@ func (w *World) RaidBossesUp() []string {
 		return ns[i].ServerID < ns[j].ServerID
 	})
 	out := make([]string, 0, len(ns)+1)
-	if len(ns) > 0 {
+	switch {
+	case len(ns) == 1:
+		out = append(out, "1 raid boss up:")
+	case len(ns) > 1:
 		out = append(out, fmt.Sprintf("%d raid bosses up:", len(ns)))
 	}
 	for _, n := range ns {

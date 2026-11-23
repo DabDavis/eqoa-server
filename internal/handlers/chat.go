@@ -108,6 +108,9 @@ type ChatHandler struct {
 
 	// raid is the raid's handler: its loot's rolls and master looter (raidcmds.go)
 	raid *RaidHandler
+	// raidBossList is where #raidboss reads its bosses (raidbosscmd.go); nil:
+	// it lists by the raid loot's rule
+	raidBossList raidBossListStore
 
 	portal *Portal // the name typed for a Summoning Portal (summonportal.go)
 
@@ -1601,15 +1604,10 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// #fly [on|off]: a GM's flight, alone it turns over (fly.go)
 		h.flyCommand(sess, parts[1:])
 	case "#raidboss":
-		// #raidboss: the raid bosses alive in the world now, where, and their
-		// hit points (a GM's petition 1947; entity/heroes.go)
-		lines := h.gameWorld.RaidBossesUp()
-		if len(lines) == 0 {
-			h.gmReply(sess, "No raid boss is up.")
-		}
-		for _, l := range lines {
-			h.gmReply(sess, l)
-		}
+		// #raidboss [all]: the raid bosses alive in the world now, where, and
+		// their hit points (a GM's petition 1947): the GMs' list's, or every
+		// creature the raid loot takes for one (raidbosscmd.go)
+		h.raidBossCommand(sess, parts[1:])
 	case "#formula":
 		// #formula [jibs|default|shadow <shard>]: each shard's damage formula
 		// mode, and an admin's switch of one (formulacmd.go)

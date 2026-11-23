@@ -107,7 +107,8 @@ func parseMemoryDump(data []byte) ([]parsedItem, []parsedItem, []parsedSpell, st
 	}
 	items := r.items()
 	bank := r.items()
-	if r.signed() != 0 || r.signed() != 0 {
+	lots, bids := r.signed(), r.signed()
+	if lots != 0 || bids != 0 {
 		return nil, nil, nil, "", errors.New("captures with auction listings are unsupported")
 	}
 	r.take(1) // bank flag

@@ -1225,6 +1225,21 @@ var catalog = map[string]tableNote{
 			"source":     {Label: "Source", Help: "gm, or seed for tools/seed_npc_aggro.py's rows (its --undo deletes those)"},
 		},
 	},
+	"raidbosslist": {
+		Label: "Raid boss list", Group: "World", Title: "npc_name", Sort: "npc_name",
+		Help: "The raid bosses a GM's #raidboss lists when they are up, by NPC NAME (lower case, no trailing $; every NPC " +
+			"of the name, a dungeon's copy too): the bosses themselves, not a raid's trash or nameds. Only #raidboss reads " +
+			"it: the raid loot's need before greed and the Testing Heroes' credit keep their own rule (a class template of a " +
+			"raid's hit points, a boss loot profile or table), which #raidboss all lists. Rows of source seed are the list a " +
+			"new database is made with.",
+		Live:   "At once: the next #raidboss reads it.",
+		Search: []string{"npc_name", "note"},
+		Cols: map[string]colNote{
+			"npc_name": {Label: "NPC name (key)", Help: "lower case, as in NPCs without a trailing space or $"},
+			"note":     {Label: "Note", Help: "where, or why"},
+			"source":   {Label: "Source", Help: "gm, or seed for the list a new database is made with"},
+		},
+	},
 	"npcrespawn": {
 		Label: "Respawn times", Group: "World", Title: "npc_row", Sort: "npc_row",
 		Help: "How long one NPC takes to come back after its corpse goes, by its row in NPCs, where the world's one figure " +

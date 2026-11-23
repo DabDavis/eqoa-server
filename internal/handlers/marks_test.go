@@ -56,24 +56,24 @@ func TestQuestMarksFirstFinishInReach(t *testing.T) {
 	r := newMarksRig(t)
 	q := &database.Quest{ID: 101, Name: "Ten Minutes", MinLevel: 10, Steps: []database.QuestStep{
 		{Kind: database.StepTalk}, {Kind: database.StepKill, Count: 4}, {Kind: database.StepTalk}}}
-	r.m.QuestDone(r.anna, r.pa, q, true)
+	r.m.QuestDone(r.anna, r.pa, q, true, r.pa.Level)
 	if got := r.marks().Marks; got != 17 {
 		t.Fatalf("a 10-minute quest: %d marks, want 17", got)
 	}
 	if !hasMsg(r.msgs(r.anna), "chat:You earn 17 Heirloom Marks.") {
 		t.Error("no line")
 	}
-	r.m.QuestDone(r.anna, r.pa, q, false)
+	r.m.QuestDone(r.anna, r.pa, q, false, r.pa.Level)
 	rep := *q
 	rep.Repeatable = true
-	r.m.QuestDone(r.anna, r.pa, &rep, true)
+	r.m.QuestDone(r.anna, r.pa, &rep, true, r.pa.Level)
 	r.pa.Level = 16
-	r.m.QuestDone(r.anna, r.pa, q, true)
+	r.m.QuestDone(r.anna, r.pa, q, true, r.pa.Level)
 	if got := r.marks().Marks; got != 17 {
 		t.Fatalf("a second finish, a repeatable and one outlevelled by 6 paid: %d", got)
 	}
 	r.pa.Level = 15 // the control: by 5 it pays
-	r.m.QuestDone(r.anna, r.pa, q, true)
+	r.m.QuestDone(r.anna, r.pa, q, true, r.pa.Level)
 	if got := r.marks().Marks; got != 34 {
 		t.Fatalf("outlevelled by 5: %d, want 34", got)
 	}
@@ -85,9 +85,9 @@ func TestQuestMarksFirstFinishInReach(t *testing.T) {
 	epic := *q
 	epic.ID, epic.MinLevel = 102, 59
 	r.pa.Level = 59
-	r.m.QuestDone(r.anna, r.pa, &epic, true)
+	r.m.QuestDone(r.anna, r.pa, &epic, true, r.pa.Level)
 	r.pa.Level = 60
-	r.m.QuestDone(r.anna, r.pa, q, true)
+	r.m.QuestDone(r.anna, r.pa, q, true, r.pa.Level)
 	if got := r.marks().Marks; got != 34 {
 		t.Fatalf("a level 60 epic or a 60 paid: %d", got)
 	}
@@ -102,10 +102,82 @@ func TestQuestMarksRealTimeLimit(t *testing.T) {
 		t.Fatal(err)
 	}
 	qs.MarkQuestTaken(r.pa.CharServerID, 103, r.now.Add(-3*time.Minute))
-	r.m.QuestDone(r.anna, r.pa, q, true)
+	r.m.QuestDone(r.anna, r.pa, q, true, r.pa.Level)
 	if got := r.marks().Marks; got != 10 {
 		t.Fatalf("taken 3 minutes ago: %d, want 10 (20 uncapped)", got)
 	}
+}
+
+// A quest is judged by the level it was finished at, before its experience: a reward that took its
+// finisher past minlevel + 5, or to 60, does not take its marks away. The controls: finished at 16,
+// or at 60, it pays nothing.
+func TestQuestMarksJudgeTheLevelBeforeTheReward(t *testing.T) {
+	r := newMarksRig(t)
+	q := &database.Quest{ID: 104, MinLevel: 10, Steps: []database.QuestStep{
+		{Kind: database.StepTalk}, {Kind: database.StepKill, Count: 4}, {Kind: database.StepTalk}}}
+	r.pa.Level = 19 // where the reward left it
+	r.m.QuestDone(r.anna, r.pa, q, true, 16)
+	if got := r.marks().Marks; got != 0 {
+		t.Fatalf("finished at 16: %d marks, want 0", got)
+	}
+	r.m.QuestDone(r.anna, r.pa, q, true, 15)
+	if got := r.marks().Marks; got != 17 {
+		t.Fatalf("finished at 15, its reward taking it to 19: %d marks, want 17", got)
+	}
+	top := *q
+	top.ID, top.MinLevel = 105, 55
+	r.pa.Level = 60
+	r.m.QuestDone(r.anna, r.pa, &top, true, 60)
+	if got := r.marks().Marks; got != 17 {
+		t.Fatalf("finished at 60: %d marks, want 17", got)
+	}
+	r.m.QuestDone(r.anna, r.pa, &top, true, 59)
+	if got := r.marks().Marks; got != 34 {
+		t.Fatalf("finished at 59, its reward taking it to 60: %d marks, want 34", got)
+	}
+}
+
+// Through the quest engine: a quest whose own experience levels its finisher past the quest's limit
+// pays its marks. The fixture's quest 10010 (minlevel 1: it pays to level 6) given to a level 6 with
+// the experience of levels 6 and 7 leaves it at 8.
+func TestQuestMarksAQuestsRewardDoesNotOutlevelIt(t *testing.T) {
+	f := newQuestFixture(t)
+	f.exec(`UPDATE queststeps SET xp = ? WHERE questid = 10010 AND step = 2`, entity.CharXPDict[6]+entity.CharXPDict[7])
+	if err := f.qe.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	m := NewHeirloomMarks(f.db, f.tw.w, nil, f.inv, nil)
+	m.inline = true
+	later := time.Now().Add(time.Hour) // the real-time limit out of the way
+	m.now = func() time.Time { return later }
+	SetHeirloomMarks(true)
+	SetHeirloomMarksService(m)
+	t.Cleanup(func() { SetHeirloomMarks(false); SetHeirloomMarksService(nil) })
+	f.tw.p.Level = 6
+	malsis := f.tw.add(1, &entity.NPC{ServerID: 701, Name: "Malsis", SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5})
+	kellina := f.tw.add(2, &entity.NPC{ServerID: 702, Name: "Kellina", SpawnX: 25404, SpawnY: 54.1, SpawnZ: 15726})
+	f.tw.talk(malsis)
+	f.tw.pick(boxID(f.msgs()), 0)
+	f.tw.talk(kellina)
+	f.msgs()
+	f.own(f.pincer, 2)
+	f.tw.talk(kellina)
+	f.tw.pick(boxID(f.msgs()), 0)
+	msgs := f.msgs()
+	if s, d := f.progress(10010); s != 0 || d != 1 {
+		t.Fatalf("not finished: step %d done %d", s, d)
+	}
+	if f.tw.p.Level != 8 {
+		t.Fatalf("the reward left it at level %d, want 8", f.tw.p.Level)
+	}
+	got, err := f.db.CharMarksOf(f.sid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Marks != 13 {
+		t.Fatalf("finished at 6, its reward taking it to 8: %d marks, want 13", got.Marks)
+	}
+	f.want(msgs, "chat:You earn 13 Heirloom Marks.")
 }
 
 // Kill marks: each won roll a mark, no roll past 38 in the hour; a group of four earners x1.3 and a

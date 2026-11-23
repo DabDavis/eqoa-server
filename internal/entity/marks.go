@@ -60,7 +60,13 @@ func (w *World) OnKillMarks(fn KillMarksFunc) {
 
 // MarksEarner is whether p earns Heirloom Marks: below 60 or reliving, and no GM's.
 func MarksEarner(p *Player) bool {
-	return p != nil && !p.GM && (p.Level < MaxLevel || p.Relive != nil)
+	return p != nil && MarksEarnerAt(p, p.Level)
+}
+
+// MarksEarnerAt is MarksEarner with p at level: a quest's, the level it was finished at before its
+// experience (handlers/marks.go QuestDone).
+func MarksEarnerAt(p *Player, level int) bool {
+	return p != nil && !p.GM && (level < MaxLevel || p.Relive != nil)
 }
 
 // soloEvenExp is what an even-con solo kill gives a character of level: the weight's measure.

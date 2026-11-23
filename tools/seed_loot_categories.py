@@ -70,12 +70,12 @@ import json
 import math
 import os
 import re
-import shutil
 import sqlite3
 import statistics
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from sqlite_backup import backup_database
 import gen_camp_teles as camps  # noqa: E402
 import loot_tiers as lt  # noqa: E402
 import seed_camp_loot as campseed  # noqa: E402
@@ -714,8 +714,7 @@ def report(db, path, rates, rows, prices, info):
 def backup(path):
     when = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     dst = f"{path}.bak-{when}-pre-lootcategories"
-    shutil.copy2(path, dst)
-    return dst
+    return backup_database(path, dst)
 
 
 def main():

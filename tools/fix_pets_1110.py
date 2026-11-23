@@ -60,12 +60,12 @@ import argparse
 import datetime
 import json
 import os
-import shutil
 import sqlite3
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+from sqlite_backup import backup_database
 import fix_mage_pets_1450 as base  # noqa: E402  the rows this goes from, and its helpers
 import import_eqoaemu_pets as pets  # noqa: E402  the pet import's gm_audit lines, one place
 
@@ -214,8 +214,7 @@ def plan(db, only=ALL):
 def backup(path):
     when = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     dst = f"{path}.bak-{when}-pre-pets1110"
-    shutil.copy2(path, dst)
-    return dst
+    return backup_database(path, dst)
 
 
 def apply(db, changes):

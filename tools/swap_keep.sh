@@ -46,7 +46,7 @@ if [ -e "$PENDING/cold" ]; then
 	exit 2
 fi
 when=$(date -u '+%Y%m%d-%H%M%S')
-got=$(sha256sum "$PENDING/gameserver" | cut -c1-64)
+got=$(sha256sum "$PENDING/gameserver" | cut -c1-64) || exit 1
 want=$(tr -d ' \n' < "$PENDING/sha256" 2>/dev/null)
 [ "$want" = "$got" ] || { log "keep: the staged binary is $got, its sha256 file says '${want:-nothing}': refused"; exit 1; }
 pid=$(systemctl show -p MainPID --value "$UNIT" 2>/dev/null)
@@ -61,10 +61,13 @@ listening() {
 	return 1
 }
 db_back() {
-	if cp -p "$DIR/eqoa.db.bak-$when-pre-swap" "$DIR/eqoa.db"; then
+	# Restore through SQLite so other connections see a coherent WAL.
+	if (cd "$DIR" && [ -s "eqoa.db.bak-$when-pre-swap" ] &&
+		sqlite3 -bail -cmd ".timeout 5000" eqoa.db ".restore eqoa.db.bak-$when-pre-swap"); then
 		log "keep: the database is back as the server saved it"
 	else
 		log "keep: THE DATABASE COULD NOT BE PUT BACK from $DIR/eqoa.db.bak-$when-pre-swap"
+		return 1
 	fi
 }
 
@@ -112,7 +115,7 @@ if [ ! -f "$SAVED" ]; then
 	exit 3
 fi
 held=$(date +%s.%N)
-if ! sqlite3 -cmd ".timeout 10000" "$DIR/eqoa.db" ".backup $DIR/eqoa.db.bak-$when-pre-swap"; then
+if ! (umask 077 && cd "$DIR" && sqlite3 -bail -readonly -cmd ".timeout 10000" eqoa.db ".backup eqoa.db.bak-$when-pre-swap"); then
 	rm -f "$HOLD"
 	log "keep: the database could not be copied: nothing swapped (the server goes on with the same binary)"
 	exit 1
@@ -130,7 +133,13 @@ if [ -x "$PENDING/before.sh" ]; then
 		exit 1
 	fi
 fi
-cp "$PENDING/gameserver" "$DIR/gameserver.swap" && mv "$DIR/gameserver.swap" "$DIR/gameserver"
+if ! cp "$PENDING/gameserver" "$DIR/gameserver.swap" || ! mv "$DIR/gameserver.swap" "$DIR/gameserver"; then
+	log "keep: could not install the staged binary"
+	if [ "$before" = yes ]; then db_back; fi
+	rm -f "$HOLD"
+	mv "$PENDING" "$SWAP/failed-keep-$when"
+	exit 1
+fi
 rm -f "$HOLD"
 log "keep: the new binary is in place after $(awk -v a="$held" -v b="$(date +%s.%N)" 'BEGIN { printf "%.1f", b - a }') s of hold; the server execs into it"
 # the new process says what it put back; a binary that never gets that far is rolled back as a cold swap is
@@ -156,15 +165,18 @@ if [ "$ok" = yes ] && listening; then
 	fi
 	mv "$PENDING" "$SWAP/done-keep-$when"
 	for pat in "gameserver.bak-*-pre-swap" "eqoa.db.bak-*-pre-swap"; do
-		ls -1t "$DIR"/$pat 2>/dev/null | tail -n +4 | xargs -r rm -f
+		backups=("$DIR"/$pat)
+		if (( ${#backups[@]} > 3 )); then
+			rm -f -- "${backups[@]:0:${#backups[@]}-3}"
+		fi
 	done
 	log "keep: swapped: ${got:0:16} is running, the sessions kept"
 	exit 0
 fi
 log "keep: the new binary did not come up: the old one goes back (the sessions end)"
-sudo -n systemctl stop "$UNIT"
-cp -p "$DIR/gameserver.bak-$when-pre-swap" "$DIR/gameserver"
-[ "$before" = yes ] && db_back
+sudo -n systemctl stop "$UNIT" || { log "could not stop $UNIT"; exit 1; }
+cp -p "$DIR/gameserver.bak-$when-pre-swap" "$DIR/gameserver" || exit 1
+if [ "$before" = yes ]; then db_back || exit 1; fi
 sudo -n systemctl start "$UNIT"
 listening && log "keep: the old binary is back and listening" || log "keep: THE OLD BINARY DOES NOT LISTEN EITHER"
 mv "$PENDING" "$SWAP/failed-keep-$when"

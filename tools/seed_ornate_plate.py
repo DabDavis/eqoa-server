@@ -24,8 +24,11 @@ a character holds one (then it says so and deletes nothing).
 import argparse
 import datetime
 import os
-import shutil
 import sqlite3
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from sqlite_backup import backup_database
 
 LOG = "ornate_plate_log"
 FIRST_ID = 711000  # an empty thousand on both shards (2026-11-13): 717000-717024 hold the capes, 718000 on others
@@ -165,7 +168,7 @@ def main():
         return
     backup = f"{a.db}.before-ornate-{datetime.datetime.now():%Y%m%d-%H%M%S}"
     db.close()
-    shutil.copy2(a.db, backup)
+    backup = backup_database(a.db, backup)
     db = sqlite3.connect(a.db, timeout=5)
     run, n = apply(db, recs)
     db.commit()

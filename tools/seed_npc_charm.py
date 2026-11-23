@@ -45,9 +45,11 @@ import datetime
 import json
 import os
 import re
-import shutil
 import sqlite3
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from sqlite_backup import backup_database
 
 DEFAULT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "eqoa.db")
 SOURCE = "charm-seed"
@@ -312,8 +314,7 @@ def backup(path):
     while os.path.exists(dst):
         n += 1
         dst = f"{path}.bak-{when}-{n}-pre-charm"
-    shutil.copy2(path, dst)
-    return dst
+    return backup_database(path, dst)
 
 
 def apply(db, adds):

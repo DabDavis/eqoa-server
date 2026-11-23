@@ -56,12 +56,12 @@ mkdir -p "$STAGE"
 # The whole server source ships, tests included: an operator debugging his own
 # deployment is the person most likely to read them, and they are what says what
 # the wire format is meant to be.
-for d in cmd internal sql; do
-	cp -r "$HERE/$d" "$STAGE/$d"
-done
-find "$STAGE" -name '*.exe' -o -name '*.log' | xargs -r rm -f
+# Local logs, databases and other untracked files can sit beside the source.
+(cd "$HERE" && git ls-files -z -- cmd internal sql | tar -cf - --null -T -) |
+	tar -C "$STAGE" -xf -
+find "$STAGE" -type f \( -name '*.exe' -o -name '*.log' \) -delete
 
-cp "$HERE/go.mod" "$HERE/go.sum" "$HERE/CLAUDE.md" "$HERE/config.yaml.example" "$STAGE/"
+cp "$HERE/go.mod" "$HERE/go.sum" "$HERE/CLAUDE.md" "$HERE/LICENSE" "$HERE/NOTICE" "$HERE/config.yaml.example" "$STAGE/"
 cp "$HERE/../wintest/README.md" "$STAGE/README.md"
 
 # The module replace points outside this tree at a sibling checkout. Vendor just
@@ -75,8 +75,10 @@ cp "$HERE/../wintest/README.md" "$STAGE/README.md"
 # copy a module path the replace does not name.
 PKG_SRC="$HERE/../go-eqoa-esf-tools"
 mkdir -p "$STAGE/_deps/eqoa-pkg/pkg"
+cp "$PKG_SRC/LICENSE" "$PKG_SRC/NOTICE" "$STAGE/_deps/eqoa-pkg/"
 printf 'module github.com/eqoa/pkg\n\ngo 1.24.0\n' > "$STAGE/_deps/eqoa-pkg/go.mod"
-cp -r "$PKG_SRC/pkg/buffer" "$STAGE/_deps/eqoa-pkg/pkg/buffer"
+(cd "$PKG_SRC" && git ls-files -z -- pkg/buffer pkg/esf | tar -cf - --null -T -) |
+	tar -C "$STAGE/_deps/eqoa-pkg" -xf -
 sed -i 's|=> \.\./go-eqoa-esf-tools|=> ./_deps/eqoa-pkg|' "$STAGE/go.mod"
 
 # ---------------------------------------------------------------- payloads --
@@ -139,13 +141,17 @@ cp "$HERE/../eqoa-boot/dist/README.txt" "$PLAYERS/EQOABOOT-README.txt"
 cp "$HERE/../eqscene/dist/LICENSE.ps2sdk" "$PLAYERS/LICENSE.ps2sdk"
 
 # --------------------------------------------------------------- database --
-# NPCs only. An operator's own eqoa.db has his players in it and must never be
-# overwritten by an unpack, which is why the README says to keep yours.
-cp "$HERE/eqoa.db" "$STAGE/eqoa.db"
-if command -v sqlite3 >/dev/null; then
-	sqlite3 "$STAGE/eqoa.db" \
-		"DELETE FROM characters; DELETE FROM accountinfo; VACUUM;" 2>/dev/null || true
-fi
+# Public game content is distributed separately. A runtime database contains
+# account credentials, private messages and administration records.
+cat >> "$STAGE/README.md" <<'GUIDE'
+
+### Game database
+
+For a fresh installation, download the public `eqoa-open-*.db.gz` content
+database from https://github.com/DabDavis/eqoa-server/releases and verify the
+checksum in its release notes. Unpack it as `eqoa.db` beside the executable.
+For an upgrade, keep the installation's existing database.
+GUIDE
 
 # ------------------------------------------------------------------ build --
 echo "== build ($GOOS_TARGET)"
@@ -153,30 +159,33 @@ echo "== build ($GOOS_TARGET)"
 	go build -trimpath -ldflags "-s -w" -o "$BIN" ./cmd/gameserver)
 
 # ------------------------------------------------------------------ pack --
-rm -f "$OUT"
+# Keep the previous archive until its replacement passes every check.
+WORK=$(mktemp -d "$(cd "$(dirname "$OUT")" && pwd)/.eqoa-package.XXXXXX")
+trap 'rm -rf -- "$WORK"' EXIT
+archive="$WORK/$(basename "$OUT")"
 case "$OUT" in
-*.zip) (cd "$STAGE_ROOT" && zip -qr "$OUT" go-eqoa-server) ;;
-*) (cd "$STAGE_ROOT" && tar czf "$OUT" go-eqoa-server) ;;
+*.zip) (cd "$STAGE_ROOT" && zip -qr "$archive" go-eqoa-server) ;;
+*) (cd "$STAGE_ROOT" && tar czf "$archive" go-eqoa-server) ;;
 esac
 
 # -------------------------------------------------------------- verify --
 # Assert what the archive IS, not that the commands above exited 0. Every line
 # here is a mistake that has actually shipped, or would have been invisible.
 echo "== verify"
-list=$(case "$OUT" in *.zip) unzip -l "$OUT" | awk '{print $4}' ;; *) tar tzf "$OUT" ;; esac)
+list=$(case "$OUT" in *.zip) unzip -Z1 "$archive" ;; *) tar tzf "$archive" ;; esac)
 fail=0
 need="go-eqoa-server/$BIN go-eqoa-server/patches/serve/SD go-eqoa-server/patches/serve/SS
 go-eqoa-server/patches/serve/S2 go-eqoa-server/patches/SD-hddnpc
-go-eqoa-server/config.yaml.example
+go-eqoa-server/config.yaml.example go-eqoa-server/LICENSE go-eqoa-server/NOTICE
 go-eqoa-server/README.md go-eqoa-server/_deps/eqoa-pkg/go.mod
 go-eqoa-server/players/EQOABOOT.template.ELF go-eqoa-server/players/EQOAHDD.ELF
 go-eqoa-server/players/EQOADIAG.ELF go-eqoa-server/players/README.txt
 go-eqoa-server/players/LICENSE.ps2sdk"
 for f in $need; do
-	echo "$list" | grep -qx "$f" || { echo "  MISSING $f"; fail=1; }
+	grep -Fxq "$f" <<<"$list" || { echo "  MISSING $f"; fail=1; }
 done
-for f in patches/.version patches/.sdstate config.yaml; do
-	if echo "$list" | grep -qx "go-eqoa-server/$f"; then
+for f in patches/.version patches/.sdstate patches/.eqahosts config.yaml eqoa.db eqoa.db-wal eqoa.db-shm; do
+	if grep -Fxq "go-eqoa-server/$f" <<<"$list"; then
 		echo "  MUST NOT SHIP go-eqoa-server/$f"
 		fail=1
 	fi
@@ -184,7 +193,7 @@ done
 # A runnable-looking EQOABOOT.ELF in the archive is one an operator can find and
 # send out before the server has ever aimed it, and it would carry the address
 # THIS machine was built for. The template is the only boot loader that ships.
-if echo "$list" | grep -qx "go-eqoa-server/players/EQOABOOT.ELF"; then
+if grep -Fxq "go-eqoa-server/players/EQOABOOT.ELF" <<<"$list"; then
 	echo "  MUST NOT SHIP go-eqoa-server/players/EQOABOOT.ELF -- it would carry"
 	echo "  this build machine's address to every operator who unpacked it"
 	fail=1
@@ -224,4 +233,5 @@ echo "  serve/SD   $sd_got  $(stat -c%s "$STAGE/patches/serve/SD") bytes"
 echo "  serve/     $(ls "$STAGE/patches/serve" | wc -l) files"
 echo "  version floor $(grep -o 'versionFloor = [0-9]*' \
 	"$HERE/internal/network/tcp/patchserver.go" | head -1 | tr -d '\n')"
+mv -f -- "$archive" "$OUT"
 ls -l "$OUT"

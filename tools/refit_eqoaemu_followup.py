@@ -58,12 +58,12 @@ import argparse
 import datetime
 import json
 import os
-import shutil
 import sqlite3
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+from sqlite_backup import backup_database
 import refit_eqoaemu_balance as rf  # noqa: E402  the 10:20 re-fit: what this goes from
 import retune_balance as retune  # noqa: E402  balanceclasslevel's order
 
@@ -188,8 +188,7 @@ def backup(path):
     while os.path.exists(dst):
         n += 1
         dst = f"{path}.bak-{when}-{n}-pre-eqoaemufollowup"
-    shutil.copy2(path, dst)
-    return dst
+    return backup_database(path, dst)
 
 
 def apply(db, changes):

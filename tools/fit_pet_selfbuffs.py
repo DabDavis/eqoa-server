@@ -35,12 +35,12 @@ import argparse
 import datetime
 import json
 import os
-import shutil
 import sqlite3
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+from sqlite_backup import backup_database
 import retune_balance as retune  # noqa: E402  balanceclasslevel's order
 
 DEFAULT_DB = os.path.join(HERE, "..", "eqoa.db")
@@ -189,8 +189,7 @@ def backup(path):
     while os.path.exists(dst):
         n += 1
         dst = f"{path}.bak-{when}-{n}-pre-petself"
-    shutil.copy2(path, dst)
-    return dst
+    return backup_database(path, dst)
 
 
 def write_row(db, tbl, key, row, insert):

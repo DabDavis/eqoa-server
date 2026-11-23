@@ -82,12 +82,12 @@ import argparse
 import datetime
 import json
 import os
-import shutil
 import sqlite3
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+from sqlite_backup import backup_database
 import import_eqoaemu_pets as pets  # noqa: E402  the pet import's gm_audit lines, one place
 
 PETITION = 1450
@@ -405,8 +405,7 @@ def other_crits(db):
 def backup(path):
     when = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     dst = f"{path}.bak-{when}-pre-magepets1450"
-    shutil.copy2(path, dst)
-    return dst
+    return backup_database(path, dst)
 
 
 def write_row(db, tbl, key, row, insert=False):

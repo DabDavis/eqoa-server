@@ -45,9 +45,11 @@ import datetime
 import json
 import math
 import os
-import shutil
 import sqlite3
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from sqlite_backup import backup_database
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_DB = os.path.join(HERE, "..", "eqoa.db")
@@ -212,8 +214,7 @@ def backup(path):
     while os.path.exists(dst):
         n += 1
         dst = f"{path}.bak-{when}-{n}-pre-newplayers"
-    shutil.copy2(path, dst)
-    return dst
+    return backup_database(path, dst)
 
 
 def write_row(db, tbl, key, row):

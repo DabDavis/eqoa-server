@@ -35,7 +35,8 @@ FAKE_SUDO = textwrap.dedent("""\
     if [ "$1" = "cat" ] && [ "$2" = "/proc/net/nf_conntrack" ]; then cat "$FAKE_CONNTRACK"; exit; fi
     if [ "$1" = "systemctl" ]; then
         case "$2" in
-        stop) [ -f "$FAKE_DIR/server.pid" ] && kill "$(cat "$FAKE_DIR/server.pid")" 2>/dev/null; rm -f "$FAKE_DIR/server.pid"; sleep 0.2;;
+        stop) if [ -n "$FAKE_SHUTDOWN_SAVE" ]; then sqlite3 "$EQOA_DIR/eqoa.db" "INSERT INTO t VALUES ('saved')"; fi
+              [ -f "$FAKE_DIR/server.pid" ] && kill "$(cat "$FAKE_DIR/server.pid")" 2>/dev/null; rm -f "$FAKE_DIR/server.pid"; sleep 0.2;;
         start)
             # the "binary" says whether it starts: one holding "broken" does not listen
             grep -q broken "$EQOA_DIR/gameserver" && exit 0
@@ -192,7 +193,9 @@ class SwapWhenEmpty(unittest.TestCase):
         self.assertTrue(self.listening())
         names = os.listdir(self.dir)
         self.assertTrue(any(n.startswith("gameserver.bak-") and n.endswith("-pre-swap") for n in names), names)
-        self.assertTrue(any(n.startswith("eqoa.db.bak-") and n.endswith("-pre-swap") for n in names), names)
+        database_backups = [n for n in names if n.startswith("eqoa.db.bak-") and n.endswith("-pre-swap")]
+        self.assertEqual(len(database_backups), 1, names)
+        self.assertEqual(os.stat(os.path.join(self.dir, database_backups[0])).st_mode & 0o077, 0)
         self.assertFalse(os.path.exists(f"{self.swap}/pending"))
         self.assertTrue(any(n.startswith("done-") for n in os.listdir(self.swap)))
 
@@ -236,14 +239,15 @@ class SwapWhenEmpty(unittest.TestCase):
     def test_a_failed_before_leaves_the_old_binary_and_database(self):
         self.stage("new binary\n")
         self.stage_before(fail=True)
+        self.env["FAKE_SHUTDOWN_SAVE"] = "1"
         self.run_script()
         time.sleep(1.1)
         code, out = self.run_script()
         self.assertNotEqual(code, 0)
         self.assertIn("before.sh FAILED", out)
-        self.assertIn("the database is back as it was before the stop", out)
+        self.assertIn("the database is back as saved at shutdown", out)
         self.assertEqual(self.binary(), "old binary\n")
-        self.assertEqual(self.rows(), [])
+        self.assertEqual(self.rows(), ["saved"])
         self.assertTrue(self.listening())
         self.assertTrue(any(n.startswith("failed-") for n in os.listdir(self.swap)))
 
@@ -254,7 +258,7 @@ class SwapWhenEmpty(unittest.TestCase):
         time.sleep(1.1)
         code, out = self.run_script()
         self.assertIn("the old one goes back", out)
-        self.assertIn("the database is back as it was before the stop", out)
+        self.assertIn("the database is back as saved at shutdown", out)
         self.assertEqual(self.binary(), "old binary\n")
         self.assertEqual(self.rows(), [])
         self.assertTrue(self.listening())
@@ -322,13 +326,18 @@ class SwapWhenEmpty(unittest.TestCase):
     def test_keep_a_failed_before_keeps_the_old_binary(self):
         self.keeping()
         self.stage("new binary\n", cold=False)
+        # Leave a SQLite connection open as the held server does.
+        reader = sqlite3.connect(f"{self.dir}/eqoa.db")
+        self.addCleanup(reader.close)
+        self.assertEqual(reader.execute("PRAGMA journal_mode=WAL").fetchone()[0], "wal")
         with open(f"{self.swap}/pending/before.sh", "w") as f:
-            f.write("#!/bin/bash\nexit 1\n")
+            f.write(f'#!/bin/bash\nsqlite3 "{self.dir}/eqoa.db" "INSERT INTO t VALUES (1)"\nexit 1\n')
         os.chmod(f"{self.swap}/pending/before.sh", 0o755)
         code, out = self.swap_empty()
         self.assertEqual(code, 1, out)
         self.assertEqual(self.binary(), "old binary\n")
         self.assertTrue(self.alive() and self.listening())
+        self.assertEqual(reader.execute("SELECT x FROM t").fetchall(), [])
         self.assertTrue(any(n.startswith("failed-keep-") for n in os.listdir(self.swap)))
 
     def test_a_server_that_does_not_keep_swaps_the_old_way(self):

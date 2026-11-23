@@ -51,11 +51,11 @@ import glob
 import json
 import os
 import re
-import shutil
 import sqlite3
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from sqlite_backup import backup_database
 import fetch_spell_pages as pages_tool  # noqa: E402
 
 DEFAULT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "eqoa.db")
@@ -405,8 +405,7 @@ def plan(db, lists, pages):
 def backup(path):
     when = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     dst = f"{path}.bak-{when}-pre-pagesweep"
-    shutil.copy2(path, dst)
-    return dst
+    return backup_database(path, dst)
 
 
 def write_row(db, tbl, key, row, insert=False):

@@ -97,12 +97,12 @@ import datetime
 import json
 import os
 import re
-import shutil
 import sqlite3
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+from sqlite_backup import backup_database
 import seed_npc_move as move  # noqa: E402  (the server's lists of animals, creatures and people)
 
 KIND_NOUNS = frozenset(move.NOT_ANIMALS | move.PEOPLE)
@@ -136,6 +136,15 @@ CODE_KEYED = (
     "Portal to the Lake", "Bloody Portal", "Portal of the Twins", "Fuming Portal", "Portal to the Cauldron",
     "Sky Portal", "Norach", "portal guardian", "Subdued Magus", "essence of rain", "essence of sun",
     "essence of night", "Mark of the Majestic", "coffin", "Coffin1", "Sanctuary coffin",
+    "Dockmaster Yarnning", "Dockmaster Endol", "Dockmaster D'Eleth", "Dockmaster Thinda", "Dockmaster Killeron",
+    "Dockmaster Bibbin", "Dockmaster Geben", "Door to Urglunt's Gate", "Door to Urglunt's Wall",
+    "Door to Moggok's Gate", "Door to Oggok Gate", "Portal to Archon Aereth", "Earth Primeval Portal",
+    "Portal to Archon Vetash", "Fire Primeval Portal", "Portal down from Aereth", "Portal down from Vetash",
+    "Portal down from Earth", "Portal down from Fire", "Mausoleum Portal", "Last House Warden", "Oozing Portal",
+    "Spirit Talker's Portal", "Open Bloody Portal", "Razeal's Summoning Post", "Portal to the Plateau",
+    "Mark of Desolation", "Portal of Rallos", "Razeal Raid Teleporter", "Omiziki Porter", "Gigwigle Porter",
+    "Jwiggop Porter", "Burfuzzik Porter", "Gullio Porter", "Ninnozip Porter", "Piddixdon Porter",
+    "Riddletic Porter", "Rigalig Porter", "Bertriza Porter",
     # handlers/chat.go teleDests (entity/world.go SpawnOfNPC)
     "Coachman Ronks", "Archivist Vaal", "Harbormaster Machado",
     # entity/world.go warpLocationNames
@@ -1030,8 +1039,7 @@ def write_lists(p, ev, out_dir):
 def backup(path):
     when = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     dst = f"{path}.bak-{when}-pre-namecase"
-    shutil.copy2(path, dst)
-    return dst
+    return backup_database(path, dst)
 
 
 def main():

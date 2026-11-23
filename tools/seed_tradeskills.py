@@ -127,11 +127,11 @@ import html
 import json
 import os
 import re
-import shutil
 import sqlite3
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from sqlite_backup import backup_database
 from item_rows import item_row  # noqa: E402
 
 DEFAULT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "eqoa.db")
@@ -2141,8 +2141,7 @@ PLANS = {"armor": plan, "jewel": plan_jewel, "weapon": plan_weapon, "tailor": pl
 def backup(path):
     when = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     dst = f"{path}.bak-{when}-pre-tradeskills"
-    shutil.copy2(path, dst)
-    return dst
+    return backup_database(path, dst)
 
 
 def main():

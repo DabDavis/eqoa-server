@@ -64,12 +64,12 @@ import argparse
 import datetime
 import json
 import os
-import shutil
 import sqlite3
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+from sqlite_backup import backup_database
 import tune_balance as first  # noqa: E402  the first tuning's rows (as the production server has them since 2026-10-30)
 
 DEFAULT_DB = os.path.join(HERE, "..", "eqoa.db")
@@ -170,8 +170,7 @@ def backup(path):
     while os.path.exists(dst):
         n += 1
         dst = f"{path}.bak-{when}-{n}-pre-balanceretune"
-    shutil.copy2(path, dst)
-    return dst
+    return backup_database(path, dst)
 
 
 def write_row(db, cls, level, row, insert):

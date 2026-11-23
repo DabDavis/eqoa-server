@@ -39,6 +39,14 @@ import (
 //   - no wander leg ends within campKeepOut of one of its camp's spawns, nor
 //     comes that near from outside, but for a creature that spawned that near
 //     (legInCampLocked, roam.go): it lives there.
+//
+// A row's weights (a GM's /ph, handlers/placeholder.go) give each kind its
+// odds; none, even odds. Camp 0 is no camp: a placeholder, an ordinary row a
+// GM's /ph bound to its kinds. It pops them as a camp's spawn does (its
+// weighted roll, its restart) but stands or wanders as the kind it is now,
+// keeps no wander out, and is no camp on the Teleporter. A placeholder whose
+// binding is taken off (/ph clear) comes back as its own row's kind at its
+// next return (campTable.revert).
 
 // campKeepOut is how near a camp's spawns no wander leg comes: a creature's
 // aggro reach (DefaultAggroRadius, 21) and more, so a roamer passing by walks
@@ -55,8 +63,9 @@ type campRec struct {
 // campSpawn is a camp's spawn: its camp and the rows its kinds are made from
 // (campTable.recs' keys; its own among them for the kind it was made as).
 type campSpawn struct {
-	camp  int64
-	kinds []int
+	camp    int64
+	kinds   []int
+	weights []int // one a kind, its odds; nil for even odds
 }
 
 // campArea is one camp's spawns in a world, for the keep-out: their middle,
@@ -74,7 +83,8 @@ type campTable struct {
 	spawns map[EntityID]*campSpawn
 	recs   map[int]*campRec
 	areas  map[uint8][]campArea
-	rnd    *rand.Rand // the kinds' roll (tests seed it)
+	revert map[EntityID]*campRec // unbound spawns standing as another kind: their own rows, for their next return
+	rnd    *rand.Rand            // the kinds' roll (tests seed it)
 }
 
 // campRand is the kinds' own random source.
@@ -85,9 +95,17 @@ func (w *World) campRand() *rand.Rand {
 	return w.camps.rnd
 }
 
-// campSpawnLocked reports one of a camp's spawns. Must be called with the
-// lock held.
+// campSpawnLocked reports one of a camp's spawns (a placeholder of camp 0 is
+// none: it moves as its kind). Must be called with the lock held.
 func (w *World) campSpawnLocked(id EntityID) bool {
+	cs := w.camps.spawns[id]
+	return cs != nil && cs.camp != 0
+}
+
+// campBoundLocked reports a row with a campspawns row, a camp's spawn or a
+// placeholder: the kind it stands as may not be its row's. Must be called with
+// the lock held.
+func (w *World) campBoundLocked(id EntityID) bool {
 	return w.camps.spawns[id] != nil
 }
 
@@ -142,7 +160,7 @@ func (w *World) CampTemplate(name string, world uint8, x, z float32) (EntityID, 
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	wt := &campWant{key: database.NPCClassKey(name), world: world, x: x, z: z}
-	w.nearestRowsLocked([]*campWant{wt}, w.campSpawnLocked)
+	w.nearestRowsLocked([]*campWant{wt}, w.campBoundLocked)
 	if wt.id != 0 {
 		return wt.id, true
 	}
@@ -277,7 +295,7 @@ func (w *World) LoadCampSpawns(db *database.SQLiteDB) (int, error) {
 		cs := &campSpawn{camp: r.Camp}
 		mine := database.NPCClassKey(o.NPCName)
 		seen := map[string]bool{}
-		for _, name := range r.Kinds {
+		for i, name := range r.Kinds {
 			k := database.NPCClassKey(name)
 			if seen[k] {
 				continue
@@ -291,8 +309,14 @@ func (w *World) LoadCampSpawns(db *database.SQLiteDB) (int, error) {
 				rec(id)
 			}
 			cs.kinds = append(cs.kinds, id)
+			if r.Weights != nil {
+				cs.weights = append(cs.weights, r.Weights[i])
+			}
 		}
 		t.spawns[EntityID(r.NPCID)] = cs
+		if r.Camp == 0 {
+			continue // a placeholder: no camp's ground
+		}
 		key := [2]int64{int64(o.World), r.Camp}
 		byCamp[key] = append(byCamp[key], [2]float32{o.XCoord, o.ZCoord})
 	}
@@ -309,6 +333,20 @@ func (w *World) LoadCampSpawns(db *database.SQLiteDB) (int, error) {
 	}
 	w.mu.Lock()
 	t.rnd = w.camps.rnd
+	// a spawn no longer bound that stands as another kind is its own row's
+	// kind again at its next return
+	t.revert = map[EntityID]*campRec{}
+	for id, own := range w.camps.revert {
+		if t.spawns[id] == nil {
+			t.revert[id] = own
+		}
+	}
+	for id := range w.camps.spawns {
+		own, npc := w.camps.recs[int(id)], w.NPCs[id]
+		if t.spawns[id] == nil && own != nil && npc != nil && database.NPCClassKey(npc.Name) != database.NPCClassKey(own.rec.NPCName) {
+			t.revert[id] = own
+		}
+	}
 	w.camps = t
 	w.mu.Unlock()
 	return len(t.spawns), nil
@@ -319,10 +357,38 @@ func (w *World) CampSummary() string {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	camps := map[int64]bool{}
+	spawns, ph := 0, 0
 	for _, cs := range w.camps.spawns {
+		if cs.camp == 0 {
+			ph++
+			continue
+		}
+		spawns++
 		camps[cs.camp] = true
 	}
-	return fmt.Sprintf("%d camp spawns (campspawns) in %d camps stand, pop their kinds and keep the wander out", len(w.camps.spawns), len(camps))
+	return fmt.Sprintf("%d camp spawns (campspawns) in %d camps stand, pop their kinds and keep the wander out; %d placeholders (/ph) pop theirs",
+		spawns, len(camps), ph)
+}
+
+// pickKind is one of a spawn's kinds (its index), at their odds: even, or by
+// their weights.
+func (cs *campSpawn) pickKind(rnd *rand.Rand) int {
+	total := 0
+	if len(cs.weights) == len(cs.kinds) {
+		for _, v := range cs.weights {
+			total += max(v, 0)
+		}
+	}
+	if total <= 0 {
+		return rnd.Intn(len(cs.kinds))
+	}
+	roll := rnd.Intn(total)
+	for i, v := range cs.weights {
+		if roll -= max(v, 0); roll < 0 {
+			return i
+		}
+	}
+	return len(cs.kinds) - 1
 }
 
 // campRekindLocked is a camp's spawn coming back from a death: one of its
@@ -330,11 +396,22 @@ func (w *World) CampSummary() string {
 // the lock held.
 func (w *World) campRekindLocked(npc *NPC, now time.Time) {
 	cs := w.camps.spawns[npc.ServerID]
-	if cs == nil || len(cs.kinds) == 0 {
+	if cs == nil {
+		// unbound (/ph clear): its own row's kind again
+		if own := w.camps.revert[npc.ServerID]; own != nil {
+			delete(w.camps.revert, npc.ServerID)
+			if database.NPCClassKey(own.rec.NPCName) != database.NPCClassKey(npc.Name) {
+				log.Printf("Camps: spawn %d, no longer bound, comes back as its own %q (it was %q)", npc.ServerID, own.rec.NPCName, npc.Name)
+				w.makeKindLocked(npc, own.rec, own, now.Add(NPCRefreshHold))
+			}
+		}
+		return
+	}
+	if len(cs.kinds) == 0 {
 		return
 	}
 	spot := w.camps.recs[int(npc.ServerID)]
-	kind := w.camps.recs[cs.kinds[w.campRand().Intn(len(cs.kinds))]]
+	kind := w.camps.recs[cs.kinds[cs.pickKind(w.campRand())]]
 	if spot == nil || kind == nil || database.NPCClassKey(kind.rec.NPCName) == database.NPCClassKey(npc.Name) {
 		return // the kind it is
 	}

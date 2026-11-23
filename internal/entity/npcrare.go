@@ -19,7 +19,8 @@ import (
 // loot by its name) on the placeholder's own spot, as a camp's spawn pops a kind
 // (campspawn.go's makeKindLocked: its pointer and row kept, out of every view for
 // NPCRefreshHold so every client makes it again as itself); a miss makes it its
-// own row's kind again (the rare it stood as last life, gone). The rare's own row
+// own row's kind again (the rare it stood as last life, gone), or, on a row a GM
+// bound to kinds (/ph: campspawns), the kind it just popped. The rare's own row
 // stands out of the world (npcspawnonly by its row, "#id"): it is there to be
 // copied, never on a clock of its own; its copy on the placeholder's spot comes
 // back, once dead, at the placeholder's respawn time and rolls again. A restart
@@ -129,6 +130,9 @@ func (w *World) rareRekindLocked(npc *NPC, now time.Time) {
 			w.makeKindLocked(npc, r.own.rec, r.rare, now.Add(NPCRefreshHold))
 		}
 		return
+	}
+	if w.campBoundLocked(npc.ServerID) && key != rareKey {
+		return // a miss on a spawn a GM bound to kinds (/ph, campspawn.go): the kind it just popped
 	}
 	if key != database.NPCClassKey(r.own.rec.NPCName) {
 		log.Printf("Rares: placeholder %d comes back as %q (it was %q)", npc.ServerID, r.own.rec.NPCName, npc.Name)

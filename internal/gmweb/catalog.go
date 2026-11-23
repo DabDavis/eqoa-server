@@ -832,14 +832,19 @@ var catalog = map[string]tableNote{
 			"back from a death pops one of its kinds at random: the kind it was made as from its own row, another from " +
 			"the NPC row of that name nearest it (not a camp's), as a row makes an NPC (its level, body, gear; its loot, " +
 			"class, template and faction by its name). No wandering creature walks within 30 of a camp's spawns but one " +
-			"that spawned that near. A GM's path walks it all the same.",
+			"that spawned that near. A GM's path walks it all the same. Weights give each kind its odds (a GM's or a " +
+			"sub GM's /ph in the game sets them: up to 5 kinds, adding to 100); none, even odds. Camp 0 is a placeholder, " +
+			"no camp: an ordinary row /ph bound to its kinds, which pops them the same but stands or wanders as the kind " +
+			"it popped and keeps no wander out; deleting its row here makes it its own kind again at its next return.",
 		Live:   "At once: the next time each comes back pops one of its kinds as they are now; it stands at once.",
-		Show:   []string{"npcid", "camp", "kinds"},
+		Show:   []string{"npcid", "camp", "kinds", "weights"},
 		Search: []string{"kinds"},
 		Cols: map[string]colNote{
 			"npcid": {Label: "NPC", Ref: "npcs", Help: "its row in NPCs: its spot and the kind it was made as"},
-			"camp":  {Label: "Camp", Ref: "gmcamps"},
+			"camp":  {Label: "Camp", Ref: "gmcamps", Help: "its camp; 0 for a placeholder (/ph), no camp's"},
 			"kinds": {Label: "Kinds", Help: "the NPC names it pops, \", \" between, one at random each time it comes back"},
+			"weights": {Label: "Odds", Help: "each kind's odds, whole numbers \", \" between in the kinds' order " +
+				"(\"90, 10\"; /ph keeps them adding to 100); empty for even odds, and a list that does not fit the kinds is read as even odds"},
 		},
 	},
 	"pwresets": {

@@ -155,7 +155,7 @@ func (s *Server) campfixApply(a *actor, r database.CampfixReport, m handlers.Cam
 		for _, side := range []struct {
 			table string
 			want  bool
-		}{{"npcpaths", p.Path}, {"campspawns", p.Camp != 0}} {
+		}{{"npcpaths", p.Path}, {"campspawns", p.Camp != 0 || len(p.Kinds) > 0}} {
 			if !side.want {
 				continue
 			}

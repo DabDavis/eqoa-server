@@ -26,8 +26,11 @@ import (
 //     back), when and by which character.
 //   - campspawns: one row a camp's spawn, by its npcs row: its camp and the
 //     kinds it pops (NPC names, ", " between), one at random each time it comes
-//     back (entity/campspawn.go). Its npcs row is its spot (place, facing,
-//     world) and the kind it was made as.
+//     back (entity/campspawn.go), at the odds of its weights (whole numbers,
+//     ", " between, one a kind in the kinds' order; "" for even odds). Its npcs
+//     row is its spot (place, facing, world) and the kind it was made as. Camp 0
+//     is no camp: a placeholder, an ordinary row a GM's /ph bound to its kinds
+//     (placeholder.go), which moves as its kind does and keeps no wander out.
 //
 // Every write here is a row change of the GM panel's kind: its gm_audit line
 // (the row before and after, keyed as the panel keys the table) in the
@@ -65,12 +68,26 @@ func (db *SQLiteDB) ensureCamps() error {
 		at        TEXT NOT NULL DEFAULT ''
 	);
 	CREATE TABLE IF NOT EXISTS campspawns (
-		npcid INTEGER PRIMARY KEY,
-		camp  INTEGER NOT NULL DEFAULT 0,
-		kinds TEXT NOT NULL DEFAULT ''
+		npcid   INTEGER PRIMARY KEY,
+		camp    INTEGER NOT NULL DEFAULT 0,
+		kinds   TEXT NOT NULL DEFAULT '',
+		weights TEXT NOT NULL DEFAULT ''
 	);
 	CREATE INDEX IF NOT EXISTS idx_campspawns_camp ON campspawns(camp);`)
-	return err
+	if err != nil {
+		return err
+	}
+	// weights came with /ph (placeholder.go): a table made before has none
+	var has int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('campspawns') WHERE name = 'weights'`).Scan(&has); err != nil {
+		return fmt.Errorf("campspawns: %w", err)
+	}
+	if has == 0 {
+		if _, err := db.Exec(`ALTER TABLE campspawns ADD COLUMN weights TEXT NOT NULL DEFAULT ''`); err != nil {
+			return fmt.Errorf("campspawns: weights: %w", err)
+		}
+	}
+	return nil
 }
 
 // GMMark is one of a GM's marks.
@@ -296,16 +313,18 @@ func sameMarks(tx *sql.Tx, accountID int, want []GMMark) error {
 	return nil
 }
 
-// CampSpawnRow is a row of campspawns.
+// CampSpawnRow is a row of campspawns: Weights is one a kind, in the kinds'
+// order, or nil for even odds (CampKindWeights).
 type CampSpawnRow struct {
-	NPCID int
-	Camp  int64
-	Kinds []string
+	NPCID   int
+	Camp    int64
+	Kinds   []string
+	Weights []int
 }
 
 // CampSpawns is every row of campspawns, by npcs row.
 func (db *SQLiteDB) CampSpawns() ([]CampSpawnRow, error) {
-	rows, err := db.Query(`SELECT npcid, camp, kinds FROM campspawns ORDER BY npcid`)
+	rows, err := db.Query(`SELECT npcid, camp, kinds, weights FROM campspawns ORDER BY npcid`)
 	if err != nil {
 		return nil, err
 	}
@@ -313,11 +332,12 @@ func (db *SQLiteDB) CampSpawns() ([]CampSpawnRow, error) {
 	var out []CampSpawnRow
 	for rows.Next() {
 		var r CampSpawnRow
-		var kinds string
-		if err := rows.Scan(&r.NPCID, &r.Camp, &kinds); err != nil {
+		var kinds, weights string
+		if err := rows.Scan(&r.NPCID, &r.Camp, &kinds, &weights); err != nil {
 			return nil, err
 		}
 		r.Kinds = CampKindNames(kinds)
+		r.Weights = CampKindWeights(weights, len(r.Kinds))
 		out = append(out, r)
 	}
 	return out, rows.Err()

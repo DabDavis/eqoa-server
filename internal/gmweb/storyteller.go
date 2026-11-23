@@ -79,7 +79,7 @@ const storytellerTalk = "npctalk"
 // factions, spells, byclass, choices), its chance or events, or source (the
 // importer's key).
 var storytellerWords = map[string][]string{
-	"quests":     {"name", "offer", "accept", "decline", "declined", "started", "notes"},
+	"quests":     {"name", "offer", "accept", "decline", "declined", "started", "notes", "untrusted"},
 	"queststeps": {"journal", "answer", "says", "waiting", "notyet", "reminder"},
 }
 

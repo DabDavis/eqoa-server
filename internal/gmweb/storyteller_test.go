@@ -313,7 +313,7 @@ func TestTheStorytellersAllowlistIsTheOneMeant(t *testing.T) {
 		"queststeps": {"byclass", "choices", "events", "factions", "items", "kind", "rewarditems", "spells", "target"},
 	}
 	wantWords := map[string][]string{
-		"quests":     {"name", "offer", "accept", "decline", "declined", "started", "notes"},
+		"quests":     {"name", "offer", "accept", "decline", "declined", "started", "notes", "untrusted"},
 		"queststeps": {"journal", "answer", "says", "waiting", "notyet", "reminder"},
 	}
 	if len(storytellerWords) != 2 {

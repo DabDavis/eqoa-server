@@ -117,9 +117,14 @@ type QuestEngine struct {
 	gw      *entity.World
 	sm      *session.Manager
 
-	cat    questCatalog
-	chars  map[uint32]*questChar
-	boxSeq uint32
+	cat   questCatalog
+	chars map[uint32]*questChar
+	// skySyncing is set while a Plane of Sky chain's step or quest is done for
+	// a doer's groupmates (skygroup.go); skyKill is the characters the kill
+	// being counted is credited to (killed), whose kill steps count on their own
+	skySyncing bool
+	skyKill    map[uint32]bool
+	boxSeq     uint32
 	// owed are the steps whose spawns a keep restart took from a character,
 	// [quest, step] by character, made again by respawnLost wherever it stands
 	// (keep.go's QuestSpawns)
@@ -867,7 +872,9 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 	// for, whichever quest's it is, then a hand-in it holds the items for
 	// (several quests at one giver: the Plane of Sky's armourers, a quest a
 	// piece, are asked for whichever piece the player has the parts of)
+	done := q.doneCount(c)
 	if q.stepAtLocked(sess, p, c, look, npc.Name, npc.ServerID, true) {
+		q.offerAfterFinishLocked(sess, p, c, npc.Name, done)
 		return true
 	}
 	if qu := q.readyHandInLocked(look, p, c, npc.Name); qu != nil {
@@ -881,6 +888,7 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 	// and never offering 101665, the quest before them in his line)
 	refusal := q.handInRefusalLocked(look, p, c, npc.Name)
 	if q.stepAtLocked(sess, p, c, look, npc.Name, npc.ServerID, false) {
+		q.offerAfterFinishLocked(sess, p, c, npc.Name, done)
 		return true
 	}
 	if list := q.boardLocked(look, p, c, npc.Name); list != nil {
@@ -893,6 +901,10 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 	}
 	if refusal != "" {
 		q.tellLocked(c, sess, npc.Name, refusal)
+		return true
+	}
+	if line := q.untrustedLocked(look, p, c, npc.Name); line != "" {
+		q.tellLocked(c, sess, npc.Name, sayLines(line)...)
 		return true
 	}
 	// a step pinned to another spawn of this name (the Cazic-Thule trials' three
@@ -1083,6 +1095,39 @@ func (q *QuestEngine) handInRefusalLocked(look *factionLook, p *entity.Player, c
 
 // handInNotYours is that refusal: the side the giver works for.
 const handInNotYours = "I work only for those who have stood with %s, and you have not. Come back when you have."
+
+// untrustedLocked is what a giver with nothing else to say tells a player its
+// standing alone keeps from one of its quests (the quest's faction requirement
+// the only thing amiss: mayTakeLocked tests it last), "" for none: the line
+// naming the faction (questUntrusted, ours), then the quest's own words on
+// earning it (its untrusted column). Heirloom petition 2742 (2026-11-23):
+// Apprentice Buerma had "nothing to say" to a player below "The Ancient Stone
+// Golem"'s Black Swan Inn requirement, four talks running, and nothing said why.
+func (q *QuestEngine) untrustedLocked(look *factionLook, p *entity.Player, c *questChar, giver string) string {
+	for _, qu := range q.cat.givers[foldName(giver)] {
+		if len(qu.FactionReqs) == 0 || !strings.HasPrefix(q.mayTakeLocked(look, p, c, qu), "its standing ") {
+			continue
+		}
+		r, v, _ := unmetFaction(look, qu)
+		line := fmt.Sprintf(questUntrusted, r.Faction)
+		if r.HasMax && v > r.Max {
+			line = fmt.Sprintf(questTooTrusted, r.Faction)
+		}
+		log.Printf("Quests: %s's standing with %s (%d) keeps %q from %s", p.Name, r.Faction, v, qu.Name, giver)
+		if qu.Untrusted != "" {
+			line += "\n" + qu.Untrusted
+		}
+		return line
+	}
+	return ""
+}
+
+// What a giver says to one its quest's faction requirement keeps from it: a
+// standing too low, or too high (ours).
+const (
+	questUntrusted  = "I do not trust you yet. Earn the trust of the %s first."
+	questTooTrusted = "You stand too close to the %s for what I have in mind."
+)
 
 // offerAtLocked is the quest a giver talked to offers the player, or nil: the
 // next it has (nextOfferLocked) that the player has not just said no to, so a
@@ -1530,6 +1575,9 @@ func (q *QuestEngine) startLocked(sess *session.Session, p *entity.Player, c *qu
 	// its events (questevents.go): the quest's on taking it, then its step's
 	q.questEventsLocked(sess, p, c, qu, database.EventAccept)
 	q.stepStartedLocked(sess, p, c, qu, cq, st)
+	if !gm {
+		q.skyGroupTakeLocked(p, qu, st.Step) // a Sky chain's, its group's too (skygroup.go)
+	}
 	return ""
 }
 
@@ -1767,9 +1815,49 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 		if ch.kind == choicePick {
 			pick = ch.option
 		}
+		done := q.doneCount(c)
 		q.atNPCLocked(sess, p, c, qu, cq, st, true, pick)
+		q.offerAfterFinishLocked(sess, p, c, st.Target, done)
 	}
 	return true
+}
+
+// doneCount is how many times the character has finished its quests that are
+// not repeatable, all told: a finish in a talk moves it. A repeatable one (a
+// trade picked in a talk tree, a hand-in made again) leads to no next quest.
+func (q *QuestEngine) doneCount(c *questChar) int {
+	n := 0
+	for id, cq := range c.quests {
+		if qu := q.cat.byID[id]; qu != nil && !qu.Repeatable {
+			n += cq.Done
+		}
+	}
+	return n
+}
+
+// offerAfterFinishLocked is a talk's (or a step's answer's) last word when it
+// finished a quest that is not repeatable at the NPC called giver (doneBefore: doneCount before it)
+// and left no question open: the giver's board, else the quest it offers the
+// player now (its next in a line, the finished one its requirement; never one
+// finished before, a repeatable's next round), asked at once. Heirloom petition 2735 (2026-11-23: "you have to talk to a quest NPC
+// after you should already have the flag ... It just did it again on
+// Talknar"): the hand-in that finished "The Broken Pact" at Talknar said its
+// words, and "The Ambassadors", his next, came only at a second talk, as
+// every quest line's next did; the head mark over him already showed it.
+func (q *QuestEngine) offerAfterFinishLocked(sess *session.Session, p *entity.Player, c *questChar, giver string, doneBefore int) {
+	if sess == nil || p == nil || c.box != nil || q.doneCount(c) <= doneBefore || strings.TrimSpace(giver) == "" {
+		return
+	}
+	look := q.lookAt(sess)
+	if list := q.boardLocked(look, p, c, giver); list != nil {
+		q.askBoardLocked(sess, c, giver, list, 0)
+		return
+	}
+	// a new quest only: a repeatable one again waits for the next talk
+	if qu := q.offerAtLocked(look, p, c, giver); qu != nil && c.timesDone(qu.ID) == 0 {
+		log.Printf("Quests: %s finished a quest at %s, who offers %q at once", p.Name, giver, qu.Name)
+		q.offerLocked(sess, p, c, qu)
+	}
 }
 
 // HandleDrop is the client's 0x007D (Send007D): the journal's token and the
@@ -1913,6 +2001,11 @@ func (q *QuestEngine) killed(k entity.KillCredit) {
 	for i, kp := range k.Players {
 		chars[i] = q.namedLocked(kp.ServerID, kp.Name)
 	}
+	q.skyKill = make(map[uint32]bool, len(k.Players))
+	for _, kp := range k.Players {
+		q.skyKill[kp.ServerID] = true
+	}
+	defer func() { q.skyKill = nil }()
 	dropped := q.corpseDropsLocked(k, chars) // before the steps move on: who is on which, at the kill
 	defer q.placeDropsLocked(k, dropped)     // after: but those a full stack counted (lootKillLocked)
 	for i, kp := range k.Players {
@@ -2133,6 +2226,8 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 // st (a choice's Skip: the bribe that passes over the fight), none of their
 // events fired; past the last, the quest is finished.
 func (q *QuestEngine) completeStepSkipLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep, given *handedIn, extra *database.ClassReward, skip int) {
+	// a Plane of Sky chain's step is its group's by the doer (skygroup.go)
+	q.skyGroupStepLocked(p, qu, st)
 	delete(c.packTold, [2]int{qu.ID, st.Step})
 	idx := c.index(qu.ID)
 	next := qu.Next(st.Step)

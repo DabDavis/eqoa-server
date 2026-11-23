@@ -21,7 +21,7 @@ import (
 
 // questCols are a quest row's columns the editor sends, in the table's order.
 var questCols = []string{"name", "enabled", "giver", "minlevel", "maxlevel", "classes", "races", "requires",
-	"repeatable", "offer", "accept", "decline", "declined", "started", "source", "notes", "events", "factionreq", "excludes", "asks", "daygroup"}
+	"repeatable", "offer", "accept", "decline", "declined", "started", "source", "notes", "events", "factionreq", "excludes", "asks", "daygroup", "untrusted"}
 
 // stepCols are a step row's columns the editor sends.
 var stepCols = []string{"kind", "target", "npcid", "items", "tunar", "count", "world", "x", "y", "z", "radius",
@@ -57,6 +57,7 @@ func (s *Server) registerQuestOps() {
 			`{"answer": the player's line (63 characters), "says": the giver's reply (a box a line, 217 characters a line), ` +
 			`"asks": follow-ups of the same shape, opened once it is asked}; the giver replies, then asks the offer's question ` +
 			`again; nothing is kept. Six answers at most in one box with the accept and decline. Empty: none`),
+		"untrusted":  str("what the giver says, after its line naming the faction, to a player whose standing alone keeps it from the quest (its factionreq): how to earn it; empty: the line alone"),
 		"daygroup":   str("a name the quests of one a day share: one of the group is not offered or taken while another is under way or was finished today (the giver's rotation, fewest finished first, takes turns); empty: none"),
 		"excludes":   str("quest ids whose doing keeps it from a character, comma separated: not offered nor taken by one who finished any of them or has one under way (two tellings of one errand); empty: none"),
 		"repeatable": integer("1: may be taken again once finished"),

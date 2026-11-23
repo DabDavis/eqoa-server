@@ -47,6 +47,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveWeather() // ops_weather.go
 	case "npcundead":
 		return s.liveUndead()
+	case "npcnoarea":
+		return s.liveNoArea()
 	case "npccharm":
 		return s.liveCharm()
 	case "npcsocial":
@@ -275,6 +277,18 @@ func (s *Server) liveUndead() string {
 		return "not applied to the world: " + err.Error()
 	}
 	return "at once: the next cast at a creature of that name uses it"
+}
+
+// liveNoArea reads the creatures no area touches again (entity/noarea.go; the
+// change is committed: the database is free).
+func (s *Server) liveNoArea() string {
+	if s.d.World == nil || s.d.DB == nil {
+		return "no world is running: at the next start"
+	}
+	if _, err := s.d.World.LoadNoAreaNames(s.d.DB); err != nil {
+		return "not applied to the world: " + err.Error()
+	}
+	return "at once: the next area spell passes the creatures of that name by"
 }
 
 // liveCharm reads how the creatures of a name take a charm again

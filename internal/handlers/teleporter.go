@@ -772,6 +772,12 @@ func (h *InteractHandler) moveGroup(p *entity.Player, npc entity.EntityID, dest 
 		}
 		mw, mx, _, mz, dead, ok := gw.PlayerSpot(m)
 		if !ok || dead || mw != w || (mx-x)*(mx-x)+(mz-z)*(mz-z) > teleReach*teleReach {
+			// said, so a member left behind is told from the log (Live
+			// petition 5509: a portal's way back took its giver alone)
+			if ok {
+				log.Printf("%s: %s stays behind from %s's trip to %s: world %d, %.1f off, dead %v (the group goes within %d)", who, m.Name,
+					p.Name, label, mw, math.Hypot(float64(mx-x), float64(mz-z)), dead, teleReach)
+			}
 			continue
 		}
 		ms := gw.FindSessionByEntityID(m.ServerID)

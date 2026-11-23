@@ -316,3 +316,35 @@ func TestNotYetImportCity(t *testing.T) {
 		}
 	}
 }
+
+// Heirloom petition 2735: the talk that finishes a quest at its giver's NPC
+// offers that NPC's next quest at once (Talknar's "The Broken Pact", then "The
+// Ambassadors" only at a second talk); a quest's step done short of its finish,
+// and a finish with nothing new to offer, say nothing more.
+func TestAFinishOffersTheNextQuestAtOnce(t *testing.T) {
+	f := newQuestFixture(t)
+	f.tw.p.Class = 3
+	kellina := f.tw.add(2, &entity.NPC{ServerID: 702, Name: "Kellina", SpawnX: 25404, SpawnY: 54.1, SpawnZ: 15726})
+	f.quest(20001, "The Broken Pact", "Kellina", 1, 0, "test")
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (20001, 2, 'talk', 'Kellina', 'Speak with Kellina again.')`)
+	f.quest(20002, "The Ambassadors", "Kellina", 1, 20001, "test")
+	f.reload()
+	if _, err := f.qe.SetCharacterQuest(f.sid, 20001, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.msgs()
+	f.tw.talk(kellina) // step 1: no finish, no offer
+	m := f.msgs()
+	if s, _ := f.progress(20001); s != 2 {
+		t.Fatalf("step 1: at %d (%q)", s, m)
+	}
+	f.not(m, "ask#*")
+	f.tw.talk(kellina) // step 2 finishes it: the next is asked at once
+	m = f.msgs()
+	f.want(m, "box:"+questFinished, "ask#*")
+	f.tw.pick(boxID(m), 0)
+	f.msgs()
+	if s, _ := f.progress(20002); s != 1 {
+		t.Errorf("The Ambassadors after one talk: at step %d, want 1", s)
+	}
+}

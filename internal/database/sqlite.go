@@ -667,6 +667,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureNPCUndead(); err != nil {
 		return err
 	}
+	if err := db.ensureNPCNoArea(); err != nil { // npcnoarea.go
+		return err
+	}
 	if err := db.ensureNPCCharm(); err != nil { // npccharm.go
 		return err
 	}

@@ -135,6 +135,7 @@ func (db *SQLiteDB) initQuests() error {
 		{"charquests", "picks", `TEXT NOT NULL DEFAULT ''`},
 		{"quests", "excludes", `TEXT NOT NULL DEFAULT ''`},
 		{"quests", "asks", `TEXT NOT NULL DEFAULT ''`}, {"quests", "daygroup", `TEXT NOT NULL DEFAULT ''`},
+		{"quests", "untrusted", `TEXT NOT NULL DEFAULT ''`},
 		{"queststeps", "anyorder", `INTEGER NOT NULL DEFAULT 0`},
 		{"queststeps", "exactbase", `INTEGER NOT NULL DEFAULT 0`},
 	} {
@@ -653,6 +654,11 @@ type Quest struct {
 	// quest of the group is not offered or taken while another is under way or
 	// was finished today (work entry 1597's Christmas gift runs).
 	DayGroup string
+	// Untrusted (the untrusted column) is what the giver says, after its line
+	// naming the faction, to a player its faction requirements alone keep from
+	// the quest: how to earn the standing (Heirloom petition 2742: "Kill the
+	// gnolls and bandits that trouble the Black Swan Inn."); "" none
+	Untrusted string
 	// Offer is the giver's words offering it, a paragraph (lines between
 	// blank lines) a question: its lines a box each, its last line the
 	// question the paragraph's answer (Accept's line of that number) answers.
@@ -1283,7 +1289,7 @@ func (s *QuestStore) MarkVampire(serverID uint32, quest string) (bool, error) {
 // LoadQuests reads every quest, drafts too, with its steps in order.
 func (s *QuestStore) LoadQuests() ([]Quest, error) {
 	rs, err := s.db.Query(`SELECT questid, name, enabled, giver, minlevel, maxlevel, classes, races, requires,
-		repeatable, offer, accept, decline, declined, started, source, notes, events, factionreq, excludes, asks, daygroup FROM quests ORDER BY questid`)
+		repeatable, offer, accept, decline, declined, started, source, notes, events, factionreq, excludes, asks, daygroup, untrusted FROM quests ORDER BY questid`)
 	if err != nil {
 		return nil, err
 	}
@@ -1295,7 +1301,7 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 		var classes, races, requires, events, factionReq, excludes, asks string
 		if err := rs.Scan(&q.ID, &q.Name, &enabled, &q.Giver, &q.MinLevel, &q.MaxLevel, &classes, &races, &requires,
 			&repeatable, &q.Offer, &q.Accept, &q.Decline, &q.Declined, &q.Started, &q.Source, &q.Notes, &events, &factionReq, &excludes,
-			&asks, &q.DayGroup); err != nil {
+			&asks, &q.DayGroup, &q.Untrusted); err != nil {
 			rs.Close()
 			return nil, err
 		}
@@ -1304,6 +1310,7 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 		q.RequireGroups = ParseRequires(requires)
 		q.Excludes = ParseIntList(excludes)
 		q.DayGroup = strings.TrimSpace(q.DayGroup)
+		q.Untrusted = strings.TrimSpace(q.Untrusted)
 		if q.Asks, err = ParseQuestAsks(asks); err != nil {
 			log.Printf("Quests: quest %d's asks are not read: %v", q.ID, err)
 		}

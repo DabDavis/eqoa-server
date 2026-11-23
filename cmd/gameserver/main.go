@@ -413,6 +413,12 @@ func main() {
 		log.Printf("WARNING: %v; undead by their names alone", err)
 	}
 	log.Printf("Creatures: %s", gameWorld.UndeadSummary())
+	// The creatures no area spell touches (entity/noarea.go, table npcnoarea)
+	if n, err := gameWorld.LoadNoAreaNames(db); err != nil {
+		log.Printf("WARNING: %v; every creature in reach of an area", err)
+	} else if n > 0 {
+		log.Printf("Creatures: %d names no area touches (npcnoarea)", n)
+	}
 	// The bodies a race wears for the armour on its chest (entity/armorbody.go, table
 	// racearmorbody): the hill giant's in other giants' armoured bodies
 	if n, err := gameWorld.LoadRaceArmorBodies(db); err != nil {

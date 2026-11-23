@@ -418,7 +418,7 @@ func (w *World) mercThrowLandLocked(ms *mercState, now time.Time) bool {
 		for _, id := range w.SpatialIndex.QueryRadius(t.X, t.Z, pe.Area) {
 			o := w.NPCs[id]
 			if o == nil || o == t || o.Dead || o.World != t.World || !mercMayFight(m, o) || o.NPCType&0x80 != 0 || o.hiddenAt(now) ||
-				!team[o.CurrentEnemy] { // what fights its team alone: it pulls nothing (the file's doc)
+				!team[o.CurrentEnemy] || w.areaSparesLocked(o) { // what fights its team alone: it pulls nothing (the file's doc); npcnoarea's never (noarea.go)
 				continue
 			}
 			if dist3(o.X, o.Y, o.Z, t.X, t.Y, t.Z) > pe.Area || !w.reachesLocked(place, o.X, o.Y, o.Z) {

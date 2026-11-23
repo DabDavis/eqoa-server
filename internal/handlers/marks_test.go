@@ -170,6 +170,80 @@ func TestKillMarksCapGroupAndHotZone(t *testing.T) {
 	}
 }
 
+// kill60 is a kill heard of Anna's as a level 60 not reliving (At60) at weight 1, its group's earners
+// group and with its 60s group60.
+func (r *marksRig) kill60(group, group60 int, x, z float32) {
+	r.m.killHeard(entity.KillMarks{Sess: r.anna, ServerID: r.pa.CharServerID, Name: r.pa.Name, Weight: 1, Group: group,
+		At60: true, Group60: group60, NPCRow: 901, NPCName: "drake", World: 0, SpawnX: x, SpawnZ: z})
+}
+
+// A level 60 earns no kill mark anywhere until a GM opens a camp zone to 60s (#hotzone level60 <id>
+// on): then its creatures roll for it as for an earner, the group's 60s counting for the group
+// bonus there (for those below 60 too). The controls: the same zone before it is opened, a kill
+// outside it, the zone turned off; a quest zone cannot be opened.
+func TestKillMarksAtSixtyOnlyWhereAZoneIsOpenToThem(t *testing.T) {
+	r := newMarksRig(t)
+	r.pa.Level = 60
+	r.kill60(0, 0, 5010, 5010)
+	if r.rolls != 0 || r.marks().Marks != 0 {
+		t.Fatalf("no zone: %d rolls, %d marks", r.rolls, r.marks().Marks)
+	}
+	r.pa.X, r.pa.Z = 5000, 5000
+	r.m.hotZoneCommand(r.anna, r.pa, "here 100 Drake Camp")
+	r.kill60(0, 0, 5010, 5010)
+	if r.rolls != 0 || r.marks().Marks != 0 {
+		t.Fatalf("a Hot zone not open to 60s: %d rolls, %d marks", r.rolls, r.marks().Marks)
+	}
+	r.drain()
+	r.m.hotZoneCommand(r.anna, r.pa, "level60 1 on")
+	if got := r.msgs(r.anna); !hasMsg(got, "chat:Level 60s earn here: 1 on: Drake Camp, +10%, level 60 too, world 0 (5000, *") {
+		t.Fatalf("#hotzone level60 on: %q", got)
+	}
+	r.kill60(0, 2, 5010, 5010) // two 60s of its group near: x1.2, in the zone x1.1
+	if r.rolls != 1 || r.marks().Marks != 1 {
+		t.Fatalf("an open zone: %d rolls, %d marks", r.rolls, r.marks().Marks)
+	}
+	var bonus float64
+	r.db.QueryRow(`SELECT bonus FROM charmarks_log ORDER BY id DESC LIMIT 1`).Scan(&bonus)
+	if bonus < 1.319 || bonus > 1.321 {
+		t.Fatalf("a 60's kill in an open zone: bonus %v, want 1.32", bonus)
+	}
+	r.kill60(0, 0, 9000, 9000)
+	if r.rolls != 1 {
+		t.Fatal("a 60's kill outside the zone rolled")
+	}
+	// one below 60 in the open zone counts its 60s too
+	r.pa.Level = 30
+	r.kill(0, 5010, 5010)
+	r.db.QueryRow(`SELECT bonus FROM charmarks_log ORDER BY id DESC LIMIT 1`).Scan(&bonus)
+	if bonus != 1.1 {
+		t.Fatalf("a level 30 alone in the open zone: bonus %v", bonus)
+	}
+	r.m.killHeard(entity.KillMarks{Sess: r.anna, ServerID: r.pa.CharServerID, Name: r.pa.Name, Weight: 1, Group: 0, Group60: 3,
+		NPCRow: 900, NPCName: "orc pawn", World: 0, SpawnX: 5010, SpawnZ: 5010})
+	r.db.QueryRow(`SELECT bonus FROM charmarks_log ORDER BY id DESC LIMIT 1`).Scan(&bonus)
+	if bonus < 1.429 || bonus > 1.431 {
+		t.Fatalf("a level 30 with three 60s in the open zone: bonus %v, want 1.43", bonus)
+	}
+	r.pa.Level = 60
+	rolled := r.rolls
+	r.m.hotZoneCommand(r.anna, r.pa, "off 1")
+	r.kill60(0, 0, 5010, 5010)
+	if r.rolls != rolled {
+		t.Fatal("a 60's kill rolled in a zone turned off")
+	}
+	r.m.hotZoneCommand(r.anna, r.pa, "quests homelands/erudite Erudite quests")
+	r.drain()
+	r.m.hotZoneCommand(r.anna, r.pa, "level60 2 on")
+	if got := r.msgs(r.anna); !hasMsg(got, "chat:"+hotZone60Camp) {
+		t.Fatalf("a quest zone opened to 60s: %q", got)
+	}
+	zones, _ := r.db.HotZones()
+	if len(zones) != 2 || !zones[0].Level60 || zones[1].Level60 {
+		t.Fatalf("zones %+v", zones)
+	}
+}
+
 // /marks says the marks, the hour, the ring, the rank and the zones; at 60 not reliving, the line
 // that says how to earn.
 func TestMarksCommand(t *testing.T) {

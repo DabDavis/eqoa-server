@@ -23,6 +23,9 @@ import (
 //     anchor (camps.go's keys), radius 150, named for the camp; #hotzone here <radius> <name> one at the
 //     GM's place; #hotzone quests <key prefix or ids> <name> a quest zone, its place for the teleport
 //     the GM's; #hotzone move <id>, on|off <id>, bonus <id> <pct>, note <id> <text>, delete <id>.
+//   - #hotzone level60 <id> on|off opens a camp zone to level 60s (column level60): a 60 not reliving
+//     earns kill marks for its creatures, which it earns nowhere else; off by default, so a camp is
+//     below 60s' alone until a GM says otherwise (jibrish, 2026-11-23). It lasts while the zone is on.
 //   - A zone with announce 1 turned on tells every player on the shard one line.
 //   - The Hot Zone Herald (any NPC of the name, in Freeport by Dabrish) lists the zones on, each its
 //     name, bonus and note, then "Report anything wrong you find with /bug.", and asks which to go
@@ -47,7 +50,8 @@ const (
 	heraldTooFar      = "Come closer, and I will send you."
 	heraldLost        = "I cannot find the way there just now."
 	heraldClosed      = "I send no one anywhere on this server."
-	hotZoneUsage      = "#hotzone [camp <key> | here <radius> <name> | quests <prefix or ids> <name> | move <id> | on <id> | off <id> | bonus <id> <pct> | note <id> <text> | delete <id>]"
+	hotZoneUsage      = "#hotzone [camp <key> | here <radius> <name> | quests <prefix or ids> <name> | move <id> | on <id> | off <id> | bonus <id> <pct> | level60 <id> on|off | note <id> <text> | delete <id>]"
+	hotZone60Camp     = "Only a camp zone opens to level 60s."
 	hotZoneDetail     = "#hotzone in the game (work board 1927)"
 	hotZoneNoteChars  = 200
 	hotZoneNameChars  = 48
@@ -82,6 +86,9 @@ func (m *HeirloomMarks) heraldTalk(sess *session.Session, p *entity.Player, npc 
 	answers := make([]string, len(on))
 	for i, z := range on {
 		line := fmt.Sprintf("%s: +%d%% Heirloom Marks.", z.Name, z.BonusPct)
+		if open60Part(z) != "" {
+			line += " Level 60s earn here too."
+		}
 		if strings.TrimSpace(z.Note) != "" {
 			line += " " + strings.TrimSpace(z.Note)
 		}
@@ -281,6 +288,27 @@ func (m *HeirloomMarks) hotZoneCommand(sess *session.Session, p *entity.Player, 
 			z.BonusPct = pct
 			save(z, "Bonus set:")
 		}
+	case "level60":
+		if z, ok := idArg(); ok {
+			word := ""
+			if len(f) >= 3 {
+				word = strings.ToLower(f[2])
+			}
+			if word != "on" && word != "off" {
+				reply(hotZoneUsage)
+				return
+			}
+			if word == "on" && z.Kind != database.HotZoneCamp {
+				reply(hotZone60Camp)
+				return
+			}
+			z.Level60 = word == "on"
+			said := "Level 60s earn nothing here:"
+			if z.Level60 {
+				said = "Level 60s earn here:"
+			}
+			save(z, said)
+		}
 	case "note":
 		if z, ok := idArg(); ok {
 			// the text as typed, after the id
@@ -315,7 +343,7 @@ func hotZoneLine(z database.HotZone) string {
 	if z.Kind == database.HotZoneQuests {
 		place = "quests " + z.Quests
 	}
-	return fmt.Sprintf("%d %s: %s, +%d%%, %s", z.ID, state, z.Name, z.BonusPct, place)
+	return fmt.Sprintf("%d %s: %s, +%d%%%s, %s", z.ID, state, z.Name, z.BonusPct, open60Part(z), place)
 }
 
 // zoneName is a zone's name as kept.

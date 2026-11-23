@@ -11,13 +11,16 @@ import (
 // Heirloom Test Server's alone, world.heirloom_marks; handlers/marks.go keeps the marks
 // themselves) and of Relive (section 9).
 //
-// Who earns: a character below 60, or a 60 while it relives, never a GM's (MarksEarner).
-// A kill's roll: each sharer of a kill that gives it experience (awardKillXPLocked) is
+// Who earns: a character below 60, or a 60 while it relives, never a GM's (MarksEarner); and a 60
+// not reliving at a kill in a Hot zone the GMs opened to level 60s (hotzones.level60), which the
+// hook decides (KillMarks.At60).
+// A kill's roll: each sharer of a kill that gives it experience (awardKillXPLocked), but a GM, is
 // handed to the hook (OnKillMarks) with the kill's weight (the experience it gives this
 // character before any boon or reward, over an even-con solo kill's at its level, at most
-// KillMarksWeightMost) and the earners of its group near it; the hook rolls and counts (its
-// hour's cap, the Hot zones, the bonuses) off the lock. Only a creature's kill comes here: a
-// player's death (PvP, a duel, the arenas) never gives experience and so never a mark.
+// KillMarksWeightMost) and the earners of its group near it (and those with its 60s, for a zone
+// open to them); the hook rolls and counts (its hour's cap, the Hot zones, the bonuses) off the
+// lock. Only a creature's kill comes here: a player's death (PvP, a duel, the arenas) never gives
+// experience and so never a mark.
 //
 // Relive: a 60 goes back down to a level it picks (StartRelive) and plays as that level for
 // everything the level decides (Player.Level is the Relive level); its true level, experience
@@ -40,11 +43,16 @@ type KillMarks struct {
 	Name     string
 	Weight   float64
 	Group    int // the other earners of its group in its world within MarksGroupRange
-	NPCRow   EntityID
-	NPCName  string
-	World    uint8
-	SpawnX   float32
-	SpawnZ   float32
+	// At60 is a level 60 that does not relive: it earns only where a Hot zone opened to 60s takes the
+	// kill's spawn (handlers/marks.go killRoll); Group60 is Group with the group's 60s counted, for such
+	// a zone's kills
+	At60    bool
+	Group60 int
+	NPCRow  EntityID
+	NPCName string
+	World   uint8
+	SpawnX  float32
+	SpawnZ  float32
 }
 
 // KillMarksFunc hears a kill's chance of a mark. It is called with the World's lock held: it must
@@ -78,11 +86,15 @@ func killMarksWeight(xp, level int) float64 {
 }
 
 // marksGroupLocked is how many other earners of p's group stand in p's world within
-// MarksGroupRange of it, alive. Must be called with the lock held.
-func (w *World) marksGroupLocked(p *Player) int {
+// MarksGroupRange of it, alive; with60 counts its level 60s too (no GM), who earn in a Hot zone
+// opened to them. Must be called with the lock held.
+func (w *World) marksGroupLocked(p *Player, with60 bool) int {
 	n := 0
 	for _, m := range w.groupMembersLocked(p) {
-		if m == p || m.ServerID == p.ServerID || m.IsDead() || m.World != p.World || !MarksEarner(m) {
+		if m == p || m.ServerID == p.ServerID || m.IsDead() || m.World != p.World {
+			continue
+		}
+		if !MarksEarner(m) && (!with60 || m.GM) {
 			continue
 		}
 		if dx, dz := m.X-p.X, m.Z-p.Z; dx*dx+dz*dz > MarksGroupRange*MarksGroupRange {
@@ -100,20 +112,22 @@ func (w *World) MarksGroup(p *Player) int {
 	if p == nil {
 		return 0
 	}
-	return w.marksGroupLocked(p)
+	return w.marksGroupLocked(p, false)
 }
 
 // killMarksLocked hands a sharer's kill of npc, xp the experience it gives before any boon, to
-// the hook. Must be called with the lock held.
+// the hook: an earner's, and a 60's not reliving marked At60 (the hook takes it only in a Hot zone
+// opened to 60s); never a GM's. Must be called with the lock held.
 func (w *World) killMarksLocked(sess *session.Session, p *Player, npc *NPC, xp int) {
-	if w.killMarks == nil || !MarksEarner(p) || p.CharServerID == 0 || npc == nil {
+	if w.killMarks == nil || p == nil || p.GM || p.CharServerID == 0 || npc == nil {
 		return
 	}
 	weight := killMarksWeight(xp, p.Level)
 	if weight <= 0 {
 		return
 	}
-	w.killMarks(KillMarks{Sess: sess, ServerID: p.CharServerID, Name: p.Name, Weight: weight, Group: w.marksGroupLocked(p),
+	w.killMarks(KillMarks{Sess: sess, ServerID: p.CharServerID, Name: p.Name, Weight: weight,
+		Group: w.marksGroupLocked(p, false), At60: !MarksEarner(p), Group60: w.marksGroupLocked(p, true),
 		NPCRow: npc.ServerID, NPCName: npc.Name, World: npc.World, SpawnX: npc.SpawnX, SpawnZ: npc.SpawnZ})
 }
 

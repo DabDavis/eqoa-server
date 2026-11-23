@@ -23,7 +23,8 @@ import (
 //     what it was for (ref: a quest id, an NPC row, what was bought) and its bonus factor;
 //   - hotzones: the GMs' Hot zones (a camp, by its place and radius, or a quest set, by an import
 //     key prefix or quest ids), each with its bonus (default +10%) and a note players are shown;
-//     camp names the #tele camp a zone was made on (its anchor's landing), "" none;
+//     camp names the #tele camp a zone was made on (its anchor's landing), "" none; level60 1 opens a
+//     camp zone to level 60s (not reliving), who earn kill marks nowhere else (handlers/marks.go killRoll);
 //   - heirloomrankac: the AC an Heirloom Rank adds to each worn heirloom armour piece, by class and
 //     rank;
 //   - charrelive: a 60's Relive, its level, the experience into it and its own debt, since when,
@@ -79,7 +80,8 @@ CREATE TABLE IF NOT EXISTS hotzones (
 	announce   INTEGER NOT NULL DEFAULT 0,
 	created_by TEXT NOT NULL DEFAULT '',
 	updated    TEXT NOT NULL DEFAULT '',
-	camp       TEXT NOT NULL DEFAULT ''
+	camp       TEXT NOT NULL DEFAULT '',
+	level60    INTEGER NOT NULL DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS heirloomrankac (
 	class INTEGER NOT NULL,
@@ -88,7 +90,8 @@ CREATE TABLE IF NOT EXISTS heirloomrankac (
 	PRIMARY KEY (class, rank)
 );`
 
-// ensureMarks makes the tables and the two columns (initSchema, after quests and charquests).
+// ensureMarks makes the tables and the columns added to older ones (initSchema, after quests and
+// charquests).
 func (db *SQLiteDB) ensureMarks() error {
 	if _, err := db.Exec(marksSchema); err != nil {
 		return fmt.Errorf("heirloom marks: %w", err)
@@ -96,6 +99,7 @@ func (db *SQLiteDB) ensureMarks() error {
 	for _, c := range []struct{ t, col, def string }{
 		{"quests", "marks", "INTEGER"},
 		{"charquests", "taken", "INTEGER"},
+		{"hotzones", "level60", "INTEGER NOT NULL DEFAULT 0"}, // a table made before the column
 	} {
 		has, err := hasColumn(db.DB, c.t, c.col)
 		if err != nil {
@@ -284,6 +288,7 @@ type HotZone struct {
 	CreatedBy string
 	Updated   string
 	Camp      string
+	Level60   bool // a camp zone a level 60 not reliving earns kill marks in (Fits60)
 }
 
 // The kinds of a hot zone.
@@ -292,7 +297,7 @@ const (
 	HotZoneQuests = "quests"
 )
 
-const hotZoneCols = `id, name, enabled, kind, world, x, y, z, radius, quests, bonus_pct, note, announce, created_by, updated, camp`
+const hotZoneCols = `id, name, enabled, kind, world, x, y, z, radius, quests, bonus_pct, note, announce, created_by, updated, camp, level60`
 
 // HotZones is every row, by id.
 func (db *SQLiteDB) HotZones() ([]HotZone, error) {
@@ -304,12 +309,12 @@ func (db *SQLiteDB) HotZones() ([]HotZone, error) {
 	var out []HotZone
 	for rs.Next() {
 		var z HotZone
-		var en, an int
+		var en, an, l60 int
 		if err := rs.Scan(&z.ID, &z.Name, &en, &z.Kind, &z.World, &z.X, &z.Y, &z.Z, &z.Radius, &z.Quests, &z.BonusPct,
-			&z.Note, &an, &z.CreatedBy, &z.Updated, &z.Camp); err != nil {
+			&z.Note, &an, &z.CreatedBy, &z.Updated, &z.Camp, &l60); err != nil {
 			return nil, err
 		}
-		z.Enabled, z.Announce = en != 0, an != 0
+		z.Enabled, z.Announce, z.Level60 = en != 0, an != 0, l60 != 0
 		out = append(out, z)
 	}
 	return out, rs.Err()
@@ -348,6 +353,12 @@ func (z HotZone) FitsSpawn(world int, x, zz float32) bool {
 	return dx*dx+dz*dz <= z.Radius*z.Radius
 }
 
+// Fits60 is whether a zone opens a kill of a creature spawned at (x, z) of world to level 60s: an
+// enabled camp zone of level60 1 that fits it, whatever its bonus.
+func (z HotZone) Fits60(world int, x, zz float32) bool {
+	return z.Enabled && z.Level60 && z.FitsSpawn(world, x, zz)
+}
+
 // hotZoneRow is a zone as a row map, for the audit line.
 func hotZoneRow(tx *sql.Tx, id int64) (map[string]any, error) {
 	return fullRow(tx, `SELECT * FROM hotzones WHERE id = ?`, id)
@@ -384,9 +395,10 @@ func (db *SQLiteDB) SaveHotZone(z HotZone, who GMEdit, detail string) (int, erro
 	id := int64(z.ID)
 	action := "insert"
 	if z.ID == 0 {
-		res, err := tx.Exec(`INSERT INTO hotzones (name, enabled, kind, world, x, y, z, radius, quests, bonus_pct, note, announce, created_by, updated, camp)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-			z.Name, b(z.Enabled), z.Kind, z.World, z.X, z.Y, z.Z, z.Radius, z.Quests, z.BonusPct, z.Note, b(z.Announce), z.CreatedBy, z.Updated, z.Camp)
+		res, err := tx.Exec(`INSERT INTO hotzones (name, enabled, kind, world, x, y, z, radius, quests, bonus_pct, note, announce, created_by, updated, camp, level60)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			z.Name, b(z.Enabled), z.Kind, z.World, z.X, z.Y, z.Z, z.Radius, z.Quests, z.BonusPct, z.Note, b(z.Announce), z.CreatedBy, z.Updated, z.Camp,
+			b(z.Level60))
 		if err != nil {
 			return 0, err
 		}
@@ -402,8 +414,9 @@ func (db *SQLiteDB) SaveHotZone(z HotZone, who GMEdit, detail string) (int, erro
 			return 0, fmt.Errorf("no hot zone %d", z.ID)
 		}
 		if _, err := tx.Exec(`UPDATE hotzones SET name = ?, enabled = ?, kind = ?, world = ?, x = ?, y = ?, z = ?, radius = ?, quests = ?,
-			bonus_pct = ?, note = ?, announce = ?, updated = ?, camp = ? WHERE id = ?`,
-			z.Name, b(z.Enabled), z.Kind, z.World, z.X, z.Y, z.Z, z.Radius, z.Quests, z.BonusPct, z.Note, b(z.Announce), z.Updated, z.Camp, id); err != nil {
+			bonus_pct = ?, note = ?, announce = ?, updated = ?, camp = ?, level60 = ? WHERE id = ?`,
+			z.Name, b(z.Enabled), z.Kind, z.World, z.X, z.Y, z.Z, z.Radius, z.Quests, z.BonusPct, z.Note, b(z.Announce), z.Updated, z.Camp,
+			b(z.Level60), id); err != nil {
 			return 0, err
 		}
 	}

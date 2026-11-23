@@ -23,6 +23,9 @@ import (
 //
 //   - Who earns: a character below 60, or a 60 while it relives (relive.go), never a GM's
 //     (entity.MarksEarner). Hardcore characters earn as everyone. Marks are the character's own.
+//     A 60 not reliving earns kill marks only for a creature spawned in an enabled camp Hot zone
+//     of level60 1 (the GMs' "this camp is for 60s", jibrish 2026-11-23: "unless we designate
+//     otherwise"), as an earner does there, and never a quest's.
 //   - A quest (QuestDone, from the quest engine at a quest's last step): its first finish, not
 //     repeatable, at a level (a Relive's) no more than its minlevel + 5, pays quests.marks or the
 //     computed figure (database.QuestMarksFor), at most twice the real minutes since it was taken
@@ -31,9 +34,10 @@ import (
 //     the kill's weight (at most 1.5: 30%); KillMarksAnHour (38) kill marks an hour, past which a
 //     kill does not roll. Only a creature's kill rolls: no player's death gives experience, so no
 //     PvP kill, duel or arena death ever gives a mark.
-//   - Bonuses: x(1 + 0.10 x the other earners of the group within 200 in its world), at most
-//     x1.3, times x(1 + bonus/100) of the best enabled Hot zone that fits (a camp zone the creature's
-//     spawn, a quest zone the quest's import key or id); the fraction carried in charmarks.frac.
+//   - Bonuses: x(1 + 0.10 x the other earners of the group within 200 in its world; in a zone open
+//     to 60s its 60s count too), at most x1.3, times x(1 + bonus/100) of the best enabled Hot zone
+//     that fits (a camp zone the creature's spawn, a quest zone the quest's import key or id); the
+//     fraction carried in charmarks.frac.
 //   - /marks (marksCommand), the Hot zones (hotzones.go), the Heirloom Keeper (keeper.go) and Relive
 //     (relive.go).
 //
@@ -55,7 +59,7 @@ const (
 const (
 	marksEarnLine    = "You earn %d Heirloom Marks."
 	marksEarnOne     = "You earn 1 Heirloom Mark."
-	marksAt60Line    = "You earn marks below level 60, or while you relive at a Rehabilitator."
+	marksAt60Line    = "You earn marks below level 60, or while you relive at a Rehabilitator. At 60, kills earn them only in a Hot zone open to level 60s."
 	marksOffLine     = "Heirloom Marks are not kept on this server."
 	marksNoZonesPart = "Hot zones: none."
 )
@@ -82,6 +86,10 @@ type HeirloomMarks struct {
 	dump    func(sess *session.Session)
 	refresh func(p *entity.Player)
 	travel  func(sess *session.Session, p *entity.Player, dest entity.CoachDest)
+
+	// zones60 is the enabled camp zones of level60 1 at the last read of the table, for a 60's kill
+	// heard under the World's lock (killHeard), which reads no table
+	zones60 atomic.Pointer[[]database.HotZone]
 
 	mu      sync.Mutex
 	zones   []database.HotZone
@@ -158,16 +166,49 @@ func (m *HeirloomMarks) queue(fn func()) {
 
 // --- kills ---
 
-// killHeard is the World's kill (its lock held): rolled and written on the worker.
+// killHeard is the World's kill (its lock held): rolled and written on the worker. A 60's (At60)
+// goes no further unless a zone open to 60s took its spawn at the last read, so the 60s' kills
+// elsewhere cost nothing.
 func (m *HeirloomMarks) killHeard(k entity.KillMarks) {
 	if !HeirloomMarksOn() {
+		return
+	}
+	if k.At60 && !fits60(m.zones60.Load(), k) {
 		return
 	}
 	m.queue(func() { m.killRoll(k) })
 }
 
-// killRoll is a kill's roll: under the hour's cap, at 20% x its weight, a mark x the bonuses.
+// fits60 is whether one of zones opens k's creature's spawn to level 60s.
+func fits60(zones *[]database.HotZone, k entity.KillMarks) bool {
+	if zones == nil {
+		return false
+	}
+	for _, z := range *zones {
+		if z.Fits60(int(k.World), k.SpawnX, k.SpawnZ) {
+			return true
+		}
+	}
+	return false
+}
+
+// killRoll is a kill's roll: under the hour's cap, at 20% x its weight, a mark x the bonuses. A
+// 60's (At60) rolls only in a zone open to 60s, where the group's 60s count for the group bonus too.
 func (m *HeirloomMarks) killRoll(k entity.KillMarks) {
+	open60 := false
+	for _, z := range m.hotZones() {
+		if z.Fits60(int(k.World), k.SpawnX, k.SpawnZ) {
+			open60 = true
+			break
+		}
+	}
+	if k.At60 && !open60 {
+		return
+	}
+	others := k.Group
+	if open60 {
+		others = k.Group60
+	}
 	now := m.now()
 	row, err := m.db.CharMarksOf(k.ServerID)
 	if err != nil {
@@ -180,7 +221,7 @@ func (m *HeirloomMarks) killRoll(k entity.KillMarks) {
 	if m.roll() >= killMarkChance*k.Weight {
 		return
 	}
-	group := groupFactor(k.Group)
+	group := groupFactor(others)
 	hot, zone := m.bestZone(func(z database.HotZone) bool { return z.FitsSpawn(int(k.World), k.SpawnX, k.SpawnZ) })
 	ref := fmt.Sprintf("npc %d %s", k.NPCRow, k.NPCName)
 	n, after, ok, err := m.db.AwardMarks(k.ServerID, database.MarksAward{Source: "kill", Base: 1, Bonus: group * hot, Ref: ref}, now)
@@ -190,8 +231,12 @@ func (m *HeirloomMarks) killRoll(k entity.KillMarks) {
 		}
 		return
 	}
-	log.Printf("Marks: %s +%d source=kill ref=%d group=%.2f hot=%.2f hour=%d/%d%s", k.Name, n, k.NPCRow, group, hot,
-		after.KillHourNow(now), database.KillMarksAnHour, zoneNote(zone))
+	at60 := ""
+	if k.At60 {
+		at60 = " level60"
+	}
+	log.Printf("Marks: %s +%d source=kill ref=%d group=%.2f hot=%.2f hour=%d/%d%s%s", k.Name, n, k.NPCRow, group, hot,
+		after.KillHourNow(now), database.KillMarksAnHour, zoneNote(zone), at60)
 	tellEarned(k.Sess, n, group, hot)
 }
 
@@ -306,7 +351,11 @@ func (m *HeirloomMarks) hotZones() []database.HotZone {
 	// announced once; the first read only takes note
 	var up []database.HotZone
 	on := map[int]bool{}
+	open60 := []database.HotZone{}
 	for _, zz := range z {
+		if zz.Enabled && zz.Level60 && zz.Kind == database.HotZoneCamp {
+			open60 = append(open60, zz)
+		}
 		if zz.Enabled {
 			on[zz.ID] = true
 			if m.zonesOn != nil && !m.zonesOn[zz.ID] && zz.Announce {
@@ -315,6 +364,7 @@ func (m *HeirloomMarks) hotZones() []database.HotZone {
 		}
 	}
 	m.zones, m.zonesAt, m.zonesOn = z, m.now(), on
+	m.zones60.Store(&open60)
 	m.mu.Unlock()
 	for _, zz := range up {
 		m.announce(zz)
@@ -363,9 +413,17 @@ func (m *HeirloomMarks) zonesPart() string {
 	}
 	parts := make([]string, len(on))
 	for i, z := range on {
-		parts[i] = fmt.Sprintf("%s (+%d%%)", z.Name, z.BonusPct)
+		parts[i] = fmt.Sprintf("%s (+%d%%%s)", z.Name, z.BonusPct, open60Part(z))
 	}
 	return "Hot zones: " + strings.Join(parts, ", ") + "."
+}
+
+// open60Part is ", level 60 too" for a zone open to level 60s (/marks, the herald), "" else.
+func open60Part(z database.HotZone) string {
+	if z.Level60 && z.Kind == database.HotZoneCamp {
+		return ", level 60 too"
+	}
+	return ""
 }
 
 // --- /marks ---

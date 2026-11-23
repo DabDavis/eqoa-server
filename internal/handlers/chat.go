@@ -53,6 +53,10 @@ type ChatHandler struct {
 	diceMu sync.Mutex
 	diceAt map[uint32]time.Time
 
+	// pizzaSeen is each character's last /pizza: when, and which fact (pizza.go)
+	pizzaMu   sync.Mutex
+	pizzaSeen map[uint32]pizzaShown
+
 	mu    sync.Mutex
 	modes map[entity.EntityID]byte // each player's last 0x000E
 
@@ -448,6 +452,12 @@ func (h *ChatHandler) typedLine(sess *session.Session, player *entity.Player, li
 	// again, everyone's (welcome.go)
 	if tutorialLine(message) {
 		h.welcome.Show(sess, player)
+		return
+	}
+	// /pizza (or #pizza, a PS2's "/t pizza"): a Chicago pizza fact in a box,
+	// everyone's (pizza.go)
+	if pizzaLine(message) {
+		h.pizzaFact(sess, player, time.Now())
 		return
 	}
 	// /hcchat and /hc (#hc from a PS2, or "/t hc ..."): the Hardcore channel (hcchat.go)

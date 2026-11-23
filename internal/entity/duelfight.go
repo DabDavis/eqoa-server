@@ -60,14 +60,16 @@ func (w *World) duelLandLocked(cs *castState, caster *Player, casterSess *sessio
 	if d.pvp {
 		pvpAttackedLocked(caster, t, now) // pvp.go: both flags held from now
 	}
+	strike := cs.spell.Def.meleeStrike()
 	for _, e := range cs.spell.Def.Effects {
 		switch e.Kind {
 		case EffectHP:
 			if n := spellAmount(e, caster); n < 0 {
 				// the opponent's resist of the component's element, then the fight's share,
-				// once (elemental.go); the legacy model's duels rolled no resist
+				// once (elemental.go); the legacy model's duels rolled no resist, and a
+				// strike rolls none (meleeStrike)
 				dmg := d.hit(-n)
-				if !legacyResists() && elementStat(e.Resist) {
+				if !legacyResists() && elementStat(e.Resist) && !strike {
 					dmg = resolvePlayerElemental(playerElem{d0: -n, resist: t.StatNow(e.Resist), fight: d.share()}).Taken
 				}
 				if e.Drain != DrainNone {
@@ -302,4 +304,19 @@ func (w *World) duelPetCommandLocked(ps *petState, target Entity) bool {
 	ps.target = 0
 	ps.heldUntil = time.Time{}
 	return true
+}
+
+// meleeStrike is whether a harmful spell is a melee strike: a hit of it grows
+// with its caster's STR (Vital Strike, the knights' strike lines, Strike of
+// the Serpent, Stake). In a duel no part of a strike is resisted (Heirloom
+// petition 2709, 2026-11-23: "vital strike is resisted in duels back on live
+// it wasnt", seen on both sides of a duel): its whole figure lands, at the
+// fight's share. Against a creature it rolls as every spell does (workbook.go).
+func (d *SpellDef) meleeStrike() bool {
+	for _, e := range d.Effects {
+		if e.Kind == EffectHP && e.Amount < 0 && e.Scale == StatStr {
+			return true
+		}
+	}
+	return false
 }

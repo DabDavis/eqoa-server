@@ -428,3 +428,32 @@ func TestAnHeirloomStopsAt49(t *testing.T) {
 		t.Errorf("the control at 20: the helm's AC %d, want the helm of 20's 40", val(h.AC))
 	}
 }
+
+// Heirloom petition 2680 (2026-11-22): a held heirloom of a weapon's role (the
+// casters' Rod of Elemental Union, of the twohand role) shows no damage, the
+// level's best of the role's notwithstanding; its stats are the heirlooms'.
+func TestAHeldHeirloomShowsNoDamage(t *testing.T) {
+	f := newHeirloomFixture(t)
+	items := database.NewItemPatternStore(f.db)
+	for _, r := range []database.ItemPatternRecord{
+		{PatternID: 900030, ItemName: "staff 9", EquipSlot: 15, LevelReq: 9, WeaponDamage: 300, AttackType: 3,
+			ClassUse: 1, Rent: 1, RaceUse: 32767, MaxStack: 1},
+		{PatternID: 714005, ItemName: "Heirloom Rod", EquipSlot: wearHeld, LevelReq: 1, ClassUse: 1, Rent: 1, RaceUse: 32767, MaxStack: 1},
+	} {
+		if err := items.UpsertItemPattern(&r); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := f.db.Exec(`INSERT INTO heirlooms (patternid, class, role) VALUES (714005, 0, 'twohand')`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.inv.AddCharItem(f.sid, 714005, 1, 100, 0, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.h = NewHeirlooms(f.db)
+	f.h.Start(nil, nil)
+	f.h.Note(f.sid, 0, 0, 20)
+	if e := f.held()[714005]; e.WeaponDamage != 0 || val(e.Str) != 5 {
+		t.Errorf("the held heirloom at 20: damage %d STR %d; want none and the share's 5", e.WeaponDamage, val(e.Str))
+	}
+}

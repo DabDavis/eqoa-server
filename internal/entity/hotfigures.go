@@ -27,9 +27,14 @@ package entity
 //     runs at any health, and a pet's, a merc's or a merc's pet's (owned, so
 //     never regenQuiet: npcsets.go) at any health too, its hit points capped.
 //
+// A meal's or a drink's heal over time (FoodEffectID, DrinkEffectID: a
+// grocer's food, a ranger's foraged berries) is told its eater too, its own
+// figure at each regen tick (tellPlayerMealHoTLocked) and at the first tick a
+// meal gives at once (Consume): Heirloom petition 2688, 2026-11-22, "'foraged
+// berries' heal fine ... but the heal numbers dont show up".
+//
 // Natural regeneration shows nothing: a 50th of the maximum, worn items',
-// combat masteries', a meal's or a drink's (FoodEffectID, DrinkEffectID), a
-// workbook pet's row.
+// combat masteries', a workbook pet's row.
 
 // tellNPCHoTLocked tells a heal over time's tick of n on npc (the file's doc).
 // Must be called with the lock held.
@@ -149,6 +154,30 @@ func (w *World) tellPlayerStatHoTLocked(p *Player) {
 		w.sendDamageIndication(sess, sess.PlayerObjectID(), n, sess.PlayerObjectID(), kind)
 	}
 	w.tellStatHoTCastersLocked(p.Effects, p.ServerID, p.ServerID)
+}
+
+// mealHoT is what a player's meal and drink add to a regen tick in hit points
+// (their Mods.HoT above nothing; statHoT leaves them out).
+func mealHoT(effects []*ActiveEffect) (n int) {
+	for _, ae := range effects {
+		if ae != nil && ae.Mods.HoT > 0 && (ae.SpellID == FoodEffectID || ae.SpellID == DrinkEffectID) {
+			n += ae.Mods.HoT
+		}
+	}
+	return n
+}
+
+// tellPlayerMealHoTLocked tells a player its meal's and drink's heal over time
+// at a regen tick, as its own heal over time's tick (the file's doc). Must be
+// called with the lock held.
+func (w *World) tellPlayerMealHoTLocked(p *Player) {
+	n := mealHoT(p.Effects)
+	if n <= 0 {
+		return
+	}
+	if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
+		w.sendDamageIndication(sess, sess.PlayerObjectID(), n, sess.PlayerObjectID(), numberHoT)
+	}
 }
 
 // tellPetStatHoTLocked tells a pet's (a merc's, a merc's pet's) owner its

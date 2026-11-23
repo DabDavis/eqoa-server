@@ -333,6 +333,13 @@ func (w *World) engageLocked(sess *session.Session, p *Player, objectID uint32, 
 		return false
 	}
 	if swing.Held != "" {
+		// a press on what could not be fought anyway (a corpse pressed to loot
+		// as it falls, a creature no one may fight, a pet) is no fight refused:
+		// said nothing (Heirloom petition 2680, 2026-11-22: a held item's words
+		// at every loot press scrolled the chat away)
+		if npc, ok := ent.(*NPC); ok && (npc.Dead || npc.HP <= 0 || npc.NPCType&0x80 != 0 || npc.Owner != 0) {
+			return false
+		}
 		w.heldRefusalLocked(sess, p, swing.Held, now)
 		return false
 	}

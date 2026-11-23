@@ -85,7 +85,8 @@ func TestPetHoTTickIsToldToItsOwner(t *testing.T) {
 }
 
 // A spell's HoT stat is told at the regen tick, its part alone, on a player
-// and on a pet; natural regeneration (a 50th, a meal's) shows nothing.
+// and on a pet; natural regeneration (a 50th) shows nothing; a meal's is told
+// its eater as its own figure (petition 2688).
 func TestStatHoTIsToldNaturalRegenIsNot(t *testing.T) {
 	r := newTagRig(t)
 	regen := func() {
@@ -99,8 +100,8 @@ func TestStatHoTIsToldNaturalRegenIsNot(t *testing.T) {
 	r.p.Effects = []*ActiveEffect{{SpellID: FoodEffectID, Name: "Test Meal", Caster: r.p.ServerID, Until: r.later, Mods: StatMods{HoT: 30}}}
 	r.p.Mods = sumEffectMods(r.p.Effects)
 	regen()
-	if got := figTags(t, r.sess); len(got) != 0 {
-		t.Errorf("natural regeneration and a meal: told %v, want nothing", got)
+	if got := figTags(t, r.sess); len(got) != 1 || got[0].src != r.me || got[0].dst != r.me || got[0].amount != 30 || got[0].tag != 7 {
+		t.Errorf("natural regeneration and a meal: told %v, want the meal's alone, (me, 30, me) tag 7", got)
 	}
 	if r.p.HP <= 100 || r.pet.HP <= 100 {
 		t.Fatalf("no regen ran: HP %d, pet %d", r.p.HP, r.pet.HP)
@@ -112,13 +113,16 @@ func TestStatHoTIsToldNaturalRegenIsNot(t *testing.T) {
 	r.p.HP = r.p.MaxHP // at full health too
 	regen()
 	got := figTags(t, r.sess)
-	if len(got) != 2 {
-		t.Fatalf("a spell's HoT on the player and the pet: told %v, want two", got)
+	if len(got) != 3 {
+		t.Fatalf("a spell's HoT on the player and the pet, and the meal: told %v, want three", got)
 	}
 	if f := got[0]; f.src != r.me || f.dst != r.me || f.amount != 40 || f.tag != 7 {
 		t.Errorf("the player's: %v, want (me, 40, me) tag 7", f)
 	}
-	if f := got[1]; f.src != r.me || f.dst != r.petO || f.amount != 50 || f.tag != 7 {
+	if f := got[1]; f.dst != r.me || f.amount != 30 || f.tag != 7 {
+		t.Errorf("the meal's: %v, want (me, 30, me) tag 7", f)
+	}
+	if f := got[2]; f.src != r.me || f.dst != r.petO || f.amount != 50 || f.tag != 7 {
 		t.Errorf("the pet's: %v, want (me, 50, pet) tag 7", f)
 	}
 }
@@ -257,5 +261,24 @@ func TestStatHoTOnAWholeMercIsToldItsCasterAndOwner(t *testing.T) {
 	}
 	if hp != most {
 		t.Errorf("merc HP %d, want capped at %d", hp, most)
+	}
+}
+
+// A meal's first tick, given at once, is told its eater (petition 2688: a
+// ranger's foraged berries healed with no figure); a drink's power is not.
+func TestAMealsFirstTickIsTold(t *testing.T) {
+	r := newTagRig(t)
+	r.p.HP = 100
+	if err := r.w.Consume(r.sess, Consumable{Name: "foraged berries", Amount: 25}, r.t0); err != nil {
+		t.Fatal(err)
+	}
+	if got := figTags(t, r.sess); len(got) != 1 || got[0].src != r.me || got[0].dst != r.me || got[0].amount != 25 || got[0].tag != 7 {
+		t.Errorf("a meal eaten: told %v, want (me, 25, me) tag 7", got)
+	}
+	if err := r.w.Consume(r.sess, Consumable{Drink: true, Name: "well water", Amount: 9}, r.t0); err != nil {
+		t.Fatal(err)
+	}
+	if got := figTags(t, r.sess); len(got) != 0 {
+		t.Errorf("a drink drunk: told %v, want nothing", got)
 	}
 }

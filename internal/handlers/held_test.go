@@ -45,3 +45,27 @@ func TestAHeldItemAloneCannotFight(t *testing.T) {
 		t.Fatalf("a blade and the orb did not engage (fighting %d)", f.player.AttackTarget)
 	}
 }
+
+// Heirloom petition 2680 (2026-11-22): a press on a corpse (a loot press as the
+// creature falls) holding a held item alone is said nothing; the living
+// creature's is still refused aloud.
+func TestAHeldItemsLootPressIsQuiet(t *testing.T) {
+	f := newSwitchFixture(t, ClassWizard)
+	f.own(f.pattern("Test Orb", 18, 0, 0), equipHeldOff)
+	f.loadList()
+	s := swingOf(f.w, f.inv, f.sess, f.player)
+	f.sess.Queue().GetPending()
+	f.npc.Dead, f.npc.HP = true, 0
+	now := time.Now()
+	if f.w.EngageAttack(f.sess, f.npcO, s, now) {
+		t.Fatal("a press on a corpse engaged")
+	}
+	if got := heard(t, f.sess); len(got) != 0 {
+		t.Fatalf("a press on a corpse was told %+v, want nothing", got)
+	}
+	f.npc.Dead, f.npc.HP = false, f.npc.MaxHP
+	f.w.EngageAttack(f.sess, f.npcO, s, now.Add(3*time.Second))
+	if got := heard(t, f.sess); len(got) != 1 || got[0].text != "You can't fight while holding Test Orb." {
+		t.Fatalf("a press on the living creature: told %+v", got)
+	}
+}

@@ -141,6 +141,67 @@ func TestMasteryCapAtTheLevel(t *testing.T) {
 			t.Errorf("a 1000 shard, level %d: %d, want %d", lvl, got, want)
 		}
 	}
+
+	// world.mastery_per_level 0 (Heirloom, petition 2726): no cap by level
+	t.Cleanup(func() { SetMasteryPerLevel(nil) })
+	SetMasteryCap(0)
+	zero := 0
+	SetMasteryPerLevel(&zero)
+	for _, lvl := range []int{1, 30, 59, 60} {
+		if got := MasteryCapAt(lvl); got != 2000 {
+			t.Errorf("no cap by level, level %d: %d, want 2000", lvl, got)
+		}
+	}
+	SetMasteryCap(1500)
+	for _, lvl := range []int{1, 30, 59, 60} {
+		if got := MasteryCapAt(lvl); got != 1500 {
+			t.Errorf("no cap by level on a 1500 shard, level %d: %d, want 1500", lvl, got)
+		}
+	}
+	SetMasteryPerLevel(nil)
+	if MasteryPerLevel != 25 {
+		t.Errorf("unset: %d a level, want 25", MasteryPerLevel)
+	}
+	neg := -5
+	SetMasteryPerLevel(&neg)
+	if MasteryPerLevel != 0 {
+		t.Errorf("-5: %d a level, want 0", MasteryPerLevel)
+	}
+}
+
+// With world.mastery_per_level 0 (Heirloom, petition 2726) a character below
+// 60 holding more than 25 a level (a GM's grant) still earns masteries up to
+// MasteryCap: at 100% nothing goes to the level, a lower share divides the
+// award, the bar is the masteries'. The control: at 0% all of it is the level's.
+func TestNoCapByLevelSendsTheShareToTheMasteries(t *testing.T) {
+	t.Cleanup(func() { SetMasteryPerLevel(nil) })
+	zero := 0
+	SetMasteryPerLevel(&zero)
+	for _, c := range []struct {
+		m                      Mastery
+		level, debt, xp        int
+		wantM, wantL, wantDebt int
+	}{
+		{Mastery{Percent: 100, Points: 1, Spent: 1250}, 46, 0, 6000, 6000, 0, 0},
+		{Mastery{Percent: 25, Points: 1250}, 30, 0, 1000, 250, 750, 0},
+		{Mastery{Percent: 100, Points: 1250}, 30, 1000, 1000, 500, 0, 500},
+		{Mastery{Percent: 0, Points: 1250}, 30, 0, 1000, 0, 1000, 0},
+	} {
+		s := splitXP(c.m, c.level, c.debt, c.xp)
+		if s.Mastery != c.wantM || s.Level != c.wantL || s.Debt != c.wantDebt || s.Lost != 0 {
+			t.Errorf("%+v at %d owing %d, %d: %+v, want mastery %d level %d debt %d",
+				c.m, c.level, c.debt, c.xp, s, c.wantM, c.wantL, c.wantDebt)
+		}
+	}
+	m := Mastery{Percent: 100, Points: 1, Spent: 1250, XP: CMPointXP(1252) - 100}
+	if made := gainMastery(&m, 30000, 46); made != 1 || m.Points+m.Spent != 1252 {
+		t.Errorf("a point past 25 a level: made %d, holding %d", made, m.Points+m.Spent)
+	}
+	p := &Player{Level: 30, XPInLevel: 12345}
+	p.Mastery = Mastery{Points: 1250, Percent: 100, XP: CMPointXP(1251) / 2}
+	if got := p.BarXP(); got == 12345 || got == 0 {
+		t.Errorf("level 30 holding 1250 at 100%%: the bar %d, want the masteries'", got)
+	}
 }
 
 // Below the level cap with no debt the share divides each award (0-100 by

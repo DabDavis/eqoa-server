@@ -127,6 +127,12 @@ world:
   # The most Combat Mastery points a character holds, spent and unspent
   # together (entity.MasteryCap): Heirloom 2000, the Live shard 1500.
   # mastery_cap: 2000
+  # The most Combat Mastery points a character below level 60 holds for each
+  # of its levels (entity.MasteryPerLevel); past it, its experience goes to its
+  # level (all of it to the masteries: lost). Unset: 25 (the live game's: the
+  # Live shard). 0: no cap by level, so 100% to masteries never levels
+  # (Heirloom).
+  # mastery_per_level: 25
   # The share of the carried tunar a death to a creature or the world takes
   # (entity/deathtunar.go): never at a PvP death or a duel's, in a CTF arena,
   # or from the bank. Unset: 50 (half, as the live game); 0 turns it off.

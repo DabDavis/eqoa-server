@@ -808,6 +808,12 @@ type WorldConfig struct {
 	// Heirloom's 2000). Unset or 0: 2000.
 	MasteryCap int `yaml:"mastery_cap"`
 
+	// MasteryPerLevel is the most Combat Mastery points a character below the
+	// level cap holds for each of its levels (entity.MasteryPerLevel; work board
+	// #1816: 25, the live game's). 0: no cap by level, MasteryCap at every level
+	// (Heirloom; petition 2726). Unset: 25.
+	MasteryPerLevel *int `yaml:"mastery_per_level"`
+
 	// DeathTunarPct is the share of the carried tunar a PvE death takes
 	// (entity/deathtunar.go; work board #1762, the owner 2026-11-21): none at
 	// a PvP death or a duel's, in a CTF arena, or from the bank. Unset: 50

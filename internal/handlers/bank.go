@@ -159,20 +159,22 @@ func (h *NPCWindowHandler) bankItem(sess *session.Session, id uint32, fromBank b
 	took := dst.wouldAdd(p.PatternID, n, p.MaxStack)
 	if !fromBank && sharedBank(player) {
 		// the account's bank (accountbank.go): never a record past its size,
-		// and one past the page goes in unshown
+		// and one past the page goes in unshown, onto the bank's stack of it
+		// when it has one with room (bankDepositUnshown). A page with room
+		// shows every record (syncBankPage fills it round from its place), so
+		// a stack the page does not show is only ever one past a full page.
+		if took == 0 {
+			return h.bankDepositUnshown(sess, player, src, i, rec, row, n)
+		}
 		have, err := h.inv.BankRowCount(player.CharServerID)
 		if err != nil {
 			log.Printf("BankItem: %s's bank: %v", player.Name, err)
 			return false
 		}
-		newRecord := took == 0 || dst.stackOnto(p.PatternID, p.MaxStack) < 0
-		if newRecord && have >= database.AccountBankSlots() {
+		if dst.stackOnto(p.PatternID, p.MaxStack) < 0 && have >= database.AccountBankSlots() {
 			log.Printf("BankItem: %s: the account's bank holds %d, its most", player.Name, have)
 			SendErrorMessage(sess, fmt.Sprintf("Your account's bank is full: it holds %d items.", database.AccountBankSlots()))
 			return false
-		}
-		if took == 0 {
-			return h.bankDepositUnshown(sess, player, src, i, rec, row, n)
 		}
 	}
 	if took == 0 {
@@ -228,18 +230,75 @@ func (h *NPCWindowHandler) bankItem(sess *session.Session, id uint32, fromBank b
 	return true
 }
 
-// bankDepositUnshown is a deposit into the account's bank whose page has no
-// room for it (accountbank.go): n of the pack's record at i into a row of the
-// bank's (the whole row when n is all of it), the pack told (0x003C) and the
-// bank's wait ended (0x1253, its tunar as it is), and the player told where it
-// went. With bankMu held; the account's bank has room (bankItem counted it).
+// bankStackTop is n more onto a bank row's stack (bankStackRoom).
+type bankStackTop struct{ itemID, now, add int }
+
+// bankStackRoom is how up to n of a stackable item join the account bank's
+// stacks of it that have room, in list order (each topped up to maxStack):
+// the bank keeps a stack whole, as the pack does (VIItemList::AddItem joins a
+// record of the same item), and a deposit past the page joins one too
+// (petition 2804). None for an item that does not stack.
+func bankStackRoom(rows []database.CharInventoryEntry, patternID, maxStack, n int) []bankStackTop {
+	if maxStack < 2 || n < 1 {
+		return nil
+	}
+	var out []bankStackTop
+	for k := range rows {
+		e := &rows[k]
+		if e.Pattern.PatternID != patternID || e.EquipLoc >= 0 || e.StackLeft < 1 || e.StackLeft >= maxStack {
+			continue
+		}
+		add := min(n, maxStack-e.StackLeft)
+		out = append(out, bankStackTop{itemID: e.ItemID, now: e.StackLeft + add, add: add})
+		if n -= add; n == 0 {
+			break
+		}
+	}
+	return out
+}
+
+// bankDepositUnshown is a deposit into the account's bank that the page does
+// not show (accountbank.go): its page has no room for it, or the item's stack
+// with room is elsewhere in the bank. n of the pack's record at i go onto the
+// bank's stacks of the item with room (bankStackRoom), and what is left into a
+// new row (the whole row when it is all of the record) while the bank holds
+// fewer than AccountBankSlots records (what does not fit stays in the pack);
+// the pack told (0x003C) and the bank's wait ended (0x1253, its tunar as it
+// is), and the player told where it went. With bankMu held.
 func (h *NPCWindowHandler) bankDepositUnshown(sess *session.Session, player *entity.Player, inv *invList, i int, rec invRec, row database.CharInventoryEntry, n int) bool {
 	p := &row.Pattern
-	if p.MaxStack < 2 {
+	if p.MaxStack < 2 || n > rec.qty {
 		n = rec.qty // a record of an item that does not stack crosses whole
 	}
-	if n >= rec.qty {
-		n = rec.qty
+	var tops []bankStackTop
+	if p.MaxStack >= 2 {
+		rows, err := h.inv.GetBankItems(player.CharServerID)
+		if err != nil {
+			log.Printf("BankItem: %s's bank: %v", player.Name, err)
+			return false
+		}
+		tops = bankStackRoom(rows, p.PatternID, p.MaxStack, n)
+	}
+	left := n
+	for _, t := range tops {
+		left -= t.add
+	}
+	have, err := h.inv.BankRowCount(player.CharServerID)
+	if err != nil {
+		log.Printf("BankItem: %s's bank: %v", player.Name, err)
+		return false
+	}
+	if left > 0 && have >= database.AccountBankSlots() {
+		if len(tops) == 0 {
+			log.Printf("BankItem: %s: the account's bank holds %d, its most", player.Name, have)
+			SendErrorMessage(sess, fmt.Sprintf("Your account's bank is full: it holds %d items.", database.AccountBankSlots()))
+			return false
+		}
+		n -= left // the stacks take what they have room for; the rest stays in the pack
+		left = 0
+	}
+	if len(tops) == 0 && n == rec.qty {
+		// the whole record crosses as it is: the row changes location
 		if err := h.inv.MoveCharItem(player.CharServerID, rec.itemID, database.LocBank); err != nil {
 			log.Printf("BankItem: %s: %v", player.Name, err)
 			return false
@@ -250,17 +309,31 @@ func (h *NPCWindowHandler) bankDepositUnshown(sess *session.Session, player *ent
 			log.Printf("BankItem: %s: %v", player.Name, err)
 			return false
 		}
-		if _, err := h.inv.AddCharItem(player.CharServerID, p.PatternID, n, row.RemainHP, row.Charges, database.LocBank); err != nil {
-			log.Printf("BankItem: %s: %v (%d %q left the pack and arrived nowhere)", player.Name, err, n, p.ItemName)
-			return false
+		for _, t := range tops {
+			if err := h.inv.SetItemStack(player.CharServerID, t.itemID, t.now); err != nil {
+				log.Printf("BankItem: %s: %v (%d %q left the pack and arrived nowhere)", player.Name, err, t.add, p.ItemName)
+				return false
+			}
+		}
+		if left > 0 {
+			if _, err := h.inv.AddCharItem(player.CharServerID, p.PatternID, left, row.RemainHP, row.Charges, database.LocBank); err != nil {
+				log.Printf("BankItem: %s: %v (%d %q left the pack and arrived nowhere)", player.Name, err, left, p.ItemName)
+				return false
+			}
 		}
 	}
 	queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(i, 0, n))
 	queueReliable(sess, protocol.OpcodeConfirmBankTunar, bankTunarPayload(player.BankTunar))
-	have, _ := h.inv.BankRowCount(player.CharServerID)
-	SendColoredChat(sess, fmt.Sprintf("%s went into your account's bank (%d of %d items) past the page you see: /bank last to see it.",
-		p.ItemName, have, database.AccountBankSlots()), 255, 255, 0)
-	log.Printf("BankItem: %s moved %d %q into the account's bank, past its page (%d records)", player.Name, n, p.ItemName, have)
+	have, _ = h.inv.BankRowCount(player.CharServerID)
+	if left == 0 {
+		SendColoredChat(sess, fmt.Sprintf("%s went onto your stack of it in your account's bank (now %d), past the page you see: /bank next or /bank <page> to see it.",
+			p.ItemName, tops[len(tops)-1].now), 255, 255, 0)
+	} else {
+		SendColoredChat(sess, fmt.Sprintf("%s went into your account's bank (%d of %d items) past the page you see: /bank last to see it.",
+			p.ItemName, have, database.AccountBankSlots()), 255, 255, 0)
+	}
+	log.Printf("BankItem: %s moved %d %q into the account's bank, past its page (%d onto %d stacks; %d records)",
+		player.Name, n, p.ItemName, n-left, len(tops), have)
 	syncAccountBankOf(player.CharServerID)
 	return true
 }

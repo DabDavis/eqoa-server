@@ -427,11 +427,26 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 	}
 
 	id := EntityID(record.ServerID)
-	// Remove existing player with same serverID (ghost from old session)
+	// Remove existing player with same serverID (ghost from old session).
+	// Only the same character's: a character whose serverID is an NPC row's
+	// is given a free id (below), which can be another character's serverID,
+	// and that character's login took it for this one's ghost (Heirloom
+	// petition 2817, the 2026-11-23 23:24 keep restart: three players were
+	// removed so, their sessions left on their old Player while the dump
+	// (PlayerSnapshot) and every move (ApplyClientUpdate), looked up by id,
+	// went to the other character: a client sent another character's dump,
+	// in another world, and that character driven by both clients). The
+	// newcomer takes a free id instead.
 	if existing, exists := w.Players[id]; exists {
-		w.SpatialIndex.Remove(id, existing.X, existing.Z)
-		delete(w.Players, id)
-		log.Printf("Entity CreatePlayer: removed ghost player '%s' (serverID=%d)", existing.Name, id)
+		if existing.CharServerID == uint32(record.ServerID) {
+			w.SpatialIndex.Remove(id, existing.X, existing.Z)
+			delete(w.Players, id)
+			log.Printf("Entity CreatePlayer: removed ghost player '%s' (serverID=%d)", existing.Name, id)
+		} else {
+			log.Printf("Entity CreatePlayer: id %d is '%s''s (character %d): '%s' (character %d) takes a free one",
+				id, existing.Name, existing.CharServerID, record.CharName, record.ServerID)
+			id = w.allocFreeIDLocked()
+		}
 	}
 	if _, exists := w.NPCs[id]; exists {
 		id = w.allocFreeIDLocked()

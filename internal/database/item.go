@@ -149,7 +149,12 @@ func (s *ItemPatternStore) GetItemPattern(patternID int) (*ItemPatternRecord, er
 
 // UpsertItemPattern inserts or replaces an item pattern by patternid.
 func (s *ItemPatternStore) UpsertItemPattern(r *ItemPatternRecord) error {
-	_, err := s.db.Exec(`
+	return UpsertItemPattern(s.db, r)
+}
+
+// UpsertItemPattern writes a pattern using the caller's connection or transaction.
+func UpsertItemPattern(db execer, r *ItemPatternRecord) error {
+	_, err := db.Exec(`
 		INSERT OR REPLACE INTO itempattern (
 			patternid, itemcost, unk1, itemicon, unk2, equipslot, unk3,
 			trade, rent, unk4, attacktype, weapondamage, unk5,

@@ -80,6 +80,9 @@ type EffectRules struct {
 	// MitigateRune: a rune's (SpellEffect.Rune), each hit stopped whole with 1
 	// hit point through, the pool spent by the whole hit
 	MitigateRune bool `json:",omitempty"`
+	// MitigateAll: a creature's every hit on the bearer, its spells, procs,
+	// damage over time and shields too, not its melee alone
+	MitigateAll bool `json:",omitempty"`
 	Lull         bool `json:",omitempty"`
 	Breath       bool `json:",omitempty"`
 	Hide         bool `json:",omitempty"`
@@ -186,6 +189,7 @@ func (ae *ActiveEffect) workbookLasting(e SpellEffect, d *SpellDef, caster *Play
 		}
 		ae.Rules.MitigateLeft, ae.Rules.MitigateCapped = most, most > 0
 		ae.Rules.MitigateRune = e.Rune && most > 0
+		ae.Rules.MitigateAll = ae.Rules.MitigateAll || e.MitigateAll
 	case EffectLull:
 		ae.Rules.Lull = true
 	case EffectBreath:
@@ -601,8 +605,17 @@ func (m mitSnap) take(n int) int {
 // bestMitigation is the mitigation a melee hit on p meets now (the strongest
 // one with any left), nil for none; it changes nothing.
 func bestMitigation(p *Player, now time.Time) *ActiveEffect {
+	return bestMitigationOf(p, now, false)
+}
+
+// bestMitigationOf is bestMitigation; allOnly counts only the mitigations of
+// every hit (MitigateAll), for a hit other than melee.
+func bestMitigationOf(p *Player, now time.Time, allOnly bool) *ActiveEffect {
 	var best *ActiveEffect
 	for _, e := range p.Effects {
+		if allOnly && !e.Rules.MitigateAll {
+			continue
+		}
 		if e.Rules.MitigatePct <= 0 || !now.Before(e.Until) || e.Rules.MitigateCapped && e.Rules.MitigateLeft <= 0 {
 			continue
 		}
@@ -616,7 +629,23 @@ func bestMitigation(p *Player, now time.Time) *ActiveEffect {
 // mitigateSnapLocked is mitigateLocked, also giving the mitigation as it was
 // before the hit (mitSnap).
 func (w *World) mitigateSnapLocked(p *Player, n int, now time.Time) (int, mitSnap) {
-	best := bestMitigation(p, now)
+	return w.mitigateOfLocked(p, n, now, false)
+}
+
+// mitigateAllLocked is a creature's hit of n on a player other than its melee
+// (a spell, a proc, a damage over time, a shield's answer) less what its
+// mitigations of every hit (MitigateAll: Forest's Might, Heirloom petition
+// 2716) take off, as mitigateLocked takes a melee hit's. Must be called with
+// the lock held.
+func (w *World) mitigateAllLocked(p *Player, n int, now time.Time) int {
+	n, _ = w.mitigateOfLocked(p, n, now, true)
+	return n
+}
+
+// mitigateOfLocked is mitigateSnapLocked; allOnly meets only the mitigations
+// of every hit (bestMitigationOf).
+func (w *World) mitigateOfLocked(p *Player, n int, now time.Time, allOnly bool) (int, mitSnap) {
+	best := bestMitigationOf(p, now, allOnly)
 	if best == nil {
 		return n, mitSnap{}
 	}

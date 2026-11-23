@@ -1171,3 +1171,42 @@ func TestMitigationCapByTheCastersStat(t *testing.T) {
 		}
 	}
 }
+
+// Heirloom petition 2716 (Forest's Might: "should do 75% reduction on auto
+// attacks and everything else; right now seems to just work on auto
+// attacks"): a mitigation with all reads as MitigateAll and takes its share
+// off a creature's spell, proc and damage over time on its bearer, its most
+// spent by them as by melee; the controls: one without all leaves those
+// whole, and melee meets both.
+func TestAMitigationOfEveryHit(t *testing.T) {
+	d := SpellDefFrom("Test Might", "", "", `{"v":1,"scope":"self","duration_s":60,"effects":[{"kind":"invulnerable","mitigation":{"pct":75,"max_stat":"agi","max_pct":764,"all":true}}]}`)
+	if len(d.Effects) != 1 || !d.Effects[0].MitigateAll {
+		t.Fatalf("the effect: %+v, want MitigateAll", d.Effects)
+	}
+	for _, tc := range []struct {
+		what  string
+		all   string
+		spell []int // taken of a spell, a proc and a damage over time of 400 each
+		melee int   // then a melee hit of 1000
+	}{
+		// 764 most: 300 off each of the three (900 > 764: the third takes the 164 left)
+		{"all", `,"all":true`, []int{100, 100, 236}, 1000},
+		{"the control: melee alone", ``, []int{400, 400, 400}, 250},
+	} {
+		c := newCaster(t)
+		c.castOn(t, wbSpell(962, 5, 0, "Test Might", `{"v":1,"scope":"self","duration_s":60,"effects":[{"kind":"invulnerable","mitigation":{"pct":75,"max_stat":"agi","max_pct":764`+tc.all+`}}]}`), 0)
+		for _, e := range c.p.Effects {
+			e.Until = time.Now().Add(time.Hour) // formulaDamage reads the clock
+		}
+		var got []int
+		c.w.mu.Lock()
+		for _, k := range []dmgKind{dkSpell, dkProc, dkDoT} {
+			got = append(got, c.w.formulaDamage(400, dmgIn{src: srcNPC, kind: k, an: c.npc, dp: c.p, raw: 400}))
+		}
+		melee := c.w.mitigateLocked(c.p, 1000, time.Now())
+		c.w.mu.Unlock()
+		if fmt.Sprint(got) != fmt.Sprint(tc.spell) || melee != tc.melee {
+			t.Errorf("%s: spell, proc, DoT taken %v and melee %d, want %v and %d", tc.what, got, melee, tc.spell, tc.melee)
+		}
+	}
+}

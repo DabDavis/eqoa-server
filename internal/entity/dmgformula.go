@@ -846,6 +846,12 @@ var dmgScratch = sync.Pool{New: func() any {
 func (w *World) formulaDamage(base int, in dmgIn) int {
 	x, rec := w.formulaBegin(base, &in)
 	w.formulaFinish(rec, x, mitSnap{})
+	if in.src == srcNPC && in.dp != nil && in.kind != dkMelee {
+		// a creature's hit other than its melee (which meets every mitigation:
+		// npcMeleeOnPlayerLocked) meets its mitigations of every hit (workbook.go
+		// mitigateAllLocked: Forest's Might, Heirloom petition 2716)
+		x = w.mitigateAllLocked(in.dp, x, time.Now())
+	}
 	return x
 }
 

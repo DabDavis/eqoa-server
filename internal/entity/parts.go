@@ -52,6 +52,7 @@ type effectPart struct {
 	MitigatePct      int     `json:",omitempty"`
 	MitigateLeft     int     `json:",omitempty"`
 	MitigateCapped   bool    `json:",omitempty"`
+	MitigateAll      bool    `json:",omitempty"`
 	Lull             bool    `json:",omitempty"`
 	Breath           bool    `json:",omitempty"`
 	Hide             bool    `json:",omitempty"`
@@ -94,7 +95,7 @@ func partOf(a *ActiveEffect, e SpellEffect) *effectPart {
 		Root: a.Root, Snare: a.Snare, Speed: a.Speed, Invis: a.Invis, Proc: a.Proc, ProcMax: a.ProcMax, ProcScale: a.ProcScale,
 		ProcScalePct: a.ProcScalePct, ProcCap: a.ProcCap, ProcUndead: a.ProcUndead, Shield: a.Shield, PowerCap: a.PowerCap,
 		PowerCapped: a.PowerCapped, SpeedPct: r.SpeedPct, MitigatePct: r.MitigatePct, MitigateLeft: r.MitigateLeft,
-		MitigateCapped: r.MitigateCapped, Lull: r.Lull, Breath: r.Breath, Hide: r.Hide, Disguise: r.Disguise, ProcHeal: r.ProcHeal,
+		MitigateCapped: r.MitigateCapped, MitigateAll: r.MitigateAll, Lull: r.Lull, Breath: r.Breath, Hide: r.Hide, Disguise: r.Disguise, ProcHeal: r.ProcHeal,
 		ProcHealDef: r.ProcHealDef, ProcHealScale: r.ProcHealScale, ProcHealScalePct: r.ProcHealScalePct,
 		ProcHealChance: r.ProcHealChance, ProcHealUndead: r.ProcHealUndead, ProcHealGroup: r.ProcHealGroup,
 		Form: e.Kind == EffectIllusion, SetStat: e.Kind == EffectStat && e.Set,
@@ -131,7 +132,7 @@ func mergeParts(ps []*effectPart) effectPart {
 		}
 		m.SpeedPct = min(m.SpeedPct, p.SpeedPct)
 		if p.MitigatePct > m.MitigatePct {
-			m.MitigatePct, m.MitigateLeft, m.MitigateCapped = p.MitigatePct, p.MitigateLeft, p.MitigateCapped
+			m.MitigatePct, m.MitigateLeft, m.MitigateCapped, m.MitigateAll = p.MitigatePct, p.MitigateLeft, p.MitigateCapped, p.MitigateAll
 		}
 		m.Lull, m.Breath, m.Hide, m.Disguise = m.Lull || p.Lull, m.Breath || p.Breath, m.Hide || p.Hide, m.Disguise || p.Disguise
 		if p.ProcHeal != 0 && m.ProcHeal == 0 {
@@ -273,6 +274,7 @@ func (ae *ActiveEffect) takeOff(m, r effectPart) {
 	}
 	if m.MitigatePct != 0 {
 		ae.Rules.MitigatePct, ae.Rules.MitigateLeft, ae.Rules.MitigateCapped = r.MitigatePct, r.MitigateLeft, r.MitigateCapped
+		ae.Rules.MitigateAll = r.MitigateAll
 	}
 	if m.ProcHeal != 0 {
 		ae.Rules.ProcHeal, ae.Rules.ProcHealDef, ae.Rules.ProcHealScale = r.ProcHeal, r.ProcHealDef, r.ProcHealScale

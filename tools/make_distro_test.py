@@ -6,6 +6,7 @@ import subprocess
 import tempfile
 import unittest
 import tarfile
+import zipfile
 
 
 class DistroTest(unittest.TestCase):
@@ -29,14 +30,21 @@ class DistroTest(unittest.TestCase):
                 "server/tools/players-README.txt", "wintest/README.md",
                 "go-eqoa-esf-tools/pkg/buffer/buffer.go", "go-eqoa-esf-tools/pkg/esf/zone.go",
                 "go-eqoa-esf-tools/LICENSE", "go-eqoa-esf-tools/NOTICE",
-                "eqoa-boot/out/EQOABOOT.ELF", "eqoa-boot/dist/README.txt",
-                "eqscene/dist/EQOAHDD.ELF", "eqscene/dist/README.txt", "eqscene/dist/LICENSE.ps2sdk",
-                "eqoa-diag/dist/EQOADIAG.ELF", "eqoa-diag/dist/README.txt",
+                "eqoa-boot/dist/README.txt", "eqscene/dist/README.txt",
+                "eqscene/dist/LICENSE.ps2sdk", "eqoa-diag/dist/README.txt",
             ):
                 put(root / path)
-            for path in ("serve/SD", "serve/SS", "serve/S2", "SD-hdd-mc0", "SD-hddnpc",
-                         "SD-worlds", "ss-s2boot.dat", "S2-race10-nohelm"):
-                put(server / "patches" / path)
+            payloads = {
+                "players/EQOABOOT.template.ELF": root / "eqoa-boot/out/EQOABOOT.ELF",
+                "players/EQOAHDD.ELF": root / "eqscene/dist/EQOAHDD.ELF",
+                "players/EQOADIAG.ELF": root / "eqoa-diag/dist/EQOADIAG.ELF",
+            }
+            for path in ("serve/SD", "serve/SS", "serve/S2", "serve/.delete", "SD-hdd-mc0",
+                         "SD-hddnpc", "SD-worlds", "ss-s2boot.dat", "S2-race10-nohelm"):
+                payloads["patches/" + path] = server / "patches" / path
+            for name, source in payloads.items():
+                source.parent.mkdir(parents=True, exist_ok=True)
+                source.write_bytes(b"\x00\xff" + name.encode())
             for repo in (server, pkg):
                 subprocess.run(["git", "init", "-q", str(repo)], check=True)
                 subprocess.run(["git", "-C", str(repo), "add", "."], check=True)
@@ -64,12 +72,25 @@ esac
                 self.assertFalse(any(name.endswith(".db") for name in archive.getnames()))
                 for name in ("NOTICE", "LICENSE", "_deps/eqoa-pkg/pkg/esf/zone.go"):
                     self.assertIn("go-eqoa-server/" + name, archive.getnames())
+                for name, source in payloads.items():
+                    with archive.extractfile("go-eqoa-server/" + name) as member:
+                        self.assertEqual(member.read(), source.read_bytes(), name)
             verified = out.read_bytes()
             failed = subprocess.run(cmd, cwd=server, env=dict(env, CHECK_STATUS="1"), capture_output=True)
             self.assertNotEqual(failed.returncode, 0)
             self.assertEqual(out.read_bytes(), verified)
             self.assertEqual(unrelated.read_text(), "keep")
             self.assertEqual(list(staging.iterdir()), [unrelated.parent])
+
+            with self.subTest(archive="zip"):
+                if not shutil.which("zip") or not shutil.which("unzip"):
+                    self.skipTest("ZIP packaging requires zip and unzip")
+                zip_out = root / "operators.zip"
+                subprocess.run(["bash", str(script), "--out", str(zip_out)], cwd=server,
+                               env=env, capture_output=True, check=True)
+                with zipfile.ZipFile(zip_out) as archive:
+                    for name, source in payloads.items():
+                        self.assertEqual(archive.read("go-eqoa-server/" + name), source.read_bytes(), name)
 
 
 if __name__ == "__main__":

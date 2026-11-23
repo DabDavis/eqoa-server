@@ -30,6 +30,13 @@ import (
 // while another is there to send. Each lands on its own creature where one is
 // to spare, and that creature and every other of the same kind within
 // portNearReach of it (Foes' names, or any) take the player on: hate, a fight.
+//
+// With Top it sends the one it fights, the top of its hate list, alone (Live
+// petition 5500, the owner 2026-11-22: Dynmath the Tyrant "will port whoever
+// has aggro into his cadre of minions"): a player only, whoever else is on the
+// list; a pet it fights sends no one. Say is its creature's line in /say as a
+// port goes. The trip is the gates' (GateTravel): the server's own move, which
+// the movement check takes as it takes a gate's.
 
 // portNearReach is how near the creature a player is sent beside the others
 // that take it on stand.
@@ -104,8 +111,16 @@ func (w *World) portNearLocked(npc *NPC, m *database.TemplateAbility, now time.T
 		ps = append(ps, p)
 	}
 	sortPlayersByID(ps)
-	if len(ps) > 1 {
+	if m.Top {
+		ps = slices.DeleteFunc(ps, func(p *Player) bool { return p.ServerID != npc.CurrentEnemy })
+	} else if len(ps) > 1 {
 		ps = slices.DeleteFunc(ps, func(p *Player) bool { return p.ServerID == npc.CurrentEnemy })
+	}
+	if len(ps) == 0 {
+		return
+	}
+	if m.Say != "" {
+		w.sayNearLocked(npc.Name, npc.World, npc.X, npc.Z, m.Say)
 	}
 	count := max(m.Count, 1)
 	name := momentName(m)

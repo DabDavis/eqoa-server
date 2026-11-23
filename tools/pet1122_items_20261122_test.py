@@ -73,6 +73,8 @@ def make(path):
              (960201, "Chosen's Baton", 14, 32767, 1, 0, 0, 0, 11, 12), (700997, "Glory of Elddar", 15, 4096, 1, 0, 0, 0, 13, 14),
              (718256, "Katana of Toxicity", 12, 1, 1, 0, 0, 0, 21, 22), (713079, "Katana of Severing", 12, 1, 1, 0, 0, 0, 21, 22),
              (5433, "wakizashi of toxicity", 14, 1, 1, 0, 0, 0, 23, 24),
+             (5447, "longbow of toxicity", 16, 1, 1, 0, 0, 0, 30, 31), (1, "Centaur Longbow", 16, 1, 1, 0, 0, 0, 30, 32),
+             (960200, "Chosen's Rapier", 14, 1, 1, 0, 0, 0, 33, 34), (2, "Dainty Rapier", 12, 1, 1, 0, 0, 0, 35, 36),
              (4775, "Hammer of Piety", 12, 1023, 1, 0, 0, 0, 15, 16), (4765, "Hammer of Divinity", 12, 1023, 1, 0, 0, 0, 17, 18)]
     items += [(701200 + i, n, 8, 1024, 99, 0, 0, 0, 1, 0) for i, n in enumerate(tool.TROPHIES)]
     items += [(50023 + i, n, -1, 16384, 2000, 2, 0, 0, 1, 0) for i, n in enumerate(tool.DRAUGHTS)]
@@ -149,6 +151,8 @@ class T(unittest.TestCase):
         self.assertEqual(self.q("SELECT DISTINCT maxstack FROM itempattern WHERE itemname LIKE '%Draught'"), [(50,)])
         self.assertEqual(self.q("SELECT model FROM itempattern WHERE patternid = 960201"), [(12,)], "a look without --looks")
         self.assertEqual(self.q("SELECT model, itemicon FROM itempattern WHERE patternid = 5433"), [(22, 21)])
+        self.assertEqual(self.q("SELECT model, itemicon FROM itempattern WHERE patternid IN (5447, 960200) ORDER BY 1"),
+                         [(32, 30), (36, 35)])
         self.assertGreater(self.q("SELECT count(*) FROM gm_audit")[0][0], 20)
 
         rc, out = run("--db", self.db, "--shard", "live", "--apply")

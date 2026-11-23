@@ -28,6 +28,10 @@ reads as this tool expects; anything else refuses the whole run.
 
   2703  Wakizashi of Toxicity (and its copies) wears the katana's model and icon (Katana of Toxicity's).
 
+  2704  Longbow of Toxicity (and its copies) wears the longbows' model (Centaur Longbow's), not the shortbows'; Chosen's
+        Rapier (and its copies) the rapiers' (Dainty Rapier's), not the dirk's: the rest of the Toxicity and Chosen's
+        weapons wear their kind's.
+
 --looks (the owner's call, not applied without it: his 2026-11-18 rule keeps epic models off non-epic items, and he
 had Hammer of Piety's Judgement look put back on 2026-11-19, petition 2444):
   2699  Chosen's Baton (and Ascended) take Glory of Elddar's model and icon (the enchanter's 49 staff epic).
@@ -323,6 +327,17 @@ def build(p):
     for r in rows(db, "SELECT * FROM itempattern WHERE lower(itemname) IN ('wakizashi of toxicity', "
                       "'ascended wakizashi of toxicity') ORDER BY patternid"):
         p.update("itempattern", r, {"model": km, "itemicon": ki}, f"2703 {r['itemname']} wears the katana")
+
+    # 2704: the longbow of toxicity wore the shortbows' model (Crude Shortbow's): the longbows' commonest (crude
+    # longbow, Centaur Longbow, Quicksilver longbow); the sweep of its set and the Chosen's: Chosen's Rapier wore the
+    # dirk's, the rapiers' own (Stout Rapier, Dainty Rapier)
+    for names, like, why in ((("longbow of toxicity", "ascended longbow of toxicity"), "Centaur Longbow", "2704"),
+                             (("chosen's rapier", "ascended chosen's rapier"), "Dainty Rapier", "2704 sweep")):
+        src = item(db, like)
+        for r in rows(db, f"SELECT * FROM itempattern WHERE lower(itemname) IN ({', '.join('?' * len(names))}) "
+                          "ORDER BY patternid", names):
+            p.update("itempattern", r, {"model": src["model"], "itemicon": src["itemicon"]},
+                     f"{why} {r['itemname']} wears {like}'s look")
 
     # 2699, 2700, 2701: looks, the owner's call
     if p.looks:

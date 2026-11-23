@@ -152,7 +152,8 @@ class T(unittest.TestCase):
         self.assertEqual(json.loads(dirge[0])["effects"][0]["stat"], "agi")
         self.assertIn("AGI by 10", dirge[1])
         self.assertEqual(self.q("SELECT DISTINCT maxstack FROM itempattern WHERE itemname LIKE '%Draught'"), [(50,)])
-        self.assertEqual(self.q("SELECT model FROM itempattern WHERE patternid = 960201"), [(12,)], "a look without --looks")
+        self.assertEqual(self.q("SELECT model, itemicon FROM itempattern WHERE patternid IN (960201, 4775) ORDER BY 1"),
+                         [(14, 13), (18, 17)], "the owner's looks in every run")
         self.assertEqual(self.q("SELECT model, itemicon FROM itempattern WHERE patternid = 5433"), [(22, 21)])
         self.assertEqual(self.q("SELECT itemicon FROM itempattern WHERE patternid = 700378"), [(40,)])
         self.assertEqual(self.q("SELECT model, itemicon FROM itempattern WHERE patternid IN (5447, 960200) ORDER BY 1"),
@@ -167,8 +168,8 @@ class T(unittest.TestCase):
         self.assertEqual(rc, 0, out)
         self.assertEqual(snapshot(self.db), before)
 
-    def test_heirloom_keeps_its_draughts_and_looks_on_ask(self):
-        rc, out = run("--db", self.db, "--shard", "heirloom", "--looks", "--apply")
+    def test_heirloom_keeps_its_draughts(self):
+        rc, out = run("--db", self.db, "--shard", "heirloom", "--apply")
         self.assertEqual(rc, 0, out)
         self.assertEqual(self.q("SELECT DISTINCT maxstack FROM itempattern WHERE itemname LIKE '%Draught'"), [(2000,)])
         self.assertEqual(self.q("SELECT model, itemicon FROM itempattern WHERE patternid IN (960201, 4775) ORDER BY 1"),

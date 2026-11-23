@@ -34,11 +34,13 @@ reads as this tool expects; anything else refuses the whole run.
 
   2706  U'Dedne's Chalice wore the spell scroll's icon and words: the chalices' icon, a chalice's description.
 
---looks (the owner's call, not applied without it: his 2026-11-18 rule keeps epic models off non-epic items, and he
-had Hammer of Piety's Judgement look put back on 2026-11-19, petition 2444):
+The owner's decisions of 2026-11-23 (over his 2026-11-18 rule keeping epic models off non-epic items for the first
+two, and over Hammer of Piety's Judgement look put back on 2026-11-19, petition 2444, for the third):
   2699  Chosen's Baton (and Ascended) take Glory of Elddar's model and icon (the enchanter's 49 staff epic).
   2701  Chosen's Zwiehander (and Ascended) take Sapphyra's Sword's model and icon.
-  2700  Hammer of Piety takes Hammer of Divinity's model and icon (the plain warhammer).
+  2700  Hammer of Piety, Hammer of Ethereal Conquest and Hammer of Mystical Enlightenment (and their Ascended copies)
+        take Hammer of Divinity's model and icon (the plain warhammer), off Judgement's.
+--looks is accepted and changes nothing (they are in every run since the owner's yes).
 
 What takes effect when: spelleffect is read at every cast; item records at each request (a held copy shows its new
 record at its holder's next login); classspells and the merchant's list within the archivist's 10 minutes; a book's
@@ -81,6 +83,10 @@ LOOKS = [  # (petition, item, the look's record)
     (2701, "Chosen's Zwiehander", "Sapphyra's Sword"),
     (2701, "Ascended Chosen's Zwiehander", "Sapphyra's Sword"),
     (2700, "Hammer of Piety", "Hammer of Divinity"),
+    (2700, "Hammer of Ethereal Conquest", "Hammer of Divinity"),
+    (2700, "Ascended Hammer of Ethereal Conquest", "Hammer of Divinity"),
+    (2700, "Hammer of Mystical Enlightenment", "Hammer of Divinity"),
+    (2700, "Ascended Hammer of Mystical Enlightenment", "Hammer of Divinity"),
 ]
 QUEST_ITEMS_FROM = 700000
 CHALICE_DESC = "A chalice of the House of U'Dedne, carried off by Valraen V`Ghen."
@@ -359,8 +365,8 @@ def build(p):
         raise Refused(f"the chalices' icon: {cup}")
     p.update("itempattern", ch, {"itemicon": cup.pop(), "itemdesc": CHALICE_DESC}, "2706 U'Dedne's Chalice a chalice")
 
-    # 2699, 2700, 2701: looks, the owner's call
-    if p.looks:
+    # 2699, 2700, 2701: looks, the owner's yes of 2026-11-23
+    if True:
         for pet, name, look in LOOKS:
             got = items(db, name)
             if not got:
@@ -462,7 +468,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--db", required=True)
     ap.add_argument("--shard", required=True, choices=("heirloom", "live"))
-    ap.add_argument("--looks", action="store_true", help="also the looks of 2699, 2700, 2701 (the owner's call)")
+    ap.add_argument("--looks", action="store_true", help="no change: the looks are in every run (the owner's yes, 2026-11-23)")
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--apply", action="store_true")
     g.add_argument("--undo", action="store_true")

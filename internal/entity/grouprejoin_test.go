@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"encoding/binary"
 	"testing"
 
 	"github.com/eqoa/server/internal/protocol"
@@ -127,4 +128,62 @@ func withoutRejoinLine(lines []string) []string {
 		}
 	}
 	return out
+}
+
+// takeOver is member i's character taken over by a new client of its own (a
+// reload: TakeOverPlayer), which enters the world; its new session.
+func (r *raidRig) takeOver(i, port int) *session.Session {
+	r.t.Helper()
+	ns := r.open(port)
+	ns.SetCharacterInWorld(false)
+	if p, _ := r.w.TakeOverPlayer(ns, uint32(raidID(i))); p != r.p[i] {
+		r.t.Fatalf("member %d not taken over", i)
+	}
+	r.sess[i] = ns
+	return ns
+}
+
+// Live petition 5533: both members of a group reload (an update) one after the
+// other, each answering yes to its box; each client's roster and group channel
+// name the other.
+func TestTwoReloadsOneAfterTheOtherBothShowTheGroup(t *testing.T) {
+	r := newRaidRig(t, 2, 30)
+	r.form(2)
+	r.sync()
+	r.drainAll()
+	a := r.takeOver(0, 50)
+	a.SetCharacterInWorld(true)
+	r.sync()
+	if n := rejoinBoxes(drain(a)); n != 1 {
+		t.Fatalf("the first reload: %d boxes", n)
+	}
+	r.w.GroupAccept(a, r.w.IDSeenBy(a, r.p[0]))
+	r.sync()
+	b := r.takeOver(1, 51)
+	b.SetCharacterInWorld(true)
+	r.sync()
+	if n := rejoinBoxes(drain(b)); n != 1 {
+		t.Fatalf("the second reload: %d boxes", n)
+	}
+	r.drainAll()
+	r.w.GroupAccept(b, r.w.IDSeenBy(b, r.p[1]))
+	r.sync()
+	for i := 0; i < 2; i++ {
+		ids, names := r.lastRoster(i)
+		t.Logf("member %d: roster %v %v", i, ids, names)
+		if len(names) != 2 {
+			t.Errorf("member %d's roster after both yeses: %v", i, names)
+		}
+		other := r.w.IDSeenBy(r.sess[i], r.p[1-i])
+		data := r.sess[i].Connection().GetServerGroupUpdate().GetData()
+		var recs []uint32
+		for k := 0; k+13 <= len(data); k += 13 {
+			if id := binary.LittleEndian.Uint32(data[k:]); id != 0 {
+				recs = append(recs, id)
+			}
+		}
+		if len(recs) != 1 || recs[0] != other {
+			t.Errorf("member %d's group channel: %v, want the other's %d", i, recs, other)
+		}
+	}
 }

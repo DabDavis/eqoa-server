@@ -138,6 +138,9 @@ func (q *QuestEngine) pointersLocked(look *factionLook, p *entity.Player, c *que
 			if c.dismissed[s.ID] || c.timesDone(s.ID) > 0 || q.endsAtGiverLocked(c, s) {
 				continue
 			}
+			if q.homeCarriesLocked(p, s) {
+				continue
+			}
 			if q.mayTakeLocked(look, p, c, s) != "" {
 				continue
 			}
@@ -145,6 +148,39 @@ func (q *QuestEngine) pointersLocked(look *factionLook, p *entity.Player, c *que
 		}
 	}
 	return out
+}
+
+// homeClassLevelsOf is, by racedefs race, the city class quest levels the
+// enabled quests naming that race (a homeland's) stand for by their
+// classquest events.
+func homeClassLevelsOf(all []*database.Quest) map[int]map[int]bool {
+	out := map[int]map[int]bool{}
+	for _, qu := range all {
+		lvl := classQuestLevel(qu)
+		if !qu.Enabled || lvl == 0 {
+			continue
+		}
+		for _, r := range qu.Races {
+			if r < entity.FirstCustomRace {
+				continue
+			}
+			if out[r] == nil {
+				out[r] = map[int]bool{}
+			}
+			out[r][lvl] = true
+		}
+	}
+	return out
+}
+
+// homeCarriesLocked is whether S is a city class quest of a level the
+// player's homeland's own quests stand for (Heirloom petition 2702: a kerran
+// rogue on Kerra Isle's chain had Qeynos's and Freeport's next rogue quests
+// "pop in my log" with each homeland quest finished, as its classquest event
+// finished the cities' too): the homeland carries it, so no pointer.
+func (q *QuestEngine) homeCarriesLocked(p *entity.Player, s *database.Quest) bool {
+	lvl := database.ClassQuestLevel(s.Source)
+	return lvl > 0 && q.cat.homeClassLevels[p.Race][lvl]
 }
 
 // endsAtGiverLocked is whether a quest S requires that the character has

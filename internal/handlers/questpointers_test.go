@@ -234,3 +234,43 @@ func TestTheLastGiverSendsThePlayerOn(t *testing.T) {
 		t.Errorf("Ozmo sent the player on to a quest under way")
 	}
 }
+
+// Heirloom petition 2702 ("when i accept quests i get random ones that pop in
+// my log as well"): a kerran's homeland quest finishes the cities' class
+// quests of its level (its classquest event), whose follow-ups then pointed
+// to Freeport's and Qeynos's guildmasters though Kerra Isle's own chain
+// carries those levels. A racedefs race with a homeland quest standing for a
+// level gets no pointer to a city class quest of it; the controls: a game
+// race gets it, and so does the kerran for a level its homeland lacks.
+func TestNoPointerToACityClassQuestTheHomelandCarries(t *testing.T) {
+	f, _, _ := pointerFixture(t)
+	const kerran = 12
+	f.exec(`UPDATE quests SET source = 'EQOA-Data 1-20/freeport/rogue/L13 (tools/import_quests.py)' WHERE questid = 20002`)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, races, events, source)
+		VALUES (20050, 'The Old Cat', 1, 'Huntress Kazhra', '12', '[{"on":"finish","do":"classquest","level":13}]', 'EQOA-Data homelands/kerran/L13')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (20050, 1, 'talk', 'Huntress Kazhra', 'x')`)
+	f.exec(`INSERT INTO charquests (serverid, questid, step, done) VALUES (?, 20001, 0, 1)`, f.sid)
+	if err := f.qe.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	pointed := func(race int) bool {
+		t.Helper()
+		f.tw.p.Race = race
+		f.qe.ReloadCharacter(f.sid)
+		_, lines := f.qe.JournalFor(f.tw.s, f.tw.p)
+		return len(lines) == 1 && lines[0] == tilvyisLine
+	}
+	if !pointed(0) {
+		t.Fatal("the control: a human gets no pointer to the city's next class quest")
+	}
+	if pointed(kerran) {
+		t.Error("a kerran is pointed to a city class quest of a level Kerra Isle's chain carries")
+	}
+	f.exec(`UPDATE quests SET events = '[{"on":"finish","do":"classquest","level":15}]' WHERE questid = 20050`)
+	if err := f.qe.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	if !pointed(kerran) {
+		t.Error("the control: a kerran gets no pointer to a level its homeland lacks")
+	}
+}

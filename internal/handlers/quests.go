@@ -237,6 +237,10 @@ type questCatalog struct {
 	// successors is the enabled quests with a giver that require each quest,
 	// by its id (questpointers.go)
 	successors map[int][]*database.Quest
+	// homeClassLevels is, by racedefs race, the levels of the city class
+	// quests its homeland's own quests stand for (their classquest events):
+	// questpointers.go points none of those races to a city's quest of them
+	homeClassLevels map[int]map[int]bool
 	// encounters are the quests whose kills wait on a trigger's spawns
 	// (questencounter.go)
 	encounters []encounterLink
@@ -543,6 +547,7 @@ func (q *QuestEngine) publishLocked() error {
 	}
 	sort.Strings(cat.giverOrder)
 	cat.successors = successorsOf(cat.all)
+	cat.homeClassLevels = homeClassLevelsOf(cat.all)
 	cat.encounters = encounterLinks(cat.all)
 	texts, names := q.questTexts(cat.all)
 	marked, err := q.store.MarkedQuests()

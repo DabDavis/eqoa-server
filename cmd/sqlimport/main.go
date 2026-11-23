@@ -5,8 +5,11 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
+	"io"
 	"log"
+	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -15,41 +18,61 @@ import (
 
 func main() {
 	sqlFile := flag.String("sql", "", "Path to MySQL dump file (EQOA_Master.sql)")
-	dbFile := flag.String("db", "eqoa.db", "Path to SQLite database file")
+	dbFile := flag.String("db", "eqoa.db", "Path for a new SQLite database (must not exist)")
 	flag.Parse()
 
 	if *sqlFile == "" {
 		log.Fatal("Usage: sqlimport -sql <path/to/EQOA_Master.sql> -db <path/to/eqoa.db>")
 	}
 
-	// Remove existing database for fresh import
-	if _, err := os.Stat(*dbFile); err == nil {
-		log.Printf("Removing existing database: %s", *dbFile)
-		os.Remove(*dbFile)
+	if err := importFile(*sqlFile, *dbFile); err != nil {
+		log.Fatal(err)
 	}
+	fmt.Printf("Database written to: %s\n", *dbFile)
+}
 
-	// Open SQLite database
-	db, err := sql.Open("sqlite", *dbFile+"?_pragma=busy_timeout(5000)") // modernc's spelling (internal/database)
+// Build in a private file beside the destination. Publish only after the
+// transaction commits and SQLite closes. A concurrent import cannot replace it.
+func importFile(source, dest string) error {
+	input, err := os.Open(source)
 	if err != nil {
-		log.Fatalf("Failed to open database: %v", err)
+		return err
 	}
-	defer db.Close()
-
-	db.SetMaxOpenConns(1)
-
-	// Enable foreign keys
-	if _, err := db.Exec("PRAGMA foreign_keys = OFF"); err != nil {
-		log.Fatalf("Failed to set pragma: %v", err)
+	defer input.Close()
+	if _, err := os.Lstat(dest); err == nil {
+		return fmt.Errorf("%s already exists: choose a new output path", dest)
+	} else if !os.IsNotExist(err) {
+		return err
 	}
-
-	// Read SQL file
-	f, err := os.Open(*sqlFile)
+	dir, err := filepath.Abs(filepath.Dir(dest))
 	if err != nil {
-		log.Fatalf("Failed to open SQL file: %v", err)
+		return err
 	}
-	defer f.Close()
+	temp, err := os.CreateTemp(dir, ".sqlimport-*.db")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(temp.Name())
+	if err := temp.Close(); err != nil {
+		return err
+	}
+	dsn := url.URL{Scheme: "file", Path: filepath.ToSlash(temp.Name())}
+	db, err := sql.Open("sqlite", dsn.String())
+	if err != nil {
+		return err
+	}
+	if err := importSQL(db, input); err != nil {
+		db.Close()
+		return err
+	}
+	if err := db.Close(); err != nil {
+		return err
+	}
+	return os.Link(temp.Name(), dest)
+}
 
-	scanner := bufio.NewScanner(f)
+func importSQL(db *sql.DB, input io.Reader) error {
+	scanner := bufio.NewScanner(input)
 	// Increase buffer size for very long lines (INSERT INTO with thousands of rows)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, 10*1024*1024) // 10MB max line
@@ -59,13 +82,16 @@ func main() {
 		inCreate    bool
 		tableCounts = make(map[string]int64)
 		lineNum     int
+		created     int
 	)
 
 	// Begin transaction for speed
 	tx, err := db.Begin()
 	if err != nil {
-		log.Fatalf("Failed to begin transaction: %v", err)
+		return err
 	}
+
+	defer tx.Rollback()
 
 	for scanner.Scan() {
 		lineNum++
@@ -97,12 +123,10 @@ func main() {
 				stmt = cleanCreateTable(stmt)
 
 				if _, err := tx.Exec(stmt); err != nil {
-					log.Printf("Line %d: CREATE TABLE error: %v", lineNum, err)
-					log.Printf("Statement: %s", stmt[:min(500, len(stmt))])
-				} else {
-					tableName := extractTableName(stmt)
-					log.Printf("Created table: %s", tableName)
+					return fmt.Errorf("line %d: create table: %w", lineNum, err)
 				}
+				created++
+				log.Printf("Created table: %s", extractTableName(stmt))
 				currentStmt.Reset()
 				continue
 			}
@@ -144,25 +168,29 @@ func main() {
 			if stmt != "" {
 				result, err := tx.Exec(stmt)
 				if err != nil {
-					log.Printf("Line %d: INSERT error: %v", lineNum, err)
-					log.Printf("Statement prefix: %.200s", stmt)
-				} else {
-					rows, _ := result.RowsAffected()
-					tableName := extractInsertTableName(stmt)
-					tableCounts[tableName] += rows
+					return fmt.Errorf("line %d: insert into %s: %w", lineNum, extractInsertTableName(stmt), err)
 				}
+				rows, err := result.RowsAffected()
+				if err != nil {
+					return err
+				}
+				tableCounts[extractInsertTableName(stmt)] += rows
 			}
 			continue
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		log.Fatalf("Scanner error: %v", err)
+		return fmt.Errorf("read dump: %w", err)
+	}
+
+	if inCreate || created == 0 {
+		return fmt.Errorf("incomplete dump or no supported CREATE TABLE statement")
 	}
 
 	// Commit transaction
 	if err := tx.Commit(); err != nil {
-		log.Fatalf("Failed to commit transaction: %v", err)
+		return err
 	}
 
 	// Report counts
@@ -189,7 +217,7 @@ func main() {
 		}
 	}
 
-	fmt.Printf("\nDatabase written to: %s\n", *dbFile)
+	return nil
 }
 
 // shouldSkipLine returns true for lines that should be skipped entirely.
@@ -263,8 +291,7 @@ func convertColumnLine(line string) string {
 	// Skip MySQL KEY definitions (indexes) but convert UNIQUE KEY to UNIQUE constraint
 	if strings.HasPrefix(trimmed, "UNIQUE KEY ") {
 		// Extract column name from UNIQUE KEY `name` (`column`)
-		re := regexp.MustCompile(`UNIQUE KEY \w+ \((\w+)\)`)
-		matches := re.FindStringSubmatch(trimmed)
+		matches := reUniqueKey.FindStringSubmatch(trimmed)
 		if len(matches) > 1 {
 			col := matches[1]
 			// Will be handled as a post-CREATE INDEX statement; skip for now
@@ -300,10 +327,14 @@ func convertColumnLine(line string) string {
 }
 
 var (
-	reIntType    = regexp.MustCompile(`\bint\(\d+\)`)
-	reBigintType = regexp.MustCompile(`\bbigint\(\d+\)`)
-	reFloatPrec  = regexp.MustCompile(`\bfloat\(\d+,\d+\)`)
-	reVarchar    = regexp.MustCompile(`\bvarchar\(\d+\)`)
+	reUniqueKey   = regexp.MustCompile(`UNIQUE KEY \w+ \((\w+)\)`)
+	reFloat       = regexp.MustCompile(`\bfloat\b`)
+	reTable       = regexp.MustCompile(`CREATE TABLE (?:IF NOT EXISTS )?(\w+)`)
+	reInsertTable = regexp.MustCompile(`(?i)INSERT INTO (\w+)`)
+	reIntType     = regexp.MustCompile(`\bint\(\d+\)`)
+	reBigintType  = regexp.MustCompile(`\bbigint\(\d+\)`)
+	reFloatPrec   = regexp.MustCompile(`\bfloat\(\d+,\d+\)`)
+	reVarchar     = regexp.MustCompile(`\bvarchar\(\d+\)`)
 )
 
 // convertTypes converts MySQL types to SQLite types.
@@ -320,7 +351,7 @@ func convertTypes(line string) string {
 	line = strings.ReplaceAll(line, " binary(66)", " BLOB")
 
 	// Handle "float NOT NULL" and "float DEFAULT" at end of type
-	line = regexp.MustCompile(`\bfloat\b`).ReplaceAllString(line, "REAL")
+	line = reFloat.ReplaceAllString(line, "REAL")
 
 	return line
 }
@@ -378,8 +409,7 @@ func convertInsert(line string) string {
 
 // extractTableName extracts the table name from a CREATE TABLE statement.
 func extractTableName(stmt string) string {
-	re := regexp.MustCompile(`CREATE TABLE (?:IF NOT EXISTS )?(\w+)`)
-	matches := re.FindStringSubmatch(stmt)
+	matches := reTable.FindStringSubmatch(stmt)
 	if len(matches) > 1 {
 		return matches[1]
 	}
@@ -388,17 +418,9 @@ func extractTableName(stmt string) string {
 
 // extractInsertTableName extracts the table name from an INSERT statement.
 func extractInsertTableName(stmt string) string {
-	re := regexp.MustCompile(`INSERT INTO (\w+)`)
-	matches := re.FindStringSubmatch(stmt)
+	matches := reInsertTable.FindStringSubmatch(stmt)
 	if len(matches) > 1 {
 		return strings.ToLower(matches[1])
 	}
 	return "unknown"
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }

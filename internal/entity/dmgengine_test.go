@@ -23,23 +23,24 @@ func TestShadowRNGFallbacksAndConcurrentCalls(t *testing.T) {
 	seq := func(shadow bool) []int {
 		gameDice(t, 99)
 		var wg sync.WaitGroup
-		start := make(chan struct{})
+		stop := make(chan struct{})
 		if shadow {
 			for range 4 {
 				wg.Add(1)
 				go func() {
 					defer wg.Done()
 					a, d := &Player{Name: "Other", Level: 10}, &NPC{Name: "Toy Rat", Level: 9}
-					<-start
-					// Exercise concurrent draws without filling the intentionally
-					// lossy log queue whose combat records this test counts.
-					for range 30 {
+					for {
+						select {
+						case <-stop:
+							return
+						default:
+						}
 						r.w.formulaDamage(20, dmgIn{src: srcPlayer, kind: dkSpell, ap: a, dn: d})
 					}
 				}()
 			}
 		}
-		close(start)
 		var out []int
 		for range 30 {
 			p.HP, p.MaxHP = 100_000, 100_000
@@ -50,6 +51,7 @@ func TestShadowRNGFallbacksAndConcurrentCalls(t *testing.T) {
 			out = append(out, 100_000-p.HP, 1_000_000-guard.HP, meleeIntn(1_000_000))
 			r.w.mu.Unlock()
 		}
+		close(stop)
 		wg.Wait()
 		return out
 	}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
+	"github.com/eqoa/server/internal/session"
 )
 
 // pardonFixture is the fixture with the good melees' Pages of Pardon as
@@ -121,9 +122,10 @@ func TestLostBloodlettersComeAgainByTheHighShaman(t *testing.T) {
 	if n := len(f.liveBloodletters()); n != 2 {
 		t.Fatalf("set to step 5, %d bloodletters, want its wave", n)
 	}
-	f.tw.s.SetCharacterInWorld(false)
+	back := f.qe.sessionOf // the player away (a restart): the spawns go
+	f.qe.sessionOf = func(uint32) *session.Session { return nil }
 	f.qe.expireSpawns()
-	f.tw.s.SetCharacterInWorld(true)
+	f.qe.sessionOf = back
 	if n := len(f.liveBloodletters()); n != 0 {
 		t.Fatalf("the player away, %d bloodletters stay", n)
 	}

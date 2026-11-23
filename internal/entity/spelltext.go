@@ -211,6 +211,10 @@ type SpellEffect struct {
 	// Might, 764% of AGI); with AmountMax too, the lower holds. 0, none
 	MitigateStat    Stat
 	MitigateStatPct int
+	// MitigateAll is an EffectMitigate that takes its share off a creature's
+	// every hit, not its melee alone (the effects JSON's mitigation all;
+	// workbook.go mitigateAllLocked)
+	MitigateAll bool
 	// HateOff is the percent of a hit's damage that makes no hate on the
 	// creature it lands on (the workbook JSON's hate_pct, 100 less it): 0, all
 	// of it is hate, as every hit's is; 100, none (a player's Merciless

@@ -1195,6 +1195,10 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 		shares.Mastery = 0
 	}
 	levelXP, cmXP := shares.Level, shares.Mastery
+	if shares.Lost > 0 {
+		log.Printf("XP: %s's %d goes nowhere: all to the masteries, %d points held at level %d's cap (petition 2726)",
+			player.Name, shares.Lost, player.Mastery.Points+player.Mastery.Spent, player.Level)
+	}
 	made := gainMastery(&player.Mastery, cmXP, player.Level) // the level splitXP was given
 	if shares.Debt > 0 {
 		player.Debt = max(0, player.Debt-shares.Debt)

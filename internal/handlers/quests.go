@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"math/rand"
 	"slices"
 	"sort"
@@ -1148,9 +1149,23 @@ func (q *QuestEngine) offerAtLocked(look *factionLook, p *entity.Player, c *ques
 // alike (either seller of a step's item). A step pinned to one spawn (NPCID)
 // takes its target at that spawn only; its others count at any of theirs.
 // stepKill reports a kill a kill or loot step takes: its creature by name
-// (stepNPC), or any creature that died within its area (AnyCreature).
+// (stepNPC), or any creature that died within its area (AnyCreature). A step
+// with a place of its own (queststeps x, z) takes its others (Also) only
+// within huntPlaceReach of it, as its marks show them: a family's name stands
+// all over the world (Heirloom petition 2718: the tomb rats' "large rat" of
+// the River Saren tower's quests dropped their sigils off Halas's rats).
 func stepKill(st *database.QuestStep, k entity.KillCredit) bool {
-	return stepNPC(st, k.NPCName, k.NPCSpawn) || st.TakesKillAt(int(k.World), k.X, k.Z)
+	if st.TakesKillAt(int(k.World), k.X, k.Z) {
+		return true
+	}
+	if !stepNPC(st, k.NPCName, k.NPCSpawn) {
+		return false
+	}
+	if strings.EqualFold(strings.TrimSpace(st.Target), strings.TrimSpace(k.NPCName)) || st.AnyInArea() || (st.X == 0 && st.Z == 0) {
+		return true
+	}
+	dx, dz := float64(k.X-st.X), float64(k.Z-st.Z)
+	return int(k.World) == st.World && math.Hypot(dx, dz) <= huntPlaceReach
 }
 
 func stepNPC(st *database.QuestStep, name string, spawn entity.EntityID) bool {

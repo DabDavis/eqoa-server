@@ -232,6 +232,10 @@ type mitigateJSON struct {
 	// hit, the breaking one too, and 1 hit point goes through (board 1350:
 	// Eldrich Rune)
 	Rune bool `json:"rune,omitempty"`
+	// All: every hit on its bearer a creature lands (its spells, procs,
+	// damage over time and shields too), not its melee alone (Heirloom
+	// petition 2716: Forest's Might)
+	All bool `json:"all,omitempty"`
 }
 
 // SpellItem is an item a spell makes or takes, by name.
@@ -847,7 +851,8 @@ func (d *SpellDef) readEffectJSON(name, desc string, e effectJSON, aoe bool, are
 		if pct > 0 {
 			add(SpellEffect{Kind: EffectMitigate, Amount: min(pct, 100), AmountMax: most, ID: e.ID,
 				MitigateStat: capStat, MitigateStatPct: capPct,
-				Rune: e.Mitigation != nil && e.Mitigation.Rune && (most > 0 || capPct > 0)})
+				Rune: e.Mitigation != nil && e.Mitigation.Rune && (most > 0 || capPct > 0),
+				MitigateAll: e.Mitigation != nil && e.Mitigation.All})
 		}
 	case "lull":
 		se := effectOf(EffectLull, e)

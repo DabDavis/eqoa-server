@@ -166,7 +166,7 @@ func TestTheShareDividesExperience(t *testing.T) {
 		{Mastery{Percent: 100, Points: 1999, XP: CMPointXP(2000) - 100}, 30000, 0, 30000, 1, 60},
 		// level 30 holds at most 750 (#1816)
 		{Mastery{Percent: 100, Points: 700, Spent: 49, XP: CMPointXP(750) - 100}, 30000, 0, 30000, 1, 30},
-		{Mastery{Percent: 100, Points: 700, Spent: 50}, 6000, 6000, 0, 0, 30},
+		{Mastery{Percent: 100, Points: 700, Spent: 50}, 6000, 0, 0, 0, 30}, // lost (petition 2726)
 		{Mastery{Percent: 25, Points: 750}, 1000, 1000, 0, 0, 30},
 	} {
 		level := c.level
@@ -526,5 +526,30 @@ func TestTheMasteryCapIsTheShards(t *testing.T) {
 	SetMasteryCap(0)
 	if MasteryCap != 2000 {
 		t.Errorf("unset: %d, want 2000", MasteryCap)
+	}
+}
+
+// Heirloom petition 2726 (the owner, 2026-11-23: "100% to CMs never levels"):
+// below the level cap, all of it given to the masteries and its level's cap of
+// points held, an award goes nowhere: the level gets none (it is lost), the
+// cap still holds (no point made), a debt is still paid. The controls: a
+// lower share at the cap goes to the level (#1816), and level 60 is as ever.
+func TestAllToTheMasteriesAtTheCapNeverLevels(t *testing.T) {
+	sh := splitXP(Mastery{Percent: 100, Points: 1251}, 46, 0, 6000)
+	if sh.Level != 0 || sh.Mastery != 0 || sh.Lost != 6000 {
+		t.Fatalf("100%% at level 46 holding 1251: %+v, want all 6000 lost", sh)
+	}
+	if sh := splitXP(Mastery{Percent: 100, Points: 1150}, 46, 1000, 6000); sh.Debt != 1000 || sh.Level != 0 || sh.Lost != 5000 {
+		t.Errorf("with a debt of 1000: %+v, want the debt paid, 5000 lost", sh)
+	}
+	if sh := splitXP(Mastery{Percent: 99, Points: 1150}, 46, 0, 6000); sh.Level != 6000 || sh.Lost != 0 {
+		t.Errorf("the control: 99%% at the cap: %+v, want all to the level", sh)
+	}
+	if sh := splitXP(Mastery{Percent: 100, Points: 1500, Spent: 500}, 60, 0, 6000); sh.Level != 6000 || sh.Lost != 0 {
+		t.Errorf("the control: level 60 at MasteryCap: %+v, as before", sh)
+	}
+	m := Mastery{Percent: 100, Points: 1150}
+	if n := gainMastery(&m, sh.Mastery, 46); n != 0 || m.Points != 1150 {
+		t.Errorf("the cap held: %d made, %+v", n, m)
 	}
 }

@@ -194,3 +194,29 @@ func TestAMercDyingInARaidSaysNothingToTheRaid(t *testing.T) {
 		t.Errorf("the owner was not told it died: %q", got)
 	}
 }
+
+// Heirloom petition 2723 ("Bard wont merc"): a merc dismissed out of its
+// owner's group (its owner's no, a leader's boot) was told to the handlers as
+// slot 0, which ended slot 1's hire whatever its own slot: slot 2's row
+// stayed, hired but never out, and with two more hired the liaison said three
+// were held. Each dismissal names its own slot.
+func TestDismissedMercsNameTheirSlots(t *testing.T) {
+	r := newMercRig(t)
+	r.hireSlot(1, r.kit(9, 0, 0))
+	two := r.hireSlot(2, r.kit(11, 2, 0))
+	r.w.mercNotes = nil
+	r.w.mu.Lock()
+	r.w.mercOutLocked(two, r.sess, mercOutLine)
+	r.w.mu.Unlock()
+	if len(r.w.mercNotes) != 1 || r.w.mercNotes[0].Kind != MercNoteDismissed || r.w.mercNotes[0].Slot != 2 {
+		t.Fatalf("slot 2's dismissal was told as %+v", r.w.mercNotes)
+	}
+	r.w.mercNotes = nil
+	r.w.mu.Lock()
+	one := r.w.mercAtLocked(r.p, 1)
+	r.w.mercBootedLocked(r.p, one)
+	r.w.mu.Unlock()
+	if len(r.w.mercNotes) != 1 || r.w.mercNotes[0].Slot != 1 {
+		t.Fatalf("slot 1's boot was told as %+v", r.w.mercNotes)
+	}
+}

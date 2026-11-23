@@ -145,7 +145,13 @@ var companionOwnerOnly = map[string]bool{
 // petition 5369, 2026-11-20, the Nasehir camp south of Freeport: "his fire elemental isn't tethered to him"): the
 // Fire Elementaling 1.41 off Nasehir Kresni, the two Fire Elementalkin 1.7 off a skeleton scholar and 1.78 off a
 // Gal`Saris magician.
+//
+// Frenzied Spirits are the creature shamans' too (Heirloom petition 2736, 2026-11-23, a Clan Kolbok camp: "pets
+// that do not aggro when their master does; pets are not tied to master mob"): of the 98 rows, most stand 0.1 to 4
+// off a clan kolbok shaman or mystic, a Tendora-Buki ispusar, a kappa or grizz shaman, a ratman spiritist or a
+// prophet of Rolfron; the rest alone, no one's.
 var companionPetKinds = map[string]bool{
+	"frenzied spirit":   true,
 	"feral spirit":      true,
 	"howling death":     true,
 	"ancient death":     true,

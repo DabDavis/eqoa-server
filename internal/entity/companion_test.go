@@ -332,3 +332,33 @@ func TestAnElderSpiritIsItsShamansPet(t *testing.T) {
 		t.Errorf("the tower's elder spirit paired with %d", o)
 	}
 }
+
+// Heirloom petition 2736 (2026-11-23): a Frenzied Spirit beside a clan kolbok
+// shaman is its pet, so a hit on the shaman brings it into the fight; the
+// control: one standing alone is no one's.
+func TestAFrenziedSpiritIsItsShamansPet(t *testing.T) {
+	w, _, _, _, p := companionWorld(t)
+	add := func(n *NPC) *NPC {
+		n.SpawnX, n.SpawnY, n.SpawnZ = n.X, n.Y, n.Z
+		n.HP, n.MaxHP = 1000, 1000
+		w.NPCs[n.ServerID] = n
+		w.SpatialIndex.Insert(n.ServerID, n.X, n.Z)
+		return n
+	}
+	sh := add(&NPC{ServerID: 4601, Name: "clan kolbok shaman", Level: 55, X: 5667.95, Z: 5580.44})
+	sp := add(&NPC{ServerID: 4602, Name: "Frenzied Spirit", Level: 43, X: 5666.88, Z: 5580.09})
+	lone := add(&NPC{ServerID: 4603, Name: "Frenzied Spirit", Level: 43, X: 5900, Z: 5900})
+	w.mu.Lock()
+	w.linkCompanionsLocked()
+	if w.companionOf[sp.ServerID] != sh.ServerID {
+		t.Errorf("the spirit is %d's, want the shaman's %d", w.companionOf[sp.ServerID], sh.ServerID)
+	}
+	if o, ok := w.companionOf[lone.ServerID]; ok {
+		t.Errorf("a lone spirit paired with %d", o)
+	}
+	w.updateAggro(sh, p.ServerID, 50)
+	w.mu.Unlock()
+	if sp.Threats[p.ServerID] == 0 || sp.CurrentEnemy != p.ServerID {
+		t.Errorf("the shaman hit: its spirit's threats %v, enemy %d", sp.Threats, sp.CurrentEnemy)
+	}
+}

@@ -7,6 +7,7 @@ import (
 // Player is a flat struct containing all player fields.
 // Replaces 15+ ECS components with direct field access.
 type Player struct {
+	arenaStay *arenaStay
 	// Identity
 	ServerID EntityID
 	Name     string

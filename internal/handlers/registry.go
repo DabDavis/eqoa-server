@@ -421,6 +421,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		interactHandler.ledger = charStore
 		// what a town's people and the guards say (entity/dialog.go)
 		interactHandler.SetDialogLines(charStore.DB().NPCDialog)
+		interactHandler.recentDuels = charStore.DB().RecentArenaDuels
 		interactHandler.SetTalkTrees(charStore.DB().NPCTalk)      // npctalk.go: NPC talk trees (work board 883)
 		npcWindowHandler.SetDialogLines(charStore.DB().NPCDialog) // a refusing merchant's own words (factionrefusal.go), a shop's greeting (merchant.go)
 		if gameWorld != nil {

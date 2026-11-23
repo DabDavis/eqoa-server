@@ -62,6 +62,9 @@ func (p *Player) instanceKey() uint32 {
 	if p == nil || !Instanced(p.World) {
 		return 0
 	}
+	if IsDuelArenaWorld(p.World) && (p.arenaStay == nil || p.arenaStay.match != p.Instance || (p.arenaStay.observer && (!p.GM || !p.Flying))) {
+		return 0
+	}
 	return p.Instance
 }
 
@@ -124,6 +127,9 @@ func (w *World) npcSharesLocked(n *NPC, p *Player) bool {
 		return true
 	}
 	i := w.npcInstanceLocked(n)
+	if IsDuelArenaWorld(p.World) {
+		return i != 0 && i == p.instanceKey()
+	}
 	return i == 0 || i == p.instanceKey()
 }
 
@@ -137,6 +143,9 @@ func (w *World) npcsShareLocked(a, b *NPC) bool {
 		return true
 	}
 	ia, ib := w.npcInstanceLocked(a), w.npcInstanceLocked(b)
+	if IsDuelArenaWorld(a.World) {
+		return ia != 0 && ia == ib
+	}
 	return ia == 0 || ib == 0 || ia == ib
 }
 

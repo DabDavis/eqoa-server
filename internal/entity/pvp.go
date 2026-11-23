@@ -132,7 +132,7 @@ func (p *Player) PvPFlagged() bool { return p.pvp.on }
 // one match on different teams while its banners are live, whatever their flags and groups, and a
 // match's player is no one else's foe, nor anyone else its.
 func (p *Player) pvpFoe(q *Player) bool {
-	if p == nil || q == nil || p == q || p.World != q.World {
+	if p == nil || q == nil || p == q || !SamePlace(p, q) || p.arenaStay != nil || q.arenaStay != nil {
 		return false
 	}
 	if p.IsDead() || q.IsDead() || p.respawnPending() || q.respawnPending() {

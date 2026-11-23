@@ -45,7 +45,8 @@ const charRecordSchema = `
 		wager_won        INTEGER NOT NULL DEFAULT 0,
 		wager_lost       INTEGER NOT NULL DEFAULT 0,
 		updated          TEXT NOT NULL DEFAULT ''
-	);`
+	);
+	CREATE TABLE IF NOT EXISTS arena_duel_results (id INTEGER PRIMARY KEY, winner TEXT NOT NULL, loser TEXT NOT NULL);`
 
 // ensureCharRecord makes table charrecord (initSchema).
 func (db *SQLiteDB) ensureCharRecord() error {
@@ -111,6 +112,7 @@ type DuelEnd struct {
 	A, B        RecordFighter
 	Loser       uint32
 	Surrendered bool
+	Arena       bool
 	Wager       int
 	At          time.Time
 }
@@ -222,6 +224,18 @@ func (db *SQLiteDB) RecordDuelEnd(d DuelEnd) error {
 		if _, err := tx.Exec(`UPDATE charrecord SET duel_wins = duel_wins + 1, wager_won = wager_won + ? WHERE serverid = ?`,
 			d.Wager, winner); err != nil {
 			return err
+		}
+		if d.Arena {
+			win, lose := d.A.Name, d.B.Name
+			if d.Loser == d.A.ServerID {
+				win, lose = lose, win
+			}
+			if _, err := tx.Exec(`INSERT INTO arena_duel_results(winner,loser) VALUES (?,?)`, win, lose); err != nil {
+				return err
+			}
+			if _, err := tx.Exec(`DELETE FROM arena_duel_results WHERE id < (SELECT id FROM arena_duel_results ORDER BY id DESC LIMIT 1 OFFSET 9)`); err != nil {
+				return err
+			}
 		}
 		surrendered := 0
 		if d.Surrendered {

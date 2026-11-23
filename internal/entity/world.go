@@ -1779,6 +1779,9 @@ func (w *World) BeginWarp(id EntityID, world byte) (facing float32, counter uint
 	if !found {
 		return 0, 0, false, false
 	}
+	if world == DuelArenaWorld && w.duels.arenaMove != nil && p.arenaStay == nil {
+		return 0, 0, false, false
+	}
 	worldChanged = p.World != world
 	p.World = world
 	p.TeleportCounter++

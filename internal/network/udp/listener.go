@@ -914,6 +914,9 @@ func (l *Listener) savePlayerPosition(sess *session.Session) {
 			player.Name, player.World, player.X, player.Z, worldToSave)
 	}
 	record.World = int(worldToSave)
+	if to, facing, ok := l.gameWorld.ArenaReturn(player); ok {
+		record.World, record.X, record.Y, record.Z, record.Facing = int(to.World), to.X, to.Y, to.Z, facing
+	}
 
 	if err := l.charStore.Update(record); err != nil {
 		log.Printf("savePlayerPosition: failed to save position for '%s': %v", player.Name, err)

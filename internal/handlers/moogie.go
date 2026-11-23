@@ -69,6 +69,8 @@ const (
 	// the two after it, with a part's index (moogieParts) added, are its answer in his box, its reward and
 	// its next version's duel (work board #688)
 	moogieDoTrophies
+	moogieDoBoard
+
 	moogieDoPart       moogieDo = 100
 	moogieDoPartReward moogieDo = 200
 	moogieDoPartNext   moogieDo = 300
@@ -86,6 +88,9 @@ func (h *InteractHandler) moogieAnswers(p *entity.Player) ([]string, []moogieDo)
 	if h.gameWorld != nil && h.gameWorld.MetalMoogieHere() {
 		labels, does = append(labels, moogieProveOpt), append(does, moogieDoProve)
 	}
+	if h.recentDuels != nil {
+		labels, does = append(labels, "Recent duels"), append(does, moogieDoBoard)
+	}
 	// the hand-ins: the tribute's, and each part of the chain held (work board #688); one answer for them
 	// all when they do not fit beside the rest
 	hand := h.trophyAnswers(p)
@@ -95,6 +100,10 @@ func (h *InteractHandler) moogieAnswers(p *entity.Player) ([]string, []moogieDo)
 		labels, does = append(labels, hand.labels...), append(does, hand.does...)
 	case len(hand.labels) > 0:
 		labels, does = append(labels, moogieTrophiesOpt), append(does, moogieDoTrophies)
+		if len(labels) == maxDialogOptions {
+			// The hand-in submenu has its own decline, and Back closes this box.
+			return labels, does
+		}
 	}
 	return append(labels, moogieNoOpt), append(does, moogieDoNothing)
 }
@@ -158,6 +167,23 @@ func (h *InteractHandler) answerMoogie(sess *session.Session, p *entity.Player, 
 		return true
 	}
 	switch do {
+
+	case moogieDoBoard:
+		h.gameWorld.FlushCombatRecords()
+		rows, err := h.recentDuels()
+		if err != nil {
+			SendClientMessage(sess, "The recent duels board is unavailable.")
+			break
+		}
+		var board strings.Builder
+		board.WriteString("Winner / Loser")
+		for _, row := range rows {
+			fmt.Fprintf(&board, "\n%s/%s", row[0], row[1])
+		}
+		if len(rows) == 0 {
+			board.WriteString("\nNo Neriak arena duels have finished.")
+		}
+		SendDialogueBox(sess, 0, board.String())
 	case moogieDoClear:
 		if name, _, done := h.gameWorld.MoogieClear(sess); done {
 			SendClientMessage(sess, fmt.Sprintf(moogieCleared, name))

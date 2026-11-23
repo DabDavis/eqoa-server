@@ -84,6 +84,15 @@ func (w *World) playerFallsLocked(sess *session.Session, p *Player, now time.Tim
 	if p.respawnPending() || p.Fallen {
 		return
 	}
+	if d := w.duels.of[p.ServerID]; d != nil && d.Arena && p.arenaStay != nil {
+		p.HP, p.StatsDirty = DuelLoserHP, true
+		if d.Phase == duelOn {
+			w.endDuelLocked(d, p.ServerID, duelDefeated, now)
+		} else {
+			w.callOffDuelLocked(d, "The duel is off.")
+		}
+		return
+	}
 	if w.challengeDefeatLocked(sess, p, now) { // a duel with Metal Moogie lost: 1 HP left (metalmoogie.go)
 		return
 	}
@@ -231,7 +240,7 @@ func (w *World) place(id EntityID, x, y, z float32, world uint8, facing *float32
 	defer w.mu.Unlock()
 
 	p, found := w.Players[id]
-	if !found {
+	if !found || (world == DuelArenaWorld && w.duels.arenaMove != nil && p.arenaStay == nil) {
 		return Player{}, false, false
 	}
 	if facing != nil {

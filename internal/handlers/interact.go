@@ -19,6 +19,7 @@ import (
 type InteractHandler struct {
 	sessionManager *session.Manager
 	gameWorld      *entity.World
+	recentDuels    func() ([][2]string, error)
 
 	// corpse opens a dead NPC's loot (NPCWindowHandler.OpenCorpse); it
 	// reports whether the NPC was a corpse.

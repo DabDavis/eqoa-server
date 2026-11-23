@@ -65,6 +65,9 @@ func (w *World) setFlyingLocked(p *Player, on bool, now time.Time) {
 	if on == p.Flying {
 		return
 	}
+	if !on && p.arenaStay != nil && p.arenaStay.observer {
+		w.leaveArenaLocked(p)
+	}
 	p.Flying = on
 	if !on {
 		p.Noclip = false // no flight, no noclip: a body that walks needs its floors (noclip.go)

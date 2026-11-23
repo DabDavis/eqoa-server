@@ -207,7 +207,9 @@ world:
   # worldN.json into the worlds folder from the operator's disc first
   # (tools/worlds/homelands.json is the Homelands, slot 10), then groundbake
   # -world 10=worlds/world10.ESF its ground. None unless listed.
-  # server_worlds: [10]
+  # Neriak instanced duels use slot 16 (tools/worlds/neriak-duel.json).
+  # Bake world16.ESF into worlds/ground to enable its four damaging lava pockets.
+  # server_worlds: [10, 16]
 
   # Capture the flag (entity/ctf.go, handlers/ctf.go): an arena world of the
   # server's own (built by cmd/worldbuild and listed in server_worlds), joined

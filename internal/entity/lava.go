@@ -102,11 +102,16 @@ func (r LavaRule) burn(p *Player) int {
 // (Player.lavaNext): at once on stepping in, then every tick it stays. Must be called with the
 // lock held.
 func (w *World) lavaSystem(now time.Time) {
-	if !w.lava.On() || w.env == nil || w.TickCount%hazardEvery != 0 {
+	if (!w.lava.On() && w.duels.arenaMove == nil) || w.env == nil || w.TickCount%hazardEvery != 0 {
 		return
 	}
 	for _, p := range w.Players {
-		if p.HP <= 0 || p.respawnPending() || p.GM || p.flyingNow(now) {
+		rule := w.lava
+		fighter := p.arenaStay != nil && !p.arenaStay.observer && p.World == DuelArenaWorld
+		if fighter && !rule.On() {
+			rule = LavaRule{PctMaxHP: 5, Every: lavaEveryDefault}
+		}
+		if !rule.On() || p.HP <= 0 || p.respawnPending() || (!fighter && (p.GM || p.flyingNow(now))) {
 			continue
 		}
 		if !w.playerInLavaLocked(p) {
@@ -120,8 +125,8 @@ func (w *World) lavaSystem(now time.Time) {
 		if sess != nil && sess.StateChannelsHeld() {
 			continue // loading a world
 		}
-		p.lavaNext = now.Add(w.lava.every())
-		n := min(w.lava.burn(p), p.HP)
+		p.lavaNext = now.Add(rule.every())
+		n := min(rule.burn(p), p.HP)
 		if n <= 0 {
 			continue
 		}

@@ -56,6 +56,10 @@ func (h *ChatHandler) flyCommand(sess *session.Session, args []string) {
 	if !ok {
 		return
 	}
+	if len(args) == 2 && strings.EqualFold(args[0], "duel") {
+		h.gmReply(sess, h.gameWorld.ObserveArena(sess, args[1]))
+		return
+	}
 	want := !on
 	if len(args) > 0 {
 		switch strings.ToLower(args[0]) {
@@ -64,7 +68,7 @@ func (h *ChatHandler) flyCommand(sess *session.Session, args []string) {
 		case "off":
 			want = false
 		default:
-			h.gmReply(sess, "Usage: #fly [on|off] (alone: on, or off again)")
+			h.gmReply(sess, "Usage: #fly [on|off] or #fly duel <player>")
 			return
 		}
 	}

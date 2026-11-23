@@ -174,6 +174,9 @@ func (w *World) ApplyClientUpdate(id EntityID, u ClientUpdate) {
 		// aboard a tour (npctour.go): the tour's place, not the client's
 		return
 	}
+	if w.arenaStepLocked(p, u) {
+		return
+	}
 	before := [3]float32{p.X, p.Y, p.Z}
 	take, at := w.judgeMoveLocked(p, &u, now)
 	if take {

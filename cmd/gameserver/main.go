@@ -1345,6 +1345,7 @@ func main() {
 	// the instanced raid dungeons in a world of the server's own (world.dungeons; handlers/dungeons.go), after the
 	// NPCs are loaded (their rows there are the dungeons' templates) and before the kept sessions
 	handlers.SetupDungeons(gameWorld, cfg.World.Dungeons, db)
+	handlers.SetupDuelArena(gameWorld)
 
 	// What each monster carries of its row's weapons and shield at this spawn, and what
 	// a corpse drops of them (world.held_gear: entity/heldgear.go, handlers/helddrop.go),

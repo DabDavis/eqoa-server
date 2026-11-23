@@ -36,8 +36,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/ground"
-	_ "modernc.org/sqlite"
 )
 
 type row struct {
@@ -177,10 +177,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	db, err := sql.Open("sqlite", "file:"+*dbPath+"?mode=ro")
+	db, err := database.OpenReadOnly(*dbPath)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.Close()
 	rows, held, err := loadRows(db, *world, boxes)
 	if err != nil {
 		log.Fatal(err)

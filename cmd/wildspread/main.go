@@ -193,7 +193,11 @@ func main() {
 		log.Fatal("-gap, -spacing and -quest-weight are more than 0")
 	}
 
-	db, err := database.NewSQLite(*dbPath)
+	open := database.OpenSQLiteReadOnly
+	if *apply || *undo {
+		open = database.NewSQLite
+	}
+	db, err := open(*dbPath)
 	if err != nil {
 		log.Fatal(err)
 	}

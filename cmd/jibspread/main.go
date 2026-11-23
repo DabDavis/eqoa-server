@@ -1,8 +1,8 @@
 // Command jibspread plans a GM's petitions 5050, 5052 and 5053 (2026-11-14: "a static pile of non roaming
 // NPC's ... They need to roam throughout the zone"; "a pack of unroaming mobs in a row ... All of these need to roam
 // throughout the zone"; "unmoving mobs in a row, these need to roam throughout the zone") for
-// tools/jib_resize_20261114.py to apply. It reads a COPY of the server's database (opening it migrates its schema, as
-// the server does) and the baked ground, and writes the plan (JSON); it never writes the database's rows.
+// tools/jib_resize_20261114.py to apply. It opens the server's database read-only and reads
+// the baked ground to write the plan (JSON).
 //
 // The rows of unmoving creatures laid out in lines (one import's pattern: a kind per lane, evenly stepped, 3 to 12
 // apart, none wandering of its own kind, or a stack of one kind in a line) are found in every world: a line is
@@ -89,7 +89,7 @@ type planOut struct {
 func dist(ax, az, bx, bz float32) float32 { return float32(math.Hypot(float64(ax-bx), float64(az-bz))) }
 
 func main() {
-	dbPath := flag.String("db", "", "a COPY of the server's database")
+	dbPath := flag.String("db", "", "a current server database (read-only)")
 	groundDir := flag.String("ground", "", "the baked ground")
 	zonesArg := flag.String("zones", "", "the zones to spread in, world 0: cx:cz,...")
 	mustArg := flag.String("must", "", "the GM's spots: ticket:x:z,... (world 0)")
@@ -120,6 +120,7 @@ func main() {
 		}
 	}
 	w, db := loadWorld(*dbPath, *groundDir)
+	defer db.Close()
 	rows := w.DisperseSurvey()
 	if *check != "" {
 		checkPlan(rows, *check)
@@ -441,7 +442,7 @@ func oneLine(c []*entity.DisperseRow) bool {
 }
 
 func loadWorld(dbPath, groundDir string) (*entity.World, *database.SQLiteDB) {
-	db, err := database.NewSQLite(dbPath)
+	db, err := database.OpenSQLiteReadOnly(dbPath)
 	if err != nil {
 		log.Fatal(err)
 	}

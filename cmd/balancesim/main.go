@@ -131,6 +131,7 @@ func main() {
 	}
 	db, dir := openCopy(*dbPath)
 	defer os.RemoveAll(dir)
+	defer db.Close()
 	if *lines {
 		printLines(db, ints(*classes))
 		return
@@ -472,24 +473,16 @@ func openCopy(path string) (*database.SQLiteDB, string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	in, err := os.Open(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer in.Close()
 	cp := filepath.Join(dir, "eqoa.db")
-	out, err := os.Create(cp)
-	if err != nil {
+	if err := database.CopySQLiteFile(path, cp); err != nil {
+		os.RemoveAll(dir)
 		log.Fatal(err)
 	}
-	if _, err := io.Copy(out, in); err != nil {
-		log.Fatal(err)
-	}
-	out.Close()
 	log.SetOutput(io.Discard) // the schema setup's lines
 	db, err := database.NewSQLite(cp)
 	log.SetOutput(os.Stderr)
 	if err != nil {
+		os.RemoveAll(dir)
 		log.Fatal(err)
 	}
 	return db, dir

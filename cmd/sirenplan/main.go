@@ -50,15 +50,16 @@ var groups = []struct {
 }
 
 func main() {
-	dbPath := flag.String("db", "", "a COPY of the server's database")
+	dbPath := flag.String("db", "", "a current server database (read-only)")
 	groundDir := flag.String("ground", "", "the baked ground")
 	push := flag.Float64("push", 16, "how much further out from the camp's middle each group goes")
 	ring := flag.Float64("ring", 5, "the ring a group's four stand on round their chest")
 	flag.Parse()
-	db, err := database.NewSQLite(*dbPath)
+	db, err := database.OpenSQLiteReadOnly(*dbPath)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.Close()
 	store := database.NewNPCStore(db)
 	w := entity.NewWorld()
 	if m, err := store.PlayerModels(); err == nil {

@@ -49,6 +49,7 @@ questmarks, npcspawnonly and the trigger at the server's next start.
     python3 -E -s tools/petpass_heirloom_1123d.py --db eqoa.db            report
     python3 -E -s tools/petpass_heirloom_1123d.py --db eqoa.db --apply    write it
     python3 -E -s tools/petpass_heirloom_1123d.py --db eqoa.db --undo     take it back
+    ... --mirin [--apply | --undo]                                         2777's renumbering, in a restart's hold
 """
 import argparse
 import datetime
@@ -57,6 +58,10 @@ import sqlite3
 import sys
 
 LOG = "petpass_heirloom_1123d_log"
+# 2777's renumbering of Mirin's steps is a part of its own (--mirin, its own log): the running server holds each
+# character's step in memory and writes it on progress, so it runs in a restart's hold (before.sh), as
+# tools/gnoll_5524_20261123.py's; everything else runs live (--apply without --mirin leaves Mirin alone)
+MIRIN_LOG = "petpass_heirloom_1123d_mirin_log"
 WHO, VIA = "claude", "tool"
 DETAIL = "Heirloom petitions 2771-2795 (2026-11-23): tools/petpass_heirloom_1123d.py"
 SOURCE = "petpass-1123d"
@@ -147,7 +152,7 @@ def honjour_steps():
 KEYS = {"itempattern": ("patternid",), "spellpattern": ("spellid",), "questmarks": ("questid",), "queststeps": ("questid", "step"),
         "npcs": ("id",), "npcwander": ("npcid",), "npcitem": ("itemid",), "charquests": ("serverid", "questid"),
         "npcspawnonly": ("name",), "gmtriggers": ("slot",)}
-LOG_DDL = f"""CREATE TABLE IF NOT EXISTS {LOG} (
+LOG_DDL = """CREATE TABLE IF NOT EXISTS {log} (
     seq    INTEGER PRIMARY KEY AUTOINCREMENT,
     tbl    TEXT NOT NULL,
     ref    TEXT NOT NULL,
@@ -202,8 +207,9 @@ def events(*evs):
 
 
 class Plan:
-    def __init__(self, db):
+    def __init__(self, db, mirin=False):
         self.db = db
+        self.only_mirin = mirin
         self.changes = []  # (tbl, key dict, before row or None, values)
         self.lines = []
 
@@ -242,10 +248,12 @@ class Plan:
 
     def build(self):
         db = self.db
+        if self.only_mirin:
+            self.mirin()
+            return
         self.recasts()
         self.marks()
         self.scilond()
-        self.mirin()
         self.anguish()
         eye = one(db, EYE_NAME, "SELECT * FROM itempattern WHERE patternid = ? AND itemname = ?", (EYE, EYE_NAME))
         self.set("itempattern", eye, {"procanim": GEM_TYPE}, {"procanim": PLAIN_TYPE},
@@ -430,8 +438,8 @@ def keyof(tbl, row):
     return {k: row[k] for k in KEYS[tbl]}
 
 
-def apply(db, plan):
-    db.execute(LOG_DDL)
+def apply(db, plan, log):
+    db.execute(LOG_DDL.format(log=log))
     for tbl, key, before, values in plan.changes:
         if before is None:
             cols = list(values)
@@ -451,13 +459,13 @@ def apply(db, plan):
             after = rows(db, f"SELECT * FROM {tbl} WHERE {where(nkey)[0]}", where(nkey)[1])[0]
             a = audit(db, "update", tbl, nkey, before, after)
             key = nkey
-        db.execute(f"INSERT INTO {LOG} (tbl, ref, before, after, audit, at) VALUES (?, ?, ?, ?, ?, ?)",
+        db.execute(f"INSERT INTO {log} (tbl, ref, before, after, audit, at) VALUES (?, ?, ?, ?, ?, ?)",
                    (tbl, json.dumps(key), json.dumps(before) if before else None, json.dumps(after), a, now()))
 
 
-def undo(db):
+def undo(db, log):
     out = []
-    for r in rows(db, f"SELECT * FROM {LOG} ORDER BY seq DESC"):
+    for r in rows(db, f"SELECT * FROM {log} ORDER BY seq DESC"):
         tbl, key = r["tbl"], json.loads(r["ref"])
         w, args = where(key)
         now_rows = rows(db, f"SELECT * FROM {tbl} WHERE {w}", args)
@@ -475,7 +483,7 @@ def undo(db):
                        [before[c] for c in cols] + args)
             audit(db, "update", tbl, keyof(tbl, before), after, before)
         out.append(f"restored {tbl} {key}")
-    db.execute(f"DROP TABLE {LOG}")
+    db.execute(f"DROP TABLE {log}")
     return out
 
 
@@ -495,11 +503,13 @@ def main(argv=None):
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--undo", action="store_true")
     ap.add_argument("--no-backup", action="store_true")
+    ap.add_argument("--mirin", action="store_true", help="2777's step renumbering alone (in a restart's hold)")
     a = ap.parse_args(argv)
+    log = MIRIN_LOG if a.mirin else LOG
     db = sqlite3.connect(a.db, timeout=5, isolation_level=None)
     db.execute("BEGIN IMMEDIATE")
     try:
-        logged = db.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?", (LOG,)).fetchone()
+        logged = db.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?", (log,)).fetchone()
         if a.undo:
             if not logged:
                 print("nothing to undo: no log")
@@ -507,15 +517,15 @@ def main(argv=None):
                 return 0
             if not a.no_backup:
                 print("backup", backup(a.db))
-            for line in undo(db):
+            for line in undo(db, log):
                 print(line)
             db.execute("COMMIT")
             return 0
         if logged and a.apply:
-            print(f"applied already ({LOG} exists): nothing written")
+            print(f"applied already ({log} exists): nothing written")
             db.execute("ROLLBACK")
             return 0
-        plan = Plan(db)
+        plan = Plan(db, a.mirin)
         plan.build()
         for line in plan.lines:
             print(line)
@@ -525,7 +535,7 @@ def main(argv=None):
             return 0
         if not a.no_backup:
             print("backup", backup(a.db))
-        apply(db, plan)
+        apply(db, plan, log)
         db.execute("COMMIT")
         print(f"applied: {len(plan.changes)} rows")
         return 0

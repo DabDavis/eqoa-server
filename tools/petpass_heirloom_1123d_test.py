@@ -144,18 +144,19 @@ class PetPass1123d(unittest.TestCase):
         before = snapshot(self.path)
         code, out = run("--db", self.path)
         self.assertEqual(code, 0, out)
-        self.assertIn("dry run: 40 rows would change", out)
+        self.assertIn("dry run: 36 rows would change", out)
         self.assertEqual(snapshot(self.path), before)
 
         code, out = run("--db", self.path, "--apply", "--no-backup")
         self.assertEqual(code, 0, out)
-        self.assertIn("applied: 40 rows", out)
+        self.assertIn("applied: 36 rows", out)
         # 2771
         got = dict(self.q("SELECT spellname, recast FROM spellpattern WHERE spellid != ?", (t.ANGUISH_SPELL,)))
         self.assertEqual(got, {n: new for n, (_, _, new) in t.RECASTS.items()})
         self.assertEqual(self.q("SELECT procanim FROM itempattern WHERE patternid = ?", (t.EYE,))[0][0], t.GEM_TYPE)
-        j = self.q("SELECT journal FROM queststeps WHERE questid = 101353 AND step = 1")[0][0]
-        self.assertEqual(j, "Defeat Mirin.")
+        # Mirin is left to his own part (--mirin)
+        self.assertEqual(self.q("SELECT step, kind FROM queststeps WHERE questid = 101353 ORDER BY step"),
+                         [(1, "kill"), (2, "talk")])
         # 2773: the eleven heads, not the follow-up
         marked = {r[0] for r in self.q("SELECT questid FROM questmarks")}
         self.assertEqual(marked, set(range(100747, 100758)))
@@ -163,7 +164,12 @@ class PetPass1123d(unittest.TestCase):
         for step, npc, con in t.SCILOND_CON:
             ev = json.loads(self.q("SELECT events FROM queststeps WHERE questid = 101285 AND step = ?", (step,))[0][0])
             self.assertEqual((ev[0]["npc"], ev[0]["con"], ev[0]["count"]), (npc, con, 5))
-        # 2777: reach, kill, talk; the character on step 2 now on 3, the others as they were
+        # 2777 (--mirin): reach, kill, talk; the character on step 2 now on 3, the others as they were
+        code, out = run("--db", self.path, "--mirin", "--apply", "--no-backup")
+        self.assertEqual(code, 0, out)
+        self.assertIn("applied: 4 rows", out)
+        j = self.q("SELECT journal FROM queststeps WHERE questid = 101353 AND step = 1")[0][0]
+        self.assertEqual(j, "Defeat Mirin.")
         steps = self.q("SELECT step, kind, target, radius FROM queststeps WHERE questid = 101353 ORDER BY step")
         self.assertEqual(steps, [(1, "reach", "", 60.0), (2, "kill", "Mirin", 15.0), (3, "talk", "Dorandas", 15.0)])
         ev = json.loads(self.q("SELECT events FROM queststeps WHERE questid = 101353 AND step = 1")[0][0])
@@ -203,8 +209,12 @@ class PetPass1123d(unittest.TestCase):
         code, out = run("--db", self.path)
         self.assertEqual(code, 0, out)
         self.assertIn("dry run: 0 rows would change", out)
+        code, out = run("--db", self.path, "--mirin")
+        self.assertIn("dry run: 0 rows would change", out)
 
         code, out = run("--db", self.path, "--undo", "--no-backup")
+        self.assertEqual(code, 0, out)
+        code, out = run("--db", self.path, "--mirin", "--undo", "--no-backup")
         self.assertEqual(code, 0, out)
         self.assertEqual(snapshot(self.path), before)
         self.assertEqual(self.q("SELECT count(*) FROM sqlite_master WHERE name = ?", (t.LOG,))[0][0], 0)

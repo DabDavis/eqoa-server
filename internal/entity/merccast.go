@@ -22,8 +22,9 @@ import (
 //     (mercOwnTeamLocked): itself, its owner and its owner's other mercs,
 //     alive in its world, never another player of its owner's group or raid,
 //     nor their mercs, unless it is aggressive (GM ticket 2025, merccall.go:
-//     its heals, not its buffs, reach its group mates and their mercs, in a
-//     raid those of its owner's group number) (the owner, 2026-11-13: "the mercs that belong to a
+//     its heals and its group buffs and songs, not its single-target buffs,
+//     reach its group mates and their mercs, in a raid those of its owner's
+//     group number: petition 2805) (the owner, 2026-11-13: "the mercs that belong to a
 //     player only can effect that player and their mercs, not the whole
 //     raid"; from 2026-11-12 to then its heals went to the whole raid, "let
 //     mercs heal raid members"); a healer heals one below mercHurtPct of
@@ -37,7 +38,8 @@ import (
 //     still sees, a group heal on those of its own in reach it sees (its
 //     buffs are not held to its sight). Every beneficial spell of a merc, a
 //     group's buff or song too, lands on its own alone (mercLandLocked,
-//     mercHelpLocked); a player's group spell still reaches the mercs of
+//     mercHelpLocked), an aggressive merc's group heals, buffs and songs
+//     on its group mates and their mercs too; a player's group spell still reaches the mercs of
 //     the caster's group (groupMercsLocked). Never a player in a duel, in Mr.
 //     Moogie's challenge or flagged for PvP (ownfight.go: no help in a fight
 //     that is a player's own). Pets: its own pet it tends (mercpetbuff.go);
@@ -1200,17 +1202,16 @@ func (w *World) mercLandLocked(c *mercCast, now time.Time) {
 	if s.Def.ShareRadius > 0 {
 		reach = s.Def.ShareRadius
 	}
-	team := w.mercOwnTeamLocked(ms)
-	if heal {
-		team = w.mercHealTeamLocked(ms) // an aggressive merc's group mates too (merccall.go)
-	}
-	for _, mm := range team {
+	// its own team; an aggressive merc's group mates and their mercs too
+	// (merccall.go), its group heals' and its group buffs' and songs' alike
+	// (petition 2805: an aggressive bard's songs reached no group mate)
+	for _, mm := range w.mercHealTeamLocked(ms) {
 		if heal && !w.mercGroupReachesLocked(ms, s, mm) {
 			continue // a group heal: its reach and its sight
 		}
 		x, y, z := mm.place()
 		if reach <= 0 || dist3(m.X, m.Y, m.Z, x, y, z) <= reach {
-			w.mercHelpLocked(ms, s, mm.id(), now)
+			w.mercHelpToLocked(ms, s, mm.id(), true, now)
 		}
 	}
 }
@@ -1281,6 +1282,13 @@ func (w *World) mercSeesIDLocked(ms *mercState, id EntityID) bool {
 // stats: syncMercBody). The merc's body is the caster: its stats scale the
 // figures. Must be called with the lock held.
 func (w *World) mercHelpLocked(ms *mercState, s *CastSpell, id EntityID, now time.Time) {
+	w.mercHelpToLocked(ms, s, id, false, now)
+}
+
+// mercHelpToLocked is mercHelpLocked, for one of a group's cast (group: an
+// aggressive merc's group mates and their mercs taking its group buffs as its
+// heals, merccall.go) or not. Must be called with the lock held.
+func (w *World) mercHelpToLocked(ms *mercState, s *CastSpell, id EntityID, group bool, now time.Time) {
 	cs := &castState{spell: *s, caster: ms.npc.ServerID, targets: []EntityID{id}}
 	cs.spell.figures = figuresMerc // a merc's figures to a client that colours them (numbertags.go)
 	// its own pet (mercpetbuff.go)
@@ -1289,8 +1297,8 @@ func (w *World) mercHelpLocked(ms *mercState, s *CastSpell, id EntityID, now tim
 	}
 	// its owner's own alone (the file's doc): a cast at another, chosen before
 	// the owner's raid was its team, lands on no one
-	if !w.mercMayHelpLocked(ms, id) && !(mercHeals(s) && w.mercHealsMateLocked(ms, id)) {
-		return // an aggressive merc's heal on a group mate excepted (merccall.go)
+	if !w.mercMayHelpLocked(ms, id) && !((group || mercHeals(s)) && w.mercHealsMateLocked(ms, id)) {
+		return // an aggressive merc's heal or group's buff on a group mate excepted (merccall.go)
 	}
 	if p := w.Players[id]; p != nil {
 		// not on one whose fight became its own while the cast was on its way

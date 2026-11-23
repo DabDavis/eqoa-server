@@ -42,7 +42,9 @@ package entity
 // challenge, the PvP flag). A mate's auto-attack's target, a creature a mate did a
 // hostile act on, one fighting someone a mate healed or helped: it takes them on
 // (mercCalledForLocked); and its heals reach the mates and their mercs
-// (mercHealTeamLocked; its buffs stay its owner's own). Passive and assist keep
+// (mercHealTeamLocked), and so do its group buffs and songs (a bard's anthems:
+// petition 2805, "My bard is on aggressive. My bard is not getting buffs to the
+// cleric nor the paladin"); its single-target buffs stay its owner's own. Passive and assist keep
 // the owner's call alone. Nothing it takes on is uncalled: no group mate's call,
 // no fight of the merc's.
 
@@ -202,7 +204,7 @@ func (w *World) mercCalledForLocked(ms *mercState, mates []*Player, npc *NPC) bo
 	return false
 }
 
-// mercHealTeamLocked is whom the merc's heals reach: its own team
+// mercHealTeamLocked is whom the merc's heals and group's spells reach: its own team
 // (mercOwnTeamLocked), and for an aggressive merc its group mates
 // (mercGroupMatesLocked) alive, and their mercs. Must be called with the lock
 // held.

@@ -52,14 +52,24 @@ func (w *World) AssistLeader(sess *session.Session) (uint32, bool) {
 
 // entitySeenByLocked resolves an id the sender gave (its own, an object id
 // from ITS visibility channels, or a group stand-in) to an entity, or nil:
-// playerSeenByLocked, for NPCs too. Must be called with the lock held.
+// playerSeenByLocked, for NPCs too: a group's stand-in names a player, or a
+// mercenary of the sender's group (the roster names a merc its client has no
+// channel for by groupFarID too, mercgroup.go; petition 2805: a group mate's
+// heal at another's merc picked from the group window found no target). Must
+// be called with the lock held.
 func (w *World) entitySeenByLocked(sender *session.Session, id uint32) Entity {
 	if id == 0 || id == NoAssist {
 		return nil
 	}
 	if id&0xFF000000 == 0x7F000000 {
-		if p := w.Players[EntityID(id&0x00FFFFFF)]; p != nil {
+		e := EntityID(id & 0x00FFFFFF)
+		if p := w.Players[e]; p != nil {
 			return p
+		}
+		if n := w.NPCs[e]; n.isMerc() {
+			if p := w.sessionPlayerLocked(sender); p != nil && p.GroupID != 0 && w.groups[p.GroupID] != nil && groupHas(w.groups[p.GroupID], e) {
+				return n
+			}
 		}
 		return nil
 	}

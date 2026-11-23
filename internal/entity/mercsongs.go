@@ -27,7 +27,10 @@ import "time"
 // Its team for these is its owner's own alone (merccast.go's doc,
 // mercOwnTeamLocked: itself, its owner, its owner's other mercs; the owner,
 // 2026-11-13): a bard's group song lands on no other player of its owner's
-// group or raid, nor their mercs.
+// group or raid, nor their mercs, unless it is aggressive (merccall.go, GM
+// ticket 2025): then its group songs land on its group mates in reach and
+// their mercs as well (petition 2805), in a raid those of its owner's group
+// number.
 
 // mercBardSpare is the share of its power a bard keeps for its songs: its
 // arts only above it.

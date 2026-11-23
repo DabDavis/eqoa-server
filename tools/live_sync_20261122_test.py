@@ -82,6 +82,10 @@ def make(d):
         db.close()
     db = sqlite3.connect(h)
     db.execute("INSERT INTO heirlooms VALUES (900)")
+    db.execute("CREATE TABLE npcspawnonly (name TEXT PRIMARY KEY, note TEXT, source TEXT)")
+    db.execute("INSERT INTO npcs (id, npc_name, world, x_coord, y_coord, z_coord, facing, npc_level, modelid, hp_percent, npc_id) "
+               "VALUES (1998, 'goblin excavator', 0, 900, 50, 900, 0, 23, 13, 100, 0)")
+    audit(db, "gm1", "insert", "npcs", {"id": 1998}, None, {"npc_name": "goblin excavator"}, "/place in the game")
     db.execute("INSERT INTO itempattern VALUES (900, 'Heirloom Blade', 12, 1, 0, '')")
     # (a) a GM's loot: a new record (id 960500, which Live gave to another record) in the bones table
     db.execute("INSERT INTO itempattern VALUES (960500, 'cracked skull', -1, 0, 5, 'From a skeleton.')")
@@ -123,6 +127,9 @@ def make(d):
     db.execute("INSERT INTO bones_5100_log VALUES (1, 200, '1', '7')")
     # a dangling row on Live: its NPC is gone
     db.execute("INSERT INTO npcrespawn VALUES (1999, 30, 'gone', 'gm')")
+    # a flag keyed by an NPC row Live no longer has ('#1998'): Heirloom's 1998 is another NPC; never copied, deleted
+    db.execute("CREATE TABLE npcspawnonly (name TEXT PRIMARY KEY, note TEXT, source TEXT)")
+    db.execute("INSERT INTO npcspawnonly VALUES ('#1998', 'thinned', 'gm')")
     audit(db, "dab", "insert", "itempattern", {"patternid": 960500}, None, {"itemname": "mossy stone"}, "Live petition 5001")
     # (b) Live's own fix: spider silk's price
     db.execute("UPDATE itempattern SET itemcost = 9 WHERE patternid = 300")
@@ -135,7 +142,7 @@ def make(d):
 
 
 CONTENT = ("itempattern", "quests", "queststeps", "queststeptargets", "npcs", "npcrespawn", "npcloot", "loottables",
-           "npcaggro", "npcfaction", "charquests")
+           "npcaggro", "npcfaction", "charquests", "npcspawnonly")
 
 
 def snapshot(path, tables=CONTENT):
@@ -187,6 +194,7 @@ class ShardSync(unittest.TestCase):
         self.assertEqual(f("npcs", "spider"), [("HL", "to Live")])                   # Heirloom deleted it
         self.assertEqual(f("npcs", "sphere"), [("R-deletes", "to Heirloom")])        # lost with no audit: restored
         self.assertEqual(f("npcrespawn", "missing 1999"), [("R-dangling", "to Live")])
+        self.assertEqual(f("npcspawnonly", "#1998"), [("R-dangling", "to Live")])
         self.assertTrue(all(c == ("HL", "to Live") for c in f("queststeps", "101000")))
         self.assertTrue(any(r["cat"] == "b" for (t, k), r in rows.items() if "heirloom blade" in k))
 
@@ -220,6 +228,7 @@ class ShardSync(unittest.TestCase):
         self.assertEqual(db.execute("SELECT seconds FROM npcrespawn WHERE npc_row = ?", (sk,)).fetchone()[0], 90)
         self.assertIsNone(db.execute("SELECT 1 FROM npcs WHERE id = 1003").fetchone())
         self.assertIsNone(db.execute("SELECT 1 FROM npcrespawn WHERE npc_row = 1999").fetchone())
+        self.assertIsNone(db.execute("SELECT 1 FROM npcspawnonly WHERE name = '#1998'").fetchone())
         self.assertEqual(db.execute("SELECT COUNT(*) FROM queststeps WHERE questid = 101000").fetchone()[0], 3)
         self.assertIsNone(db.execute("SELECT 1 FROM itempattern WHERE itemname = 'Holly Token'").fetchone())
         self.assertEqual(db.execute("SELECT itemcost FROM itempattern WHERE patternid = 100").fetchone()[0], 11)
@@ -232,6 +241,7 @@ class ShardSync(unittest.TestCase):
         self.assertEqual(db.execute("SELECT itemcost FROM itempattern WHERE patternid = 300").fetchone()[0], 9)
         self.assertEqual(db.execute("SELECT itemcost FROM itempattern WHERE patternid = 200").fetchone()[0], 7)
         self.assertEqual(db.execute("SELECT COUNT(*) FROM npcs WHERE npc_name = 'sphere'").fetchone()[0], 1)
+        self.assertIsNone(db.execute("SELECT 1 FROM npcspawnonly").fetchone())   # Live's dangling flag never reaches 1998
         # Live's own record, at an id of Heirloom's own (960500 is the cracked skull there)
         self.assertNotEqual(db.execute("SELECT patternid FROM itempattern WHERE itemname = 'mossy stone'").fetchone()[0], 960500)
         db.close()

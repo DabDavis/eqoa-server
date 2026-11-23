@@ -392,6 +392,14 @@ class Sorter:
     def one(self, t, r):
         """(group, why, the engine action to run or 'leave')"""
         act, grp = r["action"], r["group"]
+        k0 = r["key"][0] if r["key"] else None
+        if isinstance(k0, str) and re.fullmatch(r"#\d+", k0) and self.side_of(r):
+            # a row keyed by an NPC row ('#<id>') its own shard no longer has: the engine leaves the name as it is, so a
+            # copy would land on whatever NPC the other shard has under that id (Live's thinned piranhas' spawn-only
+            # flags on a Heirloom goblin excavator and a Live Teir`dal denouncer). Dangling: deleted where it is.
+            s = self.side_of(r)
+            return "R-dangling", f"keyed by NPC row {k0}, which {ss.NAMES[s]} no longer has: deleted there", \
+                (TO_H if s == "H" else TO_L)["delete"]
         if act == "leave":
             if grp == "cosmetic":
                 return "same", "only source/note text, npc_id or same-named duplicates differ", "leave"
@@ -540,6 +548,16 @@ class Sorter:
                     src = "H" if d == "copy_H_to_L" else "L"
                     if r.get(src + "raw") and not r.get(ss.OTHER[src] + "raw"):
                         r["cat"], r["why"], r["do"] = "R-deletes", "comes with its NPC, restored", d
+        # rows keyed by a deleted NPC's row ('#<id>': a guide's loot keyed to one Nasehir warrior) go with it
+        gone = {s: {i for r in out.get("npcs", []) if r["do"] == f"delete_on_{s}" for i in (r.get(s + "id") or [])} for s in "HL"}
+        for t in NAME_TABLES:
+            for r in out.get(t, []):
+                for s in "HL":
+                    raws = r.get(s + "raw") or []
+                    names = [str(x.get("npc_name") or x.get("name") or "") for x in raws]
+                    if raws and all(re.fullmatch(r"#\d+", n) and int(n[1:]) in gone[s] for n in names):
+                        r["cat"], r["why"], r["do"] = "R-deletes", f"keyed by an NPC row this plan deletes on {ss.NAMES[s]}: goes with it", \
+                            (TO_H if s == "H" else TO_L)["delete"]
         # a quest goes whole, one way: the quests row's decision (else its first row's), for every row of it
         qdo = {}
         rank = {"b": 3, "c": 2}

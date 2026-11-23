@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/eqoa/server/internal/database"
@@ -14,6 +15,20 @@ import (
 )
 
 const turkeyQuest = 109910
+
+// thanksgivingSource is the installer's quests.source for the event's quests.
+const thanksgivingSource = "thanksgiving-2026"
+
+// thanksgivingQuests is the ids of the loaded quests of thanksgivingSource
+// (publishLocked): stepKill's special rules hold for those alone, so another
+// shard's quest that comes to have one of the ids keeps its own.
+var thanksgivingQuests atomic.Pointer[map[int]bool]
+
+func isThanksgivingQuest(id int) bool {
+	m := thanksgivingQuests.Load()
+	return m != nil && (*m)[id]
+}
+
 const envarArmor = 1000810
 const stuffing = 1000811
 const turkeyClub = 1000812

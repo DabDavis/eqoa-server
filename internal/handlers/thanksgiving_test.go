@@ -454,3 +454,26 @@ func TestThanksgivingGateCrossingConditions(t *testing.T) {
 		}
 	}
 }
+
+// The event's kill rules hold for its own quests alone (thanksgivingQuests,
+// read with the catalog): a shard whose quest 109910 or 109911 is another
+// quest keeps that quest's own targets. The control: with the event's quests
+// loaded, the King's kill step takes only the event's King.
+func TestThanksgivingKillRulesOnlyForTheEventsQuests(t *testing.T) {
+	old := thanksgivingQuests.Load()
+	t.Cleanup(func() { thanksgivingQuests.Store(old) })
+	rat := entity.KillCredit{NPCName: "a rat", NPCSpawn: 5, World: 2, X: 100, Z: 100}
+	none := map[int]bool{}
+	thanksgivingQuests.Store(&none)
+	for _, id := range []int{turkeyQuest, 109911} {
+		st := &database.QuestStep{Quest: id, Kind: database.StepKill, Target: "a rat"}
+		if !stepKill(st, rat) {
+			t.Errorf("another shard's quest %d: its rat's kill not taken", id)
+		}
+	}
+	loaded := map[int]bool{turkeyQuest: true, 109911: true, 109912: true}
+	thanksgivingQuests.Store(&loaded)
+	if stepKill(&database.QuestStep{Quest: turkeyQuest, Kind: database.StepKill, Target: "a rat"}, rat) {
+		t.Error("the event's King step took a rat")
+	}
+}

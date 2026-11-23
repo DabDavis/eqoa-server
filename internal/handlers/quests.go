@@ -531,8 +531,12 @@ func (q *QuestEngine) publishLocked() error {
 	}
 	cat := questCatalog{byID: map[int]*database.Quest{}, givers: map[string][]*database.Quest{}, gates: map[string][]*database.Quest{},
 		unlockers: map[string][]*database.Quest{}, inGame: map[int]string{}, folded: map[int]string{}}
+	turkey := map[int]bool{}
 	for i := range all {
 		qu := &all[i]
+		if qu.Source == thanksgivingSource {
+			turkey[qu.ID] = true // stepKill's own rules for the event's quests (thanksgiving.go)
+		}
 		cat.byID[qu.ID] = qu
 		cat.folded[qu.ID] = foldName(qu.Name)
 		cat.all = append(cat.all, qu)
@@ -551,6 +555,7 @@ func (q *QuestEngine) publishLocked() error {
 			}
 		}
 	}
+	thanksgivingQuests.Store(&turkey)
 	for g := range cat.givers {
 		cat.giverOrder = append(cat.giverOrder, g)
 	}
@@ -1161,10 +1166,10 @@ func (q *QuestEngine) offerAtLocked(look *factionLook, p *entity.Player, c *ques
 // all over the world (Heirloom petition 2718: the tomb rats' "large rat" of
 // the River Saren tower's quests dropped their sigils off Halas's rats).
 func stepKill(st *database.QuestStep, k entity.KillCredit) bool {
-	if st.Quest == 109911 || st.Quest == 109912 {
+	if (st.Quest == 109911 || st.Quest == 109912) && isThanksgivingQuest(st.Quest) {
 		return k.World == 0 && k.NPCSpawn != 0 && stepNPC(st, k.NPCName, k.NPCSpawn) && math.Hypot(float64(k.X-st.X), float64(k.Z-st.Z)) <= float64(st.Radius)
 	}
-	if st.Quest == turkeyQuest && st.Kind == database.StepKill {
+	if st.Quest == turkeyQuest && st.Kind == database.StepKill && isThanksgivingQuest(st.Quest) {
 		return k.World == 0 && k.NPCSpawn == 0 && k.NPCName == "Turkey King" && k.OriginalRow == 197601
 	}
 	if st.TakesKillAt(int(k.World), k.X, k.Z) {

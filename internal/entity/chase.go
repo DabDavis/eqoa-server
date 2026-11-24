@@ -137,6 +137,9 @@ type chaseState struct {
 	// heldSince is when its steps toward its enemy began to be refused, the
 	// ground in the way (chaseHeld); zero once one is not
 	heldSince time.Time
+	// evaded is a fight given up (giveUpLocked): home, it is whole again
+	// (atHomeLocked)
+	evaded bool
 	// homeHeldSince is the same on its way home (homeSystem)
 	homeHeldSince time.Time
 	// wetHome is a way home whose dry search found nothing: the rest of it as
@@ -360,7 +363,12 @@ func (w *World) chaseLocked(npc *NPC, x, y, z, vx, vz float32, now time.Time) (i
 	npc.X += ux * step
 	npc.Z += uz * step
 	noFloor := w.groundNPCLocked(npc)
-	if (guarded && (npc.Y < oldY-legDrop || (npc.Y > oldY+routeClimb && !(npc.swimming && !oldSwim)))) || w.intoGroundLocked(npc, noFloor) || w.movedUnderLocked(npc) {
+	// off a ledge to a floor well under its enemy, the way searched or not: never
+	// a way to it, and no way back up (Heirloom 2821/2823: an Odus phantom whose
+	// search found nothing ran straight at a pet on the ramp over it and fell
+	// ten into the trench beside the ramp, under the floor its players stood on)
+	pit := npc.Y < oldY-legDrop && y > npc.Y+routeLevel
+	if (guarded && (npc.Y < oldY-legDrop || (npc.Y > oldY+routeClimb && !(npc.swimming && !oldSwim)))) || pit || w.intoGroundLocked(npc, noFloor) || w.movedUnderLocked(npc) {
 		// off an edge the look ahead stepped over (or into the water below it),
 		// into the ground (a bank too high out of the water, a face too steep:
 		// groundnpc.go), or under a floor (a slab a little higher than a step,
@@ -426,8 +434,31 @@ func (w *World) giveUpLocked(npc *NPC) {
 	forgetHate(npc)    // and its hate's holders (hcrules.go)
 	npc.CurrentEnemy = 0
 	npc.endRound()
+	if npc.chase.on {
+		npc.chase.evaded = true // whole again once home (atHomeLocked)
+	} else {
+		w.wholeAgainLocked(npc) // it never moved: home already
+	}
 	w.goHomeLocked(npc)
 	w.companionsHomeLocked(npc) // its pets home with it (companion.go)
+}
+
+// wholeAgainLocked is a creature home from a fight it gave up (past its leash,
+// its enemy out of its reach, the ground in its way): its hit points full at
+// once, as the live game's creatures came back from an evade, not healed out of
+// the fight over a minute (Heirloom 2821, 2026-11-24: "it then reset but didnt
+// go back to full health"). A player's pet, a corpse and one barred from healing
+// are left as they are. A fight that ends any other way (its enemy dead, or
+// gone) and a keep restart's (keepnpc.go) still heal out of the fight
+// (npcregen.go). Must be called with the lock held.
+func (w *World) wholeAgainLocked(npc *NPC) {
+	npc.chase.evaded = false
+	if npc.Owner != 0 || npc.Dead || npc.HP <= 0 || npc.HP >= npc.MaxHP || npc.healBarred() {
+		return
+	}
+	log.Printf("Chase: %s home from a fight it gave up: whole again (%d -> %d)", npc.Name, npc.HP, npc.MaxHP)
+	npc.HP = npc.MaxHP
+	npc.healing = false
 }
 
 // goHomeLocked starts an NPC that was fighting back to where the fight
@@ -469,6 +500,9 @@ func (w *World) returningHas(npc *NPC) bool {
 // raid").
 func (w *World) atHomeLocked(npc *NPC) {
 	npc.chase.returning = false
+	if npc.chase.evaded {
+		w.wholeAgainLocked(npc) // a fight it gave up: whole again
+	}
 	npc.stopMoving()
 	if distXZ(npc.X, npc.Z, npc.chase.fromX, npc.chase.fromZ) < 0.5 {
 		npc.Y = npc.chase.fromY

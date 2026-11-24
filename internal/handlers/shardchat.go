@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 	"unicode/utf8"
 
@@ -40,10 +41,14 @@ func (h *ChatHandler) addressedTell(sess *session.Session, from *entity.Player, 
 		SendErrorMessage(sess, fmt.Sprintf("%s is not connected.", target))
 		return
 	}
+	if !shardPeerName(answer.Name) {
+		SendErrorMessage(sess, "Could not confirm delivery to "+target+".")
+		return
+	}
 	target = realm.Name(answer.Name)
 	h.tellLine(sess, from, body.made().wrap("You told "+target+", '", "'"))
-	if answer.Away != "" {
-		h.tellLine(sess, from, plainText(realm.Name(answer.Away)))
+	if away := consoleLine(realm.Name(answer.Away), chatLineMost); answer.Away != "" && away != "" {
+		h.tellLine(sess, from, plainText(away))
 	}
 	log.Printf("Tell: %s -> %s", from.Name, target)
 }
@@ -51,7 +56,7 @@ func (h *ChatHandler) addressedTell(sess *session.Session, from *entity.Player, 
 // receiveShardChat is the authenticated peer's local delivery path. Source
 // identity comes from the link; player text never runs through typedLine.
 func (h *ChatHandler) receiveShardChat(m shardchat.Message) shardchat.Receipt {
-	if h.gameWorld == nil || m.From == "" || h.shards.Home.Other() == "" {
+	if h.gameWorld == nil || !shardPeerName(m.From) || h.shards.Home.Other() == "" {
 		return shardchat.Receipt{}
 	}
 	sender := h.shards.Home.Other().Name(m.From)
@@ -71,6 +76,13 @@ func (h *ChatHandler) receiveShardChat(m shardchat.Message) shardchat.Receipt {
 		}
 	}
 	return shardchat.Receipt{}
+}
+
+// shardPeerName is whether a name from the other shard is one a player could
+// carry: console-clean (no '|', consoletext.go), no '.', and short enough that
+// "v."+name fits the drawn name's 23 bytes (entity.ShownNameMost).
+func shardPeerName(s string) bool {
+	return s != "" && !strings.Contains(s, ".") && consoleLine(s, entity.ShownNameMost-2) == s
 }
 
 func shardMessage(channel, from, to string, body chatText) shardchat.Message {

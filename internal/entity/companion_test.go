@@ -362,3 +362,33 @@ func TestAFrenziedSpiritIsItsShamansPet(t *testing.T) {
 		t.Errorf("the shaman hit: its spirit's threats %v, enemy %d", sp.Threats, sp.CurrentEnemy)
 	}
 }
+
+// Heirloom petition 2871 (2026-11-24): a Vigilant Spirit beside an Atesh-Ah
+// spiritist is its pet, so the spiritist noticing a player brings it into the
+// fight; the control: one standing alone is no one's.
+func TestAVigilantSpiritIsItsSpiritistsPet(t *testing.T) {
+	w, _, _, _, p := companionWorld(t)
+	add := func(n *NPC) *NPC {
+		n.SpawnX, n.SpawnY, n.SpawnZ = n.X, n.Y, n.Z
+		n.HP, n.MaxHP = 1000, 1000
+		w.NPCs[n.ServerID] = n
+		w.SpatialIndex.Insert(n.ServerID, n.X, n.Z)
+		return n
+	}
+	sh := add(&NPC{ServerID: 4611, Name: "Atesh-Ah spiritist", Level: 42, X: 6368.0, Z: 4760.4})
+	sp := add(&NPC{ServerID: 4612, Name: "Vigilant Spirit", Level: 34, X: 6368.2, Z: 4760.1})
+	lone := add(&NPC{ServerID: 4613, Name: "Vigilant Spirit", Level: 39, X: 4861, Z: 4463})
+	w.mu.Lock()
+	w.linkCompanionsLocked()
+	if w.companionOf[sp.ServerID] != sh.ServerID {
+		t.Errorf("the spirit is %d's, want the spiritist's %d", w.companionOf[sp.ServerID], sh.ServerID)
+	}
+	if o, ok := w.companionOf[lone.ServerID]; ok {
+		t.Errorf("a lone spirit paired with %d", o)
+	}
+	w.companionJoinLocked(sh, p.ServerID)
+	w.mu.Unlock()
+	if sp.Threats[p.ServerID] == 0 {
+		t.Errorf("the spiritist noticed a player: its spirit's threats %v", sp.Threats)
+	}
+}

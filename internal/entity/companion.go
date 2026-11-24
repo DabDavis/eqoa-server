@@ -150,8 +150,15 @@ var companionOwnerOnly = map[string]bool{
 // that do not aggro when their master does; pets are not tied to master mob"): of the 98 rows, most stand 0.1 to 4
 // off a clan kolbok shaman or mystic, a Tendora-Buki ispusar, a kappa or grizz shaman, a ratman spiritist or a
 // prophet of Rolfron; the rest alone, no one's.
+//
+// Vigilant Spirits are the creature shamans' too (Heirloom petition 2871, 2026-11-24, the Atesh-Ah camp on Odus:
+// "the spiritists aren't actually summoning their vigilant spirits ... the spirits are not hostile and only attack
+// when they or another spirit are attacked"; Vigilant Spirit is the shaman's pet spell): of the 135 rows, 86 stand
+// within 4 of a creature, most 0.3 to 2 off a Tae Ew hierophant, an Atesh-Ah spiritist or embalmer, an ice goblin
+// or lizardman shaman, or a skullseer; the rest (Permafrost's, petition 1493's npcsocial row) alone, no one's.
 var companionPetKinds = map[string]bool{
 	"frenzied spirit":   true,
+	"vigilant spirit":   true,
 	"feral spirit":      true,
 	"howling death":     true,
 	"ancient death":     true,

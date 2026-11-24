@@ -59,7 +59,9 @@ import (
 //   - out of a fight, a buff (mercBuffTurnLocked): the best rank of each line
 //     its book holds of what lasts mercBuffLasts or more, on itself (a self
 //     buff, or one of a target's its owner already has), its owner (one of a
-//     target's) or its group (one of the group's that it or its owner lacks),
+//     target's), its owner's other mercs (one of a target's, after itself:
+//     mercMateLacksLocked, Heirloom petition 2904) or its group (one of the
+//     group's that it, its owner or one of its owner's other mercs lacks),
 //     while half its power or more is left; each line's best alone, the kinds
 //     of line across (mercBestBuffs), none far beneath its level
 //     (mercBuffFloor), and none another merc's cast (or its own) already
@@ -876,18 +878,52 @@ func (w *World) mercBuffTurnLocked(ms *mercState, now time.Time) bool {
 				w.mercCastLocked(ms, s, o.ServerID, false, now)
 				return true
 			}
-			if mine && !mercGivesProc(s) { // its own swings run no procs (mercsongs.go)
+			if mercGivesProc(s) { // a merc's swings run no procs (mercsongs.go): its own or another's
+				continue
+			}
+			if mine {
 				w.mercCastLocked(ms, s, m.ServerID, false, now)
 				return true
 			}
+			if n := w.mercMateLacksLocked(ms, s, s.Range); n != nil {
+				w.mercCastLocked(ms, s, n.ServerID, false, now)
+				return true
+			}
 		case 2:
-			if mine || theirs {
+			reach := s.Range
+			if s.Def.ShareRadius > 0 {
+				reach = s.Def.ShareRadius
+			}
+			if mine || theirs || w.mercMateLacksLocked(ms, s, reach) != nil {
 				w.mercCastLocked(ms, s, m.ServerID, true, now)
 				return true
 			}
 		}
 	}
 	return false
+}
+
+// mercMateLacksLocked is the first of its owner's other mercs (mercOwnTeamLocked)
+// within reach of the merc (0: no limit) that lacks s, has the level for it
+// and has no cast of it on the way, nil when none (Heirloom petition 2904: a
+// shaman merc buffed its owner and itself, never his other two mercs). Must be
+// called with the lock held.
+func (w *World) mercMateLacksLocked(ms *mercState, s *CastSpell, reach float32) *NPC {
+	m := ms.npc
+	for _, mm := range w.mercOwnTeamLocked(ms) {
+		n := mm.n
+		if n == nil || n == m {
+			continue
+		}
+		if reach > 0 && dist3(m.X, m.Y, m.Z, n.X, n.Y, n.Z) > reach {
+			continue
+		}
+		if buffOn(n.Effects, s) || (s.Def.MinLevel > 0 && n.Level < s.Def.MinLevel) || w.mercBuffComingLocked(ms, s, n.ServerID) {
+			continue
+		}
+		return n
+	}
+	return nil
 }
 
 // mercBuffComingLocked is whether a merc's buff of s's line (or one that would

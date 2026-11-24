@@ -170,7 +170,7 @@ func (l *Listener) readLoop() {
 	defer l.wg.Done()
 	// Backpressure leaves a burst on the socket while handlers finish.
 	// Bound both outstanding datagrams and the per-address ordering chains.
-	inFlight := make(chan struct{}, 256)
+	inFlight := make(chan struct{}, 4096) // handlers wait on the world lock (up to ~190 ms between ticks at 60+ players), so 256 could fill on a spike
 
 	for {
 		select {

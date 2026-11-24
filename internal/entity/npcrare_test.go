@@ -146,3 +146,55 @@ func TestAPlaceholderAsItsRareComesThroughARestart(t *testing.T) {
 		t.Fatalf("after the restart: %s of level %d at %v", got.Name, got.Level, got.X)
 	}
 }
+
+func TestARolledRareComesThroughARestart(t *testing.T) {
+	db := rareDB(t, 10)
+	old := rareProcess(t, db)
+	old.SetCorpseTimes(time.Millisecond, time.Millisecond)
+	rareRand = func(*World) float64 { return 0 }
+	t.Cleanup(func() { rareRand = func(w *World) float64 { return w.campRand().Float64() * 100 } })
+	killAndBack(t, old, rarePH1)
+	if old.NPCs[rarePH1].Name != "Lord Koreshaa" {
+		t.Fatalf("setup: %s", old.NPCs[rarePH1].Name)
+	}
+	k := keptOf(old.KeepNPCs(), rarePH1)
+	if k == nil {
+		t.Fatalf("a placeholder standing as its rare (rolled) not written; SpawnOnly %v", old.NPCs[rarePH1].SpawnOnly)
+	}
+	kept := keepFile(t, k)
+	w := rareProcess(t, db)
+	if res := w.RestoreNPCs(kept); res.Kind != 1 {
+		t.Fatalf("restored: %s", res)
+	}
+}
+
+// A GM's reload of the npcs table leaves a placeholder standing as its rare as
+// it is when neither row changed (Heirloom petition 2568: Tak Frostbiter, rolled
+// on a Freezeblood placeholder, was made a berserker again by the next reload).
+func TestAReloadLeavesAPlaceholderAsItsRare(t *testing.T) {
+	db := rareDB(t, 10)
+	w := rareProcess(t, db)
+	w.SetCorpseTimes(time.Millisecond, time.Millisecond)
+	rareRand = func(*World) float64 { return 0 }
+	t.Cleanup(func() { rareRand = func(w *World) float64 { return w.campRand().Float64() * 100 } })
+	killAndBack(t, w, rarePH1)
+	if w.NPCs[rarePH1].Name != "Lord Koreshaa" {
+		t.Fatalf("setup: %s", w.NPCs[rarePH1].Name)
+	}
+	if _, _, err := w.ReloadNPCs(database.NewNPCStore(db)); err != nil {
+		t.Fatal(err)
+	}
+	if got := w.NPCs[rarePH1]; got.Name != "Lord Koreshaa" || got.SpawnOnly {
+		t.Fatalf("after a reload: %s (spawn-only %v)", got.Name, got.SpawnOnly)
+	}
+	// the control: the placeholder's own row moved is a change, made its row's kind there
+	if _, err := db.Exec(`UPDATE npcs SET x_coord = x_coord + 5 WHERE id = ?`, int(rarePH1)); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := w.ReloadNPCs(database.NewNPCStore(db)); err != nil {
+		t.Fatal(err)
+	}
+	if got := w.NPCs[rarePH1]; got.Name != "welahi-nai myrmidon" || got.SpawnX != 2705 {
+		t.Fatalf("a moved row: %s at %v", got.Name, got.SpawnX)
+	}
+}

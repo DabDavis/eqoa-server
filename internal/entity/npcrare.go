@@ -159,3 +159,34 @@ func (w *World) rareKeptKindLocked(npc *NPC, name string) bool {
 	w.makeKindLocked(npc, r.own.rec, r.rare, time.Time{})
 	return true
 }
+
+// standingKindLocked is the record of the kind npc stands as when it is not its
+// row's: a camp's spawn as another of its kinds (campspawn.go), a placeholder as
+// its rare; nil otherwise. Must be called with the lock held.
+func (w *World) standingKindLocked(npc *NPC) *campRec {
+	key := database.NPCClassKey(npc.Name)
+	if r := w.rares[npc.ServerID]; r != nil && key == database.NPCClassKey(r.rare.rec.NPCName) &&
+		key != database.NPCClassKey(r.own.rec.NPCName) {
+		return r.rare
+	}
+	if cs := w.camps.spawns[npc.ServerID]; cs != nil && w.campKindChangedLocked(npc) {
+		for _, id := range cs.kinds {
+			if kind := w.camps.recs[id]; kind != nil && database.NPCClassKey(kind.rec.NPCName) == key {
+				return kind
+			}
+		}
+	}
+	return nil
+}
+
+// kindOnRowLocked is the NPC kind makes on spot's row, as makeKindLocked makes
+// it, standing in no set and no view: for a comparison alone. Must be called
+// with the lock held.
+func (w *World) kindOnRowLocked(spot *database.NPCRecord, kind *campRec) *NPC {
+	rec := kind.rec
+	rec.ID = spot.ID
+	rec.World, rec.XCoord, rec.YCoord, rec.ZCoord, rec.Facing = spot.World, spot.XCoord, spot.YCoord, spot.ZCoord, spot.Facing
+	n := NPCFromRecord(&rec, kind.class, w.rangedModels)
+	w.applyNPCSettingsLocked(n)
+	return n
+}

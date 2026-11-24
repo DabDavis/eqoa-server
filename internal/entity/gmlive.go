@@ -284,6 +284,14 @@ func (w *World) ReloadNPCs(store *database.NPCStore) (loaded, removed int, err e
 			if npcSameRecord(existing, fresh) {
 				continue // unchanged: left as it is, fight and all
 			}
+			// a camp's spawn standing as another of its kinds, or a placeholder
+			// standing as its rare: unchanged when it is that kind as its row
+			// would make it now (campspawn.go, npcrare.go). Until this every
+			// reload made such a one its row's kind again: Tak Frostbiter, up on
+			// a Freezeblood placeholder, gone a minute later (Heirloom petition 2568)
+			if kind := w.standingKindLocked(existing); kind != nil && npcSameRecord(existing, w.kindOnRowLocked(rec, kind)) {
+				continue
+			}
 			fresh.HiddenUntil = hold
 			w.charmGoesForRemakeLocked(existing)
 			oldX, oldZ := existing.X, existing.Z

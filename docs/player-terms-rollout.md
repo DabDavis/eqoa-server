@@ -29,6 +29,8 @@ Put a **Read and accept Player Terms** link to `/terms` and a **Privacy Notice**
 
 ## Records and updates
 
+Player Terms v1.2 adds a US $250 limit for specified ordinary game-service claims, subject to the exceptions in the agreement. Check that the amount and the link to those exceptions appear immediately before the unchecked agreement box on both signup and existing-account forms. Verify that an account with only a v1.1 receipt is refused on both game shards, then accepts v1.2 explicitly and can sign in to both. Keep the v1.1 text and receipt associated with their original version.
+
 The primary SQLite database stores one UTC timestamp per account and terms version in `account_terms_acceptances`. Repeated clicks keep the original timestamp. Sanitized public snapshots clear this table. An account deletion removes its receipts. Preserve only the specific records subject to a documented legal hold before deleting the account.
 
 For a material change, add a new versioned agreement file, update the active template and `PlayerTermsVersion` and deploy the revision to every shard together. Keep the old published text in version history. Earlier receipts continue to describe the version the player actually accepted.

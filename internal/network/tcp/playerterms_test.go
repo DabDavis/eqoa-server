@@ -35,6 +35,9 @@ func TestPlayerTermsAgeBeforeCredentialsAndExplicitAccountDecision(t *testing.T)
 	if get.Code != 200 || !strings.Contains(get.Body.String(), "How old are you?") || strings.Contains(get.Body.String(), `name="username"`) {
 		t.Fatal("the public age screen must precede account fields")
 	}
+	if !strings.Contains(get.Body.String(), "Version "+PlayerTermsVersion+" ·") || !strings.Contains(get.Body.String(), `id="player-claim-limit"`) {
+		t.Fatal("the signed-out page must show the full current agreement and its damages limit")
+	}
 	if privacy := termsRequest(h, "GET", "/privacy", nil, nil); privacy.Code != 200 || !strings.Contains(privacy.Body.String(), "including tells") {
 		t.Fatal("privacy must be readable without age or account information")
 	}
@@ -53,12 +56,25 @@ func TestPlayerTermsAgeBeforeCredentialsAndExplicitAccountDecision(t *testing.T)
 		t.Fatalf("age boundary: %d", mature.Code)
 	}
 	cookie := mature.Result().Cookies()[0]
-	accountPage := termsRequest(h, "GET", "/terms", nil, cookie).Body.String()
-	if !strings.Contains(accountPage, `name="agree" value="1.1" required`) || strings.Contains(accountPage, " checked") {
-		t.Fatal("current terms must require an unchecked box")
+	for _, path := range []string{"/terms", "/terms?mode=create"} {
+		page := termsRequest(h, "GET", path, nil, cookie).Body.String()
+		box := strings.Index(page, `name="agree" value="`+PlayerTermsVersion+`" required`)
+		if box < 0 || strings.Contains(page, " checked") {
+			t.Fatalf("%s must require an unchecked box for the current terms", path)
+		}
+		if !strings.Contains(page[:box], "US $250 limit per player") || !strings.Contains(page[:box], `href="#player-claim-limit"`) {
+			t.Fatalf("%s must show the limit and link to its exceptions before the agreement box", path)
+		}
 	}
 	f := url.Values{"step": {"accept"}, "username": {"alice"}, "password": {"pw-alice"}, "proof": {cookie.Value}}
-	account, _ := r.s.accountStore.GetByUsername("alice")
+	account, err := r.s.accountStore.GetByUsername("alice")
+	if err != nil {
+		t.Fatal(err)
+	}
+	const previousVersion = "1.1"
+	if err := r.db.AcceptPlayerTerms(account, previousVersion); err != nil {
+		t.Fatal(err)
+	}
 	check := func(want bool) {
 		t.Helper()
 		got, err := r.db.HasPlayerTerms(account.ID, PlayerTermsVersion)
@@ -67,7 +83,7 @@ func TestPlayerTermsAgeBeforeCredentialsAndExplicitAccountDecision(t *testing.T)
 		}
 	}
 	check(false)
-	for _, bad := range []string{"", "1.0"} {
+	for _, bad := range []string{"", "1.0", previousVersion} {
 		f.Set("agree", bad)
 		if resp := termsRequest(h, "POST", "/terms", f, cookie); resp.Code != 400 {
 			t.Fatalf("accepted %q: %d", bad, resp.Code)
@@ -109,8 +125,11 @@ func TestPlayerTermsAgeBeforeCredentialsAndExplicitAccountDecision(t *testing.T)
 	}
 	check(true)
 	var count int
-	if err := r.db.QueryRow("SELECT COUNT(*) FROM account_terms_acceptances").Scan(&count); err != nil || count != 1 {
+	if err := r.db.QueryRow("SELECT COUNT(*) FROM account_terms_acceptances WHERE accountid = ? AND version = ?", account.ID, PlayerTermsVersion).Scan(&count); err != nil || count != 1 {
 		t.Fatalf("receipt count %d: %v", count, err)
+	}
+	if ok, err := r.db.HasPlayerTerms(account.ID, previousVersion); err != nil || !ok {
+		t.Fatalf("the previous version's receipt must remain on record: %v, %v", ok, err)
 	}
 	f.Set("step", "create")
 	f.Set("username", "newplayer")

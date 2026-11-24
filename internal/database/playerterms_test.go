@@ -13,32 +13,33 @@ func TestPlayerTermsAuthorityVersionsAndAtomicSignup(t *testing.T) {
 	}
 	defer db.Close()
 	s := NewSQLiteAccountStore(db)
-	account, err := s.CreateWithPlayerTerms("player", "test hash", "1.0")
+	const previousVersion, nextVersion = "1.1", "1.2"
+	account, err := s.CreateWithPlayerTerms("player", "test hash", previousVersion)
 	if err != nil {
 		t.Fatal(err)
 	}
 	account.PasswordHash = "test hash"
 	mirror := NewAccountMirror(db, path)
-	if ok, err := mirror.HasPlayerTerms(account.ID, "1.1"); ok || err != nil {
+	if ok, err := mirror.HasPlayerTerms(account.ID, nextVersion); ok || err != nil {
 		t.Fatalf("stale version accepted: %v", err)
 	}
-	if err := db.AcceptPlayerTerms(account, "1.1"); err != nil {
+	if err := db.AcceptPlayerTerms(account, nextVersion); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := db.Exec("UPDATE account_terms_acceptances SET accepted_at = '2000-01-01 00:00:00' WHERE version = '1.1'"); err != nil {
+	if _, err := db.Exec("UPDATE account_terms_acceptances SET accepted_at = '2000-01-01 00:00:00' WHERE version = ?", nextVersion); err != nil {
 		t.Fatal(err)
 	}
-	if err := db.AcceptPlayerTerms(account, "1.1"); err != nil {
+	if err := db.AcceptPlayerTerms(account, nextVersion); err != nil {
 		t.Fatal(err)
 	}
 	var stamp string
-	if err := db.QueryRow("SELECT accepted_at FROM account_terms_acceptances WHERE version = '1.1'").Scan(&stamp); err != nil || stamp != "2000-01-01 00:00:00" {
+	if err := db.QueryRow("SELECT accepted_at FROM account_terms_acceptances WHERE version = ?", nextVersion).Scan(&stamp); err != nil || stamp != "2000-01-01 00:00:00" {
 		t.Fatal("replay changed the first receipt")
 	}
-	if ok, err := mirror.HasPlayerTerms(account.ID, "1.1"); !ok || err != nil {
+	if ok, err := mirror.HasPlayerTerms(account.ID, nextVersion); !ok || err != nil {
 		t.Fatalf("mirror missed canonical receipt: %v", err)
 	}
-	if ok, err := NewAccountMirror(db, filepath.Join(t.TempDir(), "absent.db")).HasPlayerTerms(account.ID, "1.1"); ok || err == nil {
+	if ok, err := NewAccountMirror(db, filepath.Join(t.TempDir(), "absent.db")).HasPlayerTerms(account.ID, nextVersion); ok || err == nil {
 		t.Fatal("missing authority admitted a player")
 	}
 	if !snapshotRules["account_terms_acceptances"].clear {
@@ -54,7 +55,7 @@ func TestPlayerTermsAuthorityVersionsAndAtomicSignup(t *testing.T) {
 	if _, err := db.Exec("DROP TABLE account_terms_acceptances"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := s.CreateWithPlayerTerms("another", "hash", "1.1"); err == nil {
+	if _, err := s.CreateWithPlayerTerms("another", "hash", nextVersion); err == nil {
 		t.Fatal("signup succeeded without its receipt")
 	}
 	if _, err := s.GetByUsername("another"); err == nil {

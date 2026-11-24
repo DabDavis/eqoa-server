@@ -23,6 +23,66 @@ func phLookup() (func(string) (string, bool), func(string) []string) {
 		"Deathfist champion", "RE PC Fire 12", "RE PC Fire 1", "wolf"})
 }
 
+func TestPlaceholderSurvivesDeletingItsOnlyNamedSpawn(t *testing.T) {
+	c, db, path, gs, gp, _ := campWorld(t)
+	stand(c, gp, 25205, 50, 15200, 0)
+	targetAs(gp, campPariah, 100301, gs)
+	c.say(gs, "/move")
+	if got := gmReplies(t, gs); !hasLine(got, "Moved pariah of Xrag") {
+		t.Fatal(got)
+	}
+	targetAs(gp, campWolfNear, 100302, gs)
+	c.say(gs, "/ph wolf75, pariah of Xrag25")
+	if got := gmReplies(t, gs); !hasLine(got, "is a placeholder now") {
+		t.Fatal(got)
+	}
+	rule, has, err := db.CampSpawnOf(campWolfNear)
+	if err != nil || !has || rule.Templates["pariah of xrag"].ModelID != campPariahBody {
+		t.Fatalf("saved binding: %+v, %v", rule, err)
+	}
+
+	targetAs(gp, campPariah, 100303, gs)
+	c.say(gs, "/delete")
+	if got := gmReplies(t, gs); !hasLine(got, "Deleted pariah of Xrag") {
+		t.Fatal(got)
+	}
+	if n := count(t, db, "SELECT COUNT(*) FROM npcs WHERE npc_name = 'pariah of Xrag'"); n != 0 {
+		t.Fatalf("%d fixed rare spawns remain", n)
+	}
+	if _, err := c.gw.LoadCampSpawns(db); err != nil {
+		t.Fatal(err)
+	}
+	targetAs(gp, campWolfNear, 100304, gs)
+	c.say(gs, "/ph")
+	if got := gmReplies(t, gs); !hasLine(got, "wolf 75%, pariah of Xrag 25%") {
+		t.Fatal(got)
+	}
+	// Edit the rule while the only NPC on this point is the ordinary wolf.
+	c.say(gs, "/ph pariah of Xrag")
+	if got := gmReplies(t, gs); !hasLine(got, "is a placeholder now") {
+		t.Fatal(got)
+	}
+	reopened, err := database.NewSQLite(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer reopened.Close()
+	w := entity.NewWorld()
+	w.LoadNPCs(database.NewNPCStore(reopened))
+	if _, err := w.LoadCampSpawns(reopened); err != nil {
+		t.Fatal(err)
+	}
+	spot := w.NPCs[campWolfNear]
+	x, z := spot.X, spot.Z
+	if !w.KillNPCNow(campWolfNear) || !w.RespawnNPCNow(campWolfNear) {
+		t.Fatal("the original wolf point failed to respawn")
+	}
+	if spot.Name != "pariah of Xrag" || spot.Level != 63 || spot.ModelID != campPariahBody ||
+		spot.ServerID != campWolfNear || spot.X != x || spot.Z != z || w.NPCs[campPariah] != nil {
+		t.Fatalf("cold respawn: %q, level %d, model %x, row %d at %v,%v", spot.Name, spot.Level, spot.ModelID, spot.ServerID, spot.X, spot.Z)
+	}
+}
+
 func TestPhParse(t *testing.T) {
 	lookup, suggest := phLookup()
 	for _, tc := range []struct {

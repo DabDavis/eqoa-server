@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -54,25 +55,21 @@ func CampWeightsText(weights []int) string {
 
 // CampSpawnOf is the campspawns row of an npcs row; false when it has none.
 func (db *SQLiteDB) CampSpawnOf(npcID int) (CampSpawnRow, bool, error) {
-	r := CampSpawnRow{NPCID: npcID}
-	var kinds, weights string
-	err := db.QueryRow(`SELECT camp, kinds, weights FROM campspawns WHERE npcid = ?`, npcID).Scan(&r.Camp, &kinds, &weights)
+	r, err := scanCampSpawn(db.QueryRow(`SELECT npcid, camp, kinds, weights, templates FROM campspawns WHERE npcid = ?`, npcID))
 	if errors.Is(err, sql.ErrNoRows) {
-		return r, false, nil
+		return CampSpawnRow{NPCID: npcID}, false, nil
 	}
 	if err != nil {
 		return r, false, err
 	}
-	r.Kinds = CampKindNames(kinds)
-	r.Weights = CampKindWeights(weights, len(r.Kinds))
 	return r, true, nil
 }
 
 // SetPlaceholderAudited binds an npcs row's spawn point to kinds at weights
 // (nil: even odds): its campspawns row made (camp 0) or its kinds and weights
-// changed (a camp's spawn keeps its camp), with its audit line. It reports the
+// changed (a camp's spawn keeps its camp), with its alternate records and audit line. It reports the
 // row's change: insert, update or unchanged.
-func (db *SQLiteDB) SetPlaceholderAudited(npcID int, kinds []string, weights []int, who GMEdit, detail string) (string, error) {
+func (db *SQLiteDB) SetPlaceholderAudited(npcID int, kinds []string, weights []int, who GMEdit, detail string, alternates ...NPCRecord) (string, error) {
 	if len(kinds) == 0 || len(kinds) > MaxPlaceholderKinds {
 		return "", fmt.Errorf("a placeholder pops 1 to %d kinds, not %d", MaxPlaceholderKinds, len(kinds))
 	}
@@ -94,12 +91,20 @@ func (db *SQLiteDB) SetPlaceholderAudited(npcID int, kinds []string, weights []i
 		return "", err
 	}
 	k, wt := CampKindsText(kinds), CampWeightsText(weights)
+	templates := make(map[string]NPCRecord, len(alternates))
+	for _, rec := range alternates {
+		templates[NPCClassKey(rec.NPCName)] = rec
+	}
+	data, err := json.Marshal(templates)
+	if err != nil {
+		return "", err
+	}
 	action := "insert"
 	if before == nil {
-		_, err = tx.Exec(`INSERT INTO campspawns (npcid, camp, kinds, weights) VALUES (?, 0, ?, ?)`, npcID, k, wt)
+		_, err = tx.Exec(`INSERT INTO campspawns (npcid, camp, kinds, weights, templates) VALUES (?, 0, ?, ?, ?)`, npcID, k, wt, string(data))
 	} else {
 		action = "update"
-		_, err = tx.Exec(`UPDATE campspawns SET kinds = ?, weights = ? WHERE npcid = ?`, k, wt, npcID)
+		_, err = tx.Exec(`UPDATE campspawns SET kinds = ?, weights = ?, templates = ? WHERE npcid = ?`, k, wt, string(data), npcID)
 	}
 	if err != nil {
 		return "", err
@@ -150,7 +155,7 @@ func (db *SQLiteDB) ClearPlaceholderAudited(npcID int, own string, who GMEdit, d
 	if err != nil {
 		return "", err
 	}
-	if _, err := tx.Exec(`UPDATE campspawns SET kinds = ?, weights = '' WHERE npcid = ?`, own, npcID); err != nil {
+	if _, err := tx.Exec(`UPDATE campspawns SET kinds = ?, weights = '', templates = '{}' WHERE npcid = ?`, own, npcID); err != nil {
 		return "", err
 	}
 	after, err := fullRow(tx, sel, npcID)

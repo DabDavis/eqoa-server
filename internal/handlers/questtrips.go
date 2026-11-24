@@ -83,6 +83,23 @@ func (q *QuestEngine) TripBarred(p *entity.Player, npc, to string) (quest string
 	return name, true
 }
 
+// TripUnderway is whether the player is on one of the quests that unlock a
+// travel NPC's trip to a place, past its first step (wayRoute.Underway).
+func (q *QuestEngine) TripUnderway(p *entity.Player, npc, to string) bool {
+	if q == nil || p == nil {
+		return false
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	c := q.namedLocked(p.CharServerID, p.Name)
+	for _, qu := range q.cat.unlockers[tripKey(npc, to)] {
+		if cq := c.quests[qu.ID]; cq != nil && cq.Step > 1 {
+			return true
+		}
+	}
+	return false
+}
+
 // TravelRoute is one travel NPC's trip as waysender.go has it, for the GM
 // panel and the tools that check unlocks against the routes.
 type TravelRoute struct {

@@ -138,3 +138,58 @@ func TestTheLastHouseWardenLetsTheSuitPass(t *testing.T) {
 		t.Fatalf("Yes set the player at (%.1f, %.1f) world %d (%v)", x, z, world, moved)
 	}
 }
+
+// A quester of the flag quest past its first step is let back in without the
+// suit (Heirloom petition 2896: Notreal died upstairs at The Last House's last
+// step and the Mausoleum Portal, open only at step 1 or once finished, kept
+// him out). The controls: one not on it is told to finish it; one at its first
+// step is too (the step's own talk lets them in); one who finished it still
+// needs the suit.
+func TestAQuesterPastTheFirstStepIsLetBackIntoPoD(t *testing.T) {
+	for i, name := range []string{"Mausoleum Portal", "Necrologist Zizclank"} {
+		f := newQuestFixture(t)
+		f.exec(`UPDATE itempattern SET patternid = ? WHERE patternid = ?`, zombieFleshSuit, f.pattern("zombie flesh suit", 1))
+		f.exec(`INSERT INTO quests (questid, name, enabled, giver) VALUES (82, 'The Last House', 1, 'Nobody Here')`)
+		f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (82, 1, 'talk', 'Kellina', 'x'), (82, 2, 'talk', 'Kellina', 'y'), (82, 3, 'talk', 'Kellina', 'z')`)
+		f.exec(`INSERT INTO questunlocks VALUES (82, ?, 'the Plane of Disease')`, name)
+		if err := f.qe.Reload(); err != nil {
+			t.Fatal(err)
+		}
+		f.tw.p.Level = podLevel
+		way := f.tw.add(6, &entity.NPC{ServerID: entity.EntityID(3030 + i), Name: name, NPCType: 0x80, SpawnX: f.tw.p.X + 3, SpawnY: f.tw.p.Y, SpawnZ: f.tw.p.Z})
+		set := func(action string, step int) {
+			t.Helper()
+			if _, err := f.qe.SetCharacterQuest(f.sid, 82, action, step); err != nil {
+				t.Fatal(err)
+			}
+			f.tw.s.Queue().GetPending()
+		}
+		closed := notUnlocked("the Plane of Disease", "The Last House")
+		f.tw.s.Queue().GetPending()
+
+		f.tw.talk(way)
+		if box := boxSaid(f.tw.s); box != closed {
+			t.Fatalf("%s to one not on the quest said %q", name, box)
+		}
+		set(QuestGive, 1)
+		f.tw.talk(way)
+		if box := boxSaid(f.tw.s); box != closed {
+			t.Fatalf("%s to one at the first step said %q", name, box)
+		}
+		set(QuestComplete, 0)
+		f.tw.talk(way)
+		if box := boxSaid(f.tw.s); box != wayRoutes[name][0].Lacks {
+			t.Fatalf("%s to one who finished it without the suit said %q", name, box)
+		}
+		set(QuestReset, 0)
+		set(QuestGive, 3)
+		f.tw.talk(way)
+		if got := optionBox(t, f.tw.s); len(got) != 2 || got[0] != "Yes" {
+			t.Fatalf("%s to one at step 3 without the suit offered %q, want Yes and No", name, got)
+		}
+		f.tw.pick(way, 0)
+		if x, z, world, moved := teleported(f.tw.s); !moved || world != podArrival.World || x != podArrival.X || z != podArrival.Z {
+			t.Fatalf("%s's Yes sent the quester to (%.1f, %.1f) world %d (%v)", name, x, z, world, moved)
+		}
+	}
+}

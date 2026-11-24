@@ -43,6 +43,12 @@ type wayRoute struct {
 	// Lacks what the waysender says to one without it.
 	Holds int
 	Lacks string
+	// Underway lets a player on one of the quests that unlock the trip, past
+	// its first step, take it without the item (Heirloom petition 2896: a
+	// quester of The Last House who died upstairs at its last step was kept
+	// out, the Mausoleum Portal letting in only at step 1 or once finished):
+	// back into the quest the trip's way is part of.
+	Underway bool
 }
 
 // porterFreeport and porterQeynos are a porter's trips (board 823).
@@ -307,14 +313,14 @@ var wayRoutes = map[string][]wayRoute{
 	// "re-enter later if you bring a Zombie Flesh Suit".
 	"Necrologist Zizclank": {
 		{To: "the Plane of Disease", At: podArrival, MinLevel: podLevel,
-			Holds: zombieFleshSuit, Lacks: "The way will not open to you: you need a zombie flesh suit to pass into the Plane of Disease."},
+			Underway: true, Holds: zombieFleshSuit, Lacks: "The way will not open to you: you need a zombie flesh suit to pass into the Plane of Disease."},
 	},
 	"Mausoleum Portal": {
 		// The portal itself (ticket 1197): the guide's flag lets a player "port
 		// there anytime", and this talked only on The Last House's own first step.
 		// The same trip as Zizclank's, opened by the same quest (questunlocks).
 		{To: "the Plane of Disease", At: podArrival, MinLevel: podLevel,
-			Holds: zombieFleshSuit, Lacks: "The way will not open to you: you need a zombie flesh suit to pass into the Plane of Disease."},
+			Underway: true, Holds: zombieFleshSuit, Lacks: "The way will not open to you: you need a zombie flesh suit to pass into the Plane of Disease."},
 	},
 	// The Last House's far portal (the wiki's Oozing Portal): the quest's last
 	// step, then for one who finished it the way on, with the suit ("Have the
@@ -607,13 +613,14 @@ func wayDestsHeld(gw *entity.World, sess *session.Session, waysender string, pla
 			}
 			continue
 		}
-		if quest, no := Quests().TripBarred(player, waysender, r.To); no {
+		underway := r.Underway && Quests().TripUnderway(player, waysender, r.To)
+		if quest, no := Quests().TripBarred(player, waysender, r.To); no && !underway {
 			if locked.place == "" {
 				locked = lockedTrip{place: r.To, quest: quest}
 			}
 			continue
 		}
-		if r.Holds > 0 && !Quests().Holds(player, r.Holds) {
+		if r.Holds > 0 && !underway && !Quests().Holds(player, r.Holds) {
 			if lacks == "" {
 				lacks = r.Lacks
 			}

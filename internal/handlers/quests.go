@@ -319,6 +319,9 @@ type questChar struct {
 	// declined is the quests it said no to since its login, not offered
 	// again until its giver has none other to offer (offerAtLocked)
 	declined map[int]bool
+	// bulking is whether a "Hand in all" is handing in its sets
+	// (questbulk.go): none of its hand-ins asks it again
+	bulking bool
 	// pointerIDs is the quests of the pointer lines at the end of shown, in
 	// order (questpointers.go); dismissed the pointers the player deleted
 	// since its login
@@ -385,6 +388,7 @@ const (
 	choiceAsk       // a question asked at the offer (database.QuestAsk)
 	choiceBoard     // a quest picked off a giver's board (questboard.go)
 	choiceBoardMore // the board's next page (option: the page)
+	choiceBulk      // "Hand in all": a repeatable turn-in's other sets (option: how many; questbulk.go)
 )
 
 // NewQuestEngine reads the quests out of db. Start sets it running.
@@ -1778,6 +1782,8 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 		log.Printf("Quests: %s picked %q at %q step %d", p.Name, opt.Answer, qu.Name, st.Step)
 	}
 	q.completeStepSkipLocked(sess, p, c, qu, cq, st, given, extra, skip)
+	// a repeatable turn-in finished with more sets held: "Hand in all" (questbulk.go)
+	q.offerBulkLocked(sess, p, c, qu, cq, st)
 }
 
 // Answer is HandleDialogueOption's first question: an answer to a quest's box.
@@ -1863,6 +1869,8 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 			}
 		}
 		q.askLocked(sess, c, qu.Giver, strings.TrimSpace(a.Says+"\n"+question), questAskOffer, offerChoices(qu, ch.step, picked))
+	case choiceBulk:
+		q.bulkHandInLocked(sess, p, c, qu, ch.option)
 	case choiceNotYet:
 		if st := qu.Step(ch.step); st != nil {
 			q.tellLocked(c, sess, st.Target, sayLines(orText(st.Reminder, questNotYet))...)

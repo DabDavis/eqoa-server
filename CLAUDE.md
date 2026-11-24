@@ -296,6 +296,7 @@ Each system's file is its long form; its tests document the edge cases. `world.<
 | Corpse tunar, the live game's: 1 + 0..level/4, wildlife none, named creatures by table `npccoins` (live-era footage: very little tunar dropped); pickpocket the ordinary amount | `handlers/corpsecoins.go`, `database/npccoins.go` |
 | A reviewed quest content patch as one guarded change (admin op `quest_definition_patch`: whole-row manifest, drift and anyone-has-it refused, quests held until published once) | `gmweb/ops_questpatch.go`, `handlers/questdefgate.go` |
 | A hand-in that fires an encounter is one outcome (trigger run reserved, items + progress one transaction) | `handlers/questatomic.go`, `gmtriggerreserve.go`, `database/handin.go` |
+| "Hand in all": a plain repeatable turn-in's other full sets handed in from one box after a hand-in, each set the ordinary take + hand-in, 20 a talk | `handlers/questbulk.go` |
 
 **Raid groups**: past four only by a raid flag (`/raid`). CLIENT's `m_group[4]` is followed by its count and
 `Msg0772` reads the count unbounded, so **no client is told of more than four members** unless it asked for the

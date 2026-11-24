@@ -241,6 +241,10 @@ class Release(unittest.TestCase):
         self.assertEqual(list(vt.embedded_refs("requires", "qtext", "11|12,13")), [("quest", 11), ("quest", 12), ("quest", 13)])
         options = '{"options":[{"items":"100*2","spells":"51,52","cost":1200}]}'
         self.assertEqual(list(vt.embedded_refs("choices", "itext", options)), [("item", 100), ("spell", 51), ("spell", 52)])
+        self.assertEqual(list(vt.embedded_refs("ingredients", "itext", '[{"item":100,"count":12,"keep":true}]')),
+                         [("item", 100)])
+        abilities = '[{"kind":"cast","spell":"Fire","every":20},{"kind":"cast","spell_id":51,"every":30}]'
+        self.assertEqual(list(vt.embedded_refs("abilities", "stext", abilities)), [("spell", 51)])
 
     def test_same_ticket_npc_and_child_resolve_and_protected_vendors_do_not_cross(self):
         with contextlib.closing(sqlite3.connect(self.l)) as db:

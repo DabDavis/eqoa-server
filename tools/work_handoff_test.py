@@ -14,6 +14,7 @@ class WorkHandoff(unittest.TestCase):
                 dict(row, id=2, waiting_on=""), dict(row, id=3), dict(row, id=4, waiting_on="logout")]
         result = view.handoff(rows)
         self.assertNotIn("2030", str(result))
+        self.assertFalse(any(view.handoff([{k: v for k, v in rows[0].items() if k not in {"next", "waiting_on"}}]).values()))
         for key, ident in (("Needs Jibrish", 3), ("Waiting on Dab", 1), ("Ready for Codex", 2), ("Other waits", 4)):
             self.assertTrue(result[key][0].startswith(f"#{ident} v9"))
 

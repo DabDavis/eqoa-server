@@ -40,7 +40,7 @@ def database_rows(path, ids):
 def handoff(rows, ids=()):
     latest = {}
     for row in rows:
-        if not set(COLUMNS) <= row.keys():
+        if not set(COLUMNS[:-2]) <= row.keys():
             raise ValueError("expected the current work-board fields: " + ", ".join(COLUMNS))
         ident, version = row["id"], row["version"]
         if (not ids or ident in ids) and (ident not in latest or version > latest[ident]["version"]):
@@ -49,9 +49,9 @@ def handoff(rows, ids=()):
     for ident, row in sorted(latest.items()):
         if row["status"] == "done":
             continue
-        wait = (row["waiting_on"] or "").strip().casefold()
+        wait = (row.get("waiting_on") or "").strip().casefold()
         owner = (row["owner"] or "").strip().casefold()
-        action = (row["next"] or "").strip()
+        action = (row.get("next") or "").strip()
         if wait in {"jibrish", "owner decision", "jibrish's decision"}:
             group = "Needs Jibrish"
         elif wait in {"dab", "dab's sessions"}:

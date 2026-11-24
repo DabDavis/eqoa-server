@@ -421,9 +421,11 @@ def embedded_refs(column, kind, value):
     """Read IDs in the game's item-count, integer-list and structured quest formats."""
     if value is None or value == "":
         return
-    if column in {"events", "steps", "choices", "byclass"}:
+    if column in {"events", "steps", "choices", "byclass", "ingredients", "abilities"}:
         data = json.loads(value, object_pairs_hook=pairs)
-        if column in {"events", "steps"}:
+        if data is None and column == "abilities":
+            return
+        if column in {"events", "steps", "ingredients", "abilities"}:
             entries = data
         elif column == "choices":
             require(isinstance(data, dict), "invalid quest choices")
@@ -434,6 +436,20 @@ def embedded_refs(column, kind, value):
         require(isinstance(entries, list), f"invalid encoded {column}")
         for entry in entries:
             require(isinstance(entry, dict), f"invalid encoded {column} entry")
+            if column == "ingredients":
+                ident = entry.get("item")
+                require(type(ident) is int and ident > 0, "invalid recipe ingredient")
+                yield "item", ident
+                continue
+            if column == "abilities":
+                ident = entry.get("spell_id", 0)
+                require(type(ident) is int and ident >= 0, "invalid template spell_id")
+                if ident:
+                    yield "spell", ident
+                npc = entry.get("npc")
+                if isinstance(npc, str) and re.fullmatch(r"#[0-9]+", npc):
+                    yield "npc", int(npc[1:])
+                continue
             for field, ref_kind in (("items", "itext"), ("spells", "stext"), ("requires", "qtext")):
                 yield from embedded_refs(field, ref_kind, entry.get(field))
             for field, ref_kind in (("spell", "spell"), ("quest", "quest"), ("item", "item")):

@@ -824,11 +824,38 @@ func (w *World) playerShotFormulaLocked(attacker *Player, npc *NPC, damage, raw 
 	return total
 }
 
+// sendShotNumbersLocked tells the attacker a landed swing's damage figure
+// (0x00DB, attacker → NPC, negative): one number for a melee hit or a
+// one-arrow shot, as ever; one for each arrow of a shot of more (Range4's
+// two), each its arrowShare of the swing's damage, so the numbers sum to it
+// (players saw two arrows and one number and took the second for a miss).
+// Only the client's numbers change: the damage, threat, procs and a kill stay
+// the swing's one hit. Both numbers go in the same tick: CLIENT's AddDamage
+// (and vanilla's damage.rs) gives each new number on a side the next of three
+// bounce heights, so two on one target in one frame stand apart. A kill on
+// the first arrow's share still shows both: both arrows flew, and the sum is
+// the hit the creature took. An arrow after the first whose share is 0 (a
+// swing with no figure) is not told.
+func (w *World) sendShotNumbersLocked(sess *session.Session, objectID uint32, damage, raw int, parts [maxShotArrows]int, arrows int) {
+	if arrows < 2 {
+		w.sendDamageIndication(sess, sess.PlayerObjectID(), -damage, objectID, numberMelee)
+		return
+	}
+	for i := range arrows {
+		n := arrowShare(damage, raw, parts, arrows, i)
+		if i > 0 && n == 0 {
+			continue
+		}
+		w.sendDamageIndication(sess, sess.PlayerObjectID(), -n, objectID, numberMelee)
+	}
+}
+
 // playerHitLocked is one landed player swing: the reference server's roll on the worn
 // weapon, STR, DEX and the target (offence.go), the damage figure to the
 // attacker (0x00DB, attacker → NPC, negative), the NPC's threat (so it
 // fights back), and on a kill the XP and the faction hits (faction.go). It
-// reports a kill.
+// reports a kill. A shot of two arrows is told as two numbers, one an arrow
+// (sendShotNumbersLocked); everything else is the one hit's.
 func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NPC, objectID uint32) bool {
 	if w.apartLocked(attacker, npc) {
 		w.tellApartLocked(sess, attacker, npc, time.Now()) // water.go
@@ -856,7 +883,7 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 		// told, taken off nothing; the dummy fights back (dummy.go)
 		now := time.Now()
 		attacker.LastCombatTime = now
-		w.sendDamageIndication(sess, sess.PlayerObjectID(), -damage, objectID, numberMelee)
+		w.sendShotNumbersLocked(sess, objectID, damage, raw, parts, arrows)
 		w.markHealPlayerLocked(sess, attacker, npc, now) // markheal.go
 		w.dummyEngagedLocked(npc, attacker.ServerID, damage, now)
 		w.notePetDamageLocked(attacker, npc, damage)
@@ -874,7 +901,7 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 	w.notePetDamageLocked(attacker, npc, damage)
 	attacker.LastCombatTime = time.Now()
 
-	w.sendDamageIndication(sess, sess.PlayerObjectID(), -damage, objectID, numberMelee)
+	w.sendShotNumbersLocked(sess, objectID, damage, raw, parts, arrows)
 	w.markHealPlayerLocked(sess, attacker, npc, attacker.LastCombatTime) // markheal.go: a mark on it heals the hitter
 	log.Printf("Combat: %s hit %s for %d damage (HP: %d/%d) %.2f off, reach %.2f", attacker.Name, npc.Name, damage, npc.HP, npc.MaxHP,
 		dist3(attacker.X, attacker.Y, attacker.Z, npc.X, npc.Y, npc.Z), attacker.Swing.Reach+npcReachExtra(npc))

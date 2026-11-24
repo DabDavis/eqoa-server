@@ -60,7 +60,8 @@ func TestAMonksBareHandsRollItsHandToHand(t *testing.T) {
 // A change of hands in a fight (HandsChanged) is the next round's: the round
 // in hand lands as it was swung (Attack4, four hits), the next on the
 // client's beat swings what is held now (a bow's Range4: one hit, 5 s, its
-// reach of 25, so a crab 20 off is hit) and the one after on its delay. The
+// reach of 25, so a crab 20 off is hit; told as two numbers, one an arrow,
+// sendShotNumbersLocked) and the one after on its delay. The
 // control: without it the fight swings its engagement's Attack4 on, and the
 // crab 20 off is out of its reach. A new engagement's swing is the hands'
 // then, a change before it forgotten; hands put back as they swing leave
@@ -82,8 +83,8 @@ func TestHandsChangedSwingsFromTheNextRound(t *testing.T) {
 		}
 		f.npc.X = f.p.X + 20 // a bow's reach, not a blade's
 		n6, n7, n11 := at(6500*time.Millisecond), at(7000*time.Millisecond), at(11500*time.Millisecond)
-		if changed && (n6 != 5 || n7 != 5 || n11 != 6 || f.p.Swing != bow) {
-			t.Errorf("the bow's rounds: %d at 6.5 s, %d at 7 s, %d at 11.5 s (want 5, 5, 6), swing %+v", n6, n7, n11, f.p.Swing)
+		if changed && (n6 != 6 || n7 != 6 || n11 != 8 || f.p.Swing != bow) {
+			t.Errorf("the bow's rounds' numbers: %d at 6.5 s, %d at 7 s, %d at 11.5 s (want 6, 6, 8: two arrows a round), swing %+v", n6, n7, n11, f.p.Swing)
 		}
 		if !changed && (n6 != 4 || n11 != 4 || f.p.Swing != swing6s) {
 			t.Errorf("the control: %d hits by 11.5 s, swing %+v; want the blades' rounds out of reach", n11, f.p.Swing)

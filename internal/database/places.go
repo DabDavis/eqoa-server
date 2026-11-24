@@ -48,8 +48,12 @@ const placesSchema = `
 		note   TEXT NOT NULL DEFAULT ''
 	);`
 
-// LightSphereNear is how near a sphere's place an NPC stands to be it.
-const LightSphereNear = 3
+// LightSphereNear is how near a sphere's place an NPC stands to be it. Every
+// row is put on its NPC's spawn (0 away), so 1 is room enough; at 3 Saerk, on
+// the floor over his tower's upper orb of light and 2.1 from it across, was
+// taken for the orb, and a talk to him opened its box, never his quest
+// (Heirloom petition 2849). The rows have no height to tell floors apart.
+const LightSphereNear = 1
 
 // ensurePlaces makes tables lightspheres and placetexts (initSchema).
 func (db *SQLiteDB) ensurePlaces() error {

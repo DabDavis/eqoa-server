@@ -119,8 +119,9 @@ type QuestEngine struct {
 	gw      *entity.World
 	sm      *session.Manager
 
-	cat   questCatalog
-	chars map[uint32]*questChar
+	cat          questCatalog
+	chars        map[uint32]*questChar
+	froglokLines map[[2]int]froglokQuestLine // [quest ID, step]; step zero is the offer
 	// skySyncing is set while a Plane of Sky chain's step or quest is done for
 	// a doer's groupmates (skygroup.go); skyKill is the characters the kill
 	// being counted is credited to (killed), whose kill steps count on their own
@@ -1456,11 +1457,11 @@ func containsInt(v []int, n int) bool {
 // once when nothing need be answered (its words said first).
 func (q *QuestEngine) offerLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest) {
 	if len(sayLines(qu.Accept)) == 0 {
-		q.tellLocked(c, sess, qu.Giver, sayLines(qu.Offer)...)
+		q.tellLocked(c, sess, qu.Giver, sayLines(q.froglokWords(p, qu.ID, 0, qu.Giver, qu.Offer))...)
 		q.startLocked(sess, p, c, qu, 0, false)
 		return
 	}
-	q.askStageLocked(sess, c, qu, 0)
+	q.askStageLocked(sess, p, c, qu, 0)
 	log.Printf("Quests: %s offered %q", p.Name, qu.Name)
 }
 
@@ -1468,12 +1469,12 @@ func (q *QuestEngine) offerLocked(sess *session.Session, p *entity.Player, c *qu
 // asks two: the offer's paragraph k (its lines a box each, its last line the
 // question; any paragraphs past the answers said before the last question),
 // answered by Accept's line k, or Decline.
-func (q *QuestEngine) askStageLocked(sess *session.Session, c *questChar, qu *database.Quest, k int) {
+func (q *QuestEngine) askStageLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, k int) {
 	answers := sayLines(qu.Accept)
 	if k >= len(answers) {
 		return
 	}
-	paras := paragraphs(qu.Offer)
+	paras := paragraphs(q.froglokWords(p, qu.ID, 0, qu.Giver, qu.Offer))
 	words := ""
 	switch {
 	case k == len(answers)-1 && k < len(paras):
@@ -1838,7 +1839,7 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 			return true
 		}
 		if ch.step+1 < len(sayLines(qu.Accept)) {
-			q.askStageLocked(sess, c, qu, ch.step+1)
+			q.askStageLocked(sess, p, c, qu, ch.step+1)
 			return true
 		}
 		c.declined = nil
@@ -2318,7 +2319,7 @@ func (q *QuestEngine) completeStepSkipLocked(sess *session.Session, p *entity.Pl
 	if database.AtNPC(st.Kind) {
 		speaker = st.Target
 	}
-	q.tellLocked(c, sess, speaker, sayLines(st.Says)...)
+	q.tellLocked(c, sess, speaker, sayLines(q.froglokWords(p, qu.ID, st.Step, speaker, st.Says))...)
 	who := fmt.Sprintf("character %d", c.serverID)
 	if p != nil {
 		who = p.Name

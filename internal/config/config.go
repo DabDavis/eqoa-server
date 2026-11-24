@@ -636,6 +636,9 @@ type WorldConfig struct {
 	// Rehabilitators. Unset or false: none of it. The Heirloom Test Server sets it.
 	HeirloomMarks bool `yaml:"heirloom_marks"`
 
+	// FroglokRefugeeDialogue adds lines for Froglok players in Heirloom's starter quests.
+	FroglokRefugeeDialogue bool `yaml:"froglok_refugee_dialogue"`
+
 	// TestInvis turns on /testinvis, every player's safe mode
 	// (handlers/safemode.go, entity/safemode.go; petition 1424): typed, no
 	// creature attacks the character on sight until it is typed again, and a

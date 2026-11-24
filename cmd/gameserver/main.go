@@ -640,6 +640,11 @@ func main() {
 	// Initialize handler registry
 	handlerRegistry := handlers.NewRegistry()
 	handlers.RegisterDefaultHandlers(handlerRegistry, charStore, accountStore, sessionMgr, cfg.Server.ServerIP, gameWorld, inventoryStore, spellbookStore)
+	if qe := handlers.Quests(); qe != nil && cfg.World.FroglokRefugeeDialogue {
+		if err := qe.EnableFroglokRefugeeDialogue(cfg.GM.ShardID); err != nil {
+			log.Printf("Quests: Froglok refugee dialogue disabled: %v", err)
+		}
+	}
 	// a temporary password a GM set (a password reset): the world says to set
 	// one's own on the website (handlers/pwtemp.go), on every shard
 	gameWorld.OnPlayerEntered(handlers.PasswordTempNotice(db, cfg.Auth.PasswordURL))

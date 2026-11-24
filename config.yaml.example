@@ -342,6 +342,9 @@ world:
   # Off unless set.
   # heirloom_marks: true
 
+  # Heirloom only. Froglok refugees from Guk hear extra lines in their class quests.
+  # froglok_refugee_dialogue: true
+
   # The Testing Heroes (entity/heroes.go, handlers/heroes.go): every kill that
   # gives a character experience gives it 1 standing with the faction Testing
   # Heroes, a raid boss's 5; the faction starts at the floor, -2000, and the

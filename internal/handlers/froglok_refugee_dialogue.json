@@ -1,0 +1,572 @@
+[
+  {
+    "quest": 100061,
+    "speaker": "Commander Nothard",
+    "before": "We keep the peace in",
+    "line": "I didn't expect a froglok. You came out of Guk with the rebels? Shut the door. That's your business until you draw my pay."
+  },
+  {
+    "quest": 100062,
+    "step": 1,
+    "speaker": "Spiritmaster Zole",
+    "before": "When a spirit is bound",
+    "line": "Guk can still be home, if you wish. A binding only settles where you'll wake."
+  },
+  {
+    "quest": 100064,
+    "step": 2,
+    "speaker": "Captain Norgam",
+    "before": "The Militia Short Sword. Short",
+    "line": "Try the grip. Make a fist for me. There, see? The guard clears the web of your thumb now."
+  },
+  {
+    "quest": 100065,
+    "speaker": "Captain Norgam",
+    "before": "The caravans pay the Militia",
+    "line": "A carter told me he had six folk out of Guk under his canvas when he was robbed. Lucky for them the thieves wanted his purse."
+  },
+  {
+    "quest": 100067,
+    "step": 1,
+    "speaker": "Guard Sareken",
+    "before": "Bring me 147 tunar and",
+    "line": "I remember you at this gate with everything you owned in a bundle. You've filled out that bracer since."
+  },
+  {
+    "quest": 100068,
+    "step": 2,
+    "speaker": "Delwin Stitchfinger",
+    "before": "Fritz Belgor is back from",
+    "line": "Who darned that cuff for you? Reed thread, unless I'm much mistaken. I've seen work like that on the Guk folk at the docks."
+  },
+  {
+    "quest": 100070,
+    "step": 11,
+    "speaker": "Captain Norgam",
+    "before": "Somewhere a paladin will find",
+    "line": "I put 'froglok from Guk' on your first pay chit. I put your name on this one, %p. See that I spelled it right."
+  },
+  {
+    "quest": 100071,
+    "speaker": "Dilina McNerian",
+    "before": "Half of Freeport buys its",
+    "line": "One of the rebels out of Guk, are you? Set your bundle under my bench. Nobody roots about under there twice."
+  },
+  {
+    "quest": 100073,
+    "step": 1,
+    "speaker": "Gilderman Vanks",
+    "before": "Go out the north gate.",
+    "line": "Ever ground beetle shell with two river stones? Then you've used a pestle, whatever Dilina chooses to call it."
+  },
+  {
+    "quest": 100075,
+    "speaker": "Gilderman Vanks",
+    "before": "Will you hear it?",
+    "line": "When the wagons came through with the folk from Guk, one driver gave up his own seat to an old fellow. I remember a thing like that."
+  },
+  {
+    "quest": 100076,
+    "step": 2,
+    "speaker": "Dilina McNerian",
+    "before": "Here's Crude Sublimation. You turn",
+    "line": "See how the stuff clings to the glass? You had the sense to keep your fingers clear. I usually have to teach that twice."
+  },
+  {
+    "quest": 100078,
+    "step": 3,
+    "speaker": "Johnny Jorn",
+    "before": "The Crusaders out there will",
+    "line": "If they ask where you're from, you can tell them you're one of Dilina's. It'll be the plain truth."
+  },
+  {
+    "quest": 100079,
+    "step": 1,
+    "speaker": "Dilina McNerian",
+    "before": "One more thing: an albino",
+    "line": "You stoppered it for a long journey. Look, not a drop on your pack. My apprentices usually smell of it for a week."
+  },
+  {
+    "quest": 100080,
+    "step": 9,
+    "speaker": "Dilina McNerian",
+    "before": "Until then, %p, you're an",
+    "line": "If you ever put those Guk remedies you know down on paper, I'd like a copy. You can put my book on the shelf beside yours."
+  },
+  {
+    "quest": 100081,
+    "speaker": "William Corufost",
+    "before": "Something I can do for",
+    "line": "A froglok! Come in with the rebels from Guk, did you? Pull up a stool. You'll hear better away from the door."
+  },
+  {
+    "quest": 100082,
+    "step": 2,
+    "speaker": "Coachman Ronks",
+    "before": "This means that if you",
+    "line": "Just give me the name you sing under. Last party up from Guk thought I wanted the whole family tree."
+  },
+  {
+    "quest": 100084,
+    "step": 1,
+    "speaker": "Solenia Freyar",
+    "before": "Now get some rest. When",
+    "line": "You'll feel the beat of the blade through the hilt. There, you've got it already."
+  },
+  {
+    "quest": 100086,
+    "step": 2,
+    "speaker": "Solenia Freyar",
+    "before": "Here are the Silken Leggings,",
+    "line": "The folk down by the water were afraid to fill a cup. Some came all the way from Guk to be frightened of a well."
+  },
+  {
+    "quest": 100087,
+    "step": 3,
+    "speaker": "Guard Sareken",
+    "before": "One more thing. An orc",
+    "line": "One of your people sang for my watch last night. Only three notes in the refrain, and I've had them in my head all day."
+  },
+  {
+    "quest": 100089,
+    "step": 6,
+    "speaker": "Solenia Freyar",
+    "before": "Stay close to Ilenar. Whatever",
+    "line": "That old song you hum has the right of it. Listen to who falls quiet when the last verse comes round."
+  },
+  {
+    "quest": 100090,
+    "step": 13,
+    "speaker": "Solenia Freyar",
+    "before": "Ilenar will find out what",
+    "line": "As for the songs you brought out of Guk, sing them in this hall whenever you please. I'll make room on the bill."
+  },
+  {
+    "quest": 100091,
+    "speaker": "Denouncer Alshea",
+    "before": "I am Denouncer Alshea. We",
+    "line": "Some of the rebels who fled Guk have been through these doors. I've dressed their feet. This is the first time one's asked to learn."
+  },
+  {
+    "quest": 100092,
+    "step": 1,
+    "speaker": "Spiritmaster Keika",
+    "before": "When a spirit is bound",
+    "line": "You may have kin who still say your name over the water in Guk. This binding will do them no harm."
+  },
+  {
+    "quest": 100095,
+    "speaker": "Sister Falhelm",
+    "before": "Will you get back what",
+    "line": "Three families from Guk pitched their blankets by that road. They've little enough to lose."
+  },
+  {
+    "quest": 100096,
+    "step": 2,
+    "speaker": "Sister Falhelm",
+    "before": "Here is Endure Ailment, so",
+    "line": "I saw you steady the jar when I reached for it. Somebody tended sick folk beside you before you came here."
+  },
+  {
+    "quest": 100097,
+    "step": 5,
+    "speaker": "Guard Sareken",
+    "before": "Take this Sturdy Mace, with",
+    "line": "Those who came out of Guk still ask me about that road. For once I've some good news for them."
+  },
+  {
+    "quest": 100099,
+    "step": 6,
+    "speaker": "Sister Falhelm",
+    "before": "A reverent face and a",
+    "line": "You've seen frightened people take anything they're handed if somebody calls it medicine. Remember the smell of those roots."
+  },
+  {
+    "quest": 100100,
+    "step": 11,
+    "speaker": "Sister Falhelm",
+    "before": "When they do, you'll want",
+    "line": "If another of your folk comes in with their feet raw from the road, there's a second stool by yours now."
+  },
+  {
+    "quest": 100101,
+    "speaker": "Malsis",
+    "before": "Say what you must, I",
+    "line": "A froglok. The last rebel from Guk who climbed those stairs asked for passage money. You're looking at the rings instead."
+  },
+  {
+    "quest": 100103,
+    "step": 2,
+    "speaker": "Kellina",
+    "before": "I am a woman of",
+    "line": "You kept your hands steady when I raised my voice. I suppose it takes more than an irritable tutor to rattle someone out of Guk."
+  },
+  {
+    "quest": 100104,
+    "step": 2,
+    "speaker": "Kellina",
+    "before": "You may now be strong",
+    "line": "I had the cuffs drawn up a little. Catch one on a brazier and we'll both be sorry, dear."
+  },
+  {
+    "quest": 100106,
+    "step": 2,
+    "speaker": "Kellina",
+    "before": "Here is Infusion, to mend",
+    "line": "You knew to keep it below the lip of the jar. Did someone teach you that back in the marsh?"
+  },
+  {
+    "quest": 100107,
+    "step": 3,
+    "speaker": "Guard Sareken",
+    "before": "One more thing. An orc",
+    "line": "A lad from Guk used to fish that bank before the trouble. First catch I've seen from there in days."
+  },
+  {
+    "quest": 100108,
+    "step": 3,
+    "speaker": "Fritz Belgor",
+    "before": "120 tunar, and worth every",
+    "line": "One of your folk taught me to wrap these in rush leaves for the wet crossing. Look, still dry inside."
+  },
+  {
+    "quest": 100110,
+    "step": 11,
+    "speaker": "Kellina",
+    "before": "Malsis promised to tell you",
+    "line": "When you came in from Guk you kept your pack on, ready to leave. Look at it now, gathering dust under your own bench."
+  },
+  {
+    "quest": 100111,
+    "speaker": "Necorik the Ghost",
+    "before": "I am Necorik. They call",
+    "line": "A froglok off the Guk boats. Easy to spot, you think? I heard the stair creak before I ever saw your face."
+  },
+  {
+    "quest": 100113,
+    "step": 2,
+    "speaker": "Athera",
+    "before": "Here is the Sneak scroll.",
+    "line": "Necorik says you came all the way out of Guk with the rebels. That much practice walking quietly ought to count for something."
+  },
+  {
+    "quest": 100115,
+    "speaker": "Athera",
+    "before": "Highwaymen have been hijacking the",
+    "line": "A family out of Guk can lose everything it owns in one stolen cart. The Coffer counts the cart. I remember what rode in it."
+  },
+  {
+    "quest": 100116,
+    "step": 2,
+    "speaker": "Athera",
+    "before": "Here is Acrobatics, and the",
+    "line": "Nice bit of balance. Those wet planks they lay across the marsh must make our rooftops feel wide."
+  },
+  {
+    "quest": 100117,
+    "step": 1,
+    "speaker": "Guard Sareken",
+    "before": "Don't ask what the scales",
+    "line": "If you're wondering about that bundle the Guk folk left at the gate, nobody's touched it. Even I know a child's shoes when I see them."
+  },
+  {
+    "quest": 100118,
+    "step": 3,
+    "speaker": "Fritz Belgor",
+    "before": "120 tunar, and worth every",
+    "line": "You're checking the wrapping! Fair enough. The road from Guk would teach anybody what damp does to a parcel."
+  },
+  {
+    "quest": 100120,
+    "step": 11,
+    "speaker": "Athera",
+    "before": "Somewhere in the Temple of",
+    "line": "If anyone comes to my door buying the names of the Guk rebels, I've forgotten how to spell every last one."
+  },
+  {
+    "quest": 100121,
+    "speaker": "Azlynn",
+    "before": "I teach the mind: how",
+    "line": "I heard a porter call you one of the Guk rebels. Tell me, did he decide what you wanted before you got a word out?"
+  },
+  {
+    "quest": 100123,
+    "step": 2,
+    "speaker": "Opanheim",
+    "before": "Here is Crawling Skin. It",
+    "line": "Interesting. Even with half the room staring at the froglok, you kept your eyes on my hands."
+  },
+  {
+    "quest": 100124,
+    "speaker": "Opanheim",
+    "before": "Do you want a proper",
+    "line": "You can keep the coat you wore out of Guk. I still have the one I came here in, somewhere."
+  },
+  {
+    "quest": 100126,
+    "speaker": "Azlynn",
+    "before": "Someone has been in the",
+    "line": "I've watched you check a latch twice and never rattle it once. A useful habit to bring out of Guk."
+  },
+  {
+    "quest": 100127,
+    "step": 4,
+    "speaker": "Merchant Landi",
+    "before": "Half the guilds in this",
+    "line": "That little rush wick in your pocket would do nicely in a bowl. For the road I'd still want a lantern with glass."
+  },
+  {
+    "quest": 100129,
+    "step": 1,
+    "speaker": "Tailor Weynia",
+    "before": "I make them from the",
+    "line": "Bend your knee for me. Ah, so that's where the old pair binds. I've only ever cut these for folk who stand straight up."
+  },
+  {
+    "quest": 100130,
+    "step": 11,
+    "speaker": "Azlynn",
+    "before": "When you're stronger I'll send",
+    "line": "That porter asked for you yesterday. Took him a while to remember your name, but this time he did."
+  },
+  {
+    "quest": 100131,
+    "speaker": "Corious Slaerin",
+    "before": "This is Merchant House Slaerin.",
+    "line": "Gilgash has sold candles to half the rebels out of Guk. You're the first froglok who's climbed my stairs to ask what a candle calls."
+  },
+  {
+    "quest": 100132,
+    "step": 1,
+    "speaker": "Spiritmaster Keika",
+    "before": "When a spirit is bound",
+    "line": "Did you have time to lay all your people to rest before you left? Forgive me. Bindings put such things in my mind."
+  },
+  {
+    "quest": 100134,
+    "step": 2,
+    "speaker": "Rathei Slaerin",
+    "before": "The Black Robe of the",
+    "line": "That cord you brought from Guk can stay inside the sleeve. Nobody will see it there."
+  },
+  {
+    "quest": 100136,
+    "speaker": "Corious Slaerin",
+    "before": "They've paid me to take",
+    "line": "More than one boat out of that village has carried a passenger from Guk under its nets. Temby remembers who paid passage."
+  },
+  {
+    "quest": 100137,
+    "step": 4,
+    "speaker": "Merchant Landi",
+    "before": "Half the guilds in this",
+    "line": "Funny. Everyone else holds the bottle up to the light. You checked the cork first. Lost a flask on the road once, eh?"
+  },
+  {
+    "quest": 100138,
+    "step": 1,
+    "speaker": "Agent Wilkenson",
+    "before": "I don't keep names on",
+    "line": "Keep the names of the folk who came out of Guk with you. I've bought exactly one name today."
+  },
+  {
+    "quest": 100140,
+    "step": 11,
+    "speaker": "Corious Slaerin",
+    "before": "When you're stronger the House",
+    "line": "I have a place in the House book for your name. I'll leave room for the way you wrote it in Guk."
+  },
+  {
+    "quest": 100141,
+    "speaker": "Malethai Crimsonhand",
+    "before": "We are a company of",
+    "line": "A froglok out of Guk wants to carry my shield. Good. A rebel has had cause to weigh an oath before swearing it."
+  },
+  {
+    "quest": 100143,
+    "speaker": "Stolfson Krieger",
+    "before": "Will you show me you",
+    "line": "I hear you held your ground in Guk. Let's see what your feet do on dry sand."
+  },
+  {
+    "quest": 100145,
+    "speaker": "Stolfson Krieger",
+    "before": "They must be made to",
+    "line": "I've seen folk out of Guk walk a whole day beside a wagon so their little ones could ride. Word gets around about a safe road."
+  },
+  {
+    "quest": 100146,
+    "step": 2,
+    "speaker": "Malethai Crimsonhand",
+    "before": "Take this Damaged Shield of",
+    "line": "Go on, put your arm through. There's a second hole in the strap. The first one sat wrong on your elbow."
+  },
+  {
+    "quest": 100147,
+    "step": 4,
+    "speaker": "Merchant Landi",
+    "before": "Half the guilds in this",
+    "line": "Hold it to the light if you like. That old trick the reedcutters use works just as well on city oil."
+  },
+  {
+    "quest": 100149,
+    "step": 6,
+    "speaker": "Tailor Weynia",
+    "before": "Poacher's leggings. Take them to",
+    "line": "Take a step. Good. I left you enough room to crouch the way you do without splitting my best seam."
+  },
+  {
+    "quest": 100150,
+    "step": 11,
+    "speaker": "Malethai Crimsonhand",
+    "before": "From here on Count Luvincius",
+    "line": "You came here with the last of the road dust from Guk still on that shield arm. Look what you're carrying on it now."
+  },
+  {
+    "quest": 100151,
+    "speaker": "Sivrendesh",
+    "before": "This is the Academy of",
+    "line": "A froglok this far up the tower! I'd heard the rebels from Guk had found beds by the docks. I hadn't heard we had a scholar."
+  },
+  {
+    "quest": 100153,
+    "step": 2,
+    "speaker": "Nefar",
+    "before": "Here is Arcane Bindings. It",
+    "line": "You've kept the little knots in that pack pulled tight. I suppose things were harder to replace on the road out of Guk."
+  },
+  {
+    "quest": 100154,
+    "step": 2,
+    "speaker": "Nefar",
+    "before": "The Red Robe. A little",
+    "line": "That shade ought to hold even in marsh water. If it runs, I'll want a word with the dyer."
+  },
+  {
+    "quest": 100156,
+    "speaker": "Sivrendesh",
+    "before": "The Academy's library has been",
+    "line": "You know what a loose word can cost the folk who stayed in Guk. I need that sort of discretion here."
+  },
+  {
+    "quest": 100157,
+    "step": 4,
+    "speaker": "Merchant Landi",
+    "before": "Half the guilds in this",
+    "line": "Careful with the neck. Someone sealed a bottle with marsh wax for me once. Never lost a spoonful, but I nearly broke a tooth."
+  },
+  {
+    "quest": 100159,
+    "step": 1,
+    "speaker": "Tailor Weynia",
+    "before": "I make them from the",
+    "line": "I remember the first froglok who came off a boat asking for dry cloth. Now I've got your measure chalked on the wall."
+  },
+  {
+    "quest": 100160,
+    "step": 11,
+    "speaker": "Sivrendesh",
+    "before": "When you're stronger, Director Holman",
+    "line": "You may sign the Academy register in the script you used in Guk. Leave room beneath it. Someone else may come up those stairs."
+  },
+  {
+    "quest": 100587,
+    "speaker": "Master T`an Chen",
+    "before": "Welcome, I am Master T`an",
+    "line": "Were you one of the frogloks who rose up in Guk? Come sit with your back to the wall, if that helps you rest."
+  },
+  {
+    "quest": 100588,
+    "step": 1,
+    "speaker": "Spiritmaster Lo",
+    "before": "I will bind you now.",
+    "line": "Some still in Guk may speak your name every evening. You'll remember them just as well wherever you wake."
+  },
+  {
+    "quest": 100589,
+    "step": 2,
+    "speaker": "Mu Nan",
+    "before": "Good then. Once you have",
+    "line": "You waited until I finished speaking. Many who have spent so long listening for pursuit find a quiet room the hardest place to listen."
+  },
+  {
+    "quest": 100592,
+    "step": 1,
+    "speaker": "Dushaun Anju",
+    "before": "A goblin named Nubja roams",
+    "line": "You turned at the sound of the wind in these tent ropes. I hadn't noticed how much they sound like reeds."
+  },
+  {
+    "quest": 100593,
+    "step": 1,
+    "speaker": "Duke Geoff Melnorn",
+    "before": "Kill the bandit Rory Redface",
+    "line": "If you're with the monastery, its word is good in my hall. The guard needn't have kept you on the step."
+  },
+  {
+    "quest": 100595,
+    "step": 1,
+    "speaker": "Jeeves the Scribe",
+    "before": "Have Captain Bordengahst of Castle",
+    "line": "After the last party from Guk passed through, I learned to ask how a traveler spells their name before I set pen to paper."
+  },
+  {
+    "quest": 100596,
+    "step": 15,
+    "speaker": "Mu Nan",
+    "before": "Well done. The prison is",
+    "line": "You heard the word 'uprising' and still took the time to hear each person speak. That takes practice, especially after Guk."
+  },
+  {
+    "quest": 103500,
+    "speaker": "Necorik the Ghost",
+    "before": "Go upstairs and out by",
+    "line": "One of the scouts who came out with the rebels from Guk? You found my door without asking at the gate. I rather like that."
+  },
+  {
+    "quest": 103502,
+    "step": 2,
+    "speaker": "Athera",
+    "before": "Quick work. Learn this. Come",
+    "line": "Clean work on the scales. I can see where a ranger from the marsh learned to use the edge of a knife."
+  },
+  {
+    "quest": 103503,
+    "speaker": "Denouncer Alshea",
+    "before": "I am Denouncer Alshea. We",
+    "line": "A froglok paladin. You must have weighed your oath carefully before you stood with the rebels in Guk."
+  },
+  {
+    "quest": 103505,
+    "step": 2,
+    "speaker": "Sister Falhelm",
+    "before": "Rest. Come back to me",
+    "line": "If a frightened traveler out of Guk sees you wearing that shield, give them a moment to recognize who's behind it."
+  },
+  {
+    "quest": 103506,
+    "speaker": "Denouncer Alshea",
+    "before": "I am Denouncer Alshea. We",
+    "line": "The rebels from Guk brought what they could carry. Another druid came through with a handful of wet earth, roots and all. I remember that."
+  },
+  {
+    "quest": 103508,
+    "step": 2,
+    "speaker": "Sister Falhelm",
+    "before": "Rest. Come back to me",
+    "line": "I saw you looking for reeds along the ditch. Even this dry country has things you'll know from home."
+  },
+  {
+    "quest": 103509,
+    "speaker": "Denouncer Alshea",
+    "before": "I am Denouncer Alshea. We",
+    "line": "A shaman from the rebels in Guk? One of your people sat up a whole night with a feverish child in this hall. There, by the brazier."
+  },
+  {
+    "quest": 103511,
+    "step": 2,
+    "speaker": "Sister Falhelm",
+    "before": "Rest. Come back to me",
+    "line": "Keep whatever small thing you brought out of Guk close. Sometimes a sickbed calls for a familiar voice before anything else."
+  }
+]

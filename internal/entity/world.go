@@ -1553,7 +1553,9 @@ var warpLocationNames = map[string]string{
 	"Gatekeeper Furyfoot": "Gerntar Mines",
 	// and the other pair ("Gatekeeper Warvar - Oggok Gate", beside "Door to Oggok
 	// Gate" in the Rathe): Threm stands at Tunaria's end of that road.
-	"Gatekeeper Threm": "Oggok Gate",
+	// named for its land, so it isn't taken for Oggok's own south gate in the Rathe (Live petition 5584, 2026-11-24:
+	// a player sent here looked for Merchant Zogog, who stands at Oggok's gate; the owner: "rename the Oggok Gate destination")
+	"Gatekeeper Threm": "Oggok Gate (Tunaria)",
 }
 
 // warpOfferedBy is a warp NPC only one other offers, for a route that is a pair

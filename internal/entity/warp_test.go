@@ -502,10 +502,10 @@ func TestAPairedGatekeeperIsOfferedByItsPartnerAlone(t *testing.T) {
 		}
 		return out
 	}
-	if n := names("Gatekeeper Wavar"); !slices.Contains(n, "Oggok Gate") || slices.Contains(n, "Gerntar Mines") {
+	if n := names("Gatekeeper Wavar"); !slices.Contains(n, "Oggok Gate (Tunaria)") || slices.Contains(n, "Gerntar Mines") {
 		t.Errorf("Wavar offers %q", n)
 	}
-	if n := names("Gatekeeper Kuggin"); slices.Contains(n, "Oggok Gate") || !slices.Contains(n, "Gerntar Mines") {
+	if n := names("Gatekeeper Kuggin"); slices.Contains(n, "Oggok Gate (Tunaria)") || !slices.Contains(n, "Gerntar Mines") {
 		t.Errorf("Kuggin offers %q", n)
 	}
 }

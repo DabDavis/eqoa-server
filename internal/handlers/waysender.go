@@ -237,7 +237,7 @@ var wayRoutes = map[string][]wayRoute{
 	"Door to Oggok Gate": {
 		// where a player stood for it (petition 2606, 2026-11-21: "the spawn in
 		// point is in wrong spot"), by Tunaria's door as petition 2601 placed it
-		{To: "Oggok Gate", At: &wayPlace{World: 0, X: 12562, Y: 60, Z: 29554.4}},
+		{To: "Oggok Gate (Tunaria)", At: &wayPlace{World: 0, X: 12562, Y: 60, Z: 29554.4}}, // its land named, as Gatekeeper Threm's (Live petition 5584)
 	},
 
 	// The Archons' towers in Geomancer's Citadel (ticket 1196: "each

@@ -35,8 +35,10 @@ func TestPlayerTermsAgeBeforeCredentialsAndExplicitAccountDecision(t *testing.T)
 	if get.Code != 200 || !strings.Contains(get.Body.String(), "How old are you?") || strings.Contains(get.Body.String(), `name="username"`) {
 		t.Fatal("the public age screen must precede account fields")
 	}
-	if !strings.Contains(get.Body.String(), "Version "+PlayerTermsVersion+" ·") || !strings.Contains(get.Body.String(), `id="player-claim-limit"`) {
-		t.Fatal("the signed-out page must show the full current agreement and its damages limit")
+	for _, section := range []string{"Version " + PlayerTermsVersion + " ·", `id="ordinary-game-losses"`, `id="player-claim-limit"`} {
+		if !strings.Contains(get.Body.String(), section) {
+			t.Fatalf("signed-out agreement missing %q", section)
+		}
 	}
 	if privacy := termsRequest(h, "GET", "/privacy", nil, nil); privacy.Code != 200 || !strings.Contains(privacy.Body.String(), "including tells") {
 		t.Fatal("privacy must be readable without age or account information")
@@ -62,8 +64,15 @@ func TestPlayerTermsAgeBeforeCredentialsAndExplicitAccountDecision(t *testing.T)
 		if box < 0 || strings.Contains(page, " checked") {
 			t.Fatalf("%s must require an unchecked box for the current terms", path)
 		}
-		if !strings.Contains(page[:box], "US $250 limit per player") || !strings.Contains(page[:box], `href="#player-claim-limit"`) {
-			t.Fatalf("%s must show the limit and link to its exceptions before the agreement box", path)
+		for _, notice := range []string{"Bugs and rollbacks can permanently erase progress", "no guarantee of uptime",
+			"may mute, suspend or permanently ban", "give up money damages for ordinary game losses", "own ordinary negligence",
+			"US $250 fallback cap", `href="#ordinary-game-losses"`, `href="#player-claim-limit"`} {
+			if !strings.Contains(page[:box], notice) {
+				t.Fatalf("%s must show %q before the agreement box", path, notice)
+			}
+		}
+		if !strings.Contains(page[box:], "I accept these gameplay risks and agree") {
+			t.Fatalf("%s must name the gameplay risks in the affirmative choice", path)
 		}
 	}
 	f := url.Values{"step": {"accept"}, "username": {"alice"}, "password": {"pw-alice"}, "proof": {cookie.Value}}
@@ -71,7 +80,7 @@ func TestPlayerTermsAgeBeforeCredentialsAndExplicitAccountDecision(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	const previousVersion = "1.1"
+	const previousVersion = "1.2"
 	if err := r.db.AcceptPlayerTerms(account, previousVersion); err != nil {
 		t.Fatal(err)
 	}
@@ -83,7 +92,7 @@ func TestPlayerTermsAgeBeforeCredentialsAndExplicitAccountDecision(t *testing.T)
 		}
 	}
 	check(false)
-	for _, bad := range []string{"", "1.0", previousVersion} {
+	for _, bad := range []string{"", "1.0", "1.1", previousVersion} {
 		f.Set("agree", bad)
 		if resp := termsRequest(h, "POST", "/terms", f, cookie); resp.Code != 400 {
 			t.Fatalf("accepted %q: %d", bad, resp.Code)

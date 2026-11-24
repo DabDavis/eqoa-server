@@ -29,14 +29,17 @@ article {margin-top:2rem;border-top:1px solid #a8a597} li {margin:.65rem 0} .not
 <label for="username">Game account name</label><input id="username" name="username" autocomplete="username" value="{{.Username}}" maxlength="{{if .Signup}}16{{else}}32{{end}}" required>
 <label for="password">Game account password</label><input id="password" type="password" name="password" autocomplete="{{if .Signup}}new-password{{else}}current-password{{end}}" required {{if .Signup}}minlength="4" maxlength="31"{{end}}>
 {{if and .Signup .Mail}}<label for="email">Recovery email</label><input id="email" type="email" name="email" autocomplete="email" value="{{.Email}}" required>{{end}}
-<p>You must be 13 or older to play. A GM may suspend your account on both servers if the GM judges it to be in the community’s best interests. A GM monitoring your character can see outgoing tells.</p>
+<p>You must be 13 or older to play. A GM monitoring your character can see outgoing tells.</p>
 <p><a href="/terms#agreement" target="_blank" rel="noopener">Read Player Terms v{{.Version}}</a> · <a href="/privacy" target="_blank" rel="noopener">Read the Privacy Notice</a></p>
-<p class="notice"><strong>Version {{.Version}} adds a US $250 limit per player</strong> for ordinary game-service claims from one event or a series of directly related events. The operators and GMs share one limit across both servers. It applies only to events or series starting after you agree. <a href="#player-claim-limit">Read the limit and its exceptions</a>.</p>
-<label><input type="checkbox" name="agree" value="{{.Version}}" required> I agree to the EQOA Classic Player Terms v{{.Version}}.</label>
+<div class="notice" id="gameplay-risk-notice">
+<p><strong>You accept the ordinary risks of playing on a free test server.</strong> Bugs and rollbacks can permanently erase progress. There is no guarantee of uptime, continued access, bug fixes or restoration. Authorized GMs may mute, suspend or permanently ban players at their discretion, including without warning where lawful.</p>
+<p><strong>Where the law allows, you give up money damages for ordinary game losses</strong>, including losses caused by an operator’s or authorized GM’s own ordinary negligence. If damages remain recoverable, the US $250 fallback cap applies per player for one event or a series of directly related events, where permitted by law. <a href="#ordinary-game-losses">Read the exclusion</a> and <a href="#player-claim-limit">the fallback cap and exceptions</a>.</p>
+</div>
+<label><input type="checkbox" name="agree" value="{{.Version}}" required aria-describedby="gameplay-risk-notice"> I accept these gameplay risks and agree to the EQOA Classic Player Terms v{{.Version}}.</label>
 <button type="submit" name="step" value="{{if .Signup}}create{{else}}accept{{end}}">{{if .Signup}}Create account and agree{{else}}I agree{{end}}</button></form>
 <form method="post" action="/terms"><input type="hidden" name="proof" value="{{.Proof}}"><button name="step" value="decline">Decline and return to sign-in</button></form>
 {{else if eq .Stage "declined"}}<p>You declined. Your account and characters are preserved. Both game servers require agreement before play.</p><a href="https://eqoaclassic.com/eqoa/play/">Return to game sign-in</a>
 {{else if eq .Stage "accepted"}}<h2>Agreement recorded</h2><p>You accepted version {{.Version}} for <strong>{{.Username}}</strong>. You can now return to game sign-in on either shard. If you need to verify your email or recover access, use <a href="https://eqoaclassic.com/eqoa/password">account help</a>.</p>
 {{end}}
-<article id="agreement">{{template "terms-1.2.html"}}</article>
+<article id="agreement">{{template "terms-1.3.html"}}</article>
 {{end}}</main></body></html>

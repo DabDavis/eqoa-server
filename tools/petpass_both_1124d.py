@@ -28,6 +28,15 @@ Blessed Studs, Rallosian Studs and Takish Ivory Studs (Heirloom 998464/998466/99
 wear the same studs icon -1836445075. Its own log, petpass_both_1124d_studs_log, so its --undo stands alone.
 
     python3 -E -s tools/petpass_both_1124d.py --step 2 --db eqoa.db [--apply | --undo]
+
+Step 3 (Heirloom petition 2831, the same player: "clarification on the rogue metal, it is the copper coins looking
+icon, sorry"): Rogue Metal (996092, Live 980209) wears 2086103783, the stack of copper coins, the copper sibling of
+the silver coins (-2114812357, Defaced Coin's) and the gold coins (1170433018). No record wears it on either shard, so
+the decimal is ITEMICON.ESF's own: its dumped surface 2086103783.png, which ~/.cache/iconsheet finds and renders by
+that decimal. Its own log, petpass_both_1124d_coins_log. Step 1's --undo leaves Rogue Metal alone after this (its row
+no longer reads as step 1 wrote it); undo step 3 first to take Rogue Metal back to the orange bar.
+
+    python3 -E -s tools/petpass_both_1124d.py --step 3 --db eqoa.db [--apply | --undo]
 """
 import os
 import sys
@@ -124,14 +133,44 @@ def changes2(db):
 
 SPEC2 = {"log": LOG2, "detail": DETAIL2, "needs": ("itempattern",), "changes": changes2}
 
+LOG3 = "petpass_both_1124d_coins_log"
+DETAIL3 = "Heirloom petition 2831: Rogue Metal wears the copper coins icon (tools/petpass_both_1124d.py --step 3)"
+ORANGE_BAR_ICON, COPPER_COINS_ICON = 1320989093, 2086103783
+
+
+def changes3(db):
+    out, lines, refusals = [], [], []
+    name, mark = FIXES[0][1], FIXES[0][2]
+    recs = tr.rows(db, "SELECT patternid FROM itempattern WHERE itemname = ? AND itemdesc LIKE ?", (name, f"%{mark}%"))
+    if len(recs) != 1:
+        refusals.append(f"2831: {len(recs)} {name} modifier records, expected 1")
+    else:
+        key = {"patternid": recs[0]["patternid"]}
+        it = tr.get(db, "itempattern", key)
+        if it["itemicon"] not in (ORANGE_BAR_ICON, ALLOY_ICON, COPPER_COINS_ICON):
+            refusals.append(f"2831: itempattern {key['patternid']}'s icon is {it['itemicon']}, not the orange bar's "
+                            "or the alloy's (a GM's edit since?)")
+        else:
+            out.append(("itempattern", key, dict(it, itemicon=COPPER_COINS_ICON)))
+            lines.append(f"2831: itempattern {key['patternid']} {name} itemicon {it['itemicon']} -> "
+                         f"{COPPER_COINS_ICON} (the copper coins, ITEMICON.ESF's surface; no record wore it)")
+    if refusals:
+        out = []
+    applied = bool(out) and all(tr.get(db, t, k) == a for t, k, a in out)
+    lines.insert(0, f"{len(out)} rows")
+    return out, lines, refusals, applied
+
+
+SPEC3 = {"log": LOG3, "detail": DETAIL3, "needs": ("itempattern",), "changes": changes3}
+
 if __name__ == "__main__":
     argv = sys.argv[1:]
     spec = SPEC
     if "--step" in argv:
         i = argv.index("--step")
         step = argv[i + 1] if i + 1 < len(argv) else ""
-        if step not in ("1", "2"):
-            sys.exit("--step takes 1 or 2")
-        spec = SPEC2 if step == "2" else SPEC
+        if step not in ("1", "2", "3"):
+            sys.exit("--step takes 1, 2 or 3")
+        spec = {"1": SPEC, "2": SPEC2, "3": SPEC3}[step]
         del argv[i:i + 2]
     sys.exit(tr.main(spec, argv=argv, doc=__doc__))

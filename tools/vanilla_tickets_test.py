@@ -207,6 +207,10 @@ class Release(unittest.TestCase):
                      (run, "itempattern", '{"patternid":100}', json.dumps({**row, "itemcost": 5}), json.dumps(row), 0))
         quiet(ls.ss.undo, self.l, "old-a", "live")
         self.assertEqual(self.sql(self.l, f"SELECT run,undone FROM {ls.ss.LOG} ORDER BY run"), [("old-a", 1), ("old-b", 0)])
+        bad = subprocess.run([sys.executable, "-B", ls.ss.__file__, "--to", self.l, "--shard", "live",
+                              "--undo", "--run", "missing"], capture_output=True, text=True)
+        self.assertNotEqual(bad.returncode, 0)
+        self.assertTrue(bad.stderr.startswith("REFUSED: unknown run"))
 
     def test_directional_race_policy_covers_unlisted_items_and_quest_lists(self):
         for target, table, column, before, after in (

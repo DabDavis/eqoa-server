@@ -1379,7 +1379,6 @@ def summarize(sh, src):
 def undo(path, run, shard, config=None):
     import vanilla_tickets as tickets
     tickets.require(tickets.nonblank(run) and shard in tickets.TARGETS, "--undo requires --run and --shard")
-    from pathlib import Path
     db = sqlite3.connect(Path(path).resolve().as_uri() + "?mode=rw", uri=True, timeout=60, isolation_level=None)
     db.row_factory = sqlite3.Row
     acct = db.execute("SELECT accountid FROM accountinfo WHERE username = ?", (WHO,)).fetchone()
@@ -1485,4 +1484,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except (ValueError, OSError, sqlite3.Error) as exc:
+        sys.exit(f"REFUSED: {exc}")

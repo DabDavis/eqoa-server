@@ -98,6 +98,8 @@ The writer checks the claim, competing tickets, approval, shard policy, identiti
 
 In production the tool resolves `db_path` relative to the server's `config.yaml` and checks `gm.shard_id`. Pass `--config PATH` for a config elsewhere. When the operator creates a temporary rehearsal copy from that verified source with `VACUUM INTO`, label only the copy with `CREATE TABLE shard_label(shard TEXT)` and one row containing its source shard. The copy label occupies one SQLite page plus its schema entry. Use one copy per shard for the rehearsal and release the temporary copies afterward.
 
+The optional historical `RealShards` stress test requires two labelled offline inputs. Set `EQOA_REAL_USE_DISPOSABLE=1` only when those two files were made for that test and may be modified in place. This reuses the two copies. Its default preserves the inputs with SQLite's backup API.
+
 Look up the release in `vanilla_ticket_release` by target, claim and digest. Its run joins to `live_sync_1122_log.audit`, then `gm_audit.id`. New ticket runs keep the before/after images in that existing audit only. A deletion also keeps its SQLite rowid for restoration. Existing runs retain their original rollback format. Verify the exact destination IDs and any cached or player-visible behavior after the relevant reload or login. Both rollback tools require `--shard` and `--undo --run RUN_ID`. Repeated releases produce no second audit entry.
 
 ## Board handoff

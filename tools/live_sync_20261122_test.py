@@ -14,6 +14,7 @@ import sqlite3
 import tempfile
 import time
 import unittest
+from pathlib import Path
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 spec = importlib.util.spec_from_file_location("live_sync", os.path.join(HERE, "live_sync_20261122.py"))
@@ -171,16 +172,51 @@ def replay_fixture(path, plan_path):
     return ls._replay(path, lambda db, side: plan[side])
 
 
-def undo_fixture(path, shard):
+def undo_fixture(path, shard, after_seq=0):
     db = sqlite3.connect(path)
     try:
-        [(run,)] = db.execute(f"SELECT DISTINCT run FROM {ls.LOG} WHERE undone=0").fetchall()
+        runs = db.execute(f"SELECT DISTINCT run FROM {ls.LOG} WHERE undone=0 AND seq>?", (after_seq,)).fetchall()
     finally:
         db.close()
+    if not runs:
+        return {}, []
+    [(run,)] = runs
     return ls.undo(path, run, shard)
 
 
+def real_test_input(source, destination, shard, use_disposable):
+    """Only labelled offline copies may enter the historical bulk stress test."""
+    path = os.path.realpath(source)
+    db = ls.ss.readonly(path)
+    try:
+        cfg = Path(path).parent / "config.yaml"
+        if cfg.is_file() and ls.tickets.config_binding(cfg)[1] == Path(path):
+            raise ValueError("configured server database cannot be a stress-test input")
+        if not ls.ss.has(db, "shard_label") or ls.tickets.bound_shard(db) != shard:
+            raise ValueError(f"expected a labelled disposable {shard} copy")
+        if use_disposable:
+            return path
+        copied = sqlite3.connect(destination)
+        try:
+            db.backup(copied)
+        finally:
+            copied.close()
+        return destination
+    finally:
+        db.close()
+
+
 class ShardSync(unittest.TestCase):
+    def test_reuse_only_explicit_offline_copies(self):
+        unused = os.path.join(self.d, "extra.db")
+        self.assertEqual(real_test_input(self.l, unused, "live", True), os.path.realpath(self.l))
+        self.assertFalse(os.path.exists(unused))
+        with self.assertRaisesRegex(ValueError, "labelled"):
+            real_test_input(self.h, unused, "live", True)
+        Path(self.d, "config.yaml").write_text("db_path: l.db\ngm:\n  shard_id: live\n", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "configured server"):
+            real_test_input(self.l, unused, "live", True)
+
     def setUp(self):
         self.d = tempfile.mkdtemp()
         self.h, self.l = make(self.d)
@@ -334,21 +370,19 @@ class RealShards(unittest.TestCase):
     def test_real(self):
         d = tempfile.mkdtemp(dir=os.environ.get("EQOA_REAL_TMP") or None)
         try:
-            p = {"H": os.path.join(d, "heirloom.db"), "L": os.path.join(d, "live.db")}
-            shutil.copy(os.environ["EQOA_REAL_HEIRLOOM"], p["H"])
-            shutil.copy(os.environ["EQOA_REAL_LIVE"], p["L"])
-            for side, path in p.items():
-                db = sqlite3.connect(path)
-                try:
-                    if not ls.ss.has(db, "shard_label"):
-                        db.execute("CREATE TABLE shard_label(shard TEXT)")
-                        db.execute("INSERT INTO shard_label VALUES (?)", ({"H": "heirloom", "L": "live"}[side],))
-                        db.commit()
-                finally:
-                    db.close()
+            reuse = os.environ.get("EQOA_REAL_USE_DISPOSABLE") == "1"
+            p = {side: real_test_input(os.environ["EQOA_REAL_" + name.upper()], os.path.join(d, name + ".db"), name, reuse)
+                 for side, name in (("H", "heirloom"), ("L", "live"))}
             plan = os.path.join(d, "plan.json")
             ls.make_plan(p["H"], p["L"], plan, None)
-            tables = {s: [t for t in ls.ss.ORDER if ls.ss.has(sqlite3.connect(p[s]), t)] for s in "HL"}
+            tables, start_seq = {}, {}
+            for s, path in p.items():
+                db = ls.ss.readonly(path)
+                try:
+                    tables[s] = [t for t in ls.ss.ORDER if ls.ss.has(db, t)]
+                    start_seq[s] = db.execute(f"SELECT coalesce(max(seq),0) FROM {ls.LOG}").fetchone()[0] if ls.ss.has(db, ls.LOG) else 0
+                finally:
+                    db.close()
             before = {s: snapshot(p[s], tables[s]) for s in "HL"}
             for s in "LH":
                 t0 = time.time()
@@ -358,7 +392,7 @@ class RealShards(unittest.TestCase):
                 done2, _, _ = replay_fixture(p[s], plan)
                 self.assertEqual(sum(done2.values()), 0)
             for s in "HL":
-                n, left3 = undo_fixture(p[s], {"H": "heirloom", "L": "live"}[s])
+                n, left3 = undo_fixture(p[s], {"H": "heirloom", "L": "live"}[s], start_seq[s])
                 self.assertEqual(left3, [])
                 self.assertEqual(snapshot(p[s], tables[s]), before[s])
         finally:
